@@ -1,0 +1,2085 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>MagiLex</title>
+<link rel="icon" type="image/png" href="MagiLex_Logo.png">
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Noto+Sans+JP:wght@300;400;500;700;900&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0a1a;--card:#12122a;--card2:#1a1a35;--gold:#f0c040;--gold2:#d4a017;--pur:#7c3aed;--pur2:#9d4edd;--grn:#00e676;--red:#ff4757;--txt:#e8e8f8;--txt2:#a0a0c0;--bdr:rgba(240,192,64,0.3);--shd:0 0 30px rgba(124,58,237,0.4)}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{font-family:'Noto Sans JP',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;overflow-x:hidden}
+.screen{display:none;min-height:100vh}
+.screen.on{display:flex;flex-direction:column}
+
+/* SPLASH */
+#splash{background:#000;justify-content:center;align-items:center;gap:30px}
+.spl-ngx{width:min(320px,80vw);opacity:0;transform:translateY(20px);transition:all .8s}
+.spl-ngx.show{opacity:1;transform:translateY(0)}
+.spl-ml{width:min(260px,70vw);opacity:0;transform:scale(.8);transition:all .8s}
+.spl-ml.show{opacity:1;transform:scale(1)}
+.prog-wrap{width:260px;background:rgba(255,255,255,.1);border-radius:20px;height:8px;overflow:hidden;margin-top:10px}
+.prog-bar{height:100%;background:linear-gradient(90deg,var(--pur),var(--gold));border-radius:20px;width:0%;transition:width .12s}
+.spl-txt{color:var(--txt2);font-size:11px;letter-spacing:2px}
+
+/* REGISTER */
+#register{background:radial-gradient(ellipse at center,#1a0a3a,#000);justify-content:center;align-items:center;padding:20px}
+.reg-card{background:var(--card);border:1px solid var(--bdr);border-radius:20px;padding:36px 28px;width:100%;max-width:400px;box-shadow:var(--shd)}
+.reg-card h1{font-family:'Cinzel',serif;color:var(--gold);text-align:center;font-size:26px;margin-bottom:6px}
+.reg-card p{text-align:center;color:var(--txt2);margin-bottom:28px;font-size:13px;line-height:1.7}
+.inp-g{margin-bottom:16px}
+.inp-g label{display:block;color:var(--gold);font-size:12px;margin-bottom:5px;letter-spacing:1px}
+.inp-g input{width:100%;background:rgba(255,255,255,.05);border:1px solid var(--bdr);border-radius:10px;padding:12px 15px;color:var(--txt);font-size:15px;font-family:'Noto Sans JP',sans-serif;outline:none;transition:border-color .3s}
+.inp-g input:focus{border-color:var(--gold)}
+.btn-pri{width:100%;padding:14px;background:linear-gradient(135deg,var(--pur),var(--pur2));border:none;border-radius:12px;color:#fff;font-size:16px;font-family:'Noto Sans JP',sans-serif;font-weight:700;cursor:pointer;transition:all .3s;letter-spacing:1px}
+.btn-pri:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(124,58,237,.5)}
+.btn-sec{width:100%;padding:12px;background:transparent;border:1px solid var(--bdr);border-radius:12px;color:var(--gold);font-size:14px;font-family:'Noto Sans JP',sans-serif;cursor:pointer;margin-top:10px;transition:all .3s}
+
+/* TUTORIAL - 妖怪ウォッチ方式 */
+#tutorial{background:radial-gradient(ellipse at bottom,#1a0a3a,#000);justify-content:flex-end;align-items:center;padding:0;overflow:hidden}
+.tut-bg{position:fixed;inset:0;background:radial-gradient(ellipse at bottom,#2d1b69 0%,#000 70%);z-index:0}
+/* 星パーティクル */
+.tut-stars{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden}
+.tut-star{position:absolute;width:3px;height:3px;background:#fff;border-radius:50%;animation:starTwinkle var(--dur,2s) ease-in-out infinite var(--delay,0s)}
+@keyframes starTwinkle{0%,100%{opacity:.2;transform:scale(1)}50%{opacity:1;transform:scale(1.8)}}
+/* 流れ星 */
+.tut-meteor{position:absolute;width:120px;height:2px;background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.9));border-radius:2px;animation:meteor var(--mdur,4s) linear infinite var(--mdelay,0s);top:var(--mt,10%);left:-140px;transform:rotate(-20deg)}
+@keyframes meteor{0%{left:-140px;opacity:0}10%{opacity:1}90%{opacity:1}100%{left:110vw;opacity:0}}
+/* 魔法陣 */
+.tut-circle{position:absolute;border:1px solid rgba(124,58,237,.3);border-radius:50%;animation:circleRotate 20s linear infinite}
+@keyframes circleRotate{from{transform:rotate(0)}to{transform:rotate(360deg)}}
+.tut-scene{position:relative;z-index:1;width:100%;max-width:540px;margin:0 auto;display:flex;flex-direction:column;height:100vh;justify-content:flex-end;overflow:hidden}
+.tut-chara-area{flex:1;display:flex;justify-content:center;align-items:flex-end;padding:0 20px 0;position:relative;overflow:hidden;min-height:0}
+/* ヒナのキャラクターフレーム */
+.tut-chara-frame{position:relative;display:inline-flex;flex-direction:column;align-items:center;gap:0;max-height:100%}
+.tut-chara-badge{background:linear-gradient(135deg,var(--pur),var(--gold2));color:#fff;font-size:10px;font-weight:700;padding:3px 11px;border-radius:8px;letter-spacing:1px;box-shadow:0 2px 10px rgba(124,58,237,.5);margin-bottom:6px;z-index:2;position:relative;white-space:nowrap;flex-shrink:0}
+.tut-chara-ring{position:relative;display:inline-flex;align-items:center;justify-content:center;border:2px solid var(--gold);border-radius:0;padding:0;box-shadow:0 0 18px rgba(240,192,64,.35),0 0 40px rgba(124,58,237,.2);animation:ringGlow 3s ease-in-out infinite;background:rgba(124,58,237,.06)}
+.tut-chara-ring::after{content:'✦ ナビゲーター ✦';position:absolute;bottom:-22px;left:50%;transform:translateX(-50%);background:rgba(124,58,237,.85);border:1px solid var(--pur2);color:#e0d0ff;font-size:9px;padding:2px 10px;border-radius:10px;white-space:nowrap;letter-spacing:1px}
+@keyframes ringGlow{0%,100%{box-shadow:0 0 14px rgba(240,192,64,.4),0 0 32px rgba(124,58,237,.2)}50%{box-shadow:0 0 26px rgba(240,192,64,.8),0 0 54px rgba(124,58,237,.45)}}
+.tut-chara{width:min(200px,46vw);height:min(200px,46vw);object-fit:contain;object-position:bottom center;animation:charFloat 3s ease-in-out infinite;position:relative;z-index:1;display:block}
+@keyframes charFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+.tut-sparkles{position:absolute;top:20%;left:10%;font-size:20px;animation:sparkle 2s infinite}
+.tut-sparkles2{position:absolute;top:40%;left:20%;font-size:14px;animation:sparkle 2.5s infinite .5s}
+.tut-sparkles3{position:absolute;top:30%;left:5%;font-size:16px;animation:sparkle 1.8s infinite .3s}
+.tut-sparkles4{position:absolute;top:55%;right:15%;font-size:12px;animation:sparkle 2.2s infinite .7s}
+@keyframes sparkle{0%,100%{opacity:1;transform:scale(1) rotate(0)}50%{opacity:.4;transform:scale(1.3) rotate(15deg)}}
+/* ステップインフォ */
+.tut-step-info{position:absolute;top:16px;left:18px;display:flex;align-items:center;gap:8px;background:rgba(10,10,26,.7);border:1px solid var(--bdr);border-radius:12px;padding:6px 12px;backdrop-filter:blur(8px)}
+.tut-step-num{font-family:'Orbitron',sans-serif;font-size:11px;color:var(--gold);font-weight:700}
+.tut-step-bars{display:flex;gap:3px}
+.tut-step-bar{width:18px;height:4px;border-radius:2px;background:rgba(255,255,255,.15);transition:background .4s}
+.tut-step-bar.done{background:var(--gold)}
+/* タイトルロゴ */
+.tut-app-logo{position:absolute;top:16px;right:18px;font-family:'Cinzel',serif;color:var(--gold);font-size:14px;font-weight:700;text-shadow:0 0 12px rgba(240,192,64,.5)}
+/* ダイアログ */
+.tut-dialog-area{background:linear-gradient(180deg,rgba(8,8,20,.98),rgba(15,5,35,.98));border-top:2px solid var(--bdr);padding:22px 20px 0;position:relative;box-shadow:0 -10px 40px rgba(124,58,237,.2)}
+.tut-dialog-area::before{content:'';position:absolute;top:-14px;left:54px;border:14px solid transparent;border-bottom-color:rgba(8,8,20,.98)}
+.tut-name-tag{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,var(--pur),var(--gold2));color:#fff;font-weight:700;font-size:13px;padding:5px 14px;border-radius:20px;margin-bottom:10px;box-shadow:0 3px 12px rgba(124,58,237,.4)}
+.tut-bubble{font-size:15px;line-height:1.9;color:var(--txt);min-height:70px}
+.tut-bubble strong{color:var(--gold)}
+.tut-controls{display:flex;justify-content:space-between;align-items:center;padding:14px 0 20px}
+.tut-dots{display:flex;gap:7px}
+.tut-dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.2);transition:all .3s}
+.tut-dot.on{background:var(--gold);box-shadow:0 0 6px rgba(240,192,64,.6);transform:scale(1.3)}
+.tut-next{padding:10px 26px;background:linear-gradient(135deg,var(--pur),var(--pur2));border:none;border-radius:10px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:'Noto Sans JP',sans-serif;transition:all .3s;box-shadow:0 4px 14px rgba(124,58,237,.4)}
+.tut-next:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(124,58,237,.6)}
+.tut-tap{color:var(--txt2);font-size:12px;animation:blink 1.5s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+
+/* HEADER */
+.hdr{background:rgba(10,10,26,.92);backdrop-filter:blur(10px);padding:11px 18px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--bdr);position:sticky;top:0;z-index:100}
+.hdr-logo{font-family:'Cinzel',serif;color:var(--gold);font-size:19px;font-weight:700}
+.hdr-r{display:flex;align-items:center;gap:10px}
+.lex-disp{display:flex;align-items:center;gap:6px;background:rgba(240,192,64,.1);border:1px solid var(--bdr);border-radius:20px;padding:5px 11px;cursor:pointer}
+.lex-coin{width:20px;height:20px}
+.lex-amt{color:var(--gold);font-weight:700;font-size:13px;font-family:'Orbitron',sans-serif}
+.u-av{width:34px;height:34px;border-radius:50%;border:2px solid var(--gold);cursor:pointer;object-fit:cover}
+
+/* HOME */
+#home{background:radial-gradient(ellipse at top,#1a0a3a,var(--bg) 60%)}
+.home-body{flex:1;overflow-y:auto;padding:18px;padding-bottom:82px}
+.sec-title{font-family:'Cinzel',serif;color:var(--gold);font-size:16px;margin-bottom:13px;display:flex;align-items:center;gap:9px}
+.sec-title::before{content:'';width:4px;height:18px;background:var(--gold);border-radius:2px}
+.daily-ban{background:linear-gradient(135deg,#1a0a3a,#2d1b69);border:1px solid var(--bdr);border-radius:16px;padding:18px;margin-bottom:22px;display:flex;justify-content:space-between;align-items:center}
+.daily-ban h3{color:var(--gold);font-size:15px;margin-bottom:3px}
+.daily-ban p{color:var(--txt2);font-size:12px}
+.btn-daily{padding:9px 18px;background:linear-gradient(135deg,var(--gold2),var(--gold));border:none;border-radius:10px;color:#000;font-weight:700;cursor:pointer;font-size:13px;font-family:'Noto Sans JP',sans-serif;transition:all .3s}
+.btn-daily:disabled{opacity:.4;cursor:not-allowed}
+.s-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:22px}
+.s-card{background:var(--card);border:1px solid var(--bdr);border-radius:15px;padding:18px;cursor:pointer;transition:all .3s;position:relative;overflow:hidden}
+.s-card:hover{transform:translateY(-3px);border-color:var(--gold);box-shadow:0 8px 25px rgba(240,192,64,.2)}
+.s-card.cleared{border-color:var(--grn)}
+.s-card .ci{font-size:26px;margin-bottom:8px}
+.s-card h3{font-size:13px;font-weight:700;margin-bottom:3px}
+.s-card p{font-size:11px;color:var(--txt2)}
+.s-prog{margin-top:7px;background:rgba(255,255,255,.1);border-radius:5px;height:4px;overflow:hidden}
+.s-prog-b{height:100%;background:linear-gradient(90deg,var(--pur),var(--gold));border-radius:5px;transition:width .5s}
+.cl-badge{position:absolute;top:7px;right:7px;background:var(--grn);color:#000;font-size:9px;font-weight:700;padding:2px 5px;border-radius:8px}
+.menu-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-bottom:22px}
+.m-card{background:var(--card);border:1px solid var(--bdr);border-radius:15px;padding:18px;cursor:pointer;text-align:center;transition:all .3s}
+.m-card:hover{transform:translateY(-3px);box-shadow:var(--shd)}
+.m-card .mi{font-size:30px;margin-bottom:7px}
+.m-card h3{font-size:13px;font-weight:700}
+.m-card p{font-size:11px;color:var(--txt2);margin-top:2px}
+
+/* BOTTOM NAV */
+.bnav{position:fixed;bottom:0;left:0;right:0;background:rgba(10,10,26,.97);backdrop-filter:blur(10px);border-top:1px solid var(--bdr);display:flex;z-index:100;padding-bottom:env(safe-area-inset-bottom)}
+.nv{flex:1;display:flex;flex-direction:column;align-items:center;padding:7px 2px;cursor:pointer;transition:color .3s;color:var(--txt2)}
+.nv.on{color:var(--gold)}
+.nv-i{font-size:17px;margin-bottom:1px}
+.nv span{font-size:8px}
+
+/* STUDY */
+#study{background:var(--bg)}
+.study-hdr{padding:13px 18px;display:flex;align-items:center;gap:13px;border-bottom:1px solid var(--bdr);background:rgba(10,10,26,.92);backdrop-filter:blur(10px)}
+.bk-btn{background:none;border:none;color:var(--gold);font-size:22px;cursor:pointer;padding:4px}
+.study-hdr h2{font-family:'Cinzel',serif;color:var(--gold);font-size:15px;flex:1}
+.study-body{flex:1;overflow-y:auto;padding:18px;padding-bottom:82px}
+.mode-tabs{display:flex;gap:7px;margin-bottom:18px;overflow-x:auto;padding-bottom:4px}
+.tab{padding:7px 14px;background:rgba(255,255,255,.05);border:1px solid var(--bdr);border-radius:18px;color:var(--txt2);font-size:12px;cursor:pointer;white-space:nowrap;transition:all .3s;font-family:'Noto Sans JP',sans-serif}
+.tab.on{background:var(--pur);border-color:var(--pur2);color:#fff}
+
+/* Flashcard */
+.fc{width:100%;min-height:190px;background:var(--card);border:2px solid var(--bdr);border-radius:18px;padding:26px;display:flex;flex-direction:column;justify-content:center;align-items:center;cursor:pointer;transition:all .3s;text-align:center;position:relative;overflow:hidden;margin-bottom:16px}
+.fc:hover{border-color:var(--gold)}
+.fc::before{content:'';position:absolute;inset:0;background:linear-gradient(135deg,rgba(124,58,237,.1),transparent)}
+.fc-term{font-size:20px;font-weight:700;color:var(--gold);margin-bottom:8px}
+.fc-read{font-size:13px;color:var(--txt2);margin-bottom:12px}
+.fc-def{font-size:14px;color:var(--txt);display:none;margin-top:8px;line-height:1.7}
+.fc.flip .fc-def{display:block}
+.fc.flip .fc-hint{display:none}
+.fc-hint{color:var(--txt2);font-size:11px;margin-top:8px}
+.c-nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.c-nav button{background:rgba(255,255,255,.05);border:1px solid var(--bdr);border-radius:9px;padding:9px 18px;color:var(--txt);cursor:pointer;font-family:'Noto Sans JP',sans-serif;transition:all .3s;font-size:13px}
+.c-nav button:hover{border-color:var(--gold);color:var(--gold)}
+.c-cnt{color:var(--txt2);font-size:13px}
+.know-btns{display:flex;gap:10px;margin-top:5px}
+.btn-kn{flex:1;padding:11px;background:rgba(0,230,118,.15);border:1px solid var(--grn);border-radius:10px;color:var(--grn);cursor:pointer;font-size:13px;font-family:'Noto Sans JP',sans-serif;transition:all .3s}
+.btn-dk{flex:1;padding:11px;background:rgba(255,71,87,.15);border:1px solid var(--red);border-radius:10px;color:var(--red);cursor:pointer;font-size:13px;font-family:'Noto Sans JP',sans-serif;transition:all .3s}
+
+/* Checklist */
+.cl-list{display:flex;flex-direction:column;gap:9px}
+.cl-item{background:var(--card);border:1px solid var(--bdr);border-radius:11px;padding:13px;cursor:pointer;transition:border-color .2s}
+.cl-item:hover{border-color:var(--gold)}
+.cl-item.mastered{border-color:var(--grn);background:rgba(0,230,118,.04)}
+.cli-t{font-size:14px;font-weight:700;color:var(--gold)}
+.cli-d{font-size:12px;color:var(--txt2);margin-top:2px}
+.cli-answer{margin-top:10px;padding-top:10px;border-top:1px solid rgba(255,255,255,.08)}
+.cli-ans-text{font-size:13px;font-weight:700;color:var(--grn);margin-bottom:4px}
+.cli-extra{font-size:11px;color:var(--txt2);line-height:1.7;margin-top:4px;padding:6px 8px;background:rgba(255,255,255,.03);border-radius:6px}
+.cli-hint{font-size:11px;color:var(--txt2);margin-top:6px;text-align:right;opacity:.6}
+.ms-bdg{background:var(--grn);color:#000;font-size:10px;font-weight:700;padding:2px 7px;border-radius:8px;margin-left:6px}
+
+/* QUIZ */
+.qz-prog{background:rgba(255,255,255,.1);border-radius:8px;height:5px;margin-bottom:18px;overflow:hidden}
+.qz-prog-b{height:100%;background:linear-gradient(90deg,var(--pur),var(--gold));border-radius:8px;transition:width .4s}
+.qz-q{background:var(--card);border:1px solid var(--bdr);border-radius:15px;padding:22px;margin-bottom:18px}
+.qz-label{color:var(--txt2);font-size:11px;margin-bottom:7px;letter-spacing:1px}
+.qz-stem{font-size:16px;font-weight:700;color:var(--gold);line-height:1.6}
+.qz-sub{color:var(--txt2);font-size:12px;margin-top:4px}
+.qz-opts{display:flex;flex-direction:column;gap:9px}
+.qz-opt{background:var(--card);border:2px solid var(--bdr);border-radius:11px;padding:13px 17px;cursor:pointer;font-size:13px;font-family:'Noto Sans JP',sans-serif;color:var(--txt);transition:all .25s;text-align:left;line-height:1.5}
+.qz-opt:hover:not(:disabled){border-color:var(--pur2);background:rgba(124,58,237,.1)}
+.qz-opt.correct{border-color:var(--grn)!important;background:rgba(0,230,118,.15)!important;color:var(--grn)!important}
+.qz-opt.wrong{border-color:var(--red)!important;background:rgba(255,71,87,.15)!important;color:var(--red)!important}
+.qz-opt.dkw{border-color:#666!important;background:rgba(255,255,255,.05)!important;color:#888!important}
+.qz-opt:disabled{cursor:default}
+.ans-reveal{background:rgba(0,230,118,.08);border:1px solid var(--grn);border-radius:11px;padding:13px;margin-top:12px;font-size:13px;line-height:1.7;display:none}
+.ans-reveal.show{display:block}
+.ans-reveal strong{color:var(--grn)}
+.next-q-btn{width:100%;padding:12px;background:linear-gradient(135deg,var(--pur),var(--pur2));border:none;border-radius:10px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:'Noto Sans JP',sans-serif;margin-top:12px;display:none}
+.next-q-btn.show{display:block}
+
+/* Quiz Result */
+.qz-res{text-align:center;padding:28px}
+.qz-score{font-family:'Orbitron',sans-serif;font-size:44px;color:var(--gold);margin:18px 0}
+.lex-rew{background:rgba(240,192,64,.1);border:1px solid var(--bdr);border-radius:11px;padding:13px;margin:13px 0;display:flex;align-items:center;justify-content:center;gap:9px}
+.lex-rew img{width:26px}
+.lex-rew span{color:var(--gold);font-size:17px;font-weight:700;font-family:'Orbitron',sans-serif}
+
+/* GACHA */
+#gacha{background:radial-gradient(ellipse at center,#2d1b69,#000 70%)}
+.gacha-body{flex:1;overflow-y:auto;padding:18px;padding-bottom:82px}
+.gacha-img{width:100%;border-radius:15px;margin-bottom:18px;border:2px solid var(--bdr)}
+.gacha-box{background:var(--card);border:1px solid var(--bdr);border-radius:15px;padding:18px;margin-bottom:18px}
+.g-cost{display:flex;align-items:center;gap:9px;margin-bottom:14px}
+.g-cost img{width:28px}
+.g-cost-t{font-size:17px;font-weight:700;color:var(--gold);font-family:'Orbitron',sans-serif}
+.g-cost-l{color:var(--txt2);font-size:12px}
+.g-rates h4{color:var(--gold);margin-bottom:7px;font-size:13px}
+.r-row{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid rgba(255,255,255,.05);font-size:12px}
+.r-ssr{color:#ffd700}
+.r-sr{color:#c0c0ff}
+.btn-gacha{width:100%;padding:15px;background:linear-gradient(135deg,#7c3aed,#d4a017);border:none;border-radius:13px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;font-family:'Noto Sans JP',sans-serif;transition:all .3s;letter-spacing:2px;margin-top:14px}
+.btn-gacha:hover{transform:translateY(-2px);box-shadow:0 8px 30px rgba(240,192,64,.4)}
+.g-overlay{position:fixed;inset:0;background:rgba(0,0,0,.96);z-index:1000;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:20px;animation:fdIn .3s}
+@keyframes fdIn{from{opacity:0}to{opacity:1}}
+.g-res-img{width:min(280px,75vw);border-radius:18px;box-shadow:0 0 50px rgba(240,192,64,.5);animation:scIn .5s cubic-bezier(.34,1.56,.64,1)}
+@keyframes scIn{from{transform:scale(.3) rotate(-10deg);opacity:0}to{transform:scale(1) rotate(0);opacity:1}}
+.g-rar{font-family:'Cinzel',serif;font-size:26px;text-align:center;margin:13px 0}
+.g-rar-ssr{color:#ffd700;text-shadow:0 0 20px #ffd700}
+.g-rar-sr{color:#c0c0ff;text-shadow:0 0 15px #c0c0ff}
+.g-cname{font-size:21px;font-weight:700;text-align:center;margin-bottom:4px}
+.g-new{background:var(--gold);color:#000;font-weight:700;padding:4px 12px;border-radius:18px;font-size:12px;margin-bottom:13px}
+.btn-cg{padding:13px 38px;background:rgba(255,255,255,.1);border:1px solid var(--bdr);border-radius:11px;color:#fff;font-size:15px;cursor:pointer;font-family:'Noto Sans JP',sans-serif;margin-top:8px}
+
+/* COLLECTION */
+#collection{background:var(--bg)}
+.col-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:11px;padding:18px;padding-bottom:82px}
+.ch-card{background:var(--card);border:1px solid var(--bdr);border-radius:11px;overflow:hidden;cursor:pointer;transition:all .3s;position:relative}
+.ch-card:hover{transform:scale(1.04);border-color:var(--gold)}
+.ch-card.lk{opacity:.3;filter:grayscale(1)}
+.ch-card img{width:100%;aspect-ratio:1;object-fit:cover}
+.ch-info{padding:7px}
+.ch-nm{font-size:11px;font-weight:700;text-align:center}
+.ch-rar{font-size:10px;text-align:center}
+.rar-ssr{color:#ffd700}
+.rar-sr{color:#c0c0ff}
+.eq-bdg{position:absolute;top:5px;right:5px;background:var(--gold);color:#000;font-size:9px;font-weight:700;padding:2px 5px;border-radius:5px}
+.ch-overlay{position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:1000;display:flex;flex-direction:column;justify-content:center;align-items:center;padding:20px;animation:fdIn .3s}
+.ch-det-img{width:min(300px,78vw);border-radius:18px;border:3px solid var(--gold);margin-bottom:18px}
+.ch-det-nm{font-family:'Cinzel',serif;font-size:22px;color:var(--gold);margin-bottom:4px}
+.btn-av{padding:11px 28px;background:linear-gradient(135deg,var(--pur),var(--pur2));border:none;border-radius:11px;color:#fff;font-size:13px;cursor:pointer;font-family:'Noto Sans JP',sans-serif;margin:4px}
+.btn-cc{padding:10px 24px;background:rgba(255,255,255,.1);border:1px solid var(--bdr);border-radius:11px;color:#fff;font-size:13px;cursor:pointer;font-family:'Noto Sans JP',sans-serif;margin:4px}
+
+/* SETTINGS */
+#settings{background:var(--bg)}
+.set-body{flex:1;overflow-y:auto;padding:18px;padding-bottom:82px}
+.set-grp{background:var(--card);border:1px solid var(--bdr);border-radius:15px;margin-bottom:18px;overflow:hidden}
+.set-gt{padding:11px 18px;background:rgba(240,192,64,.05);border-bottom:1px solid var(--bdr);color:var(--gold);font-size:13px;font-weight:700}
+.set-row{padding:13px 18px;display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid rgba(255,255,255,.04)}
+.set-row:last-child{border-bottom:none}
+.set-lbl{font-size:13px}
+.set-val{color:var(--txt2);font-size:12px}
+.set-row button{padding:7px 14px;background:rgba(124,58,237,.2);border:1px solid var(--pur2);border-radius:7px;color:var(--pur2);font-size:12px;cursor:pointer;font-family:'Noto Sans JP',sans-serif}
+.set-row input{background:rgba(255,255,255,.05);border:1px solid var(--bdr);border-radius:7px;padding:5px 9px;color:var(--txt);font-size:12px;font-family:'Noto Sans JP',sans-serif;outline:none;width:110px}
+
+/* SETTINGS ENHANCED */
+.set-toggle{position:relative;width:44px;height:24px;flex-shrink:0}
+.set-toggle input{opacity:0;width:0;height:0;position:absolute}
+.set-toggle-track{position:absolute;inset:0;background:rgba(255,255,255,.15);border-radius:24px;cursor:pointer;transition:background .3s}
+.set-toggle input:checked+.set-toggle-track{background:var(--pur2)}
+.set-toggle-track::after{content:'';position:absolute;width:18px;height:18px;left:3px;top:3px;background:#fff;border-radius:50%;transition:transform .3s}
+.set-toggle input:checked+.set-toggle-track::after{transform:translateX(20px)}
+.set-sel{background:rgba(255,255,255,.05);border:1px solid var(--bdr);border-radius:9px;padding:6px 10px;color:var(--txt);font-size:12px;font-family:'Noto Sans JP',sans-serif;outline:none;cursor:pointer;appearance:none;-webkit-appearance:none;padding-right:28px;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23a0a0c0'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 9px center}
+.set-sel option{background:#12122a}
+.color-swatches{display:flex;gap:8px}
+.c-swatch{width:28px;height:28px;border-radius:50%;cursor:pointer;border:3px solid transparent;transition:all .2s}
+.c-swatch.on{border-color:#fff;transform:scale(1.2)}
+.set-danger{background:rgba(255,71,87,.1)!important;border-color:rgba(255,71,87,.4)!important}
+.set-danger .set-gt{color:var(--red)!important}
+.set-row-desc{font-size:10px;color:var(--txt2);margin-top:3px;padding:0 18px 10px;line-height:1.5}
+.set-stat-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:0 0 4px}
+.set-stat-box{background:rgba(255,255,255,.04);border-radius:10px;padding:10px;text-align:center}
+.set-stat-box .sv{font-size:18px;font-weight:700;color:var(--gold);font-family:'Orbitron',sans-serif}
+.set-stat-box .sl{font-size:10px;color:var(--txt2);margin-top:2px}
+
+/* STATS */
+#stats{background:var(--bg)}
+.st-body{flex:1;overflow-y:auto;padding:18px;padding-bottom:82px}
+.st-card{background:var(--card);border:1px solid var(--bdr);border-radius:15px;padding:18px;margin-bottom:15px}
+.st-card h3{color:var(--gold);margin-bottom:13px;font-size:15px}
+.st-row{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px}
+.st-val{color:var(--gold);font-weight:700;font-family:'Orbitron',sans-serif;font-size:12px}
+.ss-item{background:rgba(255,255,255,.03);border-radius:9px;padding:11px;margin-top:7px}
+.ss-nm{font-size:12px;color:var(--txt2);margin-bottom:5px}
+.ss-bar{background:rgba(255,255,255,.1);border-radius:4px;height:5px;overflow:hidden}
+.ss-fill{height:100%;background:linear-gradient(90deg,var(--pur),var(--gold));border-radius:4px}
+.reset-sec-btn{width:100%;padding:9px;background:rgba(255,71,87,.1);border:1px solid var(--red);border-radius:9px;color:var(--red);font-size:12px;cursor:pointer;font-family:'Noto Sans JP',sans-serif;margin-top:9px}
+
+/* MODAL */
+.modal-ov{position:fixed;inset:0;background:rgba(0,0,0,.8);z-index:500;display:flex;justify-content:center;align-items:flex-end;animation:fdIn .2s}
+.modal{background:var(--card);border-radius:18px 18px 0 0;padding:22px;width:100%;max-width:500px;margin:0 auto;border:1px solid var(--bdr);border-bottom:none;animation:slUp .3s cubic-bezier(.34,1.2,.64,1);max-height:80vh;overflow-y:auto}
+@keyframes slUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.modal h3{color:var(--gold);font-size:17px;margin-bottom:13px;font-family:'Cinzel',serif}
+.modal-row{padding:13px 0;border-bottom:1px solid rgba(255,255,255,.05);cursor:pointer;display:flex;justify-content:space-between;align-items:center;font-size:14px}
+.modal-row:hover{color:var(--gold)}
+.modal-close{width:100%;padding:12px;background:rgba(255,255,255,.07);border:1px solid var(--bdr);border-radius:10px;color:var(--txt2);font-size:14px;cursor:pointer;font-family:'Noto Sans JP',sans-serif;margin-top:14px}
+
+/* TOAST */
+.toast{position:fixed;top:18px;left:50%;transform:translateX(-50%) translateY(-100px);background:var(--card2,#1a1a35);border:1px solid var(--bdr);border-radius:11px;padding:11px 18px;font-size:13px;z-index:2000;transition:transform .3s;max-width:88vw;text-align:center}
+.toast.on{transform:translateX(-50%) translateY(0)}
+.toast.suc{border-color:var(--grn);color:var(--grn)}
+.toast.err{border-color:var(--red);color:var(--red)}
+.toast.gld{border-color:var(--gold);color:var(--gold)}
+
+/* Quiz 9択グリッドレイアウト */
+.qz-opts-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.qz-opts-grid .qz-opt{font-size:12px;padding:10px 10px;line-height:1.4;min-height:52px;display:flex;align-items:center;justify-content:center;text-align:center}
+.qz-opts-grid .qz-opt.dk-btn{grid-column:1/-1;background:rgba(160,160,192,.08);border-color:rgba(160,160,192,.3);color:var(--txt2);min-height:42px}
+/* 問題数選択画面 */
+.qcount-sel{display:flex;flex-direction:column;gap:12px;padding:8px 0}
+.qcount-btn{background:var(--card);border:2px solid var(--bdr);border-radius:14px;padding:16px 20px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;transition:all .3s;font-family:'Noto Sans JP',sans-serif}
+.qcount-btn:hover{border-color:var(--gold);background:rgba(240,192,64,.06)}
+.qcount-btn .qc-num{font-family:'Orbitron',sans-serif;font-size:22px;color:var(--gold);font-weight:700}
+.qcount-btn .qc-lbl{font-size:13px;color:var(--txt2)}
+.qcount-btn .qc-badge{font-size:11px;padding:3px 9px;border-radius:10px;font-weight:700}
+/* 学習モード切替（確認＋9択 を横並びタブ強化） */
+.mode-tabs .tab{font-size:13px;padding:9px 18px}
+
+/* STUDY LIST SCREEN */
+#studyList{background:var(--bg)}
+.sl-body{flex:1;overflow-y:auto;padding:16px;padding-bottom:82px}
+.sl-search-bar{display:flex;gap:8px;margin-bottom:14px;align-items:center}
+.sl-search{flex:1;background:rgba(255,255,255,.06);border:1px solid var(--bdr);border-radius:12px;padding:10px 14px;color:var(--txt);font-size:14px;font-family:'Noto Sans JP',sans-serif;outline:none}
+.sl-search:focus{border-color:var(--gold)}
+.sl-search::placeholder{color:var(--txt2)}
+.sl-filter-row{display:flex;gap:6px;margin-bottom:14px;overflow-x:auto;padding-bottom:2px}
+.sl-filter{padding:5px 13px;background:rgba(255,255,255,.05);border:1px solid var(--bdr);border-radius:16px;color:var(--txt2);font-size:11px;cursor:pointer;white-space:nowrap;transition:all .25s;font-family:'Noto Sans JP',sans-serif}
+.sl-filter.on{background:var(--pur);border-color:var(--pur2);color:#fff}
+.sl-card{background:var(--card);border:1px solid var(--bdr);border-radius:14px;padding:15px;margin-bottom:10px;cursor:pointer;transition:all .25s;display:flex;align-items:center;gap:12px}
+.sl-card:hover{border-color:var(--gold);transform:translateX(3px)}
+.sl-card.cleared{border-color:var(--grn)}
+.sl-icon{font-size:28px;flex-shrink:0;width:44px;text-align:center}
+.sl-info{flex:1;min-width:0}
+.sl-name{font-size:14px;font-weight:700;margin-bottom:2px}
+.sl-desc{font-size:11px;color:var(--txt2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sl-prog-row{display:flex;align-items:center;gap:7px;margin-top:6px}
+.sl-prog-bar{flex:1;height:4px;background:rgba(255,255,255,.1);border-radius:3px;overflow:hidden}
+.sl-prog-fill{height:100%;border-radius:3px;background:linear-gradient(90deg,var(--pur),var(--gold));transition:width .5s}
+.sl-prog-txt{font-size:10px;color:var(--txt2);white-space:nowrap}
+/* Pie chart mini */
+.sl-pie{width:36px;height:36px;flex-shrink:0}
+
+/* SECTION DETAIL SCREEN */
+#secDetail{background:var(--bg)}
+.sd-body{flex:1;overflow-y:auto;padding:16px;padding-bottom:82px}
+.sd-hero{background:linear-gradient(135deg,var(--card),rgba(124,58,237,.15));border:1px solid var(--bdr);border-radius:16px;padding:20px;margin-bottom:16px;display:flex;gap:16px;align-items:center}
+.sd-hero-icon{font-size:42px}
+.sd-hero-info{flex:1}
+.sd-hero-name{font-family:'Cinzel',serif;font-size:16px;font-weight:700;color:var(--gold);margin-bottom:4px}
+.sd-hero-desc{font-size:12px;color:var(--txt2);line-height:1.6}
+.sd-stats-row{display:flex;gap:8px;margin-top:10px}
+.sd-stat{flex:1;text-align:center;background:rgba(255,255,255,.04);border-radius:9px;padding:8px 4px}
+.sd-stat-v{font-size:15px;font-weight:700;color:var(--gold);font-family:'Orbitron',sans-serif}
+.sd-stat-l{font-size:9px;color:var(--txt2);margin-top:2px}
+/* Donut chart */
+.donut-wrap{display:flex;align-items:center;gap:16px;background:var(--card);border:1px solid var(--bdr);border-radius:14px;padding:16px;margin-bottom:16px}
+.donut-svg{width:90px;height:90px;flex-shrink:0}
+.donut-legend{flex:1}
+.donut-leg-item{display:flex;align-items:center;gap:7px;padding:3px 0;font-size:12px}
+.donut-dot{width:10px;height:10px;border-radius:50%;flex-shrink:0}
+.donut-val{margin-left:auto;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700}
+/* Action buttons */
+.sd-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px}
+.sd-btn{padding:14px 10px;border:none;border-radius:13px;font-family:'Noto Sans JP',sans-serif;font-size:13px;font-weight:700;cursor:pointer;transition:all .3s;text-align:center;letter-spacing:.5px}
+.sd-btn-quiz{background:linear-gradient(135deg,var(--pur),var(--pur2));color:#fff;box-shadow:0 4px 14px rgba(124,58,237,.3)}
+.sd-btn-quiz:hover{transform:translateY(-2px);box-shadow:0 6px 20px rgba(124,58,237,.5)}
+.sd-btn-list{background:rgba(240,192,64,.1);border:1px solid var(--bdr);color:var(--gold)}
+.sd-btn-list:hover{background:rgba(240,192,64,.2);transform:translateY(-2px)}
+/* Compact checklist for detail page */
+.sd-cl-item{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.06);border-radius:9px;padding:11px 13px;margin-bottom:7px;cursor:pointer;transition:border-color .2s}
+.sd-cl-item:hover{border-color:var(--gold)}
+.sd-cl-item.mastered{border-color:rgba(0,230,118,.4);background:rgba(0,230,118,.04)}
+.sd-cl-item.reviewing{border-color:rgba(240,192,64,.3);background:rgba(240,192,64,.03)}
+.sd-cl-num{font-size:10px;color:var(--txt2);margin-bottom:3px;display:flex;justify-content:space-between}
+.sd-cl-q{font-size:13px;font-weight:700;color:var(--txt)}
+.sd-cl-ans{margin-top:8px;padding-top:8px;border-top:1px solid rgba(255,255,255,.07);display:none}
+
+  .s-grid{grid-template-columns:repeat(3,1fr)}
+  .menu-grid{grid-template-columns:repeat(4,1fr)}
+  .col-grid{grid-template-columns:repeat(4,1fr)}
+  .home-body,.study-body,.gacha-body,.set-body,.st-body{max-width:680px;margin:0 auto}
+}
+@media(max-width:360px){
+  .fc-term{font-size:17px}
+  .qz-stem{font-size:14px}
+  .tut-chara{width:min(200px,55vw)}
+}
+</style>
+</head>
+<body>
+
+<!-- SPLASH -->
+<div id="splash" class="screen on">
+  <img src="NGX.png" class="spl-ngx" id="ngxLogo" alt="NGX">
+  <img src="MagiLex_Logo.png" class="spl-ml" id="mlLogo" alt="MagiLex">
+  <div class="prog-wrap"><div class="prog-bar" id="progBar"></div></div>
+  <div class="spl-txt" id="progTxt">Loading...</div>
+</div>
+
+<!-- REGISTER -->
+<div id="register" class="screen">
+  <div class="reg-card">
+    <img src="MagiLex_Logo.png" style="width:130px;margin:0 auto 18px;display:block" alt="MagiLex">
+    <h1>はじめる</h1>
+    <p>MagiLexへようこそ！<br>ユーザー名を入力してください</p>
+    <div class="inp-g"><label>ユーザー名（1〜20文字）</label><input type="text" id="regName" placeholder="例: 化学の魔法使い" maxlength="20"></div>
+    <div id="regErr" style="color:var(--red);font-size:12px;margin-bottom:9px;display:none"></div>
+    <button class="btn-pri" onclick="doRegister()">✨ はじめる</button>
+  </div>
+</div>
+
+<!-- TUTORIAL (妖怪ウォッチ方式) -->
+<div id="tutorial" class="screen">
+  <div class="tut-bg"></div>
+  <!-- 星パーティクル -->
+  <div class="tut-stars" id="tutStars"></div>
+  <!-- 流れ星 -->
+  <div class="tut-meteor" style="--mdur:5s;--mdelay:0s;--mt:15%"></div>
+  <div class="tut-meteor" style="--mdur:7s;--mdelay:2.5s;--mt:35%"></div>
+  <div class="tut-meteor" style="--mdur:6s;--mdelay:4s;--mt:55%"></div>
+  <!-- 魔法陣 -->
+  <div class="tut-circle" style="width:300px;height:300px;top:-100px;left:-80px;opacity:.3"></div>
+  <div class="tut-circle" style="width:200px;height:200px;bottom:180px;right:-60px;opacity:.2;animation-direction:reverse;animation-duration:14s"></div>
+  <div class="tut-scene">
+    <div class="tut-chara-area">
+      <!-- ステップインフォ（左上） -->
+      <div class="tut-step-info" id="tutStepInfo">
+        <span class="tut-step-num" id="tutStepNum">STEP 1/6</span>
+        <div class="tut-step-bars" id="tutStepBars"></div>
+      </div>
+      <!-- ロゴ（右上） -->
+      <div class="tut-app-logo">✨ MagiLex</div>
+      <!-- 輝きエフェクト -->
+      <span class="tut-sparkles">✨</span>
+      <span class="tut-sparkles2">⭐</span>
+      <span class="tut-sparkles3">💫</span>
+      <span class="tut-sparkles4">✦</span>
+      <!-- ヒナキャラフレーム -->
+      <div class="tut-chara-frame">
+        <div class="tut-chara-badge">📖 チュートリアルナビ</div>
+        <div class="tut-chara-ring">
+          <img src="MagiLex_GC_Hina.png" class="tut-chara" id="tutChara" alt="Hina">
+        </div>
+      </div>
+    </div>
+    <div class="tut-dialog-area" id="tutDialog">
+      <div class="tut-name-tag">🌸 ヒナ</div>
+      <div class="tut-bubble" id="tutText"></div>
+      <div class="tut-controls">
+        <div class="tut-dots" id="tutDots"></div>
+        <button class="tut-next" id="tutNextBtn" onclick="tutNext()">次へ ▶</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- HOME -->
+<div id="home" class="screen">
+  <div class="hdr">
+    <div class="hdr-logo">✨ MagiLex</div>
+    <div class="hdr-r">
+      <div class="lex-disp" onclick="showScreen('gacha')">
+        <img src="MagiLex_Coin.png" class="lex-coin" alt="Lex">
+        <span class="lex-amt" id="lexH">0</span>
+      </div>
+      <img id="avH" src="MagiLex_GC_Hina.png" class="u-av" onclick="showScreen('collection')">
+    </div>
+  </div>
+  <div class="home-body">
+    <div class="daily-ban">
+      <div>
+        <h3>🌟 デイリーボーナス</h3>
+        <p>毎日ログインで +50 Lex</p>
+        <div id="dailyGoalInfo"></div>
+      </div>
+      <button class="btn-daily" id="dailyBtn" onclick="claimDaily()">受け取る</button>
+    </div>
+    <div class="sec-title">📚 学習セクション</div>
+    <div class="s-grid" id="secGrid"></div>
+    <div class="sec-title">⚡ ミックスモード</div>
+    <div id="mixCard" style="background:var(--card);border:1px solid var(--bdr);border-radius:15px;padding:18px;cursor:pointer;margin-bottom:22px;text-align:center" onclick="startMix()">
+      <div style="font-size:28px;margin-bottom:7px">🌀</div>
+      <h3 id="mixCardTitle" style="font-size:14px;font-weight:700">ミックス問題（30問）</h3>
+      <p style="font-size:11px;color:var(--txt2);margin-top:3px">全セクション混合 | 90%↑→+50Lex / 100%→+150Lex</p>
+    </div>
+    <div class="sec-title">🎮 メニュー</div>
+    <div class="menu-grid">
+      <div class="m-card" onclick="showScreen('gacha')"><div class="mi">🎰</div><h3>ガチャ</h3><p>1500 Lex</p></div>
+      <div class="m-card" onclick="showScreen('collection')"><div class="mi">📖</div><h3>図鑑</h3><p>キャラ一覧</p></div>
+      <div class="m-card" onclick="showScreen('stats')"><div class="mi">📊</div><h3>学習データ</h3><p>進捗確認</p></div>
+      <div class="m-card" onclick="showScreen('settings')"><div class="mi">⚙️</div><h3>設定</h3><p>アカウント</p></div>
+    </div>
+  </div>
+  <div class="bnav">
+    <div class="nv on" onclick="showScreen('home')"><div class="nv-i">🏠</div><span>ホーム</span></div>
+    <div class="nv" onclick="showScreen('studyList')"><div class="nv-i">📚</div><span>学習</span></div>
+    <div class="nv" onclick="showScreen('gacha')"><div class="nv-i">🎰</div><span>ガチャ</span></div>
+    <div class="nv" onclick="showScreen('collection')"><div class="nv-i">👥</div><span>図鑑</span></div>
+    <div class="nv" onclick="showScreen('stats')"><div class="nv-i">📊</div><span>データ</span></div>
+    <div class="nv" onclick="showScreen('settings')"><div class="nv-i">⚙️</div><span>設定</span></div>
+  </div>
+</div>
+
+<!-- STUDY LIST -->
+<div id="studyList" class="screen">
+  <div class="study-hdr">
+    <button class="bk-btn" onclick="showScreen('home')">←</button>
+    <h2 style="font-family:'Cinzel',serif;color:var(--gold);font-size:15px;flex:1">📚 学習セクション</h2>
+    <div class="lex-disp" style="cursor:default"><img src="MagiLex_Coin.png" class="lex-coin"><span class="lex-amt" id="lexSL">0</span></div>
+  </div>
+  <div class="sl-body">
+    <div class="sl-search-bar">
+      <input class="sl-search" type="text" id="slSearch" placeholder="🔍 セクション名で検索..." oninput="filterStudyList()">
+    </div>
+    <div class="sl-filter-row" id="slFilters">
+      <button class="sl-filter on" data-f="all" onclick="setSLFilter('all')">すべて</button>
+      <button class="sl-filter" data-f="notstarted" onclick="setSLFilter('notstarted')">未着手</button>
+      <button class="sl-filter" data-f="inprogress" onclick="setSLFilter('inprogress')">学習中</button>
+      <button class="sl-filter" data-f="cleared" onclick="setSLFilter('cleared')">✓ 完全習得</button>
+    </div>
+    <div id="slList"></div>
+  </div>
+  <div class="bnav">
+    <div class="nv" onclick="showScreen('home')"><div class="nv-i">🏠</div><span>ホーム</span></div>
+    <div class="nv on" onclick="showScreen('studyList')"><div class="nv-i">📚</div><span>学習</span></div>
+    <div class="nv" onclick="showScreen('gacha')"><div class="nv-i">🎰</div><span>ガチャ</span></div>
+    <div class="nv" onclick="showScreen('collection')"><div class="nv-i">👥</div><span>図鑑</span></div>
+    <div class="nv" onclick="showScreen('stats')"><div class="nv-i">📊</div><span>データ</span></div>
+    <div class="nv" onclick="showScreen('settings')"><div class="nv-i">⚙️</div><span>設定</span></div>
+  </div>
+</div>
+
+<!-- SECTION DETAIL -->
+<div id="secDetail" class="screen">
+  <div class="study-hdr">
+    <button class="bk-btn" id="sdBackBtn" onclick="showScreen('studyList')">←</button>
+    <h2 id="sdTitle" style="font-family:'Cinzel',serif;color:var(--gold);font-size:14px;flex:1">セクション</h2>
+    <div class="lex-disp" style="cursor:default"><img src="MagiLex_Coin.png" class="lex-coin"><span class="lex-amt" id="lexSD">0</span></div>
+  </div>
+  <div class="sd-body" id="sdBody"></div>
+  <div class="bnav">
+    <div class="nv" onclick="showScreen('home')"><div class="nv-i">🏠</div><span>ホーム</span></div>
+    <div class="nv on" onclick="showScreen('studyList')"><div class="nv-i">📚</div><span>学習</span></div>
+    <div class="nv" onclick="showScreen('gacha')"><div class="nv-i">🎰</div><span>ガチャ</span></div>
+    <div class="nv" onclick="showScreen('collection')"><div class="nv-i">👥</div><span>図鑑</span></div>
+    <div class="nv" onclick="showScreen('stats')"><div class="nv-i">📊</div><span>データ</span></div>
+    <div class="nv" onclick="showScreen('settings')"><div class="nv-i">⚙️</div><span>設定</span></div>
+  </div>
+</div>
+<div id="study" class="screen">
+  <div class="study-hdr">
+    <button class="bk-btn" id="studyBackBtn" onclick="openSecDetail(curSec)">←</button>
+    <h2 id="studyTitle">学習</h2>
+    <div class="lex-disp" style="cursor:default"><img src="MagiLex_Coin.png" class="lex-coin"><span class="lex-amt" id="lexS">0</span></div>
+  </div>
+  <div class="study-body">
+    <div class="mode-tabs" id="modeTabs">
+      <button class="tab on" onclick="setMode('check')">✅ 確認リスト</button>
+      <button class="tab" onclick="setMode('quiz')">❓ 9択クイズ</button>
+    </div>
+    <div id="studyArea"></div>
+  </div>
+  <div class="bnav">
+    <div class="nv" onclick="showScreen('home')"><div class="nv-i">🏠</div><span>ホーム</span></div>
+    <div class="nv on" onclick="showScreen('studyList')"><div class="nv-i">📚</div><span>学習</span></div>
+    <div class="nv" onclick="showScreen('gacha')"><div class="nv-i">🎰</div><span>ガチャ</span></div>
+    <div class="nv" onclick="showScreen('collection')"><div class="nv-i">👥</div><span>図鑑</span></div>
+    <div class="nv" onclick="showScreen('stats')"><div class="nv-i">📊</div><span>データ</span></div>
+    <div class="nv" onclick="showScreen('settings')"><div class="nv-i">⚙️</div><span>設定</span></div>
+  </div>
+</div>
+
+<!-- GACHA -->
+<div id="gacha" class="screen">
+  <div class="study-hdr">
+    <button class="bk-btn" onclick="showScreen('home')">←</button>
+    <div style="flex:1;display:flex;align-items:center;gap:8px">
+      <h2 style="font-family:'Cinzel',serif;color:var(--gold);font-size:16px">✨ プレミアムガチャ</h2>
+      <span style="background:linear-gradient(135deg,#7c3aed,#d4a017);color:#fff;font-size:10px;font-weight:700;padding:3px 9px;border-radius:10px;letter-spacing:1px;white-space:nowrap">SEASON 1</span>
+    </div>
+    <div class="lex-disp" style="cursor:default"><img src="MagiLex_Coin.png" class="lex-coin"><span class="lex-amt" id="lexG">0</span></div>
+  </div>
+  <div class="gacha-body">
+    <img src="MagiLex_PremiumG.png" class="gacha-img" alt="Premium Gacha">
+    <div class="gacha-box">
+      <div class="g-cost"><img src="MagiLex_Coin.png"><div><div class="g-cost-t">1,500 Lex</div><div class="g-cost-l">1回の費用</div></div></div>
+      <div style="background:rgba(240,192,64,.08);border:1px solid var(--bdr);border-radius:10px;padding:12px;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center">
+        <div>
+          <div style="font-size:11px;color:var(--txt2)">天井カウンター</div>
+          <div style="font-size:18px;font-weight:700;color:var(--gold);font-family:'Orbitron',sans-serif" id="pityCount">0 / 10</div>
+        </div>
+        <div style="text-align:right">
+          <div style="font-size:11px;color:var(--txt2)">10回で天井</div>
+          <div style="font-size:11px;color:var(--pur2)">好きなキャラを選択</div>
+        </div>
+      </div>
+      <div class="g-rates">
+        <h4>🎰 排出率（重複あり）</h4>
+        <div class="r-row"><span class="r-ssr">⭐⭐⭐ SSR コトミ</span><span class="r-ssr">5%</span></div>
+        <div class="r-row"><span class="r-sr">⭐⭐ SR ルナ</span><span class="r-sr">10.6%</span></div>
+        <div class="r-row"><span class="r-sr">⭐⭐ SR ノア</span><span class="r-sr">10.6%</span></div>
+        <div class="r-row"><span class="r-sr">⭐⭐ SR ハルカ</span><span class="r-sr">10.6%</span></div>
+        <div class="r-row"><span class="r-sr">⭐⭐ SR シオン</span><span class="r-sr">10.6%</span></div>
+        <div class="r-row"><span class="r-sr">⭐⭐ SR エデ</span><span class="r-sr">10.6%</span></div>
+        <div class="r-row"><span class="r-sr">⭐⭐ SR ユイナ</span><span class="r-sr">10.6%</span></div>
+        <div class="r-row"><span class="r-sr">⭐⭐ SR リリカ</span><span class="r-sr">10.6%</span></div>
+        <div class="r-row"><span class="r-sr">⭐⭐ SR セリナ</span><span class="r-sr">10.6%</span></div>
+        <div class="r-row"><span class="r-sr">⭐⭐ SR アカネ</span><span class="r-sr">10.6%</span></div>
+        <div style="font-size:10px;color:var(--txt2);margin-top:6px">※ ヒナはスタート時に入手済みのため排出対象外 / 10回に1回天井（好きなキャラを1人選択）</div>
+      </div>
+      <button class="btn-gacha" onclick="doGacha()">🎰 ガチャを回す（1,500 Lex）</button>
+    </div>
+    <div style="background:var(--card);border:1px solid var(--bdr);border-radius:15px;padding:18px">
+      <h4 style="color:var(--gold);margin-bottom:11px;font-size:13px">📋 キャラクター一覧</h4>
+      <div style="background:linear-gradient(135deg,rgba(124,58,237,.15),rgba(240,192,64,.1));border:1px solid var(--bdr);border-radius:10px;padding:11px 13px;margin-bottom:13px;display:flex;align-items:center;gap:10px">
+        <div style="font-size:22px">✨</div>
+        <div>
+          <div style="font-size:12px;font-weight:700;color:var(--gold)">キャラをアイコンにできる！</div>
+          <div style="font-size:11px;color:var(--txt2);margin-top:2px;line-height:1.5">所持キャラ名をタップ → 「アイコンにする」でプロフィール画像に設定できるよ🌟<br>図鑑からでも変更できます</div>
+        </div>
+      </div>
+      <div id="gcCharList"></div>
+    </div>
+  </div>
+  <div class="bnav">
+    <div class="nv" onclick="showScreen('home')"><div class="nv-i">🏠</div><span>ホーム</span></div>
+    <div class="nv" onclick="showScreen('studyList')"><div class="nv-i">📚</div><span>学習</span></div>
+    <div class="nv on" onclick="showScreen('gacha')"><div class="nv-i">🎰</div><span>ガチャ</span></div>
+    <div class="nv" onclick="showScreen('collection')"><div class="nv-i">👥</div><span>図鑑</span></div>
+    <div class="nv" onclick="showScreen('stats')"><div class="nv-i">📊</div><span>データ</span></div>
+    <div class="nv" onclick="showScreen('settings')"><div class="nv-i">⚙️</div><span>設定</span></div>
+  </div>
+</div>
+
+<!-- COLLECTION -->
+<div id="collection" class="screen">
+  <div class="study-hdr"><button class="bk-btn" onclick="showScreen('home')">←</button><h2>📖 キャラクター図鑑</h2></div>
+  <div class="col-grid" id="colGrid"></div>
+  <div class="bnav">
+    <div class="nv" onclick="showScreen('home')"><div class="nv-i">🏠</div><span>ホーム</span></div>
+    <div class="nv" onclick="showScreen('studyList')"><div class="nv-i">📚</div><span>学習</span></div>
+    <div class="nv" onclick="showScreen('gacha')"><div class="nv-i">🎰</div><span>ガチャ</span></div>
+    <div class="nv on" onclick="showScreen('collection')"><div class="nv-i">👥</div><span>図鑑</span></div>
+    <div class="nv" onclick="showScreen('stats')"><div class="nv-i">📊</div><span>データ</span></div>
+    <div class="nv" onclick="showScreen('settings')"><div class="nv-i">⚙️</div><span>設定</span></div>
+  </div>
+</div>
+
+<!-- STATS -->
+<div id="stats" class="screen">
+  <div class="study-hdr"><button class="bk-btn" onclick="showScreen('home')">←</button><h2>📊 学習データ</h2></div>
+  <div class="st-body" id="stBody"></div>
+  <div class="bnav">
+    <div class="nv" onclick="showScreen('home')"><div class="nv-i">🏠</div><span>ホーム</span></div>
+    <div class="nv" onclick="showScreen('studyList')"><div class="nv-i">📚</div><span>学習</span></div>
+    <div class="nv" onclick="showScreen('gacha')"><div class="nv-i">🎰</div><span>ガチャ</span></div>
+    <div class="nv" onclick="showScreen('collection')"><div class="nv-i">👥</div><span>図鑑</span></div>
+    <div class="nv on" onclick="showScreen('stats')"><div class="nv-i">📊</div><span>データ</span></div>
+    <div class="nv" onclick="showScreen('settings')"><div class="nv-i">⚙️</div><span>設定</span></div>
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div id="settings" class="screen">
+  <div class="study-hdr"><button class="bk-btn" onclick="showScreen('home')">←</button><h2>⚙️ 設定</h2></div>
+  <div class="set-body">
+    <!-- プロフィール -->
+    <div style="display:flex;flex-direction:column;align-items:center;padding:18px 0 10px">
+      <img id="setAv" src="MagiLex_GC_Hina.png" style="width:76px;height:76px;border-radius:50%;border:3px solid var(--gold);margin-bottom:9px;cursor:pointer" onclick="showScreen('collection')" title="図鑑でアイコン変更">
+      <div id="setNm" style="font-size:17px;font-weight:700;color:var(--gold)"></div>
+      <div id="setLx" style="font-size:12px;color:var(--txt2);margin-top:3px"></div>
+    </div>
+
+    <!-- 学習サマリー -->
+    <div class="set-grp">
+      <div class="set-gt">📈 学習サマリー</div>
+      <div style="padding:12px 18px 4px">
+        <div class="set-stat-grid" id="setStatGrid"></div>
+      </div>
+    </div>
+
+    <!-- アカウント -->
+    <div class="set-grp">
+      <div class="set-gt">👤 アカウント</div>
+      <div class="set-row"><span class="set-lbl">ユーザー名</span><div style="display:flex;gap:7px;align-items:center"><input type="text" id="editNm" maxlength="20"><button onclick="saveNm()">変更</button></div></div>
+      <div class="set-row"><span class="set-lbl">ログイン日数</span><span class="set-val" id="setDays"></span></div>
+      <div class="set-row"><span class="set-lbl">ガチャ回数</span><span class="set-val" id="setGC"></span></div>
+    </div>
+
+    <!-- 学習設定 -->
+    <div class="set-grp">
+      <div class="set-gt">📝 学習設定</div>
+      <div class="set-row">
+        <div><span class="set-lbl">デイリー目標</span><div style="font-size:10px;color:var(--txt2);margin-top:2px">1日の目標回答問題数</div></div>
+        <select class="set-sel" id="selDailyGoal" onchange="saveSetting('dailyGoal',this.value)">
+          <option value="10">10問</option>
+          <option value="20">20問</option>
+          <option value="30">30問</option>
+          <option value="50">50問</option>
+          <option value="0">設定なし</option>
+        </select>
+      </div>
+      <div class="set-row">
+        <div><span class="set-lbl">問題シャッフル</span><div style="font-size:10px;color:var(--txt2);margin-top:2px">クイズの出題順をランダムに</div></div>
+        <label class="set-toggle"><input type="checkbox" id="togShuffle" onchange="saveSetting('shuffle',this.checked)"><div class="set-toggle-track"></div></label>
+      </div>
+      <div class="set-row">
+        <div><span class="set-lbl">不正解時の解説表示</span><div style="font-size:10px;color:var(--txt2);margin-top:2px">間違えたとき補足解説を表示</div></div>
+        <label class="set-toggle"><input type="checkbox" id="togExtra" onchange="saveSetting('showExtra',this.checked)"><div class="set-toggle-track"></div></label>
+      </div>
+      <div class="set-row">
+        <div><span class="set-lbl">ミックス問題数</span><div style="font-size:10px;color:var(--txt2);margin-top:2px">ミックスモードで出題する問題数</div></div>
+        <select class="set-sel" id="selMixCount" onchange="saveSetting('mixCount',this.value)">
+          <option value="10">10問</option>
+          <option value="20">20問</option>
+          <option value="30">30問</option>
+          <option value="50">50問</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- 表示設定 -->
+    <div class="set-grp">
+      <div class="set-gt">🎨 表示設定</div>
+      <div class="set-row">
+        <div><span class="set-lbl">アニメーション</span><div style="font-size:10px;color:var(--txt2);margin-top:2px">カード・キャラクターのアニメ</div></div>
+        <label class="set-toggle"><input type="checkbox" id="togAnim" onchange="saveSetting('animations',this.checked)"><div class="set-toggle-track"></div></label>
+      </div>
+      <div class="set-row" style="flex-direction:column;align-items:flex-start;gap:8px">
+        <span class="set-lbl">アクセントカラー</span>
+        <div class="color-swatches" id="colorSwatches">
+          <div class="c-swatch" style="background:#7c3aed" data-color="purple" onclick="setAccentColor('purple')" title="パープル（デフォルト）"></div>
+          <div class="c-swatch" style="background:#2563eb" data-color="blue" onclick="setAccentColor('blue')" title="ブルー"></div>
+          <div class="c-swatch" style="background:#db2777" data-color="rose" onclick="setAccentColor('rose')" title="ローズ"></div>
+          <div class="c-swatch" style="background:#059669" data-color="emerald" onclick="setAccentColor('emerald')" title="エメラルド"></div>
+          <div class="c-swatch" style="background:#d97706" data-color="amber" onclick="setAccentColor('amber')" title="アンバー"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- データ管理 -->
+    <div class="set-grp set-danger">
+      <div class="set-gt">⚠️ データ管理</div>
+      <div class="set-row">
+        <div><span class="set-lbl">学習履歴をクリア</span><div style="font-size:10px;color:var(--txt2);margin-top:2px">クイズ・ミックスの記録のみ削除</div></div>
+        <button style="padding:7px 14px;background:rgba(255,71,87,.15);border:1px solid var(--red);border-radius:7px;color:var(--red);font-size:12px;cursor:pointer;font-family:'Noto Sans JP',sans-serif" onclick="clearHistory()">クリア</button>
+      </div>
+      <div class="set-row">
+        <div><span class="set-lbl">全データリセット</span><div style="font-size:10px;color:var(--txt2);margin-top:2px">すべての進捗・所持キャラを削除</div></div>
+        <button style="padding:7px 14px;background:rgba(255,71,87,.15);border:1px solid var(--red);border-radius:7px;color:var(--red);font-size:12px;cursor:pointer;font-family:'Noto Sans JP',sans-serif" onclick="resetAll()">リセット</button>
+      </div>
+    </div>
+
+    <!-- アプリ情報 -->
+    <div class="set-grp">
+      <div class="set-gt">ℹ️ アプリ情報</div>
+      <div class="set-row"><span class="set-lbl">バージョン</span><span class="set-val">MagiLex v2.1</span></div>
+      <div class="set-row"><span class="set-lbl">制作</span><span class="set-val">NGX × MagiLex</span></div>
+      <div class="set-row"><span class="set-lbl">総問題数</span><span class="set-val" id="setTotalQ"></span></div>
+    </div>
+  </div>
+  <div class="bnav">
+    <div class="nv" onclick="showScreen('home')"><div class="nv-i">🏠</div><span>ホーム</span></div>
+    <div class="nv" onclick="showScreen('studyList')"><div class="nv-i">📚</div><span>学習</span></div>
+    <div class="nv" onclick="showScreen('gacha')"><div class="nv-i">🎰</div><span>ガチャ</span></div>
+    <div class="nv" onclick="showScreen('collection')"><div class="nv-i">👥</div><span>図鑑</span></div>
+    <div class="nv" onclick="showScreen('stats')"><div class="nv-i">📊</div><span>データ</span></div>
+    <div class="nv on" onclick="showScreen('settings')"><div class="nv-i">⚙️</div><span>設定</span></div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// =============================================
+// SECTIONS DATA (問題形式ごとに定義)
+// =============================================
+const SECTIONS = [
+{
+  id:"fatty",
+  name:"代表的な脂肪酸",
+  icon:"🧪",
+  mode:"name_from_formula", // 化学式→名称
+  desc:"化学式を見て名称を選ぶ問題",
+  questions:[
+    {stem:"HCOOH", reading:"（飽和脂肪酸）", answer:"ギ酸（formic acid / メタン酸）", wrong:["酢酸","プロピオン酸","酪酸","アクリル酸","乳酸","リンゴ酸","安息香酸"], extra:"脂肪酸中最も強い酸。ホルミル基をもち還元性あり。HCOOH→CO+H₂O"},
+    {stem:"CH₃COOH", reading:"（飽和脂肪酸）", answer:"酢酸（acetic acid / エタン酸）", wrong:["ギ酸","プロピオン酸","酪酸","アクリル酸","シュウ酸","フマル酸","マレイン酸"], extra:"純度の高いものは冬期に凝固→氷酢酸"},
+    {stem:"CH₃CH₂COOH", reading:"（飽和脂肪酸）", answer:"プロピオン酸（propionic acid / プロパン酸）", wrong:["ギ酸","酢酸","酪酸","アクリル酸","フタル酸","テレフタル酸","アジピン酸"], extra:"防カビ剤に使用する"},
+    {stem:"CH₃(CH₂)₂COOH", reading:"（飽和脂肪酸）", answer:"酪酸（butyric acid / ブタン酸）", wrong:["ギ酸","酢酸","プロピオン酸","アクリル酸","シュウ酸","リンゴ酸","酒石酸"], extra:"非常に不快な臭いがする"},
+    {stem:"H₂C=CH-COOH", reading:"（不飽和脂肪酸）", answer:"アクリル酸（acrylic acid / 2-プロペン酸）", wrong:["ギ酸","酢酸","プロピオン酸","酪酸","マレイン酸","フマル酸","テレフタル酸"], extra:"特有の刺激臭をもつ"}
+  ]
+},
+{
+  id:"carboxyl",
+  name:"色々なカルボン酸",
+  icon:"⚗️",
+  mode:"name_from_formula",
+  desc:"化学式を見て名称を選ぶ問題",
+  questions:[
+    {stem:"HOOC-COOH", reading:"（ジカルボン酸）", answer:"シュウ酸（蓚酸）", wrong:["マレイン酸","フマル酸","アジピン酸","安息香酸","フタル酸","テレフタル酸","乳酸"], extra:"還元剤として作用。H₂C₂O₄→2CO₂+2H⁺+2e⁻"},
+    {stem:"HOOC-CH=CH-COOH（シス形）", reading:"（ジカルボン酸）", answer:"マレイン酸", wrong:["シュウ酸","フマル酸","アジピン酸","リンゴ酸","酒石酸","安息香酸","フタル酸"], extra:"加熱すると無水マレイン酸になる"},
+    {stem:"HOOC-CH=CH-COOH（トランス形）", reading:"（ジカルボン酸）", answer:"フマル酸", wrong:["シュウ酸","マレイン酸","アジピン酸","リンゴ酸","テレフタル酸","安息香酸","フタル酸"], extra:"加熱しても容易に酸無水物は生じない"},
+    {stem:"HOOC-(CH₂)₄-COOH", reading:"（ジカルボン酸）", answer:"アジピン酸", wrong:["シュウ酸","マレイン酸","フマル酸","乳酸","リンゴ酸","酒石酸","フタル酸"], extra:"ナイロン66の原料"},
+    {stem:"C₆H₅-COOH（ベンゼン環-COOH）", reading:"（芳香族カルボン酸）", answer:"安息香酸", wrong:["シュウ酸","フタル酸","テレフタル酸","乳酸","リンゴ酸","アジピン酸","マレイン酸"], extra:"防腐剤に使用"},
+    {stem:"o-C₆H₄(COOH)₂（オルト位に2つのCOOH）", reading:"（芳香族ジカルボン酸）", answer:"フタル酸", wrong:["テレフタル酸","安息香酸","マレイン酸","フマル酸","シュウ酸","乳酸","酒石酸"], extra:"加熱すると無水フタル酸になる（水が取れる）"},
+    {stem:"p-C₆H₄(COOH)₂（パラ位に2つのCOOH）", reading:"（芳香族ジカルボン酸）", answer:"テレフタル酸", wrong:["フタル酸","安息香酸","マレイン酸","フマル酸","アジピン酸","乳酸","酒石酸"], extra:"ポリエチレンテレフタラートの原料。加熱しても酸無水物は生じない"},
+    {stem:"CH₃CH(OH)COOH（不斉炭素原子あり）", reading:"（ヒドロキシ酸）", answer:"乳酸", wrong:["リンゴ酸","酒石酸","シュウ酸","フタル酸","マレイン酸","安息香酸","アジピン酸"], extra:"不斉炭素原子をもつ。動物の血液・筋肉中に含まれる"},
+    {stem:"HOOC-CH₂-CH(OH)-COOH（不斉炭素原子あり）", reading:"（ヒドロキシ酸）", answer:"リンゴ酸", wrong:["乳酸","酒石酸","シュウ酸","フタル酸","テレフタル酸","安息香酸","アジピン酸"], extra:"リンゴ果汁中に含まれる。脱水するとマレイン酸やフマル酸が生じる"},
+    {stem:"HOOC-CH(OH)-CH(OH)-COOH（不斉炭素原子2つ）", reading:"（ヒドロキシ酸）", answer:"酒石酸", wrong:["乳酸","リンゴ酸","シュウ酸","フタル酸","マレイン酸","アジピン酸","安息香酸"], extra:"ブドウ果汁中に含まれる。メソ体が存在する。鏡像体3種類"}
+  ]
+},
+{
+  id:"functional",
+  name:"官能基と有機化合物",
+  icon:"🔬",
+  mode:"group_from_formula", // 化学式→官能基名を選ぶ
+  desc:"化学式（官能基の構造）を見て、官能基名を選ぶ問題",
+  questions:[
+    {stem:"-OH（アルコール：中性）", reading:"炭化水素基のC原子に直接結合", answer:"ヒドロキシ基（アルコール）", wrong:["カルボキシ基","ホルミル基（アルデヒド基）","カルボニル基","ニトロ基","アミノ基","スルホ基","エーテル結合"], extra:"一般名: アルコール / 性質: 中性"},
+    {stem:"-OH（フェノール類：弱酸性）", reading:"ベンゼン環のC原子に直接結合", answer:"ヒドロキシ基（フェノール類）", wrong:["カルボキシ基","ホルミル基","カルボニル基","ニトロ基","アミノ基","スルホ基","エステル結合"], extra:"一般名: フェノール類 / 性質: 弱酸性"},
+    {stem:"-CHO（-C(=O)H）", reading:"一般名: アルデヒド", answer:"ホルミル基（アルデヒド基）", wrong:["ヒドロキシ基","カルボキシ基","カルボニル基","ニトロ基","アミノ基","スルホ基","エーテル結合"], extra:"一般名: アルデヒド / 性質: 中性"},
+    {stem:"C=O（ケトン）", reading:"一般名: ケトン", answer:"カルボニル基", wrong:["ホルミル基","ヒドロキシ基","カルボキシ基","ニトロ基","アミノ基","スルホ基","エステル結合"], extra:"一般名: ケトン / 性質: 中性。カルボニル基+H→ホルミル基"},
+    {stem:"-COOH（-C(=O)OH）", reading:"一般名: カルボン酸", answer:"カルボキシ基", wrong:["ホルミル基","ヒドロキシ基","カルボニル基","ニトロ基","アミノ基","スルホ基","エーテル結合"], extra:"一般名: カルボン酸 / 性質: 弱酸性"},
+    {stem:"-NO₂", reading:"一般名: ニトロ化合物", answer:"ニトロ基", wrong:["ヒドロキシ基","カルボキシ基","ホルミル基","カルボニル基","アミノ基","スルホ基","エーテル結合"], extra:"一般名: ニトロ化合物 / 性質: 中性"},
+    {stem:"-NH₂", reading:"一般名: アミン", answer:"アミノ基", wrong:["ヒドロキシ基","カルボキシ基","ホルミル基","カルボニル基","ニトロ基","スルホ基","アミド結合"], extra:"一般名: アミン / 性質: 弱塩基性"},
+    {stem:"-SO₃H", reading:"一般名: スルホン酸", answer:"スルホ基", wrong:["ヒドロキシ基","カルボキシ基","ホルミル基","ニトロ基","アミノ基","エーテル結合","エステル結合"], extra:"一般名: スルホン酸 / 性質: 強酸性"},
+    {stem:"C-O-C", reading:"一般名: エーテル", answer:"エーテル結合", wrong:["ヒドロキシ基","カルボキシ基","エステル結合","アミド結合","ニトロ基","アミノ基","スルホ基"], extra:"一般名: エーテル / 性質: 中性。分子内部で両側の原子を結びつける"},
+    {stem:"-C(=O)-O-C-（エステル）", reading:"一般名: エステル", answer:"エステル結合", wrong:["エーテル結合","アミド結合","カルボキシ基","ヒドロキシ基","ニトロ基","アミノ基","スルホ基"], extra:"一般名: エステル / 性質: 中性"},
+    {stem:"-NH-C(=O)-（アミド）", reading:"一般名: アミド", answer:"アミド結合", wrong:["エーテル結合","エステル結合","アミノ基","カルボキシ基","ホルミル基","ニトロ基","スルホ基"], extra:"一般名: アミド / 性質: 中性"}
+  ]
+},
+{
+  id:"gas_prop",
+  name:"気体の性質",
+  icon:"💨",
+  mode:"prop_from_formula", // 分子式→色・におい・性質を答える
+  desc:"分子式を見て、色・におい・性質を答える問題",
+  questions:[
+    {stem:"H₂", reading:"（水素）", answer:"無色・無臭・高温時のみ還元性。助燃性をもつ", wrong:["無色・無臭・酸化力が強い","淡青色・特殊臭・酸化力が強い","無色・無臭・反応性に乏しい","無色・無臭・高温時還元性・ヘモグロビンと結合","無色・刺激臭・水溶液は塩基性","黄緑色・刺激臭・強い酸化力","赤褐色・刺激臭・水溶液は硝酸生成"], extra:"H₂: 無色, 無臭, 高温時のみ還元性, 助燃性あり"},
+    {stem:"O₂", reading:"（酸素）", answer:"無色・無臭・酸化力が強い。助燃性をもつ", wrong:["無色・無臭・高温時のみ還元性","淡青色・特殊臭・酸化力が強い","無色・無臭・反応性に乏しい","無色・無臭・高温時還元性・ヘモグロビン結合","無色・刺激臭・塩基性","黄緑色・刺激臭・強い酸化力","無色・無臭・水溶液は酸性"], extra:"O₂: 無色, 無臭, 酸化力が強い, 助燃性あり"},
+    {stem:"O₃", reading:"（オゾン）", answer:"淡青色・特殊臭・酸化力が強い", wrong:["無色・無臭・酸化力強い","無色・無臭・反応性に乏しい","無色・無臭・高温時のみ還元性","無色・刺激臭・塩基性","黄緑色・刺激臭・強い酸化力","赤褐色・刺激臭・硝酸生成","無色・腐卵臭・還元性"], extra:"O₃: 淡青色, 特殊臭（特異臭）, 酸化力が強い"},
+    {stem:"N₂", reading:"（窒素）", answer:"無色・無臭・比較的安定で反応性に乏しい", wrong:["無色・無臭・高温時のみ還元性","無色・無臭・酸化力が強い","淡青色・特殊臭・酸化力が強い","無色・無臭・高温時還元性・ヘモグロビン結合","無色・刺激臭・塩基性","黄緑色・刺激臭・強い酸化力","無色・無臭・還元性・ガラスを溶かす"], extra:"N₂: 無色, 無臭, 比較的安定で反応性に乏しい"},
+    {stem:"CO", reading:"（一酸化炭素）", answer:"無色・無臭・高温時に還元性。血液中のヘモグロビンと結合し酸素運搬を阻害", wrong:["無色・無臭・高温時のみ還元性（助燃性あり）","無色・無臭・比較的安定","淡青色・特殊臭・酸化力","無色・刺激臭・塩基性","黄緑色・刺激臭・酸化力","赤褐色・刺激臭・硝酸生成","無色・無臭・酸性・還元性"], extra:"CO: 無色, 無臭, 高温時に還元性, ヘモグロビンと結合→毒性"},
+    {stem:"NO", reading:"（一酸化窒素）", answer:"無色・無臭・空気中でNO₂に変化: 2NO+O₂→2NO₂", wrong:["無色・無臭・高温時のみ還元性","無色・刺激臭・塩基性","黄緑色・刺激臭・酸化力","赤褐色・刺激臭・硝酸生成","無色・無臭・酸性","無色・腐卵臭・還元性","無色・刺激臭・酸性・ガラスを溶かす"], extra:"NO: 無色, 無臭, 空気中でNO₂へ: 2NO+O₂→2NO₂"},
+    {stem:"NH₃", reading:"（アンモニア）", answer:"無色・刺激臭・水溶液は塩基性: NH₃+H₂O⇌NH₄⁺+OH⁻", wrong:["無色・無臭・高温時還元性","黄緑色・刺激臭・酸化力","赤褐色・刺激臭・硝酸生成","無色・無臭・酸性","無色・腐卵臭・還元性","無色・刺激臭・酸性・ガラスを溶かす","無色・無臭・ヘモグロビン結合"], extra:"NH₃: 無色, 刺激臭, 水溶液は塩基性"},
+    {stem:"Cl₂", reading:"（塩素）", answer:"黄緑色・刺激臭・水溶液は酸性で強い酸化力: Cl₂+H₂O⇌HCl+HClO", wrong:["無色・刺激臭・塩基性","赤褐色・刺激臭・硝酸生成","無色・無臭・酸性","無色・腐卵臭・還元性","無色・刺激臭・酸性・ガラスを溶かす","淡青色・特殊臭・酸化力","無色・無臭・反応性に乏しい"], extra:"Cl₂: 黄緑色, 刺激臭, 水溶液は酸性・強い酸化力"},
+    {stem:"NO₂", reading:"（二酸化窒素）", answer:"赤褐色・刺激臭・水溶液は酸性: 3NO₂+H₂O→2HNO₃+NO（温水）", wrong:["黄緑色・刺激臭・強い酸化力","無色・刺激臭・塩基性","無色・無臭・酸性","無色・腐卵臭・還元性","無色・刺激臭・酸性・ガラスを溶かす","淡青色・特殊臭・酸化力","無色・無臭・ヘモグロビン結合"], extra:"NO₂: 赤褐色, 刺激臭, 水溶液→硝酸生成"},
+    {stem:"CO₂", reading:"（二酸化炭素）", answer:"無色・無臭・水溶液は酸性: CO₂+H₂O⇌H₂CO₃⇌H⁺+HCO₃⁻", wrong:["無色・無臭・高温時還元性","黄緑色・刺激臭・酸化力","赤褐色・刺激臭・硝酸生成","無色・腐卵臭・還元性","無色・刺激臭・酸性・ガラスを溶かす","無色・刺激臭・塩基性","淡青色・特殊臭・酸化力"], extra:"CO₂: 無色, 無臭, 水溶液は酸性"},
+    {stem:"SO₂", reading:"（二酸化硫黄）", answer:"無色・刺激臭・水溶液は酸性・還元性あり: SO₂+H₂O⇌H₂SO₃", wrong:["無色・無臭・高温時還元性","黄緑色・刺激臭・酸化力","赤褐色・刺激臭・硝酸生成","無色・無臭・酸性","無色・腐卵臭・還元性","無色・刺激臭・酸性・ガラスを溶かす","無色・刺激臭・塩基性"], extra:"SO₂: 無色, 刺激臭, 水溶液は酸性, 還元性あり"},
+    {stem:"HF", reading:"（フッ化水素）", answer:"無色・刺激臭・水溶液は酸性・ガラスを溶かす: SiO₂+6HF→H₂SiF₆+2H₂O", wrong:["無色・腐卵臭・還元性","無色・無臭・酸性","無色・刺激臭・塩基性","黄緑色・刺激臭・酸化力","赤褐色・刺激臭・硝酸生成","無色・刺激臭・酸性・還元性","淡青色・特殊臭・酸化力"], extra:"HF: 無色, 刺激臭, 水溶液は酸性, ガラスを溶かす"},
+    {stem:"H₂S", reading:"（硫化水素）", answer:"無色・腐卵臭・水溶液は酸性・還元性あり", wrong:["無色・刺激臭・塩基性","黄緑色・刺激臭・酸化力","赤褐色・刺激臭・硝酸生成","無色・無臭・酸性","無色・刺激臭・酸性・ガラスを溶かす","淡青色・特殊臭・酸化力","無色・無臭・ヘモグロビン結合"], extra:"H₂S: 無色, 腐卵臭, 水溶液は酸性, 還元性あり"},
+    {stem:"HCl", reading:"（塩化水素）", answer:"無色・刺激臭・水溶液は強酸性・還元性あり", wrong:["無色・腐卵臭・還元性","無色・刺激臭・塩基性","黄緑色・刺激臭・酸化力","赤褐色・刺激臭・硝酸生成","無色・無臭・酸性","無色・刺激臭・酸性・ガラスを溶かす","淡青色・特殊臭・酸化力"], extra:"HCl: 無色, 刺激臭, 水溶液は強酸性, 還元性あり"}
+  ]
+},
+{
+  id:"gas_prod",
+  name:"気体の製法",
+  icon:"🔭",
+  mode:"gas_from_method", // 製法→気体を選ぶ
+  desc:"製法の説明を見て、発生する気体を選ぶ問題",
+  questions:[
+    {stem:"亜鉛や鉄に希硫酸をそそぐ\nZn+H₂SO₄→ZnSO₄+H₂↑", reading:"（製法→気体）", answer:"水素 H₂", wrong:["酸素 O₂","塩素 Cl₂","アンモニア NH₃","硫化水素 H₂S","二酸化炭素 CO₂","一酸化窒素 NO","フッ化水素 HF"], extra:"反応式: Zn(固)+H₂SO₄→ZnSO₄+H₂↑"},
+    {stem:"酸化マンガン(IV)に過酸化水素水をそそぐ（触媒）\nまたは塩素酸カリウムを加熱", reading:"（製法→気体）", answer:"酸素 O₂", wrong:["水素 H₂","塩素 Cl₂","アンモニア NH₃","窒素 N₂","二酸化炭素 CO₂","二酸化硫黄 SO₂","一酸化窒素 NO"], extra:"2KClO₃→2KCl+3O₂↑（MnO₂触媒）"},
+    {stem:"酸素に紫外線を照射するか無声放電する\n3O₂→2O₃", reading:"（製法→気体）", answer:"オゾン O₃", wrong:["酸素 O₂","水素 H₂","窒素 N₂","塩素 Cl₂","一酸化炭素 CO","二酸化炭素 CO₂","アンモニア NH₃"], extra:"3O₂→2O₃（無声放電または紫外線照射）"},
+    {stem:"亜硝酸アンモニウム水溶液を加熱する\nNH₄NO₂→2H₂O+N₂↑", reading:"（製法→気体）", answer:"窒素 N₂", wrong:["水素 H₂","酸素 O₂","オゾン O₃","アンモニア NH₃","一酸化窒素 NO","二酸化窒素 NO₂","塩素 Cl₂"], extra:"NH₄NO₂→2H₂O+N₂↑"},
+    {stem:"さらし粉に塩酸をそそぐ　またはMnO₂に塩酸を加えて熱する（酸化剤）\nMnO₂+4HCl→MnCl₂+2H₂O+Cl₂↑", reading:"（製法→気体）", answer:"塩素 Cl₂", wrong:["水素 H₂","酸素 O₂","アンモニア NH₃","硫化水素 H₂S","塩化水素 HCl","二酸化炭素 CO₂","フッ化水素 HF"], extra:"MnO₂+4HCl→MnCl₂+2H₂O+Cl₂↑"},
+    {stem:"食塩に濃硫酸をそそぐ\nNaCl(固)+H₂SO₄→NaHSO₄+HCl↑", reading:"（製法→気体）", answer:"塩化水素 HCl", wrong:["塩素 Cl₂","水素 H₂","アンモニア NH₃","硫化水素 H₂S","フッ化水素 HF","二酸化炭素 CO₂","一酸化窒素 NO"], extra:"NaCl(固)+H₂SO₄→NaHSO₄+HCl↑"},
+    {stem:"硫化鉄(II)に希硫酸または希塩酸をそそぐ\nFeS+H₂SO₄→FeSO₄+H₂S↑", reading:"（製法→気体）", answer:"硫化水素 H₂S", wrong:["水素 H₂","塩素 Cl₂","アンモニア NH₃","二酸化硫黄 SO₂","一酸化窒素 NO","塩化水素 HCl","フッ化水素 HF"], extra:"FeS(固)+H₂SO₄→FeSO₄+H₂S↑"},
+    {stem:"塩化アンモニウムに水酸化カルシウムを加えて熱する\n2NH₄Cl+Ca(OH)₂→CaCl₂+2H₂O+2NH₃↑", reading:"（製法→気体）", answer:"アンモニア NH₃", wrong:["水素 H₂","窒素 N₂","塩素 Cl₂","一酸化窒素 NO","二酸化窒素 NO₂","塩化水素 HCl","硫化水素 H₂S"], extra:"2NH₄Cl(固)+Ca(OH)₂→CaCl₂+2H₂O+2NH₃↑"},
+    {stem:"銅に希硫酸または銅に濃硫酸を加える\nCu+2H₂SO₄→CuSO₄+2H₂O+SO₂↑", reading:"（製法→気体）", answer:"二酸化硫黄 SO₂", wrong:["水素 H₂","塩素 Cl₂","アンモニア NH₃","一酸化窒素 NO","硫化水素 H₂S","塩化水素 HCl","二酸化炭素 CO₂"], extra:"Cu(固)+2H₂SO₄(濃)→CuSO₄+2H₂O+SO₂↑"},
+    {stem:"銅に希硝酸水溶液を加える\n3Cu+8HNO₃→3Cu(NO₃)₂+4H₂O+2NO↑", reading:"（製法→気体）", answer:"一酸化窒素 NO", wrong:["二酸化窒素 NO₂","水素 H₂","塩素 Cl₂","アンモニア NH₃","一酸化炭素 CO","硫化水素 H₂S","塩化水素 HCl"], extra:"3Cu(固)+8HNO₃(希)→3Cu(NO₃)₂+4H₂O+2NO↑"},
+    {stem:"銅に濃硝酸をそそぐ\nCu+4HNO₃→Cu(NO₃)₂+2H₂O+2NO₂↑", reading:"（製法→気体）", answer:"二酸化窒素 NO₂", wrong:["一酸化窒素 NO","水素 H₂","塩素 Cl₂","アンモニア NH₃","一酸化炭素 CO","硫化水素 H₂S","フッ化水素 HF"], extra:"Cu(固)+4HNO₃(濃)→Cu(NO₃)₂+2H₂O+2NO₂↑"},
+    {stem:"ギ酸に濃硫酸を加える\nHCOOH→H₂O+CO↑", reading:"（製法→気体）", answer:"一酸化炭素 CO", wrong:["二酸化炭素 CO₂","水素 H₂","窒素 N₂","一酸化窒素 NO","二酸化窒素 NO₂","アンモニア NH₃","塩素 Cl₂"], extra:"HCOOH→H₂O+CO↑（濃硫酸で脱水）"},
+    {stem:"石灰石や大理石に塩酸をそそぐ\nCaCO₃+2HCl→CaCl₂+H₂O+CO₂↑", reading:"（製法→気体）", answer:"二酸化炭素 CO₂", wrong:["水素 H₂","酸素 O₂","塩素 Cl₂","アンモニア NH₃","一酸化炭素 CO","硫化水素 H₂S","塩化水素 HCl"], extra:"CaCO₃(固)+2HCl→CaCl₂+H₂O+CO₂↑"},
+    {stem:"ホタル石に濃硫酸を加えて熱する\nCaF₂+H₂SO₄→CaSO₄+2HF↑", reading:"（製法→気体）", answer:"フッ化水素 HF", wrong:["塩化水素 HCl","水素 H₂","塩素 Cl₂","アンモニア NH₃","硫化水素 H₂S","二酸化炭素 CO₂","一酸化窒素 NO"], extra:"CaF₂(固)+H₂SO₄→CaSO₄+2HF↑"}
+  ]
+},
+{
+  id:"metal",
+  name:"金属イオン系統分離",
+  icon:"🧲",
+  mode:"example_from_condition", // 条件→イオン例を答える
+  desc:"金属イオンの性質（分離条件）を見て、該当するイオンを選ぶ問題",
+  questions:[
+    {stem:"塩酸酸性で塩化物として沈殿する", reading:"（手順1）", answer:"Ag⁺, Pb²⁺, Hg₂²⁺", wrong:["Cu²⁺, Hg²⁺, Cd²⁺, Sn²⁺","Al³⁺, Fe³⁺, Cr³⁺","Zn²⁺, Mn²⁺, Ni²⁺, Co²⁺","Ca²⁺, Sr²⁺, Ba²⁺","Na⁺, K⁺, Mg²⁺","Cu²⁺, Pb²⁺, Fe³⁺","Ag⁺, Al³⁺, Ca²⁺"], extra:"手順1: 塩酸酸性→AgCl(白), PbCl₂(白), Hg₂Cl₂(白)として沈殿"},
+    {stem:"塩酸酸性でH₂Sと反応して硫化物が沈殿する", reading:"（手順2）", answer:"Cu²⁺, Hg²⁺, Cd²⁺, Sn²⁺", wrong:["Ag⁺, Pb²⁺, Hg₂²⁺","Al³⁺, Fe³⁺, Cr³⁺","Zn²⁺, Mn²⁺, Ni²⁺, Co²⁺","Ca²⁺, Sr²⁺, Ba²⁺","Na⁺, K⁺, Mg²⁺","Ag⁺, Al³⁺, Ca²⁺","Pb²⁺, Fe²⁺, Ba²⁺"], extra:"手順2: 塩酸酸性+H₂S→CuS(黒), HgS(黒), CdS(黄), SnS(褐)"},
+    {stem:"アンモニア共存の弱塩基性で水酸化物として沈殿する", reading:"（手順3）", answer:"Al³⁺, Fe³⁺, Cr³⁺", wrong:["Ag⁺, Pb²⁺, Hg₂²⁺","Cu²⁺, Hg²⁺, Cd²⁺, Sn²⁺","Zn²⁺, Mn²⁺, Ni²⁺, Co²⁺","Ca²⁺, Sr²⁺, Ba²⁺","Na⁺, K⁺, Mg²⁺","Ag⁺, Zn²⁺, Ca²⁺","Pb²⁺, Fe²⁺, Ba²⁺"], extra:"手順3: 弱塩基性→Al(OH)₃(白), Fe(OH)₃(赤褐), Cr(OH)₃(灰緑)"},
+    {stem:"アンモニア共存の弱塩基性でH₂Sと反応して硫化物が沈殿する", reading:"（手順4）", answer:"Zn²⁺, Mn²⁺, Ni²⁺, Co²⁺", wrong:["Ag⁺, Pb²⁺, Hg₂²⁺","Cu²⁺, Hg²⁺, Cd²⁺, Sn²⁺","Al³⁺, Fe³⁺, Cr³⁺","Ca²⁺, Sr²⁺, Ba²⁺","Na⁺, K⁺, Mg²⁺","Ag⁺, Al³⁺, Ba²⁺","Pb²⁺, Fe³⁺, Ca²⁺"], extra:"手順4: 弱塩基性+H₂S→ZnS(白), MnS(淡赤), NiS, CoS"},
+    {stem:"弱塩基性で(NH₄)₂CO₃と反応して炭酸塩が沈殿する", reading:"（手順5）", answer:"Ca²⁺, Sr²⁺, Ba²⁺", wrong:["Ag⁺, Pb²⁺, Hg₂²⁺","Cu²⁺, Hg²⁺, Cd²⁺, Sn²⁺","Al³⁺, Fe³⁺, Cr³⁺","Zn²⁺, Mn²⁺, Ni²⁺, Co²⁺","Na⁺, K⁺, Mg²⁺","Ag⁺, Al³⁺, Zn²⁺","Pb²⁺, Fe³⁺, Cr³⁺"], extra:"手順5: 弱塩基性+(NH₄)₂CO₃→CaCO₃, SrCO₃, BaCO₃"},
+    {stem:"上記の操作（手順1〜5）で沈殿しない", reading:"（手順6）", answer:"Na⁺, K⁺, Mg²⁺", wrong:["Ag⁺, Pb²⁺, Hg₂²⁺","Cu²⁺, Hg²⁺, Cd²⁺, Sn²⁺","Al³⁺, Fe³⁺, Cr³⁺","Zn²⁺, Mn²⁺, Ni²⁺, Co²⁺","Ca²⁺, Sr²⁺, Ba²⁺","Ag⁺, Al³⁺, Ca²⁺","Pb²⁺, Fe²⁺, Ba²⁺"], extra:"手順6: Na⁺, K⁺, Mg²⁺はいずれの操作でも沈殿しない"},
+    {stem:"Mg²⁺やMn²⁺を含む場合の手順3での注意点", reading:"（特殊ケース）", answer:"アンモニアと塩化アンモニウムの混合水溶液を用い、pHをMg(OH)₂やMn(OH)₂が沈殿しない程度に調整する", wrong:["塩酸を多量に加えて強酸性にする","水酸化ナトリウムを加えて強塩基性にする","H₂Sを過剰に吹き込む","(NH₄)₂CO₃を先に加える","加熱して蒸発させる","硝酸を加えて酸化する","沈殿をろ過してから次の操作をする"], extra:"Mg²⁺, Mn²⁺は手順3でアンモニア単独だと沈殿してしまう"},
+    {stem:"AgClの沈殿の色", reading:"（沈殿の特徴）", answer:"白色（塩化銀: AgCl）", wrong:["黒色","赤褐色","黄色","青色","緑色","橙色","桃色"], extra:"AgClは白色沈殿。Ag⁺の検出に利用"},
+    {stem:"Fe(OH)₃沈殿の色", reading:"（沈殿の特徴）", answer:"赤褐色（水酸化鉄(III)）", wrong:["白色","黒色","黄色","青色","緑色","橙色","無色"], extra:"Fe(OH)₃は赤褐色沈殿。Fe³⁺の特徴的な反応"},
+    {stem:"CuSの沈殿の色", reading:"（沈殿の特徴）", answer:"黒色（硫化銅(II)）", wrong:["白色","赤褐色","黄色","青色","緑色","橙色","淡赤色"], extra:"CuSは黒色沈殿。塩酸酸性+H₂Sで生成"}
+  ]
+}
+];
+
+// CHARACTERS
+const CHARS=[
+  {id:"hina",name:"ヒナ",file:"MagiLex_GC_Hina.png",rarity:"SR",from:"start"},
+  {id:"kotomi",name:"コトミ",file:"MagiLex_GC_Kotomi.png",rarity:"SSR",from:"gacha"},
+  {id:"runa",name:"ルナ",file:"MagiLex_GC_Runa.png",rarity:"SR",from:"gacha"},
+  {id:"noa",name:"ノア",file:"MagiLex_GC_Noa.png",rarity:"SR",from:"gacha"},
+  {id:"haruka",name:"ハルカ",file:"MagiLex_GC_Haruka.png",rarity:"SR",from:"gacha"},
+  {id:"shion",name:"シオン",file:"MagiLex_GC_Shion.png",rarity:"SR",from:"gacha"},
+  {id:"ede",name:"エデ",file:"MagiLex_GC_Ede.png",rarity:"SR",from:"gacha"},
+  {id:"yuina",name:"ユイナ",file:"MagiLex_GC_Yuina.png",rarity:"SR",from:"gacha"},
+  {id:"ririka",name:"リリカ",file:"MagiLex_GC_Ririka.png",rarity:"SR",from:"gacha"},
+  {id:"serina",name:"セリナ",file:"MagiLex_GC_Serina.png",rarity:"SR",from:"gacha"},
+  {id:"akane",name:"アカネ",file:"MagiLex_GC_Akane.png",rarity:"SR",from:"gacha"}
+];
+
+// TUTORIAL TEXT
+const TUT=[
+  "はじめまして！<br>私は<strong>ヒナ</strong>です！MagiLexへようこそ！✨<br>化学の勉強を一緒に楽しく頑張りましょう！",
+  "このアプリには<strong>6つの学習セクション</strong>があるよ！<br>それぞれ違う種類の問題が用意されているから、しっかりマスターしてね📚",
+  "問題は<strong>9択形式</strong>（「わからない」を含む）。<br>同じ問題に<strong>2回連続正解</strong>すると完全習得になるよ！間違えたら答えが表示されるよ😊",
+  "1つのセクションを完全習得してクリアすると<strong style='color:#f0c040'>600 Lex</strong>もらえるよ！<br>Lexを貯めてガチャを回して、レアキャラをゲットしよう🎰",
+  "ガチャでゲットしたキャラは<strong style='color:#f0c040'>アイコンにできる</strong>よ！✨<br>図鑑でキャラをタップして「<strong>アイコンにする</strong>」を押すと、プロフィール画像が変わるよ🌟<br>ガチャ画面でもキャラ一覧から設定できるよ！",
+  "毎日ログインで<strong style='color:#f0c040'>+50 Lex</strong>もらえるよ！<br>ミックス問題（30問）は90%以上で+50Lex、100%なら<strong style='color:#f0c040'>+150 Lex</strong>！<br>一緒に頑張ろうね💪"
+];
+
+// APP DATA
+let D={
+  user:null,lex:0,lastLogin:null,loginDays:0,gachaCount:0,
+  owned:{hina:true},avatar:"hina",
+  prog:{},cleared:{},
+  mixHist:[],studyHist:[],
+  tutDone:false,dailyClaimed:null,
+  settings:{
+    dailyGoal:20,shuffle:true,showExtra:true,animations:true,
+    accentColor:'purple',mixCount:30
+  }
+};
+
+function save(){localStorage.setItem('mlx2',JSON.stringify(D))}
+function load(){try{const r=localStorage.getItem('mlx2');if(r){D=JSON.parse(r)}}catch(e){}}
+
+function ensureProg(){
+  SECTIONS.forEach(s=>{
+    if(!D.prog[s.id]){
+      D.prog[s.id]=s.questions.map(()=>({c:0,m:false}));
+    }
+  });
+}
+
+// SPLASH
+window.onload=function(){
+  load();ensureProg();
+  let p=0;
+  const bar=document.getElementById('progBar');
+  const txt=document.getElementById('progTxt');
+  const msgs=['データ読み込み中...','問題を準備中...','魔法の本を開いています...','完了！'];
+  setTimeout(()=>{document.getElementById('ngxLogo').classList.add('show')},300);
+  const iv=setInterval(()=>{
+    p+=Math.random()*12+5;
+    if(p>=100){p=100;clearInterval(iv)}
+    bar.style.width=p+'%';
+    txt.textContent=msgs[Math.min(Math.floor(p/25),3)];
+    if(p===100){
+      setTimeout(()=>{
+        document.getElementById('mlLogo').classList.add('show');
+        setTimeout(init,1100);
+      },300);
+    }
+  },130);
+};
+function init(){
+  if(!D.settings)D.settings={dailyGoal:20,shuffle:true,showExtra:true,animations:true,accentColor:'purple',mixCount:30};
+  applyAccentColor(D.settings.accentColor||'purple');
+  if(!D.user){showScreen('register');return}
+  checkDailyLogin();
+  if(!D.tutDone){initTut();showScreen('tutorial');return}
+  goHome();
+}
+
+// REGISTER
+function doRegister(){
+  const n=document.getElementById('regName').value.trim();
+  const e=document.getElementById('regErr');
+  if(!n){e.textContent='ユーザー名を入力してください';e.style.display='block';return}
+  e.style.display='none';
+  D.user={name:n};D.lex=50;D.avatar='hina';D.owned={hina:true};
+  D.loginDays=1;D.lastLogin=new Date().toDateString();
+  save();initTut();showScreen('tutorial');
+  showToast('🌟 登録ボーナス +50 Lex！','gld');
+}
+
+// TUTORIAL
+let tutIdx=0;
+function initTutStars(){
+  const c=document.getElementById('tutStars');if(!c)return;
+  c.innerHTML='';
+  for(let i=0;i<60;i++){
+    const s=document.createElement('div');
+    s.className='tut-star';
+    s.style.cssText=`left:${Math.random()*100}%;top:${Math.random()*100}%;--dur:${1.5+Math.random()*2.5}s;--delay:${Math.random()*3}s;width:${Math.random()<.3?4:2}px;height:${Math.random()<.3?4:2}px;opacity:${.3+Math.random()*.5}`;
+    c.appendChild(s);
+  }
+}
+function updateTutStep(){
+  const num=document.getElementById('tutStepNum');
+  const bars=document.getElementById('tutStepBars');
+  if(num)num.textContent=`STEP ${tutIdx+1}/${TUT.length}`;
+  if(bars){bars.innerHTML=TUT.map((_,i)=>`<div class="tut-step-bar${i<=tutIdx?' done':''}"></div>`).join('')}
+}
+function initTut(){
+  tutIdx=0;
+  initTutStars();
+  const dots=document.getElementById('tutDots');
+  dots.innerHTML=TUT.map((_,i)=>`<div class="tut-dot ${i===0?'on':''}" id="td${i}"></div>`).join('');
+  document.getElementById('tutText').innerHTML=TUT[0];
+  document.getElementById('tutNextBtn').textContent='次へ ▶';
+  updateTutStep();
+}
+function tutNext(){
+  tutIdx++;
+  if(tutIdx>=TUT.length){
+    D.tutDone=true;save();goHome();return;
+  }
+  TUT.forEach((_,i)=>{
+    document.getElementById('td'+i)&&document.getElementById('td'+i).classList.toggle('on',i===tutIdx);
+  });
+  document.getElementById('tutText').innerHTML=TUT[tutIdx];
+  if(tutIdx===TUT.length-1)document.getElementById('tutNextBtn').textContent='はじめる ✨';
+  updateTutStep();
+  // bounce animation
+  const c=document.getElementById('tutChara');
+  c.style.transform='scale(1.1)';
+  setTimeout(()=>c.style.transform='',300);
+}
+
+// SCREEN NAVIGATION
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('on'));
+  document.getElementById(id).classList.add('on');
+  updateLex();
+  if(id==='home'){buildSecGrid();checkDailyBtn();updateMixCard()}
+  if(id==='gacha'){buildGcCharList()}
+  if(id==='collection')buildCol();
+  if(id==='stats')buildStats();
+  if(id==='settings')buildSettings();
+  if(id==='studyList')buildStudyList();
+}
+
+// ===== STUDY LIST SCREEN =====
+let slFilter='all';
+let slSearchTerm='';
+
+function buildStudyList(){
+  const el=document.getElementById('lexSL');if(el)el.textContent=(D.lex||0).toLocaleString();
+  filterStudyList();
+}
+
+function setSLFilter(f){
+  slFilter=f;
+  document.querySelectorAll('.sl-filter').forEach(b=>b.classList.toggle('on',b.dataset.f===f));
+  filterStudyList();
+}
+
+function filterStudyList(){
+  slSearchTerm=(document.getElementById('slSearch')||{}).value||'';
+  const el=document.getElementById('slList');if(!el)return;
+  let secs=SECTIONS.filter(s=>{
+    if(slSearchTerm&&!s.name.includes(slSearchTerm)&&!s.desc.includes(slSearchTerm))return false;
+    const pr=D.prog[s.id]||[];
+    const m=pr.filter(p=>p&&p.m).length;
+    const t=s.questions.length;
+    const reviewing=pr.filter(p=>p&&p.c>0&&!p.m).length;
+    if(slFilter==='all')return true;
+    if(slFilter==='cleared')return m===t;
+    if(slFilter==='notstarted')return m===0&&reviewing===0;
+    if(slFilter==='inprogress')return m>0||reviewing>0;
+    return true;
+  });
+  if(!secs.length){el.innerHTML='<div style="text-align:center;color:var(--txt2);padding:40px;font-size:13px">該当するセクションがありません</div>';return;}
+  el.innerHTML=secs.map(s=>{
+    const pr=D.prog[s.id]||[];
+    const t=s.questions.length;
+    const m=pr.filter(p=>p&&p.m).length;
+    const rev=pr.filter(p=>p&&p.c>0&&!p.m).length;
+    const none=t-m-rev;
+    const pct=t?Math.round(m/t*100):0;
+    const cl=m===t;
+    // Mini donut SVG
+    const svg=makeMiniPie(m,rev,none,t);
+    return `<div class="sl-card${cl?' cleared':''}" onclick="openSecDetail('${s.id}')">
+      ${svg}
+      <div class="sl-info">
+        <div class="sl-name">${s.icon} ${s.name}${cl?' <span style="color:var(--grn);font-size:10px">✓完全習得</span>':''}</div>
+        <div class="sl-desc">${s.desc}</div>
+        <div class="sl-prog-row">
+          <div class="sl-prog-bar"><div class="sl-prog-fill" style="width:${pct}%"></div></div>
+          <div class="sl-prog-txt">${m}/${t}</div>
+        </div>
+      </div>
+      <div style="color:var(--txt2);font-size:18px">›</div>
+    </div>`;
+  }).join('');
+}
+
+function makeMiniPie(m,rev,none,t){
+  if(t===0)return'';
+  const r=15,cx=18,cy=18,circum=2*Math.PI*r;
+  // segments: mastered=green, reviewing=gold, none=dark
+  const mPct=m/t,revPct=rev/t,nonePct=none/t;
+  const mLen=circum*mPct,revLen=circum*revPct,noneLen=circum*nonePct;
+  let offset=0;
+  const seg=(len,col,off)=>`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${col}" stroke-width="5" stroke-dasharray="${len} ${circum-len}" stroke-dashoffset="${-off}" transform="rotate(-90 ${cx} ${cy})"/>`;
+  let segs='';
+  if(mLen>0){segs+=seg(mLen,'#00e676',offset);offset+=mLen;}
+  if(revLen>0){segs+=seg(revLen,'#f0c040',offset);offset+=revLen;}
+  if(noneLen>0){segs+=seg(noneLen,'rgba(255,255,255,0.1)',offset);}
+  return `<svg class="sl-pie" viewBox="0 0 36 36" xmlns="http://www.w3.org/2000/svg">
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="rgba(255,255,255,.07)" stroke-width="5"/>
+    ${segs}
+    <text x="${cx}" y="${cy+1}" text-anchor="middle" dominant-baseline="middle" fill="#f0c040" font-size="7" font-weight="700">${Math.round(mPct*100)}%</text>
+  </svg>`;
+}
+
+// ===== SECTION DETAIL SCREEN =====
+function openSecDetail(secId){
+  curSec=secId;
+  const s=SECTIONS.find(s=>s.id===secId);
+  document.getElementById('sdTitle').textContent=s.name;
+  showScreen('secDetail');
+  buildSecDetail(secId);
+}
+
+function buildSecDetail(secId){
+  const s=SECTIONS.find(s=>s.id===secId);
+  const pr=D.prog[secId]||[];
+  const t=s.questions.length;
+  const m=pr.filter(p=>p&&p.m).length;
+  const rev=pr.filter(p=>p&&p.c>0&&!p.m).length;
+  const none=t-m-rev;
+  const pct=Math.round(m/t*100);
+
+  const donut=makeDonut(m,rev,none,t);
+
+  // Count select options
+  const opts=[5,10,15,t].filter((v,i,a)=>v<=t&&a.indexOf(v)===i);
+
+  const el=document.getElementById('sdBody');
+  el.innerHTML=`
+    <!-- Hero -->
+    <div class="sd-hero">
+      <div class="sd-hero-icon">${s.icon}</div>
+      <div class="sd-hero-info">
+        <div class="sd-hero-name">${s.name}</div>
+        <div class="sd-hero-desc">${s.desc}</div>
+        <div class="sd-stats-row">
+          <div class="sd-stat"><div class="sd-stat-v">${t}</div><div class="sd-stat-l">全問題</div></div>
+          <div class="sd-stat"><div class="sd-stat-v" style="color:var(--grn)">${m}</div><div class="sd-stat-l">習得済み</div></div>
+          <div class="sd-stat"><div class="sd-stat-v" style="color:var(--gold)">${rev}</div><div class="sd-stat-l">確認中</div></div>
+          <div class="sd-stat"><div class="sd-stat-v" style="color:var(--txt2)">${none}</div><div class="sd-stat-l">未習得</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Donut chart -->
+    <div class="donut-wrap">
+      ${donut}
+      <div class="donut-legend">
+        <div style="font-size:11px;font-weight:700;color:var(--txt2);margin-bottom:8px">習得状況</div>
+        <div class="donut-leg-item"><div class="donut-dot" style="background:#00e676"></div>習得済み<div class="donut-val" style="color:#00e676">${m}問</div></div>
+        <div class="donut-leg-item"><div class="donut-dot" style="background:#f0c040"></div>確認中<div class="donut-val" style="color:#f0c040">${rev}問</div></div>
+        <div class="donut-leg-item"><div class="donut-dot" style="background:rgba(255,255,255,.2)"></div>未習得<div class="donut-val" style="color:var(--txt2)">${none}問</div></div>
+        <div style="margin-top:8px;font-size:11px;color:var(--txt2)">進捗 <strong style="color:var(--gold)">${pct}%</strong></div>
+      </div>
+    </div>
+
+    <!-- Action buttons -->
+    <div style="margin-bottom:14px">
+      <div style="font-size:11px;color:var(--txt2);margin-bottom:8px">❓ 出題数を選択してクイズを開始</div>
+      <div class="sd-actions">
+        ${opts.map(n=>{
+          const isFull=n===t;
+          return `<button class="sd-btn ${isFull?'sd-btn-list':'sd-btn-quiz'}" onclick="openSecQuiz('${secId}',${n})">
+            <div style="font-size:18px;font-weight:700;font-family:'Orbitron',sans-serif">${n}問</div>
+            <div style="font-size:10px;margin-top:2px;opacity:.85">${isFull?'全問チャレンジ':'未習得優先'}</div>
+          </button>`;
+        }).join('')}
+      </div>
+    </div>
+
+    <!-- Checklist -->
+    <div style="background:var(--card);border:1px solid var(--bdr);border-radius:14px;overflow:hidden">
+      <div style="padding:13px 15px;border-bottom:1px solid var(--bdr);display:flex;justify-content:space-between;align-items:center;cursor:pointer" onclick="toggleSDChecklist(this)">
+        <div style="font-size:13px;font-weight:700;color:var(--gold)">📋 確認リスト</div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <span style="font-size:11px;color:var(--txt2)">${m}/${t} 習得</span>
+          <span class="sd-cl-toggle-arrow" style="color:var(--gold);font-size:16px;transition:transform .25s">▽</span>
+        </div>
+      </div>
+      <div class="sd-cl-body" style="display:none;padding:12px">
+        ${s.questions.map((q,i)=>{
+          const p=pr[i]||{};
+          const st=p.m?'mastered':(p.c>0?'reviewing':'');
+          const badge=p.m?'<span style="background:var(--grn);color:#000;font-size:9px;font-weight:700;padding:2px 6px;border-radius:6px;margin-left:6px">✓習得</span>'
+            :(p.c>0?'<span style="background:rgba(240,192,64,.3);color:var(--gold);font-size:9px;font-weight:700;padding:2px 6px;border-radius:6px;margin-left:6px">確認中</span>':'');
+          return `<div class="sd-cl-item ${st}" onclick="toggleSDAnswer(this)">
+            <div class="sd-cl-num"><span>Q${i+1} ${q.reading}</span>${badge}</div>
+            <div class="sd-cl-q">${q.stem}</div>
+            <div class="sd-cl-ans">
+              <div style="font-size:13px;font-weight:700;color:var(--grn);margin-bottom:4px">✅ ${q.answer}</div>
+              ${q.extra?`<div style="font-size:11px;color:var(--txt2);line-height:1.7;padding:5px 7px;background:rgba(255,255,255,.03);border-radius:6px">📝 ${q.extra}</div>`:''}
+            </div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+}
+
+function makeDonut(m,rev,none,t){
+  if(t===0)return'';
+  const r=36,cx=44,cy=44,circum=2*Math.PI*r;
+  const mLen=circum*(m/t),revLen=circum*(rev/t),noneLen=circum*(none/t);
+  let offset=0;
+  const seg=(len,col,off)=>len>0?`<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${col}" stroke-width="10" stroke-dasharray="${len} ${circum-len}" stroke-dashoffset="${-off}" transform="rotate(-90 ${cx} ${cy})"/>`:'' ;
+  let segs='';
+  if(mLen>0){segs+=seg(mLen,'#00e676',offset);offset+=mLen;}
+  if(revLen>0){segs+=seg(revLen,'#f0c040',offset);offset+=revLen;}
+  if(noneLen>0){segs+=seg(noneLen,'rgba(255,255,255,0.12)',offset);}
+  const pct=Math.round(m/t*100);
+  return `<svg class="donut-svg" viewBox="0 0 88 88" xmlns="http://www.w3.org/2000/svg" style="flex-shrink:0">
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="10"/>
+    ${segs}
+    <text x="${cx}" y="${cy-5}" text-anchor="middle" dominant-baseline="middle" fill="#f0c040" font-size="12" font-weight="700">${pct}%</text>
+    <text x="${cx}" y="${cy+9}" text-anchor="middle" dominant-baseline="middle" fill="#a0a0c0" font-size="7">習得率</text>
+  </svg>`;
+}
+
+function toggleSDAnswer(el){
+  const ans=el.querySelector('.sd-cl-ans');
+  const isOpen=ans.style.display==='block';
+  ans.style.display=isOpen?'none':'block';
+}
+
+function openSecQuiz(secId,n){
+  curSec=secId;curMode='quiz';qzQuestionLimit=n;fcIdx=0;fcFlip=false;
+  const s=SECTIONS.find(s=>s.id===secId);
+  document.getElementById('studyTitle').textContent=s.name;
+  document.getElementById('studyBackBtn').onclick=()=>openSecDetail(secId);
+  document.querySelectorAll('#modeTabs .tab').forEach((b,i)=>b.classList.toggle('on',i===1));
+  showScreen('study');
+  startQuiz();
+}
+
+function openSecCheck(secId){
+  curSec=secId;curMode='check';qzQuestionLimit=null;fcIdx=0;fcFlip=false;
+  const s=SECTIONS.find(s=>s.id===secId);
+  document.getElementById('studyTitle').textContent=s.name;
+  document.getElementById('studyBackBtn').onclick=()=>openSecDetail(secId);
+  document.querySelectorAll('#modeTabs .tab').forEach((b,i)=>b.classList.toggle('on',i===0));
+  showScreen('study');
+  renderCheck();
+}
+function updateMixCard(){
+  const mc=parseInt((D.settings&&D.settings.mixCount)||30);
+  const el=document.getElementById('mixCardTitle');
+  if(el)el.textContent=`ミックス問題（${mc}問）`;
+}
+function goHome(){showScreen('home')}
+function updateLex(){
+  ['lexH','lexS','lexG','lexSL','lexSD'].forEach(id=>{const e=document.getElementById(id);if(e)e.textContent=(D.lex||0).toLocaleString()});
+  const av=CHARS.find(c=>c.id===D.avatar);
+  if(av){const e=document.getElementById('avH');if(e)e.src=av.file}
+}
+
+// DAILY
+function checkDailyLogin(){
+  const t=new Date().toDateString();
+  if(D.lastLogin!==t){D.lastLogin=t;D.loginDays=(D.loginDays||0)+1;save()}
+}
+function checkDailyBtn(){
+  const t=new Date().toDateString();
+  const b=document.getElementById('dailyBtn');
+  if(!b)return;
+  const cl=D.dailyClaimed===t;
+  b.disabled=cl;b.textContent=cl?'受取済み ✓':'受け取る';
+  // Update daily goal display
+  const goalEl=document.getElementById('dailyGoalInfo');
+  if(goalEl){
+    const goal=parseInt((D.settings&&D.settings.dailyGoal)||20);
+    if(goal>0){
+      const today=new Date().toLocaleDateString();
+      const sh=D.studyHist||[];const mh=D.mixHist||[];
+      const todayQ=sh.filter(h=>h.date===today).reduce((a,h)=>a+(h.total||0),0)
+                  +mh.filter(h=>h.date===today).reduce((a,h)=>a+(h.tot||0),0);
+      const pct=Math.min(100,Math.round(todayQ/goal*100));
+      goalEl.innerHTML=`<div style="font-size:11px;color:var(--txt2);margin-top:8px">今日の目標: ${todayQ}/${goal}問（${pct}%）</div>
+        <div style="background:rgba(255,255,255,.1);border-radius:4px;height:3px;margin-top:4px;overflow:hidden">
+          <div style="height:100%;width:${pct}%;background:linear-gradient(90deg,var(--pur),var(--gold));border-radius:4px;transition:width .5s"></div>
+        </div>`;
+    }else{goalEl.innerHTML='';}
+  }
+}
+function claimDaily(){
+  const t=new Date().toDateString();
+  if(D.dailyClaimed===t)return;
+  D.dailyClaimed=t;D.lex=(D.lex||0)+50;save();
+  checkDailyBtn();updateLex();showToast('🌟 デイリーボーナス +50 Lex！','gld');
+}
+
+// HOME SECTION GRID
+function buildSecGrid(){
+  const g=document.getElementById('secGrid');if(!g)return;
+  g.innerHTML='';
+  SECTIONS.forEach(s=>{
+    const pr=D.prog[s.id]||[];
+    const m=pr.filter(p=>p&&p.m).length,t=s.questions.length;
+    const pct=t?Math.round(m/t*100):0;
+    const cl=pct===100;
+    const div=document.createElement('div');
+    div.className='s-card'+(cl?' cleared':'');
+    div.innerHTML=`${cl?'<div class="cl-badge">✓ 完全習得</div>':''}<div class="ci">${s.icon}</div><h3>${s.name}</h3><p>${m}/${t} 習得</p><div style="font-size:10px;color:var(--txt2);margin-top:2px">${s.desc}</div><div class="s-prog"><div class="s-prog-b" style="width:${pct}%"></div></div>`;
+    div.onclick=()=>openSec(s.id);
+    g.appendChild(div);
+  });
+}
+
+// SECTION PICKER
+function pickSection(){
+  const html=`<div class="modal-ov" onclick="if(event.target===this)this.remove()">
+    <div class="modal">
+      <h3>📚 セクションを選択</h3>
+      ${SECTIONS.map(s=>{
+        const pr=D.prog[s.id]||[];
+        const m=pr.filter(p=>p&&p.m).length;
+        return `<div class="modal-row" onclick="openSec('${s.id}');document.querySelector('.modal-ov').remove()">${s.icon} ${s.name}<span style="color:var(--txt2);font-size:11px">${m}/${s.questions.length}</span></div>`;
+      }).join('')}
+      <button class="modal-close" onclick="this.closest('.modal-ov').remove()">閉じる</button>
+    </div></div>`;
+  document.body.insertAdjacentHTML('beforeend',html);
+}
+
+// STUDY
+let curSec=null,curMode='check',fcIdx=0,fcFlip=false,sessionStart=null;
+let qzQuestionLimit=null; // null = all questions
+
+function openSec(secId){
+  openSecDetail(secId);
+}
+function setMode(m){
+  curMode=m;fcIdx=0;fcFlip=false;qzQuestionLimit=null;
+  const modes=['check','quiz'];
+  document.querySelectorAll('#modeTabs .tab').forEach((b,i)=>b.classList.toggle('on',modes[i]===m));
+  if(m==='check')renderCheck();
+  else renderQzCountSelect();
+}
+
+// 問題数選択画面
+function renderQzCountSelect(){
+  const s=SECTIONS.find(s=>s.id===curSec);
+  const total=s.questions.length;
+  const pr=D.prog[curSec]||[];
+  const unmastered=pr.filter(p=>p&&!p.m).length;
+  const opts=[5,10,15,total].filter((v,i,a)=>v<=total&&a.indexOf(v)===i);
+
+  document.getElementById('studyArea').innerHTML=`
+    <div style="margin-bottom:16px">
+      <div style="font-size:15px;font-weight:700;color:var(--gold);margin-bottom:4px">❓ 出題数を選択</div>
+      <div style="font-size:12px;color:var(--txt2);line-height:1.6">未習得の問題を優先して出題します。<br>全${total}問中 <strong style="color:var(--pur2)">${unmastered}問</strong> 未習得</div>
+    </div>
+    <div class="qcount-sel">
+      ${opts.map(n=>{
+        const isFull=n===total;
+        const label=isFull?'全問':'おすすめ';
+        const col=n===10?'var(--gold)':'var(--pur2)';
+        return `<div class="qcount-btn" onclick="startQuizWithCount(${n})">
+          <div>
+            <div class="qc-num">${n}問</div>
+            <div class="qc-lbl">${isFull?'セクション全問':'約'+Math.round(n/total*100)+'%をカバー'}</div>
+          </div>
+          <div class="qc-badge" style="background:rgba(124,58,237,.15);color:${col};border:1px solid ${col}">${isFull?'全問':'▶ スタート'}</div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div style="margin-top:16px;background:rgba(240,192,64,.07);border:1px solid var(--bdr);border-radius:11px;padding:12px 14px;font-size:11px;color:var(--txt2);line-height:1.7">
+      💡 <strong style="color:var(--gold)">出題ルール：</strong><br>
+      • 未習得の問題を優先的に選出<br>
+      • 同じ問題が連続しないよう調整<br>
+      • 2回連続正解で習得済みに！
+    </div>`;
+}
+
+// 問題数を選んでクイズ開始
+function startQuizWithCount(n){
+  qzQuestionLimit=n;
+  startQuiz();
+}
+
+// CHECKLIST (read-only: tap card to reveal answer & explanation)
+function renderCheck(){
+  const s=SECTIONS.find(s=>s.id===curSec);
+  const pr=D.prog[curSec]||[];
+  document.getElementById('studyArea').innerHTML=`
+    <div style="font-size:11px;color:var(--txt2);margin-bottom:12px;display:flex;align-items:center;gap:6px">
+      <span>💡</span><span>カードをタップすると答えと解説を表示</span>
+    </div>
+    <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap">
+      <div style="display:flex;align-items:center;gap:4px;font-size:11px"><span style="width:10px;height:10px;background:rgba(0,230,118,.25);border:1px solid var(--grn);border-radius:3px;display:inline-block"></span>習得済み</div>
+      <div style="display:flex;align-items:center;gap:4px;font-size:11px"><span style="width:10px;height:10px;background:rgba(240,192,64,.15);border:1px solid var(--bdr);border-radius:3px;display:inline-block"></span>未習得</div>
+      <div style="margin-left:auto;font-size:11px;color:var(--gold);font-weight:700">${pr.filter(p=>p&&p.m).length}/${s.questions.length} 習得</div>
+    </div>
+    <div style="text-align:center;margin-bottom:14px">
+      <button onclick="toggleCheckList(this)" style="padding:11px 28px;background:linear-gradient(135deg,var(--pur),var(--pur2));border:none;border-radius:12px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:'Noto Sans JP',sans-serif;box-shadow:0 4px 14px rgba(124,58,237,.4);transition:all .3s" data-open="false">📋 リストを表示</button>
+    </div>
+    <div class="cl-list" id="checkListBody" style="display:none">${s.questions.map((q,i)=>{
+    const p=pr[i]||{};
+    return `<div class="cl-item${p.m?' mastered':''}" onclick="toggleCheckAnswer(this)">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start">
+        <div style="flex:1">
+          <div class="cli-t">${q.stem}</div>
+          <div class="cli-d">${q.reading}</div>
+          ${p.m?'<span class="ms-bdg">✓ 習得済み</span>':''}
+        </div>
+        <div style="color:var(--txt2);font-size:18px;margin-left:8px;transition:transform .2s" class="cli-arrow">▽</div>
+      </div>
+      <div class="cli-answer" style="display:none">
+        <div class="cli-ans-text">✅ ${q.answer}</div>
+        ${q.extra?`<div class="cli-extra">📝 ${q.extra}</div>`:''}
+      </div>
+    </div>`;
+  }).join('')}</div>`;
+}
+function toggleCheckList(btn){
+  const list=document.getElementById('checkListBody');
+  const isOpen=btn.dataset.open==='true';
+  if(isOpen){
+    list.style.display='none';
+    btn.textContent='📋 リストを表示';
+    btn.dataset.open='false';
+  }else{
+    list.style.display='flex';
+    list.style.flexDirection='column';
+    list.style.gap='9px';
+    btn.textContent='📋 リストを隠す';
+    btn.dataset.open='true';
+  }
+}
+function toggleCheckAnswer(el){
+  const ans=el.querySelector('.cli-answer');
+  const arrow=el.querySelector('.cli-arrow');
+  const isOpen=ans.style.display!=='none';
+  ans.style.display=isOpen?'none':'block';
+  if(arrow)arrow.style.transform=isOpen?'':'rotate(180deg)';
+}
+
+// QUIZ
+let qzQs=[],qzIdx=0,qzAns=[],qzActive=false;
+
+// Strip parenthetical from option display so correct answer isn't identifiable by having extra text
+function stripParen(text){return text.replace(/（[^）]*）/g,'').trim()}
+
+// 未習得優先・連続回避の出題順を作成
+function buildQuizOrder(sec, limit){
+  const s=SECTIONS.find(s=>s.id===sec);
+  const pr=D.prog[sec]||[];
+  const all=s.questions.map((q,i)=>({...q,origIdx:i}));
+
+  // 未習得と習得済みを分離
+  const unmastered=all.filter(q=>!pr[q.origIdx]||!pr[q.origIdx].m);
+  const mastered=all.filter(q=>pr[q.origIdx]&&pr[q.origIdx].m);
+
+  // シャッフル
+  const shuffle=arr=>[...arr].sort(()=>Math.random()-.5);
+  let pool=shuffle(unmastered);
+
+  // limitに足りなければ習得済みを補填
+  if(pool.length<limit){
+    pool=[...pool,...shuffle(mastered)];
+  }
+  pool=pool.slice(0,limit);
+
+  // 連続しないよう並び替え（同じ問題が隣にならないよう。問題数が少ない場合は許容）
+  const avoidConsec=arr=>{
+    const result=[];
+    const remaining=[...arr];
+    let last=null;
+    while(remaining.length>0){
+      // lastと違うものを探す
+      const idx=remaining.findIndex(q=>last===null||q.origIdx!==last.origIdx);
+      if(idx===-1){result.push(...remaining);break}
+      result.push(remaining.splice(idx,1)[0]);
+      last=result[result.length-1];
+    }
+    return result;
+  };
+  return avoidConsec(pool);
+}
+
+function startQuiz(){
+  const limit=qzQuestionLimit||SECTIONS.find(s=>s.id===curSec).questions.length;
+  qzQs=buildQuizOrder(curSec,limit);
+  qzIdx=0;qzAns=[];qzActive=true;sessionStart=Date.now();
+  renderQzQ();
+}
+function renderQzQ(){
+  if(qzIdx>=qzQs.length){renderQzRes();return}
+  const s=SECTIONS.find(s=>s.id===curSec);
+  const q=qzQs[qzIdx];
+  const pct=Math.round(qzIdx/qzQs.length*100);
+  // Build 9 options: correct + 7 wrongs + わからない
+  const wrongs=q.wrong?[...q.wrong].sort(()=>Math.random()-.5).slice(0,7):[];
+  let opts=[{t:q.answer,disp:stripParen(q.answer),c:true}];
+  wrongs.forEach(w=>opts.push({t:w,disp:stripParen(w),c:false}));
+  // sort but keep わからない last
+  const main=opts.sort(()=>Math.random()-.5);
+  opts=[...main,{t:'わからない',disp:'わからない',dk:true}];
+
+  const pr=D.prog[curSec]||[];
+  const mastered=pr[q.origIdx]&&pr[q.origIdx].m;
+
+  document.getElementById('studyArea').innerHTML=`
+    <div class="qz-prog"><div class="qz-prog-b" style="width:${pct}%"></div></div>
+    <div class="qz-q">
+      <div class="qz-label">${s.icon} 問題 ${qzIdx+1} / ${qzQs.length}${mastered?' <span style="color:var(--grn);font-size:10px">✓習得済み</span>':' <span style="color:var(--pur2);font-size:10px">未習得</span>'}</div>
+      <div class="qz-stem">${q.stem}</div>
+      <div class="qz-sub">${q.reading}</div>
+    </div>
+    <div class="qz-opts-grid" id="qzOpts">
+      ${main.map((o,i)=>`<button class="qz-opt" id="qo${i}" onclick="ansQ(${i},${o.c?'true':'false'},false,${q.origIdx})">${o.disp}</button>`).join('')}
+    </div>
+    <button class="qz-opt dk-btn" id="qo${main.length}" onclick="ansQ(${main.length},false,true,${q.origIdx})" style="width:100%;margin-top:8px">わからない</button>
+    <div class="ans-reveal" id="ansReveal"><strong>✅ 正解：</strong>${q.answer}<br><span style="color:var(--txt2);font-size:12px">${q.extra||''}</span></div>
+    <button class="next-q-btn" id="nextQBtn" onclick="qzNext()">次の問題 →</button>`;
+}
+function ansQ(optIdx,correct,dk,origIdx){
+  if(!qzActive)return;
+  document.querySelectorAll('.qz-opt').forEach(b=>b.disabled=true);
+  const btn=document.getElementById('qo'+optIdx);
+  const isOk=correct&&!dk;
+  btn.classList.add(isOk?'correct':(dk?'dkw':'wrong'));
+  qzAns.push(isOk);
+  const pr=D.prog[curSec][origIdx];
+  if(isOk){pr.c=Math.min((pr.c||0)+1,2);if(pr.c>=2)pr.m=true}
+  else{pr.c=0;
+    // Show correct answer
+    document.getElementById('ansReveal').classList.add('show');
+  }
+  // 正解でも不正解でも正解を表示
+  if(isOk){
+    const rev=document.getElementById('ansReveal');
+    rev.classList.add('show');
+    rev.style.background='rgba(0,230,118,.05)';
+  }
+  save();checkSecClear(curSec);
+  document.getElementById('nextQBtn').classList.add('show');
+}
+function qzNext(){qzActive=false;qzIdx++;qzActive=true;renderQzQ()}
+function renderQzRes(){
+  qzActive=false;
+  const s=SECTIONS.find(s=>s.id===curSec);
+  const ok=qzAns.filter(a=>a).length,tot=qzAns.length;
+  const pct=Math.round(ok/tot*100);
+  const durationSec=sessionStart?Math.round((Date.now()-sessionStart)/1000):0;
+  const durationMin=Math.round(durationSec/60*10)/10;
+  D.studyHist=D.studyHist||[];
+  D.studyHist.push({date:new Date().toLocaleDateString(),sec:curSec,pct,correct:ok,total:tot,duration:durationMin});
+  save();
+  document.getElementById('studyArea').innerHTML=`
+    <div class="qz-res">
+      <div style="font-size:38px">🎉</div>
+      <div class="qz-score">${ok}/${tot}</div>
+      <div style="color:var(--txt2);font-size:13px">正解率 ${pct}%</div>
+      <div style="font-size:22px;margin:10px 0">${'⭐'.repeat(pct>=90?3:pct>=70?2:1)}</div>
+      <div style="display:flex;gap:10px;margin:18px 0">
+        <button class="btn-pri" style="flex:1" onclick="openSecDetail('${curSec}')">セクションへ</button>
+        <button class="btn-sec" style="flex:1" onclick="showScreen('home')">ホームへ</button>
+      </div>
+    </div>`;
+}
+
+// CHECK SECTION CLEAR
+function checkSecClear(secId){
+  const s=SECTIONS.find(s=>s.id===secId);
+  const pr=D.prog[secId]||[];
+  const m=pr.filter(p=>p&&p.m).length;
+  if(m>=s.questions.length&&!D.cleared[secId]){
+    D.cleared[secId]=true;D.lex=(D.lex||0)+600;save();updateLex();
+    showToast('🎊 セクション完全習得！ +600 Lex！','gld');
+  }
+}
+
+// MIX QUIZ
+let mxQs=[],mxIdx=0,mxAns=[];
+function startMix(){
+  let all=[];
+  SECTIONS.forEach(s=>s.questions.forEach((q,i)=>all.push({...q,secId:s.id,oi:i})));
+  all.sort(()=>Math.random()-.5);
+  const mc=parseInt((D.settings&&D.settings.mixCount)||30,10);
+  mxQs=all.slice(0,mc);mxIdx=0;mxAns=[];sessionStart=Date.now();
+  curSec='mix';
+  document.getElementById('studyTitle').textContent='🌀 ミックス問題';
+  document.querySelectorAll('#modeTabs .tab').forEach(b=>{b.style.display='none'});
+  showScreen('study');renderMxQ();
+}
+function renderMxQ(){
+  if(mxIdx>=mxQs.length){renderMxRes();return}
+  const q=mxQs[mxIdx];
+  const pct=Math.round(mxIdx/mxQs.length*100);
+  let all2=[];SECTIONS.forEach(s=>s.questions.forEach(sq=>{if(sq.answer!==q.answer&&sq.wrong)all2.push(...sq.wrong)}));
+  all2=[...new Set(all2)].sort(()=>Math.random()-.5);
+  const qWrong=(q.wrong||[...all2.slice(0,7)]).sort(()=>Math.random()-.5).slice(0,7);
+  let opts=[{t:q.answer,disp:stripParen(q.answer),c:true},...qWrong.map(w=>({t:w,disp:stripParen(w),c:false})),{t:'わからない',disp:'わからない',dk:true}];
+  const main=opts.filter(o=>!o.dk).sort(()=>Math.random()-.5);
+  opts=[...main,{t:'わからない',disp:'わからない',dk:true}];
+
+  document.getElementById('studyArea').innerHTML=`
+    <div class="qz-prog"><div class="qz-prog-b" style="width:${pct}%"></div></div>
+    <div style="text-align:center;margin-bottom:10px;color:var(--pur2);font-size:12px;font-weight:700">🌀 MIX MODE</div>
+    <div class="qz-q">
+      <div class="qz-label">問題 ${mxIdx+1} / ${mxQs.length}</div>
+      <div class="qz-stem">${q.stem}</div>
+      <div class="qz-sub">${q.reading}</div>
+    </div>
+    <div class="qz-opts" id="qzOpts">${opts.map((o,i)=>`<button class="qz-opt" id="qo${i}" onclick="ansMx(${i},${o.c?'true':'false'},${o.dk?'true':'false'})">${o.disp}</button>`).join('')}</div>
+    <div class="ans-reveal" id="ansReveal"><strong>✅ 正解：</strong>${q.answer}<br><span style="color:var(--txt2);font-size:12px">${q.extra||''}</span></div>
+    <button class="next-q-btn" id="nextQBtn" onclick="mxNext()">次の問題 →</button>`;
+}
+function ansMx(i,c,dk){
+  document.querySelectorAll('.qz-opt').forEach(b=>b.disabled=true);
+  const btn=document.getElementById('qo'+i);
+  const ok=c&&!dk;
+  btn.classList.add(ok?'correct':(dk?'dkw':'wrong'));
+  mxAns.push(ok);
+  const q=mxQs[mxIdx];
+  if(!D.prog[q.secId])D.prog[q.secId]=SECTIONS.find(s=>s.id===q.secId).questions.map(()=>({c:0,m:false}));
+  const pr=D.prog[q.secId][q.oi];
+  if(ok){pr.c=Math.min((pr.c||0)+1,2);if(pr.c>=2)pr.m=true}else{pr.c=0}
+  save();checkSecClear(q.secId);
+  if(!ok)document.getElementById('ansReveal').classList.add('show');
+  document.getElementById('nextQBtn').classList.add('show');
+}
+function mxNext(){mxIdx++;renderMxQ()}
+function renderMxRes(){
+  const ok=mxAns.filter(a=>a).length,tot=mxAns.length,pct=Math.round(ok/tot*100);
+  const durationSec=sessionStart?Math.round((Date.now()-sessionStart)/1000):0;
+  const durationMin=Math.round(durationSec/60*10)/10;
+  let rew=0,msg='';
+  if(pct===100){rew=150;msg='🏆 パーフェクト！+150 Lex'}
+  else if(pct>=90){rew=50;msg='⭐ 90%以上！+50 Lex'}
+  if(rew>0){D.lex=(D.lex||0)+rew;save();updateLex()}
+  D.mixHist=D.mixHist||[];
+  D.mixHist.push({date:new Date().toLocaleDateString(),ok,tot,pct,duration:durationMin});save();
+  document.querySelectorAll('#modeTabs .tab').forEach(b=>b.style.display='');
+  document.getElementById('studyArea').innerHTML=`
+    <div class="qz-res">
+      <div style="font-size:38px">🌀</div>
+      <div class="qz-score">${ok}/${tot}</div>
+      <div style="color:var(--txt2);font-size:13px">正解率 ${pct}%</div>
+      <div style="font-size:22px;margin:10px 0">${'⭐'.repeat(pct>=90?3:pct>=70?2:1)}</div>
+      ${rew>0?`<div class="lex-rew"><img src="MagiLex_Coin.png"><span>+${rew} Lex</span></div><div style="color:var(--gold);font-size:13px">${msg}</div>`:''}
+      <div style="display:flex;gap:10px;margin:18px 0">
+        <button class="btn-pri" style="flex:1" onclick="startMix()">もう一度</button>
+        <button class="btn-sec" style="flex:1" onclick="showScreen('home')">ホームへ</button>
+      </div>
+    </div>`;
+}
+
+// GACHA - with pity system (10 pulls = guaranteed pick)
+function buildGcCharList(){
+  const el=document.getElementById('gcCharList');if(!el)return;
+  el.innerHTML=CHARS.filter(c=>c.from==='gacha').map(c=>{
+    const own=D.owned[c.id];
+    const eq=D.avatar===c.id;
+    return `
+    <div style="display:flex;align-items:center;gap:11px;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05);${own?'cursor:pointer':''}" ${own?`onclick="showChar(CHARS.find(c=>c.id==='${c.id}'))"`:''}>
+      <div style="position:relative">
+        <img src="${c.file}" style="width:42px;height:42px;border-radius:50%;border:2px solid ${c.rarity==='SSR'?'#ffd700':'#c0c0ff'};${!own?'filter:grayscale(1);opacity:.4':''}">
+        ${eq?'<div style="position:absolute;bottom:-2px;right:-2px;background:var(--gold);color:#000;font-size:8px;font-weight:700;padding:1px 4px;border-radius:6px;white-space:nowrap">使用中</div>':''}
+      </div>
+      <div><div style="font-size:13px;font-weight:700">${c.name}</div><div style="font-size:11px;color:${c.rarity==='SSR'?'#ffd700':'#c0c0ff'}">${c.rarity} ${c.rarity==='SSR'?'5%':'9.5%'}</div></div>
+      <div style="margin-left:auto;font-size:11px;color:${own?'var(--grn)':'var(--txt2)'}">${own?(eq?'✓ 使用中':'✓ 所持'):'未所持'}</div>
+    </div>`;
+  }).join('');
+  // Update pity display
+  const pc=document.getElementById('pityCount');
+  if(pc)pc.textContent=(D.pity||0)+' / 10';
+}
+
+function doGacha(){
+  if((D.lex||0)<1500){showToast('Lexが足りません！（1500 Lex必要）','err');return}
+  D.lex-=1500;D.gachaCount=(D.gachaCount||0)+1;
+  D.pity=(D.pity||0)+1;
+  save();updateLex();
+
+  // 天井: 10回目 → 選択画面
+  if(D.pity>=10){
+    D.pity=0;save();
+    showPityPick();
+    return;
+  }
+
+  // Normal draw - weighted random, duplicates allowed
+  // Pool: SSR(5%) = kotomi, SR(10.5% each) = 9 chars (hina excluded - starter character)
+  const pool=CHARS.filter(c=>c.from==='gacha');
+  // Build weighted pool
+  const weights=[];
+  pool.forEach(c=>{weights.push({char:c,w:c.rarity==='SSR'?5:10.5})});
+  const totalW=weights.reduce((a,b)=>a+b.w,0);
+  let r=Math.random()*totalW;
+  let drawn=weights[0].char;
+  for(const w of weights){r-=w.w;if(r<=0){drawn=w.char;break}}
+
+  const isNew=!D.owned[drawn.id];
+  D.owned[drawn.id]=true;save();
+  showGachaResult(drawn,isNew);
+}
+
+function showGachaResult(drawn,isNew){
+  const ov=document.createElement('div');ov.className='g-overlay';
+  ov.innerHTML=`<img src="${drawn.file}" class="g-res-img">
+    <div class="g-rar ${drawn.rarity==='SSR'?'g-rar-ssr':'g-rar-sr'}">${'⭐'.repeat(drawn.rarity==='SSR'?3:2)} ${drawn.rarity}</div>
+    <div class="g-cname">${drawn.name}</div>
+    ${isNew?'<div class="g-new">✨ NEW!</div>':'<div style="color:var(--txt2);font-size:12px;margin-bottom:10px">（重複 - コレクションに追加済み）</div>'}
+    <div style="color:var(--txt2);font-size:11px;margin-bottom:14px">天井まで あと ${10-(D.pity||0)} 回</div>
+    <button class="btn-cg" onclick="this.parentElement.remove();buildGcCharList()">閉じる</button>`;
+  if(drawn.rarity==='SSR')ov.style.background='radial-gradient(ellipse at center,rgba(255,215,0,.2),rgba(0,0,0,.96) 60%)';
+  document.body.appendChild(ov);
+}
+
+function showPityPick(){
+  const pickChars=CHARS.filter(c=>c.from==='gacha');
+  const ov=document.createElement('div');ov.className='g-overlay';
+  ov.innerHTML=`
+    <div style="text-align:center;margin-bottom:16px">
+      <div style="font-size:32px">🎊</div>
+      <div style="font-family:'Cinzel',serif;font-size:22px;color:var(--gold);margin:8px 0">天井達成！</div>
+      <div style="color:var(--txt2);font-size:13px">好きなキャラクターを1人選んでください</div>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;max-height:55vh;overflow-y:auto;padding:4px;width:min(420px,92vw)">
+      ${pickChars.map(c=>`
+        <div onclick="pickPityChar('${c.id}')" style="background:var(--card);border:2px solid ${c.rarity==='SSR'?'#ffd700':'#c0c0ff'};border-radius:12px;overflow:hidden;cursor:pointer;transition:all .2s" onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform=''">
+          <img src="${c.file}" style="width:100%;aspect-ratio:1;object-fit:cover">
+          <div style="padding:6px;text-align:center">
+            <div style="font-size:11px;font-weight:700">${c.name}</div>
+            <div style="font-size:10px;color:${c.rarity==='SSR'?'#ffd700':'#c0c0ff'}">${c.rarity}</div>
+          </div>
+        </div>`).join('')}
+    </div>`;
+  document.body.appendChild(ov);
+}
+
+function pickPityChar(charId){
+  const c=CHARS.find(ch=>ch.id===charId);
+  const isNew=!D.owned[c.id];
+  D.owned[c.id]=true;save();
+  document.querySelectorAll('.g-overlay').forEach(o=>o.remove());
+  showGachaResult(c,isNew);
+  buildGcCharList();
+}
+
+// COLLECTION
+function buildCol(){
+  const g=document.getElementById('colGrid');if(!g)return;
+  g.innerHTML='';
+  CHARS.forEach(c=>{
+    const own=D.owned[c.id];
+    const eq=D.avatar===c.id;
+    const d=document.createElement('div');
+    d.className='ch-card'+(own?'':' lk');
+    d.innerHTML=`${eq?'<div class="eq-bdg">使用中</div>':''}<img src="${c.file}"${!own?' style="filter:grayscale(1)"':''}><div class="ch-info"><div class="ch-nm">${own?c.name:'???'}</div><div class="ch-rar ${c.rarity==='SSR'?'rar-ssr':'rar-sr'}">${'⭐'.repeat(c.rarity==='SSR'?3:2)} ${c.rarity}</div></div>`;
+    if(own)d.onclick=()=>showChar(c);
+    g.appendChild(d);
+  });
+}
+function showChar(c){
+  const ov=document.createElement('div');ov.className='ch-overlay';
+  ov.innerHTML=`<img src="${c.file}" class="ch-det-img">
+    <div class="ch-det-nm">${c.name}</div>
+    <div class="ch-rar ${c.rarity==='SSR'?'rar-ssr':'rar-sr'}" style="font-size:17px;margin-bottom:18px">${'⭐'.repeat(c.rarity==='SSR'?3:2)} ${c.rarity}</div>
+    <div><button class="btn-av" onclick="setAv('${c.id}');this.closest('.ch-overlay').remove()">アイコンにする</button><button class="btn-cc" onclick="this.closest('.ch-overlay').remove()">閉じる</button></div>`;
+  document.body.appendChild(ov);
+}
+function setAv(id){D.avatar=id;save();updateLex();buildCol();showToast('アイコンを変更しました！','suc')}
+
+// STATS with daily calendar
+function buildStats(){
+  const el=document.getElementById('stBody');if(!el)return;
+  let tot=0,totM=0;
+  SECTIONS.forEach(s=>{tot+=s.questions.length;totM+=(D.prog[s.id]||[]).filter(p=>p&&p.m).length});
+  const mh=D.mixHist||[];
+  const sh=D.studyHist||[];
+
+  // Build calendar data: aggregate study sessions by date
+  const calData={};
+  sh.forEach(h=>{
+    if(!calData[h.date])calData[h.date]={sessions:0,totalPct:0,correct:0,total:0,duration:0};
+    calData[h.date].sessions++;
+    calData[h.date].totalPct+=h.pct;
+    calData[h.date].correct+=(h.correct||0);
+    calData[h.date].total+=(h.total||0);
+    calData[h.date].duration+=(h.duration||0);
+  });
+  mh.forEach(h=>{
+    if(!calData[h.date])calData[h.date]={sessions:0,totalPct:0,correct:0,total:0,duration:0};
+    calData[h.date].sessions++;
+    calData[h.date].totalPct+=h.pct;
+    calData[h.date].correct+=h.ok;
+    calData[h.date].total+=h.tot;
+    calData[h.date].duration+=(h.duration||0);
+  });
+
+  // Calendar for current month
+  const now=new Date();
+  const year=now.getFullYear(),month=now.getMonth();
+  const firstDay=new Date(year,month,1).getDay();
+  const daysInMonth=new Date(year,month+1,0).getDate();
+  const monthNames=['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'];
+  const dayNames=['日','月','火','水','木','金','土'];
+
+  // Build calendar cells
+  let calCells='';
+  dayNames.forEach(d=>calCells+=`<div style="text-align:center;font-size:10px;color:var(--txt2);padding:3px 0;font-weight:700">${d}</div>`);
+  for(let i=0;i<firstDay;i++)calCells+=`<div></div>`;
+  for(let d=1;d<=daysInMonth;d++){
+    const dateStr=new Date(year,month,d).toLocaleDateString();
+    const data=calData[dateStr];
+    const isToday=d===now.getDate();
+    const avgPct=data?Math.round(data.totalPct/data.sessions):null;
+    let bg='rgba(255,255,255,.04)',border='transparent',dot='';
+    if(data){
+      if(avgPct>=90)bg='rgba(0,230,118,.25)',border='var(--grn)';
+      else if(avgPct>=70)bg='rgba(240,192,64,.2)',border='var(--gold)';
+      else bg='rgba(124,58,237,.2)',border='var(--pur2)';
+      const col=avgPct>=90?'var(--grn)':avgPct>=70?'var(--gold)':'var(--pur2)';
+      const timeLabel=data.duration>0?(data.duration<1?Math.round(data.duration*60)+'秒':Math.round(data.duration)+'分'):'';
+      dot=`<div style="font-size:7px;color:${col};font-weight:700;line-height:1.2">${data.total}問</div>${timeLabel?`<div style="font-size:6px;color:var(--txt2)">${timeLabel}</div>`:''}`;
+    }
+    calCells+=`<div onclick="showDayDetail('${dateStr}')" style="background:${bg};border:1px solid ${border};border-radius:7px;padding:4px 2px;text-align:center;cursor:${data?'pointer':'default'};${isToday?'border-color:var(--gold);box-shadow:0 0 6px rgba(240,192,64,.4)':''}">
+      <div style="font-size:11px;font-weight:${isToday?'900':'400'};color:${isToday?'var(--gold)':'var(--txt)'}">${d}</div>${dot}
+    </div>`;
+  }
+
+  // Aggregate totals
+  const totalQAnswered=sh.reduce((a,h)=>a+(h.total||0),0)+mh.reduce((a,h)=>a+(h.tot||0),0);
+  const totalMinutes=Math.round((sh.reduce((a,h)=>a+(h.duration||0),0)+mh.reduce((a,h)=>a+(h.duration||0),0))*10)/10;
+  const totalH=Math.floor(totalMinutes/60),totalM=Math.round(totalMinutes%60);
+  const timeStr=totalH>0?`${totalH}時間${totalM}分`:totalM+'分';
+
+  el.innerHTML=`
+    <div class="st-card"><h3>📊 全体の進捗</h3>
+      <div class="st-row"><span>総習得数</span><span class="st-val">${totM}/${tot}問</span></div>
+      <div class="st-row"><span>総学習時間</span><span class="st-val">${totalMinutes>0?timeStr:'未記録'}</span></div>
+      <div class="st-row"><span>総回答問題数</span><span class="st-val">${totalQAnswered}問</span></div>
+      <div class="st-row"><span>ログイン日数</span><span class="st-val">${D.loginDays||1}日</span></div>
+      <div class="st-row"><span>ガチャ回数</span><span class="st-val">${D.gachaCount||0}回</span></div>
+      <div class="st-row"><span>所持キャラ</span><span class="st-val">${Object.values(D.owned).filter(v=>v).length}/${CHARS.length}体</span></div>
+      <div class="st-row"><span>現在のLex</span><span class="st-val">${(D.lex||0).toLocaleString()}</span></div>
+    </div>
+
+    <div class="st-card">
+      <h3>📅 学習カレンダー（${year}年 ${monthNames[month]}）</h3>
+      <div style="font-size:11px;color:var(--txt2);margin-bottom:8px">セルの色＝学習実績の正解率　数字＝回答問題数・学習時間</div>
+      <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+        <span style="display:flex;align-items:center;gap:4px;font-size:10px"><span style="width:10px;height:10px;background:rgba(0,230,118,.25);border:1px solid var(--grn);border-radius:3px;display:inline-block"></span>正解率 90%以上</span>
+        <span style="display:flex;align-items:center;gap:4px;font-size:10px"><span style="width:10px;height:10px;background:rgba(240,192,64,.2);border:1px solid var(--gold);border-radius:3px;display:inline-block"></span>70〜89%</span>
+        <span style="display:flex;align-items:center;gap:4px;font-size:10px"><span style="width:10px;height:10px;background:rgba(124,58,237,.2);border:1px solid var(--pur2);border-radius:3px;display:inline-block"></span>〜69%</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px">${calCells}</div>
+      <div style="color:var(--txt2);font-size:11px;margin-top:8px;text-align:center">※日付をタップすると詳細を表示</div>
+    </div>
+
+    ${(()=>{
+      // 直近7日の学習回数・正解率グラフ
+      const days7=[];
+      for(let i=6;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);days7.push({label:(d.getMonth()+1)+'/'+(d.getDate()),key:d.toLocaleDateString()});}
+      const max=Math.max(1,...days7.map(d=>(calData[d.key]||{}).sessions||0));
+      const bars=days7.map(d=>{
+        const data=calData[d.key];
+        const ses=data?data.sessions:0;
+        const h=ses?Math.max(8,Math.round(ses/max*60)):0;
+        const col=data===undefined?'rgba(255,255,255,.1)':(data.totalPct/data.sessions>=90?'var(--grn)':data.totalPct/data.sessions>=70?'var(--gold)':'var(--pur2)');
+        return `<div style="display:flex;flex-direction:column;align-items:center;gap:3px;flex:1">
+          <div style="font-size:9px;color:var(--txt2);height:14px;display:flex;align-items:flex-end">${ses?ses+'回':''}</div>
+          <div style="width:100%;height:60px;display:flex;align-items:flex-end;justify-content:center">
+            <div style="width:70%;background:${col};border-radius:4px 4px 0 0;height:${h}px;transition:height .5s;min-height:${ses?4:0}px"></div>
+          </div>
+          <div style="font-size:9px;color:var(--txt2)">${d.label}</div>
+        </div>`;
+      }).join('');
+      return `<div class="st-card">
+        <h3>📈 直近7日の学習データ</h3>
+        <div style="font-size:11px;color:var(--txt2);margin-bottom:10px">高さ＝セッション数　色＝正解率の目安</div>
+        <div style="display:flex;gap:4px;align-items:flex-end;padding:8px 0">${bars}</div>
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-top:4px">
+          ${days7.map(d=>{const data=calData[d.key];return `<div style="text-align:center;font-size:7px;color:var(--gold)">${data?data.total+'問':''}</div>`}).join('')}
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-top:2px">
+          ${days7.map(d=>{const data=calData[d.key];const m=data&&data.duration?Math.round(data.duration):'';return `<div style="text-align:center;font-size:7px;color:var(--txt2)">${m?m+'分':''}</div>`}).join('')}
+        </div>
+      </div>`;
+    })()}
+
+    <div class="st-card"><h3>📚 セクション別進捗</h3>
+      ${SECTIONS.map(s=>{
+        const m=(D.prog[s.id]||[]).filter(p=>p&&p.m).length,t=s.questions.length;
+        const pct=t?Math.round(m/t*100):0;
+        return `<div class="ss-item">
+          <div class="ss-nm">${s.icon} ${s.name}（${m}/${t}問習得）${D.cleared[s.id]?'<span style="color:var(--grn);font-size:10px"> ✓ 完全習得</span>':''}</div>
+          <div class="ss-bar"><div class="ss-fill" style="width:${pct}%"></div></div>
+          <div style="color:var(--txt2);font-size:11px;margin-top:3px;display:flex;justify-content:space-between">
+            <span>${m}/${t}問</span>
+            <button class="reset-sec-btn" style="width:auto;padding:3px 9px;font-size:10px" onclick="resetSec('${s.id}')">リセット</button>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+
+    <div class="st-card"><h3>🌀 ミックス履歴</h3>
+      ${mh.length?mh.slice(-10).reverse().map(m=>{
+        const durLabel=m.duration?(m.duration<1?Math.round(m.duration*60)+'秒':Math.round(m.duration)+'分'):'';
+        return `<div class="st-row"><span style="font-size:11px">${m.date}</span><span class="st-val">${m.ok}/${m.tot}問${durLabel?' · '+durLabel:''}</span></div>`;
+      }).join(''):'<div style="color:var(--txt2);font-size:13px">まだ挑戦していません</div>'}
+    </div>`;
+}
+
+function showDayDetail(dateStr){
+  const sh=D.studyHist||[];
+  const mh=D.mixHist||[];
+  const daySH=sh.filter(h=>h.date===dateStr);
+  const dayMH=mh.filter(h=>h.date===dateStr);
+  if(!daySH.length&&!dayMH.length)return;
+
+  const totalQ=daySH.reduce((a,h)=>a+(h.total||0),0)+dayMH.reduce((a,h)=>a+(h.tot||0),0);
+  const totalDur=Math.round((daySH.reduce((a,h)=>a+(h.duration||0),0)+dayMH.reduce((a,h)=>a+(h.duration||0),0))*10)/10;
+  const durStr=totalDur>0?(totalDur<1?Math.round(totalDur*60)+'秒':totalDur+'分'):'—';
+
+  const html=`<div class="modal-ov" onclick="if(event.target===this)this.remove()">
+    <div class="modal">
+      <h3>📅 ${dateStr} の学習記録</h3>
+      <div style="display:flex;gap:12px;margin-bottom:12px">
+        <div style="flex:1;background:rgba(240,192,64,.08);border:1px solid var(--bdr);border-radius:9px;padding:9px;text-align:center">
+          <div style="font-size:18px;font-weight:700;color:var(--gold);font-family:'Orbitron',sans-serif">${totalQ}問</div>
+          <div style="font-size:10px;color:var(--txt2);margin-top:2px">回答数</div>
+        </div>
+        <div style="flex:1;background:rgba(124,58,237,.08);border:1px solid var(--bdr);border-radius:9px;padding:9px;text-align:center">
+          <div style="font-size:18px;font-weight:700;color:var(--pur2);font-family:'Orbitron',sans-serif">${durStr}</div>
+          <div style="font-size:10px;color:var(--txt2);margin-top:2px">学習時間</div>
+        </div>
+      </div>
+      ${daySH.map(h=>{
+        const s=SECTIONS.find(s=>s.id===h.sec);
+        const durLabel=h.duration?(h.duration<1?Math.round(h.duration*60)+'秒':h.duration+'分'):'';
+        return `<div class="modal-row" style="cursor:default;flex-direction:column;align-items:flex-start;gap:3px">
+          <div style="display:flex;justify-content:space-between;width:100%;align-items:center">
+            <span>${s?s.icon+' '+s.name:'セクション'}</span>
+            <span style="color:var(--gold);font-weight:700">${h.correct||'?'}/${h.total||'?'}問</span>
+          </div>
+          <div style="font-size:11px;color:var(--txt2);display:flex;gap:10px">
+            ${durLabel?`<span>⏱ ${durLabel}</span>`:''}
+          </div>
+        </div>`;
+      }).join('')}
+      ${dayMH.map(h=>{
+        const durLabel=h.duration?(h.duration<1?Math.round(h.duration*60)+'秒':h.duration+'分'):'';
+        return `<div class="modal-row" style="cursor:default;flex-direction:column;align-items:flex-start;gap:3px">
+          <div style="display:flex;justify-content:space-between;width:100%;align-items:center">
+            <span>🌀 ミックス問題</span>
+            <span style="color:var(--gold);font-weight:700">${h.ok}/${h.tot}問</span>
+          </div>
+          <div style="font-size:11px;color:var(--txt2);display:flex;gap:10px">
+            ${durLabel?`<span>⏱ ${durLabel}</span>`:''}
+          </div>
+        </div>`;
+      }).join('')}
+      <button class="modal-close" onclick="this.closest('.modal-ov').remove()">閉じる</button>
+    </div></div>`;
+  document.body.insertAdjacentHTML('beforeend',html);
+}
+function resetSec(secId){
+  if(!confirm(SECTIONS.find(s=>s.id===secId).name+'の学習データをリセットしますか？\n（次回クリア時にまた600 Lexがもらえます）'))return;
+  D.prog[secId]=SECTIONS.find(s=>s.id===secId).questions.map(()=>({c:0,m:false}));
+  delete D.cleared[secId];
+  save();buildStats();buildSecGrid();
+  showToast('リセットしました。再クリアで600 Lex！','suc');
+}
+
+// SETTINGS
+const ACCENT_COLORS={
+  purple:{pur:'#7c3aed',pur2:'#9d4edd'},
+  blue:{pur:'#2563eb',pur2:'#3b82f6'},
+  rose:{pur:'#db2777',pur2:'#ec4899'},
+  emerald:{pur:'#059669',pur2:'#10b981'},
+  amber:{pur:'#d97706',pur2:'#f59e0b'}
+};
+
+function saveSetting(key,val){
+  if(!D.settings)D.settings={};
+  D.settings[key]=val==='true'?true:val==='false'?false:val;
+  save();
+  if(key==='mixCount')updateMixCard();
+}
+
+function setAccentColor(color){
+  saveSetting('accentColor',color);
+  applyAccentColor(color);
+  document.querySelectorAll('.c-swatch').forEach(s=>{
+    s.classList.toggle('on',s.dataset.color===color);
+  });
+}
+
+function applyAccentColor(color){
+  const c=ACCENT_COLORS[color]||ACCENT_COLORS.purple;
+  document.documentElement.style.setProperty('--pur',c.pur);
+  document.documentElement.style.setProperty('--pur2',c.pur2);
+}
+
+function clearHistory(){
+  if(!confirm('学習履歴（クイズ・ミックスの記録）をすべて削除しますか？\n習得状況や所持Lex・キャラはそのまま残ります。'))return;
+  D.studyHist=[];D.mixHist=[];save();
+  showToast('学習履歴をクリアしました','suc');
+  buildSettings();
+}
+
+function resetAll(){
+  if(!confirm('⚠️ 全データをリセットしますか？\nすべての進捗・キャラ・Lex・履歴が削除されます。\nこの操作は元に戻せません。'))return;
+  localStorage.removeItem('mlx2');location.reload();
+}
+
+function buildSettings(){
+  const a=CHARS.find(c=>c.id===D.avatar);
+  if(a){const i=document.getElementById('setAv');if(i)i.src=a.file}
+  const n=document.getElementById('setNm');if(n)n.textContent=D.user?.name||'';
+  const l=document.getElementById('setLx');if(l)l.textContent=(D.lex||0).toLocaleString()+' Lex';
+  const en=document.getElementById('editNm');if(en)en.value=D.user?.name||'';
+  const d=document.getElementById('setDays');if(d)d.textContent=(D.loginDays||1)+'日';
+  const g=document.getElementById('setGC');if(g)g.textContent=(D.gachaCount||0)+'回';
+
+  // Total Q
+  const tq=SECTIONS.reduce((a,s)=>a+s.questions.length,0);
+  const tqEl=document.getElementById('setTotalQ');if(tqEl)tqEl.textContent=tq+'問（'+SECTIONS.length+'セクション）';
+
+  // Settings state
+  const cfg=D.settings||{};
+  const sd=document.getElementById('selDailyGoal');if(sd){sd.value=cfg.dailyGoal||20}
+  const sm=document.getElementById('selMixCount');if(sm){sm.value=cfg.mixCount||30}
+  const ts=document.getElementById('togShuffle');if(ts)ts.checked=cfg.shuffle!==false;
+  const te=document.getElementById('togExtra');if(te)te.checked=cfg.showExtra!==false;
+  const ta=document.getElementById('togAnim');if(ta)ta.checked=cfg.animations!==false;
+
+  // Color swatches
+  const ac=cfg.accentColor||'purple';
+  document.querySelectorAll('.c-swatch').forEach(s=>{
+    s.classList.toggle('on',s.dataset.color===ac);
+  });
+
+  // Summary stats grid
+  const sh=D.studyHist||[];const mh=D.mixHist||[];
+  const totalQ=sh.reduce((a,h)=>a+(h.total||0),0)+mh.reduce((a,h)=>a+(h.tot||0),0);
+  const totalMin=Math.round((sh.reduce((a,h)=>a+(h.duration||0),0)+mh.reduce((a,h)=>a+(h.duration||0),0))*10)/10;
+  const totalH=Math.floor(totalMin/60),totalM=Math.round(totalMin%60);
+  const timeStr=totalH>0?`${totalH}h${totalM}m`:totalM+'分';
+  const totalSes=sh.length+mh.length;
+  let totM2=0,tot2=0;SECTIONS.forEach(s=>{tot2+=s.questions.length;totM2+=(D.prog[s.id]||[]).filter(p=>p&&p.m).length});
+  const sg=document.getElementById('setStatGrid');
+  if(sg)sg.innerHTML=`
+    <div class="set-stat-box"><div class="sv">${totalQ}<span style="font-size:11px">問</span></div><div class="sl">総回答数</div></div>
+    <div class="set-stat-box"><div class="sv">${totalMin>0?timeStr:'—'}</div><div class="sl">総学習時間</div></div>
+    <div class="set-stat-box"><div class="sv">${totalSes}<span style="font-size:11px">回</span></div><div class="sl">学習セッション</div></div>
+    <div class="set-stat-box"><div class="sv">${totM2}<span style="font-size:11px">語</span></div><div class="sl">習得単語数</div></div>`;
+}
+function saveNm(){
+  const v=document.getElementById('editNm').value.trim();
+  if(!v){showToast('名前を入力してください','err');return}
+  D.user.name=v;save();buildSettings();showToast('ユーザー名を変更しました！','suc');
+}
+
+// TOAST
+let toastT;
+function showToast(msg,type=''){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.className='toast on '+(type||'');
+  clearTimeout(toastT);
+  toastT=setTimeout(()=>t.classList.remove('on'),2600);
+}
+</script>
+</body>
+</html>
