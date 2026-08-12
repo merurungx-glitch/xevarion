@@ -1,0 +1,772 @@
+/* ============================================================
+   MagiJackpot — スタイル
+   ------------------------------------------------------------
+   ・ロビーは「明るいガラス調 × 金の装飾」。XEVARION ホームと地続きの明るさにする。
+   ・ゲーム卓は逆に「暗いネオン」。ロビー→卓で世界が切り替わる落差そのものが演出。
+   ・iPhone を基準に組む。すべての固定要素は safe-area を見込み、
+     卓の中身は 100dvh ではなく「実測した高さ」に閉じ込める（アドレスバーで隠れないように）。
+   ============================================================ */
+
+:root{
+  /* 明るいロビー */
+  --bg:#f3eee6;
+  --ink:#241a2e;
+  --sub:#7a6f85;
+  --card:rgba(255,255,255,.86);
+  --line:rgba(120,90,160,.16);
+  --shadow:0 10px 30px rgba(80,50,120,.14);
+  --shadow-s:0 5px 16px rgba(80,50,120,.12);
+  /* 金属質の金 */
+  --gold1:#fff3c4; --gold2:#e8b52c; --gold3:#a9761a;
+  --goldgrad:linear-gradient(160deg,#fff6d4 0%,#f2cd63 32%,#d29a1c 62%,#fff0bd 100%);
+  /* ネオン */
+  --neon:#a24bff; --neon2:#ff3d86; --neon3:#2fd8ff; --win:#17b878; --lose:#e8395f;
+  --tabh:64px;
+}
+
+/* ══ 画面いっぱいの土台の高さ（--app-vh） ══
+   ★ iPhone でホーム画面から「アプリとして」開くと、下に空白の帯ができて
+     画面の下部が詰まって見える不具合の対策。
+     全画面の土台を height:100dvh / 100% で組むと、その高さはブラウザが決める
+     「箱」に従う。standalone（アプリ表示）＋ viewport-fit=cover ではこの箱が
+     実際に見えている画面より短くなることがあり、余りが下の空白として残る。
+     共通の ../xeva-splash.js が実測値（innerHeight）をここへ流し込む。
+     JS が動く前・非対応環境では dvh（無ければ vh）に落ちる。 */
+:root{ --app-vh:100vh }
+@supports (height:100dvh){ :root{ --app-vh:100dvh } }
+
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0}
+body{
+  background:var(--bg);color:var(--ink);
+  font-family:'Noto Sans JP',system-ui,sans-serif;font-weight:700;
+  overscroll-behavior-y:none;
+  /* 卓の中でだけスクロールさせるので、body 自体は動かさない */
+  overflow:hidden;height:var(--app-vh);
+}
+button{font-family:inherit;color:inherit}
+img{display:block}
+
+/* 背景の光の玉（ロビーだけ） */
+#mjBg{position:fixed;inset:0;z-index:0;overflow:hidden;pointer-events:none;
+  background:radial-gradient(120% 80% at 50% -10%,#fff8ec 0%,#f6efe4 42%,#efe4f3 100%)}
+#mjBg i{position:absolute;border-radius:50%;filter:blur(46px);opacity:.5}
+#mjBg .a{width:52vw;height:52vw;left:-16vw;top:-10vw;background:#ffd98a}
+#mjBg .b{width:46vw;height:46vw;right:-14vw;top:22vh;background:#d7a8ff}
+#mjBg .c{width:56vw;height:56vw;left:-12vw;bottom:-16vh;background:#a8d8ff}
+body.dark #mjBg{background:radial-gradient(120% 80% at 50% -10%,#241436 0%,#150c22 46%,#080510 100%)}
+body.dark #mjBg i{opacity:.28}
+
+/* ══════════ 土台 ══════════
+   ★ 2026-08-03: height ではなく top:0/bottom:0 で画面の上下に留める。
+     こうすると --app-vh の値がどうであれ下端にぴったり付くので、
+     iPhone のアプリ表示で下にできていた空白の帯が原理的に起きなくなる。
+     left:0/right:0 ＋ max-width ＋ margin:auto で中央ぞろえは保たれる。 */
+#mjApp{position:fixed;z-index:1;top:0;bottom:0;left:0;right:0;display:flex;flex-direction:column;
+  width:100%;max-width:620px;margin:0 auto}
+@media (min-width:700px){ #mjApp{box-shadow:0 0 0 1px var(--line),0 0 80px rgba(120,80,180,.18)} }
+
+/* ══════════ ヘッダー ══════════ */
+.mj-top{flex:0 0 auto;display:flex;align-items:center;gap:8px;
+  padding:calc(env(safe-area-inset-top,0px) + 9px) 12px 9px;
+  background:rgba(255,255,255,.78);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--line);position:relative;z-index:20}
+body.dark .mj-top{background:rgba(18,10,28,.82);border-bottom-color:rgba(180,140,255,.18)}
+/* 卓に入っているあいだはアプリ側のヘッダーを隠す。
+   卓は自前のヘッダー（戻る・タイトル・残高）を持っているので、
+   出しっぱなしにすると同じものが2段に並んで縦を無駄づかいする。 */
+body.ingame .mj-top{display:none}
+.mj-top .back{width:34px;height:34px;flex:0 0 auto;border:none;border-radius:12px;
+  background:rgba(120,90,160,.1);display:grid;place-items:center;font-size:20px;font-weight:900;
+  text-decoration:none;color:var(--ink);cursor:pointer;line-height:1}
+body.dark .mj-top .back{background:rgba(180,140,255,.14);color:#f0e6ff}
+.mj-top .back:active{transform:scale(.92)}
+.mj-top .brand{flex:1;min-width:0;display:flex;align-items:center;gap:7px}
+.mj-top .brand img{width:26px;height:26px;border-radius:8px;object-fit:cover}
+.mj-top .brand b{font-family:'Orbitron',sans-serif;font-size:14px;letter-spacing:.06em;
+  background:var(--goldgrad);-webkit-background-clip:text;background-clip:text;color:transparent;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body.dark .mj-top .brand b{filter:drop-shadow(0 0 6px rgba(240,190,60,.5))}
+.mj-wal{display:flex;gap:6px;flex:0 0 auto}
+.mj-w{display:flex;align-items:center;gap:4px;padding:6px 10px;border-radius:99px;
+  background:rgba(255,255,255,.9);border:1.5px solid rgba(210,154,28,.4);
+  font-family:'Orbitron',sans-serif;font-size:12px;font-weight:800;box-shadow:var(--shadow-s)}
+.mj-w.gem{border-color:rgba(162,75,255,.4)}
+body.dark .mj-w{background:rgba(255,255,255,.09);border-color:rgba(240,200,90,.4);color:#fff6dd}
+body.dark .mj-w.gem{border-color:rgba(190,130,255,.5);color:#f0e2ff}
+.mj-w img{width:15px;height:15px;object-fit:contain}
+.mj-w.bump{animation:mjBump .45s ease}
+@keyframes mjBump{0%{transform:scale(1)}35%{transform:scale(1.22)}100%{transform:scale(1)}}
+
+/* ══════════ ページ ══════════ */
+#mjMain{flex:1;min-height:0;position:relative}
+.mj-page{position:absolute;inset:0;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;
+  /* ★ タブバーはこの領域の「外（下）」にある兄弟なので、ここでタブの高さや
+     セーフエリアぶんを足すと、下に何も表示されない帯ができてしまう。
+     タブを隠す卓（body.ingame）のときだけホームバーぶんを足す。 */
+  padding:14px 14px 24px;
+  display:none}
+/* .flush（卓そのもの）には足さない。足すと盤面が上にずれて下に帯ができる。 */
+body.ingame .mj-page:not(.flush){padding-bottom:calc(env(safe-area-inset-bottom,0px) + 24px)}
+.mj-page.on{display:block}
+.mj-page.flush{padding:0}
+
+/* ══════════ タブバー ══════════ */
+.mj-tabs{flex:0 0 auto;display:grid;grid-template-columns:repeat(4,1fr);gap:2px;
+  padding:6px 8px calc(env(safe-area-inset-bottom,0px) + 6px);
+  background:rgba(255,255,255,.9);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border-top:1px solid var(--line);position:relative;z-index:20}
+body.dark .mj-tabs{background:rgba(18,10,28,.9);border-top-color:rgba(180,140,255,.18)}
+.mj-tabs.hide{display:none}
+.mj-tab{border:none;background:none;padding:6px 2px 4px;border-radius:14px;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:3px;color:var(--sub);font-weight:800;font-size:10px}
+.mj-tab .ic{width:24px;height:24px;display:grid;place-items:center}
+.mj-tab .ic svg{width:23px;height:23px}
+.mj-tab.on{color:#b8860b}
+body.dark .mj-tab.on{color:#ffd257}
+.mj-tab.on .ic{filter:drop-shadow(0 3px 7px rgba(210,154,28,.45))}
+.mj-tab:active{transform:scale(.94)}
+
+/* ══════════ 共通パーツ ══════════ */
+.mj-sec{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:20px 2px 9px}
+.mj-sec h2{margin:0;font-size:14.5px;font-weight:900;display:flex;align-items:center;gap:7px}
+.mj-sec h2::before{content:"";width:5px;height:16px;border-radius:3px;background:var(--goldgrad)}
+.mj-sec .more{border:none;background:rgba(210,154,28,.14);color:#a9761a;border-radius:99px;
+  padding:5px 11px;font-size:11px;font-weight:900;cursor:pointer}
+body.dark .mj-sec .more{background:rgba(255,210,87,.16);color:#ffd257}
+.mj-sec:first-child{margin-top:4px}
+
+.mj-panel{background:var(--card);border:1px solid var(--line);border-radius:20px;
+  box-shadow:var(--shadow);padding:14px;backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+body.dark .mj-panel{background:rgba(255,255,255,.07);border-color:rgba(190,150,255,.18);color:#efe6ff}
+
+.mj-note{font-size:11px;font-weight:700;color:var(--sub);line-height:1.8}
+body.dark .mj-note{color:#b5a6c8}
+
+.mj-btn{border:none;border-radius:15px;padding:13px 16px;cursor:pointer;font-weight:900;font-size:14px;
+  color:#3a2600;background:var(--goldgrad);box-shadow:0 6px 18px rgba(200,150,30,.34),inset 0 1px 0 rgba(255,255,255,.7);
+  position:relative;overflow:hidden}
+.mj-btn:active{transform:translateY(1px) scale(.985)}
+.mj-btn:disabled{opacity:.42;box-shadow:none;cursor:not-allowed;transform:none}
+.mj-btn.wide{width:100%}
+.mj-btn.sm{padding:8px 13px;font-size:12px;border-radius:12px}
+.mj-btn.ghost{background:rgba(255,255,255,.9);color:var(--ink);border:1.5px solid var(--line);box-shadow:var(--shadow-s)}
+body.dark .mj-btn.ghost{background:rgba(255,255,255,.1);color:#efe6ff;border-color:rgba(190,150,255,.3)}
+.mj-btn.neon{background:linear-gradient(140deg,#b45bff,#ff3d86);color:#fff;
+  box-shadow:0 6px 20px rgba(180,80,255,.45),inset 0 1px 0 rgba(255,255,255,.35)}
+.mj-btn.danger{background:linear-gradient(140deg,#ff6a5e,#e8395f);color:#fff;box-shadow:0 6px 18px rgba(232,57,95,.4)}
+/* ボタン表面をゆっくり流れる光沢 */
+.mj-btn::after{content:"";position:absolute;top:-60%;left:-30%;width:34%;height:220%;
+  background:linear-gradient(100deg,transparent,rgba(255,255,255,.62),transparent);
+  transform:rotate(14deg);animation:mjSheen 4.6s linear infinite}
+@keyframes mjSheen{0%{left:-40%}55%{left:130%}100%{left:130%}}
+
+/* ══════════ ヒーロー ══════════ */
+.mj-hero{position:relative;border-radius:22px;overflow:hidden;box-shadow:var(--shadow);
+  border:1px solid rgba(210,154,28,.34)}
+.mj-hero img{width:100%;height:auto;display:block}
+.mj-hero .glow{position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(70% 100% at 20% 40%,rgba(255,210,90,.16),transparent 60%)}
+
+/* デイリーバー */
+.mj-daily{display:flex;align-items:center;gap:11px;margin-top:11px;padding:12px 14px;
+  border-radius:19px;background:var(--card);border:1px solid var(--line);box-shadow:var(--shadow-s);
+  cursor:pointer;width:100%;text-align:left}
+body.dark .mj-daily{background:rgba(255,255,255,.07);border-color:rgba(190,150,255,.18);color:#efe6ff}
+.mj-daily .ic{width:40px;height:40px;flex:0 0 auto;border-radius:13px;display:grid;place-items:center;font-size:22px;
+  background:linear-gradient(150deg,#fff1cd,#ffd9ee)}
+.mj-daily .bd{flex:1;min-width:0}
+.mj-daily .t1{display:block;font-size:13px;font-weight:900}
+.mj-daily .t2{display:block;font-size:10.5px;font-weight:700;color:var(--sub);margin-top:2px}
+body.dark .mj-daily .t2{color:#b5a6c8}
+.mj-daily .rt{flex:0 0 auto;font-size:18px;color:#c9a227;font-weight:900}
+
+/* 2枚の大カード（1人 / パーティー） */
+.mj-modes{display:grid;grid-template-columns:1fr 1fr;gap:11px;margin-top:11px}
+.mj-mode{position:relative;border:none;border-radius:21px;overflow:hidden;cursor:pointer;
+  padding:15px 13px 60px;text-align:left;box-shadow:var(--shadow);min-height:172px;color:#fff}
+.mj-mode.solo{background:linear-gradient(155deg,#3f6dff 0%,#5b3df0 55%,#8b2bd6 100%)}
+.mj-mode.party{background:linear-gradient(155deg,#ff7a3d 0%,#ff3d86 52%,#c33bff 100%)}
+.mj-mode:active{transform:scale(.975)}
+.mj-mode .hd{display:flex;align-items:center;gap:7px;font-size:15.5px;font-weight:900}
+.mj-mode .hd svg{width:21px;height:21px}
+.mj-mode .ds{margin-top:5px;font-size:10.5px;font-weight:700;opacity:.92;line-height:1.6}
+.mj-mode .go{position:absolute;right:11px;top:15px;font-size:19px;font-weight:900;opacity:.9}
+/* カード下部の飾り（チップの円） */
+.mj-mode .deco{position:absolute;left:0;right:0;bottom:-24px;height:96px;pointer-events:none;opacity:.9}
+/* カジノチップ：円の縁を「破線のボーダー」で描くと、チップ特有の切れ込みになる。
+   conic-gradient で扇を並べる方法は、どう調整しても花びらに見えてしまうので使わない。 */
+.mj-mode .deco span{position:absolute;border-radius:50%;
+  background:radial-gradient(circle,rgba(255,255,255,.30) 0 58%,rgba(255,255,255,.12) 59%);
+  border:4px dashed rgba(255,255,255,.62);
+  box-shadow:0 4px 14px rgba(0,0,0,.28);opacity:.5}
+.mj-mode .deco .c1{width:54px;height:54px;left:10px;bottom:34px;transform:rotate(12deg)}
+.mj-mode .deco .c2{width:40px;height:40px;left:56px;bottom:16px;transform:rotate(-18deg);opacity:.35}
+.mj-mode .deco .c3{width:66px;height:66px;right:-8px;bottom:22px;transform:rotate(24deg);opacity:.3}
+
+/* ゲームカード */
+.mj-gcards{display:grid;gap:11px}
+.mj-gcards.two{grid-template-columns:1fr 1fr}
+/* 下端に「還元率」のピルを置くので、そのぶん padding-bottom を確保しておく
+   （ここを詰めると説明文がピルの下に潜り込む） */
+.mj-gcard{position:relative;border:none;border-radius:20px;overflow:hidden;cursor:pointer;color:#fff;
+  text-align:left;padding:15px 14px 36px;min-height:142px;box-shadow:var(--shadow);display:block;width:100%}
+.mj-gcard:active{transform:scale(.98)}
+.mj-gcard .nm{display:block;font-size:16px;font-weight:900;letter-spacing:.01em;text-shadow:0 2px 8px rgba(0,0,0,.35)}
+.mj-gcard .en{display:block;font-family:'Orbitron',sans-serif;font-size:9.5px;letter-spacing:.16em;opacity:.8;margin-top:1px}
+.mj-gcard .ds{display:block;margin-top:6px;font-size:10.5px;font-weight:700;opacity:.94;max-width:64%;line-height:1.6;
+  text-shadow:0 1px 6px rgba(0,0,0,.35)}
+.mj-gcard .go{position:absolute;right:12px;top:14px;font-size:19px;font-weight:900;opacity:.85}
+.mj-gcard .art{position:absolute;right:-2px;bottom:6px;width:100px;height:100px;pointer-events:none;
+  display:grid;place-items:center;font-size:58px;opacity:.9;filter:drop-shadow(0 6px 14px rgba(0,0,0,.35))}
+.mj-gcard .rtp{position:absolute;left:14px;bottom:11px;font-size:9px;font-weight:900;letter-spacing:.06em;
+  background:rgba(0,0,0,.28);border-radius:99px;padding:3px 8px;backdrop-filter:blur(4px)}
+.mj-gcard.g-slot{background:linear-gradient(150deg,#7a2bd6,#c02ba8 58%,#ff3d86)}
+.mj-gcard.g-bj{background:linear-gradient(150deg,#0e6b45,#12805a 55%,#1aa06f)}
+.mj-gcard.g-pachi{background:linear-gradient(150deg,#ff9a1e,#ff6a2b 52%,#e8395f)}
+.mj-gcard.g-arena{background:linear-gradient(150deg,#2b5bff,#4b3ae0 55%,#8b2bd6)}
+.mj-gcard.g-groul{background:linear-gradient(150deg,#ff3d86,#d62bb0 52%,#8b2bd6)}
+.mj-gcard.locked{filter:grayscale(.7) brightness(.85)}
+
+/* ══════════ スロットの台（バナー1枚で1台） ══════════
+   ★ スロットはこれから増えていくので、ほかのゲームとは別の見せ方にした。
+     台ごとの絵（バナー）が主役で、文字はその上にのせる。
+     index.html の SLOTS に1行足すだけで、ここに並ぶ。 */
+.mj-slotcards{display:grid;gap:13px}
+.mj-slotcard{position:relative;display:block;width:100%;padding:0;border:none;cursor:pointer;
+  border-radius:22px;overflow:hidden;box-shadow:var(--shadow);
+  background:var(--card);color:var(--ink);text-align:left;
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+body.dark .mj-slotcard{background:rgba(255,255,255,.07);color:#efe6ff}
+.mj-slotcard:active{transform:scale(.985)}
+/* 絵はそのまま見せる（題字が描かれているので文字を重ねない） */
+.mj-slotcard .art{position:relative;display:block;line-height:0;background:#150a26}
+.mj-slotcard .bn{width:100%;height:auto;display:block;aspect-ratio:2.5/1;object-fit:cover}
+.mj-slotcard .cap{position:absolute;left:11px;top:11px;font-size:9.5px;font-weight:900;letter-spacing:.03em;
+  line-height:1.1;padding:5px 10px;border-radius:99px;
+  color:#2d1b00;background:var(--goldgrad);box-shadow:0 3px 12px rgba(0,0,0,.45)}
+.mj-slotcard .bd{display:block;padding:11px 14px 12px}
+.mj-slotcard .nm{display:flex;align-items:baseline;gap:7px;font-size:16px;font-weight:900;letter-spacing:.01em}
+.mj-slotcard .nm i{font-family:'Orbitron',sans-serif;font-style:normal;font-size:8.5px;letter-spacing:.16em;
+  color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+body.dark .mj-slotcard .nm i{color:#b5a6c8}
+.mj-slotcard .ds{display:block;margin-top:5px;font-size:10.5px;font-weight:700;line-height:1.65;color:var(--sub)}
+body.dark .mj-slotcard .ds{color:#b5a6c8}
+.mj-slotcard .ft{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-top:9px}
+.mj-slotcard .rtp{font-size:9px;font-weight:900;letter-spacing:.03em;color:#a9761a;
+  background:rgba(210,154,28,.14);border-radius:99px;padding:5px 10px}
+body.dark .mj-slotcard .rtp{color:#ffd257;background:rgba(255,210,87,.14)}
+.mj-slotcard .play{flex:0 0 auto;font-size:12px;font-weight:900;padding:7px 15px;border-radius:99px;
+  color:#3a2600;background:var(--goldgrad);box-shadow:0 4px 12px rgba(200,150,30,.34)}
+/* 台ごとの縁の色（ロビーのカードと同じ系統にそろえる） */
+.mj-slotcard.g-slot{box-shadow:var(--shadow),0 0 0 1.5px rgba(192,43,168,.32)}
+.mj-slotcard.g-lux{box-shadow:var(--shadow),0 0 0 1.5px rgba(200,107,255,.36)}
+
+/* クイック4連 */
+.mj-quick{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-top:16px;
+  background:var(--card);border:1px solid var(--line);border-radius:20px;padding:12px 8px;box-shadow:var(--shadow-s)}
+body.dark .mj-quick{background:rgba(255,255,255,.07);border-color:rgba(190,150,255,.18);color:#efe6ff}
+.mj-quick button{border:none;background:none;cursor:pointer;display:flex;flex-direction:column;
+  align-items:center;gap:5px;padding:4px 2px;border-radius:13px}
+.mj-quick button:active{transform:scale(.93)}
+.mj-quick .ic{font-size:23px;line-height:1}
+.mj-quick .t1{font-size:11px;font-weight:900}
+.mj-quick .t2{font-size:9px;font-weight:700;color:var(--sub);text-align:center;line-height:1.35}
+body.dark .mj-quick .t2{color:#b5a6c8}
+
+/* ジャックポット表示 */
+.mj-jp{position:relative;margin-top:12px;border-radius:21px;padding:15px 16px;overflow:hidden;
+  background:linear-gradient(140deg,#1b1030,#3a1350 45%,#5a1436);
+  border:1.5px solid rgba(255,210,90,.42);box-shadow:0 10px 30px rgba(60,20,90,.34)}
+.mj-jp::before{content:"";position:absolute;inset:0;
+  background:radial-gradient(60% 120% at 50% 0%,rgba(255,215,110,.3),transparent 68%)}
+.mj-jp .lb{position:relative;font-family:'Orbitron',sans-serif;font-size:9.5px;letter-spacing:.24em;color:#ffd98a;font-weight:800}
+.mj-jp .v{position:relative;font-family:'Orbitron',sans-serif;font-size:34px;font-weight:900;line-height:1.1;margin-top:3px;
+  background:linear-gradient(180deg,#fff8dc,#ffd257 48%,#c98a12);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 3px 10px rgba(255,190,60,.5))}
+.mj-jp .s{position:relative;font-size:10px;font-weight:700;color:rgba(255,235,200,.72);margin-top:4px;line-height:1.6}
+/* 共有プールであることの表示（SHARED＝クラウドと繋がっている／OFFLINE＝端末のプール） */
+.mj-jp .live{display:inline-flex;align-items:center;gap:4px;margin-left:7px;padding:2px 8px;border-radius:99px;
+  font-size:8.5px;letter-spacing:.14em;color:#0b2018;background:linear-gradient(135deg,#7cf0d0,#37e0a0)}
+.mj-jp .live::before{content:"";width:5px;height:5px;border-radius:50%;background:#0b2018;animation:mjLive 1.5s infinite}
+.mj-jp .live.off{background:rgba(255,255,255,.16);color:rgba(255,235,200,.8)}
+.mj-jp .live.off::before{background:rgba(255,235,200,.7);animation:none}
+@keyframes mjLive{0%,100%{opacity:1}50%{opacity:.15}}
+.mj-jp .win{position:relative;display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.mj-jp .win span{font-size:9.5px;font-weight:800;color:rgba(255,235,200,.9);
+  background:rgba(255,255,255,.09);border:1px solid rgba(255,215,140,.24);border-radius:99px;padding:3px 9px}
+
+/* リスト行 */
+.mj-list{display:flex;flex-direction:column;gap:8px}
+.mj-row{display:flex;align-items:center;gap:11px;padding:12px 13px;border-radius:17px;
+  background:var(--card);border:1px solid var(--line);box-shadow:var(--shadow-s);
+  text-align:left;width:100%;cursor:default;position:relative;overflow:hidden}
+body.dark .mj-row{background:rgba(255,255,255,.07);border-color:rgba(190,150,255,.18);color:#efe6ff}
+button.mj-row{cursor:pointer}
+button.mj-row:active{transform:scale(.99)}
+.mj-row .ic{width:36px;height:36px;flex:0 0 auto;border-radius:12px;display:grid;place-items:center;font-size:19px;
+  background:linear-gradient(150deg,#fff3d6,#ffe3f2)}
+body.dark .mj-row .ic{background:linear-gradient(150deg,rgba(255,220,140,.2),rgba(255,150,220,.16))}
+.mj-row .bd{flex:1;min-width:0}
+.mj-row .t1{display:block;font-size:12.5px;font-weight:900;line-height:1.4}
+.mj-row .t2{display:block;font-size:10px;font-weight:700;color:var(--sub);margin-top:2px;line-height:1.55}
+body.dark .mj-row .t2{color:#b5a6c8}
+.mj-row .rt{flex:0 0 auto;font-size:11.5px;font-weight:900;color:#a9761a}
+body.dark .mj-row .rt{color:#ffd257}
+.mj-row.done{border-color:rgba(23,184,120,.45)}
+.mj-row.locked{opacity:.55}
+.mj-bar{display:block;height:6px;border-radius:99px;background:rgba(120,90,160,.16);margin-top:6px;overflow:hidden}
+.mj-bar i{display:block;height:100%;border-radius:99px;background:var(--goldgrad);transition:width .5s cubic-bezier(.2,.9,.25,1)}
+
+/* 統計グリッド */
+.mj-stats{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.mj-stat{padding:13px;border-radius:17px;background:var(--card);border:1px solid var(--line);box-shadow:var(--shadow-s)}
+body.dark .mj-stat{background:rgba(255,255,255,.07);border-color:rgba(190,150,255,.18);color:#efe6ff}
+.mj-stat .k{font-size:10px;font-weight:800;color:var(--sub)}
+body.dark .mj-stat .k{color:#b5a6c8}
+.mj-stat .v{font-family:'Orbitron',sans-serif;font-size:19px;font-weight:800;margin-top:3px;color:#a9761a;
+  word-break:break-all;line-height:1.2}
+body.dark .mj-stat .v{color:#ffd257}
+.mj-stat.wide{grid-column:1/-1}
+
+/* 称号 */
+.mj-titles{display:flex;flex-wrap:wrap;gap:7px}
+.mj-title{padding:7px 12px;border-radius:99px;font-size:11px;font-weight:900;cursor:pointer;
+  border:1.5px solid rgba(210,154,28,.4);background:rgba(255,255,255,.82);color:#8a5f10}
+.mj-title.on{background:var(--goldgrad);color:#3a2600;border-color:transparent;box-shadow:0 4px 12px rgba(200,150,30,.35)}
+.mj-title.lock{opacity:.42;cursor:not-allowed;border-style:dashed}
+body.dark .mj-title{background:rgba(255,255,255,.09);color:#ffe6a8}
+
+/* スキン */
+.mj-skins{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mj-skin{position:relative;border:1.5px solid var(--line);border-radius:18px;overflow:hidden;cursor:pointer;
+  background:var(--card);box-shadow:var(--shadow-s);padding:0;text-align:left}
+body.dark .mj-skin{background:rgba(255,255,255,.07);border-color:rgba(190,150,255,.18);color:#efe6ff}
+.mj-skin .pv{height:74px;display:grid;place-items:center;font-size:30px;position:relative;overflow:hidden}
+.mj-skin .bd{padding:9px 11px 11px}
+.mj-skin .nm{font-size:12px;font-weight:900;line-height:1.35}
+.mj-skin .ds{font-size:9.5px;font-weight:700;color:var(--sub);margin-top:3px;line-height:1.5}
+body.dark .mj-skin .ds{color:#b5a6c8}
+.mj-skin .buy{margin-top:8px;width:100%;padding:8px;border:none;border-radius:11px;font-size:11.5px;font-weight:900;cursor:pointer;
+  background:var(--goldgrad);color:#3a2600}
+.mj-skin .buy.owned{background:rgba(23,184,120,.16);color:#0d7a4f}
+.mj-skin .buy.on{background:linear-gradient(140deg,#b45bff,#ff3d86);color:#fff}
+.mj-skin .buy:disabled{opacity:.45;cursor:not-allowed}
+.mj-skin.eq{border-color:rgba(162,75,255,.65);box-shadow:0 0 0 2px rgba(162,75,255,.2),var(--shadow-s)}
+
+/* ══════════ ゲーム卓（暗転） ══════════ */
+#mjPageGame{background:#0a0612}
+.mjg{position:absolute;inset:0;display:flex;flex-direction:column;color:#f2ecff;overflow:hidden}
+.mjg-top{flex:0 0 auto;display:flex;align-items:center;gap:8px;padding:calc(env(safe-area-inset-top,0px) + 9px) 12px 9px;
+  background:rgba(10,6,18,.86);backdrop-filter:blur(14px);border-bottom:1px solid rgba(190,150,255,.2);z-index:6}
+.mjg-top .x{width:34px;height:34px;border:none;border-radius:12px;background:rgba(255,255,255,.11);
+  color:#fff;font-size:19px;font-weight:900;cursor:pointer;display:grid;place-items:center;flex:0 0 auto}
+.mjg-top .ttl{flex:1;min-width:0}
+.mjg-top .ttl b{display:block;font-size:13.5px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mjg-top .ttl small{display:block;font-family:'Orbitron',sans-serif;font-size:8.5px;letter-spacing:.16em;color:#c0a6e8}
+.mjg-top .bal{flex:0 0 auto;display:flex;align-items:center;gap:5px;padding:6px 11px;border-radius:99px;
+  background:rgba(255,255,255,.1);border:1.5px solid rgba(240,200,90,.42);
+  font-family:'Orbitron',sans-serif;font-size:12.5px;font-weight:800;color:#ffe9b0}
+.mjg-top .bal img{width:15px;height:15px;object-fit:contain}
+.mjg-body{flex:1;min-height:0;position:relative;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch;
+  /* 下には必ず .mjg-act（自前でセーフエリアを見込む）が続くので、ここでは足さない */
+  padding:12px 12px 14px}
+.mjg-body.fixed{overflow:hidden}
+
+/* 卓のパネル */
+.mjp{background:rgba(255,255,255,.06);border:1px solid rgba(190,150,255,.2);border-radius:18px;padding:12px;
+  backdrop-filter:blur(8px)}
+.mjp + .mjp{margin-top:10px}
+.mjp .hd{font-size:11px;font-weight:900;color:#c9b3f0;letter-spacing:.04em;margin-bottom:8px;display:flex;
+  align-items:center;justify-content:space-between;gap:8px}
+
+/* ベット選択 */
+.mj-bets{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.mj-chip{position:relative;aspect-ratio:1;border:none;border-radius:50%;cursor:pointer;
+  font-family:'Orbitron',sans-serif;font-size:11px;font-weight:900;color:#fff;display:grid;place-items:center;
+  box-shadow:0 4px 12px rgba(0,0,0,.42),inset 0 0 0 3px rgba(255,255,255,.28),inset 0 0 0 6px rgba(0,0,0,.16)}
+.mj-chip:active{transform:scale(.9)}
+.mj-chip.c1{background:radial-gradient(circle at 34% 30%,#8fd6ff,#2f7fd8)}
+.mj-chip.c2{background:radial-gradient(circle at 34% 30%,#ffd98a,#d08a12)}
+.mj-chip.c3{background:radial-gradient(circle at 34% 30%,#9dffc9,#128a5a)}
+.mj-chip.c4{background:radial-gradient(circle at 34% 30%,#ff9dc0,#c31e63)}
+.mj-chip.c5{background:radial-gradient(circle at 34% 30%,#d0b6ff,#6a2bd6)}
+.mj-chip.on{outline:3px solid #ffd257;outline-offset:2px;transform:translateY(-3px)}
+.mj-chip:disabled{opacity:.34;cursor:not-allowed}
+
+.mj-seg{display:flex;gap:5px;background:rgba(0,0,0,.28);padding:4px;border-radius:14px}
+.mj-seg button{flex:1;border:none;background:none;color:#c9b3f0;font-size:11.5px;font-weight:900;
+  padding:8px 4px;border-radius:11px;cursor:pointer}
+.mj-seg button.on{background:var(--goldgrad);color:#3a2600;box-shadow:0 3px 9px rgba(200,150,30,.4)}
+
+/* 卓の下部の操作バー */
+.mjg-act{flex:0 0 auto;display:flex;gap:8px;padding:10px 12px calc(env(safe-area-inset-bottom,0px) + 10px);
+  background:rgba(10,6,18,.9);backdrop-filter:blur(14px);border-top:1px solid rgba(190,150,255,.2);z-index:6}
+.mjg-act .mj-btn{flex:1}
+
+/* ══════════ 演出 ══════════ */
+#mjToast{position:fixed;left:50%;bottom:calc(var(--tabh) + env(safe-area-inset-bottom,0px) + 22px);
+  transform:translate(-50%,18px);z-index:9600;opacity:0;pointer-events:none;transition:.28s ease;
+  background:rgba(20,12,32,.94);color:#fff;padding:11px 17px;border-radius:15px;font-size:12.5px;font-weight:800;
+  box-shadow:0 10px 30px rgba(0,0,0,.4);max-width:88vw;text-align:center;line-height:1.6;
+  border:1px solid rgba(255,210,90,.34)}
+#mjToast.on{opacity:1;transform:translate(-50%,0)}
+
+/* 画面をおおうエフェクト層（チップ・紙吹雪・光） */
+#mjFx{position:fixed;inset:0;z-index:9400;pointer-events:none;overflow:hidden}
+#mjFx canvas{position:absolute;inset:0;width:100%;height:100%}
+
+/* カメラの揺れ */
+@keyframes mjShakeK{
+  0%{transform:translate(0,0)}12%{transform:translate(-6px,3px)}25%{transform:translate(5px,-4px)}
+  38%{transform:translate(-4px,-3px)}52%{transform:translate(4px,4px)}68%{transform:translate(-3px,2px)}
+  84%{transform:translate(2px,-2px)}100%{transform:translate(0,0)}}
+.mj-shake{animation:mjShakeK .52s ease-out}
+.mj-shake.big{animation:mjShakeK .95s ease-out 2}
+
+/* ジャックポット全画面演出 */
+#mjJpFx{position:fixed;inset:0;z-index:9500;display:none;align-items:center;justify-content:center;
+  background:radial-gradient(circle at 50% 45%,rgba(90,30,140,.94),rgba(6,3,12,.98));
+  padding:24px;text-align:center;overflow:hidden}
+#mjJpFx.on{display:flex}
+#mjJpFx .rays{position:absolute;width:220vmax;height:220vmax;left:50%;top:50%;margin:-110vmax 0 0 -110vmax;
+  background:conic-gradient(from 0deg,rgba(255,220,120,.24) 0 4deg,transparent 4deg 12deg);
+  animation:mjSpin 9s linear infinite}
+@keyframes mjSpin{to{transform:rotate(360deg)}}
+#mjJpFx .in{position:relative;z-index:2;animation:mjJpPop .8s cubic-bezier(.16,1.2,.3,1)}
+@keyframes mjJpPop{0%{opacity:0;transform:scale(.5)}60%{opacity:1;transform:scale(1.09)}100%{transform:scale(1)}}
+#mjJpFx .k{font-family:'Orbitron',sans-serif;font-size:12px;letter-spacing:.36em;color:#ffd98a;font-weight:800}
+#mjJpFx .t{font-family:'Orbitron',sans-serif;font-size:clamp(34px,12vw,64px);font-weight:900;line-height:1.02;margin:6px 0 2px;
+  background:linear-gradient(180deg,#fffbe8,#ffd257 46%,#c98a12);
+  -webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 0 26px rgba(255,200,70,.85))}
+#mjJpFx .amt{font-family:'Orbitron',sans-serif;font-size:clamp(26px,9vw,44px);font-weight:900;color:#fff;
+  text-shadow:0 0 24px rgba(255,180,60,.9)}
+#mjJpFx .sub{font-size:12px;font-weight:800;color:#ffe9c0;margin-top:10px;line-height:1.7}
+#mjJpFx .mj-btn{margin-top:20px;min-width:190px}
+
+/* 勝ち／負けのバナー */
+#mjRes{position:fixed;inset:0;z-index:9450;display:none;align-items:center;justify-content:center;padding:24px;
+  background:rgba(6,3,12,.72);backdrop-filter:blur(5px)}
+#mjRes.on{display:flex}
+#mjRes .card{position:relative;width:min(360px,90vw);border-radius:26px;padding:26px 20px 20px;text-align:center;
+  animation:mjJpPop .55s cubic-bezier(.16,1.2,.3,1);overflow:hidden}
+#mjRes .card.win{background:linear-gradient(160deg,#123a2c,#0d6b4a 55%,#1aa06f);
+  box-shadow:0 20px 60px rgba(20,180,120,.4),inset 0 1px 0 rgba(255,255,255,.24)}
+#mjRes .card.lose{background:linear-gradient(160deg,#2a1020,#5a1430 55%,#8a1c3c);
+  box-shadow:0 20px 60px rgba(180,30,70,.36),inset 0 1px 0 rgba(255,255,255,.16)}
+#mjRes .em{font-size:46px;line-height:1}
+#mjRes .h{font-family:'Orbitron',sans-serif;font-size:26px;font-weight:900;color:#fff;margin-top:6px;letter-spacing:.04em}
+#mjRes .amt{font-family:'Orbitron',sans-serif;font-size:32px;font-weight:900;margin-top:4px;color:#ffe9a8}
+#mjRes .ds{font-size:12px;font-weight:800;color:rgba(255,255,255,.88);margin-top:8px;line-height:1.7}
+#mjRes .btns{display:flex;gap:8px;margin-top:16px}
+#mjRes .btns .mj-btn{flex:1}
+
+/* ダイアログ */
+#mjDlg{position:fixed;inset:0;z-index:9700;display:none;align-items:center;justify-content:center;padding:22px;
+  background:rgba(8,4,16,.66);backdrop-filter:blur(4px)}
+#mjDlg.on{display:flex}
+#mjDlg .card{width:min(400px,92vw);max-height:84dvh;overflow-y:auto;background:#fff;border-radius:23px;padding:20px;
+  box-shadow:0 24px 70px rgba(0,0,0,.44);animation:mjJpPop .4s cubic-bezier(.16,1.2,.3,1)}
+#mjDlg h3{margin:0 0 8px;font-size:16px;font-weight:900;display:flex;align-items:center;gap:8px}
+#mjDlg .bd{font-size:12.5px;font-weight:700;color:#4a4056;line-height:1.85}
+#mjDlg .bd b{color:var(--ink)}
+#mjDlg .btns{display:flex;gap:8px;margin-top:16px}
+#mjDlg .btns .mj-btn{flex:1}
+
+/* スローモーション用の暗幕 */
+#mjSlow{position:fixed;inset:0;z-index:9350;pointer-events:none;opacity:0;transition:opacity .3s ease;
+  background:radial-gradient(circle at 50% 50%,transparent 24%,rgba(4,2,10,.78) 78%)}
+#mjSlow.on{opacity:1}
+
+/* チュートリアルの吹き出し */
+.mj-tut{margin-top:11px;padding:12px 14px;border-radius:17px;font-size:11.5px;font-weight:700;line-height:1.85;
+  background:linear-gradient(150deg,rgba(255,244,214,.96),rgba(255,228,244,.96));color:#4a3a20;
+  border:1.5px solid rgba(210,154,28,.36)}
+.mj-tut b{color:#8a5f10}
+
+/* ══════════ スロット ══════════ */
+.mj-slotwrap{position:relative;border-radius:20px;overflow:hidden;
+  background:linear-gradient(180deg,#1a0b2e,#2a0f3e 50%,#160a26);
+  border:2px solid rgba(255,210,90,.45);box-shadow:0 0 0 4px rgba(0,0,0,.35),0 14px 34px rgba(0,0,0,.5)}
+.mj-reels{position:relative;display:grid;grid-template-columns:repeat(5,1fr);gap:4px;padding:6px;
+  background:linear-gradient(180deg,#0a0512,#180b28)}
+.mj-reel{position:relative;overflow:hidden;border-radius:11px;background:rgba(255,255,255,.05);
+  box-shadow:inset 0 8px 14px rgba(0,0,0,.55),inset 0 -8px 14px rgba(0,0,0,.55)}
+.mj-strip{position:absolute;left:0;right:0;top:0;will-change:transform}
+.mj-sym{display:grid;place-items:center;position:relative}
+.mj-sym .g{font-size:min(8.6vw,42px);line-height:1;filter:drop-shadow(0 2px 4px rgba(0,0,0,.5))}
+.mj-sym img{width:78%;height:78%;object-fit:cover;border-radius:9px;
+  box-shadow:0 2px 8px rgba(0,0,0,.5),inset 0 0 0 2px rgba(255,255,255,.2)}
+.mj-sym.hit::after{content:"";position:absolute;inset:3px;border-radius:10px;
+  border:2.5px solid #ffd257;box-shadow:0 0 16px #ffb02e,inset 0 0 16px rgba(255,190,60,.5);
+  animation:mjHitPulse .55s ease-in-out infinite alternate}
+@keyframes mjHitPulse{from{opacity:.45}to{opacity:1}}
+.mj-reel.stopping{animation:mjReelStop .22s cubic-bezier(.3,1.6,.5,1)}
+@keyframes mjReelStop{0%{transform:translateY(-7px)}60%{transform:translateY(4px)}100%{transform:translateY(0)}}
+/* リールの上下フェード */
+.mj-reels::before,.mj-reels::after{content:"";position:absolute;left:0;right:0;height:16px;z-index:3;pointer-events:none}
+.mj-reels::before{top:0;background:linear-gradient(180deg,rgba(6,3,12,.95),transparent)}
+.mj-reels::after{bottom:0;background:linear-gradient(0deg,rgba(6,3,12,.95),transparent)}
+/* 上部の状態表示 */
+.mj-slottop{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:9px 13px;
+  background:linear-gradient(180deg,rgba(255,210,90,.16),transparent)}
+.mj-slottop .mode{font-family:'Orbitron',sans-serif;font-size:11px;font-weight:900;letter-spacing:.1em;color:#ffd257}
+.mj-slottop .win{font-family:'Orbitron',sans-serif;font-size:15px;font-weight:900;color:#fff}
+.mj-slotfoot{padding:8px 12px;font-size:10.5px;font-weight:800;color:#c9b3f0;text-align:center;min-height:32px;
+  display:flex;align-items:center;justify-content:center;line-height:1.5}
+/* モード別の枠の色 */
+.mj-slotwrap.m-bonus{border-color:#ff6ac1;box-shadow:0 0 0 4px rgba(255,60,160,.28),0 0 40px rgba(255,60,160,.45)}
+.mj-slotwrap.m-free{border-color:#4bd6ff;box-shadow:0 0 0 4px rgba(60,190,255,.28),0 0 40px rgba(60,200,255,.45)}
+.mj-slotwrap.m-super{border-color:#ff3d3d;box-shadow:0 0 0 4px rgba(255,50,50,.3),0 0 52px rgba(255,60,40,.6);
+  animation:mjSuperGlow 1.1s ease-in-out infinite alternate}
+@keyframes mjSuperGlow{from{filter:brightness(1)}to{filter:brightness(1.16)}}
+
+/* 分岐の選択（プレイヤーの判断） */
+.mj-choose{display:grid;gap:8px;margin-top:10px}
+.mj-choose .op{display:flex;align-items:center;gap:11px;padding:13px;border-radius:16px;cursor:pointer;
+  border:1.5px solid rgba(190,150,255,.3);background:rgba(255,255,255,.07);color:#f2ecff;text-align:left}
+.mj-choose .op:active{transform:scale(.985)}
+.mj-choose .op .ic{width:34px;height:34px;flex:0 0 auto;border-radius:11px;display:grid;place-items:center;font-size:18px;
+  background:linear-gradient(150deg,rgba(255,220,140,.24),rgba(255,120,200,.2))}
+.mj-choose .op .t1{display:block;font-size:12.5px;font-weight:900}
+.mj-choose .op .t2{display:block;font-size:10px;font-weight:700;color:#c0a6e8;margin-top:2px;line-height:1.55}
+.mj-choose .op.risk{border-color:rgba(255,90,120,.5)}
+.mj-choose .op.safe{border-color:rgba(60,210,150,.45)}
+
+/* ══════════ ブラックジャック ══════════ */
+.mj-felt{border-radius:20px;padding:14px 12px;position:relative;overflow:hidden;
+  background:radial-gradient(90% 70% at 50% 0%,#176a4a,#0c4530 62%,#07301f);
+  border:2px solid rgba(255,210,90,.32);box-shadow:inset 0 0 60px rgba(0,0,0,.45)}
+body.skin-felt-royal .mj-felt{background:radial-gradient(90% 70% at 50% 0%,#5a2b8f,#341358 62%,#1d0a34)}
+body.skin-felt-noir .mj-felt{background:radial-gradient(90% 70% at 50% 0%,#3a3a44,#1c1c24 62%,#101016)}
+body.skin-felt-crimson .mj-felt{background:radial-gradient(90% 70% at 50% 0%,#8f2b3f,#5a1226 62%,#320a16)}
+.mj-hand{min-height:96px;display:flex;flex-direction:column;align-items:center;gap:5px;padding:6px 0}
+.mj-hand .who{font-size:10px;font-weight:900;letter-spacing:.1em;color:rgba(255,255,255,.72);
+  display:flex;align-items:center;gap:7px}
+.mj-hand .who .sc{font-family:'Orbitron',sans-serif;font-size:13px;color:#ffd257}
+.mj-cards{display:flex;justify-content:center;gap:5px;flex-wrap:wrap;min-height:74px}
+.mj-card{width:52px;height:74px;border-radius:8px;background:#fffdf7;position:relative;flex:0 0 auto;
+  box-shadow:0 4px 12px rgba(0,0,0,.4);display:flex;flex-direction:column;justify-content:space-between;
+  padding:4px 5px;font-family:'Orbitron',sans-serif;font-weight:800;animation:mjDeal .34s cubic-bezier(.2,1.2,.3,1)}
+@keyframes mjDeal{from{opacity:0;transform:translateY(-30px) rotate(-9deg) scale(.85)}to{opacity:1;transform:none}}
+.mj-card .r{font-size:13px;line-height:1}
+.mj-card .s{font-size:15px;line-height:1;align-self:flex-end}
+.mj-card.red{color:#d81f45}
+.mj-card.blk{color:#1a1a22}
+.mj-card.back{background:linear-gradient(140deg,#4b2b8f,#8a2be2 50%,#3a1a6e);
+  box-shadow:0 4px 12px rgba(0,0,0,.4),inset 0 0 0 2px rgba(255,215,110,.5)}
+.mj-card.back::after{content:"";position:absolute;inset:6px;border-radius:5px;
+  background:repeating-linear-gradient(45deg,rgba(255,215,110,.28) 0 4px,transparent 4px 8px)}
+body.skin-card-gold .mj-card.back{background:linear-gradient(140deg,#8a6212,#e8b52c 50%,#6b4a0c)}
+body.skin-card-neon .mj-card.back{background:linear-gradient(140deg,#0b3a5e,#2fd8ff 50%,#0a2a4a)}
+body.skin-card-sakura .mj-card.back{background:linear-gradient(140deg,#a02b62,#ff8ab8 50%,#7a1c48)}
+.mj-card.win{animation:mjCardWin .6s ease-in-out infinite alternate}
+@keyframes mjCardWin{from{box-shadow:0 4px 12px rgba(0,0,0,.4)}to{box-shadow:0 0 20px 4px rgba(255,210,90,.85)}}
+.mj-splitrow{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mj-splitrow .box{border-radius:14px;padding:6px;border:1.5px solid transparent}
+.mj-splitrow .box.act{border-color:#ffd257;background:rgba(255,210,90,.1)}
+.mj-streak{display:flex;align-items:center;justify-content:center;gap:7px;margin-top:8px;
+  font-size:11px;font-weight:900;color:#ffd257}
+.mj-streak .f{display:inline-flex;gap:3px}
+.mj-streak .f i{width:9px;height:9px;border-radius:50%;background:rgba(255,255,255,.2)}
+.mj-streak .f i.on{background:#ffd257;box-shadow:0 0 8px #ffb02e}
+.mj-royal{margin-top:9px;padding:10px 12px;border-radius:14px;text-align:center;font-size:11.5px;font-weight:900;
+  background:linear-gradient(120deg,rgba(255,60,140,.24),rgba(255,200,60,.24));
+  border:1.5px solid rgba(255,180,90,.5);color:#ffe9c0;animation:mjHitPulse .8s ease-in-out infinite alternate}
+
+/* ══════════ パチンコ ══════════ */
+.mj-pachi{position:relative;border-radius:20px;overflow:hidden;
+  background:linear-gradient(180deg,#160a24,#2a0f36 55%,#0e0618);
+  border:2px solid rgba(255,180,60,.45);box-shadow:0 14px 34px rgba(0,0,0,.5)}
+.mj-pachi canvas{display:block;width:100%;height:auto;background:transparent}
+.mj-pdigits{display:flex;justify-content:center;gap:7px;padding:10px}
+.mj-pd{width:52px;height:64px;border-radius:11px;display:grid;place-items:center;
+  font-family:'Orbitron',sans-serif;font-size:32px;font-weight:900;color:#fff;
+  background:linear-gradient(180deg,#2b1240,#150826);border:2px solid rgba(255,210,90,.4);
+  box-shadow:inset 0 4px 12px rgba(0,0,0,.6);overflow:hidden;position:relative}
+.mj-pd.spin .n{animation:mjDigit .16s linear infinite}
+@keyframes mjDigit{from{transform:translateY(-40%)}to{transform:translateY(40%)}}
+.mj-pd.hot{border-color:#ff3d3d;box-shadow:0 0 20px rgba(255,60,60,.7),inset 0 4px 12px rgba(0,0,0,.6)}
+.mj-pd.locked{border-color:#ffd257;box-shadow:0 0 18px rgba(255,200,60,.7),inset 0 4px 12px rgba(0,0,0,.6)}
+.mj-plamp{display:flex;justify-content:center;gap:6px;padding:0 10px 8px}
+.mj-plamp i{width:10px;height:10px;border-radius:50%;background:rgba(255,255,255,.16)}
+.mj-plamp i.on{background:#ffd257;box-shadow:0 0 10px #ffb02e}
+.mj-plamp i.red{background:#ff4d4d;box-shadow:0 0 12px #ff3030}
+.mj-pmsg{text-align:center;font-size:12.5px;font-weight:900;padding:8px 12px 12px;min-height:44px;
+  display:flex;align-items:center;justify-content:center;line-height:1.55}
+.mj-pmsg.hot{color:#ff8a8a;text-shadow:0 0 14px rgba(255,60,60,.8)}
+.mj-pmsg.win{color:#ffd257;text-shadow:0 0 16px rgba(255,190,60,.9)}
+.mj-prush{position:absolute;inset:0;display:none;align-items:center;justify-content:center;flex-direction:column;
+  background:radial-gradient(circle at 50% 45%,rgba(255,60,60,.34),rgba(10,4,18,.94));z-index:4;text-align:center}
+.mj-prush.on{display:flex}
+.mj-prush .t{font-family:'Orbitron',sans-serif;font-size:clamp(24px,8vw,40px);font-weight:900;color:#fff;
+  text-shadow:0 0 26px rgba(255,80,60,.95);animation:mjJpPop .5s cubic-bezier(.16,1.2,.3,1)}
+.mj-prush .s{font-size:12px;font-weight:800;color:#ffd8a8;margin-top:6px}
+
+/* ══════════ パーティー ══════════ */
+.mj-players{display:grid;gap:8px}
+.mj-pl{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:16px;
+  background:rgba(255,255,255,.07);border:1.5px solid rgba(190,150,255,.22)}
+.mj-pl.me{border-color:#ffd257;background:rgba(255,210,90,.1)}
+.mj-pl.out{opacity:.45}
+.mj-pl .av{width:34px;height:34px;flex:0 0 auto;border-radius:12px;display:grid;place-items:center;
+  font-size:16px;font-weight:900;color:#fff}
+.mj-pl .nm{flex:1;min-width:0;font-size:12.5px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mj-pl .ch{font-family:'Orbitron',sans-serif;font-size:14px;font-weight:800;color:#ffd257}
+.mj-pl .pick{font-size:10px;font-weight:900;padding:3px 8px;border-radius:99px;background:rgba(255,255,255,.14)}
+.mj-pl .pick.bet{background:rgba(60,190,255,.24);color:#9fe4ff}
+.mj-pl .pick.hold{background:rgba(160,160,180,.24);color:#dcdcea}
+.mj-pl .pick.dbl{background:rgba(255,80,140,.28);color:#ffb0cc}
+.mj-pl .dt{font-size:10px;font-weight:800;color:#9be6c0}
+.mj-pl .dt.minus{color:#ff9db0}
+
+.mj-namelist{display:grid;gap:8px}
+.mj-nameinp{display:flex;align-items:center;gap:8px}
+.mj-nameinp .no{width:26px;height:26px;flex:0 0 auto;border-radius:9px;display:grid;place-items:center;
+  font-size:11px;font-weight:900;color:#fff}
+.mj-nameinp input{flex:1;min-width:0;padding:11px 12px;border-radius:13px;border:1.5px solid rgba(190,150,255,.3);
+  background:rgba(255,255,255,.08);color:#f2ecff;font-family:inherit;font-size:13px;font-weight:800}
+.mj-nameinp input::placeholder{color:#8f7fae}
+/* 席ごとの XEVARION アカウント紐づけ（MagiChainParty と同じしくみ） */
+.mj-nameinp .mj-glink{flex:0 0 auto;max-width:44%;padding:9px 11px;border-radius:12px;cursor:pointer;
+  border:1.5px solid rgba(190,150,255,.34);background:rgba(190,150,255,.1);color:#cbb9ff;
+  font-family:inherit;font-size:11px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mj-nameinp .mj-glink:active{transform:scale(.94)}
+.mj-nameinp .mj-glink.on{border-color:rgba(55,224,160,.55);background:rgba(55,224,160,.14);color:#37e0a0}
+.mj-nameinp .mj-glink.pend{border-color:rgba(255,210,87,.55);background:rgba(255,210,87,.14);color:#ffd257}
+.mj-nameinp select{padding:10px;border-radius:12px;border:1.5px solid rgba(190,150,255,.3);
+  background:rgba(255,255,255,.08);color:#f2ecff;font-family:inherit;font-size:12px;font-weight:800}
+
+/* ルーレット盤 */
+.mj-wheelwrap{position:relative;display:grid;place-items:center;padding:6px 0 2px}
+.mj-wheel{position:relative;width:min(74vw,290px);aspect-ratio:1;border-radius:50%;
+  box-shadow:0 0 0 6px #2a1a10,0 0 0 9px #d9a648,0 16px 40px rgba(0,0,0,.55);
+  transition:transform 6.2s cubic-bezier(.12,.66,.16,1)}
+.mj-wheel .hub{position:absolute;left:50%;top:50%;width:26%;height:26%;margin:-13% 0 0 -13%;border-radius:50%;
+  background:radial-gradient(circle at 35% 32%,#ffe9a8,#c9962c 60%,#7a5a10);
+  box-shadow:0 3px 12px rgba(0,0,0,.5);display:grid;place-items:center;
+  font-family:'Orbitron',sans-serif;font-size:9px;font-weight:900;color:#4a3200;letter-spacing:.08em}
+/* ラベル：盤と同じ大きさの板を中心で回し、文字を上端（＝そのマスの位置）に置く。
+   板ごと回すので、文字の幅や端末に関係なくいつも同じ場所に来る。 */
+.mj-wheel .lbl{position:absolute;left:0;top:0;width:100%;height:100%;display:flex;justify-content:center;
+  padding-top:5%;transform-origin:50% 50%;font-size:9.5px;font-weight:900;color:#fff;
+  text-shadow:0 1px 3px rgba(0,0,0,.8);pointer-events:none;line-height:1}
+.mj-needle{position:absolute;top:-4px;left:50%;transform:translateX(-50%);width:0;height:0;z-index:3;
+  border-left:11px solid transparent;border-right:11px solid transparent;border-top:22px solid #ffd257;
+  filter:drop-shadow(0 3px 6px rgba(0,0,0,.6))}
+.mj-bethint{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;margin-top:9px}
+.mj-bethint span{font-size:10px;font-weight:900;padding:4px 9px;border-radius:99px;background:rgba(255,255,255,.1)}
+
+/* ベット盤（グランドルーレット） */
+.mj-board{display:grid;grid-template-columns:repeat(4,1fr);gap:5px;margin-top:9px}
+.mj-cell{position:relative;border:1.5px solid rgba(255,255,255,.16);border-radius:11px;padding:9px 4px;cursor:pointer;
+  text-align:center;background:rgba(255,255,255,.06);color:#f2ecff;font-size:11px;font-weight:900;min-height:52px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.mj-cell small{font-size:8.5px;font-weight:800;opacity:.75}
+.mj-cell.red{background:rgba(200,40,60,.3)}
+.mj-cell.blk{background:rgba(20,20,30,.55)}
+.mj-cell.grn{background:rgba(20,150,90,.34)}
+.mj-cell.ev{background:rgba(120,80,200,.28)}
+.mj-cell:active{transform:scale(.95)}
+.mj-cell .stk{position:absolute;right:-4px;top:-6px;min-width:20px;height:20px;padding:0 5px;border-radius:99px;
+  background:var(--goldgrad);color:#3a2600;font-size:10px;font-weight:900;display:grid;place-items:center;
+  box-shadow:0 3px 8px rgba(0,0,0,.4)}
+.mj-cell.dis{opacity:.35;cursor:not-allowed}
+
+/* 順位表 */
+.mj-rank{display:grid;gap:7px}
+.mj-rk{display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:15px;
+  background:rgba(255,255,255,.07);border:1.5px solid rgba(190,150,255,.2)}
+.mj-rk .no{width:28px;height:28px;flex:0 0 auto;border-radius:9px;display:grid;place-items:center;
+  font-family:'Orbitron',sans-serif;font-size:13px;font-weight:900;background:rgba(255,255,255,.14)}
+.mj-rk.p1 .no{background:var(--goldgrad);color:#3a2600}
+.mj-rk.p2 .no{background:linear-gradient(150deg,#f2f2f8,#b8b8c8);color:#33333f}
+.mj-rk.p3 .no{background:linear-gradient(150deg,#e8b088,#a86a3a);color:#3a2010}
+.mj-rk .nm{flex:1;min-width:0;font-size:12.5px;font-weight:900}
+.mj-rk .ch{font-family:'Orbitron',sans-serif;font-size:14px;font-weight:800;color:#ffd257}
+
+/* イベント告知の帯 */
+.mj-ev{margin-top:10px;padding:11px 13px;border-radius:15px;text-align:center;font-size:12px;font-weight:900;
+  background:linear-gradient(120deg,rgba(255,60,140,.26),rgba(120,80,255,.26));
+  border:1.5px solid rgba(255,120,190,.45);color:#ffd9ee;line-height:1.6;
+  animation:mjJpPop .45s cubic-bezier(.16,1.2,.3,1)}
+.mj-ev.gold{background:linear-gradient(120deg,rgba(255,200,60,.28),rgba(255,120,40,.24));
+  border-color:rgba(255,200,90,.55);color:#fff1cf}
+
+/* リプレイ */
+.mj-replay{display:flex;flex-direction:column;gap:7px}
+.mj-rp{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;
+  background:var(--card);border:1px solid var(--line);box-shadow:var(--shadow-s);cursor:pointer;text-align:left;width:100%}
+body.dark .mj-rp{background:rgba(255,255,255,.07);border-color:rgba(190,150,255,.18);color:#efe6ff}
+.mj-rp .ic{width:32px;height:32px;flex:0 0 auto;border-radius:10px;display:grid;place-items:center;font-size:16px;
+  background:linear-gradient(150deg,#fff3d6,#ffe3f2)}
+.mj-rp .bd{flex:1;min-width:0}
+.mj-rp .t1{display:block;font-size:12px;font-weight:900}
+.mj-rp .t2{display:block;font-size:9.5px;font-weight:700;color:var(--sub);margin-top:2px}
+.mj-rp .rt{font-family:'Orbitron',sans-serif;font-size:13px;font-weight:800}
+.mj-rp .rt.up{color:var(--win)}
+.mj-rp .rt.dn{color:var(--lose)}
+
+/* 小さい画面での詰め */
+@media (max-width:360px){
+  .mj-gcard .ds{max-width:58%}
+  .mj-card{width:46px;height:66px}
+  .mj-bets{gap:4px}
+}
+/* 横向き・低い画面のときは卓のパディングを詰める */
+@media (max-height:620px){
+  .mjg-body{padding:8px 10px 10px}
+  .mjp{padding:10px}
+}
+
+/* ══════════════════════════════════════════════════════════
+   期間限定イベント
+   ══════════════════════════════════════════════════════════ */
+.mj-evbar{display:flex;align-items:center;gap:11px;margin-top:11px;padding:12px 14px;width:100%;
+  border-radius:19px;cursor:pointer;text-align:left;font-family:inherit;color:#fff;
+  border:1.5px solid rgba(255,215,120,.5);
+  background:linear-gradient(120deg,#2a1c06,#4a3208 42%,#7a5a10 78%,#2a1c06);
+  box-shadow:0 8px 24px rgba(120,80,10,.34),inset 0 1px 0 rgba(255,235,180,.24);
+  position:relative;overflow:hidden}
+.mj-evbar::after{content:"";position:absolute;top:0;bottom:0;width:38%;
+  background:linear-gradient(100deg,transparent,rgba(255,240,190,.22),transparent);
+  animation:mjEvShine 3.6s ease-in-out infinite}
+@keyframes mjEvShine{0%{left:-40%}55%,100%{left:112%}}
+.mj-evbar .ic{width:42px;height:42px;flex:0 0 auto;border-radius:14px;display:grid;place-items:center;font-size:23px;
+  background:linear-gradient(140deg,#ffd257,#c9891a);box-shadow:0 4px 14px rgba(200,150,30,.5)}
+.mj-evbar .bd{flex:1;min-width:0;position:relative;z-index:1}
+.mj-evbar .tag{display:inline-block;font-family:'Orbitron',sans-serif;font-size:8.5px;letter-spacing:.14em;
+  color:#2a1c06;background:linear-gradient(135deg,#ffe7a8,#ffd257);border-radius:99px;padding:2px 8px;font-weight:900}
+.mj-evbar .t1{display:block;font-size:14px;font-weight:900;margin-top:3px;
+  background:linear-gradient(100deg,#fff6d8,#ffd257 55%,#fff6d8);
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.mj-evbar .t2{display:block;font-size:10.5px;font-weight:700;color:rgba(255,238,200,.86);margin-top:2px}
+.mj-evbar .bar{display:block;height:6px;border-radius:99px;background:rgba(0,0,0,.4);margin-top:7px;overflow:hidden}
+.mj-evbar .bar i{display:block;height:100%;border-radius:99px;transition:width .5s;
+  background:linear-gradient(90deg,#ffd257,#fff0bd)}
+.mj-evbar .rt{flex:0 0 auto;font-size:18px;color:#ffd257;font-weight:900;position:relative;z-index:1}
+
+.mj-evep{font-family:'Orbitron',sans-serif;font-size:30px;font-weight:900;text-align:center;
+  color:#ffd257;text-shadow:0 0 22px rgba(255,200,60,.5);line-height:1.1}
+.mj-evep small{font-size:13px;letter-spacing:.1em}
+.mj-evhow{display:flex;align-items:center;gap:9px;padding:6px 0;font-size:11px;font-weight:800;
+  border-bottom:1px solid rgba(190,150,255,.14)}
+.mj-evhow b{flex:1;min-width:0}
+.mj-evhow i{font-style:normal;font-family:'Orbitron',sans-serif;color:#ffd257;font-size:11px}
+.mj-evtier{display:flex;align-items:center;gap:10px;padding:9px 10px;margin-top:7px;border-radius:14px;
+  border:1.5px solid rgba(190,150,255,.2);background:rgba(255,255,255,.04)}
+.mj-evtier.rdy{border-color:rgba(255,210,87,.6);background:rgba(255,210,87,.12)}
+.mj-evtier.got{opacity:.55}
+.mj-evtier .ep{flex:0 0 auto;width:54px;text-align:center;font-family:'Orbitron',sans-serif;
+  font-size:15px;font-weight:900;color:#ffd257;line-height:1.1}
+.mj-evtier .ep small{display:block;font-size:8px;letter-spacing:.1em;opacity:.72}
+.mj-evtier .bd{flex:1;min-width:0}
+.mj-evtier .t1{display:block;font-size:12.5px;font-weight:900}
+.mj-evtier .t2{display:block;font-size:10px;font-weight:700;color:var(--sub);margin-top:2px}
+.mj-evtier .rt{flex:0 0 auto;font-size:10.5px;font-weight:900;color:var(--sub)}
+/* イベント限定スキン：黄金の卓 */
+body.skin-felt-goldrush .mj-felt{background:
+  radial-gradient(90% 70% at 50% 0%,#b8891c,#7a5a10 58%,#3a2806),
+  repeating-linear-gradient(58deg,rgba(255,235,180,.06) 0 10px,transparent 10px 20px)}

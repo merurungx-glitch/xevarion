@@ -1,0 +1,34 @@
+{
+  "_comment": "magichainparty プロジェクト（オンライン対戦の部屋）用ルール。Firebase Console → Realtime Database → ルール に貼り付けてください。カジュアル用途（認証なし）で誰でも部屋の作成・参加ができます。部屋は自動的に散らからないよう、必要に応じて Cloud Functions 等で古い rooms を掃除してください。",
+  "rules": {
+    ".read": false,
+    ".write": false,
+    "rooms": {
+      "$code": {
+        ".read": true,
+        ".write": true,
+        "meta": {
+          ".validate": "newData.hasChildren(['host','status'])",
+          "host":       { ".validate": "newData.isString()" },
+          "size":       { ".validate": "newData.isNumber() && newData.val() >= 4 && newData.val() <= 12" },
+          "roundLimit": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 99" },
+          "status":     { ".validate": "newData.isString()" },
+          "createdAt":  { ".validate": true }
+        },
+        "players": {
+          "$uid": {
+            "name":     { ".validate": "newData.isString() && newData.val().length <= 12" },
+            "charFile": { ".validate": "newData.isString()" },
+            "slot":     { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 4" },
+            "ready":    { ".validate": "newData.isBoolean()" },
+            "online":   { ".validate": "newData.isBoolean()" },
+            "joinedAt": { ".validate": true }
+          }
+        },
+        "state":    { ".validate": true },
+        "rewarded": { ".validate": "newData.isBoolean()" },
+        "__err":    { ".validate": true }
+      }
+    }
+  }
+}

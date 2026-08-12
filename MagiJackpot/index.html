@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<script src="../maintenance-gate.js?v=5"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>MagiJackpot — ソーシャルカジノ＆パーティー</title>
+<meta name="theme-color" content="#f3eee6">
+<link rel="icon" href="mj-192.png" type="image/png">
+<link rel="apple-touch-icon" href="mj-192.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800;900&family=Noto+Sans+JP:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="mj.css?v=10">
+<!-- 看板ゲーム（Magi Fortune / LUXURIA / Jackpot Rush）の「1画面で完結する」ステージ -->
+<link rel="stylesheet" href="mj-games.css?v=3">
+<script src="../xeva-splash.js?v=3" data-app="MagiJackpot" data-logo="mj-192.png"></script>
+<script src="../xeva.js?v=24"></script>
+<script type="module" src="../xevarion-fb.js?v=20"></script>
+<script src="../xeva-presence.js?v=1" defer></script>
+<script type="module" src="../xeva-cloud.js?v=14"></script>
+<!-- 1台を囲むパーティーで、席ごとに XEVARION アカウントを紐づけるための共通部品 -->
+<script src="../game-link.js?v=1" defer></script>
+</head>
+<body>
+
+<div id="mjBg"><i class="a"></i><i class="b"></i><i class="c"></i></div>
+
+<div id="mjApp">
+
+  <!-- ══════════ ヘッダー ══════════ -->
+  <header class="mj-top">
+    <a class="back" href="../index.html" aria-label="XEVARION へもどる">‹</a>
+    <div class="brand"><img src="mj-192.png" alt=""><b>MAGIJACKPOT</b></div>
+    <div class="mj-wal">
+      <div class="mj-w" id="mjWX"><img src="../XEVA.png" alt="XEVA"><span id="mjXeva">0</span></div>
+      <div class="mj-w gem" id="mjWG"><img src="../gem.png" alt="ジェム"><span id="mjGem">0</span></div>
+    </div>
+  </header>
+
+  <main id="mjMain">
+
+    <!-- ══════════ ホーム ══════════ -->
+    <section class="mj-page on" id="mjPageHome">
+      <div class="mj-hero">
+        <img src="mj-banner.jpg" alt="MagiJackpot — 一瞬で、全てが変わる。">
+        <div class="glow"></div>
+      </div>
+
+      <!-- 期間限定イベント（開催中だけ出る） -->
+      <button class="mj-evbar" id="mjEvBar" style="display:none">
+        <span class="ic" id="mjEvIc">🌟</span>
+        <span class="bd">
+          <span class="tag" id="mjEvTag">期間限定</span>
+          <span class="t1" id="mjEvT1"></span>
+          <span class="t2" id="mjEvT2"></span>
+          <span class="bar"><i id="mjEvBarFill"></i></span>
+        </span>
+        <span class="rt">›</span>
+      </button>
+
+      <button class="mj-daily" id="mjDailyBar">
+        <span class="ic">🎁</span>
+        <span class="bd"><span class="t1" id="mjDailyT1">今日のミッション</span>
+          <span class="t2" id="mjDailyT2">達成して XEVA とジェムを受け取ろう</span></span>
+        <span class="rt">›</span>
+      </button>
+
+      <!-- 本日の還元率（毎日 0:00 に変わる。全ゲーム共通の値） -->
+      <button class="mj-daily" id="mjRtpBar">
+        <span class="ic" id="mjRtpIc">⚖</span>
+        <span class="bd"><span class="t1" id="mjRtpT1">本日の還元率</span>
+          <span class="t2" id="mjRtpT2">毎日 0:00 に変わります</span></span>
+        <span class="rt" id="mjRtpV">—</span>
+      </button>
+
+      <div class="mj-modes">
+        <button class="mj-mode solo" onclick="mjGo('games')">
+          <span class="go">›</span>
+          <span class="hd"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="7" r="4"/><path d="M4 21a8 8 0 0116 0Z"/></svg>1人プレイ</span>
+          <span class="ds">ひとりでじっくり遊ぶ</span>
+          <span class="deco"><span class="c1"></span><span class="c2"></span><span class="c3"></span></span>
+        </button>
+        <button class="mj-mode party" onclick="mjGo('party')">
+          <span class="go">›</span>
+          <span class="hd"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="8" cy="7.5" r="3.4"/><circle cx="17" cy="8.6" r="2.8"/><path d="M2 20a6 6 0 0112 0Z"/><path d="M14.6 14.6A5.2 5.2 0 0122 20h-6Z"/></svg>パーティー</span>
+          <span class="ds">みんなでワイワイ遊ぶ</span>
+          <span class="deco"><span class="c1"></span><span class="c2"></span><span class="c3"></span></span>
+        </button>
+      </div>
+
+      <div class="mj-jp">
+        <div class="lb">PROGRESSIVE JACKPOT <span class="live" id="mjJpLive">SHARED</span></div>
+        <div class="v" id="mjJp">0</div>
+        <div class="s" id="mjJpNote">ベットのたびに積み上がり、<b>どのゲームからでも</b>当たります。当たった人がプールをまるごと持っていきます。</div>
+        <div class="win" id="mjJpWins"></div>
+      </div>
+
+      <div class="mj-sec"><h2>スロットの台</h2><button class="more" onclick="mjGo('games')">すべて見る</button></div>
+      <div class="mj-slotcards" id="mjSlotCards"></div>
+
+      <div class="mj-sec"><h2>そのほかの1人プレイ</h2><button class="more" onclick="mjGo('games')">すべて見る</button></div>
+      <div class="mj-gcards" id="mjSoloCards"></div>
+
+      <div class="mj-sec"><h2>パーティープレイのゲーム</h2><button class="more" onclick="mjGo('party')">すべて見る</button></div>
+      <div class="mj-gcards" id="mjPartyCardsHome"></div>
+
+      <div class="mj-quick">
+        <button onclick="mjGo('mypage')"><span class="ic">📊</span><span class="t1">記録</span><span class="t2">勝率と最高記録</span></button>
+        <button onclick="mjOpenMissions()"><span class="ic">🎯</span><span class="t1">ミッション</span><span class="t2">報酬をGET！</span></button>
+        <button onclick="mjOpenAch()"><span class="ic">🏆</span><span class="t1">実績</span><span class="t2">やりこみで称号</span></button>
+        <button onclick="mjGo('shop')"><span class="ic">🛒</span><span class="t1">ショップ</span><span class="t2">スキンを交換</span></button>
+      </div>
+
+      <div class="mj-sec"><h2>このアプリについて</h2></div>
+      <div class="mj-panel">
+        <div class="mj-note">
+          <b>MagiJackpot</b> は XEVARION のソーシャルカジノ＆パーティーです。<br>
+          使うのは <b>ゲーム内通貨（XEVA・ジェム）だけ</b>で、現実のお金はいっさい扱いません。<br>
+          <b>還元率はすべてのゲームでおよそ 100%</b>（賭けた総量と配られる総量がつり合うように設計しています）。
+          <b>その日の還元率は毎日 0:00 に変わります</b>——上の「本日の還元率」でいつでも確認できます。<br>
+          各ゲームの<b>スペック表</b>から実際の数字を確認できます。<br>
+          残高は XEVARION アカウントに紐づき、端末を変えても引き継がれます。<br>
+          <span style="opacity:.7">© 2021–2026 NGX × Magical Future</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════ ゲーム（1人プレイ） ══════════ -->
+    <section class="mj-page" id="mjPageGames">
+      <div class="mj-sec"><h2>スロットの台</h2></div>
+      <div class="mj-panel" style="margin-bottom:11px">
+        <div class="mj-note">
+          スロットは<b>台ごとに遊びかたが違います</b>。オートでどんどん回す台も、
+          <b>自分でリールを止める台</b>もあります。<br>
+          <b>どの台を選んでも還元率は同じ</b>（配当 98% ＋ ジャックポット 2%）。台は増えていきます。<br>
+          <b>還元率は毎日 0:00 に少しだけ変わります</b>（その日は全ゲーム共通）。
+        </div>
+      </div>
+      <div class="mj-slotcards" id="mjSlotList"></div>
+      <div class="mj-sec"><h2>そのほかの1人プレイ</h2></div>
+      <div class="mj-gcards" id="mjGamesList"></div>
+      <div class="mj-sec"><h2>還元率について</h2></div>
+      <div class="mj-panel"><div class="mj-note" id="mjRtpNote"></div></div>
+    </section>
+
+    <!-- ══════════ パーティー ══════════ -->
+    <section class="mj-page" id="mjPageParty">
+      <div class="mj-sec"><h2>パーティープレイ</h2></div>
+      <div class="mj-panel" style="margin-bottom:12px">
+        <div class="mj-note">
+          <b>1台のiPad（スマホ）を 2〜6人で囲んで</b>遊びます。端末を回す必要はありません。<br>
+          卓の中で動くのは<b>その場かぎりのチップ</b>で、<b>ほかの人の XEVA には触れません</b>。
+          XEVA が動くのは<b>参加費と賞金だけ</b>で、賞金表は<b>平均が参加費と同じ</b>になるよう組んであります。
+        </div>
+      </div>
+      <div class="mj-gcards" id="mjPartyCards"></div>
+    </section>
+
+    <!-- ══════════ マイページ ══════════ -->
+    <section class="mj-page" id="mjPageMypage">
+      <div class="mj-sec"><h2>成績</h2></div>
+      <div class="mj-stats" id="mjStatBox"></div>
+
+      <div class="mj-sec"><h2>称号</h2></div>
+      <div class="mj-panel">
+        <div class="mj-note" style="margin-bottom:9px">実績を達成すると称号が増えます。タップして着けかえられます。</div>
+        <div class="mj-titles" id="mjTitles"></div>
+      </div>
+
+      <div class="mj-sec"><h2>ゲーム別</h2></div>
+      <div class="mj-list" id="mjByGame"></div>
+
+      <div class="mj-sec"><h2>今日のミッション</h2></div>
+      <div class="mj-list" id="mjDailyList"></div>
+
+      <div class="mj-sec"><h2>今週のミッション</h2></div>
+      <div class="mj-list" id="mjWeeklyList"></div>
+
+      <div class="mj-sec"><h2>実績</h2></div>
+      <div class="mj-list" id="mjAchList"></div>
+
+      <div class="mj-sec"><h2>リプレイ</h2><button class="more" id="mjRpClear">消去</button></div>
+      <div class="mj-replay" id="mjReplayList"></div>
+
+      <div class="mj-sec"><h2>設定</h2></div>
+      <div class="mj-list">
+        <button class="mj-row" id="mjSwSound"><span class="ic">🔊</span>
+          <span class="bd"><span class="t1">効果音</span><span class="t2">スピン・配当・チップの音</span></span>
+          <span class="rt" id="mjSoundV">ON</span></button>
+        <button class="mj-row" id="mjSwFast"><span class="ic">⚡</span>
+          <span class="bd"><span class="t1">演出を早くする</span><span class="t2">スピンや抽選のアニメを短縮</span></span>
+          <span class="rt" id="mjFastV">OFF</span></button>
+        <button class="mj-row" id="mjSwShake"><span class="ic">📳</span>
+          <span class="bd"><span class="t1">画面の揺れ</span><span class="t2">大当たりのときのカメラの揺れ</span></span>
+          <span class="rt" id="mjShakeV">ON</span></button>
+        <button class="mj-row" id="mjSwTut"><span class="ic">📖</span>
+          <span class="bd"><span class="t1">チュートリアルをもう一度見る</span><span class="t2">各ゲームの説明を出しなおします</span></span>
+          <span class="rt">›</span></button>
+        <a class="mj-row" href="../index.html" style="text-decoration:none"><span class="ic">🏠</span>
+          <span class="bd"><span class="t1">XEVARION へ戻る</span><span class="t2">ジェム変換所・ほかのアプリはこちら</span></span>
+          <span class="rt">›</span></a>
+      </div>
+    </section>
+
+    <!-- ══════════ ショップ（スキン） ══════════ -->
+    <section class="mj-page" id="mjPageShop">
+      <div class="mj-sec"><h2>ショップ</h2></div>
+      <div class="mj-panel" style="margin-bottom:12px">
+        <div class="mj-note">
+          <b>ジェム</b>でスキンを手に入れて、卓の見た目と演出を好みに変えられます。<br>
+          ジェムは <b>XEVARION ホームのジェム変換所</b>で XEVA から交換できるほか、
+          ミッション・実績・ジャックポットでも手に入ります。<br>
+          <b>スキンは見た目だけの変化で、還元率や当たりやすさには影響しません。</b>
+        </div>
+      </div>
+      <div id="mjShopBody"></div>
+    </section>
+
+    <!-- ══════════ ゲーム画面 ══════════ -->
+    <section class="mj-page flush" id="mjPageGame"><div id="mjGameRoot"></div></section>
+
+  </main>
+
+  <!-- ══════════ タブ ══════════ -->
+  <nav class="mj-tabs" id="mjTabs">
+    <button class="mj-tab on" data-p="home">
+      <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.4 10.6 12 3.6l8.6 7"/><path d="M5.6 9.4V20h12.8V9.4"/><path d="M9.8 20v-5.6h4.4V20"/></svg></span>
+      <span>ホーム</span></button>
+    <button class="mj-tab" data-p="games">
+      <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><rect x="3" y="4.5" width="11" height="15" rx="2.4"/><path d="M13.6 6.2l5.3 1.7a2 2 0 011.3 2.5l-2.9 8.8"/></svg></span>
+      <span>ゲーム</span></button>
+    <button class="mj-tab" data-p="mypage">
+      <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8"/><path d="M12 17v4"/><path d="M6.5 3.5h11v5a5.5 5.5 0 01-11 0Z"/><path d="M6.5 5H4v1.6A3.4 3.4 0 006.9 10"/><path d="M17.5 5H20v1.6A3.4 3.4 0 0117.1 10"/></svg></span>
+      <span>マイページ</span></button>
+    <button class="mj-tab" data-p="shop">
+      <span class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 4h2.2l2 11.2a2 2 0 002 1.6h7.9a2 2 0 002-1.6L20.5 8H6"/><circle cx="9.5" cy="20" r="1.3"/><circle cx="17" cy="20" r="1.3"/></svg></span>
+      <span>ショップ</span></button>
+  </nav>
+</div>
+
+<div id="mjToast"></div>
+<div id="mjFx"></div>
+<div id="mjSlow"></div>
+<div id="mjJpFx"></div>
+<div id="mjRes"></div>
+<div id="mjDlg"></div>
+<!-- 卓の「ときどき見るもの」を逃がすボトムシートと、全ゲーム共通のカットイン -->
+<div id="mjSheet"></div>
+<div id="mjCut"></div>
+
+<script src="mj-core.js?v=11"></script>
+<script src="mj-slots.js?v=10"></script>
+<script src="mj-lux.js?v=4"></script>
+<script src="mj-bj.js?v=8"></script>
+<script src="mj-pachi.js?v=10"></script>
+<script src="mj-party.js?v=7"></script>
+<script>
+/* ============================================================
+   MagiJackpot — 画面の切り替えとロビーの描画
+   ・ゲームに入るときは #mjGameRoot の中身を丸ごと差し替える。
+     各ゲームは「渡された要素の中だけ」を書き換える約束にしてあるので、
+     ゲーム同士が互いの DOM を壊すことがない。
+   ============================================================ */
+(function () {
+  "use strict";
+  const M = window.MJ, fmt = M.fmt, esc = M.esc;
+  const PAGES = ["home", "games", "party", "mypage", "shop", "game"];
+  let page = "home", cur = null;
+
+  /* ══════════ ゲーム一覧 ══════════ */
+  /* ★ スロットは「台」が増えていく前提なので、ほかのゲームと分けて
+     バナー1枚で1台を紹介する形にしてある（ここに足すだけで並ぶ）。 */
+  /* ★ 還元率の文字は<b>毎日変わる</b>ので、固定の文字列ではなく関数で持つ。
+     カードを描くたびに読み直す＝日付が変わっても古い数字が残らない。 */
+  const rtpTag = () => "本日 " + M.dayRtpInfo().pct + "% ＋ ジャックポット " + Math.round(M.JP_RATE * 100) + "%";
+  const SLOTS = [
+    { id: "slot", cls: "g-slot", nm: "Magi Fortune", en: "5 REEL VIDEO SLOT", art: "🎰",
+      cap: "オートで回す・20ライン", banner: "img/banner_fortune.webp",
+      ds: "ボタン1つでどんどん回る5リール。BONUS ルートと DOUBLE CHANCE で荒さを自分で決める。",
+      rtp: rtpTag, mod: () => window.MJSlot },
+    { id: "lux",  cls: "g-lux",  nm: "LUXURIA", en: "ROSE OF FATE", art: "🌹",
+      cap: "自分で止める・3リール", banner: "img/banner_luxuria.webp",
+      ds: "お店にあるアレ。3つのストップボタンで自分でリールを止める本格タイプ。目押しに自信がなくてもアシストつき。",
+      rtp: rtpTag, mod: () => window.MJLux },
+  ];
+  const TABLES = [
+    { id: "bj",    cls: "g-bj",    nm: "Royal Blackjack",  en: "TABLE GAME",    art: "♠",
+      ds: "ダブル・スプリット・サレンダー。連勝ボーナスと Royal Chance つき。",
+      rtp: () => "本日のレート ×" + (window.MJBJMath ? window.MJBJMath.dayWinMul().toFixed(3) : "1.000") + "（合計 約 " + M.dayRtpInfo().total + "%）",
+      mod: () => window.MJBJ },
+    { id: "pachi", cls: "g-pachi", nm: "Jackpot Rush",     en: "PACHINKO",      art: "🔔",
+      ds: "左打ち／右打ちを自分で選ぶ王道パチンコ。リーチ→スーパー→ストーリー→FINAL BATTLE。",
+      rtp: rtpTag, mod: () => window.MJPachi },
+  ];
+  const SOLO = SLOTS.concat(TABLES);
+  const PARTY = [
+    { id: "arena", cls: "g-arena", nm: "Jackpot Arena",        en: "2-6 PLAYERS", art: "🎲",
+      ds: "全員同時に BET / HOLD / DOUBLE。守るか、獲りにいくか。", rtp: "2〜6人・1台で" },
+    { id: "groul", cls: "g-groul", nm: "Grand Roulette Party", en: "2-6 PLAYERS", art: "🎡",
+      ds: "同じ盤に全員でベット。終盤はイベント多発で大逆転。", rtp: "2〜6人・1台で" },
+  ];
+  /* rtp は文字列でも関数でもよい（毎日変わるものは関数で渡す） */
+  const rtpOf = (g) => (typeof g.rtp === "function" ? g.rtp() : g.rtp);
+  function cardsHTML(list) {
+    return list.map((g) =>
+      '<button class="mj-gcard ' + g.cls + '" data-g="' + g.id + '">' +
+      '<span class="go">›</span>' +
+      '<span class="nm">' + esc(g.nm) + "</span>" +
+      '<span class="en">' + esc(g.en) + "</span>" +
+      '<span class="ds">' + esc(g.ds) + "</span>" +
+      '<span class="rtp">' + esc(rtpOf(g)) + "</span>" +
+      '<span class="art">' + g.art + "</span></button>").join("");
+  }
+  /* スロットは「台」なので、バナー1枚で1台。増やすときは SLOTS に足すだけ。
+     ★ バナーには台名がすでに描かれているので、文字はバナーの上に重ねず<b>下の帯</b>に置く。
+       重ねると絵の題字とぶつかって、どちらも読めなくなる。 */
+  function slotCardsHTML(list) {
+    return list.map((g) =>
+      '<button class="mj-slotcard ' + g.cls + '" data-g="' + g.id + '">' +
+      '<span class="art"><img class="bn" src="' + g.banner + '" alt="' + esc(g.nm) + '" loading="lazy">' +
+        '<span class="cap">' + esc(g.cap) + "</span></span>" +
+      '<span class="bd">' +
+        '<span class="nm">' + esc(g.nm) + '<i>' + esc(g.en) + "</i></span>" +
+        '<span class="ds">' + esc(g.ds) + "</span>" +
+        '<span class="ft"><span class="rtp">' + esc(rtpOf(g)) + "</span>" +
+          '<span class="play">▶ あそぶ</span></span>' +
+      "</span></button>").join("");
+  }
+  function wireCards(box) {
+    box.querySelectorAll("[data-g]").forEach((b) => {
+      b.onclick = () => { M.SFX.click(); openGame(b.dataset.g); };
+    });
+  }
+
+  /* ══════════ ページ切り替え ══════════ */
+  function go(p) {
+    if (PAGES.indexOf(p) < 0) return;
+    if (page === "game" && p !== "game" && cur) { try { cur.unmount && cur.unmount(); } catch (e) {} cur = null; }
+    page = p;
+    PAGES.forEach((k) => {
+      const el = document.getElementById("mjPage" + k[0].toUpperCase() + k.slice(1));
+      if (el) el.classList.toggle("on", k === p);
+    });
+    document.querySelectorAll(".mj-tab").forEach((t) => t.classList.toggle("on", t.dataset.p === p));
+    document.getElementById("mjTabs").classList.toggle("hide", p === "game");
+    document.body.classList.toggle("ingame", p === "game");
+    if (p === "home") paintHome();
+    if (p === "games") paintGames();
+    if (p === "party") paintParty();
+    if (p === "mypage") paintMypage();
+    if (p === "shop") paintShop();
+    const el = document.getElementById("mjPage" + p[0].toUpperCase() + p.slice(1));
+    if (el) el.scrollTop = 0;
+  }
+  window.mjGo = go;
+  document.querySelectorAll(".mj-tab").forEach((t) => { t.onclick = () => { M.SFX.click(); go(t.dataset.p); }; });
+
+  function openGame(id) {
+    const root = document.getElementById("mjGameRoot");
+    const solo = SOLO.find((x) => x.id === id);
+    /* ★ 卓から別の卓へ直接移るときは、go() の中の unmount が走らない
+       （どちらも "game" ページなので切り替えとみなされない）。
+       ここで先に畳んでおかないと、前の卓のアニメループとタイマーが
+       消えた DOM を触りつづけて残る。 */
+    if (cur) { try { cur.unmount && cur.unmount(); } catch (e) {} cur = null; }
+    go("game");
+    root.innerHTML = "";
+    if (solo) { cur = solo.mod(); cur.mount(root); return; }
+    /* パーティーは共通のセットアップ画面から */
+    cur = { unmount: window.MJParty.unmount };
+    window.MJParty.setup(root, id);
+  }
+  window.mjOpenGame = openGame;
+
+  /* ══════════ ウォレット ══════════ */
+  let lastX = null, lastG = null;
+  function paintWallet() {
+    const x = M.xeva(), g = M.gems();
+    const ex = document.getElementById("mjXeva"), eg = document.getElementById("mjGem");
+    ex.textContent = fmt(x); eg.textContent = fmt(g);
+    if (lastX != null && lastX !== x) bump("mjWX");
+    if (lastG != null && lastG !== g) bump("mjWG");
+    lastX = x; lastG = g;
+  }
+  function bump(id) {
+    const e = document.getElementById(id); if (!e) return;
+    e.classList.remove("bump"); void e.offsetWidth; e.classList.add("bump");
+  }
+  window.addEventListener("xeva:change", paintWallet);
+  window.addEventListener("xeva:gem", paintWallet);
+  window.addEventListener("mj:wallet", paintWallet);
+  window.addEventListener("xeva:synced", paintWallet);
+  addEventListener("storage", (e) => { if (!e.key || /xeva_(wallet|gem)_v1/.test(e.key)) paintWallet(); });
+
+  /* ══════════ ホーム ══════════ */
+  /* ジャックポットは全員で共有する1本のプール。
+     クラウドから届いた値を出し、届いていない（オフライン）ときだけ端末のプールを出す。 */
+  function paintJp() {
+    const el = document.getElementById("mjJp"); if (!el) return;
+    el.textContent = fmt(M.jackpot());
+    const live = document.getElementById("mjJpLive");
+    const shared = M.jackpotShared();
+    /* ★ 2026-08-12 状態を3段階で出す（同期中／共有中／つながらない） */
+    const state = M.jackpotState ? M.jackpotState() : (shared ? "shared" : "denied");
+    if (live) {
+      live.textContent = state === "shared" ? "SHARED" : state === "waiting" ? "同期中…" : "OFFLINE";
+      live.className = "live" + (state === "shared" ? "" : " off");
+    }
+    const note = document.getElementById("mjJpNote");
+    if (note) note.innerHTML = shared
+      ? "<b>世界中のプレイヤーのベットで、いまも積み上がっています。</b>" +
+        "どのゲームからでも当たり、当てた人がプールを<b>まるごと</b>持っていきます。<br>" +
+        "いまは<b>積立 ×" + M.JP_BOOST + " のブースト中</b>——ふだんより速く育ちます。"
+      : state === "waiting"
+        ? "共有プールの残高を読み込んでいます。届くまでは、この端末のプールの数字を出しています。"
+        : "共有プールにつながっていません。いまはこの端末のプールで遊んでいます。" +
+          "オンラインに戻ると、みんなで共有しているプールに切り替わります。";
+  }
+  window.addEventListener("mj:jackpot", paintJp);
+  function paintJpWins() {
+    const box = document.getElementById("mjJpWins"); if (!box) return;
+    M.jackpotWinners(3).then((rows) => {
+      if (!rows || !rows.length) { box.innerHTML = ""; return; }
+      box.innerHTML = rows.map((r) =>
+        '<span><b>' + esc(r.name) + "</b> さんが <b>" + fmt(r.amount) + "</b> 獲得</span>").join("");
+    }).catch(() => {});
+  }
+
+  /* ══════════ 期間限定イベント ══════════ */
+  function paintEvent() {
+    const bar = document.getElementById("mjEvBar"); if (!bar) return;
+    const e = M.activeEvent();
+    if (!e) { bar.style.display = "none"; return; }
+    bar.style.display = "flex";
+    const ep = M.evEp(e.id), tiers = M.evTiers(e.id);
+    const next = tiers.find((t) => !t.done);
+    const ready = tiers.filter((t) => t.done && !t.claimed).length;
+    document.getElementById("mjEvIc").textContent = e.ic;
+    document.getElementById("mjEvTag").textContent = "〜" + e.to.slice(5).replace("-", "/");
+    document.getElementById("mjEvT1").textContent = e.nm;
+    document.getElementById("mjEvT2").innerHTML = ready
+      ? "🎁 <b>受け取れる報酬が " + ready + " 件！</b>"
+      : next ? fmt(ep) + " / " + fmt(next.ep) + " EP　次は「" + esc(next.nm) + "」"
+             : "すべての報酬を受け取りました！";
+    const goal = next ? next.ep : (tiers.length ? tiers[tiers.length - 1].ep : 1);
+    const prev = next ? (tiers[next.i - 1] ? tiers[next.i - 1].ep : 0) : goal;
+    const pct = next ? Math.min(100, Math.round((ep - prev) / Math.max(1, goal - prev) * 100)) : 100;
+    document.getElementById("mjEvBarFill").style.width = pct + "%";
+  }
+  window.addEventListener("mj:event", paintEvent);
+
+  function openEvent() {
+    const e = M.activeEvent(); if (!e) return;
+    M.SFX.click();
+    const ep = M.evEp(e.id), tiers = M.evTiers(e.id);
+    const rows = tiers.map((t) =>
+      '<div class="mj-evtier' + (t.claimed ? " got" : t.done ? " rdy" : "") + '">' +
+        '<span class="ep">' + fmt(t.ep) + "<small>EP</small></span>" +
+        '<span class="bd"><span class="t1">' + esc(t.nm) + "</span>" +
+        '<span class="t2">' + [
+          t.xeva ? fmt(t.xeva) + " XEVA" : "",
+          t.gem ? "💎" + t.gem : "",
+          t.skin ? "限定スキン" : "",
+          t.title ? "称号「" + esc(t.title) + "」" : "",
+        ].filter(Boolean).join("　＋　") + "</span></span>" +
+        '<span class="rt">' + (t.claimed ? "受取済"
+          : t.done ? '<button class="mj-btn sm" data-t="' + t.i + '">受け取る</button>'
+          : "🔒") + "</span></div>").join("");
+    const how = e.how.map((h) =>
+      '<div class="mj-evhow"><span>' + h[0] + "</span><b>" + esc(h[1]) + "</b><i>" + esc(h[2]) + "</i></div>").join("");
+    M.dlg({
+      icon: e.ic, title: e.nm + "（" + e.en + "）", ok: "とじる",
+      html: '<div class="mj-note" style="margin-bottom:10px">' + esc(e.lead) + "<br>" + e.ds +
+        "<br><b>開催期間：" + e.from.replace(/-/g, "/") + " 〜 " + e.to.replace(/-/g, "/") + "</b></div>" +
+        '<div class="mj-evep">' + fmt(ep) + ' <small>EP</small></div>' +
+        '<div class="hd" style="margin-top:10px"><span>EP のためかた</span></div>' + how +
+        '<div class="hd" style="margin-top:12px"><span>報酬</span></div>' + rows,
+    });
+    /* dlg の中身は Promise の解決前に触れる（ov は同期的に組み立てられている） */
+    const ov = document.getElementById("mjDlg");
+    ov.querySelectorAll("[data-t]").forEach((b) => {
+      b.onclick = (evt) => {
+        evt.stopPropagation();
+        const t = M.claimEvTier(e.id, +b.dataset.t);
+        if (!t) return;
+        M.SFX.win(); M.burst(60, 9);
+        M.toast("🎁 <b>" + esc(t.nm) + "</b> の報酬を受け取りました！");
+        paintWallet(); paintEvent();
+        ov.classList.remove("on");
+        setTimeout(openEvent, 260);
+      };
+    });
+  }
+  window.mjOpenEvent = openEvent;
+  document.getElementById("mjEvBar").onclick = openEvent;
+
+  /* ══════════ 本日の還元率 ══════════ */
+  /* ★ ロビーのいちばん目につくところに置く。
+     「今日は甘いのか渋いのか」を遊ぶ前に知れるのがこのしくみの前提なので、
+     メニューの奥にしまうと意味がなくなる。 */
+  function paintRtpBar() {
+    const d = M.dayRtpInfo();
+    const ic = document.getElementById("mjRtpIc"); if (!ic) return;
+    ic.textContent = d.ic;
+    document.getElementById("mjRtpT1").textContent = "本日の還元率 " + d.pct + "%（" + d.nm + "）";
+    document.getElementById("mjRtpT2").textContent =
+      "平均比 " + d.sign + "・ジャックポット込みで " + d.total + "%　あと " + M.dayLeftText() + "で変わります";
+    document.getElementById("mjRtpV").textContent = d.pct + "%";
+  }
+  document.getElementById("mjRtpBar").onclick = () => { M.SFX.click(); M.rtpSheet(); };
+
+  function paintHome() {
+    M.rollPeriods();
+    paintJp(); paintJpWins(); paintEvent(); paintRtpBar();
+    const sl = document.getElementById("mjSlotCards");
+    sl.innerHTML = slotCardsHTML(SLOTS); wireCards(sl);
+    const s = document.getElementById("mjSoloCards");
+    s.innerHTML = cardsHTML(TABLES); wireCards(s);
+    const p = document.getElementById("mjPartyCardsHome");
+    p.innerHTML = cardsHTML(PARTY); wireCards(p);
+    const ms = M.missions("daily");
+    const left = ms.filter((m) => !m.claimed).length, ready = ms.filter((m) => m.done && !m.claimed).length;
+    document.getElementById("mjDailyT1").textContent = ready ? "🎁 受け取れる報酬が " + ready + " 件！" : "今日のミッション";
+    document.getElementById("mjDailyT2").textContent = ready
+      ? "タップして受け取ろう"
+      : left ? "あと " + left + " 件で今日のぶんは完了です" : "今日のミッションはすべて達成しました！";
+    paintWallet();
+  }
+  document.getElementById("mjDailyBar").onclick = () => { M.SFX.click(); go("mypage"); setTimeout(() => {
+    const el = document.getElementById("mjDailyList"); if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, 60); };
+  window.mjOpenMissions = () => { go("mypage"); setTimeout(() => {
+    const el = document.getElementById("mjDailyList"); if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, 60); };
+  window.mjOpenAch = () => { go("mypage"); setTimeout(() => {
+    const el = document.getElementById("mjAchList"); if (el) el.scrollIntoView({ behavior: "smooth", block: "center" });
+  }, 60); };
+
+  /* ══════════ ゲーム一覧 ══════════ */
+  function paintGames() {
+    const sl = document.getElementById("mjSlotList");
+    sl.innerHTML = slotCardsHTML(SLOTS); wireCards(sl);
+    const box = document.getElementById("mjGamesList");
+    box.innerHTML = cardsHTML(TABLES); wireCards(box);
+    const day = M.dayRtpInfo();
+    document.getElementById("mjRtpNote").innerHTML =
+      "MagiJackpot は<b>賭けた総量と配られる総量がつり合う</b>ように作られています。<br><br>" +
+      "★ <b>還元率は毎日変わります。</b>今日は <b>" + day.ic + " " + day.pct + "%（" + esc(day.nm) + "・平均比 " +
+      day.sign + "）</b>、ジャックポットぶんを足して <b>" + day.total + "%</b>。" +
+      "毎日 0:00 に切りかわり（あと " + M.dayLeftText() + "）、値は<b>日付だけ</b>から決まります——" +
+      "だれが見ても同じ値で、遊ぶ前に確認できます。<br>" +
+      "振れ幅は ±" + Math.round(M.RTP_BAND * 1000) / 10 + "%、真ん中（" + Math.round(M.BASE_RTP * 100) + "%）がいちばん出やすく、" +
+      "<b>長い目で見た平均は 98% ＋ ジャックポット 2% ＝ 100% のまま</b>です。<br>" +
+      "そして<b>その日の倍率は全ゲーム共通</b>。「今日はこの台だけ甘い」は作りません" +
+      "（台えらびが損得の問題になってしまうため）。<br><br>" +
+      "・<b>Magi Fortune ／ LUXURIA ／ Jackpot Rush</b>：配当そのものが <b>98%</b>（本日 " + day.pct + "%）、" +
+      "残る <b>2%</b> はプログレッシブ・ジャックポットへ積まれ、当たった人に丸ごと出ていきます（合計 100%）。<br>" +
+      "・<b>Royal Blackjack</b>：もともと還元率が高い卓なので、ジャックポットへの積立は <b>0.25%</b> だけにして、" +
+      "残りを配当・連勝ボーナス・Royal Chance にまわしています（合計およそ 100%）。" +
+      "この卓の毎日の変動は<b>テーブルレート</b>（勝って増えたぶんに掛かる倍率・本日 ×" +
+      (window.MJBJMath ? window.MJBJMath.dayWinMul().toFixed(3) : "1.000") + "）で行い、" +
+      "<b>カードの規則は変えていません</b>。<br>" +
+      "・<b>パーティープレイ</b>：卓の中はその場かぎりのチップ。XEVA は<b>参加費と賞金だけ</b>が動き、" +
+      "賞金表は<b>平均が参加費とちょうど同じ</b>になるよう組んであります。<br><br>" +
+      "各ゲームの中にある<b>スペック表</b>を開くと、確率と配当の実際の数字を確認できます。<br><br>" +
+      "★ そして本作の背骨：<b>ゲーム中の選択は、期待値を1ミリも動かしません</b>。<br>" +
+      "プレイスタイル（ライン数）・FORTUNE GAUGE の使いかた・BONUS ルート・DOUBLE CHANCE・" +
+      "RUSH ルート・打ち出す向き・台えらび——<b>どれを選んでも長期の還元率は同じ</b>で、" +
+      "変わるのは「当たりの回数」と「1回の大きさ」だけ。<br>" +
+      "だから<b>「正解の押し方」がなく</b>、そのときの残高と気分で本当に悩めます。" +
+      "上手い下手で還元率に差がつかない＝誰が遊んでも公平、という意味でもあります。<br><br>" +
+      "<b>LUXURIA（自分で止める台）</b>も同じ考えかたです。目押しが上手いかどうかで還元率は変わりません——" +
+      "一度成立した役は<b>そろうまで消えない（持ち越し）</b>ので、外しても損はせず、" +
+      "変わるのは「そのゲームでそろうか、次にまわるか」だけ。アシストを切っても入れても損得はありません。<br><br>" +
+      "なお <b>Magi Fortune の FORTUNE GAUGE</b> と <b>Jackpot Rush の BOOST ゲージ</b>は、" +
+      "ベットのたびに<b>還元率のうち 8% を預かっておいて、満タンで返す</b>しくみです。" +
+      "ハウスからのおまけではなく<b>自分が預けたぶん</b>なので、受け取りかたを変えても損得はありません。";
+  }
+  function paintParty() {
+    const box = document.getElementById("mjPartyCards");
+    box.innerHTML = cardsHTML(PARTY); wireCards(box);
+  }
+
+  /* ══════════ マイページ ══════════ */
+  function paintMypage() {
+    M.rollPeriods();
+    const S = M.S, st = S.stats;
+    const rate = st.rounds ? Math.round(st.wins / st.rounds * 1000) / 10 : 0;
+    const ret = st.wagered ? Math.round(st.won / st.wagered * 1000) / 10 : 0;
+    const stat = (k, v, wide) => '<div class="mj-stat' + (wide ? " wide" : "") + '"><div class="k">' + k + '</div><div class="v">' + v + "</div></div>";
+    document.getElementById("mjStatBox").innerHTML =
+      stat("称号", M.titleName() || "—", true) +
+      stat("プレイ数", fmt(st.rounds)) +
+      stat("勝率", rate + "%") +
+      stat("最大獲得", fmt(st.biggest)) +
+      stat("最大連勝", fmt(st.bestStreak)) +
+      stat("累計ベット", fmt(st.wagered)) +
+      stat("累計獲得", fmt(st.won)) +
+      stat("ジャックポット", fmt(st.jackpots) + " 回") +
+      stat("あなたの回収率", ret + "%") ;
+
+    /* 称号 */
+    const tbox = document.getElementById("mjTitles");
+    /* 実績の称号＋期間限定イベントの称号 */
+    tbox.innerHTML = '<button class="mj-title' + (!S.title ? " on" : "") + '" data-t="">なし</button>' +
+      M.titles().concat(M.evTitles()).map((t) =>
+        '<button class="mj-title' + (t.got ? (S.title === t.id ? " on" : "") : " lock") + '" data-t="' + t.id + '">' +
+        esc(t.nm) + (t.got ? "" : " 🔒") + "</button>").join("");
+    tbox.querySelectorAll("[data-t]").forEach((b) => {
+      b.onclick = () => {
+        const id = b.dataset.t;
+        M.setTitle(id);
+        /* setTitle は持っていない称号を弾く（＝空になる）ので、それで判定する */
+        if (id && !M.S.title) { M.toast("この称号はまだ手に入っていません"); return; }
+        M.SFX.click(); paintMypage();
+      };
+    });
+
+    /* ゲーム別 */
+    const names = { slot: "Magi Fortune", lux: "LUXURIA", bj: "Royal Blackjack", pachi: "Jackpot Rush", arena: "Jackpot Arena", groul: "Grand Roulette Party" };
+    const icons = { slot: "🎰", lux: "🌹", bj: "♠", pachi: "🔔", arena: "🎲", groul: "🎡" };
+    const gb = document.getElementById("mjByGame");
+    const ids = Object.keys(names).filter((k) => S.byGame[k]);
+    gb.innerHTML = ids.length ? ids.map((k) => {
+      const g = S.byGame[k];
+      return '<div class="mj-row"><span class="ic">' + (icons[k] || "🎴") + "</span>" +
+        '<span class="bd"><span class="t1">' + names[k] + "</span>" +
+        '<span class="t2">' + fmt(g.plays) + " プレイ　ベット " + fmt(g.wagered) + "　獲得 " + fmt(g.won) + "</span></span>" +
+        '<span class="rt">最高 ' + fmt(g.best) + "</span></div>";
+    }).join("") : '<div class="mj-row"><span class="bd"><span class="t2">まだ記録がありません。遊ぶとここに出ます。</span></span></div>';
+
+    paintMissionList("daily", "mjDailyList");
+    paintMissionList("weekly", "mjWeeklyList");
+
+    /* 実績 */
+    document.getElementById("mjAchList").innerHTML = M.achList().map((a) =>
+      '<div class="mj-row' + (a.got ? " done" : " locked") + '"><span class="ic">' + a.ic + "</span>" +
+      '<span class="bd"><span class="t1">' + esc(a.nm) + "</span>" +
+      '<span class="t2">' + esc(a.ds) + "　→ 称号「" + esc(a.title) + "」</span></span>" +
+      '<span class="rt">' + (a.got ? "✓" : "🔒") + "</span></div>").join("");
+
+    /* リプレイ */
+    paintReplays();
+
+    /* 設定 */
+    document.getElementById("mjSoundV").textContent = S.set.sound ? "ON" : "OFF";
+    document.getElementById("mjFastV").textContent = S.set.fast ? "ON" : "OFF";
+    document.getElementById("mjShakeV").textContent = S.set.shake ? "ON" : "OFF";
+  }
+
+  function paintMissionList(kind, elId) {
+    const box = document.getElementById(elId);
+    box.innerHTML = M.missions(kind).map((m) => {
+      const pct = Math.min(100, Math.round(m.p / m.goal * 100));
+      return '<div class="mj-row' + (m.done ? " done" : "") + '"><span class="ic">' +
+        (m.claimed ? "✅" : m.done ? "🎁" : "🎯") + "</span>" +
+        '<span class="bd"><span class="t1">' + esc(m.nm) + "</span>" +
+        '<span class="t2">' + fmt(m.p) + " / " + fmt(m.goal) + "　報酬 " + fmt(m.xeva) + " XEVA" +
+        (m.gem ? " ＋ 💎" + m.gem : "") + "</span>" +
+        '<span class="mj-bar"><i style="width:' + pct + '%"></i></span></span>' +
+        '<span class="rt">' + (m.claimed ? "受取済"
+          : m.done ? '<button class="mj-btn sm" data-c="' + m.id + '" data-k="' + kind + '">受け取る</button>'
+          : pct + "%") + "</span></div>";
+    }).join("");
+    box.querySelectorAll("[data-c]").forEach((b) => {
+      b.onclick = () => {
+        const r = M.claimMission(b.dataset.k, b.dataset.c);
+        if (!r) return;
+        M.SFX.win(); M.burst(40, 8);
+        M.toast("+" + fmt(r.xeva) + " XEVA" + (r.gem ? " ＋ 💎" + r.gem : ""));
+        paintWallet(); paintMypage();
+      };
+    });
+  }
+
+  function paintReplays() {
+    const box = document.getElementById("mjReplayList");
+    const rs = M.replays();
+    if (!rs.length) { box.innerHTML = '<div class="mj-row"><span class="bd"><span class="t2">まだリプレイがありません。大きな勝負のあとに残ります。</span></span></div>'; return; }
+    const names = { slot: "Magi Fortune", lux: "LUXURIA", bj: "Royal Blackjack", pachi: "Jackpot Rush" };
+    const icons = { slot: "🎰", lux: "🌹", bj: "♠", pachi: "🔔" };
+    box.innerHTML = rs.map((r, i) => {
+      const net = r.win - r.bet;
+      const d = new Date(r.t);
+      return '<button class="mj-rp" data-r="' + i + '"><span class="ic">' +
+        (icons[r.game] || "🎴") + "</span>" +
+        '<span class="bd"><span class="t1">' + (names[r.game] || r.game) + "</span>" +
+        '<span class="t2">' + (d.getMonth() + 1) + "/" + d.getDate() + " " + String(d.getHours()).padStart(2, "0") + ":" +
+        String(d.getMinutes()).padStart(2, "0") + "　ベット " + fmt(r.bet) + "</span></span>" +
+        '<span class="rt ' + (net >= 0 ? "up" : "dn") + '">' + (net >= 0 ? "+" : "") + fmt(net) + "</span></button>";
+    }).join("");
+    box.querySelectorAll("[data-r]").forEach((b) => { b.onclick = () => showReplay(rs[+b.dataset.r]); });
+  }
+
+  /* リプレイの再生（そのときの盤面をそのまま見せる） */
+  function showReplay(r) {
+    M.SFX.click();
+    let body = "";
+    if ((r.kind === "slot" || r.kind === "lux") && r.grid) {
+      /* ★ 図柄の中身は台ごとに違うので、その台の SYM を引く。
+         古いリプレイに今はない図柄コードが残っていても落ちないよう、必ず既定値をはさむ。 */
+      const SY = (r.kind === "lux" ? (window.MJLuxMath || {}).SYM : (window.MJSlotMath || {}).SYM) || {};
+      const cols = r.grid.length;
+      body = '<div style="display:grid;grid-template-columns:repeat(' + cols + ',1fr);gap:4px;background:#1a0b2e;padding:8px;border-radius:12px">' +
+        [0, 1, 2].map((row) => r.grid.map((col) => {
+          const s = SY[col[row]] || { g: "❓" };
+          return '<div style="aspect-ratio:1;display:grid;place-items:center;background:rgba(255,255,255,.06);border-radius:8px">' +
+            (s.img ? '<img src="' + s.img + '" style="width:86%;height:86%;object-fit:contain">' : '<span style="font-size:22px">' + (s.g || "❓") + "</span>") +
+            "</div>";
+        }).join("")).join("") + "</div>" +
+        (r.kind === "lux"
+          ? '<div style="margin-top:9px">結果：<b>' + esc(r.role || "—") + "</b>" +
+            (r.assist ? "　（アシストON）" : "　（自力の目押し）") + "</div>"
+          : '<div style="margin-top:9px">モード：<b>' + (r.mode === "free" ? "フリースピン" : r.mode === "super" ? "SUPER BONUS" : "通常") +
+            "</b>　倍率 ×" + (r.mul || 1) + "</div>");
+    } else if (r.kind === "bj" && r.p) {
+      const B = window.MJBJMath;
+      const cards = (cs) => cs.map((c) => {
+        const red = c.su === 1 || c.su === 2;
+        return '<span style="display:inline-block;min-width:30px;padding:5px 6px;margin:2px;border-radius:6px;background:#fffdf7;color:' +
+          (red ? "#d81f45" : "#1a1a22") + ';font-weight:900;font-family:Orbitron,sans-serif">' +
+          B.rankName(c.r) + B.SUITS[c.su] + "</span>";
+      }).join("");
+      body = "<div>ディーラー：" + cards(r.d) + "（" + B.handVal(r.d).total + "）</div>" +
+        r.p.map((h, i) => "<div style=\"margin-top:6px\">あなた" + (r.p.length > 1 ? " HAND " + (i + 1) : "") + "：" +
+          cards(h) + "（" + B.handVal(h).total + "）</div>").join("") +
+        (r.streak ? '<div style="margin-top:8px">🔥 ' + r.streak + " 連勝中でした</div>" : "");
+    } else if (r.kind === "pachi") {
+      const k = { enter: "RUSH 突入", cont: "RUSH 継続", super: "SUPER JACKPOT", end: "RUSH 終了", normal: "通常当たり" }[r.k] || r.k;
+      body = "<div>結果：<b>" + k + "</b></div><div style=\"margin-top:6px\">台：<b>" + (r.machine || "normal") + "</b></div>";
+    } else {
+      body = "<div>この記録には盤面が残っていません。</div>";
+    }
+    const net = r.win - r.bet;
+    M.dlg({
+      icon: "🎬", title: "リプレイ",
+      html: body + '<div style="margin-top:12px;font-family:Orbitron,sans-serif;font-size:16px;color:' +
+        (net >= 0 ? "#0d7a4f" : "#c72a4c") + '">ベット ' + fmt(r.bet) + " → 獲得 " + fmt(r.win) +
+        "（" + (net >= 0 ? "+" : "") + fmt(net) + "）</div>",
+      ok: "とじる",
+    });
+  }
+
+  document.getElementById("mjRpClear").onclick = async () => {
+    if (!await M.confirmBox("保存されているリプレイを<b>すべて消去</b>します。よろしいですか？", "リプレイの消去", "🗑", "消去する")) return;
+    M.S.replays.length = 0; M.saveNow(); paintReplays(); M.toast("リプレイを消去しました");
+  };
+  document.getElementById("mjSwSound").onclick = () => { M.S.set.sound = !M.S.set.sound; M.save(); M.SFX.click(); paintMypage(); };
+  document.getElementById("mjSwFast").onclick = () => { M.S.set.fast = !M.S.set.fast; M.save(); M.SFX.click(); paintMypage(); };
+  document.getElementById("mjSwShake").onclick = () => { M.S.set.shake = !M.S.set.shake; M.save(); M.SFX.click(); paintMypage(); };
+  document.getElementById("mjSwTut").onclick = () => {
+    M.S.set.tutorialDone = {}; M.save(); M.SFX.click();
+    M.toast("次にゲームを開いたときに、あそびかたをもう一度お見せします");
+  };
+
+  /* ══════════ ショップ ══════════ */
+  const SKIN_KINDS = [
+    { k: "card", nm: "🂠 カード", ds: "ブラックジャックの裏面" },
+    { k: "felt", nm: "🟩 テーブル", ds: "卓のフェルト" },
+    { k: "chip", nm: "🔵 チップ", ds: "ベットチップの見た目" },
+    { k: "bg",   nm: "🌈 背景", ds: "ロビーの明るさ" },
+    { k: "fx",   nm: "✨ 演出", ds: "大当たりで舞う粒" },
+  ];
+  function paintShop() {
+    const box = document.getElementById("mjShopBody");
+    box.innerHTML = SKIN_KINDS.map((kind) =>
+      '<div class="mj-sec"><h2>' + kind.nm + "</h2></div>" +
+      '<div class="mj-note" style="margin:0 2px 9px">' + esc(kind.ds) + "</div>" +
+      '<div class="mj-skins">' + M.shopSkins(kind.k).map((s) =>
+        '<div class="mj-skin' + (s.eq ? " eq" : "") + '">' +
+        '<div class="pv" style="background:' + pvBg(s) + '">' + s.pv + "</div>" +
+        '<div class="bd"><div class="nm">' + esc(s.nm) + "</div>" +
+        '<div class="ds">' + esc(s.ds) + "</div>" +
+        '<button class="buy ' + (s.eq ? "on" : s.owned ? "owned" : "") + '" data-k="' + s.k + '" data-i="' + s.id + '">' +
+        (s.eq ? "使用中" : s.owned ? "つかう" : "💎" + s.cost) + "</button></div></div>").join("") + "</div>").join("");
+    box.querySelectorAll("[data-k]").forEach((b) => {
+      b.onclick = () => {
+        const k = b.dataset.k, id = b.dataset.i;
+        const s = M.skins(k).find((x) => x.id === id);
+        if (!s) return;
+        if (s.eq) { M.toast("すでに使用中です"); return; }
+        if (s.owned) { M.equipSkin(k, id); M.SFX.click(); M.toast(s.nm + " に変更しました"); paintShop(); return; }
+        M.confirmBox("<b>" + esc(s.nm) + "</b> を 💎" + s.cost + " で購入します。<br>" +
+          '<span style="font-size:11px">スキンは見た目だけの変化です（還元率は変わりません）。</span>',
+          "スキンの購入", "🛒", "購入する").then((ok) => {
+          if (!ok) return;
+          const r = M.buySkin(k, id);
+          if (!r.ok) { M.toast(r.msg); return; }
+          M.SFX.win(); M.burst(50, 8); M.toast("🎉 " + r.msg);
+          paintWallet(); paintShop();
+        });
+      };
+    });
+  }
+  function pvBg(s) {
+    if (s.k === "card") return s.id === "gold" ? "linear-gradient(140deg,#8a6212,#e8b52c)" :
+      s.id === "neon" ? "linear-gradient(140deg,#0b3a5e,#2fd8ff)" :
+      s.id === "sakura" ? "linear-gradient(140deg,#a02b62,#ff8ab8)" : "linear-gradient(140deg,#4b2b8f,#8a2be2)";
+    if (s.k === "felt") return s.id === "royal" ? "linear-gradient(140deg,#5a2b8f,#341358)" :
+      s.id === "noir" ? "linear-gradient(140deg,#3a3a44,#1c1c24)" :
+      s.id === "crimson" ? "linear-gradient(140deg,#8f2b3f,#5a1226)" : "linear-gradient(140deg,#176a4a,#0c4530)";
+    if (s.k === "bg") return s.id === "midnight" ? "linear-gradient(140deg,#241436,#0b0714)" : "linear-gradient(140deg,#ffe9c0,#d9c4ff)";
+    return "linear-gradient(140deg,#f4f0ff,#ffeef8)";
+  }
+
+  /* ══════════ 起動 ══════════ */
+  paintWallet();
+  paintHome();
+  /* オフラインでも 1人プレイ／パーティーは遊べる（オンライン対戦は無いので制限なし） */
+  if ("serviceWorker" in navigator) {
+    addEventListener("load", () => { navigator.serviceWorker.register("sw.js").catch(() => {}); });
+  }
+  /* ジャックポットの表示は「増えていく」のが気持ちいいので、ホームにいる間だけ回す */
+  setInterval(() => { if (page === "home") paintJp(); }, 1500);
+})();
+</script>
+<!-- XEVARION へもどる導線（同期を送り切ってから移動する） -->
+<script src="../xeva-back.js?v=1" data-mode="hook"></script>
+</body>
+</html>

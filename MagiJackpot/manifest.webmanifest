@@ -1,0 +1,16 @@
+{
+  "name": "MagiJackpot — ソーシャルカジノ＆パーティー",
+  "short_name": "MagiJackpot",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#07060c",
+  "theme_color": "#07060c",
+  "description": "XEVA とジェムで遊ぶソーシャルカジノ＆パーティー。1人プレイ・2〜6人オンライン・1台のiPadを囲むパーティーモード。",
+  "icons": [
+    { "src": "mj-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "mj-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "mj-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

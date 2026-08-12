@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<script src="../maintenance-gate.js?v=5"></script>
+  <meta charset="UTF-8" />
+<script>(function(){try{var a=JSON.parse(localStorage.getItem('xeva_account_v1'));if(!a||!a.setupDone)location.replace('../index.html');}catch(e){}})();</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>MagiChainParty — チェインパーティ</title>
+  <meta name="description" content="iPadを囲んで遊ぶ、連鎖バクハツの陣取り頭脳戦。MagiOneシリーズ / XEVARION。" />
+  <link rel="icon" href="../thumbs/MagiChainParty.jpg" type="image/png" />
+  <link rel="apple-touch-icon" href="../thumbs/MagiChainParty.jpg" />
+  <!-- PWA: オフラインでもローカル対戦が遊べる（オンライン対戦はオンライン時のみ） -->
+  <!-- 単体でのアプリ配布は廃止（XEVARION を1つ入れれば3アプリともオフライン対応になる） -->
+<script src="../app-install-notice.js?v=1" defer></script>
+  <meta name="theme-color" content="#7c5bff" />
+  <script>
+  if ("serviceWorker" in navigator) {
+    window.addEventListener("load", function () { navigator.serviceWorker.register("sw.js").catch(function () {}); });
+  }
+  </script>
+  <link rel="stylesheet" href="css/style.css?v=8" />
+
+  <!-- 起動スプラッシュは ../xeva-splash.js（全アプリ共通）に統一 -->
+  <script src="../xeva-splash.js?v=3" data-app="MagiChainParty" data-logo="../thumbs/MagiChainParty.jpg"></script>
+</head>
+<body>
+
+  <!-- ===== セットアップ ===== -->
+  <section id="setup" class="screen active">
+    <div class="setup-wrap">
+      <header class="su-top">
+        <a href="../index.html" class="back-portal">← ポータル</a>
+        <button id="show-rules" class="rules-chip">📖 あそびかた</button>
+      </header>
+      <h1 class="logo">Magi<span>ChainParty</span></h1>
+      <p class="tag">iPadを囲んで遊ぶ、連鎖バクハツの陣取り頭脳戦 🎉<br>ルールは「マスをタップ」だけ・運の要素ゼロ</p>
+
+      <button id="resume-btn" class="primary resume hidden">▶ つづきから</button>
+      <!-- 単体インストールは廃止（XEVARION からまとめて導入） -->
+      <button id="open-online" class="online-banner">
+        <span class="ob-ic">🌐</span>
+        <span class="ob-tx"><b>オンラインで対戦</b><small>部屋番号でつながる・XEVA賞金つき</small></span>
+        <span class="ob-go">→</span>
+      </button>
+
+      <div class="su-card">
+        <div class="su-title"><span class="su-ic">👥</span>プレイヤー<span class="su-hint">人数と名前・人／CPU</span></div>
+        <div id="player-seg" class="seg">
+          <button data-n="2">2人</button>
+          <button data-n="3" class="on">3人</button>
+          <button data-n="4">4人</button>
+          <button data-n="5">5人</button>
+          <button data-n="6">6人</button>
+        </div>
+        <div id="players-list"></div>
+      </div>
+
+      <div class="su-card">
+        <div class="su-title"><span class="su-ic">🗺️</span>盤面の広さ</div>
+        <div id="size-seg" class="seg">
+          <button data-s="6">小<small>6×6</small></button>
+          <button data-s="8" class="on">中<small>8×8</small></button>
+          <button data-s="10">大<small>10×10</small></button>
+        </div>
+      </div>
+
+      <div class="su-card">
+        <div class="su-title"><span class="su-ic">🤖</span>CPUの強さ</div>
+        <div id="cpu-seg" class="seg">
+          <button data-l="0">よわい</button>
+          <button data-l="1" class="on">ふつう</button>
+          <button data-l="2">つよい</button>
+        </div>
+      </div>
+
+      <div class="su-card">
+        <div class="su-title"><span class="su-ic">⏱️</span>ラウンド制限<span class="su-hint">時短ルール</span></div>
+        <div id="round-seg" class="seg">
+          <button data-r="0" class="on">なし</button>
+          <button data-r="10">10R</button>
+          <button data-r="15">15R</button>
+          <button data-r="20">20R</button>
+        </div>
+        <p class="seg-note">「なし」＝最後の1色まで勝負。数字＝そのラウンドで打ち切り、領土（マス数）の多い順で順位を決定します。</p>
+      </div>
+    </div>
+    <div class="su-sticky">
+      <button id="start" class="primary big">▶ 順番をきめる</button>
+    </div>
+  </section>
+
+  <!-- ===== オンライン対戦（部屋番号でつながる） ===== -->
+  <section id="online" class="screen">
+    <div class="setup-wrap">
+      <header class="su-top">
+        <button class="back-portal" id="ol-back">← もどる</button>
+      </header>
+      <h1 class="logo sm">オンライン<span>対戦</span></h1>
+      <p class="tag">部屋番号でつながって、はなれた友だちと対戦！🎉<br>勝つと <b>XEVA 賞金</b>がもらえます（ポータルで受取）。</p>
+
+      <div id="ol-home">
+        <div class="su-card">
+          <div class="su-title"><span class="su-ic">🆕</span>部屋をつくる<span class="su-hint">ホストになる</span></div>
+          <p class="seg-note" style="margin-top:0">4桁の部屋番号が発行されます。友だちに伝えて参加してもらいましょう。</p>
+          <button id="ol-create" class="primary">🆕 部屋をつくる（ホスト）</button>
+        </div>
+        <div class="su-card">
+          <div class="su-title"><span class="su-ic">🔢</span>部屋に参加する<span class="su-hint">番号を入力</span></div>
+          <div class="ol-join">
+            <input id="ol-code" inputmode="numeric" maxlength="4" placeholder="0000" />
+            <button id="ol-join-btn" class="primary">参加</button>
+          </div>
+        </div>
+        <p id="ol-msg" class="ol-msg"></p>
+      </div>
+
+      <div id="ol-lobby" class="hidden">
+        <div class="ol-roomcode">部屋番号 <b id="ol-roomnum">----</b></div>
+        <p class="seg-note" style="text-align:center">この番号を友だちに伝えて参加してもらいましょう（最大6人・2人からスタート）。</p>
+        <div class="su-card">
+          <div class="su-title"><span class="su-ic">👥</span>参加者</div>
+          <div id="ol-players"></div>
+        </div>
+        <div id="ol-host-opts" class="hidden">
+          <div class="su-card">
+            <div class="su-title"><span class="su-ic">🗺️</span>盤面の広さ<span class="su-hint">ホスト設定</span></div>
+            <div id="ol-size-seg" class="seg">
+              <button data-s="6">小<small>6×6</small></button><button data-s="8" class="on">中<small>8×8</small></button><button data-s="10">大<small>10×10</small></button>
+            </div>
+          </div>
+          <div class="su-card">
+            <div class="su-title"><span class="su-ic">⏱️</span>ラウンド制限<span class="su-hint">ホスト設定</span></div>
+            <div id="ol-round-seg" class="seg">
+              <button data-r="0" class="on">なし</button><button data-r="10">10R</button><button data-r="15">15R</button><button data-r="20">20R</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="su-sticky ol" id="ol-sticky">
+      <div class="ol-actions">
+        <button id="ol-ready" class="ghost ready-btn hidden">✋ 準備する</button>
+        <button id="ol-start" class="primary big hidden">▶ ゲーム開始（ホスト）</button>
+      </div>
+      <button id="ol-leave" class="leave-link">部屋を出る</button>
+    </div>
+  </section>
+
+  <!-- ===== 順番きめ ===== -->
+  <section id="order" class="screen">
+    <div class="order-card">
+      <h2 id="order-title">順番をきめています…</h2>
+      <div id="order-dice" class="order-dice">🎲</div>
+      <div id="order-result" class="order-result"></div>
+      <div id="order-actions" class="order-actions hidden">
+        <button id="order-go" class="primary">この順番ではじめる！</button>
+        <button id="order-redo" class="ghost">もう一度きめる</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== ゲーム ===== -->
+  <section id="game" class="screen">
+    <div id="player-bar"></div>
+    <div id="table">
+      <div id="board-area"><div id="board"></div></div>
+    </div>
+    <button id="undo-btn" class="corner-btn undo" title="一手もどす" disabled>↩</button>
+    <button id="menu-btn" class="corner-btn">≡</button>
+    <div id="round-info" class="round-info hidden"></div>
+    <div id="thinking" class="thinking hidden">🤖 CPU が考え中…</div>
+  </section>
+
+  <!-- ===== あそびかた（自分のペースで進むステップ式） ===== -->
+  <div id="rules" class="modal hidden">
+    <div class="modal-card">
+      <button id="tut-x" class="modal-x">✕</button>
+      <h2 id="tut-title">あそびかた</h2>
+      <div class="tut-progress">ステップ <span id="tut-n">1</span> / <span id="tut-total">7</span></div>
+
+      <div id="tut-stage" class="tut-stage"></div>
+      <div id="tut-cap" class="demo-cap"></div>
+      <div id="tut-extra" class="tut-extra"></div>
+
+      <div class="tut-nav">
+        <button id="tut-prev" class="ghost">◀ もどる</button>
+        <button id="tut-replay" class="ghost">↻ もう一度</button>
+        <button id="tut-next" class="primary">つぎへ ▶</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== 勝利 ===== -->
+  <div id="win" class="modal hidden">
+    <div class="modal-card win-card">
+      <div id="win-emoji" class="win-emoji">🏆</div>
+      <h2 id="win-title">勝者</h2>
+      <p id="win-sub" class="win-sub">盤上に残ったのは1色だけ！</p>
+      <div id="win-stats" class="win-stats"></div>
+      <button id="play-again" class="primary">もう一度あそぶ</button>
+      <button id="back-setup" class="ghost">設定にもどる</button>
+    </div>
+  </div>
+
+  <!-- お知らせトースト -->
+  <div id="toast" class="toast"></div>
+
+  <script src="../xeva.js?v=24"></script>
+<script src="../xeva-loading.js?v=1" defer></script>
+  <script type="module" src="../xevarion-fb.js?v=19"></script>
+<script src="../xeva-presence.js?v=1" defer></script>
+  <script type="module" src="../xeva-cloud.js?v=14"></script>
+  <script type="module" src="js/online.js?v=3"></script>
+  <script src="../game-link.js?v=3"></script>
+  <script src="js/game.js?v=8"></script>
+<!-- XEVARION へもどる導線（同期を送り切ってから移動する） -->
+<script src="../xeva-back.js?v=1" data-mode="hook"></script>
+</body>
+</html>
