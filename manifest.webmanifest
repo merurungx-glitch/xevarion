@@ -1,0 +1,28 @@
+{
+  "name": "XEVARION — Magi Universe Gate",
+  "short_name": "XEVARION",
+  "description": "MagiBattle・MagiLex・MagiBurst・MagiArena・MagiLink ほか、NGX × Magical Future の全アプリにひとつのホームから。MagiLex／MagiBurst／MagiChainParty はオフラインでも遊べます。",
+  "start_url": "index.html",
+  "scope": "./",
+  "id": "xevarion-portal",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#070b1e",
+  "theme_color": "#070b1e",
+  "lang": "ja",
+  "dir": "ltr",
+  "categories": ["games", "education", "entertainment"],
+  "icons": [
+    { "src": "icons/xev-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/xev-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/xev-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "MagiLex", "short_name": "MagiLex", "url": "MagiLex/MagiLex.html",
+      "icons": [{ "src": "thumbs/MagiLex.jpg", "sizes": "300x300", "type": "image/jpeg" }] },
+    { "name": "MagiBurst", "short_name": "MagiBurst", "url": "MagiBurst/index.html",
+      "icons": [{ "src": "thumbs/MagiBurst.jpg", "sizes": "300x300", "type": "image/jpeg" }] },
+    { "name": "MagiChainParty", "short_name": "ChainParty", "url": "MagiChainParty/index.html",
+      "icons": [{ "src": "thumbs/MagiChainParty.jpg", "sizes": "300x300", "type": "image/jpeg" }] }
+  ]
+}

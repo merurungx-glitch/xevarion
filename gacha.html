@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<script src="maintenance-gate.js?v=5"></script>
+<meta charset="UTF-8">
+<script>(function(){try{var a=JSON.parse(localStorage.getItem('xeva_account_v1'));if(!a||!a.setupDone)location.replace('index.html');}catch(e){}})();</script>
+<script type="module" src="xevarion-fb.js?v=20"></script>
+<script src="xeva-presence.js?v=1" defer></script>
+<script type="module" src="xeva-cloud.js?v=14"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>ガチャ — XEVARION</title>
+<link rel="icon" href="XEVA.png" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+JP:wght@300;400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="xeva-theme.css?v=1">
+<!-- ★ 2026-08-10 ガチャ結果の演出（1枚ずつ公開・昇格演出）の見た目。MagiBurst と共通 -->
+<link rel="stylesheet" href="mb-gacha-reveal.css?v=1">
+<!-- ★ 2026-08-10 キャラ詳細（性能画面）の見た目。図鑑（characters.html）と共通 -->
+<link rel="stylesheet" href="mb-char-detail.css?v=2">
+<script src="xeva.js?v=25"></script>
+<script src="xeva-loading.js?v=1" defer></script>
+<script src="magibattle-stats.js?v=6"></script>
+<script type="module" src="xeva-sync.js?v=8"></script>
+<style>
+/* ══════════════════════════════════════════════════════════════
+   XEVARION ガチャ（2026-08-10 作り直し）
+
+   ★ 中身は MagiBurst のガチャそのもの。抽選の規則・キャラ・限界突破は
+     MagiBurst/js/mb-core.js（共有モジュール）を<b>そのまま呼んで</b>いる。
+     ＝ ここには規則を1行も書かない。キャラを足しても自動で反映される。
+   ★ 見た目だけを XEVARION（明るいパステル）にそろえてある。
+   ══════════════════════════════════════════════════════════════ */
+:root{
+  --bg:#d9ecff;--card:#ffffff;--card2:#f7fbff;
+  --bdr:rgba(120,160,230,0.22);
+  --txt:#22345c;--txt2:#6f82ad;
+  --pur:#7b5cf0;--pink:#f0509a;--gold:#e8a400;--gold2:#ffc93c;
+  --grn:#12a97a;--red:#e0577f;--blu:#2e8bff;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans JP',sans-serif;color:var(--txt);min-height:100vh;
+  background:linear-gradient(175deg,#d9ecff 0%,#eef6ff 34%,#fdf4ff 72%,#fff7ef 100%);background-attachment:fixed}
+a{color:inherit;text-decoration:none}
+img{-webkit-user-drag:none;user-select:none;-webkit-user-select:none;-webkit-touch-callout:none}
+.wrap{max-width:680px;margin:0 auto;padding:0 0 calc(env(safe-area-inset-bottom,0px) + 116px)}
+body::before,body::after{content:"";position:fixed;border-radius:50%;pointer-events:none;z-index:0}
+body::before{width:400px;height:400px;background:radial-gradient(circle,rgba(177,140,255,.35),transparent 70%);top:-100px;right:-80px}
+body::after{width:320px;height:320px;background:radial-gradient(circle,rgba(255,150,200,.3),transparent 70%);bottom:60px;left:-60px}
+/* ── ヘッダー ── */
+.gh{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:10px;padding:12px 16px;
+  background:rgba(255,255,255,.88);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border-bottom:1px solid var(--bdr);box-shadow:0 2px 14px rgba(90,130,210,.12)}
+.gh a.back{font-size:22px;color:var(--pur);padding:2px 8px;border-radius:8px}
+.gh h1{font-family:'Orbitron',sans-serif;font-size:14px;letter-spacing:1px;flex:1;
+  background:linear-gradient(135deg,var(--pur),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.gh h1 small{display:block;font-size:8px;letter-spacing:.22em;color:var(--txt2);-webkit-text-fill-color:var(--txt2)}
+.wal{display:flex;gap:6px;align-items:center}
+.walc{display:flex;align-items:center;gap:5px;background:linear-gradient(135deg,rgba(124,58,237,.10),rgba(240,192,64,.12));
+  border:1.5px solid var(--bdr);border-radius:100px;padding:5px 11px;font-family:'Orbitron',sans-serif;font-size:12.5px;font-weight:800}
+.walc.gem{color:var(--blu)}
+.walc.tkt{color:var(--gold)}
+/* ══════════════════════════════════════════════════════════════
+   ★ 2026-08-10 通貨アイコンを XEVARION 共通のものにそろえる
+   ・以前はこの画面だけ 💎 の絵文字だった。絵文字は端末ごとに形も色も変わるので、
+     ホーム（gem.png）や MagiBurst（.icc.ic-gem）と<b>見た目が食いちがっていた</b>。
+   ・MagiBurst と<b>同じクラス名・同じ絵</b>にしてある（絵を差し替えるときは gem.png 1枚）。
+   ・パスだけ注意: MagiBurst は1つ下の階層なので "../gem.png"、ここは直下なので "gem.png"。
+   ══════════════════════════════════════════════════════════════ */
+.icc{display:inline-block;width:.95em;height:.95em;vertical-align:-.1em}
+.ic-gem{width:1.15em;height:1.15em;vertical-align:-.22em;
+  background:url("gem.png") center/contain no-repeat;
+  filter:drop-shadow(0 1px 2px rgba(120,80,220,.35))}
+.ic-gold{position:relative;width:1.05em;height:1.05em;vertical-align:-.18em;border-radius:50%;
+  background:radial-gradient(circle at 36% 30%,#fff6d8 0 8%,#ffe08a 26%,#ffbe33 58%,#e08a00 82%,#a55f00 100%);
+  box-shadow:inset 0 0 0 .085em rgba(255,246,216,.72),inset 0 0 0 .16em rgba(176,104,0,.55),
+    0 .04em .1em rgba(120,70,0,.35)}
+.ic-gold::before{content:"";position:absolute;left:50%;top:50%;width:.52em;height:.52em;transform:translate(-50%,-50%);
+  background:rgba(150,88,0,.62);
+  clip-path:polygon(50% 2%,61% 37%,98% 37%,68% 59%,79% 95%,50% 73%,21% 95%,32% 59%,2% 37%,39% 37%)}
+.ic-gold::after{content:"";position:absolute;inset:.09em;border-radius:50%;pointer-events:none;
+  background:linear-gradient(118deg,transparent 34%,rgba(255,255,255,.62) 47%,rgba(255,255,255,.18) 53%,transparent 62%)}
+.ic-soul{width:1.02em;height:1.02em;vertical-align:-.16em;
+  background:radial-gradient(circle at 50% 68%,#fff 0 12%,#a6f0ff 30%,#5ba8ff 58%,#7a4fe0 100%);
+  clip-path:polygon(50% 0,72% 26%,86% 56%,72% 86%,50% 100%,28% 86%,14% 56%,28% 26%);
+  filter:drop-shadow(0 0 3px rgba(124,196,255,.85))}
+.body{padding:14px;position:relative;z-index:1}
+/* ── ガチャえらび ── */
+.gpick{width:100%;display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:18px;cursor:pointer;
+  border:2px solid var(--bdr);background:var(--card);font-family:inherit;text-align:left;margin-bottom:12px;
+  box-shadow:0 4px 16px rgba(90,130,210,.10)}
+.gpick .gpi{width:40px;height:40px;border-radius:12px;flex:none;display:flex;align-items:center;justify-content:center;font-size:20px;
+  background:linear-gradient(135deg,var(--pur),var(--pink));color:#fff}
+.gpick .gpt{flex:1;min-width:0}
+.gpick .gpt b{display:block;font-size:13.5px;font-weight:900;color:var(--txt)}
+.gpick .gpt span{display:block;font-size:10.5px;font-weight:700;color:var(--txt2);margin-top:1px}
+.gpick .gpa{font-size:18px;color:var(--pur)}
+#gmenu{display:none;margin:-4px 0 12px}
+#gmenu.on{display:block}
+.gmi{width:100%;display:flex;align-items:center;gap:10px;padding:11px 13px;border-radius:14px;cursor:pointer;
+  border:1.5px solid var(--bdr);background:var(--card2);font-family:inherit;text-align:left;margin-bottom:6px}
+.gmi.on{border-color:var(--pur);background:linear-gradient(120deg,rgba(123,92,240,.12),rgba(240,80,154,.08))}
+.gmi b{font-size:12.5px;font-weight:900}
+.gmi span{display:block;font-size:10px;font-weight:700;color:var(--txt2)}
+.gmi .gmdot{width:10px;height:10px;border-radius:50%;flex:none}
+.gmi.soon{opacity:.6}
+/* ── バナー ── */
+.ghero{position:relative;border-radius:20px;overflow:hidden;margin-bottom:12px;background:#0d0a1e;
+  box-shadow:0 8px 26px rgba(90,130,210,.22)}
+.ghero img{width:100%;display:block}
+.ghero .ghlab{position:absolute;left:10px;top:10px;font-size:10px;font-weight:900;letter-spacing:.1em;
+  background:rgba(255,255,255,.92);color:var(--pur);border-radius:99px;padding:4px 11px;font-family:'Orbitron',sans-serif}
+/* ── ピックアップ ── */
+.pkbox{background:var(--card);border:2px solid rgba(255,206,90,.42);border-radius:20px;padding:14px;margin-bottom:12px;
+  box-shadow:0 4px 16px rgba(230,170,40,.14)}
+.pkhd{font-size:12px;font-weight:900;color:var(--gold);margin-bottom:10px;display:flex;align-items:center;justify-content:space-between}
+.pkrow{display:flex;align-items:center;gap:12px}
+.pkrow img{width:74px;height:74px;border-radius:14px;object-fit:cover;border:2.5px solid var(--gold2);flex:none}
+.pkinfo{flex:1;min-width:0}
+.pknm{font-size:14.5px;font-weight:900}
+.pksub{font-size:10.5px;font-weight:700;color:var(--txt2);margin-top:2px;line-height:1.7}
+.pkbtn{background:linear-gradient(135deg,var(--pur),var(--pink));color:#fff;border:none;border-radius:12px;
+  padding:9px 14px;font-size:12px;font-weight:900;cursor:pointer;font-family:inherit;flex:none}
+/* ── 引くボタン（下部固定） ── */
+#pullbar{position:fixed;left:0;right:0;bottom:0;z-index:40;padding:9px 12px calc(env(safe-area-inset-bottom,0px) + 9px);
+  background:linear-gradient(180deg,rgba(255,255,255,.86),#fff 42%);
+  border-top:1.5px solid var(--bdr);box-shadow:0 -6px 22px rgba(90,130,210,.16);
+  display:grid;grid-template-columns:1fr 1fr 1.25fr;gap:7px;max-width:680px;margin:0 auto}
+.pbtn{border:none;border-radius:14px;padding:11px 4px;cursor:pointer;font-family:inherit;
+  display:flex;flex-direction:column;align-items:center;gap:2px;color:#fff;
+  background:linear-gradient(135deg,#8e6bff,#b06bff);box-shadow:0 4px 14px rgba(142,107,255,.32)}
+.pbtn b{font-size:13px;font-weight:900}
+.pbtn small{font-size:10px;font-weight:800;opacity:.95}
+.pbtn.p10{background:linear-gradient(135deg,#ff9d2e,#e0405e 60%,#c86bff);box-shadow:0 4px 16px rgba(224,64,94,.36)}
+.pbtn:disabled{opacity:.45;cursor:not-allowed;filter:grayscale(.5)}
+.pbtn:active{transform:translateY(1px)}
+/* ── 見出し・注記 ── */
+.sechd{display:flex;align-items:center;justify-content:space-between;margin:16px 2px 9px}
+.sechd b{font-size:13px;font-weight:900}
+.lnk{font-size:11px;font-weight:800;color:var(--pur);cursor:pointer;background:none;border:none;font-family:inherit}
+.note{font-size:10.5px;font-weight:700;color:var(--txt2);line-height:1.85;background:var(--card2);
+  border:1.5px solid var(--bdr);border-radius:14px;padding:10px 12px;margin-bottom:12px}
+.note b{color:var(--txt)}
+/* 提供割合をひらくボタン（排出キャラの一覧もこの中） */
+.ratebtn{width:100%;display:flex;align-items:center;gap:8px;padding:13px 15px;border-radius:16px;cursor:pointer;
+  border:2px solid rgba(123,92,240,.3);background:linear-gradient(120deg,rgba(123,92,240,.09),rgba(240,80,154,.06));
+  color:var(--pur);font-family:inherit;font-size:12.5px;font-weight:900;text-align:left;
+  box-shadow:0 3px 12px rgba(90,130,210,.08)}
+.ratebtn span{margin-left:auto;font-size:16px;opacity:.7}
+.ratebtn:active{transform:translateY(1px)}
+/* ── フェス限定キャラの顔ぶれ（押すと詳細） ── */
+.fgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(76px,1fr));gap:7px}
+.fcard{position:relative;border-radius:13px;overflow:hidden;background:var(--card2);border:2px solid rgba(255,206,90,.5);
+  cursor:pointer;padding:0;font-family:inherit;display:flex;flex-direction:column;justify-content:flex-start}
+.fcard img{width:100%;aspect-ratio:1;object-fit:cover;display:block}
+.fcard .fn{font-size:9.5px;font-weight:900;padding:4px 3px;text-align:center;color:var(--txt);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fcard .fr{position:absolute;left:3px;top:3px;font-size:8px;font-weight:900;font-family:'Orbitron',sans-serif;
+  border-radius:5px;padding:1px 4px;background:rgba(20,20,40,.68);color:#ffd257}
+.fcard .fo{position:absolute;right:3px;top:3px;font-size:7.5px;font-weight:900;border-radius:5px;padding:1px 4px}
+.fcard .fo.ok{background:rgba(18,169,122,.9);color:#fff}
+.fcard .fo.no{background:rgba(120,140,190,.85);color:#fff}
+.fcard.veil{border-color:var(--bdr);background:#e9eef7;aspect-ratio:auto}
+.fcard.veil .fq{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:26px;font-weight:900;color:var(--txt2)}
+/* ── キャラのマス（ピックアップえらび） ── */
+.cgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(88px,1fr));gap:8px}
+.cc{position:relative;border-radius:14px;overflow:hidden;background:var(--card);border:2px solid var(--bdr);cursor:pointer;
+  box-shadow:0 3px 10px rgba(90,130,210,.10)}
+.cc img{width:100%;aspect-ratio:1;object-fit:cover;display:block}
+.cc.s5{border-color:rgba(255,184,77,.85);box-shadow:0 3px 14px rgba(255,170,40,.3)}
+.cc.noown img{filter:grayscale(.8) brightness(.78)}
+.cc .ccn{font-size:9.5px;font-weight:900;padding:4px 3px;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cc .ccr{position:absolute;left:3px;top:3px;font-size:8px;font-weight:900;font-family:'Orbitron',sans-serif;
+  border-radius:5px;padding:1px 4px;background:linear-gradient(135deg,#ffd257,#ff9d2e);color:#4a2d00}
+.cc .ccr.s4{background:rgba(120,140,190,.9);color:#fff}
+.cc .ccno{position:absolute;right:3px;top:3px;font-size:7.5px;font-weight:900;font-family:'Orbitron',sans-serif;
+  border-radius:5px;padding:1px 4px;background:rgba(20,20,40,.6);color:#fff}
+.cc .ccaw{position:absolute;right:3px;bottom:22px;font-size:8px;font-weight:900;border-radius:99px;padding:1px 5px;
+  background:linear-gradient(135deg,#fff0b8,#ffb020);color:#4a2d00}
+.cc .ccpk{position:absolute;left:0;right:0;bottom:22px;font-size:8px;font-weight:900;text-align:center;
+  background:linear-gradient(90deg,#e0405e,#ff7a9c);color:#fff;padding:1px 0}
+/* ★ 2026-08-10 ピックアップえらび: いま確認中のキャラを目立たせる／右上の「i」で性能を見る */
+.cc.asking{border-color:var(--pur);box-shadow:0 0 0 3px rgba(123,92,240,.3),0 4px 16px rgba(123,92,240,.35)}
+.cc .ccinfo{position:absolute;right:3px;bottom:24px;width:22px;height:22px;border-radius:50%;z-index:3;cursor:pointer;
+  border:1.5px solid rgba(255,255,255,.85);background:rgba(20,20,40,.66);color:#fff;
+  font-family:'Orbitron',sans-serif;font-size:11px;font-weight:900;line-height:1;padding:0}
+.cc .ccinfo:active{transform:scale(.9)}
+/* ══════════════════════════════════════════════════════════════
+   ── ピックアップえらび（★ 2026-08-10 作り直し）──
+   ・<b>絵を押した時点で選ぶ</b>。ただし押しまちがいで変わってしまわないよう、
+     <b>この画面の中で「◯◯にしますか？」と確かめてから</b>入れ替える
+     （別のダイアログを重ねると、どのキャラを選んでいたのか見えなくなるため）。
+   ・<b>✕ は右上に出しっぱなし</b>。下の「決定」「とじる」ボタンは廃止した
+     （選んだ時点で決まるので「決定」は要らない）。
+   ══════════════════════════════════════════════════════════════ */
+#resOv{position:fixed;inset:0;z-index:900;background:rgba(20,26,48,.72);backdrop-filter:blur(6px);
+  display:none;align-items:center;justify-content:center;padding:16px}
+#resOv.on{display:flex}
+#resCard{width:100%;max-width:600px;max-height:92vh;overflow-y:auto;background:linear-gradient(180deg,#fff,#f4f9ff);
+  border-radius:24px;padding:0 0 16px;position:relative;box-shadow:0 20px 60px rgba(20,26,48,.4)}
+/* 見出し＝上に貼りつき、✕ は常に押せる */
+.pshd{position:sticky;top:0;z-index:6;display:flex;align-items:center;gap:10px;padding:14px 14px 11px;
+  background:rgba(255,255,255,.96);backdrop-filter:blur(10px);border-bottom:1.5px solid var(--bdr);border-radius:24px 24px 0 0}
+.pshd b{flex:1;min-width:0;font-size:14px;font-weight:900}
+.pshd b small{display:block;font-size:10px;font-weight:800;color:var(--txt2);margin-top:1px}
+.psbody{padding:12px 14px 0}
+/* 選んだキャラの確認（一覧の上にその場で出る） */
+.psconf{display:flex;align-items:center;gap:11px;margin-bottom:11px;padding:11px;border-radius:16px;
+  border:2px solid rgba(255,206,90,.7);background:linear-gradient(120deg,rgba(255,210,87,.14),rgba(240,80,154,.08));
+  box-shadow:0 4px 18px rgba(230,170,40,.2)}
+.psconf img{width:58px;height:58px;border-radius:13px;object-fit:cover;flex:none;border:2px solid var(--gold2)}
+.psconf .pci{flex:1;min-width:0}
+.psconf .pcq{font-size:10.5px;font-weight:800;color:var(--txt2)}
+.psconf .pcn{font-size:15px;font-weight:900;margin:1px 0 2px}
+.psconf .pcr{font-size:10.5px;font-weight:800;color:var(--red)}
+.psconf .pcb{display:flex;gap:6px;flex:none;flex-direction:column}
+.psconf button{border:none;border-radius:11px;padding:9px 13px;font-family:inherit;font-size:12px;font-weight:900;cursor:pointer;white-space:nowrap}
+.psconf .yes{background:linear-gradient(135deg,var(--pur),var(--pink));color:#fff}
+.psconf .no{background:#eef3fb;color:var(--txt2)}
+.psnow{font-size:11px;font-weight:800;color:var(--txt2);margin-bottom:9px;line-height:1.7}
+.psnow b{color:var(--txt)}
+/* ── 結果 ── */
+.rhd{font-family:'Orbitron',sans-serif;font-size:15px;font-weight:900;text-align:center;margin-bottom:12px;
+  background:linear-gradient(135deg,var(--pur),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.rgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+@media(max-width:420px){.rgrid{grid-template-columns:repeat(5,1fr);gap:4px}
+}
+.rc{position:relative;border-radius:11px;overflow:hidden;background:#eef3fb;border:2px solid var(--bdr);
+  animation:rcIn .34s cubic-bezier(.2,.9,.3,1) both}
+@keyframes rcIn{from{opacity:0;transform:scale(.7) rotate(-6deg)}to{opacity:1;transform:none}}
+.rc.s5{border-color:#ffb84d;box-shadow:0 0 0 2px rgba(255,184,77,.35),0 4px 16px rgba(255,170,40,.45)}
+.rc.sure{border-color:#e0405e}
+.rc img{width:100%;aspect-ratio:1;object-fit:cover;display:block}
+.rc .rn{font-size:8.5px;font-weight:900;padding:3px 2px;text-align:center;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.rc .rst{display:block;font-size:7.5px;font-weight:800;color:var(--grn)}
+.rc .ritm{aspect-ratio:1;display:flex;align-items:center;justify-content:center;font-size:26px;background:linear-gradient(140deg,#fff,#e8f3ff)}
+.rc .rsure{position:absolute;left:0;right:0;top:0;font-size:7.5px;font-weight:900;text-align:center;background:#e0405e;color:#fff}
+.rbtns{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:14px}
+.rbtn{border:none;border-radius:13px;padding:12px;font-family:inherit;font-size:13px;font-weight:900;cursor:pointer;
+  background:linear-gradient(135deg,var(--pur),var(--pink));color:#fff}
+.rbtn.ghost{background:#eef3fb;color:var(--txt2)}
+/* ══════════════════════════════════════════════════════════════
+   ── 提供割合（★ 2026-08-10 作り直し）──
+   直したのは3点。
+   ① <b>✕ を右上に常に出す</b>（見出しを sticky にしたので、下までスクロールしても消えない）。
+      いちばん下の「とじる」ボタンは廃止＝長い表を最後まで送らないと閉じられない状態をやめた。
+   ② <b>確率がキャラ名よりずっと右にあった</b>のを直した。
+      原因は「表を width:100% にして、確率の列だけ text-align:right」だったこと。
+      名前の列がめいっぱい伸びるので、確率だけが画面の右端まで追い出されていた。
+      いまは<b>名前のすぐ右に置く</b>（名前は伸ばさず、確率は内容ぶんの幅で左寄せ）。
+   ③ 名前の<b>となりにキャラの絵</b>を出し、押すとそのキャラの詳細が開く。
+   ══════════════════════════════════════════════════════════════ */
+#rateOv{position:fixed;inset:0;z-index:930;background:rgba(20,26,48,.72);backdrop-filter:blur(6px);
+  display:none;align-items:center;justify-content:center;padding:16px}
+#rateOv.on{display:flex}
+#rateCard{width:100%;max-width:560px;max-height:86vh;overflow-y:auto;background:#fff;border-radius:22px;padding:0 0 14px;
+  position:relative;box-shadow:0 20px 60px rgba(20,26,48,.4)}
+/* 見出し＝スクロールしても上に残る。✕ はこの中にあるので常に押せる */
+.rthd{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:10px;padding:14px 14px 11px;
+  background:rgba(255,255,255,.96);backdrop-filter:blur(10px);border-bottom:1.5px solid var(--bdr);border-radius:22px 22px 0 0}
+.rthd b{flex:1;min-width:0;font-size:14px;font-weight:900}
+.rthd b small{display:block;font-size:10px;font-weight:800;color:var(--txt2);margin-top:1px}
+.rtx{flex:none;width:36px;height:36px;border-radius:50%;border:1.5px solid var(--bdr);background:var(--card2);
+  color:var(--txt);font-size:15px;font-weight:900;cursor:pointer;line-height:1}
+.rtx:active{transform:scale(.92)}
+.rtbody{padding:4px 14px 0}
+/* 見出し（★5 排出（合計）… など） */
+.rthead{display:flex;align-items:center;gap:10px;margin:12px 0 2px;padding:8px 10px;border-radius:11px;
+  background:var(--card2);border:1.5px solid var(--bdr);font-size:11.5px;font-weight:900;line-height:1.5}
+.rthead i{margin-left:auto;font-style:normal;font-family:'Orbitron',sans-serif;font-weight:900;white-space:nowrap}
+/* キャラ1行（絵つき・押すと詳細）
+   ★ 確率（.rtp）は<b>名前とおなじ行</b>に入れてある。表の列にすると、
+     下の説明文のほうが長いぶん確率が右へ押し出され、名前から遠く離れてしまうため。 */
+.rtrow{display:flex;align-items:center;gap:9px;padding:6px 4px;border-bottom:1px solid var(--bdr);cursor:pointer}
+.rtrow.item{cursor:default}
+.rtrow img{width:32px;height:32px;border-radius:8px;object-fit:cover;flex:none;border:1.5px solid var(--bdr)}
+.rtrow img.s5{border-color:rgba(255,184,77,.9)}
+.rtrow .rtic{width:32px;height:32px;flex:none;display:grid;place-items:center}
+.rtrow .rti{flex:1;min-width:0}
+.rtrow .rtl{display:flex;align-items:baseline;gap:9px}
+.rtrow .rtnm{font-size:11.5px;font-weight:900;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rtrow .rtp{flex:none;font-style:normal;font-family:'Orbitron',sans-serif;font-size:11.5px;font-weight:900;color:var(--pur)}
+.rtrow .rtsub{display:block;font-size:9.5px;font-weight:800;color:var(--txt2);margin-top:1px}
+.rtrow .rtar{flex:none;margin-left:auto;color:var(--txt2);font-size:15px;opacity:.55}
+.rtnote{font-size:10px;color:var(--txt2);font-weight:700;line-height:1.75;padding:7px 2px;border-bottom:1px solid var(--bdr)}
+.rtnote b{color:var(--txt)}
+.dlg{position:fixed;inset:0;z-index:990;background:rgba(20,26,48,.6);display:none;align-items:center;justify-content:center;padding:20px}
+.dlg.on{display:flex}
+.dlgc{background:#fff;border-radius:20px;padding:18px;max-width:420px;width:100%;text-align:center}
+.dlgc .dt{font-size:15px;font-weight:900;margin-bottom:8px}
+.dlgc .db{font-size:12px;font-weight:700;color:var(--txt2);line-height:1.9;margin-bottom:14px}
+.dlgc .dbt{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.dlgc button{border:none;border-radius:12px;padding:12px;font-family:inherit;font-size:13px;font-weight:900;cursor:pointer}
+.dlgc .ok{background:linear-gradient(135deg,var(--pur),var(--pink));color:#fff}
+.dlgc .ng{background:#eef3fb;color:var(--txt2)}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="gh">
+    <a class="back" href="index.html">←</a>
+    <h1>ガチャ<small>XEVARION GACHA</small></h1>
+    <div class="wal">
+      <span class="walc gem"><i class="icc ic-gem"></i><b id="walGem">0</b></span>
+      <span class="walc tkt">🎫<b id="walTkt">0</b></span>
+    </div>
+  </div>
+
+  <div class="body">
+    <button class="gpick" onclick="toggleMenu()">
+      <span class="gpi" id="gpIcon">🎰</span>
+      <span class="gpt"><b id="gpName">プレミアムセレクトガチャ</b><span id="gpSub">ピックアップを1体えらべる常設ガチャ</span></span>
+      <span class="gpa">▾</span>
+    </button>
+    <div id="gmenu"></div>
+
+    <div class="ghero" id="ghero"></div>
+    <div id="pkwrap"></div>
+    <div class="note" id="gnote"></div>
+    <button class="ratebtn" onclick="openRatesX()">📊 提供割合を見る（排出キャラクターの一覧）<span>›</span></button>
+    <!-- ★ 2026-08-10 ここにあった「排出キャラクター」のグリッド（#cgrid）は廃止しました。
+         同じ顔ぶれが提供割合の表にも並んでいて二度手間だったので、
+         <b>絵は提供割合の表のほうへ移し</b>、この画面には
+         ピックアップ（プレミアム）／フェス限定キャラだけを残しています。 -->
+  </div>
+</div>
+
+<div id="pullbar"></div>
+
+<div id="resOv"><div id="resCard"></div></div>
+<div id="detOv" onclick="if(event.target===this)closeDetX()"><div id="detCard"></div></div>
+<div id="rateOv" onclick="if(event.target===this)closeRatesX()"><div id="rateCard">
+  <div class="rthd"><b id="rateTtl">提供割合<small id="rateSub"></small></b>
+    <button class="rtx" onclick="closeRatesX()" aria-label="とじる" title="とじる">✕</button></div>
+  <div class="rtbody"><div id="rateTbl"></div></div>
+</div></div>
+<div class="dlg" id="dlg"><div class="dlgc" id="dlgc"></div></div>
+
+<!-- ★ 2026-08-10 ガチャ結果の演出。MagiBurst とまったく同じものを使う。
+     中身を動かすのは mb-core.js の revealGacha()、見た目は mb-gacha-reveal.css。
+     1枚ずつ公開・★4→★5 の昇格演出（RANK UP!!）・確定枠は最後、まで全部そのまま出る。 -->
+<div id="gres" onclick="gachaRevealTap()"><div class="gwrap"><div class="gball" id="gball"></div><div class="gcf" id="gcf"></div><div class="gcard" id="gcard"></div></div><div class="gcfring" id="gcfring"></div></div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     ★ ここから下が「MagiBurst のガチャをそのまま動かす」ための土台。
+       mb-core.js は MagiBurst の画面まわり（$ / DB / save / SFX …）が
+       あることを前提にしているので、<b>軽い実装をここで先に用意</b>してから読み込む。
+       規則そのものは1行も書かない＝MagiBurst と食いちがわない。
+     ══════════════════════════════════════════════════════════════ -->
+<!-- ★ 2026-08-10 土台は mb-boot.js に切り出しました（図鑑 characters.html と共通）。
+     $ / DB / save / SFX など、mb-core.js が前提にしている最小限が入っています。 -->
+<script src="mb-boot.js?v=1"></script>
+<!-- ★ MagiBurst のドメイン層（キャラ・アビリティ・技・ガチャの規則）。
+     MagiBurst と<b>同じファイル</b>を読むので、キャラを足せば両方に反映される。 -->
+<script src="MagiBurst/js/mb-core.js?v=9"></script>
+<!-- ★ 2026-08-10 キャラ詳細（性能画面）。図鑑（characters.html）と同じものを使う -->
+<script src="mb-char-detail.js?v=2"></script>
+<script src="gacha-ui.js?v=6"></script>
+</body>
+</html>

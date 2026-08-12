@@ -1,0 +1,120 @@
+{
+  "rules": {
+    ".read": false,
+    ".write": false,
+
+    "accounts": {
+      ".read": true,
+      ".write": true,
+      ".indexOn": ["nameLower"],
+
+      "$uid": {
+        ".validate": "newData.hasChildren(['name']) || newData.hasChild('pending')",
+
+        "name":       { ".validate": "newData.isString() && newData.val().length <= 20" },
+        "nameLower":  { ".validate": "newData.isString() && newData.val().length <= 20" },
+        "charFile":   { ".validate": "newData.isString()" },
+        "charId":     { ".validate": "newData.isString()" },
+        "gamePwHash": { ".validate": "newData.isString() && newData.val().length <= 80" },
+        "createdAt":  { ".validate": true },
+        "updatedAt":  { ".validate": true },
+        "lastLogin":  { ".validate": true },
+
+        "_comment_mbLend": "MagiBurst 助っ人（2026-08-05）。属性ごとに貸し出すキャラを公開する。フレンドが読んで1体だけ借りられる",
+        "mbLend": {
+          ".validate": "newData.hasChild('at')",
+          "at":   { ".validate": "newData.isNumber()" },
+          "name": { ".validate": "newData.isString() && newData.val().length <= 20" },
+          "els": {
+            "$el": {
+              "$i": {
+                "id":  { ".validate": "newData.isString() && newData.val().length <= 24" },
+                "lv":  { ".validate": "newData.isNumber() && newData.val() >= 1 && newData.val() <= 99" },
+                "awk": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 20" }
+              }
+            }
+          }
+        },
+
+        "pending": {
+          ".indexOn": ["ts"],
+          "$pushId": {
+            ".validate": "newData.hasChildren(['amount'])",
+            "amount": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 100000" },
+            "reason": { ".validate": "newData.isString() && newData.val().length <= 120" },
+            "ts":     { ".validate": true }
+          }
+        }
+      }
+    },
+
+    "system": {
+      ".read": true,
+      ".write": true,
+      "maintenance": {
+        "on":        { ".validate": "newData.isBoolean()" },
+        "type":      { ".validate": "newData.isString() && (newData.val() == 'emergency' || newData.val() == 'scheduled')" },
+        "reason":    { ".validate": "newData.isString() && newData.val().length <= 120" },
+        "message":   { ".validate": "newData.isString() && newData.val().length <= 300" },
+        "until":     { ".validate": "newData.isNumber() && newData.val() >= 0" },
+        "updatedAt": { ".validate": true }
+      }
+    },
+
+    "magiburst": {
+      ".read": true,
+      ".write": true,
+      ".indexOn": ["bestCar"],
+      "$uid": {
+        ".validate": "newData.hasChild('bestCar') || newData.hasChild('name')",
+        "name":      { ".validate": "newData.isString() && newData.val().length <= 20" },
+        "nameLower": { ".validate": "newData.isString() && newData.val().length <= 20" },
+        "charFile":  { ".validate": "newData.isString()" },
+        "runs":      { ".validate": "newData.isNumber() && newData.val() >= 0" },
+        "bestCar":   { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 9999" },
+        "lastCar":   { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 9999" },
+        "bestAt":    { ".validate": true },
+        "lastAt":    { ".validate": true }
+      }
+    },
+
+    "magijackpot": {
+      ".read": true,
+      ".write": true,
+      "jp": {
+        "pool": { ".validate": "newData.isNumber() && newData.val() >= 0" },
+        "seedDay": { ".validate": "newData.isString() && newData.val().length <= 10" }
+      },
+      "wins": {
+        ".indexOn": ["ts"],
+        "$pushId": {
+          ".validate": "newData.hasChildren(['amount'])",
+          "uid":    { ".validate": "newData.isString() && newData.val().length <= 64" },
+          "name":   { ".validate": "newData.isString() && newData.val().length <= 20" },
+          "amount": { ".validate": "newData.isNumber() && newData.val() >= 0" },
+          "ts":     { ".validate": true }
+        }
+      }
+    },
+
+    "magicraft": {
+      ".read": true,
+      ".write": true,
+      ".indexOn": ["bestTime", "fewestDeaths"],
+      "$uid": {
+        ".validate": "newData.hasChild('bestTime') || newData.hasChild('name')",
+        "name":            { ".validate": "newData.isString() && newData.val().length <= 20" },
+        "nameLower":       { ".validate": "newData.isString() && newData.val().length <= 20" },
+        "charFile":        { ".validate": "newData.isString()" },
+        "clears":          { ".validate": "newData.isNumber() && newData.val() >= 0" },
+        "bestTime":        { ".validate": "newData.isNumber() && newData.val() >= 0" },
+        "bestTimeDeaths":  { ".validate": "newData.isNumber() && newData.val() >= 0" },
+        "fewestDeaths":    { ".validate": "newData.isNumber() && newData.val() >= 0" },
+        "fewestDeathsTime":{ ".validate": "newData.isNumber() && newData.val() >= 0" },
+        "lastTime":        { ".validate": "newData.isNumber() && newData.val() >= 0" },
+        "lastDeaths":      { ".validate": "newData.isNumber() && newData.val() >= 0" },
+        "lastAt":          { ".validate": true }
+      }
+    }
+  }
+}

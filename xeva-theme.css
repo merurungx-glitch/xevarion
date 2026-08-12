@@ -1,0 +1,102 @@
+/* ============================================================
+   XEVARION — Shared Dark Theme (v1)
+   ダーク×ネオン先進デザインの共有トークン＋基盤レイヤー。
+   index.html / gacha.html / characters.html が先頭で読み込む。
+   2026 ダークUI指針: ダークファースト / アンビエントオーブ /
+   控えめなグラスモーフィズム / スクリム＋高コントラスト文字。
+   ============================================================ */
+
+:root {
+  /* ── ベース面（深ネイビー〜黒） ── */
+  --xv-bg:        #07080f;   /* 最背面 */
+  --xv-bg-2:      #0b0d1c;   /* セクション面 */
+  --xv-elev:      #12142b;   /* 持ち上がった面 */
+  --xv-elev-2:    #181a36;   /* モーダル等 */
+
+  /* ── ガラス面（半透明レイヤー） ── */
+  --xv-surface:   rgba(255,255,255,0.045);
+  --xv-surface-2: rgba(255,255,255,0.075);
+  --xv-surface-3: rgba(255,255,255,0.11);
+  --xv-scrim:     linear-gradient(180deg, rgba(10,12,28,0.0), rgba(6,7,16,0.55)); /* 文字可読性スクリム */
+
+  /* ── 境界 / 発光ボーダー ── */
+  --xv-border:      rgba(255,255,255,0.10);
+  --xv-border-soft: rgba(255,255,255,0.07);
+  --xv-border-glow: rgba(125,140,255,0.40);
+
+  /* ── テキスト（高コントラスト） ── */
+  --xv-txt:   #eef1ff;
+  --xv-dim:   rgba(228,232,255,0.72);
+  --xv-faint: rgba(220,225,255,0.50);
+
+  /* ── ネオン・アクセント ── */
+  --xv-cyan:   #2fe6df;
+  --xv-blue:   #6f9bff;
+  --xv-violet: #b388ff;
+  --xv-pink:   #ff7ab4;
+  --xv-gold:   #ffce5a;
+  --xv-green:  #37e0a0;
+  --xv-red:    #ff6b8a;
+
+  /* ── グラデーション（ダーク背景で映える明度） ── */
+  --xv-grad-main: linear-gradient(110deg, #2fe6df, #6f9bff 38%, #b388ff 68%, #ff7ab4);
+  --xv-grad-magi: linear-gradient(135deg, #6f9bff, #ff7ab4);
+  --xv-grad-meru: linear-gradient(135deg, #ffb15a, #2fe6df);
+  --xv-grad-ox:   linear-gradient(135deg, #4db4ff, #b388ff 55%, #ffc24d);
+  --xv-grad-gold: linear-gradient(135deg, #ffd86a, #f0a92e);
+
+  /* ── 影 / 発光 ── */
+  --xv-shadow-sm: 0 4px 16px rgba(0,0,0,0.40);
+  --xv-shadow-md: 0 18px 44px rgba(0,0,0,0.50);
+  --xv-shadow-lg: 0 30px 80px rgba(0,0,0,0.60);
+  --xv-glow-blue:   0 0 0 1px rgba(111,155,255,0.30), 0 10px 34px rgba(91,120,255,0.30);
+  --xv-glow-violet: 0 0 0 1px rgba(179,136,255,0.30), 0 10px 34px rgba(150,90,255,0.30);
+  --xv-glow-pink:   0 0 0 1px rgba(255,122,180,0.30), 0 10px 34px rgba(255,90,150,0.30);
+
+  --xv-ease: cubic-bezier(0.22, 0.7, 0.25, 1);
+}
+
+/* ── ベース背景（アンビエント・ネオンオーブ） ──
+   各ページの body 背景はこの値に合わせる。fixed で奥行きを固定。 */
+.xv-dark-bg,
+body {
+  background-color: var(--xv-bg);
+  background-image:
+    radial-gradient(58vw 52vw at 6% -8%,  rgba(111,155,255,0.20), transparent 60%),
+    radial-gradient(54vw 50vw at 104% 4%, rgba(179,136,255,0.18), transparent 60%),
+    radial-gradient(52vw 50vw at 16% 108%, rgba(255,122,180,0.14), transparent 60%),
+    radial-gradient(44vw 44vw at 98% 102%, rgba(47,230,223,0.12), transparent 62%);
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+}
+
+/* dotted grid overlay（淡いネオンのドット・最背面装飾） */
+.xv-grid-overlay {
+  content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background-image: radial-gradient(rgba(160,175,255,0.06) 1px, transparent 1px);
+  background-size: 28px 28px;
+  -webkit-mask-image: radial-gradient(ellipse 100% 80% at 50% 24%, #000 0%, transparent 80%);
+  mask-image: radial-gradient(ellipse 100% 80% at 50% 24%, #000 0%, transparent 80%);
+  opacity: 0.7;
+}
+
+/* ── 共通プリミティブ ── */
+.xv-glass {
+  background: var(--xv-surface);
+  border: 1px solid var(--xv-border);
+  border-radius: 18px;
+  backdrop-filter: blur(14px) saturate(1.1);
+  -webkit-backdrop-filter: blur(14px) saturate(1.1);
+  box-shadow: var(--xv-shadow-sm);
+}
+
+/* ダーク用スクロールバー */
+::-webkit-scrollbar { width: 9px; height: 9px; }
+::-webkit-scrollbar-track { background: #0a0c18; }
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(var(--xv-blue), var(--xv-violet));
+  border-radius: 5px; border: 2px solid #0a0c18;
+}
+::-webkit-scrollbar-thumb:hover { background: linear-gradient(var(--xv-violet), var(--xv-pink)); }
+
+::selection { background: rgba(179,136,255,0.40); color: #fff; }

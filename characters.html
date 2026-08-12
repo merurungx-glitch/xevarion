@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<script src="maintenance-gate.js?v=5"></script>
+<meta charset="UTF-8">
+<script>(function(){try{var a=JSON.parse(localStorage.getItem('xeva_account_v1'));if(!a||!a.setupDone)location.replace('index.html');}catch(e){}})();</script>
+<script type="module" src="xevarion-fb.js?v=20"></script>
+<script src="xeva-presence.js?v=1" defer></script>
+<script type="module" src="xeva-cloud.js?v=14"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>キャラクター図鑑 — XEVARION</title>
+<link rel="icon" href="Xevarion.png" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="xeva-theme.css?v=1">
+<!-- ★ 2026-08-10 キャラ詳細（性能画面）の見た目。ガチャ（gacha.html）と共通 -->
+<link rel="stylesheet" href="mb-char-detail.css?v=2">
+<script src="xeva.js?v=25"></script>
+<script src="xeva-loading.js?v=1" defer></script>
+<script src="magibattle-stats.js?v=6"></script>
+<script type="module" src="xeva-sync.js?v=8"></script>
+<style>
+:root{
+  --bg:#eaf4ff;--bg2:#ffffff;--card:#ffffff;--bdr:rgba(120,160,230,0.22);
+  --pur:#7b5cf0;--pur2:#a98bff;--pink:#ff7ab8;--gold:#e8a400;--gold2:#ffc93c;
+  --grn:#12a97a;--txt:#22345c;--txt2:#6f82ad;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans JP',sans-serif;background-color:var(--bg);
+  background-image:
+    radial-gradient(58vw 52vw at 6% -8%,rgba(142,214,255,0.55),transparent 62%),
+    radial-gradient(54vw 50vw at 104% 4%,rgba(201,182,255,0.5),transparent 62%),
+    radial-gradient(52vw 50vw at 16% 108%,rgba(255,183,221,0.45),transparent 62%);
+  background-attachment:fixed;background-repeat:no-repeat;color:var(--txt);min-height:100vh}
+a{color:inherit;text-decoration:none}
+
+/* header */
+.gh{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:10px;padding:13px 18px;
+  background:rgba(255,255,255,0.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--bdr)}
+.gh a.back{font-size:22px;color:var(--pur);padding:2px 8px;border-radius:8px;transition:background .2s}
+.gh a.back:hover{background:rgba(123,92,240,.1)}
+.gh h1{font-family:'Orbitron',sans-serif;font-size:16px;letter-spacing:1px;color:var(--pur);flex:1}
+.gh .gacha-link{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,var(--pur),var(--pink));color:#fff;font-size:12px;font-weight:700;padding:7px 14px;border-radius:100px;white-space:nowrap}
+
+/* stats bar */
+.stats-bar{display:flex;gap:14px;padding:16px 18px;flex-wrap:wrap}
+.stat-pill{background:#fff;border:1.5px solid var(--bdr);border-radius:100px;padding:8px 16px;font-size:12px;font-weight:700;display:flex;align-items:center;gap:7px;box-shadow:0 4px 14px rgba(90,130,210,.14)}
+.stat-pill b{font-family:'Orbitron',sans-serif;font-size:14px;color:var(--pur)}
+
+/* filter tabs */
+.filters{display:flex;gap:8px;padding:0 18px 16px;flex-wrap:wrap}
+.ftab{padding:8px 16px;border-radius:100px;border:1.5px solid var(--bdr);background:#fff;color:var(--txt2);font-size:12px;font-weight:800;cursor:pointer;transition:all .2s;box-shadow:0 3px 10px rgba(90,130,210,.12)}
+.ftab.on{background:linear-gradient(135deg,var(--pur),var(--pur2));border-color:transparent;color:#fff;box-shadow:0 4px 14px rgba(124,58,237,.3)}
+
+/* grid */
+/* ★ 下は固定100pxではなくホームバーぶん＋余白に。iPhoneで空の帯ができていた。 */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:14px;padding:0 18px calc(env(safe-area-inset-bottom,0px) + 28px)}
+.ccard{background:var(--card);border-radius:20px;overflow:hidden;box-shadow:0 6px 20px rgba(90,130,210,.18);border:2px solid transparent;transition:transform .2s,box-shadow .2s,border-color .2s;cursor:pointer}
+.ccard:hover{transform:translateY(-4px);box-shadow:0 12px 30px rgba(90,130,210,.28)}
+.ccard.ssr{border-color:#f0c040}
+.ccard.sr{border-color:#c0c0ff}
+.ccard.locked{border-color:rgba(120,160,230,.3) !important;filter:grayscale(1);opacity:.5}
+.c-img-wrap{position:relative;padding-top:100%;background:linear-gradient(135deg,#e7f1ff,#f6ecff)}
+/* 限界突破MAXキャラ：金色オーラ＋シャイン */
+.ccard.mx .c-img-wrap{animation:mxGlow 2.2s ease-in-out infinite}
+@keyframes mxGlow{0%,100%{box-shadow:0 0 0 2px rgba(240,192,64,.5),0 0 12px rgba(240,192,64,.4)}50%{box-shadow:0 0 0 3px rgba(255,215,90,.85),0 0 24px rgba(255,200,60,.75)}}
+.ccard.mx .c-img-wrap::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:3;
+  background:linear-gradient(120deg,transparent 32%,rgba(255,240,180,.30) 47%,rgba(255,255,255,.55) 50%,rgba(255,240,180,.30) 53%,transparent 68%);
+  background-size:240% 240%;animation:mxShine 2.8s linear infinite}
+@keyframes mxShine{0%{background-position:130% 0}100%{background-position:-130% 0}}
+.ccard.mx .c-dupe{background:linear-gradient(135deg,#ffd257,#ff9d00);color:#5b2f00;box-shadow:0 0 8px rgba(255,180,40,.8)}
+.c-img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.c-rarity{position:absolute;top:8px;left:8px;font-size:9px;font-weight:700;padding:3px 8px;border-radius:100px;letter-spacing:.05em}
+.ssr .c-rarity{background:#f0c040;color:#000}
+.sr .c-rarity{background:#8fb4ff;color:#fff}
+.c-owned{position:absolute;top:8px;right:8px;font-size:16px}
+.c-dupe{position:absolute;top:8px;right:8px;font-size:9px;font-weight:900;letter-spacing:.02em;padding:2px 7px;border-radius:100px;color:#0e2a20;background:linear-gradient(135deg,#7cf0d0,#37e0a0);box-shadow:0 2px 8px rgba(55,224,160,.4)}
+.c-locked-ico{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;font-size:32px}
+.ov-dupe-row{display:flex;gap:6px;justify-content:center;margin:0 0 14px}
+.ov-pip{width:30px;height:30px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:900;background:#f2f7ff;border:1.5px solid var(--bdr);color:var(--txt2)}
+.ov-pip.on{background:linear-gradient(135deg,#2fd6a0,#7cf0d0);border-color:#2fd6a0;color:#0b4c38;box-shadow:0 3px 10px rgba(55,224,160,.35)}
+.c-info{padding:10px 12px 12px}
+.c-name{font-size:13px;font-weight:700;margin-bottom:3px}
+.c-season{font-size:10px;color:var(--txt2)}
+.c-set-btn{margin-top:7px;width:100%;padding:6px;border:1.5px solid var(--pur);border-radius:8px;background:transparent;color:var(--pur);font-size:11px;font-weight:700;cursor:pointer;font-family:'Noto Sans JP',sans-serif;transition:all .2s}
+.c-set-btn:hover{background:var(--pur);color:#fff}
+.c-set-btn.current{background:linear-gradient(135deg,var(--pur),var(--pink));border-color:transparent;color:#fff}
+
+/* detail overlay */
+.ov{position:fixed;inset:0;z-index:200;background:rgba(40,70,130,.36);backdrop-filter:blur(5px);display:flex;align-items:flex-start;justify-content:center;padding:calc(env(safe-area-inset-top,0px) + 24px) 24px calc(env(safe-area-inset-bottom,0px) + 24px);animation:fadeIn .2s;overflow-y:auto;-webkit-overflow-scrolling:touch}
+.ov .ov-card{margin:auto}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.ov-card{background:linear-gradient(180deg,#ffffff,#f5faff);border:1.5px solid rgba(255,255,255,.95);border-radius:26px;max-width:380px;width:100%;box-shadow:0 24px 60px rgba(60,100,180,.3);
+  /* iPhoneで下まで見られるようカード内スクロール */
+  max-height:82vh;max-height:calc(100dvh - 56px);overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+.ov-img{width:100%;aspect-ratio:1;object-fit:cover;background:linear-gradient(135deg,#e7f1ff,#f6ecff)}
+.ov-body{padding:20px}
+.ov-rar{font-family:'Orbitron',sans-serif;font-size:13px;margin-bottom:4px}
+.ov-name{font-size:22px;font-weight:700;margin-bottom:4px}
+.ov-sub{font-size:12px;color:var(--txt2);margin-bottom:14px}
+.ov-status{display:flex;align-items:center;gap:8px;padding:10px 14px;border-radius:12px;margin-bottom:14px;font-size:13px;font-weight:700}
+.ov-status.owned{background:rgba(18,169,122,.12);color:#12a97a}
+.ov-status.locked{background:#f2f7ff;color:var(--txt2)}
+.ov-btns{display:flex;gap:9px}
+.ov-btn{flex:1;padding:11px;border-radius:12px;font-size:13px;font-weight:700;cursor:pointer;font-family:'Noto Sans JP',sans-serif;border:none;transition:all .2s}
+.ov-btn.pri{background:linear-gradient(135deg,var(--pur),var(--pink));color:#fff}
+.ov-btn.sec{background:rgba(123,92,240,0.12);color:var(--pur)}
+
+/* toast */
+.toast{position:fixed;bottom:calc(env(safe-area-inset-bottom,0px) + 24px);left:50%;transform:translateX(-50%) translateY(10px);background:#fff;color:#22345c;font-weight:800;padding:12px 20px;border-radius:100px;font-size:13px;pointer-events:none;opacity:0;transition:all .3s;z-index:300;white-space:nowrap;box-shadow:0 12px 34px rgba(90,130,210,.3);border:1.5px solid rgba(120,160,230,.28)}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+@media(max-width:480px){
+  .grid{grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;padding:0 12px calc(env(safe-area-inset-bottom,0px) + 24px)}
+  .stats-bar{padding:12px 12px;gap:8px}
+  .filters{padding:0 12px 12px}
+}
+
+/* ══ コミュニティ／会社概要と同じトーンにそろえる ══ */
+.gh{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:10px;
+  padding:calc(env(safe-area-inset-top,0px) + 12px) 14px 12px;
+  background:rgba(255,255,255,.82);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border-bottom:1.5px solid rgba(120,160,230,.2)}
+.gh a.back{width:38px;height:38px;flex-shrink:0;border-radius:13px;border:1.5px solid rgba(120,160,230,.28);
+  background:#fff;color:#4b8bff;display:flex;align-items:center;justify-content:center;cursor:pointer;
+  font-size:0;padding:0;box-shadow:0 4px 12px rgba(90,130,210,.16)}
+.gh a.back::before{content:"";width:11px;height:11px;border-left:2.4px solid currentColor;
+  border-bottom:2.4px solid currentColor;transform:rotate(45deg);margin-left:4px;border-radius:1px}
+.gh a.back:hover{background:#f2f8ff}
+.gh h1{font-family:'Noto Sans JP',sans-serif;font-size:16px;font-weight:900;letter-spacing:.02em;
+  color:#22345c;flex:1;line-height:1.25}
+.gh h1 small{display:block;font-family:'Orbitron',sans-serif;font-size:9px;letter-spacing:.16em;
+  color:#4b8bff;font-weight:700}
+.gh .gacha-link,.gh .wallet{display:inline-flex;align-items:center;gap:7px;flex-shrink:0;
+  border-radius:99px;padding:9px 14px;font-size:12px;font-weight:900;white-space:nowrap}
+.gh .gacha-link{background:linear-gradient(135deg,#4b8bff,#9b7bff);color:#fff;
+  box-shadow:0 6px 18px rgba(100,130,255,.4)}
+.gh .wallet{background:linear-gradient(120deg,#fff8e6,#fffdf7);border:1.5px solid rgba(255,201,60,.55);
+  color:#c07a00;box-shadow:0 4px 14px rgba(90,130,210,.14)}
+.gh .wallet img{width:20px;height:20px}
+.gh .wallet b{font-family:'Orbitron',sans-serif;font-size:14px}
+</style>
+</head>
+<body>
+<div class="gh">
+  <a class="back" href="index.html">←</a>
+  <h1>キャラクター図鑑<small>XEVARION CHARACTERS</small></h1>
+  <a class="gacha-link" href="gacha.html">🎰 ガチャ</a>
+</div>
+
+<div class="stats-bar" id="statsBar"></div>
+
+<div class="filters">
+  <button class="ftab on" onclick="setFilter('all',this)">すべて</button>
+  <button class="ftab" onclick="setFilter('owned',this)">所持</button>
+  <button class="ftab" onclick="setFilter('ssr',this)">⭐⭐⭐ SSR</button>
+  <button class="ftab" onclick="setFilter('sr',this)">⭐⭐ SR</button>
+  <!-- ★ 2026-08-11 A／Bシリーズという区分は無くなったので、その絞り込みは廃止 -->
+  <button class="ftab" onclick="setFilter('other',this)">その他</button>
+  <button class="ftab" onclick="setFilter('mb',this)">⚔ MagiBurst</button>
+</div>
+
+<div class="grid" id="grid"></div>
+<!-- ★ 2026-08-10 MagiBurst キャラの詳細（ガチャとまったく同じ性能画面） -->
+<div id="detOv" onclick="if(event.target===this)closeDetX()"><div id="detCard"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+/* アイコン表示は 256px の chars_s/ を使う（chars/ の原寸は1枚2.5MB） */
+/* ★ 2026-08-10 キャラ画像は img/ に集約（WebP統一）。file は "../img/Xxx.webp" なので
+   "chars_s/" を前に付けても "../" で打ち消されて img/ に解決される。小さい表示は t_ 付き。 */
+function charThumb(f){
+  var v = String(f||"");
+  if(/^\.\.\//.test(v)) return "chars_s/" + v.replace(/\/([^/]+)$/, "/t_$1");
+  return "chars_s/"+v.replace(/\.(png|jpe?g)$/i,"")+".jpg";
+}
+/* chars_s/ に無い画像は chars/ 原寸へ自動フォールバック */
+document.addEventListener("error", function(e){
+  var t = e.target;
+  if(!t || t.tagName !== "IMG") return;
+  var src = t.getAttribute("src") || "";
+  if(src.indexOf("chars_s/") !== 0 || t.dataset.fb) return;
+  if(src.indexOf("chars_s/../") === 0) return;   // img/ に集約した絵は差し戻し先が無い
+  t.dataset.fb = "1";
+  t.src = "chars/" + src.slice(8).replace(/\.jpg$/i, ".png");
+}, true);
+
+"use strict";
+var GKEY = "xeva_gacha_v1";
+var MAX_DUPE = 4;
+var G = { owned:{}, dupes:{}, points:{s1:0,s2:0,s3:0} };
+function gload(){
+  try{ var r=localStorage.getItem(GKEY); if(r) G=JSON.parse(r); }catch(e){}
+  if(!G.owned) G.owned={}; if(!G.dupes) G.dupes={};
+}
+function dupeOf(id){ return Math.max(0, Math.min(MAX_DUPE, (G.dupes && G.dupes[id]) || 0)); }
+
+/* ★ 2026-08-10 mb-core.js の const CHARS（MagiBurst のキャラ表）と名前がぶつかるので
+   XEVAガチャ側は XCHARS に改名した。同じ名前のままだと
+   「Identifier 'CHARS' has already been declared」でこの画面の JS が丸ごと止まる。 */
+var XCHARS = window.XEVA ? window.XEVA.CHARS : [];
+var curFilter = "all";
+
+function getSeasonLabel(c){
+  if(c && c.reward) return "MagiLex 報酬";
+  if(c && c.cdk) return "CDK";
+  var s = (c && typeof c==="object") ? c.season : c;
+  if(s===0) return "スターター";
+  /* ★ 2026-08-11 A／Bシリーズの区分は廃止。シーズンだけを出す。 */
+  return "シーズン"+s;
+}
+
+function getAccCharId(){
+  if(!window.XEVA) return null;
+  var a = window.XEVA.account.get();
+  return a ? a.charId : null;
+}
+
+function setAccChar(charId){
+  if(!window.XEVA) return;
+  var a = window.XEVA.account.get() || {};
+  var ch = XCHARS.find(function(c){return c.id===charId;});
+  if(!ch) return;
+  a.charId = charId;
+  a.charFile = ch.file;
+  window.XEVA.account.save(a);
+  if(window.XEVASync) window.XEVASync.syncProfile(a);   // MagiLink へアイコン同期
+  renderGrid();
+  toast("✨ アイコンを「"+ch.name+"」に変更しました！");
+}
+
+function toast(msg){
+  var t=document.getElementById("toast");
+  t.textContent=msg; t.classList.add("show");
+  clearTimeout(t._t); t._t=setTimeout(function(){ t.classList.remove("show"); },2200);
+}
+
+function setFilter(f, el){
+  curFilter = f;
+  document.querySelectorAll(".ftab").forEach(function(b){ b.classList.remove("on"); });
+  el.classList.add("on");
+  renderGrid();
+}
+
+function renderStats(){
+  var total = XCHARS.length;
+  var owned = XCHARS.filter(function(c){ return c.id==="hina"||G.owned[c.id]; }).length;
+  var ssr = XCHARS.filter(function(c){ return c.rarity==="SSR"&&(c.id==="hina"||G.owned[c.id]); }).length;
+  var ssrTotal = XCHARS.filter(function(c){ return c.rarity==="SSR"; }).length;
+  document.getElementById("statsBar").innerHTML =
+    '<div class="stat-pill">コンプリート <b>'+owned+'/'+total+'</b></div>'+
+    '<div class="stat-pill">SSR <b>'+ssr+'/'+ssrTotal+'</b></div>'+
+    '<div class="stat-pill">SR <b>'+(owned-ssr)+'/'+(total-ssrTotal)+'</b></div>';
+}
+
+function renderGrid(){
+  var accCharId = getAccCharId();
+  var list = XCHARS.filter(function(c){
+    var isOwned = c.id==="hina" || !!G.owned[c.id];
+    if(curFilter==="owned") return isOwned;
+    if(curFilter==="ssr") return c.rarity==="SSR";
+    if(curFilter==="sr") return c.rarity==="SR";
+    /* ★ 2026-08-11 A／Bシリーズの絞り込みは廃止（区分そのものが無くなったため）。
+       古い設定が残っていても「すべて」と同じ扱いになるよう、ここでは何も判定しない。 */
+    if(curFilter==="other") return c.season===0;
+    return true;
+  });
+
+  var g = document.getElementById("grid");
+  g.innerHTML = list.map(function(c){
+    var isOwned = c.id==="hina" || !!G.owned[c.id];
+    var isCurrent = c.id===accCharId;
+    var rarClass = c.rarity==="SSR"?"ssr":"sr";
+    var lockedClass = !isOwned?" locked":"";
+    var maxed = isOwned && dupeOf(c.id)>=MAX_DUPE;
+    return '<div class="ccard '+rarClass+lockedClass+(maxed&&c.rarity==="SSR"?" mx":"")+'" onclick="openDetail(\''+c.id+'\')">'+
+      '<div class="c-img-wrap">'+
+        '<img class="c-img" src="'+charThumb(c.file)+'" alt="'+c.name+'" loading="lazy">'+
+        (!isOwned?'<div class="c-locked-ico">🔒</div>':'')+
+        '<div class="c-rarity">'+c.rarity+'</div>'+
+        (isOwned?(dupeOf(c.id)>0?'<div class="c-dupe">'+(maxed?'★限界突破MAX':'+'+dupeOf(c.id)+'限界突破')+'</div>':'<div class="c-owned">✓</div>'):'')+
+      '</div>'+
+      '<div class="c-info">'+
+        '<div class="c-name">'+(isOwned?c.name:"???")+'</div>'+
+        '<div class="c-season">'+getSeasonLabel(c)+'</div>'+
+        (isOwned?'<button class="c-set-btn'+(isCurrent?" current":"")+'" onclick="event.stopPropagation();setAccChar(\''+c.id+'\')">'+(isCurrent?"✓ 設定中":"アイコンに設定")+'</button>':'')+
+      '</div>'+
+    '</div>';
+  }).join("");
+}
+
+function openDetail(id){
+  var c = XCHARS.find(function(x){return x.id===id;});
+  if(!c) return;
+  var isOwned = c.id==="hina" || !!G.owned[c.id];
+  var accCharId = getAccCharId();
+  var isCurrent = c.id===accCharId;
+  var rarColor = c.rarity==="SSR"?"#c8960c":"#6060d0";
+  var rarStars = c.rarity==="SSR"?"⭐⭐⭐":"⭐⭐";
+  var ov=document.createElement("div"); ov.className="ov";
+  ov.onclick=function(e){ if(e.target===ov) ov.remove(); };
+  ov.innerHTML=
+    '<div class="ov-card">'+
+      '<img class="ov-img" src="chars/'+c.file+'" alt="'+c.name+'">'+
+      '<div class="ov-body">'+
+        '<div class="ov-rar" style="color:'+rarColor+'">'+rarStars+' '+c.rarity+'</div>'+
+        '<div class="ov-name">'+(isOwned?c.name:"???")+(isOwned&&dupeOf(c.id)>0?' <span style="font-size:14px;color:#37e0a0;font-weight:700">+'+dupeOf(c.id)+'限界突破</span>':'')+'</div>'+
+        '<div class="ov-sub">'+getSeasonLabel(c)+'</div>'+
+        '<div class="ov-status '+(isOwned?"owned":"locked")+'">'+(isOwned?"✓ 所持済み":("🔒 未所持（"+(c.reward?"MagiLexの報酬で入手":(c.cdk?"CDKで入手":"ガチャで入手"))+"）"))+'</div>'+
+        (isOwned?('<div style="font-size:11px;color:var(--txt2);text-align:center;margin-bottom:6px">限界突破ゲージ（重複で最大4限界突破）</div><div class="ov-dupe-row">'+
+          [1,2,3,4].map(function(i){return '<div class="ov-pip'+(dupeOf(c.id)>=i?" on":"")+'">'+i+'</div>';}).join("")+'</div>'):'')+
+        (window.MBStats?window.MBStats.statsHTML(c):'')+
+        '<div class="ov-btns">'+
+          (isOwned?'<button class="ov-btn pri'+(isCurrent?" c-set-btn current":"")+'" onclick="setAccChar(\''+c.id+'\');this.closest(\'.ov\').remove()">'+(isCurrent?"✓ アイコン設定中":"アイコンに設定")+'</button>':(c.reward?'<a class="ov-btn pri" href="MagiLex/MagiLex.html">📚 MagiLexへ</a>':(c.cdk?'<button class="ov-btn pri" style="opacity:.7;cursor:default">🔑 CDK限定</button>':'<a class="ov-btn pri" href="gacha.html">🎰 ガチャへ</a>')))+
+          '<button class="ov-btn sec" onclick="this.closest(\'.ov\').remove()">閉じる</button>'+
+        '</div>'+
+      '</div>'+
+    '</div>';
+  document.body.appendChild(ov);
+}
+
+gload();
+renderStats();
+renderGrid();
+</script>
+
+<!-- ══════════════════════════════════════════════════════════════
+     ★ 2026-08-10 MagiBurst のキャラも図鑑に出す
+       ・キャラ表そのものは MagiBurst/js/mb-core.js（＝ゲーム本体と同じファイル）。
+         ここに名前や性能を写さないので、キャラを足せば自動でこの図鑑にも並ぶ。
+       ・詳細は mb-char-detail.js の openDetX ＝ <b>ガチャの詳細とまったく同じもの</b>。
+       ・並び順は No.（番号）順。
+     ══════════════════════════════════════════════════════════════ -->
+<script src="mb-boot.js?v=1"></script>
+<script src="MagiBurst/js/mb-core.js?v=9"></script>
+<script src="mb-char-detail.js?v=2"></script>
+<script>
+"use strict";
+/* MagiBurst のキャラを、この図鑑のカードの形で描く */
+function mbCardHTML(id) {
+  var c = CHARS[id];
+  var own = !!DB.chars[id];
+  var awk = own ? (DB.chars[id].awk || 0) : 0;
+  var sec = charSecret(id);                       // 登場前のキャラは伏せる
+  var s5 = isStar5(id);
+  var maxed = awk >= MAX_AWK;
+  return '<div class="ccard ' + (s5 ? "ssr" : "sr") + (own ? "" : " locked") + (maxed ? " mx" : "") + '"'
+    + ' onclick="' + (sec ? "" : "openDetX('" + id + "')") + '">'
+    + '<div class="c-img-wrap">'
+    + '<img class="c-img" src="' + c.th + '" alt="' + (sec ? "???" : c.nm) + '" loading="lazy"'
+    + (sec ? ' style="filter:brightness(.12) saturate(.15)"' : "") + '>'
+    + (sec ? '<div class="c-locked-ico">🔒</div>' : "")
+    + '<div class="c-rarity">' + (s5 ? "★5" : "★4") + '</div>'
+    + (own ? (awk > 0
+        ? '<div class="c-dupe">' + (maxed ? "★限界突破MAX" : "+" + awk + "限界突破") + "</div>"
+        : '<div class="c-owned">✓</div>') : "")
+    + '</div>'
+    + '<div class="c-info">'
+    + '<div class="c-name">' + (sec ? "???" : c.nm) + '</div>'
+    + '<div class="c-season">' + charNoOf(id) + '・MagiBurst</div>'
+    + '</div></div>';
+}
+/* MagiBurst 側のキャラを、いまの絞り込みに合わせて返す（No. 順） */
+function mbFilteredIds() {
+  if (typeof CHAR_IDS === "undefined") return [];
+  return CHAR_IDS.filter(function (id) {
+    var own = !!DB.chars[id];
+    if (curFilter === "owned") return own;
+    if (curFilter === "ssr") return isStar5(id);      // ★5 を SSR 相当として扱う
+    if (curFilter === "sr") return !isStar5(id);      // ★4 を SR 相当として扱う
+    if (curFilter === "mb") return true;
+    /* 「その他」は XEVAガチャの区分なので、MagiBurst 側は出さない
+       （★ 2026-08-11 A／Bシリーズの絞り込みは廃止した） */
+    if (curFilter === "other") return false;
+    return true;                                       // すべて
+  });
+}
+/* もとの renderGrid / renderStats に、MagiBurst のぶんを足す（元の中身は触らない） */
+var _origRenderGrid = renderGrid;
+renderGrid = function () {
+  _origRenderGrid();
+  var g = document.getElementById("grid");
+  /* ★「⚔ MagiBurst」だけを見たいときは、先に描かれた XEVAガチャ側を空にする。
+     もとの renderGrid は "mb" という条件を知らないので、そのままだと全部出てしまう。 */
+  if (curFilter === "mb" && g) g.innerHTML = "";
+  var ids = mbFilteredIds();
+  if (!ids.length || !g) return;
+  var head = '<div style="grid-column:1/-1;margin:10px 2px 0;font-size:13px;font-weight:900;color:var(--pur)">'
+    + '⚔ MagiBurst <small style="font-weight:800;color:var(--txt2);margin-left:6px">'
+    + ids.length + '体・カードを押すと性能が見られます</small></div>';
+  g.insertAdjacentHTML("beforeend", head + ids.map(mbCardHTML).join(""));
+};
+var _origRenderStats = renderStats;
+renderStats = function () {
+  _origRenderStats();
+  if (typeof CHAR_IDS === "undefined") return;
+  var own = CHAR_IDS.filter(function (id) { return !!DB.chars[id]; }).length;
+  var bar = document.getElementById("statsBar");
+  if (bar) bar.insertAdjacentHTML("beforeend",
+    '<div class="stat-pill">⚔ MagiBurst <b>' + own + '/' + CHAR_IDS.length + '</b></div>');
+};
+/* 絞り込みを押したときも MagiBurst のぶんを描き直す（setFilter は renderGrid を呼ぶ） */
+renderStats();
+renderGrid();
+</script>
+</body>
+</html>

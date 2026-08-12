@@ -1,0 +1,101 @@
+/* ============================================================
+   キャラクター詳細（性能画面）の見た目 — ガチャと図鑑で共通
+
+   ★ 中身を組み立てるのは mb-char-detail.js の openDetX()。
+   ★ ガチャ（gacha.html）と図鑑（characters.html）の<b>両方</b>がこれを読みます。
+     以前はガチャ側の <style> に直接書いてあったので、図鑑に同じ詳細を出そうとすると
+     写しが2つになってしまう状態でした。1か所にまとめてあります。
+   ============================================================ */
+/* ── 詳細（キャラ性能）── */
+#detOv{position:fixed;inset:0;z-index:920;background:rgba(20,26,48,.72);backdrop-filter:blur(6px);
+  display:none;align-items:flex-end;justify-content:center}
+#detOv.on{display:flex}
+#detCard{width:100%;max-width:640px;max-height:94vh;overflow-y:auto;background:linear-gradient(180deg,#fff,#f4f9ff);
+  border-radius:24px 24px 0 0;padding:0 0 24px;box-shadow:0 -12px 44px rgba(20,26,48,.4)}
+.dhero{position:relative}
+.dhero img{width:100%;display:block}
+/* ★ 2026-08-11 閉じる✕は<b>常に右上</b>。
+   #detCard がスクロールする箱なので、その直下に float:right ＋ position:sticky で置く。
+   ・float なので後ろの中身（キャラ絵）は右上に回り込まず、これまでどおり全幅で出る。
+   ・margin-bottom を高さぶんマイナスにして、ボタンのぶん下がらないようにする。
+   ・スクロールしても top:10px の位置に貼りついたまま残る。 */
+#detCard>.dx{position:sticky;top:10px;float:right;z-index:6;
+  width:36px;height:36px;margin:10px 10px -46px 0;border-radius:50%;border:none;cursor:pointer;
+  background:rgba(255,255,255,.94);color:#2a2540;font-size:16px;font-weight:900;
+  box-shadow:0 3px 12px rgba(20,26,48,.28)}
+.dhero .dnm{position:absolute;left:14px;bottom:12px;color:#fff;text-shadow:0 2px 10px rgba(0,0,0,.7)}
+.dhero .dnm b{display:block;font-size:20px;font-weight:900}
+.dhero .dnm span{font-size:11px;font-weight:800;opacity:.92}
+.dbody{padding:14px}
+.dsec{background:var(--card);border:1.5px solid var(--bdr);border-radius:16px;padding:12px;margin-bottom:10px}
+.dsec>.t{font-size:11px;font-weight:900;color:var(--pur);letter-spacing:.06em;margin-bottom:8px;
+  display:flex;align-items:center;justify-content:space-between}
+.dsec>.t .turn{font-size:10px;background:linear-gradient(135deg,var(--pur),var(--pink));color:#fff;border-radius:99px;padding:2px 9px}
+.dsk{font-size:13px;font-weight:900;margin-bottom:3px}
+.dpow{font-size:11px;font-weight:800;color:var(--gold);line-height:1.7;margin-bottom:4px}
+.ddesc{font-size:11px;font-weight:600;color:var(--txt2);line-height:1.85}
+.dabs{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.dab{font-size:10px;font-weight:900;color:#4a3f7a;background:rgba(142,107,255,.12);border:1px solid rgba(142,107,255,.3);
+  border-radius:7px;padding:4px 7px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.dab.cnx.on{color:#8a5a00;background:linear-gradient(135deg,rgba(200,107,255,.18),rgba(240,192,64,.2));border-color:rgba(230,170,40,.6)}
+.dab.cnx.off{color:#8f9ab8;background:#f2f5fa;border-color:var(--bdr)}
+/* ★ クロスマーク。1em の SVG なので、この指定が無いと絵だけ巨大になる（MagiBurst と同じ CSS） */
+.cnxmk{display:inline-block;width:1em;height:1em;vertical-align:-.14em;margin-right:.28em;flex:none}
+.cnxmk svg{width:100%;height:100%;display:block}
+.cnxoff{font-style:normal;font-weight:900;font-size:.82em;margin-left:.4em;padding:0 .34em;border-radius:4px;
+  background:rgba(120,140,200,.18);color:#6f82ad;letter-spacing:.02em}
+.dstats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px}
+.dst{background:var(--card2);border:1.5px solid var(--bdr);border-radius:12px;padding:8px;text-align:center}
+.dst i{display:block;font-style:normal;font-size:9.5px;font-weight:800;color:var(--txt2)}
+.dst b{font-size:14px;font-weight:900;font-family:'Orbitron',sans-serif}
+.dchips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px}
+.dchip{font-size:10.5px;font-weight:900;border-radius:99px;padding:4px 10px;border:1.5px solid var(--bdr);background:var(--card)}
+/* MagiBattle 評価 */
+.mbb{border-color:rgba(46,139,255,.4);background:linear-gradient(135deg,rgba(46,139,255,.07),rgba(18,169,122,.05))}
+.mbb>.t{color:var(--blu)}
+.mbnone{font-size:11px;font-weight:700;color:var(--txt2);line-height:1.85}
+.mbnone b{color:var(--txt)}
+.rtrow.silh img{filter:brightness(.12) saturate(.15)}
+/* mb-core 側の HTML が使うクラス（評価バー） */
+.stbar{margin:3px 0}
+.stbar .l{display:flex;justify-content:space-between;font-size:10px;font-weight:800;color:var(--txt2)}
+.stbar .b{height:7px;border-radius:99px;background:rgba(120,160,230,.18);overflow:hidden;margin-top:2px}
+.stbar .b i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#8e6bff,#ff6f91)}
+.evtag{display:inline-block;font-size:10px;font-weight:900;border-radius:99px;padding:2px 8px;margin:2px 3px 2px 0;
+  background:rgba(123,92,240,.12);border:1px solid rgba(123,92,240,.3);color:#5a3fd0}
+/* ══ mb-core が返す評価HTML（総合力バー・適性クエスト）の見た目 ══
+   ★ MagiBurst 側と同じクラス名なので、あちらの CSS をこの画面の色に合わせて写してある。
+     ここが無いと、評価だけ素の巨大な文字で出てしまう。 */
+.pw-wrap{margin:2px 0 10px;padding:10px 11px;border-radius:14px;
+  background:linear-gradient(160deg,rgba(142,107,255,.10),rgba(56,166,255,.05));border:1px solid rgba(142,107,255,.2)}
+.pw-stars{display:flex;align-items:center;gap:2px;margin-bottom:7px}
+.pw-star{font-size:15px;color:rgba(150,130,200,.3);transform:scale(.6);opacity:0}
+.pw-star.on{color:#ffce3a;text-shadow:0 0 10px rgba(255,206,58,.6);animation:pwStar .5s cubic-bezier(.2,1.4,.4,1) both}
+@keyframes pwStar{0%{transform:scale(.3) rotate(-30deg);opacity:0}70%{transform:scale(1.3) rotate(8deg)}100%{transform:scale(1) rotate(0);opacity:1}}
+.pw-rank{margin-left:7px;font-family:'Orbitron',sans-serif;font-size:11.5px;font-weight:900;color:var(--pur)}
+.pw-grid{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px}
+.pw-row{display:grid;grid-template-rows:auto auto;gap:2px}
+.pw-row.wide{grid-column:1/-1}
+.pw-top{display:flex;align-items:baseline;justify-content:space-between;gap:6px}
+.pw-lbl{font-size:10px;font-weight:800;color:var(--txt2);white-space:nowrap}
+.pw-track{height:6px;border-radius:99px;background:rgba(120,140,200,.18);overflow:hidden}
+.pw-fill{display:block;height:100%;width:0;border-radius:99px;animation:pwFill 1.05s cubic-bezier(.2,.8,.25,1) both}
+@keyframes pwFill{from{width:0}to{width:var(--pw)}}
+.pw-num{font-family:'Orbitron',sans-serif;font-size:11px;font-weight:900;line-height:1}
+.evalwrap{margin:9px 0 2px;padding:9px 11px;border-radius:14px;border:1px solid var(--bdr);
+  background:var(--card2);display:grid;gap:7px}
+.evrow{display:flex;align-items:flex-start;gap:8px}
+.evrow.col{flex-direction:column;gap:5px}
+.evh{font-size:11px;font-weight:900;color:var(--txt)}
+.evql{width:100%;display:grid;gap:4px}
+.evqr{display:flex;flex-direction:column;align-items:flex-start;gap:1px;padding:5px 9px;border-radius:10px;
+  border:1px solid var(--bdr);background:#fff}
+.evqr.full{border-color:rgba(18,169,122,.45);background:rgba(18,169,122,.08)}
+.evqn{font-size:11px;font-weight:900;color:var(--txt);line-height:1.4}
+.evqn i{font-style:normal;margin-left:5px;font-size:9.5px;font-weight:900;color:var(--pur)}
+.evqw{font-size:9.5px;font-weight:800;color:var(--txt2);line-height:1.4}
+.evqr.full .evqw{color:var(--grn)}
+/* MagiBattle 側（magibattle-stats.js の statsHTML）が使うクラス */
+.mbs-sec{margin-top:8px}
+.mbs-h{font-size:11px;font-weight:900;color:var(--blu);margin:8px 0 4px}
+.mbs-row{font-size:10.5px;font-weight:700;color:var(--txt2);line-height:1.8}

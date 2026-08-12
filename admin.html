@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>XEVARION アカウント管理</title>
+<link rel="icon" href="Xevarion.png" type="image/png">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+<!-- キャラ画像パスの正規化（XEVA.canonCharFile）に使う。古いフォルダのまま保存された
+     charFile を現行パスへ直してからアイコンを表示するため。 -->
+<script src="xeva.js?v=24"></script>
+<script type="module" src="xevarion-fb.js?v=20"></script>
+<script type="module" src="xeva-sync.js?v=8"></script>
+<style>
+:root{
+  --bg:#0d1022; --bg2:#141a33; --panel:#1a2140; --panel2:#222b52;
+  --txt:#e8ecff; --dim:#98a2cf; --faint:#6b76a8;
+  --line:rgba(150,170,255,.16);
+  --accent:#6b8bff; --accent2:#9b6bff; --pink:#ff6ba8;
+  --grn:#33d69f; --red:#ff5d6c; --gold:#f5c04a;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans JP',system-ui,sans-serif;color:var(--txt);min-height:100vh;
+  background:radial-gradient(120% 60% at 12% -10%,rgba(107,139,255,.22),transparent 60%),
+    radial-gradient(110% 55% at 100% 0%,rgba(155,107,255,.18),transparent 55%),
+    linear-gradient(180deg,var(--bg),var(--bg2));background-attachment:fixed;padding-bottom:60px}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:760px;margin:0 auto;padding:0 16px}
+
+/* header */
+.gh{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:12px;padding:14px 16px;
+  background:rgba(13,16,34,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+.gh .back{font-size:22px;color:var(--accent);padding:2px 8px;border-radius:10px}
+.gh h1{font-family:'Orbitron',sans-serif;font-size:15px;letter-spacing:.5px;flex:1;
+  background:linear-gradient(120deg,var(--accent),var(--pink));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.gh .count{font-size:12px;color:var(--dim);font-weight:700}
+
+/* gate */
+#gate{max-width:420px;margin:14vh auto 0;padding:0 20px;text-align:center}
+#gate .lock{font-size:52px;margin-bottom:10px}
+#gate h2{font-family:'Orbitron',sans-serif;font-size:20px;margin-bottom:6px}
+#gate p{font-size:13px;color:var(--dim);line-height:1.7;margin-bottom:22px}
+.field{display:flex;gap:10px;margin-top:8px}
+input.code{flex:1;padding:14px 16px;border:1.5px solid var(--line);border-radius:14px;background:var(--panel);
+  color:var(--txt);font-size:16px;letter-spacing:.06em;outline:none;font-family:inherit}
+input.code:focus{border-color:var(--accent)}
+.btn{border:none;border-radius:14px;padding:14px 20px;font-weight:800;font-size:15px;cursor:pointer;font-family:inherit;
+  background:linear-gradient(120deg,var(--accent),var(--accent2));color:#fff}
+.btn:disabled{opacity:.5;cursor:default}
+.btn.sec{background:var(--panel2);color:var(--dim)}
+.btn.danger{background:linear-gradient(120deg,#ff5d6c,#ff7a45);color:#fff}
+.msg{min-height:20px;font-size:13px;font-weight:700;color:var(--red);margin-top:12px}
+
+/* toolbar */
+.tools{display:flex;gap:10px;align-items:center;margin:16px 0 12px}
+.search{flex:1;padding:12px 14px;border:1.5px solid var(--line);border-radius:12px;background:var(--panel);color:var(--txt);font-size:15px;outline:none;font-family:inherit}
+.search:focus{border-color:var(--accent)}
+.refresh{background:var(--panel2);border:1px solid var(--line);color:var(--accent);font-weight:700;font-size:13px;padding:11px 14px;border-radius:12px;cursor:pointer;font-family:inherit;white-space:nowrap}
+
+/* list */
+.list{display:flex;flex-direction:column;gap:8px}
+.row{display:flex;align-items:center;gap:12px;padding:12px 14px;background:var(--panel);border:1px solid var(--line);border-radius:14px}
+.row .av{width:44px;height:44px;border-radius:12px;object-fit:cover;background:var(--panel2);flex:none;display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff}
+.row .mid{flex:1;min-width:0}
+.row .nm{font-weight:800;font-size:1rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.row .sub{font-size:11px;color:var(--faint);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-family:'Orbitron',monospace}
+.row .login{font-size:11px;color:var(--dim);margin-top:3px;font-weight:700}
+.badges{display:flex;gap:5px;flex-wrap:wrap;margin-top:4px}
+.badge{font-size:10px;font-weight:800;padding:2px 8px;border-radius:100px;background:var(--panel2);color:var(--dim)}
+.badge.pw{background:rgba(51,214,159,.16);color:var(--grn)}
+.badge.nopw{background:rgba(255,93,108,.14);color:var(--red)}
+.badge.xv{background:rgba(245,192,74,.16);color:var(--gold)}
+.badge.pd{background:rgba(155,107,255,.18);color:#c3a6ff}
+.del{background:rgba(255,93,108,.14);border:1px solid rgba(255,93,108,.3);color:var(--red);font-weight:800;font-size:13px;
+  padding:9px 12px;border-radius:11px;cursor:pointer;font-family:inherit;flex:none}
+.del:hover{background:rgba(255,93,108,.24)}
+.empty,.loading{padding:40px 20px;text-align:center;color:var(--dim);font-size:.9rem;line-height:1.7}
+.spin{display:inline-block;width:26px;height:26px;border:3px solid rgba(107,139,255,.25);border-top-color:var(--accent);border-radius:50%;animation:sp 1s linear infinite;margin-bottom:8px}
+@keyframes sp{to{transform:rotate(360deg)}}
+.note{font-size:11px;color:var(--faint);line-height:1.7;margin-top:18px;text-align:center}
+
+/* maintenance panel */
+.mnt{margin:16px 0 4px;padding:16px 16px 14px;background:var(--panel);border:1px solid var(--line);border-radius:16px}
+.mnt-head{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+.mnt-title{font-weight:900;font-size:1rem;flex:1}
+.mnt-state{font-size:11px;font-weight:900;padding:4px 11px;border-radius:100px;white-space:nowrap}
+.mnt-state.on{background:rgba(255,93,108,.16);color:var(--red)}
+.mnt-state.off{background:rgba(51,214,159,.16);color:var(--grn)}
+.mnt-desc{font-size:12px;color:var(--dim);line-height:1.7;margin-bottom:12px}
+.mnt-label{font-size:12px;font-weight:800;color:var(--dim);display:block;margin:14px 0 6px}
+.mnt-label:first-of-type{margin-top:0}
+.mnt-input{width:100%;padding:12px 14px;border:1.5px solid var(--line);border-radius:12px;background:var(--panel2);color:var(--txt);font-size:15px;outline:none;font-family:inherit;resize:vertical;line-height:1.6}
+.mnt-input:focus{border-color:var(--accent)}
+.mnt-seg{display:flex;gap:8px;margin-bottom:6px}
+.mnt-seg-btn{flex:1;padding:12px 10px;border:1.5px solid var(--line);border-radius:12px;background:var(--panel2);color:var(--dim);font-weight:800;font-size:13px;cursor:pointer;font-family:inherit;transition:.15s}
+.mnt-seg-btn.active{border-color:var(--accent);background:rgba(107,139,255,.16);color:var(--txt)}
+.mnt-sched{margin-top:4px}
+.mnt-sched.hidden{display:none}
+.mnt-quick{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.mnt-quick button{padding:8px 12px;border:1px solid var(--line);border-radius:100px;background:var(--panel2);color:var(--accent);font-weight:700;font-size:12px;cursor:pointer;font-family:inherit}
+.mnt-quick button:hover{background:rgba(107,139,255,.14)}
+.mnt-btns{display:flex;gap:10px;margin-top:12px}
+.mnt-btns .btn{flex:1;padding:13px}
+.mnt-line{min-height:18px;font-size:12px;font-weight:700;margin-top:10px;text-align:center}
+.mnt-line.ok{color:var(--grn)} .mnt-line.err{color:var(--red)}
+@media(max-width:480px){ .mnt-btns{flex-direction:column} }
+
+/* アプリ個別メンテナンス一覧 */
+.app-mnt-list{display:flex;flex-direction:column;gap:8px;margin-top:8px}
+.amrow{display:flex;align-items:center;gap:10px;padding:11px 13px;background:var(--panel2);border:1px solid var(--line);border-radius:12px}
+.amrow .amnm{flex:1;min-width:0;font-weight:800;font-size:.95rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.amrow .amstate{font-size:10px;font-weight:900;padding:3px 10px;border-radius:100px;white-space:nowrap}
+.amrow .amstate.on{background:rgba(255,93,108,.16);color:var(--red)}
+.amrow .amstate.off{background:rgba(51,214,159,.16);color:var(--grn)}
+.amrow .amcfg{background:var(--panel);border:1px solid var(--line);color:var(--accent);font-weight:800;font-size:12px;padding:8px 13px;border-radius:10px;cursor:pointer;font-family:inherit;flex:none}
+.amrow .amcfg:hover{background:rgba(107,139,255,.14)}
+@media(max-width:480px){ .amrow .amcfg{padding:10px 14px;min-height:40px} }
+
+/* modal */
+.ov{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;background:rgba(6,8,20,.66);backdrop-filter:blur(4px);padding:18px}
+.ov.open{display:flex}
+.card{width:100%;max-width:400px;background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:22px;box-shadow:0 24px 60px rgba(0,0,0,.5)}
+.card h3{font-size:1.1rem;margin-bottom:4px;text-align:center}
+.card .who{text-align:center;font-size:13px;color:var(--dim);margin-bottom:16px}
+.card .who b{color:var(--pink)}
+.card label{font-size:12px;font-weight:800;color:var(--dim);display:block;margin:12px 0 6px}
+.card .row-btns{display:flex;gap:10px;margin-top:18px}
+.card .row-btns .btn{flex:1}
+.card .warn{font-size:12px;color:var(--red);text-align:center;margin-top:10px;line-height:1.6}
+.hidden{display:none!important}
+
+/* ===== iPhone 最適化 ===== */
+@media(max-width:480px){
+  .wrap{padding:0 12px}
+  .gh{padding:12px 12px}
+  .gh h1{font-size:14px}
+  /* 検索と更新を折り返し、タップしやすく */
+  .tools{flex-wrap:wrap;gap:8px}
+  .search{flex:1 1 100%;padding:13px 14px;font-size:16px}
+  .refresh{flex:1;text-align:center;padding:12px;font-size:14px}
+  /* 行：アバター＋情報を上段、削除ボタンを全幅下段に */
+  .row{flex-wrap:wrap;gap:10px;padding:12px}
+  .row .av{width:40px;height:40px}
+  .row .mid{flex:1 1 auto;min-width:0}
+  .row .del{flex:1 1 100%;order:3;padding:12px;font-size:15px;text-align:center;min-height:48px}
+  .badges{gap:6px}
+  /* ゲート：入力と解錠を縦積み */
+  #gate{margin-top:9vh}
+  .field{flex-direction:column}
+  .field .btn{width:100%;padding:15px}
+  input.code{font-size:16px}
+  /* 削除モーダル：確定ボタンを大きく縦積み */
+  .ov{padding:14px;align-items:flex-end}
+  .card{max-width:none;border-radius:22px 22px 0 0;padding:22px 18px calc(20px + env(safe-area-inset-bottom))}
+  .card .row-btns{flex-direction:column-reverse;gap:10px}
+  .card .row-btns .btn{width:100%;padding:16px;font-size:16px}
+}
+</style>
+</head>
+<body>
+
+<!-- アクセスゲート -->
+<div id="gate">
+  <div class="lock">🔐</div>
+  <h2>XEVARION アカウント管理</h2>
+  <p>登録済みアカウントの一覧・削除ができる管理者ページです。<br>アクセスコードを入力してください。</p>
+  <div class="field">
+    <input id="accessInput" class="code" type="password" inputmode="text" placeholder="アクセスコード" autocomplete="off">
+    <button id="accessBtn" class="btn">解錠</button>
+  </div>
+  <div id="gateMsg" class="msg"></div>
+  <div class="note"><a href="index.html" style="color:var(--dim)">← ポータルに戻る</a></div>
+</div>
+
+<!-- 管理画面 -->
+<div id="app" class="hidden">
+  <div class="gh">
+    <a class="back" href="index.html">←</a>
+    <h1>🛡 アカウント管理</h1>
+    <span class="count" id="count">—</span>
+  </div>
+  <div class="wrap">
+    <!-- メンテナンス制御 -->
+    <div class="mnt">
+      <div class="mnt-head">
+        <div class="mnt-title">🛠️ メンテナンスモード</div>
+        <span id="mntState" class="mnt-state off">読み込み中…</span>
+      </div>
+      <p class="mnt-desc">ONにすると、一般の来訪者はサイト全体（各アプリ含む）にアクセスできず、メンテナンス画面が表示されます。管理者（このブラウザ）はそのまま閲覧できます。</p>
+
+      <label class="mnt-label">種別</label>
+      <div class="mnt-seg" id="mntSeg">
+        <button type="button" class="mnt-seg-btn active" data-type="emergency">🚨 緊急メンテナンス</button>
+        <button type="button" class="mnt-seg-btn" data-type="scheduled">⏱️ 時間指定メンテナンス</button>
+      </div>
+      <div id="mntSched" class="mnt-sched hidden">
+        <label class="mnt-label">終了予定時刻（この時刻を過ぎると自動的に解除されます）</label>
+        <input id="mntUntil" type="datetime-local" class="mnt-input">
+        <div class="mnt-quick">
+          <button type="button" data-min="30">今から+30分</button>
+          <button type="button" data-min="60">+1時間</button>
+          <button type="button" data-min="180">+3時間</button>
+          <button type="button" data-min="360">+6時間</button>
+        </div>
+      </div>
+
+      <label class="mnt-label">理由（任意・メンテ画面に表示されます）</label>
+      <input id="mntReason" class="mnt-input" type="text" maxlength="120" placeholder="例）サーバー移行作業のため">
+
+      <label class="mnt-label">表示メッセージ（任意）</label>
+      <textarea id="mntMsg" class="mnt-input" rows="3" placeholder="例）機能追加のため一時的に停止しています。しばらくお待ちください。"></textarea>
+      <div class="mnt-btns">
+        <button id="mntOn" class="btn danger">🔒 メンテナンス開始</button>
+        <button id="mntOff" class="btn sec">🔓 メンテナンス解除</button>
+      </div>
+      <div id="mntMsgLine" class="mnt-line"></div>
+    </div>
+
+    <!-- アプリ個別メンテナンス -->
+    <div class="mnt" id="appMnt">
+      <div class="mnt-head">
+        <div class="mnt-title">🧩 アプリ個別メンテナンス</div>
+        <span id="appMntCount" class="mnt-state off">読み込み中…</span>
+      </div>
+      <p class="mnt-desc">アプリを<b>1つずつ</b>メンテナンス中にできます。ONにすると、そのアプリだけがメンテナンス画面になり、他のアプリやポータルは通常どおり使えます。（上のグローバルメンテナンスが優先されます）</p>
+      <div id="appMntList" class="app-mnt-list"><div class="loading"><div class="spin"></div><div>読み込み中…</div></div></div>
+    </div>
+
+    <div class="tools">
+      <input id="search" class="search" placeholder="名前・IDで検索…">
+      <button class="refresh" id="refresh">↻ 更新</button>
+    </div>
+    <div id="rows" class="list"><div class="loading"><div class="spin"></div><div>読み込み中…</div></div></div>
+    <div class="note">
+      一覧は XEVARION（xevarion-account）の accounts をそのまま表示します。<br>
+      削除するとそのアカウントの MagiCraft 記録も一緒に消えます（元に戻せません）。
+    </div>
+  </div>
+</div>
+
+<!-- アプリ個別メンテナンス モーダル -->
+<div id="appMntOv" class="ov">
+  <div class="card">
+    <h3>🧩 アプリ個別メンテナンス</h3>
+    <div class="who">対象：<b id="amTitle">—</b></div>
+
+    <label class="mnt-label" style="margin-top:0">種別</label>
+    <div class="mnt-seg" id="amSeg">
+      <button type="button" class="mnt-seg-btn active" data-type="emergency">🚨 緊急</button>
+      <button type="button" class="mnt-seg-btn" data-type="scheduled">⏱️ 時間指定</button>
+    </div>
+    <div id="amSched" class="mnt-sched hidden">
+      <label class="mnt-label">終了予定時刻（過ぎると自動解除）</label>
+      <input id="amUntil" type="datetime-local" class="mnt-input">
+      <div class="mnt-quick am-quick">
+        <button type="button" data-min="30">+30分</button>
+        <button type="button" data-min="60">+1時間</button>
+        <button type="button" data-min="180">+3時間</button>
+        <button type="button" data-min="360">+6時間</button>
+      </div>
+    </div>
+
+    <label class="mnt-label">理由（任意）</label>
+    <input id="amReason" class="mnt-input" type="text" maxlength="120" placeholder="例）不具合修正のため">
+    <label class="mnt-label">表示メッセージ（任意）</label>
+    <textarea id="amMsg" class="mnt-input" rows="3" placeholder="例）このアプリは一時的に停止しています。"></textarea>
+    <div id="amLine" class="mnt-line"></div>
+    <div class="row-btns">
+      <button class="btn sec" id="amOff">🔓 解除</button>
+      <button class="btn danger" id="amOn">🔒 メンテ開始</button>
+    </div>
+    <div style="text-align:center;margin-top:10px"><button id="amClose" style="background:none;border:none;color:var(--faint);font-size:13px;font-weight:700;cursor:pointer;font-family:inherit;padding:6px">閉じる</button></div>
+  </div>
+</div>
+
+<!-- 削除モーダル -->
+<div id="delOv" class="ov">
+  <div class="card">
+    <h3>アカウントを削除</h3>
+    <div class="who"><b id="delName">—</b> を完全に削除します<br><span style="font-size:11px;color:var(--faint)">MagiLink・MagiCraft記録も同期して削除されます（元に戻せません）</span></div>
+    <label>デリートコード</label>
+    <input id="delInput" class="code" type="password" inputmode="text" placeholder="デリートコード" autocomplete="off">
+    <div id="delMsg" class="warn"></div>
+    <div class="row-btns">
+      <button class="btn sec" id="delCancel">やめる</button>
+      <button class="btn danger" id="delGo">削除する</button>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ── ソフト保護コード（平文では保持せず SHA-256 ハッシュで照合する） ── */
+var ACCESS_HASH = "043597417b58703ba306393a392628045baf99cb0da899f496680e65667f90df";
+var DELETE_HASH = "c6cfb6f3690644176e7bb599a95604b5149926d6cdd1bf6de1e04cf3b3dd774f";
+function sha256hex(str, cb){
+  try{
+    crypto.subtle.digest("SHA-256", new TextEncoder().encode(str)).then(function(buf){
+      cb(Array.from(new Uint8Array(buf)).map(function(b){ return b.toString(16).padStart(2,"0"); }).join(""));
+    }).catch(function(){ cb(""); });
+  }catch(e){ cb(""); }
+}
+var UNLOCK_KEY = "xeva_admin_unlocked_v1";
+/* ★ 同じ配信元の相対パスを使う。GitHub Pages の絶対URLを直書きしていると
+   別ドメイン・ローカル・PWA から開いたときに読めず、アイコンが出ないことがある。 */
+var CHARS_BASE = "chars/";
+
+var FB = null, all = [], target = null;
+function $(id){ return document.getElementById(id); }
+function esc(s){ return String(s==null?"":s).replace(/[&<>"]/g,function(c){return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c];}); }
+function hashStr(s){ s=String(s||""); var h=0; for(var i=0;i<s.length;i++){ h=(h*31+s.charCodeAt(i))|0; } return h>>>0; }
+function pad2(n){ return String(n).padStart(2,"0"); }
+function fmtWhen(ts){
+  if(!ts) return "記録なし";
+  var d=new Date(ts), now=Date.now(), diff=now-ts;
+  var abs=d.getFullYear()+"/"+pad2(d.getMonth()+1)+"/"+pad2(d.getDate())+" "+pad2(d.getHours())+":"+pad2(d.getMinutes());
+  var rel;
+  if(diff<60000) rel="たった今";
+  else if(diff<3600000) rel=Math.floor(diff/60000)+"分前";
+  else if(diff<86400000) rel=Math.floor(diff/3600000)+"時間前";
+  else if(diff<2592000000) rel=Math.floor(diff/86400000)+"日前";
+  else rel=Math.floor(diff/2592000000)+"ヶ月前";
+  return abs+"（"+rel+"）";
+}
+function whenSync(){
+  return new Promise(function(res){
+    if(window.XEVASync) return res(window.XEVASync);
+    var done=false, f=function(){ if(!done){done=true;res(window.XEVASync||null);} };
+    window.addEventListener("xevasync:ready", f, {once:true});
+    setTimeout(f, 7000);
+  });
+}
+
+function whenFB(){
+  return new Promise(function(res){
+    if(window.XEVARIONFB) return res(window.XEVARIONFB);
+    var done=false, f=function(){ if(!done){done=true;res(window.XEVARIONFB||null);} };
+    window.addEventListener("xevarionfb:ready", f, {once:true});
+    setTimeout(f, 7000);
+  });
+}
+
+function avatarHTML(r){
+  var color = "#" + ((hashStr(r.name)&0x7f7f7f)|0x404040).toString(16).slice(-6);
+  var initial = esc((r.name||"?").slice(0,1));
+  /* 保存された charFile は移籍前の古いパスのことがあるので正規化してから使う */
+  r = Object.assign({}, r, { charFile: (window.XEVA&&window.XEVA.canonCharFile) ? window.XEVA.canonCharFile(r.charFile, r.charId) : r.charFile });
+  if(r.charFile){
+    return '<img class="av" src="'+esc(CHARS_BASE+r.charFile)+'" alt="" '+
+      'onerror="this.outerHTML=&quot;<div class=\\&quot;av\\&quot; style=\\&quot;background:'+color+'\\&quot;>'+initial+'</div>&quot;">';
+  }
+  return '<div class="av" style="background:'+color+'">'+initial+'</div>';
+}
+
+function unlock(){
+  // 管理者としてこのブラウザを記憶（メンテ中も各ページを閲覧できる）
+  try{ localStorage.setItem("xeva_admin_ok_v1","1"); }catch(e){}
+  $("gate").classList.add("hidden");
+  $("app").classList.remove("hidden");
+  loadMaintenance();
+  renderAppMntList();
+  load();
+}
+
+function tryAccess(){
+  var v = ($("accessInput").value||"").trim();
+  sha256hex(v, function(hex){
+    if(hex === ACCESS_HASH){
+      try{ sessionStorage.setItem(UNLOCK_KEY,"1"); }catch(e){}
+      unlock();
+    } else {
+      $("gateMsg").textContent = "アクセスコードが正しくありません。";
+      $("accessInput").value = "";
+    }
+  });
+}
+
+function load(){
+  $("rows").innerHTML='<div class="loading"><div class="spin"></div><div>読み込み中…</div></div>';
+  whenFB().then(function(fb){
+    FB = fb;
+    if(!fb || !fb.getAllAccounts){ $("rows").innerHTML='<div class="empty">オンライン接続がありません。<br>通信環境を確認して「更新」を押してください。</div>'; return; }
+    fb.getAllAccounts().then(function(rows){ all = rows||[]; render(); });
+  });
+}
+
+function render(){
+  var q = ($("search").value||"").trim().toLowerCase();
+  var rows = all.filter(function(r){ return !q || (r.name||"").toLowerCase().indexOf(q)>=0 || (r.uid||"").toLowerCase().indexOf(q)>=0; });
+  $("count").textContent = all.length + "件";
+  if(!rows.length){
+    $("rows").innerHTML = all.length ? '<div class="empty">該当するアカウントがありません。</div>'
+      : '<div class="empty">登録済みアカウントがありません。</div>';
+    return;
+  }
+  $("rows").innerHTML = rows.map(function(r){
+    var badges = '';
+    badges += r.hasPw ? '<span class="badge pw">4桁PW ✓</span>' : '<span class="badge nopw">PW未設定</span>';
+    if(r.monthlyThis) badges += '<span class="badge xv">今月 '+r.monthlyThis.toLocaleString()+' XEVA</span>';
+    if(r.pendingCount) badges += '<span class="badge pd">受取待ち '+r.pendingCount+'</span>';
+    return '<div class="row">'+
+      avatarHTML(r)+
+      '<div class="mid"><div class="nm">'+esc(r.name)+'</div>'+
+        '<div class="sub">'+esc(r.uid)+'</div>'+
+        '<div class="login">🕒 最終ログイン: '+fmtWhen(r.lastLogin || r.updatedAt)+'</div>'+
+        '<div class="badges">'+badges+'</div></div>'+
+      '<button class="del" data-uid="'+esc(r.uid)+'" data-name="'+esc(r.name)+'">🗑 削除</button>'+
+    '</div>';
+  }).join("");
+  Array.prototype.forEach.call(document.querySelectorAll(".del"), function(b){
+    b.addEventListener("click", function(){ openDelete(b.dataset.uid, b.dataset.name); });
+  });
+}
+
+function openDelete(uid, name){
+  target = { uid: uid, name: name };
+  $("delName").textContent = name;
+  $("delInput").value = ""; $("delMsg").textContent = "";
+  $("delOv").classList.add("open");
+  setTimeout(function(){ $("delInput").focus(); }, 60);
+}
+function closeDelete(){ $("delOv").classList.remove("open"); target = null; }
+
+function doDelete(){
+  if(!target) return;
+  var code = ($("delInput").value||"").trim();
+  sha256hex(code, function(hex){ doDelete2(hex); });
+}
+function doDelete2(hex){
+  if(!target) return;
+  if(hex !== DELETE_HASH){ $("delMsg").textContent = "デリートコードが正しくありません。"; return; }
+  if(!FB || !FB.deleteAccount){ $("delMsg").textContent = "接続がありません。"; return; }
+  var btn = $("delGo"); btn.disabled = true; btn.textContent = "削除中…";
+  var uid = target.uid, name = target.name;
+  FB.deleteAccount(uid).then(function(res){
+    if(!(res && res.ok)){
+      btn.disabled = false; btn.textContent = "削除する";
+      $("delMsg").textContent = "削除に失敗しました。もう一度お試しください。";
+      return;
+    }
+    // MagiLink 側も同期削除（名前はグローバル一意）
+    return whenSync().then(function(sync){
+      if(sync && sync.deleteUserByName) return sync.deleteUserByName(name);
+    }).then(function(){
+      btn.disabled = false; btn.textContent = "削除する";
+      all = all.filter(function(r){ return r.uid !== uid; });
+      closeDelete(); render();
+    });
+  });
+}
+
+/* ── メンテナンスモード制御 ── */
+var mntType = "emergency";
+function pad2m(n){ return String(n).padStart(2,"0"); }
+function toLocalInput(d){ return d.getFullYear()+"-"+pad2m(d.getMonth()+1)+"-"+pad2m(d.getDate())+"T"+pad2m(d.getHours())+":"+pad2m(d.getMinutes()); }
+function setType(t){
+  mntType = (t === "scheduled") ? "scheduled" : "emergency";
+  Array.prototype.forEach.call(document.querySelectorAll(".mnt-seg-btn"), function(b){
+    b.classList.toggle("active", b.dataset.type === mntType);
+  });
+  $("mntSched").classList.toggle("hidden", mntType !== "scheduled");
+}
+function fmtUntil(ts){
+  if(!ts) return "";
+  var d=new Date(ts);
+  return d.getFullYear()+"/"+pad2m(d.getMonth()+1)+"/"+pad2m(d.getDate())+" "+pad2m(d.getHours())+":"+pad2m(d.getMinutes());
+}
+function renderMaintState(m){
+  var on = !!(m && m.on);
+  var el = $("mntState");
+  if(on){
+    var label = (m.type === "scheduled")
+      ? "現在: ON（時間指定"+(m.until?"・~"+fmtUntil(m.until):"")+"）"
+      : "現在: ON（緊急・公開停止中）";
+    el.textContent = label;
+    el.className = "mnt-state on";
+  } else {
+    el.textContent = "現在: OFF（公開中）";
+    el.className = "mnt-state off";
+  }
+  if(m && m.reason != null) $("mntReason").value = m.reason;
+  if(m && m.message != null) $("mntMsg").value = m.message;
+  if(m && m.type) setType(m.type);
+  if(m && m.type === "scheduled" && m.until) $("mntUntil").value = toLocalInput(new Date(m.until));
+}
+function loadMaintenance(){
+  whenFB().then(function(fb){
+    if(!fb || !fb.getMaintenance) return;
+    fb.getMaintenance().then(renderMaintState);
+  });
+}
+function applyMaintenance(on){
+  var line = $("mntMsgLine");
+  line.className = "mnt-line"; line.textContent = "";
+  var until = 0;
+  if(on && mntType === "scheduled"){
+    var v = ($("mntUntil").value||"").trim();
+    if(!v){ line.className="mnt-line err"; line.textContent="終了予定時刻を指定してください。"; return; }
+    until = new Date(v).getTime();
+    if(!until || isNaN(until)){ line.className="mnt-line err"; line.textContent="終了予定時刻が不正です。"; return; }
+    if(until <= Date.now()){ line.className="mnt-line err"; line.textContent="終了予定時刻は現在より後にしてください。"; return; }
+  }
+  var state = { on:on, type:mntType, reason:($("mntReason").value||""), message:($("mntMsg").value||""), until:until };
+  whenFB().then(function(fb){
+    if(!fb || !fb.setMaintenance){ line.className="mnt-line err"; line.textContent="接続がありません。"; return; }
+    var btnOn=$("mntOn"), btnOff=$("mntOff");
+    btnOn.disabled=true; btnOff.disabled=true;
+    fb.setMaintenance(state).then(function(res){
+      btnOn.disabled=false; btnOff.disabled=false;
+      if(res && res.ok){
+        renderMaintState(state);
+        line.className="mnt-line ok";
+        if(!on){
+          line.textContent = "✅ メンテナンスを解除しました。通常公開に戻りました。";
+        } else if(mntType === "scheduled"){
+          line.textContent = "✅ 時間指定メンテナンスを開始しました（"+fmtUntil(until)+" に自動解除）。";
+        } else {
+          line.textContent = "✅ 緊急メンテナンスを開始しました。一般の来訪者はアクセスできません。";
+        }
+      } else {
+        line.className="mnt-line err"; line.textContent="保存に失敗しました。通信環境を確認してください。";
+      }
+    });
+  });
+}
+Array.prototype.forEach.call(document.querySelectorAll("#mntSeg .mnt-seg-btn"), function(b){
+  b.addEventListener("click", function(){ setType(b.dataset.type); });
+});
+Array.prototype.forEach.call(document.querySelectorAll("#mntSched .mnt-quick button"), function(b){
+  b.addEventListener("click", function(){
+    var min = parseInt(b.dataset.min,10)||0;
+    $("mntUntil").value = toLocalInput(new Date(Date.now()+min*60000));
+  });
+});
+$("mntOn").addEventListener("click", function(){ applyMaintenance(true); });
+$("mntOff").addEventListener("click", function(){ applyMaintenance(false); });
+
+/* ════════ アプリ個別メンテナンス ════════ */
+var APP_REGISTRY = [
+  {id:"magibattle",name:"MagiBattle"}, {id:"magilex",name:"MagiLex"},
+  {id:"magichainparty",name:"MagiChainParty"}, {id:"magiranking",name:"MagiRanking"},
+  {id:"magicraft",name:"MagiCraft"}, {id:"magimanor",name:"MagiManor"},
+  {id:"magiburst",name:"MagiBurst"}, {id:"magimusic",name:"MagiMusic"},
+  {id:"magijackpot",name:"MagiJackpot"}, {id:"magiempire",name:"MagiEmpire"},
+  {id:"magiarena",name:"MagiArena"}, {id:"magiportfolio",name:"MagiPortfolio"},
+  {id:"magitier",name:"MagiTier"}, {id:"magilink",name:"MagiLink"},
+  {id:"magifocus",name:"MagiFocus"}, {id:"magidiamond",name:"MagiDiamond"},
+  {id:"xevynar",name:"XEVYNAR"}
+  /* ※ MagiResonance / MagiShareCore / MagiTriad / MagiMuse / MagiFinance / MagiSports は
+     2026-07-29 にサービス終了したため、メンテ対象から外した。 */
+];
+var appMntMap = {}, amType = "emergency", amTarget = null, amTargetName = "";
+
+function renderAppMntList(){
+  whenFB().then(function(fb){
+    if(!fb || !fb.getAppMaintenanceAll) return;
+    fb.getAppMaintenanceAll().then(function(map){
+      appMntMap = map || {};
+      var onCount = APP_REGISTRY.filter(function(a){ var s=appMntMap[a.id]; return s && s.on; }).length;
+      var cs = $("appMntCount");
+      cs.className = "mnt-state " + (onCount>0 ? "on" : "off");
+      cs.textContent = onCount>0 ? (onCount + " アプリ メンテ中") : "すべて通常公開";
+      $("appMntList").innerHTML = APP_REGISTRY.map(function(a){
+        var s = appMntMap[a.id] || {}, on = !!s.on;
+        var lbl = on ? (s.type==="scheduled" ? "⏱ 時間指定メンテ中" : "🚨 メンテ中") : "通常";
+        return '<div class="amrow"><div class="amnm">'+esc(a.name)+'</div>'+
+          '<span class="amstate '+(on?"on":"off")+'">'+lbl+'</span>'+
+          '<button class="amcfg" data-app="'+a.id+'" data-name="'+esc(a.name)+'">設定</button></div>';
+      }).join("");
+      Array.prototype.forEach.call($("appMntList").querySelectorAll(".amcfg"), function(b){
+        b.addEventListener("click", function(){ openAppMnt(b.dataset.app, b.dataset.name); });
+      });
+    });
+  });
+}
+function setAmType(t){
+  amType = (t==="scheduled") ? "scheduled" : "emergency";
+  Array.prototype.forEach.call(document.querySelectorAll("#amSeg .mnt-seg-btn"), function(b){
+    b.classList.toggle("active", b.dataset.type===amType);
+  });
+  $("amSched").classList.toggle("hidden", amType!=="scheduled");
+}
+function openAppMnt(id, name){
+  amTarget = id; amTargetName = name;
+  $("amTitle").textContent = name;
+  var s = appMntMap[id] || {};
+  setAmType(s.type || "emergency");
+  $("amReason").value = s.reason || "";
+  $("amMsg").value = s.message || "";
+  $("amUntil").value = (s.type==="scheduled" && s.until) ? toLocalInput(new Date(s.until)) : "";
+  var line = $("amLine"); line.className="mnt-line"; line.textContent="";
+  $("appMntOv").classList.add("open");
+}
+function closeAppMnt(){ $("appMntOv").classList.remove("open"); }
+function applyAppMaintenance(on){
+  if(!amTarget) return;
+  var line = $("amLine"); line.className="mnt-line"; line.textContent="";
+  var until = 0;
+  if(on && amType==="scheduled"){
+    var v = ($("amUntil").value||"").trim();
+    if(!v){ line.className="mnt-line err"; line.textContent="終了予定時刻を指定してください。"; return; }
+    until = new Date(v).getTime();
+    if(!until || isNaN(until)){ line.className="mnt-line err"; line.textContent="終了予定時刻が不正です。"; return; }
+    if(until <= Date.now()){ line.className="mnt-line err"; line.textContent="終了予定時刻は現在より後にしてください。"; return; }
+  }
+  var state = { on:on, type:amType, reason:($("amReason").value||""), message:($("amMsg").value||""), until:until };
+  whenFB().then(function(fb){
+    if(!fb || !fb.setAppMaintenance){ line.className="mnt-line err"; line.textContent="接続がありません。"; return; }
+    var b1=$("amOn"), b2=$("amOff"); b1.disabled=true; b2.disabled=true;
+    fb.setAppMaintenance(amTarget, state).then(function(res){
+      b1.disabled=false; b2.disabled=false;
+      if(res && res.ok){
+        appMntMap[amTarget] = state;
+        line.className="mnt-line ok";
+        line.textContent = on
+          ? ("✅ 「"+amTargetName+"」をメンテナンス中にしました。" + (amType==="scheduled" ? "（"+fmtUntil(until)+" に自動解除）" : ""))
+          : ("✅ 「"+amTargetName+"」のメンテナンスを解除しました。");
+        renderAppMntList();
+        setTimeout(closeAppMnt, on ? 1100 : 700);
+      } else { line.className="mnt-line err"; line.textContent="保存に失敗しました。通信環境を確認してください。"; }
+    });
+  });
+}
+Array.prototype.forEach.call(document.querySelectorAll("#amSeg .mnt-seg-btn"), function(b){
+  b.addEventListener("click", function(){ setAmType(b.dataset.type); });
+});
+Array.prototype.forEach.call(document.querySelectorAll("#amSched .am-quick button"), function(b){
+  b.addEventListener("click", function(){
+    var min = parseInt(b.dataset.min,10)||0;
+    $("amUntil").value = toLocalInput(new Date(Date.now()+min*60000));
+  });
+});
+$("amOn").addEventListener("click", function(){ applyAppMaintenance(true); });
+$("amOff").addEventListener("click", function(){ applyAppMaintenance(false); });
+$("amClose").addEventListener("click", closeAppMnt);
+$("appMntOv").addEventListener("mousedown", function(e){ if(e.target===$("appMntOv")) closeAppMnt(); });
+
+/* init */
+$("accessBtn").addEventListener("click", tryAccess);
+$("accessInput").addEventListener("keydown", function(e){ if(e.key==="Enter") tryAccess(); });
+$("refresh").addEventListener("click", function(){ load(); loadMaintenance(); renderAppMntList(); });
+$("search").addEventListener("input", render);
+$("delCancel").addEventListener("click", closeDelete);
+$("delGo").addEventListener("click", doDelete);
+$("delInput").addEventListener("keydown", function(e){ if(e.key==="Enter") doDelete(); });
+$("delOv").addEventListener("mousedown", function(e){ if(e.target===$("delOv")) closeDelete(); });
+document.addEventListener("keydown", function(e){ if(e.key==="Escape" && $("delOv").classList.contains("open")) closeDelete(); });
+
+/* 同一セッションで解錠済みなら再入力不要。
+   ポータルの「設定 → 管理画面」で入力されたコードは xeva_admin_code に入るので、
+   それを引き継いで自動で解錠を試みる（二度打ちを避ける）。 */
+try{
+  if(sessionStorage.getItem(UNLOCK_KEY)==="1"){ unlock(); }
+  else {
+    var handoff = sessionStorage.getItem("xeva_admin_code");
+    if(handoff){
+      sessionStorage.removeItem("xeva_admin_code");
+      $("accessInput").value = handoff;
+      tryAccess();
+    }
+    $("accessInput").focus();
+  }
+}catch(e){ try{ $("accessInput").focus(); }catch(e2){} }
+</script>
+</body>
+</html>

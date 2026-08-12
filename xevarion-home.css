@@ -1,0 +1,779 @@
+/* ============================================================
+   XEVARION HOME — 明るいカジュアル・ホーム（スマホ基準 / PCでも可）
+   ・ヘッダー（ロゴ＋AI/メール/お知らせ/ミッション）固定
+   ・中央はスクロール領域（プロフィール／XEVA／イベント／アプリ）
+   ・下部にタブバー（ホーム・コミュニティ・図鑑・ガチャ・設定）
+   ・アイコンはすべて「角丸の正方形」で統一する
+   ※ アクセス画面の inline CSS が .xh-tab / .xh-btn / .xh-card / .xh-input /
+     .xh-msg / .xh-logo をグローバル定義しているため、ここではそれらの名前を
+     使わない（.xh-ntab / .xh-sbtn / .xh-panel / .xh-brandbar …）。
+     ※ .xh-logo は 70x70 の固定サイズなので、うっかり使うとヘッダーが膨らむ。
+   ============================================================ */
+
+:root{
+  --xh-ink:#22345c;
+  --xh-sub:#6f82ad;
+  --xh-line:rgba(120,160,230,.22);
+  --xh-cyan:#2ec7ff;
+  --xh-blue:#4b8bff;
+  --xh-violet:#9b7bff;
+  --xh-pink:#ff7ab8;
+  --xh-yellow:#ffc93c;
+  --xh-mint:#3fd9b0;
+  --xh-card:#ffffff;
+  --xh-shadow:0 8px 26px rgba(90,130,210,.16);
+  --xh-shadow-s:0 4px 14px rgba(90,130,210,.14);
+}
+
+/* ホーム用ページは明るい空色。ログイン前でも暗転しない。 */
+body{background:#eaf4ff}
+/* ★ 2026-08-12 #xevaDock（旧・下部ドック）は削除したので、隠す指定も要らなくなりました */
+body.xh-mode #musicFab{display:none!important}
+body.xh-mode .aurora{display:none}
+body.xh-mode{overflow:hidden;background:#eaf4ff}
+
+/* ══════════ 画面いっぱいの土台の高さ（--xh-appvh） ══════════
+   ★ iPhone でホーム画面から「アプリとして」開いたとき、下に空白の帯ができて
+     画面の下部が詰まって見える不具合の対策。
+     全画面の土台を position:fixed;inset:0 や height:100% で組むと、その高さは
+     ブラウザが決める「箱」に従う。standalone（アプリ表示）＋ viewport-fit=cover
+     では、この箱の高さが実際に見えている画面より短くなることがあり、
+     余ったぶんが下の空白として残る。
+     そこで「実測した画面の高さ」を --xh-appvh に入れる。
+     ・実測は xevarion-home.js の xhSyncAppH()。position:fixed;top:0;bottom:0 の
+       目印を1つ置いて、その高さを読む（＝画面をおおうときにブラウザが本当に使う高さ）。
+       innerHeight は standalone の起動直後にセーフエリアぶん短く返ることがあり、
+       あてにならないのでフォールバックにとどめる。
+     ・JS が動く前・非対応環境では dvh（無ければ vh）に落ちる。
+   ★ 2026-08-03: 土台は height ではなく top:0/bottom:0 で「画面の上と下に留める」。
+     こうすると変数の値に関係なく下端にぴったり付くので、空白の帯そのものが
+     原理的に起きなくなる（--xh-appvh は中の要素の計算用に残す）。 */
+:root{ --xh-appvh:100vh }
+@supports (height:100dvh){ :root{ --xh-appvh:100dvh } }
+
+/* ══════════ 土台 ══════════ */
+/* ★ 2026-08-07: 土台の下端を「本当の画面の下端」まで伸ばす。
+   箱が短く作られる端末では --xh-fixgap（xevarion.js が実測）ぶんだけ
+   マイナス方向に伸ばすので、背景も下バーもホームバーの際まで届く。
+   ズレていない端末では 0px なので従来どおり。 */
+#xhome{
+  position:fixed;top:0;left:0;right:0;bottom:calc(-1 * var(--xh-fixgap, 0px));
+  z-index:120;display:none;flex-direction:column;
+  color:var(--xh-ink);font-family:'Noto Sans JP',sans-serif;
+  overscroll-behavior:none;-webkit-tap-highlight-color:transparent;
+}
+#xhome.on{display:flex}
+
+/* 背景：空色〜白のグラデ＋パステルのぼかし玉 */
+#xhBg{position:absolute;inset:0;z-index:0;overflow:hidden;
+  background:linear-gradient(175deg,#d9ecff 0%,#eef6ff 34%,#fdf4ff 72%,#fff7ef 100%)}
+#xhBg .bl{position:absolute;border-radius:50%;filter:blur(38px);opacity:.55}
+#xhBg .b1{width:46vw;height:46vw;left:-14vw;top:-8vw;background:#8ed6ff}
+#xhBg .b2{width:42vw;height:42vw;right:-12vw;top:12vh;background:#ffb7dd}
+#xhBg .b3{width:52vw;height:52vw;left:-8vw;bottom:-14vh;background:#c9b6ff}
+#xhBg .b4{width:36vw;height:36vw;right:-8vw;bottom:2vh;background:#ffe08a}
+#xhStars{position:absolute;inset:0;width:100%;height:100%;display:block;opacity:.55}
+
+#xhCol{position:relative;z-index:1;flex:1;min-height:0;display:flex;flex-direction:column;
+  width:100%;max-width:600px;margin:0 auto}
+@media (min-width:960px){
+  #xhCol{background:rgba(255,255,255,.34);box-shadow:0 0 0 1px rgba(120,160,230,.22),0 0 70px rgba(110,150,230,.22)}
+}
+
+/* ══════════ ヘッダー ══════════ */
+.xh-top{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:8px;
+  padding:calc(env(safe-area-inset-top,0px) + 5px) 12px 5px;
+  background:rgba(255,255,255,.78);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border-bottom:1.5px solid rgba(120,160,230,.2)}
+#xhome .xh-brandbar{display:flex;align-items:center;gap:6px;min-width:0;flex-shrink:0}
+#xhome .xh-brandbar .xh-orb{width:26px;height:26px;object-fit:contain;flex-shrink:0;
+  filter:drop-shadow(0 2px 6px rgba(90,140,240,.5))}
+#xhome .xh-brandbar .xh-word{font-family:'Orbitron',sans-serif;font-size:13.5px;font-weight:900;letter-spacing:.06em;
+  line-height:1;white-space:nowrap;flex-shrink:0;
+  background:linear-gradient(100deg,#2b62d8,#6b4fd8 55%,#a24fd0);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:#2b62d8}
+
+/* 右上アクション（AI / メール / お知らせ / ミッション） */
+.xh-acts{display:flex;gap:4px;flex-shrink:0}
+.xh-act{position:relative;padding:0;border:none;background:none;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:1px;color:var(--xh-ink);width:38px}
+.xh-act .ic{width:33px;height:33px;border-radius:11px;display:flex;align-items:center;justify-content:center;
+  background:#fff;border:1.5px solid rgba(120,160,230,.28);box-shadow:var(--xh-shadow-s);
+  transition:transform .15s,box-shadow .15s}
+.xh-act:active .ic{transform:scale(.92)}
+.xh-act .ic svg{width:19px;height:19px}
+.xh-act.ai .ic{background:linear-gradient(150deg,#8fe3ff,#b49bff 55%,#ff9fd2);border-color:rgba(255,255,255,.9);
+  box-shadow:0 5px 16px rgba(140,120,255,.42)}
+.xh-act .lb{font-size:8px;font-weight:800;color:var(--xh-sub);white-space:nowrap}
+.xh-act .bdg{position:absolute;top:-4px;right:0;min-width:16px;height:16px;padding:0 4px;border-radius:99px;
+  background:#ff4d6a;color:#fff;font-family:'Orbitron',sans-serif;font-size:9px;font-weight:700;
+  display:none;align-items:center;justify-content:center;border:2px solid #fff;line-height:1;
+  box-shadow:0 2px 6px rgba(255,77,106,.4)}
+.xh-act .bdg.show{display:flex}
+@media (max-width:360px){
+  .xh-act{width:35px}.xh-act .ic{width:31px;height:31px;border-radius:10px}.xh-act .ic svg{width:17px;height:17px}
+  .xh-act .lb{font-size:7.5px}
+  #xhome .xh-brandbar .xh-orb{width:23px;height:23px}
+  #xhome .xh-brandbar .xh-word{font-size:12px;letter-spacing:.02em}
+}
+
+/* ══════════ スクロール領域 ══════════ */
+/* xevarion.css の `section{padding:clamp(30px,4vw,54px) 0}` が漏れるので打ち消す */
+#xhome section{padding:0;margin:0}
+.xh-scroll{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding:12px 14px 18px;display:flex;flex-direction:column;gap:13px}
+
+/* 角丸カード。左右に余白をとってゆったり見せる。 */
+.xh-panel{background:var(--xh-card);border-radius:22px;box-shadow:var(--xh-shadow);
+  border:1.5px solid rgba(255,255,255,.9);padding:13px 14px}
+.xh-sec{display:block}
+
+/* オフライン帯 */
+.xh-offline{display:none;align-items:center;justify-content:center;gap:6px;
+  padding:9px 14px;border-radius:16px;font-size:11px;font-weight:800;color:#a35b00;
+  background:linear-gradient(120deg,#ffe9b8,#ffd8a8);border:1.5px solid rgba(255,170,60,.5);
+  box-shadow:var(--xh-shadow-s);text-align:center;line-height:1.6}
+body.xh-off .xh-offline{display:flex}
+
+/* ── プロフィールカード ── */
+.xh-prof{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.xh-uidline{font-size:10.5px;font-weight:700;color:var(--xh-sub);margin-top:3px;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.xh-av{position:relative;width:50px;height:50px;flex-shrink:0;border-radius:16px;overflow:hidden;
+  border:none;padding:0;cursor:pointer;background:linear-gradient(150deg,#8fd8ff,#b9a3ff);
+  box-shadow:0 0 0 3px #fff,0 6px 18px rgba(110,150,230,.34);transition:transform .16s}
+.xh-av:active{transform:scale(.94)}
+.xh-av img{width:100%;height:100%;object-fit:cover;display:block}
+.xh-av .xh-av-init{display:flex;width:100%;height:100%;align-items:center;justify-content:center;
+  font-family:'Orbitron',sans-serif;font-size:20px;font-weight:700;color:#fff}
+.xh-pmeta{flex:1 1 auto;min-width:0}
+.xh-namerow{display:flex;align-items:center;gap:6px}
+.xh-uname{font-size:15px;font-weight:900;color:var(--xh-ink);max-width:34vw;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.xh-pen{background:rgba(120,160,230,.14);border:none;border-radius:8px;padding:4px;cursor:pointer;
+  color:var(--xh-sub);line-height:0;flex-shrink:0}
+.xh-pen svg{width:13px;height:13px}
+/* ── XEVA（アバター行の右側）。丸ごとボタンで、末尾の「？」から入手方法へ ── */
+/* ウォレット（XEVA ＋ 💎ジェム）。狭い画面では2段に折り返す */
+.xh-wallet{display:flex;align-items:center;gap:6px;margin-left:auto;flex-wrap:wrap;justify-content:flex-end}
+.xh-pill{display:flex;align-items:center;gap:6px;padding:5px 5px 5px 8px;border-radius:99px;
+  flex-shrink:0;cursor:pointer;font-family:inherit;
+  background:linear-gradient(120deg,#fff8e6,#fffdf7);border:1.5px solid rgba(255,201,60,.55);
+  box-shadow:var(--xh-shadow-s);transition:transform .14s}
+.xh-pill:active{transform:scale(.96)}
+.xh-pill .cico{width:20px;height:20px;flex-shrink:0;object-fit:contain}
+.xh-pill .cval{font-family:'Orbitron',sans-serif;font-size:14px;font-weight:700;color:#c07a00;
+  padding-right:2px}
+/* XEVA入手方法（ピルに内包） */
+.xh-info{width:22px;height:22px;flex-shrink:0;border-radius:50%;padding:0;border:none;
+  background:linear-gradient(150deg,#ffd257,#ffab3c);
+  color:#fff;font-family:'Orbitron',sans-serif;font-size:12px;font-weight:900;line-height:1;
+  display:flex;align-items:center;justify-content:center;box-shadow:0 2px 7px rgba(255,180,60,.5)}
+/* 💎ジェムのピルは紫系にして XEVA と一目で区別できるようにする */
+.xh-pill.gem{background:linear-gradient(120deg,#f4ecff,#fdfbff);border-color:rgba(155,123,255,.5)}
+.xh-pill.gem .cval{color:#7b4fd8}
+.xh-pill.gem .xh-info{background:linear-gradient(150deg,#b9a3ff,#8e6bff);
+  box-shadow:0 2px 7px rgba(142,107,255,.5)}
+/* 残高が動いたときに一度だけ光らせる（同期で反映されたことが見て分かる） */
+.xh-pill.bump{animation:xhPillBump .5s ease}
+@keyframes xhPillBump{
+  0%{transform:scale(1)}
+  35%{transform:scale(1.11);box-shadow:0 0 0 6px rgba(155,123,255,.22)}
+  100%{transform:scale(1)}
+}
+@media (max-width:379px){
+  .xh-wallet{margin-left:0;margin-top:4px;width:100%;justify-content:flex-start}
+}
+
+/* 文章の中に置く💎アイコン（ガイド・お知らせなど） */
+.xv-gemico{width:1.05em;height:1.05em;vertical-align:-.16em;object-fit:contain;
+  margin:0 .1em;display:inline-block}
+
+/* ── セクション見出し ── */
+.xh-sechead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 2px 0}
+.xh-sechead .t{display:flex;align-items:center;gap:7px;font-size:13.5px;font-weight:900;color:var(--xh-ink)}
+.xh-sechead .t .dot{width:8px;height:8px;border-radius:3px;flex-shrink:0;
+  background:linear-gradient(135deg,#4b8bff,#9b7bff)}
+.xh-sechead .more{font-size:11px;font-weight:800;color:#4b8bff;background:rgba(75,139,255,.1);
+  border:none;border-radius:99px;padding:6px 12px;cursor:pointer;font-family:'Noto Sans JP',sans-serif}
+.xh-sechead .more:active{transform:scale(.95)}
+
+/* ── イベントバナー（正方形画像＋テキストの横長カード） ── */
+.xh-evwrap{position:relative;overflow:hidden;border-radius:22px}
+.xh-evtrack{display:flex;transition:transform .42s cubic-bezier(.2,.8,.3,1)}
+/* ★ 1枚の幅は「枠とぴったり同じ」でなければならない。
+   送りが translateX(-i*100%)＝枠1つぶんなので、1枚でもはみ出すと、その差が
+   1枚めくるごとに積み上がり、1枚目はぴったりなのに2枚目から少しずつズレていく。
+   はみ出す原因は2つあり、両方をふさぐこと:
+   ① box-sizing:border-box —— このページには全体への box-sizing 指定が無いので、
+      既定の content-box のままだと幅が「100% ＋ padding 24px ＋ border 3px」になる。
+   ② min-width:0 —— フレックスの子は既定が min-width:auto なので、
+      中身（とくに .evt2 の white-space:nowrap の1行）より小さくなれない。
+      長い文のイベントだけ flex-basis:100% を無視してふくらむ。
+      ★ 文章の長さで表示が変わる＝新しいイベントを足したときに再発しやすいので、
+        ここを消さないこと。 */
+.xh-ev{flex:0 0 100%;min-width:0;max-width:100%;box-sizing:border-box;display:flex;align-items:center;gap:12px;padding:12px;cursor:pointer;
+  background:var(--xh-card);box-shadow:var(--xh-shadow);border:1.5px solid rgba(255,255,255,.9);
+  border-radius:22px}
+.xh-ev .evimg{width:82px;height:82px;flex-shrink:0;border-radius:18px;overflow:hidden;
+  box-shadow:0 4px 12px rgba(90,130,210,.22)}
+.xh-ev .evimg img{width:100%;height:100%;object-fit:cover;display:block}
+.xh-ev .evbody{flex:1;min-width:0}
+.xh-ev .evtag{display:inline-block;font-size:9px;font-weight:900;letter-spacing:.06em;color:#fff;
+  border-radius:99px;padding:3px 10px;background:linear-gradient(135deg,#ff9f2e,#ff6f91);margin-bottom:5px}
+.xh-ev .evt1{font-size:14.5px;font-weight:900;color:var(--xh-ink);line-height:1.35;
+  overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.xh-ev .evt2{margin-top:3px;font-size:11px;font-weight:700;color:#e0577f;line-height:1.4;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.xh-ev .evt3{margin-top:4px;font-size:9.5px;font-weight:700;color:var(--xh-sub)}
+.xh-evdots{display:flex;gap:6px;justify-content:center;margin-top:7px}
+.xh-evdots i{width:7px;height:7px;border-radius:50%;background:rgba(120,160,230,.32);cursor:pointer;transition:.2s}
+.xh-evdots i.on{background:linear-gradient(135deg,#4b8bff,#9b7bff);width:18px;border-radius:99px}
+
+/* ══════════ アプリ（正方形アイコン） ══════════ */
+.xh-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px 6px;
+  background:var(--xh-card);border-radius:22px;border:1.5px solid rgba(255,255,255,.9);
+  box-shadow:var(--xh-shadow);padding:14px 10px}
+/* シート内のグリッドはカード背景を外す（シート自体が白いので二重にしない） */
+.xh-grid.sheet{background:none;box-shadow:none;border:none;padding:0;margin-bottom:6px}
+.xh-app{display:flex;flex-direction:column;align-items:center;gap:5px;padding:0;border:none;
+  background:none;cursor:pointer;min-width:0;text-decoration:none;color:inherit;
+  font-family:'Noto Sans JP',sans-serif}
+.xh-sq{position:relative;width:100%;max-width:64px;aspect-ratio:1;border-radius:21px;overflow:hidden;
+  background:#fff;box-shadow:0 5px 16px rgba(90,130,210,.24);border:2px solid #fff;
+  transition:transform .15s,box-shadow .15s}
+.xh-app:active .xh-sq{transform:scale(.92)}
+.xh-sq img{width:100%;height:100%;object-fit:cover;display:block}
+.xh-sq .glyph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;
+  font-size:24px;font-weight:900;color:#fff;letter-spacing:.06em;
+  background:linear-gradient(150deg,#7fd0ff,#a58bff 60%,#ff9fd2)}
+.xh-app .nm{font-size:9.5px;font-weight:900;color:var(--xh-ink);text-align:center;line-height:1.2;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.xh-app .sb{font-size:8px;font-weight:700;color:var(--xh-sub);text-align:center;line-height:1.2;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+/* アプリ別のカラーリング（アイコン枠の色） */
+.xh-app[data-tone="red"]    .xh-sq{box-shadow:0 5px 16px rgba(255,110,130,.4)}
+.xh-app[data-tone="blue"]   .xh-sq{box-shadow:0 5px 16px rgba(75,139,255,.4)}
+.xh-app[data-tone="violet"] .xh-sq{box-shadow:0 5px 16px rgba(155,123,255,.42)}
+.xh-app[data-tone="teal"]   .xh-sq{box-shadow:0 5px 16px rgba(63,217,176,.4)}
+.xh-app[data-tone="pink"]   .xh-sq{box-shadow:0 5px 16px rgba(255,122,184,.4)}
+.xh-app[data-tone="gold"]   .xh-sq{box-shadow:0 5px 16px rgba(255,201,60,.45)}
+/* オフラインで開けないアプリ */
+.xh-app.locked .xh-sq{filter:grayscale(.9) brightness(1.06);box-shadow:0 3px 10px rgba(90,130,210,.16)}
+.xh-app.locked .nm,.xh-app.locked .sb{color:rgba(111,130,173,.5)}
+.xh-app.locked .xh-sq::after{content:"";position:absolute;inset:0;z-index:2;background:rgba(255,255,255,.5)
+  url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 10V7a5 5 0 0110 0v3' fill='none' stroke='%236f82ad' stroke-width='2.2'/%3E%3Crect x='5' y='10' width='14' height='10' rx='2.4' fill='%236f82ad'/%3E%3C/svg%3E") center/22px no-repeat}
+
+/* ══════════ タブバー ══════════
+   ★ 2026-08-08 作り直し。「下に白い空白がある」ように見えていた本当の理由。
+
+   これまでは<b>バーの下に同じ色の板（::after）を敷く</b>方式だった。
+   ところがバーの背景は rgba(255,255,255,.9) ＋ backdrop-filter:blur() の
+   すりガラスで、板のほうは blur が掛からない<b>ただの半透明の白</b>。
+   ホームの背景は水色〜桃色のグラデーション（#xhBg）なので、
+     ・バー本体 … ぼかされた白（明るい）
+     ・板       … 背景の色がそのまま透ける（わずかに青い）
+   と色が食いちがい、境目が<b>バーの下端の線</b>のように見える。
+   ＝ 実際にはズレていなくても「バーが浮いて、下に空白がある」と見える。
+   （MagiBurst で起きなかったのは、あちらの背景がほぼ白で差が出ないため。）
+
+   ★ 直しかた: 板をやめ、<b>バー本体そのもの</b>を下へはみ出させる。
+     margin-bottom を負にして、そのぶん padding-bottom を足す。
+     ・中身（アイコン）の位置は今までと変わらない
+     ・はみ出した部分もバー本体なので、すりガラスが必ず<b>ひと続き</b>になる
+     ・何pxズレても、下に別の色の帯が出ることが原理的になくなる
+   位置そのものは xevarion.js の --xh-fixgap（符号つき実測）で両方向に直す。 */
+/* ★ 2026-08-10 作り直し（隙間の完全解消 ＋ カラー刷新）
+   ・はみ出しを 140px → --xh-dockover(240px) に増やした。xevarion.js の
+     測定誤差の上限（MAXG）は 130px なので、上下どちらへズレても
+     はみ出しが必ず画面の下端を越える＝隙間が原理的に出ない。
+   ・すりガラス（backdrop-filter）をやめて<b>不透明</b>にした。半透明だと
+     はみ出した部分と本体で背景の写りかたが変わり、境目が線に見えていた。
+   ・上端に虹のアクセント線（::before）を足し、下地をパステルのオーロラに。 */
+:root{ --xh-dockover:240px }
+.xh-bar{position:relative;flex-shrink:0;display:grid;grid-template-columns:repeat(5,1fr);gap:3px;
+  /* ★ はみ出したぶんにボタンが引き伸ばされないよう、行は中身の高さで上詰めにする
+     （これをしないと選択中タブの色付きピルが縦長になる）。 */
+  grid-auto-rows:min-content;align-content:start;
+  margin-bottom:calc(-1 * var(--xh-dockover));
+  padding:6px 8px calc(var(--xh-safeb, env(safe-area-inset-bottom,0px)) + 6px + var(--xh-dockover));
+  background:linear-gradient(98deg,#f6f0ff 0%,#eef4ff 34%,#e9f7ff 62%,#fff1f7 100%);
+  box-shadow:0 -8px 26px rgba(90,130,210,.18),0 -1px 0 rgba(255,255,255,.92) inset}
+.xh-bar::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;pointer-events:none;
+  background:linear-gradient(90deg,#8e6bff 0%,#38a6ff 30%,#22c7a9 52%,#ffb020 74%,#ff6f91 100%);
+  box-shadow:0 1px 8px rgba(120,110,255,.35)}
+.xh-ntab{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 2px 4px;border:none;
+  background:none;cursor:pointer;color:var(--xh-sub);border-radius:16px;
+  font-family:'Noto Sans JP',sans-serif;transition:color .16s,background .16s}
+.xh-ntab svg{width:23px;height:23px}
+.xh-ntab .tl{font-size:8.5px;font-weight:900;letter-spacing:-.01em;white-space:nowrap}
+@media (max-width:360px){.xh-ntab .tl{font-size:7.5px}}
+.xh-ntab.on{color:#fff;background:linear-gradient(150deg,#3f7dff,#8e6bff 55%,#ff6f91);
+  box-shadow:0 6px 18px rgba(100,130,255,.45),0 1px 0 rgba(255,255,255,.5) inset}
+.xh-ntab:not(.on):active{background:rgba(120,140,255,.14)}
+.xh-ntab:disabled{opacity:.4;cursor:not-allowed}
+
+/* ══════════ トースト ══════════ */
+#xhToast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 88px);
+  transform:translateX(-50%) translateY(14px);z-index:9500;max-width:86vw;padding:12px 18px;border-radius:16px;
+  font-size:12.5px;font-weight:800;color:var(--xh-ink);background:#fff;
+  border:1.5px solid rgba(120,160,230,.3);box-shadow:0 12px 34px rgba(90,130,210,.3);
+  opacity:0;pointer-events:none;transition:all .3s cubic-bezier(.2,.8,.3,1);
+  font-family:'Noto Sans JP',sans-serif;text-align:center;line-height:1.65}
+#xhToast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ══════════ シート（設定・一覧・AI など） ══════════
+   ★ iPhone で「シートが画面外にはみ出してバツが押せない」不具合の対策。
+     原因は 100vh 系の単位と実際に見えている高さのズレ:
+     ・iOS の vh は「URLバーが引っ込んだ状態」の高さ。URLバーが出ている間は
+       実際に見える高さの方が小さい。
+     ・シートは align-items:flex-end（下ぞろえ）なので、カードが器より高くなると
+       はみ出すのは *上側*。つまりヘッダー＝✕ボタンが画面の上に消える。
+     ・キーボードを出すと見える高さはさらに縮む（AIアシスタントで顕著）。
+     対策:
+     1) 高さは --xh-vph（dvh、さらに JS が visualViewport で上書き）を使う
+     2) カードは max-height:100% ＝ 器より高くならない（＝上にはみ出さない）
+     3) 器の上側にセーフエリア＋24px の余白を確保し、✕ が必ず画面内に来る */
+:root{ --xh-vph:100vh }
+@supports (height:100dvh){ :root{ --xh-vph:100dvh } }
+
+.xh-sheet{position:fixed;left:0;right:0;top:0;height:var(--xh-vph);
+  box-sizing:border-box;padding-top:calc(env(safe-area-inset-top,0px) + 24px);
+  z-index:1400;display:none;align-items:flex-end;justify-content:center;
+  background:rgba(40,70,130,.34);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}
+.xh-sheet.on{display:flex;animation:xhFade .22s ease}
+@keyframes xhFade{from{opacity:0}to{opacity:1}}
+.xh-sheet-card{width:100%;max-width:600px;max-height:100%;display:flex;flex-direction:column;
+  border-radius:26px 26px 0 0;background:linear-gradient(180deg,#ffffff,#f4f9ff);
+  border:1.5px solid rgba(255,255,255,.95);border-bottom:none;color:var(--xh-ink);
+  box-shadow:0 -10px 40px rgba(60,100,180,.28);animation:xhUp .28s cubic-bezier(.2,.9,.3,1);
+  font-family:'Noto Sans JP',sans-serif}
+@keyframes xhUp{from{transform:translateY(30px)}to{transform:translateY(0)}}
+.xh-sheet-head{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:10px;
+  padding:16px 16px 12px;border-bottom:1.5px solid rgba(120,160,230,.18)}
+.xh-sheet-title{font-size:15.5px;font-weight:900;color:var(--xh-ink)}
+.xh-sheet-x{background:rgba(120,160,230,.14);border:none;border-radius:11px;width:34px;height:34px;
+  color:var(--xh-sub);font-size:16px;cursor:pointer;flex-shrink:0}
+.xh-sheet-body{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding:14px 16px calc(env(safe-area-inset-bottom,0px) + 18px)}
+
+.xh-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:13px 14px;
+  border-radius:16px;background:#fff;border:1.5px solid rgba(120,160,230,.2);box-shadow:var(--xh-shadow-s);
+  margin-bottom:9px;cursor:pointer;width:100%;text-align:left;color:inherit;font-family:inherit;font-size:13px}
+.xh-row:active{transform:scale(.99)}
+.xh-row .rl{display:flex;align-items:center;gap:11px;min-width:0}
+.xh-row .rl svg{width:20px;height:20px;flex-shrink:0;color:#4b8bff}
+.xh-row .rl > span{min-width:0}
+.xh-row .rt{display:block;font-size:13px;font-weight:800;color:var(--xh-ink);line-height:1.4}
+.xh-row .rs{display:block;font-size:10.5px;color:var(--xh-sub);margin-top:2px;line-height:1.5;font-weight:600}
+.xh-row .rv{font-size:12px;font-weight:800;color:#4b8bff;flex-shrink:0}
+.xh-sec-label{font-size:10.5px;font-weight:900;letter-spacing:.1em;color:#4b8bff;margin:16px 0 9px}
+.xh-sec-label:first-child{margin-top:2px}
+
+.xh-sbtn{width:100%;padding:14px;border:none;border-radius:16px;color:#fff;font-size:14px;font-weight:900;
+  cursor:pointer;font-family:'Noto Sans JP',sans-serif;background:linear-gradient(135deg,#4b8bff,#9b7bff);
+  box-shadow:0 8px 22px rgba(100,130,255,.4);margin-top:12px}
+.xh-sbtn:disabled{opacity:.45;box-shadow:none;cursor:not-allowed}
+.xh-sbtn.ghost{background:#fff;color:var(--xh-sub);border:1.5px solid rgba(120,160,230,.3);box-shadow:none}
+
+/* スイッチ */
+.xh-sw{width:48px;height:27px;border-radius:99px;background:rgba(120,160,230,.28);
+  position:relative;flex-shrink:0;transition:background .2s}
+.xh-sw::after{content:"";position:absolute;top:3px;left:3px;width:21px;height:21px;border-radius:50%;
+  background:#fff;transition:transform .2s;box-shadow:0 2px 5px rgba(60,100,180,.3)}
+.xh-sw.on{background:linear-gradient(135deg,#4b8bff,#9b7bff)}
+.xh-sw.on::after{transform:translateX(21px)}
+
+/* ══════════ アプリ一覧シート ══════════ */
+.xh-search{width:100%;padding:12px 15px;border-radius:14px;border:1.5px solid rgba(120,160,230,.3);
+  background:#fff;color:var(--xh-ink);font-size:14px;outline:none;font-family:'Noto Sans JP',sans-serif;
+  margin-bottom:12px;box-shadow:var(--xh-shadow-s)}
+.xh-search::placeholder{color:rgba(111,130,173,.6)}
+.xh-cats{display:flex;gap:6px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:10px;margin-bottom:2px}
+.xh-cat{flex-shrink:0;font-size:11.5px;font-weight:800;color:var(--xh-sub);background:#fff;
+  border:1.5px solid rgba(120,160,230,.26);border-radius:99px;padding:8px 15px;cursor:pointer;
+  font-family:'Noto Sans JP',sans-serif;white-space:nowrap}
+.xh-cat.on{color:#fff;background:linear-gradient(135deg,#4b8bff,#9b7bff);border-color:transparent;
+  box-shadow:0 4px 12px rgba(100,130,255,.36)}
+.xh-alist{display:flex;flex-direction:column;gap:9px}
+.xh-aitem{display:flex;align-items:flex-start;gap:12px;padding:11px;border-radius:18px;background:#fff;
+  border:1.5px solid rgba(120,160,230,.2);box-shadow:var(--xh-shadow-s);cursor:pointer;
+  width:100%;text-align:left;font-family:inherit;color:inherit}
+.xh-aitem:active{transform:scale(.99)}
+.xh-aitem .ai-ic{width:52px;height:52px;flex-shrink:0;border-radius:16px;overflow:hidden;
+  box-shadow:0 3px 10px rgba(90,130,210,.22)}
+.xh-aitem .ai-ic img{width:100%;height:100%;object-fit:cover;display:block}
+.xh-aitem .ai-bd{flex:1;min-width:0;display:block}
+.xh-aitem .ai-nm{display:block;font-size:13.5px;font-weight:900;color:var(--xh-ink);line-height:1.4}
+.xh-aitem .ai-sb{display:block;font-size:10.5px;font-weight:800;color:#4b8bff;margin-top:1px;line-height:1.4}
+.xh-aitem .ai-ds{display:block;font-size:10.5px;color:var(--xh-sub);margin-top:4px;line-height:1.65;font-weight:600}
+.xh-aitem .ai-go{flex-shrink:0;font-size:17px;color:#9fb6e0;align-self:center}
+.xh-aitem.locked{opacity:.55}
+.xh-aitem .ai-off{display:none;font-size:9.5px;font-weight:800;color:#a35b00;background:#ffeccc;
+  border-radius:99px;padding:2px 8px;margin-top:4px}
+.xh-aitem.locked .ai-off{display:inline-block}
+.xh-catlabel{font-size:11px;font-weight:900;letter-spacing:.08em;color:#4b8bff;margin:14px 0 8px}
+.xh-catlabel:first-child{margin-top:0}
+.xh-empty{text-align:center;font-size:12.5px;color:var(--xh-sub);padding:26px 10px;line-height:1.9;font-weight:600}
+
+/* ══════════ 並び替えシート ══════════ */
+.xh-sortlist{display:flex;flex-direction:column;gap:7px}
+.xh-sortrow{display:flex;align-items:center;gap:9px;padding:9px 11px;border-radius:15px;background:#fff;
+  border:1.5px solid rgba(120,160,230,.2);box-shadow:var(--xh-shadow-s);
+  transition:transform .16s cubic-bezier(.2,.8,.3,1)}
+/* ドラッグ用のつまみ（ここを押してスライドすると並べ替えられる） */
+.xh-sortrow .sgrip{width:26px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+  color:#9fb6e0;cursor:grab;touch-action:none;-webkit-user-select:none;user-select:none}
+.xh-sortrow .sgrip svg{width:19px;height:19px;pointer-events:none}
+.xh-sortrow.drag{transition:none;z-index:5;position:relative;cursor:grabbing;
+  box-shadow:0 12px 28px rgba(60,100,180,.34);border-color:rgba(75,139,255,.6);transform-origin:center}
+.xh-sortrow.drag .sgrip{cursor:grabbing;color:#4b8bff}
+body.xh-dragging{-webkit-user-select:none;user-select:none}
+body.xh-dragging .xh-sheet-body{overflow:hidden}
+.xh-sortrow .sn{width:22px;flex-shrink:0;text-align:center;font-family:'Orbitron',sans-serif;
+  font-size:12px;font-weight:700;color:#9fb6e0}
+.xh-sortrow .si{width:38px;height:38px;flex-shrink:0;border-radius:12px;overflow:hidden}
+.xh-sortrow .si img{width:100%;height:100%;object-fit:cover;display:block}
+.xh-sortrow .st{flex:1;min-width:0;font-size:12.5px;font-weight:800;color:var(--xh-ink);
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.xh-sortrow .sb2{display:flex;gap:5px;flex-shrink:0}
+.xh-sortrow .sb2 button{width:32px;height:32px;border-radius:10px;border:1.5px solid rgba(120,160,230,.3);
+  background:#fff;color:#4b8bff;font-size:14px;cursor:pointer;line-height:1;padding:0}
+.xh-sortrow .sb2 button:disabled{opacity:.3;cursor:default}
+.xh-sortrow.home{border-color:rgba(75,139,255,.5);background:linear-gradient(120deg,#f2f8ff,#fbf6ff)}
+.xh-sortnote{font-size:11px;color:var(--xh-sub);line-height:1.75;margin-bottom:12px;font-weight:600}
+.xh-sortnote b{color:#4b8bff}
+
+/* ══════════ AI アシスタント シート ══════════ */
+.xh-ai-head{display:flex;align-items:center;gap:10px}
+.xh-ai-av{width:40px;height:40px;flex-shrink:0;border-radius:14px;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(150deg,#8fe3ff,#b49bff 55%,#ff9fd2);box-shadow:0 4px 12px rgba(140,120,255,.4)}
+.xh-ai-av svg{width:26px;height:26px}
+.xh-ai-name{font-family:'Orbitron',sans-serif;font-size:12px;font-weight:700;
+  background:linear-gradient(90deg,#2ec7ff,#9b7bff 55%,#ff7ab8);-webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent}
+.xh-ai-sub{font-size:10px;font-weight:700;color:var(--xh-sub);margin-top:1px}
+.xh-ai-log{display:flex;flex-direction:column;gap:10px;min-height:120px}
+.xh-msgrow{display:flex;gap:8px;align-items:flex-end}
+.xh-msgrow.me{justify-content:flex-end}
+.xh-bub{max-width:82%;padding:11px 14px;border-radius:18px;font-size:12.5px;line-height:1.8;font-weight:600}
+.xh-msgrow.ai .xh-bub{background:#fff;border:1.5px solid rgba(120,160,230,.22);color:var(--xh-ink);
+  border-bottom-left-radius:6px;box-shadow:var(--xh-shadow-s)}
+.xh-msgrow.me .xh-bub{background:linear-gradient(135deg,#4b8bff,#9b7bff);color:#fff;
+  border-bottom-right-radius:6px;box-shadow:0 5px 14px rgba(100,130,255,.34)}
+.xh-bub b{color:#e0577f}
+.xh-msgrow.me .xh-bub b{color:#fff}
+.xh-chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+.xh-chips button{font-size:11px;font-weight:800;color:#0f7fbf;background:rgba(46,199,255,.12);
+  border:1.5px solid rgba(46,199,255,.42);border-radius:99px;padding:7px 13px;cursor:pointer;
+  font-family:'Noto Sans JP',sans-serif}
+.xh-chips button:active{transform:scale(.96)}
+.xh-ai-inrow{flex-shrink:0;display:flex;align-items:center;gap:8px;padding:10px 14px calc(env(safe-area-inset-bottom,0px) + 12px);
+  border-top:1.5px solid rgba(120,160,230,.18);background:#fff}
+.xh-ai-inp{flex:1;min-width:0;padding:12px 15px;border-radius:99px;border:1.5px solid rgba(120,160,230,.3);
+  background:#f6faff;color:var(--xh-ink);font-size:13.5px;outline:none;font-family:'Noto Sans JP',sans-serif}
+.xh-ai-inp::placeholder{color:rgba(111,130,173,.65)}
+.xh-mic,.xh-send{width:44px;height:44px;flex-shrink:0;border-radius:50%;border:none;cursor:pointer;padding:0;
+  display:flex;align-items:center;justify-content:center;color:#fff}
+.xh-mic{background:linear-gradient(150deg,#8fe3ff,#b49bff);box-shadow:0 4px 14px rgba(140,160,255,.45)}
+.xh-send{background:linear-gradient(150deg,#4b8bff,#9b7bff);box-shadow:0 4px 14px rgba(100,130,255,.45)}
+.xh-mic svg,.xh-send svg{width:20px;height:20px}
+.xh-mic:active,.xh-send:active{transform:scale(.92)}
+.xh-mic.rec{background:linear-gradient(150deg,#ff9db4,#ff5d7e);animation:xhRec 1s ease-in-out infinite}
+@keyframes xhRec{0%,100%{box-shadow:0 0 0 0 rgba(255,90,120,.55)}50%{box-shadow:0 0 0 10px rgba(255,90,120,0)}}
+
+/* ── 入力欄の上に出す「言い方の見本」（横スクロール1行） ── */
+.xh-ai-quick{flex-shrink:0;display:flex;gap:6px;padding:9px 14px 3px;overflow-x:auto;
+  -webkit-overflow-scrolling:touch;scrollbar-width:none}
+.xh-ai-quick::-webkit-scrollbar{display:none}
+.xh-ai-quick button{flex-shrink:0;white-space:nowrap;font-size:11px;font-weight:800;color:var(--xh-sub);
+  background:#fff;border:1.5px solid rgba(120,160,230,.28);border-radius:99px;padding:7px 13px;cursor:pointer;
+  font-family:'Noto Sans JP',sans-serif;box-shadow:var(--xh-shadow-s)}
+.xh-ai-quick button:active{transform:scale(.96)}
+
+/* ── 「入力中…」の吹き出し ── */
+.xh-typing{display:flex;align-items:center;gap:5px;padding:14px 16px}
+.xh-typing i{width:7px;height:7px;border-radius:50%;background:rgba(120,160,230,.6);
+  animation:xhDot 1.1s ease-in-out infinite}
+.xh-typing i:nth-child(2){animation-delay:.16s}
+.xh-typing i:nth-child(3){animation-delay:.32s}
+@keyframes xhDot{0%,60%,100%{opacity:.3;transform:translateY(0)}30%{opacity:1;transform:translateY(-4px)}}
+
+/* ── チャットの中に出るタイマーカード ── */
+.xh-tcard{margin-top:10px;padding:12px 14px;border-radius:16px;background:linear-gradient(135deg,#f2f8ff,#fdf3ff);
+  border:1.5px solid rgba(120,160,230,.26)}
+.xh-tcard.done{opacity:.45}
+.xh-tcard .tt{font-size:10.5px;font-weight:800;color:var(--xh-sub);letter-spacing:.06em}
+.xh-tcard .tv{font-family:'Orbitron',sans-serif;font-size:30px;font-weight:800;line-height:1.15;color:#3f6ddb;
+  font-variant-numeric:tabular-nums}
+.xh-tcard .tbar{margin-top:7px;height:7px;border-radius:99px;background:rgba(120,160,230,.2);overflow:hidden}
+.xh-tcard .tbar i{display:block;height:100%;width:0;border-radius:99px;
+  background:linear-gradient(90deg,#4b8bff,#9b7bff,#ff7ab8);transition:width .3s linear}
+
+/* ── AIを閉じていても残り時間が見える、右下の小さなチップ ── */
+#xhTimerChip{position:fixed;right:14px;bottom:calc(env(safe-area-inset-bottom,0px) + 86px);z-index:1300;
+  display:none;align-items:center;gap:6px;padding:9px 14px;border-radius:99px;border:1.5px solid rgba(120,160,230,.3);
+  background:#fff;box-shadow:0 8px 24px rgba(90,130,210,.3);cursor:pointer;font-family:'Noto Sans JP',sans-serif}
+#xhTimerChip.on{display:flex;animation:xhUp .28s cubic-bezier(.2,.9,.3,1)}
+#xhTimerChip .ic{font-size:14px}
+#xhTimerChip .v{font-family:'Orbitron',sans-serif;font-size:13px;font-weight:800;color:#3f6ddb;
+  font-variant-numeric:tabular-nums}
+#xhTimerChip .n{font-size:9.5px;font-weight:900;color:#fff;background:#ff7ab8;border-radius:99px;padding:1px 6px}
+
+/* ══════════ キャラ選択（ホームアイコン用・正方形） ══════════ */
+.xh-cgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(82px,1fr));gap:10px}
+.xh-cpick{position:relative;border-radius:18px;overflow:hidden;border:2.5px solid rgba(120,160,230,.2);
+  background:#fff;cursor:pointer;aspect-ratio:1;padding:0;box-shadow:var(--xh-shadow-s)}
+.xh-cpick img{width:100%;height:100%;object-fit:cover;display:block}
+.xh-cpick .cn{position:absolute;left:0;right:0;bottom:0;font-size:9.5px;font-weight:800;color:#fff;
+  padding:10px 2px 4px;background:linear-gradient(transparent,rgba(20,40,80,.8))}
+.xh-cpick.sel{border-color:#ffc93c;box-shadow:0 0 0 3px rgba(255,201,60,.32),0 6px 18px rgba(255,180,60,.4)}
+.xh-cpick .ord{position:absolute;top:5px;left:5px;width:21px;height:21px;border-radius:8px;
+  background:linear-gradient(135deg,#ffb020,#ff6f91);color:#fff;font-family:'Orbitron',sans-serif;font-size:11px;
+  font-weight:700;display:none;align-items:center;justify-content:center;border:2px solid #fff}
+.xh-cpick.sel .ord{display:flex}
+
+/* ══════════ 管理者コード ══════════ */
+.xh-code{width:100%;padding:14px 16px;border-radius:14px;border:1.5px solid rgba(120,160,230,.3);
+  background:#fff;color:var(--xh-ink);font-size:16px;outline:none;text-align:center;letter-spacing:.14em;
+  font-family:'Noto Sans JP',sans-serif;box-shadow:var(--xh-shadow-s)}
+.xh-codemsg{font-size:11.5px;font-weight:800;color:#e0577f;min-height:18px;text-align:center;margin-top:8px}
+
+/* 初回インストール案内 */
+.xh-inst-hero{display:flex;align-items:center;gap:13px;padding:14px;border-radius:20px;
+  background:linear-gradient(120deg,#eaf3ff,#f7edff);border:1.5px solid rgba(120,160,230,.24)}
+.xh-inst-hero img{width:62px;height:62px;border-radius:18px;flex-shrink:0;
+  box-shadow:0 6px 18px rgba(90,130,210,.3)}
+.xh-inst-hero .t1{font-family:'Orbitron',sans-serif;font-size:16px;font-weight:900;
+  background:linear-gradient(100deg,#2b62d8,#a24fd0);-webkit-background-clip:text;background-clip:text;
+  -webkit-text-fill-color:transparent}
+.xh-inst-hero .t2{font-size:10.5px;font-weight:700;color:var(--xh-sub);margin-top:2px}
+.xh-inst-steps{margin-top:12px}
+.xh-inst-steps .st{display:flex;gap:10px;align-items:flex-start;padding:10px 12px;border-radius:14px;
+  background:#fff;border:1.5px solid rgba(120,160,230,.2);margin-bottom:7px;box-shadow:var(--xh-shadow-s)}
+.xh-inst-steps .n{width:22px;height:22px;flex-shrink:0;border-radius:8px;color:#fff;font-size:11px;font-weight:900;
+  display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#4b8bff,#9b7bff)}
+.xh-inst-steps .x{font-size:12px;font-weight:700;color:var(--xh-ink);line-height:1.7}
+.xh-inst-steps .x b{color:#4b8bff}
+
+/* 遷移時のスプラッシュ（bfcache の古い画面を隠す） */
+#xhCover{position:fixed;top:0;left:0;right:0;height:var(--xh-appvh);z-index:2147483000;display:none;flex-direction:column;
+  align-items:center;justify-content:center;gap:12px;
+  background:linear-gradient(175deg,#d9ecff 0%,#eef6ff 34%,#fdf4ff 72%,#fff7ef 100%)}
+#xhCover.on{display:flex}
+#xhCover img{width:76px;height:76px;object-fit:contain;
+  filter:drop-shadow(0 6px 20px rgba(90,140,240,.5));animation:xhCoverPop .5s cubic-bezier(.2,.9,.3,1)}
+#xhCover .w{font-family:'Orbitron',sans-serif;font-size:17px;font-weight:900;letter-spacing:.1em;
+  background:linear-gradient(100deg,#2b62d8,#6b4fd8 55%,#a24fd0);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+#xhCover .sp{width:26px;height:26px;border-radius:50%;border:3px solid rgba(120,160,230,.28);
+  border-top-color:#4b8bff;animation:xhSpin2 .8s linear infinite;margin-top:4px}
+@keyframes xhSpin2{to{transform:rotate(360deg)}}
+@keyframes xhCoverPop{from{opacity:0;transform:scale(.88)}to{opacity:1;transform:scale(1)}}
+
+/* 更新ダウンロード */
+.xh-upd-head{padding:14px;border-radius:18px;background:linear-gradient(120deg,#eaf3ff,#f7edff);
+  border:1.5px solid rgba(120,160,230,.24)}
+.xh-upd-ttl{font-size:14.5px;font-weight:900;color:var(--xh-ink);line-height:1.5}
+.xh-upd-meta{margin-top:4px;font-size:11px;font-weight:800;color:#4b8bff;display:flex;gap:7px;align-items:center}
+.xh-upd-meta .dot{color:rgba(111,130,173,.6)}
+/* ダウンロード量の内訳（更新をためこんでいても取り直す量は変わらない、という説明） */
+.xh-upd-size{margin-top:10px;padding:9px 12px;border-radius:14px;font-size:10.5px;font-weight:700;line-height:1.7;
+  color:var(--xh-sub);background:rgba(120,160,230,.1);border:1px solid rgba(120,160,230,.22)}
+.xh-upd-size b{color:var(--xh-ink)}
+.xh-upd-size:empty{display:none}
+.xh-upd-notes{list-style:none;margin:12px 0 0;padding:0}
+.xh-upd-notes li{position:relative;padding:9px 12px 9px 30px;border-radius:14px;background:#fff;
+  border:1.5px solid rgba(120,160,230,.2);box-shadow:var(--xh-shadow-s);margin-bottom:7px;
+  font-size:11.5px;font-weight:700;color:#5d6f9b;line-height:1.7}
+.xh-upd-notes li::before{content:"";position:absolute;left:12px;top:14px;width:8px;height:8px;border-radius:3px;
+  background:linear-gradient(135deg,#4b8bff,#9b7bff)}
+/* 見送っていた回をまとめて出すときの、版ごとの見出し */
+.xh-upd-notes li.ver{display:flex;align-items:baseline;justify-content:space-between;gap:8px;
+  padding:8px 12px;margin:14px 0 7px;background:linear-gradient(135deg,#4b8bff,#9b7bff);
+  border:none;color:#fff;font-size:12px;font-weight:900;box-shadow:0 5px 14px rgba(100,130,255,.3)}
+.xh-upd-notes li.ver:first-child{margin-top:0}
+.xh-upd-notes li.ver::before{display:none}
+.xh-upd-notes li.ver small{font-size:9.5px;font-weight:800;opacity:.82;white-space:nowrap}
+.xh-upd-prog{display:none;margin-top:14px}
+.xh-upd-prog.on{display:block}
+.xh-upd-prog .bar{height:10px;border-radius:99px;background:rgba(120,160,230,.2);overflow:hidden}
+.xh-upd-prog .bar i{display:block;height:100%;width:0;border-radius:99px;
+  background:linear-gradient(90deg,#3fd9ff,#7b9bff 55%,#c07bff);transition:width .25s ease}
+.xh-upd-prog .pt{margin-top:7px;font-size:11.5px;font-weight:800;color:#4b8bff;text-align:center}
+/* ══════════ ダウンロードのしくみガイド（2026-08-10） ══════════
+   説明を「読ませる」のではなく、<b>実際の進み具合に合わせて段を光らせる</b>。
+   ・.now  … いま起きていること（青く光る）
+   ・.done … 済んだ段（チェック＋淡く） */
+.xh-dlg{margin-top:12px;padding:12px;border-radius:18px;
+  background:linear-gradient(135deg,rgba(56,166,255,.10),rgba(142,107,255,.08));
+  border:1.5px solid rgba(120,160,230,.28)}
+.xh-dlg-h{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;
+  font-size:12px;font-weight:900;color:var(--xh-ink);margin-bottom:9px}
+.xh-dlg-live{font-size:9.5px;font-weight:800;color:#3f7dff;background:rgba(63,125,255,.12);
+  border-radius:99px;padding:3px 9px;white-space:nowrap}
+.xh-dlg-steps{list-style:none;margin:0;padding:0;counter-reset:dlg}
+.xh-dlg-steps li{counter-increment:dlg;position:relative;padding:9px 11px 9px 36px;margin-bottom:6px;
+  border-radius:14px;background:#fff;border:1.5px solid rgba(120,160,230,.20);
+  font-size:11px;line-height:1.75;color:var(--xh-sub);transition:all .25s}
+.xh-dlg-steps li:last-child{margin-bottom:0}
+.xh-dlg-steps li::before{content:counter(dlg);position:absolute;left:10px;top:9px;
+  width:19px;height:19px;border-radius:7px;display:flex;align-items:center;justify-content:center;
+  font-family:'Orbitron',sans-serif;font-size:10px;font-weight:900;color:#fff;
+  background:linear-gradient(135deg,#9fb6d8,#c3cfe3);transition:all .25s}
+.xh-dlg-steps li b{display:block;font-size:11.5px;font-weight:900;color:var(--xh-ink);margin-bottom:2px}
+.xh-dlg-steps li em{font-style:normal;font-weight:800;color:#3f7dff}
+.xh-dlg-steps li.now{border-color:rgba(63,125,255,.55);background:#f2f8ff;
+  box-shadow:0 4px 16px rgba(63,125,255,.22)}
+.xh-dlg-steps li.now::before{background:linear-gradient(135deg,#3f7dff,#8e6bff);
+  animation:xhDlgPulse 1.1s ease-in-out infinite}
+@keyframes xhDlgPulse{0%,100%{transform:scale(1);box-shadow:0 0 0 0 rgba(63,125,255,.45)}
+  50%{transform:scale(1.12);box-shadow:0 0 0 6px rgba(63,125,255,0)}}
+.xh-dlg-steps li.done{opacity:.72}
+.xh-dlg-steps li.done::before{content:"✓";background:linear-gradient(135deg,#12a97a,#5fd6a8)}
+
+/* ══════════ よくある疑問 ══════════ */
+.xh-faq{margin-top:12px}
+.xh-faq details{background:#fff;border:1.5px solid rgba(120,160,230,.22);border-radius:14px;
+  margin-bottom:6px;overflow:hidden}
+.xh-faq summary{list-style:none;cursor:pointer;padding:10px 32px 10px 12px;position:relative;
+  font-size:11.5px;font-weight:800;color:var(--xh-ink);line-height:1.65}
+.xh-faq summary::-webkit-details-marker{display:none}
+.xh-faq summary::after{content:"＋";position:absolute;right:12px;top:10px;font-weight:900;color:#4b8bff}
+.xh-faq details[open] summary::after{content:"−"}
+.xh-faq details[open] summary{background:linear-gradient(120deg,#eaf3ff,#f7edff)}
+.xh-faq p{margin:0;padding:2px 12px 12px;font-size:11px;line-height:1.85;
+  color:var(--xh-sub);font-weight:600}
+.xh-faq p b{color:var(--xh-ink);font-weight:900}
+
+
+/* ══════════ 💎ジェム変換所 ＆ ジェムショップ ══════════
+   ホームの「開催中のイベント」の上に置く2枚のカード。
+   ジェムは XEVARION 共通通貨なので、交換の入口はここ1か所だけにする。 */
+.xh-xrow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.xh-xcard{position:relative;display:flex;flex-direction:column;align-items:center;gap:5px;
+  padding:14px 10px 13px;border:none;border-radius:20px;cursor:pointer;overflow:hidden;
+  box-shadow:var(--xh-shadow);font-family:inherit;text-align:center;
+  transition:transform .12s ease}
+.xh-xcard:active{transform:scale(.97)}
+.xh-xcard.exch{background:linear-gradient(150deg,#fff6df 0%,#ffeaf7 58%,#f0e6ff 100%)}
+.xh-xcard.shop{background:linear-gradient(150deg,#e6f3ff 0%,#eae8ff 58%,#ffe9f6 100%)}
+/* 上端の光の帯（金属質な質感を少しだけ足す） */
+.xh-xcard::before{content:"";position:absolute;left:0;right:0;top:0;height:3px;
+  background:linear-gradient(90deg,#ffd257,#ff7ab8,#9b7bff)}
+.xh-xcard.shop::before{background:linear-gradient(90deg,#2ec7ff,#9b7bff,#ff7ab8)}
+.xhx-ic{display:flex;align-items:center;justify-content:center;gap:4px;height:34px}
+.xhx-ic img{width:27px;height:27px;object-fit:contain}
+.xhx-ic .ar{font-size:19px;font-weight:900;color:#b48be0;line-height:1}
+.xhx-ic .bag{font-size:26px;line-height:1}
+.xhx-t{font-size:13.5px;font-weight:900;color:var(--xh-ink);line-height:1.3}
+.xhx-s{font-size:10.5px;font-weight:700;color:var(--xh-sub);line-height:1.45}
+.xhx-badge{display:none;position:absolute;right:8px;top:8px;min-width:18px;height:18px;padding:0 5px;
+  border-radius:99px;background:#ff5d7a;color:#fff;font-size:10.5px;font-weight:900;
+  display:none;align-items:center;justify-content:center;box-shadow:0 2px 7px rgba(255,93,122,.5)}
+.xhx-badge.show{display:flex}
+
+/* ── 為替パネル（ドル円のレートと推移グラフ）──
+   変換所とジェムショップの両方の先頭に置く。レートが数字だけだと
+   「高いのか安いのか」が分からないので、90日ぶんの線を添える。 */
+.xh-fx{margin:0 0 14px;padding:12px 13px 10px;border-radius:16px;
+  background:linear-gradient(180deg,#f7fbff,#eef5ff);border:1.5px solid rgba(120,160,230,.24)}
+.xh-fxhd{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:2px}
+.xh-fxsym{font-family:'Orbitron',sans-serif;font-size:10px;letter-spacing:.09em;color:#6f82ad}
+.xh-fxstamp{font-size:9.5px;font-weight:700;color:#8ea3c8;text-align:right;line-height:1.4}
+.xh-fxrate{display:flex;align-items:baseline;gap:6px;flex-wrap:wrap;margin-bottom:6px}
+.xh-fxrate b{font-family:'Orbitron',sans-serif;font-size:26px;color:var(--xh-ink);line-height:1.1}
+.xh-fxrate span{font-size:12px;font-weight:800;color:#6f82ad}
+.xh-fxdl{font-size:11.5px;font-weight:900;margin-left:auto}
+.xh-fxdl.up{color:#e0405e}
+.xh-fxdl.dn{color:#1d8fd8}
+.xh-fxsvg{display:block;width:100%;height:92px}
+.xh-fxfoot{display:flex;justify-content:space-between;gap:8px;margin-top:2px;
+  font-size:9.5px;font-weight:700;color:#8ea3c8}
+.xh-fxempty{padding:22px 8px;text-align:center;font-size:11px;font-weight:700;color:#8ea3c8}
+
+/* ── 変換所シートの中身 ── */
+.xh-exbal{display:flex;justify-content:center;gap:10px;margin:2px 0 12px;flex-wrap:wrap}
+.xh-exbal span{display:flex;align-items:center;gap:5px;padding:8px 13px;border-radius:99px;
+  background:#f4f8ff;border:1.5px solid rgba(120,160,230,.24);
+  font-size:13px;font-weight:900;color:var(--xh-ink)}
+.xh-exbal img{width:19px;height:19px;object-fit:contain}
+/* 個数を決めるステッパー */
+.xh-exstep{display:flex;align-items:center;justify-content:center;gap:12px;margin:4px 0 10px}
+.xh-exstep button{width:44px;height:44px;border-radius:15px;border:1.5px solid rgba(120,160,230,.3);
+  background:#fff;color:#4b8bff;font-size:22px;font-weight:900;cursor:pointer;line-height:1;
+  display:grid;place-items:center;box-shadow:var(--xh-shadow-s)}
+.xh-exstep button:active{transform:scale(.92)}
+.xh-exstep button:disabled{opacity:.35;cursor:not-allowed}
+.xh-exqty{min-width:118px;text-align:center}
+.xh-exqty b{display:block;font-family:'Orbitron',sans-serif;font-size:29px;font-weight:800;color:#7b4fd8;line-height:1.1}
+.xh-exqty small{display:block;font-size:10.5px;font-weight:800;color:var(--xh-sub);margin-top:2px}
+.xh-expre{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:12px}
+.xh-expre button{padding:9px 2px;border-radius:13px;border:1.5px solid rgba(120,160,230,.28);
+  background:#fff;font-size:12px;font-weight:900;color:#4b8bff;cursor:pointer;font-family:inherit}
+.xh-expre button.on{background:linear-gradient(135deg,#4b8bff,#9b7bff);color:#fff;border-color:transparent}
+.xh-expre button:active{transform:scale(.95)}
+.xh-excost{text-align:center;font-size:12.5px;font-weight:800;color:var(--xh-sub);margin-bottom:11px;line-height:1.7}
+.xh-excost b{color:#d97800;font-family:'Orbitron',sans-serif;font-size:15px}
+.xh-exmsg{text-align:center;font-size:11.5px;font-weight:800;margin-top:10px;min-height:16px;line-height:1.6}
+
+/* ── ショップシートの中身（1回限りのパック） ── */
+.xh-pack{position:relative;display:flex;align-items:center;gap:12px;padding:13px 14px;margin-bottom:10px;
+  border-radius:19px;background:#fff;border:1.5px solid rgba(120,160,230,.22);
+  box-shadow:var(--xh-shadow-s);overflow:hidden}
+.xh-pack.sold{opacity:.55}
+.xh-pack::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--pk,#9b7bff)}
+.xh-pkic{flex-shrink:0;width:54px;height:54px;border-radius:17px;display:grid;place-items:center;
+  font-size:26px;background:linear-gradient(150deg,#f4f0ff,#ffeef8)}
+.xh-pkbody{flex:1;min-width:0}
+.xh-pknm{font-size:13.5px;font-weight:900;color:var(--xh-ink);line-height:1.35}
+.xh-pkgem{display:flex;align-items:baseline;gap:5px;margin-top:3px;flex-wrap:wrap}
+.xh-pkgem img{width:18px;height:18px;object-fit:contain;align-self:center}
+.xh-pkgem .n{font-family:'Orbitron',sans-serif;font-size:20px;font-weight:800;color:#7b4fd8;line-height:1}
+.xh-pkgem s{font-size:11.5px;font-weight:800;color:rgba(111,130,173,.75)}
+.xh-pkgem .up{font-size:10px;font-weight:900;color:#fff;background:linear-gradient(135deg,#ff7ab8,#ff5d7a);
+  border-radius:99px;padding:2px 7px}
+/* 🎫フェス限定ガチャチケット付きパック（MagiBurst へ引換券で届く） */
+.xh-pkticket{font-family:'Orbitron',sans-serif;font-size:15px;font-weight:900;color:#0e5f9c;line-height:1;
+  background:linear-gradient(135deg,rgba(92,225,255,.28),rgba(29,143,216,.2));
+  border:1.5px solid rgba(29,143,216,.4);border-radius:10px;padding:3px 8px;align-self:center}
+.xh-pkdesc{font-size:10.5px;font-weight:700;color:var(--xh-sub);margin-top:3px;line-height:1.5}
+/* 「1回限り」バッジの下に潜り込ませる（バッジは右上に固定されているため） */
+.xh-pkbuy{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:4px;padding-top:16px}
+.xh-pkbtn{padding:10px 13px;border:none;border-radius:14px;cursor:pointer;font-family:inherit;
+  font-size:12.5px;font-weight:900;color:#fff;white-space:nowrap;
+  background:linear-gradient(135deg,#ffb020,#ff7ab8);box-shadow:0 4px 12px rgba(255,140,120,.34)}
+.xh-pkbtn:active{transform:scale(.95)}
+.xh-pkbtn:disabled{background:rgba(120,160,230,.28);color:rgba(34,52,77,.5);box-shadow:none;cursor:not-allowed}
+.xh-pkcost{font-size:10px;font-weight:800;color:var(--xh-sub)}
+.xh-pkonce{position:absolute;right:0;top:0;font-size:9.5px;font-weight:900;color:#fff;
+  background:linear-gradient(135deg,#4b8bff,#9b7bff);padding:3px 9px;border-radius:0 0 0 11px}
+.xh-pack.sold .xh-pkonce{background:rgba(111,130,173,.55)}
+
+/* ══════════════ アプリ内の確認ダイアログ（xhAsk） ══════════════
+   ★ 購入のような「取り返しのつかない操作」の確認は、ブラウザの confirm() ではなく
+     この画面内ダイアログで取る。confirm() は
+       ・ホーム画面から起動した PWA だとサイトのURLが上に出て世界観が切れる
+       ・iOS では「このページによる追加のダイアログを表示しない」で
+         二度目以降が黙って false になり、買えなくなる
+     という2つの問題があるため。 */
+/* ★ z-index はシート（1400）より必ず上。購入の確認はショップのシートの
+   「上」に出さないと、押した本人からは何も起きていないように見える。 */
+.xh-ask{position:fixed;inset:0;z-index:1600;display:none;align-items:center;justify-content:center;
+  padding:22px;background:rgba(18,32,60,.44);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px)}
+.xh-ask.on{display:flex;animation:xhFade .18s ease}
+.xh-ask-card{width:100%;max-width:400px;background:var(--xh-card);border-radius:24px;
+  border:1.5px solid rgba(255,255,255,.95);box-shadow:0 22px 60px rgba(40,70,130,.3);
+  padding:22px 20px 18px;text-align:center;animation:xhAskPop .22s cubic-bezier(.2,1.3,.4,1)}
+@keyframes xhAskPop{from{opacity:0;transform:translateY(14px) scale(.94)}to{opacity:1;transform:none}}
+.xh-ask-ic{font-size:34px;line-height:1;margin-bottom:8px}
+.xh-ask-t{font-size:16px;font-weight:900;color:var(--xh-ink);line-height:1.4}
+.xh-ask-b{font-size:12.5px;font-weight:700;color:var(--xh-sub);line-height:1.75;margin-top:9px;text-align:left}
+.xh-ask-b b{color:var(--xh-ink)}
+.xh-ask-cost{display:flex;align-items:center;justify-content:center;gap:10px;margin:14px 0 4px;
+  padding:11px 12px;border-radius:16px;background:rgba(120,160,230,.1);border:1.5px solid var(--xh-line)}
+.xh-ask-cost .c{display:flex;align-items:center;gap:5px;font-family:'Orbitron',sans-serif;
+  font-size:16px;font-weight:800;color:var(--xh-ink)}
+.xh-ask-cost .c img{width:20px;height:20px;object-fit:contain}
+.xh-ask-cost .ar{font-size:16px;font-weight:900;color:var(--xh-sub)}
+.xh-ask-btns{display:flex;flex-direction:column;gap:8px;margin-top:14px}

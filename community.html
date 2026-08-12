@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<script src="maintenance-gate.js?v=5"></script>
+<meta charset="UTF-8">
+<script>(function(){try{var a=JSON.parse(localStorage.getItem('xeva_account_v1'));if(!a||!a.setupDone)location.replace('index.html');}catch(e){}})();</script>
+<script type="module" src="xevarion-fb.js?v=20"></script>
+<script src="xeva-presence.js?v=1" defer></script>
+<script type="module" src="xeva-cloud.js?v=14"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#eaf4ff">
+<title>コミュニティ — XEVARION</title>
+<link rel="icon" href="Xevarion.png" type="image/png">
+<link rel="manifest" href="manifest.webmanifest">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+JP:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="xeva-theme.css?v=1">
+<script src="xeva.js?v=25"></script>
+<script src="xeva-loading.js?v=1" defer></script>
+<script type="module" src="xeva-sync.js?v=8"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans JP',sans-serif;color:#22345c;min-height:100vh;
+  background:linear-gradient(175deg,#d9ecff 0%,#eef6ff 34%,#fdf4ff 72%,#fff7ef 100%);
+  background-attachment:fixed;padding-bottom:calc(env(safe-area-inset-bottom,0px) + 28px)}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:560px;margin:0 auto;padding:0 14px}
+
+/* ── ヘッダー ── */
+.top{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:10px;
+  padding:calc(env(safe-area-inset-top,0px) + 12px) 14px 12px;
+  background:rgba(255,255,255,.82);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border-bottom:1.5px solid rgba(120,160,230,.2)}
+.back{width:38px;height:38px;flex-shrink:0;border-radius:13px;border:1.5px solid rgba(120,160,230,.28);
+  background:#fff;color:#4b8bff;display:flex;align-items:center;justify-content:center;cursor:pointer;
+  box-shadow:0 4px 12px rgba(90,130,210,.16)}
+.back svg{width:19px;height:19px}
+.ttl{font-size:16px;font-weight:900;letter-spacing:.02em}
+.ttl small{display:block;font-family:'Orbitron',sans-serif;font-size:9px;letter-spacing:.16em;color:#4b8bff;font-weight:700}
+
+/* ── タブ ── */
+.tabs{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:14px 0 16px;padding:5px;
+  border-radius:18px;background:#fff;border:1.5px solid rgba(120,160,230,.22);box-shadow:0 6px 20px rgba(90,130,210,.14)}
+.tab{padding:11px;border:none;background:none;border-radius:14px;color:#6f82ad;
+  font-size:13px;font-weight:900;cursor:pointer;font-family:'Noto Sans JP',sans-serif;transition:.18s}
+.tab.on{color:#fff;background:linear-gradient(135deg,#4b8bff,#9b7bff);box-shadow:0 6px 18px rgba(100,130,255,.4)}
+
+/* ── カード ── */
+.card{border-radius:22px;padding:16px;margin-bottom:12px;
+  background:#fff;border:1.5px solid rgba(255,255,255,.9);
+  box-shadow:0 8px 26px rgba(90,130,210,.16)}
+.lbl{font-size:11px;font-weight:900;letter-spacing:.1em;color:#4b8bff;margin-bottom:10px}
+.inp{width:100%;padding:13px 15px;border-radius:14px;background:#f6faff;
+  border:1.5px solid rgba(120,160,230,.3);color:#22345c;font-size:14px;outline:none;
+  font-family:'Noto Sans JP',sans-serif}
+.inp::placeholder{color:rgba(111,130,173,.65)}
+.btn{width:100%;margin-top:9px;padding:12px;border:none;border-radius:12px;color:#fff;font-size:13.5px;
+  font-weight:800;cursor:pointer;font-family:'Noto Sans JP',sans-serif;
+  background:linear-gradient(135deg,#4b8bff,#9b7bff);box-shadow:0 7px 20px rgba(100,130,255,.4)}
+.btn:disabled{opacity:.5;box-shadow:none;cursor:not-allowed}
+.btn.ghost{background:#fff;color:#6f82ad;border:1.5px solid rgba(120,160,230,.3);box-shadow:none}
+
+/* ── ユーザー行 ── */
+.urow{display:flex;align-items:center;gap:11px;padding:11px 12px;border-radius:16px;
+  background:#f7fbff;border:1.5px solid rgba(120,160,230,.2);margin-bottom:9px}
+.uav{width:46px;height:46px;flex-shrink:0;border-radius:15px;overflow:hidden;
+  background:linear-gradient(150deg,#8fd8ff,#b9a3ff);box-shadow:0 3px 10px rgba(90,130,210,.22);
+  display:flex;align-items:center;justify-content:center;font-family:'Orbitron',sans-serif;
+  font-size:17px;font-weight:700;color:#fff}
+.uav img{width:100%;height:100%;object-fit:cover}
+.ubody{flex:1;min-width:0}
+.unm{font-size:13.5px;font-weight:900;color:#22345c;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.usub{font-size:10.5px;color:#6f82ad;margin-top:2px;font-weight:600}
+.uact{flex-shrink:0;padding:9px 14px;border-radius:99px;border:1.5px solid rgba(75,139,255,.42);
+  background:#fff;color:#4b8bff;font-size:11.5px;font-weight:900;cursor:pointer;
+  font-family:'Noto Sans JP',sans-serif;white-space:nowrap}
+.uact.rm{border-color:rgba(255,122,184,.5);background:#fff;color:#e0577f}
+.uact:disabled{opacity:.55;cursor:default}
+.rank{width:30px;flex-shrink:0;text-align:center;font-family:'Orbitron',sans-serif;font-size:15px;font-weight:700;color:#8ea6cf}
+.rank.g1{color:#ffd257}.rank.g2{color:#8ea6cf}.rank.g3{color:#ffab6b}
+.uxeva{flex-shrink:0;font-family:'Orbitron',sans-serif;font-size:13.5px;font-weight:700;color:#c07a00}
+.empty{text-align:center;font-size:12.5px;color:#6f82ad;padding:26px 10px;line-height:2;font-weight:600}
+.msg{font-size:11.5px;font-weight:800;min-height:18px;margin-top:8px;text-align:center;color:#e0577f}
+.msg.ok{color:#12a97a}
+.me{border-color:rgba(255,201,60,.6);background:#fffaf0}
+.linkcard{display:flex;align-items:center;gap:12px;padding:14px;border-radius:18px;margin-bottom:12px;
+  background:linear-gradient(120deg,#4b8bff,#9b7bff);
+  border:1.5px solid rgba(255,255,255,.7);cursor:pointer;box-shadow:0 8px 24px rgba(100,130,255,.36)}
+.linkcard img{width:46px;height:46px;border-radius:13px;flex-shrink:0;object-fit:cover}
+.linkcard .lt{flex:1;min-width:0}
+.linkcard .l1{font-size:14px;font-weight:900;color:#fff}
+.linkcard .l2{font-size:10.5px;color:rgba(255,255,255,.9);margin-top:2px;line-height:1.5;font-weight:600}
+.linkcard .lg{flex-shrink:0;font-size:18px;color:#fff}
+.off{display:none;text-align:center;font-size:12px;font-weight:800;color:#a35b00;
+  background:linear-gradient(120deg,#ffe9b8,#ffd8a8);border:1.5px solid rgba(255,170,60,.5);border-radius:16px;padding:12px;margin-bottom:12px}
+body.isoff .off{display:block}
+.hint{font-size:11px;color:#6f82ad;line-height:1.75;margin-bottom:10px;font-weight:600}
+.hint b{color:#4b8bff}
+.uav{position:relative}
+.dot{position:absolute;right:-1px;bottom:-1px;width:13px;height:13px;border-radius:50%;
+  border:2.5px solid #f7fbff;background:#c3cfe4}
+.dot.on{background:#2fd07a;box-shadow:0 0 0 3px rgba(47,208,122,.22)}
+.uapp{display:inline-flex;align-items:center;gap:4px;font-size:9.5px;font-weight:800;color:#4b8bff;
+  background:rgba(75,139,255,.12);border-radius:99px;padding:2px 8px;margin-top:3px}
+.uact.join{background:linear-gradient(135deg,#ff9f2e,#ff6f91);color:#fff;border-color:transparent;
+  box-shadow:0 5px 14px rgba(255,130,120,.4)}
+.uact.ok{background:linear-gradient(135deg,#4b8bff,#9b7bff);color:#fff;border-color:transparent}
+.uacts{display:flex;flex-direction:column;gap:5px;flex-shrink:0}
+
+</style>
+</head>
+<body>
+
+<div class="top">
+  <a class="back" href="index.html" aria-label="ホームへ戻る">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5 8 12l7 7"/></svg>
+  </a>
+  <div class="ttl">コミュニティ<small>XEVARION COMMUNITY</small></div>
+</div>
+
+<div class="wrap">
+  <div class="off">📴 オフライン中です。コミュニティは通信が必要なため利用できません。</div>
+
+  <div class="tabs">
+    <button class="tab on" id="tabFriend" onclick="switchTab('friend')">👥 フレンド</button>
+    <button class="tab" id="tabRank" onclick="switchTab('rank')">🏆 ランキング</button>
+  </div>
+
+  <!-- ═══ フレンド ═══ -->
+  <div id="paneFriend">
+    <div class="card">
+      <div class="lbl">アカウント名でフレンドを探す</div>
+      <input class="inp" id="fSearch" type="text" placeholder="例：Magi Master" autocomplete="off"
+             onkeydown="if(event.key==='Enter')doSearch()">
+      <button class="btn" id="fSearchBtn" onclick="doSearch()">🔍 検索する</button>
+      <div class="msg" id="fMsg"></div>
+      <div id="fResults" style="margin-top:10px"></div>
+    </div>
+
+    <div class="card" id="reqCard" style="display:none">
+      <div class="lbl">フレンド申請 <span id="reqCount" style="color:#6f82ad"></span></div>
+      <div id="reqList"></div>
+    </div>
+
+    <!-- ★ 2026-08-06: 名前を知らないとフレンドを増やせなかったので、
+         「いる人をそのまま並べる」プレイヤー一覧を足した。ここからも申請できる。 -->
+    <div class="card">
+      <div class="lbl">プレイヤー一覧 <span id="plCount" style="color:#6f82ad"></span></div>
+      <div class="hint">名前がわからなくても、ここから直接<b>フレンド申請</b>を送れます。<b>オンラインの人が上</b>に並びます。</div>
+      <input class="inp" id="plFilter" type="text" placeholder="名前でしぼりこむ" autocomplete="off" oninput="paintPlayers()">
+      <div class="msg" id="plMsg"></div>
+      <div id="plList"><div class="empty">読み込み中…</div></div>
+      <button class="btn ghost" id="plMore" onclick="loadPlayers(true)" style="display:none">🔄 一覧を更新する</button>
+    </div>
+
+    <div class="card">
+      <div class="lbl">フレンド <span id="fCount" style="color:#6f82ad"></span></div>
+      <div class="hint">オンラインのフレンドが部屋を開いていると、<b>部屋番号なしで「参加」</b>できます。</div>
+      <div id="fList"></div>
+    </div>
+
+    <div class="linkcard" onclick="location.href='MagiLink/MagiLink.html'">
+      <img src="thumbs/MagiLink.jpg" alt="MagiLink">
+      <div class="lt">
+        <div class="l1">MagiLink でメッセージ</div>
+        <div class="l2">フレンドとチャット・グループ・コレクション共有</div>
+      </div>
+      <div class="lg">›</div>
+    </div>
+  </div>
+
+  <!-- ═══ ランキング ═══ -->
+  <div id="paneRank" style="display:none">
+    <div class="linkcard" onclick="location.href='MagiRanking/index.html'">
+      <img src="thumbs/MagiRanking.jpg" alt="MagiRanking">
+      <div class="lt">
+        <div class="l1">MagiRanking を開く</div>
+        <div class="l2">表彰台・MagiChainParty・MagiBattle スコアタの全ランキング</div>
+      </div>
+      <div class="lg">›</div>
+    </div>
+    <div class="card">
+      <div class="lbl">今月の XEVA 獲得ランキング <span id="rYm" style="color:#6f82ad"></span></div>
+      <div id="rList"><div class="empty">読み込み中…</div></div>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
+function acc(){ try{ return window.XEVA ? window.XEVA.account.get() : null; }catch(e){ return null; } }
+function saveAcc(a){ try{ window.XEVA.account.save(a); }catch(e){} }
+function friends(){ const a=acc()||{}; return Array.isArray(a.friends)?a.friends:[]; }
+function isOnline(){ return navigator.onLine!==false; }
+function paintOffline(){ document.body.classList.toggle("isoff", !isOnline()); }
+addEventListener("online", paintOffline); addEventListener("offline", paintOffline); paintOffline();
+
+function waitFB(){
+  return new Promise((res)=>{
+    if(window.XEVARIONFB) return res(window.XEVARIONFB);
+    let done=false;
+    const f=()=>{ if(done)return; done=true; res(window.XEVARIONFB||null); };
+    addEventListener("xevarionfb:ready", f, {once:true});
+    setTimeout(f, 8000);
+  });
+}
+
+function switchTab(t){
+  document.getElementById("tabFriend").classList.toggle("on", t==="friend");
+  document.getElementById("tabRank").classList.toggle("on", t==="rank");
+  document.getElementById("paneFriend").style.display = t==="friend" ? "" : "none";
+  document.getElementById("paneRank").style.display   = t==="rank"   ? "" : "none";
+  if(t==="rank") loadRanking();
+}
+
+/* ══ フレンド（XEVARION アカウント主体） ══
+   ・相互フレンド（申請 → 承認）。アカウントに紐づくので端末を変えても残る。
+   ・presence（5分以内のアクセス）でオンライン表示。
+   ・フレンドが部屋を開いていれば、部屋番号を聞かずに「参加」で合流できる。 */
+const APP_NM = { magiburst:"MagiBurst", magichainparty:"MagiChainParty", magidiamond:"MagiDiamond",
+  magimanor:"MagiManor", magijackpot:"MagiJackpot", magibattle:"MagiBattle", magilex:"MagiLex",
+  magiranking:"MagiRanking", xevynar:"XEVYNAR", portal:"XEVARION" };
+const APP_URL = { magiburst:"MagiBurst/index.html", magichainparty:"MagiChainParty/index.html",
+  magidiamond:"MagiDiamond/index.html", magimanor:"MagiManor/index.html",
+  magijackpot:"MagiJackpot/index.html" };
+
+function myUid(){ const a=acc()||{}; return a.xvUid||null; }
+
+let _searchBusy=false;
+async function doSearch(){
+  const inp=document.getElementById("fSearch"), msg=document.getElementById("fMsg"),
+        box=document.getElementById("fResults"), btn=document.getElementById("fSearchBtn");
+  const q=(inp.value||"").trim();
+  msg.className="msg"; msg.textContent=""; box.innerHTML="";
+  if(!q){ msg.textContent="アカウント名を入力してください"; return; }
+  if(!isOnline()){ msg.textContent="オフライン中は検索できません"; return; }
+  if(_searchBusy) return;
+  _searchBusy=true; btn.disabled=true; btn.textContent="検索中…";
+  const FB=await waitFB();
+  let rows=[];
+  try{ rows = FB ? await FB.searchAccounts(q) : []; }catch(e){}
+  _searchBusy=false; btn.disabled=false; btn.textContent="🔍 検索する";
+  const me=myUid();
+  rows=rows.filter(r=>r.uid!==me);
+  if(!rows.length){ msg.textContent="「"+esc(q)+"」に一致するアカウントが見つかりませんでした"; return; }
+  const have=new Set(_friends.map(f=>f.uid));
+  box.innerHTML = rows.map(r=>{
+    const added=have.has(r.uid);
+    return '<div class="urow">'+avatar(r)+
+      '<div class="ubody"><div class="unm">'+esc(r.name)+'</div><div class="usub">ID: '+esc(r.uid.slice(0,8))+'…</div></div>'+
+      '<button class="uact'+(added?'':' ok')+'" '+(added?'disabled':'')+
+      ' onclick="reqFriend(\'' + r.uid + '\',\'' + esc(r.name).replace(/'/g,"&#39;") + '\')">'+
+      (added?'フレンド':'＋ 申請')+'</button></div>';
+  }).join("");
+}
+
+function avatar(r, online){
+  const d = online===undefined ? "" : '<span class="dot'+(online?" on":"")+'"></span>';
+  /* 保存された charFile は移籍前の古いパスのことがあるので正規化してから使う */
+  const cf = (window.XEVA&&window.XEVA.canonCharFile) ? window.XEVA.canonCharFile(r.charFile, r.charId) : r.charFile;
+  return '<div class="uav">'+(cf
+    ? '<img src="chars/'+esc(cf)+'" alt="" loading="lazy">'
+    : esc((r.name||"?")[0].toUpperCase()))+d+'</div>';
+}
+
+async function reqFriend(uid,name){
+  const msg=document.getElementById("fMsg");
+  const FB=await waitFB(); const me=myUid();
+  if(!FB||!me){ msg.textContent="アカウント登録（4桁PIN）が必要です"; return; }
+  const r=await FB.sendFriendReq(me, uid);
+  msg.className="msg ok";
+  if(r&&r.accepted){ msg.textContent=name+" さんとフレンドになりました！";
+    try{ const b=window.XEVA.claimFriendBonus(uid); if(b) msg.textContent+="（＋50 XEVA）"; }catch(e){}
+  }
+  else if(r&&r.ok) msg.textContent=name+" さんにフレンド申請を送りました";
+  else if(r&&r.error==="full") { msg.className="msg"; msg.textContent="フレンドがいっぱいです"; }
+  else { msg.className="msg"; msg.textContent="申請できませんでした"; }
+  loadFriends(); doSearch();
+}
+async function acceptReq(uid,name){
+  const FB=await waitFB(); const me=myUid(); if(!FB||!me) return;
+  await FB.acceptFriendReq(me, uid);
+  try{ window.XEVA.claimFriendBonus(uid); }catch(e){}
+  loadFriends();
+}
+async function rejectReq(uid){
+  const FB=await waitFB(); const me=myUid(); if(!FB||!me) return;
+  await FB.rejectFriendReq(me, uid); loadFriends();
+}
+async function delFriend(uid){
+  const FB=await waitFB(); const me=myUid(); if(!FB||!me) return;
+  await FB.removeFriend(me, uid); loadFriends();
+}
+function joinFriendRoom(app, code){
+  const u=APP_URL[app]; if(!u){ alert("このアプリは部屋参加に対応していません"); return; }
+  location.href = u + "?join=" + encodeURIComponent(code);
+}
+
+let _friends=[];
+async function loadFriends(){
+  const box=document.getElementById("fList"), cnt=document.getElementById("fCount");
+  if(!isOnline()){ box.innerHTML='<div class="empty">オフライン中はフレンドを表示できません</div>'; return; }
+  const FB=await waitFB(); const me=myUid();
+  if(!FB||!me){ box.innerHTML='<div class="empty">フレンド機能を使うにはアカウント登録（4桁PIN）が必要です</div>'; return; }
+
+  /* 申請 */
+  const reqs = await FB.listFriendReqs(me);
+  const rc=document.getElementById("reqCard"), rl=document.getElementById("reqList");
+  rc.style.display = reqs.length ? "" : "none";
+  document.getElementById("reqCount").textContent = reqs.length ? "（"+reqs.length+"件）" : "";
+  rl.innerHTML = reqs.map(r=>'<div class="urow">'+avatar(r)+
+    '<div class="ubody"><div class="unm">'+esc(r.name)+'</div><div class="usub">フレンド申請が届いています</div></div>'+
+    '<span class="uacts"><button class="uact ok" onclick="acceptReq(\'' + r.uid + '\',\'' + esc(r.name).replace(/'/g,"&#39;") + '\')">承認</button>'+
+    '<button class="uact rm" onclick="rejectReq(\'' + r.uid + '\')">拒否</button></span></div>').join("");
+
+  /* 一覧 */
+  _friends = await FB.listFriends(me);
+  cnt.textContent = "（"+_friends.length+"人）";
+  if(!_friends.length){
+    box.innerHTML='<div class="empty">まだフレンドがいません。<br>下の<b>プレイヤー一覧</b>から、または上の検索から申請しよう！<br><span style="color:#c07a00">はじめて増えると ＋50 XEVA</span></div>';
+    return;
+  }
+  const ym = FB.monthKey();
+  box.innerHTML = _friends.map(f=>{
+    const m=(f.monthly&&f.monthly[ym])||0;
+    const appnm = APP_NM[f.app]||"";
+    /* ★ 最終ログイン日時は出さない（いつ遊んでいたかは本人以外に見せない）。
+       いま一緒に遊べるかどうかが分かればよいので、オンラインのときだけ表示する。 */
+    const sub = f.online
+      ? '<span class="uapp">🟢 '+esc(appnm||"オンライン")+'</span>'
+      : '<div class="usub">オフライン</div>';
+    const room = f.online && f.room && APP_URL[f.room.app]
+      ? '<button class="uact join" onclick="joinFriendRoom(\'' + f.room.app + '\',\'' + f.room.code + '\')">🎮 参加</button>' : "";
+    return '<div class="urow">'+avatar(f, f.online)+
+      '<div class="ubody"><div class="unm">'+esc(f.name)+'</div>'+sub+
+      '<div class="usub">今月の獲得 '+m.toLocaleString()+' XEVA</div></div>'+
+      '<span class="uacts">'+room+
+      '<button class="uact rm" onclick="delFriend(\'' + f.uid + '\')">解除</button></span></div>';
+  }).join("");
+}
+
+/* ══ プレイヤー一覧（★ 2026-08-06 追加） ══
+   アカウント名の完全一致・部分一致でしか探せず、名前を知らない相手には
+   申請できなかった。ここでは登録されている人をそのまま並べ、その場で申請する。
+   ・並びは〈オンライン → 名前〉（listPlayers 側で決めている）。
+   ・自分／すでにフレンド／申請済み／申請が届いている、は rel で分かるので
+     ボタンを出し分ける（押しても意味がない相手に「申請」を出さない）。
+   ・しぼりこみは取得済みの一覧に対して行う（打つたびに通信しない）。 */
+let _players=[], _plLoading=false;
+
+async function loadPlayers(force){
+  const box=document.getElementById("plList"); if(!box) return;
+  if(!isOnline()){ box.innerHTML='<div class="empty">オフライン中はプレイヤー一覧を表示できません</div>'; return; }
+  if(_plLoading) return;
+  _plLoading=true;
+  if(force) box.innerHTML='<div class="empty">読み込み中…</div>';
+  const FB=await waitFB(); const me=myUid();
+  if(!FB||!FB.listPlayers){ _plLoading=false; box.innerHTML='<div class="empty">プレイヤー一覧を取得できませんでした</div>'; return; }
+  try{ _players = await FB.listPlayers(me, 100); }catch(e){ _players=[]; }
+  _plLoading=false;
+  const more=document.getElementById("plMore"); if(more) more.style.display = _players.length ? "" : "none";
+  paintPlayers();
+}
+
+function paintPlayers(){
+  const box=document.getElementById("plList"), cnt=document.getElementById("plCount");
+  if(!box) return;
+  const fi=document.getElementById("plFilter");
+  const q=((fi&&fi.value)||"").trim().toLowerCase();
+  const rows=_players.filter(p=>!q || String(p.name).toLowerCase().indexOf(q)>=0);
+  if(cnt) cnt.textContent = _players.length ? "（"+_players.length+"人）" : "";
+  if(!rows.length){
+    box.innerHTML='<div class="empty">'+(q?"「"+esc(q)+"」に一致するプレイヤーはいません":"まだプレイヤーがいません")+'</div>';
+    return;
+  }
+  box.innerHTML = rows.map(p=>{
+    const appnm = APP_NM[p.app]||"";
+    const sub = p.online
+      ? '<span class="uapp">🟢 '+esc(appnm||"オンライン")+'</span>'
+      : '<div class="usub">オフライン</div>';
+    let btn;
+    if(p.rel==="me")          btn='<button class="uact" disabled>じぶん</button>';
+    else if(p.rel==="friend") btn='<button class="uact" disabled>フレンド</button>';
+    else if(p.rel==="sent")   btn='<button class="uact" disabled>申請ずみ</button>';
+    else if(p.rel==="got")    btn='<button class="uact ok" onclick="acceptReq(\'' + p.uid + '\',\'' + esc(p.name).replace(/'/g,"&#39;") + '\')">承認</button>';
+    else                      btn='<button class="uact ok" onclick="reqFriendFromList(\'' + p.uid + '\',\'' + esc(p.name).replace(/'/g,"&#39;") + '\')">＋ 申請</button>';
+    return '<div class="urow">'+avatar(p, p.online)+
+      '<div class="ubody"><div class="unm">'+esc(p.name)+'</div>'+sub+'</div>'+
+      '<span class="uacts">'+btn+'</span></div>';
+  }).join("");
+}
+
+/* 一覧からの申請。押した行だけをその場で「申請ずみ」に変えてから、
+   フレンド一覧と一覧の状態を取り直す（通信を待たずに反応が返るようにするため）。 */
+async function reqFriendFromList(uid,name){
+  const msg=document.getElementById("plMsg");
+  const say=(t,ok)=>{ if(msg){ msg.className="msg"+(ok?" ok":""); msg.textContent=t; } };
+  const FB=await waitFB(); const me=myUid();
+  if(!FB||!me){ say("フレンド申請にはアカウント登録（4桁PIN）が必要です"); return; }
+  const row=_players.find(p=>p.uid===uid); if(row) row.rel="sent";
+  say("");
+  paintPlayers();
+  const r=await FB.sendFriendReq(me, uid);
+  if(r&&r.accepted){
+    if(row) row.rel="friend";
+    let bonus="";
+    try{ if(window.XEVA.claimFriendBonus(uid)) bonus="（＋50 XEVA）"; }catch(e){}
+    say(name+" さんとフレンドになりました！"+bonus, true);
+  }else if(r&&r.ok){
+    say(name+" さんにフレンド申請を送りました", true);
+  }else if(r&&r.error==="full"){
+    if(row) row.rel="";
+    say("フレンドがいっぱいです");
+  }else{
+    if(row) row.rel="";
+    say("申請できませんでした");
+  }
+  paintPlayers();
+  loadFriends();
+}
+
+/* ══ ランキング ══ */
+let _rankLoaded=false;
+async function loadRanking(force){
+  if(_rankLoaded && !force) return;
+  const box=document.getElementById("rList");
+  if(!isOnline()){ box.innerHTML='<div class="empty">オフライン中はランキングを表示できません</div>'; return; }
+  const FB=await waitFB();
+  if(!FB){ box.innerHTML='<div class="empty">ランキングを取得できませんでした</div>'; return; }
+  const ym=FB.monthKey();
+  const ymEl=document.getElementById("rYm"); if(ymEl) ymEl.textContent="（"+ym.replace("-","年")+"月）";
+  let rows=[];
+  try{ rows=await FB.getRanking(ym); }catch(e){}
+  rows=rows.filter(r=>r.total>0).slice(0,30);
+  _rankLoaded=true;
+  if(!rows.length){ box.innerHTML='<div class="empty">今月はまだ集計データがありません。<br>アプリで遊んで XEVA を獲得しよう！</div>'; return; }
+  const me=acc()||{};
+  box.innerHTML = rows.map((r,i)=>
+    '<div class="urow'+(r.uid===me.xvUid?" me":"")+'">'+
+    '<div class="rank'+(i<3?" g"+(i+1):"")+'">'+(i<3?["🥇","🥈","🥉"][i]:(i+1))+'</div>'+
+    avatar(r)+
+    '<div class="ubody"><div class="unm">'+esc(r.name)+(r.uid===me.xvUid?' <span style="color:#ffd257;font-size:10px">YOU</span>':'')+'</div></div>'+
+    '<div class="uxeva">'+r.total.toLocaleString()+'</div></div>').join("");
+}
+
+/* ══ 起動 ══ */
+(function boot(){
+  if(!window.XEVA){ setTimeout(boot,120); return; }
+  loadFriends();
+  loadPlayers();
+  setInterval(() => {
+    if (document.getElementById("paneFriend").style.display === "none") return;
+    loadFriends();
+    loadPlayers();
+  }, 45000);
+})();
+</script>
+</body>
+</html>

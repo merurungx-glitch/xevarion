@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<script src="maintenance-gate.js?v=5"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#eaf4ff">
+<title>会社概要 — XEVARION</title>
+<meta name="description" content="XEVARION を開発・運営する NGX の会社概要、Magical Future 社との技術提携、ISHIDA Production との協業、沿革をご紹介します。">
+<link rel="icon" href="Xevarion.png" type="image/png">
+<link rel="manifest" href="manifest.webmanifest">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+JP:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'Noto Sans JP',sans-serif;color:#22345c;min-height:100vh;
+  background:linear-gradient(175deg,#d9ecff 0%,#eef6ff 34%,#fdf4ff 72%,#fff7ef 100%);
+  background-attachment:fixed;padding-bottom:calc(env(safe-area-inset-bottom,0px) + 32px)}
+a{color:inherit;text-decoration:none}
+.wrap{max-width:600px;margin:0 auto;padding:0 14px}
+
+.top{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:10px;
+  padding:calc(env(safe-area-inset-top,0px) + 11px) 14px 11px;
+  background:rgba(255,255,255,.82);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
+  border-bottom:1.5px solid rgba(120,160,230,.2)}
+.back{width:38px;height:38px;flex-shrink:0;border-radius:13px;border:1.5px solid rgba(120,160,230,.28);
+  background:#fff;color:#4b8bff;display:flex;align-items:center;justify-content:center;cursor:pointer;
+  box-shadow:0 4px 12px rgba(90,130,210,.16)}
+.back svg{width:19px;height:19px}
+.ttl{font-size:16px;font-weight:900}
+.ttl small{display:block;font-family:'Orbitron',sans-serif;font-size:9px;letter-spacing:.16em;color:#4b8bff;font-weight:700}
+
+/* ヒーロー */
+.hero{text-align:center;padding:26px 14px 20px}
+.hero .mark{display:flex;align-items:center;justify-content:center;gap:9px;margin-bottom:10px}
+.hero .mark img.orb{width:clamp(28px,9vw,40px);height:clamp(28px,9vw,40px);flex-shrink:0;object-fit:contain;filter:drop-shadow(0 3px 10px rgba(90,140,240,.5))}
+.hero .mark img.word{height:clamp(13px,4.6vw,21px);width:auto;max-width:100%;object-fit:contain}
+.hero h1{font-size:19px;font-weight:900;line-height:1.5;margin-bottom:8px}
+.hero p{font-size:12.5px;color:#6f82ad;line-height:1.95;font-weight:600}
+.tagline{display:inline-block;font-family:'Orbitron',sans-serif;font-size:9.5px;letter-spacing:.14em;
+  color:#fff;background:linear-gradient(135deg,#4b8bff,#9b7bff);border-radius:99px;padding:6px 15px;margin-bottom:12px;
+  box-shadow:0 5px 16px rgba(100,130,255,.36)}
+
+.card{background:#fff;border-radius:22px;padding:16px;margin-bottom:12px;
+  border:1.5px solid rgba(255,255,255,.9);box-shadow:0 8px 26px rgba(90,130,210,.16)}
+.lbl{display:flex;align-items:center;gap:7px;font-size:13.5px;font-weight:900;margin-bottom:12px}
+.lbl .dot{width:8px;height:8px;border-radius:3px;background:linear-gradient(135deg,#4b8bff,#9b7bff);flex-shrink:0}
+
+/* 概要テーブル */
+.tbl{display:flex;flex-direction:column;gap:1px;background:rgba(120,160,230,.16);
+  border-radius:14px;overflow:hidden;border:1px solid rgba(120,160,230,.16)}
+.tbl .r{display:flex;gap:0;background:#fff}
+.tbl .k{width:100px;flex-shrink:0;padding:12px;font-size:11.5px;font-weight:900;color:#4b8bff;
+  background:#f4f9ff}
+.tbl .v{flex:1;padding:12px;font-size:12.5px;line-height:1.75;font-weight:600;color:#22345c}
+
+/* 沿革 */
+.tl{position:relative;padding-left:22px}
+.tl::before{content:"";position:absolute;left:5px;top:6px;bottom:6px;width:2.5px;border-radius:2px;
+  background:linear-gradient(180deg,#8fd8ff,#b9a3ff,#ffb7dd)}
+.tl .it{position:relative;padding-bottom:16px}
+.tl .it:last-child{padding-bottom:0}
+.tl .it::before{content:"";position:absolute;left:-21px;top:4px;width:12px;height:12px;border-radius:50%;
+  background:#fff;border:3px solid #6ea8ff;box-shadow:0 2px 6px rgba(90,140,240,.35)}
+.tl .d{font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;color:#4b8bff}
+.tl .t{font-size:13px;font-weight:900;margin-top:2px}
+.tl .s{font-size:11.5px;color:#6f82ad;line-height:1.8;margin-top:3px;font-weight:600}
+
+/* 提携 */
+.pt{display:flex;align-items:center;gap:12px;padding:12px;border-radius:18px;margin-bottom:9px;
+  background:#f6faff;border:1.5px solid rgba(120,160,230,.2)}
+.pt img{width:52px;height:52px;flex-shrink:0;border-radius:16px;object-fit:contain;background:#fff;padding:5px;
+  box-shadow:0 3px 10px rgba(90,130,210,.18)}
+.pt .b{flex:1;min-width:0}
+.pt .n{font-size:13.5px;font-weight:900}
+.pt .r2{font-size:10.5px;font-weight:800;color:#4b8bff;margin-top:1px}
+.pt .x{font-size:11px;color:#6f82ad;line-height:1.75;margin-top:4px;font-weight:600}
+
+.links{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.lk{display:flex;align-items:center;justify-content:center;gap:7px;padding:14px 10px;border-radius:16px;
+  font-size:12.5px;font-weight:900;color:#fff;text-align:center;
+  background:linear-gradient(135deg,#4b8bff,#9b7bff);box-shadow:0 7px 20px rgba(100,130,255,.38)}
+.lk.alt{background:#fff;color:#4b8bff;border:1.5px solid rgba(120,160,230,.3);box-shadow:0 5px 16px rgba(90,130,210,.16)}
+.foot{text-align:center;font-size:10.5px;color:rgba(111,130,173,.9);line-height:1.9;margin-top:18px;font-weight:600}
+</style>
+</head>
+<body>
+
+<div class="top">
+  <a class="back" href="index.html" aria-label="ホームへ戻る">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5 8 12l7 7"/></svg>
+  </a>
+  <div class="ttl">会社概要<small>ABOUT XEVARION</small></div>
+</div>
+
+<div class="wrap">
+
+  <div class="hero">
+    <div class="mark">
+      <img class="orb" src="brand-xevarion-orb.png" alt="">
+      <img class="word" src="brand-xevarion-wordmark-dark.png" alt="XEVARION">
+    </div>
+    <div class="tagline">CREATING THE FUTURE THROUGH EVERY EXPERIENCE.</div>
+    <h1>すべての体験から、未来をつくる。</h1>
+    <p>XEVARION は、学びとエンタメを次の次元へ届けるクリエイティブ・テックチーム<b>NGX</b>が開発・運営する統合ポータルです。<br>
+    ひとつのアカウントで、学習アプリからゲーム、店舗ソリューションまでがつながります。</p>
+  </div>
+
+  <!-- 会社概要 -->
+  <div class="card">
+    <div class="lbl"><span class="dot"></span>会社概要</div>
+    <div class="tbl">
+      <div class="r"><div class="k">名称</div><div class="v">NGX（Noguchi Growth X）</div></div>
+      <div class="r"><div class="k">活動開始</div><div class="v">2021年11月</div></div>
+      <div class="r"><div class="k">事業内容</div><div class="v">学習・エンタメ・コミュニケーションアプリの開発／運営、店舗DXソリューション（ORDYXIS）</div></div>
+      <div class="r"><div class="k">提供サービス</div><div class="v">統合ポータル「XEVARION」／パブリック版「XEVARIX」</div></div>
+      <div class="r"><div class="k">提携</div><div class="v">Magical Future 社（技術提携）／ISHIDA Production（製作パートナー）</div></div>
+      <div class="r"><div class="k">お問い合わせ</div><div class="v">XEVARION ポータルおよび各アプリ内のサポートより受付</div></div>
+    </div>
+  </div>
+
+  <!-- 私たちについて -->
+  <div class="card">
+    <div class="lbl"><span class="dot"></span>私たちについて</div>
+    <p style="font-size:12.5px;line-height:2;color:#3c4f7d;font-weight:600">
+      NGX は「Creating the Future Through Every Experience.」を合言葉に、学習・エンターテインメント領域で
+      新しいデジタル体験をつくり続けるチームです。地域コミュニティの成長支援プロジェクトを源流に、
+      人とテクノロジーのつながりを育ててきました。<br><br>
+      現在は統合ポータル「<b>XEVARION</b>」と、だれでも使えるパブリック版「<b>XEVARIX</b>」を通じて、
+      学習アプリ <b>MagiLex</b>・ハンティングゲーム <b>MagiBurst</b> などを展開しています。
+      すべてブラウザだけで動き、主要アプリは <b>PWA でオフラインにも対応</b>しています。
+    </p>
+  </div>
+
+  <!-- 沿革 -->
+  <div class="card">
+    <div class="lbl"><span class="dot"></span>沿革</div>
+    <div class="tl">
+      <div class="it"><div class="d">2021.11</div><div class="t">NGX 設立</div>
+        <div class="s">地域の街づくりプロジェクトの総括として活動を開始。コミュニティの成長支援からスタート。</div></div>
+      <div class="it"><div class="d">2025.12</div><div class="t">MeruHub シリーズ公開</div>
+        <div class="s">学習・ゲームを融合した次世代ユーティリティ群を公開。</div></div>
+      <div class="it"><div class="d">2026.02</div><div class="t">Magical Future 社と提携強化</div>
+        <div class="s">技術提携を深化し、AI × 教育 × エンタメの共同開発を加速。</div></div>
+      <div class="it"><div class="d">2026.04</div><div class="t">MagiOne シリーズ公開</div>
+        <div class="s">魔法のような体験のコミュニケーション＆ゲーム群を公開。</div></div>
+      <div class="it"><div class="d">2026.06</div><div class="t">統合ポータル XEVARION 刷新</div>
+        <div class="s">ひとつのアカウントで全アプリがつながる統合ポータルへ全面リニューアル。</div></div>
+      <div class="it"><div class="d">2026.07</div><div class="t">パブリック版「XEVARIX」公開</div>
+        <div class="s">MagiLex・MagiBurst をだれでも楽しめるパブリック版ポータルを公開。</div></div>
+      <div class="it"><div class="d">2026.07</div><div class="t">XEVARION ホーム画面 大規模リニューアル</div>
+        <div class="s">スマホ基準のホームへ刷新し、XEVARION 自体をアプリとしてインストール可能に。3アプリはオフライン対応。</div></div>
+    </div>
+  </div>
+
+  <!-- 提携 -->
+  <div class="card">
+    <div class="lbl"><span class="dot"></span>提携・パートナー</div>
+    <div class="pt">
+      <img src="brand/MagicalFuture.png" alt="Magical Future">
+      <div class="b">
+        <div class="n">Magical Future</div>
+        <div class="r2">技術提携</div>
+        <div class="x">AI × 教育 × エンタメの共同開発パートナー。提携対象のアプリは起動時のロゴ表示に Magical Future のロゴを含みます。</div>
+      </div>
+    </div>
+    <div class="pt">
+      <img src="brand/ISHIDA Production.png" alt="ISHIDA Production">
+      <div class="b">
+        <div class="n">ISHIDA Production</div>
+        <div class="r2">製作パートナー</div>
+        <div class="x">映像・演出面での製作パートナー。一部アプリの起動ムービーやロゴ演出を担当しています。</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- リンク -->
+  <div class="card">
+    <div class="lbl"><span class="dot"></span>関連リンク</div>
+    <div class="links">
+      <a class="lk" href="NGX/NGX_website.html">NGX 公式サイト</a>
+      <a class="lk alt" href="MagicalFuture/index.html">Magical Future</a>
+      <a class="lk alt" href="IshidaProduction/index.html">ISHIDA Production</a>
+      <a class="lk alt" href="index.html">XEVARION ホーム</a>
+    </div>
+  </div>
+
+  <div class="foot">
+    XEVARION — Magi Universe Gate<br>
+    © 2021–2026 NGX. All rights reserved.
+  </div>
+
+</div>
+</body>
+</html>

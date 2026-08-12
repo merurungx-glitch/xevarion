@@ -1,0 +1,2667 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="XEVARION">
+<meta name="theme-color" content="#070b1e">
+<title>XEVARION — Magi Universe Gate</title>
+<meta name="description" content="XEVARION — MagiBattle・MagiLex・MagiBurst・MagiArena・MagiLink ほか、NGX × Magical Future の全アプリにひとつのホームからアクセス。MagiLex／MagiBurst／MagiChainParty はオフラインでも遊べます。">
+<link rel="icon" href="Xevarion.png" type="image/png">
+<link rel="apple-touch-icon" href="icons/xev-192.png">
+<link rel="manifest" href="manifest.webmanifest">
+<script src="maintenance-gate.js?v=5"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Exo+2:ital,wght@0,300;0,400;0,600;0,700;1,300&family=Noto+Sans+JP:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="xeva-theme.css?v=1">
+<link rel="stylesheet" href="xevarion.css?v=15">
+<link rel="stylesheet" href="xevarion-home.css?v=30">
+<script src="xeva.js?v=25" defer></script>
+<!-- ジェム⇄XEVA のレート（ドル円連動）。xevarion-home.js より先に読み込む -->
+<script src="xeva-fx.js?v=1" defer></script>
+<script src="xeva-loading.js?v=1" defer></script>
+<script type="module" src="xeva-sync.js?v=8"></script>
+<script type="module" src="xevarion-fb.js?v=20"></script>
+<script src="xeva-presence.js?v=1" defer></script>
+<script type="module" src="xeva-cloud.js?v=14"></script>
+<script src="xevarion.js?v=54" defer></script>
+<script src="xevarion-home.js?v=31" defer></script>
+</head>
+<body>
+<!-- ───── バックグラウンド音楽（Flagship Arrival。アクセス画面のタップで再生開始） ───── -->
+<audio id="xevaMusic" loop preload="auto" playsinline>
+  <source src="music/flagship-arrival.mp3" type="audio/mpeg">
+</audio>
+<!-- 音楽テンポ連動の画面縁ライト -->
+<div id="beatFrame"></div>
+
+<!-- ───── XEVARION アクセス画面 / サインイン ───── -->
+<style>
+/* 高さは --xh-appvh（実測した画面の高さ）。iPhone のアプリ表示で下に空白の帯が
+   できるのを防ぐ。定義は xevarion-home.css、実測は xevarion-home.js。 */
+#xevaHome{position:fixed;top:0;left:0;right:0;bottom:calc(-1 * var(--xh-fixgap,0px));z-index:5000;display:none;overflow:hidden;
+  --beat:0; /* 曲に連動して JS が 0〜1 で更新 */
+  color:#eef1ff;font-family:'Noto Sans JP',system-ui,sans-serif}
+#xevaHome.open{display:block}
+/* ── 背景（v2）: KV全体を必ず画面内に表示（contain）＋ 余白はぼかしたKVで埋める
+      旧 cover 指定だと縦長KVがPC横画面で約3倍に拡大され大部分が画面外に出ていた ── */
+.xh-bg{position:absolute;inset:0;background:#0a0716;overflow:hidden}
+.xh-bg::before{content:"";position:absolute;inset:-48px;background:url('thumbs/xevarion-home_s.jpg?v=2') center/cover no-repeat;
+  filter:blur(28px) brightness(.42) saturate(1.25);transform:scale(1.1)}
+.xh-kv{position:absolute;inset:0;background:url('thumbs/xevarion-home_s.jpg?v=2') center/contain no-repeat;
+  transform:scale(calc(1 + var(--beat)*0.018));transition:transform .12s ease-out;
+  filter:drop-shadow(0 0 60px rgba(120,80,220,.35))}
+/* オーロラ光彩（ゆっくり漂う紫〜青の光） */
+.xh-aurora{position:absolute;inset:0;pointer-events:none;mix-blend-mode:screen;opacity:.55;
+  background:radial-gradient(42% 34% at 18% 22%,rgba(124,80,255,.45),transparent 70%),
+             radial-gradient(38% 30% at 84% 70%,rgba(56,140,255,.38),transparent 70%),
+             radial-gradient(30% 26% at 60% 12%,rgba(255,120,200,.28),transparent 70%);
+  animation:xhAurora 14s ease-in-out infinite alternate}
+@keyframes xhAurora{from{transform:translate3d(-2%,-1%,0) scale(1)}to{transform:translate3d(2%,2%,0) scale(1.08)}}
+/* 舞い上がる光の粒 */
+.xh-parts{position:absolute;inset:0;overflow:hidden;pointer-events:none}
+.xh-p{position:absolute;bottom:-12px;width:6px;height:6px;border-radius:50%;
+  background:radial-gradient(circle,#fff,rgba(190,160,255,.9) 45%,transparent 72%);
+  opacity:0;animation:xhRise linear infinite}
+@keyframes xhRise{0%{transform:translateY(0) scale(.6);opacity:0}12%{opacity:.85}
+  80%{opacity:.5}100%{transform:translateY(-108vh) scale(1.15);opacity:0}}
+.xh-p:nth-child(1){left:6%;animation-duration:11s;animation-delay:0s}
+.xh-p:nth-child(2){left:16%;animation-duration:14s;animation-delay:2.5s;width:4px;height:4px}
+.xh-p:nth-child(3){left:26%;animation-duration:9.5s;animation-delay:5s}
+.xh-p:nth-child(4){left:38%;animation-duration:13s;animation-delay:1.2s;width:5px;height:5px}
+.xh-p:nth-child(5){left:50%;animation-duration:10.5s;animation-delay:6.4s;width:4px;height:4px}
+.xh-p:nth-child(6){left:61%;animation-duration:12.5s;animation-delay:3.4s}
+.xh-p:nth-child(7){left:72%;animation-duration:9s;animation-delay:7.6s;width:5px;height:5px}
+.xh-p:nth-child(8){left:83%;animation-duration:13.5s;animation-delay:.8s;width:4px;height:4px}
+.xh-p:nth-child(9){left:92%;animation-duration:11.5s;animation-delay:4.6s}
+.xh-p:nth-child(10){left:33%;animation-duration:15s;animation-delay:8.8s;width:3.5px;height:3.5px}
+.xh-p:nth-child(11){left:56%;animation-duration:14.5s;animation-delay:10s;width:3.5px;height:3.5px}
+.xh-p:nth-child(12){left:78%;animation-duration:15.5s;animation-delay:11.4s;width:3.5px;height:3.5px}
+.xh-scrim{position:absolute;inset:0;background:linear-gradient(180deg,rgba(8,6,20,.30),rgba(8,6,20,.08) 42%,rgba(8,6,20,.66));pointer-events:none}
+/* モード切替 */
+#xevaHome .xh-access{display:none}#xevaHome .xh-auth{display:none}
+#xevaHome.access .xh-access{display:flex}
+#xevaHome.auth   .xh-auth{display:flex}
+
+/* ── アクセス画面（タップしてスタート） ── */
+.xh-access{position:absolute;inset:0;flex-direction:column;align-items:center;justify-content:flex-end;
+  padding:calc(env(safe-area-inset-top,0px) + 16px) 20px calc(env(safe-area-inset-bottom,0px) + 8vh);cursor:pointer}
+.xh-access-top{position:absolute;top:calc(env(safe-area-inset-top,0px) + 12px);right:14px;display:flex;gap:8px;z-index:3}
+.xh-icbtn{width:44px;height:44px;border-radius:50%;border:1.5px solid rgba(255,255,255,.35);background:rgba(12,10,28,.5);
+  backdrop-filter:blur(8px);color:#fff;font-size:19px;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.15s}
+.xh-icbtn:hover{background:rgba(30,26,58,.7)}
+.xh-acctmenu{position:absolute;top:52px;right:0;background:rgba(16,14,34,.96);border:1px solid rgba(150,140,220,.3);border-radius:14px;
+  padding:6px;display:none;flex-direction:column;gap:4px;min-width:190px;box-shadow:0 20px 50px rgba(0,0,0,.5);z-index:4}
+.xh-acctmenu.open{display:flex}
+.xh-acctmenu button{background:none;border:none;color:#e8ecff;font-size:13px;font-weight:700;text-align:left;padding:11px 13px;border-radius:10px;cursor:pointer;font-family:inherit;display:flex;align-items:center;gap:9px}
+.xvic-mn{width:16px;height:16px;flex:none}
+.xh-acctmenu button:hover{background:rgba(107,139,255,.18)}
+.xh-notice{position:absolute;top:calc(env(safe-area-inset-top,0px) + 14px);left:50%;transform:translateX(-50%);
+  display:none;align-items:center;gap:8px;max-width:88vw;background:rgba(255,93,108,.92);color:#fff;font-size:12.5px;font-weight:800;
+  padding:9px 16px;border-radius:99px;box-shadow:0 10px 30px rgba(255,93,108,.4);z-index:3;text-align:center;line-height:1.5}
+.xh-notice.show{display:flex;animation:xhNoticeIn .4s cubic-bezier(.2,.8,.3,1) both}
+@keyframes xhNoticeIn{from{opacity:0;transform:translateX(-50%) translateY(-12px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+.xh-access-center{position:relative;z-index:2;text-align:center;margin-bottom:2vh}
+.xh-loading{display:flex;flex-direction:column;align-items:center;gap:12px;font-size:13px;font-weight:700;color:#cdd6ff;letter-spacing:.1em}
+.xh-spin{width:36px;height:36px;border:3px solid rgba(255,255,255,.25);border-top-color:#b8c6ff;border-radius:50%;animation:xhSpin 1s linear infinite}
+@keyframes xhSpin{to{transform:rotate(360deg)}}
+/* タップしてスタート（MagiLex と同一デザインに統一） */
+.xh-start{display:none;flex-direction:column;align-items:center;gap:6px;color:#eef6ff}
+.xh-start-tap{font-size:19px;font-weight:900;letter-spacing:.14em;color:#eef6ff;
+  text-shadow:0 2px 14px rgba(0,0,0,.7);animation:mlTap 1.6s ease-in-out infinite}
+@keyframes mlTap{0%,100%{opacity:1}50%{opacity:.45}}
+.xh-start-line{width:170px;height:2px;margin:0 auto;background:linear-gradient(90deg,transparent,#9ecbff,transparent)}
+.xh-start-sub{font-size:10px;font-weight:700;letter-spacing:.4em;opacity:.85;color:#eef6ff}
+.xh-hint{position:absolute;bottom:calc(env(safe-area-inset-bottom,0px) + 16px);left:0;right:0;text-align:center;font-size:10.5px;color:rgba(205,214,255,.55);z-index:2;letter-spacing:.06em}
+/* 音楽が鳴ることの常時警告 */
+.xh-musicwarn{position:absolute;bottom:calc(env(safe-area-inset-bottom,0px) + 36px);left:50%;transform:translateX(-50%);z-index:2;
+  display:inline-flex;align-items:center;gap:7px;white-space:nowrap;max-width:92vw;
+  font-size:11px;font-weight:800;color:#ffd9a6;background:rgba(20,14,36,.72);border:1px solid rgba(255,180,90,.45);
+  border-radius:99px;padding:7px 14px;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.xh-musicwarn svg{width:14px;height:14px;flex:none;color:#ffb84d}
+/* 音楽テンポ連動の画面縁ライト（--beat / --beathue は xevarion.js が毎フレーム更新） */
+#beatFrame{position:fixed;inset:0;pointer-events:none;z-index:948;opacity:0;transition:opacity .8s;
+  box-shadow:inset 0 0 calc(18px + var(--beat,0)*85px) calc(2px + var(--beat,0)*10px) hsla(var(--beathue,265),95%,62%,calc(.08 + var(--beat,0)*.5))}
+body.music-on #beatFrame{opacity:1}
+
+/* ── サインイン / 新規作成（未ログイン） ── */
+.xh-auth{position:absolute;inset:0;flex-direction:column;align-items:center;justify-content:center;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding:calc(env(safe-area-inset-top,0px) + 24px) 18px calc(env(safe-area-inset-bottom,0px) + 24px);z-index:2}
+.xh-card{position:relative;z-index:2;width:min(420px,100%);margin:auto;background:#fff;border:1.5px solid rgba(255,255,255,.95);border-radius:26px;
+  box-shadow:0 30px 80px rgba(0,0,0,.5);overflow:hidden;color:#22344d;animation:xhIn .45s cubic-bezier(.2,.8,.3,1) both}
+@keyframes xhIn{from{opacity:0;transform:translateY(22px) scale(.96)}to{opacity:1;transform:none}}
+.xh-hero{text-align:center;padding:26px 24px 18px;background:linear-gradient(135deg,rgba(56,166,255,.10),rgba(255,111,145,.10))}
+.xh-logo{width:70px;height:70px;border-radius:20px;object-fit:cover;box-shadow:0 10px 28px rgba(56,120,200,.28);margin-bottom:10px}
+.xh-title{font-family:'Orbitron',sans-serif;font-size:1.4rem;font-weight:900;letter-spacing:.04em;
+  background:linear-gradient(135deg,#38a6ff,#8e6bff,#ff6f91);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+.xh-sub{font-size:.78rem;color:rgba(34,52,77,.62);margin-top:6px;line-height:1.6}
+.xh-body{padding:20px 24px 24px}
+.xh-tabs{display:flex;gap:8px;margin-bottom:18px}
+.xh-tab{flex:1;padding:11px;border:2px solid rgba(56,140,220,.18);border-radius:14px;background:#f6faff;color:rgba(34,52,77,.6);
+  font-size:13px;font-weight:800;cursor:pointer;font-family:'Noto Sans JP',sans-serif;transition:all .18s}
+.xh-tab.on{background:linear-gradient(135deg,#38a6ff,#8e6bff);border-color:transparent;color:#fff;box-shadow:0 6px 16px rgba(56,166,255,.32)}
+.xh-pane{display:none}.xh-pane.on{display:block}
+.xh-label{font-size:11px;font-weight:800;color:#1d78d8;letter-spacing:.04em;margin:0 0 6px 2px}
+.xh-input{width:100%;box-sizing:border-box;padding:14px 16px;border:2px solid rgba(56,140,220,.20);border-radius:14px;
+  font-size:16px;font-family:'Noto Sans JP',sans-serif;color:#22344d;outline:none;background:#fbfdff;margin-bottom:12px;transition:border-color .2s}
+.xh-input:focus{border-color:#38a6ff}
+.xh-pin{letter-spacing:.5em;text-align:center;font-weight:800}
+.xh-btn{width:100%;padding:15px;border:none;border-radius:15px;font-size:15px;font-weight:800;cursor:pointer;
+  font-family:'Noto Sans JP',sans-serif;color:#fff;background:linear-gradient(135deg,#38a6ff,#8e6bff);
+  box-shadow:0 8px 22px rgba(56,166,255,.32);transition:transform .15s,box-shadow .15s}
+.xh-btn:active{transform:scale(.97)}
+.xh-btn.create{background:linear-gradient(135deg,#ffb020,#ff6f91)}
+.xh-msg{font-size:12px;min-height:18px;text-align:center;color:#e05a7a;font-weight:700;margin-top:4px}
+.xh-note{font-size:11px;color:rgba(34,52,77,.5);line-height:1.7;text-align:center;margin-top:14px}
+.xh-create-hero{text-align:center;padding:6px 0 4px}
+.xh-create-hero .em{font-size:40px}
+.xh-create-hero p{font-size:12.5px;color:rgba(34,52,77,.66);line-height:1.75;margin:8px 0 16px}
+/* 候補リスト（ID検索の結果） */
+.xh-candidates{display:flex;flex-direction:column;gap:8px;margin:6px 0 4px;max-height:40vh;overflow-y:auto}
+.xh-cand{display:flex;align-items:center;gap:12px;padding:10px 12px;border:2px solid rgba(56,140,220,.16);border-radius:14px;background:#f6faff;cursor:pointer;text-align:left;transition:.15s}
+.xh-cand:hover{border-color:#38a6ff;background:#eef6ff}
+.xh-cand img{width:42px;height:42px;border-radius:12px;object-fit:cover;flex:none;background:#dfe8f5}
+.xh-cand .cn{font-weight:800;font-size:14px;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.xh-cand .cg{color:var(--faint,#9aa7b8);font-weight:900}
+.xh-back{background:none;border:none;color:#1d78d8;font-size:13px;font-weight:800;cursor:pointer;font-family:inherit;padding:2px 0 12px;display:inline-flex;align-items:center;gap:4px}
+.xh-acct{display:flex;align-items:center;gap:12px;padding:12px;border:2px solid rgba(56,166,255,.3);border-radius:16px;background:linear-gradient(135deg,rgba(56,166,255,.08),rgba(142,107,255,.06));margin-bottom:14px}
+.xh-acct img{width:52px;height:52px;border-radius:14px;object-fit:cover;flex:none;background:#dfe8f5}
+.xh-acct .an{font-weight:900;font-size:16px}.xh-acct .al{font-size:11px;color:rgba(34,52,77,.55);font-weight:700;margin-top:1px}
+/* 音楽トグル（ポータル内フローティング） */
+#musicFab{position:fixed;left:14px;bottom:calc(74px + env(safe-area-inset-bottom,0px));z-index:940;width:46px;height:46px;border-radius:50%;
+  border:1.5px solid rgba(142,107,255,.4);background:rgba(255,255,255,.94);backdrop-filter:blur(10px);color:#7a4fe0;font-size:20px;cursor:pointer;
+  display:none;align-items:center;justify-content:center;box-shadow:0 6px 18px rgba(124,58,237,.28);
+  transform:scale(calc(1 + var(--beat)*0.10));transition:transform .1s ease-out}
+#musicFab.show{display:flex}
+#musicFab.off{color:#9aa7b8;border-color:rgba(150,160,180,.4)}
+</style>
+<div id="xevaHome">
+  <script>
+  /* ★ プリペイント判定（FOUC対策）: 本体が一瞬見えてからアクセス画面が出るのを防ぐため、
+     パース時点で同期的にモードを決めてオーバーレイを開いておく（xevarion.js の showXevaHome は冪等） */
+  (function () {
+    try {
+      var el = document.currentScript.parentNode;
+      var acc = JSON.parse(localStorage.getItem("xeva_account_v1") || "null");
+      var ls = JSON.parse(localStorage.getItem("xeva_session_v1") || "null");
+      var logged = !!(acc && acc.setupDone) && !(ls && ls.active === false);
+      var accessed = false;
+      try { accessed = sessionStorage.getItem("xeva_accessed") === "1"; } catch (e) {}
+      if (!logged) el.classList.add("open", "auth");
+      else if (!accessed) el.classList.add("open", "access");
+      /* logged かつ accessed → 何もしない（アプリから戻った時はそのままポータルへ） */
+    } catch (e) {}
+  })();
+  </script>
+  <div class="xh-bg"><div class="xh-kv"></div></div>
+  <div class="xh-aurora"></div>
+  <div class="xh-parts"><i class="xh-p"></i><i class="xh-p"></i><i class="xh-p"></i><i class="xh-p"></i><i class="xh-p"></i><i class="xh-p"></i><i class="xh-p"></i><i class="xh-p"></i><i class="xh-p"></i><i class="xh-p"></i><i class="xh-p"></i><i class="xh-p"></i></div>
+  <div class="xh-scrim"></div>
+
+  <!-- アクセス画面 -->
+  <div class="xh-access" id="xhAccess" onclick="xhAccessTap(event)">
+    <div class="xh-access-top" onclick="event.stopPropagation()">
+      <button class="xh-icbtn" id="xhMusicBtn" onclick="xevaToggleMusic()" title="音楽 ON/OFF"><svg class="xvic" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M4 9v6h3.6L13 19.4V4.6L7.6 9H4Z" fill="currentColor"/><path d="M15.5 8.6a4.8 4.8 0 010 6.8M18 6.2a8.2 8.2 0 010 11.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+      <div style="position:relative">
+        <button class="xh-icbtn" id="xhAcctBtn" onclick="xhToggleAcctMenu()" title="アカウント"><svg class="xvic" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><circle cx="12" cy="8.2" r="4.1" fill="currentColor"/><path d="M4.6 20.4a7.4 7.4 0 0114.8 0l.1.8H4.5Z" fill="currentColor"/></svg></button>
+        <div class="xh-acctmenu" id="xhAcctMenu">
+          <button onclick="xhChangeAccount()"><svg class="xvic xvic-mn" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 0113-5.2M19.5 12a7.5 7.5 0 01-13 5.2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M17.6 2.6v4.4h-4.4M6.4 21.4V17h4.4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> 別のアカウントでログイン</button>
+          <button onclick="xhOpenAccSettings()"><svg class="xvic xvic-mn" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.8l1.2 2.7 2.9-.5 1 2.8 2.8 1-.5 2.9L22 12l-2.6 1.3.5 2.9-2.8 1-1 2.8-2.9-.5L12 21.2l-1.2-2.7-2.9.5-1-2.8-2.8-1 .5-2.9L2 12l2.6-1.3-.5-2.9 2.8-1 1-2.8 2.9.5Z" fill="currentColor" opacity=".9"/><circle cx="12" cy="12" r="3.4" fill="rgba(16,14,34,.95)"/></svg> アカウント設定</button>
+          <button onclick="xhLogoutFromAccess()"><svg class="xvic xvic-mn" viewBox="0 0 24 24" aria-hidden="true"><path d="M10 4H6.5A2.5 2.5 0 004 6.5v11A2.5 2.5 0 006.5 20H10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M15 8l4 4-4 4M19 12H9" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> ログアウト</button>
+        </div>
+      </div>
+    </div>
+    <div class="xh-notice" id="xhNotice"></div>
+    <div class="xh-access-center">
+      <div class="xh-loading" id="xhLoading"><div class="xh-spin"></div>読み込み中…</div>
+      <div class="xh-start" id="xhStart">
+        <div class="xh-start-tap">タップしてスタート</div>
+        <div class="xh-start-line"></div>
+        <div class="xh-start-sub">TAP TO START</div>
+      </div>
+    </div>
+    <div class="xh-musicwarn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h3.6L13 19.4V4.6L7.6 9H4Z" fill="currentColor"/><path d="M15.5 8.6a4.8 4.8 0 010 6.8M18 6.2a8.2 8.2 0 010 11.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>タップすると BGM が再生されます（右上の🔊でON/OFF）</div>
+    <div class="xh-hint" id="xhHint"></div>
+  </div>
+
+  <!-- サインイン / 新規作成 -->
+  <div class="xh-auth" id="xhAuth">
+    <div class="xh-card">
+      <div class="xh-hero">
+        <img class="xh-logo" src="thumbs/Xevarion.png" alt="XEVARION">
+        <div class="xh-title">XEVARION</div>
+        <div class="xh-sub">ひとつのアカウントで、どの端末からでも。</div>
+      </div>
+      <div class="xh-body">
+        <div class="xh-tabs">
+          <button class="xh-tab on" id="xhTabLogin" onclick="xhSwitch('login')">ログイン</button>
+          <button class="xh-tab" id="xhTabCreate" onclick="xhSwitch('create')">新規作成</button>
+        </div>
+        <!-- ログイン：ID検索 → アカウント選択 → パスワード -->
+        <div class="xh-pane on" id="xhPaneLogin">
+          <!-- ステップ1：ID入力 -->
+          <div id="xhLoginStep1">
+            <div class="xh-label">ID（表示名）</div>
+            <input class="xh-input" id="xhSearchId" type="text" placeholder="登録した ID を入力" autocomplete="username" autocapitalize="off"
+              onkeydown="if(event.key==='Enter')xhSearchAccounts()">
+            <button class="xh-btn" id="xhSearchBtn" onclick="xhSearchAccounts()">🔍 アカウントを検索</button>
+            <div class="xh-candidates" id="xhCandidates"></div>
+            <div class="xh-msg" id="xhMsg"></div>
+            <div class="xh-note">登録した <b>ID（表示名）</b> を入力して自分のアカウントを選び、4桁PINでログインします。</div>
+          </div>
+          <!-- ステップ2：パスワード -->
+          <div id="xhLoginStep2" style="display:none">
+            <button class="xh-back" onclick="xhBackToSearch()">← IDの検索にもどる</button>
+            <div class="xh-acct" id="xhSelAcct"></div>
+            <div class="xh-label">4桁パスワード（PIN）</div>
+            <input class="xh-input xh-pin" id="xhPin" type="password" inputmode="numeric" maxlength="4" placeholder="••••" autocomplete="current-password"
+              onkeydown="if(event.key==='Enter')xhDoLogin()">
+            <button class="xh-btn" id="xhLoginBtn" onclick="xhDoLogin()">ログイン</button>
+            <div class="xh-msg" id="xhMsg2"></div>
+          </div>
+        </div>
+        <!-- 新規作成 -->
+        <div class="xh-pane" id="xhPaneCreate">
+          <div class="xh-create-hero">
+            <div class="em">✨</div>
+            <p>はじめての方は、新しいアカウントを作成しましょう。<br>アイコン・表示名・4桁PINを設定すると、以降はどの端末からでもログインできます。</p>
+          </div>
+          <button class="xh-btn create" onclick="xhStartCreate()">新規アカウントを作成</button>
+          <div class="xh-note">作成時に設定する<b>4桁パスワード</b>が、次回以降のログインに必要です。忘れないようにしてください。</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ポータル内の音楽トグル -->
+<button id="musicFab" onclick="xevaToggleMusic()" title="音楽 ON/OFF"><svg class="xvic" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M4 9v6h3.6L13 19.4V4.6L7.6 9H4Z" fill="currentColor"/><path d="M15.5 8.6a4.8 4.8 0 010 6.8M18 6.2a8.2 8.2 0 010 11.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+<!-- ═══════════════ XEVARION HOME ═══════════════ -->
+<div id="xhome">
+  <div id="xhBg">
+    <i class="bl b1"></i><i class="bl b2"></i><i class="bl b3"></i><i class="bl b4"></i>
+    <canvas id="xhStars"></canvas>
+  </div>
+
+  <div id="xhCol">
+
+    <!-- ───── ヘッダー ───── -->
+    <header class="xh-top">
+      <div class="xh-brandbar">
+        <img class="xh-orb" src="brand-xevarion-orb.png" alt="">
+        <span class="xh-word">XEVARION</span>
+      </div>
+      <div class="xh-acts">
+        <button class="xh-act ai" onclick="xhOpenAi()">
+          <span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6.5 3.4 3.2 6.9 4.6a7.6 7.6 0 0110.2 0l3.5-1.4L19 6.5a7.4 7.4 0 011.6 4.6v4.6a5.3 5.3 0 01-5.3 5.3H8.7a5.3 5.3 0 01-5.3-5.3v-4.6A7.4 7.4 0 015 6.5Z" fill="#fff" opacity=".92"/><circle cx="9.2" cy="12.6" r="1.8" fill="#6a7bd8"/><circle cx="14.8" cy="12.6" r="1.8" fill="#6a7bd8"/><path d="M9.6 17h4.8" stroke="#6a7bd8" stroke-width="1.7" stroke-linecap="round"/></svg></span>
+          <span class="lb">AI</span>
+        </button>
+        <button class="xh-act" onclick="xhTapMail()">
+          <span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="4.8" width="19" height="14.4" rx="3.4" fill="#4b8bff"/><path d="M4.4 7.4l7.6 5.6 7.6-5.6" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="bdg" id="xhMailBdg"></span></span>
+          <span class="lb">メール</span>
+        </button>
+        <button class="xh-act" onclick="xhTapNews()">
+          <span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.8a6 6 0 016 6c0 3.5.9 5.1 2 6.3.5.6.1 1.7-.8 1.7H4.8c-.9 0-1.3-1.1-.8-1.7 1.1-1.2 2-2.8 2-6.3a6 6 0 016-6Z" fill="#ffc93c"/><path d="M9.5 18.6a2.6 2.6 0 005 0Z" fill="#ff7ab8"/></svg><span class="bdg" id="xhNewsBdg"></span></span>
+          <span class="lb">お知らせ</span>
+        </button>
+        <button class="xh-act" onclick="xhTapMission()">
+          <span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3.4" width="14" height="17.2" rx="3" fill="#9b7bff"/><rect x="8.4" y="1.9" width="7.2" height="3.6" rx="1.7" fill="#6a4fd0"/><path d="M8.6 12.4l2.2 2.2 4.4-4.6" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="bdg" id="xhMsnBdg"></span></span>
+          <span class="lb">ミッション</span>
+        </button>
+      </div>
+    </header>
+
+    <!-- ───── スクロール領域 ───── -->
+    <div class="xh-scroll" id="xhScroll">
+
+      <div class="xh-offline">📴 オフライン中 — MagiLex ／ MagiBurst ／ MagiChainParty ／ XEVYNAR ／ MagiJackpot のみ遊べます</div>
+
+      <!-- プロフィール（EXPは廃止。XEVAはアバター行の右側に置く） -->
+      <section class="xh-panel xh-prof">
+        <button class="xh-av" id="xhAv" onclick="xhOpenSettings()" aria-label="プロフィール">
+          <span class="xh-av-init">?</span>
+        </button>
+        <div class="xh-pmeta">
+          <div class="xh-namerow">
+            <span class="xh-uname" id="xhUserName">XEVARION</span>
+            <button class="xh-pen" onclick="openAccSettings()" aria-label="名前を変更">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4Z"/></svg>
+            </button>
+          </div>
+          <div class="xh-uidline" id="xhUidLine">XEVARION アカウント</div>
+        </div>
+        <div class="xh-wallet">
+          <button class="xh-pill" onclick="xhOpenXevaGuide()" aria-label="XEVA — タップで入手方法">
+            <img class="cico" src="XEVA.png" alt="XEVA">
+            <span class="cval" id="xhXeva">0</span>
+            <span class="xh-info" aria-hidden="true">？</span>
+          </button>
+          <button class="xh-pill gem" onclick="xhOpenGemGuide()" aria-label="ジェム — タップで入手方法">
+            <img class="cico" src="gem.png" alt="ジェム">
+            <span class="cval" id="xhGem">0</span>
+            <span class="xh-info" aria-hidden="true">？</span>
+          </button>
+        </div>
+      </section>
+
+      <!-- ジェム変換所 ＆ ジェムショップ -->
+      <section class="xh-sec">
+        <div class="xh-sechead">
+          <div class="t"><span class="dot"></span>ジェム変換所</div>
+          <button class="more" onclick="xhOpenGemGuide()">ジェムとは？</button>
+        </div>
+        <div class="xh-xrow" style="margin-top:9px">
+          <button class="xh-xcard exch" onclick="xhOpenExchange()">
+            <span class="xhx-ic">
+              <img src="XEVA.png" alt="XEVA"><span class="ar">›</span><img src="gem.png" alt="ジェム">
+            </span>
+            <span class="xhx-t">ジェム変換所</span>
+            <!-- レートはドル円連動。中身は xhRenderGemRate() が入れる -->
+            <span class="xhx-s" id="xhExSub">レート取得中…</span>
+          </button>
+          <button class="xh-xcard shop" onclick="xhOpenShop()">
+            <span class="xhx-ic"><span class="bag">🏪</span></span>
+            <span class="xhx-t">ジェムショップ</span>
+            <span class="xhx-s" id="xhShopSub">1回限りのお得なパック</span>
+            <span class="xhx-badge" id="xhShopBdg"></span>
+          </button>
+        </div>
+      </section>
+
+      <!-- イベント -->
+      <section class="xh-sec">
+        <div class="xh-sechead">
+          <div class="t"><span class="dot"></span>開催中のイベント</div>
+        </div>
+        <div class="xh-evwrap" id="xhEvent" style="margin-top:8px">
+          <div class="xh-evtrack" id="xhEvTrack"></div>
+        </div>
+        <div class="xh-evdots" id="xhEvDots"></div>
+      </section>
+
+      <!-- アプリ -->
+      <section class="xh-sec">
+        <div class="xh-sechead">
+          <div class="t"><span class="dot"></span>アプリ</div>
+          <button class="more" onclick="xhOpenAllApps()">すべて見る</button>
+        </div>
+        <div class="xh-grid" id="xhAppGrid" style="margin-top:10px"></div>
+      </section>
+
+    </div>
+
+    <!-- ───── タブバー ───── -->
+    <div class="xh-bar" role="tablist">
+      <button class="xh-ntab on" data-tab="home" onclick="xhGo('home')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.4 10.6 12 3.6l8.6 7"/><path d="M5.6 9.4V20h12.8V9.4"/><path d="M9.8 20v-5.6h4.4V20"/></svg>
+        <span class="tl">ホーム</span>
+      </button>
+      <button class="xh-ntab" data-tab="community" onclick="xhGo('community')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8.6" cy="8.4" r="3.2"/><circle cx="16.6" cy="9.6" r="2.6"/><path d="M2.8 19.4a5.8 5.8 0 0111.6 0"/><path d="M15 14.6a4.8 4.8 0 016.2 4.8"/></svg>
+        <span class="tl">コミュニティ</span>
+      </button>
+      <button class="xh-ntab" data-tab="chars" onclick="xhGo('chars')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6.4C10.4 4.9 8.4 4.4 4.2 4.4v13.4c4.2 0 6.2.5 7.8 2 1.6-1.5 3.6-2 7.8-2V4.4c-4.2 0-6.2.5-7.8 2Z"/><path d="M12 6.4v13.4"/></svg>
+        <span class="tl">図鑑</span>
+      </button>
+      <button class="xh-ntab" data-tab="gacha" onclick="xhGo('gacha')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.6" r="5.8"/><circle cx="9.8" cy="10.8" r="1.2" fill="currentColor" stroke="none"/><circle cx="12.5" cy="11.7" r="1.2" fill="currentColor" stroke="none"/><circle cx="14.8" cy="10.2" r="1.2" fill="currentColor" stroke="none"/><path d="M4.9 14.4h14.2v4.3a1.9 1.9 0 01-1.9 1.9H6.8a1.9 1.9 0 01-1.9-1.9Z"/><path d="M7.4 17.6h4.2"/><circle cx="16.3" cy="17.6" r="1.1" fill="currentColor" stroke="none"/></svg>
+        <span class="tl">ガチャ</span>
+      </button>
+      <button class="xh-ntab" data-tab="settings" onclick="xhGo('settings')">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><path d="M19.5 14.4a1.7 1.7 0 00.34 1.87l.06.06a2 2 0 11-2.83 2.83l-.06-.06a1.7 1.7 0 00-1.87-.34 1.7 1.7 0 00-1.03 1.56V21a2 2 0 11-4 0v-.11a1.7 1.7 0 00-1.11-1.56 1.7 1.7 0 00-1.87.34l-.06.06a2 2 0 11-2.83-2.83l.06-.06a1.7 1.7 0 00.34-1.87 1.7 1.7 0 00-1.56-1.03H3a2 2 0 110-4h.11A1.7 1.7 0 004.67 8.6a1.7 1.7 0 00-.34-1.87l-.06-.06a2 2 0 112.83-2.83l.06.06a1.7 1.7 0 001.87.34H9a1.7 1.7 0 001.03-1.56V3a2 2 0 114 0v.11a1.7 1.7 0 001.03 1.56 1.7 1.7 0 001.87-.34l.06-.06a2 2 0 112.83 2.83l-.06.06a1.7 1.7 0 00-.34 1.87V9a1.7 1.7 0 001.56 1.03H21a2 2 0 110 4h-.11a1.7 1.7 0 00-1.56 1.03Z"/></svg>
+        <span class="tl">設定</span>
+      </button>
+    </div>
+
+  </div>
+</div>
+
+<div id="xhToast"></div>
+
+<!-- ───── Magi AI Assistant ───── -->
+<div class="xh-sheet" id="xhAiSheet" onclick="if(event.target===this)xhCloseSheet('xhAiSheet')">
+  <div class="xh-sheet-card">
+    <div class="xh-sheet-head">
+      <div class="xh-ai-head">
+        <div class="xh-ai-av">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6.5 3.4 3.2 6.9 4.6a7.6 7.6 0 0110.2 0l3.5-1.4L19 6.5a7.4 7.4 0 011.6 4.6v4.6a5.3 5.3 0 01-5.3 5.3H8.7a5.3 5.3 0 01-5.3-5.3v-4.6A7.4 7.4 0 015 6.5Z" fill="#fff" opacity=".92"/><circle cx="9.2" cy="12.6" r="1.8" fill="#6a7bd8"/><circle cx="14.8" cy="12.6" r="1.8" fill="#6a7bd8"/><path d="M9.6 17h4.8" stroke="#6a7bd8" stroke-width="1.7" stroke-linecap="round"/></svg>
+        </div>
+        <div>
+          <div class="xh-ai-name">Magi AI Assistant</div>
+          <div class="xh-ai-sub">タイマー・学習プラン・アプリ探しまでおまかせ</div>
+        </div>
+      </div>
+      <button class="xh-sheet-x" onclick="xhCloseSheet('xhAiSheet')">✕</button>
+    </div>
+    <div class="xh-sheet-body"><div class="xh-ai-log" id="xhAiLog"></div></div>
+    <!-- その場に合わせた「言い方の見本」。横スクロールで並べる -->
+    <div class="xh-ai-quick" id="xhAiQuick"></div>
+    <div class="xh-ai-inrow">
+      <input class="xh-ai-inp" id="xhAiInp" type="text" autocomplete="off"
+             placeholder="例：1時間30分はかって／3人で遊べるゲーム" onkeydown="if(event.key==='Enter')xhAiSend()">
+      <button class="xh-mic" id="xhMic" onclick="xhAiMic()" aria-label="音声で話す">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><rect x="9" y="2.6" width="6" height="11" rx="3" fill="currentColor" stroke="none"/><path d="M5.5 11.5a6.5 6.5 0 0013 0M12 18v3.2"/></svg>
+      </button>
+      <button class="xh-send" onclick="xhAiSend()" aria-label="送信">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h15"/><path d="M13 6l6 6-6 6"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ───── アプリ一覧シート ───── -->
+<div class="xh-sheet" id="xhAppsSheet" onclick="if(event.target===this)xhCloseSheet('xhAppsSheet')">
+  <div class="xh-sheet-card">
+    <div class="xh-sheet-head">
+      <div class="xh-sheet-title">🧩 すべてのアプリ</div>
+      <button class="xh-sheet-x" onclick="xhCloseSheet('xhAppsSheet')">✕</button>
+    </div>
+    <div class="xh-sheet-body">
+      <input class="xh-search" id="xhAppSearch" type="search" placeholder="🔍 アプリ名・キーワードで探す"
+             autocomplete="off" oninput="xhPaintAppList()">
+      <div class="xh-cats" id="xhAppCats"></div>
+      <div class="xh-alist" id="xhAppList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ───── 「その他」＝アプリ一覧（ホームと同じグリッド） ───── -->
+<div class="xh-sheet" id="xhGridSheet" onclick="if(event.target===this)xhCloseSheet('xhGridSheet')">
+  <div class="xh-sheet-card">
+    <div class="xh-sheet-head">
+      <div class="xh-sheet-title">🧩 アプリ一覧</div>
+      <button class="xh-sheet-x" onclick="xhCloseSheet('xhGridSheet')">✕</button>
+    </div>
+    <div class="xh-sheet-body">
+      <div id="xhGridBody"></div>
+      <button class="xh-sbtn ghost" onclick="xhCloseSheet('xhGridSheet');xhOpenAllApps()">📋 説明つきの一覧で見る</button>
+    </div>
+  </div>
+</div>
+
+<!-- ───── 更新データのダウンロード ───── -->
+<div class="xh-sheet" id="xhUpdSheet">
+  <div class="xh-sheet-card">
+    <div class="xh-sheet-head">
+      <div class="xh-sheet-title" id="xhUpdHead">🚀 アップデートがあります</div>
+      <button class="xh-sheet-x" id="xhUpdX" onclick="xhUpdLater()">✕</button>
+    </div>
+    <div class="xh-sheet-body">
+      <div class="xh-upd-head">
+        <div class="xh-upd-ttl" id="xhUpdTitle">XEVARION アップデート</div>
+        <div class="xh-upd-meta"><span id="xhUpdVer">—</span><span class="dot">·</span><span id="xhUpdSize">—</span></div>
+      </div>
+      <!-- ★ ダウンロード量の内訳。「何回ぶんたまっていても取り直す量は同じ」を明示する -->
+      <div class="xh-upd-size" id="xhUpdSizeNote"></div>
+
+      <!-- ══ ダウンロードのしくみガイド（2026-08-10 追加） ══
+           「読むだけの説明」は読まれないので、<b>いま実際に起きていること</b>に
+           合わせて段が光るようにした。押すと更新が始まり、①→④ が順に進む。
+           ＝ 説明を読みながら、そのまま実践できる。 -->
+      <div class="xh-dlg" id="xhDlGuide">
+        <div class="xh-dlg-h">📘 ダウンロードって、何をしているの？
+          <span class="xh-dlg-live" id="xhDlLive">押すと①から順に進みます</span></div>
+        <ol class="xh-dlg-steps" id="xhDlSteps">
+          <li data-s="1"><b>くらべる</b><span>サーバーにある最新の一覧と、いまスマホに入っているデータを1件ずつつき合わせます。<em>ここでは通信量はほとんど使いません。</em></span></li>
+          <li data-s="2"><b>変わったぶんだけ落とす</b><span>中身が変わったファイルだけを取りにいきます。前と同じファイルは<em>落とし直しません</em>——だから「約○○MB」より実際はずっと小さくなります。</span></li>
+          <li data-s="3"><b>スマホに保存する</b><span>落としたデータをスマホの中にしまいます。これが終わると<em>機内モード・電波なしでも</em> MagiLex / MagiBurst / MagiChainParty などが遊べます。</span></li>
+          <li data-s="4"><b>最新版に切り替える</b><span>画面を自動で読み込み直して完了。<em>セーブデータ（進行・所持キャラ・XEVA）はそのまま</em>です。</span></li>
+        </ol>
+      </div>
+
+      <ul class="xh-upd-notes" id="xhUpdNotes"></ul>
+      <div class="xh-upd-prog" id="xhUpdProg">
+        <div class="bar"><i id="xhUpdBar"></i></div>
+        <div class="pt" id="xhUpdPct">確認中… 0%</div>
+        <!-- ★ 差分更新（変更のあったファイルだけ落とす）の実績 -->
+        <div class="pt" id="xhUpdDl" style="display:none;opacity:.85"></div>
+      </div>
+      <button class="xh-sbtn" id="xhUpdGo" onclick="xhUpdStart()">⬇ 更新する（最大 <span id="xhUpdSize2">—</span>）</button>
+      <button class="xh-sbtn ghost" id="xhUpdSkip" onclick="xhUpdLater()">あとで</button>
+      <div style="font-size:10.5px;color:rgba(111,130,173,.85);text-align:center;margin-top:10px;line-height:1.75;font-weight:600">
+        Wi-Fi での更新をおすすめします。更新するとオフラインでも最新版で遊べます。
+      </div>
+      <!-- ══ よくある疑問（2026-08-10 追加）══ -->
+      <div class="xh-faq">
+        <details><summary>「約 ○○ MB」と出るのに、実際はもっと少ないのはなぜ？</summary>
+          <p>この数字は<b>つき合わせる対象ぜんぶの大きさ</b>（＝最大値）です。実際に落とすのは
+          <b>中身が変わったファイルだけ</b>なので、ほとんどの回はこの何分の一かで終わります。
+          進み具合の下に出る「更新したファイル ○件（○MB）」が<b>本当に落とした量</b>です。</p></details>
+        <details><summary>更新を何回か見送ったら、そのぶん重くなる？</summary>
+          <p>なりません。見送った回数に関係なく、<b>いまのスマホの中身と最新をくらべて足りないぶんだけ</b>を
+          1回で取り込みます。見送った回の「更新内容」は、まとめてこの画面に並びます。</p></details>
+        <details><summary>ギガ（通信量）が心配。モバイル回線でも大丈夫？</summary>
+          <p>2回目からは差分なので少量ですみますが、<b>初回だけはまとまった量</b>になります。
+          はじめての更新と「オフライン用に再ダウンロード」は <b>Wi-Fi</b> をおすすめします。
+          途中で通信が切れても、<b>次に開いたときに続きから</b>そろえ直せます。</p></details>
+        <details><summary>「あとで」を押したらどうなる？</summary>
+          <p>そのまま遊べます。ただしオフラインのときは<b>古い版のまま</b>になります。
+          あとで <b>設定 → アプリの更新</b> からいつでも実行できます。</p></details>
+        <details><summary>ダウンロードしたのに、機内モードで開けない</summary>
+          <p>スマホの空き容量が減ると、保存したデータが自動で捨てられることがあります。
+          そのときは版が最新のままなので「アプリの更新」では直りません。
+          <b>設定 → オフライン設定 → オフライン用に再ダウンロード</b> を実行すると、
+          <b>欠けているファイルだけ</b>を取り直して直せます（セーブデータはそのまま）。</p></details>
+        <details><summary>セーブデータが消えたりしない？</summary>
+          <p>消えません。ダウンロードするのは<b>アプリのプログラムと画像</b>だけで、
+          進行・所持キャラ・XEVA・ジェムは別に保存されています。
+          アカウントでログインしていれば、機種変更のときもクラウドから引き継げます。</p></details>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ───── 画面内の確認ダイアログ（購入など・xhAsk が中身を組み立てる） ───── -->
+<div class="xh-ask" id="xhAsk"><div class="xh-ask-card" id="xhAskCard"></div></div>
+
+<!-- ───── 初回インストール案内 ───── -->
+<div class="xh-sheet" id="xhInstallSheet" onclick="if(event.target===this)xhCloseInstallHint()">
+  <div class="xh-sheet-card">
+    <div class="xh-sheet-head">
+      <div class="xh-sheet-title">📲 アプリとして使えます</div>
+      <button class="xh-sheet-x" onclick="xhCloseInstallHint()">✕</button>
+    </div>
+    <div class="xh-sheet-body">
+      <div class="xh-inst-hero">
+        <img src="icons/xev-192.png" alt="XEVARION">
+        <div>
+          <div class="t1">XEVARION</div>
+          <div class="t2">Magi Universe Gate</div>
+        </div>
+      </div>
+      <div class="xh-sortnote" style="margin-top:14px">
+        XEVARION は<b>ホーム画面に追加してアプリとして起動</b>できます。<br>
+        インストールしておくと、<b>MagiLex ／ MagiBurst ／ MagiChainParty ／ XEVYNAR ／ MagiJackpot</b>が
+        <b>機内モードでも遊べる</b>ようになります（アプリごとに入れる必要はありません）。
+        オフライン中の進行は、オンラインに戻った時点でクラウドへ反映されます。
+      </div>
+      <div class="xh-inst-steps" id="xhInstSteps"></div>
+      <button class="xh-sbtn" id="xhInstBtn" onclick="xhInstallApp()">インストールする</button>
+      <button class="xh-sbtn ghost" onclick="xhCloseInstallHint()">あとで（設定からいつでも追加できます）</button>
+    </div>
+  </div>
+</div>
+
+<!-- ───── 設定シート ───── -->
+<div class="xh-sheet" id="xhSetSheet" onclick="if(event.target===this)xhCloseSheet('xhSetSheet')">
+  <div class="xh-sheet-card">
+    <div class="xh-sheet-head">
+      <div class="xh-sheet-title">⚙️ 設定</div>
+      <button class="xh-sheet-x" onclick="xhCloseSheet('xhSetSheet')">✕</button>
+    </div>
+    <div class="xh-sheet-body">
+      <div class="xh-sec-label">アカウント</div>
+      <button class="xh-row" onclick="xhCloseSheet('xhSetSheet');openAccSettings()">
+        <span class="rl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="8" r="4"/><path d="M4.6 20.4a7.4 7.4 0 0114.8 0"/></svg>
+          <span><span class="rt">アカウント設定</span><span class="rs" id="xhSetAccSub">名前・アイコン・パスワード</span></span></span>
+        <span class="rv">›</span>
+      </button>
+      <button class="xh-row" onclick="xhOpenShowcase()">
+        <span class="rl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><rect x="3.4" y="3.4" width="17.2" height="17.2" rx="4"/><circle cx="9" cy="9.4" r="1.8"/><path d="M4.2 18 9 13.6l3.2 2.8 3-2.4 4.6 4"/></svg>
+          <span><span class="rt">お気に入りキャラ</span><span class="rs">最大5体・図鑑やプロフィールに表示</span></span></span>
+        <span class="rv" id="xhSetShowN">0体</span>
+      </button>
+
+      <div class="xh-sec-label">アプリ</div>
+      <button class="xh-row" onclick="xhOpenSort()">
+        <span class="rl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4.4v15M7 4.4 4.2 7.6M7 4.4l2.8 3.2"/><path d="M17 19.6v-15M17 19.6l2.8-3.2M17 19.6l-2.8-3.2"/></svg>
+          <span><span class="rt">アプリの並び替え</span><span class="rs">ホームに並ぶ順番を自由に変更</span></span></span>
+        <span class="rv">›</span>
+      </button>
+      <button class="xh-row" onclick="xhOpenAllApps()">
+        <span class="rl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><rect x="3.4" y="3.4" width="7" height="7" rx="2.2"/><rect x="13.6" y="3.4" width="7" height="7" rx="2.2"/><rect x="3.4" y="13.6" width="7" height="7" rx="2.2"/><rect x="13.6" y="13.6" width="7" height="7" rx="2.2"/></svg>
+          <span><span class="rt">すべてのアプリ</span><span class="rs">XEVARION の全アプリを一覧で見る</span></span></span>
+        <span class="rv">›</span>
+      </button>
+      <button class="xh-row" onclick="xhToggleMusic()">
+        <span class="rl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M9 18V5.4l10-2v12.2"/><circle cx="6.4" cy="18" r="2.6"/><circle cx="16.4" cy="15.6" r="2.6"/></svg>
+          <span><span class="rt">BGM</span><span class="rs">ホームの音楽を再生する</span></span></span>
+        <span class="xh-sw" id="xhSwMusic"></span>
+      </button>
+      <button class="xh-row" onclick="xhInstallApp()">
+        <span class="rl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.4v11.2"/><path d="M7.6 10.4 12 14.8l4.4-4.4"/><path d="M4.4 19.6h15.2"/></svg>
+          <span><span class="rt">XEVARION をインストール</span><span class="rs" id="xhInstallSub">ホーム画面に追加してアプリとして使う</span></span></span>
+        <span class="rv">›</span>
+      </button>
+      <button class="xh-row" onclick="xhOpenOfflineInfo()">
+        <span class="rl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8.4a12 12 0 0116 0"/><path d="M7 12a8 8 0 0110 0"/><path d="M10 15.4a3.6 3.6 0 014 0"/><circle cx="12" cy="19" r="1.3" fill="currentColor"/></svg>
+          <span><span class="rt">オフライン設定</span><span class="rs">3アプリを機内モードでも遊べるように</span></span></span>
+        <span class="rv" id="xhOfflineState">›</span>
+      </button>
+      <button class="xh-row" onclick="xhOpenUpdateFromSettings()">
+        <span class="rl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.2 12a8.2 8.2 0 1 1-2.5-5.9"/><path d="M20.4 3.8v4.6h-4.6"/></svg>
+          <span><span class="rt">アプリの更新</span><span class="rs" id="xhSetUpdSub">最新のデータが入っているか確認する</span></span></span>
+        <span class="rv" id="xhSetUpdV">›</span>
+      </button>
+
+      <div class="xh-sec-label">XEVARION について</div>
+      <button class="xh-row" onclick="xhOpenGemGuide()">
+        <span class="rl"><img src="gem.png" alt="" style="width:22px;height:22px;object-fit:contain">
+          <span><span class="rt">ジェムの入手方法</span><span class="rs">XEVARION 共通のプレミアム通貨</span></span></span>
+        <span class="rv">›</span>
+      </button>
+      <button class="xh-row" onclick="xhCloseSheet('xhSetSheet');xhOpenXevaGuide()">
+        <span class="rl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.4a2.5 2.5 0 114 2.1c-.8.6-1.6 1-1.6 2"/><circle cx="12" cy="17" r="1.1" fill="currentColor"/></svg>
+          <span><span class="rt">XEVAの入手方法</span><span class="rs">毎日のログイン・ミッション・ゲーム</span></span></span>
+        <span class="rv">›</span>
+      </button>
+      <a class="xh-row" href="about.html" style="text-decoration:none">
+        <span class="rl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.6 20.4h16.8"/><path d="M5.4 20.4V8.2l6.6-4 6.6 4v12.2"/><path d="M9.4 20.4v-4.6h5.2v4.6"/><path d="M9.4 11.4h1.6M13 11.4h1.6"/></svg>
+          <span><span class="rt">会社概要</span><span class="rs">NGX ／ Magical Future ／ 提携について</span></span></span>
+        <span class="rv">›</span>
+      </a>
+      <button class="xh-row" onclick="xhCloseSheet('xhSetSheet');openCdkModal()">
+        <span class="rl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="8.4" cy="12" r="4.4"/><path d="M12.6 12h8.2v3M17.6 12v2.6"/></svg>
+          <span><span class="rt">シリアルコード</span><span class="rs">CDK を入力して特典を受け取る</span></span></span>
+        <span class="rv">›</span>
+      </button>
+
+      <div class="xh-sec-label">その他</div>
+      <button class="xh-row" onclick="xhOpenAdmin()">
+        <span class="rl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.2 4.6 6.4v5.2c0 4.6 3.1 8.4 7.4 9.6 4.3-1.2 7.4-5 7.4-9.6V6.4Z"/><path d="M9.4 12.2l1.9 1.9 3.6-3.9"/></svg>
+          <span><span class="rt">管理画面</span><span class="rs">アクセスコードが必要です</span></span></span>
+        <span class="rv">›</span>
+      </button>
+      <button class="xh-row" onclick="xhLogout()">
+        <span class="rl"><svg viewBox="0 0 24 24" fill="none" stroke="#ff6f91" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.4 16.6v2a2 2 0 01-2 2H5.6a2 2 0 01-2-2V5.4a2 2 0 012-2h6.8a2 2 0 012 2v2"/><path d="M18.4 12H9.2M15.6 8.8 18.8 12l-3.2 3.2"/></svg>
+          <span><span class="rt" style="color:#ff6f91">ログアウト</span><span class="rs">別のアカウントに切り替える</span></span></span>
+        <span class="rv">›</span>
+      </button>
+      <div style="text-align:center;font-size:10.5px;color:rgba(111,130,173,.8);margin-top:16px;line-height:1.9;font-weight:600">
+        XEVARION — Magi Universe Gate<br>© 2021–2026 NGX × Magical Future
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ───── アプリ並び替えシート ───── -->
+<div class="xh-sheet" id="xhSortSheet" onclick="if(event.target===this)xhCloseSheet('xhSortSheet')">
+  <div class="xh-sheet-card">
+    <div class="xh-sheet-head">
+      <div class="xh-sheet-title">↕️ アプリの並び替え</div>
+      <button class="xh-sheet-x" onclick="xhCloseSheet('xhSortSheet')">✕</button>
+    </div>
+    <div class="xh-sheet-body">
+      <div class="xh-sortnote"><b>☰ をつまんで上下にスライド</b>、または ▲▼ で順番を入れ替えられます。<b>上から11個</b>がホームに並びます（12枠目は「その他」）。</div>
+      <div class="xh-sortlist" id="xhSortList"></div>
+      <button class="xh-sbtn" onclick="xhSaveSort()">この順番で保存</button>
+      <button class="xh-sbtn ghost" onclick="xhResetSort()">初期の並びに戻す</button>
+    </div>
+  </div>
+</div>
+
+<!-- ───── お気に入りキャラ シート ───── -->
+<div class="xh-sheet" id="xhShowSheet" onclick="if(event.target===this)xhCloseSheet('xhShowSheet')">
+  <div class="xh-sheet-card">
+    <div class="xh-sheet-head">
+      <div class="xh-sheet-title">🌟 お気に入りキャラ</div>
+      <button class="xh-sheet-x" onclick="xhCloseSheet('xhShowSheet')">✕</button>
+    </div>
+    <div class="xh-sheet-body">
+      <div class="xh-sortnote">所持しているキャラから<b>最大5体</b>まで選べます。選んだキャラは MagiLink のプロフィールにも表示されます。</div>
+      <div class="xh-cgrid" id="xhShowGrid"></div>
+      <div style="font-size:11.5px;font-weight:800;color:#4b8bff;text-align:center;margin-top:12px" id="xhShowHint">0 / 5 選択中</div>
+      <button class="xh-sbtn" onclick="xhSaveShowcase()">この5体に設定</button>
+      <button class="xh-sbtn ghost" onclick="xhCloseSheet('xhShowSheet')">キャンセル</button>
+    </div>
+  </div>
+</div>
+
+<!-- ───── ジェムの入手方法シート ───── -->
+<div class="xh-sheet" id="xhGemSheet" onclick="if(event.target===this)xhCloseSheet('xhGemSheet')">
+  <div class="xh-sheet-card">
+    <div class="xh-sheet-head">
+      <div class="xh-sheet-title"><img src="gem.png" alt="" style="width:20px;height:20px;vertical-align:-3px;object-fit:contain"> ジェムの入手方法</div>
+      <button class="xh-sheet-x" onclick="xhCloseSheet('xhGemSheet')">✕</button>
+    </div>
+    <div class="xh-sheet-body">
+      <div class="xh-sortnote">
+        <b>ジェム</b>は XEVARION 全体で使えるプレミアム通貨です。MagiBurst のガチャ、MagiJackpot のベット、
+        各アプリの特別なアイテムに使えます。残高は<b>アカウントに紐づいて全端末で同期</b>されます。
+      </div>
+      <div style="text-align:center;margin:14px 0 4px">
+        <div style="font-family:'Orbitron',sans-serif;font-size:30px;font-weight:800;color:#7b4fd8">
+          <img src="gem.png" alt="" style="width:28px;height:28px;vertical-align:-4px;object-fit:contain">
+          <span id="xhGemBal">0</span>
+        </div>
+        <div style="font-size:10.5px;font-weight:700;color:rgba(111,130,173,.9);margin-top:2px">いまの所持ジェム</div>
+      </div>
+      <div id="xhGemWays"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ───── XEVAの入手方法シート（★ジェムと同じ見せ方にそろえた 2026-08-03） ───── -->
+<div class="xh-sheet" id="xhXevaSheet" onclick="if(event.target===this)xhCloseSheet('xhXevaSheet')">
+  <div class="xh-sheet-card">
+    <div class="xh-sheet-head">
+      <div class="xh-sheet-title"><img src="XEVA.png" alt="" style="width:20px;height:20px;vertical-align:-3px;object-fit:contain"> XEVAの入手方法</div>
+      <button class="xh-sheet-x" onclick="xhCloseSheet('xhXevaSheet')">✕</button>
+    </div>
+    <div class="xh-sheet-body">
+      <div class="xh-sortnote">
+        <b>XEVA</b> は XEVARION 共通の基本通貨です。XEVAガチャ、💎ジェムへの交換、
+        MagiJackpot のベット、各アプリの強化などに使えます。
+        残高は<b>アカウントに紐づいて全端末で同期</b>されます。
+      </div>
+      <div style="text-align:center;margin:14px 0 4px">
+        <div style="font-family:'Orbitron',sans-serif;font-size:30px;font-weight:800;color:#d99a17">
+          <img src="XEVA.png" alt="" style="width:28px;height:28px;vertical-align:-4px;object-fit:contain">
+          <span id="xhXevaBal">0</span>
+        </div>
+        <div style="font-size:10.5px;font-weight:700;color:rgba(111,130,173,.9);margin-top:2px">いまの所持XEVA</div>
+      </div>
+      <div id="xhXevaWays"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ───── ジェム変換所シート ───── -->
+<div class="xh-sheet" id="xhExSheet" onclick="if(event.target===this)xhCloseSheet('xhExSheet')">
+  <div class="xh-sheet-card">
+    <div class="xh-sheet-head">
+      <div class="xh-sheet-title">🏪 ジェム変換所</div>
+      <button class="xh-sheet-x" onclick="xhCloseSheet('xhExSheet')">✕</button>
+    </div>
+    <div class="xh-sheet-body" id="xhExBody"></div>
+  </div>
+</div>
+
+<!-- ───── ジェムショップ（1回限りのお得なパック）シート ───── -->
+<div class="xh-sheet" id="xhShopSheet" onclick="if(event.target===this)xhCloseSheet('xhShopSheet')">
+  <div class="xh-sheet-card">
+    <div class="xh-sheet-head">
+      <div class="xh-sheet-title">🛒 ジェムショップ</div>
+      <button class="xh-sheet-x" onclick="xhCloseSheet('xhShopSheet')">✕</button>
+    </div>
+    <div class="xh-sheet-body" id="xhShopBody"></div>
+  </div>
+</div>
+
+<!-- ───── オフライン設定シート ───── -->
+<div class="xh-sheet" id="xhOffSheet" onclick="if(event.target===this)xhCloseSheet('xhOffSheet')">
+  <div class="xh-sheet-card">
+    <div class="xh-sheet-head">
+      <div class="xh-sheet-title">📴 オフライン設定</div>
+      <button class="xh-sheet-x" onclick="xhCloseSheet('xhOffSheet')">✕</button>
+    </div>
+    <div class="xh-sheet-body">
+      <div class="xh-sortnote">
+        XEVARION をインストールしておくと、<b>MagiLex ／ MagiBurst ／ MagiChainParty ／ XEVYNAR ／ MagiJackpot</b>は機内モードでも遊べます。
+        オフライン中の進行は端末に保存され、<b>オンラインに戻った時点でクラウドへ上書き反映</b>されます。
+        それ以外のアプリは通信が必要なため、オフライン中は開けません。
+      </div>
+      <div id="xhOffList"></div>
+      <button class="xh-sbtn" id="xhOffPrep" onclick="xhPrepareOffline()">オフライン用にダウンロード</button>
+      <!-- ★ 2026-08-06: 空き容量が減るとブラウザがキャッシュを捨ててしまい、
+           「入れてあるのに機内モードで開けない」状態になることがある。
+           版は最新のままなので「アプリの更新」では直せないため、専用の入口を置く。 -->
+      <button class="xh-sbtn ghost" id="xhOffRedl" onclick="xhRedownloadOffline()" style="margin-top:8px">⬇ もう一度ダウンロードし直す</button>
+      <div class="xh-sortnote" style="margin-top:8px">
+        「オフラインで起動できます」と出ているのに機内モードで開けないときは、こちらを試してください。
+        <b>足りないファイルだけ</b>を取り直すので、そろっていれば通信はほとんど発生しません。
+        <b>セーブデータはそのまま</b>です。
+      </div>
+      <div style="font-size:10.5px;color:rgba(111,130,173,.85);text-align:center;margin-top:10px;line-height:1.75;font-weight:600" id="xhOffMsg"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ───── 管理画面アクセスコード ───── -->
+<div class="xh-sheet" id="xhAdminSheet" onclick="if(event.target===this)xhCloseSheet('xhAdminSheet')">
+  <div class="xh-sheet-card">
+    <div class="xh-sheet-head">
+      <div class="xh-sheet-title">🛡 管理画面</div>
+      <button class="xh-sheet-x" onclick="xhCloseSheet('xhAdminSheet')">✕</button>
+    </div>
+    <div class="xh-sheet-body">
+      <div class="xh-sortnote">運営用の管理画面です。<b>アクセスコード</b>を入力してください。</div>
+      <input class="xh-code" id="xhAdminCode" type="password" placeholder="アクセスコード" autocomplete="off"
+             onkeydown="if(event.key==='Enter')xhAdminEnter()">
+      <div class="xh-codemsg" id="xhAdminMsg"></div>
+      <button class="xh-sbtn" onclick="xhAdminEnter()">管理画面へ進む</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- ───── XEVA HUB ───── -->
+<style>
+.xeva-mission{display:flex;align-items:center;gap:14px;background:#f6faff;border:1.5px solid rgba(56,140,220,.14);border-radius:14px;padding:14px 16px;margin-bottom:10px;transition:border-color .2s}
+.xeva-mission:hover{border-color:rgba(255,159,46,.55)}
+.xeva-m-ic{width:42px;height:42px;border-radius:11px;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:21px;background:rgba(56,166,255,.10);overflow:hidden}
+.xeva-m-ic img{width:100%;height:100%;object-fit:cover}
+.xeva-m-body{flex:1;min-width:0}
+.xeva-m-title{font-size:13.5px;font-weight:700;color:#22344d}
+.xeva-m-rew{font-size:11.5px;color:rgba(34,52,77,.66);margin-top:2px}
+.xeva-m-rew b{color:#c07a00}
+.xeva-m-go{flex-shrink:0;font-size:12px;font-weight:700;color:#7a4fe0;border:1.5px solid rgba(142,107,255,.45);border-radius:10px;padding:8px 14px;white-space:nowrap;transition:all .2s}
+.xeva-m-go:hover{background:rgba(142,107,255,.10)}
+.xeva-mission.done{opacity:.7}
+.xeva-mission.claimable{opacity:1;border-color:rgba(255,159,46,.55);background:#fff8ee}
+.xeva-m-done{flex-shrink:0;font-size:12px;font-weight:700;color:#17a673;display:flex;align-items:center;gap:5px;white-space:nowrap}
+.xeva-m-claim{flex-shrink:0;font-size:12px;font-weight:800;color:#fff;border:none;border-radius:10px;padding:9px 15px;white-space:nowrap;cursor:pointer;font-family:'Noto Sans JP',sans-serif;background:linear-gradient(135deg,#ff9f2e,#ff6f91);box-shadow:0 4px 14px rgba(255,111,145,.35);transition:transform .15s}
+.xeva-m-claim:hover{transform:translateY(-2px)}
+/* login bonus toast */
+#xevaToast{position:fixed;left:50%;bottom:84px;transform:translateX(-50%) translateY(24px);z-index:9000;display:flex;align-items:center;gap:12px;background:#ffffff;border:1.5px solid rgba(255,159,46,.5);border-radius:16px;padding:14px 22px;box-shadow:0 16px 40px rgba(56,120,200,.22);opacity:0;pointer-events:none;transition:all .45s cubic-bezier(.2,.8,.3,1);max-width:90vw}
+#xevaToast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+#xevaToast img{width:36px;height:36px}
+#xevaToast .t1{font-weight:800;color:#c07a00;font-size:14px}
+#xevaToast .t2{font-size:12px;color:rgba(34,52,77,.66);margin-top:1px}
+/* ── ★ 2026-08-12 旧・下部ドック（#xevaDock）を完全に削除しました ──
+   いまの下のバーは<b>ホーム画面のタブバー（.xh-bar / .xh-ntab）</b>だけです。
+   #xevaDock は body.xh-mode（＝ホームに入ると必ず付く）で display:none になっており、
+   ホームから抜ける道が無いため<b>一度も表示されないまま残っていた</b>ものです。
+   ここにあった .dock-group / .dock-btn / .dock-icon-w / .dock-lbl / .dock-badge /
+   .acc-fab / .acc-xv-badge / .nub-init / .wrap のCSSも、ドック専用だったので削除しました。
+   ★ .xvic（自作SVGアイコンの大きさ）は音楽ボタン・アカウントボタンでも使うので残してあります。 */
+.xvic{width:21px;height:21px;display:block}
+.xh-icbtn .xvic,#musicFab .xvic{width:20px;height:20px}
+/* 旧レイアウトの浮きボタンが残っていたら隠す */
+.news-fab{display:none!important}
+/* ── メールボックス モーダル ── */
+/* iPhone対策: 高さは実際に見えている分（--xh-vph）にそろえ、上に24px＋セーフエリアの
+   余白を確保する。下ぞろえのモーダルは、器より高くなると上へはみ出して
+   閉じるボタンが画面外に出てしまうため。 */
+#mailOverlay{position:fixed;left:0;right:0;top:0;height:var(--xh-vph);box-sizing:border-box;padding-top:calc(env(safe-area-inset-top,0px) + 24px);background:rgba(40,70,130,.36);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);z-index:1000;opacity:0;pointer-events:none;transition:opacity .28s;display:flex;align-items:flex-end;justify-content:center}
+#mailOverlay.open{opacity:1;pointer-events:auto}
+#mailModal{position:relative;width:100%;max-width:600px;max-height:100%;display:flex;flex-direction:column;background:linear-gradient(180deg,#ffffff,#f4f9ff);border:1.5px solid rgba(255,255,255,.95);border-bottom:none;border-radius:26px 26px 0 0;padding:0;box-shadow:0 -10px 40px rgba(60,100,180,.28);transform:translateY(30px);opacity:0;pointer-events:none;transition:opacity .28s,transform .28s}
+#mailModal.open{opacity:1;pointer-events:auto;transform:translateY(0) scale(1)}
+.mail-head{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:16px 16px 12px;border-bottom:1.5px solid rgba(120,160,230,.18);background:transparent;border-radius:26px 26px 0 0}
+.mail-title-h{font-size:15px;font-weight:800;color:#22344d}
+.mail-close{background:#f2f7fd;border:none;border-radius:10px;width:32px;height:32px;color:rgba(34,52,77,.6);cursor:pointer;font-size:16px}
+#mailList{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px 14px calc(env(safe-area-inset-bottom,0px) + 18px)}
+.mail-empty{padding:32px;text-align:center;color:rgba(34,52,77,.45);font-size:14px}
+.mail-item{display:flex;align-items:flex-start;gap:14px;background:#f6faff;border:1.5px solid rgba(56,140,220,.14);border-radius:16px;padding:16px;margin-bottom:10px;transition:border-color .2s}
+.mail-item:not(.claimed){border-color:rgba(255,159,46,.45)}
+.mail-item.claimed{opacity:.55}
+.mail-item-icon{font-size:26px;flex-shrink:0;width:44px;height:44px;display:flex;align-items:center;justify-content:center;background:rgba(56,166,255,.10);border-radius:12px}
+.mail-item-body{flex:1;min-width:0}
+.mail-item-date{font-size:10px;color:rgba(34,52,77,.45);margin-bottom:3px}
+.mail-item-title{font-size:13px;font-weight:700;color:#22344d;margin-bottom:5px}
+.mail-item-text{font-size:11.5px;color:rgba(34,52,77,.66);line-height:1.75;margin-bottom:8px}
+.mail-item-reward{display:inline-flex;align-items:center;gap:8px;background:rgba(255,178,36,.14);border:1.5px solid rgba(232,147,12,.35);border-radius:10px;padding:6px 12px}
+.mail-xeva-icon{width:18px;height:18px}
+.mail-reward-val{font-family:'Orbitron',sans-serif;font-size:14px;font-weight:800;color:#c07a00}
+.mail-item-action{flex-shrink:0;display:flex;align-items:flex-end;flex-direction:column;gap:8px;padding-top:2px}
+.mail-claim-btn{background:linear-gradient(135deg,#8e6bff,#ff6f91);border:none;border-radius:10px;color:#fff;font-size:12px;font-weight:700;padding:9px 14px;cursor:pointer;font-family:'Noto Sans JP',sans-serif;white-space:nowrap;box-shadow:0 4px 14px rgba(142,107,255,.35);transition:transform .15s}
+.mail-claim-btn:hover{transform:translateY(-2px)}
+.mail-claimed-badge{font-size:11px;font-weight:700;color:#17a673;white-space:nowrap;padding:5px 9px;border:1.5px solid rgba(23,166,115,.35);border-radius:8px}
+/* ── メールボックス：下から出るシート（オーバーレイは固定・中身だけスクロール） ──
+   以前はオーバーレイ自体をスクロールさせていたため、スクロール中にヘッダーや
+   カードの位置がずれて表示が崩れていた。 */
+#mailModal.open{opacity:1;pointer-events:auto;transform:translateY(0)}
+.mail-title-h{font-size:15.5px;font-weight:900;color:#22345c}
+.mail-close{background:rgba(120,160,230,.14);border:none;border-radius:11px;width:34px;height:34px;color:#6f82ad;cursor:pointer;font-size:16px;flex-shrink:0}
+.mail-empty{padding:38px 12px;text-align:center;color:#6f82ad;font-size:13px;font-weight:600;line-height:1.9}
+.mail-item{display:flex;align-items:flex-start;gap:12px;background:#fff;border:1.5px solid rgba(120,160,230,.2);border-radius:18px;padding:14px;margin-bottom:10px;box-shadow:0 4px 14px rgba(90,130,210,.14);transition:none}
+.mail-item:not(.claimed){border-color:rgba(255,180,60,.55);box-shadow:0 5px 16px rgba(255,180,60,.22)}
+.mail-item.claimed{opacity:.6}
+.mail-item-icon{font-size:26px;flex-shrink:0;width:46px;height:46px;display:flex;align-items:center;justify-content:center;background:#f2f8ff;border-radius:14px;overflow:hidden}
+.mail-item-date{font-size:10px;color:#94a7cc;margin-bottom:3px;font-weight:700}
+.mail-item-title{font-size:13px;font-weight:900;color:#22345c;margin-bottom:5px;line-height:1.5}
+.mail-item-text{font-size:11.5px;color:#5d6f9b;line-height:1.85;margin-bottom:8px;font-weight:600}
+.mail-item-reward{border-radius:12px;border-color:rgba(255,180,60,.5);background:rgba(255,201,60,.16)}
+.mail-claim-btn{border-radius:12px;font-weight:900;padding:10px 15px;background:linear-gradient(135deg,#4b8bff,#9b7bff);box-shadow:0 5px 16px rgba(100,130,255,.4)}
+.mail-claimed-badge{font-weight:800;color:#12a97a;border-color:rgba(18,169,122,.35);border-radius:10px}
+/* 一括受け取りボタン */
+.mail-all{display:none;align-items:center;gap:7px;margin-left:auto;margin-right:8px;padding:9px 14px;border:none;
+  border-radius:99px;color:#fff;font-size:12.5px;font-weight:900;cursor:pointer;font-family:'Noto Sans JP',sans-serif;
+  background:linear-gradient(135deg,#ff9f2e,#ff6f91);box-shadow:0 5px 16px rgba(255,130,120,.42);white-space:nowrap}
+.mail-all:active{transform:scale(.96)}
+.mail-all svg{width:15px;height:15px}
+.mail-all-n{background:rgba(255,255,255,.9);color:#e0577f;border-radius:99px;min-width:18px;padding:1px 6px;
+  font-family:'Orbitron',sans-serif;font-size:10.5px;font-weight:700}
+.mail-item{flex-wrap:wrap}
+.mail-item-body{flex:1 1 0;min-width:0}
+.mail-item-action{width:100%;flex-direction:row;justify-content:stretch;padding-top:4px}
+.mail-claim-btn{width:100%;text-align:center}
+.mail-claimed-badge{width:100%;text-align:center;padding:9px}
+/* ── ミッション モーダル ── */
+#missionOverlay{position:fixed;inset:0;background:rgba(30,60,110,.32);backdrop-filter:blur(4px);z-index:1000;opacity:0;pointer-events:none;transition:opacity .3s;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:calc(env(safe-area-inset-top,0px) + 14px) 16px calc(env(safe-area-inset-bottom,0px) + 20px)}
+#missionOverlay.open{opacity:1;pointer-events:auto}
+#missionModal{position:relative;margin:auto;flex-shrink:0;transform:translateY(8px) scale(.97);opacity:0;pointer-events:none;width:min(560px,100%);background:#ffffff;border:1.5px solid rgba(255,255,255,.95);border-radius:22px;padding:24px;box-shadow:0 30px 80px rgba(56,120,200,.28);transition:opacity .3s,transform .3s}
+#missionModal.open{opacity:1;pointer-events:auto;transform:translateY(0) scale(1)}
+#missionModal .mm-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:6px}
+#missionModal .mm-title{display:flex;align-items:center;gap:9px;font-weight:800;font-size:1.05rem;color:#22344d}
+#missionModal .mm-close{background:#f2f7fd;border:none;border-radius:10px;width:34px;height:34px;color:rgba(34,52,77,.6);cursor:pointer}
+#missionModal .mm-bal{display:flex;align-items:center;gap:10px;background:linear-gradient(135deg,rgba(142,107,255,.10),rgba(255,178,36,.12));border:1.5px solid rgba(56,140,220,.14);border-radius:14px;padding:12px 15px;margin:14px 0 16px}
+#missionModal .mm-bal img{width:38px;height:38px}
+#missionModal .mm-bal .v{font-family:'Orbitron',sans-serif;font-size:24px;font-weight:800;color:#c07a00}
+#missionModal .mm-bal .l{font-size:11px;color:rgba(34,52,77,.66)}
+#missionModal .mm-gacha{margin-left:auto;background:linear-gradient(135deg,#8e6bff,#e8930c);color:#fff;font-weight:700;padding:10px 18px;border-radius:11px;font-size:13px}
+.mm-tabs{display:flex;gap:6px;margin-bottom:14px}
+.mm-tab{flex:1;padding:8px 4px;border:1.5px solid rgba(56,140,220,.16);border-radius:10px;background:#f6faff;color:rgba(34,52,77,.66);font-size:12px;font-weight:700;cursor:pointer;font-family:'Noto Sans JP',sans-serif;transition:all .18s}
+.mm-tab.active{background:rgba(56,166,255,.12);border-color:rgba(56,166,255,.45);color:#1d78d8}
+.mm-tab-badge{display:inline-flex;align-items:center;justify-content:center;background:#ff5b5b;color:#fff;font-size:9px;font-weight:800;border-radius:8px;padding:1px 5px;margin-left:4px;min-width:14px}
+.mm-login-days{text-align:center;padding:10px 0 14px;color:rgba(34,52,77,.66);font-size:12px}
+.mm-login-days b{font-family:'Orbitron',sans-serif;font-size:22px;color:#c07a00;display:block;margin-bottom:2px}
+.mm-milestone{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1.5px solid rgba(56,140,220,.14);border-radius:12px;margin-bottom:8px;background:#f6faff}
+.mm-milestone.reached{border-color:rgba(255,159,46,.45)}
+.mm-milestone.claimed{opacity:.5}
+.mm-milestone-days{font-family:'Orbitron',sans-serif;font-size:13px;font-weight:700;color:#22344d;min-width:44px}
+.mm-milestone-days span{font-size:9px;color:rgba(34,52,77,.45);font-family:'Noto Sans JP',sans-serif}
+.mm-milestone-rew{flex:1;font-size:11px;color:rgba(34,52,77,.66)}
+.mm-milestone-rew b{color:#c07a00}
+.mm-milestone-claim{background:linear-gradient(135deg,#8e6bff,#e8930c);border:none;border-radius:8px;color:#fff;font-size:11px;font-weight:700;padding:6px 12px;cursor:pointer;font-family:'Noto Sans JP',sans-serif;white-space:nowrap}
+.mm-milestone-claim:disabled{background:rgba(34,52,77,.10);color:rgba(34,52,77,.4);cursor:default}
+.mm-limited-empty{padding:32px 16px;text-align:center;color:rgba(34,52,77,.45);font-size:13px}
+.mm-limited-card{border:1.5px solid rgba(56,140,220,.14);border-radius:14px;padding:14px;margin-bottom:10px;background:#f6faff}
+.mm-limited-head{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.mm-limited-badge{font-size:10px;font-weight:700;padding:2px 8px;border-radius:6px;background:rgba(220,70,70,.10);border:1px solid rgba(220,70,70,.3);color:#c73838}
+.mm-limited-title{font-size:13px;font-weight:700;color:#22344d}
+.mm-limited-desc{font-size:11px;color:rgba(34,52,77,.66);margin-bottom:8px;line-height:1.6}
+.mm-limited-foot{display:flex;align-items:center;justify-content:space-between}
+.mm-limited-exp{font-size:10px;color:rgba(34,52,77,.45)}
+.mm-limited-rew{font-size:12px;font-weight:700;color:#c07a00}
+
+/* ── XEVARION アカウント ── */
+/* nav user button */
+/* ── login bonus stamp card ── */
+#loginBonusOv{position:fixed;inset:0;z-index:3500;background:rgba(30,60,110,.34);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:calc(env(safe-area-inset-top,0px) + 16px) 20px calc(env(safe-area-inset-bottom,0px) + 16px)}
+.lb-card{background:#ffffff;border:1.5px solid rgba(255,255,255,.95);border-radius:28px;max-width:390px;width:100%;text-align:center;box-shadow:0 30px 80px rgba(56,120,200,.30);animation:lbIn .4s cubic-bezier(.2,.8,.3,1) both;overflow:hidden}
+@keyframes lbIn{from{opacity:0;transform:scale(.88) translateY(24px)}to{opacity:1;transform:none}}
+.lb-head{background:linear-gradient(135deg,rgba(56,166,255,.12),rgba(255,178,36,.14));padding:18px 20px 14px;border-bottom:1.5px solid rgba(56,140,220,.14);position:relative}
+.lb-head::after{content:'✦ ✦ ✦';position:absolute;bottom:8px;left:50%;transform:translateX(-50%);font-size:8px;color:rgba(56,166,255,.5);letter-spacing:6px}
+.lb-icon{font-size:36px;margin-bottom:6px;filter:drop-shadow(0 4px 12px rgba(255,180,60,.4))}
+.lb-title{font-family:'Orbitron',sans-serif;font-size:1rem;font-weight:900;color:#7a4fe0;letter-spacing:.1em}
+.lb-streak{font-size:12px;color:#c07a00;font-weight:700;margin-top:6px;letter-spacing:.02em}
+.lb-body{padding:18px 18px 20px}
+.lb-sub{font-size:10px;color:rgba(34,52,77,.5);margin-bottom:16px}
+.lb-stamps{display:flex;gap:4px;justify-content:center;margin-bottom:18px}
+.lb-stamp{display:flex;flex-direction:column;align-items:center;gap:4px}
+.lb-stamp-circle{width:40px;height:40px;border-radius:50%;border:2px solid rgba(56,140,220,.20);background:#f2f7fd;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:rgba(34,52,77,.35);transition:.3s;font-family:'Orbitron',sans-serif}
+.lb-stamp.done .lb-stamp-circle{background:linear-gradient(135deg,#8e6bff,#c026d3);border-color:transparent;box-shadow:0 3px 14px rgba(142,107,255,.5);color:#fff;font-size:13px}
+.lb-stamp.today .lb-stamp-circle{background:linear-gradient(135deg,#ffe08a,#ff9d00);border-color:rgba(255,178,36,.7);box-shadow:0 4px 20px rgba(255,170,0,.55);color:#5b3900;animation:lbPulse 1.4s ease-in-out infinite;font-size:13px}
+.lb-stamp.today.special .lb-stamp-circle{background:linear-gradient(135deg,#ff6f91,#ffe08a);border-color:rgba(255,159,46,.7);box-shadow:0 4px 22px rgba(255,110,130,.5);color:#5b1020}
+@keyframes lbPulse{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
+.lb-stamp-pt{font-size:8px;font-weight:700;color:rgba(34,52,77,.6)}
+.lb-stamp.done .lb-stamp-pt,.lb-stamp.today .lb-stamp-pt{color:#7a4fe0}
+.lb-day-n{font-size:8px;color:rgba(34,52,77,.55);font-weight:600}
+.lb-stamp.today .lb-day-n{color:#b06e00}
+.lb-reward-box{background:linear-gradient(135deg,rgba(255,210,87,.16),rgba(255,159,46,.08));border:1.5px solid rgba(255,178,36,.45);border-radius:18px;padding:14px 20px;display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:16px;position:relative;overflow:hidden}
+.lb-reward-box::before{content:'';position:absolute;inset:0;background:linear-gradient(90deg,transparent,rgba(255,255,255,.5),transparent);animation:lbShimmer 2.5s ease-in-out infinite}
+@keyframes lbShimmer{0%,100%{transform:translateX(-100%)}50%{transform:translateX(100%)}}
+.lb-xeva{width:32px;height:32px;filter:drop-shadow(0 2px 8px rgba(255,200,80,.4))}
+.lb-reward-val{font-family:'Orbitron',sans-serif;font-size:1.8rem;font-weight:900;color:#c07a00}
+.lb-reward-unit{font-size:12px;color:#8a6a2a;font-weight:700;line-height:1.4}
+.lb-ok{width:100%;padding:14px;background:linear-gradient(135deg,#8e6bff,#c026d3,#ff6f91);border:none;border-radius:14px;color:#fff;font-size:15px;font-weight:800;cursor:pointer;font-family:'Noto Sans JP',sans-serif;box-shadow:0 6px 22px rgba(142,107,255,.4);transition:transform .15s,box-shadow .15s;letter-spacing:.04em}
+.lb-ok:active{transform:scale(.96);box-shadow:0 3px 10px rgba(142,107,255,.3)}
+/* genre tabs */
+.genre-tabs{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:28px}
+.gtab{padding:9px 18px;border:2px solid rgba(56,166,255,.3);border-radius:99px;background:#ffffff;color:#2470c8;font-size:13px;font-weight:700;cursor:pointer;transition:all .18s;white-space:nowrap;box-shadow:0 3px 10px rgba(56,120,200,.08)}
+.gtab:hover{border-color:#38a6ff;color:#1d78d8;background:#f2f8ff}
+.gtab.active{background:linear-gradient(135deg,#38a6ff,#8e6bff);border-color:transparent;color:#fff;box-shadow:0 4px 14px rgba(56,166,255,.35)}
+
+/* Account overlay common */
+/* iPhone対策: 高さを実際に見えている分（--xh-vph）にそろえる。
+   inset:0 のままだと iOS では下端がツールバーの裏に回り込む。 */
+.acc-overlay{position:fixed;left:0;right:0;top:0;height:var(--xh-vph);box-sizing:border-box;
+  background:rgba(30,60,110,.34);backdrop-filter:blur(6px);z-index:2000;
+  display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+  overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding:calc(env(safe-area-inset-top,0px) + 16px) 16px calc(env(safe-area-inset-bottom,0px) + 16px);
+  opacity:0;pointer-events:none;transition:opacity .3s}
+.acc-overlay.open{opacity:1;pointer-events:auto}
+.acc-card{background:#ffffff;border:1.5px solid rgba(255,255,255,.95);border-radius:26px;width:min(520px,100%);
+  margin:auto;overflow:visible;
+  box-shadow:0 40px 100px rgba(56,120,200,.30);transform:translateY(18px) scale(.97);transition:transform .3s,opacity .3s;opacity:0}
+.acc-overlay.open .acc-card{transform:translateY(0) scale(1);opacity:1}
+
+/* wizard steps */
+.wz-progress{display:flex;gap:6px;padding:20px 24px 0;justify-content:center}
+.wz-dot{width:8px;height:8px;border-radius:50%;background:rgba(56,140,220,.20);transition:all .3s}
+.wz-dot.on{width:24px;border-radius:100px;background:linear-gradient(90deg,#38a6ff,#ff6f91)}
+.wz-step{display:none;padding:24px}
+.wz-step.on{display:block}
+
+/* ══ 登録ウィザード：現行XEVARION（ブランドヘッダー＋進捗レール）にそろえた ══ */
+.wz-card{overflow:hidden}
+.wz-head{padding:16px 20px 14px;background:linear-gradient(135deg,#eef6ff,#f7f0ff 60%,#fff2f5);
+  border-bottom:1.5px solid rgba(120,160,230,.18)}
+.wz-brand{display:flex;align-items:center;gap:11px;margin-bottom:13px}
+.wz-brand-orb{width:36px;height:36px;object-fit:contain;flex-shrink:0;
+  filter:drop-shadow(0 3px 8px rgba(56,120,200,.28))}
+.wz-brand-tx{min-width:0}
+.wz-brand-nm{font-family:'Orbitron',sans-serif;font-size:.86rem;letter-spacing:.06em;color:#22344d;line-height:1.15}
+.wz-brand-sub{font-size:10.5px;font-weight:800;color:#6f82ad;letter-spacing:.04em;margin-top:2px}
+.wz-rail{height:6px;border-radius:100px;background:rgba(56,140,220,.16);overflow:hidden}
+.wz-rail-fill{height:100%;width:20%;border-radius:100px;
+  background:linear-gradient(90deg,#38a6ff,#8e6bff 55%,#ff6f91);transition:width .34s cubic-bezier(.4,0,.2,1)}
+.wz-rail-lb{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-top:7px}
+.wz-rail-lb span:first-child{font-family:'Orbitron',sans-serif;font-size:9.5px;letter-spacing:.09em;color:#8ea3c8}
+.wz-rail-lb span:last-child{font-size:11.5px;font-weight:900;color:#2470c8}
+.wz-msg{min-height:18px;font-size:12px;font-weight:700;color:#ff6b8a;margin-top:6px;text-align:center;line-height:1.5}
+.wz-uses{list-style:none;margin:14px 0 0;padding:12px 14px;border-radius:14px;
+  background:rgba(56,166,255,.07);border:1.5px solid rgba(56,166,255,.16)}
+.wz-uses li{font-size:11.5px;color:rgba(34,52,77,.72);line-height:1.5;padding-left:16px;position:relative}
+.wz-uses li+li{margin-top:5px}
+.wz-uses li::before{content:"✓";position:absolute;left:0;color:#38a6ff;font-weight:900;font-size:11px}
+.wz-uses b{color:#22344d}
+
+/* 4桁PIN入力（1文字ずつのマス目・自動送り） */
+.pin-boxes{display:flex;gap:10px;justify-content:center;margin:4px 0 2px}
+.pin-cell{width:56px;height:64px;max-width:22%;text-align:center;font-size:26px;font-weight:800;
+  font-family:'Orbitron',sans-serif;color:#22344d;background:#fbfdff;
+  border:2px solid rgba(56,140,220,.22);border-radius:16px;outline:none;
+  transition:border-color .2s,box-shadow .2s,transform .2s;-webkit-appearance:none;appearance:none;box-sizing:border-box}
+.pin-cell:focus{border-color:#38a6ff;box-shadow:0 0 0 4px rgba(56,166,255,.16);transform:translateY(-2px)}
+.pin-cell.filled{border-color:#8e6bff;background:#fff}
+.pin-cell::-webkit-outer-spin-button,.pin-cell::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.wz-title{font-family:'Orbitron',sans-serif;font-size:1rem;color:#22344d;margin-bottom:6px;text-align:center}
+.wz-sub{font-size:12px;color:rgba(34,52,77,.62);text-align:center;margin-bottom:20px;line-height:1.6}
+
+/* char picker grid */
+.char-pick-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(86px,1fr));gap:10px;max-height:340px;overflow-y:auto;padding:2px}
+.char-pick-item{border-radius:14px;overflow:hidden;border:2.5px solid rgba(56,140,220,.14);cursor:pointer;transition:all .2s;background:linear-gradient(135deg,rgba(56,166,255,.12),rgba(255,111,145,.10))}
+.char-pick-item.sel{border-color:#38a6ff;box-shadow:0 0 0 3px rgba(56,166,255,.22)}
+.char-pick-item:active{filter:brightness(.96)}
+.char-pick-item img{width:100%;aspect-ratio:1;object-fit:cover;display:block}
+.char-pick-nm{font-size:11px;font-weight:700;text-align:center;padding:5px 4px 7px;color:#22344d;background:rgba(255,255,255,.88)}
+/* ★ 2026-08-05 アイコンピッカー: XEVAガチャ／MagiBurst の見出しと、MagiBurst キャラの目じるし */
+.char-pick-sec{grid-column:1/-1;display:flex;align-items:baseline;gap:7px;font-size:12px;font-weight:900;color:#22344d;margin:6px 2px 0}
+.char-pick-sec small{font-size:10px;font-weight:700;color:#7b8aa3}
+.char-pick-item{position:relative}
+.char-pick-item.mbchar{border-color:rgba(142,107,255,.3);background:linear-gradient(135deg,rgba(142,107,255,.14),rgba(255,157,46,.10))}
+.char-pick-item.mbchar.sel{border-color:#8e6bff;box-shadow:0 0 0 3px rgba(142,107,255,.24)}
+.char-pick-tag{position:absolute;top:4px;left:4px;font-size:8px;font-weight:900;letter-spacing:.02em;color:#fff;
+  background:rgba(142,107,255,.9);border-radius:99px;padding:2px 6px}
+
+/* wizard inputs */
+.wz-input{width:100%;padding:14px 16px;border:2px solid rgba(56,140,220,.20);border-radius:14px;font-size:16px;
+  font-family:'Noto Sans JP',sans-serif;color:#22344d;outline:none;transition:border-color .25s;background:#fbfdff;
+  box-sizing:border-box;max-width:100%;-webkit-appearance:none;appearance:none}
+.wz-input:focus{border-color:#38a6ff}
+.wz-note{font-size:11px;color:rgba(34,52,77,.5);margin-top:6px;text-align:center}
+
+/* wizard buttons */
+.wz-btns{display:flex;gap:10px;margin-top:20px}
+.wz-btn{flex:1;padding:14px;border:none;border-radius:14px;font-size:14px;font-weight:700;
+  cursor:pointer;font-family:'Noto Sans JP',sans-serif;transition:all .2s}
+.wz-btn.pri{background:linear-gradient(135deg,#38a6ff,#8e6bff);color:#fff;box-shadow:0 6px 18px rgba(56,166,255,.3)}
+.wz-btn.pri:hover{transform:translateY(-2px);box-shadow:0 10px 28px rgba(142,107,255,.4)}
+.wz-btn.sec{background:rgba(56,166,255,.12);color:#1d78d8}
+.wz-btn:disabled{opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+
+/* done step */
+.wz-done-icon{width:80px;height:80px;border-radius:22%;overflow:hidden;margin:0 auto 14px;
+  border:3px solid #38a6ff;box-shadow:0 6px 24px rgba(56,166,255,.28)}
+.wz-done-icon img{width:100%;height:100%;object-fit:cover}
+
+/* account settings modal */
+.acc-set-section{padding:0 0 14px;border-bottom:1.5px solid rgba(56,140,220,.14);margin-bottom:14px}
+.acc-set-section:last-child{border:none;margin:0;padding:0}
+.acc-set-label{font-size:11px;font-weight:700;color:#1d78d8;letter-spacing:.08em;margin-bottom:10px}
+.acc-set-row{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.acc-set-row label{font-size:13px;color:rgba(34,52,77,.62);flex-shrink:0;width:70px}
+.acc-set-avatar{width:62px;height:62px;border-radius:22%;overflow:hidden;border:2.5px solid #38a6ff;
+  flex-shrink:0;cursor:pointer;transition:.2s}
+.acc-set-avatar:hover{box-shadow:0 0 0 4px rgba(56,166,255,.22)}
+.acc-set-avatar img{width:100%;height:100%;object-fit:cover}
+.acc-set-btn{width:100%;padding:11px;background:linear-gradient(135deg,#8e6bff,#ff6f91);border:none;
+  border-radius:12px;color:#fff;font-weight:700;cursor:pointer;font-size:13px;font-family:'Noto Sans JP',sans-serif}
+.acc-set-btn:disabled{opacity:.55;cursor:not-allowed}
+.acc-set-msg{min-height:16px;font-size:11px;font-weight:700;color:#ff6b8a;margin-bottom:6px;text-align:center;line-height:1.5}
+.acc-set-msg.ok{color:#1d9d6b}
+/* 再設定は「現在の値」を先に聞く。まだ設定していない人には出さない（JSで hidden） */
+.acc-set-cur{padding:10px 10px 12px;margin-bottom:10px;border-radius:14px;
+  background:rgba(255,178,36,.10);border:1.5px solid rgba(255,178,36,.30)}
+.acc-set-cur[hidden]{display:none}
+.acc-set-cur .wz-input{margin:0}
+.pin-boxes.sm{gap:8px}
+.pin-boxes.sm .pin-cell{width:46px;height:52px;font-size:21px;border-radius:13px}
+.acc-del-btn{width:100%;padding:12px;background:rgba(220,38,38,.06);border:1.5px solid rgba(220,38,38,.3);
+  border-radius:12px;color:#dc2626;font-size:13px;font-weight:700;cursor:pointer;
+  font-family:'Noto Sans JP',sans-serif;transition:all .2s}
+.acc-del-btn:hover{background:rgba(220,38,38,.12)}
+
+/* password lock screen */
+#accLock{position:fixed;top:0;left:0;right:0;bottom:calc(-1 * var(--xh-fixgap,0px));z-index:1999;background:linear-gradient(160deg,#eaf4ff,#fdf3e3);
+  display:flex;align-items:center;justify-content:center;flex-direction:column;gap:20px;
+  opacity:0;pointer-events:none;transition:opacity .3s}
+#accLock.open{opacity:1;pointer-events:auto}
+#accLock .lock-card{background:#ffffff;border:1.5px solid rgba(255,255,255,.95);
+  border-radius:22px;padding:32px;width:min(380px,90vw);text-align:center;box-shadow:0 24px 60px rgba(56,120,200,.20)}
+#accLock .lock-av{width:80px;height:80px;border-radius:22%;overflow:hidden;border:3px solid rgba(255,178,36,.7);margin:0 auto 14px}
+#accLock .lock-av img{width:100%;height:100%;object-fit:cover}
+#accLock .lock-name{font-size:18px;font-weight:700;color:#22344d;margin-bottom:4px}
+#accLock .lock-sub{font-size:12px;color:rgba(34,52,77,.66);margin-bottom:20px}
+#accLock .lock-input{width:100%;padding:13px 16px;background:#fbfdff;
+  border:1.5px solid rgba(56,140,220,.25);border-radius:12px;color:#22344d;font-size:16px;
+  font-family:'Noto Sans JP',sans-serif;outline:none;margin-bottom:12px;text-align:center;letter-spacing:.1em}
+#accLock .lock-btn{width:100%;padding:14px;background:linear-gradient(135deg,#38a6ff,#8e6bff);
+  border:none;border-radius:12px;color:#fff;font-size:15px;font-weight:700;cursor:pointer;
+  font-family:'Noto Sans JP',sans-serif}
+#accLock .lock-msg{font-size:12px;color:#e05a5a;margin-top:8px;min-height:18px}
+/* ══ メール／お知らせ／ミッションのシートUIを統一（下から出る・中身だけスクロール） ══
+   以前はモーダルごとに「オーバーレイ自体をスクロール」「画面中央に固定」とバラバラで、
+   スクロール時に位置がずれたり表示が崩れたりしていた。3つとも同じ形にそろえる。 */
+/* ★ flex-direction は必ず row に戻す。上の旧ルールが column のままだと
+   align-items:flex-end が「横方向」に効いてしまい、シートが画面中央に浮いてズレる。 */
+/* iPhone対策: #mailOverlay と同じ理由で、実際に見えている高さにそろえて上に余白を確保する */
+#missionOverlay{position:fixed;left:0;right:0;top:0;height:var(--xh-vph);box-sizing:border-box;background:rgba(40,70,130,.36);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);z-index:1000;opacity:0;pointer-events:none;transition:opacity .28s;display:flex;flex-direction:row;align-items:flex-end;justify-content:center;overflow:visible;padding:calc(env(safe-area-inset-top,0px) + 24px) 0 0}
+#missionModal{position:relative;margin:0;width:100%;max-width:600px;max-height:100%;display:flex;flex-direction:column;background:linear-gradient(180deg,#ffffff,#f4f9ff);border:1.5px solid rgba(255,255,255,.95);border-bottom:none;border-radius:26px 26px 0 0;padding:0;box-shadow:0 -10px 40px rgba(60,100,180,.28);transform:translateY(30px);opacity:0;pointer-events:none;transition:opacity .28s,transform .28s}
+#missionModal.open{opacity:1;pointer-events:auto;transform:translateY(0)}
+#missionModal .mm-head{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;padding:16px 16px 12px;margin:0;border-bottom:1.5px solid rgba(120,160,230,.18)}
+#missionModal .mm-title{font-size:15.5px;font-weight:900;color:#22345c}
+#missionModal .mm-close{background:rgba(120,160,230,.14);border:none;border-radius:11px;width:34px;height:34px;color:#6f82ad;cursor:pointer;flex-shrink:0}
+#missionModal .mm-body{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px 14px calc(env(safe-area-inset-bottom,0px) + 18px)}
+#missionModal .mm-bal{margin:0 0 14px}
+.mm-tabs{position:sticky;top:-14px;z-index:2;background:linear-gradient(180deg,#f7fbff 70%,rgba(247,251,255,0));padding:6px 0 8px;margin:0 0 8px}
+
+/* お知らせも下から出るシートに */
+.news-modal{top:auto;left:0;right:0;bottom:0;transform:translateY(30px);width:100%;max-width:600px;margin:0 auto;
+  max-height:88vh;border-radius:26px 26px 0 0;border-bottom:none;
+  background:linear-gradient(180deg,#ffffff,#f4f9ff);box-shadow:0 -10px 40px rgba(60,100,180,.28);
+  animation:none;opacity:0;transition:opacity .28s,transform .28s}
+.news-modal.open{display:flex;opacity:1;transform:translateY(0)}
+.news-modal .nm-head{flex-shrink:0;padding:16px 16px 12px;border-bottom:1.5px solid rgba(120,160,230,.18)}
+.news-modal .nm-body{padding:6px 14px calc(env(safe-area-inset-bottom,0px) + 8px)}
+.news-modal .nm-foot{padding:12px 16px calc(env(safe-area-inset-bottom,0px) + 14px);border-top:1.5px solid rgba(120,160,230,.18)}
+.modal-overlay{background:rgba(40,70,130,.36);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}
+/* ═════ 新キャラのお知らせ（★ 2026-08-10）═════ */
+#ncOverlay{position:fixed;inset:0;z-index:1004;background:rgba(30,60,110,.4);backdrop-filter:blur(6px);
+  display:none;align-items:center;justify-content:center;padding:16px}
+#ncOverlay.open{display:flex}
+#ncModal{width:min(460px,100%);max-height:88vh;overflow-y:auto;background:#fff;border-radius:24px;
+  box-shadow:0 30px 80px rgba(56,120,200,.34);animation:ncIn .34s cubic-bezier(.2,1.2,.35,1) both}
+@keyframes ncIn{from{opacity:0;transform:translateY(18px) scale(.96)}to{opacity:1;transform:none}}
+.nc-head{position:sticky;top:0;z-index:2;display:flex;align-items:center;gap:10px;padding:16px 18px 13px;
+  background:linear-gradient(120deg,#f6f0ff,#eaf4ff 55%,#fff1f7);border-bottom:1.5px solid rgba(56,140,220,.14);border-radius:24px 24px 0 0}
+.nc-h{flex:1;min-width:0;font-size:15px;font-weight:900;color:#5a3fd0}
+.nc-h small{display:block;font-size:10.5px;font-weight:800;color:rgba(34,52,77,.55);margin-top:2px}
+.nc-x{flex:none;width:34px;height:34px;border:none;border-radius:11px;background:rgba(255,255,255,.8);
+  color:rgba(34,52,77,.6);font-size:15px;font-weight:900;cursor:pointer}
+.nc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:10px;padding:14px 18px}
+.nc-c{border-radius:15px;overflow:hidden;background:#f7fbff;border:2px solid rgba(255,206,90,.6);
+  box-shadow:0 4px 14px rgba(230,170,40,.2)}
+.nc-c img{width:100%;aspect-ratio:1;object-fit:cover;display:block}
+.nc-c .nc-n{font-size:11px;font-weight:900;color:#22345c;padding:6px 4px 2px;text-align:center;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.nc-c .nc-d{font-size:9px;font-weight:800;color:rgba(34,52,77,.5);padding:0 4px 6px;text-align:center}
+.nc-foot{display:grid;grid-template-columns:1.3fr 1fr;gap:9px;padding:4px 18px 18px}
+.nc-btn{border:none;border-radius:14px;padding:13px;font-family:inherit;font-size:13.5px;font-weight:900;
+  cursor:pointer;text-align:center;text-decoration:none}
+.nc-btn.go{background:linear-gradient(135deg,#8e6bff,#ff6f91);color:#fff;box-shadow:0 6px 18px rgba(142,107,255,.32)}
+.nc-btn.sec{background:#eef3fb;color:rgba(34,52,77,.62)}
+/* ══ アカウント設定：メール／お知らせ／ミッションと同じ「下から出るシート」に統一 ══ */
+.acc-overlay.sheetify{background:rgba(40,70,130,.36);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);
+  justify-content:flex-end;align-items:center;overflow:visible;padding:0}
+.acc-overlay.sheetify .acc-card{width:100%;max-width:600px;height:min(82svh,760px);margin:0;
+  display:flex;flex-direction:column;padding:0;border-radius:26px 26px 0 0;border-bottom:none;
+  background:linear-gradient(180deg,#ffffff,#f4f9ff);box-shadow:0 -10px 40px rgba(60,100,180,.28);
+  transform:translateY(30px)}
+.acc-overlay.sheetify.open .acc-card{transform:translateY(0)}
+.accset-head{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;
+  padding:16px 16px 12px;border-bottom:1.5px solid rgba(120,160,230,.18)}
+.accset-title{font-size:15.5px;font-weight:900;color:#22345c}
+.accset-x{background:rgba(120,160,230,.14);border:none;border-radius:11px;width:34px;height:34px;
+  color:#6f82ad;font-size:16px;cursor:pointer;flex-shrink:0}
+.accset-body{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding:14px 16px calc(env(safe-area-inset-bottom,0px) + 18px)}
+/* 生年月日など「ラベル＋入力＋ボタン」の行が画面からはみ出さないように。
+   ★ flex + flex-wrap だと date 入力の min-content 幅（iOS Safari では実測 150px 超）が
+     効いて行が縮まず、「変更」ボタンが右にはみ出して画面外へ消えることがあった。
+     grid にして［ラベルは1行まるごと］／［入力 1fr ＋ ボタン auto］に固定する。
+     1fr は min-width:0 を明示しないと auto 扱いのままなので必ず添える。 */
+.acc-set-row{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px 10px;
+  align-items:center;margin-bottom:8px}
+.acc-set-row label{grid-column:1/-1;width:auto;font-size:12px;font-weight:800;color:#6f82ad;margin-bottom:-3px}
+.acc-set-row .wz-input{min-width:0;width:100%}
+.acc-set-row > button{white-space:nowrap;justify-self:end}
+/* ── 3シートの高さをそろえる（ミッションのタブ切替で下端がずれないように） ── */
+#mailModal,#missionModal,.news-modal{height:min(82svh,760px);max-height:none}
+/* ── お知らせの絞り込みは1行スクロールでコンパクトに ── */
+.news-modal .nm-pills{padding:8px 14px;gap:5px;flex-wrap:nowrap;overflow-x:auto;
+  -webkit-overflow-scrolling:touch;scrollbar-width:none}
+.news-modal .nm-pills::-webkit-scrollbar{display:none}
+.news-modal .nm-pill{flex-shrink:0;gap:5px;padding:6px 11px;font-size:11px;font-weight:800;
+  border:1.5px solid rgba(120,160,230,.26);background:#fff;color:#6f82ad;white-space:nowrap}
+.news-modal .nm-pill.active{color:#fff;background:linear-gradient(135deg,#4b8bff,#9b7bff);border-color:transparent}
+.news-modal .nm-pill.active .pd{background:#fff!important}
+.news-modal .nm-pill .pd{width:7px;height:7px}
+/* ミッション：タブは上に貼りつけ、リストは高さが変わっても下がずれない */
+#missionModal .mm-body{overflow-y:auto;overscroll-behavior:contain}
+.xeva-mission-list,#missionTabLogin,#missionTabLimited,#missionTabCollection{padding-bottom:4px}
+#missionModal .mm-bal{display:flex;align-items:center;gap:10px;padding:11px 13px;border-radius:16px}
+#missionModal .mm-bal img{width:32px;height:32px;flex-shrink:0}
+#missionModal .mm-bal .v{font-size:20px}
+#missionModal .mm-gacha{padding:9px 13px;font-size:12px;white-space:nowrap;border-radius:99px;flex-shrink:0}
+.mm-tabs{display:flex;gap:5px}
+.mm-tab{padding:9px 2px;font-size:11px;font-weight:800;border-radius:12px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mm-tab-badge{margin-left:3px}
+.xeva-mission{gap:11px;padding:12px 13px;border-radius:16px}
+.xeva-m-title{font-size:12.5px;line-height:1.5}
+.xeva-m-go{padding:8px 12px;font-size:11.5px;border-radius:99px}
+.xeva-m-claim{padding:9px 13px;border-radius:99px}
+</style>
+
+<!-- ───── SEASON 5 BANNER ───── -->
+<div id="s4BannerOv" style="display:none;position:fixed;inset:0;z-index:5000;background:rgba(30,60,110,.34);backdrop-filter:blur(10px);align-items:center;justify-content:center;padding:max(20px,env(safe-area-inset-top,20px)) 20px max(20px,env(safe-area-inset-bottom,20px))">
+  <div style="background:#ffffff;border:1.5px solid rgba(255,255,255,.95);border-radius:28px;max-width:380px;width:100%;text-align:center;box-shadow:0 24px 70px rgba(56,120,200,.30);animation:lbIn .4s cubic-bezier(.2,.8,.3,1) both;overflow:hidden;position:relative">
+    <button onclick="document.getElementById('s4BannerOv').style.display='none'" style="position:absolute;top:10px;right:10px;background:rgba(255,255,255,.85);border:1.5px solid rgba(56,140,220,.25);border-radius:10px;width:32px;height:32px;color:rgba(34,52,77,.65);font-size:15px;cursor:pointer;z-index:1;display:flex;align-items:center;justify-content:center;line-height:1">✕</button>
+    <div style="background:linear-gradient(135deg,rgba(56,166,255,.12),rgba(255,111,145,.12));padding:14px 20px 10px;border-bottom:1.5px solid rgba(56,140,220,.14)">
+      <div style="font-family:'Orbitron',sans-serif;font-size:.7rem;color:#7a4fe0;letter-spacing:.15em;margin-bottom:4px">NEW SEASON</div>
+      <div style="font-family:'Orbitron',sans-serif;font-size:1.5rem;font-weight:900;background:linear-gradient(135deg,#8e6bff,#38a6ff,#ff6f91);-webkit-background-clip:text;-webkit-text-fill-color:transparent">SEASON 5</div>
+    </div>
+    <div style="padding:16px 20px">
+      <img loading="lazy" decoding="async" src="MagiBurst/img/bn_premium_s.webp" alt="Season 5" style="width:100%;max-height:200px;object-fit:contain;border-radius:14px;margin-bottom:12px">
+      <div style="font-size:14px;font-weight:800;color:#22344d;margin-bottom:6px">シーズン5「ミオン」開幕！</div>
+      <div style="font-size:11px;color:rgba(34,52,77,.66);line-height:1.7;margin-bottom:16px">新SSRキャラクター「ミオン」がガチャに登場！XEVAを集めてゲットしよう。</div>
+      <button onclick="closeS4Banner()" style="width:100%;padding:12px;background:linear-gradient(135deg,#38a6ff,#8e6bff);border:none;border-radius:14px;color:#fff;font-size:14px;font-weight:800;cursor:pointer;font-family:'Noto Sans JP',sans-serif">ガチャを見る 🎰</button>
+    </div>
+  </div>
+</div>
+
+<!-- ───── LOGIN BONUS STAMP CARD ───── -->
+<div id="loginBonusOv" style="display:none">
+  <div class="lb-card">
+    <div class="lb-head">
+      <div class="lb-icon">🎁</div>
+      <div class="lb-title">LOGIN BONUS</div>
+      <div class="lb-streak" id="lbStreak"></div>
+    </div>
+    <div class="lb-body">
+      <div class="lb-sub">7日連続でボーナスアップ！週が明けると再スタート</div>
+      <div class="lb-stamps" id="lbStamps"></div>
+      <div class="lb-reward-box">
+        <img class="lb-xeva" src="thumbs/XEVA.png" alt="XEVA">
+        <div>
+          <div class="lb-reward-val" id="lbRewardVal">＋50</div>
+          <div class="lb-reward-unit">XEVA 獲得！</div>
+        </div>
+      </div>
+      <button class="lb-ok" onclick="closeLoginBonus()">受け取る ✨</button>
+    </div>
+  </div>
+</div>
+
+<!-- ───── XEVA LOGIN BONUS TOAST ───── -->
+<div id="xevaToast">
+  <img src="thumbs/XEVA.png" alt="XEVA">
+  <div>
+    <div class="t1" id="xevaToastT1">＋50 XEVA</div>
+    <div class="t2" id="xevaToastT2">ログインボーナスを獲得しました</div>
+  </div>
+</div>
+
+<!-- ───── ★ 2026-08-12 旧・下部ドック（#xevaDock）はここにありましたが完全に削除しました ─────
+     いまの下のバーは、ホーム画面（#xhome）の中にある .xh-bar だけです。
+     バッジ（メール・お知らせ・ミッション）は xevarion.js が直接 #xhMailBdg / #xhNewsBdg / #xhMsnBdg を
+     書き換えるようになったので、写し元としてのドックも要らなくなりました。 -->
+
+<!-- ───── MISSION MODAL ───── -->
+<div id="missionOverlay" onclick="closeMissions()">
+  <div id="missionModal" role="dialog" aria-label="XEVAミッション" onclick="event.stopPropagation()">
+    <div class="mm-head">
+      <div class="mm-title"><svg class="xvic" style="width:17px;height:17px;display:inline-block;vertical-align:-3px" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="#ff6f91"/><circle cx="12" cy="12" r="5.7" fill="#fff"/><circle cx="12" cy="12" r="2.6" fill="#ff6f91"/></svg> XEVA ミッション</div>
+      <button class="mm-close" onclick="closeMissions()">✕</button>
+    </div>
+    <div class="mm-body">
+    <div class="mm-bal">
+      <img src="thumbs/XEVA.png" alt="XEVA">
+      <div>
+        <div class="l">所持 XEVA</div>
+        <div class="v" id="missionBal">0</div>
+      </div>
+      <a class="mm-gacha" href="gacha.html"><svg class="xvic" style="width:15px;height:15px;display:inline-block;vertical-align:-2px" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a8.5 8.5 0 018.5 8.5h-17A8.5 8.5 0 0112 3Z" fill="#fff" opacity=".92"/><path d="M20.5 12.5a8.5 8.5 0 01-17 0Z" fill="#ffd8e2"/><rect x="2.6" y="10.8" width="18.8" height="2.7" rx="1.35" fill="#ffb020"/></svg> ガチャへ</a>
+    </div>
+    <div class="mm-tabs">
+      <button class="mm-tab active" id="mmTabStarter" onclick="switchMsnTab('starter',this)">スターター<span class="mm-tab-badge" id="msnBadgeStarter" style="display:none"></span></button>
+      <button class="mm-tab" id="mmTabLogin" onclick="switchMsnTab('login',this)">ログイン<span class="mm-tab-badge" id="msnBadgeLogin" style="display:none"></span></button>
+      <button class="mm-tab" id="mmTabLimited" onclick="switchMsnTab('limited',this)">期間限定<span class="mm-tab-badge" id="msnBadgeLimited" style="display:none"></span></button>
+      <button class="mm-tab" id="mmTabCollection" onclick="switchMsnTab('collection',this)">コレクション<span class="mm-tab-badge" id="msnBadgeCollection" style="display:none"></span></button>
+    </div>
+    <div id="missionTabStarter" class="xeva-mission-list"></div>
+    <div id="missionTabLogin" style="display:none"></div>
+    <div id="missionTabLimited" style="display:none"></div>
+    <div id="missionTabCollection" style="display:none"></div>
+    </div>
+  </div>
+</div>
+
+<!-- ───── MAIL MODAL ───── -->
+<div id="mailOverlay" onclick="closeMail()">
+  <div id="mailModal" role="dialog" aria-label="メールボックス" onclick="event.stopPropagation()">
+    <div class="mail-head">
+      <div class="mail-title-h">📬 メールボックス</div>
+      <button class="mail-all" id="mailAllBtn" onclick="claimAllMails()" style="display:none">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5 10-11"/></svg>
+        すべて受け取る<span class="mail-all-n" id="mailAllCount">0</span>
+      </button>
+      <button class="mail-close" onclick="closeMail()">✕</button>
+    </div>
+    <div id="mailList"></div>
+  </div>
+</div>
+
+<!-- ═════ 新キャラのお知らせ（★ 2026-08-10）═════
+     前回ひらいたときから増えたキャラを、起動時に一覧でお知らせする。
+     ・顔ぶれのもとは xeva.js の MB_CHAR_MASTER（since＝追加された日）。
+     ・出したら「見た」ことにするので、同じキャラは二度出ない。 -->
+<div id="ncOverlay" onclick="closeNewChars()">
+  <div id="ncModal" role="dialog" aria-label="新キャラクターのお知らせ" onclick="event.stopPropagation()">
+    <div class="nc-head">
+      <div class="nc-h">✨ 新キャラクター登場！<small id="ncSub"></small></div>
+      <button class="nc-x" onclick="closeNewChars()" aria-label="とじる">✕</button>
+    </div>
+    <div class="nc-grid" id="ncGrid"></div>
+    <div class="nc-foot">
+      <a class="nc-btn go" href="gacha.html">🎰 ガチャへ行く</a>
+      <button class="nc-btn sec" onclick="closeNewChars()">あとで</button>
+    </div>
+  </div>
+</div>
+
+<!-- ───── CDK MODAL ───── -->
+<div id="cdkOverlay" onclick="closeCdkModal()" style="position:fixed;inset:0;z-index:1002;background:rgba(30,60,110,.32);backdrop-filter:blur(4px);display:flex;flex-direction:column;align-items:center;justify-content:flex-start;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:calc(env(safe-area-inset-top,0px) + 16px) 16px calc(env(safe-area-inset-bottom,0px) + 16px);opacity:0;pointer-events:none;transition:opacity .3s">
+  <div id="cdkModal" onclick="event.stopPropagation()" style="position:relative;margin:auto;width:min(440px,100%);background:#ffffff;border:1.5px solid rgba(255,255,255,.95);border-radius:22px;padding:0;box-shadow:0 30px 80px rgba(56,120,200,.28);transition:opacity .3s,transform .3s;opacity:0;pointer-events:none;transform:translateY(16px) scale(.97);flex-shrink:0">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:18px 20px 14px;border-bottom:1.5px solid rgba(56,140,220,.14)">
+      <div style="font-size:15px;font-weight:800;color:#22344d">🔑 CDKコード交換</div>
+      <button onclick="closeCdkModal()" style="background:#f2f7fd;border:none;border-radius:10px;width:32px;height:32px;color:rgba(34,52,77,.6);cursor:pointer;font-size:16px">✕</button>
+    </div>
+    <div style="padding:20px">
+      <p style="font-size:13px;color:rgba(34,52,77,.66);margin-bottom:16px;line-height:1.7">特典コードを入力すると、限定キャラクターを受け取れます。</p>
+      <input id="cdkInput" type="text" placeholder="コードを入力" autocomplete="off" autocapitalize="characters" onkeydown="if(event.key==='Enter')redeemCdkPortal()"
+        style="width:100%;box-sizing:border-box;padding:12px 14px;border:1.5px solid rgba(56,140,220,.25);border-radius:12px;font-size:16px;font-family:'Noto Sans JP',sans-serif;background:#fbfdff;color:#22344d;outline:none;letter-spacing:.06em;margin-bottom:10px;display:block">
+      <button onclick="redeemCdkPortal()" style="width:100%;padding:13px;background:linear-gradient(135deg,#38a6ff,#8e6bff);border:none;border-radius:12px;color:#fff;font-size:14px;font-weight:700;cursor:pointer;font-family:'Noto Sans JP',sans-serif;margin-bottom:12px">交換する</button>
+      <div id="cdkPortalMsg" style="font-size:12px;min-height:18px;text-align:center;color:#e05a7a"></div>
+      <div id="cdkPortalResult" style="display:none;margin-top:16px;text-align:center;padding:16px;background:rgba(56,166,255,.08);border:1.5px solid rgba(56,166,255,.22);border-radius:14px">
+        <div style="font-size:36px;margin-bottom:8px">🎉</div>
+        <img id="cdkPortalImg" src="" alt="" style="width:100px;height:100px;border-radius:16px;object-fit:cover;border:2px solid rgba(142,107,255,.45);margin-bottom:10px">
+        <div id="cdkPortalName" style="font-size:16px;font-weight:800;color:#7a4fe0;margin-bottom:4px"></div>
+        <div style="font-size:12px;color:rgba(34,52,77,.66)">メールボックスに送信しました！</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ───── NEWS MODAL ───── -->
+<div class="modal-overlay" id="newsOverlay" onclick="closeNews()"></div>
+<div class="news-modal" id="newsModal">
+  <div class="nm-head">
+    <div class="nm-head-title">
+      <svg width="16" height="16" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>
+      お知らせ &amp; 更新情報
+    </div>
+    <button class="nm-close" onclick="closeNews()"><svg width="14" height="14" fill="none" viewBox="0 0 24 24"><path stroke="currentColor" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></button>
+  </div>
+
+  <div class="nm-pills">
+    <button class="nm-pill active" onclick="filterNews('all',this)"><span class="pd" style="background:#94a3b8;"></span>すべて</button>
+    <button class="nm-pill" onclick="filterNews('pre',this)"><span class="pd" style="background:#8fd4ff;"></span>プレ版</button>
+    <button class="nm-pill" onclick="filterNews('launch',this)"><span class="pd" style="background:#ff8ab8;"></span>リリース</button>
+    <button class="nm-pill" onclick="filterNews('update',this)"><span class="pd" style="background:#94b4ff;"></span>更新</button>
+    <button class="nm-pill" onclick="filterNews('error',this)"><span class="pd" style="background:#fbbf24;"></span>エラー</button>
+    <button class="nm-pill" onclick="filterNews('end',this)"><span class="pd" style="background:#f87171;"></span>終了</button>
+  </div>
+
+  <div class="nm-body" id="newsBody">
+    <div class="nm-divider" id="newDivider" style="display:none;">NEW — 前回から更新</div>
+
+    <!-- 2026-08-10 ガチャ統合（XEVAガチャ → MagiBurst のガチャに一本化） -->
+    <div class="nm-item" data-tag="update" data-date="2026-08-10">
+      <div class="nm-date">2026<br>08.10</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">🎰 ガチャを1つに統合！ XEVAガチャのキャラが MagiBurst の★5・★4として参戦</div>
+        <div class="nm-txt">
+          これまで別々だった <b>XEVAガチャ</b>と <b>MagiBurst のガチャ</b>を、<b>XEVARION の「ガチャ」に一本化</b>しました。
+          引いたキャラは<b>そのまま MagiBurst で使えます</b>（所持・限界突破・💎ジェムはすべて共通）。<br>
+          ⭐ <b>これまでのSSR 6人</b>（コトミ・リコ・カホ・ナナ・レア・リノン）が <b>★5</b> としてプレミアムセレクトガチャに参戦。全員が<b>クロススキル</b>を持ちます。<br>
+          ⭐ <b>これまでのSR 19人</b>が <b>★4</b> として<b>すべてのガチャ</b>に登場（ピックアップはありません）。<br>
+          🔄 <b>Bシリーズ（クロスガチャ）は廃止</b>。ミオン・ココナ・マオ・アリサは<b>上方修正のうえプレミアムから排出</b>されます。<br>
+          🎁 <b>ガチャの中身を刷新</b>：ゴールドの排出をやめ、<b>叡智の果実・超越の書・英傑の証・🎫フェスチケット</b>が出るようになりました（★5合計10%は据え置き）。ゴールドは <b>MagiBurst の Shop で XEVA から安く買えます</b>。<br>
+          📊 キャラの詳細では、<b>MagiBurst の評価</b>（総合力・適性クエスト）に加えて <b>MagiBattle の性能</b>も見られます（MagiBurst 生まれのキャラには MagiBattle の性能はありません）。
+        </div>
+      </div>
+    </div>
+
+    <!-- 2026-07-30 MagiJackpot 全面リニューアル／ジェム変換所・ショップ新設／メール統合 -->
+    <div class="nm-item" data-tag="update" data-date="2026-07-30">
+      <div class="nm-date">2026<br>07.30</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">🎰 MagiJackpot 全面リニューアル ／ 🏪 ジェム変換所とジェムショップを新設</div>
+        <div class="nm-txt">
+        🎰 <b>MagiJackpot をゼロから作り直しました。</b>明るいガラス調 × 金の装飾に一新し、収録タイトルを<b>選び抜いた5本</b>に絞っています。<br>
+        　・<b>1人プレイ</b>：スロット「<b>Magi Fortune</b>」（5リール20ライン／BONUS→フリースピン→SUPER BONUS）、
+        「<b>Royal Blackjack</b>」（ダブル・スプリット・サレンダー＋連勝ボーナス＋Royal Chance）、
+        パチンコ「<b>Jackpot Rush</b>」（リーチ・激アツ・確変RUSH）<br>
+        　・<b>パーティープレイ（1台を2〜6人で）</b>：「<b>Jackpot Arena</b>」（BET／HOLD／DOUBLE の読み合い）、
+        「<b>Grand Roulette Party</b>」（全員で同じ盤にベット・終盤はイベント多発の大逆転）<br>
+        　・全ゲーム共通で<b>プログレッシブ・ジャックポット</b>、実績と<b>称号</b>、デイリー／ウィークリーミッション、
+        <b>スキン</b>（カード・チップ・テーブル・背景・演出）、<b>リプレイ</b>、詳しい統計、チュートリアルを用意しました。<br>
+        　・<b>還元率はどのゲームもおよそ 100%</b>。賭けた総量と配られる総量がつり合うように設計し、
+        <b>実際の確率と配当をアプリ内のスペック表で公開</b>しています。
+        ベット額・ライン数・台えらびは<b>還元率を変えません</b>——変わるのは「当たりの回数」と「1回の大きさ」だけです。<br><br>
+        🏪 <b>ジェム変換所をホームに新設しました。</b>XEVA →<img class="xv-gemico" src="gem.png" alt="ジェム">ジェムの交換が、
+        <b>ホーム1か所</b>にまとまりました（MagiBurst・MagiJackpot にあった交換所は廃止）。<br>
+        🛒 となりに<b>ジェムショップ</b>も開設。<b>1回だけ買えるお得なパック</b>を4種類ご用意しています（通常より 50〜70% 多く受け取れます）。<br><br>
+        📧 <b>MagiBurst のメールボックスを廃止</b>し、運営からの配布は<b>すべて XEVARION の📧メール</b>に集約しました。
+        いま配布中のぶんもそのまま引き継がれています（受け取り済みのものが二重に届くことはありません）。
+        🎫フェス限定ガチャチケットのように MagiBurst の中でしか使えないものは、
+        <b>メールで受け取ったあと、次に MagiBurst を開いたときに自動で反映</b>されます。
+        なお、Nocturne Bloom Fest の開幕記念チケットは<b>20枚</b>に変更しました。<br><br>
+        🧩 ホームの並びを整理し、<b>MagiPortfolio は「その他」へ</b>、<b>MagiJackpot は MagiRanking と MagiCraft の間</b>に移動しました。<br>
+        🤖 <b>XEVYNAR</b> が、<b>禁忌の迷宮</b>と<b>幽冥の庭園</b>のクエストにも答えられるようになりました（これまでは黄昏の王城だけでした）。
+        「迷宮22の間の編成」「庭園の第7ノ園」のように聞いてみてください。</div>
+      </div>
+    </div>
+
+    <!-- 2026-07-29 MagiJackpot 公開 -->
+    <div class="nm-item" data-tag="launch" data-date="2026-07-29">
+      <div class="nm-date">2026<br>07.29</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag launch">LAUNCH</span></div>
+        <div class="nm-title">🎰 新アプリ「MagiJackpot」公開！ ソーシャルカジノ＆パーティー</div>
+        <div class="nm-txt">ブラック×ゴールドの高級カジノが XEVARION に登場。<b>ゲーム内通貨（XEVA・<img class="xv-gemico" src="gem.png" alt="ジェム">ジェム）だけ</b>で遊べます。<br>
+        🎲 <b>1人プレイ</b>：スロット／ビデオポーカー／ブラックジャック／ルーレット／Keno<br>
+        🌐 <b>2〜6人オンライン</b>：テキサスホールデム／ブラックジャック／バカラ／ルーレット／ダイスポーカー。部屋番号・観戦・チャット・スタンプつき<br>
+        📱 <b>2〜6人パーティー（1台のiPad）</b>：ルーレット／ブラックジャックバトル／クラップス／ビンゴライブ／ホイールオブフォーチュン。秘密情報を持たない設計なので、端末を回さずみんなで囲めます<br>
+        🏆 デイリー・ウィークリーミッション、実績、ランキングを用意。<b>初回ログインで 3,000 チップ相当の XEVA ボーナス</b>をお配りします。</div>
+      </div>
+    </div>
+
+    <!-- 2026-07-29 サービス終了 -->
+    <div class="nm-item" data-tag="end" data-date="2026-07-29">
+      <div class="nm-date">2026<br>07.29</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag end">終了</span></div>
+        <div class="nm-title">🙇 6アプリのサービス終了のお知らせ</div>
+        <div class="nm-txt">誠に勝手ながら、以下の6アプリのサービスを<b>2026年7月29日をもって終了</b>いたしました。<br>
+        <b>MagiResonance ／ MagiShareCore ／ MagiTriad ／ MagiMuse ／ MagiFinance ／ MagiSports</b><br>
+        ご愛顧いただいたみなさまに、心より御礼申し上げます。<br>
+        ・これらのアプリはホームおよびアプリ一覧から表示されなくなります。<br>
+        ・<b>獲得済みの XEVA・キャラクター・ジェムはそのまま残ります</b>（他アプリでお使いいただけます）。<br>
+        ・各アプリのセーブデータはアカウント内に保管されており、こちらから削除することはありません。<br>
+        今後は <b>MagiLex ／ MagiBurst ／ XEVYNAR ／ MagiJackpot</b> を中心に、より深く遊べる・学べるアプリへ開発を集中してまいります。</div>
+      </div>
+    </div>
+
+    <!-- 2026-07-29 ジェムが XEVARION 共通通貨に -->
+    <div class="nm-item" data-tag="update" data-date="2026-07-29">
+      <div class="nm-date">2026<br>07.29</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title"><img class="xv-gemico" src="gem.png" alt="ジェム"> ジェムが XEVARION 共通の通貨になりました</div>
+        <div class="nm-txt">これまで MagiBurst 専用だった <b>ジェム</b>を、<b>XEVARION 全体で使えるプレミアム通貨</b>に格上げしました。
+        ホーム画面の XEVA のとなりに<b>所持ジェムを常時表示</b>します。<br>
+        🔄 <b>同期の作り直し</b>：ジェムの残高を XEVA とまったく同じ経路（アカウント同期・即時送信・離脱時の送り切り）に載せ替えました。
+        これまで <b>iPhone で「増えない・減らない」</b>ことがあったのは、ジェムだけが別のデータベースで同期されていたためです。原因から解消しています。<br>
+        💎 MagiBurst で持っていたジェムは<b>自動でそのまま引き継がれます</b>（残高は変わりません）。<br>
+        🧠 <b>XEVYNAR</b>：タイマーは<b>科目や目的の入力なし・時間も自由</b>に設定できるようになり、学習記録も任意になりました。
+        MagiBurst の攻略（入手すべきキャラ・勝てないときのコツ・未所持でも組める編成）、MagiLex の<b>苦手問題づくりと解説</b>にも対応します。<br>
+        ⚙️ <b>設定からアプリの更新</b>を確認できるようになりました。</div>
+      </div>
+    </div>
+
+    <!-- 2026-07-28 XEVARION ホーム画面 大規模リニューアル -->
+    <div class="nm-item" data-tag="update" data-date="2026-07-28">
+      <div class="nm-date">2026<br>07.28</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">🌈 ホーム画面リニューアル ＋ XEVARION 1つで全部オフライン</div>
+        <div class="nm-txt">XEVARION のホームを、スマホ基準の<b>明るくカジュアルなデザイン</b>に刷新しました（PC でもそのまま開けます）。<br>
+        🏠 下部バーは <b>ホーム／コミュニティ／図鑑／ガチャ／設定</b> の5タブ。右上に <b>Magi AI Assistant</b>・メール・お知らせ・ミッションを並べ、
+        AI に「勉強したい」「XEVAを増やしたい」と話しかける（音声入力対応）だけで目的のアプリへ案内します。<br>
+        👤 プロフィールは<b>アイコン・名前の右に所持XEVA</b>を配置。<b>「！」ボタン</b>からいつでも入手方法を確認できます（EXP／レベル機能は廃止しました）。<br>
+        🎮 アプリのアイコンは<b>すべて正方形</b>に統一。ホームには <b>MagiLex・MagiLink・MagiBurst・MagiBattle・MagiChainParty・MagiEmpire・MagiPortfolio・MagiRanking・MagiCraft・MagiManor・ORDYXIS</b> を並べ、
+        <b>「その他」</b>からは残りのアプリを同じグリッドで一覧できます。<b>並び順は設定からドラッグ（☰をつまんでスライド）で自由に変更</b>できます。<br>
+        📬 <b>メール・お知らせ・ミッション</b>は下から開くシートに統一し、表示崩れを解消。メールには<b>「すべて受け取る」</b>を追加しました。
+        <b style="color:#e0157a">リニューアル記念に 6,000 XEVA を配布中！</b><br>
+        📲 <b>MagiBurst・MagiLex の個別インストールは終了</b>し、<b>XEVARION を1つ入れるだけ</b>で
+        <b>MagiLex ／ MagiBurst ／ MagiChainParty ／ XEVYNAR ／ MagiJackpot</b> がまとめてオフライン対応になります。
+        すでに個別に追加している方は、<b>ホーム画面のそのアイコンを削除</b>して XEVARION を追加してください（データはアカウントに紐づくので引き継がれます）。<br>
+        ⬇️ 更新があるときは、<b>データサイズと更新内容を確認してからダウンロード</b>できるようになりました。<br>
+        🖼 アプリアイコンと企業ロゴを<b>それぞれ1枚に統合</b>し、重複画像を整理して<b>約40MB軽くなりました</b>。<br>
+        💥 MagiBurst: <b>超特急でも超マインスイーパーの地雷4個を各号車で持てるよう修正</b>（これまで発動していませんでした）。オートエイムビットの威力を少し下げました。</div>
+      </div>
+    </div>
+
+    <!-- 2026-07-20 MagiDiamond公開 -->
+    <div class="nm-item" data-tag="launch" data-date="2026-07-20">
+      <div class="nm-date">2026<br>07.20</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag launch">LAUNCH</span></div>
+        <div class="nm-title">⚾ 新アプリ「MagiDiamond」公開！みんなで監督・選手になる読み合い野球盤</div>
+        <div class="nm-txt">野球盤の直感的な楽しさと、采配・読み合いの戦略を融合した<b>野球戦略ボードゲーム「MagiDiamond」</b>が登場！<br>
+        🧤 守備側は<b>配球（球種・コース・高さ・力配分・ウイニングショット）</b>、⚔ 攻撃側は<b>狙い打ち（狙いコース・高さ・スイング）</b>をこっそり決めて<b>同時公開</b>。読み勝てば快音、読み負ければ空振り！<br>
+        👥 <b>2〜6人対応</b>：2人は1人ずつ全役割、3〜6人は<b>監督・投手・打者・守備・走塁</b>をチームで役割分担。打席前の<b>作戦タイム</b>でチーム相談もできます。<br>
+        🎩 監督は<b>シフト・敬遠・盗塁・バント・代打・投手交代</b>に加え、1試合1回の<b>チームスキル</b>（勝負師・鉄壁守備など）で勝負どころを演出。得点や好プレーで<b>チーム士気🔥</b>も変動。<br>
+        🌐 <b>オンライン対戦（2台）</b>：部屋番号でつながり、2台の端末が<b>投手画面／打者画面</b>に。演出は両方の画面で同時に再生されます。<br>
+        🤖 CPU対戦・イニング数選択（1/3/5/9回）・<b>XEVARIONアカウント紐づけでXEVA賞金</b>にも対応。MagiOneXシリーズより配信開始！</div>
+      </div>
+    </div>
+
+    <!-- 2026-07-20 MagiFocus公開（StudyGuard大改修） -->
+    <div class="nm-item" data-tag="launch" data-date="2026-07-20">
+      <div class="nm-date">2026<br>07.20</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag launch">LAUNCH</span></div>
+        <div class="nm-title">🎯 新アプリ「MagiFocus」公開！（StudyGuard 全面リニューアル）</div>
+        <div class="nm-txt">StudyGuard を全面リニューアルした集中学習マネージャー<b>「MagiFocus」</b>が登場！<br>
+        📷 <b>みまもりカメラ</b>：AI手検知を最新エンジンに刷新し、<b>手が画面から消えたら警告</b>。「手を離した後に再検知できない」不具合も解消しました。さらに<b>スマホ見張り</b>を新搭載——机に置いたスマホがカメラから消える（＝手に取る）と<b>即警告</b>します。<br>
+        🕐 <b>きょうの学習</b>：0〜24時のタイムラインで<b>学習したタイミング</b>と合計時間をひと目で確認。<br>
+        📅 <b>カレンダー</b>：30分単位の<b>ブロックタップ</b>と<b>入力フォーム</b>の2way予定管理。予定と実績を同じグリッドで見比べられます。<br>
+        🏆 <b>実績</b>：累計時間・連続学習日数・教科別つみあげ・日別全履歴をまるごと記録。<br>
+        💰 集中30分ごとに<b>10 XEVA</b>、ノー警告セッションでボーナス<b>+5 XEVA</b>（1日上限60）。StudyGuard はこれにともない提供終了となります。</div>
+      </div>
+    </div>
+
+    <!-- 2026-07-19 MagiMuse公開 + 各アプリ大型アップデート -->
+    <div class="nm-item" data-tag="update" data-date="2026-07-19">
+      <div class="nm-date">2026<br>07.19</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">🌟 新アプリ「MagiMuse」公開！＆ MagiBurst 名称刷新・MagiChainParty オフライン対応</div>
+        <div class="nm-txt">📖 <b>新アプリ「MagiMuse」</b>が登場：<b>本気の勉強で物語が進む</b>、物語×学習管理アプリです。海辺の学園「勉強部」を舞台に、<b>XEVAガチャのSSRキャラ6人</b>のストーリーを読み進めて「知識の星図」を灯そう。勉強セッションで<b>XEVAももらえます</b>。<br>
+        💥 <b>MagiBurst 大型アップデート</b>：名称を刷新しました（SS→<b>フルバースト</b>／友情コンボ→<b>リンクスキル</b>／実→<b>ルーン</b>／フォトン→<b>エーテル</b>／オーブ→<b>ジェム</b>）。属性有利1.25倍などのバランス調整、クエスト表示の改善、<b>叡智の果実が50WAVE踏破で入手可能</b>に。ゲーム内の<b>お知らせ</b>から詳細をご覧ください。<br>
+        🎲 <b>MagiChainParty</b>：<b>前回の名前・紐づけを引き継げる</b>ようになりました（紐づけは毎回4桁パスワードで確認）。紐づけの流れもXEVARIONログインと同じ「検索→選択→パスワード」に統一。さらに<b>アプリとしてインストールすればオフラインでもローカル対戦OK</b>（オンライン対戦はオンライン時のみ・復帰時に自動同期）。<br>
+        📚 <b>MagiLex</b>：科目ごとの<b>ジャンル絞り込み</b>（化学の理論/無機/有機/高分子など）を追加しました。<br>
+        🏢 <b>NGX公式サイト</b>を全面リニューアル。新キャッチコピーは「<b>Creating the Future Through Every Experience.</b>」<br>
+        🔇 各ゲームの<b>BGMは都合により一時停止</b>しています（効果音は通常どおり）。</div>
+      </div>
+    </div>
+
+    <!-- 2026-07-15 MagiBurst 実装記念配布 + 新★5 3人 + Bシリーズ + MagiLex -->
+    <div class="nm-item" data-tag="update" data-date="2026-07-15">
+      <div class="nm-date">2026<br>07.15</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">🎁 MagiBurst 実装記念 6,000 XEVA 配布！ 新★5「ミオン」「ココナ」「マオ」＆ XEVAガチャ Bシリーズ シーズン1〜3 開幕</div>
+        <div class="nm-txt">🎁 <b>MagiBurst 実装記念</b>として、全ユーザーに <b>6,000 XEVA</b> を配布します！📬 <b>メールボックス</b>から受け取ってください。<br>
+        🎰 <b>XEVA ガチャ Bシリーズ</b>に <b>シーズン1「ミオン」・シーズン2「ココナ」・シーズン3「マオ」</b>が登場しました。ミオン・ココナは<b>Aシリーズから移籍</b>し、<b>Aシリーズはシーズン1〜5に再編</b>（旧シーズン6「アリサ」→<b>シーズン5</b>）。<b>すでに所持しているキャラ・凸・ガチャポイントはそのまま引き継がれます</b>。<br>
+        ✨ <b>MagiBurst に新★5が3体参戦</b>：<b>ミオン</b>（光・貫通）＝SSは20ターンで<b>自強化して駆けまわり、止まるとさらに強化して再走する2段オーヴァードライヴ</b>。友情<b>ルミナスレイ</b>（壁4か所に砲台→停止時に貫通レーザー一斉射撃）・副友情<b>貫通ホーミング12</b>。アビリティは<b>ADW／AW／友情ブースト（友情1.5倍）／全属性耐性（被ダメ25%カット）</b>。<br>
+        💗 <b>ココナ</b>（水・反射）＝SSは18ターン、自強化して暴れたあと<b>大量のハートが全体に降りそそぎ、各敵の残りHPの25%を削る</b>。友情<b>クロス分身弾</b>（敵6体まで貫通・味方が止まるまで連射）・副友情<b>パワーフィールド</b>。アビリティは<b>治癒の祈り（ボス戦開始時に30%でHP全回復・SSカットイン付き）／超アンチワープ（ワープ1つにつき+10%）／アンチブロック／ソウルスティール</b>。<br>
+        🔥 <b>マオ</b>（闇・反射）＝SSは22ターン、<b>壁に当たるたびに威力が上がっていく（最大×4.2）</b>。友情<b>リフレクションリング</b>（味方を追従して壁で反射し続ける3基）・副友情<b>全敵毒メテオ</b>。アビリティは<b>弱点キラー／毒キラー／ファーストキラー／バイタルキラー</b>。<br>
+        🎯 <b>MagiBurst の操作・表示を改善</b>：ショット時に<b>引っぱり度（%）と方向を示す矢印</b>を追加、味方アイコンの<b>「i」ボタン</b>で<b>SSが溜まっていても性能を確認</b>できるように、ボール絵の友情表記は<b>メイン友情⇄副友情</b>を交互表示。ガチャ排出時の画像を<b>キャラ立ち絵</b>に修正しました。<br>
+        🌐 <b>マルチプレイを刷新</b>：チームは常に4体。<b>2人＝ホスト2体＋ゲスト2体／3人＝ホスト2体＋ゲスト1体ずつ／4人＝1体ずつ</b>を持ちよります。<b>仲間が離脱して10秒</b>たつとバトルは中断、<b>中断できるのはホストのみ</b>（中断すると仲間には「接続が切れました」と表示）。<br>
+        ⚖️ <b>バランス調整</b>：シェリーの友情「三方向追従型貫通弾」の威力を<b>×0.42 → ×0.28</b>（連射間隔も延長）に調整しました。<br>
+        📚 <b>MagiLex</b>：PCでの<b>英単語の発音がより流暢な音声</b>になりました。さらに<b>問題数が多いコンテンツほど完全習得の XEVA が増える「ボリュームボーナス」</b>を追加——<b>50問以上は2倍・100問以上は3倍</b>！</div>
+      </div>
+    </div>
+
+    <!-- 2026-07-15 MagiBurst v6: マルチ・シェリー・セレクトガチャ -->
+    <div class="nm-item" data-tag="update" data-date="2026-07-15">
+      <div class="nm-date">2026<br>07.15</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">🌐 MagiBurst — 最大4人のマルチプレイ開幕！新★5「シェリー」＆セレクトピックアップガチャ</div>
+        <div class="nm-txt">🌐 <b>マルチプレイ（部屋番号・最大4人）</b>：<b>黄昏の王城</b>を友だちと協力プレイ！4桁の部屋番号でつながり、ひとり1体を持ちよって順番にショットします。<br>
+        ✨ <b>新★5「シェリー」登場</b>（闇・貫通）：SSは20ターンで<b>最初にふれた敵に紫焔の乱打30連</b>（合計 攻撃力×16.5）の超乱打。友情は<b>三方向追従型貫通弾</b>——ふれた味方を追いかけ、その味方が止まるまで撃ち続けます。アビリティは<b>バイタルキラー</b>（HP50%以上の敵に1.5倍）・<b>オムニアンチ</b>（各WAVEの最初の3ターンは全ギミック無効）・<b>全属性キラー</b>（全属性に1.5倍）・<b>ドレイン</b>（敵にふれるたびに回復）。<br>
+        🎰 <b>ガチャがセレクトピックアップ式に</b>：カグヤ・エマ・シェリーから<b>1体を選んで5%</b>、他の★5は各2.5%。さらに<b>初期キャラ4体が各10%</b>で登場（重ねて覚醒！）。ガチャ★5は性能を大幅強化し、属性も<b>光・火・闇</b>に分散。SS・友情の演出も豪華になりました。<br>
+        ⚔️ <b>バトル改善</b>：実の効果は<b>装備したキャラ本人だけ</b>に変更、<b>弱点は常時露出</b>、<b>手番のキャラが一目で分かる</b>演出、<b>SS演出中はショット不可</b>（演出後に発射）、<b>最終WAVEでボスを倒すと残りの敵も一掃</b>、敵の<b>残りHP・状態</b>を表示。全キャラの<b>SS・友情の威力</b>もキャラ詳細に明記しました。<br>
+        🚄 <b>MagiRanking</b> に <b>超特急 MAXSPEED の到達号車ランキング</b>を追加！</div>
+      </div>
+    </div>
+
+    <!-- 2026-07-14 MagiBurst v5 (X1移行) + MagiMusic categories + MagiRanking ChainParty -->
+    <div class="nm-item" data-tag="update" data-date="2026-07-14">
+      <div class="nm-date">2026<br>07.14</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">💥 MagiBurst 超大型アップデート — MagiOneX1へ昇格！黄昏の王城とEX降臨、開幕。</div>
+        <div class="nm-txt"><b>MagiBurst</b> が最上級フラッグシップ <b>MagiOneX1 シリーズ</b>へ昇格！クエストを全面再編しました。<br>
+        🏰 ノーマル<b>「黄昏の王城」</b>：第1〜15の間まで、火→水→木→光→闇の順に3周する全5WAVE構成（後半2WAVEはボス戦）。敵にはウルトラに加えて新たに<b>オメガ・ゼノス</b>が参戦し、第3の間からは<b>ブロック・透明パネル</b>のギミックも登場。奥の間ほど歯ごたえのある高難易度に！<br>
+        ⚡ <b>EX降臨</b>：王城クリア時に25%で降臨バナーが出現！第1〜5=<b>シオンEX</b>（Moonlit Fault）、第6〜10=<b>ヴィオラEX</b>（Midnight Roulette）、第11〜15=<b>アイラEX</b>（Panic in Brass）。専用背景＆専用BGM、全ギミック＋短い即死カウントダウンの<b>超高難易度</b>で、ボスは降臨キャラ本人。クリアで降臨キャラが仲間に（重ねると覚醒）、初回は<b>シオン／ヴィオラ／アイラ本人も一緒に加入</b>。挑戦は出現ごとに1回だけ！<br>
+        🚄 エンドコンテンツは<b>「超特急 MAXSPEED」</b>：新背景＋新BGM「Iron War March」でこれまで通りのエンドレス高難易度。<br>
+        🎮 バトルも大進化：キャラの<b>スピードアップ＆減速緩和</b>、反射タイプは<b>敵で跳ね返る軌道まで点線ガイドに表示</b>、SSは<b>タップで予約ON/OFF→ショットした瞬間に確定</b>する新方式、吹っ飛ばしSSは<b>位置を変えず吹っ飛んだ勢いの分だけ着地ダメージ</b>、新たな<b>バフSS</b>とバトル中の<b>状態マーク表示</b>（バフ・バリア・オーラ・剣・地雷）、敵味方のサイズ拡大、SS演出の大幅強化（iPhoneでカットインが画面外に出る問題も修正）。<br>
+        📗 育成は<b>EXP制</b>に：クエストクリアでパーティ全員にEXPが入り、レベルが上がるほど必要EXPのボーダーが上昇。図鑑の性能画面は<b>本格スマホゲーム風の見やすいデザイン</b>にリニューアルし、編成画面からも <b>ⓘボタン</b>で性能を確認できます。ガチャ★5は性能を強化、<b>凸（覚醒）は20まで</b>拡張——20凸の完凸キャラは<b>金色のオーラ</b>をまといます。アプリ起動時には<b>専用アクセス画面</b>も新設！<br>
+        🎧 <b>MagiMusic は MagiOneX シリーズへ昇格</b>：プレイリストが<b>すべて／MagiBurst／XEVARION／その他</b>のカテゴリ切り替えに対応し、MagiBurstのクエストBGM全5曲をいつでも聴けるようになりました。<br>
+        🏆 <b>MagiRanking</b>：MagiCraftランキングを終了し、新たに<b>MagiChainPartyのXEVA入手 月間ランキング</b>を追加。対戦賞金でもらったXEVAの合計で毎月競えます。<br>
+        📖 MagiLexは、フラッシュカード設定の「現在覚えたカード数」をボタンの上に横書き表示するレイアウト改善を行いました。</div>
+      </div>
+    </div>
+
+    <!-- 2026-07-12 MagiOneX1 + summer campaign + gacha B series + MagiBattle update -->
+    <!-- 2026-07-13 MagiBurst launch + cloud sync fix + home renewal -->
+    <div class="nm-item" data-tag="launch" data-date="2026-07-13">
+      <div class="nm-date">2026<br>07.13</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag launch">LAUNCH</span></div>
+        <div class="nm-title">💥 新作「MagiBurst」リリース — 引っぱりハンティング爆誕！</div>
+        <div class="nm-txt">引っぱって、はなして、ぶっとばせ！<b>MagiBurst</b> が MagiOneXP シリーズに登場。壁で跳ね返って敵ウルトラに体当たり、味方に触れると<b>友情コンボ</b>、ゲージが満タンになったら<b>縦長カットインの必殺バーストショット（SS）</b>が炸裂！<br>
+        初期メンバーは <b>ゼラ（闇・貫通）／アヤメ（木・反射）／サクラ（水・反射）／アリサ（火・反射）</b>。ガチャ限定★5<b>「エマ」（光・貫通）</b>はゲーム内オーブで挑戦、重ねると覚醒！属性3すくみ＋光⇄闇、反射/貫通の撃種、レベル育成、全8クエストで待ってるよ。<br>
+        🛠 あわせて、<b>クラウドアカウントの同期を強化</b>（新しいデータが必ず優先されるマージ方式・MagiBattleなどのセーブがアカウントに正しく紐づくよう修正）し、<b>ホーム画面をリニューアル</b>（キービジュアルが画面内に収まる新デザイン＋光の演出）、ポータルのアイコンを端末差のない<b>オリジナルSVGアイコン</b>に刷新しました。<br>
+        💥 <b>MagiBurst 大型アップデート</b>：アンチギミック登場！<b>ダメージウォール・地雷・ワープ</b>の3ギミックと、<b>ADW／AW／マインスイーパー／キラー／リジェネ／バリア／パワーオーラ／SSブースト</b>の8アビリティを実装。<b>副友情コンボ</b>（プラズマ・加速・爆発誘発）、フィールドアイテム（❤⚔⏳）、エンドレス高難易度<b>「超特急 グランドエクスプレス」</b>、SSの残りターン表示、バトル中のキャラ詳細閲覧、角丸スクエアの新敵ヒットボックス、ど派手なヒット演出、新バトル背景も追加！<br>
+        🎧 <b>新アプリ「MagiMusic」</b>：XEVARIONの音楽をバックグラウンド再生できるミュージックプレイヤーが MagiOne シリーズに登場。ロック画面操作対応・musicフォルダに曲を入れるだけで自動追加。ポータルも<b>音楽のテンポに合わせて画面の縁が色づく</b>ようになりました（アクセス画面はタブごとに1回だけ表示に変更）。</div>
+      </div>
+    </div>
+
+    <div class="nm-item" data-tag="launch" data-date="2026-07-12">
+      <div class="nm-date">2026<br>07.12</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag launch">LAUNCH</span></div>
+        <div class="nm-title">✦ 最上級フラッグシップ「MagiOneX1」始動 ＆ 🌻夏の学習キャンペーン開幕！</div>
+        <div class="nm-txt"><b>MagiBattle・MagiLex・MagiChainParty・MagiRanking</b> の4本を、最上級進化系フラッグシップ <b>MagiOneX1 シリーズ</b>としてポータル最上段に再編しました。<br>
+        🌻 <b>夏の学習キャンペーン（〜8/31）</b>：期間中、<b>MagiLexで得られるXEVAがすべて2倍</b>！さらにMagiLexは「未習得の問題を次の回で必ず出題」する優先出題に進化し、XEVA入手方法ガイドも最新版にリニューアル。<br>
+        🎰 <b>ガチャに「Bシリーズ」登場</b>：これまでのシーズン1〜7は<b>Aシリーズ</b>になり、新たに<b>Bシリーズ シーズン1（新SSR「マオ」）</b>が開幕。画面上部の大きなタブでシリーズを切り替えられます。ピックアップSSRの<b>強み（属性・ロール・必殺技）</b>もガチャ画面に表示！<br>
+        ⚔️ <b>MagiBattle 大型更新</b>：一度だけ復活できる新スキル「蘇生印」、バトル効果音（🔊ボタンで切替）、デイリー・装備交換の専用タブ化、図鑑のロール絞り込み・並び替え、闇属性アイコンの視認性改善、スコアアタックの敵を調整。</div>
+      </div>
+    </div>
+
+    <!-- 2026-07-09 MagiOneXP series + MagiCraft big update -->
+    <div class="nm-item" data-tag="update" data-date="2026-07-09">
+      <div class="nm-date">2026<br>07.09</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">✦ 新シリーズ「MagiOneXP」始動 ＆ MagiCraft 大型アップデート</div>
+        <div class="nm-txt">じっくり遊べる一人用の本格ゲーム <b>MagiCraft・MagiBattle・MagiResonance・MagiManor</b> を、新シリーズ <b>MagiOneXP</b> に再編しました。ポータルは上から <b>MagiOneX → MagiOneXP → MagiOne → MeruHub</b> の並びになります。<br>
+        あわせて <b>MagiCraft</b> を大幅アップデート：アイテムをブロック調ピクセルアイコンに刷新、松明の明かりをなめらかに、UIをボクセルクラフト風デザインに、<b>途中セーブ／つづきから</b>に対応し、タイムアタックは廃止してじっくり遊べる探索アドベンチャーになりました。長押しで破壊・タップで設置のボクセルクラフト風操作にも対応。</div>
+      </div>
+    </div>
+
+    <!-- 2026-07-07 MagiCraft 3D rebuild -->
+    <div class="nm-item" data-tag="update" data-date="2026-07-07">
+      <div class="nm-date">2026<br>07.07</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">⛏️ MagiCraft — ボクセルクラフトの本格3Dにフルリニューアル！</div>
+        <div class="nm-txt">2Dだった MagiCraft が、<b>本格3Dボクセルワールド</b>に生まれ変わりました！<br>
+        ・<b>一人称視点の3Dワールド</b> — ノイズ生成の地形・木・湖・洞窟・鉱脈。昼夜サイクルとフォグ、ブロックの影（AO）まで表現<br>
+        ・<b>掘る×置く×クラフト</b> — 視線のブロックを長押しで採掘、好きな場所に設置。作業台・強化台・次元ゲートはこれまで通り<br>
+        ・<b>戦闘も3Dに</b> — 野に湧くスライムを狩ってコア集め。ヴォイド次元の浮遊島で「次元魔神ヴォイドリア」と3D空中戦（魔弾をかわせ！）<br>
+        ・<b>操作</b> — PCはWASD+マウス、スマホは仮想スティック+ボタンでフル対応<br>
+        ・タイムアタック＆死亡回数の <b>MagiRanking 連携はそのまま</b>。ベスト記録更新を目指そう！</div>
+      </div>
+    </div>
+
+    <!-- 2026-07-07 MagiResonance DQ-style rebuild -->
+    <div class="nm-item" data-tag="update" data-date="2026-07-07">
+      <div class="nm-date">2026<br>07.07</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">🏰 MagiResonance — 王道コマンドバトルRPGに全面リニューアル！</div>
+        <div class="nm-txt">戦闘・スキル・世界観のすべてを、なつかしのコマンドバトルRPGスタイルに作り直しました！<br>
+        ・<b>ターン制コマンドバトル</b> — たたかう／じゅもん／とくぎ／ぼうぎょ／どうぐ／にげる。「〜が あらわれた！」「かいしんの いちげき！！」のメッセージウィンドウで進行。さくせん「ガンガンいこうぜ」でオートも可<br>
+        ・<b>職業とじゅもん</b> — せんし・ぶとうか・まほうつかい・そうりょ・けんじゃ。レベルアップで「フィラ」「ナオール」「ビリム」などのじゅもんを習得<br>
+        ・<b>そうびと経済</b> — ぶき・よろい・たてをお店で購入。HP/MPは持ち越し制、宿屋で回復、<b>全滅すると所持金半分</b>！<br>
+        ・<b>物語</b> — 王さまの命を受け、まおうヴォイドから「ひかりのオーブ」20個をとりもどす旅へ。城下町（2Dワールド）から各地に出発<br>
+        ・<b>あそび</b> — モンスター図鑑・しれんのとう・みなみのもり探索・かくとうじょう（ランクマッチ＆部屋番号オンライン対戦）<br>
+        ※ 新スタイル移行のため冒険データはリセットされています。仲間（ガチャキャラ）はそのまま使えます！</div>
+      </div>
+    </div>
+
+    <!-- 2026-07-07 MagiResonance launch -->
+    <div class="nm-item" data-tag="launch" data-date="2026-07-07">
+      <div class="nm-date">2026<br>07.07</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag launch">LAUNCH</span></div>
+        <div class="nm-title">🌌 MagiResonance — "アイコンが躍動する" 本格育成ファンタジーRPGが登場！</div>
+        <div class="nm-txt">Mana Streamを侵食する災厄「Void」に、Navigator（あなた）とEcho（ガチャキャラクター）が立ち向かう大型RPG！<br>
+        ・<b>全20章のメインストーリー</b> — Normal / Hard / Abyss の3難易度。各章の最後は大型ボス戦（ブレイクゲージを砕け！）<br>
+        ・<b>リアルタイムセミオートバトル</b> — 前衛2×後衛3、8属性×5ロール、スキル・必殺技フルスクリーンカットイン、倍速・オート対応<br>
+        ・<b>育成</b> — Lv1〜100（限界突破で120）・覚醒★6・スキル強化・Artifact（魔導書/仮面/水晶/指輪/時計/歯車）・Runeセット効果・親密度エピソード<br>
+        ・<b>遊びつくす</b> — 曜日替わりデイリーダンジョン・スタミナ探索（探索率100%で追加報酬）・無限タワー・スコアアタック月間ランキング・週替わりワールドボス<br>
+        ・<b>アリーナ &amp; オンライン対戦</b> — Bronze→Legendのレート戦（防衛パーティ公開）に加え、<b>部屋番号でつながるリアルタイム対戦</b>を搭載。勝利でXEVA獲得！<br>
+        オープニングムービーから始まる、新しい物語。あなたの共鳴を待っています。</div>
+      </div>
+    </div>
+
+    <!-- 2026-07-06 MagiManor launch -->
+    <div class="nm-item" data-tag="launch" data-date="2026-07-06">
+      <div class="nm-date">2026<br>07.06</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag launch">LAUNCH</span></div>
+        <div class="nm-title">🏚️ MagiManor — 2D探索ホラーADVを新規追加（MagiOneXシリーズ）</div>
+        <div class="nm-txt">"The Manor Remembers Everything." 祖母の手紙に導かれて迷い込んだ洋館「Magi Manor」からの脱出を目指す、本格2D探索ホラー・謎解きアドベンチャーが登場！<br>
+        ・<b>謎解き × 即死トラップ × 追跡者</b> — 燭台・赤い本・大時計・ピアノ…館中に仕掛けが待ち受け、シャンデリアや振り子の刃が命を狙います<br>
+        ・<b>館が記憶する</b> — 死んだ場所には血痕が残り、二度目からは館の反応が変わる「メモリーシステム」<br>
+        ・<b>タイプライターで記録</b> — 各章のタイプライターでいつでも途中セーブ（3スロット）。恐怖ゲージ（FEAR）が高いと幻覚が見え始めます<br>
+        ・<b>結末は6種類</b> — 行動しだいで BAD / NORMAL / TRUE / PERFECT / SECRET / ??? へ分岐。初到達でXEVAを獲得<br>
+        ・<b>共鳴探索（オンライン）</b> — 部屋番号でつながる最大4人の協力探索。扉や謎解きの進行を共有し、仲間は「残響」として見える<br>
+        難易度は NORMAL / HARD / NIGHTMARE の3段階。……館は、あなたが来るのをずっと待っています。</div>
+      </div>
+    </div>
+
+    <!-- 2026-07-06 skill popup + gacha kakutei -->
+    <div class="nm-item" data-tag="update" data-date="2026-07-06">
+      <div class="nm-date">2026<br>07.06</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">🎰 ガチャに「確定演出」／ MagiBattle にスキル発動ポップ</div>
+        <div class="nm-txt"><b>XEVA ガチャ</b>：カード公開前に召喚演出を追加しました。オーブが<b>金色に変化して虹のリングが出たら「✦ SSR 確定 ✦」</b>！（タップでスキップできます）<br>
+        <b>MagiBattle</b>：スキル・必殺技の発動時に、画面左に<b>キャラクターと技名のポップアップ</b>が表示されるようになり、戦況がひと目でわかります。</div>
+      </div>
+    </div>
+
+    <!-- 2026-07-06 MagiBattle RPG update -->
+    <div class="nm-item" data-tag="update" data-date="2026-07-06">
+      <div class="nm-date">2026<br>07.06</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">⚔️ MagiBattle — 本格キャラバトルRPGに大型アップデート</div>
+        <div class="nm-txt">MagiBattle が大きく進化しました！<br>
+          ・<b>スキル＆必殺技</b>：キャラごとに固有のスキル（強撃・連撃・全体・回復・鼓舞）と必殺技を実装。必殺技はゲージ100%で発動し、<b>カットイン演出</b>つき！<br>
+          ・<b>レベル</b>：バトルで経験値を獲得してレベルアップ（最大Lv.40）。ステータスが成長します。<br>
+          ・<b>装備</b>：勝利すると武器・防具・アクセサリーがドロップ（N〜SSR）。キャラに装備して強化！<br>
+          ・<b>属性が5種類に</b>：🔥火 → 🌿木 → 💧水 → 🔥 の3すくみに加え、✨光 ⇄ 🌙闇 はお互いに有利。<br>
+          ・<b>キャラ図鑑</b>：全キャラの一覧と、ステータス・スキル・装備を確認できる詳細画面を追加（編成画面の ⓘ からも見られます）。<br>
+          ・演出強化（画面シェイク・属性エフェクト・勝利の紙吹雪）＆ 起動ロゴを他アプリと統一しました。</div>
+      </div>
+    </div>
+
+    <!-- 2026-07-05 exchange dupe upgrade -->
+    <div class="nm-item" data-tag="update" data-date="2026-07-05">
+      <div class="nm-date">2026<br>07.05</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">🎁 交換所 — 所持済みSSRの「凸強化」に対応</div>
+        <div class="nm-txt">ガチャのポイント交換所で、<b>所持済みのSSRも250ptで交換できる</b>ようになりました。交換すると <b>+1凸（最大4凸まで何回でも）</b>強化されます。カードには現在の凸数を表示。凸はキャラの強さ（MagiBattle）やコレクションに反映されます。</div>
+      </div>
+    </div>
+
+    <!-- 2026-07-05 maintenance compensation 6000 XEVA -->
+    <div class="nm-item" data-tag="update" data-date="2026-07-05">
+      <div class="nm-date">2026<br>07.05</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">🛠️ 緊急メンテナンスのお詫びとして 6,000 XEVA を配布</div>
+        <div class="nm-txt">緊急メンテナンスの実施により、サービスをご利用いただけない時間が発生しました。お詫びとして、全ユーザーに <b>6,000 XEVA</b> を補填します。📬 <b>メールボックス</b>から受け取ってください。あわせて <b>MagiChainParty のオンライン対戦</b>を改善：対戦開始時に<b>順番の抽選演出</b>を表示し、<b>通信が切れたときは画面上部にお知らせ</b>（相手の切断・再接続も通知）するようになりました。</div>
+      </div>
+    </div>
+
+    <!-- 2026-07-05 MagiBattle launch -->
+    <div class="nm-item" data-tag="launch" data-date="2026-07-05">
+      <div class="nm-date">2026<br>07.05</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag launch">LAUNCH</span></div>
+        <div class="nm-title">⚔️ MagiBattle — キャラバトルを新規追加（MagiOneXシリーズ）</div>
+        <div class="nm-txt">ガチャで集めたキャラクターが戦う新アプリ「<b>MagiBattle</b>」が登場！所持キャラから<b>最大3体のパーティ</b>を組み、ライバルチームとオートバトル。<b>SSRや凸（重複入手）がそのまま強さに反映</b>され、🔥炎→🍃風→💧水→🔥 の<b>属性3すくみ</b>で相性が決まります。難易度は「れんしゅう」から「伝説」までの5段階で、各難易度<b>その日の初勝利で 30〜220 XEVA</b> を獲得（毎日リセット）。ガチャでキャラを集めるほど有利になります。</div>
+      </div>
+    </div>
+
+    <!-- 2026-07-05 online fix + portal renewal -->
+    <div class="nm-item" data-tag="update" data-date="2026-07-05">
+      <div class="nm-date">2026<br>07.05</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">🛠 MagiChainParty オンライン対戦の不具合修正 ＆ ポータル刷新</div>
+        <div class="nm-txt"><b>MagiChainParty のオンライン対戦で、自分の番になっても盤面に置けない不具合を修正</b>しました。あわせてポータルを明るいデザインに全面刷新し、トップ画面も新しくなりました。MagiOne シリーズの絞り込みタブは廃止してすっきり一覧表示に。XEVARION の<b>アカウント設定は必須</b>になりました（未設定の方は初回にセットアップをお願いします）。</div>
+      </div>
+    </div>
+
+    <!-- 2026-07-02 MagiShareCore 大型アップデート -->
+    <div class="nm-item" data-tag="update" data-date="2026-07-02">
+      <div class="nm-date">2026<br>07.02</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">🧩 MagiShareCore が大幅パワーアップ</div>
+        <div class="nm-txt"><b>あそびかたを動くチュートリアル</b>に刷新し、ルールがひと目でわかるように。盤面は<b>画面いっぱい（iPad最適化）</b>で見やすく、<b>特大 8×8 の広い盤</b>を追加しました。順番は <b>MagiChainParty と同じサイコロ演出</b>で決定。アイコンも新しくなりました。</div>
+      </div>
+    </div>
+
+    <!-- 2026-07-02 XEVARIONアカウント基盤刷新 + ゲーム内紐づけ賞金 -->
+    <div class="nm-item" data-tag="update" data-date="2026-07-02">
+      <div class="nm-date">2026<br>07.02</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag launch">LAUNCH</span></div>
+        <div class="nm-title">🏆 1台でみんなでプレイ → 順位でXEVA賞金がもらえる！</div>
+        <div class="nm-txt"><b>XEVARION専用サーバー</b>を新設し、アイコン・表示名の管理（重複防止）と XEVA の紐づけを刷新しました（MagiLink のメッセージ機能は従来どおり）。<br>
+          これに伴い、アカウントに<b>ゲーム連携用の4桁パスワード</b>を設定していただきます（登録済みの方も次回ポータルを開いたときに設定をお願いします）。<br>
+          <b>MagiChainParty・MagiShareCore</b> を1台のiPadでみんなで遊ぶとき、各プレイヤーが<b>名前検索＋4桁パスワード</b>で自分のアカウントを紐づけると、ゲーム終了時に<b>1位へ150 XEVA・2位へ50 XEVA</b>の賞金を配布！（賞金はポータルを開くと受け取れます。）紐づけしなくても今までどおり遊べます。連続プレイもOK。</div>
+      </div>
+    </div>
+
+    <!-- 2026-07-02 アリサ配布終了 -->
+    <div class="nm-item" data-tag="end" data-date="2026-07-02">
+      <div class="nm-date">2026<br>07.02</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag end">END</span></div>
+        <div class="nm-title">MagiLex 英単語コンプリート特典「アリサ」配布終了</div>
+        <div class="nm-txt">MagiLex で難関大英単語をすべて完全習得すると入手できた限定キャラ「アリサ」の配布は<b>終了</b>しました。英単語・物理・化学の学習コンテンツは引き続きご利用いただけます。</div>
+      </div>
+    </div>
+
+    <!-- 2026-06-30 MagiOneX series + MagiLex science update -->
+    <div class="nm-item" data-tag="update" data-date="2026-06-30">
+      <div class="nm-date">2026<br>06.30</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag launch">LAUNCH</span></div>
+        <div class="nm-title">✦ 新シリーズ「MagiOneX」始動 ＆ MagiLex 大幅拡充</div>
+        <div class="nm-txt">中核アプリ <b>MagiLink・MagiLex・MagiEmpire・MagiChainParty・MagiPortfolio</b> を、進化系フラッグシップ <b>MagiOneX</b> シリーズに再編しました。あわせて <b>MagiLex</b> に<b>難関大英単語（発音つき・約900語）</b>と<b>物理・化学の入試演習問題</b>を追加。起動時に発音モード／消音モードも選べます。</div>
+      </div>
+    </div>
+
+    <!-- 2026-06-30 gacha Season 5 (Mion) launch + 3000 XEVA -->
+    <div class="nm-item" data-tag="launch" data-date="2026-06-30">
+      <div class="nm-date">2026<br>06.30</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag launch">LAUNCH</span></div>
+        <div class="nm-title">🎰 XEVA ガチャ シーズン5「ミオン」開幕！＋3,000 XEVA 配布</div>
+        <img loading="lazy" decoding="async" src="MagiBurst/img/bn_premium_s.webp" alt="シーズン5 ミオン バナー" style="width:100%;border-radius:14px;margin:4px 0 10px;border:1px solid rgba(56,140,220,.18);display:block">
+        <div class="nm-txt">XEVA ガチャに<b>シーズン5</b>が登場！新SSR<b>「ミオン」</b>を狙って引こう。開幕を記念して全ユーザーに <b>3,000 XEVA</b> を配布中です📬 メールボックスから受け取ってください。貯めた XEVA はガチャで使えるほか、<b>交換所</b>ではガチャポイントが250pt貯まると、そのシーズンの未所持SSRと交換できます（所持／未所持も表示）。</div>
+      </div>
+    </div>
+
+    <!-- 2026-06-30 gacha Season 4 launch banner (archive) -->
+    <div class="nm-item" data-tag="launch" data-date="2026-06-30">
+      <div class="nm-date">2026<br>06.30</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag launch">LAUNCH</span></div>
+        <div class="nm-title">🎰 XEVA ガチャ シーズン4 開幕</div>
+        <img loading="lazy" decoding="async" src="MagiBurst/img/bn_premium_s.webp" alt="シーズン4 バナー" style="width:100%;border-radius:14px;margin:4px 0 10px;border:1px solid rgba(56,140,220,.18);display:block">
+        <div class="nm-txt">シーズン4 として新SSR<b>「レア」「リノン」</b>がガチャに登場しました。</div>
+      </div>
+    </div>
+
+    <!-- 2026-06-30 WordbookX discontinued (merged into MagiLex) -->
+    <div class="nm-item" data-tag="end" data-date="2026-06-30">
+      <div class="nm-date">2026<br>06.30</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag end">END</span></div>
+        <div class="nm-title">単語帳アプリ「WordbookX」を終了しました</div>
+        <div class="nm-txt"><b>WordbookX</b> は提供を終了しました。単語帳（フラッシュカード・単語クイズ）の機能は、全面リニューアルした <b>MagiLex</b> に統合済みです。これまでの単語コンテンツは MagiLex の「学習ライブラリ」からそのままご利用いただけます。ご愛顧ありがとうございました。</div>
+      </div>
+    </div>
+
+    <!-- 2026-06-29 mailbox + dock UI + 3000 XEVA distribution -->
+    <div class="nm-item" data-tag="update" data-date="2026-06-29">
+      <div class="nm-date">2026<br>06.29</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">メールボックス新設・ドック型UI刷新・アップデート記念 3,000 XEVA 配布</div>
+        <div class="nm-txt">XEVARIONに<b>メールボックス</b>を新設しました。運営からのお知らせや XEVA 配布がメールとして届きます。またポータル下部のUIをドック型に刷新し、<b>ガチャ・図鑑・ミッション</b>と<b>メール・お知らせ</b>がグループ化されてより見やすくなりました。アップデートを記念して全ユーザーに <b>3,000 XEVA</b> を配布中！📬 メールボックスから受け取ってください。</div>
+      </div>
+    </div>
+
+    <!-- 2026-06-28 account system + gacha renewal + daily bonus + characters -->
+    <div class="nm-item" data-tag="launch" data-date="2026-06-28">
+      <div class="nm-date">2026<br>06.28</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag launch">LAUNCH</span></div>
+        <div class="nm-title">XEVARIONアカウント — 初回設定・アイコン・プロフィール管理・削除を新規導入</div>
+        <div class="nm-txt">XEVARION への初回アクセス時に<b>アカウントセットアップウィザード</b>が起動し、<b>ガチャキャラクターからアイコンを選択</b>・<b>表示名</b>・<b>生年月日</b>・<b>パスワード</b>を設定できます。設定後は右上のアイコンからいつでも変更・アカウント削除が可能。MagiLink・MagiLex の個別アカウント設定は廃止し、XEVARION アカウントで一元管理します。あわせて<b>毎日ログインボーナスを +50 XEVA（1日1回）</b>に変更しました（これまでは初回のみ）。</div>
+      </div>
+    </div>
+    <!-- 2026-06-28 gacha renewal + characters -->
+    <div class="nm-item" data-tag="update" data-date="2026-06-28">
+      <div class="nm-date">2026<br>06.28</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">XEVA ガチャ — デザインを明るく全面刷新・キャラクター図鑑を新設</div>
+        <div class="nm-txt">XEVA ガチャを<b>明るい・カラフルなデザイン</b>に全面リニューアルしました。パステルグラデーション背景・カードフリップ演出・スパークルアニメーション・改善されたポイントバーなどUIを刷新。あわせて<b>キャラクター図鑑</b>ページを新設し、全キャラクターの一覧表示・所持状況の確認・アカウントアイコンへの設定が行えます。ガチャ・ミッションのボタンはポータル<b>左下</b>に移動しました（お知らせボタンは右下のまま）。</div>
+      </div>
+    </div>
+
+    <!-- 2026-06-28 MagiLex Lex→XEVA integration + FAB entry -->
+    <div class="nm-item" data-tag="update" data-date="2026-06-28">
+      <div class="nm-date">2026<br>06.28</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">XEVA — MagiLex の Lex を XEVA に統合・ガチャ/ミッションを右下ボタンから</div>
+        <div class="nm-txt">どの画面からでもアクセスできるよう、お知らせボタンと同じ位置に <b>「🎰 ガチャ」「🎯 ミッション」のフローティングボタン</b>を追加しました（ミッションボタンには未達成数のバッジを表示）。あわせて <b>MagiLex の通貨「Lex」を廃止し、XEVA に一本化</b>しました。MagiLex 内のガチャ・キャラクター図鑑は廃止し、XEVARION の <b>XEVA ガチャ</b>に統合（MagiLex のガチャ入口を押すと統合ガチャへ移動します）。<b>MagiLex の学習報酬（セクション完全習得 +600／デイリー +50／ミックス +50・+150／登録 +50）は、これまでの Lex に代わって XEVA で付与</b>されるようになりました。貯まった XEVA はポータルやガチャ画面で共通して確認・利用できます。</div>
+      </div>
+    </div>
+
+    <!-- 2026-06-28 gacha Season 1-3 launch banners (archive) -->
+    <div class="nm-item" data-tag="launch" data-date="2026-06-28">
+      <div class="nm-date">2026<br>06.28</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag launch">LAUNCH</span></div>
+        <div class="nm-title">🎰 XEVA ガチャ シーズン1〜3 開幕</div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px;margin:4px 0 10px">
+          <img loading="lazy" decoding="async" src="MagiBurst/img/bn_premium_s.webp" alt="シーズン1 バナー" style="width:100%;border-radius:10px;border:1px solid rgba(56,140,220,.18);display:block">
+          <img loading="lazy" decoding="async" src="MagiBurst/img/bn_premium_s.webp" alt="シーズン2 バナー" style="width:100%;border-radius:10px;border:1px solid rgba(56,140,220,.18);display:block">
+          <img loading="lazy" decoding="async" src="MagiBurst/img/bn_premium_s.webp" alt="シーズン3 バナー" style="width:100%;border-radius:10px;border:1px solid rgba(56,140,220,.18);display:block">
+        </div>
+        <div class="nm-txt">XEVA ガチャ稼働とともに、<b>シーズン1〜3</b> のSSRキャラクターが登場しました。各シーズンのバナーをアーカイブとして掲載しています。</div>
+      </div>
+    </div>
+
+    <!-- 2026-06-28 XEVA currency + gacha + missions + login bonus -->
+    <div class="nm-item" data-tag="launch" data-date="2026-06-28">
+      <div class="nm-date">2026<br>06.28</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag launch">LAUNCH</span></div>
+        <div class="nm-title">XEVA — 統合ゲーム内通貨とガチャ・ミッションを新規導入</div>
+        <div class="nm-txt">XEVARION 共通のゲーム内通貨「<b>XEVA</b>」を導入しました。MagiLex のガチャシステムを統合アプリ XEVARION に移植し、ポータルの「<b>XEVA ＆ ガチャ</b>」セクションと「ガチャへ進む」ボタンからプレミアムガチャ（シーズン1〜3・排出率表示・ポイント交換所）を回せます。XEVA は<b>初回ログインボーナス +50</b>・<b>従来の MagiLex</b>（獲得した Lex 分を XEVA にも反映）・<b>ミッション</b>で貯められます（今後さらに多くのアプリで獲得できるようにしていきます）。新登場の「🎯 XEVA ミッション」では、<b>MagiChainParty でゲームにチャレンジ（+150）</b>・<b>MagiLink に登録（+150）</b>・<b>MagiPortfolio に銘柄を追加（+150）</b>をクリアすると XEVA を獲得できます。</div>
+      </div>
+    </div>
+
+    <!-- 2026-06-28 MagiChainParty launch -->
+    <div class="nm-item" data-tag="launch" data-date="2026-06-28">
+      <div class="nm-date">2026<br>06.28</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag launch">LAUNCH</span></div>
+        <div class="nm-title">MagiChainParty — 連鎖陣取りパーティを新規追加（MagiOneシリーズ）</div>
+        <div class="nm-txt">iPad を囲んで <b>2〜5人</b>（CPU可）で遊ぶ連鎖バクハツの陣取り頭脳戦「<b>MagiChainParty</b>」を MagiOne シリーズに追加しました（旧「チェインパーティ」を改名・統合）。ルールは「マスをタップ」だけ・<b>運の要素ゼロ</b>の純粋な頭脳戦で、盤面の広さ・CPUの強さ・ラウンド制限・途中保存（つづきから）・あそびかた実演に対応。アプリアイコンを設定し、起動時に <b>NGX × Magical Future × ISHIDA Production</b> の企業ロゴ → アプリアイコンとロードバーを表示してから開始します。XEVA ミッション「MagiChainParty でゲームにチャレンジしよう」（+150 XEVA）の対象です。</div>
+      </div>
+    </div>
+
+    <!-- 2026-06-23 MagiPortfolio update2: indices/sectors/crosshair/MAGI4/market-news -->
+    <div class="nm-item" data-tag="update" data-date="2026-06-23">
+      <div class="nm-date">2026<br>06.23</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">MagiPortfolio — 日経平均など市場指数・市況ニュース・MAGI強化・チャート十字線</div>
+        <div class="nm-txt"><b>日経平均・TOPIX・NYダウ・S&P500・NASDAQ・ドル円</b>をダッシュボード上部に表示し、今日の市場全体の動きを把握できるようにしました。分析画面に<b>東証17業種ETFの本日騰落率ランキング</b>を追加し、いまどの業種が買われているかが一目で分かります。ニュースは<b>「市況・時事・政治」タブ</b>を新設（日銀・金利・為替・政治・海外市場）し、取得中はスケルトン＆進捗を表示。<b>MAGI 売買判断</b>は賢者を4体（オシレーター／トレンド／取得状況／市場地合い）に拡張し、RSI・MACD・移動平均・ボリンジャー・出来高・乖離率など多数の指標から<b>強気度ゲージとコンセンサス</b>を算出。株価チャートは<b>十字線＋価格・日付ラベル＋マーカー</b>でカーソル位置を分かりやすくし、iPhoneのニュース表示も改善しました。</div>
+      </div>
+    </div>
+
+    <!-- 2026-06-23 MagiPortfolio update: news/colors/sectors/MAGI -->
+    <div class="nm-item" data-tag="update" data-date="2026-06-23">
+      <div class="nm-date">2026<br>06.23</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">MagiPortfolio — ニュース強化・銘柄カラー・業種別ホット度・MAGI売買判断を追加</div>
+        <div class="nm-txt"><b>ニュース</b>を Bing ニュース＋Google ニュースの二段構えにして表示率を大幅改善（実ソース・日本語）。<b>円グラフの色</b>を銘柄ごとに自動で色分けし、編集画面で<b>好きな色に変更</b>できるようにしました。各銘柄に<b>業種</b>を表示し、<b>業種別のホット度</b>（モメンタム＋トレンド＋過熱感）を分析画面にランキング表示。さらに、買った時期・取得単価と株価指標から3つの賢者（テクニカル／トレンド／取得状況）が合議する<b>MAGI 売買判断システム</b>を各銘柄の詳細に追加し、売買すべきかの判断と理由を提示します。</div>
+      </div>
+    </div>
+
+    <!-- 2026-06-23 MagiPortfolio launch -->
+    <div class="nm-item" data-tag="launch" data-date="2026-06-23">
+      <div class="nm-date">2026<br>06.23</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag launch">LAUNCH</span></div>
+        <div class="nm-title">MagiPortfolio — 自分の持ち株マネージャーを新規追加（MagiOneシリーズ）</div>
+        <div class="nm-txt">買った株を<b>証券コード（番号）や会社名</b>で登録するだけの持ち株管理アプリ「MagiPortfolio」を追加しました。起動時に NGX × Magical Future のロゴとロードバーを表示します。<b>購入日を入れると取得単価をその日の株価から自動逆引き</b>し、<b>伸び率・評価損益・本日の損益・資産配分・期間別の株価チャート（取得単価ライン付き）・企業データ・関連ニュース</b>を一覧できます。日本株メインで Yahoo Finance の実データを取得（APIキー不要）、保有データはブラウザ内にのみ保存されます。</div>
+      </div>
+    </div>
+
+    <!-- 2026-06-22 MagiSports/MagiTriad refinements -->
+    <div class="nm-item" data-tag="update" data-date="2026-06-22">
+      <div class="nm-date">2026<br>06.22</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">MagiSports・MagiTriad — 公開直後の改善</div>
+        <div class="nm-txt"><b>MagiSports</b>：FIFAワールドカップを<b>グループA〜L別の順位表</b>に対応し、MLB・NBA・NFL・NHLは<b>地区（ディビジョン／カンファレンス）別の順位表</b>を表示するようにしました。野球カテゴリに<b>NCAA大学野球・リトルリーグ・WBC</b>を追加しています（※日本の高校野球＝甲子園は、対応する無料データ提供元がないため現時点では取得できません）。<br><b>MagiTriad</b>：手番のプレイヤーと強調表示が逆になる不具合を修正。さらに、人数が多いと勝敗が決まりにくい点を改善するため、完成した三角形が同数のときは<b>「優勢」な三角形（3頂点のうち2頂点を支配）の数</b>で勝者を決めるようにし、各スコアにも「優勢」を表示します。</div>
+      </div>
+    </div>
+
+    <!-- 2026-06-22 MagiTriad launch -->
+    <div class="nm-item" data-tag="launch" data-date="2026-06-22">
+      <div class="nm-date">2026<br>06.22</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag launch">LAUNCH</span></div>
+        <div class="nm-title">MagiTriad — 三角陣取りパズルを新規追加（MagiOneシリーズ）</div>
+        <div class="nm-txt">新作ボードゲーム「MagiTriad」を追加しました。<b>三角形・六角形の盤面</b>の頂点に交互に駒を置き、小さな三角形の<b>3つの頂点を自分の色で揃えると獲得（得点）</b>。1手で複数の三角形を同時に取ることも、相手の三角形を<b>阻止</b>することもできます。盤面がすべて埋まったら終了し、獲得した三角形が多いプレイヤーの勝ち。盤面の形・サイズ選択、CPU対戦（3段階）、1台で2〜4人対戦に対応。起動時に NGX × Magical Future のロゴとロードバーを表示します。</div>
+      </div>
+    </div>
+
+    <!-- 2026-06-22 MagiSports launch -->
+    <div class="nm-item" data-tag="launch" data-date="2026-06-22">
+      <div class="nm-date">2026<br>06.22</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag launch">LAUNCH</span></div>
+        <div class="nm-title">MagiSports — スポーツ情報ターミナルを新規追加（MagiOneシリーズ）</div>
+        <div class="nm-txt">世界のスポーツ情報をまとめてチェックできる「MagiSports」を追加しました。<b>FIFAワールドカップ</b>やプレミアリーグ・ラ・リーガ・セリエA・J1などのサッカー各国リーグ、<b>MLB・NBA・NFL・NHL</b>に対応。<b>試合結果・今後の予定・順位表・試合内容（ゴール／カード／交代）・スターティングメンバー・フォーメーション</b>を実データでリアルタイム取得して表示します。試合をタップすると、ピッチ上に両チームのフォーメーションを描画。起動時に NGX × Magical Future のロゴとロードバーを表示します。</div>
+      </div>
+    </div>
+
+    <!-- 2026-06-18 MagiFinance notif/mobile/server-guide + ORDYXIS full independent -->
+    <div class="nm-item" data-tag="update" data-date="2026-06-18">
+      <div class="nm-date">2026<br>06.18</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">MagiFinance — 通知の修正・iPhoneのグラフ改善・中継サーバー手順を追加</div>
+        <div class="nm-txt">通知を有効にできるよう修正しました（未対応端末＝iPhoneのSafari等では、アプリ内の通知センターと画面表示でお知らせします）。iPhone ではチャートの期間選択が枠からはみ出さないよう<b>ドロップダウン（選ぶ形）</b>に変更し、グラフを見やすくしました。さらに、<b>中継サーバーを使うと東証プライム約1,600銘柄を確実に閲覧できる</b>ことを起動画面で案内し、<b>サーバーの始め方（3ステップ）を「データ接続」画面に</b>掲載しました（サーバー未使用時は主要銘柄の取得できた分のみ表示）。</div>
+      </div>
+    </div>
+
+    <!-- 2026-06-18 ORDYXIS full standalone -->
+    <div class="nm-item" data-tag="update" data-date="2026-06-18">
+      <div class="nm-date">2026<br>06.18</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">ORDYXIS 完全版 — XEVARION から独立した単体アプリに</div>
+        <div class="nm-txt">ORDYXIS 完全版を XEVARION ポータルに依存しない<b>完全独立フォルダ</b>に整理し、表記も「プレ版」から「完全版」に統一しました（プレ版は従来どおり継続）。</div>
+      </div>
+    </div>
+
+    <!-- 2026-06-18 MagiFinance charts + indicators -->
+    <div class="nm-item" data-tag="update" data-date="2026-06-18">
+      <div class="nm-date">2026<br>06.18</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">MagiFinance — 期間別チャート・指数チャート・指標分析（PER/PBR/ROE/配当）</div>
+        <div class="nm-txt">株価チャートに <b>1日・1週・1月・3月・6月・1年・2年・5年・10年</b> の期間切替を追加。日経平均・<b>TOPIX</b>・S&amp;P500・NASDAQ・NYダウなどの指数もタップでチャート表示できます。銘柄詳細に<b>割安・割高判定</b>、<b>PER・PBR・ROE・配当利回り・業績推移</b>（中継サーバー利用時）、<b>業種平均との比較</b>を追加し、スクリーニングに<b>配当利回りランキング</b>を追加しました。読み込み数の表示も実際の成功件数を正確に表示するよう改善（失敗分は自動で再取得）。東証プライム<b>全銘柄</b>は中継サーバー利用で確実・高速に読み込めます。</div>
+      </div>
+    </div>
+
+    <!-- 2026-06-18 ORDYXIS full version -->
+    <div class="nm-item" data-tag="launch" data-date="2026-06-18">
+      <div class="nm-date">2026<br>06.18</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag launch">LAUNCH</span></div>
+        <div class="nm-title">ORDYXIS — 完全版を公開（本番Firebase）</div>
+        <div class="nm-txt">ORDYXIS の<b>完全版</b>を新しい本番 Firebase プロジェクトで公開しました（プレ版はそのまま継続）。お客様用・店舗用・モニター用の全機能をそのままに、本番データベースで動作します。ポータルの ORDYXIS セクションから「完全版を開く」でアクセスできます。</div>
+      </div>
+    </div>
+
+    <!-- 2026-06-18 MagiFinance prime-all + news + loading + iphone -->
+    <div class="nm-item" data-tag="update" data-date="2026-06-18">
+      <div class="nm-date">2026<br>06.18</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">MagiFinance — 東証プライム全銘柄対応・日本語ニュース・iPhone最適化</div>
+        <div class="nm-txt">サーバー無しでも東証プライムの銘柄をまとめて分析し、ダッシュボード・買い/売り候補・業界別・スクリーニングのすべてに反映します（対象は設定で「全銘柄／主要」を切替）。日経平均・S&amp;P500・NASDAQ・NYダウなどの指数は<b>先に即時表示</b>し、全銘柄は読み込みながら順次反映します。読み込み中は<b>具体的な数値（◯/◯銘柄・％）の進捗</b>と、気分が和らぐアニメーションを表示。ニュースは<b>日本語（日本企業）</b>にも対応し、APIキーなしでも取得できるようにしました。iPhone 表示も最適化しています。</div>
+      </div>
+    </div>
+
+    <!-- 2026-06-18 MagiFinance client-side screening -->
+    <div class="nm-item" data-tag="update" data-date="2026-06-18">
+      <div class="nm-date">2026<br>06.18</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">MagiFinance — サーバー無しでも全機能（日本株スクリーニング対応）</div>
+        <div class="nm-txt">中継サーバーを設定していなくても、日本株スクリーニングを含むすべての機能が使えるようになりました。サーバー未設定時はアプリ同梱の主要な東証プライム銘柄を、設定時は全銘柄を分析し、<b>買い時・売り時・値上がり</b>でランキング比較できます（中継サーバーはそのまま併用可・全銘柄＆高速）。</div>
+      </div>
+    </div>
+
+    <!-- 2026-06-18 ORDYXIS open access -->
+    <div class="nm-item" data-tag="pre" data-date="2026-06-18">
+      <div class="nm-date">2026<br>06.18</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag pre">PRE</span></div>
+        <div class="nm-title">ORDYXIS — 期間限定でアクセスコード不要に</div>
+        <div class="nm-txt">期間限定で、ORDYXIS のアクセスコード入力を不要にしました（自動入力・制限解除）。お客様用・店舗用・モニター用の各画面に、コード入力なしでそのままアクセスできます。期間終了後はコード入力に戻ります。</div>
+      </div>
+    </div>
+
+    <!-- 2026-06-18 MagiArena TAKAGAME fix -->
+    <div class="nm-item" data-tag="update" data-date="2026-06-18">
+      <div class="nm-date">2026<br>06.18</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">MagiArena（TAKAGAME）— 表示の重なりを修正</div>
+        <div class="nm-txt">TAKAGAME で、プレイヤー情報の表示とボードが重なって見えなくなることがある不具合を修正しました。画面サイズや人数（特に3〜4人）に応じてボードと各プレイヤーの席が重ならないようレイアウトを調整しています。</div>
+      </div>
+    </div>
+
+    <!-- 2026-06-18 MagiFinance relay server + screening + chart -->
+    <div class="nm-item" data-tag="update" data-date="2026-06-18">
+      <div class="nm-date">2026<br>06.18</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">MagiFinance — 常時安定運用＆東証プライム全銘柄スクリーニング</div>
+        <div class="nm-txt">安定運用のため、yfinance を使う軽量な中継サーバー（MagiFinance/server）に対応しました。設定で中継サーバーURLを入れると、CORS/プロキシに依存せず常時安定して実データを取得します。さらに、特定銘柄に限らず<b>東証プライムの全銘柄</b>をサーバー側で分析し、買い時を比較できる「日本株スクリーニング」を追加。株価チャートはカーソルを合わせた日付の株価（始値・高値・安値・終値）を表示するようにし、サイトアイコンも設定しました。</div>
+      </div>
+    </div>
+
+    <!-- 2026-06-18 ORDYXIS combined view + remaining + zoom -->
+    <div class="nm-item" data-tag="pre" data-date="2026-06-18">
+      <div class="nm-date">2026<br>06.18</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag pre">PRE</span></div>
+        <div class="nm-title">ORDYXIS — 準備中＋呼出中の一括表示・残数表示・拡大防止</div>
+        <div class="nm-txt">店舗用に「準備中」と「呼び出し中」を1画面でまとめて確認できる<b>一括表示モード</b>を追加しました。お客様側では、残りが<b>30個以内</b>になった商品にのみ残数を表示します。また、注文中にダブルタップ等で画面が拡大しないように改善しました。</div>
+      </div>
+    </div>
+
+    <!-- 2026-06-18 AudioX end -->
+    <div class="nm-item" data-tag="end" data-date="2026-06-18">
+      <div class="nm-date">2026<br>06.18</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag end">END</span></div>
+        <div class="nm-title">AudioX — 配信終了のお知らせ</div>
+        <div class="nm-txt">MeruHub シリーズの音楽プレイヤー「AudioX」は配信を終了しました。これまでのご利用ありがとうございました。ポータルの一覧からも掲載を取り下げています。</div>
+      </div>
+    </div>
+
+    <!-- 2026-06-17 MagiFinance real-data + responsive -->
+    <div class="nm-item" data-tag="update" data-date="2026-06-17">
+      <div class="nm-date">2026<br>06.17</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">MagiFinance — 実データ専用化＆全デバイス最適化</div>
+        <div class="nm-txt">MagiFinance を「実際の市場データのみ」を表示する仕様に変更しました。シミュレーション表示は廃止し、Yahoo Finance から株価・指数・テクニカル指標をリアルタイム取得します。取得できない場合は「取得できません（再取得）」と明示します。あわせて iPhone・iPad・PC すべてに最適化し、スマートフォンでは画面下部のナビゲーションで主要画面に切り替えられるようにしました。</div>
+      </div>
+    </div>
+
+    <!-- 2026-06-17 MagiFinance launch -->
+    <div class="nm-item" data-tag="launch" data-date="2026-06-17">
+      <div class="nm-date">2026<br>06.17</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag launch">LAUNCH</span></div>
+        <div class="nm-title">MagiFinance — 投資判断ターミナルを新規追加（MagiOneシリーズ）</div>
+        <div class="nm-txt">株価をまとめて管理できる「MagiFinance」を追加しました。起動時に NGX × Magical Future のロゴとロードバーを表示。日経平均などの主要指数、買い時・売り時シグナル、業界別ホット、今日の買い時リスト、企業ニュース・専門家評価（要 Finnhub キー）を1つに集約します。実データのみを表示する設計です。</div>
+      </div>
+    </div>
+
+    <!-- 2026-06-17 ORDYXIS stock/sales/voice -->
+    <div class="nm-item" data-tag="pre" data-date="2026-06-17">
+      <div class="nm-date">2026<br>06.17</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag pre">PRE</span></div>
+        <div class="nm-title">ORDYXIS — 在庫(注文可能数)・売上集計・音声呼び出しなどを追加</div>
+        <div class="nm-txt">ORDYXIS プレ版に、商品ごとの注文可能数（上限）の設定と売り切れ表示、売上・注文数の集計タブ、完了済みの別タブ化を追加。番号案内モニターでは呼び出し番号を音声でアナウンスし、お客様側では順番が来た際の通知・受け取り完了の2段階確認に対応しました。店舗用画面は iPhone・iPad でも見やすく改善しています。</div>
+      </div>
+    </div>
+
+    <!-- 2026-06-16 MagiArena remake -->
+    <div class="nm-item" data-tag="update" data-date="2026-06-16">
+      <div class="nm-date">2026<br>06.16</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">MagiArena — 全面リニューアル（みんなで遊ぶ対戦アリーナ）</div>
+        <div class="nm-txt">MagiArena を明るいデザインで全面刷新しました。中央の共有「T」から TAKA / AKAT を自分の駒だけで並べるオリジナル「TAKAGAME」（CORE / BASIC / ADVANCED / EXPERT / ULTIMATE / LEGEND の6難易度・技・ヒント・途中保存）に加え、オセロ・五目並べ・神経衰弱を収録。起動時に NGX × Magical Future のロゴとロードバーを表示し、サイコロで先手を決め、プレイヤー名の変更にも対応。iPad で囲んで2〜6人で遊べます。</div>
+      </div>
+    </div>
+
+    <!-- 2026-06-16 TAKAGAME integrate -->
+    <div class="nm-item" data-tag="end" data-date="2026-06-16">
+      <div class="nm-date">2026<br>06.16</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag end">END</span></div>
+        <div class="nm-title">TAKAGAME — 単体配信を終了し MagiArena に統合</div>
+        <div class="nm-txt">MeruHub シリーズの単体ゲーム「TAKAGAME」は配信を終了し、MagiArena の看板ゲームとして生まれ変わりました。6つの難易度・技・途中保存を備えた新しい TAKAGAME は、MagiOne シリーズの MagiArena からお楽しみいただけます。</div>
+      </div>
+    </div>
+
+    <!-- 2026-06-16 MagiEmpire launch -->
+    <div class="nm-item" data-tag="launch" data-date="2026-06-16">
+      <div class="nm-date">2026<br>06.16</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag launch">LAUNCH</span></div>
+        <div class="nm-title">MagiEmpire — 国盗りゲームを新規追加（MagiOneシリーズ）</div>
+        <div class="nm-txt">1台のiPadで2〜4人が遊べる国盗りゲーム「MagiEmpire」をMagiOneシリーズに追加しました。マスを塗って奪うアクション版「国盗りパックマン」と、じっくり陣取りの「ぐんぐん国盗り」の2モードを収録。起動時にNGX × Magical Futureのロゴとロードバーを表示し、ボード対戦の途中保存（つづきから）・各モードのルール説明にも対応しています。</div>
+      </div>
+    </div>
+
+    <!-- 2026-06-15 MagiLink messenger -->
+    <div class="nm-item" data-tag="update" data-date="2026-06-15">
+      <div class="nm-date">2026<br>06.15</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">MagiLink — メッセンジャー機能を大幅追加</div>
+        <div class="nm-txt">起動時のロゴ＆ロードバー演出を追加し、アイコンに好きな画像を設定できるようになりました。さらに、アカウントごとのパスワード設定、友達申請・承認、ダイレクトメッセージ、グループメッセージ、掲示板、プロフィールの編集・閲覧、誕生日お祝い、画像・ファイル・フォルダ・絵文字の送信など、多彩なメッセンジャー機能を追加しました（従来機能も維持）。</div>
+      </div>
+    </div>
+
+    <!-- 2026-06-15 NGX/MF sites -->
+    <div class="nm-item" data-tag="update" data-date="2026-06-15">
+      <div class="nm-date">2026<br>06.15</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">NGX・Magical Future 公式サイトを刷新／拡充</div>
+        <div class="nm-txt">NGX 公式サイトを「Noguchi Growth X」としての沿革・データ・会社情報を反映してリニューアル。Magical Future 公式サイトも事業領域・共同開発タイトル・会社概要などを大幅に拡充しました。ポータルの提携セクションおよび NGX セクションからアクセスできます。</div>
+      </div>
+    </div>
+
+    <!-- 2026-06-14 ORDYXIS hub -->
+    <div class="nm-item" data-tag="pre" data-date="2026-06-14">
+      <div class="nm-date">2026<br>06.14</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag pre">PRE</span></div>
+        <div class="nm-title">ORDYXIS — アクセス方法を更新（ハブ画面に統合）</div>
+        <div class="nm-txt">ORDYXIS プレ版のアクセスを「ハブ画面」に統合しました。お客様用・店舗用・モニター用の各画面は、ハブ画面を経由して開きます。アクセスコードの入力もハブ画面に一本化されました（コードは関係者へ別途ご案内しております）。</div>
+      </div>
+    </div>
+
+    <!-- 2026-06-14 portal redesign -->
+    <div class="nm-item" data-tag="update" data-date="2026-06-14">
+      <div class="nm-date">2026<br>06.14</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">XEVARION ポータル — デザインを刷新</div>
+        <div class="nm-txt">ポータルサイトのデザインを大幅にリニューアルしました。オーロラ背景や新しいカードデザインで、各アプリにより快適にアクセスできます。</div>
+      </div>
+    </div>
+
+    <!-- 2026-06-14 MagiLink rebuild -->
+    <div class="nm-item" data-tag="update" data-date="2026-06-14">
+      <div class="nm-date">2026<br>06.14</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">MagiLink — 大幅リニューアル（リアルタイム同期・アカウント機能）</div>
+        <div class="nm-txt">MagiLink を刷新しました。Firebase との常時同期によるリアルタイムチャット、アカウント作成、リアクション、ユーザー一覧、ホスト権限でのモデレーションに対応。ご利用にはアクセスコードが必要です（次のアップデートまで一度入力すれば再入力不要）。</div>
+      </div>
+    </div>
+
+    <!-- 2026-06-14 NGX site renewal -->
+    <div class="nm-item" data-tag="update" data-date="2026-06-14">
+      <div class="nm-date">2026<br>06.14</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">NGX 公式サイト — 刷新</div>
+        <div class="nm-txt">NGX 公式サイトをリニューアルしました。製品ラインアップや提携情報をよりわかりやすくご覧いただけます。</div>
+      </div>
+    </div>
+
+    <!-- 2026-06-14 Magical Future site launch -->
+    <div class="nm-item" data-tag="launch" data-date="2026-06-14">
+      <div class="nm-date">2026<br>06.14</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag launch">LAUNCH</span></div>
+        <div class="nm-title">Magical Future 公式サイト — 公開</div>
+        <div class="nm-txt">提携先 Magical Future 社の公式サイトを新たに公開しました。共同開発タイトルや提携情報をご紹介しています。ポータルの「提携」セクションからアクセスできます。</div>
+      </div>
+    </div>
+
+    <!-- 2026-06-01 MagiLex -->
+    <div class="nm-item" data-tag="update" data-date="2026-06-01">
+      <div class="nm-date">2026<br>06.01</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">MagiLex — 確認リストの表示エラー修正</div>
+        <div class="nm-txt">確認リストが正常に表示されないエラーを修正しました。</div>
+      </div>
+    </div>
+
+    <!-- 2026-05-29 errors -->
+    <div class="nm-item" data-tag="error" data-date="2026-05-29">
+      <div class="nm-date">2026<br>05.29</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag error">ERROR</span></div>
+        <div class="nm-title">MagiLex — 確認リストが表示されないエラーを確認</div>
+        <div class="nm-txt">2026年5月29日時点で、MagiLexにて確認リストが正常に表示されないエラーの発生を確認しています。現在調査・改善中です。ご不便をおかけして申し訳ありません。</div>
+      </div>
+    </div>
+    <div class="nm-item" data-tag="error" data-date="2026-05-29">
+      <div class="nm-date">2026<br>05.29</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag error">ERROR</span></div>
+        <div class="nm-title">StudyGuard — 手を離した後に再検知できないエラーを確認</div>
+        <div class="nm-txt">2026年5月29日時点で、StudyGuardにて手が離れたことを検知した後、再度手を検知できなくなるエラーの発生を確認しています。現在調査・改善中です。</div>
+      </div>
+    </div>
+    <div class="nm-item" data-tag="error" data-date="2026-05-29">
+      <div class="nm-date">2026<br>05.29</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag error">ERROR</span></div>
+        <div class="nm-title">AudioX — 進行にエラーの発生を確認</div>
+        <div class="nm-txt">2026年5月29日時点で、AudioXにて進行に関するエラーの発生を確認しています。現在調査・改善中です。ご迷惑をおかけして申し訳ありません。</div>
+      </div>
+    </div>
+    <div class="nm-item" data-tag="error" data-date="2026-05-28">
+      <div class="nm-date">2026<br>05.28</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag error">ERROR</span></div>
+        <div class="nm-title">TAKAGAME — ゲーム進行にエラーの発生を確認</div>
+        <div class="nm-txt">2026年5月28日時点で、TAKAGAMEにてゲームの進行に関するエラーの発生を確認しています。現在調査・改善中です。</div>
+      </div>
+    </div>
+
+    <div class="nm-divider" id="oldDivider" style="display:none;">以前の更新</div>
+
+    <div class="nm-item" data-tag="end" data-date="2026-05-01">
+      <div class="nm-date">2026<br>05</div>
+      <div class="nm-content"><div class="nm-h"><span class="nm-tag end">END</span></div>
+        <div class="nm-title">MagiSim — 配信終了・開発中止のお知らせ</div>
+        <div class="nm-txt">Magical Future社との提携のもとβ版として提供してきたMagiSimは、2026年5月をもって配信終了・開発中止となりました。ありがとうございました。</div></div>
+    </div>
+    <div class="nm-item" data-tag="launch" data-date="2026-05-01">
+      <div class="nm-date">2026<br>05</div>
+      <div class="nm-content"><div class="nm-h"><span class="nm-tag launch">LAUNCH</span></div>
+        <div class="nm-title">MagiLex — 正式リリース</div>
+        <div class="nm-txt">MagiOneシリーズのクイズ・学習アプリ「MagiLex」が正式リリース。あらゆるジャンルの問題を出題・学習できます。</div></div>
+    </div>
+    <div class="nm-item" data-tag="launch" data-date="2026-05-01">
+      <div class="nm-date">2026<br>05</div>
+      <div class="nm-content"><div class="nm-h"><span class="nm-tag launch">LAUNCH</span></div>
+        <div class="nm-title">MagiTier — 正式リリース</div>
+        <div class="nm-txt">MagiOneシリーズのTier表作成・プレゼンアプリ「MagiTier」が正式リリース。カードを直感的に並べてランキングを発信できます。</div></div>
+    </div>
+    <div class="nm-item" data-tag="launch" data-date="2026-04-01">
+      <div class="nm-date">2026<br>04</div>
+      <div class="nm-content"><div class="nm-h"><span class="nm-tag launch">LAUNCH</span></div>
+        <div class="nm-title">MagiLink — 正式リリース</div>
+        <div class="nm-txt">MagiOneシリーズのチャットアプリ「MagiLink」が正式リリース。魔法のようなメッセージ体験で仲間とコミュニケーション。</div></div>
+    </div>
+    <div class="nm-item" data-tag="launch" data-date="2026-04-01">
+      <div class="nm-date">2026<br>04</div>
+      <div class="nm-content"><div class="nm-h"><span class="nm-tag launch">LAUNCH</span></div>
+        <div class="nm-title">MagiArena — 正式リリース（MeruBoardX 大幅リニューアル）</div>
+        <div class="nm-txt">MeruBoardXを大幅リニューアル・改名したボードゲームアプリ「MagiArena」がMagiOneシリーズとして正式リリース。</div></div>
+    </div>
+    <div class="nm-item" data-tag="end" data-date="2026-04-01">
+      <div class="nm-date">2026<br>04</div>
+      <div class="nm-content"><div class="nm-h"><span class="nm-tag end">END</span></div>
+        <div class="nm-title">MeruBoardX — 配信終了のお知らせ</div>
+        <div class="nm-txt">ボードゲームアプリ「MeruBoardX」は2026年4月をもって配信終了。後継アプリ「MagiArena」をぜひご利用ください。</div></div>
+    </div>
+    <div class="nm-item" data-tag="launch" data-date="2026-04-01">
+      <div class="nm-date">2026<br>04</div>
+      <div class="nm-content"><div class="nm-h"><span class="nm-tag launch">LAUNCH</span></div>
+        <div class="nm-title">MagiOneシリーズ — 一般公開スタート</div>
+        <div class="nm-txt">MagiOneシリーズがいよいよ一般公開。MagiArena・MagiLinkを筆頭に、MagiSim(β)も同時公開。新たな魔法の世界が幕を開けました。</div></div>
+    </div>
+    <div class="nm-item" data-tag="launch" data-date="2026-02-01">
+      <div class="nm-date">2026<br>02</div>
+      <div class="nm-content"><div class="nm-h"><span class="nm-tag launch">LAUNCH</span></div>
+        <div class="nm-title">WordbookX — 正式リリース</div>
+        <div class="nm-txt">単語帳アプリ「WordbookX」が正式リリース。スマートな反復学習で言語習得を加速します。</div></div>
+    </div>
+    <div class="nm-item" data-tag="launch" data-date="2026-02-01">
+      <div class="nm-date">2026<br>02</div>
+      <div class="nm-content"><div class="nm-h"><span class="nm-tag launch">LAUNCH</span></div>
+        <div class="nm-title">StudyGuard — 正式リリース（TimeX 大幅リニューアル）</div>
+        <div class="nm-txt">TimeXを大幅リニューアル・改名した学習管理アプリ「StudyGuard」が正式リリース。</div></div>
+    </div>
+    <div class="nm-item" data-tag="launch" data-date="2025-12-01">
+      <div class="nm-date">2025<br>12</div>
+      <div class="nm-content"><div class="nm-h"><span class="nm-tag launch">LAUNCH</span></div>
+        <div class="nm-title">TAKAGAME — 正式リリース</div>
+        <div class="nm-txt">MeruHubシリーズ初のオリジナルゲーム「TAKAGAME」が正式リリース。炎の翼をまとったタカが飛び立つ唯一無二のゲーム体験を。</div></div>
+    </div>
+    <div class="nm-item" data-tag="launch" data-date="2025-12-01">
+      <div class="nm-date">2025<br>12</div>
+      <div class="nm-content"><div class="nm-h"><span class="nm-tag launch">LAUNCH</span></div>
+        <div class="nm-title">MeruHub — 一般公開スタート</div>
+        <div class="nm-txt">MeruHubシリーズがいよいよ一般公開。学習・ゲームを融合した次世代ユーティリティエコシステムがここからスタート。</div></div>
+    </div>
+  </div>
+
+  <div class="nm-foot">
+    <span class="nm-count" id="newsCount"></span>
+    <button class="nm-dismiss" id="newsDismiss" onclick="dismissNews()"></button>
+  </div>
+</div>
+
+<!-- ───── ACCOUNT SETUP WIZARD ───── -->
+<div class="acc-overlay" id="accWizardOv">
+  <div class="acc-card wz-card" id="accWizardCard">
+
+    <!-- ヘッダー：ブランド＋ステップ名。旧デザインは進捗ドットだけで
+         「あと何を聞かれるのか」が分からなかったので、現在地を文字でも出す。 -->
+    <div class="wz-head">
+      <div class="wz-brand">
+        <img class="wz-brand-orb" src="brand-xevarion-orb.png" alt="">
+        <div class="wz-brand-tx">
+          <div class="wz-brand-nm">XEVARION</div>
+          <div class="wz-brand-sub">アカウント登録</div>
+        </div>
+      </div>
+      <div class="wz-rail" id="wzRail">
+        <div class="wz-rail-fill" id="wzRailFill"></div>
+      </div>
+      <div class="wz-rail-lb">
+        <span id="wzStepNo">STEP 1 / 5</span>
+        <span id="wzStepNm">アイコン</span>
+      </div>
+    </div>
+
+    <!-- step 0: icon -->
+    <div class="wz-step on" id="wzStep0">
+      <div class="wz-title">アイコンを選ぶ</div>
+      <div class="wz-sub">XEVARION 全体であなたを表すキャラクターです</div>
+      <div class="char-pick-grid" id="wzCharGrid"></div>
+      <div class="wz-note">ガチャで手に入れたキャラは、あとから設定で変更できます</div>
+      <div class="wz-btns">
+        <button class="wz-btn pri" id="wzNext0" onclick="wzNext(1)">次へ →</button>
+      </div>
+    </div>
+
+    <!-- step 1: name -->
+    <div class="wz-step" id="wzStep1">
+      <div class="wz-title">表示名を入力</div>
+      <div class="wz-sub">XEVARION 全体で使われる名前です（最大20文字）</div>
+      <input class="wz-input" id="wzName" type="text" maxlength="20" placeholder="例：ポータルユーザー" autocomplete="off">
+      <div class="wz-note">後から変更できます。同じ名前は全端末で1つだけ使えます。</div>
+      <div class="wz-msg" id="wzNameMsg"></div>
+      <div class="wz-btns">
+        <button class="wz-btn sec" onclick="wzNext(0)">← 戻る</button>
+        <button class="wz-btn pri" onclick="wzNameNext()">次へ →</button>
+      </div>
+    </div>
+
+    <!-- step 2: birthday -->
+    <div class="wz-step" id="wzStep2">
+      <div class="wz-title">生年月日を設定</div>
+      <div class="wz-sub">誕生日おめでとうメッセージなどに使います</div>
+      <input class="wz-input" id="wzBday" type="date" autocomplete="off">
+      <div class="wz-note">入力は任意です。そのまま「次へ」でスキップできます。</div>
+      <div class="wz-btns">
+        <button class="wz-btn sec" onclick="wzNext(1)">← 戻る</button>
+        <button class="wz-btn pri" onclick="wzNext(3)">次へ →</button>
+      </div>
+    </div>
+
+    <!-- step 3: password -->
+    <div class="wz-step" id="wzStep3">
+      <div class="wz-title">パスワードを設定</div>
+      <div class="wz-sub">設定するとポータルを開くたびにロック確認が入ります</div>
+      <input class="wz-input" id="wzPw" type="password" maxlength="32" placeholder="パスワード（任意）" autocomplete="new-password">
+      <div class="wz-note">入力は任意です。空欄のまま「次へ」でスキップできます。</div>
+      <div class="wz-btns">
+        <button class="wz-btn sec" onclick="wzNext(2)">← 戻る</button>
+        <button class="wz-btn pri" onclick="wzNext(4)">次へ →</button>
+      </div>
+    </div>
+
+    <!-- step 4: ゲーム連携4桁PIN（必須。旧実装ではウィザードを閉じたあとに
+         別モーダルで聞いていたが、登録の一部として最後に入れる） -->
+    <div class="wz-step" id="wzStep4">
+      <div class="wz-title">4桁の番号を設定</div>
+      <div class="wz-sub">ログインとゲーム連携に使う <b>4桁の数字</b> です（必須）</div>
+      <div class="pin-boxes" id="wzPinBoxes" data-pin>
+        <input class="pin-cell" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off">
+        <input class="pin-cell" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off">
+        <input class="pin-cell" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off">
+        <input class="pin-cell" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off">
+      </div>
+      <!-- ★ 2026-08-11 4桁パスワードは、忘れると自分のアカウントに戻れなくなる大事な番号なので、
+           登録時は<b>もう一度入力して一致を確認</b>してから保存する（打ちまちがいの防止）。 -->
+      <div class="wz-sub" style="margin-top:12px">確認のため、<b>もう一度</b>同じ4桁を入力してください</div>
+      <div class="pin-boxes" id="wzPinBoxes2" data-pin>
+        <input class="pin-cell" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off">
+        <input class="pin-cell" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off">
+        <input class="pin-cell" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off">
+        <input class="pin-cell" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off">
+      </div>
+      <ul class="wz-uses">
+        <li>ログアウト後に <b>表示名＋4桁</b> で再ログイン</li>
+        <li>1台のiPadで遊ぶときの本人確認</li>
+        <li>順位に応じた XEVA 賞金の受け取り</li>
+      </ul>
+      <div class="wz-msg" id="wzPinMsg"></div>
+      <div class="wz-btns">
+        <button class="wz-btn sec" onclick="wzNext(3)">← 戻る</button>
+        <button class="wz-btn pri" id="wzFinishBtn" onclick="wzFinish()">✓ 登録する</button>
+      </div>
+    </div>
+
+    <!-- step 5: done -->
+    <div class="wz-step" id="wzStep5">
+      <div style="text-align:center;padding:10px 0">
+        <div class="wz-done-icon" id="wzDoneIcon"><img id="wzDoneImg" src="" alt=""></div>
+        <div class="wz-title" id="wzDoneName">ようこそ！</div>
+        <div class="wz-sub">XEVARIONアカウントを作成しました。<br>毎日ログインで <b>+50 XEVA</b> を獲得できます！</div>
+        <div style="font-size:28px;margin:16px 0">🎉</div>
+        <button class="wz-btn pri" style="max-width:280px;margin:0 auto" onclick="closeAccWizard()">XEVARIONへ →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ───── ゲーム連携 4桁パスワード（既存アカウントの未設定者むけ救済） ───── -->
+<div class="acc-overlay" id="gamePwOv">
+  <div class="acc-card wz-card" style="max-width:420px">
+    <div class="wz-head">
+      <div class="wz-brand">
+        <img class="wz-brand-orb" src="brand-xevarion-orb.png" alt="">
+        <div class="wz-brand-tx">
+          <div class="wz-brand-nm">XEVARION</div>
+          <div class="wz-brand-sub">4桁の番号</div>
+        </div>
+      </div>
+    </div>
+    <div class="wz-step on">
+      <div class="wz-title">4桁の番号を設定</div>
+      <div class="wz-sub">ログインとゲーム連携に使う <b>4桁の数字</b> を設定してください（必須）。</div>
+      <div class="pin-boxes" id="gamePwBoxes" data-pin>
+        <input class="pin-cell" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off">
+        <input class="pin-cell" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off">
+        <input class="pin-cell" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off">
+        <input class="pin-cell" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off">
+      </div>
+      <div class="wz-note">この番号でゲーム中にアカウントを紐づけ、順位に応じた XEVA 賞金を受け取れます。</div>
+      <div class="wz-msg" id="gamePwMsg"></div>
+      <div class="wz-btns"><button class="wz-btn pri" style="width:100%" onclick="saveGamePw()">設定する</button></div>
+    </div>
+  </div>
+</div>
+
+<!-- ───── ACCOUNT SETTINGS MODAL ───── -->
+<div class="acc-overlay sheetify" id="accSettingsOv">
+  <div class="acc-card">
+    <div class="accset-head">
+      <div class="accset-title">⚙️ アカウント設定</div>
+      <button class="accset-x" onclick="closeAccSettings()">✕</button>
+    </div>
+    <div class="accset-body">
+
+    <!-- profile -->
+    <div class="acc-set-section">
+      <div class="acc-set-label">プロフィール</div>
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:14px">
+        <div class="acc-set-avatar" onclick="openCharPickForSettings()" title="タップして変更">
+          <img id="setAvImg" src="" alt="">
+        </div>
+        <div style="font-size:11px;color:rgba(34,52,77,.55)">アイコンをタップして変更</div>
+      </div>
+      <div class="acc-set-row">
+        <label>表示名</label>
+        <input class="wz-input" id="setNameInp" type="text" maxlength="20" style="flex:1">
+        <button onclick="saveAccName()" style="padding:10px 14px;background:linear-gradient(135deg,#8e6bff,#ff6f91);border:none;border-radius:10px;color:#fff;font-weight:700;cursor:pointer;font-size:12px;white-space:nowrap">変更</button>
+      </div>
+      <div class="acc-set-row" style="margin-top:6px">
+        <label>生年月日</label>
+        <input class="wz-input" id="setBdayInp" type="date" style="flex:1">
+        <button onclick="saveAccBday()" style="padding:10px 14px;background:linear-gradient(135deg,#8e6bff,#ff6f91);border:none;border-radius:10px;color:#fff;font-weight:700;cursor:pointer;font-size:12px;white-space:nowrap">変更</button>
+      </div>
+    </div>
+
+    <!-- character showcase -->
+    <div class="acc-set-section">
+      <div class="acc-set-label">キャラ・ショーケース（ホーム表示／推し5体）</div>
+      <div id="showcaseSlots" style="display:flex;gap:10px;justify-content:center;margin:6px 0 12px"></div>
+      <button onclick="openShowcasePick()" style="width:100%;padding:11px;background:linear-gradient(135deg,#8e6bff,#ff6f91);border:none;border-radius:12px;color:#fff;font-weight:700;cursor:pointer;font-size:13px;font-family:'Noto Sans JP',sans-serif">ショーケースを編集</button>
+      <div style="font-size:10px;color:rgba(34,52,77,.55);margin-top:6px;text-align:center">選んだキャラはホームとプロフィールに表示されます（最大5体）</div>
+    </div>
+
+    <!-- password（再設定はまず現在のパスワードで本人確認） -->
+    <div class="acc-set-section">
+      <div class="acc-set-label">パスワード</div>
+      <div class="acc-set-cur" id="setPwCurWrap">
+        <input class="wz-input" id="setPwCur" type="password" maxlength="32" placeholder="現在のパスワード" autocomplete="current-password">
+      </div>
+      <input class="wz-input" id="setPwInp" type="password" maxlength="32" placeholder="新しいパスワード（空欄で削除）" autocomplete="new-password" style="margin-bottom:6px">
+      <div class="acc-set-msg" id="setPwMsg"></div>
+      <button class="acc-set-btn" onclick="saveAccPw()">パスワードを更新</button>
+    </div>
+
+    <!-- game link password（同じく現在の4桁で本人確認） -->
+    <div class="acc-set-section">
+      <div class="acc-set-label">ゲーム連携パスワード（4桁）</div>
+      <div class="acc-set-cur" id="setGamePwCurWrap">
+        <div style="font-size:11px;font-weight:800;color:#6f82ad;margin-bottom:6px;text-align:center">現在の4桁</div>
+        <div class="pin-boxes sm" id="setGamePwCurBoxes" data-pin>
+          <input class="pin-cell" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off">
+          <input class="pin-cell" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off">
+          <input class="pin-cell" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off">
+          <input class="pin-cell" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off">
+        </div>
+      </div>
+      <div style="font-size:11px;font-weight:800;color:#6f82ad;margin:10px 0 6px;text-align:center">新しい4桁</div>
+      <div class="pin-boxes sm" id="setGamePwBoxes" data-pin>
+        <input class="pin-cell" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off">
+        <input class="pin-cell" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off">
+        <input class="pin-cell" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off">
+        <input class="pin-cell" type="password" inputmode="numeric" pattern="[0-9]*" maxlength="1" autocomplete="off">
+      </div>
+      <div class="acc-set-msg" id="setGamePwMsg"></div>
+      <button class="acc-set-btn" onclick="changeGamePw()">ゲーム連携パスワードを変更</button>
+      <div style="font-size:10px;color:rgba(34,52,77,.55);margin-top:6px;text-align:center">ゲーム中に1台のiPadでアカウントを紐づけるときの本人確認に使います</div>
+    </div>
+
+    <!-- delete -->
+    <div class="acc-set-section">
+      <div class="acc-set-label">XEVA ガイド</div>
+      <button onclick="closeAccSettings();xhOpenXevaGuide()" style="width:100%;padding:11px;background:linear-gradient(135deg,#8e6bff,#ff6f91);border:none;border-radius:12px;color:#fff;font-weight:700;cursor:pointer;font-size:13px;font-family:'Noto Sans JP',sans-serif">✨ XEVAの入手方法を見る</button>
+    </div>
+
+    <div class="acc-set-section">
+      <div class="acc-set-label">セッション</div>
+      <button onclick="xevaLogout()" style="width:100%;padding:12px;background:rgba(56,166,255,.08);border:1.5px solid rgba(56,166,255,.35);border-radius:12px;color:#1d78d8;font-weight:700;cursor:pointer;font-size:13px;font-family:'Noto Sans JP',sans-serif">🔓 ログアウト</button>
+      <div style="font-size:10px;color:rgba(34,52,77,.55);margin-top:6px;text-align:center">この端末からログアウトします。次回は表示名＋4桁PINで再ログインできます（データはクラウドに保存されています）</div>
+    </div>
+
+    <div class="acc-set-section" style="border:none;padding:0">
+      <div class="acc-set-label">データ管理</div>
+      <button class="acc-del-btn" onclick="deleteAccount()">⚠️ アカウントを削除する</button>
+      <div style="font-size:10px;color:rgba(34,52,77,.55);margin-top:6px;text-align:center">削除するとXEVAウォレット・ガチャデータを除くすべての設定が消去されます</div>
+    </div>
+    </div>
+  </div>
+</div>
+
+<!-- ── char pick for settings ── -->
+<div class="acc-overlay" id="accCharPickOv">
+  <div class="acc-card" style="padding:24px">
+    <div style="font-family:'Orbitron',sans-serif;font-size:.9rem;color:#22344d;text-align:center;margin-bottom:14px">アイコンを変更</div>
+    <div class="char-pick-grid" id="setCharGrid"></div>
+    <div style="display:flex;gap:10px;margin-top:16px">
+      <button class="wz-btn sec" onclick="closeCharPickForSettings()">キャンセル</button>
+      <button class="wz-btn pri" id="setCharSaveBtn" onclick="saveAccChar()" disabled>変更する</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── character showcase picker ── -->
+<div class="acc-overlay" id="showcasePickOv">
+  <div class="acc-card" style="padding:24px">
+    <div style="font-family:'Orbitron',sans-serif;font-size:.9rem;color:#22344d;text-align:center;margin-bottom:4px">ショーケースを選ぶ</div>
+    <div style="font-size:11px;color:rgba(34,52,77,.6);text-align:center;margin-bottom:12px" id="showcaseHint">所持キャラから最大5体</div>
+    <div class="char-pick-grid" id="showcaseGrid"></div>
+    <div style="display:flex;gap:10px;margin-top:16px">
+      <button class="wz-btn sec" onclick="closeShowcasePick()">キャンセル</button>
+      <button class="wz-btn pri" onclick="saveShowcase()">保存する</button>
+    </div>
+  </div>
+</div>
+
+<!-- ───── XEVA HOWTO ───── -->
+<div id="howtoOv" style="position:fixed;inset:0;z-index:4000;background:rgba(30,60,110,.34);backdrop-filter:blur(10px);display:none;align-items:center;justify-content:center;padding:20px">
+  <style>
+  #howtoOv.open{display:flex;animation:howtoFadeIn .35s ease}
+  @keyframes howtoFadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+  .howto-card{background:#ffffff;border:1.5px solid rgba(255,255,255,.95);border-radius:24px;max-width:400px;width:100%;max-height:92vh;overflow-y:auto;-webkit-overflow-scrolling:touch;box-shadow:0 40px 90px rgba(56,120,200,.28)}
+  .howto-top{padding:22px 22px 0;text-align:center}
+  .howto-badge{display:inline-block;font-size:10px;font-weight:700;letter-spacing:.1em;padding:4px 14px;border-radius:100px;background:rgba(56,166,255,.12);color:#1d78d8;margin-bottom:14px}
+  .howto-title{font-size:19px;font-weight:800;margin-bottom:6px;font-family:'Noto Sans JP',sans-serif;color:#22344d}
+  .howto-sub{font-size:12px;color:rgba(34,52,77,.66);line-height:1.6;margin-bottom:18px}
+  .howto-screen{padding:0 22px 16px;min-height:120px;display:flex;flex-direction:column;justify-content:center}
+  .howto-footer{padding:16px 22px 20px;border-top:1.5px solid rgba(56,140,220,.14);display:flex;align-items:center;gap:12px}
+  .howto-dots{display:flex;gap:5px;flex:1}
+  .howto-next{padding:10px 22px;border:none;border-radius:100px;color:#fff;font-weight:700;font-size:13px;font-family:'Noto Sans JP',sans-serif;cursor:pointer;transition:transform .2s,box-shadow .2s;white-space:nowrap}
+  .howto-next:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(56,120,200,.3)}
+  .howto-skip{font-size:11px;color:rgba(34,52,77,.45);cursor:pointer;padding:6px;white-space:nowrap}
+  .howto-skip:hover{color:rgba(34,52,77,.7)}
+  </style>
+  <div class="howto-card">
+    <div class="howto-top">
+      <div class="howto-badge">✨ XEVA入手方法ガイド</div>
+      <div class="howto-title" id="howtoTitle"></div>
+      <div class="howto-sub" id="howtoSub"></div>
+    </div>
+    <div class="howto-screen" id="howtoScreen"></div>
+    <div class="howto-footer">
+      <div class="howto-dots" id="howtoDots"></div>
+      <span class="howto-skip" onclick="closeHowto()">スキップ</span>
+      <button class="howto-next" id="howtoNextBtn" onclick="howtoNext()">次へ →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ───── PASSWORD LOCK ───── -->
+<div id="accLock">
+  <div class="lock-card">
+    <div class="lock-av"><img id="lockAvImg" src="" alt=""></div>
+    <div class="lock-name" id="lockName"></div>
+    <div class="lock-sub">パスワードを入力してください</div>
+    <input class="lock-input" id="lockInput" type="password" placeholder="●●●●●●" autocomplete="current-password">
+    <button class="lock-btn" onclick="tryUnlock()">ロックを解除</button>
+    <div class="lock-msg" id="lockMsg"></div>
+  </div>
+</div>
+
+</body>
+</html>
