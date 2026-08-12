@@ -1,0 +1,313 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+<script src="../maintenance-gate.js?v=5"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ORDYXIS — 完全版</title>
+<link rel="icon" type="image/png" href="../thumbs/Ordyxis.jpg">
+<link rel="apple-touch-icon" href="../thumbs/Ordyxis.jpg">
+<style>
+  :root{ --blue:#49a8ff; --purple:#a07ae0; --orange:#f0a73d;
+    --grad:linear-gradient(135deg,#49a8ff,#a07ae0,#f0a73d); --ink:#e6ebf5; }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{font-family:'Segoe UI','Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif;
+    background:#0b0e16;color:var(--ink);min-height:100vh;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;padding:28px 18px;overflow-x:hidden;}
+  /* 背景の光 */
+  body::before,body::after{content:"";position:fixed;border-radius:50%;filter:blur(100px);
+    opacity:.45;z-index:0;pointer-events:none;}
+  body::before{width:460px;height:460px;top:-140px;left:-120px;
+    background:radial-gradient(circle,#49a8ff,transparent 70%);}
+  body::after{width:460px;height:460px;bottom:-160px;right:-120px;
+    background:radial-gradient(circle,#f0a73d,transparent 70%);}
+
+  .hub{position:relative;z-index:1;width:min(900px,100%);
+    opacity:0;transform:translateY(14px);transition:opacity .6s ease,transform .6s ease;}
+  .hub.show{opacity:1;transform:none;}
+
+  /* ヘッダー */
+  .hub-head{text-align:center;margin-bottom:30px;}
+  .hub-logo{width:88px;height:88px;border-radius:22px;object-fit:cover;margin-bottom:14px;
+    box-shadow:0 12px 40px rgba(73,168,255,.3);}
+  .hub-pre{display:inline-block;font-size:10px;font-weight:800;letter-spacing:.2em;color:#0b0e16;
+    background:var(--grad);padding:4px 12px;border-radius:99px;margin-bottom:12px;}
+  .hub-title{font-size:30px;font-weight:800;letter-spacing:.3em;
+    background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .hub-sub{margin-top:8px;font-size:13.5px;color:#9aa6bd;line-height:1.7;}
+
+  /* ロック(ゲート) */
+  .gate{max-width:420px;margin:0 auto;background:rgba(20,26,40,.7);backdrop-filter:blur(16px);
+    border:1px solid rgba(255,255,255,.1);border-radius:22px;padding:32px 28px;text-align:center;
+    box-shadow:0 24px 70px rgba(0,0,0,.5);}
+  .gate.shake{animation:shake .4s;}
+  .gate .lock{width:58px;height:58px;margin:0 auto 16px;border-radius:50%;display:flex;
+    align-items:center;justify-content:center;background:var(--grad);
+    box-shadow:0 8px 26px rgba(73,168,255,.4);}
+  .gate h2{font-size:17px;font-weight:700;letter-spacing:.04em;margin-bottom:6px;}
+  .gate p{font-size:12.5px;color:#9aa6bd;margin-bottom:20px;line-height:1.7;}
+  .field{position:relative;margin-bottom:14px;}
+  .field input{width:100%;background:rgba(8,11,18,.7);border:1.5px solid rgba(255,255,255,.14);
+    border-radius:12px;color:#fff;font-size:16px;letter-spacing:.12em;padding:14px 50px 14px 16px;
+    outline:none;transition:border-color .2s,box-shadow .2s;}
+  .field input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(73,168,255,.18);}
+  .field .eye{position:absolute;right:8px;top:50%;transform:translateY(-50%);background:none;
+    border:none;color:#7d8aa3;cursor:pointer;padding:6px;font-size:13px;}
+  .gate .go{width:100%;border:none;border-radius:12px;padding:14px;font-size:15px;font-weight:800;
+    letter-spacing:.06em;color:#fff;cursor:pointer;background:var(--grad);
+    box-shadow:0 8px 24px rgba(73,168,255,.3);transition:transform .15s,box-shadow .2s;}
+  .gate .go:hover{transform:translateY(-1px);box-shadow:0 10px 30px rgba(73,168,255,.45);}
+  .gate .msg{min-height:18px;margin-top:12px;font-size:12.5px;color:#ff8a8a;}
+
+  /* パターン入力パッド (4×4 の点をなぞって解錠) */
+  .pat{position:relative;width:min(280px,72vw);aspect-ratio:1;margin:8px auto 8px;
+    display:grid;grid-template-columns:repeat(4,1fr);grid-template-rows:repeat(4,1fr);
+    place-items:center;touch-action:none;user-select:none;-webkit-user-select:none;}
+  .pat-lines{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;overflow:visible;}
+  .pat-lines polyline{fill:none;stroke:url(#patGrad);stroke-width:2.6;stroke-linecap:round;
+    stroke-linejoin:round;filter:drop-shadow(0 0 4px rgba(73,168,255,.5));}
+  .pat-dot{width:13px;height:13px;border-radius:50%;background:rgba(255,255,255,.2);pointer-events:none;
+    transition:transform .12s ease,background .12s ease,box-shadow .12s ease;}
+  .pat-dot.on{background:#7db8ff;transform:scale(1.55);box-shadow:0 0 14px rgba(73,168,255,.85);}
+  .pat.err .pat-dot.on{background:#ff8a8a;box-shadow:0 0 14px rgba(255,90,90,.7);}
+  .pat.err .pat-lines polyline{stroke:#ff8a8a;filter:none;}
+  .pat.ok .pat-dot.on{background:#5fe0a8;box-shadow:0 0 14px rgba(70,210,150,.7);}
+  .pat.ok .pat-lines polyline{stroke:#5fe0a8;filter:none;}
+  .pat-reset{background:none;border:none;color:#8aa0c4;font-size:12.5px;font-weight:700;
+    cursor:pointer;text-decoration:underline;padding:4px;margin-top:2px;}
+  .pat-reset:hover{color:#bcd0ee;}
+
+  /* カード一覧 (解錠後) */
+  .cards{display:none;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:18px;}
+  .cards.show{display:grid;}
+  .card{display:flex;flex-direction:column;text-decoration:none;color:inherit;
+    background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.1);border-radius:20px;
+    padding:26px 24px 22px;transition:transform .3s,box-shadow .3s,border-color .3s;}
+  .card:hover{transform:translateY(-6px);border-color:rgba(73,168,255,.4);
+    box-shadow:0 20px 50px rgba(0,0,0,.45),0 0 36px rgba(73,168,255,.12);}
+  .card .ic{width:50px;height:50px;border-radius:14px;display:flex;align-items:center;
+    justify-content:center;background:rgba(73,168,255,.12);color:var(--blue);margin-bottom:16px;}
+  .card h3{font-size:17px;font-weight:700;margin-bottom:3px;}
+  .card .en{font-size:11px;letter-spacing:.2em;color:#7d8aa3;margin-bottom:12px;}
+  .card p{font-size:12.5px;line-height:1.7;color:#9aa6bd;flex:1;margin-bottom:16px;}
+  .card .open{align-self:flex-start;display:inline-flex;align-items:center;gap:7px;
+    padding:9px 16px;border-radius:9px;font-size:13px;font-weight:700;color:#fff;
+    background:var(--grad);box-shadow:0 4px 16px rgba(73,168,255,.28);}
+
+  .hub-foot{text-align:center;margin-top:26px;}
+  .hub-foot a{color:#8aa0c4;font-size:12.5px;text-decoration:none;}
+  .hub-foot a:hover{color:#bcd0ee;}
+  .locked-note{display:inline-flex;align-items:center;gap:7px;margin-top:18px;padding:7px 16px;
+    border-radius:10px;font-size:12px;color:#f0c879;background:rgba(240,167,61,.1);
+    border:1px solid rgba(240,167,61,.25);}
+
+  @keyframes shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-9px)}
+    40%{transform:translateX(8px)}60%{transform:translateX(-5px)}80%{transform:translateX(4px)}}
+</style>
+<script src="../xeva-splash.js?v=3" data-app="ORDYXIS" data-logo="../thumbs/Ordyxis.jpg"></script>
+</head>
+<body>
+
+<div class="hub" id="hub">
+  <div class="hub-head">
+    <img class="hub-logo" src="../thumbs/Ordyxis.jpg" alt="ORDYXIS" onerror="this.style.display='none'">
+    <div class="hub-pre">完全版 · FULL</div>
+    <div class="hub-title">ORDYXIS</div>
+    <div class="hub-sub">店頭オンラインオーダーシステム — 完全版</div>
+  </div>
+
+  <!-- ロック画面 -->
+  <div class="gate" id="gate">
+    <div class="lock">
+      <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><rect x="4" y="10" width="16" height="11" rx="2.4" fill="#fff"/><path d="M8 10V7a4 4 0 0 1 8 0v3" stroke="#fff" stroke-width="2.2" stroke-linecap="round"/><circle cx="12" cy="15.5" r="1.7" fill="#0b0e16"/></svg>
+    </div>
+    <h2>パターンでロック解除</h2>
+    <p>お客様用・店舗用・モニター用の各画面は、このハブから開きます。<br>4×4 の点を順になぞって、決められた形を描いてください。</p>
+    <div class="pat" id="pat">
+      <svg class="pat-lines" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+        <defs>
+          <linearGradient id="patGrad" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stop-color="#49a8ff"/>
+            <stop offset="0.5" stop-color="#a07ae0"/>
+            <stop offset="1" stop-color="#f0a73d"/>
+          </linearGradient>
+        </defs>
+        <polyline id="patPoly" points=""/>
+      </svg>
+    </div>
+    <div class="msg" id="msg"></div>
+    <button class="pat-reset" id="patReset" type="button">やり直す</button>
+  </div>
+
+  <!-- 解錠後のカード -->
+  <div class="cards" id="cards">
+    <a class="card" href="customer.html">
+      <div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M3 3h2l.4 2M7 13h10l3-8H6.4M7 13L5.4 5M7 13l-2.3 4.3A1 1 0 0 0 5.6 19H19" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="9" cy="21" r="1.4" fill="currentColor"/><circle cx="18" cy="21" r="1.4" fill="currentColor"/></svg></div>
+      <h3>お客様用</h3><div class="en">CUSTOMER</div>
+      <p>メニュー選択 → カートで確認 → 注文番号を受け取り → 状況をリアルタイム表示。お客様の端末でご利用ください。</p>
+      <span class="open">開く →</span>
+    </a>
+    <a class="card" href="store.html">
+      <div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><path d="M4 9l1-5h14l1 5M5 9v10a1 1 0 0 0 1 1h12a1 1 0 0 0 1-1V9M4 9h16" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M9 13h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+      <h3>店舗用</h3><div class="en">STORE</div>
+      <p>受付順に注文を表示 → 番号呼び出し → 完了管理。通知音・完了表示切替・履歴削除も可能。お店のPCでご利用ください。</p>
+      <span class="open">開く →</span>
+    </a>
+    <a class="card" href="monitor.html">
+      <div class="ic"><svg width="24" height="24" viewBox="0 0 24 24" fill="none"><rect x="3" y="4" width="18" height="13" rx="2" stroke="currentColor" stroke-width="1.8"/><path d="M8 21h8M12 17v4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></div>
+      <h3>モニター用</h3><div class="en">MONITOR</div>
+      <p>お呼び出し中の番号と準備中の番号を大きく表示。店頭の番号案内ディスプレイ用。大画面でご利用ください。</p>
+      <span class="open">開く →</span>
+    </a>
+  </div>
+
+  <div class="hub-foot">
+    <span style="color:#9aa3b5;font-size:12px;">ORDYXIS 完全版 — 独立アプリ</span>
+  </div>
+</div>
+
+<script src="app-common.js?v=12"></script>
+<script>
+"use strict";
+// LINE等のアプリ内ブラウザで開かれたら、ハブを開いた瞬間に Safari/既定ブラウザへ脱出させる
+// (お客様用・店舗用と同じ挙動。下スワイプで閉じられてやり直しになるのを防ぐ)。
+forceBrowserEscapeEarly("https://merurungx-glitch.github.io/xevarion/ORDYXIS/index.html");
+(function () {
+  // ハブ(index.html)自体はパスワード不要で開ける。正しいパターンを描いた時点で
+  //   セッションに解錠トークンを付与し、店舗用/モニター用へはコード入力なしで進める。
+  //   (店舗用/モニター用を index を経由せず直接URLで開いた場合のみ hub-guard.js が
+  //    その場でパスワードを要求する。)
+  var OPEN_ACCESS = false;   // パターン入力を必須にする
+  var ACCESS_CODE = "ODX613Prime26";   // 解錠トークン (店舗/モニターとの互換用に維持)
+  var KEY = "ordyxis_access_v1";
+  // 解錠パターン: 4×4 の点を 0..15 (左上=0 / 右上=3 / 左下=12 / 右下=15) とした通過順。
+  //   右上→左下(直線) → 左上(直線) → 右下(直線) → 右下から1つ上 でロック解除。
+  var PATTERN = [3, 6, 9, 12, 8, 4, 0, 5, 10, 15, 11];
+
+  var hub   = document.getElementById("hub");
+  var gate  = document.getElementById("gate");
+  var cards = document.getElementById("cards");
+  var msg   = document.getElementById("msg");
+  var pat   = document.getElementById("pat");
+  var poly  = document.getElementById("patPoly");
+
+  function unlockView() { gate.style.display = "none"; cards.classList.add("show"); }
+  function isUnlocked() {
+    try { return sessionStorage.getItem(KEY) === ACCESS_CODE; } catch (e) { return false; }
+  }
+  // バイブレーション (対応端末のみ。点の接続・戻り・間違いを触覚で知らせる)
+  function vibrate(p) { try { if (navigator.vibrate) navigator.vibrate(p); } catch (e) {} }
+
+  // --- パターンパッドを構築 (16個の点) ---
+  var dots = [];
+  for (var n = 0; n < 16; n++) {
+    var d = document.createElement("span");
+    d.className = "pat-dot";
+    d.setAttribute("data-i", n);
+    pat.appendChild(d);
+    dots.push(d);
+  }
+  var col = function (i) { return i % 4; };
+  var row = function (i) { return Math.floor(i / 4); };
+  var cx  = function (i) { return col(i) * 25 + 12.5; };   // viewBox(0..100) 上の中心
+  var cy  = function (i) { return row(i) * 25 + 12.5; };
+
+  var selected = [];
+  var drawing = false;
+
+  function redraw() {
+    poly.setAttribute("points", selected.map(function (i) { return cx(i) + "," + cy(i); }).join(" "));
+    for (var k = 0; k < 16; k++) dots[k].classList.toggle("on", selected.indexOf(k) >= 0);
+  }
+  function resetPad() { selected = []; pat.classList.remove("err", "ok"); redraw(); }
+
+  function gcd(a, b) { return b === 0 ? a : gcd(b, a % b); }
+  // a→b が直線のとき、その途中にある点を順に返す (Androidのパターン同様に自動補完)。
+  function betweens(a, b) {
+    var dc = col(b) - col(a), dr = row(b) - row(a);
+    var g = gcd(Math.abs(dc), Math.abs(dr)), res = [];
+    if (g > 1) {
+      var sc = dc / g, sr = dr / g;
+      for (var k = 1; k < g; k++) res.push((row(a) + sr * k) * 4 + (col(a) + sc * k));
+    }
+    return res;
+  }
+  function addDot(i) {
+    if (selected.indexOf(i) >= 0) return;
+    if (selected.length) {
+      betweens(selected[selected.length - 1], i).forEach(function (m) {
+        if (selected.indexOf(m) < 0) selected.push(m);
+      });
+    }
+    selected.push(i);
+    redraw();
+    vibrate(12);   // 点をつないだ合図 (短く)
+  }
+  // 画面座標 → 最寄りの点 index (なければ -1)。viewBox(0..100)に正規化して判定。
+  function hitTest(clientX, clientY) {
+    var r = pat.getBoundingClientRect();
+    if (!r.width || !r.height) return -1;
+    var nx = (clientX - r.left) / r.width * 100, ny = (clientY - r.top) / r.height * 100;
+    for (var i = 0; i < 16; i++) {
+      var dx = nx - cx(i), dy = ny - cy(i);
+      if (dx * dx + dy * dy < 121) return i;   // 半径11 (点の間隔は25)
+    }
+    return -1;
+  }
+  function check() {
+    var ok = selected.length === PATTERN.length &&
+      selected.every(function (v, k) { return v === PATTERN[k]; });
+    if (ok) {
+      try { sessionStorage.setItem(KEY, ACCESS_CODE); } catch (e) {}
+      pat.classList.add("ok");
+      vibrate(40);   // 解錠の合図
+      setTimeout(unlockView, 280);
+    } else {
+      msg.textContent = "パターンが違います。もう一度なぞってください。";
+      gate.classList.remove("shake"); void gate.offsetWidth; gate.classList.add("shake");
+      pat.classList.add("err");
+      vibrate([60, 50, 60]);   // 間違えた合図 (強めに2回)
+      setTimeout(resetPad, 700);
+    }
+  }
+  function startAt(x, y) {
+    var i = hitTest(x, y);
+    if (i < 0) return false;
+    drawing = true; selected = []; pat.classList.remove("err", "ok"); msg.textContent = "";
+    addDot(i); return true;
+  }
+  function moveAt(x, y) {
+    if (!drawing) return;
+    var i = hitTest(x, y);
+    if (i < 0) return;
+    var pos = selected.indexOf(i);
+    if (pos === -1) {
+      addDot(i);                          // 新しい点を追加
+    } else if (pos < selected.length - 1) {
+      // 既に通った点まで指を戻した → そこから先を取り消す (途中で間違えてもやり直せる)
+      selected = selected.slice(0, pos + 1);
+      redraw();
+      vibrate(18);
+    }
+  }
+  function endDraw() { if (!drawing) return; drawing = false; if (selected.length) check(); }
+
+  // Pointer Events (マウス・タッチ両対応)。touch-action:none でスクロールを抑止。
+  pat.addEventListener("pointerdown", function (e) { if (startAt(e.clientX, e.clientY)) e.preventDefault(); });
+  window.addEventListener("pointermove", function (e) { if (drawing) { moveAt(e.clientX, e.clientY); e.preventDefault(); } }, { passive: false });
+  window.addEventListener("pointerup", endDraw);
+  window.addEventListener("pointercancel", endDraw);
+  document.getElementById("patReset").addEventListener("click", resetPad);
+
+  // スプラッシュ(NGX×MagicalFuture×ISHIDA → ORDYXIS+バー) の後にハブを表示
+  showSplash(function () {
+    hub.classList.add("show");
+    if (OPEN_ACCESS) {
+      try { sessionStorage.setItem(KEY, ACCESS_CODE); } catch (e) {}
+      unlockView();
+    } else if (isUnlocked()) unlockView();
+  });
+})();
+</script>
+</body>
+</html>

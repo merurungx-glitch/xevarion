@@ -1,0 +1,616 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<script src="../maintenance-gate.js?v=5"></script>
+<meta charset="UTF-8">
+<script>(function(){try{var a=JSON.parse(localStorage.getItem('xeva_account_v1'));if(!a||!a.setupDone)location.replace('../index.html');}catch(e){}})();</script>
+<script type="module" src="../xevarion-fb.js?v=18"></script>
+<script type="module" src="../xeva-cloud.js?v=14"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no">
+<title>MagiTriad — 魔法の三角陣取り</title>
+<meta name="description" content="三角形・六角形の盤面に駒を置き、3つの頂点を自分の色で揃えて三角形を獲得する陣取りパズルゲーム。MagiOneシリーズ。">
+<link rel="icon" href="../thumbs/MagiTriad.jpg" type="image/png">
+<link rel="apple-touch-icon" href="../thumbs/MagiTriad.jpg">
+<style>
+:root{
+  --bg:#0d0a1a; --bg2:#161028; --surf:#1d1633; --surf2:#251c44;
+  --line:rgba(255,255,255,.10); --tx:#ece8ff; --tx2:#a99fce;
+  --gold:#ffcc4d; --gold2:#ff9d2e; --violet:#8b5cff; --cyan:#3fd2ff; --pink:#ff5b9e;
+  --p1:#3fd2ff; --p2:#ff5b6b; --p3:#7be06a; --p4:#c98bff;
+}
+*{box-sizing:border-box; margin:0; padding:0; -webkit-tap-highlight-color:transparent;}
+html,body{height:100%;}
+body{font-family:"Hiragino Kaku Gothic ProN","Noto Sans JP",system-ui,sans-serif; background:radial-gradient(1200px 800px at 70% -10%,#2a1c4d 0%,var(--bg2) 40%,var(--bg) 100%); color:var(--tx); overflow-x:hidden; touch-action:manipulation;}
+img{-webkit-user-drag:none; user-select:none;}
+
+/* ---------- splash ---------- */
+#splash{position:fixed; inset:0; z-index:9000; background:#0b0816; display:flex; align-items:center; justify-content:center; transition:opacity .55s ease;}
+#splash.out{opacity:0; pointer-events:none;}
+.sp-phase{position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; opacity:0; pointer-events:none;}
+.sp-intro{justify-content:space-between; gap:18px; padding:11vh 24px;}
+.sp-intro.in{opacity:1;}
+.sp-intro.out{opacity:0; transition:opacity .5s ease;}
+.sp-logo{width:min(540px,86vw); border-radius:22px; overflow:hidden; display:flex; align-items:center; justify-content:center; padding:22px 30px;}
+.sp-logo img{max-width:100%; max-height:20vh; object-fit:contain; display:block;}
+.sp-ngx{background:#000;}
+.sp-mf{background:#fff;}
+.sp-intro.in .sp-ngx{animation:spUp .8s cubic-bezier(.2,.7,.3,1) both;}
+.sp-intro.in .sp-mf{animation:spDown .8s cubic-bezier(.2,.7,.3,1) .12s both;}
+.sp-amp{color:#7b6fae; font-weight:800; font-size:30px; opacity:.7;}
+.sp-main{gap:24px;}
+.sp-main.in{opacity:1; animation:spIn .6s ease;}
+.sp-app{width:min(200px,52vw); border-radius:30px; object-fit:contain; box-shadow:0 18px 60px rgba(139,92,255,.5), 0 0 0 1px rgba(255,255,255,.08);}
+.sp-name{font-weight:900; font-size:30px; letter-spacing:.1em; text-align:center;}
+.sp-name span{background:linear-gradient(90deg,var(--gold),var(--gold2)); -webkit-background-clip:text; background-clip:text; color:transparent;}
+.sp-name small{display:block; font-size:12px; font-weight:600; letter-spacing:.28em; color:#9b91c2; margin-top:8px;}
+.sp-bar{width:min(320px,72vw); height:8px; border-radius:99px; background:rgba(255,255,255,.12); overflow:hidden;}
+.sp-fill{height:100%; width:0; border-radius:99px; background:linear-gradient(90deg,var(--cyan),var(--violet),var(--gold));}
+.sp-cap{color:#9b91c2; font-size:12px; letter-spacing:.22em;}
+@keyframes spUp{from{opacity:0;transform:translateY(26px)}to{opacity:1;transform:none}}
+@keyframes spDown{from{opacity:0;transform:translateY(-26px)}to{opacity:1;transform:none}}
+@keyframes spIn{from{opacity:0;transform:scale(.92)}to{opacity:1;transform:none}}
+
+/* ---------- layout ---------- */
+.wrap{max-width:980px; margin:0 auto; padding:18px 16px 40px; min-height:100%;}
+.topbar{display:flex; align-items:center; gap:12px; margin-bottom:18px;}
+.topbar img{width:46px; height:46px; border-radius:13px; object-fit:contain; background:#120c24; padding:4px; box-shadow:0 8px 22px rgba(139,92,255,.35);}
+.topbar h1{font-size:22px; font-weight:900; letter-spacing:.03em;}
+.topbar h1 span{background:linear-gradient(90deg,var(--gold),var(--gold2)); -webkit-background-clip:text; background-clip:text; color:transparent;}
+.topbar .sub{font-size:11px; color:var(--tx2); letter-spacing:.2em; margin-top:2px;}
+.topbar .back{margin-left:auto;}
+.btn{border:none; cursor:pointer; font-family:inherit; font-weight:800; border-radius:12px; transition:transform .12s ease, box-shadow .2s; color:#fff;}
+.btn:active{transform:scale(.96);}
+.btn-ghost{background:var(--surf); color:var(--tx); border:1px solid var(--line); padding:9px 14px; font-size:13px;}
+.btn-primary{background:linear-gradient(135deg,var(--violet),var(--pink)); padding:0 22px; height:54px; font-size:17px; box-shadow:0 10px 26px rgba(139,92,255,.4); flex:1;}
+.btn-gold{background:linear-gradient(135deg,var(--gold),var(--gold2)); color:#3a2600;}
+
+.panel{background:linear-gradient(180deg,var(--surf2),var(--surf)); border:1px solid var(--line); border-radius:20px; padding:20px; margin-bottom:16px;}
+.panel h2{font-size:15px; letter-spacing:.1em; color:var(--gold); margin-bottom:14px; display:flex; align-items:center; gap:8px;}
+.panel h2::before{content:""; width:6px; height:18px; border-radius:3px; background:linear-gradient(var(--gold),var(--gold2));}
+
+.row{display:flex; flex-wrap:wrap; gap:10px;}
+.opt{flex:1; min-width:90px; background:var(--surf); border:1.5px solid var(--line); border-radius:14px; padding:12px 10px; text-align:center; cursor:pointer; transition:.15s; color:var(--tx);}
+.opt small{display:block; color:var(--tx2); font-size:11px; margin-top:3px;}
+.opt b{font-size:15px;}
+.opt.sel{border-color:var(--violet); background:rgba(139,92,255,.16); box-shadow:0 0 0 2px rgba(139,92,255,.25);}
+
+.players{display:flex; flex-direction:column; gap:10px;}
+.prow{display:flex; align-items:center; gap:10px; background:var(--surf); border:1px solid var(--line); border-radius:14px; padding:10px 12px;}
+.swatch{width:26px; height:26px; border-radius:8px; flex-shrink:0; box-shadow:0 0 0 2px rgba(255,255,255,.15);}
+.prow input{flex:1; min-width:0; background:transparent; border:none; color:var(--tx); font-family:inherit; font-size:15px; font-weight:700;}
+.prow input:focus{outline:none;}
+.seg{display:flex; background:var(--bg2); border-radius:10px; padding:3px; flex-shrink:0;}
+.seg button{border:none; background:transparent; color:var(--tx2); font-family:inherit; font-weight:800; font-size:12px; padding:6px 12px; border-radius:8px; cursor:pointer;}
+.seg button.on{background:var(--violet); color:#fff;}
+.cpu-lv{flex-shrink:0; background:var(--bg2); border:1px solid var(--line); color:var(--tx); border-radius:10px; padding:6px 8px; font-family:inherit; font-weight:700; font-size:12px;}
+
+/* ---------- game ---------- */
+#game{display:none;}
+.score-strip{display:flex; gap:8px; flex-wrap:wrap; margin-bottom:12px;}
+.pscore{flex:1; min-width:120px; background:var(--surf); border:1px solid var(--line); border-radius:14px; padding:8px 12px; display:flex; align-items:center; gap:9px; transition:.2s; position:relative; overflow:hidden;}
+.pscore.active{border-color:var(--accent,#fff); box-shadow:0 0 0 2px var(--accent,#fff), 0 8px 20px rgba(0,0,0,.3);}
+.pscore .dot{width:16px; height:16px; border-radius:50%; flex-shrink:0; box-shadow:0 0 8px var(--accent);}
+.pscore .nm{font-weight:800; font-size:14px; line-height:1.1;}
+.pscore .nm small{display:block; font-size:10px; color:var(--tx2); font-weight:600;}
+.pscore .sc{margin-left:auto; text-align:right; line-height:1;}
+.pscore .tri{font-weight:900; font-size:22px;}
+.pscore .adv{font-size:10px; color:var(--tx2); font-weight:700; margin-top:2px;}
+.pscore.active::after{content:"▶"; position:absolute; right:-2px; top:50%; transform:translateY(-50%); color:var(--accent); font-size:11px; opacity:.0;}
+
+.turn-banner{text-align:center; font-weight:800; font-size:15px; margin-bottom:6px; min-height:22px;}
+.turn-banner b{padding:2px 10px; border-radius:8px; color:#0d0a1a;}
+
+.board-holder{background:radial-gradient(600px 400px at 50% 30%,rgba(139,92,255,.12),transparent 70%); border:1px solid var(--line); border-radius:20px; padding:8px; display:flex; align-items:center; justify-content:center; overflow:hidden;}
+svg#board{width:100%; height:auto; display:block; touch-action:manipulation;}
+.tri-cell{transition:fill .35s ease, opacity .3s; }
+.tri-cell.win{animation:triPop .5s ease;}
+@keyframes triPop{0%{opacity:0; transform:scale(.4)}60%{transform:scale(1.08)}100%{opacity:1; transform:none}}
+.node{cursor:pointer;}
+.node .hit{fill:transparent;}
+.node .stone{transition:transform .18s cubic-bezier(.2,1.4,.4,1), opacity .18s;}
+.node .ring{fill:none; stroke:rgba(255,255,255,.28); stroke-width:1.4;}
+.node.empty:hover .ring{stroke:var(--gold); stroke-width:2.4;}
+.node.placed .ring{display:none;}
+.node.last .stone{filter:drop-shadow(0 0 7px #fff);}
+
+.game-actions{display:flex; gap:10px; margin-top:14px;}
+.game-actions .btn{flex:1; height:48px; font-size:14px;}
+
+/* ---------- result ---------- */
+.result-card{text-align:center; padding:26px 20px;}
+.result-card .crown{font-size:46px;}
+.result-card h2{font-size:24px; font-weight:900; margin:6px 0;}
+.result-card h2::before{display:none;}
+.res-list{display:flex; flex-direction:column; gap:8px; margin:16px 0;}
+.res-row{display:flex; align-items:center; gap:10px; background:var(--surf); border-radius:12px; padding:10px 14px;}
+.res-row .dot{width:14px; height:14px; border-radius:50%;}
+.res-row .nm{font-weight:800;}
+.res-row .tri{margin-left:auto; font-weight:900; font-size:20px; display:flex; align-items:baseline; gap:6px;}
+.res-row .tri .adv-r{font-size:11px; color:var(--tx2); font-weight:700;}
+.res-row.first{box-shadow:0 0 0 2px var(--gold);}
+.res-note{color:var(--tx2); font-size:12px; line-height:1.6; margin:-2px 0 6px;}
+
+/* ---------- modal ---------- */
+.ov{position:fixed; inset:0; background:rgba(8,5,18,.7); backdrop-filter:blur(4px); z-index:200; display:none; align-items:center; justify-content:center; padding:20px;}
+.ov.show{display:flex;}
+.modal{background:linear-gradient(180deg,var(--surf2),var(--surf)); border:1px solid var(--line); border-radius:20px; padding:24px; max-width:460px; width:100%; max-height:84vh; overflow:auto;}
+.modal h3{font-size:18px; margin-bottom:12px; color:var(--gold);}
+.modal p,.modal li{color:var(--tx2); font-size:14px; line-height:1.7;}
+.modal ul{padding-left:18px; margin:8px 0;}
+.modal b{color:var(--tx);}
+.modal .close{margin-top:16px; width:100%; height:46px;}
+
+.foot{text-align:center; color:var(--tx2); font-size:11px; margin-top:26px; letter-spacing:.06em;}
+.foot a{color:var(--cyan); text-decoration:none;}
+@media(max-width:520px){
+  .topbar h1{font-size:19px;}
+  .pscore{min-width:46%;}
+}
+</style>
+</head>
+<body>
+
+<!-- ===== SPLASH ===== -->
+<div id="splash">
+  <div class="sp-phase sp-intro" id="spIntro">
+    <div class="sp-logo sp-ngx"><img src="../brand/NGX.png" alt="NGX" onerror="this.outerHTML='<span style=&quot;color:#e9b13c;font-weight:900;font-size:44px&quot;>NGX</span>'"></div>
+    <div class="sp-amp">×</div>
+    <div class="sp-logo sp-mf"><img src="../brand/MagicalFuture.png" alt="Magical Future" onerror="this.outerHTML='<span style=&quot;color:#3a5bff;font-weight:900;font-size:28px&quot;>Magical Future</span>'"></div>
+  </div>
+  <div class="sp-phase sp-main" id="spMain">
+    <img class="sp-app" src="../thumbs/MagiTriad.jpg" alt="MagiTriad" onerror="this.style.display='none'">
+    <div class="sp-name">MAGI<span>TRIAD</span><small>魔法の三角陣取り</small></div>
+    <div class="sp-bar"><div class="sp-fill" id="spFill"></div></div>
+    <div class="sp-cap">Loading MagiTriad ...</div>
+  </div>
+</div>
+
+<div class="wrap">
+  <div class="topbar">
+    <img src="../thumbs/MagiTriad.jpg" alt="MagiTriad">
+    <div>
+      <h1>Magi<span>Triad</span></h1>
+      <div class="sub">TRIANGLE CONQUEST</div>
+    </div>
+    <button class="btn btn-ghost back" onclick="location.href='../index.html'">← ポータル</button>
+  </div>
+
+  <!-- ===== SETUP ===== -->
+  <div id="setup">
+    <div class="panel">
+      <h2>盤面のかたち</h2>
+      <div class="row" id="shapeRow">
+        <div class="opt sel" data-shape="triangle"><b>▲ 三角形</b><small>クラシック</small></div>
+        <div class="opt" data-shape="hexagon"><b>⬡ 六角形</b><small>広い戦場</small></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <h2>盤面のサイズ</h2>
+      <div class="row" id="sizeRow"></div>
+      <div style="color:var(--tx2);font-size:12px;margin-top:10px;" id="sizeInfo"></div>
+    </div>
+
+    <div class="panel">
+      <h2>プレイヤー</h2>
+      <div class="row" style="margin-bottom:14px;" id="countRow">
+        <div class="opt" data-count="2"><b>2人</b></div>
+        <div class="opt sel" data-count="2"><b>2人</b></div>
+        <div class="opt" data-count="3"><b>3人</b></div>
+        <div class="opt" data-count="4"><b>4人</b></div>
+      </div>
+      <div class="players" id="playerList"></div>
+    </div>
+
+    <div class="row">
+      <button class="btn btn-ghost" style="height:54px;padding:0 18px;" onclick="openRules()">遊び方</button>
+      <button class="btn btn-primary" onclick="startGame()">ゲーム開始</button>
+    </div>
+    <div class="foot">© 2026 XEVARION / NGX · MagiOne Series &nbsp;|&nbsp; <a href="../index.html">XEVARION ポータル</a></div>
+  </div>
+
+  <!-- ===== GAME ===== -->
+  <div id="game">
+    <div class="score-strip" id="scoreStrip"></div>
+    <div class="turn-banner" id="turnBanner"></div>
+    <div class="board-holder">
+      <svg id="board" viewBox="0 0 600 560" xmlns="http://www.w3.org/2000/svg"></svg>
+    </div>
+    <div class="game-actions">
+      <button class="btn btn-ghost" onclick="openRules()">遊び方</button>
+      <button class="btn btn-ghost" onclick="confirmRestart()">最初から</button>
+      <button class="btn btn-ghost" onclick="backToSetup()">設定へ</button>
+    </div>
+    <div class="foot">© 2026 XEVARION / NGX · MagiOne Series</div>
+  </div>
+</div>
+
+<!-- ===== RULES MODAL ===== -->
+<div class="ov" id="rulesOv">
+  <div class="modal">
+    <h3>MagiTriad の遊び方</h3>
+    <p>三角格子（または六角格子）の<b>頂点</b>に、交互に自分の色の駒を置いていきます。</p>
+    <ul>
+      <li>小さな三角形の<b>3つの頂点すべて</b>を自分の色で揃えると、その三角形を<b>獲得</b>（得点）します。</li>
+      <li>1つの頂点は複数の三角形に共有されるので、1手で<b>同時に複数獲得</b>できることも。</li>
+      <li>相手が2頂点を押さえている三角形の<b>残り1頂点を奪えば阻止</b>できます。</li>
+      <li>盤面の頂点がすべて埋まったら終了。<b>獲得した三角形（完成）の数が最も多い</b>プレイヤーの勝ちです。</li>
+      <li>完成数が同じときは、<b>「優勢」な三角形（3頂点のうち2頂点を自分が押さえている三角形）の数</b>で勝者を決めます。大人数でも引き分けになりにくく、最後まで陣地の取り合いが大切です。</li>
+    </ul>
+    <p>各プレイヤーのスコアは「完成」と小さく「優勢」を表示します。CPU と対戦したり、1台で2〜4人で囲んで遊べます。先手は順番どおり、攻めと守りのバランスがカギ！</p>
+    <button class="btn btn-primary close" onclick="closeRules()">とじる</button>
+  </div>
+</div>
+
+<!-- ===== RESULT MODAL ===== -->
+<div class="ov" id="resultOv">
+  <div class="modal result-card">
+    <div class="crown" id="resCrown">👑</div>
+    <h2 id="resTitle"></h2>
+    <div id="resNote" class="res-note"></div>
+    <div class="res-list" id="resList"></div>
+    <div class="row">
+      <button class="btn btn-ghost" style="height:48px;flex:1;" onclick="backToSetup()">設定へ</button>
+      <button class="btn btn-gold" style="height:48px;flex:1;" onclick="closeResult();confirmRestart(true)">もう一度</button>
+    </div>
+  </div>
+</div>
+
+<script>
+"use strict";
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const PCOLORS=["var(--p1)","var(--p2)","var(--p3)","var(--p4)"];
+const PHEX=["#3fd2ff","#ff5b6b","#7be06a","#c98bff"];
+const PNAME=["プレイヤー1","プレイヤー2","プレイヤー3","プレイヤー4"];
+
+/* ---------------- config state ---------------- */
+const Cfg={ shape:"triangle", size:5, count:2,
+  players:[ {name:PNAME[0],cpu:false,lv:2},{name:PNAME[1],cpu:true,lv:2},{name:PNAME[2],cpu:true,lv:2},{name:PNAME[3],cpu:true,lv:2} ] };
+
+const SIZES={
+  triangle:[ {v:4,label:"小",info:"15頂点・16三角形"},{v:5,label:"中",info:"21頂点・25三角形"},{v:6,label:"大",info:"28頂点・36三角形"} ],
+  hexagon:[ {v:2,label:"小",info:"19頂点・24三角形"},{v:3,label:"大",info:"37頂点・54三角形"} ]
+};
+
+/* ---------------- setup UI ---------------- */
+function renderSizes(){
+  const list=SIZES[Cfg.shape]; const row=$("#sizeRow"); row.innerHTML="";
+  if(!list.some(s=>s.v===Cfg.size)) Cfg.size=list[Math.min(1,list.length-1)].v;
+  list.forEach(s=>{
+    const d=document.createElement("div");
+    d.className="opt"+(s.v===Cfg.size?" sel":"");
+    d.innerHTML=`<b>${s.label}</b><small>${s.v}段</small>`;
+    d.onclick=()=>{ Cfg.size=s.v; renderSizes(); };
+    row.appendChild(d);
+  });
+  const cur=list.find(s=>s.v===Cfg.size); $("#sizeInfo").textContent=cur?("およそ "+cur.info):"";
+}
+function renderShape(){
+  $$("#shapeRow .opt").forEach(o=>o.classList.toggle("sel",o.dataset.shape===Cfg.shape));
+}
+$$("#shapeRow .opt").forEach(o=>o.onclick=()=>{ Cfg.shape=o.dataset.shape; renderShape(); renderSizes(); });
+
+function renderCount(){
+  const row=$("#countRow"); row.innerHTML="";
+  [2,3,4].forEach(n=>{
+    const d=document.createElement("div");
+    d.className="opt"+(n===Cfg.count?" sel":"");
+    d.innerHTML=`<b>${n}人</b>`;
+    d.onclick=()=>{ Cfg.count=n; renderCount(); renderPlayers(); };
+    row.appendChild(d);
+  });
+}
+function renderPlayers(){
+  const list=$("#playerList"); list.innerHTML="";
+  for(let i=0;i<Cfg.count;i++){
+    const p=Cfg.players[i];
+    const row=document.createElement("div"); row.className="prow";
+    row.innerHTML=`
+      <div class="swatch" style="background:${PHEX[i]}"></div>
+      <input value="${p.name}" maxlength="10" data-i="${i}" class="pname">
+      <div class="seg">
+        <button data-i="${i}" data-cpu="0" class="${!p.cpu?'on':''}">人間</button>
+        <button data-i="${i}" data-cpu="1" class="${p.cpu?'on':''}">CPU</button>
+      </div>
+      <select class="cpu-lv" data-i="${i}" style="${p.cpu?'':'display:none'}">
+        <option value="1">よわい</option><option value="2">ふつう</option><option value="3">つよい</option>
+      </select>`;
+    list.appendChild(row);
+  }
+  list.querySelectorAll(".pname").forEach(inp=>inp.oninput=e=>{ Cfg.players[+e.target.dataset.i].name=e.target.value||PNAME[+e.target.dataset.i]; });
+  list.querySelectorAll(".seg button").forEach(b=>b.onclick=()=>{
+    const i=+b.dataset.i; Cfg.players[i].cpu=b.dataset.cpu==="1"; renderPlayers();
+  });
+  list.querySelectorAll(".cpu-lv").forEach(sel=>{ sel.value=Cfg.players[+sel.dataset.i].lv; sel.onchange=e=>Cfg.players[+e.target.dataset.i].lv=+e.target.value; });
+}
+
+/* ---------------- geometry ---------------- */
+// generate node positions (unit lattice), then derive triangles by 3-cliques of unit edges
+function genNodes(){
+  const nodes=[]; const SP=1; const H=Math.sqrt(3)/2;
+  if(Cfg.shape==="triangle"){
+    const N=Cfg.size;
+    for(let r=0;r<=N;r++) for(let c=0;c<=r;c++) nodes.push({x:(c-r/2), y:r*H});
+  } else {
+    const k=Cfg.size; // hexagon side k
+    for(let r=0;r<=2*k;r++){
+      const w=k+1+Math.min(r,2*k-r);
+      for(let c=0;c<w;c++) nodes.push({x:(c-(w-1)/2), y:r*H});
+    }
+  }
+  return nodes;
+}
+function buildTriangles(nodes){
+  const n=nodes.length, SP=1, eps=0.06;
+  const adj=Array.from({length:n},()=>[]);
+  for(let i=0;i<n;i++) for(let j=i+1;j<n;j++){
+    const dx=nodes[i].x-nodes[j].x, dy=nodes[i].y-nodes[j].y;
+    const d=Math.hypot(dx,dy);
+    if(Math.abs(d-SP)<eps){ adj[i].push(j); adj[j].push(i); }
+  }
+  const tris=[]; const seen=new Set();
+  for(let i=0;i<n;i++) for(const j of adj[i]){ if(j<=i) continue;
+    for(const m of adj[i]){ if(m<=j) continue;
+      if(adj[j].includes(m)){
+        const key=[i,j,m].join(","); if(seen.has(key)) continue; seen.add(key);
+        tris.push([i,j,m]);
+      }
+    }
+  }
+  return {adj,tris};
+}
+
+/* ---------------- game state ---------------- */
+let G=null;
+function startGame(){
+  // sync names from inputs in case
+  const nodes=genNodes();
+  const {tris}=buildTriangles(nodes);
+  // normalize to viewbox
+  const xs=nodes.map(p=>p.x), ys=nodes.map(p=>p.y);
+  const minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys);
+  const VB=600, pad=46;
+  const spanX=maxX-minX||1, spanY=maxY-minY||1;
+  const scale=Math.min((VB-2*pad)/spanX,(VB-2*pad)/spanY);
+  const w=spanX*scale, h=spanY*scale;
+  const ox=(VB-w)/2-minX*scale, oy=(VB-h)/2-minY*scale;
+  const px=nodes.map(p=>({x:p.x*scale+ox, y:p.y*scale+oy}));
+  const vbH=Math.round(h+2*pad);
+  G={ nodes:px, tris, owner:new Array(nodes.length).fill(-1), triOwner:new Array(tris.length).fill(-1),
+      turn:0, placed:0, total:nodes.length, scores:new Array(Cfg.count).fill(0), last:-1, vbH,
+      players:Cfg.players.slice(0,Cfg.count).map((p,i)=>({name:p.name||PNAME[i],cpu:p.cpu,lv:p.lv})), finished:false, busy:false };
+  $("#setup").style.display="none"; $("#game").style.display="block";
+  $("#board").setAttribute("viewBox",`0 0 ${VB} ${Math.max(vbH,420)}`);
+  drawBoard(); renderScores(); updateBanner();
+  maybeCPU();
+}
+
+function drawBoard(){
+  const svg=$("#board"); svg.innerHTML="";
+  const NS="http://www.w3.org/2000/svg";
+  const gTri=document.createElementNS(NS,"g"), gEdge=document.createElementNS(NS,"g"), gNode=document.createElementNS(NS,"g");
+  // triangles
+  G.tris.forEach((t,ti)=>{
+    const poly=document.createElementNS(NS,"polygon");
+    const pts=t.map(i=>G.nodes[i].x+","+G.nodes[i].y).join(" ");
+    poly.setAttribute("points",pts);
+    poly.setAttribute("class","tri-cell");
+    poly.setAttribute("stroke","rgba(255,255,255,.07)");
+    poly.setAttribute("stroke-width","1");
+    poly.setAttribute("fill","rgba(255,255,255,.025)");
+    poly.dataset.ti=ti; poly.id="tri"+ti;
+    gTri.appendChild(poly);
+  });
+  // edges (light)
+  const edgeSeen=new Set();
+  G.tris.forEach(t=>{ const e=[[t[0],t[1]],[t[1],t[2]],[t[0],t[2]]];
+    e.forEach(([a,b])=>{ const k=a<b?a+"-"+b:b+"-"+a; if(edgeSeen.has(k))return; edgeSeen.add(k);
+      const ln=document.createElementNS(NS,"line");
+      ln.setAttribute("x1",G.nodes[a].x); ln.setAttribute("y1",G.nodes[a].y);
+      ln.setAttribute("x2",G.nodes[b].x); ln.setAttribute("y2",G.nodes[b].y);
+      ln.setAttribute("stroke","rgba(255,255,255,.13)"); ln.setAttribute("stroke-width","2"); ln.setAttribute("stroke-linecap","round");
+      gEdge.appendChild(ln);
+    });
+  });
+  // nodes
+  const R=Math.max(9,Math.min(18, 0.30*minEdge()));
+  G.nodes.forEach((p,i)=>{
+    const g=document.createElementNS(NS,"g"); g.setAttribute("class","node empty"); g.dataset.i=i; g.id="node"+i;
+    const hit=document.createElementNS(NS,"circle"); hit.setAttribute("class","hit"); hit.setAttribute("cx",p.x); hit.setAttribute("cy",p.y); hit.setAttribute("r",R+9);
+    const ring=document.createElementNS(NS,"circle"); ring.setAttribute("class","ring"); ring.setAttribute("cx",p.x); ring.setAttribute("cy",p.y); ring.setAttribute("r",R);
+    const stone=document.createElementNS(NS,"circle"); stone.setAttribute("class","stone"); stone.setAttribute("cx",p.x); stone.setAttribute("cy",p.y); stone.setAttribute("r",R); stone.setAttribute("fill","transparent"); stone.style.opacity="0";
+    g.appendChild(hit); g.appendChild(ring); g.appendChild(stone);
+    g.addEventListener("click",()=>onNodeClick(i));
+    gNode.appendChild(g);
+  });
+  svg.appendChild(gTri); svg.appendChild(gEdge); svg.appendChild(gNode);
+  G._R=R;
+}
+function minEdge(){
+  let m=Infinity;
+  const t=G.tris[0]; if(!t) return 30;
+  const a=G.nodes[t[0]],b=G.nodes[t[1]]; return Math.hypot(a.x-b.x,a.y-b.y);
+}
+
+/* ---------------- play ---------------- */
+function onNodeClick(i){
+  if(G.finished||G.busy) return;
+  if(G.owner[i]!==-1) return;
+  const pl=G.players[G.turn]; if(pl.cpu) return; // ignore taps during cpu
+  place(i);
+}
+function place(i){
+  const who=G.turn;
+  G.owner[i]=who; G.placed++; G.last=i;
+  // visual stone
+  const g=$("#node"+i); g.classList.remove("empty"); g.classList.add("placed");
+  $$(".node.last").forEach(n=>n.classList.remove("last"));
+  g.classList.add("last");
+  const stone=g.querySelector(".stone");
+  stone.setAttribute("fill",PHEX[who]); stone.style.opacity="1";
+  stone.setAttribute("stroke","rgba(255,255,255,.55)"); stone.setAttribute("stroke-width","1.5");
+  // check triangles newly completed
+  let gained=0;
+  G.tris.forEach((t,ti)=>{
+    if(G.triOwner[ti]!==-1) return;
+    if(t.every(v=>G.owner[v]===who)){
+      G.triOwner[ti]=who; G.scores[who]++; gained++;
+      const poly=$("#tri"+ti);
+      poly.setAttribute("fill",hexA(PHEX[who],0.5));
+      poly.setAttribute("stroke",PHEX[who]); poly.setAttribute("stroke-width","1.6");
+      poly.classList.remove("win"); void poly.offsetWidth; poly.classList.add("win");
+    }
+  });
+  if(G.placed>=G.total){ renderScores(); endGame(); return; }
+  G.turn=(G.turn+1)%G.players.length;
+  renderScores();   // 手番を進めた後に描画＝強調表示と「○○の番」を一致させる
+  updateBanner();
+  maybeCPU();
+}
+function hexA(hex,a){ const n=parseInt(hex.slice(1),16); const r=(n>>16)&255,gg=(n>>8)&255,b=n&255; return `rgba(${r},${gg},${b},${a})`; }
+
+// 各三角形を集計: completed=3頂点占有(=得点), majority=2頂点占有(優勢)。決着のタイブレークに使用
+function triStats(){
+  const np=G.players.length;
+  const completed=new Array(np).fill(0), majority=new Array(np).fill(0);
+  for(const t of G.tris){
+    const cnt={};
+    for(const v of t){ const o=G.owner[v]; if(o>=0) cnt[o]=(cnt[o]||0)+1; }
+    let three=-1, two=-1;
+    for(const k in cnt){ if(cnt[k]===3) three=+k; else if(cnt[k]===2) two=+k; }
+    if(three>=0) completed[three]++;
+    else if(two>=0) majority[two]++;
+  }
+  return {completed,majority};
+}
+function renderScores(){
+  const strip=$("#scoreStrip"); strip.innerHTML="";
+  const stats=triStats();
+  G.players.forEach((p,i)=>{
+    const d=document.createElement("div"); d.className="pscore"+(i===G.turn&&!G.finished?" active":"");
+    d.style.setProperty("--accent",PHEX[i]);
+    d.innerHTML=`<div class="dot" style="background:${PHEX[i]}"></div>
+      <div class="nm">${esc(p.name)}<small>${p.cpu?'CPU':'人間'}</small></div>
+      <div class="sc"><div class="tri" style="color:${PHEX[i]}">${G.scores[i]}</div><div class="adv">優勢 ${stats.majority[i]}</div></div>`;
+    strip.appendChild(d);
+  });
+}
+function updateBanner(){
+  const p=G.players[G.turn];
+  $("#turnBanner").innerHTML=`<b style="background:${PHEX[G.turn]}">${esc(p.name)}</b> の番　残り ${G.total-G.placed} 手`;
+}
+function esc(s){return String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));}
+
+/* ---------------- CPU ---------------- */
+function maybeCPU(){
+  const p=G.players[G.turn];
+  if(G.finished||!p.cpu) return;
+  G.busy=true;
+  setTimeout(()=>{ const mv=cpuPick(G.turn,p.lv); G.busy=false; if(mv!=null && !G.finished) place(mv); }, 520);
+}
+function cpuPick(who,lv){
+  const empty=[]; for(let i=0;i<G.total;i++) if(G.owner[i]===-1) empty.push(i);
+  if(!empty.length) return null;
+  if(lv===1 && Math.random()<0.4) return empty[Math.random()*empty.length|0];
+  // precompute per-triangle counts
+  let best=[], bestScore=-1e9;
+  for(const i of empty){
+    let complete=0, block=0, build=0, oppThreat=0;
+    for(let ti=0;ti<G.tris.length;ti++){
+      const t=G.tris[ti]; if(!t.includes(i) || G.triOwner[ti]!==-1) continue;
+      let mine=0, opp=0, emptyC=0, oppMask=0;
+      for(const v of t){ if(v===i) continue; const o=G.owner[v];
+        if(o===who) mine++; else if(o===-1) emptyC++; else { opp++; oppMask|=(1<<o); }
+      }
+      // after placing at i: this triangle has mine+1 mine
+      if(opp===0 && mine===2) complete++;            // I complete it now
+      if(opp===2 && mine===0){                        // exactly one opponent had both? only block if single owner
+        // both other nodes same opponent => blocking
+        if(isSingleOpp(t,i)) block++;
+      }
+      if(opp===0 && mine===1) build++;                // building toward mine
+      if(opp===0 && mine===0) build+=0.2;
+    }
+    // also count how many of opp's near-complete (2 same opp + this empty) — same as block above
+    let s=complete*12 + block*7 + build*1.4;
+    // central bias
+    s += centerBias(i)* (lv>=2?0.8:0.2);
+    s += Math.random()*(lv===3?0.4:1.2);
+    if(lv>=2){
+      // avoid giving opponent an immediate completion next: penalize if leaving a triangle with 2 opp and 1 empty elsewhere is unaffected (light)
+    }
+    if(s>bestScore){ bestScore=s; best=[i]; } else if(s===bestScore) best.push(i);
+  }
+  return best[Math.random()*best.length|0];
+}
+function isSingleOpp(t,exclude){
+  let owner=-1;
+  for(const v of t){ if(v===exclude) continue; const o=G.owner[v]; if(o===-1) return false; if(owner===-1) owner=o; else if(owner!==o) return false; }
+  return owner!==-1 && owner!==G.turn;
+}
+function centerBias(i){
+  // closeness to centroid of board
+  let cx=0,cy=0; G.nodes.forEach(p=>{cx+=p.x;cy+=p.y;}); cx/=G.nodes.length; cy/=G.nodes.length;
+  const d=Math.hypot(G.nodes[i].x-cx,G.nodes[i].y-cy);
+  return Math.max(0, 1 - d/280);
+}
+
+/* ---------------- end ---------------- */
+function endGame(){
+  G.finished=true;
+  renderScores();
+  $("#turnBanner").innerHTML="ゲーム終了！";
+  const stats=triStats();
+  // 1次: 完成三角形数, 2次(タイブレーク): 優勢三角形数 → 大人数でも決着しやすく
+  const order=G.players.map((p,i)=>({p,i,s:G.scores[i],adv:stats.majority[i]})).sort((a,b)=> b.s-a.s || b.adv-a.adv);
+  const topS=order[0].s, topA=order[0].adv;
+  const winners=order.filter(o=>o.s===topS && o.adv===topA);
+  const tiedOnComplete=order.filter(o=>o.s===topS).length>1;
+  const ov=$("#resultOv");
+  $("#resCrown").textContent = winners.length>1?"🤝":"👑";
+  $("#resTitle").textContent = winners.length>1 ? "引き分け！" : `${winners[0].p.name} の勝ち！`;
+  $("#resNote").textContent = winners.length>1
+    ? "完成・優勢ともに同数のため引き分けです。"
+    : (tiedOnComplete ? "完成した三角形が同数のため、優勢な三角形（2頂点を支配）の数で勝者を決めました。" : "");
+  $("#resList").innerHTML=order.map((o,rank)=>{
+    const isTop=(o.s===topS && o.adv===topA);
+    return `<div class="res-row ${isTop?'first':''}">
+      <div class="dot" style="background:${PHEX[o.i]}"></div>
+      <div class="nm">${rank===0&&winners.length===1?'🏆 ':''}${esc(o.p.name)}</div>
+      <div class="tri" style="color:${PHEX[o.i]}">${o.s}<span style="font-size:11px;color:var(--tx2)"> 完成</span><span class="adv-r">優勢 ${o.adv}</span></div>
+    </div>`;
+  }).join("");
+  setTimeout(()=>ov.classList.add("show"),650);
+}
+function closeResult(){ $("#resultOv").classList.remove("show"); }
+function confirmRestart(skip){
+  if(!skip && !confirm("最初からやり直しますか？")) return;
+  closeResult(); startGame();
+}
+function backToSetup(){
+  closeResult();
+  $("#game").style.display="none"; $("#setup").style.display="block";
+}
+
+/* ---------------- rules ---------------- */
+function openRules(){ $("#rulesOv").classList.add("show"); }
+function closeRules(){ $("#rulesOv").classList.remove("show"); }
+$("#rulesOv").addEventListener("click",e=>{ if(e.target===$("#rulesOv")) closeRules(); });
+$("#resultOv").addEventListener("click",e=>{ if(e.target===$("#resultOv")) closeResult(); });
+
+/* ---------------- init setup ---------------- */
+renderShape(); renderSizes(); renderCount(); renderPlayers();
+
+/* ---------------- splash ---------------- */
+(function(){
+  const sp=$("#splash"); if(!sp) return;
+  const intro=$("#spIntro"),main=$("#spMain"),fill=$("#spFill");
+  const P1_IN=120,P1_HOLD=1450,P1_OUT=540,P2_BAR=1850,P2_END=320, p2=P1_IN+P1_HOLD+P1_OUT;
+  setTimeout(()=>intro.classList.add("in"),P1_IN);
+  setTimeout(()=>intro.classList.add("out"),P1_IN+P1_HOLD);
+  setTimeout(()=>{ main.classList.add("in"); fill.style.transition="width "+P2_BAR+"ms ease"; setTimeout(()=>fill.style.width="100%",60); },p2);
+  setTimeout(()=>{ sp.classList.add("out"); setTimeout(()=>sp.remove(),600); },p2+P2_BAR+P2_END);
+})();
+</script>
+</body>
+</html>

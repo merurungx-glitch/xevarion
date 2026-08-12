@@ -1,0 +1,116 @@
+{
+  // ============================================================
+  // ORDYXIS Realtime Database セキュリティルール
+  // ------------------------------------------------------------
+  // 適用方法: Firebase コンソール → Realtime Database → 「ルール」タブに
+  //           この内容を貼り付けて「公開」。ordyxis / ordyxis2 の両方に適用してください。
+  // ※ Realtime Database のルールは // や /* */ のコメントを書けます。
+  //
+  // 方針: このアプリは Firebase Auth を使わない（アクセスコードはJS側のソフト保護）。
+  //   そのため「店舗」と「お客様」をルールで区別はできません。本ルールは
+  //     ・読み取りは許可（店頭ボード/モニター/お客様が表示するため）
+  //     ・書き込みは “アプリが実際に行う形のデータ” だけに限定（形式・型・列挙値を検証）
+  //     ・未知の最上位ノードや不正な形のデータを拒否
+  //     ・丸ごと全消し(置換)など最悪の操作を抑制
+  //   を行います。より強固にしたい場合は末尾の「匿名認証で固める」を参照。
+  // ============================================================
+  "rules": {
+
+    // 読み取りは全体に許可（注文内容に氏名等の個人情報を入れない運用が前提）。
+    ".read": true,
+    // 既定は書き込み不可。下で必要なノードだけ個別に許可（未知ノードの作成を遮断）。
+    ".write": false,
+
+    // ---------- 注文 ----------
+    "orders": {
+      // 親への書き込みは「全削除(remove)」のみ許可 ＝ 店舗の一括クリア(clearAll)。
+      // 丸ごと別オブジェクトへ置換するような書き込みは拒否。
+      ".write": "!newData.exists()",
+      "$orderId": {
+        // 個別注文は「作成・更新」のみ許可。個別削除は不可（キャンセルは status 更新で行う）。
+        ".write": "newData.exists()",
+        ".validate": "newData.hasChildren(['number','items','total','status','type','createdAt'])",
+        "number":     { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() < 100000" },
+        "items":      { ".validate": "newData.hasChildren()" },
+        "total":      { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() < 10000000" },
+        "day":        { ".validate": "newData.isString() && newData.val().length == 8" },
+        "status":     { ".validate": "newData.isString() && newData.val().matches(/^(new|calling|done|cancelled)$/)" },
+        "type":       { ".validate": "newData.isString() && newData.val().matches(/^(now|scheduled)$/)" },
+        "createdAt":  { ".validate": "newData.isNumber() && newData.val() <= now" },
+        "pickupTime": { ".validate": "newData.isString() && newData.val().length <= 5" },
+        "arrived":    { ".validate": "newData.isNumber() && newData.val() <= now" },
+        // 上記以外のフィールドは拒否（不正な項目の混入を防ぐ）。
+        "$other":     { ".validate": false }
+      }
+    },
+
+    // ---------- 採番カウンター ----------
+    "counters": {
+      // 親は全削除(clearAll)のみ許可。
+      ".write": "!newData.exists()",
+      "$day": {
+        // 採番トランザクション（整数 +1）。"YYYYMMDD" と "YYYYMMDD__sched" の2系統。
+        ".write": "newData.exists()",
+        ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() < 100000"
+      }
+    },
+
+    // ---------- 設定（予約・在庫上限） ----------
+    "settings": {
+      // settings 直下を丸ごと消す/置換は不可。reservation と stock を個別に許可。
+      "reservation": {
+        ".write": true,
+        ".validate": "newData.hasChildren(['enabled'])",
+        "enabled":  { ".validate": "newData.isBoolean()" },
+        "start":    { ".validate": "newData.isString() && newData.val().length <= 5" },
+        "end":      { ".validate": "newData.isString() && newData.val().length <= 5" },
+        "interval": { ".validate": "newData.isNumber() && newData.val() > 0 && newData.val() <= 120" },
+        "capacity": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() <= 1000" },
+        "$other":   { ".validate": false }
+      },
+      "stock": {
+        ".write": true,
+        "$productId": {
+          // 在庫上限（個数）。設定解除は子の削除で行うため null も許可される（validateは非null時のみ実行）。
+          ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() < 100000"
+        }
+      }
+    },
+
+    // ---------- 同時接続カウント（presence） ----------
+    "presence": {
+      ".read": true,
+      "$connId": {
+        // 各接続が自分のノードを作成/更新/削除（切断時 onDisconnect で自動削除）。
+        ".write": true,
+        ".validate": "newData.hasChildren(['role'])",
+        "role":   { ".validate": "newData.isString() && newData.val().length <= 16" },
+        "ts":     { ".validate": "newData.isNumber() && newData.val() <= now" },
+        "$other": { ".validate": false }
+      }
+    },
+
+    // ---------- セカンダリDB(DB2 / ordyxis2)用ノード ----------
+    // 「調理完了」マークと「もう一度呼び出す」シグナルは、注文・番号に関わらない補助情報として
+    // ordyxis2 に保存する（app-common.js の DB2）。ordyxis 側ではこれらのノードは使われない。
+    // 調理完了マーク: cooked/{orderId} = true（取消は子の削除）
+    "cooked": {
+      ".write": "!newData.exists()",   // 親は全削除(clearAll)のみ
+      "$orderId": {
+        ".write": true,
+        ".validate": "newData.isBoolean()"
+      }
+    },
+    // 再呼び出しシグナル: recall/{orderId} = { number, ts }
+    "recall": {
+      ".write": "!newData.exists()",   // 親は全削除(clearAll)のみ
+      "$orderId": {
+        ".write": true,
+        ".validate": "newData.hasChildren(['number','ts'])",
+        "number": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() < 100000" },
+        "ts":     { ".validate": "newData.isNumber() && newData.val() <= now" },
+        "$other": { ".validate": false }
+      }
+    }
+  }
+}

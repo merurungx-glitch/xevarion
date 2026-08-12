@@ -1,0 +1,652 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>MagiMusic — XEVARION ミュージックプレイヤー</title>
+<link rel="icon" href="../thumbs/MagiMusic.jpg" type="image/png">
+<link rel="apple-touch-icon" href="../thumbs/MagiMusic.jpg">
+<!-- PWA：ホーム画面に追加＋全曲ダウンロードで、オフライン（機内モード）でも全曲聴ける -->
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="theme-color" content="#5b8cff">
+<meta name="apple-mobile-web-app-title" content="MagiMusic">
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function () {
+    navigator.serviceWorker.register("sw.js").catch(function () {});
+  });
+}
+</script>
+<script src="../maintenance-gate.js?v=5"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+<script type="module" src="../xevarion-fb.js?v=18"></script>
+<script type="module" src="../xeva-cloud.js?v=14"></script>
+<style>
+:root{
+  --bg:#0a0d1a; --bg2:#121729; --card:#181f38; --line:rgba(120,150,255,.2);
+  --tx:#eaf0ff; --sub:#93a0c8; --ac:#5b8cff; --ac2:#c46bff; --pk:#ff5d8f;
+  --grad:linear-gradient(135deg,#5b8cff,#c46bff);
+}
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{background:var(--bg);color:var(--tx);font-family:'Noto Sans JP',system-ui,sans-serif;overflow-x:hidden;touch-action:manipulation;
+  background-image:radial-gradient(55% 38% at 85% -4%,rgba(91,140,255,.16),transparent),radial-gradient(45% 32% at 8% 106%,rgba(196,107,255,.13),transparent)}
+button{font-family:inherit;color:inherit;cursor:pointer}
+img{-webkit-user-drag:none;user-select:none}
+
+/* ═══ スプラッシュ（MagiChainParty と同じ2段構成: NGX × MF × ISHIDA → ロゴ+バー） ═══ */
+#splash{position:fixed;inset:0;z-index:9000;background:#070912;overflow:hidden;transition:opacity .55s ease}
+#splash.hide{opacity:0;pointer-events:none}
+#splash .ph{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;pointer-events:none;gap:14px;padding:5vh 24px}
+#splash .intro.in{opacity:1}
+#splash .intro.out{opacity:0;transition:opacity .5s ease}
+#splash .lg{width:min(540px,86vw);border-radius:20px;overflow:hidden;background:#fff;display:flex;align-items:center;justify-content:center;padding:14px 28px}
+#splash .lg img{max-width:100%;max-height:15vh;object-fit:contain;display:block}
+#splash .intro.in .lg:nth-child(1){animation:mmUp .8s cubic-bezier(.2,.7,.3,1) both}
+#splash .intro.in .amp:nth-child(2){animation:mmFade .8s ease .1s both}
+#splash .intro.in .lg:nth-child(3){animation:mmFade .8s cubic-bezier(.2,.7,.3,1) .12s both}
+#splash .intro.in .amp:nth-child(4){animation:mmFade .8s ease .2s both}
+#splash .intro.in .lg:nth-child(5){animation:mmDown .8s cubic-bezier(.2,.7,.3,1) .24s both}
+#splash .amp{color:#7886b4;font-weight:700;font-size:22px;opacity:.6}
+#splash .main{gap:24px}
+#splash .main.in{opacity:1;animation:mmFade .6s ease}
+#splash .applogo{width:min(220px,56vw);border-radius:26%;box-shadow:0 14px 50px rgba(91,140,255,.5)}
+#splash .sp-nm{font-family:'Orbitron',sans-serif;font-weight:900;font-size:1.5rem;letter-spacing:.1em;
+  background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+#splash .sp-bar{width:min(300px,70vw);height:8px;border-radius:99px;background:rgba(255,255,255,.14);overflow:hidden}
+#splash .sp-bar i{display:block;height:100%;width:0;border-radius:99px;background:var(--grad)}
+#splash .cap{color:#9aa0c0;font-size:13px;letter-spacing:.22em}
+@keyframes mmUp{from{opacity:0;transform:translateY(26px)}to{opacity:1;transform:none}}
+@keyframes mmDown{from{opacity:0;transform:translateY(-26px)}to{opacity:1;transform:none}}
+@keyframes mmFade{from{opacity:0}to{opacity:1}}
+@keyframes spIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+
+/* ═══ レイアウト ═══ */
+#app{max-width:600px;margin:0 auto;min-height:100dvh;display:flex;flex-direction:column;
+  padding:calc(env(safe-area-inset-top,0px) + 14px) 18px calc(env(safe-area-inset-bottom,0px) + 18px)}
+#head{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+#head img{width:34px;height:34px;border-radius:10px}
+#head b{font-family:'Orbitron',sans-serif;font-size:17px;letter-spacing:.05em;
+  background:var(--grad);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
+#head .sub{font-size:10px;color:var(--sub);font-weight:700;letter-spacing:.18em;margin-top:2px}
+#head .back{margin-left:auto;border:1px solid var(--line);background:rgba(255,255,255,.05);border-radius:99px;
+  padding:7px 14px;font-size:11.5px;font-weight:800;color:#cdd8ff;text-decoration:none}
+.bgnote{font-size:10.5px;color:var(--sub);background:rgba(91,140,255,.08);border:1px dashed rgba(91,140,255,.35);
+  border-radius:12px;padding:8px 12px;margin:6px 0 4px;line-height:1.6}
+
+/* ── アートワーク（角丸スクエア・回転なし。再生中の曲が属するアプリのアイコンを表示） ── */
+#deck{display:flex;flex-direction:column;align-items:center;padding:16px 0 6px}
+#discWrap{position:relative;width:min(58vw,270px);aspect-ratio:1}
+#disc{position:absolute;inset:0;border-radius:24%;overflow:hidden;border:5px solid rgba(255,255,255,.1);
+  box-shadow:0 20px 60px rgba(91,140,255,.35),inset 0 0 40px rgba(0,0,0,.35);
+  transform:scale(calc(1 + var(--mb,0)*0.02));transition:transform .1s ease-out}
+#disc img{width:100%;height:100%;object-fit:cover}
+/* ビート連動のグロー（角丸スクエア） */
+#discWrap .ring{position:absolute;inset:-12px;border-radius:28%;pointer-events:none;
+  box-shadow:0 0 calc(12px + var(--mb,0)*46px) rgba(120,150,255,calc(.15 + var(--mb,0)*.6))}
+#tname{font-size:18px;font-weight:900;margin-top:18px;text-align:center;line-height:1.4}
+#tsub{display:inline-flex;align-items:center;gap:6px;font-size:11px;color:var(--sub);font-weight:800;letter-spacing:.14em;margin-top:5px}
+#tsub .cbadge{font-size:10px;font-weight:900;letter-spacing:.06em;border-radius:99px;padding:2px 9px;border:1px solid var(--line);background:rgba(255,255,255,.05)}
+#tsub .cbadge.MagiBurst{color:#ffb84d;border-color:rgba(255,157,46,.5)}
+#tsub .cbadge.XEVARION{color:#8fb0ff;border-color:rgba(91,140,255,.5)}
+#tsub .cbadge.other{color:var(--sub)}
+
+/* ── シーク ── */
+#seekRow{display:flex;align-items:center;gap:10px;width:100%;margin-top:16px}
+#seekRow .tm{font-family:'Orbitron',sans-serif;font-size:10.5px;color:var(--sub);min-width:38px;text-align:center}
+#seek{flex:1;-webkit-appearance:none;appearance:none;height:6px;border-radius:6px;outline:none;
+  background:linear-gradient(90deg,#5b8cff var(--p,0%),rgba(255,255,255,.13) var(--p,0%))}
+#seek::-webkit-slider-thumb{-webkit-appearance:none;width:17px;height:17px;border-radius:50%;background:#fff;
+  box-shadow:0 2px 10px rgba(91,140,255,.7);cursor:pointer}
+#seek::-moz-range-thumb{width:17px;height:17px;border-radius:50%;background:#fff;border:none;cursor:pointer}
+
+/* ── コントロール ── */
+#ctrl{display:flex;align-items:center;justify-content:center;gap:18px;margin-top:14px}
+.cbtn{width:52px;height:52px;border-radius:50%;border:1px solid var(--line);background:rgba(255,255,255,.06);
+  display:flex;align-items:center;justify-content:center;transition:.15s}
+.cbtn:active{transform:scale(.92)}
+.cbtn svg{width:22px;height:22px;fill:#dce6ff}
+.cbtn.main{width:72px;height:72px;background:var(--grad);border:none;box-shadow:0 12px 34px rgba(91,140,255,.45)}
+.cbtn.main svg{width:30px;height:30px;fill:#fff}
+.cbtn.mode{width:44px;height:44px}
+.cbtn.mode svg{width:18px;height:18px;fill:var(--sub)}
+.cbtn.mode.on{border-color:#5b8cff;background:rgba(91,140,255,.16)}
+.cbtn.mode.on svg{fill:#8fb0ff}
+.cbtn.mode .one{font-family:'Orbitron',sans-serif;font-size:8px;font-weight:900;fill:#8fb0ff}
+
+/* ── 音量（PC） ── */
+#volRow{display:none;align-items:center;gap:10px;margin:16px auto 0;width:min(300px,80%)}
+#volRow svg{width:17px;height:17px;fill:var(--sub);flex:none}
+#vol{flex:1;-webkit-appearance:none;appearance:none;height:5px;border-radius:5px;
+  background:linear-gradient(90deg,#8fb0ff var(--p,55%),rgba(255,255,255,.12) var(--p,55%))}
+#vol::-webkit-slider-thumb{-webkit-appearance:none;width:14px;height:14px;border-radius:50%;background:#fff;cursor:pointer}
+#vol::-moz-range-thumb{width:14px;height:14px;border-radius:50%;background:#fff;border:none;cursor:pointer}
+@media(pointer:fine){ #volRow{display:flex} }
+
+/* ── プレイリスト ── */
+#plHead{display:flex;align-items:center;gap:8px;margin:22px 0 10px;font-size:14px;font-weight:900}
+#plHead::before{content:"";width:4px;height:15px;border-radius:3px;background:var(--grad)}
+#plHead .n{color:var(--sub);font-size:11px;font-weight:700;margin-left:auto}
+.trk{display:flex;align-items:center;gap:12px;background:var(--card);border:1px solid var(--line);border-radius:15px;
+  padding:11px 13px;margin-bottom:8px;cursor:pointer;transition:.15s;width:100%;text-align:left}
+.trk:active{transform:scale(.985)}
+.trk.now{border-color:rgba(91,140,255,.65);background:linear-gradient(135deg,rgba(91,140,255,.14),rgba(196,107,255,.1))}
+.trk .no{font-family:'Orbitron',sans-serif;font-size:11px;color:var(--sub);min-width:22px;text-align:center;font-weight:700}
+.trk .ti{flex:1;min-width:0}
+.trk .ti .t1{display:block;font-size:13.5px;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.trk .ti .t2{display:block;font-size:10px;color:var(--sub);font-weight:700;margin-top:1px;letter-spacing:.08em}
+.trk .eq{display:none;align-items:flex-end;gap:2.5px;height:16px;flex:none}
+.trk.now .eq{display:flex}
+.trk .eq i{width:3.5px;border-radius:2px;background:#8fb0ff;animation:eq 0.9s ease-in-out infinite}
+.trk .eq i:nth-child(1){height:60%;animation-delay:0s}
+.trk .eq i:nth-child(2){height:100%;animation-delay:.22s}
+.trk .eq i:nth-child(3){height:45%;animation-delay:.44s}
+.trk.now.paused .eq i{animation-play-state:paused}
+@keyframes eq{0%,100%{transform:scaleY(.4)}50%{transform:scaleY(1)}}
+.addnote{font-size:10.5px;color:var(--sub);line-height:1.7;margin-top:10px;background:rgba(255,255,255,.03);
+  border:1px solid rgba(255,255,255,.07);border-radius:12px;padding:9px 12px}
+
+/* ── カテゴリタブ（すべて / MagiBurst / XEVARION / その他） ── */
+#catTabs{display:flex;gap:7px;margin:18px 0 2px;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:2px}
+.cattab{flex:none;border:1px solid var(--line);background:rgba(255,255,255,.05);color:var(--sub);
+  border-radius:99px;padding:7px 15px;font-size:11.5px;font-weight:800;transition:.15s;white-space:nowrap}
+.cattab.on{background:var(--grad);border-color:transparent;color:#fff;box-shadow:0 5px 16px rgba(91,140,255,.4)}
+
+/* ── オフライン用ダウンロード ── */
+#dlCard{margin:16px 0 2px;border:1px solid var(--line);background:linear-gradient(160deg,rgba(91,140,255,.10),rgba(196,107,255,.06));
+  border-radius:16px;padding:13px 14px}
+#dlCard .dlt{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:900;color:var(--tx)}
+#dlCard .dlt .ic{font-size:15px}
+#dlCard .dld{font-size:10.5px;color:var(--sub);line-height:1.65;margin:6px 0 10px}
+#dlCard .dlbar{height:7px;border-radius:99px;background:rgba(255,255,255,.09);overflow:hidden;margin-bottom:9px}
+#dlCard .dlbar i{display:block;height:100%;width:0;border-radius:99px;background:var(--grad);transition:width .3s}
+#dlCard .dlrow{display:flex;align-items:center;gap:8px}
+#dlBtn{flex:1;border:none;border-radius:99px;background:var(--grad);color:#fff;font-weight:900;font-size:12px;
+  padding:11px 14px;cursor:pointer;box-shadow:0 6px 18px rgba(91,140,255,.35)}
+#dlBtn:disabled{opacity:.55;cursor:default;box-shadow:none}
+#dlBtn.done{background:linear-gradient(135deg,#1f9d5c,#31c07a);box-shadow:0 6px 18px rgba(49,192,122,.32)}
+#dlClear{flex:none;border:1px solid var(--line);background:rgba(255,255,255,.05);color:var(--sub);
+  border-radius:99px;padding:11px 14px;font-size:11px;font-weight:800;cursor:pointer}
+#dlCard .dlst{font-size:10.5px;font-weight:800;color:var(--sub);margin-top:8px;text-align:center;min-height:14px}
+#dlCard .dlst.ok{color:#31c07a}
+/* プレイリストのオフライン済みバッジ */
+.pl-dl{flex:none;font-size:9px;font-weight:900;color:#31c07a;border:1px solid rgba(49,192,122,.5);
+  background:rgba(49,192,122,.12);border-radius:99px;padding:2px 6px;margin-left:6px}
+/* オフライン時の通知バー */
+#offBar{display:none;margin:12px 0 0;border:1px solid rgba(255,157,46,.45);background:rgba(255,157,46,.12);
+  color:#ffcf8a;border-radius:12px;padding:9px 12px;font-size:11px;font-weight:800;line-height:1.6}
+#offBar.on{display:block}
+</style>
+</head>
+<body>
+
+<!-- ═══ スプラッシュ（NGX × Magical Future × ISHIDA Production → アプリロゴ+バー） ═══ -->
+<div id="splash">
+  <div class="ph intro" id="spIntro">
+    <div class="lg"><img src="../brand/NGX.png" alt="NGX" onerror="this.parentNode.outerHTML='<div style=&quot;font-weight:900;font-size:26px;color:#e9b13c&quot;>NGX</div>'"></div>
+    <div class="amp">×</div>
+    <div class="lg"><img src="../brand/MagicalFuture.png" alt="Magical Future" onerror="this.parentNode.outerHTML='<div style=&quot;font-weight:900;font-size:24px;color:#22344d&quot;>Magical Future</div>'"></div>
+    <div class="amp">×</div>
+    <div class="lg"><img src="../brand/ISHIDA Production.png" alt="ISHIDA Production" onerror="this.parentNode.outerHTML='<div style=&quot;font-weight:900;font-size:24px;color:#22344d&quot;>ISHIDA Production</div>'"></div>
+  </div>
+  <div class="ph main" id="spMain">
+    <img class="applogo" src="../thumbs/MagiMusic.jpg" alt="MagiMusic">
+    <div class="sp-nm">MagiMusic</div>
+    <div class="sp-bar"><i id="spBar"></i></div>
+    <div class="cap">Loading MagiMusic ...</div>
+  </div>
+</div>
+
+<div id="app">
+  <div id="head">
+    <img src="../thumbs/MagiMusic.jpg" alt="">
+    <div><b>MagiMusic</b><div class="sub">XEVARION MUSIC PLAYER</div></div>
+    <a class="back" href="../index.html">← ポータル</a>
+  </div>
+  <div class="bgnote">🎧 バックグラウンド再生対応 — 他のアプリやタブに切り替えても音楽は流れ続けます。ロック画面・イヤホンからの再生/停止・曲送りにも対応（Media Session）。</div>
+
+  <div id="deck">
+    <div id="discWrap">
+      <div class="ring"></div>
+      <div id="disc"><img id="artImg" src="../thumbs/MagiMusic.jpg" alt=""></div>
+    </div>
+    <div id="tname">—</div>
+    <div id="tsub"><span id="catBadge" class="cbadge other">MUSIC</span></div>
+  </div>
+
+  <div id="seekRow">
+    <span class="tm" id="tmCur">0:00</span>
+    <input type="range" id="seek" min="0" max="1000" value="0">
+    <span class="tm" id="tmAll">0:00</span>
+  </div>
+
+  <div id="ctrl">
+    <button class="cbtn mode" id="btnShuffle" title="シャッフル" onclick="toggleShuffle()">
+      <svg viewBox="0 0 24 24"><path d="M17 3h4v4l-1.5-1.5-3.2 3.2-1.4-1.4 3.2-3.2L17 3zM3 6h4.6l9 9 1.9-1.9L20 14.6V19h-4.4l1.5-1.5-9-9H3V6zm0 12v-2h5.1l2.2-2.2 1.4 1.4L9 18H3z"/></svg>
+    </button>
+    <button class="cbtn" onclick="prevTrack()"><svg viewBox="0 0 24 24"><path d="M6 5h2.5v14H6zM20 5v14l-10-7z"/></svg></button>
+    <button class="cbtn main" id="btnPlay" onclick="togglePlay()"><svg viewBox="0 0 24 24" id="icPlay"><path d="M8 5v14l11-7z"/></svg></button>
+    <button class="cbtn" onclick="nextTrack(true)"><svg viewBox="0 0 24 24"><path d="M15.5 5H18v14h-2.5zM4 5l10 7-10 7z"/></svg></button>
+    <button class="cbtn mode" id="btnRepeat" title="リピート" onclick="cycleRepeat()">
+      <svg viewBox="0 0 24 24"><path d="M7 7h10v3l4-4-4-4v3H5v6h2V7zm10 10H7v-3l-4 4 4 4v-3h12v-6h-2v4z"/><text class="one" id="repOne" x="9.2" y="15.2" style="display:none">1</text></svg>
+    </button>
+  </div>
+
+  <div id="volRow">
+    <svg viewBox="0 0 24 24"><path d="M3 9v6h4l5 5V4L7 9H3zm13.5 3a4.5 4.5 0 00-2.5-4v8a4.5 4.5 0 002.5-4z"/></svg>
+    <input type="range" id="vol" min="0" max="100" value="70">
+  </div>
+
+  <div id="catTabs">
+    <button class="cattab on" data-cat="all" onclick="setCat('all')">すべて</button>
+    <button class="cattab" data-cat="MagiBurst" onclick="setCat('MagiBurst')">🎮 MagiBurst</button>
+    <button class="cattab" data-cat="XEVARION" onclick="setCat('XEVARION')">✦ XEVARION</button>
+    <button class="cattab" data-cat="other" onclick="setCat('other')">🎵 その他</button>
+  </div>
+  <!-- オフライン再生: 全曲をこの端末に保存しておくと機内モードでも聴ける -->
+  <div id="dlCard">
+    <div class="dlt"><span class="ic">⬇️</span><span>オフライン再生（全曲ダウンロード）</span></div>
+    <div class="dld">この端末に曲を保存すると、<b>圏外・機内モードでも全曲そのまま聴けます</b>。ホーム画面に追加しておくとアプリとして起動できます。</div>
+    <div class="dlbar"><i id="dlBar"></i></div>
+    <div class="dlrow">
+      <button id="dlBtn" onclick="dlAll()">全曲ダウンロード</button>
+      <button id="dlClear" onclick="dlClear()">削除</button>
+    </div>
+    <div class="dlst" id="dlSt">確認中…</div>
+  </div>
+  <div id="offBar">📴 オフラインです。ダウンロード済みの曲だけ再生できます。</div>
+
+  <div id="plHead">プレイリスト<span class="n" id="plCount"></span></div>
+  <div id="plist"></div>
+  <div class="addnote">🎵 曲の追加方法：<b>XEVARION/music</b> フォルダに MP3 を入れるだけ。次回起動時に自動でプレイリストへ追加されます（ファイル名がタイトルになります）。MagiBurst のクエストBGMもここから聴けます。</div>
+</div>
+
+<audio id="au" preload="metadata" playsinline></audio>
+
+<script>
+"use strict";
+/* ══════════ アカウントガード ══════════ */
+let ACC = null;
+try { ACC = JSON.parse(localStorage.getItem("xeva_account_v1") || "null"); } catch (e) {}
+if (!ACC || !ACC.setupDone) location.replace("../index.html");
+
+const $ = (s) => document.querySelector(s);
+
+/* ══════════ トラック ══════════
+   既定リスト＋ ../music/ のディレクトリ一覧（静的サーバー時）から自動検出 */
+/* ※ オフライン用の sw.js 側 TRACKS と揃えること */
+const DEFAULT_TRACKS = [
+  "flagship-arrival.mp3", "paper-sun-hat.mp3",
+  "gilded-war-march.mp3", "iron-war-march.mp3", "forbidden-labyrinth.mp3",
+  "moonlit-fault.mp3", "midnight-roulette.mp3", "panic-in-brass.mp3",
+];
+let TRACKS = [];   // {file, title}
+/* カテゴリ分け: MagiBurst のゲームBGM / XEVARION ポータル曲 / その他 */
+const CAT_MAP = {
+  "gilded-war-march.mp3": "MagiBurst",     // 黄昏の王城
+  "iron-war-march.mp3": "MagiBurst",       // 超特急 MAXSPEED
+  "forbidden-labyrinth.mp3": "MagiBurst",  // 禁忌の迷宮
+  "moonlit-fault.mp3": "MagiBurst",        // シオンEX降臨
+  "midnight-roulette.mp3": "MagiBurst",    // ヴィオラEX降臨
+  "panic-in-brass.mp3": "MagiBurst",       // アイラEX降臨
+  "flagship-arrival.mp3": "XEVARION",      // ポータルBGM
+};
+function catOf(file) { return CAT_MAP[file] || "other"; }
+function catLabel(file) { return { MagiBurst: "MAGIBURST", XEVARION: "XEVARION MUSIC", other: "MUSIC" }[catOf(file)]; }
+/* 曲が属するアプリのアイコン画像（角丸スクエアのアートに表示） */
+function catIcon(file) { return { MagiBurst: "../thumbs/MagiBurst.jpg", XEVARION: "../Xevarion.png", other: "../thumbs/MagiMusic.jpg" }[catOf(file)]; }
+let curCat = "all";
+/* 現在のカテゴリに属する曲の TRACKS 上のインデックス一覧 */
+function queueIdx() {
+  const idx = [];
+  TRACKS.forEach((t, i) => { if (curCat === "all" || catOf(t.file) === curCat) idx.push(i); });
+  return idx.length ? idx : TRACKS.map((_, i) => i);
+}
+function setCat(c) {
+  curCat = c;
+  cfg.cat = c; saveCfg();
+  document.querySelectorAll(".cattab").forEach((b) => b.classList.toggle("on", b.dataset.cat === c));
+  renderList();
+}
+window.setCat = setCat;
+function titleOf(file) {
+  return decodeURIComponent(file).replace(/\.mp3$/i, "").replace(/[-_]+/g, " ")
+    .replace(/\b\w/g, (c) => c.toUpperCase());
+}
+async function discoverTracks() {
+  const set = new Set(DEFAULT_TRACKS);
+  try {
+    const res = await fetch("../music/", { cache: "no-store" });
+    if (res.ok) {
+      const html = await res.text();
+      const re = /href="([^"]+\.mp3)"/gi;
+      let m; while ((m = re.exec(html))) set.add(m[1].split("/").pop());
+    }
+  } catch (e) { /* file:// 等では既定リストのみ */ }
+  TRACKS = [...set].map((f) => ({ file: f, title: titleOf(f) }));
+}
+
+/* ══════════ 設定保存 ══════════ */
+const CFG_KEY = "magimusic_v1";
+let cfg = { vol: 0.7, repeat: "all", shuffle: false, last: 0 };
+try { cfg = Object.assign(cfg, JSON.parse(localStorage.getItem(CFG_KEY) || "{}")); } catch (e) {}
+function saveCfg() { try { localStorage.setItem(CFG_KEY, JSON.stringify(cfg)); } catch (e) {} }
+
+/* ══════════ プレイヤー ══════════ */
+const au = $("#au");
+let cur = 0, seeking = false;
+
+function fmtTime(s) {
+  if (!isFinite(s)) return "0:00";
+  s = Math.max(0, Math.round(s));
+  return Math.floor(s / 60) + ":" + String(s % 60).padStart(2, "0");
+}
+function loadTrack(i, autoplay) {
+  if (!TRACKS.length) return;
+  cur = ((i % TRACKS.length) + TRACKS.length) % TRACKS.length;
+  const t = TRACKS[cur];
+  au.src = "../music/" + encodeURIComponent(t.file);
+  $("#tname").textContent = t.title;
+  /* 再生曲が属するアプリのアイコンをアートに表示＋カテゴリバッジ */
+  const cat = catOf(t.file);
+  $("#artImg").src = catIcon(t.file);
+  const badge = $("#catBadge"); badge.className = "cbadge " + cat; badge.textContent = catLabel(t.file);
+  cfg.last = cur; saveCfg();
+  renderList();
+  updateMediaSession();
+  if (autoplay) play();
+}
+function play() {
+  const p = au.play();
+  if (p && p.catch) p.catch(() => {});
+}
+function togglePlay() { if (au.paused) play(); else au.pause(); }
+window.togglePlay = togglePlay;
+function nextTrack(user) {
+  const q = queueIdx();
+  if (q.length <= 1) { loadTrack(q[0] != null ? q[0] : cur, true); return; }
+  if (cfg.shuffle) {
+    let n; do { n = q[Math.floor(Math.random() * q.length)]; } while (n === cur);
+    loadTrack(n, true);
+  } else {
+    const pos = q.indexOf(cur);
+    loadTrack(q[(pos + 1 + q.length) % q.length], true);
+  }
+}
+window.nextTrack = nextTrack;
+function prevTrack() {
+  if (au.currentTime > 4) { au.currentTime = 0; return; }
+  const q = queueIdx();
+  const pos = q.indexOf(cur);
+  loadTrack(q[(pos - 1 + q.length) % q.length], true);
+}
+window.prevTrack = prevTrack;
+function toggleShuffle() {
+  cfg.shuffle = !cfg.shuffle; saveCfg();
+  $("#btnShuffle").classList.toggle("on", cfg.shuffle);
+}
+window.toggleShuffle = toggleShuffle;
+function cycleRepeat() {
+  cfg.repeat = cfg.repeat === "all" ? "one" : cfg.repeat === "one" ? "off" : "all";
+  saveCfg(); paintRepeat();
+}
+window.cycleRepeat = cycleRepeat;
+function paintRepeat() {
+  const b = $("#btnRepeat");
+  b.classList.toggle("on", cfg.repeat !== "off");
+  $("#repOne").style.display = cfg.repeat === "one" ? "block" : "none";
+  b.title = "リピート: " + (cfg.repeat === "all" ? "全曲" : cfg.repeat === "one" ? "1曲" : "オフ");
+}
+
+/* ── UI 反映 ── */
+function paintPlayState() {
+  const playing = !au.paused && !au.ended;
+  $("#icPlay").innerHTML = playing
+    ? '<path d="M7 5h3.6v14H7zM13.4 5H17v14h-3.6z"/>'
+    : '<path d="M8 5v14l11-7z"/>';
+  document.querySelectorAll(".trk.now").forEach((el) => el.classList.toggle("paused", !playing));
+  updateMediaSession();
+}
+au.addEventListener("play", paintPlayState);
+au.addEventListener("pause", paintPlayState);
+au.addEventListener("ended", () => {
+  const q = queueIdx();
+  if (cfg.repeat === "one") { au.currentTime = 0; play(); }
+  else if (cfg.repeat === "off" && !cfg.shuffle && q.indexOf(cur) === q.length - 1) { paintPlayState(); }
+  else nextTrack();
+});
+au.addEventListener("timeupdate", () => {
+  if (seeking) return;
+  const p = au.duration ? au.currentTime / au.duration : 0;
+  const sk = $("#seek");
+  sk.value = Math.round(p * 1000);
+  sk.style.setProperty("--p", (p * 100) + "%");
+  $("#tmCur").textContent = fmtTime(au.currentTime);
+  $("#tmAll").textContent = fmtTime(au.duration);
+});
+au.addEventListener("loadedmetadata", () => { $("#tmAll").textContent = fmtTime(au.duration); });
+$("#seek").addEventListener("input", (e) => {
+  seeking = true;
+  const p = e.target.value / 1000;
+  e.target.style.setProperty("--p", (p * 100) + "%");
+  $("#tmCur").textContent = fmtTime(p * (au.duration || 0));
+});
+$("#seek").addEventListener("change", (e) => {
+  const p = e.target.value / 1000;
+  if (au.duration) au.currentTime = p * au.duration;
+  seeking = false;
+});
+$("#vol").addEventListener("input", (e) => {
+  cfg.vol = e.target.value / 100; saveCfg();
+  au.volume = cfg.vol;
+  e.target.style.setProperty("--p", e.target.value + "%");
+});
+
+function renderList() {
+  const q = queueIdx();
+  $("#plCount").textContent = q.length + " 曲";
+  $("#plist").innerHTML = q.map((gi, n) => {
+    const t = TRACKS[gi];
+    /* ダウンロード済みの曲には ⬇ バッジ＝オフラインでも聴けることを一目で示す */
+    const dl = dlDone.has(t.file) ? '<span class="pl-dl">⬇ 保存済</span>' : "";
+    return `
+    <button class="trk ${gi === cur ? "now" : ""} ${au.paused ? "paused" : ""}" onclick="pickTrack(${gi})">
+      <span class="no">${String(n + 1).padStart(2, "0")}</span>
+      <span class="ti"><span class="t1">${t.title}${dl}</span><span class="t2">${catLabel(t.file)}</span></span>
+      <span class="eq"><i></i><i></i><i></i></span>
+    </button>`;
+  }).join("");
+}
+
+/* ══════════ オフライン再生（全曲ダウンロード） ══════════
+   曲は Cache Storage（AUDIO_CACHE）に保存し、Service Worker がそこから配信する。
+   ★ ダウンロードはこのページ側で行う。SWの中から数MBのファイルを fetch すると
+     環境によっては応答が返らずタイムアウトしてしまうため。SWは配信に専念させる。 */
+const AUDIO_CACHE = "magimusic-audio-v1";   // sw.js と同じ名前にすること
+let dlDone = new Set();     // ダウンロード済みのファイル名
+let dlBusy = false;
+let dlAbort = false;
+function trackUrl(f) { return new URL("../music/" + encodeURIComponent(f), location.href).href; }
+async function swPost(msg) {
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    const sw = (reg && reg.active) || navigator.serviceWorker.controller;
+    if (sw) sw.postMessage(msg);
+  } catch (e) {}
+}
+function dlTrackFiles() { return TRACKS.map((t) => t.file); }
+/* 保存済みの曲を Cache Storage から調べる */
+async function refreshDlStatus() {
+  try {
+    const c = await caches.open(AUDIO_CACHE);
+    const done = new Set();
+    for (const f of dlTrackFiles()) { if (await c.match(new Request(trackUrl(f)))) done.add(f); }
+    dlDone = done;
+  } catch (e) { dlDone = new Set(); }
+  paintDl(); renderList();
+}
+/* 1曲を保存。転送が途中で切れると壊れたまま保存されるので、
+   arrayBuffer に読み切って content-length と一致することを確かめてから保存する。 */
+async function cacheOne(cache, f) {
+  const key = new Request(trackUrl(f));
+  if (await cache.match(key)) return true;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const res = await fetch(trackUrl(f), { cache: "reload" });
+      if (!res || !res.ok) continue;
+      const len = Number(res.headers.get("content-length") || 0);
+      const buf = await res.arrayBuffer();
+      if (!buf.byteLength || (len && buf.byteLength !== len)) continue;   // 途中で切れた → リトライ
+      await cache.put(key, new Response(buf, {
+        headers: { "Content-Type": "audio/mpeg", "Content-Length": String(buf.byteLength), "Accept-Ranges": "bytes" },
+      }));
+      if (await cache.match(key)) return true;
+    } catch (e) { /* 次の試行へ */ }
+    await new Promise((r) => setTimeout(r, 400 * (attempt + 1)));
+  }
+  return false;
+}
+function paintDl() {
+  const total = TRACKS.length || 1;
+  const n = dlDone.size;
+  const pct = Math.round(n / total * 100);
+  const bar = $("#dlBar"); if (bar) bar.style.width = pct + "%";
+  const btn = $("#dlBtn"), st = $("#dlSt");
+  if (!btn || !st) return;
+  const all = n >= total && total > 0;
+  btn.classList.toggle("done", all);
+  btn.disabled = dlBusy || all;
+  if (!dlBusy) btn.textContent = all ? "✓ ダウンロード済み" : (n > 0 ? "残りをダウンロード" : "全曲ダウンロード");
+  st.classList.toggle("ok", all);
+  if (!dlBusy) st.textContent = all ? "全 " + total + " 曲を保存済み。オフラインでも再生できます" : n + " / " + total + " 曲を保存済み";
+  const cl = $("#dlClear"); if (cl) cl.style.display = n > 0 ? "" : "none";
+}
+async function dlAll() {
+  if (dlBusy) return;
+  if (!("caches" in window)) { $("#dlSt").textContent = "この環境ではオフライン保存に対応していません"; return; }
+  if (!navigator.onLine) { $("#dlSt").textContent = "オフラインです。オンラインのときにダウンロードしてください"; return; }
+  dlBusy = true; dlAbort = false;
+  $("#dlBtn").disabled = true;
+  $("#dlBtn").textContent = "ダウンロード中…";
+  /* iOS でストレージを勝手に消されにくくする */
+  try { if (navigator.storage && navigator.storage.persist) await navigator.storage.persist(); } catch (e) {}
+  const files = dlTrackFiles();
+  const cache = await caches.open(AUDIO_CACHE);
+  let ok = 0, fail = 0;
+  for (let i = 0; i < files.length; i++) {
+    if (dlAbort) break;
+    const f = files[i];
+    $("#dlSt").textContent = "ダウンロード中… " + (i + 1) + " / " + files.length + "（" + titleOf(f) + "）";
+    $("#dlBar").style.width = Math.round(i / files.length * 100) + "%";
+    if (await cacheOne(cache, f)) { ok++; dlDone.add(f); } else fail++;
+    renderList();
+  }
+  dlBusy = false;
+  await refreshDlStatus();
+  if (fail) $("#dlSt").textContent = ok + " 曲を保存（" + fail + " 曲は失敗）。通信環境を確認して、もう一度お試しください";
+}
+window.dlAll = dlAll;
+async function dlClear() {
+  if (dlBusy) return;
+  if (!confirm("ダウンロードした曲をこの端末から削除しますか？（オンラインならまた聴けます）")) return;
+  try { await caches.delete(AUDIO_CACHE); } catch (e) {}
+  await swPost({ type: "CLEAR_AUDIO" });
+  await refreshDlStatus();
+}
+window.dlClear = dlClear;
+/* オフライン表示バー */
+function paintOffline() {
+  const b = $("#offBar"); if (b) b.classList.toggle("on", !navigator.onLine);
+}
+window.addEventListener("online", () => { paintOffline(); refreshDlStatus(); });
+window.addEventListener("offline", paintOffline);
+function pickTrack(i) { if (i === cur) { togglePlay(); } else loadTrack(i, true); }
+window.pickTrack = pickTrack;
+
+/* ── Media Session（バックグラウンド・ロック画面対応） ── */
+function updateMediaSession() {
+  if (!("mediaSession" in navigator)) return;
+  const t = TRACKS[cur]; if (!t) return;
+  try {
+    navigator.mediaSession.metadata = new MediaMetadata({
+      title: t.title, artist: catLabel(t.file), album: "MagiMusic",
+      artwork: [{ src: catIcon(t.file), sizes: "512x512", type: "image/png" }],
+    });
+    navigator.mediaSession.playbackState = au.paused ? "paused" : "playing";
+  } catch (e) {}
+}
+if ("mediaSession" in navigator) {
+  try {
+    navigator.mediaSession.setActionHandler("play", play);
+    navigator.mediaSession.setActionHandler("pause", () => au.pause());
+    navigator.mediaSession.setActionHandler("previoustrack", prevTrack);
+    navigator.mediaSession.setActionHandler("nexttrack", () => nextTrack(true));
+    navigator.mediaSession.setActionHandler("seekto", (d) => { if (d.seekTime != null && au.duration) au.currentTime = d.seekTime; });
+  } catch (e) {}
+}
+
+/* ── ディスクのビート連動（AnalyserNode） ──
+   iPhone/iPad では <audio> を Web Audio(MediaElementSource)に通すと、
+   サイレントスイッチ（消音モード）で音が出なくなる／再生が無音化する不具合があるため、
+   iOS ではビート解析をスキップして <audio> をそのまま鳴らす（音楽は消音スイッチでも鳴る）。 */
+const IS_IOS = /iP(hone|od|ad)/.test(navigator.platform) ||
+  /iPhone|iPad|iPod/.test(navigator.userAgent) ||
+  (/Mac/.test(navigator.platform) && navigator.maxTouchPoints > 1);
+let _ac = null, _an = null;
+function setupBeat() {
+  if (_an || IS_IOS) return;
+  try {
+    _ac = new (window.AudioContext || window.webkitAudioContext)();
+    const src = _ac.createMediaElementSource(au);
+    _an = _ac.createAnalyser(); _an.fftSize = 128;
+    src.connect(_an); _an.connect(_ac.destination);
+    const data = new Uint8Array(_an.frequencyBinCount);
+    let cur2 = 0;
+    (function loop() {
+      requestAnimationFrame(loop);
+      if (!_an) return;
+      _an.getByteFrequencyData(data);
+      let sum = 0; for (let i = 0; i < 8; i++) sum += data[i];
+      const v = Math.min(1, sum / 8 / 210);
+      cur2 += (v - cur2) * 0.35;
+      document.documentElement.style.setProperty("--mb", cur2.toFixed(3));
+    })();
+  } catch (e) {}
+}
+document.addEventListener("pointerdown", function unlock() {
+  setupBeat();
+  try { if (_ac && _ac.state === "suspended") _ac.resume(); } catch (e) {}
+}, { once: true });
+
+/* ══════════ 起動（MagiChainParty と同じ2段スプラッシュ） ══════════ */
+(async function boot() {
+  const intro = $("#spIntro"), main = $("#spMain");
+  setTimeout(() => intro.classList.add("in"), 60);
+  const disc = discoverTracks();
+  await new Promise((r) => setTimeout(r, 3600));   // 3社ロゴ表示
+  intro.classList.remove("in"); intro.classList.add("out");
+  await new Promise((r) => setTimeout(r, 520));
+  intro.style.display = "none"; main.classList.add("in");
+  setTimeout(() => { const f = $("#spBar"); f.style.transition = "width 1500ms cubic-bezier(.3,.7,.3,1)"; f.style.width = "100%"; }, 50);
+  await disc;
+  au.volume = cfg.vol;
+  const volEl = $("#vol"); volEl.value = Math.round(cfg.vol * 100); volEl.style.setProperty("--p", volEl.value + "%");
+  $("#btnShuffle").classList.toggle("on", !!cfg.shuffle);
+  paintRepeat();
+  if (cfg.cat && ["all", "MagiBurst", "XEVARION", "other"].includes(cfg.cat)) setCat(cfg.cat);
+  loadTrack(Math.min(cfg.last || 0, TRACKS.length - 1), false);
+  paintPlayState();
+  /* オフライン再生: 保存済みの曲を Cache Storage から調べて UI へ反映 */
+  paintOffline(); paintDl();
+  refreshDlStatus();
+  await new Promise((r) => setTimeout(r, 1550));
+  $("#splash").classList.add("hide");
+  setTimeout(() => { $("#splash").style.display = "none"; }, 560);
+})();
+</script>
+</body>
+</html>

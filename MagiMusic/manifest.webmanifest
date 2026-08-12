@@ -1,0 +1,16 @@
+{
+  "name": "MagiMusic — XEVARION ミュージックプレイヤー",
+  "short_name": "MagiMusic",
+  "description": "XEVARION の楽曲をオフラインでも聴けるミュージックプレイヤー",
+  "start_url": "./MagiMusic.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0a0d1a",
+  "theme_color": "#5b8cff",
+  "icons": [
+    { "src": "../thumbs/MagiMusic.jpg", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "../thumbs/MagiMusic.jpg", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "../thumbs/MagiMusic.jpg", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

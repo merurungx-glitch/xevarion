@@ -1,0 +1,2185 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+<script src="../maintenance-gate.js?v=5"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>ORDYXIS - オンラインオーダー</title>
+<link rel="icon" type="image/png" href="../thumbs/Ordyxis.jpg">
+<link rel="apple-touch-icon" href="../thumbs/Ordyxis.jpg">
+<!-- 電波の弱い環境でも素早く起動できるよう、外部依存(Firebase SDK / Realtime Database)への
+     接続をページ解析と並行して先に始める。表示・機能は一切変えない。
+     ・preconnect/dns-prefetch: DNS・TCP・TLSのハンドシェイクを前倒しして接続を温めておく
+     ・preload: SDK本体の取得を<head>解析中から開始し、本文の解析と重ねてダウンロードする -->
+<link rel="preconnect" href="https://www.gstatic.com">
+<link rel="dns-prefetch" href="https://www.gstatic.com">
+<link rel="preconnect" href="https://ordyxis-default-rtdb.asia-southeast1.firebasedatabase.app">
+<link rel="dns-prefetch" href="https://ordyxis-default-rtdb.asia-southeast1.firebasedatabase.app">
+<link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js">
+<link rel="preload" as="script" href="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js">
+<style>
+  :root{
+    --blue:#49a8ff; --orange:#f0a73d; --ink:#1d2533; --bg:#f4f6fb;
+    --grad:linear-gradient(90deg,#49a8ff,#a07ae0,#f0a73d);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  /* ダブルタップでの拡大を防止（注文操作の誤拡大防止）。
+     iOS Safari は viewport の user-scalable=no を無視するため、全要素に
+     touch-action:manipulation を付与してダブルタップ拡大だけを無効化する
+     （通常のタップ・スクロール・ピンチ操作は維持。スライダー等の none 指定は
+       specificity が高いため上書きされない）。 */
+  html{-webkit-text-size-adjust:100%;}
+  *{touch-action:manipulation;}
+  body{font-family:'Segoe UI','Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif;
+    background:var(--bg);color:var(--ink);min-height:100vh;-webkit-text-size-adjust:100%;}
+  header{position:sticky;top:0;z-index:50;background:#fff;display:flex;align-items:center;
+    justify-content:space-between;padding:10px 16px;box-shadow:0 2px 10px rgba(20,30,60,.08);}
+  header .brand{display:flex;align-items:center;gap:10px;}
+  header .brand img{height:34px;}
+  header .brand .name{font-weight:800;letter-spacing:.25em;font-size:18px;}
+  .cart-btn{position:relative;border:none;background:var(--ink);color:#fff;border-radius:99px;
+    padding:9px 18px;font-size:14px;font-weight:700;cursor:pointer;}
+  .cart-btn .badge{position:absolute;top:-7px;right:-7px;background:#e8503a;color:#fff;
+    min-width:22px;height:22px;border-radius:99px;font-size:12px;display:flex;
+    align-items:center;justify-content:center;font-weight:800;padding:0 5px;}
+  main{max-width:880px;margin:0 auto;padding:16px 14px 110px;}
+  h2.section{font-size:15px;letter-spacing:.18em;color:#7a86a0;margin:18px 4px 10px;}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;}
+  .card{background:#fff;border-radius:16px;overflow:hidden;box-shadow:0 2px 10px rgba(20,30,60,.07);
+    display:flex;flex-direction:column;}
+  .card img{width:100%;aspect-ratio:4/3;object-fit:cover;background:#eceef5;}
+  .card .body{padding:10px 12px 12px;display:flex;flex-direction:column;gap:6px;flex:1;}
+  .card .name{font-size:14px;font-weight:700;line-height:1.35;}
+  .card .price{font-size:16px;font-weight:800;color:#e8762a;}
+  .card .price-hint{font-size:11.5px;font-weight:700;color:#8a93a8;}
+  .qty{display:flex;align-items:center;gap:10px;margin-top:auto;}
+  .qty button{width:34px;height:34px;border-radius:99px;border:1.5px solid #cdd5e4;background:#fff;
+    font-size:18px;font-weight:700;color:var(--ink);cursor:pointer;}
+  .qty button:active{background:#eef2fa;}
+  .qty .n{min-width:26px;text-align:center;font-weight:800;font-size:16px;}
+  /* ---- チュロスカードの「追加」ボタン ---- */
+  .section-note{font-size:12.5px;color:#8a93a8;margin:0 4px 12px;line-height:1.6;}
+  .add-btn{margin-top:auto;border:none;border-radius:12px;padding:11px;font-size:14px;font-weight:800;
+    color:#fff;background:var(--grad);cursor:pointer;letter-spacing:.04em;}
+  .add-btn:disabled{opacity:.4;cursor:default;}
+  .card.soldout .add-btn{display:none;}
+  /* ---- ソース選択シート ---- */
+  .sauce-sheet{position:fixed;z-index:100;left:0;right:0;bottom:0;background:#fff;
+    border-radius:20px 20px 0 0;max-height:86vh;display:flex;flex-direction:column;
+    transform:translateY(105%);transition:transform .3s ease;box-shadow:0 -8px 30px rgba(20,30,60,.25);}
+  .sauce-sheet.open{transform:none;}
+  .sauce-sheet .head{padding:16px 18px 4px;display:flex;justify-content:space-between;align-items:center;}
+  .sauce-sheet .head h3{font-size:16px;line-height:1.4;padding-right:10px;}
+  .sauce-sheet .close{border:none;background:none;font-size:22px;cursor:pointer;color:#8a93a8;}
+  .sauce-sub{padding:0 18px 6px;font-size:12.5px;color:#8a93a8;}
+  .sauce-opts{overflow-y:auto;padding:8px 18px calc(20px + env(safe-area-inset-bottom));
+    display:flex;flex-direction:column;gap:10px;}
+  .sauce-opt{display:flex;align-items:center;gap:14px;border:1.5px solid #e3e8f2;background:#fff;
+    border-radius:14px;padding:10px 14px;cursor:pointer;text-align:left;width:100%;}
+  .sauce-opt:active{background:#f3f6fc;}
+  .sauce-opt.selected{border-color:var(--blue);background:#eef6ff;box-shadow:0 0 0 2px rgba(73,168,255,.25);}
+  .sauce-opt .so-go{transition:color .15s;}
+  .sauce-opt.selected .so-go{color:var(--blue);}
+  .sauce-opt.selected .so-go::after{content:" ✓";}
+  /* ソースシートのフッター (個数 + 追加ボタン) */
+  .sauce-foot{padding:12px 18px calc(18px + env(safe-area-inset-bottom));border-top:1px solid #eef0f6;
+    display:flex;flex-direction:column;gap:12px;}
+  .qty-pick{display:flex;align-items:center;justify-content:space-between;}
+  .qty-pick .qp-label{font-size:14px;font-weight:800;color:var(--ink);}
+  .qty-pick .qty button:disabled{opacity:.35;cursor:default;}
+  .add-confirm{border:none;border-radius:14px;padding:15px;font-size:16px;font-weight:800;
+    color:#fff;background:var(--grad);cursor:pointer;letter-spacing:.06em;}
+  .add-confirm:disabled{opacity:.45;cursor:default;}
+  .qp-note{min-height:0;font-size:12px;color:#e8503a;font-weight:700;text-align:center;}
+  .sauce-opt img{width:54px;height:44px;object-fit:cover;border-radius:8px;background:#eceef5;}
+  .sauce-opt.soldout{opacity:.45;cursor:default;pointer-events:none;}
+  .sauce-opt.soldout .so-go{display:none;}
+  .sauce-opt.soldout::after{content:"SOLD OUT";font-size:11px;font-weight:900;color:#e8503a;margin-left:auto;white-space:nowrap;}
+  .sauce-opt .so-ic{width:54px;height:44px;border-radius:8px;background:#eef2fa;display:flex;
+    align-items:center;justify-content:center;font-weight:800;color:#8a93a8;font-size:13px;flex:none;}
+  .sauce-opt .so-ic.both{background:linear-gradient(135deg,#ffe3c2,#f3c8a6);color:#9a6a18;}
+  .sauce-opt .so-tx{flex:1;}
+  .sauce-opt .so-nm{font-size:14.5px;font-weight:800;}
+  .sauce-opt .so-pr{font-size:12.5px;color:#7a86a0;font-weight:700;}
+  .sauce-opt .so-go{font-size:20px;color:#c2cad8;font-weight:800;}
+  /* ---- 追加トースト ---- */
+  .toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%) translateY(20px);
+    background:#1d2533;color:#fff;padding:11px 20px;border-radius:99px;font-size:13.5px;font-weight:700;
+    z-index:300;opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;max-width:86vw;}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+  /* ---- カート ---- */
+  .overlay{position:fixed;inset:0;background:rgba(15,20,35,.45);z-index:90;display:none;}
+  .overlay.open{display:block;}
+  .cart-panel{position:fixed;z-index:100;left:0;right:0;bottom:0;background:#fff;
+    border-radius:20px 20px 0 0;max-height:86vh;display:flex;flex-direction:column;
+    transform:translateY(105%);transition:transform .3s ease;box-shadow:0 -8px 30px rgba(20,30,60,.25);}
+  .cart-panel.open{transform:none;}
+  .cart-panel .head{padding:16px 18px 8px;display:flex;justify-content:space-between;align-items:center;}
+  .cart-panel .head h3{font-size:17px;}
+  .cart-panel .close{border:none;background:none;font-size:22px;cursor:pointer;color:#8a93a8;}
+  .cart-items{overflow-y:auto;overscroll-behavior:contain;padding:4px 18px;flex:1;}
+  /* カート表示中は背面(メニュー)のスクロールを完全に固定し、背景が動かないようにする。
+     iOS Safari は overflow:hidden だけでは背景がスクロール(バウンス)してしまうため、
+     body を position:fixed で固定し、開いた時のスクロール位置を top で打ち消す
+     (openCart で scrollY を保存/復元する)。これでカート内をスライドしても背景は動かない。 */
+  body.cart-open{position:fixed;left:0;right:0;width:100%;overflow:hidden;}
+  .cart-panel{overscroll-behavior:contain;}
+  .overlay{overscroll-behavior:contain;touch-action:none;}
+  .cart-row{display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid #eef0f6;}
+  .cart-row img{width:56px;height:46px;object-fit:cover;border-radius:8px;background:#eceef5;}
+  .cart-row .info{flex:1;}
+  .cart-row .info .nm{font-size:13.5px;font-weight:700;}
+  .cart-row .info .sauce-line{font-size:12px;color:#9a6a18;font-weight:700;margin:1px 0;}
+  .cart-row .info .sauce-line.none{color:#9aa3b5;font-weight:600;}
+  .cart-row .info .pr{font-size:12.5px;color:#7a86a0;}
+  .cart-row .sub{font-weight:800;font-size:14px;white-space:nowrap;}
+  .cart-foot{padding:14px 18px calc(16px + env(safe-area-inset-bottom));border-top:1px solid #eef0f6;}
+  .price-breakdown{margin-bottom:8px;}
+  .price-breakdown .pb-row{display:flex;justify-content:space-between;font-size:13px;color:#7a86a0;padding:2px 0;}
+  .min-note{font-size:12.5px;color:#e8503a;font-weight:700;text-align:center;margin:2px 0 10px;}
+  .total-row{display:flex;justify-content:space-between;font-size:18px;font-weight:800;margin-bottom:12px;}
+  .order-btn{width:100%;border:none;border-radius:14px;padding:15px;font-size:16px;font-weight:800;
+    color:#fff;background:var(--grad);cursor:pointer;letter-spacing:.08em;}
+  .order-btn:disabled{opacity:.45;cursor:default;}
+  .empty{color:#9aa3b5;text-align:center;padding:30px 0;font-size:14px;}
+  /* ---- チケット(注文後) ---- */
+  .ticket{position:fixed;inset:0;z-index:200;background:var(--bg);display:none;
+    flex-direction:column;align-items:center;justify-content:flex-start;text-align:center;
+    overflow-y:auto;-webkit-overflow-scrolling:touch;
+    padding:calc(env(safe-area-inset-top) + 22px) 20px calc(env(safe-area-inset-bottom) + 26px);}
+  .ticket.open{display:flex;}
+  /* 画面に収まるときは中央寄せ、はみ出すときは上下スクロールで見切れを防ぐ
+     (Androidの画面高さのばらつき対策)。子要素は潰さない(iPhoneでスライダーが細くならないように)。 */
+  .ticket > *{flex-shrink:0;max-width:100%;}
+  .ticket.open > :first-child{margin-top:auto;}
+  .ticket.open > :last-child{margin-bottom:auto;}
+  .ticket{overscroll-behavior:contain;}
+  /* チケット表示中は背面の注文画面・ヘッダーを隠し、ページのスクロールを固定する。
+     (受け取りスライドを高速で操作したときに背景の注文画面が一瞬見えるのを防ぐ) */
+  body.tracking{overflow:hidden;}
+  body.tracking #shopMain,
+  body.tracking header,
+  body.tracking #modeBar{display:none !important;}
+  /* スライド操作中にページがスクロール/バウンスしないように */
+  .slide-confirm,.slide-confirm .slide-thumb{touch-action:none;}
+  .ticket .label{font-size:13px;letter-spacing:.3em;color:#7a86a0;}
+  .ticket .number{font-size:88px;font-weight:900;letter-spacing:.06em;line-height:1.1;
+    background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .status-pill{margin-top:10px;font-size:15px;font-weight:800;padding:10px 26px;border-radius:99px;}
+  .status-pill.new{background:#e3ecff;color:#2b5cd9;}
+  .status-pill.calling{background:#ffe9d6;color:#d96a13;animation:pulse 1.2s infinite;}
+  .status-pill.done{background:#dcf5e4;color:#1d9a52;}
+  @keyframes pulse{50%{transform:scale(1.06);}}
+  .ticket .detail{margin-top:22px;background:#fff;border-radius:14px;padding:14px 20px;
+    box-shadow:0 2px 10px rgba(20,30,60,.08);font-size:13.5px;min-width:min(320px,86vw);}
+  .ticket .detail .row{display:flex;justify-content:space-between;padding:3px 0;}
+  .ticket .detail .tot{border-top:1px solid #eef0f6;margin-top:6px;padding-top:8px;font-weight:800;font-size:15px;}
+  /* スライド式の受け取り確認 (誤操作防止) */
+  .slide-confirm{margin-top:26px;width:min(340px,86vw);height:62px;border-radius:99px;
+    background:#e4e9f4;position:relative;overflow:hidden;user-select:none;
+    -webkit-user-select:none;touch-action:none;}
+  .slide-confirm.disabled{opacity:.45;}
+  .slide-confirm .slide-fill{position:absolute;left:0;top:0;bottom:0;width:0;
+    background:var(--grad);opacity:.3;border-radius:99px;}
+  .slide-confirm .slide-label{position:absolute;inset:0;display:flex;align-items:center;
+    justify-content:center;font-size:14px;font-weight:700;color:#7a86a0;
+    letter-spacing:.04em;padding-left:34px;}
+  .slide-confirm .slide-thumb{position:absolute;left:5px;top:5px;width:52px;height:52px;
+    border-radius:99px;background:var(--grad);color:#fff;display:flex;align-items:center;
+    justify-content:center;font-size:24px;font-weight:900;cursor:grab;
+    box-shadow:0 2px 8px rgba(20,30,60,.35);will-change:transform;}
+  .slide-confirm .slide-thumb:active{cursor:grabbing;}
+  .slide-confirm.completed{background:#dcf5e4;}
+  .slide-confirm.completed .slide-label{color:#1d9a52;padding-left:0;}
+  .ticket .hint{margin-top:12px;font-size:12.5px;color:#8a93a8;max-width:320px;line-height:1.6;}
+  .thanks h2{font-size:26px;margin-bottom:8px;}
+  .again-btn{margin-top:24px;border:1.5px solid #cdd5e4;background:#fff;border-radius:14px;
+    padding:13px 30px;font-size:15px;font-weight:700;cursor:pointer;color:var(--ink);}
+  /* ---- 在庫(注文可能数) ---- */
+  .card{position:relative;}
+  .stock-tag{font-size:11.5px;font-weight:800;padding:2px 8px;border-radius:99px;align-self:flex-start;}
+  .stock-tag.few{background:#fff1e0;color:#d9730d;}
+  .stock-tag.ok{background:#e7f6ec;color:#1d9a52;}
+  .card.soldout .body{opacity:.5;}
+  .card.soldout .qty{display:none;}
+  .soldout-overlay{display:none;position:absolute;inset:0;background:rgba(29,37,51,.62);
+    align-items:center;justify-content:center;flex-direction:column;gap:4px;border-radius:16px;}
+  .card.soldout .soldout-overlay{display:flex;}
+  .soldout-overlay .so-main{color:#fff;font-size:20px;font-weight:900;letter-spacing:.1em;}
+  .soldout-overlay .so-sub{color:#ffd9d0;font-size:12px;font-weight:700;}
+  .qty button:disabled{opacity:.35;cursor:default;}
+  .cart-row.soldout-row{background:#fff5f3;}
+  .cart-row .cap-note{font-size:11px;color:#e8503a;font-weight:700;}
+  /* ---- 二段階の受け取り確認 ---- */
+  .receipt-confirm{display:none;margin-top:18px;width:min(340px,86vw);border:none;border-radius:16px;
+    padding:16px;font-size:16px;font-weight:800;color:#fff;background:#1d9a52;cursor:pointer;
+    letter-spacing:.06em;box-shadow:0 8px 24px rgba(29,154,82,.35);animation:pulse 1.3s infinite;}
+  .receipt-confirm.show{display:block;}
+  .receipt-redo{display:none;margin-top:10px;background:none;border:none;color:#8a93a8;
+    font-size:13px;font-weight:700;cursor:pointer;text-decoration:underline;}
+  .receipt-redo.show{display:inline-block;}
+
+  /* ---- アプリ内ブラウザ警告ゲート ---- */
+  .inapp-gate{position:fixed;inset:0;z-index:9000;background:#0b0e16;color:#e6ebf5;display:none;
+    flex-direction:column;align-items:center;justify-content:flex-start;text-align:center;
+    overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;
+    padding:28px 24px calc(28px + env(safe-area-inset-bottom));}
+  .inapp-gate.open{display:flex;}
+  /* 内容が画面に収まるときは中央寄せ、はみ出すときは上下スクロールで全文を読めるようにする
+     (理由説明など縦に長くなったときに上端・下端が見切れないように)。子要素は潰さない。 */
+  .inapp-gate > *{flex-shrink:0;}
+  .inapp-gate.open > :first-child{margin-top:auto;}
+  .inapp-gate.open > :last-child{margin-bottom:auto;}
+  .inapp-gate .ig-ic{font-size:50px;margin-bottom:8px;}
+  .inapp-gate h2{font-size:20px;font-weight:800;margin-bottom:12px;}
+  .inapp-gate p{font-size:13.5px;color:#9aa6bd;line-height:1.9;max-width:380px;margin-bottom:18px;}
+  .inapp-gate .url{font-size:12.5px;color:#bcd0ee;background:rgba(255,255,255,.06);
+    border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:10px 12px;
+    word-break:break-all;max-width:380px;margin-bottom:16px;}
+  .inapp-gate .ig-btn{border:none;border-radius:13px;padding:14px 24px;font-size:15px;font-weight:800;
+    color:#fff;background:var(--grad);cursor:pointer;width:min(340px,86vw);margin-bottom:10px;}
+  .inapp-gate .ig-chrome{background:#2a7de1;}
+  .inapp-gate .ig-copy{background:#27304a;}
+  .inapp-gate .ig-skip{background:none;border:none;color:#7d8aa3;font-size:12.5px;
+    font-weight:700;text-decoration:underline;cursor:pointer;margin-top:6px;}
+  /* なぜこの画面が出るのか(通常Safariで開き直しを求められた方への理由説明) */
+  .inapp-gate .ig-why{font-size:12px;color:#8e9bb5;line-height:1.85;max-width:380px;
+    background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:12px;
+    padding:12px 14px;margin-top:16px;text-align:left;}
+  .inapp-gate .ig-why b{color:#bcd0ee;}
+
+  /* ---- 混雑時の待機画面 ---- */
+  .busy-gate{position:fixed;inset:0;z-index:8800;background:#0b0e16;color:#e6ebf5;display:none;
+    flex-direction:column;align-items:center;justify-content:center;text-align:center;
+    padding:28px 24px calc(28px + env(safe-area-inset-bottom));}
+  .busy-gate.open{display:flex;}
+  .busy-gate h2{font-size:21px;font-weight:800;margin:18px 0 12px;}
+  .busy-gate p{font-size:14px;color:#9aa6bd;line-height:1.95;max-width:380px;margin-bottom:18px;}
+  .busy-gate .bg-hint{font-size:12.5px;color:#7d8aa3;font-weight:700;}
+  .busy-gate .bg-spin{width:54px;height:54px;border-radius:50%;
+    border:4px solid rgba(255,255,255,.14);border-top-color:#2a7de1;animation:bgspin 1s linear infinite;}
+  @keyframes bgspin{to{transform:rotate(360deg);}}
+
+  /* ---- 受取方法の選択 (FastPass) ---- */
+  .mode-screen{position:fixed;inset:0;z-index:120;background:var(--bg);display:none;
+    flex-direction:column;padding:0 0 calc(20px + env(safe-area-inset-bottom));overflow-y:auto;}
+  .mode-screen.open{display:flex;}
+  .ms-head{padding:26px 22px 10px;text-align:center;}
+  .ms-head .lg{font-size:12px;letter-spacing:.3em;color:#7a86a0;font-weight:800;}
+  .ms-head h2{font-size:22px;font-weight:900;margin-top:8px;}
+  .ms-head p{font-size:13px;color:#7a86a0;margin-top:8px;line-height:1.7;}
+  .ms-cards{display:flex;flex-direction:column;gap:14px;padding:14px 18px;max-width:480px;
+    margin:0 auto;width:100%;}
+  .ms-card{background:#fff;border-radius:20px;padding:22px 20px;box-shadow:0 4px 18px rgba(20,30,60,.1);
+    border:2px solid transparent;cursor:pointer;text-align:left;display:flex;gap:16px;align-items:center;}
+  .ms-card:active{transform:scale(.99);}
+  .ms-card .emo{font-size:34px;flex:0 0 auto;width:58px;height:58px;border-radius:16px;
+    display:flex;align-items:center;justify-content:center;background:#eef4ff;}
+  .ms-card.sched .emo{background:#fff2e2;}
+  .ms-card .tx h3{font-size:18px;font-weight:900;margin-bottom:4px;}
+  .ms-card .tx p{font-size:12.5px;color:#7a86a0;line-height:1.6;margin:0;}
+  .ms-card.disabled{opacity:.5;cursor:default;}
+  /* ---- 料金のご案内 (注文開始前) ---- */
+  .price-guide{display:flex;flex-direction:column;gap:14px;padding:8px 18px;max-width:480px;
+    margin:0 auto;width:100%;}
+  .pg-card{background:#fff;border-radius:18px;padding:16px 18px;box-shadow:0 4px 18px rgba(20,30,60,.08);}
+  .pg-main{display:flex;justify-content:space-between;align-items:baseline;gap:10px;}
+  .pg-qty{font-size:16px;font-weight:900;}
+  .pg-price{font-size:20px;font-weight:900;color:#e8762a;white-space:nowrap;}
+  .pg-was{font-size:14px;font-weight:700;color:#9aa3b5;text-decoration:line-through;margin-right:6px;}
+  .pg-off{display:inline-block;font-size:11px;font-weight:900;color:#fff;background:#e8503a;
+    border-radius:99px;padding:2px 8px;margin-right:7px;vertical-align:middle;letter-spacing:.02em;}
+  .pg-desc{font-size:12.5px;color:#7a86a0;line-height:1.6;margin-top:6px;}
+  .pg-table{background:#fff;border-radius:18px;padding:4px 16px;box-shadow:0 4px 18px rgba(20,30,60,.08);}
+  .pgt-row{display:flex;justify-content:space-between;padding:9px 2px;border-bottom:1px solid #f0f2f8;
+    font-size:14.5px;font-weight:700;}
+  .pgt-row:last-child{border-bottom:none;}
+  .pgt-head{color:#8a93a8;font-size:12px;font-weight:800;letter-spacing:.04em;}
+  .pg-note{font-size:12px;color:#8a93a8;text-align:center;line-height:1.7;margin-top:2px;}
+  .pg-start{margin:8px auto 0;width:100%;border:none;border-radius:14px;padding:16px;
+    font-size:16px;font-weight:800;color:#fff;background:var(--grad);cursor:pointer;letter-spacing:.06em;}
+
+  /* ---- 時間指定予約の注意事項 (スマホ画面のイメージ付き) ---- */
+  .rn-wrap{display:flex;flex-direction:column;gap:14px;padding:6px 18px;max-width:560px;margin:0 auto;width:100%;}
+  .rn-lead{font-size:13px;color:#7a86a0;line-height:1.7;background:#fff8ec;border:1px solid #f0d9a8;
+    border-radius:14px;padding:12px 14px;}
+  .rn-lead b{color:#8a5a00;}
+  .rn-step{display:flex;gap:14px;align-items:center;background:#fff;border-radius:18px;padding:14px;
+    box-shadow:0 4px 18px rgba(20,30,60,.08);}
+  .rn-step .rn-tx{flex:1;min-width:0;}
+  .rn-step .rn-tag{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:900;margin-bottom:5px;}
+  .rn-step .rn-no{width:26px;height:26px;border-radius:50%;background:var(--grad);color:#fff;
+    font-weight:900;display:flex;align-items:center;justify-content:center;font-size:13px;flex:0 0 auto;}
+  .rn-step .rn-tx p{font-size:12.5px;color:#7a86a0;line-height:1.65;}
+  /* スマホ画面のミニチュア (スクリーンショット風) */
+  .rn-phone{flex:0 0 auto;width:104px;height:172px;border-radius:18px;background:#0b0e16;padding:7px;
+    box-shadow:0 8px 20px rgba(20,30,60,.28);}
+  .rn-screen{width:100%;height:100%;border-radius:12px;background:#f4f6fb;overflow:hidden;
+    display:flex;flex-direction:column;}
+  .rn-bar{background:#fff;padding:5px 8px;font-size:7px;font-weight:900;letter-spacing:.18em;
+    color:#1d2533;border-bottom:1px solid #eef0f6;text-align:center;}
+  .rn-body{flex:1;padding:7px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;}
+  .rn-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;width:100%;}
+  .rn-chip{background:#fff;border:1.4px solid #e2e7f1;border-radius:6px;padding:4px 0;text-align:center;
+    font-size:7.5px;font-weight:900;color:#1d2533;}
+  .rn-chip .c{display:block;font-size:5.5px;font-weight:800;color:#1d9a52;margin-top:1px;}
+  .rn-chip.sel{border-color:#49a8ff;background:#eef6ff;box-shadow:0 0 0 1.4px rgba(73,168,255,.4);}
+  .rn-num{font-size:30px;font-weight:900;letter-spacing:.04em;line-height:1;
+    background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .rn-lbl{font-size:6px;font-weight:900;letter-spacing:.2em;color:#7a86a0;}
+  .rn-pill{font-size:7px;font-weight:900;border-radius:99px;padding:3px 8px;}
+  .rn-pill.call{background:#ffe9d6;color:#d96a13;}
+  .rn-pill.prep{background:#e3ecff;color:#2b5cd9;}
+  .rn-btn{width:100%;border-radius:7px;padding:5px 0;text-align:center;font-size:7.5px;font-weight:900;color:#fff;}
+  .rn-btn.green{background:linear-gradient(90deg,#3a5bff,#7a4fe0);}
+  .rn-finger{font-size:13px;margin-top:-3px;}
+  .rn-actions{display:flex;flex-direction:column;gap:9px;padding:4px 18px 0;max-width:560px;margin:0 auto;width:100%;}
+  .rn-go{border:none;border-radius:14px;padding:16px;font-size:16px;font-weight:800;color:#fff;
+    background:var(--grad);cursor:pointer;letter-spacing:.04em;}
+  .rn-back{border:1.5px solid #cdd5e4;background:#fff;border-radius:14px;padding:12px;font-size:14px;
+    font-weight:800;color:#56617a;cursor:pointer;}
+  @media(max-width:380px){.rn-phone{width:88px;height:148px;}}
+
+  /* ---- 受取時刻の選択 ---- */
+  .slot-screen{position:fixed;inset:0;z-index:121;background:var(--bg);display:none;
+    flex-direction:column;overflow:hidden;}
+  .slot-screen.open{display:flex;}
+  .slot-top{display:flex;align-items:center;gap:10px;padding:14px 16px;background:#fff;
+    box-shadow:0 2px 10px rgba(20,30,60,.06);padding-top:calc(14px + env(safe-area-inset-top));}
+  .slot-top .back{border:none;background:#eef2fa;border-radius:10px;width:40px;height:40px;
+    font-size:20px;cursor:pointer;color:var(--ink);flex:0 0 auto;}
+  .slot-top h2{font-size:16px;font-weight:800;}
+  .slot-top .sub{font-size:12px;color:#7a86a0;font-weight:700;}
+  .slot-grid{flex:1;overflow-y:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));
+    gap:10px;padding:16px 16px calc(20px + env(safe-area-inset-bottom));max-width:680px;margin:0 auto;width:100%;}
+  .slot{background:#fff;border-radius:14px;border:2px solid #e2e7f1;padding:14px 10px;text-align:center;
+    cursor:pointer;display:flex;flex-direction:column;gap:5px;}
+  .slot:active{transform:scale(.98);}
+  .slot .t{font-size:19px;font-weight:900;letter-spacing:.04em;}
+  .slot .cap{font-size:11.5px;font-weight:800;color:#1d9a52;}
+  .slot .cap.few{color:#d9730d;}
+  .slot.full{opacity:.5;cursor:default;background:#f3f4f8;}
+  .slot.full .cap{color:#e8503a;}
+  .slot.past{opacity:.4;cursor:default;}
+  .slot-empty{grid-column:1/-1;text-align:center;color:#9aa3b5;font-size:14px;padding:30px 0;}
+
+  /* 土台UI(ヘッダー・メニュー本体・受取方法バー)は買い物開始まで非表示。
+     スプラッシュのフェードアウト中や予約設定の読込待ち中に、受取方法の選択より先に
+     一瞬メニューが見えてしまう「ちらつき」を防ぐ。買い物画面に入ると body.shopping で表示。 */
+  #shopMain{display:none;}
+  body:not(.shopping) header,
+  body:not(.shopping) .mode-bar{display:none;}
+  body.shopping #shopMain{display:block;}
+  /* ---- 現在の受取方法バー ---- */
+  .mode-bar{display:none;align-items:center;justify-content:space-between;gap:10px;
+    background:#fff;border-bottom:1px solid #e6eaf3;padding:9px 16px;position:sticky;top:54px;z-index:45;}
+  .mode-bar.show{display:flex;}
+  .mode-bar .info{font-size:13px;font-weight:800;display:flex;align-items:center;gap:8px;min-width:0;}
+  .mode-bar .info .pin{font-size:11px;font-weight:800;padding:3px 9px;border-radius:99px;
+    background:#eef4ff;color:#2b5cd9;white-space:nowrap;}
+  .mode-bar .info .pin.sched{background:#fff2e2;color:#d9730d;}
+  .mode-bar .chg{border:1.5px solid #cdd5e4;background:#fff;border-radius:9px;padding:7px 12px;
+    font-size:12.5px;font-weight:800;color:var(--ink);cursor:pointer;flex:0 0 auto;}
+  /* 予約モードのチケット表示 */
+  .ticket .resv-time{margin-top:10px;font-size:15px;font-weight:800;color:#d9730d;
+    background:#fff2e2;padding:8px 18px;border-radius:99px;}
+  .ticket .resv-note{margin-top:14px;font-size:12.5px;color:#8a5a00;background:#fff8ec;
+    border:1px solid #f0d9a8;border-radius:12px;padding:10px 14px;max-width:min(360px,88vw);line-height:1.7;}
+  /* 来店(到着)確認ボタン */
+  .checkin-btn{margin-top:18px;width:min(340px,86vw);border:none;border-radius:16px;padding:16px;
+    font-size:16px;font-weight:800;color:#fff;background:linear-gradient(90deg,#3a5bff,#7a4fe0);
+    cursor:pointer;letter-spacing:.04em;box-shadow:0 8px 24px rgba(73,95,224,.35);animation:pulse 1.4s infinite;}
+  .checkin-done{margin-top:16px;font-size:14px;font-weight:800;color:#1d9a52;background:#dcf5e4;
+    padding:10px 20px;border-radius:99px;}
+  /* キャンセル画面 */
+  .ticket.cancelled-screen h2{font-size:24px;margin-bottom:10px;color:#e8503a;}
+
+  /* ---- 言語切替ボタン (日本語 / English) ---- */
+  .lang-btn{border:1.5px solid #cdd5e4;background:#fff;color:var(--ink);border-radius:99px;
+    padding:7px 13px;font-size:12.5px;font-weight:800;cursor:pointer;line-height:1;white-space:nowrap;
+    display:inline-flex;align-items:center;gap:5px;}
+  .lang-btn::before{content:"🌐";font-size:13px;}
+  /* 全画面オーバーレイ(料金案内・受取方法・注意事項・受取時刻)の右上に配置 */
+  .mode-screen .lang-btn,.slot-screen .lang-btn{position:absolute;z-index:5;
+    top:calc(12px + env(safe-area-inset-top));right:14px;}
+</style>
+<script src="../xeva-splash.js?v=3" data-app="ORDYXIS" data-logo="../thumbs/Ordyxis.jpg"></script>
+</head>
+<body>
+<script src="hub-guard.js?v=5"></script>
+
+<!-- アプリ内ブラウザ警告ゲート (Safari等で開くよう促す) -->
+<div class="inapp-gate" id="inappGate">
+  <div class="ig-ic">🧭</div>
+  <h2 id="inappTitle">ブラウザで開いてください</h2>
+  <p id="inappDesc">ご注文を確実に保存するため、<b id="inappBrowsers">Safari ／ Chrome</b> で開いてください。<br>
+     QR・コードスキャナーの簡易ブラウザのままだと、画面を閉じた際に注文が消えてしまうことがあります。<br>
+     下のボタンからブラウザで開き直してください。</p>
+  <div class="url" id="inappUrl"></div>
+  <button class="ig-btn" id="inappSafari">Safari で開く</button>
+  <button class="ig-btn ig-chrome" id="inappChrome">Chrome で開く</button>
+  <button class="ig-btn ig-copy" id="inappCopy">URLをコピーして開く</button>
+  <!-- なぜ表示されるのか(通常Safari/Chromeのお客様にも開き直しをお願いする理由)。
+       コードスキャナーの組込ブラウザはUA上 通常Safariと判別不可のため、確実に注文を守る目的で
+       未確認のiOSは一律に開き直しをお願いする(続行バイパスは設けない=確実ブロック)。 -->
+  <div class="ig-why" id="inappWhy"></div>
+</div>
+
+<!-- プライベート/シークレットモード警告ゲート (注文が保存されない問題への対策) -->
+<div class="inapp-gate" id="privateGate">
+  <div class="ig-ic">🕵️</div>
+  <h2 id="privateTitle">通常モードで開いてください</h2>
+  <p id="privateDesc">プライベートブラウズ／シークレットモードで開かれています。<br>
+     このモードでは画面を閉じるとご注文の情報が消えてしまい、番号の追跡ができなくなります。<br>
+     下のボタンから <b id="privateBrowsers">Safari ／ Chrome</b> の通常ウィンドウで開き直してご注文ください。</p>
+  <div class="url" id="privateUrl"></div>
+  <button class="ig-btn" id="privateSafari">Safari で開く</button>
+  <button class="ig-btn ig-chrome" id="privateChrome">Chrome で開く</button>
+  <button class="ig-btn ig-copy" id="privateCopy">URLをコピーして開く</button>
+  <button class="ig-skip" id="privateSkip">シークレットモードではありません（このまま続ける）</button>
+</div>
+
+<!-- 混雑時の待機画面 (Firebase 無料枠 同時接続100 の保護) -->
+<div class="busy-gate" id="busyGate">
+  <div class="bg-spin"></div>
+  <h2 data-i18n="busy_h2">ただいま混み合っています</h2>
+  <p data-i18n-html="busy_p">ご注文が集中しているため、順番にご案内しています。<br>
+     <b>このまましばらくお待ちください。</b><br>
+     空き次第、自動でご注文画面に進みます。</p>
+  <div class="bg-hint" id="busyHint">空き状況を確認しています…</div>
+</div>
+
+<!-- 受取方法の選択 (FastPass) -->
+<!-- 料金のご案内 (注文開始前) -->
+<div class="mode-screen" id="priceIntro">
+  <button class="lang-btn" data-lang-toggle>EN</button>
+  <div class="ms-head">
+    <div class="lg">ORDYXIS</div>
+    <h2 data-i18n="price_h2">料金のご案内</h2>
+    <p data-i18n="price_p">ご注文の前に、チュロスの料金をご確認ください。</p>
+  </div>
+  <div class="price-guide">
+    <div class="pg-card">
+      <div class="pg-main"><span class="pg-qty" data-i18n="price_base_qty">基本 3個セット</span><span class="pg-price"><span class="pg-off">50%OFF</span><span class="pg-was">¥300</span>¥150</span></div>
+      <div class="pg-desc" data-i18n-html="price_base_desc">チュロスは <b>3個から</b> のご注文です（基本セット）。味は3個ともお好きに選べます。</div>
+    </div>
+    <div class="pg-card">
+      <div class="pg-main"><span class="pg-qty" data-i18n="price_add_qty">4個目以降の追加</span><span class="pg-price"><span class="pg-off">33%OFF</span><span class="pg-was">¥75</span>＋¥50 / 個</span></div>
+      <div class="pg-desc" data-i18n-html="price_add_desc">4個目以降は <b>1個 ¥75 → 33%OFF ¥50</b> でお得に追加。最大5個（合計8個）まで。各チュロスにソース（<b>無料</b>）もお付けできます。</div>
+    </div>
+    <div class="pg-table" id="priceTable"></div>
+    <p class="pg-note" data-i18n="price_note">※ ソースはすべて無料です。お好みで「両方」も選べます。</p>
+    <button class="pg-start" id="priceStart" data-i18n="price_start">内容を確認して注文をはじめる →</button>
+  </div>
+</div>
+
+<div class="mode-screen" id="modeScreen">
+  <button class="lang-btn" data-lang-toggle>EN</button>
+  <div class="ms-head">
+    <div class="lg">ORDYXIS</div>
+    <h2 data-i18n="mode_h2">受け取り方法をお選びください</h2>
+    <p data-i18n="mode_p">「今すぐ」または「時間を指定して後で」受け取れます。</p>
+  </div>
+  <div class="ms-cards">
+    <button class="ms-card now" id="modeNow">
+      <div class="emo">🛍️</div>
+      <div class="tx"><h3 data-i18n="mode_now_h">今すぐ受け取り</h3><p data-i18n="mode_now_p">注文後すぐに準備します。番号が呼ばれたらお受け取りください。</p></div>
+    </button>
+    <button class="ms-card sched" id="modeSched">
+      <div class="emo">⏰</div>
+      <div class="tx"><h3 data-i18n="mode_sched_h">時間を指定して後で受け取り</h3><p data-i18n="mode_sched_p">ご希望の時間を予約。混雑を避けてスムーズに受け取れます。</p></div>
+    </button>
+  </div>
+</div>
+
+<!-- 時間指定予約の注意事項 (スマホ画面のイメージ付き) -->
+<div class="mode-screen" id="resvNotice">
+  <button class="lang-btn" data-lang-toggle>EN</button>
+  <div class="ms-head">
+    <div class="lg">ORDYXIS</div>
+    <h2 data-i18n="resv_notice_h2">時間指定予約のご注意</h2>
+    <p data-i18n="resv_notice_p">ご予約の前に、受け取りまでの流れをご確認ください。</p>
+  </div>
+  <div class="rn-wrap">
+    <div class="rn-lead" data-i18n-html="resv_notice_lead">受取時刻の <b>15分前 〜 30分後</b> がお受け取り可能時間です。<b>時間を過ぎると自動でキャンセル</b>になりますのでご注意ください。下の画面イメージの順にお進みください。</div>
+
+    <div class="rn-step">
+      <div class="rn-tx">
+        <div class="rn-tag"><span class="rn-no">1</span><span data-i18n="resv_notice_s1_t">受取時刻をえらぶ</span></div>
+        <p data-i18n="resv_notice_s1_p">ご希望の受取時刻を選びます。空き状況（残り人数）も表示されます。</p>
+      </div>
+      <div class="rn-phone"><div class="rn-screen">
+        <div class="rn-bar" data-i18n="resv_ph_slot">受取時刻を選択</div>
+        <div class="rn-body">
+          <div class="rn-grid">
+            <div class="rn-chip">9:00<span class="c">残3</span></div>
+            <div class="rn-chip sel">9:15<span class="c">残2</span></div>
+            <div class="rn-chip">9:30<span class="c">残5</span></div>
+            <div class="rn-chip">9:45<span class="c">残4</span></div>
+            <div class="rn-chip">10:00<span class="c">残6</span></div>
+            <div class="rn-chip">10:15<span class="c">残1</span></div>
+          </div>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="rn-step">
+      <div class="rn-tx">
+        <div class="rn-tag"><span class="rn-no">2</span><span data-i18n="resv_notice_s2_t">お店に着いたら「到着しました」</span></div>
+        <p data-i18n="resv_notice_s2_p">受取時刻の <b>15分前</b> からボタンが出ます。押すとお店が用意を開始します。</p>
+      </div>
+      <div class="rn-phone"><div class="rn-screen">
+        <div class="rn-bar">No. 812</div>
+        <div class="rn-body">
+          <div class="rn-lbl">YOUR NUMBER</div>
+          <div class="rn-num">812</div>
+          <div class="rn-pill prep" data-i18n="resv_ph_time">受取時刻 9:15</div>
+          <div class="rn-btn green" data-i18n="resv_ph_arrive">🙋 到着しました</div>
+          <div class="rn-finger">👆</div>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="rn-step">
+      <div class="rn-tx">
+        <div class="rn-tag"><span class="rn-no">3</span><span data-i18n="resv_notice_s3_t">番号が呼ばれたら受け取り</span></div>
+        <p data-i18n="resv_notice_s3_p">ご用意ができると番号でお呼びします。カウンターでお受け取りください。</p>
+      </div>
+      <div class="rn-phone"><div class="rn-screen">
+        <div class="rn-bar">No. 812</div>
+        <div class="rn-body">
+          <div class="rn-lbl">YOUR NUMBER</div>
+          <div class="rn-num">812</div>
+          <div class="rn-pill call" data-i18n="now_notice_ph_call">📣 お呼び出し中！</div>
+        </div>
+      </div></div>
+    </div>
+  </div>
+  <div class="rn-actions">
+    <button class="rn-go" id="resvNoticeNext" data-i18n="resv_notice_next">確認しました・時間をえらぶ →</button>
+    <button class="rn-back" id="resvNoticeBack" data-i18n="resv_notice_back">← 受け取り方法に戻る</button>
+  </div>
+</div>
+
+<!-- 今すぐ受け取りの注意事項 (スマホ画面のイメージ付き) -->
+<div class="mode-screen" id="nowNotice">
+  <button class="lang-btn" data-lang-toggle>EN</button>
+  <div class="ms-head">
+    <div class="lg">ORDYXIS</div>
+    <h2 data-i18n="now_notice_h2">ご注文の前に</h2>
+    <p data-i18n="now_notice_p">ご注文から受け取りまでの流れをご確認ください。</p>
+  </div>
+  <div class="rn-wrap">
+    <div class="rn-lead" data-i18n="now_notice_lead">ご注文後に <b>受け取り番号</b> が表示されます。<b>番号が呼ばれるまで、この画面を閉じずに</b> お待ちください。下の画面イメージの順にお進みください。</div>
+
+    <div class="rn-step">
+      <div class="rn-tx">
+        <div class="rn-tag"><span class="rn-no">1</span><span data-i18n="now_notice_s1_t">メニューを選んで注文</span></div>
+        <p data-i18n="now_notice_s1_p">チュロスを3個から選び、カートで「この内容で注文する」を押します。</p>
+      </div>
+      <div class="rn-phone"><div class="rn-screen">
+        <div class="rn-bar" data-i18n="now_notice_ph_menu">メニュー</div>
+        <div class="rn-body">
+          <div class="rn-grid">
+            <div class="rn-chip sel">🥨</div>
+            <div class="rn-chip">🥨</div>
+            <div class="rn-chip">🥨</div>
+          </div>
+          <div class="rn-btn green" style="background:var(--grad)" data-i18n="now_notice_ph_order">注文する</div>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="rn-step">
+      <div class="rn-tx">
+        <div class="rn-tag"><span class="rn-no">2</span><span data-i18n="now_notice_s2_t">番号を受け取り・お待ちください</span></div>
+        <p data-i18n="now_notice_s2_p">受け取り番号が表示されます。番号が呼ばれるまでお待ちください。</p>
+      </div>
+      <div class="rn-phone"><div class="rn-screen">
+        <div class="rn-bar">No. 012</div>
+        <div class="rn-body">
+          <div class="rn-lbl">YOUR NUMBER</div>
+          <div class="rn-num">012</div>
+          <div class="rn-pill prep" data-i18n="now_notice_ph_prep">受付済み・準備中</div>
+        </div>
+      </div></div>
+    </div>
+
+    <div class="rn-step">
+      <div class="rn-tx">
+        <div class="rn-tag"><span class="rn-no">3</span><span data-i18n="now_notice_s3_t">呼ばれたら受け取り→スライド</span></div>
+        <p data-i18n="now_notice_s3_p">番号が呼ばれたらカウンターへ。受け取り後、画面を右へスライドして完了します。</p>
+      </div>
+      <div class="rn-phone"><div class="rn-screen">
+        <div class="rn-bar">No. 012</div>
+        <div class="rn-body">
+          <div class="rn-num">012</div>
+          <div class="rn-pill call" data-i18n="now_notice_ph_call">📣 お呼び出し中！</div>
+          <div class="rn-btn" style="background:#e4e9f4;color:#7a86a0" data-i18n="now_notice_ph_slide">スライドで完了 ≫</div>
+        </div>
+      </div></div>
+    </div>
+  </div>
+  <div class="rn-actions">
+    <button class="rn-go" id="nowNoticeNext" data-i18n="now_notice_next">確認しました・注文をはじめる →</button>
+    <button class="rn-back" id="nowNoticeBack" data-i18n="now_notice_back">← 受け取り方法に戻る</button>
+  </div>
+</div>
+
+<!-- 受取時刻の選択 -->
+<div class="slot-screen" id="slotScreen">
+  <button class="lang-btn" data-lang-toggle>EN</button>
+  <div class="slot-top">
+    <button class="back" id="slotBack">←</button>
+    <div><h2 data-i18n="slot_h2">受取時刻を選択</h2><div class="sub" id="slotSub">ご希望の時間をお選びください</div></div>
+  </div>
+  <div class="slot-grid" id="slotGrid"></div>
+</div>
+
+<header>
+  <div class="brand">
+    <img src="../thumbs/Ordyxis.jpg" alt="ORDYXIS" onerror="this.remove()">
+    <span class="name">ORDYXIS</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;">
+    <button class="lang-btn" data-lang-toggle>EN</button>
+    <button class="cart-btn" id="openCart"><span data-i18n="cart">カート</span> <span class="badge" id="cartBadge" style="display:none">0</span></button>
+  </div>
+</header>
+
+<!-- 現在の受取方法バー (予約機能ONのとき表示) -->
+<div class="mode-bar" id="modeBar">
+  <div class="info" id="modeInfo"><span class="pin">今すぐ</span></div>
+  <button class="chg" id="modeChange" data-i18n="mode_change">変更</button>
+</div>
+
+<main id="shopMain">
+  <h2 class="section" data-i18n="menu_section">CHURROS - チュロス</h2>
+  <p class="section-note" data-i18n-html="menu_note">基本 <b>3個 <s style="color:#9aa3b5;font-weight:600">¥300</s> → 50%OFF ¥150</b>。4個目以降は <b>1個 <s style="color:#9aa3b5;font-weight:600">¥75</s> → 33%OFF ¥50</b> で追加でき、合計 <b>8個</b> まで（最低3個から）。各チュロスにはお好みでソース（無料）も選べます。</p>
+  <div class="grid" id="gridChurros"></div>
+</main>
+
+<!-- ソース選択シート (チュロスを選んだときに表示) -->
+<div class="overlay" id="sauceOverlay"></div>
+<div class="sauce-sheet" id="sauceSheet">
+  <div class="head"><h3 id="sauceTitle">ソースを選ぶ</h3><button class="close" id="sauceClose">✕</button></div>
+  <p class="sauce-sub" data-i18n="sauce_sub">つけるソースをお選びください（すべて無料）。</p>
+  <div class="sauce-opts" id="sauceOpts"></div>
+  <div class="sauce-foot">
+    <div class="qty-pick">
+      <span class="qp-label" data-i18n="qty_label">個数</span>
+      <div class="qty">
+        <button id="sauceQtyMinus" type="button" aria-label="減らす">－</button>
+        <span class="n" id="sauceQtyVal">1</span>
+        <button id="sauceQtyPlus" type="button" aria-label="増やす">＋</button>
+      </div>
+    </div>
+    <button class="add-confirm" id="sauceAddConfirm" data-i18n="add_to_cart">カートに追加</button>
+    <div class="qp-note" id="sauceQtyNote"></div>
+  </div>
+</div>
+
+<!-- 追加トースト -->
+<div class="toast" id="toast"></div>
+
+<!-- カート -->
+<div class="overlay" id="overlay"></div>
+<div class="cart-panel" id="cartPanel">
+  <div class="head"><h3 data-i18n="cart_title">注文確認 (カート)</h3><button class="close" id="closeCart">✕</button></div>
+  <div class="cart-items" id="cartItems"></div>
+  <div class="cart-foot">
+    <div class="price-breakdown" id="priceBreakdown"></div>
+    <div class="total-row"><span data-i18n="total_label">合計</span><span id="cartTotal">¥0</span></div>
+    <div class="min-note" id="cartMinNote"></div>
+    <button class="order-btn" id="confirmOrder" disabled data-i18n="order_btn">この内容で注文する</button>
+  </div>
+</div>
+
+<!-- 注文チケット -->
+<div class="ticket" id="ticket">
+  <div class="label">YOUR ORDER NUMBER</div>
+  <div class="number" id="ticketNumber">---</div>
+  <div class="resv-time" id="ticketResvTime" style="display:none"></div>
+  <div class="status-pill new" id="statusPill">受付済み・準備中</div>
+  <div class="resv-note" id="ticketResvNote" style="display:none"></div>
+  <button class="checkin-btn" id="checkinBtn" style="display:none" data-i18n="checkin_btn">🙋 到着しました（用意を開始）</button>
+  <div class="checkin-done" id="checkinDone" style="display:none" data-i18n="checkin_done">✓ 到着を確認しました — ただいま用意中です</div>
+  <div class="detail" id="ticketDetail"></div>
+  <div class="slide-confirm disabled" id="slideConfirm">
+    <div class="slide-fill" id="slideFill"></div>
+    <div class="slide-label" id="slideLabel">スライドして受け取り完了 ≫</div>
+    <div class="slide-thumb" id="slideThumb">≫</div>
+  </div>
+  <button class="receipt-confirm" id="receiptConfirm" data-i18n="receipt_confirm">✓ 受け取り完了（確定する）</button>
+  <button class="receipt-redo" id="receiptRedo" data-i18n="receipt_redo">やり直す</button>
+  <div class="hint" data-i18n="ticket_hint">番号が呼ばれましたらカウンターまでお越しください。商品のお受け取り後、上のバーを右端までスライドし、表示される「受け取り完了」ボタンをもう一度押すと取引完了です（誤操作防止のため2段階です）。</div>
+</div>
+
+<!-- 完了画面 -->
+<div class="ticket thanks" id="thanks">
+  <h2 data-i18n="thanks_h2">ありがとうございました！</h2>
+  <p style="color:#7a86a0;" data-i18n="thanks_p">取引が完了しました。またのご利用をお待ちしております。</p>
+  <button class="again-btn" id="againBtn" data-i18n="again_btn">新しく注文する</button>
+</div>
+
+<!-- キャンセル画面 (受取時刻超過) -->
+<div class="ticket cancelled-screen" id="cancelledScreen">
+  <h2 data-i18n="cancel_h2">注文がキャンセルされました</h2>
+  <p style="color:#7a86a0;max-width:340px;line-height:1.8;" data-i18n-html="cancel_p">受取時刻を過ぎたため、ご注文はキャンセルされました。<br>お手数ですが、もう一度ご注文ください。</p>
+  <button class="again-btn" id="cancelAgainBtn" data-i18n="again_btn">新しく注文する</button>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="firebase-config.js?v=3"></script>
+<script src="app-common.js?v=12"></script>
+<script>
+"use strict";
+
+// カートは「チュロス1種 + ソース選択」を1行とする。
+//   キー: churroId|sauceId  値: { churroId, sauceId, qty }
+const cart = {};
+const CHURROS = MENU.filter((m) => m.category === "チュロス");
+const SAUCES  = MENU.filter((m) => m.category === "ソース");
+const menuById = (id) => MENU.find((x) => x.id === id);
+// ソース選択の解決。"" / null=なし、"both"=全ソース、それ以外は単一ソースID。
+const BOTH_SAUCE_ID = "both";
+const BOTH_SAUCE_NAME = SAUCES.map((s) => s.name).join(" ＆ ");
+function resolveSauce(sauceId) {
+  if (!sauceId) return null;
+  if (sauceId === BOTH_SAUCE_ID) return { id: BOTH_SAUCE_ID, name: BOTH_SAUCE_NAME };
+  const s = menuById(sauceId);
+  return s ? { id: s.id, name: s.name } : null;
+}
+const lineKey = (churroId, sauceId) => churroId + "|" + (sauceId || "");
+// あるチュロス味のカート内合計個数 (ソース有無をまたいで合算)。在庫判定に使う。
+const churroCartQty = (churroId) =>
+  Object.keys(cart).reduce((s, k) => s + (cart[k].churroId === churroId ? cart[k].qty : 0), 0);
+// カート内のチュロス総数 (全味・全ソース合計)。1注文あたりの上限判定に使う。
+const cartChurroTotal = () => Object.keys(cart).reduce((s, k) => s + cart[k].qty, 0);
+// チュロスの料金・数量ルール (MIN_CHURROS / MAX_CHURROS / CHURRO_BASE_QTY /
+//   CHURRO_BASE_PRICE / CHURRO_BASE_LIST_PRICE / CHURRO_ADD_PRICE / churroSetPrice) は
+//   app-common.js に一元化 (店舗の紙オーダー入力と価格を共有するため)。
+const $ = (id) => document.getElementById(id);
+
+// ============================================================
+// 多言語対応 (日本語 / English) — お客様画面のグローバル対応
+// ------------------------------------------------------------
+//  ・静的テキストは data-i18n / data-i18n-html で注釈し、JAは初回に自動退避、ENは I18N_EN を使用。
+//  ・動的に生成されるテキストは t(key, ...args) を通す (T に ja/en を定義。関数も可)。
+//  ・言語は localStorage["ordyxis-lang"] に保存。各画面の🌐ボタン([data-lang-toggle])で切替。
+// ============================================================
+let lang = "ja";
+try { const sv = localStorage.getItem("ordyxis-lang"); if (sv === "en" || sv === "ja") lang = sv; } catch (e) {}
+
+// 商品名の英語表記 (id基準)。
+const NAME_EN = {
+  churro_plain: "Churro – Plain", churro_cinnamon: "Churro – Cinnamon",
+  churro_cocoa: "Churro – Cocoa", churro_kinako: "Churro – Kinako",
+  churro_maccha: "Churro – Matcha", churro_strawberry: "Churro – Strawberry",
+  churro_curry: "Churro – Curry",
+  sauce_caramel: "Caramel Sauce", sauce_chocolate: "Chocolate Sauce",
+  both: "Caramel & Chocolate"
+};
+function mnameById(id) {
+  if (lang === "en" && NAME_EN[id]) return NAME_EN[id];
+  const m = MENU.find((x) => x.id === id);
+  return m ? m.name : id;
+}
+// 注文明細1件の表示名 (言語対応)。itemLabel(app-common.js) の多言語版。
+function litemLabel(i) {
+  if (!i) return "";
+  const base = mnameById(i.id) || i.name;
+  if (i.sauce && i.sauce.name) {
+    const sn = i.sauce.id ? mnameById(i.sauce.id) : i.sauce.name;
+    return base + " ＋ " + sn;
+  }
+  return base;
+}
+
+// 動的テキスト辞書 (関数は t(key, ...args) で評価)
+const T = {
+  bar_now_pin:   { ja: "今すぐ受け取り", en: "Pickup now" },
+  bar_sched_pin: { ja: "時間指定", en: "Scheduled" },
+  bar_recv:      { ja: "受取", en: "Pickup" },
+  price_tbl_qty: { ja: "チュロスの個数", en: "Number of churros" },
+  price_tbl_total: { ja: "合計料金", en: "Total price" },
+  pcs: { ja: (n) => n + "個", en: (n) => n + (n === 1 ? " pc" : " pcs") },
+  slot_sub: {
+    ja: (c) => c.start + "〜" + c.end + " / " + c.interval + "分ごと（各回 定員" + c.capacity + "名）",
+    en: (c) => c.start + "–" + c.end + " / every " + c.interval + " min (capacity " + c.capacity + "/slot)"
+  },
+  slot_choose_sub: { ja: "ご希望の時間をお選びください", en: "Please choose your preferred time" },
+  slot_closed: { ja: "受付終了", en: "Closed" },
+  slot_full: { ja: "満員", en: "Full" },
+  slot_left: { ja: (n) => "残り " + n + " 名", en: (n) => n + " left" },
+  slot_empty: { ja: "現在ご予約いただける時間がありません。「今すぐ受け取り」をご利用ください。",
+                en: "No time slots available right now. Please use “Pickup now”." },
+  slot_now_full: { ja: "申し訳ございません。その時間は満員になりました。",
+                   en: "Sorry, that time has just become full." },
+  cart_empty: { ja: "カートは空です。メニューから商品をお選びください。",
+                en: "Your cart is empty. Please choose items from the menu." },
+  sauce_with: { ja: (n) => "＋ " + n + "（無料）", en: (n) => "+ " + n + " (free)" },
+  sauce_none_line: { ja: "ソースなし", en: "No sauce" },
+  bd_base: { ja: (q) => "基本 " + q + "個", en: (q) => "Base " + q + " pcs" },
+  bd_add: { ja: (n) => "追加 " + n + "個 ×", en: (n) => "Add " + n + " pcs ×" },
+  min_note: { ja: (k) => "チュロスは" + MIN_CHURROS + "個からのご注文です。あと " + k + " 個お選びください。",
+              en: (k) => "Minimum order is " + MIN_CHURROS + " churros. Please add " + k + " more." },
+  sauce_title: { ja: (n) => n + " — ソースと個数を選ぶ", en: (n) => n + " — choose sauce & quantity" },
+  sauce_opt_none_nm: { ja: "ソースをつけない", en: "No sauce" },
+  sauce_opt_none_sub: { ja: "チュロスのみ", en: "Churro only" },
+  free: { ja: "無料", en: "Free" },
+  picker_max: { ja: "これ以上は選べません（最大8個／在庫の都合）",
+                en: "Maximum reached (up to 8 / stock limit)" },
+  toast_added: { ja: (n, s, q) => n + (s ? "（＋" + s + "）" : "") + " ×" + q + " をカートに追加しました",
+                 en: (n, s, q) => "Added " + n + (s ? " (+ " + s + ")" : "") + " ×" + q + " to cart" },
+  toast_soldout: { ja: "申し訳ありません。売り切れです。", en: "Sorry, sold out." },
+  toast_nomore: { ja: "申し訳ありません。これ以上追加できません。", en: "Sorry, you can’t add more." },
+  alert_max: { ja: "チュロスは1回のご注文で最大 " + MAX_CHURROS + " 個までです。",
+               en: "Up to " + MAX_CHURROS + " churros per order." },
+  alert_stock_left: { ja: (n, r) => n + " は残り " + r + " 個です。これ以上は追加できません。",
+                      en: (n, r) => "Only " + r + " of " + n + " left. You can’t add more." },
+  alert_sold_one: { ja: (n) => n + " はこれ以上追加できません（在庫の上限に達しました）。",
+                    en: (n) => "You can’t add more " + n + " (stock limit reached)." },
+  alert_min_order: { ja: (k) => "チュロスは" + MIN_CHURROS + "個からのご注文です（基本 " + MIN_CHURROS + "個 " + yen(CHURRO_BASE_PRICE) + "）。\nあと " + k + " 個お選びください。",
+                     en: (k) => "Minimum order is " + MIN_CHURROS + " churros (base " + MIN_CHURROS + " for " + yen(CHURRO_BASE_PRICE) + ").\nPlease add " + k + " more." },
+  alert_no_slot: { ja: "受取時刻が選択されていません。受取方法からもう一度お選びください。",
+                   en: "No pickup time selected. Please choose again." },
+  alert_slot_full: { ja: (t2) => "申し訳ございません。" + t2 + " は満員になりました。別の時間をお選びください。",
+                     en: (t2) => "Sorry, " + t2 + " is now full. Please choose another time." },
+  alert_sold_adjust: { ja: "申し訳ございません。以下の商品が売り切れ／在庫不足になりました。数量を調整しました。\n",
+                       en: "Sorry, the following items are sold out / low in stock. Quantities were adjusted.\n" },
+  alert_order_fail: { ja: "注文の送信に失敗しました。通信環境をご確認のうえ再度お試しください。\n",
+                      en: "Failed to place the order. Please check your connection and try again.\n" },
+  alert_soldout_slot: { ja: "申し訳ございません。ご希望の受取時刻は、わずかな差で満員になりました。\n注文に失敗しました。別のお時間をお選びください。",
+                        en: "Sorry, your pickup time just became full.\nThe order failed. Please choose another time." },
+  alert_soldout_item: { ja: (n) => "申し訳ございません。" + (n ? "「" + n + "」は" : "ご注文の商品が") + "わずかな差で売り切れになりました。\n注文に失敗しました。数量を調整してもう一度お試しください。",
+                        en: (n) => "Sorry, " + (n ? "“" + n + "” " : "your item ") + "just sold out.\nThe order failed. Please adjust the quantity and try again." },
+  status_new: { ja: "受付済み・準備中", en: "Received — preparing" },
+  status_calling: { ja: "お呼び出し中！カウンターへどうぞ", en: "Now calling! Please come to the counter" },
+  status_done: { ja: "お渡し完了", en: "Completed" },
+  st_sched_prep: { ja: "ご来店確認済み — ただいま用意中です", en: "Arrival confirmed — preparing now" },
+  st_sched_booked: { ja: "ご予約完了 — 受取時刻にお越しください", en: "Reserved — please come at your pickup time" },
+  st_sched_arrive: { ja: "受け取りエリアに到着したら下のボタンを押してください", en: "When you arrive, tap the button below" },
+  resv_time: { ja: (t2) => "🕒 受取時刻 " + t2, en: (t2) => "🕒 Pickup time " + t2 },
+  note_prep: { ja: "ご用意ができ次第、番号でお呼びします。<br>もうしばらくお待ちください。",
+               en: "We’ll call your number when it’s ready.<br>Please wait a moment." },
+  note_booked: { ja: (t2) => "受取時刻 <b>" + t2 + "</b> の <b>15分前</b> から到着確認ができます。<br>受取時刻の <b>15分以内</b> にお越しください。時間を過ぎるとキャンセルされる場合があります。",
+                 en: (t2) => "You can check in from <b>15 min before</b> <b>" + t2 + "</b>.<br>Please arrive within <b>15 min</b> of your pickup time, or it may be cancelled." },
+  note_arrive: { ja: (t2) => "「到着しました」を押すと、お店がご用意を開始します。<br>受取時刻 <b>" + t2 + "</b> の <b>15分以内</b> にお越しください（時間超過でキャンセルの場合があります）。",
+                 en: (t2) => "Tap “I’ve arrived” and we’ll start preparing.<br>Please arrive within <b>15 min</b> of <b>" + t2 + "</b> (late arrivals may be cancelled)." },
+  detail_base: { ja: (q, a) => "基本" + q + "個 " + yen(CHURRO_BASE_PRICE) + (a ? "（＋追加" + a + "個）" : ""),
+                 en: (q, a) => "Base " + q + " pcs " + yen(CHURRO_BASE_PRICE) + (a ? " (+" + a + " more)" : "") },
+  detail_total: { ja: (n) => "合計（" + n + "個）", en: (n) => "Total (" + n + " pcs)" },
+  slide_default: { ja: "スライドして受け取り完了 ≫", en: "Slide to confirm pickup ≫" },
+  slide_armed: { ja: "スライド完了 — 下のボタンで確定", en: "Slid — confirm with the button" },
+  slide_done: { ja: "✓ 受け取り完了", en: "✓ Pickup confirmed" },
+  notify_title: { ja: "ORDYXIS — お呼び出し中です", en: "ORDYXIS — Now calling" },
+  notify_body: { ja: (no) => "No. " + no + " のお客様、カウンターまでお越しください。",
+                 en: (no) => "Order No. " + no + ", please come to the counter." },
+  price_hint: { ja: "3個 ¥150〜（追加 ¥75→¥50/個）", en: "From ¥150 for 3 (add ¥75→¥50 ea)" },
+  add_btn: { ja: "＋ ソースを選んで追加", en: "+ Choose sauce & add" },
+  stock_left: { ja: (n) => "残り " + n + " 個", en: (n) => n + " left" },
+  soldout_sub: { ja: "本日分は売り切れました", en: "Sold out for today" },
+  busy_checking: { ja: "空き状況を確認しています…", en: "Checking availability…" },
+  busy_waiting: { ja: "順番をお待ちいただいています…", en: "Waiting for your turn…" },
+  // ブラウザ/シークレットのゲート
+  browsers_ios: { ja: "Safari ／ Chrome", en: "Safari / Chrome" },
+  browsers_android: { ja: "Chrome などのブラウザアプリ", en: "Chrome or another browser app" },
+  gate_inapp_title: { ja: "ブラウザで開いてください", en: "Please open in a browser" },
+  gate_inapp_desc: { ja: (B) => "ご注文を確実に保存するため、<b>" + B + "</b> で開いてください。<br>下のボタンを押すと、このページがブラウザで開き、そのままご注文いただけます。<br>（一度開き直すと、その後この画面は表示されません）",
+                     en: (B) => "To save your order reliably, please open in <b>" + B + "</b>.<br>Tap a button below and this page will open in your browser, where you can order as usual.<br>(After reopening once, this screen won't appear again.)" },
+  gate_inapp_why: { ja: "🔎 <b>なぜこの画面が出るの？</b><br>iPhoneの「コードスキャナー」やQRの簡易ブラウザで開いた画面は、通常のSafariと見分けがつきません。簡易ブラウザのままご注文すると、画面を閉じた際に<b>ご注文（番号）が消えてしまう</b>ことがあります。安全のため、すでに Safari／Chrome をお使いの場合も一度だけ開き直しをお願いしています。",
+                    en: "🔎 <b>Why am I seeing this?</b><br>A page opened via the iPhone “Code Scanner” or a QR mini-browser can't be told apart from real Safari. If you order inside that mini-browser, your <b>order (number) may be lost</b> when you close the screen. For safety we ask everyone—even if you're already in Safari/Chrome—to reopen once." },
+  gate_private_title: { ja: "通常モードで開いてください", en: "Please use normal mode" },
+  gate_private_desc: { ja: (B) => "プライベートブラウズ／シークレットモードで開かれています。<br>このモードでは画面を閉じるとご注文の情報が消えてしまい、番号の追跡ができなくなります。<br>下のボタンから <b>" + B + "</b> の通常ウィンドウで開き直してご注文ください。",
+                       en: (B) => "You’re using Private/Incognito mode.<br>In this mode your order info is lost when you close the screen and the number can’t be tracked.<br>Please reopen in a normal <b>" + B + "</b> window to order." },
+  btn_open_safari: { ja: "Safari で開く", en: "Open in Safari" },
+  btn_open_chrome: { ja: "Chrome で開く", en: "Open in Chrome" },
+  btn_open_default: { ja: "既定のブラウザで開く", en: "Open in default browser" },
+  btn_copy_open: { ja: "URLをコピーして開く", en: "Copy URL & open" },
+  copied_browser: { ja: "コピーしました ✓ ブラウザに貼り付けてください", en: "Copied ✓ Paste it into your browser" },
+  copied_normal: { ja: "コピーしました ✓ 通常のウィンドウで開いてください", en: "Copied ✓ Open it in a normal window" },
+  copy_fail: { ja: "コピーできませんでした", en: "Couldn’t copy" },
+  private_skip: { ja: "シークレットモードではありません（このまま続ける）", en: "Not in private mode (continue anyway)" }
+};
+function t(key) {
+  const e = T[key];
+  if (e == null) return key;
+  const v = (lang === "en" && e.en != null) ? e.en : e.ja;
+  if (typeof v === "function") return v.apply(null, Array.prototype.slice.call(arguments, 1));
+  return v;
+}
+
+// 静的テキスト(英語) — data-i18n / data-i18n-html のキーに対応 (JAは元のHTMLを自動退避)
+const I18N_EN = {
+  cart: "Cart",
+  price_h2: "Pricing", price_p: "Please review churro pricing before ordering.",
+  price_base_qty: "Base set of 3",
+  price_base_desc: "Churros start from <b>3 pieces</b> (base set). Choose any 3 flavors you like.",
+  price_add_qty: "4th piece onward",
+  price_add_desc: "From the 4th piece: <b>¥75 → 33% OFF ¥50</b> each. Up to 5 more (8 total). Add sauce (<b>free</b>) to each churro.",
+  price_note: "※ All sauces are free. You can also choose “both”.",
+  price_start: "Got it — start ordering →",
+  mode_h2: "Choose your pickup method", mode_p: "Pick up “now” or “later at a set time”.",
+  mode_now_h: "Pickup now", mode_now_p: "We start preparing right away. Pick up when your number is called.",
+  mode_sched_h: "Pick up later at a set time", mode_sched_p: "Reserve a time and skip the crowds.",
+  now_notice_h2: "Before you order", now_notice_p: "Please check the steps from order to pickup.",
+  now_notice_lead: "After ordering, your <b>pickup number</b> appears. <b>Keep this screen open until your number is called.</b> Follow the steps below.",
+  now_notice_s1_t: "Choose from the menu & order", now_notice_s1_p: "Pick 3+ churros and tap “Place order” in the cart.",
+  now_notice_s2_t: "Get your number & wait", now_notice_s2_p: "Your pickup number appears. Please wait until it’s called.",
+  now_notice_s3_t: "Called → pick up → slide", now_notice_s3_p: "When called, come to the counter. After pickup, slide to confirm.",
+  now_notice_ph_menu: "Menu", now_notice_ph_order: "Order",
+  now_notice_ph_prep: "Received · preparing", now_notice_ph_call: "📣 Now calling!", now_notice_ph_slide: "Slide to confirm ≫",
+  now_notice_next: "Got it — start ordering →", now_notice_back: "← Back to pickup method",
+  resv_notice_h2: "Scheduled pickup — please note", resv_notice_p: "Please check the steps before reserving.",
+  resv_notice_lead: "Pickup is available <b>15 min before to 30 min after</b> your time. <b>After that it’s auto-cancelled</b>, so please be careful. Follow the steps below.",
+  resv_notice_s1_t: "Choose a pickup time", resv_notice_s1_p: "Pick your time. Availability (seats left) is shown.",
+  resv_notice_s2_t: "On arrival, tap “I’ve arrived”", resv_notice_s2_p: "The button appears from <b>15 min before</b>. Tapping it starts preparation.",
+  resv_notice_s3_t: "Pick up when called", resv_notice_s3_p: "We’ll call your number when ready. Pick up at the counter.",
+  resv_ph_slot: "Select pickup time", resv_ph_time: "Pickup 9:15", resv_ph_arrive: "🙋 I’ve arrived",
+  resv_notice_next: "Got it — choose a time →", resv_notice_back: "← Back to pickup method",
+  slot_h2: "Select pickup time",
+  mode_change: "Change",
+  menu_section: "CHURROS",
+  menu_note: "Base <b>3 pcs <s style=\"color:#9aa3b5;font-weight:600\">¥300</s> → 50% OFF ¥150</b>. From the 4th: <b>1 pc <s style=\"color:#9aa3b5;font-weight:600\">¥75</s> → 33% OFF ¥50</b>, up to <b>8 total</b> (min 3). Add a free sauce to each churro if you like.",
+  sauce_sub: "Choose a sauce to add (all free).",
+  qty_label: "Quantity", add_to_cart: "Add to cart",
+  cart_title: "Order review (Cart)", total_label: "Total", order_btn: "Place this order",
+  checkin_btn: "🙋 I’ve arrived (start preparing)", checkin_done: "✓ Arrival confirmed — preparing now",
+  receipt_confirm: "✓ Confirm pickup (finalize)", receipt_redo: "Redo",
+  ticket_hint: "When your number is called, come to the counter. After pickup, slide the bar to the right, then tap the “Confirm pickup” button again to finish (2 steps to prevent mistakes).",
+  thanks_h2: "Thank you!", thanks_p: "Your transaction is complete. We look forward to serving you again.",
+  again_btn: "Place a new order",
+  cancel_h2: "Your order was cancelled",
+  cancel_p: "Your order was cancelled because the pickup time passed.<br>Sorry for the inconvenience — please order again.",
+  busy_h2: "We’re very busy right now",
+  busy_p: "Orders are concentrated, so we’re serving in turn.<br><b>Please wait a moment.</b><br>You’ll proceed automatically when a slot opens."
+};
+
+// ゲートの動的テキストを現在の言語で適用
+function applyGateText() {
+  const android = isAndroidDevice();
+  const B = android ? t("browsers_android") : t("browsers_ios");
+  const set = (id, v) => { const e = $(id); if (e) e.textContent = v; };
+  const setH = (id, v) => { const e = $(id); if (e) e.innerHTML = v; };
+  set("inappTitle", t("gate_inapp_title"));
+  setH("inappDesc", t("gate_inapp_desc", B));
+  set("inappSafari", android ? t("btn_open_chrome") : t("btn_open_safari"));
+  set("inappChrome", android ? t("btn_open_default") : t("btn_open_chrome"));
+  set("inappCopy", t("btn_copy_open"));
+  setH("inappWhy", t("gate_inapp_why"));
+  set("privateTitle", t("gate_private_title"));
+  setH("privateDesc", t("gate_private_desc", B));
+  set("privateSafari", android ? t("btn_open_chrome") : t("btn_open_safari"));
+  set("privateChrome", android ? t("btn_open_default") : t("btn_open_chrome"));
+  set("privateCopy", t("btn_copy_open"));
+  set("privateSkip", t("private_skip"));
+}
+
+// 言語を適用 (静的注釈 + 動的再描画)
+function applyLang() {
+  try { document.documentElement.lang = lang; } catch (e) {}
+  document.querySelectorAll("[data-i18n]").forEach((el) => {
+    const k = el.getAttribute("data-i18n");
+    if (el.dataset.jaCache == null) el.dataset.jaCache = el.textContent;
+    el.textContent = (lang === "en" && I18N_EN[k] != null) ? I18N_EN[k] : el.dataset.jaCache;
+  });
+  document.querySelectorAll("[data-i18n-html]").forEach((el) => {
+    const k = el.getAttribute("data-i18n-html");
+    if (el.dataset.jaCacheHtml == null) el.dataset.jaCacheHtml = el.innerHTML;
+    el.innerHTML = (lang === "en" && I18N_EN[k] != null) ? I18N_EN[k] : el.dataset.jaCacheHtml;
+  });
+  document.querySelectorAll("[data-lang-toggle]").forEach((b) => { b.textContent = (lang === "ja") ? "EN" : "日本語"; });
+  // 動的に生成・更新されるテキストの再描画 (未定義/未表示は黙って無視)
+  try { applyGateText(); } catch (e) {}
+  try { updateModeBar(); } catch (e) {}
+  try { fillPriceTable(); } catch (e) {}
+  try { renderMenu(); } catch (e) {}
+  try { refreshAvailability(); } catch (e) {}
+  try { updateCartUI(); } catch (e) {}
+  try { if (typeof currentOrder !== "undefined" && currentOrder && $("ticket").classList.contains("open")) renderTicket(currentOrder); } catch (e) {}
+  try { refreshSliderLabel(); } catch (e) {}
+  try {
+    if ($("slotScreen").classList.contains("open")) {
+      $("slotSub").textContent = t("slot_sub", resvCfg);
+      renderSlots();
+    }
+  } catch (e) {}
+}
+function toggleLang() {
+  lang = (lang === "ja") ? "en" : "ja";
+  try { localStorage.setItem("ordyxis-lang", lang); } catch (e) {}
+  applyLang();
+}
+document.addEventListener("click", (e) => {
+  if (e.target.closest("[data-lang-toggle]")) toggleLang();
+});
+
+// ---------- アプリ内ブラウザ警告 (注文が保存されない問題への対策) ----------
+// iOS の「コードスキャナー」や SNS のアプリ内ブラウザはストレージが揮発しやすく、
+// タスクを終了すると注文が消えてしまう。通常ブラウザで開き直すよう促す。
+// 通常ブラウザで開くための正規URL (アプリ内ブラウザから必ずここへ誘導する)
+var CANONICAL_URL = "https://merurungx-glitch.github.io/xevarion/ORDYXIS/customer.html";
+var CANONICAL_URL_B = CANONICAL_URL + "?b=1";   // ブラウザで開いた印 (?b=1)
+// ページを開いた瞬間に Safari へ脱出 (LINE等のアプリ内ブラウザはスプラッシュを待たず即誘導)。
+// 下スワイプで閉じられて注文がやり直しになる前に、確実に通常ブラウザへ飛ばす。
+forceBrowserEscapeEarly(CANONICAL_URL);
+
+// 通常ブラウザで開かれたことが確認できるか
+//   - URL に ?b=1 が付いて開かれた (= ブラウザ脱出ボタン経由) / 同セッションで確認済み
+function browserConfirmed() {
+  try {
+    var params = new URLSearchParams(location.search);
+    if (params.get("b") === "1") { sessionStorage.setItem("ordyxis_browser_ok", "1"); return true; }
+    if (sessionStorage.getItem("ordyxis_browser_ok") === "1") return true;
+  } catch (e) {}
+  return false;
+}
+function isIOSDevice() {
+  var ua = navigator.userAgent || "";
+  return /iPhone|iPad|iPod/i.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+}
+function isAndroidDevice() {
+  return /Android/i.test(navigator.userAgent || "");
+}
+// ブラウザ強制ゲートを出す(=注文させない)条件。
+//   通常ブラウザで開いた確認(?b=1)が無いときに表示する。
+//   対象:
+//     ・アプリ内ブラウザ (LINE等のSNS / Android含む) … isInAppBrowser
+//     ・iOS の未確認セッション全て (ホーム画面PWAは除く)
+//   ※ iPhone の「コードスキャナー」の組込ブラウザは UA 上 通常Safari と判別できないため、
+//     確実にブロックするには iOS の未確認セッションを一律に対象にするしかない。
+//     通常Safari/Chrome のお客様には、ゲート内の「このまま注文する」ボタンで救済する
+//     (?b=1 確認済みにして以後は出さない)。シークレットモードは別ゲート(inPrivateGate)。
+function inBrowserGate() {
+  if (browserConfirmed()) return false;
+  if (isInAppBrowser()) return true;
+  if (isIOSDevice()) {
+    var standalone = ("standalone" in navigator) && navigator.standalone;   // ホーム画面PWAは除外
+    if (!standalone) return true;
+  }
+  return false;
+}
+
+// ---------- プライベート/シークレットモード検出 (注文が保存されない問題への対策) ----------
+// シークレットモードはストレージが揮発し、画面を閉じると注文(番号)が消える。
+// 検出したら通常モードで開き直すよう促す(コードスキャナーのゲートと同様の誘導)。
+var isPrivateMode = false;          // 検出結果 (注文ガードで参照)
+// シークレット判定は誤検出があり得る(シークレットでないのに検出されることがある)ため、
+// 本人が「シークレットではない・このまま続ける」を押したら本セッションは解除できる。
+//   ※ コードスキャナー(inBrowserGate)には続行ボタンを付けない(誤検出が無く、確実にブロック)。
+function privateConfirmed() {
+  try { return sessionStorage.getItem("ordyxis_private_ok") === "1"; } catch (e) { return false; }
+}
+// プライベートモードのゲートを出す(=注文させない)条件。
+function inPrivateGate() {
+  return isPrivateMode && !privateConfirmed();
+}
+// 端末/ブラウザ別にシークレットモードを判定する (cross-browser, 誤検出は「通常」に倒す)。
+//   ※ 不明なブラウザは false(通常扱い)＝実客を締め出さないことを優先。
+function detectPrivateMode() {
+  return new Promise(function (resolve) {
+    var done = false;
+    function finish(v) { if (!done) { done = true; resolve(!!v); } }
+    // 検出が固まる/長引く場合に備えて、一定時間で「通常」とみなして先へ進める。
+    setTimeout(function () { finish(false); }, 2500);
+    try {
+      var ua = navigator.userAgent || "";
+      var vendor = navigator.vendor || "";
+      var isSafari = vendor.indexOf("Apple") === 0 && !/Chrome|CriOS|FxiOS|EdgiOS/i.test(ua);
+      var isChromium = !!window.chrome || vendor.indexOf("Google") === 0;
+      var isFirefox = /Firefox/i.test(ua) || (document.documentElement &&
+        document.documentElement.style.MozAppearance !== undefined);
+      if (isSafari) {
+        // Safari(iOS/macOS): プライベートでは IndexedDB に Blob を保存しようとすると失敗する。
+        try {
+          var name = "odx_priv_" + Math.random();
+          var req = window.indexedDB.open(name, 1);
+          req.onupgradeneeded = function (ev) {
+            var db = ev.target.result;
+            try {
+              db.createObjectStore("t", { autoIncrement: true }).put(new Blob());
+              finish(false);
+            } catch (e) {
+              var msg = (e && e.message) ? e.message : String(e);
+              finish(/BlobURLs are not yet supported/i.test(msg));
+            } finally { try { db.close(); window.indexedDB.deleteDatabase(name); } catch (e2) {} }
+          };
+          req.onerror = function () { finish(false); };
+        } catch (e) { finish(false); }
+      } else if (isChromium && navigator.storage && navigator.storage.estimate) {
+        // Chrome/Edge系: シークレットでは利用可能なストレージ容量(quota)が極端に小さい。
+        navigator.storage.estimate().then(function (est) {
+          var quota = est && est.quota ? est.quota : 0;
+          var limit = (window.performance && performance.memory && performance.memory.jsHeapSizeLimit)
+            ? performance.memory.jsHeapSizeLimit * 2 : 1073741824; // 既定 1GB
+          finish(quota > 0 && quota < limit);
+        }, function () { finish(false); });
+      } else if (isFirefox) {
+        // Firefox プライベート: serviceWorker が無効化される。
+        finish(navigator.serviceWorker === undefined);
+      } else {
+        finish(false);   // 不明なブラウザは通常扱い (誤検出回避)
+      }
+    } catch (e) { finish(false); }
+  });
+}
+function showPrivateGate() {
+  $("inappGate").classList.remove("open");
+  $("privateGate").classList.add("open");
+}
+// アプリ内ブラウザ(コードスキャナー/SNS等)から本物のブラウザへ脱出する。
+// ※ 以前あった window.open による「同一タブのフォールバック」は廃止した。理由:
+//    (1) アプリ内タブにそのまま居座り、メニューが一瞬見えて注文も続けられてしまう
+//    (2) 目的のブラウザが未インストールだとコードスキャナー上で注文されてしまう
+//    (3) iOS Chrome の「"Chrome"で開きますか?」確認の前にページ遷移して失敗する
+//   脱出に失敗した場合はゲートに留まり、「URLをコピー」での手動誘導に任せる。
+function openInSafari() {
+  // iOS: x-safari-https:// でアプリ内 WebView から Safari に脱出 (?b=1 を付与)
+  try { window.location.href = "x-safari-" + CANONICAL_URL_B; } catch (e) {}
+}
+// カスタムURLスキームでアプリ起動を試し、起動できなければ onFail を呼ぶ (iOS用)。
+//   アプリが前面に出ると visibilitychange / pagehide / blur が発火する → これを「成功」とみなす。
+//   一定時間たってもこのページに留まっていれば「アプリ未インストール」と判断してフォールバック。
+function tryScheme(url, onFail) {
+  var done = false;
+  var start = Date.now();
+  function onVis() { if (document.hidden) done = true; }   // アプリ前面化=ページが hidden になる(=成功)
+  // ※ blur / pagehide は外部プロトコルのダイアログやナビゲーション試行でも誤発火するため使わない。
+  document.addEventListener("visibilitychange", onVis);
+  try { window.location.href = url; } catch (e) {}
+  setTimeout(function () {
+    document.removeEventListener("visibilitychange", onVis);
+    // アプリが開いた場合: hidden になる、もしくは背景化でこのタイマーが遅延し elapsed が大きくなる。
+    // どちらでもないとき(=このページに留まったまま定刻にタイマーが発火)だけフォールバック。
+    var elapsed = Date.now() - start;
+    if (!done && !document.hidden && elapsed < 2000) {
+      try { onFail(); } catch (e) {}
+    }
+  }, 1400);
+}
+function openInChrome() {
+  const noProto = CANONICAL_URL_B.replace(/^https?:\/\//, "");
+  try {
+    if (isAndroidDevice()) {
+      // Android: intent:// で Chrome を明示指定。未インストールなら既定ブラウザへ自動フォールバック。
+      window.location.href = "intent://" + noProto +
+        "#Intent;scheme=https;package=com.android.chrome;" +
+        "S.browser_fallback_url=" + encodeURIComponent(CANONICAL_URL_B) + ";end";
+    } else {
+      // iOS: googlechromes:// で Chrome を起動。起動できなければ自動で Safari への脱出を試みる。
+      tryScheme("googlechromes://" + noProto, function () {
+        // ※ ここで location.href = CANONICAL_URL_B(?b=1) は絶対にしない。
+        //   コードスキャナーの組込ブラウザ内ではゲートが解除されて、そのまま注文できてしまうため。
+        //   x-safari- はブラウザ脱出専用で、脱出できなければ何も起きずゲートに留まる(=注文不可のまま)。
+        openInSafari();
+      });
+    }
+  } catch (e) {}
+}
+// Android: 端末の既定ブラウザで開く (intent:// + フォールバックURL。Chrome 未所持でも確実)
+function openInDefaultBrowser() {
+  const noProto = CANONICAL_URL_B.replace(/^https?:\/\//, "");
+  try {
+    window.location.href = "intent://" + noProto +
+      "#Intent;scheme=https;S.browser_fallback_url=" + encodeURIComponent(CANONICAL_URL_B) + ";end";
+  } catch (e) {}
+}
+(function setupInAppGate() {
+  $("inappUrl").textContent = CANONICAL_URL;
+  // ボタンの「動作」だけ配線する。表示文言(言語別)は applyGateText が設定する。
+  if (isAndroidDevice()) {
+    $("inappSafari").onclick = openInChrome;
+    $("inappChrome").onclick = openInDefaultBrowser;
+  } else {
+    $("inappSafari").onclick = openInSafari;
+    $("inappChrome").onclick = openInChrome;
+  }
+  $("inappCopy").onclick = async () => {
+    const ok = () => { $("inappCopy").textContent = window.t("copied_browser"); };
+    try { await navigator.clipboard.writeText(CANONICAL_URL_B); ok(); }
+    catch (e) {
+      try { const ta = document.createElement("textarea"); ta.value = CANONICAL_URL_B; document.body.appendChild(ta);
+        ta.select(); document.execCommand("copy"); ta.remove(); ok(); }
+      catch (e2) { $("inappCopy").textContent = window.t("copy_fail"); }
+    }
+    setTimeout(() => { $("inappCopy").textContent = window.t("btn_copy_open"); }, 2200);
+  };
+  // 続行(バイパス)ボタンは設けない。コードスキャナーの組込ブラウザは通常Safariと
+  // 判別できないため、未確認のiOSは必ずブラウザで開き直してもらう(注文を確実に守る)。
+  // 通常Safari/Chromeのお客様向けの理由説明は #inappWhy に表示する。
+
+  // --- プライベート/シークレットモードのゲート ---
+  $("privateUrl").textContent = CANONICAL_URL;
+  if (isAndroidDevice()) {
+    $("privateSafari").onclick = openInChrome;
+    $("privateChrome").onclick = openInDefaultBrowser;
+  } else {
+    $("privateSafari").onclick = openInSafari;
+    $("privateChrome").onclick = openInChrome;
+  }
+  $("privateCopy").onclick = async () => {
+    const ok = () => { $("privateCopy").textContent = window.t("copied_normal"); };
+    try { await navigator.clipboard.writeText(CANONICAL_URL); ok(); }
+    catch (e) {
+      try { const ta = document.createElement("textarea"); ta.value = CANONICAL_URL; document.body.appendChild(ta);
+        ta.select(); document.execCommand("copy"); ta.remove(); ok(); }
+      catch (e2) { $("privateCopy").textContent = window.t("copy_fail"); }
+    }
+    setTimeout(() => { $("privateCopy").textContent = window.t("btn_copy_open"); }, 2200);
+  };
+  // 誤検出の救済: 本人が「シークレットではない」と確認したら、本セッションは解除して進む。
+  $("privateSkip").onclick = () => {
+    try { sessionStorage.setItem("ordyxis_private_ok", "1"); } catch (e) {}
+    $("privateGate").classList.remove("open");
+    startCapacityControl();
+  };
+})();
+
+showSplash(() => {
+  demoBannerIfNeeded();
+  // ブラウザ強制: 通常ブラウザで開いた確認(?b=1)が無く、かつ
+  //   アプリ内ブラウザ or iOS端末 (コードスキャナーの組込Safariは判別不可なためiOS全体を対象)
+  // のときはゲートを表示し、ブラウザで開くまで注文フローに進ませない。
+  if (inBrowserGate()) {
+    $("inappGate").classList.add("open");
+    // 確実な組込ブラウザのみ自動脱出を試行 (Android は既定ブラウザ、それ以外は Safari)
+    if (isInAppBrowser()) setTimeout(isAndroidDevice() ? openInDefaultBrowser : openInSafari, 300);
+    return;
+  }
+  // プライベート/シークレットモードなら通常モードで開き直すよう誘導 (注文が保存されないため)。
+  detectPrivateMode().then((priv) => {
+    isPrivateMode = priv;
+    if (inPrivateGate()) { showPrivateGate(); return; }
+    startCapacityControl();
+  });
+});
+
+// ---------- 混雑制御 (Firebase 無料枠 同時接続100 の保護) ----------
+// presence の数 ≒ 現在の同時接続数。CONN_BUSY_AT 以上なら「混み合っています」を表示し、
+// 待機中はいったん接続を切ってスロットを解放し、数秒ごとに空きを再確認する。
+// 空きが出たら(=入室)注文フローを開始。一度入室したら以後はブロックしない。
+const CONN_BUSY_AT = 90;     // この同時接続数以上を「混雑」とみなす(上限100に対し10の余裕)
+let admitted = false;        // 注文フローに入室済みか
+let waitTimer = null;        // 待機ループ用タイマー
+function startCapacityControl() {
+  if (DB.mode !== "firebase") { admitCustomer(); return; }  // デモ等は無制限
+  DB.joinPresence("customer");
+  DB.watchConnections(onConnCount);
+}
+function onConnCount(n) {
+  if (admitted) return;                  // 入室後はブロックしない
+  if (n < CONN_BUSY_AT) {                 // 空きあり → 入室
+    admitCustomer();
+  } else {                               // 混雑 → スロットを解放して待機
+    showBusy(n);
+    holdAndRetry();
+  }
+}
+function admitCustomer() {
+  if (admitted) return;
+  admitted = true;
+  if (waitTimer) { clearTimeout(waitTimer); waitTimer = null; }
+  try { DB.goOnline(); } catch (e) {}
+  $("busyGate").classList.remove("open");
+  initFlow();
+}
+function showBusy() {
+  $("busyGate").classList.add("open");
+  $("busyHint").textContent = t("busy_checking");
+}
+function holdAndRetry() {
+  if (waitTimer) return;                  // 既に待機ループ中
+  // 1.5秒だけ待ってからスロットを解放 → 数秒待って再接続し、再判定させる
+  waitTimer = setTimeout(() => {
+    try { DB.leavePresence(); DB.goOffline(); } catch (e) {}
+    $("busyHint").textContent = t("busy_waiting");
+    const wait = 9000 + Math.floor(Math.random() * 5000);  // 9〜14秒(集中再接続を分散)
+    waitTimer = setTimeout(() => {
+      waitTimer = null;
+      try { DB.goOnline(); DB.joinPresence("customer"); } catch (e) {}
+      // 再接続後に watchConnections が新しい値で onConnCount を再実行する
+    }, wait);
+  }, 1500);
+}
+
+// ---------- 在庫(注文可能数) のリアルタイム監視 ----------
+let stockLimits = {};   // productId -> 上限
+let soldMap = {};       // productId -> 本日の注文済み個数
+let allOrders = [];     // 本日含む全注文 (予約スロット集計・番号復旧用)
+function stateOf(id) { return stockState(id, soldMap, stockLimits); }
+
+DB.watchOrders((orders) => {
+  allOrders = orders;
+  soldMap = soldCounts(orders);
+  refreshAvailability();
+  if ($("slotScreen").classList.contains("open")) renderSlots(); // 予約状況をリアルタイム反映
+});
+DB.watchStock((limits) => { stockLimits = limits || {}; refreshAvailability(); });
+
+// ---------- 受取方法 (今すぐ / 時間指定) ----------
+let resvCfg = reservationConfig(null);   // 予約設定 (店舗が変更)
+let orderMode = "now";                   // "now" | "scheduled"
+let selectedSlot = null;                 // "HH:MM"
+let flowStarted = false;                 // 初期画面の表示制御
+let modeChosen = false;                  // 受取方法を選択済みか (買い物中の割り込み防止)
+let resvLoaded = false;                  // 予約設定をサーバーから受信済みか (初期画面の確定待ち)
+let pricingShown = false;                // 料金案内を確認済みか (本セッション)
+let resvNoticeShown = false;             // 時間指定予約の注意事項を確認済みか (本セッション)
+let nowNoticeShown = false;              // 今すぐ受け取りの注意事項を確認済みか (本セッション)
+
+DB.watchReservation((cfg) => {
+  resvLoaded = true;
+  resvCfg = reservationConfig(cfg);
+  // 予約機能がOFFに変更されたら今すぐモードへ戻す
+  if (!resvCfg.enabled && orderMode === "scheduled") { orderMode = "now"; selectedSlot = null; }
+  updateModeBar();
+  if ($("slotScreen").classList.contains("open")) renderSlots();
+  // 設定が届いてから初期画面を決める (買い物中・追跡中は割り込まない)
+  if (flowStarted && !currentOrderId && !modeChosen) decideEntryScreen();
+});
+
+function updateModeBar() {
+  const bar = $("modeBar");
+  // 予約機能OFFのときはバー非表示 (従来通りの見た目)
+  if (!resvCfg.enabled) { bar.classList.remove("show"); return; }
+  bar.classList.add("show");
+  $("modeInfo").innerHTML = orderMode === "scheduled"
+    ? '<span class="pin sched">' + t("bar_sched_pin") + '</span> ' + t("bar_recv") + ' ' + (selectedSlot || "--:--")
+    : '<span class="pin">' + t("bar_now_pin") + '</span>';
+}
+
+// 起動時 / 注文完了後の入口画面を決定
+function initFlow() {
+  flowStarted = true;
+  const pending = readPersistedOrderId();
+  if (pending) { trackOrder(pending, true); return; }
+  // 予約設定の受信を待ってから入口画面を確定する。先に既定値(予約OFF)で
+  // メニューを出してしまうと、直後に受取方法の選択へ切り替わってちらつくため。
+  if (resvLoaded) decideEntryScreen();
+  else setTimeout(() => {   // オフライン等で設定が届かない場合のフォールバック
+    if (flowStarted && !currentOrderId && !modeChosen && !resvLoaded) decideEntryScreen();
+  }, 3000);
+}
+function decideEntryScreen() {
+  if (currentOrderId) return;
+  // 注文を始める前に料金案内を表示 (本セッションで未確認のときだけ)
+  if (!pricingShown) { showPriceIntro(); return; }
+  if (resvCfg.enabled) goChooseMode();
+  else { orderMode = "now"; modeChosen = true; maybeNowNotice(); }
+}
+
+// 料金表を churroSetPrice から動的生成 (料金ルールの単一管理 + 言語対応)
+function fillPriceTable() {
+  const tbl = $("priceTable");
+  if (!tbl) return;
+  let rows = '<div class="pgt-row pgt-head"><span>' + t("price_tbl_qty") + '</span><span>' + t("price_tbl_total") + '</span></div>';
+  for (let n = MIN_CHURROS; n <= MAX_CHURROS; n++) {
+    rows += '<div class="pgt-row"><span>' + t("pcs", n) + '</span><span>' + yen(churroSetPrice(n)) + '</span></div>';
+  }
+  tbl.innerHTML = rows;
+}
+// 料金のご案内を表示
+function showPriceIntro() {
+  fillPriceTable();
+  document.body.classList.remove("shopping");
+  document.body.classList.remove("tracking");
+  hideEntryScreens();
+  $("priceIntro").classList.add("open");
+}
+$("priceStart").onclick = () => {
+  pricingShown = true;
+  $("priceIntro").classList.remove("open");
+  decideEntryScreen();   // 料金確認後に通常の入口(受取方法 or メニュー)へ
+};
+
+function hideEntryScreens() {
+  $("priceIntro").classList.remove("open");
+  $("modeScreen").classList.remove("open");
+  $("resvNotice").classList.remove("open");
+  $("nowNotice").classList.remove("open");
+  $("slotScreen").classList.remove("open");
+}
+// 時間指定予約の注意事項 (スマホ画面イメージ付き) を表示
+function goResvNotice() {
+  hideEntryScreens();
+  document.body.classList.remove("shopping");
+  document.body.classList.remove("tracking");
+  $("resvNotice").classList.add("open");
+}
+// 今すぐ受け取りの注意事項 (スマホ画面イメージ付き) を表示。
+// 「受け取り方法に戻る」は予約機能ONのときだけ意味があるので、その時だけ表示する。
+function goNowNotice() {
+  hideEntryScreens();
+  document.body.classList.remove("shopping");
+  document.body.classList.remove("tracking");
+  $("nowNoticeBack").style.display = resvCfg.enabled ? "" : "none";
+  $("nowNotice").classList.add("open");
+}
+// 今すぐ受け取り: 初回のみ注意事項を表示してから買い物画面へ。
+function maybeNowNotice() {
+  if (!nowNoticeShown) goNowNotice();
+  else goShopping();
+}
+function goChooseMode() {
+  modeChosen = false;
+  document.body.classList.remove("shopping");  // 受取方法の選択中は土台UIを隠す
+  document.body.classList.remove("tracking");
+  hideEntryScreens();
+  $("modeSched").classList.toggle("disabled", !resvCfg.enabled);
+  $("modeScreen").classList.add("open");
+}
+function goShopping() {
+  hideEntryScreens();
+  document.body.classList.remove("tracking");
+  document.body.classList.add("shopping");   // 土台UI(ヘッダー・メニュー)を表示
+  updateModeBar();
+}
+function goPickSlot() {
+  hideEntryScreens();
+  document.body.classList.remove("tracking");
+  $("slotSub").textContent = t("slot_sub", resvCfg);
+  renderSlots();
+  $("slotScreen").classList.add("open");
+}
+
+// 受取スロットの描画 (満員・受付終了を反映)
+function renderSlots() {
+  const grid = $("slotGrid");
+  const slots = reservationSlots(resvCfg);
+  const counts = slotCounts(allOrders);
+  const now = new Date();
+  grid.innerHTML = "";
+  let available = 0;
+  slots.forEach((t) => {
+    const used = counts[t] || 0;
+    const remaining = Math.max(0, resvCfg.capacity - used);
+    const p = t.split(":");
+    const slotTime = new Date(); slotTime.setHours(+p[0], +p[1], 0, 0);
+    const past = slotTime <= now;           // 既に過ぎた時刻は選べない
+    const full = remaining <= 0;
+    const cell = document.createElement("button");
+    cell.className = "slot" + (full ? " full" : "") + (past ? " past" : "");
+    cell.dataset.slot = t;
+    cell.innerHTML = '<span class="t">' + t + '</span>' +
+      '<span class="cap' + (remaining <= 2 && !full ? " few" : "") + '">' +
+      (past ? window.t("slot_closed") : full ? window.t("slot_full") : window.t("slot_left", remaining)) + '</span>';
+    if (!full && !past) available++;
+    grid.appendChild(cell);
+  });
+  if (!available) {
+    grid.insertAdjacentHTML("beforeend",
+      '<div class="slot-empty">' + window.t("slot_empty") + '</div>');
+  }
+}
+
+// 今すぐ受け取りも、はじめに注意事項(スマホ画面イメージ)を表示してから買い物へ。
+$("modeNow").onclick = () => { orderMode = "now"; selectedSlot = null; modeChosen = true; maybeNowNotice(); };
+$("nowNoticeNext").onclick = () => { nowNoticeShown = true; goShopping(); };
+$("nowNoticeBack").onclick = () => goChooseMode();
+// 時間指定を選んだら、はじめに注意事項(スマホ画面イメージ)を表示してから時刻選択へ。
+$("modeSched").onclick = () => {
+  if (!resvCfg.enabled) return;
+  if (!resvNoticeShown) goResvNotice();
+  else goPickSlot();
+};
+$("resvNoticeNext").onclick = () => { resvNoticeShown = true; goPickSlot(); };
+$("resvNoticeBack").onclick = () => goChooseMode();
+$("modeChange").onclick = () => { if (resvCfg.enabled) goChooseMode(); };
+$("slotBack").onclick = () => goChooseMode();
+$("slotGrid").addEventListener("click", (e) => {
+  const cell = e.target.closest(".slot");
+  if (!cell || cell.classList.contains("full") || cell.classList.contains("past")) return;
+  // 選択直前に最新の空き状況を再確認
+  const t = cell.dataset.slot;
+  const used = (slotCounts(allOrders)[t] || 0);
+  if (used >= resvCfg.capacity) { alert(window.t("slot_now_full")); renderSlots(); return; }
+  orderMode = "scheduled"; selectedSlot = t; modeChosen = true;
+  goShopping();
+});
+
+// 注文番号からの追跡再開機能は廃止 (任意の番号入力で他人の注文を横取りできるため)。
+// 追跡の復元はこの端末に保存した注文ID (localStorage + Cookie) からのみ行う。
+
+// カート内のチュロス味が残数を超えていたら自動で詰める
+function clampChurro(churroId, remaining) {
+  let excess = churroCartQty(churroId) - remaining;
+  Object.keys(cart).forEach((k) => {
+    if (excess <= 0 || cart[k].churroId !== churroId) return;
+    const cut = Math.min(cart[k].qty, excess);
+    cart[k].qty -= cut; excess -= cut;
+    if (cart[k].qty <= 0) delete cart[k];
+  });
+}
+
+// 売り切れ・残数に応じてメニュー表示とカートを更新 (カードはチュロスのみ)
+function refreshAvailability() {
+  CHURROS.forEach((m) => {
+    const st = stateOf(m.id);
+    if (st.limit !== null && churroCartQty(m.id) > st.remaining) clampChurro(m.id, st.remaining);
+    const card = document.querySelector('.card[data-id="' + m.id + '"]');
+    if (!card) return;
+    card.classList.toggle("soldout", st.soldOut);
+    const tag = card.querySelector(".stock-tag");
+    if (tag) {
+      // 残りが 30 個以内になったときだけお客様に残数を表示
+      if (st.limit === null || st.soldOut || st.remaining > 30) { tag.style.display = "none"; }
+      else { tag.style.display = ""; tag.textContent = t("stock_left", st.remaining);
+        tag.className = "stock-tag " + (st.remaining <= 5 ? "few" : "ok"); }
+    }
+    const addBtn = card.querySelector('button[data-act="add"]');
+    if (addBtn) addBtn.disabled = st.soldOut
+      || (st.limit !== null && churroCartQty(m.id) >= st.remaining)
+      || cartChurroTotal() >= MAX_CHURROS;
+  });
+  updateCartUI();
+}
+
+// ---------- メニュー描画 (チュロスのみ) ----------
+function renderMenu() {
+  const grid = $("gridChurros");
+  grid.innerHTML = "";   // 言語切替で再描画するため毎回クリア
+  CHURROS.forEach((m) => {
+    const nm = mnameById(m.id);
+    const card = document.createElement("div");
+    card.className = "card";
+    card.dataset.id = m.id;
+    card.innerHTML = `
+      <img src="${m.img}" alt="${nm}">
+      <div class="soldout-overlay"><div class="so-main">SOLD OUT</div><div class="so-sub">${t("soldout_sub")}</div></div>
+      <div class="body">
+        <div class="name">${nm}</div>
+        <div class="price-hint">${t("price_hint")}</div>
+        <span class="stock-tag ok" style="display:none"></span>
+        <button class="add-btn" data-act="add" data-id="${m.id}">${t("add_btn")}</button>
+      </div>`;
+    const img = card.querySelector("img");
+    img.onerror = () => imgFallback(img, nm);
+    grid.appendChild(card);
+  });
+}
+renderMenu();
+refreshAvailability();
+
+// あと何個このチュロスを追加できるか (在庫の残り と 1注文の上限8個 の小さい方)
+function maxAddable(churroId) {
+  const st = stateOf(churroId);
+  const stockLeft = st.limit === null ? Infinity : Math.max(0, st.remaining - churroCartQty(churroId));
+  const orderLeft = Math.max(0, MAX_CHURROS - cartChurroTotal());
+  return Math.min(stockLeft, orderLeft);
+}
+
+// ---------- ソース選択シート (ソース選択 + 個数指定) ----------
+let pickerChurroId = null;
+let pickerSauceId = "";
+let pickerQty = 1;
+
+function openSaucePicker(churroId) {
+  const st = stateOf(churroId);
+  if (st.soldOut) { showToast(t("toast_soldout")); return; }
+  const canAdd = maxAddable(churroId);
+  if (canAdd <= 0) {
+    if (cartChurroTotal() >= MAX_CHURROS) alert(t("alert_max"));
+    else alert(t("alert_sold_one", mnameById(churroId)));
+    return;
+  }
+  pickerChurroId = churroId;
+  pickerSauceId = "";   // 既定は「ソースなし」
+  pickerQty = 1;
+  $("sauceTitle").textContent = t("sauce_title", mnameById(churroId));
+  const opts = $("sauceOpts");
+  opts.innerHTML = "";
+  // ソースをつけない (既定で選択)
+  const none = document.createElement("button");
+  none.className = "sauce-opt selected";
+  none.dataset.sauce = "";
+  none.innerHTML =
+    '<div class="so-ic">' + (lang === "en" ? "None" : "なし") + '</div>' +
+    '<div class="so-tx"><div class="so-nm">' + t("sauce_opt_none_nm") + '</div><div class="so-pr">' + t("sauce_opt_none_sub") + '</div></div>' +
+    '<div class="so-go">＋</div>';
+  opts.appendChild(none);
+  // 各ソース味
+  SAUCES.forEach((s) => {
+    const snm = mnameById(s.id);
+    const sauceSoldOut = stateOf(s.id).soldOut;
+    const b = document.createElement("button");
+    b.className = "sauce-opt" + (sauceSoldOut ? " soldout" : "");
+    b.dataset.sauce = s.id;
+    b.innerHTML =
+      `<img src="${s.img}" alt="${snm}">` +
+      `<div class="so-tx"><div class="so-nm">${snm}</div><div class="so-pr">${s.price === 0 ? t("free") : yen(s.price)}</div></div>` +
+      '<div class="so-go">＋</div>';
+    const img = b.querySelector("img");
+    img.onerror = () => imgFallback(img, snm);
+    opts.appendChild(b);
+  });
+  // 両方つける (ソースが2種以上あるとき。いずれか1つでも売り切れなら非表示)
+  const anySauceSoldOut = SAUCES.some((s) => stateOf(s.id).soldOut);
+  if (SAUCES.length >= 2 && !anySauceSoldOut) {
+    const both = document.createElement("button");
+    both.className = "sauce-opt";
+    both.dataset.sauce = BOTH_SAUCE_ID;
+    both.innerHTML =
+      '<div class="so-ic both">' + (lang === "en" ? "Both" : "両方") + '</div>' +
+      `<div class="so-tx"><div class="so-nm">${mnameById("both")}</div><div class="so-pr">${t("free")}</div></div>` +
+      '<div class="so-go">＋</div>';
+    opts.appendChild(both);
+  }
+  updatePickerQtyUI();
+  $("sauceOverlay").classList.add("open");
+  $("sauceSheet").classList.add("open");
+}
+function updatePickerQtyUI() {
+  const canAdd = pickerChurroId ? maxAddable(pickerChurroId) : 0;
+  pickerQty = Math.max(1, Math.min(pickerQty, Math.max(1, canAdd)));
+  $("sauceQtyVal").textContent = pickerQty;
+  $("sauceQtyMinus").disabled = pickerQty <= 1;
+  $("sauceQtyPlus").disabled = pickerQty >= canAdd;
+  $("sauceAddConfirm").disabled = canAdd <= 0;
+  $("sauceQtyNote").textContent = (canAdd > 0 && pickerQty >= canAdd) ? t("picker_max") : "";
+}
+function closeSaucePicker() {
+  $("sauceOverlay").classList.remove("open");
+  $("sauceSheet").classList.remove("open");
+  pickerChurroId = null;
+}
+$("sauceClose").onclick = closeSaucePicker;
+$("sauceOverlay").onclick = closeSaucePicker;
+// ソースの選択 (タップで選び替え。ここではカートに入れない)
+$("sauceOpts").addEventListener("click", (e) => {
+  const opt = e.target.closest(".sauce-opt");
+  if (!opt) return;
+  pickerSauceId = opt.dataset.sauce || "";
+  Array.prototype.forEach.call($("sauceOpts").children, (c) => c.classList.toggle("selected", c === opt));
+});
+$("sauceQtyMinus").onclick = () => { pickerQty -= 1; updatePickerQtyUI(); };
+$("sauceQtyPlus").onclick  = () => { pickerQty += 1; updatePickerQtyUI(); };
+$("sauceAddConfirm").onclick = () => {
+  if (pickerChurroId == null) return;
+  const churroId = pickerChurroId, sauceId = pickerSauceId || null, qty = pickerQty;
+  closeSaucePicker();
+  addToCart(churroId, sauceId, qty);
+};
+
+// カードの「追加」ボタン → ソース選択シートを開く
+$("gridChurros").addEventListener("click", (e) => {
+  const btn = e.target.closest('button[data-act="add"]');
+  if (!btn || btn.disabled) return;
+  openSaucePicker(btn.dataset.id);
+});
+
+// ---------- カート操作 ----------
+function addToCart(churroId, sauceId, qty) {
+  qty = Math.max(1, qty || 1);
+  const allow = maxAddable(churroId);
+  if (allow <= 0) {
+    if (cartChurroTotal() >= MAX_CHURROS) alert(t("alert_max"));
+    else showToast(t("toast_nomore"));
+    refreshAvailability();
+    return;
+  }
+  if (qty > allow) qty = allow;   // 在庫・上限を超える分は詰める
+  const key = lineKey(churroId, sauceId);
+  if (cart[key]) cart[key].qty += qty;
+  else cart[key] = { churroId, sauceId: sauceId || null, qty };
+  refreshAvailability();
+  const s = resolveSauce(sauceId);
+  const sName = s ? (s.id ? mnameById(s.id) : s.name) : null;
+  showToast(t("toast_added", mnameById(churroId), sName, qty));
+}
+function changeQty(key, delta) {
+  const line = cart[key];
+  if (!line) return;
+  if (delta > 0) {
+    if (cartChurroTotal() >= MAX_CHURROS) {
+      alert(t("alert_max"));
+      return;
+    }
+    const st = stateOf(line.churroId);
+    if (st.soldOut || (st.limit !== null && churroCartQty(line.churroId) >= st.remaining)) {
+      alert(t("alert_stock_left", mnameById(line.churroId), Math.max(0, st.remaining)));
+      return;
+    }
+  }
+  line.qty += delta;
+  if (line.qty <= 0) delete cart[key];
+  refreshAvailability();
+}
+
+let toastTimer = null;
+function showToast(msg) {
+  const t = $("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove("show"), 1700);
+}
+
+// ---------- カート表示 ----------
+function cartEntries() {
+  return Object.keys(cart).map((key) => {
+    const l = cart[key];
+    const m = menuById(l.churroId);
+    const s = resolveSauce(l.sauceId);
+    return { key, churroId: l.churroId, sauceId: l.sauceId,
+      name: m.name, price: m.price, qty: l.qty, img: m.img,
+      sauce: s };
+  });
+}
+// 合計料金は段階制 (基本3個¥150 + 4個目以降 ¥50/個)。個別単価の合算ではない。
+function cartTotal() { return churroSetPrice(cartChurroTotal()); }
+
+function updateCartUI() {
+  const count = cartEntries().reduce((s, e) => s + e.qty, 0);
+  $("cartBadge").style.display = count ? "flex" : "none";
+  $("cartBadge").textContent = count;
+
+  const box = $("cartItems");
+  box.innerHTML = "";
+  const entries = cartEntries();
+  if (!entries.length) {
+    box.innerHTML = '<div class="empty">' + t("cart_empty") + '</div>';
+  }
+  entries.forEach((e) => {
+    const row = document.createElement("div");
+    row.className = "cart-row";
+    const nm = mnameById(e.churroId);
+    const sName = e.sauce ? (e.sauce.id ? mnameById(e.sauce.id) : e.sauce.name) : null;
+    const sauceLine = e.sauce
+      ? `<div class="sauce-line">${t("sauce_with", sName)}</div>`
+      : `<div class="sauce-line none">${t("sauce_none_line")}</div>`;
+    row.innerHTML = `
+      <img src="${e.img}" alt="${nm}">
+      <div class="info"><div class="nm">${nm}</div>${sauceLine}</div>
+      <div class="qty">
+        <button data-cart-act="minus" data-key="${e.key}">－</button>
+        <span class="n">${e.qty}</span>
+        <button data-cart-act="plus" data-key="${e.key}">＋</button>
+      </div>`;
+    const img = row.querySelector("img");
+    img.onerror = () => imgFallback(img, nm);
+    box.appendChild(row);
+  });
+
+  // 料金の内訳 (基本3個 ¥300→50%OFF ¥150 + 4個目以降 ¥50/個)
+  const n = cartChurroTotal();
+  const bd = $("priceBreakdown");
+  if (n <= 0) {
+    bd.innerHTML = "";
+  } else {
+    const addN = Math.max(0, n - CHURRO_BASE_QTY);
+    bd.innerHTML =
+      `<div class="pb-row"><span>${t("bd_base", CHURRO_BASE_QTY)} <span style="color:#e8503a;font-weight:800">50%OFF</span></span><span><s style="color:#9aa3b5">${yen(CHURRO_BASE_LIST_PRICE)}</s> ${yen(CHURRO_BASE_PRICE)}</span></div>` +
+      (addN > 0
+        ? `<div class="pb-row"><span>${t("bd_add", addN)} <s style="color:#9aa3b5">${yen(CHURRO_ADD_LIST_PRICE)}</s> <span style="color:#e8503a;font-weight:800">${CHURRO_ADD_OFF_PCT}%OFF</span> ${yen(CHURRO_ADD_PRICE)}</span><span>${yen(addN * CHURRO_ADD_PRICE)}</span></div>`
+        : "");
+  }
+  $("cartTotal").textContent = yen(cartTotal());
+
+  // 最低3個の案内 + 注文ボタンの可否
+  const minNote = $("cartMinNote");
+  if (n > 0 && n < MIN_CHURROS) {
+    minNote.textContent = t("min_note", MIN_CHURROS - n);
+  } else { minNote.textContent = ""; }
+  $("confirmOrder").disabled = n < MIN_CHURROS;
+}
+$("cartItems").addEventListener("click", (e) => {
+  const btn = e.target.closest("button[data-cart-act]");
+  if (!btn) return;
+  changeQty(btn.dataset.key, btn.dataset.cartAct === "plus" ? 1 : -1);
+});
+updateCartUI();
+
+let cartScrollY = 0;   // カートを開く直前のページスクロール位置 (背景固定の復元用)
+function openCart(open) {
+  $("overlay").classList.toggle("open", open);
+  $("cartPanel").classList.toggle("open", open);
+  // カート表示中は背面のメニューをスクロールさせない (背景が動くのを防ぐ)。
+  // body を position:fixed で固定するため、現在のスクロール位置を top で打ち消して
+  // 見た目が飛ばないようにし、閉じる時に元の位置へ戻す。
+  if (open) {
+    cartScrollY = window.scrollY || window.pageYOffset || 0;
+    document.body.classList.add("cart-open");
+    document.body.style.top = (-cartScrollY) + "px";
+  } else {
+    document.body.classList.remove("cart-open");
+    document.body.style.top = "";
+    window.scrollTo(0, cartScrollY);
+  }
+}
+$("openCart").onclick = () => openCart(true);
+$("closeCart").onclick = () => openCart(false);
+$("overlay").onclick = () => openCart(false);
+
+// ---------- 注文確定 → チケット ----------
+const STATUS_LABEL = {
+  new:     { text: "受付済み・準備中",            cls: "new" },
+  calling: { text: "お呼び出し中！カウンターへどうぞ", cls: "calling" },
+  done:    { text: "お渡し完了",                  cls: "done" }
+};
+
+$("confirmOrder").onclick = async () => {
+  // コードスキャナー等(ブラウザ未確認)では注文させない。ゲートを再表示してブラウザへ誘導する。
+  if (inBrowserGate()) {
+    $("inappGate").classList.add("open");
+    return;
+  }
+  // プライベート/シークレットモードでも注文させない (画面を閉じると注文が消えるため)。
+  if (inPrivateGate()) {
+    showPrivateGate();
+    return;
+  }
+  // 注文明細: チュロス1行ごとに、選択したソースを紐づける
+  const entries = cartEntries().map((e) => {
+    const item = { id: e.churroId, name: e.name, price: e.price, qty: e.qty };
+    if (e.sauce) item.sauce = { id: e.sauce.id, name: e.sauce.name };
+    return item;
+  });
+  if (!entries.length) return;
+  // 最低注文数 (基本3個) のチェック
+  if (cartChurroTotal() < MIN_CHURROS) {
+    alert(t("alert_min_order", MIN_CHURROS - cartChurroTotal()));
+    return;
+  }
+  // 注文可能数の最終チェック (他のお客様の注文で売り切れた場合に備える)。
+  // 同じチュロス味でもソース違いで複数行になるため、味ごとに合算して判定する。
+  const qtyByChurro = {};
+  entries.forEach((e) => { qtyByChurro[e.id] = (qtyByChurro[e.id] || 0) + e.qty; });
+  const over = Object.keys(qtyByChurro).filter((id) => {
+    const st = stateOf(id); return st.limit !== null && qtyByChurro[id] > st.remaining;
+  });
+  if (over.length) {
+    alert(t("alert_sold_adjust") +
+      over.map((id) => "・" + mnameById(id) + "（" + t("stock_left", stateOf(id).remaining) + "）").join("\n"));
+    refreshAvailability();
+    return;
+  }
+  // 時間指定の場合は受取時刻の空き状況を最終確認
+  const scheduled = resvCfg.enabled && orderMode === "scheduled" && selectedSlot;
+  if (resvCfg.enabled && orderMode === "scheduled" && !selectedSlot) {
+    alert(t("alert_no_slot"));
+    goChooseMode();
+    return;
+  }
+  if (scheduled) {
+    const used = slotCounts(allOrders)[selectedSlot] || 0;
+    if (used >= resvCfg.capacity) {
+      alert(t("alert_slot_full", selectedSlot));
+      goPickSlot();
+      return;
+    }
+  }
+  // 順番が来たときに通知できるよう許可を求めておく
+  try { if ("Notification" in window && Notification.permission === "default") Notification.requestPermission(); } catch (e) {}
+  $("confirmOrder").disabled = true;
+  try {
+    const opts = scheduled ? { type: "scheduled", pickupTime: selectedSlot } : { type: "now" };
+    const { id } = await DB.createOrder(entries, cartTotal(), opts);
+    persistOrderId(id);   // localStorage + Cookie に二重保存
+    Object.keys(cart).forEach((k) => delete cart[k]);
+    updateCartUI();
+    openCart(false);
+    trackOrder(id);
+  } catch (err) {
+    $("confirmOrder").disabled = false;
+    // 争奪戦で先客に枠を取られた場合 (在庫・予約定員の確保に失敗)
+    if (err && err.code === "SOLD_OUT") {
+      openCart(false);
+      if (err.reason === "slot") {
+        alert(t("alert_soldout_slot"));
+        goPickSlot();
+      } else {
+        const nm = err.detail ? mnameById(err.detail) : null;
+        alert(t("alert_soldout_item", nm));
+        refreshAvailability();
+      }
+      return;
+    }
+    alert(t("alert_order_fail") + (err && err.message || ""));
+  }
+};
+
+let currentOrderId = null;
+
+function stopTracking() {
+  clearPersistedOrderId();
+  currentOrderId = null;
+  currentOrder = null;
+  $("ticket").classList.remove("open");
+  decideEntryScreen();
+}
+
+// 順番が来たときの通知 (デスクトップ/モバイル通知 + バイブ + 音)
+function notifyCalled(number) {
+  const body = t("notify_body", fmtNo(number));
+  try {
+    if ("Notification" in window && Notification.permission === "granted") {
+      new Notification(t("notify_title"), { body: body, tag: "ordyxis-call", renotify: true });
+    }
+  } catch (e) {}
+  try { if (navigator.vibrate) navigator.vibrate([400, 150, 400, 150, 400]); } catch (e) {}
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.frequency.value = 988; g.gain.value = 0.15; o.start();
+    o.frequency.setValueAtTime(1319, ctx.currentTime + 0.2);
+    g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.8);
+    o.stop(ctx.currentTime + 0.8);
+  } catch (e) {}
+}
+
+let lastTrackedStatus = null;
+let currentOrder = null;   // 現在追跡中の注文 (定期再描画用)
+
+// チケット画面の描画。時刻経過で表示が変わる部分(受取ウィンドウ・到着ボタン)を
+// 含むため、DBの変化だけでなく一定間隔でも呼び出して最新の時刻状態を反映する。
+function renderTicket(o) {
+  if (!o) return;
+  $("ticketNumber").textContent = fmtNo(o.number);
+  // 時間指定予約の受取時刻を表示
+  const resvEl = $("ticketResvTime");
+  if (o.type === "scheduled" && o.pickupTime) {
+    resvEl.style.display = "";
+    resvEl.textContent = t("resv_time", o.pickupTime);
+  } else { resvEl.style.display = "none"; }
+  // --- 受取ウィンドウの案内 / 来店(到着)確認 ---
+  const note = $("ticketResvNote");
+  const checkinBtn = $("checkinBtn");
+  const checkinDone = $("checkinDone");
+  note.style.display = "none";
+  checkinBtn.style.display = "none";
+  checkinDone.style.display = "none";
+
+  const pill = $("statusPill");
+  const isSched = o.type === "scheduled";
+  const win = reservationWindowOpen(o);        // 来店確認できる時間帯か
+  const beforeWin = isSched && !reservationDue(o); // 受取ウィンドウ前 (受取時刻の15分前より前)
+  if (isSched && o.status === "new" && o.arrived) {
+    // 来店確認済み → お店が用意中 (Disney方式: 到着後に調理開始)
+    pill.textContent = t("st_sched_prep");
+    pill.className = "status-pill new";
+    note.style.display = "";
+    note.innerHTML = t("note_prep");
+  } else if (isSched && o.status === "new" && beforeWin) {
+    // 受取時刻前: まだ到着確認できない
+    pill.textContent = t("st_sched_booked");
+    pill.className = "status-pill new";
+    note.style.display = "";
+    note.innerHTML = t("note_booked", o.pickupTime);
+  } else if (isSched && o.status === "new" && win) {
+    // ウィンドウ内・未到着: 到着確認を促す (確認後に用意開始)
+    pill.textContent = t("st_sched_arrive");
+    pill.className = "status-pill calling";
+    note.style.display = "";
+    note.innerHTML = t("note_arrive", o.pickupTime);
+  } else {
+    const st = STATUS_LABEL[o.status] || STATUS_LABEL.new;
+    pill.textContent = t("status_" + (o.status === "calling" ? "calling" : o.status === "done" ? "done" : "new"));
+    pill.className = "status-pill " + st.cls;
+  }
+
+  // 来店(到着)確認は時間指定予約のみ (今すぐ受け取りには到着確認はない)
+  const canCheckin = isSched && o.status === "new" && win && !o.arrived;
+  if (canCheckin) checkinBtn.style.display = "";
+  else if (isSched && o.arrived && o.status !== "done") checkinDone.style.display = "";
+
+  setSliderEnabled(o.status === "calling");
+  const nC = (o.items || []).reduce((s, i) => s + i.qty, 0);
+  const addN = Math.max(0, nC - CHURRO_BASE_QTY);
+  $("ticketDetail").innerHTML =
+    o.items.map((i) => `<div class="row"><span>${litemLabel(i)}</span><span>× ${i.qty}</span></div>`).join("") +
+    `<div class="row brk"><span>${t("detail_base", CHURRO_BASE_QTY, addN)}</span><span></span></div>` +
+    `<div class="row tot"><span>${t("detail_total", nC)}</span><span>${yen(o.total)}</span></div>`;
+}
+
+// 追跡中は時刻の経過で表示が変わる(受取ウィンドウ到来 → 到着ボタン表示)。
+// DBの変化を待たずに反映するため、チケット表示中は定期的に再描画する。
+setInterval(() => {
+  if (currentOrderId && currentOrder && $("ticket").classList.contains("open")) {
+    renderTicket(currentOrder);
+  }
+}, 15000);
+
+function trackOrder(id, restored) {
+  currentOrderId = id;
+  lastTrackedStatus = null;
+  resetSlider();
+  document.body.classList.add("tracking");   // 背面の注文画面を隠してスクロール固定
+  $("thanks").classList.remove("open");
+  // 復元時は注文の状態を確認できてからチケットを表示する
+  if (!restored) $("ticket").classList.add("open");
+  let doneHandled = false; // 完了処理を1回だけ実行するためのフラグ
+  DB.watchOrder(id, (o) => {
+    // 過去の注文のリスナーが残っていても、現在の注文以外は無視する
+    if (o && o.id !== currentOrderId) return;
+    if (!o) {
+      // 注文がデータベースに存在しない (お店側で履歴が削除された場合など)
+      if (currentOrderId === id) stopTracking();
+      return;
+    }
+    if (o.status === "cancelled") {
+      // 受取時刻超過などでキャンセルされた
+      clearPersistedOrderId();
+      currentOrderId = null;
+      currentOrder = null;
+      $("ticket").classList.remove("open");
+      $("cancelledScreen").classList.add("open");
+      return;
+    }
+    if (restored && o.status === "done") {
+      // 提供済みの注文は復元しない
+      stopTracking();
+      return;
+    }
+    restored = false; // 一度表示できたら通常の追跡に切り替える
+    // 「お呼び出し中」へ変わった瞬間に通知＋バイブで知らせる
+    if (o.status === "calling" && lastTrackedStatus !== "calling") notifyCalled(o.number);
+    lastTrackedStatus = o.status;
+    hideEntryScreens();
+    $("ticket").classList.add("open");
+    currentOrder = o;     // 定期再描画(時刻経過の反映)のため最新の注文を保持
+    renderTicket(o);
+    if (o.status === "done" && !doneHandled) {
+      doneHandled = true;
+      sliderCompleted();
+      clearPersistedOrderId();
+      setTimeout(() => {
+        // 既に次の注文を開始していたら画面を切り替えない
+        if (currentOrderId !== id) return;
+        $("ticket").classList.remove("open");
+        $("thanks").classList.add("open");
+      }, 900);
+    }
+  });
+}
+
+// ---------- スライド式の受け取り確認 (誤操作防止) ----------
+const slider = $("slideConfirm");
+const thumb = $("slideThumb");
+const sFill = $("slideFill");
+const sLabel = $("slideLabel");
+let sliderEnabled = false;
+let sliderDone = false;
+let sliderArmed = false;   // スライド完了→確定ボタン待ちの状態
+let dragging = false;
+let dragOffset = 0;
+let pos = 0;
+
+const maxPos = () => slider.clientWidth - thumb.offsetWidth - 10;
+
+function setThumb(x, animate) {
+  pos = Math.max(0, Math.min(maxPos(), x));
+  thumb.style.transition = animate ? "transform .25s ease" : "none";
+  sFill.style.transition = animate ? "width .25s ease" : "none";
+  thumb.style.transform = `translateX(${pos}px)`;
+  sFill.style.width = pos + thumb.offsetWidth + 5 + "px";
+}
+function setSliderEnabled(on) {
+  if (sliderDone || sliderArmed) return; // 完了・確定待ちのときは触らない
+  sliderEnabled = on;
+  slider.classList.toggle("disabled", !on);
+}
+// スライドのラベルを現在の状態・言語で更新
+function refreshSliderLabel() {
+  if (sliderDone) sLabel.textContent = t("slide_done");
+  else if (sliderArmed) sLabel.textContent = t("slide_armed");
+  else sLabel.textContent = t("slide_default");
+}
+function resetSlider() {
+  sliderDone = false;
+  sliderArmed = false;
+  dragging = false;
+  slider.classList.remove("completed");
+  thumb.style.display = "";
+  refreshSliderLabel();
+  $("receiptConfirm").classList.remove("show");
+  $("receiptConfirm").disabled = false;
+  $("receiptRedo").classList.remove("show");
+  setThumb(0, false);
+  setSliderEnabled(false);
+}
+// スライド完了 → 確定ボタンを表示（まだ完了確定しない）
+function armReceipt() {
+  sliderArmed = true;
+  sliderEnabled = false;
+  setThumb(maxPos(), true);
+  refreshSliderLabel();
+  $("receiptConfirm").classList.add("show");
+  $("receiptRedo").classList.add("show");
+}
+function sliderCompleted() {
+  sliderDone = true;
+  sliderArmed = false;
+  slider.classList.add("completed");
+  thumb.style.display = "none";
+  sFill.style.width = "100%";
+  refreshSliderLabel();
+  $("receiptConfirm").classList.remove("show");
+  $("receiptRedo").classList.remove("show");
+}
+
+thumb.addEventListener("pointerdown", (e) => {
+  if (!sliderEnabled || sliderDone) return;
+  dragging = true;
+  dragOffset = e.clientX - pos;
+  thumb.setPointerCapture(e.pointerId);
+});
+thumb.addEventListener("pointermove", (e) => {
+  if (!dragging) return;
+  setThumb(e.clientX - dragOffset, false);
+});
+function endDrag() {
+  if (!dragging) return;
+  dragging = false;
+  if (pos >= maxPos() * 0.92) {
+    // 右端までスライド → 確定ボタンを表示（2段階目）
+    armReceipt();
+  } else {
+    setThumb(0, true); // 途中で離したら戻す (誤操作防止)
+  }
+}
+thumb.addEventListener("pointerup", endDrag);
+thumb.addEventListener("pointercancel", endDrag);
+
+// 2段階目: 「受け取り完了」ボタンを再度押して確定
+$("receiptConfirm").onclick = () => {
+  if (!currentOrderId || sliderDone) return;
+  $("receiptConfirm").disabled = true;
+  DB.setStatus(currentOrderId, "done"); // 完了確定（done時に thanks 画面へ）
+};
+// やり直す: スライドからやり直し（呼出中なら再度スライド可能）
+$("receiptRedo").onclick = () => {
+  if (sliderDone) return;
+  resetSlider();
+  setSliderEnabled(true);
+};
+
+// 来店(到着)をお店に通知
+$("checkinBtn").onclick = () => {
+  if (!currentOrderId) return;
+  $("checkinBtn").style.display = "none";
+  $("checkinDone").style.display = "";
+  DB.setArrived(currentOrderId, true);
+};
+
+function restartOrder() {
+  $("thanks").classList.remove("open");
+  $("cancelledScreen").classList.remove("open");
+  currentOrderId = null;   // 直前の注文の追跡は終了
+  modeChosen = false;
+  decideEntryScreen();     // 予約機能ONなら受取方法の選択へ、OFFならメニューへ
+}
+$("againBtn").onclick = restartOrder;
+$("cancelAgainBtn").onclick = restartOrder;
+
+// 初期言語を適用 (静的テキスト・ゲート文言・各画面の動的テキスト)。
+// 全関数・変数の定義後に1回だけ呼ぶ (TDZ回避)。以後は🌐ボタンで切替。
+applyLang();
+
+// 起動時の入口画面の決定は showSplash 完了後に initFlow() で行う
+// (提供前の注文があれば localStorage / Cookie から復元)
+</script>
+</body>
+</html>

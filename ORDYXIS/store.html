@@ -1,0 +1,1608 @@
+﻿<!DOCTYPE html>
+<html lang="ja">
+<head>
+<script src="../maintenance-gate.js?v=5"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ORDYXIS - 店舗用注文管理</title>
+<link rel="icon" type="image/png" href="../thumbs/Ordyxis.jpg">
+<link rel="apple-touch-icon" href="../thumbs/Ordyxis.jpg">
+<style>
+  :root{
+    --blue:#49a8ff; --orange:#f0a73d; --ink:#1d2533; --bg:#f4f6fb;
+    --grad:linear-gradient(90deg,#49a8ff,#a07ae0,#f0a73d);
+  }
+  *{box-sizing:border-box;margin:0;padding:0;}
+  html{-webkit-text-size-adjust:100%;}
+  /* 個数の＋／−などを連続でタップした際の iOS(iPhone/iPad) のダブルタップ拡大を防ぐ。
+     touch-action:manipulation はダブルタップ拡大だけを無効化し、スクロール・ピンチは維持する。 */
+  *{touch-action:manipulation;}
+  body{font-family:'Segoe UI','Hiragino Kaku Gothic ProN','Yu Gothic',sans-serif;
+    background:var(--bg);color:var(--ink);min-height:100vh;min-height:100dvh;
+    padding-bottom:env(safe-area-inset-bottom);}
+  header{position:sticky;top:0;z-index:50;background:#fff;display:flex;align-items:center;
+    justify-content:space-between;gap:10px;padding:10px 16px;padding-top:calc(10px + env(safe-area-inset-top));
+    box-shadow:0 2px 10px rgba(20,30,60,.08);}
+  header .brand{display:flex;align-items:center;gap:10px;min-width:0;}
+  header .brand img{height:32px;}
+  header .brand .name{font-weight:800;letter-spacing:.22em;font-size:17px;}
+  header .brand .sub{font-size:11.5px;color:#7a86a0;font-weight:700;background:#eef2fa;
+    padding:4px 9px;border-radius:99px;white-space:nowrap;}
+  header .right{display:flex;align-items:center;gap:10px;}
+  header .stats{display:flex;gap:14px;font-size:12.5px;color:#7a86a0;font-weight:700;}
+  header .stats b{color:var(--ink);font-size:15px;}
+  .menu-btn{border:none;background:#eef2fa;border-radius:10px;width:42px;height:42px;
+    font-size:20px;cursor:pointer;color:var(--ink);flex:0 0 auto;}
+
+  /* ---- タブバー ---- */
+  .tabs{position:sticky;top:0;z-index:40;display:flex;gap:6px;padding:10px 12px;background:var(--bg);
+    overflow-x:auto;-webkit-overflow-scrolling:touch;border-bottom:1px solid #e6eaf3;}
+  .tab{flex:0 0 auto;border:1.5px solid #dde3ee;background:#fff;border-radius:99px;
+    padding:9px 15px;font-size:13.5px;font-weight:800;color:#5a6680;cursor:pointer;white-space:nowrap;
+    display:flex;align-items:center;gap:7px;}
+  .tab.active{color:#fff;background:var(--ink);border-color:var(--ink);}
+  .tab .cnt{background:#eef2fa;color:var(--ink);border-radius:99px;font-size:11.5px;min-width:20px;
+    height:20px;display:inline-flex;align-items:center;justify-content:center;padding:0 6px;}
+  .tab.active .cnt{background:rgba(255,255,255,.25);color:#fff;}
+
+  main{max-width:1400px;margin:0 auto;padding:14px 16px 40px;}
+  .panel{display:none;}
+  .panel.active{display:block;}
+
+  /* ---- 一括（準備中＋呼出中）---- */
+  .both-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;align-items:start;}
+  @media(max-width:760px){.both-grid{grid-template-columns:1fr;}}
+  .both-col h2{font-size:14px;letter-spacing:.14em;color:#7a86a0;margin:2px 4px 10px;
+    display:flex;align-items:center;gap:8px;}
+  .both-col h2 .cnt{background:var(--ink);color:#fff;border-radius:99px;font-size:12px;
+    min-width:22px;height:22px;display:flex;align-items:center;justify-content:center;padding:0 6px;}
+  /* ---- 注文カード ---- */
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;align-items:start;}
+  .cards.single{grid-template-columns:1fr;}
+  .order{background:#fff;border-radius:16px;box-shadow:0 2px 10px rgba(20,30,60,.07);
+    padding:14px 16px;border-left:6px solid var(--blue);}
+  .order.calling{border-left-color:var(--orange);}
+  .order.done{border-left-color:#3bbf72;opacity:.82;}
+  /* 時間指定注文は紫系・今すぐ注文は青系で差別化 */
+  .order.sched{border-left-color:#a07ae0;}
+  .order.sched.calling{border-left-color:#d96a13;}
+  .order.arrived{box-shadow:0 0 0 2px #3bbf72,0 2px 10px rgba(20,30,60,.12);}
+  .order .tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px;}
+  .otag{font-size:11px;font-weight:800;padding:3px 9px;border-radius:99px;}
+  .otag.now{background:#eef4ff;color:#2b5cd9;}
+  .otag.sched{background:#f3edff;color:#7a4fe0;}
+  .otag.arrived{background:#dcf5e4;color:#1d9a52;}
+  .order .top{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px;}
+  .order .no{font-size:28px;font-weight:900;letter-spacing:.04em;}
+  .order.calling .no{color:#d96a13;}
+  .order .time{font-size:12px;color:#9aa3b5;font-weight:700;}
+  .order ul{list-style:none;margin:0 0 10px;}
+  .order li{display:flex;justify-content:space-between;font-size:14px;padding:3px 0;
+    border-bottom:1px dashed #eef0f6;}
+  .order li .q{font-weight:800;}
+  .order .total{display:flex;justify-content:space-between;font-weight:800;font-size:15px;margin:6px 0 10px;}
+  .order button{width:100%;border:none;border-radius:10px;padding:12px;font-size:14.5px;
+    font-weight:800;cursor:pointer;color:#fff;}
+  .btn-call{background:var(--grad);}
+  .btn-finish{background:#8a93a8;}
+  /* もう一度呼び出す (来ないお客様を再度アナウンス。モニターで音声を再生) */
+  .order .btn-recall{background:#fff;color:#d96a13;border:1.6px solid #f3c98e;margin-top:8px;}
+  .order .btn-recall:active{background:#fff6ec;}
+  .order .btn-recall.sent{background:#fff2e2;color:#c0560a;border-color:#e9b773;}
+  /* 調理完了マーク (確認用トグル。呼び出しはブロックしない) */
+  .order .btn-cooked{background:#eafaf0;color:#1d9a52;border:1.6px solid #bfe9cf;margin-bottom:8px;}
+  .order .btn-cooked.done{background:#1d9a52;color:#fff;border-color:#1d9a52;}
+  /* 調理完了をチェックの有無で可視化 (済=緑のチェック / 未=点線の空チェック) */
+  .otag.cooked{background:#1d9a52;color:#fff;}
+  .otag.uncooked{background:#fff;color:#9aa3b5;border:1px dashed #c7cedb;}
+  .order.cooked{background:linear-gradient(0deg,#eefaf3,#fff);}
+  /* 呼び出し中 → 準備中へ戻す (押し間違いの取消用) */
+  .order .btn-back{background:#fff;color:#7a86a0;border:1.5px solid #dde3ee;margin-top:8px;}
+  .order .waiting{font-size:12.5px;color:#d96a13;font-weight:700;text-align:center;margin-bottom:8px;
+    animation:blink 1.4s infinite;}
+  @keyframes blink{50%{opacity:.45;}}
+  .empty{color:#9aa3b5;font-size:13.5px;background:#fff;border-radius:14px;padding:26px;
+    text-align:center;box-shadow:0 2px 10px rgba(20,30,60,.05);}
+  /* 呼出中の大型番号表示 */
+  .now-calling{background:var(--ink);border-radius:16px;padding:16px;color:#fff;margin-bottom:14px;}
+  .now-calling .ttl{font-size:12px;letter-spacing:.3em;color:#9aa3b5;text-align:center;margin-bottom:8px;}
+  .now-calling .nums{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;}
+  .now-calling .nums span{font-size:38px;font-weight:900;
+    background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .now-calling .nums .none{font-size:15px;color:#5a6378;font-weight:700;align-self:center;
+    -webkit-text-fill-color:#5a6378;background:none;}
+
+  /* ---- 売上タブ ---- */
+  .sales-summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px;}
+  .sum-card{background:#fff;border-radius:16px;padding:16px 18px;box-shadow:0 2px 10px rgba(20,30,60,.07);}
+  .sum-card .k{font-size:12px;color:#7a86a0;font-weight:700;letter-spacing:.06em;}
+  .sum-card .v{font-size:26px;font-weight:900;margin-top:4px;}
+  .sum-card.accent .v{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .sales-table{background:#fff;border-radius:16px;box-shadow:0 2px 10px rgba(20,30,60,.07);overflow:hidden;}
+  .sales-table .row{display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:center;
+    padding:13px 18px;border-bottom:1px solid #eef0f6;}
+  .sales-table .row:last-child{border-bottom:none;}
+  .sales-table .row.head{background:#f7f9fd;font-size:12px;color:#7a86a0;font-weight:800;letter-spacing:.06em;}
+  .sales-table .row.totalrow{font-weight:900;background:#fbfcfe;}
+  .sales-table .nm{font-weight:700;font-size:14px;}
+  .sales-table .qv,.sales-table .rv{font-weight:800;font-variant-numeric:tabular-nums;white-space:nowrap;}
+
+  /* ---- 在庫設定タブ ---- */
+  .stock-note{font-size:12.5px;color:#7a86a0;line-height:1.7;margin-bottom:14px;background:#fff;
+    border-radius:14px;padding:14px 16px;box-shadow:0 2px 10px rgba(20,30,60,.05);}
+  .stock-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:12px;}
+  .stock-item{background:#fff;border-radius:16px;box-shadow:0 2px 10px rgba(20,30,60,.07);padding:14px 16px;}
+  .stock-item .si-top{display:flex;align-items:center;gap:12px;margin-bottom:10px;}
+  .stock-item img{width:54px;height:44px;object-fit:cover;border-radius:8px;background:#eceef5;flex:0 0 auto;}
+  .stock-item .si-nm{font-weight:800;font-size:14.5px;}
+  .stock-item .si-meta{font-size:12px;color:#7a86a0;font-weight:700;margin-top:2px;}
+  .stock-item .si-meta .so{color:#e8503a;}
+  .stock-row{display:flex;align-items:center;gap:8px;}
+  .stock-row label{font-size:12.5px;color:#5a6680;font-weight:700;flex:1;}
+  .stock-row input{width:92px;border:1.5px solid #cdd5e4;border-radius:10px;padding:9px 10px;
+    font-size:15px;font-weight:800;text-align:center;color:var(--ink);}
+  .stock-row input:focus{outline:none;border-color:var(--blue);}
+  .stock-actions{display:flex;gap:8px;margin-top:10px;}
+  .stock-actions button{flex:1;border:none;border-radius:10px;padding:10px;font-size:13px;font-weight:800;cursor:pointer;}
+  .stock-actions .save{background:var(--grad);color:#fff;}
+  .stock-actions .unlimited{background:#eef2fa;color:#5a6680;}
+  .stock-bar{height:8px;border-radius:99px;background:#eef0f6;overflow:hidden;margin-top:10px;}
+  .stock-bar i{display:block;height:100%;border-radius:99px;background:var(--grad);}
+  .stock-bar i.full{background:#e8503a;}
+
+  /* ---- ドロワー ---- */
+  .drawer-overlay{position:fixed;inset:0;background:rgba(15,20,35,.45);z-index:190;display:none;}
+  .drawer-overlay.open{display:block;}
+  .drawer{position:fixed;top:0;right:0;bottom:0;width:300px;max-width:85vw;background:#fff;
+    z-index:200;box-shadow:-8px 0 30px rgba(20,30,60,.25);padding:18px 20px;
+    padding-top:calc(18px + env(safe-area-inset-top));
+    transform:translateX(105%);transition:transform .28s ease;overflow-y:auto;}
+  .drawer.open{transform:none;}
+  .drawer .d-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;}
+  .drawer .d-head h3{font-size:16px;}
+  .drawer .d-close{border:none;background:none;font-size:22px;cursor:pointer;color:#8a93a8;}
+  .drawer h4{font-size:12px;letter-spacing:.18em;color:#7a86a0;margin:18px 0 8px;}
+  .drawer label.opt{display:flex;align-items:center;gap:10px;padding:10px 4px;font-size:14px;
+    font-weight:700;cursor:pointer;border-bottom:1px solid #eef0f6;}
+  .drawer label.opt input{width:18px;height:18px;accent-color:#49a8ff;}
+  .drawer .danger-btn{width:100%;margin-top:10px;border:1.5px solid #e8503a;background:#fff;
+    color:#e8503a;border-radius:10px;padding:11px;font-size:14px;font-weight:800;cursor:pointer;}
+  .drawer .danger-btn:hover{background:#fdf0ee;}
+  .drawer .note{font-size:11.5px;color:#9aa3b5;margin-top:8px;line-height:1.6;}
+  .drawer .primary-btn{width:100%;margin-top:10px;border:none;background:#2b7cff;
+    color:#fff;border-radius:10px;padding:11px;font-size:14px;font-weight:800;cursor:pointer;}
+  .drawer .primary-btn:hover{background:#1f6ae8;}
+  .drawer .primary-btn:disabled{background:#aebfd9;cursor:default;}
+  .drawer .ghost-btn{width:100%;margin-top:8px;border:1.5px solid #c5cee0;background:#fff;
+    color:#56617a;border-radius:10px;padding:10px;font-size:13px;font-weight:700;cursor:pointer;}
+  .drawer .ghost-btn:hover{background:#f4f6fb;}
+  .drawer select{width:100%;margin-top:8px;padding:9px 10px;border:1.5px solid #c5cee0;
+    border-radius:10px;font-size:14px;background:#fff;}
+  .drawer .stat{font-size:12px;color:#56617a;margin-top:8px;font-weight:700;}
+  .drawer .stat b{color:#1f6ae8;}
+  .drawer .stat.ok b{color:#1e9e54;}
+
+  /* ---- 時間予約タブ ---- */
+  .resv-setup{background:#fff;border-radius:16px;box-shadow:0 2px 10px rgba(20,30,60,.07);
+    padding:16px 18px;margin-bottom:16px;}
+  .resv-setup h3{font-size:14px;letter-spacing:.06em;margin-bottom:4px;}
+  .resv-setup .desc{font-size:12px;color:#7a86a0;line-height:1.7;margin-bottom:14px;}
+  .resv-toggle{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;
+    background:#f6f8fc;margin-bottom:14px;}
+  .resv-toggle .lbl{font-weight:800;font-size:14.5px;flex:1;}
+  .resv-toggle .lbl small{display:block;font-weight:600;font-size:11.5px;color:#7a86a0;margin-top:2px;}
+  /* スイッチ */
+  .switch{position:relative;width:52px;height:30px;flex:0 0 auto;}
+  .switch input{opacity:0;width:0;height:0;}
+  .switch .sl{position:absolute;inset:0;background:#cdd5e4;border-radius:99px;transition:.2s;cursor:pointer;}
+  .switch .sl::before{content:"";position:absolute;width:24px;height:24px;left:3px;top:3px;background:#fff;
+    border-radius:50%;transition:.2s;box-shadow:0 1px 4px rgba(0,0,0,.25);}
+  .switch input:checked + .sl{background:#3bbf72;}
+  .switch input:checked + .sl::before{transform:translateX(22px);}
+  .resv-fields{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:12px;}
+  .resv-fields .f{display:flex;flex-direction:column;gap:5px;}
+  .resv-fields label{font-size:12px;color:#5a6680;font-weight:700;}
+  .resv-fields input{border:1.5px solid #cdd5e4;border-radius:10px;padding:9px 10px;font-size:15px;
+    font-weight:800;color:var(--ink);text-align:center;}
+  .resv-fields input:focus{outline:none;border-color:var(--blue);}
+  .resv-save{margin-top:14px;border:none;border-radius:10px;padding:12px;font-size:14px;font-weight:800;
+    cursor:pointer;color:#fff;background:var(--grad);width:100%;}
+  .resv-off-note{font-size:12.5px;color:#9aa3b5;text-align:center;padding:24px;background:#fff;
+    border-radius:14px;box-shadow:0 2px 10px rgba(20,30,60,.05);}
+  /* スロット別の予約一覧 */
+  .slot-block{background:#fff;border-radius:16px;box-shadow:0 2px 10px rgba(20,30,60,.07);
+    padding:14px 16px;margin-bottom:12px;}
+  .slot-block .sb-head{display:flex;align-items:center;justify-content:space-between;gap:10px;
+    margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid #eef0f6;}
+  .slot-block .sb-time{font-size:20px;font-weight:900;letter-spacing:.04em;}
+  .slot-block .sb-time .due{font-size:11px;font-weight:800;color:#d9730d;background:#fff2e2;
+    border-radius:99px;padding:3px 9px;margin-left:8px;vertical-align:middle;}
+  .slot-block .sb-cap{font-size:12.5px;font-weight:800;color:#5a6680;}
+  .slot-block .sb-cap.full{color:#e8503a;}
+  .resv-row{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px dashed #eef0f6;}
+  .resv-row:last-child{border-bottom:none;}
+  .resv-row .rn{font-size:18px;font-weight:900;flex:0 0 auto;min-width:54px;}
+  .resv-row .ri{flex:1;font-size:12.5px;color:#5a6680;min-width:0;}
+  .resv-row .ri b{color:var(--ink);}
+  .resv-row select{border:1.5px solid #cdd5e4;border-radius:9px;padding:7px 8px;font-size:13px;
+    font-weight:700;color:var(--ink);background:#fff;flex:0 0 auto;}
+  .resv-badge{font-size:11px;font-weight:800;color:#d9730d;background:#fff2e2;border-radius:99px;
+    padding:2px 9px;margin-left:8px;vertical-align:middle;}
+  .rstat{font-size:10.5px;font-weight:800;border-radius:99px;padding:2px 8px;margin-left:6px;
+    white-space:nowrap;vertical-align:middle;}
+  .rstat.wait{background:#eef2fa;color:#5a6680;}
+  .rstat.ready{background:#fff2e2;color:#d9730d;}
+  .rstat.calling{background:#ffe0c2;color:#c0560a;}
+  .rstat.done{background:#dcf5e4;color:#1d9a52;}
+  .rstat.cancel{background:#fde2dd;color:#d6371f;}
+  .rstat.arrived{background:#e3f7ea;color:#1d9a52;}
+  .resv-row.is-cancel{opacity:.55;}
+  .resv-row.is-cancel .rn{text-decoration:line-through;}
+  .resv-cancel-note{font-size:12.5px;font-weight:700;color:#d6371f;background:#fde9e5;
+    border-radius:12px;padding:10px 14px;margin-bottom:12px;}
+  .resv-cancel-head{font-size:13px;font-weight:800;color:#d6371f;margin:22px 2px 10px;
+    padding-top:14px;border-top:2px dashed #f0c4bc;display:flex;align-items:center;gap:8px;}
+  .resv-cancel-head::before{content:"🚫";}
+  .slot-block.cancel-block{background:#fdf5f4;border:1px solid #f6d8d2;box-shadow:none;}
+  .slot-block.cancel-block .sb-time{color:#b3493a;}
+  .resv-change-btn{border:1.5px solid #dde3ee;background:#fff;border-radius:9px;padding:7px 11px;
+    font-size:12px;font-weight:800;color:#7a86a0;cursor:pointer;flex:0 0 auto;}
+  /* ---- スロットを開閉式(アコーディオン)に ---- */
+  details.slot-block{padding:0;}
+  details.slot-block > summary{list-style:none;cursor:pointer;display:flex;align-items:center;
+    justify-content:space-between;gap:10px;padding:13px 16px;user-select:none;
+    -webkit-tap-highlight-color:transparent;}
+  details.slot-block > summary::-webkit-details-marker{display:none;}
+  details.slot-block > summary:hover{background:#fafbfe;}
+  details.slot-block[open] > summary{border-bottom:1px solid #eef0f6;}
+  details.slot-block.cancel-block[open] > summary{border-bottom-color:#f0c4bc;}
+  .sb-left{display:flex;align-items:center;gap:10px;flex-wrap:wrap;min-width:0;}
+  .sb-right{display:flex;align-items:center;gap:10px;flex:0 0 auto;}
+  .sb-mini{display:flex;flex-wrap:wrap;gap:5px;}
+  .sb-mini .rstat{margin-left:0;}
+  .sb-chev{color:#9aa3b5;font-size:12px;transition:transform .2s ease;flex:0 0 auto;}
+  details.slot-block[open] .sb-chev{transform:rotate(180deg);}
+  .sb-body{padding:2px 16px 12px;}
+  /* 準備中の小見出し (今すぐ / 時間指定 を分離) */
+  .sub-h{font-size:12.5px;font-weight:800;letter-spacing:.06em;color:#5a6680;margin:6px 2px 8px;
+    display:flex;align-items:center;gap:8px;}
+  .sub-h.sched{color:#7a4fe0;}
+  .sub-h::before{content:"";width:10px;height:10px;border-radius:3px;background:#49a8ff;display:inline-block;}
+  .sub-h.sched::before{background:#a07ae0;}
+  .panel-sec + .panel-sec{margin-top:18px;}
+
+  @media(max-width:560px){
+    header .stats{display:none;}
+    .order .no{font-size:24px;}
+  }
+  /* ---- 紙オーダー (店舗手入力) ---- */
+  .order .no.paper{font-size:18px;font-weight:900;color:#7a5cd0;}
+  .order.paper{border-left-color:#a07ae0;}
+  .btn-paper-done{background:#3bbf72;}
+  /* 画面右下の「紙オーダー入力」ボタン (FAB) */
+  .paper-fab{position:fixed;right:18px;bottom:calc(18px + env(safe-area-inset-bottom));z-index:60;
+    border:none;border-radius:99px;padding:14px 20px;font-size:15px;font-weight:800;color:#fff;
+    background:var(--grad);box-shadow:0 8px 24px rgba(73,168,255,.4);cursor:pointer;
+    display:flex;align-items:center;gap:8px;}
+  .paper-fab .pl{font-size:19px;line-height:1;}
+  /* 入力モーダル */
+  .pm-overlay{position:fixed;inset:0;z-index:120;background:rgba(12,16,26,.55);
+    display:none;align-items:flex-end;justify-content:center;}
+  .pm-overlay.open{display:flex;}
+  .pm{background:#fff;width:min(560px,100%);max-height:92vh;border-radius:20px 20px 0 0;
+    display:flex;flex-direction:column;box-shadow:0 -10px 40px rgba(10,20,40,.3);}
+  @media(min-width:600px){.pm-overlay{align-items:center;}.pm{border-radius:20px;}}
+  .pm-head{display:flex;align-items:center;justify-content:space-between;padding:16px 18px 10px;}
+  .pm-head h3{font-size:17px;font-weight:900;}
+  .pm-head .pm-x{background:none;border:none;font-size:22px;color:#8a93a8;cursor:pointer;line-height:1;}
+  .pm-desc{font-size:12.5px;color:#7a86a0;line-height:1.6;padding:0 18px 8px;}
+  .pm-body{overflow-y:auto;padding:4px 18px 8px;flex:1;}
+  /* 明細を1行ずつ追加する入力欄 */
+  .pm-add{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:8px 0 12px;
+    border-bottom:1px solid #eef0f6;position:sticky;top:0;background:#fff;z-index:1;}
+  .pm-add select{flex:1;min-width:108px;border:1.5px solid #cdd5e4;border-radius:9px;padding:9px 8px;
+    font-size:13.5px;font-weight:700;color:var(--ink);background:#fff;}
+  .pm-add-btn{border:none;border-radius:10px;padding:10px 16px;font-size:14px;font-weight:800;
+    color:#fff;background:var(--grad);cursor:pointer;white-space:nowrap;}
+  .pm-lines{padding:6px 0 2px;}
+  .pm-line{display:flex;align-items:center;gap:10px;padding:10px 2px;border-bottom:1px solid #f5f6fa;}
+  .pm-line .pl-nm{flex:1;font-size:14.5px;font-weight:700;line-height:1.3;}
+  .pm-line .pl-nm small{display:block;font-size:11.5px;font-weight:700;color:#9a6a18;margin-top:1px;}
+  .pm-line .pl-nm small.none{color:#9aa3b5;font-weight:600;}
+  .pm-line .pm-x2{border:none;background:none;color:#c2546a;font-size:17px;cursor:pointer;
+    padding:2px 4px;line-height:1;}
+  .pm-empty2{color:#9aa3b5;font-size:13px;text-align:center;padding:22px 6px;line-height:1.6;}
+  .pm-step{display:flex;align-items:center;gap:9px;}
+  .pm-step button{width:32px;height:32px;border-radius:99px;border:1.5px solid #cdd5e4;background:#fff;
+    font-size:18px;font-weight:800;color:var(--ink);cursor:pointer;line-height:1;padding:0;}
+  .pm-step button:active{background:#eef2fa;}
+  .pm-step .pm-q{min-width:24px;text-align:center;font-size:16px;font-weight:900;}
+  .pm-foot{border-top:1px solid #eef0f6;padding:12px 18px calc(14px + env(safe-area-inset-bottom));}
+  /* 受け取り番号の指定 (連携が取れていない番号の再現用) */
+  .pm-numrow{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;}
+  .pm-numrow label{font-size:12.5px;font-weight:800;color:#5a6680;}
+  .pm-numrow input{width:130px;border:1.5px solid #cdd5e4;border-radius:9px;padding:8px 10px;
+    font-size:15px;font-weight:800;color:var(--ink);}
+  .pm-numhint{font-size:11px;color:#9aa3b5;font-weight:700;flex-basis:100%;line-height:1.5;}
+  .pm-sum{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:4px;}
+  .pm-sum .pm-cnt{font-size:13px;color:#7a86a0;font-weight:700;}
+  .pm-sum .pm-total{font-size:22px;font-weight:900;}
+  .pm-note{font-size:12px;color:#e8503a;font-weight:700;min-height:16px;margin-bottom:8px;}
+  .pm-submit{width:100%;border:none;border-radius:13px;padding:14px;font-size:15.5px;font-weight:800;
+    color:#fff;background:var(--grad);cursor:pointer;}
+  .pm-submit:disabled{opacity:.45;cursor:default;}
+  /* 紙オーダー共有後の「受け取り番号」提示 */
+  .pm-result{display:none;flex-direction:column;align-items:center;text-align:center;
+    padding:26px 22px calc(26px + env(safe-area-inset-bottom));gap:6px;}
+  .pm-result.show{display:flex;}
+  .pm-result .pr-check{font-size:42px;line-height:1;}
+  .pm-result .pr-msg{font-size:14px;font-weight:800;color:#1d9a52;}
+  .pm-result .pr-label{font-size:12px;letter-spacing:.3em;color:#7a86a0;font-weight:800;margin-top:10px;}
+  .pm-result .pr-no{font-size:72px;font-weight:900;letter-spacing:.04em;line-height:1.05;
+    background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;}
+  .pm-result .pr-sum{font-size:13px;color:#7a86a0;font-weight:700;}
+  .pm-result .pr-hint{font-size:12.5px;color:#9aa3b5;line-height:1.7;margin:6px 0 10px;max-width:340px;}
+  .pm-result .pr-actions{display:flex;flex-direction:column;gap:9px;width:100%;max-width:340px;}
+  .pm-result .pr-again{border:none;border-radius:13px;padding:13px;font-size:15px;font-weight:800;
+    color:#fff;background:var(--grad);cursor:pointer;}
+  .pm-result .pr-close{border:1.5px solid #cdd5e4;background:#fff;border-radius:13px;padding:12px;
+    font-size:14px;font-weight:800;color:#56617a;cursor:pointer;}
+  /* ---- 操作マニュアル ---- */
+  .mn-intro{font-size:12.5px;color:#7a86a0;line-height:1.7;padding:0 2px 8px;}
+  .mn-sec{font-size:12px;font-weight:800;letter-spacing:.12em;color:#7a86a0;margin:16px 2px 8px;
+    display:flex;align-items:center;gap:8px;}
+  .mn-sec::before{content:"";width:10px;height:10px;border-radius:3px;background:var(--blue);display:inline-block;}
+  .mn-step{display:flex;gap:12px;padding:12px 2px;border-bottom:1px solid #f0f2f8;align-items:flex-start;}
+  .mn-step:last-child{border-bottom:none;}
+  .mn-no{flex:0 0 auto;width:30px;height:30px;border-radius:50%;background:var(--grad);color:#fff;
+    font-weight:900;display:flex;align-items:center;justify-content:center;font-size:14px;margin-top:1px;}
+  .mn-tx{flex:1;min-width:0;}
+  .mn-tx h4{font-size:14.5px;font-weight:800;margin:2px 0 4px;}
+  .mn-tx p{font-size:12.5px;color:#5a6680;line-height:1.7;}
+  .mn-k{display:inline-block;font-size:11.5px;font-weight:800;background:#eef2fa;color:#2b5cd9;
+    border-radius:6px;padding:1px 7px;margin:0 1px;white-space:nowrap;}
+  .mn-tip{font-size:12px;color:#5a6680;background:#f6f8fc;border-radius:10px;padding:10px 12px;
+    line-height:1.7;margin-top:8px;}
+  .mn-tip b{color:var(--ink);}
+</style>
+<script src="../xeva-splash.js?v=3" data-app="ORDYXIS" data-logo="../thumbs/Ordyxis.jpg"></script>
+</head>
+<body>
+<script src="hub-guard.js?v=5"></script>
+
+<header>
+  <div class="brand">
+    <img src="../thumbs/Ordyxis.jpg" alt="ORDYXIS" onerror="this.remove()">
+    <span class="name">ORDYXIS</span>
+    <span class="sub">店舗用</span>
+  </div>
+  <div class="right">
+    <div class="stats">
+      <span>準備中 <b id="stNew">0</b></span>
+      <span>呼出中 <b id="stCalling">0</b></span>
+      <span>本日完了 <b id="stDone">0</b></span>
+    </div>
+    <button class="menu-btn" id="menuBtn" title="メニュー">☰</button>
+  </div>
+</header>
+
+<nav class="tabs" id="tabs">
+  <button class="tab active" data-tab="both">一括（準備中＋呼出中）</button>
+  <button class="tab" data-tab="new">準備中 <span class="cnt" id="cntNew">0</span></button>
+  <button class="tab" data-tab="calling">呼出中 <span class="cnt" id="cntCalling">0</span></button>
+  <button class="tab" data-tab="done">完了済み <span class="cnt" id="cntDone">0</span></button>
+  <button class="tab" data-tab="resv">時間予約 <span class="cnt" id="cntResv">0</span></button>
+  <button class="tab" data-tab="sales">売上・集計</button>
+  <button class="tab" data-tab="stock">在庫設定</button>
+</nav>
+
+<!-- ハンバーガーメニュー (ドロワー) -->
+<div class="drawer-overlay" id="drawerOverlay"></div>
+<aside class="drawer" id="drawer">
+  <div class="d-head"><h3>メニュー</h3><button class="d-close" id="drawerClose">✕</button></div>
+  <h4>マニュアル</h4>
+  <button class="primary-btn" id="btnManual">📖 操作マニュアル（注文〜提供の流れ）</button>
+  <div class="note">注文を受けてからお渡しするまでの操作手順を確認できます。</div>
+  <h4>設定</h4>
+  <label class="opt"><input type="checkbox" id="optSound" checked> 新規注文の通知音</label>
+  <h4>注文のバックアップ（Excel/CSV）</h4>
+  <button class="primary-btn" id="btnBackupStart">バックアップ先ファイルを選んで開始</button>
+  <button class="ghost-btn" id="btnBackupResume" style="display:none">前回のファイルにバックアップを再開</button>
+  <button class="ghost-btn" id="btnBackupStop" style="display:none">自動バックアップを停止</button>
+  <button class="ghost-btn" id="btnBackupOnce">いますぐCSVをダウンロード</button>
+  <div class="stat" id="backupStat">バックアップ未設定</div>
+  <div class="note">注文（注文日時・番号・注文内容・提供状況）を CSV ファイルに自動で書き出し続けます。一度ファイルを選べば、注文が入るたびに同じファイルへ上書き保存します。アプリやネットが使えなくなっても、このファイルを Excel で開けば注文一覧を確認できます。<br>※この画面を閉じる・再読み込みすると自動保存はいったん止まります。再開するには上のボタンを押してください（ブラウザの仕様でファイルへの書き込み許可を毎回確認します）。</div>
+
+  <h4>履歴の管理</h4>
+  <button class="danger-btn" id="btnClearAll">本日の注文履歴を削除</button>
+  <div class="note">全ての注文履歴と注文番号のカウンターを削除します。番号は 001 からやり直しになります。在庫(注文可能数)の設定は保持されます。この操作は取り消せません。</div>
+
+  <h4>接続先 Firebase（上級者向け）</h4>
+  <div class="stat" id="fbStat"></div>
+  <select id="fbSelect"></select>
+  <button class="primary-btn" id="btnFbSwitch">この接続先に切り替える</button>
+  <button class="ghost-btn" id="btnFbReset">全端末の既定（標準）に戻す</button>
+  <div class="note">⚠️ <b>接続先を切り替えると、進行中の注文・注文番号・予約は引き継がれません</b>（切替先は空の状態から始まります）。無料枠を使い切ったなど、やむを得ない場合のみ使用してください。変更にはアクセスコードが必要です。切替はこの端末だけに適用されます。</div>
+</aside>
+
+<main>
+  <!-- 一括（準備中＋呼出中を1画面） -->
+  <section class="panel active" id="panel-both">
+    <div class="now-calling">
+      <div class="ttl">NOW CALLING — お呼び出し中</div>
+      <div class="nums" id="bothCallingNums"><span class="none">なし</span></div>
+    </div>
+    <div class="both-grid">
+      <section class="both-col">
+        <h2>準備中 <span class="cnt" id="cntNewB">0</span></h2>
+        <div class="panel-sec">
+          <div class="sub-h sched">時間指定（来店確認済み）</div>
+          <div class="cards single" id="bothNewSched"></div>
+        </div>
+        <div class="panel-sec">
+          <div class="sub-h">今すぐ受け取り</div>
+          <div class="cards single" id="bothNewNow"></div>
+        </div>
+      </section>
+      <section class="both-col">
+        <h2>呼出中（お渡し待ち） <span class="cnt" id="cntCallingB">0</span></h2>
+        <div class="cards single" id="bothCalling"></div>
+      </section>
+    </div>
+  </section>
+  <!-- 準備中 -->
+  <section class="panel" id="panel-new">
+    <div class="panel-sec">
+      <h2 class="sub-h">今すぐ受け取り <span class="cnt" id="cntNewNow">0</span></h2>
+      <div class="cards" id="colNewNow"></div>
+    </div>
+    <div class="panel-sec">
+      <h2 class="sub-h sched">時間指定（来店確認済み・用意中） <span class="cnt" id="cntNewSched">0</span></h2>
+      <div class="cards" id="colNewSched"></div>
+    </div>
+  </section>
+  <!-- 呼出中 -->
+  <section class="panel" id="panel-calling">
+    <div class="now-calling">
+      <div class="ttl">NOW CALLING</div>
+      <div class="nums" id="callingNums"><span class="none">なし</span></div>
+    </div>
+    <div class="cards" id="colCalling"></div>
+  </section>
+  <!-- 完了済み -->
+  <section class="panel" id="panel-done">
+    <div class="cards" id="colDone"></div>
+  </section>
+  <!-- 時間予約 -->
+  <section class="panel" id="panel-resv">
+    <div class="resv-setup">
+      <h3>時間指定予約（ファストパス）</h3>
+      <div class="desc">お客様が受取時刻を予約できる機能です。ONにすると、お客様の画面に「今すぐ受け取り／時間を指定して後で受け取り」の選択が表示されます。予約番号は 801 番台、紙オーダーは 401 番台、通常注文は 001 からになります。</div>
+      <div class="resv-toggle">
+        <div class="lbl">時間指定予約を受け付ける<small>OFFにすると全て「今すぐ受け取り」になります</small></div>
+        <label class="switch"><input type="checkbox" id="resvEnabled"><span class="sl"></span></label>
+      </div>
+      <div class="resv-fields">
+        <div class="f"><label>受付開始</label><input type="time" id="resvStart" value="09:00"></div>
+        <div class="f"><label>受付終了</label><input type="time" id="resvEnd" value="14:45"></div>
+        <div class="f"><label>間隔（分）</label><input type="number" id="resvInterval" min="5" max="120" step="5" value="15"></div>
+        <div class="f"><label>各回の定員（名）</label><input type="number" id="resvCapacity" min="1" max="50" value="8"></div>
+      </div>
+      <div class="desc">⚠️ 時間指定予約の<b>ON/OFF・受付時間・間隔・定員の変更にはアクセスコードが必要</b>です。各予約の時刻変更も同様です。</div>
+      <button class="resv-save" id="resvSave">設定を保存</button>
+    </div>
+    <div id="resvList"></div>
+  </section>
+  <!-- 売上・集計 -->
+  <section class="panel" id="panel-sales">
+    <div class="sales-summary" id="salesSummary"></div>
+    <div class="sales-table" id="salesTable"></div>
+  </section>
+  <!-- 在庫設定 -->
+  <section class="panel" id="panel-stock">
+    <div class="stock-note">各商品の「本日の注文可能数（上限）」を設定できます。上限に達するとお客様の画面で<b>売り切れ表示</b>になり、注文できなくなります。空欄または「無制限」で上限なしになります。設定は即時に全端末へ反映されます。</div>
+    <div class="stock-list" id="stockList"></div>
+  </section>
+</main>
+
+<!-- 紙オーダー入力ボタン (QR以外の注文を手入力して共有。番号は発行しない) -->
+<button class="paper-fab" id="paperFab"><span class="pl">＋</span>紙オーダー</button>
+
+<!-- 紙オーダー入力モーダル -->
+<div class="pm-overlay" id="paperOverlay">
+  <div class="pm">
+    <div class="pm-head">
+      <h3>🧾 紙オーダーを入力</h3>
+      <button class="pm-x" id="paperClose">✕</button>
+    </div>
+    <p class="pm-desc">QR以外（紙・口頭）の注文や、<b>番号の連携が取れていない注文</b>を手入力して全端末で共有します。受け取り番号は<b>自動で発行（401〜）</b>されますが、連携できていない番号がある場合は下の「受け取り番号」に入力するとその番号で作成できます。味とソースを選んで「追加」すると明細になります。<b>8個以上</b>も入力できます。</p>
+    <div class="pm-body" id="paperBody">
+      <div class="pm-add">
+        <select id="paperFlavor" aria-label="味"></select>
+        <select id="paperSauce" aria-label="ソース"></select>
+        <button class="pm-add-btn" id="paperAdd" type="button">＋ 追加</button>
+      </div>
+      <div class="pm-lines" id="paperLines"></div>
+    </div>
+    <div class="pm-foot">
+      <div class="pm-sum">
+        <span class="pm-cnt" id="paperCnt">チュロス 0 個</span>
+        <span class="pm-total" id="paperTotal">¥0</span>
+      </div>
+      <div class="pm-numrow">
+        <label for="paperNumber">受け取り番号</label>
+        <input id="paperNumber" type="number" inputmode="numeric" min="1" max="99999" placeholder="自動（401〜）">
+        <span class="pm-numhint">※連携が取れていない番号を再現する場合のみ入力（空欄なら自動発行）</span>
+      </div>
+      <div class="pm-note" id="paperNote"></div>
+      <button class="pm-submit" id="paperSubmit" disabled>この内容で共有する</button>
+    </div>
+    <!-- 共有後の受け取り番号の提示 (今すぐ受け取りに入る前に番号を確認) -->
+    <div class="pm-result" id="paperResult">
+      <div class="pr-check">✅</div>
+      <div class="pr-msg">紙オーダーを共有しました</div>
+      <div class="pr-label">受け取り番号</div>
+      <div class="pr-no" id="paperResultNo">---</div>
+      <div class="pr-sum" id="paperResultSum"></div>
+      <div class="pr-hint">この番号をお客様にお伝えし、紙の伝票にも記入してください。<br>「番号を呼び出す」で準備中→呼出中に移動します。</div>
+      <div class="pr-actions">
+        <button class="pr-again" id="paperResultAgain">続けてもう1件入力する</button>
+        <button class="pr-close" id="paperResultClose">閉じる</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 操作マニュアル (注文〜提供の流れ) -->
+<div class="pm-overlay" id="manualOverlay">
+  <div class="pm">
+    <div class="pm-head">
+      <h3>📖 操作マニュアル</h3>
+      <button class="pm-x" id="manualClose">✕</button>
+    </div>
+    <div class="pm-body">
+      <p class="mn-intro">注文を受けてからお客様にお渡しするまでの基本の流れです。画面上部のタブ「一括（準備中＋呼出中）」を使うと、準備中と呼出中を1画面で操作できます。</p>
+
+      <div class="mn-sec">基本の流れ（今すぐ受け取り）</div>
+      <div class="mn-step"><div class="mn-no">1</div><div class="mn-tx">
+        <h4>注文が入る</h4>
+        <p>お客様のQR注文が <b>「準備中（今すぐ受け取り）」</b> に届き、通知音が鳴ります。番号は <span class="mn-k">今すぐ 001〜</span> です。注文カードに内容・合計が表示されます。</p>
+      </div></div>
+      <div class="mn-step"><div class="mn-no">2</div><div class="mn-tx">
+        <h4>調理する → 調理完了にする（任意）</h4>
+        <p>商品を用意します。用意ができたら <span class="mn-k">☐ 調理完了にする</span> を押すと「☑ 調理済み」になります（全店舗端末で共有）。調理完了は目印で、呼び出しは完了前でも可能です。</p>
+      </div></div>
+      <div class="mn-step"><div class="mn-no">3</div><div class="mn-tx">
+        <h4>番号を呼び出す</h4>
+        <p><span class="mn-k">📣 番号を呼び出す</span> を押すと <b>「呼出中（お渡し待ち）」</b> に移動し、番号案内モニターに表示＆音声でアナウンスされます。</p>
+      </div></div>
+      <div class="mn-step"><div class="mn-no">4</div><div class="mn-tx">
+        <h4>お客様が来ないとき → もう一度呼び出す</h4>
+        <p>呼出中カードの <span class="mn-k">🔁 もう一度呼び出す（音声）</span> を押すと、モニターでもう一度音声アナウンスされます。何度でも押せます。</p>
+      </div></div>
+      <div class="mn-step"><div class="mn-no">5</div><div class="mn-tx">
+        <h4>お渡し → 完了</h4>
+        <p>お客様がアプリで受け取り完了の操作をすると自動で <b>「完了済み」</b> に移動します。来ない・アプリが無い場合は <span class="mn-k">手動で完了にする</span> で完了にできます。押し間違いは <span class="mn-k">↩ 準備中に戻す</span> で戻せます。</p>
+      </div></div>
+
+      <div class="mn-sec">時間指定予約のとき</div>
+      <div class="mn-step"><div class="mn-no">A</div><div class="mn-tx">
+        <h4>来店確認（到着）まで待つ</h4>
+        <p>予約番号は <span class="mn-k">予約 801〜</span>。受取時刻が近づくと「時間予約」タブに表示されます。お客様がアプリで <b>「到着しました」</b> を押すまでは調理を始めません（来店待ち）。</p>
+      </div></div>
+      <div class="mn-step"><div class="mn-no">B</div><div class="mn-tx">
+        <h4>到着後は今すぐ注文と同じ</h4>
+        <p>到着確認されると <b>「準備中（時間指定・来店確認済み）」</b> に出ます。あとは上の 2〜5 と同じ手順です。受取時刻を大きく過ぎて未到着の予約は自動でキャンセルされます。</p>
+      </div></div>
+
+      <div class="mn-sec">紙・口頭の注文（紙オーダー）</div>
+      <div class="mn-step"><div class="mn-no">＋</div><div class="mn-tx">
+        <h4>紙オーダーを入力</h4>
+        <p>右下の <span class="mn-k">＋ 紙オーダー</span> から味・ソース・個数を入力して共有します（<b>8個以上もOK</b>）。<b>「この内容で共有する」を押すと受け取り番号（401〜）が表示</b>されるので、お客様に伝え、伝票にも記入してください。あとは番号を呼び出して <span class="mn-k">受け渡し完了にする</span>。</p>
+      </div></div>
+
+      <div class="mn-sec">その他の機能</div>
+      <div class="mn-tip">
+        <b>在庫設定</b>：各商品の本日の注文可能数（上限）を設定。上限到達でお客様画面が売り切れになります。<br>
+        <b>売上・集計</b>：本日の売上・注文数・商品別の販売数を確認できます。<br>
+        <b>注文のバックアップ（CSV）</b>：注文一覧をExcel/CSVに自動保存。アプリやネットが使えなくなっても手元で確認できます。<br>
+        <b>本日の注文履歴を削除</b>：番号を001からやり直します（在庫設定は保持）。<br>
+        ※ 在庫設定・予約設定・履歴削除・接続先変更などの重要操作にはアクセスコードが必要です。
+      </div>
+    </div>
+    <div class="pm-foot">
+      <button class="pm-submit" id="manualDone">とじる</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="firebase-config.js?v=3"></script>
+<script src="app-common.js?v=12"></script>
+<script>
+"use strict";
+const STORE_CANONICAL_URL = "https://merurungx-glitch.github.io/xevarion/ORDYXIS/store.html";
+// ページを開いた瞬間に Safari へ脱出 (LINE等のアプリ内ブラウザはスプラッシュを待たず即誘導)。
+forceBrowserEscapeEarly(STORE_CANONICAL_URL);
+// スプラッシュ後、お客様側と同様に通常ブラウザを強制する。
+// コードスキャナー/アプリ内ブラウザ/iOS組込Safariのままでは店舗管理画面に進ませない。
+showSplash(() => enforceRealBrowser(STORE_CANONICAL_URL, () => demoBannerIfNeeded()));
+// 同時接続カウントに加える(店舗端末はブロックしない。お客様側の混雑判定を正確にするため)
+try { DB.joinPresence("store"); } catch (e) {}
+
+const $ = (id) => document.getElementById(id);
+const fmtTime = (t) => {
+  const d = new Date(t);
+  return String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
+};
+
+// 重要操作 (注文履歴の削除・在庫設定・時間指定予約の設定/時刻の変更) は実行前にアクセスコードを再確認する。
+// ※コード自体はメッセージに表示しない (漏えい防止)。
+const ACTION_CODE = "ODX613Prime26";
+function requireActionCode(label) {
+  const input = prompt("この操作にはアクセスコードが必要です。\n（" + label + "）\nアクセスコードを入力してください：");
+  if (input === null) return false;                 // キャンセル
+  if (input.trim() === ACTION_CODE) return true;    // 一致 → 実行を許可
+  alert("アクセスコードが正しくありません。操作を中止しました。");
+  return false;
+}
+
+// ---------- 設定 (localStorage に保存) ----------
+const PREF_KEY = "ordyxis-store-prefs";
+const prefs = Object.assign({ sound: true }, JSON.parse(localStorage.getItem(PREF_KEY) || "{}"));
+const savePrefs = () => localStorage.setItem(PREF_KEY, JSON.stringify(prefs));
+$("optSound").checked = prefs.sound;
+$("optSound").onchange = (e) => { prefs.sound = e.target.checked; savePrefs(); };
+
+// ---------- タブ ----------
+$("tabs").addEventListener("click", (e) => {
+  const t = e.target.closest(".tab"); if (!t) return;
+  document.querySelectorAll(".tab").forEach((x) => x.classList.toggle("active", x === t));
+  const id = t.dataset.tab;
+  document.querySelectorAll(".panel").forEach((p) => p.classList.toggle("active", p.id === "panel-" + id));
+});
+
+// ---------- ハンバーガーメニュー ----------
+function openDrawer(open) {
+  $("drawer").classList.toggle("open", open);
+  $("drawerOverlay").classList.toggle("open", open);
+}
+$("menuBtn").onclick = () => openDrawer(true);
+$("drawerClose").onclick = () => openDrawer(false);
+$("drawerOverlay").onclick = () => openDrawer(false);
+
+// ---------- 操作マニュアル ----------
+(function setupManual() {
+  const overlay = $("manualOverlay");
+  const open = () => { openDrawer(false); overlay.classList.add("open"); };
+  const close = () => overlay.classList.remove("open");
+  $("btnManual").onclick = open;
+  $("manualClose").onclick = close;
+  $("manualDone").onclick = close;
+  overlay.onclick = (e) => { if (e.target === overlay) close(); };
+})();
+
+// ---------- 全履歴の削除 ----------
+$("btnClearAll").onclick = async () => {
+  if (!requireActionCode("本日の注文履歴を削除")) return;
+  if (!confirm("本日の注文履歴を削除しますか？\nこの操作は取り消せません。")) return;
+  if (!confirm("【最終確認】本当に削除しますか？\n注文番号は 001 からやり直しになります。")) return;
+  await DB.clearAll();
+  try { await DB2.clearAll(); cookedMap = {}; } catch (e) {}  // 調理完了・再呼び出しも消す
+  knownIds = null; // 通知音の新着判定をリセット
+  openDrawer(false);
+};
+
+// ---------- 新規注文の通知音 ----------
+let knownIds = null;
+function ding() {
+  if (!prefs.sound) return;
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.connect(g); g.connect(ctx.destination);
+    o.frequency.value = 880; g.gain.value = 0.12;
+    o.start();
+    o.frequency.setValueAtTime(1175, ctx.currentTime + 0.18);
+    g.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.5);
+    o.stop(ctx.currentTime + 0.5);
+  } catch (e) { /* 音が出せない環境では無視 */ }
+}
+
+// ---------- 調理完了マーク (DB2 = ordyxis2 で全店舗端末に共有) ----------
+// 調理完了は「注文・番号には関わらない」補助情報なので、メイン(ordyxis)ではなく
+// セカンダリ(ordyxis2)に保存し、複数の店舗端末で共有する(別端末で調理済みにすると
+// こちらの画面にも反映される)。お客様画面・番号モニターには出さない。
+let cookedMap = {};   // { orderId: true } (DB2 から購読)
+function isCooked(id) { return !!cookedMap[id]; }
+function setCooked(id, val) { cookedMap[id] = !!val; DB2.setCooked(id, val); }
+DB2.watchCooked((map) => { cookedMap = map || {}; renderOrders(); });
+// 当日存在しない注文IDのマークを掃除して肥大化・取り違えを防ぐ (clearAll後も整理される)。
+// 注文が0件のとき(切替直後・一時的な空)は誤って全消去しないよう保留する。
+function pruneCooked(orders) {
+  if (!orders || !orders.length) return;
+  const live = new Set(orders.map((o) => o.id));
+  Object.keys(cookedMap).forEach((id) => { if (!live.has(id)) setCooked(id, false); });
+}
+
+// ---------- 注文カード ----------
+function orderCard(o, kind) {
+  const card = document.createElement("div");
+  const sched = o.type === "scheduled";
+  const paper = isPaperOrder(o);   // 紙オーダー(番号なし)
+  const cooked = isCooked(o.id);   // 調理完了マーク (店舗端末ローカル)
+  card.className = "order " + kind + (sched ? " sched" : " now") + (o.arrived ? " arrived" : "") + (paper ? " paper" : "") + (cooked ? " cooked" : "");
+  const items = o.items.map((i) =>
+    `<li><span>${itemLabel(i)}</span><span class="q">× ${i.qty}</span></li>`).join("");
+  let action = "";
+  if (kind === "new") {
+    // 準備中の操作は2つの独立したボタン:
+    //   「調理完了」… 確認用トグル(調理済みマーク)。呼び出しはブロックしない。
+    //   「番号を呼び出す」… 調理完了の有無に関係なく、お呼び出し中へ移動する。
+    const cookedBtn = cooked
+      ? `<button class="btn-cooked done" data-id="${o.id}" data-cook="0">☑ 調理完了 済（取消）</button>`
+      : `<button class="btn-cooked" data-id="${o.id}" data-cook="1">☐ 調理完了にする</button>`;
+    action = `${cookedBtn}<button class="btn-call" data-id="${o.id}" data-next="calling">📣 番号を呼び出す</button>`;
+  } else if (kind === "calling") {
+    // 呼び出し中は、押し間違い等のために「準備中に戻す」(status を new へ) ボタンも添える。
+    const backBtn = `<button class="btn-back" data-id="${o.id}" data-next="new">↩ 準備中に戻す</button>`;
+    // 来ないお客様を再度アナウンスするための「もう一度呼び出す」ボタン (モニターで音声再生)。
+    const recallBtn = `<button class="btn-recall" data-recall="${o.id}" data-num="${o.number}">🔁 もう一度呼び出す（音声）</button>`;
+    // 紙オーダー: お客様アプリが無いので確認待ちはせず、その場で受け渡し完了にできる。
+    action = paper
+      ? `<div class="waiting">📣 お呼び出し中… No. ${fmtNo(o.number)}</div>
+      <button class="btn-paper-done" data-id="${o.id}" data-next="done">受け渡し完了にする</button>${recallBtn}${backBtn}`
+      : `<div class="waiting">お客様の受け取り確認待ち…</div>
+      <button class="btn-finish" data-id="${o.id}" data-next="done">手動で完了にする</button>${recallBtn}${backBtn}`;
+  } else if (kind === "done") {
+    // 完了済みを準備中に戻す (誤って完了にした場合の取消)。
+    action = `<button class="btn-back" data-id="${o.id}" data-next="new">↩ 準備中に戻す</button>`;
+  }
+  const typeTag = paper
+    ? `<span class="otag now">🧾 紙オーダー</span>`
+    : (sched
+        ? `<span class="otag sched">🕒 時間指定 ${o.pickupTime || ""}</span>`
+        : `<span class="otag now">今すぐ</span>`);
+  const arrivedTag = o.arrived ? `<span class="otag arrived">🙋 来店済み</span>` : "";
+  // 調理完了をチェックの有無で表示: 済=緑の☑ / 準備中で未調理=点線の☐ (呼出中・完了では未調理は出さない)
+  const cookedTag = cooked
+    ? `<span class="otag cooked">☑ 調理済み</span>`
+    : (kind === "new" ? `<span class="otag uncooked">☐ 未調理</span>` : "");
+  const noHtml = `<span class="no${paper ? " paper" : ""}">No. ${fmtNo(o.number)}</span>`;
+  card.innerHTML = `
+    <div class="top">${noHtml}
+      <span class="time">${fmtTime(o.createdAt)}</span></div>
+    <div class="tags">${typeTag}${arrivedTag}${cookedTag}</div>
+    <ul>${items}</ul>
+    <div class="total"><span>合計</span><span>${yen(o.total)}</span></div>
+    ${action}`;
+  return card;
+}
+
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest("button[data-id]");
+  if (!btn) return;
+  // 調理完了マークの ON/OFF (確認用。端末ローカルに保存し、即時に再描画して表示を残す)。
+  if (btn.dataset.cook !== undefined) {
+    const on = btn.dataset.cook === "1";
+    // 取り消し(済→未調理)のときだけ確認する。付けるときは確認なし。
+    if (!on && !confirm("「調理完了」を取り消して未調理に戻しますか？")) return;
+    setCooked(btn.dataset.id, on);
+    renderOrders();   // すぐに「調理済み」表示へ反映 (チェックが消えない)
+    return;
+  }
+  // 押し間違い防止: 状態を変える操作はすべて確認してから実行する。
+  const next = btn.dataset.next;
+  const o = latestOrders.find((x) => x.id === btn.dataset.id);
+  const noTxt = o ? "No. " + fmtNo(o.number) : "この注文";
+  let msg = "";
+  if (next === "done") {
+    // 紙オーダーは番号で呼び出して手渡す運用なので、完了確認の文言を変える。
+    const paper = btn.classList.contains("btn-paper-done");
+    msg = paper
+      ? noTxt + " を受け渡し完了にしますか？"
+      : noTxt + " を手動で完了にしますか？\n(通常はお客様側の操作で完了します)";
+  } else if (next === "calling") {
+    msg = noTxt + " を呼び出しますか？\n番号案内モニターに表示され、音声でアナウンスされます。";
+  } else if (next === "new") {
+    msg = noTxt + " を準備中に戻しますか？";
+  }
+  if (msg && !confirm(msg)) return;
+  btn.disabled = true;
+  DB.setStatus(btn.dataset.id, next);
+});
+
+// ---------- もう一度呼び出す (再アナウンス) ----------
+// 呼出中のまま来ないお客様を、モニターでもう一度音声アナウンスさせる。
+// 注文の状態は変えず、DB2(ordyxis2)に再呼び出しシグナルを書き込むだけ。
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest("button[data-recall]");
+  if (!btn) return;
+  DB2.recall(btn.dataset.recall, Number(btn.dataset.num));
+  const orig = btn.textContent;
+  btn.classList.add("sent");
+  btn.textContent = "🔊 呼び出しました";
+  btn.disabled = true;
+  setTimeout(() => { btn.classList.remove("sent"); btn.textContent = orig; btn.disabled = false; }, 2500);
+});
+
+// ---------- 紙オーダー入力 (QR以外の注文を手入力して共有。番号は発行しない) ----------
+(function setupPaperOrder() {
+  const churros = MENU.filter((m) => m.category === "チュロス");
+  const sauces  = MENU.filter((m) => m.category === "ソース");
+  // 明細は「1行 = 味 × ソース × 個数」。同じ味でもソースが違えば別行にできる。
+  let lines = [];   // [{ flavorId, sauce: ""|sauceId|"both", qty }]
+
+  const overlay = $("paperOverlay"), linesEl = $("paperLines");
+  const elCnt = $("paperCnt"), elTotal = $("paperTotal"), elNote = $("paperNote"), elSubmit = $("paperSubmit");
+  const selFlavor = $("paperFlavor"), selSauce = $("paperSauce"), elNumber = $("paperNumber");
+
+  // 味・ソースの選択肢は一度だけ生成する
+  selFlavor.innerHTML = churros.map((m) => '<option value="' + m.id + '">' + m.name + "</option>").join("");
+  selSauce.innerHTML = '<option value="">ソースなし</option>' +
+    sauces.map((s) => '<option value="' + s.id + '">' + s.name + "</option>").join("") +
+    (sauces.length >= 2 ? '<option value="both">両方</option>' : "");
+
+  function sauceLabel(v) {
+    if (v === "both" && sauces.length >= 2) return sauces.map((s) => s.name).join("＋");
+    const s = sauces.find((x) => x.id === v);
+    return s ? s.name : "";
+  }
+  function churroName(id) { const m = churros.find((x) => x.id === id); return m ? m.name : id; }
+  function totalChurros() { return lines.reduce((s, l) => s + l.qty, 0); }
+
+  function renderLines() {
+    if (!lines.length) {
+      linesEl.innerHTML = '<div class="pm-empty2">まだ明細がありません。<br>上で味とソースを選んで「＋ 追加」してください。</div>';
+      return;
+    }
+    linesEl.innerHTML = lines.map((l, i) => {
+      const sl = sauceLabel(l.sauce);
+      return '<div class="pm-line" data-i="' + i + '">' +
+        '<span class="pl-nm">' + churroName(l.flavorId) +
+          (sl ? '<small>＋ ' + sl + "</small>" : '<small class="none">ソースなし</small>') + "</span>" +
+        '<div class="pm-step">' +
+          '<button type="button" class="pm-minus">−</button>' +
+          '<span class="pm-q">' + l.qty + "</span>" +
+          '<button type="button" class="pm-plus">＋</button>' +
+        "</div>" +
+        '<button type="button" class="pm-x2" title="この明細を削除">✕</button>' +
+      "</div>";
+    }).join("");
+  }
+
+  function refresh() {
+    const n = totalChurros();
+    elCnt.textContent = "チュロス " + n + " 個";
+    elTotal.textContent = yen(churroSetPrice(n));
+    // 注意書き・送信可否 (紙オーダーは最低3個から。上限は緩く、8個以上も入力できる)
+    let note = "", ok = true;
+    if (n === 0) { note = "明細を追加してください。"; ok = false; }
+    else if (n < MIN_CHURROS) { note = "チュロスは最低 " + MIN_CHURROS + " 個から（あと " + (MIN_CHURROS - n) + " 個）。"; ok = false; }
+    else if (n > PAPER_MAX_CHURROS) { note = "1注文は最大 " + PAPER_MAX_CHURROS + " 個までです。"; ok = false; }
+    elNote.textContent = note;
+    elSubmit.disabled = !ok;
+  }
+
+  // 「追加」: 同じ味＋同じソースの明細があれば個数を足し、無ければ新しい明細を作る。
+  function addLine() {
+    if (totalChurros() >= PAPER_MAX_CHURROS) { refresh(); return; }
+    const fid = selFlavor.value, sv = selSauce.value;
+    const ex = lines.find((l) => l.flavorId === fid && l.sauce === sv);
+    if (ex) ex.qty++;
+    else lines.push({ flavorId: fid, sauce: sv, qty: 1 });
+    renderLines();
+    refresh();
+  }
+
+  $("paperAdd").onclick = addLine;
+  linesEl.addEventListener("click", (e) => {
+    const row = e.target.closest(".pm-line"); if (!row) return;
+    const i = +row.dataset.i, l = lines[i]; if (!l) return;
+    if (e.target.classList.contains("pm-plus")) { if (totalChurros() < PAPER_MAX_CHURROS) l.qty++; }
+    else if (e.target.classList.contains("pm-minus")) { l.qty--; if (l.qty <= 0) lines.splice(i, 1); }
+    else if (e.target.classList.contains("pm-x2")) { lines.splice(i, 1); }
+    else return;
+    renderLines();
+    refresh();
+  });
+
+  // 入力ビュー(明細入力) と 結果ビュー(受け取り番号の提示) の切り替え用要素
+  const pm = overlay.querySelector(".pm");
+  const pmDesc = pm.querySelector(".pm-desc");
+  const pmFoot = pm.querySelector(".pm-foot");
+  const resultEl = $("paperResult");
+
+  // 明細入力ビューを表示 (新規入力 / もう1件入力)
+  function showInput() {
+    lines = [];
+    selFlavor.selectedIndex = 0;
+    selSauce.selectedIndex = 0;
+    elNumber.value = "";
+    renderLines();
+    refresh();
+    resultEl.classList.remove("show");
+    pmDesc.style.display = "";
+    $("paperBody").style.display = "";
+    pmFoot.style.display = "";
+  }
+  // 共有後の受け取り番号を提示するビューを表示
+  function showResult(number, n, total) {
+    $("paperResultNo").textContent = "No. " + fmtNo(number);
+    $("paperResultSum").textContent = "チュロス " + n + " 個 ／ " + yen(total);
+    pmDesc.style.display = "none";
+    $("paperBody").style.display = "none";
+    pmFoot.style.display = "none";
+    resultEl.classList.add("show");
+  }
+
+  function open() { showInput(); overlay.classList.add("open"); }
+  function close() { overlay.classList.remove("open"); showInput(); }
+
+  $("paperFab").onclick = open;
+  $("paperClose").onclick = close;
+  overlay.onclick = (e) => { if (e.target === overlay) close(); };
+  $("paperResultAgain").onclick = showInput;
+  $("paperResultClose").onclick = close;
+
+  elSubmit.onclick = async () => {
+    const n = totalChurros();
+    if (n < MIN_CHURROS || n > PAPER_MAX_CHURROS) return;
+    // 明細をそのまま注文行に変換 (同じ味でもソース違いは別行のまま送る)
+    const items = lines.filter((l) => l.qty > 0).map((l) => {
+      const m = churros.find((x) => x.id === l.flavorId);
+      const item = { id: m.id, name: m.name, price: m.price, qty: l.qty, img: m.img };
+      if (l.sauce === "both" && sauces.length >= 2) {
+        item.sauce = { name: sauces.map((s) => s.name).join("＋") };
+      } else if (l.sauce) {
+        const s = sauces.find((x) => x.id === l.sauce);
+        if (s) item.sauce = { id: s.id, name: s.name };
+      }
+      return item;
+    });
+    if (!items.length) return;
+    // 受け取り番号の指定 (連携が取れていない番号の再現用)。空欄なら自動発行 (401〜)。
+    const opts = { manual: true };
+    const numRaw = (elNumber.value || "").trim();
+    if (numRaw !== "") {
+      const num = Math.floor(Number(numRaw));
+      if (isNaN(num) || num <= 0) { alert("受け取り番号は1以上の数字を入力してください（空欄なら自動発行）。"); return; }
+      opts.number = num;
+    }
+    const total = churroSetPrice(n);
+    elSubmit.disabled = true;
+    elSubmit.textContent = "共有中…";
+    try {
+      const res = await DB.createOrder(items, total, opts);
+      // 今すぐ受け取りの列に入る前に、発行された受け取り番号を提示する。
+      showResult(res.number, n, total);
+    } catch (err) {
+      // 在庫上限では弾かれない設計だが、書き込み失敗時は通知する。
+      alert("紙オーダーの共有に失敗しました。通信状況を確認してもう一度お試しください。");
+      console.error(err);
+    } finally {
+      elSubmit.disabled = false;
+      elSubmit.textContent = "この内容で共有する";
+    }
+  };
+})();
+
+// ---------- 在庫(注文可能数) ----------
+let stockLimits = {};
+let latestOrders = [];
+DB.watchStock((limits) => { stockLimits = limits || {}; renderStock(); });
+
+function renderStock() {
+  const sold = soldCounts(latestOrders);
+  const wrap = $("stockList");
+  wrap.innerHTML = "";
+  MENU.forEach((m) => {
+    const st = stockState(m.id, sold, stockLimits);
+    const item = document.createElement("div");
+    item.className = "stock-item";
+    const limitVal = (stockLimits[m.id] != null && stockLimits[m.id] !== "") ? stockLimits[m.id] : "";
+    const pctW = st.limit ? Math.min(100, Math.round(st.sold / st.limit * 100)) : 0;
+    item.innerHTML = `
+      <div class="si-top">
+        <img src="${m.img}" alt="${m.name}" onerror="imgFallback(this,'')">
+        <div>
+          <div class="si-nm">${m.name}</div>
+          <div class="si-meta">本日の注文 <b>${st.sold}</b> 個 ／
+            ${st.limit === null ? "上限: 無制限"
+              : st.soldOut ? '<span class="so">売り切れ（上限到達）</span>'
+              : "残り <b>" + st.remaining + "</b> 個（上限 " + st.limit + "）"}</div>
+        </div>
+      </div>
+      <div class="stock-row">
+        <label>注文可能数（上限）</label>
+        <input type="number" min="0" inputmode="numeric" id="lim-${m.id}" value="${limitVal}" placeholder="無制限">
+      </div>
+      ${st.limit !== null ? `<div class="stock-bar"><i class="${st.soldOut ? "full" : ""}" style="width:${pctW}%"></i></div>` : ""}
+      <div class="stock-actions">
+        <button class="save" data-stock-save="${m.id}">保存</button>
+        <button class="unlimited" data-stock-unlimited="${m.id}">無制限にする</button>
+      </div>`;
+    wrap.appendChild(item);
+  });
+}
+
+document.addEventListener("click", (e) => {
+  const save = e.target.closest("[data-stock-save]");
+  if (save) {
+    if (!requireActionCode("在庫設定（注文可能数）の変更")) return;
+    const id = save.dataset.stockSave;
+    const v = $("lim-" + id).value.trim();
+    DB.setStockLimit(id, v === "" ? null : Number(v));
+    save.textContent = "保存しました ✓";
+    setTimeout(() => { save.textContent = "保存"; }, 1200);
+    return;
+  }
+  const unl = e.target.closest("[data-stock-unlimited]");
+  if (unl) {
+    if (!requireActionCode("在庫設定（無制限に変更）")) return;
+    DB.setStockLimit(unl.dataset.stockUnlimited, null);
+    $("lim-" + unl.dataset.stockUnlimited).value = "";
+    return;
+  }
+});
+
+// ---------- 売上・集計 ----------
+function renderSales(today) {
+  const perProduct = {};
+  let totalRevenue = 0, totalItems = 0;
+  today.forEach((o) => {
+    totalRevenue += o.total || 0;
+    const items = o.items || [];
+    // 料金は段階制(基本3個¥150 + 追加¥50/個)で注文単位。商品別の売上は
+    // 注文合計を個数按分して概算する(個別単価の合算ではない)。
+    const cnt = items.reduce((s, i) => s + i.qty, 0) || 1;
+    items.forEach((i) => {
+      const p = perProduct[i.id] || (perProduct[i.id] = { name: i.name, qty: 0, rev: 0 });
+      p.qty += i.qty;
+      p.rev += Math.round((o.total || 0) * (i.qty / cnt));
+      totalItems += i.qty;
+    });
+  });
+  $("salesSummary").innerHTML = `
+    <div class="sum-card accent"><div class="k">本日の売上</div><div class="v">${yen(totalRevenue)}</div></div>
+    <div class="sum-card"><div class="k">注文数</div><div class="v">${today.length} 件</div></div>
+    <div class="sum-card"><div class="k">販売個数</div><div class="v">${totalItems} 個</div></div>`;
+  const rows = MENU.map((m) => perProduct[m.id]).filter(Boolean)
+    .concat(Object.keys(perProduct).filter((id) => !MENU.find((m) => m.id === id)).map((id) => perProduct[id]));
+  $("salesTable").innerHTML = `
+    <div class="row head"><span>商品</span><span class="qv">販売数</span><span class="rv">売上</span></div>
+    ${rows.length ? rows.map((p) => `<div class="row"><span class="nm">${p.name}</span>
+      <span class="qv">${p.qty} 個</span><span class="rv">${yen(p.rev)}</span></div>`).join("")
+      : '<div class="row"><span class="nm" style="color:#9aa3b5">本日の注文はまだありません</span><span></span><span></span></div>'}
+    <div class="row totalrow"><span>合計</span><span class="qv">${totalItems} 個</span><span class="rv">${yen(totalRevenue)}</span></div>`;
+}
+
+// ---------- 時間予約の設定 ----------
+let resvCfg = reservationConfig(null);
+const resvOpen = {};  // data-key -> スロットの開閉状態 (未設定なら既定値を使用)
+
+// 予約1件の状態を判定 (表示ラベル・色・時刻変更可否)
+function resvStatus(o, now) {
+  if (o.status === "done")    return { key: "done",    label: "受取済み", cls: "done" };
+  if (o.status === "calling") return { key: "calling", label: "呼出中",   cls: "calling" };
+  if (o.arrived)              return { key: "prep",    label: "用意中",   cls: "arrived" };
+  if (reservationWindowOpen(o, now)) return { key: "ready", label: "来店待ち", cls: "ready" };
+  return { key: "wait", label: "受取待ち", cls: "wait", canChange: true };
+}
+const RESV_ORDER = ["wait", "ready", "prep", "calling", "done"];      // ヘッダー要約バッジの並び順
+const RESV_LABEL = { wait: "受取待ち", ready: "来店待ち", prep: "用意中", calling: "呼出中", done: "受取済" };
+const RESV_CLS   = { wait: "wait", ready: "ready", prep: "arrived", calling: "calling", done: "done" };
+DB.watchReservation((cfg) => {
+  resvCfg = reservationConfig(cfg);
+  // フォームに反映 (編集中でなければ)
+  if (document.activeElement && document.activeElement.closest && document.activeElement.closest(".resv-setup")) {
+    // 入力中はトグルのみ同期
+    $("resvEnabled").checked = resvCfg.enabled;
+  } else {
+    $("resvEnabled").checked = resvCfg.enabled;
+    $("resvStart").value = resvCfg.start;
+    $("resvEnd").value = resvCfg.end;
+    $("resvInterval").value = resvCfg.interval;
+    $("resvCapacity").value = resvCfg.capacity;
+  }
+  renderOrders();
+});
+function currentResvForm() {
+  return {
+    enabled: $("resvEnabled").checked,
+    start: $("resvStart").value || "09:00",
+    end: $("resvEnd").value || "14:45",
+    interval: Math.max(5, Number($("resvInterval").value) || 15),
+    capacity: Math.max(1, Number($("resvCapacity").value) || 8)
+  };
+}
+// トグルは即時保存 (機能のON/OFF切替) — 変更にはアクセスコードが必要
+$("resvEnabled").onchange = () => {
+  if (!requireActionCode("時間指定予約のON/OFF切替")) {
+    $("resvEnabled").checked = resvCfg.enabled;   // コード不一致/キャンセル → 元に戻す
+    return;
+  }
+  DB.setReservation(currentResvForm());
+};
+$("resvSave").onclick = () => {
+  if (!requireActionCode("時間指定予約の設定変更")) return;
+  DB.setReservation(currentResvForm());
+  const b = $("resvSave"); b.textContent = "保存しました ✓";
+  setTimeout(() => { b.textContent = "設定を保存"; }, 1300);
+};
+
+// ---------- 注文のリアルタイム描画 ----------
+function renderOrders() {
+  const orders = latestOrders;
+  const today = orders.filter((o) => o.day === ordyxisDayKey());
+  const now = new Date();
+  // Disney方式の振り分け:
+  //   今すぐ注文          → すぐ準備中(newNow)
+  //   時間指定・来店確認済 → 準備中で調理開始(newSched)
+  //   時間指定・ウィンドウ内で未到着 → 来店待ち(awaiting、まだ調理しない)
+  //   時間指定・受取時刻前 → 予約(reserved)
+  //   受取ウィンドウ(30分後)超過・未到着 → 強制キャンセル
+  const groups = { newNow: [], newSched: [], awaiting: [], calling: [], done: [], reserved: [], cancelled: [] };
+  const pendingCancel = [];
+  today.forEach((o) => {
+    if (o.status === "cancelled") { groups.cancelled.push(o); return; }
+    if (reservationExpired(o, now)) { groups.cancelled.push(o); pendingCancel.push(o.id); return; }
+    if (o.status === "calling") { groups.calling.push(o); return; }
+    if (o.status === "done") { groups.done.push(o); return; }
+    // status === "new"
+    if (o.type === "scheduled") {
+      if (o.arrived) groups.newSched.push(o);                          // 来店確認済み → 調理開始
+      else if (reservationWindowOpen(o, now)) groups.awaiting.push(o); // 来店待ち
+      else groups.reserved.push(o);                                    // 受取時刻前
+    } else {
+      groups.newNow.push(o);
+    }
+  });
+  // 強制キャンセルを確定 (時間超過・未到着の予約)
+  pendingCancel.forEach((id) => DB.cancelOrder(id));   // 在庫枠・予約スロットも解放する
+
+  groups.newNow.sort((a, b) => a.createdAt - b.createdAt);
+  groups.newSched.sort((a, b) => (a.arrived || 0) - (b.arrived || 0)); // 来店(確認)が早い順に用意
+
+  const render = (col, list, kind, emptyMsg) => {
+    const el = $(col);
+    el.innerHTML = "";
+    if (!list.length) { el.innerHTML = `<div class="empty">${emptyMsg}</div>`; return; }
+    list.forEach((o) => el.appendChild(orderCard(o, kind)));
+  };
+  render("colNewNow", groups.newNow, "new", "今すぐの注文はありません");
+  render("colNewSched", groups.newSched, "new", "来店確認済みの予約はありません");
+  render("colCalling", groups.calling, "calling", "呼出中の注文はありません");
+  render("colDone", groups.done.slice().reverse(), "done", "完了した注文はまだありません");
+  // 一括表示（準備中＋呼出中を1画面）にも描画
+  render("bothNewNow", groups.newNow, "new", "今すぐの注文はありません");
+  render("bothNewSched", groups.newSched, "new", "来店確認済みの予約はありません");
+  render("bothCalling", groups.calling, "calling", "呼出中の注文はありません");
+
+  // 呼出中の大型番号
+  const callingHTML = groups.calling.length
+    ? groups.calling.map((o) => `<span>${fmtNo(o.number)}</span>`).join("")
+    : '<span class="none">なし</span>';
+  $("callingNums").innerHTML = callingHTML;
+  $("bothCallingNums").innerHTML = callingHTML;
+
+  // 件数表示
+  const prepCount = groups.newNow.length + groups.newSched.length;
+  $("cntNew").textContent = $("cntNewB").textContent = $("stNew").textContent = prepCount;
+  $("cntNewNow").textContent = groups.newNow.length;
+  $("cntNewSched").textContent = groups.newSched.length;
+  $("cntCalling").textContent = $("cntCallingB").textContent = $("stCalling").textContent = groups.calling.length;
+  $("cntDone").textContent = $("stDone").textContent = groups.done.length;
+  $("cntResv").textContent = groups.reserved.length + groups.awaiting.length;
+
+  renderResv(today);
+  renderSales(today.filter((o) => o.status !== "cancelled"));  // キャンセルは売上に含めない
+  renderStock(); // 注文数の変化で在庫の残数表示を更新
+}
+
+// 時間予約タブ: スロット(時間)別に予約の番号・内容・状態を一覧管理
+function renderResv(today) {
+  const wrap = $("resvList");
+  if (!resvCfg.enabled) {
+    wrap.innerHTML = '<div class="resv-off-note">時間指定予約は現在OFFです。上のスイッチでONにすると、お客様が受取時刻を予約できるようになります。</div>';
+    return;
+  }
+  // 再描画の前に、現在の開閉状態を記憶 (30秒ごと/注文更新で開いたままにする)。
+  // details.open は操作と同時に同期更新されるため、ここで読めば確実。
+  wrap.querySelectorAll("details[data-key]").forEach((d) => { resvOpen[d.dataset.key] = d.open; });
+
+  const now = new Date();
+  const sched = today.filter((o) => o.type === "scheduled" && o.pickupTime);
+  const activeList = sched.filter((o) => o.status !== "cancelled");   // 有効な予約
+  const cancelledList = sched.filter((o) => o.status === "cancelled"); // キャンセルされた予約
+  const counts = slotCounts(today);                 // キャンセル除く スロット別 件数
+  // スロットごとに有効な予約をまとめる (予約中/来店待ち/用意中/呼出中/完了)
+  const bySlot = {};
+  activeList.forEach((o) => { (bySlot[o.pickupTime] = bySlot[o.pickupTime] || []).push(o); });
+  // 表示するスロット = 設定スロット ∪ 実際に予約のある時刻 (設定変更で範囲外になった予約も拾う)
+  const slots = Array.from(new Set(reservationSlots(resvCfg).concat(Object.keys(bySlot)))).sort();
+  const optionsFor = (cur) => slots.map((t) =>
+    `<option value="${t}"${t === cur ? " selected" : ""}>${t}（残${Math.max(0, resvCfg.capacity - (counts[t] || 0))}）</option>`).join("");
+
+  let html = "";
+  slots.forEach((t) => {
+    const list = (bySlot[t] || []).slice().sort((a, b) => a.number - b.number);
+    if (!list.length) return;                        // 予約のないスロットは省略
+    const used = counts[t] || 0;
+    const p = t.split(":");
+    const slotTime = new Date(); slotTime.setHours(+p[0], +p[1], 0, 0);
+    const due = slotTime <= now;
+    const full = used >= resvCfg.capacity;
+
+    // ヘッダー要約: 状態ごとの件数バッジ (折りたたみ中でも一目で分かるように)
+    const cc = { wait: 0, ready: 0, prep: 0, calling: 0, done: 0 };
+    list.forEach((o) => { cc[resvStatus(o, now).key]++; });
+    const mini = RESV_ORDER.filter((k) => cc[k])
+      .map((k) => `<span class="rstat ${RESV_CLS[k]}">${RESV_LABEL[k]} ${cc[k]}</span>`).join("");
+
+    // 開閉状態: 未操作なら「未完了の予約が残っていれば開く・全て受取済みなら閉じる」
+    const key = "s:" + t;
+    const hasActive = list.some((o) => resvStatus(o, now).key !== "done");
+    const open = (key in resvOpen) ? resvOpen[key] : hasActive;
+
+    // 内容(各予約の番号・金額・商品・状態) — 押して開いたときに表示
+    let rows = "";
+    list.forEach((o) => {
+      const itemsTxt = o.items.map((i) => itemLabel(i) + "×" + i.qty).join("、");
+      const s = resvStatus(o, now);
+      const stTag = `<span class="rstat ${s.cls}">${s.label}</span>`;
+      // 時刻変更は誤操作防止のため「変更」ボタンを押してから選択する2段階 (受取時刻前のみ可)
+      const ctrl = s.canChange
+        ? `<button class="resv-change-btn" data-resv-change="${o.id}">時刻変更</button>` +
+          `<select class="resv-change-sel" data-resv-time="${o.id}" style="display:none">${optionsFor(o.pickupTime)}</select>`
+        : "";
+      rows += `<div class="resv-row">
+        <span class="rn">${fmtNo(o.number)}</span>
+        <span class="ri"><b>${yen(o.total)}</b> ／ ${itemsTxt} ${stTag}</span>
+        ${ctrl}
+      </div>`;
+    });
+
+    html += `<details class="slot-block" data-key="${key}"${open ? " open" : ""}>
+      <summary>
+        <div class="sb-left">
+          <span class="sb-time">${t}${due ? '<span class="due">受取時刻</span>' : ''}</span>
+          <div class="sb-mini">${mini}</div>
+        </div>
+        <div class="sb-right">
+          <span class="sb-cap${full ? " full" : ""}">${used} / ${resvCfg.capacity} 名</span>
+          <span class="sb-chev">▾</span>
+        </div>
+      </summary>
+      <div class="sb-body">${rows}</div>
+    </details>`;
+  });
+  let activeHtml = html || '<div class="resv-off-note">現在、有効な時間指定の予約はありません。</div>';
+
+  // ---- キャンセルされた予約の一覧 (時間別) ----
+  let cancelHtml = "";
+  if (cancelledList.length) {
+    const bySlotC = {};
+    cancelledList.forEach((o) => { (bySlotC[o.pickupTime] = bySlotC[o.pickupTime] || []).push(o); });
+    cancelHtml += `<div class="resv-cancel-head">キャンセルされた予約（時間別） — ${cancelledList.length} 件</div>`;
+    Object.keys(bySlotC).sort().forEach((t) => {
+      const list = bySlotC[t].slice().sort((a, b) => a.number - b.number);
+      const key = "c:" + t;
+      const open = (key in resvOpen) ? resvOpen[key] : false;   // キャンセルは既定で閉じる
+      let rows = "";
+      list.forEach((o) => {
+        const itemsTxt = o.items.map((i) => itemLabel(i) + "×" + i.qty).join("、");
+        rows += `<div class="resv-row is-cancel">
+          <span class="rn">${fmtNo(o.number)}</span>
+          <span class="ri"><b>${yen(o.total)}</b> ／ ${itemsTxt} <span class="rstat cancel">キャンセル（時間超過）</span></span>
+        </div>`;
+      });
+      cancelHtml += `<details class="slot-block cancel-block" data-key="${key}"${open ? " open" : ""}>
+        <summary>
+          <div class="sb-left"><span class="sb-time">${t}</span>
+            <div class="sb-mini"><span class="rstat cancel">キャンセル ${list.length}</span></div></div>
+          <div class="sb-right"><span class="sb-cap">${list.length} 件</span><span class="sb-chev">▾</span></div>
+        </summary>
+        <div class="sb-body">${rows}</div>
+      </details>`;
+    });
+  }
+  wrap.innerHTML = activeHtml + cancelHtml;
+}
+
+// 予約時刻の変更は「時刻変更」ボタン → 確認 → 選択 の手順 (誤操作・安易な変更を防ぐ)
+$("resvList").addEventListener("click", (e) => {
+  const btn = e.target.closest("[data-resv-change]");
+  if (!btn) return;
+  if (!requireActionCode("予約時刻の変更")) return;
+  if (!confirm("お客様の予約時刻を変更しますか？\n通常は変更しないでください。")) return;
+  const sel = btn.parentElement.querySelector(".resv-change-sel");
+  if (sel) { btn.style.display = "none"; sel.style.display = ""; try { sel.focus(); } catch (e2) {} }
+});
+// 予約時刻の変更 (お店側から)
+$("resvList").addEventListener("change", (e) => {
+  const sel = e.target.closest("[data-resv-time]");
+  if (!sel) return;
+  const id = sel.dataset.resvTime;
+  const newTime = sel.value;
+  const counts = slotCounts(latestOrders.filter((o) => o.day === ordyxisDayKey()));
+  const order = latestOrders.find((o) => o.id === id);
+  // 変更先が満員でないか確認 (同じ時刻なら何もしない)
+  if (order && order.pickupTime !== newTime && (counts[newTime] || 0) >= resvCfg.capacity) {
+    alert(newTime + " は満員です。別の時間を選んでください。");
+    renderOrders();
+    return;
+  }
+  DB.setPickupTime(id, newTime);
+});
+
+DB.watchOrders((orders) => {
+  latestOrders = orders;
+  pruneCooked(orders);   // 存在しない注文の調理完了マークを掃除
+  const today = orders.filter((o) => o.day === ordyxisDayKey());
+  // 新着検知 → 通知音 (初回ロード時は鳴らさない)
+  const ids = new Set(today.map((o) => o.id));
+  if (knownIds !== null) {
+    for (const id of ids) if (!knownIds.has(id)) { ding(); break; }
+  }
+  knownIds = ids;
+  renderOrders();
+  scheduleBackup();   // 注文に変化があるたびに CSV バックアップを更新
+});
+
+// 受取時刻の到来を反映するため定期的に再描画 (予約 → 準備中への自動移動)
+setInterval(renderOrders, 30000);
+
+// ====================================================================
+// 注文の CSV バックアップ（アプリが使えなくなっても注文一覧を手元に残す）
+// --------------------------------------------------------------------
+// File System Access API 対応ブラウザ(PCのChrome/Edge等)では、一度バックアップ先
+// ファイルを選べば、注文が入るたびに同じファイルへ自動で上書き保存し続ける。
+// 未対応の端末では「いますぐCSVをダウンロード」で手動保存できる。
+// ====================================================================
+const FSA_OK = (typeof window.showSaveFilePicker === "function");
+let backupHandle = null;     // 書き込み先ファイルのハンドル
+let backupTimer = null;      // 連続更新をまとめる(デバウンス)用
+let backupWriting = false;   // 書き込み中フラグ(多重書き込み防止)
+let backupPending = false;   // 書き込み中に来た更新を後で反映するため
+
+const pad2 = (n) => String(n).padStart(2, "0");
+function nowHm() { const d = new Date(); return pad2(d.getHours()) + ":" + pad2(d.getMinutes()); }
+function fmtDateTime(t) {
+  if (!t) return "";
+  const d = new Date(t);
+  return d.getFullYear() + "/" + pad2(d.getMonth() + 1) + "/" + pad2(d.getDate()) +
+    " " + pad2(d.getHours()) + ":" + pad2(d.getMinutes());
+}
+// 提供状況の日本語ラベル(Excel一覧用)
+function backupStatusLabel(o) {
+  if (o.status === "cancelled") return "キャンセル";
+  if (o.status === "done")      return "受取済み(提供完了)";
+  if (o.status === "calling")   return "呼出中(お渡し待ち)";
+  // status === "new"
+  if (o.type === "scheduled" && !o.arrived) return "予約・受取待ち";
+  return "準備中";
+}
+function csvCell(v) {
+  const s = (v == null ? "" : String(v));
+  return '"' + s.replace(/"/g, '""') + '"';   // 常にクォートして区切り・改行を安全に
+}
+function ordersToCsv(orders) {
+  const head = ["注文日時", "番号", "種別", "受取時刻", "注文内容", "合計(円)", "提供状況", "来店確認", "注文ID"];
+  const rows = (orders || []).slice()
+    .sort((a, b) => (a.createdAt || 0) - (b.createdAt || 0))
+    .map((o) => [
+      fmtDateTime(o.createdAt),
+      fmtNo(o.number),
+      isPaperOrder(o) ? "紙オーダー" : (o.type === "scheduled" ? "時間指定" : "今すぐ"),
+      o.pickupTime || "",
+      (o.items || []).map((i) => itemLabel(i) + "×" + i.qty).join(" / "),
+      o.total || 0,
+      backupStatusLabel(o),
+      o.arrived ? "来店済み" : "",
+      o.id || ""
+    ]);
+  return [head, ...rows].map((r) => r.map(csvCell).join(",")).join("\r\n");
+}
+function currentCsv() { return "﻿" + ordersToCsv(latestOrders); }   // BOM付きでExcelの文字化け防止
+
+// ---- IndexedDB にファイルハンドルを保存 (再読み込み後も再開できるように) ----
+function idbOpen() {
+  return new Promise((res, rej) => {
+    const r = indexedDB.open("ordyxis-backup", 1);
+    r.onupgradeneeded = () => r.result.createObjectStore("kv");
+    r.onsuccess = () => res(r.result);
+    r.onerror = () => rej(r.error);
+  });
+}
+async function idbSet(k, v) {
+  const db = await idbOpen();
+  return new Promise((res, rej) => {
+    const t = db.transaction("kv", "readwrite");
+    t.objectStore("kv").put(v, k);
+    t.oncomplete = () => res(); t.onerror = () => rej(t.error);
+  });
+}
+async function idbGet(k) {
+  const db = await idbOpen();
+  return new Promise((res, rej) => {
+    const t = db.transaction("kv", "readonly");
+    const rq = t.objectStore("kv").get(k);
+    rq.onsuccess = () => res(rq.result); rq.onerror = () => rej(rq.error);
+  });
+}
+async function idbDel(k) {
+  const db = await idbOpen();
+  return new Promise((res, rej) => {
+    const t = db.transaction("kv", "readwrite");
+    t.objectStore("kv").delete(k);
+    t.oncomplete = () => res(); t.onerror = () => rej(t.error);
+  });
+}
+
+function setBackupStat(msg, ok) {
+  const el = $("backupStat");
+  el.textContent = msg;
+  el.classList.toggle("ok", !!ok);
+}
+function updateBackupButtons() {
+  $("btnBackupStart").style.display = (FSA_OK && !backupHandle) ? "" : "none";
+  $("btnBackupStop").style.display  = (FSA_OK && backupHandle) ? "" : "none";
+}
+
+async function ensureWritePermission(h) {
+  const opts = { mode: "readwrite" };
+  if ((await h.queryPermission(opts)) === "granted") return true;
+  if ((await h.requestPermission(opts)) === "granted") return true;
+  return false;
+}
+function scheduleBackup() {
+  if (!backupHandle) return;
+  if (backupTimer) clearTimeout(backupTimer);
+  backupTimer = setTimeout(writeBackup, 800);   // 連続更新は0.8秒にまとめる
+}
+// 実際に1回書き込む(失敗時は呼び出し側で扱う)
+async function writeBackupOnce() {
+  const w = await backupHandle.createWritable();
+  await w.write(currentCsv());
+  await w.close();
+}
+async function writeBackup() {
+  if (!backupHandle) return;
+  // ★記録の保護: 注文が0件のときは上書きしない。
+  //   Firebaseを空のプロジェクトに切り替えた／履歴を削除した／一時的に空が返った 等で
+  //   空のCSVを書くと、それまでの控えが消えてしまうため。0件のときは既存ファイルを残す。
+  if (!latestOrders || latestOrders.length === 0) {
+    setBackupStat("注文が0件のため上書きを保留しています（既存の記録を保護中）。", true);
+    return;
+  }
+  if (backupWriting) { backupPending = true; return; }  // 進行中なら後でまとめて反映
+  backupWriting = true;
+  try {
+    if (!(await ensureWritePermission(backupHandle))) {
+      backupHandle = null;
+      $("btnBackupResume").style.display = "";
+      updateBackupButtons();
+      setBackupStat("ファイルへの書き込み許可が必要です。再開ボタンを押してください。", false);
+      return;
+    }
+    try {
+      await writeBackupOnce();
+    } catch (e1) {
+      // 「状態が古くなった」系のエラー(OneDrive等の同期やExcelがファイルを触った場合)。
+      // ハンドルの状態を読み直して、もう一度だけ書き込みを試す。
+      try { await backupHandle.getFile(); } catch (e) {}
+      await writeBackupOnce();
+    }
+    setBackupStat("自動バックアップ中 ・ 最終保存 " + nowHm(), true);
+  } catch (e) {
+    // ここまで失敗 = ファイルがロックされている可能性が高い。ハンドルは保持し、
+    // 次の注文更新で自動的に再試行する(手動なら「再開」ボタンでも復帰可)。
+    setBackupStat("保存に失敗しました。CSVをExcelで開いていれば閉じてください。"
+      + "（OneDrive等の同期フォルダ以外、例: デスクトップへの保存を推奨）次の注文で自動的に再試行します。", false);
+  } finally {
+    backupWriting = false;
+    if (backupPending) { backupPending = false; scheduleBackup(); }  // 書込中の更新を反映
+  }
+}
+
+$("btnBackupStart").onclick = async () => {
+  try {
+    backupHandle = await window.showSaveFilePicker({
+      suggestedName: "ordyxis_orders_" + ordyxisDayKey() + ".csv",
+      types: [{ description: "CSV (Excel)", accept: { "text/csv": [".csv"] } }]
+    });
+    await idbSet("backupHandle", backupHandle);
+    $("btnBackupResume").style.display = "none";
+    updateBackupButtons();
+    await writeBackup();
+  } catch (e) { /* ユーザーがキャンセルした場合など */ }
+};
+$("btnBackupResume").onclick = async () => {
+  try {
+    const h = await idbGet("backupHandle");
+    if (!h) { setBackupStat("再開できるファイルがありません。", false); return; }
+    backupHandle = h;
+    $("btnBackupResume").style.display = "none";
+    updateBackupButtons();
+    await writeBackup();
+  } catch (e) { setBackupStat("再開に失敗しました: " + (e && e.message ? e.message : e), false); }
+};
+$("btnBackupStop").onclick = async () => {
+  backupHandle = null;
+  if (backupTimer) { clearTimeout(backupTimer); backupTimer = null; }
+  try { await idbDel("backupHandle"); } catch (e) {}
+  updateBackupButtons();
+  setBackupStat("自動バックアップを停止しました。", false);
+};
+$("btnBackupOnce").onclick = () => {
+  const blob = new Blob([currentCsv()], { type: "text/csv" });
+  const a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  const d = new Date();
+  a.download = "ordyxis_orders_" + ordyxisDayKey() + "_" + pad2(d.getHours()) + pad2(d.getMinutes()) + ".csv";
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 2000);
+};
+
+// 起動時: 端末対応状況と、前回のバックアップ先の有無を反映
+(function initBackup() {
+  if (!FSA_OK) {
+    $("btnBackupStart").style.display = "none";
+    setBackupStat("この端末では自動追記に未対応です。「いますぐCSVをダウンロード」をご利用ください。", false);
+    return;
+  }
+  updateBackupButtons();
+  idbGet("backupHandle").then((h) => {
+    if (h && !backupHandle) {
+      $("btnBackupResume").style.display = "";
+      setBackupStat("前回のバックアップ先があります。再開ボタンで自動保存を続けられます。", false);
+    }
+  }).catch(() => {});
+})();
+
+// ====================================================================
+// 接続先 Firebase の切り替え（アクセスコード ODX613Prime26 が必要）
+// --------------------------------------------------------------------
+// firebase-config.js の FIREBASE_CONFIGS / DEFAULT_FIREBASE / ACTIVE_FIREBASE を参照。
+// 切替は localStorage["ordyxis_fb"] にプロジェクト名を入れて再読み込みする方式
+// （この端末だけに適用）。誰でも変更できないようアクセスコードでガードする。
+// ====================================================================
+(function initFirebaseSwitch() {
+  const sel = $("fbSelect");
+  if (!sel || typeof FIREBASE_CONFIGS === "undefined") return;
+  function fill() {
+    sel.innerHTML = "";
+    Object.keys(FIREBASE_CONFIGS).forEach((k) => {
+      const o = document.createElement("option");
+      o.value = k;
+      o.textContent = k + (k === DEFAULT_FIREBASE ? "（標準）" : "") + (k === ACTIVE_FIREBASE ? " ← 現在" : "");
+      if (k === ACTIVE_FIREBASE) o.selected = true;
+      sel.appendChild(o);
+    });
+    $("fbStat").innerHTML = "現在の接続先: <b>" + ACTIVE_FIREBASE + "</b>";
+  }
+  fill();
+  $("btnFbSwitch").onclick = () => {
+    const target = sel.value;
+    if (target === ACTIVE_FIREBASE) { alert("すでにこの接続先に接続しています。"); return; }
+    if (!requireActionCode("接続先 Firebase の変更")) return;
+    if (!confirm("接続先を「" + target + "」に切り替えます。\n\n⚠️ 進行中の注文・注文番号・予約は引き継がれません（切替先は空の状態から始まります）。\n\n本当に切り替えますか？")) return;
+    try { localStorage.setItem("ordyxis_fb", target); } catch (e) {}
+    alert("接続先を「" + target + "」に切り替えます。画面を再読み込みします。");
+    location.reload();
+  };
+  $("btnFbReset").onclick = () => {
+    let override = null;
+    try { override = localStorage.getItem("ordyxis_fb"); } catch (e) {}
+    if (!override) { alert("この端末はすでに標準（" + DEFAULT_FIREBASE + "）の接続先です。"); return; }
+    if (!requireActionCode("接続先 Firebase を標準に戻す")) return;
+    if (!confirm("この端末の接続先を標準（" + DEFAULT_FIREBASE + "）に戻します。\n進行中の注文は引き継がれません。よろしいですか？")) return;
+    try { localStorage.removeItem("ordyxis_fb"); } catch (e) {}
+    location.reload();
+  };
+})();
+</script>
+</body>
+</html>
