@@ -1,0 +1,3196 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>MagiBattle — キャラバトルRPG</title>
+<meta name="description" content="ガチャで集めたキャラクターを育てて戦う、XEVARIONのキャラバトルRPG。スキル・必殺技・レベル・装備・5属性で本格バトル！">
+<link rel="icon" href="../thumbs/MagiBattle.jpg" type="image/png">
+<link rel="apple-touch-icon" href="../thumbs/MagiBattle.jpg">
+<script src="../maintenance-gate.js?v=5"></script>
+<script src="../xeva-splash.js?v=3" data-app="MagiBattle" data-logo="../thumbs/MagiBattle.jpg"></script>
+<script src="../xeva.js?v=24"></script>
+<script src="../xeva-loading.js?v=1" defer></script>
+<script type="module" src="../xevarion-fb.js?v=19"></script>
+<script src="../xeva-presence.js?v=1" defer></script>
+<script type="module" src="../xeva-cloud.js?v=14"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;900&display=swap" rel="stylesheet">
+<style>
+/* スプラッシュは ../xeva-splash.js（全アプリ共通）に統一 */
+
+/* ============ MagiBattle — SUNNY POP バトルRPG ============ */
+:root{
+  --sky:#38a6ff; --sun:#ffb020; --coral:#ff6f91; --mint:#14c8a8; --grape:#8e6bff;
+  --bg:#f2f8ff; --panel:#ffffff; --txt:#22344d;
+  --dim:rgba(34,52,77,.68); --faint:rgba(34,52,77,.45);
+  --border:rgba(56,140,220,.16);
+  --shadow-sm:0 4px 18px rgba(56,120,200,.10);
+  --shadow-md:0 16px 40px rgba(56,120,200,.14);
+  --grad-main:linear-gradient(110deg,var(--mint),var(--sky) 35%,var(--grape) 68%,var(--coral));
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{
+  font-family:'Noto Sans JP',system-ui,sans-serif;color:var(--txt);line-height:1.6;
+  background-color:var(--bg);
+  background-image:
+    radial-gradient(58vw 50vw at 10% -8%,rgba(56,166,255,.16),transparent 62%),
+    radial-gradient(50vw 46vw at 102% -4%,rgba(255,178,36,.18),transparent 60%),
+    radial-gradient(52vw 48vw at -6% 106%,rgba(20,200,168,.13),transparent 62%),
+    radial-gradient(46vw 44vw at 104% 104%,rgba(255,111,145,.14),transparent 62%);
+  background-attachment:fixed;background-repeat:no-repeat;
+  touch-action:manipulation;
+}
+button{font-family:inherit;cursor:pointer}
+img{-webkit-user-drag:none;user-select:none}
+
+/* ── 共通レイアウト ── */
+.top{position:sticky;top:0;z-index:50;display:flex;align-items:center;gap:10px;
+  padding:calc(10px + env(safe-area-inset-top)) 14px 8px;
+  background:rgba(255,255,255,.9);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-bottom:1.5px solid var(--border)}
+.back-portal{border:1.5px solid var(--border);background:#fff;border-radius:99px;padding:7px 13px;font-size:12px;font-weight:700;color:var(--dim);text-decoration:none;white-space:nowrap}
+.top h1{font-size:17px;font-weight:900;letter-spacing:.03em;flex:1;
+  background:var(--grad-main);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.xeva-pill{display:flex;align-items:center;gap:6px;background:rgba(255,178,36,.14);border:1.5px solid rgba(232,147,12,.35);
+  border-radius:99px;padding:5px 12px;font-weight:800;font-size:13px;color:#c07a00}
+.xeva-pill img{width:18px;height:18px}
+
+/* ビュータブ（編成 / 図鑑）：タブが増えたので横スクロール可 */
+.vtabs{position:sticky;top:0;z-index:49;display:flex;gap:8px;max-width:860px;margin:0 auto;padding:10px 14px 2px;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.vtabs::-webkit-scrollbar{display:none}
+.vtabs button{flex:1 0 auto;min-width:64px;padding:7px 6px;border:2px solid rgba(56,140,220,.18);border-radius:14px;background:#fff;font-weight:800;font-size:11px;line-height:1.5;color:var(--dim);transition:all .15s;-webkit-tap-highlight-color:transparent}
+.vtabs button.on{background:linear-gradient(110deg,var(--sky),var(--grape));color:#fff;border-color:transparent;box-shadow:0 6px 16px rgba(56,166,255,.35)}
+
+.wrap{max-width:860px;margin:0 auto;padding:12px 14px calc(120px + env(safe-area-inset-bottom))}
+.card{background:var(--panel);border:1.5px solid rgba(255,255,255,.95);border-radius:22px;box-shadow:var(--shadow-sm);padding:16px;margin-bottom:14px}
+.card-title{display:flex;align-items:center;gap:8px;font-weight:900;font-size:14.5px;margin-bottom:10px}
+.card-title .hint{margin-left:auto;font-size:11px;font-weight:700;color:var(--faint)}
+.note{font-size:11.5px;color:var(--dim);margin-top:8px;line-height:1.7}
+
+/* ── パーティ編成グリッド ── */
+.pgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:10px}
+.pchar{position:relative;border:2.5px solid rgba(56,140,220,.14);border-radius:16px;overflow:hidden;background:#f6faff;cursor:pointer;transition:transform .15s,border-color .2s,box-shadow .2s;text-align:center}
+.pchar img{width:100%;aspect-ratio:1;object-fit:cover;display:block}
+.pchar .nm{font-size:11px;font-weight:800;padding:4px 2px 0;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pchar .pw{font-size:10px;font-weight:800;color:#1d78d8;padding-bottom:5px}
+.pchar .lvb{position:absolute;top:5px;left:5px;font-size:9px;font-weight:900;padding:2px 7px;border-radius:99px;color:#fff;background:rgba(20,30,50,.72)}
+.pchar .dupe{position:absolute;top:5px;right:5px;font-size:9px;font-weight:900;padding:2px 6px;border-radius:99px;color:#5b3900;background:#ffd257}
+.pchar .elem{position:absolute;bottom:52px;right:6px}
+/* 属性アイコン：白丸チップで大きく見やすく（カード共通） */
+.pchar .elem,.dchar .elem,.bc .elem{width:27px;height:27px;background:rgba(255,255,255,.95);border:1.5px solid rgba(56,140,220,.25);border-radius:50%;
+  display:grid;place-items:center;font-size:18px;box-shadow:0 2px 6px rgba(30,60,110,.28);z-index:2}
+.pchar .info{position:absolute;bottom:52px;left:6px;width:24px;height:24px;border-radius:50%;background:rgba(255,255,255,.92);border:1.5px solid rgba(56,140,220,.3);color:#1d78d8;font-size:12px;font-weight:900;display:grid;place-items:center;z-index:2}
+.pchar.sel{border-color:var(--sky);box-shadow:0 0 0 3px rgba(56,166,255,.22);transform:translateY(-2px)}
+.pchar .posb{position:absolute;top:30%;left:50%;transform:translate(-50%,-50%);min-width:36px;height:27px;padding:0 8px;border-radius:99px;
+  color:#fff;font-weight:900;font-size:12px;display:grid;place-items:center;border:2.5px solid #fff;z-index:2;box-shadow:0 3px 8px rgba(0,0,0,.28)}
+.pchar .posb.front{background:linear-gradient(135deg,#ff6f91,#e0157a)}
+.pchar .posb.back{background:linear-gradient(135deg,#38a6ff,#8e6bff)}
+
+/* 完凸（最大凸）キャラのアイコンエフェクト：金色オーラ＋シャイン */
+.mx{border-color:#f0c040!important;animation:mxGlow 2.2s ease-in-out infinite}
+@keyframes mxGlow{0%,100%{box-shadow:0 0 0 2px rgba(240,192,64,.5),0 0 12px rgba(240,192,64,.4)}50%{box-shadow:0 0 0 3px rgba(255,215,90,.85),0 0 24px rgba(255,200,60,.75)}}
+.mx::before{content:"";position:absolute;inset:0;pointer-events:none;z-index:3;border-radius:inherit;
+  background:linear-gradient(120deg,transparent 32%,rgba(255,240,180,.30) 47%,rgba(255,255,255,.55) 50%,rgba(255,240,180,.30) 53%,transparent 68%);
+  background-size:240% 240%;animation:mxShine 2.8s linear infinite}
+@keyframes mxShine{0%{background-position:130% 0}100%{background-position:-130% 0}}
+.mx .dupe,.pchar.mx .dupe{background:linear-gradient(135deg,#ffd257,#ff9d00);color:#5b2f00;box-shadow:0 0 8px rgba(255,180,40,.8)}
+/* 育成リストなど：アイコンだけを光らせる（行全体は光らせない） */
+img.mxi{border:2px solid #f0c040;animation:mxGlow 2.2s ease-in-out infinite}
+
+/* ── 図鑑 ── */
+.dexgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(100px,1fr));gap:10px}
+.dchar{position:relative;border:2.5px solid rgba(56,140,220,.14);border-radius:16px;overflow:hidden;background:#f6faff;cursor:pointer;text-align:center;transition:transform .15s}
+.dchar:active{transform:scale(.97)}
+.dchar img{width:100%;aspect-ratio:1;object-fit:cover;display:block}
+.dchar.no img{filter:grayscale(1);opacity:.5}
+.dchar .nm{font-size:11px;font-weight:800;padding:4px 2px 6px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dchar.no .nm{color:var(--faint)}
+.dchar .lvb{position:absolute;top:5px;left:5px;font-size:9px;font-weight:900;padding:2px 7px;border-radius:99px;color:#fff;background:rgba(20,30,50,.72)}
+.dchar .rar{position:absolute;top:5px;right:5px;font-size:9px;font-weight:900;padding:2px 7px;border-radius:99px;color:#fff;background:linear-gradient(135deg,#8e6bff,#ff6f91)}
+.dchar .rar.sr{background:linear-gradient(135deg,#38a6ff,#14c8a8)}
+.dchar .elem{position:absolute;bottom:30px;right:6px}
+
+/* ── 難易度・敵 ── */
+.seg{display:flex;gap:7px;flex-wrap:wrap}
+.seg button{flex:1;min-width:86px;min-height:52px;border:2px solid rgba(56,140,220,.18);border-radius:14px;background:#fff;
+  font-weight:800;font-size:13px;color:var(--dim);transition:all .15s}
+.seg button small{display:block;font-size:10px;font-weight:700;opacity:.6}
+.seg button.on{background:linear-gradient(110deg,var(--sky),var(--grape));color:#fff;border-color:transparent;box-shadow:0 6px 16px rgba(56,166,255,.35)}
+.seg button.on small{opacity:.9}
+.seg button.myth{border-color:rgba(224,21,122,.35);color:#c0157a}
+.seg button.myth.on{background:linear-gradient(110deg,#e0157a,#8e6bff);box-shadow:0 6px 16px rgba(224,21,122,.4);color:#fff}
+.seg button.trans{border-color:rgba(255,157,0,.45);color:#c07a00}
+.seg button.trans.on{background:linear-gradient(110deg,#ff9d00,#e0157a,#8e6bff);box-shadow:0 6px 18px rgba(255,157,0,.45);color:#fff}
+.erow{display:flex;gap:10px;margin-top:12px}
+.erow .ec{flex:1;position:relative;background:#f6faff;border:2px solid rgba(255,111,145,.25);border-radius:14px;overflow:hidden;text-align:center}
+.erow .ec img{width:100%;aspect-ratio:1;object-fit:cover;display:block}
+.erow .ec .nm{font-size:10.5px;font-weight:800;padding:3px 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.erow .ec .lvb{position:absolute;top:5px;left:5px;font-size:9px;font-weight:900;padding:2px 7px;border-radius:99px;color:#fff;background:rgba(180,40,70,.8)}
+
+/* ── デイリー報酬チップ ── */
+.dailies{display:flex;gap:7px;flex-wrap:wrap}
+.dchip{flex:1;min-width:96px;text-align:center;border:1.5px solid rgba(232,147,12,.3);background:rgba(255,178,36,.10);border-radius:12px;padding:8px 6px}
+.dchip b{display:block;font-size:13px;color:#c07a00}
+.dchip span{font-size:10px;font-weight:700;color:var(--dim)}
+.dchip.done{opacity:.55;border-color:rgba(23,166,115,.35);background:rgba(23,166,115,.08)}
+.dchip.done b{color:#17a673}
+
+/* ── 下部固定スタート ── */
+.sticky{position:fixed;left:0;right:0;bottom:0;z-index:40;display:flex;justify-content:center;
+  padding:14px 16px calc(14px + env(safe-area-inset-bottom));
+  background:linear-gradient(180deg,rgba(242,248,255,0),rgba(242,248,255,.92) 34%,rgba(242,248,255,.98));
+  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+.sticky button{width:100%;max-width:520px;padding:16px;border:none;border-radius:18px;color:#fff;font-size:16px;font-weight:900;letter-spacing:.04em;
+  background:var(--grad-main);background-size:160% auto;box-shadow:0 12px 30px rgba(56,166,255,.4)}
+.sticky button:disabled{opacity:.45;box-shadow:none}
+
+/* ── バトル画面 ── */
+#battle{display:none}
+#battle.on{display:block}
+/* タブ表示：.off が付いたビューは必ず隠す（全ビュー共通） */
+main.off,.vtabs.off,.sticky.off{display:none}
+main{display:block}
+.arena{max-width:860px;margin:0 auto;padding:14px 14px calc(96px + env(safe-area-inset-bottom))}
+.arena.shake{animation:shakeA .4s}
+.arena.paused{position:relative}
+.arena.paused::before{content:"⏸ 交代中（一時停止）";position:absolute;top:8px;left:50%;transform:translateX(-50%);z-index:20;
+  background:rgba(20,30,50,.82);color:#fff;font-weight:900;font-size:12px;letter-spacing:.06em;padding:6px 16px;border-radius:99px;box-shadow:0 6px 18px rgba(0,0,0,.3)}
+.arena.paused .brow-e-wrap,.arena.paused #brow-e{filter:saturate(.7) brightness(.94)}
+@keyframes shakeA{0%,100%{transform:translate(0,0)}20%{transform:translate(-7px,3px)}40%{transform:translate(6px,-3px)}60%{transform:translate(-4px,2px)}80%{transform:translate(3px,-1px)}}
+.side-label{font-size:11px;font-weight:900;letter-spacing:.14em;color:var(--faint);margin:6px 2px}
+.brow{display:flex;gap:10px}
+.bc{flex:1;position:relative;background:#fff;border:2px solid rgba(56,140,220,.16);border-radius:16px;overflow:hidden;box-shadow:var(--shadow-sm);transition:transform .15s,opacity .3s,filter .3s}
+.bc img{width:100%;aspect-ratio:1;object-fit:cover;display:block}
+.bc .nm{font-size:10.5px;font-weight:800;text-align:center;padding:3px 2px 0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bc .hpbar{height:8px;margin:3px 6px 2px;border-radius:99px;background:rgba(34,52,77,.12);overflow:hidden}
+.bc .hpfill{height:100%;border-radius:99px;background:linear-gradient(90deg,#14c8a8,#38a6ff);transition:width .35s}
+.bc .hpfill.low{background:linear-gradient(90deg,#ffb020,#ff6f91)}
+/* バリア（シールド）：HPとは別の水色バーで残量を表示 */
+.bc .sbar{height:4px;margin:0 6px 2px;border-radius:99px;background:rgba(34,52,77,.08);overflow:hidden}
+.bc .sbar i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,#59d7ff,#2e8bff);transition:width .3s;box-shadow:0 0 6px rgba(56,166,255,.6)}
+.bc .bbar{height:4px;margin:0 6px 7px;border-radius:99px;background:rgba(34,52,77,.10);overflow:hidden}
+.bc .bfill{height:100%;border-radius:99px;background:linear-gradient(90deg,#8e6bff,#ff6f91);transition:width .3s}
+.bc .bfill.full{animation:bPulse 1s ease-in-out infinite}
+@keyframes bPulse{0%,100%{opacity:1}50%{opacity:.55}}
+.bc .elem{position:absolute;top:5px;right:6px}
+.bc .lvb{position:absolute;top:5px;left:6px;font-size:9px;font-weight:900;padding:2px 7px;border-radius:99px;color:#fff;background:rgba(20,30,50,.72)}
+/* 状態異常・バフ・バリアのバッジ（自作SVGアイコン＋残りターン/量を常時表示。絵文字不使用＝端末差なし） */
+.bc .stfx{position:absolute;top:26px;left:4px;right:4px;display:flex;flex-wrap:wrap;gap:2px;pointer-events:none;z-index:2}
+.bc .stfx .fxb{display:inline-flex;align-items:center;gap:1.5px;font-size:8.5px;font-weight:900;color:#fff;background:var(--fc,#888);border-radius:99px;padding:1.5px 5px;
+  box-shadow:0 1px 4px rgba(0,0,0,.35);text-shadow:0 1px 1px rgba(0,0,0,.3);white-space:nowrap;border:1px solid rgba(255,255,255,.55)}
+.bc .stfx .fxb svg{flex:none}
+/* HP数値（残りHP／最大HP＋バリア量） */
+.bc .hpnum{font-size:8.5px;font-weight:800;color:var(--dim);text-align:center;line-height:1.25;margin:0 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bc .hpnum b{color:#2e8bff}
+.bc.enemy{border-color:rgba(255,111,145,.3)}
+.bc.dead{opacity:.4;filter:grayscale(1)}
+.bc.hit{animation:bcHit .3s}
+.bc.act{transform:translateY(-6px) scale(1.03);box-shadow:0 12px 26px rgba(56,166,255,.4);border-color:var(--sky)}
+@keyframes bcHit{0%,100%{transform:translateX(0)}25%{transform:translateX(-6px)}60%{transform:translateX(5px)}}
+.dmg{position:absolute;left:50%;top:32%;transform:translate(-50%,0);font-weight:900;font-size:20px;color:#ff5470;
+  text-shadow:0 2px 0 #fff,0 0 8px rgba(255,255,255,.85);pointer-events:none;animation:dmgUp .85s forwards;z-index:3}
+.dmg.crit{color:#ff9d00;font-size:25px}
+.dmg.skill{color:#8e6bff}
+.dmg.burst{color:#e0157a;font-size:27px}
+.dmg.heal{color:#17a673}
+.dmg.shield{color:#38a6ff;font-size:16px}
+.dmg.burn{color:#ff7a1a;font-size:17px}
+.dmg.poison{color:#a06bff;font-size:17px}
+@keyframes dmgUp{to{transform:translate(-50%,-30px);opacity:0}}
+.eburst{position:absolute;left:50%;top:42%;width:70px;height:70px;border-radius:50%;transform:translate(-50%,-50%) scale(.3);pointer-events:none;z-index:2;opacity:.85;animation:ebPop .5s ease-out forwards}
+@keyframes ebPop{to{transform:translate(-50%,-50%) scale(1.5);opacity:0}}
+.vs{display:flex;align-items:center;justify-content:center;margin:10px 0;gap:10px}
+.vs .vstxt{font-weight:900;font-size:15px;letter-spacing:.2em;color:#fff;background:var(--grad-main);border-radius:99px;padding:4px 18px;box-shadow:0 6px 16px rgba(56,166,255,.3)}
+#blog{max-width:860px;margin:8px auto 0;background:rgba(255,255,255,.85);border:1.5px solid var(--border);border-radius:16px;
+  padding:10px 14px;font-size:12px;line-height:1.9;height:126px;overflow-y:auto}
+#blog .sk{color:#7a4fe0;font-weight:800}
+#blog .bs{color:#e0157a;font-weight:900}
+#blog .cr{color:#e08600;font-weight:800}
+#blog .ko{color:#e0435a;font-weight:800}
+#blog .hl{color:#17a673;font-weight:800}
+/* 背の低い端末ではログを縮めてキャラカードを画面内に収める */
+@media(max-height:760px){#blog{height:96px}}
+/* 統一デザインのバトル操作ボタン（絵文字を使わず全端末で同一表示のSVGアイコン）
+   画面下部に固定表示：iPhoneでもスクロールせずに常に押せる。キャラ表示は押し出さない */
+.bctrl{position:fixed;left:0;right:0;bottom:0;z-index:45;display:flex;gap:8px;max-width:860px;margin:0 auto;
+  padding:10px 14px calc(10px + env(safe-area-inset-bottom));
+  background:linear-gradient(180deg,rgba(242,248,255,0),rgba(242,248,255,.93) 26%,rgba(242,248,255,.98));
+  backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px)}
+.bctrl button{flex:1;min-height:58px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
+  padding:8px 4px;border:2px solid rgba(56,140,220,.22);border-radius:14px;background:#fff;cursor:pointer;
+  font-family:inherit;font-weight:900;font-size:10.5px;letter-spacing:.04em;color:#1d78d8;transition:all .15s;
+  -webkit-tap-highlight-color:transparent;user-select:none}
+.bctrl button svg{width:21px;height:21px;display:block}
+.bctrl button:active{transform:scale(.94)}
+.bctrl button.on{background:linear-gradient(135deg,var(--sky),var(--grape));border-color:transparent;color:#fff;box-shadow:0 5px 14px rgba(56,166,255,.35)}
+#autob.on{background:linear-gradient(135deg,#14c8a8,#38a6ff);box-shadow:0 5px 14px rgba(20,200,168,.4)}
+#sndb.on{background:linear-gradient(135deg,#ffb020,#ff6f91);border-color:transparent;color:#fff;box-shadow:0 5px 14px rgba(255,176,32,.4)}
+#swapb.armed{background:linear-gradient(135deg,#ff9d00,#e0157a);border-color:transparent;color:#fff;box-shadow:0 5px 14px rgba(255,157,0,.4)}
+
+/* 必殺技（手動発動）ボタン：ゲージ満タンのアクティブ味方カードに表示 */
+.bc .burstbtn{position:absolute;left:50%;bottom:34px;transform:translateX(-50%);z-index:5;display:none;
+  padding:5px 12px;border:none;border-radius:99px;font-weight:900;font-size:11px;letter-spacing:.03em;color:#fff;cursor:pointer;
+  background:linear-gradient(135deg,#e0157a,#ff9d00);box-shadow:0 4px 14px rgba(224,21,122,.55);white-space:nowrap;
+  animation:burstReady 1s ease-in-out infinite}
+.bc.canburst .burstbtn{display:block}
+@keyframes burstReady{0%,100%{transform:translateX(-50%) scale(1)}50%{transform:translateX(-50%) scale(1.09)}}
+.bc.canburst{border-color:#e0157a;box-shadow:0 0 0 3px rgba(224,21,122,.28)}
+.bc.ally{cursor:default}
+
+/* ── 回転ホイール（ダイアル回転式）。中央固定・必ず画面内に収まる ── */
+#wheelov{position:fixed;inset:0;z-index:860;display:none;align-items:center;justify-content:center;
+  background:rgba(10,16,32,.55);backdrop-filter:blur(3px);-webkit-backdrop-filter:blur(3px);padding:14px}
+#wheelov.open{display:flex}
+.wheelbox{width:min(400px,94vw);max-height:92vh;overflow:auto;background:#fff;border-radius:22px;padding:16px 14px calc(14px + env(safe-area-inset-bottom));
+  box-shadow:0 24px 70px rgba(20,40,80,.45);text-align:center}
+.wheeltitle{font-size:14px;font-weight:900;color:var(--txt);display:flex;justify-content:space-between;align-items:center;gap:8px;padding:0 4px}
+.wheeltitle span{font-size:10.5px;font-weight:800;color:#1d78d8;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wheelhint{font-size:11px;color:var(--dim);line-height:1.7;margin:6px 4px 8px}
+.wsec-lbl{font-size:10.5px;font-weight:900;letter-spacing:.06em;color:var(--faint);margin:8px 2px 5px}
+.wsec-lbl.front{color:#e0157a}
+.wrow{display:flex;justify-content:center;gap:8px;flex-wrap:wrap}
+.wmedal{position:relative;width:76px;text-align:center;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.wmedal img{width:58px;height:58px;border-radius:50%;object-fit:cover;border:3px solid #9fb4cc;box-shadow:0 4px 12px rgba(30,60,110,.28);background:#f6faff}
+.wmedal.front img{border-color:#e0157a;box-shadow:0 0 0 3px rgba(224,21,122,.25),0 5px 14px rgba(224,21,122,.32)}
+.wmedal.dead img{filter:grayscale(1);opacity:.45}
+.wmedal.picked img{border-color:#ff9d00;box-shadow:0 0 0 3px rgba(255,157,0,.55);animation:burstReady 1s ease-in-out infinite}
+.wmedal .wnm{font-size:9px;font-weight:800;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--txt)}
+.wmedal .wgauge{display:flex;align-items:center;gap:3px;margin:1px 2px 0}
+.wmedal .wglbl{font-size:6.5px;font-weight:900;color:var(--faint);width:9px;flex-shrink:0}
+.wmedal .whp,.wmedal .wbst{flex:1;height:4px;border-radius:99px;background:rgba(34,52,77,.16);overflow:hidden}
+.wmedal .whp i{display:block;height:100%;width:100%;background:linear-gradient(90deg,#14c8a8,#38a6ff)}
+.wmedal .wbst i{display:block;height:100%;width:0;background:linear-gradient(90deg,#8e6bff,#ff6f91)}
+.wmedal .wbst.full i{background:linear-gradient(90deg,#ff9d00,#e0157a);animation:bPulse .8s ease-in-out infinite}
+.wmedal .winfo{position:absolute;top:-4px;left:-2px;z-index:3;width:19px;height:19px;border-radius:50%;background:#fff;border:1.5px solid var(--sky);color:#1d78d8;font-size:11px;font-weight:900;display:grid;place-items:center;box-shadow:0 2px 6px rgba(30,60,110,.3);cursor:pointer}
+.wmedal .wdmg{font-size:8px;font-weight:800;color:#7a4fe0;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wmedal .wready{position:absolute;top:-4px;right:-2px;font-size:13px;color:#ff9d00;text-shadow:0 0 6px rgba(255,157,0,.8);display:none}
+.wmedal.ready .wready{display:block;animation:burstReady 1s ease-in-out infinite}
+.wheelbtns{display:flex;gap:8px;margin-top:12px}
+.wheelbtns button{flex:1;min-height:52px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  border:2px solid rgba(56,140,220,.22);border-radius:14px;background:#fff;font-family:inherit;font-weight:900;font-size:10.5px;color:#1d78d8;cursor:pointer;
+  -webkit-tap-highlight-color:transparent}
+.wheelbtns button svg{width:20px;height:20px}
+.wheelbtns button:active{transform:scale(.94)}
+.wheelbtns button.go{background:linear-gradient(135deg,var(--sky),var(--grape));border-color:transparent;color:#fff;font-size:12.5px;box-shadow:0 6px 16px rgba(56,166,255,.35)}
+
+/* ── 素材クエスト・育成 ── */
+.qrow{display:flex;gap:8px;flex-wrap:wrap}
+.qbtn{flex:1;min-width:104px;border:2px solid var(--qc,#38a6ff);border-radius:14px;background:#fff;padding:10px 8px;text-align:center;cursor:pointer;
+  font-family:inherit;transition:transform .15s;-webkit-tap-highlight-color:transparent}
+.qbtn:active{transform:scale(.96)}
+.qbtn:disabled{opacity:.45;cursor:not-allowed}
+.qbtn .qn{font-weight:900;font-size:12.5px;color:var(--qc,#38a6ff)}
+.qbtn .ql{font-size:10px;font-weight:700;color:var(--dim);margin-top:2px}
+.qbtn .qd{font-size:10px;font-weight:800;color:var(--txt);margin-top:4px}
+.matbar{display:flex;align-items:center;gap:12px;margin-top:10px;padding:9px 12px;border-radius:12px;background:rgba(56,166,255,.08);font-size:12.5px}
+.matbar b{font-weight:900}
+.grow-list{display:flex;flex-direction:column;gap:8px}
+.grow-row{display:flex;align-items:center;gap:10px;border:1.5px solid var(--border);border-radius:14px;padding:8px 10px;background:#f9fcff}
+.grow-row img{width:46px;height:46px;border-radius:12px;object-fit:cover;flex-shrink:0}
+.grow-row .gi{flex:1;min-width:0}
+.grow-row .gn{font-weight:900;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.grow-row .glv{font-size:10.5px;font-weight:800;color:#1d78d8}
+.grow-row .gxp{height:5px;border-radius:99px;background:rgba(34,52,77,.12);overflow:hidden;margin-top:3px}
+.grow-row .gxp i{display:block;height:100%;background:linear-gradient(90deg,#8e6bff,#ff6f91)}
+.grow-row .gbtns{display:flex;gap:5px;flex-shrink:0}
+.grow-row .gbtns button{border:none;border-radius:10px;padding:9px 10px;font-family:inherit;font-weight:900;font-size:11px;color:#fff;cursor:pointer;
+  background:linear-gradient(135deg,#8e6bff,#ff6f91);-webkit-tap-highlight-color:transparent}
+.grow-row .gbtns button:disabled{opacity:.4}
+.grow-row .gbtns button:active{transform:scale(.94)}
+.gear-ex{display:flex;gap:8px}
+.gear-ex button{flex:1;border:2px solid rgba(56,140,220,.2);border-radius:14px;background:#fff;padding:12px 6px;font-family:inherit;font-weight:900;font-size:12px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.gear-ex button small{display:block;font-size:10px;font-weight:800;color:var(--dim);margin-top:2px}
+.gear-ex button:disabled{opacity:.45}
+.gear-ex button.r{color:#3f9bff}.gear-ex button.sr{color:#9a6bff}.gear-ex button.ssr{color:#e08600}
+.gearex-got{display:flex;align-items:center;gap:10px;margin-top:10px;border:2px solid var(--gold,#ffb020);border-radius:14px;padding:10px 12px;background:rgba(255,178,36,.10);animation:popIn .3s}
+@keyframes popIn{from{transform:scale(.9);opacity:0}to{transform:scale(1);opacity:1}}
+
+/* ── 編成ダイアル（正五角形配置。ホーム／バトル共通） ── */
+.fwheel-box{margin:4px 0 12px;padding:10px 12px;border:1.5px dashed rgba(56,140,220,.3);border-radius:16px;background:rgba(56,166,255,.05)}
+.dial{position:relative;width:min(272px,76vw);height:min(300px,84vw);margin:0 auto}
+.dial::before{content:"";position:absolute;left:50%;top:50%;width:66%;height:66%;transform:translate(-50%,-50%);border-radius:50%;border:2.5px dashed rgba(56,140,220,.28)}
+.dial .fwm,.dial .wmedal{position:absolute;transform:translate(-50%,-50%);margin:0;transition:left .35s ease,top .35s ease}
+.dial.dial-b{width:min(320px,84vw);height:min(400px,110vw)}
+/* SSR完凸の金フレームは編成・バトルのダイアルにも反映 */
+.fwm.mx img,.wmedal.mx img{border-color:#f0c040!important;animation:mxGlow 2.2s ease-in-out infinite}
+.dial .dial-c{position:absolute;left:50%;top:53%;transform:translate(-50%,-50%);text-align:center;font-size:10px;font-weight:900;color:var(--faint);line-height:1.5;pointer-events:none;width:84px}
+.dial .dial-c svg{width:26px;height:26px;display:block;margin:0 auto 2px;opacity:.5}
+.fwm{position:absolute;width:64px;transform:translate(-50%,-50%);text-align:center;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.fwm img{width:52px;height:52px;border-radius:50%;object-fit:cover;border:2.5px solid #9fb4cc;background:#f6faff;box-shadow:0 3px 8px rgba(30,60,110,.22)}
+.fwm .fwn{display:block;font-size:9px;font-weight:800;margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--txt)}
+.fwm.front img{border-color:#e0157a;box-shadow:0 0 0 2px rgba(224,21,122,.22),0 4px 10px rgba(224,21,122,.3)}
+.fwm.empty .fwslot{width:52px;height:52px;margin:0 auto;display:grid;place-items:center;border:2.5px dashed rgba(56,140,220,.35);border-radius:50%;color:#9fb4cc;font-weight:900;font-size:20px;background:#fff}
+.fwm.picked img{border-color:#ff9d00;box-shadow:0 0 0 3px rgba(255,157,0,.5);animation:burstReady 1s ease-in-out infinite}
+.dpos{position:absolute;top:-9px;left:50%;transform:translateX(-50%);z-index:2;font-size:8px;font-weight:900;border-radius:99px;padding:1px 7px;color:#fff;background:#9fb4cc;white-space:nowrap;box-shadow:0 2px 5px rgba(30,60,110,.25)}
+.dpos.front{background:linear-gradient(135deg,#ff6f91,#e0157a)}
+.fw-hint{font-size:11px;color:var(--dim);line-height:1.7;margin-top:6px}
+.autoparty{display:block;margin:0 auto 8px;padding:9px 18px;border:none;border-radius:99px;font-family:inherit;cursor:pointer;
+  background:linear-gradient(135deg,#14c8a8,#38a6ff);color:#fff;font-weight:900;font-size:12px;box-shadow:0 6px 14px rgba(20,200,168,.35);-webkit-tap-highlight-color:transparent}
+.autoparty:active{transform:scale(.96)}
+/* バトルメニュー（中断/やり直し） */
+.qmenu{display:flex;flex-direction:column;gap:9px}
+.qmenu button{border:2px solid rgba(56,140,220,.22);border-radius:14px;background:#fff;padding:13px 10px;font-family:inherit;font-weight:900;font-size:13.5px;color:var(--txt);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.qmenu button small{display:block;font-size:10px;font-weight:700;color:var(--faint);margin-top:2px}
+.qmenu button:active{transform:scale(.97)}
+.qmenu button.go{background:linear-gradient(135deg,var(--sky),var(--grape));border-color:transparent;color:#fff;box-shadow:0 6px 16px rgba(56,166,255,.35)}
+
+/* ── あそびかた（動きのある説明モーダル） ── */
+.helpb{width:30px;height:30px;border-radius:50%;border:1.5px solid var(--border);background:#fff;color:#1d78d8;font-weight:900;font-size:14px;cursor:pointer;flex-shrink:0;-webkit-tap-highlight-color:transparent}
+.hlp-title{font-size:17px;font-weight:900;text-align:center;background:var(--grad-main);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin-bottom:4px}
+.hlp-sec{margin:16px 0 0;text-align:left}
+.hlp-t{font-size:13px;font-weight:900;color:#1d78d8;margin-bottom:5px}
+.hlp-p{font-size:11.5px;color:var(--dim);line-height:1.85}
+.hlp-cycle{display:flex;align-items:center;justify-content:center;gap:7px;margin:10px 0 4px}
+.hlp-cycle .hel{width:42px;height:42px;border-radius:50%;background:#f6faff;border:2px solid var(--border);display:grid;place-items:center;font-size:24px;flex:none}
+.hlp-arw{font-weight:900;font-size:16px;color:#e08600;animation:hlpArw 1s ease-in-out infinite}
+@keyframes hlpArw{0%,100%{transform:translateX(0);opacity:.5}50%{transform:translateX(5px);opacity:1}}
+.hlp-arw.two{color:#8e6bff;animation-name:hlpArw2}
+@keyframes hlpArw2{0%,100%{transform:scaleX(1);opacity:.6}50%{transform:scaleX(1.3);opacity:1}}
+.hlp-dial{position:relative;width:130px;height:130px;margin:10px auto 4px}
+.hlp-dial .ring{position:absolute;inset:12px;border:2.5px dashed rgba(56,140,220,.45);border-radius:50%;animation:hlpSpin 8s linear infinite}
+@keyframes hlpSpin{to{transform:rotate(360deg)}}
+.hlp-dial .dot{position:absolute;width:22px;height:22px;border-radius:50%;background:#9fb4cc;transform:translate(-50%,-50%);box-shadow:0 2px 5px rgba(30,60,110,.3)}
+.hlp-dial .dot.f{background:linear-gradient(135deg,#ff6f91,#e0157a)}
+.hlp-gbar{height:10px;border-radius:99px;background:rgba(34,52,77,.12);overflow:hidden;margin:7px 0 3px}
+.hlp-gbar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#8e6bff,#ff6f91);animation:hlpFill 2.4s ease-in-out infinite}
+@keyframes hlpFill{0%{width:0}75%{width:100%}100%{width:100%}}
+.hlp-sbar{height:6px;border-radius:99px;background:rgba(34,52,77,.08);overflow:hidden;margin:3px 0}
+.hlp-sbar i{display:block;height:100%;width:45%;border-radius:99px;background:linear-gradient(90deg,#59d7ff,#2e8bff);animation:bPulse 1.6s ease-in-out infinite}
+.hlp-role{display:flex;gap:9px;align-items:center;background:#f6faff;border:1.5px solid var(--border);border-radius:12px;padding:7px 10px;margin-bottom:6px;animation:hlpIn .5s both}
+.hlp-role .rc{width:10px;height:28px;border-radius:6px;flex:none}
+@keyframes hlpIn{from{opacity:0;transform:translateX(-14px)}to{opacity:1;transform:none}}
+.hlp-band{display:flex;gap:8px;margin:8px 0 2px}
+.hlp-band .bnd{flex:1;border-radius:10px;color:#fff;font-weight:900;font-size:10.5px;text-align:center;padding:10px 4px;line-height:1.5}
+.hlp-band .bnd.al{background:linear-gradient(135deg,#38a6ff,#8e6bff);animation:hlpL 2.4s ease-in-out infinite}
+.hlp-band .bnd.en{background:linear-gradient(135deg,#e0435a,#7c1830);animation:hlpR 2.4s ease-in-out infinite}
+@keyframes hlpL{0%{transform:translateX(-14px);opacity:.35}28%,80%{transform:none;opacity:1}100%{transform:translateX(-14px);opacity:.35}}
+@keyframes hlpR{0%{transform:translateX(14px);opacity:.35}28%,80%{transform:none;opacity:1}100%{transform:translateX(14px);opacity:.35}}
+.hlp-badges{display:flex;flex-wrap:wrap;gap:5px;margin:7px 0}
+.hlp-badges .fxb{display:inline-flex;align-items:center;gap:3px;font-size:10px;font-weight:900;color:#fff;background:var(--fc,#888);border-radius:99px;padding:3px 9px;border:1px solid rgba(255,255,255,.55)}
+.hlp-close{width:100%;margin-top:16px;padding:13px;border:none;border-radius:14px;font-family:inherit;font-weight:900;font-size:13.5px;color:#fff;cursor:pointer;background:var(--grad-main);box-shadow:0 8px 20px rgba(56,166,255,.35)}
+
+/* ── 無限の塔 ── */
+.tower-card{border:2px solid rgba(142,107,255,.35);background:linear-gradient(160deg,#fff 55%,rgba(142,107,255,.07))}
+.tw-btn{background:linear-gradient(135deg,#8e6bff,#38a6ff)!important;box-shadow:0 10px 24px rgba(142,107,255,.35)!important}
+
+/* ── スコアアタック（200秒） ── */
+.sa-card{border:2px solid rgba(224,21,122,.28);background:linear-gradient(160deg,#fff 55%,rgba(224,21,122,.05))}
+.sa-enemies{display:flex;gap:10px;margin:6px 0 8px}
+.sa-enemies img{flex:1;min-width:0;aspect-ratio:1;object-fit:contain;background:#1a1030;border-radius:14px;border:2px solid rgba(224,21,122,.3);box-shadow:0 6px 16px rgba(224,21,122,.18)}
+.sa-desc{font-size:11.5px;color:var(--dim);line-height:1.85;margin:0 0 4px}
+.sa-best{font-size:12px;font-weight:800;color:#c0157a;min-height:16px;margin:4px 0}
+.sa-btn{width:100%;margin-top:6px;padding:15px;border:none;border-radius:15px;color:#fff;font-weight:900;font-size:14.5px;letter-spacing:.04em;font-family:inherit;cursor:pointer;
+  background:linear-gradient(135deg,#e0157a,#8e6bff);box-shadow:0 10px 24px rgba(224,21,122,.35);transition:transform .15s}
+.sa-btn:active{transform:scale(.97)}
+.sa-btn:disabled{opacity:.5;box-shadow:none}
+.sa-rank{margin-top:12px;border-top:1.5px dashed var(--border);padding-top:10px;font-size:12px}
+.sa-row{display:flex;align-items:center;gap:8px;padding:4px 2px}
+.sa-row .rk{font-family:'Orbitron',sans-serif;font-weight:700;min-width:26px;text-align:center;color:var(--dim)}
+.sa-row.top .rk{color:#e08600;font-size:14px}
+.sa-row img{width:26px;height:26px;border-radius:8px;object-fit:cover;flex-shrink:0}
+.sa-row .sanm{flex:1;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sa-row .sasc{font-family:'Orbitron',sans-serif;font-weight:700;color:#7a4fe0}
+.sa-row.me{background:rgba(255,210,87,.22);border-radius:9px;padding:4px 8px}
+.sahud{max-width:860px;margin:0 auto 8px;display:flex;align-items:center;justify-content:center;gap:9px;
+  background:linear-gradient(135deg,#171a33,#2a1540);border:2px solid #e0157a;border-radius:14px;padding:9px 14px;
+  color:#fff;font-weight:900;font-size:12.5px;letter-spacing:.05em;box-shadow:0 8px 20px rgba(224,21,122,.3)}
+.sahud b{font-family:'Orbitron',sans-serif;font-size:19px;color:#ffd257;min-width:1.4em;text-align:center}
+.sahud .sep{opacity:.4}
+.sahud b.low{color:#ff5470;animation:bPulse .6s ease-in-out infinite}
+
+/* ── 必殺技カットイン（シネマティック：斜めストライプ＋スピードライン＋大タイポ） ── */
+#cutin{position:fixed;inset:0;z-index:850;display:none;pointer-events:none;align-items:center;overflow:hidden}
+#cutin.on{display:flex;background:rgba(8,10,22,.42);animation:ciDim 1.3s ease both}
+@keyframes ciDim{0%{background:rgba(8,10,22,0)}18%{background:rgba(8,10,22,.42)}82%{background:rgba(8,10,22,.42)}100%{background:rgba(8,10,22,0)}}
+#cutin .band{position:absolute;left:-8%;right:-8%;height:148px;transform:skewY(-6deg);
+  background:
+    repeating-linear-gradient(115deg,transparent 0 26px,rgba(255,255,255,.06) 26px 30px),
+    linear-gradient(100deg,#0c0e1f 0%,#171a33 38%,var(--cc,#8e6bff) 165%);
+  border-top:3px solid var(--cc,#8e6bff);border-bottom:3px solid var(--cc,#8e6bff);
+  box-shadow:0 0 70px rgba(0,0,0,.5),inset 0 0 60px rgba(0,0,0,.35);
+  display:flex;align-items:center;gap:18px;padding:0 calc(8% + 6vw);animation:ciBand 1.3s cubic-bezier(.16,.9,.28,1) both}
+/* 敵の必殺技：赤基調・逆スキュー・右からスライドイン（味方と一目で区別できる） */
+#cutin .band.foe{transform:skewY(6deg);animation-name:ciBandFoe;border-color:#ff4d5e;
+  background:
+    repeating-linear-gradient(115deg,transparent 0 26px,rgba(255,80,100,.08) 26px 30px),
+    linear-gradient(100deg,#210710 0%,#3a0f1d 38%,var(--cc,#e0435a) 165%)}
+#cutin .band.foe img{transform:skewY(-6deg) rotate(2deg);border-color:#ff4d5e;box-shadow:0 0 24px rgba(255,77,94,.7),0 10px 28px rgba(0,0,0,.5)}
+#cutin .band.foe .ct{transform:skewY(-6deg)}
+#cutin .band.foe .ct .l1{color:#ff5c6e;text-shadow:0 0 14px rgba(255,80,100,.85)}
+@keyframes ciBandFoe{0%{transform:translateX(108%) skewY(6deg)}20%{transform:translateX(0) skewY(6deg)}80%{transform:translateX(0) skewY(6deg)}100%{transform:translateX(-108%) skewY(6deg)}}
+#flash.foe{background:#ff2b45}
+#cutin .band::before{content:"";position:absolute;inset:0;
+  background:repeating-linear-gradient(90deg,transparent 0 60px,color-mix(in srgb,var(--cc,#8e6bff) 55%,transparent) 60px 62px,transparent 62px 130px);
+  opacity:.35;animation:ciLines .9s linear infinite}
+@keyframes ciLines{from{background-position:0 0}to{background-position:130px 0}}
+#cutin .band img{width:108px;height:108px;object-fit:cover;transform:skewY(6deg) rotate(-2deg);flex-shrink:0;
+  border:3px solid var(--cc,#8e6bff);border-radius:14px;box-shadow:0 0 24px color-mix(in srgb,var(--cc,#8e6bff) 70%,transparent),0 10px 28px rgba(0,0,0,.5)}
+#cutin .band .ct{transform:skewY(6deg);min-width:0}
+#cutin .band .ct .l1{font-family:'Orbitron',sans-serif;font-size:13px;font-weight:900;font-style:italic;letter-spacing:.42em;
+  color:var(--cc,#8e6bff);text-shadow:0 0 14px color-mix(in srgb,var(--cc,#8e6bff) 80%,transparent);animation:ciTx1 1.3s cubic-bezier(.2,.9,.3,1) both}
+#cutin .band .ct .l2{font-size:29px;font-weight:900;font-style:italic;color:#fff;line-height:1.15;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  text-shadow:0 0 18px color-mix(in srgb,var(--cc,#8e6bff) 85%,transparent),0 3px 0 rgba(0,0,0,.45);animation:ciTx2 1.3s cubic-bezier(.2,.9,.3,1) both}
+@keyframes ciTx1{0%,14%{opacity:0;transform:skewY(0) translateX(60px)}30%{opacity:1;transform:translateX(0)}80%{opacity:1}100%{opacity:0}}
+@keyframes ciTx2{0%,18%{opacity:0;transform:translateX(90px)}34%{opacity:1;transform:translateX(0)}80%{opacity:1}100%{opacity:0}}
+@keyframes ciBand{0%{transform:translateX(-108%) skewY(-6deg)}20%{transform:translateX(0) skewY(-6deg)}80%{transform:translateX(0) skewY(-6deg)}100%{transform:translateX(108%) skewY(-6deg)}}
+#flash{position:fixed;inset:0;z-index:840;pointer-events:none;opacity:0;background:#fff}
+#flash.on{animation:flashA .45s ease-out}
+@keyframes flashA{0%{opacity:.55}100%{opacity:0}}
+
+/* ── スキル発動ポップ（画面左にスライドイン） ── */
+#skpops{position:fixed;left:0;top:22%;z-index:830;display:flex;flex-direction:column;gap:8px;pointer-events:none}
+.skpop{display:flex;align-items:center;gap:9px;max-width:80vw;background:rgba(255,255,255,.97);border-left:5px solid var(--sc,#8e6bff);
+  border-radius:0 16px 16px 0;box-shadow:0 8px 24px rgba(30,50,90,.28);padding:7px 16px 7px 10px;animation:skpIn .28s cubic-bezier(.2,.8,.3,1) both}
+.skpop.out{animation:skpOut .3s ease both}
+@keyframes skpIn{from{transform:translateX(-105%);opacity:0}to{transform:translateX(0);opacity:1}}
+@keyframes skpOut{to{transform:translateX(-105%);opacity:0}}
+.skpop img{width:40px;height:40px;border-radius:12px;object-fit:cover;border:2px solid #fff;box-shadow:0 3px 8px rgba(0,0,0,.2)}
+.skpop .k{font-size:9px;font-weight:900;letter-spacing:.12em;color:#fff;background:var(--sc,#8e6bff);border-radius:99px;padding:1.5px 8px;display:inline-block}
+.skpop .k.burst{background:linear-gradient(135deg,#e0157a,#ff6f91)}
+.skpop .n{font-size:13.5px;font-weight:900;color:#22344d;line-height:1.25}
+
+/* ── キャラ詳細モーダル ── */
+.ov{position:fixed;inset:0;z-index:900;background:rgba(30,60,110,.34);backdrop-filter:blur(8px);
+  display:none;align-items:flex-start;justify-content:center;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding:calc(env(safe-area-inset-top) + 16px) 16px calc(env(safe-area-inset-bottom) + 20px)}
+.ov.open{display:flex}
+.ovcard{background:#fff;border:1.5px solid rgba(255,255,255,.95);border-radius:26px;max-width:420px;width:100%;margin:auto;
+  padding:0 0 18px;box-shadow:0 30px 80px rgba(56,120,200,.3);animation:rIn .35s cubic-bezier(.2,.8,.3,1) both;overflow:hidden}
+@keyframes rIn{from{opacity:0;transform:scale(.9) translateY(20px)}to{opacity:1;transform:none}}
+.dt-hero{position:relative}
+.dt-hero img{width:100%;aspect-ratio:1.15;object-fit:cover;display:block}
+.dt-hero.no img{filter:grayscale(1);opacity:.55}
+.dt-hero .grad{position:absolute;inset:0;background:linear-gradient(180deg,transparent 55%,rgba(255,255,255,.96) 96%)}
+.dt-hero .x{position:absolute;top:12px;right:12px;width:34px;height:34px;border-radius:12px;background:rgba(255,255,255,.9);border:1.5px solid rgba(56,140,220,.25);color:rgba(34,52,77,.7);font-size:15px;font-weight:900;display:grid;place-items:center;cursor:pointer}
+.dt-hero .chips{position:absolute;left:12px;top:12px;display:flex;gap:6px}
+.chip{font-size:10px;font-weight:900;padding:3px 10px;border-radius:99px;color:#fff}
+.chip.ssr{background:linear-gradient(135deg,#8e6bff,#ff6f91)}
+.chip.sr{background:linear-gradient(135deg,#38a6ff,#14c8a8)}
+.dt-body{padding:0 18px}
+.dt-nm{font-size:21px;font-weight:900;margin-top:-34px;position:relative;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.dt-nm .el{font-size:12px;font-weight:900;padding:3px 11px;border-radius:99px;color:#fff}
+.dt-lv{display:flex;align-items:center;gap:10px;margin:8px 0 4px;font-weight:900;font-size:14px}
+.dt-lv .xpbar{flex:1;height:9px;border-radius:99px;background:rgba(34,52,77,.10);overflow:hidden}
+.dt-lv .xpfill{height:100%;border-radius:99px;background:linear-gradient(90deg,#38a6ff,#8e6bff)}
+.dt-lv .xtx{font-size:10px;color:var(--faint);font-weight:700}
+.dt-pips{display:flex;gap:5px;margin:6px 0 10px;align-items:center}
+.dt-pips .pip{width:22px;height:22px;border-radius:7px;background:rgba(34,52,77,.08);color:rgba(34,52,77,.35);font-size:11px;font-weight:900;display:grid;place-items:center}
+.dt-pips .pip.on{background:linear-gradient(135deg,#ffd257,#ff9f2e);color:#5b3900}
+.dt-pips .ptx{font-size:10.5px;font-weight:700;color:var(--faint);margin-left:4px}
+.dt-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin:8px 0 12px}
+.dt-stats .st{background:#f6faff;border:1.5px solid rgba(56,140,220,.14);border-radius:12px;text-align:center;padding:8px 4px}
+.dt-stats .st b{display:block;font-size:15px}
+.dt-stats .st span{font-size:9.5px;font-weight:800;color:var(--faint);letter-spacing:.08em}
+.dt-stats .st i{display:block;font-style:normal;font-size:9px;font-weight:800;color:#17a673;min-height:12px}
+.dt-sec{font-size:12px;font-weight:900;letter-spacing:.1em;color:#1d78d8;margin:12px 0 7px;display:flex;align-items:center;gap:6px}
+.eq-auto{margin-left:auto;border:none;border-radius:99px;padding:7px 13px;font-family:inherit;font-weight:900;font-size:10.5px;color:#fff;cursor:pointer;
+  background:linear-gradient(135deg,#8e6bff,#38a6ff);box-shadow:0 4px 10px rgba(142,107,255,.35);-webkit-tap-highlight-color:transparent}
+.eq-auto:active{transform:scale(.95)}
+.sk-row{display:flex;gap:10px;align-items:flex-start;background:#f6faff;border:1.5px solid rgba(56,140,220,.14);border-radius:14px;padding:10px 12px;margin-bottom:7px}
+.sk-row .ic{width:40px;height:40px;border-radius:12px;display:grid;place-items:center;font-size:18px;flex-shrink:0;color:#fff}
+.sk-row .sn{font-size:13px;font-weight:900}
+.sk-row .sn small{font-size:9.5px;font-weight:800;color:#fff;border-radius:99px;padding:1.5px 8px;margin-left:6px;vertical-align:2px}
+.sk-row .sd{font-size:11px;color:var(--dim);line-height:1.6}
+/* 自作SVGアイコン */
+.mbic{display:block}
+/* 属性アイコン（インラインでフォントサイズに追従） */
+.elic{display:inline-block;width:1em;height:1em;vertical-align:-.15em}
+.dt-nm .el .elic{filter:brightness(0) invert(1)}
+.sk-row .ic.sk .mbic{width:26px;height:26px}
+.ic.gear{display:grid;place-items:center}
+.ic.gear .mbic{width:30px;height:30px}
+.eq-item .ic.gear .mbic{width:28px;height:28px}
+.rdrop .ic.gear .mbic{width:30px;height:30px}
+/* スキル詳細行・状態異常タグ */
+.sk-row .sd .dl{display:block;margin:2px 0}
+.sk-row .sd .dl.proc{color:var(--faint);font-size:10px;margin-top:4px}
+.fxtag{display:inline-flex;align-items:center;gap:3px;font-size:9.5px;font-weight:900;color:#fff;background:var(--fc,#888);border-radius:99px;padding:1px 7px;margin-right:5px;vertical-align:-1px}
+/* ロール表示 */
+.dt-nm .el.role{background:#8e6bff}
+.dt-role{font-size:11px;color:var(--faint);font-weight:700;margin:-4px 0 10px 2px}
+.eq-rows{display:flex;flex-direction:column;gap:7px}
+.eq-slot{display:flex;align-items:center;gap:10px;background:#f6faff;border:1.5px solid rgba(56,140,220,.14);border-radius:14px;padding:10px 12px;cursor:pointer;transition:border-color .15s}
+.eq-slot:hover{border-color:rgba(56,166,255,.45)}
+.eq-slot .ic{width:38px;height:38px;border-radius:11px;background:rgba(56,166,255,.10);display:grid;place-items:center;font-size:19px;flex-shrink:0}
+.eq-slot .en{font-size:12.5px;font-weight:900}
+.eq-slot .eb{font-size:10.5px;font-weight:800;color:#17a673}
+.eq-slot .empty{font-size:11.5px;color:var(--faint);font-weight:700}
+.eq-slot .go{margin-left:auto;color:var(--faint);font-weight:900}
+.rartag{font-size:9px;font-weight:900;padding:1.5px 7px;border-radius:99px;color:#fff;margin-left:6px}
+.rartag.N{background:#9aa7b8}.rartag.R{background:#38a6ff}.rartag.SR{background:#8e6bff}.rartag.SSR{background:linear-gradient(135deg,#ff9f2e,#ff6f91)}
+/* 装備ピッカー */
+.eq-list{display:flex;flex-direction:column;gap:7px;max-height:46vh;overflow-y:auto;margin-top:10px}
+.eq-item{display:flex;align-items:center;gap:10px;background:#f6faff;border:2px solid rgba(56,140,220,.14);border-radius:14px;padding:10px 12px;cursor:pointer}
+.eq-item.sel{border-color:var(--sky);box-shadow:0 0 0 3px rgba(56,166,255,.18)}
+.eq-item .ic{font-size:22px;width:36px;text-align:center}
+.eq-item .en{font-size:12.5px;font-weight:900}
+.eq-item .eb{font-size:10.5px;font-weight:800;color:#17a673}
+.eq-item .cnt{margin-left:auto;font-size:10.5px;font-weight:800;color:var(--faint)}
+.ovtitle{font-size:15px;font-weight:900;padding:18px 18px 0}
+
+/* ── 結果モーダル ── */
+.rcard{background:#fff;border:1.5px solid rgba(255,255,255,.95);border-radius:26px;max-width:390px;width:100%;margin:auto;
+  text-align:center;padding:24px 20px;box-shadow:0 30px 80px rgba(56,120,200,.3);animation:rIn .4s cubic-bezier(.2,.8,.3,1) both}
+.rcard .big{font-size:44px;margin-bottom:4px}
+.rcard h2{font-size:24px;font-weight:900;margin-bottom:4px}
+.rcard h2.win{background:linear-gradient(120deg,#e08600,#ff6f91);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.rcard h2.lose{color:#7a8aa5}
+.rcard .rsub{font-size:12px;color:var(--dim);margin-bottom:12px;line-height:1.7}
+.rreward{display:flex;align-items:center;justify-content:center;gap:10px;background:rgba(255,178,36,.14);
+  border:1.5px solid rgba(232,147,12,.4);border-radius:16px;padding:11px;margin-bottom:10px}
+.rreward img{width:26px;height:26px}
+.rreward b{font-size:20px;font-weight:900;color:#c07a00}
+.rreward span{font-size:11px;font-weight:700;color:#8a6a2a}
+.rxp{display:flex;flex-direction:column;gap:6px;margin-bottom:10px}
+.rxp .xr{display:flex;align-items:center;gap:9px;background:#f6faff;border:1.5px solid rgba(56,140,220,.14);border-radius:12px;padding:7px 10px;text-align:left}
+.rxp .xr img{width:34px;height:34px;border-radius:10px;object-fit:cover}
+.rxp .xr .xn{font-size:11.5px;font-weight:900;flex:1;min-width:0}
+.rxp .xr .xsub{font-size:9px;font-weight:700;color:var(--faint);margin-top:1px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rxp .xr .xg{font-size:10.5px;font-weight:800;color:#1d78d8}
+.rxp .lvup{font-size:9.5px;font-weight:900;color:#fff;background:linear-gradient(135deg,#ff9f2e,#ff6f91);border-radius:99px;padding:2px 8px;animation:bPulse 1.1s infinite}
+.rdrop{display:flex;align-items:center;gap:10px;background:rgba(142,107,255,.10);border:1.5px solid rgba(142,107,255,.35);border-radius:14px;padding:10px 12px;margin-bottom:12px;text-align:left}
+.rdrop .ic{font-size:26px}
+.rdrop .dn{font-size:12.5px;font-weight:900}
+.rdrop .db{font-size:10.5px;font-weight:800;color:#17a673}
+.rlog-btn{width:100%;padding:11px;margin-bottom:9px;border:1.5px solid rgba(56,140,220,.25);border-radius:13px;background:#f6faff;
+  color:#1d78d8;font-weight:800;font-size:12.5px;cursor:pointer;font-family:inherit;-webkit-tap-highlight-color:transparent}
+.rlog-btn:active{transform:scale(.98)}
+.rbtns{display:flex;gap:9px}
+.rbtns button{flex:1;padding:13px;border:none;border-radius:14px;font-weight:800;font-size:13.5px}
+.rbtns .pri{background:var(--grad-main);color:#fff;box-shadow:0 8px 20px rgba(56,166,255,.35)}
+.rbtns .sec{background:rgba(56,166,255,.12);color:#1d78d8}
+/* 勝利の紙吹雪 */
+.confetti{position:fixed;top:-14px;z-index:860;font-size:16px;pointer-events:none;animation:confFall linear forwards}
+@keyframes confFall{to{transform:translateY(110vh) rotate(720deg);opacity:.7}}
+
+@media(max-width:430px){
+  .pgrid,.dexgrid{grid-template-columns:repeat(3,1fr)}
+  .seg button{min-width:70px;font-size:12px}
+  .dt-stats{grid-template-columns:repeat(2,1fr)}
+  #cutin .band{height:112px;padding:0 calc(8% + 5vw)}
+  #cutin .band img{width:78px;height:78px}
+  #cutin .band .ct .l2{font-size:19px}
+}
+
+/* ── 編成フィルタ・並び替え（item 8） ── */
+.ptools{display:flex;align-items:center;gap:8px;margin:2px 0 10px;flex-wrap:wrap}
+.pfilter{display:flex;gap:5px;flex-wrap:wrap}
+.pfilter button{min-width:40px;min-height:38px;padding:0 8px;border-radius:10px;border:1.5px solid rgba(56,140,220,.2);background:#f2f8ff;font-size:15px;font-weight:800;cursor:pointer;color:var(--dim)}
+.pfilter button.on{background:linear-gradient(135deg,#38a6ff,#8e6bff);color:#fff;border-color:transparent}
+#psort,#dsort{margin-left:auto;min-height:38px;border-radius:10px;border:1.5px solid rgba(56,140,220,.2);background:#f2f8ff;font-size:12.5px;font-weight:800;color:var(--dim);padding:0 8px;cursor:pointer}
+.pfilter button.tx{font-size:11px;font-weight:900;min-width:48px}
+
+/* ── デイリー：挑戦回数（item 9） ── */
+.dchip .plays{display:block;font-size:9.5px;font-weight:800;color:#c07a00;margin-top:2px;opacity:.85}
+.dchip.out{opacity:.5}
+.dchip.out .plays{color:#c33}
+
+/* ── 攻撃エフェクト（item 10） ── */
+.slashfx{position:absolute;left:50%;top:50%;width:120%;height:8px;transform:translate(-50%,-50%) rotate(var(--ang,20deg));
+  background:linear-gradient(90deg,transparent,var(--sc,#fff),transparent);border-radius:8px;pointer-events:none;z-index:6;
+  filter:drop-shadow(0 0 6px var(--sc,#fff));animation:slashA .34s ease-out forwards}
+.slashfx.big{height:14px;width:150%}
+@keyframes slashA{0%{opacity:0;transform:translate(-50%,-50%) rotate(var(--ang,20deg)) scaleX(.2)}
+  40%{opacity:1}100%{opacity:0;transform:translate(-50%,-50%) rotate(var(--ang,20deg)) scaleX(1.1)}}
+.impactfx{position:absolute;left:50%;top:50%;width:20px;height:20px;transform:translate(-50%,-50%);border-radius:50%;
+  border:3px solid var(--sc,#fff);pointer-events:none;z-index:6;animation:impactA .42s ease-out forwards}
+@keyframes impactA{0%{opacity:.9;width:12px;height:12px}100%{opacity:0;width:74px;height:74px}}
+
+/* ── iPhone タップしやすく（item 6） ── */
+@media(max-width:520px){
+  .eq-slot{padding:14px 12px;min-height:60px}
+  .eq-slot .go{font-size:22px;padding-left:6px}
+  .eq-item{padding:14px 12px;min-height:58px}
+  .dt-hero .x{width:42px;height:42px;font-size:20px;display:grid;place-items:center}
+  .sk-row{padding:11px 6px}
+  /* モーダルは中身の高さぶんだけ伸ばし、オーバーレイ側でスクロール（下が見切れない） */
+  .ovcard{max-height:none}
+  #detailOv .ovcard,#equipOv .ovcard{padding-bottom:calc(16px + env(safe-area-inset-bottom))}
+  /* ⓘ 詳細ボタンを大きくタップしやすく・見やすく */
+  .pchar .info{width:34px;height:34px;font-size:16px;bottom:50px;left:5px;
+    background:#fff;border:2px solid var(--sky);color:#1d78d8;
+    box-shadow:0 3px 8px rgba(30,60,110,.28)}
+}
+
+/* ── iPhone（狭幅）最適化：操作列・難易度・HUDを画面内に収める ── */
+@media(max-width:430px){
+  .bctrl{gap:5px}
+  .bctrl button{min-height:54px;font-size:9.5px;padding:6px 2px;border-radius:12px}
+  .bctrl button svg{width:19px;height:19px}
+  .seg button{min-width:30%;font-size:12px;min-height:48px}
+  .brow{gap:6px}
+  .bc .nm{font-size:9.5px}
+  .bc .burstbtn{font-size:10px;padding:4px 9px;bottom:31px}
+  .sahud{font-size:11px;gap:6px;padding:8px 10px}
+  .sahud b{font-size:16px}
+  .qbtn{min-width:30%}
+  .grow-row .gbtns button{padding:9px 8px;font-size:10px}
+  .wheelbtns button{min-height:56px}
+}
+/* ── PC（広幅）最適化：一覧の密度を上げ、ホバー操作を明確に ── */
+@media(min-width:900px){
+  .wrap{max-width:980px}
+  .arena,#blog,.bctrl,.sahud{max-width:980px}
+  .pgrid,.dexgrid{grid-template-columns:repeat(auto-fill,minmax(118px,1fr))}
+  .bctrl button:hover{border-color:var(--sky);background:rgba(56,166,255,.08)}
+  .bctrl button.on:hover{background:linear-gradient(135deg,var(--sky),var(--grape))}
+  .qbtn:hover,.gear-ex button:hover:not(:disabled){border-color:var(--sky);box-shadow:0 4px 12px rgba(56,166,255,.18)}
+  .wmedal{cursor:default}
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <a class="back-portal" href="../index.html">← ポータル</a>
+  <h1>⚔️ MagiBattle</h1>
+  <button class="helpb" id="helpb" aria-label="あそびかた">？</button>
+  <div class="xeva-pill"><img src="../XEVA.png" alt="XEVA"><span id="balance">0</span></div>
+</header>
+
+<nav class="vtabs" id="vtabs">
+  <button class="on" data-v="home" onclick="switchView('home')">🧝<br>編成</button>
+  <button data-v="dailyview" onclick="switchView('dailyview')">🎁<br>デイリー</button>
+  <button data-v="questsview" onclick="switchView('questsview')">🧭<br>クエスト</button>
+  <button data-v="towerview" onclick="switchView('towerview')">🗼<br>無限の塔</button>
+  <button data-v="saview" onclick="switchView('saview')">⏱<br>スコアタ</button>
+  <button data-v="grow" onclick="switchView('grow')">🎓<br>育成</button>
+  <button data-v="exchangeview" onclick="switchView('exchangeview')">🛠<br>交換</button>
+  <button data-v="dex" onclick="switchView('dex')">📖<br>図鑑</button>
+</nav>
+
+<!-- ── ホーム（編成） ── -->
+<main id="home">
+  <div class="wrap">
+    <div class="card">
+      <div class="card-title">🧝 パーティ編成 <span class="hint" id="pcount">0 / 3 選択中</span></div>
+      <div class="ptools">
+        <div class="pfilter" id="pfilter">
+          <button data-el="all" class="on">全</button>
+          <button data-el="fire">🔥</button>
+          <button data-el="wood">🌿</button>
+          <button data-el="water">💧</button>
+          <button data-el="light">✨</button>
+          <button data-el="dark">🌙</button>
+        </div>
+        <select id="psort" aria-label="並び替え">
+          <option value="power">戦力が高い順</option>
+          <option value="level">レベルが高い順</option>
+          <option value="rarity">レア度順</option>
+          <option value="element">属性順</option>
+        </select>
+      </div>
+      <div class="fwheel-box">
+        <button id="autoparty" class="autoparty">⚡ おまかせ編成（戦力の高い順に5人セット）</button>
+        <div class="fwheel" id="fwheel"></div>
+        <div class="fw-hint">円の<b style="color:#e0157a">上の3人＝前衛</b>がバトルに出ます。キャラを<b>2人タップ</b>で入れ替え（空きマスへの移動もOK）。バトル中は<b>交代→まわす</b>でダイアル回転！</div>
+      </div>
+      <div class="pgrid" id="pgrid"></div>
+      <p class="note" id="elemNote">タップで選択（最大 <b>5体</b>＝前衛3・後衛2）、<b>ⓘ で詳細・スキル・装備</b>。バトルで経験値がたまり<b>レベルアップ</b>！凸・レベル・装備が強さに反映されます。</p>
+    </div>
+
+  </div>
+</main>
+
+<!-- ── デイリー（今日の初勝利ボーナス＋デイリークエスト） ── -->
+<main id="dailyview" class="off">
+  <div class="wrap">
+    <div class="card">
+      <div class="card-title">🎁 今日の初勝利ボーナス <span class="hint">毎日リセット</span></div>
+      <div class="dailies" id="dailies"></div>
+      <p class="note">各難易度、その日の<b>最初の勝利</b>で XEVA がもらえます。さらに<b>勝利するたびに経験値</b>を獲得！（装備は<b>🛠交換タブ</b>で強化石と交換）<br>各ステージの挑戦は<b>1日3回まで</b>（毎日0時にリセット）。下の<b>難易度を選んでバトル開始</b>！</p>
+    </div>
+
+    <div class="card">
+      <div class="card-title">🎯 デイリークエスト — 難易度をえらぶ</div>
+      <div class="seg" id="diffseg">
+        <button data-d="1" class="on">れんしゅう<small>報酬 30</small></button>
+        <button data-d="2">ふつう<small>報酬 60</small></button>
+        <button data-d="3">つよい<small>報酬 100</small></button>
+        <button data-d="4">激つよ<small>報酬 150</small></button>
+        <button data-d="5">伝説<small>報酬 200</small></button>
+        <button data-d="6" class="myth">神話<small>報酬 230</small></button>
+        <button data-d="7" class="trans">超越<small>報酬 250</small></button>
+      </div>
+      <div class="erow" id="erow"></div>
+      <p class="note" style="text-align:center">相手チームは<b>難易度ごとの日替わり</b>。変更はできません（毎日0時に入れ替わります）。パーティは<b>🧝編成タブ</b>のものを使用します。</p>
+    </div>
+  </div>
+</main>
+
+<!-- ── クエスト（素材） ── -->
+<main id="questsview" class="off">
+  <div class="wrap">
+    <div class="card">
+      <div class="card-title">🧭 素材クエスト <span class="hint" id="qleft">残り 3/3</span></div>
+      <p class="note">1日<b>合計3回</b>まで挑戦可能。勝利で <b>経験の結晶</b>（育成タブでレベルUP）と <b>強化石</b>（装備と交換）をドロップ！敗北でも少しもらえます。難易度が高いほど大量ドロップ。パーティは<b>🧝編成タブ</b>のものを使用します。</p>
+      <div class="qrow" id="qrow"></div>
+      <div class="matbar">所持素材：<b id="matC"></b><b id="matS"></b><span class="hint">使い道は 🎓育成 タブ</span></div>
+    </div>
+  </div>
+</main>
+
+<!-- ── 無限の塔 ── -->
+<main id="towerview" class="off">
+  <div class="wrap">
+    <div class="card tower-card">
+      <div class="card-title">🗼 無限の塔 <span class="hint" id="twbest">最高 F0</span></div>
+      <p class="note"><b>上級者向けエンドコンテンツ</b>。1階ごとに敵のレベル・HP・攻撃力が急激に上昇していく無限クライム。各階の<b>初回クリアで XEVA と素材</b>を獲得（挑戦回数は無制限・毎日リセットなし）。どこまで登れるか！？パーティは<b>🧝編成タブ</b>のものを使用します。</p>
+      <button class="sa-btn tw-btn" id="tw-btn">🗼 F1 に挑戦する</button>
+    </div>
+  </div>
+</main>
+
+<!-- ── スコアアタック ── -->
+<main id="saview" class="off">
+  <div class="wrap">
+    <div class="card sa-card">
+      <div class="card-title">⏱ スコアアタック <span class="hint">200秒・月間ランキング</span></div>
+      <div class="sa-enemies">
+        <img src="Skyreaper.png" alt="スカイリーパー"><img src="Razorwing.png" alt="レイザーウィング">
+      </div>
+      <p class="sa-desc"><b>不死身</b>の<b>スカイリーパー</b>と<b>レイザーウィング</b>を相手に、<b>200秒</b>でどれだけダメージを与えられるかを競うモード。敵は倒れず攻撃してくるので、生き残りながら削り続けろ！<b>時間前に全滅した場合はその時点のスコアで記録</b>。ベストスコアだけが残り、<b>毎月1日にリセット</b>。月間上位はXEVA獲得：<b>1位1,000 / 2位500 / 3位300 / 4〜10位150</b>（翌月に自動受取・MagiRankingにも掲載）。パーティは<b>🧝編成タブ</b>のものを使用します。</p>
+      <div class="sa-best" id="sabest"></div>
+      <button class="sa-btn" id="sa-btn">⏱ スコアアタック開始（200秒）</button>
+      <div class="sa-rank" id="sarank">ランキング読み込み中…</div>
+    </div>
+  </div>
+</main>
+
+<!-- ── 育成 ── -->
+<main id="grow" class="off">
+  <div class="wrap">
+    <div class="card">
+      <div class="card-title">🎓 育成（レベルアップ） <span class="hint" id="growmats"></span></div>
+      <p class="note"><b>経験の結晶</b> 1個 ＝ <b>+250 EXP</b>。バトルに出さなくても好きなキャラを強化できます。素材は<b>素材クエスト</b>（1日3回）で入手。装備がほしいときは<b>🛠交換タブ</b>へ！</p>
+      <div class="grow-list" id="growlist"></div>
+    </div>
+  </div>
+</main>
+
+<!-- ── 交換（装備交換） ── -->
+<main id="exchangeview" class="off">
+  <div class="wrap">
+    <div class="card">
+      <div class="card-title">🛠 装備交換 <span class="hint" id="gearstones"></span></div>
+      <p class="note"><b>強化石</b>を使ってランダムな装備と交換します（レア度を選択）。属性専用SSR武器もここから出ます！強化石は<b>素材クエスト</b>（1日3回）で入手できます。</p>
+      <div class="gear-ex" id="gearex"></div>
+      <div id="gearexResult"></div>
+    </div>
+  </div>
+</main>
+
+<!-- ── 図鑑 ── -->
+<main id="dex" class="off">
+  <div class="wrap">
+    <div class="card">
+      <div class="card-title">📖 キャラクター図鑑 <span class="hint" id="dexcount"></span></div>
+      <div class="ptools">
+        <div class="pfilter" id="dfelem">
+          <button data-el="all" class="on">全</button>
+          <button data-el="fire">🔥</button>
+          <button data-el="wood">🌿</button>
+          <button data-el="water">💧</button>
+          <button data-el="light">✨</button>
+          <button data-el="dark">🌙</button>
+        </div>
+        <select id="dsort" aria-label="図鑑の並び替え">
+          <option value="rarity">レア度順</option>
+          <option value="power">戦力が高い順</option>
+          <option value="level">レベルが高い順</option>
+          <option value="element">属性順</option>
+          <option value="role">ロール順</option>
+          <option value="name">名前順</option>
+        </select>
+      </div>
+      <div class="ptools">
+        <div class="pfilter" id="dfrar">
+          <button data-rar="all" class="on tx">全レア</button>
+          <button data-rar="SSR" class="tx">SSR</button>
+          <button data-rar="SR" class="tx">SR</button>
+        </div>
+        <div class="pfilter" id="dfown">
+          <button data-own="all" class="on tx">すべて</button>
+          <button data-own="own" class="tx">所持</button>
+          <button data-own="no" class="tx">未所持</button>
+        </div>
+      </div>
+      <div class="ptools">
+        <div class="pfilter" id="dfrole"></div>
+      </div>
+      <div class="dexgrid" id="dexgrid"></div>
+      <p class="note">タップで詳細（ステータス・スキル・必殺技・装備）を表示。未所持キャラはガチャで入手できます。</p>
+    </div>
+  </div>
+</main>
+
+<div class="sticky off" id="startbar"><button id="start-btn" disabled>⚔️ バトル開始！</button></div>
+
+<!-- ── バトル ── -->
+<section id="battle">
+  <div class="arena" id="arena">
+    <div class="sahud" id="sahud" style="display:none">⏱ のこり <b id="satime">200</b> 秒 <span class="sep">／</span> SCORE <b id="sascore">0</b></div>
+    <div class="side-label">RIVAL TEAM</div>
+    <div class="brow" id="brow-e"></div>
+    <div class="vs"><span class="vstxt">VS</span></div>
+    <div class="brow" id="brow-a"></div>
+    <div class="side-label" style="text-align:right">YOUR PARTY</div>
+    <div id="blog"></div>
+  </div>
+  <!-- 操作パネルは .arena の外に置く（.arena.shake の transform で fixed がずれるのを防止） -->
+  <div class="bctrl">
+    <button id="spd1" class="on" aria-label="通常速度">
+      <svg viewBox="0 0 24 24"><path d="M7 4.5 L19 12 L7 19.5 Z" fill="currentColor"/></svg><span>×1</span>
+    </button>
+    <button id="spd2" aria-label="倍速">
+      <svg viewBox="0 0 24 24"><path d="M3.5 5 L12 12 L3.5 19 Z" fill="currentColor"/><path d="M12.5 5 L21 12 L12.5 19 Z" fill="currentColor"/></svg><span>×2</span>
+    </button>
+    <button id="autob" aria-label="オート">
+      <svg viewBox="0 0 24 24"><path d="M12 4 a8 8 0 1 1 -7.4 4.9" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M2.5 5 L5.2 9.6 L9.8 7 Z" fill="currentColor"/><text x="12" y="15.6" text-anchor="middle" font-size="8.5" font-weight="900" fill="currentColor" font-family="sans-serif">A</text></svg><span>オート</span>
+    </button>
+    <button id="swapb" aria-label="交代">
+      <svg viewBox="0 0 24 24"><path d="M4 8 H16 M13 4.5 L17 8 L13 11.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/><path d="M20 16 H8 M11 12.5 L7 16 L11 19.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><span>交代</span>
+    </button>
+    <button id="quitb" aria-label="バトル中断">
+      <svg viewBox="0 0 24 24"><path d="M6 3.5 V21" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M8 4.5 H18.5 L15.8 8.2 L18.5 12 H8 Z" fill="currentColor"/></svg><span>中断</span>
+    </button>
+    <button id="skipb" aria-label="スキップ">
+      <svg viewBox="0 0 24 24"><path d="M4.5 5 L13 12 L4.5 19 Z" fill="currentColor"/><rect x="15.5" y="5" width="3.4" height="14" rx="1" fill="currentColor"/></svg><span>結果へ</span>
+    </button>
+    <button id="sndb" aria-label="効果音の切り替え">
+      <svg viewBox="0 0 24 24"><path d="M4 9.5 H7.5 L12 5.5 V18.5 L7.5 14.5 H4 Z" fill="currentColor"/><path d="M15.5 9 a4 4 0 010 6 M18 6.5 a7.5 7.5 0 010 11" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg><span>効果音</span>
+    </button>
+  </div>
+</section>
+
+<!-- ── 回転ホイール（ダイアル回転式ローテーション） ── -->
+<div id="wheelov">
+  <div class="wheelbox">
+    <div class="wheeltitle">🔄 前衛の入れ替え（ダイアル式） <span id="wheelfront">前衛：—</span></div>
+    <div class="wheelhint"><b>まわす</b>と全員が<b>となりの位置へ1つずつ</b>移動します。円の<b style="color:#e0157a">上の3人＝前衛</b>が戦います。</div>
+    <div class="dial dial-b" id="wdial"></div>
+    <div class="wheelbtns">
+      <button id="wrotL" aria-label="左にまわす">
+        <svg viewBox="0 0 24 24"><path d="M12 5 a7 7 0 1 1 -6.6 4.6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M2.6 5.6 L5.4 10.4 L10 7.6 Z" fill="currentColor"/></svg><span>左にまわす</span>
+      </button>
+      <button id="wheelClose" class="go">✓ これで戦う</button>
+      <button id="wrotR" aria-label="右にまわす">
+        <svg viewBox="0 0 24 24"><path d="M12 5 a7 7 0 1 0 6.6 4.6" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><path d="M21.4 5.6 L18.6 10.4 L14 7.6 Z" fill="currentColor"/></svg><span>右にまわす</span>
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ── 必殺技カットイン / フラッシュ / スキルポップ ── -->
+<div id="cutin"><div class="band" id="cutband"></div></div>
+<div id="flash"></div>
+<div id="skpops"></div>
+
+<!-- ── キャラ詳細 ── -->
+<div class="ov" id="detailOv" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="ovcard" id="detailCard"></div>
+</div>
+
+<!-- ── 装備ピッカー ── -->
+<div class="ov" id="equipOv" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="ovcard" id="equipCard"></div>
+</div>
+
+<!-- ── あそびかた（アニメ付き説明） ── -->
+<div class="ov" id="helpOv" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="ovcard" id="helpCard" style="padding:18px"></div>
+</div>
+
+<!-- ── バトルメニュー（やり直し／あきらめる） ── -->
+<div class="ov" id="quitOv">
+  <div class="rcard" style="max-width:330px">
+    <div class="big">⏸</div>
+    <h2 style="font-size:19px;margin-bottom:10px">バトルメニュー</h2>
+    <div class="qmenu">
+      <button id="q-retry">🔄 最初からやり直す<small>挑戦回数は消費しません</small></button>
+      <button id="q-giveup">🏳 あきらめる<small>敗北あつかいで終了します</small></button>
+      <button id="q-resume" class="go">▶ たたかいを続ける</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── 結果 ── -->
+<div class="ov" id="rov">
+  <div class="rcard">
+    <div class="big" id="remo">🏆</div>
+    <h2 id="rtitle" class="win">WIN!</h2>
+    <div class="rsub" id="rsub"></div>
+    <div class="rreward" id="rreward" style="display:none">
+      <img src="../XEVA.png" alt="XEVA"><div><b id="ramount">+0</b> <span>XEVA 獲得！</span></div>
+    </div>
+    <div class="rxp" id="rxp"></div>
+    <div class="rdrop" id="rdrop" style="display:none"></div>
+    <button class="rlog-btn" id="r-log">📜 バトルログを見る</button>
+    <div class="rbtns">
+      <button class="sec" id="r-home">編成にもどる</button>
+      <button class="pri" id="r-again">もう一度たたかう</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── バトルログ閲覧（結果画面から） ── -->
+<div class="ov" id="logOv" onclick="if(event.target===this)this.classList.remove('open')">
+  <div class="rcard" style="max-width:420px;text-align:left;padding:16px">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+      <div style="font-weight:900;font-size:15px;flex:1">📜 バトルログ</div>
+      <button id="logClose" style="border:none;background:#f2f7fd;border-radius:10px;width:32px;height:32px;color:var(--dim);font-size:15px;font-weight:900;cursor:pointer">✕</button>
+    </div>
+    <div id="logBody" style="max-height:60vh;overflow-y:auto;-webkit-overflow-scrolling:touch;background:rgba(255,255,255,.7);border:1.5px solid var(--border);border-radius:14px;padding:10px 14px;font-size:12px;line-height:1.9"></div>
+  </div>
+</div>
+
+<script>
+"use strict";
+/* ── アカウントガード（XEVARIONアカウント必須） ── */
+let ACC = null;
+try { ACC = JSON.parse(localStorage.getItem("xeva_account_v1") || "null"); } catch (e) {}
+if (!ACC || !ACC.setupDone) location.replace("../index.html");
+
+const $ = (s) => document.querySelector(s);
+const SAVE_KEY = "magibattle_v1";
+const REWARDS = { 1: 30, 2: 60, 3: 100, 4: 150, 5: 200, 6: 230, 7: 250 };   // デイリー1回の入手上限は250
+const DIFF_NAME = { 1: "れんしゅう", 2: "ふつう", 3: "つよい", 4: "激つよ", 5: "伝説", 6: "神話", 7: "超越" };
+const ENEMY_LV = { 1: 1, 2: 6, 3: 12, 4: 20, 5: 30, 6: 38, 7: 40 };
+/* 敵の強さ補正（神話・超越は凸・装備相当の強化がかかる） */
+const ENEMY_HANDICAP = { 1: 0.94, 2: 0.94, 3: 0.94, 4: 0.94, 5: 0.94, 6: 1.18, 7: 1.45 };
+/* 敵HP倍率：全体的に耐久を底上げして手応えを出す（難易度が上がるほど硬い） */
+const ENEMY_HPMUL = { 1: 1.4, 2: 1.6, 3: 1.8, 4: 2.1, 5: 2.4, 6: 2.9, 7: 3.6 };
+const DIFFS = [1, 2, 3, 4, 5, 6, 7];
+const MAX_LV = 40;
+
+/* ── 5属性: 火→木→水→火の3すくみ ＋ 光⇄闇は相互有利 ── */
+const ELEMS = ["fire", "wood", "water", "light", "dark"];
+const ELEM = {
+  fire:  { nm: "火", c: "#ff5d47", l: "#ffcf6b" },
+  wood:  { nm: "木", c: "#2fbf71", l: "#a8e6b0" },
+  water: { nm: "水", c: "#38a6ff", l: "#c3e8ff" },
+  light: { nm: "光", c: "#f0b429", l: "#fff1b8" },
+  dark:  { nm: "闇", c: "#8e6bff", l: "#dccdff" },
+};
+/* 属性アイコン（自作2トーンSVG。emoji から差し替え） */
+const ELEM_GLYPH = {
+  fire:  (c, l) => `<path d="M12 2c1 4 5 6 5 11a5 5 0 01-10 0c0-2.6 1.4-4.2 2.7-5.7C10.2 9 11 9.4 12 9c.9-.4 1-2.8 0-7Z" fill="${c}"/><path d="M12 11.5c1.3 1.3 2.1 2.3 2.1 3.8a2.1 2.1 0 01-4.2 0c0-1.4 .9-2.4 2.1-3.8Z" fill="${l}"/>`,
+  wood:  (c, l) => `<path d="M12 21C6 17 5 9 12 3c7 6 6 14 0 18Z" fill="${c}"/><path d="M12 6.5v12.5M12 11l3-2.2M12 14.5l-3-2.2" stroke="${l}" stroke-width="1.3" stroke-linecap="round" fill="none"/>`,
+  water: (c, l) => `<path d="M12 3c3.6 4.6 6 7.7 6 10.6A6 6 0 016 13.6C6 10.7 8.4 7.6 12 3Z" fill="${c}"/><path d="M9 14.2a3 3 0 003 3" stroke="${l}" stroke-width="1.5" fill="none" stroke-linecap="round"/>`,
+  light: (c, l) => `<path d="M12 2l1.9 6.3L20 10l-6.1 1.7L12 18l-1.9-6.3L4 10l6.1-1.7Z" fill="${c}"/><path d="M12 6.5l.9 3.1 3.1.9-3.1.9L12 15l-.9-3.1L8 11l3.1-.9Z" fill="${l}"/><circle cx="19" cy="5" r="1.1" fill="${c}"/><circle cx="5.4" cy="18.2" r="1" fill="${c}"/>`,
+  /* 闇：三日月を大きく太く描画（小さくて見えない問題の修正） */
+  dark:  (c, l) => `<path d="M20.5 15.6A9.6 9.6 0 117.6 2.6a7.6 7.6 0 0012.9 13Z" fill="${c}"/><path d="M18 2.2l1 2.7 2.7 1-2.7 1-1 2.7-1-2.7-2.7-1 2.7-1Z" fill="${l}"/>`,
+};
+Object.keys(ELEM).forEach((k) => {
+  const e = ELEM[k];
+  e.ic = `<svg class="elic" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-label="${e.nm}属性">${ELEM_GLYPH[k](e.c, e.l)}</svg>`;
+});
+/* 編成画面の属性説明にも新アイコンを反映 */
+function fillElemNote() {
+  const n = document.getElementById("elemNote"); if (!n) return;
+  const E = ELEM;
+  n.innerHTML = `タップで選択（最大 <b>5体</b>＝<b>前衛3・後衛2</b>）。<b>ⓘ で詳細</b>。並び替えは上の<b>編成ホイール</b>で（メダル2つタップ）。バトル中は<b>🎡交代でホイールを回して</b>前衛を入れ替え、<b>必殺技は自分でタップして発動</b>！属性は <b>${E.fire.ic}火 → ${E.wood.ic}木 → ${E.water.ic}水 → ${E.fire.ic}</b> の3すくみ ＋ <b>${E.light.ic}光 ⇄ ${E.dark.ic}闇</b>（お互いに有利）！`;
+}
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", fillElemNote); else fillElemNote();
+const BEATS = { fire: "wood", wood: "water", water: "fire" };
+function elemMult(a, d) {
+  if ((a === "light" && d === "dark") || (a === "dark" && d === "light")) return 1.3;
+  if (BEATS[a] === d) return 1.3;
+  if (BEATS[d] === a) return 0.8;
+  return 1;
+}
+
+/* ── セーブ ── */
+let DB = { day: "", wins: {}, plays: {}, party: [], totalWins: 0, xp: {}, equip: {}, inv: {}, mats: { crystal: 0, stone: 0 }, qplays: 0 };
+try { DB = Object.assign(DB, JSON.parse(localStorage.getItem(SAVE_KEY) || "{}")); } catch (e) {}
+/* アカウント紐づけ防御: セーブに owner(xvUid) を刻印。別アカウントのセーブが端末に残っていても読み込まない */
+if (DB.owner && ACC && ACC.xvUid && DB.owner !== ACC.xvUid) {
+  DB = { day: "", wins: {}, plays: {}, party: [], totalWins: 0, xp: {}, equip: {}, inv: {}, mats: { crystal: 0, stone: 0 }, qplays: 0 };
+}
+if (!DB.xp) DB.xp = {}; if (!DB.equip) DB.equip = {}; if (!DB.inv) DB.inv = {}; if (!DB.plays) DB.plays = {};
+if (!DB.mats) DB.mats = { crystal: 0, stone: 0 };
+if (DB.qplays == null) DB.qplays = 0;
+if (!DB.tower) DB.tower = { best: 0 };
+const today = new Date().toLocaleDateString("sv-SE");
+if (DB.day !== today) { DB.day = today; DB.wins = {}; DB.plays = {}; DB.qplays = 0; }
+const PLAYS_PER_DAY = 3;
+function playsLeft(d) { return Math.max(0, PLAYS_PER_DAY - (DB.plays[d] || 0)); }
+function dbSave() { try { if (ACC && ACC.xvUid) DB.owner = ACC.xvUid; localStorage.setItem(SAVE_KEY, JSON.stringify(DB)); } catch (e) {} }
+
+/* ── 乱数・ハッシュ ── */
+function hashN(s, salt) { let h = salt >>> 0; for (const c of String(s)) h = (h * 31 + c.charCodeAt(0)) >>> 0; return h; }
+function seededRng(seedStr) {
+  let s = hashN(seedStr, 2166136261) || 1;
+  return function () { s ^= s << 13; s ^= s >>> 17; s ^= s << 5; s >>>= 0; return s / 4294967296; };
+}
+
+/* ── レベル（XP: 勝利で獲得。lv = 1 + √(xp/30)、最大40） ── */
+function xpOf(id) { return DB.xp[id] || 0; }
+function lvFromXp(xp) { return Math.min(MAX_LV, 1 + Math.floor(Math.sqrt(xp / 30))); }
+function lvOf(id) { return lvFromXp(xpOf(id)); }
+function xpForLv(lv) { return (lv - 1) * (lv - 1) * 30; } // そのレベルになるのに必要な累計XP
+function lvMult(lv) { return 1 + 0.045 * (lv - 1); }
+
+/* ── 装備カタログ（w=武器 / a=防具 / c=アクセ） ── */
+const SLOT_NM = { w: "武器", a: "防具", c: "アクセ" };
+const SLOT_IC = { w: "⚔️", a: "🛡️", c: "💍" };
+const ITEMS = {
+  /* 武器（攻撃%） */
+  w1: { slot: "w", nm: "ウッドソード",     ic: "🗡️", rar: "N",   atk: 6 },
+  w1b:{ slot: "w", nm: "石斧",             ic: "🪓", rar: "N",   atk: 5, spd: 3 },
+  w2: { slot: "w", nm: "アイアンブレード", ic: "⚔️", rar: "R",   atk: 12 },
+  w2b:{ slot: "w", nm: "双剣ツインエッジ", ic: "🔪", rar: "R",   atk: 10, spd: 5 },
+  w3: { slot: "w", nm: "マギカリバー",     ic: "🔮", rar: "SR",  atk: 20 },
+  w3b:{ slot: "w", nm: "紅蓮の大槌",       ic: "🔨", rar: "SR",  atk: 23, hp: 6 },
+  w3c:{ slot: "w", nm: "蒼氷の弓",         ic: "🏹", rar: "SR",  atk: 18, spd: 8 },
+  w4: { slot: "w", nm: "聖剣ゼヴァリオン", ic: "🌟", rar: "SSR", atk: 30 },
+  w4b:{ slot: "w", nm: "魔杖アルカナ",     ic: "🪄", rar: "SSR", atk: 26, hp: 12 },
+  /* 属性専用SSR武器（同属性キャラが装備するとさらに強化） */
+  wx_fire: { slot: "w", nm: "焔剣イグニス",     rar: "SSR", atk: 26, elem: "fire",  exAtk: 16, exHp: 8 },
+  wx_water:{ slot: "w", nm: "氷槍グラキエス",   rar: "SSR", atk: 26, elem: "water", exAtk: 16, exHp: 8 },
+  wx_wood: { slot: "w", nm: "神樹弓ユグドラ",   rar: "SSR", atk: 26, elem: "wood",  exAtk: 16, exHp: 8 },
+  wx_light:{ slot: "w", nm: "聖光杖ルーメン",   rar: "SSR", atk: 26, elem: "light", exAtk: 16, exHp: 8 },
+  wx_dark: { slot: "w", nm: "宵闇鎌ノクターン", rar: "SSR", atk: 26, elem: "dark",  exAtk: 16, exHp: 8 },
+  /* 防具（HP%） */
+  a1: { slot: "a", nm: "旅人の服",         ic: "👕", rar: "N",   hp: 6 },
+  a1b:{ slot: "a", nm: "革の胸当て",       ic: "🎽", rar: "N",   hp: 5, spd: 2 },
+  a2: { slot: "a", nm: "アイアンメイル",   ic: "🛡️", rar: "R",   hp: 12 },
+  a2b:{ slot: "a", nm: "魔法のマント",     ic: "🧣", rar: "R",   hp: 10, atk: 4 },
+  a3: { slot: "a", nm: "マギローブ",       ic: "🧥", rar: "SR",  hp: 20 },
+  a3b:{ slot: "a", nm: "護りの盾",         ic: "🛡️", rar: "SR",  hp: 24, spd: -2 },
+  a3c:{ slot: "a", nm: "森妖精の衣",       ic: "🍃", rar: "SR",  hp: 16, spd: 7 },
+  a4: { slot: "a", nm: "竜鱗の聖鎧",       ic: "🐉", rar: "SSR", hp: 30 },
+  a4b:{ slot: "a", nm: "星霜のドレス",     ic: "👗", rar: "SSR", hp: 24, atk: 10 },
+  /* アクセ（速さ＋複合） */
+  c1: { slot: "c", nm: "羽のお守り",       ic: "🪶", rar: "N",   spd: 6 },
+  c1b:{ slot: "c", nm: "銅の腕輪",         ic: "📿", rar: "N",   atk: 4, hp: 4 },
+  c2: { slot: "c", nm: "疾風のブーツ",     ic: "👢", rar: "R",   spd: 12 },
+  c2b:{ slot: "c", nm: "闘気のバンド",     ic: "🎗️", rar: "R",   atk: 8, spd: 4 },
+  c3: { slot: "c", nm: "賢者の指輪",       ic: "💍", rar: "SR",  atk: 10, hp: 10 },
+  c3b:{ slot: "c", nm: "俊足のアンクレット",ic: "🦿", rar: "SR",  spd: 16, atk: 5 },
+  c4: { slot: "c", nm: "女神の宝珠",       ic: "🔆", rar: "SSR", atk: 15, hp: 15, spd: 8 },
+  c4b:{ slot: "c", nm: "竜神の勾玉",       ic: "🧿", rar: "SSR", atk: 20, spd: 10 },
+};
+const DROP_TABLE = { 1: [["N",90],["R",10]], 2: [["N",55],["R",40],["SR",5]], 3: [["R",70],["SR",27],["SSR",3]], 4: [["R",40],["SR",50],["SSR",10]], 5: [["SR",68],["SSR",32]], 6: [["SR",45],["SSR",55]], 7: [["SSR",100]] };
+
+/* ── 素材（クエストでドロップ。デイリーの装備ドロップは廃止） ── */
+const MATS = {
+  crystal: { nm: "経験の結晶", ic: "🔮", d: "育成タブでキャラのレベルアップに使う（1個＝+" + 250 + " EXP）" },
+  stone:   { nm: "強化石",     ic: "🪨", d: "装備との交換に使う" },
+};
+const XP_PER_CRYSTAL = 250;
+const QUESTS = {
+  q1: { nm: "初級クエスト", lv: 8,  handicap: 0.90, hpmul: 1.5, crystal: [3, 5],   stone: [2, 4],  c: "#2fbf71" },
+  q2: { nm: "中級クエスト", lv: 22, handicap: 0.98, hpmul: 1.9, crystal: [6, 9],   stone: [5, 7],  c: "#38a6ff" },
+  q3: { nm: "上級クエスト", lv: 36, handicap: 1.10, hpmul: 2.4, crystal: [11, 15], stone: [8, 12], c: "#e0157a" },
+};
+const QUEST_PER_DAY = 3;                     // 1日合計3回まで
+const GEAR_COST = { R: 5, SR: 12, SSR: 25 }; // 強化石 → 装備交換レート
+function questLeft() { return Math.max(0, QUEST_PER_DAY - (DB.qplays || 0)); }
+function pickItemByRar(rar) { const cand = Object.keys(ITEMS).filter((k) => ITEMS[k].rar === rar); return cand[(Math.random() * cand.length) | 0]; }
+function randIn(r) { return r[0] + ((Math.random() * (r[1] - r[0] + 1)) | 0); }
+function itemBonusText(it) {
+  const b = [];
+  if (it.atk) b.push("攻撃+" + it.atk + "%");
+  if (it.hp) b.push("HP+" + it.hp + "%");
+  if (it.spd) b.push("速さ+" + it.spd);
+  let tx = b.join(" / ");
+  if (it.elem) tx += ` <span style="color:${ELEM[it.elem].c};font-weight:800">${ELEM[it.elem].ic}${ELEM[it.elem].nm}属性専用: さらに攻撃+${it.exAtk}%・HP+${it.exHp}%</span>`;
+  return tx;
+}
+function rollDrop(diff) {
+  const tbl = DROP_TABLE[diff] || DROP_TABLE[1];
+  let r = Math.random() * 100, rar = tbl[tbl.length - 1][0];
+  for (const [rr, w] of tbl) { if (r < w) { rar = rr; break; } r -= w; }
+  const cand = Object.keys(ITEMS).filter((k) => ITEMS[k].rar === rar);
+  return cand[(Math.random() * cand.length) | 0];
+}
+function equipOf(id) { return DB.equip[id] || {}; }
+/* 同じ装備を持っている数を超えて複数キャラに付けられない。
+   ある装備 k が「今いくつのキャラに装備されているか」（exceptChar を除く） */
+function equippedCount(k, exceptChar) {
+  let n = 0;
+  for (const cid in DB.equip) {
+    if (cid === exceptChar) continue;
+    const eq = DB.equip[cid] || {};
+    for (const s of ["w", "a", "c"]) if (eq[s] === k) n++;
+  }
+  return n;
+}
+/* exceptChar 以外で使われていない在庫数（＝このキャラが新たに装備できる数） */
+function availCount(k, exceptChar) { return (DB.inv[k] || 0) - equippedCount(k, exceptChar); }
+/* この装備を着けている他キャラ（移動元）を探す */
+function holderOf(k, exceptChar) {
+  for (const cid in DB.equip) {
+    if (cid === exceptChar) continue;
+    const eq = DB.equip[cid] || {};
+    for (const s of ["w", "a", "c"]) if (eq[s] === k) return { cid, s };
+  }
+  return null;
+}
+/* 装備の強さスコア（おまかせ装備・並び順に使用。属性一致ボーナス込み） */
+function gearScore(it, ch) {
+  let s = (it.atk || 0) * 2 + (it.hp || 0) + (it.spd || 0);
+  if (it.elem && ch && elemOf(ch) === it.elem) s += (it.exAtk || 0) * 2 + (it.exHp || 0);
+  return s;
+}
+function equipBonus(id) {
+  const eq = equipOf(id); let atk = 0, hp = 0, spd = 0;
+  const ch = charById(id);
+  ["w", "a", "c"].forEach((s) => {
+    const it = ITEMS[eq[s]]; if (!it) return;
+    atk += it.atk || 0; hp += it.hp || 0; spd += it.spd || 0;
+    // 属性専用武器：同属性キャラが装備で追加ボーナス
+    if (it.elem && ch && elemOf(ch) === it.elem) { atk += it.exAtk || 0; hp += it.exHp || 0; }
+  });
+  return { atk, hp, spd };
+}
+
+/* ── キャラデータ ── */
+function gachaData() { try { return JSON.parse(localStorage.getItem("xeva_gacha_v1") || "{}"); } catch (e) { return {}; } }
+function ownedIds() {
+  const g = gachaData(), set = {};
+  Object.keys(g.owned || {}).forEach((id) => { if (g.owned[id]) set[id] = true; });
+  if (ACC && ACC.charId) set[ACC.charId] = true;
+  return set;
+}
+function allChars() { return (window.XEVA && XEVA.CHARS || []).filter((c) => c.file); }
+function charById(id) { return allChars().find((c) => c.id === id) || null; }
+function dupeOf(id) { const g = gachaData(); return Math.min(4, (g.dupes && g.dupes[id]) || 0); }
+function elemOf(ch) { return ELEMS[hashN(ch.id, 7) % 5]; }
+function imgOf(ch) { return ch.img ? ch.img : "../chars/" + ch.file; }   // img=スコアタ専用敵（同フォルダ）
+
+/* ── ロール（キャラごとの役割・スペック傾向。IDから決定論的） ── */
+const ROLES = {
+  striker:  { nm: "アタッカー",   sh: "star",    c: "#ff5d47", hp: 0.84, atk: 1.22, spd: 1.04, skills: ["strike", "pierce", "combo", "hex", "smite", "shatter"], bursts: ["single", "chain", "execute", "judgement", "aoe"],       d: "攻撃特化。HPは低めだが一撃が重い" },
+  guardian: { nm: "ガーディアン", sh: "shieldr", c: "#38a6ff", hp: 1.30, atk: 0.84, spd: 0.88, skills: ["guard", "buff", "strike", "rally", "ward", "phoenix"],  bursts: ["healbuf", "aoe", "overdrive", "sanctuary", "single"],  d: "超高HP。味方を護るタンク" },
+  ranger:   { nm: "レンジャー",   sh: "bolt",    c: "#2fbf71", hp: 0.90, atk: 1.02, spd: 1.26, skills: ["combo", "pierce", "drain", "siphon", "volley", "tempo"], bursts: ["chain", "single", "drainall", "tempest", "judgement"], d: "俊足。手数で押す速攻型" },
+  mage:     { nm: "メイジ",       sh: "spark",   c: "#8e6bff", hp: 0.88, atk: 1.16, spd: 0.96, skills: ["aoe", "curse", "hex", "siphon", "smite", "venom"],     bursts: ["aoe", "chain", "drainall", "cataclysm", "tempest"],    d: "全体攻撃・状態異常が得意な魔導師" },
+  cleric:   { nm: "クレリック",   sh: "cross",   c: "#f0b429", hp: 1.08, atk: 0.9,  spd: 1.0,  skills: ["heal", "guard", "rally", "mend", "ward", "tempo", "phoenix"], bursts: ["healbuf", "single", "overdrive", "sanctuary", "chain"], d: "回復・支援で味方を支える" },
+  vampire:  { nm: "ヴァンパイア", sh: "fang",    c: "#e0157a", hp: 1.02, atk: 1.10, spd: 1.06, skills: ["drain", "curse", "siphon", "hex", "venom"],            bursts: ["single", "chain", "drainall", "cataclysm", "execute"], d: "吸収と呪いで粘り強く戦う" },
+};
+const ROLE_KEYS = Object.keys(ROLES);
+function roleOf(ch) { return ROLE_KEYS[hashN(ch.id, 613) % ROLE_KEYS.length]; }
+
+/* ステータス = 基礎(ハッシュ+レア度) × ロール傾向 × 凸(+8%/凸) × レベル(+4.5%/Lv) × 装備(%+固定) */
+function baseStats(ch) {
+  const ssr = ch.rarity === "SSR";
+  const r = ROLES[roleOf(ch)];
+  const h1 = hashN(ch.id, 7), h2 = hashN(ch.id, 131), h3 = hashN(ch.id, 977);
+  return {
+    hp:  Math.round(((ssr ? 560 : 440) + h1 % 80) * r.hp),
+    atk: Math.round(((ssr ? 92 : 74) + h2 % 16) * r.atk),
+    spd: Math.round(((ssr ? 90 : 84) + h3 % 25) * r.spd),
+  };
+}
+function statsOf(ch, opt) {
+  opt = opt || {};
+  const b = baseStats(ch);
+  const dupe = opt.dupe != null ? opt.dupe : dupeOf(ch.id);
+  const lv = opt.lv != null ? opt.lv : lvOf(ch.id);
+  const eb = opt.noEquip ? { atk: 0, hp: 0, spd: 0 } : equipBonus(ch.id);
+  const m = (1 + 0.08 * dupe) * lvMult(lv) * (opt.handicap || 1);
+  return {
+    hp:  Math.round(b.hp * m * (1 + eb.hp / 100)),
+    atk: Math.round(b.atk * m * (1 + eb.atk / 100)),
+    spd: b.spd + eb.spd,
+    elem: elemOf(ch), lv, dupe, eb,
+  };
+}
+function powerOf(st) { return Math.round(st.hp / 8 + st.atk * 2 + st.spd); }
+
+/* ── スキルキット（キャラごとに決定論的に生成） ── */
+const EPRE = {
+  fire:  ["紅蓮", "炎帝", "フレア"],
+  water: ["蒼波", "アクア", "氷結"],
+  wood:  ["翠嵐", "森羅", "リーフ"],
+  light: ["聖光", "ルミナス", "天翔"],
+  dark:  ["宵闇", "シャドウ", "冥界"],
+};
+/* ── 状態異常メタ（バトル・詳細表示で共有） ── */
+const STATUS = {
+  burn:    { nm: "火傷",     ic: "🔥", c: "#ff5d47", pop: "burn" },
+  poison:  { nm: "毒",       ic: "☠️", c: "#8e6bff", pop: "poison" },
+  defdown: { nm: "防御ダウン", ic: "🩸", c: "#e0157a", pop: "" },
+  stun:    { nm: "スタン",   ic: "💫", c: "#f0b429", pop: "" },
+  shield:  { nm: "シールド", ic: "🛡️", c: "#38a6ff", pop: "shield" },
+  atkup:   { nm: "攻撃UP",   ic: "⤴️", c: "#ff8a3d", pop: "" },
+  critup:  { nm: "会心UP",   ic: "🎯", c: "#e0157a", pop: "" },
+  regen:   { nm: "リジェネ", ic: "💚", c: "#17a673", pop: "heal" },
+  atkdown: { nm: "攻撃ダウン", ic: "⤵️", c: "#5b8cff", pop: "" },
+  spdup:   { nm: "速さUP",   ic: "💨", c: "#14c8a8", pop: "" },
+  revive:  { nm: "復活の加護", ic: "💫", c: "#e8a30c", pop: "" },
+};
+const TGT_LABEL = { one: "敵単体", rand: "ランダムな敵", all: "敵全体", lowAlly: "最もHPが低い味方", allies: "味方全体", self: "自分" };
+
+/* ── 状態アイコン（自作SVG：絵文字を使わず全端末で同一表示） ── */
+const ST_GLYPH = {
+  shield:  (f) => `<path d="M12 2 L20 5 V11 Q20 18 12 22 Q4 18 4 11 V5 Z" fill="${f}"/>`,
+  atkup:   (f) => `<path d="M12 3 L19 10 H15.5 V21 H8.5 V10 H5 Z" fill="${f}"/>`,
+  atkdown: (f) => `<path d="M12 21 L5 14 H8.5 V3 H15.5 V14 H19 Z" fill="${f}"/>`,
+  critup:  (f) => `<circle cx="12" cy="12" r="8" fill="none" stroke="${f}" stroke-width="2.6"/><circle cx="12" cy="12" r="3.2" fill="${f}"/>`,
+  spdup:   (f) => `<path d="M4 4 L12 12 L4 20 Z" fill="${f}"/><path d="M12 4 L20 12 L12 20 Z" fill="${f}"/>`,
+  regen:   (f) => `<path d="M12 20 C4 14 5 6 9.5 6 Q12 6 12 9 Q12 6 14.5 6 C19 6 20 14 12 20 Z" fill="${f}"/>`,
+  burn:    (f) => `<path d="M12 2c1 4 5 6 5 11a5 5 0 01-10 0c0-2.6 1.4-4.2 2.7-5.7C10.2 9 11 9.4 12 9c.9-.4 1-2.8 0-7Z" fill="${f}"/>`,
+  poison:  (f) => `<path d="M12 3c3.6 4.6 6 7.7 6 10.6A6 6 0 016 13.6C6 10.7 8.4 7.6 12 3Z" fill="${f}"/><circle cx="10" cy="14.5" r="1.3" fill="${f}" opacity=".55"/>`,
+  defdown: (f) => `<path d="M12 2 L20 5 V11 Q20 18 12 22 Q4 18 4 11 V5 Z" fill="none" stroke="${f}" stroke-width="2.2"/><path d="M12 7 L12 13 M12 16 L12 17" stroke="${f}" stroke-width="2.4" stroke-linecap="round"/>`,
+  stun:    (f) => `<path d="M12 1.5 L14 9 21.5 12 14 15 12 22.5 10 15 2.5 12 10 9 Z" fill="${f}"/>`,
+  revive:  (f) => `<path d="M12 22 C5 16.5 6 9.5 10 9.5 Q12 9.5 12 12 Q12 9.5 14 9.5 C18 9.5 19 16.5 12 22Z" fill="${f}"/><path d="M12 7.5 V1.6 M9.4 4.2 L12 1.6 L14.6 4.2" stroke="${f}" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`,
+};
+function stIcon(t, px, color) {
+  const g = ST_GLYPH[t]; if (!g) return "";
+  const s = px || 10;
+  return `<svg viewBox="0 0 24 24" width="${s}" height="${s}" style="display:inline-block;vertical-align:-.12em;flex:none" xmlns="http://www.w3.org/2000/svg">${g(color || "#ffffff")}</svg>`;
+}
+
+/* ── アビリティ定義（構造化：対象・ヒット数・倍率・付加効果） ── */
+/* 方針：1つあたりの効果量は控えめに、そのぶん効果の種類（バリア・バフ・吸収・デバフ）を増やす
+   ※ 数値・fx構成を変えたら ../magibattle-stats.js も必ず同じ内容に更新すること */
+const SKILL_DEF = {
+  strike: { suf: "断ち",   sh: "slash", tgt: "one",     hits: 1, mult: 2.6, fx: [{ t: "defdown", val: 22, turns: 2, chance: 1 }, { t: "atkdown", val: 12, turns: 2, chance: 0.6 }] },
+  combo:  { suf: "乱撃",   sh: "combo", tgt: "rand",    hits: 3, mult: 1.3, fx: [{ t: "critup", val: 12, turns: 2, chance: 1, self: true }, { t: "spdup", val: 10, turns: 2, chance: 1, self: true }] },
+  aoe:    { suf: "の嵐",   sh: "storm", tgt: "all",     hits: 1, mult: 1.4, fx: [{ t: "burn", val: 8, turns: 2, chance: 0.7 }, { t: "defdown", val: 10, turns: 2, chance: 0.5 }] },
+  heal:   { suf: "の祈り", sh: "heart", tgt: "lowAlly", heal: 0.36,          fx: [{ t: "regen", val: 8, turns: 2, chance: 1 }, { t: "shield", val: 12, turns: 99, chance: 1 }] },
+  buff:   { suf: "の号令", sh: "flag",  tgt: "allies",                       fx: [{ t: "atkup", val: 22, turns: 3, chance: 1 }, { t: "critup", val: 10, turns: 3, chance: 1 }, { t: "spdup", val: 10, turns: 2, chance: 1 }] },
+  pierce: { suf: "貫き",   sh: "arrow", tgt: "one",     hits: 1, mult: 2.9, forceCrit: true, fx: [{ t: "stun", turns: 1, chance: 0.4 }, { t: "defdown", val: 14, turns: 2, chance: 1 }] },
+  drain:  { suf: "吸命",   sh: "fang",  tgt: "one",     hits: 1, mult: 2.1, lifesteal: 0.45, fx: [{ t: "poison", val: 7, turns: 2, chance: 0.6 }, { t: "atkdown", val: 10, turns: 2, chance: 0.5 }] },
+  guard:  { suf: "の守護", sh: "aegis", tgt: "allies",                       fx: [{ t: "shield", val: 22, turns: 99, chance: 1 }, { t: "regen", val: 6, turns: 2, chance: 1 }, { t: "atkup", val: 8, turns: 2, chance: 1 }] },
+  curse:  { suf: "の呪詛", sh: "skull", tgt: "all",     hits: 1, mult: 1.0,  fx: [{ t: "poison", val: 8, turns: 3, chance: 1 }, { t: "defdown", val: 16, turns: 2, chance: 1 }, { t: "atkdown", val: 10, turns: 2, chance: 0.7 }] },
+  // ── 吸収（ドレイン）系 ──
+  siphon: { suf: "吸収の渦", sh: "storm", tgt: "all",   hits: 1, mult: 1.3, lifesteal: 0.4, fx: [{ t: "poison", val: 6, turns: 2, chance: 0.7 }, { t: "atkdown", val: 8, turns: 2, chance: 0.5 }] },
+  // ── 支援（バフ）系 ──
+  rally:  { suf: "の鼓舞",   sh: "flag",  tgt: "allies",                     fx: [{ t: "atkup", val: 20, turns: 3, chance: 1 }, { t: "spdup", val: 16, turns: 3, chance: 1 }, { t: "shield", val: 14, turns: 99, chance: 1 }] },
+  mend:   { suf: "癒しの光",  sh: "heart", tgt: "lowAlly", heal: 0.42,        fx: [{ t: "regen", val: 10, turns: 3, chance: 1 }, { t: "atkup", val: 12, turns: 2, chance: 1 }, { t: "shield", val: 10, turns: 99, chance: 1 }] },
+  // ── 弱体（デバフ）系 ──
+  hex:    { suf: "の弱体",   sh: "skull", tgt: "all",                        fx: [{ t: "atkdown", val: 20, turns: 2, chance: 1 }, { t: "defdown", val: 16, turns: 2, chance: 1 }, { t: "poison", val: 5, turns: 2, chance: 0.7 }] },
+  volley: { suf: "連射",     sh: "bow",    tgt: "rand",    hits: 2, mult: 1.7, fx: [{ t: "spdup", val: 14, turns: 2, chance: 1, self: true }, { t: "critup", val: 10, turns: 2, chance: 1, self: true }] },
+  smite:  { suf: "の断罪",   sh: "hammer", tgt: "one",     hits: 1, mult: 2.6, fx: [{ t: "burn", val: 9, turns: 2, chance: 0.8 }, { t: "stun", turns: 1, chance: 0.25 }] },
+  venom:  { suf: "の毒牙",   sh: "fang",   tgt: "one",     hits: 1, mult: 1.6, fx: [{ t: "poison", val: 12, turns: 3, chance: 1 }, { t: "atkdown", val: 8, turns: 2, chance: 0.6 }] },
+  ward:   { suf: "の結界",   sh: "shield", tgt: "lowAlly", heal: 0.24,        fx: [{ t: "shield", val: 26, turns: 99, chance: 1 }, { t: "regen", val: 5, turns: 2, chance: 1 }] },
+  shatter:{ suf: "砕き",     sh: "axe",    tgt: "one",     hits: 1, mult: 2.2, fx: [{ t: "defdown", val: 30, turns: 2, chance: 1 }, { t: "atkdown", val: 10, turns: 2, chance: 0.5 }] },
+  tempo:  { suf: "の疾風",   sh: "arrow",  tgt: "allies",                     fx: [{ t: "spdup", val: 22, turns: 2, chance: 1 }, { t: "critup", val: 10, turns: 2, chance: 1 }, { t: "regen", val: 4, turns: 2, chance: 1 }] },
+  // ── 復活（フェニックス）系：一度だけ戦闘不能から自動復活する加護を付与 ──
+  phoenix:{ suf: "の蘇生印", sh: "heart",  tgt: "lowAlly", heal: 0.18,        fx: [{ t: "revive", val: 35, turns: 99, chance: 1 }, { t: "regen", val: 5, turns: 2, chance: 1 }] },
+};
+const BURST_DEF = {
+  single:  { suf: "・絶滅", sh: "burst1",   tgt: "one",    hits: 1, mult: 3.8, forceCrit: true, fx: [{ t: "stun", turns: 1, chance: 0.6 }, { t: "defdown", val: 20, turns: 2, chance: 1 }, { t: "shield", val: 12, turns: 99, chance: 1, self: true }] },
+  aoe:     { suf: "・天変", sh: "burstall", tgt: "all",    hits: 1, mult: 2.1, fx: [{ t: "burn", val: 10, turns: 2, chance: 1 }, { t: "defdown", val: 18, turns: 2, chance: 1 }, { t: "atkdown", val: 10, turns: 2, chance: 0.7 }] },
+  healbuf: { suf: "・福音", sh: "prism",    tgt: "allies", heal: 0.46,        fx: [{ t: "shield", val: 18, turns: 99, chance: 1 }, { t: "atkup", val: 26, turns: 3, chance: 1 }, { t: "regen", val: 8, turns: 2, chance: 1 }] },
+  chain:   { suf: "・連星", sh: "comet",    tgt: "rand",   hits: 4, mult: 1.7, fx: [{ t: "critup", val: 18, turns: 2, chance: 1, self: true }, { t: "spdup", val: 14, turns: 2, chance: 1, self: true }] },
+  // ── 吸収必殺：敵全体にダメージ＋与ダメージ吸収＋弱体 ──
+  drainall:  { suf: "・吸魂", sh: "burstall", tgt: "all",    hits: 1, mult: 2.2, lifesteal: 0.5, fx: [{ t: "poison", val: 10, turns: 3, chance: 1 }, { t: "atkdown", val: 12, turns: 2, chance: 0.7 }] },
+  // ── 覚醒必殺：味方全体を多段強化（バフ＋バリア） ──
+  overdrive: { suf: "・覚醒", sh: "prism",    tgt: "allies",                    fx: [{ t: "atkup", val: 34, turns: 3, chance: 1 }, { t: "critup", val: 20, turns: 3, chance: 1 }, { t: "spdup", val: 24, turns: 3, chance: 1 }, { t: "shield", val: 18, turns: 99, chance: 1 }] },
+  // ── 処断必殺：単体大＋多重デバフ ──
+  execute:   { suf: "・処断", sh: "burst1",   tgt: "one",    hits: 1, mult: 4.2, forceCrit: true, fx: [{ t: "defdown", val: 26, turns: 2, chance: 1 }, { t: "atkdown", val: 20, turns: 2, chance: 1 }, { t: "stun", turns: 1, chance: 0.3 }] },
+  cataclysm: { suf: "・終焉", sh: "storm",    tgt: "all",    hits: 1, mult: 2.0, fx: [{ t: "burn", val: 11, turns: 2, chance: 1 }, { t: "atkdown", val: 16, turns: 2, chance: 1 }, { t: "defdown", val: 12, turns: 2, chance: 0.7 }] },
+  judgement: { suf: "・裁き", sh: "burst1",   tgt: "one",    hits: 2, mult: 2.2, forceCrit: true, fx: [{ t: "burn", val: 9, turns: 2, chance: 1 }, { t: "defdown", val: 14, turns: 2, chance: 1 }] },
+  sanctuary: { suf: "・聖域", sh: "heart",    tgt: "allies", heal: 0.38,        fx: [{ t: "regen", val: 12, turns: 3, chance: 1 }, { t: "shield", val: 16, turns: 99, chance: 1 }, { t: "critup", val: 10, turns: 2, chance: 1 }] },
+  tempest:   { suf: "・暴風", sh: "comet",    tgt: "rand",   hits: 5, mult: 1.4, fx: [{ t: "spdup", val: 18, turns: 2, chance: 1, self: true }, { t: "critup", val: 12, turns: 2, chance: 1, self: true }] },
+};
+
+/* 詳細な効果説明（レア度でダメージ倍率が上がるので実効値を表示） */
+function fxLine(fx) {
+  const s = STATUS[fx.t]; if (!s) return "";
+  const who = fx.self ? "自分に" : (fx.t === "atkup" || fx.t === "critup" || fx.t === "shield" || fx.t === "regen" ? "対象に" : "対象へ");
+  let body;
+  if (fx.t === "burn") body = `毎ターン最大HPの${fx.val}%の火傷ダメージ（${fx.turns}T）`;
+  else if (fx.t === "poison") body = `毎ターン最大HPの${fx.val}%の毒ダメージ（${fx.turns}T）`;
+  else if (fx.t === "defdown") body = `被ダメージ+${fx.val}%（${fx.turns}T）`;
+  else if (fx.t === "stun") body = `${Math.round(fx.chance * 100)}%で${fx.turns}ターン行動不能`;
+  else if (fx.t === "shield") body = `最大HPの${fx.val}%を防ぐ盾を付与`;
+  else if (fx.t === "atkup") body = `攻撃力+${fx.val}%（${fx.turns}T）`;
+  else if (fx.t === "critup") body = `会心率+${fx.val}%（${fx.turns}T）`;
+  else if (fx.t === "regen") body = `毎ターンHP${fx.val}%回復（${fx.turns}T）`;
+  else if (fx.t === "atkdown") body = `対象の攻撃力−${fx.val}%（${fx.turns}T）`;
+  else if (fx.t === "spdup") body = `速さ+${fx.val}%（${fx.turns}T）`;
+  else if (fx.t === "revive") body = `戦闘不能になったとき<b>一度だけHP${fx.val}%で自動復活</b>する加護を付与`;
+  const chc = (fx.chance != null && fx.chance < 1 && fx.t !== "stun") ? `（${Math.round(fx.chance * 100)}%）` : "";
+  return `<span class="fxtag" style="--fc:${s.c}">${stIcon(fx.t, 10)}${s.nm}</span>${fx.self ? "自分" : ""}${body}${chc}`;
+}
+function abilityDesc(def, rar, isBurst) {
+  const boost = rar === "SSR" ? 1.28 : 1;
+  const lines = [];
+  if (def.mult) {
+    const pct = Math.round(def.mult * boost * 100);
+    const hitTx = def.hits > 1 ? ` × ${def.hits}回` : "";
+    lines.push(`<b>${TGT_LABEL[def.tgt]}</b>に <b>${pct}%</b>${hitTx} の${isBurst ? "超" : ""}ダメージ${def.forceCrit ? "（確定会心）" : ""}`);
+  }
+  if (def.heal) lines.push(`<b>${TGT_LABEL[def.tgt]}</b>のHPを <b>${Math.round(def.heal * boost * 100)}%</b> 回復`);
+  if (def.lifesteal) lines.push(`与ダメージの <b>${Math.round(def.lifesteal * 100)}%</b> だけ自分を回復`);
+  (def.fx || []).forEach((fx) => lines.push(fxLine(fx)));
+  return lines.map((l) => `<div class="dl">${l}</div>`).join("");
+}
+
+/* キャラごとの個体差：倍率・回復量・吸収率・付加効果値をIDから決定論的に変動させる
+   （同じ技タイプでもキャラによって性能が細かく異なる） */
+function varyDef(def, seed) {
+  const d = JSON.parse(JSON.stringify(def));
+  const v = (salt, lo, hi) => lo + (hashN(seed, salt) % 1000) / 1000 * (hi - lo);
+  if (d.mult) d.mult = Math.round(d.mult * v(11, 0.88, 1.14) * 100) / 100;
+  if (d.heal) d.heal = Math.round(d.heal * v(23, 0.90, 1.15) * 100) / 100;
+  if (d.lifesteal) d.lifesteal = Math.round(d.lifesteal * v(37, 0.85, 1.20) * 100) / 100;
+  if (d.hits && d.hits >= 3 && hashN(seed, 53) % 5 === 0) d.hits += 1;   // まれにヒット数+1の個体
+  (d.fx || []).forEach((fx, i) => {
+    if (fx.val) fx.val = Math.max(3, Math.round(fx.val * v(41 + i * 7, 0.85, 1.20)));
+    if (fx.turns && fx.turns < 90 && hashN(seed, 71 + i) % 4 === 0) fx.turns += 1;  // まれに効果ターン+1
+  });
+  return d;
+}
+/* ロールの技プールから決定論的に部分集合を選ぶ（キャラごとに異なる4〜5技セット） */
+function pickSet(pool, seed, count) {
+  const arr = pool.slice();
+  for (let i = arr.length - 1; i > 0; i--) { const j = hashN(seed + "_" + i, 91) % (i + 1); const t = arr[i]; arr[i] = arr[j]; arr[j] = t; }
+  return arr.slice(0, Math.min(count, arr.length));
+}
+function kitOf(ch) {
+  const el = elemOf(ch), role = ROLES[roleOf(ch)];
+  const h2 = hashN(ch.id, 733);
+  // キャラごとに スキル3〜4個・必殺技1個 を保有
+  const nSkill = 3 + (hashN(ch.id, 401) % 2);   // 3 or 4
+  const skillTypes = pickSet(role.skills, ch.id + "sk", nSkill);
+  const burstTypes = pickSet(role.bursts, ch.id + "bs", 1);   // 必殺技は1つ
+  const mk = (t, i, isBurst) => {
+    const def = varyDef((isBurst ? BURST_DEF : SKILL_DEF)[t], ch.id + (isBurst ? "-b" : "-s") + i);
+    const pre = EPRE[el][hashN(ch.id + t, isBurst ? 29 : 17) % 3];
+    return { type: t, def, sh: def.sh, nm: pre + def.suf, d: abilityDesc(def, ch.rarity, isBurst) };
+  };
+  const skills = skillTypes.map((t, i) => mk(t, i, false));
+  const bursts = burstTypes.map((t, i) => mk(t, i, true));
+  return {
+    elem: el, role: roleOf(ch),
+    normal: { nm: EPRE[el][h2 % 3] + "アタック" },
+    skills, bursts,
+    skill: skills[0], burst: bursts[0],   // 後方互換（代表表示）
+  };
+}
+/* バトル中：所有スキル/必殺技から1つ選ぶ（決定論的な偏りなくランダム） */
+function pickSkill(f) { const a = f.kit.skills; return a[(Math.random() * a.length) | 0]; }
+function pickBurst(f) { const a = f.kit.bursts; return a[(Math.random() * a.length) | 0]; }
+
+/* ══════════ アイコン（自作SVG：装備・スキル・必殺） ══════════ */
+const RAR_COL  = { N: "#93a1b5", R: "#3f9bff", SR: "#9a6bff", SSR: "#ff9f2e" };
+const RAR_COL2 = { N: "#c3ccd8", R: "#9cd2ff", SR: "#cbb0ff", SSR: "#ffd97a" };
+const GEAR_SHAPE = {
+  w1: "sword", w1b: "axe", w2: "sword", w2b: "dagger", w3: "blade", w3b: "hammer", w3c: "bow", w4: "holyblade", w4b: "wand",
+  a1: "vest", a1b: "vest", a2: "mail", a2b: "cloak", a3: "robe", a3b: "shield", a3c: "robe", a4: "scale", a4b: "dress",
+  c1: "feather", c1b: "ring", c2: "boots", c2b: "band", c3: "ring", c3b: "boots", c4: "orb", c4b: "orb",
+  wx_fire: "blade", wx_water: "dagger", wx_wood: "bow", wx_light: "wand", wx_dark: "axe",
+};
+const SLOT_SHAPE = { w: "sword", a: "vest", c: "ring" };
+
+/* 各グリフ（base=主色 / lite=ハイライト） */
+const GLYPH = {
+  // ── 武器 ──
+  sword: (c, l) => `<path d="M12 2 L14 6 V14 H10 V6 Z" fill="${l}"/><rect x="10" y="13" width="4" height="1.6" fill="${c}"/><rect x="7.5" y="14.4" width="9" height="1.8" rx=".6" fill="${c}"/><rect x="11" y="16" width="2" height="5" rx=".6" fill="${c}"/><circle cx="12" cy="21.4" r="1.3" fill="${l}"/>`,
+  blade: (c, l) => `<path d="M12 2 L15 7 V13 H9 V7 Z" fill="${l}"/><path d="M12 3 V13" stroke="${c}" stroke-width="1"/><rect x="6.5" y="13" width="11" height="2" rx=".7" fill="${c}"/><rect x="10.8" y="14.8" width="2.4" height="6" rx=".7" fill="${c}"/>`,
+  holyblade: (c, l) => `<path d="M12 1.5 L14 6 V13 H10 V6 Z" fill="${l}"/><path d="M6 13 q6 4 12 0 l-1.5 2.5 q-4.5 2.6-9 0 Z" fill="${c}"/><circle cx="12" cy="14" r="1.5" fill="${l}"/><rect x="11" y="15.5" width="2" height="6" rx=".7" fill="${c}"/>`,
+  dagger: (c, l) => `<path d="M9 3 L11 6 V13 H8.5 V6 Z" fill="${l}"/><path d="M15 3 L16.5 6 V13 H14 V6 Z" fill="${c}"/><rect x="7" y="13" width="5" height="1.6" fill="${c}"/><rect x="13" y="13" width="5" height="1.6" fill="${l}"/>`,
+  axe: (c, l) => `<rect x="11" y="3" width="2" height="18" rx=".7" fill="${c}"/><path d="M13 4 q6 1 5.5 6 q-3.5 2-5.5 1 Z" fill="${l}"/><path d="M11 4 q-6 1-5.5 6 q3.5 2 5.5 1 Z" fill="${c}"/>`,
+  hammer: (c, l) => `<rect x="11" y="9" width="2" height="12" rx=".7" fill="${c}"/><rect x="6" y="4" width="12" height="7" rx="1.4" fill="${l}"/><rect x="6" y="4" width="12" height="2.4" rx="1.2" fill="${c}"/>`,
+  bow: (c, l) => `<path d="M7 3 q9 9 0 18" fill="none" stroke="${c}" stroke-width="2.2"/><path d="M7 3 L7 21" stroke="${l}" stroke-width="1"/><path d="M5 12 H18" stroke="${l}" stroke-width="1.4"/><path d="M15 9 L19 12 L15 15" fill="${l}"/>`,
+  wand: (c, l) => `<rect x="11" y="9" width="2" height="12" rx=".7" fill="${c}"/><path d="M12 2 l1.6 3.4 3.7.4-2.8 2.5.8 3.6-3.3-1.9-3.3 1.9.8-3.6-2.8-2.5 3.7-.4Z" fill="${l}"/>`,
+  // ── 防具 ──
+  vest: (c, l) => `<path d="M12 3 L17 5 V9 L15 10 V20 H9 V10 L7 9 V5 Z" fill="${l}"/><path d="M12 3 V20" stroke="${c}" stroke-width="1"/>`,
+  mail: (c, l) => `<path d="M12 3 L17 5 V10 Q12 13 7 10 V5 Z" fill="${l}"/><path d="M9 6h6M9 8h6M9 10h6" stroke="${c}" stroke-width=".9"/><path d="M8 12 Q12 15 16 12 V19 H8 Z" fill="${c}"/>`,
+  cloak: (c, l) => `<path d="M12 3 L18 6 L15 21 H9 L6 6 Z" fill="${c}"/><path d="M9 4 H15 L14 8 H10 Z" fill="${l}"/>`,
+  robe: (c, l) => `<path d="M12 3 L16 6 V21 H8 V6 Z" fill="${l}"/><path d="M12 4 V21" stroke="${c}" stroke-width="1"/><circle cx="12" cy="8" r="1.3" fill="${c}"/>`,
+  shield: (c, l) => `<path d="M12 2 L20 5 V11 Q20 18 12 22 Q4 18 4 11 V5 Z" fill="${l}"/><path d="M12 5 L17 7 V11 Q17 16 12 19 Q7 16 7 11 V7 Z" fill="${c}"/>`,
+  scale: (c, l) => `<path d="M12 2 L20 5 V11 Q20 18 12 22 Q4 18 4 11 V5 Z" fill="${c}"/><path d="M9 8a1.5 1.5 0 013 0M12 8a1.5 1.5 0 013 0M10.5 11a1.5 1.5 0 013 0" stroke="${l}" stroke-width="1" fill="none"/>`,
+  dress: (c, l) => `<path d="M10 3 H14 L15 8 L18 20 H6 L9 8 Z" fill="${l}"/><path d="M9 8 H15" stroke="${c}" stroke-width="1"/>`,
+  // ── アクセ ──
+  feather: (c, l) => `<path d="M18 4 Q8 6 6 18 L8 20 Q14 12 18 4 Z" fill="${l}"/><path d="M17 5 L8 18" stroke="${c}" stroke-width="1"/>`,
+  ring: (c, l) => `<circle cx="12" cy="14" r="6" fill="none" stroke="${c}" stroke-width="2.6"/><path d="M12 8 l1.8 2.4 -1.8 2 -1.8-2Z" fill="${l}"/>`,
+  boots: (c, l) => `<path d="M9 3 H12 V13 H17 Q19 13 19 16 V20 H9 Z" fill="${l}"/><rect x="9" y="18" width="10" height="2.4" rx=".6" fill="${c}"/>`,
+  band: (c, l) => `<circle cx="12" cy="12" r="7" fill="none" stroke="${c}" stroke-width="2.4"/><circle cx="12" cy="5.5" r="2" fill="${l}"/>`,
+  orb: (c, l) => `<circle cx="12" cy="12" r="7.5" fill="${c}"/><circle cx="12" cy="12" r="7.5" fill="none" stroke="${l}" stroke-width="1.4"/><circle cx="9.5" cy="9.5" r="2.2" fill="${l}" opacity=".8"/>`,
+  // ── スキル / 必殺 ──
+  slash: (c, l) => `<path d="M5 19 Q14 14 20 4" fill="none" stroke="${c}" stroke-width="3" stroke-linecap="round"/><path d="M5 19 Q14 14 20 4" fill="none" stroke="${l}" stroke-width="1" stroke-linecap="round"/>`,
+  combo: (c, l) => `<path d="M4 18 Q11 13 16 5" fill="none" stroke="${c}" stroke-width="2.4" stroke-linecap="round"/><path d="M8 20 Q15 15 20 8" fill="none" stroke="${l}" stroke-width="2.4" stroke-linecap="round"/>`,
+  storm: (c, l) => `<path d="M12 4 a8 8 0 10.01 0 M12 4 a8 8 0 010 16" fill="none" stroke="${c}" stroke-width="2.4"/><circle cx="12" cy="12" r="2.4" fill="${l}"/>`,
+  heart: (c, l) => `<path d="M12 20 C4 14 5 6 9.5 6 Q12 6 12 9 Q12 6 14.5 6 C19 6 20 14 12 20 Z" fill="${c}"/><path d="M9.5 8 Q8 9 8.5 11" stroke="${l}" stroke-width="1.2" fill="none"/>`,
+  flag: (c, l) => `<rect x="6" y="3" width="1.8" height="18" rx=".7" fill="${c}"/><path d="M8 4 H19 L16 8 L19 12 H8 Z" fill="${l}"/>`,
+  arrow: (c, l) => `<path d="M3 21 L21 3" stroke="${c}" stroke-width="2.2" stroke-linecap="round"/><path d="M14 3 H21 V10" fill="none" stroke="${l}" stroke-width="2.2" stroke-linecap="round"/>`,
+  fang: (c, l) => `<path d="M8 4 Q9 12 12 16 Q15 12 16 4 Q12 7 8 4 Z" fill="${c}"/><path d="M12 16 Q13 18 12 20 Q11 18 12 16" fill="${l}"/>`,
+  aegis: (c, l) => `<path d="M12 2 L20 5 V11 Q20 18 12 22 Q4 18 4 11 V5 Z" fill="${c}"/><path d="M12 7 V16 M8 11 H16" stroke="${l}" stroke-width="2" stroke-linecap="round"/>`,
+  skull: (c, l) => `<path d="M6 10 a6 6 0 0112 0 v3 q0 2-2 2 v2 H8 v-2 q-2 0-2-2 Z" fill="${l}"/><circle cx="9.5" cy="10.5" r="1.5" fill="${c}"/><circle cx="14.5" cy="10.5" r="1.5" fill="${c}"/><rect x="11" y="13" width="2" height="3" fill="${c}"/>`,
+  burst1: (c, l) => `<path d="M12 1 L14 9 22 12 14 15 12 23 10 15 2 12 10 9 Z" fill="${c}"/><path d="M12 6 L13 11 18 12 13 13 12 18 11 13 6 12 11 11 Z" fill="${l}"/>`,
+  burstall: (c, l) => `<g stroke="${c}" stroke-width="2.2" stroke-linecap="round"><path d="M12 3 V8M12 16 V21M3 12 H8M16 12 H21M6 6 L9 9M18 6 L15 9M6 18 L9 15M18 18 L15 15"/></g><circle cx="12" cy="12" r="3.2" fill="${l}"/>`,
+  prism: (c, l) => `<path d="M4 18 Q12 2 20 18" fill="none" stroke="${c}" stroke-width="2.6"/><path d="M7 18 Q12 8 17 18" fill="none" stroke="${l}" stroke-width="2.2"/>`,
+  comet: (c, l) => `<circle cx="16" cy="8" r="4" fill="${l}"/><path d="M13 11 L3 21" stroke="${c}" stroke-width="3" stroke-linecap="round"/><path d="M15 12 L7 20" stroke="${l}" stroke-width="1.4" stroke-linecap="round"/>`,
+};
+function svgWrap(inner) { return `<svg class="mbic" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">${inner}</svg>`; }
+/* ── 育成素材アイコン（絵文字を使わず、端末差の出ない自作SVG） ── */
+function matIcon(type, px) {
+  const s = px || 15;
+  const wrap = (inner) => `<svg viewBox="0 0 24 24" width="${s}" height="${s}" style="display:inline-block;vertical-align:-.16em" xmlns="http://www.w3.org/2000/svg">${inner}</svg>`;
+  if (type === "crystal") return wrap('<path d="M12 2 L18.5 8.2 L12 22 L5.5 8.2 Z" fill="#8e6bff"/><path d="M12 2 L18.5 8.2 L12 11.5 Z" fill="#d9ccff"/><path d="M5.5 8.2 L12 11.5 L12 2 Z" fill="#a98cf5"/><path d="M5.5 8.2 H18.5" stroke="#fff" stroke-width=".7" opacity=".55"/>');
+  if (type === "stone") return wrap('<path d="M5 14.5 Q3.6 9.2 8.6 7 Q12.8 3.6 17 8 Q21.2 11 18 16.2 Q15 20.4 8.8 19 Q5 18 5 14.5 Z" fill="#9c845d"/><path d="M8.6 7 Q12.8 3.6 17 8 Q18.2 9.6 18 11.4 Q13 9 8.6 11.4 Q6.8 9 8.6 7 Z" fill="#cbb891"/>');
+  if (type === "bag") return wrap('<path d="M6 9 h12 l1 11 a2 2 0 0 1 -2 2 H7 a2 2 0 0 1 -2 -2 Z" fill="#c98a44"/><path d="M8 9 a4 4 0 0 1 8 0" fill="none" stroke="#7d5326" stroke-width="2"/><rect x="5" y="8" width="14" height="3" rx="1.4" fill="#e6ad63"/>');
+  return "";
+}
+function matLabel(type, n) { return matIcon(type) + " <b>×" + n + "</b>"; }
+function gearIcon(id) {
+  const it = ITEMS[id]; if (!it) return "";
+  const sh = GEAR_SHAPE[id] || SLOT_SHAPE[it.slot];
+  // 属性専用武器は属性カラーで描画
+  if (it.elem) return svgWrap((GLYPH[sh] || GLYPH.orb)(ELEM[it.elem].c, ELEM[it.elem].l));
+  return svgWrap((GLYPH[sh] || GLYPH.orb)(RAR_COL[it.rar], RAR_COL2[it.rar]));
+}
+function slotEmptyIcon(slot) { return svgWrap(`<g opacity=".4">${(GLYPH[SLOT_SHAPE[slot]] || GLYPH.orb)("#9aa7b8", "#c3ccd8")}</g>`); }
+function abilityIcon(sh, color, light) { return svgWrap((GLYPH[sh] || GLYPH.slash)(color, light || "#ffffff")); }
+
+/* ══════════ ホームUI ══════════ */
+const PARTY_MAX = 5, FRONT_MAX = 3;   // 前衛3＋後衛2＝計5
+/* 編成は5スロット固定（空き＝null）。キャラを外しても他のキャラの位置がズレない */
+let party = Array.isArray(DB.party) ? DB.party.slice(0, PARTY_MAX).map((id) => id || null) : [];
+while (party.length < PARTY_MAX) party.push(null);
+function partyIds() { return party.filter(Boolean); }
+let diff = 1;
+let enemyTeam = [];
+let pFilterElem = "all";   // 編成の属性フィルタ
+let pSort = "power";        // 編成の並び替え
+
+const VIEWS = ["home", "dailyview", "questsview", "towerview", "saview", "grow", "exchangeview", "dex"];
+function hideViews() { VIEWS.forEach((id) => { const el = $("#" + id); if (el) el.classList.add("off"); }); }
+function switchView(v) {
+  document.querySelectorAll(".vtabs button").forEach((b) => b.classList.toggle("on", b.dataset.v === v));
+  VIEWS.forEach((id) => { const el = $("#" + id); if (el) el.classList.toggle("off", id !== v); });
+  $("#startbar").classList.toggle("off", v !== "dailyview");   // バトル開始はデイリータブ
+  window.scrollTo(0, 0);
+  if (v === "dex") renderDex();
+  if (v === "grow") renderGrow();
+  if (v === "exchangeview") renderGearEx();
+  if (v === "dailyview") renderDailies();
+  if (v === "questsview") renderQuests();
+  if (v === "towerview") renderTower();
+  if (v === "saview") { renderSaBest(); renderSaRank(); }
+}
+
+/* ── 編成ダイアル：正五角形の円形配置（上3=前衛・下2=控え）。メダル2タップで入れ替え ── */
+/* スロット位置（%）：0,1,2=上の弧（前衛）／3,4=下の弧（控え） */
+const DIAL_POS = [[15, 30], [50, 13], [85, 30], [70, 80], [30, 80]];
+const DIAL_LBL = ["前1", "前2", "前3", "後1", "後2"];
+function dialCenterHTML() {
+  return `<div class="dial-c">${svgWrap(GLYPH.sword("#9fb4cc", "#c9d6e6"))}上3人が<b>前衛</b><br>下2人が控え</div>`;
+}
+let fwPick = -1;
+function fwSlotHTML(i) {
+  const ch = party[i] ? charById(party[i]) : null;
+  const mx = ch && ch.rarity === "SSR" && dupeOf(ch.id) >= 4 ? " mx" : "";
+  const p = DIAL_POS[i];
+  return `<div class="fwm${i < FRONT_MAX ? " front" : ""}${i === fwPick ? " picked" : ""}${ch ? "" : " empty"}${mx}" data-fw="${i}" style="left:${p[0]}%;top:${p[1]}%">
+    <span class="dpos${i < FRONT_MAX ? " front" : ""}">${DIAL_LBL[i]}</span>
+    ${ch ? `<img src="${imgOf(ch)}" alt="${ch.name}"><span class="fwn">${ch.name}</span>`
+         : `<span class="fwslot">＋</span><span class="fwn">&nbsp;</span>`}</div>`;
+}
+function renderFormWheel() {
+  const box = $("#fwheel"); if (!box) return;
+  box.innerHTML = `<div class="dial">${party.map((_, i) => fwSlotHTML(i)).join("")}${dialCenterHTML()}</div>`;
+}
+function renderParty() {
+  const owned = ownedIds();
+  party = party.map((id) => (id && owned[id] && charById(id)) ? id : null);   // 所持しなくなった枠は空きに（位置は保つ）
+  renderFormWheel();
+  const grid = $("#pgrid");
+  let list = Object.keys(owned).map(charById).filter(Boolean);
+  // 属性フィルタ
+  if (pFilterElem !== "all") list = list.filter((ch) => elemOf(ch) === pFilterElem);
+  // 並び替え
+  const cmp = {
+    power:   (a, b) => powerOf(statsOf(b)) - powerOf(statsOf(a)),
+    level:   (a, b) => lvOf(b.id) - lvOf(a.id) || powerOf(statsOf(b)) - powerOf(statsOf(a)),
+    rarity:  (a, b) => (a.rarity === b.rarity ? lvOf(b.id) - lvOf(a.id) : a.rarity === "SSR" ? -1 : 1),
+    element: (a, b) => ELEMS.indexOf(elemOf(a)) - ELEMS.indexOf(elemOf(b)) || powerOf(statsOf(b)) - powerOf(statsOf(a)),
+  }[pSort];
+  if (cmp) list.sort(cmp);
+  grid.innerHTML = list.map((ch) => {
+    const d = dupeOf(ch.id), st = statsOf(ch);
+    const pos = party.indexOf(ch.id);
+    const posBadge = pos >= 0 ? `<span class="posb ${pos < FRONT_MAX ? "front" : "back"}">${pos < FRONT_MAX ? "前" + (pos + 1) : "後" + (pos - FRONT_MAX + 1)}</span>` : "";
+    return `<div class="pchar${pos >= 0 ? " sel" : ""}${d >= 4 && ch.rarity === "SSR" ? " mx" : ""}" data-id="${ch.id}">
+      <span class="lvb">Lv.${st.lv}</span>
+      ${d ? `<span class="dupe">${d >= 4 ? "★完凸" : "+" + d + "凸"}</span>` : ""}
+      ${posBadge}
+      <img src="${imgOf(ch)}" alt="${ch.name}">
+      <span class="info" data-info="${ch.id}">ⓘ</span>
+      <span class="elem">${ELEM[st.elem].ic}</span>
+      <div class="nm">${ch.name}</div>
+      <div class="pw">戦力 ${powerOf(st)}</div>
+    </div>`;
+  }).join("") || '<p class="note">キャラがいません。ガチャでキャラを入手しよう！</p>';
+  $("#pcount").textContent = `${partyIds().length} / ${PARTY_MAX}（前衛${FRONT_MAX}・後衛${PARTY_MAX - FRONT_MAX}）`;
+  updateStartBtn();
+}
+function updateStartBtn() {
+  const left = playsLeft(diff), noParty = partyIds().length === 0;
+  const btn = $("#start-btn"); if (!btn) return;
+  btn.disabled = noParty || left <= 0;
+  btn.textContent = left <= 0
+    ? `😴 ${DIFF_NAME[diff]} 本日の挑戦終了`
+    : `⚔️ バトル開始！（${DIFF_NAME[diff]} 残り ${left}/${PLAYS_PER_DAY}）`;
+}
+$("#pfilter").addEventListener("click", (e) => {
+  const b = e.target.closest("button"); if (!b) return;
+  pFilterElem = b.dataset.el;
+  document.querySelectorAll("#pfilter button").forEach((x) => x.classList.toggle("on", x === b));
+  renderParty();
+});
+$("#psort").addEventListener("change", (e) => { pSort = e.target.value; renderParty(); });
+/* おまかせ編成：戦力の高い順に前衛3・後衛2をセット */
+$("#autoparty").addEventListener("click", () => {
+  const owned = ownedIds();
+  const best = Object.keys(owned).map(charById).filter(Boolean)
+    .sort((a, b) => powerOf(statsOf(b)) - powerOf(statsOf(a)))
+    .slice(0, PARTY_MAX).map((c) => c.id);
+  while (best.length < PARTY_MAX) best.push(null);
+  party = best; fwPick = -1;
+  DB.party = party; dbSave(); renderParty();
+});
+$("#fwheel").addEventListener("click", (e) => {
+  const m = e.target.closest("[data-fw]"); if (!m) return;
+  const idx = +m.dataset.fw;
+  if (fwPick < 0) {                       // 1体目を選択
+    if (party[idx]) { fwPick = idx; renderFormWheel(); }
+    return;
+  }
+  if (fwPick === idx) { fwPick = -1; renderFormWheel(); return; }   // 同じ場所 → 解除
+  [party[fwPick], party[idx]] = [party[idx], party[fwPick]];   // 入れ替え（空きスロットへの移動もOK）
+  fwPick = -1;
+  DB.party = party; dbSave();
+  renderParty();
+});
+$("#pgrid").addEventListener("click", (e) => {
+  const info = e.target.closest("[data-info]");
+  if (info) { openDetail(info.dataset.info); e.stopPropagation(); return; }
+  const el = e.target.closest(".pchar"); if (!el) return;
+  const id = el.dataset.id;
+  if (party.includes(id)) party[party.indexOf(id)] = null;   // 外しても他のキャラはズレない
+  else { const slot = party.indexOf(null); if (slot < 0) return; party[slot] = id; }
+  DB.party = party; dbSave(); renderParty();
+});
+
+/* ── 図鑑（絞り込み：属性・レア度・所持・ロール ／ 並び替え） ── */
+let dexElem = "all", dexRar = "all", dexOwn = "all", dexRole = "all", dexSort = "rarity";
+/* ロール絞り込みボタンを生成（ROLESから自動） */
+function paintRoleFilter() {
+  const box = $("#dfrole"); if (!box) return;
+  box.innerHTML = `<button data-role="all" class="on tx">全ロール</button>` +
+    ROLE_KEYS.map((k) => `<button data-role="${k}" class="tx" style="color:${ROLES[k].c}">${ROLES[k].nm}</button>`).join("");
+}
+function renderDex() {
+  const owned = ownedIds();
+  const all = allChars();
+  const have = all.filter((ch) => owned[ch.id]).length;
+  let list = all.slice();
+  if (dexElem !== "all") list = list.filter((ch) => elemOf(ch) === dexElem);
+  if (dexRar !== "all") list = list.filter((ch) => ch.rarity === dexRar);
+  if (dexOwn === "own") list = list.filter((ch) => owned[ch.id]);
+  if (dexOwn === "no") list = list.filter((ch) => !owned[ch.id]);
+  if (dexRole !== "all") list = list.filter((ch) => roleOf(ch) === dexRole);
+  const cmp = {
+    rarity:  (a, b) => (a.rarity === b.rarity ? powerOf(statsOf(b)) - powerOf(statsOf(a)) : a.rarity === "SSR" ? -1 : 1),
+    power:   (a, b) => powerOf(statsOf(b)) - powerOf(statsOf(a)),
+    level:   (a, b) => lvOf(b.id) - lvOf(a.id) || powerOf(statsOf(b)) - powerOf(statsOf(a)),
+    element: (a, b) => ELEMS.indexOf(elemOf(a)) - ELEMS.indexOf(elemOf(b)) || powerOf(statsOf(b)) - powerOf(statsOf(a)),
+    role:    (a, b) => ROLE_KEYS.indexOf(roleOf(a)) - ROLE_KEYS.indexOf(roleOf(b)) || powerOf(statsOf(b)) - powerOf(statsOf(a)),
+    name:    (a, b) => String(a.name).localeCompare(String(b.name), "ja"),
+  }[dexSort];
+  if (cmp) list.sort(cmp);
+  $("#dexgrid").innerHTML = list.map((ch) => {
+    const own = !!owned[ch.id];
+    const el = elemOf(ch);
+    return `<div class="dchar${own ? "" : " no"}${own && ch.rarity === "SSR" && dupeOf(ch.id) >= 4 ? " mx" : ""}" data-id="${ch.id}">
+      ${own ? `<span class="lvb">Lv.${lvOf(ch.id)}</span>` : ""}
+      <span class="rar${ch.rarity === "SSR" ? "" : " sr"}">${ch.rarity}</span>
+      <img src="${imgOf(ch)}" alt="${ch.name}">
+      <span class="elem">${ELEM[el].ic}</span>
+      <div class="nm">${ch.name}</div>
+    </div>`;
+  }).join("") || '<p class="note" style="grid-column:1/-1;text-align:center">条件に合うキャラがいません</p>';
+  $("#dexcount").textContent = `${have} / ${all.length} 体`;
+}
+$("#dexgrid").addEventListener("click", (e) => {
+  const el = e.target.closest(".dchar"); if (el) openDetail(el.dataset.id);
+});
+/* 図鑑フィルタの配線 */
+function dexFilterWire(boxSel, attr, set) {
+  const box = $(boxSel); if (!box) return;
+  box.addEventListener("click", (e) => {
+    const b = e.target.closest("button"); if (!b) return;
+    set(b.dataset[attr]);
+    box.querySelectorAll("button").forEach((x) => x.classList.toggle("on", x === b));
+    renderDex();
+  });
+}
+dexFilterWire("#dfelem", "el", (v) => { dexElem = v; });
+dexFilterWire("#dfrar", "rar", (v) => { dexRar = v; });
+dexFilterWire("#dfown", "own", (v) => { dexOwn = v; });
+dexFilterWire("#dfrole", "role", (v) => { dexRole = v; });
+(function () { const s = $("#dsort"); if (s) s.addEventListener("change", (e) => { dexSort = e.target.value; renderDex(); }); })();
+
+/* ── キャラ詳細（ステータス・スキル・装備） ── */
+let detailId = null;
+function openDetail(id) {
+  const ch = charById(id); if (!ch) return;
+  detailId = id;
+  const own = !!ownedIds()[id];
+  const st = statsOf(ch);
+  const kit = kitOf(ch);
+  const E = ELEM[st.elem];
+  const xp = xpOf(id), lv = st.lv;
+  const cur = xp - xpForLv(lv), need = xpForLv(lv + 1) - xpForLv(lv);
+  const xpPct = lv >= MAX_LV ? 100 : Math.min(100, Math.round(cur / need * 100));
+  const eq = equipOf(id);
+  let pips = "";
+  for (let i = 1; i <= 4; i++) pips += `<div class="pip${st.dupe >= i ? " on" : ""}">${i}</div>`;
+  const ebTx = (v, u) => v ? `<i>+${v}${u}</i>` : "<i></i>";
+  const role = ROLES[roleOf(ch)];
+  const slotRow = (s) => {
+    const it = ITEMS[eq[s]];
+    return `<div class="eq-slot" ${own ? `onclick="openEquip('${id}','${s}')"` : ""}>
+      <div class="ic gear">${eq[s] ? gearIcon(eq[s]) : slotEmptyIcon(s)}</div>
+      <div>${it
+        ? `<div class="en">${it.nm}<span class="rartag ${it.rar}">${it.rar}</span></div><div class="eb">${itemBonusText(it)}</div>`
+        : `<div class="en">${SLOT_NM[s]}</div><div class="empty">${own ? "未装備（タップして装備）" : "—"}</div>`}</div>
+      ${own ? '<div class="go">›</div>' : ""}
+    </div>`;
+  };
+  const skillRow = (label, labelColor, nm, icHTML, d) =>
+    `<div class="sk-row"><div class="ic sk" style="background:${labelColor}">${icHTML}</div>
+      <div><div class="sn">${nm}<small style="background:${labelColor}">${label}</small></div><div class="sd">${d}</div></div></div>`;
+  $("#detailCard").innerHTML = `
+    <div class="dt-hero${own ? "" : " no"}">
+      <img src="${imgOf(ch)}" alt="${ch.name}">
+      <div class="grad"></div>
+      <div class="chips"><span class="chip ${ch.rarity === "SSR" ? "ssr" : "sr"}">${ch.rarity === "SSR" ? "⭐⭐⭐ SSR" : "⭐⭐ SR"}</span>${own ? "" : '<span class="chip" style="background:#7a8aa5">未所持</span>'}</div>
+      <div class="x" onclick="document.getElementById('detailOv').classList.remove('open')">✕</div>
+    </div>
+    <div class="dt-body">
+      <div class="dt-nm">${ch.name} <span class="el" style="background:${E.c}">${E.ic} ${E.nm}属性</span> <span class="el role" style="background:${role.c}">${role.nm}</span></div>
+      <div class="dt-role">${role.d}</div>
+      ${own ? `
+      <div class="dt-lv">Lv.${lv}<div class="xpbar"><div class="xpfill" style="width:${xpPct}%"></div></div>
+        <span class="xtx">${lv >= MAX_LV ? "MAX" : cur + " / " + need}</span></div>
+      <div class="dt-pips">${pips}<span class="ptx">${st.dupe > 0 ? st.dupe + "凸（重複入手・交換所で強化）" : "無凸（ガチャ重複・交換所で凸強化）"}</span></div>` : `
+      <div class="dt-pips"><span class="ptx">ガチャで入手すると育成・装備ができます（参考：Lv.1 のステータス）</span></div>`}
+      <div class="dt-stats">
+        <div class="st"><span>HP</span><b>${st.hp.toLocaleString()}</b>${ebTx(st.eb.hp, "%")}</div>
+        <div class="st"><span>攻撃</span><b>${st.atk}</b>${ebTx(st.eb.atk, "%")}</div>
+        <div class="st"><span>速さ</span><b>${st.spd}</b>${ebTx(st.eb.spd, "")}</div>
+        <div class="st"><span>戦力</span><b>${powerOf(st)}</b><i></i></div>
+      </div>
+      <div class="dt-sec">🗡 通常攻撃</div>
+      ${skillRow("通常", "#9aa7b8", kit.normal.nm, abilityIcon("slash", "#eef2f7", "#ffffff"), '<div class="dl"><b>敵単体</b>に <b>100%</b> のダメージ（会心率 12%）</div>')}
+      <div class="dt-sec">⚡ スキル（${kit.skills.length}種・発動時ランダム）</div>
+      ${kit.skills.map((sk) => skillRow("スキル", E.c, sk.nm, abilityIcon(sk.sh, "#ffffff", "#ffffff"), sk.d + `<div class="dl proc">発動率 ${ch.rarity === "SSR" ? 34 : 26}%</div>`)).join("")}
+      <div class="dt-sec">✦ 必殺技</div>
+      ${kit.bursts.map((bu) => skillRow("必殺", "#e0157a", bu.nm, abilityIcon(bu.sh, "#ffffff", "#ffffff"), bu.d + '<div class="dl proc">バースト100%で発動</div>')).join("")}
+      <div class="dt-sec">🛡️ 装備 ${own ? `<button class="eq-auto" onclick="autoEquip('${id}')">⚙ おまかせ装備</button>` : ""}</div>
+      <div class="eq-rows">${slotRow("w")}${slotRow("a")}${slotRow("c")}</div>
+    </div>`;
+  $("#detailOv").classList.add("open");
+}
+
+/* ── 装備ピッカー（他キャラが装備中のものも表示し、タップで移動できる） ── */
+function openEquip(charId, slot) {
+  const eq = equipOf(charId);
+  const ch = charById(charId);
+  const ownedItems = Object.keys(DB.inv).filter((k) => DB.inv[k] > 0 && ITEMS[k] && ITEMS[k].slot === slot)
+    .sort((a, b) => gearScore(ITEMS[b], ch) - gearScore(ITEMS[a], ch));
+  const rows = ownedItems.map((k) => {
+    const it = ITEMS[k], sel = eq[slot] === k;
+    const avail = availCount(k, charId);       // このキャラ視点の空き在庫
+    let tag;
+    if (sel) tag = "装備中";
+    else if (avail > 0) tag = "空き ×" + avail;
+    else {
+      const h = holderOf(k, charId), hn = h && charById(h.cid);
+      tag = `<span style="color:#e08600;font-weight:900">${hn ? hn.name : "他キャラ"}から移動</span>`;
+    }
+    return `<div class="eq-item${sel ? " sel" : ""}" onclick="setEquip('${charId}','${slot}','${k}')">
+      <div class="ic gear">${gearIcon(k)}</div>
+      <div><div class="en">${it.nm}<span class="rartag ${it.rar}">${it.rar}</span></div><div class="eb">${itemBonusText(it)}</div></div>
+      <div class="cnt">${tag}</div></div>`;
+  }).join("");
+  $("#equipCard").innerHTML = `
+    <div class="ovtitle">${SLOT_NM[slot]}をえらぶ</div>
+    <div class="dt-body">
+      <p class="note" style="margin:6px 0 0">オレンジ表記の装備は<b>他のキャラが装備中</b>。タップするとこのキャラへ移動します。</p>
+      <div class="eq-list">
+        <div class="eq-item${!eq[slot] ? " sel" : ""}" onclick="setEquip('${charId}','${slot}',null)">
+          <div class="ic gear">${slotEmptyIcon(slot)}</div><div><div class="en">はずす</div><div class="eb" style="color:var(--faint)">装備なし</div></div></div>
+        ${rows || '<p class="note" style="text-align:center">この部位の装備をまだ持っていません。<br>素材クエストの強化石で交換できます！</p>'}
+      </div>
+    </div>`;
+  $("#equipOv").classList.add("open");
+}
+function setEquip(charId, slot, itemId) {
+  if (!DB.equip[charId]) DB.equip[charId] = {};
+  // 在庫が他キャラで埋まっている場合は、そのキャラから外して移動する
+  if (itemId && DB.equip[charId][slot] !== itemId && availCount(itemId, charId) <= 0) {
+    const h = holderOf(itemId, charId);
+    if (!h) return;
+    delete DB.equip[h.cid][h.s];
+  }
+  if (itemId) DB.equip[charId][slot] = itemId; else delete DB.equip[charId][slot];
+  dbSave();
+  $("#equipOv").classList.remove("open");
+  renderParty();
+  openDetail(charId);
+}
+/* おまかせ装備：3部位に「空いている中で最強」を自動セット（他キャラからは奪わない） */
+function autoEquip(charId) {
+  const ch = charById(charId); if (!ch) return;
+  if (!DB.equip[charId]) DB.equip[charId] = {};
+  ["w", "a", "c"].forEach((slot) => {
+    const cur = DB.equip[charId][slot];
+    let bestK = cur || null, bestS = cur && ITEMS[cur] ? gearScore(ITEMS[cur], ch) : -1;
+    Object.keys(DB.inv).forEach((k) => {
+      const it = ITEMS[k];
+      if (!it || it.slot !== slot || (DB.inv[k] || 0) <= 0) return;
+      if (k !== cur && availCount(k, charId) <= 0) return;
+      const s = gearScore(it, ch);
+      if (s > bestS) { bestS = s; bestK = k; }
+    });
+    if (bestK) DB.equip[charId][slot] = bestK;
+  });
+  dbSave(); renderParty(); openDetail(charId);
+}
+
+/* ── 敵チーム（難易度ごとの日替わり固定＝プレイヤーは変更不可）
+   神話・超越＝SSR3体／それ以外＝SSR1〜2体（毎日ランダム） ── */
+function rollEnemies() {
+  const pool = allChars();
+  enemyTeam = [];
+  if (!pool.length) { renderEnemies(); return; }
+  const rnd = seededRng(today + "-diff" + diff);
+  const shuf = (arr) => { const a = arr.slice(); for (let i = a.length - 1; i > 0; i--) { const j = (rnd() * (i + 1)) | 0; [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const ssr = shuf(pool.filter((c) => c.rarity === "SSR"));
+  const sr  = shuf(pool.filter((c) => c.rarity !== "SSR"));
+  const nSsr = diff >= 6 ? 3 : 1 + ((rnd() * 2) | 0);   // 神話・超越=3体／他=1〜2体
+  let team = ssr.slice(0, nSsr).concat(sr.slice(0, 3 - nSsr));
+  if (team.length < 3) team = team.concat(shuf(pool.filter((c) => !team.includes(c))).slice(0, 3 - team.length));   // 足りない場合の保険
+  enemyTeam = shuf(team);
+  renderEnemies();
+}
+function renderEnemies() {
+  const elv = ENEMY_LV[diff];
+  $("#erow").innerHTML = enemyTeam.map((ch) => {
+    const el = elemOf(ch);
+    return `<div class="ec"><span class="lvb">Lv.${elv}</span><img src="${imgOf(ch)}" alt="${ch.name}"><div class="nm">${ELEM[el].ic} ${ch.name}</div></div>`;
+  }).join("");
+}
+$("#diffseg").addEventListener("click", (e) => {
+  const b = e.target.closest("button"); if (!b) return;
+  diff = +b.dataset.d;
+  document.querySelectorAll("#diffseg button").forEach((x) => x.classList.toggle("on", x === b));
+  rollEnemies();
+  updateStartBtn();
+});
+
+function renderDailies() {
+  $("#dailies").innerHTML = DIFFS.map((d) => {
+    const done = !!DB.wins[d];
+    const left = playsLeft(d);
+    return `<div class="dchip${done ? " done" : ""}${left <= 0 ? " out" : ""}">
+      <b>${done ? "✓ 受取済" : "+" + REWARDS[d]}</b>
+      <span>${DIFF_NAME[d]}</span>
+      <small class="plays">挑戦 ${left}/${PLAYS_PER_DAY}</small></div>`;
+  }).join("");
+}
+function renderBalance() { try { $("#balance").textContent = (window.XEVA ? XEVA.getBalance() : 0).toLocaleString(); } catch (e) {} }
+
+/* ══════════ バトル ══════════ */
+let F = [];
+let speed = 1, skipped = false, battling = false;
+let retreat = false;   // バトル中断（敗北あつかい）
+let rewind = false;    // 最初からやり直し（挑戦回数を消費しない）
+let autoMode = false;   // オート戦闘：バースト自動発動
+let saMode = false, saScore = 0, saEndAt = 0;   // スコアアタック（200秒・敵は不死身）
+let questKey = null;                             // 実行中の素材クエスト（null=通常バトル）
+let lastQuestKey = null;                          // 直前に遊んだ素材クエスト（「もう一度」用）
+let towerFloor = 0, towerNextFloor = 0;          // 無限の塔（0=非タワー戦）
+
+function makeFighter(ch, side, i, active) {
+  const st = side === "ally"
+    ? statsOf(ch)
+    : statsOf(ch, { dupe: 0, lv: ENEMY_LV[diff], noEquip: true, handicap: ENEMY_HANDICAP[diff] || 0.94 });
+  const ssr = ch.rarity === "SSR";
+  return {
+    ch, side, i, uid: (side === "ally" ? "a" : "e") + i,
+    elem: st.elem, lv: st.lv, kit: kitOf(ch), rar: ch.rarity, role: roleOf(ch),
+    maxhp: st.hp, hp: st.hp, atk: st.atk, spd: st.spd,
+    burst: 0, buffMult: 1, buffLeft: 0, alive: true, dmgDealt: 0,
+    active: active !== false, // 前衛(true)/控え(false)。敵は常に true
+    shield: 0, st: {}, // シールド量・状態異常タイマー
+    // SSR はスキル・必殺技が強く、発動しやすい（SR比）
+    skillMul: ssr ? 1.28 : 1.0,
+    procRate: ssr ? 0.34 : 0.26,
+    burstGain: ssr ? 1.15 : 1.0,
+  };
+}
+function cardHTML(f) {
+  const isAlly = f.side === "ally";
+  const mx = isAlly && f.ch.rarity === "SSR" && dupeOf(f.ch.id) >= 4 ? " mx" : "";
+  return `<div class="bc ${f.side === "enemy" ? "enemy" : "ally"}${mx}" id="bc-${f.uid}" data-uid="${f.uid}">
+    <span class="lvb">Lv.${f.lv}</span>
+    <span class="elem">${ELEM[f.elem].ic}</span>
+    <div class="stfx" id="fx-${f.uid}"></div>
+    <img src="${imgOf(f.ch)}" alt="${f.ch.name}">
+    ${isAlly ? `<button class="burstbtn" data-burst="${f.uid}">✦ ${f.kit.bursts[0].nm}</button>` : ""}
+    <div class="nm">${f.ch.name}</div>
+    <div class="hpbar"><div class="hpfill" id="hp-${f.uid}" style="width:100%"></div></div>
+    <div class="hpnum" id="hpn-${f.uid}"></div>
+    <div class="sbar"><i id="sh-${f.uid}"></i></div>
+    <div class="bbar"><div class="bfill" id="bs-${f.uid}" style="width:0%"></div></div>
+  </div>`;
+}
+function updateHP(f) {
+  const el = document.getElementById(`hp-${f.uid}`); if (!el) return;
+  const r = Math.max(0, f.hp / f.maxhp);
+  el.style.width = (r * 100) + "%";
+  el.classList.toggle("low", r < 0.35);
+  // 残りHPを数値でも表示（バリアがあれば +青字 で追記）
+  const n = document.getElementById(`hpn-${f.uid}`);
+  if (n) n.innerHTML = Math.max(0, Math.ceil(f.hp)).toLocaleString() + " / " + f.maxhp.toLocaleString() +
+    (f.shield > 0 ? ` <b>+${Math.round(f.shield).toLocaleString()}</b>` : "");
+  // バリア残量（水色バー）：最大HP比で表示
+  const sh = document.getElementById(`sh-${f.uid}`);
+  if (sh) sh.style.width = Math.min(100, Math.max(0, (f.shield || 0) / f.maxhp * 100)) + "%";
+  const card = document.getElementById(`bc-${f.uid}`);
+  if (card) card.classList.toggle("dead", !f.alive);
+}
+/* 受けている効果（バリア・バフ・デバフ・状態異常）をバッジで常時表示（自作SVG） */
+function statusList(f) {
+  const st = f.st || {}, out = [];
+  if (f.shield > 0) out.push({ k: "shield", tx: Math.round(f.shield) });
+  if (f.buffLeft > 0 && f.buffMult > 1) out.push({ k: "atkup", tx: Math.round((f.buffMult - 1) * 100) + "%" });
+  if (st.critT > 0) out.push({ k: "critup", tx: st.critT });
+  if (st.suT > 0)   out.push({ k: "spdup", tx: st.suT });
+  if (st.regT > 0)  out.push({ k: "regen", tx: st.regT });
+  if (st.burnT > 0) out.push({ k: "burn", tx: st.burnT });
+  if (st.poiT > 0)  out.push({ k: "poison", tx: st.poiT });
+  if (st.ddT > 0)   out.push({ k: "defdown", tx: st.ddT });
+  if (st.adT > 0)   out.push({ k: "atkdown", tx: st.adT });
+  if (st.stunT > 0) out.push({ k: "stun", tx: st.stunT });
+  if (st.revive > 0) out.push({ k: "revive", tx: st.revive + "%" });
+  return out;
+}
+function updateFxBadges(f) {
+  const el = document.getElementById(`fx-${f.uid}`); if (!el) return;
+  el.innerHTML = statusList(f).slice(0, 6).map((s) =>
+    `<span class="fxb" style="--fc:${STATUS[s.k].c}">${stIcon(s.k, 9)}${s.tx}</span>`).join("");
+}
+function updateBurst(f) {
+  const el = document.getElementById(`bs-${f.uid}`); if (!el) return;
+  el.style.width = Math.min(100, f.burst) + "%";
+  el.classList.toggle("full", f.burst >= 100);
+  if (f.side === "ally") refreshBurstBtn(f);
+}
+function updateBuff(f) { updateFxBadges(f); }
+// 満タンかつ前衛の生存味方に「必殺技」ボタンを表示
+function refreshBurstBtn(f) {
+  const card = document.getElementById(`bc-${f.uid}`); if (!card) return;
+  card.classList.toggle("canburst", f.side === "ally" && f.active && f.alive && f.burst >= 100 && !wheelOpen);
+}
+function refreshAllBurstBtns() { F.forEach((f) => { if (f.side === "ally") refreshBurstBtn(f); }); }
+function blogAdd(html) { const b = $("#blog"); b.insertAdjacentHTML("beforeend", `<div>${html}</div>`); b.scrollTop = b.scrollHeight; }
+function popText(f, text, cls, isHTML) {
+  const card = document.getElementById(`bc-${f.uid}`); if (!card) return;
+  const s = document.createElement("span"); s.className = "dmg " + (cls || "");
+  if (isHTML) s.innerHTML = text; else s.textContent = text;
+  card.appendChild(s); setTimeout(() => s.remove(), 850);
+}
+function elemBurstFx(f, color) {
+  const card = document.getElementById(`bc-${f.uid}`); if (!card || skipped) return;
+  const s = document.createElement("span"); s.className = "eburst";
+  s.style.background = `radial-gradient(circle, ${color}aa, transparent 70%)`;
+  card.appendChild(s); setTimeout(() => s.remove(), 520);
+}
+function hitFx(t) {
+  if (skipped) return;
+  const tc = document.getElementById(`bc-${t.uid}`);
+  if (tc) { tc.classList.add("hit"); setTimeout(() => tc.classList.remove("hit"), 300); }
+}
+function shake() { if (skipped) return; const a = $("#arena"); a.classList.remove("shake"); void a.offsetWidth; a.classList.add("shake"); }
+function flash(isFoe) { if (skipped) return; const f = $("#flash"); f.classList.remove("on"); f.classList.toggle("foe", !!isFoe); void f.offsetWidth; f.classList.add("on"); }
+const wait = (ms) => new Promise((r) => setTimeout(r, skipped ? 0 : ms / speed));
+
+/* スキル/必殺技の発動ポップ（画面左からスライドイン） */
+function skillPop(f, name, kind) {
+  if (skipped) return;
+  sfx(kind === "burst" ? "burst" : "skill");
+  const wrap = $("#skpops"); if (!wrap) return;
+  const el = document.createElement("div");
+  el.className = "skpop";
+  el.style.setProperty("--sc", kind === "burst" ? "#e0157a" : ELEM[f.elem].c);
+  el.innerHTML = `<img src="${imgOf(f.ch)}" alt=""><div><span class="k${kind === "burst" ? " burst" : ""}">${kind === "burst" ? "✦ BURST" : "⚡ SKILL"}</span><div class="n">${name}</div></div>`;
+  wrap.appendChild(el);
+  while (wrap.children.length > 3) wrap.firstChild.remove();
+  setTimeout(() => { el.classList.add("out"); setTimeout(() => el.remove(), 320); }, 1600 / speed);
+}
+
+/* 必殺技カットイン */
+async function showCutin(f, name) {
+  if (skipped) return;
+  const foe = f.side === "enemy";
+  const c = $("#cutin"), band = $("#cutband");
+  band.style.setProperty("--cc", ELEM[f.elem].c);
+  band.classList.toggle("foe", foe);
+  band.innerHTML = `<img src="${imgOf(f.ch)}" alt=""><div class="ct"><div class="l1">${foe ? "⚠ ENEMY BURST" : "FULL BURST"}</div><div class="l2">${name}</div></div>`;
+  band.style.animation = "none"; void band.offsetWidth; band.style.animation = "";
+  c.classList.add("on");
+  flash(foe);
+  await wait(1250);
+  c.classList.remove("on");
+}
+
+function livingFoes(f) { return F.filter((x) => x.alive && x.active && x.side !== f.side); }
+function livingAllies(f) { return F.filter((x) => x.alive && x.active && x.side === f.side); }
+function gainBurst(f, n) { if (f.alive) { f.burst = Math.min(100, f.burst + n); updateBurst(f); } }
+function effSpd(f) { return Math.round(f.spd * (1 + ((f.st && f.st.suT > 0) ? (f.st.suV || 0) / 100 : 0))); } // 速さUP反映
+
+/* ══════════ 回転ホイール（前衛3・控え2）＋手動バースト ══════════ */
+let burstQueue = [];        // 手動バースト要求（uid）
+let wheel = [];             // 味方uidの回転順（先頭3つ＝前衛）
+let wheelOpen = false;
+
+/* ホイール操作中はバトルを一時停止：ループが安全地点で resume を待つ */
+let paused = false;
+let _resumeWaiters = [];
+function setPaused(p) {
+  if (paused === !!p) return;
+  paused = !!p;
+  const arena = $("#arena"); if (arena) arena.classList.toggle("paused", paused);
+  if (!paused) { const w = _resumeWaiters; _resumeWaiters = []; w.forEach((r) => r()); }
+}
+function untilResumed() { return paused ? new Promise((r) => _resumeWaiters.push(r)) : Promise.resolve(); }
+
+function activeAllies() { return F.filter((f) => f.side === "ally" && f.active); }
+function reserveAllies() { return F.filter((f) => f.side === "ally" && !f.active); }
+
+/* ホイール順から active（前衛）を再計算 */
+// wheel の先頭3つ＝前衛(active)、残り＝控え
+function applyWheel() {
+  wheel.forEach((uid, idx) => {
+    const f = F.find((x) => x.uid === uid);
+    if (f) f.active = idx < FRONT_MAX;
+  });
+}
+/* 前衛が全員戦闘不能のときだけ、生存する控えを前衛へ繰り上げ（1体でも生存なら自動交代しない） */
+function autoRotateIfWiped() {
+  const frontAlive = () => wheel.slice(0, FRONT_MAX).some((uid) => { const f = F.find((x) => x.uid === uid); return f && f.alive; });
+  const anyAlive = () => F.some((f) => f.side === "ally" && f.alive);
+  if (frontAlive() || !anyAlive()) return false;
+  // 前衛の戦闘不能者と、控えの生存者を入れ替える
+  for (let i = 0; i < FRONT_MAX && !frontAlive(); i++) {
+    const fu = F.find((x) => x.uid === wheel[i]);
+    if (fu && fu.alive) continue;
+    for (let j = FRONT_MAX; j < wheel.length; j++) {
+      const bu = F.find((x) => x.uid === wheel[j]);
+      if (bu && bu.alive) { const t = wheel[i]; wheel[i] = wheel[j]; wheel[j] = t; break; }
+    }
+  }
+  applyWheel(); renderAllyRow();
+  blogAdd(`🔄 前衛全滅！控えの <b>${activeAllies().filter((f) => f.alive).map((f) => f.ch.name).join("・") || "…"}</b> が前線へ！`);
+  return true;
+}
+
+// 前衛カード（アクティブ味方）を再描画し、状態を再適用
+// ※ ホイールの並び順どおりに描画する：交代したキャラは交代元と同じ位置に入る（左に流れない）
+function frontFighters() {
+  return wheel.slice(0, FRONT_MAX).map((uid) => F.find((x) => x.uid === uid)).filter(Boolean);
+}
+function renderAllyRow() {
+  const row = $("#brow-a"); if (!row) return;
+  const fr = frontFighters();
+  row.innerHTML = fr.map(cardHTML).join("");
+  fr.forEach((f) => { updateHP(f); updateBurst(f); updateFxBadges(f); });
+  refreshAllBurstBtns();
+}
+
+/* ── バトル中の入れ替えパネル（ダイアル式：まわすと全員がとなりへ1つずつ移動。任意の2枚交換は不可） ── */
+function wMedalHTML(uid, idx) {
+  const f = F.find((x) => x.uid === uid); if (!f) return "";
+  const ready = f.alive && f.burst >= 100;
+  const mx = f.side === "ally" && f.ch.rarity === "SSR" && dupeOf(f.ch.id) >= 4 ? " mx" : "";
+  const p = DIAL_POS[idx] || DIAL_POS[DIAL_POS.length - 1];
+  return `<div class="wmedal${idx < FRONT_MAX ? " front" : ""}${f.alive ? "" : " dead"}${ready ? " ready" : ""}${mx}" data-widx="${idx}" style="left:${p[0]}%;top:${p[1]}%">
+    <span class="dpos${idx < FRONT_MAX ? " front" : ""}">${DIAL_LBL[idx] || ""}</span>
+    <span class="winfo" data-winfo="${f.ch.id}">ⓘ</span>
+    <img src="${imgOf(f.ch)}" alt="${f.ch.name}">
+    <span class="wready">✦</span>
+    <div class="wnm">${f.ch.name}</div>
+    <div class="wgauge"><span class="wglbl">HP</span><div class="whp"><i style="width:${Math.max(0, f.hp / f.maxhp * 100)}%"></i></div></div>
+    <div class="wgauge"><span class="wglbl">技</span><div class="wbst${ready ? " full" : ""}"><i style="width:${Math.min(100, f.burst)}%"></i></div></div>
+    <div class="wdmg">与ダメ ${Math.round(f.dmgDealt || 0).toLocaleString()}</div>
+  </div>`;
+}
+function renderWheel() {
+  const box = $("#wdial"); if (!box) return;
+  box.innerHTML = wheel.map((uid, i) => wMedalHTML(uid, i)).join("") + dialCenterHTML();
+  const names = frontFighters().map((f) => f.ch.name).join("・");
+  const lbl = $("#wheelfront"); if (lbl) lbl.textContent = "前衛：" + (names || "—");
+}
+/* ダイアル回転：全員がひとつずつ隣の位置へ */
+function rotateWheel(dir) {
+  if (wheel.length < 2) return;
+  if (dir > 0) wheel.unshift(wheel.pop()); else wheel.push(wheel.shift());
+  sfx("swap");
+  applyWheel(); renderWheel(); renderAllyRow();
+}
+// パネル内タップ：ⓘ→詳細のみ（入れ替えは回転ボタンで）
+function wheelTap(e) {
+  const inf = e.target.closest("[data-winfo]");
+  if (inf) { openDetail(inf.dataset.winfo); e.stopPropagation(); }
+}
+function openWheel() {
+  if (!battling || wheelOpen) return;
+  wheelOpen = true;
+  setPaused(true);                       // 入れ替え中は一時停止
+  $("#swapb").classList.add("armed");
+  $("#wheelov").classList.add("open");
+  renderWheel();
+}
+function closeWheel() {
+  if (!wheelOpen) return;
+  wheelOpen = false;
+  $("#wheelov").classList.remove("open");
+  $("#swapb").classList.remove("armed");
+  setPaused(false);                      // 再開
+}
+// 手動バースト要求
+function requestBurst(uid) {
+  const f = F.find((x) => x.uid === uid);
+  if (!f || f.side !== "ally" || !f.active || !f.alive || f.burst < 100) return;
+  if (!burstQueue.includes(uid)) burstQueue.push(uid);
+}
+// キューに積まれた味方バーストを順に発動
+async function flushBursts() {
+  while (burstQueue.length) {
+    const uid = burstQueue.shift();
+    const f = F.find((x) => x.uid === uid);
+    if (!f || !f.alive || !f.active || f.burst < 100) continue;
+    f.burst = 0; updateBurst(f);
+    const bu = pickBurst(f);
+    await showCutin(f, bu.nm);
+    skillPop(f, bu.nm, "burst");
+    blogAdd(`${ELEM[f.elem].ic} ${nmC(f)} の必殺技 <span class="bs">${bu.nm}</span>！！`);
+    await runAbility(f, bu.def, "burst");
+    await wait(560);
+  }
+}
+
+/* ══════════ 効果音（WebAudio自作シンセ・音声ファイル不要） ══════════ */
+let AC = null;
+let sfxOn = DB.sfx !== false;   // 既定オン。🔊ボタンで切替（保存）
+function acx() {
+  if (!AC) { try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { return null; } }
+  if (AC && AC.state === "suspended") { try { AC.resume(); } catch (e) {} }
+  return AC;
+}
+function sTone(f0, f1, dur, type, vol, delay) {
+  const c = acx(); if (!c) return;
+  const t0 = c.currentTime + (delay || 0);
+  const o = c.createOscillator(), g = c.createGain();
+  o.type = type || "square";
+  o.frequency.setValueAtTime(Math.max(1, f0), t0);
+  o.frequency.exponentialRampToValueAtTime(Math.max(1, f1 || f0), t0 + dur);
+  g.gain.setValueAtTime(vol || 0.07, t0);
+  g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  o.connect(g); g.connect(c.destination);
+  o.start(t0); o.stop(t0 + dur + 0.03);
+}
+function sNoise(dur, vol, delay) {
+  const c = acx(); if (!c) return;
+  const t0 = c.currentTime + (delay || 0);
+  const b = c.createBuffer(1, Math.max(1, (c.sampleRate * dur) | 0), c.sampleRate), d = b.getChannelData(0);
+  for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
+  const n = c.createBufferSource(); n.buffer = b;
+  const g = c.createGain();
+  g.gain.setValueAtTime(vol || 0.09, t0);
+  g.gain.exponentialRampToValueAtTime(0.0001, t0 + dur);
+  n.connect(g); g.connect(c.destination); n.start(t0);
+}
+const SFX = {
+  hit()    { sTone(240, 90, 0.10, "square", 0.055); sNoise(0.07, 0.09); },
+  crit()   { sTone(420, 110, 0.16, "sawtooth", 0.075); sNoise(0.12, 0.12); sTone(880, 220, 0.12, "square", 0.045, 0.03); },
+  skill()  { sTone(520, 1040, 0.14, "triangle", 0.07); sTone(780, 1560, 0.12, "triangle", 0.05, 0.06); },
+  burst()  { sNoise(0.28, 0.10); sTone(160, 40, 0.34, "sawtooth", 0.09); sTone(660, 1320, 0.22, "square", 0.05, 0.10); },
+  heal()   { sTone(660, 990, 0.13, "sine", 0.07); sTone(880, 1320, 0.14, "sine", 0.055, 0.09); },
+  shield() { sTone(330, 495, 0.12, "triangle", 0.06); sTone(495, 660, 0.10, "triangle", 0.045, 0.07); },
+  ko()     { sTone(300, 60, 0.34, "sawtooth", 0.08); sNoise(0.20, 0.08, 0.02); },
+  revive() { sTone(440, 880, 0.16, "sine", 0.08); sTone(660, 1320, 0.16, "sine", 0.07, 0.12); sTone(880, 1760, 0.22, "sine", 0.06, 0.24); },
+  swap()   { sTone(500, 700, 0.07, "square", 0.05); sTone(700, 900, 0.07, "square", 0.05, 0.06); },
+  win()    { [523, 659, 784, 1047].forEach((f, i) => sTone(f, f, 0.16, "square", 0.07, i * 0.13)); sTone(1319, 1319, 0.32, "square", 0.06, 0.52); },
+  lose()   { [392, 349, 311, 262].forEach((f, i) => sTone(f, f, 0.20, "triangle", 0.075, i * 0.17)); },
+};
+function sfx(k) {
+  if (!sfxOn) return;
+  if (skipped && k !== "win" && k !== "lose") return;   // スキップ中は結果音のみ
+  try { if (SFX[k]) SFX[k](); } catch (e) {}
+}
+// 初回タップでAudioContextを解錠（iOS対策）
+document.addEventListener("pointerdown", function unlockAC() { acx(); }, { once: true, passive: true });
+
+/* ── 一度だけ復活（復活の加護）：戦闘不能時に自動発動 ── */
+function reviveNow(u) {
+  const pct = (u.st && u.st.revive) || 0; if (pct <= 0) return false;
+  u.st.revive = 0;
+  u.alive = true;
+  u.hp = Math.max(1, Math.round(u.maxhp * pct / 100));
+  updateHP(u); updateFxBadges(u);
+  popText(u, stIcon("revive", 15, "#e8a30c") + " 復活！", "heal", true);
+  blogAdd(`💫 <span class="hl">${u.ch.name} は復活の加護でよみがえった！（HP${pct}%）</span>`);
+  sfx("revive");
+  return true;
+}
+function checkRevive(u) {
+  if (!u.alive && !u.immortal && u.st && u.st.revive > 0) return reviveNow(u);
+  return false;
+}
+
+function dealDamage(f, t, mult, tag, opt) {
+  opt = opt || {};
+  const adv = elemMult(f.elem, t.elem);
+  const critChance = 0.12 + ((f.st && f.st.critT > 0) ? (f.st.critV || 0) / 100 : 0);
+  const crit = opt.forceCrit || Math.random() < critChance;
+  const rarMul = f.skillMul && tag && tag !== "" ? f.skillMul : 1; // SSRはスキル/必殺が強化
+  const defMul = (t.st && t.st.ddT > 0) ? (1 + (t.st.ddV || 0) / 100) : 1; // 防御ダウンで被ダメ増
+  const atkMul = (f.st && f.st.adT > 0) ? Math.max(0.2, 1 - (f.st.adV || 0) / 100) : 1; // 攻撃ダウンで与ダメ減
+  let dmg = Math.round(f.atk * f.buffMult * atkMul * (0.9 + Math.random() * 0.2) * adv * mult * rarMul * defMul * (crit ? 1.6 : 1));
+  if (!isFinite(dmg)) dmg = 0;   // NaN安全弁（倍率なし技などでHPがNaN化して不死身になるのを防ぐ）
+  // シールドで吸収
+  let absorbed = 0;
+  if (t.shield > 0) { absorbed = Math.min(t.shield, dmg); t.shield -= absorbed; dmg -= absorbed; }
+  t.hp -= dmg;
+  if (t.hp <= 0) { t.hp = 0; t.alive = false; }
+  checkRevive(t);                                    // 復活の加護：一度だけ自動復活
+  f.dmgDealt = (f.dmgDealt || 0) + dmg + absorbed;   // 与ダメージ集計（バリアで防がれた分も含む）
+  // スコアアタック：味方の与ダメージ（シールド分含む）を加算
+  if (saMode && f.side === "ally") { saScore += dmg + absorbed; updateSaHud(); }
+  // 不死身の敵（スコアタ）：HPは常に満タンに戻り、倒れない
+  if (t.immortal) { t.hp = t.maxhp; t.alive = true; }
+  hitFx(t);
+  slashFx(t, tag === "burst" ? "#e0157a" : ELEM[f.elem].c, tag);
+  if (absorbed > 0) popText(t, stIcon("shield", 13, "#38a6ff") + absorbed, "shield", true);
+  popText(t, "-" + dmg, tag === "burst" ? "burst" : crit ? "crit" : tag === "skill" ? "skill" : "");
+  elemBurstFx(t, ELEM[f.elem].c);
+  if (crit || tag === "burst") shake();
+  sfx(!t.alive ? "ko" : crit ? "crit" : "hit");
+  updateHP(t);
+  if (absorbed > 0) updateFxBadges(t);   // バリア残量バッジを更新
+  gainBurst(t, 16);
+  return { dmg, crit, adv, absorbed };
+}
+
+/* ── 状態異常の付与 ── */
+function applyFx(src, unit, fx) {
+  if (fx.chance != null && Math.random() >= fx.chance) return null;
+  const u = fx.self ? src : unit;
+  if (!u.alive) return null;
+  const st = u.st;
+  const mx = (a, b) => Math.max(a || 0, b);
+  switch (fx.t) {
+    case "burn":    st.burnT = mx(st.burnT, fx.turns); st.burnV = fx.val; break;
+    case "poison":  st.poiT = mx(st.poiT, fx.turns);  st.poiV = fx.val; break;
+    case "defdown": st.ddT = mx(st.ddT, fx.turns);    st.ddV = fx.val; break;
+    case "stun":    st.stunT = mx(st.stunT, fx.turns); break;
+    case "shield":  u.shield = Math.max(u.shield, Math.round(u.maxhp * fx.val / 100)); sfx("shield"); break;
+    case "atkup":   u.buffMult = Math.max(u.buffMult, 1 + fx.val / 100); u.buffLeft = mx(u.buffLeft, fx.turns); updateBuff(u); break;
+    case "critup":  st.critT = mx(st.critT, fx.turns); st.critV = fx.val; break;
+    case "regen":   st.regT = mx(st.regT, fx.turns);  st.regV = fx.val; break;
+    case "atkdown": st.adT = mx(st.adT, fx.turns);    st.adV = fx.val; break;   // 対象の攻撃力ダウン
+    case "spdup":   st.suT = mx(st.suT, fx.turns);    st.suV = fx.val; break;   // 速さアップ
+    case "revive":  st.revive = Math.max(st.revive || 0, fx.val); break;        // 一度だけ復活（HP％）
+  }
+  if (u !== src) { const s = STATUS[fx.t]; if (s && s.pop && u.alive) popText(u, stIcon(fx.t, 15, s.c), "", true); }
+  if (fx.t === "shield") updateHP(u);   // バリアバー反映
+  updateFxBadges(u);
+  return fx.t;
+}
+/* ターン開始時の状態処理（DoT・リジェネ・スタン）。行動可なら true */
+function tickStatus(f) {
+  const st = f.st;
+  let dot = 0;
+  if (st.burnT > 0) { dot += Math.round(f.maxhp * (st.burnV || 0) / 100); st.burnT--; }
+  if (st.poiT > 0)  { dot += Math.round(f.maxhp * (st.poiV || 0) / 100); st.poiT--; }
+  if (dot > 0) {
+    f.hp -= dot; if (f.hp <= 0) { f.hp = 0; f.alive = false; }
+    if (f.immortal) { f.hp = f.maxhp; f.alive = true; if (saMode && f.side === "enemy") { saScore += dot; updateSaHud(); } }  // 不死身：DoTもスコアに
+    checkRevive(f);   // DoTで倒れても復活の加護があればよみがえる
+    popText(f, "-" + dot, "burn"); updateHP(f);
+    blogAdd(`　🔥 ${f.ch.name} は状態異常で <b>${dot}</b> ダメージ`);
+  }
+  if (!f.alive) return false;
+  if (st.regT > 0) {
+    const h = Math.round(f.maxhp * (st.regV || 0) / 100); st.regT--;
+    f.hp = Math.min(f.maxhp, f.hp + h); popText(f, "+" + h, "heal"); updateHP(f);
+  }
+  if (st.ddT > 0) st.ddT--;
+  if (st.critT > 0) st.critT--;
+  if (st.adT > 0) st.adT--;
+  if (st.suT > 0) st.suT--;
+  if (st.stunT > 0) { st.stunT--; updateFxBadges(f); blogAdd(`💫 ${nmC(f)} はスタンで動けない！`); return false; }
+  updateFxBadges(f);
+  return true;
+}
+
+/* ── 攻撃エフェクト：斬撃ライン＋インパクト ── */
+function slashFx(t, color, tag) {
+  if (skipped) return;
+  const card = document.getElementById(`bc-${t.uid}`); if (!card) return;
+  const slash = document.createElement("span");
+  slash.className = "slashfx" + (tag === "burst" ? " big" : "");
+  slash.style.setProperty("--sc", color);
+  slash.style.setProperty("--ang", (-35 + Math.random() * 70) + "deg");
+  card.appendChild(slash);
+  setTimeout(() => slash.remove(), 400);
+  const ring = document.createElement("span");
+  ring.className = "impactfx";
+  ring.style.setProperty("--sc", color);
+  card.appendChild(ring);
+  setTimeout(() => ring.remove(), 460);
+}
+function nmC(f) { return `<b style="color:${ELEM[f.elem].c}">${f.ch.name}</b>`; }
+
+function koTx(t) { return t.alive ? "" : ` <span class="ko">${t.ch.name} はたおれた</span>`; }
+
+/* 構造化アビリティの汎用実行（スキル・必殺共通） */
+async function runAbility(f, def, tag) {
+  const boost = f.rar === "SSR" ? f.skillMul : 1;
+  if (def.tgt === "one" || def.tgt === "rand") {
+    let fixed = null;
+    for (let h = 0; h < (def.hits || 1); h++) {
+      const fs = livingFoes(f); if (!fs.length) break;
+      let t;
+      if (def.tgt === "one") { if (!fixed || !fixed.alive) fixed = fs[(Math.random() * fs.length) | 0]; t = fixed; }
+      else t = fs[(Math.random() * fs.length) | 0];
+      if (def.mult) {   // 倍率なし（デバフ専用）の技はダメージ計算をしない＝NaN防止
+        const r = dealDamage(f, t, def.mult, tag, { forceCrit: def.forceCrit });
+        if (def.lifesteal) {
+          const heal = Math.round(r.dmg * def.lifesteal);
+          f.hp = Math.min(f.maxhp, f.hp + heal); updateHP(f); popText(f, "+" + heal, "heal"); sfx("heal");
+        }
+        blogAdd(`　→ ${t.ch.name} に <b>${r.dmg}</b>${r.crit ? ' <span class="cr">会心！</span>' : ""}${koTx(t)}`);
+      }
+      (def.fx || []).forEach((fx) => applyFx(f, t, fx));
+      if ((def.hits || 1) > 1) await wait(200);
+    }
+  } else if (def.tgt === "all") {
+    shake();
+    let stolen = 0;
+    for (const t of livingFoes(f).slice()) {
+      if (def.mult) {   // hex（弱体）など倍率なしの全体技はダメージ0＝NaN防止
+        const r = dealDamage(f, t, def.mult, tag);
+        if (def.lifesteal) stolen += r.dmg;
+        blogAdd(`　→ ${t.ch.name} に <b>${r.dmg}</b>${koTx(t)}`);
+      }
+      (def.fx || []).forEach((fx) => applyFx(f, t, fx));
+    }
+    if (!def.mult) {
+      const names = (def.fx || []).map((fx) => STATUS[fx.t] && STATUS[fx.t].nm).filter(Boolean).join("・");
+      blogAdd(`　→ 敵全体に <b>${names || "効果"}</b>！`);
+    }
+    if (def.lifesteal && stolen > 0) {   // 全体吸収
+      const heal = Math.round(stolen * def.lifesteal);
+      f.hp = Math.min(f.maxhp, f.hp + heal); updateHP(f); popText(f, "+" + heal, "heal");
+      blogAdd(`　→ <span class="hl">${f.ch.name} は ${heal} を吸収した</span>`);
+    }
+  } else if (def.tgt === "lowAlly") {
+    const t = livingAllies(f).sort((a, b) => a.hp / a.maxhp - b.hp / b.maxhp)[0];
+    if (def.heal) {   // 回復量なし定義でもNaNにならないようガード
+      const heal = Math.round(t.maxhp * def.heal * boost);
+      t.hp = Math.min(t.maxhp, t.hp + heal); updateHP(t); popText(t, "+" + heal, "heal"); sfx("heal");
+      blogAdd(`　→ <span class="hl">${t.ch.name} のHPを ${heal} 回復</span>`);
+    }
+    (def.fx || []).forEach((fx) => applyFx(f, t, fx));
+  } else if (def.tgt === "allies") {
+    if (def.heal) sfx("heal");
+    livingAllies(f).forEach((a) => {
+      if (def.heal) { const heal = Math.round(a.maxhp * def.heal * boost); a.hp = Math.min(a.maxhp, a.hp + heal); updateHP(a); popText(a, "+" + heal, "heal"); }
+      (def.fx || []).forEach((fx) => applyFx(f, a, fx));
+    });
+    const names = (def.fx || []).map((fx) => STATUS[fx.t] && STATUS[fx.t].nm).filter(Boolean).join("・");
+    blogAdd(`　→ <span class="hl">味方全体に${def.heal ? "回復＋" : ""}${names || "支援"}！</span>`);
+  }
+  // 自分対象の付加効果（self:true）は applyFx 内で src に付くが、対象系でない場合ここで処理
+  (def.fx || []).filter((fx) => fx.self && def.tgt !== "one" && def.tgt !== "rand").forEach((fx) => applyFx(f, f, fx));
+}
+
+async function actorTurn(f) {
+  if (!f.alive) return;
+  if (f.buffLeft > 0) { f.buffLeft--; if (f.buffLeft <= 0) f.buffMult = 1; updateBuff(f); }
+  // 状態異常（DoT・リジェネ・スタン）
+  if (!tickStatus(f)) { await wait(360); return; }
+  const foes = livingFoes(f); if (!foes.length) return;
+  const me = document.getElementById(`bc-${f.uid}`);
+  if (me && !skipped) { me.classList.add("act"); setTimeout(() => me.classList.remove("act"), 380 / speed); }
+
+  const kit = f.kit;
+  // 敵のみ自動でバースト発動。味方のバーストは手動（burstQueue）でのみ発動する。
+  if (f.side === "enemy" && f.burst >= 100) {
+    f.burst = 0; updateBurst(f);
+    const bu = pickBurst(f);
+    await showCutin(f, bu.nm);
+    skillPop(f, bu.nm, "burst");
+    blogAdd(`⚠️ <b style="color:#e0435a">敵の必殺技！</b> ${ELEM[f.elem].ic} ${nmC(f)} の <span class="bs">${bu.nm}</span>！！`);
+    await runAbility(f, bu.def, "burst");
+    await wait(720);
+  } else if (Math.random() < f.procRate) {
+    const sk = pickSkill(f);
+    skillPop(f, sk.nm, "skill");
+    blogAdd(`${ELEM[f.elem].ic} ${nmC(f)} のスキル <span class="sk">${sk.nm}</span>！`);
+    await runAbility(f, sk.def, "skill");
+    gainBurst(f, 34);
+    await wait(600);
+  } else {
+    const t = foes[(Math.random() * foes.length) | 0];
+    const r = dealDamage(f, t, 1.0, "");
+    let line = `${ELEM[f.elem].ic} ${nmC(f)} の${kit.normal.nm}！ ${t.ch.name} に <b>${r.dmg}</b>`;
+    if (r.crit) line += ' <span class="cr">会心！</span>';
+    if (r.adv > 1) line += ' <span style="color:#e08600;font-weight:700">属性有利！</span>';
+    if (!t.alive) line += ` → <span class="ko">${t.ch.name} はたおれた</span>`;
+    blogAdd(line);
+    gainBurst(f, 34);
+    await wait(480);
+  }
+}
+
+async function startBattle(isRetry) {
+  const retrying = isRetry === true;   // やり直しは挑戦回数を消費しない
+  if (battling || !partyIds().length) return;
+  if (!retrying) {
+    if (playsLeft(diff) <= 0) { alert(`「${DIFF_NAME[diff]}」の本日の挑戦回数（${PLAYS_PER_DAY}回）を使い切りました。\n明日また挑戦できます！`); return; }
+    DB.plays[diff] = (DB.plays[diff] || 0) + 1; dbSave();
+    updateStartBtn(); renderDailies();
+  }
+  lastQuestKey = null;   // 通常バトル：「もう一度」は素材クエストではなく通常バトルへ
+  battling = true; skipped = false; retreat = false; rewind = false;
+  burstQueue = []; wheelOpen = false; const _wov = $("#wheelov"); if (_wov) _wov.classList.remove("open");
+  paused = false; _resumeWaiters = [];
+  $("#swapb").classList.remove("armed");
+  const _ar = $("#arena"); if (_ar) _ar.classList.remove("paused");
+  hideViews();
+  $("#vtabs").classList.add("off"); $("#startbar").classList.add("off");
+  $("#battle").classList.add("on");
+  $("#blog").innerHTML = ""; window.scrollTo(0, 0);
+  // ホイール初期化：編成順（先頭3つ＝前衛）
+  const allies  = party.map((id, i) => id ? makeFighter(charById(id), "ally", i, i < FRONT_MAX) : null).filter(Boolean);
+  const enemies = enemyTeam.map((ch, i) => {
+    const f = makeFighter(ch, "enemy", i, true);
+    const mul = ENEMY_HPMUL[diff] || 1.5;   // 全体HP底上げ
+    f.maxhp = Math.round(f.maxhp * mul); f.hp = f.maxhp;
+    return f;
+  });
+  F = allies.concat(enemies);
+  wheel = allies.map((f) => f.uid);
+  applyWheel();
+  $("#brow-e").innerHTML = enemies.map(cardHTML).join("");
+  renderAllyRow();
+  blogAdd(`⚔️ <b>${DIFF_NAME[diff]}</b>（敵 Lv.${ENEMY_LV[diff]}）バトル開始！ 必殺技はカードのボタンをタップ、🎡交代でホイールを回して前衛を入れ替え！`);
+  await wait(700);
+
+  const allyAlive = () => F.some((x) => x.alive && x.side === "ally");   // 控え含め全滅で敗北
+  const enemyAlive = () => F.some((x) => x.alive && x.side === "enemy");
+  let round = 0, winner = null;
+  while (round < 60 && !winner) {
+    round++;
+    const order = F.filter((f) => f.alive && f.active).sort((a, b) => effSpd(b) - effSpd(a) || Math.random() - 0.5);
+    for (const f of order) {
+      await untilResumed();                      // ホイール操作中は一時停止
+      // オートモード：満タンの前衛バーストを自動でキューへ
+      if (autoMode) activeAllies().filter((x) => x.alive && x.burst >= 100).forEach((x) => requestBurst(x.uid));
+      await flushBursts();                       // 手動バーストを先に処理
+      if (retreat || rewind) { winner = "enemy"; break; }  // 中断＝敗北あつかい／rewind＝やり直し
+      autoRotateIfWiped();                       // 前衛全滅時のみ自動回転（1体でも生存なら回さない）
+      if (!allyAlive())  { winner = "enemy"; break; }
+      if (!enemyAlive()) { winner = "ally"; break; }
+      if (!f.alive || !f.active) continue;
+      await untilResumed();
+      await actorTurn(f);
+      autoRotateIfWiped();
+      if (!allyAlive())  { winner = "enemy"; break; }
+      if (!enemyAlive()) { winner = "ally"; break; }
+    }
+    await flushBursts();
+  }
+  if (!winner) {
+    const pct = (side) => F.filter((f) => f.side === side).reduce((s, f) => s + f.hp / f.maxhp, 0);
+    winner = pct("ally") >= pct("enemy") ? "ally" : "enemy";
+    blogAdd("⏱ 時間切れ！のこりHPで判定…");
+  }
+  await wait(600);
+  closeWheel();
+  battling = false;
+  if (rewind) { setTimeout(() => startBattle(true), 60); return; }   // やり直し（回数消費なし）
+  showResult(winner === "ally");
+}
+
+/* ══════════ スコアアタック（200秒・Firebase 月間ランキング） ══════════ */
+const SA_TIME = 200;   // 秒
+const SA_ENEMIES = [
+  { id: "skyreaper", name: "スカイリーパー",   img: "Skyreaper.png", elem: "dark", rarity: "SSR" },
+  { id: "razorwing", name: "レイザーウィング", img: "Razorwing.png", elem: "fire", rarity: "SSR" },
+];
+function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m])); }
+
+/* スコアタの敵は不死身（HPは減らない＝サンドバッグ）。攻撃はしてくるので生き残りながら削る
+   handicap 0.85＝攻撃力を少しマイルドに調整（全滅しにくくして削りに集中できるように） */
+function makeFighterSA(ch, i, lv) {
+  const st = statsOf(ch, { dupe: 0, lv, noEquip: true, handicap: 0.85 });
+  return {
+    ch, side: "enemy", i, uid: "sa" + i,
+    elem: ch.elem || st.elem, lv, kit: kitOf(ch), rar: ch.rarity, role: roleOf(ch),
+    maxhp: st.hp, hp: st.hp, atk: st.atk, spd: st.spd,
+    burst: 0, buffMult: 1, buffLeft: 0, alive: true, active: true, shield: 0, st: {}, dmgDealt: 0,
+    immortal: true,   // 死なない
+    skillMul: 1.28, procRate: 0.3, burstGain: 1,
+  };
+}
+function spawnSaEnemies() {
+  const lv = 30;
+  const picks = [SA_ENEMIES[0], SA_ENEMIES[1], SA_ENEMIES[0]];
+  const foes = picks.map((ch, i) => makeFighterSA(ch, i, lv));
+  F = F.filter((x) => x.side === "ally").concat(foes);
+  $("#brow-e").innerHTML = foes.map(cardHTML).join("");
+}
+function updateSaHud() {
+  const el = $("#sascore"); if (el) el.textContent = saScore.toLocaleString();
+}
+function saMonthKey() { const d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0"); }
+
+async function startScoreAttack() {
+  if (battling) return;
+  if (!partyIds().length) { alert("まずパーティ編成でキャラを選んでください！"); return; }
+  lastQuestKey = null;
+  battling = true; skipped = false; retreat = false; rewind = false; saMode = true; saScore = 0;
+  burstQueue = []; wheelOpen = false; const _wov = $("#wheelov"); if (_wov) _wov.classList.remove("open");
+  paused = false; _resumeWaiters = [];
+  $("#swapb").classList.remove("armed");
+  const _ar = $("#arena"); if (_ar) _ar.classList.remove("paused");
+  hideViews();
+  $("#vtabs").classList.add("off"); $("#startbar").classList.add("off");
+  $("#battle").classList.add("on");
+  $("#blog").innerHTML = ""; window.scrollTo(0, 0);
+  const allies = party.map((id, i) => id ? makeFighter(charById(id), "ally", i, i < FRONT_MAX) : null).filter(Boolean);
+  F = allies;
+  wheel = allies.map((f) => f.uid);
+  applyWheel();
+  spawnSaEnemies();
+  renderAllyRow();
+  $("#sahud").style.display = "";
+  updateSaHud();
+  blogAdd(`⏱ <b>スコアアタック</b> 開始！ ${SA_TIME}秒でダメージを稼げ！（敵は不死身。倒れず攻撃してくる）`);
+  saEndAt = Date.now() + SA_TIME * 1000;
+  const tEl = $("#satime");
+  const hudIv = setInterval(() => {
+    const s = Math.max(0, Math.ceil((saEndAt - Date.now()) / 1000));
+    if (tEl) { tEl.textContent = s; tEl.classList.toggle("low", s <= 20); }
+    if (s <= 0) clearInterval(hudIv);
+  }, 250);
+  await wait(600);
+
+  const timeUp = () => Date.now() >= saEndAt;
+  const allyAlive = () => F.some((x) => x.alive && x.side === "ally");
+  let ended = false;
+  while (!timeUp() && !ended) {
+    const order = F.filter((f) => f.alive && f.active).sort((a, b) => effSpd(b) - effSpd(a) || Math.random() - 0.5);
+    for (const f of order) {
+      if (timeUp()) break;
+      await untilResumed();
+      if (rewind) { ended = true; break; }
+      if (autoMode) activeAllies().filter((x) => x.alive && x.burst >= 100).forEach((x) => requestBurst(x.uid));
+      await flushBursts();
+      autoRotateIfWiped();
+      if (!allyAlive()) { ended = true; blogAdd("💀 全滅…そこまでのスコアで記録します"); break; }
+      if (!f.alive || !f.active) continue;
+      await actorTurn(f);
+      autoRotateIfWiped();
+      if (!allyAlive()) { ended = true; blogAdd("💀 全滅…そこまでのスコアで記録します"); break; }
+    }
+  }
+  clearInterval(hudIv);
+  await wait(500);
+  closeWheel();
+  if (rewind) { battling = false; saMode = false; setTimeout(() => startScoreAttack(), 60); return; }   // やり直し（スコアは送信しない）
+  await showSaResult();
+  battling = false;
+}
+
+async function showSaResult() {
+  const score = saScore, ym = saMonthKey();
+  // ローカルベスト（月替わりでリセット）
+  if (!DB.saBest || DB.saBest.ym !== ym || score > DB.saBest.score) { DB.saBest = { ym, score }; dbSave(); }
+  sfx("win");
+  $("#remo").textContent = "⏱";
+  $("#rtitle").textContent = "TIME UP!";
+  $("#rtitle").className = "win";
+  $("#rsub").innerHTML = `スコア <b style="font-size:22px;color:#e0157a">${score.toLocaleString()}</b><br><span id="sasubmit" style="font-size:11px;color:var(--dim)">スコア送信中…</span>`;
+  $("#rreward").style.display = "none"; $("#rxp").innerHTML = allyReportRows(); $("#rdrop").style.display = "none";
+  $("#rov").classList.add("open");
+  renderSaBest();
+  // Firebase へベストスコアを送信（アカウントの xvUid で識別）
+  let msg = "";
+  try {
+    if (window.MBFB && ACC && ACC.xvUid) {
+      const r = await MBFB.submitScore(ACC.xvUid, ACC.name || "?", ACC.charFile || "", score);
+      if (r && r.ok) {
+        const rows = await MBFB.getRanking();
+        const idx = rows.findIndex((x) => x.uid === ACC.xvUid);
+        msg = idx >= 0
+          ? `✅ 送信完了！ 現在 <b style="color:#e08600">${idx + 1}位</b>（今月ベスト ${(rows[idx].score || 0).toLocaleString()}）`
+          : "✅ 送信完了！";
+        renderSaRank();
+      } else msg = "⚠️ 送信に失敗しました（通信環境を確認してください）";
+    } else if (!ACC || !ACC.xvUid) {
+      msg = "ℹ️ ポータルでゲーム連携パスワードを設定すると月間ランキングに参加できます";
+    } else msg = "⚠️ ランキングに接続できませんでした";
+  } catch (e) { msg = "⚠️ 送信に失敗しました"; }
+  const el = document.getElementById("sasubmit"); if (el) el.innerHTML = msg;
+}
+
+function renderSaBest() {
+  const el = $("#sabest"); if (!el) return;
+  const ym = saMonthKey();
+  el.innerHTML = (DB.saBest && DB.saBest.ym === ym)
+    ? `📈 今月のベストスコア：<b>${DB.saBest.score.toLocaleString()}</b>`
+    : "今月はまだ挑戦していません";
+}
+async function renderSaRank() {
+  const box = $("#sarank"); if (!box || !window.MBFB) return;
+  const rows = await MBFB.getRanking();
+  if (!rows.length) { box.innerHTML = '<span style="color:var(--faint)">今月はまだ記録がありません。一番乗りを狙おう！</span>'; return; }
+  const myUid = ACC && ACC.xvUid;
+  let html = '<div style="font-weight:900;margin-bottom:5px">🏆 今月のランキング</div>';
+  html += rows.slice(0, 10).map((r, i) =>
+    `<div class="sa-row${i < 3 ? " top" : ""}${r.uid === myUid ? " me" : ""}"><span class="rk">${i + 1}</span>` +
+    /* 保存された charFile は移籍前の古いパスのことがあるので正規化してから使う */
+    (r.charFile ? `<img src="../chars/${esc((window.XEVA&&window.XEVA.canonCharFile)?window.XEVA.canonCharFile(r.charFile,r.charId):r.charFile)}" alt="">` : "") +
+    `<span class="sanm">${esc(r.name)}</span><span class="sasc">${(r.score || 0).toLocaleString()}</span></div>`).join("");
+  const my = rows.findIndex((r) => r.uid === myUid);
+  if (my >= 10) html += `<div class="sa-row me"><span class="rk">${my + 1}</span><span class="sanm">あなた</span><span class="sasc">${(rows[my].score || 0).toLocaleString()}</span></div>`;
+  box.innerHTML = html;
+}
+// 前月のスコアタ報酬（1位1000/2位500/3位300/4-10位150）を一度だけ受け取る
+async function trySaClaim() {
+  if (!window.MBFB || !ACC || !ACC.xvUid) return;
+  if (!(window.XEVARIONFB && window.XEVARIONFB.awardXeva)) { setTimeout(trySaClaim, 2000); return; }
+  try {
+    const r = await MBFB.claimPrevReward(ACC.xvUid);
+    if (r && r.ok) {
+      const el = $("#sabest");
+      if (el) el.innerHTML = `🎁 先月のスコアタ報酬 <b>+${r.amount.toLocaleString()} XEVA</b>（${r.rank}位）を獲得！ポータルを開くと受け取れます。`;
+    }
+  } catch (e) {}
+}
+
+/* ── 勝利の紙吹雪 ── */
+function confetti() {
+  const em = ["🎉", "✨", "⭐", "💛", "🧡", "💜"];
+  for (let i = 0; i < 26; i++) {
+    const s = document.createElement("span");
+    s.className = "confetti"; s.textContent = em[i % em.length];
+    s.style.left = Math.random() * 100 + "vw";
+    s.style.animationDuration = (1.6 + Math.random() * 1.4) + "s";
+    s.style.animationDelay = (Math.random() * 0.5) + "s";
+    document.body.appendChild(s);
+    setTimeout(() => s.remove(), 3600);
+  }
+}
+
+/* ── 戦績表示（与ダメージ・残りHP）ヘルパー ── */
+function allyReportSub(id) {
+  const ft = F.find((x) => x.side === "ally" && x.ch.id === id);
+  if (!ft) return "";
+  return `<div class="xsub">与ダメ ${Math.round(ft.dmgDealt || 0).toLocaleString()} ／ 残りHP ${Math.max(0, Math.ceil(ft.hp)).toLocaleString()}/${ft.maxhp.toLocaleString()}${ft.alive ? "" : "・戦闘不能"}</div>`;
+}
+function allyReportRows() {
+  return partyIds().map((id) => {
+    const ft = F.find((x) => x.side === "ally" && x.ch.id === id);
+    if (!ft) return "";
+    return `<div class="xr"><img src="${imgOf(ft.ch)}" alt=""><div class="xn">${ft.ch.name}${allyReportSub(id)}</div></div>`;
+  }).join("");
+}
+function enemyHpLine() {
+  const es = F.filter((x) => x.side === "enemy");
+  if (!es.length || es.some((x) => x.immortal)) return "";
+  const hp = es.reduce((s, x) => s + Math.max(0, x.hp), 0), mx = es.reduce((s, x) => s + x.maxhp, 0);
+  return `<br><span style="font-size:10.5px;color:var(--faint);font-weight:700">敵の残りHP ${Math.ceil(hp).toLocaleString()} / ${mx.toLocaleString()}</span>`;
+}
+
+function showResult(win) {
+  // 素材クエストの結果は専用処理へ
+  if (questKey) { showQuestResult(win); return; }
+  let reward = 0, first = false;
+  const xpGain = win ? 28 + 22 * diff : 14;
+  const xpRows = partyIds().map((id) => {
+    const before = lvOf(id);
+    DB.xp[id] = xpOf(id) + xpGain;
+    const after = lvOf(id);
+    return { id, before, after, up: after > before };
+  });
+  if (win) {
+    DB.totalWins = (DB.totalWins || 0) + 1;
+    if (!DB.wins[diff]) {
+      DB.wins[diff] = true; first = true; reward = REWARDS[diff];
+      try { if (window.XEVA) XEVA.add(reward, "MagiBattle " + DIFF_NAME[diff] + " 初勝利"), (window.XEVA.completeMission && XEVA.completeMission("magibattle_win")); } catch (e) {}
+    }
+    confetti();   // 装備ドロップは廃止（素材クエストの強化石→装備交換に一本化）
+  }
+  dbSave();
+  sfx(win ? "win" : "lose");
+  $("#remo").textContent = win ? "🏆" : "😢";
+  $("#rtitle").textContent = win ? "VICTORY!" : "LOSE…";
+  $("#rtitle").className = win ? "win" : "lose";
+  $("#rsub").innerHTML = (win
+    ? (first ? `<b>${DIFF_NAME[diff]}</b> 今日の初勝利！` : `<b>${DIFF_NAME[diff]}</b> に勝利！（本日の報酬は受取済み）`)
+    : "編成・属性・装備を見直して、もう一度挑戦しよう！") + enemyHpLine();
+  $("#rreward").style.display = reward ? "flex" : "none";
+  $("#ramount").textContent = "+" + reward;
+  $("#rxp").innerHTML = xpRows.map((r) => {
+    const ch = charById(r.id);
+    return `<div class="xr"><img src="${imgOf(ch)}" alt=""><div class="xn">${ch.name}${allyReportSub(r.id)}</div>
+      <div class="xg">+${xpGain} EXP</div>
+      ${r.up ? `<span class="lvup">LEVEL UP! Lv.${r.after}</span>` : `<span style="font-size:10px;font-weight:800;color:var(--faint)">Lv.${r.after}</span>`}</div>`;
+  }).join("");
+  $("#rdrop").style.display = "none";
+  $("#rov").classList.add("open");
+  renderDailies(); renderBalance();
+}
+
+/* ══════════ 素材クエスト（1日3回・難易度別で素材ドロップ） ══════════ */
+function renderQuests() {
+  const box = $("#qrow"); if (!box) return;
+  const left = questLeft();
+  $("#qleft").textContent = `残り ${left}/${QUEST_PER_DAY}`;
+  box.innerHTML = Object.keys(QUESTS).map((k) => {
+    const q = QUESTS[k];
+    return `<button class="qbtn" style="--qc:${q.c}" data-q="${k}" ${left <= 0 || !partyIds().length ? "disabled" : ""}>
+      <div class="qn">${q.nm}</div>
+      <div class="ql">敵 Lv.${q.lv}</div>
+      <div class="qd">${matIcon("crystal")}${q.crystal[0]}〜${q.crystal[1]} ／ ${matIcon("stone")}${q.stone[0]}〜${q.stone[1]}</div>
+    </button>`;
+  }).join("");
+  renderMats();
+}
+function renderMats() {
+  const c = $("#matC"), s = $("#matS");
+  if (c) c.innerHTML = matIcon("crystal") + ` 経験の結晶 ×${DB.mats.crystal || 0}`;
+  if (s) s.innerHTML = matIcon("stone") + ` 強化石 ×${DB.mats.stone || 0}`;
+}
+/* クエスト用の敵（日替わり・クエスト別シード） */
+function questEnemies(qk) {
+  const pool = allChars();
+  const rnd = seededRng(today + "-quest-" + qk);
+  const idx = pool.map((_, i) => i);
+  for (let i = idx.length - 1; i > 0; i--) { const j = (rnd() * (i + 1)) | 0; [idx[i], idx[j]] = [idx[j], idx[i]]; }
+  return idx.slice(0, 3).map((i) => pool[i]);
+}
+async function startQuest(qk, isRetry) {
+  const retrying = isRetry === true;   // やり直しは回数を消費しない
+  if (battling || !partyIds().length) return;
+  const q = QUESTS[qk]; if (!q) return;
+  if (!retrying) {
+    if (questLeft() <= 0) { alert(`素材クエストは1日${QUEST_PER_DAY}回まで。\n明日また挑戦できます！`); return; }
+    DB.qplays = (DB.qplays || 0) + 1; dbSave();
+    renderQuests();
+  }
+  questKey = qk;
+  battling = true; skipped = false; retreat = false; rewind = false;
+  burstQueue = []; wheelOpen = false; const _wov = $("#wheelov"); if (_wov) _wov.classList.remove("open");
+  paused = false; _resumeWaiters = [];
+  $("#swapb").classList.remove("armed");
+  const _ar = $("#arena"); if (_ar) _ar.classList.remove("paused");
+  hideViews();
+  $("#vtabs").classList.add("off"); $("#startbar").classList.add("off");
+  $("#battle").classList.add("on");
+  $("#blog").innerHTML = ""; window.scrollTo(0, 0);
+  const allies = party.map((id, i) => id ? makeFighter(charById(id), "ally", i, i < FRONT_MAX) : null).filter(Boolean);
+  const foes = questEnemies(qk).map((ch, i) => {
+    const st = statsOf(ch, { dupe: 0, lv: q.lv, noEquip: true, handicap: q.handicap });
+    const f = makeFighter(ch, "enemy", i, true);
+    f.maxhp = Math.round(st.hp * (q.hpmul || 1.5)); f.hp = f.maxhp; f.atk = st.atk; f.spd = st.spd; f.lv = q.lv;
+    return f;
+  });
+  F = allies.concat(foes);
+  wheel = allies.map((f) => f.uid);
+  applyWheel();
+  $("#brow-e").innerHTML = foes.map(cardHTML).join("");
+  renderAllyRow();
+  blogAdd(`🧭 <b>${q.nm}</b>（敵 Lv.${q.lv}）開始！ 勝って素材を持ち帰ろう！`);
+  await wait(700);
+  const allyAlive = () => F.some((x) => x.alive && x.side === "ally");
+  const enemyAlive = () => F.some((x) => x.alive && x.side === "enemy");
+  let round = 0, winner = null;
+  while (round < 60 && !winner) {
+    round++;
+    const order = F.filter((f) => f.alive && f.active).sort((a, b) => effSpd(b) - effSpd(a) || Math.random() - 0.5);
+    for (const f of order) {
+      await untilResumed();
+      if (autoMode) activeAllies().filter((x) => x.alive && x.burst >= 100).forEach((x) => requestBurst(x.uid));
+      await flushBursts();
+      if (retreat || rewind) { winner = "enemy"; break; }  // 中断＝敗北あつかい／rewind＝やり直し
+      autoRotateIfWiped();
+      if (!allyAlive())  { winner = "enemy"; break; }
+      if (!enemyAlive()) { winner = "ally"; break; }
+      if (!f.alive || !f.active) continue;
+      await untilResumed();
+      await actorTurn(f);
+      autoRotateIfWiped();
+      if (!allyAlive())  { winner = "enemy"; break; }
+      if (!enemyAlive()) { winner = "ally"; break; }
+    }
+    await flushBursts();
+  }
+  if (!winner) {   // 時間切れ：のこりHP割合で判定
+    const pct = (side) => F.filter((f) => f.side === side).reduce((s, f) => s + f.hp / f.maxhp, 0);
+    winner = pct("ally") >= pct("enemy") ? "ally" : "enemy";
+    blogAdd("⏱ 時間切れ！のこりHPで判定…");
+  }
+  await wait(600);
+  closeWheel();
+  battling = false;
+  if (rewind) { const k = questKey; questKey = null; setTimeout(() => startQuest(k, true), 60); return; }
+  showQuestResult(winner === "ally");
+}
+function showQuestResult(win) {
+  const q = QUESTS[questKey] || QUESTS.q1;
+  lastQuestKey = questKey;   // 「もう一度」で同じ素材クエストを再挑戦させる（デイリー回数は消費しない）
+  // 勝利＝満額、敗北＝40%（最低1）
+  let gotC = randIn(q.crystal), gotS = randIn(q.stone);
+  if (!win) { gotC = Math.max(1, Math.round(gotC * 0.4)); gotS = Math.max(1, Math.round(gotS * 0.4)); }
+  DB.mats.crystal = (DB.mats.crystal || 0) + gotC;
+  DB.mats.stone = (DB.mats.stone || 0) + gotS;
+  dbSave();
+  if (win) confetti();
+  sfx(win ? "win" : "lose");
+  $("#remo").textContent = win ? "🧭" : "😢";
+  $("#rtitle").textContent = win ? "QUEST CLEAR!" : "LOSE…";
+  $("#rtitle").className = win ? "win" : "lose";
+  $("#rsub").innerHTML = (win ? `<b>${q.nm}</b> クリア！素材を獲得！` : `<b>${q.nm}</b> 失敗…それでも少し素材を拾った`) + enemyHpLine();
+  $("#rreward").style.display = "none";
+  $("#rxp").innerHTML = allyReportRows();
+  $("#rdrop").style.display = "flex";
+  $("#rdrop").innerHTML = `<div style="font-size:26px">${matIcon("bag", 30)}</div><div><div class="dn">${matIcon("crystal")} 経験の結晶 ×${gotC} ／ ${matIcon("stone")} 強化石 ×${gotS}</div><div class="db">育成タブでレベルアップ・装備交換に使えます</div></div>`;
+  $("#rov").classList.add("open");
+  questKey = null;
+  renderQuests(); renderBalance();
+}
+
+/* ══════════ 無限の塔（上級者向けエンドコンテンツ・無制限） ══════════ */
+function renderTower() {
+  const best = DB.tower.best || 0;
+  const b = $("#twbest"); if (b) b.textContent = `最高 F${best}`;
+  const btn = $("#tw-btn"); if (btn) { btn.textContent = `🗼 F${best + 1} に挑戦する`; btn.disabled = !partyIds().length; }
+}
+/* 階ごとに固定の敵（日替わりではなくフロア固有シード） */
+function towerEnemies(floor) {
+  const pool = allChars();
+  const rnd = seededRng("tower-F" + floor);
+  const idx = pool.map((_, i) => i);
+  for (let i = idx.length - 1; i > 0; i--) { const j = (rnd() * (i + 1)) | 0; [idx[i], idx[j]] = [idx[j], idx[i]]; }
+  return idx.slice(0, 3).map((i) => pool[i]);
+}
+function towerParams(floor) {
+  return {
+    lv: Math.min(70, 10 + floor * 3),
+    handicap: 0.98 + floor * 0.06,
+    hpmul: 1.6 + floor * 0.35,
+  };
+}
+async function startTower(floor) {
+  if (battling || !partyIds().length) return;
+  floor = Math.max(1, floor | 0);
+  towerFloor = floor; towerNextFloor = 0; lastQuestKey = null;
+  battling = true; skipped = false; retreat = false; rewind = false;
+  burstQueue = []; wheelOpen = false; const _wov = $("#wheelov"); if (_wov) _wov.classList.remove("open");
+  paused = false; _resumeWaiters = [];
+  $("#swapb").classList.remove("armed");
+  const _ar = $("#arena"); if (_ar) _ar.classList.remove("paused");
+  hideViews();
+  $("#vtabs").classList.add("off"); $("#startbar").classList.add("off");
+  $("#battle").classList.add("on");
+  $("#blog").innerHTML = ""; window.scrollTo(0, 0);
+  const p = towerParams(floor);
+  const allies = party.map((id, i) => id ? makeFighter(charById(id), "ally", i, i < FRONT_MAX) : null).filter(Boolean);
+  const foes = towerEnemies(floor).map((ch, i) => {
+    const st = statsOf(ch, { dupe: 0, lv: p.lv, noEquip: true, handicap: p.handicap });
+    const f = makeFighter(ch, "enemy", i, true);
+    f.maxhp = Math.round(st.hp * p.hpmul); f.hp = f.maxhp; f.atk = st.atk; f.spd = st.spd; f.lv = p.lv;
+    return f;
+  });
+  F = allies.concat(foes);
+  wheel = allies.map((f) => f.uid);
+  applyWheel();
+  $("#brow-e").innerHTML = foes.map(cardHTML).join("");
+  renderAllyRow();
+  blogAdd(`🗼 <b>無限の塔 F${floor}</b>（敵 Lv.${p.lv}・HP×${p.hpmul.toFixed(1)}）開戦！`);
+  await wait(700);
+  const allyAlive = () => F.some((x) => x.alive && x.side === "ally");
+  const enemyAlive = () => F.some((x) => x.alive && x.side === "enemy");
+  let round = 0, winner = null;
+  while (round < 80 && !winner) {
+    round++;
+    const order = F.filter((f) => f.alive && f.active).sort((a, b) => effSpd(b) - effSpd(a) || Math.random() - 0.5);
+    for (const f of order) {
+      await untilResumed();
+      if (autoMode) activeAllies().filter((x) => x.alive && x.burst >= 100).forEach((x) => requestBurst(x.uid));
+      await flushBursts();
+      if (retreat || rewind) { winner = "enemy"; break; }  // 中断＝敗北あつかい／rewind＝やり直し
+      autoRotateIfWiped();
+      if (!allyAlive())  { winner = "enemy"; break; }
+      if (!enemyAlive()) { winner = "ally"; break; }
+      if (!f.alive || !f.active) continue;
+      await untilResumed();
+      await actorTurn(f);
+      autoRotateIfWiped();
+      if (!allyAlive())  { winner = "enemy"; break; }
+      if (!enemyAlive()) { winner = "ally"; break; }
+    }
+    await flushBursts();
+  }
+  if (!winner) {   // 時間切れ：のこりHP割合で判定
+    const pct = (side) => F.filter((f) => f.side === side).reduce((s, f) => s + f.hp / f.maxhp, 0);
+    winner = pct("ally") >= pct("enemy") ? "ally" : "enemy";
+    blogAdd("⏱ 時間切れ！のこりHPで判定…");
+  }
+  await wait(600);
+  closeWheel();
+  battling = false;
+  if (rewind) { setTimeout(() => startTower(floor), 60); return; }
+  showTowerResult(winner === "ally", floor);
+}
+function showTowerResult(win, floor) {
+  const first = win && floor > (DB.tower.best || 0);
+  let xeva = 0, gotC = 0, gotS = 0;
+  if (win) {
+    if (first) {
+      DB.tower.best = floor;
+      xeva = Math.min(500, 30 + floor * 20);
+      gotC = 2 + floor; gotS = 2 + floor;
+      try { if (window.XEVA) XEVA.add(xeva, "無限の塔 F" + floor + " 初クリア"); } catch (e) {}
+    } else { gotC = 1; gotS = 1; }
+    DB.mats.crystal = (DB.mats.crystal || 0) + gotC;
+    DB.mats.stone = (DB.mats.stone || 0) + gotS;
+    confetti();
+  }
+  dbSave();
+  sfx(win ? "win" : "lose");
+  towerNextFloor = win ? floor + 1 : floor;   // 「次の階へ」or「再挑戦」
+  $("#remo").textContent = win ? "🗼" : "💀";
+  $("#rtitle").textContent = win ? `F${floor} CLEAR!` : `F${floor} 敗北…`;
+  $("#rtitle").className = win ? "win" : "lose";
+  $("#rsub").innerHTML = (win
+    ? (first ? `<b>最高記録更新！</b> 次は F${floor + 1}` : `クリア済みの階を制覇（初回報酬は受取済み）`)
+    : "編成・育成を見直してもう一度！塔の敵は階が上がるほど強くなる") + enemyHpLine();
+  $("#rreward").style.display = xeva ? "flex" : "none";
+  $("#ramount").textContent = "+" + xeva;
+  $("#rxp").innerHTML = allyReportRows();
+  if (win) {
+    $("#rdrop").style.display = "flex";
+    $("#rdrop").innerHTML = `<div style="font-size:26px">${matIcon("bag", 30)}</div><div><div class="dn">${matIcon("crystal")} 経験の結晶 ×${gotC} ／ ${matIcon("stone")} 強化石 ×${gotS}</div><div class="db">育成タブで使えます</div></div>`;
+  } else $("#rdrop").style.display = "none";
+  const ra = $("#r-again"); if (ra) ra.textContent = win ? `次の階へ（F${floor + 1}）` : "もう一度挑戦";
+  $("#rov").classList.add("open");
+  renderTower(); renderBalance();
+}
+
+/* ══════════ 育成（素材でレベルアップ／装備交換） ══════════ */
+function renderGrow() {
+  const list = $("#growlist"); if (!list) return;
+  $("#growmats").innerHTML = matIcon("crystal") + ` ×${DB.mats.crystal || 0}`;
+  const owned = ownedIds();
+  const chars = Object.keys(owned).map(charById).filter(Boolean)
+    .sort((a, b) => lvOf(b.id) - lvOf(a.id));
+  const cr = DB.mats.crystal || 0;
+  list.innerHTML = chars.map((ch) => {
+    const lv = lvOf(ch.id), xp = xpOf(ch.id);
+    const cur = xp - xpForLv(lv), need = xpForLv(lv + 1) - xpForLv(lv);
+    const pct = lv >= MAX_LV ? 100 : Math.min(100, Math.round(cur / need * 100));
+    const maxed = lv >= MAX_LV;
+    return `<div class="grow-row">
+      <img src="${imgOf(ch)}" alt="${ch.name}"${ch.rarity === "SSR" && dupeOf(ch.id) >= 4 ? ' class="mxi"' : ""}>
+      <div class="gi">
+        <div class="gn">${ch.name}</div>
+        <div class="glv">Lv.${lv}${maxed ? "（MAX）" : ` <span style="color:var(--faint)">${cur}/${need}</span>`}</div>
+        <div class="gxp"><i style="width:${pct}%"></i></div>
+      </div>
+      <div class="gbtns">
+        <button data-feed="${ch.id}" data-n="1" ${maxed || cr < 1 ? "disabled" : ""}>${matIcon("crystal", 13)}×1</button>
+        <button data-feed="${ch.id}" data-n="5" ${maxed || cr < 5 ? "disabled" : ""}>${matIcon("crystal", 13)}×5</button>
+      </div>
+    </div>`;
+  }).join("") || '<p class="note">キャラがいません。ガチャで入手しよう！</p>';
+}
+/* 装備交換タブ（育成から独立） */
+function renderGearEx() {
+  const ex = $("#gearex"); if (!ex) return;
+  $("#gearstones").innerHTML = matIcon("stone") + ` ×${DB.mats.stone || 0}`;
+  const st = DB.mats.stone || 0;
+  ex.innerHTML = ["R", "SR", "SSR"].map((r) =>
+    `<button class="${r.toLowerCase()}" data-gear="${r}" ${st < GEAR_COST[r] ? "disabled" : ""}>${r} 装備<small>${matIcon("stone", 12)} ×${GEAR_COST[r]}</small></button>`).join("");
+}
+function useCrystal(id, n) {
+  const cr = DB.mats.crystal || 0;
+  if (cr < n || lvOf(id) >= MAX_LV) return;
+  const before = lvOf(id);
+  DB.mats.crystal = cr - n;
+  DB.xp[id] = xpOf(id) + n * XP_PER_CRYSTAL;
+  dbSave();
+  const after = lvOf(id);
+  renderGrow();
+  if (after > before) {
+    const row = document.querySelector(`[data-feed="${id}"]`);
+    try { confetti(); } catch (e) {}
+  }
+}
+function exchangeGear(rar) {
+  const cost = GEAR_COST[rar];
+  if ((DB.mats.stone || 0) < cost) return;
+  DB.mats.stone -= cost;
+  const k = pickItemByRar(rar);
+  DB.inv[k] = (DB.inv[k] || 0) + 1;
+  dbSave();
+  const it = ITEMS[k];
+  $("#gearexResult").innerHTML = `<div class="gearex-got"><div class="ic gear">${gearIcon(k)}</div>
+    <div><div class="dn">${it.nm}<span class="rartag ${it.rar}">${it.rar}</span> を獲得！</div><div class="db">${itemBonusText(it)}（キャラ詳細から装備）</div></div></div>`;
+  renderGearEx();
+}
+document.addEventListener("click", (e) => {
+  const q = e.target.closest("[data-q]"); if (q) { startQuest(q.dataset.q); return; }
+  const f = e.target.closest("[data-feed]"); if (f) { useCrystal(f.dataset.feed, +f.dataset.n); return; }
+  const g = e.target.closest("[data-gear]"); if (g) { exchangeGear(g.dataset.gear); return; }
+});
+
+function backToHome() {
+  $("#rov").classList.remove("open");
+  $("#battle").classList.remove("on");
+  $("#vtabs").classList.remove("off");
+  saMode = false; questKey = null; towerFloor = 0; towerNextFloor = 0;
+  $("#sahud").style.display = "none";
+  const ra = $("#r-again"); if (ra) ra.textContent = "もう一度たたかう";
+  switchView("home");
+  renderParty(); rollEnemies(); renderDailies(); renderBalance();
+}
+/* 安全な配線：要素が無くても他のボタンは死なない（バトル不能バグの再発防止） */
+function on(sel, fn) { const el = $(sel); if (el) el.addEventListener("click", fn); }
+on("#start-btn", startBattle);
+on("#spd1", () => { speed = 1; $("#spd1").classList.add("on"); $("#spd2").classList.remove("on"); });
+on("#spd2", () => { speed = 2; $("#spd2").classList.add("on"); $("#spd1").classList.remove("on"); });
+on("#autob", () => { autoMode = !autoMode; $("#autob").classList.toggle("on", autoMode); });
+on("#skipb", () => {
+  if (saMode && battling) { saEndAt = Date.now(); setPaused(false); }   // スコアタは即タイムアップ扱い
+  else skipped = true;
+});
+/* 効果音のオン/オフ（保存される） */
+function paintSndBtn() { const b = $("#sndb"); if (b) b.classList.toggle("on", sfxOn); }
+on("#sndb", () => { sfxOn = !sfxOn; DB.sfx = sfxOn; dbSave(); paintSndBtn(); if (sfxOn) sfx("swap"); });
+on("#sa-btn", startScoreAttack);
+on("#tw-btn", () => startTower((DB.tower.best || 0) + 1));
+on("#r-again", () => {
+  const wasSa = saMode, tw = towerNextFloor, qk = lastQuestKey;
+  backToHome();
+  setTimeout(() => {
+    if (tw) startTower(tw);
+    else if (wasSa) startScoreAttack();
+    else if (qk) startQuest(qk);   // 素材クエストは同じクエストを再挑戦（デイリー回数は消費しない）
+    else startBattle();
+  }, 80);
+});
+on("#r-home", backToHome);
+/* バトルログ閲覧（結果画面から。#blog は次の戦闘開始まで残っているので直接読む） */
+on("#r-log", () => {
+  const body = $("#logBody"), src = $("#blog");
+  if (body) body.innerHTML = (src && src.innerHTML) ? src.innerHTML : '<div style="color:var(--faint);text-align:center;padding:12px">ログがありません</div>';
+  const ov = $("#logOv"); if (ov) ov.classList.add("open");
+  if (body) body.scrollTop = 0;
+});
+on("#logClose", () => { const ov = $("#logOv"); if (ov) ov.classList.remove("open"); });
+
+/* ── バトルメニュー（やり直し＝回数消費なし／あきらめる＝敗北あつかい） ── */
+on("#quitb", () => {
+  if (!battling) return;
+  setPaused(true);                        // メニュー表示中は一時停止
+  $("#quitOv").classList.add("open");
+});
+function closeQuitMenu(resume) {
+  $("#quitOv").classList.remove("open");
+  if (resume) setPaused(false);
+}
+on("#q-resume", () => closeQuitMenu(true));
+on("#quitOv", (e) => { if (e.target === e.currentTarget) closeQuitMenu(true); });
+on("#q-giveup", () => {
+  closeQuitMenu(false); closeWheel();
+  if (saMode) saEndAt = Date.now();       // スコアタ＝その時点のスコアで記録
+  else { retreat = true; skipped = true; blogAdd("🏳 バトルを中断した…"); }
+  setPaused(false);
+});
+on("#q-retry", () => {
+  closeQuitMenu(false); closeWheel();
+  rewind = true; skipped = true;
+  setPaused(false);
+});
+
+/* ── 入れ替えパネル（ダイアル回転）・手動バーストの操作 ── */
+on("#swapb", () => { wheelOpen ? closeWheel() : openWheel(); });
+on("#wrotL", () => rotateWheel(-1));
+on("#wrotR", () => rotateWheel(1));
+on("#wdial", wheelTap);
+on("#wheelClose", closeWheel);
+on("#wheelov", (e) => { if (e.target === e.currentTarget) closeWheel(); });
+on("#brow-a", (e) => {
+  const bb = e.target.closest("[data-burst]");
+  if (bb) { requestBurst(bb.dataset.burst); e.stopPropagation(); }
+});
+
+/* ── あそびかた（動きのある説明モーダル） ── */
+function openHelp() {
+  const E = ELEM;
+  const roleRows = Object.keys(ROLES).map((k, i) => {
+    const r = ROLES[k];
+    return `<div class="hlp-role" style="animation-delay:${(i * 0.09).toFixed(2)}s"><span class="rc" style="background:${r.c}"></span>
+      <div><b style="font-size:12px">${r.nm}</b><div class="hlp-p" style="margin:0">${r.d}</div></div></div>`;
+  }).join("");
+  const dots = DIAL_POS.map((p, i) => `<span class="dot${i < FRONT_MAX ? " f" : ""}" style="left:${p[0]}%;top:${p[1]}%"></span>`).join("");
+  const badge = (k, tx) => `<span class="fxb" style="--fc:${STATUS[k].c}">${stIcon(k, 11)}${tx}</span>`;
+  $("#helpCard").innerHTML = `
+    <div class="hlp-title">📖 MagiBattle あそびかた</div>
+    <div class="hlp-sec">
+      <div class="hlp-t">🎡 バトルのながれ（回転ダイアル）</div>
+      <div class="hlp-dial"><span class="ring"></span>${dots}</div>
+      <div class="hlp-p">パーティは<b>5人</b>。円の<b style="color:#e0157a">上の3人＝前衛</b>が自動で戦い、下の2人は控え。バトル中は<b>交代ボタン→まわす</b>で全員がとなりの位置へ1つずつ回転します。前衛が全滅すると控えが自動で前に出ます。</div>
+    </div>
+    <div class="hlp-sec">
+      <div class="hlp-t">${E.fire.ic} 属性の相性（ダメージ1.3倍 / 0.8倍）</div>
+      <div class="hlp-cycle">
+        <span class="hel">${E.fire.ic}</span><span class="hlp-arw">▶</span>
+        <span class="hel">${E.wood.ic}</span><span class="hlp-arw" style="animation-delay:.33s">▶</span>
+        <span class="hel">${E.water.ic}</span><span class="hlp-arw" style="animation-delay:.66s">▶</span>
+        <span class="hel">${E.fire.ic}</span>
+      </div>
+      <div class="hlp-cycle" style="margin-top:2px">
+        <span class="hel">${E.light.ic}</span><span class="hlp-arw two">◀▶</span><span class="hel">${E.dark.ic}</span>
+      </div>
+      <div class="hlp-p"><b>火 → 木 → 水 → 火</b> の3すくみ。<b>光と闇はお互いに有利</b>（両方1.3倍）。有利属性で殴るのが勝利の近道！</div>
+    </div>
+    <div class="hlp-sec">
+      <div class="hlp-t">🎭 ロール（キャラの役目・6種）</div>
+      ${roleRows}
+    </div>
+    <div class="hlp-sec">
+      <div class="hlp-t">✦ 必殺技（バースト）</div>
+      <div class="hlp-gbar"><i></i></div>
+      <div class="hlp-p">攻撃する・受けるとゲージがたまり、<b>満タンで必殺技</b>が使えます。</div>
+      <div class="hlp-band">
+        <span class="bnd al">みかた＝手動発動<br>カードのボタンをタップ／青カットイン（左から）</span>
+        <span class="bnd en">てき＝自動発動<br>⚠ 赤カットイン（右から）に注意！</span>
+      </div>
+    </div>
+    <div class="hlp-sec">
+      <div class="hlp-t">🛡 バフ・デバフ・バリア（カードのバッジで確認）</div>
+      <div class="hlp-badges">
+        ${badge("shield", "バリア")}${badge("atkup", "攻撃UP")}${badge("critup", "会心UP")}${badge("spdup", "速さUP")}${badge("regen", "リジェネ")}
+        ${badge("burn", "火傷")}${badge("poison", "毒")}${badge("defdown", "防御DOWN")}${badge("atkdown", "攻撃DOWN")}${badge("stun", "スタン")}${badge("revive", "復活の加護")}
+      </div>
+      <div class="hlp-sbar"><i></i></div>
+      <div class="hlp-p">バリアはHPバーの下の<b style="color:#2e8bff">水色バー</b>。ダメージを肩代わりします。数字つきバッジは残りターン／残量です。</div>
+    </div>
+    <button class="hlp-close" onclick="document.getElementById('helpOv').classList.remove('open')">✓ わかった！</button>`;
+  $("#helpOv").classList.add("open");
+}
+on("#helpb", openHelp);
+
+/* ── 起動 ── */
+/* 属性フィルタボタンを自作SVGアイコンに差し替え（絵文字の端末差をなくす） */
+function paintElemFilters() {
+  document.querySelectorAll("#pfilter [data-el], #dfelem [data-el]").forEach((b) => {
+    const e = ELEM[b.dataset.el]; if (e) b.innerHTML = e.ic;
+  });
+}
+function boot() { paintElemFilters(); paintRoleFilter(); paintSndBtn(); renderParty(); rollEnemies(); renderDailies(); renderBalance(); renderSaBest(); renderQuests(); renderGearEx(); renderTower(); }
+addEventListener("xeva:change", renderBalance);
+addEventListener("mbfb:ready", () => { renderSaRank(); trySaClaim(); });
+if (window.MBFB) { renderSaRank(); trySaClaim(); }
+boot();
+
+/* スプラッシュは ../xeva-splash.js（全アプリ共通）が描画する */
+</script>
+
+<!-- ══════════ MagiBattle スコアアタック用 Firebase（xevarion-online）：スコアアタック月間ランキング ══════════ -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+import { getDatabase, ref, get, set, runTransaction } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAivkOwjWlmqJSNmnSjOs4-PUAcVFOfbiY",
+  authDomain: "xevarion-online.firebaseapp.com",
+  databaseURL: "https://xevarion-online-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "xevarion-online",
+  storageBucket: "xevarion-online.firebasestorage.app",
+  messagingSenderId: "513584168485",
+  appId: "1:513584168485:web:d2a009325df677b746c9cc",
+  measurementId: "G-28C5G2BFR5"
+};
+/* xevarion-fb.js が既定アプリを初期化済みのため、名前付きアプリとして共存させる */
+const app = initializeApp(firebaseConfig, "magibattle");
+const db = getDatabase(app);
+
+function monthKey(d) { d = d || new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0"); }
+function prevMonthKey() { const d = new Date(); return monthKey(new Date(d.getFullYear(), d.getMonth() - 1, 1)); }
+
+/* ベストスコアのみ保持（毎月のノード scoreattack/{YYYY-MM}/{uid} ＝ 月替わりで自動リセット） */
+async function submitScore(uid, name, charFile, score) {
+  score = Math.round(score || 0);
+  if (!uid || score <= 0) return { error: "arg" };
+  try {
+    await runTransaction(ref(db, "scoreattack/" + monthKey() + "/" + uid), (cur) => {
+      if (cur && (cur.score || 0) >= score) return cur;   // ベスト更新時のみ書き換え
+      return { name: String(name || "?").slice(0, 24), charFile: charFile || "", score, ts: Date.now() };
+    });
+    return { ok: true };
+  } catch (e) { return { error: "net" }; }
+}
+async function getRanking(ym) {
+  ym = ym || monthKey();
+  try {
+    const snap = await get(ref(db, "scoreattack/" + ym));
+    const rows = [];
+    snap.forEach((c) => { const v = c.val() || {}; rows.push({ uid: c.key, name: v.name || "?", charFile: v.charFile || "", score: v.score || 0 }); });
+    rows.sort((a, b) => b.score - a.score);
+    return rows;
+  } catch (e) { return []; }
+}
+/* 前月報酬：1位1000 / 2位500 / 3位300 / 4〜10位150。
+   XEVARIONFB.awardXeva（ポータルの pending）で配布し、claims ノードで二重受取を防ぐ。 */
+const SA_REWARDS = [1000, 500, 300, 150, 150, 150, 150, 150, 150, 150];
+async function claimPrevReward(uid) {
+  if (!uid) return { ok: false };
+  if (!(window.XEVARIONFB && window.XEVARIONFB.awardXeva)) return { ok: false, notReady: true };
+  const pym = prevMonthKey();
+  try {
+    const flagRef = ref(db, "scoreattack-claims/" + pym + "/" + uid);
+    const s = await get(flagRef);
+    if (s.exists()) return { ok: false, already: true };
+    const rows = await getRanking(pym);
+    const idx = rows.findIndex((r) => r.uid === uid);
+    if (idx < 0 || idx >= SA_REWARDS.length || !(rows[idx].score > 0)) return { ok: false };
+    const amount = SA_REWARDS[idx];
+    const r = await window.XEVARIONFB.awardXeva(uid, amount, "MagiBattle スコアアタック " + pym + " " + (idx + 1) + "位");
+    if (!(r && r.ok)) return { ok: false };
+    await set(flagRef, { amount, rank: idx + 1, ts: Date.now() });
+    return { ok: true, amount, rank: idx + 1 };
+  } catch (e) { return { ok: false }; }
+}
+
+window.MBFB = { submitScore, getRanking, claimPrevReward, monthKey, prevMonthKey, SA_REWARDS, ready: true };
+try { window.dispatchEvent(new Event("mbfb:ready")); } catch (e) {}
+</script>
+<!-- XEVARION へもどる導線（同期を送り切ってから移動する） -->
+<script src="../xeva-back.js?v=1" data-mode="hook"></script>
+</body>
+</html>
