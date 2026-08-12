@@ -9,6 +9,12 @@
 <script type="module" src="xeva-cloud.js?v=14"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#eaf4ff">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<!-- ★ 2026-08-12d これが無いと iOS のアプリ表示で viewport-fit=cover が効かず、
+     env(safe-area-inset-top) が 0 になってヘッダーがカメラの帯に潜りこむ（管理画面の
+     「←」が押せなかった原因）。index.html だけに付いていたので全ページにそろえた。 -->
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>コミュニティ — XEVARION</title>
 <link rel="icon" href="Xevarion.png" type="image/png">
 <link rel="manifest" href="manifest.webmanifest">

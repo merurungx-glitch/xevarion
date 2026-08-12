@@ -3,6 +3,12 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<!-- ★ 2026-08-12d これが無いと iOS のアプリ表示で viewport-fit=cover が効かず、
+     env(safe-area-inset-top) が 0 になってヘッダーがカメラの帯に潜りこむ（管理画面の
+     「←」が押せなかった原因）。index.html だけに付いていたので全ページにそろえた。 -->
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>XEVARION アカウント管理</title>
 <link rel="icon" href="Xevarion.png" type="image/png">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
@@ -35,8 +41,10 @@ a{color:inherit;text-decoration:none}
      <b>padding に足す</b>（top をずらすのではなく）のが正解で、
      こうすればすりガラスの帯も画面上端までひと続きになる。
      左右の inset も足して、横向きのときにボタンがノッチにかからないようにする。 */
+/* ★ 2026-08-12d --gh-top は下の保険スクリプトが入れる（env が 0 のまま画面のてっぺんから
+   描かれる環境で、ヘッダーがカメラの帯に潜りこむのを防ぐ）。通常は 0。 */
 .gh{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:12px;
-  padding:calc(env(safe-area-inset-top,0px) + 14px) calc(env(safe-area-inset-right,0px) + 16px) 14px calc(env(safe-area-inset-left,0px) + 16px);
+  padding:calc(env(safe-area-inset-top,0px) + var(--gh-top,0px) + 14px) calc(env(safe-area-inset-right,0px) + 16px) 14px calc(env(safe-area-inset-left,0px) + 16px);
   background:rgba(13,16,34,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
 /* ←戻る・更新など小さいボタンは、指で押せる大きさ（44px）を必ず確保する */
 .gh .back{display:flex;align-items:center;justify-content:center;min-width:44px;min-height:44px}
@@ -46,7 +54,7 @@ a{color:inherit;text-decoration:none}
 .gh .count{font-size:12px;color:var(--dim);font-weight:700}
 
 /* gate */
-#gate{max-width:420px;margin:calc(env(safe-area-inset-top,0px) + 14vh) auto 0;padding:0 20px;text-align:center}
+#gate{max-width:420px;margin:calc(env(safe-area-inset-top,0px) + var(--gh-top,0px) + 14vh) auto 0;padding:0 20px;text-align:center}
 #gate .lock{font-size:52px;margin-bottom:10px}
 #gate h2{font-family:'Orbitron',sans-serif;font-size:20px;margin-bottom:6px}
 #gate p{font-size:13px;color:var(--dim);line-height:1.7;margin-bottom:22px}
@@ -169,6 +177,28 @@ input.code:focus{border-color:var(--accent)}
 </style>
 </head>
 <body>
+<script>
+/* ★ 2026-08-12d 保険。iOS のアプリ表示で env(safe-area-inset-top) が 0 のまま
+   ページが画面のてっぺん（＝カメラの帯の下ではなく真下）から描かれることがある。
+   上のメタを足して直るはずだが、それでも 0 のままなら実測して自分で下げる。
+     条件: アプリ表示 かつ env上が実質0 かつ 画面と表示領域の高さがほぼ同じ
+           （＝ステータスバーの下に避けて置かれてはいない）  */
+(function () {
+  try {
+    if (!(matchMedia("(display-mode: standalone)").matches || navigator.standalone)) return;
+    var p = document.createElement("div");
+    p.style.cssText = "position:fixed;top:0;left:0;width:0;height:0;box-sizing:content-box;" +
+      "padding-top:env(safe-area-inset-top,0px);visibility:hidden;pointer-events:none";
+    document.body.appendChild(p);
+    var envT = parseFloat(getComputedStyle(p).paddingTop) || 0;
+    p.remove();
+    var sMax = Math.max(screen.width, screen.height);
+    if (envT < 8 && sMax - window.innerHeight < 90) {
+      document.documentElement.style.setProperty("--gh-top", "48px");
+    }
+  } catch (e) {}
+})();
+</script>
 
 <!-- アクセスゲート -->
 <div id="gate">

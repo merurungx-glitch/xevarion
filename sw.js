@@ -7,7 +7,7 @@
    ・オフライン中の進行は localStorage に残り、オンライン復帰時に
      xeva-cloud.js がタイムスタンプ比較でクラウドへ上書き反映する
    ============================================================ */
-const VERSION = "xevarion-sw-v62";
+const VERSION = "xevarion-sw-v63";
 
 /* ホームを成立させる最小セット（重い画像は runtime キャッシュに任せる） */
 const CORE = [
@@ -33,12 +33,12 @@ const CORE = [
   "./manifest.webmanifest",
   "./xeva-theme.css?v=1",
   "./xevarion.css?v=16",
-  "./xevarion-home.css?v=32",
+  "./xevarion-home.css?v=33",
   "./xeva.js?v=27",
   "./xeva-fx.js?v=1",
   "./xeva-loading.js?v=1",
-  "./xevarion.js?v=58",
-  "./xevarion-home.js?v=36",
+  "./xevarion.js?v=59",
+  "./xevarion-home.js?v=37",
   "./maintenance-gate.js?v=5",
   "./xeva-back.js?v=1",
   "./xeva-keys.js?v=2",

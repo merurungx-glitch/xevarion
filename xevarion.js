@@ -2651,7 +2651,29 @@ addEventListener("DOMContentLoaded", () => { if (_xevLang === "en") applyLang("e
     var visBottom = (vv.offsetTop || 0) + vv.height;
     var fixBottom = ei.ok ? ei.bottom : visBottom;
     var screenBottom = (fixBottom - visBottom > envB + 2) ? visBottom : Math.max(visBottom, fixBottom);
-    var want = envB + 4;
+    /* ★★ 2026-08-12d 端末で実測してわかった本当の姿（iPhone・ホーム画面から起動）
+         screen 393×852 なのに <b>表示領域（箱）は 393×793</b>。差の 59 は env 上と同じ値で、
+         上端は画面のてっぺん（カメラの下）から始まっている＝<b>足りない 59pt は画面の下</b>にある。
+         ところが env() は「端末の」値をそのまま返すので、下に env 下（34）を空けると、
+         その 34pt は<b>そもそも表示領域の外にあるホームバーぶんと二重</b>になる。
+         合計 59+38＝97pt の帯ができて「バーが上にある」ように見えていた。
+       ── 直しかた ──
+         空けるのは「ホームバーの帯のうち<b>表示領域の中に食いこんでいるぶん</b>」だけ。
+           食いこみ = max(0, env下 − 足りないぶん)
+         ・表示領域が画面いっぱい（足りないぶん 0）… これまでどおり env下 + 4
+         ・この端末（足りないぶん 59 ≥ env下 34）  … 4 だけ（＝タブが 34pt 下がる）
+       ★ 足りないぶんは position:fixed の外なので、ここへバーを伸ばすことはできない
+         （画面の外側は body の背景色が iOS によって塗られる。だから帯の色は続いて見える）。
+       ★ アプリ表示のときだけ見る。ブラウザでは screen と箱の差＝ブラウザのUIぶんなので使えない。 */
+    var shortB = 0;
+    try {
+      if (matchMedia("(display-mode: standalone)").matches || navigator.standalone) {
+        var sMin = Math.min(screen.width, screen.height), sMax = Math.max(screen.width, screen.height);
+        var s = (window.innerWidth > window.innerHeight ? sMin : sMax) - box;
+        if (s > 0 && s < 200) shortB = s;      // 200 以上は測り損ね（PCのウィンドウなど）
+      }
+    } catch (e) {}
+    var want = Math.max(0, envB - shortB) + 4;
     var root = document.documentElement;
     var cur = parseFloat(root.style.getPropertyValue("--xh-barpad"));
     if (!isFinite(cur)) {

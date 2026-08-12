@@ -1318,7 +1318,8 @@ function xhBarInfo() {
     ["fixed bottom:0 の下端 🔴", r1(fixBottom)],
     ["visualViewport 下端 🟠", r1(visBottom) + "  (h " + r1(vv ? vv.height : 0) + " / offTop " + r1(vv ? vv.offsetTop : 0) + " / scale " + (vv ? vv.scale : "-") + ")"],
     ["env 上 / 下", r1(envT) + " / " + r1(envB)],
-    ["目標（赤 − env − 4）🔵", r1(fixBottom - envB - 4)],
+    ["画面 − 箱（下の死角）", r1(Math.max(screen.width, screen.height) - box)],
+    ["目標 🔵", r1(fixBottom - Math.max(0, envB - Math.max(0, Math.max(screen.width, screen.height) - box)) - 4)],
     ["タブボタン下端 🟢", r1(rBtn.bottom) + "  (上 " + r1(rBtn.top) + ")"],
     ["バー 上端 / 下端", r1(rBar.top) + " / " + r1(rBar.bottom)],
     ["--xh-fixgap", (document.documentElement.style.getPropertyValue("--xh-fixgap") || "(未設定)")],
@@ -1334,9 +1335,10 @@ function xhBarInfo() {
   ov.id = id;
   ov.style.cssText = "position:fixed;inset:0;z-index:2147483600;background:rgba(255,255,255,.72);" +
     "font-family:'Noto Sans JP',sans-serif;-webkit-tap-highlight-color:transparent";
+  const wantB = Math.max(0, envB - Math.max(0, Math.max(screen.width, screen.height) - box)) + 4;
   ov.innerHTML =
     line(fixBottom, "#e01b3c", "🔴 fixed bottom:0") +
-    line(fixBottom - envB, "#1163e8", "🔵 目標(env上端)") +
+    line(fixBottom - wantB, "#1163e8", "🔵 目標") +
     line(visBottom, "#f08800", "🟠 visualViewport") +
     line(rBtn.bottom, "#0a9e52", "🟢 タブ下端") +
     '<div style="position:absolute;left:8px;right:8px;top:calc(env(safe-area-inset-top,0px) + 46px);' +

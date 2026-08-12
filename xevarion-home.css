@@ -32,7 +32,13 @@ body{background:#eaf4ff}
      この「ホームでだけ隠す」書きかたが、<b>ホームに入る前（同期の読み込み中）だけ
      左下に一瞬見える</b>原因そのものだったので、ボタンごと消してあります。 */
 body.xh-mode .aurora{display:none}
-body.xh-mode{overflow:hidden;background:#eaf4ff}
+/* ★ 2026-08-12d 背景色は「表示領域の外」にも効く。
+   iPhone のアプリ表示では、表示領域（position:fixed がぶら下がる箱）が画面より
+   短いことがあり（実測: 画面 852 に対して箱 793）、余った下の帯には<b>ページの
+   背景色だけ</b>が iOS によって塗られる。そこにバーを伸ばすことはできないので、
+   せめて<b>下バーと同じ色</b>にして、バーが画面の下端まで続いて見えるようにする。
+   （.xh-bar のグラデーション #f6f0ff〜#fff1f7 の中間あたり） */
+body.xh-mode{overflow:hidden;background:#f1f4fd}
 
 /* ══════════ 画面いっぱいの土台の高さ（--xh-appvh） ══════════
    ★ iPhone でホーム画面から「アプリとして」開いたとき、下に空白の帯ができて
