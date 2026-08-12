@@ -1275,6 +1275,82 @@ function xhAdminEnter() {
 }
 window.xhAdminEnter = xhAdminEnter;
 
+/* ══════════════ 【一時】画面の測定値（下バーの位置しらべ） ══════════════
+   ★ 2026-08-12c iPhone で下のタブバーが画面の下端より高い位置で止まる件の調査用。
+   手元（PC・Chrome）では正しい位置に来るので、端末で実際に何ピクセルなのかを見る。
+   ・数字だけでなく<b>目印の線</b>も引く。どの線が本当の画面の下端に重なっているかが
+     スクリーンショット1枚で分かる。
+       赤   … position:fixed; bottom:0 の下端（レイアウトビューポートの下端）
+       青   … 赤から env(safe-area-inset-bottom) ぶん上（ホームバーの帯の上端＝目標）
+       橙   … visualViewport の下端
+       緑   … いまのタブボタンの下端
+   原因が分かったら、この関数と設定タブの行ごと削除すること。 */
+function xhBarInfo() {
+  xhCloseSheet("xhSetSheet");
+  const id = "xhBarInfoOv";
+  const old = document.getElementById(id); if (old) old.remove();
+
+  /* env(safe-area-inset-*) の実測用（CSS の env() は JS から読めない） */
+  const mk = (css) => { const d = document.createElement("div"); d.style.cssText = css; document.body.appendChild(d); return d; };
+  const pEnv = mk("position:fixed;left:0;bottom:0;width:0;height:0;margin:0;border:0;box-sizing:content-box;" +
+    "padding:env(safe-area-inset-top,0px) 0 env(safe-area-inset-bottom,0px) 0;visibility:hidden;pointer-events:none");
+  const pBox = mk("position:fixed;top:0;bottom:0;left:0;width:0;margin:0;padding:0;border:0;visibility:hidden;pointer-events:none");
+  const rEnv = pEnv.getBoundingClientRect(), rBox = pBox.getBoundingClientRect();
+  const envT = parseFloat(getComputedStyle(pEnv).paddingTop) || 0;
+  const envB = parseFloat(getComputedStyle(pEnv).paddingBottom) || 0;
+  const fixBottom = rEnv.bottom;           // ← position:fixed;bottom:0 が着く場所
+  const box = rBox.height;
+  pEnv.remove(); pBox.remove();
+
+  const vv = window.visualViewport;
+  const visBottom = vv ? (vv.offsetTop || 0) + vv.height : 0;
+  const bar = document.querySelector("#xhome .xh-bar");
+  const btn = document.querySelector("#xhome .xh-ntab");
+  const rBtn = btn ? btn.getBoundingClientRect() : { bottom: 0, top: 0 };
+  const rBar = bar ? bar.getBoundingClientRect() : { bottom: 0, top: 0 };
+  const cs = getComputedStyle(document.documentElement);
+  const r1 = (n) => Math.round(n * 10) / 10;
+
+  const rows = [
+    ["screen", screen.width + " × " + screen.height + "  dpr " + window.devicePixelRatio],
+    ["window", window.innerWidth + " × " + window.innerHeight],
+    ["箱(fixed top0/bottom0)", r1(box)],
+    ["fixed bottom:0 の下端 🔴", r1(fixBottom)],
+    ["visualViewport 下端 🟠", r1(visBottom) + "  (h " + r1(vv ? vv.height : 0) + " / offTop " + r1(vv ? vv.offsetTop : 0) + " / scale " + (vv ? vv.scale : "-") + ")"],
+    ["env 上 / 下", r1(envT) + " / " + r1(envB)],
+    ["目標（赤 − env − 4）🔵", r1(fixBottom - envB - 4)],
+    ["タブボタン下端 🟢", r1(rBtn.bottom) + "  (上 " + r1(rBtn.top) + ")"],
+    ["バー 上端 / 下端", r1(rBar.top) + " / " + r1(rBar.bottom)],
+    ["--xh-fixgap", (document.documentElement.style.getPropertyValue("--xh-fixgap") || "(未設定)")],
+    ["--xh-barpad", (document.documentElement.style.getPropertyValue("--xh-barpad") || "(未設定)") + " / 実効 " + r1(parseFloat(getComputedStyle(bar).paddingBottom) - (parseFloat(cs.getPropertyValue("--xh-dockover")) || 0))],
+    ["standalone", (matchMedia("(display-mode: standalone)").matches ? "yes" : "no") + " / navigator " + (navigator.standalone ? "yes" : "no")]
+  ];
+
+  const line = (y, color, label) =>
+    '<div style="position:fixed;left:0;right:0;top:' + (y - 1) + 'px;height:2px;background:' + color + ';z-index:2">' +
+    '<span style="position:absolute;right:2px;bottom:2px;font-size:9px;font-weight:900;color:' + color + '">' + label + "</span></div>";
+
+  const ov = document.createElement("div");
+  ov.id = id;
+  ov.style.cssText = "position:fixed;inset:0;z-index:2147483600;background:rgba(255,255,255,.72);" +
+    "font-family:'Noto Sans JP',sans-serif;-webkit-tap-highlight-color:transparent";
+  ov.innerHTML =
+    line(fixBottom, "#e01b3c", "🔴 fixed bottom:0") +
+    line(fixBottom - envB, "#1163e8", "🔵 目標(env上端)") +
+    line(visBottom, "#f08800", "🟠 visualViewport") +
+    line(rBtn.bottom, "#0a9e52", "🟢 タブ下端") +
+    '<div style="position:absolute;left:8px;right:8px;top:calc(env(safe-area-inset-top,0px) + 46px);' +
+    'background:#fff;border:2px solid #4b8bff;border-radius:14px;padding:10px 12px;font-size:11px;line-height:1.75;color:#22344d">' +
+    '<div style="font-weight:900;font-size:12.5px;margin-bottom:6px">画面の測定値（この画面をスクショして送ってください）</div>' +
+    rows.map((r) => '<div style="display:flex;gap:8px"><span style="flex:0 0 42%;color:#6f82ad;font-weight:800">' +
+      r[0] + '</span><span style="font-weight:800;font-variant-numeric:tabular-nums">' + r[1] + "</span></div>").join("") +
+    '<div style="margin-top:8px;font-size:10px;color:#6f82ad">🟢 が 🔵 に重なっていれば正しい位置です。</div>' +
+    '<button style="margin-top:8px;width:100%;padding:9px;border:none;border-radius:11px;background:#4b8bff;color:#fff;' +
+    'font-weight:900;font-size:12px" onclick="document.getElementById(\'' + id + '\').remove()">閉じる</button></div>';
+  document.body.appendChild(ov);
+}
+window.xhBarInfo = xhBarInfo;
+
 /* ── お気に入りキャラ（最大5体） ── */
 function xhOwnedChars() {
   let owned = {};

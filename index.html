@@ -29,7 +29,7 @@
 <script src="xeva-presence.js?v=1" defer></script>
 <script type="module" src="xeva-cloud.js?v=14"></script>
 <script src="xevarion.js?v=58" defer></script>
-<script src="xevarion-home.js?v=35" defer></script>
+<script src="xevarion-home.js?v=36" defer></script>
 </head>
 <body>
 <!-- ───── バックグラウンド音楽（Flagship Arrival。アクセス画面のタップで再生開始） ───── -->
@@ -666,6 +666,12 @@ body.music-on #beatFrame{opacity:1}
       <button class="xh-row" onclick="xhOpenAdmin()">
         <span class="rl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.2 4.6 6.4v5.2c0 4.6 3.1 8.4 7.4 9.6 4.3-1.2 7.4-5 7.4-9.6V6.4Z"/><path d="M9.4 12.2l1.9 1.9 3.6-3.9"/></svg>
           <span><span class="rt">管理画面</span><span class="rs">アクセスコードが必要です</span></span></span>
+        <span class="rv">›</span>
+      </button>
+      <!-- ★ 一時的な調査用（下のバーの位置ずれ）。原因が分かったら消します。 -->
+      <button class="xh-row" onclick="xhBarInfo()">
+        <span class="rl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3.4 5.6h17.2v12.8H3.4z"/><path d="M3.4 15.4h17.2"/><path d="M7.6 18.4v-3M12 18.4v-3M16.4 18.4v-3"/></svg>
+          <span><span class="rt">画面の測定値</span><span class="rs">下のバーの位置しらべ（一時的）</span></span></span>
         <span class="rv">›</span>
       </button>
       <button class="xh-row" onclick="xhLogout()">
