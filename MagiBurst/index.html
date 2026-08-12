@@ -24,7 +24,7 @@ if ("serviceWorker" in navigator) {
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
 <script src="../xeva-splash.js?v=3" data-app="MagiBurst" data-logo="../thumbs/MagiBurst.jpg"
         data-note="⚠️ このゲームの対象年齢は 13歳以上 です"></script>
-<script src="../xeva.js?v=25"></script>
+<script src="../xeva.js?v=27"></script>
 <script src="../xeva-loading.js?v=1" defer></script>
 <script type="module" src="../xevarion-fb.js?v=19"></script>
 <script src="../xeva-presence.js?v=1" defer></script>
@@ -2533,8 +2533,14 @@ body.in-battle #top,body.in-battle #tabs{display:none}
 .cnxslot.on{color:#ffe6a6;background:linear-gradient(135deg,rgba(200,107,255,.42),rgba(240,192,64,.34));
   box-shadow:0 0 6px rgba(240,192,64,.55)}
 .cnxslot.off{color:#8f88b4;background:rgba(255,255,255,.07)}
-.cnxslot .cnxbk{position:absolute;right:-4px;bottom:-4px;font-size:7px;font-weight:900;line-height:1;
-  padding:1px 1.5px;border-radius:3px;background:#2b1b4d;color:#ffd257;border:1px solid rgba(255,210,87,.7)}
+/* ★★ 2026-08-12 「書」の札は<b>マークの中に横並びで入れる</b>。
+   以前は position:absolute の right:-4px / bottom:-4px で外へ出していたが、
+   置き場所の .slty（戦型のピル）は長い戦型名を切るために overflow:hidden なので、
+   はみ出した札の<b>下と右が切れて</b>、位置もずれて見えていた。
+   マークごと少し横に広げて中に収める＝どの枠でも切れず、鎖と札が中央でそろう。 */
+.cnxslot.book{width:auto;height:15px;padding:0 3px 0 2px;gap:1px;border-radius:6px}
+.cnxslot .cnxbk{font-size:7.5px;font-weight:900;line-height:1;color:#ffd257;letter-spacing:0;
+  font-style:normal;display:block;transform:translateY(.5px)}
 .bdchips{display:flex;flex-wrap:wrap;gap:3px}
 .bdchip{display:inline-flex;align-items:center;gap:3px;font-size:9.5px;font-weight:900;color:var(--bc,#fff);
   border:1px solid color-mix(in srgb,var(--bc,#fff) 55%,transparent);background:color-mix(in srgb,var(--bc,#fff) 15%,transparent);border-radius:6px;padding:2px 6px}
@@ -3175,7 +3181,7 @@ body.in-battle #top,body.in-battle #tabs{display:none}
 .hcard td:last-child{text-align:right;font-weight:900;font-family:'Orbitron',sans-serif}
 @media(min-width:700px){ #cv{border-radius:20px} }
 </style>
-<script type="module" src="magiburst-cloud.js?v=4"></script>
+<script type="module" src="magiburst-cloud.js?v=6"></script>
 </head>
 <body>
 
@@ -3576,7 +3582,7 @@ body.in-battle #top,body.in-battle #tabs{display:none}
 </div></div>
 
 <script>window.MB_IMGD = "../img/"; window.MB_GIMGD = "img/";</script>
-<script src="js/mb-core.js?v=9"></script>
+<script src="js/mb-core.js?v=12"></script>
 <script>
 "use strict";
 /* ══════════ アカウントガード ══════════ */
@@ -3789,6 +3795,16 @@ if (!DB.equip2) DB.equip2 = {};        // charId → fruitId（第2枠・全キ�
 if (!DB.equip3) DB.equip3 = {};        // charId → fruitId（第3枠・英傑の証で解放）
 if (!DB.hero) DB.hero = {};            // charId → 1（英傑の証で第3枠を解放済み）
 if (!DB.trans) DB.trans = {};          // charId → 1（超越の書でレベル上限を60に解放済み）
+/* ★★ 2026-08-12 「Lv.60 なのに 最大レベルが 50 と出る」の直し。
+   クラウド同期の合流では DB.chars の lv は<b>大きいほうが残る</b>のに対し、
+   DB.trans は勝ったほうのセーブがそのまま採られていたので、
+   <b>レベルだけ 60 で解放フラグが落ちた</b>状態になり得た。
+   Lv.50 を超えられるのは超越の書を使ったキャラだけなので、ここでフラグを立て直す
+   （表示・レベル上げ・叡智の果実の上限がまとめてそろう）。
+   ★ 以後こうならないよう、magiburst-cloud.js の rescue でも trans/hero を合流させている。 */
+Object.keys(DB.chars || {}).forEach((id) => {
+  if ((((DB.chars[id] || {}).lv) | 0) > MAX_LV) DB.trans[id] = 1;
+});
 /* ★ 2026-08-12 クロスの書で「クロススキルを常時発動」にしたキャラ（charId → 1）。
    1冊につき1体・1回だけ。使ったあとは永久に開放されたまま（月のリセットでも消えない）。 */
 if (!DB.crossBook) DB.crossBook = {};
@@ -4020,14 +4036,26 @@ function syncWaveBestWithClears() {
      （gardenSpanKey など関数のほうは巻き上がるので、定義はWAVEの節にまとめてある）。 */
 const GARDEN_SPAN_DAY = 16;      // この日から後半（B期）。1〜15日が前半（A期）
 const GARDEN_SPAN_PICK = 10;     // 1スパンで報酬対象になるクエスト数
+/* ★ 2026-08-12 抽選は<b>前半（第1〜10ノ園）から5・後半（第11〜20ノ園）から5</b>。
+   まとめて10個選ぶと、スパンによっては奥（＝開放していない園）にかたよって
+   「今回の対象がほとんど挑戦できない」ということが起きるため。 */
+const GARDEN_SPAN_HALF = 10;                        // 前半とみなす園の数（第1〜10ノ園）
+const GARDEN_SPAN_PICK_HALF = GARDEN_SPAN_PICK / 2; // 前半・後半それぞれから選ぶ数
 const GARDEN_WAVE_STEP = 5;      // 幽冥の庭園の報酬の刻み（王城・迷宮は WAVE_STEP＝10）
 /* ══ ★ 2026-08-11 幽冥の庭園だけのリセット（月2回・1日／16日）══
    ・王城・迷宮は applyMonthlyReset のまま（月1回）。ここでは<b>庭園ぶんだけ</b>を消す。
-   ・消すのは「今回のスパンのWAVE記録（DB.waveBest の庭園ぶん）」と
-     「受け取った踏破報酬の位置（DB.waveRw.garden）」の2つだけ。
-   ・<b>DB.first（初クリアのジェム）は触らない</b>。初クリアジェムは<b>月1回</b>のリセットのまま、
-     というのが決めごとなので、ここで消すと月2回もらえてしまう。
-   ・DB.gwBest（園の開放に使う通算WAVE）も触らない（開放済みの園が閉じてしまうため）。
+
+   ★★ 2026-08-12 消すものに<b>クリア状況（DB.clears）</b>を加えた。
+     ご指定どおり「スパンが入れ替わるタイミングで庭園のクリア状況はリセット」。
+     以前は WAVE 記録だけを消していたので、カードは CLEAR のままなのに
+     踏破は 0 という食いちがいが残っていた。
+   ★ ものさしの分かれ目（ここを取りちがえないこと）:
+       ・DB.clears   … クリア状況。<b>スパンごと（1日と16日）</b>に消す。
+       ・DB.waveBest … 今回のWAVE記録。同じくスパンごと。
+       ・DB.first    … <b>初クリアのジェム。ここでは絶対に触らない</b>。
+                         applyMonthlyReset（<b>毎月11日だけ</b>）が丸ごと空にする。
+                         ここで消すとジェムが月2回もらえてしまう。
+       ・DB.gwBest   … 園の開放に使う<b>通算</b>WAVE。永久に残す（開放済みの園を閉じない）。
    ★ applyMonthlyReset のあとに呼ぶこと。月が変わったときは向こうが waveBest を丸ごと空にするので、
      先にこちらが走っても意味がない。 */
 function applyGardenSpanReset() {
@@ -4035,7 +4063,10 @@ function applyGardenSpanReset() {
   if (DB.gardenSpan === k) return false;
   const first = DB.gardenSpan != null;
   DB.gardenSpan = k;
-  GARDEN_STAGES.forEach((s) => { delete DB.waveBest[s.id]; });
+  GARDEN_STAGES.forEach((s) => {
+    delete DB.waveBest[s.id];
+    delete DB.clears[s.id];          /* ★ クリア状況もスパンごとに戻す */
+  });
   if (DB.waveRw) delete DB.waveRw.garden;
   save();
   return first;   // 初回起動（記録なし）では案内を出さない
@@ -4278,8 +4309,9 @@ const WAVE_TOTAL = 180;   // 30部屋 × 6WAVE（v12.2: 第29・30の間を追�
    ★ 2026-08-11 幽冥の庭園だけ「月2回・10クエスト」のスパン制にした
    ------------------------------------------------------------
    ・リセットは<b>月2回</b>（1日／16日）。王城・迷宮はこれまでどおり月1回。
-   ・1スパンごとに<b>第1〜20ノ園から10クエスト</b>が選ばれ、
+   ・1スパンごとに<b>第1〜10ノ園から5クエスト・第11〜20ノ園から5クエスト</b>が選ばれ、
      <b>そこだけ</b>がWAVE突破報酬の対象になる（＝満了 10×6＝60WAVE）。
+     ★ 2026-08-12 全20園からまとめて引くのをやめ、<b>手前5・奥5</b>で固定した。
    ・報酬の節目は<b>5WAVEごと</b>（王城・迷宮は10WAVEごとのまま）。
    ・対象外の10クエストも<b>チャレンジ</b>タブから挑戦できる。
      WAVE突破報酬は入らないが、<b>初クリアのジェムは毎月リセット</b>なので受け取れる。
@@ -4318,16 +4350,31 @@ function gardenSpanLeft() {
   return { d, h, m, at, text: (d > 0 ? d + "日 " : "") + h + "時間 " + m + "分" };
 }
 /* スパンのキーから 10クエストを選ぶ。並びは第1ノ園から順（見た目の順）にそろえる。
-   ★ 乱数は保存しない。キーが同じなら必ず同じ結果になるハッシュ（FNV-1a ＋ xorshift）で選ぶ。 */
+   ★ 乱数は保存しない。キーが同じなら必ず同じ結果になるハッシュ（FNV-1a ＋ xorshift）で選ぶ。
+   ★ 2026-08-12 選びかたを<b>前半（第1〜10ノ園）から5・後半（第11〜20ノ園）から5</b>に変えた。
+     全20園からまとめて10個引くと、回によって前半だけ／奥だけにかたよってしまうため。
+     ＝ 毎回かならず「手前5・奥5」になる。 */
 function gardenSpanIds(key) {
   const k = key || gardenSpanKey();
   let h = 2166136261 >>> 0;
   for (let i = 0; i < k.length; i++) { h ^= k.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; }
   if (!h) h = 1;
   const rnd = () => { h ^= h << 13; h >>>= 0; h ^= h >>> 17; h ^= h << 5; h >>>= 0; return h / 4294967296; };
-  const idx = GARDEN_STAGES.map((_, i) => i);
-  for (let i = idx.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); const t = idx[i]; idx[i] = idx[j]; idx[j] = t; }
-  return idx.slice(0, Math.min(GARDEN_SPAN_PICK, idx.length)).sort((a, b) => a - b).map((i) => GARDEN_STAGES[i].id);
+  /* 通し番号を前半・後半に分けて、それぞれシャッフルして頭から取る。
+     ★ 園の数が半端でも足りないぶんはもう片方から補う（合計は必ず GARDEN_SPAN_PICK 個）。 */
+  const all = GARDEN_STAGES.map((_, i) => i);
+  const front = all.slice(0, GARDEN_SPAN_HALF), back = all.slice(GARDEN_SPAN_HALF);
+  const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(rnd() * (i + 1)); const t = a[i]; a[i] = a[j]; a[j] = t; } return a; };
+  shuffle(front); shuffle(back);
+  const nF = Math.min(GARDEN_SPAN_PICK_HALF, front.length);
+  const nB = Math.min(GARDEN_SPAN_PICK - nF, back.length);
+  const pick = front.slice(0, nF).concat(back.slice(0, nB));
+  /* 片方が少なくて 10 に届かないときだけ、余ったほうから足す */
+  if (pick.length < GARDEN_SPAN_PICK) {
+    const rest = front.slice(nF).concat(back.slice(nB));
+    pick.push(...rest.slice(0, GARDEN_SPAN_PICK - pick.length));
+  }
+  return pick.sort((a, b) => a - b).map((i) => GARDEN_STAGES[i].id);
 }
 /* いまのスパンの対象クエストid（1フレームのあいだは使い回す＝毎回シャッフルし直さない） */
 let _gspanKey = null, _gspanIds = null;
@@ -5119,7 +5166,9 @@ window.openCounters = openCounters; window.closeCounters = closeCounters;
    ══════════════════════════════════════════════════════════════ */
 const NEW_CHARS = [
   /* ★ since が未来の日付なので、その日が来るまで告知バナーには出ない（newCharLive で判定） */
-  /* ★ 2026-08-12 蒼夏祭（Aoka Summer Fest）限定★5 6体 */
+  /* ★ 2026-08-12 蒼夏祭（Aoka Summer Fest）限定★5 7体 */
+  { id: "seira", since: "2026-08-12", where: "蒼夏祭", mode: "fes4",
+    catch: "宵闇は、ただ一体を沈める。", color: "#6f3fd0" },
   { id: "chizuru", since: "2026-08-12", where: "蒼夏祭", mode: "fes4",
     catch: "宵の海は、まだ終わらない。", color: "#8e4fe0" },
   { id: "mayu", since: "2026-08-12", where: "蒼夏祭", mode: "fes4",
@@ -5303,6 +5352,23 @@ window.openNewChar = openNewChar; window.closeNewChar = closeNewChar;
 
 /* ══════════ お知らせ（アップデートのたびにここへ追記する） ══════════ */
 const NEWS = [
+  /* ★ 2026-08-12 乱打フルバーストの統一（セイラと同じ「止まってから乱打」）＋庭園の抽選を手前5・奥5に */
+  { date: "2026-08-12", title: "💥 乱打フルバーストは「止まってから乱打」に統一／🌸 庭園の対象は手前5・奥5に", body: [
+    "💥 <b>乱打フルバーストは、すべて「乱打する敵の上でいったん止まってから叩き込む」</b>ようになりました"
+      + "（<b>セイラ</b>と同じ仕様に統一しています）。対象は"
+      + "<b>シェリー・シェリーα・カレム・アリサ・シオン・ユイナ・アカネ・レイ</b>です。"
+      + "<br>これまでは乱打が始まっても本体は走り続けていたため、"
+      + "<b>乱打の途中で相手から離れていってしまう</b>ことがありました。"
+      + "いまは必ず密着したまま最後まで撃ち切るので、<b>どの敵に一発目を当てるか</b>がそのまま火力になります。"
+      + "<br>連数・1発の威力・体当たりの倍率は変えていません（当たるのはこれまでどおり<b>最初の1体だけ</b>です）。",
+    "🌸 <b>幽冥の庭園の「今回の対象" + GARDEN_SPAN_PICK + "クエスト」の選ばれかたを変えました。</b>"
+      + "これまでは第1〜" + GARDEN_N + "ノ園からまとめて" + GARDEN_SPAN_PICK + "個を抽選していましたが、"
+      + "いまは<b>第1〜" + GARDEN_SPAN_HALF + "ノ園から" + GARDEN_SPAN_PICK_HALF + "クエスト</b>、"
+      + "<b>第" + (GARDEN_SPAN_HALF + 1) + "〜" + GARDEN_N + "ノ園から" + GARDEN_SPAN_PICK_HALF + "クエスト</b>"
+      + "の<b>半分ずつ</b>になります。"
+      + "<br>回によって奥の園ばかりが対象になり、<b>まだ開放していなくて挑めない</b>ということが起きなくなります。"
+      + "リセットのタイミング（毎月1日・16日 0:00）と報酬の刻み（" + GARDEN_WAVE_STEP + "WAVEごと）は変わりません。",
+  ] },
   { date: "2026-08-10", title: "🌸 幽冥の庭園 第16〜18ノ園を追加／🌀 新しいアンチの組み合わせ3種", body: [
     "🌸 <b>幽冥の庭園に 第16〜18ノ園</b> を追加しました（これで全" + GARDEN_N + "園・" + (GARDEN_N * 6) + "WAVE）。"
       + "<b>第16ノ園「輪廻」</b>＝ヒーリングウォール＋透明スイッチ／"
@@ -6507,6 +6573,11 @@ const WAVE_ICON = '<svg viewBox="0 0 20 20" aria-hidden="true" focusable="false"
   + "</svg>";
 function waveBlocksHTML(s) {
   if (!waveSeriesOf(s)) return "";
+  /* ★ 2026-08-12 幽冥の庭園の<b>チャレンジ</b>（＝今回のスパンに選ばれていない園）は
+     WAVE突破報酬の対象外＝WAVEを何本抜けても何も起きない。
+     それなのにブロックだけ並んでいると「ここも埋めるのか」と読めてしまうので出さない。
+     判定は waveScoreStagesOf と同じ gardenInSpan 1本。 */
+  if (s.garden && !gardenInSpan(s.id)) return "";
   const n = s.waves.length, done = Math.min(n, DB.waveBest[s.id] || 0);
   let cells = "";
   for (let i = 1; i <= n; i++) cells += `<i class="${i <= done ? (i > 3 ? "wb-boss" : "wb-mob") : ""}"></i>`;
@@ -6878,7 +6949,14 @@ function gardenSpanNoteHTML() {
   const left = gardenSpanLeft();
   return `<div class="gwarn gspan${book ? " done" : ""}">
       🌸 <b>幽冥の庭園</b>は<b>月2回（1日・16日）</b>リセットされます。次は <b>${gardenSpanEndText()} 0:00</b>（あと <b>${left.text}</b>）。
-      <br>今回のWAVE突破報酬の対象は、第1〜${GARDEN_N}ノ園から<b>ランダムに選ばれた${ids.length}クエスト</b>。
+      ${/* ★ 2026-08-12 リセットされるものと、されないものの線引きを明記する。
+            クリア状況とWAVE記録はスパンごと（月2回）、初クリアのジェムは月1回だけ。 */""}
+      <br><small>リセットで戻るのは<b>クリア状況とWAVE記録</b>です。<b>初クリアのジェムは毎月1日だけ</b>リセットされるので、
+      16日のリセット後に同じ園をクリアしてもジェムは出ません（WAVE突破報酬はもらえます）。</small>
+      ${/* ★ 2026-08-12 抽選は「手前から5・奥から5」。かたよりが出ないようにしてある */""}
+      <br>今回のWAVE突破報酬の対象は、<b>第1〜${GARDEN_SPAN_HALF}ノ園から${GARDEN_SPAN_PICK_HALF}クエスト</b>・
+      <b>第${GARDEN_SPAN_HALF + 1}〜${GARDEN_N}ノ園から${GARDEN_SPAN_PICK_HALF}クエスト</b>の、
+      あわせて<b>ランダムに選ばれた${ids.length}クエスト</b>。
       報酬は<b>${GARDEN_WAVE_STEP}WAVEごと</b>で、<b>${mx}WAVE（＝${ids.length}クエスト全クリア）</b>で
       <b style="color:#12a08f">📘 クロスの書</b>（キャラ1体のクロススキルを常時発動にする）がもらえます。
       <br><b>いまの進みぐあい：クリア ${done} / ${ids.length} クエスト・踏破 ${wv} / ${mx} WAVE</b>
@@ -6902,7 +6980,10 @@ async function openGardenHelp() {
   await uiAlert(`
     <div style="text-align:left;font-size:12.5px;line-height:1.85">
       <b style="color:#12a08f">🌸 幽冥の庭園は「月2回（1日・16日）」で中身が入れ替わります。</b><br>
-      毎回、第1〜${GARDEN_N}ノ園の中から<b>ランダムに${ids.length}クエスト</b>が選ばれ、そこが「今回の対象」になります。
+      毎回、<b>第1〜${GARDEN_SPAN_HALF}ノ園から${GARDEN_SPAN_PICK_HALF}クエスト</b>、
+      <b>第${GARDEN_SPAN_HALF + 1}〜${GARDEN_N}ノ園から${GARDEN_SPAN_PICK_HALF}クエスト</b>が
+      ランダムに選ばれ（あわせて${ids.length}クエスト）、そこが「今回の対象」になります。
+      手前と奥から同じ数ずつ選ばれるので、<b>いつでも挑戦しやすい園と、歯ごたえのある園が半分ずつ</b>入ります。
       次に選び直されるのは <b>${gardenSpanEndText()} 0:00</b>（あと <b>${left.text}</b>）。
       <hr style="border:none;border-top:1px solid rgba(140,120,220,.3);margin:10px 0">
       <b style="color:#e0a020">🎯 今回の対象（${ids.length}クエスト）</b><br>
@@ -7073,14 +7154,49 @@ function renderLobby() {
 }
 /* 横スクロールの「いま何枚目か」。
    ★ すき間（gap）があるぶん scrollLeft ÷ 幅 ではズレていくので、
-     子の offsetLeft といちばん近いものを選ぶ。 */
+     子の位置といちばん近いものを選ぶ。
+   ★★ 2026-08-12 offsetLeft をそのまま使っていたのをやめた。
+     offsetLeft は<b>offsetParent 基準</b>で、レール自身は position を
+     持たないので、レールより外の祖先が基準になる。
+     （実測では先頭の子の offsetLeft が 180 などになる。）
+     一方 scrollLeft はレールの中だけの 0 始まりなので、
+     そのまま引き算すると<b>常にそのぶんだけズれる</b>。
+     これまでは scroll-snap が吸収してくれていただけで、
+     ズレがカード幅の半分を超えれば一枚分飛ぶ。
+     → 先頭の子の分を引いて 0 始まりにそろえる。 */
+function railLeft(r, i) {
+  const c = r.children[i], h = r.children[0];
+  if (!c || !h) return 0;
+  return c.offsetLeft - h.offsetLeft;
+}
 function railIndex(r) {
   let best = 0, bd = Infinity;
   [...r.children].forEach((c, i) => {
-    const d = Math.abs(c.offsetLeft - r.scrollLeft);
+    const d = Math.abs(railLeft(r, i) - r.scrollLeft);
     if (d < bd) { bd = d; best = i; }
   });
   return best;
+}
+/* ══ ★★ 2026-08-12 「最後まで進むと先頭に戻らない」の修正 ══
+   レールは scroll-snap-type:x mandatory 。iOS Safari はこのレールを
+   <b>長い距離 behavior:"smooth" で動かすと、途中でスナップに引き戻される</b>。
+   1枚ずつの移動（短い）は問題なく動くのに、<b>末尾→先頭の回りこみだけ</b>
+   （レール全幅の長距離）が失敗し、その場にとどまって見えていた。
+   → <b>1枚分を超える移動は smooth をやめて一気に飛ばす</b>。
+     回りこみはもともと「逆向きに全枚巻き戻る」見え方で、
+     一気に飛んだほうがカルーセルとしても自然。 */
+function railScrollTo(r, i, smooth) {
+  if (!r || !r.children[i]) return;
+  const left = railLeft(r, i);
+  const jump = (smooth === false) || Math.abs(left - r.scrollLeft) > r.clientWidth * 1.5;
+  if (jump) {
+    const prev = r.style.scrollBehavior;
+    r.style.scrollBehavior = "auto";
+    r.scrollLeft = left;
+    requestAnimationFrame(() => { r.style.scrollBehavior = prev; });
+  } else {
+    r.scrollTo({ left, behavior: "smooth" });
+  }
 }
 /* イベントバナーの現在位置ドット */
 function paintLobbyDots() {
@@ -7093,7 +7209,7 @@ window.paintLobbyDots = paintLobbyDots;
 function goLobbyBanner(i) {
   const r = $("#lbEvRail"); if (!r || !r.children[i]) return;
   _lbHold = Date.now();                     /* 手で動かした直後は自動送りを休む */
-  r.scrollTo({ left: r.children[i].offsetLeft, behavior: "smooth" });
+  railScrollTo(r, i);
 }
 window.goLobbyBanner = goLobbyBanner;
 /* ★ 2026-08-05: イベントバナーを<b>ほうっておいても次へ切り替わる</b>ようにした。
@@ -7117,7 +7233,7 @@ function startLobbyAuto() {
     if (rail.offsetParent === null || document.hidden) return;   /* ホームが見えていない */
     if (Date.now() - _lbHold < 8000) return;                     /* さわった直後 */
     const nx = (railIndex(rail) + 1) % rail.children.length;
-    rail.scrollTo({ left: rail.children[nx].offsetLeft, behavior: "smooth" });
+    railScrollTo(rail, nx);
   }, 6000);
 }
 /* ホームのバナーに出すもの＝開催中のイベント → 開催中のガチャ の順
@@ -7583,7 +7699,12 @@ const MISSION_SERIES = [
   { id: "g_garden", kind: "grand", nm: (n) => "幽冥の庭園を" + n + "園クリアする",
     need: (i) => Math.min(GARDEN_N, (i + 1) * 3), max: Math.ceil(GARDEN_N / 3),
     rw: (i) => ({ orbs: 20 + i * 10 }),
-    cur: () => GARDEN_STAGES.filter((s) => DB.clears[s.id]).length },
+    /* ★ 2026-08-12 庭園の DB.clears は<b>スパンごと（1日・16日）に消える</b>ようになったので、
+       達成（grand）ミッションの数えに使うと月に2回巻き戻されてしまう。
+       達成は「リセットのない積み上げ」なので、永久に残る DB.gwBest（通算WAVE）で
+       「全WAVE抜けたことがある園の数」を数える。 */
+    cur: () => { DB.gwBest = DB.gwBest || {};
+      return GARDEN_STAGES.filter((s) => (DB.gwBest[s.id] || 0) >= s.waves.length).length; } },
 ];
 /* 段階式かどうか。★ リセットのない「達成（grand）」だけが段階式 */
 function msnStepped(s) { return s.kind === "grand"; }
@@ -8031,14 +8152,11 @@ function paintEvents() {
      バナーの絵が画面の外に出た状態で開いていた。かならず先頭から見せる。 */
   const cd = $("#evCard"); if (cd) cd.scrollTop = 0;
 }
-/* i 枚目へ（smooth=false なら一気に。開いた直後の位置合わせで使う） */
+/* i 枚目へ（smooth=false なら一気に。開いた直後の位置合わせで使う）。
+   ★ 末尾→先頭の回りこみも railScrollTo が自動で一気に飛ばす。 */
 function evGoTo(i, smooth) {
   const r = $("#evRail"); if (!r || !r.children[i]) return;
-  const left = r.children[i].offsetLeft;
-  if (smooth === false) {
-    r.style.scrollBehavior = "auto"; r.scrollLeft = left;
-    requestAnimationFrame(() => { r.style.scrollBehavior = ""; });
-  } else { r.scrollTo({ left, behavior: "smooth" }); }
+  railScrollTo(r, i, smooth);
   evPaintNav(i);
 }
 /* ◀▶ で1つずつ */
@@ -10184,9 +10302,11 @@ const ABIL_GROUPS = {
   award: ["award"], eclipseslayerM: ["eclipseslayerM"],
   vital: ["vital", "vitalM", "vitalL", "vitalEL"],
   weakkiller: ["weakkiller", "weakkillerM", "weakkillerL"],
-  firstkiller: ["firstkiller", "firstkillerM"],
+  /* ★ 2026-08-12 等級Lを追加（足し忘れると、その等級を持つキャラだけ絞り込みから消える） */
+  firstkiller: ["firstkiller", "firstkillerM", "firstkillerL"],
   poisonkiller: ["poisonkiller", "poisonkillerM", "poisonkillerEL"],
-  fatalkiller: ["fatalkiller", "fatalkillerM"],
+  /* ★ 2026-08-12 fatalkillerL（スズカ・マユ）が抜けていたので追加 */
+  fatalkiller: ["fatalkiller", "fatalkillerM", "fatalkillerL"],
   defkiller: ["defkiller"],
   mobkiller: ["mobkiller", "mobkillerM", "mobkillerL"],
   upkillerM: ["upkillerM"],
@@ -10219,7 +10339,7 @@ const ABIL_GROUPS = {
   overheat: ["overheat"],
   resonance: ["resonance"],
   eternalphoton: ["eternalphoton"],
-  destroyboost: ["destroyboost"],
+  destroyboost: ["destroyboost", "destroyboostM"],
   pray: ["pray"],
   laserstop: ["laserstop", "laserstopM"],
   lightning: ["lightning"],
@@ -10368,6 +10488,15 @@ const FS_TAG_NM = {
 const SUBFS_TAGS = {
   plasma: ["pierce", "multi", "long"], accel: ["ally"], blast: ["wide"],
   phoming: ["homing", "pierce", "multi"], field: ["wide", "multi"],
+  /* ★ 2026-08-12 ピアスシーカー20（セイラ）。性質は12発版とまったく同じ */
+  phoming20: ["homing", "pierce", "multi"],
+  /* ★ 2026-08-12 登録もれの修正: この2つが無かったので、サブリンクの絞り込みから
+     カホ／ココナα／スズカ（ウォールサーキットリング）と
+     チヅル（ポジションリミット）が消えていた。
+     ・ウォールサーキットリング … リンク版（FS_TAGS.wallcircuit）と同じ性質にそろえる。
+     ・ポジションリミット       … 最も近い敵1体に撃つ単発の高火力＝ホーミング扱い。 */
+  wallcircuit: ["bounce", "wide", "multi"],
+  positionlimit: ["homing"],
   poison: ["wide", "status", "multi"], bubbly: ["ally"],
   boundheal: ["bounce", "heal", "ally", "multi"],
   weaklock: ["homing", "multi"], hitouchray: ["long"], pspread5: ["pierce", "multi", "wide"],
@@ -10440,6 +10569,8 @@ const SS_TAGS = {
   /* ★ 2026-08-12 蒼夏祭（フウカ＝nephia／スズカ＝mionA／カレム＝cherylA／マユ＝karina は
      それぞれ上の行を共有する。ここに足すのは新しい ssKind の2つだけ） */
   tsumugi: ["self", "gimmick"], chizuru: ["self", "gimmick", "debuff", "bump"],
+  /* ★ 2026-08-12 セイラ（自強化＋壁すり抜け＝ギミック無視＋乱打＋ふっとばし） */
+  seira: ["self", "gimmick", "barrage", "knock"],
 };
 /* ★ この枠は「1つだけ」選べる（キャラが1つの値しか持たないので、複数選ぶと必ず0件になるため）。
    同じ枠の別のボタンを押すと選び直しになる。 */
@@ -11075,8 +11206,14 @@ function openDet(id, from) {
      スクロールしないと下まで読めないと、手番が回っているのに確認が終わらない。 */
   /* ★ 2026-08-11 クロススキルの「発動／未発動」は<b>編成とバトル中だけ</b>出す。
      対応キャラさがし（counter）は「どのキャラが刺さるか」を探す画面で、
-     まだ編成に入れていないのがふつうなので、状態を出すと全員が未発動に見えてしまう。 */
-  if (compact) { openBattleDet(id, ballNow, shotNow, shotChanged, st, showNexus, inBattle, inBattle || from === "team"); return; }
+     まだ編成に入れていないのがふつうなので、状態を出すと全員が未発動に見えてしまう。
+     ★★ 2026-08-12 編成でも<b>いま編成に入っている4体だけ</b>にした。
+       編成画面の下半分は「入れ替え候補の一覧」で、そこから開いた詳細にも
+       状態が出ていたため、まだ入れていないキャラが軒並み「未発動」と表示されていた。
+       一覧で見ているあいだは<b>発動するかどうかは決まっていない</b>ので、状態は出さない
+       （条件の文だけ出す）。＝ 状態を出すのは編成中の4体とバトル中だけ。 */
+  const inParty = (DB.party || []).indexOf(id) >= 0;
+  if (compact) { openBattleDet(id, ballNow, shotNow, shotChanged, st, showNexus, inBattle, inBattle || (from === "team" && inParty)); return; }
   const need = expNeed(st.lv), expP = st.lv >= lvCap ? 1 : clamp(st.exp / need, 0, 1);
   const gaugeP = (v, max) => clamp(v / max, 0.06, 1) * 100;
   const kind = c.fes ? '<span class="dtag" style="color:#c86bff;border-color:rgba(200,107,255,.6)">★5 フェス限定</span>'
@@ -13201,7 +13338,9 @@ function damageInfo(ball, e) {
   }
   if (e.innerWeak && shotOf(ball) === "pierce") cond.push({ nm: "内部弱点(貫通)", m: INNER_WEAK_MUL });
   const nxFirst = nexusVal("first", 1);
-  if (hasAbil(ball.ch, "firstkillerM")) cond.push({ nm: "ファーストキラーM(最初の敵)" + (nxFirst !== 1 ? "+✨ネクサス" : ""), m: 2.0 * nxFirst });
+  /* ★ 2026-08-12 等級L を追加。上の等級だけが効く（下の hitEnemy 側と同じ順番にそろえること） */
+  if (hasAbil(ball.ch, "firstkillerL")) cond.push({ nm: "ファーストキラーL(最初の敵)" + (nxFirst !== 1 ? "+✨ネクサス" : ""), m: FIRSTKILLER_L_MUL * nxFirst });
+  else if (hasAbil(ball.ch, "firstkillerM")) cond.push({ nm: "ファーストキラーM(最初の敵)" + (nxFirst !== 1 ? "+✨ネクサス" : ""), m: 2.0 * nxFirst });
   else if (hasAbil(ball.ch, "firstkiller")) cond.push({ nm: "ファーストキラー(最初の敵)" + (nxFirst !== 1 ? "+✨ネクサス" : ""), m: 1.5 * nxFirst });
   else if (nxFirst !== 1) cond.push({ nm: "✨ネクサス(最初の敵)", m: nxFirst });
   if ((ball.msStock || 0) > 0) cond.push({ nm: "マインバースト(残" + ball.msStock + ")", m: mineBurstMul(ball) });
@@ -13308,6 +13447,8 @@ const FS_HIT = {
 const SUB_HIT = {
   plasma: { per: 0.80, n: 1 }, accel: { per: 0, n: 0 }, blast: { per: BLAST_MUL, n: 1 },
   phoming: { per: PHOMING_PER, n: 12 }, field: { per: 0.30, n: 1 }, poison: { per: 0.45, n: 1 },
+  /* ★ 2026-08-12 ピアスシーカー20。1発の威力は12発版と同じで、発数だけ多い */
+  phoming20: { per: PHOMING_PER, n: PSEEKER20_N },
   bubbly: { per: 0, n: 0 }, boundheal: { per: 0, n: 0 }, weaklock: { per: 0.60, n: 4 },
   hitouchray: { per: 0.90, n: 1 }, pspread5: { per: 0.50, n: 5 },
   hiplasma: { per: 0.50, n: 1 },   /* ★ 2026-08-08c リンク版と同じ 0.50 にそろえた */
@@ -13890,6 +14031,8 @@ function launchShot(ball, ux, uy, power) {
     || ssk === "iori" || ssk === "noelle" || ssk === "yukino" || ssk === "dominia"
     /* ★ 2026-08-10 XEVAガチャ移行★5（コトミ・リノン。リコ＝sheril／レア＝abyss は上で拾う） */
     /* ★ 2026-08-12 蒼夏祭（ツムギ・チヅル。ほかの4体は既存の ssKind を共有しているので上で拾う） */
+    /* ★ 2026-08-12 セイラ（自強化型）。cherylA・kokonaA も自強化型なのでここで拾う */
+    || ssk === "seira" || ssk === "cherylA" || ssk === "kokonaA"
     || ssk === "tsumugi" || ssk === "chizuru"
     || ssk === "kotomi" || ssk === "rinonx") ? 1.3 : 1;
   const sp = Math.min(56 * SPD_GLOBAL, base * power * mul);
@@ -14467,6 +14610,45 @@ function applyNewSS(ball) {
     B.effects.push({ type: "pillar", x: ball.x, y: ball.y, t: 0, dur: 32, c: "#dff8ff" });
     spawnSparks(ball.x, ball.y, "#bff0ff", 30);
     flash("#38a6ff");
+  } else if (k === "cherylA") {
+    /* ══ ★★ 2026-08-12 実装もれの修正（シェリーα／カレム）══
+       ssKind "cherylA" は<b>どこにも分岐が無かった</b>ので、
+       説明にある「自強化」も「自分の次のターンまで無敵」も一度も発動していなかった
+       （乱打40連も出ていない＝下の hitEnemy 側であわせて足してある）。
+       ・自強化とと無敵はどちらも own:1 ＝<b>本人の手番が終わるまで</b>。
+         説明の「自分の次のターンまで無敵」と同じ数えかたにそろえている。 */
+    ball.selfBuff = { atk: 2.2, spd: 1.3, left: 1, own: 1 };
+    ball.invuln = { left: 1 };
+    B.pops.push({ x: ball.x, y: ball.y - ball.r - 22, t: 0, txt: "自強化＆無敵＆最初の敵で停止して乱打" + CHERYLA_BARRAGE_N + "連!!", c: "#7cc4ff", small: 1 });
+    for (let k2 = 0; k2 < 4; k2++) B.effects.push({ type: "ring", x: ball.x, y: ball.y, t: -k2 * 4, dur: 30, r: 155 + k2 * 130, c: k2 % 2 ? "#7cc4ff" : "#dff2ff" });
+    B.effects.push({ type: "pillar", x: ball.x, y: ball.y, t: 0, dur: 34, c: "#dff2ff" });
+    spawnSparks(ball.x, ball.y, "#bfe4ff", 32);
+    flash("#1d8fd8");
+  } else if (k === "kokonaA") {
+    /* ══ ★★ 2026-08-12 実装もれの修正（ココナα）══
+       ノーマル版（kokona）と同じく「停止したら全画面のハート爆撃」なのに、
+       endShot の B.ssPend に "kokona" しか書かれておらず<b>何も起きていなかった</b>。
+       ここで自強化を付け、停止時の爆撃は endShot 側で kokonaA も拾うようにしてある。 */
+    ball.selfBuff = { atk: 2.0, spd: 1.25, left: 2 };
+    B.pops.push({ x: ball.x, y: ball.y - ball.r - 22, t: 0, txt: "自強化＆止まったら全体ハート爆撃!!", c: "#ff8ab5", small: 1 });
+    for (let k2 = 0; k2 < 4; k2++) B.effects.push({ type: "ring", x: ball.x, y: ball.y, t: -k2 * 4, dur: 30, r: 155 + k2 * 130, c: k2 % 2 ? "#ff8ab5" : "#ffd7f0" });
+    B.effects.push({ type: "pillar", x: ball.x, y: ball.y, t: 0, dur: 34, c: "#ffd7f0" });
+    spawnSparks(ball.x, ball.y, "#ffd7f0", 32);
+    flash("#e0405e");
+  } else if (k === "seira") {
+    /* ══ ★ 2026-08-12 セイラ（宵闇絶影・アビスラプソディ）══
+       ・自強化（SEIRA_ATK / SEIRA_SPD）
+       ・<b>壁をすり抜けて反対側から出る</b>（stepBall の wrap に "seira" を足してある）
+       ・<b>最初にふれた敵で停止</b>し、乱打 SEIRA_BARRAGE_N 連 ＋ ふっとばし
+         （停止と乱打は hitEnemy 側。B.ssFirstDone で「最初の1体だけ」を守る）
+       ★ 壁で跳ねないので、撃つ向きがそのまま当てる相手を決める。 */
+    ball.selfBuff = { atk: SEIRA_ATK, spd: SEIRA_SPD, left: 2 };
+    B.pops.push({ x: ball.x, y: ball.y - ball.r - 22, t: 0,
+      txt: "自強化＆壁すり抜け＆最初の敵で停止して乱打" + SEIRA_BARRAGE_N + "連＆ふっとばし!!", c: "#a86bff", small: 0 });
+    for (let k2 = 0; k2 < 5; k2++) B.effects.push({ type: "ring", x: ball.x, y: ball.y, t: -k2 * 4, dur: 32, r: 150 + k2 * 128, c: k2 % 2 ? "#6f3fd0" : "#e9d8ff" });
+    B.effects.push({ type: "pillar", x: ball.x, y: ball.y, t: 0, dur: 36, c: "#e9d8ff" });
+    spawnSparks(ball.x, ball.y, "#c9a6ff", 36);
+    flash("#6f3fd0");
   }
 }
 /* ── アビリティ系ヘルパー ── */
@@ -15302,7 +15484,8 @@ function stepBall(ball) {
   ball._runDist = (ball._runDist || 0) + Math.hypot(ball.vx, ball.vy);   // v14: このショットで走った距離
   /* ★ v14 アビスFB（ヴォイド・サンダーレイド）中は「壁をすり抜けて反対側から出る」 */
   /* ★ 2026-08-08 カエデのFBも同じ「壁をすり抜けて反対側から出る」 */
-  const wrap = B.ssArmed === ball.i && (ball.ch.ssKind === "abyss" || ball.ch.ssKind === "kaede");
+  /* ★ 2026-08-12 セイラのFBも「壁をすり抜けて反対側から出る」 */
+  const wrap = B.ssArmed === ball.i && (ball.ch.ssKind === "abyss" || ball.ch.ssKind === "kaede" || ball.ch.ssKind === "seira");
   for (let s = 0; s < steps; s++) {
     ball.x += ball.vx / steps; ball.y += ball.vy / steps;
     if (ball.warpCd > 0) ball.warpCd -= 1 / steps;
@@ -15943,7 +16126,8 @@ function stepBall(ball) {
     if (B.ssArmed === ball.i) {
       const k = ball.ch.ssKind;
       if (k === "arisa" || k === "violax") B.ssPend = k;
-      if (k === "kokona") B.ssPend = "kokona";
+      /* ★ 2026-08-12 実装もれ: ココナα（kokonaA）が抜けていて、停止しても何も起きなかった */
+      if (k === "kokona" || k === "kokonaA") B.ssPend = "kokona";
       if (k === "lilia") B.ssPend = "lilia";       // リリア: ふれた敵の数だけメテオ
       if (k === "selene" && (B.ssPhase || 1) < 2) B.ssPend = "seleneRerun";   // セレネ: 最も近い敵へ再走
       if (k === "hecatia") B.ssPend = "hecatia";   // ヘカーティア: 停止時に幽冥の大爆発
@@ -15997,7 +16181,11 @@ function ssMulOf(ball) {
     /* ★ 2026-08-08 リノン・アンジェ（体当たり倍率は selfBuff 側で乗る） */
     || k === "rinon" || k === "ange"
     /* ★ 2026-08-10 コトミ（体当たり倍率は selfBuff 側で乗る） */
-    || k === "kotomi") return 1.0;
+    || k === "kotomi"
+    /* ★ 2026-08-12 セイラ・シェリーα／カレム（cherylA）・ココナα（kokonaA）。
+       どれも体当たりの倍率は selfBuff 側で乗せているので、ここでは素のまま返す。
+       ★ ここに書き忘れると既定の ×1.5 が<b>さらに掛かって</b>説明より強くなる。 */
+    || k === "seira" || k === "cherylA" || k === "kokonaA") return 1.0;
   /* ★ 2026-08-08 カエデ: 敵にふれるたび +0.55。selfBuff の ×1.6 と掛けて <b>最大 ×10.0</b> になるように頭打ちする */
   if (k === "kaede") return Math.min(10.0 / 1.6, 1.0 + 0.55 * (ball.maoStack || 0));
   /* ★ 2026-08-07 イオリ: ダメージウォールにふれるたび +0.5（最大 ×10.0）。selfBuff の ×1.8 とは別枠 */
@@ -16142,8 +16330,12 @@ function hitEnemy(ball, e, col) {
   mul *= killerMul(ball, e, tags);
   /* ファーストキラー：そのショットで最初にふれた敵に1.5倍（等級Mは2倍）＝直殴り限定 */
   if (!ball.firstHitDone) mul *= nexusVal("first", 1);   // ★ ネクサス: 最初にふれた敵へのダメージ強化
-  if (hasAbil(ball.ch, "firstkiller") && !ball.firstHitDone) { mul *= 1.5; tags.push("FIRST"); }
-  if (hasAbil(ball.ch, "firstkillerM") && !ball.firstHitDone) { mul *= 2.0; tags.push("FIRST M"); }
+  /* ★ 2026-08-12 等級 L を追加。属性キラーなどと同じく<b>上の等級だけが効く</b>（重ねがけしない）。 */
+  if (!ball.firstHitDone) {
+    if (hasAbil(ball.ch, "firstkillerL")) { mul *= FIRSTKILLER_L_MUL; tags.push("FIRST L"); }
+    else if (hasAbil(ball.ch, "firstkillerM")) { mul *= 2.0; tags.push("FIRST M"); }
+    else if (hasAbil(ball.ch, "firstkiller")) { mul *= 1.5; tags.push("FIRST"); }
+  }
   ball.firstHitDone = true;
   if (auraActive(ball)) { const am2 = auraMulOf(ball); mul *= am2; if (am2 > 1.5) tags.push(auraNameOf(am2)); }
   /* ウォールブーストL: そのショットで壁に触れた回数に応じて攻撃力アップ（最大2.5倍） */
@@ -16402,24 +16594,54 @@ function hitEnemy(ball, e, col) {
   } else SFX.hit();
   B.shake = Math.max(B.shake, tags.length ? 8 : 5);
   if (weakHit) weakHitFx(e);
-  /* ★ 乱打フルバーストはすべて「最初にふれた敵」にだけ発動する（味方にふれると乱打は停止） */
+  /* ★ 乱打フルバーストはすべて「最初にふれた敵」にだけ発動する。
+     ★★ 2026-08-12 <b>ぜんぶセイラと同じ仕様</b>にそろえた＝
+       乱打を始める敵の上で<b>いったん停止してから</b>たたき込む（barrageHalt）。
+       以前は止まらずに走り抜けていたので、乱打が始まった敵から離れていってしまい、
+       「どの敵に一発目を当てるか」を狙う意味も薄かった。 */
   if (B.ssArmed === ball.i && ball.ch.ssKind === "sakura" && !B.ssFirstDone) {
     B.ssFirstDone = true;
+    barrageHalt(ball);
     fxBarrage(ball, e, 12, 0.65, "#dff2ff");
   }
   if (B.ssArmed === ball.i && ball.ch.ssKind === "leila" && !B.ssFirstDone) {
     B.ssFirstDone = true;
+    barrageHalt(ball);
     fxBarrage(ball, e, 16, 0.6, "#7cc4ff");
   }
-  /* シェリーフルバースト：最初にふれた敵にだけ 紫焔の乱打30連 */
+  /* シェリーフルバースト：最初にふれた敵で止まって 紫焔の乱打30連 */
   if (B.ssArmed === ball.i && ball.ch.ssKind === "cheryl" && !B.ssFirstDone) {
     B.ssFirstDone = true;
+    barrageHalt(ball);
     fxBarrage(ball, e, 30, 0.7, "#e0a6ff");
     luxBurst(e.x, e.y, "#c86bff");
   }
-  /* アリサフルバースト（新）：最初にふれた敵にだけ 緋炎の乱打40連 */
+  /* ★★ 2026-08-12 実装もれ: シェリーα／カレム（cherylA）の乱打がどこにも無かった。
+     ノーマル版（cheryl）と同じ形で、連数と1発の威力だけ強化ぶんに差し替える。 */
+  if (B.ssArmed === ball.i && ball.ch.ssKind === "cherylA" && !B.ssFirstDone) {
+    B.ssFirstDone = true;
+    barrageHalt(ball);
+    fxBarrage(ball, e, CHERYLA_BARRAGE_N, CHERYLA_BARRAGE_PER, "#bfe4ff");
+    luxBurst(e.x, e.y, "#1d8fd8");
+    B.effects.push({ type: "flashfx", t: 0, dur: 8 });
+  }
+  /* ★ 2026-08-12 セイラフルバースト:
+     そのショットで<b>最初にふれた敵の上で止まり</b>、宵闇の乱打をたたき込んでふっとばす。
+     （停止のしくみは barrageHalt に切り出して、ほかの乱打FBと共有している） */
+  if (B.ssArmed === ball.i && ball.ch.ssKind === "seira" && !B.ssFirstDone) {
+    B.ssFirstDone = true;
+    barrageHalt(ball);
+    fxBarrage(ball, e, SEIRA_BARRAGE_N, SEIRA_BARRAGE_PER, "#c9a6ff");
+    luxBurst(e.x, e.y, "#6f3fd0");
+    B.effects.push({ type: "flashfx", t: 0, dur: 10 });
+    B.pops.push({ x: e.x, y: e.y - e.r - 60, t: 0, txt: "ABYSS RHAPSODY!!", c: "#e9d8ff", small: 0 });
+    B.shake = Math.max(B.shake, 18);
+    knockbackEnemy(ball, e);
+  }
+  /* アリサフルバースト（新）：最初にふれた敵で止まって 緋炎の乱打40連 */
   if (B.ssArmed === ball.i && ball.ch.ssKind === "arisaX" && !B.ssFirstDone) {
     B.ssFirstDone = true;
+    barrageHalt(ball);
     fxBarrage(ball, e, 40, 0.65, "#ffb47a");
     luxBurst(e.x, e.y, "#ff7a4d");
     B.effects.push({ type: "flashfx", t: 0, dur: 8 });
@@ -16523,8 +16745,18 @@ function hitEnemy(ball, e, col) {
   }
 }
 
+/* ★★ 2026-08-12 乱打フルバーストの「停止」— 乱打を始める敵の上でショットを止める。
+   もともとセイラ専用だった挙動を、<b>乱打フルバースト全部</b>（サクラ系・レイラ系・
+   シェリー・シェリーα／カレム・アリサ・セイラ）に広げるために切り出した。
+   ★ 止めかたは<b>速度を 0 にするだけ</b>。stepBall の最後にある「速さが 1.0 未満なら停止」の
+     判定がそのまま拾ってくれるので、押し出し（pushBallOutOfEnemies）や ssPend などの
+     後始末は普段どおり通る。ここで moving を直接 false にしてはいけない。
+   ★ 乱打そのものは B.effects に積まれるので、止まっても最後まで打ち切られる
+     （ショット終了は update() が !B.effects.length を待つ）。 */
+function barrageHalt(ball) { ball.vx = 0; ball.vy = 0; }
 /* 乱打フルバースト — 最初にふれた敵にだけ乱打をたたき込む。
    ★ 乱打中に味方キャラクターにふれると、その時点で乱打攻撃は停止する（stepBall側で停止処理）。
+     ＝ 2026-08-12 以降は敵の上で止まるので、ふつうは起きない（保険として残してある）。
    ★ キラー系アビリティの倍率も乱打1発ごとに反映される（withDmgSrc → dealDamage）。 */
 function fxBarrage(ball, e, n, per, col) {
   SFX.barrage();
@@ -16684,13 +16916,18 @@ function dealDamage(e, dmg, color, big) {
      こちらは1体につき ALLYKILL_FB ターンぶん短縮する。 */
 function destroyBoost(e) {
   if (!B || !B.balls) return;
+  /* ★ 2026-08-12 等級M（DESTROYBOOST_M ターン短縮）を追加。
+     きっかけは無印とまったく同じ「画面内の敵が倒れたとき」で、縮む量だけが違う。
+     等級は重ねがけしないので、M を持っていれば M のぶんだけ縮む。 */
+  let boosted = 0;
   B.balls.forEach((b) => {
-    if (hasAbil(b.ch, "destroyboost") && b.sc < b.st.ssTurns) {
-      b.sc = Math.min(b.sc + 1, b.st.ssTurns);
-    }
+    const n = hasAbil(b.ch, "destroyboostM") ? DESTROYBOOST_M : hasAbil(b.ch, "destroyboost") ? 1 : 0;
+    if (!n) return;
+    boosted = Math.max(boosted, n);
+    if (b.sc < b.st.ssTurns) b.sc = Math.min(b.sc + n, b.st.ssTurns);
   });
-  if (B.balls.some((b) => hasAbil(b.ch, "destroyboost"))) {
-    B.pops.push({ x: e.x, y: e.y - e.r - 44, t: 0, txt: "FB-1", c: "#c9a6ff", small: 1 });
+  if (boosted) {
+    B.pops.push({ x: e.x, y: e.y - e.r - 44, t: 0, txt: "FB-" + boosted, c: "#c9a6ff", small: 1 });
     paintParty();
   }
   /* ★ 2026-08-08 FBターンブースト（リノン）:
@@ -18689,6 +18926,10 @@ function fireSubFriend(owner, mover, atk) {
   } else if (kind === "phoming") {
     /* ピアスシーカー12（ミオンサブリンク）: 敵を追尾しながら貫通していく光弾 */
     spawnPierceSeeker(owner, atk, 12, PHOMING_PER);
+  } else if (kind === "phoming20") {
+    /* ★ 2026-08-12 ピアスシーカー20（セイラサブリンク）。
+       1発の威力は12発版とまったく同じ（PHOMING_PER）で、発数だけ 12 → PSEEKER20_N。 */
+    spawnPierceSeeker(owner, atk, PSEEKER20_N, PHOMING_PER);
   } else if (kind === "field") {
     /* パワーフィールド（ココナサブリンク）: 自分のまわりに力場を張り、中の敵を連続で削る */
     B.effects.push({ type: "field", owner, x: owner.x, y: owner.y, t: 0, dur: 96, r: 190, c: "#7ce8ff", cool: {}, atk,

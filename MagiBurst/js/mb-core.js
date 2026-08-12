@@ -263,6 +263,11 @@ const AB_NM = {
   sokojikaraEL: "底力EL", fatalkillerL: "フェイタルキラーL",
   outkillerM: "アウトポジションキラーM", outkillerL: "アウトポジションキラーL",
   eclipseslayerEL: "蝕冥滅殺EL", konshin: "渾身",
+  /* ══ ★ 2026-08-12 蒼夏祭 セイラ用 ══
+     ・firstkillerL   … ファーストキラーの等級L（無印1.5／M 2.0／L 2.6）。
+     ・destroyboostM  … デストロイブーストの等級M。<b>短縮するFBターンが1→2</b>になるだけで、
+                        きっかけ（画面内の敵が倒れる）は無印とまったく同じ。 */
+  firstkillerL: "ファーストキラーL", destroyboostM: "デストロイブーストM",
 };
 /* ══ ★ 2026-08-12 蒼夏祭の新アビリティの数値 ══
    ★ ここは killerMul / atkMulOf / spdMulOf / abilDesc から参照される。
@@ -277,6 +282,18 @@ const OUT_EDGE_RATIO = 0.20;
 const ECLIPSE_SLAYER_EL_MUL = 3.0; // 蝕冥滅殺EL: 冥花種・蝕魔族の両方へ
 const KONSHIN_ATK = 3.0;           // 渾身: 攻撃力の倍率
 const KONSHIN_SPD = 0.5;           // 渾身: スピードの倍率（＝そのぶん飛距離が短くなる）
+/* ══ ★ 2026-08-12 蒼夏祭 セイラ（闇／反射）の数値 ══
+   ★ フルバーストは<b>史上最高火力</b>。乱打の合計は
+     シェリーα／カレム（40連 × ×0.9 ＝ ×36.0）を上回る 40連 × ×1.25 ＝ <b>×50.0</b>。
+     そのぶん「壁をすり抜けて最初にふれた敵で止まる」＝<b>狙った1体にしか入らない</b>
+     という制約を付けて、範囲型のフルバーストと役割を分けてある。 */
+const SEIRA_ATK = 2.4;             // セイラFB: 自強化の攻撃倍率
+const SEIRA_SPD = 1.35;            // セイラFB: 自強化のスピード倍率
+const SEIRA_BARRAGE_N = 40;        // セイラFB: 乱打の連数
+const SEIRA_BARRAGE_PER = 1.25;    // セイラFB: 乱打1発ぶんの攻撃力倍率
+const FIRSTKILLER_L_MUL = 2.6;     // ファーストキラーL: そのショットで最初にふれた敵への倍率
+const DESTROYBOOST_M = 2;          // デストロイブーストM: 敵が倒れるたびに縮むFBターン（無印は1）
+const PSEEKER20_N = 20;            // ピアスシーカー20: 撃つ発数（12発版と1発の威力は同じ）
 /* 敵が「壁ぎわ」にいるか（アウトポジションキラーの判定）。
    ★ 判定はここ1か所だけ。倍率の等級ごとに条件を書き分けないこと。 */
 function atOuterEdge(e) {
@@ -654,6 +671,7 @@ function abilDesc(a) {
     case "poisonkillerEL": return "毒状態の敵へのダメージが<b>" + POISONKILLER_EL_MUL + "倍</b>（等級EL）";
     case "manyfoeEL": return "画面上の敵が<b>" + FEWFOE_N + "体より多い</b>とき、与えるダメージが<b>" + MANYFOE_EL_MUL + "倍</b>になる（等級EL）";
     case "firstkillerM": return "そのショットで最初にふれた敵へのダメージが<b>2倍</b>（等級M）";
+    case "firstkillerL": return "そのショットで最初にふれた敵へのダメージが<b>" + FIRSTKILLER_L_MUL + "倍</b>（等級L）";
     case "agrav": return "敵の重力バリアの減速を受けない";
     case "defkiller": return "防御ダウン中の敵へのダメージが1.5倍";
     case "dash": return "自分のスピードが常に1.5倍";
@@ -661,6 +679,7 @@ function abilDesc(a) {
     case "pimmune": return "毒状態にならない";
     case "fatalkiller": return "残りHPが50%以下の敵へのダメージが1.5倍";
     case "destroyboost": return "画面内の敵が倒れるたびに、自分のFBターンを1短縮する";
+    case "destroyboostM": return "画面内の敵が倒れるたびに、自分のFBターンを<b>" + DESTROYBOOST_M + "短縮</b>する（等級M）";
     case "darkmatch": return "敵にふれるたびにその敵を毒状態にする";
     case "waveboost": return "各WAVEの開始から<b>自分が" + WAVE_SELF + "回行動するまで</b>、チームHP50%以上なら攻撃・スピード1.5倍（パワーモード）";
     case "superms": return "各WAVEの開始時に地雷を4つ所持してスタート。敵ヒット時に1個消費して1.5倍攻撃";
@@ -1509,6 +1528,10 @@ const SUBFS = {
   accel: { nm: "加速", pow: "弾速 ×1.4（ダメージなし）", desc: "触れた味方（動いているキャラ）を加速させる" },
   blast: { nm: "爆発", pow: "爆発 攻撃力×" + BLAST_MUL + " ＋ 他の味方のリンクスキルを威力75%で誘発", desc: "自分を中心に<b>強烈な爆発</b>を起こし、まわりの敵をまとめて吹き飛ばす。さらに<b>他の味方全員のリンクスキルを誘発</b>する（範囲はせまいぶん威力が高い）" },
   phoming: { nm: "ピアスシーカー12", pow: "12発 × 攻撃力×" + PHOMING_PER + "（貫通・1体につき1ヒット）", desc: "敵を追尾しながら貫通していく光弾を12発放つ" },
+  /* ★ 2026-08-12 セイラのサブリンク。1発の威力は12発版と<b>同じ</b>（PSEEKER_PER）。
+     ちがうのは発数だけ（12 → 20）＝「同じ名前の技は同じ効果」の原則を守っている。 */
+  phoming20: { nm: "ピアスシーカー" + PSEEKER20_N, pow: PSEEKER20_N + "発 × 攻撃力×" + PHOMING_PER + "（貫通・1体につき1ヒット）",
+    desc: "敵を追尾しながら貫通していく光弾を" + PSEEKER20_N + "発放つ（ピアスシーカー12の発数を増やした上位版）" },
   field: { nm: "パワーフィールド", pow: "フィールド内の敵に 1ヒット 攻撃力×0.30（連続ヒット）", desc: "自分のまわりに力場を張り、フィールドに入った敵を連続で削り続ける" },
   poison: { nm: "全敵ポイズンレイン", pow: "隕石 攻撃力×0.45 ＋ 毒（3ターン・毎ターン最大HPの4%）", desc: "画面上のすべての敵に毒の隕石を落とし、毒状態にする" },
   bubbly: { nm: "バブリーギフト", pow: "減速しにくい状態を付与（ダメージなし）", desc: "触れた味方を減速しにくい「バブリー状態」にして、長く動き回れるようにする" },
@@ -1780,6 +1803,23 @@ const CONNECT = {
       { k: "chizuruBubbly", nm: "バブリーモード", abil: "bubblemode" },
     ],
   },
+  /* ★ 2026-08-12 セイラのクロススキル。
+     条件は<b>自分と撃種がちがう味方が2体以上</b>（＝反射のセイラなら貫通の味方が2体）。
+     ・ファーストキラーL   … 最初にふれた敵へのダメージが大きく伸びる。
+                             乱打FBが最初の1体に全部入るので噛み合う。
+     ・デストロイブーストM … 敵が倒れるたびFBが2ターン縮む（無印は1）。
+     ・ドレイン           … 敵にふれるたびチームHPを回復。
+     ★ 説明文は書かない（abil があるものは cnxSkillDesc が abilDesc から組み立てる）。 */
+  seira: {
+    nm: "宵闇のクロス",
+    condTx: "<b>自分と撃種がちがう味方が2体以上</b>いること",
+    cond: (ids, me) => cnxSelfIn(ids, me) && cnxCount(ids, me, (c, m) => c.shot !== m.shot) >= 2,
+    skills: [
+      { k: "seiraFirst", nm: "ファーストキラーL", abil: "firstkillerL" },
+      { k: "seiraDestroy", nm: "デストロイブーストM", abil: "destroyboostM" },
+      { k: "seiraDrain", nm: "ドレイン", abil: "drain" },
+    ],
+  },
   kokonaalpha: {
     nm: "灯夏のクロス",
     condTx: "<b>自分と属性が同じ味方が2体以上</b>いること",
@@ -2023,8 +2063,8 @@ const CHARS = {
     hp: [800, 5060], atk: [420, 2660], spd: [270, 398],
     abil: [{ t: "aw" }, { t: "agrav" }, { t: "killer", el: "light" }, { t: "firstkiller" }], subfs: "hitouchray",
     ssName: "蝕月ノ牙・エクリプスファング", ssTurns: 18, ssKind: "leila",
-    ssPow: "自強化（攻撃×1.6・スピード×1.6）＋ 最初にふれた敵へ 高速乱打16連（各 攻撃力×0.6）",
-    ssDesc: "<b>自強化して闇夜を駆け抜け</b>、最初にふれた敵に<b>高速乱打16連</b>をたたき込む。ファーストキラーと噛み合う手数型",
+    ssPow: "自強化（攻撃×1.6・スピード×1.6）＋ 最初にふれた敵で<b>停止</b>して 高速乱打16連（各 攻撃力×0.6）",
+    ssDesc: "<b>自強化して闇夜を駆け抜け</b>、<b>最初にふれた敵の上で止まって</b><b>高速乱打16連</b>をたたき込む。ファーストキラーと噛み合う手数型",
     fsName: "クロスレイEL", fsKind: "laser", fsPow: "攻撃力×1.15（十字にヒットした敵すべて）",
     fsDesc: "触れた地点から十字方向に闇の貫通レーザーを放つ",
   },
@@ -2056,8 +2096,8 @@ const CHARS = {
     hp: [795, 5030], atk: [424, 2680], spd: [274, 404],
     abil: [{ t: "adw" }, { t: "ablock" }, { t: "killer", el: "wood" }, { t: "sokojikara" }], subfs: "pspread5",
     ssName: "紅刃ノ一閃・スカーレットエッジ", ssTurns: 18, ssKind: "leila",
-    ssPow: "自強化（攻撃×1.6・スピード×1.6）＋ 最初にふれた敵へ 高速乱打16連（各 攻撃力×0.6）",
-    ssDesc: "<b>紅の刃で自強化して駆け抜け</b>、最初にふれた敵に<b>高速乱打16連</b>を叩き込む。★4のなかでは攻撃力がいちばん高い",
+    ssPow: "自強化（攻撃×1.6・スピード×1.6）＋ 最初にふれた敵で<b>停止</b>して 高速乱打16連（各 攻撃力×0.6）",
+    ssDesc: "<b>紅の刃で自強化して駆け抜け</b>、<b>最初にふれた敵の上で止まって</b><b>高速乱打16連</b>を叩き込む。★4のなかでは攻撃力がいちばん高い",
     fsName: "3方向貫通弾", fsKind: "tri3", fsPow: "3発 × 攻撃力×0.60（貫通）",
     fsDesc: "3方向へ強力な貫通弾を放ち、並んだ敵をまとめて撃ち抜く",
   },
@@ -2144,8 +2184,8 @@ const CHARS = {
     hp: [785, 4990], atk: [416, 2640], spd: [286, 420],
     abil: [{ t: "aw" }, { t: "aslow" }, { t: "dash" }, { t: "firstkiller" }], subfs: "accel",
     ssName: "白銀ノ疾走・シルバーラッシュ", ssTurns: 16, ssKind: "leila",
-    ssPow: "自強化（攻撃×1.6・スピード×1.6）＋ 最初にふれた敵へ 高速乱打16連（各 攻撃力×0.6）",
-    ssDesc: "<b>白銀の残像を引いて駆け抜け</b>、最初にふれた敵に<b>高速乱打16連</b>を叩き込む。★4でいちばんスピードが速い",
+    ssPow: "自強化（攻撃×1.6・スピード×1.6）＋ 最初にふれた敵で<b>停止</b>して 高速乱打16連（各 攻撃力×0.6）",
+    ssDesc: "<b>白銀の残像を引いて駆け抜け</b>、<b>最初にふれた敵の上で止まって</b><b>高速乱打16連</b>を叩き込む。★4でいちばんスピードが速い",
     fsName: "ソニックブレードウェーブ", fsKind: "wave", fsPow: "攻撃力×0.95（左右の衝撃波）",
     fsDesc: "左右に走る斬撃の衝撃波で敵をなぎ払う",
   },
@@ -2306,8 +2346,8 @@ const CHARS = {
     hp: [900, 5780], atk: [492, 3130], spd: [292, 430],
     abil: [{ t: "omni" }, { t: "aslow" }, { t: "destroyboost" }, { t: "pray" }, { t: "fatalkillerM" }], subfs: "pspread5",
     ssName: "緋滅連牙・メテオラプソディ", ssTurns: 16, ssKind: "arisaX",
-    ssPow: "自強化（攻撃×1.7・スピード×1.2）＋ 最初にふれた敵へ 強力な乱打40連（各 攻撃力×0.65＝合計×26.0）",
-    ssDesc: "<b>自強化して貫き進み</b>（攻撃×1.7・スピード×1.2）、<b>最初にふれた敵に緋炎の乱打40連（各×0.65）</b>をたたき込む超乱打フルバースト（味方にふれると乱打は停止）。全弾ヒットで合計 攻撃力×26.0 の大ダメージ！",
+    ssPow: "自強化（攻撃×1.7・スピード×1.2）＋ 最初にふれた敵で<b>停止</b>して 強力な乱打40連（各 攻撃力×0.65＝合計×26.0）",
+    ssDesc: "<b>自強化して貫き進み</b>（攻撃×1.7・スピード×1.2）、<b>最初にふれた敵の上で止まって緋炎の乱打40連（各×0.65）</b>をたたき込む超乱打フルバースト（当たるのは最初の1体だけ）。全弾ヒットで合計 攻撃力×26.0 の大ダメージ！",
     fsName: "鋭角三方向追従型貫通弾", fsKind: "tri3followsharp", fsPow: "1発ごとに 攻撃力×0.30（味方が止まるまで撃ち続ける）",
     fsDesc: "<b>自分の位置から、ふれた味方へ向けて</b><b>鋭角にまとまった3方向の貫通弾</b>を発射。その味方が動いているあいだ、<b>いまいる場所へ狙いを付け直しながら撃ち続ける</b>",
   },
@@ -2326,8 +2366,8 @@ const CHARS = {
     hp: [820, 5400], atk: [450, 2900], spd: [290, 425],
     abil: [{ t: "vital" }, { t: "omni" }, { t: "allkiller" }, { t: "drain" }], subfs: "accel",
     ssName: "紫焔絶影・ヴァイオレットラプソディ", ssTurns: 20, ssKind: "cheryl",
-    ssPow: "最初にふれた敵へ 乱打30連（各 攻撃力×0.7＝合計×21.0）＋ 体当たり 攻撃力×1.8",
-    ssDesc: "攻撃力アップ（×1.8）、<b>最初にふれた敵に紫焔の乱打30連（各×0.7）</b>をたたき込む超乱打フルバースト（味方にふれると乱打は停止）。全弾ヒットで合計 攻撃力×21.0 の大ダメージ！",
+    ssPow: "最初にふれた敵で<b>停止</b>して 乱打30連（各 攻撃力×0.7＝合計×21.0）＋ 体当たり 攻撃力×1.8",
+    ssDesc: "攻撃力アップ（×1.8）、<b>そのショットで最初にふれた敵の上で止まり、紫焔の乱打30連（各×0.7）</b>をたたき込む超乱打フルバースト（当たるのは最初の1体だけ）。全弾ヒットで合計 攻撃力×21.0 の大ダメージ！",
     fsName: "三方向追従型貫通弾", fsKind: "tri3follow", fsPow: "1発ごとに 攻撃力×0.28（味方が止まるまで撃ち続ける）",
     fsDesc: "<b>自分の位置から、ふれた味方へ向けて</b>3方向の貫通弾を発射。その味方が動いているあいだ、<b>いまいる場所へ狙いを付け直しながら止まるまで撃ち続ける</b>",
   },
@@ -2356,8 +2396,8 @@ const CHARS = {
     hp: [845, 5460], atk: [462, 2900], spd: [280, 410],
     abil: [{ t: "superadw" }, { t: "aslow" }, { t: "msM" }, { t: "ssboost" }, { t: "firstkillerM" }], subfs: "accel",
     ssName: "月夜氷刃・シオンクレスト", ssTurns: 12, ssKind: "sakura",
-    ssPow: "体当たり 攻撃力×1.7 ＋ 最初にふれた敵へ 氷の乱打12連（各 攻撃力×0.65）",
-    ssDesc: "弾速アップ＆攻撃力アップ（×1.7）、最初にふれた敵に氷の乱打12連（各×0.65）をたたき込む（味方にふれると乱打は停止）",
+    ssPow: "体当たり 攻撃力×1.7 ＋ 最初にふれた敵で<b>停止</b>して 氷の乱打12連（各 攻撃力×0.65）",
+    ssDesc: "弾速アップ＆攻撃力アップ（×1.7）、<b>最初にふれた敵の上で止まって</b>氷の乱打12連（各×0.65）をたたき込む（当たるのは最初の1体だけ）",
     fsName: "三方向追撃貫通弾", fsKind: "tri3", fsPow: "3発 × 攻撃力×0.6（貫通）",
     fsDesc: "最も近い敵へ向けて3方向に貫通弾を放ち、並んだ敵をまとめて撃ち抜く",
   },
@@ -3033,9 +3073,9 @@ const CHARS = {
     abil: [{ t: "ablock" }, { t: "antilock" }, { t: "award" }, { t: "killerL", el: "fire" }, { t: "drainM" }],
     subfs: "linkspeedup",
     ssName: "蒼焔絶影・アズュールラプソディα", ssTurns: 20, ssKind: "cherylA",
-    ssPow: "最初にふれた敵へ 乱打" + CHERYLA_BARRAGE_N + "連（各 攻撃力×" + CHERYLA_BARRAGE_PER
+    ssPow: "最初にふれた敵で<b>停止</b>して 乱打" + CHERYLA_BARRAGE_N + "連（各 攻撃力×" + CHERYLA_BARRAGE_PER
       + "＝合計×" + (CHERYLA_BARRAGE_N * CHERYLA_BARRAGE_PER).toFixed(1) + "）＋ 体当たり 攻撃力×2.2 ＋ <b>自分の次のターンまで無敵</b>",
-    ssDesc: "攻撃力アップ（<b>×2.2</b>）して飛び出し、<b>そのショットで最初にふれた敵に蒼焔の乱打"
+    ssDesc: "攻撃力アップ（<b>×2.2</b>）して飛び出し、<b>そのショットで最初にふれた敵の上で止まり、蒼焔の乱打"
       + CHERYLA_BARRAGE_N + "連（各×" + CHERYLA_BARRAGE_PER + "）</b>をたたき込む"
       + "（<b>シェリーの乱打フルバーストの強化版</b>。連数が30→" + CHERYLA_BARRAGE_N
       + "、1発の威力も×0.7→×" + CHERYLA_BARRAGE_PER + "。全弾ヒットで合計 攻撃力×"
@@ -3574,9 +3614,9 @@ const CHARS = {
            { t: "laserstopM" }, { t: "mobkillerM" }],
     subfs: "poison",
     ssName: "灼夏絶影・クリムゾンラプソディ", ssTurns: 20, ssKind: "cherylA",
-    ssPow: "最初にふれた敵へ 乱打" + CHERYLA_BARRAGE_N + "連（各 攻撃力×" + CHERYLA_BARRAGE_PER
+    ssPow: "最初にふれた敵で<b>停止</b>して 乱打" + CHERYLA_BARRAGE_N + "連（各 攻撃力×" + CHERYLA_BARRAGE_PER
       + "＝合計×" + (CHERYLA_BARRAGE_N * CHERYLA_BARRAGE_PER).toFixed(1) + "）＋ 体当たり 攻撃力×2.2 ＋ <b>自分の次のターンまで無敵</b>",
-    ssDesc: "攻撃力アップ（<b>×2.2</b>）して飛び出し、<b>そのショットで最初にふれた敵に灼夏の乱打"
+    ssDesc: "攻撃力アップ（<b>×2.2</b>）して飛び出し、<b>そのショットで最初にふれた敵の上で止まり、灼夏の乱打"
       + CHERYLA_BARRAGE_N + "連（各×" + CHERYLA_BARRAGE_PER + "）</b>をたたき込む"
       + "（<b>シェリーαと同じフルバースト</b>を、<b>反射</b>の体で使える。壁で跳ね返って"
       + "<b>狙った敵に一発目を当てにいきやすい</b>のが反射版の強み）。"
@@ -3635,6 +3675,37 @@ const CHARS = {
     fsDesc: "<b>円形の刃</b>が発生し、<b>回転しながらだんだん大きく広がっていく</b>。"
       + "輪の上ならどこにふれてもヒットし、<b>同じ敵にも間をおいて何度でも入る</b>多段型。"
       + "はじめは近くの敵を刻み、広がりきるころには<b>まわり中の敵をまとめて巻きこむ</b>",
+  },
+  /* ══ ★ 2026-08-12 蒼夏祭 7人目・セイラ（闇／反射）══
+     蒼夏祭の<b>大トリ</b>。フルバーストは MagiBurst 史上最高火力で、
+     「壁をすり抜けて、最初にふれた敵に全部たたき込む」1点特化型。
+     ★ アビリティは<b>アンチギミック3種がすべて「超」</b>なので、
+       ダメージウォール・重力バリア・ワープのどれが来ても通れるうえ、
+       超アンチワープは画面上のワープ1つにつきステータスが上がる＝ワープ地帯ほど強い。 */
+  seira: {
+    id: "seira", nm: "セイラ", img: "Seira.webp", th: "t_Seira.webp",
+    el: "dark", shot: "bounce", type: "深宵絶影型", fes: true, fesKey: "aoka", lux: true, nexus: "force",
+    connect: "seira",
+    hp: [915, 6030], atk: [514, 3270], spd: [286, 422],
+    abil: [{ t: "superadw" }, { t: "sgrav" }, { t: "superaw" },
+           { t: "elemresM", el: "light" }, { t: "combokillerL" }],
+    subfs: "phoming20",
+    ssName: "宵闇絶影・アビスラプソディ", ssTurns: 20, ssKind: "seira",
+    ssPow: "自強化（攻撃×" + SEIRA_ATK + "・スピード×" + SEIRA_SPD + "）＋ <b>壁をすり抜けて</b>進み、"
+      + "<b>最初にふれた敵で停止</b>して 乱打" + SEIRA_BARRAGE_N + "連（各 攻撃力×" + SEIRA_BARRAGE_PER
+      + "＝合計×" + (SEIRA_BARRAGE_N * SEIRA_BARRAGE_PER).toFixed(1) + "）＋ <b>ふっとばし</b>",
+    ssDesc: "宵闇をまとって<b>自強化（攻撃×" + SEIRA_ATK + "・スピード×" + SEIRA_SPD + "）</b>し、"
+      + "<b>壁で跳ね返らずにすり抜けて反対側から出てくる</b>ようになる。"
+      + "<br>そして<b>そのショットで最初にふれた敵の上で止まり</b>、"
+      + "<b>宵闇の乱打" + SEIRA_BARRAGE_N + "連（各×" + SEIRA_BARRAGE_PER + "）</b>をたたき込んで最後に<b>ふっとばす</b>。"
+      + "<br>全弾ヒットで合計<b>攻撃力×" + (SEIRA_BARRAGE_N * SEIRA_BARRAGE_PER).toFixed(1) + "</b>——"
+      + "<b>MagiBurst 史上最高火力</b>のフルバーストで、ふっとばした敵は着地でさらにダメージを受ける。"
+      + "<br>そのかわり<b>当たるのは最初の1体だけ</b>。壁をすり抜けられるので、"
+      + "<b>どの敵に一発目を当てるかを狙って撃つ</b>のがすべてになる。"
+      + "<br><b>超アンチダメージウォール・超アンチ重力バリア・超アンチワープ</b>の3種持ちで盤面を選ばず、"
+      + "<b>光属性耐性M</b>で闇の弱点をおぎない、<b>連撃キラーL</b>が同じ敵を擦り続ける立ち回りと噛み合う。",
+    fsName: "ブレイドオービット", fsKind: "bladeorbit", fsPow: "剣1ヒット 攻撃力×0.30（6本・味方が止まるまで高速回転）",
+    fsDesc: "ふれた味方の<b>まわりを6本の剣が高速で回転</b>し、<b>その味方が止まるまで</b>触れた敵を斬り続ける",
   },
   izumi: {
     id: "izumi", nm: "イズミ", img: "Izumi.webp", th: "t_Izumi.webp",
@@ -3735,6 +3806,10 @@ const CHAR_IDS = [
   "kokonaalpha",
   /* ★ No.101〜106 2026-08-12 蒼夏祭（Aoka Summer Fest）限定★5 6体 */
   "fuka", "tsumugi", "suzuka", "karem", "mayu", "chizuru",
+  /* ★ No.107 2026-08-12 蒼夏祭 限定★5（セイラ）。
+     ★ 新キャラは必ず<b>いちばん最後に追記</b>すること（既存の No. がずれないように）。
+     ★ xeva.js の MB_CHAR_MASTER も同じ並びにそろえること（並び＝No.）。 */
+  "seira",
 ];
 /* id → キャラクター番号（1始まり）。図鑑・詳細・ガチャ結果に「No.XX」として出す */
 const CHAR_NO = {};
@@ -3944,6 +4019,7 @@ const CHAR_TYPE = {
   karem: "striker",        // 乱打＋渾身（攻撃×3）＝一点集中の火力
   mayu: "trick",           // 視野角180°の妨害＋治癒の祈り＝盤面づくり
   chizuru: "cannon",       // サーキュレーション／ポジションリミットの2枚看板＝リンクが主役
+  seira: "striker",        // 史上最高火力の乱打FB＋連撃キラーL＝1体を溶かしきる
 };
 Object.keys(CHARS).forEach((id) => {
   const t = BATTLE_TYPES[CHAR_TYPE[id] || "balance"];
@@ -3954,7 +4030,20 @@ const MAX_LV = 50;
 /* ★ v12: 「超越の書」を使ったキャラだけ、レベル上限が 60 まで解放される。
    黄昏の王城／禁忌の迷宮 を全部屋クリアするともらえる特別アイテム（1体につき1回だけ使える）。 */
 const TRANS_LV = 60;
-function lvCapOf(id) { return (typeof DB !== "undefined" && DB.trans && DB.trans[id]) ? TRANS_LV : MAX_LV; }
+/* ★★ 2026-08-12 「Lv.60 なのに 最大レベルの表記が 50 のまま」への対策。
+   レベル上限の解放は DB.trans（charId → 1）だけで持っていたが、
+   クラウド同期の合流では <b>DB.chars の lv は大きいほうが残る</b>のに対し、
+   DB.trans は勝ったほうのセーブがそのまま採られていた。
+   ＝ Lv.60 は残ったのに解放フラグだけ落ちて、上限が 50 に戻って見える。
+   レベルが 50 を超えているキャラは<b>超越の書を使ったキャラしかいない</b>ので、
+   ここで拾い直す（フラグそのものの復元は index.html の起動処理でやる）。 */
+function lvCapOf(id) {
+  if (typeof DB === "undefined" || !DB) return MAX_LV;
+  if (DB.trans && DB.trans[id]) return TRANS_LV;
+  const st = DB.chars && DB.chars[id];
+  if (st && ((st.lv | 0) > MAX_LV)) return TRANS_LV;
+  return MAX_LV;
+}
 const MAX_AWK = 4;    // 限界突破（覚醒）は4まで。4限界突破＝限界突破MAXで金オーラ
 const AWK_ATK = 0.10; // 覚醒1回につき攻撃力+10%
 const AWK_HP = 0.07;  // 覚醒1回につきHP+7%（覚醒はステータスアップのみ。FBターンは短縮しない）
@@ -3980,7 +4069,9 @@ const FRUIT_IDS = ["haste", "power", "swift", "bane", "sweep", "bond", "vigor"];
    ・英傑の証   … そのキャラの「ルーン」の枠を 2 → 3 に解放する（1キャラにつき1回）
    ※ 英傑の証は「黄昏の王城 100WAVE 踏破」でしか配布しない（他の入手経路を作らないこと）。 */
 const ITEMS = {
-  wisdom: { id: "wisdom", nm: "叡智の果実", c: "#7ce8ff", icon: "🍐", desc: "使ったキャラのレベルが必ず3つ上がる（最大Lv.50まで）" },
+  /* ★ 2026-08-12 上限は「そのキャラの上限」＝超越の書を使ってあれば Lv.60 まで上がる。
+     ここに Lv.50 と書いてあると、解放済みのキャラでも 50 で止まるように読めてしまう。 */
+  wisdom: { id: "wisdom", nm: "叡智の果実", c: "#7ce8ff", icon: "🍐", desc: "使ったキャラのレベルが必ず3つ上がる（そのキャラのレベル上限まで／📕超越の書を使ってあれば Lv." + TRANS_LV + " まで）" },
   hero:   { id: "hero",   nm: "英傑の証",   c: "#f0c040", icon: "🎖️", desc: "使ったキャラの「ルーン」の装備枠を 2 → 3 に解放する（1キャラにつき1回だけ）" },
   /* ★ v12: 黄昏の王城／禁忌の迷宮 を全部屋クリアするともらえる。1体のレベル上限を60まで解放する */
   trans:  { id: "trans",  nm: "超越の書",   c: "#a86bff", icon: "📕", desc: "使ったキャラのレベル上限を 50 → 60 に解放する（1キャラにつき1回だけ）" },
@@ -4777,6 +4868,11 @@ function drawSubGlyph(kind, c, g) {
       ctx.beginPath(); ctx.arc(0, 0, 5.6, 0.5, 5.3); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(-7, 0); ctx.lineTo(7, 0); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(4, -3); ctx.lineTo(7.5, 0); ctx.lineTo(4, 3); ctx.stroke(); break;
+    case "phoming20":  /* ★ 2026-08-12 ピアスシーカー20。12発版に矢じりをもう1枚足した形 */
+      ctx.beginPath(); ctx.arc(0, 0, 5.6, 0.5, 5.3); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-7.5, 0); ctx.lineTo(7, 0); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(4, -3); ctx.lineTo(7.5, 0); ctx.lineTo(4, 3); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0.6, -3); ctx.lineTo(4.1, 0); ctx.lineTo(0.6, 3); ctx.stroke(); break;
     case "field":
       ctx.beginPath(); ctx.arc(0, 0, 6.6, 0, Math.PI * 2); ctx.stroke();
       ctx.beginPath(); ctx.arc(0, 0, 3, 0, Math.PI * 2); ctx.fill();
@@ -7376,12 +7472,15 @@ const FESTS = {
 FESTS.fes4 = {
   key: "fes4", sfx: "4", nm: "蒼夏祭", tab: "蒼夏祭",
   banner: "../img/bn_fes4_s.webp", c: "#1567c8", leadCls: "sum",
-  chars: ["fuka", "tsumugi", "suzuka", "karem", "mayu", "chizuru"],
-  lead: "蒼夏祭の限定★5 <b>6体</b>（合計10%・ピックアップなし）に加えて、<b>プレミアムセレクトガチャの★5も合計5%で排出</b>",
-  sub: "蒼夏祭の限定★5 <b>6体</b>（合計10%・ピックアップなし）＋ <b>プレミアム★5も合計5%で排出</b>。初期キャラも出ます",
-  note: "<b>フウカ・ツムギ・スズカ・カレム・マユ・チヅル</b>の6体が登場。"
-    + "<b>カレム・マユ・チヅルはクロススキル</b>を持ち、"
-    + "<b>チヅル</b>は新リンク<b>サーキュレーション</b>と新サブリンク<b>ポジションリミット</b>を持つ蒼夏祭の目玉です。",
+  /* ★ 2026-08-12 セイラを追加して7体に */
+  chars: ["fuka", "tsumugi", "suzuka", "karem", "mayu", "chizuru", "seira"],
+  lead: "蒼夏祭の限定★5 <b>7体</b>（合計10%・ピックアップなし）に加えて、<b>プレミアムセレクトガチャの★5も合計5%で排出</b>",
+  sub: "蒼夏祭の限定★5 <b>7体</b>（合計10%・ピックアップなし）＋ <b>プレミアム★5も合計5%で排出</b>。初期キャラも出ます",
+  note: "<b>フウカ・ツムギ・スズカ・カレム・マユ・チヅル・セイラ</b>の7体が登場。"
+    + "<b>カレム・マユ・チヅル・セイラはクロススキル</b>を持ち、"
+    + "<b>セイラ</b>は<b>MagiBurst 史上最高火力</b>のフルバースト（壁すり抜け＋乱打"
+    + SEIRA_BARRAGE_N + "連＝合計×" + (SEIRA_BARRAGE_N * SEIRA_BARRAGE_PER).toFixed(1)
+    + "）と新サブリンク<b>ピアスシーカー" + PSEEKER20_N + "</b>を持つ蒼夏祭の大トリです。",
 };
 const FES_KEYS = Object.keys(FESTS);
 function fesDef(key) { return FESTS[key] || FESTS.fes; }
