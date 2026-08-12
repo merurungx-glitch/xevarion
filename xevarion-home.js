@@ -129,8 +129,21 @@ const XH_ORDER_KEY = "xeva_home_order_v2";
 const XH_ORDER_GEN = "4";
 const XH_ORDER_GEN_KEY = "xeva_home_order_gen";
 
-/* 期間限定イベント（from/to は YYYY-MM-DD。期間内のものだけ表示） */
+/* 期間限定イベント（from/to は YYYY-MM-DD。期間内のものだけ表示）
+   ★ 2026-08-12 <b>並びは書いた順ではなく「新着順」</b>にした（xhEventsLive）。
+     基準は since（無ければ from）。長く続いている常設イベント（ランキング・
+     Nocturne Bloom Fest など）が上に来て、始まったばかりの新しいフェスが
+     ずっと後ろ、という状態を防ぐため。
+     ＝ 新しいイベントを足すときは<b>この配列のどこに書いてもよい</b>。 */
 const XH_EVENTS = [
+  /* ★ 2026-08-12 MagiBurst「蒼夏祭（Aoka Summer Fest）」。
+     排出キャラは MagiBurst/js/mb-core.js の FESTS.fes4 とそろえること。 */
+  { tag:"SUMMER FES", t1:"蒼夏祭", t2:"MagiBurst に水着の限定★5 7体が参戦！ 新リンク・新クロススキル搭載",
+    from:"2026-08-12", to:"2026-09-30", since:"2026-08-12",
+    /* ★ 2026-08-12 正方形の書き下ろしイラストに差し替え。
+       ?v= を付けてあるのは、SW が stale-while-revalidate（古いほうを先に返す）で
+       画像を持っているため。付けないと1回目は前の絵のままになる。 */
+    href:"MagiBurst/index.html", img:"thumbs/AokaSummerFest.jpg?v=2" },
   /* ★ 2026-08-07 MagiBurst「Phantom Legend Fest」の予告。
      8/10 0:00 の開催をまたぐと、下の xhRenderEvents が t1/t2 を「開催中」に差し替える
      （XH_FES3_OPEN と見くらべるだけなので、当日に書き直す必要はない）。
@@ -740,10 +753,21 @@ function xhSyncBadges() {}
 function xhWatchBadges() {}
 
 /* ══════════════ イベントバナー ══════════════ */
+/* 開催中のイベントを<b>新着順（新しいものが先）</b>で返す。
+   ★ 並びの基準は since（無ければ from）。同じ日付のものは XH_EVENTS に
+     書いた順のまま（安定ソート）。MagiBurst 側の eventsLive() と同じ考えかた。 */
+function xhEventsLive() {
+  const today = xhToday();
+  const key = (e) => e.since || e.from || "";
+  return XH_EVENTS
+    .filter((e) => e.from <= today && (e.perm || (e.to && today <= e.to)))
+    .map((e, i) => ({ e, i }))
+    .sort((a, b) => (key(a.e) < key(b.e) ? 1 : key(a.e) > key(b.e) ? -1 : a.i - b.i))
+    .map((x) => x.e);
+}
 let _xhEvIdx = 0, _xhEvList = [], _xhEvTimer = 0;
 function xhRenderEvents() {
-  const today = xhToday();
-  _xhEvList = XH_EVENTS.filter((e) => e.from <= today && (e.perm || (e.to && today <= e.to)));
+  _xhEvList = xhEventsLive();
   const track = xhEl("xhEvTrack"), dots = xhEl("xhEvDots");
   if (!track || !dots) return;
   if (!_xhEvList.length) {
@@ -776,10 +800,24 @@ function xhRenderEvents() {
   clearInterval(_xhEvTimer);
   if (_xhEvList.length > 1) _xhEvTimer = setInterval(() => xhEvGo(_xhEvIdx + 1), 5400);
 }
+/* ★★ 2026-08-12 「最後まで進むと先頭に戻らない」の修正。
+   帯は transform:translateX(-i*100%) を .42s かけて動かしている。
+   末尾（-600% など）から先頭（0%）へ戻すときだけは<b>全部の枚数ぶんを逆走</b>する
+   長いアニメーションになり、途中の絵が一気に流れて「戻っていない／固まった」ように見えた。
+   ＝ 回りこみ（1枚ぶんを超える移動）のときは<b>アニメーションを切って一瞬で</b>置く。
+   ★ transition を外した直後にそのまま戻すと、ブラウザが1フレームにまとめてしまい
+     アニメーションが復活してしまうので、必ず次のフレームで戻すこと。 */
 function xhEvGo(i) {
   if (!_xhEvList.length) return;
+  const prev = _xhEvIdx;
   _xhEvIdx = ((i % _xhEvList.length) + _xhEvList.length) % _xhEvList.length;
-  const track = xhEl("xhEvTrack"); if (track) track.style.transform = "translateX(" + (-_xhEvIdx * 100) + "%)";
+  const track = xhEl("xhEvTrack");
+  if (track) {
+    const wrap = Math.abs(_xhEvIdx - prev) > 1;      /* 端から端への回りこみ */
+    if (wrap) track.style.transition = "none";
+    track.style.transform = "translateX(" + (-_xhEvIdx * 100) + "%)";
+    if (wrap) requestAnimationFrame(() => { track.style.transition = ""; });
+  }
   const dots = xhEl("xhEvDots");
   if (dots) [...dots.children].forEach((d, k) => d.classList.toggle("on", k === _xhEvIdx));
 }
@@ -1907,10 +1945,7 @@ function xhAiMissionOpen() {
              next: ms.filter((m) => !m.done).slice(0, 3) };
   } catch (e) { return { total: 0, done: 0, claimable: 0, next: [] }; }
 }
-function xhAiEvents() {
-  const today = xhToday();
-  return XH_EVENTS.filter((e) => e.from <= today && (e.perm || (e.to && today <= e.to)));
-}
+function xhAiEvents() { return xhEventsLive(); }
 function xhAiFriends() {
   const a = xhAcc() || {};
   return Array.isArray(a.friends) ? a.friends.length : 0;

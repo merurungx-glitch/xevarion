@@ -53,12 +53,24 @@
        正＝下へ伸ばす／負＝上へ戻す。ズレていない環境では 0。
        キーボードが出ているときは 0 に固定するので誤作動しない。
        使いかたは bottom:calc(-1 * var(--xh-fixgap)) の1本だけ。
-     ・--xh-growb … 下へ伸ばしたぶん（fixgap の正の部分だけ）。
+     ・--xh-growb … 下へ伸ばしたぶん（fixgap の正の部分だけ）。測定の記録用。
      ・--xh-safeb … バーの中身をホームバーから離すべき距離。
-       伸ばしていないとき（growb=0）は env() そのまま＝二重にならない。   */
+
+     ★★ 2026-08-12 「バーと画面の下のあいだに隙間がある」の真因。
+       --xh-safeb は max(env(), --xh-growb) だった。ところが <b>growb が正になるのは
+       ①ブラウザ表示でツールバーが引っこんだとき も ②アプリ表示でホームバーぶん箱が
+       短いとき も同じ</b>で、この2つを値からは区別できない。
+       ①では「下へ g 伸ばす」だけで位置は正しくなっているのに、
+       さらに padding-bottom にも g が入るので<b>中身だけが g ぶん持ち上がり</b>、
+       バーの下に<b>色は同じだが何も無い帯</b>が残る＝これが「隙間」の正体。
+       （バー本体を 240px はみ出させてあるので<b>色は続いている</b>。だから
+         「板がズレている」ようには見えず、原因が分かりにくかった。）
+       ＝ 内側の余白は<b>env() だけ</b>で決める。ホームバーのある端末は
+         env(safe-area-inset-bottom) が必ず値を返すので、これで足りる。
+         --xh-growb は位置の計算（bottom:calc(-1 * var(--xh-fixgap))）だけが使う。   */
   --xh-fixgap: 0px;
   --xh-growb: 0px;
-  --xh-safeb: max(env(safe-area-inset-bottom, 0px), var(--xh-growb, 0px));
+  --xh-safeb: env(safe-area-inset-bottom, 0px);
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }

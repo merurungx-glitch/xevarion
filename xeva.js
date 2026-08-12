@@ -386,13 +386,15 @@
     { id: "mb:izumi", mbId: "izumi", name:"イズミ", file: "../img/t_Izumi.webp", since:"2026-08-11" },
     { id: "mb:cherylalpha", mbId: "cherylalpha", name:"シェリーα", file: "../img/t_CherylAlpha.webp", since:"2026-08-11" },
     { id: "mb:kokonaalpha", mbId: "kokonaalpha", name:"ココナα", file: "../img/t_KokonaAlpha.webp", since:"2026-08-11" },
-    /* ★ 2026-08-12 蒼夏祭（Aoka Summer Fest）限定★5 6体 */
+    /* ★ 2026-08-12 蒼夏祭（Aoka Summer Fest）限定★5 7体
+       ★ 並び＝No. なので、mb-core.js の CHAR_IDS とまったく同じ順にそろえること。 */
     { id: "mb:fuka", mbId: "fuka", name:"フウカ", file: "../img/t_Fuka.webp", since:"2026-08-12" },
     { id: "mb:tsumugi", mbId: "tsumugi", name:"ツムギ", file: "../img/t_Tsumugi.webp", since:"2026-08-12" },
     { id: "mb:suzuka", mbId: "suzuka", name:"スズカ", file: "../img/t_Suzuka.webp", since:"2026-08-12" },
     { id: "mb:karem", mbId: "karem", name:"カレム", file: "../img/t_Karem.webp", since:"2026-08-12" },
     { id: "mb:mayu", mbId: "mayu", name:"マユ", file: "../img/t_Mayu.webp", since:"2026-08-12" },
     { id: "mb:chizuru", mbId: "chizuru", name:"チヅル", file: "../img/t_Chizuru.webp", since:"2026-08-12" },
+    { id: "mb:seira", mbId: "seira", name:"セイラ", file: "../img/t_Seira.webp", since:"2026-08-12" },
   ];
   /* ★ 2026-08-10 初期★4 4体（ゼラ・アヤメ・レイラ・セリーヌ）は廃止しました。
      いまは<b>全キャラがアイコンに選べる</b>ので、starter という区別そのものが要らない。 */

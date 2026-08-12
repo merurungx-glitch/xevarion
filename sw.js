@@ -7,7 +7,7 @@
    ・オフライン中の進行は localStorage に残り、オンライン復帰時に
      xeva-cloud.js がタイムスタンプ比較でクラウドへ上書き反映する
    ============================================================ */
-const VERSION = "xevarion-sw-v51";
+const VERSION = "xevarion-sw-v58";
 
 /* ホームを成立させる最小セット（重い画像は runtime キャッシュに任せる） */
 const CORE = [
@@ -19,9 +19,12 @@ const CORE = [
   "./gacha.html",
   "./gacha-ui.js?v=6",
   "./magibattle-stats.js?v=6",
-  "./MagiBurst/js/mb-core.js?v=9",
+  "./MagiBurst/js/mb-core.js?v=12",
   /* ★ 2026-08-10 ガチャと図鑑で共通の土台・キャラ詳細・結果演出 */
-  "./mb-boot.js?v=1",
+  /* ★ 2026-08-12 ポータルのガチャ・図鑑も magiburst_v1 を同期するようになった */
+  "./app-cloud.js?v=4",
+  "./MagiBurst/magiburst-cloud.js?v=6",
+  "./mb-boot.js?v=3",
   "./mb-char-detail.js?v=2",
   "./mb-char-detail.css?v=2",
   "./mb-gacha-reveal.css?v=1",
@@ -29,13 +32,13 @@ const CORE = [
   "./about.html",
   "./manifest.webmanifest",
   "./xeva-theme.css?v=1",
-  "./xevarion.css?v=12",
-  "./xevarion-home.css?v=27",
-  "./xeva.js?v=25",
+  "./xevarion.css?v=16",
+  "./xevarion-home.css?v=31",
+  "./xeva.js?v=27",
   "./xeva-fx.js?v=1",
   "./xeva-loading.js?v=1",
-  "./xevarion.js?v=53",
-  "./xevarion-home.js?v=30",
+  "./xevarion.js?v=56",
+  "./xevarion-home.js?v=33",
   "./maintenance-gate.js?v=5",
   "./xeva-back.js?v=1",
   "./xeva-keys.js?v=2",

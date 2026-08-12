@@ -14,7 +14,7 @@
 <link rel="stylesheet" href="xeva-theme.css?v=1">
 <!-- ★ 2026-08-10 キャラ詳細（性能画面）の見た目。ガチャ（gacha.html）と共通 -->
 <link rel="stylesheet" href="mb-char-detail.css?v=2">
-<script src="xeva.js?v=25"></script>
+<script src="xeva.js?v=27"></script>
 <script src="xeva-loading.js?v=1" defer></script>
 <script src="magibattle-stats.js?v=6"></script>
 <script type="module" src="xeva-sync.js?v=8"></script>
@@ -330,8 +330,14 @@ renderGrid();
        ・詳細は mb-char-detail.js の openDetX ＝ <b>ガチャの詳細とまったく同じもの</b>。
        ・並び順は No.（番号）順。
      ══════════════════════════════════════════════════════════════ -->
-<script src="mb-boot.js?v=1"></script>
-<script src="MagiBurst/js/mb-core.js?v=9"></script>
+<!-- ★★ 2026-08-12 magiburst_v1（所持キャラ・限界突破）のクラウド同期。
+     この画面は magiburst_v1 を<b>書き換える</b>（ガチャでキャラが増える）のに、
+     同期を担当する magiburst-cloud.js を読んでいなかった。
+     そのためポータルで引いたキャラはクラウドに上がらず、
+     別の端末の MagiBurst が書いたセーブに負けて<b>消えて</b>いた。 -->
+<script type="module" src="MagiBurst/magiburst-cloud.js?v=6"></script>
+<script src="mb-boot.js?v=3"></script>
+<script src="MagiBurst/js/mb-core.js?v=12"></script>
 <script src="mb-char-detail.js?v=2"></script>
 <script>
 "use strict";

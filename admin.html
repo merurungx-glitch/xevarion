@@ -8,7 +8,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
 <!-- キャラ画像パスの正規化（XEVA.canonCharFile）に使う。古いフォルダのまま保存された
      charFile を現行パスへ直してからアイコンを表示するため。 -->
-<script src="xeva.js?v=24"></script>
+<script src="xeva.js?v=27"></script>
 <script type="module" src="xevarion-fb.js?v=20"></script>
 <script type="module" src="xeva-sync.js?v=8"></script>
 <style>
@@ -27,16 +27,26 @@ body{font-family:'Noto Sans JP',system-ui,sans-serif;color:var(--txt);min-height
 a{color:inherit;text-decoration:none}
 .wrap{max-width:760px;margin:0 auto;padding:0 16px}
 
-/* header */
-.gh{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:12px;padding:14px 16px;
+/* header
+   ★ 2026-08-12 上部がノッチ／カメラに重なって「←戻る」が押せなかった修正。
+     このページは viewport-fit=cover なので、画面の一番上（y=0）は
+     カメラのある帯の<b>下</b>ではなく<b>真下</b>。sticky top:0 だと
+     ヘッダーがその帯に潜りこむ。env(safe-area-inset-top) を
+     <b>padding に足す</b>（top をずらすのではなく）のが正解で、
+     こうすればすりガラスの帯も画面上端までひと続きになる。
+     左右の inset も足して、横向きのときにボタンがノッチにかからないようにする。 */
+.gh{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:12px;
+  padding:calc(env(safe-area-inset-top,0px) + 14px) calc(env(safe-area-inset-right,0px) + 16px) 14px calc(env(safe-area-inset-left,0px) + 16px);
   background:rgba(13,16,34,.82);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border-bottom:1px solid var(--line)}
+/* ←戻る・更新など小さいボタンは、指で押せる大きさ（44px）を必ず確保する */
+.gh .back{display:flex;align-items:center;justify-content:center;min-width:44px;min-height:44px}
 .gh .back{font-size:22px;color:var(--accent);padding:2px 8px;border-radius:10px}
 .gh h1{font-family:'Orbitron',sans-serif;font-size:15px;letter-spacing:.5px;flex:1;
   background:linear-gradient(120deg,var(--accent),var(--pink));-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
 .gh .count{font-size:12px;color:var(--dim);font-weight:700}
 
 /* gate */
-#gate{max-width:420px;margin:14vh auto 0;padding:0 20px;text-align:center}
+#gate{max-width:420px;margin:calc(env(safe-area-inset-top,0px) + 14vh) auto 0;padding:0 20px;text-align:center}
 #gate .lock{font-size:52px;margin-bottom:10px}
 #gate h2{font-family:'Orbitron',sans-serif;font-size:20px;margin-bottom:6px}
 #gate p{font-size:13px;color:var(--dim);line-height:1.7;margin-bottom:22px}
@@ -117,7 +127,8 @@ input.code:focus{border-color:var(--accent)}
 @media(max-width:480px){ .amrow .amcfg{padding:10px 14px;min-height:40px} }
 
 /* modal */
-.ov{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;background:rgba(6,8,20,.66);backdrop-filter:blur(4px);padding:18px}
+.ov{position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;background:rgba(6,8,20,.66);backdrop-filter:blur(4px);
+  padding:calc(env(safe-area-inset-top,0px) + 18px) 18px calc(env(safe-area-inset-bottom,0px) + 18px)}
 .ov.open{display:flex}
 .card{width:100%;max-width:400px;background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:22px;box-shadow:0 24px 60px rgba(0,0,0,.5)}
 .card h3{font-size:1.1rem;margin-bottom:4px;text-align:center}

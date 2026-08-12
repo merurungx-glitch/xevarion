@@ -54,6 +54,13 @@ const BEACON_MAX = 60 * 1024;      // fetch(keepalive) の本文上限（64KB）
 export function initAppCloud(opts) {
   const NAME = opts.name;
   const KEYS = opts.keys || [];
+  /* ★ 2026-08-12 「負けた側にしか無い記録」を救うフック（任意）。
+     rescue(key, 勝ったほうの文字列, 負けたほうの文字列) → 直した文字列 / null
+     タイムスタンプ勝負は「あとから書いたほうが正しい」を前提にしているが、
+     <b>所持キャラ・限界突破のように増えるいっぽうの記録</b>にはこの前提が通らない。
+     ある端末で引いたキャラが、別の端末の（そのキャラを知らない）新しいセーブに
+     まるごと負けて消えてしまうため。勝った側を土台に、負けた側にしか無いぶんを足し戻す。 */
+  const RESCUE = typeof opts.rescue === "function" ? opts.rescue : null;
   const KEYSET = new Set(KEYS);
   const DB_URL = (opts.config && opts.config.databaseURL) || "";
   const META_KEY = "appcloud_meta_" + NAME;     // { key: 最終ローカル書込ms }（端末固有）
@@ -202,8 +209,23 @@ export function initAppCloud(opts) {
           let remoteWins;
           if (rT !== lT) remoteWins = rT > lT;
           else remoteWins = (lv == null);
-          if (remoteWins) { RAW_SET(k, rv); meta[k] = rT || now(); changed = true; dirty.delete(k); }
-          else { if (!lT) meta[k] = now(); push[k] = { v: lv, t: meta[k] }; }
+          /* ★ 2026-08-12 勝った側を土台に、負けた側にしか無いぶんを足し戻す（rescue）。
+             フックが無い／直すところが無ければ、これまでと同じ動きになる。 */
+          let win = remoteWins ? rv : lv;
+          const lose = remoteWins ? lv : rv;
+          if (RESCUE && win != null && lose != null) {
+            try { const fixed = RESCUE(k, win, lose); if (fixed != null) win = fixed; } catch (e) {}
+          }
+          if (remoteWins) {
+            RAW_SET(k, win); changed = true; dirty.delete(k);
+            if (win === rv) { meta[k] = rT || now(); }
+            /* 救ったぶんはクラウドにも無いので、いまの時刻で書き戻す */
+            else { meta[k] = now(); push[k] = { v: win, t: meta[k] }; }
+          } else {
+            if (win !== lv) { RAW_SET(k, win); changed = true; }
+            if (!lT || win !== lv) meta[k] = now();
+            push[k] = { v: win, t: meta[k] };
+          }
         } else if (lv != null) {
           if (!lT) meta[k] = now();
           push[k] = { v: lv, t: meta[k] };     // クラウドに無い＝初回アップロード
