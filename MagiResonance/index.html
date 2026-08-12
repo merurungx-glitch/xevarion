@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>MagiResonance — 王道コマンドバトルRPG</title>
+<meta name="description" content="まおうヴォイドに うばわれた「ひかりのオーブ」をとりもどせ！なかまと旅する王道コマンドバトルRPG。じゅもん・とくぎ・そうび・宿屋・モンスター図鑑・かくとうじょう・オンライン対戦。">
+<link rel="icon" href="../thumbs/MagiResonance.jpg" type="image/png">
+<link rel="apple-touch-icon" href="../thumbs/MagiResonance.jpg">
+<link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Noto+Sans+JP:wght@400;700&display=swap" rel="stylesheet">
+<script src="../maintenance-gate.js?v=5"></script>
+<script src="../xeva.js?v=24"></script>
+<script src="../xeva-loading.js?v=1" defer></script>
+<link rel="stylesheet" href="css/style.css?v=4">
+</head>
+<body>
+
+<!-- ── スプラッシュ ── -->
+<div id="splash">
+  <img class="applogo" src="../thumbs/MagiResonance.jpg" alt="MagiResonance">
+  <div class="bar"><i id="spFill"></i></div>
+  <div class="cap">ぼうけんのしょを よみこんでいます…</div>
+</div>
+
+<!-- ── オープニングムービー ── -->
+<div id="movie" class="hidden">
+  <canvas id="mvStars"></canvas>
+  <button id="mvSkip">とばす ▸</button>
+</div>
+
+<!-- ── タイトル ── -->
+<div id="title" class="hidden">
+  <img src="../thumbs/MagiResonance.jpg" alt="MagiResonance">
+  <div class="tap">▶ ぼうけんを はじめる</div>
+  <div class="ver">MAGI RESONANCE ／ NGX × Magical Future × ISHIDA Production</div>
+</div>
+
+<!-- ── アプリ本体 ── -->
+<div id="app" class="hidden">
+  <header class="top">
+    <a class="back-portal" href="../index.html">← ポータル</a>
+    <h1>🏰 MagiResonance</h1>
+    <div class="pill gold">💰<span id="topGold">0</span>G</div>
+    <div class="pill xeva"><img src="../XEVA.png" alt="XEVA"><span id="topXeva">0</span></div>
+    <button id="muteBtn">🔊</button>
+  </header>
+
+  <main>
+    <div id="view-home"></div>
+    <div id="view-story" class="off"></div>
+    <div id="view-party" class="off"></div>
+    <div id="view-explore" class="off"></div>
+    <div id="view-challenge" class="off"></div>
+    <div id="view-arena" class="off"></div>
+    <div id="view-dex" class="off"></div>
+    <div id="view-missions" class="off"></div>
+    <div id="view-shop" class="off"></div>
+  </main>
+
+  <button id="backTown">🏘 まちにもどる</button>
+</div>
+
+<!-- ── バトル（DQコマンド戦闘） ── -->
+<div id="battleView">
+  <div class="dq-top">
+    <span id="dqTitle"></span>
+    <button class="dq-ctrlbtn" id="dqAuto">さくせん:めいれいさせろ</button>
+    <button class="dq-ctrlbtn" id="dqSpd">はやさ:ふつう</button>
+  </div>
+  <div class="dq-stage"><div id="dqEnemies"></div></div>
+  <div id="dqParty"></div>
+  <div class="dq-bottom">
+    <div class="dqwin dq-menu" id="dqCmd"></div>
+    <div class="dqwin dq-menu" id="dqSub"></div>
+    <div class="dqwin" id="dqMsgWin"><div id="dqMsgText"></div><span id="dqCursor">▼</span></div>
+  </div>
+</div>
+
+<!-- ── ストーリーダイアログ（DQ窓） ── -->
+<div class="story-ov" id="storyOv">
+  <div class="so-box">
+    <div class="so-title" id="soTitle"></div>
+    <div class="so-text" id="soText"></div>
+    <div class="so-btns">
+      <button class="sec" id="soSkip">とばす</button>
+      <button class="pri" id="soNext">▶ つぎへ</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── キャラ詳細 / ピッカー ── -->
+<div class="ov" id="charOv" onclick="if(event.target===this)this.classList.remove('on')"><div class="ovcard" id="charCard"></div></div>
+<div class="ov" id="pickOv" onclick="if(event.target===this)this.classList.remove('on')"><div class="ovcard" id="pickCard"></div></div>
+
+<div id="toasts"></div>
+
+<script src="js/data.js?v=4"></script>
+<script src="js/battle.js?v=4"></script>
+<script src="js/world.js?v=4"></script>
+<script src="js/game.js?v=4"></script>
+<script type="module" src="js/online.js?v=2"></script>
+<script type="module" src="../xevarion-fb.js?v=19"></script>
+<script src="../xeva-presence.js?v=1" defer></script>
+<script type="module" src="../xeva-cloud.js?v=14"></script>
+</body>
+</html>

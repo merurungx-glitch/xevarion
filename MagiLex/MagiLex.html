@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<script src="../maintenance-gate.js?v=5"></script>
+<script src="../xeva-splash.js?v=3" data-app="MagiLex" data-logo="../thumbs/MagiLex.jpg"></script>
+<meta charset="UTF-8">
+<script>(function(){try{var a=JSON.parse(localStorage.getItem('xeva_account_v1'));if(!a||!a.setupDone)location.replace('../index.html');}catch(e){}})();</script>
+<script type="module" src="../xevarion-fb.js?v=18"></script>
+<script src="../xeva-presence.js?v=1" defer></script>
+<script type="module" src="../xeva-cloud.js?v=14"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MagiLex — 学習アプリ（クイズ × 単語帳）</title>
+<link rel="icon" href="../thumbs/MagiLex.jpg">
+<link rel="apple-touch-icon" href="../thumbs/MagiLex.jpg">
+<!-- PWA：ホーム画面に追加でオフラインでも学習できる（記録は端末保存→オンライン時に反映） -->
+<!-- 単体でのアプリ配布は廃止（XEVARION を1つ入れれば3アプリともオフライン対応になる） -->
+<script src="../app-install-notice.js?v=1" defer></script>
+<meta name="theme-color" content="#7c3aed">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MagiLex">
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function () {
+    navigator.serviceWorker.register("sw.js").catch(function () {});
+  });
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Noto+Sans+JP:wght@400;500;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="magilex.css?v=15">
+<!-- 起動スプラッシュは ../xeva-splash.js（全アプリ共通）に統一 -->
+<script type="module" src="magilex-cloud.js?v=4"></script>
+</head>
+<body>
+
+<!-- アクセス画面（タップしてスタート・MagiBurstと同じ流れ。スプラッシュの下に待機） -->
+<div id="mlHome" onclick="mlHomeTap()">
+  <div class="ml-bg"></div>
+  <div class="ml-kv"></div>
+  <div class="ml-scrim"></div>
+  <div class="ml-center">
+    <div class="ml-tap">タップしてスタート</div>
+    <div class="ml-line"></div>
+    <div class="ml-sub">TAP TO START</div>
+  </div>
+</div>
+<script>
+/* アクセス画面: タブ（セッション）につき1回だけ表示。タップでフェードアウトして本体へ */
+(function () {
+  var KEY = "ml_accessed_v1";
+  var accessed = false;
+  try { accessed = sessionStorage.getItem(KEY) === "1"; } catch (e) {}
+  if (!accessed) document.getElementById("mlHome").classList.add("open");
+  window.mlHomeTap = function () {
+    try { sessionStorage.setItem(KEY, "1"); } catch (e) {}
+    var h = document.getElementById("mlHome");
+    h.style.transition = "opacity .55s"; h.style.opacity = "0";
+    setTimeout(function () { h.classList.remove("open"); h.style.opacity = ""; h.style.transition = ""; }, 560);
+    /* タップしてスタートの後に、AI作成の注意書き→音モード→ガイドを表示する */
+    var fire = function () {
+      if (window._lexNotices) { var f = window._lexNotices; window._lexNotices = null; f(); }
+      else setTimeout(fire, 300);
+    };
+    setTimeout(fire, 620);
+  };
+})();
+</script>
+
+<!-- 本体 -->
+<div class="app">
+  <header class="topbar">
+    <!-- XEVARION へもどる（xeva-back.js が同期を送り切ってから移動させる） -->
+    <a class="xv-back" href="../index.html" aria-label="XEVARION へもどる" title="XEVARION へもどる">‹</a>
+    <div class="logo"><img src="../thumbs/MagiLex.jpg" alt="MagiLex"><b class="serif">Magi<span>Lex</span></b></div>
+    <div class="coin"><img src="../XEVA.png" alt="XEVA"><span class="js-coin">0</span></div>
+    <img class="u-av js-av" src="../img/Hina.webp" alt="アカウント" onclick="lexTab('settings')">
+  </header>
+
+  <section id="scr-home" class="screen"></section>
+  <section id="scr-library" class="screen"></section>
+  <section id="scr-detail" class="screen"></section>
+  <!-- ★ 2026-08-04 ミックス問題の出題範囲えらび -->
+  <section id="scr-mixsetup" class="screen"></section>
+  <section id="scr-quiz" class="screen"></section>
+  <section id="scr-flash" class="screen"></section>
+  <section id="scr-wordlist" class="screen"></section>
+  <section id="scr-stats" class="screen"></section>
+  <section id="scr-settings" class="screen"></section>
+</div>
+
+<!-- ボトムナビ -->
+<nav class="nav">
+  <button class="nv" data-tab="home" onclick="lexTab('home')"><span class="i">🏠</span>ホーム</button>
+  <button class="nv" data-tab="library" onclick="lexTab('library')"><span class="i">📚</span>学習</button>
+  <button class="nv" data-tab="stats" onclick="lexTab('stats')"><span class="i">📊</span>データ</button>
+  <button class="nv" data-tab="settings" onclick="lexTab('settings')"><span class="i">⚙️</span>設定</button>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<script src="../xeva.js?v=24"></script>
+<script src="../xeva-loading.js?v=1" defer></script>
+<script src="magilex-data.js?v=2"></script>
+<script src="magilex-eigo.js?v=1"></script>
+<script src="magilex-rika.js?v=1"></script>
+<script src="magilex-chemb.js?v=2"></script>
+<script src="magilex-shinzui.js?v=2"></script>
+<script type="module" src="magilex.js?v=20"></script>
+<!-- XEVARION へもどる導線（同期を送り切ってから移動する） -->
+<script src="../xeva-back.js?v=1" data-mode="hook"></script>
+</body>
+</html>

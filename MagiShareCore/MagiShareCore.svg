@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#fff6e9"/>
+      <stop offset="1" stop-color="#ffe3ef"/>
+    </linearGradient>
+    <linearGradient id="a" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ff8a5c"/><stop offset="1" stop-color="#ff5d8f"/>
+    </linearGradient>
+    <linearGradient id="b" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#37c8ff"/><stop offset="1" stop-color="#5b8cff"/>
+    </linearGradient>
+    <linearGradient id="c" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#3fd6a0"/><stop offset="1" stop-color="#12b886"/>
+    </linearGradient>
+    <linearGradient id="d" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffd23f"/><stop offset="1" stop-color="#ffab17"/>
+    </linearGradient>
+  </defs>
+  <rect x="0" y="0" width="512" height="512" rx="112" fill="url(#bg)"/>
+  <!-- four shared regions meeting at center -->
+  <path d="M60 60 H236 V236 H60 Z" fill="url(#a)" opacity="0.85"/>
+  <path d="M276 60 H452 V236 H276 Z" fill="url(#b)" opacity="0.85"/>
+  <path d="M60 276 H236 V452 H60 Z" fill="url(#c)" opacity="0.85"/>
+  <path d="M276 276 H452 V452 H276 Z" fill="url(#d)" opacity="0.85"/>
+  <!-- dividing boundary lines -->
+  <g stroke="#ffffff" stroke-width="16" stroke-linecap="round">
+    <line x1="256" y1="52" x2="256" y2="460"/>
+    <line x1="52" y1="256" x2="460" y2="256"/>
+  </g>
+  <!-- dots at grid points -->
+  <g fill="#3a2a4a">
+    <circle cx="60" cy="60" r="16"/><circle cx="256" cy="60" r="16"/><circle cx="452" cy="60" r="16"/>
+    <circle cx="60" cy="256" r="16"/><circle cx="452" cy="256" r="16"/>
+    <circle cx="60" cy="452" r="16"/><circle cx="256" cy="452" r="16"/><circle cx="452" cy="452" r="16"/>
+  </g>
+  <!-- shared core in the middle -->
+  <circle cx="256" cy="256" r="66" fill="#ffffff"/>
+  <circle cx="256" cy="256" r="66" fill="none" stroke="#7c3aed" stroke-width="10"/>
+  <text x="256" y="286" font-family="'Segoe UI',Arial,sans-serif" font-size="78" font-weight="900" text-anchor="middle" fill="#7c3aed">9</text>
+</svg>

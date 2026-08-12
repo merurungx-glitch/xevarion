@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<title>MagiManor — The Manor Remembers Everything.</title>
+<meta name="description" content="不気味な洋館「Magi Manor」からの脱出を目指す2D探索ホラー・謎解きアドベンチャー。館はあなたの行動を、死を、すべて記憶する。">
+<link rel="icon" href="../thumbs/MagiManor.jpg" type="image/png">
+<link rel="apple-touch-icon" href="../thumbs/MagiManor.jpg">
+<script src="../maintenance-gate.js?v=5"></script>
+<script src="../xeva-splash.js?v=3" data-app="MagiManor" data-logo="../thumbs/MagiManor.jpg"></script>
+<script src="../xeva.js?v=24"></script>
+<script src="../xeva-loading.js?v=1" defer></script>
+<script type="module" src="../xevarion-fb.js?v=19"></script>
+<script src="../xeva-presence.js?v=1" defer></script>
+<script type="module" src="../xeva-cloud.js?v=14"></script>
+<style>html,body{background:#000;}</style>
+<link rel="stylesheet" href="css/style.css?v=2">
+</head>
+<body>
+
+<!-- ゲーム画面 -->
+<div id="stage"><canvas id="cv"></canvas></div>
+
+<!-- HUD -->
+<div id="hud" class="hidden">
+  <div class="h-left">
+    <div class="h-chip" id="hudCh"><b>MagiManor</b></div>
+    <div class="h-chip" id="hudInfo"></div>
+    <div id="fearWrap"><div class="f-cap"><span>FEAR</span><span>恐怖</span></div><div class="f-bar"><i></i></div></div>
+  </div>
+  <div class="h-right">
+    <!-- XEVARION へもどる（xeva-back.js が同期を送り切ってから移動させる） -->
+    <a class="h-btn" href="../index.html" id="xvBackBtn" title="XEVARION へもどる">‹</a>
+    <button class="h-btn" id="sndBtn" title="サウンド">🔊</button>
+    <button class="h-btn" id="menuBtn" title="メニュー">☰</button>
+  </div>
+</div>
+
+<!-- タッチ操作 -->
+<div id="pad" class="hidden">
+  <button class="p-btn up">▲</button>
+  <button class="p-btn down">▼</button>
+  <button class="p-btn left">◀</button>
+  <button class="p-btn right">▶</button>
+</div>
+<div id="actWrap" class="hidden"><button id="actBtn">調べる</button></div>
+
+<!-- 会話 -->
+<div id="dlg" class="hidden">
+  <div class="d-name" id="dlgName"></div>
+  <div class="d-txt" id="dlgTxt"></div>
+  <div class="d-choices" id="dlgCh"></div>
+  <div class="d-next" id="dlgNext">▼</div>
+</div>
+
+<!-- トースト / 画面効果 -->
+<div id="toasts"></div>
+<div id="fxFlash"></div>
+<div id="fxRed"></div>
+
+<!-- イントロムービー -->
+<div id="movie" class="layer hidden">
+  <div class="vignette"></div>
+  <button class="skip" id="mvSkip">SKIP ▸</button>
+</div>
+
+<!-- タイトル -->
+<div id="title" class="layer hidden">
+  <canvas class="t-fog" id="tFog"></canvas>
+  <button class="t-back" id="tBack">← ポータル</button>
+  <div class="t-ver">MagiManor v1.0 — MagiOneX</div>
+  <img class="t-logo" src="../thumbs/MagiManor.jpg" alt="MagiManor">
+  <h1>MagiManor</h1>
+  <div class="t-tag">THE MANOR REMEMBERS EVERYTHING.</div>
+  <div class="t-menu">
+    <button class="t-btn" id="tNew">館を訪れる<small>NEW GAME</small></button>
+    <button class="t-btn" id="tCont">記録を読む<small>CONTINUE</small></button>
+    <button class="t-btn" id="tOnline">共鳴して訪れる<small>ONLINE — 2〜4人</small></button>
+    <button class="t-btn" id="tRec">館の記憶<small>RECORDS</small></button>
+  </div>
+  <div class="t-foot">NGX × MAGICAL FUTURE × ISHIDA PRODUCTION<br>XEVARION — MagiOneX SERIES</div>
+</div>
+
+<!-- 新規ゲーム -->
+<div id="newModal" class="mm-ov hidden">
+  <div class="mm-card">
+    <div class="mm-title">館を訪れる</div>
+    <div class="mm-sub">祖母の手紙に導かれ、あなたは丘の上の館へ向かう。</div>
+    <div class="mm-lbl">主人公</div>
+    <div class="seg" id="ngGender">
+      <button data-v="m" class="on">少年<small>ミオ（男）</small></button>
+      <button data-v="f">少女<small>ミオ（女）</small></button>
+    </div>
+    <div class="mm-lbl">難易度</div>
+    <div class="seg" id="ngDiff">
+      <button data-v="normal" class="on">NORMAL<small>記録で恐怖が消える</small></button>
+      <button data-v="hard">HARD<small>追跡者が速い</small></button>
+      <button data-v="nightmare">NIGHTMARE<small>恐怖は消えない</small></button>
+    </div>
+    <div class="mm-row">
+      <button class="mm-btn" id="ngClose">やめる</button>
+      <button class="mm-btn pri" id="ngStart">扉を開く</button>
+    </div>
+  </div>
+</div>
+
+<!-- つづきから -->
+<div id="loadModal" class="mm-ov hidden">
+  <div class="mm-card">
+    <div class="mm-title">記録を読む</div>
+    <div id="loadSlots"></div>
+    <div class="mm-row"><button class="mm-btn" id="loadClose">閉じる</button></div>
+  </div>
+</div>
+
+<!-- セーブ（タイプライター） -->
+<div id="saveModal" class="mm-ov hidden">
+  <div class="mm-card">
+    <div class="mm-title" id="saveTitle">タイプライター</div>
+    <div class="mm-sub">記録は、死んでも残る。</div>
+    <div id="saveSlots"></div>
+    <div class="mm-row"><button class="mm-btn" id="saveClose">何も打たない</button></div>
+  </div>
+</div>
+
+<!-- メニュー -->
+<div id="menu" class="mm-ov hidden">
+  <div class="mm-card">
+    <div class="mm-title">持ち物</div>
+    <div class="inv-grid" id="invGrid"></div>
+    <div class="mm-sub" id="invDesc" style="min-height:40px;margin-top:10px;"></div>
+    <div class="mm-lbl">状況</div>
+    <div id="menuStats"></div>
+    <div class="mm-row">
+      <button class="mm-btn" id="menuTitle2">タイトルへ</button>
+      <button class="mm-btn hidden" id="menuLeave">共鳴を解除</button>
+      <button class="mm-btn pri" id="menuClose">探索に戻る</button>
+    </div>
+  </div>
+</div>
+
+<!-- 記録（メモリー） -->
+<div id="records" class="mm-ov hidden">
+  <div class="mm-card">
+    <div class="mm-title">館の記憶</div>
+    <div class="mm-sub">館は、あなたのすべてを覚えている。</div>
+    <div class="mem-grid" id="memStats"></div>
+    <div class="mm-lbl">結末</div>
+    <div class="end-list" id="endList"></div>
+    <div class="mm-row"><button class="mm-btn" id="recClose">閉じる</button></div>
+  </div>
+</div>
+
+<!-- オンライン共鳴 -->
+<div id="online" class="mm-ov hidden">
+  <div class="mm-card">
+    <div id="olHome">
+      <div class="mm-title">共鳴して訪れる</div>
+      <div class="mm-sub">同じ館を、最大4人で同時に探索する。<br>扉や謎解きの進行は全員で共有され、<br>仲間は「残響」として同じ部屋に現れる。</div>
+      <button class="mm-btn pri" style="width:100%" id="olCreate">館を建てる（部屋を作る）</button>
+      <div class="mm-lbl">部屋番号で参加</div>
+      <input id="olCode" inputmode="numeric" maxlength="4" placeholder="0000">
+      <div class="mm-row">
+        <button class="mm-btn" id="olClose">閉じる</button>
+        <button class="mm-btn pri" id="olJoin">共鳴する</button>
+      </div>
+    </div>
+    <div id="olLobby" class="hidden">
+      <div class="mm-title">共鳴の間</div>
+      <div class="mm-sub">この番号を仲間に伝える</div>
+      <div class="ol-roomcode" id="olRoomCode">----</div>
+      <div class="ol-plist" id="olPlist"></div>
+      <div class="mm-sub hidden" id="olWait" style="margin-top:12px;">案内人（ホスト）が扉を開くのを待っている…</div>
+      <div class="mm-row">
+        <button class="mm-btn" id="olLeave">部屋を出る</button>
+        <button class="mm-btn pri" id="olStart">扉を開く（全員開始）</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 死亡 -->
+<div id="death" class="layer hidden">
+  <div class="de-txt" id="deathT"></div>
+  <div class="de-sub" id="deathS"></div>
+  <div class="de-hint">—— タップで、最後の記録から目を覚ます ——</div>
+</div>
+
+<!-- エンディング -->
+<div id="ending" class="layer hidden">
+  <div class="en-inner">
+    <div class="en-rank" id="endRank"></div>
+    <div class="en-name" id="endName"></div>
+    <div class="en-txt" id="endTxt"></div>
+    <div class="en-credit" id="endCredit"></div>
+    <div class="en-tap">— タップでタイトルへ —</div>
+  </div>
+</div>
+
+<script src="js/data.js?v=1"></script>
+<script type="module" src="js/online.js?v=1"></script>
+<script src="js/game.js?v=2"></script>
+<!-- XEVARION へもどる導線（同期を送り切ってから移動する） -->
+<script src="../xeva-back.js?v=1" data-mode="hook"></script>
+</body>
+</html>

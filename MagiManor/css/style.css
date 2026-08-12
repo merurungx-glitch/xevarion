@@ -1,0 +1,214 @@
+/* ============================================================
+   MagiManor — "The Manor Remembers Everything."
+   2D探索ホラー・謎解きADV / XEVARION (MagiOneX)
+   ダーク×古洋館テーマ。UIはDOM、ゲーム画面はcanvas。
+   ============================================================ */
+:root{
+  --blood:#8e1b2c; --blood2:#c22b40;
+  --bone:#d8d2c4; --dim:#8d8676; --faint:#5c5749;
+  --panel:#121016; --panel2:#1a1721; --ink:#0a090d;
+  --gold:#a98a3f; --candle:#ffb95e;
+  --border:rgba(216,210,196,.14);
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;user-select:none;}
+html,body{height:100%;}
+body{
+  background:#050408;color:var(--bone);
+  font-family:"Shippori Mincho","Yu Mincho","Hiragino Mincho ProN",serif;
+  overflow:hidden;touch-action:manipulation;
+  -webkit-font-smoothing:antialiased;
+}
+button{font-family:inherit;color:inherit;background:none;border:none;cursor:pointer;}
+img{-webkit-user-drag:none;}
+
+/* ── ゲームキャンバス ── */
+#stage{position:fixed;inset:0;background:#050408;}
+#cv{position:absolute;inset:0;width:100%;height:100%;image-rendering:pixelated;}
+
+/* ── 全画面レイヤー共通 ── */
+.layer{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;flex-direction:column;}
+.hidden{display:none !important;}
+
+/* ============ イントロムービー ============ */
+#movie{background:#000;z-index:200;cursor:pointer;}
+#movie .scene{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:22px;opacity:0;transition:opacity 1.1s ease;padding:6vh 26px;text-align:center;}
+#movie .scene.in{opacity:1;}
+#movie .mv-txt{font-size:clamp(16px,2.6vw,24px);letter-spacing:.35em;line-height:2.4;color:#b9b2a2;text-shadow:0 0 18px rgba(180,30,50,.25);}
+#movie .mv-txt b{color:#c9848d;font-weight:600;}
+#movie .mv-sub{font-size:12px;letter-spacing:.5em;color:#514c42;}
+#movie .corp{width:min(420px,72vw);background:#f5f2ea;border-radius:14px;padding:16px 30px;display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden;}
+#movie .corp img{max-width:100%;max-height:13vh;object-fit:contain;display:block;filter:grayscale(.25);}
+#movie .corp.flicker{animation:corpFlicker 2.6s steps(1) both;}
+#movie .corp::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(0,0,0,.10) 0 2px,transparent 2px 4px);opacity:.35;pointer-events:none;}
+#movie .corp-cap{font-size:11px;letter-spacing:.6em;color:#6a6355;}
+#movie .letter{background:#efe7d2;color:#33291c;border-radius:6px;padding:30px 26px;width:min(480px,84vw);
+  font-size:clamp(14px,2.2vw,18px);line-height:2.3;letter-spacing:.18em;text-align:left;
+  box-shadow:0 30px 80px rgba(0,0,0,.8);transform:rotate(-1.2deg);position:relative;}
+#movie .letter::after{content:"";position:absolute;right:18px;bottom:14px;width:44px;height:44px;border-radius:50%;
+  background:radial-gradient(circle at 40% 40%, rgba(142,27,44,.5), rgba(142,27,44,.12) 70%, transparent 72%);}
+#movie #mvManor{width:min(640px,92vw);height:auto;max-height:56vh;}
+#movie .skip{position:absolute;right:18px;bottom:calc(14px + env(safe-area-inset-bottom));font-size:12px;letter-spacing:.3em;color:#57524a;border:1px solid #2c2924;border-radius:99px;padding:8px 18px;z-index:5;}
+#movie .vignette{position:absolute;inset:0;pointer-events:none;background:radial-gradient(ellipse at center, transparent 42%, rgba(0,0,0,.88) 100%);}
+#movie .grain{position:absolute;inset:0;pointer-events:none;opacity:.5;mix-blend-mode:overlay;}
+@keyframes corpFlicker{0%{opacity:0}4%{opacity:1}9%{opacity:.2}12%{opacity:1}38%{opacity:1}41%{opacity:.35}44%{opacity:1}100%{opacity:1}}
+@keyframes mvShake{0%,100%{transform:none}20%{transform:translate(3px,-2px)}40%{transform:translate(-3px,2px)}60%{transform:translate(2px,2px)}80%{transform:translate(-2px,-2px)}}
+#movie.shake{animation:mvShake .28s linear;}
+
+/* ============ タイトル ============ */
+#title{z-index:120;background:radial-gradient(120% 90% at 50% 8%, #14101c 0%, #070509 62%, #030204 100%);}
+#title .t-fog{position:absolute;inset:0;pointer-events:none;opacity:.5;}
+#title .t-logo{width:min(240px,52vw);border-radius:26px;box-shadow:0 0 70px rgba(142,27,44,.35),0 24px 70px rgba(0,0,0,.7);margin-bottom:8px;}
+#title h1{font-size:clamp(34px,7vw,58px);letter-spacing:.2em;font-weight:700;
+  background:linear-gradient(180deg,#e8e0cd 20%,#9a8f76 55%,#5b2530 90%);-webkit-background-clip:text;background-clip:text;color:transparent;
+  text-shadow:0 0 40px rgba(142,27,44,.25);}
+#title .t-tag{font-size:12px;letter-spacing:.5em;color:#6f6959;margin:4px 0 26px;}
+#title .t-menu{display:flex;flex-direction:column;gap:10px;width:min(320px,80vw);z-index:2;}
+.t-btn{border:1px solid var(--border);background:rgba(18,16,22,.72);border-radius:12px;padding:13px 18px;
+  font-size:15px;letter-spacing:.35em;color:var(--bone);text-align:center;transition:all .25s;}
+.t-btn:hover{border-color:rgba(194,43,64,.55);color:#fff;background:rgba(40,18,26,.7);box-shadow:0 0 24px rgba(142,27,44,.25);}
+.t-btn.dis{opacity:.35;pointer-events:none;}
+.t-btn small{display:block;font-size:10px;letter-spacing:.25em;color:var(--dim);margin-top:2px;}
+#title .t-foot{position:absolute;bottom:calc(12px + env(safe-area-inset-bottom));font-size:10px;letter-spacing:.3em;color:#3f3b34;text-align:center;line-height:1.9;z-index:2;}
+#title .t-ver{position:absolute;top:14px;right:16px;font-size:10px;letter-spacing:.25em;color:#3f3b34;}
+#title .t-back{position:absolute;top:12px;left:14px;font-size:12px;letter-spacing:.2em;color:#6f6959;border:1px solid var(--border);border-radius:99px;padding:7px 14px;z-index:5;}
+
+/* ============ モーダル共通 ============ */
+.mm-ov{position:fixed;inset:0;background:rgba(2,1,4,.78);z-index:150;display:flex;align-items:center;justify-content:center;padding:20px;}
+.mm-card{background:var(--panel);border:1px solid var(--border);border-radius:16px;width:min(460px,94vw);max-height:86vh;overflow-y:auto;
+  padding:22px 20px;box-shadow:0 40px 100px rgba(0,0,0,.8);}
+.mm-title{font-size:17px;letter-spacing:.3em;text-align:center;margin-bottom:14px;color:var(--bone);}
+.mm-sub{font-size:12px;color:var(--dim);text-align:center;letter-spacing:.12em;line-height:1.9;margin-bottom:14px;}
+.mm-row{display:flex;gap:8px;margin-top:12px;}
+.mm-btn{flex:1;border:1px solid var(--border);border-radius:10px;padding:12px;font-size:14px;letter-spacing:.2em;background:rgba(216,210,196,.04);}
+.mm-btn.pri{background:linear-gradient(140deg,#5b1a26,#8e1b2c);border-color:rgba(194,43,64,.5);color:#f2e6e6;}
+.mm-btn.pri:hover{filter:brightness(1.15);}
+.seg{display:flex;gap:6px;flex-wrap:wrap;}
+.seg button{flex:1;min-width:80px;border:1px solid var(--border);border-radius:10px;padding:11px 6px;font-size:13px;letter-spacing:.15em;background:rgba(216,210,196,.03);color:var(--dim);}
+.seg button.on{border-color:rgba(194,43,64,.6);color:#f0d9d9;background:rgba(142,27,44,.22);}
+.seg button small{display:block;font-size:10px;letter-spacing:.05em;opacity:.75;margin-top:2px;}
+.mm-lbl{font-size:12px;letter-spacing:.3em;color:var(--gold);margin:16px 0 8px;}
+.mm-lbl:first-child{margin-top:0;}
+
+/* セーブスロット */
+.slot{border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-bottom:8px;background:rgba(216,210,196,.03);cursor:pointer;transition:.2s;}
+.slot:hover{border-color:rgba(194,43,64,.5);background:rgba(142,27,44,.12);}
+.slot .s-t{font-size:14px;letter-spacing:.15em;}
+.slot .s-d{font-size:11px;color:var(--dim);margin-top:3px;letter-spacing:.08em;line-height:1.7;}
+.slot.empty .s-t{color:var(--faint);}
+
+/* ============ HUD ============ */
+#hud{position:fixed;top:0;left:0;right:0;z-index:60;display:flex;align-items:flex-start;justify-content:space-between;padding:10px 12px;pointer-events:none;
+  padding-top:calc(10px + env(safe-area-inset-top));}
+#hud .h-left{display:flex;flex-direction:column;gap:6px;}
+.h-chip{background:rgba(5,4,8,.62);border:1px solid var(--border);border-radius:99px;padding:5px 13px;font-size:11px;letter-spacing:.2em;color:var(--dim);backdrop-filter:blur(4px);width:max-content;}
+.h-chip b{color:var(--bone);font-weight:600;}
+#fearWrap{width:132px;background:rgba(5,4,8,.62);border:1px solid var(--border);border-radius:99px;padding:6px 12px;backdrop-filter:blur(4px);}
+#fearWrap .f-cap{font-size:9px;letter-spacing:.4em;color:var(--faint);display:flex;justify-content:space-between;}
+#fearWrap .f-bar{height:5px;border-radius:99px;background:rgba(216,210,196,.1);overflow:hidden;margin-top:4px;}
+#fearWrap .f-bar i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,#5b1a26,#c22b40,#ff5470);transition:width .5s;}
+#fearWrap.high .f-cap span:first-child{color:#ff5470;animation:fearPulse 1s infinite;}
+@keyframes fearPulse{50%{opacity:.4}}
+#hud .h-right{display:flex;gap:8px;pointer-events:auto;}
+.h-btn{width:40px;height:40px;border-radius:12px;background:rgba(5,4,8,.62);border:1px solid var(--border);font-size:17px;backdrop-filter:blur(4px);display:flex;align-items:center;justify-content:center;}
+.h-btn:active{background:rgba(142,27,44,.3);}
+/* XEVARION へもどる（全アプリ共通の導線）。<a> なので色と下線だけ揃える */
+a.h-btn{text-decoration:none;color:var(--ink,#e6dfd2);font-weight:900;padding-bottom:3px;}
+
+/* ── バーチャルパッド ── */
+#pad{position:fixed;left:14px;bottom:calc(18px + env(safe-area-inset-bottom));z-index:60;width:150px;height:150px;display:none;}
+#pad .p-btn{position:absolute;width:50px;height:50px;border-radius:14px;background:rgba(216,210,196,.07);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;font-size:18px;color:var(--dim);backdrop-filter:blur(3px);}
+#pad .p-btn:active{background:rgba(142,27,44,.35);color:#fff;}
+#pad .up{left:50px;top:0;} #pad .down{left:50px;bottom:0;} #pad .left{left:0;top:50px;} #pad .right{right:0;top:50px;}
+#actWrap{position:fixed;right:16px;bottom:calc(26px + env(safe-area-inset-bottom));z-index:60;display:none;flex-direction:column;gap:12px;align-items:center;}
+#actBtn{width:68px;height:68px;border-radius:50%;background:radial-gradient(circle at 32% 30%, rgba(194,43,64,.5), rgba(80,16,28,.72));
+  border:1px solid rgba(194,43,64,.55);font-size:13px;letter-spacing:.2em;color:#f2dede;backdrop-filter:blur(3px);}
+#actBtn:active{filter:brightness(1.4);}
+body.touch #pad,body.touch #actWrap{display:flex;}
+body.touch #pad{display:block;}
+
+/* ============ 会話ウィンドウ ============ */
+#dlg{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom));z-index:80;
+  width:min(680px,94vw);background:rgba(8,6,11,.9);border:1px solid var(--border);border-radius:14px;padding:14px 18px 12px;
+  box-shadow:0 20px 60px rgba(0,0,0,.7);backdrop-filter:blur(6px);}
+#dlg .d-name{font-size:12px;letter-spacing:.35em;color:var(--blood2);margin-bottom:6px;min-height:14px;}
+#dlg .d-name:empty{display:none;}
+#dlg .d-txt{font-size:15px;line-height:2;letter-spacing:.1em;min-height:60px;color:#e6e0d2;white-space:pre-wrap;}
+#dlg .d-next{position:absolute;right:16px;bottom:10px;font-size:12px;color:var(--faint);animation:nextBlink 1.2s infinite;}
+@keyframes nextBlink{50%{opacity:.15}}
+#dlg .d-choices{display:flex;flex-direction:column;gap:7px;margin-top:10px;}
+#dlg .d-choices button{border:1px solid var(--border);border-radius:9px;padding:10px 14px;text-align:left;font-size:14px;letter-spacing:.12em;background:rgba(216,210,196,.04);}
+#dlg .d-choices button:hover,#dlg .d-choices button.sel{border-color:rgba(194,43,64,.6);background:rgba(142,27,44,.2);color:#fff;}
+
+/* ============ メニュー(持ち物) ============ */
+#menu .mm-card{width:min(520px,94vw);}
+.inv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:8px;}
+.inv-it{border:1px solid var(--border);border-radius:10px;padding:9px 4px;text-align:center;background:rgba(216,210,196,.03);cursor:pointer;}
+.inv-it .i-ic{font-size:22px;}
+.inv-it .i-nm{font-size:9px;letter-spacing:.03em;color:var(--dim);margin-top:3px;line-height:1.3;}
+.inv-empty{font-size:12px;color:var(--faint);text-align:center;padding:16px 0;letter-spacing:.2em;}
+.stat-line{display:flex;justify-content:space-between;font-size:12.5px;color:var(--dim);letter-spacing:.1em;padding:5px 2px;border-bottom:1px dashed rgba(216,210,196,.08);}
+.stat-line b{color:var(--bone);}
+
+/* ============ 死亡画面 ============ */
+#death{z-index:180;background:#000;cursor:pointer;}
+#death .de-txt{font-size:clamp(22px,4.6vw,36px);letter-spacing:.5em;color:var(--blood2);text-shadow:0 0 30px rgba(194,43,64,.5);
+  animation:deIn 2.2s ease both;}
+#death .de-sub{font-size:13px;letter-spacing:.3em;color:#584f4f;margin-top:22px;line-height:2.2;text-align:center;animation:deIn 2.2s ease .9s both;white-space:pre-wrap;}
+#death .de-hint{font-size:11px;letter-spacing:.35em;color:#3c3838;margin-top:34px;animation:deIn 1.5s ease 2s both;}
+@keyframes deIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+
+/* ============ エンディング ============ */
+#ending{z-index:190;background:#000;}
+#ending .en-inner{max-width:640px;padding:0 28px;text-align:center;}
+#ending .en-rank{font-size:13px;letter-spacing:.7em;color:var(--gold);margin-bottom:16px;}
+#ending .en-name{font-size:clamp(24px,5vw,40px);letter-spacing:.3em;color:var(--bone);margin-bottom:26px;}
+#ending .en-txt{font-size:14.5px;line-height:2.6;letter-spacing:.15em;color:#a49d8c;white-space:pre-wrap;text-align:center;}
+#ending .en-credit{margin-top:40px;font-size:11px;letter-spacing:.4em;color:#4c473e;line-height:2.6;}
+#ending .en-credit img{height:30px;object-fit:contain;background:#f5f2ea;border-radius:6px;padding:4px 12px;margin:4px 6px;vertical-align:middle;}
+#ending .en-tap{margin-top:34px;font-size:11px;letter-spacing:.35em;color:#3c3838;animation:nextBlink 1.6s infinite;}
+
+/* ============ トースト ============ */
+#toasts{position:fixed;top:calc(60px + env(safe-area-inset-top));left:50%;transform:translateX(-50%);z-index:170;display:flex;flex-direction:column;gap:8px;align-items:center;pointer-events:none;width:max-content;max-width:92vw;}
+.toast{background:rgba(10,8,14,.9);border:1px solid var(--border);border-radius:99px;padding:9px 20px;font-size:12.5px;letter-spacing:.12em;color:var(--bone);
+  box-shadow:0 14px 40px rgba(0,0,0,.6);animation:toastIn .35s ease both;display:flex;align-items:center;gap:8px;}
+.toast img{width:18px;height:18px;}
+.toast.warn{border-color:rgba(194,43,64,.5);color:#f0c9ce;}
+@keyframes toastIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:none}}
+
+/* ============ オンラインロビー ============ */
+#online .mm-card{width:min(440px,94vw);}
+#olCode{width:100%;text-align:center;font-size:30px;letter-spacing:.55em;padding:12px 0 12px 12px;background:rgba(216,210,196,.05);
+  border:1px solid var(--border);border-radius:12px;color:var(--bone);font-family:inherit;outline:none;}
+#olCode:focus{border-color:rgba(194,43,64,.5);}
+.ol-roomcode{text-align:center;font-size:34px;letter-spacing:.5em;color:var(--gold);padding:6px 0 2px 10px;}
+.ol-plist{display:flex;flex-direction:column;gap:7px;margin-top:10px;}
+.ol-p{display:flex;align-items:center;gap:10px;border:1px solid var(--border);border-radius:10px;padding:8px 12px;background:rgba(216,210,196,.03);}
+.ol-p img{width:30px;height:30px;border-radius:50%;object-fit:cover;background:#241f2e;}
+.ol-p .n{font-size:13.5px;letter-spacing:.1em;flex:1;}
+.ol-p .tag{font-size:10px;letter-spacing:.2em;color:var(--gold);}
+.ol-p.off{opacity:.4;}
+
+/* ============ 記録(メモリー)画面 ============ */
+.mem-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:6px;}
+.mem-cell{border:1px solid var(--border);border-radius:10px;padding:10px;text-align:center;background:rgba(216,210,196,.03);}
+.mem-cell .v{font-size:20px;color:var(--bone);letter-spacing:.1em;}
+.mem-cell .k{font-size:10px;letter-spacing:.25em;color:var(--faint);margin-top:3px;}
+.end-list{margin-top:8px;}
+.end-row{display:flex;justify-content:space-between;align-items:center;font-size:13px;letter-spacing:.15em;padding:8px 4px;border-bottom:1px dashed rgba(216,210,196,.08);}
+.end-row .no{color:var(--faint);}
+.end-row.got{color:var(--gold);}
+.end-row.got .no{color:var(--gold);}
+
+/* ── 画面効果 ── */
+#fxFlash{position:fixed;inset:0;z-index:140;background:#fff;opacity:0;pointer-events:none;transition:opacity .1s;}
+#fxRed{position:fixed;inset:0;z-index:139;pointer-events:none;opacity:0;transition:opacity .8s;
+  background:radial-gradient(ellipse at center, transparent 30%, rgba(120,10,26,.55) 100%);}
+body.shake #stage{animation:mvShake .3s linear;}
+
+@media(max-width:600px){
+  #dlg .d-txt{font-size:13.5px;min-height:54px;}
+  #dlg{bottom:auto;top:calc(64px + env(safe-area-inset-top));}
+  body.touch #dlg{top:auto;bottom:calc(120px + env(safe-area-inset-bottom));width:min(680px,96vw);}
+  #fearWrap{width:112px;}
+}

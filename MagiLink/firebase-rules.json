@@ -1,0 +1,47 @@
+{
+  "rules": {
+    "users": {
+      ".read": true,
+      ".write": true,
+      ".indexOn": "name"
+    },
+    "chats": {
+      ".read": true,
+      ".write": true
+    },
+    "messages": {
+      ".read": true,
+      ".write": true,
+      ".indexOn": "ts"
+    },
+    "board": {
+      ".read": true,
+      ".write": true,
+      ".indexOn": "ts"
+    },
+    "friends": {
+      ".read": true,
+      ".write": true
+    },
+    "friendRequests": {
+      ".read": true,
+      ".write": true
+    },
+    "sentReq": {
+      ".read": true,
+      ".write": true
+    },
+    "magilexProgress": {
+      ".read": true,
+      ".write": true
+    },
+    "dms": {
+      ".read": true,
+      ".write": true
+    },
+    "groups": {
+      ".read": true,
+      ".write": true
+    }
+  }
+}

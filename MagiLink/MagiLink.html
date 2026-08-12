@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<script src="../maintenance-gate.js?v=5"></script>
+<meta charset="UTF-8">
+<script>(function(){try{var a=JSON.parse(localStorage.getItem('xeva_account_v1'));if(!a||!a.setupDone)location.replace('../index.html');}catch(e){}})();</script>
+<script type="module" src="../xevarion-fb.js?v=18"></script>
+<script type="module" src="../xeva-cloud.js?v=14"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>MagiLink — メッセンジャー</title>
+<link rel="icon" href="../thumbs/MagiLink.jpg" type="image/png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Exo+2:wght@300;400;600;700&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="magilink.css?v=12">
+<style>
+/* ★ v4: ここも XEVARION の明るい配色にそろえた（本体のCSSは magilink.css） */
+/* avatar image fix */
+.prof-av img,.av-prev img,.av img{width:100%;height:100%;object-fit:cover;border-radius:inherit;display:block}
+/* hub cards */
+.hub-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:16px}
+.hub-card{background:#fff;border:1.5px solid var(--border);border-radius:18px;padding:22px 16px;text-align:center;cursor:pointer;transition:transform .18s,border-color .18s,box-shadow .18s;display:flex;flex-direction:column;align-items:center;gap:8px;box-shadow:var(--shadow-s)}
+.hub-card:hover{transform:translateY(-2px);border-color:rgba(75,139,255,.45);box-shadow:var(--shadow)}
+.hub-card .hc-icon{font-size:34px;line-height:1}
+.hub-card .hc-label{font-size:13px;font-weight:800;color:var(--txt)}
+.hub-card .hc-sub{font-size:10px;font-weight:600;color:var(--dim)}
+.hub-greet{display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,rgba(75,139,255,.12),rgba(155,123,255,.09)),#fff;border:1.5px solid rgba(75,139,255,.25);border-radius:18px;padding:16px 18px;box-shadow:var(--shadow-s)}
+.hub-greet .prof-av{width:56px;height:56px;font-size:22px;flex-shrink:0;margin:0}
+.hub-greet-text .hg-name{font-size:16px;font-weight:900;color:var(--txt);margin-bottom:2px}
+.hub-greet-text .hg-sub{font-size:11px;font-weight:600;color:var(--dim)}
+/* extra profile fields */
+.prof-extra{display:flex;flex-direction:column;gap:4px;margin-top:8px;font-size:12px;font-weight:600;color:var(--dim);text-align:center}
+.prof-extra span{display:inline-flex;align-items:center;justify-content:center;gap:4px}
+/* collection */
+.coll-head{display:flex;align-items:center;justify-content:center;gap:8px;font-size:.62rem;font-weight:800;letter-spacing:.1em;color:var(--dim);margin:16px 0 9px;text-align:center}
+.coll-head b{color:#e09a1a;font-size:.72rem;letter-spacing:0}
+.col-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:10px;margin-top:4px}
+.col-card{position:relative;border-radius:14px;overflow:hidden;background:#f2f6fd;border:1.5px solid var(--border);aspect-ratio:3/4;display:flex;align-items:flex-end;justify-content:center;box-shadow:var(--shadow-s)}
+.col-card img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.col-card .cc-name{position:relative;z-index:2;width:100%;text-align:center;font-size:9px;font-weight:800;color:#fff;padding:10px 2px 4px;background:linear-gradient(to top,rgba(20,40,80,.85),transparent)}
+.col-card .rar{position:absolute;top:4px;left:4px;z-index:2;font-size:8px;font-weight:900;letter-spacing:.04em;padding:1px 5px;border-radius:6px;color:#4a3400}
+.col-card .rar.SSR{background:linear-gradient(135deg,#ffd86b,#ff9d3c)}
+.col-card .rar.SR{background:linear-gradient(135deg,#c9b3ff,#8c6bff);color:#fff}
+.col-card.ssr{border-color:rgba(255,180,60,.65);box-shadow:0 0 0 2px rgba(255,193,90,.28),0 5px 16px rgba(255,160,40,.24)}
+.col-card .cc-dupe{position:absolute;top:4px;right:4px;z-index:2;font-size:8px;font-weight:900;letter-spacing:.02em;padding:1px 5px;border-radius:6px;color:#0e2a20;background:linear-gradient(135deg,#7cf0d0,#37e0a0);box-shadow:0 2px 6px rgba(55,224,160,.35)}
+.col-empty{font-size:12px;font-weight:600;color:var(--dim);text-align:center;padding:18px 0}
+.coll-stat{display:inline-flex;align-items:center;gap:5px;background:rgba(255,201,60,.14);border:1.5px solid rgba(255,201,60,.42);color:#c98400;font-size:11px;font-weight:800;padding:4px 11px;border-radius:100px}
+</style>
+<script src="../xeva.js?v=24"></script>
+<script src="../xeva-splash.js?v=3" data-app="MagiLink" data-logo="../thumbs/MagiLink.jpg"></script>
+</head>
+<body>
+<div class="bg" aria-hidden="true"><i></i><i></i></div>
+
+<!-- ===== ACCESS GATE ===== -->
+<div class="overlay" id="access">
+  <div class="card" id="accessCard">
+    <img class="logo" src="../thumbs/MagiLink.jpg" alt="MagiLink">
+    <h2>MagiLink</h2>
+    <div class="sub">ご利用にはアクセスコードが必要です。<br>一度入力すると、次のアップデートまで再入力は不要です。</div>
+    <div class="field"><input id="accessInput" type="password" inputmode="text" autocomplete="off" placeholder="アクセスコードを入力"><button class="eye" id="accessEye" type="button">表示</button></div>
+    <button class="btn" id="accessGo" type="button">ロックを解除</button>
+    <div class="msg" id="accessMsg"></div>
+    <div class="hint" style="text-align:center;margin-top:14px;"><a href="../index.html" style="color:#4b8bff;text-decoration:none;font-weight:700;">← XEVARION ポータルへ戻る</a></div>
+  </div>
+</div>
+
+<!-- ===== PASSWORD LOCK (returning user) ===== -->
+<div class="overlay" id="lock">
+  <div class="card" id="lockCard">
+    <div class="av-prev" id="lockAv" style="margin:0 auto 14px;">🙂</div>
+    <h2 id="lockName">おかえりなさい</h2>
+    <div class="sub">パスワードを入力してアカウントのロックを解除してください。</div>
+    <div class="field"><input id="lockInput" type="password" autocomplete="off" placeholder="パスワード"><button class="eye" id="lockEye" type="button">表示</button></div>
+    <button class="btn" id="lockGo" type="button">ロック解除</button>
+    <div class="msg" id="lockMsg"></div>
+  </div>
+</div>
+
+<!-- ===== CREATE ACCOUNT ===== -->
+<div class="overlay" id="create">
+  <div class="card wide" id="createCard">
+    <img class="logo" src="../thumbs/MagiLink.jpg" alt="MagiLink">
+    <h2>アカウントを作成</h2>
+    <div class="sub">この端末では 1 アカウントまで作成できます。</div>
+    <div class="av-edit">
+      <div class="av-prev" id="avPrev" style="overflow:hidden;"></div>
+      <div class="av-actions">
+        <div style="font-size:12px;font-weight:800;color:#22304d">XEVARIONのキャラクターアイコン</div>
+        <div class="hint">アイコンはXEVARIONアカウントのガチャキャラと自動同期されます。</div>
+      </div>
+    </div>
+    <div class="picker-label">テーマカラー</div>
+    <div class="picker" id="colorPicker"></div>
+    <div class="field" style="margin-top:14px;"><label>表示名 *</label><input id="nameInput" type="text" maxlength="20" autocomplete="off" placeholder="表示名（最大20文字）"></div>
+    <div class="split">
+      <div class="field"><label>誕生日（任意）</label><input id="bdayInput" type="date" autocomplete="off"></div>
+      <div class="field"><label>パスワード（任意）</label><input id="pwInput" type="password" autocomplete="new-password" placeholder="設定すると次回ロック"></div>
+    </div>
+    <div class="field"><label>ひとこと / 自己紹介（任意）</label><textarea id="bioInput" maxlength="140" placeholder="プロフィールに表示されます"></textarea></div>
+    <button class="btn" id="createGo" type="button" style="margin-top:6px;">MagiLink をはじめる</button>
+    <div class="msg" id="createMsg"></div>
+  </div>
+</div>
+
+<!-- ===== APP ===== -->
+<div class="app" id="app">
+  <!-- sidebar nav -->
+  <nav class="sidebar">
+    <img class="sb-logo" src="../thumbs/MagiLink.jpg" alt="MagiLink">
+    <button class="nav-btn active" data-view="hub" title="ホーム">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M3 11.5L12 3l9 8.5V21a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V11.5z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><path d="M9 22V13h6v9" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>
+      <span class="lab">ホーム</span>
+    </button>
+    <button class="nav-btn" data-view="lobby" title="ロビー">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.4A8 8 0 1 1 21 12z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>
+      <span class="lab">ロビー</span>
+    </button>
+    <button class="nav-btn" data-view="talks" title="トーク">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 5h16v10H8l-4 4V5z" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/></svg>
+      <span class="lab">トーク</span>
+    </button>
+    <button class="nav-btn" data-view="friends" title="友達">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="9" cy="8" r="3.2" stroke="currentColor" stroke-width="1.7"/><path d="M3.5 19a5.5 5.5 0 0 1 11 0M16 11a3 3 0 1 0-1-5.8M15.5 19h5a4.7 4.7 0 0 0-3.8-4.6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+      <span class="lab">友達</span><span class="badge" id="reqBadge"></span>
+    </button>
+    <button class="nav-btn" data-view="board" title="掲示板">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="4" y="4" width="16" height="16" rx="2" stroke="currentColor" stroke-width="1.7"/><path d="M8 9h8M8 13h6" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+      <span class="lab">掲示板</span>
+    </button>
+    <button class="nav-btn" data-view="collection" title="コレクション">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><rect x="3.5" y="3.5" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.7"/><rect x="13.5" y="3.5" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.7"/><rect x="3.5" y="13.5" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.7"/><rect x="13.5" y="13.5" width="7" height="7" rx="1.5" stroke="currentColor" stroke-width="1.7"/></svg>
+      <span class="lab">コレクション</span>
+    </button>
+    <div class="grow"></div>
+    <button class="nav-btn" data-view="profile" title="プロフィール">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="8.5" r="3.6" stroke="currentColor" stroke-width="1.7"/><path d="M4.5 20a7.5 7.5 0 0 1 15 0" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>
+      <span class="lab">自分</span>
+    </button>
+    <!-- XEVARION へもどる（xeva-back.js が同期を送り切ってから移動させる） -->
+    <a class="nav-btn xv-back" href="../index.html" title="XEVARION へもどる">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M14 5.5 7.5 12l6.5 6.5" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      <span class="lab">もどる</span>
+    </a>
+  </nav>
+
+  <div class="main">
+    <!-- hub -->
+    <section class="view" id="view-hub">
+      <div class="vhead"><div class="vt">MagiLink</div></div>
+      <div class="vbody" style="padding:16px;">
+        <div class="hub-greet" id="hubGreet">
+          <div class="prof-av" id="hubAv" style="width:56px;height:56px;font-size:22px;margin:0;flex-shrink:0;">🙂</div>
+          <div class="hub-greet-text"><div class="hg-name" id="hubName">—</div><div class="hg-sub">おかえりなさい！</div></div>
+        </div>
+        <div class="hub-grid">
+          <div class="hub-card" onclick="window.mlGoTo('lobby')">
+            <div class="hc-icon">🌐</div>
+            <div class="hc-label">ロビー</div>
+            <div class="hc-sub">全体チャット</div>
+          </div>
+          <div class="hub-card" onclick="window.mlGoTo('talks')">
+            <div class="hc-icon">💬</div>
+            <div class="hc-label">トーク</div>
+            <div class="hc-sub">DM・グループ</div>
+          </div>
+          <div class="hub-card" onclick="window.mlGoTo('friends')">
+            <div class="hc-icon">👥</div>
+            <div class="hc-label">友達</div>
+            <div class="hc-sub">リスト・申請</div>
+          </div>
+          <div class="hub-card" onclick="window.mlGoTo('board')">
+            <div class="hc-icon">📋</div>
+            <div class="hc-label">掲示板</div>
+            <div class="hc-sub">みんなの投稿</div>
+          </div>
+          <div class="hub-card" onclick="window.mlGoTo('collection')">
+            <div class="hc-icon">🎴</div>
+            <div class="hc-label">コレクション</div>
+            <div class="hc-sub">みんなのキャラ</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- generic chat view -->
+    <section class="view" id="view-chat">
+      <div class="vhead">
+        <button class="back" id="chatBack"><svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M15 6l-6 6 6 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+        <div><div class="vt" id="chatTitle">ロビー</div><div class="vsub" id="chatSub"></div></div>
+        <div class="spacer"></div>
+        <button class="mini" id="mlSearchBtn" title="このトークを検索">🔍 検索</button>
+        <button class="mini" id="chatInfo" style="display:none;">情報</button>
+      </div>
+      <!-- トーク内検索（v4 追加） -->
+      <div id="mlSearchWrap">
+        <input id="mlSearchInput" type="text" autocomplete="off" placeholder="このトークの中を検索…">
+        <div id="mlSearchInfo"></div>
+      </div>
+      <div class="vbody"><div class="messages" id="messages"></div></div>
+      <!-- XEVYNAR の返信案（v4 追加） -->
+      <div id="mlDraftBar">
+        <div class="dh"><i></i>XEVYNAR の返信案<button class="x" id="mlDraftClose" aria-label="閉じる">✕</button></div>
+        <div id="mlDraftList"></div>
+      </div>
+      <!-- 返信（引用）バー（v4 追加） -->
+      <div id="mlReplyBar">
+        <div class="rb-t" id="mlReplyText"></div>
+        <button class="x" id="mlReplyCancel" aria-label="返信をやめる">✕</button>
+      </div>
+      <div class="attach-prev" id="attachPrev"></div>
+      <div class="composer">
+        <button class="cbtn" id="attachBtn" title="添付" aria-label="添付">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M12 5v14M5 12h14" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>
+        </button>
+        <button class="cbtn" id="mlDraftBtn" title="XEVYNAR に返信案を出してもらう" aria-label="返信案">✨</button>
+        <button class="cbtn" id="emojiBtn" title="絵文字">😊</button>
+        <input class="ci" id="msgInput" type="text" maxlength="1000" autocomplete="off" placeholder="メッセージを入力…">
+        <button class="send" id="sendBtn" aria-label="送信"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M4 12l16-8-6 16-2.5-6.5L4 12z" fill="currentColor"/></svg></button>
+      </div>
+    </section>
+
+    <!-- talks list -->
+    <section class="view" id="view-talks">
+      <div class="vhead"><div class="vt">トーク</div><div class="spacer"></div><button class="mini pri" id="newGroupBtn">＋ グループ作成</button></div>
+      <div class="vbody">
+        <div class="sec-h">ロビー</div>
+        <div class="lrow" id="lobbyRow"><div class="av">🌐</div><div class="info"><div class="nm">ロビー（全体チャット）</div><div class="st">みんなが集まる公開チャット</div></div></div>
+        <div class="sec-h">グループ</div>
+        <div id="groupList"></div>
+        <div class="sec-h">ダイレクトメッセージ</div>
+        <div id="dmList"></div>
+      </div>
+    </section>
+
+    <!-- friends -->
+    <section class="view" id="view-friends">
+      <div class="vhead"><div class="vt">友達</div></div>
+      <div class="vbody">
+        <div class="field" style="margin-bottom:6px;"><input id="friendSearch" type="text" autocomplete="off" placeholder="🔍 名前で検索・絞り込み" style="padding:11px 15px;border-radius:100px;"></div>
+        <div class="sec-h">友達申請</div>
+        <div id="reqList"><div class="empty">新しい申請はありません</div></div>
+        <div class="sec-h">友達</div>
+        <div id="friendList"><div class="empty">まだ友達がいません</div></div>
+        <div class="sec-h">すべてのユーザー</div>
+        <div id="allUsersList"></div>
+      </div>
+    </section>
+
+    <!-- board -->
+    <section class="view" id="view-board">
+      <div class="vhead"><div class="vt">掲示板</div></div>
+      <div class="vbody">
+        <div class="post">
+          <textarea id="boardInput" class="ci" style="width:100%;border-radius:14px;min-height:60px;padding:12px 14px;resize:vertical;" maxlength="600" placeholder="みんなに共有したいことを書こう…"></textarea>
+          <div class="pf"><button class="cbtn" id="boardImgBtn" title="画像">🖼️</button><span class="hint" id="boardAttachName" style="flex:1;"></span><button class="mini pri" id="boardPost">投稿</button></div>
+        </div>
+        <div id="boardList"></div>
+      </div>
+    </section>
+
+    <!-- collection -->
+    <section class="view" id="view-collection">
+      <div class="vhead"><div class="vt">コレクション</div></div>
+      <div class="vbody">
+        <div class="hint" style="text-align:center;margin-bottom:8px;">プレイヤーをタップすると、XEVARION で集めたキャラのコレクションを見られます。</div>
+        <div class="field" style="margin-bottom:6px;"><input id="collSearch" type="text" autocomplete="off" placeholder="🔍 名前で検索" style="padding:11px 15px;border-radius:100px;"></div>
+        <div id="collectionList"></div>
+      </div>
+    </section>
+
+    <!-- profile -->
+    <section class="view" id="view-profile">
+      <div class="vhead"><div class="vt">プロフィール</div></div>
+      <div class="vbody">
+        <div class="prof-card">
+          <div style="position:relative;width:96px;margin:0 auto 14px;">
+            <div class="prof-av" id="myAv" style="margin:0;">🙂</div>
+            <img src="../Xevarion.png" style="position:absolute;bottom:-5px;right:-5px;width:22px;height:22px;border-radius:6px;border:2px solid var(--bg2);box-shadow:0 2px 6px rgba(0,0,0,.5);pointer-events:none" alt="XEVARION">
+          </div>
+          <div class="prof-name" id="myName">—</div>
+          <div class="prof-bio" id="myBio"></div>
+          <div class="prof-extra" id="myExtra"></div>
+          <div class="prof-meta" id="myMeta"></div>
+          <div id="myShowcase"></div>
+          <div id="myCollection"></div>
+          <div style="display:flex;gap:10px;justify-content:center;margin-top:20px;flex-wrap:wrap;">
+            <button class="mini" id="usersBtn">ユーザー一覧</button>
+          </div>
+        </div>
+        <div class="hint" style="text-align:center;">名前・アイコン・誕生日は <b>XEVARION アカウント</b> と同期されます。変更は XEVARION ポータルから行ってください。</div>
+        <div class="hint" style="text-align:center;">アクセスコードは次のアップデートまで保持されます。</div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- hidden inputs -->
+<input type="file" id="imgFile" accept="image/*" hidden>
+<input type="file" id="genFile" hidden>
+<input type="file" id="folderFile" webkitdirectory multiple hidden>
+<input type="file" id="avFile" accept="image/*" hidden>
+<input type="file" id="boardImgFile" accept="image/*" hidden>
+<input type="file" id="gsImgFile" accept="image/*" hidden>
+
+<!-- popovers -->
+<div class="pop" id="reactPop"></div>
+<div class="pop" id="emojiPop"></div>
+<div class="pop" id="attachPop">
+  <button type="button" data-att="img">🖼️ 画像</button>
+  <button type="button" data-att="file">📎 ファイル</button>
+  <button type="button" data-att="folder">📁 フォルダ</button>
+</div>
+
+<!-- ===== EDIT PROFILE MODAL ===== -->
+<div class="overlay" id="editModal">
+  <div class="card wide" id="editCard">
+    <button class="modal-close" id="editClose">✕</button>
+    <h2>プロフィール編集</h2>
+    <div class="av-edit">
+      <div class="av-prev" id="eAvPrev" style="overflow:hidden;"></div>
+      <div class="av-actions">
+        <div style="font-size:12px;font-weight:800;color:#22304d">XEVARIONのキャラクターアイコン</div>
+        <div class="hint">アイコンはXEVARIONのガチャキャラと同期されます。変更はXEVARIONポータルから。</div>
+      </div>
+    </div>
+    <div class="picker-label">テーマカラー</div><div class="picker" id="eColorPicker"></div>
+    <div class="field" style="margin-top:14px;"><label>表示名</label><input id="eName" type="text" maxlength="20"></div>
+    <div class="split">
+      <div class="field"><label>誕生日</label><input id="eBday" type="date"></div>
+      <div class="field"><label>パスワード（変更/設定）</label><input id="ePw" type="password" autocomplete="new-password" placeholder="空欄なら変更なし"></div>
+    </div>
+    <div class="field"><label>ひとこと</label><textarea id="eBio" maxlength="140"></textarea></div>
+    <div class="split">
+      <div class="field"><label>趣味・好きなこと（任意）</label><input id="eHobby" type="text" maxlength="40" placeholder="例: 音楽、ゲーム"></div>
+      <div class="field"><label>出身地（任意）</label><input id="eLocation" type="text" maxlength="40" placeholder="例: 東京"></div>
+    </div>
+    <div class="row"><button class="btn ghost" id="editCancel" type="button">キャンセル</button><button class="btn" id="editSave" type="button">保存</button></div>
+    <div class="msg" id="editMsg"></div>
+  </div>
+</div>
+
+<!-- ===== VIEW PROFILE MODAL ===== -->
+<div class="overlay" id="profileModal">
+  <div class="card" id="profileCard">
+    <button class="modal-close" id="profileClose">✕</button>
+    <div class="prof-av" id="pvAv" style="margin:6px auto 14px;">🙂</div>
+    <div class="prof-name" id="pvName" style="text-align:center;">—</div>
+    <div class="prof-bio" id="pvBio" style="text-align:center;"></div>
+    <div class="prof-extra" id="pvExtra"></div>
+    <div class="prof-meta" id="pvMeta" style="justify-content:center;"></div>
+    <div id="pvShowcase"></div>
+    <div id="pvCollection"></div>
+    <div id="pvActions" style="display:flex;gap:10px;justify-content:center;margin-top:20px;flex-wrap:wrap;"></div>
+  </div>
+</div>
+
+<!-- ===== USERS / HOST MODAL ===== -->
+<div class="overlay" id="usersModal">
+  <div class="card wide">
+    <button class="modal-close" id="usersClose">✕</button>
+    <h2 style="margin-bottom:4px;">ユーザー一覧</h2>
+    <div class="sub" style="margin-bottom:10px;">不適切なアカウントはホスト権限（アクセスコード＋デリートコード）で削除できます。</div>
+    <div id="ulist" style="max-height:56vh;overflow-y:auto;"></div>
+  </div>
+</div>
+
+<!-- ===== HOST DELETE MODAL ===== -->
+<div class="overlay" id="hostModal">
+  <div class="card" id="hostCard">
+    <h2 style="color:#ff8a8a;">アカウント削除（ホスト）</h2>
+    <div class="sub"><b id="hostTarget"></b> を削除します。二重確認のため、両方のコードを入力してください。</div>
+    <div class="field"><input id="hostAccess" type="password" autocomplete="off" placeholder="アクセスコード"></div>
+    <div class="field"><input id="hostDelete" type="password" autocomplete="off" placeholder="デリートコード"></div>
+    <div class="row"><button class="btn ghost" id="hostCancel" type="button">キャンセル</button><button class="btn danger" id="hostConfirm" type="button">削除する</button></div>
+    <div class="msg" id="hostMsg"></div>
+  </div>
+</div>
+
+<!-- ===== GROUP CREATE MODAL ===== -->
+<div class="overlay" id="groupModal">
+  <div class="card" id="groupCard">
+    <button class="modal-close" id="groupClose">✕</button>
+    <h2>グループを作成</h2>
+    <div class="field"><label>グループ名</label><input id="groupName" type="text" maxlength="30" placeholder="例: 開発チーム"></div>
+    <div class="picker-label">メンバーを選択（友達）</div>
+    <div id="groupMembers" style="max-height:34vh;overflow-y:auto;"></div>
+    <button class="btn" id="groupCreate" type="button" style="margin-top:14px;">作成</button>
+    <div class="msg" id="groupMsg"></div>
+  </div>
+</div>
+
+<!-- ===== GROUP SETTINGS MODAL ===== -->
+<div class="overlay" id="gsModal">
+  <div class="card wide" id="gsCard">
+    <button class="modal-close" id="gsClose">✕</button>
+    <h2>グループ設定</h2>
+    <div class="av-edit">
+      <div class="av-prev" id="gsAvPrev">👥</div>
+      <div class="av-actions"><button class="btn ghost sm" id="gsImgBtn" type="button">アイコン画像を選ぶ</button><div class="hint" id="gsHint">オーナーのみ変更できます。</div></div>
+    </div>
+    <div class="field"><label>グループ名</label><input id="gsName" type="text" maxlength="30"></div>
+    <div class="picker-label">メンバー</div>
+    <div id="gsMembers" style="max-height:30vh;overflow-y:auto;margin-bottom:6px;"></div>
+    <div class="row" id="gsOwnerRow"><button class="btn ghost" id="gsCancel" type="button">閉じる</button><button class="btn" id="gsSave" type="button">保存</button></div>
+    <div style="margin-top:10px;display:flex;gap:10px;">
+      <button class="btn ghost sm" id="gsLeave" type="button" style="flex:1;">グループを退出</button>
+      <button class="btn danger sm" id="gsDelete" type="button" style="flex:1;">グループを削除</button>
+    </div>
+    <div class="msg" id="gsMsg"></div>
+  </div>
+</div>
+
+<!-- ===== IMAGE VIEWER ===== -->
+<div class="overlay" id="imgModal" style="background:rgba(0,0,0,0.9);">
+  <button class="modal-close" id="imgClose" style="position:fixed;top:18px;right:18px;">✕</button>
+  <img id="imgFull" style="max-width:94vw;max-height:90vh;border-radius:12px;" alt="">
+</div>
+
+<script type="module" src="magilink.js?v=15"></script>
+<!-- XEVARION へもどる導線（同期を送り切ってから移動する） -->
+<script src="../xeva-back.js?v=1" data-mode="hook"></script>
+</body>
+</html>
