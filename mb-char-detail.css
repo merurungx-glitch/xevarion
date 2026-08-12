@@ -7,10 +7,18 @@
      写しが2つになってしまう状態でした。1か所にまとめてあります。
    ============================================================ */
 /* ── 詳細（キャラ性能）── */
+/* ★ 2026-08-12b 上ぞろえの余白にセーフエリアを足す。
+   これは下ぞろえ（align-items:flex-end）のシートなので、中身が長いと
+   カードの<b>上端</b>が画面のてっぺんへ伸びる。iPhone は viewport-fit=cover で
+   カメラの帯までページが広がるため、カードの上に貼りついている ✕ が
+   カメラと重なって押せなくなっていた。
+   ・器に上の余白（env + 12px）をとる
+   ・カードの高さは 94vh 決め打ちではなく「余白を引いた残り（100%）」にする */
 #detOv{position:fixed;inset:0;z-index:920;background:rgba(20,26,48,.72);backdrop-filter:blur(6px);
-  display:none;align-items:flex-end;justify-content:center}
+  display:none;align-items:flex-end;justify-content:center;
+  padding-top:calc(env(safe-area-inset-top,0px) + 12px)}
 #detOv.on{display:flex}
-#detCard{width:100%;max-width:640px;max-height:94vh;overflow-y:auto;background:linear-gradient(180deg,#fff,#f4f9ff);
+#detCard{width:100%;max-width:640px;max-height:100%;overflow-y:auto;background:linear-gradient(180deg,#fff,#f4f9ff);
   border-radius:24px 24px 0 0;padding:0 0 24px;box-shadow:0 -12px 44px rgba(20,26,48,.4)}
 .dhero{position:relative}
 .dhero img{width:100%;display:block}
@@ -48,6 +56,15 @@
 .dst{background:var(--card2);border:1.5px solid var(--bdr);border-radius:12px;padding:8px;text-align:center}
 .dst i{display:block;font-style:normal;font-size:9.5px;font-weight:800;color:var(--txt2)}
 .dst b{font-size:14px;font-weight:900;font-family:'Orbitron',sans-serif}
+/* ★ 2026-08-12d アーク強化で増えたぶんの「＋◯◯」札。
+   MagiBurst（暗い画面）と同じ意味の札だが、この詳細カードは<b>白地</b>なので
+   同じ淡い青だと読めない。字を濃い青にして、地をうすく敷く。 */
+/* ★ 札は <i class="arcup"> なので、上の <b>.dst i</b>（見出し用・display:block ＋ うすい字色）に
+   負けないよう <b>要素つき</b>で書く。ここを .arcup だけにすると、字が薄いまま
+   ブロック要素になって<b>数字の下へ落ちる</b>。 */
+.dst b i.arcup, .arcup{display:inline-block;font-style:normal;font-family:'Orbitron',sans-serif;font-weight:900;
+  color:#1f6ad0;background:rgba(56,166,255,.14);border:1px solid rgba(56,166,255,.38);
+  border-radius:7px;padding:0 4px;margin-left:4px;font-size:9.5px;line-height:1.6;vertical-align:middle;white-space:nowrap}
 .dchips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:10px}
 .dchip{font-size:10.5px;font-weight:900;border-radius:99px;padding:4px 10px;border:1.5px solid var(--bdr);background:var(--card)}
 /* MagiBattle 評価 */

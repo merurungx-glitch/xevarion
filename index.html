@@ -19,7 +19,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Exo+2:ital,wght@0,300;0,400;0,600;0,700;1,300&family=Noto+Sans+JP:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="xeva-theme.css?v=1">
 <link rel="stylesheet" href="xevarion.css?v=16">
-<link rel="stylesheet" href="xevarion-home.css?v=31">
+<link rel="stylesheet" href="xevarion-home.css?v=32">
 <script src="xeva.js?v=27" defer></script>
 <!-- ジェム⇄XEVA のレート（ドル円連動）。xevarion-home.js より先に読み込む -->
 <script src="xeva-fx.js?v=1" defer></script>
@@ -28,8 +28,8 @@
 <script type="module" src="xevarion-fb.js?v=20"></script>
 <script src="xeva-presence.js?v=1" defer></script>
 <script type="module" src="xeva-cloud.js?v=14"></script>
-<script src="xevarion.js?v=56" defer></script>
-<script src="xevarion-home.js?v=33" defer></script>
+<script src="xevarion.js?v=57" defer></script>
+<script src="xevarion-home.js?v=34" defer></script>
 </head>
 <body>
 <!-- ───── バックグラウンド音楽（Flagship Arrival。アクセス画面のタップで再生開始） ───── -->
@@ -171,13 +171,14 @@ body.music-on #beatFrame{opacity:1}
 .xh-acct{display:flex;align-items:center;gap:12px;padding:12px;border:2px solid rgba(56,166,255,.3);border-radius:16px;background:linear-gradient(135deg,rgba(56,166,255,.08),rgba(142,107,255,.06));margin-bottom:14px}
 .xh-acct img{width:52px;height:52px;border-radius:14px;object-fit:cover;flex:none;background:#dfe8f5}
 .xh-acct .an{font-weight:900;font-size:16px}.xh-acct .al{font-size:11px;color:rgba(34,52,77,.55);font-weight:700;margin-top:1px}
-/* 音楽トグル（ポータル内フローティング） */
-#musicFab{position:fixed;left:14px;bottom:calc(74px + env(safe-area-inset-bottom,0px));z-index:940;width:46px;height:46px;border-radius:50%;
-  border:1.5px solid rgba(142,107,255,.4);background:rgba(255,255,255,.94);backdrop-filter:blur(10px);color:#7a4fe0;font-size:20px;cursor:pointer;
-  display:none;align-items:center;justify-content:center;box-shadow:0 6px 18px rgba(124,58,237,.28);
-  transform:scale(calc(1 + var(--beat)*0.10));transition:transform .1s ease-out}
-#musicFab.show{display:flex}
-#musicFab.off{color:#9aa7b8;border-color:rgba(150,160,180,.4)}
+/* ── ★ 2026-08-12b 旧ホームの「音楽トグル（#musicFab）」を完全に削除しました ──
+   旧ホームと一緒に消すべきものでしたが、CSS・HTML・JS が残っていました。
+   ホームに入ると body.xh-mode で display:none になる作りだったため、
+   <b>同期の読み込み中（＝まだホームに入る前）だけ左下に一瞬出る</b>という
+   見え方になっていました。BGM の ON/OFF は
+     ・アクセス画面（タップしてスタート）の右上 #xhMusicBtn
+     ・ホームの「設定」タブの BGM スイッチ（#xhSwMusic）
+   の2か所にあるので、浮きボタンは不要です。 */
 </style>
 <div id="xevaHome">
   <script>
@@ -278,8 +279,8 @@ body.music-on #beatFrame{opacity:1}
   </div>
 </div>
 
-<!-- ポータル内の音楽トグル -->
-<button id="musicFab" onclick="xevaToggleMusic()" title="音楽 ON/OFF"><svg class="xvic" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M4 9v6h3.6L13 19.4V4.6L7.6 9H4Z" fill="currentColor"/><path d="M15.5 8.6a4.8 4.8 0 010 6.8M18 6.2a8.2 8.2 0 010 11.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+<!-- ★ 2026-08-12b 旧ホームの浮きボタン「#musicFab（音楽 ON/OFF）」はここにありましたが削除しました。
+     BGM の切り替えはアクセス画面の右上（#xhMusicBtn）とホームの設定タブ（BGM スイッチ）にあります。 -->
 <!-- ═══════════════ XEVARION HOME ═══════════════ -->
 <div id="xhome">
   <div id="xhBg">
@@ -861,7 +862,7 @@ body.music-on #beatFrame{opacity:1}
    .acc-fab / .acc-xv-badge / .nub-init / .wrap のCSSも、ドック専用だったので削除しました。
    ★ .xvic（自作SVGアイコンの大きさ）は音楽ボタン・アカウントボタンでも使うので残してあります。 */
 .xvic{width:21px;height:21px;display:block}
-.xh-icbtn .xvic,#musicFab .xvic{width:20px;height:20px}
+.xh-icbtn .xvic{width:20px;height:20px}
 /* 旧レイアウトの浮きボタンが残っていたら隠す */
 .news-fab{display:none!important}
 /* ── メールボックス モーダル ── */

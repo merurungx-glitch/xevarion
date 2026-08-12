@@ -13,9 +13,9 @@
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+JP:wght@300;400;500;700;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="xeva-theme.css?v=1">
 <!-- ★ 2026-08-10 ガチャ結果の演出（1枚ずつ公開・昇格演出）の見た目。MagiBurst と共通 -->
-<link rel="stylesheet" href="mb-gacha-reveal.css?v=1">
+<link rel="stylesheet" href="mb-gacha-reveal.css?v=2">
 <!-- ★ 2026-08-10 キャラ詳細（性能画面）の見た目。図鑑（characters.html）と共通 -->
-<link rel="stylesheet" href="mb-char-detail.css?v=2">
+<link rel="stylesheet" href="mb-char-detail.css?v=4">
 <script src="xeva.js?v=27"></script>
 <script src="xeva-loading.js?v=1" defer></script>
 <script src="magibattle-stats.js?v=6"></script>
@@ -45,8 +45,18 @@ img{-webkit-user-drag:none;user-select:none;-webkit-user-select:none;-webkit-tou
 body::before,body::after{content:"";position:fixed;border-radius:50%;pointer-events:none;z-index:0}
 body::before{width:400px;height:400px;background:radial-gradient(circle,rgba(177,140,255,.35),transparent 70%);top:-100px;right:-80px}
 body::after{width:320px;height:320px;background:radial-gradient(circle,rgba(255,150,200,.3),transparent 70%);bottom:60px;left:-60px}
-/* ── ヘッダー ── */
-.gh{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:10px;padding:12px 16px;
+/* ── ヘッダー ──
+   ★★ 2026-08-12b 「上のほうがカメラ（ノッチ／ダイナミックアイランド）と重なって
+     ← や 所持ジェムが押せない」の対策。
+     このページの <meta viewport> は viewport-fit=cover なので、iPhone では
+     画面の<b>いちばん上（ステータスバー・カメラの帯）まで</b>ページが描かれる。
+     ヘッダーは top:0 の sticky なのでそこへ張りつく＝カメラの下にもぐる。
+     図鑑（characters.html）・コミュニティ・about は最初から
+       padding:calc(env(safe-area-inset-top,0px) + 12px) …
+     と書いてあり、ガチャだけ<b>env(safe-area-inset-top) が1か所も無かった</b>。
+     ＝ 同じ書きかたにそろえる。PC やノッチの無い端末では env() が 0 なので変化なし。 */
+.gh{position:sticky;top:0;z-index:30;display:flex;align-items:center;gap:10px;
+  padding:calc(env(safe-area-inset-top,0px) + 12px) 16px 12px;
   background:rgba(255,255,255,.88);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
   border-bottom:1px solid var(--bdr);box-shadow:0 2px 14px rgba(90,130,210,.12)}
 .gh a.back{font-size:22px;color:var(--pur);padding:2px 8px;border-radius:8px}
@@ -191,10 +201,17 @@ body::after{width:320px;height:320px;background:radial-gradient(circle,rgba(255,
    ・<b>✕ は右上に出しっぱなし</b>。下の「決定」「とじる」ボタンは廃止した
      （選んだ時点で決まるので「決定」は要らない）。
    ══════════════════════════════════════════════════════════════ */
+/* ★ 2026-08-12b おおいの余白にもセーフエリアを足す。
+   中央ぞろえなので、カードが高い（92vh）ときは上端が画面のてっぺん近くまで来る。
+   そこに sticky の見出し（.pshd＝✕ボタン）が乗るので、カメラの帯と重なって押せなかった。
+   ・padding に env(safe-area-inset-top/bottom) を足す
+   ・カードの高さは 92vh ではなく<b>余白を引いた残り（max-height:100%）</b>にする
+     ＝ どんな端末でも器からはみ出さない。 */
 #resOv{position:fixed;inset:0;z-index:900;background:rgba(20,26,48,.72);backdrop-filter:blur(6px);
-  display:none;align-items:center;justify-content:center;padding:16px}
+  display:none;align-items:center;justify-content:center;
+  padding:calc(env(safe-area-inset-top,0px) + 16px) 16px calc(env(safe-area-inset-bottom,0px) + 16px)}
 #resOv.on{display:flex}
-#resCard{width:100%;max-width:600px;max-height:92vh;overflow-y:auto;background:linear-gradient(180deg,#fff,#f4f9ff);
+#resCard{width:100%;max-width:600px;max-height:100%;overflow-y:auto;background:linear-gradient(180deg,#fff,#f4f9ff);
   border-radius:24px;padding:0 0 16px;position:relative;box-shadow:0 20px 60px rgba(20,26,48,.4)}
 /* 見出し＝上に貼りつき、✕ は常に押せる */
 .pshd{position:sticky;top:0;z-index:6;display:flex;align-items:center;gap:10px;padding:14px 14px 11px;
@@ -248,10 +265,12 @@ body::after{width:320px;height:320px;background:radial-gradient(circle,rgba(255,
       いまは<b>名前のすぐ右に置く</b>（名前は伸ばさず、確率は内容ぶんの幅で左寄せ）。
    ③ 名前の<b>となりにキャラの絵</b>を出し、押すとそのキャラの詳細が開く。
    ══════════════════════════════════════════════════════════════ */
+/* ★ 2026-08-12b #resOv と同じくセーフエリアぶんの余白を足す（✕がカメラに隠れないように） */
 #rateOv{position:fixed;inset:0;z-index:930;background:rgba(20,26,48,.72);backdrop-filter:blur(6px);
-  display:none;align-items:center;justify-content:center;padding:16px}
+  display:none;align-items:center;justify-content:center;
+  padding:calc(env(safe-area-inset-top,0px) + 16px) 16px calc(env(safe-area-inset-bottom,0px) + 16px)}
 #rateOv.on{display:flex}
-#rateCard{width:100%;max-width:560px;max-height:86vh;overflow-y:auto;background:#fff;border-radius:22px;padding:0 0 14px;
+#rateCard{width:100%;max-width:560px;max-height:100%;overflow-y:auto;background:#fff;border-radius:22px;padding:0 0 14px;
   position:relative;box-shadow:0 20px 60px rgba(20,26,48,.4)}
 /* 見出し＝スクロールしても上に残る。✕ はこの中にあるので常に押せる */
 .rthd{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:10px;padding:14px 14px 11px;
@@ -282,7 +301,8 @@ body::after{width:320px;height:320px;background:radial-gradient(circle,rgba(255,
 .rtrow .rtar{flex:none;margin-left:auto;color:var(--txt2);font-size:15px;opacity:.55}
 .rtnote{font-size:10px;color:var(--txt2);font-weight:700;line-height:1.75;padding:7px 2px;border-bottom:1px solid var(--bdr)}
 .rtnote b{color:var(--txt)}
-.dlg{position:fixed;inset:0;z-index:990;background:rgba(20,26,48,.6);display:none;align-items:center;justify-content:center;padding:20px}
+.dlg{position:fixed;inset:0;z-index:990;background:rgba(20,26,48,.6);display:none;align-items:center;justify-content:center;
+  padding:calc(env(safe-area-inset-top,0px) + 20px) 20px calc(env(safe-area-inset-bottom,0px) + 20px)}
 .dlg.on{display:flex}
 .dlgc{background:#fff;border-radius:20px;padding:18px;max-width:420px;width:100%;text-align:center}
 .dlgc .dt{font-size:15px;font-weight:900;margin-bottom:8px}
@@ -357,9 +377,9 @@ body::after{width:320px;height:320px;background:radial-gradient(circle,rgba(255,
 <script src="mb-boot.js?v=3"></script>
 <!-- ★ MagiBurst のドメイン層（キャラ・アビリティ・技・ガチャの規則）。
      MagiBurst と<b>同じファイル</b>を読むので、キャラを足せば両方に反映される。 -->
-<script src="MagiBurst/js/mb-core.js?v=12"></script>
+<script src="MagiBurst/js/mb-core.js?v=13"></script>
 <!-- ★ 2026-08-10 キャラ詳細（性能画面）。図鑑（characters.html）と同じものを使う -->
-<script src="mb-char-detail.js?v=2"></script>
+<script src="mb-char-detail.js?v=3"></script>
 <script src="gacha-ui.js?v=6"></script>
 </body>
 </html>

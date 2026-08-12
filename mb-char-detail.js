@@ -33,7 +33,11 @@ function openDetX(id) {
         <span class="dchip">${own ? "所持済み" : "未所持"}</span>
       </div>
       <div class="dstats">
-        ${["HP", "攻撃力", "スピード"].map((k, i) => `<div class="dst"><i>${k}</i><b>${fmt([st.hp, st.atk, st.spd][i])}</b></div>`).join("")}
+        ${/* ★ 2026-08-12d 数字のうち<b>アーク強化で増えたぶん</b>を「＋◯◯」で添える（arcPlus は mb-core.js） */""}
+        ${["HP", "攻撃力", "スピード"].map((k, i) => {
+          const key = ["hp", "atk", "spd"][i];
+          return `<div class="dst"><i>${k}</i><b>${fmt([st.hp, st.atk, st.spd][i])}${arcPlus(st, key)}</b></div>`;
+        }).join("")}
       </div>
 
       <div class="dsec"><div class="t">アビリティ</div>

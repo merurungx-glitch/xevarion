@@ -1258,7 +1258,6 @@ function unlockAndContinue() {
   sessionStorage.setItem(SS_UNLOCKED, "1");
   const lock = document.getElementById("accLock");
   if (lock) lock.classList.remove("open");
-  document.getElementById("musicFab")?.classList.add("show");
   seedMails(); updateMailBadge();
   runPortalBoot();   // 通常のポータル起動（ログインボーナス・ミッション・ゲーム賞金など）
 }
@@ -1897,7 +1896,6 @@ function showXevaHome(opts) {
     if (accessed) {
       ov.classList.remove("open");
       xhMode = "";
-      document.getElementById("musicFab")?.classList.add("show");
       xevaStartMusic();          // 再生中なら継続、自動再生がブロックされたら次の操作で再開
       enterPortal();
       return;
@@ -2057,7 +2055,9 @@ function musicEl() { return document.getElementById("xevaMusic"); }
 const MUSIC_IC_ON = '<svg class="xvic" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M4 9v6h3.6L13 19.4V4.6L7.6 9H4Z" fill="currentColor"/><path d="M15.5 8.6a4.8 4.8 0 010 6.8M18 6.2a8.2 8.2 0 010 11.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
 const MUSIC_IC_OFF = '<svg class="xvic" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M4 9v6h3.6L13 19.4V4.6L7.6 9H4Z" fill="currentColor"/><path d="M15.6 9.6l5 5M20.6 9.6l-5 5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>';
 function paintMusicBtns() {
-  ["xhMusicBtn", "musicFab"].forEach((id) => { const b = document.getElementById(id); if (b) { b.innerHTML = musicOn ? MUSIC_IC_ON : MUSIC_IC_OFF; b.classList.toggle("off", !musicOn); } });
+  /* ★ 2026-08-12b 対象はアクセス画面の #xhMusicBtn だけ（旧ホームの #musicFab は削除済み）。
+     ホームの設定タブの BGM スイッチは xevarion-home.js の xhToggleMusic が塗る。 */
+  ["xhMusicBtn"].forEach((id) => { const b = document.getElementById(id); if (b) { b.innerHTML = musicOn ? MUSIC_IC_ON : MUSIC_IC_OFF; b.classList.toggle("off", !musicOn); } });
 }
 /* AnalyserNode で低域エネルギーを拾い、--beat（0〜1）を更新 → UIが曲に連動 */
 function setupAnalyser() {
@@ -2114,8 +2114,9 @@ window.xevaToggleMusic = xevaToggleMusic;
 /* ── ポータル入場（アクセス画面で「タップしてスタート」した後に実行） ── */
 let _portalEntered = false;
 function enterPortal() {
-  // ポータルの音楽トグルを表示
-  document.getElementById("musicFab")?.classList.add("show");
+  /* ★ 2026-08-12b ここで旧ホームの浮きボタン #musicFab に .show を付けていました。
+     ホームに入ると body.xh-mode で消える作りだったので、
+     「同期の読み込み中だけ左下に一瞬出る」原因になっていました。ボタンごと削除済み。 */
   paintMusicBtns();
   const acc = getAcc();
   // 端末別アクセスパスワード（任意）が設定されていれば、まず解錠を要求
@@ -2549,6 +2550,69 @@ addEventListener("DOMContentLoaded", () => { if (_xevLang === "en") applyLang("e
      ③ 直前の値と同じなら何もしない（毎スクロールで書き換えて重くならないように）
      ★ 上限（MAXG）は据え置き。はみ出し（--xh-dockover 240px）のほうが大きいので、
        測り損ねて 0 に丸めても、はみ出しが画面の下端を必ず越える。 */
+  /* ── env(safe-area-inset-bottom) の実測 ──
+     CSS の env() を JS から読む方法は無いので、padding-bottom に env() を入れた
+     高さ0の目印を置き、その高さ（＝padding ぶん）を読む。 */
+  var envProbe = null;
+  function envBottom() {
+    var host = document.body || document.documentElement;
+    if (host && !(envProbe && envProbe.parentNode)) {
+      envProbe = document.createElement("div");
+      envProbe.setAttribute("aria-hidden", "true");
+      envProbe.style.cssText =
+        "position:fixed;left:0;bottom:0;width:0;height:0;margin:0;border:0;" +
+        "padding:0 0 env(safe-area-inset-bottom,0px) 0;" +
+        "visibility:hidden;pointer-events:none;z-index:-2147483000";
+      host.appendChild(envProbe);
+    }
+    var h = 0;
+    if (envProbe) { try { h = envProbe.getBoundingClientRect().height; } catch (e) { h = 0; } }
+    return h > 0 && h < 120 ? h : 0;
+  }
+
+  /* ★★ 2026-08-12b ホームの下バーの中身を「実測して」画面の下端に合わせる。
+     ── なぜ必要か ──
+     これまでは箱のズレ（--xh-fixgap）を測って位置を直し、中身の余白は
+     env(safe-area-inset-bottom) を<b>そのまま信じて</b>いた。つまり
+     「中身が最後にどこに来たか」は一度も確かめていない。fixgap の測定が
+     少しでも外れる／env() が箱の作られかたと食いちがうと、そのぶん中身だけが
+     持ち上がり、バーの下に<b>色は同じだが何も無い帯</b>が残る＝これが「隙間」。
+     ── どう直すか ──
+     タブのボタンの実際の下端と「見えている画面の下端」を比べ、その差ぶんだけ
+     --xh-barpad を足し引きする。原因が何であれ狙った位置に収束する。
+       ねらい: ボタンの下端 = 見えている下端 −（env + 4px）
+     ★ ホームバーのある端末（env>0）では env ぶんだけ内側に入れる。無い端末では
+       4px だけ空ける。バー本体は --xh-dockover(240px) ぶん常に下へはみ出すので、
+       ここをどう動かしても背景が途切れることはない。 */
+  var BARPAD_MAX = 180;
+  function fitBar() {
+    var home = document.getElementById("xhome");
+    if (!home || !home.classList.contains("on")) return;
+    var bar = home.querySelector(".xh-bar");
+    var btn = bar && bar.querySelector(".xh-ntab");
+    if (!btn) return;
+    var vv = window.visualViewport;
+    var box = boxHeight();
+    if (!vv || !(box > 200)) return;
+    /* キーボードが出ているあいだは見えている高さが極端に縮むので触らない */
+    if (!(vv.height > box * 0.72)) return;
+    var visBottom = (vv.offsetTop || 0) + vv.height;
+    var want = envBottom() + 4;
+    var root = document.documentElement;
+    var cur = parseFloat(root.style.getPropertyValue("--xh-barpad"));
+    if (!isFinite(cur)) {
+      /* まだ JS が入れていない＝CSS の既定値。実際に効いている値を読む。 */
+      var pb = parseFloat(getComputedStyle(bar).paddingBottom) || 0;
+      var ov = parseFloat(getComputedStyle(root).getPropertyValue("--xh-dockover")) || 0;
+      cur = pb - ov;
+    }
+    var err = btn.getBoundingClientRect().bottom - (visBottom - want);
+    if (Math.abs(err) < 0.6) return;            // すでに合っている
+    var next = Math.max(0, Math.min(BARPAD_MAX, Math.round((cur + err) * 10) / 10));
+    if (next !== Math.round(cur * 10) / 10) root.style.setProperty("--xh-barpad", next + "px");
+  }
+  window.xhFitBar = fitBar;
+
   function sync(again) {
     var vv = window.visualViewport;
     var box = boxHeight();
@@ -2571,6 +2635,8 @@ addEventListener("DOMContentLoaded", () => { if (_xevLang === "en") applyLang("e
     if (root.style.getPropertyValue("--xh-growb") !== grow + "px") {
       root.style.setProperty("--xh-growb", grow + "px");
     }
+    /* ★ 位置を直したあとで、中身が本当に下端に来ているかを実測して詰める */
+    try { fitBar(); } catch (e) {}
   }
   window.xhSyncFixGap = function () { sync(); };
   var onSync = function () { sync(); };

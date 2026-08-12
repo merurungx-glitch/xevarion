@@ -2927,6 +2927,10 @@ function xhShow() {
   xhApplyOfflineLocks();
   xhSyncBadges();
   xhConsumeHash();
+  /* ★ 2026-08-12b 下バーの中身を実測で画面の下端に合わせる（xevarion.js の fitBar）。
+     ホームは表示されて初めて測れるので、開いた直後に何回か測り直す。 */
+  try { window.xhFitBar && window.xhFitBar(); } catch (e) {}
+  [60, 220, 600, 1400].forEach((ms) => setTimeout(() => { try { window.xhFitBar && window.xhFitBar(); } catch (e) {} }, ms));
 }
 window.xhShow = xhShow;
 

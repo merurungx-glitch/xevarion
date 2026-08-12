@@ -27,8 +27,10 @@
 
 /* ホーム用ページは明るい空色。ログイン前でも暗転しない。 */
 body{background:#eaf4ff}
-/* ★ 2026-08-12 #xevaDock（旧・下部ドック）は削除したので、隠す指定も要らなくなりました */
-body.xh-mode #musicFab{display:none!important}
+/* ★ 2026-08-12  #xevaDock（旧・下部ドック）は削除したので、隠す指定も要らなくなりました
+   ★ 2026-08-12b #musicFab（旧ホームの音楽トグル）も削除しました。
+     この「ホームでだけ隠す」書きかたが、<b>ホームに入る前（同期の読み込み中）だけ
+     左下に一瞬見える</b>原因そのものだったので、ボタンごと消してあります。 */
 body.xh-mode .aurora{display:none}
 body.xh-mode{overflow:hidden;background:#eaf4ff}
 
@@ -290,13 +292,28 @@ body.xh-off .xh-offline{display:flex}
    ・すりガラス（backdrop-filter）をやめて<b>不透明</b>にした。半透明だと
      はみ出した部分と本体で背景の写りかたが変わり、境目が線に見えていた。
    ・上端に虹のアクセント線（::before）を足し、下地をパステルのオーロラに。 */
-:root{ --xh-dockover:240px }
+/* ★★ 2026-08-12b 「バーの中身が高い位置にあって、下に何もない帯が残る」の作り直し。
+   ── これまでの直しかたの限界 ──
+   これまでは「箱の下端」と「見えている下端」の差（--xh-fixgap）を測り、
+   バーの下の余白は env(safe-area-inset-bottom) をそのまま使っていた。
+   つまり<b>中身が最後にどこへ来たかは一度も確かめていない</b>。
+   fixgap の測定が少しでもズレると、そのぶんそっくり中身の位置がズレて、
+   バーの下に「色は同じだが何も無い帯」＝隙間として残っていた。
+   ── 新しい直しかた（--xh-barpad の実測フィードバック）──
+   タブのボタンの<b>実際の下端</b>と「見えている画面の下端」を比べ、
+   その差ぶんだけ padding-bottom（--xh-barpad）を足し引きする。
+   ＝ 原因が測定ミスでも env() の食いちがいでも、必ず狙った位置に収束する。
+   測っているのは xevarion.js の fitBar()。JS が動く前は下の既定値になる。
+   ★ バー本体のはみ出し（--xh-dockover）は --xh-barpad と<b>無関係</b>に
+     always 240px ぶん下へ出る（margin-bottom と padding で打ち消してある）ので、
+     どれだけ調整しても背景が途切れることはない。 */
+:root{ --xh-dockover:240px; --xh-barpad:calc(env(safe-area-inset-bottom,0px) + 4px) }
 .xh-bar{position:relative;flex-shrink:0;display:grid;grid-template-columns:repeat(5,1fr);gap:3px;
   /* ★ はみ出したぶんにボタンが引き伸ばされないよう、行は中身の高さで上詰めにする
      （これをしないと選択中タブの色付きピルが縦長になる）。 */
   grid-auto-rows:min-content;align-content:start;
   margin-bottom:calc(-1 * var(--xh-dockover));
-  padding:6px 8px calc(var(--xh-safeb, env(safe-area-inset-bottom,0px)) + 6px + var(--xh-dockover));
+  padding:6px 8px calc(var(--xh-barpad) + var(--xh-dockover));
   background:linear-gradient(98deg,#f6f0ff 0%,#eef4ff 34%,#e9f7ff 62%,#fff1f7 100%);
   box-shadow:0 -8px 26px rgba(90,130,210,.18),0 -1px 0 rgba(255,255,255,.92) inset}
 .xh-bar::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;pointer-events:none;

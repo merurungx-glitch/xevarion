@@ -7,7 +7,7 @@
    ・オフライン中の進行は localStorage に残り、オンライン復帰時に
      xeva-cloud.js がタイムスタンプ比較でクラウドへ上書き反映する
    ============================================================ */
-const VERSION = "xevarion-sw-v58";
+const VERSION = "xevarion-sw-v60";
 
 /* ホームを成立させる最小セット（重い画像は runtime キャッシュに任せる） */
 const CORE = [
@@ -26,19 +26,19 @@ const CORE = [
   "./MagiBurst/magiburst-cloud.js?v=6",
   "./mb-boot.js?v=3",
   "./mb-char-detail.js?v=2",
-  "./mb-char-detail.css?v=2",
-  "./mb-gacha-reveal.css?v=1",
+  "./mb-char-detail.css?v=3",
+  "./mb-gacha-reveal.css?v=2",
   "./community.html",
   "./about.html",
   "./manifest.webmanifest",
   "./xeva-theme.css?v=1",
   "./xevarion.css?v=16",
-  "./xevarion-home.css?v=31",
+  "./xevarion-home.css?v=32",
   "./xeva.js?v=27",
   "./xeva-fx.js?v=1",
   "./xeva-loading.js?v=1",
-  "./xevarion.js?v=56",
-  "./xevarion-home.js?v=33",
+  "./xevarion.js?v=57",
+  "./xevarion-home.js?v=34",
   "./maintenance-gate.js?v=5",
   "./xeva-back.js?v=1",
   "./xeva-keys.js?v=2",

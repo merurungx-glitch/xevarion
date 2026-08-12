@@ -102,8 +102,11 @@
 .gsurebar.on{opacity:1;transform:translateY(0)}
 #gres{position:fixed;inset:0;z-index:600;background:rgba(5,4,12,.9);display:none;overflow-y:auto;-webkit-overflow-scrolling:touch}
 #gres.on{display:block}
+/* ★ 2026-08-12b 上にもセーフエリアを足す。iPhone は viewport-fit=cover なので
+   このおおいは画面のてっぺん（カメラ・ステータスバーの帯）まで広がる。
+   上が 20px だけだと「スキップ」がカメラと重なって押せないことがあった。 */
 #gres .gwrap{min-height:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-start;gap:14px;
-  padding:20px 16px calc(24px + env(safe-area-inset-bottom))}
+  padding:calc(env(safe-area-inset-top,0px) + 20px) 16px calc(24px + env(safe-area-inset-bottom,0px))}
 #gres .gball{margin:auto 0;width:110px;height:110px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,#b9a4ff 45%,#7a4fe0);box-shadow:0 0 60px rgba(142,107,255,.9);animation:gShake .5s ease-in-out 2}
 @keyframes gShake{0%,100%{transform:translateX(0)}25%{transform:translateX(-14px) rotate(-8deg)}75%{transform:translateX(14px) rotate(8deg)}}
 #gres .gball.cf-gold{background:radial-gradient(circle at 35% 30%,#fffdf2,#ffd257 45%,#c98a10);
