@@ -1428,6 +1428,19 @@ const CIRC_N = 14;            // 輪をつくるノード（当たり判定）�
 const CIRC_PER = 0.30;        // ノード1つが1回ヒットしたときの威力（攻撃力×）
 const CIRC_R0 = 70;           // 輪の初期の半径
 const CIRC_COOL = 8;          // 同じ敵に続けて入るまでの間かく（フレーム）
+/* ★ 2026-08-12d サーキュレーションに<b>プラズマをまとわせた</b>。
+   刃は輪の上の CIRC_N 点だけが当たり判定なので、点と点のあいだをすり抜ける敵がいた。
+   輪の線ぜんぶをプラズマで包み、<b>線のどこにふれても</b>入るようにする＝
+   刃のヒットに<b>プラズマのヒットが重なって</b>、1回の発動で入る回数が大きく増える。
+   ・プラズマは刃より軽いかわりに、<b>刃より短い間かく</b>で何度も入る。
+   ・当たり判定は「輪の線からの距離」なので、輪が育っても線のどこでもヒットする。 */
+const CIRC_PLZ_PER = 0.18;    // まとったプラズマ1ヒットの威力（攻撃力×）
+const CIRC_PLZ_COOL = 5;      // プラズマが同じ敵に入る間かく（刃の CIRC_COOL より短い）
+const CIRC_PLZ_W = 22;        // プラズマの当たり幅（輪の線からこの距離まで届く）
+/* !ボタンの見積もりに使う「1回の発動で敵1体にプラズマが入るおよその回数」。
+   ・輪は広がりながら通り過ぎるので、実際は敵の位置と大きさで前後する。
+   ・実測（第1の間・敵2体）では 1体あたり およそ11ヒットだった。 */
+const CIRC_PLZ_N = 11;
 /* ── ツムギのフルバースト（ヴェルデ・ブレイクスルー）──
    8ターンで撃てるかわりに、効くのは<b>そのターンのあいだ</b>だけ。
    チームHPを削って、削ったぶんをそのまま攻撃力に変える。 */
@@ -3671,9 +3684,13 @@ const CHARS = {
       + "<b>超アンチ重力バリア・超アンチワープ</b>で盤面も選ばない。"
       + "<br>クロススキルは<b>自分が完凸</b>で開き、<b>全属性キラーM</b>と<b>バブリーモード</b>が付く。",
     fsName: "サーキュレーション", fsKind: "circulation",
-    fsPow: "輪1ヒット 攻撃力×" + CIRC_PER + "（輪の上の" + CIRC_N + "点・回転しながらだんだん拡大／多段ヒット）",
+    fsPow: "刃1ヒット 攻撃力×" + CIRC_PER + "（輪の上の" + CIRC_N + "点）＋ <b>まとったプラズマ</b>1ヒット 攻撃力×" + CIRC_PLZ_PER
+      + "（輪の線ぜんぶ・刃より短い間かくで再ヒット）／回転しながらだんだん拡大・多段ヒット",
     fsDesc: "<b>円形の刃</b>が発生し、<b>回転しながらだんだん大きく広がっていく</b>。"
       + "輪の上ならどこにふれてもヒットし、<b>同じ敵にも間をおいて何度でも入る</b>多段型。"
+      + "<br>さらに輪は<b>プラズマをまとって</b>いて、刃の点と点のあいだ——<b>輪の線ならどこでも</b>——"
+      + "<b>刃より短い間かくで</b>電撃が入る。刃のヒットにプラズマのヒットが重なるので、"
+      + "<b>1回の発動で入るヒット数が大きく増える</b>。"
       + "はじめは近くの敵を刻み、広がりきるころには<b>まわり中の敵をまとめて巻きこむ</b>",
   },
   /* ══ ★ 2026-08-12 蒼夏祭 7人目・セイラ（闇／反射）══
@@ -4221,6 +4238,30 @@ function fsIcon(kind, sub, color, px) {
   return `<img class="fsic" src="${_fsIconCache[key]}" alt="" style="width:${s}px;height:${s}px">`;
 }
 function statAt(range, lv) { return Math.round(range[0] + (range[1] - range[0]) * ((lv - 1) / (MAX_LV - 1))); }
+/* ══ ★ 2026-08-12d アーク強化の「倍率そのもの」はここ（＝性能の側）に置く ══
+   もとは MagiBurst の index.html にあったが、XEVARION の図鑑・ガチャの詳細でも
+   <b>アークを乗せた同じ数字</b>を出したいので、規則をこちらへ移した。
+   （ポイントをいくつ持っていて、どこに振るか——という<b>画面の話</b>は index.html のまま）
+     ・段数の上限と1段の伸びは<b>関数</b>で返す。statsOf はこのファイルの前のほうから
+       呼ばれることがあるので、const のテーブルを参照すると読み込み順で TDZ に落ちる。 */
+function arcMaxStep() { return 20; }
+function arcStepSize(k) { return k === "hp" ? 0.010 : k === "atk" ? 0.008 : k === "spd" ? 0.006 : 0; }
+function arcStep(el, k) { return clamp(((typeof DB !== "undefined" && DB.arc && DB.arc[el] && DB.arc[el][k]) | 0), 0, arcMaxStep()); }
+/* そのキャラに乗るアークの倍率（1.0 = 効果なし）。手元のプレイヤーぶん */
+function arcMul(el, k) { return 1 + arcStep(el, k) * arcStepSize(k); }
+/* ══ ★ 2026-08-11 「だれのアークか」を明示して倍率を出す ══
+   アークは<b>そのアカウントが持っているキャラにだけ</b>効く強化なので、
+   だれのボールなのかによって使う表を変える必要がある。
+     undefined … 手元のプレイヤー（DB.arc）＝自分の持ちキャラ
+     null      … アークを乗せない（持ち主のアークが分からない相手）
+     オブジェクト … その表を使う（マルチで持ちよった相手／助っ人の貸主）
+   statsOf がこの関数を呼ぶ。 */
+function arcMulOf(arcTable, el, k) {
+  const t = arcTable === undefined ? (typeof DB !== "undefined" ? DB.arc : null) : arcTable;
+  if (!t) return 1;
+  const step = clamp(((t[el] && t[el][k]) | 0), 0, arcMaxStep());
+  return 1 + step * arcStepSize(k);
+}
 /* レベル・限界突破を明示してステータスを計算（オンラインでは他プレイヤーの値をそのまま使う） */
 function statsOf(id, lv, awk, arc) {
   const c = CHARS[id];
@@ -4237,18 +4278,39 @@ function statsOf(id, lv, awk, arc) {
        マルチでは<b>相手のキャラにも自分のアークが乗り</b>、端末ごとにダメージが食いちがっていた
        （紋章で同じ問題を直したのと同じ話）。助っ人も同様に貸主のぶんを使う。 */
   const A = (typeof arcMulOf === "function") ? (el, k) => arcMulOf(arc, el, k) : () => 1;
+  /* ★ 2026-08-12d <b>アークで増えたぶん</b>を、そのまま画面に「＋◯◯」で出せるように返す。
+     アークなし（＝倍率1.0）の値を同じ式で丸めてから引くので、
+     画面に出ている数字と ぴったり合う（丸めの誤差でズレない）。 */
+  /* 覚醒はステータスアップのみ（フルバーストの必要ターンは短縮しない） */
+  const hp0 = Math.round(statAt(c.hp, lv) * (1 + AWK_HP * awk));
+  const atk0 = Math.round(statAt(c.atk, lv) * (1 + AWK_ATK * awk));
+  const spd0 = statAt(c.spd, lv);
+  const hp = Math.round(statAt(c.hp, lv) * (1 + AWK_HP * awk) * A(c.el, "hp"));
+  const atk = Math.round(statAt(c.atk, lv) * (1 + AWK_ATK * awk) * A(c.el, "atk"));
+  const spd = Math.round(statAt(c.spd, lv) * A(c.el, "spd"));
   return {
-    lv, awk,
-    /* 覚醒はステータスアップのみ（フルバーストの必要ターンは短縮しない） */
-    hp: Math.round(statAt(c.hp, lv) * (1 + AWK_HP * awk) * A(c.el, "hp")),
-    atk: Math.round(statAt(c.atk, lv) * (1 + AWK_ATK * awk) * A(c.el, "atk")),
-    spd: Math.round(statAt(c.spd, lv) * A(c.el, "spd")),
+    lv, awk, hp, atk, spd,
     ssTurns: c.ssTurns,
+    /* そのステータスに含まれているアークぶん（0 なら振っていない） */
+    arc: { hp: hp - hp0, atk: atk - atk0, spd: spd - spd0 },
   };
 }
 function charStats(id) {
   const st = DB.chars[id] || { lv: 1, awk: 0, exp: 0 };
   return Object.assign(statsOf(id, st.lv, st.awk || 0), { exp: st.exp || 0 });
+}
+/* ══ ★ 2026-08-12d ステータスに含まれる「アークで増えたぶん」を ＋◯◯ の札にする ══
+   statsOf が st.arc に「アークなしとの差」を入れて返すので、
+   キャラのステータスを出しているところで<b>そのまま添える</b>だけでよい。
+     ・振っていない属性・項目では 0 になり、札そのものを出さない。
+     ・マルチの相手や助っ人は<b>その持ち主のアーク</b>で計算されているので、
+       ここに出るのもその人のぶん（手元のアークが混ざることはない）。
+   ★ 見た目（.arcup）は MagiBurst の index.html と、XEVARION の mb-char-detail.css の
+     両方にそろえてある。ここは<b>MagiBurst と図鑑・ガチャで共通</b>に使う。 */
+function arcPlus(st, k) {
+  const v = st && st.arc ? (st.arc[k] | 0) : 0;
+  if (v <= 0) return "";
+  return '<i class="arcup" title="アーク強化で増えたぶん">+' + fmt(v) + "</i>";
 }
 /* ── キャラの強さを0〜100で5項目に評価（ガチャ画面のアニメーションバー用） ──
    全キャラ最大Lv・最大限界突破のステータスを基準に相対評価する。フルバーストの速さ・アビリティ数も加味。 */

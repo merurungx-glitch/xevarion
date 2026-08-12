@@ -6,7 +6,7 @@
    ・オンライン対戦・XEVA換金はアプリ側でオフライン時に無効化している
    ・取得できたリソースは随時キャッシュ更新（stale-while-revalidate）
    ============================================================ */
-const VERSION = "magiburst-sw-v82";
+const VERSION = "magiburst-sw-v83";
 const CORE = [
   "./index.html",
   "./js/mb-core.js?v=12",   /* ★ 2026-08-10 キャラ・ガチャの共有モジュール（XEVARION のガチャと共通） */

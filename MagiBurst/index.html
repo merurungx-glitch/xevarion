@@ -2478,6 +2478,8 @@ body.in-battle #top,body.in-battle #tabs{display:none}
 .bdc{background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.1);border-radius:9px;padding:clamp(4px,.8dvh,7px) 6px;text-align:center}
 .bdl{display:block;font-size:9px;color:#8e88b4;font-weight:900;letter-spacing:.04em}
 .bdc b{font-size:clamp(12px,1.85dvh,15px);font-family:'Orbitron',sans-serif;font-weight:900}
+/* ★ 2026-08-12d 1画面版の詳細は3列でせまいので、アークの「＋◯◯」は小さめに */
+.bdc .arcup{font-size:9.5px;padding:0 3px;margin-left:3px}
 .bdmeta{display:flex;flex-wrap:wrap;gap:4px}
 .bdm{font-size:clamp(9.5px,1.3dvh,11px);font-weight:900;border:1px solid rgba(255,255,255,.18);background:rgba(255,255,255,.05);border-radius:7px;padding:3px 7px;display:inline-flex;align-items:center;gap:3px}
 .bdm.shot{color:#a8c8ff;border-color:rgba(168,200,255,.4)}
@@ -2591,6 +2593,14 @@ body.in-battle #top,body.in-battle #tabs{display:none}
 .det .dsrow .v{font-family:'Orbitron',sans-serif;font-size:15px;font-weight:900;margin-left:auto}
 .det .dsrow .gauge{flex:1;height:7px;border-radius:99px;background:rgba(0,0,0,.5);margin:0 12px;overflow:hidden}
 .det .dsrow .gauge i{display:block;height:100%;border-radius:99px}
+/* ★ 2026-08-12d アーク強化ぶんの「＋◯◯」札。
+   ステータスの数字のうち<b>アークで増えたぶん</b>を、その場で分かるように右に添える。
+   色はアークの画面と同じ青紫にそろえる（＝アークの話だと一目で分かる）。 */
+.arcup{display:inline-block;font-style:normal;font-family:'Orbitron',sans-serif;font-weight:900;
+  color:#a9c4ff;background:rgba(56,166,255,.16);border:1px solid rgba(56,166,255,.42);
+  border-radius:7px;padding:0 5px;margin-left:5px;font-size:.76em;line-height:1.5;vertical-align:middle;white-space:nowrap}
+.det .dsrow .v .arcup{font-size:11px}
+.det .darcnote{font-size:10.5px;font-weight:800;color:#9d97c4;margin:-4px 0 11px;line-height:1.8}
 /* EXPバー */
 .det .dexp{background:rgba(255,255,255,.045);border:1px solid rgba(150,130,255,.25);border-radius:12px;padding:10px 13px;margin-bottom:11px}
 .det .dexp .l{display:flex;justify-content:space-between;font-size:10.5px;font-weight:900;color:#9d97c4;margin-bottom:6px}
@@ -3582,7 +3592,7 @@ body.in-battle #top,body.in-battle #tabs{display:none}
 </div></div>
 
 <script>window.MB_IMGD = "../img/"; window.MB_GIMGD = "img/";</script>
-<script src="js/mb-core.js?v=12"></script>
+<script src="js/mb-core.js?v=13"></script>
 <script>
 "use strict";
 /* ══════════ アカウントガード ══════════ */
@@ -5352,6 +5362,20 @@ window.openNewChar = openNewChar; window.closeNewChar = closeNewChar;
 
 /* ══════════ お知らせ（アップデートのたびにここへ追記する） ══════════ */
 const NEWS = [
+  /* ★ 2026-08-12d サーキュレーションにプラズマ／ステータスのアークぶんを「＋」で表示 */
+  { date: "2026-08-12", title: "⚡ サーキュレーションが<b>プラズマをまとって</b>多段化／✦ ステータスにアーク強化ぶんを「＋」で表示", body: [
+    "⚡ <b>チヅルのリンクスキル「サーキュレーション」がプラズマをまとうようになりました。</b>"
+      + "これまで当たり判定は<b>輪の上の" + CIRC_N + "点</b>だけだったので、点と点のあいだをすり抜ける敵がいました。"
+      + "いまは<b>輪の線ぜんぶ</b>がプラズマの当たり判定（攻撃力×" + CIRC_PLZ_PER + "）になり、"
+      + "しかも<b>刃（" + CIRC_COOL + "フレームおき）より短い" + CIRC_PLZ_COOL + "フレームおき</b>に入ります。"
+      + "<br>刃のヒットにプラズマのヒットが重なるので、<b>1回の発動で入るヒット数が大きく増えます</b>。"
+      + "威力の内わけは<b>!ボタン</b>から「刃」「まとったプラズマ」「合わせていくら」の形で確かめられます。",
+    "✦ <b>キャラのステータスに、アーク強化で増えたぶんを「＋◯◯」で出すようにしました。</b>"
+      + "HP・こうげき・スピードの数字のとなりに青い札で付きます（振っていない属性・項目には出ません）。"
+      + "<br>キャラ図鑑の詳細・編成・バトル中の詳細・対応キャラさがしのどこから開いても同じように出るので、"
+      + "<b>そのキャラの素の強さと、アークで伸ばしたぶん</b>がひと目で分かります。"
+      + "<br>助っ人やマルチの仲間は<b>その持ち主のアーク</b>で計算されているので、そこに出るのもその人のぶんです。",
+  ] },
   /* ★ 2026-08-12 乱打フルバーストの統一（セイラと同じ「止まってから乱打」）＋庭園の抽選を手前5・奥5に */
   { date: "2026-08-12", title: "💥 乱打フルバーストは「止まってから乱打」に統一／🌸 庭園の対象は手前5・奥5に", body: [
     "💥 <b>乱打フルバーストは、すべて「乱打する敵の上でいったん止まってから叩き込む」</b>ようになりました"
@@ -7353,11 +7377,12 @@ function gainPlayerExp(n) {
    ・1段ごとの伸びは ARC_STEP。段数の上限は ARC_MAX_STEP。
    ・振った内容は charStats() の中で合流させる（＝図鑑・編成・バトルすべてに効く）。 */
 /* ARC_PT_PER_LV は「お知らせ（NEWS）」から参照するので、ファイル前方で定義してある */
-/* ★ 段数の上限と1段の伸びは <b>関数</b> で返す。
-   statsOf()（＝ファイルのずっと前で定義されている）から arcMul() を呼ぶので、
-   const のテーブルを参照すると読み込み順によっては TDZ で落ちる。 */
-function arcMaxStep() { return 20; }
-function arcStepSize(k) { return k === "hp" ? 0.010 : k === "atk" ? 0.008 : k === "spd" ? 0.006 : 0; }
+/* ★ 2026-08-12d <b>計算そのもの（arcMaxStep / arcStepSize / arcStep / arcMul / arcMulOf）は
+     mb-core.js に移した</b>。XEVARION の図鑑・ガチャの詳細（mb-char-detail.js）でも
+     同じアークを乗せた数字を出すため＝2か所に同じ式を書かない。
+     ここに残すのは<b>画面まわり</b>（ポイントの配分・振る操作・見出しの色）だけ。
+   ★ 段数の上限と1段の伸びが<b>関数</b>なのは変わらない（statsOf が読み込みの早い段階で
+     呼ぶので、const のテーブルを参照すると読み込み順によっては TDZ で落ちるため）。 */
 const ARC_MAX_STEP = arcMaxStep();
 const ARC_KINDS = {
   hp:  { nm: "HP",       c: "#37e0a0", step: arcStepSize("hp"),  unit: "＋1.0%/段" },
@@ -7374,22 +7399,9 @@ function arcSpent() {
 }
 /* まだ振っていないポイント */
 function arcPoints() { return Math.max(0, arcTotalPoints() - arcSpent()); }
-function arcStep(el, k) { return clamp(((typeof DB !== "undefined" && DB.arc && DB.arc[el] && DB.arc[el][k]) | 0), 0, arcMaxStep()); }
-/* そのキャラに乗るアークの倍率（1.0 = 効果なし）。手元のプレイヤーぶん */
-function arcMul(el, k) { return 1 + arcStep(el, k) * arcStepSize(k); }
-/* ══ ★ 2026-08-11 「だれのアークか」を明示して倍率を出す ══
-   アークは<b>そのアカウントが持っているキャラにだけ</b>効く強化なので、
-   だれのボールなのかによって使う表を変える必要がある。
-     undefined … 手元のプレイヤー（DB.arc）＝自分の持ちキャラ
-     null      … アークを乗せない（持ち主のアークが分からない相手）
-     オブジェクト … その表を使う（マルチで持ちよった相手／助っ人の貸主）
-   statsOf（mb-core.js）がこの関数を呼ぶ。 */
-function arcMulOf(arcTable, el, k) {
-  const t = arcTable === undefined ? (typeof DB !== "undefined" ? DB.arc : null) : arcTable;
-  if (!t) return 1;
-  const step = clamp(((t[el] && t[el][k]) | 0), 0, arcMaxStep());
-  return 1 + step * arcStepSize(k);
-}
+/* ★ 2026-08-12d 段数と倍率（arcStep / arcMul / arcMulOf）、および
+   ステータスの「アークで増えたぶん（＋◯◯）」を出す arcPlus() は <b>mb-core.js</b> にある。
+   XEVARION の図鑑・ガチャの詳細（mb-char-detail.js）でも同じ数字・同じ札を出すため。 */
 /* いまの自分のアークを、そのまま持ちよれる形（マルチ・助っ人の公開用）で取り出す */
 function arcSnapshot() {
   const out = {};
@@ -11070,9 +11082,10 @@ function openBattleDetHTML(id, ball, shotNow, shotChanged, st, showNexus, inBatt
         <div class="bdel" style="background:${el.c}22;border-color:${el.c}88;color:${el.c}">${el.nm}</div>
       </div>
       <div class="bdstats">
-        ${cell("HP", fmt(st.hp), "#7dffb0")}
-        ${cell("攻撃力", fmt(st.atk), "#ffb84d")}
-        ${cell("スピード", fmt(st.spd), "#7cc4ff")}
+        ${/* ★ 2026-08-12d 「＋◯◯」は<b>アーク強化で増えたぶん</b>（助っ人・マルチは その持ち主のアーク） */""}
+        ${cell("HP", fmt(st.hp) + arcPlus(st, "hp"), "#7dffb0")}
+        ${cell("攻撃力", fmt(st.atk) + arcPlus(st, "atk"), "#ffb84d")}
+        ${cell("スピード", fmt(st.spd) + arcPlus(st, "spd"), "#7cc4ff")}
       </div>
       <div class="bdmeta">
         <span class="bdm shot${shotChanged ? " chg" : ""}">${shotSVG(shotNow, 12)}${shotNow === "pierce" ? "貫通" : "反射"}${shotChanged ? "変化中" : ""}</span>
@@ -11248,10 +11261,13 @@ function openDet(id, from) {
     <div class="dbody">
       <div class="dtags"><span class="dtag">${ELEM[c.el].nm}属性</span><span class="dtag${shotChanged ? " chg" : ""}">${shotSVG(shotNow, 13)}${shotNow === "pierce" ? "貫通" : "反射"}${shotChanged ? "（" + (c.shot === "pierce" ? "貫通" : "反射") + "から変化中）" : ""}</span><span class="dtag">${c.type}</span>${kind}</div>
       <div class="dstats">
-        <div class="dsrow"><span class="l">HP</span><span class="gauge"><i style="width:${gaugeP(st.hp, 8500)}%;background:linear-gradient(90deg,#17a673,#4ade80)"></i></span><span class="v" style="color:#7dffb0">${fmt(st.hp)}</span></div>
-        <div class="dsrow"><span class="l">こうげき</span><span class="gauge"><i style="width:${gaugeP(st.atk, 3200)}%;background:linear-gradient(90deg,#e0642e,#ffb020)"></i></span><span class="v" style="color:#ffb84d">${fmt(st.atk)}</span></div>
-        <div class="dsrow"><span class="l">スピード</span><span class="gauge"><i style="width:${gaugeP(st.spd, 420)}%;background:linear-gradient(90deg,#1d78d8,#7cc4ff)"></i></span><span class="v" style="color:#7cc4ff">${fmt(st.spd)}</span></div>
+        <div class="dsrow"><span class="l">HP</span><span class="gauge"><i style="width:${gaugeP(st.hp, 8500)}%;background:linear-gradient(90deg,#17a673,#4ade80)"></i></span><span class="v" style="color:#7dffb0">${fmt(st.hp)}${arcPlus(st, "hp")}</span></div>
+        <div class="dsrow"><span class="l">こうげき</span><span class="gauge"><i style="width:${gaugeP(st.atk, 3200)}%;background:linear-gradient(90deg,#e0642e,#ffb020)"></i></span><span class="v" style="color:#ffb84d">${fmt(st.atk)}${arcPlus(st, "atk")}</span></div>
+        <div class="dsrow"><span class="l">スピード</span><span class="gauge"><i style="width:${gaugeP(st.spd, 420)}%;background:linear-gradient(90deg,#1d78d8,#7cc4ff)"></i></span><span class="v" style="color:#7cc4ff">${fmt(st.spd)}${arcPlus(st, "spd")}</span></div>
       </div>
+      ${/* ★ 2026-08-12d 上の「＋◯◯」は<b>アーク強化で増えたぶん</b>。何の数字か迷わないよう1行そえる */""}
+      ${arcPlus(st, "hp") || arcPlus(st, "atk") || arcPlus(st, "spd")
+        ? `<div class="darcnote">✦ <b class="arcup">＋</b> は<b>${ELEM[c.el].nm}属性のアーク強化</b>で増えたぶんです。<span onclick="closeDet();goTab('varc')" style="color:#38a6ff;font-weight:900;text-decoration:underline;cursor:pointer">アーク強化を見る</span></div>` : ""}
       ${own ? `<div class="dexp"><div class="l"><span>EXP　${st.lv >= lvCap ? "MAX LEVEL" : fmt(st.exp) + " / " + fmt(need)}</span><b>${st.lv >= lvCap ? "" : "次のLvまで " + fmt(need - st.exp)}</b></div>
         <div class="bar"><i style="width:${expP * 100}%"></i></div></div>` : ""}
       <div class="dsk ab"><div class="t">ABILITY — アビリティ<small style="color:var(--sub);font-weight:700;margin-left:6px">タップで説明</small></div>
@@ -13441,7 +13457,10 @@ const FS_HIT = {
      （射線が重なればさらに増えるが、確実に入るのは1本なのでその数で見積もる） */
   alllocklaser: { per: ALLLASER_MUL, n: 1, nm: "全敵ロックオンレーザー（すべての敵に1本ずつ・貫通）" },
   /* ★ 2026-08-12 蒼夏祭（チヅル） */
-  circulation: { per: CIRC_PER, n: CIRC_N, nm: "回転する輪（" + CIRC_N + "点・広がりながら多段ヒット）" },
+  /* ★ 2026-08-12d プラズマをまとわせたので、ヒットは<b>刃＋プラズマの2種類</b>になった。
+     威力がちがうヒットが重なる技は per2 / n2 / nm2 に2つめを書く（linkInfo が別建てで計算する）。 */
+  circulation: { per: CIRC_PER, n: CIRC_N, nm: "回転する輪（刃" + CIRC_N + "点＋まとったプラズマ・広がりながら多段ヒット）",
+    per2: CIRC_PLZ_PER, n2: CIRC_PLZ_N, nm2: "まとったプラズマ（輪の線ぜんぶ・" + CIRC_PLZ_COOL + "フレームおきに再ヒット）" },
 };
 /* サブリンクの1ヒット係数（fireSubFriend の実装に対応） */
 const SUB_HIT = {
@@ -13540,6 +13559,14 @@ function linkInfo(ball, e, isSub) {
   const dmg = Math.round(ball.st.atk * am2 * base * hit.per);
   const condMax = cond.reduce((a, x) => a * x.m, 1);
   const n = hit.n || 1;
+  /* ★ 2026-08-12d <b>威力のちがうヒットが重なる技</b>（サーキュレーション＝刃＋まとったプラズマ）。
+     1つの per では表せないので、2つめのヒットは別建てにして「合わせて何ダメージか」まで出す。
+     per2 を持たない技は今までどおり（extra は null）。 */
+  const extra = hit.per2
+    ? { nm: hit.nm2 || "追加ヒット", per: hit.per2, hits: hit.n2 || 1,
+        dmg: Math.round(ball.st.atk * am2 * base * hit.per2),
+        dmgAll: Math.round(ball.st.atk * am2 * base * hit.per2 * (hit.n2 || 1)) }
+    : null;
   /* ★ 2026-08-08b 最終倍率の基準を作り直した。
      直殴りとそろえて、ここも<b>1倍を基準にした補正の合計</b>を出す。
        ・キラーを何も持たず、属性等倍・バフなしなら ちょうど <b>×1.00</b>
@@ -13557,6 +13584,7 @@ function linkInfo(ball, e, isSub) {
     /* 「継続ヒット」の技は当たり続けるあいだ何度も入るので、下のダメージは最低ラインでしかない */
     cont: /継続/.test(hit.nm || ""),
     dmg, dmgAll: Math.round(dmg * n),
+    extra, dmgTotal: Math.round(dmg * n) + (extra ? extra.dmgAll : 0),
     dmgMax: Math.round(dmg * condMax),
     shielded: !!(e.photonNeed && e.photonHit < e.photonNeed),
     locked: inLockZone(ball) && !hasAbil(c, "antilock"),
@@ -13588,6 +13616,10 @@ function damageInfoHTML(ball) {
         <b class="sdv">×${x.total.toFixed(2)}</b></div>
       <div class="sdd">この技は<b>1ヒットあたり 攻撃力×${x.per.toFixed(2)}</b>${x.hits > 1 ? "（最大 " + x.hits + "ヒット）" : ""}。${x.cont ? "<b>当たり続けるあいだ何度もヒット</b>するので、下のダメージは<b>最低ライン</b>です。" : ""}
         1ヒット <b>${fmt(x.dmg)}</b>${x.hits > 1 ? " ／ 全" + x.hits + "ヒットで <b>" + fmt(x.dmgAll) + "</b>" : ""}${x.cond.length ? " ／ 弱点を通せば1ヒット <b style='color:#ffd257'>" + fmt(x.dmgMax) + "</b>" : ""}
+        ${/* ★ 2026-08-12d 威力のちがうヒットが重なる技は、2つめを別行で出して合計まで見せる */""}
+        ${x.extra ? "<br>⚡ さらに<b>" + x.extra.nm + "</b>が重なります：1ヒット <b>攻撃力×" + x.extra.per.toFixed(2)
+          + "</b>（およそ" + x.extra.hits + "ヒット）で <b>" + fmt(x.extra.dmgAll) + "</b>"
+          + " ／ <b>合わせて " + fmt(x.dmgTotal) + "</b>" : ""}
         ${x.locked ? "<br><b style='color:#ff3a6b'>※ いまロックゾーンの中！ このままではリンクスキルが出ません</b>" : ""}
         ${x.shielded ? "<br><b style='color:#88a6d8'>※ いまはエーテルシールド中でダメージが通りません</b>" : ""}</div>
       <div class="sttags">${x.parts.map((p) => chip(p, p.m >= 1 ? "buff" : "bad")).join("") || '<span class="t none">補正なし（等倍）</span>'}</div>
@@ -17774,13 +17806,19 @@ function fireFriendMain(owner, atk, mover, kindOverride) {
          ・同じ敵にも CIRC_COOL フレームおきに何度でも入る＝多段。
          ・半径は CIRC_R0 から、発動地点から画面のいちばん遠いスミ（REACH）まで伸びる。
          ★ 描画は drawEffect の "circulation"。輪の座標は tick が fx.nodes に入れる
-           （＝当たり判定と絵が必ず同じ場所になる）。 */
+           （＝当たり判定と絵が必ず同じ場所になる）。
+         ★ 2026-08-12d <b>プラズマをまとわせてヒット数を上げた</b>。
+           刃だけだと当たり判定は点なので、点と点のあいだをすり抜ける敵がいた。
+           <b>輪の線そのもの</b>（中心からの距離が fx.rad ± CIRC_PLZ_W）を
+           プラズマの当たり判定にして、刃より短い CIRC_PLZ_COOL おきに入れる。
+           ＝刃のヒットとプラズマのヒットが重なり、1回の発動で入る回数が大きく増える。
+           刃とプラズマは<b>別々のクールタイム表</b>（fx.cool / fx.plz）で数える。 */
       const col = ELEM[owner.ch.el].c, el = owner.ch.el;
       const REACH = Math.max(
         Math.hypot(owner.x, owner.y), Math.hypot(W - owner.x, owner.y),
         Math.hypot(owner.x, H - owner.y), Math.hypot(W - owner.x, H - owner.y)) + 40;
       B.effects.push({ type: "circulation", x: owner.x, y: owner.y, t: 0, dur: 118, c: col, atk, el,
-        reach: REACH, rad: CIRC_R0, spin: 0, cool: {}, nodes: [],
+        reach: REACH, rad: CIRC_R0, spin: 0, cool: {}, plz: {}, nodes: [],
         tick(fx) {
           const q = Math.min(1, fx.t / fx.dur);
           /* だんだん大きくなる（最初はゆっくり、後半で一気に広がる） */
@@ -17792,12 +17830,24 @@ function fireFriendMain(owner, atk, mover, kindOverride) {
             fx.nodes.push({ x: fx.x + Math.cos(a) * fx.rad, y: fx.y + Math.sin(a) * fx.rad });
           }
           for (const k in fx.cool) if (fx.cool[k] > 0) fx.cool[k]--;
+          for (const k in fx.plz) if (fx.plz[k] > 0) fx.plz[k]--;
+          /* ① 刃（輪の上の点） */
           aliveEnemies().forEach((e) => {
             if (fx.cool[e.id] > 0) return;
             if (fx.nodes.some((nd) => Math.hypot(e.x - nd.x, e.y - nd.y) < e.r + 28)) {
               dealDamage(e, fx.atk * CIRC_PER * elemMult(fx.el, e.el), fx.c, true);
               spawnSparks(e.x, e.y, "#d8c4ff", 7);
               fx.cool[e.id] = CIRC_COOL;
+            }
+          });
+          /* ② まとったプラズマ（輪の線ぜんぶ）。
+             中心からの距離が輪の半径とほぼ同じ＝線にふれている、で判定する。 */
+          aliveEnemies().forEach((e) => {
+            if (fx.plz[e.id] > 0) return;
+            if (Math.abs(Math.hypot(e.x - fx.x, e.y - fx.y) - fx.rad) < e.r + CIRC_PLZ_W) {
+              dealDamage(e, fx.atk * CIRC_PLZ_PER * elemMult(fx.el, e.el), "#bff0ff", true);
+              spawnSparks(e.x, e.y, "#bff0ff", 5);
+              fx.plz[e.id] = CIRC_PLZ_COOL;
             }
           });
         } });
@@ -22967,6 +23017,26 @@ function drawEffect(fx) {
     /* ② 内側にもう1本、少し遅れて追う輪（回っていることが分かる） */
     ctx.beginPath(); ctx.arc(fx.x, fx.y, Math.max(8, fx.rad * 0.62), 0, Math.PI * 2);
     ctx.strokeStyle = hexA(fx.c, 0.22 * fade); ctx.lineWidth = 7; ctx.stroke();
+    /* ★ 2026-08-12d まとったプラズマ。
+       輪の線に沿ってギザギザの電撃を1周ぶん描く。ここが当たり判定（fx.rad ± CIRC_PLZ_W）
+       そのものなので、<b>線のどこでも入る</b>ことが絵で分かる。
+       ギザギザの振れ幅は当たり幅より小さくして、絵より判定が広いようには見せない。 */
+    const PN = 44, amp = Math.min(CIRC_PLZ_W * 0.7, 4 + fx.rad * 0.02);
+    for (let pass = 0; pass < 2; pass++) {
+      ctx.beginPath();
+      for (let i = 0; i <= PN; i++) {
+        const a = fx.spin * (pass ? -0.6 : 1) + (Math.PI * 2 / PN) * i;
+        /* 1周でつながるように、乱れは i と時間だけで決める（sin の重ね合わせ） */
+        const j = Math.sin(i * 2.7 + B.tick * (pass ? 0.44 : 0.33) + pass * 2.1)
+                + Math.sin(i * 1.3 - B.tick * 0.21) * 0.6;
+        const rr = fx.rad + j * amp;
+        const x = fx.x + Math.cos(a) * rr, y = fx.y + Math.sin(a) * rr;
+        i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
+      }
+      ctx.closePath();
+      ctx.strokeStyle = hexA(pass ? "#bff0ff" : "#7cc4ff", (pass ? 0.55 : 0.38) * fade);
+      ctx.lineWidth = pass ? 2 : 5; ctx.stroke();
+    }
     /* ③ 当たり判定の刃 */
     nodes.forEach((n, i) => {
       const rr = 13 + 5 * Math.sin(B.tick * 0.28 + i);
