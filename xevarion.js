@@ -2136,6 +2136,11 @@ function enterPortal() {
 function runPortalBoot() {
   if (_portalEntered) return;
   _portalEntered = true;
+  /* ★ 2026-08-12c 「もう入場処理は済んだ」ことを外へ知らせる目印。
+     xevarion-home.js はこの関数を包んでホーム（#xhome）を出すが、
+     包む前に呼ばれてしまった場合（読み込み順の事故）は、
+     この目印を見て自分でホームを出す。＝白い画面が残らない。 */
+  try { window.__xevPortalEntered = true; } catch (e) {}
   const granted = window.XEVA.grantLoginBonus();
   renderXevaBalance();
   renderXevaMissions();
@@ -2224,10 +2229,28 @@ function showAccessLockEarly() {
 function showXevaHomeEarly() {
   try { if (!window.XEVA) return; showXevaHome(); } catch (e) {}
 }
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", showXevaHomeEarly, { once: true });
-} else {
+/* ★★ 2026-08-12c 「同期のベールが消えたあと、白い画面がしばらく残る」の真因。
+   ── 何が起きていたか ──
+   このファイルは <script defer> で読み込まれる。defer スクリプトが動く時点で
+   document.readyState は既に <b>"interactive"</b>（"loading" ではない）。
+   つまり下の分岐は<b>必ず else 側＝その場で実行</b>に入っていた。
+   ところが showXevaHomeEarly → enterPortal → runPortalBoot の runPortalBoot を
+   「呼んだあとホームを出す」形に包んでいるのは<b>次に読まれる xevarion-home.js</b>。
+   まだ包まれていないので、ここで走ると
+     ・入場処理だけが済んで _portalEntered が立つ
+     ・ホーム（#xhome）は表示されない
+   となり、ホームが出るのは load イベント（＝画像・音声・フォントの読み込み完了）
+   まで待たされていた。その間に同期のベールは xeva:synced で消えるので、
+   <b>ベールが消えたあと、素のポータル背景（ほぼ白）だけが数秒見える</b>。
+   ── 直しかた ──
+   defer の実行中に DOMContentLoaded はまだ飛んでいないので、
+   "complete" 以外は必ずイベントで待つ。こうすると
+   <b>すべての defer スクリプトが走ったあと</b>＝包まれたあとに呼ばれ、
+   ホームは DOMContentLoaded の時点で出る（load は待たない）。 */
+if (document.readyState === "complete") {
   showXevaHomeEarly();
+} else {
+  document.addEventListener("DOMContentLoaded", showXevaHomeEarly, { once: true });
 }
 
 /* ── CDK交換 ── */
@@ -2553,8 +2576,13 @@ addEventListener("DOMContentLoaded", () => { if (_xevLang === "en") applyLang("e
   /* ── env(safe-area-inset-bottom) の実測 ──
      CSS の env() を JS から読む方法は無いので、padding-bottom に env() を入れた
      高さ0の目印を置き、その高さ（＝padding ぶん）を読む。 */
+  /* ★ 2026-08-12c この目印は2つのことを同時に教えてくれる。
+       ① 高さ         … env(safe-area-inset-bottom) の実測値（ホームバーの帯の厚み）
+       ② 下端(bottom) … position:fixed;bottom:0 が着く場所
+                        ＝ viewport-fit=cover では<b>本当の画面の下端</b>
+     ②は visualViewport とは別の座標なので、両方を突き合わせる（下の fitBar）。 */
   var envProbe = null;
-  function envBottom() {
+  function envInfo() {
     var host = document.body || document.documentElement;
     if (host && !(envProbe && envProbe.parentNode)) {
       envProbe = document.createElement("div");
@@ -2565,9 +2593,10 @@ addEventListener("DOMContentLoaded", () => { if (_xevLang === "en") applyLang("e
         "visibility:hidden;pointer-events:none;z-index:-2147483000";
       host.appendChild(envProbe);
     }
-    var h = 0;
-    if (envProbe) { try { h = envProbe.getBoundingClientRect().height; } catch (e) { h = 0; } }
-    return h > 0 && h < 120 ? h : 0;
+    var r = null;
+    if (envProbe) { try { r = envProbe.getBoundingClientRect(); } catch (e) { r = null; } }
+    if (!r) return { env: 0, bottom: 0, ok: false };
+    return { env: r.height > 0 && r.height < 120 ? r.height : 0, bottom: r.bottom, ok: true };
   }
 
   /* ★★ 2026-08-12b ホームの下バーの中身を「実測して」画面の下端に合わせる。
@@ -2580,7 +2609,8 @@ addEventListener("DOMContentLoaded", () => { if (_xevLang === "en") applyLang("e
      ── どう直すか ──
      タブのボタンの実際の下端と「見えている画面の下端」を比べ、その差ぶんだけ
      --xh-barpad を足し引きする。原因が何であれ狙った位置に収束する。
-       ねらい: ボタンの下端 = 見えている下端 −（env + 4px）
+       ねらい: ボタンの下端 = 画面の下端 −（env + 4px）
+       ★ 2026-08-12c この「画面の下端」の出しかたを作り直した（下の fitBar 参照）。
      ★ ホームバーのある端末（env>0）では env ぶんだけ内側に入れる。無い端末では
        4px だけ空ける。バー本体は --xh-dockover(240px) ぶん常に下へはみ出すので、
        ここをどう動かしても背景が途切れることはない。 */
@@ -2596,8 +2626,32 @@ addEventListener("DOMContentLoaded", () => { if (_xevLang === "en") applyLang("e
     if (!vv || !(box > 200)) return;
     /* キーボードが出ているあいだは見えている高さが極端に縮むので触らない */
     if (!(vv.height > box * 0.72)) return;
+    /* ★★ 2026-08-12c 「バーが上のほうにあって、下に何もない帯が残る」の真因。
+       ── 何が起きていたか ──
+       ねらいの位置を <b>visualViewport の下端 −（env + 4）</b> で決めていた。
+       ところが iPhone をホーム画面から「アプリとして」開くと、
+       visualViewport.height が<b>すでにホームバーぶんを引いた高さ</b>を返すことがある。
+       すると
+         ・--xh-fixgap（＝visualViewport の下端 − 箱の下端）が -env になって
+           #xhome の下端がホームバーぶん持ち上がる
+         ・その上でさらに env ぶんの余白（--xh-barpad）を入れる
+       と<b>同じ env を2回引く</b>ことになり、バーの中身が env ぶん（iPhone なら約34pt）
+       余計に高い位置で止まる。バー本体は 240px はみ出しているので背景は下まで
+       続いており、「色は同じだが何も無い帯」だけが残る＝「バーが上にある」。
+       ── 直しかた ──
+       「本当の画面の下端」を2つの測りかたで出して突き合わせる。
+         A: visualViewport の下端
+         B: position:fixed;bottom:0 が着く下端（envInfo().bottom）
+       ・B のほうが env より大きく下 … ブラウザの下部ツールバーが隠している
+                                      → 見えている A に合わせる（バーが裏に入らない）
+       ・それ以外                   … 下にあるほう＝max(A,B) が本当の画面の下端
+       どちらの端末でも env を引くのは<b>1回だけ</b>になる。 */
+    var ei = envInfo();
+    var envB = ei.env;
     var visBottom = (vv.offsetTop || 0) + vv.height;
-    var want = envBottom() + 4;
+    var fixBottom = ei.ok ? ei.bottom : visBottom;
+    var screenBottom = (fixBottom - visBottom > envB + 2) ? visBottom : Math.max(visBottom, fixBottom);
+    var want = envB + 4;
     var root = document.documentElement;
     var cur = parseFloat(root.style.getPropertyValue("--xh-barpad"));
     if (!isFinite(cur)) {
@@ -2606,7 +2660,7 @@ addEventListener("DOMContentLoaded", () => { if (_xevLang === "en") applyLang("e
       var ov = parseFloat(getComputedStyle(root).getPropertyValue("--xh-dockover")) || 0;
       cur = pb - ov;
     }
-    var err = btn.getBoundingClientRect().bottom - (visBottom - want);
+    var err = btn.getBoundingClientRect().bottom - (screenBottom - want);
     if (Math.abs(err) < 0.6) return;            // すでに合っている
     var next = Math.max(0, Math.min(BARPAD_MAX, Math.round((cur + err) * 10) / 10));
     if (next !== Math.round(cur * 10) / 10) root.style.setProperty("--xh-barpad", next + "px");

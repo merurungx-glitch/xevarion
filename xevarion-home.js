@@ -2967,6 +2967,10 @@ window.xhHide = xhHide;
     try { sessionStorage.setItem("xeva_accessed", "1"); } catch (e) {}
     if (typeof enterPortal === "function") enterPortal(); else xhShow();
   };
+  /* ★ 2026-08-12c 保険。runPortalBoot が「包む前」に呼ばれていた場合は
+     _portalEntered が立っているだけでホームが出ていない（＝白い画面が残る）。
+     このファイルは defer なので、ここまで来れば DOM は出来上がっている。 */
+  if (window.__xevPortalEntered) { try { xhShow(); } catch (e) {} }
 })();
 
 /* データ変化に追従 */
