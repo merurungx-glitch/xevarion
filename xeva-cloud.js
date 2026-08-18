@@ -24,7 +24,7 @@
      以前はここに直接書いてあり、MagiBurst / MagiLex の一覧は別ファイルにあったため、
      新機能を足すたびに「同期リストへの入れ忘れ」が起きていた
      （ジェムショップの購入履歴 xeva_shop_v1 が同期されていなかったのがその例）。 */
-import { PORTAL_SYNC_KEYS, wipeAccountData, wipeAccountDataFull } from "./xeva-keys.js?v=2";
+import { PORTAL_SYNC_KEYS, wipeAccountData, wipeAccountDataFull } from "./xeva-keys.js?v=4";
 
 const SYNC_KEYS = PORTAL_SYNC_KEYS;
 const SYNC_SET = new Set(SYNC_KEYS);
@@ -307,8 +307,8 @@ const PUSH_DEBOUNCE = 400;
 /* ★ xeva_shop_v1（ジェムショップの購入履歴）も即送信。
    購入回数の上限をこのキーで数えているので、送信が遅れると
    「別の端末でもう1回買えてしまう」＝上限が意味をなさなくなる。 */
-const URGENT_KEYS = new Set(["xeva_wallet_v1", "xeva_gem_v1", "xeva_account_v1", "xeva_gacha_v1",
-  "xeva_collection_v1", "xeva_mail_v1", "xeva_mbgift_v1", "xeva_shop_v1"]);
+const URGENT_KEYS = new Set(["xeva_wallet_v1", "xeva_gem_v1", "xeva_gticket_v1", "xeva_fticket_v1", "xeva_account_v1", "xeva_gacha_v1",
+  "xeva_collection_v1", "xeva_mail_v1", "xeva_mbgift_v1", "xeva_shop_v1", "magilotto_v1"]);
 
 function schedulePush(urgent) {
   if (urgent) { if (pushTimer) { clearTimeout(pushTimer); pushTimer = null; } flushPush(); return; }

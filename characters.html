@@ -4,9 +4,9 @@
 <script src="maintenance-gate.js?v=5"></script>
 <meta charset="UTF-8">
 <script>(function(){try{var a=JSON.parse(localStorage.getItem('xeva_account_v1'));if(!a||!a.setupDone)location.replace('index.html');}catch(e){}})();</script>
-<script type="module" src="xevarion-fb.js?v=20"></script>
+<script type="module" src="xevarion-fb.js?v=22"></script>
 <script src="xeva-presence.js?v=1" defer></script>
-<script type="module" src="xeva-cloud.js?v=14"></script>
+<script type="module" src="xeva-cloud.js?v=16"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -19,8 +19,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="xeva-theme.css?v=1">
 <!-- ★ 2026-08-10 キャラ詳細（性能画面）の見た目。ガチャ（gacha.html）と共通 -->
-<link rel="stylesheet" href="mb-char-detail.css?v=4">
-<script src="xeva.js?v=27"></script>
+<link rel="stylesheet" href="mb-char-detail.css?v=7">
+<script src="xeva.js?v=33"></script>
 <script src="xeva-loading.js?v=1" defer></script>
 <script src="magibattle-stats.js?v=6"></script>
 <script type="module" src="xeva-sync.js?v=8"></script>
@@ -47,6 +47,16 @@ a{color:inherit;text-decoration:none}
 .gh h1{font-family:'Orbitron',sans-serif;font-size:16px;letter-spacing:1px;color:var(--pur);flex:1}
 .gh .gacha-link{display:inline-flex;align-items:center;gap:6px;background:linear-gradient(135deg,var(--pur),var(--pink));color:#fff;font-size:12px;font-weight:700;padding:7px 14px;border-radius:100px;white-space:nowrap}
 
+/* ★ 2026-08-16b キャラ名の検索 */
+.csearch{padding:0 18px 12px;display:flex;gap:8px;flex-wrap:wrap}
+.csearch input{flex:1;min-width:180px}
+.csearch select{padding:11px 14px;border-radius:100px;border:1.5px solid var(--bdr);background:#fff;
+  color:var(--txt);font-size:12.5px;font-weight:700;font-family:inherit;outline:none;
+  box-shadow:0 3px 10px rgba(90,130,210,.12);cursor:pointer}
+.csearch input{width:100%;padding:11px 14px;border-radius:100px;border:1.5px solid var(--bdr);
+  background:#fff;color:var(--txt);font-size:13px;font-weight:600;font-family:inherit;outline:none;
+  box-shadow:0 3px 10px rgba(90,130,210,.12)}
+.csearch input:focus{border-color:var(--pur);box-shadow:0 0 0 3px rgba(123,92,240,.14)}
 /* stats bar */
 .stats-bar{display:flex;gap:14px;padding:16px 18px;flex-wrap:wrap}
 .stat-pill{background:#fff;border:1.5px solid var(--bdr);border-radius:100px;padding:8px 16px;font-size:12px;font-weight:700;display:flex;align-items:center;gap:7px;box-shadow:0 4px 14px rgba(90,130,210,.14)}
@@ -155,14 +165,24 @@ a{color:inherit;text-decoration:none}
 
 <div class="stats-bar" id="statsBar"></div>
 
+<!-- ★ 2026-08-16b キャラは<b>番号順のひと並び</b>にした。
+     XEVARION と MagiBurst でキャラを分けていたが、同じキャラが2か所に出るだけで、
+     アイコンを選ぶのに その区分は関係がない（どちらで手に入れても同じキャラ）。 -->
+<div class="csearch">
+  <input id="cq" type="search" placeholder="キャラ名で検索（例：スズハ）" oninput="setQuery(this.value)" autocomplete="off">
+  <!-- ★ 2026-08-16c 並び替え。新しいキャラから見たいことが多いので「新しい順」も用意した -->
+  <select id="csort" onchange="setSort(this.value)" aria-label="並び替え">
+    <option value="no">番号順（No.）</option>
+    <option value="new">新しい順（No.の大きい順）</option>
+    <option value="name">名前順（あいうえお）</option>
+    <option value="own">所持しているキャラを先に</option>
+  </select>
+</div>
 <div class="filters">
   <button class="ftab on" onclick="setFilter('all',this)">すべて</button>
   <button class="ftab" onclick="setFilter('owned',this)">所持</button>
-  <button class="ftab" onclick="setFilter('ssr',this)">⭐⭐⭐ SSR</button>
-  <button class="ftab" onclick="setFilter('sr',this)">⭐⭐ SR</button>
-  <!-- ★ 2026-08-11 A／Bシリーズという区分は無くなったので、その絞り込みは廃止 -->
-  <button class="ftab" onclick="setFilter('other',this)">その他</button>
-  <button class="ftab" onclick="setFilter('mb',this)">⚔ MagiBurst</button>
+  <button class="ftab" onclick="setFilter('ssr',this)">★5</button>
+  <button class="ftab" onclick="setFilter('sr',this)">★4</button>
 </div>
 
 <div class="grid" id="grid"></div>
@@ -211,8 +231,8 @@ function getSeasonLabel(c){
   if(c && c.cdk) return "CDK";
   var s = (c && typeof c==="object") ? c.season : c;
   if(s===0) return "スターター";
-  /* ★ 2026-08-11 A／Bシリーズの区分は廃止。シーズンだけを出す。 */
-  return "シーズン"+s;
+  /* ★ 2026-08-16b シーズンという概念は廃止。並び番号のコレクション名だけを出す。 */
+  return "コレクション"+s;
 }
 
 function getAccCharId(){
@@ -342,9 +362,9 @@ renderGrid();
      そのためポータルで引いたキャラはクラウドに上がらず、
      別の端末の MagiBurst が書いたセーブに負けて<b>消えて</b>いた。 -->
 <script type="module" src="MagiBurst/magiburst-cloud.js?v=6"></script>
-<script src="mb-boot.js?v=3"></script>
-<script src="MagiBurst/js/mb-core.js?v=13"></script>
-<script src="mb-char-detail.js?v=3"></script>
+<script src="mb-boot.js?v=5"></script>
+<script src="MagiBurst/js/mb-core.js?v=35"></script>
+<script src="mb-char-detail.js?v=5"></script>
 <script>
 "use strict";
 /* MagiBurst のキャラを、この図鑑のカードの形で描く */
@@ -410,7 +430,136 @@ renderStats = function () {
   if (bar) bar.insertAdjacentHTML("beforeend",
     '<div class="stat-pill">⚔ MagiBurst <b>' + own + '/' + CHAR_IDS.length + '</b></div>');
 };
-/* 絞り込みを押したときも MagiBurst のぶんを描き直す（setFilter は renderGrid を呼ぶ） */
+/* ══════════════════════════════════════════════════════════
+   ★ 2026-08-16b 一覧を「番号順のひと並び」に作り直す
+   ══════════════════════════════════════════════════════════
+   ・並びは MagiBurst の CHAR_IDS（＝No.1 から順）。XEVAガチャの31体も
+     すべてこの中に入っているので、2つに分ける意味がない。
+   ・所持は<b>どちらかで持っていれば所持</b>（ガチャは統合ずみで所持は共有）。
+   ・名前で検索できる（ひらがな・カタカナはそろえて比べる）。
+   もとの renderGrid / renderStats はここで丸ごと置き換える。 */
+var charQuery = "";
+var charSort = "no";
+function setQuery(v){ charQuery = String(v || "").trim(); renderGrid(); }
+function setSort(v){ charSort = v || "no"; renderGrid(); }
+/* カタカナ・ひらがなの違いを無視して比べる */
+function kanaFold(s){
+  return String(s || "").toLowerCase().replace(/[\u30a1-\u30f6]/g, function(ch){
+    return String.fromCharCode(ch.charCodeAt(0) - 0x60);
+  });
+}
+function charOwnedAny(id){
+  if (id === "hina") return true;                       // 初期キャラ
+  if (G.owned && G.owned[id]) return true;              // XEVAガチャ
+  if (typeof DB !== "undefined" && DB.chars && DB.chars[id]) return true;  // MagiBurst
+  return false;
+}
+function charNameOf(id){
+  var x = XCHARS.find(function(c){ return c.id === id; });
+  if (x) return x.name;
+  return (typeof CHARS !== "undefined" && CHARS[id]) ? CHARS[id].nm : id;
+}
+function charThumbOf(id){
+  var x = XCHARS.find(function(c){ return c.id === id; });
+  if (x) return charThumb(x.file);
+  return (typeof CHARS !== "undefined" && CHARS[id]) ? CHARS[id].th : "";
+}
+function charDupeOf(id){
+  var d = dupeOf(id);
+  if (d) return d;
+  if (typeof DB !== "undefined" && DB.chars && DB.chars[id]) return DB.chars[id].awk | 0;
+  return 0;
+}
+function allCharIds(){
+  if (typeof CHAR_IDS !== "undefined" && CHAR_IDS.length) return CHAR_IDS.slice();
+  return XCHARS.map(function(c){ return c.id; });
+}
+renderGrid = function(){
+  var accCharId = getAccCharId();
+  var q = kanaFold(charQuery);
+  var ids = allCharIds().filter(function(id){
+    var own = charOwnedAny(id);
+    var s5 = (typeof isStar5 === "function") ? isStar5(id) : false;
+    if (curFilter === "owned" && !own) return false;
+    if (curFilter === "ssr" && !s5) return false;
+    if (curFilter === "sr" && s5) return false;
+    if (q && kanaFold(charNameOf(id)).indexOf(q) < 0) return false;
+    return true;
+  });
+  /* ★ 2026-08-16c 並び替え。既定は番号順（CHAR_IDS の並びそのもの） */
+  if (charSort === "new") ids.reverse();
+  else if (charSort === "name") ids.sort(function(a,b){ return kanaFold(charNameOf(a)).localeCompare(kanaFold(charNameOf(b)), "ja"); });
+  else if (charSort === "own") ids.sort(function(a,b){
+    var oa = charOwnedAny(a) ? 0 : 1, ob = charOwnedAny(b) ? 0 : 1;
+    return oa - ob || (typeof charNoOf === "function" ? (parseInt(charNoOf(a).replace(/\D/g,""),10) - parseInt(charNoOf(b).replace(/\D/g,""),10)) : 0);
+  });
+  var g = document.getElementById("grid");
+  if (!g) return;
+  if (!ids.length){
+    g.innerHTML = '<div style="grid-column:1/-1;text-align:center;color:var(--txt2);font-size:13px;padding:28px">'
+      + (q ? "「" + q + "」に合うキャラがいません" : "該当するキャラがいません") + "</div>";
+    return;
+  }
+  g.innerHTML = ids.map(function(id){
+    var own = charOwnedAny(id);
+    var s5 = (typeof isStar5 === "function") ? isStar5(id) : false;
+    var sec = (typeof charSecret === "function") ? charSecret(id) : false;   // 登場前は伏せる
+    var awk = charDupeOf(id);
+    var maxed = own && awk >= MAX_DUPE;
+    var cur = id === accCharId;
+    var no = (typeof charNoOf === "function") ? charNoOf(id) : "";
+    return '<div class="ccard ' + (s5 ? "ssr" : "sr") + (own ? "" : " locked") + (maxed && s5 ? " mx" : "") + '"'
+      + ' onclick="openAnyDetail(\'' + id + '\')">'
+      + '<div class="c-img-wrap">'
+        + '<img class="c-img" src="' + charThumbOf(id) + '" alt="" loading="lazy"'
+        + (sec ? ' style="filter:brightness(.12) saturate(.15)"' : "") + '>'
+        + ((!own || sec) ? '<div class="c-locked-ico">🔒</div>' : "")
+        + '<div class="c-rarity">' + (s5 ? "★5" : "★4") + '</div>'
+        + (own && !sec ? (awk > 0
+            ? '<div class="c-dupe">' + (maxed ? "★限界突破MAX" : "+" + awk + "限界突破") + "</div>"
+            : '<div class="c-owned">✓</div>') : "")
+      + '</div>'
+      + '<div class="c-info">'
+        + '<div class="c-name">' + (own && !sec ? charNameOf(id) : "???") + '</div>'
+        + '<div class="c-season">' + no + '</div>'
+        + (own && !sec
+            ? '<button class="c-set-btn' + (cur ? " current" : "") + '"'
+              + ' onclick="event.stopPropagation();setAnyChar(\'' + id + '\')">'
+              + (cur ? "✓ 設定中" : "アイコンに設定") + "</button>"
+            : "")
+      + '</div></div>';
+  }).join("");
+};
+/* 詳細：XEVAガチャ側にいる子は従来の画面、それ以外は MagiBurst の性能画面を開く */
+function openAnyDetail(id){
+  if (XCHARS.some(function(c){ return c.id === id; })) { openDetail(id); return; }
+  if (typeof openDetX === "function") { openDetX(id); return; }
+}
+/* アイコンに設定：XCHARS に無いキャラでも MagiBurst の絵で設定できるようにする */
+function setAnyChar(id){
+  if (XCHARS.some(function(c){ return c.id === id; })) { setAccChar(id); return; }
+  if (!window.XEVA) return;
+  var c = (typeof CHARS !== "undefined") ? CHARS[id] : null;
+  if (!c) return;
+  var a = window.XEVA.account.get() || {};
+  a.charId = id;
+  a.charFile = "../img/" + (c.img || "");
+  window.XEVA.account.save(a);
+  if (window.XEVASync) window.XEVASync.syncProfile(a);
+  renderGrid();
+  toast("✨ アイコンを「" + c.nm + "」に変更しました！");
+}
+renderStats = function(){
+  var ids = allCharIds();
+  var own = ids.filter(charOwnedAny).length;
+  var s5 = ids.filter(function(i){ return (typeof isStar5 === "function") && isStar5(i); });
+  var s5own = s5.filter(charOwnedAny).length;
+  var bar = document.getElementById("statsBar");
+  if (bar) bar.innerHTML =
+      '<div class="stat-pill">コンプリート <b>' + own + "/" + ids.length + "</b></div>"
+    + '<div class="stat-pill">★5 <b>' + s5own + "/" + s5.length + "</b></div>"
+    + '<div class="stat-pill">★4 <b>' + (own - s5own) + "/" + (ids.length - s5.length) + "</b></div>";
+};
 renderStats();
 renderGrid();
 </script>

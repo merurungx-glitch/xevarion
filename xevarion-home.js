@@ -17,7 +17,11 @@ const XH_OFFLINE_OK = {
   xevynar:        { name: "XEVYNAR",        href: "XEVYNAR/index.html",         sw: "XEVYNAR/sw.js" },
   /* MagiJackpot は1人プレイとパーティーモードが通信不要なので、オフラインでも遊べる。
      オンライン対戦だけは通信が要る（アプリ側で案内する）。 */
-  magijackpot:    { name: "MagiJackpot",    href: "MagiJackpot/index.html",     sw: "MagiJackpot/sw.js" }
+  magijackpot:    { name: "MagiJackpot",    href: "MagiJackpot/index.html",     sw: "MagiJackpot/sw.js" },
+  /* Magi Lotto は画面も演出も端末の中で完結するのでオフラインでも遊べる。
+     通信できないあいだの抽選は「ローカル抽選」として印が付き、
+     Magi Grand Draw の結果発表と賞金プールの同期だけは通信が戻ってから行う。 */
+  magilotto:      { name: "Magi Lotto",     href: "MagiLotto/index.html",       sw: "MagiLotto/sw.js" }
 };
 
 const XH_CATS = [
@@ -58,6 +62,9 @@ const XH_APPS = [
   { id:"magijackpot", name:"Jackpot", full:"MagiJackpot", sub:"カジノ・パーティー", cat:"game", tone:"gold",
     href:"MagiJackpot/index.html", img:"thumbs/MagiJackpot.jpg",
     desc:"XEVA とジェムで遊ぶソーシャルカジノ＆パーティー。1人プレイはスロット「Magi Fortune」・ブラックジャック「Royal Blackjack」・パチンコ「Jackpot Rush」の3本。パーティーは1台を2〜6人で囲む「Jackpot Arena」「Grand Roulette Party」。還元率はどれもおよそ100%。" },
+  { id:"magilotto", name:"Lotto", full:"Magi Lotto", sub:"デジタル宝くじ", cat:"game", tone:"gold",
+    href:"MagiLotto/index.html", img:"thumbs/MagiLotto.jpg",
+    desc:"💎ジェムで買って XEVA で受け取るデジタル宝くじ。スクラッチ・ナンバーズ・ロト・Magi Grand Draw・Free Magi の5本柱。毎月1日と16日に大型抽選（1等は賞金プール全額・最低保証つき）。ひとりでもすべての機能が成立します。" },
   { id:"magimanor", name:"MagiManor", sub:"探索ホラー", cat:"game", tone:"violet",
     href:"MagiManor/index.html", img:"thumbs/MagiManor.jpg",
     desc:"不気味な洋館からの脱出を目指す2D探索ホラーADV。謎解き・追跡者・恐怖ゲージ、6種類の結末。最大4人の共鳴探索も。" },
@@ -112,13 +119,16 @@ const XH_RETIRED_ON = "2026-07-29";
 
 /* ホームに並ぶ既定の順番（先頭11個 + 「その他」で 4×3 のグリッド）
    ★ MagiPortfolio は「その他」へ移動し、空いた枠に MagiBattle を戻す。
-     MagiJackpot は MagiRanking と MagiCraft の間に置く。 */
+     MagiJackpot は MagiRanking と MagiCraft の間に置く。
+   ★ 2026-08-13 新作 Magi Lotto を MagiJackpot のとなり（同じ「運を楽しむ」枠）へ。
+     枠は11個のままなので、押し出された MagiManor は「その他」へ移る。
+   ★ 2026-08-13 11枠目を MagiCraft から ORDYXIS に入れ替え（MagiCraft は「その他」へ）。 */
 const XH_DEFAULT_ORDER = [
   "magilex", "magilink", "magiburst", "xevynar",
   "magichainparty", "magiempire", "magibattle", "magiranking",
-  "magijackpot", "magicraft", "magimanor",
+  "magilotto", "magijackpot", "ordyxis",
   /* 以降は「その他」の中に入る */
-  "magiportfolio", "ordyxis",
+  "magicraft", "magimanor", "magiportfolio",
   "magiarena", "magidiamond", "magifocus", "magimusic", "magitier",
   "ngx", "ishida", "magicalfuture",
 ];
@@ -126,7 +136,7 @@ const XH_HOME_SLOTS = 11;
 const XH_ORDER_KEY = "xeva_home_order_v2";
 /* 並び順の世代。上げると保存済みの並びを一度だけ既定に戻す
    （アプリの入れ替えを、既にホームを触った人にも確実に反映させるため） */
-const XH_ORDER_GEN = "4";
+const XH_ORDER_GEN = "5";   /* ★ 2026-08-13 Magi Lotto を足したので一度だけ既定に戻す */
 const XH_ORDER_GEN_KEY = "xeva_home_order_gen";
 
 /* 期間限定イベント（from/to は YYYY-MM-DD。期間内のものだけ表示）
@@ -136,6 +146,12 @@ const XH_ORDER_GEN_KEY = "xeva_home_order_gen";
      ずっと後ろ、という状態を防ぐため。
      ＝ 新しいイベントを足すときは<b>この配列のどこに書いてもよい</b>。 */
 const XH_EVENTS = [
+  /* ★ 2026-08-17 MagiLex に最難関セットを追加したことの告知。
+     問題数はデータファイル（magilex-suugaku.js / magilex-chemg.js / magilex-butsuri.js）と
+     そろえること。片方だけ直すと「告知の数と中身が合わない」になる。 */
+  { tag:"NEW", t1:"MagiLex に最難関問題を追加", t2:"数学・化学γ・物理に9セット108問。全1,500問に到達！",
+    since:"2026-08-17", from:"2026-08-17", to:"2026-09-30",
+    href:"MagiLex/MagiLex.html", img:"thumbs/MagiLex.jpg" },
   /* ★ 2026-08-12 MagiBurst「蒼夏祭（Aoka Summer Fest）」。
      排出キャラは MagiBurst/js/mb-core.js の FESTS.fes4 とそろえること。 */
   { tag:"SUMMER FES", t1:"蒼夏祭", t2:"MagiBurst に水着の限定★5 7体が参戦！ 新リンク・新クロススキル搭載",
@@ -162,6 +178,11 @@ const XH_EVENTS = [
      そろえること。 */
   { tag:"SUMMER FES", t1:"Luminous Summer Fest", t2:"MagiBurst に夏の限定★5「カグヤα」「ミオンα」参戦！", from:"2026-07-31", to:"2026-08-31",
     href:"MagiBurst/index.html", img:"thumbs/MagiBurst.jpg" },
+  /* ★ 2026-08-13 新作 Magi Lotto の開幕。結果発表は毎月1日・16日なので、
+     バナーからそのまま次回の発表日を待つ導線にしている。 */
+  { tag:"NEW", t1:"Magi Lotto 開幕", t2:"デジタル宝くじ登場！ 毎月1日・16日に MAGI GRAND DRAW",
+    since:"2026-08-13", from:"2026-08-13", to:"2026-09-30",
+    href:"MagiLotto/index.html", img:"thumbs/MagiLotto.jpg" },
   /* ★ MagiJackpot「ゴールドラッシュ」。期間・内容は MagiJackpot/mj-core.js の EVENTS と
      そろえること（片方だけ直すと、ポータルには出ているのに中では終わっている、が起きる）。 */
   { tag:"GOLD RUSH", t1:"ゴールドラッシュ", t2:"MagiJackpot 積立×2！ EP で限定スキン・称号", from:"2026-07-30", to:"2026-08-24",
@@ -360,9 +381,11 @@ const XH_SHOP_KEY = "xeva_shop_v1";
 
 /* お得なパック。gem は「もらえるジェム」、xeva は「支払う XEVA」。
    base（＝通常レートで買える個数）との差ぶんがお得ぶん。
-   ★ ticket を持つパックは MagiBurst の 🎫フェス限定ガチャチケットが付く。
-     チケットは MagiBurst のセーブの中にしか置き場所がないので、ここでは直接足せない。
-     📧メールと同じ「引換券（xeva_mbgift_v1）」に積んで、次に MagiBurst を開いたときに精算させる。
+   ★ ticket を持つパックは 🎫フェスチケットが付く（フェスガチャ専用・従来どおり）。
+     2026-08-13 に新設した🎫ガチャチケット（全ガチャ共通）とは別物なので混ぜないこと。
+     ★ 2026-08-13 チケットは XEVARION 共通ウォレット（XEVA.ticket）へ移ったので、
+       <b>買ったその場で増える</b>。以前は「引換券に積んで、次に MagiBurst を開いたら精算」
+       という遠回りをしていたが、ガチャが XEVARION へ移った以上その必要はない。
    ★ to を持つパックは期間限定。期間外は一覧に出さない（買い逃しは購入上限とは別の話なので、
      売り切れ扱いにはせず、単に並べない）。
 
@@ -370,7 +393,7 @@ const XH_SHOP_KEY = "xeva_shop_v1";
      ・cycle:"term" … その販売期間ぜんぶで max 回まで（サマーフェスのパック＝2回）
      ・cycle:"week" … 毎週リセット。月曜の朝に買えるようになる（常設パック＝週1回）
      どちらも記録は xeva_shop_v1（クラウド同期）に残るので、端末をまたいでも数え方は同じ。 */
-const XH_TICKET_GEM = 5;                 // 🎫1枚＝ジェム5個ぶん（MagiBurst のフェスガチャ1回ぶん）
+const XH_TICKET_GEM = 5;                 // 🎫1枚＝ジェム5個ぶん（ガチャ1回ぶん）
 
 /* ★ 2026-08-03 価格改定：値段は「XEVA の固定額」ではなく <b>pay（＝支払うジェム数）</b> で持つ。
      実際の XEVA 価格は xhPackXeva() が pay × 為替レート で毎回そのつど出す。
@@ -616,7 +639,7 @@ function xhPaintShop() {
           '<s>通常 ' + base.toLocaleString() + '</s>' +
           '<span class="up">+' + up + '%</span></div>' +
         '<div class="xh-pkdesc">' + xhEscape(p.desc) +
-          (p.ticket ? '<br>🎫は <b>MagiBurst のフェス限定ガチャチケット</b>（次に MagiBurst を開いたときに届きます）' : "") +
+          (p.ticket ? '<br>🎫は <b>フェスチケット</b>（買ったその場で増え、どのフェスでも使えます）' : "") +
           (p.to ? '<br><b>' + p.to.replace(/-/g, "/") + ' まで・期間中' + max + '回まで</b>'
                 : '<br><b>週' + max + '回まで</b>（毎週月曜にリセット）') + '</div>' +
       '</div>' +
@@ -635,8 +658,8 @@ function xhPaintShop() {
     '購入回数はアカウント単位で数えます（買った記録は全端末で共有されます）。<br>' +
     '🗓 <b>常設パックは毎週リセット</b>：週に1回ずつ買えます（次のリセットまであと' + xhWeekResetIn() + '日）。<br>' +
     '☀ <b>Luminous Summer Fest 開幕記念パック</b>は<b>期間中2回まで</b>。' +
-    'MagiBurst の🎫<b>フェス限定ガチャチケット</b>が付き、' +
-    'チケットは <b>Nocturne Bloom Fest／Luminous Summer Fest のどちらでも</b>使えます。</div>' +
+    '🎫<b>フェスチケット</b>が付き、<b>どのフェスガチャでも</b>使えます' +
+    '（1枚＝1回ぶん・買ったその場で増えます）。</div>' +
     '<div class="xh-exbal">' +
       '<span><img src="XEVA.png" alt="XEVA">' + xeva.toLocaleString() + '</span>' +
       '<span><img src="gem.png" alt="ジェム">' + xhGemBal().toLocaleString() + '</span>' +
@@ -675,8 +698,8 @@ async function xhBuyPack(id) {
     cost: p.ticket ? null : { from: price.toLocaleString(), to: "×" + p.gem.toLocaleString() },
     body: xhEscape(p.desc) + "<br><br>この操作で <b>" + price.toLocaleString() +
       " XEVA</b> を支払い、<b>" + xhPackGot(p) + "</b> を受け取ります。<br>" +
-      (p.ticket ? "🎫<b>フェス限定ガチャチケット</b>は MagiBurst の中でしか使えないので、"
-        + "<b>次に MagiBurst を開いたとき</b>にまとめて届きます（受け取りそこねることはありません）。<br>" : "") +
+      (p.ticket ? "🎫<b>フェスチケット</b>は<b>買ったその場で増え</b>、"
+        + "<b>どのフェスガチャでも</b>そのまま使えます（1枚＝1回ぶん）。<br>" : "") +
       (weekly
         ? "このパックは<b>週" + xhPackMax(p) + "回まで</b>（毎週月曜にリセット・今週はあと "
           + xhPackLeft(p) + " 回）です。"
@@ -707,8 +730,17 @@ async function xhBuyPack(id) {
   /* 🎫は MagiBurst のセーブにしか置き場所がないので、📧メールと同じ引換券キューに積む。
      ★ 引換券は id 単位で一度きりなので、購入回数まで含めた id にする。
        "shop_パックID" のままだと2回目のチケットが「配布済み」と見なされて消えてしまう。 */
-  if (p.ticket && typeof window.pushMbGift === "function") {
-    window.pushMbGift("shop_" + p.id + "_" + per + "_" + rec.c, { ticket: p.ticket });
+  /* ★ 2026-08-13 🎫は XEVARION 共通ウォレット（XEVA.ticket）へ直接足す。
+     以前は「引換券に積んで、次に MagiBurst を開いたら精算」だったが、
+     ガチャが XEVARION 側にある以上、その遠回りに理由がない。 */
+  if (p.ticket) {
+    /* パックに付くのはフェスチケット（従来どおり） */
+    if (window.XEVA && window.XEVA.fesTicket) window.XEVA.fesTicket.add(p.ticket, "ジェムショップ：" + p.nm);
+    else if (typeof window.pushMbGift === "function") {
+      /* XEVA が読めない異常系だけ、これまでどおり引換券に積む。
+         引換券は id 単位で一度きりなので、購入回数まで含めた id にする。 */
+      window.pushMbGift("shop_" + p.id + "_" + per + "_" + rec.c, { ticket: p.ticket });
+    }
   }
   xhRenderXeva();
   xhRenderShopBadge();
@@ -716,7 +748,7 @@ async function xhBuyPack(id) {
   const m2 = xhEl("xhShopMsg");
   if (m2) { m2.innerHTML = xhPackGot(p) + " を受け取りました！"; m2.style.color = "#0e8a5c"; }
   xhToast('<b>' + xhEscape(p.nm) + "</b><br>" + xhPackGot(p) + " を受け取りました"
-    + (p.ticket ? "<br><small>🎫は次に MagiBurst を開いたときに届きます</small>" : ""));
+    + (p.ticket ? "<br><small>🎫はそのままガチャで使えます</small>" : ""));
 }
 window.xhBuyPack = xhBuyPack;
 
@@ -729,6 +761,7 @@ function xhOpenGemGuide() {
       ["🛒", "ジェムショップのパック", "通常より 50〜70% 多く💎を受け取れます。常設パックは毎週リセット（週1回）、Luminous Summer Fest の記念パックは期間中2回まで買えて🎫フェスチケットも付きます。"],
       ["⚔️", "クエストの初クリア", "MagiBurst の各クエストは初クリアで💎（毎月1日にリセットされ、また受け取れます）。以降も1日1回のクリアで💎+1がもらえます。"],
       ["🎰", "MagiJackpot で当てる", "ジャックポット・ボーナスゲーム・デイリーミッションの報酬に💎が含まれます。"],
+      ["🎟", "Magi Lotto の Free Magi", "毎日1回無料で回せるルーレットに💎が入っています（まれに💎50も）。"],
       ["📧", "メールボックス", "アップデート記念やお詫びの配布は、ホーム右上の📧メールから受け取れます。"],
       ["🏆", "実績・ミッション", "各アプリの実績やウィークリーミッションの達成報酬にも💎が入ります。"],
     ].map((r) =>
@@ -1071,7 +1104,7 @@ function xhApplyOfflineLocks() {
 function xhOpenApp(id, href) {
   if (!xhOnline() && !XH_OFFLINE_OK[id]) {
     xhToast("📴 オフライン中は開けません<br><span style='font-size:11px;font-weight:700;color:#6f82ad'>" +
-            "MagiLex ／ MagiBurst ／ MagiChainParty ／ XEVYNAR ／ MagiJackpot は遊べます</span>", 3200);
+            "MagiLex ／ MagiBurst ／ MagiChainParty ／ XEVYNAR ／ MagiJackpot ／ Magi Lotto は遊べます</span>", 3200);
     return;
   }
   location.href = href;
@@ -1112,6 +1145,7 @@ function xhOpenXevaGuide() {
       ["📚", "MagiLex で学習する", "デイリー学習 +50、セクション完全習得 +600、ミックステストは90%以上で +50／100%で +150。50問で2倍・100問で3倍のボリュームボーナスもあります。"],
       ["💥", "MagiBurst のクエスト", "クリア報酬のほか、月間WAVE踏破のマイルストーンでもXEVAが入ります（WAVE踏破数は毎月1日にリセットされ、また積み直せます）。"],
       ["🎰", "MagiJackpot で増やす", "スロット・ブラックジャック・パチンコ・パーティーゲーム。還元率はおよそ100%（日替わりで 98%±2%）です。"],
+      ["🎟", "Magi Lotto で当てる", "スクラッチ・ナンバーズ・ロトの当選金、毎月1日・16日の Magi Grand Draw、毎日無料の Free Magi で XEVA が増えます。"],
       ["🔗", "MagiChainParty の賞金", "対戦の結果に応じてXEVAが賞金として届きます。ポータルを開いたときにまとめて受け取れます。"],
       ["🏆", "MagiRanking の順位賞金", "月間XEVA獲得ランキングの上位に賞金。1位 1,000／2位 500／3位 200／4位以降 100。翌月の初回起動時に届きます。"],
       ["📧", "メール・キャンペーン", "アップデート記念やお詫びの配布は、ホーム右上の📧メールから。CDK（コード）の入力もここです。"],

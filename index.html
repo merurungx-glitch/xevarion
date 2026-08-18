@@ -20,16 +20,16 @@
 <link rel="stylesheet" href="xeva-theme.css?v=1">
 <link rel="stylesheet" href="xevarion.css?v=16">
 <link rel="stylesheet" href="xevarion-home.css?v=33">
-<script src="xeva.js?v=27" defer></script>
+<script src="xeva.js?v=33" defer></script>
 <!-- ジェム⇄XEVA のレート（ドル円連動）。xevarion-home.js より先に読み込む -->
 <script src="xeva-fx.js?v=1" defer></script>
 <script src="xeva-loading.js?v=1" defer></script>
 <script type="module" src="xeva-sync.js?v=8"></script>
-<script type="module" src="xevarion-fb.js?v=20"></script>
+<script type="module" src="xevarion-fb.js?v=22"></script>
 <script src="xeva-presence.js?v=1" defer></script>
-<script type="module" src="xeva-cloud.js?v=14"></script>
-<script src="xevarion.js?v=59" defer></script>
-<script src="xevarion-home.js?v=37" defer></script>
+<script type="module" src="xeva-cloud.js?v=16"></script>
+<script src="xevarion.js?v=65" defer></script>
+<script src="xevarion-home.js?v=40" defer></script>
 </head>
 <body>
 <!-- ───── バックグラウンド音楽（Flagship Arrival。アクセス画面のタップで再生開始） ───── -->
@@ -966,6 +966,20 @@ body.music-on #beatFrame{opacity:1}
 .mm-limited-foot{display:flex;align-items:center;justify-content:space-between}
 .mm-limited-exp{font-size:10px;color:rgba(34,52,77,.45)}
 .mm-limited-rew{font-size:12px;font-weight:700;color:#c07a00}
+/* ── 限定SSR「アヤカ」完凸バナー（限定タブの先頭）── */
+.mm-ayaka-head{display:flex;align-items:center;gap:12px;padding:13px;margin-bottom:10px;border-radius:16px;
+  background:linear-gradient(135deg,rgba(142,107,255,.14),rgba(255,178,36,.16));border:1.5px solid rgba(142,107,255,.28)}
+.mm-ayaka-head>img{width:56px;height:56px;border-radius:13px;object-fit:cover;flex-shrink:0;border:2px solid rgba(255,255,255,.9);box-shadow:0 4px 12px rgba(90,60,180,.20)}
+.mm-ayaka-txt{min-width:0;flex:1}
+.mm-ayaka-name{font-size:13px;font-weight:900;color:#3a2a6d;line-height:1.4}
+.mm-ayaka-sub{font-size:11px;color:rgba(34,52,77,.66);line-height:1.6;margin-top:2px}
+.mm-ayaka-sub b{color:#c07a00}
+.mm-ayaka-pips{display:flex;gap:5px;margin-top:7px;flex-wrap:wrap}
+.mm-ayaka-pips span{font-size:9.5px;font-weight:800;padding:2px 7px;border-radius:99px;
+  background:rgba(255,255,255,.7);border:1px solid rgba(56,140,220,.20);color:rgba(34,52,77,.42)}
+.mm-ayaka-pips span.on{background:linear-gradient(135deg,#8e6bff,#e8930c);border-color:transparent;color:#fff}
+.mm-limited-card.ayaka{background:linear-gradient(180deg,#fbf7ff,#f6faff);border-color:rgba(142,107,255,.24)}
+.mm-limited-card.ayaka .mm-limited-badge{background:rgba(142,107,255,.12);border-color:rgba(142,107,255,.34);color:#6b46d6}
 
 /* ── XEVARION アカウント ── */
 /* nav user button */
@@ -1248,23 +1262,6 @@ body.music-on #beatFrame{opacity:1}
 .xeva-m-claim{padding:9px 13px;border-radius:99px}
 </style>
 
-<!-- ───── SEASON 5 BANNER ───── -->
-<div id="s4BannerOv" style="display:none;position:fixed;inset:0;z-index:5000;background:rgba(30,60,110,.34);backdrop-filter:blur(10px);align-items:center;justify-content:center;padding:max(20px,env(safe-area-inset-top,20px)) 20px max(20px,env(safe-area-inset-bottom,20px))">
-  <div style="background:#ffffff;border:1.5px solid rgba(255,255,255,.95);border-radius:28px;max-width:380px;width:100%;text-align:center;box-shadow:0 24px 70px rgba(56,120,200,.30);animation:lbIn .4s cubic-bezier(.2,.8,.3,1) both;overflow:hidden;position:relative">
-    <button onclick="document.getElementById('s4BannerOv').style.display='none'" style="position:absolute;top:10px;right:10px;background:rgba(255,255,255,.85);border:1.5px solid rgba(56,140,220,.25);border-radius:10px;width:32px;height:32px;color:rgba(34,52,77,.65);font-size:15px;cursor:pointer;z-index:1;display:flex;align-items:center;justify-content:center;line-height:1">✕</button>
-    <div style="background:linear-gradient(135deg,rgba(56,166,255,.12),rgba(255,111,145,.12));padding:14px 20px 10px;border-bottom:1.5px solid rgba(56,140,220,.14)">
-      <div style="font-family:'Orbitron',sans-serif;font-size:.7rem;color:#7a4fe0;letter-spacing:.15em;margin-bottom:4px">NEW SEASON</div>
-      <div style="font-family:'Orbitron',sans-serif;font-size:1.5rem;font-weight:900;background:linear-gradient(135deg,#8e6bff,#38a6ff,#ff6f91);-webkit-background-clip:text;-webkit-text-fill-color:transparent">SEASON 5</div>
-    </div>
-    <div style="padding:16px 20px">
-      <img loading="lazy" decoding="async" src="MagiBurst/img/bn_premium_s.webp" alt="Season 5" style="width:100%;max-height:200px;object-fit:contain;border-radius:14px;margin-bottom:12px">
-      <div style="font-size:14px;font-weight:800;color:#22344d;margin-bottom:6px">シーズン5「ミオン」開幕！</div>
-      <div style="font-size:11px;color:rgba(34,52,77,.66);line-height:1.7;margin-bottom:16px">新SSRキャラクター「ミオン」がガチャに登場！XEVAを集めてゲットしよう。</div>
-      <button onclick="closeS4Banner()" style="width:100%;padding:12px;background:linear-gradient(135deg,#38a6ff,#8e6bff);border:none;border-radius:14px;color:#fff;font-size:14px;font-weight:800;cursor:pointer;font-family:'Noto Sans JP',sans-serif">ガチャを見る 🎰</button>
-    </div>
-  </div>
-</div>
-
 <!-- ───── LOGIN BONUS STAMP CARD ───── -->
 <div id="loginBonusOv" style="display:none">
   <div class="lb-card">
@@ -1307,6 +1304,11 @@ body.music-on #beatFrame{opacity:1}
   <div id="missionModal" role="dialog" aria-label="XEVAミッション" onclick="event.stopPropagation()">
     <div class="mm-head">
       <div class="mm-title"><svg class="xvic" style="width:17px;height:17px;display:inline-block;vertical-align:-3px" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9" fill="#ff6f91"/><circle cx="12" cy="12" r="5.7" fill="#fff"/><circle cx="12" cy="12" r="2.6" fill="#ff6f91"/></svg> XEVA ミッション</div>
+      <!-- ★ 2026-08-16 4タブぶんの「達成ずみ・未受取」をまとめて精算する -->
+      <button class="mail-all" id="msnAllBtn" onclick="claimAllMissions()" style="display:none">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 12.5l5 5 10-11"/></svg>
+        すべて受け取る<span class="mail-all-n" id="msnAllCount">0</span>
+      </button>
       <button class="mm-close" onclick="closeMissions()">✕</button>
     </div>
     <div class="mm-body">
@@ -1321,7 +1323,7 @@ body.music-on #beatFrame{opacity:1}
     <div class="mm-tabs">
       <button class="mm-tab active" id="mmTabStarter" onclick="switchMsnTab('starter',this)">スターター<span class="mm-tab-badge" id="msnBadgeStarter" style="display:none"></span></button>
       <button class="mm-tab" id="mmTabLogin" onclick="switchMsnTab('login',this)">ログイン<span class="mm-tab-badge" id="msnBadgeLogin" style="display:none"></span></button>
-      <button class="mm-tab" id="mmTabLimited" onclick="switchMsnTab('limited',this)">期間限定<span class="mm-tab-badge" id="msnBadgeLimited" style="display:none"></span></button>
+      <button class="mm-tab" id="mmTabLimited" onclick="switchMsnTab('limited',this)">限定<span class="mm-tab-badge" id="msnBadgeLimited" style="display:none"></span></button>
       <button class="mm-tab" id="mmTabCollection" onclick="switchMsnTab('collection',this)">コレクション<span class="mm-tab-badge" id="msnBadgeCollection" style="display:none"></span></button>
     </div>
     <div id="missionTabStarter" class="xeva-mission-list"></div>
@@ -1410,6 +1412,291 @@ body.music-on #beatFrame{opacity:1}
 
   <div class="nm-body" id="newsBody">
     <div class="nm-divider" id="newDivider" style="display:none;">NEW — 前回から更新</div>
+
+    <!-- 2026-08-18 プレミアム★5 9体（ロキシー）／超レーザーストップ作り直し -->
+    <div class="nm-item" data-tag="update" data-date="2026-08-18">
+      <div class="nm-date">2026<br>08.18</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">⚡ MagiBurst に新★5 9体（ロキシー実装） ／ 🔦 超レーザーストップを作り直し</div>
+        <div class="nm-txt">
+          ⚡ <b>ロキシー（No.127）</b>を実装しました。水属性・反射の<b>雷使い</b>です。
+          フルバースト<b>「豪雷積層雲」（20ターン）</b>は<b>残りチームHPの15%</b>を捧げて放ち、
+          <b>画面全体が暗転</b>して<b>巨大な黒雲がステージを覆い、豪雨のなか最強の雷がボスへ落ちます</b>。
+          落雷で<b>敵全体に最大HPの35%</b>のダメージ、<b>防御ダウン・毒状態・攻撃ターン2遅延</b>が同時に入ります。<br>
+          🌩 ロキシーは<b>キュムロニンバスEL</b>と<b>ライトニングEL</b>を両方持つ、ただ一人のキャラです。
+          クロススキル<b>「豪雷のクロス」</b>は<b>同属性1体以上かつ同撃種1体以上</b>で発動し、
+          <b>蓬莱族キラーL</b>と<b>重力バリアキラーL</b>が付きます。<br>
+          ✨ プレミアムセレクトガチャに<b>新★5 8体（No.119〜126）</b>を追加しました
+          （アルテミア・アスハ・ブレア・リリス・リラ・サツキ・サヨ・メルティ）。<br>
+          🏯 8体とも<b>オムニアンチを持たず、アンチはちょうど2種類</b>で、
+          その2種が<b>自分が有利属性になる蓬莱の九重のクエストの必要アンチとぴったり一致</b>します。
+          つまり<b>属性有利をとったまま、そのクエストのギミックを全部消して走れる「最適解」</b>です。
+          第二重＝アスハ／第三重＝サツキ／第四重＝リリス・メルティ／第五重＝アルテミア・サヨ／
+          第六重＝ブレア／第九重＝リラ。<br>
+          🔦 <b>超レーザーストップを作り直しました。</b>これまでは編成にいるだけで敵のレーザーが撃たれませんでしたが、
+          いまは<b>レーザーはきちんと撃たれ</b>、射線に乗った味方を敵に近い順にたどって
+          <b>最初のストップ持ちでビームが消えて回復</b>します。
+          <b>そのキャラより手前の味方はふつうに被弾</b>するので、<b>立ち位置</b>で効きかたが変わります。<br>
+          ⭕ <b>ラウンドチャージ・ラウンドヒールの円を大きく</b>しました（上限 半径300 → <b>520</b>）。<br>
+          🐛 <b>ライトニングEL の威力が無印のままだった</b>不具合、
+          <b>グレース・瑶華・瑶妃がFB種別の絞り込みに出てこなかった</b>不具合、
+          <b>瑶華・瑶妃をアイコンに選べなかった</b>不具合を直しました。
+        </div>
+      </div>
+    </div>
+
+    <!-- 2026-08-17g 蓬莱の九重 -->
+    <div class="nm-item" data-tag="update" data-date="2026-08-17">
+      <div class="nm-date">2026<br>08.17</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">🏯 MagiBurst に爆絶高難易度「蓬莱の九重」実装 ／ 🪭 レベル上限が Lv.70 まで</div>
+        <div class="nm-txt">
+          🏯 <b>爆絶高難易度クエスト「蓬莱の九重」</b>を追加しました。<b>第一重〜第九重</b>＋<b>蓬莱天宮</b>の計10クエストです。
+          アンチギミックの組み合わせは10クエストすべて別で、既存のどのクエストとも重なりません。<br>
+          👘 ボスは<b>蓬莱族</b>。<b>瑶華＆玉蘭は2体で1組</b>なので攻撃カウントを2本持ち、<b>瑶妃は味方を盤面の下まで吹き飛ばして</b>きます。
+          雑魚を全滅させるとボスが降臨する階層や、画面の端に長く構えてから即死を撃つ階層もあります。<br>
+          🎁 <b>40WAVE</b>で📘クロスの書、<b>50WAVE</b>で<b>瑶華＆玉蘭</b>、<b>60WAVE</b>で新アイテム<b>🪭九天の玉簡</b>。
+          蓬莱天宮クリアで<b>瑶妃</b>が仲間になります。九天の玉簡は超越済みキャラの上限を<b>60 → 70</b>に解放します。<br>
+          🌸 <b>幽冥の庭園 第16〜20ノ園の雑魚の攻撃力を下げました</b>（チームHPに対して92% → 約65%）。ボスの攻撃力はそのままです。
+        </div>
+      </div>
+    </div>
+
+    <!-- 2026-08-17f 数式の組みかたを整える -->
+    <div class="nm-item" data-tag="update" data-date="2026-08-17">
+      <div class="nm-date">2026<br>08.17</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">➗ MagiLex の数式をさらに整えました</div>
+        <div class="nm-txt">
+          ➗ <b>かっこが中身の高さに合わせて伸びる</b>ようにしました。分数やΣが入った（　）が小さいままで、どこまでが一かたまりか読めなかったのを直しています。<br>
+          　・大きさと位置の指定を<b>1か所にまとめ</b>ました。問題文・正解・解説で式の大きさや高さが違って見えていたのを解消しています<br>
+          　・<b>1/(k(k+1))</b> のように<b>かっこの中にかっこ</b>がある式も、分数として組めるようになりました<br>
+          🔤 <b>選択肢は今までどおりの1行表示にもどしました</b>。数式に組むとボタンが縦に伸びて一覧しにくくなるためです。<br>
+          🎨 <b>「わからない」を押したとき</b>の見え方を、まちがえたときと同じにしました。
+          正解は緑、自分の答え（わからない）は赤で残るので、合っていたのか外したのかがひと目で分かります。
+        </div>
+      </div>
+    </div>
+
+    <!-- 2026-08-17e MB表の紐づけと公開・数式表示 -->
+    <div class="nm-item" data-tag="update" data-date="2026-08-17">
+      <div class="nm-date">2026<br>08.17</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">🔗 MagiBurst 表を「公開」ボタンで共有 ／ ➗ MagiLex の数式を見やすく</div>
+        <div class="nm-txt">
+          🔗 <b>MagiTier</b>：MagiBurst キャラ表の右上を<b>「保存」から「公開」に変えました</b>。
+          押すと端末に保存したうえで、<b>MagiBurst と他の端末にそのまま共有</b>されます。
+          これまでは保存しても手元だけで、MagiBurst 側は「まだ公開されていません」のままでした。<br>
+          　・表に入れたキャラが<b>プールにも残ってしまう</b>不具合を直しました。開くたびに重なりを片づけます<br>
+          　・キャラでない <b>t_ 画像</b>が混ざっていたら、<b>ファイル名からキャラを言い当てて置きかえます</b>（Tierに置いた作業は残ります）<br>
+          　・左上のロゴの<b>すき間</b>をなくしました<br>
+          ➗ <b>MagiLex</b>：<b>分数・Σ・∫・√・上付き下付き</b>を、見た目のとおりに組むようにしました。
+          <b>aₙ₊₁ = aₙ/(1+aₙ)</b> のような式が、分子と分母に分かれて読めます。
+        </div>
+      </div>
+    </div>
+
+    <!-- 2026-08-17d 削除の不具合・詳細表示・デイリー廃止・ロックゾーン拡大 -->
+    <div class="nm-item" data-tag="update" data-date="2026-08-17">
+      <div class="nm-date">2026<br>08.17</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">🛠 Tier表が削除できない不具合を修正 ／ 📊 詳細評価をプレゼンにも ／ 🎁 デイリーボーナス廃止 ／ 🔒 ロックゾーン拡大</div>
+        <div class="nm-txt">
+          🛠 <b>MagiTier</b>：<b>Tier表の削除ボタンを押しても消えない</b>不具合を直しました。
+          ホーム画面から起動したアプリ表示では確認ダイアログが出ないことがあり、そのまま何も起きずに終わっていたのが原因です。<br>
+          　・<b>星などの詳細評価</b>を、プレゼン（1枚ずつ表示）と閲覧モードの詳細にも出すようにしました<br>
+          　・<b>MagiBurst のキャラは、ゲーム内の実際の性能</b>（HP・こうげき・スピード・FB・リンク・アビリティ・クロス）も見られます<br>
+          　・プールの<b>追加した順</b>ほか並び替えを、バーから直に選べるようにしました<br>
+          　・<b>Tier表の中の画像サイズ</b>も、プールとは別に変えられます<br>
+          　・上部のツールは<b>実際にはみ出したときだけ</b>ハンバーガーにまとまるようにしました（広い画面では出ません）<br>
+          🎁 <b>MagiLex</b>：<b>デイリーボーナスを廃止</b>しました。XEVA は学習そのもの（完全習得・ミックス・確認テスト）で受け取る形に一本化します。連続学習日数の記録は残ります。<br>
+          🔒 <b>MagiBurst</b>：<b>ロックゾーンを大きく</b>しました（半径 176 → <b>220</b>）。敵と少し重なってもよいことにしたので、実際に大きいまま置かれます。
+        </div>
+      </div>
+    </div>
+
+    <!-- 2026-08-17c MagiTier 仕上げ・MagiLex のアイコンと難易度 -->
+    <div class="nm-item" data-tag="update" data-date="2026-08-17">
+      <div class="nm-date">2026<br>08.17</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">🏆 MagiTier の編集画面を仕上げ ／ 📚 MagiLex の難易度を5段階に・アイコンの大きさを調整</div>
+        <div class="nm-txt">
+          🏆 <b>MagiTier</b>：<b>未配置の画像を画面の下に固定</b>しました。Tier表が長くても、上へ戻らずに「さがす → つかむ → 置く」ができます。<br>
+          　・<b>名前とファイル名でさがせる</b>検索を追加（名前を付けていない画像もファイル名で見つかります）<br>
+          　・<b>カードの大きさ</b>をスライダーで変えられるように（表ごとに覚えます）<br>
+          　・<b>MagiBurst キャラ表では属性でしぼりこめる</b>ように（火・水・木・光・闇）<br>
+          　・プールは<b>たたんで</b>表を広く使えます<br>
+          📚 <b>MagiLex</b>：<b>難易度を5段階</b>（基礎・標準・応用・難関・最難関）に細かくしました。★の数でも段階が分かります。<br>
+          　前回入れたアイコンが大きすぎてバランスを崩していたのも直しました。
+        </div>
+      </div>
+    </div>
+
+    <!-- 2026-08-17b グレース参戦・速度300km/h超・庭園の後半を調整 -->
+    <div class="nm-item" data-tag="update" data-date="2026-08-17">
+      <div class="nm-date">2026<br>08.17</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">⚔ 新★5「グレース」参戦 ／ 💨 速度が300km/h超に ／ 🌸 幽冥の庭園 後半の被ダメージを大幅ダウン</div>
+        <div class="nm-txt">
+          ⚔ <b>プレミアムセレクトガチャに新★5「グレース」（光／反射）が参戦</b>しました。<br>
+          　フルバーストは18ターンで<b>自強化＋自分の行動2回ぶん 弱点キラー＆全属性キラー＋止まったあと もう一度動き出す</b>。
+          　アビリティは<b>超アンチワープ・超アンチ減速壁・アンチブロック・エターナルエーテルM・ファーストキラーEL・攻撃力チャージ</b>。
+          　リンクは新技<b>超強インフィニティレーザー</b>、サブリンクは<b>ピアスシーカー20</b>です。<br>
+          💨 <b>キャラのスピードがすべて300km/h以上</b>になりました（318〜354km/h）。盤面のものさしを見直した結果で、当たり判定や内部の計算は変えていません。<br>
+          🌸 <b>幽冥の庭園 第11〜20ノ園の被ダメージを大幅に下げました。</b>
+          　実測したところ、最奥の第20ノ園は<b>1巡ぶんの雑魚の攻撃だけでLv60パーティのHPの207%</b>——受けきると2回全滅する量でした。
+          　いまは第11〜20ノ園をとおして<b>HPの90〜100%前後</b>にそろえ、倒しながら進めば勝てる重さにしています（ボスのHPは変えていません）。<br>
+          🔎 <b>同じ名前なのに中身がちがっていた技を直しました。</b>
+          　同名で効果の別だった<b>フルバースト1件</b>を改名し、説明の食いちがい<b>3件</b>とキャラ名の書きまちがい<b>1件</b>をそろえています。<br>
+          📝 <b>MagiLex</b>：メモの<b>「全部消す」で消えきらないことがあった</b>のを直しました。確認ダイアログが出ない環境で止まっていたのが原因で、いまは即座に消えて<b>「一つ戻す」でまるごと戻せます</b>。<br>
+          🏆 <b>MagiTier</b>：<b>MagiBurst キャラTier表</b>を金枠で目立たせ、いちばん上に固定しました（編集にはアクセスコードが必要です）。
+        </div>
+      </div>
+    </div>
+
+    <!-- 2026-08-17 最難関を108問追加＋MagiBurst の速度と評価を作り直し -->
+    <div class="nm-item" data-tag="update" data-date="2026-08-17">
+      <div class="nm-date">2026<br>08.17</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">📚 最難関問題を108問 追加 ／ ⚔ MagiBurst の速度を本当の km/h に・クエスト対応力を作り直し</div>
+        <div class="nm-txt">
+          🧪 <b>MagiLex</b>：最難関レベルを<b>9セット・108問</b>追加しました。<br>
+          　・<b>数学</b>に「図形の難問」「三角関数の難問」「指数・対数の難問」「数列の難問」（<b>4セット48問</b>）<br>
+          　・<b>化学γ</b>に「有機反応のしくみ」「芳香族の難問」「錯イオンと分析の難問」（<b>3セット36問</b>）<br>
+          　・<b>物理</b>に「連結した物体と束縛条件」「電磁場の中の荷電粒子」（<b>2セット24問</b>）<br>
+          これで数学は<b>20セット240問</b>、化学γは<b>38セット384問</b>、物理は<b>18セット216問</b>になりました。<br><br>
+          ⏱ <b>MagiBurst</b>：<b>スピードを本当の km/h にしました。</b>これまでは数値のうしろに km/h と書き足していただけで、
+          単位の名前だけのものでした。いまはボールが1秒に進む距離から計算していて、スピード449のキャラなら約258km/h です。<br>
+          ⭐ <b>クエスト対応力を作り直しました。</b><b>むずかしいクエストほど高く数えます</b>
+          （いちばん重い幽冥の庭園と、いちばん軽い序盤の部屋で <b>およそ10倍</b>の差があります）。
+          あわせて、これまで<b>黄昏の王城しか数えておらず、禁忌の迷宮と幽冥の庭園がまるごと抜けていた</b>のを直しました（25面 → <b>78面</b>）。
+          評価の下には<b>高難易度クエストの内わけ</b>も出ます。
+        </div>
+      </div>
+    </div>
+
+    <!-- 2026-08-16c MagiLex 追加＋MagiBurst 調整 -->
+    <div class="nm-item" data-tag="update" data-date="2026-08-16">
+      <div class="nm-date">2026<br>08.16</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">📚 MagiLex に超難関セットを追加 ／ ⚔ MagiBurst にワンパン貫通・km/h表示・新しい効果音</div>
+        <div class="nm-txt">
+          🧪 <b>MagiLex</b>：化学γに<b>「構造決定の総合」「無機の総合」</b>、数学に<b>「整数の難問」「確率の難問」</b>を追加しました（合わせて<b>4セット・48問</b>）。
+          化学γは<b>35セット・348問</b>、数学は<b>16セット・192問</b>になっています。<br>
+          ⚖ <b>長い選択肢が答えになりやすい偏りを直しました。</b>これまで「いちばん長いものを選ぶ」だけで
+          <b>38%</b>当たってしまう状態でした（4〜5択なら本来2割ほど）。
+          出題する誤答を<b>正解と字数の近いものから選ぶ</b>ようにして、この偏りを減らしています。<br>
+          📝 <b>メモ帳</b>：マス目の間かくを均等にし、<b>拡大・縮小と移動</b>ができるようになりました。
+          <b>次の問題に進んだらメモを消す</b>かどうかも設定から選べます。化学γのアイコンも作り直しました。<br>
+          📅 <b>データ画面</b>に<b>学習カレンダー</b>と<b>科目ごとの進みぐあい</b>を追加しました。<br><br>
+          ⚔ <b>MagiBurst</b>：<b>スピードを本当の km/h</b> にしました（ボールの速さから計算。スピード440 ≒ 250km/h）。<br>
+          💥 <b>ワンパンで面を貫けるようになりました。</b>ボスを倒しきったダメージが次の面のボスにも届く場合、
+          その面の<b>雑魚は撤退</b>して先へ進みます。残りのボスをすべて上回るダメージが出ていれば
+          <b>そのままクエストクリア</b>となり、専用の演出が入ります。<br>
+          🔊 <b>反射・貫通・弱点・内部弱点・壁</b>に、それぞれ別の効果音を付けました。<br>
+          🏆 ホームの<b>Party</b>を<b>キャラTier表</b>の入口に変えました（編成は下のバーから開けます）。<br>
+          ⭐ <b>キャラ評価</b>に<b>キラーの数と等級</b>、<b>アンチが足りているクエスト数</b>を加えました。
+          この「クエスト対応力」は<b>むずかしいクエストほど高く数えます</b>（幽冥の庭園を1つ通せるほうが、序盤の部屋を5つ通せるより高く出ます）。
+          これまで<b>黄昏の王城しか数えておらず、禁忌の迷宮と幽冥の庭園がまるごと抜けていた</b>のもあわせて直しました（25面 → <b>78面</b>）。
+          キャラ図鑑には<b>新しい順</b>などの並び替えも付いています。
+        </div>
+      </div>
+    </div>
+
+    <!-- 2026-08-16b 新★5 6体 参戦（アイコンはスズハ） -->
+    <div class="nm-item" data-tag="update" data-date="2026-08-16">
+      <div class="nm-date">2026<br>08.16</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">⚔ MagiBurst に新★5が6体 参戦！ No.108 以降は全員プレミアムセレクトガチャから</div>
+        <div class="nm-txt">
+          <img loading="lazy" decoding="async" src="img/Suzuha.webp" alt="スズハ"
+               style="width:100%;max-width:320px;border-radius:16px;margin:2px 0 12px;border:1px solid rgba(56,140,220,.18);display:block">
+          🌙 <b>スズハ</b>（No.111・闇／貫通）——「宵闇は、ただ一体を沈める。」<br>
+          フルバーストは<b>壁をすり抜けて最初にふれた敵の上で止まり、乱打40連</b>を叩き込む最高火力型。
+          <b>スピードモード</b>（各WAVEの開始から自分が2回行動し終えるまでスピード1.5倍）を新搭載し、
+          リンクは<b>サーキュレーション</b>、サブリンクは新技<b>ラウンドヒール</b>（ラウンドチャージの回復版）です。<br><br>
+          このほか、<b>モエカ</b>（No.110・水／反射）・<b>ヴィオレット</b>（No.112・木／反射）・
+          <b>カナタ</b>（No.113・火／貫通）・<b>トウカ</b>（No.114・光／貫通）・
+          <b>エレナ</b>（No.115・水／貫通）が同時参戦。
+          エレナのフルバーストは<b>1回で味方全員の総攻撃が2回</b>入る新しい型です。<br><br>
+          🎰 <b>No.108 以降のキャラは全員プレミアムセレクトガチャから出ます</b>。
+          先に実装していた<b>アンナ・ツキノ</b>もガチャに入っていなかったため、あわせて追加しました。<br>
+          🎯 <b>XEVAミッションの図鑑報酬</b>を作り直しました。「コレクション」という区分をやめ、
+          <b>★5キャラを No. 順に5体ずつ</b>区切ったまとまりにしています（全★5が対象・キャラが増えると目標も増えます）。<br>
+          👤 <b>アイコン選択画面</b>も、XEVARION／MagiBurst の区分をやめて<b>番号順のひと並び</b>にし、
+          <b>キャラ名で検索</b>できるようにしました。
+        </div>
+      </div>
+    </div>
+
+    <!-- 2026-08-16 MagiLex 大量追加（化学γ・数学）＋メモ帳 -->
+    <div class="nm-item" data-tag="update" data-date="2026-08-16">
+      <div class="nm-date">2026<br>08.16</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">📚 MagiLex に「化学γ」と「数学（全範囲）」を大量追加 ／ 📝 メモ帳を新設</div>
+        <div class="nm-txt">
+          🧪 <b>新科目「化学γ」</b>を追加しました。最難関レベルの<b>有機化学・無機化学</b>を、<b>33セット・324問</b>収録しています。<br>
+          ・有機は<b>元素分析と構造決定／異性体と立体化学／脂肪族の反応／アルコールとカルボニル／カルボン酸とエステルと油脂／芳香族の置換と配向性／芳香族化合物の分離／糖・アミノ酸・合成高分子</b>の8セット。<br>
+          ・無機は<b>周期律と化学結合／典型元素／ハロゲンと酸素と硫黄／窒素とリンと炭素とケイ素／遷移元素と錯イオン／金属イオンの系統分析／工業的製法と気体の製法</b>の7セット。<br>
+          ・さらに<b>「その物質だけを掘り下げる」セット</b>を全種類そろえました（水素・塩素・硫黄と硫酸・窒素とアンモニア・鉄・銅・アルミニウム・銀と鉛と亜鉛・ナトリウムとカルシウム／ベンゼン・フェノール・アニリン・エタノール・酢酸とエステル・グルコースと多糖・アミノ酸とタンパク質・エチレンとアセチレン・サリチル酸と安息香酸）。<br>
+          📐 <b>数学</b>も<b>高校履修の全範囲</b>に広げ、<b>14セット・168問</b>を追加しました。
+          <b>二次関数／場合の数と確率／整数／図形と計量／三角関数／指数対数／式と証明と複素数／図形と方程式／数列／ベクトル／データの分析と統計的な推測／極限と微分法／積分法／複素数平面と二次曲線</b>。<br>
+          📝 <b>メモ帳</b>を新設しました。問題の画面に出る「<b>メモを開く</b>」から、<b>手書き</b>（ペン3色・消しゴム・方眼つき）と<b>文字入力</b>の両方が使えます。
+          問題文を見たまま計算できるよう<b>画面の下半分に出る</b>作りで、書いた内容は<b>次に開いたときも残ります</b>。<br>
+          ✅ あわせて、<b>選択肢の「（補足）」で答えが分かってしまう問題を直しました</b>。
+          正解にだけ補足が付いていると中身を知らなくても当てられてしまうため、
+          <b>付き方がそろっていない選択肢では補足を外して見た目をそろえます</b>（外した補足は解答後の「正解：」で読めます）。
+        </div>
+      </div>
+    </div>
+
+    <!-- 2026-08-13 新作 Magi Lotto -->
+    <div class="nm-item" data-tag="launch" data-date="2026-08-13">
+      <div class="nm-date">2026<br>08.13</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag launch">RELEASE</span></div>
+        <div class="nm-title">🎟 新作「Magi Lotto」登場 — デジタル宝くじ／毎月1日・16日に MAGI GRAND DRAW</div>
+        <div class="nm-txt">
+          💎ジェムで買って <b>XEVA</b> で受け取るデジタル宝くじ <b>Magi Lotto</b> を公開しました。中身は<b>5本柱</b>だけです。<br>
+          🎟 <b>SCRATCH</b>（スクラッチ）— 9マスを指で削って、同じ絵柄が3つそろえば当たり。あと1つで揃う瞬間がいちばんの見どころ。<b>×1／×3／×6／×20／×100／×1,000</b>。<br>
+          🔢 <b>NUMBERS</b>（ナンバーズ）— 0〜9 を3つえらぶ。ストレートは <b>×500</b>。<b>MAGI PICK</b>（おまかせ）でも当たりやすさは変わりません。<br>
+          🎱 <b>LOTTO</b>（ロト）— 1〜36 から6個。<b>5個一致 ×1,000 → 6個一致 ×20,000</b> と、上に届いた瞬間に跳ね上がります。<br>
+          👑 <b>MAGI GRAND DRAW</b> — <b>毎月1日と16日</b>だけの大型抽選（年24回）。1等は<b>賞金プール全額</b>で、最低 <b>1,000,000 XEVA</b> を保証します。<br>
+          🎁 <b>FREE MAGI</b> — <b>1日1回 無料</b>で回せるルーレット。XEVA と💎ジェムが当たります。<br>
+          ⚖ 全体の期待還元率は<b>約 92%</b>（コンテンツごとの確率と配当は、ゲーム内の「ガイド」にすべて出しています）。
+          <b>人数が集まるのを待つ仕組みはありません</b>——ひとりでもすべての機能が成立し、賞金を取り合うこともありません。
+        </div>
+      </div>
+    </div>
+
+    <!-- 2026-08-13 新チケット「ガチャチケット」・MagiBurst 調整 -->
+    <div class="nm-item" data-tag="update" data-date="2026-08-13">
+      <div class="nm-date">2026<br>08.13</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">🎫 新チケット「ガチャチケット」追加／チケットは受け取ったその場で増えます</div>
+        <div class="nm-txt">
+          🎫 <b>ガチャチケット</b>を新設しました。<b>プレミアムセレクトガチャでも各フェスでも</b>使える共通チケットです（1枚＝1回ぶん）。<br>
+          🎪 これまでの <b>フェスチケット</b>は<b>これまでどおりフェスガチャ専用</b>のままです。枚数が減ったり、別のものに変わったりすることはありません。<br>
+          🔁 フェスガチャで回すときは <b>フェスチケット → ガチャチケット → 💎ジェム</b> の順に自動で消費します（フェスでしか使えないほうから先に使うので、チケットが余りません）。<br>
+          📧 チケットの置き場所を MagiBurst のセーブから <b>XEVARION 側</b>へ移しました。これまでメールやジェムショップで受け取っても「次に MagiBurst を開いたとき」にしか届きませんでしたが、<b>受け取った瞬間に増えて、そのままガチャで使えます</b>。<br>
+          🎁 追加を記念して、全ユーザーへ <b>ガチャチケット20枚</b>を📧メールでお贈りしています。<br>
+          🍐 MagiBurst：<b>叡智の果実をまとめて使える</b>ようになりました（「1個だけ」「まとめて◯個＝上限まで」をその場で選べます。余るぶんは消費しません）。<br>
+          ⚙ MagiBurst：<b>オートエイムビット</b>の威力（×0.17 → ×0.13）と連射の速さ（9F → 13F）を下げました。
+        </div>
+      </div>
+    </div>
 
     <!-- 2026-08-10 ガチャ統合（XEVAガチャ → MagiBurst のガチャに一本化） -->
     <div class="nm-item" data-tag="update" data-date="2026-08-10">

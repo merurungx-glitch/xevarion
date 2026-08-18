@@ -46,7 +46,6 @@ try { DB = Object.assign(DB, JSON.parse(localStorage.getItem(SAVE_KEY) || "{}"))
 if (DB.owner && ACC && ACC.xvUid && DB.owner !== ACC.xvUid) DB = freshDB();
 ["chars", "items", "hero", "trans", "fruits", "equip", "equip2", "equip3", "fav"]
   .forEach((k) => { if (!DB[k]) DB[k] = {}; });
-if (typeof DB.fesTicket !== "number") DB.fesTicket = 0;
 /* ★ ジェムは XEVARION 共通ウォレット（xeva_gem_v1）が持ち主。MagiBurst と同じ橋渡しを張る。
    enumerable:false なので JSON.stringify(DB) には出ない＝セーブに二重で入らない。 */
 (function () {
@@ -57,6 +56,24 @@ if (typeof DB.fesTicket !== "number") DB.fesTicket = 0;
     get() { return G.get(); },
     set(v) { const n = Math.max(0, Math.round(Number(v) || 0)), c = G.get();
       if (n === c) return; if (n > c) G.add(n - c, "MagiBurst"); else G.spend(c - n, "MagiBurst"); } });
+})();
+/* ★ 2026-08-13 🎫チケットも共通ウォレットが持ち主。<b>2種類ある</b>ので橋渡しも2本。
+     DB.fesTicket … フェスチケット（xeva_fticket_v1・フェスガチャ専用）
+     DB.gTicket   … ガチャチケット（xeva_gticket_v1・どのガチャでも使える）
+   ガチャはこのポータル側にあるので、ここが実際にチケットを消費する場所になる。 */
+(function () {
+  const bridge = (prop, wallet, legacy, label) => {
+    delete DB[prop];
+    if (!wallet) { DB[prop] = legacy || 0; return; }
+    if (legacy) wallet.migrateOnce("magiburst_fesTicket", legacy, "🎫フェスチケットを XEVARION 共通ウォレットへ移行");
+    Object.defineProperty(DB, prop, { enumerable: false, configurable: true,
+      get() { return wallet.get(); },
+      set(v) { const n = Math.max(0, Math.round(Number(v) || 0)), c = wallet.get();
+        if (n === c) return; if (n > c) wallet.add(n - c, label); else wallet.spend(c - n, label); } });
+  };
+  const X = window.XEVA || {};
+  bridge("fesTicket", X.fesTicket, Math.max(0, Math.round(Number(DB.fesTicket) || 0)), "ガチャ（フェス券）");
+  bridge("gTicket", X.ticket, 0, "ガチャ（ガチャ券）");
 })();
 function save() { try { if (ACC && ACC.xvUid) DB.owner = ACC.xvUid; localStorage.setItem(SAVE_KEY, JSON.stringify(DB)); } catch (e) {} }
 function saveNow() {
@@ -74,8 +91,8 @@ function mbReloadFromStore() {
   try {
     const raw = JSON.parse(localStorage.getItem(SAVE_KEY) || "null");
     if (!raw || typeof raw !== "object") return;
-    /* orbs は共通ウォレット（xeva_gem_v1）が持ち主。ここで書き戻すと残高が巻き戻る */
-    Object.keys(raw).forEach((k) => { if (k !== "orbs") DB[k] = raw[k]; });
+    /* orbs（💎）・fesTicket・gTicket（🎫2種）は共通ウォレットが持ち主。書き戻すと残高が巻き戻る */
+    Object.keys(raw).forEach((k) => { if (k !== "orbs" && k !== "fesTicket" && k !== "gTicket") DB[k] = raw[k]; });
     if (typeof paintWallet === "function") paintWallet();
     if (typeof renderChars === "function") renderChars();
     if (typeof paintGacha === "function") paintGacha();
@@ -171,6 +188,7 @@ function paintGachaStick() {}
 function renderShopBuy() {}
 function luxBurst() {}
 function spawnSparks() {}
+/* 🎫の残高（mb-core.js の同名関数を上書き。中身は共通ウォレット） */
 function fesTickets() { return DB.fesTicket | 0; }
 function ratePct(v) { return (Math.round(v * 10000) / 100) + "%"; }
 let _dlgRes = null;

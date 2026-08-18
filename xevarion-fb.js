@@ -638,6 +638,255 @@ async function jackpotWinners(n) {
   } catch (e) { return []; }
 }
 
+/* ════════════════════════════════════════════════════════════
+   Magi Lotto（デジタル宝くじ）— サーバー側の抽選まわり（2026-08-13）
+   ────────────────────────────────────────────────────────────
+   ★ ここが「抽選をサーバーで決める」ための土台。
+     この製品には Cloud Functions が無く、使えるのは Realtime Database だけなので、
+     <b>クライアントに選べない値でしか結果が決まらない</b>ようにして同じ性質を作る。
+
+     ① 購入は「作るだけ・書き換え不可（create-only）」のノードに1回で書きこむ。
+        中身は「どのゲームを・いくらで・どの数字で買ったか」＋ at: serverTimestamp()。
+        ルールで <b>すでにある tx は上書きも削除もできない</b>ようにしてあるので、
+        同じ txId で引き直すことはできない（＝二重購入・引き直しの両方を防ぐ）。
+     ② 書きこんだあとに読み返すと、at が<b>サーバーの時刻</b>に解決されている。
+        これはクライアントが選べない値。<b>賭けを確定させたあとでしか分からない</b>。
+     ③ 結果は sha256(uid + txId + serverAt + salt) から決める。
+        salt はその抽選回のもの（draws/{period}/salt）で、これもサーバーに1回だけ書かれる。
+        → 出目はクライアントの乱数を1ビットも使わない。あとから誰でも検算できる。
+     ④ 結果は tx/{txId}/result へ（これも create-only）。
+        ここに書いてから通貨を動かすので、<b>通信が切れても結果と報酬は失われない</b>
+        （次に開いたときに未精算ぶんを拾う）。
+
+   ★ プール（Magi Grand Draw の賞金）は全員で共有する1本。
+     runTransaction で積み・払い出すので、同時に当てても払い出しは1回だけ。
+   ════════════════════════════════════════════════════════════ */
+const ML_NODE = "magilotto";
+
+/* sha256 → 16進文字列（結果の決定に使う。誰でも同じ手順で検算できる） */
+async function mlHash(s) {
+  try {
+    const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(String(s)));
+    return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, "0")).join("");
+  } catch (e) { return ""; }
+}
+
+/* ── 購入を1回だけ書きこむ（create-only）──
+   戻り値 { ok, at }。at はサーバーが入れた時刻（結果を決める種）。
+   すでに同じ txId があれば、そのときの at をそのまま返す（＝二重購入にならない）。 */
+async function mlCommit(uid, txId, body) {
+  if (!uid || !txId) return { error: "arg" };
+  const p = ML_NODE + "/users/" + uid + "/tx/" + txId;
+  try {
+    const cur = await get(ref(db, p));
+    if (cur.exists()) {
+      const v = cur.val() || {};
+      return { ok: true, at: v.at || 0, dup: true, result: v.result || null };
+    }
+    await set(ref(db, p), Object.assign({}, body, { at: serverTimestamp() }));
+    const back = await get(ref(db, p));
+    const v = back.val() || {};
+    return { ok: true, at: v.at || 0, dup: false };
+  } catch (e) { return { error: "net" }; }
+}
+
+/* ── 決まった結果を書き残す（create-only）── */
+async function mlCommitResult(uid, txId, result) {
+  if (!uid || !txId) return { error: "arg" };
+  const p = ML_NODE + "/users/" + uid + "/tx/" + txId + "/result";
+  try {
+    const cur = await get(ref(db, p));
+    if (cur.exists()) return { ok: true, dup: true, result: cur.val() };
+    await set(ref(db, p), result);
+    return { ok: true, dup: false };
+  } catch (e) { return { error: "net" }; }
+}
+
+/* ── 精算済みの印（報酬を実際にウォレットへ入れたら立てる）── */
+async function mlMarkPaid(uid, txId) {
+  if (!uid || !txId) return { error: "arg" };
+  try { await set(ref(db, ML_NODE + "/users/" + uid + "/tx/" + txId + "/paid"), serverTimestamp()); return { ok: true }; }
+  catch (e) { return { error: "net" }; }
+}
+
+/* ── まだ精算していない購入を拾う（通信が切れた・アプリを閉じた回の救済）── */
+async function mlPending(uid, max) {
+  if (!uid) return [];
+  try {
+    const s = await get(ref(db, ML_NODE + "/users/" + uid + "/tx"));
+    const out = [];
+    s.forEach((c) => { const v = c.val() || {}; if (v.result && !v.paid) out.push(Object.assign({ id: c.key }, v)); });
+    out.sort((a, b) => (a.at || 0) - (b.at || 0));
+    return out.slice(0, max || 50);
+  } catch (e) { return []; }
+}
+
+/* ── その抽選回（日付）の塩。1回だけ書かれ、以後は全員が同じ値を読む ──
+   ★ これがあるおかげで「同じ txId・同じ時刻」でも回ごとに出目が変わる。 */
+async function mlSalt(period) {
+  const p = ML_NODE + "/salt/" + String(period || "").replace(/[.$#\[\]\/]/g, "-");
+  try {
+    const s = await get(ref(db, p));
+    const v = s.val();
+    if (typeof v === "string" && v) return v;
+    /* まだ無ければ作る。同時に2人が来ても runTransaction で1つに決まる */
+    let made = "";
+    await runTransaction(ref(db, p), (cur) => {
+      if (typeof cur === "string" && cur) { made = cur; return; }
+      const a = new Uint32Array(4); crypto.getRandomValues(a);
+      made = Array.from(a).map((x) => x.toString(16).padStart(8, "0")).join("");
+      return made;
+    });
+    return made || "";
+  } catch (e) { return ""; }
+}
+
+/* ── Magi Grand Draw の当せん番号（毎月1日・16日）──
+   その回の分が無ければ、塩から決めて1回だけ書く。以後は全員がその値を読む。
+   nums は「メイン3個（1〜range）＋MAGIボール1個」。 */
+async function mlGrandDraw(period, range, mainN) {
+  const key = String(period || "").replace(/[.$#\[\]\/]/g, "-");
+  const p = ML_NODE + "/draws/" + key;
+  try {
+    const s = await get(ref(db, p));
+    if (s.exists()) return s.val();
+  } catch (e) { return null; }
+  const salt = await mlSalt("grand:" + key);
+  if (!salt) return null;
+  const h = await mlHash("grand|" + key + "|" + salt);
+  if (!h) return null;
+  /* 16進のハッシュから、重複しない番号を順に取り出す（誰が計算しても同じ結果） */
+  const R = Math.max(4, range | 0), N = Math.max(1, mainN | 0);
+  const main = [];
+  let i = 0;
+  while (main.length < N && i < 30) {
+    const v = parseInt(h.substr(i * 4, 4), 16) % R + 1;
+    if (main.indexOf(v) < 0) main.push(v);
+    i++;
+  }
+  main.sort((a, b) => a - b);
+  let magi = 0;
+  for (let k = 0; k < 30 && !magi; k++) {
+    const v = parseInt(h.substr(60 + (k % 4) * 4 + k, 4) || h.substr(0, 4), 16) % R + 1;
+    if (main.indexOf(v) < 0) magi = v;
+  }
+  if (!magi) magi = (main[0] % R) + 1;
+  const val = { main, magi, salt, at: Date.now() };
+  try {
+    /* すでに誰かが書いていたら、そちらを正とする（＝全員おなじ番号になる） */
+    let stored = null;
+    await runTransaction(ref(db, p), (cur) => { if (cur) { stored = cur; return; } return val; });
+    return stored || val;
+  } catch (e) { return val; }
+}
+
+/* ── 賞金プール（全員で共有する1本）── */
+async function mlPoolAdd(amount) {
+  amount = Math.max(0, Math.round(amount || 0));
+  if (!amount) return { ok: true };
+  try { await runTransaction(ref(db, ML_NODE + "/pool/amount"), (cur) => (cur || 0) + amount); return { ok: true }; }
+  catch (e) { return { error: "net" }; }
+}
+function mlPoolWatch(cb, onErr) {
+  try {
+    return onValue(ref(db, ML_NODE + "/pool/amount"), (s) => {
+      const v = s.val(); cb(typeof v === "number" ? v : 0);
+    }, (err) => { if (onErr) { try { onErr(err); } catch (e) {} } });
+  } catch (e) { if (onErr) { try { onErr(e); } catch (e2) {} } return function () {}; }
+}
+async function mlPoolGet() {
+  try { const s = await get(ref(db, ML_NODE + "/pool/amount")); const v = s.val(); return typeof v === "number" ? v : 0; }
+  catch (e) { return null; }
+}
+/* 抽選回ごとの運営上乗せ。印（seedPeriod）を取り合って、1回だけ入れる。
+   ★ ceiling を渡すと「プールがそこに届いていないぶんだけ」積む。
+     運営の役目は最低保証を必ず用意することなので、そこから上は積まない
+     （無制限に積むと、遊ばなくてもプールが育って 1等の期待値だけで還元率が 100% を超える）。 */
+async function mlPoolSeed(amount, period, ceiling) {
+  amount = Math.max(0, Math.round(amount || 0));
+  if (!amount || !period) return { seeded: false };
+  /* 先に「積む必要があるか」を見る（印を無駄に消費しないため） */
+  let add = amount;
+  if (ceiling != null) {
+    try {
+      const s = await get(ref(db, ML_NODE + "/pool/amount"));
+      const cur = typeof s.val() === "number" ? s.val() : 0;
+      add = Math.min(amount, Math.max(0, Math.round(ceiling) - cur));
+    } catch (e) { return { seeded: false, error: "net" }; }
+    if (add <= 0) return { seeded: false, full: true };
+  }
+  let mine = false;
+  try {
+    const r = await runTransaction(ref(db, ML_NODE + "/pool/seedPeriod"), (cur) => {
+      if (cur === period) return;      // もう誰かが入れた
+      mine = true; return period;
+    });
+    if (!r || !r.committed || !mine) return { seeded: false };
+  } catch (e) { return { seeded: false }; }
+  const a = await mlPoolAdd(add);
+  if (a && a.error) return { seeded: false, error: a.error };
+  return { seeded: true, amount: add };
+}
+/* 1等の払い出し。プールを空にして、そのとき入っていた額（最低保証で底上げ）を返す。 */
+async function mlPoolClaim(uid, name, minGuarantee) {
+  const floor = Math.max(0, Math.round(minGuarantee || 0));
+  let won = 0;
+  try {
+    await runTransaction(ref(db, ML_NODE + "/pool/amount"), (cur) => {
+      const v = typeof cur === "number" ? cur : 0;
+      won = Math.max(floor, Math.floor(v));   // 足りない分は運営が保証する
+      return 0;
+    });
+  } catch (e) { return 0; }
+  if (won > 0 && uid) {
+    try { await push(ref(db, ML_NODE + "/wins"), { uid, name: String(name || "?").slice(0, 20), amount: won, ts: serverTimestamp() }); } catch (e) {}
+  }
+  return won;
+}
+async function mlWinners(n) {
+  try {
+    const s = await get(ref(db, ML_NODE + "/wins"));
+    const rows = [];
+    s.forEach((c) => { const v = c.val() || {}; rows.push({ name: v.name || "?", amount: v.amount || 0, ts: v.ts || 0 }); });
+    rows.sort((a, b) => (b.ts || 0) - (a.ts || 0));
+    return rows.slice(0, n || 10);
+  } catch (e) { return []; }
+}
+
+/* ── 運営の設定（販売価格・確率・報酬・最低保証）──
+   管理画面から書き、全端末が読む。無ければ ml-core.js の既定値を使う。 */
+async function mlGetConfig() {
+  try { const s = await get(ref(db, ML_NODE + "/cfg")); return s.exists() ? s.val() : null; }
+  catch (e) { return null; }
+}
+async function mlSetConfig(cfg) {
+  try { await set(ref(db, ML_NODE + "/cfg"), Object.assign({}, cfg, { updatedAt: serverTimestamp() })); return { ok: true }; }
+  catch (e) { return { error: "net" }; }
+}
+/* ── 実測（総購入額・総払戻額・当選ランクごとの回数）。管理画面の「実測還元率」用 ── */
+async function mlStatAdd(game, wagered, won, tier) {
+  try {
+    const base = ML_NODE + "/stats";
+    const ops = [
+      runTransaction(ref(db, base + "/wagered"), (c) => (c || 0) + Math.round(wagered || 0)),
+      runTransaction(ref(db, base + "/won"), (c) => (c || 0) + Math.round(won || 0)),
+      runTransaction(ref(db, base + "/plays"), (c) => (c || 0) + 1),
+    ];
+    if (game) {
+      ops.push(runTransaction(ref(db, base + "/byGame/" + game + "/wagered"), (c) => (c || 0) + Math.round(wagered || 0)));
+      ops.push(runTransaction(ref(db, base + "/byGame/" + game + "/won"), (c) => (c || 0) + Math.round(won || 0)));
+      ops.push(runTransaction(ref(db, base + "/byGame/" + game + "/plays"), (c) => (c || 0) + 1));
+    }
+    if (tier) ops.push(runTransaction(ref(db, base + "/tiers/" + game + "_" + tier), (c) => (c || 0) + 1));
+    await Promise.all(ops);
+    return { ok: true };
+  } catch (e) { return { error: "net" }; }
+}
+async function mlGetStats() {
+  try { const s = await get(ref(db, ML_NODE + "/stats")); return s.exists() ? s.val() : null; }
+  catch (e) { return null; }
+}
+
 /* 到達号車ランキング（多い順） */
 async function getBurstRanking() {
   try {
@@ -1013,6 +1262,10 @@ window.XEVARIONFB = {
   submitBurstCar, getBurstRanking,
   // MagiJackpot プログレッシブ・ジャックポット（全員で共有）
   jackpotAdd, jackpotDailySeed, jackpotWatch, jackpotGet, jackpotClaim, jackpotWinners,
+  // Magi Lotto（サーバー抽選・共有プール・運営設定・実測還元率）
+  mlHash, mlCommit, mlCommitResult, mlMarkPaid, mlPending, mlSalt, mlGrandDraw,
+  mlPoolAdd, mlPoolWatch, mlPoolGet, mlPoolSeed, mlPoolClaim, mlWinners,
+  mlGetConfig, mlSetConfig, mlStatAdd, mlGetStats,
   getAllAccounts, deleteAccount, deleteAccountByName, touchLastLogin,
   getMaintenance, setMaintenance,
   // アプリ個別メンテナンス

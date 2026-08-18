@@ -41,10 +41,15 @@ function paintGacha() { paintAll(); }
 /* mb-core の revealGacha が呼ぶ（MagiBurst では図鑑と編成を描き直す）。ここでは不要 */
 function renderTeam() {}
 
-/* ══════════ ウォレット ══════════ */
+/* ══════════ ウォレット ══════════
+   ★ 2026-08-13 チケットは2種類（フェス専用／全ガチャ共通）。
+     数字だけ並べても見分けられないので、券面のミニ絵を添える。 */
 function paintWal() {
   $("#walGem").textContent = fmt(DB.orbs);
   $("#walTkt").textContent = fmt(fesTickets());
+  const g = $("#walGtk"); if (g) g.textContent = fmt(gachaTickets());
+  const fi = $("#walFesIc"); if (fi && !fi.innerHTML) fi.innerHTML = fesTicketSVG(13);
+  const gi = $("#walGacIc"); if (gi && !gi.innerHTML) gi.innerHTML = gachaTicketSVG(13);
 }
 
 /* ══════════ ガチャえらび ══════════ */
@@ -208,16 +213,24 @@ window.closeRes = closeRes;
 /* ══════════ 説明 ══════════ */
 function paintNote() {
   const s4 = STAR4_POOL.length;
+  /* 🎫の案内。★ 2026-08-13 チケットは2種類になった（フェス専用／全ガチャ共通） */
+  const tktLine = gMode === "premium"
+    ? `🎫 <b>ガチャチケット</b>を持っているときは<b>チケットから先に</b>使います（1枚＝1回ぶん）。
+       足りない分だけ<i class='icc ic-gem'></i>ジェムを消費します。
+       <b>フェスチケットはここでは使えません</b>（フェスガチャ専用です）。`
+    : `🎫 消費の順は <b>フェスチケット → ガチャチケット → <i class='icc ic-gem'></i>ジェム</b>（どちらも1枚＝1回ぶん）。
+       <b>フェスチケット</b>はどのフェスでも、<b>ガチャチケット</b>はどのガチャでも使えます。`;
   if (gMode === "premium") {
     $("#gnote").innerHTML = `<b>★5 合計10%</b>（ピックアップ ${ratePct(pickupRate())}／ほかは各 ${ratePct(otherRate())}）
       ／ <b>★4 合計55%</b>（${s4}体で等分・各 ${ratePct(0.55 / s4)}）／ <b>育成アイテム 35%</b>。<br>
+      ${tktLine}<br>
       <b>10連は最後の1枠が★5確定</b>。同じキャラを引くと<b>限界突破（最大${MAX_AWK}）</b>になり、
       限界突破MAXのキャラは排出対象から外れます。<br>
       ★ 所持キャラ・限界突破・<i class='icc ic-gem'></i>ジェムは <b>MagiBurst と共通</b>です。`;
   } else {
     const f = fesDef(gMode);
     $("#gnote").innerHTML = `${f.sub}<br>
-      🎫 <b>フェス限定ガチャチケット</b>を持っているときは<b>チケットから優先して</b>使います（どのフェスでも共通）。<br>
+      ${tktLine}<br>
       <b>10連は最後の1枠が★5確定</b>（このフェスの限定★5＋プレミアム★5から等確率）。`;
   }
 }
@@ -231,19 +244,19 @@ function paintPullBar() {
   const bar = $("#pullbar"); if (!bar) return;
   const fes = gMode !== "premium";
   const locked = fes && fesLocked(gMode);
-  const tkt = fesTickets();
-  const cost = (n) => {
-    if (!fes) return { gem: n * 5, tkt: 0 };
-    const useT = Math.min(tkt, n * FES_TICKET_COST);
-    return { gem: (n - Math.floor(useT / FES_TICKET_COST)) * 5, tkt: useT };
-  };
+  /* ★ 値段の見積もりは mb-core.js の gachaCost() ひとつに任せる
+     （ここで計算し直すと、実際に払う payGacha と食いちがう）。
+     消費の順は フェス券 → ガチャ券 → 💎ジェム。プレミアムではフェス券は使わない。 */
   const btn = (n, cls, label) => {
-    const c = cost(n);
-    const ok = !locked && DB.orbs >= c.gem;
+    const c = gachaCost(n, fes);
+    const ok = !locked && DB.orbs >= c.gems;
     /* ★ 2026-08-10 ジェムは絵文字（💎）ではなく XEVARION 共通のアイコンで出す */
     const gemIc = "<i class='icc ic-gem'></i>";
-    const price = c.tkt ? `🎫${c.tkt}${c.gem ? " +" + gemIc + c.gem : ""}` : `${gemIc}${c.gem}`;
-    return `<button class="pbtn ${cls}" ${ok ? "" : "disabled"} onclick="pull(${n})"><b>${label}</b><small>${price}</small></button>`;
+    const p = [];
+    if (c.fes) p.push(`<i class="pf">F</i>${c.fes}`);
+    if (c.tickets) p.push(`<i class="pg">G</i>${c.tickets}`);
+    if (c.gems || !p.length) p.push(`${gemIc}${c.gems}`);
+    return `<button class="pbtn ${cls}" ${ok ? "" : "disabled"} onclick="pull(${n})"><b>${label}</b><small>${p.join(" ＋ ")}</small></button>`;
   };
   bar.innerHTML = locked
     ? `<div style="grid-column:1/-1;text-align:center;font-size:12px;font-weight:900;color:#6f82ad;padding:12px">⏳ ${fesOpenText(fesDef(gMode))}</div>`
@@ -297,6 +310,13 @@ function rateHeadRow(tx, rate, c) {
   return `<div class="rthead" style="${c ? "color:" + c : ""}"><span>${tx}</span>${rate ? "<i>" + rate + "</i>" : ""}</div>`;
 }
 function rateNoteRow(tx) { return `<div class="rtnote">${tx}</div>`; }
+/* ★ 2026-08-13 🎫は2種類になった。提供割合の下に出す共通の注記。 */
+const TKT_NOTE = "※ 🎫チケットは<b>2種類</b>あります。"
+  + "<b>フェスチケット</b>は<b>フェスガチャ専用</b>（どのフェスでも使えます）、"
+  + "<b>ガチャチケット</b>は<b>プレミアムでも各フェスでも</b>使えます（どちらも1枚＝1回ぶん）。<br>"
+  + "回すときは <b>フェスチケット → ガチャチケット → <i class='icc ic-gem'></i>ジェム</b> の順に消費します"
+  + "（フェス専用のほうから先に使わないと、余ってしまうため）。"
+  + "XEVARION の📧メールやジェムショップで受け取ったぶんは<b>その場ですぐ使えます</b>。";
 /* 育成アイテム。★ アイコンは MagiBurst と同じ自作SVG（itemIcon）にそろえてある
    （以前はこの画面だけ 🍐 📕 の絵文字で、MagiBurst の絵と食いちがっていた） */
 function rateItemRows(total) {
@@ -336,7 +356,7 @@ function openRatesX() {
     rows.push(rateHeadRow("🎯 10連の★5確定枠（最後の1枠・" + sure.length + "体から等確率）", "", f.c));
     sure.forEach((id) => rows.push(rateCharRow(id, sure.length ? 1 / sure.length : 0, CHARS[id].fes ? "フェス限定★5" : "プレミアム★5")));
     rows.push(rateNoteRow("※ <b>ピックアップはありません</b>。フェス限定★5の合計10%を排出対象で等分します。"));
-    rows.push(rateNoteRow("※ 🎫<b>フェス限定ガチャチケット</b>を持っているときは<b>チケットから優先して</b>使います。足りない分だけ<i class='icc ic-gem'></i>ジェムを消費します（チケットは<b>どのフェスでも共通</b>）。"));
+    rows.push(rateNoteRow(TKT_NOTE));
   } else {
     const pick = curPickup();
     rows.push(rateHeadRow("<i class='icc ic-gem'></i> プレミアムセレクトガチャ（1回 5 ／ 5連 25 ／ 10連 50・★5確定）", "", "#d97800"));
@@ -358,6 +378,7 @@ function openRatesX() {
       id === pick ? "<b style='color:#e0405e'>PICKUP</b>" : "★5 ガチャ限定")));
     rows.push(rateNoteRow("※ <b>10連は「最後の1枠」が★5確定</b>です（前半9回も通常抽選なので、そこでも★5は出ます）。<b>確定枠は排出対象の★5がすべて同じ確率</b>で、<b>ピックアップの優遇はありません</b>（限界突破MAXのキャラは除外）。"));
     rows.push(rateNoteRow("※ 限界突破MAX（👑）のキャラは排出対象から外れ、その分は残りの★5に配分されます（★5合計は常に10%）。"));
+    rows.push(rateNoteRow(TKT_NOTE));
   }
   rows.push(rateNoteRow("※ 同じキャラを引くと<b>限界突破</b>（最大" + MAX_AWK + "）になります。所持キャラ・限界突破・<i class='icc ic-gem'></i>ジェムは <b>MagiBurst と共通</b>です。"));
   rows.push(rateNoteRow("※ キャラの行を押すと、そのキャラの<b>性能</b>が見られます。"));
@@ -374,4 +395,8 @@ function paintAll() {
   paintWal(); paintPicker(); paintHero(); paintPickup(); paintNote(); paintPullBar();
 }
 window.addEventListener("xeva:change", () => { paintWal(); paintPullBar(); });
+/* 💎ジェム・🎫チケットは XEVARION 共通ウォレット。別タブや同期で動いたら値段表示もそろえる */
+window.addEventListener("xeva:gem", () => { paintWal(); paintPullBar(); });
+window.addEventListener("xeva:ticket", () => { paintWal(); paintPullBar(); });
+window.addEventListener("xeva:festicket", () => { paintWal(); paintPullBar(); });
 paintAll();

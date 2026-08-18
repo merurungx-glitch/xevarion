@@ -36,6 +36,16 @@ export const PORTAL_SYNC_KEYS = [
        別プロジェクトに分かれていると XEVA とジェムのタイムスタンプ基準がそろわず、
        「XEVA だけ減ってジェムが増えない」（iPhone で顕著）が起きる。 */
   "xeva_gem_v1",
+  /* 🎫チケット（2026-08-13）。もとは MagiBurst のセーブ（magiburst_v1.fesTicket）の
+     中にあり、📧メールで配っても「次に MagiBurst を開くまで届かない」状態だった。
+     ガチャが XEVARION へ移ったので、残高も XEVARION 側に置く。
+     ★ 2種類ある。混ぜないこと。
+         xeva_fticket_v1 … フェスチケット（フェスガチャ専用・従来からあるもの）
+         xeva_gticket_v1 … ガチャチケット（プレミアムでも各フェスでも使える・新設）
+     ★ ジェムと同じ理由で xeva-cloud.js の URGENT_KEYS にも入れること
+       （配布→即使用、が普通に起きるので送信の遅れが致命的）。 */
+  "xeva_fticket_v1",
+  "xeva_gticket_v1",
   "xeva_gacha_v1",          // XEVAガチャの所持キャラ・凸・ポイント
   "xeva_collection_v1",
   "xeva_limited_v1",
@@ -69,6 +79,10 @@ export const PORTAL_SYNC_KEYS = [
   "magiempire_board_save_v1", "magiempire_names",
   "magiport_v1",
   "magijackpot_v1", "mj_party_links_v1",
+  /* Magi Lotto（2026-08-13）。履歴・集計・FREE MAGI の日付・
+     MAGI GRAND DRAW の受付中の口。★ 端末をまたいで同じでないと
+     「別の端末で買った口が消える」「無料が1日2回引ける」が起きるので必ず同期する。 */
+  "magilotto_v1",
   "magimuse_v1",
   "magiarena.save.v2", "magiarena.names.v1",
   "magifinance_v2_store", "magifinance_prime_list_v2",
@@ -106,6 +120,10 @@ export const ACCOUNT_LOCAL_KEYS = [
   "ml_accessed_v1",
   "ml_avatar_synced_v2",
   "sg_ob_seen",
+  /* Magi Lotto の「支払い済み・結果まだ」の控え。
+     ★ その端末で払ったぶんの後始末なので同期はしない（同期すると別端末で二重に精算しかねない）。
+       ただしアカウントのお金に関わるので、ログアウトのときは消す。 */
+  "ml_pending_v1",
 ];
 
 /* ── ④ 端末そのものの設定・状態（ログアウトしても消さない）──

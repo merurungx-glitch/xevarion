@@ -37,13 +37,14 @@
     {id:"nana",  name:"ナナ",  file:"../img/Nana.webp",   rarity:"SSR",season:3},
     {id:"rea",   name:"レア",  file:"../img/Rea.webp",    rarity:"SSR",season:4},
     {id:"rinon", name:"リノン",file:"../img/RinonX.webp",  rarity:"SSR",season:4},
-    // Bシリーズ（series:"B"。Aシリーズはシーズン1〜4＝series未指定）
-    // ※ MagiBurst と連携する4人（クロスガチャ）。所持状況・凸(最大4)は MagiBurst と共有。
-    //   アリサは旧A-S5から移籍（IDは据え置き＝所持状況・MagiBattle性能はそのまま）
-    {id:"mion",  name:"ミオン",file:"../img/Mion.webp",   rarity:"SSR",season:1,series:"B"},
-    {id:"kokona",name:"ココナ",file:"../img/Kokona.webp", rarity:"SSR",season:2,series:"B"},
-    {id:"mao",   name:"マオ",  file:"../img/Mao.webp",    rarity:"SSR",season:3,series:"B"},
-    {id:"arisa", name:"アリサ",file:"../img/Arisa.webp",  rarity:"SSR",season:4,series:"B"},
+    // ★ 2026-08-16 A／Bシリーズという区分はもう無いので series を廃止し、
+    //   旧Bシリーズのシーズン1〜4を、通しのシーズン5〜8に付け替えた。
+    //   （IDは据え置き＝所持状況・凸・MagiBattle性能はそのまま）
+    // ※ MagiBurst と連携する4人。所持状況・凸(最大4)は MagiBurst と共有。
+    {id:"mion",  name:"ミオン",file:"../img/Mion.webp",   rarity:"SSR",season:5},
+    {id:"kokona",name:"ココナ",file:"../img/Kokona.webp", rarity:"SSR",season:6},
+    {id:"mao",   name:"マオ",  file:"../img/Mao.webp",    rarity:"SSR",season:7},
+    {id:"arisa", name:"アリサ",file:"../img/Arisa.webp",  rarity:"SSR",season:8},
     {id:"ayaka", name:"アヤカ",file:"../img/Ayaka.webp", rarity:"SSR",season:0,cdk:true},
     // 報酬キャラ（ガチャ排出なし・season:0）。MagiLex 30コンテンツ完全習得で解放、35/40/45/50でさらに凸。
     // MagiBurst・MagiBattle・アイコンなど全コンテンツで使用可。
@@ -51,20 +52,38 @@
   ];
 
   /* スターターミッション（アプリを1回さわってみる系）。
-     達成は各アプリの XEVA.completeMission(id) から。report は表示用のメタ（xevarion.js の MISSION_META）。 */
+     達成は各アプリの XEVA.completeMission(id) から。report は表示用のメタ（xevarion.js の MISSION_META）。
+
+     ★ ミッションを足すときの決まり（2026-08-15 に総点検した）
+       ① ここに1行足す
+       ② xevarion.js の MISSION_META にも同じ id で1行足す（無いとアイコンが 🎯 になる）
+       ③ そのアプリの中で XEVA.completeMission("id") を呼ぶ
+       ③を忘れると「永久に達成できないミッション」が一覧に並ぶ。
+       実際 magijackpot_play と xevynar_ask がその状態だったので、
+       2026-08-15 に全アプリぶんを配線しなおした。
+       ★ 呼び出し側が xeva.js を読んでいない場合は <script src="../xeva.js"> も必要。 */
   var MISSIONS = {
-    magilex_play:        { reward: 200, title: "MagiLex で問題にチャレンジしよう",        app: "MagiLex" },
+    /* ── 遊ぶ ── */
     magiburst_play:      { reward: 200, title: "MagiBurst でクエストをクリアしよう",      app: "MagiBurst" },
     magibattle_win:      { reward: 200, title: "MagiBattle でバトルに勝利しよう",         app: "MagiBattle" },
     magichainparty_play: { reward: 150, title: "MagiChainParty で対戦してみよう",         app: "MagiChainParty" },
     magiempire_play:     { reward: 150, title: "MagiEmpire で国盗り対戦をしよう",         app: "MagiEmpire" },
+    magiarena_play:      { reward: 150, title: "MagiArena で1台対戦をあそぼう",           app: "MagiArena" },
     magidiamond_play:    { reward: 150, title: "MagiDiamond で読み合い野球盤を遊ぼう",    app: "MagiDiamond" },
     magimanor_play:      { reward: 150, title: "MagiManor で洋館を探索しよう",            app: "MagiManor" },
-    magifocus_study:     { reward: 200, title: "MagiFocus で集中セッションを完了しよう",  app: "MagiFocus" },
-    magilink_register:   { reward: 150, title: "MagiLink に登録して友達とつながろう",     app: "MagiLink" },
-    magiportfolio_add:   { reward: 150, title: "MagiPortfolio に銘柄を追加しよう",        app: "MagiPortfolio" },
+    magicraft_play:      { reward: 150, title: "MagiCraft でブロックを掘ってみよう",      app: "MagiCraft" },
     magijackpot_play:    { reward: 200, title: "MagiJackpot でゲームを1回プレイしよう",   app: "MagiJackpot" },
-    xevynar_ask:         { reward: 150, title: "XEVYNAR に質問してみよう",                app: "XEVYNAR" }
+    magilotto_buy:       { reward: 200, title: "Magi Lotto でくじを1枚買ってみよう",      app: "MagiLotto" },
+    /* ── 学ぶ ── */
+    magilex_play:        { reward: 200, title: "MagiLex で問題にチャレンジしよう",        app: "MagiLex" },
+    magifocus_study:     { reward: 200, title: "MagiFocus で集中セッションを完了しよう",  app: "MagiFocus" },
+    xevynar_ask:         { reward: 150, title: "XEVYNAR に質問してみよう",                app: "XEVYNAR" },
+    /* ── つながる・情報 ── */
+    magilink_register:   { reward: 150, title: "MagiLink に登録して友達とつながろう",     app: "MagiLink" },
+    magiranking_check:   { reward: 100, title: "MagiRanking で今月の順位を見てみよう",    app: "MagiRanking" },
+    magiportfolio_add:   { reward: 150, title: "MagiPortfolio に銘柄を追加しよう",        app: "MagiPortfolio" },
+    magitier_make:       { reward: 150, title: "MagiTier で Tier表をつくってみよう",      app: "MagiTier" },
+    magimusic_play:      { reward: 100, title: "MagiMusic で1曲さいせいしてみよう",       app: "MagiMusic" }
     /* ※ magisharecore_play / magimuse_play は 2026-07-29 のサービス終了にともない削除 */
   };
 
@@ -227,6 +246,114 @@
     }
   };
 
+  /* ════════════ 🎫チケット — XEVARION 共通（2026-08-13） ════════════
+     ★ なぜ XEVARION 側に移したか
+       もともと置き場所は MagiBurst のセーブ（magiburst_v1.fesTicket）の中だけだった。
+       そのため 📧メールやジェムショップで配っても直接は足せず、いったん
+       「引換券（xeva_mbgift_v1）」に積んでおいて<b>次に MagiBurst を開いたとき</b>に
+       精算する、という遠回りをしていた。ガチャそのものが XEVARION へ移った以上、
+       この遠回りは説明もできないし、「受け取ったのに増えていない」の元でしかない。
+       → 残高をアカウント側の同期キーへ移し、XEVA・💎ジェムと同じ経路で同期する。
+         これで <b>XEVARION のメールで受け取った瞬間に使えるようになる</b>。
+
+     ★ チケットは<b>2種類ある</b>（ここを混ぜないこと）
+         ① フェスチケット（xeva_fticket_v1 / XEVA.fesTicket）
+            … 従来からあるもの。<b>フェスガチャ専用</b>（どのフェスでも使える）。
+         ② ガチャチケット（xeva_gticket_v1 / XEVA.ticket）
+            … 2026-08-13 に新設。<b>プレミアムでも各フェスでも</b>使える。
+       フェスガチャでの消費順は <b>フェス → ガチャ → ジェム</b>。
+       専用のほうから先に使わないと、フェスでしか使えないチケットが余ってしまう。
+
+     形: { balance, used, history:[{amount,reason,t}], mig:{ タグ:1 }, at } */
+  var TKT_KEY = "xeva_gticket_v1";     // ガチャチケット（全ガチャ共通）
+  var FTK_KEY = "xeva_fticket_v1";     // フェスチケット（フェス専用）
+  /* 2種類とも中身はまったく同じ作りなので、キーを渡して作る */
+  function makeTicketWallet(KEY, evName) {
+    function fresh() { return { balance: 0, used: 0, history: [], mig: {}, at: 0 }; }
+    function load() {
+      try {
+        var r = localStorage.getItem(KEY);
+        if (r) {
+          var s = JSON.parse(r);
+          if (s && typeof s === "object") {
+            if (typeof s.balance !== "number" || !isFinite(s.balance) || s.balance < 0) s.balance = 0;
+            if (!Array.isArray(s.history)) s.history = [];
+            if (!s.mig || typeof s.mig !== "object") s.mig = {};
+            return s;
+          }
+        }
+      } catch (e) {}
+      return fresh();
+    }
+    function emitT(bal) {
+      try { window.dispatchEvent(new CustomEvent(evName, { detail: { balance: bal | 0 } })); } catch (e) {}
+    }
+    function save(s) {
+      s.at = Date.now();
+      if (s.history.length > 60) s.history.length = 60;
+      try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {}
+      emitT(s.balance);
+    }
+    return {
+      KEY: KEY,
+      _load: load, _save: save, _emit: emitT,
+      /* 💎ジェムと同じく、毎回 localStorage から読み直す（キャッシュを持たない） */
+      get: function () { return load().balance | 0; },
+      getBalance: function () { return load().balance | 0; },
+      add: function (n, reason) {
+        n = Math.round(n || 0);
+        if (!n) return load().balance | 0;
+        var s = load();
+        s.balance = Math.max(0, (s.balance || 0) + n);
+        s.history.unshift({ amount: n, reason: reason || "", t: Date.now() });
+        save(s);
+        return s.balance;
+      },
+      /* 足りなければ false を返して何もしない */
+      spend: function (n, reason) {
+        n = Math.round(n || 0);
+        if (n <= 0) return true;
+        var s = load();
+        if ((s.balance || 0) < n) return false;
+        s.balance -= n;
+        s.used = (s.used || 0) + n;
+        s.history.unshift({ amount: -n, reason: reason || "", t: Date.now() });
+        save(s);
+        return true;
+      },
+      canAfford: function (n) { return (load().balance | 0) >= Math.round(n || 0); },
+      set: function (n, reason) {
+        var s = load();
+        s.balance = Math.max(0, Math.round(n || 0));
+        s.history.unshift({ amount: 0, reason: reason || "残高を設定", t: Date.now() });
+        save(s);
+        return s.balance;
+      },
+      getHistory: function () { return load().history || []; },
+      /* 旧データからの一度きりの移行。
+         ★ amount が 0 のときは<b>印を付けない</b>。
+           MagiBurst のセーブがまだ届いていない端末で先に走ってしまうと、
+           0枚のまま「移行済み」になって本物のチケットが消えてしまうため。 */
+      migrateOnce: function (tag, amount, reason) {
+        var s = load();
+        if (s.mig[tag]) return false;
+        amount = Math.max(0, Math.round(amount || 0));
+        if (!amount) return false;
+        s.mig[tag] = Date.now();
+        s.balance = (s.balance || 0) + amount;
+        s.history.unshift({ amount: amount, reason: reason || ("移行：" + tag), t: Date.now() });
+        save(s);
+        return true;
+      },
+      isMigrated: function (tag) { return !!load().mig[tag]; },
+      markMigrated: function (tag) { var s = load(); if (s.mig[tag]) return false; s.mig[tag] = Date.now(); save(s); return true; },
+    };
+  }
+  var ticket = makeTicketWallet(TKT_KEY, "xeva:ticket");        // ガチャチケット
+  var fesTicket = makeTicketWallet(FTK_KEY, "xeva:festicket");  // フェスチケット
+  function loadTkt() { return ticket._load(); }
+  function emitTkt(b) { ticket._emit(b); }
+
   /* 他タブ・クラウド同期が書き換えたら残高表示を更新する。
      ★ クラウドから取り込んだ直後（xeva:synced）も、メモリ上の state を必ず捨てて
        読み直す。ここを怠ると、古い state のまま次の add/spend が走って
@@ -234,11 +361,15 @@
   try {
     window.addEventListener("storage", function (e) {
       if (e.key === GEM_KEY) emitGem(loadGem().balance);
+      if (e.key === TKT_KEY) ticket._emit(ticket.get());
+      if (e.key === FTK_KEY) fesTicket._emit(fesTicket.get());
       if (e.key === KEY) { state = load(); emit(); }
     });
     window.addEventListener("xeva:synced", function () {
       state = load();
       emitGem(loadGem().balance);
+      ticket._emit(ticket.get());
+      fesTicket._emit(fesTicket.get());
     });
   } catch (e) {}
 
@@ -256,6 +387,110 @@
       gem.migrateOnce("magiburst_orbs", db.orbs, "MagiBurst のジェムを XEVARION 共通ウォレットへ移行");
     } catch (e) {}
   })();
+
+  /* ══════════════════════════════════════════════════════════════
+     🎫ガチャチケット：旧仕組みからの引っ越し（2026-08-13）
+     ──────────────────────────────────────────────
+     旧仕組みは2段構えだった。
+       ① 残高      … magiburst_v1.fesTicket（MagiBurst のセーブの中）
+       ② 配布の途中 … xeva_mbgift_v1 の「引換券」キュー
+                      （XEVARION で受け取っても、MagiBurst を開くまで届かない）
+     どちらも XEVARION 共通ウォレット（xeva_gticket_v1）へ移し、②は廃止する。
+
+     ★ 移行のタイミングに気をつけること
+       クラウドから magiburst_v1 が降りてくる<b>前</b>に走ると、
+       「まだ 0枚のセーブ」を見て移行済みにしてしまい、本物のチケットが消える。
+       そこで
+         ・0枚のときは印を付けない（ticket.migrateOnce の仕様）
+         ・同期のあと（xeva:synced / appcloud:*）にも必ずやり直す
+         ・移した直後に magiburst_v1.fesTicket を 0 に書き戻す
+       の3段で守っている。
+     ══════════════════════════════════════════════════════════════ */
+  var TKT_MIG_TAG = "magiburst_fesTicket";
+  /* magiburst_v1.fesTicket にあったぶんは<b>フェスチケット</b>。
+     ★ 新設した「ガチャチケット」とは別物なので、必ず fesTicket 側へ入れる。 */
+  function migrateBurstTickets() {
+    try {
+      if (fesTicket.isMigrated(TKT_MIG_TAG)) return;
+      var raw = localStorage.getItem("magiburst_v1");
+      if (!raw) return;                        // このアカウントに MagiBurst のセーブがまだ無い
+      var db = JSON.parse(raw);
+      if (!db || typeof db !== "object") return;
+      var n = Math.max(0, Math.round(Number(db.fesTicket) || 0));
+      if (!n) return;                          // 0枚なら印も付けずに、次の機会にやり直す
+      if (!fesTicket.migrateOnce(TKT_MIG_TAG, n, "🎫フェスチケットを XEVARION 共通ウォレットへ移行")) return;
+      db.fesTicket = 0;                        // 二重に拾わないよう、元の置き場所は空にする
+      try { localStorage.setItem("magiburst_v1", JSON.stringify(db)); } catch (e2) {}
+    } catch (e) {}
+  }
+  /* ★ 取りちがえの手当て（2026-08-13 中の作り直しぶん）
+     この日いちど、フェスチケットを「ガチャチケット」側へ移してしまった版があった。
+     その端末では ガチャチケット側に magiburst_fesTicket の印が残っているので、
+     移した枚数ぶんを<b>フェスチケットへ返す</b>（合計は変わらない）。 */
+  function repairMisplacedFesTickets() {
+    try {
+      var g = ticket._load();
+      if (!g.mig || !g.mig[TKT_MIG_TAG]) return;
+      /* 移した枚数は履歴に残っている（同じ理由の行を合計する） */
+      var moved = 0;
+      (g.history || []).forEach(function (h) {
+        if (h && h.amount > 0 && /XEVARION 共通ウォレットへ移行/.test(String(h.reason || ""))) moved += h.amount;
+      });
+      delete g.mig[TKT_MIG_TAG];
+      if (moved > 0) {
+        var take = Math.min(moved, g.balance || 0);
+        g.balance = Math.max(0, (g.balance || 0) - take);
+        g.history.unshift({ amount: -take, reason: "フェスチケットへ戻す（種類の分離）", t: Date.now() });
+        ticket._save(g);
+        fesTicket.markMigrated(TKT_MIG_TAG);
+        fesTicket.add(take, "🎫フェスチケット（ガチャチケットから戻したぶん）");
+      } else {
+        ticket._save(g);
+      }
+    } catch (e) {}
+  }
+  /* 旧「引換券」キュー（xeva_mbgift_v1）に残っている🎫を、その場で受け取る。
+     ★ done に印を付けるので、MagiBurst 側の drainMbGifts と二重にはならない。
+     ★ 引換券の ticket は<b>フェスチケット</b>、gticket は<b>ガチャチケット</b>。 */
+  function drainLegacyTicketGifts() {
+    try {
+      var raw = localStorage.getItem("xeva_mbgift_v1");
+      if (!raw) return 0;
+      var d = JSON.parse(raw);
+      if (!d || !Array.isArray(d.q) || !d.q.length) return 0;
+      if (!d.done || typeof d.done !== "object") d.done = {};
+      var fes = 0, gac = 0, rest = [];
+      d.q.forEach(function (x) {
+        if (!x) return;
+        if (x.ticket > 0 || x.gticket > 0) {
+          fes += Math.round(x.ticket || 0);
+          gac += Math.round(x.gticket || 0);
+          d.done[x.id] = Date.now();
+          return;
+        }
+        /* 🎫以外（ゴールド・アイテム）は MagiBurst のセーブにしか置けないので、そのまま残す */
+        rest.push(x);
+      });
+      if (!fes && !gac) return 0;
+      d.q = rest;
+      try { localStorage.setItem("xeva_mbgift_v1", JSON.stringify(d)); } catch (e2) {}
+      if (fes) fesTicket.add(fes, "🎫フェスチケット 引換券の精算（旧仕組み）");
+      if (gac) ticket.add(gac, "🎫ガチャチケット 引換券の精算（旧仕組み）");
+      return fes + gac;
+    } catch (e) { return 0; }
+  }
+  function tktHousekeeping() { repairMisplacedFesTickets(); migrateBurstTickets(); drainLegacyTicketGifts(); }
+  try {
+    window.addEventListener("xeva:synced", tktHousekeeping);
+    window.addEventListener("appcloud:ready", tktHousekeeping);
+    window.addEventListener("appcloud:restored", tktHousekeeping);
+    /* アカウントを作っていない端末（クラウド同期が走らない）は、その場で片づける */
+    setTimeout(function () {
+      var a = null; try { a = loadAcc(); } catch (e) {}
+      if (!a || !a.xvUid) tktHousekeeping();
+      else drainLegacyTicketGifts();   // 引換券キューは同期キーなので、いつ拾っても安全
+    }, 0);
+  } catch (e) {}
 
   /* ── アカウント ── */
   function loadAcc() {
@@ -395,11 +630,57 @@
     { id: "mb:mayu", mbId: "mayu", name:"マユ", file: "../img/t_Mayu.webp", since:"2026-08-12" },
     { id: "mb:chizuru", mbId: "chizuru", name:"チヅル", file: "../img/t_Chizuru.webp", since:"2026-08-12" },
     { id: "mb:seira", mbId: "seira", name:"セイラ", file: "../img/t_Seira.webp", since:"2026-08-12" },
+    /* ★ 2026-08-16 プレミアム★5 2体 */
+    { id: "mb:anna", mbId: "anna", name:"アンナ", file: "../img/t_Anna.webp", since:"2026-08-16" },
+    { id: "mb:tsukino", mbId: "tsukino", name:"ツキノ", file: "../img/t_Tsukino.webp", since:"2026-08-16" },
+    /* ★ 2026-08-16b プレミアム★5 6体（No.110〜115）。並びは CHAR_IDS＝No. にそろえること */
+    { id: "mb:moeka", mbId: "moeka", name:"モエカ", file: "../img/t_Moeka.webp", since:"2026-08-16" },
+    { id: "mb:suzuha", mbId: "suzuha", name:"スズハ", file: "../img/t_Suzuha.webp", since:"2026-08-16" },
+    { id: "mb:violet", mbId: "violet", name:"ヴィオレット", file: "../img/t_Violet.webp", since:"2026-08-16" },
+    { id: "mb:kanata", mbId: "kanata", name:"カナタ", file: "../img/t_Kanata.webp", since:"2026-08-16" },
+    { id: "mb:touka", mbId: "touka", name:"トウカ", file: "../img/t_Touka.webp", since:"2026-08-16" },
+    { id: "mb:elena", mbId: "elena", name:"エレナ", file: "../img/t_Elena.webp", since:"2026-08-16" },
+    { id: "mb:grace", mbId: "grace", name:"グレース", file: "../img/t_Grace.webp", since:"2026-08-17" },
+    /* ★★ 2026-08-18 登録もれの修正: 蓬莱の九重の配布キャラ（瑶華・瑶妃）が
+       この表に無く、<b>ポータルのアイコンに選べなかった</b>。
+       ガチャから出ないだけで「持てるキャラ」なので、ここには入れる。 */
+    { id: "mb:youka", mbId: "youka", name:"瑶華", file: "../img/t_Youka.webp", since:"2026-08-17" },
+    { id: "mb:youhi", mbId: "youhi", name:"瑶妃", file: "../img/t_Youhi.webp", since:"2026-08-17" },
+    /* ★ 2026-08-18 プレミアム★5 8体（No.119〜126）＋ ロキシー（No.127・最終番号）。
+       並びは CHAR_IDS＝No. にそろえること */
+    { id: "mb:artemia", mbId: "artemia", name:"アルテミア", file: "../img/t_Artemia.webp", since:"2026-08-18" },
+    { id: "mb:asuha", mbId: "asuha", name:"アスハ", file: "../img/t_Asuha.webp", since:"2026-08-18" },
+    { id: "mb:blair", mbId: "blair", name:"ブレア", file: "../img/t_Blair.webp", since:"2026-08-18" },
+    { id: "mb:lilith", mbId: "lilith", name:"リリス", file: "../img/t_Lilith.webp", since:"2026-08-18" },
+    { id: "mb:lyra", mbId: "lyra", name:"リラ", file: "../img/t_Lyra.webp", since:"2026-08-18" },
+    { id: "mb:satsuki", mbId: "satsuki", name:"サツキ", file: "../img/t_Satsuki.webp", since:"2026-08-18" },
+    { id: "mb:sayo", mbId: "sayo", name:"サヨ", file: "../img/t_Sayo.webp", since:"2026-08-18" },
+    { id: "mb:melty", mbId: "melty", name:"メルティ", file: "../img/t_Melty.webp", since:"2026-08-18" },
+    { id: "mb:roxy", mbId: "roxy", name:"ロキシー", file: "../img/t_Roxy.webp", since:"2026-08-18" },
   ];
   /* ★ 2026-08-10 初期★4 4体（ゼラ・アヤメ・レイラ・セリーヌ）は廃止しました。
      いまは<b>全キャラがアイコンに選べる</b>ので、starter という区別そのものが要らない。 */
   var MB_STARTERS = [];
+  /* ★ 2026-08-16b ★5キャラの id 一覧（No. 順）。
+     ポータル（index.html）は MagiBurst の mb-core.js を読まないので、
+     「このキャラは★5か」をここで持っておく必要がある。
+     ★ キャラを追加したら、MB_CHAR_MASTER と一緒にここにも足すこと。 */
+  var MB_STAR5 = [
+    "ema", "sakura", "arisa", "kaguya", "cheryl", "aira", "mion", "kokona", "mao", "bernica", "tsubaki",
+    "alicia", "natsuki", "iroha", "shirayuki", "mashiro", "hotaru", "koharu", "yuri", "rinne", "hecatia",
+    "rezelia", "elsia", "karina", "nephia", "setsuna", "selene", "nazuna", "lilia", "revia", "fiona",
+    "milfy", "mabel", "abyss", "arche", "chloe", "kaguyaalpha", "mionalpha", "sheril", "fia", "lysera",
+    "soleria", "beltia", "astera", "nemu", "roselia", "shizuka", "yuria", "altia", "liana", "solea",
+    "yaju", "iori", "noelle", "yukino", "reika", "dominia", "nanami", "chitose", "kaede", "rinon",
+    "kokoro", "ange", "kotone", "ran", "ceris", "kotomi", "riko", "kaho", "nana", "rea", "rinonx",
+    "shizuku", "yuunagi", "izumi", "cherylalpha", "kokonaalpha", "fuka", "tsumugi", "suzuka", "karem",
+    "mayu", "chizuru", "seira", "anna", "tsukino", "moeka", "suzuha", "violet", "kanata", "touka", "elena"
+  , "grace"
+  /* ★ 2026-08-18 瑶華・瑶妃（配布★5）＋ プレミアム★5 8体＋ロキシー */
+  , "youka", "youhi"
+  , "artemia", "asuha", "blair", "lilith", "lyra", "satsuki", "sayo", "melty", "roxy"];
   MB_CHAR_MASTER.forEach(function (c) { c.mb = true; c.starter = MB_STARTERS.indexOf(c.mbId) >= 0; });
+  MB_CHAR_MASTER.forEach(function (c) { c.star5 = MB_STAR5.indexOf(c.mbId) >= 0; });
   /* id は "mb:zera" のように接頭辞つき。XEVAガチャにも同じ名前のキャラ（シオンなど）が
      いるので、接頭辞を付けないと canonCharFile が別人の絵を返してしまう。 */
   var MB_BY_ID = (function () {
@@ -551,8 +832,14 @@
     KEY: KEY,
     ACC_KEY: ACC_KEY,
     GEM_KEY: GEM_KEY,
+    TKT_KEY: TKT_KEY,
+    FTK_KEY: FTK_KEY,
     /* 💎ジェム（XEVARION 共通のプレミアム通貨） */
     gem: gem,
+    /* 🎫ガチャチケット（すべてのガチャで 1枚＝1回ぶん） */
+    ticket: ticket,
+    /* 🎫フェスチケット（フェスガチャ専用。どのフェスでも使える） */
+    fesTicket: fesTicket,
     LOGIN_BONUS: LOGIN_BONUS,
     MISSIONS: MISSIONS,
     CHARS: CHAR_MASTER,

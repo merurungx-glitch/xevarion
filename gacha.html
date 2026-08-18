@@ -4,9 +4,9 @@
 <script src="maintenance-gate.js?v=5"></script>
 <meta charset="UTF-8">
 <script>(function(){try{var a=JSON.parse(localStorage.getItem('xeva_account_v1'));if(!a||!a.setupDone)location.replace('index.html');}catch(e){}})();</script>
-<script type="module" src="xevarion-fb.js?v=20"></script>
+<script type="module" src="xevarion-fb.js?v=22"></script>
 <script src="xeva-presence.js?v=1" defer></script>
-<script type="module" src="xeva-cloud.js?v=14"></script>
+<script type="module" src="xeva-cloud.js?v=16"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -21,8 +21,8 @@
 <!-- ★ 2026-08-10 ガチャ結果の演出（1枚ずつ公開・昇格演出）の見た目。MagiBurst と共通 -->
 <link rel="stylesheet" href="mb-gacha-reveal.css?v=2">
 <!-- ★ 2026-08-10 キャラ詳細（性能画面）の見た目。図鑑（characters.html）と共通 -->
-<link rel="stylesheet" href="mb-char-detail.css?v=4">
-<script src="xeva.js?v=27"></script>
+<link rel="stylesheet" href="mb-char-detail.css?v=7">
+<script src="xeva.js?v=33"></script>
 <script src="xeva-loading.js?v=1" defer></script>
 <script src="magibattle-stats.js?v=6"></script>
 <script type="module" src="xeva-sync.js?v=8"></script>
@@ -73,7 +73,13 @@ body::after{width:320px;height:320px;background:radial-gradient(circle,rgba(255,
 .walc{display:flex;align-items:center;gap:5px;background:linear-gradient(135deg,rgba(124,58,237,.10),rgba(240,192,64,.12));
   border:1.5px solid var(--bdr);border-radius:100px;padding:5px 11px;font-family:'Orbitron',sans-serif;font-size:12.5px;font-weight:800}
 .walc.gem{color:var(--blu)}
-.walc.tkt{color:var(--gold)}
+.walc.tkt{color:var(--gold);padding:4px 9px 4px 6px}
+/* ★ 2026-08-13 チケットは2種類。絵文字ではなく<b>券面のミニ絵</b>を出して見分けられるようにする
+   （フェス券＝夜色の紫／ガチャ券＝青金。数だけ並べても、どちらか分からないため） */
+.walc .tkic{display:flex;align-items:center}
+.walc .tkic svg{display:block}
+.walc.fes{border-color:rgba(200,107,255,.5)}
+.walc.gac{border-color:rgba(90,182,255,.5)}
 /* ══════════════════════════════════════════════════════════════
    ★ 2026-08-10 通貨アイコンを XEVARION 共通のものにそろえる
    ・以前はこの画面だけ 💎 の絵文字だった。絵文字は端末ごとに形も色も変わるので、
@@ -144,7 +150,12 @@ body::after{width:320px;height:320px;background:radial-gradient(circle,rgba(255,
   display:flex;flex-direction:column;align-items:center;gap:2px;color:#fff;
   background:linear-gradient(135deg,#8e6bff,#b06bff);box-shadow:0 4px 14px rgba(142,107,255,.32)}
 .pbtn b{font-size:13px;font-weight:900}
-.pbtn small{font-size:10px;font-weight:800;opacity:.95}
+.pbtn small{font-size:10px;font-weight:800;opacity:.95;display:flex;align-items:center;gap:3px}
+/* 🎫の種類を1文字で見分ける札（F＝フェス券・G＝ガチャ券）。色は券面とそろえる */
+.pbtn small i{font-style:normal;font-size:8px;font-weight:900;line-height:1;
+  padding:2px 3px;border-radius:4px;letter-spacing:0}
+.pbtn small i.pf{background:#c86bff;color:#2b1b4d}
+.pbtn small i.pg{background:#5ab6ff;color:#08182f}
 .pbtn.p10{background:linear-gradient(135deg,#ff9d2e,#e0405e 60%,#c86bff);box-shadow:0 4px 16px rgba(224,64,94,.36)}
 .pbtn:disabled{opacity:.45;cursor:not-allowed;filter:grayscale(.5)}
 .pbtn:active{transform:translateY(1px)}
@@ -327,7 +338,9 @@ body::after{width:320px;height:320px;background:radial-gradient(circle,rgba(255,
     <h1>ガチャ<small>XEVARION GACHA</small></h1>
     <div class="wal">
       <span class="walc gem"><i class="icc ic-gem"></i><b id="walGem">0</b></span>
-      <span class="walc tkt">🎫<b id="walTkt">0</b></span>
+      <!-- 🎫は2種類（フェス専用／全ガチャ共通）。券面の色でも見分けられる -->
+      <span class="walc tkt fes" id="walFesWrap" title="フェスチケット（フェスガチャ専用）"><span class="tkic" id="walFesIc"></span><b id="walTkt">0</b></span>
+      <span class="walc tkt gac" id="walGacWrap" title="ガチャチケット（どのガチャでも使える）"><span class="tkic" id="walGacIc"></span><b id="walGtk">0</b></span>
     </div>
   </div>
 
@@ -380,12 +393,12 @@ body::after{width:320px;height:320px;background:radial-gradient(circle,rgba(255,
      そのためポータルで引いたキャラはクラウドに上がらず、
      別の端末の MagiBurst が書いたセーブに負けて<b>消えて</b>いた。 -->
 <script type="module" src="MagiBurst/magiburst-cloud.js?v=6"></script>
-<script src="mb-boot.js?v=3"></script>
+<script src="mb-boot.js?v=5"></script>
 <!-- ★ MagiBurst のドメイン層（キャラ・アビリティ・技・ガチャの規則）。
      MagiBurst と<b>同じファイル</b>を読むので、キャラを足せば両方に反映される。 -->
-<script src="MagiBurst/js/mb-core.js?v=13"></script>
+<script src="MagiBurst/js/mb-core.js?v=35"></script>
 <!-- ★ 2026-08-10 キャラ詳細（性能画面）。図鑑（characters.html）と同じものを使う -->
-<script src="mb-char-detail.js?v=3"></script>
-<script src="gacha-ui.js?v=6"></script>
+<script src="mb-char-detail.js?v=5"></script>
+<script src="gacha-ui.js?v=8"></script>
 </body>
 </html>

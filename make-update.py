@@ -17,7 +17,7 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 #   ホームのダウンロード量表示で端末の実行時キャッシュぶんとして数えられる。
 #   MagiMusic も更新の対象になったので加える（曲＝MP3 は別キャッシュで対象外）。
 SWS = ["sw.js", "MagiLex/sw.js", "MagiBurst/sw.js", "MagiChainParty/sw.js", "XEVYNAR/sw.js",
-       "MagiJackpot/sw.js", "MagiMusic/sw.js"]
+       "MagiJackpot/sw.js", "MagiMusic/sw.js", "MagiLotto/sw.js"]
 
 
 def core_of(sw_path):

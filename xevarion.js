@@ -168,18 +168,24 @@ addEventListener("load", () => {
 /* ミッションの表示メタ。★ここに無い ID はアイコンが絵文字になってしまうので、
    xeva.js の MISSIONS にミッションを足したら必ずここにも足すこと。 */
 const MISSION_META = {
-  magilex_play:        { href: "MagiLex/MagiLex.html",             icon: "thumbs/MagiLex.jpg",        cta: "学ぶ" },
   magiburst_play:      { href: "MagiBurst/index.html",             icon: "thumbs/MagiBurst.jpg",      cta: "プレイ" },
   magibattle_win:      { href: "MagiBattle/index.html",            icon: "thumbs/MagiBattle.jpg",     cta: "プレイ" },
   magichainparty_play: { href: "MagiChainParty/index.html",        icon: "thumbs/MagiChainParty.jpg", cta: "プレイ" },
   magiempire_play:     { href: "MagiEmpire/MagiEmpire.html",       icon: "thumbs/MagiEmpire.jpg",     cta: "プレイ" },
+  magiarena_play:      { href: "MagiArena/MagiArena.html",         icon: "thumbs/MagiArena.jpg",      cta: "プレイ" },
   magidiamond_play:    { href: "MagiDiamond/index.html",           icon: "thumbs/MagiDiamond.jpg",    cta: "プレイ" },
   magimanor_play:      { href: "MagiManor/index.html",             icon: "thumbs/MagiManor.jpg",      cta: "探索へ" },
-  magifocus_study:     { href: "MagiFocus/index.html",             icon: "thumbs/MagiFocus.jpg",      cta: "はじめる" },
-  magilink_register:   { href: "MagiLink/MagiLink.html",           icon: "thumbs/MagiLink.jpg",       cta: "登録へ" },
-  magiportfolio_add:   { href: "MagiPortfolio/MagiPortfolio.html", icon: "thumbs/MagiPortfolio.jpg",  cta: "追加へ" },
+  magicraft_play:      { href: "MagiCraft/index.html",             icon: "thumbs/MagiCraft.jpg",      cta: "プレイ" },
   magijackpot_play:    { href: "MagiJackpot/index.html",           icon: "thumbs/MagiJackpot.jpg",    cta: "プレイ" },
-  xevynar_ask:         { href: "XEVYNAR/index.html",               icon: "thumbs/XEVYNAR.jpg",        cta: "きいてみる" }
+  magilotto_buy:       { href: "MagiLotto/index.html",             icon: "thumbs/MagiLotto.jpg",      cta: "買ってみる" },
+  magilex_play:        { href: "MagiLex/MagiLex.html",             icon: "thumbs/MagiLex.jpg",        cta: "学ぶ" },
+  magifocus_study:     { href: "MagiFocus/index.html",             icon: "thumbs/MagiFocus.jpg",      cta: "はじめる" },
+  xevynar_ask:         { href: "XEVYNAR/index.html",               icon: "thumbs/XEVYNAR.jpg",        cta: "きいてみる" },
+  magilink_register:   { href: "MagiLink/MagiLink.html",           icon: "thumbs/MagiLink.jpg",       cta: "登録へ" },
+  magiranking_check:   { href: "MagiRanking/index.html",           icon: "thumbs/MagiRanking.jpg",    cta: "見にいく" },
+  magiportfolio_add:   { href: "MagiPortfolio/MagiPortfolio.html", icon: "thumbs/MagiPortfolio.jpg",  cta: "追加へ" },
+  magitier_make:       { href: "MagiTier/MagiTier.html",           icon: "thumbs/MagiTier.jpg",       cta: "つくる" },
+  magimusic_play:      { href: "MagiMusic/MagiMusic.html",         icon: "thumbs/MagiMusic.jpg",      cta: "きいてみる" }
 };
 
 function renderXevaBalance() {
@@ -226,6 +232,9 @@ function renderXevaMissions() {
   // ── ドックバッジ ──
   const { milestones } = window.XEVA.getLoginMilestones();
   const loginClaim = milestones.filter(ms => ms.reached && !ms.claimed).length;
+  /* 別の端末で受け取ったぶんが同期で降ってきたときに、
+     こちらのガチャデータ（所持・凸）へ確実に反映させる。 */
+  syncAyakaGrants();
   const limitedState = getLimitedState();
   const limitedClaim = LIMITED_MISSIONS.filter(m=>!limitedState[m.id]&&m.check()).length;
   // ── 図鑑コレクション ──
@@ -235,6 +244,13 @@ function renderXevaMissions() {
   if (badge) {
     if (totalBadge > 0) { badge.textContent = totalBadge; badge.classList.add("show"); }
     else badge.classList.remove("show");
+  }
+  /* 「まとめて受け取る」ボタンの出し入れ（受け取れる数＝totalBadge と同じ） */
+  const allBtn = document.getElementById("msnAllBtn");
+  if (allBtn) {
+    const cnt = document.getElementById("msnAllCount");
+    if (cnt) cnt.textContent = totalBadge;
+    allBtn.style.display = totalBadge > 0 ? "flex" : "none";   /* .mail-all は既定 display:none */
   }
 }
 
@@ -281,6 +297,64 @@ function claimMsnStarter(id) {
 }
 window.claimMsnStarter = claimMsnStarter;
 
+/* ════════════════════════════════════════════════════════════════
+   まとめて受け取る（2026-08-16 追加）
+   ════════════════════════════════════════════════════════════════
+   スターター・ログイン・限定・コレクションの4タブに散らばっている
+   「達成ずみ・未受取」を1回で精算する。
+   ★ 限定ミッションはキャラ配布で alert を出すので、まとめ受取のときは
+     silent で受け取っておき、最後に1枚だけ知らせる（連打で alert が
+     何枚も出ると受け取ったのか分からなくなる）。 */
+function msnClaimableCount() {
+  if (!window.XEVA) return 0;
+  let n = 0;
+  try { n += (window.XEVA.getMissions() || []).filter(m => m.done && !m.claimed).length; } catch (e) {}
+  try { n += (window.XEVA.getLoginMilestones().milestones || []).filter(ms => ms.reached && !ms.claimed).length; } catch (e) {}
+  try { const st = getLimitedState(); n += LIMITED_MISSIONS.filter(m => !st[m.id] && m.check()).length; } catch (e) {}
+  try { n += collectionClaimable(); } catch (e) {}
+  return n;
+}
+
+function claimAllMissions() {
+  if (!window.XEVA) return;
+  if (!msnClaimableCount()) return;
+  let count = 0, xeva = 0;
+  const notes = [];
+
+  /* ① スターター */
+  try {
+    (window.XEVA.getMissions() || []).forEach(m => {
+      if (m.done && !m.claimed) { const rw = window.XEVA.claimMission(m.id); if (rw > 0) { count++; xeva += rw; } }
+    });
+  } catch (e) {}
+
+  /* ② ログイン日数のマイルストーン */
+  try {
+    (window.XEVA.getLoginMilestones().milestones || []).forEach(ms => {
+      if (ms.reached && !ms.claimed) { const rw = window.XEVA.claimLoginMilestone(ms.days); if (rw > 0) { count++; xeva += rw; } }
+    });
+  } catch (e) {}
+
+  /* ③ 限定（アヤカ配布ふくむ） */
+  try {
+    LIMITED_MISSIONS.forEach(m => {
+      const r = claimLimited(m.id, true);
+      if (r) { count++; xeva += r.xeva || 0; if (r.note) notes.push(r.note); }
+    });
+  } catch (e) {}
+
+  /* ④ 図鑑コレクション */
+  try {
+    const groups = seasonSSRGroups();
+    Object.keys(groups).forEach(s => { const r = claimCollection(s, true); if (r) { count++; xeva += r.xeva || 0; } });
+  } catch (e) {}
+
+  renderXevaBalance(); renderXevaMissions();
+  if (xeva > 0) showXevaToast(xeva, "ミッション " + count + "件 をまとめて受け取りました！");
+  if (notes.length) alert(notes.join("\n\n"));
+}
+window.claimAllMissions = claimAllMissions;
+
 let _msnTab = "starter";
 function switchMsnTab(tab, btn) {
   _msnTab = tab;
@@ -298,117 +372,317 @@ function switchMsnTab(tab, btn) {
   if (body) body.scrollTop = 0;
 }
 
-/* ── 図鑑コンプリート報酬（シーズン別 全SSR取得で +1000 XEVA）── */
+/* ── 図鑑コンプリート報酬（★5を No. 順に5体ずつ区切って +1000 XEVA）──
+   ★ 2026-08-16b 「シーズン」も「コレクション」も、いまはどこにも無い区分だった。
+     そこで<b>キャラ番号（No.）そのもの</b>で区切る形にした。
+       ・対象は<b>★5キャラ全員</b>（No.順に並べて5体ずつのまとまりにする）
+       ・まとまりの名前は「No.5〜9 の★5」のように、実際の番号で出す
+       ・キャラが増えたら、最後のまとまりが自動で伸びて、次のまとまりができる
+     こうすると「全キャラぶん」が最後まで報酬の対象になり、
+     新キャラが出るたびに次の目標が自然に増える。 */
 const COLLECTION_REWARD = 1000;
-function getOwnedChars(){ try{ const g=JSON.parse(localStorage.getItem("xeva_gacha_v1")||"{}"); return g.owned||{}; }catch(e){ return {}; } }
+const COLLECTION_CHUNK = 5;        // ひとまとまりの★5の数
+function getOwnedChars(){
+  /* ガチャは統合ずみで所持は共有。XEVAガチャ側と MagiBurst 側のどちらかにあれば所持とみなす */
+  let owned = {};
+  try{ const g=JSON.parse(localStorage.getItem("xeva_gacha_v1")||"{}"); owned = Object.assign({}, g.owned||{}); }catch(e){}
+  try{
+    const d=JSON.parse(localStorage.getItem("magiburst_v1")||"{}");
+    Object.keys(d.chars||{}).forEach(id=>{ owned[id]=true; });
+  }catch(e){}
+  return owned;
+}
+/* ★5キャラを No. 順に COLLECTION_CHUNK 体ずつ区切る。
+   キーは「そのまとまりの先頭の番号」なので、キャラが増えても既存のキーはずれない
+   （＝受け取りずみの記録がそのまま生きる）。 */
 function seasonSSRGroups(){
-  const chars = window.XEVA ? window.XEVA.CHARS : [];
+  const mb = (window.XEVA && window.XEVA.MB_CHARS) ? window.XEVA.MB_CHARS : [];
+  const star5 = [];
+  mb.forEach((c, i) => { if(c && c.star5) star5.push({ id: c.mbId, name: c.name, file: c.file, no: i + 1 }); });
   const map = {};
-  // キーは Aシリーズ="1".."7" / Bシリーズ="B1"…（シリーズ別に集計）
-  chars.forEach(c=>{ if(c.rarity==="SSR" && !c.cdk && c.season>0){ const k=(c.series==="B"?"B":"")+c.season; (map[k]=map[k]||[]).push(c); } });
+  for(let i = 0; i < star5.length; i += COLLECTION_CHUNK){
+    const g = star5.slice(i, i + COLLECTION_CHUNK);
+    map["s5_" + g[0].no] = g;
+  }
   return map;
 }
-function getCollectionState(){ try{ return JSON.parse(localStorage.getItem("xeva_collection_v1")||"{}"); }catch(e){ return {}; } }
+function seasonGroupLabel(k){
+  const g = seasonSSRGroups()[k];
+  if(!g || !g.length) return "★5コレクション";
+  const a = g[0].no, b = g[g.length-1].no;
+  return "No." + a + "〜" + b + " の★5";
+}
+/* 旧Bシリーズの受取済みキー("B1".."B4")を、通し番号("5".."8")へ写す。
+   これをやらないと、受け取ったはずのコレクション報酬がもう一度受け取れてしまう。 */
+const COLLECTION_KEY_MIGRATE = { B1:"5", B2:"6", B3:"7", B4:"8" };
+function getCollectionState(){
+  let s;
+  try{ s = JSON.parse(localStorage.getItem("xeva_collection_v1")||"{}"); }catch(e){ s = {}; }
+  if(!s || typeof s!=="object") s = {};
+  let moved = false;
+  Object.keys(COLLECTION_KEY_MIGRATE).forEach(old=>{
+    const nw = COLLECTION_KEY_MIGRATE[old];
+    if(s[old] && !s[nw]){ s[nw] = s[old]; moved = true; }
+  });
+  if(moved) saveCollectionState(s);
+  return s;
+}
 function saveCollectionState(s){ try{ localStorage.setItem("xeva_collection_v1",JSON.stringify(s)); }catch(e){} }
 function collectionClaimable(){
   const groups=seasonSSRGroups(), owned=getOwnedChars(), state=getCollectionState(); let n=0;
   Object.keys(groups).forEach(s=>{ if(groups[s].every(c=>owned[c.id]) && !state[s]) n++; });
   return n;
 }
-function claimCollection(season){
+/* まとまりを番号順に並べる（"s5_5" → 5 で数として比べる） */
+function collectionKeys(groups){
+  return Object.keys(groups).sort((a,b)=>(+String(a).replace(/\D/g,"")) - (+String(b).replace(/\D/g,"")));
+}
+/* silent=true（まとめて受け取る）のときは、画面の描き直しもトーストも出さずに
+   受け取った内容だけを返す。呼び出し側が最後に1回まとめて知らせる。 */
+function claimCollection(season, silent){
   const groups=seasonSSRGroups(), owned=getOwnedChars(), state=getCollectionState();
-  const g=groups[season]; if(!g || state[season]) return;
-  if(!g.every(c=>owned[c.id])){ alert("まだこのシーズンのSSRをすべて集めていません。"); return; }
+  const g=groups[season]; if(!g || state[season]) return null;
+  if(!g.every(c=>owned[c.id])){ if(!silent) alert("このまとまりの★5をまだすべて集めていません。"); return null; }
   state[season]=Date.now(); saveCollectionState(state);
-  const lbl = String(season).charAt(0)==="B" ? "Bシリーズ シーズン"+String(season).slice(1) : "シーズン"+season;
-  if(window.XEVA) window.XEVA.add(COLLECTION_REWARD, "図鑑コンプリート："+lbl+" 全SSR");
+  const lbl = seasonGroupLabel(season);
+  if(window.XEVA) window.XEVA.add(COLLECTION_REWARD, "図鑑コンプリート："+lbl);
+  if(silent) return { xeva: COLLECTION_REWARD };
   renderXevaBalance(); renderXevaMissions();
-  showXevaToast(COLLECTION_REWARD, lbl+" 全SSR制覇！");
+  showXevaToast(COLLECTION_REWARD, lbl+" を制覇！");
+  return { xeva: COLLECTION_REWARD };
 }
 function renderMsnCollection(){
   const el=document.getElementById("missionTabCollection"); if(!el) return;
   const groups=seasonSSRGroups(), owned=getOwnedChars(), state=getCollectionState();
   const lb=document.getElementById("msnBadgeCollection"), claim=collectionClaimable();
   if(lb){ if(claim>0){lb.textContent=claim;lb.style.display="";}else lb.style.display="none"; }
-  const seasons=Object.keys(groups).sort((a,b)=>String(a).localeCompare(String(b),undefined,{numeric:true}));
+  const seasons=collectionKeys(groups);
   if(!seasons.length){ el.innerHTML='<div class="mm-limited-empty">🎴 コレクション報酬は準備中です</div>'; return; }
   el.innerHTML = seasons.map(s=>{
     const g=groups[s], have=g.filter(c=>owned[c.id]).length, all=have===g.length, done=!!state[s];
-    const lbl = String(s).charAt(0)==="B" ? "Bシリーズ シーズン"+String(s).slice(1) : "シーズン"+s;
-    const thumbs=g.map(c=>`<img src="chars/${c.file}" title="${c.name}" alt="${c.name}" style="width:36px;height:36px;border-radius:9px;object-fit:cover;border:2px solid ${owned[c.id]?'#17a673':'rgba(56,140,220,.22)'};${owned[c.id]?'':'filter:grayscale(1);opacity:.45'}">`).join("");
+    const lbl = seasonGroupLabel(s);
+    /* MB_CHARS の file は "../img/t_Xxx.webp"（MagiBurst 基準）なので、ポータルからは ../ を外す */
+    const thumbs=g.map(c=>{
+      const src = String(c.file||"").replace(/^\.\.\//, "");
+      return `<img src="${src}" title="No.${c.no} ${c.name}" alt="${c.name}" style="width:36px;height:36px;border-radius:9px;object-fit:cover;border:2px solid ${owned[c.id]?'#17a673':'rgba(56,140,220,.22)'};${owned[c.id]?'':'filter:grayscale(1);opacity:.45'}">`;
+    }).join("");
     const btn = done ? '<span style="font-size:11px;color:#17a673;font-weight:700;white-space:nowrap">✓ 受取済み</span>'
       : all ? `<button class="mm-milestone-claim" onclick="claimCollection('${s}')">受け取る</button>`
       : `<button class="mm-milestone-claim" disabled>${have}/${g.length}</button>`;
     return `<div class="mm-limited-card${done?' claimed':''}">
-      <div class="mm-limited-head"><span class="mm-limited-badge">図鑑</span><div class="mm-limited-title">${lbl} 全SSRコンプリート</div></div>
+      <div class="mm-limited-head"><span class="mm-limited-badge">図鑑</span><div class="mm-limited-title">${lbl} をすべて集める</div></div>
       <div style="display:flex;gap:7px;margin:10px 0;flex-wrap:wrap">${thumbs}</div>
-      <div class="mm-limited-foot"><span class="mm-limited-exp">SSR ${have}/${g.length} 取得</span>
+      <div class="mm-limited-foot"><span class="mm-limited-exp">★5 ${have}/${g.length} 取得</span>
         <div style="display:flex;align-items:center;gap:10px"><span class="mm-limited-rew">+${COLLECTION_REWARD} XEVA</span>${btn}</div></div>
     </div>`;
   }).join("");
 }
 
+/* ── 達成条件から読む、共通の小さな読み出し ──
+   どれも localStorage しか見ない（オフラインでも判定できる）。
+   壊れたJSONが入っていても既定値を返す＝ミッション画面が丸ごと死なない。 */
+function lsJson(key){ try{ const v=JSON.parse(localStorage.getItem(key)||"null"); return (v&&typeof v==="object")?v:{}; }catch(e){ return {}; } }
+function gachaSave(){ return lsJson("xeva_gacha_v1"); }
+function ownedIds(){ return gachaSave().owned || {}; }
+/* MagiLex の完全習得コンテンツ数（クイズ + 単語帳） */
+function lexMasteredCount(){
+  const P = lsJson("magilex_v2");
+  return Object.keys(P.qmastered||{}).length + Object.keys(P.wmastered||{}).length;
+}
+/* MagiBurst の最高WAVE */
+function mbWaveBest(){
+  const D = lsJson("magiburst_v1");
+  return Math.max(0, Number(D.waveBest||D.wave||0) || 0);
+}
+function totalLoginDays(){ try{ return (window.XEVA&&window.XEVA.getTotalLoginDays)?window.XEVA.getTotalLoginDays():0; }catch(e){ return 0; } }
+/* スターターミッションを全部「達成」したか（受け取り済みかは問わない） */
+function allStarterDone(){
+  try{
+    const ms = (window.XEVA && window.XEVA.getMissions) ? window.XEVA.getMissions() : [];
+    return ms.length > 0 && ms.every(m => m.done);
+  }catch(e){ return false; }
+}
+
+/* ════════════════════════════════════════════════════════════════
+   限定SSR「アヤカ」— 完凸(4凸)までの5つの道すじ
+   ════════════════════════════════════════════════════════════════
+   ガチャからは出ないキャラなので、入手も凸も全部このミッションで配る。
+   ★ 凸の数え方は「アヤカ配布ミッションを受け取った数 − 1」。
+     ミッションごとに「これは2凸ぶん」と決め打ちしないので、
+     どの順番で達成しても、5つ全部そろえた時点でちょうど完凸(4凸)になる。
+     （決め打ちにすると、易しいのを先に取った人だけ凸が飛ぶ） */
+const AYAKA_MISSION_IDS = ["ayaka_collect_a", "ayaka_collect_b", "ayaka_login", "ayaka_lex", "ayaka_allstarter"];
+const AYAKA_MAX_DUPE = 4;
+/* 受け取り済みの本数から、所持と凸を組み立て直す。
+   ★ 加算ではなく「毎回そろえ直す」ので、同期で古いセーブが降ってきても増えない。 */
+function syncAyakaGrants(){
+  const st = getLimitedState();
+  const n = AYAKA_MISSION_IDS.filter(id => st[id]).length;
+  if(n <= 0) return 0;
+  const dupe = Math.min(AYAKA_MAX_DUPE, n - 1);
+  try{
+    const g = gachaSave();
+    g.owned = g.owned || {}; g.dupes = g.dupes || {}; g.points = g.points || {};
+    g.owned["ayaka"] = true;
+    g.dupes["ayaka"] = Math.max(g.dupes["ayaka"]||0, dupe);
+    localStorage.setItem("xeva_gacha_v1", JSON.stringify(g));
+    try{ if(window.XEVASync&&window.XEVASync.syncProfile) window.XEVASync.syncProfile(); }catch(e){}
+  }catch(e){}
+  return dupe;
+}
+/* アヤカの配布ミッションを、あと何本受け取れば完凸か */
+function ayakaClaimedCount(){ const st=getLimitedState(); return AYAKA_MISSION_IDS.filter(id=>st[id]).length; }
+
 const LIMITED_MISSIONS = [
+  /* ── アヤカ 5段階（入手 → 完凸）── */
   {
-    id: "s4_gacha_once",
-    title: "S4記念：ガチャを1回引く",
-    desc: "シーズン4開幕記念！ガチャを1回以上引こう",
-    reward: 300,
-    exp: "S5リリースまで",
+    id: "ayaka_collect_a",
+    title: "アヤカを迎える：カホ・ナナ・レア・リノンを集める",
+    desc: "SSR「カホ」「ナナ」「レア」「リノン」の4人をすべて集めると、ガチャには出ない限定SSR「アヤカ」が仲間になる。",
+    reward: 0, ayaka: true, exp: "常設",
+    check: () => { const o=ownedIds(); return !!(o["kaho"]&&o["nana"]&&o["rea"]&&o["rinon"]); }
+  },
+  {
+    id: "ayaka_collect_b",
+    title: "アヤカ覚醒①：ミオン・ココナ・マオ・アリサを集める",
+    desc: "SSR「ミオン」「ココナ」「マオ」「アリサ」の4人をすべて集めよう。MagiBurst と所持状況を共有しているので、どちらで引いても数えられる。",
+    reward: 0, ayaka: true, exp: "常設",
+    check: () => { const o=ownedIds(); return !!(o["mion"]&&o["kokona"]&&o["mao"]&&o["arisa"]); }
+  },
+  {
+    id: "ayaka_login",
+    title: "アヤカ覚醒②：通算50日ログイン",
+    desc: "XEVARION に通算50日ログインしよう。今の日数はログインタブで確認できる。",
+    reward: 0, ayaka: true, exp: "常設",
+    check: () => totalLoginDays() >= 50
+  },
+  {
+    id: "ayaka_lex",
+    title: "アヤカ覚醒③：MagiLex 20コンテンツ完全習得",
+    desc: "MagiLex でコンテンツを20個 完全習得しよう（クイズ・単語帳のどちらも数えられる）。",
+    reward: 0, ayaka: true, exp: "常設",
+    check: () => lexMasteredCount() >= 20
+  },
+  {
+    id: "ayaka_allstarter",
+    title: "アヤカ完凸：スターターミッション全達成",
+    desc: "スタータータブのミッションをすべて達成しよう。これで「アヤカ」が👑完凸になる。",
+    reward: 0, ayaka: true, exp: "常設",
+    check: () => allStarterDone()
+  },
+
+  /* ── 常設のあそびはじめ ── */
+  {
+    id: "gacha_first_pull",
+    title: "はじめてのガチャ",
+    desc: "ガチャを1回以上引いてみよう。",
+    reward: 300, exp: "常設",
+    check: () => { const g=gachaSave(); return Object.keys(g.owned||{}).length>0 || (g.history||[]).length>0; }
+  },
+  {
+    id: "ssr_first_get",
+    title: "はじめてのSSR",
+    desc: "SSRキャラを1体 入手しよう。",
+    reward: 1000, exp: "常設",
     check: () => {
-      try { const g=JSON.parse(localStorage.getItem("xeva_gacha_v1")||"{}"); return Object.keys(g.owned||{}).length > 0 || (g.history||[]).length > 0; } catch(e){ return false; }
+      const o = ownedIds();
+      const chars = (window.XEVA && window.XEVA.CHARS) || [];
+      return chars.some(c => c.rarity==="SSR" && o[c.id]);
     }
   },
   {
-    id: "s4_ssr_get",
-    title: "S4 SSRキャラをゲット",
-    desc: "シーズン4のSSRキャラ（レア or リノン）をガチャで入手しよう",
-    reward: 1000,
-    exp: "S5リリースまで",
-    check: () => {
-      try { const g=JSON.parse(localStorage.getItem("xeva_gacha_v1")||"{}"); const o=g.owned||{}; return !!(o["rea"]||o["rinon"]); } catch(e){ return false; }
-    }
+    id: "collect_10_chars",
+    title: "コレクター：10体そろえる",
+    desc: "キャラクターを10体 集めよう（レアリティは問わない）。",
+    reward: 500, exp: "常設",
+    check: () => Object.keys(ownedIds()).length >= 10
+  },
+
+  /* ── 各アプリのやりこみ ── */
+  {
+    id: "mb_wave50",
+    title: "MagiBurst：WAVE 50 到達",
+    desc: "MagiBurst のクエストで WAVE 50 まで到達しよう。",
+    reward: 800, exp: "常設",
+    check: () => mbWaveBest() >= 50
   },
   {
-    id: "collect_a_s3s4_ayaka",
-    title: "Aシリーズ制覇：アヤカを迎える",
-    desc: "AシリーズのシーズンS3（カホ・ナナ）とS4（レア・リノン）のSSRをすべて集めると、限定SSR「アヤカ」を1体もらえる！",
-    reward: 0,
-    grantChar: "ayaka",
-    exp: "常設",
-    check: () => {
-      try { const g=JSON.parse(localStorage.getItem("xeva_gacha_v1")||"{}"); const o=g.owned||{}; return !!(o["kaho"]&&o["nana"]&&o["rea"]&&o["rinon"]); } catch(e){ return false; }
-    }
+    id: "lex_master10",
+    title: "MagiLex：10コンテンツ完全習得",
+    desc: "MagiLex でコンテンツを10個 完全習得しよう。30個そろえると限定SSR「ミズキ」が仲間になる。",
+    reward: 600, exp: "常設",
+    check: () => lexMasteredCount() >= 10
+  },
+  {
+    id: "login_30d",
+    title: "通算30日ログイン",
+    desc: "XEVARION に通算30日ログインしよう。",
+    reward: 500, exp: "常設",
+    check: () => totalLoginDays() >= 30
   }
 ];
 
+/* 旧IDの受取済みを新IDへ写す（一度だけ）。
+   ★ これをやらないと、すでに受け取った人の「アヤカ入手」が未受取に戻り、
+     もう一度受け取れてしまう＝凸の本数が狂う。 */
+const LIMITED_ID_MIGRATE = {
+  s4_gacha_once:        "gacha_first_pull",
+  s4_ssr_get:           "ssr_first_get",
+  collect_a_s3s4_ayaka: "ayaka_collect_a"
+};
 function getLimitedState() {
-  try { return JSON.parse(localStorage.getItem("xeva_limited_v1")||"{}"); } catch(e){ return {}; }
+  let s;
+  try { s = JSON.parse(localStorage.getItem("xeva_limited_v1")||"{}"); } catch(e){ s = {}; }
+  if(!s || typeof s!=="object") s = {};
+  let moved = false;
+  Object.keys(LIMITED_ID_MIGRATE).forEach(old => {
+    if(s[old] && !s[LIMITED_ID_MIGRATE[old]]) { s[LIMITED_ID_MIGRATE[old]] = s[old]; moved = true; }
+  });
+  if(moved) saveLimitedState(s);
+  return s;
 }
 function saveLimitedState(s) { try { localStorage.setItem("xeva_limited_v1",JSON.stringify(s)); } catch(e){} }
 
-function claimLimited(id) {
-  const m = LIMITED_MISSIONS.find(x=>x.id===id); if(!m) return;
+/* silent=true（まとめて受け取る）のときは alert も再描画も出さず、
+   受け取った内容 { xeva, note } だけ返す。呼び出し側が最後に1回まとめて知らせる。 */
+function claimLimited(id, silent) {
+  const m = LIMITED_MISSIONS.find(x=>x.id===id); if(!m) return null;
   const s = getLimitedState();
-  if(s[id]) return;
-  if(!m.check()) { alert("まだ達成されていません。"); return; }
+  if(s[id]) return null;
+  if(!m.check()) { if(!silent) alert("まだ達成されていません。"); return null; }
   s[id] = Date.now(); saveLimitedState(s);
-  // キャラ付与タイプ（例：アヤカ）。ガチャの所持データに1体加える。
-  if(m.grantChar){
+  let note = "";
+  /* アヤカ枠：所持と凸は syncAyakaGrants が「受け取った本数」から組み立て直す。
+     ここで直接 dupes を足さないので、二重に凸が進むことがない。 */
+  if(m.ayaka){
+    const dupe = syncAyakaGrants();
+    const nm = (((window.XEVA&&window.XEVA.CHARS)||[]).find(c=>c.id==="ayaka")||{name:"アヤカ"}).name;
+    const rest = AYAKA_MISSION_IDS.length - ayakaClaimedCount();
+    note =
+      dupe === 0 ? ("🎉 限定SSR「"+nm+"」を1体 獲得しました！\nガチャ画面の図鑑・各ゲームで使えます。\nあと "+rest+" 本の条件で完凸になります。")
+      : dupe >= AYAKA_MAX_DUPE ? ("👑 「"+nm+"」が完凸しました！\n5つの条件をすべて達成しました。おめでとうございます！")
+      : ("✨ 「"+nm+"」が +"+dupe+"凸 になりました！\nあと "+rest+" 本の条件で完凸です。");
+    if(!silent) alert(note);
+  }
+  // キャラ付与タイプ（アヤカ以外の1体もの）。ガチャの所持データに1体加える。
+  else if(m.grantChar){
     try {
-      const g = JSON.parse(localStorage.getItem("xeva_gacha_v1")||"{}");
+      const g = gachaSave();
       g.owned = g.owned || {};
       g.owned[m.grantChar] = true;
       localStorage.setItem("xeva_gacha_v1", JSON.stringify(g));
       try{ if(window.XEVASync&&window.XEVASync.syncProfile) window.XEVASync.syncProfile(); }catch(e){}
       const ch = (window.XEVA?window.XEVA.CHARS:[]).find(c=>c.id===m.grantChar);
-      alert("🎉 限定SSR「"+(ch?ch.name:m.grantChar)+"」を1体 獲得しました！\nガチャ画面の図鑑・各ゲームで使えます。");
+      note = "🎉 限定SSR「"+(ch?ch.name:m.grantChar)+"」を1体 獲得しました！\nガチャ画面の図鑑・各ゲームで使えます。";
+      if(!silent) alert(note);
     } catch(e){}
   }
-  if(m.reward>0 && window.XEVA) window.XEVA.add(m.reward, "期間限定ミッション："+m.title);
+  if(m.reward>0 && window.XEVA) window.XEVA.add(m.reward, "限定ミッション："+m.title);
+  if(silent) return { xeva: m.reward||0, note: note };
   renderXevaBalance(); renderXevaMissions();
   if(m.reward>0) showXevaToast(m.reward, m.title + " 達成！");
   renderMsnLimited();
+  return { xeva: m.reward||0, note: note };
 }
 
 function renderMsnLimited() {
@@ -419,7 +693,26 @@ function renderMsnLimited() {
   const claimable = LIMITED_MISSIONS.filter(m=>!state[m.id]&&m.check()).length;
   if(lb){ if(claimable>0){lb.textContent=claimable;lb.style.display="";}else lb.style.display="none"; }
 
-  const html = LIMITED_MISSIONS.map(m => {
+  /* アヤカ枠の見出し。何本受け取ったか＝いまの凸がひと目で分かるようにする */
+  const ayNow = ayakaClaimedCount();
+  const ayDupe = Math.max(0, Math.min(AYAKA_MAX_DUPE, ayNow - 1));
+  const ayCh = (((window.XEVA&&window.XEVA.CHARS)||[]).find(c=>c.id==="ayaka")||{name:"アヤカ",file:"../img/Ayaka.webp"});
+  const ayName = ayCh.name;
+  /* 図鑑タブと同じ組み立て（CHARS の file は "../img/…" なので chars/ の下から見る） */
+  const ayHead = `<div class="mm-ayaka-head">
+      <img src="chars/${ayCh.file}" alt="${ayName}" onerror="this.style.display='none'">
+      <div class="mm-ayaka-txt">
+        <div class="mm-ayaka-name">限定SSR「${ayName}」を完凸させよう</div>
+        <div class="mm-ayaka-sub">${ayNow===0?"ガチャからは出ないキャラ。下の5つのどれかを達成すると仲間になる。"
+          : ayDupe>=AYAKA_MAX_DUPE?"👑 完凸ずみ！ 5つすべて達成しました。"
+          : "いま <b>"+(ayDupe===0?"入手ずみ（0凸）":"+"+ayDupe+"凸")+"</b>　あと <b>"+(AYAKA_MISSION_IDS.length-ayNow)+"本</b>で完凸"}</div>
+        <div class="mm-ayaka-pips">${
+          AYAKA_MISSION_IDS.map((id,i)=>`<span class="${state[id]?'on':''}">${i===0?'入手':'+'+i}</span>`).join("")
+        }</div>
+      </div>
+    </div>`;
+
+  const card = m => {
     const done = !!state[m.id];
     const reached = m.check();
     const btnHtml = done
@@ -427,22 +720,33 @@ function renderMsnLimited() {
       : reached
         ? `<button class="mm-milestone-claim" onclick="claimLimited('${m.id}')">受け取る</button>`
         : `<button class="mm-milestone-claim" disabled>未達成</button>`;
-    return `<div class="mm-limited-card${done?' claimed':''}">
+    /* アヤカ枠は「入手 / +1凸…」ではなく、達成した本数で決まるので
+       ここでは “アヤカ枠である” ことだけを書く（本数は上の見出しが持つ）。 */
+    const rew = m.ayaka
+      ? `🎁 「${ayName}」を1段階`
+      : m.grantChar
+        ? ("🎁 SSR「" + (((window.XEVA&&window.XEVA.CHARS)||[]).find(c=>c.id===m.grantChar)||{name:m.grantChar}).name + "」")
+        : ("+" + m.reward + " XEVA");
+    return `<div class="mm-limited-card${done?' claimed':''}${m.ayaka?' ayaka':''}">
       <div class="mm-limited-head">
-        <span class="mm-limited-badge">期間限定</span>
+        <span class="mm-limited-badge">${m.ayaka?"アヤカ":"常設"}</span>
         <div class="mm-limited-title">${m.title}</div>
       </div>
       <div class="mm-limited-desc">${m.desc}</div>
       <div class="mm-limited-foot">
         <span class="mm-limited-exp">⏰ ${m.exp}</span>
         <div style="display:flex;align-items:center;gap:10px">
-          <span class="mm-limited-rew">${m.grantChar ? ("🎁 SSR「" + (((window.XEVA&&window.XEVA.CHARS)||[]).find(c=>c.id===m.grantChar)||{name:m.grantChar}).name + "」") : ("+" + m.reward + " XEVA")}</span>
+          <span class="mm-limited-rew">${rew}</span>
           ${btnHtml}
         </div>
       </div>
     </div>`;
-  }).join("");
-  el.innerHTML = html || '<div class="mm-limited-empty">🎪 現在、期間限定ミッションはありません</div>';
+  };
+
+  const ayakaCards = LIMITED_MISSIONS.filter(m=>m.ayaka).map(card).join("");
+  const otherCards = LIMITED_MISSIONS.filter(m=>!m.ayaka).map(card).join("");
+  const html = (ayakaCards ? ayHead + ayakaCards : "") + otherCards;
+  el.innerHTML = html || '<div class="mm-limited-empty">🎪 現在、限定ミッションはありません</div>';
 }
 
 function openMissions() {
@@ -1497,13 +1801,24 @@ function howtoNext() {
 const MAIL_KEY = "xeva_mail_v1";
 
 /* ══════════════════════════════════════════════════════════
-   MagiBurst 向けプレゼントの受け渡し（2026-07-30〜）
-   ・MagiBurst のメールボックスは廃止し、配布はすべてこの XEVARION メールに集約した。
-   ・ただし「🎫フェスチケット」「ゴールド」「アイテム」は MagiBurst のセーブ(DB)の中にしか
-     置き場所がないので、ここで直接は足せない。
-     → 受け取りボタンを押した時点で “引換券” をキューに積み、MagiBurst 起動時に精算する。
-   ・💎ジェムは XEVARION 共通ウォレット(xeva_gem_v1)なので、ここで即座に付与する。
-   ・キューは xeva-cloud.js の SYNC_KEYS に入れて全端末で共有する（受け取りは1回だけ）。
+   メールに入っているプレゼントの渡しかた
+
+   ── 2026-08-13 「引換券」の仕組みを廃止しました ─────────────
+   これまで「🎫フェスチケット」は MagiBurst のセーブ(magiburst_v1)の中にしか
+   置き場所がなかったので、XEVARION のメールでは直接足せなかった。
+   そこで受け取りボタンで “引換券” をキューに積み、
+   <b>次に MagiBurst を開いたとき</b>に精算する、という遠回りをしていた。
+
+   ガチャ自体が XEVARION へ移った以上、この遠回りは筋が通らない
+   （MagiBurst を開かないとガチャチケットが手に入らない、という逆転が起きていた）。
+   → 🎫の残高を XEVARION 共通ウォレット（XEVA.ticket / xeva_gticket_v1）へ移し、
+     <b>受け取った瞬間に増えて、そのままガチャで使える</b>ようにした。
+   ・💎ジェムも同じく共通ウォレット(xeva_gem_v1)なので、ここで即座に付与する。
+
+   ★ 引換券キュー（xeva_mbgift_v1）は「まだ精算していない古い配布」を拾うためだけに残す。
+     xeva.js の drainLegacyTicketGifts が起動時に🎫ぶんを回収する。
+     ゴールド・アイテムのように MagiBurst のセーブにしか置けないものが将来また出たら、
+     そのときだけ pushMbGift を使う。
    ══════════════════════════════════════════════════════════ */
 const MBGIFT_KEY = "xeva_mbgift_v1";
 function loadMbGift() {
@@ -1529,17 +1844,54 @@ function pushMbGift(srcId, mb) {
   d.q.push(Object.assign({ id: srcId, at: Date.now() }, mb));
   saveMbGift(d);
 }
-/* 📧メール以外（ジェムショップのフェスチケット付きパックなど）からも積めるように公開する */
+/* 📧メール以外（将来ゴールド・アイテムを配るとき）からも積めるように公開する */
 window.pushMbGift = pushMbGift;
 
+/* ══ メールの中の MagiBurst 向けプレゼントを渡す（2026-08-13 作り直し）══
+   ・🎫チケット … XEVARION 共通ウォレットへ即座に加算（ここが今回の変更点）
+   ・それ以外   … MagiBurst のセーブにしか置けないので引換券に積む
+   戻り値は受け取った🎫の枚数（トーストの文面に使う）。 */
+function grantMbGift(srcId, mb) {
+  if (!mb) return 0;
+  const X = window.XEVA || {};
+  /* mb.ticket ＝ 🎫フェスチケット（フェス専用） ／ mb.gticket ＝ 🎫ガチャチケット（全ガチャ） */
+  const canFes = mb.ticket > 0 && X.fesTicket;
+  const canGac = mb.gticket > 0 && X.ticket;
+  let tickets = 0;
+  const rest = {};
+  Object.keys(mb).forEach((k) => {
+    if (k === "ticket" && canFes) return;
+    if (k === "gticket" && canGac) return;
+    rest[k] = mb[k];
+  });
+  if (canFes || canGac) {
+    /* 二重付与よけ：引換券キューと同じ id で「受け取り済み」の印を付ける。
+       旧バージョンの端末が同じメールを引換券へ積んでも、そちらは精算されない。 */
+    const d = loadMbGift();
+    if (!d.done[srcId]) {
+      d.done[srcId] = Date.now();
+      d.q = d.q.filter((x) => x.id !== srcId);
+      saveMbGift(d);
+      if (canFes) { const n = Math.round(mb.ticket); X.fesTicket.add(n, "📧メール：" + srcId); tickets += n; }
+      if (canGac) { const n = Math.round(mb.gticket); X.ticket.add(n, "📧メール：" + srcId); tickets += n; }
+    }
+  }
+  if (Object.keys(rest).length) pushMbGift(srcId, rest);
+  return tickets;
+}
+
 const INITIAL_MAILS = [
-  /* ── 2026-08-12 大型アップデート記念（🎫フェスチケット70枚） ──
-     ★ 🎫は MagiBurst のセーブ（magiburst_v1.fesTicket）にしか置き場所がないので、
-       ここでは直接足せない。受け取りボタンで引換券（xeva_mbgift_v1）に積み、
-       次に MagiBurst を開いたときに drainMbGifts が精算する。
-     ★ チケットは<b>どのフェスでも共通</b>（蒼夏祭でもそのまま使える）。 */
+  /* ── 2026-08-13 新チケット「ガチャチケット」配布（20枚） ──
+     ★ mb:{gticket:20}＝<b>ガチャチケット</b>（全ガチャ共通・新設）。
+       mb:{ticket:N} は従来からある<b>フェスチケット</b>。混ぜないこと。
+     ★ どちらも grantMbGift が受け取った瞬間にウォレットへ足す（引換券をはさまない）。 */
+  { id:"mail_ticket_260813", icon:"🎫", title:"新チケット「ガチャチケット」配布（🎫20枚）", date:"2026-08-13",
+    body:"いつも XEVARION をご利用いただきありがとうございます。\n\n新しいチケット「ガチャチケット」を追加しました。\n\n・ガチャチケットは プレミアムセレクトガチャでも各フェスでも 使える共通チケットです（1枚＝1回ぶん）。\n・これまでの「フェスチケット」は、これまでどおり フェスガチャ専用 のままです。枚数が減ったり、別のものに変わったりすることはありません。\n・フェスガチャで回すときは、フェスチケット → ガチャチケット → 💎ジェム の順に自動で消費します。フェスでしか使えないほうから先に使うので、チケットが余りません。\n\nあわせて、チケットの置き場所を MagiBurst のセーブから XEVARION 側へ移しました。これまでは、メールで受け取っても「次に MagiBurst を開いたとき」にしか反映されませんでしたが、これからは 受け取った瞬間に増え、そのままガチャで使えます。\n\n追加を記念して、全ユーザーに ガチャチケット20枚 をお贈りします。\n\nまた、デジタル宝くじ「Magi Lotto」を公開しました。MagiBurst 側では、オートエイムビットの威力と連射の速さを下げ、叡智の果実をまとめて使えるようにしています。\n\nこれからも XEVARION をよろしくお願いします。",
+    mb:{ gticket:20 } },
+  /* ── 2026-08-12 大型アップデート記念（🎫70枚） ──
+     ★ 2026-08-13 以降は grantMbGift が XEVA.ticket へ直接足す（引換券は使わない）。 */
   { id:"mail_update_260812", icon:"🎫", title:"大型アップデート記念 配布（🎫フェスチケット70枚）", date:"2026-08-12",
-    body:"いつも XEVARION をご利用いただきありがとうございます。\n\n今回の大型アップデートでは、次の点を改善しました。\n\n・MagiBurst の「蒼夏祭」に、闇属性・反射の新★5「セイラ」が加わりました。史上最高火力の40発乱打フルバーストと、新リンク「ブレイドオービット」「ピアスシーカー20」を持ちます。\n・引いたキャラクターが「持っていない」ことになってしまう不具合を修正し、入手状況と限界突破をすべての端末で確実に同期するようにしました。\n・ガチャに効果音が付きました。\n・幽冥の庭園のクリア状況は、毎月1日・16日のリセットでいっしょに戻るようになりました（初クリアのジェムは、これまでどおり毎月1日だけリセットです）。\n・ホーム画面の下のバーと画面の下のあいだにできていた隙間、イベントが最後まで進むと先頭に戻らない不具合、アカウント管理画面の上部がカメラに重なってボタンを押せない不具合を修正しました。\n\n記念として、全ユーザーに フェス限定ガチャチケット70枚 をお贈りします。チケットはどのフェスでも共通で使え、回すときに自動で優先して使われます（1枚＝1回ぶん）。\n\n※ 🎫チケットは、次に MagiBurst を開いたときにまとめて届きます。\n\nこれからも XEVARION をよろしくお願いします。",
+    body:"いつも XEVARION をご利用いただきありがとうございます。\n\n今回の大型アップデートでは、次の点を改善しました。\n\n・MagiBurst の「蒼夏祭」に、闇属性・反射の新★5「セイラ」が加わりました。史上最高火力の40発乱打フルバーストと、新リンク「ブレイドオービット」「ピアスシーカー20」を持ちます。\n・引いたキャラクターが「持っていない」ことになってしまう不具合を修正し、入手状況と限界突破をすべての端末で確実に同期するようにしました。\n・ガチャに効果音が付きました。\n・幽冥の庭園のクリア状況は、毎月1日・16日のリセットでいっしょに戻るようになりました（初クリアのジェムは、これまでどおり毎月1日だけリセットです）。\n・ホーム画面の下のバーと画面の下のあいだにできていた隙間、イベントが最後まで進むと先頭に戻らない不具合、アカウント管理画面の上部がカメラに重なってボタンを押せない不具合を修正しました。\n\n記念として、全ユーザーに フェス限定ガチャチケット70枚 をお贈りします。チケットはどのフェスでも共通で使え、回すときに自動で優先して使われます（1枚＝1回ぶん）。\n\n※ 🎫チケットは、受け取ったその場で増えます（2026-08-13 の仕様変更により、MagiBurst を開く必要はなくなりました）。\n\nこれからも XEVARION をよろしくお願いします。",
     mb:{ ticket:70 } },
   /* ── 2026-08-10 大型アップデート記念（12,000 XEVA） ── */
   { id:"mail_update_260810", icon:"🎉", title:"アップデート記念 配布（12,000 XEVA）", date:"2026-08-10",
@@ -1549,18 +1901,15 @@ const INITIAL_MAILS = [
   { id:"mail_summer_260808", icon:"☀️", title:"サマーキャンペーン 配布（6,000 XEVA）", date:"2026-08-08",
     body:"いつも XEVARION をご利用いただきありがとうございます。\n\nこのなつをいっしょに驆けぬけるみなさまへ、サマーキャンペーンとして 6,000 XEVA をお贈りします。\n\nMagiBurst にはプレミアム新★5「カエデ」「リノン」「ココロ」「アンジェ」の4体が参戦し、フルバーストの演出も新しく作り直しました。全体のスピードも上がっています。\n\nこれからも XEVARION をよろしくお願いします。",
     amount:6000 },
-  /* ── 2026-08-03 アップデート記念 ──
-     XEVA と 🎫フェスチケットの両方が入るメール。
-     🎫は MagiBurst のセーブにしか置き場所がないので、受け取ると引換券が積まれ、
-     次に MagiBurst を開いたときに精算される。 */
-  { id:"mail_update_260803", icon:"🎁", title:"アップデート記念 配布（6,000 XEVA ＋ 🎫20枚）", date:"2026-08-03",
-    body:"いつも XEVARION をご利用いただきありがとうございます。\n\n今回のアップデートでは、アカウントの同期をいちから作り直しました。ログアウトしてから新しく登録したときに前のアカウントのデータが引き継がれてしまう不具合、XEVA・ジェム・ショップの購入が端末どうしでそろわない不具合を修正しています。あわせて iPhone でアプリとして開いたときに画面の下にできていた空白もなくしました。\n\nMagiBurst には 幽冥の庭園 第8〜10ノ園 と新ギミック「減速壁」が加わり、ヒーリングバルーンやダメージ計算も見直しています。\n\n記念として、全ユーザーに 6,000 XEVA と フェス限定ガチャチケット20枚 をお贈りします。\n\n※ 🎫チケットは、次に MagiBurst を開いたときにまとめて届きます。",
+  /* ── 2026-08-03 アップデート記念 ── XEVA と 🎫の両方が入るメール */
+  { id:"mail_update_260803", icon:"🎁", title:"アップデート記念 配布（6,000 XEVA ＋ 🎫フェスチケット20枚）", date:"2026-08-03",
+    body:"いつも XEVARION をご利用いただきありがとうございます。\n\n今回のアップデートでは、アカウントの同期をいちから作り直しました。ログアウトしてから新しく登録したときに前のアカウントのデータが引き継がれてしまう不具合、XEVA・ジェム・ショップの購入が端末どうしでそろわない不具合を修正しています。あわせて iPhone でアプリとして開いたときに画面の下にできていた空白もなくしました。\n\nMagiBurst には 幽冥の庭園 第8〜10ノ園 と新ギミック「減速壁」が加わり、ヒーリングバルーンやダメージ計算も見直しています。\n\n記念として、全ユーザーに 6,000 XEVA と フェス限定ガチャチケット20枚 をお贈りします。\n\n※ 🎫チケットは、受け取ったその場で増えます。",
     amount:6000, mb:{ ticket:20 } },
   /* ── ここから MagiBurst から移設した配布物（2026-07-30） ──
      mbFrom = MagiBurst 旧メールボックスでの id。既に向こうで受け取っていたら
      seedMails() が最初から「受取済」にして二重配布を防ぐ。 */
   { id:"mb_fes_ticket_2607", icon:"🎫", title:"✦ Nocturne Bloom Fest 開幕記念（MagiBurst）", date:"2026-07-27",
-    body:"新クエスト（幽冥の庭園リニューアル）と、フェス限定★5「フィオナ」「ミルフィ」「メイベル」「アビス」「アーク」の参戦を記念して、フェス限定ガチャチケット20枚をお贈りします。\n\nチケットは Nocturne Bloom Fest 専用で、回すときに自動で優先して使われます（1枚＝1回ぶん）。\n\n※ MagiBurst を起動したときに受け取り処理が完了します。",
+    body:"新クエスト（幽冥の庭園リニューアル）と、フェス限定★5「フィオナ」「ミルフィ」「メイベル」「アビス」「アーク」の参戦を記念して、フェス限定ガチャチケット20枚をお贈りします。\n\nチケットは どのフェスでも共通 で、回すときに自動で優先して使われます（1枚＝1回ぶん）。\n\n※ 受け取ったその場で増えます。",
     mbFrom:"gift_festicket240_20260727", mb:{ ticket:20 } },
   { id:"mb_summer_gem_2607", icon:"☀️", title:"夏期間応援プレゼント（MagiBurst）", date:"2026-07-23",
     body:"暑い夏をいっしょに駆けぬけるみなさまへ——夏期間応援として ジェム100個 をお贈りします。\n\n新★5「セツナ」「セレネ」「ナズナ」「リリア」「レヴィア」が参戦したプレミアムセレクトガチャに、ぜひお使いください！",
@@ -1628,9 +1977,24 @@ function seedMails() {
   let changed = false;
   INITIAL_MAILS.forEach(m => {
     if (isMailExpired(m)) return; // 期限切れのメールは復活させない（自動破棄の再投入防止）
-    if (!data.items.find(x => x.id === m.id)) {
+    const cur = data.items.find(x => x.id === m.id);
+    if (!cur) {
       /* MagiBurst の旧メールボックスで受け取り済みなら、最初から「受取済」で置く */
       data.items.unshift(Object.assign({ claimed: mbAlreadyGot(m.mbFrom) }, m));
+      changed = true;
+      return;
+    }
+    /* ★ 2026-08-13 <b>まだ受け取っていないメールは、中身を毎回上書きし直す</b>。
+       以前は「id が同じなら何もしない」だったので、配布物の書きまちがいを直しても
+       すでに端末に置かれたメールは古いままだった（今回、🎫の種類を
+       ticket → gticket に直したときに実際にこれで取りちがえた）。
+       受取済みのものは触らない（あとから中身を変えて配り直しになってしまうため）。 */
+    if (!cur.claimed) {
+      Object.keys(m).forEach((k) => { cur[k] = m[k]; });
+      /* 旧版で入っていて新版に無いキーは消す（ticket → gticket の付け替えなど） */
+      ["amount", "gem", "mb", "charId", "charFull"].forEach((k) => {
+        if (!(k in m) && k in cur) delete cur[k];
+      });
       changed = true;
     }
   });
@@ -1679,8 +2043,11 @@ function claimMail(id) {
     window.XEVA.gem.add(mail.gem, mail.title);
     if (window.xhRenderGem) window.xhRenderGem();
   }
-  /* 🎫フェスチケット・ゴールドなど MagiBurst のセーブにしか置けないぶんは引換券を積む */
-  if (mail.mb && !mbAlreadyGot(mail.mbFrom)) pushMbGift(mail.mbFrom || mail.id, mail.mb);
+  /* 🎫ガチャチケットはここで即座に付与する（2026-08-13〜。MagiBurst を開く必要はない） */
+  if (mail.mb && !mbAlreadyGot(mail.mbFrom)) {
+    const tk = grantMbGift(mail.mbFrom || mail.id, mail.mb);
+    if (tk > 0 && window.xhRenderTicket) window.xhRenderTicket();
+  }
   if (mail.charId) {
     const GKEY = "xeva_gacha_v1";
     let G = { owned: {}, dupes: {}, points: {} };
@@ -1720,13 +2087,13 @@ function claimAllMails() {
   if (!G.owned) G.owned = {};
   if (!G.dupes) G.dupes = {};
 
-  let gemTotal = 0;
+  let gemTotal = 0, tktTotal = 0;
   targets.forEach((m) => {
     m.claimed = true;
     if (m.amount > 0) total += m.amount;
     const dup = mbAlreadyGot(m.mbFrom);
     if (m.gem > 0 && !dup) gemTotal += m.gem;
-    if (m.mb && !dup) pushMbGift(m.mbFrom || m.id, m.mb);
+    if (m.mb && !dup) tktTotal += grantMbGift(m.mbFrom || m.id, m.mb);
     if (m.charId) {
       G.owned[m.charId] = true;
       if (m.charFull) G.dupes[m.charId] = GACHA_MAX_DUPE;
@@ -1745,9 +2112,11 @@ function claimAllMails() {
     renderXevaBalance();
     renderXevaMissions();
   }
+  if (tktTotal > 0 && window.xhRenderTicket) window.xhRenderTicket();
   renderMailList();
   updateMailBadge();
   if (total > 0) showXevaToast(total, "メール" + targets.length + "件をまとめて受け取りました");
+  else if (tktTotal > 0) showXevaToast(0, "🎫 チケット ×" + tktTotal + " を受け取りました");
   else if (chars.length) showXevaToast(0, chars.join("・") + " を受け取りました");
 }
 window.claimAllMails = claimAllMails;
@@ -1803,9 +2172,12 @@ function renderMailList() {
           <img src="gem.png" class="mail-xeva-icon" alt="ジェム">
           <span class="mail-reward-val" style="color:#8e6bff">＋${m.gem.toLocaleString()} ジェム</span>
         </div>` : ""}
-        ${m.mb && m.mb.ticket ? `<div class="mail-item-reward"><span style="font-size:11px;color:#c48bff;font-weight:700">🎫 フェス限定ガチャチケット ×${m.mb.ticket}</span></div>` : ""}
+        ${m.mb && m.mb.ticket ? `<div class="mail-item-reward"><span style="font-size:11px;color:#c48bff;font-weight:700">🎫 フェスチケット ×${m.mb.ticket}</span></div>` : ""}
+        ${m.mb && m.mb.gticket ? `<div class="mail-item-reward"><span style="font-size:11px;color:#5ab6ff;font-weight:700">🎫 ガチャチケット ×${m.mb.gticket}</span></div>` : ""}
         ${m.mb && m.mb.gold ? `<div class="mail-item-reward"><span style="font-size:11px;color:#d79a1e;font-weight:700">🪙 ゴールド ×${m.mb.gold.toLocaleString()}</span></div>` : ""}
-        ${m.mb ? `<div style="font-size:10px;font-weight:700;color:rgba(34,52,77,.5);margin-top:3px">※ MagiBurst を起動したときに反映されます</div>` : ""}
+        ${/* ★ 2026-08-13 🎫はここで即座に受け取れる（MagiBurst を開く必要はなくなった）。
+              ゴールドのように MagiBurst のセーブにしか置けないものだけ、これまでどおりの案内を出す。 */""}
+        ${m.mb && m.mb.gold ? `<div style="font-size:10px;font-weight:700;color:rgba(34,52,77,.5);margin-top:3px">※ 🪙ゴールドは MagiBurst を起動したときに反映されます</div>` : ""}
         ${ch ? `<div class="mail-item-reward"><span style="font-size:11px;color:#b18cff;font-weight:700">✨ ${ch.name} (${ch.rarity})</span></div>` : ""}
         ${expiryHtml}
       </div>
@@ -1861,12 +2233,6 @@ function closeLoginBonus() {
   const ov = document.getElementById("loginBonusOv");
   if (ov) ov.style.display = "none";
 }
-function closeS4Banner() {
-  const ov = document.getElementById("s4BannerOv");
-  if (ov) ov.style.display = "none";
-  window.location.href = "gacha.html";
-}
-
 /* ══════════ クラウドアカウント：アクセス画面 / サインイン ══════════ */
 function xhEsc(s){ return String(s==null?"":s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
 function xevaLocalSession() { try { return JSON.parse(localStorage.getItem("xeva_session_v1") || "null"); } catch (e) { return null; } }

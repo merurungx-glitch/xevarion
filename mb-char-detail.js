@@ -32,11 +32,18 @@ function openDetX(id) {
         <span class="dchip">${c.type}</span>
         <span class="dchip">${own ? "所持済み" : "未所持"}</span>
       </div>
-      <div class="dstats">
-        ${/* ★ 2026-08-12d 数字のうち<b>アーク強化で増えたぶん</b>を「＋◯◯」で添える（arcPlus は mb-core.js） */""}
+      ${/* ★ 2026-08-12d 数字のうち<b>アーク強化で増えたぶん</b>を「＋◯◯」で添える（arcPlus は mb-core.js）
+            ★ 2026-08-15 数字のうしろではなく<b>下の専用行</b>へ。
+              くっつけていたころは、アークを振った項目だけ中の要素が増えて
+              3つのマスの高さがそろわず、数字も「8500+420」と一続きに読めていた。
+              .hasarc のときは<b>振っていないマスにも空の行</b>を置くので高さがそろう。 */""}
+      <div class="dstats${arcHas(st) ? " hasarc" : ""}">
         ${["HP", "攻撃力", "スピード"].map((k, i) => {
           const key = ["hp", "atk", "spd"][i];
-          return `<div class="dst"><i>${k}</i><b>${fmt([st.hp, st.atk, st.spd][i])}${arcPlus(st, key)}</b></div>`;
+          /* ★ 2026-08-16c スピードだけ km/h を付ける（HP・攻撃力は単位なしのまま） */
+          const val = key === "spd" ? spdKmh(st.spd) : fmt([st.hp, st.atk, st.spd][i]);
+          return `<div class="dst"><i>${k}</i><b>${val}</b>`
+            + (arcHas(st) ? `<span class="dstarc">${arcPlus(st, key)}</span>` : "") + `</div>`;
         }).join("")}
       </div>
 
