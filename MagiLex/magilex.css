@@ -90,7 +90,8 @@ img{display:block}
 .back-row{display:flex;align-items:center;gap:10px;padding:14px 4px}
 .back-btn{width:38px;height:38px;border-radius:12px;border:1px solid var(--line);background:var(--panel);
   color:var(--ink);font-size:18px;box-shadow:var(--shadow-sm)}
-.back-row h2{font-family:'Cinzel',serif;font-size:1.05rem;flex:1;margin:0}
+.back-row h2{font-family:'Cinzel',serif;font-size:1.05rem;flex:1;margin:0;
+  display:flex;align-items:center;gap:9px;min-width:0}
 
 /* ---- ホーム：あいさつ ---- */
 .hero{background:linear-gradient(135deg,#6b5bd2,#7d5bc8 55%,#b06bb0);border-radius:22px;padding:20px;color:#fff;
@@ -257,9 +258,13 @@ img{display:block}
 .nav{position:fixed;left:0;right:0;bottom:0;z-index:40;display:flex;justify-content:space-around;
   background:rgba(250,248,243,.94);backdrop-filter:blur(14px);border-top:1px solid var(--line);
   padding:6px 4px calc(6px + env(safe-area-inset-bottom))}
-.nav .nv{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:7px 2px;border:none;background:none;color:var(--faint);font-size:.62rem;font-weight:700}
-.nav .nv .i{font-size:19px}
+.nav .nv{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 2px;border:none;background:none;color:var(--faint);font-size:.62rem;font-weight:700}
+/* ★ SVGアイコン（絵文字から差し替え）。線は currentColor なので .nv.on の色がそのまま乗る */
+.nav .nv .i{display:block;width:23px;height:23px;line-height:0}
+.nav .nv .i svg{width:100%;height:100%;display:block;transition:transform .18s ease}
 .nav .nv.on{color:var(--indigo)}
+.nav .nv.on .i svg{transform:translateY(-1px) scale(1.06)}
+.nav .nv:active .i svg{transform:scale(.92)}
 
 /* ---- トースト ---- */
 .toast{position:fixed;left:50%;bottom:88px;transform:translateX(-50%) translateY(20px);z-index:9500;
@@ -268,6 +273,17 @@ img{display:block}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .toast.gld{background:linear-gradient(135deg,#caa12f,#b6892a)}
 .empty{text-align:center;color:var(--faint);font-size:.82rem;padding:34px 10px}
+/* ★ 2026-08-16 検索した語句を含む問題をまとめて解く入口 */
+.lib-study{display:flex;flex-direction:column;align-items:flex-start;gap:3px;width:100%;text-align:left;cursor:pointer;
+  padding:13px 15px;border-radius:16px;border:1.5px solid rgba(107,91,210,.34);
+  background:linear-gradient(135deg,rgba(224,21,122,.08),rgba(107,91,210,.11));
+  font-size:.82rem;font-weight:800;color:var(--ink);box-shadow:var(--shadow-sm)}
+.lib-study:active{transform:scale(.99)}
+.lib-study b{color:var(--indigo)}
+.lib-study span{font-size:.72rem;font-weight:700;color:var(--indigo)}
+/* 中身に当たった件数のバッジ */
+.item .t .hitn{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:99px;vertical-align:1px;
+  font-size:.62rem;font-weight:800;color:#fff;background:linear-gradient(135deg,#e0157a,#8a5bd2)}
 
 @media(min-width:560px){ .q-stem{font-size:1.7rem} }
 
@@ -419,9 +435,14 @@ img{display:block}
 .audio-seg .aseg:disabled{opacity:.45;cursor:not-allowed}
 
 /* ===== 起動時 消音/発音 選択モーダル ===== */
+/* ★ 2026-08-16b 見えないあいだはタップを通す（pointer-events:none）。
+   このおおいは画面ぜんぶを覆う fixed 要素で、隠すときは opacity:0 にしていた。
+   <b>opacity:0 は透明になるだけでタップは受け取り続ける</b>ので、
+   閉じるアニメーションの最中や、消し忘れが1つでもあると
+   画面のどこも押せなくなる（クイズ左上の中断✕が押せない、など）。 */
 .audio-ask{position:fixed;inset:0;z-index:9000;display:flex;align-items:center;justify-content:center;padding:22px;
-  background:rgba(28,26,40,.5);backdrop-filter:blur(8px);opacity:0;transition:opacity .3s}
-.audio-ask.show{opacity:1}
+  background:rgba(28,26,40,.5);backdrop-filter:blur(8px);opacity:0;transition:opacity .3s;pointer-events:none}
+.audio-ask.show{opacity:1;pointer-events:auto}
 .audio-ask .aa-card{max-width:380px;width:100%;background:var(--panel);border:1px solid var(--line);border-radius:24px;
   padding:28px 24px;text-align:center;box-shadow:0 30px 70px rgba(40,34,80,.3);transform:translateY(12px);transition:transform .3s}
 .audio-ask.show .aa-card{transform:none}
@@ -550,6 +571,32 @@ body.in-quiz .q-stem{font-size:1.28rem}
 .reset-btn:disabled{opacity:.4;cursor:not-allowed}
 
 /* ══════════════════════════════════════════════════════════
+   ★ 2026-08-15 科目アイコン（絵文字から自前SVGへ）
+   ── --sc に科目の色が入る。地は同じ色の薄いベタなので、
+      並べたときに「科目ごとの色の帯」として読める。
+   ══════════════════════════════════════════════════════════ */
+.sbjic{display:inline-grid;place-items:center;flex:none;vertical-align:middle;
+  width:32px;height:32px;border-radius:10px;
+  color:var(--sc,#6b5bd2);
+  background:color-mix(in srgb, var(--sc,#6b5bd2) 13%, transparent);
+  box-shadow:inset 0 0 0 1px color-mix(in srgb, var(--sc,#6b5bd2) 22%, transparent)}
+.sbjic .sbjsvg{width:20px;height:20px;display:block}
+/* 一覧の 42px タイルいっぱいに（.item .ic の中に入る） */
+.item .ic .sbjic{width:100%;height:100%;border-radius:12px;box-shadow:none;background:transparent}
+.item .ic .sbjic .sbjsvg{width:24px;height:24px}
+.item .ic{background:var(--panel2)}
+/* 見出し用（詳細画面の h2 の中） */
+.sbjic.big{width:34px;height:34px;border-radius:11px}
+.sbjic.big .sbjsvg{width:22px;height:22px}
+/* 行内の小さいもの（範囲えらびの一覧） */
+.sbjic.sm{width:24px;height:24px;border-radius:8px;margin-right:2px}
+.sbjic.sm .sbjsvg{width:16px;height:16px}
+/* color-mix が無いブラウザ向けの控えめな地色 */
+@supports not (background: color-mix(in srgb, red 10%, transparent)){
+  .sbjic{background:rgba(107,91,210,.12);box-shadow:inset 0 0 0 1px rgba(107,91,210,.2)}
+}
+
+/* ══════════════════════════════════════════════════════════
    ★ 2026-08-04 ミックス問題の出題範囲えらび
    ══════════════════════════════════════════════════════════ */
 .mix-note{margin:0 0 10px;font-size:.74rem;color:var(--ink2);line-height:1.7}
@@ -566,7 +613,7 @@ body.in-quiz .q-stem{font-size:1.28rem}
   background:rgba(107,91,210,.05);text-align:left;cursor:pointer}
 .mix-ghead.all{background:linear-gradient(135deg,rgba(224,21,122,.10),rgba(107,91,210,.12))}
 .mix-ghead.some{background:rgba(224,21,122,.06)}
-.mix-ghead .mg-ic{font-size:20px;flex:none}
+.mix-ghead .mg-ic{flex:none;display:grid;place-items:center;line-height:0}
 .mix-ghead .mg-nm{flex:1;min-width:0;font-size:.92rem;font-weight:800;color:var(--ink)}
 .mix-ghead .mg-nm small{display:block;font-size:.68rem;font-weight:700;color:var(--ink2);margin-top:2px}
 .mix-ghead .mg-ck{flex:none;width:24px;height:24px;border-radius:8px;display:grid;place-items:center;
@@ -579,10 +626,46 @@ body.in-quiz .q-stem{font-size:1.28rem}
 .mix-item .mi-ck{flex:none;width:20px;height:20px;border-radius:6px;border:1.5px solid var(--line);
   display:grid;place-items:center;font-size:.72rem;font-weight:900;color:#fff;background:var(--panel)}
 .mix-item.on .mi-ck{background:linear-gradient(135deg,#e0157a,#8a5bd2);border-color:transparent}
+/* アイコンをSVGタイルにしたので、名前だけを省略記号にする（アイコンは縮めない） */
 .mix-item .mi-nm{flex:1;min-width:0;font-size:.8rem;font-weight:700;color:var(--ink);
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  display:flex;align-items:center;gap:6px;overflow:hidden;white-space:nowrap}
+.mix-item .mi-nm .sbjic{flex:none}
 .mix-item .mi-n{flex:none;font-size:.7rem;font-weight:800;color:var(--ink2);text-align:right;line-height:1.3}
 .mix-item .mi-n small{display:block;font-size:.62rem;font-weight:700;color:var(--indigo)}
+
+/* ★ 2026-08-15 「まだ完全習得していない問題だけ」のセット */
+.mix-allrow{flex-wrap:wrap}
+.mix-abtn.un{flex:1 1 100%;background:linear-gradient(135deg,rgba(224,21,122,.08),rgba(107,91,210,.10));
+  border-color:rgba(107,91,210,.28);color:var(--indigo)}
+.mix-sum .ms-un{display:block;font-size:.66rem;font-weight:700;color:var(--indigo);margin-top:2px}
+/* ★ 2026-08-16 20問に足りないときの赤字 */
+.mix-sum.ng{border-color:rgba(224,21,122,.35);color:#c01268}
+.mix-sum .ms-ng{display:block;font-size:.66rem;font-weight:800;color:#e0157a;margin-top:3px}
+/* ★ 2026-08-16 確認テストで習得中にもどしたときの案内 */
+.demote{margin:12px auto 0;max-width:420px;padding:11px 14px;border-radius:14px;line-height:1.7;
+  font-size:.74rem;font-weight:700;color:var(--ink2);background:rgba(224,21,122,.07);
+  border:1px solid rgba(224,21,122,.24)}
+.demote b{color:#c01268}
+.mix-unsw{display:flex;align-items:flex-start;gap:11px;width:100%;text-align:left;cursor:pointer;
+  margin:10px 0 4px;padding:13px 14px;border-radius:16px;border:1.5px solid var(--line);
+  background:var(--panel);box-shadow:var(--shadow-sm)}
+.mix-unsw.on{border-color:rgba(107,91,210,.42);
+  background:linear-gradient(135deg,rgba(224,21,122,.07),rgba(107,91,210,.10))}
+.mix-unsw:active{transform:scale(.99)}
+.mix-unsw .mu-ck{flex:none;width:23px;height:23px;margin-top:1px;border-radius:7px;border:1.5px solid var(--line);
+  display:grid;place-items:center;font-size:.8rem;font-weight:900;color:#fff;background:var(--panel)}
+.mix-unsw.on .mu-ck{background:linear-gradient(135deg,#e0157a,#8a5bd2);border-color:transparent}
+.mix-unsw .mu-bd{flex:1;min-width:0}
+.mix-unsw .mu-bd b{display:block;font-size:.86rem;font-weight:800;color:var(--ink);line-height:1.45}
+.mix-unsw .mu-bd p{margin:3px 0 0;font-size:.72rem;color:var(--ink2);line-height:1.65}
+.mix-unsw .mu-bd p b{display:inline;font-size:inherit;color:var(--indigo)}
+/* ★ 2026-08-16 各セットの詳細に置く小さめの同スイッチ（カードの中に入るので余白を詰める） */
+.mix-unsw.sm{margin:2px 0 10px;padding:11px 12px;border-radius:14px}
+.mix-unsw.sm .mu-bd b{font-size:.8rem}
+.count-none{font-size:.75rem;color:var(--ink2);padding:6px 2px}
+/* スイッチONのとき、1問も出ない範囲は薄く（外し忘れに気づけるように残す） */
+.mix-item.dead{opacity:.45}
+.mix-item.dead .mi-n small{color:var(--ink2)}
 
 /* ══ 確認テスト ══ */
 .ct-card{border-color:rgba(46,143,199,.35);background:linear-gradient(135deg,rgba(46,143,199,.07),rgba(107,91,210,.06))}
@@ -595,3 +678,227 @@ body.in-quiz .q-stem{font-size:1.28rem}
 .ct-x{font-size:.72rem;font-weight:900;color:var(--ink2);background:rgba(120,120,140,.14);border-radius:99px;padding:3px 10px}
 .ct-p{margin:8px 0 12px;font-size:.76rem;color:var(--ink2);line-height:1.75}
 .ct-p b{color:var(--ink)}
+
+/* ════════════════════════════════════════════════
+   メモ帳（★ 2026-08-16）
+   ════════════════════════════════════════════════
+   下から出るシート。画面の下 62% までにして、上に問題文が残るようにしている
+   （全面にすると、問題を見ながら計算するというメモ本来の使い方ができない）。 */
+/* ★ 2026-08-16b 「メモ」は画面右下に固定する（選択肢の中に混ぜない）。
+   ・下バーやホームバーに重ならないよう、safe-area のぶんだけ持ち上げる。
+   ・メモ帳を開いているあいだは隠す（シートの上に浮いていると邪魔）。 */
+.memo-open{position:fixed;right:14px;z-index:8000;display:none;
+  bottom:calc(84px + env(safe-area-inset-bottom,0px));
+  align-items:center;gap:7px;padding:12px 16px;border-radius:99px;
+  border:1.5px solid var(--line);background:var(--panel);color:var(--ink2);
+  font-size:.84rem;font-weight:800;box-shadow:0 8px 22px rgba(60,50,110,.22);
+  -webkit-tap-highlight-color:transparent}
+.memo-open.on{display:flex}
+.memo-open .mi{font-size:1rem;line-height:1}
+.memo-open:active{transform:scale(.96)}
+/* すでに書いてあるときは色を付けて、中身が残っていることを知らせる */
+.memo-open.has{border-color:var(--indigo);color:var(--indigo);background:rgba(107,91,210,.1)}
+body.memo-on .memo-open{display:none}
+/* クイズ中は下バーが隠れるので、そのぶん下げる */
+body.in-quiz .memo-open{bottom:calc(20px + env(safe-area-inset-bottom,0px))}
+
+/* ══════════════════════════════════════════════
+   学習カレンダー・科目ごとの内訳（★ 2026-08-16b）
+   ══════════════════════════════════════════════ */
+.sbj-row{padding:12px 14px;border-bottom:1px solid var(--line)}
+.sbj-row:last-child{border-bottom:none}
+.sbj-head{display:flex;align-items:center;gap:8px;font-size:.9rem;margin-bottom:7px}
+.sbj-head b{flex:1;min-width:0}
+.sbj-pct{font-weight:900;color:var(--ok);font-size:.86rem}
+.sbj-sub{margin-top:6px;font-size:.72rem;color:var(--ink2)}
+.sbj-sub b{color:var(--ink)}
+
+.cal{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:12px;box-shadow:var(--shadow-sm)}
+.cal-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;font-size:.92rem}
+.cal-nav{width:34px;height:34px;border-radius:11px;border:1.5px solid var(--line);background:var(--panel2);
+  color:var(--ink2);font-size:1.05rem;font-weight:900;line-height:1}
+.cal-nav:hover{border-color:var(--indigo);color:var(--indigo)}
+.cal-wd{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:4px}
+.cal-wd span{text-align:center;font-size:.66rem;font-weight:800;color:var(--ink2)}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:3px}
+.cal-c{aspect-ratio:1;border-radius:9px;border:1px solid var(--line);background:var(--panel2);
+  color:var(--ink2);font-size:.74rem;font-weight:800;display:flex;align-items:center;justify-content:center;
+  -webkit-tap-highlight-color:transparent}
+.cal-c.blank{border:none;background:none}
+/* 解いた数に応じた濃さ（その月のいちばん多い日を4段の上限にそろえる） */
+.cal-c.lv1{background:rgba(107,91,210,.16);border-color:rgba(107,91,210,.24);color:var(--ink)}
+.cal-c.lv2{background:rgba(107,91,210,.32);border-color:rgba(107,91,210,.38);color:var(--ink)}
+.cal-c.lv3{background:rgba(107,91,210,.52);border-color:rgba(107,91,210,.55);color:#fff}
+.cal-c.lv4{background:rgba(107,91,210,.78);border-color:rgba(107,91,210,.8);color:#fff}
+.cal-c.today{box-shadow:0 0 0 2px var(--gold-d) inset}
+.cal-c.pick{outline:2.5px solid var(--indigo);outline-offset:1px}
+.cal-sum{margin-top:10px;font-size:.74rem;color:var(--ink2);line-height:1.7}
+.cal-sum b{color:var(--ink)}
+.cal-hint{margin-top:10px;font-size:.72rem;color:var(--ink2);line-height:1.7}
+.cal-day{margin-top:10px;padding:11px 12px;border-radius:12px;background:var(--panel2);border:1px solid var(--line)}
+.cal-day>b{font-size:.84rem}
+.cal-kv{display:flex;justify-content:space-between;margin-top:6px;font-size:.78rem;color:var(--ink2)}
+.cal-kv b{color:var(--ink);font-weight:800}
+.cal-none{margin-top:6px;font-size:.76rem;color:var(--ink2)}
+
+/* ★ 2026-08-16b 問題ヘッダー（✕・進捗）をヘッダーのすぐ下に貼り付ける。
+   これが無いと、問題文が長いときに<b>✕ が画面の上に流れて押せなくなる</b>
+   （中断できず、ホームに戻る手段が無くなっていた）。
+   ★ 貼り付ける位置は「ヘッダーの高さ」ぶん下げる。ヘッダーは iPhone の
+     セーフエリアぶん高さが変わるので、決め打ちにせず実測値（--tbh）を使う。 */
+.quiz-head{position:sticky;top:var(--tbh,64px);z-index:15;background:var(--bg);
+  padding-top:10px;padding-bottom:8px;margin-bottom:2px}
+
+.memo-sheet{position:fixed;left:0;right:0;bottom:0;z-index:9000;height:62svh;
+  background:var(--panel);border-top:1.5px solid var(--line);
+  border-radius:20px 20px 0 0;box-shadow:0 -14px 40px rgba(40,36,70,.22);
+  display:flex;flex-direction:column;
+  transform:translateY(100%);transition:transform .28s cubic-bezier(.2,.8,.3,1);
+  padding-bottom:env(safe-area-inset-bottom,0px)}
+.memo-sheet.on{transform:translateY(0)}
+.memo-grip{width:42px;height:4px;border-radius:99px;background:var(--line);margin:8px auto 2px;flex:none}
+.memo-bar{display:flex;align-items:center;gap:10px;padding:6px 14px 8px;flex:none}
+.memo-tabs{display:flex;gap:8px}
+.memo-tab{border:1.5px solid var(--line);background:var(--panel2);color:var(--ink2);
+  border-radius:99px;padding:7px 14px;font-size:.8rem;font-weight:800}
+.memo-tab.on{border-color:var(--indigo);color:var(--indigo);background:rgba(107,91,210,.1)}
+.memo-x{margin-left:auto;border:1.5px solid var(--line);background:var(--panel2);color:var(--ink2);
+  width:34px;height:34px;border-radius:11px;font-size:.9rem;font-weight:800;flex:none}
+.memo-tools{display:flex;align-items:center;gap:8px;padding:0 14px 8px;flex-wrap:wrap;flex:none}
+.memo-col{width:28px;height:28px;border-radius:50%;border:2px solid var(--line);background:var(--mc);flex:none}
+.memo-col.on{box-shadow:0 0 0 3px rgba(107,91,210,.35);border-color:#fff}
+.memo-btn{border:1.5px solid var(--line);background:var(--panel2);color:var(--ink2);
+  border-radius:10px;padding:6px 11px;font-size:.75rem;font-weight:800}
+.memo-btn.on{border-color:var(--indigo);color:var(--indigo);background:rgba(107,91,210,.1)}
+.memo-btn.danger{color:#b23a3a}
+.memo-body{flex:1;min-height:0;padding:0 12px 12px}
+#memoCanvas{width:100%;height:100%;display:block;border:1px solid var(--line);border-radius:14px;
+  background:#fffdf7;touch-action:none}
+#memoText{display:none;width:100%;height:100%;border:1px solid var(--line);border-radius:14px;
+  background:#fffdf7;color:var(--ink);padding:12px;font-size:1rem;line-height:1.7;resize:none;
+  font-family:inherit;-webkit-appearance:none}
+.memo-draw-only{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+/* ★ 2026-08-16c 拡大縮小・移動のひとかたまり */
+.memo-zoom{display:flex;align-items:center;gap:5px}
+.memo-zoom b{font-size:.7rem;font-weight:800;color:var(--ink2);min-width:38px;text-align:center}
+/* 文字モードでは色と消しゴムを隠す（文字には効かないため）。
+   「全部消す」は文字メモにも要るので残す。 */
+.memo-sheet.text-mode .memo-draw-only{display:none}
+.memo-sheet.text-mode #memoCanvas{display:none}
+.memo-sheet.text-mode #memoText{display:block}
+@media(min-width:760px){ .memo-sheet{height:66svh;max-width:900px;margin:0 auto;border-radius:20px 20px 0 0} }
+
+/* ══ ★ 2026-08-17c 自前アイコン（UI_ART）と、ミックスの固定開始バー ══ */
+/* 科目アイコン（.sbjic）と同じ見え方にそろえる。色は親から currentColor で受ける。 */
+.uiic{display:inline-flex;align-items:center;justify-content:center;width:1.5em;height:1.5em;vertical-align:-.32em}
+/* ★ 2026-08-17d 既定は<b>文字の大きさ基準（1em）</b>にする。
+   ここを 100% にしていたせいで、幅を決めていない箱の中では
+   親の横幅いっぱいまで広がって巨大なアイコンになっていた。
+   大きくしたいところだけ、個別に em で上書きする。 */
+.uisvg{width:1.1em;height:1.1em;display:inline-block;vertical-align:-.18em;flex:none}
+/* ★ 2026-08-17d 大きさは<b>かならず em で決める</b>。
+   最初 width:100% にしていたが、アイコンの枠（.mi など）は
+   絵文字を入れる前提で<b>幅を決めていない箱</b>なので、
+   100% がカードの横幅いっぱいに広がって巨大になっていた。
+   絵文字は font-size で大きさが決まっていたので、em にすれば元のバランスに戻る。 */
+.m-card .mi .uisvg,.mode-btn .mi .uisvg{width:1em;height:1em}
+.m-card .mi,.mode-btn .mi{display:flex;align-items:center;justify-content:center;line-height:1}
+.m-card .mi{justify-content:flex-start}
+.m-card.wide .mi,.mode-btn .mi{justify-content:center}
+/* 文中に混ざるもの（発音ボタン・モード選択・キャンペーン）は文字サイズに追従させる */
+.spk .uisvg,.aa-btn b .uisvg,.cb-sun .uisvg,.vol-note .uisvg,.memo-tab .uisvg,.memo-btn .uisvg,
+.reset-tx .uisvg,.back-row h2 .uisvg,.item .uisvg{
+  width:1.1em;height:1.1em;display:inline-block;vertical-align:-.18em}
+.aa-ic .uisvg{width:1em;height:1em;display:block;margin:0 auto}
+.memo-open .mi .uisvg{width:1.15em;height:1.15em}
+/* 見出しの中のアイコンは文字より少しだけ大きく、行の高さは変えない */
+.back-row h2 .uisvg{width:1.05em;height:1.05em;vertical-align:-.14em;opacity:.85}
+
+/* ★ ミックス問題の「この範囲で始める」を画面下に固定する。
+   範囲の一覧が長く、いちばん下まで送らないと押せなかった。
+   下バー（.nav）の上に重ねるので、その高さぶんだけ持ち上げる。 */
+.mix-startbar{
+  position:fixed; left:0; right:0; z-index:38;
+  bottom:calc(62px + env(safe-area-inset-bottom));
+  padding:8px 16px 10px;
+  background:linear-gradient(180deg,rgba(255,255,255,0) 0%,var(--bg,#f6f5fb) 26%,var(--bg,#f6f5fb) 100%);
+  pointer-events:none;
+}
+.mix-startbar>*{pointer-events:auto}
+.mix-startbar .mode-btn{margin:0;box-shadow:0 8px 26px rgba(60,50,140,.22)}
+@media (min-width:781px){ .mix-startbar{left:50%;transform:translateX(-50%);max-width:780px} }
+/* 固定バーのぶん、下に余白を足して最後の範囲が隠れないようにする */
+#scr-mixsetup{padding-bottom:96px}
+
+/* ★ 2026-08-17c 難易度バッジ。★の数と言葉の両方で示す
+   （色だけだと見分けにくい人がいるので、必ず文字も添える）。 */
+.dfb{display:inline-flex;align-items:center;gap:3px;margin-left:6px;padding:1px 7px 1px 5px;
+  border-radius:999px;font-size:.6rem;font-weight:900;letter-spacing:.02em;
+  color:var(--dc);background:color-mix(in srgb,var(--dc) 13%,transparent);
+  border:1px solid color-mix(in srgb,var(--dc) 34%,transparent);white-space:nowrap;vertical-align:1px}
+.dfb i{font-style:normal;font-size:.56rem;letter-spacing:-.06em;opacity:.95}
+/* ★ 2026-08-17d 満たないぶんの★は薄く出して、5段階のうちどこかを分かるようにする */
+.dfb i em{font-style:normal;opacity:.28}
+.dfb.xs{font-size:.55rem;padding:0 5px 0 4px;margin-left:4px}
+.dfb.xs i{display:none}
+
+/* ══ ★ 2026-08-17g 数式の組みかた（分数・Σ・√・かっこ） ══
+   数式ライブラリは入れず、CSS だけで「見た目のとおり」に組む。
+   ★ 大きさと位置は<b>ここだけ</b>で決めること。
+     問題文・正解・解説で別々に指定すると、同じ式なのに場所ごとに
+     大きさや高さが違って見える（実際そうなっていた）。
+   ★ 選択肢（.opt）には数式を組まない。ボタンが縦に伸びて一覧しにくくなるため、
+     素の文字のまま出している。 */
+.q-stem,.ans,.ex{line-height:2.05}
+
+/* 分数：分子と分母を上下に積み、中央の線でそろえる */
+.frac{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;
+  vertical-align:middle;margin:0 .18em;line-height:1.15;text-align:center}
+.frac .nu{border-bottom:1.3px solid currentColor;padding:0 .3em .1em;font-style:normal;white-space:nowrap}
+.frac .de{padding:.1em .3em 0;font-style:normal;white-space:nowrap}
+
+/* Σ ∫ lim：記号の上下に添え字 */
+.mbig{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;
+  vertical-align:middle;margin:0 .22em;line-height:1}
+.mbig b{font-size:1.42em;font-weight:600;line-height:1}
+.mbig.lim b{font-size:1em;font-weight:600}
+.mbig i{font-style:normal;font-size:.58em;opacity:.92;white-space:nowrap;line-height:1.1}
+.mbig .up{margin-bottom:.04em}
+.mbig .lo{margin-top:.04em}
+
+/* 根号：中身の上に線を引いて、どこまでかかるか見せる */
+.rad{display:inline-flex;align-items:stretch;vertical-align:middle;margin:0 .06em}
+.rad>i{font-style:normal;border-top:1.3px solid currentColor;padding:.14em .24em 0 .12em;
+  margin-left:-.02em;display:inline-flex;align-items:center}
+
+/* ★ 中身の高さに合わせて伸びるかっこ。
+   ( ) を文字で出すと、中に分数やΣがあるときだけ極端に小さく見える。
+   上下いっぱいに伸びる「弧」として描くので、中身が何段でも必ず高さが合う。 */
+.pgrp{display:inline-flex;align-items:stretch;vertical-align:middle;margin:0 .1em}
+.pgrp>.pl,.pgrp>.pr{width:.3em;flex:none;align-self:stretch;
+  border:1.3px solid currentColor;opacity:.85}
+.pgrp>.pl{border-right:0;border-radius:.7em 0 0 .7em/50% 0 0 50%;margin-right:.1em}
+.pgrp>.pr{border-left:0;border-radius:0 .7em .7em 0/0 50% 50% 0;margin-left:.1em}
+.pgrp>.pin{display:inline-flex;align-items:center;flex-wrap:wrap}
+
+/* 上付き・下付き（^{…} _{…} から組む） */
+.q-stem sup,.ans sup,.ex sup{font-size:.66em;vertical-align:.45em;line-height:0}
+.q-stem sub,.ans sub,.ex sub{font-size:.66em;vertical-align:-.24em;line-height:0}
+.frac sup,.frac sub,.rad sup,.rad sub{font-size:.7em}
+
+/* ★ 2026-08-17g 「わからない」で答えたときのボタン。
+   えらんで間違えたときと同じ赤にして、自分の答えがどれだったか分かるようにする。 */
+.dunno.wrong{background:rgba(215,97,97,.12);border-color:var(--ng);color:#b23a3a;opacity:1}
+
+/* ★ 2026-08-17h 自前の確認ダイアログ（confirm() はアプリ表示で出ないことがあるため） */
+.lex-ask{position:fixed;inset:0;z-index:300;display:none;align-items:center;justify-content:center;
+  background:rgba(30,24,60,.42);backdrop-filter:blur(3px);padding:22px}
+.lex-ask.show{display:flex;animation:fade .18s}
+.lex-ask .la-box{background:var(--panel);border:1px solid var(--line);border-radius:18px;
+  padding:20px 18px 16px;max-width:340px;width:100%;box-shadow:0 18px 50px rgba(20,10,60,.28)}
+.lex-ask .la-t{font-weight:900;font-size:1rem;margin-bottom:8px;color:var(--ink)}
+.lex-ask .la-b{font-size:.82rem;line-height:1.7;color:var(--ink2);white-space:pre-wrap;margin-bottom:16px}
+.lex-ask .la-row{display:flex;gap:9px}
+.lex-ask .la-btn{flex:1;padding:11px 8px;border-radius:11px;border:1px solid var(--line);
+  background:var(--bg);font-weight:800;font-size:.86rem;color:var(--ink);cursor:pointer}
+.lex-ask .la-btn.dgr{background:var(--ng);border-color:var(--ng);color:#fff}

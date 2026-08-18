@@ -246,6 +246,9 @@
     jpAccrue(n * (jpRate == null ? JP_RATE : jpRate)); // プログレッシブへ積む（共有プール）
     if (gameId) g(gameId).wagered += n;
     bumpMission("wager", n);
+    /* XEVARION のスターターミッション「ゲームを1回プレイしよう」。
+       ベットが通った時点＝実際に1回まわした時点で達成にする（2回目以降は 0 が返るだけ）。 */
+    try { if (window.XEVA && window.XEVA.completeMission) window.XEVA.completeMission("magijackpot_play"); } catch (e) {}
     /* イベント：ベット 10,000 ごとに +1 EP（端数は次に繰り越す） */
     S.evWagerRest = (S.evWagerRest || 0) + n;
     if (S.evWagerRest >= 10000) {

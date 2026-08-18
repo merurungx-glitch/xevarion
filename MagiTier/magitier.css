@@ -1,0 +1,541 @@
+/* ============================================================
+   MagiTier — Tier表 作成・管理アプリ
+   ★ 2026-08-16 全面刷新（明るくモダンでシンプル）
+   ・ベースは 白〜薄いグレー。S/A/B/C/D の Tierカラーだけをアクセントに使う。
+   ・カードは角丸・薄いボーダー・控えめなシャドウでそろえる。
+   ・PC は「左:Tier一覧 / 中央:Tier表 / 右:選択画像・設定」の3カラム。
+     スマホは3カラムを縮小せず、専用の縦型UI＋下部ナビに切り替える（900px 未満）。
+   ============================================================ */
+:root{
+  color-scheme: light dark;
+  --bg:#f6f7f9;         /* 画面の地 */
+  --panel:#ffffff;      /* カード・パネル */
+  --panel2:#fbfcfd;     /* 一段うすいパネル */
+  --line:#e4e7ec;       /* 薄いボーダー */
+  --line2:#eef1f5;
+  --ink:#1f2733;        /* 濃いグレー（本文） */
+  --ink2:#5b6676;       /* 補助テキスト */
+  --faint:#9aa4b2;
+  --accent:#2f6df6;     /* 操作色（ボタン） */
+  --accent-ink:#ffffff;
+  --accent-soft:#eaf1ff;
+  --danger:#e0405e;
+  --ok:#17a673;
+  --shadow:0 1px 2px rgba(16,24,40,.05), 0 6px 18px rgba(16,24,40,.06);
+  --shadow-sm:0 1px 2px rgba(16,24,40,.06);
+  --r:14px;             /* 標準の角丸 */
+  --r-sm:10px;
+  --hd:58px;            /* 上部バーの高さ */
+  --nav:62px;           /* 下部ナビの高さ（スマホ） */
+  --sat:env(safe-area-inset-top,0px);
+  --sab:env(safe-area-inset-bottom,0px);
+  /* Tierカラー（S=赤 A=橙 B=黄 C=緑 D=青） */
+  --t-s:#ef4444; --t-a:#f97316; --t-b:#eab308; --t-c:#22c55e; --t-d:#3b82f6;
+}
+:root[data-theme="dark"]{
+  --bg:#12151a; --panel:#191d24; --panel2:#1f242c; --line:#2a313b; --line2:#232932;
+  --ink:#e9edf3; --ink2:#a6b0be; --faint:#6f7987;
+  --accent:#5b8cff; --accent-soft:#1b2740;
+  --shadow:0 1px 2px rgba(0,0,0,.35), 0 8px 22px rgba(0,0,0,.35);
+  --shadow-sm:0 1px 2px rgba(0,0,0,.35);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;height:100%}
+body{
+  background:var(--bg); color:var(--ink);
+  font-family:'Noto Sans JP',-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+  font-size:14px; line-height:1.6; overscroll-behavior-y:none;
+}
+button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
+button{background:none;border:none;padding:0;cursor:pointer}
+img{max-width:100%;display:block}
+a{color:var(--accent)}
+.hide{display:none !important}
+.phoneonly{display:none}          /* スマホでだけ出す（900px 未満で display:flex になる） */
+
+/* ══════════ 共通の部品 ══════════ */
+.btn{
+  display:inline-flex;align-items:center;justify-content:center;gap:7px;
+  padding:9px 15px;border-radius:var(--r-sm);border:1px solid var(--line);
+  background:var(--panel);color:var(--ink);font-weight:700;font-size:13px;
+  box-shadow:var(--shadow-sm);white-space:nowrap;transition:transform .08s,background .15s
+}
+.btn:active{transform:scale(.97)}
+.btn.pri{background:var(--accent);color:var(--accent-ink);border-color:transparent;box-shadow:0 4px 14px rgba(47,109,246,.28)}
+.btn.dgr{color:var(--danger);border-color:rgba(224,64,94,.3)}
+.btn.sm{padding:6px 11px;font-size:12px;border-radius:9px}
+.btn.wide{width:100%}
+.btn:disabled{opacity:.45;cursor:default}
+.btn svg{width:16px;height:16px;flex:none}
+.ico{width:18px;height:18px;flex:none;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow-sm)}
+.inp{
+  width:100%;padding:9px 12px;border-radius:var(--r-sm);border:1px solid var(--line);
+  background:var(--panel);color:var(--ink);font-size:13.5px;outline:none
+}
+.inp:focus{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+textarea.inp{resize:vertical;min-height:70px;line-height:1.7}
+.lbl{display:block;font-size:11.5px;font-weight:800;color:var(--ink2);margin:0 0 5px;letter-spacing:.02em}
+.row{display:flex;align-items:center;gap:9px}
+.sp{flex:1}
+.muted{color:var(--ink2);font-size:12px}
+.sect{font-size:12px;font-weight:800;color:var(--ink2);margin:16px 2px 8px;letter-spacing:.03em}
+.empty{text-align:center;color:var(--faint);font-size:13px;padding:44px 16px}
+.chip{
+  display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:99px;
+  border:1px solid var(--line);background:var(--panel);font-size:12px;font-weight:700;color:var(--ink2)
+}
+.chip.on{background:var(--accent);color:#fff;border-color:transparent}
+
+/* トグルスイッチ */
+.sw{position:relative;width:42px;height:24px;border-radius:99px;background:var(--line);flex:none;transition:background .18s}
+.sw i{position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.25);transition:transform .18s}
+.sw.on{background:var(--accent)}
+.sw.on i{transform:translateX(18px)}
+.swrow{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line2)}
+.swrow:last-child{border-bottom:none}
+.swrow b{font-size:13px;font-weight:700}
+.swrow p{margin:2px 0 0;font-size:11.5px;color:var(--ink2)}
+
+/* ══════════ 上部バー ══════════ */
+#hd{
+  position:sticky;top:0;z-index:60;height:calc(var(--hd) + var(--sat));padding-top:var(--sat);
+  display:flex;align-items:center;gap:14px;padding-left:16px;padding-right:16px;
+  background:color-mix(in srgb, var(--panel) 88%, transparent);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--line)
+}
+/* ★ 2026-08-17f gap:8px のせいで「Magi」と「Tier」のあいだに
+   すき間ができていた（この2つは1つのロゴなので離してはいけない）。 */
+#hd .brand{display:flex;align-items:center;gap:0;font-weight:900;font-size:17px;letter-spacing:-.01em}
+#hd .brand em{font-style:normal;background:linear-gradient(90deg,var(--t-s),var(--t-a),var(--t-b));-webkit-background-clip:text;background-clip:text;color:transparent}
+#hd .navs{display:flex;gap:4px;margin-left:12px}
+#hd .navs button{padding:8px 13px;border-radius:9px;font-size:13px;font-weight:700;color:var(--ink2)}
+#hd .navs button.on{background:var(--accent-soft);color:var(--accent)}
+#hd .hr{display:flex;align-items:center;gap:8px;margin-left:auto}
+.iconbtn{width:36px;height:36px;border-radius:10px;display:grid;place-items:center;border:1px solid var(--line);background:var(--panel);box-shadow:var(--shadow-sm)}
+.iconbtn:active{transform:scale(.94)}
+.avat{width:32px;height:32px;border-radius:50%;object-fit:cover;border:1.5px solid var(--line)}
+
+/* ══════════ 画面の器 ══════════ */
+#app{min-height:100%;padding-bottom:calc(var(--sab) + 20px)}
+.screen{display:none}
+.screen.on{display:block}
+.wrap{max-width:1440px;margin:0 auto;padding:18px 16px}
+
+/* ══════════ ホーム ══════════ */
+.homehead{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+.homehead h1{margin:0;font-size:21px;font-weight:900;letter-spacing:-.01em}
+.searchbox{position:relative;flex:1;min-width:180px;max-width:380px}
+.searchbox .ico{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--faint);width:16px;height:16px}
+.searchbox input{padding-left:34px}
+.tgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:13px}
+.tcard{
+  background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
+  box-shadow:var(--shadow-sm);overflow:hidden;cursor:pointer;transition:transform .12s,box-shadow .18s;position:relative
+}
+.tcard:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
+.tcard .thumb{height:104px;background:var(--panel2);display:flex;flex-direction:column;gap:2px;padding:8px;overflow:hidden}
+.tcard .thumb .tr{display:flex;gap:2px;align-items:center;height:22px;flex:none}
+.tcard .thumb .tr span{width:22px;height:22px;border-radius:5px;display:grid;place-items:center;font-size:10px;font-weight:900;flex:none}
+.tcard .thumb .tr img{width:22px;height:22px;border-radius:4px;object-fit:cover;flex:none}
+.tcard .bd{padding:11px 13px 13px}
+.tcard .nm{font-weight:800;font-size:14px;margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tcard .mt{font-size:11.5px;color:var(--ink2)}
+/* ★ 2026-08-16b 名前変更・複製・削除のボタンは<b>いつも出す</b>。
+   以前は opacity:0 でマウスを乗せたときだけ出していたので、
+   <b>タッチ端末では指を乗せるという操作が無く、一度も出てこなかった</b>
+   （＝表を削除する手段が無い、と見えていた）。
+   マウスのある環境だけ、これまでどおり「乗せたら濃くなる」ようにしてある。 */
+.tcard .acts{position:absolute;top:7px;right:7px;display:flex;gap:4px;opacity:1;transition:opacity .15s}
+@media (hover:hover){
+  .tcard .acts{opacity:.55}
+  .tcard:hover .acts,.tcard.showacts .acts{opacity:1}
+}
+.tcard .acts button{width:28px;height:28px;border-radius:8px;background:rgba(255,255,255,.92);border:1px solid var(--line);display:grid;place-items:center;box-shadow:var(--shadow-sm)}
+:root[data-theme="dark"] .tcard .acts button{background:rgba(25,29,36,.92)}
+.tcard .lock{position:absolute;top:7px;left:7px;font-size:12px;background:rgba(0,0,0,.5);color:#fff;border-radius:7px;padding:2px 7px}
+.newcard{
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:172px;
+  border:1.5px dashed var(--line);border-radius:var(--r);color:var(--ink2);font-weight:800;font-size:13px;
+  background:var(--panel2);cursor:pointer
+}
+.newcard:hover{border-color:var(--accent);color:var(--accent)}
+.newcard .plus{width:38px;height:38px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:20px;font-weight:400}
+
+/* ══════════ エディタ ══════════ */
+.etop{
+  position:sticky;top:calc(var(--hd) + var(--sat));z-index:40;
+  display:flex;align-items:center;gap:8px;padding:10px 16px;background:var(--bg);
+  border-bottom:1px solid var(--line);overflow-x:auto;scrollbar-width:none
+}
+.etop::-webkit-scrollbar{display:none}
+.etop .tt{font-weight:900;font-size:16px;border:none;background:none;outline:none;min-width:120px;max-width:280px;padding:4px 6px;border-radius:8px}
+.etop .tt:focus{background:var(--panel);box-shadow:0 0 0 2px var(--accent-soft)}
+.ecols{display:grid;grid-template-columns:236px minmax(0,1fr) 300px;gap:14px;align-items:start;padding:14px 16px;max-width:1560px;margin:0 auto}
+.pane{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow-sm);padding:13px}
+.pane > h3{margin:0 0 10px;font-size:12px;font-weight:800;color:var(--ink2);letter-spacing:.04em}
+.pane.stick{position:sticky;top:calc(var(--hd) + var(--sat) + 60px);max-height:calc(100vh - var(--hd) - 90px);overflow:auto}
+
+/* 左：Tier一覧 */
+.tlrow{display:flex;align-items:center;gap:8px;padding:7px;border-radius:10px;border:1px solid var(--line2);margin-bottom:6px;background:var(--panel2)}
+.tlrow .bdg{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;font-weight:900;font-size:12px;flex:none}
+.tlrow .nm{flex:1;min-width:0;font-size:12.5px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tlrow button{width:24px;height:24px;border-radius:6px;display:grid;place-items:center;color:var(--ink2);font-size:12px}
+.tlrow button:hover{background:var(--line2);color:var(--ink)}
+
+/* 中央：Tier表 */
+.ttable{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);overflow:hidden;box-shadow:var(--shadow-sm)}
+.trow{display:flex;align-items:stretch;border-bottom:1px solid var(--line)}
+.trow:last-child{border-bottom:none}
+.tlab{
+  flex:none;display:flex;align-items:center;justify-content:center;text-align:center;
+  padding:6px;font-weight:900;line-height:1.15;word-break:break-word;overflow:hidden
+}
+.tlab.top{align-items:flex-start}
+.tlab.bottom{align-items:flex-end}
+.tcell{flex:1;min-width:0;display:flex;flex-wrap:wrap;gap:6px;padding:7px;background:var(--panel2);align-content:flex-start}
+.tcell.dragover{background:var(--accent-soft);outline:2px dashed var(--accent);outline-offset:-3px}
+.tcell .addbtn{
+  width:56px;height:56px;border-radius:10px;border:1.5px dashed var(--line);color:var(--faint);
+  display:grid;place-items:center;font-size:20px;font-weight:300;flex:none
+}
+.tcell .addbtn:hover{border-color:var(--accent);color:var(--accent)}
+
+/* 画像カード */
+.icard{position:relative;flex:none;border-radius:10px;overflow:hidden;background:var(--panel);border:1.5px solid transparent;cursor:grab;transition:transform .1s}
+.icard:active{cursor:grabbing}
+.icard.sel{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+/* ★ 2026-08-17d 大きさは --icard で変えられる（表ごとに覚える） */
+.icard img{width:calc(var(--icard-t,84px) * .67);height:calc(var(--icard-t,84px) * .67);object-fit:cover;display:block}
+/* ★ 2026-08-17e プールの中だけは --icard（プール専用のつまみ）を使う */
+.pool .icard img{width:calc(var(--icard,84px) * .67);height:calc(var(--icard,84px) * .67)}
+.icard.full{width:var(--icard-t,84px);background:var(--panel);border:1.5px solid var(--line)}
+.pool .icard.full{width:var(--icard,84px)}
+.icard.full img{width:100%;height:calc(var(--icard-t,84px) * .95)}
+.pool .icard.full img{height:calc(var(--icard,84px) * .95)}
+.icard.full .cn{font-size:10px;font-weight:800;padding:3px 4px 0;line-height:1.3;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.icard.full .cm{font-size:9px;color:var(--ink2);padding:0 4px 4px;line-height:1.35;height:22px;overflow:hidden}
+.icard.full.sel{border-color:var(--accent)}
+.icard .sc{position:absolute;top:2px;right:2px;background:rgba(0,0,0,.62);color:#fff;font-size:9px;font-weight:800;border-radius:5px;padding:1px 4px}
+.icard.drag{opacity:.35}
+.icard.dropL{box-shadow:-3px 0 0 0 var(--accent)}
+.icard.dropR{box-shadow:3px 0 0 0 var(--accent)}
+
+/* プール */
+.pool{display:flex;flex-wrap:wrap;gap:6px;padding:9px;border:1.5px dashed var(--line);border-radius:var(--r);background:var(--panel2);min-height:76px;margin-top:12px}
+.pool.dragover{border-color:var(--accent);background:var(--accent-soft)}
+.poolhead{display:flex;align-items:center;gap:8px;margin:14px 2px 0}
+.poolhead b{font-size:12px;font-weight:800;color:var(--ink2)}
+
+/* 右：選択中の画像 */
+.selprev{width:100%;aspect-ratio:1;border-radius:12px;object-fit:cover;border:1px solid var(--line);background:var(--panel2)}
+.stars{display:flex;gap:2px}
+.stars button{font-size:19px;line-height:1;color:var(--line);transition:color .12s}
+.stars button.on{color:#f6b93b}
+.axrow{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.axrow .an{flex:none;width:64px;font-size:11.5px;font-weight:700;color:var(--ink2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.axrow .stars{flex:1}
+.total{display:flex;align-items:baseline;gap:5px;font-weight:900;font-size:20px}
+.total small{font-size:11px;color:var(--ink2);font-weight:700}
+
+/* ══════════ テンプレート ══════════ */
+.tplgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(258px,1fr));gap:12px}
+.tplcard{display:flex;align-items:center;gap:11px;padding:12px;background:var(--panel);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow-sm)}
+.tplcard .pv{flex:none;display:flex;flex-direction:column;gap:2px}
+.tplcard .pv i{width:34px;height:9px;border-radius:3px;display:block}
+.tplcard .bd{flex:1;min-width:0}
+.tplcard .bd b{display:block;font-size:13px;font-weight:800}
+.tplcard .bd small{font-size:11px;color:var(--ink2)}
+
+/* ══════════ 比較モード ══════════ */
+.cmpgrid{display:grid;gap:10px;grid-template-columns:repeat(auto-fit,minmax(150px,1fr))}
+.cmpcol{text-align:center}
+.cmpcol img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:12px;border:1px solid var(--line)}
+.cmpcol .nm{font-weight:800;font-size:12.5px;margin-top:6px}
+.cmptbl{width:100%;border-collapse:collapse;margin-top:14px;font-size:12.5px}
+.cmptbl th,.cmptbl td{padding:8px 6px;border-bottom:1px solid var(--line2);text-align:center}
+.cmptbl th:first-child,.cmptbl td:first-child{text-align:left;font-weight:800;color:var(--ink2);width:84px}
+.cmptbl tr.tot td{font-weight:900;font-size:15px}
+.cmppick{display:flex;flex-wrap:wrap;gap:6px}
+.cmppick button{position:relative;border-radius:9px;overflow:hidden;border:2px solid transparent}
+.cmppick button.on{border-color:var(--accent)}
+.cmppick img{width:52px;height:52px;object-fit:cover}
+
+/* ══════════ プレゼンモード ══════════ */
+#present{position:fixed;inset:0;z-index:200;background:#0d1117;display:none;flex-direction:column;overflow:auto}
+#present.on{display:flex}
+#present .pwrap{flex:1;display:flex;flex-direction:column;justify-content:center;padding:26px clamp(14px,4vw,64px);gap:18px}
+#present .ptitle{text-align:center;font-size:clamp(22px,3.6vw,42px);font-weight:900;color:#fff;letter-spacing:-.01em;text-shadow:0 3px 22px rgba(0,0,0,.45)}
+#present .psub{text-align:center;font-size:13px;color:rgba(255,255,255,.66);margin-top:-10px}
+#present .ttable{border:none;border-radius:16px;box-shadow:0 20px 60px rgba(0,0,0,.45)}
+#present .pbar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(18px + var(--sab));display:flex;gap:8px;background:rgba(255,255,255,.12);backdrop-filter:blur(10px);padding:7px;border-radius:99px}
+#present .pbar button{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;color:#fff;background:rgba(255,255,255,.1)}
+#present .pbar button:hover{background:rgba(255,255,255,.22)}
+
+/* ══════════ モーダル／ボトムシート ══════════ */
+.ov{position:fixed;inset:0;z-index:150;background:rgba(16,24,40,.44);backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;padding:16px}
+.ov.on{display:flex}
+.dlg{
+  width:min(520px,100%);max-height:88vh;overflow:auto;background:var(--panel);
+  border:1px solid var(--line);border-radius:18px;box-shadow:0 24px 70px rgba(16,24,40,.28);padding:20px
+}
+.dlg h2{margin:0 0 4px;font-size:17px;font-weight:900}
+.dlg .dsub{margin:0 0 15px;font-size:12.5px;color:var(--ink2)}
+.dlg .foot{display:flex;gap:9px;justify-content:flex-end;margin-top:18px}
+.fld{margin-bottom:13px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.pickrow{display:flex;align-items:center;gap:10px;width:100%;padding:13px;border-radius:12px;border:1px solid var(--line);background:var(--panel);margin-bottom:8px;text-align:left}
+.pickrow:active{transform:scale(.99)}
+.pickrow .pi{width:38px;height:38px;border-radius:10px;background:var(--accent-soft);color:var(--accent);display:grid;place-items:center;flex:none}
+.pickrow b{display:block;font-size:13.5px;font-weight:800}
+.pickrow small{font-size:11.5px;color:var(--ink2)}
+.tierpick{display:flex;flex-wrap:wrap;gap:7px}
+.tierpick button{min-width:56px;padding:10px 6px;border-radius:10px;font-weight:900;font-size:14px;border:2px solid transparent}
+.tierpick button.on{outline:3px solid var(--accent);outline-offset:1px}
+.rng{width:100%;accent-color:var(--accent)}
+.colorrow{display:flex;align-items:center;gap:8px}
+.colorrow input[type=color]{width:38px;height:34px;border:1px solid var(--line);border-radius:8px;background:none;padding:2px}
+.snsrow{display:flex;gap:10px;flex-wrap:wrap}
+.snsbtn{display:flex;flex-direction:column;align-items:center;gap:5px;width:66px;font-size:10.5px;font-weight:700;color:var(--ink2)}
+.snsbtn .sq{width:46px;height:46px;border-radius:13px;display:grid;place-items:center;color:#fff;font-weight:900;font-size:16px}
+#qrbox{display:grid;place-items:center;padding:14px;background:#fff;border-radius:12px;margin-top:10px}
+
+/* トースト */
+#toast{
+  position:fixed;left:50%;bottom:calc(84px + var(--sab));transform:translateX(-50%) translateY(14px);
+  background:var(--ink);color:var(--bg);padding:11px 18px;border-radius:99px;font-size:12.5px;font-weight:800;
+  z-index:300;opacity:0;pointer-events:none;transition:opacity .2s,transform .2s;box-shadow:0 10px 30px rgba(0,0,0,.24)
+}
+#toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ══════════ 下部ナビ（スマホ） ══════════ */
+#nav{
+  position:fixed;left:0;right:0;bottom:0;z-index:80;display:none;
+  height:calc(var(--nav) + var(--sab));padding-bottom:var(--sab);
+  background:color-mix(in srgb, var(--panel) 92%, transparent);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-top:1px solid var(--line)
+}
+#nav .in{display:flex;height:var(--nav);align-items:center}
+#nav button{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--faint);font-size:10px;font-weight:700;height:100%}
+#nav button.on{color:var(--accent)}
+#nav button.fab{flex:none;width:64px}
+#nav .fabin{width:46px;height:46px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;box-shadow:0 6px 18px rgba(47,109,246,.4);margin-top:-14px}
+
+/* ══════════ レスポンシブ ══════════ */
+@media (max-width:1180px){
+  .ecols{grid-template-columns:200px minmax(0,1fr) 264px}
+}
+@media (max-width:900px){
+  /* スマホは3カラムをやめて、縦型UI＋下部ナビにする */
+  #hd .navs{display:none}
+  #nav{display:block}
+  #app{padding-bottom:calc(var(--nav) + var(--sab) + 18px)}
+  .wrap{padding:14px 12px}
+  .ecols{display:block;padding:12px}
+  .pane{margin-bottom:12px}
+  .pane.stick{position:static;max-height:none}
+  .pane.side{display:none}          /* 左右のパネルはシートで開く */
+  .pane.side.mopen{display:block}
+  .phoneonly{display:flex}
+  .etop{padding:9px 12px;gap:6px}
+  .etop .tt{font-size:15px;max-width:150px}
+  .tgrid{grid-template-columns:1fr 1fr;gap:10px}
+  .tcard .thumb{height:88px}
+  .homehead h1{font-size:19px}
+  .dlg{width:100%;max-height:90vh;border-radius:20px 20px 0 0;align-self:flex-end;padding:18px 16px calc(18px + var(--sab))}
+  .ov{align-items:flex-end;padding:0}
+  .icard img{width:52px;height:52px}
+  .tcell .addbtn{width:52px;height:52px}
+  /* ラベル列が広いと画像が1〜2枚しか並ばないので、スマホでは幅の上限をかける
+     （PCで設定した幅はそのまま残し、表示だけ細くする） */
+  .tlab{max-width:64px}
+  .icard.full{width:72px}
+  .icard.full img{height:68px}
+}
+@media (max-width:420px){
+  .tgrid{grid-template-columns:1fr}
+}
+
+/* スクロールバー（PC） */
+*::-webkit-scrollbar{width:10px;height:10px}
+*::-webkit-scrollbar-thumb{background:var(--line);border-radius:99px;border:3px solid var(--bg)}
+*::-webkit-scrollbar-track{background:transparent}
+
+/* ══════════ XEVARION へもどる（★ 2026-08-16）══════════
+   他アプリ（MagiLex など）と同じ位置・同じ見た目にそろえる */
+.xv-back{
+  display:grid;place-items:center;flex:none;
+  width:34px;height:34px;margin-right:2px;border-radius:11px;
+  border:1px solid var(--line);background:var(--panel2);color:var(--ink2);
+  font-size:20px;font-weight:900;line-height:1;text-decoration:none;padding-bottom:3px
+}
+.xv-back:hover{border-color:var(--accent);color:var(--accent)}
+
+/* ══════════ 注意書き（共有できる範囲など）══════════ */
+.note{border-radius:12px;padding:11px 13px;margin-top:12px;font-size:12.5px;line-height:1.75}
+.note b{font-size:13px}
+.note p{margin:5px 0 0}
+.note.warn{background:var(--accent-soft);border:1px solid var(--line)}
+
+/* ══════════ メニューシート（スマホの「≡」）══════════ */
+.menulist{display:flex;flex-direction:column;gap:6px;margin-top:4px}
+.menurow{
+  text-align:left;padding:13px 14px;border-radius:12px;border:1px solid var(--line);
+  background:var(--panel2);color:var(--ink);font-weight:800;font-size:14px
+}
+.menurow:hover{border-color:var(--accent);color:var(--accent)}
+
+/* ══════════ スライドプレゼン（★ 2026-08-16）══════════ */
+#slideOv{
+  position:fixed;inset:0;z-index:320;background:var(--bg);
+  display:none;flex-direction:column;
+  padding:calc(12px + var(--sat)) 12px calc(12px + var(--sab))
+}
+#slideOv.on{display:flex}
+.slstage{flex:1;min-height:0;display:grid;place-items:center}
+#slCanvas{
+  width:100%;max-width:1600px;max-height:100%;
+  aspect-ratio:16/9;object-fit:contain;
+  border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);background:var(--panel)
+}
+.slbar{
+  flex:none;display:flex;align-items:center;gap:8px;justify-content:center;
+  margin-top:12px;padding:7px 10px;border-radius:99px;
+  background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow-sm);
+  align-self:center
+}
+.slbar button{
+  width:38px;height:38px;border-radius:50%;display:grid;place-items:center;
+  color:var(--ink2);flex:none
+}
+.slbar button:hover{background:var(--line2);color:var(--ink)}
+.slcnt{font-weight:900;font-size:13px;color:var(--ink2);min-width:64px;text-align:center}
+.slsp{width:10px}
+/* 全画面にしたときは余白を詰めて、スライドを最大まで使う */
+#slideOv:fullscreen{padding:10px}
+#slideOv:fullscreen #slCanvas{max-width:none;border:none;border-radius:0}
+
+/* ══════════ 閲覧モード（MagiBurst から来たとき）══════════ */
+.mvnote{background:var(--accent-soft);border:1px solid var(--line);border-radius:12px;
+  padding:11px 13px;margin-bottom:14px;font-size:12.5px;line-height:1.75}
+.mvnote b{font-size:13px}
+.mvnote p{margin:5px 0 0;color:var(--ink2)}
+.mvtbl{border:1px solid var(--line);border-radius:var(--r);overflow:hidden;background:var(--panel)}
+.mvrow{display:flex;align-items:stretch;border-bottom:1px solid var(--line)}
+.mvrow:last-child{border-bottom:none}
+.mvlab{flex:none;width:88px;display:grid;place-items:center;align-content:center;padding:8px;text-align:center}
+.mvlab b{font-size:22px;font-weight:900;line-height:1.1;word-break:break-word}
+.mvlab small{display:block;font-size:10.5px;font-weight:800;opacity:.85;margin-top:2px}
+.mvcell{flex:1;min-width:0;display:flex;flex-wrap:wrap;gap:8px;padding:9px;background:var(--panel2);align-content:flex-start}
+.mvc{width:66px;display:flex;flex-direction:column;gap:3px;align-items:center;
+  border-radius:10px;padding:3px;background:none;cursor:pointer}
+.mvc:hover{background:var(--line2)}
+.mvc img{width:58px;height:58px;border-radius:9px;object-fit:cover;border:1px solid var(--line);display:block}
+.mvc span{font-size:10px;font-weight:800;color:var(--ink2);line-height:1.2;text-align:center;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+.mvhead{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.mvhead img{width:64px;height:64px;border-radius:13px;object-fit:cover;border:1px solid var(--line);flex:none}
+.mvrows{display:flex;flex-direction:column;gap:6px}
+.mvkv{display:flex;gap:12px;align-items:flex-start;padding:9px 11px;border-radius:10px;
+  background:var(--panel2);border:1px solid var(--line);font-size:13px}
+.mvkv span{flex:none;width:96px;color:var(--ink2);font-weight:800;font-size:12px}
+.mvkv b{flex:1;min-width:0;font-weight:800;word-break:break-word}
+@media (max-width:640px){ .mvlab{width:64px} .mvlab b{font-size:18px} .mvc{width:58px} .mvc img{width:52px;height:52px} }
+
+/* ══════════ エディタ上部バー：狭い画面は「≡」に畳む ══════════ */
+.etop-acts{display:flex;align-items:center;gap:8px}
+@media (max-width:900px){
+  /* ボタンが8個あって画面に収まらない。横スクロールに隠れるより、
+     まとめてシートに入れたほうが見つけやすい。 */
+  /* ★ 2026-08-17e 画面幅での決め打ちはやめた。出し分けは fitEditTools が
+     .hide / .show で行う（ここで display:none にすると幅が測れなくなる）。 */
+  .etop{overflow:visible}
+  #slCanvas{border-radius:10px}
+  .slbar button{width:34px;height:34px}
+}
+
+
+/* ★ 2026-08-17b MagiBurst のキャラTier表を目立たせて先頭に固定する。
+   ほかの表と同じ見た目だと「たくさんある中の1つ」に埋もれてしまうので、
+   金色の枠＋見出し帯で「これは特別な表」と分かるようにする。 */
+.tcard.mbfix{
+  border:2px solid var(--gold,#f0b429);
+  box-shadow:0 6px 22px rgba(240,180,41,.28);
+  position:relative;
+}
+.tcard.mbfix .mbtag{
+  position:absolute; left:0; right:0; top:0; z-index:3;
+  background:linear-gradient(90deg,#f0b429,#ffd76a);
+  color:#3a2a00; font-weight:900; font-size:11.5px;
+  padding:5px 10px; letter-spacing:.02em;
+  display:flex; align-items:center; gap:8px; justify-content:space-between;
+  border-radius:12px 12px 0 0;
+}
+.tcard.mbfix .mbtag span{ font-size:10px; font-weight:800; opacity:.82 }
+.tcard.mbfix .thumbs, .tcard.mbfix .tthumb{ margin-top:26px }
+@media (max-width:420px){
+  .tcard.mbfix .mbtag{ font-size:10.5px; padding:4px 8px }
+  .tcard.mbfix .mbtag span{ display:none }
+}
+
+
+/* ══ ★ 2026-08-17d 未配置プールを画面の下に固定する ══
+   Tier表が長いと、画像を取りに上へ戻る必要があった。
+   下に貼りついていれば「さがす → つかむ → 置く」が同じ場所で終わる。 */
+.poolwrap{position:sticky;bottom:0;z-index:20;margin-top:10px;
+  background:var(--panel);border:1px solid var(--line);border-radius:12px 12px 0 0;
+  box-shadow:0 -8px 24px rgba(20,16,50,.14);padding:8px 10px 10px}
+.poolwrap .poolhead{display:flex;align-items:center;gap:7px;margin:0 0 7px}
+.poolfold{border:none;background:none;font-size:14px;line-height:1;padding:2px 4px;color:var(--ink2);cursor:pointer}
+.poolbar{display:flex;align-items:center;gap:9px;margin-bottom:8px;flex-wrap:wrap}
+.poolq{flex:1;min-width:150px;padding:6px 10px;border:1px solid var(--line);border-radius:8px;
+  font-size:12.5px;font-weight:600;background:var(--bg);color:var(--ink)}
+.poolsz{display:flex;align-items:center;gap:6px;font-size:11px;font-weight:800;color:var(--ink2)}
+.poolsz input[type=range]{width:104px}
+.poolwrap .pool{max-height:min(38vh,300px);overflow:auto;margin:0}
+/* とじたときは見出しだけ残す（表を広く使いたいとき用） */
+.poolwrap.folded .poolbar,.poolwrap.folded .pool{display:none}
+@media (max-width:900px){
+  .poolsz{display:none}                 /* スマホは指で拡大できるので隠す */
+  .poolwrap .pool{max-height:min(30vh,220px)}
+}
+
+/* ★ 2026-08-17d MagiBurst 表むけの属性チップ */
+.poolchips{display:flex;gap:5px;flex-wrap:wrap}
+.pchip{border:1px solid color-mix(in srgb,var(--pc) 45%,transparent);background:color-mix(in srgb,var(--pc) 11%,transparent);
+  color:var(--pc);font-size:11px;font-weight:900;border-radius:999px;padding:3px 10px;cursor:pointer;line-height:1.2}
+.pchip.on{background:var(--pc);color:#fff;border-color:var(--pc)}
+
+
+/* ══ ★ 2026-08-17e 並び替えチップ・表内サイズ・ハンバーガーの出し分け ══ */
+.poolsort{display:flex;align-items:center;gap:4px;flex-wrap:wrap}
+.poolsort .pslbl{font-size:10.5px;font-weight:800;color:var(--ink2);margin-right:2px}
+.pschip{border:1px solid var(--line);background:var(--bg);color:var(--ink2);
+  font-size:11px;font-weight:800;border-radius:999px;padding:3px 9px;cursor:pointer;line-height:1.2}
+.pschip.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.ttbar{display:flex;justify-content:flex-end;margin:0 0 6px}
+/* ★ ハンバーガーは「画面の幅」ではなく「はみ出したかどうか」で出す。
+   .hide / .show を JS（fitEditTools）が付けはずしする。 */
+.etop-acts.hide{display:none}
+#etMenuBtn{display:none}
+#etMenuBtn.show{display:inline-flex}
+@media (max-width:900px){ .ttbar{display:none} }   /* スマホは指で拡大できるので出さない */
+
+
+/* ★ 2026-08-17e 評価の星（詳細ダイアログ・閲覧モード共通） */
+.scblock{margin-top:10px;border-top:1px solid var(--line);padding-top:9px;display:flex;flex-direction:column;gap:5px}
+.strow{display:flex;align-items:center;gap:8px;font-size:12px}
+.strow .sl{flex:0 0 108px;font-weight:800;color:var(--ink2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.strow .ss{flex:1;letter-spacing:1px;line-height:1}
+.strow .ss i{font-style:normal;color:rgba(140,140,160,.32);font-size:14px}
+.strow .ss i.on{color:#f0b429}
+.strow .ss.num{font-weight:900;color:var(--ink);letter-spacing:0}
+.strow .sv{flex:0 0 34px;text-align:right;font-weight:900;color:var(--ink)}
+.strow.tot{border-top:1px dashed var(--line);padding-top:6px;margin-top:2px}
+
+
+/* ★ 2026-08-17f MagiBurst 表の「公開」ボタンは、ただの保存と見分けがつくように */
+#etSaveBtn.pub{background:linear-gradient(90deg,#f0b429,#ff8a3d);border-color:#f0b429;color:#3a2a00}

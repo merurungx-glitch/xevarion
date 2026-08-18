@@ -5,26 +5,29 @@
      オンライン復帰後にポータル側へ自然に反映される
    ・取得できたリソースは随時キャッシュ更新（stale-while-revalidate）
    ============================================================ */
-const VERSION = "magilex-sw-v27";
+const VERSION = "magilex-sw-v56";
 const CORE = [
   "./MagiLex.html",
-  "./magilex.css?v=15",
-  "./magilex.js?v=20",
+  "./magilex.css?v=25",
+  "./magilex.js?v=42",
   "./magilex-data.js?v=2",
   "./magilex-eigo.js?v=1",
   "./magilex-rika.js?v=1",
-  "./magilex-chemb.js?v=1",
-  "./magilex-shinzui.js?v=2",
+  "./magilex-butsuri.js?v=2",
+  "./magilex-chemb.js?v=2",
+  "./magilex-math3.js?v=1",
+  "./magilex-chemg.js?v=3",
+  "./magilex-suugaku.js?v=3",
   "./mlhome_s.jpg",
   "../thumbs/MagiLex.jpg",
   "../brand/NGX.png",
   "../brand/MagicalFuture.png",
   "../brand/ISHIDA Production.png",
-  "../xeva.js?v=24",
+  "../xeva.js?v=33",
   "../xeva-loading.js?v=1",
   "../xeva-splash.js?v=3",
-  "../app-cloud.js?v=3",
-  "../xeva-keys.js?v=2",
+  "../app-cloud.js?v=4",
+  "../xeva-keys.js?v=4",
   "./magilex-cloud.js?v=4",
   "../maintenance-gate.js?v=5",
   "../app-install-notice.js?v=1",

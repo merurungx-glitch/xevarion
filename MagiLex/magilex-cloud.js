@@ -1,7 +1,7 @@
 /* MagiLex の学習・習得状況をアカウントに紐づけてクラウド保存（magilex-cb250） */
-import { initAppCloud } from "../app-cloud.js";
+import { initAppCloud } from "../app-cloud.js?v=4";
 /* ★ 同期するキーの一覧は ../xeva-keys.js の台帳が正（ログアウト時に消す一覧と共通）。 */
-import { APP_SYNC_KEYS } from "../xeva-keys.js?v=2";
+import { APP_SYNC_KEYS } from "../xeva-keys.js?v=4";
 
 initAppCloud({
   name: "magilex",
