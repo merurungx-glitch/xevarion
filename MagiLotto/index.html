@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<script src="../maintenance-gate.js?v=5"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Magi Lotto — デジタル宝くじ</title>
+<meta name="theme-color" content="#0b1030">
+<!-- ★ iPhone でホーム画面から開いたとき、上のノッチぶん（env(safe-area-inset-top)）を
+     ちゃんと 0 以外にするために必要。これが無いとヘッダーがカメラに重なる。 -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="icon" href="ml-192.png" type="image/png">
+<link rel="apple-touch-icon" href="ml-192.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="ml.css?v=3">
+<!-- XEVARION 共通（XEVA・💎ジェム・アカウント・同期・為替レート） -->
+<script src="../xeva-splash.js?v=3" data-app="Magi Lotto" data-logo="ml-192.png"></script>
+<script src="../xeva.js?v=33"></script>
+<script src="../xeva-fx.js?v=1" defer></script>
+<script type="module" src="../xevarion-fb.js?v=22"></script>
+<script src="../xeva-presence.js?v=1" defer></script>
+<script type="module" src="../xeva-cloud.js?v=16"></script>
+</head>
+<body>
+
+<div id="mlBg"></div>
+
+<div id="mlApp">
+
+  <header class="ml-top">
+    <a class="back" href="../index.html" aria-label="XEVARION へもどる">‹</a>
+    <div class="brand"><img src="ml-192.png" alt=""><b>MAGI LOTTO</b></div>
+    <button class="menu" onclick="mlGo('set')" aria-label="設定">⚙</button>
+  </header>
+
+  <!-- ウォレット：💎ジェム（買う）と XEVA（当たる） -->
+  <div class="ml-wal">
+    <div class="ml-w" id="mlWGem">
+      <img src="../gem.png" alt="ジェム"><span id="mlGem">0</span>
+      <a class="plus" href="../index.html" aria-label="ジェムを増やす" title="XEVARION ホームのジェム変換所へ">＋</a>
+    </div>
+    <div class="ml-w" id="mlWXeva">
+      <img src="../XEVA.png" alt="XEVA"><span id="mlXeva">0</span>
+    </div>
+  </div>
+
+  <!-- いまのレート：購入は XEVA だけだが、FREE MAGI で当たる💎の値打ちを知るために出しておく -->
+  <div class="ml-rate">
+    <span>現在のレート</span><b>💎1 ＝ <span id="mlRateN">155</span> XEVA</b>
+    <button class="go" onclick="mlRateHelp()">レート詳細</button>
+  </div>
+
+  <main>
+    <section class="ml-page on" id="mlPage_home"><div id="mlHome"></div></section>
+    <section class="ml-page" id="mlPage_scratch"><div id="mlScratch"></div></section>
+    <section class="ml-page" id="mlPage_numbers"><div id="mlNumbers"></div></section>
+    <section class="ml-page" id="mlPage_lotto"><div id="mlLotto"></div></section>
+    <section class="ml-page" id="mlPage_grand"><div id="mlGrand"></div></section>
+    <section class="ml-page" id="mlPage_free"><div id="mlFree"></div></section>
+    <section class="ml-page" id="mlPage_log"><div id="mlLog"></div></section>
+    <section class="ml-page" id="mlPage_guide"><div id="mlGuide"></div></section>
+    <section class="ml-page" id="mlPage_set"><div id="mlSet"></div></section>
+  </main>
+
+  <!-- 買うバー（ゲームの画面でだけ出る） -->
+  <div class="ml-buy" id="mlBuy" style="display:none"></div>
+
+  <!-- ══════════ 下のタブ ══════════
+       ★ 絵文字はやめ、線で描いたアイコンにそろえた。
+         絵文字は端末ごとに絵も大きさもちがい、5つ並べると高さがそろわない。
+         いま見ているタブだけ金色にして、残りは沈んだ青灰色にする。 -->
+  <nav class="ml-tabs" id="mlTabs">
+    <button class="ml-tab on" data-v="home" onclick="mlGo('home')">
+      <svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M3.6 10.4 12 3.6l8.4 6.8V20a1 1 0 0 1-1 1h-4.6v-6H9.2v6H4.6a1 1 0 0 1-1-1z"/></svg>
+      <span>ホーム</span></button>
+    <button class="ml-tab" data-v="free" onclick="mlGo('free')">
+      <svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M3.5 11h17v9.2a.8.8 0 0 1-.8.8H4.3a.8.8 0 0 1-.8-.8z"/>
+        <path d="M2.6 7.2h18.8v3.4H2.6z"/>
+        <path d="M11 7.2V21h2V7.2z" class="cut"/>
+        <path d="M12 7.2C10.4 4 8.9 3 7.6 3.4 6.2 3.8 6 5.6 7 6.5c.8.6 2.5.8 5 .7z"/>
+        <path d="M12 7.2C13.6 4 15.1 3 16.4 3.4c1.4.4 1.6 2.2.6 3.1-.8.6-2.5.8-5 .7z"/></svg>
+      <span>フリー</span></button>
+    <button class="ml-tab" data-v="log" onclick="mlGo('log')">
+      <svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M5 2.4h14v18.2l-2.3-1.5-2.4 1.5-2.3-1.5-2.3 1.5-2.4-1.5L5 20.6z"/>
+        <path d="M8 7h8v1.7H8zM8 11h8v1.7H8zM8 15h5v1.7H8z" class="cut"/></svg>
+      <span>履歴</span></button>
+    <button class="ml-tab" data-v="guide" onclick="mlGo('guide')">
+      <svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M2.6 4.6c2.6-1.2 5.6-1.2 8.5.5v14c-2.9-1.7-5.9-1.7-8.5-.5z"/>
+        <path d="M21.4 4.6c-2.6-1.2-5.6-1.2-8.5.5v14c2.9-1.7 5.9-1.7 8.5-.5z"/></svg>
+      <span>ガイド</span></button>
+    <button class="ml-tab" data-v="set" onclick="mlGo('set')">
+      <svg class="ic" viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 8.4a3.6 3.6 0 1 0 0 7.2 3.6 3.6 0 0 0 0-7.2m0-6.4 1.5 2.6 2.9-.8.5 3 2.9.9-1.2 2.8 1.9 2.3-2.4 1.8.5 3-3 .3-1.2 2.8-2.4-1.8-2.4 1.8L8.4 21l-3-.3.5-3-2.4-1.8L5.4 13 4.2 10.2l2.9-.9.5-3 2.9.8z"/>
+        <circle cx="12" cy="12" r="3.1" class="cut"/></svg>
+      <span>設定</span></button>
+  </nav>
+</div>
+
+<!-- ボトムシート（説明・確認・管理画面） -->
+<div class="ml-sheet" id="mlSheet"><div class="card" id="mlSheetCard"></div></div>
+
+<!-- 当選演出 -->
+<div class="ml-win" id="mlWin"><div class="ml-wcard" id="mlWinCard"></div></div>
+
+<!-- はずれ -->
+<div class="ml-miss" id="mlMiss">
+  <div class="ml-misscard">
+    <div class="t">はずれ</div>
+    <div class="s" id="mlMissBody"></div>
+    <button class="ml-wok" id="mlMissOk" style="background:rgba(255,255,255,.12);color:var(--fg)">OK</button>
+  </div>
+</div>
+
+<!-- MAGI GRAND DRAW の結果発表（1日・16日の特別演出） -->
+<div class="ml-gshow" id="mlGrandShow"><div class="ml-gsinner" id="mlGrandShowBody"></div></div>
+
+<div id="mlConfetti"></div>
+<div id="mlToast"></div>
+
+<script src="ml-core.js?v=3"></script>
+<script src="ml-draw.js?v=2"></script>
+<script src="ml-games.js?v=4"></script>
+<script src="ml-grand.js?v=3"></script>
+<script src="ml-admin.js?v=2"></script>
+<script src="ml-app.js?v=3"></script>
+<script src="../xeva-back.js?v=1" data-mode="hook"></script>
+<script>
+/* レートの説明。購入は XEVA だけだが、FREE MAGI で💎が当たるので値打ちを説明できるようにしておく。 */
+function mlRateHelp() {
+  var r = ML.gemRate();
+  ML.sheet({
+    icon: "🏪", title: "XEVA と 💎ジェム",
+    html:
+      "Magi Lotto は <b>XEVA だけ</b>で遊べます。購入も当選金も XEVA です。<br>" +
+      "<b>💎ジェムでは買えません</b>——値段を💎建てにすると、ドル円が動くたびに" +
+      "XEVA での実売価格が上下してしまい、宝くじの券面が毎日変わることになるからです。<br><br>" +
+      "💎ジェムは <b>FREE MAGI のごほうび</b>として当たります。" +
+      "当たった💎は XEVARION 全体（ガチャ・各アプリ）で使えます。<br><br>" +
+      "・💎1 ＝ <b>1 米ドル</b>、XEVA 1 ＝ <b>1 円</b> と決めているので、" +
+      "値打ちの目安は<b>そのときのドル円</b>です（いま <b>💎1 ＝ " + ML.fmt(r) + " XEVA</b> ぶん）。<br>" +
+      "・XEVA は XEVARION の<b>ログインボーナス</b>・<b>ミッション</b>・各アプリのプレイで増やせます。",
+    buttons: [{ id: "go", nm: "XEVARION ホームへ", tone: "go" }, { id: "x", nm: "とじる" }],
+  }).then(function (v) { if (v === "go") location.href = "../index.html"; });
+}
+/* Service Worker（オフラインでも遊べるようにする） */
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function () {
+    navigator.serviceWorker.register("sw.js").catch(function () {});
+  });
+}
+</script>
+</body>
+</html>

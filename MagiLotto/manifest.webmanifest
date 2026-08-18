@@ -1,0 +1,16 @@
+{
+  "name": "Magi Lotto — デジタル宝くじ",
+  "short_name": "Magi Lotto",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0b1030",
+  "theme_color": "#0b1030",
+  "description": "スクラッチ・ナンバーズ・ロト・Magi Grand Draw・Free Magi の5本柱で遊ぶデジタル宝くじ。毎月1日と16日に大型抽選。ひとりでもすべての機能が成立します。",
+  "icons": [
+    { "src": "ml-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "ml-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "ml-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

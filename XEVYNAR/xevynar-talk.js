@@ -677,6 +677,13 @@
 
   /* 外から呼ぶ入口 */
   function respond(text) {
+    /* XEVARION のスターターミッション「XEVYNAR に質問してみよう」。
+       実際に何か入力して答えを受け取った時点で達成にする。 */
+    try {
+      if (String(text || "").trim() && window.XEVA && window.XEVA.completeMission) {
+        window.XEVA.completeMission("xevynar_ask");
+      }
+    } catch (e) {}
     const learned = X.autoLearn(String(text || ""));
     if (learned.length && /(苦手|得意|志望|目標|毎日|1日|一日|テスト|試験)/.test(String(text))) {
       const r = profileAnswer(learned);

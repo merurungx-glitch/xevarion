@@ -1,0 +1,600 @@
+/* ============================================================
+   Magi Lotto — 見た目
+   ------------------------------------------------------------
+   ★ 決めごと
+     ・背景は<b>深い紺</b>ひとつ。柄も動くものも置かない。
+       いちばん見せたいのは「数字・賞金額・ボタン・当選結果」なので、
+       背景は静かなほどよい（派手さは<b>当たった瞬間だけ</b>に取っておく）。
+     ・5本柱はそれぞれ<b>色</b>で覚えてもらう。
+         SCRATCH 緑 ／ NUMBERS 青 ／ LOTTO 赤 ／ GRAND DRAW 紫 ／ FREE MAGI 金
+       カードの縁・見出し・ボタンの色をその1色でそろえる。
+     ・金色は<b>高級感の担当</b>。使うのは枠線・見出し・賞金額だけにして、
+       面で塗らない（塗るとギャンブルの店構えになってしまう）。
+     ・iPhone のセーフエリアは env() で必ず見る（上のノッチ・下のバー）。
+   ============================================================ */
+
+:root {
+  --bg:        #0b1030;
+  --bg2:       #131a44;
+  --card:      #182155;
+  --card2:     #1e2a6b;
+  --line:      rgba(255,255,255,.12);
+  --fg:        #eef2ff;
+  --sub:       #9fb0e0;
+  --gold:      #ffd257;
+  --gold2:     #c9962a;
+  --green:     #3ddc8b;
+  --blue:      #56b6ff;
+  --red:       #ff6b7d;
+  --violet:    #b98bff;
+  --amber:     #ffb020;
+  --shadow:    0 10px 30px rgba(0,0,0,.45);
+  --r:         16px;
+  --safeT:     env(safe-area-inset-top, 0px);
+  --safeB:     env(safe-area-inset-bottom, 0px);
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html, body { height: 100%; }
+body {
+  margin: 0;
+  font-family: "Noto Sans JP", -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Segoe UI", sans-serif;
+  color: var(--fg);
+  background: var(--bg);
+  overscroll-behavior-y: none;
+}
+/* ★ 背景は body に敷かず fixed の1枚もので描く。
+   body に gradient を置くとスクロールでタイル状に繰り返して色が急に変わる。 */
+#mlBg {
+  position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(1100px 700px at 50% -10%, #2b2372 0%, rgba(43,35,114,0) 60%),
+    radial-gradient(800px 600px at 10% 100%, #16224f 0%, rgba(22,34,79,0) 60%),
+    linear-gradient(180deg, #0b1030 0%, #0a0d24 100%);
+}
+
+img { max-width: 100%; display: block; }
+button { font: inherit; color: inherit; border: 0; background: none; cursor: pointer; }
+b { font-weight: 900; }
+
+/* ══════════ 画面の骨組み ══════════ */
+#mlApp { min-height: 100%; display: flex; flex-direction: column; }
+
+.ml-top {
+  position: sticky; top: 0; z-index: 40;
+  padding: calc(var(--safeT) + 8px) 12px 8px;
+  background: linear-gradient(180deg, rgba(11,16,48,.96), rgba(11,16,48,.82));
+  backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--line);
+  display: grid; grid-template-columns: 34px 1fr auto; align-items: center; gap: 8px;
+}
+.ml-top .back {
+  width: 34px; height: 34px; border-radius: 11px; display: grid; place-items: center;
+  background: rgba(255,255,255,.08); color: var(--fg); font-size: 20px; text-decoration: none; font-weight: 900;
+}
+.ml-top .brand { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.ml-top .brand img { width: 28px; height: 28px; border-radius: 8px; }
+.ml-top .brand b {
+  font-size: 15px; letter-spacing: .06em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  background: linear-gradient(180deg, #fff6d0, var(--gold)); -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.ml-top .menu { width: 34px; height: 34px; border-radius: 11px; background: rgba(255,255,255,.08); display: grid; place-items: center; font-size: 16px; }
+
+/* ── ウォレット ── */
+.ml-wal { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 10px 12px 0; }
+.ml-w {
+  display: flex; align-items: center; gap: 7px; padding: 8px 10px; border-radius: 12px;
+  background: linear-gradient(180deg, rgba(255,255,255,.09), rgba(255,255,255,.04));
+  border: 1px solid var(--line);
+}
+.ml-w img { width: 20px; height: 20px; }
+.ml-w span { font-weight: 900; font-size: 15px; font-variant-numeric: tabular-nums; }
+.ml-w .plus { margin-left: auto; width: 22px; height: 22px; border-radius: 50%; background: rgba(255,255,255,.14); display: grid; place-items: center; font-size: 13px; font-weight: 900; color: inherit; text-decoration: none; }
+.ml-w.bump { animation: mlBump .4s ease; }
+@keyframes mlBump { 0% { transform: scale(1); } 40% { transform: scale(1.07); } 100% { transform: scale(1); } }
+
+/* ── レート帯 ── */
+.ml-rate {
+  margin: 8px 12px 0; padding: 8px 11px; border-radius: 11px;
+  border: 1px solid rgba(255,210,87,.28); background: rgba(255,210,87,.07);
+  display: flex; align-items: center; gap: 8px; font-size: 12px; color: #ffe9ae; font-weight: 700;
+}
+.ml-rate b { color: var(--gold); font-variant-numeric: tabular-nums; }
+.ml-rate .go { margin-left: auto; font-size: 11px; padding: 4px 9px; border-radius: 999px; background: rgba(255,210,87,.16); color: var(--gold); font-weight: 900; }
+
+main { flex: 1; padding: 12px 12px calc(78px + var(--safeB)); }
+
+/* ══════════ ページ ══════════ */
+.ml-page { display: none; animation: mlIn .22s ease both; }
+.ml-page.on { display: block; }
+@keyframes mlIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+.ml-h {
+  display: flex; align-items: baseline; gap: 8px; margin: 16px 2px 8px;
+  font-size: 13px; font-weight: 900; letter-spacing: .08em; color: var(--sub);
+}
+.ml-h small { font-weight: 700; letter-spacing: 0; font-size: 11px; color: rgba(159,176,224,.7); }
+
+/* ══════════ MAGI GRAND DRAW のカード（ホームの主役） ══════════ */
+.ml-grand {
+  position: relative; overflow: hidden; border-radius: 20px; margin-top: 4px;
+  border: 2px solid rgba(185,139,255,.45);
+  background: linear-gradient(180deg, #2a1a5e, #170f39);
+  box-shadow: var(--shadow);
+  width: 100%; text-align: left; display: block;
+}
+.ml-grand .bn { width: 100%; aspect-ratio: 1200/524; object-fit: cover; opacity: .9; }
+.ml-grand .ov { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(23,15,57,.05) 0%, rgba(23,15,57,.72) 52%, #170f39 92%); }
+.ml-grand .in { position: relative; padding: 0 14px 14px; margin-top: -96px; }
+.ml-grand .ttl {
+  font-size: 20px; font-weight: 900; letter-spacing: .05em; text-align: center;
+  background: linear-gradient(180deg, #fff8dd, var(--gold)); -webkit-background-clip: text; background-clip: text; color: transparent;
+  text-shadow: 0 2px 12px rgba(0,0,0,.6);
+}
+.ml-grand .sub { text-align: center; font-size: 11px; color: #d9c6ff; font-weight: 800; margin-top: 2px; }
+.ml-grand .box {
+  margin-top: 10px; border-radius: 14px; padding: 10px;
+  background: rgba(6,4,20,.55); border: 1px solid rgba(255,255,255,.14);
+}
+.ml-grand .lb { font-size: 10.5px; color: var(--sub); font-weight: 800; text-align: center; letter-spacing: .06em; }
+.ml-grand .day { text-align: center; font-size: 21px; font-weight: 900; color: #fff; margin-top: 1px; }
+.ml-cd { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 8px; }
+.ml-cd div { text-align: center; background: rgba(255,255,255,.07); border-radius: 9px; padding: 5px 2px; }
+.ml-cd b { display: block; font-size: 17px; font-variant-numeric: tabular-nums; }
+.ml-cd i { font-style: normal; font-size: 9.5px; color: var(--sub); font-weight: 800; }
+.ml-pool { text-align: center; margin-top: 10px; }
+.ml-pool .lb2 { font-size: 10.5px; color: var(--sub); font-weight: 800; letter-spacing: .06em; }
+.ml-pool .amt {
+  font-size: 31px; font-weight: 900; font-variant-numeric: tabular-nums; line-height: 1.1;
+  background: linear-gradient(180deg, #fff4c8, #f0b429 70%, #b9791a);
+  -webkit-background-clip: text; background-clip: text; color: transparent;
+  text-shadow: 0 3px 16px rgba(240,180,41,.28);
+}
+.ml-pool .cur { font-size: 12px; color: var(--gold); font-weight: 900; letter-spacing: .12em; }
+.ml-grand .cta {
+  margin-top: 11px; width: 100%; padding: 11px; border-radius: 12px; font-weight: 900; font-size: 14px;
+  background: linear-gradient(180deg, #b98bff, #7b46d8); color: #fff; box-shadow: 0 6px 18px rgba(123,70,216,.4);
+}
+.ml-grand .live { position: absolute; top: 10px; left: 10px; z-index: 2; font-size: 10px; font-weight: 900; letter-spacing: .1em;
+  padding: 4px 9px; border-radius: 999px; background: #e0405e; color: #fff; animation: mlBlink 1.4s infinite; }
+@keyframes mlBlink { 50% { opacity: .45; } }
+
+/* ══════════ 4本のメニュー ══════════ */
+.ml-menu { display: grid; grid-template-columns: repeat(3, 1fr); gap: 9px; margin-top: 10px; }
+.ml-mi {
+  position: relative; border-radius: 15px; padding: 11px 8px 10px; text-align: center;
+  border: 1.5px solid var(--c, var(--line)); background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
+  display: flex; flex-direction: column; align-items: center; gap: 5px; min-height: 116px; justify-content: flex-start;
+}
+.ml-mi:active { transform: scale(.97); }
+.ml-mi .ic { width: 52px; height: 52px; object-fit: contain; filter: drop-shadow(0 3px 9px rgba(0,0,0,.5)); }
+.ml-mi .en { font-size: 11.5px; font-weight: 900; letter-spacing: .06em; color: var(--c); }
+.ml-mi .ja { font-size: 10.5px; font-weight: 800; color: var(--fg); }
+.ml-mi .ds { font-size: 9.5px; color: var(--sub); font-weight: 700; line-height: 1.3; }
+.ml-mi .pr { margin-top: auto; font-size: 10px; font-weight: 900; color: var(--gold); }
+
+/* FREE MAGI は横長で目立たせる（毎日ここから始まる） */
+.ml-free {
+  margin-top: 9px; width: 100%; border-radius: 15px; padding: 12px; display: flex; align-items: center; gap: 11px;
+  border: 1.5px solid rgba(255,210,87,.5);
+  background: linear-gradient(120deg, rgba(255,210,87,.16), rgba(255,210,87,.05) 60%);
+}
+.ml-free .ic { width: 52px; height: 52px; flex: 0 0 52px; object-fit: contain; filter: drop-shadow(0 3px 9px rgba(0,0,0,.5)); }
+.ml-free .bd { flex: 1; min-width: 0; text-align: left; }
+/* ★ 中の3行は必ず改行する（インラインのままだと「FREE MAGI フリーマギ — 毎日…」が
+   だらだら1行に続いて、どこまでが見出しか分からなくなる） */
+.ml-free .bd > span { display: block; }
+.ml-free .en { font-size: 13px; font-weight: 900; color: var(--gold); letter-spacing: .06em; }
+.ml-free .ja { font-size: 11px; font-weight: 800; }
+.ml-free .ds { font-size: 10px; color: var(--sub); font-weight: 700; }
+.ml-free .go { font-size: 11px; font-weight: 900; padding: 8px 13px; border-radius: 999px; background: linear-gradient(180deg, var(--gold), var(--gold2)); color: #3a2600; white-space: nowrap; }
+.ml-free.done { opacity: .62; border-color: var(--line); background: rgba(255,255,255,.04); }
+.ml-free.done .go { background: rgba(255,255,255,.12); color: var(--sub); }
+
+/* ══════════ 汎用カード ══════════ */
+.ml-card {
+  border-radius: var(--r); border: 1px solid var(--line); background: rgba(255,255,255,.05);
+  padding: 12px; margin-top: 10px;
+}
+.ml-card.c { border-color: color-mix(in srgb, var(--c) 45%, transparent); }
+.ml-note { font-size: 11px; color: var(--sub); line-height: 1.6; font-weight: 700; }
+.ml-note b { color: var(--fg); }
+.ml-kv { display: flex; justify-content: space-between; gap: 10px; padding: 7px 0; border-bottom: 1px dashed rgba(255,255,255,.1); font-size: 12px; font-weight: 700; }
+.ml-kv:last-child { border-bottom: 0; }
+.ml-kv span:last-child { font-variant-numeric: tabular-nums; font-weight: 900; }
+
+/* ══════════ ゲーム画面のヘッダ ══════════ */
+.ml-ghead { display: flex; align-items: center; gap: 9px; margin-bottom: 4px; }
+.ml-ghead .b { width: 36px; height: 36px; border-radius: 11px; background: rgba(255,255,255,.08); display: grid; place-items: center; font-size: 19px; font-weight: 900; }
+.ml-ghead .t { flex: 1; min-width: 0; }
+.ml-ghead .t > span { display: block; }   /* 英字の見出しと日本語の説明は必ず2行に分ける */
+.ml-ghead .en { font-size: 17px; font-weight: 900; letter-spacing: .06em; color: var(--c); }
+.ml-ghead .ja { font-size: 11px; font-weight: 800; color: var(--sub); }
+.ml-ghead .q { width: 30px; height: 30px; border-radius: 50%; background: rgba(255,255,255,.09); display: grid; place-items: center; font-weight: 900; font-size: 13px; color: var(--sub); }
+
+/* ══════════ 買うバー（画面下に固定） ══════════ */
+/* ★ 2026-08-13 支払いは XEVA だけになったので、通貨の切替（.ml-paysel）は廃止。
+   バーは「買うボタン1つ」だけになった。 */
+.ml-buy {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 45;
+  padding: 9px 12px calc(9px + var(--safeB));
+  background: linear-gradient(180deg, rgba(11,16,48,.7), rgba(9,12,36,.98) 45%);
+  backdrop-filter: blur(14px); border-top: 1px solid var(--line);
+}
+.ml-bbtn {
+  width: 100%; padding: 13px; border-radius: 13px; font-weight: 900; font-size: 15px; text-align: center;
+  background: linear-gradient(180deg, var(--c, #6b8cff), color-mix(in srgb, var(--c, #6b8cff) 55%, #000));
+  color: #fff; box-shadow: 0 6px 18px rgba(0,0,0,.35);
+  display: flex; align-items: center; justify-content: center; gap: 9px;
+}
+.ml-bbtn small { font-size: 12px; opacity: .92; font-weight: 800; }
+.ml-bbtn:disabled { background: rgba(255,255,255,.1); color: var(--sub); box-shadow: none; }
+/* XEVA が足りないとき。押せるままにして、増やし方の案内へ導く（灰色にして終わらせない） */
+.ml-bbtn.poor { background: linear-gradient(180deg, #46507e, #2b3358); color: #c3cdee; box-shadow: none; }
+.ml-bbtn:active:not(:disabled) { transform: translateY(1px); }
+
+/* ══════════ 下のタブ ══════════
+   ★ アイコンは線で描いた SVG。currentColor で塗るので、色は .ml-tab の color だけで決まる。
+     ・いま見ているタブ … 金色＋うっすら金の座布団
+     ・そのほか        … 沈んだ青灰色
+   ★ 中を「くり抜く」ところ（本のページ・歯車の穴）は .cut を付けて背景色で塗る。
+     evenodd で抜くと端末によって描き方が変わるので、単純に上から塗りつぶす。 */
+.ml-tabs {
+  position: fixed; left: 0; right: 0; bottom: 0; z-index: 44;
+  display: grid; grid-template-columns: repeat(5, 1fr);
+  padding: 7px 6px calc(7px + var(--safeB));
+  background: linear-gradient(180deg, rgba(13,18,54,.86), rgba(8,11,32,.99) 55%);
+  backdrop-filter: blur(16px);
+  border-top: 1px solid rgba(255,210,87,.22);
+  box-shadow: 0 -8px 26px rgba(0,0,0,.45);
+}
+.ml-tab {
+  position: relative; padding: 7px 2px 5px; border-radius: 13px;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  color: #7d8fc4; transition: color .16s, background .16s;
+}
+.ml-tab .ic { width: 23px; height: 23px; display: block; fill: currentColor; }
+.ml-tab .ic .cut { fill: #0b1030; }              /* くり抜き部分は背景色で塗る */
+.ml-tab span { font-size: 9.5px; font-weight: 900; letter-spacing: .02em; }
+.ml-tab:active { transform: scale(.94); }
+.ml-tab.on {
+  color: var(--gold);
+  background: linear-gradient(180deg, rgba(255,210,87,.17), rgba(255,210,87,.05));
+  box-shadow: inset 0 0 0 1px rgba(255,210,87,.3);
+}
+.ml-tab.on .ic { filter: drop-shadow(0 2px 7px rgba(255,210,87,.5)); }
+/* いま見ているタブの上に小さな金の点（どこに居るかが一目で分かる） */
+.ml-tab.on::before {
+  content: ""; position: absolute; top: 2px; left: 50%; transform: translateX(-50%);
+  width: 16px; height: 3px; border-radius: 999px; background: var(--gold);
+  box-shadow: 0 0 8px rgba(255,210,87,.8);
+}
+.ml-tab .bdg { position: absolute; top: 5px; right: 22%; width: 8px; height: 8px; border-radius: 50%; background: #ff4d6d; display: none; }
+.ml-tab.dot .bdg { display: block; }
+
+/* ══════════ SCRATCH ══════════ */
+.ml-sccard {
+  position: relative; border-radius: 18px; padding: 14px; margin-top: 10px;
+  background: linear-gradient(150deg, #6b4a12, #a97c22 35%, #6b4a12 75%);
+  border: 2px solid #ffd88a; box-shadow: var(--shadow);
+}
+.ml-sccard .hd { display: flex; align-items: center; justify-content: space-between; color: #2b1d00; font-weight: 900; font-size: 12px; letter-spacing: .06em; }
+.ml-sccard .hd .r { font-size: 10.5px; background: rgba(0,0,0,.22); color: #ffe9ae; padding: 3px 8px; border-radius: 999px; }
+.ml-scgrid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 10px; }
+.ml-cell {
+  position: relative; aspect-ratio: 1; border-radius: 12px; overflow: hidden;
+  background: linear-gradient(180deg, #fffaf0, #f3e6cb); border: 1.5px solid #d8b872;
+  display: grid; place-items: center;
+}
+/* 絵柄はキャラの絵（正方形）。マスいっぱいに敷いて、開いた瞬間に少し弾ませる。 */
+.ml-cell .sym {
+  position: absolute; inset: 3px; border-radius: 9px; overflow: hidden;
+  display: grid; place-items: center; font-size: 24px; font-weight: 900; color: #b09760;
+  transform: scale(.62); opacity: 0; transition: transform .3s cubic-bezier(.2,1.4,.4,1), opacity .2s;
+}
+.ml-cell .sym img { width: 100%; height: 100%; object-fit: cover; }
+.ml-cell.open .sym { transform: none; opacity: 1; }
+.ml-cell .foil {
+  position: absolute; inset: 0; cursor: pointer;
+  background: linear-gradient(135deg, #c9cfe0 0%, #eef2ff 22%, #9aa6c4 46%, #eef2ff 68%, #b9c2d8 100%);
+  transition: opacity .2s;
+}
+.ml-cell .foil::after {
+  content: "SCRATCH"; position: absolute; inset: 0; display: grid; place-items: center;
+  font-size: 8.5px; font-weight: 900; letter-spacing: .12em; color: rgba(40,50,80,.45);
+}
+.ml-cell.open .foil { opacity: 0; pointer-events: none; }
+.ml-cell.hit { box-shadow: 0 0 0 3px var(--gold), 0 0 22px rgba(255,210,87,.7); }
+.ml-cell.tease { animation: mlTease .8s ease-in-out infinite; }
+@keyframes mlTease { 50% { box-shadow: 0 0 0 3px rgba(255,210,87,.75); } }
+.ml-scmsg { text-align: center; margin-top: 10px; font-size: 12px; font-weight: 900; color: #2b1d00; min-height: 18px; }
+.ml-scmsg.tease { color: #b3160f; animation: mlPulse .7s infinite; }
+@keyframes mlPulse { 50% { opacity: .45; } }
+.ml-scall { margin-top: 9px; width: 100%; padding: 9px; border-radius: 10px; background: rgba(0,0,0,.24); color: #ffe9ae; font-weight: 900; font-size: 12px; }
+
+/* 配当表 */
+.ml-pay { display: grid; grid-template-columns: 1fr auto auto; gap: 4px 10px; font-size: 11.5px; font-weight: 800; align-items: center; }
+.ml-pay .h { color: var(--sub); font-size: 10px; letter-spacing: .06em; }
+.ml-pay .m { color: var(--gold); font-variant-numeric: tabular-nums; text-align: right; }
+.ml-pay .p { color: var(--sub); font-variant-numeric: tabular-nums; text-align: right; }
+/* 絵柄つきの配当表（SCRATCH）。絵・キャラ名・ランク名を1行にまとめる */
+.ml-pay.sym { gap: 8px 10px; }
+.ml-pay .s { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.ml-pay .s .pi { width: 34px; height: 34px; border-radius: 8px; object-fit: cover; flex: 0 0 34px; border: 1px solid rgba(255,210,87,.35); }
+.ml-pay .s i { font-style: normal; min-width: 0; }
+.ml-pay .s small { display: block; font-size: 9.5px; color: var(--sub); font-weight: 700; }
+
+/* ══════════ NUMBERS / LOTTO ══════════ */
+.ml-picked { display: flex; justify-content: center; gap: 10px; margin: 12px 0 4px; }
+.ml-dg {
+  width: 62px; height: 76px; border-radius: 14px; display: grid; place-items: center;
+  font-size: 38px; font-weight: 900; font-variant-numeric: tabular-nums;
+  background: linear-gradient(180deg, #fff, #dfe6f7); color: #14204a;
+  border: 2px solid #fff; box-shadow: 0 6px 16px rgba(0,0,0,.35);
+}
+.ml-dg.sel { outline: 3px solid var(--blue); outline-offset: 2px; }
+.ml-dg.win { background: linear-gradient(180deg, #fff8d8, var(--gold)); color: #3a2600; }
+.ml-keys { display: grid; grid-template-columns: repeat(5, 1fr); gap: 7px; margin-top: 12px; }
+.ml-key {
+  padding: 13px 0; border-radius: 11px; text-align: center; font-size: 17px; font-weight: 900;
+  background: rgba(255,255,255,.09); border: 1px solid var(--line); font-variant-numeric: tabular-nums;
+}
+.ml-key:active { background: rgba(255,255,255,.2); }
+.ml-key.wide { grid-column: span 2; font-size: 13px; }
+.ml-pick {
+  margin-top: 10px; width: 100%; padding: 10px; border-radius: 11px; font-weight: 900; font-size: 12.5px;
+  background: linear-gradient(180deg, rgba(86,182,255,.22), rgba(86,182,255,.08)); border: 1px solid rgba(86,182,255,.45); color: #bfe4ff;
+}
+
+/* ロトの数字盤 */
+.ml-board { display: grid; grid-template-columns: repeat(9, 1fr); gap: 5px; margin-top: 10px; }
+.ml-bn {
+  aspect-ratio: 1; border-radius: 9px; display: grid; place-items: center;
+  font-size: 12px; font-weight: 900; font-variant-numeric: tabular-nums;
+  background: rgba(255,255,255,.07); border: 1px solid var(--line); color: var(--fg);
+}
+.ml-bn.on { background: linear-gradient(180deg, #ff8090, #d92b45); border-color: #ffb3bd; color: #fff; box-shadow: 0 3px 10px rgba(217,43,69,.5); }
+.ml-bn.hit { background: linear-gradient(180deg, #fff3c4, var(--gold)); border-color: #fff; color: #3a2600; }
+.ml-chips { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-top: 10px; min-height: 34px; }
+.ml-chip {
+  width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center;
+  font-size: 13px; font-weight: 900; font-variant-numeric: tabular-nums;
+  background: linear-gradient(180deg, #fff, #ccd6ee); color: #14204a; border: 2px solid #fff;
+}
+.ml-chip.empty { background: rgba(255,255,255,.06); color: var(--sub); border-color: var(--line); }
+.ml-chip.hit { background: linear-gradient(180deg, #fff8d8, var(--gold)); color: #3a2600; box-shadow: 0 0 12px rgba(255,210,87,.7); }
+.ml-chip.magi { background: linear-gradient(180deg, #e5ccff, #a668ff); color: #fff; border-color: #e5ccff; }
+
+/* 抽選演出（ボールが1つずつ出る） */
+.ml-drawbox { text-align: center; padding: 14px 0 4px; }
+.ml-balls { display: flex; justify-content: center; gap: 8px; flex-wrap: wrap; min-height: 44px; }
+.ml-ball {
+  width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center;
+  font-size: 15px; font-weight: 900; font-variant-numeric: tabular-nums;
+  background: radial-gradient(circle at 34% 28%, #fff, #cfd8ee 60%, #93a2c6); color: #14204a;
+  box-shadow: 0 4px 12px rgba(0,0,0,.4); animation: mlBallIn .4s cubic-bezier(.2,1.5,.4,1) both;
+}
+@keyframes mlBallIn { from { transform: translateY(-26px) scale(.4); opacity: 0; } to { transform: none; opacity: 1; } }
+.ml-ball.hit { background: radial-gradient(circle at 34% 28%, #fffbe8, #ffd257 55%, #d99a12); color: #3a2600; box-shadow: 0 0 18px rgba(255,210,87,.85); }
+.ml-ball.magi { background: radial-gradient(circle at 34% 28%, #f4e6ff, #b98bff 55%, #7b46d8); color: #fff; }
+.ml-drawlb { font-size: 11px; color: var(--sub); font-weight: 800; letter-spacing: .08em; margin-bottom: 7px; }
+
+/* ══════════ FREE MAGI のホイール ══════════ */
+.ml-wheelwrap { position: relative; width: min(300px, 84vw); margin: 14px auto 0; }
+.ml-wheelwrap::before {
+  content: ""; position: absolute; left: 50%; top: -8px; transform: translateX(-50%);
+  border-left: 11px solid transparent; border-right: 11px solid transparent; border-top: 18px solid var(--gold);
+  filter: drop-shadow(0 2px 5px rgba(0,0,0,.5)); z-index: 3;
+}
+#mlWheel { width: 100%; height: auto; display: block; transition: transform 4.6s cubic-bezier(.15,.86,.19,1); border-radius: 50%; box-shadow: 0 0 0 6px rgba(255,210,87,.35), var(--shadow); }
+/* まん中のエンブレム（描き下ろし）。ホイールが回っても、これは回らない。 */
+.ml-wemb {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%);
+  width: 40%; max-width: 132px; z-index: 2; pointer-events: none;
+  filter: drop-shadow(0 5px 16px rgba(0,0,0,.55));
+}
+
+/* ══════════ 履歴 ══════════ */
+.ml-log { display: flex; flex-direction: column; gap: 7px; }
+.ml-lr {
+  display: grid; grid-template-columns: 32px 1fr auto; gap: 9px; align-items: center;
+  padding: 9px 10px; border-radius: 12px; background: rgba(255,255,255,.05); border: 1px solid var(--line);
+}
+.ml-lr .g { width: 32px; height: 32px; border-radius: 9px; display: grid; place-items: center; font-size: 15px; }
+.ml-lr .t { min-width: 0; }
+.ml-lr .t > span { display: block; }   /* 1行目＝ゲームと結果、2行目＝日時と支払い */
+.ml-lr .n { font-size: 12px; font-weight: 900; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ml-lr .s { font-size: 10px; color: var(--sub); font-weight: 700; }
+.ml-lr .v { text-align: right; font-size: 13px; font-weight: 900; font-variant-numeric: tabular-nums; }
+.ml-lr .v.win { color: var(--gold); }
+.ml-lr .v.miss { color: var(--sub); }
+.ml-lr.big { border-color: rgba(255,210,87,.5); background: rgba(255,210,87,.09); }
+
+/* ══════════ ボトムシート ══════════ */
+.ml-sheet { position: fixed; inset: 0; z-index: 90; display: none; background: rgba(4,6,20,.72); backdrop-filter: blur(3px); }
+.ml-sheet.on { display: block; }
+.ml-sheet .card {
+  position: absolute; left: 0; right: 0; bottom: 0; max-height: 88%; display: flex; flex-direction: column;
+  border-radius: 20px 20px 0 0;
+  background-color: #121838;    /* グラデーションが効かない環境でも必ず不透明にする */
+  background-image: linear-gradient(180deg, #1a2258, #121838);
+  border-top: 2px solid rgba(255,210,87,.4); padding-bottom: var(--safeB);
+  animation: mlUp .26s cubic-bezier(.2,1,.3,1) both;
+}
+@keyframes mlUp { from { transform: translateY(18px); opacity: 0; } to { transform: none; opacity: 1; } }
+.ml-sheadr { display: flex; align-items: center; gap: 9px; padding: 14px 14px 8px; }
+.ml-sic { font-size: 19px; }
+.ml-stt { flex: 1; font-size: 15px; font-weight: 900; }
+.ml-sx { width: 30px; height: 30px; border-radius: 50%; background: rgba(255,255,255,.1); font-weight: 900; }
+.ml-sbody { padding: 0 14px 12px; overflow-y: auto; font-size: 12.5px; line-height: 1.7; color: var(--fg); -webkit-overflow-scrolling: touch; }
+.ml-sbody b { color: var(--gold); }
+.ml-sfoot { padding: 8px 14px 14px; display: grid; gap: 7px; }
+.ml-sbtn { padding: 12px; border-radius: 12px; font-weight: 900; font-size: 13.5px; background: rgba(255,255,255,.1); }
+.ml-sbtn.go { background: linear-gradient(180deg, var(--gold), var(--gold2)); color: #3a2600; }
+.ml-sbtn.warn { background: linear-gradient(180deg, #ff7a8c, #c9273f); color: #fff; }
+
+/* ══════════ 当選演出 ══════════ */
+.ml-win { position: fixed; inset: 0; z-index: 95; display: none; place-items: center; padding: 20px; }
+.ml-win.on { display: grid; }
+.ml-win::before { content: ""; position: absolute; inset: 0; background: rgba(4,6,20,.86); backdrop-filter: blur(4px); }
+.ml-wcard {
+  position: relative; width: min(420px, 100%); border-radius: 22px; padding: 26px 18px 18px; text-align: center;
+  border: 2px solid var(--gold); background: linear-gradient(180deg, #22194f, #120d2c);
+  box-shadow: 0 0 60px rgba(255,210,87,.28), var(--shadow); overflow: hidden;
+  animation: mlPop .4s cubic-bezier(.2,1.5,.4,1) both;
+}
+@keyframes mlPop { from { transform: scale(.82); opacity: 0; } to { transform: none; opacity: 1; } }
+/* ★ 2026-08-13 OK が押せないことがある不具合の修正。
+   .ml-wrays は絶対配置なので、後ろに並ぶ静的な要素（賞金額・OKボタン）より
+   <b>手前に描かれる</b>。放射光がカード全面をおおって、クリックを吸っていた。
+   pointer-events を切り、中身のほうを z-index で必ず上に置く。 */
+.ml-wrays { position: absolute; inset: -50%; opacity: 0; pointer-events: none; z-index: 0; }
+.ml-wcard > *:not(.ml-wrays) { position: relative; z-index: 1; }
+.ml-wtag { font-size: 15px; font-weight: 900; letter-spacing: .16em; color: var(--gold); }
+.ml-wmul { font-size: 40px; font-weight: 900; line-height: 1; margin-top: 2px;
+  background: linear-gradient(180deg, #fff, #ffd257); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.ml-wamt { margin-top: 8px; display: flex; align-items: baseline; justify-content: center; gap: 6px; }
+.ml-wamt b { font-size: 40px; font-weight: 900; font-variant-numeric: tabular-nums; line-height: 1;
+  background: linear-gradient(180deg, #fff8d8, #f0b429 70%, #b9791a); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.ml-wamt i { font-style: normal; font-size: 14px; font-weight: 900; color: var(--gold); letter-spacing: .1em; }
+.ml-wsub { margin-top: 6px; font-size: 12px; color: var(--sub); font-weight: 800; }
+.ml-wlines { margin-top: 10px; font-size: 11.5px; color: var(--sub); font-weight: 700; line-height: 1.7; }
+.ml-wok { margin-top: 16px; width: 100%; padding: 13px; border-radius: 13px; font-weight: 900; font-size: 15px;
+  background: linear-gradient(180deg, var(--gold), var(--gold2)); color: #3a2600; }
+
+/* ★ 段ごとの差。small はほぼ静か、ultra は画面ごと祝う。 */
+.ml-win.t-small .ml-wcard { border-color: rgba(255,255,255,.35); box-shadow: var(--shadow); padding-top: 20px; }
+.ml-win.t-small .ml-wtag { color: var(--sub); letter-spacing: .1em; }
+.ml-win.t-small .ml-wmul { font-size: 30px; }
+.ml-win.t-mid .ml-wcard { border-color: var(--blue); box-shadow: 0 0 36px rgba(86,182,255,.3), var(--shadow); }
+.ml-win.t-mid .ml-wtag { color: var(--blue); }
+.ml-win.t-big .ml-wcard { animation: mlPop .4s cubic-bezier(.2,1.5,.4,1) both, mlShake .5s .35s ease; }
+@keyframes mlShake { 0%,100% { transform: none; } 20% { transform: translate(-4px,2px) rotate(-.6deg); } 55% { transform: translate(4px,-2px) rotate(.6deg); } }
+.ml-win.t-big .ml-wrays, .ml-win.t-mega .ml-wrays, .ml-win.t-ultra .ml-wrays {
+  opacity: .35;
+  background: repeating-conic-gradient(from 0deg, rgba(255,210,87,.5) 0deg 7deg, transparent 7deg 20deg);
+  animation: mlSpin 12s linear infinite;
+}
+@keyframes mlSpin { to { transform: rotate(360deg); } }
+.ml-win.t-mega .ml-wcard { border-color: #ff9ad0; box-shadow: 0 0 80px rgba(255,154,208,.4), var(--shadow); }
+.ml-win.t-mega .ml-wtag { color: #ff9ad0; font-size: 17px; }
+.ml-win.t-mega .ml-wrays { opacity: .45; background: repeating-conic-gradient(from 0deg, rgba(255,154,208,.55) 0deg 6deg, transparent 6deg 18deg); }
+.ml-win.t-ultra .ml-wcard {
+  border-color: transparent; padding-top: 30px; overflow: hidden;
+  background:
+    linear-gradient(#120d2c, #120d2c) padding-box,
+    conic-gradient(from 0deg, #ff5f7e, #ffd257, #6bffb0, #56b6ff, #b98bff, #ff5f7e) border-box;
+  border: 3px solid transparent;
+  box-shadow: 0 0 100px rgba(255,210,87,.45), var(--shadow);
+}
+/* ★ 1等（ultra）だけの描き下ろしカットイン。
+   背景に敷くと賞金額が読みづらくなるので、<b>カードの上半分いっぱいの絵</b>にして、
+   下へフェードさせながら金額の文字につなげる。左右はカードの余白ぶんだけはみ出させる。 */
+.ml-wcut {
+  display: block; width: calc(100% + 36px); margin: -30px -18px 2px;
+  aspect-ratio: 5 / 4; object-fit: cover; object-position: 50% 20%;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(180deg, #000 58%, transparent 100%);
+  mask-image: linear-gradient(180deg, #000 58%, transparent 100%);
+  animation: mlCutIn .9s cubic-bezier(.2,.9,.25,1) both;
+}
+@keyframes mlCutIn { from { transform: scale(1.12); opacity: 0; } to { transform: none; opacity: 1; } }
+.ml-win.t-ultra .ml-wtag { font-size: 19px; letter-spacing: .2em;
+  background: linear-gradient(90deg, #ff5f7e, #ffd257, #6bffb0, #56b6ff, #b98bff); -webkit-background-clip: text; background-clip: text; color: transparent;
+  animation: mlHue 3s linear infinite; }
+@keyframes mlHue { to { filter: hue-rotate(360deg); } }
+.ml-win.t-ultra .ml-wamt b { font-size: 46px; }
+.ml-win.t-ultra .ml-wrays { opacity: .5; background: repeating-conic-gradient(from 0deg, rgba(255,255,255,.5) 0deg 4deg, transparent 4deg 14deg); animation: mlSpin 7s linear infinite; }
+
+/* ハズレ（静かに、しかし次へ促す） */
+.ml-miss { position: fixed; inset: 0; z-index: 95; display: none; place-items: center; padding: 20px; }
+.ml-miss.on { display: grid; }
+.ml-miss::before { content: ""; position: absolute; inset: 0; background: rgba(4,6,20,.8); }
+.ml-misscard { position: relative; width: min(360px, 100%); border-radius: 20px; padding: 22px 18px 16px; text-align: center;
+  border: 1px solid var(--line); background: #161c40; animation: mlPop .3s ease both; }
+.ml-misscard .t { font-size: 17px; font-weight: 900; color: var(--sub); letter-spacing: .06em; }
+.ml-misscard .s { margin-top: 6px; font-size: 12px; color: var(--sub); font-weight: 700; line-height: 1.7; }
+
+/* ══════════ MAGI GRAND DRAW の結果発表（1日・16日の特別演出） ══════════ */
+.ml-gshow { position: fixed; inset: 0; z-index: 94; display: none; overflow-y: auto; }
+.ml-gshow.on { display: block; }
+.ml-gshow::before {
+  content: ""; position: fixed; inset: 0;
+  background: radial-gradient(700px 500px at 50% 22%, rgba(123,70,216,.5), rgba(4,6,20,.97) 70%), rgba(4,6,20,.96);
+}
+.ml-gsinner {
+  position: relative; min-height: 100%; display: flex; flex-direction: column; justify-content: center;
+  padding: calc(var(--safeT) + 24px) 18px calc(var(--safeB) + 24px); text-align: center;
+  max-width: 520px; margin: 0 auto;
+}
+.ml-gshd {
+  font-size: 17px; font-weight: 900; letter-spacing: .18em;
+  background: linear-gradient(180deg, #fff8dd, var(--gold)); -webkit-background-clip: text; background-clip: text; color: transparent;
+}
+.ml-gsday { margin-top: 4px; font-size: 12px; font-weight: 800; color: var(--sub); }
+.ml-gsday b { color: var(--gold); letter-spacing: .08em; }
+.ml-gscount {
+  margin: 26px auto; width: 108px; height: 108px; border-radius: 50%; display: grid; place-items: center;
+  font-size: 54px; font-weight: 900; color: #fff;
+  border: 3px solid rgba(255,210,87,.7); background: rgba(255,210,87,.1);
+  box-shadow: 0 0 50px rgba(255,210,87,.35);
+}
+/* 結果発表の抽選機。1日と16日だけの絵なので、大きく・ゆっくり出す */
+.ml-gsmach {
+  display: block; width: min(74%, 260px); margin: 10px auto 0;
+  filter: drop-shadow(0 10px 30px rgba(0,0,0,.6));
+  animation: mlMachIn .8s cubic-bezier(.2,1.3,.35,1) both, mlFloat 4.5s ease-in-out 1s infinite;
+}
+@keyframes mlMachIn { from { transform: scale(.6) translateY(20px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes mlFloat { 50% { transform: translateY(-7px); } }
+.ml-gsrows { margin-top: 14px; display: flex; flex-direction: column; gap: 7px; }
+.ml-gsrow {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 9px 11px; border-radius: 13px; background: rgba(255,255,255,.06); border: 1px solid var(--line);
+}
+.ml-gsrow .c { display: flex; gap: 5px; }
+.ml-gsrow .c .ml-chip { width: 30px; height: 30px; font-size: 12px; }
+.ml-gsrow .r { font-size: 11px; font-weight: 900; color: var(--sub); text-align: right; }
+.ml-gsrow .r.win { color: var(--gold); }
+.ml-gsrow .r b { display: block; font-size: 14px; font-variant-numeric: tabular-nums; }
+.ml-gstot { margin-top: 14px; font-size: 13px; font-weight: 900; color: var(--sub); }
+.ml-gstot b { font-size: 26px; color: var(--gold); font-variant-numeric: tabular-nums; }
+
+/* 紙吹雪 */
+#mlConfetti { position: fixed; inset: 0; z-index: 96; pointer-events: none; display: none; overflow: hidden; }
+#mlConfetti.on { display: block; }
+#mlConfetti i { position: absolute; top: -16px; width: 8px; height: 13px; border-radius: 2px; animation: mlFall linear forwards; }
+@keyframes mlFall { to { transform: translateY(108vh) rotate(720deg); opacity: .2; } }
+
+/* トースト */
+#mlToast {
+  position: fixed; left: 50%; bottom: calc(96px + var(--safeB)); transform: translate(-50%, 14px); z-index: 98;
+  max-width: min(420px, 90vw); padding: 11px 15px; border-radius: 13px; text-align: center;
+  background: rgba(10,14,40,.96); border: 1px solid rgba(255,210,87,.4); color: var(--fg);
+  font-size: 12.5px; font-weight: 800; line-height: 1.6; box-shadow: var(--shadow);
+  opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s;
+}
+#mlToast.on { opacity: 1; transform: translate(-50%, 0); }
+
+/* 管理画面（運営だけ） */
+.ml-adm { font-size: 12px; }
+.ml-adm input { width: 100%; padding: 8px 9px; border-radius: 9px; border: 1px solid var(--line);
+  background: rgba(0,0,0,.3); color: var(--fg); font: inherit; font-variant-numeric: tabular-nums; }
+.ml-adm .row { display: grid; grid-template-columns: 1fr 96px; gap: 8px; align-items: center; padding: 5px 0; }
+.ml-adm .row label { font-size: 11.5px; font-weight: 800; color: var(--sub); }
+.ml-adm .hd { margin-top: 12px; font-size: 11px; font-weight: 900; letter-spacing: .08em; color: var(--gold); }
+.ml-tbl { width: 100%; border-collapse: collapse; font-size: 11px; }
+.ml-tbl th, .ml-tbl td { padding: 5px 4px; border-bottom: 1px solid rgba(255,255,255,.08); text-align: right; font-variant-numeric: tabular-nums; }
+.ml-tbl th { color: var(--sub); font-size: 10px; font-weight: 900; }
+.ml-tbl td:first-child, .ml-tbl th:first-child { text-align: left; }
+
+/* 大きい画面では中央に寄せる（タブレット・PC） */
+@media (min-width: 720px) {
+  main, .ml-wal, .ml-rate { max-width: 620px; margin-left: auto; margin-right: auto; }
+  .ml-buy, .ml-tabs { max-width: 620px; left: 50%; transform: translateX(-50%); border-radius: 16px 16px 0 0; }
+}
+
+/* 動きを減らす設定の人には、回転と点滅を止める */
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}
