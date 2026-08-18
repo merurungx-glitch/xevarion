@@ -316,6 +316,9 @@ const GAME = {
             SFX.breakB();
             if (bl.drop){ this.give(bl.drop, 1); SFX.pickup(); }
             if (bl.exp) this.gainExp(bl.exp);
+            /* XEVARION のスターターミッション「ブロックを掘ってみよう」。
+               1つ壊した時点で達成（2回目以降は何も起きない）。 */
+            try { if (window.XEVA && window.XEVA.completeMission) window.XEVA.completeMission("magicraft_play"); } catch (e) {}
             this.mine = null;
             UI.setMineProgress(0);
           }

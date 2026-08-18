@@ -4,8 +4,9 @@
 <script src="../maintenance-gate.js?v=5"></script>
 <meta charset="utf-8">
 <script>(function(){try{var a=JSON.parse(localStorage.getItem('xeva_account_v1'));if(!a||!a.setupDone)location.replace('../index.html');}catch(e){}})();</script>
-<script type="module" src="../xevarion-fb.js?v=18"></script>
-<script type="module" src="../xeva-cloud.js?v=14"></script>
+<script src="../xeva.js?v=33"></script>
+<script type="module" src="../xevarion-fb.js?v=22"></script>
+<script type="module" src="../xeva-cloud.js?v=16"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -631,6 +632,7 @@ const SEAT_MAP={2:["bottom","top"],3:["bottom","top","left"],4:["bottom","top","
 const G={};
 function startTAKA(diffKey,def,orderedPlayers,loaded){
   stopAllTimers();
+  xaMission();
   if(loaded){
     Object.assign(G,{ game:"taka",diff:diffKey,def:loaded.def||def,size:loaded.size,board:loaded.board,owner:loaded.owner,
       players:loaded.players,turn:loaded.turn,turnCount:loaded.turnCount,selLetter:loaded.selLetter||"A",
@@ -981,7 +983,10 @@ $("#game-back").addEventListener("click",()=>{
 $("#game-rules").addEventListener("click",()=>{ if(G.game==="taka") openSheet(rulesTAKA()); else openSheet(rulesGeneric(G.game)); });
 
 /* ============================================================ CLASSIC GAMES ============================================================ */
-function startClassic(game){ stopAllTimers(); if(game==="othello") startOthello(); else if(game==="gomoku") startGomoku(); else if(game==="memory") startMemorySetup(); }
+/* XEVARION のスターターミッション「1台対戦をあそぼう」。
+   TAKAGAME・オセロ・五目並べ・神経衰弱のどれでも、対戦を始めた時点で達成にする。 */
+function xaMission(){ try{ if(window.XEVA && window.XEVA.completeMission) window.XEVA.completeMission("magiarena_play"); }catch(e){} }
+function startClassic(game){ stopAllTimers(); xaMission(); if(game==="othello") startOthello(); else if(game==="gomoku") startGomoku(); else if(game==="memory") startMemorySetup(); }
 function classicSeats(players,turn,extra){
   const seats=SEAT_MAP[players.length]||["bottom","top"];
   ["top","bottom","left","right"].forEach(pos=>$("#seat-"+pos).innerHTML="");
