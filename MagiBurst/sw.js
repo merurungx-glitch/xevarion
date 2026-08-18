@@ -6,15 +6,15 @@
    ・オンライン対戦・XEVA換金はアプリ側でオフライン時に無効化している
    ・取得できたリソースは随時キャッシュ更新（stale-while-revalidate）
    ============================================================ */
-const VERSION = "magiburst-sw-v83";
+const VERSION = "magiburst-sw-v109";
 const CORE = [
   "./index.html",
-  "./js/mb-core.js?v=12",   /* ★ 2026-08-10 キャラ・ガチャの共有モジュール（XEVARION のガチャと共通） */
-  "../xeva.js?v=27",
+  "./js/mb-core.js?v=35",   /* ★ 2026-08-10 キャラ・ガチャの共有モジュール（XEVARION のガチャと共通） */
+  "../xeva.js?v=33",
   "../xeva-loading.js?v=1",
   "../xeva-splash.js?v=3",
   "../app-cloud.js?v=4",
-  "../xeva-keys.js?v=2",
+  "../xeva-keys.js?v=4",
   "./magiburst-cloud.js?v=6",
   "../maintenance-gate.js?v=5",
   "../app-install-notice.js?v=1",
@@ -174,6 +174,36 @@ const CORE = [
   "../img/t_Karem.webp",
   "../img/t_Mayu.webp",
   "../img/t_Chizuru.webp",
+  /* ★ 2026-08-16c セイラ以降のキャラのサムネ。
+     ここに足し忘れると、そのキャラだけオフラインで絵が出ない
+     （更新パッケージの一覧＝update.json にも載らない）。 */
+  "../img/t_Seira.webp",
+  "../img/t_Anna.webp",
+  "../img/t_Tsukino.webp",
+  "../img/t_Moeka.webp",
+  "../img/t_Suzuha.webp",
+  "../img/t_Violet.webp",
+  "../img/t_Kanata.webp",
+  "../img/t_Touka.webp",
+  "../img/t_Elena.webp",
+  "../img/t_Grace.webp",
+  "../img/t_Youka.webp",
+  "../img/t_Youhi.webp",
+  /* ★ 2026-08-18 プレミアム★5 8体（No.119〜126）＋ ロキシー（No.127） */
+  "../img/t_Artemia.webp",
+  "../img/t_Asuha.webp",
+  "../img/t_Blair.webp",
+  "../img/t_Lilith.webp",
+  "../img/t_Lyra.webp",
+  "../img/t_Satsuki.webp",
+  "../img/t_Sayo.webp",
+  "../img/t_Melty.webp",
+  "../img/t_Roxy.webp",
+  "./img/e_Youka.webp",
+  "./img/e_Youhi.webp",
+  "./img/bn_hourai_s.webp",
+  "./img/backhourai_s.webp",
+  "./img/backtenkyu_s.webp",
   "img/ss/MayuSS.webp",       /* 治癒の祈りのカットイン用 */
   "img/ss/ChizuruSS.webp",
   /* ★ 2026-08-12 サマーキャンペーン（初クリア💎2倍）の専用バナー */

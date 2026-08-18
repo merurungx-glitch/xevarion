@@ -15,8 +15,8 @@
    <b>ふつうの &lt;script&gt;</b>（type="module" ではない）で読むこと。
    トップレベルの const/let はグローバルの字句環境に入るので、
    あとから読み込む MagiBurst 本体のスクリプトからそのまま見える。
-     MagiBurst : <script src="js/mb-core.js?v=1"></script>
-     gacha.html: <script src="MagiBurst/js/mb-core.js?v=1"></script>
+     MagiBurst : <script src="js/mb-core.js?v=35"></script>
+     gacha.html: <script src="MagiBurst/js/mb-core.js?v=35"></script>
 
    ── ホストが先に用意しておくもの ──
      window.MB_IMGD … 画像フォルダへの相対パス（MagiBurst は "../img/"、ポータルは "img/"）
@@ -189,7 +189,11 @@ const AB_NM = {
   barrierM: "バリアM", wallboostM: "ウォールブーストM", fbaccel: "FBターンアクセル", mobkiller: "ザコキラー",
   /* v13: セツナ／セレネ／ナズナ／リリア／レヴィア用 */
   fsboostL: "リンクブーストL", dashL: "ダッシュL", fbshort: "FBターン短縮",
-  fbtouch: "FBターン短縮", combokillerM: "連撃キラーM", judgment: "ジャッジメント",
+  /* ★ 2026-08-16 fbtouch は fbshort とまったく同じ「FBターン短縮」という名前だったが、
+     中身は別物（fbshort＝毎ターン1多く進む／fbtouch＝ふれた味方の数だけ縮む）。
+     同じ名前のアビリティは効果も同じ、という決まりに反していたので
+     壁で縮む wallfbshort＝「壁FBターン短縮」にならって「味方FBターン短縮」に改名した。 */
+  fbtouch: "味方FBターン短縮", combokillerM: "連撃キラーM", judgment: "ジャッジメント",
   infinitybreakM: "インフィニティブレイクM", fewfoeM: "敵少底力M",
   /* v14: Nocturne Bloom Fest 5体（フィオナ・ミルフィ・メイベル・アビス・アーク）用 */
   msEL: "マインスイーパーEL", lightning: "ライトニング", atkturnkillerM: "アタックターンキラーM",
@@ -253,6 +257,9 @@ const AB_NM = {
      ・killerL      … 属性キラーの等級L（無印1.5／M 2.0／L 2.5）。名前は abilName が属性から組み立てる。
      ・allkillerEL  … 全属性キラーの等級EL（無印1.5／M 2.0／EL 3.0）。 */
   allkillerEL: "全属性キラーEL",
+  /* ★ 2026-08-17b グレースぶん */
+  firstkillerEL: "ファーストキラーEL", phantomdriveEL: "ファントムドライブEL",
+  lightningEL: "ライトニングEL", atkcharge: "攻撃力チャージ",
   /* ══ ★ 2026-08-12 蒼夏祭（Aoka Summer Fest）限定★5 6体用 ══
      ・sokojikaraEL     … 底力の等級EL（無印1.5／M 2.0／EL 3.0）。
      ・fatalkillerL     … フェイタルキラーの等級L（無印1.5／M 2.0／L 2.5）。
@@ -268,11 +275,68 @@ const AB_NM = {
      ・destroyboostM  … デストロイブーストの等級M。<b>短縮するFBターンが1→2</b>になるだけで、
                         きっかけ（画面内の敵が倒れる）は無印とまったく同じ。 */
   firstkillerL: "ファーストキラーL", destroyboostM: "デストロイブーストM",
+  /* ══ ★ 2026-08-16 プレミアム新★5「アンナ」用 ══
+     ・sokojikaraL … 底力の等級L（無印1.5／M 2.0／L 2.5／EL 3.0）。
+       ほかのキラーと同じ 無印→M→L→EL の刻みにそろえた。 */
+  sokojikaraL: "底力L",
+  /* ══ ★ 2026-08-16b プレミアム新★5 6体（モエカ・スズハ・ヴィオレット・カナタ・トウカ・エレナ）用 ══
+     ・killerEL        … 属性キラーの等級EL（無印1.5／M 2.0／L 2.5／EL 3.0）。
+                         名前は abilName が属性から組み立てる（killer/killerM/killerL と同じ）。
+     ・gravkillerEL    … 重力バリアキラーの等級EL（無印／M の上）。
+     ・fewfoeEL        … 敵少底力の等級EL（M の上）。
+     ・eternalphotonM  … エターナルエーテルの等級M。持ち直す数が 2個 → 3個。
+     ・speedmode       … スピードモード。<b>各WAVEの開始時</b>から、自分が2回行動し終えるまで
+                         スピードが上がる。WAVEをまたぐたびに何度でもかかり直す。 */
+  killerEL: "属性キラーEL", gravkillerEL: "重力バリアキラーEL", fewfoeEL: "敵少底力EL",
+  eternalphotonM: "エターナルエーテルM", speedmode: "スピードモード",
+  weakkillerEL: "弱点キラーEL",   /* 無印1.5／M 2.0／L 2.5／EL 3.0 */
+  /* ══ ★ 2026-08-18 ロキシー用 ══
+     ・cumulonimbusEL … キュムロニンバスの等級EL。しくみは無印と同じで、
+                        落雷の威力・距離ボーナス・着弾の衝撃波が上がる。
+     ・houraikillerL  … 蓬莱族キラーL。冥花種キラー・蝕魔族キラーと同じ<b>種族キラー</b>で、
+                        敵のスプライトから種族を引く（raceOfSp）。等級は L のみ。
+     ・gravkillerL    … 重力バリアキラーの等級L（無印1.5／M 2.0／L 2.5／EL 3.0）。
+                        <b>M と EL のあいだが空いていた</b>ので、ほかのキラーと同じ刻みにそろえる。 */
+  cumulonimbusEL: "キュムロニンバスEL", houraikillerL: "蓬莱族キラーL", gravkillerL: "重力バリアキラーL",
 };
+/* ══ ★ 2026-08-16b 上の新アビリティの数値 ══ */
+const KILLER_EL_MUL = 3.0;        // 属性キラーEL
+const GRAVKILLER_EL_MUL = 3.0;    // 重力バリアキラーEL
+const FEWFOE_EL_MUL = 3.0;        // 敵少底力EL
+const ETERNAL_PHOTON_M_N = 3;     // エターナルエーテルM: 各WAVE開始時に持つエーテルの数
+const SPEEDMODE_MUL = 1.5;        // スピードモード: スピードの倍率
+const SPEEDMODE_ACTS = 2;         // 同・何回行動し終えるまで続くか
+const WEAKKILLER_EL_MUL = 3.0;    // 弱点キラーEL: 弱点直撃・弱点通過の追加倍率（L 2.5 の上）
+/* ラウンドヒール: 止まったとき、円の内部にいる味方1体につきチームHPをこの割合だけ回復する */
+const ROUNDHEAL_RATE = 0.05;
+/* ══ ★ 2026-08-18 ラウンドチャージ／ラウンドヒールの「円」の大きさ ══
+   <b>2つの技で同じ値を使う</b>（同じ名前の形の技なので、片方だけ広いと覚え直しになる）。
+   これまでは 初期56 → 1フレーム 2.4 ずつ広がり 上限300 だったが、
+   ★ 盤面の対角はおよそ 900px あるので、上限300では<b>画面のごく一部</b>しか覆えず、
+     「なぞった味方の近くにたまたま居た1体」にしか届かないことが多かった。
+     短いショットだと 56＋α のまま止まるので、<b>1体も入らない</b>ことすらあった。
+   ・初期半径を広げて、ほとんど動かずに止まっても最低限は届くようにする
+   ・広がる速さも上げて、ふつうのショット（60〜120フレーム）で上限近くまで届かせる
+   ・上限を上げて、そこまで広がれば<b>編成の大半</b>を巻きこめるようにする */
+const ROUND_R0 = 108;          // 円の初期半径（旧 56）
+const ROUND_GROW = 3.8;        // 1フレームあたりの広がり（旧 2.4）
+const ROUND_RMAX = 520;        // 円の上限（旧 300）
+const ROUND_STACK_R = 70;      // 重ねがけ1回ぶんの追加半径（旧 40）
+/* ══ ★ 2026-08-16b エレナのフルバースト（アクア・ダブルレクイエム）══
+   レヴィアの「撃った瞬間に味方全員で総攻撃」を<b>2回</b>にしたもの。
+   1回目は撃った瞬間、2回目は<b>自分が止まったあと もう一度動き出したとき</b>。 */
+const ELENA_ATK = 1.7;            // 自強化の攻撃倍率
+const ELENA_SPD = 1.2;            // 同・スピード倍率
+const ELENA_2ND_POWER = 0.85;     // 2回目に自分で動き出すときの初速（1回目に対する割合）
 /* ══ ★ 2026-08-12 蒼夏祭の新アビリティの数値 ══
    ★ ここは killerMul / atkMulOf / spdMulOf / abilDesc から参照される。
      どれも関数なので前後どちらでもよいが、まとめて1か所に置いておく。 */
 const SOKOJIKARA_EL_MUL = 3.0;     // 底力EL: チームの残りHPが50%以下のときの倍率
+const SOKOJIKARA_L_MUL = 2.5;      // 底力L: 同・等級L（★ 2026-08-16 追加。M 2.0 と EL 3.0 のあいだ）
+/* 底力（無印／M／EL）が乗りはじめる、チームHPの割合。
+   ★ killerMul の条件も sokojikaraState の判定も、必ずこの1つを見ること。
+     片方だけ直すと「光っているのに倍率が乗っていない」が起きる。 */
+const SOKO_HP_RATE = 0.5;
 const FATALKILLER_L_MUL = 2.5;     // フェイタルキラーL: 残りHP50%以下の敵への倍率
 const OUTKILLER_L_MUL = 2.0;       // アウトポジションキラーL: 壁ぎわの敵への倍率
 const OUTKILLER_M_MUL = 1.7;       // 同・等級M
@@ -292,6 +356,7 @@ const SEIRA_SPD = 1.35;            // セイラFB: 自強化のスピード倍�
 const SEIRA_BARRAGE_N = 40;        // セイラFB: 乱打の連数
 const SEIRA_BARRAGE_PER = 1.25;    // セイラFB: 乱打1発ぶんの攻撃力倍率
 const FIRSTKILLER_L_MUL = 2.6;     // ファーストキラーL: そのショットで最初にふれた敵への倍率
+const FIRSTKILLER_EL_MUL = 3.4;    /* ★ 2026-08-17b ファーストキラーEL（グレース）。無印1.5／M 2.0／L 2.6／EL 3.4 */
 const DESTROYBOOST_M = 2;          // デストロイブーストM: 敵が倒れるたびに縮むFBターン（無印は1）
 const PSEEKER20_N = 20;            // ピアスシーカー20: 撃つ発数（12発版と1発の威力は同じ）
 /* 敵が「壁ぎわ」にいるか（アウトポジションキラーの判定）。
@@ -315,6 +380,7 @@ const FBTURNBOOST = 1;             // FBターンブースト: 自分の手番�
 const BOSSKILLER_M_MUL = 2.0;      // ボスキラーM: ボスへのダメージ倍率
 const ALLRES_M_CUT = 0.50;         // 全属性耐性M: 本人が受けるダメージのカット率（無印は30%）
 const LEFTKILLER_M_MUL = 2.0;      // レフトポジションキラーM: 画面左半分の敵へのダメージ倍率
+const LASERSTOP_HEAL  = 0.08;      // 超レーザーストップ: レーザーを止めた本人が起こすチームHP回復量
 const LASERSTOPM_HEAL = 0.12;      // 超レーザーストップM: レーザーを止めたときのチームHP回復量
 const AILSOKOJIKARA_M_MUL = 2.0;   // 状態異常底力M: 状態異常を受けているあいだの与ダメージ倍率
 /* ══ ★ 2026-08-08 リフレクションリング（カエデのリンクスキル）══
@@ -429,6 +495,10 @@ const NETHER_RACE = "netherbloom";
 /* ★ キーは "eclipsedemon"。BOSSES には既に "eclipse"（エクリプス）がいるので、
    読むときに取りちがえないよう別の綴りにしてある。 */
 const ECLIPSE_RACE = "eclipsedemon";
+/* ★ 2026-08-17i 蓬莱族（蓬莱の九重のボス）。
+   瑶華＆玉蘭（第一重〜第九重）と瑶妃（蓬莱天宮）が属する。
+   ★ 種族を増やすときに直すのは RACES と SP_RACE と SP_NAME の3か所だけ。 */
+const HOURAI_RACE = "houraifolk";
 /* ══ v16 新アビリティの数値 ══ */
 const SUPERASLOW_MUL = 1.6;    // 超アンチ減速壁: 減速壁にふれたときの加速倍率（各ターン最初の1回）
 const GRAVKILLER_MUL = 1.5;    // 重力バリアキラー: 重力バリアを持つ敵への倍率
@@ -458,14 +528,64 @@ const AURAM_MUL = 2.0;         // パワーオーラM: チームHP50%以上の�
 const ATKTURN_KILLER_MUL = 2.0;// アタックターンキラーM: 攻撃ターンが残り1の敵への倍率
 const LIGHTNING_P = 0.20;      // ライトニング: 発動確率
 const LIGHTNING_MUL = 3.2;     // ライトニング: 落雷の威力（攻撃力×）
+/* ★ 2026-08-17b ライトニングEL（グレースのクロススキル）。確率も威力も上がる */
+const LIGHTNING_EL_P = 0.35;
+const LIGHTNING_EL_MUL = 5.0;
 const MIRAGE_P = 0.20;         // ミラージュ: 敵の攻撃を回避する確率
 const LINKCHARGE_P = 0.50;     // リンクチャージ: リンク命中でFBターンを1短縮する確率
 const CUMULO_MUL = 12.0;       // キュムロニンバス: 予約した敵への落雷ダメージ（攻撃力×）
 const CUMULO_DIST = 2400;      // キュムロニンバス: この距離を走ると強化が最大になる
 const CUMULO_MAX = 2.2;        // キュムロニンバス: 距離で得られるステータス倍率の上限
+/* ══ ★ 2026-08-18 キュムロニンバスEL（ロキシー）══
+   無印と<b>まったく同じしくみ</b>の上位等級。ちがうのは数字と、落雷のあとに走る衝撃波だけ。
+   ・落雷の威力が上がる（×12.0 → ×" + CUMULO_EL_MUL + "）
+   ・距離のボーナスが早く満ちて、上限も高い（2400px で×2.2 → 1800px で×2.6）
+   ・落雷の着弾点から<b>まわりの敵へも衝撃波</b>が走る（落雷の CUMULO_EL_SPLASH ぶん） */
+const CUMULO_EL_MUL = 18.0;    // キュムロニンバスEL: 予約した敵への落雷ダメージ（攻撃力×）
+const CUMULO_EL_DIST = 1800;   // 同・この距離を走ると強化が最大になる
+const CUMULO_EL_MAX = 2.6;     // 同・距離で得られるステータス倍率の上限
+const CUMULO_EL_SPLASH = 0.35; // 同・まわりの敵へ走る衝撃波（落雷ダメージに対する割合）
+const CUMULO_EL_SPLASH_R = 320;// 同・衝撃波がとどく半径
+const HOURAIKILLER_L_MUL = 2.5;// 蓬莱族キラーL: 蓬莱族（🏯 蓬莱の九重のボスなど）へのダメージ倍率
+const GRAVKILLER_L_MUL = 2.5;  // 重力バリアキラーL: 重力バリアを持つ敵へのダメージ倍率（M 2.0 と EL 3.0 のあいだ）
 const PHANTOM_WALLS = 3;       // ファントムドライブ: 何回目の壁ヒットで発動するか
 const PHANTOM_MUL = 1.8;       // ファントムドライブ: 発動中のステータス倍率
 const PHANTOM_TURNS = 2;       // ファントムドライブ: 効果が続く自分の行動回数
+/* ★ 2026-08-17b ファントムドライブEL（グレースのクロススキル）。
+   発動に必要な壁ヒットが1回少なく、倍率も持続も上。 */
+const PHANTOM_EL_WALLS = 2;
+const PHANTOM_EL_MUL = 2.6;
+const PHANTOM_EL_TURNS = 3;
+/* ★ 2026-08-17b 攻撃力チャージ（グレース）。
+   1ショットのあいだに味方を数えて、ちょうど ATKCHARGE_N 体目にふれた味方の
+   攻撃力を1巡のあいだ上げる。「なぞる順番」に意味が出るアビリティ。 */
+const ATKCHARGE_N = 3;
+const ATKCHARGE_MUL = 1.5;
+/* ★ 2026-08-17b グレースのフルバースト（自強化の倍率） */
+const GRACE_ATK = 1.75;
+const GRACE_SPD = 1.15;
+const GRACE_KILL_TURNS = 2;    // 弱点キラー＋全属性キラーになる「自分の行動」回数
+/* ★ 2026-08-17b 超強インフィニティレーザー（グレース）。
+   インフィニティレーザー（×1.60＋八方分裂×0.55）の強化版。 */
+const SINFL_PER = 3.20;        // 本体の極太レーザー
+const SINFL_SPLIT_PER = 1.15;  // 分裂レーザー1本ぶん
+const SINFL_SPLIT_N = 12;      // 分裂する方向の数（8 → 12）
+const SINFL_W = 96;            // 本体レーザーの太さ（62 → 96）
+/* ══ ★ 2026-08-18 ロキシーのフルバースト「豪雷積層雲」 ══
+   ゲーム内でいちばん重い一撃。<b>チームHPを支払って</b>、盤面ごと落雷で塗りつぶす。
+   ★ 定数はここ1か所。演出（index.html の runRoxyFB）も効果もこの値だけを見る。
+   ★ 削り量は<b>最大HPに対する割合</b>。残りHP割合にすると、削るほど効かなくなって
+     「詰めに使えない」技になる（ココナのハート爆撃と逆の設計にしてある）。 */
+const ROXY_TURNS = 20;         // フルバーストに必要なターン
+const ROXY_HP_COST = 0.15;     // 撃つときに支払うチームHPの割合
+const ROXY_ATK = 2.5;          // 自強化の攻撃倍率
+const ROXY_SPD = 1.25;         // 同・スピード倍率（暗転中に走るので少しだけ上げる）
+const ROXY_MAXHP_CUT = 0.35;   // 落雷で削る「敵の最大HP」に対する割合
+const ROXY_DELAY = 2;          // 落雷で入る攻撃ターンの遅延（即死カウントにも同じだけ入る）
+const ROXY_DEBUFF_TURNS = 4;   // 防御ダウン・毒の継続ターン
+/* 積乱雲の下ぶちが降りてくる位置（盤面の高さに対する割合）。
+   ★ ここを大きくすると敵が雲に隠れるので、<b>敵の上ぎりぎり</b>で止めてある。 */
+const ROXY_CLOUD_BOTTOM = 0.30;
 const FSBOOSTL_MUL = 2.5;      // リンクブーストL: リンクスキルの威力
 const DASHL_MUL = 2.5;         // ダッシュL: スピード倍率
 const COMBOKILLER_MAX = 2.0;   // 連撃キラーM: 同じ敵に連続で触れたときの上限倍率
@@ -474,6 +594,48 @@ const INFBREAK_MAX = 2.0;      // インフィニティブレイクM: 上限倍�
 const INFBREAK_STEP = 0.2;     // インフィニティブレイクM: 1ヒットごとの上昇量
 const FEWFOE_N = 2;            // 敵少底力M: この数以下でブースト
 const FEWFOE_MUL = 2.0;        // 敵少底力M: 倍率
+/* ══════════════════════════════════════════════════════════════
+   ★ 2026-08-15 「底力」がいま乗っているかを1か所で判定する
+   ------------------------------------------------------------
+   底力の仲間は5系統ある（底力／状態異常底力／敵少底力／敵多底力）。
+   どれも<b>条件を満たしているあいだだけ</b>倍率が乗る一時的なものなのに、
+   これまでは画面のどこにも出ていなかった。
+   ・HPが半分を切ったのか
+   ・敵が2体以下になったのか
+   を頭の中で数えながら、「いま殴れば強い」を判断するしかなかった。
+
+   → いま乗っているものを1つ返して、<b>ボールの見た目</b>（燃えるような輪）と
+     ボールの上のチップの両方に出す。
+
+   ★ ここの条件は killerMul の中の式と<b>必ず同じ</b>にすること。
+     見た目だけ光っていて実際は乗っていない（またはその逆）が、いちばん困る食い違いになる。
+   ★ 等級は重ねがけしないので、上から順に1つだけ返す（killerMul の else if と同じ順番）。
+   ══════════════════════════════════════════════════════════════ */
+function sokojikaraState(ball) {
+  if (!ball || !ball.ch || typeof B === "undefined" || !B) return null;
+  const c = ball.ch;
+  /* ① 底力（チームHPが半分以下） */
+  if (B.hp <= B.maxhp * SOKO_HP_RATE) {
+    if (hasAbil(c, "sokojikaraEL")) return { nm: "底力EL", mul: SOKOJIKARA_EL_MUL, c: "#ff3a6b" };
+    if (hasAbil(c, "sokojikaraL"))  return { nm: "底力L",  mul: SOKOJIKARA_L_MUL,  c: "#ff4a58" };
+    if (hasAbil(c, "sokojikaraM"))  return { nm: "底力M",  mul: SOKOJIKARA_M_MUL,  c: "#ff5d47" };
+    if (hasAbil(c, "sokojikara"))   return { nm: "底力",   mul: 1.5,               c: "#ff8a4d" };
+  }
+  /* ② 状態異常底力M（毒などを受けているあいだ。判定は ballAiling に一本化） */
+  if (hasAbil(c, "ailsokojikaraM") && ballAiling(ball)) {
+    return { nm: "状態異常底力M", mul: AILSOKOJIKARA_M_MUL, c: "#c86bff" };
+  }
+  /* ③④ 敵の数で決まるもの（少ないとき／多いとき） */
+  const n = aliveEnemies().length;
+  if (n <= FEWFOE_N) {
+    if (hasAbil(c, "fewfoeEL")) return { nm: "敵少底力EL", mul: FEWFOE_EL_MUL, c: "#ffd257" };
+    if (hasAbil(c, "fewfoeM")) return { nm: "敵少底力M", mul: FEWFOE_MUL, c: "#ffd257" };
+  } else {
+    if (hasAbil(c, "manyfoeEL")) return { nm: "敵多底力EL", mul: MANYFOE_EL_MUL, c: "#7ce8ff" };
+    if (hasAbil(c, "manyfoeM"))  return { nm: "敵多底力M",  mul: MANYFOE_M_MUL,  c: "#7cc4ff" };
+  }
+  return null;
+}
 const JUDGMENT_TURNS = 5;      // ジャッジメント: 防御ダウンの持続ターン
 const BARRIER_BASE = 1600;     // バリア: 肩代わりする量
 const BARRIER_M = 3200;        // バリアM: 等級Mは2倍
@@ -514,6 +676,41 @@ const MELEE_MUL = 1.85;
      スピードの高いキャラだけが上限に張りついて、まったく速くならない。
    ★ こちらも NEWS より前で宣言すること。 */
 const SPD_GLOBAL = 1.22;
+/* ══ ★ 2026-08-17 スピードを「本物の km/h」にする ══
+   ------------------------------------------------------------
+   2026-08-16c の版は SPD_KMH_PER_UNIT = 1 で、素の数値のうしろに
+   " km/h" と書き足していただけだった（440 → 「440 km/h」）。
+   単位の名前が付いただけで、中身は km/h ではなかった。
+   ここで実際のボールの速さから逆算する。
+
+     ものさし  … ボールの直径 90px（BALL_R=45）を、キャラの背たけぶん 1.8m と見る
+                  → 1m = 50px
+     初速      … いっぱいまで引いたときの launchShot の値
+                  (SHOT_BASE + spd × SHOT_PER_SPD) × SPD_GLOBAL  [px/フレーム]
+     時間      … 1秒 = 60フレーム
+
+     px/フレーム ×60 → px/秒 ÷50 → m/秒 ×3.6 → km/時
+
+   ★ 下じき（SHOT_BASE=30）は誰でも出る速さなので、
+     spd が 286〜440 でも km/h は 190〜250 くらいの幅にしかならない。
+     これは「そういう乗り物」なので正しい。ゲージは今までどおり
+     素の spd を見ているので、キャラどうしの比べやすさは落ちない。
+   ★ SHOT_BASE / SHOT_PER_SPD は index.html の launchShot と
+     必ず同じ値を使うこと（あちらもこの定数を参照している）。 */
+const SHOT_BASE = 30;            // 初速の下じき（スピード0でも出る速さ）
+const SHOT_PER_SPD = 0.042;      // スピード1あたりの上乗せ
+/* ★ 2026-08-17b ものさしを見直した。90px を 1.8m と見ると全キャラが 235〜262km/h に
+   収まってしまい、「引っぱりハンティング」の弾としては遅く見えた。
+   盤面（720×920px）を <b>19.5m × 24.9m の闘技場</b>、ボールを直径 2.4m の魔弾と見る
+   ことにして 1m = 37px にそろえた。これで全キャラが <b>300km/h 以上</b>になる
+   （spd349 で約318km/h・spd469 で約354km/h）。換算のしかた自体は変えていない。 */
+const PX_PER_METER = 37;         // ボールの直径 90px ≒ 2.4m
+const GAME_FPS = 60;
+const PX_FRAME_TO_KMH = GAME_FPS / PX_PER_METER * 3.6;   // px/フレーム → km/h
+function spdKmhNum(v) { return (SHOT_BASE + (v || 0) * SHOT_PER_SPD) * SPD_GLOBAL * PX_FRAME_TO_KMH; }
+function spdKmh(v) { return fmt(Math.round(spdKmhNum(v))) + " km/h"; }
+/* アーク強化などの「＋◯◯」ぶん。下じきは打ち消し合うので上乗せぶんだけを換算する */
+function spdKmhDelta(d) { return Math.round((d || 0) * SHOT_PER_SPD * SPD_GLOBAL * PX_FRAME_TO_KMH); }
 /* ══ ★ 2026-08-08 超強オービタルエッジ（ユキノ）══
    オービタルエッジ（巨大リング7基・r=64・×0.30・速度上限15）の上位版。
    ★ キャラ定義（CHARS）の fsPow から読むので、必ず CHARS より前で宣言すること。 */
@@ -635,6 +832,7 @@ function abilName(a) {
   if (a.t === "killer") return ELEM[a.el].nm + "属性キラー";
   if (a.t === "killerM") return ELEM[a.el].nm + "属性キラーM";
   if (a.t === "killerL") return ELEM[a.el].nm + "属性キラーL";   /* ★ 2026-08-11 等級L＝×2.5 */
+  if (a.t === "killerEL") return ELEM[a.el].nm + "属性キラーEL";  /* ★ 2026-08-16b 等級EL＝×3.0 */
   if (a.t === "elemres") return ELEM[a.el].nm + "属性耐性";
   if (a.t === "elemresM") return ELEM[a.el].nm + "属性耐性M";   /* ★ 2026-08-07 等級M＝50%カット */
   return AB_NM[a.t] || a.t;
@@ -672,6 +870,7 @@ function abilDesc(a) {
     case "manyfoeEL": return "画面上の敵が<b>" + FEWFOE_N + "体より多い</b>とき、与えるダメージが<b>" + MANYFOE_EL_MUL + "倍</b>になる（等級EL）";
     case "firstkillerM": return "そのショットで最初にふれた敵へのダメージが<b>2倍</b>（等級M）";
     case "firstkillerL": return "そのショットで最初にふれた敵へのダメージが<b>" + FIRSTKILLER_L_MUL + "倍</b>（等級L）";
+    case "firstkillerEL": return "そのショットで最初にふれた敵へのダメージが<b>" + FIRSTKILLER_EL_MUL + "倍</b>（等級EL）";
     case "agrav": return "敵の重力バリアの減速を受けない";
     case "defkiller": return "防御ダウン中の敵へのダメージが1.5倍";
     case "dash": return "自分のスピードが常に1.5倍";
@@ -703,11 +902,16 @@ function abilDesc(a) {
     case "vitalM": return "残りHPが50%以上の敵へのダメージが<b>2倍</b>（等級M）";
     case "killerM": return ELEM[a.el].nm + "属性の敵へのダメージが<b>2倍</b>（等級M）";
     case "killerL": return ELEM[a.el].nm + "属性の敵へのダメージが<b>" + KILLER_L_MUL + "倍</b>（等級L）";
+    case "killerEL": return ELEM[a.el].nm + "属性の敵へのダメージが<b>" + KILLER_EL_MUL + "倍</b>（等級EL）";
+    case "gravkillerEL": return "<b>重力バリアを持つ敵</b>へのダメージが<b>" + GRAVKILLER_EL_MUL + "倍</b>（等級EL）";
+    case "fewfoeEL": return "画面上の敵が<b>" + FEWFOE_N + "体以下</b>のとき、与えるダメージが<b>" + FEWFOE_EL_MUL + "倍</b>になる（等級EL）";
+    case "eternalphotonM": return "クエストにエーテルがある場合、各WAVEの開始時にエーテルを<b>" + ETERNAL_PHOTON_M_N + "つ</b>所持してスタートする（等級M）";
+    case "speedmode": return "<b>各WAVEの開始時</b>から、自分が<b>" + SPEEDMODE_ACTS + "回行動し終えるまで</b>スピードが<b>" + SPEEDMODE_MUL + "倍</b>になる";
     case "allkillerEL": return "すべての属性の敵へのダメージが<b>" + ALLKILLER_EL_MUL + "倍</b>（等級EL）";
     case "sscharge": return "1回のショットで味方3体に触れると、3体目に触れた味方のフルバーストターンを2短縮する（FBターンチャージ）";
     case "supermsL": return "各WAVEの開始時に地雷を4つ所持してスタート。敵ヒット時に1個消費して<b>2.5倍</b>攻撃（等級L）";
     case "soulM": return "敵を倒すたびにチームHPを" + Math.round(SOULM_RATE * 100) + "%回復する（等級M）";
-    case "laserstop": return "敵のレーザー攻撃を受け止めて無効化し、逆にチームHPを回復する";
+    case "laserstop": return "敵のレーザーが<b>このキャラに当たったとき</b>、その身で受け止めてビームを<b>そこで消し止め</b>、チームHPを<b>" + Math.round(LASERSTOP_HEAL * 100) + "%</b>回復する<br><small>※ レーザーそのものは撃たれます。<b>射線上でこのキャラより敵に近い味方</b>はふつうにダメージを受けます</small>";
     case "wallboostL": return "そのショットで壁にふれた回数に応じて攻撃力がアップ（最大<b>2.5倍</b>・等級L）";
     case "fsdouble": return "1回のショットで、<b>自分のリンクスキルを最大" + FSDOUBLE_MAX + "回まで発動</b>できる（味方に2回ふれれば2回発動）";
     case "counterkiller": return "<b>最後に攻撃してきた敵</b>へのダメージが" + COUNTER_KILLER_MUL + "倍になる";
@@ -718,6 +922,8 @@ function abilDesc(a) {
     case "barrierL": return "一定量（<b>" + fmt(BARRIER_L) + "</b>）のダメージを代わりに受け止める（等級L）";
     case "superaslow": return "<b>減速壁で減速しない</b>うえに、<b>そのターンで最初にふれた減速壁</b>ではむしろ<b>スピードが" + SUPERASLOW_MUL + "倍</b>になる（アンチ減速壁の上位）";
     case "gravkiller": return "<b>重力バリアを持つ敵</b>へのダメージが<b>" + GRAVKILLER_MUL + "倍</b>";
+    case "gravkillerL": return "<b>重力バリアを持つ敵</b>へのダメージが<b>" + GRAVKILLER_L_MUL + "倍</b>（等級L）";
+    case "houraikillerL": return "<b>蓬莱族</b>（🏯 蓬莱の九重のボスなど）へのダメージが<b>" + HOURAIKILLER_L_MUL + "倍</b>（等級L）。<b>属性キラーとは別枠</b>なので重ねて効く";
     case "gravkillerM": return "<b>重力バリアを持つ敵</b>へのダメージが<b>" + GRAVKILLER_M_MUL + "倍</b>（等級M）";
     case "healM": return "自分の攻撃ターンに<b>ふれた味方の数</b>だけチームHPを回復する"
       + "（1体につき" + Math.round(HEALM_PER * 100) + "%・最大" + HEALM_MAX_ALLY + "体＝"
@@ -738,14 +944,19 @@ function abilDesc(a) {
     /* ══ v14 フェスキャラの新アビリティ ══ */
     case "msEL": return "地雷を回収し、敵ヒット時に1個消費して<b>" + MSEL_MUL + "倍</b>攻撃（等級EL）";
     case "lightning": return "<b>自分の攻撃ターン</b>に<b>直殴り</b>で敵にふれたとき、" + Math.round(LIGHTNING_P * 100) + "%の確率でその敵へ<b>強力な魔法（攻撃力×" + LIGHTNING_MUL + "）</b>を放つ";
+    case "lightningEL": return "<b>自分の攻撃ターン</b>に<b>直殴り</b>で敵にふれたとき、" + Math.round(LIGHTNING_EL_P * 100) + "%の確率でその敵へ<b>強力な魔法（攻撃力×" + LIGHTNING_EL_MUL + "）</b>を放つ（等級EL）";
     case "atkturnkillerM": return "<b>攻撃ターンの表示が「1」の敵</b>へのダメージが<b>" + ATKTURN_KILLER_MUL + "倍</b>（等級M）";
     case "mirage": return "敵の攻撃を" + Math.round(MIRAGE_P * 100) + "%の確率で<b>回避</b>する（チーム全体の被ダメージが0になる）";
     case "linkcharge": return "自分の<b>リンクスキルが敵に命中</b>したとき、" + Math.round(LINKCHARGE_P * 100) + "%の確率で<b>自分のFBターンを1短縮</b>する";
     case "weakkillerL": return "弱点コアへ直撃したときのダメージがさらに<b>" + WEAKKILLERL_MUL + "倍</b>（等級L）";
+    case "weakkillerEL": return "弱点コアへ直撃したときのダメージがさらに<b>" + WEAKKILLER_EL_MUL + "倍</b>（等級EL）";
     case "auraM": return "チームHP50%以上のとき攻撃・スピードが<b>" + AURAM_MUL + "倍</b>（等級M）";
     case "cumulonimbus": return "そのショットで<b>最初にふれた敵</b>を雷雲の標的にする。<b>次のターンの終了時にその敵へ落雷（攻撃力×" + CUMULO_MUL + "）</b>。さらに<b>そのショットで動いた距離に応じてステータスが最大×" + CUMULO_MAX + "</b>までアップする";
+    case "cumulonimbusEL": return "そのショットで<b>最初にふれた敵</b>を雷雲の標的にする。<b>次のターンの終了時にその敵へ落雷（攻撃力×" + CUMULO_EL_MUL + "）</b>。さらに<b>そのショットで動いた距離に応じてステータスが最大×" + CUMULO_EL_MAX + "</b>までアップする（等級EL）<br><small>※ 落雷の着弾点から<b>半径" + CUMULO_EL_SPLASH_R + "の衝撃波</b>が走り、まわりの敵にも落雷の" + Math.round(CUMULO_EL_SPLASH * 100) + "%が入ります。距離のボーナスも<b>" + CUMULO_EL_DIST + "px</b>で満ちます（無印は" + CUMULO_DIST + "px）</small>";
     case "vitalEL": return "残りHPが50%以上の敵へのダメージが<b>" + VITALEL_MUL + "倍</b>（等級EL）";
     case "phantomdrive": return "そのショットで<b>壁に" + PHANTOM_WALLS + "回ふれる</b>と、<b>" + PHANTOM_TURNS + "回行動するあいだステータスが×" + PHANTOM_MUL + "</b>にアップする";
+    case "phantomdriveEL": return "そのショットで<b>壁に" + PHANTOM_EL_WALLS + "回ふれる</b>と、<b>" + PHANTOM_EL_TURNS + "回行動するあいだステータスが×" + PHANTOM_EL_MUL + "</b>にアップする（等級EL）";
+    case "atkcharge": return "1回のショットで<b>味方" + ATKCHARGE_N + "体にふれる</b>と、<b>" + ATKCHARGE_N + "体目にふれた味方</b>の攻撃力が<b>1巡のあいだ×" + ATKCHARGE_MUL + "</b>になる";
     /* ══ v14.5 クロエの新アビリティ ══ */
     case "supermsEL": return "各WAVEの開始時に地雷を4つ所持してスタート。敵ヒット時に1個消費して<b>" + MSEL_MUL + "倍</b>攻撃（等級EL）";
     case "fatalkillerM": return "残りHPが50%以下の敵へのダメージが<b>" + FATALKILLERM_MUL + "倍</b>（等級M）";
@@ -786,7 +997,7 @@ function abilDesc(a) {
     case "bosskillerM": return "<b>ボス</b>へのダメージが<b>" + BOSSKILLER_M_MUL + "倍</b>（等級M）";
     case "allresM": return "<b>このキャラ自身が</b>すべての属性から受けるダメージを" + Math.round(ALLRES_M_CUT * 100) + "%カットする（等級M）<br><small>※ 軽減されるのは<b>このキャラが受けた攻撃だけ</b>です</small>";
     case "leftkillerM": return "画面の<b>左半分にいる敵</b>へのダメージが<b>" + LEFTKILLER_M_MUL + "倍</b>（等級M）";
-    case "laserstopM": return "敵のレーザー攻撃を受け止めて無効化し、逆にチームHPを<b>" + Math.round(LASERSTOPM_HEAL * 100) + "%</b>回復する（等級M）";
+    case "laserstopM": return "敵のレーザーが<b>このキャラに当たったとき</b>、その身で受け止めてビームを<b>そこで消し止め</b>、チームHPを<b>" + Math.round(LASERSTOPM_HEAL * 100) + "%</b>回復する（等級M）<br><small>※ レーザーそのものは撃たれます。<b>射線上でこのキャラより敵に近い味方</b>はふつうにダメージを受けます</small>";
     /* ══ ★ 2026-08-08c プレミアム新★5 3体（コトネ・ラン・セリス）の新アビリティ ══ */
     case "wallboostEL": return "そのショットで壁にふれた回数に応じて攻撃力がアップ（最大<b>" + WALLBOOSTEL_MAX + "倍</b>・等級EL）";
     case "soulEL": return "敵を倒すたびにチームHPを<b>" + Math.round(SOULEL_RATE * 100) + "%</b>回復する（等級EL）";
@@ -794,6 +1005,7 @@ function abilDesc(a) {
       + "<br><small>※「敵少底力」が発動しない状況＝敵が多い場面で効く、敵少底力の裏返しのアビリティです</small>";
     case "ailsokojikaraM": return "<b>状態異常（毒など）を受けているあいだ</b>、与えるダメージが<b>" + AILSOKOJIKARA_M_MUL + "倍</b>になる（等級M）<br><small>※ 状態異常には<b>敵の毒攻撃</b>も含まれます</small>";
     /* ══ ★ 2026-08-12 蒼夏祭（Aoka Summer Fest）の新アビリティ ══ */
+    case "sokojikaraL": return "自分（チーム）の残りHPが50%以下のとき、与えるダメージが<b>" + SOKOJIKARA_L_MUL + "倍</b>になる（等級L）";
     case "sokojikaraEL": return "自分（チーム）の残りHPが50%以下のとき、与えるダメージが<b>" + SOKOJIKARA_EL_MUL + "倍</b>になる（等級EL）";
     case "fatalkillerL": return "残りHPが50%以下の敵へのダメージが<b>" + FATALKILLER_L_MUL + "倍</b>（等級L）";
     case "outkillerM": return "画面の<b>壁ぎわ（外周" + Math.round(OUT_EDGE_RATIO * 100) + "%の帯）にいる敵</b>へのダメージが<b>" + OUTKILLER_M_MUL + "倍</b>（等級M）";
@@ -816,6 +1028,28 @@ function hasAbil(ch, t) {
   if ((ch.abil || []).some((a) => a.t === t)) return true;
   if (!ch.connect) return false;
   return connectGrants(ch.id, t);
+}
+/* ★ 2026-08-18 キュムロニンバスは「無印」と「EL」で<b>しくみがまったく同じ</b>。
+   等級ごとに hasAbil を2回書くと、片方を足し忘れて「予約はされるのに落ちない」型の
+   抜けが必ず出るので、<b>持っているか</b>の判定はこの1か所にまとめる。
+   数字を出し分けるところだけ hasAbil(ch, "cumulonimbusEL") を見ること。 */
+function hasCumulo(ch) { return hasAbil(ch, "cumulonimbus") || hasAbil(ch, "cumulonimbusEL"); }
+/* ★ 2026-08-16b 属性を持つキラー（killerM / killerL / killerEL）を、
+   <b>本人のアビリティとクロススキルの両方</b>から探す。
+   hasAbil はキーしか見ないので、クロスで配られた「火属性キラーEL」のように
+   <b>属性がキーの外にある</b>ものは、これを通さないと属性が分からず効かない。
+   クロス側は skills[].abil にキー、skills[].el に属性を持たせる決まり。 */
+function elemKillerAbil(ch, t) {
+  if (!ch) return null;
+  const own = (ch.abil || []).find((a) => a.t === t);
+  if (own) return own;
+  if (!ch.connect) return null;
+  let d;
+  try { d = connectDef(ch.id); } catch (e) { return null; }
+  if (!d) return null;
+  const sk = (d.skills || []).find((x) => x.abil === t && x.el);
+  if (!sk) return null;
+  return connectGrants(ch.id, t) ? { t: t, el: sk.el } : null;
 }
 /* クロススキルで t が付いているか（発動していなければ false） */
 function connectGrants(id, t) {
@@ -979,6 +1213,15 @@ function waveSelfActive(ball) { return B && (ball.waveActs || 0) < WAVE_SELF; }
 function omniActive(ball) { return B && hasAbil(ball.ch, "omni") && waveSelfActive(ball); }
 function bubbleModeOn(ball) { return hasAbil(ball.ch, "bubblemode") && waveSelfActive(ball); }
 function waveBoostOn(ball) { return hasAbil(ball.ch, "waveboost") && waveSelfActive(ball); }
+/* ★ 2026-08-17b グレースのフルバースト中かどうか。
+   発動中は<b>弱点キラーEL と 全属性キラーEL の両方</b>を持っているものとして扱う。
+   selfBuff.gkill を目印にしているので、他のキャラの自強化には反応しない。
+   ★ ここを1か所にまとめること。倍率を掛ける場所が3つあるので、
+     条件を書き写すと必ずどれかがずれる。 */
+function graceKill(ball) {
+  return !!(ball && ball.ch && ball.ch.ssKind === "grace"
+    && ball.selfBuff && ball.selfBuff.left > 0 && ball.selfBuff.gkill);
+}
 /* ギミック無効判定（アンチ系 or オムニアンチ発動中）。超アンチワープはアンチワープを兼ねる。
    アリシアSF中は全ギミック無効 */
 function antiGim(ball, t) {
@@ -998,6 +1241,10 @@ function antiGim(ball, t) {
      そのショットのあいだ ダメージウォール・重力バリア・ワープ・地雷 を無効化する。
      地雷は antiGim を通らないので stepBall 側で ssIgnoresMine() を見ている。 */
   if (ball.ch.ssKind === "yukino" && B.ssArmed === ball.i && (t === "adw" || t === "agrav" || t === "aw")) return true;
+  /* ★ 2026-08-16b モエカフルバースト（アクア・ブレイクスルー）：
+     ユキノと同じ形だが、無効化するのは<b>ブロックだけ</b>。
+     ブロックで通り道が塞がれた面を、まっすぐ突っ切って味方をなぞるための技。 */
+  if (ball.ch.ssKind === "moeka" && B.ssArmed === ball.i && t === "ablock") return true;
   /* ★ 2026-08-12 ツムギフルバースト（ヴェルデ・ブレイクスルー）：
      <b>そのショットのあいだ</b> ダメージウォール・重力バリア・ワープ・地雷 を無効化する
      （地雷は antiGim を通らないので ssIgnoresMine 側でも見ている）。 */
@@ -1045,8 +1292,10 @@ function atkMulOf(ball) {
   if (hasAbil(ball.ch, "overheat")) m *= OVERHEAT_MUL;   // オーバーヒート: 常時自強化（HPは自ターン終了時に消費）
   if (hasAbil(ball.ch, "konshin")) m *= KONSHIN_ATK;     /* ★ 2026-08-12 渾身（スピードは spdMulOf 側で下がる） */
   if (ball.phantom && ball.phantom.left > 0) m *= ball.phantom.mul;   // v14 ファントムドライブ
-  if (hasAbil(ball.ch, "cumulonimbus")) m *= (ball._cumuloBoost || 1); // v14 キュムロニンバス（走った距離ぶん）
+  if (hasCumulo(ball.ch)) m *= (ball._cumuloBoost || 1); // v14 キュムロニンバス（走った距離ぶん）
   if (ball.atkUp && ball.atkUp > 1) m *= ball.atkUp;   /* ★ 2026-08-07 サブリンク「野獣インパクト」 */
+  /* ★ 2026-08-17b 攻撃力チャージ（グレースが配る）。1巡＝味方の人数ぶんの行動で切れる */
+  if (ball.atkCharge && ball.atkCharge.left > 0) m *= ball.atkCharge.mul;
   m *= beastMulOf(ball);   /* ★ 2026-08-07 野獣先輩（野獣の本気＋クロススキル） */
   return m;
 }
@@ -1078,8 +1327,11 @@ function spdMulOf(ball) {
   if (hasAbil(ball.ch, "konshin")) m *= KONSHIN_SPD;     /* ★ 2026-08-12 渾身（攻撃は atkMulOf 側で上がる） */
   if (ball.selfBuff && ball.selfBuff.left > 0) m *= (ball.selfBuff.spd || 1);
   if (ball.reso) m *= 1.5;   // レゾナンス発動中
+  /* ★ 2026-08-16b スピードモード: 各WAVEの開始時からかかり、
+     自分が SPEEDMODE_ACTS 回 行動し終えると切れる（残り回数は spdMode に持つ）。 */
+  if (ball.spdMode && ball.spdMode.left > 0) m *= SPEEDMODE_MUL;
   if (ball.phantom && ball.phantom.left > 0) m *= ball.phantom.mul;   // v14 ファントムドライブ
-  if (hasAbil(ball.ch, "cumulonimbus")) m *= (ball._cumuloBoost || 1); // v14 キュムロニンバス
+  if (hasCumulo(ball.ch)) m *= (ball._cumuloBoost || 1); // v14 キュムロニンバス
   m *= beastMulOf(ball);   /* ★ 2026-08-07 野獣先輩（野獣の本気＋クロススキル） */
   return m;
 }
@@ -1135,16 +1387,16 @@ const EMBLEM_MOVE_COST = 5000;  // 別のキャラへ付け替えるのに必要
 const EMBLEM_SLOTS = 2;         // 1つの紋章に刻める効果の数
 /* 刻める効果。key は保存にそのまま使うので、あとから名前を変えないこと */
 const EMBLEM_FX = {
-  "el:fire":  { nm: "対火の心得",   ic: "🔥", c: "#ff5d47", mul: 1.25, kind: "el", el: "fire",  desc: "<b>火属性</b>の敵へのダメージが <b>×1.25</b>" },
-  "el:water": { nm: "対水の心得",   ic: "💧", c: "#38a6ff", mul: 1.25, kind: "el", el: "water", desc: "<b>水属性</b>の敵へのダメージが <b>×1.25</b>" },
-  "el:wood":  { nm: "対木の心得",   ic: "🌿", c: "#2fbf71", mul: 1.25, kind: "el", el: "wood",  desc: "<b>木属性</b>の敵へのダメージが <b>×1.25</b>" },
-  "el:light": { nm: "対光の心得",   ic: "✨", c: "#f0b429", mul: 1.25, kind: "el", el: "light", desc: "<b>光属性</b>の敵へのダメージが <b>×1.25</b>" },
-  "el:dark":  { nm: "対闇の心得",   ic: "🌙", c: "#a86bff", mul: 1.25, kind: "el", el: "dark",  desc: "<b>闇属性</b>の敵へのダメージが <b>×1.25</b>" },
-  weak:       { nm: "対弱の心得",   ic: "🎯", c: "#ffd257", mul: 1.5,  kind: "weak", desc: "<b>弱点</b>へのダメージが <b>×1.5</b>" },
-  boss:       { nm: "対将の心得",   ic: "👑", c: "#ff8ab5", mul: 1.25, kind: "boss", desc: "<b>ボス</b>へのダメージが <b>×1.25</b>" },
-  mob:        { nm: "対兵の心得",   ic: "⚔",  c: "#baffd9", mul: 1.25, kind: "mob",  desc: "<b>ボス以外の敵</b>へのダメージが <b>×1.25</b>" },
-  fbguard:    { nm: "不惑の心得",   ic: "🛡", c: "#7cc4ff", kind: "fbguard", desc: "<b>FB遅延攻撃</b>を受けなくなる" },
-  heal:       { nm: "癒しの心得",   ic: "💚", c: "#8affc4", mul: 1.25, kind: "heal", desc: "<b>ヒーリングウォールなどの回復量</b>が <b>×1.25</b>" },
+  "el:fire":  { nm: "対火の心得",   sh: "対火", ic: "🔥", c: "#ff5d47", mul: 1.25, kind: "el", el: "fire",  desc: "<b>火属性</b>の敵へのダメージが <b>×1.25</b>" },
+  "el:water": { nm: "対水の心得",   sh: "対水", ic: "💧", c: "#38a6ff", mul: 1.25, kind: "el", el: "water", desc: "<b>水属性</b>の敵へのダメージが <b>×1.25</b>" },
+  "el:wood":  { nm: "対木の心得",   sh: "対木", ic: "🌿", c: "#2fbf71", mul: 1.25, kind: "el", el: "wood",  desc: "<b>木属性</b>の敵へのダメージが <b>×1.25</b>" },
+  "el:light": { nm: "対光の心得",   sh: "対光", ic: "✨", c: "#f0b429", mul: 1.25, kind: "el", el: "light", desc: "<b>光属性</b>の敵へのダメージが <b>×1.25</b>" },
+  "el:dark":  { nm: "対闇の心得",   sh: "対闇", ic: "🌙", c: "#a86bff", mul: 1.25, kind: "el", el: "dark",  desc: "<b>闇属性</b>の敵へのダメージが <b>×1.25</b>" },
+  weak:       { nm: "対弱の心得",   sh: "対弱", ic: "🎯", c: "#ffd257", mul: 1.5,  kind: "weak", desc: "<b>弱点</b>へのダメージが <b>×1.5</b>" },
+  boss:       { nm: "対将の心得",   sh: "対将", ic: "👑", c: "#ff8ab5", mul: 1.25, kind: "boss", desc: "<b>ボス</b>へのダメージが <b>×1.25</b>" },
+  mob:        { nm: "対兵の心得",   sh: "対兵", ic: "⚔",  c: "#baffd9", mul: 1.25, kind: "mob",  desc: "<b>ボス以外の敵</b>へのダメージが <b>×1.25</b>" },
+  fbguard:    { nm: "不惑の心得",   sh: "不惑", ic: "🛡", c: "#7cc4ff", kind: "fbguard", desc: "<b>FB遅延攻撃</b>を受けなくなる" },
+  heal:       { nm: "癒しの心得",   sh: "癒し", ic: "💚", c: "#8affc4", mul: 1.25, kind: "heal", desc: "<b>ヒーリングウォールなどの回復量</b>が <b>×1.25</b>" },
 };
 const EMBLEM_FX_KEYS = Object.keys(EMBLEM_FX);
 /* ══════════════════════════════════════════════════════════════
@@ -1180,6 +1432,30 @@ function emblemOfChar(id) {
 function emblemFxNames(id) {
   const s = emblemOfChar(id); if (!s) return "";
   return s.fx.map((k) => (EMBLEM_FX[k] || {}).nm || k).join(" ／ ");
+}
+/* ══════════════════════════════════════════════════════════════
+   ★ 2026-08-15 キャラ一覧のセルに出す紋章の表記を短くする
+   ------------------------------------------------------------
+   これまでは emblemFxNames（＝「対火の心得 ／ 対弱の心得」）を
+   そのままセルの下の帯に流し込んでいた。1セルは 100px しかないので、
+   効果を2つ刻んだキャラは <b>ほぼ必ず「対火の心得 ／ 対…」で切れて</b>、
+   2つめが何なのか読めなかった（text-overflow の …）。
+
+   → 「の心得」を落とした2文字（sh）＋アイコンの<b>チップ2つ</b>にする。
+     ・2つ刻んでも 100px に収まる
+     ・切れないので、2つめが何かが必ず読める
+   フルネームは title に入れてあるので、長押し・ホバーで確かめられる。
+   ══════════════════════════════════════════════════════════════ */
+function emblemFxChips(id) {
+  const s = emblemOfChar(id);
+  if (!s || !s.fx || !s.fx.length) return "";
+  const full = emblemFxNames(id);
+  return '<span class="rcemt" title="魂の紋章: ' + full + '">'
+    + s.fx.map((k) => {
+        const f = EMBLEM_FX[k] || {};
+        return '<i class="emc">' + (f.ic || "❖") + '<b>' + (f.sh || f.nm || k) + '</b></i>';
+      }).join("")
+    + '</span>';
 }
 function emblemBadge(id, cls) {
   const nm = emblemFxNames(id); if (!nm) return "";
@@ -1236,12 +1512,17 @@ function killerMul(ball, e, tags, forLink) {
   const kEl = killerEl(ball.ch);
   if (kEl && kEl === e.el) { m *= 1.5; tag("KILLER"); }
   /* 属性キラーは等級ごとに別枠のアビリティ。上の等級だけが効く（重ねがけしない） */
-  const kL = (ball.ch.abil || []).find((a) => a.t === "killerL");   // ★ 2026-08-11 属性キラーL（×2.5）
-  const kM = (ball.ch.abil || []).find((a) => a.t === "killerM");   // 属性キラーM（×2）
-  if (kL && kL.el === e.el) { m *= KILLER_L_MUL; tag("KILLER L"); }
+  /* ★ 2026-08-16b クロスで配られた属性キラーにも効かせるため elemKillerAbil を通す */
+  const kEL = elemKillerAbil(ball.ch, "killerEL"); // ★ 2026-08-16b 属性キラーEL（×3.0）
+  const kL = elemKillerAbil(ball.ch, "killerL");   // ★ 2026-08-11 属性キラーL（×2.5）
+  const kM = elemKillerAbil(ball.ch, "killerM");   // 属性キラーM（×2）
+  if (kEL && kEL.el === e.el) { m *= KILLER_EL_MUL; tag("KILLER EL"); }
+  else if (kL && kL.el === e.el) { m *= KILLER_L_MUL; tag("KILLER L"); }
   else if (kM && kM.el === e.el) { m *= 2.0; tag("KILLER M"); }
   if (hasAbil(ball.ch, "allkillerEL")) { m *= ALLKILLER_EL_MUL; tag("全属性KILLER EL"); }
   else if (hasAbil(ball.ch, "allkillerM")) { m *= ALLKILLER_M_MUL; tag("全属性KILLER M"); }
+  /* ★ 2026-08-17b グレースのFB中は、アビリティとして持っていなくても全属性キラーになる */
+  else if (graceKill(ball)) { m *= ALLKILLER_EL_MUL; tag("聖光・全属性KILLER"); }
   else if (hasAbil(ball.ch, "allkiller")) { m *= 1.5; tag("全属性KILLER"); }
   /* ★ 2026-08-06 冥花種キラー: 敵の<b>種族</b>を見る初めてのキラー。
      属性キラーとは別枠なので、同じ敵に両方が重なることがある（そういう設計）。
@@ -1265,6 +1546,9 @@ function killerMul(ball, e, tags, forLink) {
     if (hasAbil(ball.ch, "eclipsekillerEL")) { m *= ECLIPSEKILLER_EL_MUL; tag("蝕魔族KILLER EL"); }
     else if (hasAbil(ball.ch, "eclipsekillerM")) { m *= ECLIPSEKILLER_M_MUL; tag("蝕魔族KILLER M"); }
   }
+  /* ★ 2026-08-18 蓬莱族キラーL（ロキシーのクロススキル）。
+     冥花種・蝕魔族と<b>まったく同じ形</b>の種族キラー。属性キラーとは別枠なので重なる。 */
+  if (eRace === HOURAI_RACE && hasAbil(ball.ch, "houraikillerL")) { m *= HOURAIKILLER_L_MUL; tag("蓬莱族KILLER L"); }
   if (hasAbil(ball.ch, "vitalEL") && e.hp >= e.maxhp * 0.5) { m *= VITALEL_MUL; tag("VITAL EL"); }
   else if (hasAbil(ball.ch, "vitalL") && e.hp >= e.maxhp * 0.5) { m *= 2.5; tag("VITAL L"); }
   else if (hasAbil(ball.ch, "vitalM") && e.hp >= e.maxhp * 0.5) { m *= 2.0; tag("VITAL M"); }
@@ -1278,10 +1562,12 @@ function killerMul(ball, e, tags, forLink) {
   if (hasAbil(ball.ch, "fatalkillerL") && e.hp <= e.maxhp * 0.5) { m *= FATALKILLER_L_MUL; tag("FATAL L"); }
   else if (hasAbil(ball.ch, "fatalkillerM") && e.hp <= e.maxhp * 0.5) { m *= FATALKILLERM_MUL; tag("FATAL M"); }
   else if (hasAbil(ball.ch, "fatalkiller") && e.hp <= e.maxhp * 0.5) { m *= 1.5; tag("FATAL"); }
-  /* ★ 2026-08-12 底力に等級ELを追加 */
-  if (hasAbil(ball.ch, "sokojikaraEL") && B.hp <= B.maxhp * 0.5) { m *= SOKOJIKARA_EL_MUL; tag("底力EL"); }
-  else if (hasAbil(ball.ch, "sokojikaraM") && B.hp <= B.maxhp * 0.5) { m *= SOKOJIKARA_M_MUL; tag("底力M"); }
-  else if (hasAbil(ball.ch, "sokojikara") && B.hp <= B.maxhp * 0.5) { m *= 1.5; tag("底力"); }
+  /* ★ 2026-08-12 底力に等級ELを追加
+     ★ 2026-08-15 HPのしきい値は SOKO_HP_RATE 1本（sokojikaraState と同じ式にする） */
+  if (hasAbil(ball.ch, "sokojikaraEL") && B.hp <= B.maxhp * SOKO_HP_RATE) { m *= SOKOJIKARA_EL_MUL; tag("底力EL"); }
+  else if (hasAbil(ball.ch, "sokojikaraL") && B.hp <= B.maxhp * SOKO_HP_RATE) { m *= SOKOJIKARA_L_MUL; tag("底力L"); }
+  else if (hasAbil(ball.ch, "sokojikaraM") && B.hp <= B.maxhp * SOKO_HP_RATE) { m *= SOKOJIKARA_M_MUL; tag("底力M"); }
+  else if (hasAbil(ball.ch, "sokojikara") && B.hp <= B.maxhp * SOKO_HP_RATE) { m *= 1.5; tag("底力"); }
   if (hasAbil(ball.ch, "defkiller") && enemyDefDown(e)) { m *= 1.5; tag("防御KILLER"); }
   /* アップポジションキラーM: 画面の上半分にいる敵に大ダメージ */
   if (hasAbil(ball.ch, "upkillerM") && e.y < H * 0.5) { m *= UPKILLER_MUL; tag("UP KILLER M"); }
@@ -1299,7 +1585,12 @@ function killerMul(ball, e, tags, forLink) {
   /* ★ v16 重力バリアキラー: 重力バリアを張っている敵に大ダメージ。
      アンチ重力バリアで無効化していても「敵が持っている」ことは変わらないので、
      e.grav の有無だけで判定する（無効化しているかどうかは見ない）。 */
-  if (hasAbil(ball.ch, "gravkillerM") && e.grav) { m *= GRAVKILLER_M_MUL; tag("重力KILLER M"); }
+  /* ★ 2026-08-16b 重力バリアキラーに等級ELを追加（上の等級だけが効く＝重ねがけしない） */
+  /* ★ 2026-08-18 等級L を追加。上の等級だけが効く（重ねがけしない）ので、
+     EL → L → M → 無印 の順に else if でつなぐこと。 */
+  if (hasAbil(ball.ch, "gravkillerEL") && e.grav) { m *= GRAVKILLER_EL_MUL; tag("重力KILLER EL"); }
+  else if (hasAbil(ball.ch, "gravkillerL") && e.grav) { m *= GRAVKILLER_L_MUL; tag("重力KILLER L"); }
+  else if (hasAbil(ball.ch, "gravkillerM") && e.grav) { m *= GRAVKILLER_M_MUL; tag("重力KILLER M"); }
   else if (hasAbil(ball.ch, "gravkiller") && e.grav) { m *= GRAVKILLER_MUL; tag("重力KILLER"); }
   /* カウンターキラー: 最後に攻撃してきた敵に大ダメージ */
   if (hasAbil(ball.ch, "counterkiller") && B.lastAttacker && B.lastAttacker === e.id) { m *= COUNTER_KILLER_MUL; tag("COUNTER"); }
@@ -1308,7 +1599,9 @@ function killerMul(ball, e, tags, forLink) {
   else if (hasAbil(ball.ch, "mobkillerM") && !e.boss) { m *= MOBKILLER_M_MUL; tag("ザコKILLER M"); }
   else if (hasAbil(ball.ch, "mobkiller") && !e.boss) { m *= MOBKILLER_MUL; tag("ザコKILLER"); }
   /* 敵少底力M: 画面上の敵が少ないほど強い */
-  if (hasAbil(ball.ch, "fewfoeM") && aliveEnemies().length <= FEWFOE_N) { m *= FEWFOE_MUL; tag("敵少底力M"); }
+  /* ★ 2026-08-16b 敵少底力に等級ELを追加（上の等級だけが効く＝重ねがけしない） */
+  if (hasAbil(ball.ch, "fewfoeEL") && aliveEnemies().length <= FEWFOE_N) { m *= FEWFOE_EL_MUL; tag("敵少底力EL"); }
+  else if (hasAbil(ball.ch, "fewfoeM") && aliveEnemies().length <= FEWFOE_N) { m *= FEWFOE_MUL; tag("敵少底力M"); }
   /* ★ 2026-08-08c 敵多底力M: 「敵少底力が発動しない敵」＝敵が多いときに効く（敵少底力の裏返し） */
   if (hasAbil(ball.ch, "manyfoeEL") && aliveEnemies().length > FEWFOE_N) { m *= MANYFOE_EL_MUL; tag("敵多底力EL"); }
   else if (hasAbil(ball.ch, "manyfoeM") && aliveEnemies().length > FEWFOE_N) { m *= MANYFOE_M_MUL; tag("敵多底力M"); }
@@ -1424,8 +1717,17 @@ function teamAilmentResist() { return B && B.balls && B.balls.some(ailmentResist
      輪の上のどこにふれてもヒットし、輪が育つほど巻きこむ敵が増える。
    ── ポジションリミット（チヅルのサブリンク）──
      いちばん近い敵1体だけを撃つかわりに、<b>距離が近いほど倍率が跳ね上がる</b>。 */
+/* ★ 2026-08-16 サーキュレーションを大幅強化。
+   輪が広がりきるまでに時間がかかるぶん、撃ってすぐ効く技に比べて手数が出ず、
+   多段ヒットの回数のわりに合計が伸びていなかった（刃×0.30／プラズマ×0.18）。
+   1ヒットの威力を刃・プラズマともに引き上げ、プラズマの当たり幅も広げて、
+   「回りきったときの合計」で上位のリンクスキルと並ぶようにする。 */
+/* ★ 2026-08-16b さらに引き上げ。
+   0.30 → 0.52 に上げてもまだ、輪が広がりきるまでの待ち時間に見合っていなかった。
+   刃・プラズマともにもう一段上げ、プラズマの当たり幅も広げて
+   「輪が回りきったときの合計」で最上位のリンクスキルとはっきり並ぶようにする。 */
 const CIRC_N = 14;            // 輪をつくるノード（当たり判定）の数
-const CIRC_PER = 0.30;        // ノード1つが1回ヒットしたときの威力（攻撃力×）
+const CIRC_PER = 0.95;        // ノード1つが1回ヒットしたときの威力（攻撃力×0.52 → 0.95）
 const CIRC_R0 = 70;           // 輪の初期の半径
 const CIRC_COOL = 8;          // 同じ敵に続けて入るまでの間かく（フレーム）
 /* ★ 2026-08-12d サーキュレーションに<b>プラズマをまとわせた</b>。
@@ -1434,9 +1736,9 @@ const CIRC_COOL = 8;          // 同じ敵に続けて入るまでの間かく�
    刃のヒットに<b>プラズマのヒットが重なって</b>、1回の発動で入る回数が大きく増える。
    ・プラズマは刃より軽いかわりに、<b>刃より短い間かく</b>で何度も入る。
    ・当たり判定は「輪の線からの距離」なので、輪が育っても線のどこでもヒットする。 */
-const CIRC_PLZ_PER = 0.18;    // まとったプラズマ1ヒットの威力（攻撃力×）
+const CIRC_PLZ_PER = 0.58;    // まとったプラズマ1ヒットの威力（攻撃力×0.32 → 0.58）
 const CIRC_PLZ_COOL = 5;      // プラズマが同じ敵に入る間かく（刃の CIRC_COOL より短い）
-const CIRC_PLZ_W = 22;        // プラズマの当たり幅（輪の線からこの距離まで届く）
+const CIRC_PLZ_W = 32;        // プラズマの当たり幅（輪の線からこの距離まで届く。26 → 32）
 /* !ボタンの見積もりに使う「1回の発動で敵1体にプラズマが入るおよその回数」。
    ・輪は広がりながら通り過ぎるので、実際は敵の位置と大きさで前後する。
    ・実測（第1の間・敵2体）では 1体あたり およそ11ヒットだった。 */
@@ -1482,6 +1784,21 @@ const ABSRAY_MIN = 74;        // レイの長さの下限（本人からの距�
 const ABSRAY_MAX = 300;       // レイの長さの上限 ※v14.5 で 380 → 300（当たる範囲を少しせまく）
 const ABSRAY_TURN = 54;       // 1回転にかけるフレーム数（薙ぎ払いが目で追える速さ）
 const ABSRAY_W = 14;          // レイの当たり判定の太さ（半分）※v14.5 で 18 → 14
+/* ══ ★ 2026-08-13 オートエイムビット（アーク）の弱体化 ══
+   ビット4個が「味方が止まるまで」ずっと自動連射する技なので、
+   1発の威力よりも<b>連射のはやさ</b>のほうが総ダメージに効く。
+   そこで威力と発射間隔の<b>両方</b>を下げた（合計でおよそ半分）。
+     威力   ×0.30 → ×0.22 → ×0.17 → <b>×0.13</b>
+     発射間隔  9F → <b>13F</b>（1個あたり毎秒 約6.7発 → 約4.6発）
+   ★ ここは実装（index.html の case "autoaimbit"）・FS_HIT（!ボタンの威力計算）・
+     キャラの説明文（fsPow）の<b>3か所</b>から参照する。
+     数字を直接書くと必ず食いちがうので、必ずこの定数を使うこと。 */
+const AIMBIT_N = 4;           // ビットの数
+const AIMBIT_PER = 0.13;      // 弾1発が当たったときの威力（攻撃力×）
+const AIMBIT_CD = 13;         // 発射の間隔（フレーム）。大きいほど遅い
+/* 説明文（3体ぶんの fsPow で使い回す。フレームは伝わらないので秒に直して見せる） */
+const AIMBIT_POW = "ビット" + AIMBIT_N + "個 1ヒット 攻撃力×" + AIMBIT_PER
+  + "（味方が止まるまで、約" + (Math.round(AIMBIT_CD / 60 * 100) / 100) + "秒ごとに自動連射）";
 /* ★ v14.2 「味方全員を率いて撃ちこむ」FBの突撃中の直殴り補正
    （NEWS の本文でも参照するので、ステージ・お知らせより前で定義しておく） */
 const RALLY_MUL = 1.5;
@@ -1499,9 +1816,13 @@ const RANKUP_CHANCE = 0.30;
    同じ枠の超強ハイエナジーサークル（全体×2.10・2連発）に比べて明らかに見劣りしていた。
    威力・砲台数・レーザーの太さの3つをまとめて引き上げ、
    <b>止まった瞬間に盤面を光の網で塗りつぶす</b>技として立たせる。 */
-const SLUMI_MUL = 2.60;       // 超強ルミナスレイ: 砲台1基のレーザー威力（ルミナスレイ ×0.95 → ×2.60）
+/* ★ 2026-08-16 さらに引き上げ。
+   砲台は8基あってもレーザーの射線に敵がいなければ当たらないので、
+   実戦では超強ハイエナジーサークル（全体×2.10 の2連発＝どの敵にも必ず4.20）に
+   まだ届いていなかった。1本あたりの威力と太さを上げて「射線に入れば最上位」にそろえる。 */
+const SLUMI_MUL = 4.60;       // 超強ルミナスレイ: 砲台1基のレーザー威力（ルミナスレイ ×0.95 → ×4.60）
 const SLUMI_N = 8;            // 砲台の最大数（4基 → 8基）
-const SLUMI_HALF = 88;        // レーザーの当たり判定の太さ（半分）。ルミナスレイは BEAM_HALF=46
+const SLUMI_HALF = 118;       // レーザーの当たり判定の太さ（半分）。ルミナスレイは BEAM_HALF=46
 const SENERGY_MUL = 2.10;     // 超強ハイエナジーサークル: 画面上の全敵へのダメージ（×1.25 → ×2.10）
 const SENERGY_WAVES = 2;      // 輪の数。時間差で2連発する（元は1発）
 /* ══════════ ★ 2026-08-06 プレミアム新★5「ソレア」のリンクスキル ══════════
@@ -1545,6 +1866,11 @@ const SUBFS = {
      ちがうのは発数だけ（12 → 20）＝「同じ名前の技は同じ効果」の原則を守っている。 */
   phoming20: { nm: "ピアスシーカー" + PSEEKER20_N, pow: PSEEKER20_N + "発 × 攻撃力×" + PHOMING_PER + "（貫通・1体につき1ヒット）",
     desc: "敵を追尾しながら貫通していく光弾を" + PSEEKER20_N + "発放つ（ピアスシーカー12の発数を増やした上位版）" },
+  /* ★ 2026-08-16b リフレクションリング（エレナのサブリンク）。
+     リンクスキル版とまったく同じ技をサブリンクからも撃てるようにしたもの＝
+     名前が同じなので威力も挙動もそろえる（REFRING_PER を共有）。 */
+  reflectring: { nm: "リフレクションリング", pow: "リング1発 攻撃力×" + REFRING_PER + "（最大" + REFRING_MAX + "発・壁で1回だけ反射）",
+    desc: "ふれた味方から<b>属性のリング弾</b>を放ち、<b>1回だけ壁で反射</b>して広範囲の敵を攻撃する" },
   field: { nm: "パワーフィールド", pow: "フィールド内の敵に 1ヒット 攻撃力×0.30（連続ヒット）", desc: "自分のまわりに力場を張り、フィールドに入った敵を連続で削り続ける" },
   poison: { nm: "全敵ポイズンレイン", pow: "隕石 攻撃力×0.45 ＋ 毒（3ターン・毎ターン最大HPの4%）", desc: "画面上のすべての敵に毒の隕石を落とし、毒状態にする" },
   bubbly: { nm: "バブリーギフト", pow: "減速しにくい状態を付与（ダメージなし）", desc: "触れた味方を減速しにくい「バブリー状態」にして、長く動き回れるようにする" },
@@ -1561,7 +1887,17 @@ const SUBFS = {
   hiplasma: { nm: "ハイプラズマ", pow: "プラズマ 1ヒット 攻撃力×0.4（味方が止まるまで持続）", desc: "自分と触れた味方の間に画面端まで伸びる巨大なプラズマを走らせ、味方が止まるまで攻撃し続ける" },
   divinepillar: { nm: "ディバインピラー", pow: "光の柱 攻撃力×0.8 ×3本（ランダムな敵）", desc: "ランダムな敵3体の頭上から光の柱を落として攻撃する" },
   boundcharge: { nm: "バウンドチャージ", pow: "FB短縮弾4発（壁でバウンド・ふれた味方のFBターン-1）", desc: "壁でランダムに跳ね返るチャージ弾を4つ放ち、ふれた味方のFBターンを1ずつ短縮する" },
-  roundcharge: { nm: "ラウンドチャージ", pow: "触れた味方の移動に応じて広がる円（ダメージなし）", desc: "触れた味方の移動に応じて範囲が広がる円を張り、その味方が止まると円の内部にいる味方のフルバーストターンを1短縮する" },
+  roundcharge: { nm: "ラウンドチャージ", pow: "触れた味方の移動に応じて広がる円（ダメージなし・最大 半径" + ROUND_RMAX + "）",
+    desc: "触れた味方の移動に応じて範囲が広がる円を張り、その味方が止まると<b>円の内部にいる味方</b>のフルバーストターンを1短縮する"
+      + "<br>★ 2026-08-18 <b>円を大きくした</b>（初期 半径" + ROUND_R0 + "／広がる速さ" + ROUND_GROW + "／上限 半径" + ROUND_RMAX + "）。"
+      + "少ししか動かずに止まっても届き、長く走れば<b>編成の大半</b>を巻きこめる" },
+  /* ★ 2026-08-16b ラウンドヒール（スズハのサブリンク）＝ラウンドチャージの回復版。
+     円の広がりかたも重ねがけの仕組みもラウンドチャージとまったく同じで、
+     止まったときに配るものが「FBターン短縮」ではなく「チームHPの回復」になる。 */
+  roundheal: { nm: "ラウンドヒール", pow: "触れた味方の移動に応じて広がる円（ダメージなし・最大 半径" + ROUND_RMAX + "）／円内の味方1体につきチームHPを" + Math.round(ROUNDHEAL_RATE * 100) + "%回復",
+    desc: "触れた味方の移動に応じて範囲が広がる円を張り、その味方が止まると<b>円の内部にいる味方1体につきチームHPを" + Math.round(ROUNDHEAL_RATE * 100) + "%回復</b>する（ラウンドチャージの回復版）"
+      + "<br>★ 2026-08-18 <b>円を大きくした</b>（初期 半径" + ROUND_R0 + "／広がる速さ" + ROUND_GROW + "／上限 半径" + ROUND_RMAX + "）。"
+      + "ラウンドチャージと<b>まったく同じ大きさ</b>で広がる" },
   /* ★ 2026-08-08b 「FB短縮弾」（サブリンク版・キー fbshorten）は廃止した。
      中身は boundcharge とまったく同じ（fireSubFriend の先頭で読み替えていた）のに
      名前が<b>別物であるリンクスキルの「FB短縮弾」</b>とかぶっていたため。
@@ -1843,6 +2179,91 @@ const CONNECT = {
       { k: "kokonaaProtect", nm: "プロテクション", abil: "protection" },
     ],
   },
+  /* ★ 2026-08-16 ツキノのクロススキル。
+     条件は<b>自分と撃種が同じ味方が2体以上</b>（＝貫通のツキノなら貫通の味方が2体）。
+     ・毒キラーEL     … 毒状態の敵へのダメージが大きく伸びる。
+     ・FBターンアクセル … フルバーストのたまりが速くなる。支援型なので回転が要。
+     ★ 説明文は書かない（abil があるものは cnxSkillDesc が abilDesc から組み立てる）。 */
+  tsukino: {
+    nm: "紅月のクロス",
+    condTx: "<b>自分と撃種が同じ味方が2体以上</b>いること",
+    cond: (ids, me) => cnxSelfIn(ids, me) && cnxCount(ids, me, (c, m) => c.shot === m.shot) >= 2,
+    skills: [
+      { k: "tsukinoPoison", nm: "毒キラーEL", abil: "poisonkillerEL" },
+      { k: "tsukinoAccel", nm: "FBターンアクセル", abil: "fbaccel" },
+    ],
+  },
+  /* ══ ★ 2026-08-16b 新★5 3体のクロス ══ */
+  suzuha: {
+    nm: "宵闇のクロス",
+    condTx: "<b>自分と撃種がちがう味方が2体以上</b>いること",
+    cond: (ids, me) => cnxSelfIn(ids, me) && cnxCount(ids, me, (c, m) => c.shot !== m.shot) >= 2,
+    skills: [
+      { k: "suzuhaGrav", nm: "重力バリアキラーEL", abil: "gravkillerEL" },
+      { k: "suzuhaDestroy", nm: "デストロイブーストM", abil: "destroyboostM" },
+    ],
+  },
+  kanata: {
+    nm: "紅蓮のクロス",
+    condTx: "<b>自分と戦型が同じ味方が1体以上</b>いること",
+    cond: (ids, me) => cnxSelfIn(ids, me) && cnxCount(ids, me, (c, m) => c.type === m.type) >= 1,
+    skills: [
+      { k: "kanataLeft", nm: "レフトポジションキラーM", abil: "leftkillerM" },
+      { k: "kanataAll", nm: "全属性キラー", abil: "allkiller" },
+    ],
+  },
+  /* ★ 2026-08-17b グレース。エレナと同じ「属性がそろうほど強い」条件 */
+  youka: {
+    nm: "瑶玉のクロス",
+    condTx: "<b>編成に光属性か闇属性の味方が2体以上</b>いること",
+    cond: (ids, me) => cnxSelfIn(ids, me) && cnxCount(ids, me, (c) => c.el === "light" || c.el === "dark") >= 2,
+    skills: [
+      { k: "youkaSpd", nm: "ダッシュL", abil: "dashL" },
+      { k: "youkaWeak", nm: "弱点キラーL", abil: "weakkillerL" },
+    ],
+  },
+  youhi: {
+    nm: "九天のクロス",
+    condTx: "<b>自分と属性が同じ味方が2体以上</b>いること",
+    cond: (ids, me) => cnxSelfIn(ids, me) && cnxCount(ids, me, (c, m) => c.el === m.el) >= 2,
+    skills: [
+      { k: "youhiNether", nm: "蝕冥滅殺EL", abil: "eclipseslayerEL" },
+      { k: "youhiVital", nm: "バイタルキラーEL", abil: "vitalEL" },
+    ],
+  },
+  grace: {
+    nm: "聖光のクロス",
+    condTx: "<b>自分と属性が同じ味方が2体以上</b>いること",
+    cond: (ids, me) => cnxSelfIn(ids, me) && cnxCount(ids, me, (c, m) => c.el === m.el) >= 2,
+    skills: [
+      { k: "gracePhantom", nm: "ファントムドライブEL", abil: "phantomdriveEL" },
+      { k: "graceLightning", nm: "ライトニングEL", abil: "lightningEL" },
+    ],
+  },
+  /* ★ 2026-08-18 ロキシー。条件が<b>2つ同時</b>（属性も撃種もそろえる）なので、
+     水・反射をもう1体ずつ足す＝<b>編成の半分をロキシーに寄せる</b>と点く。
+     見返りは蓬莱の九重にまるごと刺さる<b>蓬莱族キラーL</b>と、
+     重力バリア面で効く<b>重力バリアキラーL</b>。 */
+  roxy: {
+    nm: "豪雷のクロス",
+    condTx: "<b>自分と属性が同じ味方が1体以上</b>、かつ<b>自分と撃種が同じ味方が1体以上</b>いること",
+    cond: (ids, me) => cnxSelfIn(ids, me)
+      && cnxCount(ids, me, (c, m) => c.el === m.el) >= 1
+      && cnxCount(ids, me, (c, m) => c.shot === m.shot) >= 1,
+    skills: [
+      { k: "roxyHourai", nm: "蓬莱族キラーL", abil: "houraikillerL" },
+      { k: "roxyGrav", nm: "重力バリアキラーL", abil: "gravkillerL" },
+    ],
+  },
+  elena: {
+    nm: "蒼波のクロス",
+    condTx: "<b>自分と属性が同じ味方が2体以上</b>いること",
+    cond: (ids, me) => cnxSelfIn(ids, me) && cnxCount(ids, me, (c, m) => c.el === m.el) >= 2,
+    skills: [
+      { k: "elenaFire", nm: "火属性キラーEL", abil: "killerEL", el: "fire" },
+      { k: "elenaBarrier", nm: "バリアEL", abil: "barrierEL" },
+    ],
+  },
 };
 /* ── クロスの条件を書くためのヘルパー（2026-08-10） ──
    ★ 「自分が編成に入っていること」を毎回書かずに済むように切り出した。
@@ -1972,6 +2393,28 @@ function connectChip(k, cls) {
     + '<path d="M11 17.6l-1.6 1.6a3.4 3.4 0 01-4.8-4.8L6.2 13" stroke="currentColor" stroke-width="2" stroke-linecap="round" fill="none"/></svg></i>'
     + k.nm + (dim ? '<em class="cnxoff">未発動</em>' : "") + "</span>";
 }
+/* ══ ★ 2026-08-16 一覧カードに出す「クロス持ち」の印 ══
+   クロススキルを持っているかどうかは、これまで<b>詳細を開かないと分からなかった</b>。
+   編成は「誰と誰を並べればクロスが点くか」から考えるので、
+   一覧の時点で持ち主が見えていないと、1体ずつ開いて確かめることになる。
+   ・出すのは「持っているかどうか」だけ。発動しているかどうかは出さない
+     （図鑑やガチャでは編成が決まっていないので、発動を出しても意味がない）。
+   ・cls は置き場所ごとのクラス名（.rc 用と .ccch 用で大きさが違う）。 */
+function crossCardMark(id, cls) {
+  const d = connectDef(id); if (!d) return "";
+  /* ★ 2026-08-16b クロスの書で発動しているぶんは色を変える。
+     編成の条件を満たして点いているのか、書で無理やり点けているのかが
+     一覧のまま分かるようにする（書は数に限りがあるので、どこに使ったか追いたい）。 */
+  const byBook = (typeof crossBookOn === "function") && crossBookOn(id);
+  const tip = byBook ? "クロススキル持ち（クロスの書）：" : "クロススキル持ち：";
+  return '<i class="' + (cls || "rccx") + (byBook ? " book" : "") + '" title="' + tip + d.nm + '" aria-label="クロススキル持ち">'
+    + '<svg viewBox="0 0 24 24" aria-hidden="true">'
+    + '<path d="M9.6 14.4 14.4 9.6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" fill="none"/>'
+    + '<path d="M13 6.4l1.6-1.6a3.4 3.4 0 014.8 4.8L17.8 11" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" fill="none"/>'
+    + '<path d="M11 17.6l-1.6 1.6a3.4 3.4 0 01-4.8-4.8L6.2 13" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" fill="none"/>'
+    + "</svg></i>";
+}
+
 /* ══ ★ 2026-08-11 編成スロットに出す「クロスのマーク」 ══
    編成中のキャラがクロススキルを持っているとき、そのスロットに小さな鎖のマークを出す。
    ・発動中           … 光ったマーク（.on）
@@ -2236,7 +2679,7 @@ const CHARS = {
       + "<b>このショットでふれた味方すべてのステータス（攻撃力・スピード）を×2.0</b>に引き上げる。"
       + "強化は<b>その味方が2回行動し終えるまで</b>続くので、味方の大技に合わせて撃ちこめば一気に決着がつく。"
       + "<b>リンク×2</b>と<b>ラウンドチャージ</b>を併せ持つので、なぞるだけでチームのフルバーストも回り出す。",
-    fsName: "オートエイムビット", fsKind: "autoaimbit", fsPow: "ビット4個 1ヒット 攻撃力×0.22（味方が止まるまで自動連射）",
+    fsName: "オートエイムビット", fsKind: "autoaimbit", fsPow: AIMBIT_POW,
     fsDesc: "ふれた味方に<b>4つのビット</b>が追従し、<b>その味方が止まるまで近くの敵を自動で撃ち続ける</b>",
   },
   riko: {
@@ -2350,7 +2793,7 @@ const CHARS = {
     ssPow: "自強化（攻撃×1.7・スピード×1.5）＋ 停止後にさらに強化して再走 ＋ 再走時に大量のサッカーボールを射出",
     ssDesc: "<b>自強化して駆けまわり</b>（攻撃×1.7・スピード×1.5）、<b>止まるとさらに強化してもう一度自動で走り出す（再走）</b>。再走のときは<b>大量のサッカーボールを一気に射出</b>し、壁で跳ねながら敵をなぎ倒す超火力フルバースト！",
     fsName: "アブソリュートレイ10", fsKind: "absoluteray", fsPow: "レイ10本 × 攻撃力×" + ABSRAY_MUL + "（貫通・レイ1本につき1ヒット／長さはランダム " + ABSRAY_MIN + "〜" + ABSRAY_MAX + "）",
-    fsDesc: "自分を中心に<b>長さのちがう10本の極大レイ</b>が伸び、<b>1回転ぶん薙ぎ払う</b>。レイは<b>貫通</b>なので通り道の敵をまとめて斬り裂く（<b>近くの敵ほど多くのレイが届く</b>）",
+    fsDesc: "自分を中心に、<b>長さのちがう10本の極大レイ</b>が伸び、<b>1回転ぶん薙ぎ払う</b>。レイは<b>貫通</b>なので通り道の敵をまとめて斬り裂く（<b>近くの敵ほど多くのレイが届く</b>）",
   },
   arisa: {
     id: "arisa", nm: "アリサ", img: "Arisa.webp", th: "t_Arisa.webp", el: "fire", shot: "pierce", type: "貫通乱打型", gacha: true, lux: true, nexus: "slayer",
@@ -2763,7 +3206,7 @@ const CHARS = {
     ssName: "ルクス・カタストロフ", ssTurns: 20, ssKind: "arche",
     ssPow: "自強化（攻撃×1.8・スピード×1.2）＋ <b>最初にふれた敵で超大爆発（攻撃力×14.0・周囲の敵を巻き込む）</b>",
     ssDesc: "<b>聖光をまとって自強化（攻撃×1.8・スピード×1.2）</b>し、<b>そのショットで最初にふれた敵の位置で超強力な大爆発</b>を起こす。爆発は<b>周囲の敵すべてを巻き込んで大ダメージ（攻撃力×14.0／距離で減衰）</b>。雑魚をまとめて吹き飛ばしつつボスにも刺さる、殲滅特化のフルバースト！",
-    fsName: "オートエイムビット", fsKind: "autoaimbit", fsPow: "ビット4個 1ヒット 攻撃力×0.22（味方が止まるまで自動連射）",
+    fsName: "オートエイムビット", fsKind: "autoaimbit", fsPow: AIMBIT_POW,
     fsDesc: "ふれた味方の<b>まわりに追従する小型ビットを4個</b>付与。ビットは<b>移動中ずっと近くの敵へ自動で属性弾を連射</b>し、<b>その味方が止まるまで</b>攻撃し続ける",
   },
   /* ══════════════════════════════════════════════════════════════
@@ -2834,7 +3277,11 @@ const CHARS = {
     ssDesc: "<b>灼熱をまとって自強化（攻撃×1.7・スピード×1.25）</b>し、そこから<b>敵にふれるたびに威力が ×1.25 ずつ積み上がる</b>（最大 <b>×10.0</b>）。"
       + "敵が固まっているところへ角度を作って撃ち込み、<b>1ショットでどれだけ擦れるか</b>がそのまま火力になる。"
       + "<b>壁FBターン短縮</b>を持つので、壁を使う立ち回りがそのまま次のフルバーストを早める。",
-    fsName: "クロス分身弾", fsKind: "crossclone", fsPow: "分身" + CC_CLONES + "体 1ヒット 攻撃力×" + CC_PER + "（壁で反射・貫通・止まるまで）",
+    /* ★ 2026-08-16 fsKind を "crossclone" → "cross" にそろえた。
+       効果はすでに同じ処理（spawnCrossClones）へ合流させてあったが、キーだけが別のままだったので、
+       絞り込みの「クロス分身弾」ボタンが2つに割れて、押した側のキャラしか出てこなかった。
+       ★ "crossclone" は<b>サブリンク</b>のキーとしては今も使う（リノン）ので、実装側の case は残してある。 */
+    fsName: "クロス分身弾", fsKind: "cross", fsPow: "分身" + CC_CLONES + "体 1ヒット 攻撃力×" + CC_PER + "（壁で反射・貫通・止まるまで）",
     fsDesc: "ふれた瞬間に<b>" + CC_CLONES + "体の分身</b>を放出。分身は<b>壁で反射しながらフィールドを動きまわり、敵を貫通して削り続ける</b>（止まるまで）",
   },
   soleria: {
@@ -2992,8 +3439,8 @@ const CHARS = {
       + "1ショットで多くの味方にバブリーを配れるのが持ち味。"
       + "<b>冥花種キラーEL（×" + NETHERKILLER_EL_MUL + "）＋木属性キラーM</b>で、木属性の冥花種には桁ちがいのダメージが入る。",
     fsName: "ツインインボリュートスフィア", fsKind: "twininvolute",
-    fsPow: "スフィア 1ヒット 攻撃力×0.34（2方向・2回転しながら全画面へ広がる）",
-    fsDesc: "<b>2つの球が反対向きに渦を巻きながら</b>飛び出し、<b>2回転しながらだんだん外へ広がって画面外へ抜けていく</b>。散らばった敵をまとめて巻き込める",
+    fsPow: "スフィア1ヒット 攻撃力×0.34（全画面・2回転しながら広がり画面外へ抜ける）",
+    fsDesc: "<b>連なったスフィアが2本のらせんを描き、味方を中心に2回転しながら半径を大きくしていく</b>。らせんは<b>画面のいちばん遠いスミまで届く全画面攻撃</b>で、<b>180°反対の2方向から挟みこむ</b>。近くの敵から順に、最後は<b>画面上のどこにいる敵にも</b>当たり、そのまま<b>画面の外へ抜けていく</b>",
   },
   liana: {
     id: "liana", nm: "リアナ", img: "Liana.webp", th: "t_Liana.webp",
@@ -3238,8 +3685,8 @@ const CHARS = {
       + "<b>毒キラーM</b>を自前で持っているので、<b>毒 → 弱点撃ち抜き</b>の流れがそのまま自分の火力になるのが強み。"
       + "<b>オムニアンチ＋アンチ減速壁</b>で盤面をほぼ無視でき、<b>蝕冥滅殺M</b>で幽冥の庭園の2種族をまとめて狩れる庭園特化の一枚。",
     fsName: "ツインインボリュートスフィア", fsKind: "twininvolute",
-    fsPow: "スフィア 1ヒット 攻撃力×0.34（2方向・2回転しながら全画面へ広がる）",
-    fsDesc: "<b>2つの球が反対向きに渦を巻きながら</b>飛び出し、<b>2回転しながらだんだん外へ広がって画面外へ抜けていく</b>。散らばった敵をまとめて巻き込める",
+    fsPow: "スフィア1ヒット 攻撃力×0.34（全画面・2回転しながら広がり画面外へ抜ける）",
+    fsDesc: "<b>連なったスフィアが2本のらせんを描き、味方を中心に2回転しながら半径を大きくしていく</b>。らせんは<b>画面のいちばん遠いスミまで届く全画面攻撃</b>で、<b>180°反対の2方向から挟みこむ</b>。近くの敵から順に、最後は<b>画面上のどこにいる敵にも</b>当たり、そのまま<b>画面の外へ抜けていく</b>",
   },
   /* ══════════════════════════════════════════════════════════════
      ★ 2026-08-08 プレミアムセレクトガチャ 新★5 2体
@@ -3341,7 +3788,7 @@ const CHARS = {
       + "<b>次のターンにはチームぜんぶがフルバースト圏内</b>に入っている。"
       + "自分で殴り切るのではなく、<b>味方の一番強いリンクを何度も引き出す</b>のがこのキャラの本体。",
     fsName: "コピー", fsKind: "copy",
-    fsPow: "ふれた味方のリンクスキルを、<b>リノン自身の属性・キラー</b>で発動",
+    fsPow: "ふれた味方のリンクスキルを<b>ルクシアの光属性・ルクシアのキラー</b>で発動（威力そのまま）",
     fsDesc: "ふれた味方のリンクスキルを<b>そのまま写し取って撃つ</b>。"
       + "ただし<b>属性もキラーもリノン本人のもの</b>が乗るので、"
       + "<b>光属性が有利な相手に、味方の強いリンクを光属性で撃ち込む</b>という使い方ができる",
@@ -3361,9 +3808,12 @@ const CHARS = {
       + "反射なので<b>敵と壁のあいだに挟んで、毒と弱点をまとめて重ねられる</b>のが強み。",
     fsName: "ツインインボリュートスフィア", fsKind: "twininvolute",
     fsPow: "スフィア1ヒット 攻撃力×0.34（全画面・2回転しながら広がり画面外へ抜ける）",
-    fsDesc: "2方向へ<b>螺旋を描くスフィア</b>を放つ。2回転しながら<b>画面いっぱいに広がって</b>いくので、"
-      + "散らばった敵をまとめて巻きこめる。<b>リンク×2</b>を持つので、"
-      + "ふれた味方はこれを<b>1回のショットで2度</b>撃たせられる",
+    /* ★ 2026-08-18 同名のリンクスキルは<b>説明も同じ</b>にそろえた（技の中身は前から同じ）。
+       ココロだけの事情（リンク×2）は、本文のあとに<b>追記</b>として付ける。 */
+    fsDesc: "<b>連なったスフィアが2本のらせんを描き、味方を中心に2回転しながら半径を大きくしていく</b>。"
+      + "らせんは<b>画面のいちばん遠いスミまで届く全画面攻撃</b>で、<b>180°反対の2方向から挟みこむ</b>。"
+      + "近くの敵から順に、最後は<b>画面上のどこにいる敵にも</b>当たり、そのまま<b>画面の外へ抜けていく</b>"
+      + "<br>★ ココロは<b>リンク×2</b>を持つので、ふれた味方はこれを<b>1回のショットで2度</b>撃たせられる",
   },
   ange: {
     id: "ange", nm: "アンジェ", img: "Ange.webp", th: "t_Ange.webp",
@@ -3520,8 +3970,8 @@ const CHARS = {
       + "<b>地雷と重力バリアが重なる部屋</b>——たとえば<b>幽冥の庭園 第5ノ園（火属性）</b>では、"
       + "属性有利もあわせて真価を発揮する。<b>火属性キラーM</b>と<b>弱点キラーM</b>で削りも十分。",
     fsName: "ツインインボリュートスフィア", fsKind: "twininvolute",
-    fsPow: "スフィア 1ヒット 攻撃力×0.34（2方向・2回転しながら全画面へ広がる）",
-    fsDesc: "<b>2つの球が反対向きに渦を巻きながら</b>飛び出し、<b>2回転しながらだんだん外へ広がって画面外へ抜けていく</b>。散らばった敵をまとめて巻き込める",
+    fsPow: "スフィア1ヒット 攻撃力×0.34（全画面・2回転しながら広がり画面外へ抜ける）",
+    fsDesc: "<b>連なったスフィアが2本のらせんを描き、味方を中心に2回転しながら半径を大きくしていく</b>。らせんは<b>画面のいちばん遠いスミまで届く全画面攻撃</b>で、<b>180°反対の2方向から挟みこむ</b>。近くの敵から順に、最後は<b>画面上のどこにいる敵にも</b>当たり、そのまま<b>画面の外へ抜けていく</b>",
   },
   yuunagi: {
     id: "yuunagi", nm: "ユウナギ", img: "Yuunagi.webp", th: "t_Yuunagi.webp",
@@ -3566,7 +4016,7 @@ const CHARS = {
     hp: [892, 5880], atk: [488, 3100], spd: [286, 420],
     abil: [{ t: "ablock" }, { t: "award" }, { t: "killer", el: "fire" }, { t: "vitalM" }, { t: "soulM" }, { t: "fbshort" }],
     subfs: "boundcharge",
-    ssName: "アズュール・アセンション", ssTurns: 20, ssKind: "nephia",
+    ssName: "アズュール・ブレッシング", ssTurns: 20, ssKind: "nephia",
     ssPow: "自強化（攻撃×1.7・スピード×1.2）＋ <b>ふれた味方のパワーを×2.0</b>（その味方が2回行動するまで）",
     ssDesc: "<b>蒼い波をまとって自強化（攻撃×1.7・スピード×1.2）</b>し、<b>そのショット中にふれた味方すべてのパワーを×2.0</b>に引き上げる"
       + "（<b>ネフィアと同じフルバースト</b>を、<b>反射</b>の体で使える。壁で跳ね返りながら味方のあいだを往復できるので、"
@@ -3576,7 +4026,7 @@ const CHARS = {
       + "<b>火属性キラー</b>と<b>バイタルキラーM</b>を重ねてあり、自分でも十分に削れる。",
     fsName: "ツインインボリュートスフィア", fsKind: "twininvolute",
     fsPow: "スフィア1ヒット 攻撃力×0.34（全画面・2回転しながら広がり画面外へ抜ける）",
-    fsDesc: "<b>2つの球が反対向きに渦を巻きながら</b>飛び出し、<b>2回転しながらだんだん外へ広がって画面外へ抜けていく</b>。散らばった敵をまとめて巻き込める",
+    fsDesc: "<b>連なったスフィアが2本のらせんを描き、味方を中心に2回転しながら半径を大きくしていく</b>。らせんは<b>画面のいちばん遠いスミまで届く全画面攻撃</b>で、<b>180°反対の2方向から挟みこむ</b>。近くの敵から順に、最後は<b>画面上のどこにいる敵にも</b>当たり、そのまま<b>画面の外へ抜けていく</b>",
   },
   tsumugi: {
     id: "tsumugi", nm: "ツムギ", img: "Tsumugi.webp", th: "t_Tsumugi.webp",
@@ -3597,7 +4047,7 @@ const CHARS = {
       + "<b>ギミックだらけの盤面をまっすぐ突き抜けられる</b>。"
       + "<b>底力EL</b>と噛み合っており、HPを削って撃つほど倍率が乗る攻めのフルバースト。"
       + "<br><small>※ HPが1未満になることはありません</small>",
-    fsName: "オートエイムビット", fsKind: "autoaimbit", fsPow: "ビット4個 1ヒット 攻撃力×0.22（味方が止まるまで自動連射）",
+    fsName: "オートエイムビット", fsKind: "autoaimbit", fsPow: AIMBIT_POW,
     fsDesc: "<b>4つのビット</b>がふれた味方に付き従い、<b>近くの敵へ自動で狙いを付けて撃ち続ける</b>。味方が止まるまで途切れないので、長く走る味方ほど手数が伸びる",
   },
   suzuka: {
@@ -3616,7 +4066,9 @@ const CHARS = {
       + "外周へ押しこんでから2ndランを叩きこむのが必勝の形。"
       + "<b>全属性耐性M</b>と<b>状態異常レジスト</b>で場持ちもよい。",
     fsName: "超強連気弾", fsKind: "kiblastex", fsPow: "気弾7発 × 攻撃力×0.85（残りHPの少ない敵を優先）",
-    fsDesc: "<b>連気弾の強化版</b>。7発の気弾が<b>残りHPの少ない敵をねらって</b>飛び、とどめを刺しにいく",
+    /* ★ 2026-08-18 同名のリンクスキルは<b>説明も同じ</b>にそろえた（アステラと同じ本文） */
+    fsDesc: "<b>連気弾の強化版</b>。<b>7発の気弾</b>を続けざまに撃ち出す。1発の威力は<b>×0.55 → ×0.85</b>。"
+      + "<b>残りHPの少ない敵から優先して</b>狙うので、削り残しをまとめて片付けられる",
   },
   karem: {
     id: "karem", nm: "カレム", img: "Karem.webp", th: "t_Karem.webp",
@@ -3657,7 +4109,7 @@ const CHARS = {
       + "<br>クロススキルが開くと<b>FBターンアクセル</b>で24ターンをぐっと縮められ、"
       + "<b>蝕魔族キラーEL</b>が幽冥の庭園のボスに刺さる。",
     fsName: "超強鋭角三方向追従型貫通弾", fsKind: "supertri3followsharp",
-    fsPow: "1発ごとに 攻撃力×" + SUPTRI_SHARP_PER + "（味方が止まるまで高速で撃ち続ける・貫通）",
+    fsPow: "1発ごとに 攻撃力×" + SUPTRI_SHARP_PER + "（鋭角3方向・高速連射・貫通／味方が止まるまで撃ち続ける）",
     fsDesc: "<b>鋭角三方向追従型貫通弾の強化版</b>。3発が<b>ほとんど同じ点にまとまって</b>飛ぶ形はそのままに、"
       + "<b>連射が速く・弾が太く・威力も上</b>。まとまって当たるので、1体を集中して溶かすのが得意",
   },
@@ -3744,6 +4196,586 @@ const CHARS = {
       + "さらに<b>大きな輪が時間差で" + SENERGY_WAVES + "回</b>広がる。位置取りを問わず<b>画面上の敵すべて</b>に届くので、"
       + "散らばった敵をまとめて削り切れる",
   },
+  /* ══ ★ 2026-08-16 プレミアム★5 2体（アンナ・ツキノ）══
+     ・アンナ … 光／反射。フルバーストは<b>シェリーα（cherylA）と同じ乱打</b>だが、
+                <b>無敵をやめて、そのかわり最後にふっとばす</b>形にしてある（ssKind "annaA"）。
+                アンチギミックは<b>ダメージウォールとワープが「超」</b>＋アンチブロック。
+     ・ツキノ … 火／貫通。フルバーストは<b>フウカ（nephia）と同じ</b>ので ssKind をそのまま共有する。
+                クロススキル持ち（撃種が同じ味方が2体以上）。
+     ★ 同じ名前のアビリティ・リンクスキルは、どのキャラでも効果がまったく同じになるよう
+       既存のキー（superadw / superaw / superspinring …）をそのまま使うこと。
+       ここで独自の名前・独自の数値を作らないこと。 */
+  anna: {
+    id: "anna", nm: "アンナ", img: "Anna.webp", th: "t_Anna.webp",
+    el: "light", shot: "bounce", type: "煌貴絶影型", gacha: true, lux: true, nexus: "force",
+    hp: [906, 5970], atk: [506, 3220], spd: [288, 424],
+    abil: [{ t: "superadw" }, { t: "superaw" }, { t: "ablock" },
+           { t: "eclipsekillerM" }, { t: "sokojikaraL" }, { t: "bubblemode" }],
+    subfs: "positionlimit",
+    ssName: "煌貴絶影・オーロララプソディ", ssTurns: 20, ssKind: "annaA",
+    ssPow: "最初にふれた敵で<b>停止</b>して 乱打" + CHERYLA_BARRAGE_N + "連（各 攻撃力×" + CHERYLA_BARRAGE_PER
+      + "＝合計×" + (CHERYLA_BARRAGE_N * CHERYLA_BARRAGE_PER).toFixed(1) + "）＋ 体当たり 攻撃力×2.2 ＋ <b>ふっとばし</b>",
+    ssDesc: "攻撃力アップ（<b>×2.2</b>）して飛び出し、<b>そのショットで最初にふれた敵の上で止まり、黄金の乱打"
+      + CHERYLA_BARRAGE_N + "連（各×" + CHERYLA_BARRAGE_PER + "）</b>をたたき込む"
+      + "（<b>シェリーαと同じ乱打フルバースト</b>。全弾ヒットで合計 攻撃力×"
+      + (CHERYLA_BARRAGE_N * CHERYLA_BARRAGE_PER).toFixed(1) + "）。"
+      + "<br>ちがうのは締めかたで、<b>無敵にはならないかわりに、最後にその敵を大きくふっとばす</b>。"
+      + "ふっとばされた敵は<b>着地でさらにダメージを受け</b>、位置も大きく崩れるので、"
+      + "<b>次のターンの並びごと作り替えられる</b>。"
+      + "<br><b>超アンチダメージウォール・超アンチワープ・アンチブロック</b>で盤面を選ばず、"
+      + "<b>底力L</b>が効きはじめる後半ほど乱打の総火力が伸びる。"
+      + "<b>バブリーモード</b>で減速を振り切れるので、乱打の一発目を遠くの敵にも当てにいける。",
+    /* ★ 同じ名前のリンクスキルは効果も文言もそろえること（ユキノ・ケリスと同じ本文） */
+    fsName: "超強オービタルエッジ", fsKind: "superspinring",
+    fsPow: "リング1ヒット 攻撃力×" + SSPIN_MUL + "（超巨大リング" + SSPIN_N + "基・壁で反射・当たり直しも速い）",
+    fsDesc: "オービタルエッジの<b>強化版</b>。光のリバウンドサークルが<b>7基 → " + SSPIN_N + "基</b>に増え、"
+      + "<b>1基の大きさ（当たり判定）も威力も速さも、すべて上</b>（威力 ×0.30 → <b>×" + SSPIN_MUL + "</b>）。"
+      + "特大リングが盤面じゅうを跳ねまわり、<b>同じ敵にも短い間隔で何度も入る</b>ので、味方が長く走るほど削り切れる",
+  },
+  tsukino: {
+    id: "tsukino", nm: "ツキノ", img: "Tsukino.webp", th: "t_Tsukino.webp",
+    el: "fire", shot: "pierce", type: "紅月支援型", gacha: true, lux: true, nexus: "tempo",
+    connect: "tsukino",
+    hp: [898, 5930], atk: [496, 3160], spd: [290, 426],
+    abil: [{ t: "superadw" }, { t: "antilock" }, { t: "award" },
+           { t: "mobkillerM" }, { t: "elemres", el: "wood" }, { t: "regenM" }],
+    subfs: "boundheal",
+    ssName: "クリムゾン・アセンション", ssTurns: 20, ssKind: "nephia",
+    ssPow: "自強化（攻撃×1.7・スピード×1.2）＋ <b>ふれた味方のパワーを×2.0</b>（その味方が2回行動するまで）",
+    ssDesc: "<b>紅い月の光をまとって自強化（攻撃×1.7・スピード×1.2）</b>し、<b>そのショット中にふれた味方すべてのパワーを×2.0</b>に引き上げる"
+      + "（<b>フウカと同じフルバースト</b>を、<b>貫通</b>の体で使える。味方をすり抜けて一直線に走れるので、"
+      + "<b>並んだ味方に一度で配れる</b>のが強み）。強化は<b>その味方が2回行動し終えるまで</b>続くので、"
+      + "<b>味方の大技に合わせて配ってから撃たせる</b>のが基本。"
+      + "<br><b>超アンチダメージウォール・アンチロックゾーン・アンチ断絶界</b>の3種持ちで、"
+      + "<b>ザコキラーM</b>が取り巻きの掃除を、<b>リジェネM</b>が長期戦を支える。"
+      + "<b>木属性耐性</b>があるので、木属性の敵が並ぶ面でも前に出られる。",
+    fsName: "超強ルミナスレイ", fsKind: "superluminous",
+    fsPow: "砲台1基のレーザー 攻撃力×" + SLUMI_MUL + "（貫通・最大" + SLUMI_N + "基・レーザーがさらに極太）",
+    fsDesc: "ルミナスレイの上位。設置できる砲台が<b>4基 → " + SLUMI_N + "基</b>に増え、"
+      + "レーザーは<b>威力も当たり判定の太さも大幅に強化</b>（×0.95 → <b>×" + SLUMI_MUL + "</b>）。"
+      + "ふれた味方がぶつかった壁に砲台が並び、その味方が止まった瞬間に<b>盤面をまるごと貫く光の網</b>が走る",
+  },
+
+  /* ══════════════════════════════════════════════════════════════
+     ★ 2026-08-16b プレミアム新★5 6体（No.110〜115）
+     ══════════════════════════════════════════════════════════════
+     同じ名前のフルバースト・リンクスキル・アビリティは<b>効果も文言もそろえる</b>こと。
+     ここでは既存の ssKind / fsKind / subfs を借りているものが多いので、
+     借り元の本文をそのまま持ってきている（食いちがうと「同じ名前で違う効果」になる）。 */
+  /* ══ ★ 2026-08-17k 蓬莱の九重の配布キャラ2体 ══
+     ・アンチは<b>2つまで</b>・<b>オムニアンチは持たせない</b>（ご指定）。
+     ・高難易度クエストで「有利属性で適正」になるように属性とアンチを選んである。
+       瑶華＆玉蘭＝<b>光</b>（幽冥の庭園の闇ボス・蓬莱天宮の闇に有利）
+       瑶妃＝<b>火</b>（禁忌の迷宮の木ボス・蓬莱の木の階層に有利）
+     ・瑶華＆玉蘭は<b>ガチャ★5と同じくらい</b>、瑶妃は<b>少し上</b>。 */
+  youka: {
+    id: "youka", nm: "瑶華＆玉蘭", img: "Youka.webp", th: "t_Youka.webp",
+    el: "light", shot: "bounce", type: "双撃連舞型", star5: true, quest: true, nexus: "tempo",
+    connect: "youka",
+    hp: [905, 5980], atk: [516, 3270], spd: [290, 428],
+    /* アンチは2つだけ。断絶界と減速壁＝蓬莱・庭園の後半でいちばん止められる2つ */
+    /* ★ 2026-08-17L キラーを1つ減らし、等級も L → M に下げた。
+       クエスト配布なので、ガチャ限定★5より強くならないようにする。 */
+    abil: [{ t: "award" }, { t: "superaslow" }, { t: "killerM", el: "dark" }, { t: "fbshort" }],
+    subfs: "reflectring",
+    ssName: "双舞・瑶玉繚乱", ssTurns: 20, ssKind: "youka",
+    ssPow: "自強化（攻撃×1.70・スピード×1.18）＋ <b>止まったあと もう一度動き出す</b>",
+    ssDesc: "瑶華と玉蘭が背中あわせに舞い、<b>自強化（攻撃×1.70・スピード×1.18）</b>する。"
+      + "<br><b>止まったあと もう一度ひとりでに動き出す</b>ので、"
+      + "強化がかかった1ターンのうちに<b>2回ぶん走れる</b>。"
+      + "<br><b>アンチ断絶界・超アンチ減速壁</b>の2種持ちで、"
+      + "足を止めにくる高難易度クエストでも手数が落ちない。"
+      + "<b>闇属性キラーM</b>は幽冥の庭園と蓬莱天宮の闇ボスにそのまま刺さる。",
+    fsName: "ピアスシーカー12", fsKind: "homing",
+    fsPow: "12発 × 攻撃力×" + PSEEKER_PER + "（敵を追尾しながら貫通・1体につき1ヒット）",
+    fsDesc: "敵を追尾しながら貫通していく光弾を12発放つ。狙いをつけなくても当たるので、"
+      + "盤面が荒れているクエストほど安定して数字が出る",
+  },
+  youhi: {
+    id: "youhi", nm: "瑶妃", img: "Youhi.webp", th: "t_Youhi.webp",
+    el: "fire", shot: "pierce", type: "天宮撃滅型", star5: true, quest: true, nexus: "slayer",
+    connect: "youhi",
+    hp: [948, 6280], atk: [534, 3380], spd: [296, 442],
+    /* ★ 2026-08-17L キラーを3つ → 2つに、等級も EL → L / L → M に下げた。
+       「ガチャより少し強い」を守りつつ、キラーの重ねがけで壊れないようにする。 */
+    abil: [{ t: "sgrav" }, { t: "superaw" }, { t: "killerL", el: "wood" }, { t: "weakkillerM" }, { t: "fbshort" }],
+    subfs: "phoming20",
+    ssName: "天宮・九天繚乱", ssTurns: 19, ssKind: "youhi",
+    ssPow: "自強化（攻撃×1.85・スピード×1.22）＋ <b>撃った瞬間に味方全員で総攻撃</b>",
+    ssDesc: "九天の風をまとって<b>自強化（攻撃×1.85・スピード×1.22）</b>し、"
+      + "<b>撃った瞬間に味方全員が突撃</b>する。味方の数がそのまま火力になるタイプ。"
+      + "<br><b>超アンチ重力バリア・超アンチワープ</b>の2種持ちで足を止められず、"
+      + "<b>木属性キラーL</b>と<b>弱点キラーM</b>が重なると、木の高難易度ボスを大きく削れる。",
+    fsName: "超強インフィニティレーザー", fsKind: "superinfinitylaser",
+    fsPow: "極太レーザー 攻撃力×" + SINFL_PER + "（貫通）＋ 着弾から" + SINFL_SPLIT_N + "方向へ分裂 各×" + SINFL_SPLIT_PER,
+    fsDesc: "<b>インフィニティレーザーの強化版</b>。もっとも近い敵へ<b>さらに極太のレーザー</b>を撃ちこみ、"
+      + "着弾点から<b>" + SINFL_SPLIT_N + "方向</b>へレーザーが分裂して広がる。"
+      + "どれも貫通するので、射線と着弾点に敵が重なっているほど伸びる",
+  },
+  grace: {
+    /* ══ ★ 2026-08-17b グレース（No.116 / 光・反射）══
+       ・FB18ターン: 自強化＋<b>自分の行動2回ぶん 弱点キラー＆全属性キラー</b>＋<b>止まったあと もう一度動く</b>
+       ・攻撃力チャージ: 1ショットで味方3体にふれると、3体目の攻撃力が1巡×1.5
+       ・クロス（同属性2体以上）で ファントムドライブEL・ライトニングEL
+       ・リンク 超強インフィニティレーザー／サブリンク ピアスシーカー20 */
+    id: "grace", nm: "グレース", img: "Grace.webp", th: "t_Grace.webp",
+    el: "light", shot: "bounce", type: "聖光撃滅型", gacha: true, lux: true, nexus: "slayer", star5: true,
+    connect: "grace",
+    hp: [935, 6150], atk: [528, 3320], spd: [292, 436],
+    abil: [{ t: "superaw" }, { t: "superaslow" }, { t: "ablock" },
+           { t: "eternalphotonM" }, { t: "firstkillerEL" }, { t: "atkcharge" }],
+    subfs: "phoming20",
+    ssName: "セイクリッド・ジャッジメント", ssTurns: 18, ssKind: "grace",
+    ssPow: "自強化（攻撃×" + GRACE_ATK + "・スピード×" + GRACE_SPD + "）＋ <b>自分の行動" + GRACE_KILL_TURNS
+      + "回ぶん 弱点キラー＆全属性キラー</b>／<b>止まったあと もう一度動き出す</b>",
+    ssDesc: "聖なる光をまとって<b>自強化（攻撃×" + GRACE_ATK + "・スピード×" + GRACE_SPD + "）</b>し、"
+      + "<b>自分の行動" + GRACE_KILL_TURNS + "回ぶんのあいだ 弱点キラーと全属性キラーの両方</b>になる。"
+      + "<br>弱点にも属性にも倍率が乗るので、<b>弱点を通したときの伸びがとても大きい</b>。"
+      + "さらに<b>止まったあと もう一度ひとりでに動き出す</b>ので、"
+      + "強化がかかった1ターンのうちに<b>2回ぶん走れる</b>。"
+      + "<br><b>攻撃力チャージ</b>は、1回のショットで<b>味方" + ATKCHARGE_N + "体にふれる</b>と"
+      + "<b>" + ATKCHARGE_N + "体目にふれた味方</b>の攻撃力が<b>1巡のあいだ×" + ATKCHARGE_MUL + "</b>になる。"
+      + "誰を最後にふれるかを選べるので、次に撃つ味方を狙って強化できる。"
+      + "<br><b>超アンチワープ・超アンチ減速壁・アンチブロック</b>の3種持ちで足を止められない。",
+    fsName: "超強インフィニティレーザー", fsKind: "superinfinitylaser",
+    fsPow: "極太レーザー 攻撃力×" + SINFL_PER + "（貫通）＋ 着弾から" + SINFL_SPLIT_N + "方向へ分裂 各×" + SINFL_SPLIT_PER,
+    fsDesc: "<b>インフィニティレーザーの強化版</b>。もっとも近い敵へ<b>さらに極太のレーザー</b>を撃ちこみ、"
+      + "着弾点から<b>" + SINFL_SPLIT_N + "方向</b>へレーザーが分裂して広がる。"
+      + "<br>本体の威力は<b>×1.60 → ×" + SINFL_PER + "</b>、分裂1本は<b>×0.55 → ×" + SINFL_SPLIT_PER + "</b>、"
+      + "分裂の数も<b>8方向 → " + SINFL_SPLIT_N + "方向</b>に増えている。"
+      + "どれも貫通するので、射線と着弾点に敵が重なっているほど伸びる。",
+  },
+  moeka: {
+    id: "moeka", nm: "モエカ", img: "Moeka.webp", th: "t_Moeka.webp",
+    el: "water", shot: "bounce", type: "蒼滴撹乱型", gacha: true, lux: true, nexus: "gale",
+    hp: [884, 5830], atk: [488, 3110], spd: [296, 436],
+    abil: [{ t: "antilock" }, { t: "award" }, { t: "eclipsekillerM" },
+           { t: "elemresM", el: "fire" }, { t: "sokojikaraL" }, { t: "barrierL" }, { t: "fsdouble" }],
+    subfs: "phoming20",
+    /* ★ ユキノと同じフルバーストだが、無効化するのは<b>ブロックだけ</b>（moeka 分岐で処理） */
+    ssName: "アクア・ブレイクスルー", ssTurns: 7, ssKind: "moeka",
+    ssPow: "<b>貫通タイプに変化</b>＋<b>ブロックを無効化</b>＋<b>バブリー状態</b>（すべてこのショット中）",
+    ssDesc: "蒼い雫の膜をまとい、<b>貫通タイプに変化</b>して盤面をまっすぐ走り抜ける。"
+      + "このショットのあいだは<b>ブロックをすり抜けられる</b>ようになり、"
+      + "さらに<b>バブリー状態</b>で減速しにくくなるので、<b>止まらずに味方をなぞり続けられる</b>。"
+      + "<br>ユキノと同じ<b>わずか7ターン</b>で撃てる最速級のフルバーストだが、"
+      + "無効化するのが<b>ブロックだけ</b>に絞られているぶん、"
+      + "<b>ブロックで通り道が塞がれた面</b>で真価を発揮する——"
+      + "本来は回り道するしかない導線を、<b>まっすぐ突っ切って味方を全員なぞる</b>。"
+      + "<br><b>リンク×2</b>持ちなので、なぞった数だけリフレクションリングが増える。"
+      + "<b>アンチロックゾーン・アンチ断絶界</b>で足を止められず、"
+      + "<b>底力L</b>が効きはじめる後半ほど手数が火力に変わる。<b>バリアL</b>と<b>火属性耐性M</b>で前にも出られる。",
+    fsName: "リフレクションリング", fsKind: "reflectring",
+    fsPow: "リング1発 攻撃力×" + REFRING_PER + "（最大" + REFRING_MAX + "発・壁で1回だけ反射）",
+    fsDesc: "ふれた味方から<b>属性のリング弾</b>を放ち、<b>1回だけ壁で反射</b>して広範囲の敵を攻撃する",
+  },
+  suzuha: {
+    id: "suzuha", nm: "スズハ", img: "Suzuha.webp", th: "t_Suzuha.webp",
+    el: "dark", shot: "pierce", type: "深宵絶影型", gacha: true, lux: true, nexus: "force",
+    connect: "suzuha",
+    hp: [920, 6060], atk: [518, 3290], spd: [288, 424],
+    abil: [{ t: "supermsEL" }, { t: "sgrav" }, { t: "superaw" },
+           { t: "weakkillerEL" }, { t: "speedmode" }, { t: "auraM" }],
+    subfs: "roundheal",
+    /* ★ セイラと同じフルバースト（ssKind を共有＝実装も文言も自動でそろう） */
+    ssName: "宵闇絶影・アビスラプソディ", ssTurns: 20, ssKind: "seira",
+    ssPow: "自強化（攻撃×" + SEIRA_ATK + "・スピード×" + SEIRA_SPD + "）＋ <b>壁をすり抜けて</b>進み、"
+      + "<b>最初にふれた敵で停止</b>して 乱打" + SEIRA_BARRAGE_N + "連（各 攻撃力×" + SEIRA_BARRAGE_PER
+      + "＝合計×" + (SEIRA_BARRAGE_N * SEIRA_BARRAGE_PER).toFixed(1) + "）＋ <b>ふっとばし</b>",
+    ssDesc: "宵闇をまとって<b>自強化（攻撃×" + SEIRA_ATK + "・スピード×" + SEIRA_SPD + "）</b>し、"
+      + "<b>壁で跳ね返らずにすり抜けて反対側から出てくる</b>ようになる。"
+      + "<br>そして<b>そのショットで最初にふれた敵の上で止まり</b>、"
+      + "<b>宵闇の乱打" + SEIRA_BARRAGE_N + "連（各×" + SEIRA_BARRAGE_PER + "）</b>をたたき込んで最後に<b>ふっとばす</b>。"
+      + "<br>全弾ヒットで合計<b>攻撃力×" + (SEIRA_BARRAGE_N * SEIRA_BARRAGE_PER).toFixed(1) + "</b>——"
+      + "<b>セイラと同じ最高火力</b>のフルバーストで、ふっとばした敵は着地でさらにダメージを受ける。"
+      + "<br>そのかわり<b>当たるのは最初の1体だけ</b>。壁をすり抜けられるので、"
+      + "<b>どの敵に一発目を当てるかを狙って撃つ</b>のがすべてになる。"
+      + "<br><b>超マインスイーパーEL・超アンチ重力バリア・超アンチワープ</b>の3種持ち。"
+      + "<b>スピードモード</b>で<b>各WAVEの出だしが速い</b>ので、一発目を通したい敵まで届かせやすい。"
+      + "<b>弱点キラーEL</b>が弱点直撃をさらに伸ばし、<b>パワーオーラM</b>が常時の火力を底上げする。",
+    fsName: "サーキュレーション", fsKind: "circulation",
+    fsPow: "刃1ヒット 攻撃力×" + CIRC_PER + "（輪の上の" + CIRC_N + "点）＋ <b>まとったプラズマ</b>1ヒット 攻撃力×" + CIRC_PLZ_PER
+      + "（輪の線ぜんぶ・刃より短い間かくで再ヒット）／回転しながらだんだん拡大・多段ヒット",
+    fsDesc: "<b>円形の刃</b>が発生し、<b>回転しながらだんだん大きく広がっていく</b>。"
+      + "輪の上ならどこにふれてもヒットし、<b>同じ敵にも間をおいて何度でも入る</b>多段型。"
+      + "<br>さらに輪は<b>プラズマをまとって</b>いて、刃の点と点のあいだ——<b>輪の線ならどこでも</b>——"
+      + "<b>刃より短い間かくで</b>電撃が入る。刃のヒットにプラズマのヒットが重なるので、"
+      + "<b>1回の発動で入るヒット数が大きく増える</b>。"
+      + "はじめは近くの敵を刻み、広がりきるころには<b>まわり中の敵をまとめて巻きこむ</b>",
+  },
+  violet: {
+    id: "violet", nm: "ヴィオレット", img: "Violet.webp", th: "t_Violet.webp",
+    el: "wood", shot: "bounce", type: "翠壁撃型", gacha: true, lux: true, nexus: "charge",
+    hp: [896, 5910], atk: [500, 3180], spd: [292, 430],
+    abil: [{ t: "supermsM" }, { t: "antilock" }, { t: "killerM", el: "water" },
+           { t: "wallboostM" }, { t: "wallfbshort" }],
+    subfs: "atkspdup",
+    /* ★ ユウナギと同じフルバースト（ssKind "nazuna" を共有） */
+    /* ★ 同じ ssKind（nazuna）＝ユウナギ・ナズナと同じフルバースト。
+       数字も文言もそろえること（前回ここだけ別の説明を書いてしまい、
+       「ユウナギと同じ」と言いながら中身が食いちがっていた）。 */
+    ssName: "ヴェルデ・ゴールドフィナーレ", ssTurns: 20, ssKind: "nazuna",
+    ssPow: "自強化（攻撃×1.6）＋ <b>壁にふれるたびパワーUP（最大×10.0）</b> ＋ <b>撃った瞬間に味方全員で総攻撃（全員が動く・突撃中の直殴り×" + RALLY_MUL + "）</b>",
+    ssDesc: "<b>自強化して飛び出し（攻撃×1.6）</b>、<b>壁にぶつかるたびに翠の光がふくらんでいく（最大×10.0）</b>。"
+      + "<b>撃ったその瞬間に味方全員が動き出して</b>最も近い敵へいっせいに突撃する（突撃中の直殴りは <b>×" + RALLY_MUL + "</b>）"
+      + "——<b>ユウナギ・ナズナと同じフルバースト</b>を、<b>木属性・反射</b>の体で使える。"
+      + "<br><b>ウォールブーストM</b>と<b>壁FBターン短縮</b>を併せ持つので、"
+      + "<b>壁に当てれば当てるほど</b>火力が伸び、次のフルバーストも早く回ってくる。"
+      + "反射タイプの体で、狭い面をわざと壁づたいに走らせるのが基本の使いかた。"
+      + "<br><b>超マインスイーパーM・アンチロックゾーン</b>で足場を選ばず、<b>水属性キラーM</b>が刺さる面では主砲になる。",
+    /* ★ 同じ名前のリンクスキルは効果も文言もそろえること（ベルティアと同じ本文） */
+    fsName: "超強ハイプラズマ", fsKind: "superhiplasma",
+    fsPow: "プラズマ 1ヒット 攻撃力×0.85（味方が止まるまで持続・当たり幅が広い）",
+    fsDesc: "自分と触れた味方の間に<b>ハイプラズマをさらに極太にした閃光</b>を走らせる。<b>当たり判定の幅が広い</b>ので、多少ズレていても巻き込める",
+  },
+  kanata: {
+    id: "kanata", nm: "カナタ", img: "Kanata.webp", th: "t_Kanata.webp",
+    el: "fire", shot: "pierce", type: "アタッカー型", gacha: true, lux: true, nexus: "force",
+    connect: "kanata",
+    hp: [872, 5750], atk: [530, 3370], spd: [294, 432],
+    abil: [{ t: "supermsL" }, { t: "ablock" }, { t: "fatalkillerM" },
+           { t: "speedmode" }, { t: "barrierL" }],
+    subfs: "poison",
+    /* ★ レヴィアと同じフルバースト（ssKind "revia" を共有） */
+    ssName: "イグニス・レクイエム", ssTurns: 20, ssKind: "revia",
+    ssPow: "自強化（攻撃×1.8・スピード×1.2）＋ <b>撃った瞬間に味方全員で総攻撃（全員が動く・突撃中の直殴り×1.5）</b> ＋ ふれた敵の<b>弱点倍率を大アップ</b>",
+    ssDesc: "紅蓮をまとって<b>自強化（攻撃×1.8・スピード×1.2）</b>し、"
+      + "<b>撃った瞬間に味方全員が突撃</b>する（レヴィアと同じフルバースト）。"
+      + "さらに<b>このショットでふれた敵の弱点倍率が大きく上がる</b>ので、"
+      + "<b>総攻撃の全員ぶんが弱点に乗る</b>のがこの技のねらいどころ。"
+      + "<br><b>アタッカー型</b>なので、<b>戦型が同じ味方が1体でもいればクロススキル</b>が点く。"
+      + "<b>フェイタルキラーM</b>が削れた敵にとどめを刺し、<b>スピードモード</b>が各WAVEの出だしを速める。"
+      + "<b>超マインスイーパーL・アンチブロック</b>で盤面を選ばず、<b>バリアL</b>で前にも出られる。",
+    fsName: "リフレクションリング", fsKind: "reflectring",
+    fsPow: "リング1発 攻撃力×" + REFRING_PER + "（最大" + REFRING_MAX + "発・壁で1回だけ反射）",
+    fsDesc: "ふれた味方から<b>属性のリング弾</b>を放ち、<b>1回だけ壁で反射</b>して広範囲の敵を攻撃する",
+  },
+  touka: {
+    id: "touka", nm: "トウカ", img: "Touka.webp", th: "t_Touka.webp",
+    el: "light", shot: "pierce", type: "超連撃型", gacha: true, lux: true, nexus: "pierce",
+    hp: [902, 5950], atk: [504, 3200], spd: [290, 428],
+    abil: [{ t: "superaw" }, { t: "aslow" }, { t: "outkillerM" },
+           { t: "counterkiller" }, { t: "allresM" }, { t: "ailmentresist" }],
+    subfs: "poison",
+    /* ★ スズカと同じフルバースト（ssKind "mionA" を共有） */
+    ssName: "白閃連撃・トウカオーヴァードライヴ", ssTurns: 16, ssKind: "mionA",
+    /* ★ 同じ ssKind（mionA）＝スズカと同じフルバースト。数字も文言もそろえること */
+    ssPow: "1st 体当たり 攻撃力×2.7 ／ 停止後の 2nd 体当たり 攻撃力×4.0（再加速）",
+    ssDesc: "自強化状態でフィールドを駆けまわり（<b>×2.7</b>）、<b>止まったあとさらに強化された状態でもう一度自動で走り出す（×4.0）</b>2段構えの超火力フルバースト"
+      + "（スズカと同じフルバーストを、<b>光属性</b>の体で使える）。"
+      + "<br><b>アウトポジションキラーM</b>が<b>壁ぎわの敵</b>に、<b>カウンターキラー</b>が反撃してくる敵に効く。"
+      + "<b>全属性耐性M</b>と<b>状態異常レジスト</b>で場持ちがよく、"
+      + "<b>超アンチワープ・アンチ減速壁</b>で足を止められない。",
+    fsName: "超強クロス分身弾", fsKind: "supercrossclone",
+    fsPow: "分身" + SCC_CLONES + "体 1ヒット 攻撃力×" + SCC_PER + "（壁で反射・貫通・止まるまで）",
+    fsDesc: "クロス分身弾の<b>強化版</b>。分身が<b>6体 → " + SCC_CLONES + "体</b>に増え、"
+      + "<b>1ヒットの威力も動く時間も上</b>。分身が壁で反射しながら敵を貫き、削り続ける",
+  },
+  elena: {
+    id: "elena", nm: "エレナ", img: "Elena.webp", th: "t_Elena.webp",
+    el: "water", shot: "pierce", type: "蒼波連撃型", gacha: true, lux: true, nexus: "tempo",
+    connect: "elena",
+    hp: [910, 6000], atk: [512, 3250], spd: [286, 422],
+    abil: [{ t: "sgrav" }, { t: "superaslow" }, { t: "antilock" },
+           { t: "eternalphotonM" }, { t: "fewfoeEL" }, { t: "fbshort" }],
+    subfs: "reflectring",
+    ssName: "アクア・ダブルレクイエム", ssTurns: 18, ssKind: "elena",
+    ssPow: "自強化（攻撃×" + ELENA_ATK + "・スピード×" + ELENA_SPD + "）＋ <b>撃った瞬間に味方全員で総攻撃</b>／"
+      + "<b>止まったあと もう一度動き出し、そのときも味方全員で総攻撃</b>",
+    ssDesc: "蒼波をまとって<b>自強化（攻撃×" + ELENA_ATK + "・スピード×" + ELENA_SPD + "）</b>し、"
+      + "<b>撃った瞬間に味方全員が突撃</b>する。"
+      + "<br>そして<b>自分が止まったあと、もう一度ひとりでに動き出し</b>、"
+      + "<b>その2回目にも味方全員がもう一度突撃</b>する——"
+      + "<b>1回のフルバーストで総攻撃が2回</b>入る、味方の数がそのまま火力になるタイプ。"
+      + "<br><b>エターナルエーテルM</b>で<b>各WAVEをエーテル" + ETERNAL_PHOTON_M_N + "個</b>から始められるので、"
+      + "運搬クエストでは初手から仕事ができる。"
+      + "<b>敵少底力EL</b>は残りが少なくなった場面で刺さり、<b>FBターン短縮</b>で2回目以降も回りやすい。"
+      + "<br><b>超アンチ重力バリア・超アンチ減速壁・アンチロックゾーン</b>の3種持ちで、足を止められない。",
+    fsName: "サーキュレーション", fsKind: "circulation",
+    fsPow: "刃1ヒット 攻撃力×" + CIRC_PER + "（輪の上の" + CIRC_N + "点）＋ <b>まとったプラズマ</b>1ヒット 攻撃力×" + CIRC_PLZ_PER
+      + "（輪の線ぜんぶ・刃より短い間かくで再ヒット）／回転しながらだんだん拡大・多段ヒット",
+    fsDesc: "<b>円形の刃</b>が発生し、<b>回転しながらだんだん大きく広がっていく</b>。"
+      + "輪の上ならどこにふれてもヒットし、<b>同じ敵にも間をおいて何度でも入る</b>多段型。"
+      + "<br>さらに輪は<b>プラズマをまとって</b>いて、刃の点と点のあいだ——<b>輪の線ならどこでも</b>——"
+      + "<b>刃より短い間かくで</b>電撃が入る。刃のヒットにプラズマのヒットが重なるので、"
+      + "<b>1回の発動で入るヒット数が大きく増える</b>。"
+      + "はじめは近くの敵を刻み、広がりきるころには<b>まわり中の敵をまとめて巻きこむ</b>",
+  },
+  /* ══════════════════════════════════════════════════════════════
+     ★ 2026-08-18 プレミアム新★5 8体（No.119〜126）
+     ------------------------------------------------------------
+     ★★ 2026-08-18b ご指定を取りちがえていたので作り直した。
+       正しくは「<b>8体それぞれが、自分が有利属性になる蓬莱の九重のクエストの
+       完全対応（＝必要アンチをすべて消せる）になる</b>」。
+     ご指定の共通ルール:
+       ・<b>オムニアンチは持たせない</b>
+       ・<b>アンチは1体につきちょうど2種類</b>
+       ・その2種が<b>担当クエストの必要アンチとぴったり一致</b>する
+
+     蓬莱の必要アンチ（HOURAI_ANTI）と、そこで有利になる属性:
+       第一重 火 {dw,grav}              ← 水が有利
+       第二重 水 {dw,slowwall}          ← 木が有利   … アスハ
+       第三重 木 {dw,ward}              ← 火が有利   … サツキ
+       第四重 光 {grav,ward}            ← 闇が有利   … リリス／メルティ
+       第五重 闇 {ward,warp}            ← 光が有利   … アルテミア／サヨ
+       第六重 火 {mine,slowwall}        ← 水が有利   … ブレア
+       第七重 水 {mine,ward}            ← 木が有利
+       第八重 木 {dw,mine,grav}         ← 火が有利   ※3種なのでアンチ2つでは届かない
+       第九重 光 {slowwall,ward}        ← 闇が有利   … リラ
+       蓬莱天宮 闇 {grav,warp,slowwall} ← 光が有利   ※3種なのでアンチ2つでは届かない
+
+     ★ <b>2種で完全対応できるのは上の8クエスト</b>（第八重と蓬莱天宮は3種なので除く）。
+       いまの属性の内わけは 光2・闇3・木1・水1・火1 なので、
+       <b>光の2体は第五重、闇の3体は第四重／第九重</b>を分けあう形になる。
+       重なる組は<b>アンチの等級</b>（超アンチ重力バリア／アンチ重力バリアなど）で差をつけてある。
+     ★ 断絶界（ward）は<b>アンチ断絶界（award）でしか消せず等級も1つ</b>。
+       上の表のとおり8クエスト中5つが ward を要求するので、5体が award 持ちになる。
+     ★ 新キャラを足すときは、この表と照らして<b>アンチの組み合わせを決める</b>こと。
+       検算は charAntiKeys(id) と counterKeysOf(stage) の一致で機械的に取れる。
+     ══════════════════════════════════════════════════════════════ */
+  artemia: {
+    /* 光・貫通。廃都に立つ白銀の狩人。
+       ★ 担当は<b>第五重（闇 {ward,warp}）</b>＝ アンチ断絶界＋超アンチワープで完全対応。 */
+    id: "artemia", nm: "アルテミア", img: "Artemia.webp", th: "t_Artemia.webp",
+    el: "light", shot: "pierce", type: "聖裁狙撃型", gacha: true, lux: true, nexus: "slayer", star5: true,
+    hp: [900, 5960], atk: [520, 3300], spd: [298, 440],
+    abil: [{ t: "award" }, { t: "superaw" }, { t: "weakkillerL" }, { t: "firstkillerM" }, { t: "barrierL" }],
+    subfs: "lock8",
+    ssName: "セラフィカル・ジャッジレイ", ssTurns: 18, ssKind: "selene",
+    ssPow: "自強化（攻撃×1.9・スピード×1.25）＋ <b>貫通タイプになって敵を激しく貫く</b> ＋ <b>停止後に最も近い敵へ再走（攻撃×2.6）</b>",
+    ssDesc: "白銀の光をまとって<b>自強化（攻撃×1.9・スピード×1.25）</b>し、<b>貫通タイプ</b>になって敵の列をまとめて撃ち抜く。"
+      + "止まったあとは<b>いちばん近い敵へひとりでに走り直す（×2.6）</b>ので、1ターンで<b>2回ぶん</b>刺さる"
+      + "（セレネと同じフルバースト）。"
+      + "<br><b>弱点キラーL</b>と<b>ファーストキラーM</b>が重なるので、<b>そのショットで最初にふれた敵の弱点</b>を"
+      + "撃ち抜いたときの伸びがいちばん大きい。"
+      + "<br><b>アンチ断絶界・超アンチワープ</b>の2種持ち。"
+      + "この組み合わせは<b>蓬莱の九重・第五重（闇）の必要アンチとぴったり一致</b>するので、"
+      + "<b>属性有利のまま全ギミックを無視して走れる</b>——第五重の最適解。"
+      + "<b>バリアL</b>で前にも出られる。",
+    fsName: "アブソリュートレイ10", fsKind: "absoluteray",
+    fsPow: "レイ10本 × 攻撃力×" + ABSRAY_MUL + "（貫通・レイ1本につき1ヒット／長さはランダム " + ABSRAY_MIN + "〜" + ABSRAY_MAX + "）",
+    fsDesc: "自分を中心に、<b>長さのちがう10本の極大レイ</b>が伸び、<b>1回転ぶん薙ぎ払う</b>。レイは<b>貫通</b>なので通り道の敵をまとめて斬り裂く（<b>近くの敵ほど多くのレイが届く</b>）",
+  },
+  asuha: {
+    /* 木・反射。春の教室。
+       ★ 担当は<b>第二重（水 {dw,slowwall}）</b>＝ 超アンチダメージウォール＋アンチ減速壁で完全対応。 */
+    id: "asuha", nm: "アスハ", img: "Asuha.webp", th: "t_Asuha.webp",
+    el: "wood", shot: "bounce", type: "春陽鼓舞型", gacha: true, lux: true, nexus: "wisdom", star5: true,
+    hp: [930, 6120], atk: [486, 3090], spd: [292, 432],
+    abil: [{ t: "superadw" }, { t: "aslow" }, { t: "healM" }, { t: "fbtouch" }, { t: "vitalM" }],
+    subfs: "boundheal",
+    ssName: "サクラメント・ハートビート", ssTurns: 14, ssKind: "setsuna",
+    ssPow: "自強化（攻撃×1.8・スピード×1.3）＋ <b>ふれた味方1体につき チームHPを12%回復</b>",
+    ssDesc: "花びらをまといながら<b>自強化（攻撃×1.8・スピード×1.3）</b>し、"
+      + "<b>なぞった味方1体につきチームHPを12%回復</b>する。全員をなぞれば一度に大きく戻せる立て直し役"
+      + "（セツナと同じフルバースト）。"
+      + "<br><b>回復M</b>もふれた味方の数で伸びるので、<b>「たくさんなぞる」ことがそのまま回復量になる</b>。"
+      + "<b>FBターンタッチ</b>でチーム全体のフルバーストも早く回る。"
+      + "<br><b>超アンチダメージウォール・アンチ減速壁</b>の2種持ち。"
+      + "この組み合わせは<b>蓬莱の九重・第二重（水）の必要アンチとぴったり一致</b>するので、"
+      + "<b>属性有利のまま全ギミックを無視して走れる</b>——第二重の最適解。",
+    fsName: "スパイラルリバウンド", fsKind: "spiral",
+    fsPow: "螺旋1ヒット 攻撃力×0.30（サークル6基・味方が止まるまで持続）",
+    fsDesc: "ふれた瞬間に<b>六方向へサークルを発射</b>。それぞれ<b>最初にふれた敵の位置</b>から、<b>ふれた味方を中心にした螺旋の軌道</b>へ乗り移り、<b>その味方が止まるまで</b>回りながら敵を削り続ける",
+  },
+  blair: {
+    /* 水・貫通。雨の縁側。
+       ★ 担当は<b>第六重（火 {mine,slowwall}）</b>＝ 超マインスイーパーM＋超アンチ減速壁で完全対応。 */
+    id: "blair", nm: "ブレア", img: "Blair.webp", th: "t_Blair.webp",
+    el: "water", shot: "pierce", type: "驟雨強襲型", gacha: true, lux: true, nexus: "force", star5: true,
+    hp: [890, 5870], atk: [516, 3280], spd: [300, 444],
+    abil: [{ t: "supermsM" }, { t: "superaslow" }, { t: "sokojikaraL" }, { t: "counterkiller" }, { t: "dashM" }],
+    subfs: "pspread5",
+    ssName: "レイニー・ラッシュブレイズ", ssTurns: 16, ssKind: "leila",
+    ssPow: "自強化（攻撃×1.6・スピード×1.6）＋ <b>最初にふれた敵で停止して 高速乱打16連（各 攻撃力×0.6）</b>",
+    ssDesc: "驟雨をまとって<b>自強化（攻撃×1.6・スピード×1.6）</b>し、"
+      + "<b>そのショットで最初にふれた敵の上で止まって高速の乱打16連</b>を浴びせる。"
+      + "<b>スピードが1.6倍</b>と伸びが大きいので、遠くの敵まで一気に詰めて殴りにいける。"
+      + "<br><b>底力L</b>と<b>カウンターキラー</b>はどちらも<b>殴られたあと</b>に強くなるアビリティなので、"
+      + "<b>HPが減っている終盤ほど乱打の1発が重くなる</b>。"
+      + "<br><b>超マインスイーパーM・超アンチ減速壁</b>の2種持ち。"
+      + "この組み合わせは<b>蓬莱の九重・第六重（火）の必要アンチとぴったり一致</b>するので、"
+      + "<b>属性有利のまま全ギミックを無視して走れる</b>——第六重の最適解。"
+      + "地雷は踏むどころか<b>2.5倍の一撃に変えて</b>持ち歩ける。<b>ダッシュM</b>で素の足も速い。",
+    fsName: "スパークバレット", fsKind: "sparkbullet",
+    fsPow: "30発 × 攻撃力×0.22（拡散する反射弾で近くの敵を攻撃）",
+    fsDesc: "<b>30発の強力な貫通する反射弾</b>を放ち、近くの敵をまとめて攻撃する",
+  },
+  lilith: {
+    /* 闇・反射。血染めの婚礼。
+       ★ 担当は<b>第四重（光 {grav,ward}）</b>＝ 超アンチ重力バリア＋アンチ断絶界で完全対応。
+         同じ第四重を担当するメルティとは<b>重力バリアの等級</b>で差をつけてある（こちらが超）。 */
+    id: "lilith", nm: "リリス", img: "Lilith.webp", th: "t_Lilith.webp",
+    el: "dark", shot: "bounce", type: "血宴支配型", gacha: true, lux: true, nexus: "ignition", star5: true,
+    hp: [912, 6010], atk: [510, 3250], spd: [288, 426],
+    abil: [{ t: "sgrav" }, { t: "award" }, { t: "darkmatch" }, { t: "poisonkillerM" }, { t: "drainM" }],
+    subfs: "poison",
+    ssName: "ブラッディ・ノワールピアス", ssTurns: 14, ssKind: "soleria",
+    ssPow: "自強化（攻撃×1.75・スピード×1.3）＋ <b>ふれた敵を毒状態（4ターン）</b>＋ <b>弱点ヒット時に大ダメージ（攻撃力×" + SOLERIA_WEAK_MUL + "）</b>",
+    ssDesc: "紅いリボンをほどいて<b>自強化（攻撃×1.75・スピード×1.3）</b>し、"
+      + "<b>ふれた敵すべてを4ターンの毒状態</b>にする。さらに<b>弱点に当てるたび 攻撃力×" + SOLERIA_WEAK_MUL + " の追撃</b>が入る"
+      + "（ソレリアと同じフルバースト）。"
+      + "<br><b>ダークマッチ</b>で<b>ふだんの直殴りでも敵を毒にできる</b>ので、"
+      + "<b>毒キラーM</b>がほぼ常時のっている状態になる——毒にする役と、毒を刈る役を1体で兼ねる。"
+      + "<b>ドレインM</b>で削りながらチームHPも戻る。"
+      + "<br><b>超アンチ重力バリア・アンチ断絶界</b>の2種持ち。"
+      + "この組み合わせは<b>蓬莱の九重・第四重（光）の必要アンチとぴったり一致</b>するので、"
+      + "<b>属性有利のまま全ギミックを無視して走れる</b>——第四重の最適解。",
+    fsName: "チャームプラズマ", fsKind: "charmplasma",
+    fsPow: "プラズマ弾7本 1ヒット 攻撃力×0.34（味方が止まるまで画面全体へ拡散）",
+    fsDesc: "<b>7本のプラズマ弾が分裂</b>して画面全体へ拡散し、<b>ふれた味方が止まるまで</b>跳ね回りながら敵を撃ち続ける",
+  },
+  lyra: {
+    /* ★★ 2026-08-18b ご指定により<b>光 → 闇</b>へ変更。
+       ★ 担当は<b>第九重（光 {slowwall,ward}）</b>＝ 超アンチ減速壁＋アンチ断絶界で完全対応。 */
+    id: "lyra", nm: "リラ", img: "Lyra.webp", th: "t_Lyra.webp",
+    el: "dark", shot: "bounce", type: "氷華祝祭型", gacha: true, lux: true, nexus: "aegis", star5: true,
+    hp: [944, 6210], atk: [492, 3130], spd: [290, 428],
+    abil: [{ t: "superaslow" }, { t: "award" }, { t: "barrierEL" }, { t: "regenM" }, { t: "allresM" }],
+    subfs: "roundheal",
+    ssName: "クリスタリア・ルミナスベル", ssTurns: 18, ssKind: "milfy",
+    ssPow: "自強化（攻撃×1.8・スピード×1.2）＋ <b>ふれた味方をステータス×1.8＋無敵</b>（どちらも各自1行動目まで）",
+    ssDesc: "宵闇に氷の鈴を鳴らして<b>自強化（攻撃×1.8・スピード×1.2）</b>し、"
+      + "<b>なぞった味方を ステータス×1.8 かつ無敵</b>にする（それぞれ<b>その味方が1回動き終えるまで</b>）"
+      + "（ミルフィと同じフルバースト）。"
+      + "<br>無敵は<b>その味方に向いた攻撃だけ</b>を無効化するので、"
+      + "<b>次に殴られる味方をなぞっておく</b>と1ターンぶんまるごと受け流せる。"
+      + "<br><b>バリアEL・リジェネM・全属性耐性M</b>の3枚重ねで、味方いちばんの場持ち。"
+      + "<b>サブリンクのラウンドヒール</b>は<b>2026-08-18 に円が大きくなった</b>ので、"
+      + "長く走らせるほど<b>編成の大半を円に入れて</b>まとめて回復できる。"
+      + "<br><b>超アンチ減速壁・アンチ断絶界</b>の2種持ち。"
+      + "この組み合わせは<b>蓬莱の九重・第九重（光）の必要アンチとぴったり一致</b>するので、"
+      + "<b>属性有利のまま全ギミックを無視して走れる</b>——第九重の最適解。",
+    fsName: "ツインインボリュートスフィア", fsKind: "twininvolute",
+    fsPow: "スフィア1ヒット 攻撃力×0.34（全画面・2回転しながら広がり画面外へ抜ける）",
+    fsDesc: "<b>連なったスフィアが2本のらせんを描き、味方を中心に2回転しながら半径を大きくしていく</b>。らせんは<b>画面のいちばん遠いスミまで届く全画面攻撃</b>で、<b>180°反対の2方向から挟みこむ</b>。近くの敵から順に、最後は<b>画面上のどこにいる敵にも</b>当たり、そのまま<b>画面の外へ抜けていく</b>",
+  },
+  satsuki: {
+    /* 火・貫通。ネオンの夜。
+       ★ 担当は<b>第三重（木 {dw,ward}）</b>＝ 超アンチダメージウォール＋アンチ断絶界で完全対応。
+       ★ 以前もっていた超マインスイーパーLは<b>地雷アンチとして数えられる</b>ため外した
+         （持たせるとアンチ3種になり、ご指定の「ちょうど2種」を満たさない）。 */
+    id: "satsuki", nm: "サツキ", img: "Satsuki.webp", th: "t_Satsuki.webp",
+    el: "fire", shot: "pierce", type: "紅焔連撃型", gacha: true, lux: true, nexus: "force", star5: true,
+    hp: [886, 5840], atk: [524, 3340], spd: [296, 438],
+    abil: [{ t: "superadw" }, { t: "award" }, { t: "combokillerM" }, { t: "sokojikaraM" }, { t: "dashL" }],
+    subfs: "discharge",
+    ssName: "スカーレット・ネオンラッシュ", ssTurns: 16, ssKind: "nanami",
+    ssPow: "自強化（攻撃×1.7・スピード×1.25）＋ <b>壁にふれるたび20%の確率でスピードとパワーがアップ</b>（1段ごと 攻撃+22%・スピード+10%・最大8段）",
+    ssDesc: "紅いネオンをまとって<b>自強化（攻撃×1.7・スピード×1.25）</b>し、"
+      + "<b>壁にぶつかるたびに20%の確率で さらに加速＆強化</b>される（最大8段）"
+      + "（ナナミと同じフルバースト）。跳ね返るほど伸びるので、<b>狭い盤面ほど強い</b>。"
+      + "<br><b>連撃キラーM</b>は<b>同じ敵に連続でふれる</b>ほど攻撃力が上がるアビリティなので、"
+      + "壁とボスのあいだで往復する当て方と噛み合う。<b>底力M</b>が終盤の削り合いを支える。"
+      + "<br><b>超アンチダメージウォール・アンチ断絶界</b>の2種持ち。"
+      + "この組み合わせは<b>蓬莱の九重・第三重（木）の必要アンチとぴったり一致</b>するので、"
+      + "<b>属性有利のまま全ギミックを無視して走れる</b>——第三重の最適解。"
+      + "<b>ダッシュL</b>で素の足も最速級。",
+    fsName: "超強連気弾", fsKind: "kiblastex",
+    fsPow: "気弾7発 × 攻撃力×0.85（残りHPの少ない敵を優先）",
+    fsDesc: "<b>連気弾の強化版</b>。<b>7発の気弾</b>を続けざまに撃ち出す。1発の威力は<b>×0.55 → ×0.85</b>。<b>残りHPの少ない敵から優先して</b>狙うので、削り残しをまとめて片付けられる",
+  },
+  sayo: {
+    /* ★★ 2026-08-18b ご指定により<b>闇 → 光</b>へ変更。
+       ★ 担当は<b>第五重（闇 {ward,warp}）</b>＝ アンチ断絶界＋超アンチワープで完全対応。
+         同じ第五重を担当するアルテミアとはアンチが同じなので、
+         キラーの中身（あちらは弱点・ファースト／こちらはフェイタル・ボス）で役割を分けてある。 */
+    id: "sayo", nm: "サヨ", img: "Sayo.webp", th: "t_Sayo.webp",
+    el: "light", shot: "pierce", type: "黒薔薇絞殺型", gacha: true, lux: true, nexus: "tempo", star5: true,
+    hp: [906, 5970], atk: [522, 3320], spd: [294, 434],
+    abil: [{ t: "award" }, { t: "superaw" }, { t: "fatalkillerL" }, { t: "bosskillerM" }, { t: "ailmentresist" }],
+    subfs: "positionlimit",
+    ssName: "ローズ・ガロット", ssTurns: 20, ssKind: "beltia",
+    ssPow: "自強化（攻撃×1.8・スピード×1.2）＋ <b>味方全員で総攻撃</b>＋ <b>ふれた敵の攻撃ターンを2増加</b>",
+    ssDesc: "金の光をまとった黒薔薇の茨を引き絞って<b>自強化（攻撃×1.8・スピード×1.2）</b>し、"
+      + "<b>撃った瞬間に味方全員が動き出して総攻撃</b>。さらに<b>ふれた敵の攻撃ターンを2遅らせる</b>"
+      + "（ベルティアと同じフルバースト）。火力と時間かせぎを同時にやる詰めの一手。"
+      + "<br><b>フェイタルキラーL</b>は<b>HPが半分以下の敵</b>に、<b>ボスキラーM</b>はボスに効くので、"
+      + "<b>削りきる最後のひと押し</b>がいちばん伸びる。<b>状態異常レジスト</b>で妨害にも強い。"
+      + "<br><b>アンチ断絶界・超アンチワープ</b>の2種持ち。"
+      + "この組み合わせは<b>蓬莱の九重・第五重（闇）の必要アンチとぴったり一致</b>するので、"
+      + "<b>属性有利のまま全ギミックを無視して走れる</b>——第五重の最適解。",
+    fsName: "リレーションカッター", fsKind: "relaycut",
+    fsPow: "カッター1ヒット 攻撃力×0.34（味方の位置を順にめぐる・味方が止まるまで）",
+    fsDesc: "<b>味方の位置を順番に渡り歩くカッター</b>を放つ。<b>ふれた味方が止まるまで</b>みんなの間を巡回し続けて敵を切り刻む",
+  },
+  melty: {
+    /* 闇・反射。甘い夜の病室。
+       ★ 担当は<b>第四重（光 {grav,ward}）</b>＝ アンチ重力バリア＋アンチ断絶界で完全対応。
+         同じ第四重を担当するリリスとは<b>重力バリアの等級</b>で差をつけてある（こちらが無印）。
+       ★★ 2026-08-18b ご指定により<b>治癒の祈り → ソウルスティールEL</b>へ変更。
+         治癒の祈りは「ボスマップの開始時に確率で全回復」という<b>運まかせの一発</b>だったが、
+         こちらは<b>敵を倒すたびに確実に回復</b>する。毒で削って倒す立ち回りとそのままつながる。 */
+    id: "melty", nm: "メルティ", img: "Melty.webp", th: "t_Melty.webp",
+    el: "dark", shot: "bounce", type: "甘毒看護型", gacha: true, lux: true, nexus: "aegis", star5: true,
+    hp: [938, 6180], atk: [496, 3160], spd: [286, 420],
+    abil: [{ t: "agrav" }, { t: "award" }, { t: "soulEL" }, { t: "poisonkillerEL" }, { t: "healM" }],
+    subfs: "hitouchray",
+    ssName: "ラブシック・オーバードーズ", ssTurns: 16, ssKind: "natsuki",
+    ssPow: "自強化（攻撃×1.8・スピード×1.2）＋ <b>ふれた敵を毒状態（4ターン）</b> ＋ <b>弱点ヒットでさらに大ダメージ（×1.6）</b>",
+    ssDesc: "甘い薬をふりまきながら<b>自強化（攻撃×1.8・スピード×1.2）</b>し、"
+      + "<b>ふれた敵を4ターンの毒状態</b>にする。<b>弱点に当てればさらに×1.6</b>"
+      + "（ナツキと同じフルバースト）。"
+      + "<br><b>毒キラーEL</b>を持っているので、<b>自分でばらまいた毒を自分で刈る</b>のがこの子の形。"
+      + "刈った先も<b>ソウルスティールEL</b>で<b>倒すたびにチームHPが戻る</b>ので、"
+      + "<b>削る・倒す・立て直す</b>がひと続きになる。<b>回復M</b>はなぞった味方の数だけ効く。"
+      + "<br><b>アンチ重力バリア・アンチ断絶界</b>の2種持ち。"
+      + "この組み合わせは<b>蓬莱の九重・第四重（光）の必要アンチとぴったり一致</b>するので、"
+      + "<b>属性有利のまま全ギミックを無視して走れる</b>——第四重の最適解。",
+    fsName: "ブレイドオービット", fsKind: "bladeorbit",
+    fsPow: "剣1ヒット 攻撃力×0.30（6本・味方が止まるまで高速回転）",
+    fsDesc: "ふれた味方の<b>まわりを6本の剣が高速で回転</b>し、<b>その味方が止まるまで</b>触れた敵を斬り続ける",
+  },
+  /* ══════════════════════════════════════════════════════════════
+     ★ 2026-08-18 ロキシー（No.127・最終番号）水・反射
+     ------------------------------------------------------------
+     ご指定どおりの構成。<b>演出はゲーム内でいちばん豪華</b>にしてある。
+       FB 20ターン … チームHPの15%を捧げて「豪雷積層雲」
+         ・自強化 ×2.5
+         ・画面全体を暗転させ、巨大な黒雲がステージを覆い、画面いっぱいに雨を降らせ、
+           最強の雷がボスへ落ちる
+         ・落雷時: 敵全体の<b>最大HPの35%</b>を削る／全ての敵を<b>防御ダウン＋毒状態</b>／<b>2ターン遅延</b>
+       アビリティ … 超アンチ重力バリア／超マインスイーパーL／超アンチ減速壁／
+                    ザコキラーL／キュムロニンバスEL／ライトニングEL
+       クロス     … 同属性が1体以上 かつ 同撃種が1体以上 で 蓬莱族キラーL・重力バリアキラーL
+       リンク     … サーキュレーション ／ サブリンク … ラウンドヒール
+     ══════════════════════════════════════════════════════════════ */
+  roxy: {
+    id: "roxy", nm: "ロキシー", img: "Roxy.webp", th: "t_Roxy.webp",
+    el: "water", shot: "bounce", type: "豪雷積層型", gacha: true, lux: true, nexus: "force", star5: true,
+    connect: "roxy",
+    hp: [952, 6300], atk: [536, 3400], spd: [300, 446],
+    abil: [{ t: "sgrav" }, { t: "supermsL" }, { t: "superaslow" },
+           { t: "mobkillerL" }, { t: "cumulonimbusEL" }, { t: "lightningEL" }],
+    subfs: "roundheal",
+    ssName: "豪雷積層雲", ssTurns: ROXY_TURNS, ssKind: "roxy",
+    ssPow: "<b>残りチームHPの" + Math.round(ROXY_HP_COST * 100) + "%</b>を消費して自強化（攻撃×" + ROXY_ATK + "）＋ "
+      + "<b>敵全体の最大HPの" + Math.round(ROXY_MAXHP_CUT * 100) + "%</b>を削る落雷 ＋ 敵全体を<b>防御ダウン・毒状態</b>＋<b>"
+      + ROXY_DELAY + "ターン遅延</b>",
+    ssDesc: "<b>残りチームHPの" + Math.round(ROXY_HP_COST * 100) + "%</b>（HPが1未満になることはない）を雷雲へ捧げ、<b>自強化（攻撃×" + ROXY_ATK + "）</b>して撃ち出す。"
+      + "<br>撃った瞬間<b>画面全体が暗転</b>し、<b>巨大な黒雲がステージまるごとを覆って</b>豪雨が降りそそぐ。"
+      + "そして<b>最強の雷がボスへ落ちる</b>——"
+      + "<br>落雷の瞬間、<b>画面上のすべての敵</b>に次のすべてが同時に入る。"
+      + "<br>① <b>満タンHPの" + Math.round(ROXY_MAXHP_CUT * 100) + "%</b>を削る（残りHPではなく<b>最大HPに対する割合</b>なので、"
+      + "HPがどれだけ高い相手でも同じ割合だけ削れる）"
+      + "<br>② <b>防御ダウン</b>（" + ROXY_DEBUFF_TURNS + "ターン）と<b>毒状態</b>（" + ROXY_DEBUFF_TURNS + "ターン）"
+      + "<br>③ <b>攻撃ターンを" + ROXY_DELAY + "遅延</b>（<b>即死のカウントも" + ROXY_DELAY + "</b>）"
+      + "<br><b>キュムロニンバスEL</b>と<b>ライトニングEL</b>を両方持つ、ただ一人の雷使い。"
+      + "ふだんの直殴りでも<b>" + Math.round(LIGHTNING_EL_P * 100) + "%で攻撃力×" + LIGHTNING_EL_MUL + "の落雷</b>が飛び、"
+      + "<b>そのショットで最初にふれた敵</b>には<b>次のターンの終了時に 攻撃力×" + CUMULO_EL_MUL + "の落雷</b>が落ちる"
+      + "（走った距離に応じて、次のショットのステータスが最大×" + CUMULO_EL_MAX + "）。"
+      + "<br><b>超アンチ重力バリア・超マインスイーパーL・超アンチ減速壁</b>の3種持ちで足を止められない。"
+      + "<b>ザコキラーL</b>で護衛の処理も速い。",
+    fsName: "サーキュレーション", fsKind: "circulation",
+    fsPow: "刃1ヒット 攻撃力×" + CIRC_PER + "（輪の上の" + CIRC_N + "点）＋ <b>まとったプラズマ</b>1ヒット 攻撃力×" + CIRC_PLZ_PER
+      + "（輪の線ぜんぶ・刃より短い間かくで再ヒット）／回転しながらだんだん拡大・多段ヒット",
+    fsDesc: "<b>円形の刃</b>が発生し、<b>回転しながらだんだん大きく広がっていく</b>。"
+      + "輪の上ならどこにふれてもヒットし、<b>同じ敵にも間をおいて何度でも入る</b>多段型。"
+      + "<br>さらに輪は<b>プラズマをまとって</b>いて、刃の点と点のあいだ——<b>輪の線ならどこでも</b>——"
+      + "<b>刃より短い間かくで</b>電撃が入る。刃のヒットにプラズマのヒットが重なるので、"
+      + "<b>1回の発動で入るヒット数が大きく増える</b>。"
+      + "はじめは近くの敵を刻み、広がりきるころには<b>まわり中の敵をまとめて巻きこむ</b>",
+  },
 };
 /* エルシアのフルバースト説明は定数を使うのでここで組み立てる */
 CHARS.elsia.ssPow = "自強化（攻撃×1.6・スピード×1.2）＋ <b>残りチームHPの" + Math.round(ELSIA_HP_COST * 100) + "%を消費</b>し、"
@@ -3767,7 +4799,7 @@ const CHAR_IDS = [
   "ema", "sakura", "arisa", "kaguya", "cheryl",
   /* No.10〜12 EX降臨 */
   "aira", "shion", "viola",
-  /* No.13〜15 Bシリーズ（クロスガチャ） */
+  /* No.13〜15 XEVAガチャ連携★5（★ 2026-08-16 A／Bシリーズの区分は廃止） */
   "mion", "kokona", "mao",
   /* No.16〜18 v7 プレミアム★5 */
   "bernica", "tsubaki", "alicia",
@@ -3827,6 +4859,23 @@ const CHAR_IDS = [
      ★ 新キャラは必ず<b>いちばん最後に追記</b>すること（既存の No. がずれないように）。
      ★ xeva.js の MB_CHAR_MASTER も同じ並びにそろえること（並び＝No.）。 */
   "seira",
+  /* ★ No.108〜109 2026-08-16 プレミアム★5 2体（アンナ・ツキノ） */
+  "anna", "tsukino",
+  /* ★ No.110〜115 2026-08-16b プレミアム★5 6体
+     （モエカ・スズハ・ヴィオレット・カナタ・トウカ・エレナ）。
+     ★ 新キャラは必ず<b>いちばん最後に追記</b>すること（既存の No. がずれないように）。
+     ★ xeva.js の MB_CHAR_MASTER も同じ並びにそろえること（並び＝No.）。 */
+  "moeka", "suzuha", "violet", "kanata", "touka", "elena", "grace",
+  /* ★ 2026-08-17k 蓬莱の九重の配布キャラ（ガチャからは出ないので PREMIUM_CHARS には入れない） */
+  "youka", "youhi",
+  /* ★ No.119〜126 2026-08-18 プレミアム★5 8体
+     （アルテミア・アスハ・ブレア・リリス・リラ・サツキ・サヨ・メルティ）。
+     ★ 新キャラは必ず<b>いちばん最後に追記</b>すること（既存の No. がずれないように）。
+     ★ xeva.js の MB_CHAR_MASTER も同じ並びにそろえること（並び＝No.）。 */
+  "artemia", "asuha", "blair", "lilith", "lyra", "satsuki", "sayo", "melty",
+  /* ★ No.127 2026-08-18 ロキシー。ご指定により<b>最終番号</b>。
+     この下に足すときは、ロキシーより後ろへ（No.127 は動かさない）。 */
+  "roxy",
 ];
 /* id → キャラクター番号（1始まり）。図鑑・詳細・ガチャ結果に「No.XX」として出す */
 const CHAR_NO = {};
@@ -3958,6 +5007,26 @@ const BATTLE_TYPES = {
      6. どれにも寄っていない …… バランス型
    ★ 新キャラを足したら、必ずここにも1行足すこと（抜けると自動で balance になる）。 */
 const CHAR_TYPE = {
+  /* ── ★ 2026-08-18 プレミアム新★5 8体＋ロキシー（No.119〜127） ── */
+  artemia: "striker",  /* 弱点キラーL＋ファーストキラーM＝条件がそろったときの一撃 */
+  asuha: "support",    /* 回復M＋FBターンタッチ＋FBが回復＝なぞって支える */
+  blair: "speed",      /* 素のスピード最上位＋ダッシュM＋FBのスピード×1.6 */
+  lilith: "trick",     /* 毒をまいて毒で刈る＝状態異常が主役 */
+  lyra: "support",     /* バリアEL＋リジェネM＋全属性耐性M＋ラウンドヒール */
+  satsuki: "striker",  /* 連撃キラーM＋底力M＋超マインスイーパーL＝火力を積む */
+  sayo: "striker",     /* フェイタルキラーL＋ボスキラーM＝詰めのキラー2枚 */
+  melty: "trick",      /* アンチロックゾーン＋毒＝盤面と状態で有利を作る */
+  roxy: "cannon",      /* サーキュレーション＋雷2種＝画面ぜんぶを叩く主砲 */
+  /* ── ★ 2026-08-16b プレミアム新★5 6体（No.110〜115） ── */
+  moeka: "support",   /* リンク×2＋7ターンFBで、なぞって配るのが仕事 */
+  suzuha: "striker",  /* セイラと同じ最高火力の乱打 */
+  violet: "striker",  /* 壁に当てるほど伸びるウォールブースト型 */
+  kanata: "striker",  /* 総攻撃＋弱点倍率UPのアタッカー */
+  touka: "striker",   /* 2段構えの体当たり */
+  elena: "support",   /* 総攻撃2回＋エーテル運搬 */
+  grace: "striker",   /* ★ 2026-08-17b 弱点＋全属性キラー化＋超極太レーザー */
+  youka: "speed",     /* ★ 2026-08-17k 2回走れる＝手数で押す */
+  youhi: "striker",   /* ★ 2026-08-17k 木属性キラーEL＋弱点キラーLの一点突破 */
   /* ── バランス型（尖りはないが、どこでも使える） ── */
   zera: "balance", kaguya: "balance", rinne: "balance", hecatia: "balance",
   kaguyaalpha: "balance", beltia: "balance", noelle: "balance",
@@ -4037,6 +5106,9 @@ const CHAR_TYPE = {
   mayu: "trick",           // 視野角180°の妨害＋治癒の祈り＝盤面づくり
   chizuru: "cannon",       // サーキュレーション／ポジションリミットの2枚看板＝リンクが主役
   seira: "striker",        // 史上最高火力の乱打FB＋連撃キラーL＝1体を溶かしきる
+  /* ★ 2026-08-16 プレミアム★5 2体 */
+  anna: "striker",         // 乱打40連＋底力L＋蝕魔族キラーM＝一点集中の火力
+  tsukino: "support",      // ふれた味方のパワー×2.0＋バウンドヒール＋リジェネM＝味方を支える
 };
 Object.keys(CHARS).forEach((id) => {
   const t = BATTLE_TYPES[CHAR_TYPE[id] || "balance"];
@@ -4047,6 +5119,10 @@ const MAX_LV = 50;
 /* ★ v12: 「超越の書」を使ったキャラだけ、レベル上限が 60 まで解放される。
    黄昏の王城／禁忌の迷宮 を全部屋クリアするともらえる特別アイテム（1体につき1回だけ使える）。 */
 const TRANS_LV = 60;
+/* ★ 2026-08-17k 九天の玉簡（蓬莱の九重 60WAVE）で、さらに Lv.70 まで解放する。
+   ★ 段は「50 → 60 → 70」の3段。玉簡は<b>超越の書を使ってあるキャラにだけ</b>使える
+     （いきなり70にはできない）。 */
+const JADE_LV = 70;
 /* ★★ 2026-08-12 「Lv.60 なのに 最大レベルの表記が 50 のまま」への対策。
    レベル上限の解放は DB.trans（charId → 1）だけで持っていたが、
    クラウド同期の合流では <b>DB.chars の lv は大きいほうが残る</b>のに対し、
@@ -4056,8 +5132,14 @@ const TRANS_LV = 60;
    ここで拾い直す（フラグそのものの復元は index.html の起動処理でやる）。 */
 function lvCapOf(id) {
   if (typeof DB === "undefined" || !DB) return MAX_LV;
+  /* ★ 2026-08-17k 上限は 50 → 60（📕超越の書）→ 70（🪭九天の玉簡）の3段。
+     玉簡は超越ずみのキャラにしか使えないので、jade を先に見ればよい。 */
+  if (DB.jade && DB.jade[id]) return JADE_LV;
   if (DB.trans && DB.trans[id]) return TRANS_LV;
   const st = DB.chars && DB.chars[id];
+  /* 保険: セーブのフラグが落ちていても、実レベルが上なら上限を戻す
+     （フラグだけ消えて「Lv.65 なのに上限60」になる型の不具合を防ぐ） */
+  if (st && ((st.lv | 0) > TRANS_LV)) return JADE_LV;
   if (st && ((st.lv | 0) > MAX_LV)) return TRANS_LV;
   return MAX_LV;
 }
@@ -4077,26 +5159,50 @@ const FRUITS = {
   /* ★ 2026-08-03 追加。剛力（攻撃）・疾風（速さ）に対する「たいりょく」の枠。
      チームHPは4人ぶんの合計なので、装備した本人のHPが増えたぶんだけ総HPが増える。 */
   vigor: { id: "vigor", nm: "堅牢のルーン", c: "#2fbf71", short: "HP+15%", desc: "装備した本人のHPを15%アップする（チームの総HPがそのぶん増える）" },
+  /* ★ 2026-08-17m 守りのルーン2つ。
+     ★ どちらも<b>チーム全体</b>に効く（装備した本人だけではない）。
+       毒もふつうの攻撃もチームHPをまとめて削るしくみなので、
+       「本人だけ」にすると効果がまったく出ないため。
+       ほかのルーンと性質がちがうので、説明文にもそう書いてある。 */
+  antidote: { id: "antidote", nm: "毒我慢のルーン", c: "#8affc4", short: "毒-99%",
+    desc: "毒によるダメージを<b>99%カット</b>する（チーム全体に効く）" },
+  guard:    { id: "guard",    nm: "ケガ減りのルーン", c: "#7cc4ff", short: "被ダメ-20%",
+    desc: "敵から受けるダメージを<b>20%カット</b>する（チーム全体に効く）" },
 };
 const FRUIT_VIGOR = 1.15;   // 堅牢のルーンのHP倍率
-const FRUIT_IDS = ["haste", "power", "swift", "bane", "sweep", "bond", "vigor"];
+const FRUIT_ANTIDOTE = 0.01;  // 毒我慢: 毒ダメージの残る割合（＝99%カット）
+const FRUIT_GUARD = 0.80;     // ケガ減り: 被ダメージの残る割合（＝20%カット）
+const FRUIT_IDS = ["haste", "power", "swift", "bane", "sweep", "bond", "vigor", "antidote", "guard"];
+/* ★ チーム全体に効くルーンは「誰か1人でも着けていれば効く」。
+   4人ぶん重ねがけにはしない（重ねると 20%カットが実質ゼロダメージになるため）。 */
+function teamHasFruit(id) {
+  if (typeof B === "undefined" || !B || !B.balls) return false;
+  return B.balls.some((b) => b && ballFruit(b, id));
+}
 
 /* ══════════ 特別アイテム（WAVE踏破報酬でしか手に入らない） ══════════
    ・叡智の果実 … 使うと必ず1レベル上がる（EXP不要）
    ・英傑の証   … そのキャラの「ルーン」の枠を 2 → 3 に解放する（1キャラにつき1回）
    ※ 英傑の証は「黄昏の王城 100WAVE 踏破」でしか配布しない（他の入手経路を作らないこと）。 */
+/* 叡智の果実1個で上がるレベル数。★ 2026-08-13 まとめて使えるようにしたので、
+   「何個で何レベル」を説明文・確認ダイアログ・実際の処理の3か所で共有する。 */
+const WISDOM_LV = 3;
 const ITEMS = {
   /* ★ 2026-08-12 上限は「そのキャラの上限」＝超越の書を使ってあれば Lv.60 まで上がる。
      ここに Lv.50 と書いてあると、解放済みのキャラでも 50 で止まるように読めてしまう。 */
-  wisdom: { id: "wisdom", nm: "叡智の果実", c: "#7ce8ff", icon: "🍐", desc: "使ったキャラのレベルが必ず3つ上がる（そのキャラのレベル上限まで／📕超越の書を使ってあれば Lv." + TRANS_LV + " まで）" },
+  wisdom: { id: "wisdom", nm: "叡智の果実", c: "#7ce8ff", icon: "🍐", desc: "使ったキャラのレベルが必ず" + WISDOM_LV + "つ上がる（そのキャラのレベル上限まで／📕超越の書を使ってあれば Lv." + TRANS_LV + " まで）。<b>まとめて使えます</b>" },
   hero:   { id: "hero",   nm: "英傑の証",   c: "#f0c040", icon: "🎖️", desc: "使ったキャラの「ルーン」の装備枠を 2 → 3 に解放する（1キャラにつき1回だけ）" },
   /* ★ v12: 黄昏の王城／禁忌の迷宮 を全部屋クリアするともらえる。1体のレベル上限を60まで解放する */
-  trans:  { id: "trans",  nm: "超越の書",   c: "#a86bff", icon: "📕", desc: "使ったキャラのレベル上限を 50 → 60 に解放する（1キャラにつき1回だけ）" },
+  trans:  { id: "trans",  nm: "超越の書",   c: "#a86bff", icon: "📕", desc: "使ったキャラのレベル上限を 50 → 60 に解放する（1キャラにつき1回だけ）。さらに上の <b>Lv." + JADE_LV + "</b> は 🪭九天の玉簡 で解放できる" },
   /* ★ 2026-08-11 クロスの書。★ 2026-08-12「1冊＝1体ぶん」に変更。
      使ったキャラは、以後ずっと<b>クロススキルの発動条件を無視して発動</b>するようになる。
      入手は「幽冥の庭園・今回の10クエストを全部クリアする」ことだけ（1スパンにつき1冊）。 */
   crossbook: { id: "crossbook", nm: "クロスの書", c: "#37e0c8", icon: "📘",
     desc: "使ったキャラの<b>クロススキルが、編成条件を無視して常に発動</b>するようになる（1体につき1冊・1回だけ）" },
+  /* ★ 2026-08-17k 九天の玉簡。蓬莱の九重 60WAVE でのみ手に入る。
+     超越の書（Lv.60）を使ってあるキャラにだけ使え、上限を Lv.70 まで押し上げる。 */
+  jade: { id: "jade", nm: "九天の玉簡", c: "#ff9ec4", icon: "🪭",
+    desc: "<b>📕超越の書を使ってあるキャラ</b>のレベル上限を " + TRANS_LV + " → <b>" + JADE_LV + "</b> に解放する（1キャラにつき1回だけ）" },
 };
 /* 特別アイテムの新デザインアイコン（自作SVG）。
    叡智の果実＝きらめく智慧の宝石果実／英傑の証＝リボンつきの星章クレスト。 */
@@ -4110,6 +5216,30 @@ function itemIcon(id, px) {
     <path d="M20 13 L23.6 20.5 Q23.6 27.4 20 29.4 Q16.4 27.4 16.4 20.5 Z" fill="#d8f8ff" opacity=".9"/>
     <path d="M20 11 L20 37 M11 22 L29 22" stroke="#eafaff" stroke-width=".8" opacity=".55"/>
     <path d="M27.6 12 l.9 2.1 2.1.9-2.1.9-.9 2.1-.9-2.1-2.1-.9 2.1-.9z" fill="#fff"/>
+  </svg>`;
+  /* ★ 2026-08-17k 九天の玉簡。
+     「簡」＝竹簡（細い札を綴じた巻物）なので、<b>縦の札を9枚</b>並べて綴じ紐を渡す。
+     9枚＝九重・九天。玉の質感を出すため、札は淡い翡翠から桃色へのグラデにして、
+     中央に天宮を表す小さな楼閣の屋根、上に九天のしるしの星を置く。
+     ★ 超越の書（📕）が「本」なのに対して、こちらは「巻物」。
+       同じ育成アイテムでも、ひと目で別物と分かる形にしてある。 */
+  if (id === "jade") return `<svg viewBox="0 0 40 40" style="${w}" aria-hidden="true">
+    <defs><linearGradient id="jd${s}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#bff3e2"/><stop offset=".55" stop-color="#8fe3d0"/><stop offset="1" stop-color="#ff9ec4"/>
+    </linearGradient></defs>
+    <g>
+      ${Array.from({ length: 9 }, (_, i) => {
+        const x = 4.2 + i * 3.5;
+        return `<rect x="${x}" y="7.5" width="2.7" height="25" rx="1.2" fill="url(#jd${s})" stroke="#2f9c86" stroke-width=".45"/>`;
+      }).join("")}
+      <path d="M3.4 12.6h33.2M3.4 27.4h33.2" stroke="#c9772f" stroke-width="1.5" stroke-linecap="round" opacity=".92"/>
+      <path d="M3.4 12.6h33.2M3.4 27.4h33.2" stroke="#ffd98a" stroke-width=".5" stroke-linecap="round"/>
+    </g>
+    <path d="M20 17.4 l5.6 3.2h-11.2z" fill="#ff9ec4" stroke="#c2567f" stroke-width=".5" stroke-linejoin="round"/>
+    <rect x="16.6" y="20.6" width="6.8" height="3.4" rx=".7" fill="#fff0f6" stroke="#c2567f" stroke-width=".5"/>
+    <path d="M20 1.8 l1.4 3.1 3.1 1.4-3.1 1.4L20 10.8l-1.4-3.1-3.1-1.4 3.1-1.4z" fill="#ffe9a8"/>
+    <circle cx="9.6" cy="35.4" r="1.5" fill="#ff9ec4" opacity=".9"/>
+    <circle cx="30.4" cy="35.4" r="1.5" fill="#8fe3d0" opacity=".9"/>
   </svg>`;
   if (id === "trans") return `<svg viewBox="0 0 40 40" style="${w}" aria-hidden="true">
     <path d="M6 8 Q13 4.6 19.4 8 L19.4 33 Q13 29.6 6 33 Z" fill="#6a3fb0"/>
@@ -4190,6 +5320,10 @@ function fruitGlyph(id, cc) {
     bond:  `<path d="M12 17c-5-3.2-7-5.6-7-8a3.2 3.2 0 016-1.4A3.2 3.2 0 0119 9c0 2.4-2 4.8-7 8Z" fill="${cc}"/>`,
     /* 堅牢のルーン: 盾＋十字（たいりょくアップ） */
     vigor: `<path d="M12 3.4l7 2.6v5.4c0 4.2-2.9 7.4-7 8.6-4.1-1.2-7-4.4-7-8.6V6Z" fill="${cc}"/><path d="M12 8v6M9 11h6" stroke="#fff" stroke-width="1.8" stroke-linecap="round" fill="none"/>`,
+    /* ★ 2026-08-17m 毒我慢: 毒のしずくに「止め」の斜線 */
+    antidote: `<path d="M12 3.6c3.4 4.2 5.2 6.6 5.2 9a5.2 5.2 0 11-10.4 0c0-2.4 1.8-4.8 5.2-9Z" fill="${cc}"/><path d="M6.4 18.6L17.8 7.2" stroke="#fff" stroke-width="2.1" stroke-linecap="round"/>`,
+    /* ★ 2026-08-17m ケガ減り: 盾の中に下向きの矢（受けるダメージが減る） */
+    guard: `<path d="M12 3.4l7 2.6v5.4c0 4.2-2.9 7.4-7 8.6-4.1-1.2-7-4.4-7-8.6V6Z" fill="${cc}"/><path d="M12 7.6v6.2M9.3 11.4L12 14.2l2.7-2.8" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" fill="none"/>`,
   };
   return g[id] || "";
 }
@@ -4307,10 +5441,38 @@ function charStats(id) {
        ここに出るのもその人のぶん（手元のアークが混ざることはない）。
    ★ 見た目（.arcup）は MagiBurst の index.html と、XEVARION の mb-char-detail.css の
      両方にそろえてある。ここは<b>MagiBurst と図鑑・ガチャで共通</b>に使う。 */
-function arcPlus(st, k) {
+/* ★ 2026-08-17 スピードだけは km/h に直したぶんを出す。
+   ここを素の数値のままにすると、本体が「241 km/h」なのに
+   増えたぶんだけ「+40」という、単位のちがう数字が並んでしまう。 */
+function arcDelta(st, k) {
   const v = st && st.arc ? (st.arc[k] | 0) : 0;
+  return k === "spd" ? spdKmhDelta(v) : v;
+}
+function arcPlus(st, k) {
+  const v = arcDelta(st, k);
   if (v <= 0) return "";
   return '<i class="arcup" title="アーク強化で増えたぶん">+' + fmt(v) + "</i>";
+}
+/* ══ ★ 2026-08-15 「＋◯◯」を<b>専用の列</b>に分ける ══
+   ------------------------------------------------------------
+   これまで arcPlus() の札は数値のうしろに<b>くっつけて</b>いた。
+   そのため
+     ・アークを振った項目だけ行が右に伸びて、3行の数字の右端がそろわない
+     ・数字（Orbitron）と札が地続きなので「8500+420」が一続きの数に見える
+   という2つの読みにくさがあった。
+   → 「素の値」と「アークぶん」を別の列にして、<b>アークを振っていない項目でも
+     列の幅は空けたまま</b>にする（＝3行の桁がいつもそろう）。
+   ★ arcPlus() は図鑑・ガチャ（mb-char-detail.css）でも使っているので残す。
+     こちらは列を作れる画面（キャラ詳細）だけで使う。 */
+function arcHas(st) {
+  return !!(st && st.arc && ((st.arc.hp | 0) > 0 || (st.arc.atk | 0) > 0 || (st.arc.spd | 0) > 0));
+}
+function arcCol(st, k) {
+  const v = arcDelta(st, k);
+  /* 値が0でも空の列を返す（幅を確保して桁をそろえるため） */
+  return v > 0
+    ? '<span class="arccol" title="アーク強化で増えたぶん"><i class="arcup">+' + fmt(v) + "</i></span>"
+    : '<span class="arccol none"></span>';
 }
 /* ── キャラの強さを0〜100で5項目に評価（ガチャ画面のアニメーションバー用） ──
    全キャラ最大Lv・最大限界突破のステータスを基準に相対評価する。フルバーストの速さ・アビリティ数も加味。 */
@@ -4327,24 +5489,119 @@ function statMinMax() {
   };
   return _statMinMax;
 }
+/* ══ ★ 2026-08-16c キラーの「数と等級」を点数にする ══
+   これまで skill は<b>アビリティの数</b>だけを見ていたので、
+   弱いアビリティを6つ持つ子が、刺さるキラーELを持つ子より高く出ていた。
+   キラーは等級（無印 → M → L → EL）で効き目がはっきり違うので、そのぶん重みを付ける。 */
+const KILLER_GRADE_W = { "": 1, M: 1.6, L: 2.1, EL: 2.8 };
+function killerScore(c) {
+  let n = 0, sum = 0;
+  const add = (t) => {
+    const nm = abilName({ t: t, el: "fire" });     // 属性キラーは名前を作るために el を仮置き
+    if (!/キラー|滅殺/.test(nm)) return;
+    const g = /EL$/.test(t) ? "EL" : /L$/.test(t) ? "L" : /M$/.test(t) ? "M" : "";
+    n++; sum += KILLER_GRADE_W[g] || 1;
+  };
+  (c.abil || []).forEach((a) => add(a.t));
+  /* クロススキルで配られるキラーも数える（条件つきなので少し軽く見る） */
+  const d = (typeof CONNECT !== "undefined") ? CONNECT[c.connect] : null;
+  if (d) (d.skills || []).forEach((k) => { if (k.abil) { const before = sum; add(k.abil); if (sum > before) sum -= (sum - before) * 0.35; } });
+  return { n: n, score: sum };
+}
+/* ══ ★ 2026-08-17 クエストの「むずかしさ」で重みを付ける ══
+   ------------------------------------------------------------
+   ただ数を数えていたころは、ギミックが1つしか出ない序盤の部屋と、
+   アンチを3種4種そろえないと入れない幽冥の庭園が、どちらも「1つ」だった。
+   そのため、序盤に刺さるアンチを1つ持っているだけの子と、
+   庭園を通せる子の評価がほとんど変わらなかった。
+
+   重みの決めかた（構造のフラグを見る。diff の文字列は当てにしない）
+     幽冥の庭園 (st.garden)  … 6.0   最高難易度・アンチ要求が多い
+     高難易度   (st.hi)      … 3.5   王城EX／迷宮の深層・霊層
+     降臨       (st.raid)    … 2.5
+     禁忌の迷宮 (st.lab)     … 1.8
+     そのほか                … 1.0
+   これに
+     ・奥の部屋ほど ゆるく重く（最大 +50%）
+     ・必要なアンチが多い面ほど重く（1種ふえるごとに +35%）
+   を掛ける。 */
+function stageWeight(st, needN) {
+  let w = st.garden ? 6 : st.hi ? 3.5 : st.raid ? 2.5 : st.lab ? 1.8 : 1;
+  w *= 1 + Math.min(1, (st.room || 1) / 25) * 0.5;
+  w *= 1 + Math.max(0, (needN || 1) - 1) * 0.35;
+  return w;
+}
+/* このキャラが「アンチが足りている」クエストの内訳。
+   ------------------------------------------------------------
+   ★ 2026-08-17 見ていたのが STAGES（黄昏の王城 30面）だけで、
+     <b>禁忌の迷宮も幽冥の庭園も一度も数えていなかった</b>。
+     いちばんむずかしいクエストが評価に入っていなかったので、
+     charFitQuests と同じ STAGES + LAB_STAGES + GARDEN_STAGES に直す。
+   ★ 必要アンチの取り出しは counterKeysOf()、持っているアンチは charAntiKeys()
+     を使う（どちらも既にあるもの。地形ぶんのギミックやオムニの肩代わりも
+     そちらが面倒を見てくれるので、ここで独自ルールを作らない）。
+   rate は「むずかしさで重み付けした割合」で、評価バーはこれを使う。 */
+function questCoverStat(c) {
+  const all = (typeof STAGES === "undefined") ? [] : STAGES.concat(
+    typeof LAB_STAGES !== "undefined" ? LAB_STAGES : [],
+    typeof GARDEN_STAGES !== "undefined" ? GARDEN_STAGES : [],
+    typeof HOURAI_STAGES !== "undefined" ? HOURAI_STAGES : []);
+  const mine = charAntiKeys(c.id);
+  let n = 0, total = 0, hardN = 0, hardTotal = 0, got = 0, sum = 0;
+  const list = [];
+  all.forEach((st) => {
+    const keys = counterKeysOf(st);
+    if (!keys.length) return;                       // ギミックが無い面は数えない
+    const w = stageWeight(st, keys.length);
+    const hard = !!(st.garden || st.hi);
+    total++; sum += w; if (hard) hardTotal++;
+    if (keys.every((k) => mine.indexOf(k) >= 0)) {
+      n++; got += w; if (hard) hardN++; list.push(st.nm || st.id);
+    }
+  });
+  return { n: n, total: total, hardN: hardN, hardTotal: hardTotal, rate: sum ? got / sum : 0, list: list };
+}
+/* 名前の一覧だけ欲しいとき（既存の呼び出しをそのまま生かす） */
+function questCoverList(c) { return questCoverStat(c).list; }
+/* ★ 2026-08-17 バーは「全キャラの中でどのへんか」で出す。
+   ぜんぶのクエストを1人で通せる子はほとんどいないので、
+   割合をそのまま 0〜100 にすると全員のバーが短くなって見分けがつかない。
+   こうげき・たいりょく・スピードが statMinMax() で相対評価しているのと同じそろえ方。 */
+let _coverMinMax = null;
+function coverMinMax() {
+  if (_coverMinMax) return _coverMinMax;
+  const rs = Object.keys(CHARS).map((id) => questCoverStat(CHARS[id]).rate);
+  _coverMinMax = [Math.min(...rs), Math.max(...rs)];
+  return _coverMinMax;
+}
 function charPower(id) {
   const c = CHARS[id], mm = statMinMax(), s = statsOf(id, MAX_LV, MAX_AWK);
-  const scale = (v, r) => Math.round(clamp((v - r[0]) / Math.max(1, r[1] - r[0]) * 78 + 20, 20, 100));
+  /* ★ 2026-08-17 分母のガードを Math.max(1,…) から「0でなければそのまま」に。
+     対応力は 0〜1 の小数なので、1 で割られると差がぜんぶ潰れてしまう。 */
+  const scale = (v, r) => Math.round(clamp((v - r[0]) / ((r[1] - r[0]) || 1) * 78 + 20, 20, 100));
   const abilN = (c.abil || []).length;
+  const ks = killerScore(c);
+  const qs = questCoverStat(c);
   return {
     atk: scale(s.atk, mm.atk),
     hp: scale(s.hp, mm.hp),
     spd: scale(s.spd, mm.spd),
     /* フルバーストは「必要ターンが少ないほど強い」ので反転 */
     ss: Math.round(clamp((mm.ss[1] - c.ssTurns) / Math.max(1, mm.ss[1] - mm.ss[0]) * 78 + 20, 20, 100)),
-    skill: Math.round(clamp(abilN / 5 * 78 + 22, 20, 100)),   // アビリティの多さ＝汎用性
+    /* スキル＝アビリティの数（半分）＋キラーの数と等級（半分） */
+    skill: Math.round(clamp(abilN / 6 * 40 + ks.score / 5 * 40 + 20, 20, 100)),
+    /* 対応力＝アンチが足りているクエストの割合。
+       ★ 数ではなく「むずかしさで重み付けした割合」なので、
+         庭園を1つ通せるほうが、序盤を5つ通せるより高く出る。 */
+    cover: scale(qs.rate, coverMinMax()),
   };
 }
-const POWER_LABELS = { atk: "こうげき", hp: "たいりょく", spd: "スピード", ss: "FB発動の速さ", skill: "スキル" };
-const POWER_COLORS = { atk: "#ff5d47", hp: "#2fbf71", spd: "#38a6ff", ss: "#f0b429", skill: "#c46bff" };
+const POWER_LABELS = { atk: "こうげき", hp: "たいりょく", spd: "スピード", ss: "FB発動の速さ", skill: "スキル・キラー", cover: "クエスト対応力" };
+const POWER_COLORS = { atk: "#ff5d47", hp: "#2fbf71", spd: "#38a6ff", ss: "#f0b429", skill: "#c46bff", cover: "#20c9c9" };
 /* 5段階の星（合計から算出） */
 function powerStars(p) {
-  const avg = (p.atk + p.hp + p.spd + p.ss + p.skill) / 5;
+  const ks = Object.keys(POWER_LABELS);
+  const avg = ks.reduce((a, k) => a + (p[k] || 0), 0) / ks.length;
   return clamp(Math.round(avg / 20), 1, 5);
 }
 /* 強さアニメーションのHTML（ゲージが伸びる＋星が光る）。uniqはID衝突回避用 */
@@ -4360,8 +5617,12 @@ function strengthBarsHTML(id, uniq) {
   }).join("");
   const starHTML = Array.from({ length: 5 }, (_, i) =>
     `<span class="pw-star ${i < stars ? "on" : ""}" style="animation-delay:${i * 110}ms">★</span>`).join("");
+  /* ★ 2026-08-16c 数字そのものも添える（バーだけだと「何個持っているか」が読めない） */
+  const ks = killerScore(CHARS[id]);
+  const qs = questCoverStat(CHARS[id]);
   return `<div class="pw-wrap" data-uniq="${uniq || ""}">
     <div class="pw-stars">${starHTML}<span class="pw-rank">総合力 ${stars}.0</span></div>
+    <div class="pw-facts">キラー <b>${ks.n}</b> 種 ・ アンチが足りているクエスト <b>${qs.n}</b> / ${qs.total}<span class="pwh"> （高難易度 <b>${qs.hardN}</b> / ${qs.hardTotal}）</span></div>
     <div class="pw-grid">${rows}</div>
   </div>`;
 }
@@ -4584,6 +5845,19 @@ function drawFsGlyph(kind, c, g) {
         ctx.lineTo(Math.cos(a) * 8.4, Math.sin(a) * 8.4); ctx.stroke();
         ctx.beginPath(); ctx.arc(Math.cos(a) * 8.4, Math.sin(a) * 8.4, 1.6, 0, Math.PI * 2); ctx.fill();
       } break;
+    case "superinfinitylaser":  /* ★ 2026-08-17b 超強インフィニティレーザー（極太ビーム＋十二方分裂） */
+      ctx.lineWidth = 5.2;
+      ctx.beginPath(); ctx.moveTo(-10.5, 4.8); ctx.lineTo(0.6, -1.6); ctx.stroke();
+      ctx.lineWidth = 1.5;
+      for (let k = 0; k < SINFL_SPLIT_N; k++) {
+        const a = (Math.PI * 2 / SINFL_SPLIT_N) * k + 0.16;
+        ctx.beginPath();
+        ctx.moveTo(2.2 + Math.cos(a) * 2.8, -2.6 + Math.sin(a) * 2.8);
+        ctx.lineTo(2.2 + Math.cos(a) * 9.2, -2.6 + Math.sin(a) * 9.2);
+        ctx.stroke();
+      }
+      ctx.beginPath(); ctx.arc(2.2, -2.6, 3.0, 0, Math.PI * 2); ctx.fillStyle = "#fff"; ctx.fill(); ctx.fillStyle = c;
+      ctx.lineWidth = 2; break;
     /* ★ 2026-08-05 ロゼリア／シズカ（どちらも既存の技の強化版なので、元の絵に「+」を足した形にする） */
     case "superluminous":  /* 超強ルミナスレイ（砲台を2基＋極太レーザー） */
       ctx.beginPath(); ctx.moveTo(-8, -8); ctx.lineTo(-8, 8); ctx.lineWidth = 2.4; ctx.stroke();
@@ -4805,7 +6079,7 @@ const SUB_GLYPH_FALLBACK = new Set([
   "kiblast", "kiblastex", "javelin", "copy", "autoaimbit", "beastcharge",
   "supertri3follow", "supertri3followsharp", "tri3follow", "tri3followsharp",
   "superhiplasma", "superhicross", "superluminous", "superenergycircle",
-  "infinitylaser", "alllocklaser", "superchargeshot", "chargeshot",
+  "infinitylaser", "superinfinitylaser", "alllocklaser", "superchargeshot", "chargeshot",
 ]);
 /* サブリンクスキルの種類アイコン（ボール左上のチップに交互表示。g を渡せば任意のcanvasへ） */
 function drawSubGlyph(kind, c, g) {
@@ -5000,6 +6274,15 @@ function drawSubGlyph(kind, c, g) {
       ctx.beginPath(); ctx.arc(0, 0, 3.2, 0, Math.PI * 2); ctx.stroke();
       ctx.setLineDash([3, 3]); ctx.beginPath(); ctx.arc(0, 0, 6.6, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
       ctx.beginPath(); ctx.arc(0, 0, 1.3, 0, Math.PI * 2); ctx.fill(); break;
+    /* ★ 2026-08-16b ラウンドヒール（ラウンドチャージの回復版）。
+       広がる円はチャージ版と同じにして、中身を十字（回復）に変える＝
+       一目で「同じ形の技の回復版」と分かるようにする。 */
+    case "roundheal":
+      ctx.beginPath(); ctx.arc(0, 0, 3.2, 0, Math.PI * 2); ctx.stroke();
+      ctx.setLineDash([3, 3]); ctx.beginPath(); ctx.arc(0, 0, 6.6, 0, Math.PI * 2); ctx.stroke(); ctx.setLineDash([]);
+      ctx.lineWidth = 1.8;
+      ctx.beginPath(); ctx.moveTo(0, -2.1); ctx.lineTo(0, 2.1); ctx.moveTo(-2.1, 0); ctx.lineTo(2.1, 0); ctx.stroke();
+      ctx.lineWidth = 2; break;
     case "splitpierce":    /* 全敵貫通分裂弾（分裂する貫通矢） */
       ctx.beginPath(); ctx.moveTo(-7.5, 0); ctx.lineTo(0, 0); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(7, -4.2); ctx.moveTo(0, 0); ctx.lineTo(7, 4.2); ctx.stroke();
@@ -5394,6 +6677,9 @@ const RACES = {
      冥花種が「庭を枯らす主」なら、こちらは「庭そのものを喰らう者」。
      蝕冥滅殺（eclipseslayerM）は冥花種とこの蝕魔族の両方に効く。 */
   eclipsedemon:{ nm: "蝕魔族", ic: "🌑", c: "#8e4fe0", desc: "幽冥を内側から喰らう蝕の魔。触れたそばから盤面ごと欠けさせていく。" },
+  /* ★ 2026-08-17i 蓬莱族。蓬莱の九重に住まう仙。
+     二人一組で舞う瑶華＆玉蘭と、九重の頂に座す瑶妃。 */
+  houraifolk:{ nm: "蓬莱族", ic: "🏯", c: "#ff9ec4", desc: "雲の上の九重に住まう仙。舞うように間合いを操り、こちらの立ち位置ごと崩してくる。" },
 };
 /* スプライトのキー → 種族。BOSSES に載っていない敵（庭園・最深部・EX降臨・雑魚兼ボス）ぶん。
    ★ 種族を増やすときに直すのは RACES と BOSSES と、この SP_RACE の3か所だけ。 */
@@ -5401,12 +6687,15 @@ const SP_RACE = {
   hecatia: "netherbloom", misora: "astral",
   zenos: "abyssal", valga: "bladefiend", omega: "dracon", ultra: "beast",
   dominia: "eclipsedemon",   /* ★ 2026-08-07 幽冥の庭園 第11〜15ノ園のボス */
+  /* ★ 2026-08-17i 蓬莱の九重。youka は瑶華＆玉蘭の2体ぶんを1枚の絵で表す */
+  youka: "houraifolk", youhi: "houraifolk",
 };
 /* スプライトのキー → 表示名（BOSSES に載っていない敵ぶん） */
 const SP_NAME = {
   hecatia: "ヘカーティア", misora: "ミソラ",
   zenos: "ゼノス", valga: "ヴァルガ", omega: "オメガ", ultra: "ウルトラ",
   dominia: "ドミニア",
+  youka: "瑶華＆玉蘭", youhi: "瑶妃",
 };
 const RACE_KEYS = Object.keys(RACES);
 /* 5体のボス。sp はスプライトのキー（preload / spThumb / enemyImg が参照する） */
@@ -6178,6 +7467,9 @@ function dedupeWallFx(g) {
      （第11ノ園は「ヒーリングウォール＋断絶界＋クラッシュ攻撃」の上位版という並びになる）
    ══════════════════════════════════════════════════════════════════ */
 /* 園ごとの「主役ギミック」キー（アンチ系では消せないもの） */
+/* ★ 2026-08-16 雑魚に内部弱点が出はじめる園（gardenStage が読む）。
+   ここより前の園は導線を読む練習なので、要素を足さない。 */
+const GARDEN_INNERWEAK_FROM = 3;
 const GARDEN_SPECIAL = ["", "countboost", "balloon", "vanish", "healwall", "wallchange", "chaos",
   /* ★ 2026-08-03 追加。第8〜10ノ園も「同じ組み合わせが1つもない」ように主役ギミックを変える。
      glacier … 減速壁でスピードが出ない園。ヒーリングバルーンで支えつつウォールチェンジで火力を作る
@@ -6587,6 +7879,45 @@ function gardenCleanTerrain(t, defs) {
   };
   return { blocks: (t.blocks || []).filter(keep), ghost: (t.ghost || []).filter(keep), swap: (t.swap || []).slice() };
 }
+/* ══════════════════════════════════════════════════════════════
+   ★ 2026-08-15 第11〜20ノ園の敵の攻撃力をすこし下げる
+   ------------------------------------------------------------
+   攻撃力は 2900 × 1.11^(k−1) の等比のままだったので、
+   第20ノ園は第1ノ園の <b>7.3倍</b>（およそ21,000）になっていた。
+   奥の園ほど減速壁・断絶界・透明スイッチで手数を持っていかれるため、
+   被弾そのものを減らしにくく、「1発もらうと立て直せない」形になっていた。
+
+   ★ HP（GARDEN_BOSS_HP）は<b>触らない</b>。
+     殴りごたえは残したままで、事故の重さだけを軽くしたいので、
+     ここでは攻撃力だけに係数を掛ける。
+
+   係数は 第11ノ園 0.95 → 第20ノ園 0.85 へなだらかに。
+   第10ノ園（1.00）との段差が出ないように、下げ幅は 5% から始める。
+   ══════════════════════════════════════════════════════════════ */
+/* ★ 2026-08-17b 係数を大きく見直した。
+   0.95 → 0.85 では<b>まったく足りていなかった</b>。実測すると、
+   Lv60の★5 4体（HP合計 47,038）に対して 1WAVE ぶんの雑魚の攻撃力合計は
+
+     第11ノ園  42,635（HPの 91%）
+     第15ノ園  61,694（HPの131%）
+     第20ノ園  97,577（HPの<b>207%</b>）
+
+   で、最奥では<b>1巡ぶんの攻撃を受けきると2回全滅する</b>量だった。
+   もとの攻撃力が園ごとに約9.5%ずつ増えるのに対し、係数は10%しか下げていないため、
+   奥へ行くほど差が開くいっぽうだったのが原因。
+
+   そこで<b>係数の下げ幅そのものを奥ほど大きく</b>し、
+   「HPの90〜100%前後」＝<b>受けきると落ちるが、倒しながら進めば勝てる</b>量にそろえた。
+   ★ HP（GARDEN_BOSS_HP）は変えていない。殴りごたえは元のまま。 */
+const GARDEN_ATK_EASE_FROM = 11;   // ここから軽くする園
+const GARDEN_ATK_EASE_HEAD = 0.92; // 第11ノ園の係数
+const GARDEN_ATK_EASE_TAIL = 0.40; // 第20ノ園（＝最奥）の係数
+function gardenAtkEase(k) {
+  if (k < GARDEN_ATK_EASE_FROM) return 1;
+  const span = Math.max(1, GARDEN_N - GARDEN_ATK_EASE_FROM);   // 11→20 なら 9
+  const t = Math.min(1, (k - GARDEN_ATK_EASE_FROM) / span);
+  return GARDEN_ATK_EASE_HEAD + (GARDEN_ATK_EASE_TAIL - GARDEN_ATK_EASE_HEAD) * t;
+}
 function gardenStage(k) {
   const el = GARDEN_ELS[k - 1];
   const anti = GARDEN_ANTI[k - 1];
@@ -6598,7 +7929,7 @@ function gardenStage(k) {
      「最後のWAVEのボスが表の値ちょうどになる」ように全体を伸縮させる（下の rescale）。
      攻撃力はこれまでどおり園ごとに等比で伸ばす（HPを下げても手ごたえは残るように）。 */
   const hpB = GARDEN_BOSS_HP[k - 1] || GARDEN_BOSS_HP[GARDEN_BOSS_HP.length - 1];
-  let atkB = Math.round(2900 * Math.pow(1.11, k - 1));
+  let atkB = Math.round(2900 * Math.pow(1.11, k - 1) * gardenAtkEase(k));
   const sp = GARDEN_SPECIAL[k - 1];
   /* ★ v14.3: ヒーリングバルーンの園は「回復しながら戦える」ぶん被弾を軽く見られがちなので、
      敵の攻撃力を少し高め（×1.10）にして、拾って運ぶ判断に緊張感を持たせる。
@@ -6638,6 +7969,42 @@ function gardenStage(k) {
     if (!isFinite(scale) || scale <= 0 || Math.abs(scale - 1) < 1e-6) return;
     waves.forEach((wv) => wv.forEach((d) => { if (d && d.hp) d.hp = Math.max(1, Math.round(d.hp * scale)); }));
   })();
+  /* ★ 2026-08-16b 弱点を「内部」と「外部」で混ぜる。
+     ------------------------------------------------------------
+     これまで内部弱点はボス専用で、雑魚戦は「早く溶かして次へ」だけの作業だった。
+     かといって全部の雑魚に弱点を置くと、どこを狙っても同じになってしまう。
+     そこで<b>1つのWAVEの中に、外部弱点・内部弱点・弱点なしが混ざる</b>ようにする。
+       ・外部弱点（weak）      … 弱点コアに直接当てる
+       ・内部弱点（innerWeak） … 貫通で中を通す
+       ・弱点なし              … ふつうに削る
+     どれを狙うかで撃ちかたが変わるので、盤面を見る意味が生まれる。
+
+     ・どの敵がどれになるかは <b>園番号・WAVE番号・並び順</b>だけで決める。
+       ここで乱数を使うと、オンラインで端末ごとに違う敵が弱点持ちになり、
+       同じ盤面を見ているはずなのにダメージが食い違う。
+     ・雑魚は3体に1体くらいが「弱点なし」で残る（＝弱点を持たない雑魚もいる）。
+     ・ボスはもともと外部弱点を持っているので、園ごとに内部へ振り替える。
+     ・対象は第3ノ園から。序盤の園は導線を読む練習なので、要素を足さない。 */
+  if (k >= GARDEN_INNERWEAK_FROM) {
+    waves.forEach((wv, w) => {
+      let mi = 0;
+      wv.forEach((d) => {
+        if (!d) return;
+        if (d.boss) {
+          /* ボス: 園とWAVEで内部／外部を入れ替える（どちらか一方だけを持たせる） */
+          if ((k + w) % 2 === 0) { d.innerWeak = 1; d.weak = 0; }
+          else { d.weak = 1; d.innerWeak = 0; }
+          return;
+        }
+        /* 雑魚: 0=外部 / 1=内部 / 2=なし の3種を順に配る */
+        const slot = (k + w + mi) % 3;
+        mi++;
+        if (slot === 0) { d.weak = 1; d.innerWeak = 0; }
+        else if (slot === 1) { d.innerWeak = 1; d.weak = 0; }
+        else { d.weak = 0; d.innerWeak = 0; }
+      });
+    });
+  }
   const gimByWave = waves.map((_, w) => gardenGim(k, w));
   const terrainByWave = waves.map((_, w) => gardenCleanTerrain(gardenTerrain(k, w, waves[w]), waves[w]));
   /* ★ 2026-08-07: 断絶界（旧・結界）がアンチギミックになったので、
@@ -7104,6 +8471,283 @@ const GARDEN_FORM = [
   },
 ];
 const GARDEN_STAGES = Array.from({ length: GARDEN_N }, (_, k) => gardenStage(k + 1));
+/* ══════════════════════════════════════════════════════════════
+   ★ 2026-08-17i 爆絶高難易度クエスト「蓬莱の九重」
+   ══════════════════════════════════════════════════════════════
+   第一重〜第九重（9階層）＋ 九重を全て越えると開く「蓬莱天宮」の 計10クエスト。
+
+   ■ アンチギミックの組み合わせ
+     幽冥の庭園・黄昏の王城EX・禁忌の迷宮 第25〜30の間で<b>使われていない</b>
+     組み合わせだけを使う（機械で照合ずみ。当時あいていたのは8通り）。
+     10クエストあるので、第八重と蓬莱天宮の2つは<b>3種のアンチ</b>にして
+     10クエストすべてを別の構成にしてある。
+   ■ 属性は 火→水→木→光→闇 のくり返し。最後の蓬莱天宮は闇。
+   ■ ボスは第一重〜第九重が瑶華＆玉蘭（2体で1組）、蓬莱天宮が瑶妃。どちらも蓬莱族。
+   ■ 雑魚のHPは低め・ボスのHPは高め（モンストのような「ボスを削りきる」構成）。
+   ────────────────────────────────────────────────────────────── */
+/* ══ ★ 2026-08-17L 幽冥の庭園 第16〜20ノ園の<b>雑魚だけ</b>を軽くする ══
+   実測すると、1WAVEぶんの攻撃力合計のうち<b>9割以上が雑魚</b>で、
+   ボスは1割ほどしかなかった。全体の係数（gardenAtkEase）だけを下げると
+   ボスの手ごたえまで一緒に落ちてしまうので、ここは雑魚に絞って下げる。
+     第16〜20ノ園の雑魚 … ×0.70（対チームHP 92% → 約65%）
+   ★ ボスの攻撃力は触らない。詰めの緊張感はそのまま残す。 */
+const GARDEN_MOB_EASE_FROM = 16;
+const GARDEN_MOB_EASE = 0.70;
+GARDEN_STAGES.forEach((st, i) => {
+  const k = i + 1;
+  if (k < GARDEN_MOB_EASE_FROM) return;
+  (st.waves || []).forEach((wv) => (wv || []).forEach((d) => {
+    if (d && !d.boss && d.atk) d.atk = Math.max(1, Math.round(d.atk * GARDEN_MOB_EASE));
+  }));
+});
+const HOURAI_N = 10;                       // 第一重〜第九重＋蓬莱天宮
+const HOURAI_ORB = 20;                     // 初クリアのジェム
+const HOURAI_KANJI = ["一", "二", "三", "四", "五", "六", "七", "八", "九"];
+/* 属性: 火→水→木→光→闇 のくり返し。10番目（蓬莱天宮）は闇。 */
+const HOURAI_ELS = ["fire", "water", "wood", "light", "dark",
+                    "fire", "water", "wood", "light", "dark"];
+/* アンチギミックの組み合わせ。★ 既存3系統に無いものだけ。
+   8通りしかないので、第八重と蓬莱天宮は3種にして重複を避けている。 */
+const HOURAI_ANTI = [
+  ["dw", "grav"],                 // 第一重
+  ["dw", "slowwall"],             // 第二重
+  ["dw", "ward"],                 // 第三重
+  ["grav", "ward"],               // 第四重
+  ["ward", "warp"],               // 第五重
+  ["mine", "slowwall"],           // 第六重
+  ["mine", "ward"],               // 第七重
+  ["dw", "mine", "grav"],         // 第八重（3種）
+  ["slowwall", "ward"],           // 第九重
+  ["grav", "warp", "slowwall"],   // 蓬莱天宮（3種）
+];
+/* 階層ごとの二つ名（難度表示に使う） */
+const HOURAI_NM = ["紅蓮", "碧水", "翠風", "白光", "玄冥", "焔舞", "蒼渦", "金剛", "月華"];
+/* ボスHP。★ 雑魚を下げるぶん、ボスは幽冥の庭園より高くする */
+/* ★ 2026-08-17j さらにボスへ寄せた。
+   雑魚は「1〜2手で片づく」、ボスは「編成と手順が噛み合わないと削りきれない」を狙う。
+   幽冥の庭園の最奥（3,690万）に対し、蓬莱天宮は<b>1億4,000万</b>。 */
+/* ★ 2026-08-17r ボスHPは<b>2つの段</b>にまとめた。
+   階層ごとに少しずつ変えると「どこまで削れる編成なのか」が読みにくいので、
+   ・第一重〜第五重 … 第五重の値でそろえる（2,588万）
+   ・第六重〜第九重 … 第九重の値でそろえる（5,796万）
+   ・蓬莱天宮      … 別格（1億1,077万）
+   の3段にして、段が上がるところで「編成を組み直す」区切りが分かるようにする。
+   ★ 有利属性は全10クエストで 1.5倍。属性をそろえれば実質 2/3 の削り量になる。 */
+const HOURAI_BOSS_HP = [
+  25880000, 25880000, 25880000, 25880000, 25880000,
+  57960000, 57960000, 57960000, 57960000, 110770000,
+];
+/* WAVEごとの特殊。★ 1クエストにつき1つだけ効かせる（重ねると何が起きたか読めない）
+   descend … 雑魚を全滅させるとボスが降臨する（モンスト方式）
+   edgedoom … 画面の端に長めに現れてから即死を撃つ
+   knockback … 下部まで吹き飛ばす（蓬莱天宮の瑶妃）*/
+const HOURAI_SPECIAL = ["", "descend", "edgedoom", "descend", "edgedoom",
+                        "descend", "edgedoom", "descend", "edgedoom", "knockback"];
+/* ★ 2026-08-17m 盤面そのものを変える特殊ギミックを階層ごとに1つずつ。
+   これを入れていなかったため、10クエストが「アンチの組み合わせが違うだけ」の
+   ほとんど同じ盤面になっていた。庭園で使っている仕掛けを、蓬莱では別の順番で並べ直す。
+   ★ 壁系（wallchange / healwall）は1クエストに1種類まで。重ねると盤面が読めない。 */
+const HOURAI_GIMSP = [
+  "countboost",   /* 第一重 … 敵の攻撃カウントが早く進む */
+  "balloon",      /* 第二重 … ヒーリングバルーン（降臨まで耐える） */
+  "wallchange",   /* 第三重 … 壁の色＝通せる撃種が入れ替わる */
+  "photon",       /* 第四重 … エーテルを運んでシールドを割る */
+  "vanish",       /* 第五重 … ふれた箱が次のターンに消える */
+  "healwall",     /* 第六重 … 回復壁 */
+  "innerweak",    /* 第七重 … 内部弱点（貫通でしか弱点を殴れない） */
+  "countboost",   /* 第八重 … 3種アンチ＋カウント加速 */
+  "photon",       /* 第九重 … エーテル＋端の即死 */
+  "vanish",       /* 蓬莱天宮 … 消える箱＋吹き飛ばし */
+];
+
+/* ★ 2026-08-17o 奥の階層の攻撃力をならす。
+   味方のHPは階層が上がっても増えないので、素の伸びだけだと最奥が理不尽になる。
+   幽冥の庭園と同じ考えかたで、奥ほど係数を下げて
+   「1WAVEぶんの攻撃 ≒ チームHPの85〜95%」に収める。 */
+function houraiAtkEase(k) {
+  const t = Math.min(1, Math.max(0, (k - 1) / (HOURAI_N - 1)));
+  return 1.00 + (0.62 - 1.00) * t;     /* 第一重 1.00 → 蓬莱天宮 0.62 */
+}
+/* 1クエストぶんを組み立てる */
+function houraiStage(k) {
+  const i = k - 1;
+  const el = HOURAI_ELS[i];
+  const anti = HOURAI_ANTI[i];
+  const sp = HOURAI_SPECIAL[i];
+  const last = (k === HOURAI_N);                       // 蓬莱天宮
+  const bossSp = last ? "youhi" : "youka";
+  const hpB = HOURAI_BOSS_HP[i];
+  /* ★ 2026-08-17o 「ギリギリのHPで削り合う」重さにする。
+     もとの 3400×1.10^i だと1WAVEぶんの攻撃がチームHPの2割ほどしかなく、
+     ほぼ無傷で押し切れてしまっていた。
+     ★ 階層ごとの伸びは<b>ゆるく</b>する（1.10^i だと最奥が10倍近くなり、
+       味方のHPは増えないので最後だけ理不尽になる）。
+       伸びぶんは houraiAtkEase() で最終調整している。 */
+  const atkB = Math.round(11800 * Math.pow(1.035, i) * houraiAtkEase(k));
+  /* ★ 雑魚は「倒しやすく・でも痛い」。HPはボスの数%まで落とす。 */
+  /* ★ 2026-08-17k 雑魚は「<b>4手ほどで1体倒せる</b>」重さにそろえる。
+     0.5% だと1〜2手で溶けて、雑魚をさばく判断そのものが無くなっていた。
+     ボスHPが階層ごとに伸びるので、割合で決めると雑魚まで際限なく重くなる。
+     そこで<b>味方の実火力から逆算</b>する。
+       ・最大Lvの★5の直殴りは 1手あたりおよそ MOB_HIT_DMG（弱点や倍率は乗せない素の値）
+       ・階層が上がるほど味方も育っている前提で、ゆるやかに増やす
+     ★ ボスHPとは切り離すこと。ここを hpB 連動に戻すと、また1手で溶けるか鉄壁になる。
+     ★ この値は<b>実際の手ごたえから逆算</b>してある。
+       前の版の雑魚（第二重で16万）が「1〜2手で溶ける」という報告だったので、
+       1手ぶんの実火力を約16万とみて、その4倍を1体ぶんの基準にした。
+       （直殴りの素の値ではなく、キラー・属性有利・リンクまで含めた実効値） */
+  const MOB_HIT_DMG = 160000;                     // 1手ぶんの実効ダメージのめやす
+  const MOB_HITS = 5;                             /* ★ 2026-08-17o 4手 → 5手（少し固く） */
+  /* ★ 2026-08-17r 雑魚戦（WAVE1〜3）の雑魚だけ、さらに少し固くする。
+     ボス戦の護衛は「ボスを削る手をどれだけ取られるか」なので上げすぎない。 */
+  const MOB_W13 = 1.35;
+  const mobHp = (m) => Math.round(MOB_HIT_DMG * MOB_HITS * m * (1 + i * 0.16));
+  const mk = (mult, x, y, o) => Object.assign(
+    { el, sp: k <= 4 ? "zenos" : "valga", hp: mobHp(mult), atk: atkB, cd: 2 + (x > .5 ? 1 : 0), r: 44, x, y }, o || {});
+  /* ボス。瑶華＆玉蘭は2体で1組なので twin を立てる（攻撃を別カウントで回す目印） */
+  const bs = (mult, o) => Object.assign(
+    { el, sp: bossSp, boss: 1, weak: 1, r: last ? 112 : 104,
+      hp: Math.round(hpB * mult), atk: Math.round(atkB * 1.5), cd: 3, x: .5, y: .24,
+      hourai: 1 }, last ? { knockback: 1 } : { twin: 1 }, o || {});
+  /* アンチギミックを WAVE ごとに散らす。
+     ★ 同じクエストの中でも WAVE ごとに数と置きかたを変える（全WAVEで別構成にするため）。 */
+  const gimOf = (w) => {
+    const g = {};
+    anti.forEach((a, ai) => {
+      /* ★ 2026-08-17p アンチは<b>全WAVEで必ず全部そろえる</b>。
+         以前は WAVE によって片方を消していたので、
+         「第七重の2〜3WAVE目だけ地雷が無い」のように<b>途中でギミックが消える</b>面ができていた。
+         クエストの顔＝アンチの組み合わせなので、ここは絶対に欠けさせない。
+         WAVEごとの変化は<b>数と置きかた</b>で出す（下の w を使った増減）。 */
+      {
+        /* ★ 2026-08-17n ギミックの値は<b>形が決まっている</b>。
+           数を入れるだけのもの（warp / wallchange / vanish …）と、
+           オブジェクトで渡すもの（dw / mine / ward / slowwall / healwall / balloon / lockzone / photon）がある。
+           ★ 形をまちがえると描画側が undefined を forEach して<b>render ごと落ちる</b>
+             ＝敵も味方も1体も描かれない（実際そうなっていた）。
+             新しいクエストを作るときは、必ず既存クエストの gim を見て形をそろえること。 */
+        const side4 = ["left", "right", "top", "bottom"];
+        if (a === "dw") g.dw = { sides: (w % 2) ? ["left", "right"] : ["top", "bottom"], dmg: Math.round(atkB * 0.42) };
+        else if (a === "warp") g.warp = 2 + (w % 2);
+        else if (a === "mine") g.mine = { n: 3 + w, dmg: Math.round(atkB * 0.55) };
+        else if (a === "slowwall") g.slowwall = { sides: (w % 2) ? ["top", "bottom"] : ["left", "right"] };
+        else if (a === "block") g.block = 1;
+        else if (a === "lockzone") g.lockzone = { n: 1 + (w >= 3 ? 1 : 0) };
+        else if (a === "ward") g.ward = { n: 1 + (w >= 4 ? 1 : 0), hits: 2 + (w >= 3 ? 1 : 0) };
+      }
+    });
+    /* ★ 2026-08-17m 盤面を変える特殊ギミックを1つ足す。
+       WAVEによって出したり出さなかったりして、同じ面が2つできないようにする。 */
+    /* ★ 2026-08-17p 特殊ギミックも<b>全WAVEで必ず出す</b>。
+       以前は「このWAVEだけ出さない」を入れていたため、
+       特殊ギミックが1つも無いWAVEができてしまっていた。
+       WAVEごとの変化は<b>数・強さ</b>で付ける。 */
+    const gs = HOURAI_GIMSP[i];
+    if (gs === "countboost") g.countboost = 1;
+    if (gs === "balloon") g.balloon = { n: 2 + (w % 3) };
+    if (gs === "wallchange") g.wallchange = 1;
+    if (gs === "photon") g.photon = { n: 2 + (w >= 3 ? 1 : 0), need: 2 + (w >= 4 ? 1 : 0) };
+    if (gs === "vanish") g.vanish = 1;
+    if (gs === "healwall") g.healwall = { sides: (w % 2) ? ["left"] : ["right"] };
+    /* ★ 内部弱点は<b>ボスWAVEだけ</b>（雑魚には弱点そのものが無いので付けても意味がない）。
+       そのぶん雑魚WAVEが空になってしまうので、<b>そちらには別の特殊を置く</b>。
+       これを入れないと第七重の1〜3WAVE目だけ特殊ギミックが1つも無い面になる。 */
+    if (gs === "innerweak") {
+      if (w >= 3) g.innerweak = 1;
+      else g.balloon = { n: 2 + (w % 2) };
+    }
+    return g;
+  };
+  /* 敵の並び。WAVE ごとに形を変える（横一列・くさび・四隅・囲みの4型を階層でずらす） */
+  const FORMS = [
+    [[.20, .30], [.50, .22], [.80, .30]],
+    [[.50, .18], [.28, .38], [.72, .38], [.50, .56]],
+    [[.16, .24], [.84, .24], [.16, .54], [.84, .54]],
+    [[.50, .16], [.22, .32], [.78, .32], [.30, .58], [.70, .58]],
+  ];
+  /* ★ 重力バリアは<b>敵が持つ</b>もの（counterKeysOf も敵の grav を見る）。
+     ステージの gim に書いても効かないし、対策クエストにも数えられない。 */
+  const useGrav = anti.indexOf("grav") >= 0;
+  const gv = (n) => (useGrav ? { grav: n } : {});
+  const waves = [];
+  for (let w = 0; w < 6; w++) {
+    const form = FORMS[(i + w) % FORMS.length];
+    if (w < 3) {
+      /* 雑魚WAVE。HPは低め・数は多め */
+      waves.push(form.map((p, n) => mk((1 + w * .28 + n * .06) * MOB_W13, p[0], p[1],
+        Object.assign(n === 0 ? { weak: 1 } : (n % 2 ? { pattern: "laser" } : {}),
+                      (n % 2 === 0) ? gv(1 + (w % 2)) : {}))));
+    } else {
+      /* ボスWAVE */
+      const guards = form.slice(1).map((p, n) => mk(1.2 + w * .22, p[0], Math.max(.42, p[1] + .18),
+        Object.assign(n % 2 ? { pattern: "homing" } : { weak: 1 }, (n % 2 === 0) ? gv(2) : {})));
+      const b = bs(1 + (w - 3) * .55, {
+        pattern: w === 5 ? "burst" : w === 4 ? "laser" : "all",
+        doomMax: 8 - (w - 3), crush: 7 - (w - 3),
+      });
+      /* ★ descend の階層は、ボスWAVEを「雑魚を全滅させるとボスが降りてくる」形にする */
+      /* ★ 降臨は<b>ボスWAVEすべて</b>で。雑魚を片づけてからボスに向きあう形にそろえる。 */
+      if (sp === "descend") b.descend = 1;
+      /* ★ 端の即死は、猶予のあるうしろのWAVEだけ（序盤から出すと読む間がない） */
+      if (sp === "edgedoom" && w >= 4) { b.edgeDoom = 1; b.edgeWarn = 3; }
+      /* 瑶華＆玉蘭は2本目のカウントを1本目より少し長くする（同時に殴らせない） */
+      if (!last) b.cd2 = b.cd + 2;
+      waves.push([b].concat(guards));
+    }
+  }
+  const gimByWave = waves.map((_, w) => gimOf(w));
+  return {
+    id: "hr" + k, nm: last ? "蓬莱天宮" : "蓬莱の九重・第" + HOURAI_KANJI[i] + "重",
+    room: k, hourai: 1, hi: true,
+    el, elemUp: 1.50,
+    diff: last ? "★蓬天" : "★蓬" + HOURAI_NM[i],
+    gold: 26000 + k * 5200 + (last ? 40000 : 0),
+    orb: HOURAI_ORB, exp: 4200 + k * 780,
+    bgKey: last ? "tenkyu" : "hourai", bgm: "garden-of-the-nether.mp3",
+    banner: "bn_hourai_s.webp",
+    gim: gimByWave[0], blocks: [], ghost: [], swap: [],
+    gimByWave, waves,
+    special: sp,
+  };
+}
+const HOURAI_STAGES = Array.from({ length: HOURAI_N }, (_, k) => houraiStage(k + 1));
+/* ══ ★ 2026-08-17o 1WAVEぶんの攻撃力を「チームHPの◯%」にそろえる ══
+   ------------------------------------------------------------
+   敵の数はWAVEごとの陣形で3〜5体と変わるので、1体あたりを同じにすると
+   WAVE合計が 65%〜134% とばらついていた（＝ある面は無傷、ある面は一撃全滅）。
+   ここで<b>WAVEの合計</b>を見て、目標の割合になるように全員をならす。
+     雑魚戦（WAVE1〜3） … 105% → 122%（奥の階層ほど重く）
+     ボス戦（WAVE4〜6） … 128% → 148%
+   ★ <b>あえて100%を超えている</b>。
+     回復アビリティ（回復M・リジェネM・治癒の祈り・バウンドヒールなど）や
+     WAVEクリアの回復でHPが戻るので、100%以下だと素通りできてしまう。
+     「敵を先に減らす」「回復を挟む」の<b>どちらもやらないと落ちる</b>重さにしてある。
+   ★ 上げすぎると回復編成しか通らなくなる。ボス戦は<b>1.5倍まで</b>を目安にすること。
+   ★ HOURAI_REF_HP は最大Lvの★5を4体そろえたときのチームHPのめやす。
+     キャラを増やしてHPの上限が上がったら、この数字も見直すこと。 */
+const HOURAI_REF_HP = 47000;
+HOURAI_STAGES.forEach((st, i) => {
+  const t = HOURAI_N > 1 ? i / (HOURAI_N - 1) : 0;
+  (st.waves || []).forEach((wv, w) => {
+    const bossWave = (wv || []).some((d) => d && d.boss);
+    const want = HOURAI_REF_HP * ((bossWave ? 1.28 : 1.05) + (bossWave ? 0.20 : 0.17) * t);
+    const now = (wv || []).reduce((a, d) => a + ((d && d.atk) || 0), 0);
+    if (!now) return;
+    const k = want / now;
+    wv.forEach((d) => { if (d && d.atk) d.atk = Math.max(1, Math.round(d.atk * k)); });
+  });
+});
+/* ★ 2026-08-17L 蓬莱天宮（10番目）は<b>第九重をクリアするまで開かない</b>。
+   ほかのクエストは1つ前をクリアすれば次が開くので、同じ決まりにそろえてある。 */
+HOURAI_STAGES.forEach((st, i) => {
+  /* ★ 2026-08-17m 蓬莱天宮は<b>第一重〜第九重をすべてクリア</b>して初めて開く。
+     「1つ前だけ」だと第九重を抜けた時点で入れてしまうので、9つ全部を条件にする。 */
+  if (i === HOURAI_N - 1) st.needAllClear = HOURAI_STAGES.slice(0, HOURAI_N - 1).map((x) => x.id);
+});
+function houraiTenkyuOpen() {
+  if (typeof DB === "undefined" || !DB || !DB.clears) return false;
+  return HOURAI_STAGES.slice(0, HOURAI_N - 1).every((x) => DB.clears[x.id]);
+}
 /* ★ 2026-08-05 新ギミック「FB遅延攻撃」は 第8〜12ノ園 で採用する。
    ・各WAVEに<b>1体だけ</b>置く。2体以上だと毎ターン巻きもどされてフルバーストが永久に撃てず、
      「対策する」ではなく「何もできない」になってしまう。
@@ -7364,8 +9008,17 @@ assignBosses(LAB_STAGES, "lab");
    踏破数は毎月リセットされるため、月が変わるたびに開けていた園が閉じてしまい、
    遊べるクエストが勝手に減る状態になっていた。開放条件そのものをやめる。 */
 function gardenUnlocked(k) { return true; }
-function stageLocked(s) { return !!(s && s.garden && !gardenUnlocked(s.room)); }
-function findStage(id) { return STAGES.find((s) => s.id === id) || LAB_STAGES.find((s) => s.id === id) || GARDEN_STAGES.find((s) => s.id === id) || (RAIDS[id] ? raidStage(id) : null); }
+/* ★ 2026-08-17m 蓬莱天宮は「第一重〜第九重をすべてクリア」で開く。
+   ここに足さないと、カギの絵は出ても<b>そのまま出撃できてしまう</b>
+   （表示と実際の開閉は別なので、必ず両方そろえること）。 */
+function stageLocked(s) {
+  if (s && s.needAllClear) {
+    const cl = (typeof DB !== "undefined" && DB && DB.clears) || {};
+    if (!s.needAllClear.every((id) => cl[id])) return true;
+  }
+  return !!(s && s.garden && !gardenUnlocked(s.room));
+}
+function findStage(id) { return STAGES.find((s) => s.id === id) || LAB_STAGES.find((s) => s.id === id) || GARDEN_STAGES.find((s) => s.id === id) || HOURAI_STAGES.find((s) => s.id === id) || (RAIDS[id] ? raidStage(id) : null); }
 
 /* ★ 2026-08-07: 定義の並びも ANTI_ORDER にそろえた（counterKeysOf が orderAntiKeys を
    通すので実際の表示順はそちらで決まるが、読むときに迷わないよう同じ順にしておく）。 */
@@ -7441,6 +9094,13 @@ const PREMIUM_CHARS = ["kaguya", "ema", "cheryl", "sakura", "bernica", "tsubaki"
   /* ★ 2026-08-11 新★5 3体（シズク・ユウナギ・イズミ）。
      3体ともオムニアンチ無し・アンチちょうど2種で、属性有利の庭園適正を1つずつ持つ。 */
   "shizuku", "yuunagi", "izumi",
+  /* ★ 2026-08-16b No.108 以降のキャラは全員プレミアムセレクトガチャから出る。
+     アンナ・ツキノは追加時にここへ入れ忘れていて、実装ずみなのに引けなかった。 */
+  "anna", "tsukino",
+  "moeka", "suzuha", "violet", "kanata", "touka", "elena", "grace",
+  /* ★ 2026-08-18 プレミアム新★5 8体＋ロキシー（No.119〜127）。
+     ★ ここへの追加を忘れると<b>実装ずみなのに引けないキャラ</b>になる（追加時の定番の抜け）。 */
+  "artemia", "asuha", "blair", "lilith", "lyra", "satsuki", "sayo", "melty", "roxy",
 ];
 /* ══ ★ 2026-08-10 ガチャの★4枠 ══
    XEVAガチャから移行した★4 19体を、<b>すべてのガチャ</b>（プレミアム・両フェス）の
@@ -7462,12 +9122,12 @@ const STARTER_IDS = ["hina", "runa", "noa", "haruka"];
      ・★4枠を 40% → 55% に拡大（★4が23体に増えたので、集める楽しみが出る）
      ・叡智の果実（レベルが3つ上がる）
      ・超越の書（レベル上限を60へ）／英傑の証（ルーン枠を3つへ）＝どちらもレアな当たり
-     ・🎫 フェス限定ガチャチケット
+     ・🎫 フェスチケット
    ★5の合計10%は<b>変えていない</b>。 */
 const G_ITEM_TABLE = [
   { p: 0.20, item: "wisdom", n: 1, nm: "叡智の果実" },
   { p: 0.08, item: "wisdom", n: 3, nm: "叡智の果実" },
-  { p: 0.04, ticket: 1, nm: "フェス限定ガチャチケット" },
+  { p: 0.04, ticket: 1, nm: "フェスチケット" },   /* フェスガチャ専用（従来どおり） */
   { p: 0.02, item: "trans", n: 1, nm: "超越の書" },
   { p: 0.01, item: "hero", n: 1, nm: "英傑の証" },
 ];
@@ -7493,7 +9153,8 @@ function rollGachaItem(r) {
    ・★4（初期キャラ4体）は各10%＝合計40%、残り50%はゴールド（プレミアムと同じ配分）
    ★ v15: フェスが2本立てになったので、ここから下は「フェスの種類（key）」で共通化してある。
      フェスを増やすときは FESTS に1行足して、DOM 側にタブ＋セクションを1つ足すだけでよい。
-     🎫フェス限定ガチャチケットは<b>どのフェスでも共通</b>で使える（配布・所持数は1本化）。
+     🎫フェスチケットは<b>どのフェスでも共通</b>で使える（配布・所持数は1本化）。
+     2026-08-13 に新設した🎫<b>ガチャチケット</b>は別枠で、プレミアムでも使える。
    ══════════════════════════════════════════════════════════════ */
 const FESTS = {
   /* key ＝ gachaMode の値。id は DOM の接尾辞（#gFes / #gFes2 …） */
@@ -7571,11 +9232,26 @@ const GACHA_CHARS = PREMIUM_CHARS.concat(FES_ALL_CHARS);   // 図鑑・互換用
 /* フェスガチャの排出対象（限界突破MAXは除外して、そのぶん他の★5に配分する） */
 function fesPool(key) { return fesDef(key).chars.filter((id) => !isMaxAwk(id)); }
 function fesEachRate(key) { const n = fesPool(key).length; return n ? S5_TOTAL / n : 0; }
-/* ══════════ フェス限定ガチャチケット ══════════
-   ・フェスガチャ専用（どのフェスでも使える）。1枚＝1回ぶん（ジェム5個ぶん）
-   ・ガチャを回すときは「チケットを優先して使う」（足りない分だけジェムを消費する） */
+/* ══════════ 🎫チケット（2種類） ══════════
+   ★ <b>フェスチケット</b>（DB.fesTicket / xeva_fticket_v1）
+       従来からあるもの。<b>フェスガチャ専用</b>（どのフェスでも使える）。
+   ★ <b>ガチャチケット</b>（DB.gTicket / xeva_gticket_v1）… 2026-08-13 新設
+       <b>プレミアムでも各フェスでも</b>使える。券面は色ちがい（青金）。
+   どちらも 1枚＝1回ぶん（ジェム5個ぶん）。
+
+   ★ 消費の順番は <b>フェスチケット → ガチャチケット → 💎ジェム</b>。
+     専用のほう（フェス）から先に使わないと、フェスでしか使えないチケットが
+     手元に残り続けてしまう。プレミアムではフェスチケットは使えないので
+     「ガチャチケット → ジェム」の2段。
+
+   ★ 残高の置き場所はどちらも XEVARION 共通ウォレット。
+     DB.fesTicket / DB.gTicket はそこへの橋渡し（アクセサ）なので、
+     読み書きの書き方はこれまでどおりでよい。 */
 const FES_TICKET_COST = 1;   // 1回につき1枚
+const GACHA_TICKET_COST = 1;
+const GACHA_GEM_COST = 5;    // 1回ぶんのジェム
 function fesTickets() { return Math.max(0, DB.fesTicket | 0); }
+function gachaTickets() { return Math.max(0, DB.gTicket | 0); }
 /* フェスガチャのチケット券面（自作SVG）。夜に咲く花＝Nocturne Bloom をモチーフにした夜色のチケット */
 function fesTicketSVG(px) {
   const s = px || 30, w = "width:" + (s * 1.55) + "px;height:" + s + "px;display:block";
@@ -7603,6 +9279,40 @@ function fesTicketSVG(px) {
     </g>
     <text x="41.5" y="17" text-anchor="middle" font-family="Orbitron,sans-serif" font-size="7.4" font-weight="900" fill="#ffd257">FES</text>
     <text x="41.5" y="27.5" text-anchor="middle" font-family="Orbitron,sans-serif" font-size="6" font-weight="900" fill="#ffd0e2">TICKET</text>
+    <path d="M31 32.5h21" stroke="#ffd257" stroke-width=".9" opacity=".6"/>
+  </svg>`;
+}
+/* ══ ガチャチケットの券面（★ 2026-08-13 新設）══
+   フェスチケットと<b>同じ形・ちがう色</b>にしてある。
+   ・フェス券 … 夜色（紫）＋夜に咲く花
+   ・ガチャ券 … 青金＋八角の星（＝どのガチャでも使える「万能」の意）
+   ★ グラデーションの id は必ず別名にすること。同じ id にすると、
+     2枚を同じ画面に並べたときに<b>あとから読まれたほうの色に全部そろってしまう</b>
+     （SVG の defs は文書全体で1つの名前空間）。 */
+function gachaTicketSVG(px) {
+  const s = px || 30, w = "width:" + (s * 1.55) + "px;height:" + s + "px;display:block";
+  return `<svg viewBox="0 0 62 40" style="${w}" aria-hidden="true">
+    <defs>
+      <linearGradient id="gtg" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#0d2a52"/><stop offset=".5" stop-color="#1a63b8"/><stop offset="1" stop-color="#08182f"/>
+      </linearGradient>
+      <linearGradient id="gtp" x1="0" y1="0" x2="1" y2="1">
+        <stop offset="0" stop-color="#bfe9ff"/><stop offset="1" stop-color="#5ab6ff"/>
+      </linearGradient>
+    </defs>
+    <path d="M3 6h56v9a5 5 0 000 10v9H3v-9a5 5 0 000-10z" fill="url(#gtg)" stroke="#ffd257" stroke-width="1.6"/>
+    <path d="M22 4v32" stroke="#ffd257" stroke-width="1.2" stroke-dasharray="3 3" opacity=".85"/>
+    <g transform="translate(12.5 20)">
+      <circle r="7.6" fill="none" stroke="#ffd257" stroke-width="1.1" opacity=".7"/>
+      ${/* 八角の星（4本のとがった光条＋斜めの短い光条） */""}
+      <g fill="url(#gtp)">
+        <path d="M0-7.4 1.7-1.7 7.4 0 1.7 1.7 0 7.4-1.7 1.7-7.4 0-1.7-1.7Z"/>
+        <path d="M0-4.6 1.1-1.1 4.6 0 1.1 1.1 0 4.6-1.1 1.1-4.6 0-1.1-1.1Z" transform="rotate(45)"/>
+      </g>
+      <circle r="1.9" fill="#fff"/>
+    </g>
+    <text x="41.5" y="17" text-anchor="middle" font-family="Orbitron,sans-serif" font-size="7.4" font-weight="900" fill="#ffd257">GACHA</text>
+    <text x="41.5" y="27.5" text-anchor="middle" font-family="Orbitron,sans-serif" font-size="6" font-weight="900" fill="#bfe9ff">TICKET</text>
     <path d="M31 32.5h21" stroke="#ffd257" stroke-width=".9" opacity=".6"/>
   </svg>`;
 }
@@ -7697,7 +9407,7 @@ function charAntiKeys(id) {
 /* 適性クエスト: そのキャラのアンチ系アビリティが「そのクエストのアンチギミックをどれだけ消せるか」＋属性有利で選ぶ */
 function charFitQuests(id) {
   const c = CHARS[id], mine = charAntiKeys(id);
-  const all = STAGES.concat(LAB_STAGES, GARDEN_STAGES);
+  const all = STAGES.concat(LAB_STAGES, GARDEN_STAGES, HOURAI_STAGES);
   const scored = all.map((s) => {
     const keys = counterKeysOf(s);
     const cover = keys.filter((k) => mine.indexOf(k) >= 0).length;
@@ -7712,17 +9422,20 @@ function charFitQuests(id) {
   /* ★ v12.2: シリーズごとに最大2件・合計6件まで見せる（適性が分かりやすいように件数を増やした） */
   const out = [], per = {};
   for (const x of scored) {
-    const ser = x.s.garden ? "garden" : x.s.lab ? "lab" : "castle";
+    /* ★ 2026-08-17L 蓬莱の九重を4つ目の系統として足す。
+       ほかと同じく<b>2つまで</b>。ここを足し忘れると、蓬莱に刺さるキャラなのに
+       適性クエストに1件も出てこない（庭園までしか見ていなかった）。 */
+    const ser = x.s.hourai ? "hourai" : x.s.garden ? "garden" : x.s.lab ? "lab" : "castle";
     if ((per[ser] || 0) >= 2) continue;
     per[ser] = (per[ser] || 0) + 1;
     out.push(x);
-    if (out.length >= 6) break;
+    if (out.length >= 8) break;   /* ★ 4系統×2枠 */
   }
   /* シリーズごとにまとめて並べる（王城→迷宮→庭園） */
-  const order = { castle: 0, lab: 1, garden: 2 };
+  const order = { castle: 0, lab: 1, garden: 2, hourai: 3 };
   out.sort((a, b) => {
-    const sa = a.s.garden ? "garden" : a.s.lab ? "lab" : "castle";
-    const sb = b.s.garden ? "garden" : b.s.lab ? "lab" : "castle";
+    const sa = a.s.hourai ? "hourai" : a.s.garden ? "garden" : a.s.lab ? "lab" : "castle";
+    const sb = b.s.hourai ? "hourai" : b.s.garden ? "garden" : b.s.lab ? "lab" : "castle";
     return (order[sa] - order[sb]) || (b.score - a.score);
   });
   return out;
@@ -7880,7 +9593,7 @@ function buildFesSections() {
       <div class="gticket" id="gTicket${f.sfx}"></div>
       <div class="gfesgrid" id="gFesGrid${f.sfx}"></div>
       <div class="gpick" id="gfespick${f.sfx}"></div>
-      <div class="gnote">🎫 <b>フェスチケットは自動で優先して使われます</b>（足りない分だけ<i class='icc ic-gem'></i>ジェムを消費）。チケットは<b>どのフェスでも共通</b>です。<br>
+      <div class="gnote">🎫 <b>チケットは自動で優先して使われます</b>（フェス券 → ガチャ券 → <i class='icc ic-gem'></i>ジェムの順）。フェス券は<b>どのフェスでも</b>、ガチャ券は<b>どのガチャでも</b>使えます。<br>
         🎯 <b>10連の最後の1枠（★5確定）は、このフェスの限定★5とプレミアムセレクトガチャの★5をまとめた中から全員おなじ確率</b>で出ます。</div>
       <button class="grates" onclick="openRates('${f.key}')">提供割合を見る</button>
     </section>`;
@@ -7933,7 +9646,7 @@ function paintGacha() {
     const gt = $("#gTicket" + f.sfx);
     if (gt) gt.innerHTML = `${fesTicketSVG(34)}
       <div><div class="gtn">${fmt(fesTickets())} <span style="font-size:11px">枚</span></div>
-        <div class="gtl">フェス限定<b>ガチャチケット</b>を所持中<br>回すときは<b>チケットから優先して</b>使われます（どのフェスでも共通）</div></div>`;
+        <div class="gtl"><b>フェスチケット</b>を所持中<br>回すときは<b>フェス券 → ガチャ券 → ジェム</b>の順に使われます</div></div>`;
     const fg = $("#gFesGrid" + f.sfx);
     if (fg) fg.innerHTML = f.chars.map((id) => {
       if (locked) {
@@ -8061,32 +9774,55 @@ function fesGuaranteedS5(key) {
   if (!pool.length) return fesRollOnce(key);
   return grantChar(pool[Math.floor(Math.random() * pool.length)]);
 }
-/* ★ v14 ガチャの支払い（フェスはチケットを優先して使い、足りない分だけジェムを払う）。
-   払えないときは null を返す。 */
-function payFesGacha(n) {
-  const useT = Math.min(fesTickets(), n * FES_TICKET_COST);
-  const restPulls = n - Math.floor(useT / FES_TICKET_COST);
-  const gemCost = restPulls * 5;
-  if (DB.orbs < gemCost) return null;
-  DB.fesTicket = fesTickets() - useT;
-  DB.orbs -= gemCost;
-  return { tickets: useT, gems: gemCost };
+/* ══════════ ガチャの支払い ══════════
+   ★ 消費の順番は <b>フェスチケット → ガチャチケット → 💎ジェム</b>。
+     フェスチケットはフェスガチャでしか使えないので、<b>専用のほうから先に</b>減らす。
+     プレミアムでは fes=false で呼ぶ（フェスチケットは手を付けない）。
+   ・払えないときは null を返す（呼び出し側は何もしない）。
+   ★ 見積もりだけしたいとき（ボタンの値段表示）は gachaCost(n, fes) を使う。
+     ここ1本で計算して、実際に払う payGacha と必ず同じ内訳になるようにしてある。 */
+function gachaCost(n, fes) {
+  let rest = n;
+  const useF = fes ? Math.min(fesTickets(), rest * FES_TICKET_COST) : 0;
+  rest -= Math.floor(useF / FES_TICKET_COST);
+  const useG = Math.min(gachaTickets(), rest * GACHA_TICKET_COST);
+  rest -= Math.floor(useG / GACHA_TICKET_COST);
+  return { fes: useF, tickets: useG, gems: rest * GACHA_GEM_COST };
 }
+function payGacha(n, fes) {
+  const c = gachaCost(n, fes);
+  if (DB.orbs < c.gems) return null;
+  /* 残高の確認をここで済ませてから減らす（どれかだけ減って回らない、を作らない） */
+  if (c.fes > 0) DB.fesTicket = fesTickets() - c.fes;
+  if (c.tickets > 0) DB.gTicket = gachaTickets() - c.tickets;
+  if (c.gems > 0) DB.orbs -= c.gems;
+  return c;
+}
+/* 支払いの内訳を「（フェス券3枚 ＋ ガチャ券2枚 ＋ ジェム25）」の形にする
+   （結果画面の見出しに添える。何で払ったかが結果と一緒に残るようにする） */
+function gachaPayText(pay) {
+  if (!pay) return "";
+  const t = [];
+  if (pay.fes > 0) t.push("フェス券" + pay.fes + "枚");
+  if (pay.tickets > 0) t.push("ガチャ券" + pay.tickets + "枚");
+  if (pay.gems > 0) t.push("ジェム" + pay.gems);
+  return t.length > 1 || (t.length === 1 && (pay.fes || pay.tickets)) ? "（🎫" + t.join(" ＋ ") + "）" : "";
+}
+/* 旧名（フェス専用だった頃の入口）。フェス扱いで呼ぶ。 */
+function payFesGacha(n) { return payGacha(n, true); }
 function doFesGacha(n, key) {
   key = isFesMode(key) ? key : "fes";
   /* ★ 2026-08-07: 開催前のフェスは回せない（ボタンも押せないが、念のため入口でも止める） */
   if (fesLocked(key)) { uiAlert(fesOpenText(fesDef(key)) + "です。", { icon: "⏳", title: fesDef(key).nm }); return; }
   n = n === 10 ? 10 : n === 5 ? 5 : 1;
-  const pay = payFesGacha(n);
+  const pay = payGacha(n, true);      /* フェス券 → ガチャ券 → ジェム の順 */
   if (!pay) return;
   DB.pulls = (DB.pulls || 0) + n; missionTick("pull", n);   /* ★ 2026-08-05 ミッション（ガチャを引く） */
   const results = [];
   const normal = n === 10 ? 9 : n;
   for (let i = 0; i < normal; i++) results.push(fesRollOnce(key));
   if (n === 10) { const g = fesGuaranteedS5(key); g.sure = true; results.push(g); }
-  const payTx = pay.tickets > 0
-    ? (pay.gems > 0 ? "（🎫" + pay.tickets + "枚 ＋ ジェム" + pay.gems + "）" : "（🎫" + pay.tickets + "枚）")
-    : "";
+  const payTx = gachaPayText(pay);
   const nm = fesDef(key).nm;
   revealGacha(results, nm + (n === 10 ? " 10連結果！" : n === 5 ? " 5連結果！" : " 結果！") + payTx);
 }
@@ -8406,9 +10142,11 @@ function rollGuaranteedS5() {
 }
 function doGacha(n) {
   n = n === 10 ? 10 : n === 5 ? 5 : 1;
-  const cost = n * 5;                           // ★ v11: 10連の割引は廃止（1回5ジェムの等倍。10連は★5確定のみが特典）
-  if (DB.orbs < cost) return;
-  DB.orbs -= cost; DB.pulls = (DB.pulls || 0) + n; missionTick("pull", n);   /* ★ 2026-08-05 ミッション（ガチャを引く） */
+  /* ★ v11: 10連の割引は廃止（1回5ジェムの等倍。10連は★5確定のみが特典）
+     ★ 2026-08-13: 新しい🎫ガチャチケットはプレミアムでも使える（フェス券は使えない）。 */
+  const pay = payGacha(n, false);
+  if (!pay) return;
+  DB.pulls = (DB.pulls || 0) + n; missionTick("pull", n);   /* ★ 2026-08-05 ミッション（ガチャを引く） */
   const results = [];
   /* ★ 10連は「最後の1枠」が★5（SSR）確定。前半9回は通常抽選＝そこでも★5は出る */
   const normal = n === 10 ? 9 : n;
@@ -8418,7 +10156,8 @@ function doGacha(n) {
     g.sure = true;                              // 確定枠マーク（演出・表示で使う）
     results.push(g);
   }
-  revealGacha(results, n === 10 ? "プレミアム 10連結果！" : n === 5 ? "プレミアム 5連結果！" : "プレミアム 結果！");
+  revealGacha(results, (n === 10 ? "プレミアム 10連結果！" : n === 5 ? "プレミアム 5連結果！" : "プレミアム 結果！")
+    + gachaPayText(pay));
 }
 window.doGacha = doGacha;
 
@@ -8620,7 +10359,7 @@ function openRates(which) {
     rows.push(`<tr><td colspan="2" style="font-weight:900;color:${f.c}">🎯 10連の★5確定枠（最後の1枠・${sure.length}体から等確率）</td></tr>`);
     sure.forEach((id) => rows.push(`<tr><td>　└ ${charNmOf(id)}（${CHARS[id].fes ? "フェス限定★5" : "プレミアム★5"}）</td><td>${ratePct(sure.length ? 1 / sure.length : 0)}</td></tr>`));
     rows.push(`<tr><td colspan="2" style="font-size:10px;color:#8b87a8">※ <b>確定枠だけは「${f.nm} の限定★5」と「プレミアムセレクトガチャの★5」をまとめた ${sure.length}体から、全員おなじ確率</b>で出ます（限界突破MAXのキャラは除外）。</td></tr>`);
-    rows.push(`<tr><td colspan="2" style="font-size:10px;color:#8b87a8">※ 🎫<b>フェス限定ガチャチケット</b>を持っているときは<b>チケットから優先して</b>消費します。足りない分だけ<i class='icc ic-gem'></i>ジェムを使います。チケットは<b>どのフェスでも共通</b>で使えます。</td></tr>`);
+    rows.push(`<tr><td colspan="2" style="font-size:10px;color:#8b87a8">※ 🎫チケットは<b>フェス券 → ガチャ券 → <i class='icc ic-gem'></i>ジェム</b>の順に消費します。フェス券はフェス専用、ガチャ券はどのガチャでも使えます。</td></tr>`);
   } else {
     const pick = curPickup();
     rows.push(`<tr><td colspan="2" style="font-weight:900;color:#d97800"><i class='icc ic-gem'></i> プレミアムセレクトガチャ（1回 <i class='icc ic-gem'></i>5 ／ 5連 <i class='icc ic-gem'></i>25 ／ <b>10連 <i class='icc ic-gem'></i>50・★5確定</b>）</td></tr>`);
