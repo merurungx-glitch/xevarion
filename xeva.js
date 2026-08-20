@@ -613,7 +613,7 @@
     { id: "mb:nana", mbId: "nana", name:"ナナ", file: "../img/t_Nana.webp", since:"2026-08-10" },
     { id: "mb:rea", mbId: "rea", name:"レア", file: "../img/t_Rea.webp", since:"2026-08-10" },
     { id: "mb:rinonx", mbId: "rinonx", name:"リノン", file: "../img/t_RinonX.webp", since:"2026-08-10" },
-    /* ★ 2026-08-11 プレミアム★5 3体 ＋ Luminous Summer Fest 追加2体
+    /* ★ 2026-08-11 プレミアムSSR 3体 ＋ Luminous Summer Fest 追加2体
        ★ 2026-08-12 シェリーαの番号を 99 にしたので、並びもそれに合わせて動かしてある
          （この配列の並び＝MagiBurst の CHAR_IDS の並び＝No. の順）。 */
     { id: "mb:shizuku", mbId: "shizuku", name:"シズク", file: "../img/t_Shizuku.webp", since:"2026-08-11" },
@@ -621,7 +621,7 @@
     { id: "mb:izumi", mbId: "izumi", name:"イズミ", file: "../img/t_Izumi.webp", since:"2026-08-11" },
     { id: "mb:cherylalpha", mbId: "cherylalpha", name:"シェリーα", file: "../img/t_CherylAlpha.webp", since:"2026-08-11" },
     { id: "mb:kokonaalpha", mbId: "kokonaalpha", name:"ココナα", file: "../img/t_KokonaAlpha.webp", since:"2026-08-11" },
-    /* ★ 2026-08-12 蒼夏祭（Aoka Summer Fest）限定★5 7体
+    /* ★ 2026-08-12 蒼夏祭（Aoka Summer Fest）限定SSR 7体
        ★ 並び＝No. なので、mb-core.js の CHAR_IDS とまったく同じ順にそろえること。 */
     { id: "mb:fuka", mbId: "fuka", name:"フウカ", file: "../img/t_Fuka.webp", since:"2026-08-12" },
     { id: "mb:tsumugi", mbId: "tsumugi", name:"ツムギ", file: "../img/t_Tsumugi.webp", since:"2026-08-12" },
@@ -630,10 +630,10 @@
     { id: "mb:mayu", mbId: "mayu", name:"マユ", file: "../img/t_Mayu.webp", since:"2026-08-12" },
     { id: "mb:chizuru", mbId: "chizuru", name:"チヅル", file: "../img/t_Chizuru.webp", since:"2026-08-12" },
     { id: "mb:seira", mbId: "seira", name:"セイラ", file: "../img/t_Seira.webp", since:"2026-08-12" },
-    /* ★ 2026-08-16 プレミアム★5 2体 */
+    /* ★ 2026-08-16 プレミアムSSR 2体 */
     { id: "mb:anna", mbId: "anna", name:"アンナ", file: "../img/t_Anna.webp", since:"2026-08-16" },
     { id: "mb:tsukino", mbId: "tsukino", name:"ツキノ", file: "../img/t_Tsukino.webp", since:"2026-08-16" },
-    /* ★ 2026-08-16b プレミアム★5 6体（No.110〜115）。並びは CHAR_IDS＝No. にそろえること */
+    /* ★ 2026-08-16b プレミアムSSR 6体（No.110〜115）。並びは CHAR_IDS＝No. にそろえること */
     { id: "mb:moeka", mbId: "moeka", name:"モエカ", file: "../img/t_Moeka.webp", since:"2026-08-16" },
     { id: "mb:suzuha", mbId: "suzuha", name:"スズハ", file: "../img/t_Suzuha.webp", since:"2026-08-16" },
     { id: "mb:violet", mbId: "violet", name:"ヴィオレット", file: "../img/t_Violet.webp", since:"2026-08-16" },
@@ -646,7 +646,7 @@
        ガチャから出ないだけで「持てるキャラ」なので、ここには入れる。 */
     { id: "mb:youka", mbId: "youka", name:"瑶華", file: "../img/t_Youka.webp", since:"2026-08-17" },
     { id: "mb:youhi", mbId: "youhi", name:"瑶妃", file: "../img/t_Youhi.webp", since:"2026-08-17" },
-    /* ★ 2026-08-18 プレミアム★5 8体（No.119〜126）＋ ロキシー（No.127・最終番号）。
+    /* ★ 2026-08-18 プレミアムSSR 8体（No.119〜126）＋ ロキシー（No.127・最終番号）。
        並びは CHAR_IDS＝No. にそろえること */
     { id: "mb:artemia", mbId: "artemia", name:"アルテミア", file: "../img/t_Artemia.webp", since:"2026-08-18" },
     { id: "mb:asuha", mbId: "asuha", name:"アスハ", file: "../img/t_Asuha.webp", since:"2026-08-18" },
@@ -657,13 +657,19 @@
     { id: "mb:sayo", mbId: "sayo", name:"サヨ", file: "../img/t_Sayo.webp", since:"2026-08-18" },
     { id: "mb:melty", mbId: "melty", name:"メルティ", file: "../img/t_Melty.webp", since:"2026-08-18" },
     { id: "mb:roxy", mbId: "roxy", name:"ロキシー", file: "../img/t_Roxy.webp", since:"2026-08-18" },
+    /* ★ No.128〜132 2026-08-20 GRAND DEBUT GACHA 新SSR 5体 */
+    { id: "mb:mirelle", mbId: "mirelle", name:"ミレーユ", file: "../img/t_Mirelle.webp", since:"2026-08-20" },
+    { id: "mb:scarlet", mbId: "scarlet", name:"スカーレット", file: "../img/t_Scarlet.webp", since:"2026-08-20" },
+    { id: "mb:koyuki", mbId: "koyuki", name:"コユキ", file: "../img/t_Koyuki.webp", since:"2026-08-20" },
+    { id: "mb:amelia", mbId: "amelia", name:"アメリア", file: "../img/t_Amelia.webp", since:"2026-08-20" },
+    { id: "mb:mio", mbId: "mio", name:"ミオ", file: "../img/t_Mio.webp", since:"2026-08-20" },
   ];
-  /* ★ 2026-08-10 初期★4 4体（ゼラ・アヤメ・レイラ・セリーヌ）は廃止しました。
+  /* ★ 2026-08-10 初期SR 4体（ゼラ・アヤメ・レイラ・セリーヌ）は廃止しました。
      いまは<b>全キャラがアイコンに選べる</b>ので、starter という区別そのものが要らない。 */
   var MB_STARTERS = [];
-  /* ★ 2026-08-16b ★5キャラの id 一覧（No. 順）。
+  /* ★ 2026-08-16b SSRキャラの id 一覧（No. 順）。
      ポータル（index.html）は MagiBurst の mb-core.js を読まないので、
-     「このキャラは★5か」をここで持っておく必要がある。
+     「このキャラはSSRか」をここで持っておく必要がある。
      ★ キャラを追加したら、MB_CHAR_MASTER と一緒にここにも足すこと。 */
   var MB_STAR5 = [
     "ema", "sakura", "arisa", "kaguya", "cheryl", "aira", "mion", "kokona", "mao", "bernica", "tsubaki",
@@ -676,9 +682,11 @@
     "shizuku", "yuunagi", "izumi", "cherylalpha", "kokonaalpha", "fuka", "tsumugi", "suzuka", "karem",
     "mayu", "chizuru", "seira", "anna", "tsukino", "moeka", "suzuha", "violet", "kanata", "touka", "elena"
   , "grace"
-  /* ★ 2026-08-18 瑶華・瑶妃（配布★5）＋ プレミアム★5 8体＋ロキシー */
+  /* ★ 2026-08-18 瑶華・瑶妃（配布SSR）＋ プレミアムSSR 8体＋ロキシー */
   , "youka", "youhi"
-  , "artemia", "asuha", "blair", "lilith", "lyra", "satsuki", "sayo", "melty", "roxy"];
+  , "artemia", "asuha", "blair", "lilith", "lyra", "satsuki", "sayo", "melty", "roxy"
+  /* ★ 2026-08-20 GRAND DEBUT GACHA 新SSR 5体 */
+  , "mirelle", "scarlet", "koyuki", "amelia", "mio"];
   MB_CHAR_MASTER.forEach(function (c) { c.mb = true; c.starter = MB_STARTERS.indexOf(c.mbId) >= 0; });
   MB_CHAR_MASTER.forEach(function (c) { c.star5 = MB_STAR5.indexOf(c.mbId) >= 0; });
   /* id は "mb:zera" のように接頭辞つき。XEVAガチャにも同じ名前のキャラ（シオンなど）が

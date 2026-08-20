@@ -7,7 +7,7 @@
    ・オフライン中の進行は localStorage に残り、オンライン復帰時に
      xeva-cloud.js がタイムスタンプ比較でクラウドへ上書き反映する
    ============================================================ */
-const VERSION = "xevarion-sw-v82";
+const VERSION = "xevarion-sw-v86";
 
 /* ホームを成立させる最小セット（重い画像は runtime キャッシュに任せる） */
 const CORE = [
@@ -17,31 +17,35 @@ const CORE = [
   "./characters.html",
   /* ★ 2026-08-10 ガチャは XEVARION に一本化。中身は MagiBurst の共有モジュールが持つ */
   "./gacha.html",
-  "./gacha-ui.js?v=8",
+  "./gacha-ui.js?v=11",
+  "./mb-newchars.js?v=2",
   "./magibattle-stats.js?v=6",
-  "./MagiBurst/js/mb-core.js?v=35",
+  "./MagiBurst/js/mb-core.js?v=37",
   /* ★ 2026-08-10 ガチャと図鑑で共通の土台・キャラ詳細・結果演出 */
   /* ★ 2026-08-12 ポータルのガチャ・図鑑も magiburst_v1 を同期するようになった */
   "./app-cloud.js?v=4",
   "./MagiBurst/magiburst-cloud.js?v=6",
-  "./mb-boot.js?v=5",
-  "./mb-char-detail.js?v=5",
-  "./mb-char-detail.css?v=7",
-  "./mb-gacha-reveal.css?v=2",
+  "./mb-boot.js?v=6",
+  "./mb-char-detail.js?v=6",
+  "./mb-char-detail.css?v=8",
+  "./mb-gacha-reveal.css?v=3",
   "./community.html",
   "./about.html",
   "./manifest.webmanifest",
   "./xeva-theme.css?v=1",
   "./xevarion.css?v=16",
-  "./xevarion-home.css?v=33",
-  "./xeva.js?v=33",
+  "./xevarion-home.css?v=34",
+  "./xeva.js?v=34",
   "./xeva-fx.js?v=1",
   "./xeva-loading.js?v=1",
-  "./xevarion.js?v=65",
-  "./xevarion-home.js?v=40",
+  "./xevarion.js?v=67",
+  "./xevarion-home.js?v=42",
   "./maintenance-gate.js?v=5",
   "./xeva-back.js?v=1",
-  "./xeva-keys.js?v=4",
+  "./xeva-keys.js?v=5",
+  /* ★ 2026-08-20 通信設定（Wi-Fi／モバイルデータごとの動き）。
+     この SW へ設定を送る側なので、オフラインでも読めるようにここに入れておく。 */
+  "./xeva-netmode.js?v=1",
   "./game-link.js?v=1",
   "Xevarion.png",
   "XEVA.png",
@@ -143,6 +147,12 @@ self.addEventListener("fetch", (e) => {
   if (PASS_THROUGH.test(url.pathname)) return;
 
   // ナビゲーション：ネット優先 → 失敗したらキャッシュ → 最後にホーム
+  /* ★ 2026-08-20 通信設定（Wi-Fi／モバイルデータごとに切り替えられる）
+     「このつなぎかたでは最新を取りに行かない」ときは、まずキャッシュを見て、
+     あればそれを返す＝<b>ダウンロードずみのデータで動く</b>（通信量を使わない）。
+     設定はページ（xeva-netmode.js）から postMessage で届く。 */
+  if (xevNetLatest() === false) { e.respondWith(xevCacheFirst(req)); return; }
+
   if (req.mode === "navigate") {
     e.respondWith((async () => {
       try {
@@ -260,3 +270,48 @@ self.addEventListener("message", (e) => {
   if (!m || m.type !== "xev-refresh") return;
   e.waitUntil(xevRefreshAll());
 });
+
+/* ══════════════════════════════════════════════════════════
+   ★ 2026-08-20 通信設定（xeva-netmode.js から postMessage で届く）
+   ------------------------------------------------------------
+   ・latest:false … このつなぎかたでは通信せず、キャッシュにあるものを返す
+   ・SW は止まると変数を忘れるので、<b>専用のキャッシュ</b>に書いておいて
+     起動のたびに読み直す。このキャッシュ（xev-netpref）は
+     activate の掃除で消してはいけない（VERSION の接頭辞と別名にしてある）。
+   ・読み終わるまでの一瞬は null＝「これまでどおり最新を取りに行く」で動く。
+     ここを false 側に倒すと、設定していない人まで古いデータになってしまう。
+   ══════════════════════════════════════════════════════════ */
+const XEV_NETPREF_CACHE = "xev-netpref";
+const XEV_NETPREF_URL = "./__xev_netpref";
+let _xevNetLatest = null;                     // null＝まだ読んでいない
+function xevNetLatest() { return _xevNetLatest; }
+(async function xevReadNetPref() {
+  try {
+    const c = await caches.open(XEV_NETPREF_CACHE);
+    const r = await c.match(XEV_NETPREF_URL);
+    _xevNetLatest = r ? ((await r.json()).latest !== false) : true;
+  } catch (e) { _xevNetLatest = true; }
+})();
+self.addEventListener("message", (e) => {
+  const m = e.data;
+  if (!m || m.type !== "xev-netmode") return;
+  _xevNetLatest = m.latest !== false;
+  e.waitUntil((async () => {
+    try {
+      const c = await caches.open(XEV_NETPREF_CACHE);
+      await c.put(XEV_NETPREF_URL, new Response(JSON.stringify({ latest: _xevNetLatest }),
+        { headers: { "Content-Type": "application/json" } }));
+    } catch (err) {}
+  })());
+});
+/* キャッシュ優先で返す。無ければ通信し、それも失敗したらページだけはホームに逃がす。 */
+async function xevCacheFirst(req) {
+  const hit = await caches.match(req, { ignoreSearch: true });
+  if (hit) return hit;
+  try { return await fetch(req); } catch (e) {}
+  if (req.mode === "navigate") {
+    const home = await caches.match("./index.html", { ignoreSearch: true });
+    if (home) return home;
+  }
+  return new Response("", { status: 504 });
+}

@@ -37,15 +37,29 @@ function openDetX(id) {
               くっつけていたころは、アークを振った項目だけ中の要素が増えて
               3つのマスの高さがそろわず、数字も「8500+420」と一続きに読めていた。
               .hasarc のときは<b>振っていないマスにも空の行</b>を置くので高さがそろう。 */""}
+      ${/* ★★ 2026-08-18 数字の下に<b>バー</b>を足した。満タンは全キャラの最大値
+            （最大Lv・限界突破MAX）なので、いまどのへんの強さかがひと目で分かる。
+            満タンの基準は MagiBurst の性能画面とまったく同じ statMinMax()。 */""}
       <div class="dstats${arcHas(st) ? " hasarc" : ""}">
-        ${["HP", "攻撃力", "スピード"].map((k, i) => {
-          const key = ["hp", "atk", "spd"][i];
-          /* ★ 2026-08-16c スピードだけ km/h を付ける（HP・攻撃力は単位なしのまま） */
-          const val = key === "spd" ? spdKmh(st.spd) : fmt([st.hp, st.atk, st.spd][i]);
-          return `<div class="dst"><i>${k}</i><b>${val}</b>`
-            + (arcHas(st) ? `<span class="dstarc">${arcPlus(st, key)}</span>` : "") + `</div>`;
-        }).join("")}
+        ${(() => {
+          const mm = (typeof statMinMax === "function") ? statMinMax() : null;
+          const gMax = { hp: (mm && mm.hp[1]) || 8500, atk: (mm && mm.atk[1]) || 3200, spd: (mm && mm.spd[1]) || 460 };
+          const grad = { hp: "linear-gradient(90deg,#12a97a,#5fd6a0)",
+                         atk: "linear-gradient(90deg,#e0642e,#ffb020)",
+                         spd: "linear-gradient(90deg,#2e8bff,#7cc4ff)" };
+          return ["HP", "攻撃力", "スピード"].map((k, i) => {
+            const key = ["hp", "atk", "spd"][i];
+            /* ★ 2026-08-16c スピードだけ km/h を付ける（HP・攻撃力は単位なしのまま） */
+            const val = key === "spd" ? spdKmh(st.spd).replace(" km/h", "<u>km/h</u>") : fmt(st[key]);
+            const p = Math.max(6, Math.min(100, (st[key] / gMax[key]) * 100));
+            return `<div class="dst"><i>${k}</i><b>${val}</b>`
+              + (arcHas(st) ? `<span class="dstarc">${arcPlus(st, key)}</span>` : "")
+              + `<span class="dstb"><span style="width:${p.toFixed(1)}%;background:${grad[key]}"></span></span></div>`;
+          }).join("");
+        })()}
       </div>
+      <div class="dstnote">バーの満タンは<b>全キャラの最大値</b>（最大Lv・限界突破MAX）です。${
+        arcHas(st) ? '青い <i class="arcup">＋</i> は<b>アーク強化</b>で増えたぶん（上の数字にはもう含まれています）。' : ""}</div>
 
       <div class="dsec"><div class="t">アビリティ</div>
         <div class="dabs">${sortedAbil(c).map((a) => `<span class="dab" title="${abilDesc(a)}">${abilName(a)}</span>`).join("")

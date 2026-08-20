@@ -1,10 +1,10 @@
 // ============================================================
 // XEVARION-FB — XEVARION 専用 Firebase（xevarion-account）
-//   役割（MagiLink の magilink-63067 とは分離）:
+//   役割（MagiLink とは別プロジェクト）:
 //     ・XEVARIONアカウントの登録（表示名の一意化・アイコン・4桁ゲームパスワード）
 //     ・ゲーム内アカウント紐づけ（名前検索 → 4桁パスワード照合）
 //     ・XEVA 賞金の配信（pending にプッシュ → 本人がポータルで受取）
-//   ※ MagiLink のメッセージ等は従来どおり magilink-63067 のまま。
+//   ※ MagiLink のメッセージ等は xevarion-online（★ 2026-08-20 に magilink-63067 から移行）。
 //   window.XEVARIONFB として公開。読み込み完了で "xevarionfb:ready" を発火。
 // ============================================================
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";

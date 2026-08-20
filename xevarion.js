@@ -219,7 +219,22 @@ function renderXevaMissions() {
     </div>`;
   }).join("");
   const starterEl = document.getElementById("missionTabStarter");
-  if (starterEl) starterEl.innerHTML = starterHtml;
+  /* ★ 2026-08-18 いくつ達成しているかを先頭にまとめて出す。
+     アヤカ完凸の5本目「スターター全達成」がどこまで来ているかも、ここで分かる。 */
+  const sDone = missions.filter(m => m.done).length;
+  const starterHead = missions.length
+    ? '<div class="mm-prog" style="margin:0 0 12px">' +
+        '<div class="mm-prog-top"><span class="mm-prog-lbl">いまの自分（達成した数）</span>' +
+        '<span class="mm-prog-num' + (sDone >= missions.length ? " full" : "") + '"><b>' + sDone +
+        "</b> / " + missions.length + "個</span></div>" +
+        msnProgBar(sDone, missions.length) +
+        (sDone >= missions.length
+          ? '<div class="mm-prog-note">🎉 全部達成しました（アヤカ完凸の条件のひとつ）</div>'
+          : '<div class="mm-prog-note">あと <b>' + (missions.length - sDone) +
+            "個</b>で「アヤカ完凸」の条件をひとつ満たします</div>") +
+      "</div>"
+    : "";
+  if (starterEl) starterEl.innerHTML = starterHead + starterHtml;
 
   // バッジは「受け取れる報酬」の数（達成・未受取）を表示
   const starterRemain = missions.filter((m) => m.done && !m.claimed).length;
@@ -266,14 +281,19 @@ function renderMsnLogin() {
   const msHtml = milestones.map(ms => {
     const cls = ms.claimed ? "mm-milestone claimed" : ms.reached ? "mm-milestone reached" : "mm-milestone";
     const label = ms.days % 100 === 0 ? `<span style="color:#ffe08a">★</span> ${ms.days}<span>日</span>` : `${ms.days}<span>日</span>`;
+    /* ★ 2026-08-18 未達成のときは「あと何日か」を出す（ただの「未達成」では
+       いまの自分がどこまで来ているのか分からない）。 */
+    const rest = Math.max(0, ms.days - totalDays);
     const btnHtml = ms.claimed
       ? '<span style="font-size:11px;color:#37e0a0;font-weight:700">✓ 受取済み</span>'
       : ms.reached
         ? `<button class="mm-milestone-claim" onclick="claimMsnLogin(${ms.days})">受け取る</button>`
-        : `<button class="mm-milestone-claim" disabled>未達成</button>`;
+        : `<button class="mm-milestone-claim" disabled>あと${rest}日</button>`;
     return `<div class="${cls}">
       <div class="mm-milestone-days">${label}</div>
-      <div class="mm-milestone-rew">ログイン ${ms.days} 日達成<br><b>+${ms.reward} XEVA</b></div>
+      <div class="mm-milestone-rew">ログイン ${ms.days} 日達成<br><b>+${ms.reward} XEVA</b>
+        ${ms.reached ? "" : `<div class="xeva-m-prog">${msnProgBar(totalDays, ms.days)}<span>${totalDays}/${ms.days}</span></div>`}
+      </div>
       ${btnHtml}
     </div>`;
   }).join("");
@@ -372,27 +392,44 @@ function switchMsnTab(tab, btn) {
   if (body) body.scrollTop = 0;
 }
 
-/* ── 図鑑コンプリート報酬（★5を No. 順に5体ずつ区切って +1000 XEVA）──
+/* ── 図鑑コンプリート報酬（SSRを No. 順に5体ずつ区切って +1000 XEVA）──
    ★ 2026-08-16b 「シーズン」も「コレクション」も、いまはどこにも無い区分だった。
      そこで<b>キャラ番号（No.）そのもの</b>で区切る形にした。
-       ・対象は<b>★5キャラ全員</b>（No.順に並べて5体ずつのまとまりにする）
-       ・まとまりの名前は「No.5〜9 の★5」のように、実際の番号で出す
+       ・対象は<b>SSRキャラ全員</b>（No.順に並べて5体ずつのまとまりにする）
+       ・まとまりの名前は「No.5〜9 のSSR」のように、実際の番号で出す
        ・キャラが増えたら、最後のまとまりが自動で伸びて、次のまとまりができる
      こうすると「全キャラぶん」が最後まで報酬の対象になり、
      新キャラが出るたびに次の目標が自然に増える。 */
 const COLLECTION_REWARD = 1000;
-const COLLECTION_CHUNK = 5;        // ひとまとまりの★5の数
+const COLLECTION_CHUNK = 5;        // ひとまとまりのSSRの数
+/* ★★ ポータル（XEVAガチャ）と MagiBurst は id の付け方が別で、しかも
+   「同じ id なのに別人」という組が2つある。混ぜるときは必ずこの表を通すこと。
+     ポータル shion（シオン）  ＝ MagiBurst shiona（シオナ）
+       … MagiBurst の shion は EX降臨の別人
+     ポータル rinon（リノン）  ＝ MagiBurst rinonx（リノン）
+       … MagiBurst の rinon は「ルクシア」
+   これを素通しすると、持っているリノンが未所持に見え、
+   持っていないルクシアが所持に見える、という取り違えが起きる。 */
+const P2M_ID = { shion: "shiona", rinon: "rinonx" };   // ポータル → MagiBurst
+const M2P_ID = { shiona: "shion", rinonx: "rinon" };   // MagiBurst → ポータル
+/* MagiBurst 側の id のうち、ポータルへ持っていってはいけないもの（＝同名の別人） */
+const MB_ONLY_ID = { shion: 1, rinon: 1 };
+
 function getOwnedChars(){
-  /* ガチャは統合ずみで所持は共有。XEVAガチャ側と MagiBurst 側のどちらかにあれば所持とみなす */
+  /* SSRコレクションは MagiBurst の id 空間で数える。
+     ガチャは統合ずみなので、XEVAガチャ側と MagiBurst 側のどちらかにあれば所持とみなす。 */
   let owned = {};
-  try{ const g=JSON.parse(localStorage.getItem("xeva_gacha_v1")||"{}"); owned = Object.assign({}, g.owned||{}); }catch(e){}
   try{
     const d=JSON.parse(localStorage.getItem("magiburst_v1")||"{}");
     Object.keys(d.chars||{}).forEach(id=>{ owned[id]=true; });
   }catch(e){}
+  try{
+    const g=JSON.parse(localStorage.getItem("xeva_gacha_v1")||"{}");
+    Object.keys(g.owned||{}).forEach(id=>{ owned[P2M_ID[id]||id]=true; });
+  }catch(e){}
   return owned;
 }
-/* ★5キャラを No. 順に COLLECTION_CHUNK 体ずつ区切る。
+/* SSRキャラを No. 順に COLLECTION_CHUNK 体ずつ区切る。
    キーは「そのまとまりの先頭の番号」なので、キャラが増えても既存のキーはずれない
    （＝受け取りずみの記録がそのまま生きる）。 */
 function seasonSSRGroups(){
@@ -408,9 +445,9 @@ function seasonSSRGroups(){
 }
 function seasonGroupLabel(k){
   const g = seasonSSRGroups()[k];
-  if(!g || !g.length) return "★5コレクション";
+  if(!g || !g.length) return "SSRコレクション";
   const a = g[0].no, b = g[g.length-1].no;
-  return "No." + a + "〜" + b + " の★5";
+  return "No." + a + "〜" + b + " のSSR";
 }
 /* 旧Bシリーズの受取済みキー("B1".."B4")を、通し番号("5".."8")へ写す。
    これをやらないと、受け取ったはずのコレクション報酬がもう一度受け取れてしまう。 */
@@ -442,7 +479,7 @@ function collectionKeys(groups){
 function claimCollection(season, silent){
   const groups=seasonSSRGroups(), owned=getOwnedChars(), state=getCollectionState();
   const g=groups[season]; if(!g || state[season]) return null;
-  if(!g.every(c=>owned[c.id])){ if(!silent) alert("このまとまりの★5をまだすべて集めていません。"); return null; }
+  if(!g.every(c=>owned[c.id])){ if(!silent) alert("このまとまりのSSRをまだすべて集めていません。"); return null; }
   state[season]=Date.now(); saveCollectionState(state);
   const lbl = seasonGroupLabel(season);
   if(window.XEVA) window.XEVA.add(COLLECTION_REWARD, "図鑑コンプリート："+lbl);
@@ -472,7 +509,9 @@ function renderMsnCollection(){
     return `<div class="mm-limited-card${done?' claimed':''}">
       <div class="mm-limited-head"><span class="mm-limited-badge">図鑑</span><div class="mm-limited-title">${lbl} をすべて集める</div></div>
       <div style="display:flex;gap:7px;margin:10px 0;flex-wrap:wrap">${thumbs}</div>
-      <div class="mm-limited-foot"><span class="mm-limited-exp">★5 ${have}/${g.length} 取得</span>
+      ${done ? "" : msnProgHtml({ now: have, need: g.length, unit: "人",
+          note: all ? "" : "あと <b>" + (g.length - have) + "人</b>（灰色のキャラ）" })}
+      <div class="mm-limited-foot"><span class="mm-limited-exp">SSR ${have}/${g.length} 取得</span>
         <div style="display:flex;align-items:center;gap:10px"><span class="mm-limited-rew">+${COLLECTION_REWARD} XEVA</span>${btn}</div></div>
     </div>`;
   }).join("");
@@ -483,7 +522,36 @@ function renderMsnCollection(){
    壊れたJSONが入っていても既定値を返す＝ミッション画面が丸ごと死なない。 */
 function lsJson(key){ try{ const v=JSON.parse(localStorage.getItem(key)||"null"); return (v&&typeof v==="object")?v:{}; }catch(e){ return {}; } }
 function gachaSave(){ return lsJson("xeva_gacha_v1"); }
-function ownedIds(){ return gachaSave().owned || {}; }
+/* ポータル（XEVAガチャ）の id 空間でそろえた所持一覧。
+   ★★ 2026-08-18 ここが xeva_gacha_v1 だけを見ていたのが
+     「キャラをそろえたのにミッションが達成にならない」の正体。
+     2026-08-10 にガチャを mb-core へ一本化して以降、引いたキャラは
+     magiburst_v1.chars に入り、xeva_gacha_v1 へ写るのは
+     共有4体＋ミズキ＋アヤカだけになっていた。
+     そのため「カホ・ナナ・レア・リノンを集める」は、4人そろえても
+     永久に未達成のままだった（Bシリーズだけは共有なので通っていた）。 */
+function ownedIds(){
+  const owned = {};
+  try{
+    const g=JSON.parse(localStorage.getItem("xeva_gacha_v1")||"{}");
+    Object.keys(g.owned||{}).forEach(id=>{ owned[id]=true; });
+  }catch(e){}
+  try{
+    const d=JSON.parse(localStorage.getItem("magiburst_v1")||"{}");
+    Object.keys(d.chars||{}).forEach(id=>{
+      if(MB_ONLY_ID[id]) return;                 /* MagiBurst のシオン／ルクシアは別人 */
+      owned[M2P_ID[id]||id]=true;
+    });
+  }catch(e){}
+  return owned;
+}
+/* 所持している「ポータル図鑑（CHAR_MASTER）のキャラ」の数。
+   ownedIds() は MagiBurst のキャラも混ざるので、数えるときはこちらを使う。 */
+function ownedPortalCount(){
+  const o = ownedIds();
+  const chars = (window.XEVA && window.XEVA.CHARS) || [];
+  return chars.filter(c => o[c.id]).length;
+}
 /* MagiLex の完全習得コンテンツ数（クイズ + 単語帳） */
 function lexMasteredCount(){
   const P = lsJson("magilex_v2");
@@ -533,6 +601,57 @@ function syncAyakaGrants(){
 /* アヤカの配布ミッションを、あと何本受け取れば完凸か */
 function ayakaClaimedCount(){ const st=getLimitedState(); return AYAKA_MISSION_IDS.filter(id=>st[id]).length; }
 
+/* ══════════════ ミッションの「いまの自分」 ══════════════
+   ★ 2026-08-18 どのミッションも「あと何が足りないのか」がその場で分かるようにした。
+     各ミッションの prog() が { now, need, unit, chips, note } を返し、
+     ここで バー＋数字（＋キャラのチップ）に組み立てる。
+     判定に使っている読み出し（ownedIds など）をそのまま数えるので、
+     表示と達成判定がずれることがない。 */
+function msnProgBar(now, need){
+  const p = need > 0 ? Math.min(1, now / need) : (now > 0 ? 1 : 0);
+  const full = now >= need;
+  return '<div class="mm-prog-bar"><div class="mm-prog-fill' + (full ? " full" : "") +
+    '" style="width:' + (p * 100).toFixed(1) + '%"></div></div>';
+}
+function msnProgHtml(pg){
+  if(!pg) return "";
+  const full = pg.now >= pg.need;
+  const num = pg.need <= 1
+    ? (full ? "達成" : "未達成")
+    : "<b>" + pg.now.toLocaleString() + "</b> / " + pg.need.toLocaleString() + (pg.unit || "");
+  return '<div class="mm-prog">' +
+    '<div class="mm-prog-top"><span class="mm-prog-lbl">いまの自分</span>' +
+      '<span class="mm-prog-num' + (full ? " full" : "") + '">' + num + "</span></div>" +
+    msnProgBar(pg.now, pg.need) +
+    (pg.chips ? '<div class="mm-prog-chips">' + pg.chips + "</div>" : "") +
+    (pg.note ? '<div class="mm-prog-note">' + pg.note + "</div>" : "") +
+  "</div>";
+}
+/* ポータル図鑑のキャラを「持っている／いない」のチップで並べる。
+   ★ 判定は ownedIds()（＝MagiBurst 側も見る）と同じものを使う。 */
+function msnCharChips(ids){
+  const o = ownedIds();
+  const chars = (window.XEVA && window.XEVA.CHARS) || [];
+  return ids.map(id => {
+    const c = chars.find(x => x.id === id) || { name: id, file: "" };
+    const img = c.file ? '<img src="chars/' + c.file + '" alt="" onerror="this.style.display=&quot;none&quot;">' : "";
+    return '<span class="mm-prog-chip' + (o[id] ? " on" : "") + '">' + img +
+      c.name + (o[id] ? " ✓" : "") + "</span>";
+  }).join("");
+}
+/* 何人そろったか（チップと同じ並び） */
+function msnCharHave(ids){ const o = ownedIds(); return ids.filter(id => o[id]).length; }
+/* スターターミッションの達成数 */
+function starterDoneCount(){
+  try{
+    const ms = (window.XEVA && window.XEVA.getMissions) ? window.XEVA.getMissions() : [];
+    return { now: ms.filter(m => m.done).length, need: ms.length };
+  }catch(e){ return { now: 0, need: 0 }; }
+}
+
+const AYAKA_A_IDS = ["kaho", "nana", "rea", "rinon"];
+const AYAKA_B_IDS = ["mion", "kokona", "mao", "arisa"];
+
 const LIMITED_MISSIONS = [
   /* ── アヤカ 5段階（入手 → 完凸）── */
   {
@@ -540,35 +659,48 @@ const LIMITED_MISSIONS = [
     title: "アヤカを迎える：カホ・ナナ・レア・リノンを集める",
     desc: "SSR「カホ」「ナナ」「レア」「リノン」の4人をすべて集めると、ガチャには出ない限定SSR「アヤカ」が仲間になる。",
     reward: 0, ayaka: true, exp: "常設",
-    check: () => { const o=ownedIds(); return !!(o["kaho"]&&o["nana"]&&o["rea"]&&o["rinon"]); }
+    check: () => { const o=ownedIds(); return AYAKA_A_IDS.every(id => o[id]); },
+    prog: () => ({ now: msnCharHave(AYAKA_A_IDS), need: AYAKA_A_IDS.length, unit: "人",
+                   chips: msnCharChips(AYAKA_A_IDS) })
   },
   {
     id: "ayaka_collect_b",
     title: "アヤカ覚醒①：ミオン・ココナ・マオ・アリサを集める",
     desc: "SSR「ミオン」「ココナ」「マオ」「アリサ」の4人をすべて集めよう。MagiBurst と所持状況を共有しているので、どちらで引いても数えられる。",
     reward: 0, ayaka: true, exp: "常設",
-    check: () => { const o=ownedIds(); return !!(o["mion"]&&o["kokona"]&&o["mao"]&&o["arisa"]); }
+    check: () => { const o=ownedIds(); return AYAKA_B_IDS.every(id => o[id]); },
+    prog: () => ({ now: msnCharHave(AYAKA_B_IDS), need: AYAKA_B_IDS.length, unit: "人",
+                   chips: msnCharChips(AYAKA_B_IDS) })
   },
   {
     id: "ayaka_login",
     title: "アヤカ覚醒②：通算50日ログイン",
     desc: "XEVARION に通算50日ログインしよう。今の日数はログインタブで確認できる。",
     reward: 0, ayaka: true, exp: "常設",
-    check: () => totalLoginDays() >= 50
+    check: () => totalLoginDays() >= 50,
+    prog: () => { const n = totalLoginDays();
+      return { now: Math.min(n, 50), need: 50, unit: "日",
+               note: n >= 50 ? "" : "あと <b>" + (50 - n) + "日</b>" }; }
   },
   {
     id: "ayaka_lex",
     title: "アヤカ覚醒③：MagiLex 20コンテンツ完全習得",
     desc: "MagiLex でコンテンツを20個 完全習得しよう（クイズ・単語帳のどちらも数えられる）。",
     reward: 0, ayaka: true, exp: "常設",
-    check: () => lexMasteredCount() >= 20
+    check: () => lexMasteredCount() >= 20,
+    prog: () => { const n = lexMasteredCount();
+      return { now: Math.min(n, 20), need: 20, unit: "個",
+               note: n >= 20 ? "" : "あと <b>" + (20 - n) + "個</b>の完全習得" }; }
   },
   {
     id: "ayaka_allstarter",
     title: "アヤカ完凸：スターターミッション全達成",
     desc: "スタータータブのミッションをすべて達成しよう。これで「アヤカ」が👑完凸になる。",
     reward: 0, ayaka: true, exp: "常設",
-    check: () => allStarterDone()
+    check: () => allStarterDone(),
+    prog: () => { const s = starterDoneCount();
+      return { now: s.now, need: Math.max(1, s.need), unit: "個",
+               note: s.now >= s.need ? "" : "あと <b>" + (s.need - s.now) + "個</b>（スタータータブ）" }; }
   },
 
   /* ── 常設のあそびはじめ ── */
@@ -577,7 +709,14 @@ const LIMITED_MISSIONS = [
     title: "はじめてのガチャ",
     desc: "ガチャを1回以上引いてみよう。",
     reward: 300, exp: "常設",
-    check: () => { const g=gachaSave(); return Object.keys(g.owned||{}).length>0 || (g.history||[]).length>0; }
+    /* ★ ガチャは mb-core へ一本化ずみ。引いた回数は magiburst_v1.pulls に入る。 */
+    check: () => {
+      const g=gachaSave();
+      if(Object.keys(g.owned||{}).length>0 || (g.history||[]).length>0) return true;
+      const D=lsJson("magiburst_v1");
+      return (Number(D.pulls)||0)>0 || Object.keys(D.chars||{}).length>0;
+    },
+    prog: () => ({ now: Math.min(1, Number(lsJson("magiburst_v1").pulls) || Object.keys(ownedIds()).length), need: 1 })
   },
   {
     id: "ssr_first_get",
@@ -588,14 +727,22 @@ const LIMITED_MISSIONS = [
       const o = ownedIds();
       const chars = (window.XEVA && window.XEVA.CHARS) || [];
       return chars.some(c => c.rarity==="SSR" && o[c.id]);
-    }
+    },
+    prog: () => { const o = ownedIds();
+      const chars = (window.XEVA && window.XEVA.CHARS) || [];
+      const n = chars.filter(c => c.rarity === "SSR" && o[c.id]).length;
+      return { now: Math.min(1, n), need: 1,
+               note: n > 0 ? "SSR を <b>" + n + "人</b> 持っています" : "" }; }
   },
   {
     id: "collect_10_chars",
     title: "コレクター：10体そろえる",
     desc: "キャラクターを10体 集めよう（レアリティは問わない）。",
     reward: 500, exp: "常設",
-    check: () => Object.keys(ownedIds()).length >= 10
+    check: () => Object.keys(ownedIds()).length >= 10,
+    prog: () => { const n = Object.keys(ownedIds()).length;
+      return { now: Math.min(n, 10), need: 10, unit: "人",
+               note: n >= 10 ? "" : "あと <b>" + (10 - n) + "人</b>" }; }
   },
 
   /* ── 各アプリのやりこみ ── */
@@ -604,21 +751,30 @@ const LIMITED_MISSIONS = [
     title: "MagiBurst：WAVE 50 到達",
     desc: "MagiBurst のクエストで WAVE 50 まで到達しよう。",
     reward: 800, exp: "常設",
-    check: () => mbWaveBest() >= 50
+    check: () => mbWaveBest() >= 50,
+    prog: () => { const n = mbWaveBest();
+      return { now: Math.min(n, 50), need: 50, unit: " WAVE",
+               note: n >= 50 ? "" : "自己ベストは <b>WAVE " + n + "</b>" }; }
   },
   {
     id: "lex_master10",
     title: "MagiLex：10コンテンツ完全習得",
     desc: "MagiLex でコンテンツを10個 完全習得しよう。30個そろえると限定SSR「ミズキ」が仲間になる。",
     reward: 600, exp: "常設",
-    check: () => lexMasteredCount() >= 10
+    check: () => lexMasteredCount() >= 10,
+    prog: () => { const n = lexMasteredCount();
+      return { now: Math.min(n, 10), need: 10, unit: "個",
+               note: n >= 10 ? "" : "あと <b>" + (10 - n) + "個</b>の完全習得" }; }
   },
   {
     id: "login_30d",
     title: "通算30日ログイン",
     desc: "XEVARION に通算30日ログインしよう。",
     reward: 500, exp: "常設",
-    check: () => totalLoginDays() >= 30
+    check: () => totalLoginDays() >= 30,
+    prog: () => { const n = totalLoginDays();
+      return { now: Math.min(n, 30), need: 30, unit: "日",
+               note: n >= 30 ? "" : "あと <b>" + (30 - n) + "日</b>" }; }
   }
 ];
 
@@ -733,6 +889,7 @@ function renderMsnLimited() {
         <div class="mm-limited-title">${m.title}</div>
       </div>
       <div class="mm-limited-desc">${m.desc}</div>
+      ${done ? "" : msnProgHtml(m.prog && m.prog())}
       <div class="mm-limited-foot">
         <span class="mm-limited-exp">⏰ ${m.exp}</span>
         <div style="display:flex;align-items:center;gap:10px">
@@ -2522,13 +2679,33 @@ function runPortalBoot() {
 }
 
 /* ══════════════════════════════════════════════════════════════
-   ★ 2026-08-10 新キャラクターのお知らせ
+   ★★ 2026-08-18 新キャラクターのお知らせ（XEVARION に一本化）
 
-   ・前回このホームを開いたときから<b>増えたキャラだけ</b>を一覧で出す。
-   ・顔ぶれと「いつ増えたか」は xeva.js の MB_CHAR_MASTER（since）が持ち主。
-     キャラを足すときは xeva.js の1行に since を書くだけでここに出る。
+   ・出すのは<b>このポータルのログイン時だけ</b>。
+     MagiBurst 側の告知バナーは廃止しました（同じ知らせが2か所から出ると、
+     どちらで閉じたのか分からなくなるため）。
+   ・出すのは「前回このホームを開いたときから<b>増えたキャラだけ</b>」。
+     顔ぶれと追加日は xeva.js の MB_CHAR_MASTER（since）が持ち主。
+   ・キャッチコピー・入手先・差し色は <b>mb-newchars.js（MB_NEW_CHARS）</b>から取る。
+     ここは MagiBurst と<b>同じ台帳</b>なので、片方だけ足しわすれることがない。
    ・出したら「見た」ことにするので、同じキャラは二度出ない。
+
+   ★ キャラを足すときにさわる場所は2つだけ:
+       ① xeva.js の MB_CHAR_MASTER に since 付きで1行（絵と名前）
+       ② mb-newchars.js の先頭に1行（キャッチコピー・入手先）
    ══════════════════════════════════════════════════════════════ */
+/* MB_NEW_CHARS を id で引ける形にしておく（無い版でも落ちないように） */
+function newCharInfo(mbId) {
+  const t = window.MB_NEW_CHARS || [];
+  for (let i = 0; i < t.length; i++) if (t[i].id === mbId) return t[i];
+  return null;
+}
+/* MB_CHAR_MASTER の file は "../img/t_Xxx.webp"（MagiBurst 基準の縮小絵）。
+   ポータルからは ../ を外し、大きな絵は t_ を落とした側を使う（無ければ縮小絵に戻す）。 */
+function newCharArt(file) {
+  const th = String(file || "").replace(/^\.\.\//, "");
+  return { thumb: th, full: th.replace(/(^|\/)t_/, "$1") };
+}
 function showNewChars() {
   if (!window.XEVA || !XEVA.newCharsUnseen) return;
   let list = [];
@@ -2536,15 +2713,35 @@ function showNewChars() {
   if (!list.length) return;
   const ov = document.getElementById("ncOverlay"), grid = document.getElementById("ncGrid");
   if (!ov || !grid) return;
-  /* 出しすぎると1画面に収まらないので、新しいほうから12体まで */
-  const show = list.slice(0, 12);
-  document.getElementById("ncSub").textContent =
+  /* 出しすぎると1画面に収まらないので、新しいほうから8体まで（カードが大きいので12→8） */
+  const show = list.slice(0, 8);
+  const sub = document.getElementById("ncSub");
+  if (sub) sub.textContent =
     list.length + "体が仲間に加わりました" + (list.length > show.length ? "（新しい" + show.length + "体を表示）" : "");
-  grid.innerHTML = show.map((c) => `<div class="nc-c">
-      <img src="${charSmallPath(c.file)}" alt="${c.name}" loading="lazy">
-      <div class="nc-n">${c.name}</div>
-      <div class="nc-d">${c.since || ""}</div>
-    </div>`).join("");
+  grid.innerHTML = show.map((c) => {
+    const n = newCharInfo(c.mbId) || {};
+    const art = newCharArt(c.file);
+    const col = n.color || "#ffb84d";
+    /* ガチャ排出のキャラだけ「ガチャへ行く」を出す（降臨・報酬キャラには出さない） */
+    /* ★ 2026-08-20 mode（premium / debut / fes…）をハッシュで渡す。
+       ガチャ画面はこれを見て、そのキャラが引けるガチャを開いた状態で始まる。 */
+    const goGacha = n.mode ? '<a class="go" href="gacha.html#' + n.mode + '">🎰 ガチャへ行く</a>' : "";
+    return `<div class="nc-card" style="--nc:${col}">
+      <img src="${art.full}" alt="${c.name}" loading="lazy"
+           onerror="this.onerror=null;this.src='${art.thumb}'">
+      <div class="nc-grad"></div>
+      <div class="nc-body">
+        <div class="nc-tag">NEW CHARACTER</div>
+        ${n.catch ? `<div class="nc-catch">${n.catch}</div>` : ""}
+        <div class="nc-nm">${c.name}<span>${c.since || ""}</span></div>
+        ${n.where ? `<div class="nc-where">${n.where} に登場中</div>` : ""}
+        <div class="nc-acts">
+          <a href="characters.html?c=${encodeURIComponent(c.mbId)}">📖 性能を見る</a>
+          ${goGacha}
+        </div>
+      </div>
+    </div>`;
+  }).join("");
   ov.classList.add("open");
   /* 見せた時点で控える（「あとで」で閉じても、もう一度は出さない） */
   try { XEVA.markNewCharsSeen(); } catch (e) {}

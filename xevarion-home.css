@@ -406,6 +406,12 @@ body.xh-off .xh-offline{display:flex}
   background:#fff;transition:transform .2s;box-shadow:0 2px 5px rgba(60,100,180,.3)}
 .xh-sw.on{background:linear-gradient(135deg,#4b8bff,#9b7bff)}
 .xh-sw.on::after{transform:translateX(21px)}
+/* ★ 2026-08-20 通信設定の「Wi-Fi／モバイル」など、行の右に置く小さな選択ボタン */
+.xh-mini{border:1.5px solid rgba(120,160,230,.35);background:rgba(255,255,255,.7);color:#6f82ad;
+  border-radius:99px;padding:5px 11px;font-family:inherit;font-size:11px;font-weight:900;cursor:pointer;line-height:1}
+.xh-mini.on{border-color:transparent;color:#fff;background:linear-gradient(135deg,#4b8bff,#9b7bff);
+  box-shadow:0 2px 8px rgba(90,120,230,.35)}
+.xh-mini:active{transform:scale(.94)}
 
 /* ══════════ アプリ一覧シート ══════════ */
 .xh-search{width:100%;padding:12px 15px;border-radius:14px;border:1.5px solid rgba(120,160,230,.3);

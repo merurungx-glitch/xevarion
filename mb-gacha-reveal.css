@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════════════════════════
-   ガチャ結果の演出（1枚ずつ公開／★4→★5 の昇格演出）— 見た目だけ
+   ガチャ結果の演出（1枚ずつ公開／SR→SSR の昇格演出）— 見た目だけ
 
    ★ 中身を動かしているのは MagiBurst/js/mb-core.js の revealGacha()。
      この CSS は<b>そのマークアップ用</b>で、MagiBurst/index.html の <style> に
@@ -42,7 +42,7 @@
 .gmulti .gm .gcov.hide{opacity:0;transform:scale(.6) rotateY(70deg)}
 .gmulti .gm .gcov.in{animation:gCovIn .38s cubic-bezier(.2,1.4,.4,1) both}
 @keyframes gCovIn{0%{opacity:0;transform:scale(.5) rotateY(80deg)}100%{opacity:1;transform:scale(1) rotateY(0)}}
-.gmulti .gm .gcov .gcst{font-size:11px;font-weight:900;letter-spacing:-.5px;line-height:1.1;
+.gmulti .gm .gcov .gcst{font-family:'Orbitron',sans-serif;font-size:17px;font-weight:900;letter-spacing:.04em;line-height:1.1;
   color:#e6e4f2;text-shadow:0 1px 3px rgba(0,0,0,.7);font-style:normal}
 .gmulti .gm .gcov .gcup{font-family:'Orbitron',sans-serif;font-size:7.5px;font-weight:900;letter-spacing:.06em;
   color:#fff;opacity:0;font-style:normal;text-shadow:0 0 8px rgba(255,93,143,.9)}

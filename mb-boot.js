@@ -34,7 +34,7 @@ let B = null;
 const SAVE_KEY = "magiburst_v1";
 function freshDB() {
   return { gold: 3000, orbs: 15,
-    /* ★ 2026-08-10 初期★4 4体は廃止。所持キャラは MagiBurst 側が持ち主なので、ここは空でよい。 */
+    /* ★ 2026-08-10 初期SR 4体は廃止。所持キャラは MagiBurst 側が持ち主なので、ここは空でよい。 */
     chars: {}, party: [],
     clears: {}, first: {}, day: "", dailyOrb: {}, pulls: 0, express: { best: 0 }, raid: null,
     fruits: {}, equip: {}, equip2: {}, equip3: {}, pickup: "kaguya", fesTicket: 0,
@@ -160,7 +160,7 @@ const SFX = (function () {
     gacha: () => { tone(440, 880, 0.3, "triangle", 0.1); tone(880, 1760, 0.4, "triangle", 0.09, 0.22); },
     /* 確定演出・昇格演出の「キラッ」 */
     crit: () => { tone(420, 120, 0.14, "square", 0.11); noise(0.09, 0.1); tone(880, 1600, 0.12, "triangle", 0.07, 0.02); },
-    /* ★5 のとどろき */
+    /* SSR のとどろき */
     ss: () => { tone(160, 640, 0.5, "sawtooth", 0.12); noise(0.3, 0.09, 0.1); tone(520, 1560, 0.42, "triangle", 0.1, 0.16); },
     /* 星のプレートが1枚ずつ出る音・ボタンを押した音 */
     pick: () => { tone(740, 1180, 0.14, "triangle", 0.1); },

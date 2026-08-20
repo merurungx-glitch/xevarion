@@ -24,7 +24,7 @@
      以前はここに直接書いてあり、MagiBurst / MagiLex の一覧は別ファイルにあったため、
      新機能を足すたびに「同期リストへの入れ忘れ」が起きていた
      （ジェムショップの購入履歴 xeva_shop_v1 が同期されていなかったのがその例）。 */
-import { PORTAL_SYNC_KEYS, wipeAccountData, wipeAccountDataFull } from "./xeva-keys.js?v=4";
+import { PORTAL_SYNC_KEYS, wipeAccountData, wipeAccountDataFull } from "./xeva-keys.js?v=5";
 
 const SYNC_KEYS = PORTAL_SYNC_KEYS;
 const SYNC_SET = new Set(SYNC_KEYS);

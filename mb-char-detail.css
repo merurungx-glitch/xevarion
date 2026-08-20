@@ -14,7 +14,12 @@
    カメラと重なって押せなくなっていた。
    ・器に上の余白（env + 12px）をとる
    ・カードの高さは 94vh 決め打ちではなく「余白を引いた残り（100%）」にする */
-#detOv{position:fixed;inset:0;z-index:920;background:rgba(20,26,48,.72);backdrop-filter:blur(6px);
+/* ★★ 2026-08-18 z-index を 920 → 960 へ。
+   ガチャの提供割合（#rateOv ＝ 930）の中からキャラを押すと、
+   キャラ詳細が割合の表の<b>後ろ</b>に開いてしまい、見ることができなかった。
+   キャラ詳細は「別のシートの上に重ねて開く」ものなので、
+   結果画面(900)・提供割合(930)より上、確認ダイアログ(.dlg=990)より下に置く。 */
+#detOv{position:fixed;inset:0;z-index:960;background:rgba(20,26,48,.72);backdrop-filter:blur(6px);
   display:none;align-items:flex-end;justify-content:center;
   padding-top:calc(env(safe-area-inset-top,0px) + 12px)}
 #detOv.on{display:flex}
@@ -52,11 +57,19 @@
 .cnxmk svg{width:100%;height:100%;display:block}
 .cnxoff{font-style:normal;font-weight:900;font-size:.82em;margin-left:.4em;padding:0 .34em;border-radius:4px;
   background:rgba(120,140,200,.18);color:#6f82ad;letter-spacing:.02em}
-.dstats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:10px}
-.dst{background:var(--card2);border:1.5px solid var(--bdr);border-radius:12px;padding:8px;text-align:center}
+/* ★★ 2026-08-18 3マスの中に<b>バー</b>を足した。
+   数字だけだと「6,300」が高いのか低いのかが分からないので、
+   MagiBurst の性能画面と同じ「全キャラの最大値を満タン」のバーをそろえる。
+   スピードは「436 km/h」と長いので、単位だけ小さくして折り返しを防ぐ。 */
+.dstats{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:6px}
+.dst{background:var(--card2);border:1.5px solid var(--bdr);border-radius:12px;padding:8px 8px 9px;text-align:center}
 .dst i{display:block;font-style:normal;font-size:9.5px;font-weight:800;color:var(--txt2)}
-.dst b{display:block;font-size:14px;font-weight:900;font-family:'Orbitron',sans-serif;
-  font-variant-numeric:tabular-nums;line-height:1.3}
+.dst b{display:block;font-size:15px;font-weight:900;font-family:'Orbitron',sans-serif;
+  font-variant-numeric:tabular-nums;line-height:1.25;letter-spacing:-.01em}
+.dst b u{text-decoration:none;font-size:9.5px;font-weight:900;opacity:.7;margin-left:2px}
+.dst .dstb{height:6px;border-radius:99px;background:rgba(120,160,230,.2);overflow:hidden;margin-top:6px}
+.dst .dstb span{display:block;height:100%;border-radius:99px;transition:width .5s cubic-bezier(.2,.8,.3,1)}
+.dstnote{font-size:9.5px;font-weight:800;color:var(--txt2);line-height:1.7;margin:0 0 10px;padding:0 2px}
 /* ★ 2026-08-15 アーク強化ぶんの専用行。
    3マスとも同じ高さになるよう、振っていないマスも空のまま高さを持たせる。 */
 .dstats.hasarc .dst .dstarc{display:block;min-height:15px;margin-top:3px;line-height:1}

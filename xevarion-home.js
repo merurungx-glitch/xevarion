@@ -154,7 +154,7 @@ const XH_EVENTS = [
     href:"MagiLex/MagiLex.html", img:"thumbs/MagiLex.jpg" },
   /* ★ 2026-08-12 MagiBurst「蒼夏祭（Aoka Summer Fest）」。
      排出キャラは MagiBurst/js/mb-core.js の FESTS.fes4 とそろえること。 */
-  { tag:"SUMMER FES", t1:"蒼夏祭", t2:"MagiBurst に水着の限定★5 7体が参戦！ 新リンク・新クロススキル搭載",
+  { tag:"SUMMER FES", t1:"蒼夏祭", t2:"MagiBurst に水着の限定SSR 7体が参戦！ 新リンク・新クロススキル搭載",
     from:"2026-08-12", to:"2026-09-30", since:"2026-08-12",
     /* ★ 2026-08-12 正方形の書き下ろしイラストに差し替え。
        ?v= を付けてあるのは、SW が stale-while-revalidate（古いほうを先に返す）で
@@ -165,9 +165,9 @@ const XH_EVENTS = [
      （XH_FES3_OPEN と見くらべるだけなので、当日に書き直す必要はない）。
      排出キャラは MagiBurst/index.html の FESTS.fes3 とそろえること。 */
   { tag:"COMING SOON", t1:"Phantom Legend Fest（予告）",
-    t2:"8/10 0:00 スタート。MagiBurst に伝説の限定★5が参戦！",
+    t2:"8/10 0:00 スタート。MagiBurst に伝説の限定SSRが参戦！",
     liveTag:"LEGEND FES", liveT1:"Phantom Legend Fest",
-    liveT2:"MagiBurst に伝説の限定★5「野獣先輩」参戦！ クロススキル搭載",
+    liveT2:"MagiBurst に伝説の限定SSR「野獣先輩」参戦！ クロススキル搭載",
     openAt:"2026-08-10T00:00",
     from:"2026-08-07", to:"2026-10-31",
     /* ★ 2026-08-08 アイコンは MagiBurst のものにそろえた。
@@ -176,7 +176,7 @@ const XH_EVENTS = [
     href:"MagiBurst/index.html", img:"thumbs/MagiBurst.jpg" },
   /* ★ MagiBurst「Luminous Summer Fest」。排出キャラは MagiBurst/index.html の FESTS.fes2 と
      そろえること。 */
-  { tag:"SUMMER FES", t1:"Luminous Summer Fest", t2:"MagiBurst に夏の限定★5「カグヤα」「ミオンα」参戦！", from:"2026-07-31", to:"2026-08-31",
+  { tag:"SUMMER FES", t1:"Luminous Summer Fest", t2:"MagiBurst に夏の限定SSR「カグヤα」「ミオンα」参戦！", from:"2026-07-31", to:"2026-08-31",
     href:"MagiBurst/index.html", img:"thumbs/MagiBurst.jpg" },
   /* ★ 2026-08-13 新作 Magi Lotto の開幕。結果発表は毎月1日・16日なので、
      バナーからそのまま次回の発表日を待つ導線にしている。 */
@@ -187,11 +187,11 @@ const XH_EVENTS = [
      そろえること（片方だけ直すと、ポータルには出ているのに中では終わっている、が起きる）。 */
   { tag:"GOLD RUSH", t1:"ゴールドラッシュ", t2:"MagiJackpot 積立×2！ EP で限定スキン・称号", from:"2026-07-30", to:"2026-08-24",
     href:"MagiJackpot/index.html", img:"thumbs/MagiJackpot.jpg" },
-  { tag:"FES", t1:"Nocturne Bloom Fest", t2:"MagiBurst で夜の限定★5 5体が排出中！", from:"2026-01-01", to:"2026-08-31",
+  { tag:"FES", t1:"Nocturne Bloom Fest", t2:"MagiBurst で夜の限定SSR 5体が排出中！", from:"2026-01-01", to:"2026-08-31",
     href:"MagiBurst/index.html", img:"thumbs/MagiBurst.jpg" },
   { tag:"COMING SOON", t1:"MagiLex に新コンテンツ", t2:"近日追加予定。続報をお待ちください！", from:"2026-07-31", to:"2026-08-31",
     href:"MagiLex/MagiLex.html", img:"thumbs/MagiLex.jpg" },
-  { tag:"CAMPAIGN", t1:"夏の学習キャンペーン", t2:"MagiLex の獲得XEVA ×2！", from:"2026-06-01", to:"2026-08-31",
+  { tag:"CAMPAIGN", t1:"夏の学習キャンペーン", t2:"MagiLex の獲得XEVA ×2！（10/31まで延長）", from:"2026-06-01", to:"2026-10-31",
     href:"MagiLex/MagiLex.html", img:"thumbs/MagiLex.jpg" },
   /* 常設（期間表示なし）: to を空にすると「開催期間」の行を出さない */
   { tag:"RANKING", t1:"月間XEVAランキング", t2:"今月の順位で最大 1,000 XEVA", from:"2026-01-01", to:"",
@@ -405,7 +405,7 @@ const XH_PACKS = [
   { id:"pk_lsf_starter", ic:"☀️", nm:"サマーフェス スターターパック", pay:15,  gem:5,   ticket:5,  c:"#5ce1ff",
     to:"2026-08-31", cycle:"term", max:2, desc:"Luminous Summer Fest を5回まわせる、はじめの一歩。" },
   { id:"pk_lsf_value",   ic:"🌺", nm:"サマーフェス バリューパック",   pay:75,  gem:50,  ticket:20, c:"#1d8fd8",
-    to:"2026-08-31", cycle:"term", max:2, desc:"🎫20枚＋💎50。10連（★5確定）を2回ぶん、たっぷり回せる。" },
+    to:"2026-08-31", cycle:"term", max:2, desc:"🎫20枚＋💎50。10連（SSR確定）を2回ぶん、たっぷり回せる。" },
   { id:"pk_lsf_legend",  ic:"🏝", nm:"サマーフェス レジェンドパック", pay:200, gem:120, ticket:60, c:"#ffb020",
     to:"2026-08-31", cycle:"term", max:2, desc:"フェス期間中いちばんお得。カグヤα・ミオンαを本気で狙うならこれ。" },
   /* ── 常設（毎週リセット・週1回）── */
@@ -414,7 +414,7 @@ const XH_PACKS = [
   { id:"pk_value",    ic:"💫", nm:"バリューパック",   pay:25,  gem:38,  c:"#4b8bff", cycle:"week", max:1,
     desc:"10連ガチャにちょうど届く、いちばん人気のパック。" },
   { id:"pk_premium",  ic:"🌟", nm:"プレミアムパック", pay:100, gem:160, c:"#9b7bff", cycle:"week", max:1,
-    desc:"限定★5をねらうならこの1つ。増量率も大きい。" },
+    desc:"限定SSRをねらうならこの1つ。増量率も大きい。" },
   { id:"pk_legend",   ic:"👑", nm:"レジェンドパック", pay:250, gem:430, c:"#ffb020", cycle:"week", max:1,
     desc:"XEVARION でいちばんお得な、最上位パック。" },
 ];
@@ -593,11 +593,30 @@ function xhExMsg(t, ok) {
   m.innerHTML = t; m.style.color = ok ? "#0e8a5c" : "#e0405e";
 }
 
-function xhDoExchange() {
+async function xhDoExchange() {
   /* ★ レートは「表示したとき」ではなく「押したとき」の値で計算し直す。
      シートを開いたまま為替が更新されると、表示と請求額がずれるため。 */
-  const n = _xhExQty, cost = n * xhGemRate();
+  const n = _xhExQty, rate = xhGemRate(), cost = n * rate;
   if (!window.XEVA || !window.XEVA.gem) { xhExMsg("XEVA ウォレットに接続できません"); return; }
+  if (window.XEVA.getBalance() < cost) { xhExMsg("XEVA が足りません（必要 " + cost.toLocaleString() + "）"); return; }
+  /* ★ 交換の許可は必ず画面内のダイアログで取る（ブラウザの confirm は使わない）。
+     押した瞬間に XEVA が減る操作なので、ジェムショップの購入と同じ手順にそろえる。 */
+  const ok = await xhAsk({
+    icon: "🏪", title: "ジェムに交換しますか？",
+    ok: "この内容で交換する", cancel: "やめる",
+    cost: { from: cost.toLocaleString(), to: "×" + n.toLocaleString() },
+    body: "いまのレートは <b>" + rate.toLocaleString() + " XEVA ＝ 💎1</b>（ドル円連動）です。<br>" +
+      "この操作で <b>" + cost.toLocaleString() + " XEVA</b> を支払い、<b>💎" + n.toLocaleString() +
+      " ジェム</b> を受け取ります。<br><br>" +
+      "交換したジェムは <b>XEVA には戻せません</b>。",
+  });
+  if (!ok) { xhExMsg("交換をとりやめました"); return; }
+  /* ★ ダイアログを開いている間に為替が動いたら、黙って請求せず出し直す。 */
+  if (n * xhGemRate() !== cost) {
+    xhPaintExchange();
+    xhExMsg("為替が動いたので金額を更新しました。もう一度お願いします");
+    return;
+  }
   if (window.XEVA.getBalance() < cost) { xhExMsg("XEVA が足りません（必要 " + cost.toLocaleString() + "）"); return; }
   /* spend が false を返したら残高は動いていない。ジェムは絶対に足さない。 */
   if (!window.XEVA.spend(cost, "ジェム変換所（💎" + n + "）")) { xhExMsg("交換に失敗しました"); return; }
@@ -1446,6 +1465,7 @@ window.xhSaveShowcase = xhSaveShowcase;
 /* ── オフライン設定 ── */
 function xhOpenOfflineInfo() {
   xhCloseSheet("xhSetSheet");
+  xhPaintNetSettings();
   xhPaintOfflineList();
   xhOpenSheet("xhOffSheet");
 }
@@ -1472,9 +1492,95 @@ function xhPaintOfflineList() {
     if (v) { v.textContent = ready ? "✓ 準備完了" : "未準備"; v.style.color = ready ? "#12a97a" : "#e08a2e"; }
   });
 }
+
+/* ══════════════════════════════════════════════════════════════
+   ★ 2026-08-20 通信の設定（Wi-Fi のとき／モバイルデータのとき）
+   ------------------------------------------------------------
+   これまでは「オンラインなら最新／オフラインならダウンロードずみ」の2択だった。
+   ここでは<b>つなぎかたごと</b>に次の2つを決められる。
+     ・最新のデータを使う       … オフにすると通信せず、ダウンロードずみのデータで動く
+     ・更新を自動でダウンロード … オフにすると、まとめてダウンロードの前に確認が出る
+   実際に効かせているのは Service Worker（xeva-netmode.js が設定を送る）。
+
+   ★ iPhone は回線の種類を教えてくれない（Network Information API が無い）ので、
+     「分からないときはどちら扱いにするか」も選べるようにしてある。
+     これが無いと、iPhone ではこの設定そのものが意味を持たなくなる。
+   ══════════════════════════════════════════════════════════════ */
+function xhNetRow(kind, field, title, sub) {
+  const cfg = window.XHNet ? XHNet.get() : { wifi: {}, cell: {} };
+  const on = !!(cfg[kind] && cfg[kind][field]);
+  return '<button class="xh-row" onclick="xhToggleNet(\'' + kind + '\',\'' + field + '\')">' +
+    '<span class="rl"><span><span class="rt">' + title + '</span><span class="rs">' + sub + '</span></span></span>' +
+    '<span class="xh-sw' + (on ? " on" : "") + '"></span></button>';
+}
+function xhPaintNetSettings() {
+  const box = xhEl("xhNetBox"); if (!box) return;
+  if (!window.XHNet) { box.innerHTML = ""; return; }
+  const k = XHNet.kind();
+  const cfg = XHNet.get();
+  const nowTx = k === "offline"
+    ? "オフライン中です。<b>ダウンロードずみのデータ</b>で動いています。"
+    : "いまのつなぎかたは <b>" + XHNet.kindName(k) + "</b>"
+      + (XHNet.canDetect() ? "" : "（この端末では回線の種類が分からないため、下の設定で <b>"
+          + XHNet.kindName(cfg.unknown) + "</b> として扱っています）")
+      + "。この設定では <b>" + (XHNet.useLatest() ? "最新のデータ" : "ダウンロードずみのデータ") + "</b> を使います。";
+  const unk = '<div class="xh-row" style="cursor:default"><span class="rl">' +
+    '<span><span class="rt">回線の種類が分からないとき</span>' +
+    '<span class="rs">iPhone など、つなぎかたを教えてくれない端末での扱い</span></span></span>' +
+    '<span class="rv" style="display:flex;gap:6px">' +
+    '<button class="xh-mini' + (cfg.unknown === "wifi" ? " on" : "") + '" onclick="xhSetNetUnknown(\'wifi\')">Wi-Fi</button>' +
+    '<button class="xh-mini' + (cfg.unknown === "cell" ? " on" : "") + '" onclick="xhSetNetUnknown(\'cell\')">モバイル</button>' +
+    "</span></div>";
+  box.innerHTML =
+    '<div class="xh-sortnote">' + nowTx + "</div>" +
+    '<div class="xh-sec-label" style="margin-top:8px">📶 Wi-Fi のとき</div>' +
+    xhNetRow("wifi", "latest", "最新のデータを使う", "オフにすると通信せず、ダウンロードずみのデータで動きます") +
+    xhNetRow("wifi", "autodl", "更新を自動でダウンロード", "オフにすると、まとめてダウンロードの前に確認します") +
+    '<div class="xh-sec-label" style="margin-top:8px">📱 モバイルデータのとき</div>' +
+    xhNetRow("cell", "latest", "最新のデータを使う", "オフにすると通信量を使わず、ダウンロードずみのデータで動きます") +
+    xhNetRow("cell", "autodl", "更新を自動でダウンロード", "オフにすると、まとめてダウンロードの前に確認します") +
+    '<div class="xh-sec-label" style="margin-top:8px">その他</div>' + unk +
+    '<div class="xh-sortnote" style="margin-top:6px">' +
+    "※ 「最新のデータを使う」をオフにしていても、<b>セーブデータの同期・オンライン対戦・ランキング</b>など" +
+    "通信そのものが目的の機能はこれまでどおり動きます。切り替わるのは<b>アプリのファイルを取り直すかどうか</b>だけです。<br>" +
+    "※ 設定を変えたあとは、開いているアプリを一度閉じてから開き直すと確実です。" +
+    "</div>";
+}
+window.xhPaintNetSettings = xhPaintNetSettings;
+function xhToggleNet(kind, field) {
+  if (!window.XHNet) return;
+  const cfg = XHNet.get();
+  XHNet.setFlag(kind, field, !(cfg[kind] && cfg[kind][field]));
+  xhPaintNetSettings();
+  const now = XHNet.get()[kind][field];
+  xhToast((kind === "wifi" ? "Wi-Fi" : "モバイルデータ") + "：" +
+    (field === "latest" ? "最新のデータを使う" : "更新を自動でダウンロード") + "を" + (now ? "オン" : "オフ") + "にしました");
+}
+window.xhToggleNet = xhToggleNet;
+function xhSetNetUnknown(k) {
+  if (!window.XHNet) return;
+  XHNet.setUnknown(k);
+  xhPaintNetSettings();
+}
+window.xhSetNetUnknown = xhSetNetUnknown;
+/* ★ 大きなダウンロードの前に一度きく（その回線で「自動ダウンロード」をオフにしている場合）。
+   ここを通すのは<b>まとめて落とす操作</b>だけ。ふだんの読み込みは止めない。 */
+async function xhAskBigDownload(what) {
+  if (!window.XHNet || XHNet.allowDownload()) return true;
+  const k = XHNet.kind();
+  if (k === "offline") return true;      /* オフラインなら、そもそも落ちない（先の処理が案内する） */
+  const msg = "いまは <b>" + XHNet.kindName(k) + "</b> につながっていて、" +
+    "この回線では<b>自動ダウンロードをオフ</b>にしています。<br><br>" +
+    what + "を今すぐダウンロードしますか？（通信量を使います）";
+  try { return await xhAsk({ icon: "📶", title: "通信量を使います", body: msg, ok: "ダウンロードする", cancel: "やめる" }); }
+  catch (e) { return true; }
+}
+window.xhAskBigDownload = xhAskBigDownload;
+
 async function xhPrepareOffline() {
   const msg = xhEl("xhOffMsg"), btn = xhEl("xhOffPrep");
   if (!xhOnline()) { if (msg) msg.textContent = "オンラインのときにダウンロードしてください。"; return; }
+  if (!(await xhAskBigDownload("オフライン用のデータ"))) return;   /* ★ 2026-08-20 通信設定 */
   if (btn) { btn.disabled = true; btn.textContent = "ダウンロード中…"; }
   const ok = await xhRegisterAppSWs();
   if (btn) { btn.disabled = false; btn.textContent = "オフライン用にダウンロード"; }
@@ -1916,6 +2022,8 @@ window.xhRedownloadOffline = xhRedownloadOffline;
 async function xhUpdStart(keepVer) {
   if (_xhUpdRunning) return;
   if (!xhOnline()) { xhToast("オンラインのときに更新してください"); return; }
+  /* ★ 2026-08-20 通信設定: いまの回線で「更新を自動でダウンロード」をオフにしているときは一度きく */
+  if (!(await xhAskBigDownload(keepVer ? "足りないファイル" : "最新のデータ"))) { _xhUpdRunning = false; return; }
   _xhUpdRunning = true;
   _xhUpdProg = {};
   ["xhUpdGo", "xhUpdSkip", "xhUpdX"].forEach((id) => { const e = xhEl(id); if (e) e.style.display = "none"; });

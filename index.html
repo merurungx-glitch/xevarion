@@ -19,8 +19,15 @@
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Exo+2:ital,wght@0,300;0,400;0,600;0,700;1,300&family=Noto+Sans+JP:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="xeva-theme.css?v=1">
 <link rel="stylesheet" href="xevarion.css?v=16">
-<link rel="stylesheet" href="xevarion-home.css?v=33">
-<script src="xeva.js?v=33" defer></script>
+<link rel="stylesheet" href="xevarion-home.css?v=34">
+<script src="xeva.js?v=34" defer></script>
+<!-- ★ 2026-08-20 通信設定（Wi-Fi／モバイルデータごとに「最新を取りに行くか」を決める）。
+     決めた内容はここから各アプリの Service Worker へ送られ、SW 側が動きを切り替える。 -->
+<script src="xeva-netmode.js?v=1" defer></script>
+<!-- ★ 2026-08-18 新キャラ告知の台帳（MagiBurst と共通）。
+     告知を<b>ポータルのログイン時</b>に一本化したので、ここでも読む。
+     defer なので xevarion.js より先に実行される（書いた順番で走る）。 -->
+<script src="mb-newchars.js?v=2" defer></script>
 <!-- ジェム⇄XEVA のレート（ドル円連動）。xevarion-home.js より先に読み込む -->
 <script src="xeva-fx.js?v=1" defer></script>
 <script src="xeva-loading.js?v=1" defer></script>
@@ -28,8 +35,8 @@
 <script type="module" src="xevarion-fb.js?v=22"></script>
 <script src="xeva-presence.js?v=1" defer></script>
 <script type="module" src="xeva-cloud.js?v=16"></script>
-<script src="xevarion.js?v=65" defer></script>
-<script src="xevarion-home.js?v=40" defer></script>
+<script src="xevarion.js?v=67" defer></script>
+<script src="xevarion-home.js?v=42" defer></script>
 </head>
 <body>
 <!-- ───── バックグラウンド音楽（Flagship Arrival。アクセス画面のタップで再生開始） ───── -->
@@ -631,7 +638,7 @@ body.music-on #beatFrame{opacity:1}
       </button>
       <button class="xh-row" onclick="xhOpenOfflineInfo()">
         <span class="rl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8.4a12 12 0 0116 0"/><path d="M7 12a8 8 0 0110 0"/><path d="M10 15.4a3.6 3.6 0 014 0"/><circle cx="12" cy="19" r="1.3" fill="currentColor"/></svg>
-          <span><span class="rt">オフライン設定</span><span class="rs">3アプリを機内モードでも遊べるように</span></span></span>
+          <span><span class="rt">オフライン・通信設定</span><span class="rs">Wi-Fi／モバイルデータごとの動きを決める</span></span></span>
         <span class="rv" id="xhOfflineState">›</span>
       </button>
       <button class="xh-row" onclick="xhOpenUpdateFromSettings()">
@@ -794,7 +801,7 @@ body.music-on #beatFrame{opacity:1}
 <div class="xh-sheet" id="xhOffSheet" onclick="if(event.target===this)xhCloseSheet('xhOffSheet')">
   <div class="xh-sheet-card">
     <div class="xh-sheet-head">
-      <div class="xh-sheet-title">📴 オフライン設定</div>
+      <div class="xh-sheet-title">📴 オフライン・通信設定</div>
       <button class="xh-sheet-x" onclick="xhCloseSheet('xhOffSheet')">✕</button>
     </div>
     <div class="xh-sheet-body">
@@ -803,6 +810,11 @@ body.music-on #beatFrame{opacity:1}
         オフライン中の進行は端末に保存され、<b>オンラインに戻った時点でクラウドへ上書き反映</b>されます。
         それ以外のアプリは通信が必要なため、オフライン中は開けません。
       </div>
+      <!-- ★ 2026-08-20 通信の設定（Wi-Fi のとき／モバイルデータのとき）。
+           中身は xevarion-home.js の xhPaintNetSettings() が組み立てる。 -->
+      <div class="xh-sec-label">通信の設定</div>
+      <div id="xhNetBox"></div>
+      <div class="xh-sec-label">オフラインで遊べるアプリ</div>
       <div id="xhOffList"></div>
       <button class="xh-sbtn" id="xhOffPrep" onclick="xhPrepareOffline()">オフライン用にダウンロード</button>
       <!-- ★ 2026-08-06: 空き容量が減るとブラウザがキャッシュを捨ててしまい、
@@ -980,6 +992,32 @@ body.music-on #beatFrame{opacity:1}
 .mm-ayaka-pips span.on{background:linear-gradient(135deg,#8e6bff,#e8930c);border-color:transparent;color:#fff}
 .mm-limited-card.ayaka{background:linear-gradient(180deg,#fbf7ff,#f6faff);border-color:rgba(142,107,255,.24)}
 .mm-limited-card.ayaka .mm-limited-badge{background:rgba(142,107,255,.12);border-color:rgba(142,107,255,.34);color:#6b46d6}
+/* ── ミッションの「いまの自分」（2026-08-18）──
+   どのタブでも同じ見た目になるよう、バー＋数字をこの1組で統一する。 */
+.mm-prog{margin:8px 0 2px}
+.mm-prog-top{display:flex;align-items:baseline;justify-content:space-between;gap:8px;margin-bottom:5px}
+.mm-prog-lbl{font-size:10.5px;font-weight:800;color:rgba(34,52,77,.55)}
+.mm-prog-num{font-family:'Orbitron',sans-serif;font-size:12px;font-weight:900;color:#22344d;white-space:nowrap}
+.mm-prog-num b{color:#e0701a}
+.mm-prog-num.full b,.mm-prog-num.full{color:#17a673}
+.mm-prog-bar{height:7px;border-radius:99px;background:rgba(56,140,220,.14);overflow:hidden}
+.mm-prog-fill{height:100%;border-radius:99px;background:linear-gradient(90deg,#8e6bff,#e8930c);
+  transition:width .45s cubic-bezier(.2,.8,.3,1)}
+.mm-prog-fill.full{background:linear-gradient(90deg,#17a673,#5fd6a0)}
+.mm-prog-chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+.mm-prog-chip{display:flex;align-items:center;gap:5px;padding:3px 8px 3px 3px;border-radius:99px;
+  background:rgba(255,255,255,.75);border:1.5px solid rgba(56,140,220,.18);
+  font-size:10.5px;font-weight:800;color:rgba(34,52,77,.45)}
+.mm-prog-chip img{width:22px;height:22px;border-radius:50%;object-fit:cover;
+  filter:grayscale(1);opacity:.5}
+.mm-prog-chip.on{border-color:rgba(23,166,115,.5);background:rgba(23,166,115,.10);color:#0e7f57}
+.mm-prog-chip.on img{filter:none;opacity:1}
+.mm-prog-note{font-size:10.5px;font-weight:700;color:rgba(34,52,77,.5);margin-top:6px;line-height:1.6}
+.mm-prog-note b{color:#e0701a}
+/* スタータータブのカードは横幅が狭いので、バーだけの簡易版 */
+.xeva-m-prog{display:flex;align-items:center;gap:7px;margin-top:5px}
+.xeva-m-prog .mm-prog-bar{flex:1;height:6px}
+.xeva-m-prog span{font-family:'Orbitron',sans-serif;font-size:10.5px;font-weight:900;color:rgba(34,52,77,.6);white-space:nowrap}
 
 /* ── XEVARION アカウント ── */
 /* nav user button */
@@ -1199,6 +1237,28 @@ body.music-on #beatFrame{opacity:1}
 .nc-x{flex:none;width:34px;height:34px;border:none;border-radius:11px;background:rgba(255,255,255,.8);
   color:rgba(34,52,77,.6);font-size:15px;font-weight:900;cursor:pointer}
 .nc-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(96px,1fr));gap:10px;padding:14px 18px}
+/* ── ★★ 2026-08-18 MagiBurst にあった「大きな1枚カード」の告知をこちらへ移した。
+   名前と絵だけの並べだと「だれがどう新しいのか」が伝わらないので、
+   キャッチコピー・入手先・登場日をそえた大きめのカードで出す。 */
+.nc-list{padding:14px 18px;display:flex;flex-direction:column;gap:12px}
+.nc-card{position:relative;border-radius:20px;overflow:hidden;background:#0d1024;
+  border:2px solid var(--nc,#ffb84d);box-shadow:0 8px 24px rgba(20,26,48,.22)}
+.nc-card>img{width:100%;display:block;aspect-ratio:16/11;object-fit:cover;object-position:50% 22%}
+.nc-card .nc-grad{position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(6,8,22,0) 22%,rgba(6,8,22,.72) 62%,rgba(6,8,22,.94) 100%)}
+.nc-card .nc-body{position:absolute;left:0;right:0;bottom:0;padding:12px 14px 13px}
+.nc-tag{display:inline-block;font-family:'Orbitron',sans-serif;font-size:9px;font-weight:900;letter-spacing:.12em;
+  padding:3px 8px;border-radius:99px;background:var(--nc,#ffb84d);color:#1a1330}
+.nc-catch{font-size:12.5px;font-weight:800;color:rgba(255,255,255,.86);margin-top:7px;line-height:1.5;
+  text-shadow:0 2px 8px rgba(0,0,0,.6)}
+.nc-nm{font-size:19px;font-weight:900;color:#fff;margin-top:3px;text-shadow:0 2px 10px rgba(0,0,0,.7)}
+.nc-nm span{font-family:'Orbitron',sans-serif;font-size:11px;font-weight:900;color:var(--nc,#ffb84d);margin-left:8px}
+.nc-where{font-size:11px;font-weight:800;color:var(--nc,#ffb84d);margin-top:8px;line-height:1.55}
+.nc-acts{display:flex;gap:7px;margin-top:10px}
+.nc-acts a{flex:1;border:none;border-radius:12px;padding:9px;font-family:inherit;
+  font-size:11.5px;font-weight:900;cursor:pointer;text-align:center;text-decoration:none;
+  background:rgba(255,255,255,.92);color:#22345c}
+.nc-acts a.go{background:var(--nc,#ffb84d);color:#1a1330}
 .nc-c{border-radius:15px;overflow:hidden;background:#f7fbff;border:2px solid rgba(255,206,90,.6);
   box-shadow:0 4px 14px rgba(230,170,40,.2)}
 .nc-c img{width:100%;aspect-ratio:1;object-fit:cover;display:block}
@@ -1359,7 +1419,7 @@ body.music-on #beatFrame{opacity:1}
       <div class="nc-h">✨ 新キャラクター登場！<small id="ncSub"></small></div>
       <button class="nc-x" onclick="closeNewChars()" aria-label="とじる">✕</button>
     </div>
-    <div class="nc-grid" id="ncGrid"></div>
+    <div class="nc-list" id="ncGrid"></div>
     <div class="nc-foot">
       <a class="nc-btn go" href="gacha.html">🎰 ガチャへ行く</a>
       <button class="nc-btn sec" onclick="closeNewChars()">あとで</button>
@@ -1412,8 +1472,310 @@ body.music-on #beatFrame{opacity:1}
 
   <div class="nm-body" id="newsBody">
     <div class="nm-divider" id="newDivider" style="display:none;">NEW — 前回から更新</div>
+    <!-- 2026-08-20c GRAND DEBUT GACHA ／ SSR・SR 表記 ／ 通信設定 -->
+    <div class="nm-item" data-tag="update" data-date="2026-08-20">
+      <div class="nm-date">2026<br>08.20</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">✧ GRAND DEBUT GACHA 開幕（新SSR 5体） ／ 🏅 レアリティを SSR・SR に ／ 📶 Wi-Fi・モバイルデータの設定</div>
+        <div class="nm-txt">
+          ✧ <b>新キャラ専用の「GRAND DEBUT GACHA」を新設しました。</b>
+          これからの<b>新キャラは、このガチャにだけ登場</b>します。
+          フェスやプレミアムセレクトガチャの<b>すり抜け・10連の確定枠にも出ません</b>。<br>
+          🆕 第1弾（<b>Ver.1.0</b>）は
+          <b>ミレーユ（火）・スカーレット（水）・コユキ（闇）・アメリア（木）・ミオ（光）</b>の5体です。
+          5体とも<b>オムニアンチと治癒の祈りを持たず</b>、それぞれが
+          <b>自分が有利属性になる蓬莱の九重のクエストの必要アンチをすべて消せる</b>ように組んであります
+          （ミレーユ＝第八重／スカーレット＝第一重／コユキ＝第四重・第九重／アメリア＝第七重／ミオ＝第五重）。
+          <b>ミレーユ・スカーレット・コユキ</b>はアンチ3種＋<b>クロススキル</b>持ちの上位性能、
+          <b>アメリア・ミオ</b>はアンチ2種の標準性能です。<br>
+          🔁 <b>次の更新で新しいキャラが GRAND DEBUT に入ると</b>、それまでの5体は
+          <b>プレミアムセレクトガチャへ移り</b>、現行のキャラと同じ扱いになります。
+          どの回のキャラが入っているかが分かるように、ガチャには<b>バージョン（Ver.1.0）</b>を表記しました。<br>
+          🎫 GRAND DEBUT GACHA では<b>フェスチケットは使えません</b>（ガチャチケットは使えます）。
+          <b>キャラの排出と確定枠のしくみはフェスガチャと同じ</b>です
+          （新キャラSSR 合計10%＋<b>PREMIUM SELECT GACHA のSSRも合計5%</b>、SR 50%、
+          確定枠は新キャラとプレミアムのSSRをまとめた中から等確率）。
+          変えたのは育成アイテムの中身です——
+          🎫ガチャチケット・📕超越の書・🎖️英傑の証を厚くし、
+          <b>🪭九天の玉簡</b>と<b>📘クロスの書</b>も極低確率で出るようにしました。<br>
+          🏅 <b>キャラクターのレアリティ表記を「★5 → SSR」「★4 → SR」に変えました。</b>
+          ガチャ・図鑑・編成・提供割合・結果の演出まで、すべて新しい表記にそろえています（中身の強さは変わりません）。<br>
+          📶 <b>Wi-Fi のときとモバイルデータのときで、動きを別々に決められるようになりました。</b>
+          設定 →「オフライン・通信設定」で、つなぎかたごとに
+          <b>「最新のデータを使う」</b>と<b>「更新を自動でダウンロード」</b>を切り替えられます。
+          モバイルデータでは<b>通信せずダウンロードずみのデータで動かす</b>こともできます。
+          回線の種類を教えてくれない端末（iPhone など）のために、
+          <b>分からないときどちら扱いにするか</b>も選べます。<br>
+          📘 <b>MagiLex：まちがえた問題から「くわしい解説」へ行けなかったのを直しました。</b>
+          「整数の難問」など<b>名前に「難問」と付いた6セット</b>が、解説はあるのに対象外と判定されており、
+          案内が出ているのに押しても開かない状態でした。<br>
+          🏷 <b>ガチャの名前を英語表記にそろえました。</b>
+          「プレミアムセレクトガチャ」は <b>PREMIUM SELECT GACHA</b> と出ます（中身は変わりません）。<br>
+          💥 <b>リンクスキル「超強ハイクロススティンガー」を大幅に強化しました。</b>
+          貫通弾が <b>4本 → 6本</b>、1発の威力が <b>×1.70 → ×3.60</b>。
+          弾は<b>尾を引く十字の光槍</b>になり、<b>発射・折り返し・命中</b>のそれぞれで十字の閃光が走るので、
+          どこで曲がってどの敵に入ったのかが目で追えます（ソレリア／スカーレット）。<br>
+          ✨ <b>ミオのリンクスキルを「超強ルミナスレイ」に変更しました。</b>
+          砲台が<b>4基 → 8基</b>に増え、レーザーの威力も当たり判定の太さも上がります。<br>
+          🔧 <b>ミレーユ</b>の木属性キラーを <b>EL → M</b> に、
+          <b>コユキ</b>のファーストキラーLを <b>重力バリアキラーL</b> に変更しました。<br>
+          ⚠️ <b>XEVYNAR に、起動時のご案内を追加しました。</b>
+          解法（定石）と1問ごとのくわしい解説は<b>自動で組み立てている</b>ため、
+          <b>まちがっていることがあります</b>——道しるべとして使ってください、というお知らせです。<br>
+          🌻 <b>MagiLex の XEVA 2倍キャンペーンを 10/31 まで延長しました。</b>
+        </div>
+      </div>
+    </div>
+
 
     <!-- 2026-08-18 プレミアム★5 9体（ロキシー）／超レーザーストップ作り直し -->
+    <div class="nm-item" data-tag="update" data-date="2026-08-20">
+      <div class="nm-date">2026<br>08.20</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">⚡ 物理βを288問追加 ／ 🧠 XEVYNAR が 93% に ／ 🔗 MagiLink の引っ越し</div>
+        <div class="nm-txt">
+          ⚡ <b>MagiLex に「物理β」を新設し、288問を追加しました。</b>
+          中身は<b>電磁気学</b>——抵抗（電流の正体・抵抗モデル・非オーム抵抗）、
+          直流回路（電流計と電圧計・半導体とダイオード・コンデンサの素子評価）、
+          磁場（ビオサヴァール・ローレンツ力・荷電粒子の螺旋運動）、
+          電磁誘導（磁束・レンツ・ファラデー）、導体棒（掃過領域面積・磁場は仕事をしない）、
+          コイル（自己誘導・磁場のエネルギー・コンデンサとの対称性）の24セットです。<br>
+          これまでの物理は <b>「物理α」</b>に名前を変えました（中身と記録はそのままです）。<br>
+          🧠 <b>XEVYNAR の言葉の理解が 83% → 93% になりました。</b>
+          下じきに1つも入れていない29の文で測った数字です。
+          上げかたを決めるために<b>スケーリング則</b>——モデルの大きさ・データ量・計算量の
+          どれをどれだけ増やすと効くか——を実際に測りました。結果はこうです：
+          <b>データを増やすと 9% → 93%</b>、
+          いっぽう<b>モデルだけ大きくすると 93% → 86% → 72% と下がりました</b>。
+          そこでモデルは大きくせず、<b>言葉（概念タグ）と下じきの文を約2倍</b>にしています。
+          測った表はそのままコードに書き残したので、次に増やすときも同じ順番でやれます。<br>
+          🔗 <b>MagiLink の Firebase を xevarion-online へ移しました。</b>
+          XEVARION が使うサーバーを <b>firebase-rules フォルダの4つ</b>にそろえるためです。<br>
+          ⚠️ <b>プロジェクト間でデータは移らないので、これまでのメッセージ・友達・掲示板は
+          引き継がれず、まっさらから始まります。</b>
+        </div>
+      </div>
+    </div>
+
+    <div class="nm-item" data-tag="update" data-date="2026-08-20">
+      <div class="nm-date">2026<br>08.20</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">🧪 化学δを324問追加 ／ 🧠 XEVYNAR に Transformer ／ 💬 チャットで1手ずつ解説</div>
+        <div class="nm-txt">
+          🧪 <b>MagiLex に「化学δ」を新設し、324問を追加しました。</b>
+          中身は <b>脂質</b>（油脂・高級脂肪酸・セッケン・けん化価とヨウ素価・リン脂質）、
+          <b>芳香族炭化水素とフェノール類</b>（側鎖の酸化・フェノールの製法4つ・ピクリン酸）、
+          <b>元素別各論</b>（14〜18族。ケイ素とガラス・鉛蓄電池・ハーバーボッシュ法・オストワルト法・
+          接触法・ハロゲン）の27セットです。<br>
+          🧠 <b>XEVYNAR の中身を Transformer に作り直しました。</b>
+          大手のAIと同じ仕組み——<b>自己注意（attention）・多ヘッド・残差と層正規化</b>——を
+          そのまま書き起こしてあります。文全体を1本のベクトルにするので、
+          <b>言い回しがちがっても意味が近ければ通じます</b>。
+          出力の部分は<b>本物の勾配降下法</b>で学習し、
+          学んだぶんはアカウントを通じて<b>みんなで持ちより</b>ます（使う人が増えるほど賢くなります）。
+          下じきに1つも入れていない29の文で試したところ、
+          文字だけを見ていたときの <b>9%</b> から <b>83%</b> まで上がりました。<br>
+          💬 <b>チャットの中で「1手ずつ」解説するようにしました。</b>
+          問題文をそのまま貼ると、その問題を見つけて
+          <b>何を聞かれているか → 方針 → 手順①（図つき） → 手順② → … → 確かめ → 誤答の理由</b>
+          を1つずつ送ります。分からない言葉はその場でやさしい例題までさかのぼれます。<br>
+          📘 <b>くわしい解説は「最難関」だけにしぼりました。</b>
+          広く薄く出すより、いちばん重い問題を深くしたほうが効くためです。
+          入門・中堅・難関は、答えの下の解説と<b>解きかた（定石）</b>で扱います。<br>
+          📐 <b>図とグラフが科目をまたがないようにしました。</b>
+          物理の問題に「mol の道すじ」が出るなど、まったく関係のない絵が混ざっていました。
+          図ごとに科目を決めて、<b>問題の科目と一致するものだけ</b>を出します。
+          あわせて、<b>問題を解いている最中と問題一覧の図は取りやめ</b>ました。<br>
+          🤖 <b>XEVYNAR のおすすめ編成も、みんなのクリア編成と MagiTier を見るようになりました。</b>
+          MagiBurst の自動編成と同じ重みでそろえてあります。<br>
+          🏷 MagiBurst の「前回編成」ボタンは、中身に合わせて <b>「クリア編成」</b>に改名しました。
+        </div>
+      </div>
+    </div>
+
+    <div class="nm-item" data-tag="update" data-date="2026-08-19">
+      <div class="nm-date">2026<br>08.19</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">📐 図が問題ごとの数値で描かれるように ／ 🌍 みんなのクリア編成 ／ 🔰 入門レベルを40問追加</div>
+        <div class="nm-txt">
+          📐 <b>図とグラフが、その問題の数値で描かれるようになりました。</b>
+          これまでは形が決め打ちだったので、同じ分野の問題ではまったく同じ絵が出ていました。
+          いまは問題文から<b>頂点・辺の長さ・角度・抵抗値・初項と公差・質量</b>などを読み取って、
+          その数で描きます（たとえば「y=−2x²+8x−3」なら頂点(2,5)の上に凸のグラフが出ます）。<br>
+          🌍 <b>MagiBurst に「みんなのクリア編成」が付きました。</b>
+          ほかの指揮官が<b>実際にそのクエストを抜けた編成</b>を、
+          手数・残りHP・かかった時間つきで上位5件まで見られます。
+          「この編成を読み込む」で、持っているキャラだけをその場で編成に入れられます。
+          自分がソロでクリアすると、あなたの編成も（キャラと記録だけ）そこに載ります。
+          自動編成も、この「みんながこのクエストで使っているキャラ」を参考にします。<br>
+          🔰 <b>MagiLex に「入門」レベルを40問追加しました。</b>
+          中堅よりさらに手前——展開・因数分解・三角比の値・単位の意味・molとは、といった
+          <b>1手で終わる</b>ところだけを集めています。難易度に「入門」の段が増えました。<br>
+          🧭 <b>問題を解いている最中は、XEVYNAR へ行けないようにしました。</b>
+          途中でアプリを離れるとセットを最後まで解き終わらず、
+          <b>習得の判定とごほうびが走らない</b>ため「記録が切れた」ように見えていました。
+          くわしい解説へは<b>解き終わった結果の画面</b>と<b>問題と答えの一覧</b>から行けます。<br>
+          💾 <b>XEVYNAR へ移る前に、学習の記録をその場で書き切るようにしました。</b>
+          あわせて、<b>メモ・自分で作ったフラッシュカード・XEVYNAR が会話から覚えたこと</b>も
+          アカウント同期に載せたので、端末を変えても引き継がれます。<br>
+          🧪 <b>誤答の選択肢が「何なのか」を言うようになりました。</b>
+          とくに化学では、まちがいの選択肢は<b>別の実在するもの</b>であることが多いので、
+          「これはアセトン（第二級アルコールを酸化して得られるケトン）です」のように補足します。
+          化学式どうしなら<b>どの原子がいくつちがうか</b>、組成式と分子式の取りちがいなら
+          <b>何倍になっているか</b>まで出します。<br>
+          🗂 <b>MagiTier をいくつか直しました。</b>
+          ポータルからのリンク切れ（ファイル名のちがい）を修正。
+          MagiBurst 用の表は<b>押すと閲覧モード</b>で開き、編集はその中のボタン（アクセスコード）から。
+          表に入れたキャラは<b>プールから消えて 1キャラ1枚</b>になり、
+          キャラを押すと<b>MagiBurst での性能</b>（ステータス・アビリティ・フルバースト・リンク）まで読めます。<br>
+          🖼 <b>スライドに編集画面が付きました。</b>
+          「スライド」を押すと、いきなり再生せずに<b>パワーポイントのような編集画面</b>が開きます。
+          左に全部の見取り図、右に大きい下書きとその1枚の設定。
+          <b>足す・複製・▲▼で入れかえる・消す</b>ができて、直したものはそのまま保存され同期されます。
+          種類は<b>表紙／Tierを1枚／1つずつ／評価とメモの一覧／文章／表ぜんぶ</b>の6つ。
+          表紙と文章の見出し・本文は自分で書けます。
+          <b>入れた評価（★）とメモもスライドに出せます</b>——
+          Tierの1枚では画像の下に、「評価とメモの一覧」では1件ずつ表にして読めます。
+          できたら <b>▶ 再生</b>、配るときは <b>PDF</b> です。
+        </div>
+      </div>
+    </div>
+
+    <div class="nm-item" data-tag="update" data-date="2026-08-19">
+      <div class="nm-date">2026<br>08.19</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">📗 中堅レベルを150問追加 ／ 📈 問題ごとに図が見られるように ／ 🏅 クリア編成を自動編成に反映</div>
+        <div class="nm-txt">
+          📗 <b>MagiLex に「中堅」レベルを150問 追加しました。</b>
+          いきなり最難関に挑むと手が出ないので、その<b>ひとつ手前</b>——
+          教科書の例題は解けるけれど入試問題はまだ、という段階のための問題です。
+          数学8セット・物理4セット・化学γ3セットの計15セット。
+          難易度の表示も<b>中堅</b>という段が増えました。<br>
+          📈 <b>問題ごとに「図で見る」ボタンが付きました。</b>
+          数学・物理・化学γで図やグラフが役に立つ問題では、
+          解いている最中にも、答えの一覧からも、その場で図を開けます。
+          図は XEVYNAR と<b>同じ40種類</b>を共有しています。<br>
+          🎯 <b>1セット解き終わったあと、まちがえた問題からそのまま解説へ行けます。</b>
+          結果の画面にまちがえた問題が並び、押すとその問題のくわしい解説が開きます。
+          「まとめて見る」で、まちがえたぶんを順にたどることもできます。<br>
+          🏅 <b>MagiBurst のクリア編成を「いちばん安定して速かった1つ」に変えました。</b>
+          これまでは最後に勝った編成を上書きしていたので、
+          たまたま最後がギリギリだと、それが記録として残っていました。
+          いまは<b>残りHPと手数</b>から点数を付けて、良かったほうだけを残します。
+          手数・残りHP・かかった時間・クリア回数も表示します。<br>
+          🤖 <b>自動編成が「実際に効いた実績」も見るようになりました。</b>
+          ギミックの対応表だけでなく、<b>そのクエストをクリアした編成にいたか</b>・
+          <b>ほかのクエストでもよく使っているか</b>・<b>MagiTier で上位か</b>を点に混ぜます。
+          選ばれた理由も画面に出ます（XEVYNAR の編成提案も同じ考えかたに合わせました）。<br>
+          🏯 <b>XEVYNAR が「蓬莱の九重」に答えられるようになりました。</b>
+          「蓬莱天宮の編成」「第三重のギミック」のように、
+          漢数字の聞きかたでも通じます。報酬（50WAVEで瑶華＆玉蘭・蓬莱天宮クリアで瑶妃）も案内します。<br>
+          💬 <b>聞きかたのゆらぎに強くなり、会話から覚えるようになりました。</b>
+          「おしえて」「わかんない」「〜なんだけど」のような言いまわしを同じ意味に寄せて受け取ります。
+          答えたあとはその言いかたを覚えるので、次から同じ聞きかたが通りやすくなります。
+          まちがえたときは「<b>ちがう</b>」と送れば、その結びつきを忘れます。<br>
+          🖼 <b>解きかた（定石）の画面にも図が付きました。</b>手順を見ているあいだ、ずっと横に置いておけます。<br>
+          🧹 チャットの吹き出しに毎回出ていた「提供：XEVYNAR」の帯を<b>廃止</b>しました。<br>
+          🗂 <b>MagiTier の同期で、画像そのものを送らないようにしました。</b>
+          キャラの絵は<b>ファイル名だけ</b>を送り、読む側が同じ絵を出します。
+          送るのは端末から取りこんだ写真だけになり、公開がずっと軽くなります。
+        </div>
+      </div>
+    </div>
+
+    <div class="nm-item" data-tag="update" data-date="2026-08-18">
+      <div class="nm-date">2026<br>08.18</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">📘 XEVYNAR が MagiLex の全970問に「くわしい解説」を用意しました（図・グラフつき）</div>
+        <div class="nm-txt">
+          📘 <b>数学・物理・化学γ の 970問すべてに、1問ずつのくわしい解説がつきました。</b>
+          MagiLex の答えの下に出る短い解説では足りない、という声にお応えするものです。
+          1問ぶんの解説は、いつも同じ9つの並びで出ます——
+          <b>① 何を聞かれているか（与えられたもの／求めるもの）／② 方針／③ ここで使う公式／
+          ④ 手順を1行ずつ／⑤ 図・グラフ／⑥ 答えの確かめかた／⑦ ほかの選択肢がなぜ違うのか／
+          ⑧ 出てくる言葉／⑨ 続けて解く</b>。<br>
+          🖼 <b>図とグラフを40種類用意しました。</b>問題文から自動でえらんで出します。
+          二次関数・単位円・三角関数の合成・定積分の面積・回転体・楕円と双曲線・散布図・数直線・樹形図・
+          斜面の力の分解・ばねと単振動・衝突の前後・円運動・波の干渉・定常波・ドップラー・レンズ・
+          コンデンサー・直流回路・電磁誘導・PV図・v−tグラフ・滴定曲線・平衡の3行表・mol の道すじ・
+          元素分析の流れ・官能基の見分け・電気分解の道すじ・周期表・金属イオンの系統分析・有機の反応のつながり など。<br>
+          🪜 <b>分からないところで止まらないようにしました。</b>
+          手順の行の「<b>？ この行がわからない</b>」と、⑧の言葉のボタンを押すと、
+          <b>意味 →（なぜ大事か）→ やさしい例題 → 本番に近い例題</b> の順に降りていけます。
+          例題には答えとやりかたが付いているので、そこだけ手を動かして確かめられます。
+          用語は<b>75語</b>そろえました（判別式・相加相乗・真数条件・合同式・条件つき確率・部分積分・
+          正弦定理・軌跡・分散・期待値・慣性力・反発係数・レンツの法則・キルヒホッフ・
+          物質量・ルシャトリエ・緩衝液・ファラデー定数・不飽和度・配向性・還元糖・等電点 など）。<br>
+          ❌ <b>「ほかの選択肢がなぜ違うのか」も1つずつ出します。</b>
+          正解との関係（符号が逆・ちょうど2倍・逆数・2乗のまま など）から、
+          どこで間違えるとその値になるのかを言葉にします。<br>
+          🔗 <b>MagiLex から1タップで開けます。</b>
+          「<b>問題と答えの一覧</b>」の各問題と、答え合わせのあとに出るボタンから、
+          その問題のくわしい解説へまっすぐ飛べます。<br>
+          🧭 あわせて、<b>「解きかた（定石）」も32本に増やしました</b>
+          （三角関数・指数対数・図形と計量・軌跡・二次曲線・データの分析・式と証明・
+          等加速度・音波・無機・有機 などを追加）。1手ずつたどれます。<br>
+          🎯 <b>XEVYNAR の「苦手問題を出して」が、数学・物理・化学γからも出るようになりました。</b>
+          これまでは英語・理科・化学βしか読み込んでおらず、いちばん出してほしい3科目が
+          丸ごと入っていませんでした。
+        </div>
+      </div>
+    </div>
+
+    <div class="nm-item" data-tag="update" data-date="2026-08-18">
+      <div class="nm-date">2026<br>08.18</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">🎓 XEVYNAR に「解法」タブ ／ 🗂 メモがフラッシュカードに ／ 🎯 ミッションの進み具合を表示</div>
+        <div class="nm-txt">
+          🎓 <b>XEVYNAR に「解法」タブを追加しました。</b>
+          数学・物理・化学γの<b>難問の解きかた</b>を<b>1手ずつ</b>たどれます。
+          どの手でも「<b>この手がわからない</b>」を押すと、その手だけの
+          <b>言いかえ・使う公式・かんたんな例題</b>が開くので、詰まったところだけ戻れます。
+          いま <b>21の定石／106手／48の公式</b>が入っています。<br>
+          🔗 <b>MagiLex から直接つながります。</b>ホームの「XEVYNARで学ぶ」と、
+          問題の答え合わせのあとに出る「<b>この問題の解きかたを XEVYNAR で学ぶ</b>」から、
+          その問題に合う解きかたが並びます。<br>
+          🗂 <b>MagiLex のメモが、フラッシュカードとしても使えるようになりました。</b>
+          「カード」タブでおもて／うらのカードをめくれます。
+          <b>いまの問題から</b>そのまま作ることも、<b>書いたメモから</b>（1行目がおもて・手書きはうらの絵に）作ることもできます。
+          「覚えた」を3回で覚えたあつかい、「覚えたを隠す」で残りだけを回せます。<br>
+          📱 <b>メモの道具が iPhone で場所を取りすぎていたのを直しました。</b>
+          道具は1行に収めて横スクロールにし、<b>⤢ で画面いっぱいに広げられる</b>ようにしています。<br>
+          🎯 <b>XEVAミッションに「いまの自分」を出しました。</b>
+          どのミッションにも進み具合のバーと残りの数が付き、キャラを集めるものは<b>だれが足りないか</b>が顔で分かります。<br>
+          🐞 <b>ミッションの達成が反映されない不具合を直しました。</b>
+          ガチャを mb-core に一本化して以降、引いたキャラが古い保存先しか見られておらず、
+          「カホ・ナナ・レア・リノンを集める」が<b>4人そろえても達成にならない</b>状態でした。<br>
+          💎 <b>ジェムの交換に、画面内の確認を入れました。</b>レートと支払う XEVA を見てから決められます。<br>
+          👑 <b>ピックアップが完凸のままガチャを回そうとすると警告</b>が出るようになりました。
+          完凸キャラは排出対象から外れるため、ピックアップ枠がはたらいていないことをお知らせします。
+          ピックアップ一覧・提供割合・フェスの顔ぶれにも、<b>いま何凸か</b>を出しています。<br>
+          🖼 提供割合の表からキャラを押したとき、<b>性能が表の後ろに隠れて見られなかった</b>のを直しました。<br>
+          ✦ <b>キャラの性能画面を見やすくしました。</b>ステータスは1項目2段になり、
+          バーが横いっぱいに伸びます（満タンは全キャラの最大値）。アークで増えたぶんの表示もそろえました。<br>
+          🆕 <b>新キャラのお知らせを、XEVARION のログイン時に一本化しました。</b>
+          MagiBurst 側の告知は廃止し、キャッチコピー付きの大きなカードでお知らせします。
+          告知にもれていた<b>12体（グレース・瑶華＆玉蘭・瑶妃・プレミアム★5 9体）</b>も入れています。<br>
+          👻 <b>MagiBurst の透明スイッチが、1ターンのあいだ全部はたらく</b>ようになりました
+          （1つ踏むと他が反応しなくなっていたのを直しています）。<br>
+          💀 <b>生死の判定をターンの区切り1か所にまとめました。</b>
+          キャラの動き・リンクスキル・敵の攻撃がすべて終わってから判定するので、
+          途中でHPが0をよぎっても、立て直せていれば負けになりません。<br>
+          🗒 MagiBurst のミッションから「ガチャを◯回引く」を外しました（ガチャはポータル側にあるため）。<br>
+          🏆 <b>MagiTier の「公開」が、ほんとうに人に見せられるようになりました。</b>
+          これまで URL・QR は同じ端末でしか開けませんでしたが、公開すると<b>どの端末からでも</b>開けます
+          （取り下げもできます）。MagiBurst 用の表は、開くたびに<b>キャラがプールにそろう</b>ようになりました。
+        </div>
+      </div>
+    </div>
+
     <div class="nm-item" data-tag="update" data-date="2026-08-18">
       <div class="nm-date">2026<br>08.18</div>
       <div class="nm-content">
