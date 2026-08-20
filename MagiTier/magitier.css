@@ -390,7 +390,7 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.7}
 
 /* ══════════ スライドプレゼン（★ 2026-08-16）══════════ */
 #slideOv{
-  position:fixed;inset:0;z-index:320;background:var(--bg);
+  position:fixed;inset:0;z-index:330;background:var(--bg);
   display:none;flex-direction:column;
   padding:calc(12px + var(--sat)) 12px calc(12px + var(--sab))
 }
@@ -417,6 +417,67 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.7}
 /* 全画面にしたときは余白を詰めて、スライドを最大まで使う */
 #slideOv:fullscreen{padding:10px}
 #slideOv:fullscreen #slCanvas{max-width:none;border:none;border-radius:0}
+
+
+/* ══════════ スライド編集（★★ 2026-08-19）══════════
+   左に見取り図・右に下書きと設定。
+   せまい画面では、見取り図を横に流して上へ、設定を下へ積む。 */
+#deckOv{
+  position:fixed;inset:0;z-index:321;background:var(--bg);
+  display:none;flex-direction:column;
+  padding:calc(10px + var(--sat)) 10px calc(10px + var(--sab))
+}
+#deckOv.on{display:flex}
+.dkbar{
+  flex:none;display:flex;align-items:center;gap:6px;flex-wrap:wrap;
+  padding:8px 10px;border-radius:14px;margin-bottom:10px;
+  background:var(--panel);border:1px solid var(--line);box-shadow:var(--shadow-sm)
+}
+.dktitle{font-size:14px;font-weight:900;margin-right:2px}
+.dkpos{font-weight:900;font-size:12px;color:var(--ink2)}
+.dkb{
+  height:34px;padding:0 12px;border-radius:99px;font-weight:800;font-size:12.5px;
+  border:1px solid var(--line);background:var(--panel2);color:var(--ink);flex:none
+}
+.dkb:hover{border-color:var(--accent);color:var(--accent)}
+.dkb.pri{background:var(--accent);border-color:var(--accent);color:#fff}
+.dkb.pri:hover{filter:brightness(1.08);color:#fff}
+.dkb.dg:hover{border-color:#e5484d;color:#e5484d}
+.dkbody{flex:1;min-height:0;display:grid;grid-template-columns:200px 1fr;gap:10px}
+.dkstrip{
+  overflow:auto;display:flex;flex-direction:column;gap:8px;padding:4px;
+  background:var(--panel2);border:1px solid var(--line);border-radius:14px
+}
+.dkth{
+  position:relative;display:block;width:100%;padding:6px 6px 20px;border-radius:10px;
+  border:2px solid transparent;background:var(--panel);text-align:left
+}
+.dkth.on{border-color:var(--accent)}
+.dkth canvas{width:100%;display:block;border-radius:6px;border:1px solid var(--line);background:#fff}
+.dkn{position:absolute;top:8px;left:8px;z-index:2;font-size:10px;font-weight:900;
+  background:rgba(0,0,0,.6);color:#fff;border-radius:5px;padding:1px 5px}
+.dkk{display:block;margin-top:4px;font-size:10.5px;font-weight:800;color:var(--ink2)}
+.dkempty{padding:20px 10px;text-align:center;font-size:12px;color:var(--ink2)}
+.dkmain{min-height:0;display:grid;grid-template-rows:1fr auto;gap:10px}
+.dkstage{min-height:0;display:grid;place-items:center;
+  background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:10px}
+#dkBig{width:100%;max-height:100%;aspect-ratio:16/9;object-fit:contain;
+  border:1px solid var(--line);border-radius:10px;background:var(--panel)}
+.dkprop{
+  max-height:42vh;overflow:auto;padding:12px 14px;
+  background:var(--panel);border:1px solid var(--line);border-radius:14px
+}
+.dkprop .fld{margin-bottom:10px}
+.dkprop .ta{min-height:96px;resize:vertical;font-family:inherit;line-height:1.7}
+.dkprop .rowsw{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  font-size:13px;font-weight:800;margin:6px 0 4px}
+@media(max-width:860px){
+  .dkbody{grid-template-columns:1fr;grid-template-rows:auto 1fr}
+  .dkstrip{flex-direction:row;overflow-x:auto;overflow-y:hidden;max-height:132px}
+  .dkth{width:150px;flex:none}
+  .dkprop{max-height:38vh}
+  .dkb{height:31px;padding:0 10px;font-size:11.5px}
+}
 
 /* ══════════ 閲覧モード（MagiBurst から来たとき）══════════ */
 .mvnote{background:var(--accent-soft);border:1px solid var(--line);border-radius:12px;
@@ -539,3 +600,12 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.7}
 
 /* ★ 2026-08-17f MagiBurst 表の「公開」ボタンは、ただの保存と見分けがつくように */
 #etSaveBtn.pub{background:linear-gradient(90deg,#f0b429,#ff8a3d);border-color:#f0b429;color:#3a2a00}
+
+/* ★ 2026-08-19 閲覧モードのキャラ詳細：MagiBurst での性能 */
+.mvsec{margin-top:10px;padding-top:9px;border-top:1px solid var(--line)}
+.mvst{font-size:.68rem;font-weight:900;letter-spacing:.06em;color:var(--accent,#6b5bd2);margin-bottom:4px}
+.mvsk{font-size:.86rem;font-weight:900}
+.mvd{font-size:.74rem;font-weight:600;line-height:1.8;opacity:.85;margin-top:2px}
+.mvabs{display:flex;flex-wrap:wrap;gap:5px}
+.mvab{font-size:.68rem;font-weight:800;padding:3px 9px;border-radius:99px;
+  border:1.5px solid var(--line);background:var(--card2,rgba(120,140,200,.08))}

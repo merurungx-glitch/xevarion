@@ -319,6 +319,20 @@ function askYesNo(title, body, okLabel) {
       </div>`);
   });
 }
+/* ★ 2026-08-18 本文に太字などを入れたい確認ダイアログ（askYesNo は本文を esc する）。
+   公開のように「押すと外へ出ていく」操作の確認に使う。 */
+function askHtml(o) {
+  o = o || {};
+  return new Promise((resolve) => {
+    _askResolve = resolve;
+    dlgOpen(`<h2>${esc((o.icon ? o.icon + " " : "") + (o.title || "確認"))}</h2>
+      <p class="dsub" style="line-height:1.9">${o.body || ""}</p>
+      <div class="foot">
+        <button class="btn" onclick="MT.askAnswer(false)">${esc(o.cancel || "やめる")}</button>
+        <button class="btn dgr" onclick="MT.askAnswer(true)">${esc(o.ok || "実行する")}</button>
+      </div>`);
+  });
+}
 function askAnswer(v) {
   const f = _askResolve; _askResolve = null;
   dlgClose();
@@ -390,6 +404,10 @@ async function del(id) {
 }
 function open(id) {
   const t = tables.find((x) => x.id === id); if (!t) return;
+  /* ★★ 2026-08-19 MagiBurst 表は<b>押したら閲覧モード</b>で開く。
+     いきなりアクセスコードを聞かれると、ただ見たいだけの人が入口で止まってしまう。
+     編集は閲覧モードの中の「✎ 編集する」から（そこでコードを聞く）。 */
+  if (id === MB_TABLE_ID) { openMbViewer(); return; }
   if (t.password) {
     const pw = prompt("🔒 パスワードを入力してください");
     if (pw === null) return;
@@ -400,13 +418,76 @@ function open(id) {
 function openTable(id) {
   cur = tables.find((x) => x.id === id); if (!cur) return;
   normalize(cur); selImg = null; pushRecent(id);
-  /* ★ 2026-08-17f MagiBurst 表は、開くたびに中身をそろえ直す
-     （キャラでない t_ 画像が残っていたのを、ここで必ず片づける） */
-  if (id === MB_TABLE_ID && typeof mbChars === "function" && mbChars()) {
-    mbNormalizeTable(cur); save(cur, true);
-  }
   $("#etName").value = cur.name;
   go("edit");
+  /* ★★ 2026-08-18 MagiBurst 表は、開くたびに
+       ① mb-core.js を読む ② まだ表に無いキャラをプールへ足す ③ 中身をそろえ直す
+     まで通す。以前は「mb-core がもう読めていたら片づけるだけ」だったので、
+       ・ホームの一覧から直接ひらくと<b>プールが空</b>（mb-core を読んでいない）
+       ・キャラを足しても、もう一度「編集する」を通すまでプールに出てこない
+     という2つが起きていた。 */
+  if (id === MB_TABLE_ID) mbRefreshPool();
+}
+/* まだ表に置かれていないキャラを、ぜんぶプールへならべる。戻り値は足した数。 */
+function mbFillPool(t) {
+  const CH = mbChars() || {};
+  const ids = mbCharIds() || Object.keys(CH);
+  if (!ids.length) return 0;
+  const placed = {};
+  t.tiers.forEach((tr) => tr.images.forEach((im) => { placed[im.id] = 1; }));
+  t.images.forEach((im) => { placed[im.id] = 1; });
+  let added = 0;
+  ids.forEach((id) => {
+    const c = CH[id]; if (!c) return;
+    if (placed["mb:" + id]) return;
+    t.images.push(normImg({ id: "mb:" + id, src: c.th, name: c.nm,
+      memo: (c.el || "") + " / " + (c.type || ""), addedAt: Date.now() }));
+    added++;
+  });
+  return added;
+}
+/* ★★ 2026-08-19 「1キャラにつき1枚」を必ず守る。
+   Tier に置いてあるキャラは、プールから必ず外す。
+   ★ mbNormalizeTable でも同じことをしているが、
+     並べかえ・読み込み・同期の直後など<b>いつ呼ばれても</b>成り立たせたいので、
+     軽い1本を切り出して、変更のたびに通す。 */
+function mbDedupe(t) {
+  if (!t) return 0;
+  const inTier = {};
+  t.tiers.forEach((tr) => {
+    const seen = {};
+    tr.images = (tr.images || []).filter((im) => {
+      if (seen[im.id]) return false;      /* 同じ Tier に2枚あったら1枚に */
+      seen[im.id] = 1; inTier[im.id] = 1; return true;
+    });
+  });
+  /* 別の Tier に同じキャラがいたら、最初の1枚だけ残す */
+  const used = {};
+  t.tiers.forEach((tr) => {
+    tr.images = tr.images.filter((im) => (used[im.id] ? false : (used[im.id] = 1)));
+  });
+  const before = (t.images || []).length;
+  const seenP = {};
+  t.images = (t.images || []).filter((im) => {
+    if (used[im.id]) return false;        /* すでに表に置いてある＝プールからは消す */
+    if (seenP[im.id]) return false;
+    seenP[im.id] = 1; return true;
+  });
+  return before - t.images.length;
+}
+/* MagiBurst 表のプールを最新のキャラでそろえ直す（開いたあとに非同期で走る） */
+async function mbRefreshPool() {
+  const t = tables.find((x) => x.id === MB_TABLE_ID);
+  if (!t) return;
+  try { await loadMbCore(); }
+  catch (e) { toast("キャラ情報を読み込めませんでした（通信）"); return; }
+  if (!mbChars()) return;
+  const added = mbFillPool(t);
+  mbNormalizeTable(t);
+  mbDedupe(t);                 /* ★ 1キャラ1枚を守る */
+  await save(t, true);
+  if (screen === "edit" && cur && cur.id === MB_TABLE_ID) renderEditor();
+  if (added) toast(added + " 体をプールに追加しました");
 }
 function renameCur(v) { if (!cur) return; cur.name = v; saveSoon(); }
 async function saveNow() { await save(cur); toast("保存しました"); }
@@ -870,6 +951,7 @@ async function moveImgTo(id, ti) {
   else cur.images = cur.images.filter((x) => x.id !== id);
   if (ti === "" || ti == null) cur.images.push(im);
   else cur.tiers[+ti].images.push(im);
+  if (cur.id === MB_TABLE_ID) mbDedupe(cur);   /* ★ 2026-08-19 1キャラ1枚を守る */
   await save(cur, true); refresh();
   if ($("#ov").classList.contains("on")) tierPickDlg(id);
 }
@@ -929,6 +1011,7 @@ async function dropOn(where, at) {
   /* 手で並べたのだから、並び順は「手動」にもどす（自動整列だと戻ってしまう） */
   if (cur.sortMode !== "manual") { cur.sortMode = "manual"; toast("並び順を「手動」にもどしました"); }
   dragId = null;
+  if (cur.id === MB_TABLE_ID) mbDedupe(cur);   /* ★ 2026-08-19 1キャラ1枚を守る */
   await save(cur, true); refresh();
 }
 /* スマホ：長押しでドラッグを始め、指を離したところの Tier へ移す */
@@ -1152,26 +1235,35 @@ function pZoom() {
 const SLIDE_W = 1920, SLIDE_H = 1080;
 let slides = [], slideIx = 0, slideImgs = {};
 
+/* ★★ 2026-08-19 「スライドで見せる」を押したら、まず<b>編集画面</b>をひらく。
+   いきなり再生が始まると、順番も見出しも直せないまま人前に出すことになる。
+   ここで1枚ずつ足す・消す・入れかえる・書きかえるをやってから ▶ で再生する。 */
 function slideDlg() {
   if (!cur) return;
-  dlgOpen(`<h2>スライドで見せる</h2>
-    <p class="dsub">1枚ずつ送って説明できます。PDF に保存して配ることもできます。</p>
+  openDeck();
+}
+/* もとの「分けかた」ダイアログは、はじめて作るときの<b>下じき選び</b>として残す */
+function slidePreset() {
+  dlgOpen(`<h2>下じきをえらぶ</h2>
+    <p class="dsub">まずこの形で1式つくります。あとから1枚ずつ直せます。</p>
     <div class="fld"><label class="lbl">分けかた</label>
       <div class="row" style="flex-wrap:wrap">
         <button class="chip on" data-sl="tier" onclick="MT.pickSlide(this)">Tierごと</button>
         <button class="chip" data-sl="item" onclick="MT.pickSlide(this)">1つずつ</button>
+        <button class="chip" data-sl="list" onclick="MT.pickSlide(this)">評価とメモの一覧</button>
         <button class="chip" data-sl="all" onclick="MT.pickSlide(this)">表紙＋表ぜんぶ</button>
       </div>
       <p class="dsub" style="margin-top:8px" id="slHint">Tierを1つずつ、大きく見せていきます。</p>
     </div>
     <div class="foot">
       <button class="btn" onclick="MT.closeDlg()">やめる</button>
-      <button class="btn pri" onclick="MT.slStart()">はじめる</button>
+      <button class="btn pri" onclick="MT.deckReset()">この形でつくる</button>
     </div>`);
 }
 const SLIDE_HINT = {
   tier: "Tierを1つずつ、大きく見せていきます。",
   item: "画像を1つずつ、名前・所属Tier・メモ・評価と一緒に見せます。",
+  list: "Tierごとに、入れた評価（★）とメモを表にして読みます。",
   all: "表紙のあと、Tier表を1枚にまとめて見せます。",
 };
 function pickSlide(b) {
@@ -1187,28 +1279,52 @@ function buildSlides(mode) {
   if (mode === "tier") {
     t.tiers.forEach((tr, i) => out.push({ kind: "tier", ti: i }));
   } else if (mode === "item") {
-    t.tiers.forEach((tr, i) => sortImages(tr.images).forEach((im) => out.push({ kind: "item", ti: i, im })));
+    t.tiers.forEach((tr, i) => sortImages(tr.images).forEach((im) => out.push({ kind: "item", ti: i, im: im.id })));
     /* 未配置のぶんも最後に見せる（説明のときに抜けると気づけない） */
-    (t.pool || []).forEach((im) => out.push({ kind: "item", ti: -1, im }));
+    (t.images || []).forEach((im) => out.push({ kind: "item", ti: -1, im: im.id }));
+  } else if (mode === "list") {
+    /* ★ 2026-08-19 入れた評価とメモを読ませる形。
+       1枚に LIST_PER 行までしか入らないので、多い Tier はページに分ける。 */
+    t.tiers.forEach((tr, i) => {
+      const n = Math.max(1, Math.ceil(sortImages(tr.images).length / LIST_PER));
+      for (let p = 0; p < n; p++) out.push({ kind: "list", ti: i, pg: p });
+    });
   } else {
     out.push({ kind: "all" });
   }
   return out;
 }
+const LIST_PER = 6;
+/* スライドが指している画像を引く（保存できるように id で持たせている） */
+function slImg(sl) {
+  if (!sl || !sl.im) return null;
+  if (typeof sl.im === "object") return sl.im;                 /* 昔のデータ（そのまま持っていた） */
+  return allImages(cur).find((x) => x.id === sl.im) || null;
+}
 
-async function slStart() {
-  const mode = ($("#dlg [data-sl].on") || { dataset: { sl: "tier" } }).dataset.sl;
-  dlgClose();
-  toast("スライドを作っています…");
-  slideImgs = {};
-  await Promise.all(allImages(cur).map((im) => new Promise((res) => {
+/* 画像をぜんぶ読みこむ（描くのは canvas なので、先に Image にしておく必要がある） */
+let _slLoaded = 0;
+async function slPreload() {
+  const list = allImages(cur);
+  if (_slLoaded === list.length && Object.keys(slideImgs).length) return;   /* もう読んである */
+  await Promise.all(list.map((im) => new Promise((res) => {
+    if (slideImgs[im.id]) return res();
     const g = new Image(); g.crossOrigin = "anonymous";
     g.onload = () => { slideImgs[im.id] = g; res(); };
     g.onerror = () => res();
     g.src = im.src;
   })));
-  slides = buildSlides(mode);
-  slideIx = 0;
+  _slLoaded = list.length;
+}
+/* 2026-08-19 再生は編集した1式（deck）をそのまま出す。
+   from を渡すと、その枚めから始める（編集画面で選んでいる枚から流したいため）。 */
+async function slStart(from) {
+  if (!cur) return;
+  if (!deck.length) { slidePreset(); return; }
+  toast("スライドを作っています…");
+  await slPreload();
+  slides = deck.slice();
+  slideIx = Math.max(0, Math.min(slides.length - 1, from | 0));
   $("#slideOv").classList.add("on");
   document.body.style.overflow = "hidden";
   slFit(); slPaint();
@@ -1263,9 +1379,10 @@ function drawSlide(g, sl) {
   if (sl.kind === "cover") {
     g.textAlign = "center"; g.fillStyle = ink;
     g.font = "900 96px 'Noto Sans JP',sans-serif";
-    wrapText(g, cur.name || "Tier表", SLIDE_W / 2, SLIDE_H / 2 - 40, SLIDE_W - 240, 110, 2);
+    wrapText(g, sl.title || cur.name || "Tier表", SLIDE_W / 2, SLIDE_H / 2 - 40, SLIDE_W - 240, 110, 2);
     g.font = "700 34px 'Noto Sans JP',sans-serif"; g.fillStyle = ink2;
-    const sub = [cur.author || "", fmtDate(cur.updatedAt)].filter(Boolean).join("　・　");
+    const sub = (sl.sub != null && sl.sub !== "")
+      ? sl.sub : [cur.author || "", fmtDate(cur.updatedAt)].filter(Boolean).join("　・　");
     g.fillText(sub, SLIDE_W / 2, SLIDE_H / 2 + 110);
     g.strokeStyle = line; g.lineWidth = 3;
     g.beginPath(); g.moveTo(SLIDE_W / 2 - 160, SLIDE_H / 2 + 46); g.lineTo(SLIDE_W / 2 + 160, SLIDE_H / 2 + 46); g.stroke();
@@ -1293,25 +1410,43 @@ function drawSlide(g, sl) {
       g.fillText("（このTierにはまだ何も入っていません）", SLIDE_W / 2, SLIDE_H / 2 + 40);
       sign(); return;
     }
-    /* 収まるように列数と大きさを決める */
+    /* 収まるように列数と大きさを決める。
+       2026-08-19 sl.memo が立っていたら、カードの下に名前・総合・メモのぶんを空ける。 */
+    const foot = sl.memo ? 132 : 0;
     const top = bandH + 50, availH = SLIDE_H - top - 90, availW = SLIDE_W - 120;
-    let cols = Math.ceil(Math.sqrt(list.length * availW / availH)) || 1;
+    let cols = Math.ceil(Math.sqrt(list.length * availW / Math.max(1, availH - foot))) || 1;
     cols = Math.max(1, Math.min(cols, list.length));
     let rows = Math.ceil(list.length / cols);
-    let cell = Math.min((availW - (cols - 1) * 22) / cols, (availH - (rows - 1) * 22) / rows);
-    cell = Math.min(cell, 330);
-    const gridW = cols * cell + (cols - 1) * 22;
-    const x0 = (SLIDE_W - gridW) / 2, y0 = top + Math.max(0, (availH - (rows * cell + (rows - 1) * 22)) / 2);
+    let cell = Math.min((availW - (cols - 1) * 22) / cols, (availH - (rows - 1) * 22) / rows - foot);
+    cell = Math.min(cell, sl.memo ? 250 : 330);
+    cell = Math.max(60, cell);
+    const gridW = cols * cell + (cols - 1) * 22, rowH = cell + foot + 22;
+    const x0 = (SLIDE_W - gridW) / 2, y0 = top + Math.max(0, (availH - (rows * rowH - 22)) / 2);
     list.forEach((im, i) => {
-      const cx = x0 + (i % cols) * (cell + 22), cy = y0 + Math.floor(i / cols) * (cell + 22);
+      const cx = x0 + (i % cols) * (cell + 22), cy = y0 + Math.floor(i / cols) * rowH;
       drawCard(g, im, cx, cy, cell, { line, ink, ink2 });
+      if (!sl.memo) return;
+      /* 入れた評価とメモをカードの下に */
+      let ty = cy + cell + 30;
+      g.textAlign = "center"; g.fillStyle = ink; g.font = "800 26px 'Noto Sans JP',sans-serif";
+      g.fillText(clip(g, im.name || "", cell), cx + cell / 2, ty);
+      ty += 32;
+      g.fillStyle = "#f0b429"; g.font = "900 24px 'Noto Sans JP',sans-serif";
+      g.fillText(starStr(im), cx + cell / 2, ty);
+      if (im.memo) {
+        ty += 30;
+        g.fillStyle = ink2; g.font = "600 21px 'Noto Sans JP',sans-serif";
+        wrapText(g, im.memo, cx + cell / 2, ty, cell, 26, 2);
+      }
     });
     sign(); return;
   }
 
   if (sl.kind === "item") {
     const tr = sl.ti >= 0 ? cur.tiers[sl.ti] : null;
-    const im = sl.im, size = 620;
+    const im = slImg(sl), size = 620;
+    if (!im) { g.textAlign = "center"; g.fillStyle = ink2; g.font = "700 40px 'Noto Sans JP',sans-serif";
+      g.fillText("（この画像は消されています）", SLIDE_W / 2, SLIDE_H / 2); sign(); return; }
     drawCard(g, im, 90, (SLIDE_H - size) / 2, size, { line, ink, ink2 }, true);
     const lx = 90 + size + 80;
     let y = 260;
@@ -1374,6 +1509,62 @@ function drawSlide(g, sl) {
     sign(); return;
   }
 
+  /* 2026-08-19 text: 見出しと本文だけの1枚（まとめ・言いたいこと・区切り） */
+  if (sl.kind === "text") {
+    g.textAlign = "left"; g.fillStyle = ink;
+    g.font = "900 76px 'Noto Sans JP',sans-serif";
+    const ty = wrapText(g, sl.title || "", 120, 220, SLIDE_W - 240, 92, 2);
+    g.strokeStyle = line; g.lineWidth = 4;
+    g.beginPath(); g.moveTo(120, ty + 70); g.lineTo(400, ty + 70); g.stroke();
+    g.fillStyle = ink2; g.font = "600 40px 'Noto Sans JP',sans-serif";
+    wrapText(g, sl.body || "", 120, ty + 150, SLIDE_W - 240, 60, 9);
+    sign(); return;
+  }
+
+  /* 2026-08-19 list: 入れた評価とメモを読ませる1枚 */
+  if (sl.kind === "list") {
+    const tr = cur.tiers[sl.ti]; if (!tr) return;
+    const bandH = 118;
+    g.fillStyle = tr.bg; g.fillRect(0, 0, SLIDE_W, bandH);
+    g.fillStyle = tr.tc; g.textAlign = "left"; g.font = "900 64px 'Noto Sans JP',sans-serif";
+    g.fillText(String(tr.label), 60, bandH / 2);
+    g.font = "700 30px 'Noto Sans JP',sans-serif";
+    g.fillText((tr.name ? String(tr.name) + "　" : "") + "評価とメモ",
+      60 + g.measureText(String(tr.label)).width + 40, bandH / 2 + 4);
+    const all = sortImages(tr.images);
+    const pages = Math.max(1, Math.ceil(all.length / LIST_PER));
+    const pg = Math.max(0, Math.min(pages - 1, sl.pg | 0));
+    const list = all.slice(pg * LIST_PER, pg * LIST_PER + LIST_PER);
+    if (pages > 1) {
+      g.textAlign = "right"; g.font = "800 26px 'Noto Sans JP',sans-serif";
+      g.fillText((pg + 1) + " / " + pages, SLIDE_W - 60, bandH / 2);
+    }
+    if (!list.length) {
+      g.textAlign = "center"; g.fillStyle = ink2; g.font = "700 40px 'Noto Sans JP',sans-serif";
+      g.fillText("（このTierにはまだ何も入っていません）", SLIDE_W / 2, SLIDE_H / 2 + 40);
+      sign(); return;
+    }
+    const rowH = (SLIDE_H - bandH - 110) / LIST_PER, th = Math.min(rowH - 18, 132);
+    list.forEach((im, i) => {
+      const y = bandH + 34 + i * rowH;
+      g.strokeStyle = line; g.lineWidth = 1;
+      g.beginPath(); g.moveTo(60, y - 10); g.lineTo(SLIDE_W - 60, y - 10); g.stroke();
+      drawCard(g, im, 70, y, th, { line, ink, ink2 }, true);
+      const lx = 70 + th + 34;
+      g.textAlign = "left"; g.fillStyle = ink; g.font = "900 38px 'Noto Sans JP',sans-serif";
+      g.fillText(clip(g, im.name || "（名前なし）", 520), lx, y + 26);
+      g.fillStyle = "#f0b429"; g.font = "900 30px 'Noto Sans JP',sans-serif";
+      g.fillText(starStr(im), lx, y + 76);
+      g.fillStyle = ink2; g.font = "800 26px 'Noto Sans JP',sans-serif";
+      g.fillText("総合 " + totalScore(im).toFixed(1), lx + 250, y + 76);
+      if (im.memo) {
+        g.fillStyle = ink2; g.font = "600 27px 'Noto Sans JP',sans-serif";
+        wrapText(g, im.memo, lx + 640, y + 26, SLIDE_W - lx - 640 - 70, 36, 3);
+      }
+    });
+    sign(); return;
+  }
+
   /* all: 表ぜんぶを1枚に収める */
   if (sl.kind === "all") {
     const t = cur, pad = 40, gap = 8, labelW = 190;
@@ -1402,6 +1593,13 @@ function drawSlide(g, sl) {
     });
     sign(); return;
   }
+}
+/* 入れた評価を星の並びにする（10段階の表では数字で出す） */
+function starStr(im) {
+  const v = Number(im.rating) || 0;
+  if (cur && cur.rateMax === 10) return v ? v.toFixed(1) + " / 10" : "－";
+  const n = Math.round(v);
+  return n ? "★".repeat(n) + "☆".repeat(Math.max(0, 5 - n)) : "－";
 }
 /* 画像1枚ぶんの角丸カード。名前・評価の帯は表の設定に合わせる */
 function drawCard(g, im, x, y, size, col, big) {
@@ -1443,6 +1641,225 @@ function wrapText(g, text, x, y, maxW, lh, maxLines) {
   if (lines.length > maxLines && show.length) show[show.length - 1] = show[show.length - 1].slice(0, -1) + "…";
   show.forEach((l, i) => g.fillText(l, x, y + i * lh));
   return y + Math.max(0, show.length - 1) * lh;
+}
+
+
+/* ══════════════════════════════════════════════════════════════
+   15c. スライド編集（★★ 2026-08-19）
+
+   これまでは「分けかた」を選ぶと、そのまま再生が始まっていた。
+   人前で使うものなので、送る前に
+     ・順番を入れかえる ・要らない枚を消す ・見出しを書きかえる
+     ・言いたいことの1枚をはさむ ・評価とメモを出すかどうか決める
+   をやりたい。そこで PowerPoint のような編集画面をあいだに入れた。
+
+   決めごと
+     ・1式（deck）は <b>cur.slides</b> に入れて保存する（同期にも乗る）。
+     ・スライドは<b>データだけ</b>を持つ（描くのは drawSlide 1本）。
+       ★ 画像は id で持つ。中身をコピーして持つと、
+         あとで名前やメモを直しても<b>スライドだけ古いまま</b>になる。
+     ・左に小さい見取り図、右に大きい下書きと設定。せまい画面では上下に積む。
+   ══════════════════════════════════════════════════════════════ */
+let deck = [], deckIx = 0;
+
+/* 種類の名まえ（見取り図とメニューで使う） */
+const DECK_KIND = {
+  cover: "表紙", tier: "Tierを1枚", item: "1つずつ",
+  list: "評価とメモの一覧", text: "文章", all: "表ぜんぶ",
+};
+
+async function openDeck() {
+  if (!cur) return;
+  deck = Array.isArray(cur.slides) ? cur.slides.map((s) => Object.assign({}, s)) : [];
+  deck = deck.filter((s) => s && DECK_KIND[s.kind]);
+  if (!deck.length) deck = buildSlides("tier");
+  deckIx = 0;
+  $("#deckOv").classList.add("on");
+  document.body.style.overflow = "hidden";
+  renderDeck();
+  await slPreload();
+  renderDeck();          /* 画像が来たら描き直す */
+}
+function deckClose() {
+  $("#deckOv").classList.remove("on");
+  document.body.style.overflow = "";
+}
+/* 1式を保存する（表そのものと同じ入れもの） */
+function deckSave() {
+  if (!cur) return;
+  cur.slides = deck.map((s) => Object.assign({}, s));
+  save(cur, true);
+}
+/* 下じきから作り直す */
+function deckReset() {
+  const mode = ($("#dlg [data-sl].on") || { dataset: { sl: "tier" } }).dataset.sl;
+  dlgClose();
+  deck = buildSlides(mode);
+  deckIx = 0;
+  deckSave(); renderDeck();
+  toast(deck.length + " 枚つくりました");
+}
+
+function deckRender1(cv, sl, w) {
+  const g = cv.getContext("2d");
+  const dpr = Math.min(2, window.devicePixelRatio || 1);
+  cv.width = Math.round(w * dpr); cv.height = Math.round(w * dpr * SLIDE_H / SLIDE_W);
+  g.save(); g.scale(cv.width / SLIDE_W, cv.width / SLIDE_W);
+  try { drawSlide(g, sl); } catch (e) {}
+  g.restore();
+}
+function renderDeck() {
+  const box = $("#deckOv"); if (!box || !box.classList.contains("on")) return;
+  deckIx = Math.max(0, Math.min(deck.length - 1, deckIx));
+  const sl = deck[deckIx];
+
+  /* ── 左：見取り図 ── */
+  const strip = $("#dkStrip");
+  strip.innerHTML = deck.map((s, i) => `
+    <button class="dkth${i === deckIx ? " on" : ""}" onclick="MT.deckSel(${i})">
+      <span class="dkn">${i + 1}</span>
+      <canvas data-th="${i}"></canvas>
+      <span class="dkk">${DECK_KIND[s.kind] || s.kind}</span>
+    </button>`).join("") || '<div class="dkempty">スライドがありません</div>';
+  /* 一気に描くと止まって見えるので、少しずつ描く */
+  const ths = $$("#dkStrip canvas");
+  let k = 0;
+  const step = () => {
+    for (let n = 0; n < 6 && k < ths.length; n++, k++) deckRender1(ths[k], deck[+ths[k].dataset.th], 168);
+    if (k < ths.length) requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
+
+  /* ── 右：大きい下書き ── */
+  const big = $("#dkBig");
+  if (sl) {
+    const r = big.getBoundingClientRect();
+    deckRender1(big, sl, Math.max(280, r.width || 640));
+  }
+  $("#dkPos").textContent = deck.length ? (deckIx + 1) + " / " + deck.length : "0 / 0";
+
+  /* ── 右下：この1枚の設定 ── */
+  $("#dkProp").innerHTML = sl ? propHTML(sl) : '<p class="dsub">左の＋から1枚足してください。</p>';
+}
+function propHTML(sl) {
+  const t = cur;
+  const kindSel = `<div class="fld"><label class="lbl">この1枚の種類</label>
+    <select class="inp" onchange="MT.deckSet('kind',this.value)">
+      ${Object.keys(DECK_KIND).map((k) => `<option value="${k}"${sl.kind === k ? " selected" : ""}>${DECK_KIND[k]}</option>`).join("")}
+    </select></div>`;
+  const tierSel = (label) => `<div class="fld"><label class="lbl">${label}</label>
+    <select class="inp" onchange="MT.deckSet('ti',+this.value)">
+      ${t.tiers.map((tr, i) => `<option value="${i}"${(sl.ti | 0) === i ? " selected" : ""}>${esc(tr.label)}${tr.name ? "　" + esc(tr.name) : ""}（${tr.images.length}件）</option>`).join("")}
+    </select></div>`;
+  let h = kindSel;
+  if (sl.kind === "cover") {
+    h += `<div class="fld"><label class="lbl">見出し</label>
+      <input class="inp" value="${esc(sl.title || "")}" placeholder="${esc(t.name || "Tier表")}"
+        oninput="MT.deckSet('title',this.value)"></div>
+      <div class="fld"><label class="lbl">小見出し</label>
+      <input class="inp" value="${esc(sl.sub || "")}" placeholder="${esc([t.author || "", fmtDate(t.updatedAt)].filter(Boolean).join("　・　"))}"
+        oninput="MT.deckSet('sub',this.value)"></div>
+      <p class="dsub">からっぽのときは、表の名まえと作った人が出ます。</p>`;
+  } else if (sl.kind === "tier") {
+    h += tierSel("どのTierを見せるか");
+    h += `<div class="rowsw"><span>入れた評価とメモも出す</span>
+      <button class="sw${sl.memo ? " on" : ""}" onclick="MT.deckSet('memo',!${!!sl.memo})"><i></i></button></div>
+      <p class="dsub">画像の下に、名まえ・★・メモが並びます（そのぶん画像は小さくなります）。</p>`;
+  } else if (sl.kind === "item") {
+    const list = allImages(t);
+    h += `<div class="fld"><label class="lbl">どれを見せるか</label>
+      <select class="inp" onchange="MT.deckSet('im',this.value)">
+        ${list.map((im) => `<option value="${esc(im.id)}"${sl.im === im.id ? " selected" : ""}>${esc(im.name || "（名前なし）")}</option>`).join("")}
+      </select></div>
+      <p class="dsub">名まえ・所属Tier・入れた評価（項目べつの★もぜんぶ）・メモが出ます。</p>`;
+  } else if (sl.kind === "list") {
+    h += tierSel("どのTierの評価とメモを読むか");
+    const n = Math.max(1, Math.ceil(((t.tiers[sl.ti | 0] || { images: [] }).images.length) / LIST_PER));
+    h += `<div class="fld"><label class="lbl">何ページめ（1枚に${LIST_PER}件まで）</label>
+      <select class="inp" onchange="MT.deckSet('pg',+this.value)">
+        ${Array.from({ length: n }, (_, i) => `<option value="${i}"${(sl.pg | 0) === i ? " selected" : ""}>${i + 1} / ${n}</option>`).join("")}
+      </select></div>`;
+  } else if (sl.kind === "text") {
+    h += `<div class="fld"><label class="lbl">見出し</label>
+      <input class="inp" value="${esc(sl.title || "")}" placeholder="たとえば：この表の見かた"
+        oninput="MT.deckSet('title',this.value)"></div>
+      <div class="fld"><label class="lbl">本文</label>
+      <textarea class="inp ta" rows="5" placeholder="言いたいことを書きます（改行できます）"
+        oninput="MT.deckSet('body',this.value)">${esc(sl.body || "")}</textarea></div>`;
+  } else {
+    h += `<p class="dsub">Tier表を1枚にまとめて出します。設定はありません。</p>`;
+  }
+  return h;
+}
+function deckSel(i) { deckIx = i; renderDeck(); }
+function deckSet(k, v) {
+  const sl = deck[deckIx]; if (!sl) return;
+  sl[k] = v;
+  if (k === "kind") {
+    /* 種類を変えたら、その種類に要るものだけそろえる */
+    if ((v === "tier" || v === "list") && sl.ti == null) sl.ti = 0;
+    if (v === "item" && !sl.im) { const a = allImages(cur)[0]; sl.im = a ? a.id : ""; }
+    if (v === "list") sl.pg = 0;
+  }
+  deckSave();
+  /* 文字を打っている最中に作り直すと、入れ物から手が離れてしまう。
+     ★ 中身だけ描き直して、設定の欄はそのままにする。 */
+  if (k === "title" || k === "sub" || k === "body") {
+    const big = $("#dkBig");
+    if (big) deckRender1(big, sl, Math.max(280, big.getBoundingClientRect().width || 640));
+    const th = $('#dkStrip canvas[data-th="' + deckIx + '"]');
+    if (th) deckRender1(th, sl, 168);
+    return;
+  }
+  renderDeck();
+}
+function deckAdd() {
+  dlgOpen(`<h2>スライドを足す</h2>
+    <p class="dsub">いま選んでいる<b>次</b>に入ります。</p>
+    <div class="menulist">
+      ${Object.keys(DECK_KIND).map((k) => `<button class="menurow" onclick="MT.deckAddKind('${k}')">${DECK_KIND[k]}</button>`).join("")}
+    </div>
+    <div class="foot">
+      <button class="btn" onclick="MT.closeDlg()">やめる</button>
+      <button class="btn" onclick="MT.closeDlg();MT.slidePreset()">下じきから作り直す</button>
+    </div>`);
+}
+function deckAddKind(kind) {
+  dlgClose();
+  const sl = { kind };
+  if (kind === "tier" || kind === "list") sl.ti = 0;
+  if (kind === "list") sl.pg = 0;
+  if (kind === "item") { const a = allImages(cur)[0]; sl.im = a ? a.id : ""; }
+  if (kind === "text") { sl.title = ""; sl.body = ""; }
+  deck.splice(deck.length ? deckIx + 1 : 0, 0, sl);
+  if (deck.length > 1) deckIx++;
+  deckSave(); renderDeck();
+}
+function deckDup() {
+  const sl = deck[deckIx]; if (!sl) return;
+  deck.splice(deckIx + 1, 0, Object.assign({}, sl));
+  deckIx++;
+  deckSave(); renderDeck();
+}
+function deckDel() {
+  if (!deck.length) return;
+  deck.splice(deckIx, 1);
+  deckSave(); renderDeck();
+  toast("1枚けしました");
+}
+function deckMove(d) {
+  const j = deckIx + d;
+  if (j < 0 || j >= deck.length) return;
+  const s = deck[deckIx]; deck[deckIx] = deck[j]; deck[j] = s;
+  deckIx = j;
+  deckSave(); renderDeck();
+}
+/* 編集画面から PDF にする（再生しなくても配れるように） */
+async function deckPdf() {
+  if (!deck.length) return;
+  await slPreload();
+  slides = deck.slice();
+  slPdf();
 }
 
 /* ── スライドを PDF にする ──────────────────────
@@ -1696,6 +2113,206 @@ async function doExport() {
    17. 共有（画像・URL・QR・SNS・公開設定）
    ══════════════════════════════════════════════ */
 function shareUrl() { return location.origin + location.pathname + "#t=" + encodeURIComponent(cur.id); }
+
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-08-18 「公開」を、ほんとうに人に見せられるものにした
+
+   これまでの「公開／共有してよい印」は<b>この端末の中の目印</b>でしかなく、
+   URL や QR を送っても、相手の端末では<b>何も出ませんでした</b>
+   （Tier表は IndexedDB＝その端末の中にしか無かったため）。
+   ＝「公開したのに開けない」の正体はこれ。
+
+   いまは「公開する」を押すと、表そのものを
+   Firebase の <b>magitier/pub/&lt;表のid&gt;</b> へ送ります。
+     ・リンク（#t=&lt;id&gt;）を開いた人は、手元に表が無ければ公開ぶんを読む
+     ・画像は長辺 256px の JPEG に縮めてから送る（枚数が多くても届く大きさに）
+     ・リンクを知っている人はだれでも見られるので、<b>送る前に必ず確かめる</b>
+     ・「公開をやめる」で取り下げられる
+   ══════════════════════════════════════════════════════════════ */
+const PUB_FB_DIR = "magitier/pub";
+const PUB_MAX_BYTES = 3 * 1024 * 1024;   /* これを超えたら公開させない（画像/PDF を案内する） */
+function pubFbUrl(id) { return fbUrl() + "/" + PUB_FB_DIR + "/" + encodeURIComponent(id) + ".json"; }
+
+/* 公開用に画像を小さくする。元の src（長辺512のデータURL）はさわらない。 */
+function pubShrink(src) {
+  return new Promise((res) => {
+    if (!src || !/^data:/.test(src)) { res(src || ""); return; }   /* 外部URLはそのまま渡す */
+    const img = new Image();
+    img.onload = () => {
+      try {
+        const M = 256, sc = Math.min(1, M / Math.max(img.width, img.height));
+        const cv = document.createElement("canvas");
+        cv.width = Math.max(1, Math.round(img.width * sc));
+        cv.height = Math.max(1, Math.round(img.height * sc));
+        cv.getContext("2d").drawImage(img, 0, 0, cv.width, cv.height);
+        res(cv.toDataURL("image/jpeg", 0.82));
+      } catch (e) { res(src); }
+    };
+    img.onerror = () => res(src);
+    img.src = src;
+  });
+}
+/* 表1つぶんの公開データを組み立てる（読むのに要るものだけ） */
+/* ★★ 2026-08-19 <b>アプリの中にある絵は、絵そのものを送らない</b>（ユーザー指示）。
+   MagiBurst のキャラや、URL で足した絵は「どこにあるか」が決まっているので、
+   <b>ファイル名（またはパス）だけ</b>を送れば、読む側が同じ絵を出せる。
+   Firebase に画像の中身（data URL）を積むと、
+     ・1体ぶんで数十KB、100体で数MB になり、書き込みそのものが通らなくなる
+     ・同じ絵をキャラの数だけ持つことになる（MagiBurst の img/ に同じ絵があるのに）
+   ので、送るのは<b>端末から取りこんだ写真だけ</b>にする。 */
+function isDataSrc(s) { return /^data:/i.test(String(s || "")); }
+/* MagiBurst のキャラ（id が "mb:◯◯"）かどうか */
+function isMbImg(im) { return /^mb:/.test(String((im && im.id) || "")); }
+/* 送る形にする。file があれば読む側はそこから絵を作れる（src は空のまま） */
+function pubSrcOf(im) {
+  const src = String(im.src || "");
+  if (isMbImg(im)) {
+    /* キャラはファイル名だけ。読む側は ../img/<ファイル名> で引く */
+    return { file: src.split("/").pop().replace(/\?.*$/, ""), src: "" };
+  }
+  if (!isDataSrc(src)) return { file: "", src };     /* すでに URL・パス。そのまま渡すだけ */
+  return null;                                        /* 端末の写真。縮めて送る */
+}
+async function pubPayload(t) {
+  const im1 = async (im) => {
+    const o = pubSrcOf(im);
+    return {
+      id: im.id, name: im.name || "", memo: im.memo || "",
+      rating: im.rating || 0,
+      file: o ? o.file : "",
+      src: o ? o.src : await pubShrink(im.src),
+    };
+  };
+  const tiers = [];
+  for (const tr of t.tiers) {
+    const images = [];
+    for (const im of tr.images) images.push(await im1(im));
+    tiers.push({ label: tr.label || "", name: tr.name || "", bg: tr.bg || "#555",
+      tc: tr.tc || "#fff", criteria: tr.criteria || "", images });
+  }
+  const pool = [];
+  for (const im of t.images) pool.push(await im1(im));
+  return {
+    id: t.id, nm: t.name || "", at: Date.now(),
+    by: ((window.XEVA && XEVA.account.get()) || {}).name || "",
+    cardName: t.cardName !== false, cardMemo: !!t.cardMemo, cardScore: !!t.cardScore,
+    tableSize: t.tableSize || 84,
+    tiers, pool,
+  };
+}
+/* 公開する（この表の中身をだれでも読める場所へ送る） */
+async function publishTable() {
+  if (!cur) return;
+  if (cur.id === MB_TABLE_ID) { mbPublish(); return; }   /* MagiBurst 表は専用の窓口へ */
+  const ok = await askHtml({
+    icon: "🌐", title: "この Tier表を公開しますか？",
+    body: "公開すると、<b>URL や QR コードを知っている人はだれでも</b>この表を見られるようになります"
+      + "（XEVARION のアカウントは要りません）。<br>"
+      + "送るのは<b>表の中身と画像</b>です。人に見せたくない写真やメモが入っていないか、"
+      + "もう一度たしかめてください。<br><br>"
+      + "公開したあとでも「<b>公開をやめる</b>」で取り下げられます。",
+    ok: "公開する", cancel: "やめる",
+  });
+  if (!ok) return;
+  toast("公開の準備をしています…");
+  let body;
+  try {
+    const payload = await pubPayload(cur);
+    body = JSON.stringify(payload);
+  } catch (e) { toast("公開できませんでした（データを作れません）"); return; }
+  if (body.length > PUB_MAX_BYTES) {
+    alert([
+      "この表は大きすぎて公開できません（" + Math.round(body.length / 1024 / 1024 * 10) / 10 + "MB）。",
+      "",
+      "画像の枚数を減らすか、「画像を共有」／スライドのPDFで見せてください。",
+    ].join("\n"));
+    return;
+  }
+  try {
+    const r = await fetch(pubFbUrl(cur.id), {
+      method: "PUT", headers: { "Content-Type": "application/json" }, body,
+    });
+    if (r.status === 401 || r.status === 403) throw new Error("denied");
+    if (!r.ok) throw new Error("http " + r.status);
+    cur.publicOn = true;
+    cur.publishedAt = Date.now();
+    await save(cur, true);
+    toast("公開しました。URL を送れば、だれでも見られます");
+    if (screen === "edit") renderEditor();
+    dlgClose(); shareDlg();
+  } catch (e) {
+    if (String(e.message) === "denied") {
+      alert([
+        "公開できませんでした（アクセス権がありません）。",
+        "",
+        "Firebase Realtime Database の「ルール」に magitier の項目が要ります。",
+        "リポジトリの firebase-rules/xevarion-account.rules.json にある magitier のブロックを、",
+        "Firebase コンソールのルールに貼り付けて「公開」してください。",
+      ].join("\n"));
+    } else toast("公開できませんでした（通信）");
+  }
+}
+/* 公開をやめる（取り下げる） */
+async function unpublishTable() {
+  if (!cur) return;
+  const ok = await askHtml({
+    icon: "🔒", title: "公開をやめますか？",
+    body: "いま出している URL・QR コードからは、この表が<b>見られなくなります</b>。"
+      + "手元の表は消えません。",
+    ok: "公開をやめる", cancel: "やめる",
+  });
+  if (!ok) return;
+  try {
+    const r = await fetch(pubFbUrl(cur.id), { method: "DELETE" });
+    if (!r.ok && r.status !== 404) throw new Error("http " + r.status);
+    cur.publicOn = false;
+    cur.publishedAt = 0;
+    await save(cur, true);
+    toast("公開をやめました");
+    dlgClose(); shareDlg();
+  } catch (e) { toast("取り下げられませんでした（通信）"); }
+}
+/* 公開ぶんを読む（共有リンクから来た人むけ） */
+async function fetchPublished(id) {
+  try {
+    const r = await fetch(pubFbUrl(id), { cache: "no-store" });
+    if (!r.ok) return null;
+    const d = await r.json();
+    return (d && Array.isArray(d.tiers)) ? d : null;
+  } catch (e) { return null; }
+}
+/* 公開ぶんの1枚から、実際に出す絵の場所を決める。
+   file … MagiBurst のキャラ画像のファイル名（絵は XEVARION/img/ にある）
+   src  … もともと URL だったもの、または端末の写真を縮めたもの */
+function pubImgSrc(im) {
+  if (im && im.file) return "../img/" + im.file;
+  return (im && im.src) || "";
+}
+/* 公開ぶんを閲覧モードの画面に出す（編集はできない） */
+function renderPubViewer(d) {
+  go("mbview");
+  const note = $(".mvnote");
+  if (note) note.innerHTML = "<b>閲覧モード</b><p>この Tier表は <b>MagiTier</b> で作られ、公開されたものです。"
+    + "ここからは<b>読むだけ</b>で、編集はできません。</p>";
+  const back = document.querySelector("#scr-mbview .homehead .btn");
+  if (back) { back.textContent = "MagiTier のホームへ"; back.setAttribute("href", "#"); back.onclick = (e) => { e.preventDefault(); location.hash = ""; go("home"); }; }
+  $("#mvTitle").textContent = d.nm || "Tier表";
+  $("#mvSub").textContent = [d.by || "", d.at ? "更新 " + fmtDate(d.at) : ""].filter(Boolean).join("　・　");
+  $("#mvEmpty").classList.add("hide");
+  $("#mvTable").innerHTML = d.tiers.map((tr) => {
+    /* ★ 2026-08-19 file が入っていたら、そこから絵の場所を組み立てる
+       （公開ぶんには絵そのものが入っていない＝軽い）。 */
+    const cells = (tr.images || []).map((im) => `<div class="mvc" style="cursor:default">
+        <img src="${esc(pubImgSrc(im))}" alt="" loading="lazy">
+        ${d.cardName === false ? "" : `<span>${esc(im.name || "")}</span>`}
+      </div>`).join("");
+    return `<div class="mvrow">
+      <div class="mvlab" style="background:${esc(tr.bg || "#555")};color:${esc(tr.tc || "#fff")}">
+        <b>${esc(tr.label || "")}</b>${tr.name ? `<small>${esc(tr.name)}</small>` : ""}</div>
+      <div class="mvcell">${cells || '<span class="muted">まだ入っていません</span>'}</div>
+    </div>`;
+  }).join("");
+}
 function shareDlg() {
   dlgOpen(`<h2>共有</h2><p class="dsub">画像として送るか、URL で見てもらうかを選べます。</p>
     <div class="row" style="flex-wrap:wrap;margin-bottom:12px">
@@ -1705,18 +2322,32 @@ function shareDlg() {
     </div>
     <div id="qrbox" class="hide"></div>
     <div class="fld" style="margin-top:10px"><label class="lbl">URL</label><input class="inp" id="shUrl" readonly value="${esc(shareUrl())}"></div>
-    <!-- ★ 2026-08-16 URL・QR がだれでも開けるわけではないことを、その場で必ず伝える。
-         Tier表は端末の中（IndexedDB）にあり、サーバーには送っていないので、
-         リンクは「同じ端末・同じブラウザ」でしか中身を開けない。
-         これを書かないと、送った相手が空の画面を見ることになる。 -->
-    <div class="note warn">
-      <b>URL・QRコードで見られる範囲</b>
-      <p>この Tier表は<b>この端末の中だけ</b>に保存されています。URL や QR コードは
-        <b>同じ端末の同じブラウザ</b>で開いたときだけ、この表を開きます。</p>
-      <p>ほかの人に見せたいときは <b>「画像を共有」</b>（または Export・スライドの PDF）を使ってください。
-        画像や PDF なら相手の端末でもそのまま見られます。</p>
-      <p class="muted">※ 開くには XEVARION のアカウント登録も必要です（未登録だとポータルへ戻されます）。</p>
-    </div>
+    <!-- ★★ 2026-08-18 「公開しているかどうか」で、URL の届く範囲が変わる。
+         公開していない表はこれまでどおり<b>この端末の中だけ</b>にあるので、
+         リンクを送っても相手の画面は空になる（＝「公開したのに開けない」の原因）。
+         公開すると Firebase へ表そのものを送るので、だれの端末でも開ける。 -->
+    ${cur.publishedAt
+      ? `<div class="note">
+          <b>🌐 公開中です（${esc(fmtDate(cur.publishedAt))} に公開）</b>
+          <p>上の URL・QR コードは、<b>どの端末からでも</b>この表を開けます。
+            表を直したら、もう一度<b>「公開する」</b>を押して送り直してください。</p>
+        </div>
+        <div class="row" style="flex-wrap:wrap;margin-bottom:10px">
+          <button class="btn pri" onclick="MT.publishTable()">🌐 公開しなおす（最新にする）</button>
+          <button class="btn" onclick="MT.unpublishTable()">🔒 公開をやめる</button>
+        </div>`
+      : `<div class="note warn">
+          <b>いまは「この端末の中だけ」です</b>
+          <p>この Tier表はまだ公開していないので、URL や QR コードは
+            <b>同じ端末の同じブラウザ</b>で開いたときしか中身が出ません。
+            人に送っても、相手の画面は空になります。</p>
+          <p>だれでも見られるようにするには <b>「公開する」</b>を押してください
+            （表と画像をサーバーへ送ります。あとから取り下げられます）。</p>
+          <p class="muted">※ 送らずに見せたいときは「画像を共有」・Export・スライドのPDFが使えます。</p>
+        </div>
+        <div class="row" style="flex-wrap:wrap;margin-bottom:10px">
+          <button class="btn pri" onclick="MT.publishTable()">🌐 公開する（だれでも見られるようにする）</button>
+        </div>`}
     <label class="lbl">SNSでシェア</label>
     <div class="snsrow" style="margin-bottom:6px">
       <a class="snsbtn" target="_blank" rel="noopener" href="https://twitter.com/intent/tweet?text=${encodeURIComponent(cur.name + " | MagiTier")}&url=${encodeURIComponent(shareUrl())}"><span class="sq" style="background:#111">𝕏</span>X</a>
@@ -1724,7 +2355,7 @@ function shareDlg() {
       <a class="snsbtn" target="_blank" rel="noopener" href="https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl())}"><span class="sq" style="background:#1877f2">f</span>Facebook</a>
       <button class="snsbtn" onclick="MT.copyUrl()"><span class="sq" style="background:linear-gradient(135deg,#f09433,#dc2743,#bc1888)">◎</span>その他</button>
     </div>
-    <div class="swrow" style="margin-top:10px"><div style="flex:1"><b>共有してよい印を付ける</b><p>あとで見返したときに「人に見せてよい表」だと分かるようにする目印です（この端末の中だけの設定）</p></div>
+    <div class="swrow" style="margin-top:10px"><div style="flex:1"><b>「人に見せてよい表」の目印を付ける</b><p>一覧で見分けるための、この端末の中だけの目印です（公開そのものは上のボタンで行います）</p></div>
       <button class="sw ${cur.publicOn ? "on" : ""}" onclick="MT.togglePublic(this)"><i></i></button></div>
     <div class="foot"><button class="btn pri" onclick="MT.closeDlg()">とじる</button></div>`);
 }
@@ -1736,7 +2367,7 @@ function editMenu() {
   const items = [
     ["画像を追加", "addDlg"], ["一括追加", "bulkAdd"], ["並び替え", "sortDlg"],
     ["比較", "compareDlg"], ["Export（画像）", "exportDlg"], ["共有", "shareDlg"],
-    ["スライドで見せる", "slideDlg"], ["全画面プレゼン", "present"],
+    ["スライドを作る・見せる", "slideDlg"], ["全画面プレゼン", "present"],
     ["この構成をテンプレート保存", "saveAsTpl"],
   ];
   dlgOpen(`<h2>メニュー</h2>
@@ -2029,17 +2660,8 @@ async function ensureMbTable() {
 /* ★ 2026-08-16b 開くときに「閲覧」か「編集」かを先に選ばせる。
    これまではいきなりアクセスコードを聞いていたので、
    ただ見たいだけの人が入口で止まっていた（閲覧にコードは要らない）。 */
-function openMbTier() {
-  dlgOpen(`<h2>MagiBurst キャラTier表</h2>
-    <p class="dsub">どちらで開きますか？</p>
-    <div class="menulist">
-      <button class="menurow" onclick="MT.closeDlg();MT.openMbViewer()">
-        👀 <b>閲覧する</b><br><small class="muted">公開されている表とキャラの評価を読みます（コードは要りません）</small></button>
-      <button class="menurow" onclick="MT.closeDlg();MT.openMbEdit()">
-        ✎ <b>編集する</b><br><small class="muted">表を並べ替えます。<b>アクセスコード</b>が必要です</small></button>
-    </div>
-    <div class="foot"><button class="btn" onclick="MT.closeDlg()">やめる</button></div>`);
-}
+/* ★ 2026-08-19 まず閲覧モードで開く。編集はその中のボタンから。 */
+function openMbTier() { openMbViewer(); }
 /* 編集：コードを持っていなければここで聞く */
 function openMbEdit() {
   if (!mbCodeOK()) { mbCodeDlg(); return; }
@@ -2075,7 +2697,7 @@ function loadMbCore() {
        読みこむ前に同じ働きのものを用意しておく。 */
     if (typeof window.clamp !== "function") window.clamp = (v, a, b) => Math.max(a, Math.min(b, v));
     if (typeof window.fmt !== "function") window.fmt = (n) => (Number(n) || 0).toLocaleString("ja-JP");
-    s.src = "../MagiBurst/js/mb-core.js?v=35";
+    s.src = "../MagiBurst/js/mb-core.js?v=37";
     s.onload = () => res(); s.onerror = () => rej(new Error("mb-core"));
     document.head.appendChild(s);
   });
@@ -2146,19 +2768,9 @@ async function buildMbTable() {
     t.cardName = true; t.author = "MagiBurst 運営";
     tables.push(t);
   }
-  /* 全キャラをプールに並べる（すでに表に置いてあるキャラは動かさない） */
-  const placed = {};
-  t.tiers.forEach((tr) => tr.images.forEach((im) => { placed[im.id] = 1; }));
-  t.images.forEach((im) => { placed[im.id] = 1; });
-  const CH = mbChars() || {};
-  const ids = mbCharIds() || Object.keys(CH);
-  let added = 0;
-  ids.forEach((id) => {
-    const c = CH[id]; if (!c) return;
-    if (placed["mb:" + id]) return;
-    t.images.push(normImg({ id: "mb:" + id, src: c.th, name: c.nm, memo: (c.el || "") + " / " + (c.type || ""), addedAt: Date.now() }));
-    added++;
-  });
+  /* 全キャラをプールに並べる（すでに表に置いてあるキャラは動かさない）
+     ★ 2026-08-18 中身は mbFillPool に切り出した。開くたびの埋め直しと同じ道すじを通す。 */
+  const added = mbFillPool(t);
   mbNormalizeTable(t);
   await save(t, true);
   dlgClose(); openTable(MB_TABLE_ID);
@@ -2237,6 +2849,19 @@ function mvChar(id) {
   if (elNm) rows.push(["属性", elNm]);
   if (shotNm) rows.push(["撃種", shotNm]);
   if (c.type) rows.push(["タイプ", c.type]);
+  /* ★★ 2026-08-19 MagiBurst での性能をここで読めるようにする。
+     mb-core は閲覧モードの入口で読みこんであるので、そのまま引ける。 */
+  try {
+    if (typeof statsOf === "function" && typeof MAX_LV !== "undefined") {
+      const st = statsOf(id, MAX_LV, 0);
+      if (st) {
+        rows.push(["HP（最大Lv）", (st.hp || 0).toLocaleString()]);
+        rows.push(["こうげき（最大Lv）", (st.atk || 0).toLocaleString()]);
+        rows.push(["スピード", (typeof spdKmh === "function") ? spdKmh(st.spd) : String(st.spd || "")]);
+      }
+    }
+  } catch (e) {}
+  if (typeof isStar5 === "function") rows.push(["レア度", isStar5(id) ? "SSR" : "SR"]);
   /* メモが属性・タイプの写しでしかないときは出さない（同じことが2回並ぶだけなので） */
   const memoIsDup = im && im.memo && im.memo.replace(/\s/g, "") === ((c.el || "") + "/" + (c.type || "")).replace(/\s/g, "");
   if (im && im.memo && !memoIsDup) rows.push(["メモ", im.memo]);
@@ -2280,6 +2905,21 @@ function mvChar(id) {
       ${rows.map(([k, v]) => `<div class="mvkv"><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join("")}
     </div>
     ${scoreBlockHTML(im, local)}
+    ${/* ★ 2026-08-19 アビリティ・フルバースト・リンクスキル（MagiBurst の性能そのもの） */""}
+    ${(() => {
+      try {
+        const ab = (typeof sortedAbil === "function" ? sortedAbil(c) : (c.abil || []));
+        const abs = ab.map((a) => (typeof abilName === "function" ? abilName(a) : "")).filter(Boolean);
+        let h = "";
+        if (abs.length) h += `<div class="mvsec"><div class="mvst">アビリティ</div>
+          <div class="mvabs">${abs.map((x) => `<span class="mvab">${x}</span>`).join("")}</div></div>`;
+        if (c.ssName) h += `<div class="mvsec"><div class="mvst">フルバースト（${c.ssTurns || "?"}ターン）</div>
+          <div class="mvsk">${esc(c.ssName)}</div><div class="mvd">${c.ssDesc || ""}</div></div>`;
+        if (c.fsName) h += `<div class="mvsec"><div class="mvst">リンクスキル</div>
+          <div class="mvsk">${esc(c.fsName)}</div><div class="mvd">${c.fsDesc || ""}</div></div>`;
+        return h;
+      } catch (e) { return ""; }
+    })()}
     ${!im ? '<p class="muted" style="margin-top:10px">※ 評価・メモは、この表を作った端末でだけ表示されます。</p>' : ""}
     <div class="foot"><button class="btn pri" onclick="MT.mvCloseChar()">とじる</button></div>`;
   $("#mvOv").classList.add("on");
@@ -2291,6 +2931,11 @@ async function mbPublish() {
   const t = tables.find((x) => x.id === MB_TABLE_ID);
   if (!t) { toast("先にキャラTier表をつくってください"); return; }
   if (!mbCodeOK()) { mbCodeDlg(); return; }
+  /* ★★ 2026-08-19 送るのは<b>キャラの id の並びだけ</b>。絵は1枚も送らない。
+     読む側（MagiBurst の Tier表・MagiTier の閲覧モード）は、その id から
+     mb-core の CHARS で絵を引くので、キャラ絵を差し替えても表はそのまま追従する。
+     ★ ここに src や画像データを足さないこと。100体ぶんの data URL は数MBになり、
+       書き込みが通らなくなる。 */
   const payload = {
     nm: t.name,
     at: Date.now(),
@@ -2341,6 +2986,14 @@ function bindGlobal() {
   }));
   /* Esc でダイアログ・プレゼンを閉じる */
   document.addEventListener("keydown", (e) => {
+    /* ★ 2026-08-19 編集画面：Esc でとじる／矢印で選ぶ枚を変える
+       （文字を打っている最中は横取りしない） */
+    if ($("#deckOv").classList.contains("on") && !$("#slideOv").classList.contains("on")) {
+      const typing = /^(INPUT|TEXTAREA|SELECT)$/.test((document.activeElement || {}).tagName || "");
+      if (e.key === "Escape") { deckClose(); return; }
+      if (!typing && (e.key === "ArrowDown" || e.key === "ArrowRight")) { e.preventDefault(); deckSel(Math.min(deck.length - 1, deckIx + 1)); return; }
+      if (!typing && (e.key === "ArrowUp" || e.key === "ArrowLeft")) { e.preventDefault(); deckSel(Math.max(0, deckIx - 1)); return; }
+    }
     /* スライド表示中は矢印・スペースで送る（人前で操作するときはキーが速い） */
     if ($("#slideOv").classList.contains("on")) {
       if (e.key === "Escape") { slClose(); return; }
@@ -2351,7 +3004,10 @@ function bindGlobal() {
     if (e.key === "Escape") { if ($("#present").classList.contains("on")) pClose(); else dlgClose(); }
   });
   /* スライドは画面幅で実ピクセル数が変わるので、そのたび描き直す */
-  window.addEventListener("resize", () => { if ($("#slideOv").classList.contains("on")) { slFit(); slPaint(); } });
+  window.addEventListener("resize", () => {
+    if ($("#slideOv").classList.contains("on")) { slFit(); slPaint(); }
+    if ($("#deckOv").classList.contains("on")) renderDeck();
+  });
   window.addEventListener("resize", () => { if (screen === "edit") renderEditor(); });
 }
 /* 起動。スプラッシュは ../xeva-splash.js（全アプリ共通）が描く。
@@ -2366,10 +3022,21 @@ async function boot() {
     bindGlobal();
     /* ★ MagiBurst の「MagiTier で詳細を見る」から来たときは閲覧モードで開く */
     if (/#view=mb\b/.test(location.hash || "")) { openMbViewer(); return; }
-    /* URL に #t=<id> が付いていたら、そのままその Tier表を開く（共有リンク） */
+    /* URL に #t=<id> が付いていたら、そのままその Tier表を開く（共有リンク）
+       ★★ 2026-08-18 手元に無いときは<b>公開ぶん</b>を読みにいく。
+         これが無かったので、送られたリンクを開いてもホームに落ちていた
+         （＝「公開したのに開けない」）。 */
     const m = /#t=([^&]+)/.exec(location.hash || "");
-    if (m && tables.some((t) => t.id === decodeURIComponent(m[1]))) openTable(decodeURIComponent(m[1]));
-    else go("home");
+    const wantId = m ? decodeURIComponent(m[1]) : "";
+    if (wantId && tables.some((t) => t.id === wantId)) { openTable(wantId); return; }
+    if (wantId) {
+      const pub = await fetchPublished(wantId);
+      if (pub) { renderPubViewer(pub); return; }
+      go("home");
+      toast("この Tier表は見つかりませんでした（公開されていないか、取り下げられています）");
+      return;
+    }
+    go("home");
   })();
   try { if (window.XevaSplash && XevaSplash.wait) XevaSplash.wait(ready); } catch (e) {}
   await ready;
@@ -2391,12 +3058,17 @@ window.MT = {
   compareDlg, cmpToggle, cmpApply,
   present, pClose, pFull, pZoom,
   slideDlg, pickSlide, slStart, slPrev, slNext, slClose, slFull, slPdf,
+  /* ★ 2026-08-19 スライド編集 */
+  slidePreset, openDeck, deckClose, deckReset, deckSel, deckSet,
+  deckAdd, deckAddKind, deckDup, deckDel, deckMove, deckPdf,
   editMenu,
   exportDlg, pickFmt, pickScale, doExport,
   shareDlg, copyUrl, shareImage, showQR, togglePublic,
+  publishTable, unpublishTable,                         /* ★ 2026-08-18 ほんものの「公開」 */
   setTplCat, saveAsTpl, useMyTpl, delMyTpl,
   setTheme, toggleTheme, backup, restore, exportJson, help,
   openMbTier, openMbEdit, mbCodeDlg, mbCheck, mbPublish,
+  mbDedupe,
   openMbViewer, mvChar, mvCloseChar,
 };
 boot();
