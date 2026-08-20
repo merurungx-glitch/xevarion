@@ -6,28 +6,28 @@
    ・オフライン中の記録は localStorage に残り、オンライン復帰時に
      xeva-cloud.js がクラウドへ反映する。
    ============================================================ */
-const VERSION = "xevynar-sw-v20";
+const VERSION = "xevynar-sw-v22";
 const CORE = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
-  "./xevynar.css?v=11",
+  "./xevynar.css?v=12",
   "./xevynar-tf.js?v=2",
-  "./xevynar-kb.js?v=10",
+  "./xevynar-kb.js?v=11",
   "./xevynar-lex.js?v=9",
   "./xevynar-steps.js?v=6",
   "./xevynar-figs.js?v=9",
   "./xevynar-terms.js?v=3",
   "./xevynar-deep.js?v=6",
   "./xevynar-brain.js?v=10",
-  "./xevynar-talk.js?v=11",
-  "./xevynar-app.js?v=13",
+  "./xevynar-talk.js?v=12",
+  "./xevynar-app.js?v=14",
   "./XEVYNAR.png",
   "./xevynar-mark.png",
   "./xevynar-192.png",
   "./xevynar-512.png",
   "../maintenance-gate.js?v=5",
-  "../xeva.js?v=33",
+  "../xeva.js?v=34",
   "../xeva-splash.js?v=3",
   "../xeva-loading.js?v=1",
   "../XEVA.png",
@@ -77,6 +77,12 @@ self.addEventListener("fetch", (e) => {
   let url;
   try { url = new URL(req.url); } catch (err) { return; }
   if (url.origin !== self.location.origin) return;   // Firebase / フォントはそのまま
+
+  /* ★ 2026-08-20 通信設定（Wi-Fi／モバイルデータごとに切り替えられる）
+     「このつなぎかたでは最新を取りに行かない」ときは、まずキャッシュを見て、
+     あればそれを返す＝<b>ダウンロードずみのデータで動く</b>（通信量を使わない）。
+     設定はページ（xeva-netmode.js）から postMessage で届く。 */
+  if (xevNetLatest() === false) { e.respondWith(xevCacheFirst(req)); return; }
 
   if (req.mode === "navigate") {
     e.respondWith((async () => {
@@ -191,3 +197,48 @@ self.addEventListener("message", (e) => {
   if (!m || m.type !== "xev-refresh") return;
   e.waitUntil(xevRefreshAll());
 });
+
+/* ══════════════════════════════════════════════════════════
+   ★ 2026-08-20 通信設定（xeva-netmode.js から postMessage で届く）
+   ------------------------------------------------------------
+   ・latest:false … このつなぎかたでは通信せず、キャッシュにあるものを返す
+   ・SW は止まると変数を忘れるので、<b>専用のキャッシュ</b>に書いておいて
+     起動のたびに読み直す。このキャッシュ（xev-netpref）は
+     activate の掃除で消してはいけない（VERSION の接頭辞と別名にしてある）。
+   ・読み終わるまでの一瞬は null＝「これまでどおり最新を取りに行く」で動く。
+     ここを false 側に倒すと、設定していない人まで古いデータになってしまう。
+   ══════════════════════════════════════════════════════════ */
+const XEV_NETPREF_CACHE = "xev-netpref";
+const XEV_NETPREF_URL = "./__xev_netpref";
+let _xevNetLatest = null;                     // null＝まだ読んでいない
+function xevNetLatest() { return _xevNetLatest; }
+(async function xevReadNetPref() {
+  try {
+    const c = await caches.open(XEV_NETPREF_CACHE);
+    const r = await c.match(XEV_NETPREF_URL);
+    _xevNetLatest = r ? ((await r.json()).latest !== false) : true;
+  } catch (e) { _xevNetLatest = true; }
+})();
+self.addEventListener("message", (e) => {
+  const m = e.data;
+  if (!m || m.type !== "xev-netmode") return;
+  _xevNetLatest = m.latest !== false;
+  e.waitUntil((async () => {
+    try {
+      const c = await caches.open(XEV_NETPREF_CACHE);
+      await c.put(XEV_NETPREF_URL, new Response(JSON.stringify({ latest: _xevNetLatest }),
+        { headers: { "Content-Type": "application/json" } }));
+    } catch (err) {}
+  })());
+});
+/* キャッシュ優先で返す。無ければ通信し、それも失敗したらページだけはホームに逃がす。 */
+async function xevCacheFirst(req) {
+  const hit = await caches.match(req, { ignoreSearch: true });
+  if (hit) return hit;
+  try { return await fetch(req); } catch (e) {}
+  if (req.mode === "navigate") {
+    const home = await caches.match("./index.html", { ignoreSearch: true });
+    if (home) return home;
+  }
+  return new Response("", { status: 504 });
+}

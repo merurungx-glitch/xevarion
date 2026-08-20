@@ -1438,4 +1438,46 @@
   } catch (e) {}
 
   go("chat");
+
+  /* ══════════════════════════════════════════════════════════
+     ★ 2026-08-20c 起動時の注意書き（ご指定）
+     ------------------------------------------------------------
+     XEVYNAR の「解法」「くわしい解説」は<b>自動で組み立てている</b>。
+     ・問題文から定石や図をえらぶのは言葉の当たり判定なので、外すことがある
+     ・手順や式の当てはめ、誤答の理由づけもそのぶん間違うことがある
+     使う前に必ず1回言っておく（毎回出す。MagiLex の注意書きと同じ考えかた）。
+     ★ 出すのは<b>ページのいちばん最後</b>。#q= などで解説を開いて始めるときも、
+       その上にかぶせて先に読んでもらう。
+     ══════════════════════════════════════════════════════════ */
+  showXvNotice();
 })();
+
+function showXvNotice() {
+  if (document.getElementById("xvNotice")) return;
+  const ov = document.createElement("div");
+  ov.className = "xv-note-ov"; ov.id = "xvNotice";
+  ov.innerHTML = '<div class="xv-note-card">'
+    + '<div class="xv-note-ic">⚠️</div>'
+    + "<h3>解法・解説について</h3>"
+    + "<p>XEVYNAR の<b>解法（定石）</b>と<b>1問ごとのくわしい解説</b>は、"
+    + "問題文から自動で組み立てています。そのため、<b>まちがっていることがあります</b>。</p>"
+    + "<ul>"
+    + "<li>問題に合わない<b>定石・公式・図</b>がえらばれることがあります</li>"
+    + "<li><b>手順や途中の式</b>、<b>誤答の理由</b>が正しくないことがあります</li>"
+    + "<li><b>答えそのもの</b>は MagiLex の正解を出しています</li>"
+    + "</ul>"
+    + "<p>考えかたの<b>道しるべ</b>として使い、最後は教科書や先生の説明で確かめてください。"
+    + "おかしなところを見つけたら、管理者までご連絡ください。</p>"
+    + '<button class="xv-note-btn" onclick="closeXvNotice()">確認しました</button>'
+    + "</div>";
+  document.body.appendChild(ov);
+  requestAnimationFrame(() => ov.classList.add("show"));
+}
+function closeXvNotice() {
+  const ov = document.getElementById("xvNotice");
+  if (!ov) return;
+  ov.classList.remove("show");
+  setTimeout(() => ov.remove(), 300);
+}
+window.showXvNotice = showXvNotice;
+window.closeXvNotice = closeXvNotice;

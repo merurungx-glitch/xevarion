@@ -187,7 +187,7 @@
      ════════════════════════════════════════════ */
   function charCard(c, owned) {
     const K = KB();
-    let h = b(esc(c.nm)) + "（" + (K.EL_NM[c.el] || c.el) + "・" + (K.SHOT_NM[c.shot] || c.shot) + "・" + esc(c.type) + (c.star5 ? "・★5" : "") + "）"
+    let h = b(esc(c.nm)) + "（" + (K.EL_NM[c.el] || c.el) + "・" + (K.SHOT_NM[c.shot] || c.shot) + "・" + esc(c.type) + (c.star5 ? "・SSR" : "") + "）"
       + (owned ? "　" + b("所持ずみ") : '　<span style="color:#9aa3c0">未所持</span>');
     h += "<br>アビリティ：" + c.abil.map((a) => esc(K.abilLabel(a))).join("／");
     if (c.ssName) h += "<br>フルバースト：" + esc(c.ssName);

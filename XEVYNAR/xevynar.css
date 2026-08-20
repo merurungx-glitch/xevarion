@@ -38,6 +38,33 @@ button,input,textarea,select{font-family:inherit;color:inherit}
 button{cursor:pointer;border:none;background:none}
 a{color:inherit;text-decoration:none}
 
+/* ══════════════════════════════════════════════════════════
+   ★ 2026-08-20c 起動時の注意書き（解法・解説はまちがっていることがある）
+   ------------------------------------------------------------
+   XEVYNAR の解法・くわしい解説は<b>自動で組み立てている</b>ので、
+   問題の読み取りや当てはめる定石をまちがえることがある。
+   使う前にそれを言っておかないと、出てきた手順をそのまま正解だと思ってしまう。
+   ★ MagiLex の注意書き（.audio-ask）と同じ形・同じ手ざわりにそろえてある。
+   ══════════════════════════════════════════════════════════ */
+.xv-note-ov{position:fixed;inset:0;z-index:9000;display:flex;align-items:center;justify-content:center;
+  padding:22px;background:rgba(35,42,68,.5);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  opacity:0;transition:opacity .3s;pointer-events:none}
+.xv-note-ov.show{opacity:1;pointer-events:auto}
+.xv-note-card{max-width:390px;width:100%;background:var(--xv-card);border:1px solid var(--xv-line);
+  border-radius:24px;padding:26px 22px;text-align:center;box-shadow:0 30px 70px rgba(40,45,90,.32);
+  transform:translateY(12px);transition:transform .3s;max-height:86vh;overflow-y:auto}
+.xv-note-ov.show .xv-note-card{transform:none}
+.xv-note-ic{font-size:42px;line-height:1}
+.xv-note-card h3{font-size:1.1rem;font-weight:900;color:var(--xv-ink);margin:8px 0 8px}
+.xv-note-card p{font-size:.82rem;color:var(--xv-sub);line-height:1.85;margin-bottom:12px;text-align:left}
+.xv-note-card p b{color:var(--xv-ink)}
+.xv-note-card ul{text-align:left;font-size:.79rem;color:var(--xv-sub);line-height:1.8;
+  margin:0 0 14px;padding-left:1.1em}
+.xv-note-btn{display:block;width:100%;padding:14px;border-radius:15px;font-family:inherit;font-size:.98rem;
+  font-weight:900;color:#fff;background:linear-gradient(135deg,var(--xv-navy),var(--xv-purple));
+  box-shadow:0 6px 18px rgba(100,90,200,.32)}
+.xv-note-btn:active{transform:scale(.97)}
+
 /* ══════════ ヘッダー ══════════ */
 .xv-head{position:sticky;top:0;z-index:40;display:flex;align-items:center;gap:10px;
   padding:calc(env(safe-area-inset-top,0px) + 11px) 14px 11px;

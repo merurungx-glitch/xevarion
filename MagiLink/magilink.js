@@ -12,16 +12,27 @@ import {
 } from "https://www.gstatic.com/firebasejs/12.14.0/firebase-database.js";
 
 const firebaseConfig = {
-  apiKey: "AIzaSyCWHH6UirCY9rWPdxgbN8jAGF6-llsv9bE",
-  authDomain: "magilink-63067.firebaseapp.com",
-  databaseURL: "https://magilink-63067-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "magilink-63067",
-  storageBucket: "magilink-63067.firebasestorage.app",
-  messagingSenderId: "602898365436",
-  appId: "1:602898365436:web:a6b66b5240ee35b8bd5079",
-  measurementId: "G-QCRRFKFVF5"
+  /* ★★ 2026-08-20 magilink-63067 から <b>xevarion-online</b> へ移した。
+     XEVARION が使う Firebase を firebase-rules/ の4つにそろえるため。
+     ★ プロジェクト間でデータは移らない。
+       古い magilink-63067 に入っていたメッセージ・友達・掲示板は
+       <b>引き継がれず、まっさらから始まる</b>（移すなら手で書き出して入れ直す）。
+     ★ 使うノード（board / friendRequests / friends / groups / messages /
+       sentReq / users）は xevarion-online の rooms・scores・mcp とぶつからない。
+       ルールは firebase-rules/xevarion-online.rules.json に足してある。 */
+  apiKey: "AIzaSyAivkOwjWlmqJSNmnSjOs4-PUAcVFOfbiY",
+  authDomain: "xevarion-online.firebaseapp.com",
+  databaseURL: "https://xevarion-online-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "xevarion-online",
+  storageBucket: "xevarion-online.firebasestorage.app",
+  messagingSenderId: "513584168485",
+  appId: "1:513584168485:web:d2a009325df677b746c9cc",
+  measurementId: "G-28C5G2BFR5"
 };
-const app = initializeApp(firebaseConfig);
+/* ★ 2026-08-20 名前を付ける。
+   同じページで別の Firebase を使うものが増えたときに、
+   名無し（[DEFAULT]）どうしがぶつかって落ちるのを防ぐため。 */
+const app = initializeApp(firebaseConfig, "magilink");
 const db = getDatabase(app);
 import("https://www.gstatic.com/firebasejs/12.14.0/firebase-analytics.js")
   .then((m) => { try { m.getAnalytics(app); } catch (e) {} }).catch(() => {});

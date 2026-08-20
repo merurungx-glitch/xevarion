@@ -34,7 +34,9 @@ function volumeBadge(total){
   return m > 1 ? `<span class="vol-badge">${total>=100?"100問以上":"50問以上"} XEVA×${m}</span>` : "";
 }
 // ── 🌻 夏の学習キャンペーン：期間中は MagiLex で得られる XEVA がすべて2倍 ──
-const CAMPAIGN = { name:"夏の学習キャンペーン", mult:2, from:"2026-07-01", to:"2026-08-31" };
+/* ★ 2026-08-20 ご指定により XEVA2倍を <b>10/31 まで延長</b>（8/31 → 10/31）。
+   ★ ポータル側のお知らせ（xevarion-home.js の CAMPAIGN イベント）にも同じ日付が書いてあるので、<b>かならず両方</b>直すこと。片方だけだと 9/1 に案内だけ消える。 */
+const CAMPAIGN = { name:"夏の学習キャンペーン", mult:2, from:"2026-07-01", to:"2026-10-31" };
 function campaignActive(){ const t=new Date().toISOString().slice(0,10); return t>=CAMPAIGN.from && t<=CAMPAIGN.to; }
 function rw(n){ return campaignActive() ? n*CAMPAIGN.mult : n; }   // 表示・付与共通の実効報酬
 const N_OPTS = 5;   // クイズの選択肢数（答え＋最大4誤答＝4〜5択）＋「わからない」
@@ -1126,7 +1128,20 @@ function figsFor(o){
    ★ 判定は diffOf() 1本に寄せる。ここを変えれば出す範囲がまとめて変わる。
    ══════════════════════════════════════════════════════════════ */
 function isDeepTarget(sid){
-  try{ return diffOf(String(sid||"")) === 5; }catch(e){ return false; }
+  try{
+    const id = String(sid||"");
+    /* ★★ 2026-08-20b ここに<b>セット名も渡す</b>のが要点。
+       diffOf は「名前に『最難関』『難問』と書いてあれば無条件で最上位」という規則を
+       いちばん先に見ているが、id の文字列だけを渡すと name が空になり、その規則が働かない。
+       そのため <b>math_n_integer2「整数の難問」など6セット</b>が、
+       ・XEVYNAR 側（XVDeep.isDeep は名前を見る）＝<b>解説を持っている</b>
+       ・MagiLex 側（ここ）＝<b>対象外</b>
+       と食いちがい、結果画面の「まちがえた問題」に
+       <b>解説へ行ける案内が出るのに、押しても何も起きない</b>状態になっていた。
+       ★ 線引きは XEVYNAR の XVDeep.diffOf と必ずそろえること。 */
+    const sec = (typeof SECTIONS !== "undefined" ? SECTIONS : []).find(x => x && x.id === id);
+    return diffOf(sec ? { sid: id, name: sec.name } : id) === 5;
+  }catch(e){ return false; }
 }
 function deepBtnHTML(sid, qi){
   if(!isDeepTarget(sid)) return "";
@@ -1958,7 +1973,12 @@ function finishQuiz(){
   const missHTML = missed.length ? `
       <div class="res-miss">
         <div class="rm-h">${uiIconSVG('exam')} まちがえた ${missed.length} 問</div>
-        <p class="rm-p">押すと、その問題の<b>くわしい解説</b>（何を聞かれているか → 方針 → 手順を1行ずつ → 図 → 誤答の理由）が開きます。</p>
+        ${/* ★ 2026-08-20b 「押すと解説が開きます」と言い切っていたが、くわしい解説があるのは
+             <b>最難関</b>の問題だけ。それ以外の回では押せる行が1つも無いのに案内だけ出ていて、
+             「行ける表示があるのに行けない」状態に見えていた。実際に押せる行があるときだけ出す。 */""}
+        ${missed.some(it => it.kind==="quiz" && it.sid!=null && it.qi!=null && isDeepTarget(it.sid))
+          ? `<p class="rm-p"><b>「くわしい解説 →」</b>が付いた問題を押すと、その問題の<b>くわしい解説</b>（何を聞かれているか → 方針 → 手順を1行ずつ → 図 → 誤答の理由）が開きます。</p>`
+          : `<p class="rm-p">見直してから、もう一度挑戦してみましょう。<b>くわしい解説</b>は<b>最難関</b>の問題セットに用意しています。</p>`}
         ${missed.map(it => {
           /* ★ 2026-08-20 くわしい解説があるのは最難関だけ。
              それ以外は、押しても何も出ない空ぶりのボタンにしないで、
