@@ -558,6 +558,7 @@ function renderHome(){
         <div class="mi">${uiIconSVG('study')}</div><div><h3>学習する</h3><p>選択クイズ・単語帳フラッシュカードから選ぶ・未習得の問題を優先出題</p></div>
       </button>
       <button class="m-card" onclick="lexMixSetup()"><div class="mi">${uiIconSVG('mix')}</div><h3>ミックス問題</h3><p>${mixSelIds().length===allContents().length?"全範囲":"えらんだ範囲"}${mixOnlyUn()?"の<b>未習得だけ</b>":""}から${mixSelCount()}問<br>90%↑ +${rw(REWARD.mix90)} / 100% +${rw(REWARD.mix100)}${campaignActive()?'（2倍）':''}</p></button>
+      <button class="m-card xv-card-lnk" onclick="lexToXevynar()"><div class="mi">${uiIconSVG('exam')}</div><h3>XEVYNARで学ぶ</h3><p>数学・物理・化学γの<b>難問の解きかた</b>を1手ずつ<br>詰まった手だけ公式と例題に戻れます</p></button>
       <button class="m-card" onclick="lexTab('stats')"><div class="mi">${uiIconSVG('stats')}</div><h3>学習データ</h3><p>進捗・正答率</p></button>
       <button class="m-card" onclick="showLexHowto(true)"><div class="mi">${uiIconSVG('spark')}</div><h3>XEVAの入手方法</h3><p>もう一度見る</p></button>
     </div>
@@ -613,7 +614,7 @@ window.lexLibToggleFilter=()=>{ libFilterOpen=!libFilterOpen; renderLibrary(); }
    未習得(none) と 習得中(learn) を合わせたもの＝まだ1問でも残っている範囲。
    仕上げのときに探すのはこれなのに、2つのチップを行き来しないと出せなかった。 */
 const LIB_FILTERS=[["all","すべて"],["quiz","選択クイズ"],["word","単語帳"],["undone","未完全習得"],["none","未習得"],["learn","習得中"],["done","完全習得"]];
-const SUBJECT_ORDER=["英語","数学","化学α","化学β","化学γ","物理","国語"];
+const SUBJECT_ORDER=["英語","数学","化学α","化学β","化学γ","化学δ","物理α","物理β","国語"];
 // 科目内ジャンル（例: 化学 → 理論・無機・有機・高分子）。表示順もここで決める
 const GENRE_ORDER=["数と式・二次関数","場合の数・確率","整数","図形","三角関数","指数・対数","式と証明","図形と方程式","数列","ベクトル","データ・統計","極限","複素数平面","二次曲線","微分・積分","理論","無機","有機","高分子","物質別","力学","波動・光","電磁気","熱・原子","動詞","名詞","形容詞","副詞・接続","学術・社会","文法・敬語","古文単語"];
 function genreOf(c){
@@ -631,6 +632,17 @@ function genreOf(c){
   if(id==="math_c3_calcbasic") return "微分・積分";
   /* 数学（★ 2026-08-16 全範囲に拡張）
      id の接頭辞でジャンルが決まる。増やすときはここに1行足す。 */
+  /* 物理β（★ 2026-08-20 電磁気学）。id の2文字めでジャンルが決まる。 */
+  if(/^physb_r_/.test(id)) return "抵抗";
+  if(/^physb_d_/.test(id)) return "直流回路";
+  if(/^physb_m_/.test(id)) return "磁場";
+  if(/^physb_e_/.test(id)) return "電磁誘導";
+  if(/^physb_b_/.test(id)) return "導体棒";
+  if(/^physb_c_/.test(id)) return "コイル";
+  /* 化学δ（★ 2026-08-20）。id の2文字めでジャンルが決まる。 */
+  if(/^cdelta_l_/.test(id)) return "脂質";
+  if(/^cdelta_a_/.test(id)) return "芳香族・フェノール";
+  if(/^cdelta_i_/.test(id)) return "元素別各論";
   if(/^math_a_/.test(id)) return "数と式・二次関数";
   if(/^math_p_/.test(id)) return "場合の数・確率";
   if(/^math_n_/.test(id)) return "整数";
@@ -651,6 +663,12 @@ function genreOf(c){
   // 物理
   //   ★ 2026-08-15 追加ぶん（最難関レベル）は phys_adv_◯_ の◯でジャンルが決まる
   //     _m_ = 力学 ／ _w_ = 波動・光 ／ _e_ = 電磁気 ／ _t_ = 熱・原子
+  /* ★ 2026-08-19 中堅の物理は phys_mid_◯_ の◯でジャンルが決まる */
+  if(/^phys_intro_/.test(id)) return "力学";   /* ★ 2026-08-19 入門はまとめて力学の棚へ */
+  if(/^phys_mid_m_/.test(id)) return "力学";
+  if(/^phys_mid_w_/.test(id)) return "波動・光";
+  if(/^phys_mid_e_/.test(id)) return "電磁気";
+  if(/^phys_mid_t_/.test(id)) return "熱・原子";
   if(/^phys_adv_m_/.test(id)) return "力学";
   if(/^phys_adv_w_/.test(id)) return "波動・光";
   if(/^phys_adv_e_/.test(id)) return "電磁気";
@@ -662,6 +680,8 @@ function genreOf(c){
   /* 化学γ（最難関の有機・無機）
      ★ 2026-08-16 id の3文字目で決まる。cgamma_o_=有機／cgamma_i_=無機／cgamma_s_=物質別。
        物質別は「その物質だけを掘り下げる」セットで、有機・無機どちらの物質もここに入る。 */
+  /* ★ 2026-08-19 中堅化学の理論 */
+  if(/^cgamma_t_/.test(id)) return "理論";
   if(/^cgamma_o_/.test(id)) return "有機";
   if(/^cgamma_i_/.test(id)) return "無機";
   if(/^cgamma_s_/.test(id)) return "物質別";
@@ -688,10 +708,16 @@ function subjectOf(c){
   const id=c.sid||"";
   if(id.indexOf("geo_")===0) return "地理";
   if(id.indexOf("math_")===0) return "数学";   /* ★ 2026-08-04 数学IIIを追加・2026-08-16 全範囲に拡張 */
-  if(id.indexOf("phys_")===0) return "物理";
+  /* ★★ 2026-08-20 これまでの物理は<b>物理α</b>に改名。
+     新しい電磁気学のぶんが<b>物理β</b>（id は physb_）。
+     ★ "physb_" は "phys_" で始まらないので、下の行とはぶつからない。
+       ただし<b>物理βの判定を先に書く</b>こと（読む人が取りちがえないように）。 */
+  if(id.indexOf("physb_")===0) return "物理β";
+  if(id.indexOf("phys_")===0) return "物理α";
   if(id.indexOf("kokugo_")===0) return "国語";
   if(id.indexOf("cbeta_")===0) return "化学β"; // 溶液・無機・有機・高分子の新規問題
   if(id.indexOf("cgamma_")===0) return "化学γ"; /* ★ 2026-08-16 最難関の有機・無機＋物質別 */
+  if(id.indexOf("cdelta_")===0) return "化学δ";  /* ★ 2026-08-20 脂質・芳香族・元素別各論 */
   return "化学α"; // 既存の化学すべて（fatty/carboxyl/functional/gas_*/metal/chem_b_*/chem_*）
 }
 function subjectsPresent(){ const set={}; allContents().forEach(c=>set[subjectOf(c)]=1); return SUBJECT_ORDER.filter(s=>set[s]); }
@@ -776,7 +802,12 @@ const SUBJ_ART = {
   /* 数学 — コンパス（作図＝図形と解析） */
   "数学": '<path d="M12 3.4v2.2"/><circle cx="12" cy="4.4" r="1.1" fill="currentColor" stroke="none"/><path d="m12 5.6-4.3 12M12 5.6l4.3 12"/><path d="m6.9 17.6-1 2.4M17.1 17.6l1 2.4"/><path d="M8.6 13.1a7.6 7.6 0 0 0 6.8 0" opacity=".6"/>',
   /* 物理 — 軌道と核（力学・電磁気・原子をひとまとめに） */
-  "物理": '<ellipse cx="12" cy="12" rx="8.4" ry="3.7"/><ellipse cx="12" cy="12" rx="8.4" ry="3.7" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="8.4" ry="3.7" transform="rotate(120 12 12)"/><circle cx="12" cy="12" r="2.1" fill="currentColor" stroke="none"/>',
+  /* 物理β — 電磁気（コイルと磁力線）。物理αの原子模型と見分けが付くよう別の形にする。 */
+  "物理β": '<path d="M3.2 12h2.6"/><path d="M18.2 12h2.6"/>'
+    + '<path d="M5.8 12c0-2.3 1.4-4.1 3.1-4.1s3.1 1.8 3.1 4.1-1.4 4.1-3.1 4.1"/>'
+    + '<path d="M12 12c0-2.3 1.4-4.1 3.1-4.1s3.1 1.8 3.1 4.1-1.4 4.1-3.1 4.1"/>'
+    + '<path d="M8.9 16.1H12"/>',
+  "物理α": '<ellipse cx="12" cy="12" rx="8.4" ry="3.7"/><ellipse cx="12" cy="12" rx="8.4" ry="3.7" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="8.4" ry="3.7" transform="rotate(120 12 12)"/><circle cx="12" cy="12" r="2.1" fill="currentColor" stroke="none"/>',
   /* 化学α — 三角フラスコ（理論・無機・有機の実験） */
   "化学α": '<path d="M9.7 3.9h4.6"/><path d="M10.6 3.9v5.3L5.5 17.6a1.7 1.7 0 0 0 1.5 2.5h10a1.7 1.7 0 0 0 1.5-2.5l-5.1-8.4V3.9"/><path d="M7.6 14.2h8.8" opacity=".55"/><circle cx="10.4" cy="16.8" r="1.05" fill="currentColor" stroke="none" opacity=".85"/><circle cx="13.7" cy="17.6" r=".8" fill="currentColor" stroke="none" opacity=".6"/>',
   /* 化学β — ベンゼン環（有機・高分子が中心の範囲） */
@@ -786,6 +817,9 @@ const SUBJ_ART = {
        一覧に3つ並んだとき α・β・γ の見分けが付かなかった。
        α＝三角フラスコ（実験の器）／β＝ベンゼン環（六角形）／γ＝分子模型（球と棒）と、
        <b>輪郭そのもの</b>を変えてある。 */
+  /* 化学δ — フラスコ（実験そのもの）。化学γの分子模型と見分けが付くよう別の形にする。 */
+  "化学δ": '<path d="M10 3.4h4"/><path d="M11.3 3.4v5.1L5.9 17.3a2 2 0 0 0 1.7 3.05h8.8a2 2 0 0 0 1.7-3.05L12.7 8.5V3.4"/>'
+    + '<path d="M8.1 13.9h7.8" stroke-dasharray="0.1 3.2"/>',
   "化学γ": '<circle cx="12" cy="6.2" r="2.5"/><circle cx="5.6" cy="15.4" r="2.5"/><circle cx="18.4" cy="15.4" r="2.5"/>'
     + '<circle cx="12" cy="13.4" r="1.9" fill="currentColor" stroke="none" opacity=".9"/>'
     + '<path d="M12 8.7v2.9M10.4 14.3 7.7 15M13.6 14.3l2.7.7"/>',
@@ -797,8 +831,10 @@ const SUBJ_ART = {
 /* 科目ごとの色（タイルの地と線）。--indigo などの雰囲気に合わせた落ち着いたトーン */
 const SUBJ_COLOR = {
   "英語":  "#3f7fd0", "国語":  "#c06a8e", "数学":  "#6b5bd2",
-  "物理":  "#2f8f96", "化学α": "#c79a2e", "化学β": "#7a9a3a",
+  "物理α": "#2f8f96", "物理β": "#3a6fae",   /* ★ 2026-08-20 物理β */
+  "化学α": "#c79a2e", "化学β": "#7a9a3a",
   "化学γ": "#b06a3c",
+  "化学δ": "#8a5a9c",   /* ★ 2026-08-20 化学δ */
   "公共":  "#8a7fb5", "地理":  "#4d9a7c"
 };
 /* 1つのSVGを返す。size を渡すと大きさを変えられる（見出し用に少し大きく） */
@@ -1008,6 +1044,145 @@ const LEX_DIFF = {
   2: { nm: "標準",   c: "#3f8fd8" },
   1: { nm: "基礎",   c: "#2fa36a" },
 };
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-08-18 XEVYNAR 連携
+
+   MagiLex は「解けたか」を見るところ、XEVYNAR は「解けるようにする」ところ。
+   むずかしい問題ほど、答えを見ただけでは次に進めないので、
+   <b>その場から XEVYNAR のステップ学習へ渡せる</b>ようにした。
+
+     lexToXevynar()            … ホームから。解法の一覧を開く
+     lexLearnThis(text)        … いま解いている問題を渡す（#learn=）
+                                  XEVYNAR 側が問題文から合いそうな定石を並べる
+   ★ 区切り文字（& ? #）が質問文に混ざらないよう encodeURIComponent を通す。
+   ══════════════════════════════════════════════════════════════ */
+const XEVYNAR_URL = "../XEVYNAR/index.html";
+
+/* ★★ 2026-08-19 XEVYNAR へ移る前に、学習の記録を<b>その場で書き切る</b>。
+
+   これまではページを離れるときの beacon 送信に任せていたが、
+   端末やブラウザによっては送りきる前に遷移してしまい、
+   「解説を見に行ったら、さっきの記録が消えていた」ということが起きていた。
+   ・localStorage への保存（save）は同期なので必ず通る
+   ・クラウドへの送信（flush）は待てるだけ待つ（最大1.2秒）。
+     間に合わなくても、次にアプリを開いたときに送られるので記録は失われない。 */
+async function lexGoXevynar(hash) {
+  try { save(); } catch (e) {}
+  try { if (typeof saveActiveQuiz === "function" && quiz) saveActiveQuiz(); } catch (e) {}
+  try {
+    const c = window.MagiLexCloud;
+    if (c && c.flush) {
+      await Promise.race([
+        Promise.resolve(c.flush()).catch(() => {}),
+        new Promise((r) => setTimeout(r, 1200)),
+      ]);
+    }
+  } catch (e) {}
+  location.href = XEVYNAR_URL + (hash || "");
+}
+window.lexToXevynar = ()=>{ lexGoXevynar("#solve=all"); };
+window.lexLearnThis = (text)=>{
+  const t = String(text || "").replace(/<[^>]*>/g, "").trim().slice(0, 180);
+  lexGoXevynar(t ? "#learn=" + encodeURIComponent(t) : "#solve=all");
+};
+/* ★★ 2026-08-18b その問題<b>そのもの</b>のくわしい解説へ。
+   XEVYNAR 側は #q=<セットid>:<問題番号> を受けて、
+   「何を聞かれているか → 方針 → 使う公式 → 手順（1行ずつ）→ 図 →
+     確かめかた → 誤答の理由 → 分からない言葉のやさしい例題」まで出す。
+   ★ 単語帳（type==="word"）には問題番号が無いので、こちらは使わない。 */
+/* まちがえた問題をまとめて見る。
+   ★ XEVYNAR には「この並びを順に見る」という入口が要るので、
+     控えておいた一覧を渡して、1問目から開く。 */
+/* ★ 2026-08-20 まとめて見るのも最難関だけ（それ以外は解説そのものが無い） */
+window.lexDeepMissed = ()=>{
+  const list = (P.lastMissed||[]).filter(x => x.kind==="quiz" && x.sid && x.qi!=null && isDeepTarget(x.sid));
+  if(!list.length){ toast("まちがえた問題がありません"); return; }
+  try{ localStorage.setItem("xevynar_missed_v1", JSON.stringify({ at: Date.now(),
+        list: list.map(x => ({ sid:x.sid, qi:x.qi })) })); }catch(e){}
+  lexGoXevynar("#miss=1");
+};
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-08-19 問題ごとの図・グラフ
+
+   ・図は XEVYNAR と同じエンジン（XVFigs＝../XEVYNAR/xevynar-figs.js）を使う。
+     問題文・手がかり・解説から、合う図を自動でえらぶ。
+   ・図があるときだけボタンを出す（無い問題に空のボタンを置かない）。
+   ・押すと下からシートで開く。何枚かあるときは全部ならべる。
+   ══════════════════════════════════════════════════════════════ */
+/* ★★ 2026-08-19 図は<b>その問題の数値で</b>描く。
+   これまでは形が決め打ちだったので、同じ分野の問題がぜんぶ同じ絵になっていた。
+   XVFigs.forProblem が、問題文から拾った数（頂点・辺・抵抗値・質量…）を持った
+   図の指定を返すので、それをボタンに持たせて開くときに渡す。 */
+function figsFor(o){
+  if(!window.XVFigs || !XVFigs.forProblem) return [];
+  return XVFigs.forProblem(o, 2);
+}
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-08-20 「くわしい解説」は<b>最難関（難易度5）だけ</b>に出す。
+
+   これまでは全部の問題に出していたが、
+   1問1問の解説をうすく広げるより、<b>いちばん重い問題を深く</b>のほうが効く。
+   入門・中堅・難関には、答えの下の解説（extra）と解法タブがある。
+   ★ 判定は diffOf() 1本に寄せる。ここを変えれば出す範囲がまとめて変わる。
+   ══════════════════════════════════════════════════════════════ */
+function isDeepTarget(sid){
+  try{ return diffOf(String(sid||"")) === 5; }catch(e){ return false; }
+}
+function deepBtnHTML(sid, qi){
+  if(!isDeepTarget(sid)) return "";
+  return `<button class="qa-deep" onclick="lexDeepQ('${esc(String(sid))}',${qi})">${uiIconSVG('exam')} くわしい解説</button>`;
+}
+/* 図を見るボタン（図が無ければ空文字＝ボタンを出さない） */
+function figBtnHTML(o, cls){
+  const fs = figsFor(o);
+  if(!fs.length) return "";
+  const key = encodeURIComponent(JSON.stringify(fs.map(f=>({ id:f.id, p:f.p }))));
+  return `<button class="fig-btn ${cls||""}" onclick="lexShowFigs('${key}')">
+    ${uiIconSVG('spark')} 図で見る<small>${esc(fs.map(f=>f.nm).join("・"))}</small></button>`;
+}
+function figSheetEnsure(){
+  if(document.getElementById("figSheet")) return;
+  const el = document.createElement("div");
+  el.id = "figSheet"; el.className = "fig-sheet";
+  el.innerHTML = `<div class="fig-bar"><b id="figTitle">図で見る</b>
+      <button class="fig-x" onclick="lexCloseFigs()" aria-label="とじる">✕</button></div>
+    <div class="fig-body" id="figBody"></div>`;
+  document.body.appendChild(el);
+  el.addEventListener("click", (e)=>{ if(e.target===el) lexCloseFigs(); });
+}
+window.lexShowFigs = (key)=>{
+  if(!window.XVFigs){ toast("図を読み込めませんでした"); return; }
+  let list = [];
+  try{ list = JSON.parse(decodeURIComponent(key)) || []; }catch(e){}
+  if(!list.length){ toast("この問題に合う図がありません"); return; }
+  figSheetEnsure();
+  document.getElementById("figBody").innerHTML = list.map(it=>{
+    const id = typeof it === "string" ? it : it.id;
+    const f = XVFigs.info(id); if(!f) return "";
+    return `<div class="fig-one"><div class="fig-t">${esc(f.nm)}</div>
+      ${XVFigs.make(id, { p: (it && it.p) || {} })}
+      <div class="fig-c">${esc(f.cap)}</div></div>`;
+  }).join("");
+  document.getElementById("figSheet").classList.add("on");
+};
+window.lexCloseFigs = ()=>{
+  const el = document.getElementById("figSheet");
+  if(el) el.classList.remove("on");
+};
+
+window.lexDeepQ = (sid, qi)=>{
+  if(!sid){ lexToXevynar(); return; }
+  lexGoXevynar("#q=" + encodeURIComponent(sid) + ":" + (qi|0));
+};
+/* いま解いている問題を XEVYNAR へ渡す。
+   クイズなら「その1問の解説」、単語帳なら問題文から近い解きかたを探す形にする。 */
+window.lexLearnCurrent = ()=>{
+  const it = (quiz && quiz.items) ? quiz.items[quiz.idx] : null;
+  if(!it){ lexToXevynar(); return; }
+  if(it.kind === "quiz" && it.sid != null && it.qi != null){ lexDeepQ(it.sid, it.qi); return; }
+  lexLearnThis([it.tag || "", it.stem || ""].filter(Boolean).join(" "));
+};
+
 function diffOf(c){
   /* ★ 一覧が渡してくる id は "q_◯◯"（quizContents が付ける接頭辞）なので、
      素のセットid は c.sid に入っている。ここを見まちがえると
@@ -1018,6 +1193,21 @@ function diffOf(c){
   if(typeof c === "object" && c && c.type === "word") return 0;
   /* 名前に「最難関」「難問」と書いてあるものは無条件で最上位 */
   if(/最難関|難問/.test(nm)) return 5;
+  /* ★★ 2026-08-19 中堅（最難関のひとつ手前）。
+     id が「◯◯_mid」で終わる／phys_mid_ で始まるものがこれ。
+     ★ この行は math_ / phys_ / cgamma_ の判定より<b>前</b>に置くこと。
+       あとに置くと、math_a_mid が先に「数学＝難関4」で拾われてしまう。 */
+  if(/_mid$/.test(id) || /^phys_mid_/.test(id)) return 3;
+  /* ★★ 2026-08-19 入門（いちばん最初の段）。中堅よりさらに前に置く。 */
+  if(/_intro$/.test(id) || /^phys_intro_/.test(id)) return 2;
+
+  /* ★★ 2026-08-20 物理β。"_adv" で終わるものだけが最難関。
+     ★ ここは /^phys_/ の判定より<b>前</b>に置く必要はない（physb_ は phys_ に当たらない）が、
+       化学δとそろえて上に置いておく。 */
+  if(/^physb_/.test(id)) return /_adv$/.test(id) ? 5 : 4;
+
+  /* ★★ 2026-08-20 化学δ。"_adv" で終わるものだけが最難関（＝くわしい解説の対象）。 */
+  if(/^cdelta_/.test(id)) return /_adv$/.test(id) ? 5 : 4;
 
   /* ── ★5 最難関: 総合・記述の重い問題 ── */
   if(/^cgamma_[oi]_/.test(id)) return 5;   // 化学γ 有機・無機の総合
@@ -1592,9 +1782,18 @@ function renderQuiz(){
     <div class="q-card">
       <div class="q-tag">${esc(it.tag)}</div>
       <div class="q-stem">${escMath(it.stem)}${it.english?spkBtn(it.stem):""}</div>
+      ${/* ★★ 2026-08-20 問題を解いている最中に図は出さない。
+             解いている途中の図は「答えの形」を教えてしまううえ、
+             手を止めさせてしまうので、解き終えたあとの解説だけに置く。 */""}
       <div class="opts" id="opts">${it.opts.map((o,i)=>`<button class="opt" onclick="lexAnswer(${i})">${esc(o)}</button>`).join("")}</div>
       <button class="dunno" id="dunnoBtn" onclick="lexDontKnow()">？ わからない（答えを見る）</button>
-      <div class="reveal" id="reveal"><div class="ans">正解：${escMath(it.full||it.answer)}</div>${it.extra?`<div class="ex">${escMath(it.extra)}</div>`:""}</div>
+      <div class="reveal" id="reveal"><div class="ans">正解：${escMath(it.full||it.answer)}</div>${it.extra?`<div class="ex">${escMath(it.extra)}</div>`:""}
+        ${/* ★★ 2026-08-19 ここにあった「XEVYNAR で見る」ボタンは<b>廃止</b>しました。
+              解いている途中でアプリを離れると、そのセットを最後まで解き終わらないため
+              <b>習得の判定とごほうびが走らず、記録が切れて見える</b>のが理由です。
+              くわしい解説へは<b>最後まで解き終わった結果の画面</b>と、
+              <b>「問題と答えの一覧」</b>から行けます。 */""}
+      </div>
       <button class="next-btn" id="nextBtn" onclick="lexNext()">${quiz.idx<n-1?"次の問題 →":"結果を見る ✨"}</button>
       <div class="auto-cd" id="autoCd"></div>
     </div>`;
@@ -1748,12 +1947,44 @@ function finishQuiz(){
     }
   } else if(curContent){ checkMastery(curContent); }
   const grade = pct===100?"💯":pct>=80?"🌟":pct>=50?"👍":"📖";
+  /* ★★ 2026-08-19 まちがえた問題を、その場で<b>くわしい解説</b>へ渡せるようにした。
+     ここが「解けなかった」と分かる唯一の場所なので、
+     結果を見て終わりにせず、そのまま解きかたへ行けるのがいちばん効く。
+     ・クイズの問題（kind==="quiz"）は #q=<セットid>:<問題番号> で1問ぶんの解説へ
+     ・単語帳は問題番号が無いので、言葉を渡して近い解きかたを探す形にする
+     ・数学・物理・化学γ以外にも解説は出るので、科目でしぼらない */
+  const missed = (quiz.miss||[]).filter((it, i, a) =>
+    a.findIndex(x => (x.kind===it.kind && x.sid===it.sid && x.qi===it.qi && x.word===it.word)) === i);
+  const missHTML = missed.length ? `
+      <div class="res-miss">
+        <div class="rm-h">${uiIconSVG('exam')} まちがえた ${missed.length} 問</div>
+        <p class="rm-p">押すと、その問題の<b>くわしい解説</b>（何を聞かれているか → 方針 → 手順を1行ずつ → 図 → 誤答の理由）が開きます。</p>
+        ${missed.map(it => {
+          /* ★ 2026-08-20 くわしい解説があるのは最難関だけ。
+             それ以外は、押しても何も出ない空ぶりのボタンにしないで、
+             見返すだけの行にする。 */
+          const deep = it.kind==="quiz" && it.sid!=null && it.qi!=null && isDeepTarget(it.sid);
+          const go = deep
+            ? `lexDeepQ('${esc(String(it.sid))}',${it.qi})`
+            : (it.kind!=="quiz" ? `lexLearnThis('${esc(String(it.tag||"")+" "+String(it.stem||""))}')` : "");
+          return `<button class="rm-row${go?"":" plain"}"${go?` onclick="${go}"`:" disabled"}>
+            <span class="rm-q">${esc(String(it.stem||"").slice(0,60))}${String(it.stem||"").length>60?"…":""}</span>
+            <span class="rm-a">正解：${esc(it.full||it.answer||"")}</span>
+            ${go?'<span class="rm-go">くわしい解説 →</span>':""}
+          </button>`;
+        }).join("")}
+        ${missed.filter(it=>it.kind==="quiz" && isDeepTarget(it.sid)).length>1
+          ? `<button class="rm-all" onclick="lexDeepMissed()">くわしい解説がある問題をまとめて見る</button>` : ""}
+      </div>` : "";
+  /* まとめて見るとき用に、まちがえた問題を控えておく */
+  try{ P.lastMissed = missed.map(it => ({ kind:it.kind, sid:it.sid, qi:it.qi, stem:it.stem, tag:it.tag })); save(); }catch(e){}
   $("#scr-quiz").innerHTML=`
     <div class="result">
       <div class="big">${grade}</div>
       <div class="score">${ok} / ${n} 正解（${pct}%）</div>
       ${rwd>0?`<div class="rwd"><img src="../XEVA.png" alt="">＋${rw(rwd)} XEVA${campaignActive()?' <span style="font-size:.7em;color:#e0157a;font-weight:800">🌻夏キャン2倍!</span>':''}</div>`:""}
       ${demoted?`<div class="demote">📖 不合格だったので、まちがえた <b>${demoted}</b> 問を<b>習得中</b>にもどしました。<br>覚え直して完全習得にすると、また確認テストを受けられます。</div>`:""}
+      ${missHTML}
       <div class="acts">
         <button onclick="lexBack()">もどる</button>
         <!-- 確認テストで習得中に戻した直後は、もう一度は受けられない（覚え直しが先）。
@@ -1905,10 +2136,19 @@ window.lexShowList=()=>{
   if(c.type==="word"){ const m=P.words[c.key]||{};
     rows=Object.entries(c.subj.data).map(([w,mean])=>`<div class="word-row"><div class="w">${esc(w)}</div><div class="m">${esc(mean)}</div>${m[w]&&m[w].m?'<div class="star">✓</div>':''}</div>`).join("");
   } else { const m=P.quiz[c.sid]||{};
-    rows=c.sec.questions.map((q,i)=>`<div class="qa-row"><div class="qa-q">${esc(q.stem)}${q.reading?` <span class="qa-r">${esc(q.reading)}</span>`:""} ${m[i]&&m[i].m?'<span class="star">✓</span>':''}</div><div class="qa-a">${esc(q.answer)}</div>${q.extra?`<div class="qa-ex">${esc(q.extra)}</div>`:""}</div>`).join("");
+    /* ★★ 2026-08-18b 1問ずつ「くわしい解説」へ飛べるようにした。
+       ここが「問題と答えの一覧」＝答えを見返す場所なので、
+       「答えは分かったが解けない」と気づくのもここになる。 */
+    rows=c.sec.questions.map((q,i)=>`<div class="qa-row"><div class="qa-q">${esc(q.stem)}${q.reading?` <span class="qa-r">${esc(q.reading)}</span>`:""} ${m[i]&&m[i].m?'<span class="star">✓</span>':''}</div><div class="qa-a">${esc(q.answer)}</div>${q.extra?`<div class="qa-ex">${esc(q.extra)}</div>`:""}<div class="qa-acts">${deepBtnHTML(c.sid, i)}</div></div>`).join("");
   }
+  const deepHead = (c.type!=="word" && isDeepTarget(c.sid))
+    ? `<div class="qa-note">${uiIconSVG('exam')} 各問題の「<b>くわしい解説</b>」では、
+         <b>何を聞かれているか → 方針 → 使う公式 → 手順を1行ずつ → 図 → 確かめかた → ほかの選択肢がなぜ違うか</b>
+         まで見られます。分からない言葉は、その場でやさしい例題までさかのぼれます。</div>`
+    : "";
   $("#scr-wordlist").innerHTML=`
     <div class="back-row"><button class="back-btn" onclick="lexBack()">←</button><h2>${c.type==="word"?"📋":"📖"} ${esc(c.name)}</h2></div>
+    ${deepHead}
     <div class="list">${rows}</div>`;
   show({name:"wordlist",tab:"library"});
 };
@@ -2222,6 +2462,8 @@ function firstRegister(){ if(P.registered) return; P.registered=true; save(); ea
        消えると「さっきの計算」を見返せず、メモの意味がなくなる。
      ・クイズを終えても自動では消さない（消すのは本人の操作だけ）。 */
 const MEMO_KEY = "magilex_memo_v1";
+/* ★ 2026-08-18 メモを「広げた（全画面）」状態を覚えておくキー */
+const MEMO_FULL_KEY = "magilex_memo_full_v1";
 const MEMO_COLORS = ["#2b2a33", "#c0392b", "#2f6fd0"];
 /* view … いま紙のどこを見ているか。s=拡大率、ox/oy=ずらし量（どれも0〜1の正規化座標）。
    線そのものは紙の座標で持ち、<b>見え方だけ</b>をこの view で変える。
@@ -2267,7 +2509,10 @@ function memoEnsureDom(){
       <div class="memo-tabs">
         <button class="memo-tab on" id="memoTabDraw" onclick="lexMemoMode('draw')">${uiIconSVG('pen')} 手書き</button>
         <button class="memo-tab" id="memoTabText" onclick="lexMemoMode('text')">${uiIconSVG('keyboard')} 文字</button>
+        <button class="memo-tab" id="memoTabCard" onclick="lexMemoMode('card')">${uiIconSVG('flash')} カード</button>
       </div>
+      <!-- ★ 2026-08-18 iPhone では上の道具が場所を取って紙が小さいので、全画面にできるようにした -->
+      <button class="memo-full" id="memoFullBtn" onclick="lexMemoFull()" aria-label="広げる／もどす" title="広げる／もどす">⤢</button>
       <button class="memo-x" onclick="lexMemoClose()" aria-label="メモを閉じる">✕</button>
     </div>
     <div class="memo-tools" id="memoTools">
@@ -2283,11 +2528,18 @@ function memoEnsureDom(){
           <button class="memo-btn" onclick="lexMemoZoomReset()">全体</button>
         </span>
       </span>
-      <button class="memo-btn danger" onclick="lexMemoClear()">全部消す</button>
+      <button class="memo-btn danger memo-clear" onclick="lexMemoClear()">全部消す</button>
+      <!-- カードモードのときだけ出る道具 -->
+      <button class="memo-btn memo-card-only" onclick="lexCardNew()">＋ 新しいカード</button>
+      <button class="memo-btn memo-card-only" onclick="lexCardFromQuiz()">いまの問題から</button>
+      <button class="memo-btn memo-card-only" onclick="lexCardFromMemo()">このメモから</button>
+      <button class="memo-btn memo-card-only" onclick="lexCardShuffle()">シャッフル</button>
+      <button class="memo-btn memo-card-only" id="mcHideBtn" onclick="lexCardToggleHide()">覚えたを隠す</button>
     </div>
     <div class="memo-body">
       <canvas id="memoCanvas"></canvas>
       <textarea id="memoText" placeholder="ここに計算や考えたことを書けます。&#10;（内容はこの端末に保存され、次に開いたときも残ります）"></textarea>
+      <div class="memo-cards" id="memoCards"></div>
     </div>`;
   document.body.appendChild(el);
 
@@ -2299,6 +2551,15 @@ function memoEnsureDom(){
   ["input", "change", "blur", "compositionend"].forEach(ev=>ta.addEventListener(ev, syncText));
 
   memoBindCanvas();
+  /* ★ 2026-08-18 フラッシュカードを読みこむ／前に「広げる」を使っていたら戻す */
+  cardsLoad();
+  try{
+    if(localStorage.getItem(MEMO_FULL_KEY) === "1"){
+      el.classList.add("full");
+      const fb = document.getElementById("memoFullBtn");
+      if(fb){ fb.classList.add("on"); fb.textContent = "⤡"; }
+    }
+  }catch(e){}
   /* 画面の幅が変わったら描き直す（線は正規化した座標で持っているので形は崩れない） */
   window.addEventListener("resize", ()=>{ if(memo.open) memoFit(); });
 }
@@ -2475,10 +2736,191 @@ window.lexMemoMode = (m)=>{
   memo.mode = m;
   const sheet = document.getElementById("memoSheet");
   sheet.classList.toggle("text-mode", m==="text");
+  sheet.classList.toggle("card-mode", m==="card");
   document.getElementById("memoTabDraw").classList.toggle("on", m==="draw");
   document.getElementById("memoTabText").classList.toggle("on", m==="text");
+  const tc = document.getElementById("memoTabCard"); if(tc) tc.classList.toggle("on", m==="card");
   if(m==="draw") requestAnimationFrame(memoFit);
-  else document.getElementById("memoText").focus();
+  else if(m==="text") document.getElementById("memoText").focus();
+  else cardRender();
+};
+/* ★ 2026-08-18 メモを画面いっぱいに広げる／もどす。
+   iPhone では上のタブと道具が場所を取り、シートの高さのままだと紙がとても小さかった。
+   広げるとキャンバスの大きさが変わるので、必ず測り直す。 */
+window.lexMemoFull = ()=>{
+  const sheet = document.getElementById("memoSheet"); if(!sheet) return;
+  const on = sheet.classList.toggle("full");
+  const b = document.getElementById("memoFullBtn");
+  if(b){ b.classList.toggle("on", on); b.textContent = on ? "⤡" : "⤢"; }
+  try{ localStorage.setItem(MEMO_FULL_KEY, on ? "1" : "0"); }catch(e){}
+  requestAnimationFrame(()=>{ if(memo.mode==="draw") memoFit(); });
+};
+
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-08-18 メモをフラッシュカードとしても使う
+
+   ・メモの3つめのタブ。おもて（問い）／うら（答え）の2面を持つカードをめくる。
+   ・カードの作りかたは3つ:
+       ① ＋新しいカード … 手で書く
+       ② いまの問題から … 解いている問題の問題文と正解・解説をそのまま入れる
+       ③ このメモから   … 文字メモの1行目をおもて、残りをうらにする。
+                          手書きが残っていれば、その絵をうらに貼る。
+   ・「覚えた」を押すと箱が1つ進む（0〜3）。3で覚えたあつかい。
+     「覚えたを隠す」で、3のカードを出さないようにできる。
+   ・保存はこの端末の中（magilex_cards_v1）。
+   ══════════════════════════════════════════════════════════════ */
+const CARDS_KEY = "magilex_cards_v1";
+const CARD_BOX_MAX = 3;
+let cards = { list: [], hideKnown: false };
+let cardIdx = 0, cardBack = false, cardEditing = null;
+function cardsLoad(){
+  try{
+    const r = JSON.parse(localStorage.getItem(CARDS_KEY) || "null");
+    if(r && typeof r === "object"){
+      cards.list = Array.isArray(r.list) ? r.list : [];
+      cards.hideKnown = !!r.hideKnown;
+    }
+  }catch(e){}
+  cards.list.forEach(c=>{ c.box = Math.max(0, Math.min(CARD_BOX_MAX, c.box|0)); });
+}
+function cardsSave(){ try{ localStorage.setItem(CARDS_KEY, JSON.stringify(cards)); }catch(e){} }
+/* いま出す並び（「覚えたを隠す」を反映） */
+function cardView(){
+  return cards.hideKnown ? cards.list.filter(c=>c.box < CARD_BOX_MAX) : cards.list.slice();
+}
+function cardAdd(q, a, img){
+  const c = { id: "c" + Date.now().toString(36) + Math.random().toString(36).slice(2,6),
+              q: String(q||"").trim(), a: String(a||"").trim(), img: img||"", box: 0, at: Date.now() };
+  if(!c.q && !c.a && !c.img) return null;
+  cards.list.push(c); cardsSave();
+  cardIdx = cardView().findIndex(x=>x.id===c.id);
+  if(cardIdx < 0) cardIdx = 0;
+  cardBack = false;
+  return c;
+}
+function cardRender(){
+  const box = document.getElementById("memoCards"); if(!box) return;
+  const hb = document.getElementById("mcHideBtn");
+  if(hb) hb.classList.toggle("on", cards.hideKnown);
+  /* 作る・直す画面 */
+  if(cardEditing){
+    box.innerHTML = `<div class="mc-form">
+      <label>おもて（問い）</label>
+      <textarea id="mcQ" placeholder="例）三角関数の合成の公式は？">${esc(cardEditing.q||"")}</textarea>
+      <label>うら（答え）</label>
+      <textarea id="mcA" placeholder="例）a sinθ + b cosθ = √(a²+b²) sin(θ+α)">${esc(cardEditing.a||"")}</textarea>
+      <div class="mc-nav">
+        <button class="memo-btn" onclick="lexCardCancel()">やめる</button>
+        <button class="memo-btn on" onclick="lexCardSaveEdit()">保存する</button>
+      </div>
+    </div>`;
+    setTimeout(()=>{ const e=document.getElementById("mcQ"); if(e) e.focus(); }, 40);
+    return;
+  }
+  const view = cardView();
+  if(!view.length){
+    box.innerHTML = `<div class="mc-empty">
+      <b>${cards.list.length ? "覚えたカードだけになりました" : "カードはまだありません"}</b>
+      <div>${cards.list.length
+        ? "「覚えたを隠す」をもう一度押すと、覚えたカードも出ます。"
+        : "上の「＋ 新しいカード」で作れます。<br>解いている問題からそのまま作ることも、<br>いま書いたメモをカードにすることもできます。"}</div>
+    </div>`;
+    return;
+  }
+  if(cardIdx >= view.length) cardIdx = 0;
+  if(cardIdx < 0) cardIdx = view.length - 1;
+  const c = view[cardIdx];
+  const known = c.box >= CARD_BOX_MAX;
+  box.innerHTML = `
+    <div class="mc-count">${cardIdx+1} / ${view.length} 枚${cards.hideKnown ? "（覚えたを隠しています）" : ""}</div>
+    <div class="mc-card${cardBack ? " back" : ""}" onclick="lexCardFlip()">
+      <span class="mc-box${known ? " done" : ""}">${known ? "覚えた" : "あと" + (CARD_BOX_MAX - c.box) + "回"}</span>
+      <span class="mc-side">${cardBack ? "うら（答え）" : "おもて（問い）"}</span>
+      <div class="mc-txt">${esc((cardBack ? c.a : c.q) || "（なにも書かれていません）")}</div>
+      ${cardBack && c.img ? `<img class="mc-img" src="${esc(c.img)}" alt="">` : ""}
+      <div class="mc-hint">タップで${cardBack ? "おもて" : "うら"}へ</div>
+    </div>
+    <div class="mc-nav">
+      <button class="memo-btn" onclick="lexCardMove(-1)">◀ まえ</button>
+      <button class="memo-btn" onclick="lexCardKnow(1)">覚えた</button>
+      <button class="memo-btn" onclick="lexCardKnow(-1)">まだ</button>
+      <button class="memo-btn" onclick="lexCardMove(1)">つぎ ▶</button>
+    </div>
+    <div class="mc-nav">
+      <button class="memo-btn" onclick="lexCardEdit()">なおす</button>
+      <button class="memo-btn danger" onclick="lexCardDel()">このカードを消す</button>
+    </div>`;
+}
+window.lexCardFlip = ()=>{ cardBack = !cardBack; cardRender(); };
+window.lexCardMove = (d)=>{ cardBack = false; cardIdx += d; cardRender(); };
+window.lexCardKnow = (d)=>{
+  const view = cardView(); const c = view[cardIdx]; if(!c) return;
+  c.box = Math.max(0, Math.min(CARD_BOX_MAX, (c.box|0) + d));
+  cardsSave();
+  cardBack = false;
+  /* 「覚えたを隠す」中に覚えたら、その1枚は列から消えるので番号は進めない */
+  if(!(cards.hideKnown && c.box >= CARD_BOX_MAX)) cardIdx++;
+  cardRender();
+};
+window.lexCardToggleHide = ()=>{
+  cards.hideKnown = !cards.hideKnown; cardsSave(); cardIdx = 0; cardBack = false; cardRender();
+  toast(cards.hideKnown ? "覚えたカードを隠しました" : "覚えたカードも出します");
+};
+window.lexCardShuffle = ()=>{
+  for(let i=cards.list.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); const t=cards.list[i]; cards.list[i]=cards.list[j]; cards.list[j]=t; }
+  cardsSave(); cardIdx = 0; cardBack = false; cardRender(); toast("シャッフルしました");
+};
+window.lexCardNew = ()=>{ lexMemoMode("card"); cardEditing = { id:null, q:"", a:"" }; cardRender(); };
+window.lexCardEdit = ()=>{
+  const c = cardView()[cardIdx]; if(!c) return;
+  cardEditing = { id: c.id, q: c.q, a: c.a }; cardRender();
+};
+window.lexCardCancel = ()=>{ cardEditing = null; cardRender(); };
+window.lexCardSaveEdit = ()=>{
+  const q = (document.getElementById("mcQ")||{}).value || "";
+  const a = (document.getElementById("mcA")||{}).value || "";
+  if(!q.trim() && !a.trim()){ toast("おもてかうらのどちらかは書いてください"); return; }
+  if(cardEditing && cardEditing.id){
+    const c = cards.list.find(x=>x.id===cardEditing.id);
+    if(c){ c.q = q.trim(); c.a = a.trim(); }
+    cardsSave();
+  } else {
+    cardAdd(q, a);
+  }
+  cardEditing = null; cardBack = false; cardRender(); toast("カードを保存しました");
+};
+window.lexCardDel = ()=>{
+  const c = cardView()[cardIdx]; if(!c) return;
+  const i = cards.list.findIndex(x=>x.id===c.id);
+  if(i>=0) cards.list.splice(i,1);
+  cardsSave(); cardBack = false; cardRender(); toast("カードを消しました");
+};
+/* 解いている問題を、そのままカードにする */
+window.lexCardFromQuiz = ()=>{
+  const it = (typeof quiz !== "undefined" && quiz && quiz.items) ? quiz.items[quiz.idx] : null;
+  if(!it){ toast("いまは問題を開いていません"); return; }
+  /* 項目名は renderQuiz と同じもの: stem＝問題文／full・answer＝正解／extra＝解説 */
+  const q = it.stem || it.word || "";
+  const a = [it.full || it.answer || "", it.extra || ""].filter(Boolean).join("\n\n");
+  if(!cardAdd(q, a)){ toast("カードにできる中身がありませんでした"); return; }
+  lexMemoMode("card"); toast("いまの問題をカードにしました");
+};
+/* いま書いてあるメモを、そのままカードにする（1行目＝おもて） */
+window.lexCardFromMemo = ()=>{
+  const ta = document.getElementById("memoText");
+  const tx = ((ta && ta.value) || memo.text || "").replace(/\r/g, "");
+  const lines = tx.split("\n");
+  const q = (lines.shift() || "").trim();
+  const a = lines.join("\n").trim();
+  /* 手書きが残っていれば、その絵をうらに貼る（途中式をそのまま覚え直せる） */
+  let img = "";
+  try{
+    const cv = document.getElementById("memoCanvas");
+    if(cv && memo.strokes && memo.strokes.length) img = cv.toDataURL("image/jpeg", 0.8);
+  }catch(e){}
+  if(!q && !a && !img){ toast("メモに何も書かれていません"); return; }
+  if(!cardAdd(q || "（メモ）", a, img)){ toast("カードにできませんでした"); return; }
+  lexMemoMode("card"); toast("メモをカードにしました");
 };
 window.lexMemoColor = (c)=>{
   memo.color = c; memo.erasing = false;

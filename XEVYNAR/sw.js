@@ -6,17 +6,22 @@
    ・オフライン中の記録は localStorage に残り、オンライン復帰時に
      xeva-cloud.js がクラウドへ反映する。
    ============================================================ */
-const VERSION = "xevynar-sw-v12";
+const VERSION = "xevynar-sw-v20";
 const CORE = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
-  "./xevynar.css?v=6",
-  "./xevynar-kb.js?v=6",
-  "./xevynar-lex.js?v=6",
-  "./xevynar-brain.js?v=6",
-  "./xevynar-talk.js?v=6",
-  "./xevynar-app.js?v=6",
+  "./xevynar.css?v=11",
+  "./xevynar-tf.js?v=2",
+  "./xevynar-kb.js?v=10",
+  "./xevynar-lex.js?v=9",
+  "./xevynar-steps.js?v=6",
+  "./xevynar-figs.js?v=9",
+  "./xevynar-terms.js?v=3",
+  "./xevynar-deep.js?v=6",
+  "./xevynar-brain.js?v=10",
+  "./xevynar-talk.js?v=11",
+  "./xevynar-app.js?v=13",
   "./XEVYNAR.png",
   "./xevynar-mark.png",
   "./xevynar-192.png",
@@ -28,11 +33,24 @@ const CORE = [
   "../XEVA.png",
   "../gem.png",
   /* ★ MagiLex の問題データ。オフラインでも「苦手問題の出題」「問題の解説」を
-     動かすために先読みしておく（XEVYNAR の目玉機能なので通信必須にはしない）。 */
+     動かすために先読みしておく（XEVYNAR の目玉機能なので通信必須にはしない）。
+     ★★ 2026-08-18c 「1問ごとのくわしい解説」は 数学・物理・化学γ を読むので、
+       その4本（suugaku / math3 / chemg / butsuri）も足した。
+       ここに無いと、オフラインで解説が<b>1問も出ない</b>。
+     ★ どれも <b>?v= を付けない</b>こと。xevynar-deep.js / xevynar-lex.js が
+       ?v= 無しで読むので、付けて登録しても当たらない。 */
   "../MagiLex/magilex-data.js",
   "../MagiLex/magilex-eigo.js",
   "../MagiLex/magilex-rika.js",
   "../MagiLex/magilex-chemb.js",
+  "../MagiLex/magilex-suugaku.js",
+  "../MagiLex/magilex-intro.js",
+  "../MagiLex/magilex-mid.js",
+  "../MagiLex/magilex-math3.js",
+  "../MagiLex/magilex-chemg.js",
+  "../MagiLex/magilex-chemd.js",
+  "../MagiLex/magilex-physb.js",
+  "../MagiLex/magilex-butsuri.js",
 ];
 
 self.addEventListener("install", (e) => {

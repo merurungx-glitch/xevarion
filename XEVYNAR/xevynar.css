@@ -45,7 +45,10 @@ a{color:inherit;text-decoration:none}
   border-bottom:1px solid var(--xv-line)}
 .xv-head .back{font-size:21px;color:var(--xv-purple);padding:3px 8px;border-radius:10px;flex-shrink:0}
 .xv-head .logo{width:30px;height:30px;border-radius:9px;flex-shrink:0;object-fit:cover;box-shadow:var(--xv-shadow-s)}
+/* ★ 2026-08-18 375px 幅でロゴが「XEVYNA / R」と折り返していた。
+   右に財布が2つ並ぶので、見出しは折り返さずに縮むようにする。 */
 .xv-head h1{font-family:'Orbitron',sans-serif;font-size:14px;letter-spacing:.09em;flex:1;min-width:0;font-weight:800;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
   background:linear-gradient(100deg,var(--xv-navy),var(--xv-purple));
   -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
 .xv-wallet{display:flex;align-items:center;gap:5px;background:#fff;border:1.5px solid var(--xv-line);
@@ -244,3 +247,116 @@ body.xv-chat{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 190px)}
   font-size:12px;font-weight:800;background:#fff;border:1.5px solid var(--xv-line);
   box-shadow:0 12px 32px rgba(60,70,130,.26);opacity:0;pointer-events:none;transition:all .28s;text-align:center;line-height:1.7}
 #xvToast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-08-18 解法（難問をステップで学ぶ）
+   1手＝1カード。詰まった手だけ「わからない」を開いて、
+   ヒント・公式・その手だけの例題に戻れる形にしている。
+   ══════════════════════════════════════════════════════════════ */
+.xv-row{display:flex;align-items:center;gap:10px;width:100%;text-align:left;
+  padding:11px 13px;background:#fff;border:1.5px solid var(--xv-line);
+  border-radius:15px;box-shadow:var(--xv-shadow-s);cursor:pointer}
+.xv-row:active{transform:scale(.99)}
+.xv-row-t{flex:1;min-width:0;font-size:12.5px;font-weight:800;line-height:1.5}
+.xv-row-s{flex:none;font-size:10.5px;font-weight:800;color:var(--xv-sub);white-space:nowrap}
+
+/* 手順の番号バー（いまどこか・どこまで見たか） */
+.xv-steps-bar{display:flex;gap:6px;flex-wrap:wrap;margin:10px 2px 2px}
+.xv-sdot{width:30px;height:30px;border-radius:10px;flex:none;
+  font-family:'Orbitron',sans-serif;font-size:12px;font-weight:900;
+  color:var(--xv-sub);background:#fff;border:1.5px solid var(--xv-line);cursor:pointer}
+.xv-sdot.done{color:#0e8a5c;border-color:rgba(14,138,92,.45);background:rgba(14,138,92,.08)}
+.xv-sdot.on{color:#fff;border-color:transparent;
+  background:linear-gradient(120deg,var(--xv-navy2),var(--xv-purple))}
+
+.xv-step .xv-step-n{font-family:'Orbitron',sans-serif;font-size:10px;font-weight:900;
+  letter-spacing:.14em;color:var(--xv-purple);margin-bottom:4px}
+.xv-stepnav{margin-top:12px}
+.xv-stepnav button{flex:1}
+.xv-stepnav button.on{color:#fff;background:linear-gradient(120deg,var(--xv-navy2),var(--xv-purple))}
+.xv-acts button.on{color:#fff;background:linear-gradient(120deg,var(--xv-navy2),var(--xv-purple))}
+.xv-acts button:disabled{opacity:.4}
+
+/* 「わからない」を開いたときの中身 */
+.xv-hintbox{margin-top:10px;border-top:1.5px dashed var(--xv-line);padding-top:10px;
+  display:flex;flex-direction:column;gap:10px}
+.xv-hb>b{display:block;font-size:10.5px;font-weight:900;letter-spacing:.06em;
+  color:var(--xv-purple);margin-bottom:4px}
+.xv-hb p{font-size:12px;font-weight:600;line-height:1.85;margin:0 0 4px}
+.xv-form{background:rgba(139,122,232,.07);border:1px solid rgba(139,122,232,.22);
+  border-radius:12px;padding:8px 10px}
+.xv-form i{display:block;font-style:normal;font-weight:900;font-size:11px;
+  color:var(--xv-navy2);margin-bottom:3px}
+.xv-note{display:block;font-size:10.5px;font-weight:700;color:var(--xv-sub);
+  line-height:1.75;margin-top:4px}
+.xv-ans{font-weight:900;color:#0e8a5c}
+.xv-sol{margin:6px 0 0;padding-left:1.25em}
+.xv-sol li{font-size:12px;font-weight:600;line-height:1.9;margin-bottom:4px}
+
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-08-18b 1問ごとの「くわしい解説」
+   ══════════════════════════════════════════════════════════════ */
+/* 図が使う色。SVG 側は var(--fg) などで受けるので、ここで1回だけ決める。 */
+.xv-figbox{--fg:var(--xv-ink);--ac:var(--xv-purple);--ac2:#2e8bff;--mut:var(--xv-faint);--bg2:var(--xv-card)}
+
+/* 入口の大きなボタン */
+.xv-big{display:block;width:100%;text-align:left;margin-bottom:10px;padding:15px 16px;
+  border:1.5px solid var(--xv-line);border-radius:18px;background:var(--xv-card);
+  box-shadow:var(--xv-shadow-s);cursor:pointer}
+.xv-big b{display:block;font-size:14px;font-weight:900;color:var(--xv-navy);margin-bottom:5px}
+.xv-big span{display:block;font-size:11.5px;font-weight:600;color:var(--xv-sub);line-height:1.8}
+.xv-big.alt{background:linear-gradient(150deg,rgba(139,122,232,.10),rgba(46,139,255,.06))}
+.xv-big:active{transform:scale(.995)}
+
+/* 問題の見出し */
+.xv-qhead{border-color:rgba(139,122,232,.4);
+  background:linear-gradient(160deg,rgba(139,122,232,.09),rgba(46,139,255,.05))}
+.xv-qtag{font-size:10px;font-weight:900;letter-spacing:.05em;color:var(--xv-purple);margin-bottom:6px}
+.xv-qstem{font-size:14px;font-weight:900;line-height:1.75;color:var(--xv-ink)}
+.xv-qread{font-size:11px;font-weight:700;color:var(--xv-sub);margin-top:5px;line-height:1.7}
+.xv-qans{margin-top:9px;font-size:13px;font-weight:800;color:#0e8a5c}
+.xv-qans b{font-family:'Orbitron',sans-serif;font-size:14px}
+.xv-qextra{margin-top:7px;font-size:11px;font-weight:600;color:var(--xv-sub);line-height:1.85;
+  padding-top:7px;border-top:1px dashed var(--xv-line)}
+
+/* 一覧の番号 */
+.xv-qn{display:inline-flex;align-items:center;justify-content:center;width:22px;height:22px;
+  border-radius:7px;background:rgba(139,122,232,.13);color:var(--xv-purple);
+  font-family:'Orbitron',sans-serif;font-size:10.5px;font-weight:900;font-style:normal;
+  margin-right:8px;flex:none;vertical-align:-5px}
+
+/* 手順（1行ずつ） */
+.xv-wstep{border-left:3px solid rgba(139,122,232,.4);padding:2px 0 2px 11px;margin:11px 0 0}
+.xv-wn{font-size:10px;font-weight:900;letter-spacing:.08em;color:var(--xv-purple);margin-bottom:3px}
+.xv-wd{font-size:12.5px;font-weight:600;line-height:1.95;color:var(--xv-ink)}
+.xv-wd b{font-weight:900;color:var(--xv-navy)}
+
+/* 用語のはしご */
+.xv-term{border:1.5px solid var(--xv-line);border-radius:14px;padding:11px 12px;background:var(--xv-bg2)}
+.xv-term>b{display:block;font-size:12.5px;font-weight:900;color:var(--xv-navy);margin-bottom:4px}
+.xv-def{font-size:12px;font-weight:700;line-height:1.85;margin:0 0 4px}
+.xv-drill{margin-top:9px;padding:9px 10px;border-radius:11px;background:var(--xv-card);
+  border:1px solid var(--xv-line)}
+.xv-drill>i{display:block;font-style:normal;font-size:10px;font-weight:900;letter-spacing:.06em;
+  color:#0e8a5c;margin-bottom:4px}
+.xv-drill p{font-size:12px;font-weight:600;line-height:1.85;margin:0 0 3px}
+
+/* 図 */
+.xv-figbox{margin-bottom:12px}
+.xv-figt{font-size:11px;font-weight:900;color:var(--xv-purple);margin-bottom:4px}
+svg.xv-fig{width:100%;height:auto;display:block;border:1.5px solid var(--xv-line);
+  border-radius:14px;background:var(--xv-card);padding:4px 0}
+
+/* 誤答の理由 */
+.xv-wrong{border-left:3px solid rgba(224,87,76,.5);padding:1px 0 1px 11px;margin:10px 0 0}
+.xv-wrong>b{display:block;font-size:12.5px;font-weight:900;color:#c0483f}
+.xv-wrong p{font-size:11.5px;font-weight:600;color:var(--xv-sub);line-height:1.85;margin:3px 0 0}
+.xv-wrong p b{color:var(--xv-ink)}
+
+/* ★ 2026-08-19 まちがえた問題をたどる帯 */
+.xv-missbar{display:flex;align-items:center;gap:8px;margin-bottom:8px;padding:7px 10px;
+  border-radius:10px;background:rgba(224,87,76,.10);border:1.5px solid rgba(224,87,76,.32);
+  font-size:11px;font-weight:900;color:#c0483f}
+.xv-missbar button{margin-left:auto;border:none;border-radius:9px;padding:6px 11px;
+  background:linear-gradient(120deg,var(--xv-navy2),var(--xv-purple));color:#fff;
+  font-size:11px;font-weight:900;font-family:inherit}

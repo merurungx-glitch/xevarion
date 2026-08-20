@@ -19,11 +19,22 @@
 (function () {
   "use strict";
 
+  /* ★★ 2026-08-18c 数学・物理・化学γ の4本を足した。
+     ここに無かったので、XEVYNAR の「苦手問題を出して」は
+     英語・理科・化学βからしか出題できていなかった（いちばん出してほしい
+     最難関の3科目が丸ごと入っていなかった）。
+     ★ 読む順は MagiLex.html と同じにする（あとの3本は data の配列に足しに行く）。 */
   const SRC = [
     "../MagiLex/magilex-data.js",
     "../MagiLex/magilex-eigo.js",
     "../MagiLex/magilex-rika.js",
     "../MagiLex/magilex-chemb.js",
+    "../MagiLex/magilex-suugaku.js",
+    "../MagiLex/magilex-intro.js",
+    "../MagiLex/magilex-mid.js",
+    "../MagiLex/magilex-math3.js",
+    "../MagiLex/magilex-chemg.js",
+    "../MagiLex/magilex-butsuri.js",
   ];
 
   let loading = null, loaded = false;

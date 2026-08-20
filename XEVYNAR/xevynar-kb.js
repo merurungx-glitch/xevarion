@@ -307,6 +307,24 @@
     ["gd5","幽冥の庭園・第5ノ園","★幽5",6,"mine,grav","fire",0,"doom,grav,mine,ward,weak","garden",5],
     ["gd6","幽冥の庭園・第6ノ園","★幽6",6,"warp,lockzone","dark",0,"doom,lockzone,wallchange,warp,weak","garden",6],
     ["gd7","幽冥の庭園・第7ノ園","★幽極",6,"dw,grav","light",0,"countboost,doom,dw,grav,innerweak,photon,vanish,wallchange,ward,weak","garden",7],
+    /* ── ★★ 2026-08-19 蓬莱の九重（爆絶）。第一重〜第九重＋蓬莱天宮の全10クエスト・各6WAVE ──
+       ・属性は 火→水→木→光→闇 のくり返し、最後の蓬莱天宮は闇。
+       ・このクエストでは<b>有利属性のダメージが1.5倍</b>（ふつうは1.25倍）。
+       ・ボスは新種族<b>蓬莱族</b>。瑶華＆玉蘭は攻撃カウントを2本もち、
+         瑶妃は味方を盤面の下まで吹き飛ばす。
+       ・階層によって「雑魚を全滅させるとボスが降臨」「画面の端に長く構えてから即死」がある。
+       ・アンチの組み合わせは10クエストすべて別で、既存のどのクエストとも重ならない。
+       ★ MagiBurst を一度でも開けば、本体の publishKB がここより新しい実データで上書きする。 */
+    ["hr1","蓬莱の九重・第一重","★蓬一",6,"dw","fire",0,"doom,dw,weak","hourai",1],
+    ["hr2","蓬莱の九重・第二重","★蓬二",6,"grav","water",0,"doom,grav,laser,weak","hourai",2],
+    ["hr3","蓬莱の九重・第三重","★蓬三",6,"warp,mine","wood",0,"doom,mine,warp,weak","hourai",3],
+    ["hr4","蓬莱の九重・第四重","★蓬四",6,"dw,grav","light",0,"crush,doom,dw,grav,weak","hourai",4],
+    ["hr5","蓬莱の九重・第五重","★蓬五",6,"block,lockzone","dark",0,"block,doom,lockzone,weak","hourai",5],
+    ["hr6","蓬莱の九重・第六重","★蓬六",6,"warp,grav","fire",0,"doom,grav,laser,warp,weak","hourai",6],
+    ["hr7","蓬莱の九重・第七重","★蓬七",6,"dw,mine,lockzone","water",0,"crush,doom,dw,lockzone,mine,weak","hourai",7],
+    ["hr8","蓬莱の九重・第八重","★蓬八",6,"dw,grav,block","wood",0,"block,crush,doom,dw,grav,innerweak,weak","hourai",8],
+    ["hr9","蓬莱の九重・第九重","★蓬九",6,"warp,lockzone,grav","light",0,"crush,doom,grav,lockzone,warp,weak","hourai",9],
+    ["hr10","蓬莱天宮","★蓬天",6,"dw,grav,mine","dark",0,"crush,doom,dw,grav,innerweak,laser,mine,weak","hourai",10],
   ];
 
   /* EX降臨（そのキャラを入手できる唯一の場所）
@@ -325,6 +343,13 @@
     raid: ["EX降臨クエスト", "対応する部屋をクリアしたときに20%で出現。クリアでドロップ（ガチャからは出ない）。"],
     reward: ["MagiLex の報酬", "MagiLex で30コンテンツ完全習得すると解放。35/40/45/50でさらに凸が進む。"],
     garden: ["幽冥の庭園の報酬", "超絶高難易度クエストの踏破報酬。"],
+    /* ★ 2026-08-19 蓬莱の九重（爆絶）の踏破報酬 */
+    hourai: ["蓬莱の九重の踏破報酬",
+      "爆絶高難易度クエスト「蓬莱の九重」の通算WAVE報酬。"
+      + "40WAVE で📘クロスの書、<b>50WAVE で降臨キャラ「瑶華＆玉蘭」</b>、"
+      + "60WAVE で🪭九天の玉簡（レベル上限を60→<b>70</b>に解放）。"
+      + "さらに<b>蓬莱天宮をクリアすると「瑶妃」</b>が仲間になる。"
+      + "★ 蓬莱の九重は<b>毎月リセット</b>されるので、クリア状況も初クリアのジェムも月ごとに戻る。"],
     cdk: ["シリアルコード", "配布されたCDKを XEVARION の設定から入力して入手。"],
   };
 
@@ -356,7 +381,7 @@
       det: "コンテンツごとに「習得中／完全習得」を管理し、<b>1問を2回連続で正解すると習得</b>。完全習得すると XEVA がもらえる。50問なら×2、100問なら×3のボリュームボーナスつき。オフラインでも学習できる。30コンテンツ完全習得で報酬キャラ「ミズキ」が解放。" },
     { id: "magiburst", nm: "MagiBurst", cat: "ゲーム", href: "../MagiBurst/index.html",
       sum: "引っぱって、はなして、ぶっとばす引っぱりハンティング。最大4人マルチ。",
-      det: "キャラを引っぱって離し、跳ね返りながら敵を殴る。<b>フルバースト</b>（必殺技）・<b>リンクスキル</b>（味方に触れると出る）・<b>ルーン</b>（装備）・<b>ジェム</b>（ガチャ通貨）で構成。黄昏の王城／禁忌の迷宮／幽冥の庭園／超特急MAXSPEED の4系統。オフラインでもソロが遊べる。" },
+      det: "キャラを引っぱって離し、跳ね返りながら敵を殴る。<b>フルバースト</b>（必殺技）・<b>リンクスキル</b>（味方に触れると出る）・<b>ルーン</b>（装備）・<b>ジェム</b>（ガチャ通貨）で構成。黄昏の王城／禁忌の迷宮／幽冥の庭園／<b>蓬莱の九重</b>／超特急MAXSPEED の5系統。オフラインでもソロが遊べる。" },
     { id: "magijackpot", nm: "MagiJackpot", cat: "ゲーム", href: "../MagiJackpot/index.html",
       sum: "XEVA とジェムで遊ぶソーシャルカジノ＆パーティー。1人プレイ3種と、1台を2〜6人で囲むパーティー2種。",
       det: "1人プレイは<b>スロット「Magi Fortune」</b>（5リール20ライン・BONUS→フリースピン→SUPER BONUS）、"
@@ -510,7 +535,20 @@
 
   const live = liveKB();
   const CHARS = rowsToChars(live && live.chars && live.chars.length ? live.chars : CHAR_ROWS);
-  const STAGES = rowsToStages(live && live.stages && live.stages.length ? live.stages : STAGE_ROWS);
+  /* ★★ 2026-08-19 生データ（MagiBurst が書き出したもの）を使いつつ、
+     <b>そこに無い系統は静かな土台から足す</b>。
+     生データは MagiBurst を開いたときの版で固まっているので、
+     新しい系統（蓬莱の九重）を足した直後は、まだ入っていないことがある。
+     まるごと差しかえてしまうと「MagiBurst を一度開き直すまで答えられない」ことになる。 */
+  const STAGES = (() => {
+    const base = rowsToStages(STAGE_ROWS);
+    if (!(live && live.stages && live.stages.length)) return base;
+    const fromLive = rowsToStages(live.stages);
+    const have = {};
+    fromLive.forEach((s) => { have[s.id] = 1; });
+    /* 生データに無い id（＝新しく足した系統）だけ、土台から補う */
+    return fromLive.concat(base.filter((s) => !have[s.id]));
+  })();
   const RAIDS = rowsToRaids(live && live.raids && live.raids.length ? live.raids : RAID_ROWS);
   const POOLS = (live && live.pools) || {};
   if (live && live.abil) Object.keys(live.abil).forEach((k) => { ABIL[k] = live.abil[k]; });
@@ -587,7 +625,9 @@
      「3時間20分はかって」を「第3の間」と取り違えると、タイマーの依頼が編成の答えになる。
      クエストを指していると分かる語（の間／ノ園／王城／迷宮／庭園／降臨／クエスト）が
      文中にあるときだけ番号を拾う。 */
-  const STAGE_MARK = /のま|の間|のその|ノ園|おうじょう|王城|めいきゅう|迷宮|ていえん|庭園|こうりん|降臨|くえすと|すてーじ|だい\d|第\d/;
+  /* ★ 2026-08-19 蓬莱の九重は「第一重」のように<b>漢数字</b>で書くので、
+     「第\d」だけでは拾えない。系統名と重・天宮も目印に入れる。 */
+  const STAGE_MARK = /のま|の間|のその|ノ園|おうじょう|王城|めいきゅう|迷宮|ていえん|庭園|こうりん|降臨|くえすと|すてーじ|だい\d|第\d|ほうらい|蓬莱|てんきゅう|天宮|重$|の重|第[一二三四五六七八九]/;
   function findStage(q) {
     const s = String(q || "").trim();
     if (!s) return null;
@@ -598,11 +638,31 @@
     if (!STAGE_MARK.test(k) && !STAGE_MARK.test(s)) return null;
     let pool = STAGES;
     if (/めいきゅう|迷宮|らぼ|lab/.test(k)) pool = STAGES.filter((x) => x.series === "lab" || /迷宮/.test(x.nm));
-    else if (/ていえん|庭園|がーでん/.test(k)) pool = STAGES.filter((x) => x.series === "garden" || /庭園/.test(x.nm));
+    /* ★ 2026-08-19 「第5ノ園」のように系統名を書かない聞きかたもある。
+       「ノ園」「の園」だけでも庭園だと分かるようにする
+       （これが無いと、番号で探すときに先に見つかる「第5の間」（王城）を返してしまう）。 */
+    else if (/ていえん|庭園|がーでん/.test(k) || /ノ園|の園|ノその/.test(s)) pool = STAGES.filter((x) => x.series === "garden" || /庭園/.test(x.nm));
     else if (/おうじょう|王城|しろ|城/.test(k)) pool = STAGES.filter((x) => x.series === "castle" || /王城/.test(x.nm));
+    /* ★ 2026-08-19 蓬莱の九重。「蓬莱天宮」は最後の1つなので、名前だけで決まる。 */
+    else if (/ほうらい|蓬莱|てんきゅう|天宮/.test(k) || /蓬莱|天宮/.test(s) || /第[一二三四五六七八九]重|\d+重/.test(s)) {
+      pool = STAGES.filter((x) => x.series === "hourai" || /蓬莱/.test(x.nm));
+      if (/てんきゅう|天宮/.test(k) || /天宮/.test(s)) {
+        const t = pool.find((x) => /天宮/.test(x.nm));
+        if (t) return t;
+      }
+    }
+    /* 蓬莱は「第一重」のように漢数字で書くので、数字に直してから探す */
+    const KANNUM = { 一:1, 二:2, 三:3, 四:4, 五:5, 六:6, 七:7, 八:8, 九:9, 十:10 };
+    const kj = (s.match(/第([一二三四五六七八九十])/) || [])[1];
+    if (kj && KANNUM[kj]) {
+      const hitK = pool.find((x) => x.room === KANNUM[kj]) ||
+                   STAGES.filter((x) => x.series === "hourai").find((x) => x.room === KANNUM[kj]);
+      if (hitK) return hitK;
+    }
     const num = (Z2H(s).match(/(\d+)/) || [])[1];
     if (num) {
-      hit = pool.find((x) => x.nm.indexOf("第" + num + "の間") >= 0 || x.nm.indexOf("第" + num + "ノ園") >= 0);
+      hit = pool.find((x) => x.nm.indexOf("第" + num + "の間") >= 0 || x.nm.indexOf("第" + num + "ノ園") >= 0
+                          || (x.series === "hourai" && x.room === +num));
       if (hit) return hit;
       hit = STAGES.find((x) => x.nm.indexOf("第" + num + "の間") >= 0 || x.nm.indexOf("第" + num + "ノ園") >= 0);
       if (hit) return hit;

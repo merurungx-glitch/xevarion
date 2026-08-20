@@ -29,9 +29,9 @@ if ("serviceWorker" in navigator) {
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Noto+Sans+JP:wght@400;500;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="magilex.css?v=25">
+<link rel="stylesheet" href="magilex.css?v=29">
 <!-- 起動スプラッシュは ../xeva-splash.js（全アプリ共通）に統一 -->
-<script type="module" src="magilex-cloud.js?v=4"></script>
+<script type="module" src="magilex-cloud.js?v=5"></script>
 </head>
 <body>
 
@@ -139,7 +139,19 @@ if ("serviceWorker" in navigator) {
 <script src="magilex-chemg.js?v=3"></script>
 <!-- ★ 2026-08-16 数学 全範囲の最難関演習（14セット / 168問） -->
 <script src="magilex-suugaku.js?v=3"></script>
-<script type="module" src="magilex.js?v=42"></script>
+<!-- ★★ 2026-08-20 化学δ（脂質・芳香族とフェノール類・元素別各論 14〜18族／27セット 324問） -->
+<script src="magilex-chemd.js?v=1"></script>
+<!-- ★★ 2026-08-20 物理β（電磁気学。抵抗・直流回路・磁場・電磁誘導・導体棒・コイル／24セット 288問）
+     これまでの物理は「物理α」になった（id は phys_ のまま）。 -->
+<script src="magilex-physb.js?v=1"></script>
+<!-- ★★ 2026-08-19 中堅レベル（最難関のひとつ手前）。数学・物理・化学γ の15セット / 150問 -->
+<!-- ★★ 2026-08-19 入門レベル（中堅のひとつ手前） -->
+<script src="magilex-intro.js?v=1"></script>
+<script src="magilex-mid.js?v=1"></script>
+<!-- ★★ 2026-08-19 図・グラフのエンジン。XEVYNAR と<b>同じ1本</b>を共有する。
+     （両方に同じ図を書くと、片方だけ直して食いちがうので必ず共有にする） -->
+<script src="../XEVYNAR/xevynar-figs.js?v=9"></script>
+<script type="module" src="magilex.js?v=48"></script>
 <!-- XEVARION へもどる導線（同期を送り切ってから移動する） -->
 <script src="../xeva-back.js?v=1" data-mode="hook"></script>
 </body>

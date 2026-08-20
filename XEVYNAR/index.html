@@ -10,7 +10,7 @@
 <link rel="apple-touch-icon" href="xevynar-192.png">
 <link rel="manifest" href="manifest.webmanifest">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="xevynar.css?v=6">
+<link rel="stylesheet" href="xevynar.css?v=11">
 <script src="../xeva-splash.js?v=3" data-app="XEVYNAR" data-logo="xevynar-mark.png"></script>
 <script src="../xeva.js?v=33"></script>
 <script type="module" src="../xevarion-fb.js?v=22"></script>
@@ -113,6 +113,14 @@
 </div></section>
 
 <!-- ══════════ 記録・分析 ══════════ -->
+<!-- ══════════ 解法（難問をステップで学ぶ）══════════
+     ★ 2026-08-18 新規。MagiLex の難問から「XEVYNARで学ぶ」で飛んでくる入口でもある
+     （#solve=<定石id> ／ #learn=<問題文や分野> をURLで受け取る）。 -->
+<section class="xv-page" id="xvSolvePage"><div class="wrap">
+  <div id="xvSolveTop"></div>
+  <div id="xvSolveBody"></div>
+</div></section>
+
 <section class="xv-page" id="xvReportPage"><div class="wrap">
   <div class="xv-lab">この1週間</div>
   <div class="xv-stat" id="xvStats"></div>
@@ -165,7 +173,6 @@
       ・MagiLink の会話に合わせた返信案<br>
       学習の記録は<b>任意</b>です。あなたのデータは XEVARION アカウントに保存され、端末を変えても引き継がれます。
     </div>
-    <div class="xv-by"><i></i>提供：XEVYNAR</div>
   </div>
 </div></section>
 
@@ -187,6 +194,9 @@
   <button class="xv-tab" data-p="study" onclick="xvGo('study')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5A2 2 0 0 1 6 3.5h13v15H6a2 2 0 0 0-2 2z"/><path d="M4 18.5A2 2 0 0 0 6 20.5h13"/></svg>
     <span>学習</span></button>
+  <button class="xv-tab" data-p="solve" onclick="xvGo('solve')">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 3v4M15 3v4M4 8h16"/><path d="M5 8v11a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8"/><path d="M9 13h6M9 17h4"/></svg>
+    <span>解法</span></button>
   <button class="xv-tab" data-p="timer" onclick="xvGo('timer')">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l2.5 2M9 2h6"/></svg>
     <span>タイマー</span></button>
@@ -198,11 +208,20 @@
     <span>設定</span></button>
 </nav>
 
-<script src="xevynar-kb.js?v=6"></script>
-<script src="xevynar-lex.js?v=6"></script>
-<script src="xevynar-brain.js?v=6"></script>
-<script src="xevynar-talk.js?v=6"></script>
-<script src="xevynar-app.js?v=6"></script>
+<!-- ★★ 2026-08-20 Transformer エンジン（意図の見分けと、意味での検索）。
+     ほかの台帳より先に読む（kb・talk・app から XVTF を使うため）。 -->
+<script src="xevynar-tf.js?v=2"></script>
+<script src="xevynar-kb.js?v=10"></script>
+<script src="xevynar-lex.js?v=9"></script>
+<!-- ★ 2026-08-18 難問のステップ学習（定石・公式の台帳） -->
+<script src="xevynar-steps.js?v=6"></script>
+<!-- ★ 2026-08-18b 1問ごとのくわしい解説（図・用語・本体） -->
+<script src="xevynar-figs.js?v=9"></script>
+<script src="xevynar-terms.js?v=3"></script>
+<script src="xevynar-deep.js?v=6"></script>
+<script src="xevynar-brain.js?v=10"></script>
+<script src="xevynar-talk.js?v=11"></script>
+<script src="xevynar-app.js?v=13"></script>
 <script>
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => { navigator.serviceWorker.register("sw.js").catch(() => {}); });

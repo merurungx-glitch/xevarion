@@ -749,23 +749,37 @@ body.in-quiz .memo-open{bottom:calc(20px + env(safe-area-inset-bottom,0px))}
 .quiz-head{position:sticky;top:var(--tbh,64px);z-index:15;background:var(--bg);
   padding-top:10px;padding-bottom:8px;margin-bottom:2px}
 
-.memo-sheet{position:fixed;left:0;right:0;bottom:0;z-index:9000;height:62svh;
+.memo-sheet{position:fixed;left:0;right:0;bottom:0;z-index:9000;height:72svh;
   background:var(--panel);border-top:1.5px solid var(--line);
   border-radius:20px 20px 0 0;box-shadow:0 -14px 40px rgba(40,36,70,.22);
   display:flex;flex-direction:column;
   transform:translateY(100%);transition:transform .28s cubic-bezier(.2,.8,.3,1);
   padding-bottom:env(safe-area-inset-bottom,0px)}
 .memo-sheet.on{transform:translateY(0)}
-.memo-grip{width:42px;height:4px;border-radius:99px;background:var(--line);margin:8px auto 2px;flex:none}
-.memo-bar{display:flex;align-items:center;gap:10px;padding:6px 14px 8px;flex:none}
-.memo-tabs{display:flex;gap:8px}
-.memo-tab{border:1.5px solid var(--line);background:var(--panel2);color:var(--ink2);
-  border-radius:99px;padding:7px 14px;font-size:.8rem;font-weight:800}
+/* ★★ 2026-08-18 「広げる」――画面いっぱいで書くとき。
+   iPhone では上のボタンが場所を取って紙が小さくなるので、
+   ワンタップで全画面にできるようにした。 */
+.memo-sheet.full{height:100svh;height:100dvh;border-radius:0;
+  padding-top:env(safe-area-inset-top,0px)}
+.memo-grip{width:42px;height:4px;border-radius:99px;background:var(--line);margin:6px auto 0;flex:none}
+.memo-bar{display:flex;align-items:center;gap:8px;padding:5px 12px 6px;flex:none}
+.memo-tabs{display:flex;gap:6px;min-width:0;overflow-x:auto;scrollbar-width:none}
+.memo-tabs::-webkit-scrollbar{display:none}
+.memo-tab{border:1.5px solid var(--line);background:var(--panel2);color:var(--ink2);flex:none;
+  border-radius:99px;padding:6px 12px;font-size:.76rem;font-weight:800;white-space:nowrap}
 .memo-tab.on{border-color:var(--indigo);color:var(--indigo);background:rgba(107,91,210,.1)}
-.memo-x{margin-left:auto;border:1.5px solid var(--line);background:var(--panel2);color:var(--ink2);
-  width:34px;height:34px;border-radius:11px;font-size:.9rem;font-weight:800;flex:none}
-.memo-tools{display:flex;align-items:center;gap:8px;padding:0 14px 8px;flex-wrap:wrap;flex:none}
-.memo-col{width:28px;height:28px;border-radius:50%;border:2px solid var(--line);background:var(--mc);flex:none}
+.memo-x,.memo-full{border:1.5px solid var(--line);background:var(--panel2);color:var(--ink2);
+  width:32px;height:32px;border-radius:10px;font-size:.85rem;font-weight:800;flex:none}
+.memo-full{margin-left:auto}
+.memo-full.on{border-color:var(--indigo);color:var(--indigo);background:rgba(107,91,210,.1)}
+/* ★★ 2026-08-18 道具の列は<b>必ず1行</b>にし、はみ出したぶんは横にスクロールさせる。
+   これまでは flex-wrap:wrap だったので、iPhone の幅では道具が2～3段に折り返され、
+   そのぶんだけ紙（キャンバス）が下へ押しこまれて小さくなっていた。 */
+.memo-tools{display:flex;align-items:center;gap:7px;padding:0 12px 7px;flex:none;
+  flex-wrap:nowrap;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.memo-tools::-webkit-scrollbar{display:none}
+.memo-tools>*{flex:none}
+.memo-col{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);background:var(--mc);flex:none}
 .memo-col.on{box-shadow:0 0 0 3px rgba(107,91,210,.35);border-color:#fff}
 .memo-btn{border:1.5px solid var(--line);background:var(--panel2);color:var(--ink2);
   border-radius:10px;padding:6px 11px;font-size:.75rem;font-weight:800}
@@ -777,16 +791,58 @@ body.in-quiz .memo-open{bottom:calc(20px + env(safe-area-inset-bottom,0px))}
 #memoText{display:none;width:100%;height:100%;border:1px solid var(--line);border-radius:14px;
   background:#fffdf7;color:var(--ink);padding:12px;font-size:1rem;line-height:1.7;resize:none;
   font-family:inherit;-webkit-appearance:none}
-.memo-draw-only{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.memo-draw-only{display:flex;align-items:center;gap:7px;flex:none}
 /* ★ 2026-08-16c 拡大縮小・移動のひとかたまり */
-.memo-zoom{display:flex;align-items:center;gap:5px}
-.memo-zoom b{font-size:.7rem;font-weight:800;color:var(--ink2);min-width:38px;text-align:center}
+.memo-zoom{display:flex;align-items:center;gap:4px;flex:none}
+.memo-zoom b{font-size:.68rem;font-weight:800;color:var(--ink2);min-width:34px;text-align:center}
 /* 文字モードでは色と消しゴムを隠す（文字には効かないため）。
    「全部消す」は文字メモにも要るので残す。 */
 .memo-sheet.text-mode .memo-draw-only{display:none}
 .memo-sheet.text-mode #memoCanvas{display:none}
 .memo-sheet.text-mode #memoText{display:block}
-@media(min-width:760px){ .memo-sheet{height:66svh;max-width:900px;margin:0 auto;border-radius:20px 20px 0 0} }
+/* ★★ 2026-08-18 カードモード（フラッシュカード）。手書き・文字の道具は全部しまう。 */
+.memo-sheet.card-mode .memo-draw-only,
+.memo-sheet.card-mode .memo-clear{display:none}
+.memo-sheet.card-mode #memoCanvas,
+.memo-sheet.card-mode #memoText{display:none}
+.memo-sheet.card-mode .memo-cards{display:flex}
+.memo-sheet.card-mode .memo-card-only{display:inline-flex}
+.memo-card-only{display:none}
+.memo-cards{display:none;flex-direction:column;height:100%;min-height:0;gap:8px}
+.mc-count{font-size:.7rem;font-weight:800;color:var(--ink2);text-align:center;flex:none}
+.mc-card{flex:1;min-height:0;border:1.5px solid var(--line);border-radius:16px;background:#fffdf7;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
+  padding:16px;text-align:center;cursor:pointer;position:relative;overflow-y:auto}
+.mc-side{font-size:.62rem;font-weight:900;letter-spacing:.12em;color:var(--indigo);
+  border:1.5px solid var(--indigo);border-radius:99px;padding:2px 10px;flex:none}
+.mc-card.back .mc-side{color:#0e8a5c;border-color:#0e8a5c}
+.mc-txt{font-size:1.02rem;font-weight:800;line-height:1.75;color:var(--ink);white-space:pre-wrap;
+  word-break:break-word}
+.mc-hint{font-size:.68rem;font-weight:800;color:var(--ink2);flex:none}
+.mc-img{max-width:100%;max-height:46%;border-radius:10px;border:1px solid var(--line);object-fit:contain}
+.mc-nav{display:flex;align-items:center;gap:7px;flex:none}
+.mc-nav .memo-btn{flex:1}
+.mc-empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;
+  text-align:center;color:var(--ink2);font-size:.8rem;font-weight:700;line-height:1.8;padding:10px}
+.mc-box{position:absolute;top:10px;right:12px;font-size:.62rem;font-weight:900;
+  border-radius:99px;padding:2px 9px;background:rgba(107,91,210,.12);color:var(--indigo)}
+.mc-box.done{background:rgba(14,138,92,.14);color:#0e8a5c}
+/* カードを作る・直す小さなフォーム */
+.mc-form{display:flex;flex-direction:column;gap:7px;flex:1;min-height:0}
+.mc-form textarea{flex:1;min-height:0;border:1.5px solid var(--line);border-radius:12px;background:#fffdf7;
+  color:var(--ink);padding:10px;font-size:.92rem;line-height:1.7;resize:none;font-family:inherit;
+  -webkit-appearance:none}
+.mc-form label{font-size:.68rem;font-weight:900;color:var(--ink2)}
+@media(min-width:760px){ .memo-sheet{height:74svh;max-width:900px;margin:0 auto;border-radius:20px 20px 0 0} }
+/* せまい画面ではボタンをさらに小さく（紙をできるだけ広く取る） */
+@media(max-width:430px){
+  .memo-tab{padding:5px 10px;font-size:.72rem}
+  .memo-btn{padding:5px 9px;font-size:.7rem}
+  .memo-col{width:24px;height:24px}
+  .memo-bar{padding:4px 10px 5px}
+  .memo-tools{padding:0 10px 6px;gap:6px}
+  .memo-body{padding:0 8px 8px}
+}
 
 /* ══ ★ 2026-08-17c 自前アイコン（UI_ART）と、ミックスの固定開始バー ══ */
 /* 科目アイコン（.sbjic）と同じ見え方にそろえる。色は親から currentColor で受ける。 */
@@ -902,3 +958,87 @@ body.in-quiz .memo-open{bottom:calc(20px + env(safe-area-inset-bottom,0px))}
 .lex-ask .la-btn{flex:1;padding:11px 8px;border-radius:11px;border:1px solid var(--line);
   background:var(--bg);font-weight:800;font-size:.86rem;color:var(--ink);cursor:pointer}
 .lex-ask .la-btn.dgr{background:var(--ng);border-color:var(--ng);color:#fff}
+
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-08-18 XEVYNAR 連携ボタン
+   ・ホームのメニュー（.m-card.xv-card-lnk）
+   ・答え合わせのあとの「解きかたを学ぶ」（.xv-learn）
+     難問（★4以上）は .hard を付けて目立たせる。
+   ══════════════════════════════════════════════════════════════ */
+.m-card.xv-card-lnk{border-color:rgba(107,91,210,.4);
+  background:linear-gradient(150deg,rgba(107,91,210,.10),rgba(56,166,255,.06))}
+.m-card.xv-card-lnk .mi{color:var(--indigo)}
+.xv-learn{display:flex;align-items:center;justify-content:center;gap:7px;width:100%;
+  margin-top:12px;padding:12px 14px;border-radius:14px;
+  border:1.5px solid rgba(107,91,210,.42);background:rgba(107,91,210,.09);
+  color:var(--indigo);font-size:.84rem;font-weight:800;font-family:inherit;line-height:1.5}
+.xv-learn b{font-weight:900}
+.xv-learn:active{transform:scale(.99)}
+.xv-learn.hard{border-color:transparent;color:#fff;
+  background:linear-gradient(120deg,#6b5bd2,#b26bd2);
+  box-shadow:0 6px 18px rgba(107,91,210,.28)}
+.xv-learn .uiic{width:1.25em;height:1.25em}
+
+/* ★★ 2026-08-18b 「問題と答えの一覧」から、1問ずつのくわしい解説へ */
+.qa-deep{display:inline-flex;align-items:center;gap:6px;margin-top:9px;padding:7px 12px;
+  border-radius:11px;border:1.5px solid rgba(107,91,210,.4);background:rgba(107,91,210,.09);
+  color:var(--indigo);font-size:.74rem;font-weight:800;font-family:inherit}
+.qa-deep:active{transform:scale(.98)}
+.qa-deep .uiic{width:1.2em;height:1.2em}
+.qa-note{margin:0 0 10px;padding:11px 13px;border-radius:14px;
+  border:1.5px solid rgba(107,91,210,.28);background:rgba(107,91,210,.07);
+  font-size:.74rem;font-weight:700;color:var(--ink2);line-height:1.85}
+.qa-note b{color:var(--indigo)}
+.qa-note .uiic{width:1.2em;height:1.2em;vertical-align:-.28em;margin-right:.25em}
+
+/* ★★ 2026-08-19 結果画面：まちがえた問題からくわしい解説へ */
+.res-miss{margin:16px 0 4px;padding:13px;border-radius:16px;text-align:left;
+  border:1.5px solid rgba(107,91,210,.28);background:rgba(107,91,210,.06)}
+.rm-h{font-size:.84rem;font-weight:900;color:var(--indigo);display:flex;align-items:center;gap:6px}
+.rm-h .uiic{width:1.2em;height:1.2em}
+.rm-p{font-size:.7rem;font-weight:700;color:var(--ink2);line-height:1.8;margin:5px 0 9px}
+.rm-row{display:block;width:100%;text-align:left;margin-bottom:7px;padding:10px 12px;
+  border-radius:12px;border:1.5px solid var(--line);background:var(--panel);font-family:inherit}
+.rm-row:active{transform:scale(.995)}
+.rm-q{display:block;font-size:.78rem;font-weight:800;color:var(--ink);line-height:1.65}
+.rm-a{display:block;font-size:.7rem;font-weight:800;color:#0e8a5c;margin-top:3px}
+.rm-go{display:block;font-size:.68rem;font-weight:800;color:var(--indigo);margin-top:5px}
+.rm-all{display:block;width:100%;margin-top:4px;padding:11px;border-radius:12px;border:none;
+  background:linear-gradient(120deg,#6b5bd2,#b26bd2);color:#fff;font-size:.78rem;font-weight:900;
+  font-family:inherit}
+
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-08-19 問題ごとの図・グラフ
+   SVG は XEVYNAR と共通のエンジンが描くので、色は変数で渡す。
+   ══════════════════════════════════════════════════════════════ */
+.fig-one{--fg:var(--ink);--ac:var(--indigo);--ac2:#3aa6a0;--mut:var(--faint);--bg2:var(--panel)}
+.fig-btn{display:inline-flex;flex-direction:column;align-items:flex-start;gap:2px;
+  margin:10px 0 2px;padding:9px 13px;border-radius:12px;font-family:inherit;
+  border:1.5px solid rgba(58,166,160,.45);background:rgba(58,166,160,.10);
+  color:#2b7f7a;font-size:.78rem;font-weight:800;text-align:left}
+.fig-btn small{font-size:.64rem;font-weight:700;opacity:.8}
+.fig-btn .uiic{width:1.2em;height:1.2em;vertical-align:-.28em;margin-right:.3em}
+.fig-btn:active{transform:scale(.98)}
+.fig-btn.inq{width:100%;align-items:center;margin:4px 0 10px}
+.fig-btn.sm{padding:7px 11px;font-size:.72rem}
+.qa-acts{display:flex;flex-wrap:wrap;gap:8px;align-items:flex-start;margin-top:9px}
+.qa-acts .qa-deep,.qa-acts .fig-btn{margin-top:0}
+/* 下から出る図のシート */
+/* ★ 見出しと中身は<b>縦に積む</b>。
+   flex-direction を指定しないと横に並んで、中身がつぶれる。 */
+.fig-sheet{position:fixed;inset:0;z-index:9200;display:none;
+  flex-direction:column;justify-content:flex-end;align-items:center;
+  background:rgba(44,43,58,.34);backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+.fig-sheet.on{display:flex}
+.fig-sheet>.fig-bar,.fig-sheet>.fig-body{width:100%;max-width:640px;background:var(--panel);flex:none}
+.fig-bar{display:flex;align-items:center;gap:10px;padding:13px 15px 10px;flex:none;
+  border-radius:20px 20px 0 0;border-top:1.5px solid var(--line);font-size:.86rem;font-weight:900;color:var(--ink)}
+.fig-x{margin-left:auto;border:1.5px solid var(--line);background:var(--panel2);color:var(--ink2);
+  width:32px;height:32px;border-radius:10px;font-size:.85rem;font-weight:800;font-family:inherit}
+.fig-body{max-height:74svh;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 14px 16px;
+  padding-bottom:calc(env(safe-area-inset-bottom,0px) + 16px)}
+.fig-one{margin-bottom:14px}
+.fig-t{font-size:.76rem;font-weight:900;color:var(--indigo);margin-bottom:5px}
+.fig-one svg.xv-fig{width:100%;height:auto;display:block;border:1.5px solid var(--line);
+  border-radius:14px;background:#fffdf7;padding:4px 0}
+.fig-c{font-size:.72rem;font-weight:700;color:var(--ink2);line-height:1.8;margin-top:6px}

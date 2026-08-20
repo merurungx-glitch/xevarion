@@ -341,6 +341,75 @@
          数えると、実際には無防備なのに「対策できています」と答えてしまう。
          → 専用アビリティで埋まった対策だけを covered とし、
            omni は "条件つきで補える" 別枠として返す。 */
+
+  /* ══════════════════════════════════════════════════════════════
+     ★★ 2026-08-20 「みんなのクリア編成」と「MagiTier」を先に読んでおく
+
+     編成をすすめるとき、いちばん強い根拠は
+     <b>ほかの人が実際にそのクエストを抜けた編成</b>である。
+     MagiBurst 側は round 4 でこれを見るようになったが、
+     XEVYNAR のおすすめ編成は自分の記録しか見ていなかった。
+
+     置き場所は MagiBurst と<b>同じ</b> clearparty/<クエストid>/<uid>。
+     ★ 通信できないときは 0 点。編成そのものは今までどおり出るので壊れない。
+     ★ 読み込みは非同期なので、先に primeParty() を呼んでおいてから
+       suggestParty() を呼ぶ（呼ばなくても動く）。
+     ══════════════════════════════════════════════════════════════ */
+  const SHARE_FB = "https://magiburst-default-rtdb.asia-southeast1.firebasedatabase.app";
+  const _share = {};                 /* stageId → { at, m, total } */
+  async function primeShared(stageId) {
+    const id = String(stageId || "");
+    if (!id) return null;
+    const c = _share[id];
+    if (c && Date.now() - c.at < 300000) return c;     /* 5分は使い回す */
+    const out = { at: Date.now(), m: {}, total: 1 };
+    try {
+      const r = await fetch(SHARE_FB + "/clearparty/" + encodeURIComponent(id) + ".json", { cache: "no-store" });
+      if (r.ok) {
+        const d = await r.json();
+        if (d && typeof d === "object") {
+          const rows = Object.keys(d).map((k) => d[k]).filter((x) => x && Array.isArray(x.ids));
+          out.total = Math.max(1, rows.length);
+          rows.forEach((x) => x.ids.forEach((cid) => { out.m[cid] = (out.m[cid] || 0) + 1; }));
+        }
+      }
+    } catch (e) {}
+    _share[id] = out;
+    return out;
+  }
+  function sharedOf(stageId) {
+    return _share[String(stageId || "")] || { m: {}, total: 1 };
+  }
+
+  /* MagiTier の公開表。MagiBurst のキャッシュが無い端末でも読めるように、
+     ★ 自分でも取りにいく（置き場所は MagiBurst とまったく同じ）。 */
+  const TIER_FB = "https://xevarion-account-default-rtdb.asia-southeast1.firebasedatabase.app";
+  const TIER_KEY = "magiburst_chartier_v1";
+  async function primeTier() {
+    try {
+      const cur = JSON.parse(localStorage.getItem(TIER_KEY) || "null");
+      if (cur && cur.at && Date.now() - cur.at < 6 * 3600 * 1000) return cur;   /* 6時間は使い回す */
+    } catch (e) {}
+    try {
+      const r = await fetch(TIER_FB + "/magitier/mbtier.json", { cache: "no-store" });
+      if (r.ok) {
+        const d = await r.json();
+        if (d && Array.isArray(d.tiers)) {
+          try { localStorage.setItem(TIER_KEY, JSON.stringify(d)); } catch (e) {}
+          return d;
+        }
+      }
+    } catch (e) {}
+    return null;
+  }
+  /* おすすめ編成を出す前に呼ぶ（呼ばなくても動くが、根拠が1つ減る） */
+  async function primeParty(stage) {
+    await Promise.all([
+      primeShared(stage && stage.id).catch(() => null),
+      primeTier().catch(() => null),
+    ]);
+  }
+
   function suggestParty(stage, opt) {
     const KB = window.XEVYNAR_KB;
     if (!KB) return null;
@@ -354,6 +423,76 @@
       const r = (DB && DB.chars && DB.chars[id]) || null;
       return r ? (r.lv || 1) + (r.awk || 0) * 3 : 0;
     };
+
+    /* ══════════════════════════════════════════════════════════
+       ★★ 2026-08-19 「実際に効いた実績」を編成に混ぜる
+
+       ① クリア実績 … MagiBurst のセーブ（magiburst_v1.lastClear）にある
+          「クリアしたときの編成」。そのクエストのものなら大きく、
+          ほかのクエストでもよく出てくるなら少しだけ加点する。
+       ② MagiTier の順位 … MagiBurst が読んだ Tier表のキャッシュ
+          （magiburst_chartier_v1）の<b>上の段</b>ほど加点する。
+
+       ★ どちらもギミック対応（1つ 45〜120点）より軽くする。
+         実績で対応表をひっくり返すと、対策できない編成をすすめてしまう。
+       ★ 記録が無いときは 0 点。いままでどおりの編成が出るだけで、壊れない。
+       ══════════════════════════════════════════════════════════ */
+    const clearUse = (() => {
+      const m = {}; let total = 0;
+      try {
+        const lc = (DB && DB.lastClear) || {};
+        Object.keys(lc).forEach((sid) => {
+          ["solo", "multi"].forEach((mode) => {
+            const r = (lc[sid] || {})[mode];
+            if (!r || !r.members) return;
+            total++;
+            r.members.forEach((mm) => { if (mm && mm.id) m[mm.id] = (m[mm.id] || 0) + 1; });
+          });
+        });
+      } catch (e) {}
+      return { m, total: Math.max(1, total) };
+    })();
+    const tierRank = (() => {
+      const m = {};
+      try {
+        const d = JSON.parse(localStorage.getItem("magiburst_chartier_v1") || "null");
+        const tiers = (d && d.tiers) || [];
+        const n = tiers.length;
+        tiers.forEach((tr, i) => {
+          const v = n > 1 ? (n - 1 - i) / (n - 1) : 1;
+          (tr.ids || []).forEach((id) => { m[id] = v; });
+        });
+      } catch (e) {}
+      return m;
+    })();
+    /* このクエストのクリア編成にいたキャラ */
+    const hereIds = (() => {
+      const o = {};
+      try {
+        const rec = ((DB && DB.lastClear) || {})[(stage && stage.id) || ""] || {};
+        ["solo", "multi"].forEach((mo) => {
+          ((rec[mo] || {}).members || []).forEach((mm) => { if (mm && mm.id) o[mm.id] = 1; });
+        });
+      } catch (e) {}
+      return o;
+    })();
+    /* ★ 2026-08-20 みんなのクリア編成（このクエストを実際に抜けた人たち）。
+       MagiBurst の autoPartyForStage と<b>同じ重み</b>にそろえる。 */
+    const sh = sharedOf(stage && stage.id);
+    const recordBonus = (id) =>
+      (hereIds[id] ? 90 : 0) +
+      Math.round(Math.min(1, (clearUse.m[id] || 0) / Math.max(1, clearUse.total * 0.5)) * 40) +
+      Math.round((tierRank[id] || 0) * 60) +
+      Math.round(Math.min(1, (sh.m[id] || 0) / Math.max(1, sh.total * 0.5)) * 70);
+    /* 「なぜこの子か」を説明するための言葉 */
+    function recordWhy(id) {
+      const w = [];
+      if (hereIds[id]) w.push("このクエストをクリアした編成に入っていた");
+      if ((clearUse.m[id] || 0) >= 2) w.push("ほかのクエストのクリア編成にもよく出てくる");
+      if ((tierRank[id] || 0) >= 0.75) w.push("MagiTier で上位");
+      if ((sh.m[id] || 0) >= Math.max(2, sh.total * 0.4)) w.push("みんなのクリア編成でよく使われている");
+      return w;
+    }
 
     /* pool から貪欲に4体選ぶ。owned=true のときはレベルも加点する。 */
     function pick(pool, useLevel) {
@@ -384,6 +523,8 @@
           }
           /* 撃種は反射と貫通を混ぜたい（撃種限定ブロック対策） */
           if (c && picked.length && !picked.some((p) => KB.CHAR_BY_ID[p].shot !== c.shot)) sc += 45;
+          /* ★ 2026-08-19 実際に勝てた編成・MagiTier の順位（対応表より軽い） */
+          sc += recordBonus(id);
           const v = cover * 1000 + sc * 10 + (useLevel ? lvOf(id) : 0);
           if (v > bv) { bv = v; best = id; }
         });
@@ -405,8 +546,11 @@
         else missing.push(k);
       });
       const chars = ids.map((id) => KB.CHAR_BY_ID[id]).filter(Boolean);
+      /* ★ 2026-08-19 実績から選んだ子は、その理由も返す（答えに一言そえるため） */
+      const why = {};
+      ids.forEach((id) => { const w = recordWhy(id); if (w.length) why[id] = w; });
       return {
-        ids, chars, covered, viaOmni, missing,
+        ids, chars, covered, viaOmni, missing, why,
         omni: ids.filter((id) => KB.isOmni(id)).map((id) => KB.CHAR_BY_ID[id]),
         advantage: chars.filter((c) => goodEl && c.el === goodEl).length,
         shots: [...new Set(chars.map((c) => c.shot))],
@@ -492,6 +636,7 @@
     remember, recall, forgetAll, autoLearn,
     addSession, sessionsIn, todayMin, weekSeries, streakDays, markWeak, weakList,
     buildPlan, suggestParty,
+    primeParty, primeShared, primeTier,   /* ★ 2026-08-20 みんなのクリア編成・MagiTier を先に読む */
     apiReady, askApi, contextBrief,
   };
 })();

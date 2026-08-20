@@ -10,7 +10,8 @@
      先に当たったルールに吸われてしまい、正しい答えに届かない。
    ・答えられないことは「答えられない」と言う。
      学習アプリなので、知ったかぶりの数値・解答がいちばん害になる。
-   ・「提供：XEVYNAR」は毎回は出さない。
+   ・「提供：XEVYNAR」の帯は 2026-08-19 に廃止した。byline: true は残っているが、
+     画面には何も出ない（消して回るより、そのままにしておくほうが差分が小さい）。
      生成した中身（プラン・編成・解説・出題）にだけ付ける。
      あいさつや操作の返事にまで付けると、ただのノイズになって読みにくい。
    ============================================================ */
@@ -273,6 +274,17 @@
     if (r.mine) {
       h += "<br><br>" + b("🎒 いまの手持ちでのベスト") + "<br>" + r.mine.chars.map(line).join("<br>");
       h += "<br>" + verdict(r.mine, stage, K);
+      /* ★ 2026-08-19 実績（クリア編成・MagiTier）から選んだ子は、その理由も添える。
+         「なぜこの編成なのか」が分かると、次に自分で組むときの手がかりになる。 */
+      const why = r.mine.why || {};
+      const wk = Object.keys(why);
+      if (wk.length) {
+        h += "<br>" + b("▸ 実績から選んだ理由") + "<br>"
+          + wk.map((id) => {
+              const c = K.CHAR_BY_ID[id];
+              return "　・" + b(esc(c ? c.nm : id)) + " … " + why[id].join("／");
+            }).join("<br>");
+      }
     } else {
       h += "<br><br>" + b("🎒 手持ちの編成") + "：所持キャラが4体そろっていないため、いまは出せません（" + r.ownedCount + "体）。";
     }
@@ -570,18 +582,158 @@
     { id: "explain", k: ["解説", "かいせつ", "教えて", "おしえて", "わからない", "分からない", "わかんない", "なぜ", "なんで", "どうして", "とは", "意味", "解き方", "ときかた"] },
   ];
 
+  /* ══════════════════════════════════════════════════════════════
+     ★★ 2026-08-19 聞きかたのゆらぎに強くする ＋ 会話から覚える
+
+     ① <b>言いかえ辞書（SYN）</b>
+        「おしえて」「知りたい」「わかんない」…のように、同じことを指す言いかたを
+        1つの言葉に寄せてから点数を付ける。
+        ★ 置きかえるのは<b>点数を付けるための写し</b>だけ。もとの文はさわらない
+          （キャラ名・クエスト名の検索はもとの文で行うため）。
+
+     ② <b>ゆるい前置き・後置きを落とす</b>
+        「ねえ」「ちょっと」「すみません」「〜だけど」「〜なんだけど」などは
+        意味を持たないので、点数の前に取り除く。
+
+     ③ <b>会話から覚える（LEARN）</b>
+        答えたあと、その言いかたと返した話題を控えておく。
+        次に<b>似た言いかた</b>で来たら、その話題に点を足す。
+        ・「ちがう」「そうじゃない」と言われたら、直前に覚えたぶんを<b>取り消す</b>。
+        ・保存は端末の中（xevynar_learn_v1）。上限200件で古いものから捨てる。
+     ══════════════════════════════════════════════════════════════ */
+  /* ①言いかえ辞書。左を右に寄せる（右は INTENTS の k に出てくる言葉） */
+  const SYN = [
+    [["おしえて", "教えて", "しりたい", "知りたい", "きかせて", "聞かせて", "とは", "ってなに", "って何", "なんですか", "何ですか"], "とは"],
+    [["わからない", "わかんない", "分からない", "わからん", "むずかしい", "難しい", "つまずい", "できない", "とけない", "解けない"], "わからない"],
+    [["やりかた", "やり方", "ときかた", "解き方", "ときほぐ", "どうやって", "どうすれば", "どうしたら", "こつ", "コツ"], "やり方"],
+    [["おすすめ", "オススメ", "いいの", "良いの", "どれがいい", "なにがいい", "何がいい"], "おすすめ"],
+    [["へんせい", "編成", "パーティ", "ぱーてぃ", "メンバー", "めんばー", "だれをいれ", "誰を入れ", "チーム"], "編成"],
+    [["かてない", "勝てない", "まけ", "負け", "クリアできない", "くりあできない", "つまって", "詰まって", "きつい", "むり", "無理"], "勝てない"],
+    [["はかって", "測って", "タイマー", "たいまー", "ふん", "分だけ", "カウント"], "タイマー"],
+    [["もんだい", "問題", "しゅつだい", "出題", "クイズ", "くいず", "テスト", "演習"], "問題"],
+    [["きろく", "記録", "せいせき", "成績", "しんちょく", "進捗", "どれくらい", "どのくらい"], "記録"],
+    [["けいかく", "計画", "プラン", "ぷらん", "よてい", "予定", "スケジュール"], "プラン"],
+    [["かいせつ", "解説", "せつめい", "説明", "なぜ", "どうして", "理由"], "解説"],
+  ];
+  /* ②意味を持たない前置き・後置き */
+  const FILLER = /^(ねえ|ねぇ|あの|あのー|ちょっと|すみません|すいません|お願い|おねがい|えっと|えーと)+|(だけど|なんだけど|けど|んだけど|ですが|ですけど|かな|かなあ|かなー|よね|ですよね|でしょうか|ください|下さい|お願いします|おねがいします)+$/g;
+
+  /* 点数を付けるための写しを作る */
+  function normQ(raw) {
+    const K = KB();
+    let k = K ? K.kana(raw) : X.norm(raw);
+    k = k.replace(FILLER, "");
+    SYN.forEach(([from, to]) => {
+      const t = K ? K.kana(to) : X.norm(to);
+      from.forEach((w) => {
+        const n = K ? K.kana(w) : X.norm(w);
+        if (n && k.indexOf(n) >= 0) k = k.split(n).join(t);
+      });
+    });
+    return k;
+  }
+
+  /* ③覚えたことの出し入れ */
+  const LEARN_KEY = "xevynar_learn_v1";
+  let _lastLearn = null;        // 直前に覚えたもの（「ちがう」で取り消すため）
+  function learnLoad() {
+    try {
+      const r = JSON.parse(localStorage.getItem(LEARN_KEY) || "null");
+      return (r && Array.isArray(r.list)) ? r : { list: [] };
+    } catch (e) { return { list: [] }; }
+  }
+  function learnSave(o) {
+    try {
+      o.list = o.list.slice(-200);          /* 増えすぎないように古いものから捨てる */
+      localStorage.setItem(LEARN_KEY, JSON.stringify(o));
+    } catch (e) {}
+  }
+  /* 答えたあとに覚える。intent は返した話題（route の分岐名） */
+  function learnRemember(raw, intent) {
+    if (!raw || !intent) return;
+    const k = normQ(raw);
+    if (k.length < 3) return;
+    const o = learnLoad();
+    const hit = o.list.find((x) => x.q === k);
+    if (hit) { hit.i = intent; hit.n = (hit.n | 0) + 1; hit.at = Date.now(); }
+    else o.list.push({ q: k, i: intent, n: 1, at: Date.now() });
+    learnSave(o);
+    _lastLearn = k;
+  }
+  /* 「ちがう」と言われたら直前のぶんを取り消す */
+  function learnForget() {
+    if (!_lastLearn) return false;
+    const o = learnLoad();
+    const i = o.list.findIndex((x) => x.q === _lastLearn);
+    if (i >= 0) { o.list.splice(i, 1); learnSave(o); }
+    _lastLearn = null;
+    return true;
+  }
+  /* 2つの言いかたがどれくらい似ているか（0〜1）。
+     ★ 文字の重なりで見る簡単なやりかた。辞書を持たずに済むうえ、
+       「第12の間の編成」と「12の間 編成教えて」のような揺れをよく拾う。 */
+  function sim(a, b2) {
+    if (!a || !b2) return 0;
+    if (a === b2) return 1;
+    const s = new Set(a.split(""));
+    let hit = 0;
+    for (const ch of new Set(b2.split(""))) if (s.has(ch)) hit++;
+    return hit / Math.max(s.size, new Set(b2.split("")).size);
+  }
+  /* 覚えたことから、この言いかたに近い話題を返す */
+  function learnGuess(raw) {
+    const k = normQ(raw);
+    let best = null, bv = 0;
+    learnLoad().list.forEach((x) => {
+      const v = sim(k, x.q) * (1 + Math.min(3, x.n | 0) * 0.12);
+      if (v > bv) { bv = v; best = x; }
+    });
+    return (bv >= 0.72 && best) ? { intent: best.i, score: bv } : null;
+  }
+  window.xvLearnStats = () => learnLoad().list.length;
+
   function scoreIntents(raw) {
     const K = KB();
-    const k = K ? K.kana(raw) : X.norm(raw);
+    /* ★ 2026-08-19 言いかえ・前置き落としを通した写しで点を付ける。
+       もとの文でも見て、点の高いほうを採る（言いかえで失うものが出ないように）。 */
+    const k0 = K ? K.kana(raw) : X.norm(raw);
+    const k1 = normQ(raw);
     const out = {};
     INTENTS.forEach((it) => {
       let s = 0;
       it.k.forEach((w) => {
         const n = K ? K.kana(w) : X.norm(w);
-        if (n.length >= 2 && k.indexOf(n) >= 0) s += n.length + (k === n ? 6 : 0);
+        if (n.length < 2) return;
+        const hit0 = k0.indexOf(n) >= 0, hit1 = k1.indexOf(n) >= 0;
+        if (hit0 || hit1) s += n.length + ((k0 === n || k1 === n) ? 6 : 0);
       });
       if (s) out[it.id] = s;
     });
+    /* ★ 覚えたことを足す（対象がはっきりしている文には効かせない＝route が先に拾う） */
+    const g = learnGuess(raw);
+    if (g && g.intent) out[g.intent] = (out[g.intent] || 0) + Math.round(g.score * 8);
+
+    /* ══════════════════════════════════════════════════════════════
+       ★★ 2026-08-20 Transformer（XVTF）の見立てを混ぜる
+
+       言葉を数えるやりかたは「その言葉が入っていないと当たらない」。
+       「12の間ってどうやったら勝てますか？」のように、
+       決まった言葉が1つも無い聞きかたを拾えなかった。
+
+       XVTF は文全体を1本のベクトルにしてから意図を当てるので、
+       <b>言い回しがちがっても意味が近ければ当たる</b>。
+       ★ ただし言葉の一致を<b>上書きしない</b>。
+         はっきり言葉が入っているときはそちらが正しいので、
+         Transformer は「足す」だけにして、最大でも 14点にとどめる。
+         （言葉1つの一致がだいたい 2〜8点なので、決め手にはならないが後押しにはなる）
+       ══════════════════════════════════════════════════════════════ */
+    try {
+      const tf = window.XVTF;
+      if (tf && tf.guess) {
+        const t = tf.guess(raw, 0.30);
+        if (t) out[t.intent] = (out[t.intent] || 0) + Math.round(t.p * 14);
+      }
+    } catch (e) {}
     return out;
   }
 
@@ -589,6 +741,24 @@
     const raw = String(text || "").trim();
     if (!raw) return { html: "何でも聞いてください。" };
     const K = KB();
+    /* ★ 2026-08-19 「ちがう」と言われたら、直前に覚えた結びつきを取り消す。
+       これをやらないと、まちがった結びつきをずっと引きずってしまう。 */
+    if (/^(ちがう|違う|ちが|そうじゃない|そうではない|それじゃない|まちがい|間違い|no)$/i.test(raw.replace(/[。、！!？?\s]/g, ""))) {
+      const ok = learnForget();
+      /* ★ 2026-08-20 まちがえたときは、Transformer の学習も打ち消す方向へ。
+         直前の文を「雑談」として1件入れると、まちがった意図の確信が下がる。 */
+      try {
+        const prev = (X.S.chat || []).filter((m) => m.r === "me").slice(-2)[0];
+        if (prev && window.XVTF) window.XVTF.learn(prev.t, "chat", 0.4);
+      } catch (e) {}
+      return {
+        html: (ok ? "失礼しました。いまの結びつけは<b>忘れました</b>。<br>" : "")
+          + "もう一度、聞きたいことを言い直してもらえますか。<br>"
+          + "・" + b("第12の間の編成") + "　・" + b("重力バリアの対策") + "<br>"
+          + "・" + b("苦手な問題を5問出して") + "　・" + b("25分はかって"),
+        acts: [chip("できること", "xvSay('できること')")],
+      };
+    }
     const sc = scoreIntents(raw);
     const top = Object.keys(sc).sort((a, b2) => sc[b2] - sc[a])[0] || "";
 
@@ -599,7 +769,33 @@
     const gim = K ? K.findGim(raw) : null;
     /* キャラ名は助詞や語尾を落としてから当てる */
     const charQ = raw.replace(/(の性能|の能力|について|ってどう|はどう|を教えて|教えて|どんな|使い方|は\?|\?|？)/g, "");
-    const char = K ? K.findChar(charQ) : null;
+    let char = K ? K.findChar(charQ) : null;
+
+    /* ══════════════════════════════════════════════════════════════
+       ★★ 2026-08-20 文字が一致しなくても、意味で当てにいく
+
+       「12の間ってどうやったら勝てますか？」のように、
+       台帳の書きかた（黄昏の王城 第12の間）と文字がそろわないと、
+       findStage は空を返してしまっていた。
+       XVTF は文をベクトルにして近さで比べるので、そろっていなくても当たる。
+       ★ 一致で見つかったときは触らない（そちらのほうが確かなので）。
+       ★ 近さ 0.62 以上のときだけ採る。ゆるくすると、まったく別のクエストを返す。
+       ══════════════════════════════════════════════════════════════ */
+    let stage2 = null, char2 = null;
+    try {
+      const tf = window.XVTF;
+      if (tf && tf.nearest) {
+        if (!stage) {
+          const n = tf.nearest(raw, "stage", 1, 0.62)[0];
+          if (n) stage2 = (K.STAGES || []).find((s) => s.id === n.key) || null;
+        }
+        if (!char) {
+          const n2 = tf.nearest(charQ, "char", 1, 0.66)[0];
+          if (n2) char2 = K.CHAR_BY_ID[n2.key] || null;
+        }
+      }
+    } catch (e) {}
+    if (char2) char = char2;
 
     /* ★ 「編成のコツ」は lose（コツ）にも burst（編成）にも当たる。
        先に party を見ないと、編成の組み方を聞かれたのに敗因チェックリストを返してしまう。 */
@@ -616,8 +812,21 @@
       if (/性能|能力|強い|つよい|どんな|アビリティ|使い方|どう/.test(ck) || ck.length <= K.kana(char.nm).length + 3)
         return burstCharAnswer(char);
     }
-    if (stage) return stageAnswer(stage);
-    if (gim && !sc.quiz) return gimAnswer(gim);
+    /* ★ 2026-08-20 一致で見つからなくても、意味で近いクエストがあればそれを使う */
+    const stageHit = stage || stage2;
+    if (stageHit) {
+      const stage = stageHit;
+      learnRemember(raw, "burst");
+      /* ★ 2026-08-20 「この言いかたは編成の話だった」と Transformer にも教える。
+         対象がはっきりしている＝正解が分かっているので、重みを大きくする。 */
+      try { if (window.XVTF) window.XVTF.learn(raw, /編成|パーティ|だれ|誰|連れ/.test(raw) ? "party" : "burst", 1.2); } catch (e) {}
+      return stageAnswer(stage);
+    }
+    if (gim && !sc.quiz) {
+      learnRemember(raw, "burst");
+      try { if (window.XVTF) window.XVTF.learn(raw, "burst", 1.2); } catch (e) {}
+      return gimAnswer(gim);
+    }
 
     /* アプリ・FAQ（ポータルの質問） */
     const retired = K.findRetired(raw);
@@ -629,6 +838,14 @@
       return appAnswer(app);
     }
 
+    /* ★ 2026-08-19 ここから下は「話題で答える」ぶん。
+       どの話題を返したかを覚えておいて、次に似た言いかたが来たときの手がかりにする。 */
+    if (top) {
+      learnRemember(raw, top);
+      /* ★ 2026-08-20 Transformer にも同じことを覚えさせる。
+         会話するほど、言い回しの幅に強くなっていく。 */
+      try { if (window.XVTF && window.XVTF.learn) window.XVTF.learn(raw, top, 0.6); } catch (e) {}
+    }
     switch (top) {
       case "help":   return helpAnswer();
       case "greet":  return helpAnswer();
@@ -652,7 +869,7 @@
     if (faq) return faqAnswer(faq);
 
     /* 質問（解説）— 最後に回す。MagiLex のデータを非同期で探す。 */
-    if (sc.explain || /[?？]$/.test(raw) || raw.length >= 6) return questionAnswer(raw);
+    if (sc.explain || /[?？]$/.test(raw) || raw.length >= 6) { learnRemember(raw, "explain"); return questionAnswer(raw); }
 
     /* どれにも当てはまらないとき */
     return {
@@ -699,6 +916,7 @@
 
   window.XVTalk = {
     respond, route, helpAnswer, statusAnswer, replyDrafts, greet,
+    normQ, learnGuess, learnRemember, learnForget,
     explainCard, solvePath, appListAnswer, partyRuleAnswer,
   };
 })();
