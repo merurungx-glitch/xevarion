@@ -24,7 +24,7 @@ if ("serviceWorker" in navigator) {
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
 <script src="../xeva-splash.js?v=3" data-app="MagiBurst" data-logo="../thumbs/MagiBurst.jpg"
         data-note="⚠️ このゲームの対象年齢は 13歳以上 です"></script>
-<script src="../xeva.js?v=33"></script>
+<script src="../xeva.js?v=34"></script>
 <script src="../xeva-loading.js?v=1" defer></script>
 <script type="module" src="../xevarion-fb.js?v=22"></script>
 <script src="../xeva-presence.js?v=1" defer></script>
@@ -423,6 +423,15 @@ main.on{display:block;min-height:100svh;box-sizing:border-box}
 .qgim.qlc.off{opacity:.45}
 /* ★ 2026-08-08 カードの上がノッチ・ステータスバーにかかって、
    ✕ ボタンが押しにくかった。余白にセーフエリアを足す（#ccOv と同じ形）。 */
+/* ★ 2026-08-19 みんなのクリア編成（共有） */
+.lchd.share{color:#7ce8ff}
+.lcsec.mine{border-color:rgba(138,255,196,.45);background:rgba(138,255,196,.05)}
+.lcsec.mine .lcst{color:#8affc4}
+/* ★ 2026-08-19 クリア編成の「どれくらい安定して速かったか」の内わけ */
+.lcmet{display:flex;flex-wrap:wrap;gap:6px;margin:6px 0 8px}
+.lcmet span{font-size:10.5px;font-weight:800;color:#9d97c4;background:rgba(255,255,255,.06);
+  border:1px solid rgba(150,130,255,.24);border-radius:99px;padding:3px 9px}
+.lcmet span b{color:#8affc4;font-family:'Orbitron',sans-serif}
 #lcOv{position:fixed;inset:0;z-index:650;background:rgba(6,4,14,.8);display:none;align-items:center;justify-content:center;
   padding:calc(env(safe-area-inset-top,0px) + 20px) 20px calc(env(safe-area-inset-bottom,0px) + 20px)}
 #lcOv.on{display:flex}
@@ -625,7 +634,7 @@ main.on{display:block;min-height:100svh;box-sizing:border-box}
 .ccch .ccin{position:absolute;top:-6px;left:50%;transform:translateX(-50%);background:#0e8a5c;color:#fff;font-size:8px;font-weight:900;
   border-radius:99px;padding:1px 6px;font-style:normal;white-space:nowrap}
 .ccch.s5g{border-color:rgba(255,184,77,.75);background:linear-gradient(160deg,rgba(255,184,77,.16),rgba(255,255,255,.05))}
-/* ★ 2026-08-08: ★5・属性相性のバッジは <b>カードの下から</b> ではなく <b>上から</b> 数えて置く。
+/* ★ 2026-08-08: SSR・属性相性のバッジは <b>カードの下から</b> ではなく <b>上から</b> 数えて置く。
    オムニマークを名前の下に1行足したことでカードの高さが変わり、
    bottom 基準だと<b>名前の文字にバッジが重なって</b>しまうため（＝絵の下端の位置は上から数えれば一定）。 */
 .ccch .ccs5{position:absolute;top:41px;left:-3px;background:linear-gradient(135deg,#ffd257,#ff9d2e);color:#4a2d00;font-size:7.5px;font-weight:900;
@@ -2231,7 +2240,7 @@ body.in-battle #top,body.in-battle #tabs{display:none}
   background:linear-gradient(135deg,#ffd257,#ff9d2e 60%,#ff5d8f);color:#fff;font-family:'Orbitron',sans-serif;
   font-size:8px;font-weight:900;border-radius:0 0 8px 8px;padding:2px 7px;box-shadow:0 3px 10px rgba(255,93,143,.6)}
 /* ══════════ v14.2 ガチャ演出（レア度プレート → 昇格 → 中身公開）══════════ */
-/* セルにかぶせる「レア度プレート」。ここに ★4／★5 だけを出して中身を隠す */
+/* セルにかぶせる「レア度プレート」。ここに SR／SSR だけを出して中身を隠す */
 .gmulti .gm .gcov{position:absolute;inset:0;z-index:5;border-radius:11px;display:flex;flex-direction:column;
   align-items:center;justify-content:center;gap:2px;overflow:hidden;
   background:linear-gradient(150deg,#3b3a52,#6a6880 45%,#2a2938);
@@ -2246,7 +2255,7 @@ body.in-battle #top,body.in-battle #tabs{display:none}
   color:#fff;opacity:0;font-style:normal;text-shadow:0 0 8px rgba(255,93,143,.9)}
 /* アイテム枠のプレートは青系（キャラではないことがわかる） */
 .gmulti .gm .gcov.item{background:linear-gradient(150deg,#2b3a58,#41618f 45%,#1b2436)}
-/* ★5に昇格したプレート＝虹色 */
+/* SSRに昇格したプレート＝虹色 */
 .gmulti .gm .gcov.s5{background:linear-gradient(150deg,#ff5d8f,#ffd257 30%,#8affc4 55%,#38a6ff 78%,#8e6bff);
   box-shadow:inset 0 0 0 2px rgba(255,255,255,.7),0 0 26px rgba(255,93,143,.75)}
 .gmulti .gm .gcov.s5 .gcst{color:#fff;text-shadow:0 1px 4px rgba(0,0,0,.55),0 0 10px rgba(255,255,255,.9)}
@@ -2282,7 +2291,7 @@ body.in-battle #top,body.in-battle #tabs{display:none}
 #gres .grevlead.s5{background:linear-gradient(100deg,#ff5d8f,#ffd257,#8affc4,#38a6ff,#8e6bff);
   -webkit-background-clip:text;background-clip:text;color:transparent;font-size:14px}
 /* ★ v14.3 プレートが閉じているあいだはセルの枠色・グロー・確定バッジを出さない。
-   （枠がピンク＝★5・オレンジ＝キャラと見えてしまうと、星を隠している意味がなくなるため） */
+   （枠がピンク＝SSR・オレンジ＝キャラと見えてしまうと、星を隠している意味がなくなるため） */
 .gmulti .gm.veiled{border-color:rgba(255,255,255,.16)!important;box-shadow:none!important;animation:none!important}
 .gmulti .gm.veiled::after{display:none!important}
 .gmulti .gm.veiled .gsure{display:none!important}
@@ -2326,7 +2335,7 @@ body.in-battle #top,body.in-battle #tabs{display:none}
 
 /* ═══ 確定演出 ═══
    排出が決まってからボールの色を変えるので、色がついた時点で中身が保証される＝「確定」。
-   金 = キャラ確定 ／ 虹 = ★5確定。 */
+   金 = キャラ確定 ／ 虹 = SSR確定。 */
 #gres .gball.cf-gold{background:radial-gradient(circle at 35% 30%,#fffdf2,#ffd257 45%,#c98a10);
   box-shadow:0 0 70px rgba(255,210,87,.95),0 0 130px rgba(255,157,46,.6);
   animation:gShake .34s ease-in-out 4,cfPulse .7s ease-in-out infinite}
@@ -2339,7 +2348,7 @@ body.in-battle #top,body.in-battle #tabs{display:none}
    これが残っていると .gcf の auto マージンと余白を分け合い、確定文字がボールから
    大きく離れて表示されてしまう（ボールと確定文字はひとかたまりで見せたい）。 */
 #gres.cfon .gball{margin:auto 0 0}
-/* 確定バナー（ボールのすぐ下に出る「★5 確定!!」）。下だけ auto にしてボールに寄り添わせる。 */
+/* 確定バナー（ボールのすぐ下に出る「SSR 確定!!」）。下だけ auto にしてボールに寄り添わせる。 */
 #gres .gcf{margin:0 0 auto;font-family:'Orbitron',sans-serif;font-weight:900;letter-spacing:.12em;text-align:center;
   font-size:clamp(16px,5.4vw,26px);display:none;animation:cfIn .4s cubic-bezier(.16,.9,.24,1) both}
 #gres .gcf.on{display:block}
@@ -2640,24 +2649,29 @@ body.in-battle #top,body.in-battle #tabs{display:none}
 .det .dtag{font-size:10px;font-weight:900;border:1px solid rgba(150,130,255,.35);border-radius:8px;padding:3.5px 10px;color:#cfd0f0;background:rgba(255,255,255,.05);display:inline-flex;align-items:center;gap:4px}
 .det .dtag.chg{border-color:#fff;color:#fff;background:rgba(255,255,255,.14)}
 .det .dtag svg{width:13px;height:13px}
-/* 性能画面のステータス行 */
-.det .dstats{border:1px solid rgba(150,130,255,.25);border-radius:12px;overflow:hidden;margin-bottom:11px}
-.det .dsrow{display:flex;align-items:center;padding:9px 13px;background:rgba(255,255,255,.035);font-size:12px;font-weight:800}
+/* ══ 性能画面のステータス（★★ 2026-08-18 作り直し）══
+   ------------------------------------------------------------
+   これまでは1行に［見出し 86px］［バー］［数字 66px］［アーク 62px］を
+   <b>横1列</b>に詰めていた。iPhone の幅ではバーに 90px ほどしか残らず、
+     ・バーがほとんど動かない＝強さの目安にならない
+     ・「436 km/h」のように長い数字が 66px からはみ出て折り返す
+     ・アークの「＋◯◯」札が数字とくっついて一続きの数に見える
+   という3つが重なって読みづらくなっていた。
+   → <b>1項目を2段</b>にする。上の段に［見出し］［＋アーク］［数字］、
+     下の段に<b>横いっぱいのバー</b>。数字は右そろえのままなので3行の桁もそろう。 */
+.det .dstats{border:1px solid rgba(150,130,255,.25);border-radius:14px;overflow:hidden;margin-bottom:8px}
+.det .dsrow{padding:10px 13px 11px;background:rgba(255,255,255,.035)}
 .det .dsrow:nth-child(even){background:rgba(255,255,255,.065)}
-.det .dsrow .l{color:#9d97c4;width:86px;flex:none;font-size:10.5px;letter-spacing:.06em}
-/* ★ 2026-08-15 数字の列は幅を固定して右そろえ。
-   3行とも同じ幅なので、桁数がちがっても右端が必ずそろう（以前は margin-left:auto
-   で右へ寄せていただけなので、うしろに札が付いた行だけ数字の位置がずれていた）。 */
-.det .dsrow .v{font-family:'Orbitron',sans-serif;font-size:15px;font-weight:900;
-  margin-left:auto;flex:none;min-width:66px;text-align:right;font-variant-numeric:tabular-nums}
-.det .dsrow .gauge{flex:1;height:7px;border-radius:99px;background:rgba(0,0,0,.5);margin:0 12px;overflow:hidden}
-.det .dsrow .gauge i{display:block;height:100%;border-radius:99px}
-/* ★ 2026-08-15 アーク強化ぶんの専用列。
-   .hasarc が付いているときだけ幅を持つ（1体もアークを振っていないキャラでは
-   むだな空白を作らない）。振っていない<b>項目</b>は空のまま幅だけ残す。 */
-.det .dsrow .arccol{display:none}
-.det .dstats.hasarc .dsrow .arccol{display:block;flex:none;width:62px;text-align:right;padding-left:8px}
-.det .dstats.hasarc .dsrow .arccol .arcup{margin-left:0}
+.det .dsrow .dshd{display:flex;align-items:baseline;gap:8px}
+.det .dsrow .l{flex:none;color:#9d97c4;font-size:11px;font-weight:900;letter-spacing:.06em}
+/* アークの札は<b>数字の左</b>に置く。右に付けると、札のあるなしで数字の右端がずれてしまう。 */
+.det .dsrow .arccol{margin-left:auto;flex:none}
+.det .dsrow .v{flex:none;margin-left:8px;font-family:'Orbitron',sans-serif;font-size:20px;font-weight:900;
+  line-height:1.05;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+.det .dsrow .v u{text-decoration:none;font-size:11px;font-weight:900;opacity:.72;margin-left:3px}
+.det .dsrow .gauge{height:9px;border-radius:99px;background:rgba(0,0,0,.5);margin-top:8px;overflow:hidden}
+.det .dsrow .gauge i{display:block;height:100%;border-radius:99px;transition:width .5s cubic-bezier(.2,.8,.3,1)}
+.det .dstatnote{font-size:10px;font-weight:800;color:#7f7aa6;margin:0 0 11px;line-height:1.7;padding:0 3px}
 /* ★ 2026-08-12d アーク強化ぶんの「＋◯◯」札。
    ステータスの数字のうち<b>アークで増えたぶん</b>を、その場で分かるように右に添える。
    色はアークの画面と同じ青紫にそろえる（＝アークの話だと一目で分かる）。 */
@@ -2763,9 +2777,9 @@ body.in-battle #top,body.in-battle #tabs{display:none}
   background:linear-gradient(120deg,transparent 32%,rgba(255,240,180,.30) 47%,rgba(255,255,255,.55) 50%,rgba(255,240,180,.30) 53%,transparent 68%);
   background-size:240% 240%;animation:mxShine 2.8s linear infinite}
 @keyframes mxShine{0%{background-position:130% 0}100%{background-position:-130% 0}}
-/* ★ 2026-08-12: ★4の限界突破MAXは<b>演出をいっさい付けない</b>ことにした。
+/* ★ 2026-08-12: SRの限界突破MAXは<b>演出をいっさい付けない</b>ことにした。
    以前は「金の縁取りだけ」残していたが、それも演出のうちなので外し、
-   限界突破MAXの見せ場は★5だけのものにそろえた（.s4mx は付けない）。
+   限界突破MAXの見せ場はSSRだけのものにそろえた（.s4mx は付けない）。
    ★ 下の .s4mx の行は、古い画面が残っていても崩れないように置いてあるだけ。 */
 .mx.s4mx,.rc.maxawk.s4mx,.det.maxawk.s4mx,.pmem.maxawk.s4mx .pfr{
   animation:none!important;box-shadow:0 0 0 2px rgba(240,192,64,.62)!important}
@@ -3160,7 +3174,7 @@ body.in-battle #top,body.in-battle #tabs{display:none}
   text-shadow:0 0 22px var(--scc,#8e6bff),0 0 60px var(--scc,#8e6bff),0 2px 8px #000;animation:scNm 1.5s ease both;z-index:2}
 #ssCut .scnm small{display:block;font-size:.44em;letter-spacing:.34em;color:var(--sccl,#cfc3ff);margin-bottom:4px}
 @keyframes scNm{0%,12%{opacity:0;transform:translateX(-30px)}26%,84%{opacity:1;transform:none}100%{opacity:0;transform:translateX(20px)}}
-/* ガチャ★5の豪華カットイン（虹色の輝き＋強いグロー＋二重集中線） */
+/* ガチャSSRの豪華カットイン（虹色の輝き＋強いグロー＋二重集中線） */
 #ssCut.lux .scband{border-image:linear-gradient(90deg,#ffd257,#ff5d8f,#8e6bff,#38a6ff,#ffd257) 1;box-shadow:0 0 90px var(--scc,#8e6bff),inset 0 0 60px rgba(255,210,87,.25)}
 #ssCut.lux .scport::after{border-image:linear-gradient(120deg,#ffd257,#ff5d8f,#8e6bff,#38a6ff,#ffd257) 1;
   box-shadow:0 0 44px #ffd257,0 0 110px var(--scc,#8e6bff),inset 0 0 34px rgba(255,255,255,.4)}
@@ -3688,7 +3702,8 @@ body.in-battle #top,body.in-battle #tabs{display:none}
 </div></div>
 
 <script>window.MB_IMGD = "../img/"; window.MB_GIMGD = "img/";</script>
-<script src="js/mb-core.js?v=35"></script>
+<script src="../mb-newchars.js?v=2"></script>
+<script src="js/mb-core.js?v=37"></script>
 <script>
 "use strict";
 /* ══════════ アカウントガード ══════════ */
@@ -3845,7 +3860,7 @@ function freshDB() {
   return {
     gold: 3000, orbs: 15,
     /* ★ 2026-08-10 初期メンバーは STARTER_IDS（mb-core.js）が持ち主。
-       初期★4 4体を廃止したので、ここに id を直接書かない。 */
+       初期SR 4体を廃止したので、ここに id を直接書かない。 */
     chars: STARTER_IDS.reduce((o, id) => (o[id] = { lv: 1, awk: 0, exp: 0 }, o), {}),
     party: STARTER_IDS.slice(),
     clears: {}, first: {}, day: "", dailyOrb: {}, pulls: 0, express: { best: 0 }, raid: null,
@@ -5013,9 +5028,13 @@ const GIM_INFO = {
       + "（シルエットのままでもカウントは読めるので、いつ入れ替えるかを考えて動きましょう）。"
       + "<br><b style='color:#ff8f8f'>⚠ 透明な敵も「まだ倒していない敵」として残る</b>ので、片側だけ倒してもWAVEは終わらない。"
       + "<b>スイッチを踏んで入れ替えながら、両方の側を倒しきる</b>のがこのギミックの遊びかた。"
-      + "<br><b>反応するのは1ターンに1回だけ</b>です。踏んだスイッチは<b>その場から消え</b>、<b>次のターンで復活</b>します"
+      + "<br><b>1ターンのあいだに、置かれているスイッチは全部はたらきます</b>"
+      + "（★ 2026-08-18 変更。以前は1ターンに1回だけでした）。"
+      + "踏んだスイッチだけが<b>その場から消え</b>、<b>次のターンで復活</b>します"
       + "（そのため各WAVEに<b>最低" + GSWITCH_MIN + "個</b>置かれています）。"
-      + "<br>ここが読みどころ——<b>1ターンに一度きりの入れ替えを、どこで、どの向きに走りながら踏むか</b>。"
+      + "<br>ここが読みどころ——<b>1ターンで何回入れ替えるか</b>。"
+      + "2つ踏めば元にもどり、3つ踏めばまた入れ替わる。"
+      + "<b>踏む数と順番で、そのターンの終わりにどちらの側を出しておくかを決められます</b>。"
       + "<b>アンチ系では無効化できない地形</b>あつかいなので、オムニアンチでも消えない。幽冥の庭園 第13ノ園で登場。",
     art: `<circle cx="32" cy="32" r="20" fill="rgba(200,107,255,.14)" stroke="#c86bff" stroke-width="3"/><circle cx="32" cy="32" r="9" fill="#8e4fe0"/><rect x="10" y="10" width="14" height="12" rx="3" fill="#c9a6ff"/><rect x="40" y="42" width="14" height="12" rx="3" fill="none" stroke="#c9a6ff" stroke-width="2" stroke-dasharray="3 3"/><path d="M24 32h16M35 28l5 4-5 4" stroke="#fff" stroke-width="2.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/>` },
   fbdelay:{ nm: "FB遅延攻撃（新）", c: "#8e6bff",
@@ -5330,9 +5349,9 @@ function openCounters(stageId) {
   const chip = (id, viaOmni) => {
     const c = CHARS[id], own = !!DB.chars[id], inP = own && DB.party.indexOf(id) >= 0;
     const awk = own ? (DB.chars[id].awk || 0) : 0;
-    /* ★ v14.5: ★5バッジと金枠の判定を isStar5 にそろえた。
-       以前は c.gacha だけを見ていたため、フェス限定★5（フィオナ〜アーク）や
-       降臨・報酬の★5に「★5」が付かず、★4と同じ見た目になっていた。 */
+    /* ★ v14.5: SSRバッジと金枠の判定を isStar5 にそろえた。
+       以前は c.gacha だけを見ていたため、フェス限定SSR（フィオナ〜アーク）や
+       降臨・報酬のSSRに「SSR」が付かず、SRと同じ見た目になっていた。 */
     /* ★ 2026-08-06: 並びが「有利 → 等倍 → 不利」になったので、どれなのかを見て分かるようにする */
     const er = elRank(id);
     const elBdg = er === 0 ? '<i class="ccadv up" title="属性有利">有利</i>'
@@ -5341,7 +5360,7 @@ function openCounters(stageId) {
     const sec = charSecret(id);
     return `<button class="ccch ${inP ? "inp" : ""} ${own ? "" : "noown"} ${isStar5(id) ? "s5g" : ""}" onclick="openDet('${id}','counter')" title="${sec ? "登場前のキャラクター" : c.nm + " の性能を見る"}">
       <img class="${sec ? "silh" : ""}" src="${c.th}" alt=""><span>${charNmOf(id)}</span>
-      ${isStar5(id) ? '<i class="ccs5" title="' + (c.fes ? "★5 フェス限定" : c.quest ? "★5 クエスト限定（ガチャからは出ません）" : c.gacha ? "★5 ガチャ限定" : "★5") + '">★5</i>' : ""}
+      ${isStar5(id) ? '<i class="ccs5" title="' + (c.fes ? "SSR フェス限定" : c.quest ? "SSR クエスト限定（ガチャからは出ません）" : c.gacha ? "SSR ガチャ限定" : "SSR") + '">SSR</i>' : ""}
       ${elBdg}
       <span class="ccmk">
         <i class="ccomniB ${viaOmni ? "" : "off"}" title="${viaOmni ? "オムニアンチで対応（専用のアンチではない）" : ""}">🌟</i>
@@ -5355,7 +5374,7 @@ function openCounters(stageId) {
      対応キャラは「アンチを持っているか」だけで並んでいたので、
      不利属性のキャラが先頭に出ることがあり、そのまま編成すると火力が出なかった。
      ここでは <b>有利属性 → 等倍 → 不利属性</b> の順にまとめてから、
-     これまでの並び（所持 → ★5ガチャ → ★5 → 覚醒）を中で使う。
+     これまでの並び（所持 → SSRガチャ → SSR → 覚醒）を中で使う。
      ★ 相性はそのクエストのボスの属性に対して見る（elemMult は攻撃側→防御側）。 */
   const bossEl = (() => {
     const wv = (stage.waves || []);
@@ -5371,7 +5390,7 @@ function openCounters(stageId) {
   };
   /* ══ ★ 2026-08-08 並び順 ══
      いちばん外側は これまでどおり <b>有利 → 等倍 → 不利</b>。
-     その中は「所持 → ★5ガチャ → 覚醒」ではなく <b>新しいキャラ順（No.の大きい順）</b> にする。
+     その中は「所持 → SSRガチャ → 覚醒」ではなく <b>新しいキャラ順（No.の大きい順）</b> にする。
      新キャラほど そのクエストのギミックに合わせて作られているので、
      左から順に見ていけば「いま狙うべき対策キャラ」がそのまま並ぶ。 */
   const sortOwn = (a, b) => (elRank(a) - elRank(b)) || (charNo(b) - charNo(a));
@@ -5450,134 +5469,12 @@ window.openCounters = openCounters; window.closeCounters = closeCounters;
    ・見たかどうかは「並んでいるキャラのid」で判定するので、
      さらに新キャラを足せばまた1回だけ出る（同じ内容で二度は出ない）。
    ══════════════════════════════════════════════════════════════ */
-const NEW_CHARS = [
-  /* ★ since が未来の日付なので、その日が来るまで告知バナーには出ない（newCharLive で判定） */
-  /* ★ 2026-08-16b プレミアム★5 6体（No.110〜115） */
-  { id: "elena", since: "2026-08-16", where: "プレミアムセレクトガチャ", mode: "premium",
-    catch: "蒼き波は、二度打ち寄せる。", color: "#38a6ff" },
-  { id: "touka", since: "2026-08-16", where: "プレミアムセレクトガチャ", mode: "premium",
-    catch: "白閃は、止まってから速くなる。", color: "#f0b429" },
-  { id: "kanata", since: "2026-08-16", where: "プレミアムセレクトガチャ", mode: "premium",
-    catch: "紅蓮の号令、弱点へ全員で。", color: "#ff5d47" },
-  { id: "violet", since: "2026-08-16", where: "プレミアムセレクトガチャ", mode: "premium",
-    catch: "壁は、跳ねるほど力になる。", color: "#2fbf71" },
-  { id: "suzuha", since: "2026-08-16", where: "プレミアムセレクトガチャ", mode: "premium",
-    catch: "宵闇は、ただ一体を沈める。", color: "#a86bff" },
-  { id: "moeka", since: "2026-08-16", where: "プレミアムセレクトガチャ", mode: "premium",
-    catch: "蒼き雫は、壁をすり抜ける。", color: "#38a6ff" },
-  /* ★ 2026-08-16 プレミアム★5 2体 */
-  { id: "tsukino", since: "2026-08-16", where: "プレミアムセレクトガチャ", mode: "premium",
-    catch: "紅い月は、みんなの背中を押す。", color: "#ff6f91" },
-  { id: "anna", since: "2026-08-16", where: "プレミアムセレクトガチャ", mode: "premium",
-    catch: "四十連のあと、盤面ごと吹き飛ばす。", color: "#ffd257" },
-  /* ★ 2026-08-12 蒼夏祭（Aoka Summer Fest）限定★5 7体 */
-  { id: "seira", since: "2026-08-12", where: "蒼夏祭", mode: "fes4",
-    catch: "宵闇は、ただ一体を沈める。", color: "#6f3fd0" },
-  { id: "chizuru", since: "2026-08-12", where: "蒼夏祭", mode: "fes4",
-    catch: "宵の海は、まだ終わらない。", color: "#8e4fe0" },
-  { id: "mayu", since: "2026-08-12", where: "蒼夏祭", mode: "fes4",
-    catch: "動かないまま、半分ぜんぶを縛る。", color: "#2fbf71" },
-  { id: "karem", since: "2026-08-12", where: "蒼夏祭", mode: "fes4",
-    catch: "近づけばいい。それだけの話。", color: "#ff5d47" },
-  { id: "suzuka", since: "2026-08-12", where: "蒼夏祭", mode: "fes4",
-    catch: "壁ぎわは、逃げ場じゃない。", color: "#ffd257" },
-  { id: "tsumugi", since: "2026-08-12", where: "蒼夏祭", mode: "fes4",
-    catch: "8ターン。燃やすものは、もう決めた。", color: "#8affc4" },
-  { id: "fuka", since: "2026-08-12", where: "蒼夏祭", mode: "fes4",
-    catch: "波は、みんなをいちどに押し上げる。", color: "#38a6ff" },
-  /* ★ 2026-08-11 Luminous Summer Fest 追加2体（どちらもクロススキル持ち） */
-  { id: "kokonaalpha", since: "2026-08-11", where: "Luminous Summer Fest", mode: "fes2",
-    catch: "祈りは、夏のいちばん高いところで。", color: "#ff8ab5" },
-  { id: "cherylalpha", since: "2026-08-11", where: "Luminous Summer Fest", mode: "fes2",
-    catch: "四十連、蒼く。届くまで止まらない。", color: "#38a6ff" },
-  /* ★ 2026-08-11 プレミアム★5 3体（アンチ2種・オムニなし。庭園に属性有利の適正あり） */
-  { id: "izumi", since: "2026-08-11", where: "プレミアムセレクトガチャ", mode: "premium",
-    catch: "泉のほとりで、時間だけが遅れていく。", color: "#7dd87d" },
-  { id: "yuunagi", since: "2026-08-11", where: "プレミアムセレクトガチャ", mode: "premium",
-    catch: "宵の凪。壁を叩くほど、灯りは強い。", color: "#ffd257" },
-  { id: "shizuku", since: "2026-08-11", where: "プレミアムセレクトガチャ", mode: "premium",
-    catch: "ひとしずくが、みんなを立ち上がらせる。", color: "#38a6ff" },
-  /* ★ 2026-08-08c プレミアム★5 3体 */
-  { id: "kotone", since: "2026-08-08", where: "プレミアムセレクトガチャ", mode: "premium",
-    catch: "壁の数だけ、焔は太くなる。", color: "#ff5d47" },
-  { id: "ran", since: "2026-08-08", where: "プレミアムセレクトガチャ", mode: "premium",
-    catch: "祈りは、まだ折れていない。", color: "#ffd257" },
-  { id: "ceris", since: "2026-08-08", where: "プレミアムセレクトガチャ", mode: "premium",
-    catch: "囲まれたほうが、都合がいい。", color: "#2fbf71" },
-  { id: "yaju", since: FES3_OPEN, where: "Phantom Legend Fest", mode: "fes3",
-    catch: "お待たせ。ここからは、野獣の時間だ。", color: "#c86bff" },
-  /* ★ 2026-08-08 プレミアム★5 2体 */
-  { id: "nanami", since: "2026-08-08", where: "プレミアムセレクトガチャ", mode: "premium",
-    catch: "壁の数だけ、速くなる。", color: "#ff5d47" },
-  { id: "kaede", since: "2026-08-08", where: "プレミアムセレクトガチャ", mode: "premium",
-    catch: "壁の向こうから、もう来てる。", color: "#ff5d47" },
-  { id: "rinon", since: "2026-08-08", where: "プレミアムセレクトガチャ", mode: "premium",
-    catch: "その技、二度みせて。", color: "#ffe9a8" },
-  /* ★ 2026-08-10 XEVAガチャ移行★5 6体 */
-  { id: "kotomi", since: "2026-08-10", where: "プレミアムセレクトガチャ", mode: "premium",
-    catch: "夜を、あなたの追い風に。", color: "#c9a6ff" },
-  { id: "riko", since: "2026-08-10", where: "プレミアムセレクトガチャ", mode: "premium",
-    catch: "みんな、いっせいに行くよ！", color: "#ffe9a8" },
-  { id: "kaho", since: "2026-08-10", where: "プレミアムセレクトガチャ", mode: "premium",
-    catch: "この半円、逃がさない。", color: "#38a6ff" },
-  { id: "nana", since: "2026-08-10", where: "プレミアムセレクトガチャ", mode: "premium",
-    catch: "壁の数だけ、燃えあがる。", color: "#ff5d47" },
-  { id: "rea", since: "2026-08-10", where: "プレミアムセレクトガチャ", mode: "premium",
-    catch: "壁ごと、抜けていく。", color: "#a86bff" },
-  { id: "rinonx", since: "2026-08-10", where: "プレミアムセレクトガチャ", mode: "premium",
-    catch: "凍った壁、叩くほど熱い。", color: "#ff9d2e" },
-  { id: "kokoro", since: "2026-08-08", where: "プレミアムセレクトガチャ", mode: "premium",
-    catch: "翠の霧に、弱点を晒して。", color: "#2fbf71" },
-  { id: "ange", since: "2026-08-08", where: "プレミアムセレクトガチャ", mode: "premium",
-    catch: "痛むほど、鎮魂歌は強く。", color: "#c86bff" },
-  { id: "chitose", since: "2026-08-08", where: "プレミアムセレクトガチャ", mode: "premium",
-    catch: "蒼雷、三つまとめて落とす。", color: "#38a6ff" },
-  { id: "solea", since: "2026-08-06", where: "プレミアムセレクトガチャ", mode: "premium",
-    catch: "全部、まとめて撃ち抜く。", color: "#38a6ff" },
-  { id: "yuria", since: "2026-08-06", where: "プレミアムセレクトガチャ", mode: "premium",
-    catch: "冥き花は、わたしが摘む。", color: "#a86bff" },
-  { id: "altia", since: "2026-08-06", where: "プレミアムセレクトガチャ", mode: "premium",
-    catch: "灼き尽くすまで、走り抜ける。", color: "#ff5d47" },
-  { id: "liana", since: "2026-08-06", where: "プレミアムセレクトガチャ", mode: "premium",
-    catch: "壁の数だけ、光は強くなる。", color: "#ffd257" },
-  { id: "roselia", since: "2026-08-05", where: "プレミアムセレクトガチャ", mode: "premium",
-    catch: "棘は、殴られた数だけ伸びる。", color: "#e0405e" },
-  { id: "shizuka", since: "2026-08-05", where: "プレミアムセレクトガチャ", mode: "premium",
-    catch: "宵闇より、あなたを高く。", color: "#a86bff" },
-  { id: "nemu", since: "2026-08-05", where: "プレミアムセレクトガチャ", mode: "premium",
-    catch: "あなたの光、写し取るね。", color: "#f0b429" },
-  { id: "sheril", since: "2026-08-04", where: "プレミアムセレクトガチャ", mode: "premium",
-    catch: "碧き潮の号令、いざ。", color: "#38a6ff" },
-  /* ★ 2026-08-07 プレミアム★5 4体 ＋ 幽冥の庭園 降臨 */
-  { id: "iori", since: "2026-08-07", where: "プレミアムセレクトガチャ", mode: "premium",
-    catch: "灼けた壁ほど、よく斬れる。", color: "#c86bff" },
-  { id: "noelle", since: "2026-08-07", where: "プレミアムセレクトガチャ", mode: "premium",
-    catch: "この夜は、誰にも触れさせない。", color: "#c9a6ff" },
-  { id: "yukino", since: "2026-08-07", where: "プレミアムセレクトガチャ", mode: "premium",
-    catch: "七つ数えたら、もう抜けてる。", color: "#7ce8ff" },
-  { id: "reika", since: "2026-08-07", where: "プレミアムセレクトガチャ", mode: "premium",
-    catch: "冥も蝕も、まとめて灼く。", color: "#ffd257" },
-  /* ★ ドミニアはガチャ排出なし（庭園の踏破報酬）なので mode は付けない
-     ＝告知カードに「ガチャへ行く」ボタンを出さない */
-  { id: "dominia", since: "2026-08-07", where: "幽冥の庭園 80WAVE踏破（降臨）",
-    catch: "庭ごと、喰らってあげる。", color: "#8e4fe0" },
-  { id: "fia", since: "2026-08-04", where: "プレミアムセレクトガチャ", mode: "premium",
-    catch: "みんな、こっちへ集まって。", color: "#7cc4ff" },
-  { id: "lysera", since: "2026-08-04", where: "プレミアムセレクトガチャ", mode: "premium",
-    catch: "触れるほど、燃えあがる。", color: "#ff5d47" },
-  { id: "soleria", since: "2026-08-04", where: "プレミアムセレクトガチャ", mode: "premium",
-    catch: "陽炎の毒は、弱点を灼く。", color: "#ffb84d" },
-  { id: "beltia", since: "2026-08-04", where: "プレミアムセレクトガチャ", mode: "premium",
-    catch: "翠の茨、手番ごと絡めとる。", color: "#2fbf71" },
-  { id: "astera", since: "2026-08-04", where: "プレミアムセレクトガチャ", mode: "premium",
-    catch: "宵の星が、七つ連なる。", color: "#baffd9" },
-  { id: "kaguyaalpha", since: "2026-07-31", where: "Luminous Summer Fest", mode: "fes2",
-    catch: "灼夏の重力、解き放つ。", color: "#ff9d2e" },
-  { id: "mionalpha", since: "2026-07-31", where: "Luminous Summer Fest", mode: "fes2",
-    catch: "終焔の連撃、二度目は闇で。", color: "#1d8fd8" },
-  { id: "chloe", since: "2026-07-27", where: "プレミアムセレクトガチャ", mode: "premium",
-    catch: "深海の覇者、参戦。", color: "#38a6ff" },
-];
+/* ★★ 2026-08-18 新キャラ告知の台帳は
+   <b>../mb-newchars.js（window.MB_NEW_CHARS）</b>へ切り出しました。
+   告知のポップアップを XEVARION ポータルのログイン時に一本化したので、
+   データも両方から読める場所に置く必要があるため。
+   ここでは「新★参戦」イベントの顔ぶれを作るのに使います。 */
+const NEW_CHARS = (window.MB_NEW_CHARS || []).slice();
 const NEWCHAR_KEY = "mburst_newchar_seen_v1";
 /* ★ 2026-08-05: 告知は「前回のログインのときには、まだ居なかったキャラ」だけを出す。
    以前は NEW_CHARS 全体を1本の文字列にして「合致しなければ全部出す」方式だったので、
@@ -5623,7 +5520,7 @@ function openNewChar(all) {
         <div class="nccatch">${n.catch || ""}</div>
         <div class="ncnm">${elIcon(c.el, 22)} ${c.nm}<span class="ncno">${charNoText(n.id)}</span></div>
         <div class="ncchips">
-          <span class="ncchip">★5</span>
+          <span class="ncchip">SSR</span>
           <span class="ncchip">${ELEM[c.el].nm}属性</span>
           <span class="ncchip">${shotSVG(c.shot, 12)}${c.shot === "pierce" ? "貫通" : "反射"}</span>
           <span class="ncchip">${c.type}</span>
@@ -5656,8 +5553,111 @@ window.openNewChar = openNewChar; window.closeNewChar = closeNewChar;
 
 /* ══════════ お知らせ（アップデートのたびにここへ追記する） ══════════ */
 const NEWS = [
-  /* ★ 2026-08-18 プレミアム★5 9体／超レーザーストップ作り直し／雷アビリティ強化 */
-  { date: "2026-08-18", title: "⚡ 新★5 9体（ロキシー実装）／超レーザーストップを作り直し／ラウンド系の範囲拡大", body: [
+  /* ★ 2026-08-20c GRAND DEBUT GACHA ／ SSR・SR 表記 */
+  { date: "2026-08-20", title: "✧ GRAND DEBUT GACHA 開幕（新SSR 5体）／🏅 レアリティを SSR・SR に", body: [
+    "✧ <b>新キャラ専用の「GRAND DEBUT GACHA」</b>ができました。"
+      + "これからの<b>新キャラはこのガチャにだけ登場</b>し、"
+      + "フェスやプレミアムセレクトガチャの<b>すり抜け・10連の確定枠にも出ません</b>。",
+    "🆕 第1弾（<b>Ver.1.0</b>）は <b>ミレーユ（火）・スカーレット（水）・コユキ（闇）・"
+      + "アメリア（木）・ミオ（光）</b> の5体。5体とも<b>オムニアンチと治癒の祈りを持たず</b>、"
+      + "それぞれ<b>自分が有利属性になる蓬莱の九重のクエストの必要アンチをすべて消せます</b>"
+      + "（ミレーユ＝第八重／スカーレット＝第一重／コユキ＝第四重・第九重／アメリア＝第七重／ミオ＝第五重）。"
+      + "<br><b>ミレーユ・スカーレット・コユキ</b>はアンチ3種＋<b>クロススキル</b>持ち、"
+      + "<b>アメリア・ミオ</b>はアンチ2種の標準性能です。",
+    "🔁 <b>次の更新で新しいキャラが GRAND DEBUT に入ると</b>、それまでの5体は"
+      + "<b>" + PREMIUM_NM + " へ移り</b>、現行のキャラと同じ扱いになります。"
+      + "どの回のキャラが入っているか分かるよう、ガチャには<b>バージョン（Ver.1.0）</b>を出しています。",
+    "🎫 GRAND DEBUT GACHA では<b>フェスチケットは使えません</b>（ガチャチケットは使えます）。"
+      + "<b>キャラの排出と確定枠のしくみはフェスガチャと同じ</b>です"
+      + "（新キャラSSR 合計10%＋<b>" + PREMIUM_NM + " のSSRも合計5%</b>、SR 50%、"
+      + "確定枠は新キャラとプレミアムのSSRをまとめた中から等確率）。"
+      + "変えたのは育成アイテムの中身です——"
+      + "🎫ガチャチケット・📕超越の書・🎖️英傑の証を厚くし、"
+      + "<b>🪭九天の玉簡</b>と<b>📘クロスの書</b>も極低確率で出ます。",
+    "💥 <b>リンクスキル「超強ハイクロススティンガー」を大幅に強化しました。</b>"
+      + "貫通弾が <b>4本 → " + SHICROSS_N + "本</b>、1発の威力が <b>×1.70 → ×" + SHICROSS_PER + "</b>。"
+      + "弾は<b>尾を引く十字の光槍</b>になり、<b>発射・折り返し・命中</b>のそれぞれで十字の閃光が走るので、"
+      + "どこで曲がってどの敵に入ったのかが目で追えます（ソレリア／スカーレット）。",
+    "✨ <b>ミオのリンクスキルを「超強ルミナスレイ」に変更しました。</b>"
+      + "砲台が <b>4基 → " + SLUMI_N + "基</b>に増え、レーザーの威力も当たり判定の太さも上がります。",
+    "🔧 <b>ミレーユ</b>の木属性キラーを <b>EL → M</b> に、"
+      + "<b>コユキ</b>のファーストキラーLを <b>重力バリアキラーL</b> に変更しました。",
+    "🏅 <b>レアリティの表記を「★5 → SSR」「★4 → SR」に変えました。</b>"
+      + "図鑑・編成・ガチャ・結果の演出まですべてそろえています（強さは変わりません）。",
+    "📶 XEVARION の 設定 →「オフライン・通信設定」で、"
+      + "<b>Wi-Fi のとき</b>と<b>モバイルデータのとき</b>で"
+      + "「最新のデータを使う」「更新を自動でダウンロード」を別々に決められるようになりました。",
+  ] },
+  /* ★ 2026-08-20 クリア編成への改名・おすすめ編成の根拠 */
+  { date: "2026-08-20", title: "🏷 「前回編成」を「クリア編成」に／🤖 おすすめ編成の根拠を追加", body: [
+    "🏷 クエストの <b>「前回編成」ボタンを「クリア編成」に改名</b>しました。"
+      + "中に<b>みんなのクリア編成</b>が入ったので、"
+      + "「前回」だと自分の記録しか無いように見えてしまっていたためです。中身は変わりません。",
+    "🤖 <b>XEVYNAR のおすすめ編成</b>も、MagiBurst の自動編成と同じように"
+      + "<b>みんなのクリア編成</b>と <b>MagiTier の順位</b>を見るようになりました。"
+      + "重みもそろえてあるので、どちらから聞いても同じ考えかたで返ってきます。",
+    "💬 XEVYNAR のチャットに<b>問題文をそのまま貼る</b>と、"
+      + "その問題を見つけて<b>1手ずつ</b>解説するようになりました（図つき）。",
+  ] },
+  /* ★ 2026-08-19b みんなのクリア編成 */
+  { date: "2026-08-19", title: "🌍 みんなのクリア編成を見られるようになりました", body: [
+    "🌍 <b>ほかの指揮官が実際にそのクエストを抜けた編成</b>を、"
+      + "「クリア編成」の画面でいちばん下に出します。"
+      + "<b>手数・残りHP・かかった時間・手持ちで何体そろうか</b>を添えて、"
+      + "安定して速かった順に5件まで並びます。"
+      + "<br>「⚔ この編成を読み込む」で、<b>持っているキャラだけ</b>をその場で編成に入れられます。",
+    "📤 <b>あなたがソロでクリアすると、その編成も自動で載ります。</b>"
+      + "送るのは<b>キャラid・Lv・凸・手数・残HP・秒数・XEVARION の表示名</b>だけで、画像は送りません。"
+      + "1クエストにつき1件、<b>自分のいちばん良かったクリア</b>で上書きされます。",
+    "🤖 <b>自動編成も「みんながこのクエストで使っているキャラ」を見るようになりました。</b>"
+      + "ギミック対応より軽い重みなので、対策できない編成が出ることはありません。"
+      + "選ばれた理由に「みんなのクリア編成でよく使われている」と出ます。",
+  ] },
+  /* ★ 2026-08-19 クリア編成・自動編成の実績反映 */
+  { date: "2026-08-19", title: "🏅 クリア編成は「いちばん良かった1つ」／🤖 自動編成が実績も見るように", body: [
+    "🏅 <b>クエストごとの「クリアしたときの編成」を、いちばん安定して速かった1つに変えました。</b>"
+      + "これまでは勝つたびに上書きしていたので、たまたま最後がギリギリの勝ちだと"
+      + "それが記録として残ってしまっていました。"
+      + "<br>いまは<b>残りHPの割合 × 100 −  手数</b>で点数を付け、点の高いほうだけを残します。"
+      + "「クリア編成」の画面には<b>手数・残りHP・かかった時間・クリア回数</b>も出ます。",
+    "🤖 <b>自動編成が「実際に効いた実績」も見るようになりました。</b>"
+      + "ギミックの対応表だけで選ぶと、机上では正しくても実戦で楽だったキャラが選ばれません。"
+      + "<br>そこで <b>①そのクエストをクリアした編成にいたか（+90）</b>"
+      + " <b>②ほかのクエストでもよく使っているか（最大+40）</b>"
+      + " <b>③MagiTier で上の段か（最大+60）</b> を点に混ぜます。"
+      + "<br>★ どれも<b>ギミック対応より軽く</b>してあるので、対策できないキャラが並ぶことはありません。"
+      + "選ばれた理由も自動編成の画面に出ます。",
+    "🏯 <b>XEVYNAR が蓬莱の九重に答えられるようになりました。</b>"
+      + "クエストの知識の書き出しに蓬莱の九重が入っていなかったので、"
+      + "「蓬莱天宮のギミックは？」に答えられませんでした。"
+      + "<br>「第三重」のような<b>漢数字</b>の聞きかたでも通じます。",
+  ] },
+  /* ★ 2026-08-18b 生死判定・透明スイッチ・性能画面・告知の一本化 */
+  { date: "2026-08-18", title: "💀 生死の判定をターンの区切りへ／👻 透明スイッチが1ターンで全部はたらく／✦ 性能画面を見やすく", body: [
+    "💀 <b>生死の判定を「ターンの区切り」1か所にまとめました。</b>"
+      + "これまでは毎フレーム見張っていて、HPが0のまま少し経つとその場で敗北が確定していました。"
+      + "そのため<b>味方が走っている最中・敵の攻撃の演出の途中・ワンパンで次のWAVEを出している途中</b>に"
+      + "いったんHPが0をよぎっただけで、そのあと立て直せる形でも負けになることがありました。"
+      + "<br>いまは<b>キャラの動き → リンクスキル → フルバースト → WAVEクリア回復 → 敵の攻撃 → ターン終わりの後始末</b>"
+      + "をすべて終えて、次のキャラへ手番を渡す直前に1回だけ判定します。",
+    "👻 <b>透明スイッチが、1ターンのあいだ全部はたらくようになりました。</b>"
+      + "これまでは「反応は1ターンに1回」だったので、1つ踏んだ瞬間にほかのスイッチが死んでいました。"
+      + "<br>いまは<b>踏んだスイッチだけ</b>がその場から消え（次のターンで復活）、ほかのスイッチはそのまま踏めます。"
+      + "2つ踏めば元にもどり、3つ踏めばまた入れ替わる——<b>踏む数と順番で、ターンの終わりにどちらの側を出しておくかを決められます</b>。",
+    "✦ <b>キャラの性能画面のステータスを作り直しました。</b>"
+      + "1項目を<b>2段</b>にして、上に数字（とアークで増えたぶん）、下に<b>横いっぱいのバー</b>を置いています。"
+      + "バーの満タンは<b>全キャラの最大値</b>（最大Lv・限界突破MAX）なので、いまどのへんの強さかがそのまま長さになります。"
+      + "<br>これまでは1行に見出し・バー・数字・アークを詰めていたため、iPhone ではバーがほとんど動かず、"
+      + "「436 km/h」のような長い数字がはみ出していました。",
+    "🆕 <b>新キャラのお知らせは XEVARION のログイン時に出ます。</b>"
+      + "同じ知らせが2つのアプリから出ると、どちらで閉じたのか分からなくなるため、MagiBurst 側の告知は廃止しました。"
+      + "告知にもれていた<b>12体</b>（グレース・瑶華＆玉蘭・瑶妃・8月18日のプレミアムSSR 9体）も入れています。",
+    "🗒 <b>ミッションから「ガチャを◯回引く」を外しました。</b>"
+      + "ガチャは XEVARION ポータル側に一本化してあり、MagiBurst の中には回す場所がないためです"
+      + "（このアプリの中では絶対に進められないミッションが並んでいました）。",
+  ] },
+  /* ★ 2026-08-18 プレミアムSSR 9体／超レーザーストップ作り直し／雷アビリティ強化 */
+  { date: "2026-08-18", title: "⚡ 新SSR 9体（ロキシー実装）／超レーザーストップを作り直し／ラウンド系の範囲拡大", body: [
     "⚡ <b>ロキシー（No.127）を実装しました。</b>水属性・反射の<b>雷使い</b>です。"
       + "<br>フルバースト<b>「豪雷積層雲」（20ターン）</b>は、<b>残りチームHPの15%</b>を雷雲へ捧げて放ちます。"
       + "撃った瞬間に<b>画面全体が暗転</b>し、<b>巨大な黒雲がステージを覆って豪雨</b>が降りそそぎ、"
@@ -5673,12 +5673,12 @@ const NEWS = [
     "🔗 <b>ロキシーのクロススキル「豪雷のクロス」。</b>"
       + "<b>自分と属性が同じ味方が1体以上</b>、かつ<b>自分と撃種が同じ味方が1体以上</b>で発動し、"
       + "<b>蓬莱族キラーL（×2.5）</b>と<b>重力バリアキラーL（×2.5）</b>が付きます。",
-    "✨ <b>プレミアムセレクトガチャに新★5 8体（No.119〜126）を追加しました。</b>"
+    "✨ <b>プレミアムセレクトガチャに新SSR 8体（No.119〜126）を追加しました。</b>"
       + "<b>アルテミア</b>（光・貫通）／<b>アスハ</b>（木・反射）／<b>ブレア</b>（水・貫通）／"
       + "<b>リリス</b>（闇・反射）／<b>リラ</b>（闇・反射）／<b>サツキ</b>（火・貫通）／"
       + "<b>サヨ</b>（光・貫通）／<b>メルティ</b>（闇・反射）。"
       + "<br>8体とも<b>オムニアンチを持たず、アンチはちょうど2種類</b>ずつです。",
-    "🏯 <b>新★5 8体は「蓬莱の九重のどこか1クエストの最適解」になるように組んであります。</b>"
+    "🏯 <b>新SSR 8体は「蓬莱の九重のどこか1クエストの最適解」になるように組んであります。</b>"
       + "それぞれ<b>自分が有利属性になるクエストの必要アンチとぴったり同じ2種</b>を持つので、"
       + "<b>属性有利をとったまま、そのクエストのギミックを全部消して走れます</b>。"
       + "<br>第二重＝<b>アスハ</b>／第三重＝<b>サツキ</b>／第四重＝<b>リリス・メルティ</b>／"
@@ -5750,8 +5750,8 @@ const NEWS = [
       + "<br>「どこでリンクをつなぐか」を、これまで以上に強く問うギミックになります。",
   ] },
   /* ★ 2026-08-17b グレース参戦・速度300km/h超・庭園後半の調整 */
-  { date: "2026-08-17", title: "⚔ 新★5「グレース」参戦／💨 スピードが300km/h超に／🌸 幽冥の庭園 後半の被ダメージを大幅ダウン", body: [
-    "⚔ <b>プレミアムセレクトガチャに新★5「グレース」（光／反射）が参戦しました。</b>"
+  { date: "2026-08-17", title: "⚔ 新SSR「グレース」参戦／💨 スピードが300km/h超に／🌸 幽冥の庭園 後半の被ダメージを大幅ダウン", body: [
+    "⚔ <b>プレミアムセレクトガチャに新SSR「グレース」（光／反射）が参戦しました。</b>"
       + "フルバーストは<b>18ターン</b>で、<b>自強化（攻撃×" + GRACE_ATK + "・スピード×" + GRACE_SPD + "）</b>に加えて"
       + "<b>自分の行動" + GRACE_KILL_TURNS + "回ぶんのあいだ 弱点キラーと全属性キラーの両方</b>になり、"
       + "<b>止まったあと もう一度ひとりでに動き出します</b>。"
@@ -5774,9 +5774,9 @@ const NEWS = [
       + "同じ技なのに説明が食いちがっていた<b>3件</b>、"
       + "キャラ名の書きまちがい<b>1件</b>（ルクシアの説明が「リノン」になっていた）をそろえています。",
   ] },
-  /* ★ 2026-08-16c 新★5 6体・ワンパン貫通・km/h・効果音 */
-  { date: "2026-08-16", title: "⚔ 新★5が6体 参戦／💥 ワンパンで面を貫けるように／🔊 効果音を追加／⏱ スピードを km/h 表示に", body: [
-    "⚔ <b>プレミアムセレクトガチャに新★5が6体 参戦しました。</b>"
+  /* ★ 2026-08-16c 新SSR 6体・ワンパン貫通・km/h・効果音 */
+  { date: "2026-08-16", title: "⚔ 新SSRが6体 参戦／💥 ワンパンで面を貫けるように／🔊 効果音を追加／⏱ スピードを km/h 表示に", body: [
+    "⚔ <b>プレミアムセレクトガチャに新SSRが6体 参戦しました。</b>"
       + "<b>モエカ</b>（水／反射）・<b>スズハ</b>（闇／貫通）・<b>ヴィオレット</b>（木／反射）・"
       + "<b>カナタ</b>（火／貫通）・<b>トウカ</b>（光／貫通）・<b>エレナ</b>（水／貫通）。"
       + "<br>あわせて <b>No.108 以降のキャラは全員プレミアムセレクトガチャから出る</b>ようにしました。"
@@ -5947,8 +5947,8 @@ const NEWS = [
       + "（サブリンクは自分のものをそのまま撃ちます）。"
       + "属性とキラーも<b>コピーを持っているキャラ本人のもの</b>が乗ります。仕様どおりに動いていました。",
   ] },
-  { date: "2026-08-08", title: "✦ 新★5 3体参戦／👻 透明スイッチを作り直し／📅 先月のクリアぶんを一括受け取り", body: [
-    "✦ <b>プレミアムセレクトガチャに新★5が3体参戦</b>します。"
+  { date: "2026-08-08", title: "✦ 新SSR 3体参戦／👻 透明スイッチを作り直し／📅 先月のクリアぶんを一括受け取り", body: [
+    "✦ <b>プレミアムセレクトガチャに新SSRが3体参戦</b>します。"
       + "<b style='color:#ff5d47'>コトネ</b>（火・反射／No.72）は<b>ウォールブーストEL（最大×" + WALLBOOSTEL_MAX + "）</b>で壁を使うほど重くなるアタッカー、"
       + "<b style='color:#ffd257'>ラン</b>（光・反射／No.73）は<b>治癒の祈り＋ソウルスティールEL（" + Math.round(SOULEL_RATE * 100) + "%）</b>で落ちない編成をつくる支援、"
       + "<b style='color:#2fbf71'>セリス</b>（木・貫通／No.74）は<b>超アンチダメージウォール＋超アンチワープ＋敵多底力M</b>で囲まれるほど強くなる技巧型です。"
@@ -6023,8 +6023,8 @@ const NEWS = [
       + "黄昏の王城・禁忌の迷宮を毎月ぜんぶ踏み直す手間がぐっと減ります。"
       + "そのぶん<b>初クリアのジェムは全体的に少し下げて</b>います。",
   ] },
-  { date: "2026-08-08", title: "✦ 新★5 4体参戦／💥 フルバーストの演出を作り直し／💨 さらにスピードUP／🐛 倍率表示の不具合を修正", body: [
-    "✦ <b>プレミアムセレクトガチャに新★5が4体参戦</b>しました。"
+  { date: "2026-08-08", title: "✦ 新SSR 4体参戦／💥 フルバーストの演出を作り直し／💨 さらにスピードUP／🐛 倍率表示の不具合を修正", body: [
+    "✦ <b>プレミアムセレクトガチャに新SSRが4体参戦</b>しました。"
       + "<b>カエデ</b>（火・貫通／壁をすり抜けて反対側から出現し、敵にふれるほどパワーUP（最大×10））、"
       + "<b>リノン</b>（光・貫通／ふれた味方のリンクスキルが2回発動＋撃破ごとに全員FB短縮）、"
       + "<b>ココロ</b>（木・反射／ボスキラーM・全属性耐性M・リンク×2）、"
@@ -6063,7 +6063,7 @@ const NEWS = [
       + "<b>ガチャ結果の列の高さ</b>も、限界突破・昇格・コインのどれでも同じになります。"
       + "<b>前回編成・自動編成</b>は右上の ✕ に一本化し、画面の上にかかって操作しづらかったのも直しています。",
   ] },
-  { date: "2026-08-08", title: "⚔ 殴り強化・全体スピードUP／🌸 庭園HPを大幅に見直し／✦ 新★5 2体／🔍 検索を3種類に", body: [
+  { date: "2026-08-08", title: "⚔ 殴り強化・全体スピードUP／🌸 庭園HPを大幅に見直し／✦ 新SSR 2体／🔍 検索を3種類に", body: [
     "⚔ <b>直殴り（体当たり）のダメージを上げました</b>（×1.50 → <b>×" + MELEE_MUL + "</b>）。"
       + "超強◯◯系のリンクスキルが増えて、また「味方をなぞるだけ」が最適解になりかけていたので、"
       + "<b>殴りを当てる立ち回り</b>の取り分をもう一段大きくしています。",
@@ -6080,7 +6080,7 @@ const NEWS = [
       + "ただし<b>幽冥の庭園 第4・第7ノ園はこれまでどおり全員</b>が持ちます。",
     "🧱 <b>ウォールチェンジの園（第6・7・8・12・15ノ園）で、透明パネルとヴァニッシュボックスを最小限にしました。</b>"
       + "壁の色を回しながら消える足場まで読むのは無理があり、<b>跳ね返りが読めない</b>原因になっていたためです。",
-    "✦ <b>プレミアムセレクトガチャに新★5が2体</b>参戦します——"
+    "✦ <b>プレミアムセレクトガチャに新SSRが2体</b>参戦します——"
       + "<b>ナナミ</b>（火/反射・壁にふれるたび" + Math.round(NANAMI_WALL_P * 100) + "%でスピードとパワーがアップ／"
       + "リンクは超強三方向追従型貫通弾）、"
       + "<b>チトセ</b>（水/貫通・ロゼリア型のフルバースト＋火属性キラー／"
@@ -6108,7 +6108,7 @@ const NEWS = [
     "🐛 <b>ギミック詳細の「敵キャラ情報」だけ背景が白いまま</b>だったのを、まわりと同じ暗いカードにそろえました。",
     "🐛 <b>ルーンを2つ付けても表示が入れ替わらなかった不具合</b>を直しました。一定の間隔で<b>両方が交互に</b>表示されます。",
   ] },
-  { date: "2026-08-07", title: "🔧 ドミニアの性能変更／★5の見直し／断絶界の出現を2園に／🎰 プレミアムバナー修正", body: [
+  { date: "2026-08-07", title: "🔧 ドミニアの性能変更／SSRの見直し／断絶界の出現を2園に／🎰 プレミアムバナー修正", body: [
     "🌑 <b>ドミニアの性能を変更</b>しました。"
       + "<b>冥花種キラーL・蝕冥滅殺M・オムニアンチ</b>をなくし、かわりに"
       + "<b>ザコキラーL</b>（ボス以外の敵へのダメージ ×" + MOBKILLER_L_MUL + "）と"
@@ -6116,9 +6116,9 @@ const NEWS = [
       + "庭園のボス本人が庭園特化キラーまで持っていると、1体で庭園が終わってしまい"
       + "種族キラーを積む意味がなくなっていたためです。"
       + "<b>超アンチ減速壁・アンチ断絶界・弱点キラーL・ソウルスティールM・バリアL</b>はそのままです。",
-    "⭐ <b>EX降臨の「アイラ」、幽冥の庭園の「ヘカーティア」「ドミニア」を★5</b>にしました。"
-      + "3体ともステータス・アビリティは<b>ガチャ限定★5と同じ帯</b>まで引き上げてあるのに、"
-      + "表示だけ★4のままで実力と食いちがっていたためです（ステータスも★5ぶん上がります）。",
+    "⭐ <b>EX降臨の「アイラ」、幽冥の庭園の「ヘカーティア」「ドミニア」をSSR</b>にしました。"
+      + "3体ともステータス・アビリティは<b>ガチャ限定SSRと同じ帯</b>まで引き上げてあるのに、"
+      + "表示だけSRのままで実力と食いちがっていたためです（ステータスもSSRぶん上がります）。",
     "❄ <b>ユキノ</b>に <b>パワーオーラM</b>（チームHP50%以上で攻撃・スピード ×" + AURAM_MUL + "）を追加しました。"
       + "支援に寄せたぶん自分の火力と足が細かったので、HPが高いあいだは前に出られるようにしています。",
     "🔵 <b>断絶界が出る幽冥の庭園を「第7ノ園」と「第11ノ園」だけ</b>にしました。"
@@ -6138,7 +6138,7 @@ const NEWS = [
       + "弾に描画そのものが無く、当たった味方の「FB-1!」だけが唐突に出る状態でした。"
       + "いまは<b>金の稲妻＋回る輪</b>の大きな弾として、8方向へ散るのが一目で分かる演出になっています。",
   ] },
-  { date: "2026-08-07", title: "🌑 幽冥の庭園 第13〜15ノ園／新ボス「ドミニア」／新★5 4体／⚡ バウンドの修正", body: [
+  { date: "2026-08-07", title: "🌑 幽冥の庭園 第13〜15ノ園／新ボス「ドミニア」／新SSR 4体／⚡ バウンドの修正", body: [
     "⚡ <b>イレギュラーバウンドを直しました</b>（いちばん大きな修正です）。"
       + "ブロック・透明パネル・敵に<b>深くめりこんだとき</b>、跳ね返る向きの計算が"
       + "「とりあえず真上」という決め打ちになっていて、<b>どの向きから当てても上へ弾かれる・上へワープする</b>ことがありました。"
@@ -6159,8 +6159,8 @@ const NEWS = [
     "🌸 <b>幽冥の庭園 第11〜15ノ園のボスが「ドミニア」に交代</b>しました。"
       + "種族は新設の<b>蝕魔族</b>なので、<b>冥花種キラーは効きません</b>。"
       + "両方に効く新アビリティ<b>「蝕冥滅殺M」</b>を持つ味方をそろえましょう。"
-      + "そして<b>庭園を80WAVE踏破すると、そのドミニア本人が仲間になります</b>（ガチャ排出なし・ガチャ限定★5と同格の性能）。",
-    "✦ <b>プレミアムセレクトガチャに新★5が4体</b>参戦します——"
+      + "そして<b>庭園を80WAVE踏破すると、そのドミニア本人が仲間になります</b>（ガチャ排出なし・ガチャ限定SSRと同格の性能）。",
+    "✦ <b>プレミアムセレクトガチャに新SSRが4体</b>参戦します——"
       + "<b>イオリ</b>（闇/貫通・ダメージウォールにふれるたび攻撃力UP 最大×10）、"
       + "<b>ノエル</b>（闇/反射・自分の行動2ターンぶん<b>無敵</b>）、"
       + "<b>ユキノ</b>（水/反射・<b>7ターン</b>で撃てて貫通化＋4ギミック無効）、"
@@ -6195,7 +6195,7 @@ const NEWS = [
     "①②③④ <b>編成中のキャラの順番を、一覧でもはっきり分かる</b>ようにしました（大きな金の丸数字にしています）。",
   ] },
   { date: "2026-08-07", title: "🤫 登場まで完全に伏せます／🧩 編成の4体を上に固定／🔗 クロススキルの表示を修正", body: [
-    "🤫 <b>Phantom Legend Fest の限定★5は、登場するまで完全に伏せる</b>ようにしました。"
+    "🤫 <b>Phantom Legend Fest の限定SSRは、登場するまで完全に伏せる</b>ようにしました。"
       + "<b>予告バナーはシルエット版に差し替え</b>、<b>キャラ図鑑・提供割合・対応キャラさがし</b>でも"
       + "<b>名前は「???」・姿はシルエット・番号は「No.??」</b>になります。図鑑からタップして開いても、"
       + "出るのは<b>登場する日時と場所だけ</b>です。",
@@ -6208,7 +6208,7 @@ const NEWS = [
       + "発動条件も「<b>自分が編成に入っていること＋自分のほかにアタッカー型が1体以上</b>（＝アタッカー型が自分をふくめて2体）」と書き直しました。",
     "🔍 <b>絞り込み画面の下に、下のバーが少しのぞいて見えていた</b>のを直しました。",
     "🟣 <b>Phantom Legend Fest</b> を <b>" + openTimeText(FES3_OPEN) + "</b> します。"
-      + "登場するのは、MagiBurst で初めて<b>クロススキル</b>を持つ<b>伝説の限定★5</b>です。"
+      + "登場するのは、MagiBurst で初めて<b>クロススキル</b>を持つ<b>伝説の限定SSR</b>です。"
       + "<b>時間になると、なにもしなくても引けるようになります</b>（🎫フェスチケットもそのまま使えます）。",
     "🔗 <b>新システム「クロススキル」</b>を追加しました。"
       + "<b>編成の条件</b>（たとえば「自分のほかにアタッカー型の味方が1体以上いること」）を満たすと、"
@@ -6223,8 +6223,8 @@ const NEWS = [
       + "<b>キャラ詳細</b>は iPhone でノッチにかからないよう位置を下げ、<b>✕ を大きく</b>しました。"
       + "<b>あそびかた・提供割合にも ✕</b> を付け、<b>ギミック・対応キャラの下の「とじる」は廃止</b>しました。",
   ] },
-  { date: "2026-08-06", title: "🌊 新★5「ソレア」参戦／全敵ロックオンレーザー／🗒 デイリー・ウィークリーを見なおし", body: [
-    "🌊 <b>新★5「ソレア」（水／貫通）がプレミアムセレクトガチャに参戦</b>しました。"
+  { date: "2026-08-06", title: "🌊 新SSR「ソレア」参戦／全敵ロックオンレーザー／🗒 デイリー・ウィークリーを見なおし", body: [
+    "🌊 <b>新SSR「ソレア」（水／貫通）がプレミアムセレクトガチャに参戦</b>しました。"
       + "フルバースト<b>「アズュール・アセンション」（16ターン）はレゼリアと同じ</b>——自強化して突撃し、"
       + "<b>敵にふれるたびに攻撃力が積み上がっていきます（最大×10.0）</b>。貫通なので敵の列を擦り抜けるだけで倍率が伸びます。"
       + "アビリティは<b>超アンチ減速壁・超アンチ重力バリア・マインスイーパーM・ウォールブーストM・重力バリアキラーM・リジェネM</b>。",
@@ -6317,17 +6317,17 @@ const NEWS = [
       + "（XEVARION へもどるのは左上の「‹」から）。",
     "💎 上のバーの<b>ジェムの「＋」ボタンを廃止</b>しました（残高そのものを押すと、これまでどおり交換所へ入れます）。",
   ] },
-  { date: "2026-08-06", title: "✦ 新★5「ユリア」「アルティア」「リアナ」／🌸 冥花種キラー／✚ 十字レーザー／各種の調整・修正", body: [
+  { date: "2026-08-06", title: "✦ 新SSR「ユリア」「アルティア」「リアナ」／🌸 冥花種キラー／✚ 十字レーザー／各種の調整・修正", body: [
     "🌸 <b style='color:#c86bff'>新アビリティ「冥花種キラー」</b>を追加しました。<b>種族を見る初めてのキラー</b>で、"
       + "<b>幽冥の庭園のボス（冥花種）</b>に大ダメージを与えます。<b>属性キラーとは別枠</b>なので重ねて効きます"
       + "（EL＝<b>×" + NETHERKILLER_EL_MUL + "</b>／M＝<b>×" + NETHERKILLER_M_MUL + "</b>）。",
-    "🌙 <b style='color:#a86bff'>新★5「ユリア」</b>（闇／反射）参戦。フルバーストは<b>アヤカと同じ</b>で、ふれた味方を<b>バブリー状態</b>に。"
+    "🌙 <b style='color:#a86bff'>新SSR「ユリア」</b>（闇／反射）参戦。フルバーストは<b>アヤカと同じ</b>で、ふれた味方を<b>バブリー状態</b>に。"
       + "<b>超アンチワープ／マインスイーパーEL／冥花種キラーEL／底力M／ソウルスティールM</b>。"
       + "リンクは<b>鋭角三方向追従型貫通弾</b>、サブリンクは<b>防御ダウンブラスト</b>。",
-    "🔥 <b style='color:#ff5d47'>新★5「アルティア」</b>（火／貫通）参戦。フルバーストは<b>アヤカと同じ</b>。"
+    "🔥 <b style='color:#ff5d47'>新SSR「アルティア」</b>（火／貫通）参戦。フルバーストは<b>アヤカと同じ</b>。"
       + "<b>超アンチダメージウォール／アンチロックゾーン／冥花種キラーEL／木属性キラーM／バリアM／ダッシュM</b>。"
       + "リンクは<b>ツインインボリュートスフィア</b>、サブリンクは<b>貫通ターゲットロックオン衝撃波8</b>。",
-    "✨ <b style='color:#ffd257'>新★5「リアナ」</b>（光／反射）参戦。フルバーストは<b>ナズナと同じ</b>で、"
+    "✨ <b style='color:#ffd257'>新SSR「リアナ」</b>（光／反射）参戦。フルバーストは<b>ナズナと同じ</b>で、"
       + "<b>壁にふれるたびパワーUP（最大×10.0）＋味方全員で総攻撃</b>。"
       + "<b>超アンチワープ／アンチロックゾーン／冥花種キラーM／全属性キラーM／全属性耐性／リジェネM／壁FBターン短縮</b>。"
       + "リンクは新しい<b>超強三方向追従型貫通弾</b>（三方向追従型貫通弾の強化版・1発 攻撃力×" + SUPTRI_PER + "）、サブリンクは<b>爆発</b>。",
@@ -6356,7 +6356,7 @@ const NEWS = [
       + "<b>幽冥の庭園で「第◯ノ園が開放されました」と出てしまう</b>（庭園はすべて最初から開放されています）／"
       + "<b>「最下部へ」ボタンがどの画面でも出しっぱなし</b>（長い画面だけに出るようにし、サイズも小さくしました）。",
   ] },
-  { date: "2026-08-05", title: "🏠 ホーム全面リニューアル／✦ アーク強化／🗒 ミッション／🎪 イベント／👥 フレンド／新★5「ロゼリア」「シズカ」", body: [
+  { date: "2026-08-05", title: "🏠 ホーム全面リニューアル／✦ アーク強化／🗒 ミッション／🎪 イベント／👥 フレンド／新SSR「ロゼリア」「シズカ」", body: [
     "🏠 <b style='color:#8e6bff'>ホーム画面を作り直しました。</b>下のバーは <b>Home / Character / Party / Shop / Menu</b> の5つになり、"
       + "上段に <b>Mission・Event・Friend・MultiPlay・Guide</b>、中央に <b>MAIN MENU（Quest／Summon／Character／Party／Arc／XEVYNAR）</b> を置いています。"
       + "<br><b>名前・レベル・所持している通貨・お知らせ・メール・アカウント・もどる</b>は、"
@@ -6369,10 +6369,10 @@ const NEWS = [
     "👥 <b>フレンド</b>を追加しました。XEVARION のフレンドがそのまま出てきて、<b>貸し出しキャラのレベル・ルーン・紋章</b>を見たうえで"
       + "その場で<b>助っ人として借りられます</b>。助っ人が入る枠は<b>編成の④番目に固定</b>になり、"
       + "<b>自分の編成にいるキャラと同じキャラでも借りられます</b>（性能は貸してくれたフレンドの状態が乗ります）。",
-    "🌹 <b style='color:#e0405e'>新★5「ロゼリア」</b>（木／貫通）参戦。フルバースト<b>「ロサ・ヴィンディクタ」（18ターン）</b>は、"
+    "🌹 <b style='color:#e0405e'>新SSR「ロゼリア」</b>（木／貫通）参戦。フルバースト<b>「ロサ・ヴィンディクタ」（18ターン）</b>は、"
       + "<b>撃ったターンを含めて自分が2回行動し終えるまで</b> 自強化＋<b>カウンターキラー</b>＋<b>水属性キラー</b>＋<b>バブリー</b>。"
       + "さらに<b>ふれた敵の攻撃ターンが20%で+2</b>されます。リンクは<b>超強ルミナスレイ</b>（砲台" + SLUMI_N + "基・威力×" + SLUMI_MUL + "）。",
-    "🌙 <b style='color:#a86bff'>新★5「シズカ」</b>（闇／反射）参戦。フルバーストは<b>ネフィアと同じ</b>で、"
+    "🌙 <b style='color:#a86bff'>新SSR「シズカ」</b>（闇／反射）参戦。フルバーストは<b>ネフィアと同じ</b>で、"
       + "ふれた味方のパワーを<b>×2.0</b>（その味方が2回行動するまで）。"
       + "アビリティは<b>超アンチダメージウォール／超アンチ重力バリア／アンチロックゾーン／エターナルエーテル／パワーオーラM／ソウルスティールM</b>。"
       + "リンクは<b>超強ハイエナジーサークル</b>（画面全体 ×" + SENERGY_MUL + "・" + SENERGY_WAVES + "連発）。",
@@ -6386,7 +6386,7 @@ const NEWS = [
     "🎰 ガチャ結果で<b>全部めくり終わったら「まとめて見る」が消える</b>ようにし、"
       + "ボタンが後から出てきて<b>結果の位置がズレる</b>のも直しました。",
   ] },
-  { date: "2026-08-05", title: "❖ 魂の紋章＋魂気／🤝 助っ人／⏳ FB遅延攻撃／★5「ネム」参戦／ホーム刷新", body: [
+  { date: "2026-08-05", title: "❖ 魂の紋章＋魂気／🤝 助っ人／⏳ FB遅延攻撃／SSR「ネム」参戦／ホーム刷新", body: [
     "❖ <b style='color:#c9a6ff'>新システム「魂の紋章」</b>を追加しました。紋章は<b>属性ごとに1つ</b>あり、"
       + "<b>効果を" + EMBLEM_SLOTS + "つまで刻めます</b>（1つ <i class='icc ic-soul'></i>" + fmt(EMBLEM_COST) + "）。"
       + "効果は<b>対○の心得（その属性へ×1.25）／対弱の心得（弱点×1.5）／対将の心得（ボス×1.25）／"
@@ -6405,9 +6405,9 @@ const NEWS = [
       + "敵アイコンの<b>右下に紫の ⏳</b> が目じるし。<b>幽冥の庭園 第8〜12ノ園</b>で登場します。"
       + "紋章の<b>「" + EMBLEM_FX.fbguard.nm + "」</b>を刻んだ味方はいっさい受けません。",
     "🌸 <b>アイラEX降臨の出現場所を 第6・7ノ園 → 第8〜12ノ園</b>へ移しました。"
-      + "あわせて<b>アイラの性能をガチャ★5と同格まで引き上げ</b>（HP5,880／攻撃3,060／速さ422・アビリティ7種）、"
+      + "あわせて<b>アイラの性能をガチャSSRと同格まで引き上げ</b>（HP5,880／攻撃3,060／速さ422・アビリティ7種）、"
       + "フルバーストを<b>「味方全員で総攻撃」</b>に作り直しています。",
-    "✦ <b>プレミアムセレクトガチャに新★5「ネム」</b>が参戦！ <b>光属性・貫通</b>。"
+    "✦ <b>プレミアムセレクトガチャに新SSR「ネム」</b>が参戦！ <b>光属性・貫通</b>。"
       + "フルバーストは<b>アリシアと同じ「全ギミック無効＋自分を反射化」</b>。"
       + "リンクスキルは<b>コピー</b>で、<b>ネムの光属性とネムのキラーを乗せたまま、ふれた味方のリンクを撃ちます</b>。"
       + "サブリンクは新しい<b>リンスピアップ</b>（ふれた味方のリンク威力×" + LINKUP_MUL + "＋加速）。",
@@ -6419,7 +6419,7 @@ const NEWS = [
     "📋 <b>バトル中のキャラ詳細を「1画面に収まる」レイアウト</b>に変えました。"
       + "スクロールしなくても、ステータス・アビリティ・フルバースト・リンク／サブリンク・ルーン・紋章まで一度に読めます。",
     "🎰 <b>ガチャの結果を1体ずつ開けられる</b>ようにしました。星（レア度）を見たあと、"
-      + "<b>タップするたびに1枠ずつ</b>中身が出ます（★5確定枠はいちばん最後）。まとめて見たいときは「▶▶ まとめて見る」から。"
+      + "<b>タップするたびに1枠ずつ</b>中身が出ます（SSR確定枠はいちばん最後）。まとめて見たいときは「▶▶ まとめて見る」から。"
       + "<br>あわせて、<b>星のプレートが出る前に中身がちらりと見えてしまう不具合</b>を直しました。",
     "🩹 <b>不具合の修正</b>：<b>超アンチ減速壁</b>を持つキャラが「対応キャラ」「自動編成」「適性クエスト」に出てこなかった問題／"
       + "<b>オムニアンチ</b>がブロック・ロックゾーン・減速壁しか出ないクエストでも「アンチ全対応」と表示されていた問題を修正しました。",
@@ -6476,8 +6476,8 @@ const NEWS = [
     "🔮 <b>新しいルーン「堅牢のルーン」</b>を追加しました。<b>装備した本人のHPを15%アップ</b>します（チームの総HPがそのぶん増えます）。育成タブのショップで購入できます。",
     "🔗 <b>リンクスキルを短縮形で絞り込めるように</b>しました。絞り込み画面の<b>「リンクスキル（短縮形）」</b>から、"
       + "<b>アブレイ・エナサ・ルミナス・オビエジ</b>…とふだん呼んでいる名前で1つずつ選べます。名前検索でも短縮形が使えます。",
-    "🎰 <b>フェスガチャの道中でもプレミアム★5が出る</b>ようになりました。フェス限定★5の確率（合計10%）はそのままに、"
-      + "<b>プレミアムセレクトガチャの★5が合計 " + Math.round(FES_PREMIUM_TOTAL * 100) + "%</b> で排出されます（初期キャラは各9%になりました）。",
+    "🎰 <b>フェスガチャの道中でもプレミアムSSRが出る</b>ようになりました。フェス限定SSRの確率（合計10%）はそのままに、"
+      + "<b>プレミアムセレクトガチャのSSRが合計 " + Math.round(FES_PREMIUM_TOTAL * 100) + "%</b> で排出されます（初期キャラは各9%になりました）。",
     "📅 <b>毎月のリセットを作り直し</b>ました。<b>今月のWAVE踏破数はシリーズごとに必ず月初でリセット</b>され、"
       + "<b>初クリアのジェムも毎月もう一度受け取れます</b>。"
       + "さらに<b>黄昏の王城・禁忌の迷宮 第1〜15の間</b>は、<b>先月クリアしていれば今月もクリア扱いとして引き継ぎ</b>、"
@@ -6485,9 +6485,9 @@ const NEWS = [
     "☁ アカウントの同期をいちから作り直しました。<b>ログアウトしてから新規登録すると前のアカウントのデータが引き継がれてしまう不具合</b>と、"
       + "<b>別の端末で進めたセーブが反映されない不具合</b>を修正しています。",
   ] },
-  { date: "2026-07-31", title: "☀ Luminous Summer Fest 開幕 — 夏の限定★5「カグヤα」「ミオンα」参戦", body: [
+  { date: "2026-07-31", title: "☀ Luminous Summer Fest 開幕 — 夏の限定SSR「カグヤα」「ミオンα」参戦", body: [
     "<b style='color:#1d8fd8'>Luminous Summer Fest</b> を開催！ ガチャ画面に<b>プレミアムセレクトガチャと Nocturne Bloom Fest のあいだ</b>の新しいタブとして並びます。"
-      + "仕組みは <b>Nocturne Bloom Fest とまったく同じ</b>（ピックアップなし・★5合計10%・10連は★5確定・🎫チケット優先消費）です。",
+      + "仕組みは <b>Nocturne Bloom Fest とまったく同じ</b>（ピックアップなし・SSR合計10%・10連はSSR確定・🎫チケット優先消費）です。",
     "<b style='color:#ff9d2e'>カグヤα</b>（火・貫通・No.45）が参戦。フルバースト<b>「灼夏重力・ルナグラビトンα」（14ターン）</b>は、"
       + "カグヤのルナグラビトンをそのまま<b>体当たり ×3.2 ／ 着地ダメージ ×3.0〜</b>まで引き上げたもの。"
       + "アビリティは<b>超アンチダメージウォール・アンチロックゾーン・アンチブロック・パワーオーラEL・木属性キラー・エターナルエーテル</b>。"
@@ -6500,9 +6500,9 @@ const NEWS = [
       + "<b>パワーオーラEL</b>（HP50%以上で攻撃・スピード ×" + AURAEL_MUL + "）／"
       + "<b>連撃キラーEL</b>（同じ敵に連続で触れるたび +" + Math.round(COMBOKILLEREL_STEP * 100) + "%・最大 ×" + COMBOKILLEREL_MAX + "）。",
     "🎫<b>フェス限定ガチャチケットは、どちらのフェスでも共通</b>で使えます（持っている枚数はひとつです）。",
-    "🎯 <b>フェスガチャの10連★5確定枠を拡張</b>しました。最後の1枠は、<b>そのフェスの限定★5</b>と<b>プレミアムセレクトガチャの★5</b>を"
-      + "まとめた中から<b>全員おなじ確率</b>で出ます（限界突破MAXのキャラは除外）。フェスを回しながらプレミアム★5の穴も埋められます。"
-      + "※ 前半9回の通常抽選は、これまでどおりそのフェスの限定★5と初期キャラだけです。",
+    "🎯 <b>フェスガチャの10連SSR確定枠を拡張</b>しました。最後の1枠は、<b>そのフェスの限定SSR</b>と<b>プレミアムセレクトガチャのSSR</b>を"
+      + "まとめた中から<b>全員おなじ確率</b>で出ます（限界突破MAXのキャラは除外）。フェスを回しながらプレミアムSSRの穴も埋められます。"
+      + "※ 前半9回の通常抽選は、これまでどおりそのフェスの限定SSRと初期キャラだけです。",
     "🔗 サブリンクスキル<b>「プラズマネット」が発動していなかった不具合</b>を修正しました（アイコンも表示されるようになりました）。",
     "🏷 フェスの表記を<b>英語に統一</b>しました（ノクターンブルームフェス → <b>Nocturne Bloom Fest</b>）。バナーの表記とそろいます。",
     "開幕を記念して、XEVARION ホームの<b>🛒ジェムショップ</b>に<b>フェスチケット＋💎ジェムの1回限りパック</b>を追加しました。",
@@ -6516,8 +6516,8 @@ const NEWS = [
       + "となりの<b>ジェムショップ</b>には、<b>1回だけ買えるお得なパック</b>も並んでいます。",
     "育成タブの<b>ショップはルーンの購入専用</b>になりました。",
   ] },
-  { date: "2026-07-27", title: "✦ v14.5 — 新★5「クロエ」参戦／編成・絞り込みを作り直し／幽冥の庭園を調整", body: [
-    "<b style='color:#38a6ff'>プレミアムセレクトガチャに新★5「クロエ」（水・貫通）が参戦！</b> "
+  { date: "2026-07-27", title: "✦ v14.5 — 新SSR「クロエ」参戦／編成・絞り込みを作り直し／幽冥の庭園を調整", body: [
+    "<b style='color:#38a6ff'>プレミアムセレクトガチャに新SSR「クロエ」（水・貫通）が参戦！</b> "
       + "フルバースト<b>「ホロックス・オーシャン」（24ターン）</b>は、<b>自分が2回行動し終えるまでステータスアップ＋すべてのアンチギミックを無効化</b>し、"
       + "<b>止まると画面いっぱいに海を展開してシャチを召喚</b>、最後は<b>巨大なシャチに乗ってもう一度突撃</b>します。"
       + "アビリティは<b>超マインスイーパーEL・アンチ重力バリア・アンチブロック・フェイタルキラーM・毒キラーM・全属性キラー・バブリーモード</b>の7つ。"
@@ -6546,7 +6546,7 @@ const NEWS = [
     "<b>ヒーリングバルーンで敵が回復してしまう量を少し増やしました</b>（3% → " + Math.round(HB_FOE_HEAL * 100) + "%）。持ったまま敵に当てないよう、より気をつけて運びましょう。",
     "<b>ウォールサーキットリング</b>のリンクアイコンを、他のアイコンと同じ大きさの<b>コンパクトなデザイン</b>に作り直しました。",
     "<b>バトル中のキャラ詳細で、ネクサススキルはリーダーのときだけ表示</b>するようにしました（実際に発動しているのはリーダーのものだけのため）。",
-    "<b>フェス限定キャラが「対応キャラ」などで★5として扱われていなかった</b>不具合を修正しました。",
+    "<b>フェス限定キャラが「対応キャラ」などでSSRとして扱われていなかった</b>不具合を修正しました。",
     "<b>ガチャの切り替えボタンはガチャ名だけの表示</b>にしました（消費するものなどは選んだあとの画面に出ます）。",
     "<b>MagiBurstのロゴを新しくしました。</b>",
   ] },
@@ -6559,8 +6559,8 @@ const NEWS = [
       + "<b>どこで撃つか</b>がこれまで以上に大事になります。",
   ] },
   { date: "2026-07-27", title: "✦ v14 大型アップデート — Nocturne Bloom Fest 開幕／幽冥の庭園リニューアル", body: [
-    "<b style='color:#8e4fe0'>Nocturne Bloom Fest</b> を開催！ フェス限定★5 <b>「フィオナ」（水・貫通）／「ミルフィ」（火・反射）／「メイベル」（木・反射）／「アビス」（闇・貫通）／「アーク」（光・反射）</b>の5体が同時参戦します。"
-      + "排出は<b>フェス限定5体＋初期キャラ4体だけ</b>で、<b>ピックアップなし＝★5は全員おなじ確率</b>（★5合計10%・★4合計40%はプレミアムと同じ）。<b>10連は★5確定</b>。",
+    "<b style='color:#8e4fe0'>Nocturne Bloom Fest</b> を開催！ フェス限定SSR <b>「フィオナ」（水・貫通）／「ミルフィ」（火・反射）／「メイベル」（木・反射）／「アビス」（闇・貫通）／「アーク」（光・反射）</b>の5体が同時参戦します。"
+      + "排出は<b>フェス限定5体＋初期キャラ4体だけ</b>で、<b>ピックアップなし＝SSRは全員おなじ確率</b>（SSR合計10%・SR合計40%はプレミアムと同じ）。<b>10連はSSR確定</b>。",
     "開幕記念として<b>🎫フェス限定ガチャチケット20枚</b>を、<b>XEVARION の📧メール</b>でお贈りしています。チケットは<b>回すときに自動で優先して使われます</b>（足りない分だけジェムを消費）。",
     "<b>🌸 幽冥の庭園を全面リニューアル。</b>第1〜第7ノ園が<b>すべて別のクエスト</b>になりました（アンチギミックの組み合わせは従来どおり）。"
       + "<b>第2ノ園＝カウントブーストウォール</b>（壁にふれた回数だけ殴りが強くなる・毎ターンリセット／そのぶん敵HP高め）、"
@@ -6578,12 +6578,12 @@ const NEWS = [
     "<b>ロックゾーンの範囲を大幅に拡大</b>し、<b>重力バリアとデザインを差別化</b>しました。ロックゾーン＝<b>紅のヘックス格子＋鎖と錠前</b>／重力バリア＝<b>紫の吸い込む渦</b>。",
     "<b>キャラクター番号（No.）</b>を導入しました。<b>初期キャラから登場順</b>に通し番号が振られ、図鑑・編成・育成・マルチの既定の並び（図鑑順）もこの番号順になります。",
     "<b>アビリティそのもので絞り込める</b>ようになりました（編成・育成・図鑑・マルチのすべて）。等級（M/L/EL）ちがいは1つのボタンにまとまっています。",
-    "<b>★4（初期キャラ）の限界突破MAX演出</b>を「金の縁取りだけ」に変更しました（光る演出はなくなります）。",
+    "<b>SR（初期キャラ）の限界突破MAX演出</b>を「金の縁取りだけ」に変更しました（光る演出はなくなります）。",
     "<b>別アカウントへのログイン手順をXEVARION本体と統一</b>しました。<b>①IDで検索 → ②アカウントを選ぶ → ③4桁PIN</b>の3ステップになります。",
     "<b>ヘカーティア・ミソラの属性</b>はこれまでどおりクエストに合わせて変わりますが、<b>絵の色は変えない</b>ようにしました（別人のように見えてしまっていたため）。",
     "<b>ガチャの結果演出を作り直しました。</b><b>①まず結果を隠した「星（レア度）」だけを1枚ずつ公開 → ②<span style='font-family:Orbitron,sans-serif'>TAP!</span> でひと呼吸おく → ③タップするとキャラ・ゴールドの中身を公開</b>という流れになります。"
-      + "<b>昇格演出（★4 → ★5 の RANK UP!!）は毎回ではなく、" + Math.round(RANKUP_CHANCE * 100) + "%くらいの確率で発生</b>する特別な演出にしました（昇格しない★5は最初から★5の星で出ます）。"
-      + "<b>10連の★5確定枠は昇格演出をしません</b>（★5が保証された枠なので、最初から★5の星で出て、公開はいちばん最後です）。"
+      + "<b>昇格演出（SR → SSR の RANK UP!!）は毎回ではなく、" + Math.round(RANKUP_CHANCE * 100) + "%くらいの確率で発生</b>する特別な演出にしました（昇格しないSSRは最初からSSRの星で出ます）。"
+      + "<b>10連のSSR確定枠は昇格演出をしません</b>（SSRが保証された枠なので、最初からSSRの星で出て、公開はいちばん最後です）。"
       + "中身の公開中に<b>もう一度タップすると演出をスキップ</b>できます。",
     "<b>星が結果の上に残ってしまう不具合を修正</b>しました。星は<b>裏返って中身に変わる</b>ようになり、公開後は<b>星の板そのものを画面から取り除く</b>ので、キャラやゴールドの上に星が乗ったままになりません。",
     "<b>ヒーリングバルーンの仕様変更</b>：<b>味方にふれたときはチームHPが" + Math.round(HB_HEAL * 100) + "%回復</b>しますが、<b style='color:#e0405e'>敵にふれたときはその敵が最大HPの" + Math.round(HB_FOE_HEAL * 100) + "%回復</b>してしまいます。持っているあいだは敵に当てないように運びましょう。"
@@ -6654,10 +6654,10 @@ const NEWS = [
     "☀️ <b>夏期間応援</b>として、📧メールボックスで<b><i class='icc ic-gem'></i>ジェム100個</b>をお贈りしています。",
     "📚 <b>MagiLex</b> で、コンテンツごとに<b>習得状況をリセット</b>できるようになりました。もう一度完全習得すれば<b>XEVAを再度受け取れます</b>（何周目かも表示）。",
   ] },
-  { date: "2026-07-23", title: "✦ v13 — 新★5が5体参戦！／リンクスキルのアイコンを全種デザイン", body: [
-    "プレミアムセレクトガチャに <b style='color:#f0b429'>★5「セツナ」</b>（光・反射）／<b style='color:#38a6ff'>★5「セレネ」</b>（水・反射）／"
-      + "<b style='color:#ff5d47'>★5「ナズナ」</b>（火・貫通）／<b style='color:#2fbf71'>★5「リリア」</b>（木・貫通）／"
-      + "<b style='color:#a86bff'>★5「レヴィア」</b>（闇・貫通）の<b>5体が同時参戦</b>！",
+  { date: "2026-07-23", title: "✦ v13 — 新SSRが5体参戦！／リンクスキルのアイコンを全種デザイン", body: [
+    "プレミアムセレクトガチャに <b style='color:#f0b429'>SSR「セツナ」</b>（光・反射）／<b style='color:#38a6ff'>SSR「セレネ」</b>（水・反射）／"
+      + "<b style='color:#ff5d47'>SSR「ナズナ」</b>（火・貫通）／<b style='color:#2fbf71'>SSR「リリア」</b>（木・貫通）／"
+      + "<b style='color:#a86bff'>SSR「レヴィア」</b>（闇・貫通）の<b>5体が同時参戦</b>！",
     "<b>セツナ</b>（FB12ターン）… 自強化しつつ<b>ふれた味方1体ごとにチームHPを12%回復</b>。<b>ダッシュL（速さ×2.5）</b>と<b>リンクブーストL（リンク×2.5）</b>を持つ支援の決定版。",
     "<b>セレネ</b>（FB18ターン）… 自強化して<b>貫通タイプ</b>に変化し、<b>止まると最も近い敵へ再走（×2.6）</b>。リンクは新技<b>コピー</b>——<b>ふれた味方のリンクスキルを、水属性にしてそのまま発動</b>します。",
     "<b>ナズナ</b>（FB20ターン）… <b>壁にふれるたびパワーUP（最大×10.0）</b>し、<b>止まると味方全員で総攻撃</b>。リンクは新技<b>オートジャベリンバースト</b>、サブリンクは<b>放電</b>（敵を伝うほど威力アップ）。",
@@ -6722,8 +6722,8 @@ const NEWS = [
     "ガチャの評価表示を<b>「強み」と「適性クエスト」だけのシンプルな表示</b>に整理しました。",
     "<b>カリナ・ネフィアのイラスト</b>を追加しました。",
   ] },
-  { date: "2026-07-22", title: "✦ v12 大型アップデート — 新★5「カリナ」「ネフィア」／第26〜28の間／超越の書", body: [
-    "プレミアムセレクトガチャに <b style='color:#a86bff'>★5「カリナ」</b>（闇属性・反射）と <b style='color:#f0b429'>★5「ネフィア」</b>（光属性・貫通）が参戦！ "
+  { date: "2026-07-22", title: "✦ v12 大型アップデート — 新SSR「カリナ」「ネフィア」／第26〜28の間／超越の書", body: [
+    "プレミアムセレクトガチャに <b style='color:#a86bff'>SSR「カリナ」</b>（闇属性・反射）と <b style='color:#f0b429'>SSR「ネフィア」</b>（光属性・貫通）が参戦！ "
       + "<b>セレクト画面は新しいキャラほど上</b>に並ぶようになりました。",
     "カリナのフルバースト<b>「叡智ノ浮環・ソフィアリング」（24ターン）</b>は、<b>その場から動かず</b>、引っぱった<b>方向を中心に視野角180°</b>の敵すべてに<b>叡智の浮き輪</b>を装着。"
       + "<b>4ターンのあいだ毎ターン最大HPの10%</b>を削り、<b>防御力ダウン</b>も同時に入ります。アビリティは<b>マインスイーパーM／超アンチ重力バリア／バリアM／ウォールブーストM</b>。",
@@ -6732,7 +6732,7 @@ const NEWS = [
     "<b>黄昏の王城・禁忌の迷宮に第26〜28の間を追加</b>しました。さらに<b>第25〜28の間は全WAVEでギミックの数・強さ・配置・導線が変化</b>します（第25の間には<b style='color:#ff5d47'>ウォールチェンジ</b>が登場）。アンチギミックは各部屋2種で、部屋どうしで組み合わせが重なりません。",
     "王城・迷宮を<b>全28部屋クリア</b>すると、それぞれ<b style='color:#a86bff'>📕超越の書</b>を1冊プレゼント。使ったキャラの<b>レベル上限が Lv.50 → Lv.60</b> に解放されます。",
     "<b>EX降臨の出現条件を変更</b>しました。<b>ヴィオラ＝黄昏の王城 第25〜28の間</b>／<b>シオン＝禁忌の迷宮 第25〜28の間</b>／<b>アイラ＝幽冥の庭園 第6・7ノ園</b> をクリアすると<b>20%</b>で出現します。"
-      + "あわせて<b>3体の性能をガチャ★5に少しだけ届かないくらいまで強化</b>し、いったん<b>所持状況を全端末でリセット</b>しました。お詫びに<b>📧メールで<i class='icc ic-gem'></i>ジェム250個</b>をお贈りしています。",
+      + "あわせて<b>3体の性能をガチャSSRに少しだけ届かないくらいまで強化</b>し、いったん<b>所持状況を全端末でリセット</b>しました。お詫びに<b>📧メールで<i class='icc ic-gem'></i>ジェム250個</b>をお贈りしています。",
     "<b>クエストを中断しても、そこまでのWAVE踏破が記録</b>されるようになりました。さらに次からは<b>中断したWAVEのはじめから再開</b>できます（クエストカードに「⏸ 再開できます」と出ます）。",
     "ガチャの評価画面に <b>💪このキャラの強み</b> と <b>🎯適性クエスト</b> を追加しました。ギミック対応と属性有利から「どのクエストで活きるか」がひと目で分かります。",
     "リンネの<b>サブリンクスキルを「爆発」</b>に変更しました。",
@@ -6743,8 +6743,8 @@ const NEWS = [
     "<b>ルーンの購入・装備がクラウドに保存されない</b>ことがある不具合を修正しました。別端末での変更もその場で取り込みます。",
     "黄昏の王城・禁忌の迷宮の敵は、<b>幽冥の庭園の敵（ボスをのぞく）からランダムに配置</b>されるようになりました。",
   ] },
-  { date: "2026-07-22", title: "✦ 新★5「エルシア」参戦 ＆ ウォールチェンジ調整", body: [
-    "プレミアムセレクトガチャに <b style='color:#f0b429'>★5「エルシア」</b>（光属性・貫通）が登場！ "
+  { date: "2026-07-22", title: "✦ 新SSR「エルシア」参戦 ＆ ウォールチェンジ調整", body: [
+    "プレミアムセレクトガチャに <b style='color:#f0b429'>SSR「エルシア」</b>（光属性・貫通）が登場！ "
       + "アビリティは<b>超アンチダメージウォール／アンチブロック／全属性耐性／リンク×2／カウンターキラー</b>。"
       + "<b>リンク×2</b>は、1回のショットで<b>自分のリンクスキル（ルミナスレイ）を最大2回まで発動</b>できる強力な性能です（いったん離れてから再び触れると2回目が出ます）。",
     "エルシアのフルバースト<b>「セイクリッド・サクリファイス」（18ターン）</b>は、自強化しつつ<b>残りチームHPの40%を捧げ、最初にふれた敵に「捧げたHP×6」の大ダメージ</b>を叩き込みます。HPが多いほど強い諸刃の一撃！",
@@ -6770,16 +6770,16 @@ const NEWS = [
     "<b style='color:#ffe14d'>弱点コアは正面から当てなくてもOK</b>になりました。<b>体当たり（殴り）やリンクスキルの弾がコアを通過</b>すれば<b>弱点ダメージ</b>が入ります（<b>弱点通過</b>）。貫通キャラで敵を突きぬける立ち回りが強力に！",
     "<b>弱点の倍率アップ中（ベルニカ／コハルのフルバースト）は、弱点コアの演出が超豪華</b>になりました。虹色に回転する光輪・十字閃光で「いま狙いどき」がひと目で分かります。",
     "<b>ルーンの装備枠が全キャラ2つ</b>になりました。<b>🎖️英傑の証</b>は<b>3つ目の枠</b>を解放するアイテムに変わります（すでにお使いの分もそのまま3枠として引き継がれます）。",
-    "<b>プレミアムガチャ10連の割引を廃止</b>しました（<i class='icc ic-gem'></i>45 → <i class='icc ic-gem'></i>50）。★5確定枠はこれまでどおりです。",
+    "<b>プレミアムガチャ10連の割引を廃止</b>しました（<i class='icc ic-gem'></i>45 → <i class='icc ic-gem'></i>50）。SSR確定枠はこれまでどおりです。",
     "<b>キャラ図鑑・編成・育成に🔍検索</b>を追加。<b>編成は所持キャラのみ</b>を表示し、<b>絞り込みはキャラ図鑑と共通</b>になりました。<b>レベル上げにも絞り込み</b>がつきます。",
     "<b>バースト演出は「キャラ図鑑」の詳細</b>から見られるようになりました（▶ バースト演出を見る）。",
-    "🛡対応キャラは<b>★5ガチャキャラを優先</b>して並ぶようになりました。",
+    "🛡対応キャラは<b>SSRガチャキャラを優先</b>して並ぶようになりました。",
     "🧩ギミック詳細の属性の案内を<b>有利属性だけ</b>に整理しました（三すくみの図は「あそびかた」で確認できます）。",
     "<b>確認ダイアログをすべてゲーム内デザイン</b>に統一しました（端末の標準ダイアログは出ません）。",
     "画面右上に<b>👤アカウント</b>ボタンを追加。<b>MagiBurst の中から再ログイン・ログアウト</b>ができます。",
   ] },
   { date: "2026-07-21", title: "使いやすさの改善（UI調整・属性有利の表示）", body: [
-    "10連の<b>★5確定枠は、排出対象の★5すべてが同じ確率</b>になりました（ピックアップ優遇なし）。",
+    "10連の<b>SSR確定枠は、排出対象のSSRすべてが同じ確率</b>になりました（ピックアップ優遇なし）。",
     "<b>📢お知らせを📧メールの隣（画面右上）</b>に移動しました。<b>上のバーは常に表示</b>されます。",
     "編成の<b>パーティー編集メニュー（名前・追加・削除）を1段下の列</b>にまとめ、<b>名前の変更をアプリ内ダイアログ</b>にしました（変更できない不具合の修正）。",
     "ガチャの<b>回すボタンの位置ズレを修正</b>し、交換・提供割合のボタンが隠れないようにしました。",
@@ -6789,7 +6789,7 @@ const NEWS = [
   ] },
   { date: "2026-07-21", title: "🎁 ジェム250個プレゼント ＆ ガチャ大型リニューアル", body: [
     "「幽冥の庭園」実装を記念して、<b>全プレイヤーに<i class='icc ic-gem'></i>ジェム250個</b>をお贈りします。画面右上の<b>📧メールボックス</b>から受け取ってください（受取期限 2026-12-31）。",
-    "<b>プレミアムセレクトガチャに10連を追加</b>（<i class='icc ic-gem'></i>45＝1回ぶんお得）。<b>最後の1枠が★5確定</b>で、専用の演出つきで最後にお見せします（クロスガチャは従来どおり確定枠・割引はありません）。",
+    "<b>プレミアムセレクトガチャに10連を追加</b>（<i class='icc ic-gem'></i>45＝1回ぶんお得）。<b>最後の1枠がSSR確定</b>で、専用の演出つきで最後にお見せします（クロスガチャは従来どおり確定枠・割引はありません）。",
     "ガチャの<b>回すボタンを画面下に固定</b>し、いつでも押せるようにしました。最初に開くのは<b>プレミアムセレクトガチャ</b>になりました。",
     "キャラが増えたため、ピックアップは<b>「セレクトする」ボタン</b>から一覧で選ぶ方式になりました。一覧では<b>所持・未所持と限界突破（凸）の状況</b>も確認できます。",
     "<b>ガチャ確率の不具合を修正</b>：あと1体を残して全員が限界突破MAXのとき、その1体をピックアップに選ぶと5%・選ばないと10%になっていました。今後は<b>残り1体をピックアップに選ぶと10%</b>になります。",
@@ -6804,7 +6804,7 @@ const NEWS = [
     "超絶高難易度クエスト <b>🌸 幽冥の庭園（第1〜5ノ園）</b> を追加しました。<b>第1ノ園から順番に</b>挑戦し、全WAVEクリアで次の園が開放されます。<b>マルチプレイ対応</b>。",
     "幽冥の庭園は<b>WAVEごとにギミックの配置と導線（通り道）が変化</b>します。対策ギミックは各園<b>2種だけ</b>（園ごとに違う組み合わせ）。敵は各WAVE<b>4〜5体</b>。",
     "幽冥の庭園のWAVE踏破報酬：<b>10＝叡智の果実／20＝降臨キャラ「ヘカーティア」／30＝英傑の証</b>",
-    "新キャラ<b>ヘカーティア</b>（幽冥の庭園ボス・降臨）と<b>レゼリア</b>（プレミアムガチャ★5）が参戦！",
+    "新キャラ<b>ヘカーティア</b>（幽冥の庭園ボス・降臨）と<b>レゼリア</b>（プレミアムガチャSSR）が参戦！",
     "<b>編成でパーティーを最大5つ</b>作れるようになり、<b>クエスト開始時にどれで挑むか選べる</b>ようになりました。",
     "キャラの絞り込みが<b>複数選択</b>できるようになりました（同じ列は「どれか」・別の列は「すべて」）。",
     "<b>バランス調整</b>：直殴りの威力を大幅アップ（リンク偏重を是正）／ロックゾーンの範囲拡大／重力バリアの減速強化／<b>エーテルは消費した分だけ減る</b>ように（ターンで消えなくなりました）",
@@ -7133,8 +7133,11 @@ function lastClearBtnHTML(s) {
   const tr = (DB.lastTry && DB.lastTry[s.id]) || {};
   const has = !!(rec.solo || rec.multi || tr.solo || tr.multi);
   const tag = (rec.solo || rec.multi) ? "クリア" : has ? "挑戦" : "";
+  /* ★★ 2026-08-20 名前を「前回編成」から<b>クリア編成</b>へ。
+     中に「みんなのクリア編成」が入ったので、
+     「前回」だと自分の記録しか無いように見えてしまっていた。 */
   return `<button class="qgim qlc ${has ? "" : "off"}" onclick="event.stopPropagation();openLastClear('${s.id}')"
-    title="このクエストをクリアしたときの編成と、直近で挑戦した編成を見る">${ICO.lastp}前回編成${tag ? "（" + tag + "）" : ""}</button>`;
+    title="このクエストのクリア編成（自分の記録と、みんなの編成）を見る">${ICO.lastp}クリア編成${tag ? "（" + tag + "）" : ""}</button>`;
 }
 function stageCardHTML(s) {
   const boss = s.waves[s.waves.length - 1][0];
@@ -7803,7 +7806,7 @@ function lobbyBanners() {
   const addGacha = (b) => { if (!covered[b.go]) out.push(b); };
   Object.keys(FESTS).forEach((k) => {
     const f = FESTS[k];
-    addGacha({ tag: "GACHA", nm: f.nm, sub: "限定★5 " + f.chars.length + "体が排出中", img: fesBannerOf(k), c: f.c, go: `goShop('${k}')` });
+    addGacha({ tag: "GACHA", nm: f.nm, sub: "限定SSR " + f.chars.length + "体が排出中", img: fesBannerOf(k), c: f.c, go: `goShop('${k}')` });
   });
   addGacha({ tag: "GACHA", nm: "プレミアムセレクトガチャ", sub: "ピックアップを自分でえらべる", img: "img/bn_premium_s.webp", c: "#ff9d2e", go: "goShop('premium')" });
   return out;
@@ -8264,10 +8267,11 @@ const MISSION_SERIES = [
     need: (i) => [1, 3, 5, 8, 12][i], max: 5,
     rw: (i) => (i % 2 === 0 ? { gold: 3000 + 1500 * i } : { orbs: 2 + i }),
     cur: () => DB.msn.dayClear | 0 },
-  { id: "d_pull", kind: "daily", nm: (n) => "ガチャを" + n + "回引く",
-    need: (i) => [1, 3, 5, 10][i], max: 4,
-    rw: (i) => (i % 2 === 0 ? { gold: 2000 + 1500 * i } : { soul: 3000 + 1500 * i }),
-    cur: () => DB.msn.dayPull | 0 },
+  /* ★ 2026-08-18 「ガチャを◯回引く」（d_pull / w_pull）は廃止しました。
+     ガチャは XEVARION ポータル側（gacha.html）に一本化してあり、
+     MagiBurst の中には回す場所がありません。ここに残しておくと
+     「このアプリの中では絶対に進められないミッション」が並ぶことになるため。
+     カウンタ（DB.msn.dayPull / weekPull）は古いセーブとの互換のため残してあります。 */
   { id: "d_arc", kind: "daily", nm: () => "アークにポイントを1つ振る", need: () => 1,
     rw: () => ({ soul: 3000 }), max: 1,
     cur: () => Math.min(1, arcSpent()) },
@@ -8276,10 +8280,6 @@ const MISSION_SERIES = [
     need: (i) => [12, 25, 40, 60][i], max: 4,
     rw: (i) => (i % 2 === 0 ? { orbs: 10 + i * 3 } : { ticket: 2 + i }),
     cur: () => DB.msn.weekClear | 0 },
-  { id: "w_pull", kind: "weekly", nm: (n) => "ガチャを" + n + "回引く",
-    need: (i) => 10 + i * 10, max: 4,
-    rw: (i) => (i % 2 === 0 ? { ticket: 2 + i } : { orbs: 8 + i * 2 }),
-    cur: () => DB.msn.weekPull | 0 },
   { id: "w_multi", kind: "weekly", nm: (n) => "マルチプレイを" + n + "回クリアする",
     need: (i) => [1, 3, 5, 8][i], max: 4,
     rw: (i) => ({ orbs: 5 + i * 2 }),
@@ -8527,12 +8527,12 @@ function paintMissions() {
    ★ 2026-08-06 の作り直し
      ① 各イベントに <b>chars（そのイベントで出るキャラ）</b> を持たせ、
         スライドの中に<b>顔ぶれを並べて、タップで詳細</b>を開けるようにした。
-     ② 「新★5参戦」イベントの顔ぶれは <b>NEW_CHARS（新キャラ告知の台帳）から自動生成</b>する。
+     ② 「新SSR参戦」イベントの顔ぶれは <b>NEW_CHARS（新キャラ告知の台帳）から自動生成</b>する。
         キャラを足すたびに本文を書きなおす必要がなくなり、
         告知・イベント・ガチャで顔ぶれが食いちがうこともなくなる。
      ③ 2つのフェスの本文に<b>まったく同じ説明</b>（10連の確定枠・🎫チケット共通）が
         重ねて書かれていたので削り、<b>フェス共通のきまり</b>としてイベント画面の下に1回だけ出す。 */
-/* 「新★5参戦」に載せる顔ぶれ＝プレミアム追加のうち、いちばん新しい2回ぶんの追加 */
+/* 「新SSR参戦」に載せる顔ぶれ＝プレミアム追加のうち、いちばん新しい2回ぶんの追加 */
 function newCharsForEvent() {
   const prem = NEW_CHARS.filter((n) => n.mode === "premium" && CHARS[n.id]);
   const days = [];
@@ -8553,7 +8553,7 @@ const EVENTS = [
     return {
       id: "ev_phantom",
       nm: "Phantom Legend Fest" + (soon ? "（予告）" : ""),
-      sub: soon ? openTimeShort(FES3_OPEN) + " スタート — 伝説の★5が参戦" : "伝説の限定★5「野獣先輩」が登場中！",
+      sub: soon ? openTimeShort(FES3_OPEN) + " スタート — 伝説のSSRが参戦" : "伝説の限定SSR「野獣先輩」が登場中！",
       /* ★ 2026-08-08: 予告のあいだは <b>COMING SOON の1枚</b>（FES3_EVENT_SOON）にする。
          以前はガチャと同じシルエット版バナーを流用していたが、
          Event の一覧では「まだ始まっていない」ことがひと目で伝わるほうがよい。
@@ -8565,13 +8565,13 @@ const EVENTS = [
       chars: soon ? [] : ["yaju"],
       body: soon
         ? "<b>Phantom Legend Fest</b> を <b>" + openTimeText(FES3_OPEN) + "</b>します。"
-          + "登場するのは、MagiBurst で初めて<b>クロススキル</b>を持つ<b>伝説の限定★5</b>。"
+          + "登場するのは、MagiBurst で初めて<b>クロススキル</b>を持つ<b>伝説の限定SSR</b>。"
           + "<b>編成の条件を満たすとアビリティが増える</b>、これまでにない新しいタイプのキャラクターです。<br>"
           + "ガチャ画面には<b>いまも並んでいますが、登場まではバナーもキャラクターもシルエット（?）で伏せて</b>あります"
           + "（<b>図鑑・提供割合・対応キャラさがし</b>でも名前と姿は出ません）。"
           + "<b>時間になると、なにもしなくても引けるようになります</b>。🎫フェスチケットも<b>そのまま使えます</b>。"
         : "<b>野獣先輩</b>（闇／反射／アタッカー型）が Phantom Legend Fest に登場中！"
-          + "<b>クロススキル</b>を持つ初めての★5で、<b>自分をふくめてアタッカー型が2体（＝自分のほかにもう1体）</b>編成にいると"
+          + "<b>クロススキル</b>を持つ初めてのSSRで、<b>自分をふくめてアタッカー型が2体（＝自分のほかにもう1体）</b>編成にいると"
           + "「<b>お待たせ!</b>」「<b>伝説の逸材</b>」が発動します。"
           + "フルバーストは<b>45ターン</b>と長いぶん、<b>壁にふれるたび攻撃力が最大10倍</b>まで伸び、"
           + "<b>味方全員＋分身4体</b>で総攻撃を仕掛けます。",
@@ -8593,7 +8593,7 @@ const EVENTS = [
     /* ★ 2026-08-12 蒼夏祭（Aoka Summer Fest）。
        バナー・排出・提供割合はすべて FESTS.fes4 から自動で作られるので、
        ここに書くのは「お知らせとしての紹介文」だけ。 */
-    id: "ev_aoka", nm: "蒼夏祭", sub: "水着の限定★5 6体が登場！", c: "#1567c8",
+    id: "ev_aoka", nm: "蒼夏祭", sub: "水着の限定SSR 6体が登場！", c: "#1567c8",
     img: "img/bn_fes4_s.webp", from: "2026-08-12", to: "2026-09-30", since: "2026-08-12",
     chars: ["fuka", "tsumugi", "suzuka", "karem", "mayu", "chizuru"],
     body: "<b>フウカ・ツムギ・スズカ・カレム・マユ・チヅル</b> の6体が <b>蒼夏祭</b> に登場！"
@@ -8602,27 +8602,56 @@ const EVENTS = [
       + "<br><b>カレム・マユ・チヅル</b>は<b>クロススキル</b>持ち。とくにカレムの<b>渾身</b>は"
       + "<b>攻撃力×" + KONSHIN_ATK + "</b>のかわりに<b>スピードが×" + KONSHIN_SPD + "</b>になる、はっきりした一長一短のスキルです。"
       + "<br><b>ツムギ</b>は<b>8ターン</b>で撃てる最速級のフルバーストを持ち、HPを燃やして火力に変えます。"
-      + "<br>蒼夏祭の限定★5なので、<b>プレミアムセレクトガチャやほかのフェスからは出ません</b>。"
+      + "<br>蒼夏祭の限定SSRなので、<b>プレミアムセレクトガチャやほかのフェスからは出ません</b>。"
       + "🎫フェスチケットは<b>どのフェスでも</b>、🎫ガチャチケットは<b>どのガチャでも</b>使えます（1枚＝1回ぶん）。",
     go: "goShop('fes4')", goNm: "🎰 ガチャへ行く",
   },
   {
-    id: "ev_luminous", nm: "Luminous Summer Fest", sub: "夏の限定★5 2体が登場！", c: "#1d8fd8",
+    id: "ev_luminous", nm: "Luminous Summer Fest", sub: "夏の限定SSR 2体が登場！", c: "#1d8fd8",
     img: "img/bn_fes2_s.webp", from: "2026-07-31", to: "2026-09-30",
     chars: ["kaguyaalpha", "mionalpha"],
     body: "<b>カグヤα</b>・<b>ミオンα</b> の2体が Luminous Summer Fest に登場中！"
       + "どちらもノーマル版と<b>同じ手ざわりのまま、倍率だけを大きく引き上げた</b>フルバーストを持ちます。"
-      + "夏の限定★5なので、<b>プレミアムセレクトガチャやもう一方のフェスからは出ません</b>。",
+      + "夏の限定SSRなので、<b>プレミアムセレクトガチャやもう一方のフェスからは出ません</b>。",
     go: "goShop('fes2')", goNm: "🎰 ガチャへ行く",
   },
   {
-    id: "ev_nocturne", nm: "Nocturne Bloom Fest", sub: "フェス限定★5 5体が登場！", c: "#8e4fe0",
+    id: "ev_nocturne", nm: "Nocturne Bloom Fest", sub: "フェス限定SSR 5体が登場！", c: "#8e4fe0",
     img: "img/bn_fes_s.webp", from: "2026-07-20", to: "2026-09-30",
     chars: ["fiona", "milfy", "mabel", "abyss", "arche"],
     body: "<b>フィオナ・ミルフィ・メイベル・アビス・アーク</b> の5体が排出中。"
       + "全員が最上位のサブリンク<b>アブソリュートレイ10</b>を持つ、フェス限定の最上位キャラクターです。",
     go: "goShop('fes')", goNm: "🎰 ガチャへ行く",
   },
+  /* ══ ★ 2026-08-20 GRAND DEBUT GACHA（新キャラ専用ガチャ）══
+     ★ 顔ぶれも本文も <b>DEBUT_CHARS / GACHA_VER</b> から作るので、
+       次の版でキャラを入れ替えても、ここは書き直さなくてよい。
+     ★ mb-core.js はこの inline script より<b>前</b>に読まれるので、
+       DEBUT_CHARS / DEBUT_NM / gachaVerText() をここから参照してよい。 */
+  (function () {
+    const line = (id) => {
+      const c = CHARS[id];
+      return "<b>" + c.nm + "</b>（" + ELEM[c.el].nm + "／" + (c.shot === "pierce" ? "貫通" : "反射") + "）";
+    };
+    return {
+      id: "ev_debut", nm: DEBUT_NM, sub: gachaVerText() + "・新SSR " + DEBUT_CHARS.length + "体はここだけ", c: DEBUT_C,
+      img: "img/bn_debut_s.webp",
+      since: GACHA_VER_DATE, from: GACHA_VER_DATE, to: "2026-12-31",
+      chars: DEBUT_CHARS.slice(),
+      body: "<b>新キャラ専用のガチャ</b>ができました。" + gachaVerText() + " の顔ぶれは——"
+        + DEBUT_CHARS.map(line).join("／") + "。<br>"
+        + "<b>この" + DEBUT_CHARS.length + "体は GRAND DEBUT GACHA でしか引けません</b>——"
+        + "フェスやプレミアムセレクトガチャの<b>すり抜け・10連の確定枠にも出ません</b>。<br>"
+        + "<b>キャラの排出と確定枠のしくみはフェスガチャと同じ</b>です"
+        + "（新キャラSSR 合計10%＋<b>" + PREMIUM_NM + " のSSRも合計5%</b>、SR 50%）。"
+        + "ちがうのは育成アイテムの中身です"
+        + "（🎫ガチャチケット・📕超越の書・🎖️英傑の証が厚く、🪭九天の玉簡・📘クロスの書も極低確率）。"
+        + "<b>🎫フェスチケットは使えません</b>。<br>"
+        + "次の更新で新しいキャラが入ると、この" + DEBUT_CHARS.length + "体は"
+        + "<b>" + PREMIUM_NM + " へ移り</b>、現行のキャラと同じ扱いになります。",
+      go: "goShop('debut')", goNm: "🎰 ガチャへ行く",
+    };
+  })(),
   (function () {
     const ns = newCharsForEvent();
     const ids = ns.map((n) => n.id);
@@ -8633,14 +8662,14 @@ const EVENTS = [
       return "<b>" + c.nm + "</b>（" + ELEM[c.el].nm + "／" + (c.shot === "pierce" ? "貫通" : "反射") + "）";
     };
     return {
-      id: "ev_newchar", nm: "新★5 参戦キャンペーン", sub: "プレミアムセレクトガチャに新★5 " + ids.length + "体を追加", c: "#e0405e",
+      id: "ev_newchar", nm: "新SSR 参戦キャンペーン", sub: "プレミアムセレクトガチャに新SSR " + ids.length + "体を追加", c: "#e0405e",
       img: "img/bn_premium_s.webp",
       from: ns.length ? ns[ns.length - 1].since : "2026-08-01", to: "2026-10-31",
       /* ★ 並び替え用の「新着日」＝いちばん新しい追加日（from は2回ぶんの古いほうなので使えない）。
          キャラを足すと自動でこの日付が動き、イベント画面の先頭に出る。 */
       since: ns.length ? ns[0].since : "2026-08-01",
       chars: ids,
-      body: "プレミアムセレクトガチャに<b>新★5 " + ids.length + "体</b>が加わりました——"
+      body: "プレミアムセレクトガチャに<b>新SSR " + ids.length + "体</b>が加わりました——"
         + ns.map(line).join("／") + "。<br>"
         + "上の顔ぶれを<b>タップすると、そのキャラの性能</b>（ステータス・アビリティ・リンク・フルバースト）が読めます。"
         + "<b>セレクト</b>でピックアップに指定すれば、ねらって引けます。",
@@ -8781,9 +8810,9 @@ function paintEvents() {
     <div class="evcnt" id="evCnt">${cur + 1} / ${live.length}</div>
     ${live.some((e) => isFesMode(String(e.go).replace(/^goShop\('|'\)$/g, ""))) ? `<div class="evrule">
       <b>フェス共通のきまり</b>（どのフェスでも同じなので、ここにまとめています）<br>
-      ・10連の<b>★5確定枠</b>は、<b>そのフェスの限定★5＋プレミアムセレクトガチャの★5</b>から等確率で出ます。<br>
+      ・10連の<b>SSR確定枠</b>は、<b>そのフェスの限定SSR＋プレミアムセレクトガチャのSSR</b>から等確率で出ます。<br>
       ・<b>🎫フェスチケット</b>はフェス専用、<b>🎫ガチャチケット</b>はどのガチャでも使えます。消費は<b>フェス券 → ガチャ券 → ジェム</b>の順です。<br>
-      ・<b>限界突破MAX（👑）のキャラは排出対象外</b>になり、その分は他の★5に配分されます。
+      ・<b>限界突破MAX（👑）のキャラは排出対象外</b>になり、その分は他のSSRに配分されます。
     </div>` : ""}
     <button class="gimclose" onclick="closeEvents()">とじる</button>`;
   evGoTo(cur, false);
@@ -9816,6 +9845,65 @@ window.clearParty = clearParty; window.replaceParty = replaceParty;
    ＝ できるだけ「専用アビリティで対策」を優先し、オムニは次点。足りない枠は戦力順で埋める。
    includeOmni=false のときは、オムニ持ちの「オムニによる対策」は使わない（専用アビリティのぶんだけ数える）。 */
 const DMG_GIMS = ["dw", "mine"];   // ふれるとダメージを受ける＝最優先で対策したいギミック
+
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-08-19 自動編成に「実際に効いた実績」を足す
+
+   ギミックの対応表だけで選ぶと、机上では正しくても
+   「実戦ではこの子のほうがずっと楽だった」というキャラが選ばれない。
+   そこで2つの実績を点に混ぜる。
+
+   ① クリア実績（clearBonus）
+      ・そのクエストを<b>実際にクリアしたときの編成</b>にいた ＝ いちばん強い証拠
+      ・ほかのクエストのクリア編成にも多く出てくる ＝ 使い回しが効く子
+   ② MagiTier の順位（tierBonus）
+      ・MagiTier で公開されている表の<b>上の段</b>にいるキャラを上げる
+      ・表が無い／読めないときは 0（点が入らないだけで、編成は今までどおり動く）
+
+   ★ どちらも<b>ギミック対応より軽く</b>する。
+     実績で対応表をひっくり返すと、対策できないキャラが並んでしまうため。
+   ══════════════════════════════════════════════════════════════ */
+/* そのキャラが、クリア編成にどれだけ出てくるか（0〜1）。
+   引数の stageId のクリア編成にいれば、それだけで大きく加点する。 */
+let _clearUseCache = null;
+function clearUseMap() {
+  if (_clearUseCache) return _clearUseCache;
+  const m = {};
+  let total = 0;
+  try {
+    Object.keys(DB.lastClear || {}).forEach((sid) => {
+      const rec = DB.lastClear[sid] || {};
+      ["solo", "multi"].forEach((mode) => {
+        const r = rec[mode];
+        if (!r || !r.members) return;
+        total++;
+        r.members.forEach((mm) => { if (mm && mm.id) m[mm.id] = (m[mm.id] || 0) + 1; });
+      });
+    });
+  } catch (e) {}
+  _clearUseCache = { m, total: Math.max(1, total) };
+  return _clearUseCache;
+}
+/* MagiTier の公開ぶんから「上の段ほど高い点」を作る（0〜1）。
+   ★ MagiBurst が読んでいるキャッシュ（magiburst_chartier_v1）をそのまま使う。
+     通信もしないし、表が無ければ空を返すだけ。 */
+let _tierRankCache = null;
+function tierRankMap() {
+  if (_tierRankCache) return _tierRankCache;
+  const m = {};
+  try {
+    const d = JSON.parse(localStorage.getItem(TIER_CACHE_KEY) || "null");
+    const tiers = (d && d.tiers) || [];
+    const n = tiers.length;
+    tiers.forEach((tr, i) => {
+      /* いちばん上の段が 1.0、いちばん下が 0 に近づく */
+      const v = n > 1 ? (n - 1 - i) / (n - 1) : 1;
+      (tr.ids || []).forEach((id) => { m[id] = v; });
+    });
+  } catch (e) {}
+  _tierRankCache = m;
+  return _tierRankCache;
+}
 function autoPartyForStage(stageId, includeOmni) {
   const stage = stageId === "express"
     ? { gim: expressGim(6), blocks: expressTerrain(6).blocks || [], waves: [expressWave(6)] }
@@ -9835,7 +9923,26 @@ function autoPartyForStage(stageId, includeOmni) {
   /* オムニアンチだけでこのクエストのギミックを全部まかなえるか（優遇してよいか） */
   const omniCoversAll = keys.length > 0 && keys.every((k) => OMNI_GIMS.has(k));
   const power = (id) => { const s = charStats(id); return s.hp + s.atk * 2; };
-  /* ★5に付ける下駄（対策1つぶんより少し大きい＝対応力が同じなら★5が勝つ） */
+  /* ★ 2026-08-19 実績ぶんの点。ギミック対応（1つ 45〜120点）より軽くする。 */
+  const cu = clearUseMap(), tr = tierRankMap();
+  const hereRec = (DB.lastClear || {})[stageId] || {};
+  const hereIds = {};
+  ["solo", "multi"].forEach((mo) => {
+    ((hereRec[mo] || {}).members || []).forEach((mm) => { if (mm && mm.id) hereIds[mm.id] = 1; });
+  });
+  /* ★ 2026-08-19 みんなのクリア編成（このクエストを実際に抜けた人たち）も見る。
+     まだ読み込んでいなければ 0 点（あとで開いたときには効く）。 */
+  const sh = (typeof sharedUseMap === "function") ? sharedUseMap(stageId) : { m: {}, total: 1 };
+  /* このクエストのクリア編成にいた＝ 90点（対策1つぶんに近い重み）
+     ほかのクエストでもよく使われている＝ 最大 40点
+     MagiTier の上の段＝ 最大 60点
+     みんながこのクエストで使っている＝ 最大 70点 */
+  const recordBonus = (id) =>
+    (hereIds[id] ? 90 : 0) +
+    Math.round(Math.min(1, (cu.m[id] || 0) / Math.max(1, cu.total * 0.5)) * 40) +
+    Math.round((tr[id] || 0) * 60) +
+    Math.round(Math.min(1, (sh.m[id] || 0) / Math.max(1, sh.total * 0.5)) * 70);
+  /* SSRに付ける下駄（対策1つぶんより少し大きい＝対応力が同じならSSRが勝つ） */
   const STAR5_AUTO_BONUS = 200;
   const wKey = (k) => (DMG_GIMS.indexOf(k) >= 0 ? 120 : 45);   // ダメージ系ギミックの対策は重く
   /* 1体あたりの「このクエストでの点数」 */
@@ -9849,13 +9956,15 @@ function autoPartyForStage(stageId, includeOmni) {
          〈減速壁と地雷の両方に対応できる専用アンチ持ち〉を押しのけて選ばれていた。
          カバーしきれないオムニは、貪欲法の cover 点（canK）で拾われるぶんで十分。 */
     if (includeOmni && isOmni(id) && omniCoversAll) sc += 160;
-    /* ★ 2026-08-10 ★4は選びにくくする。
-       XEVAガチャの SR を★4として大量に追加したので、そのままだと
-       「アンチをひとつ持っているだけの★4」が★5を押しのけて並んでしまう。
-       ★5に下駄をはかせる形にして、<b>同じくらいの対応力なら★5が勝つ</b>ようにする。
+    /* ★ 2026-08-10 SRは選びにくくする。
+       XEVAガチャの SR をSRとして大量に追加したので、そのままだと
+       「アンチをひとつ持っているだけのSR」がSSRを押しのけて並んでしまう。
+       SSRに下駄をはかせる形にして、<b>同じくらいの対応力ならSSRが勝つ</b>ようにする。
        ★ 対策の点（cover）は score の 100 倍で効くので、
-         <b>そのギミックに対応できる★4しかいなければ、ちゃんとその★4が選ばれる</b>。 */
+         <b>そのギミックに対応できるSRしかいなければ、ちゃんとそのSRが選ばれる</b>。 */
     if (isStar5(id)) sc += STAR5_AUTO_BONUS;
+    /* ★ 2026-08-19 実際に勝てた編成・MagiTier の順位を足す（対応表より軽い） */
+    sc += recordBonus(id);
     return sc;
   };
   /* 「まだ対策できていないギミック」を多く埋められるキャラから順に取っていく（貪欲法） */
@@ -9879,7 +9988,18 @@ function autoPartyForStage(stageId, includeOmni) {
   rest.sort((a, b) => power(b) - power(a));
   while (picked.length < 4 && rest.length) picked.push(rest.shift());
   const usedOmni = picked.some((id) => isOmni(id));
-  return { picked, keys, need: [...need], nm: stage.nm || "クエスト", includeOmni: !!includeOmni, usedOmni };
+  /* ★ 2026-08-19 「なぜこの子か」を出せるように、実績の内訳も返す */
+  const why = {};
+  picked.forEach((id) => {
+    const w = [];
+    if (hereIds[id]) w.push("このクエストをクリアした編成");
+    if ((cu.m[id] || 0) >= 2) w.push("ほかのクエストでもよく使っている");
+    if ((tr[id] || 0) >= 0.75) w.push("MagiTier で上位");
+    if ((sh.m[id] || 0) >= Math.max(2, sh.total * 0.5)) w.push("みんなのクリア編成でよく使われている");
+    if (w.length) why[id] = w;
+  });
+  return { picked, keys, need: [...need], nm: stage.nm || "クエスト",
+           includeOmni: !!includeOmni, usedOmni, why };
 }
 /* ★ v13.1: 自動編成の結果を「新しいパーティーに作る」か「どのパーティーに上書きするか」を選べるようにした。
    編成しおわったら編成画面に移り、そこから<b>クエストを選び直さずにそのまま出撃</b>できる。 */
@@ -9887,6 +10007,11 @@ let autoPickResult = null;    // { picked, keys, need, nm, stageId, includeOmni 
 let autoStageId = null;       // いま自動編成しようとしているクエスト
 let autoIncludeOmni = true;   // オムニアンチ持ちを含めるか（チェックで切り替え）
 async function autoPartyFor(stageId) {
+  /* ★ 2026-08-19 みんなのクリア編成を先に読んでおく（点に混ぜるため）。
+     読めなくても編成は出るので、待つのは短く。 */
+  try {
+    await Promise.race([fetchSharedParties(stageId), new Promise((r) => setTimeout(r, 900))]);
+  } catch (e) {}
   const test = autoPartyForStage(stageId, autoIncludeOmni);
   if (!test) { uiAlert("所持キャラが4体そろっていません。", { icon: "🛡", title: "自動編成できません" }); return; }
   autoStageId = stageId;
@@ -9908,7 +10033,14 @@ function paintAutoParty() {
     + (r.keys.length
       ? `・対策できるギミック： <b style="color:#8affc4">${covered.map((k) => COUNTER_ABIL[k].nm).join("・") || "なし"}</b>`
         + (r.need.length ? `<br>・対策できないギミック： <b style="color:#ff8f8f">${r.need.map((k) => COUNTER_ABIL[k].nm).join("・")}</b>` : "")
-      : "・このクエストにアンチギミックはありません");
+      : "・このクエストにアンチギミックはありません")
+    /* ★ 2026-08-19 実績で選ばれた子は、その理由も出す。
+       「なぜこの編成なのか」が分かると、次に自分で組むときの手がかりになる。 */
+    + (Object.keys(r.why || {}).length
+      ? "<br><br>・実績から選んだ理由：<br>"
+        + Object.keys(r.why).map((id) =>
+            `　<b style="color:#ffd257">${CHARS[id] ? CHARS[id].nm : id}</b> … ${r.why[id].join("／")}`).join("<br>")
+      : "");
   const full = DB.parties.length >= PARTY_MAX;
   $("#apCard").innerHTML = `
     <button class="ovx" onclick="closeAutoParty()" aria-label="とじる" title="とじる">✕</button>
@@ -10919,7 +11051,7 @@ const FS_SHORT = {
   charmplasma: "チャムプラ",    phoenixflare: "フェニフレ", infinitylaser: "インフィレ",
   superinfinitylaser: "超インフィレ",
   wallcircuit: "ウォサキ",      autoaimbit: "オトエビ",     holoxstream: "ホロスト",
-  /* ★ v16 プレミアム新★5 6体 */
+  /* ★ v16 プレミアム新SSR 6体 */
   superhiplasma: "超ハイプラ",    superhicross: "超ハイクロス",
   crossclone: "クロス分身",       twininvolute: "ツインインボ", kiblastex: "超強連気弾",
   /* ★ 2026-08-05 ロゼリア／シズカ */
@@ -11049,7 +11181,7 @@ const FILTERS = [
   { k: "ax:fsboost", label: "リンクブースト" }, { k: "ax:fsdouble", label: "リンク×2" },
   { k: "ax:ssboost", label: "FBブースト" }, { k: "ax:fbshort", label: "FBターン短縮系" },
   { k: "ax:regen", label: "リジェネ" }, { k: "ax:drain", label: "ドレイン" },
-  /* ★ 2026-08-08 新★5 4体ぶん */
+  /* ★ 2026-08-08 新SSR 4体ぶん */
   { k: "ax:bosskillerM", label: "ボスキラー" }, { k: "ax:leftkillerM", label: "レフトポジションキラー" },
   { k: "ax:fbturnboost", label: "FBターンブースト" }, { k: "ax:ailsokojikaraM", label: "状態異常底力" },
   { k: "ax:soul", label: "ソウルスティール" }, { k: "ax:barrier", label: "バリア" },
@@ -11064,9 +11196,9 @@ const FILTERS = [
   { k: "ax:cumulonimbus", label: "キュムロニンバス" }, { k: "ax:phantomdrive", label: "ファントムドライブ" },
   { k: "ax:atkcharge", label: "攻撃力チャージ" },
   { k: "ax:linkcharge", label: "リンクチャージ" }, { k: "ax:aslow", label: "アンチ減速壁" },
-  /* ★ 2026-08-07 新アンチギミック「断絶界」＋ プレミアム新★5 4体の新アビリティ */
+  /* ★ 2026-08-07 新アンチギミック「断絶界」＋ プレミアム新SSR 4体の新アビリティ */
   { k: "ax:award", label: "アンチ断絶界" }, { k: "ax:eclipseslayerM", label: "蝕冥滅殺" },
-  /* ★ 2026-08-08 プレミアム新★5 2体（ナナミ・チトセ） */
+  /* ★ 2026-08-08 プレミアム新SSR 2体（ナナミ・チトセ） */
   { k: "ax:eclipsekillerM", label: "蝕魔族キラー" }, { k: "ax:rightkillerL", label: "ライトポジションキラー" },
   { k: "ax:protection", label: "プロテクション" },
   /* ★ v16 */
@@ -11075,7 +11207,7 @@ const FILTERS = [
   { k: "ax:houraikiller", label: "蓬莱族キラー" },
   { k: "ax:healM", label: "回復M" }, { k: "ax:wallfbshort", label: "壁FBターン短縮" },
   { k: "ax:impulseboost", label: "インパルスブースト" },
-  /* ★ 2026-08-06 プレミアム新★5 3体（ユリア・アルティア・リアナ） */
+  /* ★ 2026-08-06 プレミアム新SSR 3体（ユリア・アルティア・リアナ） */
   { k: "ax:netherkiller", label: "冥花種キラー" },
   /* ★ 2026-08-07 Phantom Legend Fest（野獣先輩） */
   { k: "ax:allykillfb", label: "やりますねぇ!" }, { k: "ax:beastrage", label: "野獣の本気" },
@@ -11114,7 +11246,7 @@ const ABIL_GROUPS = {
   defkiller: ["defkiller"],
   mobkiller: ["mobkiller", "mobkillerM", "mobkillerL"],
   upkillerM: ["upkillerM"],
-  /* ★ 2026-08-08 プレミアム新★5（ナナミ・チトセ）の新アビリティ */
+  /* ★ 2026-08-08 プレミアム新SSR（ナナミ・チトセ）の新アビリティ */
   eclipsekillerM: ["eclipsekillerM", "eclipsekillerEL"], rightkillerL: ["rightkillerL"], protection: ["protection"],
   counterkiller: ["counterkiller"],
   combokillerM: ["combokillerM", "combokillerL", "combokillerEL"],
@@ -11194,7 +11326,7 @@ const FS_TYPE = {
   superinfinitylaser: "laser",
   /* v14.5: クロエ（壁で反射しながら周回し続ける＝リング・回転系） */
   holoxstream: "ring",
-  /* ★ v16 プレミアム新★5 6体 */
+  /* ★ v16 プレミアム新SSR 6体 */
   /* ★ 2026-08-08b クロス分身弾は cross（ココナ）に統一したので、分類もそろえる */
   superhiplasma: "laser", superhicross: "laser", crossclone: "follow",
   twininvolute: "ring", kiblastex: "shot",
@@ -11268,7 +11400,7 @@ const FS_TAGS = {
   wallcircuit:     ["bounce", "wide", "multi"],
   autoaimbit:      ["homing", "ally", "multi"],
   holoxstream:     ["bounce", "multi", "long"],
-  /* ★ v16 プレミアム新★5 6体 */
+  /* ★ v16 プレミアム新SSR 6体 */
   superhiplasma:   ["pierce", "long", "wide"],
   superhicross:    ["pierce", "long", "multi", "homing"],
   crossclone:      ["pierce", "bounce", "multi", "wide"],
@@ -11283,7 +11415,7 @@ const FS_TAGS = {
   beastcharge:     ["homing", "bounce", "multi"],
   /* ★ 2026-08-08 超強オービタルエッジ／超強クイックチャージショット */
   superspinring:   ["bounce", "multi", "wide"],
-  /* ★ 2026-08-08 プレミアム新★5 4体 */
+  /* ★ 2026-08-08 プレミアム新SSR 4体 */
   reflectring:     ["bounce", "multi", "wide", "long"],
   supercrossclone: ["pierce", "bounce", "multi", "wide"],
   superchargeshot: ["pierce", "long", "homing", "multi"],
@@ -11336,7 +11468,7 @@ const SUBFS_TAGS = {
   fbburst4: ["pierce", "multi", "wide", "long", "ally", "fbshort"],
   lock8: ["pierce", "homing", "multi"],
   linkspeedup: ["ally"], poisoncurrent: ["wide", "status", "multi"],
-  /* ★ 2026-08-08 プレミアム新★5 4体 */
+  /* ★ 2026-08-08 プレミアム新SSR 4体 */
   atkspdup: ["ally"], crossclone: ["pierce", "bounce", "multi", "wide"],
   supercrossclone: ["pierce", "bounce", "multi", "wide"],
   beastimpact: ["ally"],
@@ -11345,7 +11477,7 @@ const SUBFS_TAGS = {
 };
 const SS_TAGS = {
   /* ★ 2026-08-10 キーは ssKind。ゼラの ssKind は本人しか使っていなかったので廃止といっしょに消した。
-     ayame / leila / celine の ssKind は移行★4の何人かが使い続けているので残す。 */
+     ayame / leila / celine の ssKind は移行SRの何人かが使い続けているので残す。 */
   ema: ["bump", "support"], ayame: ["bump", "support", "knock"],
   kaguya: ["bump", "knock"], cheryl: ["bump", "barrage"], sakura: ["bump", "barrage"],
   arisa: ["bump", "all"], mion: ["bump"], kokona: ["bump", "all"], mao: ["bump"],
@@ -11362,16 +11494,16 @@ const SS_TAGS = {
   /* v14 フェス5体 */
   /* ★ 2026-08-07: フィオナの ssKind は "fia" になったので、上の fia のタグを共有する（この行は残さない） */
   milfy: ["self", "support"], mabel: ["self", "support", "debuff"],
-  /* ★ 2026-08-10 XEVAガチャ移行★5（リコ＝sheril／ナナ＝yaju／レア＝abyss は既存タグを共有） */
+  /* ★ 2026-08-10 XEVAガチャ移行SSR（リコ＝sheril／ナナ＝yaju／レア＝abyss は既存タグを共有） */
   kotomi: ["self", "support"], kaho: ["all", "debuff"], rinonx: ["self", "gimmick"],
   /* ★ 2026-08-10 登録もれ。buff＝チーム全体を強化するフルバースト（ルシアなど） */
   buff: ["support"],
   abyss: ["self", "gimmick", "all"], arche: ["self", "all"],
   /* v14.5 クロエ */
   chloe: ["self", "gimmick", "bump", "all"],
-  /* ★ 2026-08-08 プレミアム新★5 4体（ココロは ssKind が "soleria" なので上の行を共有） */
+  /* ★ 2026-08-08 プレミアム新SSR 4体（ココロは ssKind が "soleria" なので上の行を共有） */
   kaede: ["self", "gimmick", "debuff", "all"], rinon: ["self", "support"], ange: ["self", "support", "all"],
-  /* ★ v16 プレミアム★5 6体 */
+  /* ★ v16 プレミアムSSR 6体 */
   sheril: ["self", "all", "weak", "bump"], fia: ["self", "support"],
   lysera: ["self", "bump"], soleria: ["self", "debuff", "weak"],
   beltia: ["self", "all", "debuff", "bump"], astera: ["self", "debuff"],
@@ -11385,10 +11517,10 @@ const SS_TAGS = {
   roselia: ["self", "debuff", "gimmick"],
   /* ★ 2026-08-07 Phantom Legend Fest 野獣先輩 */
   yaju: ["self", "all", "bump"],
-  /* ★ 2026-08-07 プレミアム★5 4体（レイカは ssKind が soleria なので上の soleria を共有）＋ドミニア */
+  /* ★ 2026-08-07 プレミアムSSR 4体（レイカは ssKind が soleria なので上の soleria を共有）＋ドミニア */
   iori: ["self", "bump"], noelle: ["self", "support"], yukino: ["self", "gimmick", "support"],
   dominia: ["self", "all", "debuff"],
-  /* ★ 2026-08-08 プレミアム★5 2体（チトセは ssKind が chitose ＝ ロゼリアと同じ性質） */
+  /* ★ 2026-08-08 プレミアムSSR 2体（チトセは ssKind が chitose ＝ ロゼリアと同じ性質） */
   nanami: ["self", "bump"], chitose: ["self", "debuff", "gimmick"],
   /* ★ 2026-08-12 蒼夏祭（フウカ＝nephia／スズカ＝mionA／カレム＝cherylA／マユ＝karina は
      それぞれ上の行を共有する。ここに足すのは新しい ssKind の2つだけ） */
@@ -11412,6 +11544,11 @@ const SS_TAGS = {
   youhi: ["self", "all"],
   /* ★ 2026-08-18 ロキシー（HPを払って敵全体に落雷＋防御ダウン・毒・遅延） */
   roxy: ["self", "all", "debuff"],
+  /* ★ 2026-08-20 GRAND DEBUT GACHA 新SSR 3体の新しい ssKind。
+     アメリア＝kotomi ／ ミオ＝selene は既存の行を共有するので、足すのはこの3つだけ。 */
+  mirelle: ["self", "all", "debuff"],
+  scarlet: ["self", "support", "debuff"],
+  koyuki: ["self", "all", "debuff", "bump"],
 };
 /* ★ この枠は「1つだけ」選べる（キャラが1つの値しか持たないので、複数選ぶと必ず0件になるため）。
    同じ枠の別のボタンを押すと選び直しになる。 */
@@ -11557,7 +11694,7 @@ const SORTS = [
   { k: "el",    label: "属性順" },
   { k: "shot",  label: "撃種順" },
   { k: "name",  label: "名前順（あいうえお）" },
-  { k: "rare",  label: "レア度順（★5ガチャ優先）" },
+  { k: "rare",  label: "レア度順（SSRガチャ優先）" },
 ];
 const EL_ORDER = ["fire", "water", "wood", "light", "dark"];
 function sortValue(k, id) {
@@ -11573,7 +11710,7 @@ function sortValue(k, id) {
     case "ss":    return -(st.ssTurns || 99);                       // ターンが短いほど上
     case "el":    return -EL_ORDER.indexOf(c.el);
     case "shot":  return c.shot === "pierce" ? 1 : 0;
-    /* ★ v14.5: フェス限定も★5ガチャ枠。★ 2026-08-07: star5（アイラEX・ヘカーティア・ドミニア）も★5帯に入れる */
+    /* ★ v14.5: フェス限定もSSRガチャ枠。★ 2026-08-07: star5（アイラEX・ヘカーティア・ドミニア）もSSR帯に入れる */
     case "rare":  return ((c.gacha || c.fes) ? 3 : c.star5 ? 2.5 : (c.raid || c.reward || c.cdk || c.garden) ? 2 : 1) + (own ? 0.5 : 0);
     default:      return 0;
   }
@@ -12008,7 +12145,7 @@ function openBattleDetHTML(id, ball, shotNow, shotChanged, st, showNexus, inBatt
   card.classList.add("bt");
   /* バトル中の詳細は「スクロールなしで1画面」に詰めてあるので、器の余白は最小にする */
   $("#detOv").classList.add("btmode");
-  /* ★ 2026-08-12 限界突破MAXの演出は★5だけ（★4には何も付けない） */
+  /* ★ 2026-08-12 限界突破MAXの演出はSSRだけ（SRには何も付けない） */
   card.classList.toggle("maxawk", st.awk >= MAX_AWK && isStar5(id));
   card.classList.remove("s4mx");
   $("#detOv").classList.add("on");
@@ -12089,16 +12226,25 @@ function openDet(id, from) {
   const inParty = (DB.party || []).indexOf(id) >= 0;
   if (compact) { openBattleDet(id, ballNow, shotNow, shotChanged, st, showNexus, inBattle, inBattle || (from === "team" && inParty)); return; }
   const need = expNeed(st.lv), expP = st.lv >= lvCap ? 1 : clamp(st.exp / need, 0, 1);
+  /* ★ 2026-08-18 バーの満タンは「全キャラの最大値」＝ statMinMax()（mb-core.js）。
+     取れなかったときだけ、これまでの決め打ちに戻す。 */
+  const _mm = (typeof statMinMax === "function") ? statMinMax() : null;
+  const gMax = { hp: (_mm && _mm.hp[1]) || 8500, atk: (_mm && _mm.atk[1]) || 3200, spd: (_mm && _mm.spd[1]) || 460 };
   const gaugeP = (v, max) => clamp(v / max, 0.06, 1) * 100;
-  const kind = c.fes ? '<span class="dtag" style="color:#c86bff;border-color:rgba(200,107,255,.6)">★5 フェス限定</span>'
-    : c.gacha ? '<span class="dtag" style="color:#ffb84d;border-color:rgba(255,157,46,.6)">★5 ガチャ限定</span>'
+  /* ステータス1項目（上段＝見出し・アーク・数字／下段＝横いっぱいのバー） */
+  const statRow = (nm, key, val, col, grad) =>
+    `<div class="dsrow"><div class="dshd"><span class="l">${nm}</span>${arcCol(st, key)}` +
+    `<span class="v" style="color:${col}">${val}</span></div>` +
+    `<div class="gauge"><i style="width:${gaugeP(st[key], gMax[key])}%;background:${grad}"></i></div></div>`;
+  const kind = c.fes ? '<span class="dtag" style="color:#c86bff;border-color:rgba(200,107,255,.6)">SSR フェス限定</span>'
+    : c.gacha ? '<span class="dtag" style="color:#ffb84d;border-color:rgba(255,157,46,.6)">SSR ガチャ限定</span>'
     : c.reward ? '<span class="dtag" style="color:#7dffb0;border-color:rgba(55,224,160,.6)">MagiLex 報酬</span>'
     : c.cdk ? '<span class="dtag" style="color:#c9a6ff;border-color:rgba(201,166,255,.6)">限定キャラ</span>'
     : c.raid ? '<span class="dtag" style="color:#ff8ab5;border-color:rgba(255,93,143,.6)">EX降臨ドロップ</span>'
     : c.garden ? '<span class="dtag" style="color:#c9a6ff;border-color:rgba(201,166,255,.6)">幽冥の庭園 降臨</span>'
-    /* ★ 2026-08-10 初期★4 4体を廃止したので、ここに来るのは★4のガチャ枠だけになった */
-    : '<span class="dtag">★4 ガチャ</span>';
-  const obtain = c.fes ? "<b>" + fesNameOf(c.id) + "</b>でのみ排出されるフェス限定★5！ プレミアムセレクトガチャや、もう一方のフェスからは出ません。🎫フェスチケットで狙おう。"
+    /* ★ 2026-08-10 初期SR 4体を廃止したので、ここに来るのはSRのガチャ枠だけになった */
+    : '<span class="dtag">SR ガチャ</span>';
+  const obtain = c.fes ? "<b>" + fesNameOf(c.id) + "</b>でのみ排出されるフェス限定SSR！ プレミアムセレクトガチャや、もう一方のフェスからは出ません。🎫フェスチケットで狙おう。"
     : c.reward ? "MagiLex で30コンテンツを完全習得すると仲間になる報酬キャラ！（ガチャ排出なし）"
     : c.cdk ? "XEVARIONのCDKコード、または「Aシリーズ制覇（S3・S4の全SSR）」ミッションで入手できる限定キャラ！MagiBurstでもそのまま使える。"
     /* ★ 2026-08-07: 庭園の降臨キャラが2体になったので、必要WAVE数を報酬テーブルから引く
@@ -12114,7 +12260,7 @@ function openDet(id, from) {
       ${canFav(id) ? `<button class="dfav ${isFav(id) ? "on" : ""}" onclick="detFav('${id}',this)"
         aria-label="お気に入り" title="お気に入りに入れる／外す">${isFav(id) ? "★" : "☆"}</button>` : ""}
       <div class="dover">
-        <div class="drank"><span style="color:#bfb6e6">${charNoText(id)}</span>　${isStar5(id) ? "★★★★★" : "★★★★"}${st.awk >= MAX_AWK ? '　<span style="color:#ffd257">👑 限界突破MAX</span>' : st.awk ? "　覚醒+" + st.awk : ""}</div>
+        <div class="drank"><span style="color:#bfb6e6">${charNoText(id)}</span>　${isStar5(id) ? "SSR" : "SR"}${st.awk >= MAX_AWK ? '　<span style="color:#ffd257">👑 限界突破MAX</span>' : st.awk ? "　覚醒+" + st.awk : ""}</div>
         <div class="dnm">${elIcon(c.el, 24)} ${own ? c.nm : c.nm + "（未加入）"}</div>
         ${own ? `<div class="dlv">Lv.${st.lv} / ${lvCap}${lvCap > MAX_LV ? " 超越" : ""}</div>` : ""}
       </div>
@@ -12124,14 +12270,20 @@ function openDet(id, from) {
       ${/* ★ 2026-08-15 「素の値」と「アークで増えたぶん」を別の列にした。
             アークを振っていない項目でも列の幅は空けたままなので、
             3行の数字の右端がいつもそろう（.dstats.hasarc で列を出す）。 */""}
+      ${/* ★★ 2026-08-18 1項目＝2段（上に数字・下に横いっぱいのバー）。
+            バーの満タンは<b>全キャラの最大値</b>（最大Lv・完凸）なので、
+            「この子はいまどのへんか」がそのまま長さになる。
+            以前は 8500 / 3200 / 420 の決め打ちで、スピードは 420 を超える子がいて
+            いつも満タン、HPは誰も 8500 に届かず半分ほどまでしか伸びなかった。 */""}
       <div class="dstats${arcHas(st) ? " hasarc" : ""}">
-        <div class="dsrow"><span class="l">HP</span><span class="gauge"><i style="width:${gaugeP(st.hp, 8500)}%;background:linear-gradient(90deg,#17a673,#4ade80)"></i></span><span class="v" style="color:#7dffb0">${fmt(st.hp)}</span>${arcCol(st, "hp")}</div>
-        <div class="dsrow"><span class="l">こうげき</span><span class="gauge"><i style="width:${gaugeP(st.atk, 3200)}%;background:linear-gradient(90deg,#e0642e,#ffb020)"></i></span><span class="v" style="color:#ffb84d">${fmt(st.atk)}</span>${arcCol(st, "atk")}</div>
-        <div class="dsrow"><span class="l">スピード</span><span class="gauge"><i style="width:${gaugeP(st.spd, 420)}%;background:linear-gradient(90deg,#1d78d8,#7cc4ff)"></i></span><span class="v" style="color:#7cc4ff">${spdKmh(st.spd)}</span>${arcCol(st, "spd")}</div>
+        ${statRow("HP", "hp", fmt(st.hp), "#7dffb0", "linear-gradient(90deg,#17a673,#4ade80)")}
+        ${statRow("こうげき", "atk", fmt(st.atk), "#ffb84d", "linear-gradient(90deg,#e0642e,#ffb020)")}
+        ${statRow("スピード", "spd", spdKmh(st.spd).replace(" km/h", "<u>km/h</u>"), "#7cc4ff", "linear-gradient(90deg,#1d78d8,#7cc4ff)")}
       </div>
+      <div class="dstatnote">バーの満タンは<b>全キャラの最大値</b>（最大Lv・限界突破MAX）です。${own ? "" : "未加入のキャラは Lv.1 の値を出しています。"}</div>
       ${/* ★ 2026-08-12d 右の列の「＋◯◯」は<b>アーク強化で増えたぶん</b>。何の数字か迷わないよう1行そえる */""}
       ${arcHas(st)
-        ? `<div class="darcnote">✦ 右はしの <b class="arcup">＋</b> の列は<b>${ELEM[c.el].nm}属性のアーク強化</b>で増えたぶんです（左の数字にはもう含まれています）。<span onclick="closeDet();goTab('varc')" style="color:#38a6ff;font-weight:900;text-decoration:underline;cursor:pointer">アーク強化を見る</span></div>` : ""}
+        ? `<div class="darcnote">✦ 数字のとなりの青い <b class="arcup">＋</b> は、<b>${ELEM[c.el].nm}属性のアーク強化</b>で増えたぶんです（大きい数字にはもう含まれています）。<span onclick="closeDet();goTab('varc')" style="color:#38a6ff;font-weight:900;text-decoration:underline;cursor:pointer">アーク強化を見る</span></div>` : ""}
       ${own ? `<div class="dexp"><div class="l"><span>EXP　${st.lv >= lvCap ? "MAX LEVEL" : fmt(st.exp) + " / " + fmt(need)}</span><b>${st.lv >= lvCap ? "" : "次のLvまで " + fmt(need - st.exp)}</b></div>
         <div class="bar"><i style="width:${expP * 100}%"></i></div></div>` : ""}
       <div class="dsk ab"><div class="t">ABILITY — アビリティ<small style="color:var(--sub);font-weight:700;margin-left:6px">タップで説明</small></div>
@@ -12186,7 +12338,7 @@ function openDet(id, from) {
         : '<div class="dtrainhint">レベル上げ・とっくん・ルーンの装備は <b>育成タブ</b> から</div>'}
     </div>`;
   const card = $("#detCard");
-  /* ★ 2026-08-12 限界突破MAXの演出は★5だけ（★4には何も付けない） */
+  /* ★ 2026-08-12 限界突破MAXの演出はSSRだけ（SRには何も付けない） */
   card.classList.toggle("maxawk", own && st.awk >= MAX_AWK && isStar5(id));
   card.classList.remove("s4mx");
   $("#detOv").classList.add("on");
@@ -12981,7 +13133,6 @@ function snapshotBattle() {
     /* ★ 2026-08-08c 消えているスイッチと「このターンもう反応したか」もそろえる
        （ここがズレると、ある端末では踏めるのに別の端末では踏めない盤面になる） */
     gsu: (B.gswitches || []).map((sw) => (sw.used ? 1 : 0)).join(""),
-    gsq: B.gsTurnUsed ? 1 : 0,
     balls: B.balls.map((b) => ({
       x: Math.round(b.x), y: Math.round(b.y), sc: b.sc | 0,
       ph: b.photonHold | 0, ms: b.msStock | 0, ba: Math.round(b.barrier || 0),
@@ -13046,7 +13197,7 @@ function applySnapshot(s) {
      別の画面では透明」という致命的な食いちがいになるので、必ずホストに合わせる。 */
   if (s.gs != null) B.gsTick = s.gs | 0;
   if (s.gsu != null) (B.gswitches || []).forEach((sw, i) => { sw.used = String(s.gsu)[i] === "1"; });
-  if (s.gsq != null) B.gsTurnUsed = s.gsq | 0;
+  /* ★ 2026-08-18 gsq（1ターン1回のフラグ）は廃止。古い版から届いても無視する。 */
   (s.enemies || []).forEach((se, i) => {
     const e = B.enemies[i]; if (!e) return;
     e.hp = se.hp; e.cd = se.cd; e.photonHit = se.ph;
@@ -13638,10 +13789,16 @@ function setupGimmicks(gim) {
   B.lockZones = [];
   B.balloons = [];           // v14 ヒーリングバルーン
   B.wards = [];              // v14 断絶界
+  /* ★★ 2026-08-19 クリア編成の記録に使う。
+     turnAll … クエスト全体で何手かかったか（WAVE をまたいで数える）
+     startAt … 始めた時刻（かかった秒数を出す） */
+  B.turnAll = 0;
+  B.startAt = Date.now();
   /* ★ 2026-08-07 透明スイッチ: 踏んだ回数（偶数＝gs:0 の敵が出ている／奇数＝gs:1 の敵が出ている） */
   B.gswitches = [];
   B.gsTick = 0;
-  B.gsTurnUsed = 0;          /* ★ 2026-08-08c このターンにもうスイッチが反応したか（1ターン1回） */
+  /* ★ 2026-08-18 B.gsTurnUsed（1ターン1回の見張り）は廃止。
+     いまは踏んだスイッチ自身の used だけで管理する。 */
   B.cbHits = 0;              // v14 カウントブーストウォール: 反応の合計
   B.cbUsed = {};             // v14 反応済み回数（壁ごと）
   B.wallLv = 0;              // ウォールチェンジ: WAVEごとに青からやり直す
@@ -13758,7 +13915,7 @@ function toggleGhostSwitch(sw, ball) {
   const onN = B.enemies.filter((e) => e.hp > 0 && enemyShown(e)).length;
   B.pops.push({ x: sw.x, y: sw.y - sw.r - 18, t: 0, txt: "透明スイッチ！敵が入れ替わった（出現 " + onN + "体）", c: "#c9a6ff", small: 1 });
   /* ★ 2026-08-08c このターンはもう反応しない／このスイッチは消えることを伝える */
-  B.pops.push({ x: sw.x, y: sw.y + sw.r + 22, t: 0, txt: "このスイッチは消えた（次のターンで復活・反応は1ターン1回）", c: "#9d97c4", small: 1 });
+  B.pops.push({ x: sw.x, y: sw.y + sw.r + 22, t: 0, txt: "このスイッチは消えた（次のターンで復活・ほかのスイッチはまだ踏める）", c: "#9d97c4", small: 1 });
   B.effects.push({ type: "ring", x: sw.x, y: sw.y, t: 0, dur: 22, r: sw.r * 4.2, c: "#c86bff" });
   /* 切り替わった敵ぶんだけ、その場に波紋を出す（どれが出た／消えたかが分かるように） */
   B.enemies.forEach((e) => {
@@ -14344,7 +14501,7 @@ const FS_HIT = {
      !ボタンのリンクスキル欄が「威力 0」と表示されていた。 */
   beastcharge: { per: BEASTCHARGE_PER, n: BEASTCHARGE_N, nm: "追尾突進弾" + BEASTCHARGE_N + "発（味方が止まるまで持続）" },
   ring: { per: 0.30, n: 1, nm: "リング（継続ヒット）" },
-  /* ★ 2026-08-08 プレミアム新★5 4体 */
+  /* ★ 2026-08-08 プレミアム新SSR 4体 */
   reflectring: { per: REFRING_PER, n: REFRING_MAX, nm: "反射リング弾" + REFRING_MAX + "発（壁で１回反射・順に射出）" },
   supercrossclone: { per: SCC_PER, n: SCC_CLONES, nm: "分身" + SCC_CLONES + "体（壁で反射・貫通・継続）" },
   spin: { per: 0.30, n: 1, nm: "回転斬（継続ヒット）" },
@@ -14378,10 +14535,12 @@ const FS_HIT = {
   autoaimbit: { per: AIMBIT_PER, n: AIMBIT_N, nm: "ビット" + AIMBIT_N + "個（自動連射）" },
   /* v14.5 クロエ */
   holoxstream: { per: CHLOE_ORCA_PER, n: CHLOE_ORCAS, nm: "ホログラムのシャチ" + CHLOE_ORCAS + "体（壁で反射・加速・継続）" },
-  /* ★ v16 プレミアム新★5 6体 */
+  /* ★ v16 プレミアム新SSR 6体 */
   superhiplasma: { per: 0.85, n: 1, nm: "超極大プラズマ（継続ヒット）" },
   crossclone: { per: CC_PER, n: CC_CLONES, nm: "分身" + CC_CLONES + "体（壁で反射・貫通・継続）" },
-  superhicross: { per: 1.70, n: 4, nm: "超ハイクロス4本（貫通・折り返し）" },
+  /* ★ 2026-08-20c 数字は mb-core の SHICROSS_* が持ち主。ここに直書きすると
+     「表示は1.70／実ダメージは3.60」のような食いちがいが必ず出る。 */
+  superhicross: { per: SHICROSS_PER, n: SHICROSS_N, nm: "超ハイクロス" + SHICROSS_N + "本（貫通・折り返し）" },
   twininvolute: { per: 0.34, n: 32, nm: "螺旋スフィア（2方向・2回転しながら全画面へ広がり画面外へ）" },
   kiblastex: { per: 0.85, n: 7, nm: "超強連気弾7発（弱った敵を優先）" },
   /* ★ 2026-08-05 ロゼリア／シズカ */
@@ -14424,7 +14583,7 @@ const SUB_HIT = {
      どちらも<b>ダメージを出さない支援サブリンク</b>。表に無いままだと !ボタンで
      「サブリンク 威力 0」とだけ出て、支援なのか抜けなのか分からなかった。 */
   linkspeedup: { per: 0, n: 0 }, beastimpact: { per: 0, n: 0 },
-  /* ★ 2026-08-08 プレミアム新★5 4体。
+  /* ★ 2026-08-08 プレミアム新SSR 4体。
      クロス分身弾系の n は「一周で敵1体に当たりうる本数」＝分身の数。 */
   atkspdup: { per: 0, n: 0 },
   crossclone: { per: CC_PER, n: CC_CLONES },
@@ -14827,7 +14986,7 @@ function playCutin(c) {
   ov.classList.remove("on", "lux", "abil", "sscut"); void ov.offsetWidth;
   ov.classList.add("on");
   restartCutinAnim(ov);
-  if (c.lux) ov.classList.add("lux");   // ガチャ★5は追加のきらめき演出
+  if (c.lux) ov.classList.add("lux");   // ガチャSSRは追加のきらめき演出
   setTimeout(() => ov.classList.remove("on", "lux", "abil", "sscut"), 1520);
 }
 /* ══ ★ 2026-08-08c むかしの「SS絵」（縦長イラスト）を残してあるキャラ ══
@@ -14997,9 +15156,9 @@ function launchShot(ball, ux, uy, power) {
     /* ★ 2026-08-08 カエデ・リノン・アンジェ（ココロは ssKind が "soleria" なので上で拾う） */
     || ssk === "kaede" || ssk === "rinon" || ssk === "ange"
     || ssk === "sheril" || ssk === "fia" || ssk === "lysera" || ssk === "soleria" || ssk === "beltia" || ssk === "astera"
-    /* ★ 2026-08-07 プレミアム★5 4体＋ドミニア（自強化型はどれも初速1.3倍） */
+    /* ★ 2026-08-07 プレミアムSSR 4体＋ドミニア（自強化型はどれも初速1.3倍） */
     || ssk === "iori" || ssk === "noelle" || ssk === "yukino" || ssk === "dominia"
-    /* ★ 2026-08-10 XEVAガチャ移行★5（コトミ・リノン。リコ＝sheril／レア＝abyss は上で拾う） */
+    /* ★ 2026-08-10 XEVAガチャ移行SSR（コトミ・リノン。リコ＝sheril／レア＝abyss は上で拾う） */
     /* ★ 2026-08-12 蒼夏祭（ツムギ・チヅル。ほかの4体は既存の ssKind を共有しているので上で拾う） */
     /* ★ 2026-08-12 セイラ（自強化型）。cherylA・kokonaA も自強化型なのでここで拾う */
     || ssk === "seira" || ssk === "cherylA" || ssk === "kokonaA"
@@ -15009,6 +15168,8 @@ function launchShot(ball, ux, uy, power) {
     || ssk === "moeka" || ssk === "elena" || ssk === "grace"
     /* ★ 2026-08-18 ロキシー（自強化型なので初速1.3倍） */
     || ssk === "roxy"
+    /* ★ 2026-08-20 GRAND DEBUT GACHA 新SSR 3体（どれも自強化型なので初速1.3倍） */
+    || ssk === "mirelle" || ssk === "scarlet" || ssk === "koyuki"
     || ssk === "tsumugi" || ssk === "chizuru"
     || ssk === "kotomi" || ssk === "rinonx") ? 1.3 : 1;
   const sp = Math.min(56 * SPD_GLOBAL, base * power * mul);
@@ -15063,6 +15224,8 @@ function launchShot(ball, ux, uy, power) {
   if (ssk === "tsubaki" || ssk === "iroha" || ssk === "yuri" || ssk === "nazuna" || ssk === "revia"
     /* ★ 2026-08-16b エレナ（1回目・2回目のどちらのランでも総攻撃する） */
     || ssk === "elena"
+    /* ★ 2026-08-20 コユキ（毒は applyNewSS でまき、号令はここでかける） */
+    || ssk === "koyuki"
     || ssk === "sheril" || ssk === "beltia" || ssk === "yaju") fxRallyStrike(ball, true);
   /* ★ 2026-08-07 野獣先輩: 味方の総攻撃に加えて「自分の分身4体」も突っ込ませる */
   if (ssk === "yaju") fxBeastClones(ball);
@@ -15113,7 +15276,7 @@ function applyNewSS(ball) {
     flash("#c86bff");
     return;
   }
-  /* ══ ★ v16 プレミアム新★5 6体 ══ */
+  /* ══ ★ v16 プレミアム新SSR 6体 ══ */
   if (k === "sheril") {
     /* シェリル: 自強化＋総攻撃（号令は launch 側の fxRallyStrike）＋ふれた敵の弱点倍率アップ */
     ball.selfBuff = { atk: 1.8, spd: 1.25, left: 3 };
@@ -15689,6 +15852,77 @@ function applyNewSS(ball) {
       txt: "HP " + fmt(cost) + " を雷雲へ捧げた！ 豪雷積層雲!!", c: "#bfe4ff", small: 0 });
     withDmgSrc(ball, () => startRoxyStorm(ball));
     flash("#1d4ed8");
+  } else if (k === "mirelle") {
+    /* ══ ★ 2026-08-20 ミレーユ（フランベルジュ・インフェルノ）══
+       ・自強化（MIRELLE_ATK / MIRELLE_SPD）
+       ・撃った瞬間に<b>画面上のすべての敵を防御ダウン</b>（MIRELLE_DEF_TURNS ターン）
+       ・そのまま<b>紅蓮メテオ MIRELLE_METEOR_N 発</b>（fxMeteor＝リリアたちと同じもの）
+       ★ 防御ダウンを<b>先に</b>入れてからメテオを落とすこと。順番が逆だと、
+         いちばん大きい一撃（メテオ）にだけ防御ダウンが乗らない。
+       ★ メテオは fxMeteor に任せる＝威力の計算・キラー・属性有利がぜんぶ既存のまま通る。 */
+    ball.selfBuff = { atk: MIRELLE_ATK, spd: MIRELLE_SPD, left: 2 };
+    B.pops.push({ x: ball.x, y: ball.y - ball.r - 22, t: 0,
+      txt: "自強化＆敵全体 防御ダウン＆紅蓮メテオ" + MIRELLE_METEOR_N + "発!!", c: "#ffb3c8", small: 0 });
+    aliveEnemies().forEach((e) => {
+      if (!e || e.hp <= 0) return;
+      e.defdown = { left: MIRELLE_DEF_TURNS };
+      B.effects.push({ type: "ring", x: e.x, y: e.y, t: 0, dur: 22, r: e.r + 90, c: "#ffb3c8" });
+      B.pops.push({ x: e.x, y: e.y - e.r - 40, t: 0, txt: "防御ダウン", c: "#ff8ab5", small: 1 });
+    });
+    for (let k2 = 0; k2 < 4; k2++) B.effects.push({ type: "ring", x: ball.x, y: ball.y, t: -k2 * 4, dur: 30, r: 155 + k2 * 125, c: k2 % 2 ? "#ff5d47" : "#ffd7e6" });
+    B.effects.push({ type: "pillar", x: ball.x, y: ball.y, t: 0, dur: 34, c: "#ffd7e6" });
+    spawnSparks(ball.x, ball.y, "#ffb3c8", 34);
+    withDmgSrc(ball, () => fxMeteor(ball, MIRELLE_METEOR_N, MIRELLE_METEOR_MUL));
+    B.shake = Math.max(B.shake, 24);
+    flash("#ff5d47");
+  } else if (k === "scarlet") {
+    /* ══ ★ 2026-08-20 スカーレット（アビス・ティアーズ・ソナタ）══
+       ・自強化（SCARLET_ATK / SCARLET_SPD）
+       ・<b>チームHPを最大HPの SCARLET_HEAL ぶん回復</b>（上限は最大HP）
+       ・<b>画面上のすべての敵の攻撃ターンを SCARLET_DELAY 遅延</b>
+       ★ 遅延は delayEnemyTurn を通す（即死カウントも一緒に後ろへずれる）。
+         瑶華＆玉蘭のような twin は2本目のカウント（cd2）を別に持つので、そちらも忘れず遅らせる
+         ——ここを飛ばすと「片方だけ遅れる」ちぐはぐな結果になる（ロキシーで踏んだのと同じ罠）。 */
+    ball.selfBuff = { atk: SCARLET_ATK, spd: SCARLET_SPD, left: 2 };
+    const heal = Math.max(1, Math.round(B.maxhp * SCARLET_HEAL));
+    B.hp = Math.min(B.maxhp, B.hp + heal); paintHp();
+    B.pops.push({ x: ball.x, y: ball.y - ball.r - 22, t: 0,
+      txt: "自強化＆HP +" + fmt(heal) + "＆敵全体 " + SCARLET_DELAY + "ターン遅延!!", c: "#bfe9ff", small: 0 });
+    aliveEnemies().forEach((e) => {
+      if (!e || e.hp <= 0) return;
+      delayEnemyTurn(e, SCARLET_DELAY);
+      if (e.cd2 != null) e.cd2 += SCARLET_DELAY;
+      B.effects.push({ type: "ring", x: e.x, y: e.y, t: 0, dur: 22, r: e.r + 90, c: "#bfe9ff" });
+      B.pops.push({ x: e.x, y: e.y - e.r - 40, t: 0,
+        txt: SCARLET_DELAY + "遅延" + (e.doomMax ? "（即死も+" + SCARLET_DELAY + "）" : ""), c: "#7cc4ff", small: 1 });
+    });
+    for (let k2 = 0; k2 < 4; k2++) B.effects.push({ type: "ring", x: ball.x, y: ball.y, t: -k2 * 4, dur: 30, r: 150 + k2 * 125, c: k2 % 2 ? "#1d8fd8" : "#dff4ff" });
+    B.effects.push({ type: "pillar", x: ball.x, y: ball.y, t: 0, dur: 34, c: "#dff4ff" });
+    spawnSparks(ball.x, ball.y, "#bfe9ff", 34);
+    flash("#1d8fd8");
+  } else if (k === "koyuki") {
+    /* ══ ★ 2026-08-20 コユキ（ノワール・クロウ・ラプソディ）══
+       ・自強化（KOYUKI_ATK / KOYUKI_SPD）
+       ・<b>画面上のすべての敵を毒状態</b>（KOYUKI_POISON_TURNS ターン）
+       ・そのまま<b>味方全員で総攻撃</b>（fxRallyStrike＝レヴィアたちと同じもの）
+       ★ 毒はここでまくが、<b>号令（fxRallyStrike）は launchShot の一覧に足す</b>こと。
+         applyNewSS はカットインの<b>前</b>に走るので、ここで号令をかけると
+         本人が撃ち出される前に味方だけが走り出してしまう。
+         毒がさきに入るのは意図どおり——本人は毒キラーEL を持つので、
+         そのターンの総攻撃と直殴りにそのまま毒キラーが乗る。 */
+    ball.selfBuff = { atk: KOYUKI_ATK, spd: KOYUKI_SPD, left: 2 };
+    B.pops.push({ x: ball.x, y: ball.y - ball.r - 22, t: 0,
+      txt: "自強化＆敵全体 毒＆全員で総攻撃!!", c: "#c9a6ff", small: 0 });
+    aliveEnemies().forEach((e) => {
+      if (!e || e.hp <= 0) return;
+      e.poison = { left: KOYUKI_POISON_TURNS };
+      B.effects.push({ type: "poisonfx", x: e.x, y: e.y, r: e.r, t: 0, dur: 26, c: "#b06bff" });
+      B.pops.push({ x: e.x, y: e.y - e.r - 40, t: 0, txt: "毒", c: "#b06bff", small: 1 });
+    });
+    for (let k2 = 0; k2 < 4; k2++) B.effects.push({ type: "ring", x: ball.x, y: ball.y, t: -k2 * 4, dur: 30, r: 150 + k2 * 125, c: k2 % 2 ? "#6f3fd0" : "#e9d8ff" });
+    B.effects.push({ type: "pillar", x: ball.x, y: ball.y, t: 0, dur: 34, c: "#e9d8ff" });
+    spawnSparks(ball.x, ball.y, "#c9a6ff", 34);
+    flash("#6f3fd0");
   }
 }
 /* ══════════════════════════════════════════════════════════════
@@ -16139,16 +16373,19 @@ function update() {
     if (k >= 0) { const s = B.pending.splice(k, 1)[0]; doShot(s); }
   }
   B.tick++;
-  /* ★ v12: チームHPが0になったら、どこで0になっても必ず敗北にする。
-     以前は「敵ターンの終わり」でしか判定していなかったため、ショット中のダメージウォール・地雷・
-     チーム毒などでHPが0になっても、そのまま遊び続けられてしまうことがあった。
-     演出（フリーズ・エフェクト）の途中で切らないよう、少しだけ猶予を置いてから確定させる。 */
-  /* ★ 2026-08-06 「倒しきったのに敗北になる」不具合の修正
-     最後の敵を倒したショットで、そのままダメージウォール・地雷・毒などを踏んで
-     HPが0になると、WAVEクリア処理（マップクリア回復＋35%／victory）が走る前に
-     この猶予が満了して defeat() が呼ばれ、<b>勝ったはずのクエストが敗北</b>になっていた。
-     生きている敵が1体もいないときは、もう負けようがない＝ここでは絶対に負けにしない。 */
-  if (!B.over && B.hp <= 0 && B.state !== "over" && aliveEnemies().length) {
+  /* ★★ 2026-08-18 生死を決める場所を<b>ターンの区切り1か所</b>にまとめた（ユーザー指示）。
+     これまではここが毎フレーム見張っていて、HPが0のまま40フレーム経つと
+     その場で defeat() を呼んでいた。そのため
+       ・味方が走っている最中（リンクスキル・フルバースト・ボムの連鎖の途中）
+       ・敵の攻撃の演出の途中
+       ・ワンパン繰り越しで次のWAVEを出している途中
+     でいったんHPが0をよぎっただけで、そのあと回復して立て直せる形でも
+     負けが確定してしまうことがあった＝「突破できる形なのに死ぬ」。
+     いまは endShotCore の終わり（キャラの動き → リンクスキル → 敵の攻撃 →
+     ターン終わりの後始末を<b>全部</b>終えて、次のキャラへ手番を渡す直前）で1回だけ見る。
+     ここに残しているのは<b>保険</b>だけ——狙い（aim）に戻ったのにHPが0のままなら、
+     どこかで見落としているので、そのときはじめて負けにする。 */
+  if (!B.over && B.hp <= 0 && B.state === "aim" && aliveEnemies().length) {
     B.hp = 0;
     B.koWait = (B.koWait || 0) + 1;
     if (B.koWait > 40) { defeat(); return; }
@@ -17041,11 +17278,16 @@ function stepBall(ball) {
     /* ★ 2026-08-07 透明スイッチ: 踏むと敵の「出現⇄透明」が入れ替わる。
        撃種変化パネルと同じ「地形」あつかいなので、オムニアンチなどでは無効化しない
        （無効化できてしまうと、透明な敵を出す手段が消えて詰みになる）。
-       ★ 2026-08-08c 仕様変更（撃種変化パネルと同じ形にそろえた）:
-         ・反応するのは<b>そのターン1回だけ</b>（1ショット中に何度も入れ替わらない）
-         ・反応したスイッチは<b>その場から消える</b>（sw.used）
+       ★★ 2026-08-18 仕様変更（ユーザー指示）:
+         <b>1ターンの間に、置かれているスイッチが全部はたらく</b>ようにした。
+         これまでは「反応は1ターン1回」（B.gsTurnUsed）だったので、
+         1つ踏んだ瞬間にほかのスイッチが<b>ぜんぶ死んだまま</b>になり、
+         「入れ替えて → もう一度入れ替える」という組み立てができなかった。
+         いまの決まりはこれだけ:
+         ・<b>スイッチ1個につき、そのターン1回</b>（踏むと消える＝sw.used）
          ・消えたスイッチは<b>次のターンで復活</b>する（nextTurn でまとめて戻す）
-         ・そのため各WAVEに<b>最低3個</b>置く（1個踏んで消えても、まだ選べる余地を残す） */
+         ・同じスイッチに乗りっぱなしでの連打は ball._gsOn で止める
+         ・そのため各WAVEに<b>最低3個</b>置く */
     if (B.gswitches && B.gswitches.length) {
       for (const sw of B.gswitches) {
         if (sw.used) { if (ball._gsOn === sw.id) ball._gsOn = null; continue; }
@@ -17053,11 +17295,8 @@ function stepBall(ball) {
         if (!on) { if (ball._gsOn === sw.id) ball._gsOn = null; continue; }
         if (ball._gsOn === sw.id) continue;   // 乗りっぱなしで連続作動しないように
         ball._gsOn = sw.id;
-        if (B.gsTurnUsed) continue;           // このターンはもう1回反応ずみ
-        B.gsTurnUsed = 1;
-        sw.used = true;                       // 反応したスイッチは消える（次のターンで復活）
+        sw.used = true;                       // 踏んだスイッチだけが消える（次のターンで復活）
         toggleGhostSwitch(sw, ball);
-        break;                                // 同じフレームで2個踏んでも反応は1回まで
       }
     }
     /* 敵（角丸正方形）
@@ -17426,6 +17665,9 @@ function ssMulOf(ball) {
     /* ★ 2026-08-16 アンナ（annaA。体当たり倍率は selfBuff 側で乗る） */
     || k === "annaA"
     /* ★ 2026-08-18 ロキシー（体当たり倍率は selfBuff の ROXY_ATK 側で乗る） */
+    /* ★ 2026-08-20 GRAND DEBUT GACHA 新SSR 3体（体当たり倍率は selfBuff 側で乗る）。
+       ★ ここに書き忘れると既定の ×1.5 が<b>さらに掛かって</b>説明より強くなる。 */
+    || k === "mirelle" || k === "scarlet" || k === "koyuki"
     || k === "roxy") return 1.0;
   /* ★ 2026-08-08 カエデ: 敵にふれるたび +0.55。selfBuff の ×1.6 と掛けて <b>最大 ×10.0</b> になるように頭打ちする */
   if (k === "kaede") return Math.min(10.0 / 1.6, 1.0 + 0.55 * (ball.maoStack || 0));
@@ -18072,7 +18314,7 @@ function stopBarrage(ball) {
   });
   if (stopped) B.pops.push({ x: ball.x, y: ball.y - ball.r - 30, t: 0, txt: "乱打 停止", c: "#9d97c4", small: 1 });
 }
-/* ガチャ★5の豪華演出（バースト光輪＋フラッシュ＋大量スパーク） */
+/* ガチャSSRの豪華演出（バースト光輪＋フラッシュ＋大量スパーク） */
 function luxBurst(x, y, c) {
   B.effects.push({ type: "flashfx", t: 0, dur: 12 });
   B.effects.push({ type: "ring", x, y, t: 0, dur: 26, r: 380, c: "#ffffff" });
@@ -18398,11 +18640,11 @@ function triggerFriend(owner, mover, powerMul, withSub) {
      新4体などは selfBuff(=atkMulOf) 方式なので ssMulOf は 1.0 を返し、二重計算にはならない。
      キラー系は dealDamage 内の killerMul(DMG_SRC) で別途反映済み。 */
   B.pops.push({ x: owner.x, y: owner.y - 46, t: 0, txt: "✦ " + owner.ch.fsName, c: ELEM[owner.ch.el].c, small: 0 });
-  /* ★ v14: リンクスキルの発動演出をすべて派手にする（以前は★5だけ・かつ地味だった）。
+  /* ★ v14: リンクスキルの発動演出をすべて派手にする（以前はSSRだけ・かつ地味だった）。
      光の花＋二重リング＋スパークで「いま誰のリンクが出たか」が一目で分かるようにした。 */
   linkOpenFx(owner, ELEM[owner.ch.el].c);
   if (owner.ch.lux) {
-    /* ガチャ★5・フェス★5はさらに豪華に（フラッシュ＋大きな追加リング） */
+    /* ガチャSSR・フェスSSRはさらに豪華に（フラッシュ＋大きな追加リング） */
     B.effects.push({ type: "flashfx", t: 0, dur: 7 });
     B.effects.push({ type: "ring", x: owner.x, y: owner.y, t: -8, dur: 28, r: 330, c: ELEM[owner.ch.el].c });
     spawnSparks(owner.x, owner.y, "#ffffff", 14);
@@ -19015,7 +19257,7 @@ function fireFriendMain(owner, atk, mover, kindOverride) {
         } });
       break;
     }
-    /* ══════════ ★ v16 プレミアム新★5 6体のリンクスキル ══════════ */
+    /* ══════════ ★ v16 プレミアム新SSR 6体のリンクスキル ══════════ */
     case "superhiplasma": {
       /* 超強ハイプラズマ（シェリル）: ハイプラズマの上位。線が太く、当たり幅も広い。 */
       spawnHiplasma(owner, mover || owner, atk * 0.85, "#7cc4ff", 1);
@@ -19026,16 +19268,35 @@ function fireFriendMain(owner, atk, mover, kindOverride) {
       break;
     }
     case "superhicross": {
-      /* 超強ハイクロススティンガー（ソレリア）: ハイクロスの上位。
-         2本 → 4本（左右＋斜め上）に増え、倍率も上がる。折り返しの挙動は同じ。 */
+      /* ══ ★ 2026-08-20c 超強ハイクロススティンガー（ソレリア／スカーレット）══
+         ご指定で<b>威力を大幅に強化</b>し、<b>見て分かる演出</b>に作り直した。
+         ・本数 4 → SHICROSS_N（左右＋斜め上下＝十字に開く）／倍率 1.70 → SHICROSS_PER
+         ・弾は big:3＝<b>尾を引く十字の光槍</b>（描画は drawEffect の pbullet に段を足してある）
+         ・発射の瞬間に<b>十字の閃光</b>、折り返しの瞬間に<b>十字のリング</b>を出すので、
+           「どこで曲がって、どの敵を狙い直したのか」が目で追える
+         ★ 数字は mb-core の SHICROSS_* だけを見ること（FS_HIT もそこを見ている）。 */
       const col = ELEM[owner.ch.el].c, el = owner.ch.el;
-      const TURN_DIST = 250, SPD = 17;
-      const dirs = [[-1, 0], [1, 0], [-0.72, -0.69], [0.72, -0.69]];
+      const TURN_DIST = SHICROSS_TURN, SPD = SHICROSS_SPD;
+      /* 十字＋斜めに開く。SHICROSS_N が奇数でも足りるよう、必要なぶんだけ先頭から使う */
+      const DIRS = [[-1, 0], [1, 0], [-0.72, -0.69], [0.72, -0.69], [-0.72, 0.69], [0.72, 0.69]];
+      const dirs = DIRS.slice(0, Math.max(2, SHICROSS_N));
+      /* 発射の合図＝本人を中心に十字の閃光と二重リング（どこから出たのかを見せる） */
+      for (let r0 = 0; r0 < 3; r0++) {
+        B.effects.push({ type: "ring", x: owner.x, y: owner.y, t: -r0 * 3, dur: 22, r: 90 + r0 * 90,
+          c: r0 % 2 ? "#fff1b8" : col });
+      }
+      [0, Math.PI / 2].forEach((a) => {
+        B.slashes.push({ x: owner.x, y: owner.y, t: 0, ang: a, len: 260, c: "#fff1b8" });
+      });
+      spawnSparks(owner.x, owner.y, "#fff1b8", 20);
       dirs.forEach((d, di) => {
         B.effects.push({ type: "pbullet", x: owner.x, y: owner.y, vx: d[0] * SPD, vy: d[1] * SPD,
-          t: -di * 3, dur: 100, c: col, hit: new Set(), big: 1,
+          t: -di * 3, dur: 110, c: col, hit: new Set(), big: 3, trail: [],
           sx: owner.x, sy: owner.y, homing: false, tgt: null,
           tick(fx) {
+            /* 尾（軌跡）。長すぎると重いので 10 点で打ち切る */
+            fx.trail.push([fx.x, fx.y]);
+            if (fx.trail.length > 10) fx.trail.shift();
             if (!fx.homing) {
               fx.x += fx.vx; fx.y += fx.vy;
               const out = fx.x < -40 || fx.x > W + 40 || fx.y < -40 || fx.y > H + 40;
@@ -19046,8 +19307,13 @@ function fireFriendMain(owner, atk, mover, kindOverride) {
                 alive.forEach((e) => { const dd = Math.hypot(e.x - fx.x, e.y - fx.y); if (dd < bd) { bd = dd; best = e; } });
                 fx.homing = true; fx.tgt = best;
                 fx.x = clamp(fx.x, 10, W - 10); fx.y = clamp(fx.y, 10, H - 10);
-                B.effects.push({ type: "ring", x: fx.x, y: fx.y, t: 0, dur: 16, r: 70, c: "#fff1b8" });
-                spawnSparks(fx.x, fx.y, "#fff1b8", 12);
+                /* ★ 折り返しの瞬間＝十字のリングと閃きを出す。ここが「曲がった合図」になる */
+                B.effects.push({ type: "ring", x: fx.x, y: fx.y, t: 0, dur: 20, r: 110, c: "#fff1b8" });
+                B.effects.push({ type: "ring", x: fx.x, y: fx.y, t: -3, dur: 18, r: 62, c: "#ffffff" });
+                const ta = Math.atan2(best.y - fx.y, best.x - fx.x);
+                B.slashes.push({ x: fx.x, y: fx.y, t: 0, ang: ta, len: 150, c: "#fff1b8" });
+                B.slashes.push({ x: fx.x, y: fx.y, t: 0, ang: ta + Math.PI / 2, len: 90, c: "#ffffff" });
+                spawnSparks(fx.x, fx.y, "#fff1b8", 18);
               }
             } else {
               let tb = fx.tgt;
@@ -19072,17 +19338,23 @@ function fireFriendMain(owner, atk, mover, kindOverride) {
               if (fx.hit.has(e.id)) return;
               if (Math.hypot(e.x - fx.x, e.y - fx.y) < e.r + 34) {
                 fx.hit.add(e.id);
-                dealDamage(e, atk * 1.7 * elemMult(el, e.el), fx.c, true);
-                B.slashes.push({ x: fx.x, y: fx.y, t: 0, ang: Math.atan2(fx.vy, fx.vx) + 0.5, len: 120, c: "#fff1b8" });
-                B.effects.push({ type: "boom", x: fx.x, y: fx.y, t: 0, dur: 18, r: 110, c: fx.c });
-                spawnSparks(fx.x, fx.y, "#ffffff", 14);
-                B.shake = Math.max(B.shake, 10);
+                dealDamage(e, atk * SHICROSS_PER * elemMult(el, e.el), fx.c, true);
+                /* 当たった瞬間は<b>十字の斬撃</b>＋二重の爆ぜ。どの敵に入ったかがはっきり分かる */
+                const ha = Math.atan2(fx.vy, fx.vx);
+                B.slashes.push({ x: fx.x, y: fx.y, t: 0, ang: ha, len: 170, c: "#fff1b8" });
+                B.slashes.push({ x: fx.x, y: fx.y, t: 0, ang: ha + Math.PI / 2, len: 120, c: "#ffffff" });
+                B.effects.push({ type: "boom", x: fx.x, y: fx.y, t: 0, dur: 20, r: 150, c: fx.c });
+                B.effects.push({ type: "ring", x: fx.x, y: fx.y, t: 0, dur: 16, r: 86, c: "#ffffff" });
+                spawnSparks(fx.x, fx.y, "#ffffff", 22);
+                B.shake = Math.max(B.shake, 16);
               }
             });
           } });
       });
-      B.effects.push({ type: "flashfx", t: 0, dur: 8 });
-      B.pops.push({ x: owner.x, y: owner.y - owner.r - 26, t: 0, txt: "超強ハイクロススティンガー!!", c: "#ffb84d", small: 1 });
+      B.effects.push({ type: "flashfx", t: 0, dur: 12 });
+      B.pops.push({ x: owner.x, y: owner.y - owner.r - 26, t: 0,
+        txt: "超強ハイクロススティンガー " + SHICROSS_N + "本!!", c: "#ffb84d", small: 0 });
+      B.shake = Math.max(B.shake, 14);
       SFX.crit();
       break;
     }
@@ -20835,7 +21107,9 @@ async function endShotCore() {
     } else { victory(); return; }
   } else {
     await enemyPhase();
-    if (B.hp <= 0) { defeat(); return; }
+    /* ★ 2026-08-18 ここでは負けを決めない。
+       このあとのターン終わりの後始末（毒・バフの消費・スイッチの復活など）まで
+       ぜんぶ終えてから、下の1か所でまとめて判定する。 */
   }
   /* ★ 2026-08-15 繰り越し（B.bossCarry）はここでは捨てない。
      次の面が出てきたとき（spawnWave の applyBossCarry）に精算する。
@@ -20858,6 +21132,7 @@ async function endShotCore() {
     b.comboId = null; b.comboN = 0;                    // 連撃キラーM もターンをまたいだら切れる
   });
   B.waveTurns = (B.waveTurns || 0) + 1;
+  B.turnAll = (B.turnAll || 0) + 1;   /* ★ クリア編成の記録用（WAVE をまたいだ通算） */
   /* 各WAVEで「自分が WAVE_SELF 回行動するまで」系（オムニ・バブリーモード・パワーモード）用に本人の行動回数を+1 */
   ball.waveActs = (ball.waveActs || 0) + 1;
   if (hasAbil(ball.ch, "omni")) {
@@ -20932,9 +21207,9 @@ async function endShotCore() {
   /* ★ 撃種変化パネルは「そのターンで一度使ったら消える」→ ターンが変わったら復活する */
   (B.swaps || []).forEach((sw) => { sw.used = false; });
   /* ★ 2026-08-08c 透明スイッチも同じ形に。
-     反応は毎ターン1回まで（B.gsTurnUsed）、踏んだスイッチは消えて次のターンで復活する。 */
+     ★ 2026-08-18 「1ターン1回」の縛りは廃止。踏んだスイッチだけが消え、
+     ここでまとめて復活する（＝そのターンに置かれているスイッチは全部はたらける）。 */
   (B.gswitches || []).forEach((sw) => { sw.used = false; });
-  B.gsTurnUsed = 0;
   /* ★ v11.3 ウォールチェンジ: 「各壁1回（最大4回）」の反応枠は毎ターンリセットする。
      壁の色（B.wallLv）はリセットせず、前のターンの最後の色をそのまま引き継ぐ。 */
   if (wallChangeOn()) B.wallUsed = {};
@@ -20949,6 +21224,23 @@ async function endShotCore() {
   if (balloonOn()) refillBalloons();
   /* ★ v14 結界: 手番が回ってきたキャラが結界の中にいたら、その結界に閉じ込める */
   if (B.wards && B.wards.length) tickWards();
+  /* ══════════════════════════════════════════════════════════════
+     ★★ 2026-08-18 生死の判定はここ1か所だけ（ユーザー指示）。
+     ここまでで、そのターンに起きることは全部おわっている:
+       キャラの動き → リンクスキル → フルバースト → WAVEクリア回復 →
+       敵の攻撃（即死・クラッシュ・レーザーふくむ）→ 毒・バフ・地形の後始末。
+     そのうえでHPが0なら負け。途中でHPが0をよぎっても、
+     最後に回復できていれば<b>負けにならない</b>。
+     ══════════════════════════════════════════════════════════════ */
+  if (!B.over) {
+    if (B.hp <= 0) {
+      if (aliveAll().length) { defeat(); return; }
+      /* 敵が1体も残っていない＝もう負けようがない。1だけ残して先へ進める
+         （ここへ来るのは繰り越しなどのまれな流れ。victory は上の枝で処理ずみ） */
+      B.hp = 1; paintHp();
+    }
+    B.koWait = 0;
+  }
   B.turn = (B.turn + 1) % B.balls.length;
   /* ★ 透明パネルの実体化⇄透過は「次のキャラの手番になった瞬間」に切り替える。
      以前はショットを撃った瞬間に切り替わっていたため、狙った盤面と実際の盤面がズレていた。 */
@@ -21700,6 +21992,100 @@ function battlePartySnapshot() {
     };
   });
 }
+/* ★★ 2026-08-19 クリア編成は「最後の1回」ではなく<b>いちばん良かった1回</b>を残す。
+
+   これまでは勝つたびに上書きしていたので、
+   たまたま最後がギリギリの勝ちだと、それが「クリア編成」として残ってしまった。
+   参考にしたいのは<b>安定して速かった編成</b>なので、点数の高いほうだけを残す。
+
+   点数 clearScore は
+     残HPの割合 × 100  … 危なげなく勝てたか（安定）
+     − 手数            … 速かったか
+   を足したもの。ギリギリで長い勝ちより、余裕をもって短い勝ちが上に来る。
+   ★ 手数が同じなら残HPの多いほうが勝つ。残HPが同じなら手数の少ないほうが勝つ。 */
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-08-19 みんなのクリア編成（クエストごと・全ユーザー共有）
+
+   ねらい
+     自分がまだ勝てていないクエストでも、<b>実際にクリアした人の編成</b>を見れば
+     何を借りればよいか・どのキャラが要るのかが分かる。
+     「自分の前回の編成」だけでは、詰まっている人には何の手がかりも出ない。
+
+   置き場所
+     MagiBurst の Firebase（magiburst）の <b>clearparty/&lt;クエストid&gt;/&lt;uid&gt;</b>。
+     1人1クエストにつき1件だけ（自分の<b>いちばん良かった</b>クリアで上書きする）。
+     ★ 送るのは<b>キャラid・Lv・凸・手数・残HP・秒数・名前</b>だけ。画像は送らない。
+
+   読むとき
+     そのクエストぶんを丸ごと取り、点数（clearScore）の高い順に上から5件出す。
+     ★ 通信できないときは何も出さない（自分の記録だけが出る）。壊れない作り。
+   ══════════════════════════════════════════════════════════════ */
+const SHARE_FB = "https://magiburst-default-rtdb.asia-southeast1.firebasedatabase.app";
+function shareUrlFor(stageId, uid) {
+  return SHARE_FB + "/clearparty/" + encodeURIComponent(stageId)
+    + (uid ? "/" + encodeURIComponent(uid) : "") + ".json";
+}
+function myUid() {
+  try { return (window.XEVA && XEVA.account.get() && XEVA.account.get().xvUid) || ""; } catch (e) { return ""; }
+}
+function myName() {
+  try { return (window.XEVA && XEVA.account.get() && XEVA.account.get().name) || "名もなき指揮官"; }
+  catch (e) { return "名もなき指揮官"; }
+}
+/* 自分のいちばん良いクリア編成を、みんなの場所へ送る */
+async function shareClearParty(stageId, rec) {
+  const uid = myUid();
+  if (!uid || !rec || !rec.members) return;
+  /* 送る中身をしぼる（画像・メモは送らない） */
+  const body = {
+    by: String(myName()).slice(0, 20),
+    at: Date.now(),
+    turns: rec.turns | 0,
+    hp: rec.hp | 0, mh: rec.mh | 0, sec: rec.sec | 0,
+    ids: rec.members.map((m) => String(m.id || "")).filter(Boolean).slice(0, 4),
+    lv: rec.members.map((m) => m.lv | 0).slice(0, 4),
+    awk: rec.members.map((m) => m.awk | 0).slice(0, 4),
+  };
+  if (body.ids.length !== 4) return;
+  try {
+    await fetch(shareUrlFor(stageId, uid), {
+      method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body),
+    });
+  } catch (e) { /* 通信できなくても、自分の記録は残っているので何もしない */ }
+}
+/* みんなのクリア編成を読む（点数の高い順） */
+const _shareCache = {};
+async function fetchSharedParties(stageId) {
+  if (_shareCache[stageId] && Date.now() - _shareCache[stageId].at < 120000) return _shareCache[stageId].list;
+  let list = [];
+  try {
+    const r = await fetch(shareUrlFor(stageId), { cache: "no-store" });
+    if (r.ok) {
+      const d = await r.json();
+      if (d && typeof d === "object") {
+        list = Object.keys(d).map((uid) => Object.assign({ uid }, d[uid]))
+          .filter((x) => x && Array.isArray(x.ids) && x.ids.length === 4)
+          .sort((a, b) => clearScore(b) - clearScore(a));
+      }
+    }
+  } catch (e) {}
+  _shareCache[stageId] = { at: Date.now(), list };
+  return list;
+}
+/* みんなのクリア編成を、いちばん多く使われているキャラの並びにして返す（自動編成が使う） */
+function sharedUseMap(stageId) {
+  const l = (_shareCache[stageId] && _shareCache[stageId].list) || [];
+  const m = {};
+  l.forEach((r) => r.ids.forEach((id) => { m[id] = (m[id] || 0) + 1; }));
+  return { m, total: Math.max(1, l.length) };
+}
+window.fetchSharedParties = fetchSharedParties;
+
+function clearScore(r) {
+  if (!r) return -1e9;
+  const hpPct = (r.mh > 0) ? (r.hp / r.mh) : 0;
+  return hpPct * 100 - (r.turns || 0);
+}
 function recordClearParty(stage) {
   if (!B || !stage || !stage.id) return;
   /* 全WAVE到達（＝最後のWAVEまでクリア）でなければ記録しない */
@@ -21709,8 +22095,27 @@ function recordClearParty(stage) {
   const members = battlePartySnapshot();
   if (!members.length) return;
   const slot = DB.lastClear[stage.id] || (DB.lastClear[stage.id] = {});
-  slot[mode] = { members, date: today, waves };
+  const rec = {
+    members, date: today, waves,
+    /* ★ 良さをはかる材料。古い記録にはこれが無いので、あとで使うときは既定値を入れる */
+    turns: B.turnAll | 0,
+    hp: Math.max(0, Math.round(B.hp || 0)),
+    mh: Math.max(1, Math.round(B.maxhp || 1)),
+    sec: Math.max(0, Math.round((Date.now() - (B.startAt || Date.now())) / 1000)),
+    n: 1,
+  };
+  const old = slot[mode];
+  if (old) {
+    rec.n = (old.n | 0) + 1;                 /* 何回クリアしたか（編成が変わっても数える） */
+    /* 古い記録（手数を持っていない）は、比べようがないので新しいほうを採用する */
+    const cmp = (old.turns != null) ? clearScore(old) : -1e9;
+    if (cmp >= clearScore(rec)) { old.n = rec.n; save(); return; }
+  }
+  slot[mode] = rec;
   save();
+  /* ★ 2026-08-19 ソロで勝ったぶんだけ、みんなの場所へも送る
+     （マルチは「誰の編成か」が混ざるので送らない）。 */
+  if (mode === "solo") { try { shareClearParty(stage.id, rec); } catch (e) {} }
 }
 /* ★ 2026-08-08 「直近で挑戦した編成」（勝ち負け・中断を問わず、出撃した時点で記録）。
    DB.lastTry[stageId] = { solo: {...}, multi: {...} }。中身の形は lastClear と同じなので、
@@ -21769,7 +22174,16 @@ function openLastClear(stageId) {
        先月以前のものは「◯月の記録」と添えて、今月のものと見分けられるようにする。 */
     const rm = String(r.date || "").slice(0, 7);
     const old = rm && rm !== new Date().toLocaleDateString("sv-SE").slice(0, 7);
+    /* ★ 2026-08-19 どれくらい安定して速かったのかを添えて出す（古い記録には無い） */
+    const met = (kind === "clear" && r.turns != null)
+      ? `<div class="lcmet">
+           <span><b>${r.turns}</b> 手</span>
+           <span>残りHP <b>${Math.round((r.hp / Math.max(1, r.mh)) * 100)}%</b></span>
+           <span>${r.sec >= 60 ? Math.floor(r.sec / 60) + "分" : ""}${(r.sec | 0) % 60}秒</span>
+           ${(r.n | 0) > 1 ? "<span>クリア <b>" + r.n + "</b> 回</span>" : ""}
+         </div>` : "";
     return `<div class="lcsec"><div class="lcst">${icon} ${label}<small>${r.date || ""}${old ? "（" + Number(rm.slice(5, 7)) + "月の記録）" : ""}</small></div>
+      ${met}
       <div class="lcgrid">${cells}</div>
       ${usable.length
         ? `<button class="lcuse" onclick="applyLastClear('${kind}','${mode}')">⚔ この編成で挑戦する${usable.length < 4 ? "（所持している" + usable.length + "体だけ読み込みます）" : ""}</button>`
@@ -21778,9 +22192,9 @@ function openLastClear(stageId) {
   };
   $("#lcCard").innerHTML = `
     <button class="ovx" onclick="closeLastClear()" aria-label="とじる" title="とじる">✕</button>
-    <h3>${ICO.lastp} 前回の編成</h3>
+    <h3>${ICO.lastp} クリア編成</h3>
     <div class="gimsub">${stage.nm}</div>
-    <div class="lchd">🏆 クリアしたときの編成<small>WAVE ${stage.waves.length} まで突破したときのもの</small></div>
+    <div class="lchd">🏆 クリアしたときの編成<small>いちばん<b>安定して速かった</b>1つを残しています（WAVE ${stage.waves.length} まで突破）</small></div>
     <div class="lclist">
       ${block("clear", "solo", "ソロ", "🧍")}
       ${block("clear", "multi", "マルチ", "🌐")}
@@ -21789,11 +22203,73 @@ function openLastClear(stageId) {
     <div class="lclist">
       ${block("try", "solo", "ソロ", "🧍")}
       ${block("try", "multi", "マルチ", "🌐")}
-    </div>`;
+    </div>
+    <div class="lchd share">🌍 みんなのクリア編成<small>ほかの指揮官が実際にこのクエストを抜けた編成です</small></div>
+    <div class="lclist" id="lcShare"><div class="lcnone">読み込んでいます…</div></div>`;
+  loadSharedInto(stageId);
     /* ★ 2026-08-08 下の「とじる」は廃止（右上の ✕ と同じ働きだった）。 */
   $("#lcOv").classList.add("on");
   SFX.pick();
 }
+/* みんなのクリア編成を読んで、いちばん良かった順に5件出す */
+async function loadSharedInto(stageId) {
+  const box = $("#lcShare"); if (!box) return;
+  let list = [];
+  try { list = await fetchSharedParties(stageId); } catch (e) {}
+  if (lastClearStageId !== stageId) return;      /* 読んでいる間に別のクエストを開いたら捨てる */
+  if (!list.length) {
+    box.innerHTML = '<div class="lcnone">まだ<b>だれも登録していません</b>。<br>'
+      + '<small>あなたがソロでクリアすると、その編成がここに載ります（キャラと記録だけ。名前は XEVARION の表示名です）。</small></div>';
+    return;
+  }
+  const me = myUid();
+  box.innerHTML = list.slice(0, 5).map((r, i) => {
+    const hpPct = Math.round((r.hp / Math.max(1, r.mh)) * 100);
+    const own = r.ids.filter((id) => DB.chars[id]).length;
+    const cells = r.ids.map((id, k) => {
+      const c = CHARS[id];
+      if (!c) return '<div class="lcm no"><div class="lcmn">?</div></div>';
+      const have = !!DB.chars[id];
+      return `<div class="lcm ${have ? "" : "no"}">
+        <img src="${c.th}" alt="${c.nm}">
+        <div class="lcmn">${c.nm}</div>
+        <div class="lcml">Lv.${r.lv[k] || "?"}${(r.awk[k] | 0) ? " 凸" + r.awk[k] : ""}</div>
+        ${have ? "" : '<div class="lcmx">未所持</div>'}
+        <button class="lcmi" onclick="openDet('${id}')" title="${c.nm} の詳細">i</button>
+      </div>`;
+    }).join("");
+    return `<div class="lcsec${r.uid === me ? " mine" : ""}">
+      <div class="lcst">${i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : "▸"} ${_dlgEsc(r.by || "指揮官")}
+        <small>${r.uid === me ? "あなたの記録" : ""}</small></div>
+      <div class="lcmet">
+        <span><b>${r.turns | 0}</b> 手</span>
+        <span>残りHP <b>${hpPct}%</b></span>
+        <span>${(r.sec | 0) >= 60 ? Math.floor(r.sec / 60) + "分" : ""}${(r.sec | 0) % 60}秒</span>
+        <span>手持ち <b>${own}/4</b></span>
+      </div>
+      <div class="lcgrid">${cells}</div>
+      ${own ? `<button class="lcuse" onclick="applySharedParty(${i})">⚔ この編成を読み込む${own < 4 ? "（持っている" + own + "体だけ）" : ""}</button>`
+            : '<div class="lcnone">この編成のキャラをまだ1体も持っていません。</div>'}
+    </div>`;
+  }).join("");
+}
+/* みんなの編成のうち、持っているキャラだけを編成に読み込む */
+window.applySharedParty = async (i) => {
+  const list = (_shareCache[lastClearStageId] && _shareCache[lastClearStageId].list) || [];
+  const r = list[i]; if (!r) return;
+  const ids = r.ids.filter((id) => DB.chars[id]);
+  if (!ids.length) return;
+  const p = DB.party.slice();
+  ids.forEach((id, k) => { if (k < 4) p[k] = id; });
+  DB.party = p.slice(0, 4);
+  save();
+  closeLastClear();
+  goTab("vteam");
+  try { renderTeam(); } catch (e) {}
+  uiAlert("みんなのクリア編成から <b>" + ids.length + "体</b> を読み込みました。"
+    + (ids.length < 4 ? "<br>足りないぶんは、いまの編成のままです。" : ""),
+    { icon: "🌍", title: "編成を読み込みました" });
+};
 function closeLastClear() { $("#lcOv").classList.remove("on"); }
 async function applyLastClear(kind, mode) {
   /* ★ 2026-08-08: kind ＝ "clear"（クリア編成）／"try"（直近で挑戦した編成）。
@@ -24457,12 +24933,39 @@ function drawEffect(fx) {
        ★ 2026-08-10 big は「大きいかどうか」ではなく<b>大きさの段</b>にした（1＝従来／2＝ハイクロス）。
          ハイクロススティンガーは big:2 で、頭を<b>十字の穂先</b>にして技名どおりの形に見せる。 */
     const bg = fx.big | 0;
-    const pr = bg >= 2 ? 17 : bg ? 13 : 9;
+    const pr = bg >= 3 ? 23 : bg >= 2 ? 17 : bg ? 13 : 9;
+    /* ★ 2026-08-20c 段3（超強ハイクロス）は<b>軌跡そのものを描く</b>。
+       速度から尾を伸ばすだけだと、折り返したときに尾が敵と反対を向いて見づらかった。 */
+    if (bg >= 3 && fx.trail && fx.trail.length > 1) {
+      ctx.beginPath();
+      fx.trail.forEach((p, i) => (i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])));
+      ctx.lineTo(fx.x, fx.y);
+      ctx.strokeStyle = hexA(fx.c, 0.34); ctx.lineWidth = pr * 1.5; ctx.lineCap = "round"; ctx.stroke();
+      ctx.beginPath();
+      fx.trail.forEach((p, i) => (i ? ctx.lineTo(p[0], p[1]) : ctx.moveTo(p[0], p[1])));
+      ctx.lineTo(fx.x, fx.y);
+      ctx.strokeStyle = hexA("#ffffff", 0.5); ctx.lineWidth = pr * 0.5; ctx.stroke();
+    }
     /* 尾（長いほど速さが伝わる） */
     ctx.beginPath(); ctx.moveTo(fx.x - fx.vx * (bg >= 2 ? 3.2 : 2.4), fx.y - fx.vy * (bg >= 2 ? 3.2 : 2.4)); ctx.lineTo(fx.x, fx.y);
-    ctx.strokeStyle = hexA(fx.c, 0.55); ctx.lineWidth = bg >= 2 ? 12 : bg ? 9 : 6; ctx.stroke();
+    ctx.strokeStyle = hexA(fx.c, 0.55); ctx.lineWidth = bg >= 3 ? 16 : bg >= 2 ? 12 : bg ? 9 : 6; ctx.stroke();
+    if (bg >= 3) {
+      /* まわりのにじみ（弾そのものを大きく見せる） */
+      ctx.beginPath(); ctx.arc(fx.x, fx.y, pr * 1.7, 0, Math.PI * 2); ctx.fillStyle = hexA(fx.c, 0.2); ctx.fill();
+    }
     ctx.beginPath(); ctx.arc(fx.x, fx.y, pr, 0, Math.PI * 2); ctx.fillStyle = fx.c; ctx.fill();
-    if (bg >= 2) {
+    if (bg >= 3) {
+      /* 十字の光槍。段2 より大きく、後ろにも羽根を伸ばして「槍」に見せる */
+      const a3 = Math.atan2(fx.vy, fx.vx);
+      ctx.save(); ctx.translate(fx.x, fx.y); ctx.rotate(a3);
+      ctx.strokeStyle = "#fff"; ctx.lineWidth = 5.5; ctx.lineCap = "round";
+      ctx.beginPath(); ctx.moveTo(-26, 0); ctx.lineTo(38, 0); ctx.stroke();          // 槍の軸
+      ctx.beginPath(); ctx.moveTo(8, -20); ctx.lineTo(8, 20); ctx.stroke();          // 十字の横棒
+      ctx.strokeStyle = hexA("#fff1b8", 0.95); ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(-18, -11); ctx.lineTo(-26, 0); ctx.lineTo(-18, 11); ctx.stroke();  // 後ろの羽根
+      ctx.beginPath(); ctx.moveTo(26, -11); ctx.lineTo(38, 0); ctx.lineTo(26, 11); ctx.stroke();     // 穂先
+      ctx.restore();
+    } else if (bg >= 2) {
       /* 十字の穂先＝ハイクロススティンガー。進行方向にそろえて回す */
       const a = Math.atan2(fx.vy, fx.vx);
       ctx.save(); ctx.translate(fx.x, fx.y); ctx.rotate(a);
@@ -24473,7 +24976,7 @@ function drawEffect(fx) {
       ctx.beginPath(); ctx.moveTo(18, -7); ctx.lineTo(26, 0); ctx.lineTo(18, 7); ctx.stroke();  // 穂先
       ctx.restore();
     }
-    ctx.beginPath(); ctx.arc(fx.x, fx.y, bg >= 2 ? 7 : bg ? 6 : 4, 0, Math.PI * 2); ctx.fillStyle = "#fff"; ctx.fill();
+    ctx.beginPath(); ctx.arc(fx.x, fx.y, bg >= 3 ? 9 : bg >= 2 ? 7 : bg ? 6 : 4, 0, Math.PI * 2); ctx.fillStyle = "#fff"; ctx.fill();
   } else if (fx.type === "pbullet3") {
     /* ★ 2026-08-08 貫通拡散弾3（チトセ）。ふつうの貫通弾よりひとまわり大きく、
        長い光の尾＋外側のにじみを重ねて「特大の弾が乱れ飛ぶ」ように見せる。
@@ -25190,20 +25693,11 @@ window.addEventListener("offline", updateOfflineUI);
   // スプラッシュは ../xeva-splash.js（全アプリ共通）。画像の先読みが終わるまで保持してもらう
   const pre = preload(() => {});
   await (window.XevaSplash ? XevaSplash.done(pre) : pre);
-  /* ★ v14.5: ガチャに新キャラが追加されていたら、スプラッシュのあと1回だけバナーで告知する。
-     アクセス画面（mbHome）や年齢確認が出ているあいだは、それらを閉じてから出す。 */
-  if (newCharUnseen()) {
-    const waitGate = async () => {
-      for (let i = 0; i < 600; i++) {
-        const home = $("#mbHome"), age = $("#ageGate");
-        if (!(home && home.classList.contains("open")) && !(age && age.classList.contains("open"))) return;
-        await sleep(300);
-      }
-    };
-    await waitGate();
-    await sleep(500);
-    openNewChar();
-  }
+  /* ★★ 2026-08-18 新キャラの告知バナーは<b>ここでは出しません</b>（ユーザー指示）。
+     XEVARION ポータルの<b>追加後はじめてのログイン</b>で1回だけ出す形に一本化しました
+     （xevarion.js の showNewChars）。同じ知らせが2つのアプリから出ると、
+     どちらで閉じたのか分からなくなるためです。
+     台帳（NEW_CHARS ＝ ../mb-newchars.js）は「新SSR参戦」イベントの顔ぶれ作りに使い続けます。 */
   /* ★ 2026-07-30: XEVARION の📧メールで受け取ったプレゼント（🎫チケット等）をここで精算する。
      同期が落ち着くのを待ってからにすること（理由は afterSync のコメント）。 */
   await afterSync();
@@ -25286,8 +25780,12 @@ window.addEventListener("xeva:change", () => { paintWallet(); });
       };
       /* ★ 2026-07-30: ここが STAGES（＝黄昏の王城）だけだったため、XEVYNAR は
          「禁忌の迷宮 第12の間」「幽冥の庭園 第5ノ園」を知らないまま答えていた。
-         3系統ぜんぶ渡す（series は下で s.garden / s.lab から決まる）。 */
-      const stages = STAGES.concat(LAB_STAGES, GARDEN_STAGES).map((s) => {
+         3系統ぜんぶ渡す（series は下で s.garden / s.lab から決まる）。
+         ★★ 2026-08-19 <b>蓬莱の九重</b>（HOURAI_STAGES）も足した。
+           ここに無かったので、XEVYNAR は「蓬莱天宮のギミックは？」に答えられなかった。
+           キャラを足したときと同じで、<b>系統を足したらここにも足す</b>こと。 */
+      const houraiList = (typeof HOURAI_STAGES !== "undefined") ? HOURAI_STAGES : [];
+      const stages = STAGES.concat(LAB_STAGES, GARDEN_STAGES, houraiList).map((s) => {
         let k = [];
         try { k = counterKeysOf(s); } catch (e) {}
         const waves = s.waves || [];
@@ -25296,7 +25794,7 @@ window.addEventListener("xeva:change", () => { paintWallet(); });
         const hp = last.filter(Boolean).reduce((a, d) => a + (d.hp || 0), 0);
         return [s.id, s.nm, s.diff || "", waves.length, k.join(","),
           boss.el || "", hp, gimKeysOf(s).join(","),
-          s.garden ? "garden" : s.lab ? "lab" : "castle", s.room || 0, s.orb || 0];
+          s.hourai ? "hourai" : s.garden ? "garden" : s.lab ? "lab" : "castle", s.room || 0, s.orb || 0];
       });
       /* EX降臨（そのキャラを入手できる唯一の場所なので、目標として案内できるようにする） */
       const raids = Object.keys(RAIDS).map((k) => {

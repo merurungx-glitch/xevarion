@@ -6,15 +6,15 @@
    ・オンライン対戦・XEVA換金はアプリ側でオフライン時に無効化している
    ・取得できたリソースは随時キャッシュ更新（stale-while-revalidate）
    ============================================================ */
-const VERSION = "magiburst-sw-v109";
+const VERSION = "magiburst-sw-v114";
 const CORE = [
   "./index.html",
-  "./js/mb-core.js?v=35",   /* ★ 2026-08-10 キャラ・ガチャの共有モジュール（XEVARION のガチャと共通） */
-  "../xeva.js?v=33",
+  "./js/mb-core.js?v=37",   /* ★ 2026-08-10 キャラ・ガチャの共有モジュール（XEVARION のガチャと共通） */
+  "../xeva.js?v=34",
   "../xeva-loading.js?v=1",
   "../xeva-splash.js?v=3",
   "../app-cloud.js?v=4",
-  "../xeva-keys.js?v=4",
+  "../xeva-keys.js?v=5",
   "./magiburst-cloud.js?v=6",
   "../maintenance-gate.js?v=5",
   "../app-install-notice.js?v=1",
@@ -41,15 +41,15 @@ const CORE = [
   "../img/t_Omega.webp",
   "../img/t_Zenosu.webp",
   "img/e_Hecatia.webp",
-  /* ★ 2026-08-05 プレミアム新★5「ロゼリア」「シズカ」 */
+  /* ★ 2026-08-05 プレミアム新SSR「ロゼリア」「シズカ」 */
   "../img/Roselia.webp",
   "../img/t_Roselia.webp",
   "../img/Shizuka.webp",
   "../img/t_Shizuka.webp",
-  /* ★ 2026-08-05 プレミアム新★5「ネム」 */
+  /* ★ 2026-08-05 プレミアム新SSR「ネム」 */
   "../img/Nemu.webp",
   "../img/t_Nemu.webp",
-  /* ★ 2026-08-06 プレミアム新★5「ユリア」「アルティア」「リアナ」 */
+  /* ★ 2026-08-06 プレミアム新SSR「ユリア」「アルティア」「リアナ」 */
   "../img/Yuria.webp",
   "../img/t_Yuria.webp",
   "../img/Altia.webp",
@@ -59,7 +59,7 @@ const CORE = [
   /* ★ 2026-08-07 Phantom Legend Fest「野獣先輩」 */
   "../img/Yaju.webp",
   "../img/t_Yaju.webp",
-  /* ★ 2026-08-07 プレミアム新★5「イオリ」「ノエル」「ユキノ」「レイカ」 */
+  /* ★ 2026-08-07 プレミアム新SSR「イオリ」「ノエル」「ユキノ」「レイカ」 */
   "../img/Iori.webp",
   "../img/t_Iori.webp",
   "../img/Noelle.webp",
@@ -80,7 +80,7 @@ const CORE = [
      ★ キャラごとの縦長イラスト（◯◯SS.png）は廃止した。
        67枚で 126MB あり、このキャッシュの大半を占めていた。 */
   "img/fullburst-logo.webp",   /* ★ 2026-08-08b 透過つきの切り抜き版（旧 fullburst.webp は下地が残っていた） */
-  /* ★ 2026-08-08c プレミアム新★5「コトネ」「ラン」「セリス」 */
+  /* ★ 2026-08-08c プレミアム新SSR「コトネ」「ラン」「セリス」 */
   "../img/Kotone.webp",
   "../img/t_Kotone.webp",
   "../img/Ran.webp",
@@ -96,7 +96,7 @@ const CORE = [
   "img/ss/RanSS.webp",
   "img/ss/YajuSS.webp",   /* ★ 2026-08-08d クロススキル「お待たせ!」用 */
   "img/ss/KokonaAlphaSS.webp",   /* ★ 2026-08-11 ココナα（治癒の祈り）用 */
-  /* ★ 2026-08-08 プレミアム新★5「カエデ」「リノン」「ココロ」「アンジェ」 */
+  /* ★ 2026-08-08 プレミアム新SSR「カエデ」「リノン」「ココロ」「アンジェ」 */
   "../img/Kaede.webp",
   "../img/t_Kaede.webp",
   "../img/Rinon.webp",
@@ -105,12 +105,12 @@ const CORE = [
   "../img/t_Kokoro.webp",
   "../img/Ange.webp",
   "../img/t_Ange.webp",
-  /* ★ 2026-08-08 プレミアム新★5「ナナミ」「チトセ」 */
+  /* ★ 2026-08-08 プレミアム新SSR「ナナミ」「チトセ」 */
   "../img/Nanami.webp",
   "../img/t_Nanami.webp",
   "../img/Chitose.webp",
   "../img/t_Chitose.webp",
-  /* ★ v16 プレミアム新★5 6体 */
+  /* ★ v16 プレミアム新SSR 6体 */
   "../img/Sheril.webp",
   "../img/t_Sheril.webp",
   "../img/Fia.webp",
@@ -153,7 +153,7 @@ const CORE = [
   "../img/t_Mabel.webp",
   "../img/t_Abyss.webp",
   "../img/t_Arche.webp",
-  /* ★ v14.5 プレミアム新★5 クロエ */
+  /* ★ v14.5 プレミアム新SSR クロエ */
   "../img/t_Chloe.webp",
   /* ★ v15 Luminous Summer Fest */
   "img/bn_fes2_s.webp",
@@ -162,11 +162,11 @@ const CORE = [
   /* ★ 2026-08-11 Luminous Summer Fest 追加2体 */
   "../img/t_CherylAlpha.webp",
   "../img/t_KokonaAlpha.webp",
-  /* ★ 2026-08-11 プレミアム★5 3体 */
+  /* ★ 2026-08-11 プレミアムSSR 3体 */
   "../img/t_Shizuku.webp",
   "../img/t_Yuunagi.webp",
   "../img/t_Izumi.webp",
-  /* ★ 2026-08-12 蒼夏祭（Aoka Summer Fest）限定★5 6体 */
+  /* ★ 2026-08-12 蒼夏祭（Aoka Summer Fest）限定SSR 6体 */
   "img/bn_fes4_s.webp",
   "../img/t_Fuka.webp",
   "../img/t_Tsumugi.webp",
@@ -189,7 +189,7 @@ const CORE = [
   "../img/t_Grace.webp",
   "../img/t_Youka.webp",
   "../img/t_Youhi.webp",
-  /* ★ 2026-08-18 プレミアム★5 8体（No.119〜126）＋ ロキシー（No.127） */
+  /* ★ 2026-08-18 プレミアムSSR 8体（No.119〜126）＋ ロキシー（No.127） */
   "../img/t_Artemia.webp",
   "../img/t_Asuha.webp",
   "../img/t_Blair.webp",
@@ -199,6 +199,15 @@ const CORE = [
   "../img/t_Sayo.webp",
   "../img/t_Melty.webp",
   "../img/t_Roxy.webp",
+  /* ★ 2026-08-20 GRAND DEBUT GACHA 新SSR 5体（No.128〜132）とそのバナー。
+     ここに足し忘れると、そのキャラだけオフラインで絵が出ない
+     （更新パッケージの一覧＝update.json にも載らない）。 */
+  "img/bn_debut_s.webp",
+  "../img/t_Mirelle.webp",
+  "../img/t_Scarlet.webp",
+  "../img/t_Koyuki.webp",
+  "../img/t_Amelia.webp",
+  "../img/t_Mio.webp",
   "./img/e_Youka.webp",
   "./img/e_Youhi.webp",
   "./img/bn_hourai_s.webp",
@@ -300,6 +309,12 @@ self.addEventListener("fetch", (e) => {
   if (url.hostname.indexOf("firebase") >= 0 || url.hostname.indexOf("gstatic") >= 0 || url.hostname.indexOf("googleapis") >= 0) return;
 
   // ページ遷移：ネット優先 → 失敗時はキャッシュ（オフライン起動）
+  /* ★ 2026-08-20 通信設定（Wi-Fi／モバイルデータごとに切り替えられる）
+     「このつなぎかたでは最新を取りに行かない」ときは、まずキャッシュを見て、
+     あればそれを返す＝<b>ダウンロードずみのデータで動く</b>（通信量を使わない）。
+     設定はページ（xeva-netmode.js）から postMessage で届く。 */
+  if (xevNetLatest() === false) { e.respondWith(xevCacheFirst(req)); return; }
+
   if (req.mode === "navigate") {
     e.respondWith((async () => {
       try {
@@ -421,3 +436,48 @@ self.addEventListener("message", (e) => {
   if (!m || m.type !== "xev-refresh") return;
   e.waitUntil(xevRefreshAll());
 });
+
+/* ══════════════════════════════════════════════════════════
+   ★ 2026-08-20 通信設定（xeva-netmode.js から postMessage で届く）
+   ------------------------------------------------------------
+   ・latest:false … このつなぎかたでは通信せず、キャッシュにあるものを返す
+   ・SW は止まると変数を忘れるので、<b>専用のキャッシュ</b>に書いておいて
+     起動のたびに読み直す。このキャッシュ（xev-netpref）は
+     activate の掃除で消してはいけない（VERSION の接頭辞と別名にしてある）。
+   ・読み終わるまでの一瞬は null＝「これまでどおり最新を取りに行く」で動く。
+     ここを false 側に倒すと、設定していない人まで古いデータになってしまう。
+   ══════════════════════════════════════════════════════════ */
+const XEV_NETPREF_CACHE = "xev-netpref";
+const XEV_NETPREF_URL = "./__xev_netpref";
+let _xevNetLatest = null;                     // null＝まだ読んでいない
+function xevNetLatest() { return _xevNetLatest; }
+(async function xevReadNetPref() {
+  try {
+    const c = await caches.open(XEV_NETPREF_CACHE);
+    const r = await c.match(XEV_NETPREF_URL);
+    _xevNetLatest = r ? ((await r.json()).latest !== false) : true;
+  } catch (e) { _xevNetLatest = true; }
+})();
+self.addEventListener("message", (e) => {
+  const m = e.data;
+  if (!m || m.type !== "xev-netmode") return;
+  _xevNetLatest = m.latest !== false;
+  e.waitUntil((async () => {
+    try {
+      const c = await caches.open(XEV_NETPREF_CACHE);
+      await c.put(XEV_NETPREF_URL, new Response(JSON.stringify({ latest: _xevNetLatest }),
+        { headers: { "Content-Type": "application/json" } }));
+    } catch (err) {}
+  })());
+});
+/* キャッシュ優先で返す。無ければ通信し、それも失敗したらページだけはホームに逃がす。 */
+async function xevCacheFirst(req) {
+  const hit = await caches.match(req, { ignoreSearch: true });
+  if (hit) return hit;
+  try { return await fetch(req); } catch (e) {}
+  if (req.mode === "navigate") {
+    const home = await caches.match("./index.html", { ignoreSearch: true });
+    if (home) return home;
+  }
+  return new Response("", { status: 504 });
+}
