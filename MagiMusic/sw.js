@@ -6,7 +6,7 @@
      一度でも再生した曲は fetch ハンドラが自動でキャッシュする。
    ・キャッシュ済みの曲はオフライン（機内モード）でもそのまま再生できる。
    ============================================================ */
-const VERSION = "magimusic-sw-v3";
+const VERSION = "magimusic-sw-v4";
 const AUDIO_CACHE = "magimusic-audio-v1";   // 曲は本体と別キャッシュ（本体更新で消えないように）
 
 const CORE = [
@@ -46,7 +46,11 @@ self.addEventListener("activate", (e) => {
   e.waitUntil((async () => {
     const keys = await caches.keys();
     /* 曲キャッシュ(AUDIO_CACHE)は世代管理の対象外＝本体を更新してもDL済みの曲は残す */
-    await Promise.all(keys.filter((k) => k !== VERSION && k !== AUDIO_CACHE).map((k) => caches.delete(k)));
+    /* ★ 2026-08-20 <b>自分のプレフィックスのキャッシュだけ</b>消す（ほかのSWと同じ作法にそろえた）。
+       これまでは「VERSION と曲キャッシュ以外すべて」を消していたので、
+       ポータル・MagiLex・MagiBurst のオフラインぶんや、通信設定（xev-netpref）まで
+       巻き添えで消えていた。 */
+    await Promise.all(keys.filter((k) => k !== VERSION && k !== AUDIO_CACHE && k.startsWith("magimusic-sw")).map((k) => caches.delete(k)));
     await self.clients.claim();
   })());
 });
@@ -58,6 +62,13 @@ self.addEventListener("fetch", (e) => {
   if (req.method !== "GET") return;
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
+
+  /* ★ 2026-08-20 通信設定（Wi-Fi／モバイルデータごとに切り替えられる）
+     「このつなぎかたでは最新を取りに行かない」ときは、まずキャッシュを見て、
+     あればそれを返す＝<b>ダウンロードずみのデータで動く</b>（通信量を使わない）。
+     設定はページ（xeva-netmode.js）から postMessage で届く。 */
+  if (xevNetLatest() === false) { e.respondWith(xevCacheFirst(req)); return; }
+
 
   /* ── 曲: キャッシュ優先。無ければ取得してそのままキャッシュに残す ──
      audio 要素は Range リクエストを投げることがある。Range 付きは
@@ -209,4 +220,49 @@ async function cacheTrack(cache, f) {
     }));
     return !!(await cache.match(key));
   } catch (err) { return false; }
+}
+
+/* ══════════════════════════════════════════════════════════
+   ★ 2026-08-20 通信設定（xeva-netmode.js から postMessage で届く）
+   ------------------------------------------------------------
+   ・latest:false … このつなぎかたでは通信せず、キャッシュにあるものを返す
+   ・SW は止まると変数を忘れるので、<b>専用のキャッシュ</b>に書いておいて
+     起動のたびに読み直す。このキャッシュ（xev-netpref）は
+     activate の掃除で消してはいけない（VERSION の接頭辞と別名にしてある）。
+   ・読み終わるまでの一瞬は null＝「これまでどおり最新を取りに行く」で動く。
+     ここを false 側に倒すと、設定していない人まで古いデータになってしまう。
+   ══════════════════════════════════════════════════════════ */
+const XEV_NETPREF_CACHE = "xev-netpref";
+const XEV_NETPREF_URL = "./__xev_netpref";
+let _xevNetLatest = null;                     // null＝まだ読んでいない
+function xevNetLatest() { return _xevNetLatest; }
+(async function xevReadNetPref() {
+  try {
+    const c = await caches.open(XEV_NETPREF_CACHE);
+    const r = await c.match(XEV_NETPREF_URL);
+    _xevNetLatest = r ? ((await r.json()).latest !== false) : true;
+  } catch (e) { _xevNetLatest = true; }
+})();
+self.addEventListener("message", (e) => {
+  const m = e.data;
+  if (!m || m.type !== "xev-netmode") return;
+  _xevNetLatest = m.latest !== false;
+  e.waitUntil((async () => {
+    try {
+      const c = await caches.open(XEV_NETPREF_CACHE);
+      await c.put(XEV_NETPREF_URL, new Response(JSON.stringify({ latest: _xevNetLatest }),
+        { headers: { "Content-Type": "application/json" } }));
+    } catch (err) {}
+  })());
+});
+/* キャッシュ優先で返す。無ければ通信し、それも失敗したらページだけはホームに逃がす。 */
+async function xevCacheFirst(req) {
+  const hit = await caches.match(req, { ignoreSearch: true });
+  if (hit) return hit;
+  try { return await fetch(req); } catch (e) {}
+  if (req.mode === "navigate") {
+    const home = await caches.match("./index.html", { ignoreSearch: true });
+    if (home) return home;
+  }
+  return new Response("", { status: 504 });
 }
