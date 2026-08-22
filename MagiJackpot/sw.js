@@ -45,7 +45,7 @@ const CORE = [
   "./img/banner_fortune.webp",
   "./img/banner_luxuria.webp",
   "../maintenance-gate.js?v=5",
-  "../xeva.js?v=34",
+  "../xeva.js?v=35",
   "../xeva-splash.js?v=3",
   "../xeva-back.js?v=1",
   "../game-link.js?v=1",
