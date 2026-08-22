@@ -26,9 +26,15 @@
 (function () {
   "use strict";
   const KEY = "xeva_net_v1";
-  /* 既定値: Wi-Fi は今までどおり最新・自動ダウンロードあり。
-     モバイルデータは<b>最新は使うが自動ダウンロードはしない</b>（いきなり数十MB落とさない）。 */
-  const DEF = { wifi: { latest: 1, autodl: 1 }, cell: { latest: 1, autodl: 0 }, unknown: "wifi" };
+  /* ★★ 2026-08-22b 既定値を変更（ご指定）: <b>自動ダウンロードは初期設定でオフ</b>。
+     Wi-Fi でも勝手に落とさない。更新のたびに数十MB が黙って流れるより、
+     「更新があります」を見てから自分で決められるほうが安心なため。
+     ★ 最新のデータを使う（latest）はこれまでどおり両方オン。
+       ここをオフにすると通信できるのにキャッシュで動いてしまい、
+       お知らせやランキングが古いままになる。
+     ★ すでに設定を触ったことがある人の値は localStorage に残っているので変わらない
+       （DEF は「まだ何も決めていない項目」にだけ効く）。 */
+  const DEF = { wifi: { latest: 1, autodl: 0 }, cell: { latest: 1, autodl: 0 }, unknown: "wifi" };
 
   function load() {
     let o = null;

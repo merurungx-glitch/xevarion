@@ -401,6 +401,20 @@ const XH_TICKET_GEM = 5;                 // 🎫1枚＝ジェム5個ぶん（ガ
      「変換所より高い（安い）パック」が生まれてしまう。
      お得ぶん（増量率）は pay と中身の比で決まるので、為替が動いても変わらない。 */
 const XH_PACKS = [
+  /* ── ✦ Starlight Academy Fest 開幕記念（8/22〜9/30・期間中2回まで）──
+     ★ フェスの開催期間（FESTS.fes5 ＝ 2026-08-22 〜 2026-09-30）に合わせてある。
+       期間が終わったら一覧から自動で消える（xhPackOpen が to を見る）。
+     ★ 中身は 🎫フェスチケット＋💎ジェム。増量率はサマーフェスのパックと同じ並びにして、
+       「フェスごとに条件が変わる」ことがないようにしてある。 */
+  { id:"pk_saf_starter", ic:"✦", nm:"スターライト スターターパック", pay:15,  gem:5,   ticket:5,  c:"#f0b429",
+    from:"2026-08-22", to:"2026-09-30", cycle:"term", max:2,
+    desc:"Starlight Academy Fest を5回まわせる、はじめの一歩。" },
+  { id:"pk_saf_value",   ic:"🌟", nm:"スターライト バリューパック",   pay:75,  gem:50,  ticket:20, c:"#e2a94a",
+    from:"2026-08-22", to:"2026-09-30", cycle:"term", max:2,
+    desc:"🎫20枚＋💎50。10連（SSR確定）を2回ぶん、たっぷり回せる。" },
+  { id:"pk_saf_legend",  ic:"👑", nm:"スターライト レジェンドパック", pay:200, gem:120, ticket:60, c:"#ffd257",
+    from:"2026-08-22", to:"2026-09-30", cycle:"term", max:2,
+    desc:"フェス期間中いちばんお得。蓬莱の九重に刺さる5体を本気で狙うならこれ。" },
   /* ── ☀ Luminous Summer Fest 開幕記念（〜8/31・期間中2回まで）── */
   { id:"pk_lsf_starter", ic:"☀️", nm:"サマーフェス スターターパック", pay:15,  gem:5,   ticket:5,  c:"#5ce1ff",
     to:"2026-08-31", cycle:"term", max:2, desc:"Luminous Summer Fest を5回まわせる、はじめの一歩。" },
@@ -916,6 +930,7 @@ function xhRenderShelf() {
       '<span class="xh-sq"><span class="glyph">•••</span></span>' +
       '<span class="nm">その他</span><span class="sb">' + (XH_APPS.length - XH_HOME_SLOTS) + '個</span></button>';
   xhApplyOfflineLocks();
+  try { xhPaintMarks(); } catch (e) {}
 }
 
 /* ══════════════ アプリ一覧シート ══════════════ */
@@ -963,12 +978,13 @@ function xhPaintAppList() {
     html = list.map((a) => xhAppRow(a, off)).join("");
   }
   box.innerHTML = html;
+  try { xhPaintMarks(); } catch (e) {}
 }
 window.xhPaintAppList = xhPaintAppList;
 
 function xhAppRow(a, off) {
   const locked = off && !XH_OFFLINE_OK[a.id];
-  return '<button class="xh-aitem' + (locked ? " locked" : "") + '" ' +
+  return '<button class="xh-aitem' + (locked ? " locked" : "") + '" data-app="' + a.id + '" ' +
     'onclick="xhOpenApp(\'' + a.id + "','" + a.href + "')\">" +
     '<span class="ai-ic"><img src="' + xhEscape(a.img) + '" alt="" loading="lazy"></span>' +
     '<span class="ai-bd">' +
@@ -999,6 +1015,7 @@ function xhPaintAppGrid() {
     : "";
   box.innerHTML = sec("ホームに表示中", home) + sec("その他のアプリ", rest);
   xhApplyOfflineLocks();
+  try { xhPaintMarks(); } catch (e) {}
 }
 window.xhPaintAppGrid = xhPaintAppGrid;
 
@@ -1121,25 +1138,202 @@ function xhApplyOfflineLocks() {
   if (xhEl("xhAppsSheet") && xhEl("xhAppsSheet").classList.contains("on")) xhPaintAppList();
 }
 function xhOpenApp(id, href) {
+  /* ★★ 2026-08-22b 更新の印は「そのアプリに入ったら消す」（ご指定）。
+     ★ 実際に開けたときだけ消すこと。オフラインで開けなかったときに消すと、
+       次に開いたときには印が無く「更新に気づけない」が起きる。 */
   if (!xhOnline() && !XH_OFFLINE_OK[id]) {
     xhToast("📴 オフライン中は開けません<br><span style='font-size:11px;font-weight:700;color:#6f82ad'>" +
             "MagiLex ／ MagiBurst ／ MagiChainParty ／ XEVYNAR ／ MagiJackpot ／ Magi Lotto は遊べます</span>", 3200);
     return;
   }
+  try { xhMarkClear(id); } catch (e) {}
   location.href = href;
 }
 window.xhOpenApp = xhOpenApp;
 
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-08-22b Xevion OS の設定シート
+   ------------------------------------------------------------
+   XEVARION の UI を<b>ひとつの OS（Xevion OS）</b>として扱い、
+   iPhone の「設定」のように、見た目・音・通知・連携をここへ集める（ご指定）。
+
+   ★ 値の読み書きは必ず window.XOS（xevion-os.js）を通す。
+     ここでは<b>画面を作るだけ</b>で、既定値も保存も持たない。
+   ★ 行を足すときは xevion-os.js の DEF にも既定値を1行足すこと。
+     片方だけだと「押せるのに何も起きない」設定ができてしまう。
+   ══════════════════════════════════════════════════════════════ */
+function xosSw(on) { return '<span class="xh-sw' + (on ? " on" : "") + '"></span>'; }
+function xosRow(icon, title, sub, right, onclick) {
+  return '<button class="xh-row" onclick="' + onclick + '">'
+    + '<span class="rl">' + icon
+    + '<span><span class="rt">' + title + '</span><span class="rs">' + sub + "</span></span></span>"
+    + right + "</button>";
+}
+const XOS_IC = {
+  look: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2.6v2.6M12 18.8v2.6M2.6 12h2.6M18.8 12h2.6M5.4 5.4l1.9 1.9M16.7 16.7l1.9 1.9M18.6 5.4l-1.9 1.9M7.3 16.7l-1.9 1.9"/></svg>',
+  motion: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 12h4l3-7 3 14 3-7h3"/></svg>',
+  haptic: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="7.6" y="2.8" width="8.8" height="18.4" rx="2.6"/><path d="M3.4 9v6M20.6 9v6"/></svg>',
+  bell: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.2a5.8 5.8 0 015.8 5.8c0 3.4.9 5 2 6.1.5.5.1 1.5-.7 1.5H4.9c-.8 0-1.2-1-.7-1.5 1.1-1.1 2-2.7 2-6.1A5.8 5.8 0 0112 3.2Z"/><path d="M9.6 19.4a2.5 2.5 0 004.8 0"/></svg>',
+  gacha: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8.6" r="5.8"/><path d="M4.9 14.4h14.2v4.3a1.9 1.9 0 01-1.9 1.9H6.8a1.9 1.9 0 01-1.9-1.9Z"/></svg>',
+  ai: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4.2" y="6.6" width="15.6" height="12.4" rx="3.6"/><path d="M12 3v3.6"/><circle cx="9.2" cy="12.4" r="1.3" fill="currentColor" stroke="none"/><circle cx="14.8" cy="12.4" r="1.3" fill="currentColor" stroke="none"/><path d="M9.8 16h4.4"/></svg>',
+  disk: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="6.4" rx="7.6" ry="3"/><path d="M4.4 6.4v11.2c0 1.7 3.4 3 7.6 3s7.6-1.3 7.6-3V6.4"/><path d="M4.4 12c0 1.7 3.4 3 7.6 3s7.6-1.3 7.6-3"/></svg>',
+  info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.4"/><circle cx="12" cy="7.9" r="1.15" fill="currentColor" stroke="none"/></svg>',
+  net: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8.4a12 12 0 0116 0"/><path d="M7 12a8 8 0 0110 0"/><path d="M10 15.4a3.6 3.6 0 014 0"/><circle cx="12" cy="19" r="1.3" fill="currentColor"/></svg>',
+};
+
+function xhOpenXos() {
+  xhCloseSheet("xhSetSheet");
+  xhPaintXos();
+  xhOpenSheet("xhXosSheet");
+}
+window.xhOpenXos = xhOpenXos;
+
+function xhPaintXos() {
+  const box = xhEl("xhXosBody"); if (!box || !window.XOS) return;
+  const g = (k) => XOS.get(k);
+  const seg = (key, opts) => '<div class="xos-seg">' + opts.map(([v, lb]) =>
+    '<button class="' + (g(key) === v ? "on" : "") + '" onclick="xhXosSet(\'' + key + "','" + v + "')\">" + lb + "</button>").join("") + "</div>";
+
+  box.innerHTML = `
+    <div class="xos-hero">
+      <span class="xos-orb"><svg viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3.2"/><ellipse cx="12" cy="12" rx="9" ry="4.2"/><ellipse cx="12" cy="12" rx="9" ry="4.2" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="9" ry="4.2" transform="rotate(120 12 12)"/></svg></span>
+      <span><b class="xos-nm">${XOS.NAME}</b>
+        <span class="xos-vr">バージョン ${XOS.VERSION} ／ XEVARION のすべてのアプリを載せている土台です。<br>
+        見た目・動き・通知・AI連携をここでまとめて決められます。</span></span>
+    </div>
+
+    <div class="xh-sec-label">表示</div>
+    <div class="xos-note" style="margin:0 2px 7px">テーマ</div>
+    ${seg("theme", [["light", "☀️ ライト"], ["dark", "🌙 ダーク"], ["auto", "⚙️ 端末にあわせる"]])}
+    <div class="xos-note" style="margin:0 2px 7px">文字の大きさ</div>
+    ${seg("textSize", [["s", "小"], ["m", "標準"], ["l", "大"]])}
+    ${xosRow(XOS_IC.motion, "動きを減らす",
+      "アニメーションをほとんど無くします。画面酔いが気になるときに。",
+      xosSw(!g("motion")), "xhXosToggle('motion',1)")}
+    ${xosRow(XOS_IC.haptic, "触覚フィードバック",
+      "ボタンを押したときに軽く振動します（対応している端末のみ）。",
+      xosSw(g("haptics")), "xhXosToggle('haptics')")}
+
+    <div class="xh-sec-label">通知・お知らせ</div>
+    ${xosRow(XOS_IC.bell, "更新のあったアプリに印をつける",
+      "前回から中身が変わったアプリと下のタブに赤い点を出します。そのアプリを開くと消えます。",
+      xosSw(g("updateDots")), "xhXosToggle('updateDots')")}
+    ${xosRow(XOS_IC.gacha, "新キャラをガチャタブに出す",
+      "新しいキャラが増えたとき、下のガチャタブをそのキャラの絵にします（3回まで）。",
+      xosSw(g("newCharTab")), "xhXosToggle('newCharTab')")}
+
+    <div class="xh-sec-label">XEVYNAR 連携</div>
+    ${xosRow(XOS_IC.ai, "AIアシスタントから XEVYNAR へつなぐ",
+      "ホームのAIが答えきれない勉強の質問を、学習AI XEVYNAR へ引きつぎます。",
+      xosSw(g("xevynarAi")), "xhXosToggle('xevynarAi')")}
+    ${xosRow(XOS_IC.ai, "ホームに XEVYNAR の提案を出す",
+      "学習の進みぐあいに合わせて、次にやるとよいことをホームで知らせます。",
+      xosSw(g("xevynarTips")), "xhXosToggle('xevynarTips')")}
+    ${xosRow(XOS_IC.ai, "XEVYNAR をひらく",
+      "学習プラン・タイマー・解説・MagiBurst の編成相談まで。",
+      '<span class="rv">›</span>', "xhOpenApp('xevynar','XEVYNAR/index.html')")}
+
+    <div class="xh-sec-label">通信・保存領域</div>
+    ${xosRow(XOS_IC.net, "オフライン・通信設定",
+      "Wi-Fi／モバイルデータごとに「最新を取りに行くか」「更新を自動で落とすか」を決めます。",
+      '<span class="rv">›</span>', "xhCloseSheet('xhXosSheet');xhOpenOfflineInfo()")}
+    <div class="xos-info" id="xhXosDisk"><dl><dt>使用量</dt><dd>調べています…</dd></dl></div>
+
+    <div class="xh-sec-label">システム情報</div>
+    <div class="xos-info">
+      <dl>
+        <dt>OS</dt><dd>${XOS.NAME} ${XOS.VERSION}</dd>
+        <dt>データの版</dt><dd>${xhEscape(XOS.buildVer() || "（未取得）")}</dd>
+        <dt>アプリの数</dt><dd>${XH_APPS.length}</dd>
+        <dt>いまの回線</dt><dd id="xhXosNet">—</dd>
+        <dt>表示のしかた</dt><dd>${(window.matchMedia && matchMedia("(display-mode: standalone)").matches) ? "アプリとして起動中" : "ブラウザ"}</dd>
+      </dl>
+    </div>
+    <p class="xos-note">Xevion OS はこれから大きくしていきます。各アプリの設定をここへ集め、
+      XEVYNAR がひとつづきの助手として全部のアプリをまたいで働くようにしていく予定です。</p>
+    <button class="xh-sbtn ghost" onclick="xhXosReset()" style="margin-top:12px">Xevion OS の設定を初期状態に戻す</button>`;
+
+  /* 回線の種類 */
+  const nt = xhEl("xhXosNet");
+  if (nt) {
+    let k = "";
+    try { k = (window.XHNet && XHNet.kind()) || ""; } catch (e) {}
+    nt.textContent = k === "offline" ? "オフライン" : k === "cell" ? "モバイルデータ" : k === "wifi" ? "Wi-Fi" : "不明";
+  }
+  /* 保存領域（非同期） */
+  XOS.storage().then((s) => {
+    const el = xhEl("xhXosDisk"); if (!el) return;
+    if (!s) { el.innerHTML = "<dl><dt>使用量</dt><dd>この端末では調べられません</dd></dl>"; return; }
+    const pct = s.quota ? Math.round((s.used / s.quota) * 100) : 0;
+    el.innerHTML = "<dl><dt>保存領域</dt><dd>" + xhFmtSize(s.used) + " / " + xhFmtSize(s.quota) +
+      "（" + pct + "%）</dd></dl>";
+  }).catch(() => {});
+}
+window.xhPaintXos = xhPaintXos;
+
+/* ★ inv=1 のスイッチは「オフのときに光る」もの（動きを減らす＝motion をオフにする） */
+function xhXosToggle(key, inv) {
+  if (!window.XOS) return;
+  XOS.toggle(key);
+  XOS.haptic();
+  xhPaintXos();
+  /* 印・アイコンはその場で塗り直す（設定を閉じてから直っても伝わらない） */
+  try { xhPaintMarks(); } catch (e) {}
+}
+window.xhXosToggle = xhXosToggle;
+function xhXosSet(key, v) {
+  if (!window.XOS) return;
+  XOS.set(key, v);
+  XOS.haptic();
+  xhPaintXos();
+}
+window.xhXosSet = xhXosSet;
+/* ★ 初期化は<b>2回押し</b>にする。
+   confirm() が出ない環境があるので（MagiLex・MagiTier で実際に踏んだ）、
+   ダイアログには頼らず、ボタンの文字が変わることを確認の代わりにする。 */
+let _xosResetArm = 0;
+function xhXosReset() {
+  const b = document.querySelector("#xhXosBody .xh-sbtn.ghost");
+  if (!_xosResetArm) {
+    _xosResetArm = 1;
+    if (b) { b.textContent = "もう一度押すと、初期状態に戻します"; b.classList.add("warn"); }
+    setTimeout(() => {
+      _xosResetArm = 0;
+      const b2 = document.querySelector("#xhXosBody .xh-sbtn.ghost");
+      if (b2) { b2.textContent = "Xevion OS の設定を初期状態に戻す"; b2.classList.remove("warn"); }
+    }, 4000);
+    return;
+  }
+  _xosResetArm = 0;
+  XOS.reset();
+  xhPaintXos();
+  try { xhPaintMarks(); } catch (e) {}
+  xhToast("Xevion OS の設定を初期状態に戻しました");
+}
+window.xhXosReset = xhXosReset;
+
 /* ══════════════ タブ ══════════════ */
 function xhGo(tab) {
-  if (tab === "home") { const s = xhEl("xhScroll"); if (s) s.scrollTo({ top: 0, behavior: "smooth" }); return; }
+  /* ★ Xevion OS の触覚フィードバック（オフなら何も起きない） */
+  try { if (window.XOS) XOS.haptic(); } catch (e) {}
+  if (tab === "home") {
+    try { xhMarkClear("tab:home"); } catch (e) {}
+    const s = xhEl("xhScroll"); if (s) s.scrollTo({ top: 0, behavior: "smooth" });
+    return;
+  }
   if (!xhOnline() && (tab === "gacha" || tab === "community")) {
     xhToast("📴 オフライン中は " + (tab === "gacha" ? "ガチャ" : "コミュニティ") + " を開けません", 2800);
     return;
   }
+  /* ★★ 2026-08-22b タブの更新の印も、そのタブに入った時点で消す */
+  try { xhMarkClear("tab:" + tab); } catch (e) {}
   if (tab === "settings") { xhOpenSettings(); return; }
   if (tab === "chars")     { location.href = "characters.html"; return; }
-  if (tab === "gacha")     { location.href = "gacha.html"; return; }
+  if (tab === "gacha")     {
+    /* ガチャに入ったら、新キャラアイコンの役目も終わり */
+    try { const o = xhGtabLoad(); if (o) { o.n = 3; xhGtabSave(o); } } catch (e) {}
+    location.href = "gacha.html"; return;
+  }
   if (tab === "community") { location.href = "community.html"; return; }
 }
 window.xhGo = xhGo;
@@ -1729,6 +1923,192 @@ function xhDlStep(n, live) {
   if (lv) lv.textContent = live || (n ? "いま ステップ " + n + " を実行中" : "押すと①から順に進みます");
 }
 
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-08-22b 更新の印（アプリ・下バーのタブ）と、裏で走る自動更新
+   ------------------------------------------------------------
+   ① 更新の印
+      update.json の <b>apps</b>（この版で中身が変わったアプリのキー）を見て、
+      ・ホームのアプリタイルと「すべてのアプリ」の行
+      ・下バーのタブ（ホーム／コミュニティ／図鑑／ガチャ）
+      に赤い点を付ける。<b>そのアプリ（タブ）に入ったら消える</b>。
+      ★ 見送った版の apps も history からまとめて拾う＝
+        3回見送っていた人には3回ぶんの印がまとめて出る。
+      ★ キーは XH_APPS の id そのまま。ルート直下のファイルは
+        make-update.py が "tab:gacha" などに振り分けてくれる。
+
+   ② 裏で走る自動ダウンロード
+      これまでは<b>更新シートを開いているあいだ</b>しか走らなかったので、
+      「あとで」を押した人・シートを見ていない人には何も起きなかった。
+      いまは更新を見つけた時点で裏に回し、<b>ほかの操作をしていても</b>落とし続ける。
+      走っているあいだは画面右上に小さなマーク（#xhAutoChip）が出る。
+
+   ③ ガチャタブの新キャラアイコン
+      新しいキャラが増えたら、ガチャタブのアイコンを<b>そのキャラの絵</b>にする。
+      ★ 出すのは<b>3回まで</b>（ご指定）。数えるのは「ホームを表示した回数」。
+   ══════════════════════════════════════════════════════════════ */
+const XH_MARK_KEY = "xeva_updmark_v1";     // { ver, pend:{キー:1} }
+const XH_GTAB_KEY = "xeva_gtabnew_v1";     // { id, n }  ガチャタブの新キャラアイコン
+
+function xhMarkLoad() {
+  try { const o = JSON.parse(localStorage.getItem(XH_MARK_KEY) || "null"); if (o && typeof o === "object") return o; } catch (e) {}
+  return { ver: "", pend: {} };
+}
+function xhMarkSave(o) { try { localStorage.setItem(XH_MARK_KEY, JSON.stringify(o)); } catch (e) {} }
+function xhMarkPend() { const o = xhMarkLoad(); return o.pend || {}; }
+function xhMarkHas(key) { return !!xhMarkPend()[key]; }
+
+/* update.json を読んだときに呼ぶ。見送っていた版のぶんもまとめて印を立てる。 */
+function xhMarkApply(d) {
+  if (!d || !d.version) return;
+  const o = xhMarkLoad();
+  if (o.ver === d.version) return;             // この版はもう印を立てた
+  let cur = null;
+  try { cur = localStorage.getItem(XH_PKG_KEY); } catch (e) {}
+  const pend = Object.assign({}, o.pend || {});
+  /* 端末に入っている版より新しいものを全部（＝見送ったぶんも）拾う */
+  let list = [];
+  try { list = xhMissedUpdates(d, cur) || []; } catch (e) {}
+  if (!list.length) list = [d];
+  list.forEach((h) => (h.apps || []).forEach((k) => { if (k) pend[k] = 1; }));
+  /* はじめて開いた端末（cur が無い）には印を付けない＝いきなり全部に赤い点が出ない */
+  o.ver = d.version;
+  o.pend = cur ? pend : {};
+  xhMarkSave(o);
+  xhPaintMarks();
+}
+/* 印を消す（そのアプリ／タブに入ったとき） */
+function xhMarkClear(key) {
+  if (!key) return;
+  const o = xhMarkLoad();
+  if (!o.pend || !o.pend[key]) return;
+  delete o.pend[key];
+  xhMarkSave(o);
+  xhPaintMarks();
+}
+window.xhMarkClear = xhMarkClear;
+
+/* ── 印を画面に反映する ── */
+function xhPaintMarks() {
+  const pend = xhMarkPend();
+  /* ホームのアプリタイル・一覧の行 */
+  document.querySelectorAll("#xhAppGrid .xh-app[data-app], #xhAppList .xh-aitem[data-app], #xhGridBody .xh-app[data-app]")
+    .forEach((el) => {
+      const id = el.getAttribute("data-app");
+      el.classList.toggle("xh-updot", !!pend[id]);
+    });
+  /* 下バーのタブ。ルート直下のファイルは "tab:xxx" で届く */
+  document.querySelectorAll(".xh-bar .xh-ntab[data-tab]").forEach((el) => {
+    const t = el.getAttribute("data-tab");
+    /* ホームのタブは「ポータル本体が変わったとき」だけ */
+    el.classList.toggle("xh-updot", !!pend["tab:" + t]);
+  });
+  xhPaintGachaTabIcon();
+}
+window.xhPaintMarks = xhPaintMarks;
+
+/* ══ ガチャタブの新キャラアイコン（3回まで） ══ */
+function xhNewestChar() {
+  try {
+    const list = (window.XEVA && XEVA.MB_CHARS) || [];
+    const d = new Date();
+    const t = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+    const live = list.filter((c) => c.since && String(c.since).slice(0, 10) <= t)
+      .sort((a, b) => String(b.since).localeCompare(String(a.since)));
+    return live[0] || null;
+  } catch (e) { return null; }
+}
+function xhGtabLoad() {
+  try { const o = JSON.parse(localStorage.getItem(XH_GTAB_KEY) || "null"); if (o && typeof o === "object") return o; } catch (e) {}
+  return null;
+}
+function xhGtabSave(o) { try { localStorage.setItem(XH_GTAB_KEY, JSON.stringify(o)); } catch (e) {} }
+/* ホームを表示するたびに1回だけ数える。3回出したらもう出さない。 */
+function xhGtabTick() {
+  const c = xhNewestChar();
+  if (!c) return;
+  let o = xhGtabLoad();
+  if (!o || o.id !== c.mbId) {
+    /* ★ はじめて開いた端末には出さない（「新しく増えた」わけではないため）。
+       台帳が無いときは、いまの子を「見せ終わった」ことにして次の子から始める。 */
+    o = { id: c.mbId, n: o ? 0 : 3 };
+  }
+  if (o.n < 3) o.n++;
+  xhGtabSave(o);
+}
+function xhPaintGachaTabIcon() {
+  const btn = document.querySelector('.xh-bar .xh-ntab[data-tab="gacha"]');
+  if (!btn) return;
+  /* ★ Xevion OS の設定でオフにできる（既定はオン） */
+  let allow = true;
+  try { if (window.XOS && !XOS.get("newCharTab")) allow = false; } catch (e) {}
+  const c = allow ? xhNewestChar() : null;
+  const o = xhGtabLoad();
+  const show = !!(c && o && o.id === c.mbId && o.n <= 3 && o.n > 0);
+  /* もとの SVG は消さずに、上に絵をかぶせる（消すと3回目のあとに戻せない） */
+  let img = btn.querySelector(".xh-tabchar");
+  if (!show) { if (img) img.remove(); btn.classList.remove("xh-haschar"); return; }
+  const src = (window.XEVA && XEVA.charSrc) ? XEVA.charSrc(c.file, c.id, null, "s") : String(c.file || "").replace(/^\.\.\//, "");
+  if (!img) {
+    img = document.createElement("img");
+    img.className = "xh-tabchar";
+    img.alt = "";
+    btn.insertBefore(img, btn.firstChild);
+  }
+  if (img.getAttribute("src") !== src) img.setAttribute("src", src);
+  btn.classList.add("xh-haschar");
+  const lb = btn.querySelector(".tl");
+  if (lb) lb.textContent = "ガチャ";
+}
+
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-08-22b 裏で走る自動ダウンロード ＋ 動いていることを示すマーク
+   ------------------------------------------------------------
+   ・更新を見つけた時点で（更新シートを開いていなくても）落としはじめる。
+   ・落としているあいだ、画面右上に小さな回るマークを出す。
+     終わったら「✅ 更新の準備ができました」に変わり、押すと適用できる。
+   ★ 「更新を自動でダウンロード」がオフの回線では<b>何もしない</b>（初期設定はオフ）。
+     そのときはマークも出さない＝勝手に通信していないことが見た目でも分かる。
+   ══════════════════════════════════════════════════════════════ */
+let _xhBgDl = { state: "", ver: "" };
+function xhBgChip() { return xhEl("xhAutoChip"); }
+function xhPaintBgChip() {
+  const el = xhBgChip(); if (!el) return;
+  const st = _xhBgDl.state;
+  if (!st) { el.className = "xh-autochip"; el.innerHTML = ""; return; }
+  el.className = "xh-autochip on " + st;
+  el.innerHTML = st === "running"
+    ? '<i class="sp"></i><span>更新を準備中…</span>'
+    : st === "done"
+    ? '<i class="ok">✓</i><span>更新の準備ができました</span>'
+    : st === "pending"
+    /* ★ 自動ダウンロードがオフの回線。<b>通信はしていない</b>ことが伝わる文にする。 */
+    ? '<i class="dl">⬇</i><span>更新があります — 押すと内容を見られます</span>'
+    : '<i class="ng">!</i><span>更新を準備できませんでした</span>';
+  el.onclick = () => { try { if (_xhUpd) xhShowUpdate(_xhUpd); } catch (e) {} };
+}
+/* 裏で落とす。更新シートを開いているかどうかに関係なく走る。 */
+async function xhBgDownload(d) {
+  if (!d || !d.version) return;
+  if (_xhBgDl.ver === d.version && _xhBgDl.state) return;   // 同じ版で二重に走らせない
+  if (_xhUpdRunning) return;
+  if (!xhOnline() || !("serviceWorker" in navigator)) return;
+  /* ★★ 2026-08-22b 「更新を自動でダウンロード」がオフの回線では<b>通信しない</b>。
+     ただし黙って何も出さないと更新に気づけないので、マークだけは出す
+     （押すと更新画面が開く＝そこから自分のタイミングで落とせる）。 */
+  let allow = false;
+  try { allow = !!(window.XHNet && XHNet.allowDownload()); } catch (e) { allow = false; }
+  if (!allow) { _xhBgDl = { state: "pending", ver: d.version }; xhPaintBgChip(); return; }
+  _xhBgDl = { state: "running", ver: d.version };
+  _xhAutoDl = { version: d.version, state: "running" };     // 更新シート側の札とも共有する
+  xhPaintBgChip(); try { xhPaintAutoDl(); } catch (e) {}
+  _xhUpdRunning = true;
+  try { await xhDownloadCore(null); _xhBgDl.state = "done"; }
+  catch (e) { _xhBgDl.state = "failed"; }
+  _xhUpdRunning = false;
+  _xhAutoDl.state = _xhBgDl.state;
+  xhPaintBgChip(); try { xhPaintAutoDl(); } catch (e) {}
+}
+
 async function xhCheckUpdate() {
   if (!xhOnline() || !("serviceWorker" in navigator)) return false;
   let data = null;
@@ -1742,7 +2122,12 @@ async function xhCheckUpdate() {
 
   let cur = null;
   try { cur = localStorage.getItem(XH_PKG_KEY); } catch (e) {}
+  /* ★★ 2026-08-22b 更新があったアプリ・タブに印を立てる（版が同じでも一度は通す） */
+  try { xhMarkApply(data); } catch (e) {}
   if (cur === data.version) return false;
+  /* ★★ 2026-08-22b 更新シートを開いているかどうかに関係なく、裏で落としはじめる。
+     「更新を自動でダウンロード」がオンの回線だけ（初期設定はオフ）。 */
+  try { xhBgDownload(data); } catch (e) {}
 
   /* 初回（まだ一度も記録がない）は、裏で走る初期ダウンロードで揃うので黙って記録する */
   if (!cur) { try { localStorage.setItem(XH_PKG_KEY, data.version); } catch (e) {} return false; }
@@ -1759,7 +2144,9 @@ async function xhCheckUpdate() {
      ここは “見せ方” の話。中身は必ず最新にそろう。 */
 function xhMissedUpdates(d, cur) {
   const hist = Array.isArray(d.history) ? d.history : [];
-  const head = { version: d.version, date: d.date, title: d.title, notes: d.notes || [] };
+  /* ★ 2026-08-22b apps（この版で変わったアプリ）も持たせる。
+     これが無いと、いちばん新しい版のぶんだけ更新の印が立たない。 */
+  const head = { version: d.version, date: d.date, title: d.title, notes: d.notes || [], apps: d.apps || [] };
   const all = [head].concat(hist.filter((h) => h && h.version !== d.version));
   if (!cur) return [head];
   const at = all.findIndex((h) => h.version === cur);
@@ -1841,7 +2228,12 @@ function xhUpdPaintSize(m, many) {
 
 /* latest=true は「設定から確認したが、すでに最新だった」とき。
    案内の見せ方だけ変え、再ダウンロードの導線は残す。 */
+/* ★ 2026-08-22b 印は xhCheckUpdate と「設定から確認」の<b>両方</b>から立てる。 */
 function xhShowUpdate(d, latest) {
+  /* ★ 2026-08-22 いま出している更新は必ずここで控える。
+     呼び出し側（xhCheckUpdate / 設定からの確認）が入れてくれる前提にしていたが、
+     自動ダウンロードの札は _xhUpd を見て出し分けるので、ここで確実にそろえる。 */
+  _xhUpd = d;
   let cur = null;
   try { cur = localStorage.getItem(XH_PKG_KEY); } catch (e) {}
   const missed = latest ? [] : xhMissedUpdates(d, cur);
@@ -1886,7 +2278,15 @@ function xhShowUpdate(d, latest) {
   const skip = xhEl("xhUpdSkip");
   if (skip) skip.textContent = latest ? "閉じる" : "あとで";
   xhDlStep(0);                               // しくみガイドをリセット
+  /* ★★ 2026-08-22 「更新を自動でダウンロード」がオンの回線なら、
+     この画面を出すのと同時に<b>裏で落としはじめる</b>。
+     読み終わるころには済んでいて、押した瞬間に切り替わる。
+     ★ latest（すでに最新）のときは落とすものが無いので何もしない。
+     ★ 状態の札はここで先に消しておく（前の版のものが残らないように）。 */
+  const ab = xhEl("xhUpdAuto"); if (ab) ab.style.display = "none";
+  xhPaintAutoDl();
   xhOpenSheet("xhUpdSheet");
+  if (!latest) { try { xhAutoDownload(d); } catch (e) {} }
 }
 
 function xhUpdLater() {
@@ -1895,7 +2295,10 @@ function xhUpdLater() {
 }
 window.xhUpdLater = xhUpdLater;
 
-function xhUpdPaint() {
+/* ★★ 2026-08-22 数えるだけ（画面は触らない）。
+   自動ダウンロードは裏で走るので、進み具合を「数える」ことと
+   「画面に出す」ことを分けておかないと、読んでいる更新内容を書きかえてしまう。 */
+function xhUpdTally() {
   let done = 0, total = 0, got = 0, hit = 0, bytes = 0;
   Object.keys(_xhUpdProg).forEach((k) => {
     const p = _xhUpdProg[k];
@@ -1903,6 +2306,10 @@ function xhUpdPaint() {
     got += p.got | 0; hit += p.hit | 0; bytes += p.bytes | 0;
   });
   const pct = total ? Math.min(100, Math.round((done / total) * 100)) : 0;
+  return { done, total, pct, got, hit, bytes };
+}
+function xhUpdPaint() {
+  const { done, total, pct, got, hit, bytes } = xhUpdTally();
   const bar = xhEl("xhUpdBar"); if (bar) bar.style.width = pct + "%";
   const pt = xhEl("xhUpdPct");
   /* 100% に届いたあとも、遅れて動きだすSWがないか少しだけ見届ける。
@@ -2018,18 +2425,22 @@ async function xhRedownloadOffline() {
 }
 window.xhRedownloadOffline = xhRedownloadOffline;
 
-/* keepVer=true は「オフライン用の再ダウンロード」。版の記録は書き換えない。 */
-async function xhUpdStart(keepVer) {
-  if (_xhUpdRunning) return;
-  if (!xhOnline()) { xhToast("オンラインのときに更新してください"); return; }
-  /* ★ 2026-08-20 通信設定: いまの回線で「更新を自動でダウンロード」をオフにしているときは一度きく */
-  if (!(await xhAskBigDownload(keepVer ? "足りないファイル" : "最新のデータ"))) { _xhUpdRunning = false; return; }
-  _xhUpdRunning = true;
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-08-22 ダウンロードの本体を切り出した（xhDownloadCore）
+
+   ねらい: 設定の「更新を自動でダウンロード」がオンの回線では、
+   更新のお知らせを出すのと<b>同時に裏で落としはじめ</b>、
+   終わったら更新画面に「✅ 自動ダウンロード済み」と出す（ご指定）。
+   それまで autodl は「大きなダウンロードの前に確認を出すかどうか」でしかなく、
+   名前のとおりの<b>自動ダウンロード</b>は、どこにも無かった。
+
+   ★ 画面を触るのは paint() だけ。自動ダウンロード中は何も渡さないので、
+     読んでいる更新内容の上に進み具合が割りこんでこない。
+   ★ 落とす中身は手で押したときと1バイトも変わらない（同じこの関数を通る）。
+   ══════════════════════════════════════════════════════════════ */
+async function xhDownloadCore(paint) {
   _xhUpdProg = {};
-  ["xhUpdGo", "xhUpdSkip", "xhUpdX"].forEach((id) => { const e = xhEl(id); if (e) e.style.display = "none"; });
-  const pg = xhEl("xhUpdProg"); if (pg) pg.classList.add("on");
-  xhDlStep(1, "① くらべています");
-  xhUpdPaint();
+  const tick = () => (paint ? paint() : xhUpdTally());
 
   /* SW からの進捗を受け取る */
   const doneScopes = new Set();
@@ -2039,7 +2450,7 @@ async function xhUpdStart(keepVer) {
     if (m.type === "xev-precache") {
       _xhUpdProg[m.scope] = { done: m.done | 0, total: m.total | 0,
         got: m.got | 0, hit: m.hit | 0, bytes: m.bytes | 0 };
-      xhUpdPaint();
+      tick();
     } else if (m.type === "xev-refreshed") {
       doneScopes.add(m.scope);
     }
@@ -2088,14 +2499,15 @@ async function xhUpdStart(keepVer) {
   const STALL = 90000;     // 進捗が止まったきり動かない（回線が落ちた等）ときの打ち切り
   const started = Date.now();
   let lastMove = Date.now(), lastKey = "", iv = null;
+  let endMsg = "";
   await new Promise((res) => {
     const finish = (msg) => {
       if (iv) clearInterval(iv);
-      if (msg) { const p = xhEl("xhUpdPct"); if (p) p.textContent = msg; }
+      endMsg = msg || "";
       res();
     };
     iv = setInterval(async () => {
-      const { done, total } = xhUpdPaint();
+      const { done, total } = tick();
       const scopes = Object.keys(_xhUpdProg).length;
       /* 「動きがあったか」は 進捗・返事の数 が変わったかで見る */
       const key = scopes + ":" + done + ":" + total + ":" + doneScopes.size;
@@ -2128,10 +2540,102 @@ async function xhUpdStart(keepVer) {
     }, 400);
   });
   navigator.serviceWorker.removeEventListener("message", onMsg);
+  return { msg: endMsg, tally: xhUpdTally() };
+}
+
+/* ══ ★★ 2026-08-22 自動ダウンロード ══
+   ------------------------------------------------------------
+   「更新を自動でダウンロード」がオンの回線のときだけ、更新のお知らせを出すのと
+   同時に<b>裏で</b>落としはじめる。読み終わるころには落とし終わっているので、
+   ボタンを押しても待たされない。
+   ★ 状態は3つ: running（落としている最中）／done（済み）／failed（落とせなかった）。
+     どれも更新画面に出す＝「なにが起きているのか分からない」時間を作らない。
+   ★ オフラインのとき・オフにしている回線では<b>何もしない</b>（これまでどおり手で押す）。 */
+let _xhAutoDl = null;      // { version, state }
+function xhAutoState(ver) {
+  return (_xhAutoDl && _xhAutoDl.version === ver) ? _xhAutoDl.state : "";
+}
+/* 更新画面の見出し・ボタンを、自動ダウンロードの状態に合わせて出し分ける */
+function xhPaintAutoDl() {
+  const d = _xhUpd; if (!d) return;
+  const st = xhAutoState(d.version);
+  const badge = xhEl("xhUpdAuto");
+  if (!st) { if (badge) badge.style.display = "none"; return; }
+  if (badge) {
+    badge.style.display = "";
+    badge.className = "xh-updauto " + st;
+    badge.innerHTML = st === "running"
+      ? "<b>⬇ 自動ダウンロード中…</b><span>この回線では「更新を自動でダウンロード」がオンです。更新内容を読んでいるあいだに、裏で落としています。</span>"
+      : st === "done"
+      ? "<b>✅ 自動ダウンロード済み</b><span>データはもう端末に入っています。押すとすぐ最新版に切り替わります（追加のダウンロードはありません）。</span>"
+      : "<b>⚠ 自動ダウンロードできませんでした</b><span>通信が届かなかったようです。下のボタンから、もう一度お試しください。</span>";
+  }
+  const go = xhEl("xhUpdGo");
+  if (go && !_xhUpdRunning) {
+    if (st === "done") go.innerHTML = "✅ 適用する（ダウンロード済み）";
+    else if (st === "running") go.innerHTML = "⬇ ダウンロード中… そのまま適用する";
+  }
+}
+async function xhAutoDownload(d) {
+  if (!d || !d.version) return;
+  if (_xhUpdRunning) return;
+  if (!xhOnline() || !("serviceWorker" in navigator)) return;
+  /* この回線で「更新を自動でダウンロード」をオフにしている人には、何もしない */
+  try { if (!(window.XHNet && XHNet.allowDownload())) return; } catch (e) { return; }
+  _xhAutoDl = { version: d.version, state: "running" };
+  xhPaintAutoDl();
+  _xhUpdRunning = true;
+  try { await xhDownloadCore(null); _xhAutoDl.state = "done"; }
+  catch (e) { _xhAutoDl.state = "failed"; }
+  _xhUpdRunning = false;
+  /* 開いている更新画面が同じ版のときだけ書きかえる（別の版を見ていたら触らない） */
+  xhPaintAutoDl();
+}
+
+/* keepVer=true は「オフライン用の再ダウンロード」。版の記録は書き換えない。 */
+async function xhUpdStart(keepVer) {
+  if (_xhUpdRunning) {
+    /* ★ 自動ダウンロードの最中に押されたら、終わるのを待ってから適用する。
+       黙って何も起きないと「押しても反応しない」に見えてしまう。 */
+    if (!keepVer && _xhUpd && xhAutoState(_xhUpd.version) === "running") {
+      const pt0 = xhEl("xhUpdPct");
+      const pg0 = xhEl("xhUpdProg"); if (pg0) pg0.classList.add("on");
+      if (pt0) pt0.textContent = "自動ダウンロードの終わりを待っています…";
+      const iv = setInterval(() => {
+        if (_xhUpdRunning) return;
+        clearInterval(iv);
+        xhUpdStart(false);
+      }, 400);
+    }
+    return;
+  }
+  if (!xhOnline()) { xhToast("オンラインのときに更新してください"); return; }
+  /* ★★ 2026-08-22 自動ダウンロードが済んでいるなら、もう一度落とさずに切り替えるだけ。
+     同じものを2回落とすのは通信のむだで、待ち時間もそのぶん増える。 */
+  if (!keepVer && _xhUpd && xhAutoState(_xhUpd.version) === "done") {
+    ["xhUpdGo", "xhUpdSkip", "xhUpdX"].forEach((id) => { const e = xhEl(id); if (e) e.style.display = "none"; });
+    const pg0 = xhEl("xhUpdProg"); if (pg0) pg0.classList.add("on");
+    const bar0 = xhEl("xhUpdBar"); if (bar0) bar0.style.width = "100%";
+    const pt0 = xhEl("xhUpdPct"); if (pt0) pt0.textContent = "自動ダウンロード済みのデータを適用しています…";
+    xhDlStep(4, "④ 最新版に切り替えます");
+    try { localStorage.setItem(XH_PKG_KEY, _xhUpd.version || ""); } catch (e) {}
+    setTimeout(() => { try { location.reload(); } catch (e) {} }, 700);
+    return;
+  }
+  /* ★ 2026-08-20 通信設定: いまの回線で「更新を自動でダウンロード」をオフにしているときは一度きく */
+  if (!(await xhAskBigDownload(keepVer ? "足りないファイル" : "最新のデータ"))) { _xhUpdRunning = false; return; }
+  _xhUpdRunning = true;
+  ["xhUpdGo", "xhUpdSkip", "xhUpdX"].forEach((id) => { const e = xhEl(id); if (e) e.style.display = "none"; });
+  const pg = xhEl("xhUpdProg"); if (pg) pg.classList.add("on");
+  xhDlStep(1, "① くらべています");
+  xhUpdPaint();
+
+  const r = await xhDownloadCore(xhUpdPaint);
+  _xhUpdRunning = false;
 
   const bar = xhEl("xhUpdBar"); if (bar) bar.style.width = "100%";
   const pt = xhEl("xhUpdPct");
-  if (pt) pt.textContent = keepVer ? "オフライン用のデータがそろいました" : "更新を適用しています…";
+  if (pt) pt.textContent = r.msg || (keepVer ? "オフライン用のデータがそろいました" : "更新を適用しています…");
   xhDlStep(4, keepVer ? "④ 完了しました" : "④ 最新版に切り替えます");
   /* ★ 再ダウンロードでは版を書き換えない（見送り中の更新の案内を消さないため） */
   if (!keepVer) { try { localStorage.setItem(XH_PKG_KEY, (_xhUpd && _xhUpd.version) || ""); } catch (e) {} }
@@ -3146,6 +3650,8 @@ function xhShow() {
   xhRenderGemRate();
   xhApplyOfflineLocks();
   xhSyncBadges();
+  /* ★★ 2026-08-22b ホームを見せた回数を数えて、ガチャタブの新キャラアイコンを出す（3回まで） */
+  try { xhGtabTick(); xhPaintMarks(); } catch (e) {}
   xhConsumeHash();
   /* ★ 2026-08-12b 下バーの中身を実測で画面の下端に合わせる（xevarion.js の fitBar）。
      ホームは表示されて初めて測れるので、開いた直後に何回か測り直す。 */

@@ -21,8 +21,8 @@
 <!-- ★ 2026-08-10 ガチャ結果の演出（1枚ずつ公開・昇格演出）の見た目。MagiBurst と共通 -->
 <link rel="stylesheet" href="mb-gacha-reveal.css?v=3">
 <!-- ★ 2026-08-10 キャラ詳細（性能画面）の見た目。図鑑（characters.html）と共通 -->
-<link rel="stylesheet" href="mb-char-detail.css?v=8">
-<script src="xeva.js?v=34"></script>
+<link rel="stylesheet" href="mb-char-detail.css?v=10">
+<script src="xeva.js?v=35"></script>
 <script src="xeva-loading.js?v=1" defer></script>
 <script src="magibattle-stats.js?v=6"></script>
 <script type="module" src="xeva-sync.js?v=8"></script>
@@ -411,9 +411,13 @@ body::after{width:320px;height:320px;background:radial-gradient(circle,rgba(255,
 <script src="mb-boot.js?v=6"></script>
 <!-- ★ MagiBurst のドメイン層（キャラ・アビリティ・技・ガチャの規則）。
      MagiBurst と<b>同じファイル</b>を読むので、キャラを足せば両方に反映される。 -->
-<script src="MagiBurst/js/mb-core.js?v=37"></script>
+<script src="MagiBurst/js/mb-core.js?v=39"></script>
 <!-- ★ 2026-08-10 キャラ詳細（性能画面）。図鑑（characters.html）と同じものを使う -->
-<script src="mb-char-detail.js?v=6"></script>
-<script src="gacha-ui.js?v=11"></script>
+<!-- ★★ 2026-08-22 ガチャの詳細だけ「このキャラの最大値」も並べる（ご指定）。
+     図鑑（characters.html）はこの旗を立てないので、これまでどおり いまの値だけ。
+     旗は mb-char-detail.js を読む<b>前</b>に立てること。 -->
+<script>window.MBDET_MAXSTATS = true;</script>
+<script src="mb-char-detail.js?v=8"></script>
+<script src="gacha-ui.js?v=13"></script>
 </body>
 </html>

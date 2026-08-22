@@ -663,6 +663,15 @@
     { id: "mb:koyuki", mbId: "koyuki", name:"コユキ", file: "../img/t_Koyuki.webp", since:"2026-08-20" },
     { id: "mb:amelia", mbId: "amelia", name:"アメリア", file: "../img/t_Amelia.webp", since:"2026-08-20" },
     { id: "mb:mio", mbId: "mio", name:"ミオ", file: "../img/t_Mio.webp", since:"2026-08-20" },
+    /* ★★ 2026-08-22 Starlight Academy Fest 限定SSR 5体（No.133〜137）。
+       ★ mb-core.js の CHAR_IDS と<b>同じ並び</b>にすること（並び＝No.）。
+         ここに無いと、ポータル側でアイコンにも新キャラ告知の絵にも出てこない。
+       ★ since を書いておくと、その日から「新キャラ」として扱われる。 */
+    { id: "mb:otoha", mbId: "otoha", name:"オトハ", file: "../img/t_Otoha.webp", since:"2026-08-22" },
+    { id: "mb:sayaka", mbId: "sayaka", name:"サヤカ", file: "../img/t_Sayaka.webp", since:"2026-08-22" },
+    { id: "mb:sayuri", mbId: "sayuri", name:"サユリ", file: "../img/t_Sayuri.webp", since:"2026-08-22" },
+    { id: "mb:akari", mbId: "akari", name:"アカリ", file: "../img/t_Akari.webp", since:"2026-08-22" },
+    { id: "mb:hinata", mbId: "hinata", name:"ヒナタ", file: "../img/t_Hinata.webp", since:"2026-08-22" },
   ];
   /* ★ 2026-08-10 初期SR 4体（ゼラ・アヤメ・レイラ・セリーヌ）は廃止しました。
      いまは<b>全キャラがアイコンに選べる</b>ので、starter という区別そのものが要らない。 */

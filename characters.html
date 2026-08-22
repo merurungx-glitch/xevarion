@@ -19,8 +19,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="xeva-theme.css?v=1">
 <!-- ★ 2026-08-10 キャラ詳細（性能画面）の見た目。ガチャ（gacha.html）と共通 -->
-<link rel="stylesheet" href="mb-char-detail.css?v=8">
-<script src="xeva.js?v=34"></script>
+<link rel="stylesheet" href="mb-char-detail.css?v=10">
+<script src="xeva.js?v=35"></script>
 <script src="xeva-loading.js?v=1" defer></script>
 <script src="magibattle-stats.js?v=6"></script>
 <script type="module" src="xeva-sync.js?v=8"></script>
@@ -321,14 +321,14 @@ function openDetail(id){
   var accCharId = getAccCharId();
   var isCurrent = c.id===accCharId;
   var rarColor = c.rarity==="SSR"?"#c8960c":"#6060d0";
-  var rarStars = c.rarity==="SSR"?"⭐⭐⭐":"⭐⭐";
+  /* ★★ 2026-08-22b レアリティ表記は SSR / SR に統一（星はもう出さない） */
   var ov=document.createElement("div"); ov.className="ov";
   ov.onclick=function(e){ if(e.target===ov) ov.remove(); };
   ov.innerHTML=
     '<div class="ov-card">'+
       '<img class="ov-img" src="chars/'+c.file+'" alt="'+c.name+'">'+
       '<div class="ov-body">'+
-        '<div class="ov-rar" style="color:'+rarColor+'">'+rarStars+' '+c.rarity+'</div>'+
+        '<div class="ov-rar" style="color:'+rarColor+'">'+c.rarity+'</div>'+
         '<div class="ov-name">'+(isOwned?c.name:"???")+(isOwned&&dupeOf(c.id)>0?' <span style="font-size:14px;color:#37e0a0;font-weight:700">+'+dupeOf(c.id)+'限界突破</span>':'')+'</div>'+
         '<div class="ov-sub">'+getSeasonLabel(c)+'</div>'+
         '<div class="ov-status '+(isOwned?"owned":"locked")+'">'+(isOwned?"✓ 所持済み":("🔒 未所持（"+(c.reward?"MagiLexの報酬で入手":(c.cdk?"CDKで入手":"ガチャで入手"))+"）"))+'</div>'+
@@ -363,8 +363,8 @@ renderGrid();
      別の端末の MagiBurst が書いたセーブに負けて<b>消えて</b>いた。 -->
 <script type="module" src="MagiBurst/magiburst-cloud.js?v=6"></script>
 <script src="mb-boot.js?v=6"></script>
-<script src="MagiBurst/js/mb-core.js?v=37"></script>
-<script src="mb-char-detail.js?v=6"></script>
+<script src="MagiBurst/js/mb-core.js?v=39"></script>
+<script src="mb-char-detail.js?v=8"></script>
 <script>
 "use strict";
 /* MagiBurst のキャラを、この図鑑のカードの形で描く */

@@ -1,0 +1,149 @@
+/* ══════════════════════════════════════════════════════════════
+   Xevion OS — 見た目の切り替え（2026-08-22b 新設）
+   ------------------------------------------------------------
+   xevion-os.js が body に付けるクラスに、ここだけで色と大きさを当てる。
+     .xos-dark      … ダークテーマ
+     .xos-nomotion  … 動きを減らす
+     .xos-tx-s / -m / -l … 文字の大きさ
+     .xos-nodots    … 更新の赤い点を出さない
+
+   ★ ダークは<b>ホームの土台（#xhome）とシートだけ</b>を塗る。
+     各アプリ（MagiBurst / MagiLex …）はそれぞれ自前の色を持っているので、
+     ここから手を出さない——出すと、アプリ側の更新のたびに壊れる。
+   ★ 色は「面」から順に上書きする（背景 → カード → 文字 → 線）。
+     個々の部品を1つずつ塗ると、新しい部品が増えたときに必ず塗り忘れる。
+   ══════════════════════════════════════════════════════════════ */
+
+/* ══════════ 動きを減らす ══════════
+   ★ !important を付ける。アニメーションは各所で個別指定されているので、
+     ここが弱いと「減らしたのに動く」ところが残る。 */
+body.xos-nomotion *,
+body.xos-nomotion *::before,
+body.xos-nomotion *::after{
+  animation-duration:.001s!important;
+  animation-iteration-count:1!important;
+  transition-duration:.001s!important;
+  scroll-behavior:auto!important;
+}
+
+/* ══════════ 文字の大きさ ══════════
+   ★ px 指定が多いので、font-size を1つ変えても効かない。
+     ホームの中身だけ zoom で拡大する（レイアウトごと一緒に伸びるので崩れない）。
+   ★ ヘッダーと下バーは<b>拡大しない</b>。ここを伸ばすと画面の上下が食われて、
+     肝心の中身がかえって狭くなる。 */
+body.xos-tx-s .xh-scroll{zoom:.92}
+body.xos-tx-l .xh-scroll{zoom:1.12}
+body.xos-tx-s .xh-sheet-body{zoom:.92}
+body.xos-tx-l .xh-sheet-body{zoom:1.12}
+
+/* ══════════ 更新の赤い点を出さない ══════════ */
+body.xos-nodots .xh-app.xh-updot::after,
+body.xos-nodots .xh-aitem.xh-updot::after,
+body.xos-nodots .xh-ntab.xh-updot::after{display:none}
+
+/* ══════════════════════════════════════════════════════════════
+   ダークテーマ
+   ══════════════════════════════════════════════════════════════ */
+body.xos-dark{
+  --xh-ink:#e8edfb;
+  --xh-sub:#96a4c8;
+  --xh-line:rgba(150,180,255,.18);
+  --xh-card:#161c2e;
+  --xh-shadow:0 8px 26px rgba(0,0,0,.5);
+  --xh-shadow-s:0 4px 14px rgba(0,0,0,.42);
+}
+body.xos-dark,
+body.xos-dark.xh-mode{background:#0b0f1a}
+
+/* ── ヘッダー ── */
+body.xos-dark .xh-top{background:rgba(16,21,35,.86);border-bottom-color:rgba(150,180,255,.16)}
+body.xos-dark #xhome .xh-brandbar .xh-word{
+  background:linear-gradient(100deg,#8fb4ff,#b49bff 55%,#ff9fd2);
+  -webkit-background-clip:text;background-clip:text;color:#8fb4ff}
+body.xos-dark .xh-act .ic{background:#1d2438;border-color:rgba(150,180,255,.22)}
+body.xos-dark .xh-act .bdg{border-color:#0b0f1a}
+
+/* ── カード・面 ── */
+body.xos-dark .xh-panel{background:var(--xh-card);border-color:rgba(150,180,255,.14)}
+body.xos-dark .xh-row{background:#1a2135;border-color:rgba(150,180,255,.16)}
+body.xos-dark .xh-sheet{background:rgba(4,7,14,.62)}
+body.xos-dark .xh-sheet-card{background:linear-gradient(180deg,#141a2b,#0e1322);
+  border-color:rgba(150,180,255,.16);color:var(--xh-ink)}
+body.xos-dark .xh-sheet-head{border-bottom-color:rgba(150,180,255,.16)}
+body.xos-dark .xh-sheet-x{background:rgba(150,180,255,.12);color:var(--xh-sub)}
+
+/* ── 下バー ── */
+body.xos-dark .xh-bar{
+  background:linear-gradient(98deg,#151a2c 0%,#131a2b 34%,#111a28 62%,#1a1626 100%);
+  box-shadow:0 -8px 26px rgba(0,0,0,.55),0 -1px 0 rgba(150,180,255,.10) inset}
+body.xos-dark .xh-ntab{color:var(--xh-sub)}
+body.xos-dark .xh-app.xh-updot::after,
+body.xos-dark .xh-aitem.xh-updot::after,
+body.xos-dark .xh-ntab.xh-updot::after{box-shadow:0 0 0 2px #131a2b,0 1px 4px rgba(224,64,94,.6)}
+
+/* ── アプリのタイル ── */
+body.xos-dark .xh-app{color:var(--xh-ink)}
+body.xos-dark .xh-app .sb{color:var(--xh-sub)}
+body.xos-dark .xh-aitem{background:#1a2135;border-color:rgba(150,180,255,.16)}
+
+/* ── 自動更新のマーク ── */
+body.xos-dark .xh-autochip{background:rgba(150,180,255,.14);color:#b9c8f0}
+body.xos-dark .xh-autochip.pending{background:rgba(120,140,255,.2);color:#a8bcf5}
+body.xos-dark .xh-autochip.done{background:rgba(40,190,140,.18);color:#7ce0bb}
+body.xos-dark .xh-autochip.failed{background:rgba(255,120,120,.2);color:#ff9d9d}
+body.xos-dark .xh-autochip .sp{border-color:rgba(185,200,240,.28);border-top-color:#b9c8f0}
+
+/* ── 白地を前提に置かれている細かいところ ── */
+body.xos-dark .xh-sec-label{color:#8fb4ff}
+body.xos-dark .xh-row .rv{color:#8fb4ff}
+body.xos-dark .xh-row .rl svg{color:#8fb4ff}
+body.xos-dark .xh-catlabel{color:#8fb4ff}
+body.xos-dark .xh-empty{color:var(--xh-sub)}
+
+/* ── 明るい地の色を自分で持っている面 ──
+   ★ こういう面は --xh-ink（＝ダークでは明るい色）を使う文字が乗ると読めなくなる。
+     面ごと暗く塗り替えるのがいちばん確実で、あとから部品が増えても崩れない。 */
+body.xos-dark .xh-xcard.exch{background:linear-gradient(150deg,#2a2340 0%,#33223a 58%,#241f3a 100%)}
+body.xos-dark .xh-xcard.shop{background:linear-gradient(150deg,#1c2a42 0%,#232244 58%,#331f36 100%)}
+body.xos-dark .xhx-ic .ar{color:#c9a6ff}
+body.xos-dark .xh-pill{background:linear-gradient(120deg,#2a2418,#1e1c14);border-color:rgba(255,201,60,.4)}
+body.xos-dark .xh-pill .cval{color:#ffd257}
+body.xos-dark .xh-pill.gem{background:linear-gradient(120deg,#241d38,#1a1730);border-color:rgba(155,123,255,.45)}
+body.xos-dark .xh-pill.gem .cval{color:#c9a6ff}
+body.xos-dark .xh-fx{background:linear-gradient(180deg,#1a2135,#141a2b);border-color:rgba(150,180,255,.18)}
+body.xos-dark .xh-ev{background:#1a2135}
+body.xos-dark .xh-ev .evt2{color:#ff9dbb}
+body.xos-dark .xh-chips button{background:rgba(46,199,255,.16);color:#7fdcff}
+body.xos-dark .xh-sechead .more{background:rgba(75,139,255,.18);color:#8fb4ff}
+/* オフライン帯・トースト・空表示など、白地を前提にしている小物 */
+body.xos-dark #xhToast{background:rgba(20,26,43,.96);color:var(--xh-ink);
+  box-shadow:0 10px 30px rgba(0,0,0,.6)}
+
+/* ══════════════════════════════════════════════════════════════
+   Xevion OS の設定シート（専用の部品）
+   ══════════════════════════════════════════════════════════════ */
+.xos-hero{display:flex;align-items:center;gap:12px;padding:14px;border-radius:18px;margin-bottom:14px;
+  background:linear-gradient(130deg,#2b62d8,#6b4fd8 52%,#a24fd0);color:#fff;
+  box-shadow:0 10px 28px rgba(90,70,200,.32)}
+.xos-hero .xos-orb{width:44px;height:44px;flex:none;border-radius:14px;display:flex;align-items:center;
+  justify-content:center;background:rgba(255,255,255,.16);border:1.5px solid rgba(255,255,255,.4)}
+.xos-hero .xos-orb svg{width:26px;height:26px}
+.xos-hero .xos-nm{display:block;font-family:'Orbitron',sans-serif;font-size:16px;font-weight:900;letter-spacing:.05em}
+.xos-hero .xos-vr{display:block;font-size:10.5px;font-weight:800;opacity:.9;margin-top:3px;line-height:1.6}
+
+/* 3択（テーマ・文字の大きさ）のセグメント */
+.xos-seg{display:flex;gap:6px;margin:0 0 9px}
+.xos-seg button{flex:1;padding:9px 4px;border-radius:12px;cursor:pointer;font-size:11.5px;font-weight:800;
+  border:1.5px solid rgba(120,160,230,.28);background:#fff;color:var(--xh-sub);font-family:inherit}
+.xos-seg button.on{background:linear-gradient(140deg,#4b8bff,#9b7bff);color:#fff;border-color:transparent;
+  box-shadow:0 5px 14px rgba(100,120,255,.35)}
+body.xos-dark .xos-seg button{background:#1a2135;border-color:rgba(150,180,255,.18)}
+
+/* システム情報 */
+.xos-info{border-radius:16px;padding:12px 14px;background:#fff;border:1.5px solid rgba(120,160,230,.2);
+  box-shadow:var(--xh-shadow-s)}
+body.xos-dark .xos-info{background:#1a2135;border-color:rgba(150,180,255,.16)}
+.xos-info dl{display:grid;grid-template-columns:auto 1fr;gap:6px 12px;margin:0}
+.xos-info dt{font-size:11px;font-weight:800;color:var(--xh-sub);white-space:nowrap}
+.xos-info dd{margin:0;font-size:11.5px;font-weight:800;color:var(--xh-ink);text-align:right;word-break:break-all}
+.xos-note{font-size:10.5px;font-weight:700;line-height:1.8;color:var(--xh-sub);margin:9px 2px 0}

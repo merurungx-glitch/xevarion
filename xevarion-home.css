@@ -325,6 +325,46 @@ body.xh-off .xh-offline{display:flex}
 .xh-bar::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;pointer-events:none;
   background:linear-gradient(90deg,#8e6bff 0%,#38a6ff 30%,#22c7a9 52%,#ffb020 74%,#ff6f91 100%);
   box-shadow:0 1px 8px rgba(120,110,255,.35)}
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-08-22b 自動更新のマーク／更新の印／ガチャタブの新キャラアイコン
+   ══════════════════════════════════════════════════════════════ */
+/* 裏で更新を落としているあいだ出るマーク（押すと更新画面が開く） */
+.xh-autochip{display:none;align-items:center;gap:7px;margin:0 14px 6px;padding:7px 12px;cursor:pointer;
+  border:none;border-radius:99px;font-size:11.5px;font-weight:800;text-align:left;
+  background:rgba(120,140,255,.14);color:#4b5fa8}
+.xh-autochip.on{display:flex}
+.xh-autochip.done{background:rgba(60,200,150,.16);color:#12805f}
+.xh-autochip.failed{background:rgba(255,140,140,.18);color:#c04a4a}
+.xh-autochip .sp{width:13px;height:13px;flex:none;border-radius:50%;
+  border:2.2px solid rgba(75,95,168,.28);border-top-color:#4b5fa8;animation:xhAutoSpin .8s linear infinite}
+@keyframes xhAutoSpin{to{transform:rotate(360deg)}}
+.xh-autochip .ok,.xh-autochip .ng{font-style:normal;font-weight:900;width:15px;height:15px;flex:none;
+  border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff}
+.xh-autochip .dl{font-style:normal;font-weight:900;width:15px;height:15px;flex:none;
+  border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;
+  background:#4b8bff}
+.xh-autochip.pending{background:rgba(120,140,255,.16);color:#3b56a8}
+.xh-autochip .ok{background:#14a877}
+.xh-autochip .ng{background:#e0605e}
+
+/* 更新の印（アプリのタイル・一覧の行・下バーのタブ） */
+.xh-app.xh-updot,.xh-aitem.xh-updot,.xh-ntab.xh-updot{position:relative}
+.xh-app.xh-updot::after,.xh-aitem.xh-updot::after,.xh-ntab.xh-updot::after{
+  content:"";position:absolute;width:9px;height:9px;border-radius:50%;
+  background:#ff4d6d;box-shadow:0 0 0 2px #fff,0 1px 4px rgba(224,64,94,.5);
+  animation:xhUpDot 1.8s ease-in-out infinite}
+.xh-app.xh-updot::after{right:6px;top:2px}
+.xh-aitem.xh-updot::after{left:6px;top:10px}
+.xh-ntab.xh-updot::after{right:calc(50% - 17px);top:3px}
+@keyframes xhUpDot{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.22);opacity:.75}}
+
+/* ガチャタブの新キャラアイコン（3回まで出る）。もとの SVG は隠すだけで消さない。 */
+.xh-ntab.xh-haschar svg{display:none}
+.xh-ntab .xh-tabchar{width:24px;height:24px;border-radius:50%;object-fit:cover;
+  box-shadow:0 0 0 2px rgba(255,157,46,.9),0 2px 8px rgba(255,157,46,.5);
+  animation:xhTabChar 2.4s ease-in-out infinite}
+@keyframes xhTabChar{0%,100%{transform:scale(1)}50%{transform:scale(1.09)}}
+
 .xh-ntab{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 2px 4px;border:none;
   background:none;cursor:pointer;color:var(--xh-sub);border-radius:16px;
   font-family:'Noto Sans JP',sans-serif;transition:color .16s,background .16s}
@@ -611,6 +651,17 @@ body.xh-dragging .xh-sheet-body{overflow:hidden}
   color:var(--xh-sub);background:rgba(120,160,230,.1);border:1px solid rgba(120,160,230,.22)}
 .xh-upd-size b{color:var(--xh-ink)}
 .xh-upd-size:empty{display:none}
+/* ══ ★★ 2026-08-22 自動ダウンロードの状態（更新画面のいちばん目立つところ） ══
+   「更新を自動でダウンロード」をオンにしている回線でだけ出る。
+   落としている最中（running）・済み（done）・落とせなかった（failed）の3つを、
+   色と絵でひと目で分かるようにする。 */
+.xh-updauto{margin-top:12px;border-radius:14px;padding:11px 13px;border:1.5px solid;
+  display:flex;flex-direction:column;gap:3px;line-height:1.7}
+.xh-updauto b{font-size:12.5px;font-weight:900;letter-spacing:.01em}
+.xh-updauto span{font-size:10.5px;font-weight:700;opacity:.9}
+.xh-updauto.running{border-color:rgba(46,139,255,.42);background:rgba(46,139,255,.09);color:#1f5fbf}
+.xh-updauto.done{border-color:rgba(18,169,122,.45);background:rgba(18,169,122,.1);color:#0d7d59}
+.xh-updauto.failed{border-color:rgba(224,87,127,.45);background:rgba(224,87,127,.1);color:#b53c62}
 .xh-upd-notes{list-style:none;margin:12px 0 0;padding:0}
 .xh-upd-notes li{position:relative;padding:9px 12px 9px 30px;border-radius:14px;background:#fff;
   border:1.5px solid rgba(120,160,230,.2);box-shadow:var(--xh-shadow-s);margin-bottom:7px;

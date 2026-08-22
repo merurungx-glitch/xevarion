@@ -494,11 +494,23 @@ function openRatesX() {
     rows.push(rateHeadRow("⭐ SR（合計・" + STAR4_POOL.length + "体で等分）", "50%"));
     STAR4_POOL.forEach((id) => rows.push(rateCharRow(id, 0.50 / STAR4_POOL.length)));
     rows.push(rateHeadRow("🎁 育成アイテム（合計）", "35%"));
-    rows.push(rateItemRows(0.35));
+    /* ★★ 2026-08-22 フェスに itemTable が書いてあれば、その表で出す。
+       いまは Starlight Academy Fest だけが GRAND DEBUT と同じ中身（ご指定）。
+       書いていないフェスは undefined が渡り、rateItemRows が G_ITEM_TABLE に落とす
+       ＝ 既存のフェスの表示は1つも変わらない。
+       ★ ここを直さないと「引くと出るもの」と「提供割合に書いてあるもの」が食いちがう。 */
+    rows.push(rateItemRows(0.35, f.itemTable));
     const sure = byCharNoDesc(fesSurePool(gMode));
     rows.push(rateHeadRow("🎯 10連のSSR確定枠（最後の1枠・" + sure.length + "体から等確率）", "", f.c));
     sure.forEach((id) => rows.push(rateCharRow(id, sure.length ? 1 / sure.length : 0, CHARS[id].fes ? "フェス限定SSR" : PREMIUM_NM)));
     rows.push(rateNoteRow("※ <b>ピックアップはありません</b>。フェス限定SSRの合計10%を排出対象で等分します。"));
+    /* ★★ 2026-08-22 中身がふつうのフェスとちがうときは、そのことを画面に書く */
+    if (f.itemTable === D_ITEM_TABLE) {
+      rows.push(rateNoteRow("※ <b>キャラの排出確率はほかのフェスとまったく同じ</b>です。"
+        + "ちがうのは<b>育成アイテムの中身</b>だけで、<b>" + DEBUT_NM + " と同じ内容</b>になっています——"
+        + "叡智の果実は<b>3個・5個の束</b>が主体、🎫ガチャチケット・📕超越の書・🎖️英傑の証を厚くし、"
+        + "<b>🪭九天の玉簡</b>と<b>📘クロスの書</b>も極低確率で出ます。"));
+    }
     rows.push(rateNoteRow(TKT_NOTE));
   } else {
     const pick = curPickup();
@@ -536,6 +548,13 @@ window.closeRatesX = closeRatesX;
 /* ══════════ 描き直し ══════════ */
 function paintAll() {
   paintWal(); paintPicker(); paintHero(); paintPickup(); paintNote(); paintPullBar();
+  /* ★★ 2026-08-22b えらばずに閉じた BLACK SELECT（SSRセレクト）があれば出しなおす。
+     mb-core.js の paintGacha は gacha-ui.js が丸ごと上書きしているので、こちらにも要る。 */
+  try {
+    if (window.DB && DB.luxSel && !document.getElementById("luxSelOv") && typeof luxResume === "function") {
+      setTimeout(luxResume, 300);
+    }
+  } catch (e) {}
 }
 window.addEventListener("xeva:change", () => { paintWal(); paintPullBar(); });
 /* 💎ジェム・🎫チケットは XEVARION 共通ウォレット。別タブや同期で動いたら値段表示もそろえる */

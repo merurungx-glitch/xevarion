@@ -17,6 +17,19 @@
      こちらに足したら<b>あちらにも since 付きで1行</b>足すこと（無いとポータルに絵が出ない）。
    ══════════════════════════════════════════════════════════════ */
 window.MB_NEW_CHARS = [
+  /* ── ★★ 2026-08-22 Starlight Academy Fest 限定SSR 5体 ──
+     ★ フェス限定なので<b>このフェスからしか出ません</b>（プレミアムのすり抜けにも出ない）。
+       ＝ FESTS.fes5.chars にだけ入れてあり、PREMIUM_CHARS にも DEBUT_CHARS にも入れていない。 */
+  { id: "hinata", since: "2026-08-22", where: "Starlight Academy Fest", mode: "fes5",
+    catch: "曙の光は、いちばん速く走り抜ける。", color: "#f0b429" },
+  { id: "akari", since: "2026-08-22", where: "Starlight Academy Fest", mode: "fes5",
+    catch: "陽だまりは、みんなの支度を早める。", color: "#2fbf71" },
+  { id: "sayuri", since: "2026-08-22", where: "Starlight Academy Fest", mode: "fes5",
+    catch: "墨の一閃は、敵の牙を折ってから斬る。", color: "#a86bff" },
+  { id: "sayaka", since: "2026-08-22", where: "Starlight Academy Fest", mode: "fes5",
+    catch: "蒼い流れは、味方ごと壁を抜ける。", color: "#38a6ff" },
+  { id: "otoha", since: "2026-08-22", where: "Starlight Academy Fest", mode: "fes5",
+    catch: "焔の旋律は、弱点をひらいてから鳴る。", color: "#ff5d47" },
   /* ── ★ 2026-08-20 GRAND DEBUT GACHA 新SSR 5体 ──
      ★ 新キャラは<b>GRAND DEBUT GACHA でしか引けません</b>（フェス・プレミアムのすり抜けにも出ない）。
        次の更新で新しいキャラが GRAND DEBUT に入ると、この5体はプレミアムセレクトガチャへ移ります。 */
