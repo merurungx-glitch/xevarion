@@ -38,7 +38,7 @@ const CORE = [
   "../img/t_Karem.webp",
   "../img/t_Chizuru.webp",
   "../maintenance-gate.js?v=5",
-  "../xeva.js?v=34",
+  "../xeva.js?v=35",
   "../xeva-fx.js?v=1",
   "../xeva-splash.js?v=3",
   "../xeva-back.js?v=1",

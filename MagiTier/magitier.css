@@ -609,3 +609,47 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.7}
 .mvabs{display:flex;flex-wrap:wrap;gap:5px}
 .mvab{font-size:.68rem;font-weight:800;padding:3px 9px;border-radius:99px;
   border:1.5px solid var(--line);background:var(--card2,rgba(120,140,200,.08))}
+
+
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-08-22 キャラ詳細（XEVARION の図鑑・ガチャと同じ 1本＝mb-char-detail.css）
+
+   ・見た目の指定そのものは ../mb-char-detail.css。ここでは
+     <b>その CSS が見ている色の変数</b>を #detOv の中に置くだけにする。
+     変数は各ページの :root にある作りなので、置かないと色が全部きかない。
+   ・MagiTier はダークにもできるが、キャラ詳細だけは<b>XEVARION と同じ</b>明るい配色に
+     そろえる（「同じもの」を出すのが目的なので、ここだけ別の色にはしない）。
+   ・下に足す MagiTier ぶんの1枚（.mtsec）も、その配色の中で組む。
+   ══════════════════════════════════════════════════════════════ */
+#detOv{
+  --bg:#d9ecff;--card:#ffffff;--card2:#f7fbff;
+  --bdr:rgba(120,160,230,0.22);
+  --txt:#22345c;--txt2:#6f82ad;
+  --pur:#7b5cf0;--pink:#f0509a;--gold:#e8a400;--gold2:#ffc93c;
+  --grn:#12a97a;--red:#e0577f;--blu:#2e8bff;
+  font-family:'Noto Sans JP',sans-serif;color:#22345c;
+}
+.mtsec{border-color:rgba(123,92,240,.34);
+  background:linear-gradient(135deg,rgba(123,92,240,.07),rgba(240,80,154,.05))}
+.mtsec>.t{color:#7b5cf0}
+.mtrows{display:flex;flex-direction:column;gap:5px}
+.mtrow{display:flex;align-items:center;gap:8px;min-height:22px}
+.mtrow .mtk{flex:none;min-width:78px;font-size:10.5px;font-weight:900;color:#6f82ad}
+.mtrow .mtv{font-size:11.5px;font-weight:800;color:#22345c}
+.mtrow .mtnum{font-family:'Orbitron',sans-serif;font-size:16px;font-weight:900;color:#22345c}
+.mtrow .mtnum small{font-family:'Noto Sans JP',sans-serif;font-size:10px;font-weight:800;color:#6f82ad;margin-left:2px}
+.mtrow .mttier{flex:none;min-width:30px;text-align:center;border-radius:7px;padding:2px 8px;
+  font-size:12px;font-weight:900;letter-spacing:.02em}
+.mtstars{display:inline-flex;gap:1px}
+.mtstars i{font-style:normal;font-size:13px;line-height:1;color:rgba(120,140,200,.32)}
+.mtstars i.on{color:#e8a400}
+.mtmt{margin:10px 0 4px;font-size:10.5px;font-weight:900;color:#6f82ad}
+.mtmemo{font-size:11.5px;font-weight:700;line-height:1.85;color:#22345c;
+  background:rgba(255,255,255,.72);border:1px solid rgba(120,160,230,.22);border-radius:10px;padding:8px 10px}
+/* プール・表のカードに出す「ⓘ ゲームの詳細」ボタン（MagiBurst 表だけ） */
+.icard .mbinfo{position:absolute;right:2px;bottom:2px;z-index:3;width:19px;height:19px;border-radius:50%;
+  border:1.5px solid rgba(255,255,255,.85);background:rgba(30,40,70,.78);color:#fff;
+  font-size:11px;font-weight:900;line-height:1;display:grid;place-items:center;cursor:pointer;padding:0;
+  opacity:.55;transition:opacity .15s ease,transform .12s ease}
+.icard:hover .mbinfo,.icard .mbinfo:focus{opacity:1}
+.icard .mbinfo:active{transform:scale(.88)}

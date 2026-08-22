@@ -24,6 +24,14 @@ function toast(msg) {
   t.textContent = msg; t.classList.add("on");
   clearTimeout(t._t); t._t = setTimeout(() => t.classList.remove("on"), 2300);
 }
+/* ★★ 2026-08-22b 日付だけの表記（時刻を出さない）。
+   MagiBurst のキャラTier表は「いつの目安か」が分かればよく、
+   時刻まで出ていると更新のたびに数字が動いて落ち着かない（ご指定）。 */
+function fmtDay(ms) {
+  if (!ms) return "";
+  const d = new Date(ms);
+  return d.getFullYear() + "/" + (d.getMonth() + 1) + "/" + d.getDate();
+}
 function fmtDate(ms) {
   if (!ms) return "";
   const d = new Date(ms), n = new Date();
@@ -244,7 +252,7 @@ function cardHTML(t) {
     <div class="bd">
       <div class="nm">${esc(t.name)}</div>
       <div class="mt">${esc(comp) || "—"}</div>
-      <div class="mt">${n} 枚 ・ 更新 ${fmtDate(t.updatedAt)}</div>
+      <div class="mt">${n} 枚 ・ 更新 ${isMb ? fmtDay(t.updatedAt) : fmtDate(t.updatedAt)}</div>
     </div>
   </div>`;
 }
@@ -437,15 +445,27 @@ function mbFillPool(t) {
   t.tiers.forEach((tr) => tr.images.forEach((im) => { placed[im.id] = 1; }));
   t.images.forEach((im) => { placed[im.id] = 1; });
   let added = 0;
-  ids.forEach((id) => {
+  ids.forEach((id, i) => {
     const c = CH[id]; if (!c) return;
     if (placed["mb:" + id]) return;
     t.images.push(normImg({ id: "mb:" + id, src: c.th, name: c.nm,
-      memo: (c.el || "") + " / " + (c.type || ""), addedAt: Date.now() }));
+      memo: (c.el || "") + " / " + (c.type || ""), addedAt: mbAddedAt(i) }));
     added++;
   });
   return added;
 }
+/* ══ ★★ 2026-08-22 「プールの並び替えが効かない」の真因 ══
+   ------------------------------------------------------------
+   ここは同期のくり返しなので Date.now() が<b>全キャラで同じ値</b>になっていた。
+   その結果「追加順」「新しい順」「評価順（まだ全員0点）」は
+   どれも<b>並べても順番が1つも変わらない</b>＝押しても何も起きないように見えていた
+   （名前順だけが動くので「たまに効く」というややこしい見え方になっていた）。
+   ★ 直しかた: キャラの<b>登場順（CHAR_IDS の並び）</b>をそのまま addedAt にする。
+     これで「追加順＝No.順」「新しい順＝新キャラが先」と、意味のある並びになる。
+   ★ 基準の時刻は固定値。Date.now() を混ぜると開くたびに値が変わり、
+     手で足した画像との前後関係が毎回ひっくり返る。 */
+const MB_ADDED_BASE = 1704067200000;      // 2024-01-01（固定の基準。意味は「並びの原点」だけ）
+function mbAddedAt(i) { return MB_ADDED_BASE + (i | 0) * 60000; }
 /* ★★ 2026-08-19 「1キャラにつき1枚」を必ず守る。
    Tier に置いてあるキャラは、プールから必ず外す。
    ★ mbNormalizeTable でも同じことをしているが、
@@ -532,6 +552,22 @@ function totalScore(im) {
   const avg = vals.reduce((a, b) => a + b, 0) / vals.length;   // 1〜5
   return Math.round(avg * 2 * 10) / 10;                        // 10点満点に直す
 }
+/* ★★ 2026-08-22 MagiBurst 表むけの並び（属性・レア度）。
+   memo に "fire / バランス型" の形で入っているので、そこから属性キーを拾う。
+   mb-core を読めているときは CHARS からも引く（memo より確実）。 */
+const MB_EL_ORDER = ["fire", "water", "wood", "light", "dark"];
+function mbElOf(im) {
+  const cid = String(im.id || "").replace(/^mb:/, "");
+  const CH = mbChars();
+  if (CH && CH[cid] && CH[cid].el) return CH[cid].el;
+  const memo = String(im.memo || "");
+  return MB_EL_ORDER.find((k) => memo.includes(k)) || "";
+}
+function mbRareOf(im) {
+  const cid = String(im.id || "").replace(/^mb:/, "");
+  try { if (typeof isStar5 === "function" && mbChars() && mbChars()[cid]) return isStar5(cid) ? 1 : 0; } catch (e) {}
+  return 0;
+}
 function sortImages(arr) {
   const m = cur.sortMode;
   if (m === "manual") return arr;
@@ -540,6 +576,11 @@ function sortImages(arr) {
   if (m === "score") a.sort((x, y) => totalScore(y) - totalScore(x));
   if (m === "added") a.sort((x, y) => (x.addedAt || 0) - (y.addedAt || 0));
   if (m === "new")   a.sort((x, y) => (y.addedAt || 0) - (x.addedAt || 0));
+  /* 属性順は「属性ごとにまとめて、その中は登場順」。属性の中がばらばらだと見比べられない */
+  if (m === "el")    a.sort((x, y) => (MB_EL_ORDER.indexOf(mbElOf(x)) - MB_EL_ORDER.indexOf(mbElOf(y)))
+                                      || ((x.addedAt || 0) - (y.addedAt || 0)));
+  /* レア度順は SSR が先。同じレア度の中は新しい順（新キャラを見つけやすい） */
+  if (m === "rare")  a.sort((x, y) => (mbRareOf(y) - mbRareOf(x)) || ((y.addedAt || 0) - (x.addedAt || 0)));
   return a;
 }
 
@@ -552,8 +593,18 @@ function imgCardHTML(im, where, idx) {
        ${cur.cardName ? `<div class="cn">${esc(im.name || "—")}</div>` : ""}
        ${cur.cardMemo ? `<div class="cm">${esc(im.memo || "")}</div>` : ""}`
     : `<img src="${esc(im.src)}" alt="${esc(im.name)}" title="${esc(im.name)}" loading="lazy">${sc}`;
+  /* ★★ 2026-08-22 MagiBurst 表は<b>表を作っている最中でも</b>ゲームのキャラ詳細を見られるようにする。
+     ★ カードそのものを押すと「えらぶ」なので、そこは変えない
+       （押すたびに詳細が開くと、Tier へ動かす作業ができなくなる）。
+       右下の小さな ⓘ を押したときだけ詳細を開く。stopPropagation を忘れると
+       「詳細が開くと同時にえらばれる」になるので必ず止める。 */
+  const info = (cur.id === MB_TABLE_ID)
+    ? `<button class="mbinfo" title="${esc(im.name)} のキャラ詳細を見る" aria-label="キャラ詳細"
+        onclick="event.stopPropagation();MT.mbDetail('${im.id}')"
+        onpointerdown="event.stopPropagation()" draggable="false">i</button>`
+    : "";
   return `<div class="${cls}" draggable="true" data-img="${im.id}" data-where="${where}" data-idx="${idx}"
-    onclick="MT.pickImg('${im.id}')" oncontextmenu="event.preventDefault();MT.imgMenu('${im.id}')">${body}</div>`;
+    onclick="MT.pickImg('${im.id}')" oncontextmenu="event.preventDefault();MT.imgMenu('${im.id}')">${body}${info}</div>`;
 }
 function renderTable(host, forPresent) {
   const t = cur;
@@ -597,12 +648,19 @@ const MB_ATTRS = [["火","#ff6b4d"],["水","#38a6ff"],["木","#3ec98a"],["光","
    いちばん使う<b>追加した順</b>を含めて、プールのバーから直に選べるようにする。 */
 const POOL_SORTS = [["manual", "手動"], ["added", "追加順"], ["new", "新しい順"],
                     ["name", "名前順"], ["score", "評価順"]];
+/* ★★ 2026-08-22 MagiBurst キャラ表だけは並びの言い方を変え、属性・レア度も足す。
+   ・「追加順」は中身としては<b>キャラの登場順（No.順）</b>なので、そう書く。
+   ・「新しい順」は<b>新キャラが先</b>。実装を足したばかりの子を探すのに使う。
+   ★ ここで名前を変えるだけ。並べる規則そのものは sortImages に1本化してある。 */
+const MB_POOL_SORTS = [["manual", "手動"], ["added", "No.順"], ["new", "新キャラ順"],
+                       ["name", "名前順"], ["el", "属性順"], ["rare", "レア度順"], ["score", "評価順"]];
+function poolSorts() { return (cur && cur.id === MB_TABLE_ID) ? MB_POOL_SORTS : POOL_SORTS; }
 function renderPoolSort() {
   const box = $("#poolSort"); if (!box) return;
-  box.innerHTML = '<span class="pslbl">並び</span>' + POOL_SORTS.map(([k, l]) =>
+  box.innerHTML = '<span class="pslbl">並び</span>' + poolSorts().map(([k, l]) =>
     `<button class="pschip${cur.sortMode === k ? " on" : ""}" onclick="MT.setSortQuick('${k}')">${l}</button>`).join("");
 }
-function setSortQuick(k) { cur.sortMode = k; save(cur, true); refresh(); toast("「" + (POOL_SORTS.find(x => x[0] === k) || [, k])[1] + "」に並べ替えました"); }
+function setSortQuick(k) { cur.sortMode = k; save(cur, true); refresh(); toast("「" + (poolSorts().find(x => x[0] === k) || [, k])[1] + "」に並べ替えました"); }
 function renderPoolChips() {
   const box = $("#poolChips"); if (!box) return;
   if (!cur || cur.id !== MB_TABLE_ID) { box.innerHTML = ""; return; }
@@ -674,6 +732,11 @@ function renderSel() {
   };
   box.innerHTML = `
     <img class="selprev" src="${esc(im.src)}" alt="">
+    ${/* ★★ 2026-08-22 MagiBurst 表では、えらんだキャラの詳細をここからも開ける。
+          カードの ⓘ は小さいので、指では押しにくいことがある。 */""}
+    ${cur.id === MB_TABLE_ID
+      ? `<button class="btn sm wide" style="margin:9px 0 4px" onclick="MT.mbDetail('${im.id}')">🔍 ゲームのキャラ詳細を見る</button>`
+      : ""}
     <div class="row" style="margin:9px 0 4px">
       <button class="btn sm" onclick="MT.replaceImg('${im.id}')">画像を差し替え</button>
       <span class="sp"></span>
@@ -2589,7 +2652,7 @@ function renderMe() {
   $("#thDark").classList.toggle("on", th === "dark");
   const mb = tables.find((t) => t.id === MB_TABLE_ID);
   $("#mbState").textContent = mb
-    ? "キャラTier表：" + mb.tiers.reduce((s, x) => s + x.images.length, 0) + " 体を配置ずみ ・ 更新 " + fmtDate(mb.updatedAt)
+    ? "キャラTier表：" + mb.tiers.reduce((s, x) => s + x.images.length, 0) + " 体を配置ずみ ・ 更新 " + fmtDay(mb.updatedAt)
     : "キャラTier表はまだ作られていません。";
 }
 function setTheme(v) {
@@ -2687,20 +2750,64 @@ function mbCheck() {
    window.CHARS ではなく「素の名前」で受け取ること（ここで一度つまずいた）。 */
 function mbChars()   { return (typeof CHARS !== "undefined") ? CHARS : null; }
 function mbCharIds() { return (typeof CHAR_IDS !== "undefined") ? CHAR_IDS : null; }
-function loadMbCore() {
+/* ══ ★★ 2026-08-22 mb-core.js を動かすための最小限の土台 ══
+   ------------------------------------------------------------
+   mb-core.js は MagiBurst の本体ページにある小道具（$ / DB / clamp / fmt / B）を
+   当てにして書かれている。ここに無いと statsOf() などが例外で落ち、
+   キャラの性能欄だけが<b>黙って</b>消える（try/catch の中なので画面は出る）。
+   ★ ポータル用の mb-boot.js は読まない。あれは画像フォルダを "img/"（＝ポータル直下）に
+     決め打ちするので、1つ下の /MagiTier/ から読むと絵がぜんぶ 404 になる。
+     ここで要るぶんだけを、パスを正しくして用意する。
+   ★ DB は<b>本物の magiburst_v1</b> を読む（同じ端末・同じオリジンなので読める）。
+     こうすると「所持済み／未所持」「いまのLv」まで MagiBurst と同じものが出る。 */
+function mbShim() {
+  if (!window.MB_IMGD) window.MB_IMGD = "../img/";
+  if (!window.MB_GIMGD) window.MB_GIMGD = "../MagiBurst/img/";
+  if (typeof window.$ !== "function") window.$ = (q) => document.querySelector(q);
+  if (typeof window.clamp !== "function") window.clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  if (typeof window.fmt !== "function") window.fmt = (n) => (Number(n) || 0).toLocaleString("ja-JP");
+  if (typeof window.sleep !== "function") window.sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+  /* B はバトル中の盤面。ここでは戦わないので必ず null（宣言が無いと ReferenceError） */
+  if (!("B" in window)) window.B = null;
+  if (!window.DB) {
+    let db = null;
+    try { db = JSON.parse(localStorage.getItem("magiburst_v1") || "null"); } catch (e) {}
+    if (!db || typeof db !== "object") db = {};
+    ["chars", "items", "hero", "trans", "jade", "fruits", "equip", "equip2", "equip3",
+     "fav", "crossBook", "arc", "emblem", "lend"].forEach((k) => { if (!db[k]) db[k] = {}; });
+    if (!Array.isArray(db.party)) db.party = [];
+    window.DB = db;
+  }
+}
+/* mb-core とキャラ詳細（XEVARION の図鑑・ガチャとまったく同じもの）を、必要になったときだけ読む */
+let _mbDetailReady = false;
+function loadScriptOnce(src) {
   return new Promise((res, rej) => {
-    if (mbChars() && mbCharIds()) return res();
     const s = document.createElement("script");
-    /* ★ 2026-08-17e mb-core.js は MagiBurst の本体ページにある小道具を当てにしている。
-       clamp が無いと statsOf() が例外で落ち、キャラの性能欄だけが黙って消える
-       （try/catch の中なので画面はふつうに出るぶん、気づきにくい）。
-       読みこむ前に同じ働きのものを用意しておく。 */
-    if (typeof window.clamp !== "function") window.clamp = (v, a, b) => Math.max(a, Math.min(b, v));
-    if (typeof window.fmt !== "function") window.fmt = (n) => (Number(n) || 0).toLocaleString("ja-JP");
-    s.src = "../MagiBurst/js/mb-core.js?v=37";
-    s.onload = () => res(); s.onerror = () => rej(new Error("mb-core"));
+    s.src = src; s.onload = () => res(); s.onerror = () => rej(new Error(src));
     document.head.appendChild(s);
   });
+}
+function loadMbCore() {
+  mbShim();
+  if (mbChars() && mbCharIds()) return Promise.resolve();
+  return loadScriptOnce("../MagiBurst/js/mb-core.js?v=39");
+}
+/* ══ ★★ 2026-08-22 キャラ詳細は XEVARION と<b>同じ1本</b>（mb-char-detail.js）を読む ══
+   自前で組み直すと、アビリティ・クロススキル・リンクの文面が必ず食いちがっていく。
+   ここは openDetX を呼ぶだけにして、MagiTier の評価は<b>その下に足す</b>。 */
+async function loadMbDetail() {
+  await loadMbCore();
+  if (_mbDetailReady) return;
+  if (!$('link[data-mbdet]')) {
+    const l = document.createElement("link");
+    l.rel = "stylesheet"; l.href = "../mb-char-detail.css?v=10"; l.setAttribute("data-mbdet", "1");
+    document.head.appendChild(l);
+  }
+  /* MagiBattle の評価も出したいので、その計算だけ先に読む（無くても詳細は開く） */
+  if (!window.MBStats) { try { await loadScriptOnce("../magibattle-stats.js?v=6"); } catch (e) {} }
+  if (typeof window.openDetX !== "function") await loadScriptOnce("../mb-char-detail.js?v=8");
+  _mbDetailReady = true;
 }
 /* ══ ★ 2026-08-17f MagiBurst 表の中身をそろえ直す ══
    ------------------------------------------------------------
@@ -2752,6 +2859,11 @@ function mbNormalizeTable(t) {
     if (CH[cid] && CH[cid].th) im.src = CH[cid].th;
     if (CH[cid] && CH[cid].nm) im.name = CH[cid].nm;
     if (CH[cid]) im.memo = (CH[cid].el || "") + " / " + (CH[cid].type || "");
+    /* ★★ 2026-08-22 すでに保存ずみの表は addedAt が全員同じ値のままなので、
+       ここで<b>キャラの登場順</b>に貼り直す。これをやらないと、直したあとも
+       手元の表だけ「追加順・新しい順が効かない」ままになる。 */
+    const oi = ids.indexOf(cid);
+    if (oi >= 0) im.addedAt = mbAddedAt(oi);
     return true;
   };
   t.tiers.forEach((tr) => { tr.images = (tr.images || []).filter(pass); });
@@ -2806,7 +2918,8 @@ function renderMbViewer() {
   }
   $("#mvEmpty").classList.add("hide");
   $("#mvTitle").textContent = mvData.nm || "キャラ Tier表";
-  const at = mvData.at ? fmtDate(mvData.at) : "";
+  /* ★★ 2026-08-22b MagiBurst の表を見る画面では、更新は<b>日付だけ</b>（ご指定） */
+  const at = mvData.at ? fmtDay(mvData.at) : "";
   $("#mvSub").textContent = [mvData.by || "", at ? "更新 " + at : ""].filter(Boolean).join("　・　");
   box.innerHTML = mvData.tiers.map((tr) => {
     const cells = (tr.ids || []).map((id) => {
@@ -2822,108 +2935,99 @@ function renderMbViewer() {
     </div>`;
   }).join("");
 }
-/* キャラ1体の詳細。公開ぶんには評価が入っていないので、
-   手元にその表があるとき（＝編集した端末）だけ評価とメモも出す。 */
-function mvChar(id) {
-  const CH = mbChars() || {};
-  const c = CH[id]; if (!c) return;
-  /* この子が入っている Tier を、公開ぶんから探す */
-  let inTier = null;
-  /* ★ 2026-08-17e 公開ぶんがまだ無い（Firebase 未反映など）ときも、
-     キャラの性能だけは見られるようにする。ここで落ちると詳細が丸ごと開かない。 */
-  ((mvData && mvData.tiers) || []).forEach((tr) => { if ((tr.ids || []).indexOf(id) >= 0) inTier = tr; });
-  /* 手元に表があれば、その子のメモ・評価も添える */
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-08-22 キャラ1体の詳細は「XEVARION の図鑑・ガチャとまったく同じもの」
+
+   これまでは MagiTier が自前で行を組み立てていたので、
+   アビリティの説明・クロススキル・リンクの文面が MagiBurst と少しずつずれていった。
+   ★ 中身は <b>mb-char-detail.js の openDetX</b> にまかせる（XEVARION と同じ1本）。
+     ここには性能の計算も文面も1行も書かない＝食いちがいが原理的に起きない。
+   ★ MagiTier ならではの<b>Tier・評価・星・メモ</b>は、その詳細の<b>下に足す</b>。
+   ★ 開けなかったとき（mb-core が読めない・通信が無い）は、それが分かる形で出す。
+      黙って何も起きないと「押しても反応しない」に見えてしまう。
+   ══════════════════════════════════════════════════════════════ */
+/* いま手元にある MagiBurst 表から、そのキャラの1枚を探す */
+function mbImgOf(id) {
   const local = tables.find((x) => x.id === MB_TABLE_ID);
-  let im = null;
-  if (local) {
-    const all = local.tiers.reduce((a, tr) => a.concat(tr.images), []).concat(local.images);
-    im = all.find((x) => x.id === "mb:" + id) || null;
+  if (!local) return { im: null, table: null };
+  const all = local.tiers.reduce((a, tr) => a.concat(tr.images), []).concat(local.images);
+  return { im: all.find((x) => x.id === "mb:" + id) || null, table: local };
+}
+/* その子が入っている Tier を探す。公開ぶん（mvData）→ 手元の表 の順に見る */
+function mbTierOf(id) {
+  let hit = null;
+  ((mvData && mvData.tiers) || []).forEach((tr) => { if ((tr.ids || []).indexOf(id) >= 0) hit = tr; });
+  if (hit) return hit;
+  const local = tables.find((x) => x.id === MB_TABLE_ID);
+  if (local) local.tiers.forEach((tr) => { if ((tr.images || []).some((im) => im.id === "mb:" + id)) hit = tr; });
+  return hit;
+}
+/* ★ MagiTier ぶんの1枚（Tier・評価・星・メモ）。
+   見た目は mb-char-detail.css の .dsec / .t / .ddesc にそろえるので、
+   XEVARION の詳細の中に置いても浮かない。 */
+function mtEvalSectionHTML(id) {
+  const { im, table } = mbImgOf(id);
+  const tr = mbTierOf(id);
+  const axes = (table && table.axes) || [];
+  const stars = (v) => {
+    const n = Math.round(Number(v) || 0);
+    return '<span class="mtstars" aria-label="' + n + '/5">'
+      + [1, 2, 3, 4, 5].map((k) => '<i class="' + (n >= k ? "on" : "") + '">★</i>').join("") + "</span>";
+  };
+  let rows = "";
+  if (tr) {
+    rows += '<div class="mtrow"><span class="mtk">Tier</span>'
+      + '<span class="mttier" style="background:' + esc(tr.bg || "#555") + ';color:' + esc(tr.tc || "#fff") + '">'
+      + esc(tr.label || "") + "</span>"
+      + (tr.name ? '<span class="mtv">' + esc(tr.name) + "</span>" : "") + "</div>";
   }
-  /* el は "wood" のようなキーなので、mb-core の ELEM から日本語名にする。
-     shot は反射／貫通、type は「バランス型」などの役割名。 */
-  const EL = (typeof ELEM !== "undefined") ? ELEM : null;
-  const elNm = (EL && EL[c.el] && EL[c.el].nm) || c.el || "";
-  const shotNm = c.shot ? (c.shot === "pierce" ? "貫通" : "反射") : "";
-  const rows = [];
-  if (inTier) rows.push(["評価（Tier）", (inTier.label || "") + (inTier.name ? "　" + inTier.name : "")]);
-  if (elNm) rows.push(["属性", elNm]);
-  if (shotNm) rows.push(["撃種", shotNm]);
-  if (c.type) rows.push(["タイプ", c.type]);
-  /* ★★ 2026-08-19 MagiBurst での性能をここで読めるようにする。
-     mb-core は閲覧モードの入口で読みこんであるので、そのまま引ける。 */
-  try {
-    if (typeof statsOf === "function" && typeof MAX_LV !== "undefined") {
-      const st = statsOf(id, MAX_LV, 0);
-      if (st) {
-        rows.push(["HP（最大Lv）", (st.hp || 0).toLocaleString()]);
-        rows.push(["こうげき（最大Lv）", (st.atk || 0).toLocaleString()]);
-        rows.push(["スピード", (typeof spdKmh === "function") ? spdKmh(st.spd) : String(st.spd || "")]);
-      }
+  if (im) {
+    const tot = totalScore(im);
+    rows += '<div class="mtrow"><span class="mtk">総合</span><span class="mtnum">' + tot.toFixed(1) + "<small> / 10</small></span></div>";
+    if (table && table.rateMax === 10) {
+      if (im.rating > 0) rows += '<div class="mtrow"><span class="mtk">評価</span><span class="mtnum">' + Number(im.rating).toFixed(1) + "<small> / 10</small></span></div>";
+    } else if (im.rating > 0) {
+      rows += '<div class="mtrow"><span class="mtk">評価</span>' + stars(im.rating) + "</div>";
     }
-  } catch (e) {}
-  if (typeof isStar5 === "function") rows.push(["レア度", isStar5(id) ? "SSR" : "SR"]);
-  /* メモが属性・タイプの写しでしかないときは出さない（同じことが2回並ぶだけなので） */
-  const memoIsDup = im && im.memo && im.memo.replace(/\s/g, "") === ((c.el || "") + "/" + (c.type || "")).replace(/\s/g, "");
-  if (im && im.memo && !memoIsDup) rows.push(["メモ", im.memo]);
-  /* ★ 2026-08-17e ゲームの実際の性能も出す。
-     mb-core.js を読みこんであるので、最大Lv・最大限界突破のステータスと
-     アビリティ・フルバースト・リンクを、ゲーム内と同じ関数から取れる。
-     ★ 手で写さないこと。写すと必ずゲーム側と食いちがう。 */
-  try {
-    if (typeof statsOf === "function" && typeof MAX_LV !== "undefined") {
-      const st = statsOf(id, (typeof MAX_LV_TRANS !== "undefined" ? MAX_LV_TRANS : MAX_LV), MAX_AWK);
-      if (st) {
-        rows.push(["HP（最大）", fmtN(st.hp)]);
-        rows.push(["こうげき（最大）", fmtN(st.atk)]);
-        rows.push(["スピード", (typeof spdKmh === "function") ? spdKmh(st.spd) : fmtN(st.spd)]);
-      }
-    }
-    if (c.ssName) rows.push(["フルバースト", c.ssName + "（" + c.ssTurns + "ターン）"]);
-    if (c.fsName) rows.push(["リンクスキル", c.fsName]);
-    if (c.subfs && typeof SUBFS !== "undefined" && SUBFS[c.subfs]) rows.push(["サブリンク", SUBFS[c.subfs].nm]);
-    if ((c.abil || []).length && typeof abilName === "function") {
-      rows.push(["アビリティ", c.abil.map((a) => abilName(a)).join("・")]);
-    }
-    if (c.connect && typeof CONNECT !== "undefined" && CONNECT[c.connect]) {
-      const cx = CONNECT[c.connect];
-      rows.push(["クロススキル", cx.nm + "：" + (cx.skills || []).map((k) => k.nm).join("・")]);
-    }
-  } catch (e) { /* mb-core が読めていないときは性能欄を出さないだけにする */ }
-  if (im && local && local.axes && local.axes.length) {
-    local.axes.forEach((ax) => {
+    axes.forEach((ax) => {
       const v = (im.scores || {})[ax.key];
-      if (v != null) rows.push([ax.name || ax.key, String(v)]);
+      if (!v) return;
+      rows += '<div class="mtrow"><span class="mtk">' + esc(ax.label || ax.name || ax.key) + "</span>" + stars(v) + "</div>";
     });
   }
-  $("#mvDlg").innerHTML = `
-    <div class="mvhead">
-      <img src="${esc(c.th)}" alt="">
-      <div style="flex:1;min-width:0"><h2 style="margin:0">${esc(c.nm)}</h2>
-        <div class="muted">${esc([elNm, shotNm, c.type].filter(Boolean).join(" / "))}</div></div>
-    </div>
-    <div class="mvrows">
-      ${rows.map(([k, v]) => `<div class="mvkv"><span>${esc(k)}</span><b>${esc(v)}</b></div>`).join("")}
-    </div>
-    ${scoreBlockHTML(im, local)}
-    ${/* ★ 2026-08-19 アビリティ・フルバースト・リンクスキル（MagiBurst の性能そのもの） */""}
-    ${(() => {
-      try {
-        const ab = (typeof sortedAbil === "function" ? sortedAbil(c) : (c.abil || []));
-        const abs = ab.map((a) => (typeof abilName === "function" ? abilName(a) : "")).filter(Boolean);
-        let h = "";
-        if (abs.length) h += `<div class="mvsec"><div class="mvst">アビリティ</div>
-          <div class="mvabs">${abs.map((x) => `<span class="mvab">${x}</span>`).join("")}</div></div>`;
-        if (c.ssName) h += `<div class="mvsec"><div class="mvst">フルバースト（${c.ssTurns || "?"}ターン）</div>
-          <div class="mvsk">${esc(c.ssName)}</div><div class="mvd">${c.ssDesc || ""}</div></div>`;
-        if (c.fsName) h += `<div class="mvsec"><div class="mvst">リンクスキル</div>
-          <div class="mvsk">${esc(c.fsName)}</div><div class="mvd">${c.fsDesc || ""}</div></div>`;
-        return h;
-      } catch (e) { return ""; }
-    })()}
-    ${!im ? '<p class="muted" style="margin-top:10px">※ 評価・メモは、この表を作った端末でだけ表示されます。</p>' : ""}
-    <div class="foot"><button class="btn pri" onclick="MT.mvCloseChar()">とじる</button></div>`;
-  $("#mvOv").classList.add("on");
+  /* メモが「属性 / タイプ」の写しでしかないときは出さない（同じことが2度並ぶだけ） */
+  let memo = "";
+  if (im && im.memo) {
+    const CH = mbChars() || {};
+    const c = CH[id];
+    const dup = c && im.memo.replace(/\s/g, "") === ((c.el || "") + "/" + (c.type || "")).replace(/\s/g, "");
+    if (!dup) memo = '<div class="mtmemo">' + esc(im.memo).split("\n").join("<br>") + "</div>";
+  }
+  if (!rows && !memo) {
+    return '<div class="dsec mtsec"><div class="t">📊 MagiTier の評価</div>'
+      + '<div class="ddesc">この表ではまだ評価が付いていません。'
+      + '<br><small>評価・コメントは<b>この表を作った端末</b>で付けたぶんが出ます。</small></div></div>';
+  }
+  return '<div class="dsec mtsec"><div class="t">📊 MagiTier の評価</div>'
+    + (rows ? '<div class="mtrows">' + rows + "</div>" : "")
+    + (memo ? '<div class="mtmt">コメント</div>' + memo : "")
+    + "</div>";
 }
+/* ★ 詳細を開く本体。閲覧モードからも、表を作っている最中からも、ここを通る。 */
+async function mbOpenDetail(id) {
+  const cid = String(id || "").replace(/^mb:/, "");
+  if (!cid) return;
+  try { await loadMbDetail(); } catch (e) { toast("キャラ情報を読み込めませんでした（通信）"); return; }
+  const CH = mbChars() || {};
+  if (!CH[cid]) { toast("このキャラの情報が見つかりませんでした"); return; }
+  try { window.openDetX(cid); } catch (e) { toast("詳細を開けませんでした"); return; }
+  /* ★ XEVARION の詳細の<b>中身の下</b>（.dbody の末尾）に足す。
+     カードの外に付けると、余白も背景も合わずに浮いて見える。 */
+  const body = $("#detCard .dbody") || $("#detCard");
+  if (body) body.insertAdjacentHTML("beforeend", mtEvalSectionHTML(cid));
+}
+/* 閲覧モードのキャラ（従来の入口。名前はそのまま） */
+function mvChar(id) { mbOpenDetail(id); }
 function mvCloseChar() { $("#mvOv").classList.remove("on"); }
 
 /* Firebase へ公開（キャラidの並びだけ） */
@@ -3068,6 +3172,7 @@ window.MT = {
   setTplCat, saveAsTpl, useMyTpl, delMyTpl,
   setTheme, toggleTheme, backup, restore, exportJson, help,
   openMbTier, openMbEdit, mbCodeDlg, mbCheck, mbPublish,
+  mbDetail: mbOpenDetail,                               /* ★ 2026-08-22 ゲームのキャラ詳細（XEVARION と同じ） */
   mbDedupe,
   openMbViewer, mvChar, mvCloseChar,
 };

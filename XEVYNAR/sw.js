@@ -27,7 +27,7 @@ const CORE = [
   "./xevynar-192.png",
   "./xevynar-512.png",
   "../maintenance-gate.js?v=5",
-  "../xeva.js?v=34",
+  "../xeva.js?v=35",
   "../xeva-splash.js?v=3",
   "../xeva-loading.js?v=1",
   "../XEVA.png",

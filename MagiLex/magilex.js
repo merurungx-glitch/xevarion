@@ -359,7 +359,13 @@ function showArisaModal(){
 // ============================================================
 function freshProgress(){ return { registered:false, daily:"", streak:0, lastStudy:"", quiz:{}, qmastered:{}, words:{}, wmastered:{}, mixHist:[], totals:{answered:0,correct:0}, missionDone:false, activeQuiz:null, fcKnown:{}, resets:{},
   /* ★ v14: 確認テストの受取記録（コンテンツID → 受け取った日時）とミックス問題の出題範囲 */
-  confirmDone:{}, mixSel:null, updatedAt:0 }; }
+  confirmDone:{}, mixSel:null,
+  /* ★★ 2026-08-22 連続ログインボーナスとビンゴミッション。
+     login … { last:ローカル日付, streak:連続日数, total:通算, best:最長 }
+     bingo … { m:"YYYY-MM", cells:[25], open:{マス番号}, lines:{ラインkey}, all:受取日時 }
+     bmc   … その月ぶんの小さな数え表（科目べつの解答数・全問正解の回数） */
+  login:{ last:"", streak:0, total:0, best:0 }, bingo:null, bmc:{},
+  updatedAt:0 }; }
 let P = freshProgress();
 /* ★ 2026-08-16 セクションidの付け替えに合わせて、保存ずみの進捗キーも写す。
    これをやらないと、すでに解いた4セットが「未習得」に戻って見える。
@@ -551,10 +557,12 @@ function renderHome(){
       <div class="nm">${esc(acc.name||"ユーザー")} さん</div>
       <div class="row">
         <div class="chip">学習ストリーク<b>${P.streak||0} 日</b></div>
+        <div class="chip">連続ログイン<b>${(P.login&&P.login.streak)||0} 日</b></div>
         <div class="chip">習得コンテンツ<b>${masteredSecs} / ${conts.length}</b></div>
         <div class="chip">正答率<b>${P.totals.answered? Math.round(P.totals.correct/P.totals.answered*100):0}%</b></div>
       </div>
     </div>
+    ${mlBingoCardHTML()}
     <div class="menu-grid">
       <button class="m-card accent wide" onclick="lexTab('library')">
         <div class="mi">${uiIconSVG('study')}</div><div><h3>学習する</h3><p>選択クイズ・単語帳フラッシュカードから選ぶ・未習得の問題を優先出題</p></div>
@@ -787,7 +795,53 @@ const UI_ART = {
   sun: '<circle cx="12" cy="12" r="3.2"/><path d="M12 3.6v2.6M12 17.8v2.6M3.6 12h2.6M17.8 12h2.6M6.1 6.1l1.9 1.9M16 16l1.9 1.9M17.9 6.1 16 8M8 16l-1.9 1.9"/>',
   /* ダウンロード（インストール案内） */
   install: '<path d="M12 4v10.4"/><path d="m7.6 10.4 4.4 4.4 4.4-4.4"/><path d="M4.6 17.4v1.2a1.8 1.8 0 0 0 1.8 1.8h11.2a1.8 1.8 0 0 0 1.8-1.8v-1.2"/>',
+
+  /* ══ ★ 2026-08-22b ミッションビンゴのアイコン ══
+     5×5 の小さなマスに絵文字（\U0001F6AA \U0001F4DD \U0001F4DA \u2B55 \U0001F3C5 …）を並べていたが、
+     ・端末ごとに絵柄も色も大きさも変わる（iPhone と PC でまるで別のカードに見える）
+     ・22px ほどのマスでは何の絵なのか読み取れない
+     ・カードの中だけ極彩色で、ほかの画面（線画・currentColor）から浮く
+     → ほかと同じ 24×24 の線画にそろえた。色はマスの状態（未達成＝薄い茶／達成＝金）で決まる。 */
+  /* ログインする — 扉と、入っていく矢 */
+  door: '<path d="M6.2 4.2h7.2a1.4 1.4 0 0 1 1.4 1.4v12.8a1.4 1.4 0 0 1-1.4 1.4H6.2Z"/><circle cx="12.2" cy="12" r="1.05" fill="currentColor" stroke="none"/><path d="M17.4 12h4.2" opacity=".8"/><path d="m19.6 9.8 2.2 2.2-2.2 2.2" opacity=".8"/>',
+  /* 問題をとく — 紙と書きこみ */
+  note: '<path d="M6 4.4h7.4l4.6 4.6v10a1.6 1.6 0 0 1-1.6 1.6H6a1.6 1.6 0 0 1-1.6-1.6V6a1.6 1.6 0 0 1 1.6-1.6Z"/><path d="M13.2 4.4v4.8H18" opacity=".7"/><path d="M7.8 13h8.4M7.8 16.4h5.4"/>',
+  /* たくさんとく — 積んだ本 */
+  books: '<path d="M4.6 5.6a1.4 1.4 0 0 1 1.4-1.4h2.8a1.4 1.4 0 0 1 1.4 1.4v14H4.6Z"/><path d="M10.2 6.8a1.4 1.4 0 0 1 1.4-1.4h2.6a1.4 1.4 0 0 1 1.4 1.4v12.8h-5.4Z" opacity=".78"/><path d="M15.6 8.6h2a1.4 1.4 0 0 1 1.4 1.4v9.6h-3.4Z" opacity=".55"/><path d="M3.8 19.6h16.4"/>',
+  /* 正解 — 大きなマル（\u2B55 のかわり） */
+  correct: '<circle cx="12" cy="12" r="7.9" stroke-width="2.4"/>',
+  /* 完全習得 — メダル */
+  medal: '<path d="M8.2 3.6 10.9 9M15.8 3.6 13.1 9" opacity=".72"/><circle cx="12" cy="14.6" r="5.5"/><path d="m12 11.7 1 2 2.2.3-1.6 1.6.4 2.2-2-1.1-2 1.1.4-2.2-1.6-1.6 2.2-.3Z" fill="currentColor" stroke="none" opacity=".9"/>',
+  /* 4択セット — 本と「？」 */
+  bookQ: '<path d="M5 5.8A1.8 1.8 0 0 1 6.8 4H18a1.2 1.2 0 0 1 1.2 1.2v13.4A1.2 1.2 0 0 1 18 19.8H6.8A1.8 1.8 0 0 1 5 18Z"/><path d="M5 18a1.8 1.8 0 0 1 1.8-1.8h12.4" opacity=".6"/><path d="M10.2 8.5a1.9 1.9 0 1 1 2.6 1.8v1.1"/><circle cx="12.1" cy="13.7" r=".95" fill="currentColor" stroke="none"/>',
+  /* 単語帳 — 本と「A」 */
+  bookW: '<path d="M5 5.8A1.8 1.8 0 0 1 6.8 4H18a1.2 1.2 0 0 1 1.2 1.2v13.4A1.2 1.2 0 0 1 18 19.8H6.8A1.8 1.8 0 0 1 5 18Z"/><path d="M5 18a1.8 1.8 0 0 1 1.8-1.8h12.4" opacity=".6"/><path d="m9.4 13.2 2.7-5.6 2.7 5.6"/><path d="M10.4 11.3h3.4"/>',
+  /* 確認テストに合格 — 四角の中のチェック */
+  check: '<rect x="4.2" y="4.2" width="15.6" height="15.6" rx="4.2"/><path d="m8.3 12.1 2.7 2.7 4.7-5.4"/>',
+  /* ミックス問題 — サイコロ */
+  dice: '<rect x="4.2" y="4.2" width="15.6" height="15.6" rx="3.6"/><circle cx="8.8" cy="8.8" r="1.25" fill="currentColor" stroke="none"/><circle cx="15.2" cy="8.8" r="1.25" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.25" fill="currentColor" stroke="none"/><circle cx="8.8" cy="15.2" r="1.25" fill="currentColor" stroke="none"/><circle cx="15.2" cy="15.2" r="1.25" fill="currentColor" stroke="none"/>',
+  /* 連続ログイン — ほのお */
+  fire: '<path d="M12.4 3.2c.5 2.7-.7 4.1-2.3 5.6-1.8 1.7-3.5 3.3-3.5 6.1a5.9 5.9 0 0 0 11.8 0c0-2.2-1-3.8-2.2-5.2-.3 1-.9 1.7-1.8 2 .5-3-.4-6.2-2-8.5Z"/><path d="M12 20.4a2.6 2.6 0 0 1-2.6-2.6c0-1.6 1.3-2.4 2.6-4.2 1.3 1.8 2.6 2.6 2.6 4.2a2.6 2.6 0 0 1-2.6 2.6Z" opacity=".6"/>',
+  /* 学習した日数 — カレンダー */
+  calendar: '<rect x="3.8" y="5.6" width="16.4" height="14.2" rx="2.4"/><path d="M3.8 10h16.4"/><path d="M8.2 3.8v3.4M15.8 3.8v3.4"/><circle cx="8.4" cy="13.6" r="1.15" fill="currentColor" stroke="none"/><circle cx="12" cy="13.6" r="1.15" fill="currentColor" stroke="none" opacity=".65"/><circle cx="8.4" cy="16.8" r="1.15" fill="currentColor" stroke="none" opacity=".65"/>',
+  /* XEVA を貯める — コインの山 */
+  coin: '<ellipse cx="12" cy="6.8" rx="7.4" ry="2.9"/><path d="M4.6 6.8v4.3c0 1.6 3.3 2.9 7.4 2.9s7.4-1.3 7.4-2.9V6.8"/><path d="M4.6 11.1v4.3c0 1.6 3.3 2.9 7.4 2.9s7.4-1.3 7.4-2.9v-4.3" opacity=".65"/>',
+  /* ビンゴ（ホームの入口） — カードとそろった斜め */
+  bingo: '<rect x="3.6" y="3.6" width="16.8" height="16.8" rx="3.2"/><path d="M9.2 3.6v16.8M14.8 3.6v16.8M3.6 9.2h16.8M3.6 14.8h16.8" opacity=".5"/><circle cx="6.4" cy="6.4" r="1.5" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="1.5" fill="currentColor" stroke="none"/><circle cx="17.6" cy="17.6" r="1.5" fill="currentColor" stroke="none"/>',
+  /* そろったマス — 星（塗り） */
+  star: '<path d="m12 3.5 2.68 5.43 5.99.87-4.33 4.23 1.02 5.97L12 17.15l-5.36 2.85 1.02-5.97L3.33 9.8l5.99-.87Z" fill="currentColor" stroke="none"/>',
+  /* ごほうびを受け取る — プレゼント */
+  gift: '<rect x="3.6" y="8.4" width="16.8" height="4.4" rx="1.3"/><path d="M5.2 12.8v6a1.6 1.6 0 0 0 1.6 1.6h10.4a1.6 1.6 0 0 0 1.6-1.6v-6"/><path d="M12 8.4v12"/><path d="M12 8.4S10.9 3.8 8.6 3.8a2.3 2.3 0 0 0 0 4.6ZM12 8.4s1.1-4.6 3.4-4.6a2.3 2.3 0 0 1 0 4.6Z"/>',
+  /* チケット */
+  ticket: '<path d="M4 8.4a1.6 1.6 0 0 1 1.6-1.6h12.8A1.6 1.6 0 0 1 20 8.4v1.8a2 2 0 0 0 0 3.6v1.8a1.6 1.6 0 0 1-1.6 1.6H5.6A1.6 1.6 0 0 1 4 15.6v-1.8a2 2 0 0 0 0-3.6Z"/><path d="M13.6 6.8v1.7M13.6 11.1v1.8M13.6 15.5v1.7" opacity=".7"/>',
+  /* ジェム */
+  gemx: '<path d="M7.6 4.4h8.8L21 9.7 12 20.2 3 9.7Z"/><path d="M3 9.7h18M7.6 4.4 9.8 9.7 12 20.2M16.4 4.4 14.2 9.7 12 20.2" opacity=".55"/>',
+  /* チェックだけ（ログインのスタンプ） */
+  tick: '<path d="m5.6 12.6 4.2 4.2 8.6-9.6"/>',
 };
+/* ★ 科目のミッション（数学を50問…）は科目アイコンをそのまま借りる。
+   ライブラリ一覧と同じ絵にしておくと「どの科目のマスか」が一目で分かる。
+   SUBJ_ART はこの下で定義されるので、代入は SUBJ_ART のあと（ファイル末尾側）で行う。 */
 /* UI_ART の1つを <svg> にして返す */
 function uiIconSVG(key){
   const d = UI_ART[key] || UI_ART.study;
@@ -1013,6 +1067,12 @@ function radicalize(h, stash) {
 }
 /* esc したうえで数式に組む（画面に出す文字はこれを通す） */
 function escMath(t) { return mathFmt(esc(t)); }
+/* ★ ビンゴの科目マスは科目アイコンを借りる（SUBJ_ART の定義後でないと undefined になる） */
+UI_ART.sMath = SUBJ_ART["数学"];
+UI_ART.sPhys = SUBJ_ART["物理α"];
+UI_ART.sChem = SUBJ_ART["化学α"];
+UI_ART.sEigo = SUBJ_ART["英語"];
+
 function subjIconSVG(subject){
   const d = SUBJ_ART[subject] || SUBJ_ART["英語"];
   return '<svg class="sbjsvg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" '
@@ -1836,6 +1896,16 @@ function recordAnswer(it, correct){
   P.totals.answered++; if(correct){ P.totals.correct++; quiz.ok++; }
   /* その日ぶんも数えておく（カレンダーで日ごとに見られるように） */
   try{ const d=dayLog(); d.a++; if(correct) d.c++; }catch(e){}
+  /* ★★ 2026-08-22 ビンゴの「数学を50問とく」などのために、科目べつにも数える。
+     ★ subjectOf はコンテンツの形（type / sid / key）を見るので、
+       それに合わせた見た目のものを渡す。ここで科目名を作り直さないこと
+       （作り直すと SECTIONS 側の分類とずれていく）。 */
+  try{
+    const sj = subjectOf(it.kind==="quiz" ? { type:"quiz", sid:it.sid } : { type:"word", key:it.key });
+    const g = /^数学/.test(sj) ? "math" : /^物理/.test(sj) ? "phys"
+            : /^化学/.test(sj) ? "chem" : /^英語/.test(sj) ? "eigo" : "";
+    if(g) mlBump("s_" + g);
+  }catch(e){}
   /* まちがえた問題を覚えておく（確認テストで不合格だったときに習得中へ戻すのに使う）。
      ★ 途中でホームへ戻っても続きから再開できるよう、activeQuiz にも一緒に保存する。 */
   if(!correct){ quiz.miss = quiz.miss || []; quiz.miss.push(it); }
@@ -1961,6 +2031,11 @@ function finishQuiz(){
       checkMastery(c);
     }
   } else if(curContent){ checkMastery(curContent); }
+  /* ★★ 2026-08-22 ビンゴの「全問正解を◯回」用。ここが1セットの終わりなので、
+     ミックス・確認テスト・ふつうのクイズのどれで終わっても同じように数えられる。 */
+  try{ if(pct===100 && n>0){ mlBump("perfect"); save(); } }catch(e){}
+  /* ★ 解き終わるたびにビンゴのマスを開け直す（あとから見に行かなくても進む） */
+  try{ mlBingoSync(); }catch(e){}
   const grade = pct===100?"💯":pct>=80?"🌟":pct>=50?"👍":"📖";
   /* ★★ 2026-08-19 まちがえた問題を、その場で<b>くわしい解説</b>へ渡せるようにした。
      ここが「解けなかった」と分かる唯一の場所なので、
@@ -2456,12 +2531,15 @@ function markStudied(){
    ここから先の日ぶんが貯まっていく（過去にさかのぼって作ることはできない）。
      a … 解いた問題数 ／ c … 正解数 ／ s … 完全習得にした数 ／ x … 稼いだXEVA */
 function dayLog(){ P.days = P.days || {}; const t = todayStr(); return (P.days[t] = P.days[t] || { a:0, c:0, s:0, x:0 }); }
-/* ★ 2026-08-17e デイリーボーナスは廃止した。
+/* ★ 2026-08-17e デイリーボーナスは一度廃止した。
    「ログインしただけで XEVA がもらえる」ぶんを無くし、
-   学習そのもの（完全習得・ミックス・確認テスト）で受け取る形に一本化する。
+   学習そのもの（完全習得・ミックス・確認テスト）で受け取る形に一本化していた。
+   ★★ 2026-08-22 <b>連続ログインボーナスとして戻した</b>（ご指定）。
+     ただの日替わりではなく「続けるほど得をする」形にしてあり、
+     本体は下の「連続ログインボーナス と ビンゴミッション」の節にある
+     （grantDaily もそちらで定義しているので、ここには置かない）。
    ★ P.daily と P.streak の値は消さずに残す。
      ストリーク（連続学習日数）の表示には引き続き使っているため。 */
-function grantDaily(){ /* 廃止（連続学習日数の記録は touchStreak 側で続く） */ }
 function firstRegister(){ if(P.registered) return; P.registered=true; save(); earn(REWARD.reg, "MagiLex 登録ボーナス！", true); }
 
 // ============================================================
@@ -3073,6 +3151,404 @@ function memoFabEnsure(){
 function memoFabShow(on){
   const b = memoFabEnsure();
   b.classList.toggle("on", !!on);
+}
+
+
+// ============================================================
+/* ════════════════════════════════════════════════════════════════
+   ★★ 2026-08-22 連続ログインボーナス と ビンゴミッション（ご指定）
+
+   ── なぜ入れたか ──
+   2026-08-17e に「ログインしただけで XEVA がもらえる」ぶんを一度なくしたが、
+   毎日ひらく理由そのものが無くなってしまった。
+   今回は<b>連続ログイン</b>という形で戻す。ただの日替わりではなく、
+   ・<b>その日はじめて開いたときにポップアップ</b>で連続日数を見せる
+   ・<b>節目（3・7・14・30・50・100日…）でごほうびを増やす</b>
+   という「続けるほど得をする」作りにしてある。
+
+   ── 日付は必ず「その端末のローカル日付」で数える ──
+   既存の todayStr() は toISOString（＝UTC）なので、日本では<b>朝9時に日付が変わる</b>。
+   学習ストリークはそのまま（互換のため触らない）だが、
+   ログインボーナスは「夜ふかししていたら日付が変わって2日ぶん取れた」と
+   食いちがうと分かりにくいので、<b>ローカルの午前0時</b>で区切る。
+
+   ── ビンゴ ──
+   5×5＝25マス。まん中（13マス目）は<b>ログイン</b>で最初から開く。
+   ・縦5・横5・斜め2 の<b>12ライン</b>。そろうたびに受け取れる。
+   ・25マス全部そろえると<b>コンプリート報酬</b>。
+   ・カードは<b>月がわり</b>。その月の文字列から作るので、
+     同じ月ならいつ開いても同じカード（端末が変わっても同じ）。
+   ★ ミッションの達成判定は「いま持っているデータを数え直す」形にしてある
+     （達成した瞬間にフラグを立てる形にしない）。
+     こうしておくと、あとからミッションを足しても過去のぶんがちゃんと数えられ、
+     「フラグを立て忘れて永久に達成できないミッション」も生まれない。
+   ════════════════════════════════════════════════════════════════ */
+
+/* ── ローカル日付（YYYY-MM-DD）。UTC の todayStr() とは別ものなので名前を分ける ── */
+function mlDay(d){
+  const t = d ? new Date(d) : new Date();
+  const p = (x) => String(x).padStart(2, "0");
+  return t.getFullYear() + "-" + p(t.getMonth() + 1) + "-" + p(t.getDate());
+}
+function mlMonth(){ return mlDay().slice(0, 7); }
+function mlDayAgo(n){ return mlDay(Date.now() - n * 86400000); }
+
+/* ══════════════ 連続ログインボーナス ══════════════ */
+/* 節目。ここに書いた日数のときだけ、XEVAが増えてジェムも付く。
+   ★ 100日を超えたあとは 50日ごとに同じごほうび（下の mlLoginReward が見る）。 */
+const ML_MILESTONE = {
+  3:   { mul: 2,   gem: 1,  nm: "3日つづけて！" },
+  7:   { mul: 2,   gem: 2,  nm: "1週間つづけて！" },
+  14:  { mul: 2.5, gem: 3,  nm: "2週間つづけて！" },
+  30:  { mul: 3,   gem: 5,  nm: "1か月つづけて！" },
+  50:  { mul: 3,   gem: 7,  nm: "50日つづけて！" },
+  100: { mul: 4,   gem: 10, nm: "100日つづけて！" },
+};
+const ML_MILESTONE_STEP = 50;   // 100日より先は、この日数ごとに節目あつかい
+/* その日のごほうびを決める。streak は「今日で何日目か」（1始まり） */
+function mlLoginReward(streak){
+  /* 基本のXEVA: 続けるほど少しずつ増えて、14日で頭打ち（50 → 120） */
+  const base = 50 + Math.min(streak, 14) * 5;
+  let ms = ML_MILESTONE[streak] || null;
+  if(!ms && streak > 100 && streak % ML_MILESTONE_STEP === 0){
+    ms = { mul: 3, gem: 5, nm: streak + "日つづけて！" };
+  }
+  const xeva = Math.round(base * (ms ? ms.mul : 1));
+  return { xeva, gem: ms ? ms.gem : 0, ms: ms, base };
+}
+/* 次の節目までの日数（案内に出す） */
+function mlNextMilestone(streak){
+  const keys = Object.keys(ML_MILESTONE).map(Number).sort((a,b)=>a-b);
+  const hit = keys.find(k => k > streak);
+  if(hit) return hit;
+  const n = Math.ceil((streak + 1) / ML_MILESTONE_STEP) * ML_MILESTONE_STEP;
+  return n > 100 ? n : 150;
+}
+function mlLoginState(){
+  P.login = P.login || { last:"", streak:0, total:0, best:0 };
+  return P.login;
+}
+/* ★ 起動時に1回だけ呼ぶ。その日はじめてなら受け取ってポップアップを出す。 */
+function grantDaily(){
+  const L = mlLoginState();
+  const t = mlDay();
+  if(L.last === t) return;                       // きょうはもう受け取っている
+  const cont = (L.last === mlDayAgo(1));         // 昨日も開いていれば連続
+  L.streak = cont ? (L.streak || 0) + 1 : 1;
+  L.last = t;
+  L.total = (L.total || 0) + 1;
+  L.best = Math.max(L.best || 0, L.streak);
+  const r = mlLoginReward(L.streak);
+  save();
+  /* ★ XEVA は earn() を通さない。earn はキャンペーンの2倍とトーストを兼ねていて、
+     ここではポップアップで見せるのでトーストが二重になる。 */
+  try{ if(window.XEVA) window.XEVA.add(r.xeva, "MagiLex 連続ログイン " + L.streak + "日目"); }catch(e){}
+  try{ if(r.gem > 0 && window.XEVA && window.XEVA.gem) window.XEVA.gem.add(r.gem, "MagiLex 連続ログイン " + L.streak + "日目の節目"); }catch(e){}
+  renderTop();
+  /* ビンゴの「ログイン」マスと、連続ログイン系のマスをここで開け直す */
+  try{ mlBingoSync(); }catch(e){}
+  /* 起動直後は注意書き・スプラッシュが重なるので、少し待ってから出す */
+  /* ★ ここを黙ってつぶさない。出なかったときに原因が分からなくなる */
+  setTimeout(() => { try{ mlShowLoginBonus(r, L); }catch(e){ console.error("[MagiLex] ログインボーナスを出せませんでした", e); } }, 1400);
+}
+/* 直近7日ぶんのスタンプ（きょうを右端に） */
+function mlStampRow(L){
+  const cells = [];
+  for(let i = 6; i >= 0; i--){
+    const d = mlDayAgo(i);
+    /* 連続ぶんだけさかのぼって「押した」ことにする（1日ぶんの記録しか持たないため） */
+    const on = i < (L.streak || 0);
+    const wd = "日月火水木金土"[new Date(d).getDay()];
+    cells.push(`<div class="mlb-st${on ? " on" : ""}${i === 0 ? " today" : ""}">
+      <span class="w">${wd}</span><span class="m">${on ? uiIconSVG("tick") : "・"}</span></div>`);
+  }
+  return cells.join("");
+}
+function mlShowLoginBonus(r, L){
+  const old = document.getElementById("mlLoginOv"); if(old) old.remove();
+  const next = mlNextMilestone(L.streak);
+  const ov = document.createElement("div");
+  ov.id = "mlLoginOv"; ov.className = "mlb-ov";
+  ov.innerHTML = `
+    <div class="mlb-card${r.ms ? " ms" : ""}">
+      <div class="mlb-burst"></div>
+      <div class="mlb-cap">${r.ms ? "★ " + r.ms.nm + " ★" : "ログインボーナス"}</div>
+      <div class="mlb-day"><b>${L.streak}</b><span>日目</span></div>
+      <div class="mlb-sub">連続ログイン（通算 ${L.total} 日 ／ 最長 ${L.best} 日）</div>
+      <div class="mlb-stamps">${mlStampRow(L)}</div>
+      <div class="mlb-rw">
+        <div class="mlb-r"><img src="../XEVA.png" alt="XEVA"><b>＋${r.xeva}</b><span>XEVA</span></div>
+        ${r.gem > 0 ? `<div class="mlb-r gem"><img src="../gem.png" alt="ジェム"><b>＋${r.gem}</b><span>ジェム</span></div>` : ""}
+      </div>
+      ${r.ms ? `<p class="mlb-note">節目のボーナスで <b>XEVA ${r.ms.mul}倍</b>${r.gem ? "＋<b>" + uiIconSVG("gemx") + r.gem + "</b>" : ""}！</p>`
+             : `<p class="mlb-note">つぎの節目は <b>${next}日目</b>（あと ${next - L.streak} 日）。<br>節目にはXEVAが増えて<b>${uiIconSVG("gemx")}ジェム</b>ももらえます。</p>`}
+      <button class="mlb-btn" onclick="lexCloseLoginBonus()">受け取る</button>
+    </div>`;
+  document.body.appendChild(ov);
+  requestAnimationFrame(() => ov.classList.add("show"));
+}
+window.lexCloseLoginBonus = () => {
+  const ov = document.getElementById("mlLoginOv");
+  if(!ov) return;
+  ov.classList.remove("show");
+  setTimeout(() => ov.remove(), 320);
+};
+
+/* ══════════════ ビンゴミッション ══════════════ */
+/* ★ ミッションは「いまのデータを数える」だけ。達成フラグは持たない。
+     prog() は { now, need } を返す。now >= need で開く。
+   ★ ここに1行足せばそのままカードの候補に入る（ほかに直す場所は無い）。 */
+function mlMonthDays(){
+  /* その月ぶんの学習記録（P.days は UTC日付キーだが、月の集計には十分） */
+  const m = mlMonth();
+  const out = [];
+  Object.keys(P.days || {}).forEach((d) => { if(d.slice(0,7) === m) out.push(P.days[d]); });
+  return out;
+}
+function mlMonthSum(k){ return mlMonthDays().reduce((a, d) => a + (d[k] || 0), 0); }
+function mlMonthMax(k){ return mlMonthDays().reduce((a, d) => Math.max(a, d[k] || 0), 0); }
+function mlMonthStudyDays(){ return mlMonthDays().filter((d) => (d.a || 0) > 0).length; }
+/* その月に完全習得したコンテンツの数（qmastered / wmastered は達成日時が入っている） */
+function mlMasteredThisMonth(kind){
+  const m = mlMonth();
+  const inM = (ts) => ts && mlDay(ts).slice(0,7) === m;
+  let n = 0;
+  if(kind !== "word") Object.keys(P.qmastered || {}).forEach((k) => { if(inM(P.qmastered[k])) n++; });
+  if(kind !== "quiz") Object.keys(P.wmastered || {}).forEach((k) => { if(inM(P.wmastered[k])) n++; });
+  return n;
+}
+function mlConfirmThisMonth(){
+  const m = mlMonth();
+  return Object.keys(P.confirmDone || {}).filter((k) => mlDay(P.confirmDone[k]).slice(0,7) === m).length;
+}
+function mlMixThisMonth(){
+  const m = mlMonth();
+  return (P.mixHist || []).filter((h) => String(h.date || "").slice(0,7) === m).length;
+}
+/* ★ 上のどれでも数えられないもの（科目べつの解答数・全問正解の回数）だけ、
+   月ごとの小さな数え表を持つ。増やすときは mlBump("キー") を呼ぶ場所を1つ足すだけ。 */
+function mlCnt(){
+  P.bmc = P.bmc || {};
+  const m = mlMonth();
+  /* 先月ぶんは捨てる（ためこまない） */
+  Object.keys(P.bmc).forEach((k) => { if(k !== m) delete P.bmc[k]; });
+  return (P.bmc[m] = P.bmc[m] || {});
+}
+function mlBump(key, n){
+  try{
+    const c = mlCnt();
+    c[key] = (c[key] || 0) + (n || 1);
+    /* 保存は呼び出し元の save() にまかせる（1問ごとに2回書かない） */
+  }catch(e){}
+}
+function mlGot(key){ try{ return mlCnt()[key] || 0; }catch(e){ return 0; } }
+
+const ML_MISSIONS = [
+  /* まん中のマス。ログインした時点で開く（＝いつでも達成ずみ） */
+  { id:"login", nm:"ログインする", ic:"door", prog:() => ({ now: (mlLoginState().last ? 1 : 0), need:1 }) },
+  /* 解いた数 */
+  { id:"a10d",  nm:"1日で10問とく",  ic:"note", prog:() => ({ now: mlMonthMax("a"), need:10 }) },
+  { id:"a30d",  nm:"1日で30問とく",  ic:"note", prog:() => ({ now: mlMonthMax("a"), need:30 }) },
+  { id:"a100",  nm:"今月100問とく",  ic:"books", prog:() => ({ now: mlMonthSum("a"), need:100 }) },
+  { id:"a250",  nm:"今月250問とく",  ic:"books", prog:() => ({ now: mlMonthSum("a"), need:250 }) },
+  { id:"a500",  nm:"今月500問とく",  ic:"books", prog:() => ({ now: mlMonthSum("a"), need:500 }) },
+  /* 正解した数 */
+  { id:"c80",   nm:"今月80問 正解",  ic:"correct", prog:() => ({ now: mlMonthSum("c"), need:80 }) },
+  { id:"c200",  nm:"今月200問 正解", ic:"correct", prog:() => ({ now: mlMonthSum("c"), need:200 }) },
+  /* 完全習得 */
+  { id:"m1",    nm:"1つ完全習得",    ic:"medal", prog:() => ({ now: mlMasteredThisMonth(), need:1 }) },
+  { id:"m3",    nm:"3つ完全習得",    ic:"medal", prog:() => ({ now: mlMasteredThisMonth(), need:3 }) },
+  { id:"m5",    nm:"5つ完全習得",    ic:"medal", prog:() => ({ now: mlMasteredThisMonth(), need:5 }) },
+  { id:"mq1",   nm:"4択セットを1つ習得", ic:"bookQ", prog:() => ({ now: mlMasteredThisMonth("quiz"), need:1 }) },
+  { id:"mw1",   nm:"単語帳を1つ習得", ic:"bookW", prog:() => ({ now: mlMasteredThisMonth("word"), need:1 }) },
+  /* 確認テスト・ミックス */
+  { id:"cf1",   nm:"確認テストに合格", ic:"check", prog:() => ({ now: mlConfirmThisMonth(), need:1 }) },
+  { id:"cf3",   nm:"確認テスト3回合格", ic:"check", prog:() => ({ now: mlConfirmThisMonth(), need:3 }) },
+  { id:"mx1",   nm:"ミックス問題を1回", ic:"dice", prog:() => ({ now: mlMixThisMonth(), need:1 }) },
+  { id:"mx5",   nm:"ミックス問題を5回", ic:"dice", prog:() => ({ now: mlMixThisMonth(), need:5 }) },
+  /* ログイン・学習の継続 */
+  { id:"l3",    nm:"3日つづけてログイン", ic:"fire", prog:() => ({ now: mlLoginState().streak || 0, need:3 }) },
+  { id:"l7",    nm:"7日つづけてログイン", ic:"fire", prog:() => ({ now: mlLoginState().streak || 0, need:7 }) },
+  { id:"l14",   nm:"14日つづけてログイン", ic:"fire", prog:() => ({ now: mlLoginState().streak || 0, need:14 }) },
+  { id:"d5",    nm:"今月5日 学習する",  ic:"calendar", prog:() => ({ now: mlMonthStudyDays(), need:5 }) },
+  { id:"d10",   nm:"今月10日 学習する", ic:"calendar", prog:() => ({ now: mlMonthStudyDays(), need:10 }) },
+  /* かせいだXEVA */
+  { id:"x800",  nm:"今月800 XEVA",  ic:"coin", prog:() => ({ now: mlMonthSum("x"), need:800 }) },
+  { id:"x2500", nm:"今月2500 XEVA", ic:"coin", prog:() => ({ now: mlMonthSum("x"), need:2500 }) },
+  /* 数え表を使うもの */
+  { id:"pf3",   nm:"全問正解を3回",  ic:"perfect", prog:() => ({ now: mlGot("perfect"), need:3 }) },
+  { id:"pf1",   nm:"全問正解を1回",  ic:"perfect", prog:() => ({ now: mlGot("perfect"), need:1 }) },
+  { id:"sMath", nm:"数学を50問とく", ic:"sMath", prog:() => ({ now: mlGot("s_math"), need:50 }) },
+  { id:"sPhys", nm:"物理を50問とく", ic:"sPhys", prog:() => ({ now: mlGot("s_phys"), need:50 }) },
+  { id:"sChem", nm:"化学を50問とく", ic:"sChem", prog:() => ({ now: mlGot("s_chem"), need:50 }) },
+  { id:"sEigo", nm:"英語を50問とく", ic:"sEigo", prog:() => ({ now: mlGot("s_eigo"), need:50 }) },
+];
+const ML_MISSION_BY_ID = {};
+ML_MISSIONS.forEach((m) => { ML_MISSION_BY_ID[m.id] = m; });
+
+/* ライン（縦5・横5・斜め2＝12本）。数字は0〜24のマス番号 */
+const ML_LINES = (() => {
+  const L = [];
+  for(let r = 0; r < 5; r++) L.push({ k:"r"+r, nm:"よこ" + (r+1) + "列", cells:[0,1,2,3,4].map(c => r*5+c) });
+  for(let c = 0; c < 5; c++) L.push({ k:"c"+c, nm:"たて" + (c+1) + "列", cells:[0,1,2,3,4].map(r => r*5+c) });
+  L.push({ k:"d0", nm:"ななめ（左上→右下）", cells:[0,6,12,18,24] });
+  L.push({ k:"d1", nm:"ななめ（右上→左下）", cells:[4,8,12,16,20] });
+  return L;
+})();
+/* ごほうび。★ 斜めは1本しかそろわない代わりに少し多め、コンプリートは別格 */
+const ML_LINE_RW  = { xeva: 300, ticket: 1 };
+const ML_DIAG_RW  = { xeva: 450, gem: 2 };
+const ML_ALL_RW   = { xeva: 3000, gem: 8, ticket: 5 };
+
+/* 月の文字列から決まる並び（同じ月なら、いつ開いても・どの端末でも同じカード） */
+function mlSeedShuffle(arr, seedStr){
+  let h = 2166136261;
+  for(let i = 0; i < seedStr.length; i++){ h ^= seedStr.charCodeAt(i); h = Math.imul(h, 16777619); }
+  const rnd = () => { h ^= h << 13; h ^= h >>> 17; h ^= h << 5; return ((h >>> 0) % 100000) / 100000; };
+  const a = arr.slice();
+  for(let i = a.length - 1; i > 0; i--){ const j = Math.floor(rnd() * (i + 1)); const t = a[i]; a[i] = a[j]; a[j] = t; }
+  return a;
+}
+function mlBingo(){
+  P.bingo = P.bingo || {};
+  const m = mlMonth();
+  if(P.bingo.m !== m || !Array.isArray(P.bingo.cells) || P.bingo.cells.length !== 25){
+    /* 月がわり＝新しいカード。まん中は必ず「ログイン」 */
+    const pool = ML_MISSIONS.filter((x) => x.id !== "login").map((x) => x.id);
+    const pick = mlSeedShuffle(pool, "magilex-bingo-" + m).slice(0, 24);
+    const cells = pick.slice(0, 12).concat(["login"], pick.slice(12, 24));
+    P.bingo = { m, cells, open:{}, lines:{}, all:0 };
+    save();
+  }
+  P.bingo.open = P.bingo.open || {};
+  P.bingo.lines = P.bingo.lines || {};
+  return P.bingo;
+}
+/* いまのデータで、開いているマスを数え直す。戻り値は「新しく開いたマスの数」 */
+function mlBingoSync(){
+  const B = mlBingo();
+  let opened = 0;
+  B.cells.forEach((id, i) => {
+    const ms = ML_MISSION_BY_ID[id]; if(!ms) return;
+    let p = { now:0, need:1 };
+    try{ p = ms.prog() || p; }catch(e){}
+    const ok = (p.now || 0) >= (p.need || 1);
+    if(ok && !B.open[i]){ B.open[i] = Date.now(); opened++; }
+  });
+  if(opened) save();
+  return opened;
+}
+/* そろっているのに受け取っていないライン・コンプリートの数 */
+function mlBingoClaimable(){
+  const B = mlBingo();
+  let n = 0;
+  ML_LINES.forEach((L) => { if(!B.lines[L.k] && L.cells.every((i) => B.open[i])) n++; });
+  if(!B.all && B.cells.every((_, i) => B.open[i])) n++;
+  return n;
+}
+/* 受け取る（そろっているぶんを一気に） */
+window.lexBingoClaim = () => {
+  const B = mlBingo();
+  let xeva = 0, gem = 0, tkt = 0, got = [];
+  ML_LINES.forEach((L) => {
+    if(B.lines[L.k]) return;
+    if(!L.cells.every((i) => B.open[i])) return;
+    const rw = L.k[0] === "d" ? ML_DIAG_RW : ML_LINE_RW;
+    B.lines[L.k] = Date.now();
+    xeva += rw.xeva || 0; gem += rw.gem || 0; tkt += rw.ticket || 0;
+    got.push(L.nm);
+  });
+  if(!B.all && B.cells.every((_, i) => B.open[i])){
+    B.all = Date.now();
+    xeva += ML_ALL_RW.xeva; gem += ML_ALL_RW.gem; tkt += ML_ALL_RW.ticket;
+    got.push("コンプリート");
+  }
+  if(!got.length){ toast("そろっているラインがありません"); return; }
+  save();
+  try{ if(xeva && window.XEVA) window.XEVA.add(xeva, "MagiLex ビンゴ（" + got.join("・") + "）"); }catch(e){}
+  try{ if(gem && window.XEVA && window.XEVA.gem) window.XEVA.gem.add(gem, "MagiLex ビンゴ（" + got.join("・") + "）"); }catch(e){}
+  try{ if(tkt && window.XEVA && window.XEVA.ticket) window.XEVA.ticket.add(tkt, "MagiLex ビンゴ（" + got.join("・") + "）"); }catch(e){}
+  renderTop();
+  toast("🎉 " + got.join("・") + " 達成！ ＋" + xeva + " XEVA"
+    + (gem ? " ／ 💎" + gem : "") + (tkt ? " ／ 🎫" + tkt : ""), true);
+  lexBingoOpen();          // 画面を出し直す（受け取り済みの見た目に変わる）
+  try{ renderHome(); }catch(e){}
+};
+
+/* ── 画面 ── */
+window.lexBingoOpen = () => {
+  mlBingoSync();
+  const B = mlBingo();
+  const old = document.getElementById("mlBingoOv"); if(old) old.remove();
+  const doneLines = ML_LINES.filter((L) => L.cells.every((i) => B.open[i])).length;
+  const openN = B.cells.filter((_, i) => B.open[i]).length;
+  const claim = mlBingoClaimable();
+  const cells = B.cells.map((id, i) => {
+    const ms = ML_MISSION_BY_ID[id] || { nm:"—", ic:"note" };
+    let p = { now:0, need:1 };
+    try{ p = ms.prog() || p; }catch(e){}
+    const on = !!B.open[i];
+    const pct = Math.min(100, Math.round((p.now || 0) / (p.need || 1) * 100));
+    return `<div class="mlg-c${on ? " on" : ""}${i === 12 ? " mid" : ""}">
+      <span class="ic">${uiIconSVG(on ? "star" : ms.ic)}</span>
+      <span class="nm">${esc(ms.nm)}</span>
+      ${on ? "" : `<span class="pg"><i style="width:${pct}%"></i></span>
+        <span class="pn">${Math.min(p.now || 0, p.need)} / ${p.need}</span>`}
+    </div>`;
+  }).join("");
+  const ov = document.createElement("div");
+  ov.id = "mlBingoOv"; ov.className = "mlg-ov";
+  ov.innerHTML = `
+    <div class="mlg-card">
+      <div class="mlg-top">
+        <div class="mlg-tr">
+          <b>ミッション ビンゴ</b>
+          <button class="mlg-x" onclick="lexBingoClose()" aria-label="とじる">✕</button>
+        </div>
+        <small>${B.m.replace("-", "年")}月のカード ・ ${openN} / 25 マス ・ ${doneLines} / 12 ライン</small>
+      </div>
+      <div class="mlg-grid">${cells}</div>
+      <div class="mlg-rw">
+        <div><b>よこ・たて 1列</b><span>＋300 XEVA ／ ${uiIconSVG("ticket")}1</span></div>
+        <div><b>ななめ 1列</b><span>＋450 XEVA ／ ${uiIconSVG("gemx")}2</span></div>
+        <div class="all"><b>25マス コンプリート</b><span>＋3000 XEVA ／ ${uiIconSVG("gemx")}8 ／ ${uiIconSVG("ticket")}5</span></div>
+      </div>
+      <button class="mlg-claim${claim ? " on" : ""}" onclick="lexBingoClaim()" ${claim ? "" : "disabled"}>
+        ${claim ? uiIconSVG("gift") + " そろった " + claim + " 件を受け取る" : "そろったラインはまだありません"}
+      </button>
+      <p class="mlg-note">カードは<b>毎月1日に新しくなります</b>。マスは条件を満たすと自動でひらきます
+        （このカードを開いたときに数え直します）。<br>
+        まん中は<b>ログイン</b>なので、開いた時点で最初からひらいています。</p>
+    </div>`;
+  document.body.appendChild(ov);
+  requestAnimationFrame(() => ov.classList.add("show"));
+};
+window.lexBingoClose = () => {
+  const ov = document.getElementById("mlBingoOv");
+  if(!ov) return;
+  ov.classList.remove("show");
+  setTimeout(() => ov.remove(), 320);
+};
+
+/* ★ ホームに置くミッションカード（入口）。そろっているぶんがあれば赤いバッジを出す。 */
+function mlBingoCardHTML(){
+  let openN = 0, claim = 0, lines = 0;
+  try{
+    mlBingoSync();
+    const B = mlBingo();
+    openN = B.cells.filter((_, i) => B.open[i]).length;
+    lines = ML_LINES.filter((L) => L.cells.every((i) => B.open[i])).length;
+    claim = mlBingoClaimable();
+  }catch(e){}
+  return `
+    <button class="mlg-bn${claim ? " has" : ""}" onclick="lexBingoOpen()">
+      <span class="mlg-bi">${uiIconSVG("bingo")}${claim ? `<i class="mlg-bg">${claim}</i>` : ""}</span>
+      <span class="mlg-bt">
+        <b>ミッション ビンゴ</b>
+        <p>${openN} / 25 マス ・ ${lines} / 12 ライン${claim ? " ・ <em>受け取れるごほうびがあります！</em>" : ""}</p>
+      </span>
+      <span class="mlg-ba">→</span>
+    </button>`;
 }
 
 // ============================================================
