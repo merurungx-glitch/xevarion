@@ -6,11 +6,11 @@
    ・オンライン対戦・XEVA換金はアプリ側でオフライン時に無効化している
    ・取得できたリソースは随時キャッシュ更新（stale-while-revalidate）
    ============================================================ */
-const VERSION = "magiburst-sw-v114";
+const VERSION = "magiburst-sw-v116";
 const CORE = [
   "./index.html",
-  "./js/mb-core.js?v=37",   /* ★ 2026-08-10 キャラ・ガチャの共有モジュール（XEVARION のガチャと共通） */
-  "../xeva.js?v=34",
+  "./js/mb-core.js?v=39",   /* ★ 2026-08-10 キャラ・ガチャの共有モジュール（XEVARION のガチャと共通） */
+  "../xeva.js?v=35",
   "../xeva-loading.js?v=1",
   "../xeva-splash.js?v=3",
   "../app-cloud.js?v=4",
@@ -208,6 +208,15 @@ const CORE = [
   "../img/t_Koyuki.webp",
   "../img/t_Amelia.webp",
   "../img/t_Mio.webp",
+  /* ★★ 2026-08-22 Starlight Academy Fest 限定SSR 5体（No.133〜137）とそのバナー。
+     ここに足し忘れると、そのキャラだけオフラインで絵が出ない
+     （更新パッケージの一覧＝update.json にも載らない）。 */
+  "img/bn_fes5_s.webp",
+  "../img/t_Otoha.webp",
+  "../img/t_Sayaka.webp",
+  "../img/t_Sayuri.webp",
+  "../img/t_Akari.webp",
+  "../img/t_Hinata.webp",
   "./img/e_Youka.webp",
   "./img/e_Youhi.webp",
   "./img/bn_hourai_s.webp",

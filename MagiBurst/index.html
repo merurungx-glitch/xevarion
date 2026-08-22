@@ -24,7 +24,7 @@ if ("serviceWorker" in navigator) {
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
 <script src="../xeva-splash.js?v=3" data-app="MagiBurst" data-logo="../thumbs/MagiBurst.jpg"
         data-note="⚠️ このゲームの対象年齢は 13歳以上 です"></script>
-<script src="../xeva.js?v=34"></script>
+<script src="../xeva.js?v=35"></script>
 <script src="../xeva-loading.js?v=1" defer></script>
 <script type="module" src="../xevarion-fb.js?v=22"></script>
 <script src="../xeva-presence.js?v=1" defer></script>
@@ -713,7 +713,13 @@ main.on{display:block;min-height:100svh;box-sizing:border-box}
 .tierrow:last-child{border-bottom:none}
 .tierlab{flex:none;width:62px;display:grid;place-items:center;font-weight:900;font-size:19px;padding:6px;text-align:center;line-height:1.15;word-break:break-word}
 .tiercell{flex:1;min-width:0;display:flex;flex-wrap:wrap;gap:5px;padding:6px;background:rgba(255,255,255,.04);align-content:flex-start}
-.tiercell .tc0{position:relative;width:46px}
+/* ★ 2026-08-22 押せるようにしたので <button>。素の見た目に戻してから、押した手ごたえだけ足す */
+.tiercell .tc0{position:relative;width:46px;padding:0;border:none;background:none;
+  font:inherit;color:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent;
+  transition:transform .12s ease}
+.tiercell .tc0:hover{transform:translateY(-2px)}
+.tiercell .tc0:hover img{border-color:rgba(255,210,87,.6)}
+.tiercell .tc0:active{transform:scale(.94)}
 .tiercell img{width:46px;height:46px;border-radius:8px;object-fit:cover;display:block;border:1px solid rgba(255,255,255,.14)}
 .tiercell .tcn{font-size:8.5px;font-weight:800;color:#cfd0e8;text-align:center;line-height:1.25;margin-top:1px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tiercell .tcnone{font-size:10.5px;color:#6f6a90;font-weight:700;padding:6px 4px}
@@ -1861,6 +1867,9 @@ body.in-battle #top,body.in-battle #tabs{display:none}
 /* ── v15 Luminous Summer Fest（夏の海＝水色〜金） ── */
 .gfeslead.sum{border-color:rgba(56,166,255,.5);background:linear-gradient(135deg,rgba(92,225,255,.14),rgba(29,143,216,.14));color:#0e5f9c}
 .gfeslead.sum small{color:#3c7fb5}
+/* ★★ 2026-08-22 Starlight Academy Fest（星あかりの金） */
+.gfeslead.star{border-color:rgba(240,180,41,.55);background:linear-gradient(135deg,rgba(255,225,120,.16),rgba(240,180,41,.12));color:#8a6210}
+.gfeslead.star small{color:#a8813a}
 #gFes2 .gticket{border-color:rgba(255,232,150,.6);background:linear-gradient(135deg,rgba(14,74,134,.95),rgba(29,143,216,.9))}
 #gFes2 .gfescard{border-color:rgba(56,166,255,.5)}
 #gFes2 .gfescard .fn{color:#0e5f9c}
@@ -2319,6 +2328,17 @@ body.in-battle #top,body.in-battle #tabs{display:none}
 @keyframes gPop{0%{opacity:0;transform:scale(.5) rotate(-10deg);filter:brightness(3)}
   55%{opacity:1;transform:scale(1.22) rotate(3deg);filter:brightness(1.8)}
   100%{opacity:1;transform:scale(1) rotate(0);filter:brightness(1)}}
+/* ★★ 2026-08-22b みんなのクリア編成「入れかえて挑戦」 */
+.lcfix{margin-top:8px;border:1.5px solid rgba(124,232,255,.4);border-radius:11px;padding:8px 10px;
+  background:rgba(30,90,120,.16)}
+.lcfixh{font-size:11px;font-weight:800;line-height:1.6;color:#bfe9ff}
+.lcswps{display:flex;flex-wrap:wrap;gap:5px;margin-top:6px}
+.lcswp{font-size:10.5px;font-weight:800;color:#cfc8ee;background:rgba(255,255,255,.07);
+  border:1px solid rgba(255,255,255,.16);border-radius:99px;padding:3px 9px}
+.lcswp i{font-style:normal;color:#7ce8ff;margin:0 2px}
+.lcswp b{color:#8affc4}
+.lcuse.fix{background:linear-gradient(135deg,#1d78d8,#12a08f)}
+.lcuse.sub{background:rgba(255,255,255,.10);color:#cfc8ee;font-size:12px;margin-top:6px}
 .gsurebar{opacity:0;transform:translateY(6px);transition:opacity .4s ease,transform .4s ease;
   font-family:'Orbitron',sans-serif;font-size:12px;font-weight:900;color:#0b0918;letter-spacing:.06em;
   background:linear-gradient(135deg,#ffd257,#ff9d2e 55%,#ff5d8f);border-radius:99px;padding:7px 18px;
@@ -2672,6 +2692,13 @@ body.in-battle #top,body.in-battle #tabs{display:none}
 .det .dsrow .gauge{height:9px;border-radius:99px;background:rgba(0,0,0,.5);margin-top:8px;overflow:hidden}
 .det .dsrow .gauge i{display:block;height:100%;border-radius:99px;transition:width .5s cubic-bezier(.2,.8,.3,1)}
 .det .dstatnote{font-size:10px;font-weight:800;color:#7f7aa6;margin:0 0 11px;line-height:1.7;padding:0 3px}
+/* ★★ 2026-08-22 キャラ図鑑の詳細だけ「最大値」で出すので、見出しにその札を付け、
+   下の行に「いまの値」を小さく添える（育てている人が現在値を見失わないように）。 */
+.det .dsrow .l .lmax{font-style:normal;margin-left:5px;font-size:8.5px;font-weight:900;letter-spacing:.04em;
+  color:#ffd257;background:rgba(255,210,87,.13);border:1px solid rgba(255,210,87,.34);
+  border-radius:5px;padding:1px 4px;vertical-align:1px}
+.det .dstatnote .dstnow{display:inline-block;margin-top:3px;color:#9d97c4}
+.det .dstatnote .dstnow b{color:#cfc9ee;font-family:'Orbitron',sans-serif;font-weight:900}
 /* ★ 2026-08-12d アーク強化ぶんの「＋◯◯」札。
    ステータスの数字のうち<b>アークで増えたぶん</b>を、その場で分かるように右に添える。
    色はアークの画面と同じ青紫にそろえる（＝アークの話だと一目で分かる）。 */
@@ -2749,6 +2776,15 @@ body.in-battle #top,body.in-battle #tabs{display:none}
   border:1px solid rgba(142,107,255,.28);border-radius:10px;padding:8px;margin-top:4px}
 .det .dtrainhint b{color:#c9a6ff}
 /* ★ v13.2: 適性クエスト（ボタンで開閉） */
+/* ★★ 2026-08-22b 適性クエストの入口（お気に入り ⭐ の真下の丸ボタン）。
+   見た目は .dfav にそろえてあり、開いているあいだは水色に光る。 */
+.det .dapt2{position:absolute;right:10px;z-index:8;width:40px;height:40px;border-radius:50%;cursor:pointer;
+  border:1.5px solid rgba(255,255,255,.28);background:rgba(20,12,36,.62);backdrop-filter:blur(6px);
+  color:#cfc8ee;font-size:18px;line-height:1;font-weight:900;display:flex;align-items:center;justify-content:center}
+.det .dapt2.on{color:#7ce8ff;border-color:rgba(124,232,255,.85);background:rgba(10,44,60,.75);
+  text-shadow:0 0 10px rgba(124,232,255,.9)}
+.det .dapt2:active{transform:scale(.92)}
+.det .daptbox.on{margin:10px 0 2px}
 .det .dapt{width:100%;margin-top:10px;border:1.5px solid rgba(124,232,255,.5);border-radius:12px;cursor:pointer;
   background:linear-gradient(100deg,rgba(124,232,255,.14),rgba(142,107,255,.14));color:#d8f6ff;
   font-size:12.5px;font-weight:900;padding:12px;font-family:inherit;display:flex;align-items:center;justify-content:center;gap:8px}
@@ -3702,8 +3738,8 @@ body.in-battle #top,body.in-battle #tabs{display:none}
 </div></div>
 
 <script>window.MB_IMGD = "../img/"; window.MB_GIMGD = "img/";</script>
-<script src="../mb-newchars.js?v=2"></script>
-<script src="js/mb-core.js?v=37"></script>
+<script src="../mb-newchars.js?v=3"></script>
+<script src="js/mb-core.js?v=39"></script>
 <script>
 "use strict";
 /* ══════════ アカウントガード ══════════ */
@@ -5279,14 +5315,22 @@ function paintCharTier(data, note, denied) {
     const cells = (tr.ids || []).map((id) => {
       const c = CHARS[id];
       if (!c) return "";   // 消えたキャラは出さない
-      return `<div class="tc0"><img src="${c.th}" alt="${c.nm}" loading="lazy"><div class="tcn">${c.nm}</div></div>`;
+      /* ★★ 2026-08-22 押したら<b>キャラ図鑑とまったく同じ詳細</b>を開く（ご指定）。
+         Tier表は「この子は強いのか」を見る場所なので、そこから性能へ行けないと
+         いちいち図鑑へ戻ってさがし直すことになる。
+         ★ #detOv(960) は #tierOv(900) より手前なので、Tier表は閉じずに上に重なる。 */
+      return `<button class="tc0" onclick="openDet('${id}','chars')" title="${c.nm} の詳細を見る">`
+        + `<img src="${c.th}" alt="${c.nm}" loading="lazy"><div class="tcn">${c.nm}</div></button>`;
     }).join("");
     return `<div class="tierrow">
       <div class="tierlab" style="background:${tr.bg || "#555"};color:${tr.tc || "#fff"}">${(tr.label || "")}</div>
       <div class="tiercell">${cells || '<span class="tcnone">まだ入っていません</span>'}</div>
     </div>`;
   }).join("");
-  const at = data.at ? new Date(data.at).toLocaleString("ja-JP", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" }) : "";
+  /* ★★ 2026-08-22b 更新は<b>日付だけ</b>にする（ご指定）。
+     時刻まで出ていると「さっき直したばかりの表」に見えて、
+     目安としての Tier表よりも「いつ触ったか」が主役になってしまっていた。 */
+  const at = data.at ? new Date(data.at).toLocaleDateString("ja-JP", { year: "numeric", month: "2-digit", day: "2-digit" }) : "";
   card.innerHTML = `<button class="txclose" onclick="closeCharTier()" aria-label="とじる">✕</button>
     <h3>${data.nm || "キャラ Tier表"}</h3>
     <div class="tsub">${data.by ? data.by + " ・ " : ""}${at ? "更新 " + at : ""}${note ? " ・ " + note : ""}</div>
@@ -5553,6 +5597,69 @@ window.openNewChar = openNewChar; window.closeNewChar = closeNewChar;
 
 /* ══════════ お知らせ（アップデートのたびにここへ追記する） ══════════ */
 const NEWS = [
+  /* ★★ 2026-08-22b Starlight Academy Fest の調整 ／ 蓬莱は殴りが主役に ／ 評価と編成まわり */
+  { date: "2026-08-22", title: "⚔ 蓬莱の九重は「殴りが主役」に／✦ Starlight の5体を調整／📊 評価を小数第一位まで", body: [
+    "⚔ <b>蓬莱の九重（第一重〜蓬莱天宮）を「殴りが主役」のクエストにしました。</b>"
+      + "黄昏の王城 第29・30の間と同じで、<b>リンクスキルのダメージが×" + HOURAI_FS_MUL + "</b>になるかわりに、"
+      + "<b>直殴り（体当たり）のダメージが×" + HOURAI_MELEE_MUL + "</b>になります。"
+      + "リンクをつなぐ位置より、<b>弱点をどう殴るか</b>を読むクエストになります。",
+    "✦ <b>Starlight Academy Fest の5体を調整しました。</b>"
+      + "全員の<b>有利属性キラーEL を 等級L</b>へ。"
+      + "<b>オトハ</b>は弱点キラーEL →<b>超レーザーストップM</b>、クロススキルのファーストキラーEL →<b>ザコキラー</b>。"
+      + "<b>サヤカ</b>は底力EL →<b>攻撃力チャージM</b>（×" + ATKCHARGE_MUL + " → <b>×" + ATKCHARGE_M_MUL + "</b>）、"
+      + "リンクを<b>サーキュレーション</b>に変更、フルバーストは"
+      + "<b>自強化＋味方全員が貫通になって総攻撃</b>になりました。",
+    "✦ <b>サユリ</b>はフェイタルキラーL →<b>光属性耐性M</b>、クロススキルを<b>防御ダウンキラーM</b>へ。"
+      + "<b>ヒナタ</b>はファーストキラーEL →<b>M</b>にするかわりに、"
+      + "フルバーストの<b>光の柱を大幅に強化</b>しました（攻撃力×1.55 → <b>×" + HINATA_PILLAR_MUL + "</b>）。",
+    "📊 <b>キャラの評価を小数第一位まで</b>出すようにしました。"
+      + "あわせて<b>幽冥の庭園と蓬莱の九重の最適性</b>を、ほかのクエストの対応力より"
+      + "<b>はっきり高く</b>評価します（難所を1つ抜ける子が、やさしい面をたくさん拾う子より上に来ます）。",
+    "🎯 キャラ詳細の<b>適性クエストの入口を ⭐ お気に入りの真下</b>に移しました。"
+      + "中身も上のほうに出るので、開いてすぐ確認できます。"
+      + "さらに<b>みんなのクリア編成でそのキャラが実際に使われているクエスト</b>には印が付きます。",
+    "🌍 <b>みんなのクリア編成</b>は<b>2位まで</b>の表示にしました。"
+      + "<b>未所持のキャラが混ざっていても編成はそのまま見られます</b>。"
+      + "そのままでは出撃できないので、<b>持っているキャラに入れかえた編成</b>を用意して"
+      + "「🔁 入れかえて挑戦する」から そのまま挑めるようにしました。",
+    "🛒 <b>Starlight Academy Fest 開幕記念パック</b>を XEVARION ホームの<b>ジェムショップ</b>に追加しました"
+      + "（期間中2回まで・9/30 まで）。",
+  ] },
+  /* ★★ 2026-08-22 Starlight Academy Fest ／ 図鑑の最大値表示 ／ 使い勝手の直し */
+  { date: "2026-08-22", title: "✦ Starlight Academy Fest 開幕（限定SSR 5体）／📊 図鑑は最大値表示に", body: [
+    "✦ <b>新フェス「Starlight Academy Fest」</b>を開催しました。"
+      + "限定SSRは <b>オトハ（火）・サヤカ（水）・サユリ（闇）・アカリ（木）・ヒナタ（光）</b> の5体。"
+      + "5体とも<b>オムニアンチと治癒の祈りを持たず</b>、"
+      + "<b>アンチギミックをちょうど2種</b>だけ持ちます。",
+    "🏯 その2種が<b>自分が有利属性になる蓬莱の九重のクエストの必要アンチとぴったり一致</b>します——"
+      + "<b>オトハ＝第三重／サヤカ＝第六重／サユリ＝第九重／アカリ＝第二重／ヒナタ＝第五重</b>。"
+      + "さらに全員が<b>蓬莱族キラーL</b>を持つので、担当のクエストでは"
+      + "<b>属性有利 × 属性キラーEL × 蓬莱族キラーL</b>が重なります。",
+    "🔗 全員が<b>クロススキル</b>（発動条件は1体ずつ別）と、"
+      + "5体そろっての目印である新サブリンク<b>スターライト・ヴェール</b>"
+      + "（五芒星の極大レイ" + STARVEIL_N + "本 × " + STARVEIL_SPINS + "回転／1回転ごとに当たり直す）を持ちます。"
+      + "リンクスキルは<b>超強</b>級ばかりです。",
+    "🎁 <b>キャラの排出確率はほかのフェスとまったく同じ</b>（限定SSR 合計10%・"
+      + PREMIUM_NM + " のSSRも合計5%）。ちがうのは<b>育成アイテムの中身</b>だけで、"
+      + "<b>" + DEBUT_NM + " と同じ内容</b>にしてあります"
+      + "（叡智の果実の<b>3個・5個の束</b>が主体、🎫ガチャチケット・📕超越の書・🎖️英傑の証が厚く、"
+      + "<b>🪭九天の玉簡</b>と<b>📘クロスの書</b>も極低確率）。",
+    "📊 <b>キャラ図鑑の詳細は「最大値」で出す</b>ようにしました。"
+      + "最大Lv." + MAX_LV + "・限界突破MAXまで育てたときの値が主役になるので、"
+      + "未加入のキャラでも<b>どこまで伸びるのか</b>が分かります"
+      + "（育てている人には、下に<b>いまの値</b>も小さく添えています）。"
+      + "編成・バトル中・育成・助っ人の表示は<b>これまでどおり</b>です。",
+    "🏆 <b>キャラTier表からキャラ詳細を開けるようになりました。</b>"
+      + "Tier表のキャラを押すと、図鑑とまったく同じ詳細がその場で開きます。",
+    "🙈 <b>みんなのクリア編成でユーザー名を表示しないようにしました。</b>"
+      + "これから送るぶんは<b>名前を送信そのものをしません</b>（キャラと記録だけ）。",
+    "🍐 <b>叡智の果実などを使っても、キャラの一覧が閉じなくなりました。</b>"
+      + "使い切るまで選んだままなので、続けて何体にも配れます。"
+      + "画面が上へ跳ね上がらないよう、スクロール位置もそのまま保ちます。",
+    "🛠 <b>インフィニティレーザー／超強インフィニティレーザーが発動していなかったのを直しました。</b>"
+      + "メイベル・グレース・ミレーユが対象で、リンクが出ないうえに"
+      + "そのフレームの動きが飛んでいました。",
+  ] },
   /* ★ 2026-08-20c GRAND DEBUT GACHA ／ SSR・SR 表記 */
   { date: "2026-08-20", title: "✧ GRAND DEBUT GACHA 開幕（新SSR 5体）／🏅 レアリティを SSR・SR に", body: [
     "✧ <b>新キャラ専用の「GRAND DEBUT GACHA」</b>ができました。"
@@ -8542,6 +8649,30 @@ function newCharsForEvent() {
   return prem.filter((n) => keep.indexOf(n.since) >= 0);
 }
 const EVENTS = [
+  {
+    /* ★★ 2026-08-22b Starlight Academy Fest。
+       バナー・排出・提供割合は FESTS.fes5 から自動で作られるので、
+       ここに書くのは「お知らせとしての紹介文」だけ（蒼夏祭のエントリと同じ作り）。 */
+    id: "ev_starlight", nm: "Starlight Academy Fest", sub: "星の学園の限定SSR 5体が登場！", c: "#f0b429",
+    img: "img/bn_fes5_s.webp", from: "2026-08-22", to: "2026-09-30", since: "2026-08-22",
+    chars: ["otoha", "sayaka", "sayuri", "akari", "hinata"],
+    body: "<b>オトハ・サヤカ・サユリ・アカリ・ヒナタ</b> の5体が <b>Starlight Academy Fest</b> に登場！"
+      + "<br>5体とも<b>アンチギミックをちょうど2種</b>持ち、その2種が"
+      + "<b>自分が有利属性になる🏯蓬莱の九重のクエストの必要アンチとぴったり一致</b>します"
+      + "（オトハ＝第三重／サヤカ＝第六重／サユリ＝第九重／アカリ＝第二重／ヒナタ＝第五重）。"
+      + "<b>属性有利のまま全ギミックを無視して走れる</b>＝それぞれの階層の最適解です。"
+      + "<br>さらに全員が<b>蓬莱族キラーL</b>と<b>クロススキル</b>、"
+      + "そして共通サブリンク<b>スターライト・ヴェール</b>を持ちます。"
+      + "<br>フルバーストは5体とも<b>自強化＋チーム全体に効く効果ひとつ</b>——"
+      + "弱点コア開放（オトハ）／全員が貫通になって総攻撃（サヤカ）／敵全体の攻撃力ダウン（サユリ）／"
+      + "味方全員のFBを進める（アカリ）／敵全体へ光の柱（ヒナタ）。"
+      + "<br>キャラ以外の中身は <b>GRAND DEBUT GACHA と同じ</b>（叡智の果実3個・5個束／📕超越の書／🎖️英傑の証 が厚め）。"
+      + "<br>フェス限定SSRなので、<b>プレミアムセレクトガチャやほかのフェスからは出ません</b>。"
+      + "🎫フェスチケットは<b>どのフェスでも</b>使えます。"
+      + "<br>開幕を記念して、XEVARION ホームの<b>🛒ジェムショップ</b>に"
+      + "<b>期間中2回まで買えるお得なパック</b>を追加しました。",
+    go: "goShop('fes5')", goNm: "🎰 ガチャへ行く",
+  },
   /* ══ ★ 2026-08-07 Phantom Legend Fest の予告 ══
      ・8/10 の開催前は「予告」（キャラは伏せる）、開催後は「開催中」に文面が切り替わる。
        日付をまたいだ瞬間に自動で切り替わるので、あとから書き換える必要はない。
@@ -10186,6 +10317,27 @@ function toastTrain(t, c) {
 
 /* ══════════ 特別アイテムを使う（叡智の果実 / 英傑の証） ══════════ */
 let itemUseFor = null;   // "wisdom" | "hero"（使う相手を選んでいる最中）
+/* ══ ★★ 2026-08-22 使ったあとも<b>キャラの一覧を閉じない</b>（ご指定） ══
+   ------------------------------------------------------------
+   これまでは1体に使うたび itemUseFor を null に戻していたので、一覧がたたまれ、
+   続けて別の子に使うには「使う」を押し直して一覧を出し直す必要があった。
+   叡智の果実のように何体にも配るアイテムでは、この往復がそのまま手間になる。
+   ★ 閉じるのは<b>そのアイテムを使い切ったとき</b>だけ。
+     残っているあいだは選んだままにして、続けて次の子を押せるようにする。 */
+function keepItemUse(kind) {
+  if ((DB.items[kind] || 0) <= 0) { itemUseFor = null; return false; }
+  itemUseFor = kind;
+  return true;
+}
+/* ★ renderTrain() は育成タブを丸ごと描き直すので、そのままだと
+   使うたびに画面がいちばん上へ跳ね上がり、押していた場所を見失う。
+   スクロール位置を測って戻す（描き直しの直後・レイアウト確定後の2回）。 */
+function renderTrainKeepScroll() {
+  const y = window.scrollY || document.documentElement.scrollTop || 0;
+  renderTrain();
+  const put = () => window.scrollTo(0, y);
+  put(); requestAnimationFrame(put);
+}
 function openItemUse(kind) {
   if (!ITEMS[kind]) return;
   /* 「使わずに効く」アイテムだけは、使う相手をえらぶ画面を出さない */
@@ -10216,10 +10368,11 @@ function applyWisdom(id, n) {
   if (!st || use <= 0) return 0;
   DB.items.wisdom -= use;
   st.lv = Math.min(lvCapOf(id), st.lv + WISDOM_LV * use); st.exp = 0;
-  itemUseFor = null;
+  const keep = keepItemUse("wisdom");
   saveNow(); SFX.win();
-  toastTrain(`🍐 叡智の果実 ×${use}：${CHARS[id].nm} が Lv.${st.lv} になった！`, "#1d78d8");
-  renderTrain(); renderChars(); renderTeam();
+  toastTrain(`🍐 叡智の果実 ×${use}：${CHARS[id].nm} が Lv.${st.lv} になった！`
+    + (keep ? `（のこり ${DB.items.wisdom | 0}個）` : "（使い切りました）"), "#1d78d8");
+  renderTrainKeepScroll(); renderChars(); renderTeam();
   return use;
 }
 /* 育成タブから呼ばれる入口。n を渡せばその個数、省略すると個数のえらび方を聞く。 */
@@ -10255,10 +10408,11 @@ async function useHero(id) {
   if ((DB.items.hero || 0) <= 0 || DB.hero[id]) return;
   DB.items.hero--;
   DB.hero[id] = 1;
-  itemUseFor = null;
+  const keep = keepItemUse("hero");
   saveNow(); SFX.win();
-  toastTrain(`🎖️ 英傑の証：${CHARS[id].nm} のルーン枠が3つになった！`, "#c98a10");
-  renderTrain(); renderChars(); renderTeam();
+  toastTrain(`🎖️ 英傑の証：${CHARS[id].nm} のルーン枠が3つになった！`
+    + (keep ? `（のこり ${DB.items.hero | 0}個）` : "（使い切りました）"), "#c98a10");
+  renderTrainKeepScroll(); renderChars(); renderTeam();
 }
 window.useHero = useHero;
 window.useJade = useJade;
@@ -10277,10 +10431,11 @@ async function useTrans(id) {
   DB.items.trans--;
   DB.trans = DB.trans || {};
   DB.trans[id] = 1;
-  itemUseFor = null;
+  const keep = keepItemUse("trans");
   saveNow(); SFX.win();
-  toastTrain(`📕 超越の書：${CHARS[id].nm} のレベル上限が Lv.${TRANS_LV} になった！`, "#8e4fe0");
-  renderTrain(); renderChars(); renderTeam();
+  toastTrain(`📕 超越の書：${CHARS[id].nm} のレベル上限が Lv.${TRANS_LV} になった！`
+    + (keep ? `（のこり ${DB.items.trans | 0}個）` : "（使い切りました）"), "#8e4fe0");
+  renderTrainKeepScroll(); renderChars(); renderTeam();
 }
 /* ★ 2026-08-17n 九天の玉簡: レベル上限を 60 → 70 に解放（1キャラにつき1回）。
    ★ <b>超越の書を使ってあるキャラにだけ</b>使える（いきなり70にはできない）。 */
@@ -10299,10 +10454,11 @@ async function useJade(id) {
   DB.items.jade--;
   DB.jade = DB.jade || {};
   DB.jade[id] = 1;
-  itemUseFor = null;
+  const keep = keepItemUse("jade");
   saveNow(); SFX.win();
-  toastTrain(`🪭 九天の玉簡：${CHARS[id].nm} のレベル上限が Lv.${JADE_LV} になった！`, "#ff9ec4");
-  renderTrain(); renderChars(); renderTeam();
+  toastTrain(`🪭 九天の玉簡：${CHARS[id].nm} のレベル上限が Lv.${JADE_LV} になった！`
+    + (keep ? `（のこり ${DB.items.jade | 0}個）` : "（使い切りました）"), "#ff9ec4");
+  renderTrainKeepScroll(); renderChars(); renderTeam();
 }
 window.useTrans = useTrans;
 /* ★ 2026-08-12 クロスの書: そのキャラのクロススキルを「編成条件を無視して常に発動」にする。
@@ -10321,10 +10477,11 @@ async function useCrossBook(id) {
   if ((DB.items.crossbook || 0) <= 0 || DB.crossBook[id]) return;
   DB.items.crossbook--;
   DB.crossBook[id] = 1;
-  itemUseFor = null;
+  const keep = keepItemUse("crossbook");
   saveNow(); SFX.win();
-  toastTrain(`📘 クロスの書：${CHARS[id].nm} のクロススキルが常時発動になった！`, "#12a08f");
-  renderTrain(); renderChars(); renderTeam();
+  toastTrain(`📘 クロスの書：${CHARS[id].nm} のクロススキルが常時発動になった！`
+    + (keep ? `（のこり ${DB.items.crossbook | 0}冊）` : "（使い切りました）"), "#12a08f");
+  renderTrainKeepScroll(); renderChars(); renderTeam();
 }
 window.useCrossBook = useCrossBook;
 /* 実を買う（1個 5,000 coin） */
@@ -11039,6 +11196,8 @@ const FSCOPE = {
 const FS_SHORT = {
   energycircle: "エナサ",       wave: "ソニブレ",
   laser: "レーザー",            luminous: "ルミナス",       absoluteray: "アブレイ",
+  /* ★★ 2026-08-22 Starlight Academy Fest の共通サブリンク */
+  starveil: "スタヴェール",
   hiplasma: "ハイプラ",         plasmanet: "プラネット",    hicross: "ハイクロス",
   homing: "ホーミング",         sparkbullet: "スパバレ",    kiblast: "アイテ",
   ssbullet: "FB短縮弾",         tri3: "三方向",             spiral: "スパイラル",
@@ -11243,7 +11402,7 @@ const ABIL_GROUPS = {
   poisonkiller: ["poisonkiller", "poisonkillerM", "poisonkillerEL"],
   /* ★ 2026-08-12 fatalkillerL（スズカ・マユ）が抜けていたので追加 */
   fatalkiller: ["fatalkiller", "fatalkillerM", "fatalkillerL"],
-  defkiller: ["defkiller"],
+  defkiller: ["defkiller", "defkillerM"],
   mobkiller: ["mobkiller", "mobkillerM", "mobkillerL"],
   upkillerM: ["upkillerM"],
   /* ★ 2026-08-08 プレミアム新SSR（ナナミ・チトセ）の新アビリティ */
@@ -11291,7 +11450,7 @@ const ABIL_GROUPS = {
   lightning: ["lightning", "lightningEL"],
   cumulonimbus: ["cumulonimbus", "cumulonimbusEL"],
   phantomdrive: ["phantomdrive", "phantomdriveEL"],
-  atkcharge: ["atkcharge"],
+  atkcharge: ["atkcharge", "atkchargeM"],
   linkcharge: ["linkcharge"],
   aslow: ["aslow"],
   /* ★ 2026-08-07 野獣先輩 */
@@ -11313,7 +11472,7 @@ const FS_TYPE = {
   energycircle: "all", wave: "all",
   /* ★ 2026-08-10 登録もれ。ここに無い fsKind は絞り込みの「リンク種別」から漏れる */
   spread: "shot",
-  laser: "laser", luminous: "laser", absoluteray: "laser", hiplasma: "laser", plasmanet: "laser", hicross: "laser",
+  laser: "laser", luminous: "laser", absoluteray: "laser", starveil: "laser", hiplasma: "laser", plasmanet: "laser", hicross: "laser",
   homing: "shot", sparkbullet: "shot", kiblast: "shot", ssbullet: "shot", tri3: "shot", spiral: "shot", chargeshot: "shot",
   ring: "ring", spinring: "ring", spin: "ring",
   tri3follow: "follow", tri3followsharp: "follow", supertri3follow: "follow",
@@ -11368,6 +11527,8 @@ const FS_TAGS = {
   laser:           ["pierce", "long"],
   luminous:        ["pierce", "long", "wide"],
   absoluteray:     ["pierce", "long", "multi", "wide"],
+  /* ★★ 2026-08-22 スターライト・ヴェール（回転して薙ぎ払う＝アブソリュートレイと同じ性質） */
+  starveil:        ["pierce", "long", "multi", "wide"],
   hiplasma:        ["pierce", "long", "multi"],
   plasmanet:       ["pierce", "wide", "multi"],
   hicross:         ["pierce", "long", "multi"],
@@ -11463,6 +11624,9 @@ const SUBFS_TAGS = {
   plasmanova: ["wide", "multi"], defdownblast: ["wide", "status"],
   discharge: ["multi", "long", "wide"], nebula: ["pierce", "multi", "long"],
   absoluteray: ["pierce", "long", "multi", "wide"],
+  /* ★★ 2026-08-22 スターライト・ヴェール（Starlight Academy Fest 5体の共通サブリンク）。
+     ここに無いと、サブリンクの絞り込みから5体まるごと消える。 */
+  starveil: ["pierce", "long", "multi", "wide"],
   alllock3: ["pierce", "homing", "multi", "wide"],
   /* ★ 乱FB短縮弾は 2026-08-07 に「四方8発の直進貫通弾」へ作り直した（壁で反射しない） */
   fbburst4: ["pierce", "multi", "wide", "long", "ally", "fbshort"],
@@ -11476,6 +11640,12 @@ const SUBFS_TAGS = {
   pspread3: ["pierce", "multi", "wide", "long"],
 };
 const SS_TAGS = {
+  /* ★★ 2026-08-22 Starlight Academy Fest 5体（どれも自強化型＋全体効果ひとつ） */
+  otoha: ["self", "weak", "all"],      /* 敵全体の弱点コア開放 */
+  sayaka: ["self", "support", "all"],  /* 味方全員を貫通化して総攻撃 */
+  sayuri: ["self", "debuff", "all"],   /* 敵全体の攻撃力ダウン */
+  akari: ["self", "support", "all"],   /* 味方全員のFBターンを進める */
+  hinata: ["self", "all"],             /* 画面上のすべての敵へ光の柱 */
   /* ★ 2026-08-10 キーは ssKind。ゼラの ssKind は本人しか使っていなかったので廃止といっしょに消した。
      ayame / leila / celine の ssKind は移行SRの何人かが使い続けているので残す。 */
   ema: ["bump", "support"], ayame: ["bump", "support", "knock"],
@@ -12231,11 +12401,20 @@ function openDet(id, from) {
   const _mm = (typeof statMinMax === "function") ? statMinMax() : null;
   const gMax = { hp: (_mm && _mm.hp[1]) || 8500, atk: (_mm && _mm.atk[1]) || 3200, spd: (_mm && _mm.spd[1]) || 460 };
   const gaugeP = (v, max) => clamp(v / max, 0.06, 1) * 100;
+  /* ★★ 2026-08-22 <b>キャラ図鑑の詳細だけ</b>ステータスを「最大値」で出す（ご指定）。
+     図鑑は「その子がどこまで伸びるか」を見る場所なので、Lv.1 の未加入キャラが
+     いつも弱く見えてしまう素の値ではなく、<b>最大Lv・限界突破MAX</b>の値を主役にする。
+     ★ ほかの MagiBurst のステータス表示（編成・バトル中・育成・助っ人・対応キャラ）は
+       これまでどおり<b>いまの値</b>。compact のときはこの関数の手前で抜けているので、
+       ここを変えても battle / team / counter には影響しない。
+     ★ 育てている人が「いまいくつか」を見失わないよう、下に小さく現在値も添える。 */
+  const showMax = (from === "chars");
+  const stShow = showMax ? statsOf(id, MAX_LV, MAX_AWK) : st;
   /* ステータス1項目（上段＝見出し・アーク・数字／下段＝横いっぱいのバー） */
   const statRow = (nm, key, val, col, grad) =>
-    `<div class="dsrow"><div class="dshd"><span class="l">${nm}</span>${arcCol(st, key)}` +
+    `<div class="dsrow"><div class="dshd"><span class="l">${nm}${showMax ? '<em class="lmax">最大</em>' : ""}</span>${arcCol(stShow, key)}` +
     `<span class="v" style="color:${col}">${val}</span></div>` +
-    `<div class="gauge"><i style="width:${gaugeP(st[key], gMax[key])}%;background:${grad}"></i></div></div>`;
+    `<div class="gauge"><i style="width:${gaugeP(stShow[key], gMax[key])}%;background:${grad}"></i></div></div>`;
   const kind = c.fes ? '<span class="dtag" style="color:#c86bff;border-color:rgba(200,107,255,.6)">SSR フェス限定</span>'
     : c.gacha ? '<span class="dtag" style="color:#ffb84d;border-color:rgba(255,157,46,.6)">SSR ガチャ限定</span>'
     : c.reward ? '<span class="dtag" style="color:#7dffb0;border-color:rgba(55,224,160,.6)">MagiLex 報酬</span>'
@@ -12259,6 +12438,13 @@ function openDet(id, from) {
       ${/* ★ 2026-08-12 お気に入りは<b>所持しているキャラだけ</b>。未所持のときはボタンごと出さない */""}
       ${canFav(id) ? `<button class="dfav ${isFav(id) ? "on" : ""}" onclick="detFav('${id}',this)"
         aria-label="お気に入り" title="お気に入りに入れる／外す">${isFav(id) ? "★" : "☆"}</button>` : ""}
+      ${/* ★★ 2026-08-22b 適性クエストの入口を<b>お気に入りの下</b>に移した（ご指定）。
+            前はカードのいちばん下に横長のボタンを置いていたので、
+            アビリティ・FB・リンク・ルーン・紋章を全部スクロールしないとたどり着けなかった。
+            ⭐ の真下なら開いてすぐ押せる。中身（#daptBox）も上のほうに出す。
+            ★ お気に入りが出ない（未所持の）キャラでは、⭐ のあった位置にそのまま置く。 */""}
+      ${inBattle ? "" : `<button class="dapt2" style="top:${canFav(id) ? 104 : 58}px" onclick="toggleFitQuests('${id}')"
+        aria-label="適性クエスト" title="このキャラが刺さるクエストを見る">🎯</button>`}
       <div class="dover">
         <div class="drank"><span style="color:#bfb6e6">${charNoText(id)}</span>　${isStar5(id) ? "SSR" : "SR"}${st.awk >= MAX_AWK ? '　<span style="color:#ffd257">👑 限界突破MAX</span>' : st.awk ? "　覚醒+" + st.awk : ""}</div>
         <div class="dnm">${elIcon(c.el, 24)} ${own ? c.nm : c.nm + "（未加入）"}</div>
@@ -12267,6 +12453,8 @@ function openDet(id, from) {
     </div>
     <div class="dbody">
       <div class="dtags"><span class="dtag">${ELEM[c.el].nm}属性</span><span class="dtag${shotChanged ? " chg" : ""}">${shotSVG(shotNow, 13)}${shotNow === "pierce" ? "貫通" : "反射"}${shotChanged ? "（" + (c.shot === "pierce" ? "貫通" : "反射") + "から変化中）" : ""}</span><span class="dtag">${c.type}</span>${kind}</div>
+      ${/* ★★ 2026-08-22b 適性クエストの中身は<b>いちばん上</b>（🎯 ボタンのすぐ下）に出す */""}
+      ${inBattle ? "" : '<div class="daptbox" id="daptBox"></div>'}
       ${/* ★ 2026-08-15 「素の値」と「アークで増えたぶん」を別の列にした。
             アークを振っていない項目でも列の幅は空けたままなので、
             3行の数字の右端がいつもそろう（.dstats.hasarc で列を出す）。 */""}
@@ -12275,12 +12463,15 @@ function openDet(id, from) {
             「この子はいまどのへんか」がそのまま長さになる。
             以前は 8500 / 3200 / 420 の決め打ちで、スピードは 420 を超える子がいて
             いつも満タン、HPは誰も 8500 に届かず半分ほどまでしか伸びなかった。 */""}
-      <div class="dstats${arcHas(st) ? " hasarc" : ""}">
-        ${statRow("HP", "hp", fmt(st.hp), "#7dffb0", "linear-gradient(90deg,#17a673,#4ade80)")}
-        ${statRow("こうげき", "atk", fmt(st.atk), "#ffb84d", "linear-gradient(90deg,#e0642e,#ffb020)")}
-        ${statRow("スピード", "spd", spdKmh(st.spd).replace(" km/h", "<u>km/h</u>"), "#7cc4ff", "linear-gradient(90deg,#1d78d8,#7cc4ff)")}
+      <div class="dstats${arcHas(stShow) ? " hasarc" : ""}">
+        ${statRow("HP", "hp", fmt(stShow.hp), "#7dffb0", "linear-gradient(90deg,#17a673,#4ade80)")}
+        ${statRow("こうげき", "atk", fmt(stShow.atk), "#ffb84d", "linear-gradient(90deg,#e0642e,#ffb020)")}
+        ${statRow("スピード", "spd", spdKmh(stShow.spd).replace(" km/h", "<u>km/h</u>"), "#7cc4ff", "linear-gradient(90deg,#1d78d8,#7cc4ff)")}
       </div>
-      <div class="dstatnote">バーの満タンは<b>全キャラの最大値</b>（最大Lv・限界突破MAX）です。${own ? "" : "未加入のキャラは Lv.1 の値を出しています。"}</div>
+      <div class="dstatnote">${showMax
+        ? "数字は<b>このキャラを 最大Lv." + MAX_LV + "・限界突破MAX まで育てたとき</b>の値です。バーの満タンは<b>全キャラの最大値</b>。"
+          + (own ? '<br><span class="dstnow">いまの Lv.' + st.lv + " ▸ HP <b>" + fmt(st.hp) + "</b>／こうげき <b>" + fmt(st.atk) + "</b>／スピード <b>" + spdKmh(st.spd) + "</b></span>" : "")
+        : "バーの満タンは<b>全キャラの最大値</b>（最大Lv・限界突破MAX）です。" + (own ? "" : "未加入のキャラは Lv.1 の値を出しています。")}</div>
       ${/* ★ 2026-08-12d 右の列の「＋◯◯」は<b>アーク強化で増えたぶん</b>。何の数字か迷わないよう1行そえる */""}
       ${arcHas(st)
         ? `<div class="darcnote">✦ 数字のとなりの青い <b class="arcup">＋</b> は、<b>${ELEM[c.el].nm}属性のアーク強化</b>で増えたぶんです（大きい数字にはもう含まれています）。<span onclick="closeDet();goTab('varc')" style="color:#38a6ff;font-weight:900;text-decoration:underline;cursor:pointer">アーク強化を見る</span></div>` : ""}
@@ -12330,8 +12521,6 @@ function openDet(id, from) {
       ${(NEXUS[c.nexus] && showNexus) ? `<div class="dsk nx"><div class="t">✨ ネクサススキル<span class="ssturn">${inBattle ? "発動中" : "LEADERのみ"}</span></div>
         <div class="n" style="color:${NEXUS[c.nexus].c}">${NEXUS[c.nexus].nm}</div>
         <div class="d">${NEXUS[c.nexus].desc}<br><small style="color:var(--sub)">※ 編成の<b>いちばん左（リーダーポジション）</b>に置いたときだけ発動し、効果は<b>チーム全員</b>に届きます。</small></div></div>` : ""}
-      ${inBattle ? "" : `<button class="dapt" onclick="toggleFitQuests('${id}')">🎯 適性クエストを見る<span class="daptar">▼</span></button>
-      <div class="daptbox" id="daptBox"></div>`}
       ${own && !inBattle ? `<button class="dtrain" onclick="goTrainFor('${id}')">🔧 このキャラを育成する（レベル上げ・ルーン）</button>` : ""}
       ${!own ? '<div style="text-align:center;font-weight:900;color:#ffb84d;padding:8px">' + obtain + "</div>"
         : (st.lv >= lvCap || inBattle) ? ""
@@ -12373,10 +12562,16 @@ function connectSkillHTML(id) {
 let aptOpenFor = null;
 function toggleFitQuests(id) {
   const box = $("#daptBox"); if (!box) return;   // バトル中はボタンごと出さないので box も無い
-  if (aptOpenFor === id) { aptOpenFor = null; box.innerHTML = ""; box.classList.remove("on"); return; }
+  const btn = document.querySelector("#detCard .dapt2");
+  if (aptOpenFor === id) {
+    aptOpenFor = null; box.innerHTML = ""; box.classList.remove("on");
+    if (btn) btn.classList.remove("on");
+    return;
+  }
   aptOpenFor = id;
-  box.innerHTML = evalHTML(id);
+  box.innerHTML = evalHTMLWithMarks(id);
   box.classList.add("on");
+  if (btn) btn.classList.add("on");
   SFX.pick();
 }
 window.toggleFitQuests = toggleFitQuests;
@@ -14493,6 +14688,10 @@ const FS_HIT = {
   hiplasma: { per: 0.50, n: 1, nm: "プラズマ（継続ヒット）" },
   plasmanet: { per: 0.30, n: 1, nm: "プラズマ網（継続ヒット）" },
   absoluteray: { per: ABSRAY_MUL, n: ABSRAY_N, nm: "回転レイ10本（貫通・届いた本数ぶんヒット）" },
+  /* ★★ 2026-08-22 スターライト・ヴェール。1本が STARVEIL_SPINS 回転ぶん当たり直すので、
+     ヒット数は「本数 × 回転数」で数える（ここに無いと !ボタンの威力が 0 と出る）。 */
+  starveil: { per: STARVEIL_MUL, n: STARVEIL_N * STARVEIL_SPINS,
+    nm: "五芒星レイ" + STARVEIL_N + "本 × " + STARVEIL_SPINS + "回転（貫通・回転ごとに当たり直す）" },
   spinring: { per: 0.30, n: 7, nm: "回転リング7基（継続）" },
   /* ★ 2026-08-08 ユキノ（強化）／チトセ。ここに無い fsKind は !ボタンのダメージが 0 と出るので必ず足すこと */
   superspinring: { per: SSPIN_MUL, n: SSPIN_N, nm: "超巨大回転リング" + SSPIN_N + "基（継続）" },
@@ -14573,6 +14772,8 @@ const SUB_HIT = {
   /* v14: フェス5体の共通サブリンク（リンク本体の70%の威力で撃つ）。
      n は「10本すべてが届いたときの最大ヒット数」。実際は本人との距離で届く本数が変わる。 */
   absoluteray: { per: ABSRAY_MUL, n: ABSRAY_N },   /* ★ 2026-08-08c リンク版と同じ威力にそろえた */
+  /* ★★ 2026-08-22 スターライト・ヴェール（サブリンク専用。リンク版は無い） */
+  starveil: { per: STARVEIL_MUL, n: STARVEIL_N * STARVEIL_SPINS },
   /* v14.5 クロエ: 毒の海流＋渦潮 */
   poisoncurrent: { per: 0.38, n: 3 },
   /* ★ v16: n は「敵1体あたりに当たる本数」。alllock3 は敵の数だけ3連が飛ぶ */
@@ -15170,6 +15371,8 @@ function launchShot(ball, ux, uy, power) {
     || ssk === "roxy"
     /* ★ 2026-08-20 GRAND DEBUT GACHA 新SSR 3体（どれも自強化型なので初速1.3倍） */
     || ssk === "mirelle" || ssk === "scarlet" || ssk === "koyuki"
+    /* ★★ 2026-08-22 Starlight Academy Fest 5体（どれも自強化型なので初速1.3倍） */
+    || ssk === "otoha" || ssk === "sayaka" || ssk === "sayuri" || ssk === "akari" || ssk === "hinata"
     || ssk === "tsumugi" || ssk === "chizuru"
     || ssk === "kotomi" || ssk === "rinonx") ? 1.3 : 1;
   const sp = Math.min(56 * SPD_GLOBAL, base * power * mul);
@@ -15226,6 +15429,10 @@ function launchShot(ball, ux, uy, power) {
     || ssk === "elena"
     /* ★ 2026-08-20 コユキ（毒は applyNewSS でまき、号令はここでかける） */
     || ssk === "koyuki"
+    /* ★★ 2026-08-22b サヤカ（アクア・ノクターン・ドライブ）。
+       貫通化は applyNewSS 側で全員に配り、<b>号令はここでかける</b>。
+       ＝ 味方は「貫通のまま」いっせいに突っこむので、列に並んだ敵をまとめて抜ける。 */
+    || ssk === "sayaka"
     || ssk === "sheril" || ssk === "beltia" || ssk === "yaju") fxRallyStrike(ball, true);
   /* ★ 2026-08-07 野獣先輩: 味方の総攻撃に加えて「自分の分身4体」も突っ込ませる */
   if (ssk === "yaju") fxBeastClones(ball);
@@ -15852,6 +16059,124 @@ function applyNewSS(ball) {
       txt: "HP " + fmt(cost) + " を雷雲へ捧げた！ 豪雷積層雲!!", c: "#bfe4ff", small: 0 });
     withDmgSrc(ball, () => startRoxyStorm(ball));
     flash("#1d4ed8");
+  /* ══════════════════════════════════════════════════════════════
+     ★★ 2026-08-22 Starlight Academy Fest 5体のフルバースト
+     どれも「自強化 ＋ 撃った瞬間の全体効果ひとつ」で完結する形（＝ミレーユ級）。
+     停止後の再走やヒットごとのフックは使わないので、取りこぼしが出ない。
+     ★ 効果は5体とも別もの。同じ効果を2人に持たせると片方を引く意味がなくなる。
+     ══════════════════════════════════════════════════════════════ */
+  } else if (k === "otoha") {
+    /* オトハ（フランメ・カンタービレ）: 自強化 ＋ <b>敵全体の弱点コアを開放</b>。
+       ★ B.weakBoost は<b>チーム全員</b>に効く（weakBoostLv が見ている）。
+         ベルニカのフルバーストとまったく同じしくみ＝新しい実装を持たない。
+       ★ 本人が弱点キラーEL を持つので、開いたそのターンから本人の一撃がいちばん伸びる。 */
+    ball.selfBuff = { atk: OTOHA_ATK, spd: OTOHA_SPD, left: 2 };
+    B.weakBoost = { left: OTOHA_WEAK_TURNS };
+    B.pops.push({ x: ball.x, y: ball.y - ball.r - 22, t: 0,
+      txt: "自強化＆敵全体 弱点コア開放（" + OTOHA_WEAK_TURNS + "ターン）!!", c: "#ffd7a8", small: 0 });
+    aliveEnemies().forEach((e) => {
+      if (!e || e.hp <= 0) return;
+      const wc = (typeof weakCore === "function") ? weakCore(e) : { x: e.x, y: e.y };
+      B.effects.push({ type: "ring", x: wc.x, y: wc.y, t: 0, dur: 24, r: e.r + 80, c: "#ffe14d" });
+      B.pops.push({ x: e.x, y: e.y - e.r - 40, t: 0, txt: "弱点 開放", c: "#ffe14d", small: 1 });
+    });
+    for (let k2 = 0; k2 < 4; k2++) B.effects.push({ type: "ring", x: ball.x, y: ball.y, t: -k2 * 4, dur: 30, r: 150 + k2 * 125, c: k2 % 2 ? "#ff7a4d" : "#ffe9a8" });
+    B.effects.push({ type: "pillar", x: ball.x, y: ball.y, t: 0, dur: 34, c: "#ffe9a8" });
+    spawnSparks(ball.x, ball.y, "#ffd7a8", 34);
+    B.shake = Math.max(B.shake, 20);
+    flash("#ff9d2e");
+  } else if (k === "sayaka") {
+    /* サヤカ（アクア・ノクターン・ドライブ）: 自強化 ＋ <b>味方全員が貫通になる</b>。
+       ★ shotMode はアリシアが自分にだけ掛けているものと同じ形。ここでは全員に配る。
+         left は「その味方が何回行動し終えるまで続くか」なので、
+         味方ごとに独立して減る＝順番に走らせても全員がちゃんと貫通で走れる。
+       ★ 自分にも掛ける（自分はもともと反射なので、これで自分も貫通になる）。 */
+    ball.selfBuff = { atk: SAYAKA_ATK, spd: SAYAKA_SPD, left: 2 };
+    B.balls.forEach((al) => {
+      if (!al) return;
+      al.shotMode = { v: "pierce", left: SAYAKA_PIERCE_ACTS };
+      B.effects.push({ type: "ring", x: al.x, y: al.y, t: 0, dur: 22, r: al.r * 3, c: "#7cc4ff" });
+      B.pops.push({ x: al.x, y: al.y - al.r - 34, t: 0, txt: "貫通化", c: "#bfe9ff", small: 1 });
+    });
+    B.pops.push({ x: ball.x, y: ball.y - ball.r - 22, t: 0,
+      txt: "自強化＆味方全員が貫通になって総攻撃!!", c: "#bfe9ff", small: 0 });
+    for (let k2 = 0; k2 < 4; k2++) B.effects.push({ type: "ring", x: ball.x, y: ball.y, t: -k2 * 4, dur: 30, r: 150 + k2 * 125, c: k2 % 2 ? "#1d8fd8" : "#dff4ff" });
+    B.effects.push({ type: "pillar", x: ball.x, y: ball.y, t: 0, dur: 34, c: "#dff4ff" });
+    spawnSparks(ball.x, ball.y, "#bfe9ff", 34);
+    B.shake = Math.max(B.shake, 18);
+    flash("#1d8fd8");
+  } else if (k === "sayuri") {
+    /* サユリ（ノクス・カリグラフィ）: 自強化 ＋ <b>敵全体の攻撃力ダウン</b>。
+       ★ e.atkdown はミズキのフルバーストで使っている形（{left, mul}）。
+         倍率をここで渡すので、ミズキ（0.65）より強い 0.55 にしてある。
+       ★ 双子ボス（瑶華＆玉蘭）は攻撃を2本立てで回すが、攻撃力そのものは1つなので
+         ここは e に付けるだけでよい（遅延と違って cd2 を触る必要はない）。 */
+    ball.selfBuff = { atk: SAYURI_ATK, spd: SAYURI_SPD, left: 2 };
+    B.pops.push({ x: ball.x, y: ball.y - ball.r - 22, t: 0,
+      txt: "自強化＆敵全体 攻撃力ダウン（" + SAYURI_ATKDOWN_TURNS + "ターン）!!", c: "#c9a6ff", small: 0 });
+    aliveEnemies().forEach((e) => {
+      if (!e || e.hp <= 0) return;
+      e.atkdown = { left: SAYURI_ATKDOWN_TURNS, mul: SAYURI_ATKDOWN_MUL };
+      B.effects.push({ type: "ring", x: e.x, y: e.y, t: 0, dur: 22, r: e.r + 90, c: "#c9a6ff" });
+      B.pops.push({ x: e.x, y: e.y - e.r - 40, t: 0,
+        txt: "攻撃力 -" + Math.round((1 - SAYURI_ATKDOWN_MUL) * 100) + "%", c: "#b06bff", small: 1 });
+    });
+    for (let k2 = 0; k2 < 4; k2++) B.effects.push({ type: "ring", x: ball.x, y: ball.y, t: -k2 * 4, dur: 30, r: 150 + k2 * 125, c: k2 % 2 ? "#4a2f8f" : "#e9d8ff" });
+    B.effects.push({ type: "pillar", x: ball.x, y: ball.y, t: 0, dur: 34, c: "#e9d8ff" });
+    spawnSparks(ball.x, ball.y, "#c9a6ff", 34);
+    B.shake = Math.max(B.shake, 20);
+    flash("#4a2f8f");
+  } else if (k === "akari") {
+    /* アカリ（ヴィリディス・ソレイユ）: 自強化 ＋ <b>味方全員のフルバーストを進める</b>。
+       ★ b.sc は「たまったターン数」で、b.st.ssTurns に届くと撃てる（減るのではなく増える）。
+         イグニッション・ネクサスがやっているのとまったく同じ足しかた。
+       ★ 上限で頭打ちにすること。超えたままにすると、次のWAVEの表示が狂う。 */
+    ball.selfBuff = { atk: AKARI_ATK, spd: AKARI_SPD, left: 2 };
+    let n = 0;
+    B.balls.forEach((al) => {
+      if (!al || al === ball) return;
+      const before = al.sc | 0;
+      al.sc = Math.min(before + AKARI_FB_CUT, al.st.ssTurns);
+      if (al.sc > before) n++;
+      B.effects.push({ type: "ring", x: al.x, y: al.y, t: 0, dur: 22, r: al.r * 3, c: "#8affc4" });
+      B.pops.push({ x: al.x, y: al.y - al.r - 34, t: 0,
+        txt: "FB +" + (al.sc - before), c: "#baffd9", small: 1 });
+    });
+    B.pops.push({ x: ball.x, y: ball.y - ball.r - 22, t: 0,
+      txt: "自強化＆味方" + n + "体のフルバーストが " + AKARI_FB_CUT + " 進んだ!!", c: "#baffd9", small: 0 });
+    for (let k2 = 0; k2 < 4; k2++) B.effects.push({ type: "ring", x: ball.x, y: ball.y, t: -k2 * 4, dur: 30, r: 150 + k2 * 125, c: k2 % 2 ? "#17a673" : "#e7fff2" });
+    B.effects.push({ type: "pillar", x: ball.x, y: ball.y, t: 0, dur: 34, c: "#e7fff2" });
+    spawnSparks(ball.x, ball.y, "#baffd9", 34);
+    B.shake = Math.max(B.shake, 18);
+    flash("#17a673");
+  } else if (k === "hinata") {
+    /* ヒナタ（ステラ・オーロラ・レイ）: 自強化 ＋ <b>画面上のすべての敵へ光の柱</b>。
+       ★ 柱はディバインピラー（ミズキのサブリンク）とまったく同じ形の effect。
+         ねらいを付けずに<b>全員に1本ずつ</b>落とすので、取りこぼしが出ない。
+       ★ withDmgSrc で本人を包むこと。包まないとキラー倍率（光属性キラーEL・
+         蓬莱族キラーL）が乗らず、説明より弱くなる（ミレーユのメテオと同じ約束）。 */
+    ball.selfBuff = { atk: HINATA_ATK, spd: HINATA_SPD, left: 2 };
+    const foes = aliveEnemies();
+    B.pops.push({ x: ball.x, y: ball.y - ball.r - 22, t: 0,
+      txt: "自強化＆敵全体へ光の柱 " + foes.length + "本!!", c: "#ffe9a8", small: 0 });
+    withDmgSrc(ball, () => {
+      foes.forEach((tgt, i) => {
+        if (!tgt || tgt.hp <= 0) return;
+        B.effects.push({ type: "pillar", x: tgt.x, y: tgt.y, tgt: tgt.id, t: -i * 4, dur: 28, c: "#fff7c8",
+          apply: function () {
+            const e = B.enemies.find((x) => x.id === this.tgt);
+            if (!e || e.hp <= 0) return;
+            dealDamage(e, ball.st.atk * HINATA_PILLAR_MUL * elemMult("light", e.el), "#fff7c8", true);
+            B.effects.push({ type: "ring", x: e.x, y: e.y, t: 0, dur: 14, r: 110, c: "#fff7c8" });
+            spawnSparks(e.x, e.y, "#fff7c8", 12);
+            B.shake = Math.max(B.shake, 8);
+          } });
+      });
+    });
+    for (let k2 = 0; k2 < 4; k2++) B.effects.push({ type: "ring", x: ball.x, y: ball.y, t: -k2 * 4, dur: 30, r: 150 + k2 * 125, c: k2 % 2 ? "#f0b429" : "#fff7c8" });
+    spawnSparks(ball.x, ball.y, "#ffe9a8", 36);
+    B.shake = Math.max(B.shake, 22);
+    flash("#f0b429");
   } else if (k === "mirelle") {
     /* ══ ★ 2026-08-20 ミレーユ（フランベルジュ・インフェルノ）══
        ・自強化（MIRELLE_ATK / MIRELLE_SPD）
@@ -17460,10 +17785,13 @@ function stepBall(ball) {
            1回のショットで味方に ATKCHARGE_N 体ふれたら、その<b>ちょうど N 体目</b>の
            攻撃力を1巡のあいだ上げる。数えるのは「別々の味方に何体ふれたか」なので
            frIds.size を使う（同じ味方に2回ふれても増えない）。 */
-        if (hasAbil(ball.ch, "atkcharge") && ball.frIds.size === ATKCHARGE_N && !ball._acDone) {
+        /* ★ 2026-08-22b 等級M（サヤカ）は倍率だけちがう。判定はここ1か所のまま。 */
+        const _acM = hasAbil(ball.ch, "atkchargeM");
+        if ((_acM || hasAbil(ball.ch, "atkcharge")) && ball.frIds.size === ATKCHARGE_N && !ball._acDone) {
           ball._acDone = 1;
-          al.atkCharge = { mul: ATKCHARGE_MUL, left: B.balls.length };
-          B.pops.push({ x: al.x, y: al.y - al.r - 30, t: 0, txt: "攻撃力チャージ ×" + ATKCHARGE_MUL + "!!", c: "#ffd76a", small: 1 });
+          const _acMul = _acM ? ATKCHARGE_M_MUL : ATKCHARGE_MUL;
+          al.atkCharge = { mul: _acMul, left: B.balls.length };
+          B.pops.push({ x: al.x, y: al.y - al.r - 30, t: 0, txt: "攻撃力チャージ ×" + _acMul + "!!", c: "#ffd76a", small: 1 });
           B.effects.push({ type: "ring", x: al.x, y: al.y, t: 0, dur: 26, r: 120, c: "#ffd76a" });
           spawnSparks(al.x, al.y, "#ffe9a8", 14);
         }
@@ -17668,6 +17996,9 @@ function ssMulOf(ball) {
     /* ★ 2026-08-20 GRAND DEBUT GACHA 新SSR 3体（体当たり倍率は selfBuff 側で乗る）。
        ★ ここに書き忘れると既定の ×1.5 が<b>さらに掛かって</b>説明より強くなる。 */
     || k === "mirelle" || k === "scarlet" || k === "koyuki"
+    /* ★★ 2026-08-22 Starlight Academy Fest 5体（体当たり倍率は selfBuff 側で乗る）。
+       ★ ここに書き忘れると既定の ×1.5 が<b>さらに掛かって</b>説明より強くなる。 */
+    || k === "otoha" || k === "sayaka" || k === "sayuri" || k === "akari" || k === "hinata"
     || k === "roxy") return 1.0;
   /* ★ 2026-08-08 カエデ: 敵にふれるたび +0.55。selfBuff の ×1.6 と掛けて <b>最大 ×10.0</b> になるように頭打ちする */
   if (k === "kaede") return Math.min(10.0 / 1.6, 1.0 + 0.55 * (ball.maoStack || 0));
@@ -18661,7 +18992,19 @@ function triggerFriend(owner, mover, powerMul, withSub) {
    ★ 2026-08-08: サブリンク（クロス分身弾・超強クロス分身弾）から
      リンクスキル本体の処理をそのまま呼び直すために足した。 */
 function fireFriendMain(owner, atk, mover, kindOverride) {
-  switch (kindOverride || owner.ch.fsKind) {
+  /* ★★ 2026-08-22 <b>いま撃つ技の種類を変数にする</b>。
+     ここが switch(kindOverride || owner.ch.fsKind) の式のままだったので、
+     case の中で <b>kind</b> という名前を使っていた
+     「インフィニティレーザー／超強インフィニティレーザー」だけが
+     <b>ReferenceError: kind is not defined</b> を投げていた。
+     ・投げた先は loop() の try/catch なので画面は落ちないが、
+       そのフレームの stepSim/render がまるごと飛ぶ＝<b>リンクが出ないうえに動きが飛ぶ</b>。
+     ・メイベル（インフィニティレーザー）・グレース／ミレーユ（超強）が対象で、
+       ずっとこの技だけ発動していなかった。
+     ★ case "copy" の中には別の let kind があるが、あちらはブロックの中なので
+       そのブロックだけを覆う（ここの kind とはぶつからない）。 */
+  const kind = kindOverride || owner.ch.fsKind;
+  switch (kind) {
     case "laser":
       B.effects.push({ type: "laser", x: owner.x, y: owner.y, t: 0, dur: 26, c: ELEM[owner.ch.el].c,
         apply: () => { aliveEnemies().forEach((e) => {
@@ -19563,6 +19906,9 @@ function fireFriendMain(owner, atk, mover, kindOverride) {
       break;
     }
     case "absoluteray": fireAbsoluteRay(owner, atk); break;
+    /* ★★ 2026-08-22 スターライト・ヴェール（いまはサブリンク専用だが、
+       将来リンク本体として持たせても動くよう、こちらにも分岐を置いておく） */
+    case "starveil": fireStarVeil(owner, atk); break;
     case "tri3followsharp":
       /* 鋭角三方向追従型貫通弾（アリサ）: 3発が鋭角（狭い角度）にまとまるので同じ敵に入りやすい。
          ★ 2026-08-06: 弾は<b>持ち主（owner）から、ふれた味方（mover）へ向けて</b>飛ぶ。 */
@@ -20022,6 +20368,73 @@ function fireAbsoluteRay(owner, atk) {
   }
   SFX.ss();
 }
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-08-22 スターライト・ヴェール（Starlight Academy Fest 5体の共通サブリンク）
+
+   本人を中心に<b>五芒星の光の帯</b>が開き、頂点から伸びた STARVEIL_N 本の極大レイが
+   STARVEIL_SPINS 回転ぶん薙ぎ払う。
+
+   ★ アブソリュートレイ10 との違い
+     ・本数は 10本 → STARVEIL_N 本と<b>少ない</b>が、1本が<b>太く・長く・強い</b>
+     ・長さが<b>固定</b>（アブソリュートレイはレイごとにランダム）
+     ・<b>1回転するたびに当たり判定がよみがえる</b>＝同じ敵に最大 N×回転 回まで入る
+   ★ 描画は既存の absweep（アブソリュートレイの薙ぎ払い）をそのまま使う。
+     新しい描画分岐を作らないので「効果は出るのに絵が出ない」が起きない。
+     太さだけ fx.w で渡す（absweep 側は fx.w があればそれを使う）。
+   ★ 乱数は使わない＝オンラインでも全端末でまったく同じ動きになる。
+   ══════════════════════════════════════════════════════════════ */
+function fireStarVeil(owner, atk) {
+  const el = owner.ch.el, col = ELEM[el].c;
+  /* 発動の合図: 白い閃光＋本人を中心に収束する光の環＋五芒星のリング */
+  B.effects.push({ type: "flashfx", t: 0, dur: 12 });
+  B.effects.push({ type: "absaura", x: owner.x, y: owner.y, t: 0, dur: 34, c: col });
+  for (let k = 0; k < 3; k++) {
+    B.effects.push({ type: "ring", x: owner.x, y: owner.y, t: -k * 4, dur: 26,
+      r: 120 + k * 130, c: k % 2 ? "#ffffff" : col });
+  }
+  spawnSparks(owner.x, owner.y, "#ffffff", 24);
+  B.shake = Math.max(B.shake, 14);
+  for (let i = 0; i < STARVEIL_N; i++) {
+    /* 頂点は等間隔（五芒星）。真上から時計回りに並べる */
+    const a0 = (Math.PI * 2 / STARVEIL_N) * i - Math.PI / 2;
+    B.effects.push({
+      type: "absweep", own: owner, len: STARVEIL_LEN, a0, dir: 1, atk, el, c: col, i,
+      w: STARVEIL_W, spin: 0,
+      x: owner.x, y: owner.y, ang: a0,
+      t: -i * 2, dur: STARVEIL_TURN, hit: new Set(),
+      tick(fx) {
+        const cx = fx.own.x, cy = fx.own.y;
+        const q = clamp(fx.t / fx.dur, 0, 1);
+        fx.ang = fx.a0 + Math.PI * 2 * STARVEIL_SPINS * q;
+        /* ★ 1回転ごとに当たり判定をよみがえらせる（ここがこの技の顔）。
+           回転数を数えて、次の周に入った瞬間に hit を空にする。 */
+        /* ★★ 最後は必ず STARVEIL_SPINS - 1 で頭打ちにすること。
+           q はぴったり 1 まで来るので、素の floor だと 0・1・2 の<b>3回</b>数えてしまい、
+           当たり直しの窓が1つ増える。実測で<b>12ヒット</b>入っており、
+           !ボタンの表示（5本×2回転＝10ヒット）と食いちがっていた。 */
+        const spin = Math.min(STARVEIL_SPINS - 1, Math.floor(q * STARVEIL_SPINS));
+        if (spin !== fx.spin) { fx.spin = spin; fx.hit = new Set(); }
+        const ex = cx + Math.cos(fx.ang) * fx.len, ey = cy + Math.sin(fx.ang) * fx.len;
+        fx.cx = cx; fx.cy = cy; fx.ex = ex; fx.ey = ey;
+        /* 弱点コアの通過判定（dealDamage 側）に使う座標＝レイの中ほど */
+        fx.x = (cx + ex) / 2; fx.y = (cy + ey) / 2;
+        aliveEnemies().forEach((e) => {
+          if (fx.hit.has(e.id)) return;                       // 貫通＝1本につき「その周は」1体1回
+          if (distToSeg(e.x, e.y, cx, cy, ex, ey) < e.r + STARVEIL_W) {
+            fx.hit.add(e.id);
+            dealDamage(e, fx.atk * STARVEIL_MUL * elemMult(fx.el, e.el), fx.c, true);
+            B.effects.push({ type: "ring", x: e.x, y: e.y, t: 0, dur: 14, r: e.r * 2.4, c: fx.c });
+            spawnSparks(e.x, e.y, "#ffffff", 12);
+            B.slashes.push({ x: e.x, y: e.y, t: 0, ang: fx.ang, len: 130, c: fx.c });
+            B.shake = Math.max(B.shake, 10);
+            if (fx.i % 2 === 0) SFX.crit(); else SFX.hit();
+          }
+        });
+      },
+    });
+  }
+  SFX.ss();
+}
 /* リンクスキル発動の共通の「開幕」演出（v14: 地味で見えづらかったのを派手にする）。
    ★ 光の輪が2重に広がり、放射状の光条とスパークで「いま誰のリンクが出たか」がはっきり分かる。 */
 function linkOpenFx(src, col) {
@@ -20234,6 +20647,14 @@ function fireSubFriend(owner, mover, atk) {
   /* 新サブリンクは既存の挙動を流用（表示名は SUBFS で別に定義） */
   if (kind === "splitpierce") kind = "pspread5";       // 全敵貫通分裂弾
   if (kind === "plasmanova") kind = "blast";           // プラズマノヴァ（自分中心の連続爆発）
+  if (kind === "starveil") {
+    /* ★★ 2026-08-22 スターライト・ヴェール（Starlight Academy Fest 5体の共通サブリンク）。
+       ★ ここに分岐が無いと、下の else-if 連鎖のどれにも当たらず
+         「持っているのに発動しないサブリンク」になる（カホのウォールサーキットで踏んだ穴）。
+       ★ 威力は SUB_HIT.starveil と必ずそろえること（表示と実ダメージの食いちがい防止）。 */
+    fireStarVeil(owner, atk);
+    return;
+  }
   if (kind === "absoluteray") {
     /* ★ v14: アブソリュートレイ10（フェス5体の共通サブリンク）。
        サブリンクなので威力はリンク本体の 70% にして撃つ。 */
@@ -22036,9 +22457,13 @@ function myName() {
 async function shareClearParty(stageId, rec) {
   const uid = myUid();
   if (!uid || !rec || !rec.members) return;
-  /* 送る中身をしぼる（画像・メモは送らない） */
+  /* 送る中身をしぼる（画像・メモは送らない）
+     ★★ 2026-08-22 <b>ユーザー名は送らない</b>（ご指定）。
+       ほかの人に見せるのは「どんな編成で抜けたか」だけでよく、
+       だれの編成かまで出す必要はない。集めない＝漏れようがない、が確実なので
+       表示を消すだけでなく<b>送信そのものをやめる</b>。
+       （すでに書き込まれている by は読む側で使わないので、そのうち意味を失う） */
   const body = {
-    by: String(myName()).slice(0, 20),
     at: Date.now(),
     turns: rec.turns | 0,
     hp: rec.hp | 0, mh: rec.mh | 0, sec: rec.sec | 0,
@@ -22219,11 +22644,14 @@ async function loadSharedInto(stageId) {
   if (lastClearStageId !== stageId) return;      /* 読んでいる間に別のクエストを開いたら捨てる */
   if (!list.length) {
     box.innerHTML = '<div class="lcnone">まだ<b>だれも登録していません</b>。<br>'
-      + '<small>あなたがソロでクリアすると、その編成がここに載ります（キャラと記録だけ。名前は XEVARION の表示名です）。</small></div>';
+      + '<small>あなたがソロでクリアすると、その編成がここに載ります（<b>キャラと記録だけ</b>で、名前は出ません）。</small></div>';
     return;
   }
   const me = myUid();
-  box.innerHTML = list.slice(0, 5).map((r, i) => {
+  /* ★★ 2026-08-22b <b>2位まで</b>にする（ご指定）。
+     5件並べていたころは下のほうの編成ほど手数も残HPも見劣りして、
+     「どれを真似ればよいのか」がかえって分からなくなっていた。 */
+  box.innerHTML = list.slice(0, 2).map((r, i) => {
     const hpPct = Math.round((r.hp / Math.max(1, r.mh)) * 100);
     const own = r.ids.filter((id) => DB.chars[id]).length;
     const cells = r.ids.map((id, k) => {
@@ -22239,7 +22667,8 @@ async function loadSharedInto(stageId) {
       </div>`;
     }).join("");
     return `<div class="lcsec${r.uid === me ? " mine" : ""}">
-      <div class="lcst">${i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : "▸"} ${_dlgEsc(r.by || "指揮官")}
+      ${/* ★★ 2026-08-22 名前は出さない。順位と「あなたの記録か」だけで足りる。 */""}
+      <div class="lcst">${i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : "▸"} ${i + 1}位の編成
         <small>${r.uid === me ? "あなたの記録" : ""}</small></div>
       <div class="lcmet">
         <span><b>${r.turns | 0}</b> 手</span>
@@ -22248,11 +22677,106 @@ async function loadSharedInto(stageId) {
         <span>手持ち <b>${own}/4</b></span>
       </div>
       <div class="lcgrid">${cells}</div>
-      ${own ? `<button class="lcuse" onclick="applySharedParty(${i})">⚔ この編成を読み込む${own < 4 ? "（持っている" + own + "体だけ）" : ""}</button>`
-            : '<div class="lcnone">この編成のキャラをまだ1体も持っていません。</div>'}
+      ${/* ★★ 2026-08-22b 未所持が混じっていても<b>編成そのものは必ず出す</b>（ご指定）。
+            そのままでは出撃できないので、<b>持っているキャラに入れかえた形</b>を
+            すぐ隣に用意して「これなら挑戦できます」と出す。 */""}
+      ${own >= 4
+        ? `<button class="lcuse" onclick="applySharedParty(${i})">⚔ この編成で挑戦する</button>`
+        : (() => {
+            const fx = sharedPartyFixed(r, stageId);
+            const use = fx.ids.filter(Boolean).length;
+            if (!use) return '<div class="lcnone">この編成のキャラも、代わりになるキャラも持っていません。</div>';
+            const swap = fx.subs.map((s) => `<span class="lcswp">${CHARS[s.from] ? CHARS[s.from].nm : "?"} <i>→</i> <b>${CHARS[s.to].nm}</b></span>`).join("");
+            return `<div class="lcfix">
+                <div class="lcfixh">未所持が <b>${4 - own}</b> 体あります。<b>持っているキャラに入れかえる</b>と挑戦できます</div>
+                ${swap ? '<div class="lcswps">' + swap + "</div>" : ""}
+              </div>
+              <button class="lcuse fix" onclick="applySharedFixed(${i})">🔁 入れかえて挑戦する${use < 4 ? "（" + use + "体）" : ""}</button>
+              ${own ? `<button class="lcuse sub" onclick="applySharedParty(${i})">持っている ${own}体だけ読み込む</button>` : ""}`;
+          })()}
     </div>`;
   }).join("");
 }
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-08-22b 未所持のキャラを「代役」に入れかえる
+   ------------------------------------------------------------
+   みんなのクリア編成は<b>未所持のキャラが混ざっていても表示する</b>（ご指定）。
+   ただしそのままでは出撃できないので、<b>持っているキャラで置きかえた編成</b>を作って
+   「これなら挑戦できます」という形で出す。
+
+   代役の選びかた（上から順に重い）
+     ① もとの子と<b>同じアンチギミック</b>をどれだけ持っているか（charAntiKeys の重なり）
+        … 編成が通るかどうかはここでほぼ決まる
+     ② そのクエストで<b>まだ誰も対策できていない</b>ギミックを埋められるか
+     ③ 同じ属性 ／ 同じ撃種（貫通・反射）
+     ④ SSR かどうか、素の強さ
+   ★ すでに編成に入っている子は選ばない（同じ子が2枠に入らないように）。
+   ★ 代役が見つからないときは、その枠は<b>いまの編成のまま</b>にする（無理に埋めない）。
+   ══════════════════════════════════════════════════════════════ */
+function subForChar(missId, stageId, taken) {
+  const src = CHARS[missId];
+  const owned = CHAR_IDS.filter((id) => DB.chars[id] && taken.indexOf(id) < 0);
+  if (!owned.length) return null;
+  const want = src ? charAntiKeys(missId) : [];
+  const stage = stageId ? findStage(stageId) : null;
+  const keys = stage ? counterKeysOf(stage) : [];
+  /* すでに取れている枠で対策ずみのギミックは、ここで埋め直す必要がない */
+  const covered = new Set();
+  taken.forEach((id) => charAntiKeys(id).forEach((k) => covered.add(k)));
+  const needK = keys.filter((k) => !covered.has(k));
+  let best = null, bv = -1;
+  owned.forEach((id) => {
+    const mine = charAntiKeys(id);
+    let v = 0;
+    want.forEach((k) => { if (mine.indexOf(k) >= 0) v += 1000; });       // ① 同じアンチ
+    needK.forEach((k) => { if (mine.indexOf(k) >= 0) v += 700; });        // ② 足りないギミック
+    if (src && CHARS[id].el === src.el) v += 260;                         // ③ 同じ属性
+    if (src && CHARS[id].shot === src.shot) v += 120;                     //    同じ撃種
+    if (isStar5(id)) v += 200;                                            // ④ SSR
+    const s = charStats(id);
+    v += (s.hp + s.atk * 2) / 1000;
+    if (v > bv) { bv = v; best = id; }
+  });
+  return best;
+}
+/* みんなの編成を「いま出撃できる形」に直す。
+   戻り値 { ids:[4体], subs:[{from,to}], keep:[持っていた数] } */
+function sharedPartyFixed(r, stageId) {
+  const ids = [], subs = [], taken = [];
+  (r.ids || []).forEach((id) => { if (DB.chars[id]) taken.push(id); });
+  (r.ids || []).forEach((id) => {
+    if (DB.chars[id]) { ids.push(id); return; }
+    const to = subForChar(id, stageId, taken);
+    if (to) { taken.push(to); ids.push(to); subs.push({ from: id, to: to }); }
+    else ids.push(null);
+  });
+  return { ids: ids, subs: subs, keep: taken.length - subs.length };
+}
+/* ★ 入れかえた編成でそのまま挑戦する */
+window.applySharedFixed = async (i) => {
+  const list = (_shareCache[lastClearStageId] && _shareCache[lastClearStageId].list) || [];
+  const r = list[i]; if (!r) return;
+  const fx = sharedPartyFixed(r, lastClearStageId);
+  const use = fx.ids.filter(Boolean);
+  if (!use.length) return;
+  const nm = fx.subs.map((s) => (CHARS[s.from] ? CHARS[s.from].nm : "?") + " → <b>" + CHARS[s.to].nm + "</b>").join("<br>");
+  if (!await uiConfirm(
+    `<b>${partyName(DB.partyIdx)}</b> を、この編成に置きかえます。<br>`
+    + `未所持のキャラは<b>持っているキャラに入れかえ</b>ます。<br><br>`
+    + `<div style="font-weight:900;color:#ffd257;line-height:1.7">${nm || "（入れかえはありません）"}</div>`,
+    { icon: "🔁", title: "入れかえて挑戦する", ok: "この編成にする" })) return;
+  const p = DB.party.slice();
+  fx.ids.forEach((id, k) => { if (k < 4 && id) p[k] = id; });
+  DB.party = p.slice(0, 4);
+  DB.parties[DB.partyIdx] = DB.party;
+  markPartyDirty();
+  selSlot = 0; save(); SFX.win();
+  closeLastClear();
+  closeGimInfo();
+  teamGoStage = lastClearStageId || null;
+  goPartyEdit();
+  toastTeam("🔁 みんなの編成を、持っているキャラに入れかえて読み込みました", "#0e8a5c");
+};
 /* みんなの編成のうち、持っているキャラだけを編成に読み込む */
 window.applySharedParty = async (i) => {
   const list = (_shareCache[lastClearStageId] && _shareCache[lastClearStageId].list) || [];
@@ -25116,12 +25640,15 @@ function drawEffect(fx) {
     ctx.strokeStyle = hexA(fx.c, 0.45 * a); ctx.lineWidth = 2.4; ctx.stroke();
     /* レイ本体（外側グロー → 色 → 白い芯の3層） */
     ctx.lineCap = "round";
+    /* ★★ 2026-08-22 太さは fx.w があればそちら（スターライト・ヴェールは極太）。
+       無ければこれまでどおり ABSRAY_W ＝ アブソリュートレイ10 の見た目は1ドットも変わらない。 */
+    const rw = fx.w || ABSRAY_W;
     ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(ex, ey);
-    ctx.strokeStyle = hexA(fx.c, 0.28 * a); ctx.lineWidth = ABSRAY_W * 2.6; ctx.stroke();
+    ctx.strokeStyle = hexA(fx.c, 0.28 * a); ctx.lineWidth = rw * 2.6; ctx.stroke();
     ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(ex, ey);
-    ctx.strokeStyle = hexA(fx.c, 0.92 * a); ctx.lineWidth = ABSRAY_W * 1.25; ctx.stroke();
+    ctx.strokeStyle = hexA(fx.c, 0.92 * a); ctx.lineWidth = rw * 1.25; ctx.stroke();
     ctx.beginPath(); ctx.moveTo(cx, cy); ctx.lineTo(ex, ey);
-    ctx.strokeStyle = hexA("#ffffff", 0.95 * a); ctx.lineWidth = ABSRAY_W * 0.5; ctx.stroke();
+    ctx.strokeStyle = hexA("#ffffff", 0.95 * a); ctx.lineWidth = rw * 0.5; ctx.stroke();
     ctx.lineCap = "butt";
     /* 先端の光球 */
     drawGlow(ex, ey, 26, fx.c, 0.9 * a, 0.45);

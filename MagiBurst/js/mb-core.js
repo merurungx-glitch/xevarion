@@ -15,8 +15,8 @@
    <b>ふつうの &lt;script&gt;</b>（type="module" ではない）で読むこと。
    トップレベルの const/let はグローバルの字句環境に入るので、
    あとから読み込む MagiBurst 本体のスクリプトからそのまま見える。
-     MagiBurst : <script src="js/mb-core.js?v=37"></script>
-     gacha.html: <script src="MagiBurst/js/mb-core.js?v=37"></script>
+     MagiBurst : <script src="js/mb-core.js?v=39"></script>
+     gacha.html: <script src="MagiBurst/js/mb-core.js?v=39"></script>
 
    ── ホストが先に用意しておくもの ──
      window.MB_IMGD … 画像フォルダへの相対パス（MagiBurst は "../img/"、ポータルは "img/"）
@@ -298,6 +298,13 @@ const AB_NM = {
      ・gravkillerL    … 重力バリアキラーの等級L（無印1.5／M 2.0／L 2.5／EL 3.0）。
                         <b>M と EL のあいだが空いていた</b>ので、ほかのキラーと同じ刻みにそろえる。 */
   cumulonimbusEL: "キュムロニンバスEL", houraikillerL: "蓬莱族キラーL", gravkillerL: "重力バリアキラーL",
+  /* ══ ★ 2026-08-22b Starlight Academy Fest の調整で新設 ══
+     ・atkchargeM  … 攻撃力チャージの等級M。しくみ（1ショットで味方N体にふれる）は
+                     無印とまったく同じで、上がる倍率だけ 1.5 → 2.0 になる。
+     ・defkillerM  … 防御ダウンキラーの等級M（無印1.5／M 2.0）。
+     ★ 等級ちがいは<b>無印と同じ判定・倍率だけ差し替え</b>にすること。
+       別の判定を書くと「無印は乗るのにMは乗らない」がすぐ起きる。 */
+  atkchargeM: "攻撃力チャージM", defkillerM: "防御ダウンキラーM",
 };
 /* ══ ★ 2026-08-16b 上の新アビリティの数値 ══ */
 const KILLER_EL_MUL = 3.0;        // 属性キラーEL
@@ -570,6 +577,10 @@ const PHANTOM_EL_TURNS = 3;
    攻撃力を1巡のあいだ上げる。「なぞる順番」に意味が出るアビリティ。 */
 const ATKCHARGE_N = 3;
 const ATKCHARGE_MUL = 1.5;
+/* ★ 2026-08-22b 攻撃力チャージM（サヤカ）。ふれる人数は無印と同じ3体で、倍率だけ上がる。 */
+const ATKCHARGE_M_MUL = 2.0;
+/* ★ 2026-08-22b 防御ダウンキラーM（サユリのクロススキル）。無印1.5 → M 2.0。 */
+const DEFKILLER_M_MUL = 2.0;
 /* ★ 2026-08-17b グレースのフルバースト（自強化の倍率） */
 const GRACE_ATK = 1.75;
 const GRACE_SPD = 1.15;
@@ -622,6 +633,62 @@ const KOYUKI_TURNS = 18;
 const KOYUKI_ATK = 2.15;
 const KOYUKI_SPD = 1.3;
 const KOYUKI_POISON_TURNS = 3;   // 敵全体の毒の継続ターン
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-08-22 Starlight Academy Fest 限定SSR 5体のフルバースト定数
+   ------------------------------------------------------------
+   オトハ（火）／サヤカ（水）／サユリ（闇）／アカリ（木）／ヒナタ（光）。
+   5体とも<b>新しい ssKind</b> を持つ。強さの基準は<b>ミレーユ級</b>
+   （自強化 ＋ 撃った瞬間の全体効果ひとつ）でそろえてある。必要ターンも18で共通。
+
+   ★ 全体効果は5体とも<b>別のもの</b>にしてある:
+       オトハ … 敵全体の弱点コアを開放（味方全員の弱点ヒットが伸びる）
+       サヤカ … 味方全員がそのあいだ貫通になる
+       サユリ … 敵全体の攻撃力ダウン
+       アカリ … 味方全員のフルバーストターンを進める
+       ヒナタ … 画面上のすべての敵へ光の柱が落ちる
+     同じ効果を2人に持たせると、片方を引く意味がなくなるため。
+
+   ★ 新しい ssKind を足したら必ず次の4か所も直すこと（どれか1つでも抜けると<b>静かに</b>壊れる）:
+     ① SS_TAGS（FB種別の絞り込み）
+     ② launchShot の「自強化型は初速1.3倍」の一覧
+     ③ ssBumpMul の「体当たり倍率は selfBuff 側で乗る」一覧（＝既定の×1.5を二重に掛けない）
+     ④ applyNewSS の分岐そのもの（index.html）
+   ══════════════════════════════════════════════════════════════ */
+const STARLIGHT_TURNS = 18;        // 5体とも共通（ミレーユたちと同じ）
+const OTOHA_ATK = 2.25;
+const OTOHA_SPD = 1.30;
+const OTOHA_WEAK_TURNS = 4;        // 敵全体の弱点コア開放が続くターン
+const SAYAKA_ATK = 2.10;
+const SAYAKA_SPD = 1.40;
+const SAYAKA_PIERCE_ACTS = 2;      // 味方全員が貫通でいられる「その味方の行動」回数
+const SAYURI_ATK = 2.20;
+const SAYURI_SPD = 1.30;
+const SAYURI_ATKDOWN_TURNS = 4;    // 敵全体の攻撃力ダウンが続くターン
+const SAYURI_ATKDOWN_MUL = 0.55;   // 同・敵の攻撃力にかかる倍率（ミズキの 0.65 より強い）
+const AKARI_ATK = 2.05;
+const AKARI_SPD = 1.25;
+const AKARI_FB_CUT = 4;            // 味方全員のフルバーストターンを進めるぶん
+const HINATA_ATK = 2.15;
+const HINATA_SPD = 1.35;
+/* ★★ 2026-08-22b 光の柱を強化（1.55 → 2.40）。
+   ねらいを付けずに全体へ入るぶん1本を軽くしていたが、
+   ほかの4人が「弱点開放」「総攻撃」「攻撃力ダウン」「FB加速」と
+   <b>チーム全体をまるごと動かす</b>のに対して、ヒナタだけ数字が伸びなかった。
+   柱は<b>本人のキラー倍率が乗る</b>（withDmgSrc で包んである）ので、
+   闇属性キラーL・蓬莱族キラーL と重なると蓬莱天宮でそのまま火力になる。 */
+const HINATA_PILLAR_MUL = 2.40;    // 全敵に落ちる光柱1本の倍率（光属性・属性有利が乗る）
+/* ══ 共通サブリンク「スターライト・ヴェール」（Starlight Academy Fest の目印） ══
+   本人を中心に五芒星の光の帯が開き、<b>5本の極大レイ</b>が STARVEIL_SPINS 回転ぶん薙ぎ払う。
+   ★ アブソリュートレイ10 との違いは「本数は少ないが<b>1本が太く・長く・強く</b>、
+     しかも<b>回転ごとに当たり直す</b>」こと。近くで撃つほど当たり直しの回数が増える。
+   ★ 描画は既存の absweep（アブソリュートレイの薙ぎ払い）を流用する＝
+     新しい描画分岐を作らないので「絵が出ないリンク」になりようがない。 */
+const STARVEIL_N = 5;              // レイの本数（五芒星）
+const STARVEIL_SPINS = 2;          // 回転数（1回転ごとに当たり直す）
+const STARVEIL_MUL = 1.35;         // 1ヒットの倍率
+const STARVEIL_LEN = 520;          // レイの長さ（固定。アブソリュートレイはランダム）
+const STARVEIL_W = 26;             // レイの太さ（ABSRAY_W より太い）
+const STARVEIL_TURN = 52;          // 何フレームで STARVEIL_SPINS 回転するか
 const FSBOOSTL_MUL = 2.5;      // リンクブーストL: リンクスキルの威力
 const DASHL_MUL = 2.5;         // ダッシュL: スピード倍率
 const COMBOKILLER_MAX = 2.0;   // 連撃キラーM: 同じ敵に連続で触れたときの上限倍率
@@ -909,6 +976,7 @@ function abilDesc(a) {
     case "firstkillerEL": return "そのショットで最初にふれた敵へのダメージが<b>" + FIRSTKILLER_EL_MUL + "倍</b>（等級EL）";
     case "agrav": return "敵の重力バリアの減速を受けない";
     case "defkiller": return "防御ダウン中の敵へのダメージが1.5倍";
+    case "defkillerM": return "防御ダウン中の敵へのダメージが<b>" + DEFKILLER_M_MUL + "倍</b>（等級M）";
     case "dash": return "自分のスピードが常に1.5倍";
     case "bubblemode": return "各WAVEの開始から自分が" + WAVE_SELF + "回行動するまで、減速しにくいバブリー状態になる";
     case "pimmune": return "毒状態にならない";
@@ -993,6 +1061,7 @@ function abilDesc(a) {
     case "phantomdrive": return "そのショットで<b>壁に" + PHANTOM_WALLS + "回ふれる</b>と、<b>" + PHANTOM_TURNS + "回行動するあいだステータスが×" + PHANTOM_MUL + "</b>にアップする";
     case "phantomdriveEL": return "そのショットで<b>壁に" + PHANTOM_EL_WALLS + "回ふれる</b>と、<b>" + PHANTOM_EL_TURNS + "回行動するあいだステータスが×" + PHANTOM_EL_MUL + "</b>にアップする（等級EL）";
     case "atkcharge": return "1回のショットで<b>味方" + ATKCHARGE_N + "体にふれる</b>と、<b>" + ATKCHARGE_N + "体目にふれた味方</b>の攻撃力が<b>1巡のあいだ×" + ATKCHARGE_MUL + "</b>になる";
+    case "atkchargeM": return "1回のショットで<b>味方" + ATKCHARGE_N + "体にふれる</b>と、<b>" + ATKCHARGE_N + "体目にふれた味方</b>の攻撃力が<b>1巡のあいだ×" + ATKCHARGE_M_MUL + "</b>になる（等級M）";
     /* ══ v14.5 クロエの新アビリティ ══ */
     case "supermsEL": return "各WAVEの開始時に地雷を4つ所持してスタート。敵ヒット時に1個消費して<b>" + MSEL_MUL + "倍</b>攻撃（等級EL）";
     case "fatalkillerM": return "残りHPが50%以下の敵へのダメージが<b>" + FATALKILLERM_MUL + "倍</b>（等級M）";
@@ -1604,7 +1673,9 @@ function killerMul(ball, e, tags, forLink) {
   else if (hasAbil(ball.ch, "sokojikaraL") && B.hp <= B.maxhp * SOKO_HP_RATE) { m *= SOKOJIKARA_L_MUL; tag("底力L"); }
   else if (hasAbil(ball.ch, "sokojikaraM") && B.hp <= B.maxhp * SOKO_HP_RATE) { m *= SOKOJIKARA_M_MUL; tag("底力M"); }
   else if (hasAbil(ball.ch, "sokojikara") && B.hp <= B.maxhp * SOKO_HP_RATE) { m *= 1.5; tag("底力"); }
-  if (hasAbil(ball.ch, "defkiller") && enemyDefDown(e)) { m *= 1.5; tag("防御KILLER"); }
+  /* ★ 2026-08-22b 等級Mを先に見る（無印と重ねがけしない） */
+  if (hasAbil(ball.ch, "defkillerM") && enemyDefDown(e)) { m *= DEFKILLER_M_MUL; tag("防御KILLER M"); }
+  else if (hasAbil(ball.ch, "defkiller") && enemyDefDown(e)) { m *= 1.5; tag("防御KILLER"); }
   /* アップポジションキラーM: 画面の上半分にいる敵に大ダメージ */
   if (hasAbil(ball.ch, "upkillerM") && e.y < H * 0.5) { m *= UPKILLER_MUL; tag("UP KILLER M"); }
   /* ★ 2026-08-08 ライトポジションキラーL: 画面の右半分にいる敵に大ダメージ */
@@ -1989,6 +2060,18 @@ const SUBFS = {
   crossclone: { nm: "クロス分身弾", pow: "分身" + CC_CLONES + "体 1ヒット 攻撃力×" + CC_PER + "（壁で反射・貫通・止まるまで）",
     desc: "ふれた瞬間に<b>" + CC_CLONES + "体の分身</b>を放出。分身は<b>壁で反射しながらフィールドを動きまわり、"
       + "敵を貫通して削り続ける</b>（止まるまで）" },
+  /* ══ ★★ 2026-08-22 Starlight Academy Fest の共通サブリンク ══
+     フェス5体（オトハ・サヤカ・サユリ・アカリ・ヒナタ）が全員そろって持つ目印。
+     ノクターンブルームフェスの「アブソリュートレイ10」と同じ位置づけ。 */
+  starveil: { nm: "スターライト・ヴェール",
+    pow: "レイ" + STARVEIL_N + "本 × " + STARVEIL_SPINS + "回転 × 攻撃力×" + STARVEIL_MUL
+      + "（貫通・<b>1回転ごとに当たり直す</b>）",
+    desc: "放った本人を中心に<b>五芒星の光の帯</b>が開き、頂点から伸びた<b>" + STARVEIL_N
+      + "本の極大レイ</b>が<b>" + STARVEIL_SPINS + "回転ぶん薙ぎ払う</b>。"
+      + "<br>アブソリュートレイ10と違って本数は少ないが、<b>1本が太く・長く・威力も上</b>で、"
+      + "しかも<b>1回転するたびに当たり判定がよみがえる</b>——"
+      + "同じ敵に<b>最大 " + (STARVEIL_N * STARVEIL_SPINS) + "回</b>まで入るので、"
+      + "<b>敵のかたまりの中心で撃つほど</b>総ダメージが伸びる" },
   supercrossclone: { nm: "超強クロス分身弾", pow: "分身" + SCC_CLONES + "体 1ヒット 攻撃力×" + SCC_PER + "（壁で反射・貫通・止まるまで）",
     desc: "クロス分身弾の<b>強化版</b>。分身が<b>" + CC_CLONES + "体 → " + SCC_CLONES + "体</b>に増え、"
       + "<b>1ヒットの威力（×" + CC_PER + " → ×" + SCC_PER + "）も、走る速さも、動きまわる時間も上</b>。"
@@ -2076,6 +2159,60 @@ const CONNECT = {
        どこでも同じ効果、という決まりを守るため（説明も abilDesc から引かれる）。
      ★ アンチ系のアビリティは<b>配らない</b>。配るとクロスの発動状況で
        charAntiKeys が変わり、「アンチちょうど3種」という設計が崩れるため。 */
+  /* ══ ★★ 2026-08-22 Starlight Academy Fest 5体のクロススキル ══
+     ★ どれも <b>abil:</b> だけを配る形。条件を満たしているあいだ、そのキャラが
+       そのアビリティを持っているものとして扱われる（hasAbil が見る）ので、
+       効果を別に実装する必要がない＝「クロスの効果だけ入っていない」型の抜けが起きない。
+     ★ 名前（nm）は<b>アビリティ名そのもの</b>。同じ名前のアビリティはどこでも同じ効果、
+       という決まりを守るため（説明も abilDesc から引かれる）。
+     ★ アンチ系のアビリティは<b>配らない</b>。配るとクロスの発動状況で charAntiKeys が変わり、
+       「アンチちょうど2種」という設計そのものが崩れるため。
+     ★ 発動条件は<b>1体ずつ別</b>（ご指定）。1体だけ引いた人でも発動しうる形にしてある。 */
+  otoha: {
+    nm: "星譜のクロス",
+    condTx: "<b>自分と撃種がちがう味方が1体以上</b>いること",
+    cond: (ids, me) => cnxSelfIn(ids, me) && cnxCount(ids, me, (c, m) => c.shot !== m.shot) >= 1,
+    skills: [
+      { k: "otohaFirst", nm: "ザコキラー", abil: "mobkiller" },
+      { k: "otohaBoost", nm: "リンクブーストL", abil: "fsboostL" },
+    ],
+  },
+  sayaka: {
+    nm: "蒼波のクロス",
+    condTx: "<b>自分と戦型がちがう味方が2体以上</b>いること",
+    cond: (ids, me) => cnxSelfIn(ids, me) && cnxCount(ids, me, (c, m) => c.type !== m.type) >= 2,
+    skills: [
+      { k: "sayakaMany", nm: "敵多底力EL", abil: "manyfoeEL" },
+      { k: "sayakaDrain", nm: "ドレインM", abil: "drainM" },
+    ],
+  },
+  sayuri: {
+    nm: "玄墨のクロス",
+    condTx: "<b>自分と同じ属性の味方が1体以上</b>いること",
+    cond: (ids, me) => cnxSelfIn(ids, me) && cnxCount(ids, me, (c, m) => c.el === m.el) >= 1,
+    skills: [
+      { k: "sayuriDestroy", nm: "デストロイブーストM", abil: "destroyboostM" },
+      { k: "sayuriDef", nm: "防御ダウンキラーM", abil: "defkillerM" },
+    ],
+  },
+  akari: {
+    nm: "陽だまりのクロス",
+    condTx: "<b>自分より攻撃力が高い味方が1体以上</b>いること",
+    cond: (ids, me) => cnxSelfIn(ids, me) && cnxCount(ids, me, (c, m) => (c.atk[1] || 0) > (m.atk[1] || 0)) >= 1,
+    skills: [
+      { k: "akariAura", nm: "パワーオーラEL", abil: "auraEL" },
+      { k: "akariAccel", nm: "FBターンアクセル", abil: "fbaccel" },
+    ],
+  },
+  hinata: {
+    nm: "曙光のクロス",
+    condTx: "<b>自分より遅い味方が2体以上</b>いること",
+    cond: (ids, me) => cnxSelfIn(ids, me) && cnxCount(ids, me, (c, m) => (c.spd[1] || 0) < (m.spd[1] || 0)) >= 2,
+    skills: [
+      { k: "hinataCombo", nm: "連撃キラーEL", abil: "combokillerEL" },
+      { k: "hinataDash", nm: "ダッシュL", abil: "dashL" },
+    ],
+  },
   mirelle: {
     nm: "煌焔のクロス",
     condTx: "<b>自分と同じ属性の味方が1体以上</b>いること",
@@ -4870,6 +5007,181 @@ const CHARS = {
        ミオ        光 {ward,warp}         → <b>第五重</b>（闇）… 2種ぴったり
      ★ 検算は charAntiKeys(id) と counterKeysOf(stage) の一致で機械的に取れる。
      ══════════════════════════════════════════════════════════════ */
+  /* ══════════════════════════════════════════════════════════════
+     ★★ 2026-08-22 Starlight Academy Fest 限定SSR 5体（No.133〜137）
+     ------------------------------------------------------------
+     オトハ（火）／サヤカ（水）／サユリ（闇）／アカリ（木）／ヒナタ（光）。
+     <b>フェスガチャ</b>なので GRAND DEBUT GACHA とは関係がない（DEBUT_CHARS には入れない）。
+
+     ★ 設計のきまり（ご指定）
+       ・オムニアンチ・治癒の祈りは<b>持たせない</b>
+       ・アンチは<b>ちょうど2種</b>。その2種が「自分が有利属性になる蓬莱のクエスト」の
+         必要アンチと<b>ぴったり一致</b>する＝そのクエストの最適解になる
+       ・全員<b>クロススキル</b>を持つ（発動条件は1体ずつ別）
+       ・リンクスキルは<b>超強（上位）</b>から選ぶ
+       ・サブリンクは5体そろって<b>スターライト・ヴェール</b>（フェスの目印）
+       ・全員<b>蓬莱族キラーL</b>持ち＝「蓬莱の九重 攻略のフェス」という顔
+
+     ★ 担当わけ（属性有利 × 必要アンチ2種の一致）
+       オトハ  火 {dw,ward}        → <b>第三重</b>（木）
+       サヤカ  水 {mine,slowwall}  → <b>第六重</b>（火）
+       サユリ  闇 {slowwall,ward}  → <b>第九重</b>（光）
+       アカリ  木 {dw,slowwall}    → <b>第二重</b>（水）
+       ヒナタ  光 {ward,warp}      → <b>第五重</b>（闇）
+     ★ 検算は charAntiKeys(id) と counterKeysOf(HOURAI_STAGES[i]) の一致で機械的に取れる。
+     ══════════════════════════════════════════════════════════════ */
+  otoha: {
+    /* 火・貫通。星の学園の音楽科。焔をまとった旋律で薙ぎ払う。
+       ★ 担当は<b>第三重（木 {dw,ward}）</b>＝ 超ADW＋アンチ断絶界の<b>2種ちょうど</b>。 */
+    id: "otoha", nm: "オトハ", img: "Otoha.webp", th: "t_Otoha.webp",
+    el: "fire", shot: "pierce", type: "焔奏貫穿型", fes: true, fesKey: "starlight", lux: true, nexus: "advantage",
+    connect: "otoha",
+    hp: [962, 6360], atk: [548, 3470], spd: [304, 452],
+    abil: [{ t: "superadw" }, { t: "award" },
+           { t: "killerL", el: "wood" }, { t: "houraikillerL" }, { t: "laserstopM" }, { t: "barrierL" }],
+    subfs: "starveil",
+    ssName: "フランメ・カンタービレ", ssTurns: STARLIGHT_TURNS, ssKind: "otoha",
+    ssPow: "自強化（攻撃×" + OTOHA_ATK + "・スピード×" + OTOHA_SPD + "）＋ <b>敵全体の弱点コアを開放（"
+      + OTOHA_WEAK_TURNS + "ターン・味方全員の弱点ヒットが伸びる）</b>",
+    ssDesc: "焔の旋律が盤面を渡り、<b>自強化（攻撃×" + OTOHA_ATK + "・スピード×" + OTOHA_SPD + "）</b>して撃ち出す。"
+      + "<br>撃った瞬間、<b>画面上のすべての敵の弱点コアが" + OTOHA_WEAK_TURNS + "ターンのあいだ開き</b>、"
+      + "<b>味方全員</b>の弱点ヒットの倍率が上がる（ベルニカの弱点UPと同じしくみ）。"
+      + "開いた弱点は<b>味方全員</b>のものなので、殴る順番をそろえるほど効く。"
+      + "<br><b>超アンチダメージウォール・アンチ断絶界</b>の2種持ち。"
+      + "この組み合わせは<b>蓬莱の九重・第三重（木）の必要アンチとぴったり一致</b>するので、"
+      + "<b>属性有利のまま全ギミックを無視して走れる</b>——第三重の最適解。"
+      + "<b>木属性キラーL</b>と<b>蓬莱族キラーL</b>が重なり、<b>バリアL</b>で前にも出られる。"
+      + "<b>超レーザーストップM</b>を持つので、レーザーを受け止めてチームHPを"
+      + Math.round(LASERSTOPM_HEAL * 100) + "%戻しながら前に立てる。",
+    fsName: "超強インフィニティレーザー", fsKind: "superinfinitylaser",
+    fsPow: "極太レーザー 攻撃力×" + SINFL_PER + "（貫通）＋ 着弾から" + SINFL_SPLIT_N + "方向へ分裂 各×" + SINFL_SPLIT_PER,
+    fsDesc: "<b>インフィニティレーザーの強化版</b>。もっとも近い敵へ<b>さらに極太のレーザー</b>を撃ちこみ、"
+      + "着弾点から<b>" + SINFL_SPLIT_N + "方向</b>へレーザーが分裂して広がる。"
+      + "<br>本体の威力は<b>×1.60 → ×" + SINFL_PER + "</b>、分裂1本は<b>×0.55 → ×" + SINFL_SPLIT_PER + "</b>、"
+      + "分裂の数も<b>8方向 → " + SINFL_SPLIT_N + "方向</b>に増えている。"
+      + "どれも貫通するので、射線と着弾点に敵が重なっているほど伸びる。",
+  },
+  sayaka: {
+    /* 水・反射。星の学園の水泳部。流れを読んで味方ごと運ぶ。
+       ★ 担当は<b>第六重（火 {mine,slowwall}）</b>＝ 超マインスイーパーEL＋超アンチ減速壁の<b>2種ちょうど</b>。 */
+    id: "sayaka", nm: "サヤカ", img: "Sayaka.webp", th: "t_Sayaka.webp",
+    el: "water", shot: "bounce", type: "蒼流奔騰型", fes: true, fesKey: "starlight", lux: true, nexus: "aegis",
+    connect: "sayaka",
+    hp: [970, 6420], atk: [536, 3400], spd: [300, 444],
+    abil: [{ t: "supermsEL" }, { t: "superaslow" },
+           { t: "killerL", el: "fire" }, { t: "houraikillerL" }, { t: "atkchargeM" }, { t: "soulEL" }],
+    subfs: "starveil",
+    ssName: "アクア・ノクターン・ドライブ", ssTurns: STARLIGHT_TURNS, ssKind: "sayaka",
+    ssPow: "自強化（攻撃×" + SAYAKA_ATK + "・スピード×" + SAYAKA_SPD + "）＋ <b>味方全員が貫通になって総攻撃</b>"
+      + "（貫通は それぞれ" + SAYAKA_PIERCE_ACTS + "回行動し終えるまで／突撃中の直殴り×" + RALLY_MUL + "）",
+    ssDesc: "蒼い流れが盤面を洗い、<b>自強化（攻撃×" + SAYAKA_ATK + "・スピード×" + SAYAKA_SPD + "）</b>して走り出す。"
+      + "<br>同時に<b>味方全員が貫通タイプに変わり、そのまま全員で総攻撃</b>をかける"
+      + "（貫通はそれぞれが" + SAYAKA_PIERCE_ACTS + "回行動し終えるまで／突撃中の直殴りは<b>×" + RALLY_MUL + "</b>）。"
+      + "反射の味方まで<b>貫通のまま敵の列へ突っこむ</b>ので、"
+      + "<b>チーム全体の手数がそのターンだけ別ものになる</b>。"
+      + "走った味方どうしがふれれば<b>リンクスキルも連鎖</b>する。"
+      + "<br><b>超マインスイーパーEL・超アンチ減速壁</b>の2種持ち。"
+      + "この組み合わせは<b>蓬莱の九重・第六重（火）の必要アンチとぴったり一致</b>するので、"
+      + "<b>属性有利のまま全ギミックを無視して走れる</b>——第六重の最適解。"
+      + "<b>攻撃力チャージM</b>で、1ショットのあいだに<b>味方" + ATKCHARGE_N + "体にふれる</b>と"
+      + "<b>" + ATKCHARGE_N + "体目にふれた味方</b>の攻撃力が1巡のあいだ<b>×" + ATKCHARGE_M_MUL + "</b>になる"
+      + "（なぞる順番がそのまま火力になる）。"
+      + "<b>火属性キラーL</b>と<b>ソウルEL</b>で、削りながらHPも戻す。",
+    fsName: "サーキュレーション", fsKind: "circulation",
+    fsPow: "刃1ヒット 攻撃力×" + CIRC_PER + "（輪の上の" + CIRC_N + "点）＋ <b>まとったプラズマ</b>1ヒット 攻撃力×" + CIRC_PLZ_PER
+      + "（輪の線ぜんぶ・刃より短い間かくで再ヒット）／回転しながらだんだん拡大・多段ヒット",
+    fsDesc: "<b>円形の刃</b>が発生し、<b>回転しながらだんだん大きく広がっていく</b>。"
+      + "輪の上ならどこにふれてもヒットし、<b>同じ敵にも間をおいて何度でも入る</b>多段型。"
+      + "<br>さらに輪は<b>プラズマをまとって</b>いて、刃の点と点のあいだ——<b>輪の線ならどこでも</b>——"
+      + "<b>刃より短い間かくで</b>電撃が入る。"
+      + "<br>フルバーストで味方全員が貫通になったあとは、敵の列を貫きながらこの輪を置いていけるので、"
+      + "<b>盤面を洗いつづける</b>形にはまる",
+  },
+  sayuri: {
+    /* 闇・貫通。星の学園の書道部。墨の一閃で敵の牙を折る。
+       ★ 担当は<b>第九重（光 {slowwall,ward}）</b>＝ 超アンチ減速壁＋アンチ断絶界の<b>2種ちょうど</b>。 */
+    id: "sayuri", nm: "サユリ", img: "Sayuri.webp", th: "t_Sayuri.webp",
+    el: "dark", shot: "pierce", type: "玄墨一閃型", fes: true, fesKey: "starlight", lux: true, nexus: "demolish",
+    connect: "sayuri",
+    hp: [950, 6300], atk: [552, 3490], spd: [306, 458],
+    abil: [{ t: "superaslow" }, { t: "award" },
+           { t: "killerL", el: "light" }, { t: "houraikillerL" }, { t: "combokillerEL" }, { t: "elemresM", el: "light" }],
+    subfs: "starveil",
+    ssName: "ノクス・カリグラフィ", ssTurns: STARLIGHT_TURNS, ssKind: "sayuri",
+    ssPow: "自強化（攻撃×" + SAYURI_ATK + "・スピード×" + SAYURI_SPD + "）＋ <b>敵全体の攻撃力を"
+      + Math.round((1 - SAYURI_ATKDOWN_MUL) * 100) + "%ダウン（" + SAYURI_ATKDOWN_TURNS + "ターン）</b>",
+    ssDesc: "墨の一閃が盤面を横切り、<b>自強化（攻撃×" + SAYURI_ATK + "・スピード×" + SAYURI_SPD + "）</b>して撃ち出す。"
+      + "<br>撃った瞬間、<b>画面上のすべての敵の攻撃力が" + SAYURI_ATKDOWN_TURNS + "ターンのあいだ"
+      + Math.round((1 - SAYURI_ATKDOWN_MUL) * 100) + "%落ちる</b>。"
+      + "削りきれずに1ターン足りない場面を、<b>受けるダメージそのものを減らして</b>耐えきるフルバースト。"
+      + "回復とちがって<b>先に撃っておくほど効く</b>ので、ボスの大技が来る前に合わせたい。"
+      + "<br><b>超アンチ減速壁・アンチ断絶界</b>の2種持ち。"
+      + "この組み合わせは<b>蓬莱の九重・第九重（光）の必要アンチとぴったり一致</b>するので、"
+      + "<b>属性有利のまま全ギミックを無視して走れる</b>——第九重の最適解。"
+      + "<b>光属性キラーL・連撃キラーEL</b>で削りきりながら、"
+      + "<b>光属性耐性M</b>で光の敵からのダメージを" + Math.round(ELEMRES_M_CUT * 100) + "%カットする。"
+      + "第九重の光ボスに対して<b>殴り勝ちながら耐える</b>形になる。",
+    fsName: "超強クイックチャージショット", fsKind: "superchargeshot",
+    fsPow: "チャージ弾 攻撃力×" + SCHG_MUL + " ×" + SCHG_N + "体（同時ロックオン）＋ 着弾ごとに衝撃波 攻撃力×" + SCHG_BOOM_MUL,
+    fsDesc: "クイックチャージショットの上位。<b>" + SCHG_N + "体を同時にロックオン</b>して"
+      + "特大のチャージ弾を撃ちこみ、<b>着弾ごとにさらに衝撃波</b>が広がる。"
+      + "狙いが外れないので、<b>ボスに確実に通したい</b>ときの一撃",
+  },
+  akari: {
+    /* 木・反射。星の学園の園芸部。陽だまりで味方の支度をととのえる。
+       ★ 担当は<b>第二重（水 {dw,slowwall}）</b>＝ 超ADW＋超アンチ減速壁の<b>2種ちょうど</b>。 */
+    id: "akari", nm: "アカリ", img: "Akari.webp", th: "t_Akari.webp",
+    el: "wood", shot: "bounce", type: "翠陽律動型", fes: true, fesKey: "starlight", lux: true, nexus: "charge",
+    connect: "akari",
+    hp: [978, 6470], atk: [528, 3350], spd: [298, 440],
+    abil: [{ t: "superadw" }, { t: "superaslow" },
+           { t: "killerL", el: "water" }, { t: "houraikillerL" }, { t: "fsboostEL" }, { t: "healM" }],
+    subfs: "starveil",
+    ssName: "ヴィリディス・ソレイユ", ssTurns: STARLIGHT_TURNS, ssKind: "akari",
+    ssPow: "自強化（攻撃×" + AKARI_ATK + "・スピード×" + AKARI_SPD + "）＋ <b>味方全員のフルバーストターンを"
+      + AKARI_FB_CUT + "進める</b>",
+    ssDesc: "陽だまりが盤面いっぱいに広がり、<b>自強化（攻撃×" + AKARI_ATK + "・スピード×" + AKARI_SPD + "）</b>して走り出す。"
+      + "<br>同時に<b>味方全員のフルバーストが" + AKARI_FB_CUT + "ターンぶん一気に進む</b>。"
+      + "自分のフルバーストで<b>ほかの3人のフルバーストを呼び寄せる</b>ので、"
+      + "強いフルバーストを持つ味方と組むほど、そのまま火力になる。"
+      + "<br><b>超アンチダメージウォール・超アンチ減速壁</b>の2種持ち。"
+      + "この組み合わせは<b>蓬莱の九重・第二重（水）の必要アンチとぴったり一致</b>するので、"
+      + "<b>属性有利のまま全ギミックを無視して走れる</b>——第二重の最適解。"
+      + "<b>リンクブーストEL</b>で味方に撃たせるリンクが伸び、<b>回復M</b>でチームのHPも戻す。",
+    fsName: "超強オービタルエッジ", fsKind: "superspinring",
+    fsPow: "リング1ヒット 攻撃力×" + SSPIN_MUL + "（超巨大リング" + SSPIN_N + "基・壁で反射・当たり直しも速い）",
+    fsDesc: "オービタルエッジの上位。<b>超巨大なリングが" + SSPIN_N + "基</b>、壁で跳ね返りながら盤面を回り続ける。"
+      + "<b>当たり直しの間隔が短い</b>ので、狭い場所に敵が固まっているほど削り取る",
+  },
+  hinata: {
+    /* 光・貫通。星の学園の陸上部。朝いちばんの光をまっすぐ通す。
+       ★ 担当は<b>第五重（闇 {ward,warp}）</b>＝ アンチ断絶界＋超アンチワープの<b>2種ちょうど</b>。 */
+    id: "hinata", nm: "ヒナタ", img: "Hinata.webp", th: "t_Hinata.webp",
+    el: "light", shot: "pierce", type: "曙光疾走型", fes: true, fesKey: "starlight", lux: true, nexus: "pierce",
+    connect: "hinata",
+    hp: [956, 6330], atk: [545, 3455], spd: [308, 462],
+    abil: [{ t: "award" }, { t: "superaw" },
+           { t: "killerL", el: "dark" }, { t: "houraikillerL" }, { t: "firstkillerM" }, { t: "linkcharge" }],
+    subfs: "starveil",
+    ssName: "ステラ・オーロラ・レイ", ssTurns: STARLIGHT_TURNS, ssKind: "hinata",
+    ssPow: "自強化（攻撃×" + HINATA_ATK + "・スピード×" + HINATA_SPD + "）＋ <b>画面上のすべての敵へ光の柱（1本 攻撃力×"
+      + HINATA_PILLAR_MUL + "・光属性）</b>",
+    ssDesc: "曙のオーロラが立ちのぼり、<b>自強化（攻撃×" + HINATA_ATK + "・スピード×" + HINATA_SPD + "）</b>して撃ち出す。"
+      + "<br>撃った瞬間、<b>画面上のすべての敵の真上から光の柱</b>が落ちる"
+      + "（1本あたり攻撃力×" + HINATA_PILLAR_MUL + "・光属性）。"
+      + "狙いを付けずに<b>取りこぼしなく全体へ</b>入るので、散らばった敵にも、隠れている敵にも同じだけ通る。"
+      + "<br><b>アンチ断絶界・超アンチワープ</b>の2種持ち。"
+      + "この組み合わせは<b>蓬莱の九重・第五重（闇）の必要アンチとぴったり一致</b>するので、"
+      + "<b>属性有利のまま全ギミックを無視して走れる</b>——第五重の最適解。"
+      + "超アンチワープは<b>画面上のワープ1つにつき攻撃・スピードが上がる</b>ので、"
+      + "ワープの多い第五重ではそのまま火力になる。"
+      + "<b>ファーストキラーM</b>と<b>リンクチャージ</b>で、1手目を当てながらフルバーストも回る。",
+    fsName: "超強ルミナスレイ", fsKind: "superluminous",
+    fsPow: "砲台1基のレーザー 攻撃力×" + SLUMI_MUL + "（貫通・最大" + SLUMI_N + "基・レーザーがさらに極太）",
+    fsDesc: "ルミナスレイの上位。設置できる砲台が<b>4基 → " + SLUMI_N + "基</b>に増え、"
+      + "レーザーは<b>威力も当たり判定の太さも大幅に強化</b>（×0.95 → <b>×" + SLUMI_MUL + "</b>）。"
+      + "ふれた味方が止まった瞬間に、<b>盤面をまるごと貫く光の網</b>が走る",
+  },
   mirelle: {
     /* 火・貫通。桜色の焔をまとう舞姫。
        ★ 担当は<b>第八重（木 {dw,mine,grav}）</b>＝ 超ADW＋超マインスイーパーEL＋超アンチ重力バリアで完全対応。 */
@@ -5115,6 +5427,11 @@ const CHAR_IDS = [
      ★ 新キャラは必ず<b>いちばん最後に追記</b>すること（既存の No. がずれないように）。
      ★ xeva.js の MB_CHAR_MASTER も同じ並びにそろえること（並び＝No.）。 */
   "mirelle", "scarlet", "koyuki", "amelia", "mio",
+  /* ★ No.133〜137 2026-08-22 Starlight Academy Fest 限定SSR 5体
+     （オトハ・サヤカ・サユリ・アカリ・ヒナタ）。
+     ★ 新キャラは必ず<b>いちばん最後に追記</b>すること（既存の No. がずれないように）。
+     ★ xeva.js の MB_CHAR_MASTER も同じ並びにそろえること（並び＝No.）。 */
+  "otoha", "sayaka", "sayuri", "akari", "hinata",
 ];
 /* id → キャラクター番号（1始まり）。図鑑・詳細・ガチャ結果に「No.XX」として出す */
 const CHAR_NO = {};
@@ -5246,6 +5563,12 @@ const BATTLE_TYPES = {
      6. どれにも寄っていない …… バランス型
    ★ 新キャラを足したら、必ずここにも1行足すこと（抜けると自動で balance になる）。 */
 const CHAR_TYPE = {
+  /* ── ★★ 2026-08-22 Starlight Academy Fest 限定SSR 5体（No.133〜137） ── */
+  otoha: "cannon",    /* 敵全体の弱点開放＋超強インフィニティレーザー＝味方ごと火力を引き上げる主砲 */
+  sayaka: "trick",    /* 味方全員を貫通化＝盤面の通りかたそのものを変える技巧 */
+  sayuri: "striker",  /* 敵の攻撃力を折ってから連撃キラーELで刈る＝一点突破 */
+  akari: "support",   /* 味方全員のFBを進める＋リンクブーストEL＝チームを回す支援 */
+  hinata: "speed",    /* 最速級のスピードで走り、全敵へ光柱＋ファーストキラーEL */
   /* ── ★ 2026-08-20 GRAND DEBUT GACHA 新SSR 5体（No.128〜132） ── */
   mirelle: "cannon",   /* 全体防御ダウン＋紅蓮メテオ＝盤面ごと落とす主砲 */
   scarlet: "support",  /* 回復＋遅延＋リジェネL＝立て直しの要 */
@@ -5770,8 +6093,24 @@ function killerScore(c) {
      ・奥の部屋ほど ゆるく重く（最大 +50%）
      ・必要なアンチが多い面ほど重く（1種ふえるごとに +35%）
    を掛ける。 */
+/* ★★ 2026-08-22b <b>幽冥の庭園と蓬莱の九重は別格</b>に重くする（ご指定）。
+   ------------------------------------------------------------
+   蓬莱の九重は st.hi しか立てていなかったので、王城EX や迷宮の深層と同じ 3.5 だった。
+   ところが蓬莱はアンチを2〜3種そろえないと入れず、しかも殴りが主役＝
+   「その1体が入れるかどうか」で攻略できるかが決まる、いちばん重いクエスト群。
+   庭園も同じ理由で、ほかの対応力より<b>はっきり高く</b>出るところまで上げる。
+     幽冥の庭園 (st.garden) … 6.0 → <b>18.0</b>
+     蓬莱の九重 (st.hourai) … 3.5 → <b>22.0</b>（アンチ3種の面もあり、最奥）
+     高難易度   (st.hi)     … 3.5（王城EX・迷宮の深層／霊層）
+   ★ st.hourai は st.hi も立てているので、<b>hourai を先に見る</b>こと。
+   ★★ 実測で決めた数字。12／14 では
+     「蓬莱を1つ通せるサユリ（0.0260）」が
+     「王城の序盤を8つ通せるヒナ（0.0284）」に負けていた。
+     ＝ 難所を1つ抜ける子より、やさしい面をたくさん拾う子のほうが高く出ていた。
+     18／22 まで上げると逆転する。<b>ここは必ず実測で確かめること</b>——
+     クエストが増えると分母（全クエストの重みの合計）が動くため。 */
 function stageWeight(st, needN) {
-  let w = st.garden ? 6 : st.hi ? 3.5 : st.raid ? 2.5 : st.lab ? 1.8 : 1;
+  let w = st.hourai ? 22 : st.garden ? 18 : st.hi ? 3.5 : st.raid ? 2.5 : st.lab ? 1.8 : 1;
   w *= 1 + Math.min(1, (st.room || 1) / 25) * 0.5;
   w *= 1 + Math.max(0, (needN || 1) - 1) * 0.35;
   return w;
@@ -5793,18 +6132,23 @@ function questCoverStat(c) {
     typeof HOURAI_STAGES !== "undefined" ? HOURAI_STAGES : []);
   const mine = charAntiKeys(c.id);
   let n = 0, total = 0, hardN = 0, hardTotal = 0, got = 0, sum = 0;
+  /* ★ 2026-08-22b 幽冥の庭園・蓬莱の九重だけの内わけ（評価でいちばん重く見ている2系統） */
+  let topN = 0, topTotal = 0;
   const list = [];
   all.forEach((st) => {
     const keys = counterKeysOf(st);
     if (!keys.length) return;                       // ギミックが無い面は数えない
     const w = stageWeight(st, keys.length);
-    const hard = !!(st.garden || st.hi);
-    total++; sum += w; if (hard) hardTotal++;
+    /* ★ 2026-08-22b 蓬莱も「高難易度」に数える（st.hi は立っているが、意図を残す） */
+    const hard = !!(st.garden || st.hourai || st.hi);
+    const top = !!(st.garden || st.hourai);
+    total++; sum += w; if (hard) hardTotal++; if (top) topTotal++;
     if (keys.every((k) => mine.indexOf(k) >= 0)) {
-      n++; got += w; if (hard) hardN++; list.push(st.nm || st.id);
+      n++; got += w; if (hard) hardN++; if (top) topN++; list.push(st.nm || st.id);
     }
   });
-  return { n: n, total: total, hardN: hardN, hardTotal: hardTotal, rate: sum ? got / sum : 0, list: list };
+  return { n: n, total: total, hardN: hardN, hardTotal: hardTotal,
+           topN: topN, topTotal: topTotal, rate: sum ? got / sum : 0, list: list };
 }
 /* 名前の一覧だけ欲しいとき（既存の呼び出しをそのまま生かす） */
 function questCoverList(c) { return questCoverStat(c).list; }
@@ -5812,18 +6156,33 @@ function questCoverList(c) { return questCoverStat(c).list; }
    ぜんぶのクエストを1人で通せる子はほとんどいないので、
    割合をそのまま 0〜100 にすると全員のバーが短くなって見分けがつかない。
    こうげき・たいりょく・スピードが statMinMax() で相対評価しているのと同じそろえ方。 */
+/* ★★ 2026-08-22b 割合をそのまま伸ばすと、バーが<b>ほぼ全員 20 付近</b>につぶれる。
+   ------------------------------------------------------------
+   実測（137体）: 最大 0.54（オムニアンチ持ち）に対して<b>中央値は 0.05</b>。
+   分布がここまで片寄っていると、線形に 20〜100 へ写しても
+   上位のごく数体だけが伸びて、残りは全部いちばん下に固まってしまう。
+   ★ 平方根を通してから写す。低いところが広がるので、
+     「1つも通せない子」「1つ通せる子」「庭園まで通せる子」の差が読めるようになる。
+   ★ 順番は変わらない（単調な変換なので、強い子ほど高いのはそのまま）。 */
+function coverCurve(r) { return Math.sqrt(Math.max(0, r || 0)); }
 let _coverMinMax = null;
 function coverMinMax() {
   if (_coverMinMax) return _coverMinMax;
-  const rs = Object.keys(CHARS).map((id) => questCoverStat(CHARS[id]).rate);
+  const rs = Object.keys(CHARS).map((id) => coverCurve(questCoverStat(CHARS[id]).rate));
   _coverMinMax = [Math.min(...rs), Math.max(...rs)];
   return _coverMinMax;
 }
+/* ★★ 2026-08-22b 点数は<b>小数第一位まで</b>出す（ご指定）。
+   整数に丸めていたころは、キャラが増えるほど同じ点の子が並んで
+   「どっちが上か」が読めなくなっていた（対応力はとくに差が小さい）。
+   ★ 表示だけでなく<b>計算そのもの</b>を小数で持つこと。
+     丸めてから平均すると、総合力の小数がまた嘘になる。 */
+function r1(v) { return Math.round(v * 10) / 10; }
 function charPower(id) {
   const c = CHARS[id], mm = statMinMax(), s = statsOf(id, MAX_LV, MAX_AWK);
   /* ★ 2026-08-17 分母のガードを Math.max(1,…) から「0でなければそのまま」に。
      対応力は 0〜1 の小数なので、1 で割られると差がぜんぶ潰れてしまう。 */
-  const scale = (v, r) => Math.round(clamp((v - r[0]) / ((r[1] - r[0]) || 1) * 78 + 20, 20, 100));
+  const scale = (v, r) => r1(clamp((v - r[0]) / ((r[1] - r[0]) || 1) * 78 + 20, 20, 100));
   const abilN = (c.abil || []).length;
   const ks = killerScore(c);
   const qs = questCoverStat(c);
@@ -5832,31 +6191,34 @@ function charPower(id) {
     hp: scale(s.hp, mm.hp),
     spd: scale(s.spd, mm.spd),
     /* フルバーストは「必要ターンが少ないほど強い」ので反転 */
-    ss: Math.round(clamp((mm.ss[1] - c.ssTurns) / Math.max(1, mm.ss[1] - mm.ss[0]) * 78 + 20, 20, 100)),
+    ss: r1(clamp((mm.ss[1] - c.ssTurns) / Math.max(1, mm.ss[1] - mm.ss[0]) * 78 + 20, 20, 100)),
     /* スキル＝アビリティの数（半分）＋キラーの数と等級（半分） */
-    skill: Math.round(clamp(abilN / 6 * 40 + ks.score / 5 * 40 + 20, 20, 100)),
+    skill: r1(clamp(abilN / 6 * 40 + ks.score / 5 * 40 + 20, 20, 100)),
     /* 対応力＝アンチが足りているクエストの割合。
        ★ 数ではなく「むずかしさで重み付けした割合」なので、
          庭園を1つ通せるほうが、序盤を5つ通せるより高く出る。 */
-    cover: scale(qs.rate, coverMinMax()),
+    cover: scale(coverCurve(qs.rate), coverMinMax()),
   };
 }
 const POWER_LABELS = { atk: "こうげき", hp: "たいりょく", spd: "スピード", ss: "FB発動の速さ", skill: "スキル・キラー", cover: "クエスト対応力" };
 const POWER_COLORS = { atk: "#ff5d47", hp: "#2fbf71", spd: "#38a6ff", ss: "#f0b429", skill: "#c46bff", cover: "#20c9c9" };
-/* 5段階の星（合計から算出） */
-function powerStars(p) {
+/* ★★ 2026-08-22b 総合力も<b>小数第一位まで</b>。
+   powerScore() … 6項目の平均を 0〜5 に直したもの（1.0〜5.0）。表示はこれ。
+   powerStars() … 光らせる星の数（切り上げないと 4.9 で4つしか光らない）。 */
+function powerScore(p) {
   const ks = Object.keys(POWER_LABELS);
   const avg = ks.reduce((a, k) => a + (p[k] || 0), 0) / ks.length;
-  return clamp(Math.round(avg / 20), 1, 5);
+  return Math.round(clamp(avg / 20, 1, 5) * 10) / 10;
 }
+function powerStars(p) { return clamp(Math.round(powerScore(p)), 1, 5); }
 /* 強さアニメーションのHTML（ゲージが伸びる＋星が光る）。uniqはID衝突回避用 */
 function strengthBarsHTML(id, uniq) {
-  const p = charPower(id), stars = powerStars(p);
+  const p = charPower(id), stars = powerStars(p), score = powerScore(p);
   const keys = Object.keys(POWER_LABELS);
   const rows = keys.map((k, i) => {
     const c = POWER_COLORS[k];
     return `<div class="pw-row ${i === keys.length - 1 ? "wide" : ""}">
-      <div class="pw-top"><span class="pw-lbl">${POWER_LABELS[k]}</span><span class="pw-num" style="color:${c}">${p[k]}</span></div>
+      <div class="pw-top"><span class="pw-lbl">${POWER_LABELS[k]}</span><span class="pw-num" style="color:${c}">${(p[k]).toFixed(1)}</span></div>
       <div class="pw-track"><i class="pw-fill" style="--pw:${p[k]}%;background:linear-gradient(90deg,${c}aa,${c});animation-delay:${i * 80}ms"></i></div>
     </div>`;
   }).join("");
@@ -5866,8 +6228,11 @@ function strengthBarsHTML(id, uniq) {
   const ks = killerScore(CHARS[id]);
   const qs = questCoverStat(CHARS[id]);
   return `<div class="pw-wrap" data-uniq="${uniq || ""}">
-    <div class="pw-stars">${starHTML}<span class="pw-rank">総合力 ${stars}.0</span></div>
-    <div class="pw-facts">キラー <b>${ks.n}</b> 種 ・ アンチが足りているクエスト <b>${qs.n}</b> / ${qs.total}<span class="pwh"> （高難易度 <b>${qs.hardN}</b> / ${qs.hardTotal}）</span></div>
+    <div class="pw-stars">${starHTML}<span class="pw-rank">総合力 ${score.toFixed(1)}</span></div>
+    <div class="pw-facts">キラー <b>${ks.n}</b> 種 ・ アンチが足りているクエスト <b>${qs.n}</b> / ${qs.total}<span class="pwh"> （高難易度 <b>${qs.hardN}</b> / ${qs.hardTotal}${
+      /* ★★ 2026-08-22b 幽冥の庭園・蓬莱の九重は評価でいちばん重く見ているので、
+         その内わけをここに出す。数字が高い理由が読めるようにするため。 */
+      (qs.topN ? " ／ 庭園・蓬莱 <b>" + qs.topN + "</b> / " + qs.topTotal : "")}）</span></div>
     <div class="pw-grid">${rows}</div>
   </div>`;
 }
@@ -6351,6 +6716,36 @@ function drawSubGlyph(kind, c, g) {
         ctx.beginPath(); ctx.arc(q[0], q[1], 1.5 - i * 0.25, 0, Math.PI * 2); ctx.fill();
       });
       ctx.lineWidth = 2; break;
+    case "starveil": {   /* ★★ 2026-08-22 スターライト・ヴェール（五芒星の帯＋5本のレイが2回転） */
+      /* 五芒星（頂点を2つ飛ばしに結ぶ一筆書き） */
+      ctx.lineWidth = 1.7; ctx.globalAlpha = .55;
+      ctx.beginPath();
+      for (let k = 0; k <= 5; k++) {
+        const ang = (Math.PI * 2 / 5) * ((k * 2) % 5) - Math.PI / 2;
+        const x = Math.cos(ang) * 8.6, y = Math.sin(ang) * 8.6;
+        if (k === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.closePath(); ctx.stroke(); ctx.globalAlpha = 1;
+      /* 5本のレイ（星の頂点から外へ） */
+      ctx.lineWidth = 2.1;
+      for (let k = 0; k < 5; k++) {
+        const ang = (Math.PI * 2 / 5) * k - Math.PI / 2;
+        ctx.beginPath();
+        ctx.moveTo(Math.cos(ang) * 3.0, Math.sin(ang) * 3.0);
+        ctx.lineTo(Math.cos(ang) * 11.4, Math.sin(ang) * 11.4);
+        ctx.stroke();
+      }
+      /* 2回転を示す二重の弧＋矢じり */
+      ctx.lineWidth = 1.3; ctx.globalAlpha = .5;
+      ctx.beginPath(); ctx.arc(0, 0, 6.2, -2.6, 1.4); ctx.stroke();
+      ctx.beginPath(); ctx.arc(0, 0, 4.4, -2.2, 1.8); ctx.stroke();
+      ctx.globalAlpha = 1;
+      ctx.lineWidth = 1.6;
+      ctx.beginPath(); ctx.moveTo(4.2, -4.9); ctx.lineTo(6.9, -4.4); ctx.lineTo(5.4, -2.2); ctx.stroke();
+      /* 中心の星芯 */
+      ctx.beginPath(); ctx.arc(0, 0, 2.4, 0, Math.PI * 2); ctx.fillStyle = "#fff"; ctx.fill(); ctx.fillStyle = c;
+      ctx.lineWidth = 2; break;
+    }
     case "absoluteray":   /* ★ v14.1 アブソリュートレイ10（中心から伸びる長さちがいのレイが1回転） */
       /* 回転を表す弧 */
       ctx.beginPath(); ctx.arc(0, 0, 9.6, -2.5, 1.6);
@@ -8745,6 +9140,11 @@ GARDEN_STAGES.forEach((st, i) => {
     if (d && !d.boss && d.atk) d.atk = Math.max(1, Math.round(d.atk * GARDEN_MOB_EASE));
   }));
 });
+/* ★★ 2026-08-22b 蓬莱の九重は<b>殴りが主役</b>のクエスト（黄昏の王城 第29・30の間と同じ）。
+   リンクスキルを半分にするかわりに直殴りを2倍にする＝
+   「リンクをつなげる位置」ではなく「弱点をどう殴るか」を読む場所にする。 */
+const HOURAI_FS_MUL = 0.5;
+const HOURAI_MELEE_MUL = 2.0;
 const HOURAI_N = 10;                       // 第一重〜第九重＋蓬莱天宮
 const HOURAI_ORB = 20;                     // 初クリアのジェム
 const HOURAI_KANJI = ["一", "二", "三", "四", "五", "六", "七", "八", "九"];
@@ -8953,6 +9353,12 @@ function houraiStage(k) {
     gim: gimByWave[0], blocks: [], ghost: [], swap: [],
     gimByWave, waves,
     special: sp,
+    /* ★★ 2026-08-22b 黄昏の王城 第29・30の間と同じ「殴りが主役」のクエストにする（ご指定）。
+       リンクスキルのダメージが×0.5 になるかわりに、直殴り（体当たり）が×2.0。
+       ★ 効かせているのは questFsMul() / questMeleeMul()（index.html）で、
+         どちらも B.stage の値をそのまま読む＝ここに書くだけで全10クエストに効く。
+       ★ クエスト一覧のバッジ（⚔ 殴り×2 ／ リンク×0.5）も s.fsMul を見て自動で出る。 */
+    fsMul: HOURAI_FS_MUL, meleeMul: HOURAI_MELEE_MUL,
   };
 }
 const HOURAI_STAGES = Array.from({ length: HOURAI_N }, (_, k) => houraiStage(k + 1));
@@ -9513,6 +9919,37 @@ FESTS.fes4 = {
     + SEIRA_BARRAGE_N + "連＝合計×" + (SEIRA_BARRAGE_N * SEIRA_BARRAGE_PER).toFixed(1)
     + "）と新サブリンク<b>ピアスシーカー" + PSEEKER20_N + "</b>を持つ蒼夏祭の大トリです。",
 };
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-08-22 Starlight Academy Fest（星の学園フェス）
+   ------------------------------------------------------------
+   ・限定SSR 5体（オトハ・サヤカ・サユリ・アカリ・ヒナタ）。
+   ・<b>キャラの排出はノクターンブルームフェスなどと同じ</b>
+     （限定SSR 合計10%を等分・ピックアップなし／プレミアムSSRも合計5%／SR 50%）。
+   ・<b>アイテム枠の中身と確率だけ GRAND DEBUT GACHA と同じ</b>にする（ご指定）＝ D_ITEM_TABLE。
+     ふつうのフェスは G_ITEM_TABLE（🎫フェス券・叡智の果実1個 が主体）だが、
+     こちらは 叡智の果実3個/5個束・📕超越の書・🎖️英傑の証 が厚く、
+     🪭九天の玉簡・📘クロスの書 が極低確率で出る。
+   ★ itemTable を書いたフェスだけ、その表で引く（fesRollOnce が見る）。
+     書かなければ従来どおり G_ITEM_TABLE なので、既存のフェスは1つも変わらない。
+   ★ 🎫<b>フェスチケットは使える</b>（これはフェスガチャなので）。
+     GRAND DEBUT はフェス券が使えなかったが、それは「フェスではないから」であって
+     アイテム枠の話とは別もの。
+   ══════════════════════════════════════════════════════════════ */
+FESTS.fes5 = {
+  key: "fes5", sfx: "5", nm: "Starlight Academy Fest", tab: "Starlight<br>Academy Fest",
+  banner: "../img/bn_fes5_s.webp", c: "#f0b429", leadCls: "star",
+  chars: ["otoha", "sayaka", "sayuri", "akari", "hinata"],
+  itemTable: D_ITEM_TABLE,
+  lead: "星の学園の限定SSR <b>5体</b>（合計10%・ピックアップなし）に加えて、<b>" + PREMIUM_NM + "のSSRも合計5%で排出</b>",
+  sub: "星の学園の限定SSR <b>5体</b>（合計10%・ピックアップなし）＋ <b>プレミアムSSRも合計5%で排出</b>。"
+    + "キャラ以外の中身は <b>GRAND DEBUT GACHA と同じ</b>（叡智の果実3個・5個束／📕超越の書／🎖️英傑の証 が厚め）",
+  note: "<b>オトハ・サヤカ・サユリ・アカリ・ヒナタ</b>の5体が登場。"
+    + "全員が<b>アンチギミックをちょうど2種</b>持ち、その2種が"
+    + "<b>自分が有利属性になる🏯蓬莱の九重のクエストの必要アンチとぴったり一致</b>します"
+    + "（第三重／第六重／第九重／第二重／第五重）。"
+    + "さらに全員が<b>蓬莱族キラーL</b>と<b>クロススキル</b>、"
+    + "そして共通サブリンク<b>スターライト・ヴェール</b>を持つ、蓬莱攻略のためのフェスです。",
+};
 const FES_KEYS = Object.keys(FESTS);
 function fesDef(key) { return FESTS[key] || FESTS.fes; }
 function isFesMode(m) { return !!FESTS[m]; }
@@ -9531,7 +9968,7 @@ function fesOpenText(f) { return openTimeText(f && f.openAt); }
 function mbImgPath(p) { return String(p || "").replace(/^\.\.\/img\//, GIMGD); }
 function fesBannerOf(key) { const f = fesDef(key); return mbImgPath((fesLocked(key) && f.bannerSoon) || f.banner); }
 /* そのキャラが属するフェス（fesKey 未指定のキャラは v14 の Nocturne Bloom Fest 扱い） */
-const FESKEY_MAP = { luminous: "fes2", phantom: "fes3", aoka: "fes4" };
+const FESKEY_MAP = { luminous: "fes2", phantom: "fes3", aoka: "fes4", starlight: "fes5" };
 function fesKeyOf(id) { const c = CHARS[id]; return c && c.fes ? (FESKEY_MAP[c.fesKey] || "fes") : null; }
 function fesNameOf(id) { const k = fesKeyOf(id); return k ? fesDef(k).nm : ""; }
 const FES_ALL_CHARS = FES_KEYS.reduce((a, k) => a.concat(FESTS[k].chars), []);
@@ -9723,8 +10160,12 @@ function charFitQuests(id) {
     const adv = elemMult(c.el, boss.el) > 1;
     /* 全ギミックを消せることを最優先、次に属性有利、最後に難易度（＝奥のクエストほど価値が高い） */
     const full = keys.length > 0 && cover === keys.length;
-    /* 難しいクエストほど「適性が活きる」ので、部屋番号の重みを大きくとる */
-    return { s, keys, cover, adv, full, score: (full ? 2000 : cover * 300) + (adv ? 150 : 0) + (s.room || 0) * 20 };
+    /* 難しいクエストほど「適性が活きる」ので、部屋番号の重みを大きくとる
+       ★★ 2026-08-22b 幽冥の庭園・蓬莱の九重は<b>別格</b>として上に出す（ご指定）。
+         部屋番号だけで並べると、蓬莱は room が 1〜10 しかないので
+         王城の第30の間（room 30）より下に沈んでしまっていた。 */
+    const top = s.hourai ? 900 : s.garden ? 700 : 0;
+    return { s, keys, cover, adv, full, score: (full ? 2000 : cover * 300) + (adv ? 150 : 0) + top + (s.room || 0) * 20 };
   }).filter((x) => x.cover > 0 || x.adv);
   scored.sort((a, b) => b.score - a.score);
   /* ★ v12.2: シリーズごとに最大2件・合計6件まで見せる（適性が分かりやすいように件数を増やした） */
@@ -9748,6 +10189,62 @@ function charFitQuests(id) {
   });
   return out;
 }
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-08-22b みんなのクリア編成に「そのキャラ」が入っているクエスト
+   ------------------------------------------------------------
+   適性クエストは「アンチが足りているか」だけで選んでいるので、
+   <b>実際にそのクエストを抜けた人がその子を使っているか</b>は出てこなかった。
+   clearparty（全ユーザー共有）を1回だけ丸ごと読んで
+     { キャラid: { クエストid: 人数 } }
+   の索引を作り、適性クエストの行に印を付ける。
+
+   ★ 読むのは<b>1回だけ</b>（5分キャッシュ）。詳細を開くたびに取りに行かない。
+   ★ 通信できないときは<b>何も出さない</b>（印が付かないだけで、表示は壊れない）。
+   ★ MagiBurst と XEVARION（ガチャ・図鑑）は同じ mb-core.js を読むので、ここに置けば両方で効く。
+   ══════════════════════════════════════════════════════════════ */
+const MB_SHARE_FB = "https://magiburst-default-rtdb.asia-southeast1.firebasedatabase.app";
+let _shareIdx = null, _shareIdxAt = 0, _shareIdxRun = null;
+function shareCharIndex() {
+  if (_shareIdx && Date.now() - _shareIdxAt < 300000) return Promise.resolve(_shareIdx);
+  if (_shareIdxRun) return _shareIdxRun;
+  _shareIdxRun = fetch(MB_SHARE_FB + "/clearparty.json", { cache: "no-store" })
+    .then((r) => (r.ok ? r.json() : null))
+    .then((d) => {
+      const idx = {};
+      if (d && typeof d === "object") {
+        Object.keys(d).forEach((sid) => {
+          const per = d[sid];
+          if (!per || typeof per !== "object") return;
+          Object.keys(per).forEach((uid) => {
+            const rec = per[uid];
+            if (!rec || !Array.isArray(rec.ids)) return;
+            rec.ids.forEach((cid) => {
+              if (!cid) return;
+              (idx[cid] || (idx[cid] = {}))[sid] = ((idx[cid] || {})[sid] || 0) + 1;
+            });
+          });
+        });
+      }
+      _shareIdx = idx; _shareIdxAt = Date.now(); _shareIdxRun = null;
+      return idx;
+    })
+    .catch(() => { _shareIdxRun = null; return _shareIdx || {}; });
+  return _shareIdxRun;
+}
+window.shareCharIndex = shareCharIndex;
+/* 適性クエストの行に印を付ける（描いたあとから、非同期で足す） */
+function paintFitShareMarks(id) {
+  shareCharIndex().then((idx) => {
+    const per = idx && idx[id];
+    if (!per) return;
+    document.querySelectorAll('.evalwrap[data-cid="' + id + '"] .evqr[data-sid]').forEach((el) => {
+      const n = per[el.getAttribute("data-sid")];
+      if (!n) return;
+      const b = el.querySelector(".evqu");
+      if (b) { b.style.display = ""; b.title = "この子を入れてこのクエストを抜けた人が " + n + " 人います"; }
+    });
+  }).catch(() => {});
+}
 /* ★ v12.3: 評価は「適性クエスト（理由つき・最大6件）」だけ。強みタグは廃止 */
 function evalHTML(id) {
   const list = charFitQuests(id);
@@ -9759,14 +10256,29 @@ function evalHTML(id) {
     if (x.adv) t.push("属性有利×1.25");
     return t.join(" / ");
   };
-  return `<div class="evalwrap">
+  /* ★★ 2026-08-22b 「みんなのクリア編成」に入っている行に印を付ける。
+     印そのものは非同期（paintFitShareMarks）で出すので、まず display:none で置いておく。
+     見た目は<b>直書き</b>にしてある——MagiBurst と XEVARION で CSS ファイルが別なので、
+     どちらかに書くと片方だけ印が出ない。 */
+  const MARK = '<i class="evqu" style="display:none;font-style:normal;font-size:9.5px;font-weight:900;'
+    + 'margin-left:6px;padding:1px 6px;border-radius:99px;white-space:nowrap;'
+    + 'background:rgba(45,190,150,.18);color:#12a07a;border:1px solid rgba(45,190,150,.45)">🌍 みんなの編成</i>';
+  return `<div class="evalwrap" data-cid="${id}">
     <div class="evrow col"><span class="evh">🎯 適性クエスト</span>
-      ${list.length ? `<div class="evql">${list.map((x) => `<div class="evqr ${x.full ? "full" : ""}">
-        <span class="evqn">${x.s.nm}<i>${x.s.diff}</i></span><span class="evqw">${why(x)}</span></div>`).join("")}</div>`
+      ${list.length ? `<div class="evql">${list.map((x) => `<div class="evqr ${x.full ? "full" : ""}" data-sid="${x.s.id}">
+        <span class="evqn">${x.s.nm}<i>${x.s.diff}</i>${MARK}</span><span class="evqw">${why(x)}</span></div>`).join("")}</div>`
         : '<div class="evql"><div class="evqr"><span class="evqn">属性有利をとれるクエスト</span><span class="evqw">火力で押すタイプ</span></div></div>'}
     </div>
   </div>`;
 }
+/* 適性クエストを描いたら、そのあとで「みんなの編成」の印を足す。
+   ★ evalHTML は文字列を返すだけなので、DOM に入るのを待ってから呼ぶ。 */
+function evalHTMLWithMarks(id) {
+  const h = evalHTML(id);
+  setTimeout(() => { try { paintFitShareMarks(id); } catch (e) {} }, 60);
+  return h;
+}
+window.evalHTMLWithMarks = evalHTMLWithMarks;
 function charStrengths(id, isCross) {
   const c = CHARS[id], isPick = isCross ? curPickupX() === id : curPickup() === id;
   const rate = isMaxAwk(id) ? "限界突破MAXのため排出対象外👑"
@@ -9774,7 +10286,7 @@ function charStrengths(id, isCross) {
     : (isPick && pickupRate() > 0 ? ratePct(PICK_RATE) + "（ピックアップ中！）" : ratePct(otherRate()));
   return `<b>SSR「${c.nm}」の強み</b>（${ELEM[c.el].nm}属性・${c.shot === "pierce" ? "貫通" : "反射"}・${c.type}）
     ${strengthBarsHTML(id, (isCross ? "x_" : "p_") + id)}
-    ${evalHTML(id)}
+    ${evalHTMLWithMarks(id)}
     ・アビリティ: ${sortedAbil(c).map(abilName).join("／")}<br>
     ・フルバースト「${c.ssName}」（${c.ssTurns}ターン）: <b style="color:#d97800">${c.ssPow}</b><br>
     ・リンク「${c.fsName}」: <b style="color:#1d78d8">${c.fsPow}</b>／サブリンク「${SUBFS[c.subfs].nm}」<br>
@@ -9919,6 +10431,9 @@ function crossPts(id) { const g = xgLoad(); return g.points[crossPtKey(id)] || 0
 function paintGacha() {
   initGachaMode();    /* ★ 2026-08-11 最初の1回だけ「いちばん新しいキャラがいるガチャ」を選ぶ */
   syncCrossChars();   // XEVAガチャ/MagiLexでの入手・限界突破を反映してから描画
+  /* ★★ 2026-08-22b えらばずに閉じた BLACK SELECT があれば、ここで出しなおす。
+     「引いたのに何ももらえなかった」を作らないための保険。 */
+  try { if (DB.luxSel && !document.getElementById("luxSelOv")) setTimeout(luxResume, 300); } catch (e) {}
   /* ★ 2026-08-10 ガチャ画面は XEVARION（gacha.html）へ一本化した。
      MagiBurst 側にはもうバナーも回すボタンも無いので、<b>描くものが無ければ何もせず帰る</b>。
      ★ ここを素通りさせていたのが「ジェムだけ減ってキャラが出ない」不具合の正体だった。
@@ -10055,8 +10570,12 @@ function fesRollOnce(key) {
   /* SR枠（合計50%・23体で等分） */
   const s4 = STAR4_POOL.length ? 0.50 / STAR4_POOL.length : 0;
   for (const s of STAR4_POOL) { if (r < s4) return grantChar(s); r -= s4; }
-  /* 残り35%＝育成アイテム（★ 2026-08-10 ゴールドは廃止した） */
-  return rollGachaItem(Math.random() * 0.35);
+  /* 残り35%＝育成アイテム（★ 2026-08-10 ゴールドは廃止した）
+     ★★ 2026-08-22 フェスに itemTable が書いてあれば、その表で引く。
+       Starlight Academy Fest だけ GRAND DEBUT と同じ中身にする、というご指定のため。
+       書いていないフェスは undefined が渡り、rollGachaItem が G_ITEM_TABLE に落とす
+       ＝ <b>既存のフェスの中身は1つも変わらない</b>。 */
+  return rollGachaItem(Math.random() * 0.35, fesDef(key).itemTable);
 }
 /* ★ v15 フェスガチャ 10連のSSR確定枠の排出対象。
    通常抽選（fesRollOnce）は「そのフェスの限定SSR」しか出さないが、
@@ -10131,12 +10650,20 @@ function doFesGacha(n, key) {
   const pay = payGacha(n, true);      /* フェス券 → ガチャ券 → ジェム の順 */
   if (!pay) return;
   DB.pulls = (DB.pulls || 0) + n; missionTick("pull", n);   /* ★ 2026-08-05 ミッション（ガチャを引く） */
+  const payTx0 = gachaPayText(pay);
+  const nm0 = fesDef(key).nm;
+  /* ★★ 2026-08-22b 特別演出（10連のみ・超低確率） */
+  const lux = luxRoll(n);
+  if (lux === "allssr") { revealGacha(luxAllSSR(fesSurePool(key)), nm0 + " 10連結果！" + payTx0); return; }
   const results = [];
   const normal = n === 10 ? 9 : n;
-  for (let i = 0; i < normal; i++) results.push(fesRollOnce(key));
+  const blk = lux === "black" ? luxSelectSlot(fesSurePool(key)) : null;
+  const blkIdx = blk ? Math.floor(Math.random() * normal) : -1;
+  if (blk) luxSaveSel(blk.pool, nm0);
+  for (let i = 0; i < normal; i++) results.push(i === blkIdx ? blk : fesRollOnce(key));
   if (n === 10) { const g = fesGuaranteedS5(key); g.sure = true; results.push(g); }
-  const payTx = gachaPayText(pay);
-  const nm = fesDef(key).nm;
+  const payTx = payTx0;
+  const nm = nm0;
   revealGacha(results, nm + (n === 10 ? " 10連結果！" : n === 5 ? " 5連結果！" : " 結果！") + payTx);
 }
 window.doFesGacha = doFesGacha;
@@ -10181,6 +10708,15 @@ function gachaCellHTML(r, i, willRankUp) {
       ${r.sure ? '<span class="gsure">SSR 確定</span>' : ""}
       <img src="${c.th}" alt="${c.nm}"><div class="gn"><b class="gnm">${charNoText(r.id)} ${s5 ? "SSR" : "SR"} ${c.nm}</b><i class="gst">${r.max ? "→G8,000" : r.fullAwk ? "👑限界突破MAX!!" : r.awk ? "覚醒+" + r.awk : "NEW!"}</i></div></div>`;
   }
+  /* ★★ 2026-08-22b BLACK SELECT（豪華な黒のプレート）。
+     開けると「そのガチャで出るSSR全員」から好きな1体をえらべる。 */
+  if (r.type === "select") {
+    luxEnsureCSS();
+    return `<div class="gm chr veiled s5 luxblk">
+      ${cov("SSR", "blk")}
+      <div class="gg">✦</div>
+      <div class="gn"><b class="gnm">SSR セレクト</b><i class="gst">好きな1体をえらぶ</i></div></div>`;
+  }
   /* ★ 2026-08-10 ガチャの中身を刷新（ゴールド廃止 → 育成アイテム） */
   if (r.type === "item") {
     const it = ITEMS[r.item] || { nm: r.item, icon: "◆", c: "#8affc4" };
@@ -10214,7 +10750,9 @@ function _revAt(ms, fn) { _revTimers.push(setTimeout(fn, ms)); }
                        プレートを押せばその枠、それ以外を押せば「次の1枠」が開く。
           "done"    … 演出おわり
    order/opened … "one" のときに使う。開ける順番（確定枠はいちばん最後）と、開け終わった枠。 */
-let _rev = { phase: "done", go: null, startOne: null, order: [], opened: null, covs: [], cells: [], sureIdx: -1 };
+let _rev = { phase: "done", go: null, startOne: null, order: [], opened: null, covs: [], cells: [], sureIdx: -1,
+             /* ★ 2026-08-22b up＝開けたときに昇格する枠 ／ results＝結果そのもの（SSRセレクトで使う） */
+             up: null, results: [] };
 /* 画面タップ: 星の表示中なら結果公開へ進み、公開アニメ中なら最後まで飛ばす */
 /* プレートを開ける＝「星が結果に変わる」演出。
    ★ v14.4 ここが以前の不具合の元だった:
@@ -10269,6 +10807,39 @@ function _revPaintProgress() {
 function _revOpenIdx(i) {
   if (!_rev.opened || _rev.opened.has(i)) return;
   const el = _rev.covs[i]; if (!el) return;
+  /* ══ ★★ 2026-08-22b 昇格は<b>この枠を開けたその瞬間</b>に起こす ══
+     SRのプレートが割れる寸前で虹に染まり、リングが3重に走り、
+     「RANK UP!!」が浮き上がってから中身が出る。
+     ★ ここで return せずに<b>いったん処理を止め</b>、昇格が終わってから
+       通常の開封に入る（opened に入れるのも昇格が終わってから）。
+       先に opened へ入れると、演出の途中でタップしたときに枠が飛ばされる。 */
+  if (_rev.up && _rev.up.has(i) && !el._ranked) {
+    el._ranked = 1;
+    _rev.up.delete(i);
+    luxEnsureCSS();
+    el.classList.add("lux-up", "s5");
+    const st = el.querySelector(".gcst"); if (st) st.textContent = "SSR";
+    const cell = _rev.cells[i];
+    if (cell) {
+      cell.classList.add("lux-upcell");
+      for (let k = 0; k < 3; k++) {
+        const ring = document.createElement("i");
+        ring.className = "lux-ring";
+        ring.style.animationDelay = (k * 130) + "ms";
+        cell.appendChild(ring);
+        setTimeout(() => { if (ring.parentNode) ring.parentNode.removeChild(ring); }, 1200 + k * 130);
+      }
+      const tx = document.createElement("i");
+      tx.className = "lux-uptx"; tx.textContent = "RANK UP!!";
+      cell.appendChild(tx);
+      setTimeout(() => { if (tx.parentNode) tx.parentNode.removeChild(tx); }, 1250);
+    }
+    luxFlash("rank");
+    SFX.crit(); _revAt(220, () => SFX.ss());
+    /* 昇格を見せきってから中身を開ける */
+    _revAt(1000, () => { el.classList.remove("lux-up"); _revOpenIdx(i); });
+    return;
+  }
   _rev.opened.add(i);
   if (i === _rev.sureIdx) {
     el.classList.add("burst");
@@ -10280,6 +10851,22 @@ function _revOpenIdx(i) {
   } else {
     _revOpen(el);
     SFX.hit();
+  }
+  /* ★★ 2026-08-22b BLACK SELECT の枠を開けたら、そのままえらぶシートを出す */
+  const _r = (_rev.results || [])[i];
+  if (_r && _r.type === "select" && !_r.picked) {
+    luxFlash("black");
+    const cellB = _rev.cells[i];
+    _revAt(320, () => luxOpenSelect(_r.pool, (id, got) => {
+      _r.picked = id || 1;
+      if (id && cellB) {
+        const c = CHARS[id];
+        cellB.className = "gm chr s5 reveal";
+        cellB.innerHTML = `<img src="${c.th}" alt="${c.nm}"><div class="gn"><b class="gnm">${charNoText(id)} SSR ${c.nm}</b>`
+          + `<i class="gst">${got && got.max ? "→G8,000" : got && got.fullAwk ? "👑限界突破MAX!!" : got && got.awk ? "覚醒+" + got.awk : "NEW!"}</i></div>`;
+      }
+      try { renderChars(); } catch (e) {}
+    }));
   }
   if (_revRemaining().length) { _revPaintProgress(); return; }
   /* 全部あけ終わった */
@@ -10328,11 +10915,318 @@ function skipGachaReveal() {
   const lead = $("#gRevLead"); if (lead) { lead.classList.remove("up"); lead.textContent = card._leadEnd || "結果"; lead.classList.toggle("s5", !!card._leadS5); }
   const bar = $("#gSureBar"); if (bar) bar.classList.add("on");
   const ok = $("#gOkBtn"); if (ok) ok.classList.add("on");
+  /* ★★ 2026-08-22b BLACK SELECT はスキップしても取りこぼさない。
+     ここを入れないと「まとめて見る」を押した人だけ、えらぶ機会が消えてしまう。 */
+  try {
+    const bi = (_rev.results || []).findIndex((r) => r && r.type === "select" && !r.picked);
+    if (bi >= 0) {
+      const r0 = _rev.results[bi];
+      setTimeout(() => luxOpenSelect(r0.pool, (id) => { r0.picked = id || 1; try { paintGacha(); renderChars(); } catch (e) {} }), 420);
+    }
+  } catch (e) {}
 }
 window.skipGachaReveal = skipGachaReveal;
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-08-22b 特別演出（10連のみ・超低確率）
+   ------------------------------------------------------------
+   ① BLACK SELECT（黒のカード）
+      10枠のうち1枠が<b>豪華な黒のプレート</b>になる。
+      開けると「そのガチャで出るSSR全員」から<b>好きな1体をえらんで入手</b>できる。
+   ② ASTRAL BURST（全枠SSR）
+      引いた瞬間にいちど画面が真っ黒になり、そこから特大の演出が立ちあがって、
+      <b>10体ぜんぶがSSR</b>（そのガチャのSSRから等確率）で出る。
+
+   決めごと
+   ★ どちらも<b>10連のときだけ</b>抽選する（1回・5連では起こらない）。
+   ★ ②を先に抽選し、外れたときだけ①を抽選する（同時には起きない）。
+   ★ ①は「えらぶ」まで入手が確定しないので、えらばずに閉じても消えないよう
+     DB.luxSel に控える。次にガチャ画面を開いたときに出しなおす。
+   ★ 見た目（CSS）は luxEnsureCSS() が1回だけ差しこむ。
+     MagiBurst と XEVARION のガチャで<b>同じ mb-core.js を読む</b>ので、
+     どちらかの CSS ファイルに書くと片方でしか出ない。
+   ══════════════════════════════════════════════════════════════ */
+const LUX_ALLSSR_CHANCE = 0.0006;   /* ASTRAL BURST（10連ぜんぶSSR） */
+const LUX_BLACK_CHANCE  = 0.0035;   /* BLACK SELECT（SSRを1体えらべる黒のカード） */
+
+/* 10連のときだけ抽選する。"" ／ "allssr" ／ "black" */
+function luxRoll(n) {
+  if (n !== 10) return "";
+  if (Math.random() < LUX_ALLSSR_CHANCE) return "allssr";
+  if (Math.random() < LUX_BLACK_CHANCE) return "black";
+  return "";
+}
+/* そのガチャで出るSSR全員（登場前・限界突破MAXは外す）。空なら null。 */
+function luxPool(pool) {
+  const seen = new Set(), out = [];
+  (pool || []).forEach((id) => {
+    if (!CHARS[id] || seen.has(id)) return;
+    try { if (charSecret(id)) return; } catch (e) {}
+    if (!isStar5(id)) return;
+    seen.add(id); out.push(id);
+  });
+  return out.length ? out : null;
+}
+/* ASTRAL BURST: 10体ぜんぶ、そのガチャのSSRから等確率で配る */
+function luxAllSSR(pool) {
+  const p = luxPool(pool);
+  const out = [];
+  for (let i = 0; i < 10; i++) {
+    const r = p ? grantChar(p[Math.floor(Math.random() * p.length)]) : rollOnce();
+    r.lux = "allssr";
+    out.push(r);
+  }
+  /* 最後の1枠は確定枠のまま（見出しの「SSR確定」を消さない） */
+  out[out.length - 1].sure = true;
+  return out;
+}
+/* BLACK SELECT の1枠。ここではまだ何も配らない（えらんだときに配る） */
+function luxSelectSlot(pool) {
+  const p = luxPool(pool);
+  if (!p) return null;
+  return { type: "select", pool: p, lux: "black" };
+}
+
+/* ══ 見た目（1回だけ差しこむ） ══ */
+function luxEnsureCSS() {
+  if (document.getElementById("luxFxCSS")) return;
+  const st = document.createElement("style");
+  st.id = "luxFxCSS";
+  st.textContent = `
+  /* ── 昇格（開けた瞬間） ── */
+  .gmulti .gm .gcov.lux-up{background:linear-gradient(150deg,#ff5d8f,#ffd257 28%,#8affc4 52%,#38a6ff 76%,#8e6bff)!important;
+    animation:luxUp .95s cubic-bezier(.2,1.25,.35,1) both!important;
+    box-shadow:0 0 0 2px rgba(255,255,255,.85),0 0 34px rgba(255,210,87,.95),0 0 78px rgba(255,93,143,.7)!important}
+  .gmulti .gm .gcov.lux-up .gcst{color:#fff!important;text-shadow:0 1px 5px rgba(0,0,0,.6),0 0 14px rgba(255,255,255,.95)!important}
+  @keyframes luxUp{0%{transform:scale(1) rotateY(0);filter:brightness(1)}
+    22%{transform:scale(1.24) rotateY(180deg);filter:brightness(2.6) saturate(1.8)}
+    45%{transform:scale(1.1) rotateY(360deg);filter:brightness(1.5)}
+    70%{transform:scale(1.17) rotateY(360deg);filter:brightness(2.1)}
+    100%{transform:scale(1) rotateY(360deg);filter:brightness(1)}}
+  .gmulti .gm.lux-upcell{overflow:visible;z-index:9}
+  .gmulti .gm .lux-ring{position:absolute;left:50%;top:50%;width:14px;height:14px;margin:-7px 0 0 -7px;
+    border-radius:50%;border:2.5px solid #ffd257;pointer-events:none;z-index:20;
+    animation:luxRing .95s cubic-bezier(.15,.8,.3,1) both}
+  @keyframes luxRing{0%{transform:scale(1);opacity:1;border-color:#fff}
+    60%{border-color:#ff5d8f}100%{transform:scale(16);opacity:0;border-color:#8e6bff}}
+  .gmulti .gm .lux-uptx{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%);z-index:22;
+    font-family:'Orbitron',sans-serif;font-size:13px;font-weight:900;letter-spacing:.06em;white-space:nowrap;
+    color:#fff;text-shadow:0 0 10px #ffd257,0 0 26px #ff5d8f,0 2px 5px rgba(0,0,0,.7);pointer-events:none;
+    animation:luxUpTx 1.2s ease both}
+  @keyframes luxUpTx{0%{opacity:0;transform:translate(-50%,-20%) scale(.5)}
+    22%{opacity:1;transform:translate(-50%,-50%) scale(1.25)}
+    62%{opacity:1;transform:translate(-50%,-50%) scale(1)}
+    100%{opacity:0;transform:translate(-50%,-95%) scale(.95)}}
+
+  /* ── 画面ぜんたいの閃光 ── */
+  .lux-flash{position:fixed;inset:0;z-index:1200;pointer-events:none;mix-blend-mode:screen}
+  .lux-flash.rank{background:radial-gradient(circle at 50% 50%,rgba(255,255,255,.95),rgba(255,210,87,.45) 34%,transparent 66%);
+    animation:luxFl .62s ease-out both}
+  .lux-flash.black{background:radial-gradient(circle at 50% 50%,rgba(255,255,255,.9),rgba(200,160,255,.4) 30%,transparent 64%);
+    animation:luxFl .8s ease-out both}
+  @keyframes luxFl{0%{opacity:0}12%{opacity:1}100%{opacity:0}}
+
+  /* ── BLACK SELECT のプレート ── */
+  .gmulti .gm .gcov.blk{background:
+      radial-gradient(circle at 30% 22%,rgba(255,255,255,.30),transparent 42%),
+      linear-gradient(150deg,#000 0%,#141018 38%,#2a1c34 55%,#0a0a0f 78%,#000 100%)!important;
+    box-shadow:inset 0 0 0 1.5px rgba(226,196,110,.9),0 0 22px rgba(0,0,0,.9),0 0 40px rgba(190,150,255,.45)!important;
+    animation:luxBlkIdle 2.4s ease-in-out infinite}
+  .gmulti .gm .gcov.blk .gcst{color:#e8d49a!important;
+    text-shadow:0 0 10px rgba(232,212,154,.9),0 1px 3px #000!important}
+  .gmulti .gm .gcov.blk::after{content:"";position:absolute;inset:0;border-radius:11px;pointer-events:none;
+    background:linear-gradient(115deg,transparent 38%,rgba(255,255,255,.55) 48%,transparent 58%);
+    background-size:260% 100%;animation:luxShine 2.4s linear infinite}
+  @keyframes luxShine{0%{background-position:180% 0}100%{background-position:-80% 0}}
+  @keyframes luxBlkIdle{0%,100%{filter:brightness(1)}50%{filter:brightness(1.28)}}
+  .gmulti .gm.luxblk .gg{background:
+      radial-gradient(circle at 35% 28%,rgba(255,255,255,.22),transparent 46%),
+      linear-gradient(150deg,#0a0a0f,#241a30 55%,#000)!important;
+    color:#e8d49a!important;font-size:26px;box-shadow:inset 0 0 0 1.5px rgba(226,196,110,.8)}
+
+  /* ── SSRセレクトのシート ── */
+  .luxsel{position:fixed;inset:0;z-index:1400;display:flex;align-items:center;justify-content:center;
+    padding:16px;background:rgba(4,3,8,.92);backdrop-filter:blur(8px);opacity:0;transition:opacity .35s ease}
+  .luxsel.on{opacity:1}
+  .luxsel-card{position:relative;width:100%;max-width:520px;max-height:100%;overflow-y:auto;border-radius:20px;
+    padding:20px 16px 18px;text-align:center;
+    background:radial-gradient(circle at 50% 0%,#241a30,#0b0910 62%,#000);
+    box-shadow:inset 0 0 0 1.5px rgba(226,196,110,.75),0 24px 70px rgba(0,0,0,.9);
+    transform:translateY(14px) scale(.97);transition:transform .38s cubic-bezier(.2,.9,.3,1)}
+  .luxsel.on .luxsel-card{transform:none}
+  .luxsel-cap{font-family:'Orbitron',sans-serif;font-size:11px;font-weight:900;letter-spacing:.24em;color:#e8d49a}
+  .luxsel-ttl{font-family:'Orbitron',sans-serif;font-size:22px;font-weight:900;letter-spacing:.05em;margin-top:4px;
+    background:linear-gradient(100deg,#fff,#e8d49a 40%,#fff 60%,#c9a6ff);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    background-size:220% 100%;animation:luxShine 3.2s linear infinite}
+  .luxsel-sub{font-size:11.5px;font-weight:800;color:#bfb6e6;margin-top:6px;line-height:1.7}
+  .luxsel-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(84px,1fr));gap:8px;margin:14px 0 6px}
+  .luxsel-c{position:relative;border:none;padding:0;cursor:pointer;border-radius:12px;overflow:hidden;
+    background:linear-gradient(160deg,#1b1524,#0a0810);box-shadow:inset 0 0 0 1.5px rgba(226,196,110,.5)}
+  .luxsel-c img{display:block;width:100%;aspect-ratio:1;object-fit:cover}
+  .luxsel-c b{display:block;font-size:9.5px;font-weight:900;color:#f2e6c4;padding:4px 2px 5px;line-height:1.2}
+  .luxsel-c i{position:absolute;right:3px;top:3px;font-style:normal;font-size:8.5px;font-weight:900;
+    padding:2px 5px;border-radius:99px;background:rgba(0,0,0,.72);color:#8affc4}
+  .luxsel-c.sel{box-shadow:inset 0 0 0 2.5px #ffd257,0 0 22px rgba(255,210,87,.7)}
+  .luxsel-c:active{transform:scale(.97)}
+  .luxsel-go{width:100%;margin-top:10px;border:none;border-radius:14px;padding:14px;cursor:pointer;
+    font-size:15px;font-weight:900;letter-spacing:.04em;color:#1a1206;
+    background:linear-gradient(135deg,#e8d49a,#ffd257 55%,#e2a94a);box-shadow:0 10px 26px rgba(226,196,110,.35)}
+  .luxsel-go[disabled]{background:rgba(255,255,255,.12);color:rgba(255,255,255,.4);cursor:default;box-shadow:none}
+  .luxsel-note{font-size:10px;font-weight:700;color:#8e88ad;margin-top:9px;line-height:1.75}
+
+  /* ── ASTRAL BURST（幕・背景） ── */
+  .luxcur{position:fixed;inset:0;z-index:1300;background:#000;pointer-events:none;
+    display:flex;align-items:center;justify-content:center;overflow:hidden}
+  .luxcur .bg{position:absolute;left:50%;top:50%;width:220vmax;height:220vmax;margin:-110vmax 0 0 -110vmax;
+    background:conic-gradient(from 0deg,rgba(255,93,143,.30) 0 5deg,transparent 5deg 18deg,
+      rgba(255,210,87,.28) 18deg 23deg,transparent 23deg 36deg,rgba(56,166,255,.26) 36deg 41deg,transparent 41deg 54deg);
+    animation:luxSpin 9s linear infinite;opacity:0}
+  .luxcur.go .bg{opacity:1;transition:opacity .8s ease}
+  @keyframes luxSpin{to{transform:rotate(360deg)}}
+  .luxcur .rays{position:absolute;inset:0;opacity:0;
+    background:radial-gradient(circle at 50% 50%,rgba(255,255,255,.9),rgba(255,210,87,.25) 22%,transparent 52%)}
+  .luxcur.go .rays{animation:luxRays 2.6s ease-in-out both}
+  @keyframes luxRays{0%{opacity:0;transform:scale(.2)}35%{opacity:1;transform:scale(1)}
+    70%{opacity:.55;transform:scale(1.1)}100%{opacity:0;transform:scale(1.5)}}
+  .luxcur .tx{position:relative;z-index:2;text-align:center;opacity:0}
+  .luxcur.go .tx{animation:luxTx 2.6s cubic-bezier(.2,1,.3,1) both}
+  @keyframes luxTx{0%{opacity:0;transform:scale(2.4);filter:blur(14px)}
+    26%{opacity:1;transform:scale(1);filter:blur(0)}
+    76%{opacity:1;transform:scale(1.04)}100%{opacity:0;transform:scale(1.1)}}
+  .luxcur .tx b{display:block;font-family:'Orbitron',sans-serif;font-size:min(11vw,52px);font-weight:900;
+    letter-spacing:.1em;background:linear-gradient(100deg,#fff,#ffd257 30%,#ff5d8f 50%,#8affc4 70%,#38a6ff);
+    -webkit-background-clip:text;background-clip:text;color:transparent;
+    background-size:240% 100%;animation:luxShine 2.2s linear infinite;
+    filter:drop-shadow(0 0 26px rgba(255,210,87,.85))}
+  .luxcur .tx span{display:block;margin-top:10px;font-size:min(4.2vw,17px);font-weight:900;letter-spacing:.3em;color:#e8d49a}
+  .luxcur .rings i{position:absolute;left:50%;top:50%;width:18px;height:18px;margin:-9px 0 0 -9px;border-radius:50%;
+    border:3px solid rgba(255,210,87,.85)}
+  .luxcur.go .rings i{animation:luxRing 2.2s cubic-bezier(.15,.8,.3,1) infinite}
+
+  /* 結果カードそのものを「超豪華」にする */
+  .gcard.luxall{background:
+      radial-gradient(circle at 50% -10%,rgba(255,210,87,.30),transparent 55%),
+      radial-gradient(circle at 50% 110%,rgba(142,107,255,.32),transparent 58%),
+      linear-gradient(165deg,#150f22,#0a0714 60%,#000)!important;
+    box-shadow:inset 0 0 0 2px rgba(255,210,87,.7),0 0 70px rgba(255,93,143,.35)!important}
+  .gcard.luxall::before{content:"";position:absolute;left:50%;top:-40%;width:180%;aspect-ratio:1;
+    transform:translateX(-50%);pointer-events:none;z-index:0;
+    background:conic-gradient(from 0deg,rgba(255,210,87,.16) 0 5deg,transparent 5deg 20deg);
+    animation:luxSpin 26s linear infinite}
+  .gcard.luxall > *{position:relative;z-index:1}
+  .gcard.luxall .gt{color:#ffe6a8}
+  .luxbadge{display:block;margin:2px auto 0;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:900;
+    letter-spacing:.22em;color:#ffd257;text-shadow:0 0 14px rgba(255,210,87,.9)}
+  `;
+  document.head.appendChild(st);
+}
+/* 画面ぜんたいの閃光を1枚だけ走らせる */
+function luxFlash(kind) {
+  luxEnsureCSS();
+  const el = document.createElement("div");
+  el.className = "lux-flash " + (kind || "rank");
+  document.body.appendChild(el);
+  setTimeout(() => { if (el.parentNode) el.parentNode.removeChild(el); }, 900);
+}
+
+/* ══ BLACK SELECT: 好きなSSRを1体えらぶ ══
+   ★ えらぶまで入手が確定しないので、DB.luxSel に控えて<b>閉じても消えない</b>ようにする。
+     ページを読み込み直しても、ガチャ画面を開いたときに出しなおす（paintGacha の末尾）。 */
+function luxSaveSel(pool, from) {
+  DB.luxSel = { pool: pool.slice(), from: from || "", at: Date.now() };
+  save();
+}
+function luxOpenSelect(pool, onPick) {
+  luxEnsureCSS();
+  const list = (pool || []).filter((id) => CHARS[id]);
+  if (!list.length) { if (onPick) onPick(null); return; }
+  const old = document.getElementById("luxSelOv"); if (old) old.remove();
+  let sel = null;
+  const ov = document.createElement("div");
+  ov.id = "luxSelOv"; ov.className = "luxsel";
+  const cells = list.map((id) => {
+    const c = CHARS[id];
+    const awk = (DB.chars[id] && (DB.chars[id].awk || 0)) | 0;
+    const own = !!DB.chars[id];
+    return `<button class="luxsel-c" data-id="${id}">
+      <img src="${c.th}" alt="${c.nm}" loading="lazy">
+      <i>${own ? (awk >= MAX_AWK ? "MAX" : "+" + awk) : "NEW"}</i>
+      <b>${c.nm}</b></button>`;
+  }).join("");
+  ov.innerHTML = `<div class="luxsel-card">
+    <div class="luxsel-cap">BLACK SELECT</div>
+    <div class="luxsel-ttl">SSR セレクト</div>
+    <div class="luxsel-sub">このガチャで出る <b>SSR ${list.length}体</b>から、<b>好きな1体</b>をえらんで手に入れられます。<br>
+      すでに持っているキャラをえらぶと<b>限界突破</b>が進みます。</div>
+    <div class="luxsel-grid">${cells}</div>
+    <button class="luxsel-go" id="luxSelGo" disabled>キャラをえらんでください</button>
+    <div class="luxsel-note">※ えらぶまで確定しません。閉じてしまっても、次にガチャ画面を開いたときにここへ戻ります。</div>
+  </div>`;
+  document.body.appendChild(ov);
+  requestAnimationFrame(() => ov.classList.add("on"));
+  const go = ov.querySelector("#luxSelGo");
+  ov.querySelectorAll(".luxsel-c").forEach((b) => {
+    b.onclick = () => {
+      ov.querySelectorAll(".luxsel-c").forEach((x) => x.classList.remove("sel"));
+      b.classList.add("sel");
+      sel = b.getAttribute("data-id");
+      go.disabled = false;
+      go.textContent = "「" + CHARS[sel].nm + "」を手に入れる";
+      try { SFX.pick(); } catch (e) {}
+    };
+  });
+  go.onclick = () => {
+    if (!sel) return;
+    const got = grantChar(sel);
+    delete DB.luxSel;
+    saveNow(); try { paintWallet(); } catch (e) {}
+    luxFlash("black");
+    try { SFX.win(); } catch (e) {}
+    ov.classList.remove("on");
+    setTimeout(() => { if (ov.parentNode) ov.parentNode.removeChild(ov); }, 360);
+    if (onPick) onPick(sel, got);
+  };
+}
+/* 未受け取りの BLACK SELECT があれば出しなおす（ガチャ画面を開いたとき） */
+function luxResume() {
+  const s = DB.luxSel;
+  if (!s || !Array.isArray(s.pool) || !s.pool.length) return;
+  const pool = luxPool(s.pool);
+  if (!pool) { delete DB.luxSel; save(); return; }
+  luxOpenSelect(pool, () => { try { paintGacha(); renderChars(); } catch (e) {} });
+}
+window.luxResume = luxResume;
+
+/* ══ ASTRAL BURST: 引いた瞬間の「画面が真っ黒 → 特大の演出」 ══
+   done() を呼ぶと結果表示へ進む。 */
+function luxAstralIntro(done) {
+  luxEnsureCSS();
+  const old = document.getElementById("luxCurtain"); if (old) old.remove();
+  const cur = document.createElement("div");
+  cur.id = "luxCurtain"; cur.className = "luxcur";
+  cur.innerHTML = `<div class="bg"></div><div class="rays"></div>
+    <div class="rings"><i style="animation-delay:0ms"></i><i style="animation-delay:420ms"></i><i style="animation-delay:840ms"></i></div>
+    <div class="tx"><b>ASTRAL BURST</b><span>ALL SSR</span></div>`;
+  document.body.appendChild(cur);
+  try { SFX.crit(); } catch (e) {}
+  /* まず「真っ黒」だけを見せる（ここが効く。いきなり光ると黒が伝わらない） */
+  setTimeout(() => {
+    cur.classList.add("go");
+    try { SFX.ss(); } catch (e) {}
+    setTimeout(() => { try { SFX.crit(); } catch (e) {} }, 700);
+    setTimeout(() => { try { SFX.win(); } catch (e) {} }, 1500);
+  }, 620);
+  setTimeout(() => {
+    cur.style.transition = "opacity .5s ease";
+    cur.style.opacity = "0";
+    setTimeout(() => { if (cur.parentNode) cur.parentNode.removeChild(cur); }, 520);
+    if (done) done();
+  }, 3300);
+}
 function revealGacha(results, title) {
   _revClear();
-  _rev = { phase: "done", go: null, startOne: null, order: [], opened: null, covs: [], cells: [], sureIdx: -1 };
+  _rev = { phase: "done", go: null, startOne: null, order: [], opened: null, covs: [], cells: [], sureIdx: -1,
+           up: null, results: results || [] };
   saveNow(); paintWallet(); paintGacha(); SFX.gacha();   // ガチャ結果は即クラウドへ
   const ov = $("#gres"), ball = $("#gball"), card = $("#gcard");
   const cf = $("#gcf"), cfring = $("#gcfring");
@@ -10345,8 +11239,13 @@ function revealGacha(results, title) {
      虹: SSR確定 ／ 金: キャラ確定 ／ 無色: アイテムのみ。 */
   const hasS5 = results.some((r) => r.type === "char" && isStar5(r.id));
   const hasAnyChar = results.some((r) => r.type === "char");
+  /* ★★ 2026-08-22b ASTRAL BURST（10枠ぜんぶSSR）。
+     ボールの確定演出はやらず、<b>いちど画面を真っ黒</b>にしてから特大の演出を立ちあげる。
+     結果カードそのものも .luxall で背景ごと豪華にする。 */
+  const luxAll = results.length >= 10 && results.every((r) => r.lux === "allssr");
+  if (luxAll) { luxEnsureCSS(); ball.style.display = "none"; card.className = "gcard luxall"; }
   let openDelay = 1150;
-  if (hasS5 || hasAnyChar) {
+  if (!luxAll && (hasS5 || hasAnyChar)) {
     const tier = hasS5 ? "rainbow" : "gold";
     openDelay = hasS5 ? 2300 : 1750;
     _revAt(700, () => {
@@ -10369,15 +11268,18 @@ function revealGacha(results, title) {
     if (r.type !== "char" || !isStar5(r.id)) return;
     /* ★ v14.4 確定枠は「SSRが保証された枠」なので昇格演出はしない（最初からSSRの星で出す）。 */
     if (r.sure) return;
+    /* ★ ASTRAL BURST は全部SSRなので昇格そのものが起きない */
+    if (r.lux === "allssr") return;
     if (Math.random() < RANKUP_CHANCE) upSet.add(i);
   });
-  _revAt(openDelay, () => {
+  const _showCard = () => {
     ball.style.display = "none"; card.style.display = "flex";
     ov.classList.remove("cfon"); cf.className = "gcf"; cfring.className = "gcfring";
-    const leadEnd = hasS5 ? "✦ SSR 獲得！ ✦" : hasAnyChar ? "キャラ獲得！" : "結果";
+    const leadEnd = luxAll ? "✦✦ ALL SSR ✦✦" : hasS5 ? "✦ SSR 獲得！ ✦" : hasAnyChar ? "キャラ獲得！" : "結果";
     card._leadEnd = leadEnd; card._leadS5 = hasS5; card._leadAnyChar = hasAnyChar;
     /* 1回でも５連でも同じグリッド表示（1回は1セルが中央に出るだけ）＝見た目の差をつけない */
     card.innerHTML = `<div class="gt">${title}</div>
+      ${luxAll ? '<span class="luxbadge">ASTRAL BURST</span>' : ""}
       <div class="grevlead" id="gRevLead">レア度を確認中…</div>
       <div class="gmulti n${results.length}">${results.map((r, i) => gachaCellHTML(r, i, upSet.has(i))).join("")}</div>
       <div class="gtap" id="gTap">TAP<span>!</span></div>
@@ -10407,23 +11309,15 @@ function revealGacha(results, title) {
       _rev.phase = "reveal"; _rev.go = null;
       if (tap) tap.classList.remove("on");
       let u = 0;
-      /* ── ③-a 昇格演出（抽選で選ばれたSSRだけ。確定枠はいちばん最後に回す）── */
-      const upIdx = [...upSet];   // 確定枠は upSet に入らない（昇格なし）
-      if (upIdx.length) {
-        _revAt(u, () => { if (lead) { lead.textContent = "✦ 昇格演出 ✦"; lead.classList.add("up"); } });
-        u += 180;
-        upIdx.forEach((i) => {
-          const el = covs[i]; if (!el) return;
-          _revAt(u, () => {
-            el.classList.add("up", "s5");
-            const st = el.querySelector(".gcst"); if (st) st.textContent = "SSR";
-            SFX.crit();
-          });
-          _revAt(u + 240, () => SFX.ss());
-          u += 560;
-        });
-        u += 240;
-      }
+      /* ══ ★★ 2026-08-22b 昇格演出をつくり直した（ご指定）══
+         ------------------------------------------------------------
+         前は、中身を開ける<b>前</b>に「✦ 昇格演出 ✦」と上に出して、
+         昇格する枠を<b>まとめて先に光らせて</b>いた。
+         ・どれがSSRなのかが開ける前に分かってしまう＝1枚ずつ開ける楽しみが消える
+         ・見出しが「昇格演出」という<b>裏方の名前</b>のまま画面に出ていた
+         → この段はまるごと廃止し、<b>その枠を開けたその瞬間</b>に昇格するようにした
+           （実際の昇格は _revOpenIdx の中。演出はそちらでうんと豪華にしてある）。
+         ★ upSet は「開けたときに昇格する枠」の印として、そのまま生かす。 */
       /* ── ③-b 中身公開: ★ 2026-08-05 から「1枚ずつ、押すたびに1枠」開ける ──
          以前は 80ms 間隔で勝手に全部めくれていたので、
          せっかくの1体1体を見るひまがなかった。 */
@@ -10434,6 +11328,7 @@ function revealGacha(results, title) {
         _rev.covs = covs;
         _rev.cells = cells;
         _rev.sureIdx = sureIdx;
+        _rev.up = new Set(upSet);      /* ★ 2026-08-22b 開けたときに昇格する枠 */
         /* 開ける順番＝並び順。ただしSSR確定枠だけはいちばん最後 */
         _rev.order = covs.map((el, i) => i).filter((i) => i !== sureIdx);
         if (sureIdx >= 0) _rev.order.push(sureIdx);
@@ -10447,7 +11342,9 @@ function revealGacha(results, title) {
     };
     _rev.go = goReveal;
     _revAt(t + 280 + 8000, () => { if (_rev.phase === "stars" && _rev.go) { _rev.go = null; goReveal(); } });
-  });
+  };
+  /* ASTRAL BURST は「真っ黒 → 特大の演出」が終わってから結果カードを出す */
+  if (luxAll) luxAstralIntro(_showCard); else _revAt(openDelay, _showCard);
 }
 /* SSR を1体確定で引く。
    ★ 確定枠は「排出対象のSSRすべてが同じ確率」。ピックアップ優遇はしない
@@ -10501,9 +11398,18 @@ function doDebutGacha(n) {
   const pay = payGacha(n, false);
   if (!pay) return;
   DB.pulls = (DB.pulls || 0) + n; missionTick("pull", n);
+  /* ★★ 2026-08-22b 特別演出（10連のみ・超低確率） */
+  const lux = luxRoll(n);
+  if (lux === "allssr") {
+    revealGacha(luxAllSSR(debutSurePool()), DEBUT_NM + " " + gachaVerText() + " 10連結果！" + gachaPayText(pay));
+    return;
+  }
   const results = [];
   const normal = n === 10 ? 9 : n;
-  for (let i = 0; i < normal; i++) results.push(debutRollOnce());
+  const blk = lux === "black" ? luxSelectSlot(debutSurePool()) : null;
+  const blkIdx = blk ? Math.floor(Math.random() * normal) : -1;
+  if (blk) luxSaveSel(blk.pool, DEBUT_NM);
+  for (let i = 0; i < normal; i++) results.push(i === blkIdx ? blk : debutRollOnce());
   if (n === 10) { const g = debutGuaranteedS5(); g.sure = true; results.push(g); }
   revealGacha(results, DEBUT_NM + " " + gachaVerText()
     + (n === 10 ? " 10連結果！" : n === 5 ? " 5連結果！" : " 結果！") + gachaPayText(pay));
@@ -10516,10 +11422,19 @@ function doGacha(n) {
   const pay = payGacha(n, false);
   if (!pay) return;
   DB.pulls = (DB.pulls || 0) + n; missionTick("pull", n);   /* ★ 2026-08-05 ミッション（ガチャを引く） */
+  /* ★★ 2026-08-22b 特別演出（10連のみ・超低確率）。抽選そのものは luxRoll() 1本。 */
+  const lux = luxRoll(n);
+  if (lux === "allssr") {
+    revealGacha(luxAllSSR(gachaPool()), PREMIUM_NM + " 10連結果！" + gachaPayText(pay));
+    return;
+  }
   const results = [];
   /* ★ 10連は「最後の1枠」がSSR確定。前半9回は通常抽選＝そこでもSSRは出る */
   const normal = n === 10 ? 9 : n;
-  for (let i = 0; i < normal; i++) results.push(rollOnce());
+  const blk = lux === "black" ? luxSelectSlot(gachaPool()) : null;
+  const blkIdx = blk ? Math.floor(Math.random() * normal) : -1;
+  if (blk) luxSaveSel(blk.pool, PREMIUM_NM);
+  for (let i = 0; i < normal; i++) results.push(i === blkIdx ? blk : rollOnce());
   if (n === 10) {
     const g = rollGuaranteedS5();
     g.sure = true;                              // 確定枠マーク（演出・表示で使う）
