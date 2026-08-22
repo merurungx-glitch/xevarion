@@ -10,7 +10,7 @@ const CORE = [
   "./index.html",
   "./css/style.css?v=8",
   "./js/game.js?v=8",
-  "../xeva.js?v=34",
+  "../xeva.js?v=35",
   "../xeva-loading.js?v=1",
   "../xeva-splash.js?v=3",
   "../game-link.js?v=3",
