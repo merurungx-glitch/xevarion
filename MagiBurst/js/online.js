@@ -47,6 +47,13 @@ function playerNode(p) {
     awk: chars[0] ? chars[0].awk : (p.awk | 0),
     fruit: chars[0] ? chars[0].fruit : (p.fruit || ""),
     chars,
+    /* ★★ 2026-08-24 蓬莱の九重のマルチ対応。
+       tenkyu = その人が<b>蓬莱天宮の挑戦条件</b>（第一重〜第九重をすべてクリア）を
+       満たしているか。ご指定により、蓬莱天宮は<b>ホストを含む全員</b>が
+       満たしていないと始められない。部屋の側で判定できるよう、ここで持ちよる。
+       ★ 古い版のクライアントは送ってこないので、受け取る側は
+         「undefined ＝ 分からない ＝ 満たしていない」として扱うこと。 */
+    tenkyu: !!p.tenkyu,
     th: p.th || "", online: true, left: false, joined: Date.now(),
   };
 }

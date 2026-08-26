@@ -6,20 +6,22 @@
    ・オンライン対戦・XEVA換金はアプリ側でオフライン時に無効化している
    ・取得できたリソースは随時キャッシュ更新（stale-while-revalidate）
    ============================================================ */
-const VERSION = "magiburst-sw-v116";
+const VERSION = "magiburst-sw-v121";
 const CORE = [
   "./index.html",
-  "./js/mb-core.js?v=39",   /* ★ 2026-08-10 キャラ・ガチャの共有モジュール（XEVARION のガチャと共通） */
-  "../xeva.js?v=35",
+  "./js/mb-core.js?v=49",   /* ★ 2026-08-10 キャラ・ガチャの共有モジュール（XEVARION のガチャと共通） */
+  "../xeva.js?v=44",
   "../xeva-loading.js?v=1",
   "../xeva-splash.js?v=3",
   "../app-cloud.js?v=4",
-  "../xeva-keys.js?v=5",
+  "../xeva-keys.js?v=7",
   "./magiburst-cloud.js?v=6",
   "../maintenance-gate.js?v=5",
   "../app-install-notice.js?v=1",
   "../XEVA.png",
   "../gem.png",
+  /* ★ 2026-08-24 スタミナの絵（ヘッダーの⚡札） */
+  "../stamina.png",
   /* BGM は権利確認のため一時提供停止中 → 先読みしない */
   "../thumbs/MagiBurst.jpg",
   "../brand/NGX.png",
@@ -217,6 +219,40 @@ const CORE = [
   "../img/t_Sayuri.webp",
   "../img/t_Akari.webp",
   "../img/t_Hinata.webp",
+  /* ★★ 2026-08-24 GRAND DEBUT GACHA Ver.2.0 新SSR 5体（No.138〜142）。
+     ここに足し忘れると、そのキャラだけオフラインで絵が出ない
+     （更新パッケージの一覧＝update.json にも載らない）。 */
+  "../img/t_Guren.webp",
+  "../img/t_Yuuna.webp",
+  "../img/t_Momo.webp",
+  "../img/t_Chihaya.webp",
+  "../img/t_Yui.webp",
+  /* ★★ 2026-08-25 Starlight Academy Fest 2 限定SSR 5体（No.143〜147）とそのバナー。
+     ここに足し忘れると、そのキャラだけオフラインで絵が出ない
+     （更新パッケージの一覧＝update.json にも載らない）。 */
+  "img/bn_fes6_s.webp",
+  "../img/t_Suzune.webp",
+  "../img/t_Minamo.webp",
+  /* ★★ 2026-08-26 GRAND DEBUT Ver.3.0 の5体 ＋ MagiLex の KP交換キャラ4体。
+     ここに無いとオフラインでその子だけ絵が出ず、update.json にも載らない。 */
+  "../img/t_Karin.webp",
+  "../img/t_Mirei.webp",
+  "../img/t_Yuuka.webp",
+  "../img/t_Miyabi.webp",
+  "../img/t_Sumire.webp",
+  "../img/t_Kanade.webp",
+  "../img/t_Homura.webp",
+  "../img/t_Yoizuki.webp",
+  "../img/t_Sumika.webp",
+  /* ★★ 2026-08-26b GRAND DEBUT Ver.4.0 の5体 */
+  "../img/t_Seina.webp",
+  "../img/t_Shiduki.webp",
+  "../img/t_Sayuki.webp",
+  "../img/t_Sara.webp",
+  "../img/t_Sakuya.webp",
+  "../img/t_Karen.webp",
+  "../img/t_Tomoe.webp",
+  "../img/t_Himari.webp",
   "./img/e_Youka.webp",
   "./img/e_Youhi.webp",
   "./img/bn_hourai_s.webp",
