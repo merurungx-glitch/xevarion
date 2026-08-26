@@ -24,7 +24,7 @@ if ("serviceWorker" in navigator) {
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
 <script src="../xeva-splash.js?v=3" data-app="MagiBurst" data-logo="../thumbs/MagiBurst.jpg"
         data-note="⚠️ このゲームの対象年齢は 13歳以上 です"></script>
-<script src="../xeva.js?v=44"></script>
+<script src="../xeva.js?v=45"></script>
 <script src="../xeva-loading.js?v=1" defer></script>
 <script type="module" src="../xevarion-fb.js?v=22"></script>
 <script src="../xeva-presence.js?v=1" defer></script>
@@ -3774,7 +3774,7 @@ body.in-battle #top,body.in-battle #tabs{display:none}
 
 <script>window.MB_IMGD = "../img/"; window.MB_GIMGD = "img/";</script>
 <script src="../mb-newchars.js?v=6"></script>
-<script src="js/mb-core.js?v=49"></script>
+<script src="js/mb-core.js?v=50"></script>
 <script>
 "use strict";
 /* ══════════ アカウントガード ══════════ */
@@ -5681,6 +5681,28 @@ window.openNewChar = openNewChar; window.closeNewChar = closeNewChar;
 
 /* ══════════ お知らせ（アップデートのたびにここへ追記する） ══════════ */
 const NEWS = [
+  /* ★★ 2026-08-26c 夏キャンペーン🎫30枚 ／ GRAND DEBUT 初回10連 無料 ／ RANK UP 演出の作り直し
+     ／ アイコン設定の検索・所持のみ ／ 自動編成は最大育成時のステータスで比べる */
+  { date: "2026-08-26", title: "☀️ 夏キャンペーン 🎫30枚配布／GRAND DEBUT は初回10連が無料／RANK UP 演出を作り直し", body: [
+    "☀️ <b>夏キャンペーン</b>として、全ユーザーに <b>🎫ガチャチケット30枚</b> をお贈りします。"
+      + "XEVARION ホームの<b>📧メール</b>から受け取ってください（1枚＝1回ぶん・どのガチャでも使えます）。",
+    "🎁 <b>GRAND DEBUT GACHA は、バージョンごとに初回の10連が無料</b>になりました。"
+      + "🎫チケットも💎ジェムもいっさい減らず、<b>最後の1枠のSSR確定</b>もそのまま付きます。"
+      + "これまでの<b>1日1回の無料単発</b>とは別枠なので、両方使えます。",
+    "✦ <b>ランクアップ（RANK UP!!）の演出を作り直しました。</b>"
+      + "これまでは<b>結果のマスの中だけ</b>で光っていたので、10連では小さな枠で1秒だけ——"
+      + "気づかないうちに終わって「結果だけSSRになった」ように見えていました。"
+      + "これからは<b>画面いっぱいの舞台</b>が立ちあがり、大きなプレートが"
+      + "<b>SR から虹の SSR へ回って割れ</b>、<b>RANK UP!!</b> が大きく出ます。",
+    "🤖 <b>自動編成が、自分の育成状況を見なくなりました。</b>"
+      + "ステータスは<b>最大育成時</b>（レベル上限・限界突破MAX・アークなし）でそろえて比べます。"
+      + "「まだ育てていないから弱く見える」だけの子が候補から落ちて、"
+      + "そのクエストに本当に向いている編成が出てこない、という状態を直すためです。"
+      + "<b>編成に入れられるのは、これまでどおり所持しているキャラだけ</b>です。",
+    "🖼 XEVARION 側では、<b>アイコンの設定をキャラクター図鑑と同じように探せる</b>ようにしました"
+      + "（名前・No. での検索／並び替え／SSR・SR・アプリでの絞りこみ）。"
+      + "アイコンにできるのは<b>所持しているキャラだけ</b>になりました。",
+  ] },
   /* ★★ 2026-08-26b GRAND DEBUT Ver.4.0 ／ リンクの名前の決めごと ／ ランクアップ演出の修正 */
   { date: "2026-08-26", title: "✧ GRAND DEBUT GACHA Ver.4.0 — 新SSR 5体／リンクスキルの名前をそろえました", body: [
     "✧ <b>GRAND DEBUT GACHA Ver.4.0</b> を公開しました。登場するのは"
@@ -10442,6 +10464,13 @@ function tierRankMap() {
   _tierRankCache = m;
   return _tierRankCache;
 }
+/* 最大育成時のステータス（レベル上限・限界突破MAX・アークなし）。
+   キャラごとに変わらない値なので一度計算したら覚えておく。 */
+const _maxTrainedCache = {};
+function maxTrainedStats(id) {
+  if (!_maxTrainedCache[id]) _maxTrainedCache[id] = statsOf(id, JADE_LV, MAX_AWK, null);
+  return _maxTrainedCache[id];
+}
 function autoPartyForStage(stageId, includeOmni) {
   const stage = stageId === "express"
     ? { gim: expressGim(6), blocks: expressTerrain(6).blocks || [], waves: [expressWave(6)] }
@@ -10460,7 +10489,18 @@ function autoPartyForStage(stageId, includeOmni) {
   const coversAllDed = (id) => keys.length > 0 && keys.every((k) => canDed(id, k));
   /* オムニアンチだけでこのクエストのギミックを全部まかなえるか（優遇してよいか） */
   const omniCoversAll = keys.length > 0 && keys.every((k) => OMNI_GIMS.has(k));
-  const power = (id) => { const s = charStats(id); return s.hp + s.atk * 2; };
+  /* ══ ★★ 2026-08-26b 自動編成は<b>自分の育成状況を見ない</b>（ご指定）══
+     ------------------------------------------------------------
+     これまでの power() は charStats(id) ＝ そのキャラの<b>いまのレベル・限界突破</b>
+     （さらに自分のアーク強化）で計算していた。
+     そのため「まだ育てていないだけ」の子が弱く見えて候補から落ち、
+     すでに育てた子ばかりが並んでいた。
+     → ステータスは<b>最大育成時</b>（レベル上限・限界突破MAX・アークなし）でそろえて比べる。
+     ★ statsOf は lv を TRANS_LV（60）で頭打ちにするので、JADE_LV を渡しても 60 で計算される。
+       目的は「全員を同じ条件で並べる」ことなので、これで用は足りる。
+     ★ 第4引数に null を渡す＝<b>アーク強化を乗せない</b>（自分の育成ぶんを混ぜない）。
+     ★ 「所持しているキャラから選ぶ」のはこれまでどおり（持っていない子は編成できない）。 */
+  const power = (id) => { const s = maxTrainedStats(id); return s.hp + s.atk * 2; };
   /* ★ 2026-08-19 実績ぶんの点。ギミック対応（1つ 45〜120点）より軽くする。 */
   const cu = clearUseMap(), tr = tierRankMap();
   const hereRec = (DB.lastClear || {})[stageId] || {};
@@ -10578,7 +10618,10 @@ function paintAutoParty() {
       ? "<br><br>・実績から選んだ理由：<br>"
         + Object.keys(r.why).map((id) =>
             `　<b style="color:#ffd257">${CHARS[id] ? CHARS[id].nm : id}</b> … ${r.why[id].join("／")}`).join("<br>")
-      : "");
+      : "")
+    /* ★★ 2026-08-26b 育成状況を見ていないことをはっきり書く。
+       これがないと「育てていない子が選ばれた＝不具合」と取りちがえられる。 */
+    + '<br><br><small style="color:#a9a2d0">・ステータスは<b>最大育成時</b>で比べています（いまのレベル・限界突破・アークは見ません）。<br>　そのクエストに向いている顔ぶれを出すためです。選ばれた子の育成は別途ご確認ください。</small>';
   const full = DB.parties.length >= PARTY_MAX;
   $("#apCard").innerHTML = `
     <button class="ovx" onclick="closeAutoParty()" aria-label="とじる" title="とじる">✕</button>

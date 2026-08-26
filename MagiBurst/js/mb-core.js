@@ -15,8 +15,8 @@
    <b>ふつうの &lt;script&gt;</b>（type="module" ではない）で読むこと。
    トップレベルの const/let はグローバルの字句環境に入るので、
    あとから読み込む MagiBurst 本体のスクリプトからそのまま見える。
-     MagiBurst : <script src="js/mb-core.js?v=49"></script>
-     gacha.html: <script src="MagiBurst/js/mb-core.js?v=49"></script>
+     MagiBurst : <script src="js/mb-core.js?v=50"></script>
+     gacha.html: <script src="MagiBurst/js/mb-core.js?v=50"></script>
 
    ── ホストが先に用意しておくもの ──
      window.MB_IMGD … 画像フォルダへの相対パス（MagiBurst は "../img/"、ポータルは "img/"）
@@ -12175,8 +12175,36 @@ function debutFreeUse(m) {
   if (!v) return;
   debutFreeMap()[v.ver] = debutToday(); save();
 }
-/* ★ ポータル（下バーの「無料」の印）が使う: どれか1本でも無料が残っているか */
-function debutAnyFree() { return debutLiveVers().some((v) => debutFreeMap()[v.ver] !== debutToday()); }
+/* ══ ★★ 2026-08-26b 版ごとに<b>初回の10連だけ無料</b>（ご指定）══
+   ・無料になるのは<b>10連</b>のときだけ。単発・5連はこれまでどおり。
+   ・🎫チケットも💎ジェムも<b>いっさい減らない</b>（payGacha を通さない）。
+   ・<b>10連なので最後の1枠は SSR 確定</b>のまま。
+   ★ 1日に1回戻る単発（debutFree）とは<b>別の台帳</b>。
+     こちらは日付ではなく<b>使ったかどうか</b>だけを覚える（一度使ったらその版ではもう戻らない）。
+     DB.debutFree10 は { "4.0": true, "3.0": true } の形。
+   ★ freshDB には入れていない。書かれていなければ「まだ使っていない」＝無料が使える。
+   ★ ポータル（xevarion-home.js の xhDebutFree10Left）に<b>同じ判定の写し</b>がある。
+     ここを直したら向こうも直すこと。 */
+function debutFree10Map() {
+  if (!DB.debutFree10 || typeof DB.debutFree10 !== "object") DB.debutFree10 = {};
+  return DB.debutFree10;
+}
+function debutFree10Left(m) {
+  const v = debutVerOfMode(m || "debut");
+  if (!v) return 0;
+  return debutFree10Map()[v.ver] ? 0 : 1;
+}
+function debutFree10Use(m) {
+  const v = debutVerOfMode(m || "debut");
+  if (!v) return;
+  debutFree10Map()[v.ver] = true; save();
+}
+/* ★ ポータル（下バーの「無料」の印）が使う: どれか1本でも無料が残っているか
+   （単発・10連の<b>どちらか</b>が残っていれば印を出す） */
+function debutAnyFree() {
+  return debutLiveVers().some((v) =>
+    debutFreeMap()[v.ver] !== debutToday() || !debutFree10Map()[v.ver]);
+}
 /* 次に無料がもどるまで（切りかわりは<b>あすの0時</b>） */
 function debutFreeNextText() {
   const d = new Date(); d.setHours(24, 0, 0, 0);
@@ -12750,6 +12778,7 @@ function gachaMenuList() {
     live.forEach((v) => list.push({
       k: debutModeKey(v), nm: DEBUT_NM, c: DEBUT_C, ver: v.ver,
       sub: gachaVerText(v) + "・新キャラ" + v.chars.length + "体はここだけ／あと" + debutDaysLeft(v) + "日"
+        + (debutFree10Left(debutModeKey(v)) > 0 ? "／🎁 初回10連無料" : "")
         + (debutFreeLeft(debutModeKey(v)) > 0 ? "／🎁 1日1回無料" : ""),
     }));
   } else {
@@ -13287,10 +13316,19 @@ function _revOpenIdx(i) {
       cell.appendChild(tx);
       setTimeout(() => { if (tx.parentNode) tx.parentNode.removeChild(tx); }, 1250);
     }
-    luxFlash("rank");
+    /* ★★ 2026-08-26b ここで画面いっぱいの舞台も立ちあげる。
+       マスの中の演出だけだと小さすぎて気づかれなかったため（ご報告）。
+       ★ 舞台のほうで閃光を出すので、ここでの luxFlash は舞台にまかせる。 */
+    const _rname = (() => {
+      const r0 = (_rev.results || [])[i];
+      return (r0 && r0.type === "char" && CHARS[r0.id]) ? CHARS[r0.id].nm : "";
+    })();
+    try { luxRankStage(_rname); } catch (e) { luxFlash("rank"); }
     SFX.crit(); _revAt(220, () => SFX.ss());
-    /* 昇格を見せきってから中身を開ける（ここで初めてタップを受けつけ直す） */
-    _revAt(1000, () => {
+    _revAt(620, () => SFX.win());
+    /* 昇格を見せきってから中身を開ける（ここで初めてタップを受けつけ直す）
+       ★ 待ち時間は舞台の長さ（LUX_STAGE_MS）とそろえる。片方だけ変えないこと。 */
+    _revAt(LUX_STAGE_MS, () => {
       _rev.ranking = null;
       el.classList.remove("lux-up", "up");
       const tp = $("#gTap"); if (tp) tp.classList.add("on");
@@ -13361,6 +13399,8 @@ function skipGachaReveal() {
   const card = $("#gcard");
   if (!card) return;
   _revClear();
+  /* ★★ 2026-08-26b 昇格の舞台が出ているところで飛ばされたら、舞台も一緒に片づける */
+  try { luxRankStageClear(); } catch (e) {}
   _revShowCovers();   /* ★ 2026-08-26 取り残された .hide を先に外す（下で消すので保険） */
   _rev.phase = "done"; _rev.go = null; _rev.startOne = null; _rev.ranking = null;
   /* ★ スキップ時はアニメを待たず、星のプレートをその場で取り除いて結果だけを出す */
@@ -13486,6 +13526,74 @@ function luxEnsureCSS() {
     62%{opacity:1;transform:translate(-50%,-50%) scale(1)}
     100%{opacity:0;transform:translate(-50%,-95%) scale(.95)}}
 
+  /* ══ ★★ 2026-08-26b 昇格の舞台（画面いっぱい） ══
+     ★ 結果の画面（#gres）は z-index:600。舞台はその上・閃光（1200）より下に置く。
+     ★ pointer-events:none ＝ 押しても消えない／下のタップを邪魔しない。 */
+  .lux-stage{position:fixed;inset:0;z-index:1100;pointer-events:none;
+    display:flex;align-items:center;justify-content:center;
+    background:radial-gradient(circle at 50% 46%,rgba(28,10,44,.62),rgba(4,3,8,.90) 62%);
+    animation:luxStgIn .22s ease both}
+  @keyframes luxStgIn{from{opacity:0}to{opacity:1}}
+  .lux-stage.out{animation:luxStgOut .3s ease both}
+  @keyframes luxStgOut{from{opacity:1}to{opacity:0}}
+  /* 後ろでまわる光の筋。go が付く（＝SSRになる）と一気に明るくなる */
+  .lux-stgrays{position:absolute;left:50%;top:46%;width:150vmax;height:150vmax;
+    margin:-75vmax 0 0 -75vmax;opacity:.28;
+    background:conic-gradient(from 0deg,transparent 0deg,rgba(255,210,87,.85) 6deg,transparent 12deg,
+      transparent 30deg,rgba(255,93,143,.75) 36deg,transparent 42deg,
+      transparent 60deg,rgba(56,166,255,.75) 66deg,transparent 72deg,
+      transparent 90deg,rgba(138,255,196,.75) 96deg,transparent 102deg,
+      transparent 120deg,rgba(255,210,87,.85) 126deg,transparent 132deg,
+      transparent 150deg,rgba(255,93,143,.75) 156deg,transparent 162deg,
+      transparent 180deg,rgba(56,166,255,.75) 186deg,transparent 192deg,
+      transparent 210deg,rgba(138,255,196,.75) 216deg,transparent 222deg,
+      transparent 240deg,rgba(255,210,87,.85) 246deg,transparent 252deg,
+      transparent 270deg,rgba(255,93,143,.75) 276deg,transparent 282deg,
+      transparent 300deg,rgba(56,166,255,.75) 306deg,transparent 312deg,
+      transparent 330deg,rgba(138,255,196,.75) 336deg,transparent 342deg,transparent 360deg);
+    animation:luxStgSpin 9s linear infinite;transition:opacity .4s ease}
+  .lux-stage.go .lux-stgrays{opacity:.72}
+  @keyframes luxStgSpin{to{transform:rotate(360deg)}}
+  .lux-stgbox{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:10px;
+    padding:0 18px;text-align:center}
+  .lux-stgtop{font-family:'Orbitron',sans-serif;font-size:11px;font-weight:900;letter-spacing:.34em;
+    color:#c9c4e8;text-indent:.34em;opacity:0;animation:luxStgTop 1.5s ease both}
+  @keyframes luxStgTop{0%{opacity:0;transform:translateY(6px)}14%{opacity:.9;transform:none}
+    76%{opacity:.9}100%{opacity:0}}
+  /* まん中の大きなプレート。SR（灰）から回って SSR（虹）になる */
+  .lux-stgcard{width:min(184px,46vw);aspect-ratio:3/4;border-radius:20px;
+    display:flex;align-items:center;justify-content:center;
+    background:linear-gradient(150deg,#3b3a52,#6a6880 45%,#2a2938);
+    box-shadow:inset 0 0 0 3px rgba(255,255,255,.30),inset 0 -18px 34px rgba(0,0,0,.4),0 18px 46px rgba(0,0,0,.6);
+    animation:luxStgFlip 1.45s cubic-bezier(.2,1.15,.35,1) both}
+  .lux-stgcard.s5{background:linear-gradient(150deg,#ff5d8f,#ffd257 28%,#8affc4 52%,#38a6ff 76%,#8e6bff);
+    box-shadow:inset 0 0 0 3px rgba(255,255,255,.85),0 0 46px rgba(255,210,87,.95),0 0 120px rgba(255,93,143,.75)}
+  @keyframes luxStgFlip{
+    0%{opacity:0;transform:perspective(900px) rotateY(0) scale(.62)}
+    10%{opacity:1;transform:perspective(900px) rotateY(0) scale(1)}
+    22%{transform:perspective(900px) rotateY(0) scale(1.04)}
+    36%{transform:perspective(900px) rotateY(180deg) scale(1.1);filter:brightness(2.6)}
+    52%{transform:perspective(900px) rotateY(360deg) scale(1.16);filter:brightness(1.6)}
+    68%{transform:perspective(900px) rotateY(360deg) scale(1.05);filter:brightness(1.9)}
+    100%{transform:perspective(900px) rotateY(360deg) scale(1);filter:brightness(1)}}
+  .lux-stgrar{font-family:'Orbitron',sans-serif;font-weight:900;font-size:38px;letter-spacing:.03em;
+    color:#e6e4f2;text-shadow:0 2px 8px rgba(0,0,0,.7)}
+  .lux-stgcard.s5 .lux-stgrar{color:#fff;
+    text-shadow:0 2px 8px rgba(0,0,0,.55),0 0 26px rgba(255,255,255,.95)}
+  /* 大きな RANK UP!! ＝ ここが「演出が出た」と分かる決め手 */
+  .lux-stgtx{font-family:'Orbitron',sans-serif;font-weight:900;letter-spacing:.06em;white-space:nowrap;
+    font-size:clamp(26px,8.5vw,44px);color:#fff;opacity:0;
+    text-shadow:0 0 16px #ffd257,0 0 44px #ff5d8f,0 3px 10px rgba(0,0,0,.75);
+    animation:luxStgTx 1.45s cubic-bezier(.2,1.3,.4,1) both}
+  @keyframes luxStgTx{0%,32%{opacity:0;transform:translateY(16px) scale(.6)}
+    46%{opacity:1;transform:translateY(0) scale(1.22)}
+    58%{transform:translateY(0) scale(1)}
+    88%{opacity:1;transform:translateY(0) scale(1)}
+    100%{opacity:0;transform:translateY(-10px) scale(.98)}}
+  .lux-stgnm{font-size:13px;font-weight:900;color:#ffd257;opacity:0;
+    text-shadow:0 2px 8px rgba(0,0,0,.8);animation:luxStgNm 1.45s ease both}
+  @keyframes luxStgNm{0%,40%{opacity:0}54%{opacity:1}88%{opacity:1}100%{opacity:0}}
+
   /* ── 画面ぜんたいの閃光 ── */
   .lux-flash{position:fixed;inset:0;z-index:1200;pointer-events:none;mix-blend-mode:screen}
   .lux-flash.rank{background:radial-gradient(circle at 50% 50%,rgba(255,255,255,.95),rgba(255,210,87,.45) 34%,transparent 66%);
@@ -13601,6 +13709,64 @@ function luxFlash(kind) {
   el.className = "lux-flash " + (kind || "rank");
   document.body.appendChild(el);
   setTimeout(() => { if (el.parentNode) el.parentNode.removeChild(el); }, 900);
+}
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-08-26b 昇格（RANK UP）は<b>画面いっぱいの舞台</b>で見せる（ご指定）
+   ------------------------------------------------------------
+   これまでの昇格演出は、結果の<b>マスの中だけ</b>で起きていた。
+   虹に染まる・リングが走る・RANK UP!! が浮く——中身はちゃんと動いているのだが、
+   10連のマスは 80px 角しかなく、しかも1秒で終わる。
+   ＝ 気づかないうちに終わり、<b>結果だけが SSR になって見える</b>
+     （「ランクアップはしているのに演出が出ない」というご報告の正体）。
+
+   → マスの演出（lux-up・リング・RANK UP!!）は<b>そのまま残し</b>、
+     その上に<b>画面ぜんたいの舞台</b>を重ねる。
+       ① 画面が暗く沈み、後ろで光の筋がまわる
+       ② まん中の大きなプレートが <b>SR</b> を見せる
+       ③ プレートが回って割れ、<b>虹の SSR</b> になる（ここで閃光）
+       ④ 「RANK UP!!」が大きく出て、すっと引く
+
+   決めごと
+   ★ <b>押しても消えない</b>（pointer-events:none）。指が当たって飛ばされないようにする。
+   ★ #gres（結果の画面 z-index:600）より<b>上</b>に出す。
+   ★ 舞台が終わってから中身を開ける。所要は LUX_STAGE_MS（この1か所で決める）。
+   ══════════════════════════════════════════════════════════════ */
+const LUX_STAGE_MS = 1750;          /* 舞台の長さ。_revOpenIdx の待ち時間もこれに合わせる */
+function luxRankStage(nm) {
+  luxEnsureCSS();
+  const st = document.createElement("div");
+  st.className = "lux-stage";
+  st.innerHTML = '<i class="lux-stgrays"></i>'
+    + '<div class="lux-stgbox">'
+    +   '<div class="lux-stgtop">RARITY UP</div>'
+    +   '<div class="lux-stgcard"><b class="lux-stgrar">SR</b></div>'
+    +   '<div class="lux-stgtx">RANK UP!!</div>'
+    +   '<div class="lux-stgnm">' + (nm ? nm : "") + '</div>'
+    + '</div>';
+  document.body.appendChild(st);
+  const card = st.querySelector(".lux-stgcard");
+  const rar = st.querySelector(".lux-stgrar");
+  /* プレートが裏を向いた瞬間に SR → SSR へ差し替える（＝返ったときには SSR になっている） */
+  const t1 = setTimeout(() => {
+    if (card) card.classList.add("s5");
+    if (rar) rar.textContent = "SSR";
+    st.classList.add("go");
+    try { luxFlash("rank"); } catch (e) {}
+  }, 520);
+  const t2 = setTimeout(() => { st.classList.add("out"); }, LUX_STAGE_MS - 300);
+  const t3 = setTimeout(() => { if (st.parentNode) st.parentNode.removeChild(st); }, LUX_STAGE_MS + 60);
+  /* 途中で結果画面を閉じられたら、舞台も道連れにする（画面に置き去りにしない） */
+  st._kill = () => {
+    clearTimeout(t1); clearTimeout(t2); clearTimeout(t3);
+    if (st.parentNode) st.parentNode.removeChild(st);
+  };
+  return st;
+}
+/* 出しっぱなしの舞台を片づける（closeGres・スキップから呼ぶ） */
+function luxRankStageClear() {
+  document.querySelectorAll(".lux-stage").forEach((el) => {
+    if (el._kill) el._kill(); else if (el.parentNode) el.parentNode.removeChild(el);
+  });
 }
 
 /* ══ BLACK SELECT: 好きなSSRを1体えらぶ ══
@@ -13901,12 +14067,17 @@ function doDebutGacha(n, mode) {
      消費の順は 🎫ガチャチケット → <i>ジェム</i>。 */
   /* ★★ 2026-08-25 1日1回の<b>無料単発</b>。単発（1回）のときだけ。
      無料のときは payGacha を<b>通さない</b>＝券もジェムも一切減らない。 */
-  const free = (n === 1 && debutFreeLeft(mode) > 0);
-  const pay = free ? { fes: 0, tickets: 0, gems: 0, free: true } : payGacha(n, false);
+  /* ★★ 2026-08-26b 版ごとに<b>初回の10連が無料</b>。
+     単発の無料（1日1回）とは台帳が別なので、両方を同じ日に使える。 */
+  const free10 = (n === 10 && debutFree10Left(mode) > 0);
+  const free = free10 || (n === 1 && debutFreeLeft(mode) > 0);
+  const pay = free ? { fes: 0, tickets: 0, gems: 0, free: true, free10: free10 } : payGacha(n, false);
   if (!pay) return;
-  if (free) debutFreeUse(mode);
+  if (free10) debutFree10Use(mode);
+  else if (free) debutFreeUse(mode);
   DB.pulls = (DB.pulls || 0) + n; missionTick("pull", n);
-  const payTx = pay.free ? "（🎁 1日1回の無料単発）" : gachaPayText(pay);
+  const payTx = pay.free10 ? "（🎁 初回10連無料）"
+    : pay.free ? "（🎁 1日1回の無料単発）" : gachaPayText(pay);
   /* ★★ 2026-08-22b 特別演出（10連のみ・超低確率） */
   const lux = luxRoll(n);
   if (lux === "allssr") {
@@ -14113,7 +14284,11 @@ async function crossExchange() {
   revealGacha([r], "ポイント交換！");
 }
 window.crossExchange = crossExchange;
-function closeGres() { $("#gres").classList.remove("on"); renderTeam(); renderChars(); }
+function closeGres() {
+  /* ★★ 2026-08-26b 昇格の舞台が出ているうちに閉じられても、画面に置き去りにしない */
+  try { luxRankStageClear(); } catch (e) {}
+  $("#gres").classList.remove("on"); renderTeam(); renderChars();
+}
 window.closeGres = closeGres;
 function openRates(which) {
   const rows = [];
