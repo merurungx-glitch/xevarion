@@ -76,6 +76,8 @@ function modeDef(k) {
       sub: "スタンバイ中（次のバージョンの準備中です）" };
     return { nm: DEBUT_NM, ic: "✧", c: DEBUT_C, ver: v,
       sub: gachaVerText(v) + "・新キャラ" + v.chars.length + "体はここだけ／あと" + debutDaysLeft(v) + "日"
+        /* ★★ 2026-08-26b 版ごとに<b>初回の10連が無料</b>（ご指定）。1日1回の無料単発とは別枠。 */
+        + (debutFree10Left(k) > 0 ? "／🎁 初回10連 無料" : "")
         + (debutFreeLeft(k) > 0 ? "／🎁 1日1回無料の単発あり" : "") };
   }
   /* ★ 2026-08-20c ご指定により、ガチャの画面では<b>プレミアムも英語表記</b>（PREMIUM_NM）にそろえる */
@@ -156,8 +158,13 @@ function paintPickup() {
       <div class="pksub" style="margin-top:9px">
         新キャラSSR <b>${dchars.length}体</b>（合計${ratePct(DEBUT_S5_TOTAL)}・ピックアップなし）に加えて、
         <b>${PREMIUM_NM} のSSRも合計${ratePct(FES_PREMIUM_TOTAL)}で排出</b>されます（フェスガチャと同じしくみ）。<br>
+        ${/* ★★ 2026-08-26b 版ごとに初回の10連が無料（ご指定）。1日1回の無料単発とは別枠。 */""}
+        🎁 <b>この版の初回10連は無料</b>です（🎫チケットも<i class='icc ic-gem'></i>ジェムも減りません。
+        <b>最後の1枠のSSR確定つき</b>）。${debutFree10Left(gMode) > 0
+          ? "<b style='color:" + DEBUT_C + "'>まだ使っていません。</b>"
+          : "この版のぶんは使いました。"}<br>
         🎁 <b>1日1回、単発を無料で引けます</b>（🎫チケットも<i class='icc ic-gem'></i>ジェムも減りません）。
-        <b>版ごとに1回ずつ</b>なので、2本並んでいるときは2回ぶんもらえます。<br>
+        <b>どちらも版ごとに1回ずつ</b>なので、2本並んでいるときは2回ぶんもらえます。<br>
         <b>この${dchars.length}体は ${DEBUT_NM} ${gachaVerText(dv)} でしか引けません</b>——
         フェスや ${PREMIUM_NM} の<b>すり抜け・10連の確定枠には出ません</b>。<br>
         ${/* ★★ 2026-08-26 10日ルール（ご指定）。いつまで並ぶのかを必ず書く。 */""}
@@ -308,9 +315,15 @@ function paintNote() {
     const freeLine = (debutFreeLeft(gMode) > 0)
       ? `🎁 <b>きょうの無料単発はまだ残っています</b>（1日1回・下の「1回」ボタンが無料になります）。`
       : `🎁 <b>1日1回、単発を無料で引けます</b>（きょうのぶんは使いました。あと約 ${typeof debutFreeNextText === "function" ? debutFreeNextText() : "1日"} でもどります）。`;
+    /* ★★ 2026-08-26b 版ごとに<b>初回の10連が無料</b>（ご指定）。1日1回の単発とは別の台帳で、
+       こちらは日付では戻らない（その版で一度きり）。 */
+    const free10Line = (debutFree10Left(gMode) > 0)
+      ? `🎁 <b>この版の初回10連は無料です</b>（下の「10連 SSR確定」ボタンが無料になります。SSR確定枠もそのまま付きます）。`
+      : `🎁 <b>初回10連の無料は版ごとに1回</b>です（${gachaVerText(dv)} のぶんは使いました。次のバージョンでまた引けます）。`;
     $("#gnote").innerHTML = `<b>新キャラSSR 合計${ratePct(DEBUT_S5_TOTAL)}</b>（${dchars.length}体で等分・各 ${ratePct(debutEachRateOf(gMode))}）
       ／ <b>${PREMIUM_NM} のSSR 合計${ratePct(FES_PREMIUM_TOTAL)}</b>
       ／ <b>SR 合計50%</b>（${s4}体で等分・各 ${ratePct(0.50 / s4)}）／ <b>育成アイテム ${ratePct(DEBUT_ITEM_P)}</b>。<br>
+      ${free10Line}<br>
       ${freeLine}<br>
       ${tktLine}<br>
       <b>10連は最後の1枠が SSR 確定</b>（新キャラ＋${PREMIUM_NM} のSSRをまとめた中から等確率）。
@@ -353,6 +366,10 @@ function paintPullBar() {
   /* ★★ 2026-08-25 GRAND DEBUT の「1日1回 無料の単発」。
      残っているときは<b>単発だけ</b>を FREE にする（5連・10連はこれまでどおり有料）。 */
   const freeOn = isDebutMode(gMode) && !dStandby && debutFreeLeft(gMode) > 0;
+  /* ★★ 2026-08-26b 版ごとに<b>初回の10連が無料</b>（ご指定）。
+     見せかたは 1日1回の無料単発と<b>そろえる</b>——ボタンはふつうのまま、右上に札を出すだけ。
+     ★ 札の文だけ変える（「初回無料」）。日付では戻らないので「1回無料」とは書かない。 */
+  const free10On = isDebutMode(gMode) && !dStandby && debutFree10Left(gMode) > 0;
   /* ★★ 2026-08-26 ご指定により、無料の単発は<b>ふつうのボタンと同じ見た目</b>に戻し、
      そのボタンの<b>右上に「1回無料」の札</b>を出すだけにした。
      （2026-08-25b の「全幅で光る大きなボタン」は、下の 5連・10連 が押しづらく、
@@ -364,6 +381,12 @@ function paintPullBar() {
          ちがうのは右上の札と、値段のかわりに「無料」と出るところだけ。 */
       return `<button class="pbtn" onclick="pull(1)"><span class="freetag">1回無料</span>`
         + `<b>1回</b><small>無料</small></button>`;
+    }
+    /* ★★ 2026-08-26b 初回の10連も同じ見せかたで無料にする（ご指定）。
+       10連の枠は色ちがい（.p10）なので、クラスはそのまま残す＝並びも大きさも変わらない。 */
+    if (n === 10 && free10On) {
+      return `<button class="pbtn ${cls}" onclick="pull(10)"><span class="freetag">初回無料</span>`
+        + `<b>${label}</b><small>無料</small></button>`;
     }
     const c = gachaCost(n, fes);
     const ok = !locked && DB.orbs >= c.gems;
@@ -528,6 +551,12 @@ function openRatesX() {
       dchars.indexOf(id) >= 0 ? "GRAND DEBUT 限定" : PREMIUM_NM)));
     rows.push(rateNoteRow("※ <b>ピックアップはありません</b>。新キャラSSR 合計"
       + ratePct(DEBUT_S5_TOTAL) + "を排出対象で等分します。"));
+    rows.push(rateNoteRow("※ <b>この版の初回10連は無料です</b>（🎫チケットも"
+      + "<i class='icc ic-gem'></i>ジェムも減りません）。中身・確率・<b>最後の1枠のSSR確定</b>は、"
+      + "ふつうの10連とまったく同じです。<b>版ごとに1回だけ</b>で、日付が変わっても戻りません。"
+      + (debutFree10Left(gMode) > 0
+        ? "　<b>この版のぶんはまだ残っています。</b>"
+        : "　この版のぶんは使いました。")));
     rows.push(rateNoteRow("※ <b>1日1回、単発を無料で引けます</b>（🎫チケットも"
       + "<i class='icc ic-gem'></i>ジェムも減りません）。中身はふつうの単発とまったく同じです。"
       + (debutFreeLeft(gMode) > 0

@@ -2247,10 +2247,28 @@ function xhDebutFreeLeft() {
   } catch (e) { return false; }
 }
 window.xhDebutFreeLeft = xhDebutFreeLeft;
+/* ★★ 2026-08-26b 版ごとに<b>初回の10連が無料</b>（ご指定）。
+   使ったかどうかは magiburst_v1 の <b>debutFree10</b>（{ "4.0": true }）で覚える。
+   ★ 1日に1回戻る単発とちがい、<b>一度使ったらその版ではもう戻らない</b>ので日付を見ない。
+   ★ mb-core.js の debutFree10Left() と<b>同じ判定</b>にすること。 */
+function xhDebutFree10Left() {
+  try {
+    const live = xhDebutLiveVers();
+    if (!live.length) return false;
+    const d = JSON.parse(localStorage.getItem("magiburst_v1") || "{}");
+    const f = d.debutFree10;
+    if (!f || typeof f !== "object") return true;
+    return live.some((v) => !f[v.ver]);
+  } catch (e) { return false; }
+}
+window.xhDebutFree10Left = xhDebutFree10Left;
+/* 下バーの印は「単発・10連の<b>どちらか</b>が無料なら出す」 */
+function xhDebutAnyFree() { return xhDebutFreeLeft() || xhDebutFree10Left(); }
+window.xhDebutAnyFree = xhDebutAnyFree;
 function xhPaintGachaFree() {
   const btn = document.querySelector('.xh-bar .xh-ntab[data-tab="gacha"]');
   if (!btn) return;
-  const show = xhDebutFreeLeft();
+  const show = xhDebutAnyFree();
   let tag = btn.querySelector(".xh-freetag");
   if (!show) { if (tag) tag.remove(); return; }
   if (!tag) {
@@ -2271,9 +2289,15 @@ function xhNewestChar() {
     const list = (window.XEVA && XEVA.MB_CHARS) || [];
     const d = new Date();
     const t = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
-    const live = list.filter((c) => c.since && String(c.since).slice(0, 10) <= t)
-      .sort((a, b) => String(b.since).localeCompare(String(a.since)));
-    return live[0] || null;
+    /* ★★ 2026-08-26b 同じ日に何体も足すことがあるので、<b>日付だけでは決まらない</b>。
+       Array#sort は同点のとき元の並びを保つので、日付だけで並べると
+       その日のうち<b>いちばん先に書いたキャラ</b>（＝No. の小さいほう）が選ばれていた。
+       実際、Ver.4.0 の5体を足したあとも下バーには Ver.3.0 のカリンが出ていた。
+       台帳（MB_CHARS）の並び＝No. の順なので、<b>同じ日なら後ろにいるほうが新しい</b>。 */
+    const live = list.map((c, i) => ({ c, i }))
+      .filter((o) => o.c.since && String(o.c.since).slice(0, 10) <= t)
+      .sort((a, b) => String(b.c.since).localeCompare(String(a.c.since)) || (b.i - a.i));
+    return (live[0] && live[0].c) || null;
   } catch (e) { return null; }
 }
 /* ★ 2026-08-24 回数を数えるのはやめた（条件の撤回）。

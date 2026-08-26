@@ -23,7 +23,7 @@
 <!-- ★★ 2026-08-22b Xevion OS の見た目（テーマ・文字の大きさ・動きを減らす）。
      xevarion-home.css の<b>あと</b>に読む＝上書きできるようにする。 -->
 <link rel="stylesheet" href="xevion-os.css?v=5">
-<script src="xeva.js?v=44" defer></script>
+<script src="xeva.js?v=45" defer></script>
 <!-- ★ 2026-08-20 通信設定（Wi-Fi／モバイルデータごとに「最新を取りに行くか」を決める）。
      決めた内容はここから各アプリの Service Worker へ送られ、SW 側が動きを切り替える。 -->
 <script src="xeva-netmode.js?v=2" defer></script>
@@ -41,8 +41,8 @@
 <script type="module" src="xevarion-fb.js?v=22"></script>
 <script src="xeva-presence.js?v=1" defer></script>
 <script type="module" src="xeva-cloud.js?v=18"></script>
-<script src="xevarion.js?v=68" defer></script>
-<script src="xevarion-home.js?v=55" defer></script>
+<script src="xevarion.js?v=69" defer></script>
+<script src="xevarion-home.js?v=56" defer></script>
 </head>
 <body>
 <!-- ───── バックグラウンド音楽（Flagship Arrival。アクセス画面のタップで再生開始） ───── -->
@@ -1184,6 +1184,32 @@ body.music-on #beatFrame{opacity:1}
 .char-pick-item.mbchar.sel{border-color:#8e6bff;box-shadow:0 0 0 3px rgba(142,107,255,.24)}
 .char-pick-tag{position:absolute;top:4px;left:4px;font-size:8px;font-weight:900;letter-spacing:.02em;color:#fff;
   background:rgba(142,107,255,.9);border-radius:99px;padding:2px 6px}
+/* ══ ★★ 2026-08-26b アイコン設定を<b>キャラ図鑑と同じように</b>探せるようにする（ご指定）══
+   ------------------------------------------------------------
+   ・名前で検索（かな・カタカナ・No. でも当たる）
+   ・並び替え（No.順／新しい順／名前順）
+   ・絞りこみ（すべて／SSR／SR／XEVAガチャ／MagiBurst）
+   ★ 入力欄・<select> の文字は必ず <b>16px</b>。これ未満だと iOS が触れた瞬間に
+     画面ぜんたいを勝手に拡大する（characters.html で踏んだのと同じ話）。 */
+.cp-tools{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:10px}
+.cp-tools input,.cp-tools select{padding:10px 13px;border-radius:99px;border:1.5px solid rgba(56,140,220,.22);
+  background:#fbfdff;color:#22344d;font-size:16px;font-weight:700;font-family:inherit;outline:none;
+  -webkit-appearance:none;appearance:none}
+.cp-tools input{flex:1 1 150px;min-width:0;font-weight:600}
+.cp-tools input:focus{border-color:#38a6ff;box-shadow:0 0 0 3px rgba(56,166,255,.16)}
+.cp-tools select{flex:0 0 auto;cursor:pointer}
+.cp-tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px}
+.cp-tab{padding:7px 13px;border-radius:99px;border:1.5px solid rgba(56,140,220,.22);background:#fff;
+  color:#7b8aa3;font-size:11.5px;font-weight:800;font-family:inherit;cursor:pointer}
+.cp-tab.on{background:linear-gradient(135deg,#38a6ff,#8e6bff);border-color:transparent;color:#fff;
+  box-shadow:0 4px 12px rgba(56,166,255,.28)}
+.cp-count{font-size:11px;font-weight:800;color:#7b8aa3;margin:0 2px 8px}
+.cp-count b{color:#22344d}
+.cp-empty{grid-column:1/-1;padding:22px 10px;text-align:center;font-size:12px;font-weight:700;
+  color:rgba(34,52,77,.55);line-height:1.9}
+/* 所持キャラの目じるし（No.）。図鑑と同じ見かたができるように番号を出す */
+.char-pick-no{position:absolute;top:4px;right:4px;font-family:'Orbitron',sans-serif;font-size:8px;font-weight:900;
+  color:#fff;background:rgba(20,20,40,.6);border-radius:99px;padding:2px 5px}
 
 /* wizard inputs */
 .wz-input{width:100%;padding:14px 16px;border:2px solid rgba(56,140,220,.20);border-radius:14px;font-size:16px;
@@ -1526,6 +1552,39 @@ body.music-on #beatFrame{opacity:1}
 
   <div class="nm-body" id="newsBody">
     <div class="nm-divider" id="newDivider" style="display:none;">NEW — 前回から更新</div>
+    <!-- 2026-08-26c 夏キャンペーン🎫30枚／初回10連 無料／RANK UP 演出の作り直し／アイコン設定の検索 -->
+    <div class="nm-item" data-tag="update" data-date="2026-08-26">
+      <div class="nm-date">2026<br>08.26</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">☀️ 夏キャンペーン 🎫ガチャチケット30枚 配布／GRAND DEBUT は初回10連が無料／RANK UP 演出を作り直しました</div>
+        <div class="nm-txt">
+          ☀️ <b>夏キャンペーン</b>として、全ユーザーに <b>🎫ガチャチケット30枚</b> をお贈りします。
+          ホームの<b>📧メール</b>から受け取ってください。ガチャチケットは
+          <b>PREMIUM SELECT GACHA・GRAND DEBUT GACHA・各フェスのどれでも</b>使えます（1枚＝1回ぶん）。<br>
+          🎁 <b>GRAND DEBUT GACHA は、バージョンごとに初回の10連が無料</b>になりました。
+          🎫チケットも<i class="icc ic-gem"></i>ジェムもいっさい減らず、
+          <b>最後の1枠のSSR確定</b>もそのまま付きます。いまは Ver.2.0・Ver.3.0・Ver.4.0 の
+          <b>3本ぶん</b>が無料で引けます。これまでの<b>1日1回の無料単発</b>とは別枠なので、両方使えます。<br>
+          ✦ <b>ランクアップ（RANK UP!!）の演出を作り直しました。</b>
+          これまでは<b>結果のマスの中だけ</b>で光っていたので、10連では 80px ほどの小さな枠で
+          1秒だけ——気づかないうちに終わって「結果だけSSRになった」ように見えていました。
+          これからは<b>画面いっぱいの舞台</b>が立ちあがり、大きなプレートが
+          <b>SR から虹の SSR へ回って割れ</b>、<b>RANK UP!!</b> が大きく出ます。<br>
+          🖼 <b>アイコンの設定を、キャラクター図鑑と同じように探せる</b>ようにしました。
+          <b>名前・No. での検索</b>（ひらがなで打ってもカタカナ名に当たります）、
+          <b>並び替え</b>（番号順／新しい順／名前順）、
+          <b>絞りこみ</b>（SSR／SR／XEVAガチャ／MagiBurst）が使えます。
+          あわせて、アイコンにできるのは<b>所持しているキャラだけ</b>になりました。<br>
+          🎰 <b>ホーム下のバーのガチャのアイコン</b>が、<b>いちばん新しいキャラ</b>にならないことがあったのを直しました
+          （同じ日に何体も追加した版で、先に書いたキャラのほうが出ていました）。<br>
+          🤖 <b>MagiBurst の自動編成</b>は、<b>自分の育成状況を見ない</b>ようになりました。
+          ステータスは<b>最大育成時</b>（レベル上限・限界突破MAX・アークなし）でそろえて比べます。
+          「まだ育てていないから弱く見える」だけの子が候補から落ちて、
+          そのクエストに本当に向いている編成が出てこない、という状態を直すためです。
+        </div>
+      </div>
+    </div>
     <!-- 2026-08-26b GRAND DEBUT Ver.4.0 ／ リンク名の決めごと ／ ランクアップ演出の修正 -->
     <div class="nm-item" data-tag="update" data-date="2026-08-26">
       <div class="nm-date">2026<br>08.26</div>
@@ -3352,8 +3411,27 @@ body.music-on #beatFrame{opacity:1}
     <div class="wz-step on" id="wzStep0">
       <div class="wz-title">アイコンを選ぶ</div>
       <div class="wz-sub">XEVARION 全体であなたを表すキャラクターです</div>
+      <!-- ★★ 2026-08-26b 設定のアイコン変更と<b>同じ道具</b>（検索・並び替え・絞りこみ）をここにも置く。
+           アイコンにできるのは<b>所持しているキャラだけ</b>（ご指定）。 -->
+      <div class="cp-tools">
+        <input id="wzCharQ" type="search" inputmode="search" placeholder="キャラ名・No. で検索" autocomplete="off"
+               oninput="paintWzCharGrid()" onsearch="paintWzCharGrid()">
+        <select id="wzCharSort" onchange="paintWzCharGrid()" aria-label="並び替え">
+          <option value="no">番号順（No.）</option>
+          <option value="new">新しい順</option>
+          <option value="name">名前順（あいうえお）</option>
+        </select>
+      </div>
+      <div class="cp-tabs" id="wzCharTabs">
+        <button type="button" class="cp-tab on" data-f="all" onclick="wzCharFilter('all',this)">すべて</button>
+        <button type="button" class="cp-tab" data-f="ssr" onclick="wzCharFilter('ssr',this)">SSR</button>
+        <button type="button" class="cp-tab" data-f="sr" onclick="wzCharFilter('sr',this)">SR</button>
+        <button type="button" class="cp-tab" data-f="xeva" onclick="wzCharFilter('xeva',this)">🎰 XEVAガチャ</button>
+        <button type="button" class="cp-tab" data-f="mb" onclick="wzCharFilter('mb',this)">⚔ MagiBurst</button>
+      </div>
+      <div class="cp-count" id="wzCharCount"></div>
       <div class="char-pick-grid" id="wzCharGrid"></div>
-      <div class="wz-note">ガチャで手に入れたキャラは、あとから設定で変更できます</div>
+      <div class="wz-note">アイコンにできるのは所持しているキャラだけです。ガチャで増えたら、あとから設定でいつでも変更できます</div>
       <div class="wz-btns">
         <button class="wz-btn pri" id="wzNext0" onclick="wzNext(1)">次へ →</button>
       </div>
@@ -3566,7 +3644,27 @@ body.music-on #beatFrame{opacity:1}
 <!-- ── char pick for settings ── -->
 <div class="acc-overlay" id="accCharPickOv">
   <div class="acc-card" style="padding:24px">
-    <div style="font-family:'Orbitron',sans-serif;font-size:.9rem;color:#22344d;text-align:center;margin-bottom:14px">アイコンを変更</div>
+    <div style="font-family:'Orbitron',sans-serif;font-size:.9rem;color:#22344d;text-align:center;margin-bottom:4px">アイコンを変更</div>
+    <!-- ★★ 2026-08-26b 図鑑と同じように「探す・並べかえる」ができるようにした（ご指定）。
+         アイコンにできるのは<b>所持しているキャラだけ</b>。 -->
+    <div style="font-size:11px;color:rgba(34,52,77,.6);text-align:center;margin-bottom:12px">所持しているキャラから選べます</div>
+    <div class="cp-tools">
+      <input id="setCharQ" type="search" inputmode="search" placeholder="キャラ名・No. で検索" autocomplete="off"
+             oninput="paintSetCharGrid()" onsearch="paintSetCharGrid()">
+      <select id="setCharSort" onchange="paintSetCharGrid()" aria-label="並び替え">
+        <option value="no">番号順（No.）</option>
+        <option value="new">新しい順</option>
+        <option value="name">名前順（あいうえお）</option>
+      </select>
+    </div>
+    <div class="cp-tabs" id="setCharTabs">
+      <button type="button" class="cp-tab on" data-f="all" onclick="setCharFilter('all',this)">すべて</button>
+      <button type="button" class="cp-tab" data-f="ssr" onclick="setCharFilter('ssr',this)">SSR</button>
+      <button type="button" class="cp-tab" data-f="sr" onclick="setCharFilter('sr',this)">SR</button>
+      <button type="button" class="cp-tab" data-f="xeva" onclick="setCharFilter('xeva',this)">🎰 XEVAガチャ</button>
+      <button type="button" class="cp-tab" data-f="mb" onclick="setCharFilter('mb',this)">⚔ MagiBurst</button>
+    </div>
+    <div class="cp-count" id="setCharCount"></div>
     <div class="char-pick-grid" id="setCharGrid"></div>
     <div style="display:flex;gap:10px;margin-top:16px">
       <button class="wz-btn sec" onclick="closeCharPickForSettings()">キャンセル</button>

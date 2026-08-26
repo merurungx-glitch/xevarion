@@ -1014,37 +1014,114 @@ let wzSelectedChar = null;
 function mbIconChars() {
   return (window.XEVA && window.XEVA.mbIconChars) ? window.XEVA.mbIconChars() : [];
 }
-/* ピッカー1マスぶんのHTML（XEVAガチャ・MagiBurst 共通） */
+/* ピッカー1マスぶんのHTML（XEVAガチャ・MagiBurst 共通）
+   ★★ 2026-08-26b No. の札を足した（図鑑と同じ見かたができるように）。 */
 function charPickItemHTML(c, sel, idPrefix, fn) {
   const src = c.mb ? charSmallPath(c.file) : ("chars/" + c.file);
   return `<div class="char-pick-item${sel ? " sel" : ""}${c.mb ? " mbchar" : ""}" id="${idPrefix}${c.id}" onclick="${fn}('${c.id}','${c.file}','${c.name}')">
       <img src="${src}" alt="${c.name}" loading="lazy">
+      ${c.no ? `<span class="char-pick-no">No.${c.no}</span>` : ""}
       <div class="char-pick-nm">${c.name}</div>
       ${c.mb ? '<span class="char-pick-tag">MagiBurst</span>' : ""}
     </div>`;
 }
-function buildWzCharGrid() {
-  const chars = window.XEVA ? window.XEVA.CHARS : [];
+
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-08-26b アイコンえらびを<b>キャラ図鑑と同じように</b>使えるようにした（ご指定）
+
+   ① 名前・No. で<b>検索</b>できる（ひらがなで打ってもカタカナ名に当たる）
+   ② <b>並び替え</b>（番号順／新しい順／名前順）
+   ③ <b>絞りこみ</b>（すべて／SSR／SR／XEVAガチャ／MagiBurst）
+   ④ アイコンにできるのは<b>所持しているキャラだけ</b>
+
+   ★ ④ について: 2026-08-10 に「アイコンは見た目だけなので全キャラから選べる」に
+     していたが、ご指定で<b>所持しているキャラだけ</b>に戻した。
+     所持の判定は xeva.js の iconCharList()（XEVAガチャと MagiBurst の2つの
+     セーブを突き合わせて own を付けて返す）に一本化してある——
+     ここで判定を書き直さないこと（2か所に置くと必ず食いちがう）。
+   ★ 登録ウィザードと設定の「アイコンを変更」は<b>同じ道具</b>を使う。
+     見た目も操作もそろえるため、描画は cpGridHTML 1本に寄せている。
+   ══════════════════════════════════════════════════════════════ */
+/* ひらがな → カタカナ。「さくら」と打っても「サクラ」に当たるようにする */
+function cpKana(s) {
+  return String(s || "").replace(/[ぁ-ゖ]/g, (ch) => String.fromCharCode(ch.charCodeAt(0) + 0x60));
+}
+function cpNorm(s) { return cpKana(s).toLowerCase(); }
+/* アイコンに選べるキャラ（＝持っているキャラだけ）。並びは No. 順 */
+function cpOwnedChars() {
+  const all = (window.XEVA && window.XEVA.iconCharList) ? window.XEVA.iconCharList() : [];
+  const own = all.filter((c) => c.own);
+  /* 保険: 何かの理由で1体も持っていないことになったら全キャラを出す。
+     ここで空を返すと<b>登録が先へ進めなくなる</b>ので、詰みだけは作らない。 */
+  return own.length ? own : all;
+}
+/* 検索・絞りこみ・並び替えをまとめて当てる */
+function cpApply(list, q, filter, sort) {
+  const nq = cpNorm(q || "").trim();
+  let out = list.filter((c) => {
+    if (filter === "ssr" && !c.star5) return false;
+    if (filter === "sr" && c.star5) return false;
+    if (filter === "xeva" && c.mb) return false;
+    if (filter === "mb" && !c.mb) return false;
+    if (!nq) return true;
+    return cpNorm(c.name).indexOf(nq) >= 0
+      || String(c.no).indexOf(nq) >= 0
+      || cpNorm(c.id).indexOf(nq) >= 0;
+  });
+  /* 「新しい順」＝ No. の大きい順（台帳の並びが No. の順なので、ひっくり返すだけでよい） */
+  if (sort === "new") out = out.slice().reverse();
+  else if (sort === "name") out = out.slice().sort((a, b) => String(a.name).localeCompare(String(b.name), "ja"));
+  return out;
+}
+function cpGridHTML(list, selId, idPrefix, fn) {
+  if (!list.length) {
+    return '<div class="cp-empty">見つかりませんでした。<br>検索の文字や絞りこみを変えてみてください。</div>';
+  }
+  return list.map((c) => charPickItemHTML(c, c.id === selId, idPrefix, fn)).join("");
+}
+/* 絞りこみのチップを押したときの共通処理 */
+function cpSetTab(wrapId, f, el) {
+  document.querySelectorAll("#" + wrapId + " .cp-tab").forEach((b) => b.classList.remove("on"));
+  if (el) el.classList.add("on");
+  else document.querySelectorAll("#" + wrapId + " .cp-tab").forEach((b) => {
+    if (b.getAttribute("data-f") === f) b.classList.add("on");
+  });
+}
+/* 検索欄・並び替えを初期状態に戻す（開くたびに前回の絞りこみが残らないように） */
+function cpReset(qId, sortId, wrapId) {
+  const q = document.getElementById(qId); if (q) q.value = "";
+  const so = document.getElementById(sortId); if (so) so.value = "no";
+  cpSetTab(wrapId, "all", null);
+}
+function cpVal(id) { const el = document.getElementById(id); return el ? el.value : ""; }
+
+let wzCharFilterCur = "all";
+function wzCharFilter(f, el) { wzCharFilterCur = f; cpSetTab("wzCharTabs", f, el); paintWzCharGrid(); }
+function paintWzCharGrid() {
   const grid = document.getElementById("wzCharGrid");
   if (!grid) return;
-  /* ★ 2026-08-10 登録のときから<b>全キャラ</b>を選べる（所持で絞らない）。
-     ★ 2026-08-12 CDK限定キャラ（アヤカ）だけ除いていたのをやめ、<b>本当に全員</b>にした。
-       アイコンは見た目だけのものなので、入手経路で絞る意味がない。 */
-  const allChars = chars.slice();
-  const mbChars = mbIconChars();
-  const defaultChar = allChars[0] || mbChars[0];
+  const all = cpOwnedChars();
+  const list = cpApply(all, cpVal("wzCharQ"), wzCharFilterCur, cpVal("wzCharSort") || "no");
+  grid.innerHTML = cpGridHTML(list, wzSelectedChar && wzSelectedChar.id, "wzci_", "wzPickChar");
+  const cnt = document.getElementById("wzCharCount");
+  if (cnt) cnt.innerHTML = "所持 <b>" + all.length + "</b> 体中 <b>" + list.length + "</b> 体を表示";
+}
+function buildWzCharGrid() {
+  const grid = document.getElementById("wzCharGrid");
+  if (!grid) return;
+  const all = cpOwnedChars();
+  const defaultChar = all[0];
   if (defaultChar) {
     wzSelectedChar = { id: defaultChar.id, file: defaultChar.file, name: defaultChar.name };
   }
-  const sec = (t, s) => `<div class="char-pick-sec">${t}<small>${s}</small></div>`;
-  grid.innerHTML =
-    (allChars.length ? sec("🎰 XEVAガチャ", allChars.length + "体・所持していなくても選べます")
-      + allChars.map(c => charPickItemHTML(c, c.id === (defaultChar && defaultChar.id), "wzci_", "wzPickChar")).join("") : "")
-    + (mbChars.length ? sec("⚔ MagiBurst", mbChars.length + "体・所持していなくても選べます")
-      + mbChars.map(c => charPickItemHTML(c, c.id === (defaultChar && defaultChar.id), "wzci_", "wzPickChar")).join("") : "");
+  wzCharFilterCur = "all";
+  cpReset("wzCharQ", "wzCharSort", "wzCharTabs");
+  paintWzCharGrid();
   const nextBtn = document.getElementById("wzNext0");
   if (nextBtn) nextBtn.disabled = !defaultChar;
 }
+window.paintWzCharGrid = paintWzCharGrid;
+window.wzCharFilter = wzCharFilter;
 
 function wzPickChar(id, file, name) {
   wzSelectedChar = { id, file, name };
@@ -1605,26 +1682,35 @@ async function deleteAccount() {
 /* ── char picker for settings ── */
 let setSelectedChar = null;
 
-function openCharPickForSettings() {
-  const chars = window.XEVA ? window.XEVA.CHARS : [];
+/* ★★ 2026-08-26b 検索・並び替え・絞りこみつき。所持しているキャラだけを出す（ご指定）。
+   もとの「🎰 XEVAガチャ／⚔ MagiBurst の2つの見出しで全キャラを並べる」形は廃止した
+   （名前順に並べ替えると見出しが意味を失うため。どちらのキャラかは札で分かる）。 */
+let setCharFilterCur = "all";
+function setCharFilter(f, el) { setCharFilterCur = f; cpSetTab("setCharTabs", f, el); paintSetCharGrid(); }
+function paintSetCharGrid() {
   const grid = document.getElementById("setCharGrid");
   if (!grid) return;
   const acc = getAcc();
-  /* ★ 2026-08-10 アイコンは<b>アプリに関係なく全キャラ</b>から選べる。
-     以前は「そのアプリで持っているキャラだけ」だったので、
-     遊びはじめの人はほとんど選べなかった。アイコンは見た目だけのものなので所持で絞らない。
-     ★ 2026-08-12 CDK限定キャラ（アヤカ）も含めて<b>本当に全員</b>から選べるようにした。 */
-  const allChars = chars.slice();
-  const mbChars = mbIconChars();
+  const all = cpOwnedChars();
+  const list = cpApply(all, cpVal("setCharQ"), setCharFilterCur, cpVal("setCharSort") || "no");
+  /* 選択中の印は「いま選び直したもの」→「いま設定されているもの」の順で見る */
+  const selId = (setSelectedChar && setSelectedChar.id) || (acc && acc.charId) || "";
+  grid.innerHTML = cpGridHTML(list, selId, "scci_", "setPickChar");
+  const cnt = document.getElementById("setCharCount");
+  if (cnt) cnt.innerHTML = "所持 <b>" + all.length + "</b> 体中 <b>" + list.length + "</b> 体を表示";
+}
+window.paintSetCharGrid = paintSetCharGrid;
+window.setCharFilter = setCharFilter;
+
+function openCharPickForSettings() {
+  const grid = document.getElementById("setCharGrid");
+  if (!grid) return;
   setSelectedChar = null;
+  setCharFilterCur = "all";
+  cpReset("setCharQ", "setCharSort", "setCharTabs");
   const saveBtn = document.getElementById("setCharSaveBtn");
   if (saveBtn) saveBtn.disabled = true;
-  const sec = (t, s) => `<div class="char-pick-sec">${t}<small>${s}</small></div>`;
-  grid.innerHTML =
-    (allChars.length ? sec("🎰 XEVAガチャ", allChars.length + "体・所持していなくても選べます")
-      + allChars.map((c) => charPickItemHTML(c, acc && acc.charId === c.id, "scci_", "setPickChar")).join("") : "")
-    + (mbChars.length ? sec("⚔ MagiBurst", mbChars.length + "体・所持していなくても選べます")
-      + mbChars.map((c) => charPickItemHTML(c, acc && acc.charId === c.id, "scci_", "setPickChar")).join("") : "");
+  paintSetCharGrid();
   document.getElementById("accCharPickOv").classList.add("open");
 }
 
@@ -2038,6 +2124,14 @@ function grantMbGift(srcId, mb) {
 }
 
 const INITIAL_MAILS = [
+  /* ── ★★ 2026-08-26 夏キャンペーン（🎫ガチャチケット30枚） ──
+     ★ mb:{gticket:30} ＝<b>ガチャチケット</b>（全ガチャ共通）。
+       mb:{ticket:N} は<b>フェスチケット</b>（フェス専用）なので取りちがえないこと。
+       GRAND DEBUT GACHA ではフェス券が使えないため、夏の配布は<b>ガチャ券</b>にする。
+     ★ 受け取った瞬間に XEVARION 共通ウォレット（XEVA.ticket）へ入る（grantMbGift）。 */
+  { id:"mail_summer_ticket_260826", icon:"☀️", title:"夏キャンペーン 配布（🎫ガチャチケット30枚）", date:"2026-08-26",
+    body:"いつも XEVARION をご利用いただきありがとうございます。\n\n夏キャンペーンの感謝をこめて、全ユーザーに ガチャチケット30枚 をお贈りします。\n\n・ガチャチケットは PREMIUM SELECT GACHA・GRAND DEBUT GACHA・各フェスの どのガチャでも 使える共通チケットです（1枚＝1回ぶん）。\n・回すときは、フェスチケット → ガチャチケット → 💎ジェム の順に自動で使われます。GRAND DEBUT GACHA ではフェスチケットが使えないので、こちらのチケットが役に立ちます。\n・受け取ったその場で増えて、そのままガチャで使えます。\n\nGRAND DEBUT GACHA には バージョンごとに 新キャラ5体 が登場中です。各バージョンとも 初回の10連が無料、さらに 1日1回 単発が無料 で引けます。ぜひこの機会にお試しください。\n\nこれからも XEVARION をよろしくお願いします。",
+    mb:{ gticket:30 } },
   /* ── 2026-08-13 新チケット「ガチャチケット」配布（20枚） ──
      ★ mb:{gticket:20}＝<b>ガチャチケット</b>（全ガチャ共通・新設）。
        mb:{ticket:N} は従来からある<b>フェスチケット</b>。混ぜないこと。
@@ -2828,7 +2922,11 @@ const CDK_CODES = {
   "CHEERFORAYAKA2026": { charId: "ayaka", name: "アヤカ（完凸・5体分）", full: true },
   /* ★ 2026-08-24 追加。お知らせ・更新内容には<b>載せない</b>（ご指定）ので、
      このコードを知っている人だけが使える。 */
-  "XEVARION2026": { xeva: 100000, name: "100,000 XEVA" }
+  "XEVARION2026": { xeva: 100000, name: "100,000 XEVA" },
+  /* ★ 2026-08-26b 追加。こちらも<b>お知らせ・更新内容には載せない</b>（ご指定）。
+     ★ 載せないので、探して見つかるのは「このファイルだけ」になる。
+       コードを増やすときは必ずここ1か所に足すこと（別表を作らない）。 */
+  "XEVARIONSUMMER2026": { xeva: 200000, name: "200,000 XEVA" }
 };
 
 // WAVETOYOU2026 を一度だけリセット（凸システム対応で「完凸5体分」へ仕様変更したため、使用済みでも再入手可能にする）

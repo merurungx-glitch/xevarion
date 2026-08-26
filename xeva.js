@@ -787,9 +787,56 @@
   }
   /* アイコンに選べる MagiBurst キャラの一覧（No. 順）
      ★ 2026-08-10 「そのアプリで持っているキャラだけ」という絞りをやめた。
-       アイコンは見た目だけのものなので、アプリを遊んでいるかどうかに関係なく
-       <b>全キャラから選べる</b>ようにする。 */
+     ★★ 2026-08-26b ご指定により<b>所持しているキャラだけ</b>に戻した。
+       ただしこの関数は「顔ぶれ全部」を返すまま（絞りこみは画面側で own を見て行う）。
+       アイコンの絵・名前を出すのに、持っていないキャラの情報も要るため。 */
   function mbIconChars() { return MB_CHAR_MASTER.slice(); }
+  /* ══════════════════════════════════════════════════════════════
+     ★★ 2026-08-26b 「持っているキャラ」の台帳（アイコンに選べる顔ぶれ）
+     ------------------------------------------------------------
+     アイコンは XEVAガチャと MagiBurst の<b>両方</b>から選べるので、
+     持っているかどうかも2つのセーブを突き合わせる必要がある。
+       ・XEVAガチャ … xeva_gacha_v1 の owned ＋ 初期キャラの<b>ヒナ</b>
+       ・MagiBurst  … magiburst_v1 の chars ＋ はじめて開いたときに配られる4体
+     ★ MagiBurst をまだ一度も開いていない人には magiburst_v1 が無い。
+       それでも配られることが決まっている4体（STARTER_IDS）は「持っている」として数える
+       ＝ 登録したてでも<b>アイコンの候補が5体</b>ある（1体しか選べない、を防ぐ）。
+     ★ id の空間は別（XEVAガチャの "hina" と MagiBurst の "mb:hina" は別人）。
+       混ぜないよう、この2つは別々の関数にしてある。
+     ══════════════════════════════════════════════════════════════ */
+  var MB_STARTER_IDS = ["hina", "runa", "noa", "haruka"];   /* mb-core.js の STARTER_IDS と同じ4体 */
+  function mbOwnedSet() {
+    var owned = {};
+    try {
+      var raw = localStorage.getItem("magiburst_v1");
+      var db = raw ? JSON.parse(raw) : null;
+      if (db && db.chars) Object.keys(db.chars).forEach(function (k) { owned[k] = true; });
+    } catch (e) {}
+    MB_STARTER_IDS.forEach(function (k) { owned[k] = true; });
+    return owned;
+  }
+  function xgOwnedSet() {
+    var owned = { hina: true };                              /* XEVAガチャの初期キャラ */
+    try {
+      var g = JSON.parse(localStorage.getItem("xeva_gacha_v1") || "{}");
+      if (g && g.owned) Object.keys(g.owned).forEach(function (k) { if (g.owned[k]) owned[k] = true; });
+    } catch (e) {}
+    return owned;
+  }
+  /* アイコンに選べるキャラを1本の配列で返す（並び＝No. 順）。
+     返す1件は { id, name, file, mb, star5, no, own } */
+  function iconCharList() {
+    var xg = xgOwnedSet(), mb = mbOwnedSet(), out = [];
+    CHAR_MASTER.forEach(function (c, i) {
+      out.push({ id: c.id, name: c.name, file: c.file, mb: false,
+                 star5: c.rarity === "SSR", no: i + 1, own: !!xg[c.id] });
+    });
+    MB_CHAR_MASTER.forEach(function (c, i) {
+      out.push({ id: c.id, name: c.name, file: c.file, mb: true,
+                 star5: !!c.star5, no: i + 1, own: !!mb[c.mbId] });
+    });
+    return out;
+  }
 
   /* ══════════════════════════════════════════════════════════════
      ★ 2026-08-10 新キャラのお知らせ（前回ログインから増えたぶん）
@@ -1373,6 +1420,10 @@
     MB_CHARS: MB_CHAR_MASTER,
     MB_STARTERS: MB_STARTERS,
     mbIconChars: mbIconChars,
+    /* ★★ 2026-08-26b アイコンに選べるキャラ（所持の印つき・No. 順の1本の配列） */
+    iconCharList: iconCharList,
+    mbOwnedSet: mbOwnedSet,
+    xgOwnedSet: xgOwnedSet,
     /* ★ 2026-08-10 新キャラのお知らせ（前回ログインから増えたぶん） */
     newCharsUnseen: newCharsUnseen,
     markNewCharsSeen: markNewCharsSeen,
