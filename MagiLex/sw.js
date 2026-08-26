@@ -5,14 +5,14 @@
      オンライン復帰後にポータル側へ自然に反映される
    ・取得できたリソースは随時キャッシュ更新（stale-while-revalidate）
    ============================================================ */
-const VERSION = "magilex-sw-v67";
+const VERSION = "magilex-sw-v71";
 const CORE = [
   /* ★ 2026-08-19 図・グラフのエンジンは XEVYNAR と共有。
      ここに無いと、オフラインで「図で見る」が出ない。 */
   "../XEVYNAR/xevynar-figs.js?v=9",
   "./MagiLex.html",
-  "./magilex.css?v=32",
-  "./magilex.js?v=53",
+  "./magilex.css?v=34",
+  "./magilex.js?v=58",
   "./magilex-data.js?v=2",
   "./magilex-eigo.js?v=1",
   "./magilex-rika.js?v=1",
@@ -25,16 +25,32 @@ const CORE = [
   "./magilex-mid.js?v=1",
   "./magilex-chemd.js?v=1",
   "./magilex-physb.js?v=1",
+  /* ★★ 2026-08-26 化学ε・物理γ（全範囲の標準演習。各20セット240問）。
+     ここに無いとオフラインでこの2科目だけ問題が出てこない。 */
+  "./magilex-cheme.js?v=2",
+  "./magilex-physg.js?v=2",
   "./mlhome_s.jpg",
+  /* ★★ 2026-08-26 Knowledge Point（KP）のアイコン。
+     ここに無いとオフラインで KP の絵が出ない。 */
+  "./kp.webp",
+  "./kp@2x.webp",
+  /* ★★ 2026-08-26 KP交換所のキャラの絵（交換所は一覧を必ず出すので、CORE に入れておく） */
+  "../img/t_Mizuki.webp",
+  "../img/t_Kanade.webp",
+  "../img/t_Homura.webp",
+  "../img/t_Yoizuki.webp",
+  "../img/t_Sumika.webp",
+  /* ★ 2026-08-24 スタミナの絵（ホームのプロフィールに出す⚡札） */
+  "../stamina.png",
   "../thumbs/MagiLex.jpg",
   "../brand/NGX.png",
   "../brand/MagicalFuture.png",
   "../brand/ISHIDA Production.png",
-  "../xeva.js?v=35",
+  "../xeva.js?v=44",
   "../xeva-loading.js?v=1",
   "../xeva-splash.js?v=3",
   "../app-cloud.js?v=4",
-  "../xeva-keys.js?v=5",
+  "../xeva-keys.js?v=7",
   "./magilex-cloud.js?v=5",
   "../maintenance-gate.js?v=5",
   "../app-install-notice.js?v=1",

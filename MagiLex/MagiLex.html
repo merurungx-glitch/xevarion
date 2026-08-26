@@ -7,7 +7,7 @@
 <script>(function(){try{var a=JSON.parse(localStorage.getItem('xeva_account_v1'));if(!a||!a.setupDone)location.replace('../index.html');}catch(e){}})();</script>
 <script type="module" src="../xevarion-fb.js?v=22"></script>
 <script src="../xeva-presence.js?v=1" defer></script>
-<script type="module" src="../xeva-cloud.js?v=16"></script>
+<script type="module" src="../xeva-cloud.js?v=18"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>MagiLex — 学習アプリ（クイズ × 単語帳）</title>
 <link rel="icon" href="../thumbs/MagiLex.jpg">
@@ -29,7 +29,7 @@ if ("serviceWorker" in navigator) {
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;800&family=Noto+Sans+JP:wght@400;500;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="magilex.css?v=32">
+<link rel="stylesheet" href="magilex.css?v=34">
 <!-- 起動スプラッシュは ../xeva-splash.js（全アプリ共通）に統一 -->
 <script type="module" src="magilex-cloud.js?v=5"></script>
 </head>
@@ -88,6 +88,8 @@ if ("serviceWorker" in navigator) {
   <section id="scr-wordlist" class="screen"></section>
   <section id="scr-stats" class="screen"></section>
   <section id="scr-settings" class="screen"></section>
+  <!-- ★★ 2026-08-26 KP交換所（Knowledge Point でキャラ・ガチャチケットと交換） -->
+  <section id="scr-kpshop" class="screen"></section>
 </div>
 
 <!-- ボトムナビ
@@ -126,7 +128,7 @@ if ("serviceWorker" in navigator) {
 
 <div class="toast" id="toast"></div>
 
-<script src="../xeva.js?v=35"></script>
+<script src="../xeva.js?v=44"></script>
 <script src="../xeva-loading.js?v=1" defer></script>
 <script src="magilex-data.js?v=2"></script>
 <script src="magilex-eigo.js?v=1"></script>
@@ -144,6 +146,10 @@ if ("serviceWorker" in navigator) {
 <!-- ★★ 2026-08-20 物理β（電磁気学。抵抗・直流回路・磁場・電磁誘導・導体棒・コイル／24セット 288問）
      これまでの物理は「物理α」になった（id は phys_ のまま）。 -->
 <script src="magilex-physb.js?v=1"></script>
+<!-- ★★ 2026-08-26 化学ε（全範囲の標準演習 理論・無機・有機・高分子／20セット 240問） -->
+<script src="magilex-cheme.js?v=2"></script>
+<!-- ★★ 2026-08-26 物理γ（全範囲の標準演習 力学・熱・波動・電磁気・原子／20セット 240問） -->
+<script src="magilex-physg.js?v=2"></script>
 <!-- ★★ 2026-08-19 中堅レベル（最難関のひとつ手前）。数学・物理・化学γ の15セット / 150問 -->
 <!-- ★★ 2026-08-19 入門レベル（中堅のひとつ手前） -->
 <script src="magilex-intro.js?v=1"></script>
@@ -151,7 +157,7 @@ if ("serviceWorker" in navigator) {
 <!-- ★★ 2026-08-19 図・グラフのエンジン。XEVYNAR と<b>同じ1本</b>を共有する。
      （両方に同じ図を書くと、片方だけ直して食いちがうので必ず共有にする） -->
 <script src="../XEVYNAR/xevynar-figs.js?v=9"></script>
-<script type="module" src="magilex.js?v=53"></script>
+<script type="module" src="magilex.js?v=58"></script>
 <!-- XEVARION へもどる導線（同期を送り切ってから移動する） -->
 <script src="../xeva-back.js?v=1" data-mode="hook"></script>
 </body>

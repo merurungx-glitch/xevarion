@@ -94,31 +94,110 @@ function stripSupp(s){ return String(s==null?"":s).replace(/\s*（[^（）]*）/
    ・まず字数の差が小さい順に並べ、上位（必要数の2倍）を候補にする。
    ・そのなかからランダムに選ぶので、毎回同じ組み合わせにはならない。
    問題文そのものは変えずに、長さの手がかりだけを消せる。 */
-function pickWrongs(answer, wrongs, n){
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-08-24 「長い選択肢＝正解」をつぶす（ご指定）
+   ------------------------------------------------------------
+   2026-08-16c で①②を入れたが、それでも
+     化学γ 39.9% ／ 物理β 38.2% ／ 化学δ 27.5% ／ 物理α 26.4%
+   の問題で<b>正解がいちばん長い選択肢</b>のままだった（データを実測）。
+   理由ははっきりしていて、①②は<b>その問題が持っている誤答の中でやりくり</b>する
+   だけなので、<b>誤答が全部その問題の正解より短い</b>と手の打ちようがない。
+   記述問題・式の問題は「正しく言い切る」ぶん正解が長くなりがちなので、
+   ちょうどそこで効かなくなっていた。
+
+   → ③として、<b>同じセット（単元）のほかの問題の誤答</b>から、
+     長さの近いものを1つだけ借りてくる。
+     ・借りるのは<b>誤答だけ</b>（ほかの問題の正解は絶対に借りない）。
+       同じ単元の中で「正しい文」を混ぜると、正解が2つある問題になってしまう。
+     ・その文字列が<b>そのセットのどこかで正解になっている</b>ものも外す。
+     ・正解と重なる（一方が他方を含む）ものも外す＝紛らわしすぎるため。
+   ★ 文章を新しく作らない。すでに「誤り」として書かれている文だけを使う。
+   ══════════════════════════════════════════════════════════════ */
+/* 誤答を借りるための「たね」を作る。
+   ★ 借りてよいのは<b>誤答として書かれた文だけ</b>。
+     ほかの問題の<b>正解</b>は絶対に混ぜない（正解が2つある問題になってしまう）。
+     さらに、その範囲のどこかで正解になっている文字列も外す。 */
+function wrongPoolFrom(list){
+  const ans = new Set();
+  list.forEach((s) => (s.questions || []).forEach((q) => {
+    if(q && q.answer != null) ans.add(String(q.answer));
+  }));
+  const set = new Set();
+  list.forEach((s) => (s.questions || []).forEach((q) => (q && q.wrong || []).forEach((x) => {
+    const t = String(x == null ? "" : x);
+    if(t && !ans.has(t)) set.add(t);
+  })));
+  return Array.from(set);
+}
+/* ① 同じセット（単元）の誤答 … いちばん自然。まずここから借りる */
+const _secWrongPool = {};
+function secWrongPool(sec){
+  if(!sec || !sec.id) return [];
+  if(!_secWrongPool[sec.id]) _secWrongPool[sec.id] = wrongPoolFrom([sec]);
+  return _secWrongPool[sec.id];
+}
+/* ② 同じ科目（数学／化学γ／物理β…）の誤答
+   ★ 単元だけだと、その単元でいちばん長い文が正解の問題はどうにもならない。
+     実測でも 32.4% → 16.9% までしか下がらなかった。
+     科目までひろげると <b>3.7%</b> まで落ちる（同じ科目なら文の調子もそろっている）。 */
+const _subjWrongPool = {};
+function subjWrongPool(sec){
+  const sub = subjectOfSid(sec && sec.id);
+  if(!sub) return [];
+  if(!_subjWrongPool[sub]) {
+    _subjWrongPool[sub] = wrongPoolFrom(SECTIONS.filter((s) => subjectOfSid(s.id) === sub));
+  }
+  return _subjWrongPool[sub];
+}
+
+function pickWrongs(answer, wrongs, n, sec){
   const w = (wrongs || []).filter(Boolean);
-  if(w.length <= n) return shuffle(w);
-  const la = String(answer == null ? "" : answer).length;
+  const a = String(answer == null ? "" : answer);
+  const la = a.length;
   const len = (x) => String(x).length;
-  /* ① まず字数の近いものを候補にする（候補は必要数の2倍まで＝毎回同じ顔ぶれにしない） */
-  const sorted = w.slice().sort((a, b) => Math.abs(len(a) - la) - Math.abs(len(b) - la));
-  const pool = sorted.slice(0, Math.min(w.length, n * 2));
-  let pick = shuffle(pool).slice(0, n);
-  /* ② それでも「正解がひとりだけ飛び抜けて長い」ままなら、
-     使わなかった誤答のなかに<b>正解と同じか、より長いもの</b>があれば1つ入れ替える。
-     これで「いちばん長いのを選ぶ」が通じなくなる。 */
-  const uniqueLongest = () => pick.every((x) => len(x) < la);
-  if(uniqueLongest()){
-    const rest = w.filter((x) => pick.indexOf(x) < 0 && len(x) >= la);
-    if(rest.length){
-      const swapIn = rest[Math.floor(Math.random() * rest.length)];
-      /* いちばん短い誤答を追い出す（正解との差がいちばん大きいもの） */
-      let worst = 0;
-      pick.forEach((x, i) => { if(len(x) < len(pick[worst])) worst = i; });
-      pick[worst] = swapIn;
-      pick = shuffle(pick);
+  let pick;
+  if(w.length <= n) {
+    pick = w.slice();
+  } else {
+    /* ① まず字数の近いものを候補にする（候補は必要数の2倍まで＝毎回同じ顔ぶれにしない） */
+    const sorted = w.slice().sort((x, y) => Math.abs(len(x) - la) - Math.abs(len(y) - la));
+    const near = sorted.slice(0, Math.min(w.length, n * 2));
+    pick = shuffle(near).slice(0, n);
+    /* ② それでも「正解がひとりだけ飛び抜けて長い」ままなら、
+       使わなかった誤答のなかに<b>正解と同じか、より長いもの</b>があれば1つ入れ替える。 */
+    if(pick.every((x) => len(x) < la)){
+      const rest = w.filter((x) => pick.indexOf(x) < 0 && len(x) >= la);
+      if(rest.length){
+        const swapIn = rest[Math.floor(Math.random() * rest.length)];
+        let worst = 0;
+        pick.forEach((x, i) => { if(len(x) < len(pick[worst])) worst = i; });
+        pick[worst] = swapIn;
+      }
     }
   }
-  return pick;
+  /* ③ それでも正解だけが長いなら、ほかの問題の誤答を1つ借りる（単元 → 科目の順） */
+  if(sec && pick.every((x) => len(x) < la)) pick = borrowLonger(a, la, pick, secWrongPool(sec), w);
+  if(sec && pick.every((x) => len(x) < la)) pick = borrowLonger(a, la, pick, subjWrongPool(sec), w);
+  return shuffle(pick);
+}
+/* ほかの問題の誤答から「正解と同じか少し長いもの」を1つ借りて、
+   いちばん短い誤答と入れ替える。借りられなければ元の配列をそのまま返す。 */
+function borrowLonger(a, la, pick, pool, exclude){
+  if(!pool || !pool.length || !pick.length) return pick;
+  const len = (x) => String(x).length;
+  const own = new Set(pick.concat(exclude || [], [a]));
+  const cand = pool.filter((x) =>
+    !own.has(x) && len(x) >= la &&
+    x.indexOf(a) < 0 && a.indexOf(x) < 0);               // 正解と重なるものは紛らわしいので外す
+  if(!cand.length) return pick;
+  cand.sort((x, y) => Math.abs(len(x) - la) - Math.abs(len(y) - la));
+  /* 近いもの上位5件からランダム＝毎回おなじ顔ぶれにしない */
+  const swapIn = cand[Math.floor(Math.random() * Math.min(cand.length, 5))];
+  const out = pick.slice();
+  let worst = 0;
+  out.forEach((x, i) => { if(len(x) < len(out[worst])) worst = i; });
+  out[worst] = swapIn;
+  return out;
 }
 
 /* 正解＋誤答から、出題に使う {answer, opts, full} を組み立てる。
@@ -142,6 +221,39 @@ function earn(n, msg, gold){
   if(amt>0 && window.XEVA) window.XEVA.add(amt, "MagiLex "+(msg||"学習")+(campaignActive()&&n>0?"（夏キャン2倍）":""));
   renderTop();
   if(msg) toast((amt>0?"＋"+amt+" XEVA"+(campaignActive()&&n>0?" 2倍!":"")+"｜":"")+msg, gold);
+}
+
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-08-24 XEVARION 共通ステータス（レベル・スタミナ）との連携
+   ------------------------------------------------------------
+   ご指定:
+     ・レベルは MagiBurst だけでなく <b>MagiLex でも上がる</b>。
+         セットを<b>完全習得</b>した   … ＋LEX_EXP_MASTER
+         <b>確認テストに合格</b>した … ＋LEX_EXP_CONFIRM
+       どちらも<b>そのセットではじめて達成したとき</b>だけ入る
+       （何度も受け直してレベルを稼げないようにするため）。
+       リセットして周回し直したときは、また「はじめて」に戻る＝もう一度入る。
+     ・<b>確認テストを1つクリアするたび</b>にスタミナ +50。
+       こちらは<b>毎回</b>入り、しかも<b>上限を超えて</b>たまる（ご指定）。
+   ★ 実体は xeva.js の XEVA.status。読めないときは黙って何もしない。
+   ══════════════════════════════════════════════════════════════ */
+const LEX_EXP_MASTER = 400;    // セットの完全習得（はじめての1回）
+const LEX_EXP_CONFIRM = 200;   // 確認テスト合格（はじめての1回）
+function xstatus(){ return (window.XEVA && window.XEVA.status) || null; }
+/* レベルが上がったらトーストで知らせる */
+function lexGainExp(n, why){
+  const S = xstatus(); if(!S) return;
+  const up = S.addExp(n, why || "MagiLex");
+  /* toast は textContent なので、素の文字だけで組む（タグを入れるとそのまま出る） */
+  if(up) toast("🎉 レベルアップ！ Lv."+up.from+" → Lv."+up.to, true);
+  try{ renderTop(); }catch(e){}
+}
+/* 確認テストのクリアぶん（上限を超えて回復する） */
+function lexGainStamina(name){
+  const S = xstatus(); if(!S) return;
+  const n = S.addFromLex("MagiLex 確認テスト"+(name?"："+name:""));
+  toast("⚡ スタミナ ＋"+S.STAM_LEX_GAIN+"（いま "+S.text(n)+"）", true);
+  try{ renderTop(); }catch(e){}
 }
 
 // ============================================================
@@ -285,55 +397,110 @@ function checkArisaUnlock(){
   return;
 }
 // ============================================================
-// ミズキ解放（コンテンツ完全習得数のマイルストーン報酬）
-//   30個 → ミズキ入手 ／ 35・40・45・50個 → さらに+1凸（最大4凸＝完凸）
-//   付与先は共有コレクション xeva_gacha_v1 なので、
-//   MagiBurst・MagiBattle・XEVARIONアイコンなど全コンテンツですぐ使える。
-//   進捗(P.mizukiGrants)は magilex_v2 ごとクラウド同期される。
+// ★★ 2026-08-26 Knowledge Point（KP）— MagiLex 専用のポイント
+// ------------------------------------------------------------
+//   ご指定:
+//     ・コンテンツを<b>完全習得</b>すると <b>+5KP</b>
+//     ・<b>確認テストに合格</b>すると <b>+10KP</b>
+//     ・KP は MagiLex の中だけで使う（ほかのアプリには出さない）
+//   使い道は KP交換所:
+//     ・<b>80KP</b> … キャラ1体（未所持なら入手／所持なら+1凸。完凸は交換できない）
+//     ・<b>10KP</b> … 🎫ガチャチケット1枚（XEVARION 共通のガチャ券）
+//   ★ 残高は magilex_v2（P.kp）に持つ＝MagiLex のクラウド同期にそのまま乗る。
+//     XEVA・ジェムのような共通ウォレットには<b>入れない</b>（他アプリに出す必要がないため）。
+//   ★ 二重取りの防止は、これまでの XEVA と<b>まったく同じ印</b>を使う:
+//     完全習得は P.qmastered / P.wmastered、確認テストは P.confirmDone。
+//     どちらも「はじめての1回」でしか立たないので、KP もその中で足す。
 // ============================================================
-const MIZUKI_MILESTONES = [30, 35, 40, 45, 50];
+const KP_MASTER = 5;      // 完全習得 1件ぶん
+const KP_CONFIRM = 10;    // 確認テスト 合格1回ぶん
+const KP_CHAR_COST = 80;  // キャラ1体
+const KP_TICKET_COST = 10;// ガチャチケット1枚
+const KP_MAX_AWK = 4;     // 限界突破の上限（MagiBurst の MAX_AWK と同じ）
+function kpBalance(){ return Math.max(0, (P.kp|0)); }
+function kpAdd(n, reason){
+  n = Math.round(n||0); if(!n) return kpBalance();
+  P.kp = kpBalance() + n;
+  P.kpTotal = (P.kpTotal|0) + Math.max(0, n);
+  P.kpLog = P.kpLog || [];
+  P.kpLog.unshift({ n, r: reason||"", t: Date.now() });
+  if(P.kpLog.length > 60) P.kpLog.length = 60;
+  save();
+  return P.kp;
+}
+function kpSpend(n, reason){
+  n = Math.round(n||0);
+  if(kpBalance() < n) return false;
+  P.kp = kpBalance() - n;
+  P.kpLog = P.kpLog || [];
+  P.kpLog.unshift({ n: -n, r: reason||"", t: Date.now() });
+  if(P.kpLog.length > 60) P.kpLog.length = 60;
+  save();
+  return true;
+}
+/* ★ KP を入れる前からずっと遊んでいた人が 0KP から始めるのは筋がとおらないので、
+   すでにある「完全習得の件数」と「確認テストの合格数」から<b>1回だけ</b>さかのぼって配る。
+   印（P.kpBack）を立てるので、2回目からは走らない。 */
+function kpBackfillOnce(){
+  if(P.kpBack) return;
+  P.kpBack = Date.now();
+  const m = Object.keys(P.qmastered||{}).length + Object.keys(P.wmastered||{}).length;
+  const c = Object.keys(P.confirmDone||{}).length;
+  const n = m*KP_MASTER + c*KP_CONFIRM;
+  if(n > 0){ kpAdd(n, "これまでの学習ぶん（完全習得 "+m+"件・確認テスト "+c+"件）"); }
+  else save();
+}
 function masteredCount(){
   return Object.keys(P.qmastered||{}).length + Object.keys(P.wmastered||{}).length;
 }
-function grantMizuki(level){   // level: 0=入手, 1..4=凸
-  try{
-    const gk="xeva_gacha_v1"; let g=null;
-    try{ g=JSON.parse(localStorage.getItem(gk)||"null"); }catch(e){}
-    if(!g||typeof g!=="object") g={};
-    if(!g.owned) g.owned={}; if(!g.dupes) g.dupes={}; if(!g.points) g.points={};
-    g.owned["mizuki"]=true;
-    if(level>0) g.dupes["mizuki"]=Math.max(g.dupes["mizuki"]||0, Math.min(4, level));
-    localStorage.setItem(gk, JSON.stringify(g));
-  }catch(e){}
+// ============================================================
+// KP交換所のキャラ（★ 2026-08-26）
+//   ★ 名前・絵はここに書くが、<b>性能は書かない</b>。
+//     くわしい性能は MagiBurst の mb-core.js が持ち主なので、
+//     「くわしく見る」を押したときだけ mb-core.js を読みこんで、
+//     ガチャ・図鑑とまったく同じ詳細画面（openDetX）を開く。
+//   ★ 所持・限界突破は共有コレクション xeva_gacha_v1。
+//     MagiBurst 側の SHARED_CHARS にこの4体を足してあるので、
+//     交換した瞬間から MagiBurst でも使える。
+// ============================================================
+const KP_CHARS = [
+  { id:"mizuki",  nm:"ミズキ",   el:"木", img:"../img/Mizuki.webp",  th:"../img/t_Mizuki.webp",
+    tag:"翠光審判型・貫通", note:"蓬莱の九重 第二重の最適解。ネクサスは<b>アカデミー・フォース</b>（味方全員の攻撃力 +11%）" },
+  { id:"kanade",  nm:"カナデ",   el:"光", img:"../img/Kanade.webp",  th:"../img/t_Kanade.webp",
+    tag:"鐘光共鳴型・反射", note:"蓬莱の九重 第五重の最適解。ネクサスは<b>アカデミー・ボンド</b>（リンク威力 +13%）" },
+  { id:"homura",  nm:"ホムラ",   el:"火", img:"../img/Homura.webp",  th:"../img/t_Homura.webp",
+    tag:"灼夏雷撃型・貫通", note:"蓬莱の九重 第三重の最適解。ネクサスは<b>アカデミー・イグニッション</b>（開幕FB -2ターン）" },
+  { id:"yoizuki", nm:"ヨイヅキ", el:"水", img:"../img/Yoizuki.webp", th:"../img/t_Yoizuki.webp",
+    tag:"氷夜掃滅型・反射", note:"蓬莱の九重 第六重の最適解。ネクサスは<b>アカデミー・イージス</b>（開幕バリア900）" },
+  { id:"sumika",  nm:"スミカ",   el:"闇", img:"../img/Sumika.webp",  th:"../img/t_Sumika.webp",
+    tag:"紫宵穿命型・貫通", note:"蓬莱の九重 第九重の最適解。ネクサスは<b>アカデミー・ヴィガー</b>（最大HP +11%）" },
+];
+const KP_EL_C = { "火":"#ff5d47", "水":"#38a6ff", "木":"#2fbf71", "光":"#f0b429", "闇":"#a86bff" };
+/* 共有コレクション（xeva_gacha_v1）の読み書き。MagiBurst と同じ形。 */
+function xgRead(){
+  let g=null;
+  try{ g=JSON.parse(localStorage.getItem("xeva_gacha_v1")||"null"); }catch(e){}
+  if(!g||typeof g!=="object") g={};
+  if(!g.owned) g.owned={}; if(!g.dupes) g.dupes={}; if(!g.points) g.points={};
+  return g;
 }
-function checkMizukiUnlock(){
-  const n = masteredCount();
-  P.mizukiGrants = P.mizukiGrants || {};
-  let granted = null;
-  MIZUKI_MILESTONES.forEach((m, idx)=>{
-    if(n >= m && !P.mizukiGrants[m]){
-      P.mizukiGrants[m] = Date.now();
-      grantMizuki(idx);          // 30個=入手(0) / 35=1凸 / 40=2凸 / 45=3凸 / 50=4凸(完凸)
-      granted = { m, idx };
-    }
-  });
-  if(granted){ save(); showMizukiModal(granted.m, granted.idx); }
+function xgWrite(g){ try{ localStorage.setItem("xeva_gacha_v1", JSON.stringify(g)); }catch(e){} }
+function kpCharState(id){
+  const g = xgRead();
+  const own = !!g.owned[id];
+  const awk = Math.max(0, Math.min(KP_MAX_AWK, g.dupes[id]|0));
+  return { own, awk, maxed: own && awk >= KP_MAX_AWK };
 }
-function showMizukiModal(milestone, level){
-  const old=$("#mizukiOv"); if(old) old.remove();
-  const ov=document.createElement("div"); ov.id="mizukiOv"; ov.className="arisa-ov";
-  const full = level >= 4;
-  ov.innerHTML=`<div class="arisa-card">
-      <div class="arisa-burst"></div>
-      <div class="arisa-cap">${milestone}コンテンツ 完全習得報酬</div>
-      <img class="arisa-img" src="../img/Mizuki.webp" alt="ミズキ" onerror="this.style.display='none'">
-      <div class="arisa-name">ミズキ <span>${level===0?"を獲得！":full?"が完凸！！":"が+"+level+"凸！"}</span></div>
-      <div class="arisa-rar">★★★ SSR${full?"・完凸":""}</div>
-      <p>${milestone}個のコンテンツを完全習得しました！<br>限定キャラクター「ミズキ」${level===0?"をコレクションに加えました。":"の凸が進みました。"}<br><b>MagiBurst・MagiBattle・アイコン</b>など全コンテンツで使えます！${level<4?"<br><small>次は "+(MIZUKI_MILESTONES.find(m=>m>milestone)||50)+" 個でさらに凸！</small>":""}</p>
-      <button class="arisa-btn" onclick="document.getElementById('mizukiOv').remove()">やったー！ ✨</button>
-    </div>`;
-  document.body.appendChild(ov);
-  requestAnimationFrame(()=>ov.classList.add("show"));
+/* キャラ1体を受け取る（未所持なら入手・所持なら+1凸）。完凸のときは false */
+function kpGrantChar(id){
+  const g = xgRead();
+  const own = !!g.owned[id];
+  const awk = Math.max(0, Math.min(KP_MAX_AWK, g.dupes[id]|0));
+  if(own && awk >= KP_MAX_AWK) return false;
+  if(!own){ g.owned[id]=true; if(g.dupes[id]==null) g.dupes[id]=0; }
+  else g.dupes[id] = awk + 1;
+  xgWrite(g);
+  return true;
 }
 
 function showArisaModal(){
@@ -365,6 +532,10 @@ function freshProgress(){ return { registered:false, daily:"", streak:0, lastStu
      bingo … { m:"YYYY-MM", cells:[25], open:{マス番号}, lines:{ラインkey}, all:受取日時 }
      bmc   … その月ぶんの小さな数え表（科目べつの解答数・全問正解の回数） */
   login:{ last:"", streak:0, total:0, best:0 }, bingo:null, bmc:{},
+  /* ★★ 2026-08-26 Knowledge Point（KP）。MagiLex の中だけで使うポイント。
+     kp … いまの残高 ／ kpTotal … これまでにためた合計 ／ kpLog … 出入りの記録
+     kpBack … さかのぼり配布をすませた印 */
+  kp:0, kpTotal:0, kpLog:[], kpBack:0,
   updatedAt:0 }; }
 let P = freshProgress();
 /* ★ 2026-08-16 セクションidの付け替えに合わせて、保存ずみの進捗キーも写す。
@@ -456,8 +627,14 @@ function checkMastery(c){
   const vm = volumeMult(c.total);
   save();
   earn(masterReward(c), "「"+c.name+"」完全習得！" + (vm>1 ? `（${c.total}問・ボリューム${vm}倍！）` : ""), true);
+  /* ★ 2026-08-24 XEVARION 全体のレベルも上がる（このセットではじめて完全習得したときだけ）。
+     ここは P.qmastered / P.wmastered の印を付けた<b>直後</b>なので、2回目以降は通らない。 */
+  lexGainExp(LEX_EXP_MASTER, "MagiLex 完全習得："+c.name);
+  /* ★★ 2026-08-26 完全習得で +5KP。ここは qmastered の印を付けた<b>直後</b>なので、
+     2回目以降は通らない（リセットして取り直せば、また1回ぶんもらえる）。 */
+  kpAdd(KP_MASTER, "「"+c.name+"」完全習得");
+  toast("💠 ＋"+KP_MASTER+" KP（完全習得）", true);
   checkArisaUnlock();
-  checkMizukiUnlock();
 }
 
 // ============================================================
@@ -500,8 +677,58 @@ function show(screen, push=true){
 }
 window.lexTab=(name)=>{ nav=[{name, tab:name}]; render(name); show({name, tab:name}, false); };
 function render(name, arg){
-  ({ home:renderHome, library:renderLibrary, detail:renderDetail, mixsetup:renderMixSetup, stats:renderStats, settings:renderSettings }[name]||(()=>{}))(arg);
+  ({ home:renderHome, library:renderLibrary, detail:renderDetail, mixsetup:renderMixSetup, stats:renderStats, settings:renderSettings, kpshop:renderKpShop }[name]||(()=>{}))(arg);
 }
+/* ★★ 2026-08-24 XEVARION 共通ステータス（レベル・スタミナ）をホームに出す。
+   ・レベルは MagiBurst と<b>同じもの</b>（MagiLex の完全習得・確認テスト合格でも上がる）。
+   ・スタミナは MagiBurst のプレイで減り、<b>確認テストを1つクリアするたびに +50</b>。
+     こちらは<b>上限を超えて</b>たまるので、4ケタになったら「999+」と出す。 */
+function lexStatusHTML(){
+  const S = xstatus(); if(!S) return "";
+  const v = S.get();
+  return `<div class="hero-st">
+    <div class="hs-lv" title="XEVARION 全体のレベル（MagiBurst と共通）">
+      <small>Lv.</small><b>${v.lv}</b>
+      <i class="hs-bar"><i style="width:${v.need? Math.round(Math.min(1,v.cur/v.need)*100):100}%"></i></i>
+    </div>
+    <button class="hs-stam${v.stam<v.play?" low":""}" onclick="lexOpenStamina()" title="スタミナ（MagiBurst 1プレイ ${v.play}）">
+      <img src="../stamina.png" alt="スタミナ"><b>${S.text(v.stam)}</b><small>/${v.max}</small><i>＋</i>
+    </button>
+  </div>`;
+}
+/* スタミナの案内。💎ジェムでの回復もここから */
+async function lexOpenStamina(){
+  const S = xstatus(); if(!S) return;
+  const v = S.get();
+  const gem = (window.XEVA && window.XEVA.gem) ? window.XEVA.gem.getBalance() : 0;
+  const body = [
+    "いまのスタミナ： " + S.text(v.stam) + " / " + v.max + (v.full ? "（満タン）" : ""),
+    v.full ? "" : "次の1回復まで あと " + S.when(v.nextMs) + "／満タンまで あと " + S.when(v.fullMs),
+    "",
+    "・MagiBurst は 1プレイ " + v.play + " 使います",
+    "・2分ごとに +1 回復します（上限まで）",
+    "・💎" + v.gemCost + " で +" + v.gemGain + " 回復します（上限まで）",
+    "・MagiLex の確認テストを1つクリアするたび +" + v.lexGain + "（上限を超えてたまります）",
+    "",
+    "スタミナの上限はレベルで上がります（いま Lv." + v.lv + " ＝ " + v.max + "）。",
+    "所持ジェム： 💎" + gem.toLocaleString(),
+  ].filter((x)=>x!==null).join("\n");
+  if(v.stam >= v.max || gem < v.gemCost){
+    await askYesNo("⚡ スタミナ", body + (gem < v.gemCost && v.stam < v.max ? "\n\n💎ジェムが足りません（必要 " + v.gemCost + "）。" : ""), "とじる");
+    return;
+  }
+  if(!await askYesNo("⚡ スタミナを回復する", body + "\n\n💎" + v.gemCost + " を使って +" + v.gemGain + " 回復しますか？", "💎" + v.gemCost + " で回復する")) return;
+  if(!window.XEVA.gem.spend(v.gemCost, "スタミナ回復")){ toast("💎ジェムが足りませんでした"); return; }
+  S.add(v.gemGain, "💎ジェムで回復");
+  toast("⚡ スタミナ ＋" + v.gemGain, true);
+  renderHome();
+}
+window.lexOpenStamina = lexOpenStamina;
+/* 他のアプリ・他のタブで増減したら、ホームを出しているあいだは描き直す */
+window.addEventListener("xeva:status", () => {
+  try{ if(document.querySelector("#scr-home.on")) renderHome(); }catch(e){}
+});
+
 function renderTop(){
   const acc=getAcc();
   document.querySelectorAll(".js-coin").forEach(e=>e.textContent=bal().toLocaleString());
@@ -533,33 +760,40 @@ function renderHome(){
         <p>期間中（〜${CAMPAIGN.to.slice(5).replace("-","/")}）は獲得XEVAが<span class="cb-x2">すべて×2</span>！</p>
       </div>
     </div>` : "";
-  /* ミズキ告知バナー: 30コンテンツ完全習得で入手（35/40/45/50でさらに凸・完凸まで）。
-     MagiBurst・MagiBattle・アイコンなど全コンテンツで使えることを常に示す。 */
-  const mzCount = masteredCount();
-  const mzNext = MIZUKI_MILESTONES.find(m => !(P.mizukiGrants||{})[m]);
-  const mizukiHTML = `
-    <div class="mizuki-bn" onclick="void(0)">
-      <img src="../img/Mizuki.webp" alt="ミズキ" onerror="this.style.display='none'">
+  /* ★★ 2026-08-26 KP のバナー。押すと KP交換所へ。
+     これまでは「30コンテンツ完全習得でミズキ」というマイルストーン式だったが、
+     ご指定により<b>KPをためて交換する</b>形に変わった。 */
+  const kpNext = KP_CHARS.filter(c => !kpCharState(c.id).maxed).length;
+  const kpHTML = `
+    <div class="mizuki-bn kp-bn" role="button" tabindex="0" onclick="lexKpShop()">
+      <img src="kp.webp" alt="KP" onerror="this.style.display='none'">
       <div class="mz-bd">
-        <b>${uiIconSVG('trophy')} 限定SSR「ミズキ」${mzNext ? "を手に入れよう！" : "完凸済み！${uiIconSVG('perfect')}"}</b>
-        ${mzNext
-          ? `<p><b>${mzNext}コンテンツ完全習得</b>で${mzNext===30?"入手":"さらに+1凸"}！（いま <b>${mzCount}</b> / ${mzNext}）<br>35・40・45・50個で凸が進み、50個で<b>完凸</b>！</p>`
-          : `<p>全マイルストーン達成！ミズキは完凸状態です。</p>`}
-        <p class="mz-note">⚔ <b>MagiBurst・MagiBattle・アイコン</b>など全コンテンツで使用できます</p>
+        <b>${uiIconSVG('trophy')} Knowledge Point（KP）交換所</b>
+        <p>いま <b class="kp-now">${kpBalance()}</b> KP　／　完全習得 <b>+${KP_MASTER}</b>・確認テスト合格 <b>+${KP_CONFIRM}</b><br>
+          <b>${KP_CHAR_COST}KP</b> でキャラ1体（残り ${kpNext} 体）・<b>${KP_TICKET_COST}KP</b> で🎫ガチャチケット1枚</p>
+        <p class="mz-note">⚔ 交換したキャラは <b>MagiBurst・MagiBattle・アイコン</b>など全コンテンツで使えます</p>
       </div>
+      <span class="kp-go">→</span>
     </div>`;
   $("#scr-home").innerHTML=`
     ${campHTML}
-    ${mizukiHTML}
+    ${kpHTML}
     ${resumeHTML}
     <div class="hero">
-      <div class="greet">${greet()}、</div>
-      <div class="nm">${esc(acc.name||"ユーザー")} さん</div>
+      <div class="hero-top">
+        <div class="hero-nm">
+          <div class="greet">${greet()}、</div>
+          <div class="nm">${esc(acc.name||"ユーザー")} さん</div>
+        </div>
+        ${lexStatusHTML()}
+      </div>
+      <!-- ★ 2026-08-24 ステータスは<b>1行におさめる</b>（ご指定）。
+           4つを同じ幅で並べ、はみ出す端末では横スクロールにする（折り返さない）。 -->
       <div class="row">
-        <div class="chip">学習ストリーク<b>${P.streak||0} 日</b></div>
-        <div class="chip">連続ログイン<b>${(P.login&&P.login.streak)||0} 日</b></div>
-        <div class="chip">習得コンテンツ<b>${masteredSecs} / ${conts.length}</b></div>
-        <div class="chip">正答率<b>${P.totals.answered? Math.round(P.totals.correct/P.totals.answered*100):0}%</b></div>
+        <div class="chip" title="学習ストリーク"><span>ストリーク</span><b>${P.streak||0} 日</b></div>
+        <div class="chip" title="連続ログイン"><span>ログイン</span><b>${(P.login&&P.login.streak)||0} 日</b></div>
+        <div class="chip" title="習得コンテンツ"><span>習得ずみ</span><b>${masteredSecs} / ${conts.length}</b></div>
+        <div class="chip" title="正答率"><span>正答率</span><b>${P.totals.answered? Math.round(P.totals.correct/P.totals.answered*100):0}%</b></div>
       </div>
     </div>
     ${mlBingoCardHTML()}
@@ -575,6 +809,158 @@ function renderHome(){
     ${installCardHTML()}`;
   renderTop();
 }
+
+
+// ============================================================
+// ★★ 2026-08-26 KP交換所
+// ------------------------------------------------------------
+//   ・80KP … キャラ1体（未所持なら入手／所持なら+1凸）。<b>完凸のキャラは交換できない</b>
+//   ・10KP … 🎫ガチャチケット1枚（XEVARION 共通のガチャ券）
+//   ★ キャラの<b>くわしい性能</b>は「くわしく見る」から。
+//     性能の持ち主は MagiBurst の mb-core.js なので、ここには数字を写さず、
+//     押されたときだけ mb-core.js を読みこんで<b>ガチャ・図鑑と同じ詳細画面</b>を開く。
+//     （1.1MB あるので、ふだんの学習では読みこまない）
+// ============================================================
+window.lexKpShop = () => { nav.push({name:"kpshop", tab:"home"}); renderKpShop(); show({name:"kpshop", tab:"home"}, false); };
+function renderKpShop(){
+  const bal = kpBalance();
+  const cards = KP_CHARS.map(c => {
+    const st = kpCharState(c.id);
+    const can = !st.maxed && bal >= KP_CHAR_COST;
+    const label = st.maxed ? "完凸ずみ" : (!st.own ? "入手する" : "+1凸する");
+    const state = st.maxed ? '<span class="kpc-max">👑 完凸</span>'
+      : st.own ? '<span class="kpc-own">所持・+'+st.awk+'凸</span>'
+      : '<span class="kpc-no">未所持</span>';
+    return `<div class="kpc" style="--kpc:${KP_EL_C[c.el]||"#7b5cf0"}">
+      <img class="kpc-img" src="${c.th}" alt="${c.nm}" loading="lazy" onerror="this.style.display='none'">
+      <div class="kpc-bd">
+        <div class="kpc-nm">${c.nm} <i>${c.el}属性</i> ${state}</div>
+        <div class="kpc-tag">${c.tag}</div>
+        <div class="kpc-note">${c.note}</div>
+      </div>
+      <div class="kpc-acts">
+        <button class="kpc-det" onclick="lexKpDetail('${c.id}')">くわしく見る</button>
+        <button class="kpc-buy" ${can?"":"disabled"} onclick="lexKpBuyChar('${c.id}')">
+          ${label}<small>${st.maxed?"交換できません":KP_CHAR_COST+" KP"}</small></button>
+      </div>
+    </div>`;
+  }).join("");
+  const canT = bal >= KP_TICKET_COST;
+  $("#scr-kpshop").innerHTML = `
+    <div class="back-row"><button class="back-btn" onclick="lexBack()">←</button><h2>💠 KP交換所</h2></div>
+    <div class="kp-bal">
+      <img src="kp.webp" alt="KP" onerror="this.style.display='none'">
+      <div><b>${bal}</b> KP<small>これまでの合計 ${P.kpTotal|0} KP</small></div>
+    </div>
+    <div class="kp-lead">
+      KP は <b>コンテンツを完全習得すると +${KP_MASTER}</b>、<b>確認テストに合格すると +${KP_CONFIRM}</b> たまります。<br>
+      <b>MagiLex の中だけで使うポイント</b>です（ほかのアプリには出てきません）。
+    </div>
+    <div class="h-sec">🎫 ガチャチケット</div>
+    <div class="kpt">
+      <div class="kpt-i">🎫</div>
+      <div class="kpt-bd"><b>ガチャチケット 1枚</b>
+        <p>XEVARION の<b>どのガチャでも</b>使える共通のチケット（1枚＝1回ぶん）。</p></div>
+      <button class="kpc-buy" ${canT?"":"disabled"} onclick="lexKpBuyTicket()">交換する<small>${KP_TICKET_COST} KP</small></button>
+    </div>
+    <div class="h-sec">✨ キャラクター</div>
+    <div class="kp-lead2">
+      すでに持っているキャラをえらぶと<b>限界突破（+1凸）</b>が進みます。<b>完凸（+4凸）のキャラは交換できません</b>。<br>
+      交換したキャラは <b>MagiBurst・MagiBattle・XEVARION のアイコン</b>など、すべてのコンテンツで使えます。
+    </div>
+    ${cards}
+    <div id="kpDetOv" class="kpdet-ov" onclick="if(event.target===this)lexKpDetailClose()"><div id="kpDetCard" class="kpdet-card"></div></div>`;
+  renderTop();
+}
+window.lexKpBuyTicket = async function(){
+  if(kpBalance() < KP_TICKET_COST){ toast("KP が足りません"); return; }
+  const ok = await askYesNo("🎫 ガチャチケットと交換します",
+    KP_TICKET_COST + " KP を使って、🎫ガチャチケットを 1枚 受け取ります。\n\n" +
+    "（いまの残高 " + kpBalance() + " KP → " + (kpBalance()-KP_TICKET_COST) + " KP）", "交換する");
+  if(!ok) return;
+  if(!kpSpend(KP_TICKET_COST, "🎫ガチャチケット 1枚と交換")){ toast("KP が足りません"); return; }
+  try{ if(window.XEVA && XEVA.ticket) XEVA.ticket.add(1, "MagiLex KP交換所"); }catch(e){}
+  toast("🎫 ガチャチケットを 1枚 受け取りました！", true);
+  renderKpShop();
+};
+window.lexKpBuyChar = async function(id){
+  const c = KP_CHARS.find(x => x.id === id); if(!c) return;
+  const st = kpCharState(id);
+  if(st.maxed){ toast("「"+c.nm+"」はすでに完凸です（交換できません）"); return; }
+  if(kpBalance() < KP_CHAR_COST){ toast("KP が足りません（あと "+(KP_CHAR_COST-kpBalance())+" KP）"); return; }
+  const what = st.own ? "限界突破が +"+st.awk+"凸 → +"+(st.awk+1)+"凸 に進みます" : "コレクションに加わります";
+  const ok = await askYesNo("「"+c.nm+"」と交換します",
+    KP_CHAR_COST + " KP を使って「" + c.nm + "」を受け取ります。\n" + what + "。\n\n" +
+    "（いまの残高 " + kpBalance() + " KP → " + (kpBalance()-KP_CHAR_COST) + " KP）", "交換する");
+  if(!ok) return;
+  /* ★ キャラを受け取れてから KP を減らす。逆にすると、途中で失敗したときに
+     「KPだけ消えてキャラが来ない」が起きる。 */
+  if(!kpGrantChar(id)){ toast("交換できませんでした（完凸ずみ）"); renderKpShop(); return; }
+  kpSpend(KP_CHAR_COST, "「"+c.nm+"」と交換");
+  showKpGetModal(c, kpCharState(id));
+  renderKpShop();
+};
+function showKpGetModal(c, st){
+  const old=$("#kpGetOv"); if(old) old.remove();
+  const ov=document.createElement("div"); ov.id="kpGetOv"; ov.className="arisa-ov";
+  const full = st.awk >= KP_MAX_AWK;
+  ov.innerHTML=`<div class="arisa-card">
+      <div class="arisa-burst"></div>
+      <div class="arisa-cap">KP交換所（${KP_CHAR_COST}KP）</div>
+      <img class="arisa-img" src="${c.img}" alt="${c.nm}" onerror="this.style.display='none'">
+      <div class="arisa-name">${c.nm} <span>${st.awk===0?"を獲得！":full?"が完凸！！":"が+"+st.awk+"凸！"}</span></div>
+      <div class="arisa-rar">★★★ SSR${full?"・完凸":""}</div>
+      <p>限定キャラクター「${c.nm}」${st.awk===0?"をコレクションに加えました。":"の限界突破が進みました。"}<br>
+        <b>MagiBurst・MagiBattle・アイコン</b>など全コンテンツで使えます！</p>
+      <button class="arisa-btn" onclick="document.getElementById('kpGetOv').remove()">やったー！ ✨</button>
+    </div>`;
+  document.body.appendChild(ov);
+  requestAnimationFrame(()=>ov.classList.add("show"));
+}
+/* ── キャラのくわしい性能 ──
+   MagiBurst の mb-core.js（性能の持ち主）と mb-char-detail.js（ガチャ・図鑑と同じ詳細画面）を
+   <b>押されたときだけ</b>読みこむ。1.1MB あるので、ふだんの学習では読まない。 */
+let _kpDetLoading = false, _kpDetReady = false;
+function _loadScript(src){
+  return new Promise((res, rej) => {
+    const s = document.createElement("script");
+    s.src = src; s.onload = res; s.onerror = () => rej(new Error(src));
+    document.head.appendChild(s);
+  });
+}
+window.lexKpDetail = async function(id){
+  if(_kpDetLoading) return;
+  const c = KP_CHARS.find(x => x.id === id); if(!c) return;
+  if(_kpDetReady && typeof window.openDetX === "function"){ _kpOpen(id); return; }
+  _kpDetLoading = true;
+  toast("性能を読みこんでいます…");
+  try{
+    if(!document.getElementById("mbDetCss")){
+      const l = document.createElement("link");
+      l.id = "mbDetCss"; l.rel = "stylesheet"; l.href = "../mb-char-detail.css?v=11";
+      document.head.appendChild(l);
+    }
+    if(typeof window.DB === "undefined") await _loadScript("../mb-boot.js?v=6");
+    if(typeof window.CHARS === "undefined") await _loadScript("../MagiBurst/js/mb-core.js?v=49");
+    if(typeof window.openDetX !== "function") await _loadScript("../mb-char-detail.js?v=10");
+    _kpDetReady = true;
+    _kpOpen(id);
+  }catch(e){
+    toast("性能を読みこめませんでした（通信を確認してください）");
+  }finally{ _kpDetLoading = false; }
+};
+function _kpOpen(id){
+  /* mb-char-detail.js は #detOv / #detCard に書きこむので、無ければ作る */
+  if(!document.getElementById("detOv")){
+    const ov = document.createElement("div");
+    ov.id = "detOv";
+    ov.onclick = (e) => { if(e.target === ov && typeof closeDetX === "function") closeDetX(); };
+    const card = document.createElement("div"); card.id = "detCard";
+    ov.appendChild(card); document.body.appendChild(ov);
+  }
+  try{ window.openDetX(id); }catch(e){ toast("性能を開けませんでした"); }
+}
+window.lexKpDetailClose = () => { try{ closeDetX(); }catch(e){} };
 
 // ============================================================
 // アプリとしてインストール（PWA）— PC/Android は1タップ、iOS は手順案内
@@ -624,8 +1010,10 @@ window.lexLibToggleFilter=()=>{ libFilterOpen=!libFilterOpen; renderLibrary(); }
    未習得(none) と 習得中(learn) を合わせたもの＝まだ1問でも残っている範囲。
    仕上げのときに探すのはこれなのに、2つのチップを行き来しないと出せなかった。 */
 const LIB_FILTERS=[["all","すべて"],["quiz","選択クイズ"],["word","単語帳"],["undone","未完全習得"],["none","未習得"],["learn","習得中"],["done","完全習得"]];
-const SUBJECT_ORDER=["英語","数学","化学α","化学β","化学γ","化学δ","物理α","物理β","国語"];
+/* ★★ 2026-08-26 化学ε・物理γ を追加。標準演習なので、それぞれの科目のいちばん後ろに置く。 */
+const SUBJECT_ORDER=["英語","数学","化学α","化学β","化学γ","化学δ","化学ε","物理α","物理β","物理γ","国語"];
 // 科目内ジャンル（例: 化学 → 理論・無機・有機・高分子）。表示順もここで決める
+/* ★ 2026-08-26 物理γのジャンル「熱・原子」を足した（既存の「熱・原子」と同じ並びに入る） */
 const GENRE_ORDER=["数と式・二次関数","場合の数・確率","整数","図形","三角関数","指数・対数","式と証明","図形と方程式","数列","ベクトル","データ・統計","極限","複素数平面","二次曲線","微分・積分","理論","無機","有機","高分子","物質別","力学","波動・光","電磁気","熱・原子","動詞","名詞","形容詞","副詞・接続","学術・社会","文法・敬語","古文単語"];
 function genreOf(c){
   const id = c.type==="word" ? c.key : (c.sid||"");
@@ -650,6 +1038,15 @@ function genreOf(c){
   if(/^physb_b_/.test(id)) return "導体棒";
   if(/^physb_c_/.test(id)) return "コイル";
   /* 化学δ（★ 2026-08-20）。id の2文字めでジャンルが決まる。 */
+  /* ★★ 2026-08-26 化学ε・物理γ */
+  if(/^ceps_t_/.test(id)) return "理論";
+  if(/^ceps_i_/.test(id)) return "無機";
+  if(/^ceps_o_/.test(id)) return "有機";
+  if(/^ceps_p_/.test(id)) return "高分子";
+  if(/^physg_m_/.test(id)) return "力学";
+  if(/^physg_h_/.test(id)) return "熱・原子";
+  if(/^physg_w_/.test(id)) return "波動・光";
+  if(/^physg_e_/.test(id)) return "電磁気";
   if(/^cdelta_l_/.test(id)) return "脂質";
   if(/^cdelta_a_/.test(id)) return "芳香族・フェノール";
   if(/^cdelta_i_/.test(id)) return "元素別各論";
@@ -715,19 +1112,26 @@ function genresPresent(subject){
 // 科目を id / 単語帳キーから判定
 function subjectOf(c){
   if(c.type==="word"){ if(c.key.indexOf("eigo")===0) return "英語"; return c.key==="kobun" ? "国語" : "公共"; }
-  const id=c.sid||"";
+  return subjectOfSid(c.sid || "");
+}
+/* ★ 2026-08-24 セットの id だけから科目を決める版。
+   選択肢の長さそろえ（subjWrongPool）でもここを使うので、判定は<b>この1か所</b>に置く。 */
+function subjectOfSid(id){
+  id = id || "";
   if(id.indexOf("geo_")===0) return "地理";
   if(id.indexOf("math_")===0) return "数学";   /* ★ 2026-08-04 数学IIIを追加・2026-08-16 全範囲に拡張 */
   /* ★★ 2026-08-20 これまでの物理は<b>物理α</b>に改名。
      新しい電磁気学のぶんが<b>物理β</b>（id は physb_）。
      ★ "physb_" は "phys_" で始まらないので、下の行とはぶつからない。
        ただし<b>物理βの判定を先に書く</b>こと（読む人が取りちがえないように）。 */
+  if(id.indexOf("physg_")===0) return "物理γ"; /* ★★ 2026-08-26 全範囲の標準演習 */
   if(id.indexOf("physb_")===0) return "物理β";
   if(id.indexOf("phys_")===0) return "物理α";
   if(id.indexOf("kokugo_")===0) return "国語";
   if(id.indexOf("cbeta_")===0) return "化学β"; // 溶液・無機・有機・高分子の新規問題
   if(id.indexOf("cgamma_")===0) return "化学γ"; /* ★ 2026-08-16 最難関の有機・無機＋物質別 */
   if(id.indexOf("cdelta_")===0) return "化学δ";  /* ★ 2026-08-20 脂質・芳香族・元素別各論 */
+  if(id.indexOf("ceps_")===0) return "化学ε";    /* ★★ 2026-08-26 全範囲の標準演習 */
   return "化学α"; // 既存の化学すべて（fatty/carboxyl/functional/gas_*/metal/chem_b_*/chem_*）
 }
 function subjectsPresent(){ const set={}; allContents().forEach(c=>set[subjectOf(c)]=1); return SUBJECT_ORDER.filter(s=>set[s]); }
@@ -1284,6 +1688,14 @@ function diffOf(c){
   /* ★★ 2026-08-20 化学δ。"_adv" で終わるものだけが最難関（＝くわしい解説の対象）。 */
   if(/^cdelta_/.test(id)) return /_adv$/.test(id) ? 5 : 4;
 
+  /* ★★ 2026-08-26 化学ε・物理γ は<b>全範囲を確実に取りきる</b>ための標準演習なので、
+     まるごと「応用（★3）」。最難関（★5）にはしないので、くわしい解説の対象にもならない。
+     ★ この2行は /^phys_/ や /^chem_/ の判定より<b>前</b>に置くこと。
+       physg_ は phys_ で始まらないので当たらないが、読む人が取りちがえないよう
+       化学δと同じ場所にそろえてある。 */
+  if(/^ceps_/.test(id)) return 3;
+  if(/^physg_/.test(id)) return 3;
+
   /* ── ★5 最難関: 総合・記述の重い問題 ── */
   if(/^cgamma_[oi]_/.test(id)) return 5;   // 化学γ 有機・無機の総合
   if(/^phys_adv_/.test(id)) return 5;      // 物理（書き下ろしの最難関）
@@ -1399,7 +1811,7 @@ window.lexSearchQuiz = () => {
   const picks=shuffle(hits).slice(0, SEARCH_QUIZ_MAX);
   quiz={ items:picks.map(pk=>{
     if(pk.kind==="quiz"){
-      const qq=pk.q, wrongs=pickWrongs(qq.answer, qq.wrong, N_OPTS-1);
+      const qq=pk.q, wrongs=pickWrongs(qq.answer, qq.wrong, N_OPTS-1, pk.c.sec);
       const b=balanceOpts(qq.answer, wrongs);
       return { stem:qq.stem, reading:qq.reading||"", answer:b.answer, full:b.full, extra:qq.extra||"", tag:pk.c.name,
         opts:b.opts, kind:"quiz", sid:pk.c.sid, qi:pk.i };
@@ -1556,7 +1968,8 @@ function buildQuizItems(c, count, onlyUn){
     const un=all.filter(x=>!(m[x.i]&&m[x.i].m)), ma=onlyUn?[]:all.filter(x=>m[x.i]&&m[x.i].m);
     const qs=pickPrioritized(un, ma, count);
     return qs.map(({q,i})=>{
-      const wrongs=pickWrongs(q.answer, q.wrong, N_OPTS-1);
+      /* ★ 2026-08-24 同じセットのほかの問題の誤答も候補に渡す（長さの手がかりつぶし） */
+      const wrongs=pickWrongs(q.answer, q.wrong, N_OPTS-1, c.sec);
       const b=balanceOpts(q.answer, wrongs);
       return { stem:q.stem, reading:q.reading||"", answer:b.answer, full:b.full, extra:q.extra||"", tag:MODE_LABEL[c.sec.mode]||c.sec.desc||"問題",
         opts:b.opts, kind:"quiz", sid:c.sid, qi:i };
@@ -1819,7 +2232,7 @@ window.lexMix=()=>{
   const picks=pickPrioritized(un, pool2, count);
   quiz={ items:picks.map(pk=>{
     if(pk.kind==="quiz"){
-      const q=pk.q, wrongs=pickWrongs(q.answer, q.wrong, N_OPTS-1);
+      const q=pk.q, wrongs=pickWrongs(q.answer, q.wrong, N_OPTS-1, pk.c.sec);
       const b=balanceOpts(q.answer, wrongs);
       return { stem:q.stem, reading:q.reading||"", answer:b.answer, full:b.full, extra:q.extra||"", tag:pk.c.name,
         opts:b.opts, kind:"quiz", sid:pk.c.sid, qi:pk.i };
@@ -2019,6 +2432,10 @@ function finishQuiz(){
         rwd = confirmReward(c);
         rmsg = "「"+c.name+"」確認テスト 全問正解！" + (volumeMult(c.total)>1 ? `（${c.total}問・ボリューム${volumeMult(c.total)}倍！）` : "");
         earn(rwd, rmsg, true);
+        /* ★ 2026-08-24 レベルは「このセットではじめて合格したとき」だけ上がる */
+        lexGainExp(LEX_EXP_CONFIRM, "MagiLex 確認テスト合格："+c.name);
+        /* ★★ 2026-08-26 確認テストの合格で +10KP（この周につき1回） */
+        kpAdd(KP_CONFIRM, "「"+c.name+"」確認テスト 合格");
       } else if(pct===100){
         rmsg = "全問正解！（この周の報酬は受取済み）";
       } else {
@@ -2028,6 +2445,9 @@ function finishQuiz(){
              もう一度そろえても XEVA が二重にもらえることはない。 */
         demoted = demoteMissed();
       }
+      /* ★ 2026-08-24 スタミナは<b>合格するたび毎回</b> ＋50（上限を超えてたまる・ご指定）。
+         XEVA の受取済みとは別あつかいなので、この if の外に置くこと。 */
+      if(pct===100) lexGainStamina(c.name);
       checkMastery(c);
     }
   } else if(curContent){ checkMastery(curContent); }
@@ -2467,6 +2887,11 @@ function howtoSlides(){
     { ic:"📚", color:"#8a5bd2", title:"ボリュームボーナス", sub:`完全習得したとき 50問以上は ×2 ／ 100問以上は`, rew:'<b class="lh-new">×3 !</b>' },
     { ic:"💯", color:"#d96a93", title:"ミックス問題",       sub:`90%以上 ${camp?"+"+REWARD.mix90*CAMPAIGN.mult:"+"+REWARD.mix90} ／ 100%なら`, rew:rewHTML(REWARD.mix100) },
   ];
+  /* ★★ 2026-08-26 Knowledge Point（KP）。XEVA とは別枠のポイントなので、
+     ×2キャンペーンの前に置いて「これは XEVA ではない」ことを分かるようにする。 */
+  slides.push({ ic:"💠", color:"#3c4bb0", title:"Knowledge Point（KP）",
+    sub:`完全習得 +${KP_MASTER} ／ 確認テスト合格 +${KP_CONFIRM}。${KP_CHAR_COST}KPでキャラ・${KP_TICKET_COST}KPで🎫`,
+    rew:'<b class="lh-new">KP交換所へ</b>' });
   if(camp) slides.push({ ic:"🌻", color:"#ff8a3d", title:"夏の学習キャンペーン", sub:`期間中（〜${CAMPAIGN.to.slice(5).replace("-","/")}）は上の報酬が`, rew:'<b class="lh-new">すべて ×2 !</b>' });
   slides.push({ ic:"🎰", color:"#6b5bd2", title:"貯めて使おう", sub:"集めた XEVA は XEVARION の", rew:"ガチャで！" });
   return slides;
@@ -3562,7 +3987,10 @@ function boot(){
   try{ window.addEventListener("xeva:change", renderTop); }catch(e){}
   // すでに英単語を全完全習得済みなら（更新前に達成していた場合の救済）アリサを付与
   try{ checkArisaUnlock(); }catch(e){}
-  try{ checkMizukiUnlock(); }catch(e){}
+  /* ★★ 2026-08-26 ミズキの配布は「完全習得のマイルストーン」から
+     <b>KP交換所（80KP）</b>へ移した。KP を入れる前から遊んでいた人が
+     0KP から始めることのないよう、これまでの学習ぶんを1回だけさかのぼって配る。 */
+  try{ kpBackfillOnce(); }catch(e){}
   // 起動時の注意書き（AI作成の忠告）は「タップしてスタート」を押した後に表示する。
   // アクセス画面が出ないタブ（同セッション2回目以降）はスプラッシュ後に表示する。
   window._lexNotices = () => {

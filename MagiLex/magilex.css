@@ -99,9 +99,40 @@ img{display:block}
 .hero::after{content:"";position:absolute;right:-30px;top:-30px;width:150px;height:150px;border-radius:50%;background:rgba(255,255,255,.10)}
 .hero .greet{font-size:.78rem;opacity:.9}
 .hero .nm{font-size:1.3rem;font-weight:800;margin-top:2px}
-.hero .row{display:flex;gap:10px;margin-top:16px;position:relative;z-index:1;flex-wrap:wrap}
-.hero .chip{background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.22);border-radius:13px;padding:9px 13px;font-size:.72rem;font-weight:700;backdrop-filter:blur(4px)}
-.hero .chip b{font-size:1rem;display:block;margin-top:1px}
+/* ★ 2026-08-24 名前の右に「Lv.」と「スタミナ」を置く（XEVARION 全体のステータス） */
+.hero-top{display:flex;align-items:flex-start;gap:10px;position:relative;z-index:1}
+.hero-nm{min-width:0;flex:1}
+.hero-st{flex:none;display:flex;flex-direction:column;align-items:flex-end;gap:5px}
+.hs-lv{display:flex;align-items:baseline;gap:2px;background:rgba(255,255,255,.18);
+  border:1px solid rgba(255,255,255,.26);border-radius:12px;padding:5px 9px 6px;line-height:1;
+  font-weight:800;position:relative}
+.hs-lv small{font-size:.6rem;opacity:.85}
+.hs-lv b{font-size:.95rem}
+.hs-lv .hs-bar{position:absolute;left:8px;right:8px;bottom:3px;height:2.5px;border-radius:99px;
+  background:rgba(255,255,255,.28);overflow:hidden;display:block}
+.hs-lv .hs-bar i{display:block;height:100%;background:#ffe9a8;border-radius:99px}
+.hs-stam{display:flex;align-items:center;gap:3px;background:rgba(255,255,255,.9);
+  border:1px solid rgba(20,180,140,.35);border-radius:12px;padding:4px 5px 4px 7px;
+  color:#0e7d63;font-weight:800;font-size:.78rem;cursor:pointer;line-height:1}
+.hs-stam img{width:15px;height:15px;object-fit:contain;display:block}
+.hs-stam small{font-size:.6rem;opacity:.62;font-weight:800}
+.hs-stam i{font-style:normal;font-size:.72rem;width:15px;height:15px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;margin-left:2px;
+  background:linear-gradient(140deg,#3fd9b0,#14a877);color:#fff}
+.hs-stam.low{border-color:rgba(224,64,94,.45);color:#c22c4e}
+.hs-stam.low i{background:linear-gradient(140deg,#ff9db4,#e0405e)}
+.hs-stam:active{transform:scale(.96)}
+/* ★ 2026-08-24 ステータスは<b>折り返さず1行</b>にそろえる（ご指定）。
+   4つを同じ幅にして、それでも入らない細い端末では横スクロールで逃がす
+   （折り返すと2段になって、プロフィールの高さが端末ごとに変わってしまう）。 */
+.hero .row{display:flex;gap:6px;margin-top:14px;position:relative;z-index:1;flex-wrap:nowrap;
+  overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.hero .row::-webkit-scrollbar{display:none}
+.hero .chip{flex:1 1 0;min-width:74px;text-align:center;
+  background:rgba(255,255,255,.16);border:1px solid rgba(255,255,255,.22);border-radius:13px;
+  padding:7px 6px;font-size:.62rem;font-weight:700;backdrop-filter:blur(4px)}
+.hero .chip span{display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.92}
+.hero .chip b{font-size:.92rem;display:block;margin-top:2px;white-space:nowrap}
 
 /* ── 🌻 夏の学習キャンペーン バナー（獲得XEVA 2倍） ── */
 .camp-bn{display:flex;align-items:center;gap:12px;margin-bottom:14px;padding:14px 16px;border-radius:18px;cursor:pointer;
@@ -393,8 +424,9 @@ img{display:block}
   .topbar .logo b{font-size:.98rem}
   .hero{padding:18px}
   .hero .nm{font-size:1.18rem}
-  .hero .row{gap:8px}
-  .hero .chip{padding:8px 11px;font-size:.68rem}
+  .hero .row{gap:5px}
+  .hero .chip{padding:7px 5px;font-size:.58rem;min-width:66px}
+  .hero .chip b{font-size:.84rem}
   .menu-grid{gap:10px}
   .m-card{padding:14px}
   .m-card .mi{font-size:23px}
@@ -531,6 +563,61 @@ body.in-quiz .q-stem{font-size:1.28rem}
 .mizuki-bn .mz-bd p{margin:3px 0 0;font-size:.72rem;line-height:1.55;color:#2a6a52}
 .mizuki-bn .mz-bd p b{font-size:inherit;color:#0b6b48}
 .mizuki-bn .mz-note{color:#5a4ea8!important;font-weight:800}
+/* ══ ★★ 2026-08-26 Knowledge Point（KP）と KP交換所 ══ */
+.mizuki-bn.kp-bn{cursor:pointer;background:linear-gradient(120deg,#eef3ff,#e9ecff 55%,#fff3e0);
+  border-color:rgba(94,120,255,.45);box-shadow:0 8px 22px rgba(90,110,220,.18)}
+.mizuki-bn.kp-bn .mz-bd b{color:#2b3a86}
+.mizuki-bn.kp-bn .mz-bd p{color:#4a56a0}
+.mizuki-bn.kp-bn .mz-bd p b,.mizuki-bn.kp-bn .kp-now{color:#1e2a6e}
+.mizuki-bn.kp-bn .kp-now{font-size:1.15em}
+.mizuki-bn.kp-bn .kp-go{margin-left:auto;font-size:1.3rem;font-weight:900;color:#5a68c8;flex-shrink:0}
+.kp-bal{display:flex;align-items:center;gap:12px;margin:4px 0 12px;padding:13px 15px;border-radius:18px;
+  background:linear-gradient(120deg,#1e2a6e,#3c4bb0 60%,#6a4fd0);color:#fff;box-shadow:0 8px 22px rgba(40,60,180,.28)}
+.kp-bal img{width:52px;height:52px;flex-shrink:0}
+.kp-bal>div{font-size:.78rem;font-weight:800;opacity:.9;display:flex;flex-direction:column}
+.kp-bal>div b{font-family:'Orbitron',sans-serif;font-size:1.7rem;line-height:1.1}
+.kp-bal>div small{font-size:.66rem;opacity:.75;font-weight:700}
+.kp-lead,.kp-lead2{font-size:.72rem;line-height:1.75;color:#5a6480;background:#f6f8ff;
+  border:1.5px solid rgba(120,140,220,.24);border-radius:14px;padding:10px 12px;margin-bottom:12px}
+.kp-lead b,.kp-lead2 b{color:#2b3a86}
+/* 🎫チケットの行 */
+.kpt{display:flex;align-items:center;gap:11px;padding:11px 13px;margin-bottom:12px;border-radius:16px;
+  background:#fff;border:1.5px solid rgba(120,140,220,.26);box-shadow:0 4px 14px rgba(90,110,200,.08)}
+.kpt .kpt-i{flex:none;width:42px;height:42px;border-radius:12px;display:flex;align-items:center;justify-content:center;
+  font-size:22px;background:rgba(90,182,255,.16);border:1.5px solid rgba(90,182,255,.4)}
+.kpt .kpt-bd{flex:1;min-width:0}
+.kpt .kpt-bd b{font-size:.82rem;font-weight:900;color:#22345c}
+.kpt .kpt-bd p{margin:2px 0 0;font-size:.68rem;line-height:1.5;color:#6f82ad}
+/* キャラのカード */
+.kpc{display:flex;align-items:center;gap:11px;padding:11px 12px;margin-bottom:10px;border-radius:18px;
+  background:#fff;border:2px solid var(--kpc);box-shadow:0 5px 16px rgba(90,110,200,.10)}
+.kpc .kpc-img{width:74px;height:74px;flex:none;border-radius:14px;object-fit:cover;border:2px solid #fff;
+  box-shadow:0 4px 12px rgba(0,0,0,.16)}
+.kpc .kpc-bd{flex:1;min-width:0}
+.kpc .kpc-nm{font-size:.88rem;font-weight:900;color:#22345c;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.kpc .kpc-nm i{font-style:normal;font-size:.64rem;font-weight:900;padding:2px 7px;border-radius:99px;
+  color:#fff;background:var(--kpc)}
+.kpc .kpc-own,.kpc .kpc-no,.kpc .kpc-max{font-size:.62rem;font-weight:900;padding:2px 7px;border-radius:99px}
+.kpc .kpc-own{color:#0b6b48;background:rgba(52,211,153,.2)}
+.kpc .kpc-no{color:#7a839c;background:rgba(120,140,180,.16)}
+.kpc .kpc-max{color:#8a5a00;background:rgba(255,200,60,.28)}
+.kpc .kpc-tag{font-size:.66rem;font-weight:800;color:#6f82ad;margin-top:2px}
+.kpc .kpc-note{font-size:.66rem;line-height:1.6;color:#6f82ad;margin-top:3px}
+.kpc .kpc-note b{color:#22345c}
+.kpc .kpc-acts{display:flex;flex-direction:column;gap:6px;flex:none}
+.kpc-det{border:1.5px solid rgba(120,140,220,.4);background:#fff;color:#5a68c8;border-radius:99px;
+  font-family:inherit;font-size:.66rem;font-weight:900;padding:7px 11px;cursor:pointer;white-space:nowrap}
+.kpc-buy{border:none;border-radius:12px;background:linear-gradient(135deg,#3c4bb0,#7b5cf0);color:#fff;
+  font-family:inherit;font-size:.72rem;font-weight:900;padding:8px 12px;cursor:pointer;white-space:nowrap;
+  display:flex;flex-direction:column;align-items:center;gap:1px;line-height:1.2}
+.kpc-buy small{font-size:.6rem;font-weight:800;opacity:.9}
+.kpc-buy:disabled{opacity:.42;cursor:not-allowed;filter:grayscale(.6)}
+.kpdet-ov{display:none}
+@media (max-width:420px){
+  .kpc{flex-wrap:wrap}
+  .kpc .kpc-acts{flex-direction:row;width:100%}
+  .kpc .kpc-acts>*{flex:1}
+}
 
 /* ===== アクセス画面（タップしてスタート・MagiBurstと同じ流れ） ===== */
 #mlHome{position:fixed;inset:0;z-index:8500;display:none;overflow:hidden;background:#0a1420;cursor:pointer;color:#eef6ff}
@@ -1096,9 +1183,12 @@ body.in-quiz .memo-open{bottom:calc(20px + env(safe-area-inset-bottom,0px))}
   background:linear-gradient(135deg,#e0a028,#c87a12);box-shadow:0 8px 20px rgba(200,122,18,.32)}
 .mlb-btn:active{transform:scale(.98)}
 
-/* ── ホームのミッションカード（入口） ── */
+/* ── ホームのミッションカード（入口） ──
+   ★ 2026-08-24 上の余白が 0 だったので、すぐ上のプロフィール（.hero）と
+     くっついて<b>重なって見えて</b>いた（.hero は影が外へ出るぶんなおさら）。
+     ほかのカードと同じだけ上を空ける。 */
 .mlg-bn{display:flex;align-items:center;gap:12px;width:100%;text-align:left;cursor:pointer;
-  margin:0 0 12px;padding:13px 14px;border-radius:16px;border:1.5px solid var(--line);
+  margin:14px 0 12px;padding:13px 14px;border-radius:16px;border:1.5px solid var(--line);
   background:linear-gradient(135deg,rgba(255,246,225,.9),rgba(255,255,255,.9))}
 .mlg-bn.has{border-color:rgba(224,120,40,.6);background:linear-gradient(135deg,rgba(255,236,205,.95),rgba(255,250,240,.95))}
 .mlg-bi{position:relative;flex:none;display:flex;align-items:center;line-height:1;color:#c8890f}
