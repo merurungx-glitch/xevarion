@@ -15,8 +15,8 @@
    <b>ふつうの &lt;script&gt;</b>（type="module" ではない）で読むこと。
    トップレベルの const/let はグローバルの字句環境に入るので、
    あとから読み込む MagiBurst 本体のスクリプトからそのまま見える。
-     MagiBurst : <script src="js/mb-core.js?v=50"></script>
-     gacha.html: <script src="MagiBurst/js/mb-core.js?v=50"></script>
+     MagiBurst : <script src="js/mb-core.js?v=52"></script>
+     gacha.html: <script src="MagiBurst/js/mb-core.js?v=52"></script>
 
    ── ホストが先に用意しておくもの ──
      window.MB_IMGD … 画像フォルダへの相対パス（MagiBurst は "../img/"、ポータルは "img/"）
@@ -2195,7 +2195,23 @@ const RALLY_MUL = 1.5;
    SSRでも毎回見せると演出がくどくなるので、ふだんは最初からSSRの星で出し、
    この確率のときだけ昇格演出にする（＝稀に起こるサプライズ）。
    ※ NEWS の本文でも参照するので、お知らせより前で定義しておくこと。 */
-const RANKUP_CHANCE = 0.30;
+/* ══ ★★ ランクアップ（RANK UP!!）演出が起きる確率 ══
+   ------------------------------------------------------------
+   演出が出るのは、次の2つを同時に満たしたSSRだけ。
+     ① そのSSRが<b>10連の確定枠ではない</b>こと（確定枠は最初からSSRの札で出す）
+     ② そのうえで <b>この確率の抽選に当たる</b>こと
+   ★ 経緯（同じ迷いを2度しないために残す）
+     ・〜2026-08-26b … <b>0.30</b>。ところが演出そのものが<b>結果のマスの中だけ</b>で
+       1秒だけ起きるものだったので、当たっても気づかれず「出ない」というご報告になった。
+     ・2026-08-26c … 演出を<b>画面いっぱいの舞台</b>に作り直したうえで、
+       原因の切り分けのために <b>1.00</b>（必ず出す）にした。
+     ・2026-08-26d … ご指定により<b>低確率に戻す</b>。
+       「必ず出るとレア度がなくなる」ため。舞台になったので、当たったときは必ず気づける。
+   ★ ここ<b>1か所</b>だけで決まる。実際の出やすさの目安（GRAND DEBUT）は
+       単発 … SSR 20% × 0.20 ＝ <b>約4%</b>
+       10連 … 確定枠でないSSRが平均1.8体なので <b>約31%</b>（3回に1回くらい）
+     もっと珍しくしたいなら下げ、もう少し見たいなら上げる。 */
+const RANKUP_CHANCE = 0.20;
 /* ══════════ ★ 2026-08-05 プレミアム新SSR「ロゼリア」「シズカ」のリンクスキル ══════════
    どちらも<b>既存のリンクスキルの強化版</b>なので、元の技の数値をここに並べて置き、
    「どこがどれだけ強くなったのか」を一目で追えるようにしておく。
@@ -13529,13 +13545,18 @@ function luxEnsureCSS() {
   /* ══ ★★ 2026-08-26b 昇格の舞台（画面いっぱい） ══
      ★ 結果の画面（#gres）は z-index:600。舞台はその上・閃光（1200）より下に置く。
      ★ pointer-events:none ＝ 押しても消えない／下のタップを邪魔しない。 */
-  .lux-stage{position:fixed;inset:0;z-index:1100;pointer-events:none;
+  /* ★★ 2026-08-26c <b>アニメが1つも動かない環境でも見える</b>ように作る。
+     animation の fill-mode（both）に頼ると、動きが止められている端末では
+     0% のキーフレーム（opacity:0）が<b>そのまま貼りついて丸ごと透明</b>になる。
+     ＝ 札は SSR に変わるのに演出は何も見えない、という形になる。
+     そこで、素の状態を<b>ぜんぶ見える値</b>にして、animation は
+     <b>both を付けずに</b>「動くときだけ足す飾り」に格下げしてある。 */
+  .lux-stage{position:fixed;inset:0;z-index:1100;pointer-events:none;opacity:1;
     display:flex;align-items:center;justify-content:center;
     background:radial-gradient(circle at 50% 46%,rgba(28,10,44,.62),rgba(4,3,8,.90) 62%);
-    animation:luxStgIn .22s ease both}
+    animation:luxStgIn .22s ease}
   @keyframes luxStgIn{from{opacity:0}to{opacity:1}}
-  .lux-stage.out{animation:luxStgOut .3s ease both}
-  @keyframes luxStgOut{from{opacity:1}to{opacity:0}}
+  .lux-stage.out{opacity:0;transition:opacity .3s ease}
   /* 後ろでまわる光の筋。go が付く（＝SSRになる）と一気に明るくなる */
   .lux-stgrays{position:absolute;left:50%;top:46%;width:150vmax;height:150vmax;
     margin:-75vmax 0 0 -75vmax;opacity:.28;
@@ -13557,15 +13578,14 @@ function luxEnsureCSS() {
   .lux-stgbox{position:relative;z-index:2;display:flex;flex-direction:column;align-items:center;gap:10px;
     padding:0 18px;text-align:center}
   .lux-stgtop{font-family:'Orbitron',sans-serif;font-size:11px;font-weight:900;letter-spacing:.34em;
-    color:#c9c4e8;text-indent:.34em;opacity:0;animation:luxStgTop 1.5s ease both}
-  @keyframes luxStgTop{0%{opacity:0;transform:translateY(6px)}14%{opacity:.9;transform:none}
-    76%{opacity:.9}100%{opacity:0}}
+    color:#c9c4e8;text-indent:.34em;opacity:.9;animation:luxStgTop 1.5s ease}
+  @keyframes luxStgTop{0%{opacity:0;transform:translateY(6px)}14%{opacity:.9;transform:none}100%{opacity:.9}}
   /* まん中の大きなプレート。SR（灰）から回って SSR（虹）になる */
-  .lux-stgcard{width:min(184px,46vw);aspect-ratio:3/4;border-radius:20px;
+  .lux-stgcard{width:min(184px,46vw);aspect-ratio:3/4;border-radius:20px;opacity:1;
     display:flex;align-items:center;justify-content:center;
     background:linear-gradient(150deg,#3b3a52,#6a6880 45%,#2a2938);
     box-shadow:inset 0 0 0 3px rgba(255,255,255,.30),inset 0 -18px 34px rgba(0,0,0,.4),0 18px 46px rgba(0,0,0,.6);
-    animation:luxStgFlip 1.45s cubic-bezier(.2,1.15,.35,1) both}
+    animation:luxStgFlip 1.45s cubic-bezier(.2,1.15,.35,1)}
   .lux-stgcard.s5{background:linear-gradient(150deg,#ff5d8f,#ffd257 28%,#8affc4 52%,#38a6ff 76%,#8e6bff);
     box-shadow:inset 0 0 0 3px rgba(255,255,255,.85),0 0 46px rgba(255,210,87,.95),0 0 120px rgba(255,93,143,.75)}
   @keyframes luxStgFlip{
@@ -13582,17 +13602,16 @@ function luxEnsureCSS() {
     text-shadow:0 2px 8px rgba(0,0,0,.55),0 0 26px rgba(255,255,255,.95)}
   /* 大きな RANK UP!! ＝ ここが「演出が出た」と分かる決め手 */
   .lux-stgtx{font-family:'Orbitron',sans-serif;font-weight:900;letter-spacing:.06em;white-space:nowrap;
-    font-size:clamp(26px,8.5vw,44px);color:#fff;opacity:0;
+    font-size:clamp(26px,8.5vw,44px);color:#fff;opacity:1;
     text-shadow:0 0 16px #ffd257,0 0 44px #ff5d8f,0 3px 10px rgba(0,0,0,.75);
-    animation:luxStgTx 1.45s cubic-bezier(.2,1.3,.4,1) both}
-  @keyframes luxStgTx{0%,32%{opacity:0;transform:translateY(16px) scale(.6)}
-    46%{opacity:1;transform:translateY(0) scale(1.22)}
-    58%{transform:translateY(0) scale(1)}
-    88%{opacity:1;transform:translateY(0) scale(1)}
-    100%{opacity:0;transform:translateY(-10px) scale(.98)}}
-  .lux-stgnm{font-size:13px;font-weight:900;color:#ffd257;opacity:0;
-    text-shadow:0 2px 8px rgba(0,0,0,.8);animation:luxStgNm 1.45s ease both}
-  @keyframes luxStgNm{0%,40%{opacity:0}54%{opacity:1}88%{opacity:1}100%{opacity:0}}
+    animation:luxStgTx 1.45s cubic-bezier(.2,1.3,.4,1)}
+  @keyframes luxStgTx{0%,22%{opacity:0;transform:translateY(16px) scale(.6)}
+    40%{opacity:1;transform:translateY(0) scale(1.22)}
+    56%{transform:translateY(0) scale(1)}
+    100%{opacity:1;transform:translateY(0) scale(1)}}
+  .lux-stgnm{font-size:13px;font-weight:900;color:#ffd257;opacity:1;
+    text-shadow:0 2px 8px rgba(0,0,0,.8);animation:luxStgNm 1.45s ease}
+  @keyframes luxStgNm{0%,30%{opacity:0}46%{opacity:1}100%{opacity:1}}
 
   /* ── 画面ぜんたいの閃光 ── */
   .lux-flash{position:fixed;inset:0;z-index:1200;pointer-events:none;mix-blend-mode:screen}

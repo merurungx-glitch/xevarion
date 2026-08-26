@@ -687,6 +687,17 @@ main.on{display:block;min-height:100svh;box-sizing:border-box}
   border-radius:99px;padding:1px 3px;line-height:1.25;white-space:nowrap;letter-spacing:-.2px;text-align:center;
   border:1px solid rgba(255,255,255,.5);box-shadow:0 2px 7px rgba(142,79,224,.4)}
 .ccch .ccomniB.off{visibility:hidden;box-shadow:none}
+/* ★★ 2026-08-26c 撃種（貫通／反射）の札。🌟オムニと同じ1行（.ccmk）に横並びで置く。
+   ★ 色はクエストカードの撃種表記とそろえる（貫通＝金／反射＝青）。 */
+/* ★★ 2026-08-26d この帯には 🌟オムニ と 🔗クロス も並ぶので、撃種は<b>1文字の丸</b>にする（ご指定）。
+   「貫通／反射」の2文字だと帯が横に伸びて、カードの中で文字ばかりが目立っていた。
+   ★ 読めなくならないよう、title に「貫通タイプ／反射タイプ」を入れてある。 */
+.ccch .ccshot{display:flex;align-items:center;justify-content:center;flex:none;
+  width:13px;height:13px;font-style:normal;font-size:8px;font-weight:900;line-height:1;
+  border-radius:50%;letter-spacing:0;text-align:center;
+  border:1px solid rgba(255,255,255,.5)}
+.ccch .ccshot.pi{background:linear-gradient(135deg,#ffd257,#ff9d2e);color:#4a2d00}
+.ccch .ccshot.bo{background:linear-gradient(135deg,#7cc4ff,#38a6ff);color:#08243f}
 .ccnone{font-size:11px;font-weight:800;color:#ff8f8f}
 /* ★ v12.4: 「このクエストに合わせて自動編成」ボタン */
 .ccauto{width:100%;margin:0 0 12px;padding:12px 14px;border:1.5px solid rgba(138,255,196,.55);border-radius:14px;cursor:pointer;
@@ -973,6 +984,10 @@ main.on{display:block;min-height:100svh;box-sizing:border-box}
 .teamgo .tgbtns{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:9px}
 .teamgo .tgbtns .qgim{position:static;font-size:10.5px;padding:6px 11px}
 .qgim.qap{border-color:rgba(142,107,255,.5);background:rgba(142,107,255,.12);color:#7a5ae0}
+/* ★★ 2026-08-26c 出撃バーの「完全対応だけ」。入っているあいだは色が反転する */
+.qgim.qfl{border-color:rgba(255,210,87,.6);background:rgba(255,210,87,.12);color:#c8900f}
+.qgim.qfl.on{background:linear-gradient(135deg,#ffd257,#ff9d2e);border-color:transparent;color:#4a2d00;
+  box-shadow:0 3px 12px rgba(255,170,40,.45)}
 .psedit{display:block;width:100%;margin-bottom:8px;padding:10px;border:1.5px solid rgba(255,157,46,.5);border-radius:13px;
   background:rgba(255,157,46,.1);color:#ffb84d;font-weight:900;font-size:11.5px;cursor:pointer}
 .psresume{border:1.5px solid rgba(124,232,255,.5);background:linear-gradient(135deg,rgba(124,232,255,.14),rgba(142,107,255,.1));border-radius:14px;padding:10px 12px;margin-bottom:10px}
@@ -3774,7 +3789,7 @@ body.in-battle #top,body.in-battle #tabs{display:none}
 
 <script>window.MB_IMGD = "../img/"; window.MB_GIMGD = "img/";</script>
 <script src="../mb-newchars.js?v=6"></script>
-<script src="js/mb-core.js?v=50"></script>
+<script src="js/mb-core.js?v=52"></script>
 <script>
 "use strict";
 /* ══════════ アカウントガード ══════════ */
@@ -5491,6 +5506,11 @@ function openCounters(stageId) {
       ${isStar5(id) ? '<i class="ccs5" title="' + (c.fes ? "SSR フェス限定" : c.quest ? "SSR クエスト限定（ガチャからは出ません）" : c.gacha ? "SSR ガチャ限定" : "SSR") + '">SSR</i>' : ""}
       ${elBdg}
       <span class="ccmk">
+        ${/* ★★ 2026-08-26c 撃種（貫通／反射）をここに出す（ご指定）。
+             ギミックに対応できても、撃種が合っていないと壁の間に入れない・
+             敵の間を抜けられない、で結局そのクエストでは使えないことがある。
+             名前の下の帯（.ccmk）に置くので、絵にも名前にも重ならない。 */""}
+        <i class="ccshot ${c.shot === "pierce" ? "pi" : "bo"}" title="${c.shot === "pierce" ? "貫通タイプ" : "反射タイプ"}">${c.shot === "pierce" ? "貫" : "反"}</i>
         <i class="ccomniB ${viaOmni ? "" : "off"}" title="${viaOmni ? "オムニアンチで対応（専用のアンチではない）" : ""}">🌟</i>
         ${sec ? "" : crossCardMark(id, "cccx")}
       </span>
@@ -5577,7 +5597,7 @@ function openCounters(stageId) {
     <button class="ovx" onclick="closeCounters()" aria-label="とじる" title="とじる">✕</button>
     <h3>${ICO.counter} 対応キャラをさがす</h3>
     <div class="gimsub">${stage.nm}${stage.diff ? "（" + stage.diff + "）" : ""}　— ギミックを無効化できるキャラを<b>所持・未所持どちらも</b>表示します。
-      並びは <b style="color:#8affc4">属性有利</b> → 等倍 → <b>属性不利</b> の順で、その中は <b style="color:#ffb84d">新しいキャラ（No.の大きい順）</b>に左から並びます${bossEl ? "（相性の相手は <b>" + ELEM[bossEl].nm + "属性</b>のボス）" : ""}</div>
+      カードには<b>貫通／反射</b>も出ます。並びは <b style="color:#8affc4">属性有利</b> → 等倍 → <b>属性不利</b> の順で、その中は <b style="color:#ffb84d">新しいキャラ（No.の大きい順）</b>に左から並びます${bossEl ? "（相性の相手は <b>" + ELEM[bossEl].nm + "属性</b>のボス）" : ""}</div>
     <button class="ccauto" onclick="autoPartyFor('${stageId}')">
       ${ICO.autop} このクエストに合わせて自動編成する
       <small>全ギミック対応 → ダメージ系（灼壁・地雷）のアンチ → 残りのアンチ の順に優先して4体そろえ、編成画面へ移ります</small>
@@ -5681,6 +5701,68 @@ window.openNewChar = openNewChar; window.closeNewChar = closeNewChar;
 
 /* ══════════ お知らせ（アップデートのたびにここへ追記する） ══════════ */
 const NEWS = [
+  /* ★★ 2026-08-26e MagiTier に「段の挿入」「表からもどす」／新キャラの Tier 点を平均より少し上に */
+  { date: "2026-08-26", title: "🏗 MagiTier に「Tierのあいだに段を追加」と「表からもどす」を追加／新キャラの評価を少し高めに", body: [
+    "🏗 <b>MagiTier で、Tier と Tier のあいだに段を追加できる</b>ようになりました。"
+      + "Tier一覧の <b>＋</b>、または Tier の設定から<b>「↑ この上に段を追加」「↓ この下に段を追加」</b>で開きます。"
+      + "そのとき<b>「Tier のアルファベットを1つずつずらす」</b>を選べます——"
+      + "S / A / B / C の A と B のあいだに入れると <b>S / A / B（新） / C / D</b> になります。"
+      + "ずらすのは<b>ラベルが1文字のアルファベット（A〜Z）の段だけ</b>で、"
+      + "「S+」「Tier 1」のような自由なラベルは触りません。"
+      + "<b>できあがりの並びはダイアログの中で先に見えます</b>（新しい段の色は上下の段の中間になります）。",
+    "🧹 <b>表を作り直したいときに、キャラを未配置にもどせる</b>ようになりました。"
+      + "メニューの<b>「表からもどす（未配置へ）」</b>から、<b>全部</b>まとめて、または"
+      + "<b>段をえらんで（複数可）</b>もどせます。Tier の設定からは<b>その段だけ</b>もどせます。"
+      + "段（Tier）そのものは消えないので、並びと色はそのまま残ります。",
+    "🏅 <b>MagiTier の表より新しいキャラの評価を、表の平均より少し高め</b>にしました。"
+      + "新しく作るキャラは過去のキャラより強めに作ってあるのがふつうなので、"
+      + "「まだ載っていないから平均ちょうど」では控えめすぎたためです（自動編成・XEVYNAR のおすすめ編成の両方）。",
+  ] },
+  /* ★★ 2026-08-26d 撃種の札をコンパクトに ／ RANK UP は低確率に戻す
+     ／ MagiTier の点は「表より後に増えたキャラ」を最下位あつかいしない */
+  { date: "2026-08-26", title: "🏅 MagiTier の評価は「表より新しいキャラ」を不利にしないように／✦ RANK UP は低確率にもどしました", body: [
+    "🏅 <b>自動編成が見ている MagiTier の評価</b>を見直しました。"
+      + "Tier表は MagiTier で人が作るものなので、<b>表を作ったあとに追加されたキャラは載っていません</b>。"
+      + "これまでは「載っていない＝0点」＝<b>いちばん下の段と同じ</b>あつかいだったので、"
+      + "新しいキャラほど自動編成に選ばれにくいという、逆向きのえこひいきが起きていました。"
+      + "これからは<b>表に載っているいちばん大きい No. より後のキャラ</b>を「まだ載っていないだけ」とみなし、"
+      + "<b>表の平均点</b>を与えます（有利にも不利にもしません）。"
+      + "選ばれた理由にも<b>「MagiTier の表より新しいキャラ（未掲載なので平均あつかい）」</b>と出ます。"
+      + "★ XEVYNAR の<b>おすすめ編成</b>も同じ決まりにそろえました。"
+      + "★ 表があった時期のキャラなのに載っていない場合は、これまでどおり 0 点のままです。",
+    "✦ <b>ランクアップ（RANK UP!!）の演出は低確率にもどしました。</b>"
+      + "前回は原因の切り分けのため「確定枠でないSSRは必ず昇格」にしていましたが、"
+      + "必ず出るとレア度がなくなるためです（ご指定）。"
+      + "演出そのものは<b>画面いっぱいの舞台</b>のままなので、出たときは必ず気づけます。",
+    "🛡 <b>🛡対応キャラ</b>の<b>貫通／反射</b>の表示を、1文字の丸い札に縮めました。"
+      + "同じ行に 🌟オムニ と 🔗クロス も並ぶので、文字が多いとカードの中で目立ちすぎていたためです"
+      + "（長押し・カーソルを重ねると「貫通タイプ／反射タイプ」と出ます）。",
+  ] },
+  /* ★★ 2026-08-26c 手番が進まない不具合 ／ 対応キャラに撃種 ／ クエストでの絞り込み
+     ／ ランクアップ演出は抽選をやめて必ず出す */
+  { date: "2026-08-26", title: "🐞 撃ち終わって止まったのに次のキャラに進まない不具合を修正／🛡 対応キャラに貫通・反射／🔍 完全対応でしぼる", body: [
+    "🐞 <b>キャラが撃ち終わって止まったあと、次のキャラに手番が回らない</b>不具合を直しました。"
+      + "原因は 2026-08-26b に入れた <b>クリムゾンワルツの「二番」の予約</b>です。"
+      + "この予約は「次のターンが始まったら発動する」ものですが、"
+      + "手番の終わりは<b>エフェクトが全部なくなるまで待つ</b>決まりだったため、"
+      + "<b>予約は手番の交代を待ち、手番の交代は予約が消えるのを待つ</b>という"
+      + "にらみ合いになっていました（最大40秒ほど固まります）。"
+      + "予約を「手番を止めない枠」として扱うようにして解決し、"
+      + "あわせて<b>同じ書き忘れが起きても10秒で自動的に立て直す</b>保険も入れています。"
+      + "この修正で、<b>ワルツ 二番</b>そのものも初めてきちんと発動するようになりました。",
+    "🛡 <b>🛡対応キャラ</b>の一覧に、キャラごとの<b>貫通／反射</b>を表示するようにしました。"
+      + "ギミックに対応できても撃種が合っていないと壁の間に入れないことがあるので、"
+      + "属性有利・SSR・🌟オムニと同じ場所で一目で見分けられます。",
+    "🔍 <b>クエストから編成画面に来たとき、そのクエストに完全対応できるキャラだけを絞り込める</b>ようにしました。"
+      + "出撃バーの<b>「完全対応だけ」</b>を押すと一覧がその4体候補にしぼられます。"
+      + "🔍絞り込みの<b>「⚔ いま出撃するクエスト」</b>からは、"
+      + "<b>完全対応</b>／<b>完全対応（オムニに頼らない）</b>／<b>どれかのギミックに対応</b>／"
+      + "<b>ボスに属性有利</b> の4つが選べます（クエストを離れると自動で外れます）。",
+    "✦ <b>ランクアップ（RANK UP!!）の演出が出ない</b>件の決着です。"
+      + "演出が出る条件が<b>「10連の確定枠ではないSSR」かつ「30%の抽選に当たったとき」</b>だけだったため、"
+      + "無料単発（SSR 20%×30%＝<b>6%</b>）や、SSRが確定枠の1体だけになりがちな10連では"
+      + "ほとんど出番が回っていませんでした。<b>抽選をやめ、確定枠でないSSRは必ず昇格演出で出す</b>ようにしています。",
+  ] },
   /* ★★ 2026-08-26c 夏キャンペーン🎫30枚 ／ GRAND DEBUT 初回10連 無料 ／ RANK UP 演出の作り直し
      ／ アイコン設定の検索・所持のみ ／ 自動編成は最大育成時のステータスで比べる */
   { date: "2026-08-26", title: "☀️ 夏キャンペーン 🎫30枚配布／GRAND DEBUT は初回10連が無料／RANK UP 演出を作り直し", body: [
@@ -10447,22 +10529,62 @@ function clearUseMap() {
 /* MagiTier の公開ぶんから「上の段ほど高い点」を作る（0〜1）。
    ★ MagiBurst が読んでいるキャッシュ（magiburst_chartier_v1）をそのまま使う。
      通信もしないし、表が無ければ空を返すだけ。 */
+/* ══ ★★ 2026-08-26d Tier表は「作られた時点の顔ぶれ」しか載っていない（ご指定）══
+   ------------------------------------------------------------
+   Tier表を作るのは MagiTier 側の人なので、<b>表を作ったあとに追加されたキャラは載っていない</b>。
+   これまでは「載っていない＝0点」＝<b>いちばん下の段と同じあつかい</b>にしていたので、
+   新しいキャラほど自動編成で選ばれにくい、という逆向きのえこひいきが起きていた。
+   （新キャラはそのクエスト向けに作られていることが多いので、いちばん困る形だった）
+   → <b>表に載っているキャラのうち、いちばん大きい No.</b> より後のキャラは
+     「まだ載っていないだけ」とみなし、<b>表の平均点</b>を与える＝有利にも不利にもしない。
+   ★ No. の並び＝キャラを追加した順なので、表に日付が無くても「表より後か」が分かる。
+     （data.at の日付は「表を最後に編集した日」なので、追加日との比較には使えない）
+   ★ 表があった時期のキャラなのに載っていない＝作者が入れなかった、なので 0 点のまま。
+   ★ 表そのものが無いときは全員 0 点（誰にも点が入らない＝これまでどおり公平）。 */
 let _tierRankCache = null;
 function tierRankMap() {
   if (_tierRankCache) return _tierRankCache;
   const m = {};
+  let maxNo = 0, sum = 0, cnt = 0, at = 0;
   try {
     const d = JSON.parse(localStorage.getItem(TIER_CACHE_KEY) || "null");
+    at = (d && d.at) || 0;
     const tiers = (d && d.tiers) || [];
     const n = tiers.length;
     tiers.forEach((tr, i) => {
       /* いちばん上の段が 1.0、いちばん下が 0 に近づく */
       const v = n > 1 ? (n - 1 - i) / (n - 1) : 1;
-      (tr.ids || []).forEach((id) => { m[id] = v; });
+      (tr.ids || []).forEach((id) => {
+        if (m[id] != null) return;          /* 同じ子が2段に入っていたら上の段を採る */
+        m[id] = v; sum += v; cnt++;
+        const no = charNo(id);
+        if (no < 999 && no > maxNo) maxNo = no;
+      });
     });
   } catch (e) {}
-  _tierRankCache = m;
+  _tierRankCache = { m, at, maxNo, avg: cnt ? sum / cnt : 0, n: cnt };
   return _tierRankCache;
+}
+/* ★★ 2026-08-26e 表より後に増えたキャラは、平均より<b>少し高め</b>にする（ご指定）。
+   新しく作るキャラは、過去のキャラより強めに作ってあるのがふつうなので、
+   「まだ載っていないから平均ちょうど」だと、こんどは少し控えめすぎる。
+   ★ 上げ幅はここ1か所（TIER_NEW_BONUS）。0.15 ＝ 点にすると <b>+9点</b>（Tier枠は60点）。
+     ギミック対応（1つ 45〜120点）より軽いままなので、対応表をひっくり返すことはない。
+   ★ 平均が高い表では 1.0 を超えないように頭打ちにする。 */
+const TIER_NEW_BONUS = 0.15;
+/* そのキャラの Tier 点（0〜1） */
+function tierScoreOf(id) {
+  const t = tierRankMap();
+  if (!t.n) return 0;                                  /* 表が無い＝全員0 */
+  if (t.m[id] != null) return t.m[id];                 /* 載っている */
+  /* 表より後のキャラ＝平均より少し高め（未掲載なだけで、弱いわけではない） */
+  return charNo(id) > t.maxNo ? Math.min(1, t.avg + TIER_NEW_BONUS) : 0;
+}
+/* 表に載っているか／表より後に増えたキャラか（「なぜこの子か」の説明に使う） */
+function tierListed(id) { return tierRankMap().m[id] != null; }
+function tierNewer(id) {
+  const t = tierRankMap();
+  return t.n > 0 && t.m[id] == null && charNo(id) > t.maxNo;
 }
 /* 最大育成時のステータス（レベル上限・限界突破MAX・アークなし）。
    キャラごとに変わらない値なので一度計算したら覚えておく。 */
@@ -10502,7 +10624,10 @@ function autoPartyForStage(stageId, includeOmni) {
      ★ 「所持しているキャラから選ぶ」のはこれまでどおり（持っていない子は編成できない）。 */
   const power = (id) => { const s = maxTrainedStats(id); return s.hp + s.atk * 2; };
   /* ★ 2026-08-19 実績ぶんの点。ギミック対応（1つ 45〜120点）より軽くする。 */
-  const cu = clearUseMap(), tr = tierRankMap();
+  /* ★★ 2026-08-26d Tier の点は tierScoreOf() 経由で取る（表より後のキャラを不利にしないため）。
+     ここで tierRankMap() を先に1回呼んでおくのは、点を作る処理を1回にまとめるためだけ。 */
+  const cu = clearUseMap();
+  tierRankMap();
   const hereRec = (DB.lastClear || {})[stageId] || {};
   const hereIds = {};
   ["solo", "multi"].forEach((mo) => {
@@ -10518,7 +10643,7 @@ function autoPartyForStage(stageId, includeOmni) {
   const recordBonus = (id) =>
     (hereIds[id] ? 90 : 0) +
     Math.round(Math.min(1, (cu.m[id] || 0) / Math.max(1, cu.total * 0.5)) * 40) +
-    Math.round((tr[id] || 0) * 60) +
+    Math.round(tierScoreOf(id) * 60) +
     Math.round(Math.min(1, (sh.m[id] || 0) / Math.max(1, sh.total * 0.5)) * 70);
   /* SSRに付ける下駄（対策1つぶんより少し大きい＝対応力が同じならSSRが勝つ） */
   const STAR5_AUTO_BONUS = 200;
@@ -10572,7 +10697,9 @@ function autoPartyForStage(stageId, includeOmni) {
     const w = [];
     if (hereIds[id]) w.push("このクエストをクリアした編成");
     if ((cu.m[id] || 0) >= 2) w.push("ほかのクエストでもよく使っている");
-    if ((tr[id] || 0) >= 0.75) w.push("MagiTier で上位");
+    if (tierListed(id) && tierScoreOf(id) >= 0.75) w.push("MagiTier で上位");
+    /* ★★ 2026-08-26d 表より後に増えたキャラは「載っていないから弱い」ではないことを書く */
+    else if (tierNewer(id)) w.push("MagiTier の表より新しいキャラ（未掲載なので平均より少し高めに見ています）");
     if ((sh.m[id] || 0) >= Math.max(2, sh.total * 0.5)) w.push("みんなのクリア編成でよく使われている");
     if (w.length) why[id] = w;
   });
@@ -10672,7 +10799,31 @@ window.autoPartyFor = autoPartyFor; window.autoPartyApply = autoPartyApply; wind
    自動編成やクエスト選択から編成画面に来たときだけ、画面下に出撃ボタンを出す。
    編成をいじってからでも、クエストを選び直さずに出発できる。 */
 let teamGoStage = null;
-function setTeamGoStage(id) { teamGoStage = id || null; }
+function setTeamGoStage(id) {
+  teamGoStage = id || null;
+  /* ★★ 2026-08-26c クエストから離れたら、そのクエスト向けの絞り込み（q:）は外す。
+     残しておくと、次にこの一覧を開いたときに「なぜか誰も出ない」ように見える。 */
+  if (!teamGoStage) qFilterClearKeys();
+}
+/* すべての一覧から q: の条件を外す */
+function qFilterClearKeys() {
+  try {
+    Object.keys(FSCOPE).forEach((sc) => {
+      const st = FSCOPE[sc];
+      if (st && st.keys && st.keys.some((k) => k.indexOf("q:") === 0)) {
+        st.keys = st.keys.filter((k) => k.indexOf("q:") !== 0);
+      }
+    });
+  } catch (e) {}
+}
+/* ★★ 2026-08-26c 出撃バーの「完全対応だけ」。絞り込みの q:full を入り切りする */
+function teamOnlyFull() {
+  const st = FSCOPE.team;
+  st.keys = toggleFilterKey(st.keys, "q:full");
+  keepScroll(() => renderTeam());
+  SFX.pick();
+}
+window.teamOnlyFull = teamOnlyFull;
 function teamGoHTML() {
   const st = teamGoStage ? findStage(teamGoStage) : null;
   if (!st) return "";
@@ -10691,6 +10842,11 @@ function teamGoHTML() {
       <button class="qgim" onclick="openGimInfo('${st.id}')" title="ギミック・報酬などの詳細を見る">${ICO.gim}ギミック</button>
       <button class="qgim qcc" onclick="openCounters('${st.id}')" title="ギミックに対応できる味方を見る">${ICO.counter}対応キャラ</button>
       <button class="qgim qap" onclick="autoPartyFor('${st.id}')" title="このクエストに合わせて自動で編成する">${ICO.autop}自動編成</button>
+      ${/* ★★ 2026-08-26c 下の一覧を「このクエストのギミックを1体で全部消せるキャラ」だけにする（ご指定）。
+           絞り込み画面（🔍）の「⚔ いま出撃するクエスト」と<b>同じ条件</b>を、ここから1タップで入れられる。 */""}
+      <button class="qgim qfl ${(FSCOPE.team.keys || []).indexOf("q:full") >= 0 ? "on" : ""}"
+        onclick="teamOnlyFull()" title="このクエストのギミックを1体で全部消せるキャラだけを一覧に出す">
+        ${ICO.counter}完全対応だけ</button>
     </div>
     ${locked
       ? `<div class="tgd2">${gardenLockText(st.room)}<br>編成だけ準備しておけます。</div>`
@@ -11864,6 +12020,14 @@ const FILTERS = [
      「編成外」＝まだ使っていないキャラを掘り起こしたいときに使う。 */
   { k: "inparty", label: "編成中" },
   { k: "outparty", label: "編成外" },
+  /* ══ ★★ 2026-08-26c いま出撃するクエストでしぼる（ご指定）══
+     クエスト → 編成画面（teamGoStage が入っている状態）のときだけ、絞り込み画面に出る。
+     「そのクエストに出撃する前に、完全対応のキャラだけを見たい」ための枠。
+     ★ クエストを選んでいないときは何も絞らない（matchOne が true を返す）。 */
+  { k: "q:full", label: "⚔ このクエストに完全対応" },
+  { k: "q:ded",  label: "⚔ 完全対応（オムニに頼らない）" },
+  { k: "q:any",  label: "⚔ どれかのギミックに対応" },
+  { k: "q:adv",  label: "⚔ ボスに属性有利" },
 ];
 /* ★ v14: 「ax:」絞り込みのキー → そこに含めるアビリティtypeの一覧（等級ちがいをまとめる） */
 const ABIL_GROUPS = {
@@ -12269,6 +12433,31 @@ const SS_TAGS = {
    同じ枠の別のボタンを押すと選び直しになる。 */
 const SINGLE_GROUPS = ["shot:", "type:", "fs:", "fk:", "sf:", "nx:"];
 /* 1つの絞り込みキーに合うか */
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-08-26c 「いま出撃するクエスト」での絞り込みに使う道具
+   ------------------------------------------------------------
+   クエストのカードから編成画面に来ると teamGoStage にそのクエストが入る。
+   そのあいだだけ、絞り込みに「⚔ このクエストに完全対応」の枠が出る。
+   ★ teamGoStage は下のほうで let 宣言している（実行時にしか読まないので問題ない）。
+   ══════════════════════════════════════════════════════════════ */
+function qFilterStage() {
+  try {
+    if (typeof teamGoStage === "undefined" || !teamGoStage) return null;
+    return findStage(teamGoStage) || null;
+  } catch (e) { return null; }
+}
+function qFilterKeys() {
+  const st = qFilterStage();
+  if (!st) return null;
+  try { return counterKeysOf(st) || []; } catch (e) { return []; }
+}
+/* そのクエストのボスの属性（最後のWAVEのボス）。openCounters と同じ見かた */
+function qFilterBossEl(st) {
+  const wv = (st && st.waves) || [];
+  const last = wv[wv.length - 1] || [];
+  const boss = last.find((d) => d && d.boss) || last[0];
+  return boss ? boss.el : null;
+}
 function matchOne(k, c, id) {
   if (k === "all") return true;
   if (k === "own") return !!DB.chars[id];
@@ -12301,6 +12490,23 @@ function matchOne(k, c, id) {
   if (t === "ax") {
     const list = ABIL_GROUPS[v] || [v];
     return (c.abil || []).some((a) => list.indexOf(a.t) >= 0);
+  }
+  /* ══ ★★ 2026-08-26c いま出撃するクエストでしぼる ══
+     判定はぜんぶ「対応キャラをさがす（openCounters）」と同じ道具を使う
+     （COUNTER_ABIL / OMNI_GIMS / counterKeysOf）。ここで書き直すと必ず食いちがう。
+     ★ クエストから来ていないときは<b>true</b>を返す＝この条件が残っていても誰も消えない。 */
+  if (t === "q") {
+    const stq = qFilterStage();
+    if (!stq) return true;
+    const gk = qFilterKeys() || [];
+    const omni = (c.abil || []).some((a) => a.t === "omni");
+    const ded = (k2) => COUNTER_ABIL[k2] && COUNTER_ABIL[k2].need.some((a) => hasAbil(c, a));
+    const can = (k2) => ded(k2) || (omni && OMNI_GIMS.has(k2));
+    if (v === "full") return gk.length > 0 && gk.every(can);
+    if (v === "ded")  return gk.length > 0 && gk.every(ded);
+    if (v === "any")  return gk.some(can);
+    if (v === "adv") { const be = qFilterBossEl(stq); return be ? elemMult(c.el, be) > 1 : true; }
+    return true;
   }
   if (t === "ab") {
     const has = (x) => (c.abil || []).some((a) => a.t === x);
@@ -12565,6 +12771,9 @@ const FILTER_GROUPS = [
   { t: "sf:",   nm: "🔗 サブリンクスキル",           hint: "1つだけ" },
   { t: "ss:",   nm: "💥 フルバーストの種類",       hint: "複数えらぶと「すべて満たす」" },
   { t: "nx:",   nm: "✨ ネクサススキル",           hint: "1つだけ" },
+  /* ★★ 2026-08-26c クエストから編成画面に来たときだけ出る枠（ご指定）。
+     クエストを選んでいないときは paintFilterSheet がまるごと出さない。 */
+  { t: "q:",    nm: "⚔ いま出撃するクエスト",     hint: "そのクエストのギミックに対応できるキャラだけを出す", open: 1 },
   { t: "",      nm: "そのほか",                   hint: "", open: 1 },
 ];
 let filterSheetScope = null;
@@ -12626,14 +12835,25 @@ function paintFilterSheet() {
       }).join("")
     : '<span class="cfnone2">条件をえらんでいません（すべて表示）</span>';
   const body = FILTER_GROUPS.map((g) => {
+    /* ★★ 2026-08-26c クエストの枠は「クエストから編成画面に来たとき」だけ出す。
+       ふだんの編成・図鑑では意味がないので、そもそも並べない。 */
+    const qst = g.t === "q:" ? qFilterStage() : null;
+    if (g.t === "q:" && !qst) return "";
     const fs = FILTERS.filter((f) => (g.t === "" ? !f.k.includes(":") : f.k.startsWith(g.t)));
     if (!fs.length) return "";
     const onN = fs.filter((f) => cur.indexOf(f.k) >= 0).length;
     const open = !!cfOpenGroups[g.t];
-    return `<div class="cfsec ${open ? "open" : ""}">
+    /* クエストの枠だけは、見出しに<b>そのクエストの名前</b>を出す（何に対する対応なのかを迷わせない） */
+    const gnm = qst ? "⚔ " + qst.nm : g.nm;
+    const ghint = qst
+      ? ((qFilterKeys() || []).length
+          ? (qFilterKeys() || []).map((k2) => COUNTER_ABIL[k2].nm).join("＋") + " に対応できるキャラだけを出す"
+          : "このクエストにアンチ系のギミックはありません")
+      : g.hint;
+    return `<div class="cfsec ${open ? "open" : ""} ${g.t === "q:" ? "cfq" : ""}">
       <button class="cfsecb" onclick="cfToggleGroup('${g.t}')">
-        <span class="cfsn">${g.nm}${onN ? '<i class="cfsnn">' + onN + "</i>" : ""}</span>
-        ${g.hint ? "<small>" + g.hint + "</small>" : ""}
+        <span class="cfsn">${gnm}${onN ? '<i class="cfsnn">' + onN + "</i>" : ""}</span>
+        ${ghint ? "<small>" + ghint + "</small>" : ""}
         <span class="cfsar">${open ? "▲" : "▼"}</span>
       </button>
       ${open ? `<div class="cfsbody">${fs.map((f) => {
@@ -17429,8 +17649,32 @@ function update() {
     }
     return;
   }
-  if (B.state !== "move") return;
+  if (B.state !== "move") { B.stopWait = 0; return; }
   const ball = B.balls[B.turn];
+  /* ══ ★★ 2026-08-26c 「撃ち終わって止まったのに次のキャラに進まない」の保険 ══
+     ------------------------------------------------------------
+     手番の終わり（下の endShot）は<b>エフェクトが空になるまで</b>待つ決まりになっている。
+     ところがエフェクトの側が「味方が止まったら自分で終わる」のを書き忘れると、
+     その寿命（長いものは 60*40＝40秒）が尽きるまで<b>手番が進まない</b>。
+     実際 2026-08-26b の<b>クリムゾンワルツの「二番」の予約</b>がこれで、
+     ・予約は「B.turn が変わったら発動」して終わる
+     ・でも B.turn は endShot が呼ばれないと変わらない
+     ・endShot はエフェクトが空にならないと呼ばれない
+     という<b>にらみ合い</b>になっていた（＝ご報告の「高確率で次に進まない」）。
+     真因のほうは free フラグで直したが、同じ書き忘れが将来また起きたときに
+     40秒も固まらないよう、ここで<b>止まったまま待っている時間</b>を数えておく。
+     ★ 味方が動いていれば 0 に戻るので、ふつうの長いショットには効かない。
+     ★ ダメージがまだ入っていないエフェクト（apply 待ち）は<b>消さない</b>
+       — 消すとダメージが丸ごと消えてしまうため。 */
+  if (!ball.moving && B.effects.length) {
+    B.stopWait = (B.stopWait || 0) + 1;
+    if (B.stopWait > STOP_WAIT_MAX) {
+      B.stopWait = 0;
+      const before = B.effects.length;
+      B.effects = tagEffects(B.effects.filter((fx) => (fx.apply && !fx.applied)));
+      console.warn("[MagiBurst] 手番が進まないので待っているエフェクトを片づけました", before, "→", B.effects.length);
+    }
+  } else if (!B.effects.length) B.stopWait = 0;
   /* ★ v14.2 総攻撃（率いて撃ちこむFB）中は「味方全員」を動かす。
      全員が止まるまでここで進行を続け、止まったら通常のショット終了処理へ戻る。 */
   if (B.rallyOn) {
@@ -17444,7 +17688,8 @@ function update() {
   }
   if (ball.moving) {
     stepBall(ball);
-  } else if (!B.effects.length && !B.enemies.some((e) => e.knock)) {
+    B.stopWait = 0;
+  } else if (!B.effects.some((fx) => !fx.free) && !B.enemies.some((e) => e.knock)) {
     /* フルバースト派生の攻撃（流星・ハート爆撃など）にも持ち主のキラー倍率を反映する（withDmgSrc） */
     if (B.ssPend === "arisa") { B.ssPend = null; withDmgSrc(ball, () => fxMeteor(ball, 9, 1.0)); return; }
     if (B.ssPend === "violax") { B.ssPend = null; withDmgSrc(ball, () => fxMeteor(ball, 14, 1.15)); return; }
@@ -20773,9 +21018,16 @@ function fireFriendMain(owner, atk, mover, kindOverride) {
         });
       };
       blast(cx, cy);
-      /* 2回目の予約。ターン番号が変わったら発動して終わる */
+      /* 2回目の予約。ターン番号が変わったら発動して終わる
+         ★★ 2026-08-26c <b>free: 1</b> が要る。
+           手番の終わり（endShot）は「エフェクトが空になるまで待つ」決まりなので、
+           この予約を数に入れると
+             予約は B.turn の変化を待つ → B.turn は endShot が呼ばれないと変わらない
+             → endShot はこの予約が消えないと呼ばれない
+           という<b>にらみ合い</b>になり、寿命の 40 秒が尽きるまで手番が止まる。
+           free を付けた枠は「手番を止めないエフェクト」として数えない。 */
       B.effects.push({
-        type: "fxctl", t: 0, dur: 60 * 40, turn0: B.turn, done: 0, x: cx, y: cy,
+        type: "fxctl", free: 1, t: 0, dur: 60 * 40, turn0: B.turn, done: 0, x: cx, y: cy,
         tick(fx) {
           if (fx.done) { fx.t = fx.dur; return; }
           if (B.turn === fx.turn0) return;
@@ -23266,6 +23518,11 @@ function updateEffects() {
   B.effects = tagEffects(B.effects.filter((fx) => fx.t < fx.dur));
 }
 
+/* ★★ 2026-08-26c 「止まったのに手番が進まない」を打ち切るまでのフレーム数（60fps）。
+   ふつうのエフェクトは味方が止まると自分で終わるので、ここまで待つことはない。
+   ペタル・エコーの見はり（PETAL_WATCH＝150）がいまのところ最長なので、
+   その4倍ちかくを取って 600（＝10秒）にしてある。 */
+const STOP_WAIT_MAX = 600;
 /* ── ショット終了 → WAVE / 敵ターン ── */
 /* ★ 2026-08-10 詰み対策: 本体は endShotCore。ここは「落ちても手番は進める」ための包み。
    endShotCore は await をいくつも挟むので、途中で例外が出ると B.state が "resolve" の
