@@ -46,7 +46,7 @@ const CORE = [
   "../brand/NGX.png",
   "../brand/MagicalFuture.png",
   "../brand/ISHIDA Production.png",
-  "../xeva.js?v=44",
+  "../xeva.js?v=45",
   "../xeva-loading.js?v=1",
   "../xeva-splash.js?v=3",
   "../app-cloud.js?v=4",

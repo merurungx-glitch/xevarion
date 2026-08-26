@@ -7,7 +7,7 @@
    ・オフライン中の進行は localStorage に残り、オンライン復帰時に
      xeva-cloud.js がタイムスタンプ比較でクラウドへ上書き反映する
    ============================================================ */
-const VERSION = "xevarion-sw-v96";
+const VERSION = "xevarion-sw-v99";
 
 /* ホームを成立させる最小セット（重い画像は runtime キャッシュに任せる） */
 const CORE = [
@@ -22,7 +22,7 @@ const CORE = [
   "./xevion-os.js?v=3",
   "./xevion-os.css?v=5",
   "./magibattle-stats.js?v=6",
-  "./MagiBurst/js/mb-core.js?v=50",
+  "./MagiBurst/js/mb-core.js?v=52",
   /* ★ 2026-08-10 ガチャと図鑑で共通の土台・キャラ詳細・結果演出 */
   /* ★ 2026-08-12 ポータルのガチャ・図鑑も magiburst_v1 を同期するようになった */
   "./app-cloud.js?v=4",

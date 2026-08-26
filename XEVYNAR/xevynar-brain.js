@@ -452,18 +452,49 @@
       } catch (e) {}
       return { m, total: Math.max(1, total) };
     })();
+    /* ══ ★★ 2026-08-26d Tier表は「作られた時点の顔ぶれ」しか載っていない（ご指定）══
+       表を作るのは MagiTier 側の人なので、<b>表を作ったあとに増えたキャラは載っていない</b>。
+       「載っていない＝0点」だと<b>いちばん下の段と同じ</b>あつかいになり、
+       新しいキャラほどおすすめ編成に出てこない、という逆向きのえこひいきになる。
+       → <b>表に載っているキャラのうち、いちばん大きい No.</b> より後のキャラは
+         「まだ載っていないだけ」とみなして<b>表の平均点</b>を与える（有利にも不利にもしない）。
+       ★ No. の並び＝キャラを追加した順（KB.CHAR_BY_ID[id].no）。
+       ★ MagiBurst の autoPartyForStage（tierScoreOf）と<b>同じ決まり</b>にすること。 */
     const tierRank = (() => {
       const m = {};
+      let maxNo = 0, sum = 0, cnt = 0;
+      const noOf = (id) => { const c = KB.CHAR_BY_ID && KB.CHAR_BY_ID[id]; return c ? (c.no || 0) : 0; };
       try {
         const d = JSON.parse(localStorage.getItem("magiburst_chartier_v1") || "null");
         const tiers = (d && d.tiers) || [];
         const n = tiers.length;
         tiers.forEach((tr, i) => {
           const v = n > 1 ? (n - 1 - i) / (n - 1) : 1;
-          (tr.ids || []).forEach((id) => { m[id] = v; });
+          (tr.ids || []).forEach((id) => {
+            if (m[id] != null) return;          // 同じ子が2段にいたら上の段を採る
+            m[id] = v; sum += v; cnt++;
+            const no = noOf(id);
+            if (no > maxNo) maxNo = no;
+          });
         });
       } catch (e) {}
-      return m;
+      const avg = cnt ? sum / cnt : 0;
+      /* ★★ 2026-08-26e 表より後に増えたキャラは、平均より<b>少し高め</b>にする（ご指定）。
+         新しく作るキャラは過去のキャラより強めに作ってあるのがふつうなので、
+         「まだ載っていないから平均ちょうど」だと、こんどは少し控えめすぎる。
+         ★ 上げ幅は MagiBurst の TIER_NEW_BONUS と<b>同じ 0.15</b> にそろえること。 */
+      const NEW_BONUS = 0.15;
+      const newScore = Math.min(1, avg + NEW_BONUS);
+      return {
+        m: m, n: cnt, maxNo: maxNo, avg: avg,
+        listed: (id) => m[id] != null,
+        newer: (id) => cnt > 0 && m[id] == null && noOf(id) > maxNo,
+        score: (id) => {
+          if (!cnt) return 0;                       // 表が無い＝全員0（公平）
+          if (m[id] != null) return m[id];
+          return noOf(id) > maxNo ? newScore : 0;   // 表より後のキャラは平均より少し高め
+        },
+      };
     })();
     /* このクエストのクリア編成にいたキャラ */
     const hereIds = (() => {
@@ -482,14 +513,16 @@
     const recordBonus = (id) =>
       (hereIds[id] ? 90 : 0) +
       Math.round(Math.min(1, (clearUse.m[id] || 0) / Math.max(1, clearUse.total * 0.5)) * 40) +
-      Math.round((tierRank[id] || 0) * 60) +
+      Math.round(tierRank.score(id) * 60) +
       Math.round(Math.min(1, (sh.m[id] || 0) / Math.max(1, sh.total * 0.5)) * 70);
     /* 「なぜこの子か」を説明するための言葉 */
     function recordWhy(id) {
       const w = [];
       if (hereIds[id]) w.push("このクエストをクリアした編成に入っていた");
       if ((clearUse.m[id] || 0) >= 2) w.push("ほかのクエストのクリア編成にもよく出てくる");
-      if ((tierRank[id] || 0) >= 0.75) w.push("MagiTier で上位");
+      if (tierRank.listed(id) && tierRank.score(id) >= 0.75) w.push("MagiTier で上位");
+      /* ★★ 2026-08-26d 表より後に増えたキャラは「載っていないから弱い」ではない */
+      else if (tierRank.newer(id)) w.push("MagiTier の表より新しいキャラ（未掲載なので平均より少し高めに見ています）");
       if ((sh.m[id] || 0) >= Math.max(2, sh.total * 0.4)) w.push("みんなのクリア編成でよく使われている");
       return w;
     }

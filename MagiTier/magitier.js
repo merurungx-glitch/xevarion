@@ -629,6 +629,8 @@ function renderTierList() {
       <span class="nm">${esc(tr.name)}</span>
       <button title="上へ" onclick="MT.moveTier(${i},-1)">↑</button>
       <button title="下へ" onclick="MT.moveTier(${i},1)">↓</button>
+      ${/* ★★ 2026-08-26e この段の<b>すぐ下</b>に段を足す（アルファベットのずらしも選べる） */""}
+      <button title="この下に段を追加" onclick="MT.insertDlg(${i},true)">＋</button>
       <button title="編集" onclick="MT.tierDlg(${i})">⋮</button>
     </div>`).join("") || '<div class="muted">Tierがありません</div>';
 }
@@ -814,6 +816,246 @@ function moveTier(i, d) {
   const [x] = cur.tiers.splice(i, 1); cur.tiers.splice(j, 0, x);
   save(cur, true); refresh();
 }
+
+/* ══════════════════════════════════════════════
+   ★★ 2026-08-26e Tier の<b>間</b>に段を足す（ご指定）
+   ------------------------------------------------------------
+   これまで「＋ Tierを追加」はいちばん下に足すことしかできず、
+   S と A のあいだに1段ほしいときは、足してから ↑ で何度も動かす必要があった。
+
+   ・`insertDlg(i, below)` … どこに入れるかを見せて確認する
+   ・<b>ラベルを1つずつずらす</b>かを選べる（ご指定）
+       例）S / A / B / C の A と B のあいだに入れて「ずらす」と
+           S / A / <b>B（新）</b> / C / D になる
+   ★ ずらすのは<b>ラベルが1文字のアルファベット（A〜Z）の段だけ</b>。
+     「S+」「Tier 1」のような自由なラベルは触らない（勝手に壊さない）。
+     Z の次は無いのでそのまま残す。
+   ★ 何がどう変わるかは<b>ダイアログの中で先に見せる</b>（押してから驚かない）。
+   ══════════════════════════════════════════════ */
+/* 1文字のアルファベットか */
+function isAlphaLabel(s) { return /^[A-Za-z]$/.test(String(s || "")); }
+/* 次の文字（Z / z はそのまま） */
+function nextAlpha(s) {
+  const c = String(s);
+  if (c === "Z" || c === "z") return c;
+  return String.fromCharCode(c.charCodeAt(0) + 1);
+}
+/* 2色の中間（新しい段の色は、上下の段の中間にすると表のグラデーションが崩れない） */
+function mixColor(a, b) {
+  const p = (x) => { const m = /^#?([0-9a-f]{6})$/i.exec(String(x || "").trim()); return m ? parseInt(m[1], 16) : null; };
+  const A = p(a), B = p(b);
+  if (A == null) return b || C.gray;
+  if (B == null) return a;
+  const mid = (sh) => Math.round((((A >> sh) & 255) + ((B >> sh) & 255)) / 2);
+  const h = (v) => ("0" + v.toString(16)).slice(-2);
+  return "#" + h(mid(16)) + h(mid(8)) + h(mid(0));
+}
+/* 挿入したときのラベルの並びを先に作る（プレビューにも本番にも同じものを使う）。
+   at ＝ 新しい段が入る位置（0〜tiers.length）。 */
+function insertLabelPlan(at, shift) {
+  const out = { newLabel: "", moves: [] };     // moves: {i, from, to}
+  const t = cur.tiers;
+  const here = t[at];                          // 押しのけられる段（末尾に足すときは undefined）
+  if (shift && here && isAlphaLabel(here.label)) {
+    /* 新しい段が、いまその位置にいる段のラベルを引きつぐ */
+    out.newLabel = String(here.label);
+    for (let i = at; i < t.length; i++) {
+      const lb = t[i].label;
+      if (!isAlphaLabel(lb)) break;            // 途中に自由なラベルが来たら、そこで止める
+      const to = nextAlpha(lb);
+      if (to === lb) break;                    // Z まで来たら打ち止め
+      out.moves.push({ i, from: String(lb), to });
+    }
+  } else {
+    /* ずらさないとき＝空いている文字をさがして付ける（かぶらないように） */
+    const used = {};
+    t.forEach((x) => { used[String(x.label).toUpperCase()] = 1; });
+    let lb = "";
+    for (let k = 0; k < 26; k++) { const ch = String.fromCharCode(65 + k); if (!used[ch]) { lb = ch; break; } }
+    out.newLabel = lb || ("T" + (t.length + 1));
+  }
+  return out;
+}
+/* いま開いている挿入ダイアログの状態 */
+let insAt = 0, insShift = true;
+function insertDlg(i, below) {
+  const at = Math.max(0, Math.min(cur.tiers.length, (i | 0) + (below ? 1 : 0)));
+  insAt = at; insShift = true;
+  dlgOpen('<h2>Tier のあいだに段を追加</h2><div id="insBody"></div>');
+  paintInsert();
+}
+function toggleInsShift() { insShift = !insShift; paintInsert(); }
+function paintInsert() {
+  const box = $("#insBody"); if (!box) return;
+  const t = cur.tiers;
+  const plan = insertLabelPlan(insAt, insShift);
+  const to = {};
+  plan.moves.forEach((m) => { to[m.i] = m.to; });
+  const chip = (lb, bg, tc, mark) =>
+    `<span class="insbdg${mark ? " new" : ""}" style="background:${esc(bg)};color:${esc(tc)}">${esc(lb)}</span>`;
+  /* できあがりの並びを、そのまま札で見せる */
+  const rows = [];
+  const bgOf = (k) => {
+    const a = t[k - 1], b = t[k];
+    return a && b ? mixColor(a.bg, b.bg) : (b ? b.bg : (a ? a.bg : C.gray));
+  };
+  const newBg = bgOf(insAt);
+  for (let k = 0; k <= t.length; k++) {
+    if (k === insAt) rows.push(chip(plan.newLabel || "?", newBg, inkFor(newBg), true));
+    const tr = t[k];
+    if (tr) rows.push(chip(to[k] != null ? to[k] : tr.label, tr.bg, tr.tc, false));
+  }
+  const where = insAt === 0
+    ? "いちばん上"
+    : insAt >= t.length
+      ? "いちばん下"
+      : "「" + esc(t[insAt - 1].label) + "」と「" + esc(t[insAt].label) + "」のあいだ";
+  const changed = plan.moves.length
+    ? plan.moves.map((m) => esc(m.from) + "→" + esc(m.to)).join("　")
+    : "ありません";
+  box.innerHTML = `<p class="dsub">入れる場所：<b>${where}</b></p>
+    <div class="fld"><label class="lbl">どこに入れますか</label>
+      <select class="inp" onchange="MT.setInsAt(this.value)">
+        ${(() => {
+          const o = [];
+          for (let k = 0; k <= t.length; k++) {
+            const lb = k === 0 ? "いちばん上"
+              : k >= t.length ? "いちばん下"
+              : "「" + esc(t[k - 1].label) + "」と「" + esc(t[k].label) + "」のあいだ";
+            o.push(`<option value="${k}"${k === insAt ? " selected" : ""}>${lb}</option>`);
+          }
+          return o.join("");
+        })()}
+      </select></div>
+    <label class="row" style="gap:8px;font-size:13px;font-weight:700;margin:2px 2px 10px">
+      <input type="checkbox" ${insShift ? "checked" : ""} onchange="MT.toggleInsShift()">
+      Tier のアルファベットを1つずつずらす</label>
+    <p class="muted" style="margin:0 2px 8px">
+      ずらすのは<b>ラベルが1文字のアルファベット（A〜Z）の段だけ</b>です。<br>
+      「S+」「Tier 1」のような自由なラベルは、そのままにします（Z の次はありません）。</p>
+    <div class="fld"><label class="lbl">できあがり</label>
+      <div class="insrow">${rows.join('<i class="insar">›</i>')}</div>
+      <div class="muted" style="margin-top:6px">ずれる段：${changed}</div></div>
+    <div class="foot">
+      <button class="btn" onclick="MT.closeDlg()">やめる</button>
+      <button class="btn pri" onclick="MT.doInsertTier()">この場所に追加</button>
+    </div>`;
+}
+function setInsAt(v) { insAt = Math.max(0, Math.min(cur.tiers.length, parseInt(v, 10) || 0)); paintInsert(); }
+function doInsertTier() {
+  const t = cur.tiers;
+  const at = Math.max(0, Math.min(t.length, insAt));
+  const plan = insertLabelPlan(at, insShift);
+  /* 先に「ずらす」を当ててから入れる（入れてから当てると位置がずれる） */
+  plan.moves.forEach((m) => { t[m.i].label = m.to; });
+  const a = t[at - 1], b = t[at];
+  const bg = a && b ? mixColor(a.bg, b.bg) : (b ? b.bg : (a ? a.bg : C.gray));
+  t.splice(at, 0, {
+    id: uid("tr"), label: plan.newLabel || "?", name: "Tier " + (at + 1),
+    bg, tc: inkFor(bg), h: (b && b.h) || (a && a.h) || 80, w: (b && b.w) || (a && a.w) || 78,
+    fs: (b && b.fs) || (a && a.fs) || 22, bold: true, align: "center", images: [], criteria: "",
+  });
+  save(cur, true); dlgClose(); refresh();
+  toast(plan.moves.length ? "段を追加し、" + plan.moves.length + "段のラベルをずらしました" : "段を追加しました");
+}
+
+/* ══════════════════════════════════════════════
+   ★★ 2026-08-26e 表から「未配置」へ戻す（ご指定）
+   ------------------------------------------------------------
+   作り直したいときに、1枚ずつドラッグして戻すのは現実的ではない。
+     ・<b>全部</b>を未配置へ
+     ・<b>えらんだ段だけ</b>を未配置へ（複数えらべる）
+   ★ 段そのものは消さない（並びと色はそのまま残る）。中身だけを戻す。
+   ★ 戻した順番は、表で並んでいた順のまま未配置のうしろに付く。
+   ══════════════════════════════════════════════ */
+let resetSel = {};
+function resetDlg() {
+  resetSel = {};
+  dlgOpen('<h2>表からもどす</h2><div id="rsBody"></div>');
+  paintReset();
+}
+function toggleResetTier(i) { resetSel[i] = !resetSel[i]; paintReset(); }
+function resetPickAll(on) {
+  resetSel = {};
+  if (on) cur.tiers.forEach((tr, i) => { if ((tr.images || []).length) resetSel[i] = true; });
+  paintReset();
+}
+function paintReset() {
+  const box = $("#rsBody"); if (!box) return;
+  const t = cur.tiers;
+  const inTable = t.reduce((a, tr) => a + (tr.images || []).length, 0);
+  const picked = t.reduce((a, tr, i) => a + (resetSel[i] ? (tr.images || []).length : 0), 0);
+  const nSel = Object.keys(resetSel).filter((k) => resetSel[k]).length;
+  box.innerHTML = `<p class="dsub">表に置いてある画像を<b>未配置</b>にもどします。段そのものは消えません。</p>
+    <div class="fld"><label class="lbl">段をえらぶ（複数えらべます）</label>
+      <div class="rslist">
+        ${t.map((tr, i) => {
+          const n = (tr.images || []).length;
+          return `<button class="rsrow${resetSel[i] ? " on" : ""}${n ? "" : " empty"}"
+            ${n ? `onclick="MT.toggleResetTier(${i})"` : "disabled"}>
+            <span class="rsck">${resetSel[i] ? "☑" : "☐"}</span>
+            <span class="bdg" style="background:${esc(tr.bg)};color:${esc(tr.tc)}">${esc(String(tr.label).slice(0, 2))}</span>
+            <span class="nm">${esc(tr.name)}</span>
+            <span class="rsn">${n} 枚</span></button>`;
+        }).join("") || '<div class="muted">Tierがありません</div>'}
+      </div>
+      <div class="row" style="margin-top:8px">
+        <button class="btn sm" onclick="MT.resetPickAll(true)">すべてえらぶ</button>
+        <button class="btn sm" onclick="MT.resetPickAll(false)">えらび直す</button>
+        <span class="sp"></span>
+        <span class="muted">えらんだ段：<b>${nSel}</b>／もどる枚数：<b>${picked}</b></span>
+      </div>
+    </div>
+    <div class="foot">
+      <button class="btn" onclick="MT.closeDlg()">やめる</button>
+      <button class="btn dgr" ${inTable ? "" : "disabled"} onclick="MT.resetAllToPool()">
+        全部もどす（${inTable} 枚）</button>
+      <button class="btn pri" ${picked ? "" : "disabled"} onclick="MT.resetPickedToPool()">
+        えらんだ段をもどす（${picked} 枚）</button>
+    </div>`;
+}
+/* 実際に戻す。idxs ＝ 戻す段の番号の配列 */
+function tiersToPool(idxs) {
+  let n = 0;
+  idxs.forEach((i) => {
+    const tr = cur.tiers[i]; if (!tr) return;
+    const imgs = sortImages(tr.images);        // 表で見えていた並びのまま戻す
+    n += imgs.length;
+    cur.images = cur.images.concat(imgs);
+    tr.images = [];
+  });
+  if (!n) return 0;
+  save(cur, true); dlgClose(); refresh();
+  return n;
+}
+async function resetAllToPool() {
+  const inTable = cur.tiers.reduce((a, tr) => a + (tr.images || []).length, 0);
+  if (!inTable) return;
+  if (!await askYesNo("表を空にします",
+    inTable + " 枚をすべて未配置にもどします。\n段（Tier）そのものは残ります。", "全部もどす")) { paintReset(); return; }
+  const n = tiersToPool(cur.tiers.map((_, i) => i));
+  toast(n + " 枚を未配置にもどしました");
+}
+async function resetPickedToPool() {
+  const idxs = cur.tiers.map((_, i) => i).filter((i) => resetSel[i]);
+  const cnt = idxs.reduce((a, i) => a + ((cur.tiers[i].images || []).length), 0);
+  if (!cnt) return;
+  const nms = idxs.map((i) => cur.tiers[i].label).join("・");
+  if (!await askYesNo("えらんだ段をもどします",
+    "「" + nms + "」の " + cnt + " 枚を未配置にもどします。", "もどす")) { paintReset(); return; }
+  const n = tiersToPool(idxs);
+  toast(n + " 枚を未配置にもどしました");
+}
+/* 1段だけ戻す（Tierの設定ダイアログから） */
+async function tierToPool(i) {
+  const tr = cur.tiers[i]; if (!tr) return;
+  const n = (tr.images || []).length;
+  if (!n) { toast("この段には画像がありません"); return; }
+  if (!await askYesNo("この段をもどします",
+    "「" + tr.name + "」の " + n + " 枚を未配置にもどします。\n段そのものは残ります。", "もどす")) return;
+  tiersToPool([i]);
+  toast(n + " 枚を未配置にもどしました");
+}
 function tierDlg(i) {
   const tr = cur.tiers[i]; if (!tr) return;
   dlgOpen(`<h2>Tierの設定</h2><p class="dsub">ラベル・色・大きさを自由に変えられます。</p>
@@ -837,6 +1079,13 @@ function tierDlg(i) {
         <label class="row" style="gap:6px;font-size:12.5px;font-weight:700"><input type="checkbox" id="tBold" ${tr.bold ? "checked" : ""}>太字</label>
       </div></div>
     <div class="fld"><label class="lbl">この Tier の基準（メモ）</label><textarea class="inp" id="tCri" style="min-height:52px">${esc(tr.criteria)}</textarea></div>
+    ${/* ★★ 2026-08-26e この段の上下に段を足す／この段の中身を未配置へもどす（ご指定） */""}
+    <div class="fld"><label class="lbl">この段に対しての操作</label>
+      <div class="row" style="flex-wrap:wrap;gap:6px">
+        <button class="btn sm" onclick="MT.insertDlg(${i},false)">↑ この上に段を追加</button>
+        <button class="btn sm" onclick="MT.insertDlg(${i},true)">↓ この下に段を追加</button>
+        <button class="btn sm" onclick="MT.tierToPool(${i})">この段のキャラを未配置へ（${(tr.images || []).length}枚）</button>
+      </div></div>
     <div class="foot">
       <button class="btn dgr" onclick="MT.delTier(${i})">この Tier を削除</button>
       <span class="sp"></span>
@@ -2432,6 +2681,8 @@ function editMenu() {
     ["比較", "compareDlg"], ["Export（画像）", "exportDlg"], ["共有", "shareDlg"],
     ["スライドを作る・見せる", "slideDlg"], ["全画面プレゼン", "present"],
     ["この構成をテンプレート保存", "saveAsTpl"],
+    /* ★★ 2026-08-26e 作り直したいときの入口（全部／えらんだ段だけ 未配置へ） */
+    ["表からもどす（未配置へ）", "resetDlg"],
   ];
   dlgOpen(`<h2>メニュー</h2>
     <div class="menulist">
@@ -2791,7 +3042,7 @@ function loadScriptOnce(src) {
 function loadMbCore() {
   mbShim();
   if (mbChars() && mbCharIds()) return Promise.resolve();
-  return loadScriptOnce("../MagiBurst/js/mb-core.js?v=49");
+  return loadScriptOnce("../MagiBurst/js/mb-core.js?v=52");
 }
 /* ══ ★★ 2026-08-22 キャラ詳細は XEVARION と<b>同じ1本</b>（mb-char-detail.js）を読む ══
    自前で組み直すと、アビリティ・クロススキル・リンクの文面が必ず食いちがっていく。
@@ -3153,6 +3404,9 @@ window.MT = {
   go, open, openTable, newDlg, create, renameDlg, doRename, dup, del, search: (v) => { query = v; renderHome(screen === "mine"); },
   closeDlg: dlgClose, renameCur, saveNow,
   addTier, moveTier, tierDlg, saveTier, delTier, pickAlign,
+  /* ★★ 2026-08-26e 段の挿入（アルファベットのずらし）と、表→未配置のもどし */
+  insertDlg, setInsAt, toggleInsShift, doInsertTier,
+  resetDlg, toggleResetTier, resetPickAll, resetAllToPool, resetPickedToPool, tierToPool,
   addDlg, pickFile, bulkAdd, urlDlg, addUrls, replaceImg, delImg, imgMenu,
   pickImg, moveImgTo, setImgField, setImgFieldOf, setScore, setScoreOf, toggleCard,
   sortDlg, setSort, setRateMax, axesDlg, addAxis, delAxis, toggleAuto, saveAxes, applyAuto, applyAutoAll,
