@@ -69,6 +69,21 @@ function paintTierInto(id) {
       return;
     }
     const r = mtRankOf(d, id);
+    /* ★★ 2026-08-24 MagiTier の評価は<b>「評価（MagiBurst）」のバーにも入る</b>（ご指定）。
+       バーを描いたときには表がまだ届いていないことがあるので、
+       届いたこのタイミングで<b>そのキャラのバーだけ描き直す</b>。
+       ★ mtLoad() が localStorage へ控えたあとなので、mb-core の mtPower() が読める。 */
+    try {
+      const wrap = document.querySelector('#detCard .pw-wrap[data-uniq="gx_' + id + '"]');
+      if (wrap && typeof strengthBarsHTML === "function") {
+        const tmp = document.createElement("div");
+        tmp.innerHTML = strengthBarsHTML(id, "gx_" + id);
+        if (tmp.firstElementChild) {
+          wrap.replaceWith(tmp.firstElementChild);
+          replayStrengthAnim($("#detCard"));
+        }
+      }
+    } catch (e) {}
     /* 同じ段にいるキャラの数と、全体で何体が載っているか */
     const total = d.tiers.reduce((a, t) => a + ((t.ids || []).length), 0);
     const at = d.at ? new Date(d.at).toLocaleDateString("ja-JP", { year: "numeric", month: "2-digit", day: "2-digit" }) : "";
@@ -235,6 +250,9 @@ function openDetX(id) {
         <div class="ddesc">読み込んでいます…</div></div>
 
       ${magiBattleHTML(id)}
+      ${/* ★ 2026-08-26 ページ側が足したい行（図鑑の「アイコンに設定」など）。
+            フックを立てていない画面（ガチャ）では何も出ない。 */""}
+      ${(typeof window.MBDET_FOOT === "function" ? (window.MBDET_FOOT(id) || "") : "")}
     </div>`;
   $("#detOv").classList.add("on");
   try { replayStrengthAnim($("#detCard")); } catch (e) {}

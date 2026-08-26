@@ -6,7 +6,7 @@
 <script>(function(){try{var a=JSON.parse(localStorage.getItem('xeva_account_v1'));if(!a||!a.setupDone)location.replace('index.html');}catch(e){}})();</script>
 <script type="module" src="xevarion-fb.js?v=22"></script>
 <script src="xeva-presence.js?v=1" defer></script>
-<script type="module" src="xeva-cloud.js?v=16"></script>
+<script type="module" src="xeva-cloud.js?v=18"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -19,8 +19,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="xeva-theme.css?v=1">
 <!-- ★ 2026-08-10 キャラ詳細（性能画面）の見た目。ガチャ（gacha.html）と共通 -->
-<link rel="stylesheet" href="mb-char-detail.css?v=10">
-<script src="xeva.js?v=35"></script>
+<link rel="stylesheet" href="mb-char-detail.css?v=11">
+<script src="xeva.js?v=44"></script>
 <script src="xeva-loading.js?v=1" defer></script>
 <script src="magibattle-stats.js?v=6"></script>
 <script type="module" src="xeva-sync.js?v=8"></script>
@@ -50,11 +50,17 @@ a{color:inherit;text-decoration:none}
 /* ★ 2026-08-16b キャラ名の検索 */
 .csearch{padding:0 18px 12px;display:flex;gap:8px;flex-wrap:wrap}
 .csearch input{flex:1;min-width:180px}
+/* ★★ 2026-08-26 キャラ名を入力すると画面が拡大される件（ご指定）。
+   真因は<b>文字の大きさ</b>。iOS Safari は 16px 未満の入力欄に触れると、
+   読めるようにするため<b>画面全体を勝手に拡大</b>する（戻すにはピンチが要る）。
+   ★ viewport に maximum-scale=1 を書く直しかたもあるが、それだと
+     ページ全体のピンチ拡大まで奪ってしまうので採らない。16px にするだけでよい。
+   ★ <select> も同じ規則なので、あわせて 16px にする。 */
 .csearch select{padding:11px 14px;border-radius:100px;border:1.5px solid var(--bdr);background:#fff;
-  color:var(--txt);font-size:12.5px;font-weight:700;font-family:inherit;outline:none;
+  color:var(--txt);font-size:16px;font-weight:700;font-family:inherit;outline:none;
   box-shadow:0 3px 10px rgba(90,130,210,.12);cursor:pointer}
 .csearch input{width:100%;padding:11px 14px;border-radius:100px;border:1.5px solid var(--bdr);
-  background:#fff;color:var(--txt);font-size:13px;font-weight:600;font-family:inherit;outline:none;
+  background:#fff;color:var(--txt);font-size:16px;font-weight:600;font-family:inherit;outline:none;
   box-shadow:0 3px 10px rgba(90,130,210,.12)}
 .csearch input:focus{border-color:var(--pur);box-shadow:0 0 0 3px rgba(123,92,240,.14)}
 /* stats bar */
@@ -363,8 +369,8 @@ renderGrid();
      別の端末の MagiBurst が書いたセーブに負けて<b>消えて</b>いた。 -->
 <script type="module" src="MagiBurst/magiburst-cloud.js?v=6"></script>
 <script src="mb-boot.js?v=6"></script>
-<script src="MagiBurst/js/mb-core.js?v=39"></script>
-<script src="mb-char-detail.js?v=8"></script>
+<script src="MagiBurst/js/mb-core.js?v=49"></script>
+<script src="mb-char-detail.js?v=10"></script>
 <script>
 "use strict";
 /* MagiBurst のキャラを、この図鑑のカードの形で描く */
@@ -530,11 +536,39 @@ renderGrid = function(){
       + '</div></div>';
   }).join("");
 };
-/* 詳細：XEVAガチャ側にいる子は従来の画面、それ以外は MagiBurst の性能画面を開く */
+/* ══ ★★ 2026-08-26 詳細は「ガチャとまったく同じ画面（openDetX）」に一本化（ご指定）══
+   これまでは「XEVAガチャのマスタに居るキャラ（＝MagiBattle の性能を持つ子）」だけ
+   古い openDetail を開いていた。あの画面は MagiBattle の性能しか出さないので、
+   ヒナ・コトミ・ミオン…のように「両方で使えるキャラ」を図鑑から開くと、
+   MagiBurst の性能（アビリティ・フルバースト・リンク・評価）が
+   まったく出てこなかった。
+   openDetX は「MagiBurst の性能が上・MagiBattle の性能が下」の並びなので、
+   そちらへ寄せれば、ご指定どおり MagiBurst の性能が上に出る。
+   ★ id が食いちがう2体だけ読み替える（mb-char-detail.js の MB_XEVA_ID の逆向き）。
+   ★ MagiBurst 側に居ないキャラは、これまでどおり openDetail。 */
+var XEVA_TO_MB_ID = { shion: "shiona", rinon: "rinonx" };
+function mbIdOfXeva(id){
+  var m = XEVA_TO_MB_ID[id] || id;
+  return (typeof CHARS !== "undefined" && CHARS[m]) ? m : null;
+}
 function openAnyDetail(id){
+  var m = mbIdOfXeva(id);
+  /* 登場前のキャラ（charSecret）は伏せたままにする＝openDetX は何もしないので、
+     そのときだけ古い画面へ落とす */
+  if (m && typeof openDetX === "function"
+      && !(typeof charSecret === "function" && charSecret(m))) { openDetX(m); return; }
   if (XCHARS.some(function(c){ return c.id === id; })) { openDetail(id); return; }
   if (typeof openDetX === "function") { openDetX(id); return; }
 }
+/* ★ 図鑑では詳細の下に「アイコンに設定」を出す（古い画面にはあった機能なので落とさない）。
+   ガチャ（gacha.html）はこのフックを立てないので、あちらには出ない。 */
+window.MBDET_FOOT = function (mbid) {
+  if (!charOwnedAny(mbid)) return "";
+  var cur = (typeof getAccCharId === "function") && getAccCharId() === mbid;
+  return '<div class="dsec dfoot"><button class="dfootbtn' + (cur ? " on" : "") + '"'
+    + ' onclick="setAnyChar(\'' + mbid + '\');closeDetX()">'
+    + (cur ? "✓ アイコン設定中" : "アイコンに設定") + '</button></div>';
+};
 /* アイコンに設定：XCHARS に無いキャラでも MagiBurst の絵で設定できるようにする */
 function setAnyChar(id){
   if (XCHARS.some(function(c){ return c.id === id; })) { setAccChar(id); return; }

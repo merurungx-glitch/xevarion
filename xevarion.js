@@ -2458,7 +2458,7 @@ function prepareAccessScreen(opts) {
   if (loading) loading.style.display = "flex";
   if (start) start.style.display = "none";
   const ready = () => { xhReady = true; if (loading) loading.style.display = "none"; if (start) start.style.display = "flex"; };
-  const img = new Image(); img.onload = ready; img.onerror = ready; img.src = "thumbs/xevarion-home_s.jpg?v=2";
+  const img = new Image(); img.onload = ready; img.onerror = ready; img.src = "thumbs/xevarion-home_s.jpg?v=3";
   if (img.complete) ready();
   setTimeout(ready, 2500);
 }
@@ -2825,7 +2825,10 @@ const CDK_CODES = {
   "SAMURAIBLUE2026": { xeva: 30000, name: "30,000 XEVA" },
   "SAMURAIBLUE2027": { xeva: 1000000, name: "1,000,000 XEVA" },
   "CHEERFORKOKONA2026": { charId: "kokona", name: "ココナ（完凸・5体分）", full: true },
-  "CHEERFORAYAKA2026": { charId: "ayaka", name: "アヤカ（完凸・5体分）", full: true }
+  "CHEERFORAYAKA2026": { charId: "ayaka", name: "アヤカ（完凸・5体分）", full: true },
+  /* ★ 2026-08-24 追加。お知らせ・更新内容には<b>載せない</b>（ご指定）ので、
+     このコードを知っている人だけが使える。 */
+  "XEVARION2026": { xeva: 100000, name: "100,000 XEVA" }
 };
 
 // WAVETOYOU2026 を一度だけリセット（凸システム対応で「完凸5体分」へ仕様変更したため、使用済みでも再入手可能にする）

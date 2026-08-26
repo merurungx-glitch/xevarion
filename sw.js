@@ -7,7 +7,7 @@
    ・オフライン中の進行は localStorage に残り、オンライン復帰時に
      xeva-cloud.js がタイムスタンプ比較でクラウドへ上書き反映する
    ============================================================ */
-const VERSION = "xevarion-sw-v90";
+const VERSION = "xevarion-sw-v95";
 
 /* ホームを成立させる最小セット（重い画像は runtime キャッシュに任せる） */
 const CORE = [
@@ -17,34 +17,34 @@ const CORE = [
   "./characters.html",
   /* ★ 2026-08-10 ガチャは XEVARION に一本化。中身は MagiBurst の共有モジュールが持つ */
   "./gacha.html",
-  "./gacha-ui.js?v=13",
-  "./mb-newchars.js?v=3",
-  "./xevion-os.js?v=2",
-  "./xevion-os.css?v=3",
+  "./gacha-ui.js?v=20",
+  "./mb-newchars.js?v=6",
+  "./xevion-os.js?v=3",
+  "./xevion-os.css?v=5",
   "./magibattle-stats.js?v=6",
-  "./MagiBurst/js/mb-core.js?v=39",
+  "./MagiBurst/js/mb-core.js?v=49",
   /* ★ 2026-08-10 ガチャと図鑑で共通の土台・キャラ詳細・結果演出 */
   /* ★ 2026-08-12 ポータルのガチャ・図鑑も magiburst_v1 を同期するようになった */
   "./app-cloud.js?v=4",
   "./MagiBurst/magiburst-cloud.js?v=6",
   "./mb-boot.js?v=6",
-  "./mb-char-detail.js?v=8",
-  "./mb-char-detail.css?v=10",
+  "./mb-char-detail.js?v=10",
+  "./mb-char-detail.css?v=11",
   "./mb-gacha-reveal.css?v=3",
   "./community.html",
   "./about.html",
   "./manifest.webmanifest",
   "./xeva-theme.css?v=1",
   "./xevarion.css?v=16",
-  "./xevarion-home.css?v=37",
-  "./xeva.js?v=35",
+  "./xevarion-home.css?v=43",
+  "./xeva.js?v=44",
   "./xeva-fx.js?v=1",
   "./xeva-loading.js?v=1",
-  "./xevarion.js?v=67",
-  "./xevarion-home.js?v=47",
+  "./xevarion.js?v=68",
+  "./xevarion-home.js?v=55",
   "./maintenance-gate.js?v=5",
   "./xeva-back.js?v=1",
-  "./xeva-keys.js?v=5",
+  "./xeva-keys.js?v=7",
   /* ★ 2026-08-20 通信設定（Wi-Fi／モバイルデータごとの動き）。
      この SW へ設定を送る側なので、オフラインでも読めるようにここに入れておく。 */
   "./xeva-netmode.js?v=2",
@@ -56,6 +56,9 @@ const CORE = [
   "./icons/xev-192.png",
   "./icons/xev-512.png",
   "./gem.png",
+  /* ★ 2026-08-24 スタミナの絵（ホームの⚡札とスタミナのシートで使う）。
+     ここに無いとオフラインで絵が出ず、update.json にも載らない。 */
+  "./stamina.png",
   "./thumbs/XEVYNAR.jpg",
   "./thumbs/MagiJackpot.jpg",
   "./thumbs/MagiLotto.jpg",
@@ -77,7 +80,7 @@ const CORE = [
   "./thumbs/MagiTier.jpg",
   "./thumbs/Ordyxis.jpg",
   "./thumbs/MagicalFuture.jpg",
-  "./thumbs/xevarion-home_s.jpg?v=2",
+  "./thumbs/xevarion-home_s.jpg?v=3",
 ];
 
 /* このSWが触らないパス（各アプリの自前SWに任せる／通信必須） */

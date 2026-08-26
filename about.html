@@ -18,6 +18,10 @@
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+JP:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
+/* ★ 2026-08-26 画像の長押しで拡大・保存メニューが出ないようにする（ご指定）。
+   このページだけ xeva.js を読んでいないので、同じ内容をここに直接書く。 */
+img,canvas,svg,picture,video{-webkit-touch-callout:none;-webkit-user-drag:none;
+  user-select:none;-webkit-user-select:none}
 body{font-family:'Noto Sans JP',sans-serif;color:#22345c;min-height:100vh;
   background:linear-gradient(175deg,#d9ecff 0%,#eef6ff 34%,#fdf4ff 72%,#fff7ef 100%);
   background-attachment:fixed;padding-bottom:calc(env(safe-area-inset-bottom,0px) + 32px)}

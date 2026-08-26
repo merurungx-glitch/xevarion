@@ -128,8 +128,10 @@ body.xh-mode{overflow:hidden;background:#f1f4fd}
 /* ══════════ スクロール領域 ══════════ */
 /* xevarion.css の `section{padding:clamp(30px,4vw,54px) 0}` が漏れるので打ち消す */
 #xhome section{padding:0;margin:0}
+/* ★★ 2026-08-25b ご指定により<b>上をコンパクトに詰めた</b>
+   （所持数の行を消したぶん、まわりの余白も一段つめる）。 */
 .xh-scroll{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;
-  padding:12px 14px 18px;display:flex;flex-direction:column;gap:13px}
+  padding:8px 14px 18px;display:flex;flex-direction:column;gap:11px}
 
 /* 角丸カード。左右に余白をとってゆったり見せる。 */
 .xh-panel{background:var(--xh-card);border-radius:22px;box-shadow:var(--xh-shadow);
@@ -144,18 +146,62 @@ body.xh-mode{overflow:hidden;background:#f1f4fd}
 body.xh-off .xh-offline{display:flex}
 
 /* ── プロフィールカード ── */
-.xh-prof{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+/* ★★ 2026-08-25b 「キャラクター N体 所持」の行を廃止し、カードの高さを一段つめた。
+   ・パネルの上下パディング 13px → 9px
+   ・アイコン 50px → 44px
+   ・名前の下（レベル・スタミナ）の間かく 6px → 4px */
+.xh-prof{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:9px 12px}
 .xh-uidline{font-size:10.5px;font-weight:700;color:var(--xh-sub);margin-top:3px;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.xh-av{position:relative;width:50px;height:50px;flex-shrink:0;border-radius:16px;overflow:hidden;
+.xh-av{position:relative;width:44px;height:44px;flex-shrink:0;border-radius:14px;overflow:hidden;
   border:none;padding:0;cursor:pointer;background:linear-gradient(150deg,#8fd8ff,#b9a3ff);
   box-shadow:0 0 0 3px #fff,0 6px 18px rgba(110,150,230,.34);transition:transform .16s}
 .xh-av:active{transform:scale(.94)}
 .xh-av img{width:100%;height:100%;object-fit:cover;display:block}
 .xh-av .xh-av-init{display:flex;width:100%;height:100%;align-items:center;justify-content:center;
-  font-family:'Orbitron',sans-serif;font-size:20px;font-weight:700;color:#fff}
+  font-family:'Orbitron',sans-serif;font-size:18px;font-weight:700;color:#fff}
 .xh-pmeta{flex:1 1 auto;min-width:0}
 .xh-namerow{display:flex;align-items:center;gap:6px}
+/* ══ ★★ 2026-08-24 レベル＋スタミナ（XEVARION 全体のステータス）══
+   ・レベルは MagiBurst のプレイヤーLvと<b>同じもの</b>。MagiLex でも上がる。
+   ・スタミナは MagiBurst の1プレイで10減り、2分で1／💎2で50／MagiLex の確認テストで50 戻る。 */
+.xh-status{display:flex;align-items:center;gap:6px;margin-top:4px;flex-wrap:wrap}
+.xh-lv{display:flex;align-items:center;gap:5px;padding:3px 9px 4px;border-radius:99px;
+  background:linear-gradient(120deg,#eef3ff,#f8f5ff);border:1.5px solid rgba(120,150,255,.42);
+  font-weight:900;font-size:11px;color:#4358a8;line-height:1.15;position:relative;cursor:pointer}
+.xh-lv small{font-size:8.5px;opacity:.75}
+.xh-lv b{font-family:'Orbitron',sans-serif;font-size:13px}
+.xh-lv .xh-lvbar{display:block;width:44px;height:4px;border-radius:99px;
+  background:rgba(120,150,255,.24);overflow:hidden}
+.xh-lv .xh-lvbar i{display:block;height:100%;border-radius:99px;
+  background:linear-gradient(90deg,#4b8bff,#9b7bff)}
+.xh-stam{display:flex;align-items:center;gap:3px;padding:3px 4px 3px 7px;border-radius:99px;
+  background:linear-gradient(120deg,#eafaf4,#fbfffd);border:1.5px solid rgba(20,180,140,.42);
+  font-weight:900;font-size:11.5px;color:#0e7d63;cursor:pointer;line-height:1}
+.xh-stam img{width:17px;height:17px;object-fit:contain;display:block}
+.xh-stam .sv{font-family:'Orbitron',sans-serif;font-size:13px}
+.xh-stam .sx{font-style:normal;font-size:9px;opacity:.6}
+.xh-stam .sp{font-style:normal;font-weight:900;font-size:13px;line-height:1;margin-left:2px;
+  width:17px;height:17px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(140deg,#3fd9b0,#14a877);color:#fff}
+.xh-stam.low{color:#c22c4e;border-color:rgba(224,64,94,.5);background:linear-gradient(120deg,#fff0f4,#fffbfc)}
+.xh-stam.low .sp{background:linear-gradient(140deg,#ff9db4,#e0405e)}
+.xh-lv:active,.xh-stam:active{transform:scale(.96)}
+/* スタミナのシートの中身 */
+.xh-stamnow{display:flex;align-items:center;justify-content:center;gap:8px;margin:2px 0 10px;
+  font-family:'Orbitron',sans-serif;font-weight:900;font-size:26px;color:#0e7d63}
+.xh-stamnow img{width:30px;height:30px;object-fit:contain}
+.xh-stamnow em{font-style:normal;font-size:14px;opacity:.55}
+.xh-stambar{height:10px;border-radius:99px;background:rgba(20,180,140,.16);overflow:hidden;margin-bottom:6px}
+.xh-stambar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#3fd9b0,#14a877)}
+.xh-stamway{display:flex;gap:9px;align-items:flex-start;padding:10px 12px;border-radius:14px;
+  background:#fff;border:1.5px solid rgba(120,160,230,.2);box-shadow:var(--xh-shadow-s);margin-bottom:7px}
+.xh-stamway .ic{font-size:18px;line-height:1.2;flex:none}
+/* ★ 見出しの <b> だけ1行に。本文の中で強調に使う <b> は<b>行の中</b>に置く
+   （ここを .xh-stamway b にすると、本文の強調まで改行されてぶつ切りになる） */
+.xh-stamway > div > b{display:block;font-size:11.5px;font-weight:900;color:var(--xh-ink)}
+.xh-stamway p{margin:2px 0 0;font-size:10.5px;font-weight:700;color:var(--xh-sub);line-height:1.65}
+.xh-stamway p b{display:inline;color:var(--xh-ink)}
 .xh-uname{font-size:15px;font-weight:900;color:var(--xh-ink);max-width:34vw;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .xh-pen{background:rgba(120,160,230,.14);border:none;border-radius:8px;padding:4px;cursor:pointer;
@@ -353,10 +399,28 @@ body.xh-off .xh-offline{display:flex}
   content:"";position:absolute;width:9px;height:9px;border-radius:50%;
   background:#ff4d6d;box-shadow:0 0 0 2px #fff,0 1px 4px rgba(224,64,94,.5);
   animation:xhUpDot 1.8s ease-in-out infinite}
-.xh-app.xh-updot::after{right:6px;top:2px}
+.xh-app.xh-updot::after{top:2px;right:auto;
+  /* ★ 2026-08-24 アイコン（.xh-sq）は width:100%/max-width:64px で<b>中央ぞろえ</b>なので、
+     画面が広いPCではセル幅がアイコンより広くなり、right:6px だと<b>点だけ右へ離れて</b>いた。
+     アイコンの実幅は min(セル幅, 64px)。その右はしから内側へ15px の位置に置き直す。 */
+  left:calc(50% + min(50%, 32px) - 15px)}
 .xh-aitem.xh-updot::after{left:6px;top:10px}
 .xh-ntab.xh-updot::after{right:calc(50% - 17px);top:3px}
 @keyframes xhUpDot{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.22);opacity:.75}}
+
+/* ══ ★★ 2026-08-25b 下バーのガチャタブに出す「無料」の印 ══
+   GRAND DEBUT の<b>1日1回の無料単発</b>をまだ使っていない日は、まわすまで出しっぱなしにする。
+   ★ 更新の印（.xh-updot ＝ 右上の赤い点）とぶつからないよう、<b>左上</b>に置く。 */
+/* ★ 置き場所はアイコンの<b>左上のかど</b>。right で右はしを揃えると、
+   タブの幅が変わってもアイコンとの重なりが一定になる
+   （更新の赤い点は右上なので、左右でぶつからない）。 */
+.xh-ntab .xh-freetag{position:absolute;right:calc(50% + 8px);top:2px;z-index:2;
+  font-size:7.5px;font-weight:900;letter-spacing:-.03em;line-height:1;
+  padding:2px 4px;border-radius:99px;color:#08301f;
+  background:linear-gradient(135deg,#ffd257,#37e0a0 70%,#14a877);
+  box-shadow:0 0 0 1.5px #fff,0 2px 7px rgba(20,180,140,.55);
+  animation:xhFreeTag 1.5s ease-in-out infinite;pointer-events:none}
+@keyframes xhFreeTag{0%,100%{transform:scale(1)}50%{transform:scale(1.14)}}
 
 /* ガチャタブの新キャラアイコン（3回まで出る）。もとの SVG は隠すだけで消さない。 */
 .xh-ntab.xh-haschar svg{display:none}
@@ -365,7 +429,10 @@ body.xh-off .xh-offline{display:flex}
   animation:xhTabChar 2.4s ease-in-out infinite}
 @keyframes xhTabChar{0%,100%{transform:scale(1)}50%{transform:scale(1.09)}}
 
-.xh-ntab{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 2px 4px;border:none;
+/* ★★ 2026-08-25b position:relative をここに置く。
+   以前は .xh-ntab.xh-updot のときだけ relative になっていたので、
+   「無料」の印（.xh-freetag）を出すときに印だけが見当違いの場所へ飛んでしまう。 */
+.xh-ntab{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 2px 4px;border:none;
   background:none;cursor:pointer;color:var(--xh-sub);border-radius:16px;
   font-family:'Noto Sans JP',sans-serif;transition:color .16s,background .16s}
 .xh-ntab svg{width:23px;height:23px}
@@ -668,13 +735,27 @@ body.xh-dragging .xh-sheet-body{overflow:hidden}
   font-size:11.5px;font-weight:700;color:#5d6f9b;line-height:1.7}
 .xh-upd-notes li::before{content:"";position:absolute;left:12px;top:14px;width:8px;height:8px;border-radius:3px;
   background:linear-gradient(135deg,#4b8bff,#9b7bff)}
-/* 見送っていた回をまとめて出すときの、版ごとの見出し */
-.xh-upd-notes li.ver{display:flex;align-items:baseline;justify-content:space-between;gap:8px;
-  padding:8px 12px;margin:14px 0 7px;background:linear-gradient(135deg,#4b8bff,#9b7bff);
-  border:none;color:#fff;font-size:12px;font-weight:900;box-shadow:0 5px 14px rgba(100,130,255,.3)}
+/* ══ 版ごとの見出し（★ 2026-08-24 中身は見出しの中にたたむ）══
+   見出しそのものが開閉ボタン。押した版だけが開くので、何件たまっていても一覧で見わたせる。
+   ★ <details>/<summary> の素の見た目（三角マーク）は消して、右の「›」で開閉を示す。 */
+.xh-upd-notes li.ver{display:block;padding:0;margin:10px 0 7px;background:none;
+  border:none;box-shadow:none}
 .xh-upd-notes li.ver:first-child{margin-top:0}
 .xh-upd-notes li.ver::before{display:none}
+.xh-upd-notes li.ver > details > summary{list-style:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+  padding:10px 12px;border-radius:14px;background:linear-gradient(135deg,#4b8bff,#9b7bff);
+  color:#fff;font-size:12px;font-weight:900;box-shadow:0 5px 14px rgba(100,130,255,.3)}
+.xh-upd-notes li.ver > details > summary::-webkit-details-marker{display:none}
+.xh-upd-notes li.ver > details > summary::marker{content:""}
+.xh-upd-notes li.ver > details > summary:active{transform:scale(.99)}
+.xh-upd-notes li.ver .vt{line-height:1.5;min-width:0}
+.xh-upd-notes li.ver .vr{display:flex;align-items:center;gap:6px;flex:none}
 .xh-upd-notes li.ver small{font-size:9.5px;font-weight:800;opacity:.82;white-space:nowrap}
+.xh-upd-notes li.ver .ar{font-style:normal;font-weight:900;font-size:15px;line-height:1;
+  transition:transform .2s ease}
+.xh-upd-notes li.ver > details[open] > summary .ar{transform:rotate(90deg)}
+.xh-upd-notes li.ver > details > .vn{list-style:none;margin:7px 0 0;padding:0}
 .xh-upd-prog{display:none;margin-top:14px}
 .xh-upd-prog.on{display:block}
 .xh-upd-prog .bar{height:10px;border-radius:99px;background:rgba(120,160,230,.2);overflow:hidden}
@@ -817,7 +898,17 @@ body.xh-dragging .xh-sheet-body{overflow:hidden}
 .xh-pkticket{font-family:'Orbitron',sans-serif;font-size:15px;font-weight:900;color:#0e5f9c;line-height:1;
   background:linear-gradient(135deg,rgba(92,225,255,.28),rgba(29,143,216,.2));
   border:1.5px solid rgba(29,143,216,.4);border-radius:10px;padding:3px 8px;align-self:center}
+/* ★ 2026-08-24 🎫ガチャチケット（どのガチャでも使える）は、フェス券と色を変える */
+.xh-pkticket.g{color:#7a4a00;
+  background:linear-gradient(135deg,rgba(255,210,87,.34),rgba(255,157,46,.22));
+  border-color:rgba(255,157,46,.5)}
+/* ★ 2026-08-24 ★プレミアムセレクト券（好きなSSRを1体） */
+.xh-pksel{font-size:11px;font-weight:900;color:#fff;line-height:1;align-self:center;
+  background:linear-gradient(135deg,#ff5d8f,#ffd257 55%,#8e6bff);
+  border-radius:10px;padding:4px 9px;letter-spacing:.02em;
+  box-shadow:0 3px 10px rgba(255,93,143,.4)}
 .xh-pkdesc{font-size:10.5px;font-weight:700;color:var(--xh-sub);margin-top:3px;line-height:1.5}
+.xh-pkdesc b{color:var(--xh-ink)}
 /* 「1回限り」バッジの下に潜り込ませる（バッジは右上に固定されているため） */
 .xh-pkbuy{flex-shrink:0;display:flex;flex-direction:column;align-items:center;gap:4px;padding-top:16px}
 .xh-pkbtn{padding:10px 13px;border:none;border-radius:14px;cursor:pointer;font-family:inherit;

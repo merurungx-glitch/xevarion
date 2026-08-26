@@ -6,7 +6,7 @@
 <script>(function(){try{var a=JSON.parse(localStorage.getItem('xeva_account_v1'));if(!a||!a.setupDone)location.replace('index.html');}catch(e){}})();</script>
 <script type="module" src="xevarion-fb.js?v=22"></script>
 <script src="xeva-presence.js?v=1" defer></script>
-<script type="module" src="xeva-cloud.js?v=16"></script>
+<script type="module" src="xeva-cloud.js?v=18"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#eaf4ff">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -20,7 +20,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+JP:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="xeva-theme.css?v=1">
-<script src="xeva.js?v=35"></script>
+<script src="xeva.js?v=44"></script>
 <script src="xeva-loading.js?v=1" defer></script>
 <script type="module" src="xeva-sync.js?v=8"></script>
 <style>
@@ -55,9 +55,20 @@ a{color:inherit;text-decoration:none}
   background:#fff;border:1.5px solid rgba(255,255,255,.9);
   box-shadow:0 8px 26px rgba(90,130,210,.16)}
 .lbl{font-size:11px;font-weight:900;letter-spacing:.1em;color:#4b8bff;margin-bottom:10px}
+/* ★ 2026-08-26 iOS Safari は 16px 未満の入力欄に触れると画面ごと拡大するので 16px にそろえる
+   （キャラ図鑑の検索欄と同じ直しかた）。 */
 .inp{width:100%;padding:13px 15px;border-radius:14px;background:#f6faff;
-  border:1.5px solid rgba(120,160,230,.3);color:#22345c;font-size:14px;outline:none;
+  border:1.5px solid rgba(120,160,230,.3);color:#22345c;font-size:16px;outline:none;
   font-family:'Noto Sans JP',sans-serif}
+/* ══ ★★ 2026-08-26 プレイヤー一覧は「アクセスコードを入れた人だけ」（ご指定・プライバシー）══ */
+.plock{padding:2px 0 4px}
+.plock .plk-h{display:flex;align-items:center;gap:8px;font-size:13.5px;font-weight:900;color:#22345c;margin-bottom:6px}
+.plock .plk-b{font-size:12px;line-height:1.75;color:#6f82ad;margin-bottom:10px}
+.plock .plk-msg{min-height:0;font-size:12px;font-weight:800;color:#e0405e;margin-top:8px}
+.plock .plk-msg.ok{color:#12a97a}
+.punlock{display:flex;align-items:center;gap:8px;font-size:11px;font-weight:800;color:#12a97a;margin-bottom:8px}
+.punlock button{margin-left:auto;border:1.5px solid rgba(120,160,230,.35);background:#fff;color:#6f82ad;
+  font-family:inherit;font-size:11px;font-weight:800;padding:5px 11px;border-radius:99px;cursor:pointer}
 .inp::placeholder{color:rgba(111,130,173,.65)}
 .btn{width:100%;margin-top:9px;padding:12px;border:none;border-radius:12px;color:#fff;font-size:13.5px;
   font-weight:800;cursor:pointer;font-family:'Noto Sans JP',sans-serif;
@@ -151,11 +162,28 @@ body.isoff .off{display:block}
          「いる人をそのまま並べる」プレイヤー一覧を足した。ここからも申請できる。 -->
     <div class="card">
       <div class="lbl">プレイヤー一覧 <span id="plCount" style="color:#6f82ad"></span></div>
-      <div class="hint">名前がわからなくても、ここから直接<b>フレンド申請</b>を送れます。<b>オンラインの人が上</b>に並びます。</div>
-      <input class="inp" id="plFilter" type="text" placeholder="名前でしぼりこむ" autocomplete="off" oninput="paintPlayers()">
-      <div class="msg" id="plMsg"></div>
-      <div id="plList"><div class="empty">読み込み中…</div></div>
-      <button class="btn ghost" id="plMore" onclick="loadPlayers(true)" style="display:none">🔄 一覧を更新する</button>
+      <!-- ★★ 2026-08-26 プライバシーの観点から、ここは既定で非表示（ご指定）。
+           アクセスコードを入れた人だけが見られる。 -->
+      <div id="plGate" class="plock" style="display:none">
+        <div class="plk-h">🔒 プレイヤー一覧は非公開です</div>
+        <div class="plk-b">
+          プライバシーの観点から、登録している人の名前とアイコンの一覧は<b>ふだん表示していません</b>。<br>
+          <b>アクセスコード</b>をお持ちのかたは、下に入力すると一覧が開きます。<br>
+          <small>※ コードはこの端末に覚えます。フレンド検索・フレンド申請はコードなしで今までどおり使えます。</small>
+        </div>
+        <input class="inp" id="plCode" type="password" placeholder="アクセスコード" autocomplete="off"
+               onkeydown="if(event.key==='Enter')plUnlock()">
+        <button class="btn" onclick="plUnlock()">🔓 一覧を表示する</button>
+        <div class="plk-msg" id="plCodeMsg"></div>
+      </div>
+      <div id="plOpen" style="display:none">
+        <div class="punlock">🔓 アクセスコードで表示中<button onclick="plLock()">かくす</button></div>
+        <div class="hint">名前がわからなくても、ここから直接<b>フレンド申請</b>を送れます。<b>オンラインの人が上</b>に並びます。</div>
+        <input class="inp" id="plFilter" type="text" placeholder="名前でしぼりこむ" autocomplete="off" oninput="paintPlayers()">
+        <div class="msg" id="plMsg"></div>
+        <div id="plList"><div class="empty">読み込み中…</div></div>
+        <button class="btn ghost" id="plMore" onclick="loadPlayers(true)" style="display:none">🔄 一覧を更新する</button>
+      </div>
     </div>
 
     <div class="card">
@@ -354,8 +382,58 @@ async function loadFriends(){
    ・しぼりこみは取得済みの一覧に対して行う（打つたびに通信しない）。 */
 let _players=[], _plLoading=false;
 
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-08-26 プレイヤー一覧のアクセスコード（ご指定）
+   ------------------------------------------------------------
+   ・登録者の名前とアイコンが誰にでも見えているのはプライバシー上よくないので、
+     一覧は<b>ふだん非表示</b>にし、コードを入れた人にだけ開く。
+   ・コードそのものは<b>そのまま置かない</b>（ソースを開けば読めてしまうため）。
+     小さなハッシュにして突き合わせる。総当たりを防ぐ強度はないが、
+     「見えるところに答えが書いてある」状態はなくせる。
+   ・合っていたかどうかはこの端末に覚える（xeva_plgate_v1）。
+   ★ フレンド検索・フレンド申請・ランキングは<b>これまでどおり</b>使える。
+     隠すのは「登録者をそのまま並べる一覧」だけ。
+   ══════════════════════════════════════════════════════════════ */
+const PL_GATE_KEY = "xeva_plgate_v1";
+function plHash(s){
+  /* FNV-1a 32bit。短い文字列を数字に写すだけのもの */
+  let h = 0x811c9dc5;
+  for (let i=0;i<s.length;i++){ h ^= s.charCodeAt(i); h = Math.imul(h, 0x01000193) >>> 0; }
+  return h.toString(16);
+}
+const PL_GATE_HASH = plHash("XEVA613Access26");
+function plOpened(){ try{ return localStorage.getItem(PL_GATE_KEY)===PL_GATE_HASH; }catch(e){ return false; } }
+function plPaintGate(){
+  const gate=document.getElementById("plGate"), open=document.getElementById("plOpen");
+  const on=plOpened();
+  if(gate) gate.style.display = on ? "none" : "";
+  if(open) open.style.display = on ? "" : "none";
+  const cnt=document.getElementById("plCount"); if(cnt && !on) cnt.textContent="";
+}
+window.plUnlock=function(){
+  const inp=document.getElementById("plCode"), msg=document.getElementById("plCodeMsg");
+  const v=((inp&&inp.value)||"").trim();
+  if(!v){ if(msg){ msg.className="plk-msg"; msg.textContent="アクセスコードを入力してください"; } return; }
+  if(plHash(v)!==PL_GATE_HASH){
+    if(msg){ msg.className="plk-msg"; msg.textContent="アクセスコードが違います"; }
+    return;
+  }
+  try{ localStorage.setItem(PL_GATE_KEY, PL_GATE_HASH); }catch(e){}
+  if(inp) inp.value="";
+  if(msg){ msg.className="plk-msg ok"; msg.textContent="解除しました"; }
+  plPaintGate();
+  loadPlayers(true);
+};
+window.plLock=function(){
+  try{ localStorage.removeItem(PL_GATE_KEY); }catch(e){}
+  _players=[];
+  plPaintGate();
+};
+
 async function loadPlayers(force){
   const box=document.getElementById("plList"); if(!box) return;
+  plPaintGate();
+  if(!plOpened()) return;              /* コード未入力のあいだは<b>通信もしない</b> */
   if(!isOnline()){ box.innerHTML='<div class="empty">オフライン中はプレイヤー一覧を表示できません</div>'; return; }
   if(_plLoading) return;
   _plLoading=true;
@@ -452,6 +530,7 @@ async function loadRanking(force){
 /* ══ 起動 ══ */
 (function boot(){
   if(!window.XEVA){ setTimeout(boot,120); return; }
+  plPaintGate();
   loadFriends();
   loadPlayers();
   setInterval(() => {

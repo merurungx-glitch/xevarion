@@ -40,6 +40,13 @@
 .dhero .dnm b{display:block;font-size:20px;font-weight:900}
 .dhero .dnm span{font-size:11px;font-weight:800;opacity:.92}
 .dbody{padding:14px}
+/* ★ 2026-08-26 詳細のいちばん下に置く行（図鑑の「アイコンに設定」）。
+   ページ側が window.MBDET_FOOT を立てたときだけ出る。 */
+.dsec.dfoot{padding:10px}
+.dfootbtn{width:100%;padding:13px;border:none;border-radius:12px;cursor:pointer;
+  font-family:inherit;font-size:14px;font-weight:900;color:#fff;
+  background:linear-gradient(135deg,#7b5cf0,#ff7ab8);box-shadow:0 6px 16px rgba(123,92,240,.28)}
+.dfootbtn.on{background:linear-gradient(135deg,#12a97a,#37e0a0);box-shadow:0 6px 16px rgba(18,169,122,.28)}
 .dsec{background:var(--card);border:1.5px solid var(--bdr);border-radius:16px;padding:12px;margin-bottom:10px}
 .dsec>.t{font-size:11px;font-weight:900;color:var(--pur);letter-spacing:.06em;margin-bottom:8px;
   display:flex;align-items:center;justify-content:space-between}

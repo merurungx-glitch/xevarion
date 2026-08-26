@@ -46,6 +46,15 @@ export const PORTAL_SYNC_KEYS = [
        （配布→即使用、が普通に起きるので送信の遅れが致命的）。 */
   "xeva_fticket_v1",
   "xeva_gticket_v1",
+  /* ★ 2026-08-24 プレミアムセレクト券（夏限定パックの中身）。
+     「買ったのに別の端末では持っていない」を作らないよう、必ず同期する。 */
+  "xeva_selticket_v1",
+  /* ★ 2026-08-24 XEVARION 共通ステータス（レベル・EXP・スタミナ）。
+     もとは MagiBurst のセーブ（magiburst_v1.pexp）の中にあったレベルを、
+     アプリをまたいで1つにしたもの。MagiLex でも上がるので、
+     MagiBurst 専用 Firebase ではなく<b>ポータル側</b>で同期する。
+     ★ スタミナは配布→即消費が普通に起きるので URGENT_KEYS にも入れること。 */
+  "xeva_status_v1",
   "xeva_gacha_v1",          // XEVAガチャの所持キャラ・凸・ポイント
   "xeva_collection_v1",
   "xeva_limited_v1",

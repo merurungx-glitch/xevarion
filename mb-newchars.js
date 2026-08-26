@@ -17,6 +17,70 @@
      こちらに足したら<b>あちらにも since 付きで1行</b>足すこと（無いとポータルに絵が出ない）。
    ══════════════════════════════════════════════════════════════ */
 window.MB_NEW_CHARS = [
+  /* ── ★★ 2026-08-26b GRAND DEBUT GACHA Ver.4.0 新SSR 5体 ──
+     ★ 版ごとに10日間の決まりなので、Ver.2.0（〜09-03）・Ver.3.0（〜09-05）と
+       あわせて<b>3本が同時に並ぶ</b>。無料の単発は版ごとに1回ずつ。 */
+  { id: "seina", since: "2026-08-26", where: "GRAND DEBUT GACHA Ver.4.0", mode: "debut",
+    catch: "紅い旋風は、次の番にもう一度。", color: "#ff6f91" },
+  { id: "shiduki", since: "2026-08-26", where: "GRAND DEBUT GACHA Ver.4.0", mode: "debut",
+    catch: "蒼い雨は、いちばん重い敵に集まる。", color: "#7cc4ff" },
+  { id: "sayuki", since: "2026-08-26", where: "GRAND DEBUT GACHA Ver.4.0", mode: "debut",
+    catch: "闇の刃は、撃つほど増えていく。", color: "#c9a6ff" },
+  { id: "sara", since: "2026-08-26", where: "GRAND DEBUT GACHA Ver.4.0", mode: "debut",
+    catch: "四つ葉は、当たるほど葉を増やす。", color: "#7dffb0" },
+  { id: "sakuya", since: "2026-08-26", where: "GRAND DEBUT GACHA Ver.4.0", mode: "debut",
+    catch: "桜は、与えた痛みをもう一度映す。", color: "#ff9ec7" },
+  /* ── ★★ 2026-08-26 GRAND DEBUT GACHA Ver.3.0 新SSR 5体 ──
+     ★ 新キャラは<b>GRAND DEBUT GACHA Ver.3.0 でしか引けません</b>。
+     ★★ 2026-08-26 から「版ごとに10日間」の決まりになったので、
+       Ver.2.0（08-24 公開）の5体も<b>まだ引けます</b>（09-03 まで）。
+       期間が終わった版のキャラは、自動でプレミアムセレクトガチャへ移ります。 */
+  { id: "karin", since: "2026-08-26", where: "GRAND DEBUT GACHA Ver.3.0", mode: "debut",
+    catch: "紅い茨は、外から内へ閉じていく。", color: "#ff6f91" },
+  { id: "mirei", since: "2026-08-26", where: "GRAND DEBUT GACHA Ver.3.0", mode: "debut",
+    catch: "蒼い月は、盤の裏側からも撃つ。", color: "#7cc4ff" },
+  { id: "yuuka", since: "2026-08-26", where: "GRAND DEBUT GACHA Ver.3.0", mode: "debut",
+    catch: "刻んだ十字は、あとでまとめて爆ぜる。", color: "#c9a6ff" },
+  { id: "miyabi", since: "2026-08-26", where: "GRAND DEBUT GACHA Ver.3.0", mode: "debut",
+    catch: "翠の羽根は、壁に触れるほど増える。", color: "#7dffb0" },
+  { id: "sumire", since: "2026-08-26", where: "GRAND DEBUT GACHA Ver.3.0", mode: "debut",
+    catch: "陽だまりは、削るほど強くなる。", color: "#ffd257" },
+  /* ── ★★ 2026-08-26 MagiLex の KP交換キャラ 4体（ガチャ排出なし・mode は書かない） ── */
+  { id: "kanade", since: "2026-08-26", where: "MagiLex の KP交換所（80KP）",
+    catch: "学びの鐘が、みんなの番を早める。", color: "#ffe9a8" },
+  { id: "homura", since: "2026-08-26", where: "MagiLex の KP交換所（80KP）",
+    catch: "払ったHPのぶんだけ、雷は重い。", color: "#ff5d47" },
+  { id: "yoizuki", since: "2026-08-26", where: "MagiLex の KP交換所（80KP）",
+    catch: "凍る夜は、群れているほど強い。", color: "#7cc4ff" },
+  { id: "sumika", since: "2026-08-26", where: "MagiLex の KP交換所（80KP）",
+    catch: "紫の宵は、いちばん元気な敵から狩る。", color: "#c86bff" },
+  /* ── ★★ 2026-08-25 Starlight Academy Fest 2 限定SSR 5体 ──
+     ★ フェス限定なので<b>このフェスからしか出ません</b>（プレミアムのすり抜けにも出ない）。
+       ＝ FESTS.fes6.chars にだけ入れてあり、PREMIUM_CHARS にも DEBUT_CHARS にも入れていない。 */
+  { id: "himari", since: "2026-08-25", where: "Starlight Academy Fest 2", mode: "fes6",
+    catch: "星と星を結べば、そこが射線になる。", color: "#ffe9a8" },
+  { id: "tomoe", since: "2026-08-25", where: "Starlight Academy Fest 2", mode: "fes6",
+    catch: "撒いた種は、あとから順に咲く。", color: "#2fbf71" },
+  { id: "karen", since: "2026-08-25", where: "Starlight Academy Fest 2", mode: "fes6",
+    catch: "暗転が、敵のほうから寄ってくる。", color: "#a86bff" },
+  { id: "minamo", since: "2026-08-25", where: "Starlight Academy Fest 2", mode: "fes6",
+    catch: "投げた刃は、必ず帰ってくる。", color: "#38a6ff" },
+  { id: "suzune", since: "2026-08-25", where: "Starlight Academy Fest 2", mode: "fes6",
+    catch: "鈴の音は、渡るたびに大きくなる。", color: "#ff5d47" },
+  /* ── ★★ 2026-08-24 GRAND DEBUT GACHA Ver.2.0 新SSR 5体 ──
+     ★ 新キャラは<b>GRAND DEBUT GACHA でしか引けません</b>（フェス・プレミアムのすり抜けにも出ない）。
+       Ver.1.0 の5体（ミレーユ・スカーレット・コユキ・アメリア・ミオ）は、
+       決まりどおり<b>プレミアムセレクトガチャへ移りました</b>。 */
+  { id: "guren", since: "2026-08-24", where: "GRAND DEBUT GACHA", mode: "debut",
+    catch: "業火は、壁も地雷も重力も焼き払う。", color: "#ff5d47" },
+  { id: "yuuna", since: "2026-08-24", where: "GRAND DEBUT GACHA", mode: "debut",
+    catch: "碧い波は、三度おしよせる。", color: "#38a6ff" },
+  { id: "momo", since: "2026-08-24", where: "GRAND DEBUT GACHA", mode: "debut",
+    catch: "宵の桃は、壁ごしに咲く。", color: "#c86bff" },
+  { id: "chihaya", since: "2026-08-24", where: "GRAND DEBUT GACHA", mode: "debut",
+    catch: "翠の風は、みんなの番を早める。", color: "#2fbf71" },
+  { id: "yui", since: "2026-08-24", where: "GRAND DEBUT GACHA", mode: "debut",
+    catch: "聖なる環は、天宮の扉をひらく。", color: "#ffe9a8" },
   /* ── ★★ 2026-08-22 Starlight Academy Fest 限定SSR 5体 ──
      ★ フェス限定なので<b>このフェスからしか出ません</b>（プレミアムのすり抜けにも出ない）。
        ＝ FESTS.fes5.chars にだけ入れてあり、PREMIUM_CHARS にも DEBUT_CHARS にも入れていない。 */

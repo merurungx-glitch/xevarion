@@ -146,6 +146,36 @@ const XH_ORDER_GEN_KEY = "xeva_home_order_gen";
      ずっと後ろ、という状態を防ぐため。
      ＝ 新しいイベントを足すときは<b>この配列のどこに書いてもよい</b>。 */
 const XH_EVENTS = [
+  /* ★★ 2026-08-26b GRAND DEBUT GACHA Ver.4.0。
+     版ごとに10日間の決まりなので、Ver.2.0・Ver.3.0 とあわせて3本が同時に並ぶ。 */
+  { tag:"GRAND DEBUT", t1:"GRAND DEBUT GACHA Ver.4.0", t2:"新SSR 5体が参戦！ 蓬莱の第一重・第二重・蓬莱天宮の手薄い階層を埋める面々",
+    since:"2026-08-26", from:"2026-08-26", to:"2026-09-05",
+    href:"gacha.html#debut", img:"thumbs/MagiBurst.jpg" },
+  /* ★★ 2026-08-26 GRAND DEBUT GACHA Ver.3.0（10日間） */
+  { tag:"GRAND DEBUT", t1:"GRAND DEBUT GACHA Ver.3.0", t2:"新SSR 5体が参戦！ 1体で2クエストの最適解になるユウカも",
+    since:"2026-08-26", from:"2026-08-26", to:"2026-09-05",
+    href:"gacha.html#debut:3.0", img:"thumbs/MagiBurst.jpg" },
+  /* ★★ 2026-08-26 MagiLex の KP交換所。 */
+  { tag:"NEW", t1:"MagiLex に KP交換所ができました", t2:"完全習得 +5KP・確認テスト合格 +10KP。80KPでキャラ・10KPで🎫ガチャチケット",
+    since:"2026-08-26", from:"2026-08-26", to:"2026-10-31",
+    href:"MagiLex/MagiLex.html", img:"thumbs/MagiLex.jpg" },
+  /* ★★ 2026-08-26 MagiLex 化学ε・物理γ（各20セット240問／あわせて480問）。
+     問題数はデータファイル（magilex-cheme.js / magilex-physg.js）とそろえること。 */
+  { tag:"NEW", t1:"MagiLex に 化学ε・物理γ を追加", t2:"全範囲の標準演習を各20セット240問ずつ。あわせて480問を新設しました",
+    since:"2026-08-26", from:"2026-08-26", to:"2026-10-31",
+    href:"MagiLex/MagiLex.html", img:"thumbs/MagiLex.jpg" },
+  /* ★★ 2026-08-25b MagiBurst「Starlight Academy Fest 2」。
+     排出キャラは MagiBurst/js/mb-core.js の FESTS.fes6 とそろえること。
+     ★ 絵はほかのフェスと同じく thumbs/MagiBurst.jpg を使う
+       （フェスのバナーは横長なので、この正方形の枠には入らない）。 */
+  { tag:"STAR FES", t1:"Starlight Academy Fest 2", t2:"星の学園 2期生の限定SSR 5体が参戦！ 蓬莱の手薄い階層を埋める面々",
+    since:"2026-08-25", from:"2026-08-25", to:"2026-09-30",
+    href:"MagiBurst/index.html", img:"thumbs/MagiBurst.jpg" },
+  /* ★★ 2026-08-25b 登録もれの修正: 2026-08-22 の「Starlight Academy Fest」（fes5）が
+     この一覧に無く、開催中なのに<b>ポータルの「開催中のイベント」に出ていなかった</b>。 */
+  { tag:"STAR FES", t1:"Starlight Academy Fest", t2:"星の学園の限定SSR 5体が排出中！ 蓬莱の九重向けのアンチ2種持ち",
+    since:"2026-08-22", from:"2026-08-22", to:"2026-09-30",
+    href:"MagiBurst/index.html", img:"thumbs/MagiBurst.jpg" },
   /* ★ 2026-08-17 MagiLex に最難関セットを追加したことの告知。
      問題数はデータファイル（magilex-suugaku.js / magilex-chemg.js / magilex-butsuri.js）と
      そろえること。片方だけ直すと「告知の数と中身が合わない」になる。 */
@@ -321,12 +351,107 @@ function xhRenderProfile() {
     else av.innerHTML = '<span class="xh-av-init">' + xhEscape((acc.name || "?")[0].toUpperCase()) + "</span>";
   }
   const nm = xhEl("xhUserName"); if (nm) nm.textContent = acc.name || "XEVARION";
-  const ul = xhEl("xhUidLine");
-  if (ul) {
-    const n = xhOwnedChars().length;
-    ul.textContent = n ? ("キャラクター " + n + "体 所持") : "XEVARION アカウント";
-  }
+  /* ★★ 2026-08-25b 「キャラクター N体 所持」の行（#xhUidLine）は<b>廃止</b>しました（ご指定）。
+     要素そのものを index.html から消してあるので、ここでも何もしません。
+     ★ 復活させるときは index.html の .xh-prof に .xh-uidline を戻すこと。 */
+  xhRenderStatus();
 }
+
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-08-24 レベルとスタミナ（XEVARION 全体のステータス）
+   ------------------------------------------------------------
+   ・実体は xeva.js の XEVA.status（xeva_status_v1）。
+     MagiBurst の「自分のレベル」をここへ引き上げたもので、
+     <b>MagiLex</b>（セットの完全習得・確認テスト合格）でも上がる。
+   ・スタミナは MagiBurst の1プレイで 10 減り、
+     2分で +1 ／ 💎2 で +50 ／ MagiLex の確認テスト1つで +50 戻る。
+     ★ MagiLex ぶんだけ<b>上限を超えて</b>たまる（ご指定）。4ケタは「999+」表示。
+   ══════════════════════════════════════════════════════════════ */
+function xhStatus() { return (window.XEVA && XEVA.status) || null; }
+function xhRenderStatus() {
+  const box = xhEl("xhStatus"); if (!box) return;
+  const S = xhStatus();
+  if (!S) { box.innerHTML = ""; return; }
+  const v = S.get();
+  const pct = v.need ? Math.round(Math.min(1, v.cur / v.need) * 100) : 100;
+  box.innerHTML =
+    '<button class="xh-lv" onclick="xhOpenStamina()" title="XEVARION 全体のレベル（MagiBurst・MagiLex 共通）">' +
+      "<small>Lv.</small><b>" + v.lv + "</b>" +
+      '<i class="xh-lvbar"><i style="width:' + pct + '%"></i></i></button>' +
+    '<button class="xh-stam' + (v.stam < v.play ? " low" : "") + '" onclick="xhOpenStamina()" ' +
+      'title="スタミナ（MagiBurst 1プレイ ' + v.play + '）">' +
+      '<img src="stamina.png" alt="スタミナ">' +
+      '<span class="sv">' + S.text(v.stam) + '</span><i class="sx">/' + v.max + '</i>' +
+      '<i class="sp">＋</i></button>';
+}
+window.xhRenderStatus = xhRenderStatus;
+window.addEventListener("xeva:status", () => { try { xhRenderStatus(); xhPaintStamSheet(); } catch (e) {} });
+
+function xhOpenStamina() { xhPaintStamSheet(); xhOpenSheet("xhStamSheet"); }
+window.xhOpenStamina = xhOpenStamina;
+
+function xhPaintStamSheet() {
+  const box = xhEl("xhStamBody"); if (!box) return;
+  const sh = xhEl("xhStamSheet");
+  if (sh && !sh.classList.contains("open") && !sh.classList.contains("on")) { /* 閉じていても中身は作ってよい */ }
+  const S = xhStatus(); if (!S) { box.innerHTML = ""; return; }
+  const v = S.get();
+  const gem = xhGemBal();
+  const pct = Math.min(100, Math.round((v.stam / Math.max(1, v.max)) * 100));
+  const can = v.stam < v.max && gem >= v.gemCost;
+  box.innerHTML =
+    '<div class="xh-stamnow"><img src="stamina.png" alt="">' + S.text(v.stam) +
+      "<em>/ " + v.max + "</em></div>" +
+    '<div class="xh-stambar"><i style="width:' + pct + '%"></i></div>' +
+    '<div class="xh-sortnote">' +
+      (v.stam >= v.max
+        ? "<b>満タンです。</b>"
+        : "次の1回復まで <b>あと " + S.when(v.nextMs) + "</b>／満タンまで <b>あと " + S.when(v.fullMs) + "</b>") +
+      "<br>スタミナの上限は<b>自分のレベル</b>で上がります（いま <b>Lv." + v.lv + "</b> ＝ " + v.max + "）。" +
+      "</div>" +
+    '<div class="xh-stamway"><span class="ic">⚔</span><div><b>MagiBurst で使います</b>' +
+      "<p><b>1プレイ " + v.play + "</b>。勝っても負けても、中断しても、" +
+      "WAVE1からやり直しても同じだけ使います（中断したところからの<b>再開はかかりません</b>）。</p></div></div>" +
+    '<div class="xh-stamway"><span class="ic">⏱</span><div><b>2分ごとに +1</b>' +
+      "<p>アプリを閉じているあいだも回復します（上限まで）。</p></div></div>" +
+    '<div class="xh-stamway"><span class="ic">📚</span><div><b>MagiLex の確認テストで +' + v.lexGain + '</b>' +
+      "<p>確認テストを1つクリアするたびに回復します。こちらは<b>上限を超えてもたまります</b>" +
+      "（4ケタになると <b>999+</b> と表示します）。</p></div></div>" +
+    '<div class="xh-exbal"><span><img src="gem.png" alt="ジェム">' + gem.toLocaleString() + "</span></div>" +
+    '<button class="xh-sbtn" ' + (can ? "" : "disabled") + ' onclick="xhBuyStamina()">' +
+      '<img src="gem.png" alt="" style="width:17px;height:17px;vertical-align:-3px;object-fit:contain"> ' +
+      v.gemCost + " で +" + v.gemGain + " 回復する" +
+      (v.stam >= v.max ? "（いまは満タンです）" : gem < v.gemCost ? "（ジェムが足りません）" : "") + "</button>" +
+    '<div class="xh-exmsg" id="xhStamMsg"></div>' +
+    '<button class="xh-sbtn ghost" style="margin-top:6px" onclick="xhCloseSheet(\'xhStamSheet\');xhOpenShop()">🛒 お得なパックでジェムを増やす</button>';
+}
+window.xhPaintStamSheet = xhPaintStamSheet;
+
+async function xhBuyStamina() {
+  const S = xhStatus(); if (!S) return;
+  const v = S.get();
+  const msg = xhEl("xhStamMsg");
+  const say = (t, ok) => { if (msg) { msg.innerHTML = t; msg.style.color = ok ? "#0e8a5c" : "#e0405e"; } };
+  if (v.stam >= v.max) { say("スタミナは満タンです"); return; }
+  if (!window.XEVA || !XEVA.gem) { say("XEVA ウォレットに接続できません"); return; }
+  if (xhGemBal() < v.gemCost) { say("💎ジェムが足りません（必要 " + v.gemCost + "）"); return; }
+  const ok = await xhAsk({
+    icon: "⚡", title: "スタミナを回復する", ok: "この内容で回復する", cancel: "やめる",
+    body: "<b>💎" + v.gemCost + "</b> を使って、スタミナを <b>+" + v.gemGain + "</b> 回復します。" +
+      "<br><br>いま <b>" + S.text(v.stam) + " / " + v.max + "</b> です。" +
+      "<br><small>※ 上限を超えるぶんは回復しません（上限を超えてたまるのは MagiLex の確認テストぶんだけです）。</small>",
+  });
+  if (!ok) { say("回復をとりやめました"); return; }
+  /* もう一度たしかめる（ダイアログを開いているあいだに他の端末で使われていることがある） */
+  if (xhGemBal() < v.gemCost) { xhPaintStamSheet(); say("💎ジェムが足りません"); return; }
+  if (!XEVA.gem.spend(v.gemCost, "スタミナ回復")) { say("回復に失敗しました"); return; }
+  S.add(v.gemGain, "💎ジェムで回復");
+  xhRenderXeva(); xhRenderStatus(); xhPaintStamSheet();
+  const m2 = xhEl("xhStamMsg");
+  if (m2) { m2.innerHTML = "スタミナを +" + v.gemGain + " 回復しました！"; m2.style.color = "#0e8a5c"; }
+  xhToast("⚡ スタミナ <b>+" + v.gemGain + "</b> 回復しました");
+}
+window.xhBuyStamina = xhBuyStamina;
 function xhRenderXeva() {
   const v = xhEl("xhXeva");
   if (v && window.XEVA) v.textContent = window.XEVA.getBalance().toLocaleString();
@@ -354,7 +479,7 @@ function xhRenderGem() {
 window.xhRenderGem = xhRenderGem;
 
 /* ══════════════════════════════════════════════════════════
-   💎ジェム変換所 ＆ ジェムショップ（2026-07-30 新設）
+   💎ジェム変換所 ＆ お得なパック（2026-07-30 新設）
    ・XEVA→ジェムの交換は、これまで MagiBurst と MagiJackpot にそれぞれ入口があった。
      ジェムが XEVARION 共通通貨になった以上、入口が散らばっていると
      「どこで交換したのか」「レートは同じなのか」が分からなくなるので、ここ1か所に集約する。
@@ -401,6 +526,18 @@ const XH_TICKET_GEM = 5;                 // 🎫1枚＝ジェム5個ぶん（ガ
      「変換所より高い（安い）パック」が生まれてしまう。
      お得ぶん（増量率）は pay と中身の比で決まるので、為替が動いても変わらない。 */
 const XH_PACKS = [
+  /* ── ☀ 夏限定パック（★★ 2026-08-24 新設・ご指定）──
+     中身は <b>💎ジェム ＋ 🎫ガチャチケット ＋ ★プレミアムセレクト券1枚</b>。
+     セレクト券は<b>PREMIUM SELECT GACHA から出るSSRの中から好きな1体を確定で</b>
+     受け取れる券で、使うのは<b>ガチャ画面</b>（キャラの一覧を知っているのがあちらだけなので）。
+     ★ 購入は<b>2回まで</b>（ご指定）。cycle:"term" ＝ その販売期間ぜんぶで max 回まで。
+     ★ ticket（フェス券）とは<b>別のキー</b>なので混ぜないこと:
+         ticket  … 🎫フェスチケット（フェスガチャ専用）
+         gticket … 🎫ガチャチケット（どのガチャでも使える）
+         select  … ★プレミアムセレクト券（好きなSSR 1体） */
+  { id:"pk_summer_select", ic:"☀️", nm:"夏限定 セレクトパック", pay:260, gem:150, gticket:30, select:1, c:"#ff9d2e",
+    from:"2026-08-24", to:"2026-09-30", cycle:"term", max:2,
+    desc:"PREMIUM SELECT GACHA のSSRから<b>好きな1体を確定で</b>。💎150 と 🎫ガチャチケット30枚つき。" },
   /* ── ✦ Starlight Academy Fest 開幕記念（8/22〜9/30・期間中2回まで）──
      ★ フェスの開催期間（FESTS.fes5 ＝ 2026-08-22 〜 2026-09-30）に合わせてある。
        期間が終わったら一覧から自動で消える（xhPackOpen が to を見る）。
@@ -456,8 +593,17 @@ function xhPackCycle(p) { return p.cycle === "week" ? "week" : "term"; }
 function xhPackPeriod(p) { return xhPackCycle(p) === "week" ? "w" + xhWeekKey() : "t" + (p.to || "all"); }
 /* 通常レートなら何個ぶんか＝支払うジェム数そのもの。為替が動いても増量率は変わらない。 */
 function xhPackBase(p) { return p.pay; }
-/* パックの中身をジェム換算した合計（チケットは XH_TICKET_GEM 個ぶんとして数える） */
-function xhPackValue(p) { return p.gem + (p.ticket || 0) * XH_TICKET_GEM; }
+/* ★ 2026-08-24 プレミアムセレクト券1枚を、ジェム何個ぶんとして数えるか。
+   プレミアムのSSRは 1回 💎5 のガチャで <b>SSR 10%</b>＝ならすと 💎50 で1体。
+   ただし「<b>好きな1体を確実に</b>」なので、そのぶんを見て少し高く見積もる。 */
+const XH_SELECT_GEM = 120;
+/* パックの中身をジェム換算した合計
+   （🎫は XH_TICKET_GEM 個ぶん、★セレクト券は XH_SELECT_GEM 個ぶんとして数える） */
+function xhPackValue(p) {
+  return p.gem
+    + ((p.ticket || 0) + (p.gticket || 0)) * XH_TICKET_GEM
+    + (p.select || 0) * XH_SELECT_GEM;
+}
 function xhPackUp(p) { return Math.round((xhPackValue(p) / xhPackBase(p) - 1) * 100); }
 /* 期間内か（to のないパックは常設） */
 function xhPackOpen(p) {
@@ -582,7 +728,7 @@ function xhPaintExchange() {
     '<div class="xh-sortnote">💎ジェムは <b>1個 ＝ 1米ドル</b>、XEVA は <b>1 ＝ 1円</b>。' +
     'だから交換レートは<b>そのときのドル円</b>です（いまは <b>' + rate.toLocaleString() + ' XEVA ＝ 💎1</b>）。' +
     'ジェムは <b>MagiBurst のガチャ</b>や <b>MagiJackpot のベット</b>など、XEVARION 全体で使えます。' +
-    'レートは為替に合わせて毎日すこし動きます（もっとお得に買いたいときは、となりの<b>🛒ジェムショップ</b>へ）。</div>' +
+    'レートは為替に合わせて毎日すこし動きます（もっとお得に買いたいときは、となりの<b>🛒お得なパック</b>へ）。</div>' +
     '<div class="xh-exbal">' +
       '<span><img src="XEVA.png" alt="XEVA">' + xeva.toLocaleString() + '</span>' +
       '<span><img src="gem.png" alt="ジェム">' + gem.toLocaleString() + '</span>' +
@@ -614,7 +760,7 @@ async function xhDoExchange() {
   if (!window.XEVA || !window.XEVA.gem) { xhExMsg("XEVA ウォレットに接続できません"); return; }
   if (window.XEVA.getBalance() < cost) { xhExMsg("XEVA が足りません（必要 " + cost.toLocaleString() + "）"); return; }
   /* ★ 交換の許可は必ず画面内のダイアログで取る（ブラウザの confirm は使わない）。
-     押した瞬間に XEVA が減る操作なので、ジェムショップの購入と同じ手順にそろえる。 */
+     押した瞬間に XEVA が減る操作なので、お得なパックの購入と同じ手順にそろえる。 */
   const ok = await xhAsk({
     icon: "🏪", title: "ジェムに交換しますか？",
     ok: "この内容で交換する", cancel: "やめる",
@@ -642,7 +788,7 @@ async function xhDoExchange() {
 }
 window.xhDoExchange = xhDoExchange;
 
-/* ── ジェムショップ（1回限りのパック） ── */
+/* ── お得なパック（1回限りのパック） ── */
 function xhOpenShop() { xhPaintShop(); xhOpenSheet("xhShopSheet"); }
 window.xhOpenShop = xhOpenShop;
 
@@ -666,13 +812,18 @@ function xhPaintShop() {
       '<div class="xh-pkbody">' +
         '<div class="xh-pknm">' + xhEscape(p.nm) + '</div>' +
         '<div class="xh-pkgem">' +
+          (p.select ? '<span class="xh-pksel">★セレクト' + (p.select > 1 ? "×" + p.select : "") + '</span>' : "") +
           (p.ticket ? '<span class="xh-pkticket">🎫' + p.ticket.toLocaleString() + '</span>' : "") +
+          (p.gticket ? '<span class="xh-pkticket g">🎫' + p.gticket.toLocaleString() + '</span>' : "") +
           '<img src="gem.png" alt="ジェム">' +
           '<span class="n">' + p.gem.toLocaleString() + '</span>' +
           '<s>通常 ' + base.toLocaleString() + '</s>' +
           '<span class="up">+' + up + '%</span></div>' +
-        '<div class="xh-pkdesc">' + xhEscape(p.desc) +
+        '<div class="xh-pkdesc">' + p.desc +
           (p.ticket ? '<br>🎫は <b>フェスチケット</b>（買ったその場で増え、どのフェスでも使えます）' : "") +
+          (p.gticket ? '<br>🎫は <b>ガチャチケット</b>（プレミアムでも各フェスでも使えます・1枚＝1回ぶん）' : "") +
+          (p.select ? '<br>★<b>プレミアムセレクト券</b>は、<b>ガチャ画面</b>で使います'
+            + '（PREMIUM SELECT GACHA から出るSSRの中から、好きな1体を確定で受け取れます）' : "") +
           (p.to ? '<br><b>' + p.to.replace(/-/g, "/") + ' まで・期間中' + max + '回まで</b>'
                 : '<br><b>週' + max + '回まで</b>（毎週月曜にリセット）') + '</div>' +
       '</div>' +
@@ -704,7 +855,9 @@ function xhPaintShop() {
 /* パックの中身を1行の文字列にする（確認ダイアログ・完了メッセージで使い回す） */
 function xhPackGot(p) {
   const t = [];
-  if (p.ticket) t.push("🎫" + p.ticket.toLocaleString() + "枚");
+  if (p.select) t.push("★プレミアムセレクト券" + p.select + "枚");
+  if (p.ticket) t.push("🎫フェスチケット" + p.ticket.toLocaleString() + "枚");
+  if (p.gticket) t.push("🎫ガチャチケット" + p.gticket.toLocaleString() + "枚");
   if (p.gem) t.push("💎" + p.gem.toLocaleString());
   return t.join(" ＋ ");
 }
@@ -751,7 +904,7 @@ async function xhBuyPack(id) {
   if (window.XEVA.getBalance() < price) { xhPaintShop(); say("XEVA が足りません（必要 " + price.toLocaleString() + "）"); return; }
   /* 「購入済みフラグを先に立てる」→「支払う」の順にはしない。
      支払いに失敗したのにフラグだけ残ると、二度と買えなくなってしまう。 */
-  if (!window.XEVA.spend(price, "ジェムショップ：" + p.nm)) { say("購入に失敗しました"); return; }
+  if (!window.XEVA.spend(price, "お得なパック：" + p.nm)) { say("購入に失敗しました"); return; }
   const d = xhShopData();
   const per = xhPackPeriod(p);
   const rec = (d.n[p.id] && d.n[p.id].p === per) ? d.n[p.id] : { p: per, c: 0 };
@@ -759,16 +912,24 @@ async function xhBuyPack(id) {
   d.n[p.id] = rec;
   d.bought[p.id] = xhToday();          // 旧形式も残す（古い版のホームでも「買った」ことは伝わる）
   xhShopSave(d);
-  if (p.gem) window.XEVA.gem.add(p.gem, "ジェムショップ：" + p.nm);
+  if (p.gem) window.XEVA.gem.add(p.gem, "お得なパック：" + p.nm);
   /* 🎫は MagiBurst のセーブにしか置き場所がないので、📧メールと同じ引換券キューに積む。
      ★ 引換券は id 単位で一度きりなので、購入回数まで含めた id にする。
        "shop_パックID" のままだと2回目のチケットが「配布済み」と見なされて消えてしまう。 */
   /* ★ 2026-08-13 🎫は XEVARION 共通ウォレット（XEVA.ticket）へ直接足す。
      以前は「引換券に積んで、次に MagiBurst を開いたら精算」だったが、
      ガチャが XEVARION 側にある以上、その遠回りに理由がない。 */
+  /* ★ 2026-08-24 🎫ガチャチケット（どのガチャでも使える）。フェス券とは別のキー。 */
+  if (p.gticket && window.XEVA && window.XEVA.ticket) {
+    window.XEVA.ticket.add(p.gticket, "お得なパック：" + p.nm);
+  }
+  /* ★ 2026-08-24 ★プレミアムセレクト券。使うのはガチャ画面。 */
+  if (p.select && window.XEVA && window.XEVA.selectTicket) {
+    window.XEVA.selectTicket.add(p.select, "お得なパック：" + p.nm);
+  }
   if (p.ticket) {
     /* パックに付くのはフェスチケット（従来どおり） */
-    if (window.XEVA && window.XEVA.fesTicket) window.XEVA.fesTicket.add(p.ticket, "ジェムショップ：" + p.nm);
+    if (window.XEVA && window.XEVA.fesTicket) window.XEVA.fesTicket.add(p.ticket, "お得なパック：" + p.nm);
     else if (typeof window.pushMbGift === "function") {
       /* XEVA が読めない異常系だけ、これまでどおり引換券に積む。
          引換券は id 単位で一度きりなので、購入回数まで含めた id にする。 */
@@ -781,7 +942,18 @@ async function xhBuyPack(id) {
   const m2 = xhEl("xhShopMsg");
   if (m2) { m2.innerHTML = xhPackGot(p) + " を受け取りました！"; m2.style.color = "#0e8a5c"; }
   xhToast('<b>' + xhEscape(p.nm) + "</b><br>" + xhPackGot(p) + " を受け取りました"
-    + (p.ticket ? "<br><small>🎫はそのままガチャで使えます</small>" : ""));
+    + (p.select ? "<br><small>★セレクト券は<b>ガチャ画面</b>で使えます</small>"
+       : (p.ticket || p.gticket) ? "<br><small>🎫はそのままガチャで使えます</small>" : ""));
+  /* ★ セレクト券は「どこで使うのか」が分からないと放置されるので、その場で案内する */
+  if (p.select) {
+    xhAsk({
+      icon: "★", title: "プレミアムセレクト券を受け取りました", ok: "ガチャ画面へ行く", cancel: "あとで",
+      body: "<b>★プレミアムセレクト券 " + p.select + "枚</b>を受け取りました。<br><br>"
+        + "この券は<b>ガチャ画面</b>で使えます。"
+        + "<b>PREMIUM SELECT GACHA から出るSSR</b>の中から、<b>好きな1体を確定で</b>受け取れます"
+        + "（すでに持っているキャラをえらぶと<b>限界突破</b>が進みます）。",
+    }).then((go) => { if (go) location.href = "gacha.html#premium"; });
+  }
 }
 window.xhBuyPack = xhBuyPack;
 
@@ -791,7 +963,7 @@ function xhOpenGemGuide() {
   if (box) {
     box.innerHTML = [
       ["🏪", "ジェム変換所で交換する", "💎1 ＝ 1米ドル、XEVA 1 ＝ 1円。レートは<b>そのときのドル円</b>です（いまは " + xhGemRate().toLocaleString() + " XEVA ＝ 💎1）。ホームの「ジェム変換所」からいつでも交換できます。"],
-      ["🛒", "ジェムショップのパック", "通常より 50〜70% 多く💎を受け取れます。常設パックは毎週リセット（週1回）、Luminous Summer Fest の記念パックは期間中2回まで買えて🎫フェスチケットも付きます。"],
+      ["🛒", "お得なパックのパック", "通常より 50〜70% 多く💎を受け取れます。常設パックは毎週リセット（週1回）、Luminous Summer Fest の記念パックは期間中2回まで買えて🎫フェスチケットも付きます。"],
       ["⚔️", "クエストの初クリア", "MagiBurst の各クエストは初クリアで💎（毎月1日にリセットされ、また受け取れます）。以降も1日1回のクリアで💎+1がもらえます。"],
       ["🎰", "MagiJackpot で当てる", "ジャックポット・ボーナスゲーム・デイリーミッションの報酬に💎が含まれます。"],
       ["🎟", "Magi Lotto の Free Magi", "毎日1回無料で回せるルーレットに💎が入っています（まれに💎50も）。"],
@@ -802,7 +974,7 @@ function xhOpenGemGuide() {
       '<span><span class="rt">' + xhEscape(r[1]) + '</span><span class="rs">' +
       r[2].replace(/💎/g, '<img class="xv-gemico" src="gem.png" alt="ジェム">') + "</span></span></span></div>").join("")
       + '<button class="xh-sbtn" style="margin-top:12px" onclick="xhCloseSheet(\'xhGemSheet\');xhOpenExchange()">🏪 ジェム変換所をひらく</button>'
-      + '<button class="xh-sbtn ghost" style="margin-top:8px" onclick="xhCloseSheet(\'xhGemSheet\');xhOpenShop()">🛒 ジェムショップを見る</button>';
+      + '<button class="xh-sbtn ghost" style="margin-top:8px" onclick="xhCloseSheet(\'xhGemSheet\');xhOpenShop()">🛒 お得なパックを見る</button>';
   }
   const b = xhEl("xhGemBal"); if (b) b.textContent = bal.toLocaleString();
   xhCloseSheet("xhSetSheet");
@@ -1179,6 +1351,8 @@ const XOS_IC = {
   disk: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="6.4" rx="7.6" ry="3"/><path d="M4.4 6.4v11.2c0 1.7 3.4 3 7.6 3s7.6-1.3 7.6-3V6.4"/><path d="M4.4 12c0 1.7 3.4 3 7.6 3s7.6-1.3 7.6-3"/></svg>',
   info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.4"/><circle cx="12" cy="7.9" r="1.15" fill="currentColor" stroke="none"/></svg>',
   net: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8.4a12 12 0 0116 0"/><path d="M7 12a8 8 0 0110 0"/><path d="M10 15.4a3.6 3.6 0 014 0"/><circle cx="12" cy="19" r="1.3" fill="currentColor"/></svg>',
+  /* ★ 2026-08-24 キャラ画像の表示設定（人のかたち＋額ぶち） */
+  chr: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.4" y="3.4" width="17.2" height="17.2" rx="3.4"/><circle cx="12" cy="10" r="2.8"/><path d="M6.8 18.2a5.6 5.6 0 0110.4 0"/></svg>',
 };
 
 function xhOpenXos() {
@@ -1219,8 +1393,14 @@ function xhPaintXos() {
       "前回から中身が変わったアプリと下のタブに赤い点を出します。そのアプリを開くと消えます。",
       xosSw(g("updateDots")), "xhXosToggle('updateDots')")}
     ${xosRow(XOS_IC.gacha, "新キャラをガチャタブに出す",
-      "新しいキャラが増えたとき、下のガチャタブをそのキャラの絵にします（3回まで）。",
+      "下のガチャタブを、いちばん新しいキャラの絵にします。",
       xosSw(g("newCharTab")), "xhXosToggle('newCharTab')")}
+
+    <div class="xh-sec-label">表示</div>
+    ${xosRow(XOS_IC.chr, "キャラクターの絵を出す",
+      "オフにすると、<b>すべてのアプリ</b>でキャラの絵のかわりに<b>キャラ名</b>が出ます。"
+      + "外で開くときにどうぞ（もとに戻せばそのまま絵が戻ります）。",
+      xosSw(g("charImg")), "xhXosToggle('charImg')")}
 
     <div class="xh-sec-label">XEVYNAR 連携</div>
     ${xosRow(XOS_IC.ai, "AIアシスタントから XEVYNAR へつなぐ",
@@ -1330,8 +1510,10 @@ function xhGo(tab) {
   if (tab === "settings") { xhOpenSettings(); return; }
   if (tab === "chars")     { location.href = "characters.html"; return; }
   if (tab === "gacha")     {
-    /* ガチャに入ったら、新キャラアイコンの役目も終わり */
-    try { const o = xhGtabLoad(); if (o) { o.n = 3; xhGtabSave(o); } } catch (e) {}
+    /* ★ 2026-08-24 ここには「ガチャに入ったら新キャラアイコンの役目も終わり」として
+       回数の台帳を打ち切る処理があったが、<b>「3回まで」の条件そのものを撤回した</b>ので
+       いっしょに外した（台帳を作る関数も無くなっている）。
+       いまはガチャに入っても、いちばん新しいキャラの絵が出たままになる。 */
     location.href = "gacha.html"; return;
   }
   if (tab === "community") { location.href = "community.html"; return; }
@@ -1367,7 +1549,7 @@ function xhOpenXevaGuide() {
       '<div class="xh-row" style="cursor:default"><span class="rl"><span class="ri">' + r[0] + "</span>" +
       '<span><span class="rt">' + xhEscape(r[1]) + '</span><span class="rs">' + r[2] + "</span></span></span></div>").join("")
       + '<div class="xh-sortnote" style="margin-top:12px">貯めた XEVA は <b>XEVAガチャ</b>、<b>💎ジェムへの交換</b>（' + xhGemRate().toLocaleString() + ' XEVA ＝ 💎1・ドル円連動）、'
-      + '<b>🛒ジェムショップのパック</b>、各アプリのベットや強化に使えます。</div>'
+      + '<b>🛒お得なパックのパック</b>、各アプリのベットや強化に使えます。</div>'
       + '<button class="xh-sbtn" style="margin-top:12px" onclick="xhCloseSheet(\'xhXevaSheet\');xhTapMission()">🎯 ミッションを見る</button>'
       + '<button class="xh-sbtn ghost" style="margin-top:8px" onclick="xhCloseSheet(\'xhXevaSheet\');xhOpenExchange()">🏪 ジェム変換所をひらく</button>';
   }
@@ -1729,10 +1911,16 @@ function xhPaintNetSettings() {
     '<div class="xh-sortnote">' + nowTx + "</div>" +
     '<div class="xh-sec-label" style="margin-top:8px">📶 Wi-Fi のとき</div>' +
     xhNetRow("wifi", "latest", "最新のデータを使う", "オフにすると通信せず、ダウンロードずみのデータで動きます") +
-    xhNetRow("wifi", "autodl", "更新を自動でダウンロード", "オフにすると、まとめてダウンロードの前に確認します") +
+    (XH_AUTODL_OFF ? "" :
+      xhNetRow("wifi", "autodl", "更新を自動でダウンロード", "オフにすると、まとめてダウンロードの前に確認します")) +
     '<div class="xh-sec-label" style="margin-top:8px">📱 モバイルデータのとき</div>' +
     xhNetRow("cell", "latest", "最新のデータを使う", "オフにすると通信量を使わず、ダウンロードずみのデータで動きます") +
-    xhNetRow("cell", "autodl", "更新を自動でダウンロード", "オフにすると、まとめてダウンロードの前に確認します") +
+    (XH_AUTODL_OFF ? "" :
+      xhNetRow("cell", "autodl", "更新を自動でダウンロード", "オフにすると、まとめてダウンロードの前に確認します")) +
+    (XH_AUTODL_OFF ? '<div class="xh-sortnote" style="margin-top:6px">'
+      + "※ <b>更新の自動ダウンロードは、いまお休みしています。</b>"
+      + "更新があるときは、これまでどおり画面右上のマークとアプリの赤い点でお知らせします"
+      + "（押すと更新画面が開き、そこからダウンロードできます）。</div>" : "") +
     '<div class="xh-sec-label" style="margin-top:8px">その他</div>' + unk +
     '<div class="xh-sortnote" style="margin-top:6px">' +
     "※ 「最新のデータを使う」をオフにしていても、<b>セーブデータの同期・オンライン対戦・ランキング</b>など" +
@@ -1944,10 +2132,13 @@ function xhDlStep(n, live) {
 
    ③ ガチャタブの新キャラアイコン
       新しいキャラが増えたら、ガチャタブのアイコンを<b>そのキャラの絵</b>にする。
-      ★ 出すのは<b>3回まで</b>（ご指定）。数えるのは「ホームを表示した回数」。
+      ★ 2026-08-24 <b>「3回まで」の条件は撤回</b>（ご指定）。
+        いまは設定がオンのあいだ<b>いつも</b>いちばん新しいキャラの絵を出す。
+        回数を数えていた台帳（xeva_gtabnew_v1）はもう見ない。
    ══════════════════════════════════════════════════════════════ */
 const XH_MARK_KEY = "xeva_updmark_v1";     // { ver, pend:{キー:1} }
-const XH_GTAB_KEY = "xeva_gtabnew_v1";     // { id, n }  ガチャタブの新キャラアイコン
+/* ★ 2026-08-24 回数の台帳（xeva_gtabnew_v1）は廃止した（3回までの条件を撤回したため）。
+   古い端末に残っていても、もう読まないのでそのままでよい。 */
 
 function xhMarkLoad() {
   try { const o = JSON.parse(localStorage.getItem(XH_MARK_KEY) || "null"); if (o && typeof o === "object") return o; } catch (e) {}
@@ -2003,10 +2194,78 @@ function xhPaintMarks() {
     el.classList.toggle("xh-updot", !!pend["tab:" + t]);
   });
   xhPaintGachaTabIcon();
+  xhPaintGachaFree();
 }
 window.xhPaintMarks = xhPaintMarks;
 
-/* ══ ガチャタブの新キャラアイコン（3回まで） ══ */
+/* ══ ★★ 2026-08-25b 下バーのガチャタブに出す「🎁無料」の印 ══
+   GRAND DEBUT GACHA の<b>1日1回の無料単発</b>を、その日まだ使っていないあいだ出しっぱなしにする。
+   ★ 判定は MagiBurst のセーブ（magiburst_v1）の <b>debutFree</b>（"YYYY-MM-DD"）ひとつ。
+     ポータルは mb-core.js を読まないので（600KB あるため）、ここで同じ判定を書いている。
+     ★ 日付は<b>ローカル日付</b>（toISOString は UTC なので日本は9時間おくれる）。
+       mb-core.js の debutToday() とまったく同じ式にすること。
+   ★ 出す場所はタブの<b>左上</b>。右上は更新の印（.xh-updot）が使っている。 */
+/* ★★ 2026-08-26 GRAND DEBUT は<b>版ごとに10日間</b>になり、2本並ぶことがある。
+   無料の単発も<b>版ごとに1回ずつ</b>なので、debutFree は
+     { "2.0":"2026-08-26", "3.0":"" }
+   の形になった（古いセーブは "YYYY-MM-DD" の文字列1本）。
+   ★★ この一覧は mb-core.js の <b>DEBUT_VERSIONS と同じ中身</b>にすること。
+     ポータルは 600KB の mb-core.js を読まないので、ここに写しを置いている。
+     版を足したら<b>両方</b>に足す（片方だけだと下バーの「無料」の印がずれる）。 */
+const XH_DEBUT_DAYS = 10;
+const XH_DEBUT_VERS = [
+  { ver: "4.0", date: "2026-08-26" },
+  { ver: "3.0", date: "2026-08-26" },
+  { ver: "2.0", date: "2026-08-24" },
+  { ver: "1.0", date: "2026-08-20", movedAt: "2026-08-24" },
+];
+function xhDebutLiveVers() {
+  const t = new Date().toLocaleDateString("sv-SE");
+  return XH_DEBUT_VERS.filter((v) => {
+    let end = v.movedAt;
+    if (!end) {
+      const d = new Date(v.date + "T00:00:00");
+      d.setDate(d.getDate() + XH_DEBUT_DAYS);
+      end = d.toLocaleDateString("sv-SE");
+    }
+    return t >= v.date && t < end;
+  });
+}
+function xhDebutFreeLeft() {
+  try {
+    const today = new Date().toLocaleDateString("sv-SE");
+    const d = JSON.parse(localStorage.getItem("magiburst_v1") || "{}");
+    const live = xhDebutLiveVers();
+    if (!live.length) return false;                       /* スタンバイ中は無料も無い */
+    const f = d.debutFree;
+    if (typeof f === "string") {
+      /* 古いセーブ。いちばん新しい版のぶんとして数える＝ほかの版はまだ残っている */
+      return live.length > 1 || f !== today;
+    }
+    if (!f || typeof f !== "object") return true;
+    return live.some((v) => f[v.ver] !== today);
+  } catch (e) { return false; }
+}
+window.xhDebutFreeLeft = xhDebutFreeLeft;
+function xhPaintGachaFree() {
+  const btn = document.querySelector('.xh-bar .xh-ntab[data-tab="gacha"]');
+  if (!btn) return;
+  const show = xhDebutFreeLeft();
+  let tag = btn.querySelector(".xh-freetag");
+  if (!show) { if (tag) tag.remove(); return; }
+  if (!tag) {
+    tag = document.createElement("span");
+    tag.className = "xh-freetag";
+    tag.textContent = "無料";
+    btn.appendChild(tag);
+  }
+}
+window.xhPaintGachaFree = xhPaintGachaFree;
+/* ガチャから戻ってきたとき・日付が変わったときに出しなおす */
+document.addEventListener("visibilitychange", () => { if (!document.hidden) { try { xhPaintGachaFree(); } catch (e) {} } });
+window.addEventListener("focus", () => { try { xhPaintGachaFree(); } catch (e) {} });
+
+/* ══ ガチャタブの新キャラアイコン（設定がオンのあいだ いつも出す） ══ */
 function xhNewestChar() {
   try {
     const list = (window.XEVA && XEVA.MB_CHARS) || [];
@@ -2017,24 +2276,9 @@ function xhNewestChar() {
     return live[0] || null;
   } catch (e) { return null; }
 }
-function xhGtabLoad() {
-  try { const o = JSON.parse(localStorage.getItem(XH_GTAB_KEY) || "null"); if (o && typeof o === "object") return o; } catch (e) {}
-  return null;
-}
-function xhGtabSave(o) { try { localStorage.setItem(XH_GTAB_KEY, JSON.stringify(o)); } catch (e) {} }
-/* ホームを表示するたびに1回だけ数える。3回出したらもう出さない。 */
-function xhGtabTick() {
-  const c = xhNewestChar();
-  if (!c) return;
-  let o = xhGtabLoad();
-  if (!o || o.id !== c.mbId) {
-    /* ★ はじめて開いた端末には出さない（「新しく増えた」わけではないため）。
-       台帳が無いときは、いまの子を「見せ終わった」ことにして次の子から始める。 */
-    o = { id: c.mbId, n: o ? 0 : 3 };
-  }
-  if (o.n < 3) o.n++;
-  xhGtabSave(o);
-}
+/* ★ 2026-08-24 回数を数えるのはやめた（条件の撤回）。
+   呼び出し側（xhShow）をそのままにしておけるよう、名前だけ残してある。 */
+function xhGtabTick() {}
 function xhPaintGachaTabIcon() {
   const btn = document.querySelector('.xh-bar .xh-ntab[data-tab="gacha"]');
   if (!btn) return;
@@ -2042,9 +2286,8 @@ function xhPaintGachaTabIcon() {
   let allow = true;
   try { if (window.XOS && !XOS.get("newCharTab")) allow = false; } catch (e) {}
   const c = allow ? xhNewestChar() : null;
-  const o = xhGtabLoad();
-  const show = !!(c && o && o.id === c.mbId && o.n <= 3 && o.n > 0);
-  /* もとの SVG は消さずに、上に絵をかぶせる（消すと3回目のあとに戻せない） */
+  const show = !!c;
+  /* もとの SVG は消さずに、上に絵をかぶせる（設定をオフに戻したときに元へ戻せるように） */
   let img = btn.querySelector(".xh-tabchar");
   if (!show) { if (img) img.remove(); btn.classList.remove("xh-haschar"); return; }
   const src = (window.XEVA && XEVA.charSrc) ? XEVA.charSrc(c.file, c.id, null, "s") : String(c.file || "").replace(/^\.\.\//, "");
@@ -2069,6 +2312,17 @@ function xhPaintGachaTabIcon() {
    ★ 「更新を自動でダウンロード」がオフの回線では<b>何もしない</b>（初期設定はオフ）。
      そのときはマークも出さない＝勝手に通信していないことが見た目でも分かる。
    ══════════════════════════════════════════════════════════════ */
+/* ══ ★ 2026-08-24 自動更新（裏で走るダウンロード）は<b>一時的に廃止</b>（ご指定）══
+   ------------------------------------------------------------
+   ・裏での先読みダウンロードを止める。更新があること自体は<b>これまでどおり</b>
+     右上のマーク（#xhAutoChip）と、アプリ・タブの赤い点で知らせる。
+     押せば更新画面が開き、そこから<b>自分のタイミングで</b>落とせる。
+   ・通信設定の「更新を自動でダウンロード」のスイッチも、休止中は出さない
+     （オンにしても何も起きないスイッチを残さない）。
+   ★ 戻すときは、この XH_AUTODL_OFF を false にするだけでよい。
+     xhBgDownload / xhAutoDownload / xhPaintNetSettings の3か所がこれを見ている。 */
+const XH_AUTODL_OFF = true;
+
 let _xhBgDl = { state: "", ver: "" };
 function xhBgChip() { return xhEl("xhAutoChip"); }
 function xhPaintBgChip() {
@@ -2090,6 +2344,8 @@ function xhPaintBgChip() {
 async function xhBgDownload(d) {
   if (!d || !d.version) return;
   if (_xhBgDl.ver === d.version && _xhBgDl.state) return;   // 同じ版で二重に走らせない
+  /* ★ 2026-08-24 自動更新は休止中。落とさずに「更新があります」のマークだけ出す。 */
+  if (XH_AUTODL_OFF) { _xhBgDl = { state: "pending", ver: d.version }; xhPaintBgChip(); return; }
   if (_xhUpdRunning) return;
   if (!xhOnline() || !("serviceWorker" in navigator)) return;
   /* ★★ 2026-08-22b 「更新を自動でダウンロード」がオフの回線では<b>通信しない</b>。
@@ -2226,6 +2482,19 @@ function xhUpdPaintSize(m, many) {
   note.innerHTML = rows.join("<br>");
 }
 
+/* ★ 2026-08-24 更新内容の1版ぶん。見出し（版）を押すと中身が開く（<details> なので JS は要らない）。
+   ★ 既定は<b>閉じた状態</b>。何件たまっていても、まず版の一覧として見わたせるようにする。 */
+function xhUpdVerBlock(title, date, ver, notes) {
+  const sub = [date, ver ? "ver " + ver : ""].filter(Boolean).join("　");
+  const n = (notes || []).length;
+  return '<li class="ver"><details>' +
+    '<summary><span class="vt">' + xhEscape(title) + "</span>" +
+    '<span class="vr"><small>' + xhEscape(sub) + (n ? "・" + n + "件" : "") + "</small>" +
+    '<i class="ar">\u203a</i></span></summary>' +
+    '<ul class="vn">' + (notes || []).map((x) => "<li>" + xhEscape(x) + "</li>").join("") + "</ul>" +
+    "</details></li>";
+}
+
 /* latest=true は「設定から確認したが、すでに最新だった」とき。
    案内の見せ方だけ変え、再ダウンロードの導線は残す。 */
 /* ★ 2026-08-22b 印は xhCheckUpdate と「設定から確認」の<b>両方</b>から立てる。 */
@@ -2252,15 +2521,13 @@ function xhShowUpdate(d, latest) {
   xhUpdMeasure(d).then((m) => { if (_xhUpd === d) xhUpdPaintSize(m, many); }).catch(() => {});
   const ul = xhEl("xhUpdNotes");
   if (ul) {
-    if (latest) {
-      ul.innerHTML = (d.notes || []).map((n) => "<li>" + xhEscape(n) + "</li>").join("");
-    } else {
-      /* 複数たまっているときは、版ごとに見出しを付けて全部見せる */
-      ul.innerHTML = missed.map((h) =>
-        (many ? '<li class="ver">' + xhEscape(h.title || h.version) +
-                '<small>' + xhEscape(h.date || h.version) + "</small></li>" : "") +
-        (h.notes || []).map((n) => "<li>" + xhEscape(n) + "</li>").join("")).join("");
-    }
+    /* ★ 2026-08-24 更新内容は<b>版ごとにたたむ</b>（ご指定）。
+       見出し（版）を押すと、その回の中身が開く。
+       見送った回が何件もたまると、以前は全部の項目が一列に伸びて
+       「どこからどこまでが今回ぶんなのか」が読めなくなっていた。 */
+    ul.innerHTML = latest
+      ? xhUpdVerBlock(d.title || ("ver " + d.version), d.date || "", d.version, d.notes)
+      : missed.map((h) => xhUpdVerBlock(h.title || ("ver " + h.version), h.date || "", h.version, h.notes)).join("");
   }
   const pg = xhEl("xhUpdProg"); if (pg) pg.classList.remove("on");
   ["xhUpdGo", "xhUpdSkip", "xhUpdX"].forEach((id) => { const e = xhEl(id); if (e) e.style.display = ""; });
@@ -2578,6 +2845,7 @@ function xhPaintAutoDl() {
 }
 async function xhAutoDownload(d) {
   if (!d || !d.version) return;
+  if (XH_AUTODL_OFF) return;             /* ★ 2026-08-24 自動更新は休止中 */
   if (_xhUpdRunning) return;
   if (!xhOnline() || !("serviceWorker" in navigator)) return;
   /* この回線で「更新を自動でダウンロード」をオフにしている人には、何もしない */
@@ -3650,7 +3918,7 @@ function xhShow() {
   xhRenderGemRate();
   xhApplyOfflineLocks();
   xhSyncBadges();
-  /* ★★ 2026-08-22b ホームを見せた回数を数えて、ガチャタブの新キャラアイコンを出す（3回まで） */
+  /* ★ ガチャタブの新キャラアイコン（2026-08-24 に「3回まで」の条件は撤回した） */
   try { xhGtabTick(); xhPaintMarks(); } catch (e) {}
   xhConsumeHash();
   /* ★ 2026-08-12b 下バーの中身を実測で画面の下端に合わせる（xevarion.js の fitBar）。

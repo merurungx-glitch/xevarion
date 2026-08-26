@@ -351,6 +351,13 @@
   }
   var ticket = makeTicketWallet(TKT_KEY, "xeva:ticket");        // ガチャチケット
   var fesTicket = makeTicketWallet(FTK_KEY, "xeva:festicket");  // フェスチケット
+  /* ══ ★★ 2026-08-24 プレミアムセレクト券（夏限定パックの中身）══
+     1枚につき、<b>PREMIUM SELECT GACHA から出るSSR</b>の中から
+     好きな1体を<b>確定で</b>受け取れる。使う場所はガチャ画面
+     （キャラの一覧＝プールを知っているのがあちらだけなので）。
+     ★ 中身はチケットとまったく同じ作りなので、同じ makeTicketWallet で作る。 */
+  var SEL_KEY = "xeva_selticket_v1";
+  var selectTicket = makeTicketWallet(SEL_KEY, "xeva:selticket");
   function loadTkt() { return ticket._load(); }
   function emitTkt(b) { ticket._emit(b); }
 
@@ -363,6 +370,7 @@
       if (e.key === GEM_KEY) emitGem(loadGem().balance);
       if (e.key === TKT_KEY) ticket._emit(ticket.get());
       if (e.key === FTK_KEY) fesTicket._emit(fesTicket.get());
+      if (e.key === SEL_KEY) selectTicket._emit(selectTicket.get());
       if (e.key === KEY) { state = load(); emit(); }
     });
     window.addEventListener("xeva:synced", function () {
@@ -370,6 +378,7 @@
       emitGem(loadGem().balance);
       ticket._emit(ticket.get());
       fesTicket._emit(fesTicket.get());
+      selectTicket._emit(selectTicket.get());
     });
   } catch (e) {}
 
@@ -672,6 +681,43 @@
     { id: "mb:sayuri", mbId: "sayuri", name:"サユリ", file: "../img/t_Sayuri.webp", since:"2026-08-22" },
     { id: "mb:akari", mbId: "akari", name:"アカリ", file: "../img/t_Akari.webp", since:"2026-08-22" },
     { id: "mb:hinata", mbId: "hinata", name:"ヒナタ", file: "../img/t_Hinata.webp", since:"2026-08-22" },
+    /* ★★ 2026-08-24 GRAND DEBUT GACHA Ver.2.0 新SSR 5体（No.138〜142） */
+    { id: "mb:guren", mbId: "guren", name:"グレン", file: "../img/t_Guren.webp", since:"2026-08-24" },
+    { id: "mb:yuuna", mbId: "yuuna", name:"ユウナ", file: "../img/t_Yuuna.webp", since:"2026-08-24" },
+    { id: "mb:momo", mbId: "momo", name:"モモ", file: "../img/t_Momo.webp", since:"2026-08-24" },
+    { id: "mb:chihaya", mbId: "chihaya", name:"チハヤ", file: "../img/t_Chihaya.webp", since:"2026-08-24" },
+    { id: "mb:yui", mbId: "yui", name:"ユイ", file: "../img/t_Yui.webp", since:"2026-08-24" },
+    /* ★★ 2026-08-25 Starlight Academy Fest 2 限定SSR 5体（No.143〜147）。
+       ★ mb-core.js の CHAR_IDS と<b>同じ並び</b>にすること（並び＝No.）。
+       ★★ ナナミ・ナツキという名前の候補は<b>すでに別人がいる</b>（No.66 ナナミ／No.19 ナツキ）ので、
+         ご指定どおり<b>まったく別の名前</b>（ミナモ／ヒマリ）にしてある。画像のファイル名も別。 */
+    { id: "mb:suzune", mbId: "suzune", name:"スズネ", file: "../img/t_Suzune.webp", since:"2026-08-25" },
+    { id: "mb:minamo", mbId: "minamo", name:"ミナモ", file: "../img/t_Minamo.webp", since:"2026-08-25" },
+    { id: "mb:karen", mbId: "karen", name:"カレン", file: "../img/t_Karen.webp", since:"2026-08-25" },
+    { id: "mb:tomoe", mbId: "tomoe", name:"トモエ", file: "../img/t_Tomoe.webp", since:"2026-08-25" },
+    { id: "mb:himari", mbId: "himari", name:"ヒマリ", file: "../img/t_Himari.webp", since:"2026-08-25" },
+    /* ★★ 2026-08-26 GRAND DEBUT GACHA Ver.3.0 限定SSR 5体（No.148〜152）。
+       ★ mb-core.js の CHAR_IDS と<b>同じ並び</b>にすること（並び＝No.）。
+       ★★ ご指定の名前 カレン／フウカ は<b>すでに別人がいる</b>（No.145 カレン／No.79 フウカ）ので、
+         ご指定どおり別の名前（<b>カリン／ユウカ</b>）にしてある。画像のファイル名も別。 */
+    { id: "mb:karin", mbId: "karin", name:"カリン", file: "../img/t_Karin.webp", since:"2026-08-26" },
+    { id: "mb:mirei", mbId: "mirei", name:"ミレイ", file: "../img/t_Mirei.webp", since:"2026-08-26" },
+    { id: "mb:yuuka", mbId: "yuuka", name:"ユウカ", file: "../img/t_Yuuka.webp", since:"2026-08-26" },
+    { id: "mb:miyabi", mbId: "miyabi", name:"ミヤビ", file: "../img/t_Miyabi.webp", since:"2026-08-26" },
+    { id: "mb:sumire", mbId: "sumire", name:"スミレ", file: "../img/t_Sumire.webp", since:"2026-08-26" },
+    /* ★★ 2026-08-26 MagiLex の KP交換キャラ 4体（No.153〜156）。
+       ガチャからは出ないが「持てるキャラ」なので、ここには入れる（アイコンにも選べる）。 */
+    { id: "mb:kanade", mbId: "kanade", name:"カナデ", file: "../img/t_Kanade.webp", since:"2026-08-26" },
+    { id: "mb:homura", mbId: "homura", name:"ホムラ", file: "../img/t_Homura.webp", since:"2026-08-26" },
+    { id: "mb:yoizuki", mbId: "yoizuki", name:"ヨイヅキ", file: "../img/t_Yoizuki.webp", since:"2026-08-26" },
+    { id: "mb:sumika", mbId: "sumika", name:"スミカ", file: "../img/t_Sumika.webp", since:"2026-08-26" },
+    /* ★★ 2026-08-26b GRAND DEBUT GACHA Ver.4.0 限定SSR 5体（No.157〜161）。
+       ★ mb-core.js の CHAR_IDS と<b>同じ並び</b>にすること（並び＝No.）。 */
+    { id: "mb:seina", mbId: "seina", name:"セイナ", file: "../img/t_Seina.webp", since:"2026-08-26" },
+    { id: "mb:shiduki", mbId: "shiduki", name:"シヅキ", file: "../img/t_Shiduki.webp", since:"2026-08-26" },
+    { id: "mb:sayuki", mbId: "sayuki", name:"サユキ", file: "../img/t_Sayuki.webp", since:"2026-08-26" },
+    { id: "mb:sara", mbId: "sara", name:"サラ", file: "../img/t_Sara.webp", since:"2026-08-26" },
+    { id: "mb:sakuya", mbId: "sakuya", name:"サクヤ", file: "../img/t_Sakuya.webp", since:"2026-08-26" },
   ];
   /* ★ 2026-08-10 初期SR 4体（ゼラ・アヤメ・レイラ・セリーヌ）は廃止しました。
      いまは<b>全キャラがアイコンに選べる</b>ので、starter という区別そのものが要らない。 */
@@ -695,7 +741,28 @@
   , "youka", "youhi"
   , "artemia", "asuha", "blair", "lilith", "lyra", "satsuki", "sayo", "melty", "roxy"
   /* ★ 2026-08-20 GRAND DEBUT GACHA 新SSR 5体 */
-  , "mirelle", "scarlet", "koyuki", "amelia", "mio"];
+  , "mirelle", "scarlet", "koyuki", "amelia", "mio"
+  /* ★★ 2026-08-25 <b>足しわすれの修正</b>: 2026-08-22 Starlight Academy Fest の5体が
+     ここに無かった。MB_STAR5 は「このキャラはSSRか」の台帳なので、抜けていると
+     <b>XEVAミッションの図鑑コレクション（seasonSSRGroups）にそのキャラが出てこない</b>
+     ＝「新キャラがミッションに追加されない」という形で表に出る。
+     ★ MB_CHAR_MASTER に足したら<b>必ずこちらにも足す</b>こと。 */
+  , "otoha", "sayaka", "sayuri", "akari", "hinata"
+  /* ★★ 2026-08-24 GRAND DEBUT GACHA Ver.2.0 新SSR 5体 */
+  , "guren", "yuuna", "momo", "chihaya", "yui"
+  /* ★★ 2026-08-25 Starlight Academy Fest 2 限定SSR 5体。
+     ここに無いと <b>XEVAミッションの図鑑コレクション（seasonSSRGroups）に出てこない</b>。 */
+  , "suzune", "minamo", "karen", "tomoe", "himari"
+  /* ★★ 2026-08-26 GRAND DEBUT Ver.3.0 の5体 ＋ MagiLex の KP交換キャラ4体。
+     ここに無いと <b>XEVAミッションの図鑑コレクション（seasonSSRGroups）に出てこない</b>。 */
+  , "karin", "mirei", "yuuka", "miyabi", "sumire"
+  /* ★★ 2026-08-26 ミズキは上方修正で <b>star5</b> になったので、ここにも足す。
+     抜けていると XEVAミッションの図鑑コレクション（seasonSSRGroups）に出てこない。 */
+  , "mizuki"
+  , "kanade", "homura", "yoizuki", "sumika"
+  /* ★★ 2026-08-26b GRAND DEBUT Ver.4.0 の5体。
+     ここに無いと <b>XEVAミッションの図鑑コレクションに出てこない</b>。 */
+  , "seina", "shiduki", "sayuki", "sara", "sakuya"];
   MB_CHAR_MASTER.forEach(function (c) { c.mb = true; c.starter = MB_STARTERS.indexOf(c.mbId) >= 0; });
   MB_CHAR_MASTER.forEach(function (c) { c.star5 = MB_STAR5.indexOf(c.mbId) >= 0; });
   /* id は "mb:zera" のように接頭辞つき。XEVAガチャにも同じ名前のキャラ（シオンなど）が
@@ -844,6 +911,436 @@
     return (base == null ? dir : String(base).replace(/\/?$/, "/") + dir) + f;
   }
 
+  /* ══════════════════════════════════════════════════════════════
+     ★★ 2026-08-24 XEVARION 共通ステータス（レベル・EXP・スタミナ）
+     ------------------------------------------------------------
+     ご指定:
+       ・MagiBurst の「自分のレベル」を <b>XEVARION 全体のステータス</b>にする。
+         レベルはこれまでどおり MagiBurst のクエストクリアで上がり、
+         あわせて <b>MagiLex</b> でも上がる（セットの完全習得／確認テスト合格）。
+       ・<b>スタミナ</b>を新設する。
+           上限   … 自分のレベルで決まる（Lv1 で 100、1レベルごとに +2）
+           消費   … MagiBurst の <b>1プレイにつき 10</b>
+                    （勝っても負けても、中断しても、始めからやり直しても かかる）
+           回復   … ① 2分ごとに +1
+                    ② ＋ボタンから 💎ジェム2つごとに +50
+                    ③ MagiLex の確認テストを1つクリアするごとに +50
+           ★ ①② は<b>上限まで</b>。③ の MagiLex ぶんは<b>上限を超えても増える</b>（ご指定）。
+           ★ 4ケタになったら「999+」と表示する（stamText）。
+
+     ★ なぜ xeva.js の中に入れたか
+       新しいファイルにすると、読みこむ HTML（ポータル・ガチャ・図鑑・MagiBurst・MagiLex …）と
+       各 sw.js の CORE に足しわすれた瞬間に「その画面だけ動かない」が起きる。
+       xeva.js は<b>すべての画面がすでに読んでいる</b>ので、ここに置けば足しもれが原理的に無い。
+
+     ★ 置き場所は xeva_status_v1（アカウント同期キー）。
+       xeva-keys.js の PORTAL_SYNC_KEYS と xeva-cloud.js の URGENT_KEYS に入れてある。
+       ＝ 端末をまたいでレベルもスタミナも同じになる。
+     ══════════════════════════════════════════════════════════════ */
+  var ST_KEY = "xeva_status_v1";
+  /* ── レベル（もとは MagiBurst/index.html の plvNeed / playerLv）── */
+  var PLV_MAX = 200;
+  function plvNeed(lv) { return 120 + (lv - 1) * 60; }     // そのレベルから次へ上がるのに要るEXP
+  function lvOfExp(exp) {
+    var left = Math.max(0, Math.round(exp || 0)), lv = 1;
+    while (lv < PLV_MAX && left >= plvNeed(lv)) { left -= plvNeed(lv); lv++; }
+    return { lv: lv, cur: left, need: lv >= PLV_MAX ? 0 : plvNeed(lv) };
+  }
+  /* ── スタミナ ── */
+  var STAM_BASE = 100;          // Lv1 の上限（ご指定の「最小100」）
+  var STAM_PER_LV = 2;          // レベルが1上がるごとに増える上限（Lv200 で 498）
+  var STAM_TICK_MS = 120000;    // 2分で1回復
+  var STAM_PLAY = 10;           // MagiBurst 1プレイぶん
+  var STAM_GEM_COST = 2;        // 💎2つで
+  var STAM_GEM_GAIN = 50;       // +50
+  var STAM_LEX_GAIN = 50;       // MagiLex の確認テスト1つで +50（上限を超えて増える）
+  function stamMaxOf(lv) { return STAM_BASE + (Math.max(1, lv | 0) - 1) * STAM_PER_LV; }
+
+  function stFresh() { return { exp: 0, stam: null, at: 0, mig: {}, hist: [] }; }
+  function stLoad() {
+    try {
+      var r = localStorage.getItem(ST_KEY);
+      if (r) {
+        var s = JSON.parse(r);
+        if (s && typeof s === "object") {
+          if (typeof s.exp !== "number" || !isFinite(s.exp) || s.exp < 0) s.exp = 0;
+          if (!s.mig || typeof s.mig !== "object") s.mig = {};
+          if (!Array.isArray(s.hist)) s.hist = [];
+          return s;
+        }
+      }
+    } catch (e) {}
+    return stFresh();
+  }
+  function stEmit(s) {
+    try { window.dispatchEvent(new CustomEvent("xeva:status", { detail: stView(s) })); } catch (e) {}
+  }
+  function stSave(s) {
+    if (s.hist.length > 40) s.hist.length = 40;
+    try { localStorage.setItem(ST_KEY, JSON.stringify(s)); } catch (e) {}
+    stEmit(s);
+  }
+  /* 時間による回復をここでまとめて精算する（読むたびに呼ぶ）。
+     ★ 上限<b>以上</b>のときは時間では増やさない。余った時間も持ち越さない。
+     ★ 端末の時計が戻ったとき（el < 0）は、ためこまずに now でそろえる。 */
+  function stSettle(s) {
+    var now = Date.now();
+    var mx = stamMaxOf(lvOfExp(s.exp).lv);
+    if (typeof s.stam !== "number" || !isFinite(s.stam) || s.stam < 0) { s.stam = mx; s.at = now; return s; }
+    if (!s.at || s.at > now) { s.at = now; return s; }
+    if (s.stam >= mx) { s.at = now; return s; }
+    var n = Math.floor((now - s.at) / STAM_TICK_MS);
+    if (n <= 0) return s;
+    var room = mx - s.stam;
+    if (n >= room) { s.stam = mx; s.at = now; }
+    else { s.stam += n; s.at += n * STAM_TICK_MS; }
+    return s;
+  }
+  /* 画面に渡す形 */
+  function stView(s) {
+    var L = lvOfExp(s.exp);
+    var mx = stamMaxOf(L.lv);
+    var full = s.stam >= mx;
+    return {
+      exp: Math.round(s.exp || 0), lv: L.lv, cur: L.cur, need: L.need, lvMax: PLV_MAX,
+      stam: Math.round(s.stam || 0), max: mx, full: full,
+      /* 次の1回復までの残りミリ秒（満タンなら 0） */
+      nextMs: full ? 0 : Math.max(0, STAM_TICK_MS - (Date.now() - (s.at || Date.now()))),
+      /* 満タンになるまでの残りミリ秒（満タンなら 0） */
+      fullMs: full ? 0 : Math.max(0, (mx - s.stam) * STAM_TICK_MS - (Date.now() - (s.at || Date.now()))),
+      play: STAM_PLAY, gemCost: STAM_GEM_COST, gemGain: STAM_GEM_GAIN, lexGain: STAM_LEX_GAIN,
+      tickMs: STAM_TICK_MS,
+    };
+  }
+  /* 読み書きのたびに精算して保存する（保存しないと、次に読んだとき同じぶんをもう一度足してしまう） */
+  function stGet() {
+    var s = stSettle(stLoad());
+    try { localStorage.setItem(ST_KEY, JSON.stringify(s)); } catch (e) {}
+    return stView(s);
+  }
+  /* 「999+」表示（4ケタになったら丸める。ご指定） */
+  function stamText(v) { v = Math.round(v || 0); return v >= 1000 ? "999+" : String(v); }
+  /* 残り時間の日本語（「あと 12分」） */
+  function stamWhen(ms) {
+    ms = Math.max(0, Math.round(ms || 0));
+    var m = Math.ceil(ms / 60000);
+    if (m < 60) return m + "分";
+    var h = Math.floor(m / 60);
+    return h + "時間" + (m % 60 ? (m % 60) + "分" : "");
+  }
+
+  var status = {
+    KEY: ST_KEY,
+    PLV_MAX: PLV_MAX,
+    plvNeed: plvNeed,
+    lvOfExp: lvOfExp,
+    stamMaxOf: stamMaxOf,
+    STAM_PLAY: STAM_PLAY,
+    STAM_GEM_COST: STAM_GEM_COST,
+    STAM_GEM_GAIN: STAM_GEM_GAIN,
+    STAM_LEX_GAIN: STAM_LEX_GAIN,
+    STAM_TICK_MS: STAM_TICK_MS,
+    get: stGet,
+    text: stamText,
+    when: stamWhen,
+    getLv: function () { return stGet().lv; },
+    getExp: function () { return stGet().exp; },
+    /* EXP を足す。レベルが上がったら { from, to } を返す（上がらなければ null）。
+       ★ スタミナの上限もレベルで決まるので、上がったぶんは<b>その場で満たす</b>
+         （上限だけ増えて空っぽ、にしない＝レベルアップのごほうび）。 */
+    addExp: function (n, why) {
+      n = Math.round(n || 0);
+      if (!(n > 0)) return null;
+      var s = stSettle(stLoad());
+      var before = lvOfExp(s.exp).lv;
+      s.exp = Math.max(0, Math.round(s.exp || 0) + n);
+      var after = lvOfExp(s.exp).lv;
+      if (after > before) s.stam = Math.max(s.stam, stamMaxOf(after));
+      s.hist.unshift({ exp: n, reason: why || "", t: Date.now() });
+      stSave(s);
+      return after > before ? { from: before, to: after } : null;
+    },
+    /* 累計EXPをそのまま入れ直す（MagiBurst の古いセーブからの引き継ぎ用） */
+    setExpAtLeast: function (n, why) {
+      n = Math.round(n || 0);
+      var s = stSettle(stLoad());
+      if (!(n > s.exp)) return false;
+      var before = lvOfExp(s.exp).lv;
+      s.exp = n;
+      var after = lvOfExp(s.exp).lv;
+      if (after > before) s.stam = Math.max(s.stam, stamMaxOf(after));
+      s.hist.unshift({ exp: n - 0, reason: why || "引き継ぎ", t: Date.now() });
+      stSave(s);
+      return true;
+    },
+    /* 一度きりの引き継ぎ（タグで管理）。値が 0 のときは印を付けない
+       （＝セーブがまだ届いていない端末で「移行済み」にしてしまわない）。 */
+    migrateExpOnce: function (tag, exp, why) {
+      var s = stLoad();
+      if (s.mig[tag]) return false;
+      exp = Math.max(0, Math.round(exp || 0));
+      if (!exp) return false;
+      s = stSettle(s);
+      s.mig[tag] = Date.now();
+      if (exp > s.exp) s.exp = exp;
+      s.stam = Math.max(s.stam == null ? 0 : s.stam, stamMaxOf(lvOfExp(s.exp).lv));
+      stSave(s);
+      return true;
+    },
+    isMigrated: function (tag) { return !!stLoad().mig[tag]; },
+
+    /* ── スタミナ ── */
+    getStamina: function () { return stGet().stam; },
+    getMax: function () { return stGet().max; },
+    canPlay: function (n) { return stGet().stam >= Math.round(n == null ? STAM_PLAY : n); },
+    /* 足りなければ false（何も減らさない） */
+    spend: function (n, why) {
+      n = Math.round(n == null ? STAM_PLAY : n);
+      if (n <= 0) return true;
+      var s = stSettle(stLoad());
+      if ((s.stam || 0) < n) { stSave(s); return false; }
+      /* 満タンから減ったその瞬間から「2分で1」を数えはじめる */
+      var mx = stamMaxOf(lvOfExp(s.exp).lv);
+      if (s.stam >= mx) s.at = Date.now();
+      s.stam -= n;
+      s.hist.unshift({ stam: -n, reason: why || "", t: Date.now() });
+      stSave(s);
+      return true;
+    },
+    /* over:true なら<b>上限を超えて</b>足す（MagiLex の確認テストぶん）。
+       既定は上限まで（時間・ジェムぶん）。 */
+    add: function (n, why, over) {
+      n = Math.round(n || 0);
+      if (!(n > 0)) return stGet().stam;
+      var s = stSettle(stLoad());
+      var mx = stamMaxOf(lvOfExp(s.exp).lv);
+      s.stam = over ? (s.stam || 0) + n : Math.min(Math.max(mx, s.stam || 0), (s.stam || 0) + n);
+      s.hist.unshift({ stam: n, reason: why || "", t: Date.now() });
+      stSave(s);
+      return stView(s).stam;
+    },
+    /* MagiLex の確認テスト1つぶん（上限を超えて回復する） */
+    addFromLex: function (why) { return status.add(STAM_LEX_GAIN, why || "MagiLex 確認テスト", true); },
+    getHistory: function () { return stLoad().hist || []; },
+    /* 他タブ・同期のあとに読み直させる（表示の更新用） */
+    refresh: function () { var s = stSettle(stLoad()); stSave(s); return stView(s); },
+  };
+  /* 他タブ・クラウド同期で書きかわったら画面に知らせる */
+  window.addEventListener("storage", function (e) { if (e && e.key === ST_KEY) stEmit(stSettle(stLoad())); });
+  window.addEventListener("xeva:synced", function () { try { stEmit(stSettle(stLoad())); } catch (err) {} });
+  /* 時間で回復するので、開いているあいだは定期的に知らせる（表示だけの用事） */
+  setInterval(function () { try { stEmit(stSettle(stLoad())); } catch (e) {} }, 20000);
+
+  /* ══════════════════════════════════════════════════════════════
+     ★★ 2026-08-24 キャラ画像を出さない設定（XEVARION 全アプリ共通）
+     ------------------------------------------------------------
+     ご指定:
+       ・街中などで開いても困らないように、<b>キャラの絵を出さず、
+         その場所に<b>キャラ名</b>を出す</b>ようにできる。
+       ・<b>すべてのアプリ</b>で効く。
+       ・<b>既定はオン（絵を出す）</b>。
+
+     ★ どうやって全アプリに効かせているか
+       設定そのものは Xevion OS（xevion_os_v1 の charImg）に置いてあるが、
+       xevion-os.js を読んでいるのは<b>ポータルだけ</b>なので、
+       ここでは<b>キーを直接読む</b>（既定はオン）。
+       xeva.js は MagiBurst・MagiLex をふくむ<b>すべての画面が読んでいる</b>ので、
+       ここに置けば「あのアプリだけ効かない」が起きない。
+
+     ★ 絵の差し替えかた
+       <img> を消したり作り替えたりすると、あとからその <img> を触るアプリ側の
+       コード（src を入れ替える・onerror を見る…）が壊れる。
+       そこで <b>src だけ「名前を描いた SVG」に差し替える</b>。
+       元の src は data-xvsrc に控えてあるので、設定を戻せばその場で元に戻る。
+       大きさ・角丸・object-fit などはその <img> のスタイルのままなので、
+       レイアウトはいっさい動かない。
+
+     ★ どの <img> がキャラなのかの見分けかた
+       ファイル名を <b>キャラ台帳（CHAR_MASTER / MB_CHAR_MASTER）</b> と突き合わせる。
+       「それっぽいパス」で判定すると、背景やバナーまで名札になってしまう。
+       ★ キャラを増やしたら台帳に足すので、ここは自動でついてくる。
+     ══════════════════════════════════════════════════════════════ */
+  var OS_KEY = "xevion_os_v1";
+  /* ファイル名（拡張子・t_ を落としたもの）→ キャラ名 */
+  var NAME_BY_BASE = (function () {
+    var m = {}, i, b;
+    function put(file, name) {
+      if (!file || !name) return;
+      b = String(file).split("/").pop().replace(/\?.*$/, "").replace(/\.[a-z0-9]+$/i, "").toLowerCase();
+      if (b.indexOf("t_") === 0) b = b.slice(2);
+      if (!m[b]) m[b] = name;
+    }
+    for (i = 0; i < CHAR_MASTER.length; i++) put(CHAR_MASTER[i].file, CHAR_MASTER[i].name);
+    for (i = 0; i < MB_CHAR_MASTER.length; i++) put(MB_CHAR_MASTER[i].file, MB_CHAR_MASTER[i].name);
+    return m;
+  })();
+  function charNameOfSrc(src) {
+    if (!src) return null;
+    var b = String(src).split("/").pop().split("?")[0].split("#")[0].replace(/\.[a-z0-9]+$/i, "").toLowerCase();
+    if (b.indexOf("t_") === 0) b = b.slice(2);
+    return NAME_BY_BASE[b] || null;
+  }
+  /* ══ 名札（data URI の SVG）══
+     ★★ 2026-08-25 ご指定により、絵の代わりに出すのは<b>名前だけ</b>にした。
+       以前は飾り枠や「画像を隠しています」の但し書きを入れていたが、
+       無地の板に<b>名前を1つ</b>置くだけにする。
+     ★ 横幅の見積もりは「全角＝1.0 ・ 半角＝0.55」で数える。
+       文字数だけで決めると、英字の長い名前（PREMIUM SELECT GACHA）が枠からはみ出す。 */
+  function plEsc(t) {
+    return String(t).replace(/[&<>"']/g, function (c) {
+      return { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c];
+    });
+  }
+  function plW(s) {                       /* 文字列の横幅（em 単位の見積もり） */
+    var w = 0, i;
+    for (i = 0; i < s.length; i++) w += s.charCodeAt(i) > 0x2e80 ? 1 : 0.55;
+    return w;
+  }
+  /* 名前を最大3行に折り返す。空白のある名前（英字）は語の切れ目で、
+     空白のない名前（日本語）は横幅で区切る。 */
+  function plWrap(s, max) {
+    s = String(s == null ? "?" : s).trim() || "?";
+    var lines = [], i, cur, t;
+    if (s.indexOf(" ") >= 0) {
+      var words = s.split(/\s+/);
+      cur = "";
+      for (i = 0; i < words.length; i++) {
+        t = cur ? cur + " " + words[i] : words[i];
+        if (plW(t) > max && cur) { lines.push(cur); cur = words[i]; } else cur = t;
+      }
+      if (cur) lines.push(cur);
+    } else {
+      cur = "";
+      for (i = 0; i < s.length; i++) {
+        t = cur + s.charAt(i);
+        if (plW(t) > max && cur) { lines.push(cur); cur = s.charAt(i); } else cur = t;
+      }
+      if (cur) lines.push(cur);
+    }
+    if (lines.length > 3) { lines = lines.slice(0, 3); lines[2] = lines[2].slice(0, Math.max(1, lines[2].length - 1)) + "…"; }
+    return lines;
+  }
+  /* w × h の無地の板に名前だけを中央揃えで書く。
+     ratio … 板の高さに対する文字の大きさの上限。
+       キャラの名札は小さく出ることが多いので大きめ（0.26）、
+       ガチャバナーは大きく引きのばされるので控えめ（0.17）にする。 */
+  function plateSvg(name, w, h, max, ratio) {
+    var lines = plWrap(name, max), longest = 0;
+    lines.forEach(function (t) { var v = plW(t); if (v > longest) longest = v; });
+    var size = Math.min(h * (ratio || 0.26), (w * 0.86) / Math.max(0.5, longest));
+    var lh = size * 1.3;
+    var y0 = h / 2 - ((lines.length - 1) * lh) / 2 + size * 0.35;
+    var txt = lines.map(function (t, k) {
+      return '<text x="' + (w / 2) + '" y="' + (y0 + k * lh).toFixed(1) + '" text-anchor="middle" ' +
+        'font-family="Noto Sans JP,system-ui,sans-serif" font-size="' + size.toFixed(1) + '" font-weight="700" ' +
+        'fill="#ffffff">' + plEsc(t) + "</text>";
+    }).join("");
+    var svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ' + w + " " + h +
+      '" preserveAspectRatio="xMidYMid slice">' +
+      '<rect width="' + w + '" height="' + h + '" fill="#3d4166"/>' + txt + "</svg>";
+    return "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
+  }
+  var _plateCache = {};
+  function plateOf(name) {                /* キャラの絵の代わり（正方形） */
+    var k = "c/" + name;
+    if (!_plateCache[k]) _plateCache[k] = plateSvg(name, 100, 100, 5);
+    return _plateCache[k];
+  }
+  function bannerPlateOf(name) {          /* ガチャバナーの代わり（横長） */
+    var k = "b/" + name;
+    if (!_plateCache[k]) _plateCache[k] = plateSvg(name, 160, 90, 9, 0.17);
+    return _plateCache[k];
+  }
+  /* ══ どの絵を隠すか ══
+     ★★ 2026-08-25 ご指定により、隠すのは<b>キャラ画像とガチャバナーだけ</b>にしました。
+       以前はファイル名のあたま（bn_ ／ back）でまとめて隠していたため、
+       <b>クエストの背景（back*）やクエストのバナー（蓬莱の九重・幽冥の庭園…）</b>まで
+       消えていた。これらは景色の絵なので、いまはそのまま出す。
+     ・ GACHA_BN … ガチャのバナー。名札には<b>そのガチャの名前</b>を書く。
+       ★ フェスを増やしたらここに1行足す（バナーのファイル名 → 表示する名前）。
+     ・ EX_BN  … 降臨のバナーは「そのキャラ1体の大きな絵」なのでキャラ画像として扱う。 */
+  var GACHA_BN = {
+    bn_premium_s: "PREMIUM SELECT GACHA",
+    bn_debut_s: "GRAND DEBUT GACHA",
+    bn_fes_s: "Nocturne Bloom Fest",
+    bn_fes2_s: "Luminous Summer Fest",
+    bn_fes3_s: "Phantom Legend Fest",
+    bn_fes3_soon: "Phantom Legend Fest",
+    bn_fes4_s: "蒼夏祭",
+    bn_fes5_s: "Starlight Academy Fest",
+    bn_fes6_s: "Starlight Academy Fest 2"
+  };
+  var EX_BN = { bn_airaex: "アイラ", bn_shionex: "シオン", bn_violaex: "ヴィオラ" };
+  function artBase(src) {
+    return String(src).split("/").pop().split("?")[0].split("#")[0].replace(/\.[a-z0-9]+$/i, "").toLowerCase();
+  }
+  /* 設定を読む（既定はオン＝絵を出す） */
+  function charImgOn() {
+    try {
+      var o = JSON.parse(localStorage.getItem(OS_KEY) || "null");
+      if (o && typeof o === "object" && o.charImg !== undefined) return !!o.charImg;
+    } catch (e) {}
+    return true;
+  }
+  var _veilOn = false, _veilTimer = null, _veilObs = null;
+  function veilImg(img) {
+    var src = img.getAttribute("src");
+    if (!src || src.indexOf("data:image/svg") === 0) return;
+    var base = artBase(src);
+    var nm = charNameOfSrc(src) || EX_BN[base] || null;     /* キャラの絵（降臨バナーをふくむ） */
+    var wide = false;
+    if (!nm && GACHA_BN[base]) { nm = GACHA_BN[base]; wide = true; }   /* ガチャのバナー */
+    if (!nm) return;                                        /* それ以外の絵はそのまま出す */
+    img.setAttribute("data-xvsrc", src);
+    img.setAttribute("data-xvnm", nm);
+    /* alt が空のままだと読み上げでも名前が分からないので、ここで入れておく */
+    if (!img.getAttribute("alt")) img.setAttribute("alt", nm);
+    img.setAttribute("src", wide ? bannerPlateOf(nm) : plateOf(nm));
+  }
+  function unveilImg(img) {
+    var src = img.getAttribute("data-xvsrc");
+    img.removeAttribute("data-xvsrc");
+    img.removeAttribute("data-xvnm");
+    if (src) img.setAttribute("src", src);
+  }
+  function scanVeil() {
+    var list, i;
+    if (_veilOn) {
+      list = document.querySelectorAll("img:not([data-xvsrc])");
+      for (i = 0; i < list.length; i++) veilImg(list[i]);
+    } else {
+      list = document.querySelectorAll("img[data-xvsrc]");
+      for (i = 0; i < list.length; i++) unveilImg(list[i]);
+    }
+  }
+  function scheduleVeil() {
+    if (_veilTimer) return;
+    _veilTimer = setTimeout(function () { _veilTimer = null; try { scanVeil(); } catch (e) {} }, 40);
+  }
+  function applyCharImg() {
+    var on = charImgOn();
+    var want = !on;                      // 設定がオフ ＝ 名札にする
+    if (want === _veilOn) { if (want) scheduleVeil(); return; }
+    _veilOn = want;
+    try { document.body && document.body.classList.toggle("xv-nochar", want); } catch (e) {}
+    scanVeil();
+    if (want && !_veilObs && window.MutationObserver) {
+      /* 画面は innerHTML でまるごと作り直されることが多いので、
+         「増えた <img>」を見張って、そのつど名札にする。 */
+      _veilObs = new MutationObserver(scheduleVeil);
+      try { _veilObs.observe(document.documentElement, { childList: true, subtree: true, attributeFilter: ["src"] }); } catch (e) {}
+    }
+    if (!want && _veilObs) { try { _veilObs.disconnect(); } catch (e) {} _veilObs = null; }
+    try { window.dispatchEvent(new CustomEvent("xeva:charimg", { detail: { on: on } })); } catch (e) {}
+  }
+  /* ほかのタブ・設定画面で変わったらついていく */
+  window.addEventListener("storage", function (e) { if (e && e.key === OS_KEY) applyCharImg(); });
+  window.addEventListener("xos:change", function (e) {
+    if (!e || !e.detail || e.detail.key === "charImg") applyCharImg();
+  });
+  if (document.body) applyCharImg();
+  else document.addEventListener("DOMContentLoaded", applyCharImg);
+
   /* ── 公開API ── */
   var XEVA = {
     KEY: KEY,
@@ -857,6 +1354,17 @@
     ticket: ticket,
     /* 🎫フェスチケット（フェスガチャ専用。どのフェスでも使える） */
     fesTicket: fesTicket,
+    /* ★ 2026-08-24 プレミアムセレクト券（1枚＝プレミアムのSSRから好きな1体） */
+    SEL_KEY: SEL_KEY,
+    selectTicket: selectTicket,
+    /* ★ 2026-08-24 XEVARION 共通ステータス（レベル・EXP・スタミナ） */
+    STATUS_KEY: ST_KEY,
+    status: status,
+    /* ★ 2026-08-24 キャラ画像を出すか（設定は Xevion OS の charImg・既定はオン） */
+    charImgOn: charImgOn,
+    applyCharImg: applyCharImg,
+    charNameOfSrc: charNameOfSrc,
+    charNamePlate: plateOf,
     LOGIN_BONUS: LOGIN_BONUS,
     MISSIONS: MISSIONS,
     CHARS: CHAR_MASTER,
@@ -1014,7 +1522,67 @@
     }
   };
 
+
+  /* ══════════════════════════════════════════════════════════════
+     ★★ 2026-08-26 画像の長押しを「まったく反応しない」ようにする（ご指定）
+     ──────────────────────────────────────────────
+     iPhone/Android は画像を長押しすると
+       ・拡大プレビュー（iOS 16 以降のポップアップ）
+       ・「写真に保存」「コピー」のメニュー
+     が出てしまう。ロゴやキャラの絵はゲームの部品なので、これは要らない。
+     ★ MagiBurst だけは以前から自前で止めていたが、XEVARION 本体・MagiLex には
+       入っていなかった。<b>xeva.js は全アプリが読む</b>ので、ここに1本だけ置く
+       （2026-08-24 の決めごと: 全アプリに効かせるものは xeva.js）。
+
+     やること（3つそろえて初めて止まる）
+       ① CSS  … -webkit-touch-callout:none ＋ 選択・ドラッグの禁止
+                  iOS Safari の長押しプレビューはこれで止まる。
+       ② contextmenu … Android Chrome・PC の右クリック／長押しメニューを打ち消す。
+       ③ dragstart   … PC で絵をつまんで持ち出せてしまうのを止める。
+     ★ <b>画像とキャンバスの上だけ</b>で止める。入力欄まで止めると
+       コピー＆ペーストが奪われる（MagiLex の検索欄・アカウント名など）。
+     ★ pointer-events は<b>切らない</b>。図鑑やガチャは <img> 自体に onclick が
+       付いている場所があるので、切るとタップできなくなる。
+     ★ 二重に入れない（MagiBurst は自前の同じ処理を持っている）よう印を付ける。
+     ══════════════════════════════════════════════════════════════ */
+  (function () {
+    if (window.__xevaNoLongPress) return;
+    window.__xevaNoLongPress = true;
+    var CSS = "img,canvas,svg,picture,video{-webkit-touch-callout:none;-webkit-user-drag:none;"
+            + "-khtml-user-drag:none;user-select:none;-webkit-user-select:none;-ms-user-select:none}";
+    function addCss() {
+      try {
+        if (document.getElementById("xevaNoLongPressCss")) return;
+        var st = document.createElement("style");
+        st.id = "xevaNoLongPressCss";
+        st.textContent = CSS;
+        (document.head || document.documentElement).appendChild(st);
+      } catch (e) {}
+    }
+    addCss();
+    if (!document.head) {
+      try { document.addEventListener("DOMContentLoaded", addCss, { once: true }); } catch (e) {}
+    }
+    function isArt(t) {
+      if (!t || !t.tagName) return false;
+      var n = t.tagName;
+      /* 背景画像で絵を出している所（ガチャの演出カードなど）も、印を付けておけば止める */
+      if (t.classList && t.classList.contains("noPress")) return true;
+      return n === "IMG" || n === "CANVAS" || n === "PICTURE" || n === "VIDEO";
+    }
+    try {
+      document.addEventListener("contextmenu", function (e) {
+        if (isArt(e.target)) e.preventDefault();
+      }, { passive: false, capture: true });
+      document.addEventListener("dragstart", function (e) {
+        if (isArt(e.target)) e.preventDefault();
+      }, { passive: false, capture: true });
+    } catch (e) {}
+  })();
+
   window.XEVA = XEVA;
+  /* ★ 2026-08-24 レベル・スタミナはどの画面からも使うので、短い名前でも出しておく */
+  window.XStatus = status;
 
   try {
     window.addEventListener("storage", function (e) {

@@ -6,7 +6,7 @@
 <script>(function(){try{var a=JSON.parse(localStorage.getItem('xeva_account_v1'));if(!a||!a.setupDone)location.replace('index.html');}catch(e){}})();</script>
 <script type="module" src="xevarion-fb.js?v=22"></script>
 <script src="xeva-presence.js?v=1" defer></script>
-<script type="module" src="xeva-cloud.js?v=16"></script>
+<script type="module" src="xeva-cloud.js?v=18"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -21,8 +21,8 @@
 <!-- ★ 2026-08-10 ガチャ結果の演出（1枚ずつ公開・昇格演出）の見た目。MagiBurst と共通 -->
 <link rel="stylesheet" href="mb-gacha-reveal.css?v=3">
 <!-- ★ 2026-08-10 キャラ詳細（性能画面）の見た目。図鑑（characters.html）と共通 -->
-<link rel="stylesheet" href="mb-char-detail.css?v=10">
-<script src="xeva.js?v=35"></script>
+<link rel="stylesheet" href="mb-char-detail.css?v=11">
+<script src="xeva.js?v=44"></script>
 <script src="xeva-loading.js?v=1" defer></script>
 <script src="magibattle-stats.js?v=6"></script>
 <script type="module" src="xeva-sync.js?v=8"></script>
@@ -165,6 +165,26 @@ body::after{width:320px;height:320px;background:radial-gradient(circle,rgba(255,
 .pbtn small i.pf{background:#c86bff;color:#2b1b4d}
 .pbtn small i.pg{background:#5ab6ff;color:#08182f}
 .pbtn.p10{background:linear-gradient(135deg,#ff9d2e,#e0405e 60%,#c86bff);box-shadow:0 4px 16px rgba(224,64,94,.36)}
+/* ══ ★★ 2026-08-26 GRAND DEBUT の「1日1回 無料の単発」（ご指定でやり直し）══
+   ------------------------------------------------------------
+   ご指定:「ボタンは通常のものと同じにし、そのボタンの右上に『1回無料』と上に表示して」
+   ＝ ボタンそのものは <b>ほかの「1回」とまったく同じ紫</b>のまま。
+     ちがうのは<b>右上に出る札</b>だけ。
+   ★ 2026-08-25b の「全幅で光る大きなボタン」（.pbtn.pfree / #pullbar.hasfree）は
+     ここで<b>廃止</b>した。日によってボタンの並びと大きさが変わってしまい、
+     5連・10連 が押しづらかったため。
+   ★ 札がボタンの外へはみ出すので、#pullbar / .pbtn に overflow:hidden を付けないこと。 */
+.pbtn{position:relative;overflow:visible}
+.pbtn .freetag{position:absolute;top:-7px;right:-5px;z-index:2;
+  font-size:9.5px;font-weight:900;line-height:1;letter-spacing:.02em;white-space:nowrap;
+  padding:4px 7px;border-radius:99px;color:#08301f;
+  background:linear-gradient(135deg,#ffd257,#37e0a0 70%);
+  border:1.5px solid #fff;box-shadow:0 3px 9px rgba(20,180,140,.45);
+  animation:freetagPulse 1.6s ease-in-out infinite}
+@keyframes freetagPulse{
+  0%,100%{transform:scale(1)}
+  50%{transform:scale(1.09)}
+}
 .pbtn:disabled{opacity:.45;cursor:not-allowed;filter:grayscale(.5)}
 .pbtn:active{transform:translateY(1px)}
 /* ── 見出し・注記 ── */
@@ -367,9 +387,31 @@ body::after{width:320px;height:320px;background:radial-gradient(circle,rgba(255,
     </button>
     <div id="gmenu"></div>
 
+    <!-- ★★ 2026-08-24 ★プレミアムセレクト券（夏限定パックの中身）。
+         持っているときだけ出る。中身は gacha-ui.js の paintSelTicket() が入れる。 -->
+    <div id="selbar"></div>
+
     <div class="ghero" id="ghero"></div>
     <div id="pkwrap"></div>
     <div class="note" id="gnote"></div>
+    <style>
+      /* ★ 2026-08-24 プレミアムセレクト券の案内 */
+      #selbar{margin:0 0 12px}
+      #selbar .selcard{display:flex;align-items:center;gap:11px;width:100%;text-align:left;cursor:pointer;
+        padding:13px 14px;border-radius:16px;border:none;color:#fff;font-family:inherit;
+        background:linear-gradient(135deg,#ff5d8f,#ffd257 52%,#8e6bff);
+        box-shadow:0 8px 24px rgba(255,93,143,.4)}
+      #selbar .selcard:active{transform:scale(.99)}
+      #selbar .seli{flex:none;font-size:24px;line-height:1}
+      #selbar .selt{flex:1;min-width:0}
+      /* ★ 見出しの <b> だけ1行に。説明の中の強調（<small> の中の <b>）は行の中に置く
+         （ここを .selt b にすると、説明までぶつ切りに改行される） */
+      #selbar .selt > b{display:block;font-size:13.5px;font-weight:900;letter-spacing:.02em}
+      #selbar .selt small{display:block;margin-top:3px;font-size:10.5px;font-weight:700;opacity:.92;line-height:1.6}
+      #selbar .selt small b{display:inline;font-weight:900}
+      #selbar .seln{flex:none;font-family:'Orbitron',sans-serif;font-weight:900;font-size:17px;
+        background:rgba(255,255,255,.92);color:#c2185b;border-radius:99px;padding:3px 11px}
+    </style>
     <button class="ratebtn" onclick="openRatesX()">📊 提供割合を見る（排出キャラクターの一覧）<span>›</span></button>
     <!-- ★ 2026-08-10 ここにあった「排出キャラクター」のグリッド（#cgrid）は廃止しました。
          同じ顔ぶれが提供割合の表にも並んでいて二度手間だったので、
@@ -411,13 +453,13 @@ body::after{width:320px;height:320px;background:radial-gradient(circle,rgba(255,
 <script src="mb-boot.js?v=6"></script>
 <!-- ★ MagiBurst のドメイン層（キャラ・アビリティ・技・ガチャの規則）。
      MagiBurst と<b>同じファイル</b>を読むので、キャラを足せば両方に反映される。 -->
-<script src="MagiBurst/js/mb-core.js?v=39"></script>
+<script src="MagiBurst/js/mb-core.js?v=49"></script>
 <!-- ★ 2026-08-10 キャラ詳細（性能画面）。図鑑（characters.html）と同じものを使う -->
 <!-- ★★ 2026-08-22 ガチャの詳細だけ「このキャラの最大値」も並べる（ご指定）。
      図鑑（characters.html）はこの旗を立てないので、これまでどおり いまの値だけ。
      旗は mb-char-detail.js を読む<b>前</b>に立てること。 -->
 <script>window.MBDET_MAXSTATS = true;</script>
-<script src="mb-char-detail.js?v=8"></script>
-<script src="gacha-ui.js?v=13"></script>
+<script src="mb-char-detail.js?v=10"></script>
+<script src="gacha-ui.js?v=20"></script>
 </body>
 </html>

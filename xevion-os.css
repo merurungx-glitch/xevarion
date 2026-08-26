@@ -37,6 +37,15 @@ body.xos-tx-s .xh-sheet-body{zoom:.92}
 body.xos-tx-l .xh-sheet-body{zoom:1.12}
 
 /* ══════════ 更新の赤い点を出さない ══════════ */
+/* ══ ★ 2026-08-24 キャラクターの絵を出さない設定 ══
+   <img> の差し替えは xeva.js がやる（全アプリ共通のため）。
+   ここでは<b>CSS の背景で置いている大きな絵</b>だけを消す。
+   ・.xh-kv / .xh-bg::before … ポータルの起動画面のキービジュアル
+   ★ 真っ黒にせず、同じ色みの無地に置きかえる（画面が壊れて見えないように）。 */
+body.xv-nochar .xh-kv{background-image:none!important}
+body.xv-nochar .xh-bg::before{background-image:none!important;
+  background:linear-gradient(160deg,#221a3e,#3a2a5e 55%,#1a1430)!important;filter:none!important}
+
 body.xos-nodots .xh-app.xh-updot::after,
 body.xos-nodots .xh-aitem.xh-updot::after,
 body.xos-nodots .xh-ntab.xh-updot::after{display:none}

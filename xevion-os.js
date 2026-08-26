@@ -36,7 +36,12 @@
     motion: 1,           /* 1=アニメーションあり 0=動きを減らす */
     haptics: 1,          /* 1=タップで軽く振動（対応端末のみ） */
     updateDots: 1,       /* 1=更新のあったアプリ・タブに赤い点を出す */
-    newCharTab: 1,       /* 1=新キャラが増えたらガチャタブのアイコンに出す（3回まで） */
+    /* ★★ 2026-08-24 キャラ画像（ご指定・既定はオン＝出す）。
+       オフにすると、<b>すべてのアプリ</b>でキャラの絵の場所に<b>キャラ名</b>が出る。
+       実際に絵を差し替えているのは xeva.js（全アプリが読んでいる唯一のファイル）。
+       ここは<b>設定の置き場所</b>だけを持つ。 */
+    charImg: 1,          /* 1=キャラ画像を出す 0=名前だけにする */
+    newCharTab: 1,       /* 1=ガチャタブをいちばん新しいキャラの絵にする */
     xevynarAi: 1,        /* 1=AIアシスタントから XEVYNAR へ引きつぐ */
     xevynarTips: 1       /* 1=ホームに XEVYNAR の提案を出す */
   };
@@ -86,6 +91,10 @@
     b.classList.remove("xos-tx-s", "xos-tx-m", "xos-tx-l");
     b.classList.add("xos-tx-" + (get("textSize") || "m"));
     b.classList.toggle("xos-nodots", !get("updateDots"));
+    b.classList.toggle("xv-nochar", !get("charImg"));
+    /* ★ 2026-08-24 絵の差し替えは xeva.js が持っている（全アプリ共通のため）。
+       読めていれば、その場で切り替える。 */
+    try { if (window.XEVA && XEVA.applyCharImg) XEVA.applyCharImg(); } catch (e) {}
   }
 
   /* 端末の設定が変わったら（theme:"auto" のとき）ついていく */
