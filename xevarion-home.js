@@ -146,6 +146,13 @@ const XH_ORDER_GEN_KEY = "xeva_home_order_gen";
      ずっと後ろ、という状態を防ぐため。
      ＝ 新しいイベントを足すときは<b>この配列のどこに書いてもよい</b>。 */
 const XH_EVENTS = [
+  /* ★★ 2026-08-27 極彩祭（毎月1〜15日）・極煌祭（毎月16日〜末日）。
+     ★ 毎月まるごと入れ替わるので、from / to は<b>広めに取っておく</b>
+       （実際の開催判定は mb-core.js の monthly が行う）。 */
+  { tag:"FES", t1:"極彩祭", t2:"毎月1〜15日。限定SSR「ヒナノ」——敵の属性を塗り替えるリンクスキル",
+    from:"2026-08-27", to:"2027-12-31", img:"thumbs/MagiBurst.jpg", href:"gacha.html#fes7" },
+  { tag:"FES", t1:"極煌祭", t2:"毎月16日〜末日。限定SSR「ムツミ」——鏡写しの影が同時に走るリンクスキル",
+    from:"2026-08-27", to:"2027-12-31", img:"thumbs/MagiBurst.jpg", href:"gacha.html#fes8" },
   /* ★★ 2026-08-26b GRAND DEBUT GACHA Ver.4.0。
      版ごとに10日間の決まりなので、Ver.2.0・Ver.3.0 とあわせて3本が同時に並ぶ。 */
   { tag:"GRAND DEBUT", t1:"GRAND DEBUT GACHA Ver.4.0", t2:"新SSR 5体が参戦！ 蓬莱の第一重・第二重・蓬莱天宮の手薄い階層を埋める面々",

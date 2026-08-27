@@ -303,6 +303,9 @@ img{display:block}
   opacity:0;pointer-events:none;transition:all .35s;box-shadow:var(--shadow);max-width:90vw;text-align:center}
 .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 .toast.gld{background:linear-gradient(135deg,#caa12f,#b6892a)}
+/* ★★ 2026-08-27 立て続けの知らせは行として積む（XEVA と KP を同時に見せる） */
+.toast span{display:block;line-height:1.7}
+.toast span+span{margin-top:2px;padding-top:4px;border-top:1px solid rgba(255,255,255,.22)}
 .empty{text-align:center;color:var(--faint);font-size:.82rem;padding:34px 10px}
 /* ★ 2026-08-16 検索した語句を含む問題をまとめて解く入口 */
 .lib-study{display:flex;flex-direction:column;align-items:flex-start;gap:3px;width:100%;text-align:left;cursor:pointer;

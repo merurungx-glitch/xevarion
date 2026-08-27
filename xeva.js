@@ -718,6 +718,10 @@
     { id: "mb:sayuki", mbId: "sayuki", name:"サユキ", file: "../img/t_Sayuki.webp", since:"2026-08-26" },
     { id: "mb:sara", mbId: "sara", name:"サラ", file: "../img/t_Sara.webp", since:"2026-08-26" },
     { id: "mb:sakuya", mbId: "sakuya", name:"サクヤ", file: "../img/t_Sakuya.webp", since:"2026-08-26" },
+    /* ★★ 2026-08-27 極彩祭（毎月1〜15日）・極煌祭（毎月16日〜末日）の限定SSR（No.162〜163）。
+       ★ mb-core.js の CHAR_IDS と<b>同じ並び</b>にすること（並び＝No.）。 */
+    { id: "mb:hinano", mbId: "hinano", name:"ヒナノ", file: "../img/t_Hinano.webp", since:"2026-08-27" },
+    { id: "mb:mutsumi", mbId: "mutsumi", name:"ムツミ", file: "../img/t_Mutsumi.webp", since:"2026-08-27" },
   ];
   /* ★ 2026-08-10 初期SR 4体（ゼラ・アヤメ・レイラ・セリーヌ）は廃止しました。
      いまは<b>全キャラがアイコンに選べる</b>ので、starter という区別そのものが要らない。 */
@@ -762,7 +766,10 @@
   , "kanade", "homura", "yoizuki", "sumika"
   /* ★★ 2026-08-26b GRAND DEBUT Ver.4.0 の5体。
      ここに無いと <b>XEVAミッションの図鑑コレクションに出てこない</b>。 */
-  , "seina", "shiduki", "sayuki", "sara", "sakuya"];
+  , "seina", "shiduki", "sayuki", "sara", "sakuya"
+  /* ★★ 2026-08-27 極彩祭・極煌祭の2体。
+     ここに無いと <b>XEVAミッションの図鑑コレクションに出てこない</b>。 */
+  , "hinano", "mutsumi"];
   MB_CHAR_MASTER.forEach(function (c) { c.mb = true; c.starter = MB_STARTERS.indexOf(c.mbId) >= 0; });
   MB_CHAR_MASTER.forEach(function (c) { c.star5 = MB_STAR5.indexOf(c.mbId) >= 0; });
   /* id は "mb:zera" のように接頭辞つき。XEVAガチャにも同じ名前のキャラ（シオンなど）が

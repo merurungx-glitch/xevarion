@@ -23,14 +23,14 @@
 <!-- ★★ 2026-08-22b Xevion OS の見た目（テーマ・文字の大きさ・動きを減らす）。
      xevarion-home.css の<b>あと</b>に読む＝上書きできるようにする。 -->
 <link rel="stylesheet" href="xevion-os.css?v=5">
-<script src="xeva.js?v=45" defer></script>
+<script src="xeva.js?v=46" defer></script>
 <!-- ★ 2026-08-20 通信設定（Wi-Fi／モバイルデータごとに「最新を取りに行くか」を決める）。
      決めた内容はここから各アプリの Service Worker へ送られ、SW 側が動きを切り替える。 -->
 <script src="xeva-netmode.js?v=2" defer></script>
 <!-- ★ 2026-08-18 新キャラ告知の台帳（MagiBurst と共通）。
      告知を<b>ポータルのログイン時</b>に一本化したので、ここでも読む。
      defer なので xevarion.js より先に実行される（書いた順番で走る）。 -->
-<script src="mb-newchars.js?v=6" defer></script>
+<script src="mb-newchars.js?v=7" defer></script>
 <!-- ★★ 2026-08-22b Xevion OS（XEVARION の UI をひとつの OS として扱う土台）。
      ほかの画面より<b>先に</b>読む（body のクラスを立てるので、あとから読むと一瞬ちらつく）。 -->
 <script src="xevion-os.js?v=3"></script>
@@ -42,7 +42,7 @@
 <script src="xeva-presence.js?v=1" defer></script>
 <script type="module" src="xeva-cloud.js?v=18"></script>
 <script src="xevarion.js?v=69" defer></script>
-<script src="xevarion-home.js?v=56" defer></script>
+<script src="xevarion-home.js?v=57" defer></script>
 </head>
 <body>
 <!-- ───── バックグラウンド音楽（Flagship Arrival。アクセス画面のタップで再生開始） ───── -->
@@ -1552,6 +1552,63 @@ body.music-on #beatFrame{opacity:1}
 
   <div class="nm-body" id="newsBody">
     <div class="nm-divider" id="newDivider" style="display:none;">NEW — 前回から更新</div>
+    <!-- 2026-08-27b 極彩祭・極煌祭／ヒナノ・ムツミ／蓬莱天宮の続き5クエスト -->
+    <div class="nm-item" data-tag="update" data-date="2026-08-27">
+      <div class="nm-date">2026<br>08.27</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">✦ 極彩祭・極煌祭が毎月開幕（ヒナノ・ムツミ参戦）／🏯 蓬莱天宮の続き 5クエスト追加</div>
+        <div class="nm-txt">
+          ✦ <b>極彩祭（毎月1〜15日）</b>と<b>極煌祭（毎月16日〜末日）</b>を追加しました。
+          毎月かならず入れ替わりで開催されます。ガチャの仕組みは
+          <b>Starlight Academy Fest 2 とまったく同じ</b>で、登場キャラは<b>限定キャラクター扱い</b>です。<br>
+          🌿 <b>ヒナノ</b>（木・貫通／極彩祭）と <b>ムツミ</b>（火・反射／極煌祭）が参戦。
+          2体とも<b>オムニアンチ＋2種</b>のアンチを持ち、
+          <b>自分が有利属性になる🏯蓬莱のクエストを完全対応</b>できます
+          （<b>ヒナノ＝蓬莱月宮</b>／<b>ムツミ＝蓬莱神域</b>）。
+          キラーは<b>クロス込みで3つ</b>、アビリティは<b>クロス込みで8つ</b>。
+          新設の<b>蓬莱族キラーEL</b>と<b>強化ネクサス</b>を持ちます。<br>
+          🎯 <b>ショットスキル</b>という新しい仕組みを入れました。2体は<b>自分のターンで撃つたび毎回</b>、
+          撃ち出しの瞬間に技が出ます（翠光の衝撃波／炎の輪＋バリア）。<br>
+          🔗 リンクスキルは2つとも<b>新設</b>です。<b>プリズム・ブルーム</b>は<b>当たった敵の属性を塗り替え</b>、
+          しばらくのあいだ<b>味方全員の攻撃がその敵に有利倍率</b>になります——
+          1体のリンクがチーム全員の火力を底上げする、はじめての形。
+          <b>ミラージュ・アーク</b>は<b>ふれた味方の鏡写しの影が同時に走り</b>、
+          <b>1回のショットで実質2本ぶんの軌道</b>になります。
+          共通サブリンク<b>ウィークシギル</b>は<b>弱点をもう1つ刻みます</b>。<br>
+          🏯 <b>蓬莱天宮の続き</b>として、<b>蓬莱仙苑（火）・蓬莱月宮（水）・蓬莱神域（木）・
+          蓬莱天界（光）・蓬莱神天（闇）</b>の5クエストを追加しました。
+          どれも<b>アンチギミック3種</b>で、<b>これまでに無い組み合わせ</b>です
+          （蓬莱でははじめて<b>ブロック</b>と<b>ロックゾーン</b>を使います）。
+          <b>1つ前をクリアすると次が開きます</b>。
+        </div>
+      </div>
+    </div>
+    <!-- 2026-08-27a まとめて見るでも RANK UP／ロキシーFB／挟まり位置に弱点／MagiLex の知らせ -->
+    <div class="nm-item" data-tag="update" data-date="2026-08-27">
+      <div class="nm-date">2026<br>08.27</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">✦「まとめて見る」でも RANK UP が出るように／⚡ ロキシーのFB／🎯 蓬莱は挟まる位置に弱点／📚 MagiLex の XEVA 表示</div>
+        <div class="nm-txt">
+          ✦ <b>10連で「▶▶ まとめて見る」を押すと、ランクアップ演出がまるごと飛んでいました。</b>
+          10回タップするのが大変なぶんこのボタンを押す人が多いので、
+          <b>10連ではランクアップが起きても一度も演出を見られない</b>状態でした。
+          これからは、まとめて見るを押しても<b>昇格の舞台を1回だけ立ちあげます</b>
+          （結果そのものは今までどおりすぐ出ます）。1枚ずつタップしていく場合は、これまでどおり枠ごとに出ます。<br>
+          📚 <b>MagiLex で、完全習得・確認テスト合格のときに XEVA の獲得が見えなかった</b>のを直しました。
+          XEVA はきちんと入っていましたが、直後に出る <b>KP の知らせが上書きしていた</b>ため見えていませんでした。
+          立て続けの知らせは<b>重ねずに行として積む</b>ようにしたので、XEVA・KP・スタミナがまとめて読めます。<br>
+          ⚡ <b>MagiBurst のロキシーのフルバースト</b>を、<b>本人が止まるまで嵐を続け、止まってから落雷</b>する形にしました。<br>
+          🎯 <b>蓬莱の九重で、弱点を「挟まる位置」に置く</b>ようにしました。
+          左右の壁に寄せた階層では、挟まっても弱点に当たらない状態だったためです。<br>
+          🚫 <b>敵を動かすリンクスキルを廃止</b>しました（カレンのノワールシンギュラリティの引き寄せ）。
+          そのぶん削りと崩壊の威力を上げています。<br>
+          🌍 <b>みんなのクリア編成</b>から手数・残りHP・時間の表示を外し、
+          🛡<b>対応キャラ</b>のマークを空白なしで詰めました。
+        </div>
+      </div>
+    </div>
     <!-- 2026-08-26e MagiTier に段の挿入・表からもどす／新キャラの Tier 点を少し高めに -->
     <div class="nm-item" data-tag="update" data-date="2026-08-26">
       <div class="nm-date">2026<br>08.26</div>

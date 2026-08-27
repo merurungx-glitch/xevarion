@@ -213,7 +213,33 @@ function balanceOpts(answer, wrongs){
   if(new Set(st).size !== st.length) return plain;              // 区別が付かなくなる
   return { answer: st[0], opts: shuffle(st), full: answer };
 }
-function toast(msg, gold){ const t=$("#toast"); if(!t) return; t.textContent=msg; t.className="toast show"+(gold?" gld":""); clearTimeout(t._t); t._t=setTimeout(()=>t.classList.remove("show"),2400); }
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-08-27 知らせは<b>重ねずに積む</b>（ご報告への対応）
+   ------------------------------------------------------------
+   これまでの toast() は <b>textContent を上書き</b>していたので、
+   立て続けに呼ばれると<b>あとの1つしか残らなかった</b>。
+   完全習得のときは
+       earn(...)  → 「＋600 XEVA｜「◯◯」完全習得！」
+       kpAdd(...) → 「💠 ＋5 KP（完全習得）」      ← これが上書き
+   の順に呼ばれるので、<b>KP しか見えず XEVA が出ていない</b>ように見えていた
+   （XEVA はちゃんと入っている。見えていなかっただけ）。
+   確認テストの合格でも、スタミナ・レベルの知らせが同じように後ろから上書きしていた。
+   → 表示中にもう一度呼ばれたら<b>行として足す</b>。まとめて読めるようにする。
+   ★ 同じ文は2回足さない／4行までにする（画面を覆わないように）。
+   ★ 中身は HTML ではなく<b>文字として</b>入れる（問題名がそのまま出るので）。
+   ══════════════════════════════════════════════════════════════ */
+function toast(msg, gold){
+  const t=$("#toast"); if(!t) return;
+  const showing = t.classList.contains("show");
+  if(showing && Array.isArray(t._lines) && t._lines.length < 4 && t._lines.indexOf(msg) < 0) t._lines.push(msg);
+  else { t._lines=[msg]; t._gld=false; }
+  t._gld = t._gld || !!gold;
+  t.textContent="";
+  t._lines.forEach(s=>{ const el=document.createElement("span"); el.textContent=s; t.appendChild(el); });
+  t.className="toast show"+(t._gld?" gld":"");
+  clearTimeout(t._t);
+  t._t=setTimeout(()=>{ t.classList.remove("show"); t._lines=null; t._gld=false; }, 2400 + (t._lines.length-1)*700);
+}
 function getAcc(){ return window.XEVA ? (window.XEVA.account.get()||{}) : {}; }
 function bal(){ return window.XEVA ? window.XEVA.getBalance() : 0; }
 function earn(n, msg, gold){
@@ -941,7 +967,7 @@ window.lexKpDetail = async function(id){
       document.head.appendChild(l);
     }
     if(typeof window.DB === "undefined") await _loadScript("../mb-boot.js?v=6");
-    if(typeof window.CHARS === "undefined") await _loadScript("../MagiBurst/js/mb-core.js?v=52");
+    if(typeof window.CHARS === "undefined") await _loadScript("../MagiBurst/js/mb-core.js?v=58");
     if(typeof window.openDetX !== "function") await _loadScript("../mb-char-detail.js?v=10");
     _kpDetReady = true;
     _kpOpen(id);
