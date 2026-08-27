@@ -6,11 +6,11 @@
    ・オンライン対戦・XEVA換金はアプリ側でオフライン時に無効化している
    ・取得できたリソースは随時キャッシュ更新（stale-while-revalidate）
    ============================================================ */
-const VERSION = "magiburst-sw-v125";
+const VERSION = "magiburst-sw-v129";
 const CORE = [
   "./index.html",
-  "./js/mb-core.js?v=52",   /* ★ 2026-08-10 キャラ・ガチャの共有モジュール（XEVARION のガチャと共通） */
-  "../xeva.js?v=45",
+  "./js/mb-core.js?v=58",   /* ★ 2026-08-10 キャラ・ガチャの共有モジュール（XEVARION のガチャと共通） */
+  "../xeva.js?v=46",
   "../xeva-loading.js?v=1",
   "../xeva-splash.js?v=3",
   "../app-cloud.js?v=4",
@@ -231,6 +231,9 @@ const CORE = [
      ここに足し忘れると、そのキャラだけオフラインで絵が出ない
      （更新パッケージの一覧＝update.json にも載らない）。 */
   "img/bn_fes6_s.webp",
+  /* ★★ 2026-08-27 極彩祭・極煌祭のバナー */
+  "img/bn_fes7_s.webp",
+  "img/bn_fes8_s.webp",
   "../img/t_Suzune.webp",
   "../img/t_Minamo.webp",
   /* ★★ 2026-08-26 GRAND DEBUT Ver.3.0 の5体 ＋ MagiLex の KP交換キャラ4体。
@@ -250,6 +253,10 @@ const CORE = [
   "../img/t_Sayuki.webp",
   "../img/t_Sara.webp",
   "../img/t_Sakuya.webp",
+  /* ★★ 2026-08-27 極彩祭・極煌祭の2体。ここに無いとオフラインで絵が出ず、
+     update.json のダウンロード量にも載らない。 */
+  "../img/t_Hinano.webp",
+  "../img/t_Mutsumi.webp",
   "../img/t_Karen.webp",
   "../img/t_Tomoe.webp",
   "../img/t_Himari.webp",

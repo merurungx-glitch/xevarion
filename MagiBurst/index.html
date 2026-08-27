@@ -24,7 +24,7 @@ if ("serviceWorker" in navigator) {
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
 <script src="../xeva-splash.js?v=3" data-app="MagiBurst" data-logo="../thumbs/MagiBurst.jpg"
         data-note="⚠️ このゲームの対象年齢は 13歳以上 です"></script>
-<script src="../xeva.js?v=45"></script>
+<script src="../xeva.js?v=46"></script>
 <script src="../xeva-loading.js?v=1" defer></script>
 <script type="module" src="../xevarion-fb.js?v=22"></script>
 <script src="../xeva-presence.js?v=1" defer></script>
@@ -681,12 +681,15 @@ main.on{display:block;min-height:100svh;box-sizing:border-box}
    以前はクロスのマークを絶対配置で重ねていたので、名前の文字にかぶっていた。
    ・この行は中身が無くても高さを保つ（min-height）＝カードの縦が全員そろい、列が崩れない。
    ・🌟はコンパクトにして、隣にクロスのマークが入る幅をあける。 */
-.ccch .ccmk{display:flex;align-items:center;justify-content:center;gap:3px;margin-top:3px;min-height:13px}
+.ccch .ccmk{display:flex;align-items:center;justify-content:center;gap:2px;margin-top:3px;min-height:13px}
 .ccch .ccomniB{display:block;flex:none;
   background:linear-gradient(135deg,#c86bff,#8e4fe0);color:#fff;font-size:7.5px;font-weight:900;font-style:normal;
   border-radius:99px;padding:1px 3px;line-height:1.25;white-space:nowrap;letter-spacing:-.2px;text-align:center;
   border:1px solid rgba(255,255,255,.5);box-shadow:0 2px 7px rgba(142,79,224,.4)}
-.ccch .ccomniB.off{visibility:hidden;box-shadow:none}
+/* ★★ 2026-08-27 オムニを持たないキャラの札は<b>場所ごと空けない</b>（ご指定）。
+   visibility:hidden だと 18px ぶんの空白が残り、撃種とクロスのあいだが間のびして見えた。
+   カードの高さは .ccmk の min-height でそろえてあるので、display:none にしても列は崩れない。 */
+.ccch .ccomniB.off{display:none}
 /* ★★ 2026-08-26c 撃種（貫通／反射）の札。🌟オムニと同じ1行（.ccmk）に横並びで置く。
    ★ 色はクエストカードの撃種表記とそろえる（貫通＝金／反射＝青）。 */
 /* ★★ 2026-08-26d この帯には 🌟オムニ と 🔗クロス も並ぶので、撃種は<b>1文字の丸</b>にする（ご指定）。
@@ -3788,8 +3791,8 @@ body.in-battle #top,body.in-battle #tabs{display:none}
 </div></div>
 
 <script>window.MB_IMGD = "../img/"; window.MB_GIMGD = "img/";</script>
-<script src="../mb-newchars.js?v=6"></script>
-<script src="js/mb-core.js?v=52"></script>
+<script src="../mb-newchars.js?v=7"></script>
+<script src="js/mb-core.js?v=58"></script>
 <script>
 "use strict";
 /* ══════════ アカウントガード ══════════ */
@@ -5701,6 +5704,66 @@ window.openNewChar = openNewChar; window.closeNewChar = closeNewChar;
 
 /* ══════════ お知らせ（アップデートのたびにここへ追記する） ══════════ */
 const NEWS = [
+  /* ★★ 2026-08-27b 極彩祭・極煌祭／ヒナノ・ムツミ／蓬莱天宮の続き5クエスト */
+  { date: "2026-08-27", title: "✦ 極彩祭・極煌祭が毎月開幕／🏯 蓬莱天宮の続き 5クエスト追加", body: [
+    "✦ <b>極彩祭（毎月1〜15日）</b>と<b>極煌祭（毎月16日〜末日）</b>を追加しました。"
+      + "毎月かならず入れ替わりで開催されます。ガチャの仕組みは "
+      + "<b>Starlight Academy Fest 2 とまったく同じ</b>（限定SSR 合計10%／プレミアムSSR 合計5%／SR 50%／"
+      + "アイテム枠は GRAND DEBUT GACHA と同じ中身）で、登場キャラは<b>限定キャラクター扱い</b>です。",
+    "🌿 <b>ヒナノ</b>（木・貫通／極彩祭）と <b>ムツミ</b>（火・反射／極煌祭）が参戦します。"
+      + "2体とも<b>オムニアンチ＋2種</b>のアンチを持ち、"
+      + "<b>自分が有利属性になる蓬莱のクエストを完全対応</b>できます"
+      + "（<b>ヒナノ＝蓬莱月宮</b>／<b>ムツミ＝蓬莱神域</b>）。"
+      + "キラーは<b>クロス込みで3つ</b>、アビリティは<b>クロス込みで8つ</b>。"
+      + "新設の<b>蓬莱族キラーEL</b>（×" + HOURAIKILLER_EL_MUL + "）と、"
+      + "<b>強化ネクサス</b>（極彩＝弱点+16% ／ 極煌＝ボス+13%）を持ちます。",
+    "🎯 <b>ショットスキル</b>という新しい仕組みを入れました。"
+      + "2体は<b>自分のターンで撃つたび毎回</b>、撃ち出しの瞬間に技が出ます——"
+      + "<b>ヴェルダント・シュート</b>（進行方向へ翠光の衝撃波）と "
+      + "<b>イグナイト・シュート</b>（自分のまわりに炎の輪＋バリア " + SHOTSK_MUTSUMI_BAR + "）。",
+    "🔗 リンクスキルは2つとも<b>新設</b>です。"
+      + "<b>プリズム・ブルーム</b>（ヒナノ）は<b>当たった敵の属性を塗り替え</b>、"
+      + "" + PRISM_TURNS + "ターンのあいだ<b>味方全員の攻撃がその敵に有利倍率</b>になります——"
+      + "1体のリンクがチーム全員の火力を底上げする、はじめての形。"
+      + "<b>ミラージュ・アーク</b>（ムツミ）は<b>ふれた味方の鏡写しの影が同時に走り</b>、"
+      + "<b>1回のショットで実質2本ぶんの軌道</b>になります。"
+      + "共通サブリンク<b>ウィークシギル</b>は<b>弱点をもう1つ刻む</b>——"
+      + "弱点そのものを増やす技はこれがはじめてです。",
+    "🏯 <b>蓬莱天宮の続き</b>として、<b>蓬莱仙苑（火）・蓬莱月宮（水）・蓬莱神域（木）・"
+      + "蓬莱天界（光）・蓬莱神天（闇）</b>の5クエストを追加しました。"
+      + "どれも<b>アンチギミック3種</b>で、<b>これまでに無い組み合わせ</b>です"
+      + "（蓬莱でははじめて<b>ブロック</b>と<b>ロックゾーン</b>を使います）。"
+      + "各WAVEの配置・ボスの立ち位置・盤面ギミックも1面ずつ別にしてあり、"
+      + "<b>1つ前をクリアすると次が開きます</b>。",
+  ] },
+  /* ★★ 2026-08-27a まとめて見るでも RANK UP ／ ロキシーFB ／ 挟まり位置に弱点
+     ／ 敵を動かすリンクの廃止 ／ クリア編成の表示 ／ マークを詰める */
+  { date: "2026-08-27", title: "⚡ ロキシーのFBは止まってから落雷／🎯 蓬莱は挟まる位置に弱点／✦「まとめて見る」でも RANK UP が出るように", body: [
+    "✦ <b>10連で「▶▶ まとめて見る」を押すと、ランクアップ演出がまるごと飛んでいました。</b>"
+      + "10回タップするのが大変なぶん、このボタンを押す人が多いので、"
+      + "<b>10連ではランクアップが起きても一度も演出を見られない</b>状態でした。"
+      + "これからは、まとめて見るを押しても<b>昇格の舞台を1回だけ立ちあげます</b>"
+      + "（結果そのものは今までどおりすぐ出ます）。",
+    "⚡ <b>ロキシーのフルバースト「豪雷積層雲」</b>を、"
+      + "<b>本人が止まるまで嵐を続け、止まってから落雷</b>する形に変えました（ご指定）。"
+      + "これまでは撃った瞬間からのフレーム数で落雷まで進んでいたので、"
+      + "長く走った回は<b>まだ走っている最中に雷が落ちて、そのあと静かに転がる</b>形になり、"
+      + "いちばんの見せ場と決着がずれていました。効果そのもの（割合ダメージ・防御ダウン・毒・遅延）は変えていません。",
+    "🎯 <b>蓬莱の九重で、弱点を「挟まる位置」に置く</b>ようにしました（ご指定）。"
+      + "ボスは階層ごとに上・左・右の壁ぎわに置いてありますが、"
+      + "弱点はどの階層も<b>まっすぐ上</b>に固定だったため、"
+      + "<b>左右の壁に寄せた回では、挟まっても弱点にはまったく当たりません</b>でした。"
+      + "これからは<b>壁とボスのすきま側</b>に弱点が出るので、挟まりがそのまま弱点の連打になります。",
+    "🚫 <b>敵を動かすリンクスキルを廃止</b>しました（ご指定）。"
+      + "カレンの<b>ノワールシンギュラリティ</b>から「敵を引き寄せる」動きを外し、"
+      + "<b>その場で削りつづける重力球</b>にしています。"
+      + "敵の位置が勝手に変わると、弱点をねらって組み立てた軌道が撃ったあとで意味を失い、"
+      + "挟まり位置の設計も崩れるためです。"
+      + "引き寄せぶんの手ごたえは、<b>削り 0.55→0.62 ／ 崩壊 3.20→3.60</b> に上げて埋め合わせています。",
+    "🌍 <b>みんなのクリア編成</b>から<b>手数・残りHP・かかった時間</b>の表示を外しました（ご指定）。"
+      + "ここで知りたいのは「どの4体で抜けたか」なので、<b>自分の手持ちで何体そろうか</b>だけを残しています。",
+    "🛡 <b>🛡対応キャラ</b>のマーク（撃種・🌟オムニ・🔗クロス）を、空白を空けずに詰めました。",
+  ] },
   /* ★★ 2026-08-26e MagiTier に「段の挿入」「表からもどす」／新キャラの Tier 点を平均より少し上に */
   { date: "2026-08-26", title: "🏗 MagiTier に「Tierのあいだに段を追加」と「表からもどす」を追加／新キャラの評価を少し高めに", body: [
     "🏗 <b>MagiTier で、Tier と Tier のあいだに段を追加できる</b>ようになりました。"
@@ -11830,6 +11893,8 @@ const FS_SHORT = {
   bloomingecho: "ブルエコ",
   crimsonwaltz: "クリワル",     bluerain: "ブルレイン",     voidcombo: "ヴォイコン",
   cloverfortune: "クロフォチュ", petalecho: "ペタエコ",
+  /* ★★ 2026-08-27 極彩祭・極煌祭 */
+  prismbloom: "プリブル", mirrorarc: "ミラアク",
   rosecage: "ローズケージ",     mirrorbloom: "ミラブル",
   crossgrave: "クログレ",       peacockfan: "ピコファン",   sunsanctum: "ソレサンク",
   hiplasma: "ハイプラ",         plasmanet: "プラネット",    hicross: "ハイクロス",
@@ -12061,7 +12126,8 @@ const ABIL_GROUPS = {
   /* ★ v16 新アビリティ */
   /* ★ 2026-08-18 等級L を追加（ここに足さないと、L だけ持つキャラが絞り込みに出ない） */
   gravkiller: ["gravkiller", "gravkillerM", "gravkillerL", "gravkillerEL"],
-  houraikiller: ["houraikillerL"],
+  /* ★★ 2026-08-27 蓬莱族キラーは L と EL の2等級。1つのボタンでまとめて出す */
+  houraikiller: ["houraikillerL", "houraikillerEL"],
   superaslow: ["superaslow"], healM: ["healM"],
   wallfbshort: ["wallfbshort"], impulseboost: ["impulseboost"],
   ssboost: ["ssboost", "sscharge"],
@@ -12171,6 +12237,9 @@ const FS_TYPE = {
   voidcombo: "shot",          /* まっすぐ走る刃＝ショット系 */
   cloverfortune: "shot",      /* 四方へ伸びる葉＝ショット系 */
   petalecho: "all",           /* 置いた場所のまわり全部＋写し返し＝全体系 */
+  /* ★★ 2026-08-27 極彩祭・極煌祭 */
+  prismbloom: "all",          /* 範囲まるごとに効く＝全体系 */
+  mirrorarc: "follow",        /* ふれた味方に追従して、その鏡写しが走る */
   bloomingecho: "all",        /* 跳ねた場所ごとの範囲攻撃＝全体系 */
 };
 /* ══════════ リンクスキルの「性質」タグ（★ 2026-08-04 追加） ══════════
@@ -12270,7 +12339,7 @@ const FS_TAGS = {
      ★ ここに無い技は「リンクの性質」での絞り込みにいっさい出てこない。 */
   flamechain:      ["homing", "multi", "long"],   /* 次の敵へ自動で飛び火していく */
   aquaboomerang:   ["pierce", "long", "multi"],   /* 貫通しながら往復する */
-  darksingularity: ["wide", "multi", "status"],   /* 敵を引き寄せる＝盤面を変える */
+  darksingularity: ["wide", "multi"],   /* ★ 2026-08-27 引き寄せ（status）は廃止したのでタグからも外す */
   verdeseed:       ["wide", "multi"],             /* 盤面のあちこちで時間差の範囲爆発 */
   constellation:   ["pierce", "long", "multi", "wide"],
   /* ══ ★★ 2026-08-26 GRAND DEBUT Ver.3.0 の5体 ══
@@ -12287,6 +12356,9 @@ const FS_TAGS = {
   voidcombo:     ["pierce", "bounce", "multi"],      /* 貫通しながら壁で折り返す */
   cloverfortune: ["pierce", "multi", "wide"],        /* 四方へ伸びて、当たるほど続く */
   petalecho:     ["wide", "multi"],                  /* 範囲＋あとから写し返す */
+  /* ★★ 2026-08-27 極彩祭・極煌祭 */
+  prismbloom:    ["wide", "multi", "status"],        /* 範囲＋属性を塗り替える＝状態変化 */
+  mirrorarc:     ["ally", "multi", "long"],          /* 味方に追従する影が長く走る */
 };
 const FS_TAG_NM = {
   pierce: "貫通する", bounce: "壁で反射", homing: "追尾する", multi: "多段・複数発",
@@ -12300,6 +12372,8 @@ const FS_TAG_NM = {
    「FB短縮系のサブリンクを持つキャラ」を探す手段がまったく無かった。
    ★ サブリンクを追加したら、ここにも足すこと（無いものは「タグなし」として扱われる）。 */
 const SUBFS_TAGS = {
+  /* ★★ 2026-08-27 ウィークシギル（弱点をもう1つ刻む） */
+  weaksigil: ["wide", "status"],
   plasma: ["pierce", "multi", "long"], accel: ["ally"], blast: ["wide"],
   phoming: ["homing", "pierce", "multi"], field: ["wide", "multi"],
   /* ★ 2026-08-12 ピアスシーカー20（セイラ）。性質は12発版とまったく同じ */
@@ -12349,6 +12423,9 @@ const SUBFS_TAGS = {
   pspread3: ["pierce", "multi", "wide", "long"],
 };
 const SS_TAGS = {
+  /* ★★ 2026-08-27 極彩祭・極煌祭のフルバースト */
+  hinano: ["self", "weak", "support"],
+  mutsumi: ["self", "all", "debuff"],
   /* ★★ 2026-08-22 Starlight Academy Fest 5体（どれも自強化型＋全体効果ひとつ） */
   otoha: ["self", "weak", "all"],      /* 敵全体の弱点コア開放 */
   sayaka: ["self", "support", "all"],  /* 味方全員を貫通化して総攻撃 */
@@ -15263,7 +15340,68 @@ const MINE_MAX = 4;   // ★ v13.6: 地雷の所持上限（超えた分は回�
    当たり判定（横ずれの許容量）と見た目の太さの両方でこの値を使う。v12.6 で 26 → 46。 */
 const BEAM_HALF = 46;
 function weakActive(e) { return !!e.weak; }
-function weakCore(e) { return { x: e.x, y: e.y - e.r * 0.5, r: e.r * 0.66 }; }
+/* ══ ★★ 2026-08-27 弱点は<b>挟まる側</b>に置く（ご指定）══
+   ------------------------------------------------------------
+   蓬莱の九重のボスは壁ぎわに置いてあり、壁とのすきま（HOURAI_BOSS_GAP＝104px）に
+   味方が<b>挟まって連続で殴れる</b>ようになっている。
+   ところが弱点はどの敵も<b>まっすぐ上</b>に固定だったので、
+   <b>左・右の壁ぎわに置いた回では、挟まっても弱点にはまったく当たらなかった</b>
+   ＝ せっかくの挟まりと弱点が噛み合っていなかった。
+   → ボスが壁に寄せてあるとき（e.wside）は、弱点を<b>その壁の側</b>へ置く。
+     上の壁なら今までどおり上、左の壁なら左、右の壁なら右。
+   ★ 弱点はキャラのどの位置でもよい（ご指定）ので、絵の向きは気にしない。
+   ★ wside を持たない敵（ふつうのクエスト）はこれまでどおり<b>上</b>。
+   ★ 当たり判定（weakCore）と通過判定（weakPassCore）は<b>同じ場所</b>を指すこと。
+     片方だけ動かすと「光っているのに当たらない」ことになる。 */
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-08-27 属性の塗り替え（プリズム・ブルーム／クリムゾン・ソレイユ）
+   ------------------------------------------------------------
+   敵の <b>el</b> を直に書き換え、元の属性を <b>elBase</b> にしまう。
+   こうすると elemMult(攻撃側, e.el) を呼んでいる場所（何十か所もある）を
+   <b>1つも触らずに</b>「その敵に対しては味方全員が有利」を実現できる。
+   ★ 戻すのは turnEnd の1か所だけ（elPaint.left が 0 になったら elBase へ戻す）。
+   ★ WAVE が変わると敵ごと作り直されるので、塗り替えが残ることはない。
+   ══════════════════════════════════════════════════════════════ */
+/* el に対して「有利を取れる相手の属性」＝ el が殴って 1.25 になる属性 */
+function elemPreyOf(el) {
+  const list = Object.keys(ELEM);
+  for (let i = 0; i < list.length; i++) if (elemMult(el, list[i]) > 1) return list[i];
+  return null;
+}
+/* 敵 e の属性を「me（味方）が有利を取れる属性」へ塗り替える */
+function paintEnemyEl(e, meEl, turns) {
+  const to = elemPreyOf(meEl);
+  if (!e || !to || e.hp <= 0) return false;
+  if (e.el === to) { e.elPaint = { left: turns }; return false; }   /* すでに有利なら塗らない */
+  if (e.elBase == null) e.elBase = e.el;
+  e.el = to;
+  e.elPaint = { left: turns };
+  B.effects.push({ type: "ring", x: e.x, y: e.y, t: 0, dur: 22, r: e.r * 2.6, c: ELEM[to].c });
+  B.pops.push({ x: e.x, y: e.y - e.r - 46, t: 0, txt: ELEM[to].nm + "属性に!!", c: ELEM[to].c, small: 1 });
+  spawnSparks(e.x, e.y, ELEM[to].c, 10);
+  return true;
+}
+/* ══ ★★ 2026-08-27 追加弱点（ウィークシギル）══
+   刻まれているあいだ、<b>もとの弱点の反対側</b>にもう1つ弱点コアができる。
+   ★ 当たり判定（weakCore2）と通過判定（weakPassCore2）を<b>両方</b>用意すること。 */
+function sigilOn(e) { return !!(e && e.sigil && e.sigil.left > 0); }
+function weakCore2(e) { const s = weakSide(e); return { x: e.x - e.r * s.dx, y: e.y - e.r * s.dy, r: e.r * 0.66 }; }
+function weakPassCore2(e) { const s = weakSide(e); return { x: e.x - e.r * s.dx, y: e.y - e.r * s.dy, r: e.r * WEAK_PASS_R }; }
+/* 敵にウィークシギルを刻む */
+function markSigil(e, turns) {
+  if (!e || e.hp <= 0) return;
+  e.sigil = { left: turns };
+  const w2 = weakCore2(e);
+  B.effects.push({ type: "ring", x: w2.x, y: w2.y, t: 0, dur: 26, r: e.r * 1.5, c: "#ffe14d" });
+  B.effects.push({ type: "weakcross", x: w2.x, y: w2.y, t: 0, dur: 22, c: "#ffe14d", boost: 1 });
+  B.pops.push({ x: e.x, y: e.y - e.r - 28, t: 0, txt: "弱点 ＋1", c: "#ffe14d", small: 1 });
+}
+function weakSide(e) {
+  if (e && e.wside === "left")  return { dx: -0.5, dy: 0 };
+  if (e && e.wside === "right") return { dx:  0.5, dy: 0 };
+  return { dx: 0, dy: -0.5 };
+}
+function weakCore(e) { const s = weakSide(e); return { x: e.x + e.r * s.dx, y: e.y + e.r * s.dy, r: e.r * 0.66 }; }
 /* ══════════ 弱点「通過」判定（v11） ══════════
    これまでの弱点直撃は「ボールが最初にふれた点が弱点コアの中か」だけを見ていたため、
    実質「前から当てる」しか成立しなかった。v11 からは
@@ -15275,7 +15413,7 @@ function weakCore(e) { return { x: e.x, y: e.y - e.r * 0.5, r: e.r * 0.66 }; }
 const WEAK_PASS_R = 0.34;
 const WEAK_PASS_MUL = 2.6;   // 直殴りが弱点コアを通過したときの倍率（弱点直撃と同じ）
 const LINK_WEAK_MUL = 1.8;   // リンクスキル・サブリンクが弱点コアを通過したときの倍率
-function weakPassCore(e) { return { x: e.x, y: e.y - e.r * 0.5, r: e.r * WEAK_PASS_R }; }
+function weakPassCore(e) { const s = weakSide(e); return { x: e.x + e.r * s.dx, y: e.y + e.r * s.dy, r: e.r * WEAK_PASS_R }; }
 /* 点(px,py)から (vx,vy) 方向へ len まで進む線分が、半径 rad の円(cx,cy,cr)と重なるか */
 function segHitsCircle(px, py, vx, vy, len, cx, cy, cr) {
   const sp = Math.hypot(vx, vy);
@@ -15636,6 +15774,11 @@ const FS_HIT = {
     /* 写して返すぶんは「そのあと与えたダメージ」しだいなので per では表せない。
        目安として、花びらぶんと同じくらいを extra に載せる。 */
     extra: PETAL_PER * PETAL_TICKS },
+  /* ★★ 2026-08-27 極彩祭・極煌祭。★ ここに書き忘れると「!」ボタンの威力が 0 になる */
+  prismbloom: { per: PRISM_PER, n: PRISM_TICKS,
+    nm: "翠のプリズム " + PRISM_TICKS + "回（半径 " + PRISM_R + "）＋ 属性の塗り替え（" + PRISM_TURNS + "ターン）" },
+  mirrorarc: { per: MIRROR_PER, n: 6,
+    nm: "鏡写しの影が同時に走る（当たるたび 攻撃力×" + MIRROR_PER + "・同じ敵は " + MIRROR_CD + "フレームおき）" },
   sunsanctum: { per: SUMIRE_PER, n: SUMIRE_TICKS,
     nm: "聖域に降る光の矢 " + SUMIRE_TICKS + "回（半径 " + SUMIRE_R
       + "・敵が失っているHPの割合ぶん最大2倍まで伸びる）",
@@ -15644,6 +15787,9 @@ const FS_HIT = {
 };
 /* サブリンクの1ヒット係数（fireSubFriend の実装に対応） */
 const SUB_HIT = {
+  /* ★★ 2026-08-27 ウィークシギル（極彩祭・極煌祭の共通サブリンク）。
+     ★ ここに書き忘れると「!」ボタンの威力が 0 になる。 */
+  weaksigil: { per: WSIGIL_PER, n: 1 },
   plasma: { per: 0.80, n: 1 }, accel: { per: 0, n: 0 }, blast: { per: BLAST_MUL, n: 1 },
   phoming: { per: PHOMING_PER, n: 12 }, field: { per: 0.30, n: 1 }, poison: { per: 0.45, n: 1 },
   /* ★ 2026-08-12 ピアスシーカー20。1発の威力は12発版と同じで、発数だけ多い */
@@ -16254,6 +16400,8 @@ function launchShot(ball, ux, uy, power) {
     || ssk === "chloe" || ssk === "roselia"
     /* ★ 2026-08-08 ナナミ・チトセ（どちらも自強化型なので初速1.3倍） */
     || ssk === "nanami" || ssk === "chitose"
+    /* ★★ 2026-08-27 ヒナノ・ムツミ（どちらも自強化型） */
+    || ssk === "hinano" || ssk === "mutsumi"
     /* ★ 2026-08-08 カエデ・リノン・アンジェ（ココロは ssKind が "soleria" なので上で拾う） */
     || ssk === "kaede" || ssk === "rinon" || ssk === "ange"
     || ssk === "sheril" || ssk === "fia" || ssk === "lysera" || ssk === "soleria" || ssk === "beltia" || ssk === "astera"
@@ -16317,6 +16465,9 @@ function launchShot(ball, ux, uy, power) {
   }
   B.shotNo++;                                        // 透明パネルの実体化⇄透過が入れ替わる
   B.state = "move";
+  /* ★★ 2026-08-27 ショットスキル（撃った瞬間に出る技・ご指定）。
+     <b>自分のターンで撃つたび毎回</b>発動する。クールダウンは無い。 */
+  try { fireShotSkill(ball, ux, uy); } catch (e) { console.warn("[MagiBurst] shot skill", e); }
   SFX.launch();
   paintParty();
   /* ★ v14.5 「味方全員を率いて撃ちこむ」フルバースト（ツバキ／イロハ／ユリ／ナズナ／レヴィア）は
@@ -16965,6 +17116,48 @@ function applyNewSS(ball) {
      停止後の再走やヒットごとのフックは使わないので、取りこぼしが出ない。
      ★ 効果は5体とも別もの。同じ効果を2人に持たせると片方を引く意味がなくなる。
      ══════════════════════════════════════════════════════════════ */
+  } else if (k === "hinano") {
+    /* ══ ★★ 2026-08-27 ヒナノ「エメラルド・カレイドスコープ」══
+       自強化 ＋ <b>敵全体に追加弱点を刻む</b> ＋ <b>敵全体の弱点コアを開放</b>。
+       ★ 弱点コアの開放（B.weakBoost）はベルニカ・オトハとまったく同じしくみを使う
+         ＝新しい実装を持たないので、取りこぼしが出ない。
+       ★ 追加弱点は markSigil（ウィークシギルと同じ）＝こちらも1本化してある。 */
+    ball.selfBuff = { atk: 2.30, spd: 1.35, left: 2 };
+    B.weakBoost = { left: WSIGIL_TURNS };
+    B.pops.push({ x: ball.x, y: ball.y - ball.r - 22, t: 0,
+      txt: "自強化＆敵全体に弱点＋1・弱点コア開放（" + WSIGIL_TURNS + "ターン）!!", c: "#8affc4", small: 0 });
+    aliveEnemies().forEach((e) => {
+      if (!e || e.hp <= 0) return;
+      markSigil(e, WSIGIL_TURNS);
+      const wc = (typeof weakCore === "function") ? weakCore(e) : { x: e.x, y: e.y };
+      B.effects.push({ type: "ring", x: wc.x, y: wc.y, t: 0, dur: 24, r: e.r + 80, c: "#ffe14d" });
+    });
+    for (let k2 = 0; k2 < 4; k2++) B.effects.push({ type: "ring", x: ball.x, y: ball.y, t: -k2 * 4, dur: 30, r: 150 + k2 * 125, c: k2 % 2 ? "#8affc4" : "#ffffff" });
+    B.effects.push({ type: "pillar", x: ball.x, y: ball.y, t: 0, dur: 34, c: "#dfffe9" });
+    spawnSparks(ball.x, ball.y, "#8affc4", 34);
+    B.shake = Math.max(B.shake, 20);
+    flash("#2fbf71");
+  } else if (k === "mutsumi") {
+    /* ══ ★★ 2026-08-27 ムツミ「クリムゾン・ソレイユ」══
+       自強化 ＋ <b>敵全体の属性を塗り替える</b> ＋ 敵全体に紅蓮。
+       ★ 塗り替えは paintEnemyEl（ヒナノのリンクと同じしくみ）。
+         こちらは<b>範囲ではなく画面全体</b>なのが違い。 */
+    ball.selfBuff = { atk: 2.45, spd: 1.22, left: 2 };
+    B.pops.push({ x: ball.x, y: ball.y - ball.r - 22, t: 0,
+      txt: "自強化＆敵全体の属性を塗り替え（" + PRISM_TURNS + "ターン）＋紅蓮!!", c: "#ff9d2e", small: 0 });
+    const _atk = ball.st.atk * atkMulOf(ball);
+    aliveEnemies().forEach((e) => {
+      if (!e || e.hp <= 0) return;
+      paintEnemyEl(e, ball.ch.el, PRISM_TURNS);
+      B.effects.push({ type: "boom", x: e.x, y: e.y, t: 0, dur: 26, r: 170, c: "#ff9d2e" });
+      spawnSparks(e.x, e.y, "#ffd7a8", 14);
+      dealDamage(e, _atk * 2.20 * elemMult(ball.ch.el, e.el), "#ff9d2e", true);
+    });
+    for (let k2 = 0; k2 < 4; k2++) B.effects.push({ type: "ring", x: ball.x, y: ball.y, t: -k2 * 4, dur: 30, r: 150 + k2 * 125, c: k2 % 2 ? "#ff5d47" : "#ffe9a8" });
+    B.effects.push({ type: "pillar", x: ball.x, y: ball.y, t: 0, dur: 34, c: "#ffe9a8" });
+    spawnSparks(ball.x, ball.y, "#ff9d2e", 34);
+    B.shake = Math.max(B.shake, 22);
+    flash("#ff5d47");
   } else if (k === "otoha") {
     /* オトハ（フランメ・カンタービレ）: 自強化 ＋ <b>敵全体の弱点コアを開放</b>。
        ★ B.weakBoost は<b>チーム全員</b>に効く（weakBoostLv が見ている）。
@@ -17168,42 +17361,119 @@ function applyNewSS(ball) {
      ② 防御ダウン（ROXY_DEBUFF_TURNS ターン）＋ 毒状態（同）
      ③ 攻撃ターンを ROXY_DELAY 遅延（即死のカウントも同じだけ）
    ══════════════════════════════════════════════════════════════ */
+/* ★★ 2026-08-27 ご指定: <b>本人が止まるまで嵐を続け、止まってから落雷</b>。
+   これまでは撃った瞬間からのフレーム数だけで落雷まで進んでいたので、
+   長く走った回は<b>まだ走っている最中に雷が落ちて、そのあと静かに転がる</b>形になり、
+   いちばんの見せ場と「決着」がずれていた。
+   いまは
+     ・雨（ROXY_F_RAIN）までは今までどおりフレームで進む
+     ・そこから先は<b>本人が止まるのを待つ</b>（そのあいだ雲と雨は続く）
+     ・止まったら予兆（ROXY_AIM_HOLD）→ 落雷 → 少し余韻を置いて晴れる
+   ★ フルバーストの効果そのもの（割合ダメージ・防御ダウン・毒・遅延）は変えていない。 */
 const ROXY_F_RAIN = 18;      // 雨が降りはじめるフレーム
-const ROXY_F_AIM = 46;       // 予兆
-const ROXY_F_BOLT = 78;      // 落雷
-const ROXY_F_END = 150;      // 演出の終わり
+const ROXY_AIM_HOLD = 30;    // 止まってから落雷までの予兆の長さ（フレーム）
+const ROXY_AFTER = 26;       // 落雷のあと、雲が晴れるまでの余韻（フレーム）
+const ROXY_MAX_F = 60 * 20;  // 保険の上限（20秒）。ふつうここまで走ることはない
 function roxyBossTarget() {
   const list = aliveEnemies();
   if (!list.length) return null;
   return list.find((e) => e.boss) || list.slice().sort((a, b) => b.maxhp - a.maxhp)[0];
 }
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-08-27 ショットスキル（撃った瞬間に出る技）
+   ------------------------------------------------------------
+   ・持っているのは極彩祭・極煌祭の2体だけ（CHARS の <b>shotskill</b>）。
+   ・<b>自分のターンで撃つたび毎回</b>出る。1回ぶんは控えめにしてある
+     （フルバーストやリンクの置きかえにはしない）。
+   ★ ここで走るのは<b>撃ち出しの瞬間</b>なので、まだ本人は動きはじめたばかり。
+     「止まってから」ではないので、エフェクトは<b>短い寿命で自分から終わる</b>ものだけにする
+     （長く残す型にすると手番が進まなくなる）。
+   ══════════════════════════════════════════════════════════════ */
+function fireShotSkill(ball, ux, uy) {
+  const k = ball && ball.ch && ball.ch.shotskill;
+  if (!k || !B) return;
+  const col = ELEM[ball.ch.el].c, el = ball.ch.el;
+  const atk = ball.st.atk * atkMulOf(ball);
+  if (k === "verdant") {
+    /* ヒナノ「ヴェルダント・シュート」: 進行方向へ翠光の衝撃波（貫通） */
+    const sp = Math.hypot(ux, uy) || 1;
+    const nx = ux / sp, nyv = uy / sp;
+    const ex = ball.x + nx * SHOTSK_HINANO_LEN, ey = ball.y + nyv * SHOTSK_HINANO_LEN;
+    B.effects.push({ type: "beam", x: ball.x, y: ball.y, nx: nx, ny: nyv, t: 0, dur: 24, c: "#8affc4" });
+    B.effects.push({ type: "ring", x: ball.x, y: ball.y, t: 0, dur: 16, r: 110, c: "#dfffe9" });
+    spawnSparks(ex, ey, "#8affc4", 8);
+    aliveEnemies().forEach((e) => {
+      if (!segHitsCircle(ball.x, ball.y, nx, nyv, SHOTSK_HINANO_LEN, e.x, e.y, e.r + SHOTSK_HINANO_R)) return;
+      dealDamage(e, atk * SHOTSK_HINANO_PER * elemMult(el, e.el), "#8affc4", true);
+      spawnSparks(e.x, e.y, "#dfffe9", 6);
+    });
+    B.pops.push({ x: ball.x, y: ball.y - ball.r - 30, t: 0, txt: "ヴェルダント・シュート", c: "#8affc4", small: 1 });
+    return;
+  }
+  if (k === "ignite") {
+    /* ムツミ「イグナイト・シュート」: 自分のまわりに炎の輪＋自分にバリア */
+    for (let n = 0; n < 3; n++) {
+      B.effects.push({ type: "ring", x: ball.x, y: ball.y, t: -n * 4, dur: 22,
+        r: SHOTSK_MUTSUMI_R * (0.5 + n * 0.28), c: n % 2 ? "#ffe9a8" : "#ff5d47" });
+    }
+    spawnSparks(ball.x, ball.y, "#ff9d2e", 12);
+    aliveEnemies().forEach((e) => {
+      if (Math.hypot(e.x - ball.x, e.y - ball.y) > e.r + SHOTSK_MUTSUMI_R) return;
+      dealDamage(e, atk * SHOTSK_MUTSUMI_PER * elemMult(el, e.el), "#ff9d2e", true);
+      spawnSparks(e.x, e.y, "#ffd7a8", 6);
+    });
+    ball.barrier = Math.max(ball.barrier || 0, SHOTSK_MUTSUMI_BAR);
+    B.pops.push({ x: ball.x, y: ball.y - ball.r - 30, t: 0,
+      txt: "イグナイト・シュート（バリア " + fmt(SHOTSK_MUTSUMI_BAR) + "）", c: "#ff9d2e", small: 1 });
+    return;
+  }
+}
 function startRoxyStorm(ball) {
   SFX.ss();
+  /* ★★ 2026-08-27 嵐は「本人が止まるまで」続く。
+     雲・暗転・雨は st.over が立つまで自分から終わらない。
+     ★ どれも「味方が止まったら自分で終わる」という決まりに反しないよう、
+       <b>落雷が終わったら必ず st.over を立てて全部たたむ</b>こと
+       （たたみ忘れると手番が進まなくなる。2026-08-26c のクリムゾンワルツと同じ罠）。 */
+  const st = { over: 0 };
+  const holdTick = (fx) => { if (st.over) fx.t = fx.dur; };
   /* ① 画面全体の暗転（長く・濃く）。雷が光ったときの落差はここで作る */
-  B.effects.push({ type: "skydim", t: 0, dur: ROXY_F_END, a: 0.86, c: "#050818" });
+  B.effects.push({ type: "skydim", t: 0, dur: ROXY_MAX_F, a: 0.86, c: "#050818", tick: holdTick });
   /* ② 積乱雲がステージまるごとを覆う */
-  B.effects.push({ type: "roxycloud", t: 0, dur: ROXY_F_END, c: "#9fc6ff" });
-  /* ③ 進行役。パートを順に生やして、落雷のフレームで効果を入れる */
+  B.effects.push({ type: "roxycloud", t: 0, dur: ROXY_MAX_F, c: "#9fc6ff", tick: holdTick });
+  /* ③ 進行役。雨まではフレームで進み、そこから先は<b>本人が止まるのを待つ</b> */
   B.effects.push({
-    type: "roxydrv", t: 0, dur: ROXY_F_END + 2, src: ball, done: 0,
+    type: "roxydrv", t: 0, dur: ROXY_MAX_F, src: ball, done: 0, rain: 0, aimAt: -1, endAt: -1,
     tick(fx) {
       const f = fx.t | 0;
-      if (f === ROXY_F_RAIN) {
-        B.effects.push({ type: "roxyrain", t: 0, dur: ROXY_F_END - ROXY_F_RAIN, c: "#bfe4ff" });
+      if (!fx.rain && f >= ROXY_F_RAIN) {
+        fx.rain = 1;
+        B.effects.push({ type: "roxyrain", t: 0, dur: ROXY_MAX_F, c: "#bfe4ff", tick: holdTick });
         B.shake = Math.max(B.shake, 6);
       }
-      if (f === ROXY_F_AIM) {
+      /* ★ 落雷のあとの余韻。ここを先に見ないと、下の「走っているか」で止まってしまう */
+      if (fx.endAt >= 0) {
+        if (f >= fx.endAt) { st.over = 1; fx.t = fx.dur; }
+        return;
+      }
+      /* ★ 走っているあいだは雲と雨が続くだけ（＝嵐を維持する） */
+      if (fx.src && fx.src.moving) return;
+      /* ── ここから下は「止まったあと」── */
+      if (fx.aimAt < 0) {
+        fx.aimAt = f;
         const tg = roxyBossTarget();
         if (tg) {
-          B.effects.push({ type: "doomcharge", x: tg.x, y: tg.y, t: 0, dur: 30, c: "#dff0ff" });
-          B.effects.push({ type: "cloudmark", x: tg.x, y: tg.y, t: 0, dur: 30, c: "#dff0ff", el: 1 });
+          B.effects.push({ type: "doomcharge", x: tg.x, y: tg.y, t: 0, dur: ROXY_AIM_HOLD, c: "#dff0ff" });
+          B.effects.push({ type: "cloudmark", x: tg.x, y: tg.y, t: 0, dur: ROXY_AIM_HOLD, c: "#dff0ff", el: 1 });
           B.pops.push({ x: tg.x, y: tg.y - tg.r - 66, t: 0, txt: "豪雷 照準…", c: "#dff0ff", small: 1 });
         }
         B.shake = Math.max(B.shake, 12);
+        return;
       }
-      if (f === ROXY_F_BOLT && !fx.done) {
+      if (!fx.done && f - fx.aimAt >= ROXY_AIM_HOLD) {
         fx.done = 1;
         roxyStrike(fx.src);
+        fx.endAt = f + ROXY_AFTER;
       }
     },
   });
@@ -19090,10 +19360,18 @@ function hitEnemy(ball, e, col) {
        ② 弱点通過 … 進んだ先で弱点コアを通り抜ける（前からでなくてもよい）
      これで「横や下から突っ込んで、そのままコアを貫いた」殴りにもちゃんと弱点ダメージが乗る。 */
   let weakHit = false;
-  if (e.weak) {
+  /* ★★ 2026-08-27 ウィークシギルが刻まれている敵は、<b>弱点を持たない敵でも</b>弱点になる */
+  if (e.weak || sigilOn(e)) {
     const wc = weakCore(e), hx0 = col ? col.cx : ball.x, hy0 = col ? col.cy : ball.y;
-    const direct = Math.hypot(hx0 - wc.x, hy0 - wc.y) < wc.r;
-    const through = weakPassed(e, ball.x, ball.y, ball.vx, ball.vy, ball.r * 0.35);
+    let direct = e.weak && Math.hypot(hx0 - wc.x, hy0 - wc.y) < wc.r;
+    let through = e.weak && weakPassed(e, ball.x, ball.y, ball.vx, ball.vy, ball.r * 0.35);
+    /* ★★ 2026-08-27 追加弱点（反対側のコア）。刻まれているあいだだけ見る。 */
+    if (sigilOn(e) && !direct && !through) {
+      const w2 = weakCore2(e), p2 = weakPassCore2(e);
+      direct = Math.hypot(hx0 - w2.x, hy0 - w2.y) < w2.r;
+      through = !direct && segHitsCircle(ball.x, ball.y, ball.vx, ball.vy,
+        e.r * 2.4 + 40, p2.x, p2.y, p2.r + ball.r * 0.35);
+    }
     if (direct || through) {
       mul *= direct ? WEAK_MUL : WEAK_PASS_MUL; tags.push(direct ? "弱点直撃" : "弱点通過"); weakHit = true;
       SFX.weak();   /* ★ 2026-08-16c 弱点に当たったことを音でも分かるように */
@@ -21186,6 +21464,80 @@ function fireFriendMain(owner, atk, mover, kindOverride) {
       B.pops.push({ x: owner.x, y: owner.y - owner.r - 24, t: 0, txt: "クローバー・フォーチュン!!", c: "#7dffb0", small: 1 });
       break;
     }
+    case "prismbloom": {
+      /* ★★ 2026-08-27 ヒナノ「プリズム・ブルーム」
+         ふれた味方を中心に翠のプリズムが広がり、範囲内の敵を PRISM_TICKS 回削りながら
+         <b>その敵の属性を「自分が有利を取れる属性」へ塗り替える</b>。
+         ★★ <b>1体のリンクがチーム全員の火力を底上げするリンクはこれがはじめて</b>。
+         ★ 塗り替えは paintEnemyEl（敵の el を書き換え、elBase に元をしまう）。
+           戻すのは turnEnd の1か所だけ。 */
+      const col = ELEM[owner.ch.el].c, el = owner.ch.el;
+      const cx = owner.x, cy = owner.y;
+      B.effects.push({
+        type: "fxctl", t: 0, dur: PRISM_TICKS * PRISM_GAP + 24, step: 0,
+        x: cx, y: cy, atk, el, c: col, painted: 0,
+        tick(fx) {
+          if (fx.t % PRISM_GAP !== 0 || fx.step >= PRISM_TICKS) return;
+          fx.step++;
+          const k = fx.step / PRISM_TICKS;
+          /* 見た目: 6枚の光の帯が花のようにひらく */
+          B.effects.push({ type: "ring", x: fx.x, y: fx.y, t: 0, dur: PRISM_GAP + 8, r: PRISM_R * (0.4 + 0.6 * k), c: fx.c });
+          for (let n = 0; n < 6; n++) {
+            const a = (Math.PI * 2 / 6) * n + fx.step * 0.5;
+            B.effects.push({ type: "ring", c: n % 2 ? "#ffffff" : fx.c, t: 0, dur: 14,
+              x: fx.x + Math.cos(a) * PRISM_R * 0.42 * k, y: fx.y + Math.sin(a) * PRISM_R * 0.42 * k,
+              r: PRISM_R * 0.20 });
+          }
+          spawnSparks(fx.x, fx.y, "#dfffe9", 6);
+          aliveEnemies().forEach((e) => {
+            if (Math.hypot(e.x - fx.x, e.y - fx.y) > e.r + PRISM_R) return;
+            dealDamage(e, fx.atk * PRISM_PER * elemMult(fx.el, e.el), fx.c, true);
+            spawnSparks(e.x, e.y, "#dfffe9", 5);
+            /* ★ 塗り替えは<b>1回目の段でまとめて</b>。毎段やると pops が埋まる。 */
+            if (!fx.painted) paintEnemyEl(e, fx.el, PRISM_TURNS);
+          });
+          if (!fx.painted) { fx.painted = 1; B.effects.push({ type: "flashfx", t: 0, dur: 10 }); }
+          SFX.hit();
+        },
+      });
+      B.pops.push({ x: owner.x, y: owner.y - owner.r - 24, t: 0, txt: "プリズム・ブルーム!!", c: "#8affc4", small: 1 });
+      break;
+    }
+    case "mirrorarc": {
+      /* ★★ 2026-08-27 ムツミ「ミラージュ・アーク」
+         ふれた味方（mover）の<b>盤面の左右をひっくり返した位置</b>に紅い影が生まれ、
+         本人とまったく同じ動きで<b>同時に走る</b>。影も敵を削る。
+         ★★ <b>軌跡そのものを写して二重にするリンクはこれがはじめて</b>。
+         ★ 影は<b>本人が止まったら消える</b>（エフェクトの決まり：止まったら自分で終わる）。
+           ここを守らないと手番が進まなくなる（2026-08-26c のクリムゾンワルツと同じ罠）。 */
+      const col = ELEM[owner.ch.el].c, el = owner.ch.el;
+      const srcBall = mover || owner;
+      B.effects.push({
+        type: "mirrorfx", t: 0, dur: 60 * 30, c: col, atk, el,
+        src: srcBall, cool: {}, trail: [],
+        tick(fx) {
+          const b = fx.src;
+          if (!b || !b.moving) { if (fx.t > 4) fx.t = fx.dur; return; }
+          const mx = W - b.x, my = b.y;              /* 左右対称の位置 */
+          fx.mx = mx; fx.my = my;
+          fx.trail.push({ x: mx, y: my });
+          if (fx.trail.length > 14) fx.trail.shift();
+          if (fx.t % 3 === 0) spawnSparks(mx, my, "#ffb08a", 2);
+          Object.keys(fx.cool).forEach((k) => { if (fx.cool[k] > 0) fx.cool[k]--; });
+          aliveEnemies().forEach((e) => {
+            if (fx.cool[e.id] > 0) return;
+            if (Math.hypot(e.x - mx, e.y - my) > e.r + MIRROR_R) return;
+            fx.cool[e.id] = MIRROR_CD;
+            dealDamage(e, fx.atk * MIRROR_PER * elemMult(fx.el, e.el), fx.c, true);
+            B.effects.push({ type: "ring", x: e.x, y: e.y, t: 0, dur: 14, r: e.r * 2.0, c: fx.c });
+            spawnSparks(e.x, e.y, "#ffd7b8", 7);
+            SFX.hit();
+          });
+        },
+      });
+      B.pops.push({ x: owner.x, y: owner.y - owner.r - 24, t: 0, txt: "ミラージュ・アーク!!", c: "#ff9d2e", small: 1 });
+      break;
+    }
     case "petalecho": {
       /* ★★ 2026-08-26b サクヤ「ペタル・エコー」
          桜の花びらが PETAL_TICKS 回舞ってまわりの敵を削る。
@@ -21513,15 +21865,14 @@ function fireFriendMain(owner, atk, mover, kindOverride) {
           if (fx.t % 6 === 0) {
             B.effects.push({ type: "gravity", x: fx.x, y: fx.y, t: 0, dur: 22, r: KAREN_R * 0.55, c: fx.c });
           }
-          /* ① 引き寄せ（毎フレーム・ボス以外） */
-          aliveEnemies().forEach((e) => {
-            if (e.boss) return;
-            const dx = fx.x - e.x, dy = fx.y - e.y;
-            const d = Math.hypot(dx, dy);
-            if (d > KAREN_R || d < 6) return;
-            const step = Math.min(KAREN_PULL, d - 4);
-            e.x += (dx / d) * step; e.y += (dy / d) * step;
-          });
+          /* ★★ 2026-08-27 <b>敵を引き寄せる処理は廃止しました</b>（ご指定）。
+             敵の位置が勝手に変わると、
+               ・弱点をねらって組み立てた軌道が、撃ったあとで意味を失う
+               ・挟まり位置（蓬莱）や壁とのすきまの設計が崩れる
+               ・オンラインで両方の端末の盤面がずれる恐れがある
+             と、盤面を読む遊びそのものと相性が悪かったためです。
+             いまは<b>置いた場所でそのまま削りつづける</b>据え置き型の重力球になっています。
+             ★ 引き寄せぶんの手ごたえは、削りと崩壊の倍率を上げて埋め合わせてあります。 */
           /* ② 一定おきに削る */
           if (fx.t % KAREN_TICK_GAP !== 0 || fx.pulse >= KAREN_PULSES) return;
           fx.pulse++;
@@ -22604,6 +22955,30 @@ function spawnPlasmaNet(owner, mover, perHit, col) {
    ★ 1フレームで縦横どちらも反転することがあるので、
      BLOOM_MINGAP フレームは続けて数えない（角で2回咲くのを防ぐ）。
    ══════════════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-08-27 ウィークシギル（極彩祭・極煌祭の共通サブリンク）
+   ------------------------------------------------------------
+   ふれた味方を中心に紋章がひろがり、範囲内の敵に<b>もう1つ弱点を刻む</b>。
+   刻まれた敵は WSIGIL_TURNS ターンのあいだ、<b>もとの弱点の反対側</b>にもコアができる。
+   ★ もともと弱点を持たない敵にも刻める（雑魚にも弱点ができる）。
+   ══════════════════════════════════════════════════════════════ */
+function fireWeakSigil(owner, atk) {
+  const col = ELEM[owner.ch.el].c, el = owner.ch.el;
+  const cx = owner.x, cy = owner.y;
+  /* 見た目: 紋章の輪が3重にひろがる */
+  for (let k = 0; k < 3; k++) {
+    B.effects.push({ type: "ring", x: cx, y: cy, t: -k * 5, dur: 26, r: WSIGIL_R * (0.5 + k * 0.28), c: k % 2 ? "#ffe14d" : col });
+  }
+  B.effects.push({ type: "flashfx", t: 0, dur: 8 });
+  spawnSparks(cx, cy, "#ffe14d", 14);
+  aliveEnemies().forEach((e) => {
+    if (Math.hypot(e.x - cx, e.y - cy) > e.r + WSIGIL_R) return;
+    dealDamage(e, atk * WSIGIL_PER * elemMult(el, e.el), col, true);
+    markSigil(e, WSIGIL_TURNS);
+  });
+  B.pops.push({ x: cx, y: cy - owner.r - 24, t: 0, txt: "ウィークシギル!!", c: "#ffe14d", small: 1 });
+  SFX.hit();
+}
 function fireBloomingEcho(owner, mover, atk) {
   const src = mover || owner;
   const col = ELEM[owner.ch.el].c, el = owner.ch.el;
@@ -22744,6 +23119,14 @@ function fireSubFriend(owner, mover, atk) {
   /* 新サブリンクは既存の挙動を流用（表示名は SUBFS で別に定義） */
   if (kind === "splitpierce") kind = "pspread5";       // 全敵貫通分裂弾
   if (kind === "plasmanova") kind = "blast";           // プラズマノヴァ（自分中心の連続爆発）
+  if (kind === "weaksigil") {
+    /* ★★ 2026-08-27 ウィークシギル（極彩祭・極煌祭の共通サブリンク）。
+       ★ ここに分岐が無いと、下の else-if 連鎖のどれにも当たらず
+         「持っているのに発動しないサブリンク」になる。
+       ★ 威力は SUB_HIT.weaksigil と必ずそろえること。 */
+    fireWeakSigil(owner, atk);
+    return;
+  }
   if (kind === "bloomingecho") {
     /* ★★ 2026-08-26b ブルーミング・エコー（GRAND DEBUT Ver.4.0 の共通サブリンク）。
        ★ ここに分岐が無いと、下の else-if 連鎖のどれにも当たらず
@@ -23735,6 +24118,26 @@ async function endShotCore() {
     if (e.defdown && e.defdown.left > 0) e.defdown.left--;
     if (e.atkdown && e.atkdown.left > 0) e.atkdown.left--;   // 攻撃力ダウン（ミズキフルバースト）
     if (e.weakUp && e.weakUp.left > 0) e.weakUp.left--;      // 弱点倍率アップ（コハルフルバースト）
+    /* ★★ 2026-08-27 追加弱点（ウィークシギル）の残りターン */
+    if (e.sigil && e.sigil.left > 0) {
+      e.sigil.left--;
+      if (e.sigil.left <= 0) {
+        e.sigil = null;
+        B.pops.push({ x: e.x, y: e.y - e.r - 28, t: 0, txt: "弱点 もどる", c: "#9d97c4", small: 1 });
+      }
+    }
+    /* ★★ 2026-08-27 属性の塗り替えの残りターン。0 になったら<b>必ず elBase へ戻す</b>
+       （戻し忘れると、そのWAVEのあいだ有利が続いてしまう）。 */
+    if (e.elPaint && e.elPaint.left > 0) {
+      e.elPaint.left--;
+      if (e.elPaint.left <= 0) {
+        e.elPaint = null;
+        if (e.elBase != null) {
+          e.el = e.elBase; e.elBase = null;
+          B.pops.push({ x: e.x, y: e.y - e.r - 46, t: 0, txt: ELEM[e.el].nm + "属性にもどった", c: "#9d97c4", small: 1 });
+        }
+      }
+    }
   });
   /* バフFBの残りアクションを消費 */
   if (B.buff && B.buff.left > 0) {
@@ -24799,10 +25202,13 @@ async function loadSharedInto(stageId) {
       ${/* ★★ 2026-08-22 名前は出さない。順位と「あなたの記録か」だけで足りる。 */""}
       <div class="lcst">${i === 0 ? "🥇" : i === 1 ? "🥈" : i === 2 ? "🥉" : "▸"} ${i + 1}位の編成
         <small>${r.uid === me ? "あなたの記録" : ""}</small></div>
+      ${/* ★★ 2026-08-27 <b>手数・残りHP・かかった時間は出さない</b>（ご指定）。
+            ここで知りたいのは「どの4体で抜けたか」であって、その人がどれだけ上手かったかではない。
+            数字が並ぶほど「自分の記録と比べる場所」に見えてしまうので、
+            <b>自分の手持ちで何体そろうか</b>だけを残す。
+            ★ 順位づけ（点数）そのものは今までどおり手数・残HPで行っている——
+              出さないのは<b>表示だけ</b>。 */""}
       <div class="lcmet">
-        <span><b>${r.turns | 0}</b> 手</span>
-        <span>残りHP <b>${hpPct}%</b></span>
-        <span>${(r.sec | 0) >= 60 ? Math.floor(r.sec / 60) + "分" : ""}${(r.sec | 0) % 60}秒</span>
         <span>手持ち <b>${own}/4</b></span>
       </div>
       <div class="lcgrid">${cells}</div>
@@ -26834,6 +27240,38 @@ function drawEffect(fx) {
   if (fx.t < 0) return;
   const p = clamp(fx.t / fx.dur, 0, 1);
   ctx.save();
+  if (fx.type === "mirrorfx") {
+    /* ★★ 2026-08-27 ミラージュ・アーク。ふれた味方の<b>左右対称の位置</b>に、
+       紅い影と、その通った跡を描く。
+       ★ この枝が無いと「見えないのに当たる影」になってしまう。 */
+    const b = fx.src;
+    if (b && b.moving && fx.mx != null) {
+      const pts = fx.trail || [];
+      if (pts.length > 1) {
+        ctx.lineCap = "round"; ctx.lineJoin = "round";
+        for (let i = 1; i < pts.length; i++) {
+          const a = i / pts.length;
+          ctx.globalAlpha = 0.10 + 0.42 * a;
+          ctx.strokeStyle = fx.c; ctx.lineWidth = 3 + 9 * a;
+          ctx.beginPath(); ctx.moveTo(pts[i - 1].x, pts[i - 1].y); ctx.lineTo(pts[i].x, pts[i].y); ctx.stroke();
+        }
+      }
+      /* 影の本体（本人と同じ大きさの円） */
+      ctx.globalAlpha = 0.72;
+      const gr = ctx.createRadialGradient(fx.mx, fx.my, 2, fx.mx, fx.my, b.r * 1.15);
+      gr.addColorStop(0, "#ffffff"); gr.addColorStop(0.42, fx.c); gr.addColorStop(1, "rgba(0,0,0,0)");
+      ctx.fillStyle = gr;
+      ctx.beginPath(); ctx.arc(fx.mx, fx.my, b.r * 1.15, 0, Math.PI * 2); ctx.fill();
+      ctx.globalAlpha = 0.9; ctx.strokeStyle = "#fff"; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(fx.mx, fx.my, b.r * 0.78, 0, Math.PI * 2); ctx.stroke();
+      /* 本人と影を結ぶうすい線（「写し」だと分かるように） */
+      ctx.globalAlpha = 0.16; ctx.strokeStyle = fx.c; ctx.lineWidth = 2;
+      ctx.setLineDash([7, 9]);
+      ctx.beginPath(); ctx.moveTo(b.x, b.y); ctx.lineTo(fx.mx, fx.my); ctx.stroke();
+      ctx.setLineDash([]);
+    }
+    ctx.globalAlpha = 1; ctx.restore(); return;
+  }
   if (fx.type === "trailfx") {
     /* ★★ 2026-08-26 アフターグロウ・トレイル。通った道すじを、
        <b>古い点ほど薄く細く</b>して描く（消えていくのが目で分かるように）。

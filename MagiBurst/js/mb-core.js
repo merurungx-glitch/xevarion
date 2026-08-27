@@ -15,8 +15,8 @@
    <b>ふつうの &lt;script&gt;</b>（type="module" ではない）で読むこと。
    トップレベルの const/let はグローバルの字句環境に入るので、
    あとから読み込む MagiBurst 本体のスクリプトからそのまま見える。
-     MagiBurst : <script src="js/mb-core.js?v=52"></script>
-     gacha.html: <script src="MagiBurst/js/mb-core.js?v=52"></script>
+     MagiBurst : <script src="js/mb-core.js?v=58"></script>
+     gacha.html: <script src="MagiBurst/js/mb-core.js?v=58"></script>
 
    ── ホストが先に用意しておくもの ──
      window.MB_IMGD … 画像フォルダへの相対パス（MagiBurst は "../img/"、ポータルは "img/"）
@@ -298,6 +298,12 @@ const AB_NM = {
      ・gravkillerL    … 重力バリアキラーの等級L（無印1.5／M 2.0／L 2.5／EL 3.0）。
                         <b>M と EL のあいだが空いていた</b>ので、ほかのキラーと同じ刻みにそろえる。 */
   cumulonimbusEL: "キュムロニンバスEL", houraikillerL: "蓬莱族キラーL", gravkillerL: "重力バリアキラーL",
+  /* ★★ 2026-08-27 蓬莱族キラーの最上位（極彩祭・極煌祭の2体だけ） */
+  houraikillerEL: "蓬莱族キラーEL",
+  /* ★★ 2026-08-27 ショットスキル（撃った瞬間に出る技）。アビリティ欄にも並べて、
+     「この子は撃つたびに何かする」ことが性能画面で分かるようにする。 */
+  shotVerdant: "ショットスキル：ヴェルダント・シュート",
+  shotIgnite: "ショットスキル：イグナイト・シュート",
   /* ══ ★ 2026-08-22b Starlight Academy Fest の調整で新設 ══
      ・atkchargeM  … 攻撃力チャージの等級M。しくみ（1ショットで味方N体にふれる）は
                      無印とまったく同じで、上がる倍率だけ 1.5 → 2.0 になる。
@@ -563,6 +569,10 @@ const CUMULO_EL_MAX = 2.6;     // 同・距離で得られるステータス倍�
 const CUMULO_EL_SPLASH = 0.35; // 同・まわりの敵へ走る衝撃波（落雷ダメージに対する割合）
 const CUMULO_EL_SPLASH_R = 320;// 同・衝撃波がとどく半径
 const HOURAIKILLER_L_MUL = 2.5;// 蓬莱族キラーL: 蓬莱族（🏯 蓬莱の九重のボスなど）へのダメージ倍率
+/* ★★ 2026-08-27 蓬莱族キラーの<b>EL</b>（極彩祭・極煌祭の2体だけが持つ最上位）。
+   蓬莱天宮の続き（仙苑〜神天）が加わってボスHPが2〜4倍になったので、
+   そこへ挑むための等級を1つ上に用意する。 */
+const HOURAIKILLER_EL_MUL = 3.4;
 const GRAVKILLER_L_MUL = 2.5;  // 重力バリアキラーL: 重力バリアを持つ敵へのダメージ倍率（M 2.0 と EL 3.0 のあいだ）
 const PHANTOM_WALLS = 3;       // ファントムドライブ: 何回目の壁ヒットで発動するか
 const PHANTOM_MUL = 1.8;       // ファントムドライブ: 発動中のステータス倍率
@@ -747,7 +757,7 @@ const STARVEIL_TURN = 52;          // 何フレームで STARVEIL_SPINS 回転�
    ★ リンクスキルは5体とも<b>新設</b>で、どれも<b>これまでに無い挙動</b>にしてある（ご指定）。
        スズネ    … 敵から敵へ<b>飛び火して連鎖</b>し、連鎖するほど威力が上がる
        ミナモ    … 輪刃が<b>行って帰ってくる</b>（往路と復路で別に当たる）
-       カレン    … <b>敵を引き寄せながら</b>削り、最後に崩壊して大爆発（敵を動かす初のリンク）
+       カレン    … <b>その場で削りつづける重力球</b>を置き、最後に崩壊して大爆発
        トモエ    … 盤面に<b>種を撒き</b>、置いた順に<b>時間差で芽吹いて</b>範囲爆発
        ヒマリ  … <b>敵どうしを光の線で結んだ星座</b>が何度も明滅して削る
 
@@ -785,16 +795,58 @@ const MINAMO_PER = 3.40;           // 1ヒットの倍率（往路・復路で�
 const MINAMO_R = 62;               // 輪刃の当たり半径
 const MINAMO_SPD = 27;             // 飛ぶ速さ（px/フレーム）
 /* ── カレン「ノワールシンギュラリティ」──
-   敵の集まっているところへ暗黒の重力球を置き、<b>まわりの敵を引き寄せながら</b>
-   KAREN_PULSES 回削り、最後に崩壊して大爆発する。
-   ★★ <b>ボスは引き寄せない</b>。蓬莱のボスは「壁とのすきま」を計算して置いてあるので
-     （HOURAI_BOSS_SPOT）、動かすと盤面の設計そのものが崩れる。 */
-const KAREN_R = 330;               // 引き寄せ・ダメージがとどく半径
-const KAREN_PULL = 7.0;            // 1フレームに引き寄せる距離（px／ボスは0）
+   敵の集まっているところへ暗黒の重力球を置き、その場で KAREN_PULSES 回削り、
+   最後に崩壊して大爆発する。
+   ★★ 2026-08-27 <b>敵を引き寄せる動きは廃止</b>（ご指定）。
+     <b>敵を動かすリンクスキルはもう作らない</b>——弱点をねらって組み立てた軌道が
+     撃ったあとで意味を失い、挟まり位置の設計も崩れるため。
+     引き寄せぶんの手ごたえは<b>削りと崩壊の倍率</b>で埋め合わせてある。 */
+const KAREN_R = 330;               // ダメージがとどく半径
 const KAREN_PULSES = 6;            // 継続ダメージの回数
-const KAREN_TICK_PER = 0.55;       // 1回ぶんの倍率
-const KAREN_BOOM_PER = 3.20;       // 最後の崩壊（大爆発）
+const KAREN_TICK_PER = 0.62;       // 1回ぶんの倍率（★ 引き寄せ廃止のぶん 0.55 → 0.62）
+const KAREN_BOOM_PER = 3.60;       // 最後の崩壊（大爆発。★ 3.20 → 3.60）
 const KAREN_TICK_GAP = 13;         // 削りと削りの間かく（フレーム）
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-08-27 極彩祭・極煌祭の新しい仕掛け（3つとも MagiBurst ではじめて）
+   ------------------------------------------------------------
+   ① プリズム・ブルーム（ヒナノのリンク）… <b>敵の属性を塗り替える</b>
+      当たった敵の属性を「その味方が有利を取れる属性」に書き換える。
+      書き換わっているあいだ、<b>味方全員の攻撃が有利倍率になる</b>——
+      1体のリンクがチーム全員の火力を底上げする、はじめての形。
+      ★ 敵の <b>el</b> を直に書き換え、<b>elBase</b> に元をしまう。
+        こうすると elemMult を呼んでいる場所（何十か所もある）を1つも触らずに済む。
+   ② ミラージュ・アーク（ムツミのリンク）… <b>鏡写しの二重射線</b>
+      ふれた味方の position を<b>盤面の左右対称</b>に写した「影」が同時に走る。
+      影も敵を削るので、<b>撃ちかたしだいで実質2本ぶん</b>になる。
+      ★ 影は<b>本人が止まったら消える</b>（エフェクトの決まり：止まったら自分で終わる）。
+   ③ ウィークシギル（2体の共通サブリンク）… <b>弱点を増やす</b>
+      当たった敵に<b>反対側にもう1つ弱点を刻む</b>。刻まれているあいだ、
+      どちらのコアを踏んでも弱点ダメージになる＝挟まり位置の弱点と噛み合う。
+   ══════════════════════════════════════════════════════════════ */
+/* ── ヒナノ「プリズム・ブルーム」── */
+const PRISM_R = 300;              // プリズムがとどく半径
+const PRISM_TICKS = 4;            // 削る回数
+const PRISM_GAP = 11;             // 削りと削りの間かく（フレーム）
+const PRISM_PER = 0.62;           // 1回ぶんの倍率
+const PRISM_TURNS = 3;            // 属性が塗り替わっているターン数
+/* ── ムツミ「ミラージュ・アーク」── */
+const MIRROR_R = 46;              // 影の当たり半径
+const MIRROR_PER = 1.15;          // 影が当てたときの倍率
+const MIRROR_CD = 12;             // 同じ敵に続けて当てない間かく（フレーム）
+/* ── 共通サブリンク「ウィークシギル」── */
+const WSIGIL_R = 240;             // 刻める範囲
+const WSIGIL_PER = 0.85;          // 刻むときのダメージ倍率
+const WSIGIL_TURNS = 3;           // 追加弱点が残るターン数
+/* ══ ★★ 2026-08-27 ショットスキル（撃った瞬間に出る技・ご指定）══
+   ・<b>自分のターンで撃つたび毎回</b>発動する（クールダウンなし）。
+   ・そのぶん1回ぶんは控えめ。フルバーストやリンクの置きかえにはならない。
+   ★ 実装は index.html の fireShotSkill()。ここは名前と数字だけ。 */
+const SHOTSK_HINANO_PER = 0.55;   // ヒナノ: 進行方向へ翠光の衝撃波
+const SHOTSK_HINANO_LEN = 520;    // その射程
+const SHOTSK_HINANO_R = 54;       // その太さ
+const SHOTSK_MUTSUMI_PER = 0.50;  // ムツミ: 自分のまわりに炎の輪
+const SHOTSK_MUTSUMI_R = 220;     // その半径
+const SHOTSK_MUTSUMI_BAR = 900;   // あわせて自分に張るバリア
 /* ── トモエ「ヴェルデシード」──
    盤面に翠の種を TOMOE_N 個撒き、<b>置いた順に時間差で芽吹いて</b>範囲爆発する。
    ★ 種は<b>敵のいるところから優先して</b>落ちるので、取りこぼしが少ない。 */
@@ -1310,6 +1362,12 @@ function abilDesc(a) {
     case "gravkiller": return "<b>重力バリアを持つ敵</b>へのダメージが<b>" + GRAVKILLER_MUL + "倍</b>";
     case "gravkillerL": return "<b>重力バリアを持つ敵</b>へのダメージが<b>" + GRAVKILLER_L_MUL + "倍</b>（等級L）";
     case "houraikillerL": return "<b>蓬莱族</b>（🏯 蓬莱の九重のボスなど）へのダメージが<b>" + HOURAIKILLER_L_MUL + "倍</b>（等級L）。<b>属性キラーとは別枠</b>なので重ねて効く";
+    case "houraikillerEL": return "<b>蓬莱族</b>（🏯 蓬莱の九重のボスなど）へのダメージが<b>" + HOURAIKILLER_EL_MUL + "倍</b>（等級EL・最上位）。<b>属性キラーとは別枠</b>なので重ねて効く";
+    case "shotVerdant": return "<b>ショットスキル</b>。自分のターンで<b>撃つたび毎回</b>、進行方向へ翠光の衝撃波（射程 "
+      + SHOTSK_HINANO_LEN + "・太さ " + SHOTSK_HINANO_R + "）を放ち、線上の敵に 攻撃力×" + SHOTSK_HINANO_PER + " のダメージ<br><small>※ 貫通するので、並んだ敵はまとめて削れます</small>";
+    case "shotIgnite": return "<b>ショットスキル</b>。自分のターンで<b>撃つたび毎回</b>、自分のまわり（半径 "
+      + SHOTSK_MUTSUMI_R + "）に炎の輪が広がって 攻撃力×" + SHOTSK_MUTSUMI_PER + " のダメージ。あわせて自分に <b>"
+      + SHOTSK_MUTSUMI_BAR + "</b> のバリアを張る<br><small>※ 撃ち出しの瞬間なので、密着しているときほど当たります</small>";
     case "gravkillerM": return "<b>重力バリアを持つ敵</b>へのダメージが<b>" + GRAVKILLER_M_MUL + "倍</b>（等級M）";
     case "healM": return "自分の攻撃ターンに<b>ふれた味方の数</b>だけチームHPを回復する"
       + "（1体につき" + Math.round(HEALM_PER * 100) + "%・最大" + HEALM_MAX_ALLY + "体＝"
@@ -1935,7 +1993,9 @@ function killerMul(ball, e, tags, forLink) {
   }
   /* ★ 2026-08-18 蓬莱族キラーL（ロキシーのクロススキル）。
      冥花種・蝕魔族と<b>まったく同じ形</b>の種族キラー。属性キラーとは別枠なので重なる。 */
-  if (eRace === HOURAI_RACE && hasAbil(ball.ch, "houraikillerL")) { m *= HOURAIKILLER_L_MUL; tag("蓬莱族KILLER L"); }
+  /* ★★ 2026-08-27 EL を先に見る（EL と L を両方持つことは無いが、順番を決めておく） */
+  if (eRace === HOURAI_RACE && hasAbil(ball.ch, "houraikillerEL")) { m *= HOURAIKILLER_EL_MUL; tag("蓬莱族KILLER EL"); }
+  else if (eRace === HOURAI_RACE && hasAbil(ball.ch, "houraikillerL")) { m *= HOURAIKILLER_L_MUL; tag("蓬莱族KILLER L"); }
   if (hasAbil(ball.ch, "vitalEL") && e.hp >= e.maxhp * 0.5) { m *= VITALEL_MUL; tag("VITAL EL"); }
   else if (hasAbil(ball.ch, "vitalL") && e.hp >= e.maxhp * 0.5) { m *= 2.5; tag("VITAL L"); }
   else if (hasAbil(ball.ch, "vitalM") && e.hp >= e.maxhp * 0.5) { m *= 2.0; tag("VITAL M"); }
@@ -2406,6 +2466,17 @@ const SUBFS = {
       + "長く走れる味方・よく跳ねる味方にふれさせるほど伸びる。"
       + "<br>反射の味方は敵に当たっても跳ねるので<b>とくに咲きやすい</b>——"
       + "撃ちかたそのものが威力になるサブリンク" },
+  /* ══ ★★ 2026-08-27 極彩祭・極煌祭の共通サブリンク「ウィークシギル」══
+     <b>弱点をもう1つ刻む</b>——MagiBurst で弱点そのものを増やす技はこれがはじめて。 */
+  weaksigil: { nm: "ウィークシギル",
+    pow: "範囲 " + WSIGIL_R + " の敵に 攻撃力×" + WSIGIL_PER + " ＋ <b>反対側にもう1つ弱点を刻む</b>（" + WSIGIL_TURNS + "ターン）",
+    desc: "ふれた味方を中心に紋章が広がり、範囲内の敵に<b>もう1つ弱点を刻む</b>。"
+      + "<br>刻まれた敵は<b>" + WSIGIL_TURNS + "ターンのあいだ、弱点コアが2つ</b>になる（もとの弱点の<b>反対側</b>）。"
+      + "どちらを踏んでも弱点ダメージになるので、<b>ねらえる角度がまるごと増える</b>。"
+      + "<br>もともと弱点を持たない敵にも刻めるので、<b>雑魚にも弱点ができる</b>。"
+      + "<br>★ 🏯蓬莱の九重は弱点が<b>壁とのすきま（挟まる位置）</b>に出るので、"
+      + "その<b>反対側</b>にもう1つできる＝挟まれないときでも弱点をねらえるようになる",
+  },
   /* ══ ★★ 2026-08-26 MagiLex の交換キャラ5体の共通サブリンク ══ */
   knowledgeresonance: { nm: "ノウレッジ・レゾナンス",
     pow: "知識の環 " + KNOW_RINGS + "重（内から 攻撃力×" + KNOW_PER + " → +" + KNOW_STEP
@@ -2469,11 +2540,19 @@ const NEXUS = {
   lexignition:{ nm: "アカデミー・イグニッション", c: "#c9a6ff", desc: "バトル開始時、味方全員のフルバーストターンを<b>2</b>短縮する（イグニッションの2倍）", fb: 2 },
   lexbond:    { nm: "アカデミー・ボンド",       c: "#8affc4", desc: "リンクスキル・サブリンクのダメージが<b>13%</b>アップする（ボンド・ネクサスの約2倍）", link: 1.13 },
   lexaegis:   { nm: "アカデミー・イージス",     c: "#7ce8ff", desc: "バトル開始時、味方全員に<b>900</b>のバリアを張る（イージス・ネクサスの約2倍）", barrier: 900 },
+  /* ══════════════════════════════════════════════════════════════
+     ★★ 2026-08-27 極彩祭・極煌祭のネクサス（ご指定: 強化する）
+     どちらも<b>ふつうのネクサスのおよそ2倍</b>。月の半分しか引けないガチャなので、
+     引けたときの手ごたえをここでも出す。 */
+  luxprism: { nm: "極彩・プリズムネクサス", c: "#8affc4", desc: "<b>弱点</b>へのダメージが<b>16%</b>アップする（ピアース・ネクサスの2倍）", weak: 1.16 },
+  luxblaze: { nm: "極煌・ブレイズネクサス", c: "#ff5d47", desc: "<b>ボス</b>へのダメージが<b>13%</b>アップする（スレイヤー・ネクサスの約2倍）", boss: 1.13 },
 };
 /* ネクサススキルのカテゴリ（絞り込み用）。 */
 const NEXUS_CAT = {
   force: "atk", slayer: "atk", sweep: "atk", pierce: "atk", vanguard: "atk", resonance: "atk", advantage: "atk",
   vigor: "def", mercy: "def", aegis: "def", guard: "def",
+  /* ★★ 2026-08-27 極彩祭・極煌祭のネクサス（どちらも火力枠） */
+  luxprism: "atk", luxblaze: "atk",
   gale: "tempo", ignition: "tempo", tempo: "tempo",
   bond: "support", scout: "support", charge: "support", demolish: "support",
   fortune: "reward", wisdom: "reward",
@@ -2711,6 +2790,32 @@ const CONNECT = {
     skills: [
       { k: "saraAura", nm: "パワーオーラEL", abil: "auraEL" },
       { k: "saraRes", nm: "全属性耐性M", abil: "allresM" },
+    ],
+  },
+  /* ════════════════════════════════════════════════════════════
+     ★★ 2026-08-27 極彩祭・極煌祭のクロススキル（2体ぶん）
+     ★ 条件に<b>「自分と異なる属性」は使わない</b>（ご指定）。
+       ヒナノは<b>同じ撃種</b>、ムツミは<b>同じ属性</b>を見る。
+     ★ キラーはクロス込みで3つまで。クロスに入れてよいキラーは1つだけ。
+     ════════════════════════════════════════════════════════════ */
+  hinano: {
+    nm: "翠玉のクロス",
+    condTx: "<b>自分と同じ撃種の味方が2体以上</b>いること（自分をのぞく）",
+    cond: (ids, me) => cnxSelfIn(ids, me)
+      && cnxCount(ids, me, (c, m) => c.shot === m.shot) >= 2,
+    skills: [
+      { k: "hinanoAura", nm: "パワーオーラEL", abil: "auraEL" },
+      { k: "hinanoBarrier", nm: "バリアEL", abil: "barrierEL" },
+    ],
+  },
+  mutsumi: {
+    nm: "紅玉のクロス",
+    condTx: "<b>自分と同じ属性の味方が1体以上</b>いること（自分をのぞく）",
+    cond: (ids, me) => cnxSelfIn(ids, me)
+      && cnxCount(ids, me, (c, m) => c.el === m.el) >= 1,
+    skills: [
+      { k: "mutsumiSoko", nm: "底力EL", abil: "sokojikaraEL" },
+      { k: "mutsumiDash", nm: "ダッシュL", abil: "dashL" },
     ],
   },
   sakuya: {
@@ -6103,7 +6208,7 @@ const CHARS = {
       + "<b>撃ったあとに自分がどこにいるか</b>で当たる敵が変わる——狙って線を2本引ける技",
   },
   karen: {
-    /* 闇・貫通。星の学園の演劇部。舞台の暗転が敵を引き寄せる。
+    /* 闇・貫通。星の学園の演劇部。舞台の暗転が敵をのみこむ。
        ★ 担当は<b>第九重（光 {slowwall,ward}）</b>＝ 超アンチ減速壁＋アンチ断絶界の<b>2種ちょうど</b>。 */
     id: "karen", nm: "カレン", img: "Karen.webp", th: "t_Karen.webp",
     el: "dark", shot: "pierce", type: "黒淵吸引型", fes: true, fesKey: "starlight2", lux: true, nexus: "slayer",
@@ -6129,16 +6234,13 @@ const CHARS = {
       + "<b>底力EL</b>（チームHP50%以下で与ダメージ×" + SOKOJIKARA_EL_MUL + "）は<b>同じ場面で同時に立ちあがる</b>——"
       + "押されてからが本番のキャラ。<b>バリアEL</b>と<b>全属性耐性M</b>で、その半分を長く保てる。",
     fsName: "ノワールシンギュラリティ", fsKind: "darksingularity",
-    fsPow: "暗黒の重力球（半径 " + KAREN_R + "）が <b>敵を引き寄せながら</b> 攻撃力×" + KAREN_TICK_PER
-      + " × " + KAREN_PULSES + "回 ＋ <b>崩壊の大爆発</b> 攻撃力×" + KAREN_BOOM_PER,
+    fsPow: "暗黒の重力球（半径 " + KAREN_R + "）が <b>その場で</b> 攻撃力×" + KAREN_TICK_PER
+      + " を " + KAREN_PULSES + "回、最後に崩壊して 攻撃力×" + KAREN_BOOM_PER + " の大爆発",
     fsDesc: "敵の集まっているところへ<b>暗黒の重力球</b>を置く。"
-      + "<br>いちばんのちがいは<b>敵そのものを動かす</b>こと——MagiBurst で"
-      + "<b>敵の位置を変えるリンクスキルはこれがはじめて</b>。"
-      + "球のまわり（半径 " + KAREN_R + "）にいる敵は<b>中心へじりじり引き寄せられ</b>ながら、"
-      + KAREN_PULSES + "回にわたって削られる（1回あたり攻撃力×" + KAREN_TICK_PER + "）。"
-      + "<br>そして最後に球が<b>崩壊して大爆発</b>（攻撃力×" + KAREN_BOOM_PER + "）。"
-      + "このころには敵が中心へ寄せ集められているので、<b>散っていた敵ほどまとめて巻きこめる</b>。"
-      + "<br><small>※ ボスは重すぎて動きません（引き寄せられるのはボス以外の敵だけ）。ダメージは両方に入ります</small>",
+      + "球のまわり（半径 " + KAREN_R + "）にいる敵は、"
+      + "<b>" + KAREN_PULSES + "回にわたって削られつづけ</b>、"
+      + "最後に球が<b>崩壊して大爆発</b>する。"
+      + "<br><small>※ 2026-08-27 の見直しで、<b>敵を引き寄せる動きは廃止</b>しました。そのぶん、削りと崩壊の威力を上げてあります</small>",
   },
   tomoe: {
     /* 木・反射。星の学園の園芸部。撒いた種が順に芽吹く。
@@ -6874,6 +6976,93 @@ const CHARS = {
       + "フルバーストや強いリンクの直前に置くと、そのぶんがまるごと上乗せになる——"
       + "<b>順番を組み立てる楽しさ</b>がそのまま火力になる技",
   },
+  /* ══════════════════════════════════════════════════════════════
+     ★★ 2026-08-27 極彩祭（毎月1〜15日）・極煌祭（毎月16日〜末日）の限定SSR
+     ------------------------------------------------------------
+     決めごと（ご指定）
+       ・<b>治癒の祈りは持たない</b>
+       ・アンチは<b>オムニアンチ＋もう1〜2つ</b>（＝合計2〜3種）
+       ・<b>クロススキルを持つ</b>／<b>キラーは3つ</b>（クロス込み・パワーオーラ／底力も1つと数える）
+       ・アビリティは<b>クロス込みで8つ</b>
+       ・それぞれ<b>蓬莱の九重で有利属性の最適性</b>になるようにアンチをそろえる
+       ・<b>ネクサスは強化版</b>／<b>ショットスキル</b>を持つ／<b>ガチャの上澄み性能</b>
+       ・クロスの条件に<b>「自分と異なる属性」は使わない</b>
+     ══════════════════════════════════════════════════════════════ */
+  hinano: {
+    /* 木・貫通。極彩祭の主。プリズムの光で敵の属性そのものを塗り替える。
+       ★ 担当は<b>蓬莱月宮（水 {dw, warp, ward}）</b>。
+         オムニアンチが dw と warp を、アンチ断絶界が ward を受け持つ＝<b>有利属性で完全対応</b>。
+       ★ 検算は charAntiKeys("hinano") ⊇ counterKeysOf(HOURAI_STAGES[11]) で機械的に取れる。 */
+    id: "hinano", nm: "ヒナノ", img: "Hinano.webp", th: "t_Hinano.webp",
+    el: "wood", shot: "pierce", type: "極彩分光型", gacha: true, fes: true, fesKey: "kokusai", lux: true,
+    nexus: "luxprism", star5: true,
+    connect: "hinano",
+    hp: [1024, 6740], atk: [566, 3588], spd: [312, 462],
+    /* ★ アビリティは<b>クロス込みでちょうど8つ</b>（ご指定）。
+       ここに6つ＋クロス2つ＝8。ショットスキルも<b>1つと数える</b>。 */
+    abil: [{ t: "omni" }, { t: "award" }, { t: "ablock" },
+           { t: "houraikillerEL" }, { t: "weakkillerEL" }, { t: "shotVerdant" }],
+    shotskill: "verdant",
+    subfs: "weaksigil",
+    ssName: "エメラルド・カレイドスコープ", ssTurns: 18, ssKind: "hinano",
+    ssPow: "自強化（攻撃×2.30・スピード×1.35）＋ <b>敵全体に追加弱点を刻む</b>（" + WSIGIL_TURNS
+      + "ターン）＋ <b>敵全体の弱点コアを開放</b>",
+    ssDesc: "万華鏡のように光が割れ、<b>自強化（攻撃×2.30・スピード×1.35）</b>して走り出す。"
+      + "<br>同時に<b>画面上のすべての敵に追加の弱点を刻み</b>（" + WSIGIL_TURNS + "ターン）、"
+      + "さらに<b>弱点コアを開放</b>する——つまり<b>弱点が2つになったうえで、その弱点が強くなる</b>。"
+      + "<br>弱点キラーEL（×" + WEAKKILLER_EL_MUL + "）を持つ本人はもちろん、"
+      + "<b>チーム全員がこのターンから弱点をねらいやすくなる</b>のがこのフルバーストの本体。"
+      + "<br>★ ネクサス<b>極彩・プリズムネクサス</b>（弱点ダメージ +16%）とも噛み合う。",
+    fsName: "プリズム・ブルーム", fsKind: "prismbloom",
+    fsPow: "半径 " + PRISM_R + " に 攻撃力×" + PRISM_PER + " を " + PRISM_TICKS + "回 ＋ "
+      + "<b>当たった敵の属性を『自分が有利を取れる属性』へ塗り替える</b>（" + PRISM_TURNS + "ターン）",
+    fsDesc: "ふれた味方を中心に<b>翠のプリズム</b>が広がり、"
+      + "範囲内の敵を " + PRISM_TICKS + "回にわけて削る。"
+      + "<br>いちばんのちがいは<b>当たった敵の属性そのものを書き換える</b>こと。"
+      + "<b>その味方が有利を取れる属性</b>に塗り替わるので、"
+      + "<b>" + PRISM_TURNS + "ターンのあいだ、その敵に対しては味方全員の攻撃が有利倍率になる</b>。"
+      + "<br><b>1体のリンクがチーム全員の火力を底上げするリンクスキルはこれがはじめて</b>——"
+      + "属性のかみ合わない編成でも、ここから一気に押しこめる。"
+      + "<br><small>※ 塗り替わっているあいだ、敵の属性表示もその色に変わります。"
+      + "ターンが切れると元にもどります</small>",
+  },
+  mutsumi: {
+    /* 火・反射。極煌祭の主。走った軌跡が鏡写しになってもう一本走る。
+       ★ 担当は<b>蓬莱神域（木 {grav, mine, lockzone}）</b>。
+         オムニアンチが grav と mine を、アンチロックゾーンが lockzone を受け持つ＝<b>有利属性で完全対応</b>。 */
+    id: "mutsumi", nm: "ムツミ", img: "Mutsumi.webp", th: "t_Mutsumi.webp",
+    el: "fire", shot: "bounce", type: "極煌双影型", gacha: true, fes: true, fesKey: "kokukou", lux: true,
+    nexus: "luxblaze", star5: true,
+    connect: "mutsumi",
+    hp: [1042, 6860], atk: [572, 3630], spd: [300, 444],
+    /* ★ アビリティは<b>クロス込みでちょうど8つ</b>（ご指定）。
+       ここに6つ＋クロス2つ＝8。ショットスキルも<b>1つと数える</b>。 */
+    abil: [{ t: "omni" }, { t: "antilock" }, { t: "superaslow" },
+           { t: "houraikillerEL" }, { t: "combokillerEL" }, { t: "shotIgnite" }],
+    shotskill: "ignite",
+    subfs: "weaksigil",
+    ssName: "クリムゾン・ソレイユ", ssTurns: 19, ssKind: "mutsumi",
+    ssPow: "自強化（攻撃×2.45・スピード×1.22）＋ <b>敵全体の属性を塗り替える</b>（" + PRISM_TURNS
+      + "ターン）＋ 敵全体に 攻撃力×2.20 の紅蓮",
+    ssDesc: "紅い陽が昇り、<b>自強化（攻撃×2.45・スピード×1.22）</b>して跳ね出す。"
+      + "<br>同時に<b>画面上のすべての敵の属性を、自分が有利を取れる属性へ塗り替え</b>（" + PRISM_TURNS + "ターン）、"
+      + "そのうえで<b>全体に 攻撃力×2.20 の紅蓮</b>を落とす。"
+      + "<br>塗り替えはヒナノのリンクと同じしくみだが、こちらは<b>範囲ではなく画面全体</b>——"
+      + "<b>そのWAVEまるごとを『有利属性で殴れる場』に変える</b>。"
+      + "<br>連撃キラーEL を持つ本人は、反射で往復するほど伸びる。"
+      + "<br>★ ネクサス<b>極煌・ブレイズネクサス</b>（ボスへのダメージ +13%）とあわせて、"
+      + "🏯蓬莱の重いボスを削りきるための構え。",
+    fsName: "ミラージュ・アーク", fsKind: "mirrorarc",
+    fsPow: "ふれた味方の<b>鏡写しの影</b>が同時に走り、当たった敵に 攻撃力×" + MIRROR_PER
+      + "（同じ敵には " + MIRROR_CD + "フレームおき）",
+    fsDesc: "ふれた味方の<b>盤面の左右をひっくり返した位置</b>に、"
+      + "まったく同じ動きをする<b>紅い影</b>が生まれ、<b>本人と同時に走る</b>。"
+      + "<br>影も敵を削るので、<b>1回のショットで実質2本ぶんの軌道</b>になる。"
+      + "<br><b>軌跡そのものを写して二重にするリンクスキルはこれがはじめて</b>——"
+      + "盤面の<b>まんなかを狙うほど</b>、影と本人が同じ敵をはさんで削る形になる。"
+      + "<br>影は<b>本人が止まると消える</b>ので、長く走らせるほど伸びる"
+      + "<br><small>※ 影は壁やギミックの影響を受けません（写しなので）</small>",
+  },
 };
 /* エルシアのフルバースト説明は定数を使うのでここで組み立てる */
 CHARS.elsia.ssPow = "自強化（攻撃×1.6・スピード×1.2）＋ <b>残りチームHPの" + Math.round(ELSIA_HP_COST * 100) + "%を消費</b>し、"
@@ -7013,6 +7202,8 @@ const CHAR_IDS = [
      ★ 新キャラは必ず<b>いちばん最後に追記</b>すること（既存の No. がずれないように）。
      ★ xeva.js の MB_CHAR_MASTER も同じ並びにそろえること（並び＝No.）。 */
   "seina", "shiduki", "sayuki", "sara", "sakuya",
+  /* ★★ 2026-08-27 極彩祭・極煌祭（No.162〜163） */
+  "hinano", "mutsumi",
 ];
 /* id → キャラクター番号（1始まり）。図鑑・詳細・ガチャ結果に「No.XX」として出す */
 const CHAR_NO = {};
@@ -7150,6 +7341,9 @@ const CHAR_TYPE = {
   sayuki: "cannon",   /* ヴォイド・コンボが撃つほど育つ＝バトルが長いほど主砲になる */
   sara: "trick",      /* アンチ3種＋スカウト・ネクサス＝盤面と引きを有利にする */
   sakuya: "striker",  /* 蓬莱天宮の完全対応＋総攻撃2回＋弱点キラーEL */
+  /* ── ★★ 2026-08-27 極彩祭・極煌祭（No.162〜163） ── */
+  hinano: "cannon",   /* 貫通＋属性塗り替え＋弱点2つ＝チーム全体の火力を底上げする砲台 */
+  mutsumi: "striker", /* 反射＋二重射線＋連撃キラーEL＝往復するほど伸びる殴り役 */
   /* ── ★★ 2026-08-26 GRAND DEBUT GACHA Ver.3.0 限定SSR 5体（No.148〜152） ── */
   karin: "striker",   /* 弱点キラーEL＋蓬莱族L＋全体防御ダウン＝弱点を一点突破 */
   mirei: "cannon",    /* 総攻撃2回＋ミラーブルーム＝2か所から撃つ主砲 */
@@ -8517,6 +8711,36 @@ function drawFsGlyph(kind, c, g) {
       ctx.beginPath(); ctx.arc(0, 0, 1.8, 0, Math.PI * 2); ctx.fillStyle = "#fff"; ctx.fill(); ctx.fillStyle = c;
       ctx.lineWidth = 2; break;
     }
+    case "prismbloom": {     /* ★★ 2026-08-27 プリズム・ブルーム（属性を塗り替える） */
+      /* まん中のプリズム（三角）＋ そこから割れて出る6本の光 */
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(0, -7.4); ctx.lineTo(6.4, 4.2); ctx.lineTo(-6.4, 4.2); ctx.closePath();
+      ctx.stroke();
+      ctx.lineWidth = 1.7;
+      for (let k = 0; k < 6; k++) {
+        const a = (Math.PI * 2 / 6) * k + 0.5;
+        ctx.globalAlpha = k % 2 ? 1 : .55;
+        ctx.beginPath();
+        ctx.moveTo(Math.cos(a) * 7.4, Math.sin(a) * 7.4);
+        ctx.lineTo(Math.cos(a) * 11.6, Math.sin(a) * 11.6);
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+      ctx.lineWidth = 2; break;
+    }
+    case "mirrorarc": {      /* ★★ 2026-08-27 ミラージュ・アーク（鏡写しの二重射線） */
+      /* まん中の線（鏡）と、左右に対称の弧を2本 */
+      ctx.lineWidth = 1.6; ctx.globalAlpha = .5;
+      ctx.beginPath(); ctx.moveTo(0, -11); ctx.lineTo(0, 11); ctx.stroke();
+      ctx.globalAlpha = 1; ctx.lineWidth = 2.1;
+      ctx.beginPath(); ctx.arc(-3.0, 0, 7.6, -Math.PI * 0.62, Math.PI * 0.62); ctx.stroke();
+      ctx.beginPath(); ctx.arc(3.0, 0, 7.6, Math.PI * 0.38, Math.PI * 1.62); ctx.stroke();
+      /* 走った先の点（左右） */
+      ctx.beginPath(); ctx.arc(-9.4, -5.6, 1.7, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.arc(9.4, -5.6, 1.7, 0, Math.PI * 2); ctx.fill();
+      ctx.lineWidth = 2; break;
+    }
     case "petalecho": {      /* ★ 2026-08-26b ペタル・エコー（与えたダメージを写して返す） */
       /* 花びら3枚 */
       ctx.lineWidth = 1.8;
@@ -8645,7 +8869,7 @@ function drawFsGlyph(kind, c, g) {
       ctx.globalAlpha = 1;
       ctx.lineWidth = 2; break;
     }
-    case "darksingularity": {  /* ノワールシンギュラリティ（引き寄せる重力球） */
+    case "darksingularity": {  /* ノワールシンギュラリティ（その場で削る重力球） */
       /* 中心の黒い球 */
       ctx.beginPath(); ctx.arc(0, 0, 3.6, 0, Math.PI * 2); ctx.fill();
       /* 周回する薄い輪 */
@@ -8719,6 +8943,25 @@ function drawSubGlyph(kind, c, g) {
   ctx.lineCap = "round"; ctx.lineJoin = "round";
   ctx.strokeStyle = c; ctx.fillStyle = c; ctx.lineWidth = 2;
   switch (kind) {
+    case "weaksigil": {    /* ★★ 2026-08-27 ウィークシギル（弱点をもう1つ刻む） */
+      /* 紋章の輪＋その中の十字（＝弱点の印）を2つ。片方はうすい＝「増えた」ほう */
+      ctx.lineWidth = 1.9;
+      ctx.beginPath(); ctx.arc(-4.4, -3.4, 5.0, 0, Math.PI * 2); ctx.stroke();
+      ctx.lineWidth = 1.6;
+      ctx.beginPath(); ctx.moveTo(-7.2, -3.4); ctx.lineTo(-1.6, -3.4);
+      ctx.moveTo(-4.4, -6.2); ctx.lineTo(-4.4, -0.6); ctx.stroke();
+      ctx.globalAlpha = .55; ctx.lineWidth = 1.9;
+      ctx.beginPath(); ctx.arc(4.8, 4.0, 5.0, 0, Math.PI * 2); ctx.stroke();
+      ctx.lineWidth = 1.6;
+      ctx.beginPath(); ctx.moveTo(2.0, 4.0); ctx.lineTo(7.6, 4.0);
+      ctx.moveTo(4.8, 1.2); ctx.lineTo(4.8, 6.8); ctx.stroke();
+      ctx.globalAlpha = 1;
+      /* 「＋1」を思わせる小さな十字 */
+      ctx.lineWidth = 2.2;
+      ctx.beginPath(); ctx.moveTo(8.6, -7.4); ctx.lineTo(12.0, -7.4);
+      ctx.moveTo(10.3, -9.1); ctx.lineTo(10.3, -5.7); ctx.stroke();
+      ctx.lineWidth = 2; break;
+    }
     case "poisoncurrent":  /* ★ v14.5 ポイズンカレント（毒の海流＋渦潮） */
       /* 渦（中心のうずまき）＋ 毒の海流（下の波）＋ 毒のあぶく */
       ctx.lineWidth = 1.9;
@@ -11253,11 +11496,31 @@ GARDEN_STAGES.forEach((st, i) => {
    「リンクをつなげる位置」ではなく「弱点をどう殴るか」を読む場所にする。 */
 const HOURAI_FS_MUL = 0.5;
 const HOURAI_MELEE_MUL = 2.0;
-const HOURAI_N = 10;                       // 第一重〜第九重＋蓬莱天宮
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-08-27 蓬莱天宮の<b>続き</b>を5クエスト足す（ご指定）
+   ------------------------------------------------------------
+   蓬莱仙苑（火）／蓬莱月宮（水）／蓬莱神域（木）／蓬莱天界（光）／蓬莱神天（闇）。
+   ・各属性1つずつ。構成（6WAVE・雑魚3＋ボス3）はこれまでとまったく同じ。
+   ・<b>アンチギミックは3種</b>で、<b>これまでに無い組み合わせ</b>だけを使う。
+     既存10面は dw / grav / warp / mine / slowwall / ward しか使っていなかったので、
+     新しい5面は<b>ブロックとロックゾーンを主役</b>にして顔つきを変えている。
+   ・WAVE ごとの配置は houraiStage の FORMS を (i + w) でずらしているので、
+     階層が増えれば自動で別の並びになる（同じ面は1つもできない）。
+   ★★ HOURAI_N を伸ばすと、これまでの10面の<b>攻撃力のならし</b>まで変わってしまう。
+     ならしの式は <b>HOURAI_BASE_N（＝10）</b> を見るように分けてあるので、
+     既存の10面の数字は<b>1つも動かない</b>。
+   ══════════════════════════════════════════════════════════════ */
+const HOURAI_BASE_N = 10;                  // 第一重〜第九重＋蓬莱天宮（ここまでが元の蓬莱）
+const HOURAI_TENKYU = 10;                  // 蓬莱天宮の番号（これだけ瑶妃・別の背景）
+const HOURAI_N = 15;                       // ＋ 仙苑・月宮・神域・天界・神天
 const HOURAI_ORB = 20;                     // 初クリアのジェム
 const HOURAI_KANJI = ["一", "二", "三", "四", "五", "六", "七", "八", "九"];
-/* 属性: 火→水→木→光→闇 のくり返し。10番目（蓬莱天宮）は闇。 */
+/* ★ 11番目からのクエスト名（蓬莱天宮の続き）。二つ名は名前そのものを使う。 */
+const HOURAI_EXNM = ["蓬莱仙苑", "蓬莱月宮", "蓬莱神域", "蓬莱天界", "蓬莱神天"];
+/* 属性: 火→水→木→光→闇 のくり返し。10番目（蓬莱天宮）は闇。
+   ★ 11〜15 も 火→水→木→光→闇 の順（各属性1つずつ・ご指定）。 */
 const HOURAI_ELS = ["fire", "water", "wood", "light", "dark",
+                    "fire", "water", "wood", "light", "dark",
                     "fire", "water", "wood", "light", "dark"];
 /* アンチギミックの組み合わせ。★ 既存3系統に無いものだけ。
    8通りしかないので、第八重と蓬莱天宮は3種にして重複を避けている。 */
@@ -11272,6 +11535,13 @@ const HOURAI_ANTI = [
   ["dw", "mine", "grav"],         // 第八重（3種）
   ["slowwall", "ward"],           // 第九重
   ["grav", "warp", "slowwall"],   // 蓬莱天宮（3種）
+  /* ★★ 2026-08-27 蓬莱天宮の続き。どれも<b>これまでに無い3種の組み合わせ</b>。
+     ★ ブロック（block）とロックゾーン（lockzone）は蓬莱でははじめて使う。 */
+  ["warp", "slowwall", "lockzone"],  // 蓬莱仙苑（火）
+  ["dw", "warp", "ward"],            // 蓬莱月宮（水）★ ヒナノ（木）の担当
+  ["grav", "mine", "lockzone"],      // 蓬莱神域（木）★ ムツミ（火）の担当
+  ["dw", "lockzone", "ward"],        // 蓬莱天界（光）
+  ["mine", "slowwall", "warp"],      // 蓬莱神天（闇・最奥）
 ];
 /* 階層ごとの二つ名（難度表示に使う） */
 const HOURAI_NM = ["紅蓮", "碧水", "翠風", "白光", "玄冥", "焔舞", "蒼渦", "金剛", "月華"];
@@ -11289,13 +11559,19 @@ const HOURAI_NM = ["紅蓮", "碧水", "翠風", "白光", "玄冥", "焔舞", "
 const HOURAI_BOSS_HP = [
   25880000, 25880000, 25880000, 25880000, 25880000,
   57960000, 57960000, 57960000, 57960000, 110770000,
+  /* ★★ 2026-08-27 蓬莱天宮の続き。天宮（1億1,077万）から段を上げていく。
+     ★ 一気に上げない——味方のHPは増えないので、削り切れるかどうかは
+       「編成と手順が噛み合うか」で決まるようにしたい。 */
+  130000000, 148000000, 168000000, 190000000, 215000000,
 ];
 /* WAVEごとの特殊。★ 1クエストにつき1つだけ効かせる（重ねると何が起きたか読めない）
    descend … 雑魚を全滅させるとボスが降臨する（モンスト方式）
    edgedoom … 画面の端に長めに現れてから即死を撃つ
    knockback … 下部まで吹き飛ばす（蓬莱天宮の瑶妃）*/
 const HOURAI_SPECIAL = ["", "descend", "edgedoom", "descend", "edgedoom",
-                        "descend", "edgedoom", "descend", "edgedoom", "knockback"];
+                        "descend", "edgedoom", "descend", "edgedoom", "knockback",
+                        /* ★★ 2026-08-27 続きの5面。最奥（神天）は天宮と同じ吹き飛ばし。 */
+                        "edgedoom", "descend", "edgedoom", "descend", "knockback"];
 /* ★ 2026-08-17m 盤面そのものを変える特殊ギミックを階層ごとに1つずつ。
    これを入れていなかったため、10クエストが「アンチの組み合わせが違うだけ」の
    ほとんど同じ盤面になっていた。庭園で使っている仕掛けを、蓬莱では別の順番で並べ直す。
@@ -11311,6 +11587,12 @@ const HOURAI_GIMSP = [
   "countboost",   /* 第八重 … 3種アンチ＋カウント加速 */
   "photon",       /* 第九重 … エーテル＋端の即死 */
   "vanish",       /* 蓬莱天宮 … 消える箱＋吹き飛ばし */
+  /* ★★ 2026-08-27 続きの5面。10面で使った並びと<b>同じ順にならない</b>ようにずらす。 */
+  "balloon",      /* 蓬莱仙苑 … ヒーリングバルーン */
+  "wallchange",   /* 蓬莱月宮 … 壁の色＝通せる撃種が入れ替わる */
+  "healwall",     /* 蓬莱神域 … 回復壁 */
+  "photon",       /* 蓬莱天界 … エーテルを運んでシールドを割る */
+  "innerweak",    /* 蓬莱神天 … 内部弱点（貫通でしか弱点を殴れない） */
 ];
 
 /* ★ 2026-08-17o 奥の階層の攻撃力をならす。
@@ -11318,7 +11600,9 @@ const HOURAI_GIMSP = [
    幽冥の庭園と同じ考えかたで、奥ほど係数を下げて
    「1WAVEぶんの攻撃 ≒ チームHPの85〜95%」に収める。 */
 function houraiAtkEase(k) {
-  const t = Math.min(1, Math.max(0, (k - 1) / (HOURAI_N - 1)));
+  /* ★★ 2026-08-27 <b>HOURAI_BASE_N（10）</b>を分母にする。
+     HOURAI_N を 15 に伸ばしたときにここが変わると、既存10面の攻撃力まで動いてしまう。 */
+  const t = Math.min(1, Math.max(0, (k - 1) / (HOURAI_BASE_N - 1)));
   return 1.00 + (0.62 - 1.00) * t;     /* 第一重 1.00 → 蓬莱天宮 0.62 */
 }
 /* ══════════════════════════════════════════════════════════════
@@ -11349,6 +11633,12 @@ const HOURAI_BOSS_SPOT = [
   { wall: "left",  t: .64 },   /* 第八重　左・下より */
   { wall: "right", t: .64 },   /* 第九重　右・下より */
   { wall: "top",   t: .50 },   /* 蓬莱天宮 上・まんなか（最奥だけ従来の構え） */
+  /* ★★ 2026-08-27 続きの5面。壁・位置とも既存10面とかぶらない組み合わせにしてある。 */
+  { wall: "left",  t: .40 },   /* 蓬莱仙苑 */
+  { wall: "right", t: .40 },   /* 蓬莱月宮 */
+  { wall: "top",   t: .45 },   /* 蓬莱神域 */
+  { wall: "left",  t: .56 },   /* 蓬莱天界 */
+  { wall: "right", t: .56 },   /* 蓬莱神天 */
 ];
 /* i は 0 始まりの階層、r はボスの<b>実際の当たり半径</b>（＝定義の r × 1.22） */
 function houraiBossPos(i, r) {
@@ -11370,8 +11660,12 @@ function houraiStage(k) {
   const el = HOURAI_ELS[i];
   const anti = HOURAI_ANTI[i];
   const sp = HOURAI_SPECIAL[i];
-  const last = (k === HOURAI_N);                       // 蓬莱天宮
-  const bossSp = last ? "youhi" : "youka";
+  /* ★★ 2026-08-27 「last」＝<b>蓬莱天宮</b>（瑶妃・別背景・吹き飛ばし）。
+     HOURAI_N を伸ばしたので、ここを HOURAI_N で見ると天宮が天宮でなくなる。 */
+  const last = (k === HOURAI_TENKYU);
+  const ex = (k > HOURAI_TENKYU);                      // 蓬莱天宮の続き（仙苑〜神天）
+  /* 続きの5面も瑶妃（天宮と同じ最上位のボス）にそろえる */
+  const bossSp = (last || ex) ? "youhi" : "youka";
   const hpB = HOURAI_BOSS_HP[i];
   /* ★ 2026-08-17o 「ギリギリのHPで削り合う」重さにする。
      もとの 3400×1.10^i だと1WAVEぶんの攻撃がチームHPの2割ほどしかなく、
@@ -11403,12 +11697,19 @@ function houraiStage(k) {
   /* ボス。瑶華＆玉蘭は2体で1組なので twin を立てる（攻撃を別カウントで回す目印）
      ★★ 2026-08-25 置き場所はクエストごとに変える（HOURAI_BOSS_SPOT）。
        壁とのあいだには、味方が<b>挟まれる</b>すきまを必ず空けてある。 */
-  const bossR = last ? 112 : 104;
+  const bossR = (last || ex) ? 112 : 104;
   const bpos = houraiBossPos(i, Math.round(bossR * 1.22));
   const bs = (mult, o) => Object.assign(
     { el, sp: bossSp, boss: 1, weak: 1, r: bossR,
       hp: Math.round(hpB * mult), atk: Math.round(atkB * 1.5), cd: 3, x: bpos.x, y: bpos.y,
-      hourai: 1 }, last ? { knockback: 1 } : { twin: 1 }, o || {});
+      /* ★★ 2026-08-27 <b>挟まる位置（寄せた壁の側）に弱点を置く</b>（ご指定）。
+         index.html の weakCore / weakPassCore がこの wside を見て弱点をずらす。
+         これが無いと弱点は「まっすぐ上」に固定され、左右の壁に寄せた回では
+         挟まっても弱点に当たらない。 */
+      wside: bpos.wall,
+      hourai: 1 },
+    /* 続きの5面も1体ボス（天宮と同じ）。knockback は HOURAI_SPECIAL で決める */
+    (last || ex) ? (sp === "knockback" ? { knockback: 1 } : {}) : { twin: 1 }, o || {});
   /* アンチギミックを WAVE ごとに散らす。
      ★ 同じクエストの中でも WAVE ごとに数と置きかたを変える（全WAVEで別構成にするため）。 */
   const gimOf = (w) => {
@@ -11508,19 +11809,23 @@ function houraiStage(k) {
       /* ★ 端の即死は、猶予のあるうしろのWAVEだけ（序盤から出すと読む間がない） */
       if (sp === "edgedoom" && w >= 4) { b.edgeDoom = 1; b.edgeWarn = 3; }
       /* 瑶華＆玉蘭は2本目のカウントを1本目より少し長くする（同時に殴らせない） */
-      if (!last) b.cd2 = b.cd + 2;
+          if (!last && !ex) b.cd2 = b.cd + 2;
       waves.push([b].concat(guards));
     }
   }
   const gimByWave = waves.map((_, w) => gimOf(w));
   return {
-    id: "hr" + k, nm: last ? "蓬莱天宮" : "蓬莱の九重・第" + HOURAI_KANJI[i] + "重",
+    id: "hr" + k,
+    nm: ex ? HOURAI_EXNM[k - HOURAI_TENKYU - 1]
+       : last ? "蓬莱天宮" : "蓬莱の九重・第" + HOURAI_KANJI[i] + "重",
     room: k, hourai: 1, hi: true,
     el, elemUp: 1.50,
-    diff: last ? "★蓬天" : "★蓬" + HOURAI_NM[i],
+    diff: ex ? "★" + HOURAI_EXNM[k - HOURAI_TENKYU - 1].replace("蓬莱", "")
+        : last ? "★蓬天" : "★蓬" + HOURAI_NM[i],
     gold: 26000 + k * 5200 + (last ? 40000 : 0),
     orb: HOURAI_ORB, exp: 4200 + k * 780,
-    bgKey: last ? "tenkyu" : "hourai", bgm: "garden-of-the-nether.mp3",
+    /* 続きの5面も天宮の背景（蓬莱の最奥の絵）を使う */
+    bgKey: (last || ex) ? "tenkyu" : "hourai", bgm: "garden-of-the-nether.mp3",
     banner: "bn_hourai_s.webp",
     gim: gimByWave[0], blocks: [], ghost: [], swap: [],
     gimByWave, waves,
@@ -11550,7 +11855,10 @@ const HOURAI_STAGES = Array.from({ length: HOURAI_N }, (_, k) => houraiStage(k +
      キャラを増やしてHPの上限が上がったら、この数字も見直すこと。 */
 const HOURAI_REF_HP = 47000;
 HOURAI_STAGES.forEach((st, i) => {
-  const t = HOURAI_N > 1 ? i / (HOURAI_N - 1) : 0;
+  /* ★★ 2026-08-27 分母は <b>HOURAI_BASE_N</b>（既存10面の数字を1つも動かさないため）。
+     続きの5面は t が 1 を超えるが、<b>1.10 で頭打ち</b>にする
+     ＝ ボスWAVEの目標は 1.28 + 0.20×1.10 ＝ <b>1.50</b>（「ボス戦は1.5倍まで」の目安ちょうど）。 */
+  const t = Math.min(1.10, HOURAI_BASE_N > 1 ? i / (HOURAI_BASE_N - 1) : 0);
   (st.waves || []).forEach((wv, w) => {
     const bossWave = (wv || []).some((d) => d && d.boss);
     const want = HOURAI_REF_HP * ((bossWave ? 1.28 : 1.05) + (bossWave ? 0.20 : 0.17) * t);
@@ -11565,11 +11873,14 @@ HOURAI_STAGES.forEach((st, i) => {
 HOURAI_STAGES.forEach((st, i) => {
   /* ★ 2026-08-17m 蓬莱天宮は<b>第一重〜第九重をすべてクリア</b>して初めて開く。
      「1つ前だけ」だと第九重を抜けた時点で入れてしまうので、9つ全部を条件にする。 */
-  if (i === HOURAI_N - 1) st.needAllClear = HOURAI_STAGES.slice(0, HOURAI_N - 1).map((x) => x.id);
+  if (i === HOURAI_TENKYU - 1) st.needAllClear = HOURAI_STAGES.slice(0, HOURAI_TENKYU - 1).map((x) => x.id);
+  /* ★★ 2026-08-27 天宮の続き（仙苑〜神天）は<b>1つ前をクリアすれば開く</b>。
+     ここまで来た人に、9面ぶんの条件をもう一度課しても意味がないため。 */
+  else if (i >= HOURAI_TENKYU) st.needAllClear = [HOURAI_STAGES[i - 1].id];
 });
 function houraiTenkyuOpen() {
   if (typeof DB === "undefined" || !DB || !DB.clears) return false;
-  return HOURAI_STAGES.slice(0, HOURAI_N - 1).every((x) => DB.clears[x.id]);
+  return HOURAI_STAGES.slice(0, HOURAI_TENKYU - 1).every((x) => DB.clears[x.id]);
 }
 /* ★ 2026-08-05 新ギミック「FB遅延攻撃」は 第8〜12ノ園 で採用する。
    ・各WAVEに<b>1体だけ</b>置く。2体以上だと毎ターン巻きもどされてフルバーストが永久に撃てず、
@@ -12380,8 +12691,56 @@ FESTS.fes6 = {
     + "さらに全員が<b>蓬莱族キラーL</b>と<b>属性キラーEL</b>、<b>クロススキル</b>、"
     + "そして共通サブリンク<b>オーロラ・カーテン</b>を持ちます。"
     + "リンクスキルは5体とも<b>新設</b>で、<b>連鎖する炎</b>／<b>行って帰る輪刃</b>／"
-    + "<b>敵を引き寄せる重力球</b>／<b>時間差で芽吹く種</b>／<b>敵どうしを結ぶ星座</b>——"
+    + "<b>その場で削りつづける重力球</b>／<b>時間差で芽吹く種</b>／<b>敵どうしを結ぶ星座</b>——"
     + "どれもこれまでに無い挙動です。",
+};
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-08-27 極彩祭（fes7）・極煌祭（fes8）＝<b>毎月まわってくるフェス</b>（ご指定）
+   ------------------------------------------------------------
+   ・<b>極彩祭 … 毎月 1〜15日</b>／<b>極煌祭 … 毎月 16日〜末日</b>。
+     毎月かならず入れ替わりで開催され、<b>終わりの日付は決めない</b>（ずっと続く）。
+   ・ガチャの仕組みは <b>Starlight Academy Fest 2（fes6）とまったく同じ</b>（ご指定）＝
+     限定SSR 合計10%・ピックアップなし／プレミアムSSR も合計5%／SR 50%／
+     アイテム枠は D_ITEM_TABLE（GRAND DEBUT GACHA と同じ中身）。
+   ・登場キャラは<b>限定キャラクター扱い</b>（fes: true）＝プレミアムには出ない。
+   ★ 開催の判定は openAt（1回きりの日時）ではなく <b>monthly</b>（毎月の日にちの範囲）。
+     fesLocked が monthly も見るようにしてあるので、期間外は
+     「開催前」と同じ扱い＝キャラは伏せ、回すこともできない。
+   ══════════════════════════════════════════════════════════════ */
+FESTS.fes7 = {
+  key: "fes7", sfx: "7", nm: "極彩祭", tab: "極彩祭",
+  banner: "../img/bn_fes7_s.webp", c: "#8affc4", leadCls: "star",
+  monthly: [1, 15],
+  chars: ["hinano"],
+  itemTable: D_ITEM_TABLE,
+  lead: "極彩祭の限定SSR <b>1体</b>（10%・ピックアップなし）に加えて、<b>" + PREMIUM_NM + "のSSRも合計5%で排出</b>",
+  sub: "極彩祭の限定SSR <b>1体</b>（10%・ピックアップなし）＋ <b>プレミアムSSRも合計5%で排出</b>。"
+    + "<b>毎月 1〜15日</b>だけの開催です",
+  note: "<b>ヒナノ</b>（木・貫通）が登場する<b>毎月1〜15日</b>のフェスです。"
+    + "リンクスキル<b>プリズム・ブルーム</b>は<b>当たった敵の属性を塗り替える</b>——"
+    + "塗り替わっているあいだ、<b>味方全員の攻撃がその敵に対して有利倍率</b>になります"
+    + "（1体のリンクがチーム全員の火力を底上げする、はじめての形）。"
+    + "サブリンク<b>ウィークシギル</b>は<b>弱点をもう1つ刻み</b>、"
+    + "<b>ショットスキル</b>で<b>撃つたび毎回</b>翠光の衝撃波を放ちます。"
+    + "アンチは<b>オムニアンチ＋アンチ断絶界＋アンチブロック</b>で、"
+    + "<b>🏯蓬莱月宮（水）を有利属性のまま完全対応</b>できます。",
+};
+FESTS.fes8 = {
+  key: "fes8", sfx: "8", nm: "極煌祭", tab: "極煌祭",
+  banner: "../img/bn_fes8_s.webp", c: "#ff9d2e", leadCls: "star",
+  monthly: [16, 31],
+  chars: ["mutsumi"],
+  itemTable: D_ITEM_TABLE,
+  lead: "極煌祭の限定SSR <b>1体</b>（10%・ピックアップなし）に加えて、<b>" + PREMIUM_NM + "のSSRも合計5%で排出</b>",
+  sub: "極煌祭の限定SSR <b>1体</b>（10%・ピックアップなし）＋ <b>プレミアムSSRも合計5%で排出</b>。"
+    + "<b>毎月 16日〜末日</b>だけの開催です",
+  note: "<b>ムツミ</b>（火・反射）が登場する<b>毎月16日〜末日</b>のフェスです。"
+    + "リンクスキル<b>ミラージュ・アーク</b>は<b>ふれた味方の鏡写しの影が同時に走る</b>——"
+    + "<b>1回のショットで実質2本ぶんの軌道</b>になります。"
+    + "サブリンク<b>ウィークシギル</b>は<b>弱点をもう1つ刻み</b>、"
+    + "<b>ショットスキル</b>で<b>撃つたび毎回</b>炎の輪とバリアが出ます。"
+    + "アンチは<b>オムニアンチ＋アンチロックゾーン＋超アンチ減速壁</b>で、"
+    + "<b>🏯蓬莱神域（木）を有利属性のまま完全対応</b>できます。",
 };
 const FES_KEYS = Object.keys(FESTS);
 function fesDef(key) { return FESTS[key] || FESTS.fes; }
@@ -12392,8 +12751,39 @@ function isFesMode(m) { return !!FESTS[m]; }
    ・バナーは見えるが、キャラは ? でぼかす／回すボタンは押せない
    という状態になる。日付をまたいだ瞬間から、なにもしなくても解禁される。
    ★ 日付の比較はローカル時刻で行う（toISOString は UTC なので日本は9時間ずれる）。 */
-function fesLocked(key) { return beforeOpen(fesDef(key).openAt); }
-function fesOpenText(f) { return openTimeText(f && f.openAt); }
+/* ══ ★★ 2026-08-27 毎月まわってくるフェス（monthly: [開始日, 終了日]）══
+   ・monthly を書いたフェスは<b>毎月その日にちのあいだだけ</b>開催される。
+   ・期間外は「開催前」と同じ扱い（キャラは伏せ、回せない）。
+   ★ 日にちは<b>ローカル日付</b>で見る（toISOString は UTC なので日本は9時間ずれる）。
+   ★ 終了日は 31 のように月末より大きい数を書いてよい（その月の末日までになる）。 */
+function fesInMonthly(f) {
+  const m = f && f.monthly;
+  if (!m) return true;                       /* monthly が無いフェスはいつでも開催中 */
+  const d = new Date().getDate();
+  return d >= (m[0] | 0) && d <= (m[1] | 0);
+}
+/* 次にその期間が始まる日（「◯月◯日から」を出すのに使う） */
+function fesNextMonthlyText(f) {
+  const m = f && f.monthly; if (!m) return "";
+  const now = new Date(), d = now.getDate();
+  const y = now.getFullYear(), mo = now.getMonth();
+  /* この月のうちにまだ始まっていなければ今月、過ぎていれば来月 */
+  const next = (d < (m[0] | 0)) ? new Date(y, mo, m[0] | 0) : new Date(y, mo + 1, m[0] | 0);
+  return (next.getMonth() + 1) + "月" + next.getDate() + "日から";
+}
+function fesLocked(key) {
+  const f = fesDef(key);
+  if (beforeOpen(f.openAt)) return true;
+  return !fesInMonthly(f);
+}
+function fesOpenText(f) {
+  /* ★ 毎月のフェスは「いつからいつまで」と「次はいつか」の両方を出す */
+  if (f && f.monthly) {
+    return "毎月 " + f.monthly[0] + "日〜" + (f.monthly[1] >= 31 ? "末日" : f.monthly[1] + "日")
+      + " に開催（次は " + fesNextMonthlyText(f) + "）";
+  }
+  return openTimeText(f && f.openAt);
+}
 /* ★ 2026-08-07: 開催前は bannerSoon（人物をシルエットに落とした差し替え版）を使う。
    通常のバナーには顔が大きく写っているので、そのまま出すと伏せている意味がなくなる。 */
 /* ★ 2026-08-10 バナーのパスはページごとに変わる（MagiBurst は "../img/"、ポータルは "img/"）。
@@ -12401,7 +12791,9 @@ function fesOpenText(f) { return openTimeText(f && f.openAt); }
 function mbImgPath(p) { return String(p || "").replace(/^\.\.\/img\//, GIMGD); }
 function fesBannerOf(key) { const f = fesDef(key); return mbImgPath((fesLocked(key) && f.bannerSoon) || f.banner); }
 /* そのキャラが属するフェス（fesKey 未指定のキャラは v14 の Nocturne Bloom Fest 扱い） */
-const FESKEY_MAP = { luminous: "fes2", phantom: "fes3", aoka: "fes4", starlight: "fes5", starlight2: "fes6" };
+const FESKEY_MAP = { luminous: "fes2", phantom: "fes3", aoka: "fes4", starlight: "fes5", starlight2: "fes6",
+  /* ★★ 2026-08-27 極彩祭・極煌祭 */
+  kokusai: "fes7", kokukou: "fes8" };
 function fesKeyOf(id) { const c = CHARS[id]; return c && c.fes ? (FESKEY_MAP[c.fesKey] || "fes") : null; }
 function fesNameOf(id) { const k = fesKeyOf(id); return k ? fesDef(k).nm : ""; }
 const FES_ALL_CHARS = FES_KEYS.reduce((a, k) => a.concat(FESTS[k].chars), []);
@@ -13417,6 +13809,28 @@ function skipGachaReveal() {
   _revClear();
   /* ★★ 2026-08-26b 昇格の舞台が出ているところで飛ばされたら、舞台も一緒に片づける */
   try { luxRankStageClear(); } catch (e) {}
+  /* ══ ★★ 2026-08-27 「まとめて見る」でも<b>昇格演出だけは見せる</b>（ご報告への対応）══
+     ------------------------------------------------------------
+     10連は10回タップするのが大変なので、多くの人が「▶▶ まとめて見る」を押す。
+     ところがこのボタンは<b>昇格演出をまるごと飛ばして</b>いたので、
+     10連でランクアップが起きても<b>一度も演出を見られない</b>状態だった
+     （＝「10連で演出が見えない」というご報告の正体）。
+     → まだ開けていない昇格枠が残っていたら、<b>舞台を1回だけ立ちあげる</b>。
+     ★ 結果そのものは<b>待たせずにすぐ</b>出す（舞台は pointer-events:none で上に重なるだけ）。
+       「まとめて見る」が遅くなってはボタンの意味がなくなる。 */
+  try {
+    const pend = [...(_rev.up || _rev.upAll || [])]
+      .filter((i) => !(_rev.opened && _rev.opened.has(i)));
+    if (pend.length) {
+      const nms = pend.map((i) => {
+        const r0 = (_rev.results || [])[i];
+        return (r0 && r0.type === "char" && CHARS[r0.id]) ? CHARS[r0.id].nm : "";
+      }).filter(Boolean);
+      const tx = nms.length > 1 ? nms[0] + " ほか" + (nms.length - 1) + "体" : (nms[0] || "");
+      luxRankStage(tx);
+      SFX.crit();
+    }
+  } catch (e) {}
   _revShowCovers();   /* ★ 2026-08-26 取り残された .hide を先に外す（下で消すので保険） */
   _rev.phase = "done"; _rev.go = null; _rev.startOne = null; _rev.ranking = null;
   /* ★ スキップ時はアニメを待たず、星のプレートをその場で取り除いて結果だけを出す */
@@ -13951,6 +14365,10 @@ function revealGacha(results, title) {
     if (Math.random() < RANKUP_CHANCE) upSet.add(i);
   });
   const _showCard = () => {
+    /* ★★ 2026-08-27 昇格する枠の一覧は<b>この段階から</b>控えておく。
+       _rev.up は「1枚ずつ開ける段（startOne）」に入って初めて作られるので、
+       それより前に「まとめて見る」を押されると、昇格枠がどれだったのか分からなくなっていた。 */
+    _rev.upAll = new Set(upSet);
     ball.style.display = "none"; card.style.display = "flex";
     ov.classList.remove("cfon"); cf.className = "gcf"; cfring.className = "gcfring";
     const leadEnd = luxAll ? "✦✦ ALL SSR ✦✦" : hasS5 ? "✦ SSR 獲得！ ✦" : hasAnyChar ? "キャラ獲得！" : "結果";
