@@ -967,8 +967,8 @@ window.lexKpDetail = async function(id){
       document.head.appendChild(l);
     }
     if(typeof window.DB === "undefined") await _loadScript("../mb-boot.js?v=6");
-    if(typeof window.CHARS === "undefined") await _loadScript("../MagiBurst/js/mb-core.js?v=58");
-    if(typeof window.openDetX !== "function") await _loadScript("../mb-char-detail.js?v=10");
+    if(typeof window.CHARS === "undefined") await _loadScript("../MagiBurst/js/mb-core.js?v=60");
+    if(typeof window.openDetX !== "function") await _loadScript("../mb-char-detail.js?v=11");
     _kpDetReady = true;
     _kpOpen(id);
   }catch(e){
@@ -2273,12 +2273,14 @@ window.lexMix=()=>{
   saveActiveQuiz(); renderQuiz(); show({name:"quiz",tab:"home"});
 };
 // ---- 途中経過の保存・再開（ホームなどに戻っても続きから） ----
-function saveActiveQuiz(){ if(!quiz) return; P.activeQuiz={ items:quiz.items, idx:quiz.idx, ok:quiz.ok, src:quiz.src, cid:quiz.cid||null, miss:quiz.miss||[], q:quiz.q||"", contentId:(curContent?curContent.id:null), savedAt:Date.now() }; save(); }
+/* ★★ 2026-08-28 確認テストの1問ずつの記録（log）も持ちこす。
+   これが無いと、中断して再開したときに<b>最後の答え合わせが途中から</b>になる。 */
+function saveActiveQuiz(){ if(!quiz) return; P.activeQuiz={ items:quiz.items, idx:quiz.idx, ok:quiz.ok, src:quiz.src, cid:quiz.cid||null, miss:quiz.miss||[], log:quiz.log||[], q:quiz.q||"", contentId:(curContent?curContent.id:null), savedAt:Date.now() }; save(); }
 function clearActiveQuiz(){ if(P.activeQuiz){ P.activeQuiz=null; save(); } }
 window.lexResumeQuiz=()=>{
   const a=P.activeQuiz; if(!a||!a.items||!a.items.length) return;
   curContent = a.contentId ? findContent(a.contentId) : null;
-  quiz={ items:a.items, idx:Math.min(a.idx||0, a.items.length-1), ok:a.ok||0, src:a.src||"section", cid:a.cid||null, miss:Array.isArray(a.miss)?a.miss:[], q:a.q||"" };
+  quiz={ items:a.items, idx:Math.min(a.idx||0, a.items.length-1), ok:a.ok||0, src:a.src||"section", cid:a.cid||null, miss:Array.isArray(a.miss)?a.miss:[], log:Array.isArray(a.log)?a.log:[], q:a.q||"" };
   renderQuiz(); show({name:"quiz", tab:(a.src==="mix"||a.src==="search"?"home":"library")});
 };
 function renderQuiz(){
@@ -2300,8 +2302,16 @@ function renderQuiz(){
              解いている途中の図は「答えの形」を教えてしまううえ、
              手を止めさせてしまうので、解き終えたあとの解説だけに置く。 */""}
       <div class="opts" id="opts">${it.opts.map((o,i)=>`<button class="opt" onclick="lexAnswer(${i})">${esc(o)}</button>`).join("")}</div>
-      <button class="dunno" id="dunnoBtn" onclick="lexDontKnow()">？ わからない（答えを見る）</button>
-      <div class="reveal" id="reveal"><div class="ans">正解：${escMath(it.full||it.answer)}</div>${it.extra?`<div class="ex">${escMath(it.extra)}</div>`:""}
+      ${/* ★★ 2026-08-28 <b>確認テストのあいだは正誤も正解も出さない</b>（ご指定）。
+             ・えらんだ答えは「うすい枠」で残すだけ（緑＝正解／赤＝不正解は付けない）
+             ・正解と解説は<b>最後の結果画面でまとめて</b>出す
+           ★ ここを分けておかないと、答え合わせだけ後回しにしても
+             「正解：◯◯」が出ているので意味がなくなる。 */""}
+      <button class="dunno" id="dunnoBtn" onclick="lexDontKnow()">${quiz.src==="confirm"
+        ? "？ わからない（答えずに次へ）" : "？ わからない（答えを見る）"}</button>
+      <div class="reveal" id="reveal">${quiz.src==="confirm"
+        ? `<div class="ans conf">✓ 回答しました<span>正解・不正解は<b>最後にまとめて</b>表示します</span></div>`
+        : `<div class="ans">正解：${escMath(it.full||it.answer)}</div>${it.extra?`<div class="ex">${escMath(it.extra)}</div>`:""}`}
         ${/* ★★ 2026-08-19 ここにあった「XEVYNAR で見る」ボタンは<b>廃止</b>しました。
               解いている途中でアプリを離れると、そのセットを最後まで解き終わらないため
               <b>習得の判定とごほうびが走らず、記録が切れて見える</b>のが理由です。
@@ -2370,6 +2380,25 @@ function finishQuestion(pick){
   const it=quiz.items[quiz.idx];
   const correct = pick>=0 && it.opts[pick]===it.answer;
   recordAnswer(it, correct);
+  /* ★★ 2026-08-28 確認テストは<b>1問ごとに正誤を出さない</b>（ご指定）。
+     えらんだ答えだけ「うすい枠」で残し、正解・解説は結果画面でまとめて出す。
+     ★ 答え合わせのために、1問ずつの記録（quiz.log）をここで取っておく。 */
+  if(quiz.src==="confirm"){
+    quiz.log = quiz.log || [];
+    quiz.log.push({ stem: it.stem, ans: (it.full||it.answer||""),
+      mine: pick>=0 ? it.opts[pick] : "", correct: correct,
+      kind: it.kind, sid: it.sid, qi: it.qi });
+    document.querySelectorAll("#opts .opt").forEach((b,bi)=>{
+      b.disabled = true;
+      b.classList.add(bi===pick ? "picked" : "dim");
+    });
+    const dc = $("#dunnoBtn");
+    if(dc){ if(pick<0){ dc.classList.add("picked"); dc.disabled = true; } else dc.style.display = "none"; }
+    $("#reveal").classList.add("show"); $("#nextBtn").classList.add("show");
+    saveActiveQuiz();
+    scheduleAutoNext(true);
+    return;
+  }
   document.querySelectorAll("#opts .opt").forEach((b,bi)=>{
     b.disabled=true;
     if(it.opts[bi]===it.answer) b.classList.add("correct");
@@ -2519,10 +2548,27 @@ function finishQuiz(){
       </div>` : "";
   /* まとめて見るとき用に、まちがえた問題を控えておく */
   try{ P.lastMissed = missed.map(it => ({ kind:it.kind, sid:it.sid, qi:it.qi, stem:it.stem, tag:it.tag })); save(); }catch(e){}
+  /* ★★ 2026-08-28 確認テストは<b>ここではじめて正誤を出す</b>（ご指定）。
+     1問ずつ「⭕／❌・正解・自分の答え」を並べる。まちがえた問題だけの一覧（missHTML）は
+     そのあとに続けて出すので、解説へもそのまま行ける。 */
+  const confHTML = (quiz.src==="confirm" && (quiz.log||[]).length) ? `
+      <div class="res-all">
+        <div class="rm-h">${uiIconSVG('exam')} 答え合わせ（全${quiz.log.length}問）</div>
+        <p class="rm-p">確認テストのあいだは正誤を出していません。ここでまとめて確認できます。</p>
+        ${quiz.log.map((L,i)=>`<div class="ra-row ${L.correct?"ok":"ng"}">
+          <span class="ra-n">${i+1}</span>
+          <span class="ra-b">
+            <span class="ra-q">${esc(String(L.stem||"").slice(0,64))}${String(L.stem||"").length>64?"…":""}</span>
+            <span class="ra-a">正解：${esc(String(L.ans||""))}${L.correct?"":"　／　あなた："+esc(String(L.mine||"（わからない）"))}</span>
+          </span>
+          <span class="ra-m">${L.correct?"⭕":"❌"}</span>
+        </div>`).join("")}
+      </div>` : "";
   $("#scr-quiz").innerHTML=`
     <div class="result">
       <div class="big">${grade}</div>
       <div class="score">${ok} / ${n} 正解（${pct}%）</div>
+      ${confHTML}
       ${rwd>0?`<div class="rwd"><img src="../XEVA.png" alt="">＋${rw(rwd)} XEVA${campaignActive()?' <span style="font-size:.7em;color:#e0157a;font-weight:800">🌻夏キャン2倍!</span>':''}</div>`:""}
       ${demoted?`<div class="demote">📖 不合格だったので、まちがえた <b>${demoted}</b> 問を<b>習得中</b>にもどしました。<br>覚え直して完全習得にすると、また確認テストを受けられます。</div>`:""}
       ${missHTML}

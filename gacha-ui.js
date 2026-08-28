@@ -82,8 +82,18 @@ function modeDef(k) {
   }
   /* ★ 2026-08-20c ご指定により、ガチャの画面では<b>プレミアムも英語表記</b>（PREMIUM_NM）にそろえる */
   if (k === "premium") return { nm: PREMIUM_NM, sub: "ピックアップを1体えらべる常設ガチャ", c: "#ff9d2e", ic: "🎰" };
+  /* ★★ 2026-08-28 Festival Archive GACHA（終わったフェスの限定SSRを引き直せる常設ガチャ） */
+  if (k === ARCHIVE_KEY) {
+    const n = archiveChars().length;
+    return { nm: ARCHIVE_NM, ic: "🗂", c: fesDef(k).c, soon: !n,
+      sub: n ? "封入 " + n + "体／属性ごとに1体ずつピックアップをえらべます"
+             : "封入されたキャラクターがまだいません" };
+  }
   const f = fesDef(k);
-  return { nm: f.nm, sub: fesLocked(k) ? fesOpenText(f) : "フェス限定SSR・🎫チケット優先", c: f.c, ic: "✦", soon: fesLocked(k) };
+  return { nm: f.nm, ic: "✦", c: f.c, soon: fesLocked(k),
+    sub: fesLocked(k) ? fesOpenText(f)
+      : (fesTimed(f) ? "フェス限定SSR・🎫チケット優先／あと" + fesDaysLeft(k) + "日"
+                     : "限定キャラクター・🎫チケット優先") };
 }
 
 function paintPicker() {
@@ -111,7 +121,8 @@ function paintHero() {
     : gMode === "premium" ? "MagiBurst/img/bn_premium_s.webp"
     : fesBannerOf(gMode);
   const d = modeDef(gMode);
-  const lab = isDebutMode(gMode) ? "DEBUT" : gMode === "premium" ? "PREMIUM" : "FEST";
+  const lab = isDebutMode(gMode) ? "DEBUT" : gMode === "premium" ? "PREMIUM"
+    : gMode === ARCHIVE_KEY ? "ARCHIVE" : "FEST";
   /* ★★ 2026-08-26 版が2本並ぶことがあるので、帯には<b>その版</b>の番号と公開日を出す */
   const ver = dv
     ? `<span class="ghver">${gachaVerText(dv)}<small>${dv.date}</small></span>` : "";
@@ -175,8 +186,57 @@ function paintPickup() {
     </div>`;
     return;
   }
+  /* ══ ★★ 2026-08-28 Festival Archive GACHA ══
+     属性ごとに1体ずつ（火・水・木・光・闇）ピックアップをえらべる。
+     ★ えらべる顔ぶれは「登場から FES_ARCHIVE_DAYS 日を過ぎたフェス」の限定SSRだけ。 */
+  if (gMode === ARCHIVE_KEY) {
+    const f = fesDef(ARCHIVE_KEY);
+    const all = archiveChars();
+    if (!all.length) {
+      w.innerHTML = `<div class="pkbox" style="border-color:${f.c}55">
+        <div class="pkhd" style="color:${f.c}"><span>🗂 ${ARCHIVE_NM}</span></div>
+        <div class="pknote">まだ<b>封入されたキャラクターがいません</b>。<br>
+          各フェスガチャは<b>登場から${FES_DAYS}日</b>で終わり、
+          <b>${FES_ARCHIVE_DAYS}日</b>を過ぎたフェスのキャラクターがここへ封入されます。</div>
+      </div>`;
+      return;
+    }
+    const cards = ARCHIVE_ELS.map((el) => {
+      const id = archivePickOf(el);
+      const n = archiveByEl(el).length;
+      if (!id) {
+        return `<div class="fcard veil"><div class="fq">—</div><div class="fn">${ELEM[el].nm}属性なし</div></div>`;
+      }
+      const c = CHARS[id], own = !!DB.chars[id], mx = isMaxAwk(id);
+      const aw = own ? Math.max(0, Math.min(MAX_AWK, DB.chars[id].awk || 0)) : 0;
+      return `<button class="fcard" onclick="openPickArc('${el}')" title="${ELEM[el].nm}属性のピックアップをえらぶ">
+        <img src="${c.th}" alt="${c.nm}">
+        <span class="fr">${mx ? "対象外" : ratePct(PICK_ARCHIVE)}</span>
+        <span class="fo ${own ? "ok" : "no"}">${own ? (mx ? "👑MAX" : aw ? "+" + aw + "凸" : "所持") : "未所持"}</span>
+        <span class="fn">${ELEM[el].nm}・${c.nm}${n > 1 ? "（他" + (n - 1) + "体）" : ""}</span></button>`;
+    }).join("");
+    w.innerHTML = `<div class="pkbox" style="border-color:${f.c}55">
+      <div class="pkhd" style="color:${f.c}"><span>🗂 ピックアップ（属性ごとに1体・計5体）</span>
+        <span style="color:var(--txt2);font-weight:800">タップでえらぶ</span></div>
+      <div class="fgrid">${cards}</div>
+      <div class="pksub" style="margin-top:9px">
+        えらんだ<b>5体が各 ${ratePct(PICK_ARCHIVE)}</b>で排出されます（合計 ${ratePct(PICK_ARCHIVE * 5)}）。
+        残りの <b>${ratePct(fillTotalOfMode(ARCHIVE_KEY))}</b> は <b>${PREMIUM_NM} のSSR</b>が等確率で受け取ります
+        （SSRの合計はどのガチャも <b>${ratePct(SSR_TOTAL)}</b>）。<br>
+        いま封入されているのは <b>${all.length}体</b>です。
+        各フェスガチャは<b>登場から${FES_DAYS}日</b>で終わり、<b>${FES_ARCHIVE_DAYS}日</b>を過ぎた時点で
+        そのフェスのキャラクターがここへ封入されます。<br>
+        ★ <b>極彩祭・極華祭・極煌祭のキャラクターは封入されません</b>
+        （あちらはフェスガチャではなく、毎月まわってくる限定キャラクターのガチャです）。
+      </div>
+    </div>`;
+    return;
+  }
   if (gMode !== "premium") {
-    const f = fesDef(gMode), locked = fesLocked(gMode);
+    const f = fesDef(gMode);
+    /* ★★ 2026-08-28 「まだ始まっていない（fesSoon）」ときだけ顔ぶれを伏せる。
+       配信が終わったフェスは、もう見たことがあるので伏せない。 */
+    const locked = fesSoon(gMode);
     const cards = f.chars.map((id) => {
       const c = CHARS[id];
       /* 開催前は顔ぶれを伏せる（ガチャ側で伏せている意味がなくなるため） */
@@ -196,7 +256,14 @@ function paintPickup() {
       <div class="pkhd" style="color:${f.c}"><span>✦ ${f.nm} 限定SSR（${f.chars.length}体）</span>
         <span style="color:var(--txt2);font-weight:800">タップで性能</span></div>
       <div class="fgrid">${cards}</div>
-      <div class="pksub" style="margin-top:9px">${f.lead}。<br>${f.note}</div>
+      <div class="pksub" style="margin-top:9px">${f.lead}。<br>${f.note}
+        ${fesTimed(f) ? (fesEnded(gMode)
+          ? `<br>⏳ <b>このフェスの配信は終了しました</b>（${f.since} から${FES_DAYS}日間）。
+             この${f.chars.length}体は <b>${ARCHIVE_NM}</b> で引けます。`
+          : `<br>⏳ このフェスは <b>${f.since} から${FES_DAYS}日間</b>（あと<b>${fesDaysLeft(gMode)}日</b>）。
+             <b>${FES_ARCHIVE_DAYS}日</b>を過ぎると、この${f.chars.length}体は
+             <b>${ARCHIVE_NM}</b> にも封入されます${fesArchived(gMode) ? "（<b>封入ずみ</b>）" : ""}。`) : ""}
+      </div>
     </div>`;
     return;
   }
@@ -212,7 +279,7 @@ function paintPickup() {
       <div class="pkinfo" onclick="openDetX('${id}')" style="cursor:pointer">
         <div class="pknm">${charNoText(id)} ${c.nm}</div>
         <div class="pksub">${ELEM[c.el].nm}／${c.shot === "pierce" ? "貫通" : "反射"}／${c.type}<br>
-          <b>${c.ssName}</b>（${c.ssTurns}ターン）<br>
+          <b>${c.ssName}</b>（${fbTurnsText(c)}ターン）<br>
           <b style="color:${maxed ? "#c98a10" : DB.chars[id] ? "#0e7f57" : "#6f82ad"}">${dupeText(id).tx}</b></div>
       </div>
       <button class="pkbtn" onclick="openPick()">えらぶ</button>
@@ -228,7 +295,7 @@ function paintPickup() {
    ・右上の「i」でそのキャラの性能を見られる。 */
 let _pickAsk = null;     // 確認中のキャラid（null＝確認していない）
 function openPick() {
-  _pickAsk = null;
+  _pickAsk = null; _arcEl = null;
   paintPickSheet();
   $("#resOv").classList.add("on");
 }
@@ -255,7 +322,7 @@ function paintPickSheet() {
     <div class="psbody">
       ${conf}
       <div class="psnow">いまのピックアップ： <b>${CHARS[cur].nm}</b>　—
-        えらんだSSRだけ <b>${ratePct(wouldPickRate())}</b>、ほかのSSRは各 <b>${ratePct(otherRate())}</b>（SSRの合計は常に10%）。</div>
+        えらんだSSRだけ <b>${ratePct(wouldPickRate())}</b>、ほかのSSRは各 <b>${ratePct(otherRate())}</b>（SSRの合計は常に${ratePct(SSR_TOTAL)}）。</div>
       <div class="cgrid">${list.map((id) => {
         const c = CHARS[id], own = !!DB.chars[id], mx = isMaxAwk(id), sec = charSecret(id);
         /* ★ 2026-08-18 一覧でも「いま何凸か」が分かるようにした。
@@ -271,15 +338,76 @@ function paintPickSheet() {
       }).join("")}</div>
     </div>`;
 }
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-08-28 Festival Archive GACHA のピックアップ（属性ごとに1体）
+   ★ 仕組みは PREMIUM のピックアップとまったく同じ（押す → 確認 → 入れ替え）。
+     ちがうのは「属性ごとに1枠ずつある」ことだけ。
+   ══════════════════════════════════════════════════════════════ */
+let _arcEl = null;
+function openPickArc(el) {
+  _arcEl = el; _pickAsk = null;
+  paintArcSheet();
+  $("#resOv").classList.add("on");
+}
+window.openPickArc = openPickArc;
+function paintArcSheet() {
+  const el = _arcEl, list = archiveByEl(el), cur = archivePickOf(el);
+  const ask = _pickAsk && CHARS[_pickAsk] && list.indexOf(_pickAsk) >= 0 ? _pickAsk : null;
+  const conf = ask ? `<div class="psconf">
+      <img src="${CHARS[ask].th}" alt="">
+      <div class="pci">
+        <div class="pcq">${ELEM[el].nm}属性のピックアップを入れ替えますか？</div>
+        <div class="pcn">${charNoText(ask)} ${CHARS[ask].nm}</div>
+        <div class="pcr">えらぶと ${ratePct(PICK_ARCHIVE)}</div>
+      </div>
+      <div class="pcb">
+        <button class="yes" onclick="confirmPickArc('${ask}')">これにする</button>
+        <button class="no" onclick="cancelPick()">やめる</button>
+      </div>
+    </div>` : "";
+  $("#resCard").innerHTML = `
+    <div class="pshd"><b>🗂 ${ELEM[el].nm}属性のピックアップをえらぶ<small>${ARCHIVE_NM}（封入 ${list.length}体）</small></b>
+      <button class="rtx" onclick="closeRes()" aria-label="とじる" title="とじる">✕</button></div>
+    <div class="psbody">
+      ${conf}
+      <div class="psnow">いまのピックアップ： <b>${cur ? CHARS[cur].nm : "—"}</b>　—
+        えらんだ1体だけ <b>${ratePct(PICK_ARCHIVE)}</b>（属性ごとに1体・計5体で ${ratePct(PICK_ARCHIVE * 5)}）。</div>
+      <div class="cgrid">${list.map((id) => {
+        const c = CHARS[id], own = !!DB.chars[id];
+        return `<div class="cc s5 ${own ? "" : "noown"} ${id === ask ? "asking" : ""}" onclick="askPick('${id}')">
+          <img src="${c.th}" alt="">
+          <span class="ccr">SSR</span><span class="ccno">${charNoOf(id)}</span>
+          <button class="ccinfo" onclick="event.stopPropagation();openDetX('${id}')" title="${c.nm} の性能を見る">i</button>
+          ${id === cur ? '<span class="ccpk">PICKUP</span>' : ""}
+          <div class="ccn">${charNmOf(id)}</div>
+          ${dupeBadge(id)}</div>`;
+      }).join("")}</div>
+    </div>`;
+}
+function confirmPickArc(id) {
+  setArchivePick(_arcEl, id);
+  _pickAsk = null;
+  paintArcSheet();
+  paintAll();
+}
+window.confirmPickArc = confirmPickArc;
+
 /* 絵を押した ＝ まだ入れ替えない。この画面の上に確認を出すだけ */
 function askPick(id) {
+  /* ★★ 2026-08-28 アーカイブの画面（属性ごとの枠）でも同じ関数を使う */
+  if (_arcEl) {
+    if (id === archivePickOf(_arcEl)) { _pickAsk = null; paintArcSheet(); return; }
+    _pickAsk = id; paintArcSheet();
+    const card0 = $("#resCard"); if (card0) card0.scrollTop = 0;
+    return;
+  }
   if (id === curPickup()) { _pickAsk = null; paintPickSheet(); return; }   // いまのピックアップなら何もしない
   _pickAsk = id;
   paintPickSheet();
   const card = $("#resCard"); if (card) card.scrollTop = 0;   // 確認は上に出るので先頭へ
 }
 window.askPick = askPick;
-function cancelPick() { _pickAsk = null; paintPickSheet(); }
+function cancelPick() { _pickAsk = null; if (_arcEl) paintArcSheet(); else paintPickSheet(); }
 window.cancelPick = cancelPick;
 /* 確認して「これにする」を押したときだけ入れ替える */
 function confirmPick(id) {
@@ -289,7 +417,7 @@ function confirmPick(id) {
   paintAll();
 }
 window.confirmPick = confirmPick;
-function closeRes() { $("#resOv").classList.remove("on"); _pickAsk = null; paintAll(); }
+function closeRes() { $("#resOv").classList.remove("on"); _pickAsk = null; _arcEl = null; paintAll(); }
 window.closeRes = closeRes;
 
 /* ══════════ 説明 ══════════ */
@@ -320,9 +448,10 @@ function paintNote() {
     const free10Line = (debutFree10Left(gMode) > 0)
       ? `🎁 <b>この版の初回10連は無料です</b>（下の「10連 SSR確定」ボタンが無料になります。SSR確定枠もそのまま付きます）。`
       : `🎁 <b>初回10連の無料は版ごとに1回</b>です（${gachaVerText(dv)} のぶんは使いました。次のバージョンでまた引けます）。`;
-    $("#gnote").innerHTML = `<b>新キャラSSR 合計${ratePct(DEBUT_S5_TOTAL)}</b>（${dchars.length}体で等分・各 ${ratePct(debutEachRateOf(gMode))}）
-      ／ <b>${PREMIUM_NM} のSSR 合計${ratePct(FES_PREMIUM_TOTAL)}</b>
-      ／ <b>SR 合計50%</b>（${s4}体で等分・各 ${ratePct(0.50 / s4)}）／ <b>育成アイテム ${ratePct(DEBUT_ITEM_P)}</b>。<br>
+    $("#gnote").innerHTML = `<b>新キャラSSR 各${ratePct(PICK_DEBUT)}</b>（${dchars.length}体・合計 ${ratePct(pickTotalOfMode(gMode))}）
+      ／ <b>${PREMIUM_NM} のSSR 合計${ratePct(fillTotalOfMode(gMode))}</b>
+      ／ <b>SSRの合計は ${ratePct(SSR_TOTAL)}</b>
+      ／ <b>SR 合計50%</b>（${s4}体で等分・各 ${ratePct(0.50 / s4)}）／ <b>育成アイテム ${ratePct(itemTotalOfMode(gMode))}</b>。<br>
       ${free10Line}<br>
       ${freeLine}<br>
       ${tktLine}<br>
@@ -331,9 +460,20 @@ function paintNote() {
       ★ <b>キャラの排出と確定枠のしくみはフェスガチャと同じ</b>です。ちがうのは<b>育成アイテムの中身</b>——
       🎫ガチャチケット・📕超越の書・🎖️英傑の証が厚く、<b>🪭九天の玉簡</b>と<b>📘クロスの書</b>も極低確率で出ます。<br>
       ★ 所持キャラ・限界突破・<i class='icc ic-gem'></i>ジェムは <b>MagiBurst と共通</b>です。`;
+  } else if (gMode === ARCHIVE_KEY) {
+    /* ★★ 2026-08-28 Festival Archive GACHA */
+    const n = archiveChars().length;
+    $("#gnote").innerHTML = `<b>ピックアップ 各${ratePct(PICK_ARCHIVE)}</b>（属性ごとに1体・計5体＝合計 ${ratePct(pickTotalOfMode(gMode))}）
+      ／ <b>${PREMIUM_NM} のSSR 合計${ratePct(fillTotalOfMode(gMode))}</b>
+      ／ <b>SSRの合計は ${ratePct(SSR_TOTAL)}</b>
+      ／ <b>SR 合計50%</b>（${s4}体で等分・各 ${ratePct(0.50 / s4)}）／ <b>育成アイテム ${ratePct(itemTotalOfMode(gMode))}</b>。<br>
+      🗂 いま封入されているのは <b>${n}体</b>です（<b>登場から${FES_ARCHIVE_DAYS}日</b>を過ぎたフェスガチャの限定SSR）。<br>
+      ${tktLine}<br>
+      <b>10連は最後の1枠がSSR確定</b>（ピックアップ5体＋${PREMIUM_NM} のSSRから等確率）。<br>
+      ★ <b>極彩祭・極華祭・極煌祭のキャラクターは封入されません</b>。`;
   } else if (gMode === "premium") {
-    $("#gnote").innerHTML = `<b>SSR 合計10%</b>（ピックアップ ${ratePct(pickupRate())}／ほかは各 ${ratePct(otherRate())}）
-      ／ <b>SR 合計55%</b>（${s4}体で等分・各 ${ratePct(0.55 / s4)}）／ <b>育成アイテム 35%</b>。<br>
+    $("#gnote").innerHTML = `<b>SSR 合計${ratePct(SSR_TOTAL)}</b>（ピックアップ ${ratePct(pickupRate())}／ほかは各 ${ratePct(otherRate())}）
+      ／ <b>SR 合計55%</b>（${s4}体で等分・各 ${ratePct(0.55 / s4)}）／ <b>育成アイテム ${ratePct(itemTotalOfMode("premium"))}</b>。<br>
       ${tktLine}<br>
       <b>10連は最後の1枠がSSR確定</b>。同じキャラを引くと<b>限界突破（最大${MAX_AWK}）</b>になり、
       限界突破MAXのキャラは排出対象から外れます。<br>
@@ -341,6 +481,15 @@ function paintNote() {
   } else {
     const f = fesDef(gMode);
     $("#gnote").innerHTML = `${f.sub}<br>
+      <b>限定SSR 各${ratePct(pickRateOfMode(gMode))}</b>（${f.chars.length}体・合計 ${ratePct(pickTotalOfMode(gMode))}）
+      ／ <b>${PREMIUM_NM} のSSR 合計${ratePct(fillTotalOfMode(gMode))}</b>
+      ／ <b>SSRの合計は ${ratePct(SSR_TOTAL)}</b>
+      ／ <b>SR 合計50%</b>／ <b>育成アイテム ${ratePct(itemTotalOfMode(gMode))}</b>。<br>
+      ${fesTimed(f) ? (fesEnded(gMode)
+        ? "⏳ <b>このフェスの配信は終了しました</b>。キャラクターは <b>" + ARCHIVE_NM + "</b> で引けます。<br>"
+        : "⏳ このフェスは <b>" + f.since + " から" + FES_DAYS + "日間</b>（あと<b>" + fesDaysLeft(gMode) + "日</b>）。"
+          + FES_ARCHIVE_DAYS + "日を過ぎると <b>" + ARCHIVE_NM + "</b> にも封入されます"
+          + (fesArchived(gMode) ? "（<b>封入ずみ</b>）" : "") + "。<br>") : ""}
       ${tktLine}<br>
       <b>10連は最後の1枠がSSR確定</b>（このフェスの限定SSR＋${PREMIUM_NM} のSSRから等確率）。`;
   }
@@ -359,7 +508,9 @@ function paintPullBar() {
   const fes = isFesMode(gMode);
   /* ★★ 2026-08-26 GRAND DEBUT がスタンバイ中（掲載中の版が無い）なら引けない */
   const dStandby = isDebutMode(gMode) && !debutVerOfMode(gMode);
-  const locked = (fes && fesLocked(gMode)) || dStandby;
+  /* ★★ 2026-08-28 Festival Archive は「封入0体」のときだけ回せない */
+  const arcEmpty = gMode === ARCHIVE_KEY && !archiveChars().length;
+  const locked = (fes && fesLocked(gMode)) || dStandby || arcEmpty;
   /* ★ 値段の見積もりは mb-core.js の gachaCost() ひとつに任せる
      （ここで計算し直すと、実際に払う payGacha と食いちがう）。
      消費の順は フェス券 → ガチャ券 → 💎ジェム。プレミアムではフェス券は使わない。 */
@@ -400,7 +551,9 @@ function paintPullBar() {
   };
   bar.innerHTML = locked
     ? `<div style="grid-column:1/-1;text-align:center;font-size:12px;font-weight:900;color:#6f82ad;padding:12px">⏳ ${
-        dStandby ? DEBUT_NM + " はスタンバイ中です" : fesOpenText(fesDef(gMode))}</div>`
+        dStandby ? DEBUT_NM + " はスタンバイ中です"
+        : arcEmpty ? ARCHIVE_NM + " はまだ封入されたキャラクターがいません"
+        : fesOpenText(fesDef(gMode))}</div>`
     : btn(1, "", "1回") + btn(5, "", "5連") + btn(10, "p10", "10連 SSR確定");
 }
 /* いま何凸かの1行（ピックアップ一覧・提供割合で共通に使う）。
@@ -534,23 +687,26 @@ function openRatesX() {
     /* ★ 2026-08-20 GRAND DEBUT GACHA。SSR/SR の確率はプレミアムと同じ、中身だけがちがう。 */
     rows.push(rateHeadRow("<i class='icc ic-gem'></i> " + DEBUT_NM + " " + gachaVerText(_dv)
       + "（1回 5 ／ 5連 25 ／ 10連 50・SSR確定）", _dv.date, DEBUT_C));
-    rows.push(rateHeadRow("✨ 新キャラSSR 排出（合計・" + dchars.length + "体で等分）", ratePct(DEBUT_S5_TOTAL)));
+    rows.push(rateHeadRow("✨ 新キャラSSR（各 " + ratePct(PICK_DEBUT) + "・" + dchars.length + "体）",
+      ratePct(pickTotalOfMode(gMode))));
     byCharNoDesc(dchars).forEach((id) => rows.push(rateCharRow(id, debutEachRateOf(gMode), "GRAND DEBUT 限定")));
     /* ★ 2026-08-20c フェスと同じしくみ＝道中でも PREMIUM SELECT GACHA のSSRが合計5%で出る */
-    const dprem = byCharNoDesc(gachaPool().filter((id) => dchars.indexOf(id) < 0));
-    const dpEach = dprem.length ? FES_PREMIUM_TOTAL / dprem.length : 0;
-    rows.push(rateHeadRow("✨ " + PREMIUM_NM + " のSSR（合計）", ratePct(FES_PREMIUM_TOTAL)));
+    const dprem = byCharNoDesc(fillIdsOfMode(gMode));
+    const dpEach = fillEachOfMode(gMode);
+    rows.push(rateHeadRow("✨ " + PREMIUM_NM + " のSSR（合計・等分）", ratePct(fillTotalOfMode(gMode))));
     dprem.forEach((id) => rows.push(rateCharRow(id, dpEach, PREMIUM_NM)));
     rows.push(rateHeadRow("⭐ SR（合計・" + STAR4_POOL.length + "体で等分）", "50%"));
     STAR4_POOL.forEach((id) => rows.push(rateCharRow(id, 0.50 / STAR4_POOL.length)));
-    rows.push(rateHeadRow("🎁 育成アイテム（合計）", ratePct(DEBUT_ITEM_P)));
-    rows.push(rateItemRows(DEBUT_ITEM_P, DEBUT_ITEM_TABLE));
+    rows.push(rateHeadRow("🎁 育成アイテム（合計）", ratePct(itemTotalOfMode(gMode))));
+    rows.push(rateItemRows(itemTotalOfMode(gMode), DEBUT_ITEM_TABLE));
     const dsure = byCharNoDesc(debutSurePool(gMode));
     rows.push(rateHeadRow("🎯 10連の SSR 確定枠（最後の1枠・" + dsure.length + "体から等確率）", "", DEBUT_C));
     dsure.forEach((id) => rows.push(rateCharRow(id, dsure.length ? 1 / dsure.length : 0,
       dchars.indexOf(id) >= 0 ? "GRAND DEBUT 限定" : PREMIUM_NM)));
-    rows.push(rateNoteRow("※ <b>ピックアップはありません</b>。新キャラSSR 合計"
-      + ratePct(DEBUT_S5_TOTAL) + "を排出対象で等分します。"));
+    rows.push(rateNoteRow("※ <b>新キャラは1体あたり " + ratePct(PICK_DEBUT) + "</b>（合計 "
+      + ratePct(pickTotalOfMode(gMode)) + "）。<b>SSRの合計はどのガチャも " + ratePct(SSR_TOTAL)
+      + "</b>で、差の <b>" + ratePct(fillTotalOfMode(gMode)) + "</b> は "
+      + PREMIUM_NM + " のSSRが等確率で受け取ります。"));
     rows.push(rateNoteRow("※ <b>この版の初回10連は無料です</b>（🎫チケットも"
       + "<i class='icc ic-gem'></i>ジェムも減りません）。中身・確率・<b>最後の1枠のSSR確定</b>は、"
       + "ふつうの10連とまったく同じです。<b>版ごとに1回だけ</b>で、日付が変わっても戻りません。"
@@ -583,26 +739,42 @@ function openRatesX() {
       + "<b>🪭九天の玉簡</b>と<b>📘クロスの書</b>を極低確率で入れてあります。"));
   } else if (fes) {
     const f = fesDef(gMode);
-    rows.push(rateHeadRow("✨ SSR 排出（合計）", "10%", f.c));
+    rows.push(rateHeadRow("✨ " + (gMode === ARCHIVE_KEY ? "ピックアップ" : "フェス限定SSR")
+      + "（各 " + ratePct(pickRateOfMode(gMode)) + "）", ratePct(pickTotalOfMode(gMode)), f.c));
     /* ★ 2026-08-11 並びは番号の新しい順 */
-    byCharNoDesc(f.chars).forEach((id) => rows.push(rateCharRow(id, fesEachRate(gMode), "フェス限定SSR")));
-    const fprem = byCharNoDesc(gachaPool().filter((id) => fesPool(gMode).indexOf(id) < 0));
-    const fpEach = fprem.length ? FES_PREMIUM_TOTAL / fprem.length : 0;
-    rows.push(rateHeadRow("✨ " + PREMIUM_NM + " のSSR（合計）", ratePct(FES_PREMIUM_TOTAL)));
+    byCharNoDesc(pickIdsOfMode(gMode)).forEach((id) => rows.push(rateCharRow(id, pickRateOfMode(gMode),
+      gMode === ARCHIVE_KEY ? "<b style='color:#e0405e'>PICKUP</b>" : "フェス限定SSR")));
+    if (gMode === ARCHIVE_KEY) {
+      const rest = byCharNoDesc(archivePool().filter((id) => pickIdsOfMode(gMode).indexOf(id) < 0));
+      if (rest.length) {
+        rows.push(rateHeadRow("🗂 封入ずみ（ピックアップにえらばれていない）", "—"));
+        rest.forEach((id) => rows.push(rateCharRow(id, 0, "属性ごとにえらぶと " + ratePct(PICK_ARCHIVE))));
+      }
+    }
+    const fprem = byCharNoDesc(fillIdsOfMode(gMode));
+    const fpEach = fillEachOfMode(gMode);
+    rows.push(rateHeadRow("✨ " + PREMIUM_NM + " のSSR（合計・等分）", ratePct(fillTotalOfMode(gMode))));
     fprem.forEach((id) => rows.push(rateCharRow(id, fpEach, PREMIUM_NM)));
     rows.push(rateHeadRow("⭐ SR（合計・" + STAR4_POOL.length + "体で等分）", "50%"));
     STAR4_POOL.forEach((id) => rows.push(rateCharRow(id, 0.50 / STAR4_POOL.length)));
-    rows.push(rateHeadRow("🎁 育成アイテム（合計）", "35%"));
+    rows.push(rateHeadRow("🎁 育成アイテム（合計）", ratePct(itemTotalOfMode(gMode === "premium" ? "premium" : gMode))));
     /* ★★ 2026-08-22 フェスに itemTable が書いてあれば、その表で出す。
        いまは Starlight Academy Fest だけが GRAND DEBUT と同じ中身（ご指定）。
        書いていないフェスは undefined が渡り、rateItemRows が G_ITEM_TABLE に落とす
        ＝ 既存のフェスの表示は1つも変わらない。
        ★ ここを直さないと「引くと出るもの」と「提供割合に書いてあるもの」が食いちがう。 */
-    rows.push(rateItemRows(0.35, f.itemTable));
+    rows.push(rateItemRows(itemTotalOfMode(gMode), f.itemTable));
     const sure = byCharNoDesc(fesSurePool(gMode));
     rows.push(rateHeadRow("🎯 10連のSSR確定枠（最後の1枠・" + sure.length + "体から等確率）", "", f.c));
     sure.forEach((id) => rows.push(rateCharRow(id, sure.length ? 1 / sure.length : 0, CHARS[id].fes ? "フェス限定SSR" : PREMIUM_NM)));
-    rows.push(rateNoteRow("※ <b>ピックアップはありません</b>。フェス限定SSRの合計10%を排出対象で等分します。"));
+    rows.push(rateNoteRow(gMode === ARCHIVE_KEY
+      ? "※ <b>属性ごとに1体ずつ（計5体）</b>をピックアップにえらべます（各 " + ratePct(PICK_ARCHIVE) + "）。"
+        + "<b>SSRの合計はどのガチャも " + ratePct(SSR_TOTAL) + "</b>で、差の <b>"
+        + ratePct(fillTotalOfMode(gMode)) + "</b> は " + PREMIUM_NM + " のSSRが等確率で受け取ります。"
+      : "※ <b>限定SSRは1体あたり " + ratePct(pickRateOfMode(gMode)) + "</b>（合計 "
+        + ratePct(pickTotalOfMode(gMode)) + "）。<b>SSRの合計はどのガチャも " + ratePct(SSR_TOTAL)
+        + "</b>で、差の <b>" + ratePct(fillTotalOfMode(gMode)) + "</b> は "
+        + PREMIUM_NM + " のSSRが等確率で受け取ります。"));
     /* ★★ 2026-08-22 中身がふつうのフェスとちがうときは、そのことを画面に書く */
     if (f.itemTable === D_ITEM_TABLE) {
       rows.push(rateNoteRow("※ <b>キャラの排出確率はほかのフェスとまったく同じ</b>です。"
@@ -614,7 +786,7 @@ function openRatesX() {
   } else {
     const pick = curPickup();
     rows.push(rateHeadRow("<i class='icc ic-gem'></i> " + PREMIUM_NM + "（1回 5 ／ 5連 25 ／ 10連 50・SSR確定）", "", "#d97800"));
-    rows.push(rateHeadRow("✨ SSR 排出（合計）", "10%"));
+    rows.push(rateHeadRow("✨ SSR 排出（合計）", ratePct(SSR_TOTAL)));
     /* ★ 2026-08-11 ピックアップをいちばん上に、そのほかは番号の新しい順に */
     rateOrder(PREMIUM_CHARS, pick).forEach((id) => {
       const on = id === pick;
@@ -622,8 +794,8 @@ function openRatesX() {
     });
     rows.push(rateHeadRow("⭐ SR（合計・" + STAR4_POOL.length + "体で等分）", "55%"));
     STAR4_POOL.forEach((id) => rows.push(rateCharRow(id, 0.55 / STAR4_POOL.length)));
-    rows.push(rateHeadRow("🎁 育成アイテム（合計）", "35%"));
-    rows.push(rateItemRows(0.35));
+    rows.push(rateHeadRow("🎁 育成アイテム（合計）", ratePct(itemTotalOfMode(gMode === "premium" ? "premium" : gMode))));
+    rows.push(rateItemRows(itemTotalOfMode("premium")));
     /* ★ 2026-08-11 フェスガチャと同じく、10連の確定枠の中身も一覧で出す
        （これまでは注意書きに「全員おなじ確率」と書いてあるだけだった）。 */
     const psure = byCharNoDesc(gachaPool());
@@ -631,7 +803,8 @@ function openRatesX() {
     psure.forEach((id) => rows.push(rateCharRow(id, psure.length ? 1 / psure.length : 0,
       id === pick ? "<b style='color:#e0405e'>PICKUP</b>" : "SSR ガチャ限定")));
     rows.push(rateNoteRow("※ <b>10連は「最後の1枠」がSSR確定</b>です（前半9回も通常抽選なので、そこでもSSRは出ます）。<b>確定枠は排出対象のSSRがすべて同じ確率</b>で、<b>ピックアップの優遇はありません</b>（限界突破MAXのキャラは除外）。"));
-    rows.push(rateNoteRow("※ 限界突破MAX（👑）のキャラは排出対象から外れ、その分は残りのSSRに配分されます（SSR合計は常に10%）。"));
+    rows.push(rateNoteRow("※ 限界突破MAX（👑）のキャラは排出対象から外れ、その分は残りのSSRに配分されます（SSR合計は常に"
+      + ratePct(SSR_TOTAL) + "）。"));
     rows.push(rateNoteRow(TKT_NOTE));
   }
   rows.push(rateNoteRow("※ 同じキャラを引くと<b>限界突破</b>（最大" + MAX_AWK + "）になります。所持キャラ・限界突破・<i class='icc ic-gem'></i>ジェムは <b>MagiBurst と共通</b>です。"));

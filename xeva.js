@@ -722,6 +722,21 @@
        ★ mb-core.js の CHAR_IDS と<b>同じ並び</b>にすること（並び＝No.）。 */
     { id: "mb:hinano", mbId: "hinano", name:"ヒナノ", file: "../img/t_Hinano.webp", since:"2026-08-27" },
     { id: "mb:mutsumi", mbId: "mutsumi", name:"ムツミ", file: "../img/t_Mutsumi.webp", since:"2026-08-27" },
+    /* ★★ 2026-08-28 GRAND DEBUT GACHA Ver.5.0 限定SSR 5体（No.164〜168）。
+       ★ mb-core.js の CHAR_IDS と<b>同じ並び</b>にすること（並び＝No.）。 */
+    { id: "mb:yuika", mbId: "yuika", name:"ユイカ", file: "../img/t_Yuika.webp", since:"2026-08-28" },
+    { id: "mb:misuzu", mbId: "misuzu", name:"ミスズ", file: "../img/t_Misuzu.webp", since:"2026-08-28" },
+    { id: "mb:kazane", mbId: "kazane", name:"カザネ", file: "../img/t_Kazane.webp", since:"2026-08-28" },
+    { id: "mb:kokoa", mbId: "kokoa", name:"ココア", file: "../img/t_Kokoa.webp", since:"2026-08-28" },
+    { id: "mb:nodoka", mbId: "nodoka", name:"ノドカ", file: "../img/t_Nodoka.webp", since:"2026-08-28" },
+    /* ★★ 2026-08-28 Cozy Haven FEST 限定SSR 5体（No.169〜173）。 */
+    { id: "mb:yua", mbId: "yua", name:"ユア", file: "../img/t_Yua.webp", since:"2026-08-28" },
+    { id: "mb:shiori", mbId: "shiori", name:"シオリ", file: "../img/t_Shiori.webp", since:"2026-08-28" },
+    { id: "mb:rena", mbId: "rena", name:"レナ", file: "../img/t_Rena.webp", since:"2026-08-28" },
+    { id: "mb:ryouka", mbId: "ryouka", name:"リョウカ", file: "../img/t_Ryouka.webp", since:"2026-08-28" },
+    { id: "mb:miko", mbId: "miko", name:"ミコ", file: "../img/t_Miko.webp", since:"2026-08-28" },
+    /* ★★ 2026-08-28 極華祭（毎月11〜20日）の限定SSR（No.174）。 */
+    { id: "mb:kotori", mbId: "kotori", name:"コトリ", file: "../img/t_Kotori.webp", since:"2026-08-28" },
   ];
   /* ★ 2026-08-10 初期SR 4体（ゼラ・アヤメ・レイラ・セリーヌ）は廃止しました。
      いまは<b>全キャラがアイコンに選べる</b>ので、starter という区別そのものが要らない。 */
@@ -769,7 +784,12 @@
   , "seina", "shiduki", "sayuki", "sara", "sakuya"
   /* ★★ 2026-08-27 極彩祭・極煌祭の2体。
      ここに無いと <b>XEVAミッションの図鑑コレクションに出てこない</b>。 */
-  , "hinano", "mutsumi"];
+  , "hinano", "mutsumi"
+  /* ★★ 2026-08-28 GRAND DEBUT Ver.5.0 の5体／Cozy Haven FEST の5体／極華祭のコトリ。
+     ここに無いと <b>XEVAミッションの図鑑コレクションに出てこない</b>。 */
+  , "yuika", "misuzu", "kazane", "kokoa", "nodoka"
+  , "yua", "shiori", "rena", "ryouka", "miko"
+  , "kotori"];
   MB_CHAR_MASTER.forEach(function (c) { c.mb = true; c.starter = MB_STARTERS.indexOf(c.mbId) >= 0; });
   MB_CHAR_MASTER.forEach(function (c) { c.star5 = MB_STAR5.indexOf(c.mbId) >= 0; });
   /* id は "mb:zera" のように接頭辞つき。XEVAガチャにも同じ名前のキャラ（シオンなど）が

@@ -146,12 +146,27 @@ const XH_ORDER_GEN_KEY = "xeva_home_order_gen";
      ずっと後ろ、という状態を防ぐため。
      ＝ 新しいイベントを足すときは<b>この配列のどこに書いてもよい</b>。 */
 const XH_EVENTS = [
+  /* ★★ 2026-08-28 極華祭（毎月11〜20日）。極彩祭＝上旬／極華祭＝中旬／極煌祭＝下旬。 */
+  { tag:"FES", t1:"極華祭", t2:"毎月11〜20日。限定SSR「コトリ」——バスケの乱打48連＋スラムダンクで史上最大の火力",
+    from:"2026-08-28", to:"2027-12-31", img:"thumbs/MagiBurst.jpg", href:"gacha.html#fes9" },
+  /* ★★ 2026-08-28 Cozy Haven FEST（登場から30日／20日でアーカイブ入り） */
+  { tag:"COZY FES", t1:"Cozy Haven FEST", t2:"限定SSR 5体が参戦！ 蓬莱天宮の続き5クエストをまるごと担当します",
+    since:"2026-08-28", from:"2026-08-28", to:"2026-09-27",
+    href:"gacha.html#fes10", img:"thumbs/MagiBurst.jpg" },
+  /* ★★ 2026-08-28 GRAND DEBUT GACHA Ver.5.0（版ごとに10日間） */
+  { tag:"GRAND DEBUT", t1:"GRAND DEBUT GACHA Ver.5.0", t2:"新SSR 5体が参戦！ 蓬莱天宮の続き5クエストの最適解",
+    since:"2026-08-28", from:"2026-08-28", to:"2026-09-07",
+    href:"gacha.html#debut:5.0", img:"thumbs/MagiBurst.jpg" },
+  /* ★★ 2026-08-28 Festival Archive GACHA（常設） */
+  { tag:"NEW", t1:"Festival Archive GACHA 開設", t2:"終わったフェスの限定SSRを引き直せる常設ガチャ。属性ごとに1体ずつピックアップ",
+    since:"2026-08-28", from:"2026-08-28", to:"2027-12-31",
+    href:"gacha.html#archive", img:"thumbs/MagiBurst.jpg" },
   /* ★★ 2026-08-27 極彩祭（毎月1〜15日）・極煌祭（毎月16日〜末日）。
      ★ 毎月まるごと入れ替わるので、from / to は<b>広めに取っておく</b>
        （実際の開催判定は mb-core.js の monthly が行う）。 */
-  { tag:"FES", t1:"極彩祭", t2:"毎月1〜15日。限定SSR「ヒナノ」——敵の属性を塗り替えるリンクスキル",
+  { tag:"FES", t1:"極彩祭", t2:"毎月1〜10日。限定SSR「ヒナノ」——敵の属性を塗り替えるリンクスキル",
     from:"2026-08-27", to:"2027-12-31", img:"thumbs/MagiBurst.jpg", href:"gacha.html#fes7" },
-  { tag:"FES", t1:"極煌祭", t2:"毎月16日〜末日。限定SSR「ムツミ」——鏡写しの影が同時に走るリンクスキル",
+  { tag:"FES", t1:"極煌祭", t2:"毎月21日〜末日。限定SSR「ムツミ」——鏡写しの影が同時に走るリンクスキル",
     from:"2026-08-27", to:"2027-12-31", img:"thumbs/MagiBurst.jpg", href:"gacha.html#fes8" },
   /* ★★ 2026-08-26b GRAND DEBUT GACHA Ver.4.0。
      版ごとに10日間の決まりなので、Ver.2.0・Ver.3.0 とあわせて3本が同時に並ぶ。 */
@@ -2221,6 +2236,8 @@ window.xhPaintMarks = xhPaintMarks;
      版を足したら<b>両方</b>に足す（片方だけだと下バーの「無料」の印がずれる）。 */
 const XH_DEBUT_DAYS = 10;
 const XH_DEBUT_VERS = [
+  /* ★★ 2026-08-28 Ver.5.0（ユイカ・ミスズ・カザネ・ココア・ノドカ） */
+  { ver: "5.0", date: "2026-08-28" },
   { ver: "4.0", date: "2026-08-26" },
   { ver: "3.0", date: "2026-08-26" },
   { ver: "2.0", date: "2026-08-24" },

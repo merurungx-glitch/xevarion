@@ -23,14 +23,14 @@
 <!-- ★★ 2026-08-22b Xevion OS の見た目（テーマ・文字の大きさ・動きを減らす）。
      xevarion-home.css の<b>あと</b>に読む＝上書きできるようにする。 -->
 <link rel="stylesheet" href="xevion-os.css?v=5">
-<script src="xeva.js?v=46" defer></script>
+<script src="xeva.js?v=47" defer></script>
 <!-- ★ 2026-08-20 通信設定（Wi-Fi／モバイルデータごとに「最新を取りに行くか」を決める）。
      決めた内容はここから各アプリの Service Worker へ送られ、SW 側が動きを切り替える。 -->
 <script src="xeva-netmode.js?v=2" defer></script>
 <!-- ★ 2026-08-18 新キャラ告知の台帳（MagiBurst と共通）。
      告知を<b>ポータルのログイン時</b>に一本化したので、ここでも読む。
      defer なので xevarion.js より先に実行される（書いた順番で走る）。 -->
-<script src="mb-newchars.js?v=7" defer></script>
+<script src="mb-newchars.js?v=8" defer></script>
 <!-- ★★ 2026-08-22b Xevion OS（XEVARION の UI をひとつの OS として扱う土台）。
      ほかの画面より<b>先に</b>読む（body のクラスを立てるので、あとから読むと一瞬ちらつく）。 -->
 <script src="xevion-os.js?v=3"></script>
@@ -42,7 +42,7 @@
 <script src="xeva-presence.js?v=1" defer></script>
 <script type="module" src="xeva-cloud.js?v=18"></script>
 <script src="xevarion.js?v=69" defer></script>
-<script src="xevarion-home.js?v=57" defer></script>
+<script src="xevarion-home.js?v=58" defer></script>
 </head>
 <body>
 <!-- ───── バックグラウンド音楽（Flagship Arrival。アクセス画面のタップで再生開始） ───── -->
@@ -1552,6 +1552,45 @@ body.music-on #beatFrame{opacity:1}
 
   <div class="nm-body" id="newsBody">
     <div class="nm-divider" id="newDivider" style="display:none;">NEW — 前回から更新</div>
+    <!-- 2026-08-28 極華祭／GRAND DEBUT Ver.5.0／Cozy Haven FEST／Festival Archive／確率12%／FB2段階目 -->
+    <div class="nm-item" data-tag="update" data-date="2026-08-28">
+      <div class="nm-date">2026<br>08.28</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">✦ 極華祭が開幕（コトリ参戦）／🗂 Festival Archive GACHA 開設／🎲 全ガチャのSSRを12%に／💥 フルバーストに2段階目</div>
+        <div class="nm-txt">
+          ✦ <b>極華祭</b>を追加しました。極彩祭・極煌祭とあわせて
+          <b>上旬（1〜10日）＝極彩祭／中旬（11〜20日）＝極華祭／下旬（21日〜末日）＝極煌祭</b>の
+          3本立てになります。登場するのは <b>コトリ</b>（水・反射）——
+          フルバースト<b>アクア・ダンクラプソディ</b>は<b>バスケットボールの乱打48連＋スラムダンク</b>で、
+          合計 攻撃力×86.4 の<b>MagiBurst 史上最大の火力</b>です。<br>
+          ✧ <b>GRAND DEBUT GACHA Ver.5.0</b>（ユイカ・ミスズ・カザネ・ココア・ノドカ）と
+          <b>Cozy Haven FEST</b>（ユア・シオリ・レナ・リョウカ・ミコ）を同時に開幕。
+          10体とも<b>アンチをちょうど3種</b>持ち、その3種が
+          <b>🏯蓬莱天宮の続き5クエスト</b>（仙苑・月宮・神域・天界・神天）の必要アンチと
+          <b>ぴったり一致</b>します。この5クエストは出たばかりなので、
+          <b>Cozy Haven の5体はとくに控えめ</b>な性能にしてあります。<br>
+          🔗 リンクスキルは<b>11本すべて新設</b>です。盤面を横切る炎の帯／
+          敵が動いてもつながったままの鎖／0になった瞬間に全員炸裂するカウントダウン／
+          外へ出ていくらせん／壁で折れながら走る光線／その場に残る熾火の輪／
+          太くなっていく十字の湯けむり／覆った敵の弱点を開く布／合計の量が決まっている刈り取り／
+          HPの高い敵から順に渡る灯り／味方どうしを結ぶパスとシュート——どれもこれまでに無い挙動です。<br>
+          🗂 <b>Festival Archive GACHA</b> を開設しました。各フェスガチャは<b>登場から30日</b>で終わり、
+          <b>20日</b>を過ぎたフェスのキャラクターがここへ封入されます。
+          封入されたキャラから<b>属性ごとに1体ずつ・計5体</b>をえらんでピックアップできます。<br>
+          🎲 <b>すべてのガチャのSSR合計を12%</b>にそろえました。
+          ピックアップは <b>GRAND DEBUT 各2.0%／PREMIUM SELECT 5.0%／各フェス 各1.8%／
+          Festival Archive 各1.2%／極彩祭・極華祭・極煌祭 各1.2%</b>。
+          12%との差は <b>PREMIUM SELECT GACHA のSSRが等確率</b>で受け取ります
+          （10連の最後の確定枠はこれまでどおりです）。<br>
+          💥 <b>フルバーストに2段階目</b>ができました。1段階目からさらに<b>5ターン</b>ためると
+          <b>威力×1.5・自強化の持続+2ターン</b>で撃てます。表記は「18＋5」のようになります。<br>
+          🎯 <b>ショットスキルはアビリティに数えない</b>ことにしました（キャラ詳細でも別枠にしています）。
+          極彩祭・極煌祭のキャラは<b>ネクサスをさらに強化</b>し、コトリには<b>極華・ブルームネクサス</b>を用意しました。<br>
+          📝 <b>MagiLex の確認テスト</b>は、テスト中に正誤を出さず、<b>最後にまとめて答え合わせ</b>を出す形にしました。
+        </div>
+      </div>
+    </div>
     <!-- 2026-08-27b 極彩祭・極煌祭／ヒナノ・ムツミ／蓬莱天宮の続き5クエスト -->
     <div class="nm-item" data-tag="update" data-date="2026-08-27">
       <div class="nm-date">2026<br>08.27</div>

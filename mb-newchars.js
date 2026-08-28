@@ -17,12 +17,41 @@
      こちらに足したら<b>あちらにも since 付きで1行</b>足すこと（無いとポータルに絵が出ない）。
    ══════════════════════════════════════════════════════════════ */
 window.MB_NEW_CHARS = [
+  /* ── ★★ 2026-08-28 極華祭（毎月11〜20日） ──
+     ★ 極彩祭＝上旬（1〜10日）／極華祭＝中旬（11〜20日）／極煌祭＝下旬（21日〜末日）。 */
+  { id: "kotori", since: "2026-08-28", where: "極華祭（毎月11〜20日）", mode: "fes9",
+    catch: "そのダンクは、史上最大の一撃になる。", color: "#38a6ff" },
+  /* ── ★★ 2026-08-28 GRAND DEBUT GACHA Ver.5.0 新SSR 5体 ──
+     ★ 蓬莱天宮の続き5クエスト（仙苑・月宮・神域・天界・神天）をまるごと担当する。 */
+  { id: "yuika", since: "2026-08-28", where: "GRAND DEBUT GACHA Ver.5.0", mode: "debut",
+    catch: "炎の帯が、盤面を端まで掃いていく。", color: "#ff5d47" },
+  { id: "misuzu", since: "2026-08-28", where: "GRAND DEBUT GACHA Ver.5.0", mode: "debut",
+    catch: "その鎖は、逃げても付いてくる。", color: "#38a6ff" },
+  { id: "kazane", since: "2026-08-28", where: "GRAND DEBUT GACHA Ver.5.0", mode: "debut",
+    catch: "数字が0になるまでに、何体倒せる？", color: "#a86bff" },
+  { id: "kokoa", since: "2026-08-28", where: "GRAND DEBUT GACHA Ver.5.0", mode: "debut",
+    catch: "らせんの蔓は、回るほど遠くへ届く。", color: "#2fbf71" },
+  { id: "nodoka", since: "2026-08-28", where: "GRAND DEBUT GACHA Ver.5.0", mode: "debut",
+    catch: "折れるたびに、光は重くなる。", color: "#f0b429" },
+  /* ── ★★ 2026-08-28 Cozy Haven FEST 限定SSR 5体 ──
+     ★ フェス限定なので<b>このフェスからしか出ません</b>（プレミアムのすり抜けにも出ない）。
+     ★ フェスガチャは<b>登場から30日</b>。20日を過ぎると Festival Archive GACHA にも封入される。 */
+  { id: "yua", since: "2026-08-28", where: "Cozy Haven FEST", mode: "fes10",
+    catch: "熾火の輪は、置いた場所に残りつづける。", color: "#ff9d2e" },
+  { id: "shiori", since: "2026-08-28", where: "Cozy Haven FEST", mode: "fes10",
+    catch: "湯けむりは、あとになるほど太くなる。", color: "#7cc4ff" },
+  { id: "rena", since: "2026-08-28", where: "Cozy Haven FEST", mode: "fes10",
+    catch: "そっと覆えば、弱点はひらいたまま。", color: "#c9a6ff" },
+  { id: "ryouka", since: "2026-08-28", where: "Cozy Haven FEST", mode: "fes10",
+    catch: "刈る量は決まっている。敵が少ないほど重い。", color: "#7dffb0" },
+  { id: "miko", since: "2026-08-28", where: "Cozy Haven FEST", mode: "fes10",
+    catch: "灯りは、いちばん元気な敵から訪ねる。", color: "#ffe9a8" },
   /* ── ★★ 2026-08-27 極彩祭（毎月1〜15日）・極煌祭（毎月16日〜末日） ──
      ★ どちらも<b>毎月まるごと入れ替わる</b>フェス。終わりの日付は決めていない。
      ★ mode は fesX のキー（ガチャ画面をその祭で開く）。 */
-  { id: "hinano", since: "2026-08-27", where: "極彩祭（毎月1〜15日）", mode: "fes7",
+  { id: "hinano", since: "2026-08-27", where: "極彩祭（毎月1〜10日）", mode: "fes7",
     catch: "その光は、敵の色ごと塗り替える。", color: "#8affc4" },
-  { id: "mutsumi", since: "2026-08-27", where: "極煌祭（毎月16日〜末日）", mode: "fes8",
+  { id: "mutsumi", since: "2026-08-27", where: "極煌祭（毎月21日〜末日）", mode: "fes8",
     catch: "紅い影が、もう一本の軌跡を走る。", color: "#ff9d2e" },
   /* ── ★★ 2026-08-26b GRAND DEBUT GACHA Ver.4.0 新SSR 5体 ──
      ★ 版ごとに10日間の決まりなので、Ver.2.0（〜09-03）・Ver.3.0（〜09-05）と

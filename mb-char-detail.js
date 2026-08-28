@@ -224,10 +224,21 @@ function openDetX(id) {
         ${connectDef(id).skills.map((s) => `<div class="ddesc" style="margin-top:5px"><b>${s.nm}</b>：${cnxSkillDesc(id, s)}</div>`).join("")}
         <div class="ddesc" style="margin-top:5px"><small>※ 発動しているかどうかは MagiBurst の<b>編成画面</b>で確認できます。<b>クロスの書</b>を持っていると条件を無視して常に発動します。</small></div></div>` : ""}
 
-      <div class="dsec"><div class="t">フルバースト<span class="turn">${c.ssTurns}ターン</span></div>
+      ${/* ★★ 2026-08-28 ショットスキルは<b>アビリティとは別枠</b>（ご指定）。
+            持っているキャラだけ、アビリティ欄とクロススキル欄のあいだに1枠出す。 */""}
+      ${shotSkillOf(id) ? `<div class="dsec"><div class="t">🎯 ショットスキル</div>
+        <div class="dsk" style="color:${shotSkillOf(id).c}">${shotSkillOf(id).nm}</div>
+        <div class="dpow">${shotSkillOf(id).pow}</div>
+        <div class="ddesc">${shotSkillOf(id).desc}
+          <br><small>※ ショットスキルは<b>アビリティには数えません</b>（別枠のスキルです）。</small></div></div>` : ""}
+
+      <div class="dsec"><div class="t">フルバースト<span class="turn">${fbTurnsText(c)}ターン</span></div>
         <div class="dsk">${c.ssName}</div>
         <div class="dpow">${c.ssPow || ""}</div>
-        <div class="ddesc">${c.ssDesc || ""}</div></div>
+        <div class="ddesc">${c.ssDesc || ""}
+          <br><small>★ <b>2段階目</b>：さらに<b>${FB2_EXTRA}ターン</b>ためて撃つと、
+          威力が<b>×${FB2_MUL}</b>になり、自強化の持続も<b>+${FB2_BUFF_TURNS}ターン</b>のびます
+          （＝<b>${c.ssTurns}＋${FB2_EXTRA}</b> ターン目）。</small></div></div>
 
       <div class="dsec"><div class="t">リンクスキル</div>
         <div class="dsk">${fsIcon(c.fsGlyph || c.fsKind, false, "#7b5cf0", 18)} ${c.fsName}</div>

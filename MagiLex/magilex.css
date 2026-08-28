@@ -1258,3 +1258,35 @@ body.in-quiz .memo-open{bottom:calc(20px + env(safe-area-inset-bottom,0px))}
 .mlg-claim.on:active{transform:scale(.98)}
 .mlg-claim .uisvg{width:18px;height:18px;vertical-align:-.24em;margin-right:.15em}
 .mlg-note{font-size:.66rem;font-weight:700;line-height:1.8;color:#a8987c;margin:11px 0 0}
+
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-08-28 確認テスト: 1問ごとに正誤を出さない（ご指定）
+   ・えらんだ答えは <b>.picked</b>（うすい枠）で残すだけ。緑・赤は付けない。
+   ・正解と正誤は<b>結果画面の .res-all</b> でまとめて出す。
+   ══════════════════════════════════════════════════════════════ */
+.opt.picked, .dunno.picked{
+  border-color:var(--acc,#7b5cf0) !important;
+  background:color-mix(in srgb, var(--acc,#7b5cf0) 10%, transparent) !important;
+  box-shadow:0 0 0 2px color-mix(in srgb, var(--acc,#7b5cf0) 28%, transparent) inset;
+  font-weight:800;
+}
+.reveal .ans.conf{
+  display:flex; flex-direction:column; gap:3px;
+  color:var(--acc,#7b5cf0); font-weight:900;
+}
+.reveal .ans.conf span{ font-size:.74rem; font-weight:700; color:var(--ink2,#6f82ad); }
+.res-all{ margin:14px 0 4px; text-align:left; }
+.res-all .ra-row{
+  display:flex; align-items:center; gap:9px; padding:8px 10px; margin-top:6px;
+  border:1.5px solid var(--line,#e3e6f2); border-radius:12px; background:var(--card,#fff);
+}
+.res-all .ra-row.ok{ border-color:rgba(16,163,110,.45); background:rgba(16,163,110,.06); }
+.res-all .ra-row.ng{ border-color:rgba(224,64,94,.45); background:rgba(224,64,94,.06); }
+.res-all .ra-n{
+  flex:0 0 auto; min-width:22px; height:22px; border-radius:99px; display:grid; place-items:center;
+  font-size:.68rem; font-weight:900; color:#fff; background:var(--ink2,#6f82ad);
+}
+.res-all .ra-b{ flex:1; min-width:0; display:flex; flex-direction:column; gap:2px; }
+.res-all .ra-q{ font-size:.78rem; font-weight:800; line-height:1.35; }
+.res-all .ra-a{ font-size:.72rem; color:var(--ink2,#6f82ad); font-weight:700; }
+.res-all .ra-m{ flex:0 0 auto; font-size:1rem; }
