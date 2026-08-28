@@ -6,11 +6,11 @@
    ・オンライン対戦・XEVA換金はアプリ側でオフライン時に無効化している
    ・取得できたリソースは随時キャッシュ更新（stale-while-revalidate）
    ============================================================ */
-const VERSION = "magiburst-sw-v129";
+const VERSION = "magiburst-sw-v131";
 const CORE = [
   "./index.html",
-  "./js/mb-core.js?v=58",   /* ★ 2026-08-10 キャラ・ガチャの共有モジュール（XEVARION のガチャと共通） */
-  "../xeva.js?v=46",
+  "./js/mb-core.js?v=60",   /* ★ 2026-08-10 キャラ・ガチャの共有モジュール（XEVARION のガチャと共通） */
+  "../xeva.js?v=47",
   "../xeva-loading.js?v=1",
   "../xeva-splash.js?v=3",
   "../app-cloud.js?v=4",
@@ -234,6 +234,10 @@ const CORE = [
   /* ★★ 2026-08-27 極彩祭・極煌祭のバナー */
   "img/bn_fes7_s.webp",
   "img/bn_fes8_s.webp",
+  /* ★★ 2026-08-28 極華祭・Cozy Haven FEST・Festival Archive GACHA のバナー */
+  "img/bn_fes9_s.webp",
+  "img/bn_fes10_s.webp",
+  "img/bn_archive_s.webp",
   "../img/t_Suzune.webp",
   "../img/t_Minamo.webp",
   /* ★★ 2026-08-26 GRAND DEBUT Ver.3.0 の5体 ＋ MagiLex の KP交換キャラ4体。
@@ -257,6 +261,19 @@ const CORE = [
      update.json のダウンロード量にも載らない。 */
   "../img/t_Hinano.webp",
   "../img/t_Mutsumi.webp",
+  /* ★★ 2026-08-28 GRAND DEBUT Ver.5.0 の5体／Cozy Haven FEST の5体／極華祭のコトリ。
+     ここに無いとオフラインでその子だけ絵が出ず、update.json にも載らない。 */
+  "../img/t_Yuika.webp",
+  "../img/t_Misuzu.webp",
+  "../img/t_Kazane.webp",
+  "../img/t_Kokoa.webp",
+  "../img/t_Nodoka.webp",
+  "../img/t_Yua.webp",
+  "../img/t_Shiori.webp",
+  "../img/t_Rena.webp",
+  "../img/t_Ryouka.webp",
+  "../img/t_Miko.webp",
+  "../img/t_Kotori.webp",
   "../img/t_Karen.webp",
   "../img/t_Tomoe.webp",
   "../img/t_Himari.webp",

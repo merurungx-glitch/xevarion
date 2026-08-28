@@ -24,7 +24,7 @@ if ("serviceWorker" in navigator) {
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
 <script src="../xeva-splash.js?v=3" data-app="MagiBurst" data-logo="../thumbs/MagiBurst.jpg"
         data-note="⚠️ このゲームの対象年齢は 13歳以上 です"></script>
-<script src="../xeva.js?v=46"></script>
+<script src="../xeva.js?v=47"></script>
 <script src="../xeva-loading.js?v=1" defer></script>
 <script type="module" src="../xevarion-fb.js?v=22"></script>
 <script src="../xeva-presence.js?v=1" defer></script>
@@ -3040,6 +3040,17 @@ body.in-battle #top,body.in-battle #tabs{display:none}
 @keyframes ssPls{0%,100%{opacity:.6}50%{opacity:1}}
 .pmem .ssg{position:absolute;left:3px;right:3px;bottom:3px;height:5px;border-radius:99px;background:rgba(0,0,0,.55);overflow:hidden}
 .pmem .ssg i{display:block;height:100%;background:linear-gradient(90deg,#ff9d2e,#ffd257);border-radius:99px;transition:width .3s}
+/* ★★ 2026-08-28 フルバーストの2段階目。
+   ・ゲージは「2段階目まで」を全体とし、<b>1段階目の位置に白い区切り</b>（u）を立てる。
+   ・2段階目までたまると、バーも札も<b>虹色</b>に変わる（ひと目で分かるように）。 */
+.pmem .ssg u{position:absolute;top:-1px;width:2px;height:7px;background:rgba(255,255,255,.92);
+  transform:translateX(-1px);border-radius:2px;box-shadow:0 0 4px rgba(0,0,0,.6)}
+.pmem.ssok2 .ssg i{background:linear-gradient(90deg,#ffd257,#7cffc4,#7cc4ff,#ff9df0);
+  background-size:300% 100%;animation:ssg2Flow 1.6s linear infinite}
+@keyframes ssg2Flow{0%{background-position:0% 0}100%{background-position:300% 0}}
+.pmem.ssok2 .ssn{color:#0a0816;background:linear-gradient(135deg,#ffe9a8,#7cffc4);border-color:#fff;
+  animation:ssPls .8s ease-in-out infinite}
+.pmem.ssok2 .ssring{box-shadow:0 0 0 3px #ffe9a8,0 0 22px rgba(124,255,196,.85);animation:ssPls .8s ease-in-out infinite}
 .pmem .ssn{position:absolute;top:2px;right:2px;min-width:22px;padding:1px 4px;border-radius:8px;background:rgba(8,6,18,.85);
   font-family:'Orbitron',sans-serif;font-size:9px;font-weight:900;color:#ffd28a;text-align:center;border:1px solid rgba(255,157,46,.4);z-index:4}
 .pmem.ssok .ssn{color:#0a0816;background:var(--org);border-color:#ffd257;animation:ssPls 1s ease-in-out infinite}
@@ -3791,8 +3802,8 @@ body.in-battle #top,body.in-battle #tabs{display:none}
 </div></div>
 
 <script>window.MB_IMGD = "../img/"; window.MB_GIMGD = "img/";</script>
-<script src="../mb-newchars.js?v=7"></script>
-<script src="js/mb-core.js?v=58"></script>
+<script src="../mb-newchars.js?v=8"></script>
+<script src="js/mb-core.js?v=60"></script>
 <script>
 "use strict";
 /* ══════════ アカウントガード ══════════ */
@@ -5678,7 +5689,7 @@ function openNewChar(all) {
           ${own ? '<span class="ncchip own">仲間になっています</span>' : ""}
         </div>
         <div class="ncwhere">${n.where} に登場中</div>
-        <div class="ncss">💥 <b>${c.ssName}</b>（${c.ssTurns}ターン）</div>
+        <div class="ncss">💥 <b>${c.ssName}</b>（${c.ssTurns}＋${FB2_EXTRA}ターン）</div>
         <div class="ncfs">🔗 <b>${c.fsName}</b>　／　サブリンク <b>${(SUBFS[c.subfs] || {}).nm || ""}</b></div>
         <!-- ★ 2026-08-06: 詳細を開いても告知は閉じない（キャラ詳細 #detOv=960 は #ncOv=955 より手前に出る）。
              以前は closeNewChar() してから開いていたので、1体見たら告知が消えてしまい、
@@ -5704,6 +5715,66 @@ window.openNewChar = openNewChar; window.closeNewChar = closeNewChar;
 
 /* ══════════ お知らせ（アップデートのたびにここへ追記する） ══════════ */
 const NEWS = [
+  /* ★★ 2026-08-28 極華祭／GRAND DEBUT Ver.5.0／Cozy Haven FEST／Festival Archive／確率12%／FB2段階目 */
+  { date: "2026-08-28", title: "✦ 極華祭 開幕（コトリ）／🗂 Festival Archive GACHA／🎲 全ガチャSSR 12%／💥 フルバースト2段階目", body: [
+    "✦ <b>極華祭</b>を追加しました。極彩祭・極煌祭とあわせて "
+      + "<b>上旬（1〜10日）＝極彩祭／中旬（11〜20日）＝極華祭／下旬（21日〜末日）＝極煌祭</b> の3本立てです。"
+      + "登場するのは <b>コトリ</b>（水・反射）。フルバースト<b>アクア・ダンクラプソディ</b>は"
+      + "<b>バスケットボールの乱打" + KOTORI_BARRAGE_N + "連（各×" + KOTORI_BARRAGE_PER + "）＋スラムダンク（×"
+      + KOTORI_DUNK_PER + "）</b>で、合計 攻撃力×"
+      + (KOTORI_BARRAGE_N * KOTORI_BARRAGE_PER + KOTORI_DUNK_PER).toFixed(1)
+      + " ——セイラ（×" + (SEIRA_BARRAGE_N * SEIRA_BARRAGE_PER).toFixed(1) + "）を大きく超える"
+      + "<b>MagiBurst 史上最大の火力</b>です。",
+    "✧ <b>GRAND DEBUT GACHA Ver.5.0</b>（ユイカ・ミスズ・カザネ・ココア・ノドカ）と "
+      + "<b>Cozy Haven FEST</b>（ユア・シオリ・レナ・リョウカ・ミコ）を同時に開幕しました。"
+      + "10体とも<b>オムニアンチも治癒の祈りも持たず、アンチをちょうど3種</b>持ちます。"
+      + "その3種は<b>🏯蓬莱天宮の続き5クエストの必要アンチとぴったり一致</b>します——"
+      + "<b>ミスズ／シオリ＝蓬莱仙苑</b>、<b>ココア／リョウカ＝蓬莱月宮</b>、"
+      + "<b>ユイカ／ユア＝蓬莱神域</b>、<b>カザネ／レナ＝蓬莱天界</b>、<b>ノドカ／ミコ＝蓬莱神天</b>。"
+      + "この5クエストは出たばかりなので、<b>Cozy Haven の5体はとくに控えめ</b>にしてあります"
+      + "（アンチは「超」ではなく素のもの、キラーの等級も EL ではなく M・L）。",
+    "🔗 <b>リンクスキルは11本すべて新設</b>です。"
+      + "<b>イグニス・オーバーライン</b>（盤面を横切る炎の帯）／"
+      + "<b>タイダル・アンカーチェイン</b>（敵が動いてもつながったままの鎖）／"
+      + "<b>ノワール・カウントダウン</b>（0になった瞬間に全員炸裂・倒した数だけ強い）／"
+      + "<b>ヴェルデ・グロウスパイラル</b>（外へ出ていくらせん）／"
+      + "<b>ルクス・カレイドレイ</b>（壁で折れるたびに強くなる光線）／"
+      + "<b>ハース・エンバーリング</b>（その場に残り味方も回復する輪）／"
+      + "<b>アクア・スチームバースト</b>（回を追うごとに太くなる十字）／"
+      + "<b>ノワール・ブランケット</b>（覆った敵の弱点コアを開放）／"
+      + "<b>ヴェルデ・シェアハーヴェスト</b>（合計の量が決まっている刈り取り）／"
+      + "<b>ルクス・ナイトランプ</b>（HPの高い敵から順に渡る灯り）／"
+      + "<b>ハイドロ・アリウープ</b>（味方どうしを結ぶパス→シュート）。"
+      + "10体の共通サブリンクは<b>コージー・ウォームベール</b>（削りながらチームHPを回復）、"
+      + "コトリは<b>アクア・フープ</b>です。",
+    "🗂 <b>Festival Archive GACHA</b> を開設しました。"
+      + "各フェスガチャは<b>登場から" + FES_DAYS + "日</b>で終わり、<b>" + FES_ARCHIVE_DAYS
+      + "日</b>を過ぎたフェスのキャラクターがここへ封入されます。"
+      + "封入されたキャラから<b>属性ごとに1体ずつ・計5体</b>をえらんでピックアップできます"
+      + "（各 " + ratePct(PICK_ARCHIVE) + "）。"
+      + "★ 極彩祭・極華祭・極煌祭のキャラクターは封入されません（フェスガチャではないため）。",
+    "🎲 <b>すべてのガチャのSSR合計を " + ratePct(SSR_TOTAL) + "</b> にそろえました。"
+      + "ピックアップは <b>GRAND DEBUT 各" + ratePct(PICK_DEBUT) + "／PREMIUM SELECT "
+      + ratePct(PICK_PREMIUM) + "／各フェス 各" + ratePct(PICK_FES) + "／Festival Archive 各"
+      + ratePct(PICK_ARCHIVE) + "／極彩祭・極華祭・極煌祭 各" + ratePct(PICK_LUX) + "</b>。"
+      + "ピックアップの合計と " + ratePct(SSR_TOTAL) + " の差は "
+      + "<b>PREMIUM SELECT GACHA のSSRが等確率</b>で受け取ります。"
+      + "<b>10連の最後の確定枠</b>は これまでどおり、そのガチャで出るSSR全部から等確率です。",
+    "💥 <b>フルバーストに2段階目</b>ができました。1段階目（これまでのターン数）からさらに <b>"
+      + FB2_EXTRA + "ターン</b>ためると、<b>威力 ×" + FB2_MUL + "・自強化の持続 +"
+      + FB2_BUFF_TURNS + "ターン</b>で撃てます。"
+      + "ターン数の表記は<b>「18＋" + FB2_EXTRA + "」</b>のように「1段階目＋追加ぶん」になり、"
+      + "味方アイコンのゲージにも<b>1段階目の位置に区切り</b>が入ります。"
+      + "2段階目までためると、ゲージと札が<b>虹色</b>に変わります。",
+    "🎯 <b>ショットスキルはアビリティに数えない</b>ことにしました。"
+      + "キャラ詳細でも<b>アビリティとは別枠</b>で出します（ヒナノ・ムツミはそのぶん"
+      + "アビリティを1つずつ足して「クロス込みで8つ」を保っています）。"
+      + "コトリのショットスキルは<b>アクア・シュート</b>（水の波紋＋チームHP回復）です。",
+    "✨ <b>極彩祭・極煌祭のネクサスをさらに強化</b>しました——"
+      + "<b>極彩・プリズムネクサス</b>（弱点 +22% ＋ リンク +8%）、"
+      + "<b>極煌・ブレイズネクサス</b>（ボス +18% ＋ 攻撃力 +6%）。"
+      + "コトリは<b>極華・ブルームネクサス</b>（リンク +20% ＋ スピード +6%）です。",
+  ] },
   /* ★★ 2026-08-27b 極彩祭・極煌祭／ヒナノ・ムツミ／蓬莱天宮の続き5クエスト */
   { date: "2026-08-27", title: "✦ 極彩祭・極煌祭が毎月開幕／🏯 蓬莱天宮の続き 5クエスト追加", body: [
     "✦ <b>極彩祭（毎月1〜15日）</b>と<b>極煌祭（毎月16日〜末日）</b>を追加しました。"
@@ -11872,6 +11943,12 @@ const FSCOPE = {
    ・キー: "fk:<fsKind>"（キャラは1つしかリンクスキルを持たないので単一選択）
    ・短縮形は名前検索の対象にもなる（「あぶれい」で アブソリュートレイ持ちが出る）。 */
 const FS_SHORT = {
+  /* ★★ 2026-08-28 GRAND DEBUT Ver.5.0 ／ Cozy Haven FEST ／ 極華祭 の新リンク11本＋サブリンク2本 */
+  ignisline: "イグライン",     tidalanchor: "タイアンカ",  noircount: "ノワカウント",
+  growspiral: "グロスパ",       kaleidoray: "カレイド",
+  hearthring: "ハースリング",   steamburst: "スチバスト",   noirblanket: "ノワブラン",
+  shareharvest: "シェアハベ",   nightlamp: "ナイランプ",    alleyoop: "アリウープ",
+  cozyveil: "コージベール",     aquahoop: "アクフープ",
   energycircle: "エナサ",       wave: "ソニブレ",
   laser: "レーザー",            luminous: "ルミナス",       absoluteray: "アブレイ",
   /* ★★ 2026-08-22 Starlight Academy Fest の共通サブリンク */
@@ -12177,6 +12254,20 @@ const ABIL_GROUPS = {
    ・リンクスキル(fsKind)は1体につき1種類 → どのカテゴリに入るかを 1:1 で決める
    ・フルバースト(ssKind)は「自強化しつつ敵を毒にする」のように性質が重なるので、タグの配列で持つ */
 const FS_TYPE = {
+  /* ★★ 2026-08-28 新リンク11本＋サブリンク2本の「リンク種別」 */
+  ignisline: "laser",       /* 盤面を横切る帯＝薙ぎ払い系 */
+  tidalanchor: "laser",     /* 敵につながる線＝レーザー系 */
+  noircount: "all",         /* 敵全体に刻んで同時に炸裂 */
+  growspiral: "ring",       /* 回りながら広がる＝リング系 */
+  kaleidoray: "laser",      /* 壁で折れながら走る光線 */
+  hearthring: "ring",       /* その場に残る輪 */
+  steamburst: "laser",      /* 十字に伸びる柱 */
+  noirblanket: "all",       /* 範囲を覆う */
+  shareharvest: "all",      /* 敵全体で合計を分け合う */
+  nightlamp: "follow",      /* 敵から敵へ渡り歩く */
+  alleyoop: "follow",       /* 味方から味方へパス */
+  cozyveil: "ring",         /* 広がるベール（サブ専用だが両方に置く） */
+  aquahoop: "shot",         /* 敵の上のフープをボールがくぐる */
   energycircle: "all", wave: "all",
   /* ★ 2026-08-10 登録もれ。ここに無い fsKind は絞り込みの「リンク種別」から漏れる */
   spread: "shot",
@@ -12262,6 +12353,20 @@ const FS_TYPE = {
        heal    … 回復する
        long    … 画面端まで届く長射程 */
 const FS_TAGS = {
+  /* ★★ 2026-08-28 新リンク11本＋サブリンク2本 */
+  ignisline:       ["wide", "pierce", "long", "multi"],
+  tidalanchor:     ["pierce", "long", "multi"],
+  noircount:       ["wide", "multi", "status"],
+  growspiral:      ["wide", "multi", "bounce"],
+  kaleidoray:      ["pierce", "long", "bounce", "multi"],
+  hearthring:      ["wide", "multi", "heal", "ally"],
+  steamburst:      ["pierce", "long", "wide", "multi"],
+  noirblanket:     ["wide", "status"],
+  shareharvest:    ["wide", "multi"],
+  nightlamp:       ["homing", "multi", "wide"],
+  alleyoop:        ["pierce", "long", "multi", "ally"],
+  cozyveil:        ["wide", "multi", "heal", "ally"],
+  aquahoop:        ["homing", "multi"],
   energycircle:    ["wide", "multi"],
   wave:            ["wide", "pierce", "long"],
   laser:           ["pierce", "long"],
@@ -12372,6 +12477,9 @@ const FS_TAG_NM = {
    「FB短縮系のサブリンクを持つキャラ」を探す手段がまったく無かった。
    ★ サブリンクを追加したら、ここにも足すこと（無いものは「タグなし」として扱われる）。 */
 const SUBFS_TAGS = {
+  /* ★★ 2026-08-28 コージー・ウォームベール（10体の共通サブリンク）／アクア・フープ（コトリ） */
+  cozyveil: ["wide", "multi", "heal", "ally"],
+  aquahoop: ["homing", "multi"],
   /* ★★ 2026-08-27 ウィークシギル（弱点をもう1つ刻む） */
   weaksigil: ["wide", "status"],
   plasma: ["pierce", "multi", "long"], accel: ["ally"], blast: ["wide"],
@@ -12423,6 +12531,11 @@ const SUBFS_TAGS = {
   pspread3: ["pierce", "multi", "wide", "long"],
 };
 const SS_TAGS = {
+  /* ★★ 2026-08-28 極華祭（コトリ）のフルバースト。
+     ★ GRAND DEBUT Ver.5.0 と Cozy Haven FEST の10体は、
+       既存の ssKind（mirelle / scarlet / sayuri / akari / otoha / hinata /
+       setsuna / celine / nephia / hotaru）を使うので、ここに足すものは無い。 */
+  kotori: ["self", "barrage", "knock"],
   /* ★★ 2026-08-27 極彩祭・極煌祭のフルバースト */
   hinano: ["self", "weak", "support"],
   mutsumi: ["self", "all", "debuff"],
@@ -13100,7 +13213,7 @@ function openBattleDetHTML(id, ball, shotNow, shotChanged, st, showNexus, inBatt
       <div class="bdmeta">
         <span class="bdm shot${shotChanged ? " chg" : ""}">${shotSVG(shotNow, 12)}${shotNow === "pierce" ? "貫通" : "反射"}${shotChanged ? "変化中" : ""}</span>
         <span class="bdm">${c.type}</span>
-        <span class="bdm fb">${inBattle ? "FB " + (scLeft > 0 ? "あと " + scLeft : "準備OK") : "FB " + st.ssTurns + "ターン"}</span>
+        <span class="bdm fb">${inBattle ? "FB " + (scLeft > 0 ? "あと " + scLeft : "準備OK") : "FB " + fbTurnsText(st) + "ターン"}</span>
         ${inBattle || own ? "" : '<span class="bdm" style="color:#ff8f8f;border-color:rgba(255,143,143,.45)">未所持</span>'}
         ${ball && ball.barrier > 0 ? '<span class="bdm bar">🛡 ' + fmt(Math.round(ball.barrier)) + "</span>" : ""}
       </div>
@@ -13119,7 +13232,7 @@ function openBattleDetHTML(id, ball, shotNow, shotChanged, st, showNexus, inBatt
       ${connectDef(id) ? `<div class="bdsec nx"><span class="bdst">🔗 クロススキル${showCnxState
           ? `<i>${connectOnId(id) ? (crossBookOn(id) && !connectDef(id).cond(connectPartyIds(), id) ? "発動中（クロスの書）" : "発動中") : "未発動"}</i>` : ""}</span>
         <div class="bdcond">${connectDef(id).condTx}</div></div>` : ""}
-      <div class="bdsec fb"><span class="bdst">フルバースト<i>${st.ssTurns}ターン</i></span>
+      <div class="bdsec fb"><span class="bdst">フルバースト<i>${fbTurnsText(st)}ターン</i></span>
         <div class="bdrow"><b class="bdskn">${c.ssName}</b></div>
         ${c.ssPow ? `<div class="bdpow">${c.ssPow}</div>` : ""}
       </div>
@@ -13328,7 +13441,7 @@ function openDet(id, from) {
       ${/* ★ 2026-08-07: クロススキルは「条件を満たすと増えるアビリティ」なので、
             アビリティのすぐ下に置く（以前はいちばん下にあり、関係が読み取れなかった）。 */""}
       ${connectSkillHTML(id)}
-      <div class="dsk ss"><div class="t">FULL BURST<span class="ssturn">${st.ssTurns}ターン</span></div><div class="n">${c.ssName}</div>
+      <div class="dsk ss"><div class="t">FULL BURST<span class="ssturn">${fbTurnsText(st)}ターン</span></div><div class="n">${c.ssName}</div>
         ${c.ssPow ? '<div class="pow">威力：' + c.ssPow + "</div>" : ""}<div class="d">${c.ssDesc}</div>
         ${canPreview ? `<button class="dbrst" onclick="previewBurst('${id}')">▶ バースト演出を見る</button>` : ""}</div>
       ${/* ★ 2026-08-06: リンクスキル／サブリンクの見出しに「属性つき／無属性」のマークを出す。
@@ -14073,7 +14186,7 @@ function applyNexusStart(balls, maxhp) {
   const nx = lead && CHARS[lead.id] && NEXUS[CHARS[lead.id].nexus];
   if (!nx) return maxhp;
   if (nx.hp) maxhp = Math.round(maxhp * nx.hp);
-  if (nx.fb) balls.forEach((b) => { b.sc = Math.min((b.sc || 0) + nx.fb, b.st.ssTurns); });
+  if (nx.fb) balls.forEach((b) => { b.sc = Math.min((b.sc || 0) + nx.fb, fbMax(b.st)); });
   if (nx.barrier) balls.forEach((b) => { b.barrier = (b.barrier || 0) + nx.barrier; });
   return maxhp;
 }
@@ -14470,7 +14583,7 @@ function startBattleNow(stageId, resume) {
   spawnWave(wv, true);
   if (rs) {
     B.hp = clamp(Math.round(rs.hp) || Math.round(B.maxhp * 0.5), 1, B.maxhp);
-    (rs.sc || []).forEach((v, i) => { if (B.balls[i]) B.balls[i].sc = clamp(v | 0, 0, B.balls[i].st.ssTurns); });
+    (rs.sc || []).forEach((v, i) => { if (B.balls[i]) B.balls[i].sc = clamp(v | 0, 0, fbMax(B.balls[i].st)); });
     /* ★ 2026-08-10 順番・チーム状態・味方ごとの状態も戻す（spawnWave のあとで上書きする）。
        古い記録（この項目が無い版）で再開しても落ちないよう、すべて任意あつかいにする。 */
     if (rs.turn != null) B.turn = clamp(rs.turn | 0, 0, B.balls.length - 1);
@@ -15153,7 +15266,7 @@ function grantWaveStartAbil() {
     B.pops.push({ x: W / 2, y: H * 0.58, t: 0, txt: "NEXUS 回復 +" + fmt(h), c: "#7dffb0", small: 1 });
   }
   if (nxFb) {
-    B.balls.forEach((b) => { b.sc = Math.min(b.sc + nxFb, b.st.ssTurns); });
+    B.balls.forEach((b) => { b.sc = Math.min(b.sc + nxFb, fbMax(b.st)); });
     B.pops.push({ x: W / 2, y: H * 0.62, t: 0, txt: "NEXUS FB-" + nxFb, c: "#c9a6ff", small: 1 });
     paintParty();
   }
@@ -15628,6 +15741,42 @@ function damageInfo(ball, e) {
    n = そのリンク1回で出る最大ヒット数（目安）。表示は「1ヒット」と「全部当たったとき」の両方を出す。
    ★ リンクスキルを追加・変更したら、ここも必ず更新すること。 */
 const FS_HIT = {
+  /* ★★ 2026-08-28 新リンク11本。★ ここに無いと「!」ボタンの威力が 0 と出る。 */
+  ignisline: { per: IGNIS_PER, n: IGNIS_N,
+    nm: "炎の帯 " + IGNIS_N + "本（盤面を上から下へ横切る・貫通）" },
+  tidalanchor: { per: ANCHOR_PER, n: ANCHOR_TICKS,
+    nm: "水の鎖 " + ANCHOR_TICKS + "回（線にふれた敵すべて・敵が動いてもつながる）",
+    per2: ANCHOR_SNAP_PER, n2: 1, nm2: "引きちぎれたときの一撃（つないでいた敵へ）" },
+  noircount: { per: KZ_TICK_PER, n: KZ_COUNT,
+    nm: "黒い数字を数えるたびの小ダメージ（" + KZ_COUNT + "回・敵全体）",
+    per2: KZ_BOOM_PER, n2: 1, nm2: "0になった瞬間の同時炸裂（半径 " + KZ_BOOM_R + "）",
+    /* カウント中に倒した敵ぶんの上乗せ（最大3体ぶんを見込む） */
+    extra: KZ_BOOM_STEP * 3 },
+  growspiral: { per: GROW_PER, n: 8,
+    nm: "らせんに伸びる蔓（同じ敵にも " + GROW_COOL + "フレームおき・" + GROW_TURNS + "巻き）" },
+  kaleidoray: { per: KALEI_PER, n: KALEI_BOUNCE + 1,
+    nm: "壁で折れながら走る光線 " + (KALEI_BOUNCE + 1) + "区間（折れるたびに +" + KALEI_STEP + "）",
+    extra: KALEI_STEP * (KALEI_BOUNCE * (KALEI_BOUNCE + 1) / 2) },
+  hearthring: { per: HEARTH_PER, n: HEARTH_TICKS,
+    nm: "その場に残る熾火の輪 " + HEARTH_TICKS + "回（半径 " + HEARTH_R + "）" },
+  steamburst: { per: STEAM_PER, n: STEAM_TICKS * 2,
+    nm: "十字の湯けむり（" + STEAM_TICKS + "回・太さ " + STEAM_W0 + " → " + STEAM_W1 + "／1体に最大2方向）" },
+  noirblanket: { per: BLANKET_PER, n: 1,
+    nm: "黒い布で覆う（半径 " + BLANKET_R + "・弱点コアを" + BLANKET_TURNS + "ターン開放）" },
+  shareharvest: { per: HARVEST_CAP / HARVEST_TICKS, n: HARVEST_TICKS,
+    nm: "合計 攻撃力×" + HARVEST_TOTAL + " を画面上の敵で分け合う（1体あたり上限 ×" + HARVEST_CAP + "）" },
+  nightlamp: { per: LAMP_PER, n: LAMP_N,
+    nm: "HPの高い敵から順に渡り歩く光の球（最大" + LAMP_N + "回・半径 " + LAMP_R + "）" },
+  alleyoop: { per: ALLEY_PASS_PER, n: 3,
+    nm: "味方から味方へのパス（最大3本・貫通）",
+    per2: ALLEY_SHOT_PER, n2: 1, nm2: "最後のシュート（半径 " + ALLEY_SHOT_R + "）",
+    extra: ALLEY_SHOT_STEP * 3 },
+  /* サブ専用だが starveil と同じく FS_HIT にも置く */
+  cozyveil: { per: COZY_PER, n: COZY_TICKS,
+    nm: "あたたかな光のベール " + COZY_TICKS + "回（広がりきるとチームHPを"
+      + Math.round(COZY_HEAL * 100) + "%回復）" },
+  aquahoop: { per: AHOOP_PER, n: AHOOP_N * AHOOP_PULSES,
+    nm: "水のフープ " + AHOOP_N + "つ × " + AHOOP_PULSES + "回くぐる" },
   laser: { per: 1.15, n: 1, nm: "十字レーザー" },
   homing: { per: PSEEKER_PER, n: 12, nm: "追尾弾12発（貫通・1体につき1ヒット）" },
   spread: { per: 0.14, n: 16, nm: "拡散弾16発" },
@@ -15787,6 +15936,10 @@ const FS_HIT = {
 };
 /* サブリンクの1ヒット係数（fireSubFriend の実装に対応） */
 const SUB_HIT = {
+  /* ★★ 2026-08-28 コージー・ウォームベール／アクア・フープ。
+     ★ ここに書き忘れると「!」ボタンの威力が 0 になる。 */
+  cozyveil: { per: COZY_PER, n: COZY_TICKS },
+  aquahoop: { per: AHOOP_PER, n: AHOOP_N * AHOOP_PULSES },
   /* ★★ 2026-08-27 ウィークシギル（極彩祭・極煌祭の共通サブリンク）。
      ★ ここに書き忘れると「!」ボタンの威力が 0 になる。 */
   weaksigil: { per: WSIGIL_PER, n: 1 },
@@ -16096,7 +16249,10 @@ function openStatus() {
           <div class="stnm">${b.ch.nm}${i === B.turn ? '<span class="now">この番</span>' : ""}${b.lent ? '<span class="lent">🤝</span>' : ""}</div>
           <div class="stmeta">${elIcon(b.ch.el, 13)} ${ELEM[b.ch.el].nm}
             ／ ${sh === "pierce" ? "貫通" : "反射"}${changed ? "（変化中）" : ""}
-            ／ <b class="${ready ? "fbok" : ""}">FB ${ready ? "準備OK" : "あと" + Math.max(0, b.st.ssTurns - b.sc)}</b></div>
+            ／ <b class="${ready ? "fbok" : ""}">FB ${
+              b.sc >= fbMax(b.st) ? "2段階目 準備OK"
+              : ready ? "準備OK（2段階目まであと" + fb2Left(b) + "）"
+              : "あと" + Math.max(0, b.st.ssTurns - b.sc)}</b></div>
           <div class="sttags">${show}</div>
         </div>
         <button class="stmore" onclick="toggleStatDetail(${i})">${open ? "▲" : "▼"}<small>${open ? "とじる" : "詳しく"}</small></button>
@@ -16161,7 +16317,9 @@ function paintParty() {
   }
   $("#pparty").innerHTML = B.balls.map((b, i) => {
     const ready = b.sc >= b.st.ssTurns;
-    const remain = Math.max(0, b.st.ssTurns - b.sc);
+    /* ★★ 2026-08-28 2段階目（ssTurns ＋ FB2_EXTRA）までためられる */
+    const ready2 = b.sc >= fbMax(b.st);
+    const remain = ready ? fb2Left(b) : Math.max(0, b.st.ssTurns - b.sc);
     const armed = B.ssPlan && i === B.turn && ready;
     const pl = B.online && B.players ? B.players[ballOwner(b)] : null;
     const me = B.online && ballOwner(b) === B.myIdx;
@@ -16170,7 +16328,7 @@ function paintParty() {
        「フルバースト・撃種変化パネルでいまだけ入れ替わっている」ときだけ出す。 */
     const sh = shotOf(b), shChanged = sh !== b.ch.shot;
     /* ★ 2026-08-26「i」は廃止。<b>長押しでキャラ詳細</b>（data-cid） */
-    return `<button class="pmem ${i === B.turn ? "turn" : ""} ${ready ? "ssok" : ""} ${armed ? "armed" : ""} ${mxClass(b.id, b.st.awk)}"
+    return `<button class="pmem ${i === B.turn ? "turn" : ""} ${ready ? "ssok" : ""} ${ready2 ? "ssok2" : ""} ${armed ? "armed" : ""} ${mxClass(b.id, b.st.awk)}"
       data-cid="${b.id}" onclick="tapMember(${i})">
       <div class="pcur">▼</div>
       <div class="pfr"><img src="${b.ch.th}" alt="${b.ch.nm}">
@@ -16179,9 +16337,11 @@ function paintParty() {
       ${/* ★ 2026-08-05 魂の紋章を付けている味方は、バトル中もひと目で分かるようにする */
         ballEmblemFx(b).length ? '<span class="pemb" title="魂の紋章: ' + ballEmblemFx(b).map((k) => (EMBLEM_FX[k] || {}).nm || k).join(" / ") + '">❖</span>' : ""}
       ${b.lent ? '<span class="plent" title="' + (b.lent.name || "フレンド") + ' から借りた助っ人">🤝</span>' : ""}
-      <div class="ssg"><i style="width:${clamp(b.sc / b.st.ssTurns, 0, 1) * 100}%"></i></div></div>
+      ${/* ★★ 2026-08-28 ゲージは<b>2段階目まで</b>。1段階目の位置に区切りを出す */""}
+      <div class="ssg"><i style="width:${clamp(b.sc / fbMax(b.st), 0, 1) * 100}%"></i>
+        <u style="left:${clamp(b.st.ssTurns / fbMax(b.st), 0, 1) * 100}%"></u></div></div>
       <div class="pturn"></div>
-      <span class="ssn">${armed ? "GO!" : ready ? "FB!" : remain}</span>
+      <span class="ssn">${armed ? (ready2 ? "GO2!" : "GO!") : ready2 ? "FB2!" : ready ? "FB!" : remain}</span>
       <div class="ssring"></div>
       ${pl ? `<div class="pnm ${me ? "me" : ""} ${pl.left ? "off" : ""}">${me ? "あなた" : (pl.name || "?")}</div>` : ""}
     </button>`;
@@ -16206,7 +16366,11 @@ function tapMember(i) {
   const b = B.balls[i];
   if (B.state === "aim" && i === B.turn && b.sc >= b.st.ssTurns && !B.ssArmed) {
     B.ssPlan = !B.ssPlan;
-    showBmsg(B.ssPlan ? "FB 準備OK!" : "FB解除", B.ssPlan ? "#ffd257" : "#9d97c4", 700);
+    /* ★★ 2026-08-28 どの段で撃つことになるかを、予約したときに必ず出す */
+    const st2 = fbStageOf(b) >= 2;
+    showBmsg(B.ssPlan ? (st2 ? "FB 2段階目 準備OK!（威力 ×" + FB2_MUL + "）"
+      : "FB 準備OK!（2段階目まであと" + fb2Left(b) + "）") : "FB解除",
+      B.ssPlan ? (st2 ? "#ffe9a8" : "#ffd257") : "#9d97c4", 900);
     SFX.pick();
     paintParty();
     return;
@@ -16312,7 +16476,9 @@ cv.addEventListener("pointerup", () => {
   /* ★ フルバーストはショットを放った瞬間に確定（予約ONのときだけ発動） */
   const useSS = !!(B.ssPlan && ball.sc >= ball.st.ssTurns && B.ssArmed == null);
   B.ssPlan = false;
-  const shot = { seq: B.shotSeq || 0, ux, uy, power, ss: useSS };
+  /* ★★ 2026-08-28 st ＝ この一手で使うフルバーストの段（1 or 2）。オンラインでそろえるために送る */
+  const shot = { seq: B.shotSeq || 0, ux, uy, power, ss: useSS,
+    st: useSS ? (fbStageOf(ball) >= 2 ? 2 : 1) : 0 };
   if (B.online) {
     /* オンライン: 自分のショットを部屋に送り、キュー経由で全員が同じ手順で適用する */
     B.pending.push(shot);
@@ -16339,6 +16505,13 @@ function doShot(s) {
      「ある端末ではフルバーストが出て、別の端末では出ない」＝盤面が完全に食い違っていた。 */
   const useSS = B.online ? !!s.ss : (!!s.ss && ball.sc >= ball.st.ssTurns && B.ssArmed == null);
   if (useSS) {
+    /* ★★ 2026-08-28 フルバーストの<b>2段階目</b>。
+       ・1段階目（ssTurns）で撃つか、さらに FB2_EXTRA ターン待って2段階目で撃つかを選べる。
+       ・2段階目は<b>威力 ×FB2_MUL</b>（atkMulOf に1か所だけ掛けてある）と
+         <b>自強化の持続 +FB2_BUFF_TURNS ターン</b>。
+       ★ オンラインでは「撃った人の段」をそのまま全端末で採用する（s.st）。
+         端末ごとに sc を見直すと、片方だけ2段階目になって盤面が食いちがう。 */
+    B.ssStage = B.online ? ((s.st | 0) >= 2 ? 2 : 1) : (fbStageOf(ball) >= 2 ? 2 : 1);
     B.ssArmed = ball.i; ball.sc = 0; B.ssFirstDone = false;
     playCutin(ball.ch);
     SFX.ss();
@@ -16350,6 +16523,18 @@ function doShot(s) {
       B.effects.push({ type: "flashfx", t: 0, dur: 10 });
     }
     applyNewSS(ball);   // ssKind ごとの「フルバーストを撃った瞬間」の効果（自強化・撃種変化など）
+    /* ★★ 2026-08-28 2段階目なら、自強化の<b>持続</b>も伸ばす（威力は atkMulOf 側）。
+       ★ applyNewSS の<b>あと</b>に置くこと（中で selfBuff を作り直しているため）。 */
+    if ((B.ssStage | 0) >= 2) {
+      if (ball.selfBuff) ball.selfBuff.left = (ball.selfBuff.left | 0) + FB2_BUFF_TURNS;
+      B.pops.push({ x: ball.x, y: ball.y - ball.r - 52, t: 0,
+        txt: "★ 2段階目！ 威力 ×" + FB2_MUL, c: "#ffd257", small: 0 });
+      B.effects.push({ type: "ring", x: ball.x, y: ball.y, t: 0, dur: 32, r: 360, c: "#ffd257" });
+      B.effects.push({ type: "ring", x: ball.x, y: ball.y, t: -6, dur: 34, r: 230, c: "#ffffff" });
+      B.effects.push({ type: "flashfx", t: 0, dur: 12 });
+      spawnSparks(ball.x, ball.y, "#ffe9a8", 30);
+      B.shake = Math.max(B.shake, 20);
+    }
     /* ★ フルバースト演出中はショットを打てない（入力・物理を止めて、演出が終わってから発射） */
     B.state = "cutin"; B.cutin = 1;
     paintParty();
@@ -16400,8 +16585,9 @@ function launchShot(ball, ux, uy, power) {
     || ssk === "chloe" || ssk === "roselia"
     /* ★ 2026-08-08 ナナミ・チトセ（どちらも自強化型なので初速1.3倍） */
     || ssk === "nanami" || ssk === "chitose"
-    /* ★★ 2026-08-27 ヒナノ・ムツミ（どちらも自強化型） */
-    || ssk === "hinano" || ssk === "mutsumi"
+    /* ★★ 2026-08-27 ヒナノ・ムツミ（どちらも自強化型）
+       ★★ 2026-08-28 コトリ（極華祭・自強化型） */
+    || ssk === "hinano" || ssk === "mutsumi" || ssk === "kotori"
     /* ★ 2026-08-08 カエデ・リノン・アンジェ（ココロは ssKind が "soleria" なので上で拾う） */
     || ssk === "kaede" || ssk === "rinon" || ssk === "ange"
     || ssk === "sheril" || ssk === "fia" || ssk === "lysera" || ssk === "soleria" || ssk === "beltia" || ssk === "astera"
@@ -17091,6 +17277,26 @@ function applyNewSS(ball) {
     B.effects.push({ type: "pillar", x: ball.x, y: ball.y, t: 0, dur: 36, c: "#e9d8ff" });
     spawnSparks(ball.x, ball.y, "#c9a6ff", 36);
     flash("#6f3fd0");
+  } else if (k === "kotori") {
+    /* ══ ★★ 2026-08-28 コトリ（アクア・ダンクラプソディ）══
+       ・自強化（KOTORI_ATK / KOTORI_SPD）
+       ・<b>壁をすり抜けて反対側から出る</b>（stepBall の wrap に "kotori" を足してある）
+       ・<b>最初にふれた敵で停止</b>し、バスケットボールの乱打 KOTORI_BARRAGE_N 連
+         ＋ <b>締めのスラムダンク</b> ＋ ふっとばし（停止と乱打は hitEnemy 側）
+       ★ MagiBurst 史上最大の火力。演出も<b>画面いっぱいのゴールリング</b>で大きく見せる。 */
+    ball.selfBuff = { atk: KOTORI_ATK, spd: KOTORI_SPD, left: 2 };
+    B.pops.push({ x: ball.x, y: ball.y - ball.r - 22, t: 0,
+      txt: "自強化＆壁すり抜け＆最初の敵で停止して乱打" + KOTORI_BARRAGE_N + "連＆スラムダンク!!",
+      c: "#38a6ff", small: 0 });
+    /* コート（水の輪）が広がる → その中央に巨大なゴールリングが降りてくる */
+    for (let k2 = 0; k2 < 6; k2++) {
+      B.effects.push({ type: "ring", x: ball.x, y: ball.y, t: -k2 * 4, dur: 34,
+        r: 140 + k2 * 128, c: k2 % 2 ? "#1567c8" : "#cfe9ff" });
+    }
+    B.effects.push({ type: "pillar", x: ball.x, y: ball.y, t: 0, dur: 38, c: "#cfe9ff" });
+    spawnSparks(ball.x, ball.y, "#7cc4ff", 40);
+    B.shake = Math.max(B.shake, 22);
+    flash("#1d8fd8");
   } else if (k === "roxy") {
     /* ══════════════════════════════════════════════════════════════
        ★ 2026-08-18 ロキシー（豪雷積層雲）
@@ -17229,7 +17435,7 @@ function applyNewSS(ball) {
     B.balls.forEach((al) => {
       if (!al || al === ball) return;
       const before = al.sc | 0;
-      al.sc = Math.min(before + AKARI_FB_CUT, al.st.ssTurns);
+      al.sc = Math.min(before + AKARI_FB_CUT, fbMax(al.st));
       if (al.sc > before) n++;
       B.effects.push({ type: "ring", x: al.x, y: al.y, t: 0, dur: 22, r: al.r * 3, c: "#8affc4" });
       B.pops.push({ x: al.x, y: al.y - al.r - 34, t: 0,
@@ -17408,6 +17614,26 @@ function fireShotSkill(ball, ux, uy) {
       spawnSparks(e.x, e.y, "#dfffe9", 6);
     });
     B.pops.push({ x: ball.x, y: ball.y - ball.r - 30, t: 0, txt: "ヴェルダント・シュート", c: "#8affc4", small: 1 });
+    return;
+  }
+  if (k === "aqua") {
+    /* ★★ 2026-08-28 コトリ「アクア・シュート」:
+       自分のまわりに水の波紋が広がって削り、あわせてチームHPを少し戻す。
+       ★ 撃ち出しの瞬間なので、<b>短い寿命で自分から終わる</b>エフェクトだけにしてある。 */
+    for (let n = 0; n < 3; n++) {
+      B.effects.push({ type: "ring", x: ball.x, y: ball.y, t: -n * 4, dur: 22,
+        r: SHOTSK_KOTORI_R * (0.45 + n * 0.3), c: n % 2 ? "#cfe9ff" : "#38a6ff" });
+    }
+    spawnSparks(ball.x, ball.y, "#cfe9ff", 12);
+    aliveEnemies().forEach((en) => {
+      if (Math.hypot(en.x - ball.x, en.y - ball.y) > en.r + SHOTSK_KOTORI_R) return;
+      dealDamage(en, atk * SHOTSK_KOTORI_PER * elemMult(el, en.el), "#38a6ff", true);
+      spawnSparks(en.x, en.y, "#cfe9ff", 6);
+    });
+    const heal = Math.max(1, Math.round(B.maxhp * SHOTSK_KOTORI_HEAL));
+    B.hp = Math.min(B.maxhp, B.hp + heal); paintHp();
+    B.pops.push({ x: ball.x, y: ball.y - ball.r - 30, t: 0,
+      txt: "アクア・シュート（HP +" + fmt(heal) + "）", c: "#38a6ff", small: 1 });
     return;
   }
   if (k === "ignite") {
@@ -17759,7 +17985,7 @@ function loop() {
 function forceNextTurn(why) {
   if (!B || B.over || !B.balls || !B.balls.length) return;
   try {
-    B.ssArmed = null;
+    B.ssArmed = null; B.ssStage = 0;   /* ★★ 2026-08-28 段もここで戻す */
     B.rallyOn = 0; B.rallyFs = {};
     B.balls.forEach((b) => { b.moving = false; b.vx = 0; b.vy = 0; b.rally = 0; });
     B.turn = (B.turn + 1) % B.balls.length;
@@ -18456,7 +18682,9 @@ function stepBall(ball) {
   /* ★ v14 アビスFB（ヴォイド・サンダーレイド）中は「壁をすり抜けて反対側から出る」 */
   /* ★ 2026-08-08 カエデのFBも同じ「壁をすり抜けて反対側から出る」 */
   /* ★ 2026-08-12 セイラのFBも「壁をすり抜けて反対側から出る」 */
-  const wrap = B.ssArmed === ball.i && (ball.ch.ssKind === "abyss" || ball.ch.ssKind === "kaede" || ball.ch.ssKind === "seira");
+  /* ★★ 2026-08-28 コトリ（アクア・ダンクラプソディ）も壁をすり抜ける */
+  const wrap = B.ssArmed === ball.i && (ball.ch.ssKind === "abyss" || ball.ch.ssKind === "kaede"
+    || ball.ch.ssKind === "seira" || ball.ch.ssKind === "kotori");
   for (let s = 0; s < steps; s++) {
     ball.x += ball.vx / steps; ball.y += ball.vy / steps;
     if (ball.warpCd > 0) ball.warpCd -= 1 / steps;
@@ -18522,9 +18750,9 @@ function stepBall(ball) {
     if (wallHit) healWallHit(wallHit, ball);                   // ヒーリングウォール: ふれるたびに回復（回数制限なし）
     /* ★ v16 壁FBターン短縮（リセラ）: 壁にふれるたび自分のFBターンを1短縮（1ショット WALLFB_MAX まで）。
        ball.sc は「たまったターン数」なので、短縮＝ sc を増やす（ssTurns が上限）。 */
-    if (wallHit && hasAbil(ball.ch, "wallfbshort") && (ball._wallFb || 0) < WALLFB_MAX && ball.sc < ball.st.ssTurns) {
+    if (wallHit && hasAbil(ball.ch, "wallfbshort") && (ball._wallFb || 0) < WALLFB_MAX && ball.sc < fbMax(ball.st)) {
       ball._wallFb = (ball._wallFb || 0) + 1;
-      ball.sc = Math.min(ball.sc + 1, ball.st.ssTurns);
+      ball.sc = Math.min(ball.sc + 1, fbMax(ball.st));
       B.pops.push({ x: ball.x, y: ball.y - ball.r - 22, t: 0, txt: "壁でFB-1（" + ball._wallFb + "/" + WALLFB_MAX + "）", c: "#c9a6ff", small: 1 });
       B.effects.push({ type: "ring", x: ball.x, y: ball.y, t: 0, dur: 13, r: 72, c: "#c9a6ff" });
       paintParty();
@@ -18923,7 +19151,7 @@ function stepBall(ball) {
           ball.swordMul = 1.4;
           B.pops.push({ x: it.x, y: it.y - 18, t: 0, txt: "攻撃UP!", c: "#ffd257", small: 1 });
         } else {
-          ball.sc = Math.min(ball.sc + 2, ball.st.ssTurns);
+          ball.sc = Math.min(ball.sc + 2, fbMax(ball.st));
           B.pops.push({ x: it.x, y: it.y - 18, t: 0, txt: "FB短縮!", c: "#c9a6ff", small: 1 });
           paintParty();
         }
@@ -19020,20 +19248,20 @@ function stepBall(ball) {
         }
         /* FBターン短縮（fbtouch）: 味方に触れた数だけ「自分の」FBターンを短縮する */
         if (hasAbil(ball.ch, "fbtouch")) {
-          ball.sc = Math.min(ball.sc + 1, ball.st.ssTurns);
+          ball.sc = Math.min(ball.sc + 1, fbMax(ball.st));
           B.pops.push({ x: ball.x, y: ball.y - ball.r - 22, t: 0, txt: "FB-1（自分）", c: "#c9a6ff", small: 1 });
           B.effects.push({ type: "ring", x: ball.x, y: ball.y, t: 0, dur: 12, r: 70, c: "#c9a6ff" });
           paintParty();
         }
         /* FBブースト（動いているキャラが持っていれば触れた味方のFB短縮） */
         if (hasAbil(ball.ch, "ssboost")) {
-          al.sc = Math.min(al.sc + 1, al.st.ssTurns);
+          al.sc = Math.min(al.sc + 1, fbMax(al.st));
           B.pops.push({ x: al.x, y: al.y - al.r - 16, t: 0, txt: "FB-1", c: "#c9a6ff", small: 1 });
           paintParty();
         }
         /* SSターンチャージ: 1ショットで味方3体に触れたら、3体目のFBを2短縮 */
         if (hasAbil(ball.ch, "sscharge") && ball.frIds.size === 3) {
-          al.sc = Math.min(al.sc + 2, al.st.ssTurns);
+          al.sc = Math.min(al.sc + 2, fbMax(al.st));
           B.pops.push({ x: al.x, y: al.y - al.r - 20, t: 0, txt: "FBチャージ FB-2!", c: "#ffd257", small: 1 });
           B.effects.push({ type: "ring", x: al.x, y: al.y, t: 0, dur: 16, r: 90, c: "#ffd257" });
           paintParty();
@@ -19686,6 +19914,48 @@ function hitEnemy(ball, e, col) {
   /* ★ 2026-08-12 セイラフルバースト:
      そのショットで<b>最初にふれた敵の上で止まり</b>、宵闇の乱打をたたき込んでふっとばす。
      （停止のしくみは barrageHalt に切り出して、ほかの乱打FBと共有している） */
+  /* ★★ 2026-08-28 コトリ（アクア・ダンクラプソディ）:
+     最初にふれた敵の上で止まり、バスケットボールの乱打をたたき込んで
+     <b>締めのスラムダンク</b>（範囲）でふっとばす。
+     ★ ダンクは乱打が終わるころ（KOTORI_BARRAGE_N × 2 フレーム後）に出す。
+       エフェクトは<b>自分から寿命で終わる</b>ので、手番が止まることはない。 */
+  if (B.ssArmed === ball.i && ball.ch.ssKind === "kotori" && !B.ssFirstDone) {
+    B.ssFirstDone = true;
+    barrageHalt(ball);
+    fxBarrage(ball, e, KOTORI_BARRAGE_N, KOTORI_BARRAGE_PER, "#7cc4ff");
+    luxBurst(e.x, e.y, "#1d8fd8");
+    B.pops.push({ x: e.x, y: e.y - e.r - 60, t: 0, txt: "AQUA DUNK RHAPSODY!!", c: "#cfe9ff", small: 0 });
+    const dunkAt = KOTORI_BARRAGE_N * 2 + 8;
+    const el0 = ball.ch.el, tid = e.id;
+    B.effects.push({ type: "fxctl", t: 0, dur: dunkAt + 10, done: 0,
+      tick(fx) {
+        if (fx.done || fx.t < dunkAt) return;
+        fx.done = 1;
+        const t2 = B.enemies.find((x) => x.id === tid) || e;
+        const cx = t2.x, cy = t2.y;
+        /* ゴールリングが降りてきて、そこへ叩きこむ */
+        for (let k2 = 0; k2 < 4; k2++) {
+          B.effects.push({ type: "ring", x: cx, y: cy, t: -k2 * 3, dur: 30,
+            r: KOTORI_DUNK_R * (0.35 + k2 * 0.24), c: k2 % 2 ? "#ffffff" : "#38a6ff" });
+        }
+        B.effects.push({ type: "boom", x: cx, y: cy, t: 0, dur: 30, r: KOTORI_DUNK_R, c: "#1d8fd8" });
+        B.effects.push({ type: "pillar", x: cx, y: cy, t: 0, dur: 34, c: "#cfe9ff" });
+        B.effects.push({ type: "flashfx", t: 0, dur: 14 });
+        spawnSparks(cx, cy, "#ffffff", 40);
+        withDmgSrc(ball, () => {
+          aliveEnemies().forEach((o) => {
+            if (Math.hypot(o.x - cx, o.y - cy) > o.r + KOTORI_DUNK_R) return;
+            dealDamage(o, ball.st.atk * atkMulOf(ball) * KOTORI_DUNK_PER * elemMult(el0, o.el), "#38a6ff", true);
+            spawnSparks(o.x, o.y, "#cfe9ff", 12);
+          });
+        });
+        B.pops.push({ x: cx, y: cy - 78, t: 0, txt: "SLAM DUNK!!", c: "#ffffff", small: 0 });
+        B.shake = Math.max(B.shake, 26);
+        SFX.crit();
+        const t3 = B.enemies.find((x) => x.id === tid && x.hp > 0);
+        if (t3) knockbackEnemy(ball, t3);
+      } });
+  }
   if (B.ssArmed === ball.i && ball.ch.ssKind === "seira" && !B.ssFirstDone) {
     B.ssFirstDone = true;
     barrageHalt(ball);
@@ -20022,7 +20292,7 @@ function dealDamage(e, dmg, color, big, raw) {
   if (DMG_SRC && hasAbil(DMG_SRC.ch, "linkcharge") && !DMG_SRC._lcDone) {
     DMG_SRC._lcDone = 1;
     if (brnd() < LINKCHARGE_P) {
-      DMG_SRC.sc = Math.min(DMG_SRC.sc + 1, DMG_SRC.st.ssTurns);
+      DMG_SRC.sc = Math.min(DMG_SRC.sc + 1, fbMax(DMG_SRC.st));
       B.pops.push({ x: DMG_SRC.x, y: DMG_SRC.y - DMG_SRC.r - 32, t: 0, txt: "リンクチャージ FB-1!", c: "#8affc4", small: 1 });
       B.effects.push({ type: "ring", x: DMG_SRC.x, y: DMG_SRC.y, t: 0, dur: 16, r: 120, c: "#8affc4" });
       paintParty();
@@ -20067,7 +20337,7 @@ function destroyBoost(e) {
     const n = hasAbil(b.ch, "destroyboostM") ? DESTROYBOOST_M : hasAbil(b.ch, "destroyboost") ? 1 : 0;
     if (!n) return;
     boosted = Math.max(boosted, n);
-    if (b.sc < b.st.ssTurns) b.sc = Math.min(b.sc + n, b.st.ssTurns);
+    if (b.sc < fbMax(b.st)) b.sc = Math.min(b.sc + n, fbMax(b.st));
   });
   if (boosted) {
     B.pops.push({ x: e.x, y: e.y - e.r - 44, t: 0, txt: "FB-" + boosted, c: "#c9a6ff", small: 1 });
@@ -20077,15 +20347,15 @@ function destroyBoost(e) {
        <b>自分の手番で</b>敵を倒すたびに、<b>その本人の</b>FBが FBTURNBOOST ターン縮む。
        デストロイブースト（チーム全員）と違い、手番の本人だけに限っている。 */
   const turnBall = B.balls[B.turn];
-  if (turnBall && hasAbil(turnBall.ch, "fbturnboost") && turnBall.sc < turnBall.st.ssTurns) {
-    turnBall.sc = Math.min(turnBall.sc + FBTURNBOOST, turnBall.st.ssTurns);
+  if (turnBall && hasAbil(turnBall.ch, "fbturnboost") && turnBall.sc < fbMax(turnBall.st)) {
+    turnBall.sc = Math.min(turnBall.sc + FBTURNBOOST, fbMax(turnBall.st));
     B.pops.push({ x: e.x, y: e.y - e.r - 50, t: 0, txt: "FBターンブースト FB-" + FBTURNBOOST, c: "#ffe9a8", small: 1 });
     paintParty();
   }
   /* ★ 2026-08-08 リノンのフルバースト中は、倒した1体につき<b>味方全員</b>のFBが1ターン縮む */
   if (turnBall && B.ssArmed === turnBall.i && turnBall.ch.ssKind === "rinon") {
     let any = false;
-    B.balls.forEach((b) => { if (b.sc < b.st.ssTurns) { b.sc = Math.min(b.sc + 1, b.st.ssTurns); any = true; } });
+    B.balls.forEach((b) => { if (b.sc < fbMax(b.st)) { b.sc = Math.min(b.sc + 1, fbMax(b.st)); any = true; } });
     if (any) {
       B.pops.push({ x: e.x, y: e.y - e.r - 64, t: 0, txt: "✧ 全員 FB-1", c: "#fff6d8", small: 1 });
       paintParty();
@@ -20093,8 +20363,8 @@ function destroyBoost(e) {
   }
   let yaju = false;
   B.balls.forEach((b) => {
-    if (!hasAbil(b.ch, "allykillfb") || b.sc >= b.st.ssTurns) return;
-    b.sc = Math.min(b.sc + ALLYKILL_FB, b.st.ssTurns);
+    if (!hasAbil(b.ch, "allykillfb") || b.sc >= fbMax(b.st)) return;
+    b.sc = Math.min(b.sc + ALLYKILL_FB, fbMax(b.st));
     yaju = true;
   });
   if (yaju) {
@@ -20684,9 +20954,9 @@ function fireFriendMain(owner, atk, mover, kindOverride) {
     case "ssbullet": {
       /* FB短縮弾: 6発の光弾で攻撃しつつ、自分と触れた仲間のフルバーストを短縮（短縮は fireSubFriend 側で処理） */
       fxHomingAtk(owner, 6, atk * 0.3);
-      owner.sc = Math.min(owner.sc + 1, owner.st.ssTurns);
+      owner.sc = Math.min(owner.sc + 1, fbMax(owner.st));
       const mv = B.balls[B.turn];
-      if (mv) mv.sc = Math.min(mv.sc + 1, mv.st.ssTurns);
+      if (mv) mv.sc = Math.min(mv.sc + 1, fbMax(mv.st));
       B.pops.push({ x: owner.x, y: owner.y - owner.r - 30, t: 0, txt: "FB短縮!", c: "#c9a6ff", small: 1 });
       paintParty();
       break;
@@ -22574,6 +22844,462 @@ function fireFriendMain(owner, atk, mover, kindOverride) {
       linkOpenFx(src, col);
       break;
     }
+    /* ══════════════════════════════════════════════════════════════
+       ★★ 2026-08-28 GRAND DEBUT Ver.5.0 の新リンク5本
+       ★ どれも「エフェクトの tick でフレームごとに進める」形。
+         await sleep を使わないのは、オンラインで端末ごとにずれるため。
+       ★ どのエフェクトも<b>自分から寿命で終わる</b>（手番が止まらない）。
+       ══════════════════════════════════════════════════════════════ */
+    case "ignisline": {
+      /* ユイカ「イグニス・オーバーライン」
+         盤面を上から下へ横切る炎の帯が IGNIS_N 本、時間差で走り抜ける。
+         ★ 帯は敵にふれても止まらない＝盤面を必ず端まで掃く。
+         ★ 1本の帯が同じ敵に当たるのは1回だけ（fx.hit）。 */
+      const col = ELEM[owner.ch.el].c, el = owner.ch.el;
+      const cross = Math.ceil((H + IGNIS_W * 2) / IGNIS_SPD) + 6;
+      for (let i = 0; i < IGNIS_N; i++) {
+        B.effects.push({ type: "fxctl", t: -i * IGNIS_GAP, dur: cross, x: 0, y: -IGNIS_W,
+          hit: new Set(), c: col,
+          tick(fx) {
+            fx.y += IGNIS_SPD;
+            if ((fx.t | 0) % 2 === 0) {
+              B.effects.push({ type: "boltlink", x: 0, y: fx.y, tx: W, ty: fx.y, t: 0, dur: 9, c: col });
+            }
+            aliveEnemies().forEach((en) => {
+              if (fx.hit.has(en.id)) return;
+              if (Math.abs(en.y - fx.y) > en.r + IGNIS_W * 0.5) return;
+              fx.hit.add(en.id);
+              dealDamage(en, atk * IGNIS_PER * elemMult(el, en.el), col, true);
+              spawnSparks(en.x, en.y, "#ffd7a8", 8);
+              B.effects.push({ type: "ring", x: en.x, y: en.y, t: 0, dur: 12, r: en.r * 1.9, c: col });
+              B.shake = Math.max(B.shake, 7);
+              SFX.hit();
+            });
+          } });
+      }
+      B.pops.push({ x: owner.x, y: owner.y - owner.r - 24, t: 0,
+        txt: "オーバーライン " + IGNIS_N + "本!!", c: col, small: 1 });
+      break;
+    }
+    case "tidalanchor": {
+      /* ミスズ「タイダル・アンカーチェイン」
+         いちばん遠い敵へ鎖を張り、<b>その敵が動いてもつながったまま</b>削りつづける。
+         最後に引きちぎれて、つないでいた敵へ一撃。 */
+      const col = ELEM[owner.ch.el].c, el = owner.ch.el;
+      const list = aliveEnemies();
+      if (!list.length) break;
+      let tgt = list[0], bd = -1;
+      list.forEach((en) => {
+        const d = Math.hypot(en.x - owner.x, en.y - owner.y);
+        if (d > bd) { bd = d; tgt = en; }
+      });
+      B.effects.push({ type: "fxctl", t: 0, dur: ANCHOR_GAP * (ANCHOR_TICKS + 1) + 12,
+        ax: owner.x, ay: owner.y, tid: tgt.id, lx: tgt.x, ly: tgt.y, n: 0, c: col,
+        tick(fx) {
+          const t2 = B.enemies.find((x) => x.id === fx.tid && x.hp > 0);
+          if (t2) { fx.lx = t2.x; fx.ly = t2.y; }
+          if ((fx.t | 0) % 2 === 0) {
+            B.effects.push({ type: "boltlink", x: fx.ax, y: fx.ay, tx: fx.lx, ty: fx.ly, t: 0, dur: 7, c: col });
+          }
+          if (fx.t % ANCHOR_GAP !== 0 || fx.n >= ANCHOR_TICKS) return;
+          fx.n++;
+          aliveEnemies().forEach((en) => {
+            if (distToSeg(en.x, en.y, fx.ax, fx.ay, fx.lx, fx.ly) > en.r + ANCHOR_W) return;
+            dealDamage(en, atk * ANCHOR_PER * elemMult(el, en.el), col, true);
+            spawnSparks(en.x, en.y, "#cfe9ff", 6);
+          });
+          if (fx.n >= ANCHOR_TICKS) {
+            if (t2) {
+              dealDamage(t2, atk * ANCHOR_SNAP_PER * elemMult(el, t2.el), col, true);
+              B.effects.push({ type: "boom", x: fx.lx, y: fx.ly, t: 0, dur: 24, r: 170, c: col });
+              spawnSparks(fx.lx, fx.ly, "#ffffff", 20);
+              B.pops.push({ x: fx.lx, y: fx.ly - 60, t: 0, txt: "鎖が引きちぎれた!!", c: col, small: 1 });
+            }
+            B.shake = Math.max(B.shake, 15); SFX.crit();
+          } else SFX.hit();
+        } });
+      B.pops.push({ x: owner.x, y: owner.y - owner.r - 24, t: 0, txt: "アンカーチェイン!!", c: col, small: 1 });
+      break;
+    }
+    case "noircount": {
+      /* カザネ「ノワール・カウントダウン」
+         敵全体に黒い数字を刻み、3→2→1→0 と減らす。0になった瞬間に同時炸裂。
+         ★ 炸裂の威力は「カウント中に倒れた敵の数」だけ上がる。 */
+      const col = ELEM[owner.ch.el].c, el = owner.ch.el;
+      const marked = aliveEnemies().map((en) => en.id);
+      if (!marked.length) break;
+      const before = marked.length;
+      B.effects.push({ type: "fxctl", t: 0, dur: KZ_GAP * (KZ_COUNT + 2) + 16, n: 0, c: col,
+        tick(fx) {
+          if (fx.t % KZ_GAP !== 0) return;
+          if (fx.n < KZ_COUNT) {
+            fx.n++;
+            const left = KZ_COUNT - fx.n;
+            marked.forEach((id) => {
+              const en = B.enemies.find((x) => x.id === id && x.hp > 0);
+              if (!en) return;
+              dealDamage(en, atk * KZ_TICK_PER * elemMult(el, en.el), col, false);
+              B.pops.push({ x: en.x, y: en.y - en.r - 30, t: 0, txt: String(left), c: col, small: 0 });
+              B.effects.push({ type: "ring", x: en.x, y: en.y, t: 0, dur: 13,
+                r: en.r * (2.6 - fx.n * 0.45), c: col });
+            });
+            SFX.hit();
+            return;
+          }
+          /* 0 ＝ 同時炸裂。倒れた敵1体につき上乗せ */
+          const alive = marked.map((id) => B.enemies.find((x) => x.id === id && x.hp > 0)).filter(Boolean);
+          const killed = Math.max(0, before - alive.length);
+          const per = KZ_BOOM_PER + KZ_BOOM_STEP * killed;
+          const done = new Set();
+          alive.forEach((en) => {
+            B.effects.push({ type: "boom", x: en.x, y: en.y, t: 0, dur: 26, r: KZ_BOOM_R, c: col });
+            aliveEnemies().forEach((o) => {
+              if (done.has(o.id)) return;
+              if (Math.hypot(o.x - en.x, o.y - en.y) > o.r + KZ_BOOM_R) return;
+              done.add(o.id);
+              dealDamage(o, atk * per * elemMult(el, o.el), col, true);
+              spawnSparks(o.x, o.y, "#e9d8ff", 14);
+            });
+          });
+          B.pops.push({ x: W * 0.5, y: H * 0.32, t: 0,
+            txt: "ZERO!!" + (killed ? "（倒した" + killed + "体ぶん ×" + per.toFixed(2) + "）" : ""),
+            c: col, small: 0 });
+          B.effects.push({ type: "flashfx", t: 0, dur: 10 });
+          B.shake = Math.max(B.shake, 20); SFX.crit();
+          fx.t = fx.dur;
+        } });
+      B.pops.push({ x: owner.x, y: owner.y - owner.r - 24, t: 0,
+        txt: "カウントダウン " + KZ_COUNT + "…", c: col, small: 1 });
+      break;
+    }
+    case "growspiral": {
+      /* ココア「ヴェルデ・グロウスパイラル」
+         らせん状に伸びていく蔓。<b>いま伸びているところ全部</b>が当たり判定になり、
+         同じ敵にも GROW_COOL フレームおきに何度でも入る。 */
+      const col = ELEM[owner.ch.el].c, el = owner.ch.el;
+      B.effects.push({ type: "fxctl", x: owner.x, y: owner.y, t: 0, dur: GROW_DUR + 12,
+        cool: {}, nodes: [], c: col,
+        tick(fx) {
+          const q = Math.min(1, fx.t / GROW_DUR);
+          fx.nodes = [];
+          for (let i = 1; i <= GROW_NODES; i++) {
+            const u = q * (i / GROW_NODES);
+            const a = u * Math.PI * 2 * GROW_TURNS - Math.PI / 2;
+            const r = GROW_R1 * u;
+            fx.nodes.push({ x: fx.x + Math.cos(a) * r, y: fx.y + Math.sin(a) * r });
+          }
+          if ((fx.t | 0) % 4 === 0) {
+            for (let i = 3; i < fx.nodes.length; i += 3) {
+              B.effects.push({ type: "boltlink", x: fx.nodes[i - 3].x, y: fx.nodes[i - 3].y,
+                tx: fx.nodes[i].x, ty: fx.nodes[i].y, t: 0, dur: 10, c: col });
+            }
+            const tip = fx.nodes[fx.nodes.length - 1];
+            if (tip) spawnSparks(tip.x, tip.y, "#baffd9", 3);
+          }
+          aliveEnemies().forEach((en) => {
+            if ((fx.cool[en.id] || 0) > fx.t) return;
+            const on = fx.nodes.some((p) => Math.hypot(en.x - p.x, en.y - p.y) < en.r + GROW_W);
+            if (!on) return;
+            fx.cool[en.id] = fx.t + GROW_COOL;
+            dealDamage(en, atk * GROW_PER * elemMult(el, en.el), col, true);
+            spawnSparks(en.x, en.y, "#baffd9", 6);
+            B.effects.push({ type: "ring", x: en.x, y: en.y, t: 0, dur: 10, r: en.r * 1.7, c: col });
+            SFX.hit();
+          });
+        } });
+      B.pops.push({ x: owner.x, y: owner.y - owner.r - 24, t: 0, txt: "グロウスパイラル!!", c: col, small: 1 });
+      break;
+    }
+    case "kaleidoray": {
+      /* ノドカ「ルクス・カレイドレイ」
+         いちばん近い敵の方向へ光線を撃ち、<b>壁で折れながら</b>走りつづける。
+         ★ 折れるたびに威力が上がる（1区間ごとに +KALEI_STEP）。 */
+      const col = ELEM[owner.ch.el].c, el = owner.ch.el;
+      const list = aliveEnemies();
+      let ang = -Math.PI / 2;
+      if (list.length) {
+        let bd = 1e9;
+        list.forEach((en) => {
+          const d = Math.hypot(en.x - owner.x, en.y - owner.y);
+          if (d < bd) { bd = d; ang = Math.atan2(en.y - owner.y, en.x - owner.x); }
+        });
+      }
+      let px = owner.x, py = owner.y, dx = Math.cos(ang), dy = Math.sin(ang);
+      const segs = [];
+      for (let i = 0; i <= KALEI_BOUNCE; i++) {
+        const tX = dx > 0.0001 ? (W - px) / dx : dx < -0.0001 ? (0 - px) / dx : 1e9;
+        const tY = dy > 0.0001 ? (H - py) / dy : dy < -0.0001 ? (0 - py) / dy : 1e9;
+        const tw = Math.max(1, Math.min(tX, tY));
+        const len = Math.min(KALEI_SEG, tw);
+        segs.push({ x: px, y: py, tx: px + dx * len, ty: py + dy * len,
+          per: KALEI_PER + KALEI_STEP * i });
+        if (len < tw) break;                       /* 壁に届かず射程切れ */
+        px = px + dx * len; py = py + dy * len;
+        if (tX <= tY) dx = -dx; else dy = -dy;
+        px = Math.min(W - 1, Math.max(1, px + dx));   /* 壁にめりこんで 0 長になるのを防ぐ */
+        py = Math.min(H - 1, Math.max(1, py + dy));
+      }
+      B.effects.push({ type: "fxctl", t: 0, dur: KALEI_GAP * (segs.length + 1) + 14, n: 0, c: col,
+        tick(fx) {
+          if (fx.t % KALEI_GAP !== 0 || fx.n >= segs.length) return;
+          const s = segs[fx.n]; fx.n++;
+          B.effects.push({ type: "boltlink", x: s.x, y: s.y, tx: s.tx, ty: s.ty, t: 0, dur: 20, c: col });
+          spawnSparks(s.tx, s.ty, "#fff1b8", 8);
+          /* ★ 折れた場所（＝壁に当たったところ）で光が砕けて広がる。
+             線だけだと敵のあいだをすり抜けてしまうので、区間ごとの当たりをここで作る。 */
+          B.effects.push({ type: "boom", x: s.tx, y: s.ty, t: 0, dur: 22, r: KALEI_BOOM_R, c: "#fff1b8" });
+          aliveEnemies().forEach((en) => {
+            if (Math.hypot(en.x - s.tx, en.y - s.ty) > en.r + KALEI_BOOM_R) return;
+            dealDamage(en, atk * s.per * KALEI_BOOM_MUL * elemMult(el, en.el), col, true);
+            spawnSparks(en.x, en.y, "#fff6d8", 5);
+          });
+          aliveEnemies().forEach((en) => {
+            if (distToSeg(en.x, en.y, s.x, s.y, s.tx, s.ty) > en.r + KALEI_W) return;
+            dealDamage(en, atk * s.per * elemMult(el, en.el), col, true);
+            spawnSparks(en.x, en.y, "#ffffff", 6);
+            B.effects.push({ type: "ring", x: en.x, y: en.y, t: 0, dur: 11, r: en.r * 1.8, c: col });
+          });
+          B.shake = Math.max(B.shake, 6);
+          if (fx.n >= segs.length) SFX.crit(); else SFX.hit();
+        } });
+      B.pops.push({ x: owner.x, y: owner.y - owner.r - 24, t: 0,
+        txt: "カレイドレイ（" + segs.length + "区間）!!", c: col, small: 1 });
+      break;
+    }
+    /* ══════════════════════════════════════════════════════════════
+       ★★ 2026-08-28 Cozy Haven FEST の新リンク5本
+       ══════════════════════════════════════════════════════════════ */
+    case "hearthring": {
+      /* ユア「ハース・エンバーリング」
+         その場に残る熾火の輪。<b>輪の中の味方の数だけ</b>チームHPも戻る。 */
+      const col = ELEM[owner.ch.el].c, el = owner.ch.el;
+      B.effects.push({ type: "fxctl", x: owner.x, y: owner.y, t: 0,
+        dur: HEARTH_GAP * (HEARTH_TICKS + 1) + 12, n: 0, c: col,
+        tick(fx) {
+          if (fx.t % HEARTH_GAP !== 0 || fx.n >= HEARTH_TICKS) return;
+          fx.n++;
+          B.effects.push({ type: "ring", x: fx.x, y: fx.y, t: 0, dur: 20, r: HEARTH_R,
+            c: fx.n % 2 ? col : "#ffe9a8" });
+          aliveEnemies().forEach((en) => {
+            if (Math.hypot(en.x - fx.x, en.y - fx.y) > en.r + HEARTH_R) return;
+            dealDamage(en, atk * HEARTH_PER * elemMult(el, en.el), col, true);
+            spawnSparks(en.x, en.y, "#ffd7a8", 6);
+          });
+          const inRing = (B.balls || []).filter((b) => Math.hypot(b.x - fx.x, b.y - fx.y) < HEARTH_R).length;
+          if (inRing) {
+            const heal = Math.max(1, Math.round(B.maxhp * HEARTH_HEAL * inRing));
+            B.hp = Math.min(B.maxhp, B.hp + heal); paintHp();
+            B.pops.push({ x: fx.x, y: fx.y - 40, t: 0, txt: "HP +" + fmt(heal), c: "#7dffb0", small: 1 });
+          }
+          SFX.hit();
+        } });
+      B.pops.push({ x: owner.x, y: owner.y - owner.r - 24, t: 0, txt: "エンバーリング!!", c: col, small: 1 });
+      break;
+    }
+    case "steamburst": {
+      /* シオリ「アクア・スチームバースト」上下左右へ、回を追うごとに太くなる湯けむりの柱 */
+      const col = ELEM[owner.ch.el].c, el = owner.ch.el;
+      B.effects.push({ type: "fxctl", x: owner.x, y: owner.y, t: 0,
+        dur: STEAM_GAP * (STEAM_TICKS + 1) + 12, n: 0, c: col,
+        tick(fx) {
+          if (fx.t % STEAM_GAP !== 0 || fx.n >= STEAM_TICKS) return;
+          fx.n++;
+          const w = STEAM_W0 + (STEAM_W1 - STEAM_W0) * ((fx.n - 1) / Math.max(1, STEAM_TICKS - 1));
+          for (let k = 0; k < 4; k++) {
+            const a = (Math.PI / 2) * k, dx = Math.cos(a), dy = Math.sin(a);
+            B.effects.push({ type: "boltlink", x: fx.x, y: fx.y,
+              tx: fx.x + dx * STEAM_LEN, ty: fx.y + dy * STEAM_LEN, t: 0, dur: 15, c: col });
+            aliveEnemies().forEach((en) => {
+              if (!segHitsCircle(fx.x, fx.y, dx, dy, STEAM_LEN, en.x, en.y, en.r + w)) return;
+              dealDamage(en, atk * STEAM_PER * elemMult(el, en.el), col, true);
+              spawnSparks(en.x, en.y, "#cfe9ff", 5);
+            });
+          }
+          B.effects.push({ type: "ring", x: fx.x, y: fx.y, t: 0, dur: 14, r: w * 1.6, c: "#dff2ff" });
+          SFX.hit();
+        } });
+      B.pops.push({ x: owner.x, y: owner.y - owner.r - 24, t: 0, txt: "スチームバースト!!", c: col, small: 1 });
+      break;
+    }
+    case "noirblanket": {
+      /* レナ「ノワール・ブランケット」覆った敵の弱点コアを BLANKET_TURNS ターン開放する。
+         ★ 開放のしくみはベルニカ・オトハとまったく同じ（B.weakBoost）＝新しい実装を持たない。 */
+      const col = ELEM[owner.ch.el].c, el = owner.ch.el;
+      B.weakBoost = { left: BLANKET_TURNS };
+      B.effects.push({ type: "ring", x: owner.x, y: owner.y, t: 0, dur: 26, r: BLANKET_R, c: col });
+      B.effects.push({ type: "ring", x: owner.x, y: owner.y, t: -6, dur: 30, r: BLANKET_R * 0.62, c: "#e9d8ff" });
+      aliveEnemies().forEach((en) => {
+        if (Math.hypot(en.x - owner.x, en.y - owner.y) > en.r + BLANKET_R) return;
+        dealDamage(en, atk * BLANKET_PER * elemMult(el, en.el), col, true);
+        const wc = (typeof weakCore === "function") ? weakCore(en) : { x: en.x, y: en.y };
+        B.effects.push({ type: "ring", x: wc.x, y: wc.y, t: 0, dur: 24, r: en.r + 70, c: "#ffe14d" });
+        spawnSparks(en.x, en.y, "#c9a6ff", 9);
+      });
+      B.pops.push({ x: owner.x, y: owner.y - owner.r - 24, t: 0,
+        txt: "ブランケット＆弱点コア開放（" + BLANKET_TURNS + "ターン）!!", c: col, small: 0 });
+      B.shake = Math.max(B.shake, 12); SFX.crit();
+      break;
+    }
+    case "shareharvest": {
+      /* リョウカ「ヴェルデ・シェアハーヴェスト」
+         合計 HARVEST_TOTAL を画面上の敵で分け合う（1体あたり HARVEST_CAP が上限）。
+         ★ 敵が減っても総ダメージが落ちない＝ボス単体でいちばん活きる。 */
+      const col = ELEM[owner.ch.el].c, el = owner.ch.el;
+      const ids = aliveEnemies().map((en) => en.id);
+      if (!ids.length) break;
+      const share = Math.min(HARVEST_CAP, HARVEST_TOTAL / ids.length);
+      B.effects.push({ type: "fxctl", t: 0, dur: HARVEST_GAP * (HARVEST_TICKS + 1) + 12, n: 0, c: col,
+        tick(fx) {
+          if (fx.t % HARVEST_GAP !== 0 || fx.n >= HARVEST_TICKS) return;
+          fx.n++;
+          ids.forEach((id) => {
+            const en = B.enemies.find((x) => x.id === id && x.hp > 0);
+            if (!en) return;
+            dealDamage(en, atk * (share / HARVEST_TICKS) * elemMult(el, en.el), col, true);
+            B.effects.push({ type: "ring", x: en.x, y: en.y + en.r * 0.55, t: 0, dur: 15,
+              r: en.r * 1.5, c: col });
+            spawnSparks(en.x, en.y + en.r * 0.5, "#baffd9", 5);
+          });
+          SFX.hit();
+        } });
+      B.pops.push({ x: owner.x, y: owner.y - owner.r - 24, t: 0,
+        txt: "シェアハーヴェスト（1体あたり ×" + share.toFixed(2) + "）", c: col, small: 1 });
+      break;
+    }
+    case "nightlamp": {
+      /* ミコ「ルクス・ナイトランプ」HPの高い敵から順に渡り歩く光の球 */
+      const col = ELEM[owner.ch.el].c, el = owner.ch.el;
+      B.effects.push({ type: "fxctl", x: owner.x, y: owner.y, t: 0,
+        dur: LAMP_GAP * (LAMP_N + 1) + 14, n: 0, c: col,
+        tick(fx) {
+          if (fx.t % LAMP_GAP !== 0 || fx.n >= LAMP_N) return;
+          const list = aliveEnemies();
+          if (!list.length) { fx.t = fx.dur; return; }
+          const sorted = list.slice().sort((a, b) => b.hp - a.hp);
+          const en = sorted[fx.n % sorted.length];
+          fx.n++;
+          B.effects.push({ type: "boltlink", x: fx.x, y: fx.y, tx: en.x, ty: en.y, t: 0, dur: 12, c: "#fff1b8" });
+          B.effects.push({ type: "boom", x: en.x, y: en.y, t: 0, dur: 20, r: LAMP_R, c: col });
+          aliveEnemies().forEach((o) => {
+            if (Math.hypot(o.x - en.x, o.y - en.y) > o.r + LAMP_R) return;
+            dealDamage(o, atk * LAMP_PER * elemMult(el, o.el), col, true);
+            spawnSparks(o.x, o.y, "#fff1b8", 6);
+          });
+          fx.x = en.x; fx.y = en.y;
+          B.shake = Math.max(B.shake, 7);
+          SFX.hit();
+        } });
+      B.pops.push({ x: owner.x, y: owner.y - owner.r - 24, t: 0, txt: "ナイトランプ!!", c: col, small: 1 });
+      break;
+    }
+    /* ══════════════════════════════════════════════════════════════
+       ★★ 2026-08-28 極華祭（コトリ）のリンクスキル
+       ══════════════════════════════════════════════════════════════ */
+    case "alleyoop": {
+      /* コトリ「ハイドロ・アリウープ」
+         ふれた味方から<b>ほかの味方全員へ順にパス</b>。パスの線上の敵を貫通で削り、
+         最後の味方が<b>いちばん近い敵へシュート</b>。パスが通った本数ぶん威力が伸びる。 */
+      const col = ELEM[owner.ch.el].c, el = owner.ch.el;
+      const start = (mover && mover !== owner) ? mover : owner;
+      const chain = [start].concat((B.balls || []).filter((b) => b !== start));
+      B.effects.push({ type: "fxctl", t: 0, dur: ALLEY_GAP * (chain.length + 2) + 18,
+        n: 0, passes: 0, c: col,
+        tick(fx) {
+          if (fx.t % ALLEY_GAP !== 0) return;
+          if (fx.n < chain.length - 1) {
+            const a = chain[fx.n], b = chain[fx.n + 1];
+            fx.n++; fx.passes++;
+            B.effects.push({ type: "boltlink", x: a.x, y: a.y, tx: b.x, ty: b.y, t: 0, dur: 15, c: col });
+            spawnSparks(b.x, b.y, "#cfe9ff", 7);
+            aliveEnemies().forEach((en) => {
+              if (distToSeg(en.x, en.y, a.x, a.y, b.x, b.y) > en.r + ALLEY_W) return;
+              dealDamage(en, atk * ALLEY_PASS_PER * elemMult(el, en.el), col, true);
+              spawnSparks(en.x, en.y, "#ffffff", 6);
+            });
+            SFX.hit();
+            return;
+          }
+          const last = chain[chain.length - 1];
+          const list = aliveEnemies();
+          if (list.length) {
+            let tgt = list[0], bd = 1e9;
+            list.forEach((en) => {
+              const d = Math.hypot(en.x - last.x, en.y - last.y);
+              if (d < bd) { bd = d; tgt = en; }
+            });
+            const per = ALLEY_SHOT_PER + ALLEY_SHOT_STEP * fx.passes;
+            B.effects.push({ type: "boltlink", x: last.x, y: last.y, tx: tgt.x, ty: tgt.y, t: 0, dur: 16, c: "#ffffff" });
+            B.effects.push({ type: "boom", x: tgt.x, y: tgt.y, t: 0, dur: 28, r: ALLEY_SHOT_R, c: col });
+            aliveEnemies().forEach((o) => {
+              if (Math.hypot(o.x - tgt.x, o.y - tgt.y) > o.r + ALLEY_SHOT_R) return;
+              dealDamage(o, atk * per * elemMult(el, o.el), col, true);
+              spawnSparks(o.x, o.y, "#ffffff", 12);
+            });
+            B.pops.push({ x: tgt.x, y: tgt.y - tgt.r - 46, t: 0,
+              txt: "ALLEY-OOP!（パス " + fx.passes + "本 ×" + per.toFixed(2) + "）", c: col, small: 0 });
+            B.effects.push({ type: "flashfx", t: 0, dur: 8 });
+            B.shake = Math.max(B.shake, 17); SFX.crit();
+          }
+          fx.t = fx.dur;
+        } });
+      break;
+    }
+  }
+}
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-08-28 コージー・ウォームベール（GRAND DEBUT Ver.5.0 ＋ Cozy Haven の共通サブリンク）
+   ふれた味方を中心にベールが広がって削り、<b>広がりきったときにチームHPを回復</b>する。
+   ★ 威力は SUB_HIT.cozyveil と必ずそろえること。
+   ══════════════════════════════════════════════════════════════ */
+function fireCozyVeil(owner, atk) {
+  const el = owner.ch.el, col = ELEM[el].c;
+  B.effects.push({ type: "fxctl", x: owner.x, y: owner.y, t: 0,
+    dur: COZY_GAP * (COZY_TICKS + 1) + 14, n: 0, c: col,
+    tick(fx) {
+      if (fx.t % COZY_GAP !== 0 || fx.n >= COZY_TICKS) return;
+      fx.n++;
+      const r = COZY_R * (0.42 + 0.58 * (fx.n / COZY_TICKS));
+      B.effects.push({ type: "ring", x: fx.x, y: fx.y, t: 0, dur: 18, r, c: fx.n % 2 ? col : "#ffe9c9" });
+      aliveEnemies().forEach((en) => {
+        if (Math.hypot(en.x - fx.x, en.y - fx.y) > en.r + r) return;
+        dealDamage(en, atk * COZY_PER * elemMult(el, en.el), col, true);
+        spawnSparks(en.x, en.y, "#ffe9c9", 5);
+      });
+      if (fx.n >= COZY_TICKS) {
+        const heal = Math.max(1, Math.round(B.maxhp * COZY_HEAL));
+        B.hp = Math.min(B.maxhp, B.hp + heal); paintHp();
+        B.pops.push({ x: fx.x, y: fx.y - 46, t: 0, txt: "ウォームベール HP +" + fmt(heal), c: "#7dffb0", small: 1 });
+        SFX.heal();
+      } else SFX.hit();
+    } });
+}
+/* ══ ★★ 2026-08-28 アクア・フープ（コトリのサブリンク）══
+   近い敵 AHOOP_N 体の真上にフープが現れ、ボールが AHOOP_PULSES 回くぐる。
+   ★ フープは<b>その敵に付いていく</b>ので、動く敵にも当たり続ける。 */
+function fireAquaHoop(owner, atk) {
+  const el = owner.ch.el, col = ELEM[el].c;
+  const list = aliveEnemies().slice().sort((a, b) =>
+    Math.hypot(a.x - owner.x, a.y - owner.y) - Math.hypot(b.x - owner.x, b.y - owner.y));
+  if (!list.length) return;
+  for (let i = 0; i < AHOOP_N; i++) {
+    const tid = list[i % list.length].id;
+    B.effects.push({ type: "fxctl", t: -i * 5, dur: AHOOP_GAP * (AHOOP_PULSES + 1) + 14,
+      n: 0, tid, c: col,
+      tick(fx) {
+        if (fx.t % AHOOP_GAP !== 0 || fx.n >= AHOOP_PULSES) return;
+        const en = B.enemies.find((x) => x.id === fx.tid && x.hp > 0);
+        if (!en) { fx.t = fx.dur; return; }
+        fx.n++;
+        const hy = en.y - en.r * 0.4;
+        B.effects.push({ type: "ring", x: en.x, y: hy, t: 0, dur: 16, r: AHOOP_R,
+          c: fx.n % 2 ? col : "#cfe9ff" });
+        aliveEnemies().forEach((o) => {
+          if (Math.hypot(o.x - en.x, o.y - hy) > o.r + AHOOP_R) return;
+          dealDamage(o, atk * AHOOP_PER * elemMult(el, o.el), col, true);
+          spawnSparks(o.x, o.y, "#cfe9ff", 5);
+        });
+        SFX.hit();
+      } });
   }
 }
 /* ★ v14.1: アブソリュートレイ10（サクラのリンク本体／フェス5体の共通サブリンク）
@@ -23110,7 +23836,7 @@ function fireKnowledgeResonance(owner, atk) {
   }
   /* ★ ひらききると、ふれた味方のフルバーストが近づく（fbshort タグのゆえん）。
      sc はフルバーストのたまり具合なので、足すぶんだけ早くたまる。 */
-  try { owner.sc = Math.min(owner.st.ssTurns, (owner.sc || 0) + KNOW_FBCUT); } catch (e) {}
+  try { owner.sc = Math.min(fbMax(owner.st), (owner.sc || 0) + KNOW_FBCUT); } catch (e) {}
   B.effects.push({ type: "flashfx", t: 0, dur: 6 });
 }
 /* サブリンクスキル */
@@ -23119,6 +23845,19 @@ function fireSubFriend(owner, mover, atk) {
   /* 新サブリンクは既存の挙動を流用（表示名は SUBFS で別に定義） */
   if (kind === "splitpierce") kind = "pspread5";       // 全敵貫通分裂弾
   if (kind === "plasmanova") kind = "blast";           // プラズマノヴァ（自分中心の連続爆発）
+  if (kind === "cozyveil") {
+    /* ★★ 2026-08-28 コージー・ウォームベール（Ver.5.0 と Cozy Haven の10体の共通サブリンク）。
+       ★ ここに分岐が無いと、下の else-if 連鎖のどれにも当たらず
+         「持っているのに発動しないサブリンク」になる。
+       ★ 威力は SUB_HIT.cozyveil と必ずそろえること。 */
+    fireCozyVeil(owner, atk);
+    return;
+  }
+  if (kind === "aquahoop") {
+    /* ★★ 2026-08-28 アクア・フープ（コトリのサブリンク）。 */
+    fireAquaHoop(owner, atk);
+    return;
+  }
   if (kind === "weaksigil") {
     /* ★★ 2026-08-27 ウィークシギル（極彩祭・極煌祭の共通サブリンク）。
        ★ ここに分岐が無いと、下の else-if 連鎖のどれにも当たらず
@@ -23468,7 +24207,7 @@ function fireSubFriend(owner, mover, atk) {
         B.effects.push({ type: "ring", x: fx.x, y: fx.y, t: 0, dur: 20, r: R, c: "#8affc4" });
         B.balls.forEach((al) => {
           if (Math.hypot(al.x - fx.x, al.y - fx.y) < R + al.r) {
-            al.sc = Math.min(al.sc + n, al.st.ssTurns);
+            al.sc = Math.min(al.sc + n, fbMax(al.st));
             B.pops.push({ x: al.x, y: al.y - al.r - 16, t: 0, txt: "FB-" + n, c: "#c9a6ff", small: 1 });
           }
         });
@@ -23659,7 +24398,7 @@ function fireSubFriend(owner, mover, atk) {
             if (fx.given.has(al.i)) return;
             if (Math.hypot(al.x - fx.x, al.y - fx.y) < al.r + fx.r) {
               fx.given.add(al.i);
-              al.sc = Math.min(al.st.ssTurns, (al.sc || 0) + 1);
+              al.sc = Math.min(fbMax(al.st), (al.sc || 0) + 1);
               B.pops.push({ x: al.x, y: al.y - al.r - 16, t: 0, txt: "FB-1!", c: "#ffd257", small: 1 });
               B.effects.push({ type: "ring", x: al.x, y: al.y, t: 0, dur: 14, r: 80, c: "#ffd257" });
               SFX.pick();
@@ -23753,7 +24492,7 @@ function fireSubFriend(owner, mover, atk) {
             if (fx.given.has(al.i)) return;
             if (Math.hypot(al.x - fx.x, al.y - fx.y) > al.r + 14) return;
             fx.given.add(al.i);   /* 貫通するので止めない。同じ味方に二重で効かないよう記録だけ残す */
-            al.sc = Math.min(al.st.ssTurns, (al.sc || 0) + 1);
+            al.sc = Math.min(fbMax(al.st), (al.sc || 0) + 1);
             B.pops.push({ x: al.x, y: al.y - al.r - 16, t: 0, txt: "FB-1!", c: col, small: 1 });
             B.effects.push({ type: "ring", x: al.x, y: al.y, t: 0, dur: 14, r: 80, c: col });
             paintParty();
@@ -24062,7 +24801,7 @@ async function endShotCore() {
     let step = 1;
     if (fbAccel && hasAbil(b.ch, "fbaccel")) step += FBACCEL_TURNS;
     if (hasAbil(b.ch, "fbshort")) step += 1;          // FBターン短縮: 毎ターンもう1つ進む
-    b.sc = Math.min(b.sc + step, b.st.ssTurns);
+    b.sc = Math.min(b.sc + step, fbMax(b.st));
     b.infN = 0;                                        // インフィニティブレイクM は毎ターンリセット
     b.comboId = null; b.comboN = 0;                    // 連撃キラーM もターンをまたいだら切れる
   });
