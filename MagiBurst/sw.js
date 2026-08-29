@@ -6,11 +6,11 @@
    ・オンライン対戦・XEVA換金はアプリ側でオフライン時に無効化している
    ・取得できたリソースは随時キャッシュ更新（stale-while-revalidate）
    ============================================================ */
-const VERSION = "magiburst-sw-v131";
+const VERSION = "magiburst-sw-v133";
 const CORE = [
   "./index.html",
-  "./js/mb-core.js?v=60",   /* ★ 2026-08-10 キャラ・ガチャの共有モジュール（XEVARION のガチャと共通） */
-  "../xeva.js?v=47",
+  "./js/mb-core.js?v=63",   /* ★ 2026-08-10 キャラ・ガチャの共有モジュール（XEVARION のガチャと共通） */
+  "../xeva.js?v=49",
   "../xeva-loading.js?v=1",
   "../xeva-splash.js?v=3",
   "../app-cloud.js?v=4",
@@ -238,6 +238,8 @@ const CORE = [
   "img/bn_fes9_s.webp",
   "img/bn_fes10_s.webp",
   "img/bn_archive_s.webp",
+  /* ★★ 2026-08-29 戦姫祭のバナー */
+  "img/bn_fes11_s.webp",
   "../img/t_Suzune.webp",
   "../img/t_Minamo.webp",
   /* ★★ 2026-08-26 GRAND DEBUT Ver.3.0 の5体 ＋ MagiLex の KP交換キャラ4体。
@@ -274,6 +276,17 @@ const CORE = [
   "../img/t_Ryouka.webp",
   "../img/t_Miko.webp",
   "../img/t_Kotori.webp",
+  /* ★★ 2026-08-29 極煌祭のレイナ／戦姫祭の6体。
+     ★ ここに無いとオフラインでその子だけ絵が出ず、update.json にも載らない
+       （セイラ以降の9体が丸ごと抜けていたのと同じ落とし穴）。
+     ★ ラン／ユウカ／アンナは<b>別ファイル名</b>（RanS / YuukaS / AnnaS）。 */
+  "../img/t_Reina.webp",
+  "../img/t_RanS.webp",
+  "../img/t_Kurenai.webp",
+  "../img/t_Yuki.webp",
+  "../img/t_Marika.webp",
+  "../img/t_YuukaS.webp",
+  "../img/t_AnnaS.webp",
   "../img/t_Karen.webp",
   "../img/t_Tomoe.webp",
   "../img/t_Himari.webp",
