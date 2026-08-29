@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<script src="../maintenance-gate.js?v=5"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>Magi: Arcana Rush — 魔法と絆が導く、星と運命のRPG</title>
+<meta name="theme-color" content="#070a1e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="icon" href="mar-192.png" type="image/png">
+<link rel="apple-touch-icon" href="mar-192.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;900&family=Noto+Sans+JP:wght@400;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="mar.css?v=2">
+<!-- ★★ 2026-08-29c β版のアクセスゲート。
+     読みこんだ瞬間から中身を隠しておく（CSS より先に効かせたいので、ここで印を付ける）。
+     コードが合うと mar-app.js が この印を外して marBoot() を走らせる。 -->
+<script>document.documentElement.classList.add("mar-locked");</script>
+
+<!-- XEVARION 共通（XEVA・💎ジェム・アカウント・同期・スタミナ／レベル） -->
+<script src="../xeva-splash.js?v=3" data-app="Magi: Arcana Rush" data-logo="mar-192.png"></script>
+<script src="../xeva.js?v=49"></script>
+<script type="module" src="../xevarion-fb.js?v=22"></script>
+<script type="module" src="../xeva-cloud.js?v=18"></script>
+<!-- 所持キャラ（magiburst_v1）のクラウド同期。ガチャで引いた子をここでも使うため -->
+<script type="module" src="../MagiBurst/magiburst-cloud.js?v=6"></script>
+</head>
+<body>
+
+<div id="marBg"></div>
+<canvas id="marStars"></canvas>
+
+<!-- ══════════ β版のアクセスゲート（★ 開くたびに必要）══════════ -->
+<div id="marGate">
+  <div class="mg-box">
+    <img class="mg-logo" src="mar-192.png" alt="">
+    <div class="mg-t">MAGI : ARCANA RUSH</div>
+    <div class="mg-beta">β TEST</div>
+    <div class="mg-d">この作品は<b>β版</b>です。あそぶには<b>アクセスコード</b>が必要です。
+      <br><small>★ セキュリティのため、<b>開くたびに入力</b>が必要です（この端末には覚えません）。</small></div>
+    <input id="marGateCode" type="password" inputmode="text" autocomplete="off"
+      autocapitalize="off" autocorrect="off" spellcheck="false"
+      placeholder="ACCESS CODE" aria-label="アクセスコード">
+    <div class="mg-msg" id="marGateMsg"></div>
+    <button class="mg-go" onclick="marGateEnter()">ENTER</button>
+    <a class="mg-back" href="../index.html">‹ XEVARION へもどる</a>
+  </div>
+</div>
+
+<div id="marApp">
+
+  <header class="mar-top">
+    <a class="back" href="../index.html" aria-label="XEVARION へもどる">‹</a>
+    <div class="brand"><img src="mar-192.png" alt=""><b>MAGI : ARCANA RUSH</b>
+      <span class="beta">β</span></div>
+    <button class="ico" onclick="marOpenIntro()" aria-label="このゲームについて">?</button>
+  </header>
+
+  <!-- ══════════ ① ホーム ══════════ -->
+  <section class="mar-view on" id="v_home">
+    <div class="mar-prof" id="marProf"></div>
+    <div class="mar-wal" id="marWal"></div>
+
+    <div class="mar-sec">
+      <div class="mar-h"><span class="dot"></span><span class="t">LEADER</span>
+        <span class="more" id="marHomeSub"></span></div>
+      <div class="mar-hero" id="marHero"></div>
+    </div>
+
+    <div class="mar-menu">
+      <button class="mar-mb" onclick="marGo('quest')"><span class="g">🗺</span><span class="n">QUEST</span><span class="j">クエスト</span></button>
+      <button class="mar-mb" onclick="marGo('chars')"><span class="g">👤</span><span class="n">CHARACTER</span><span class="j">キャラ</span></button>
+      <button class="mar-mb" onclick="marGo('party')"><span class="g">🛡</span><span class="n">PARTY</span><span class="j">編成</span></button>
+      <button class="mar-mb" onclick="marOpenSummon()"><span class="g">✦</span><span class="n">SUMMON</span><span class="j">召喚</span></button>
+      <button class="mar-mb" onclick="location.href='../gacha.html#shop'"><span class="g">🏪</span><span class="n">SHOP</span><span class="j">ショップ</span></button>
+      <button class="mar-mb" onclick="location.href='../index.html#missions'"><span class="g">🎯</span><span class="n">MISSION</span><span class="j">ミッション</span></button>
+      <button class="mar-mb" onclick="marGo('system')"><span class="g">✧</span><span class="n">SYSTEM</span><span class="j">属性・仕組み</span></button>
+      <button class="mar-mb" onclick="location.href='../index.html'"><span class="g">☰</span><span class="n">MENU</span><span class="j">ポータル</span></button>
+    </div>
+
+    <div class="mar-bn" onclick="marOpenSummon()">
+      <img src="img/mar-key.webp" alt="">
+      <div class="in">
+        <div class="t1">ARCANA FESTIVAL</div>
+        <div class="t2">開催中のピックアップ召喚は XEVARION のガチャから</div>
+      </div>
+      <span class="go">SUMMON</span>
+    </div>
+
+    <div class="mar-beta">
+      <b>β版です。</b>Magi: Arcana Rush は MagiBurst の派生作として作りはじめたところです。
+      キャラクター・ガチャ・所持状況は <b>XEVARION（MagiBurst）と共通</b>で、
+      このアプリの中にガチャはありません。バランス・演出・追加コンテンツはこれから調整していきます。
+    </div>
+  </section>
+
+  <!-- ══════════ ② クエスト ══════════ -->
+  <section class="mar-view" id="v_quest">
+    <div class="mar-h"><span class="dot"></span><span class="t">QUEST</span></div>
+    <div class="mar-chtabs" id="marChTabs"></div>
+    <div class="mar-card" id="marChHead" style="margin-top:4px"></div>
+    <div class="mar-difftabs" id="marDiffTabs" style="margin-top:10px"></div>
+    <div id="marStageList"></div>
+    <div class="mar-note" style="margin-top:12px;padding:0 4px">
+      ★ 難易度は <b>Normal → Hard → Expert → Nightmare → Abyss</b> の順に開きます。<br>
+      ★ 出撃には<b>スタミナ</b>を使います（XEVARION 共通・2分で1回復）。
+    </div>
+  </section>
+
+  <!-- ══════════ ④ キャラクター ══════════ -->
+  <section class="mar-view" id="v_chars">
+    <div class="mar-h"><span class="dot"></span><span class="t">CHARACTER</span>
+      <span class="more" id="marCharCnt"></span></div>
+    <div class="mar-difftabs" id="marElTabs"></div>
+    <div class="mar-grid" id="marCharGrid" style="margin-top:6px"></div>
+    <div class="mar-note" style="margin-top:12px;padding:0 4px">
+      ★ 表示しているのは<b>いま持っているキャラ</b>です。所持・レベル・限界突破は
+      <b>MagiBurst と共通</b>（magiburst_v1）。新しい仲間は XEVARION のガチャから。
+    </div>
+  </section>
+
+  <!-- ══════════ ⑤ パーティ編成 ══════════ -->
+  <section class="mar-view" id="v_party">
+    <div class="mar-h"><span class="dot"></span><span class="t">PARTY</span></div>
+    <div class="mar-pstat" id="marPStat"></div>
+    <div class="mar-slots" id="marSlots"></div>
+    <div class="mar-btns">
+      <button class="mar-btn go" onclick="marAutoForm()">Auto Formation</button>
+      <button class="mar-btn" onclick="marGo('chars')">Recommended</button>
+      <button class="mar-btn" onclick="marResetForm()">Reset</button>
+    </div>
+    <div class="mar-h" style="margin-top:16px"><span class="dot"></span><span class="t">MEMBERS</span></div>
+    <div class="mar-resos" id="marPBreak"></div>
+  </section>
+
+  <!-- ══════════ ⑦ 属性・独自システム ══════════ -->
+  <section class="mar-view" id="v_system">
+    <div id="marSysBody"></div>
+  </section>
+
+</div>
+
+<!-- ══════════ 下タブ ══════════ -->
+<nav class="mar-bar" role="tablist">
+  <button class="mar-tab on" data-t="home" onclick="marGo('home')"><span class="g">🏠</span><span class="l">HOME</span></button>
+  <button class="mar-tab" data-t="quest" onclick="marGo('quest')"><span class="g">🗺</span><span class="l">QUEST</span></button>
+  <button class="mar-tab" data-t="chars" onclick="marGo('chars')"><span class="g">👤</span><span class="l">CHARA</span></button>
+  <button class="mar-tab" data-t="party" onclick="marGo('party')"><span class="g">🛡</span><span class="l">PARTY</span></button>
+  <button class="mar-tab" data-t="system" onclick="marGo('system')"><span class="g">✧</span><span class="l">SYSTEM</span></button>
+</nav>
+
+<!-- ══════════ ③ バトル ══════════ -->
+<div id="marBattle">
+  <button class="marb-x" onclick="marQuitBattle()" aria-label="やめる">✕</button>
+  <div class="marb-top" id="marbTop"></div>
+  <div class="marb-cvwrap"><canvas id="marCv" width="720" height="1040"></canvas></div>
+  <div class="marb-bot">
+    <div class="marb-team" id="marbTeam"></div>
+    <div class="marb-party" id="marbParty"></div>
+    <div class="marb-acts" id="marbActs"></div>
+  </div>
+</div>
+
+<!-- ══════════ シート ══════════ -->
+<div class="mar-ov" id="marSheetOv" onclick="if(event.target===this)marCloseSheet()">
+  <div class="mar-sheet">
+    <div class="mar-sh-h"><span class="t" id="marSheetT"></span>
+      <button class="x" onclick="marCloseSheet()">✕</button></div>
+    <div id="marSheetB"></div>
+  </div>
+</div>
+
+<div id="marToast"></div>
+
+<!-- ══════════ ロジック ══════════
+     ★ キャラ表・ステータス・アビリティ・リンク・フルバーストは
+       すべて MagiBurst のもの（mb-core.js）をそのまま使う。
+     ★ mb-boot.js は MB_IMGD を "img/"（ポータル用）に決め打ちするので、
+       <b>そのあとで</b> このアプリ用のパスに直してから mb-core.js を読む。 -->
+<script src="../mb-boot.js?v=8"></script>
+<script>window.MB_IMGD = "../img/"; window.MB_GIMGD = "../MagiBurst/img/";</script>
+<script src="../MagiBurst/js/mb-core.js?v=63"></script>
+<script src="mar-core.js?v=1"></script>
+<script src="mar-battle.js?v=1"></script>
+<script src="mar-app.js?v=2"></script>
+<script>
+/* Service Worker（オフラインでも遊べるようにする） */
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function () {
+    navigator.serviceWorker.register("sw.js").catch(function () {});
+  });
+}
+</script>
+<!-- XEVARION へもどる導線（同期を送り切ってから移動する） -->
+<script src="../xeva-back.js?v=1" data-mode="hook"></script>
+</body>
+</html>

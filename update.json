@@ -1,19 +1,17 @@
 {
-  "version": "2026-08-28-2",
-  "date": "2026-08-28",
-  "title": "極華祭 開幕（コトリ）／Festival Archive GACHA 開設／全ガチャのSSRを12%に／フルバーストに2段階目",
+  "version": "2026-08-29-2",
+  "date": "2026-08-29",
+  "title": "🎮 新作 Magi: Arcana Rush（β版）／📖 図鑑に入手方法／⚔ 戦姫祭の性能を調整",
   "notes": [
-    "✦ 極華祭を追加（上旬＝極彩祭／中旬＝極華祭／下旬＝極煌祭）。コトリ参戦——バスケの乱打48連＋スラムダンクで史上最大の火力",
-    "✧ GRAND DEBUT GACHA Ver.5.0（5体）と Cozy Haven FEST（5体）を同時開幕。10体とも蓬莱天宮の続き5クエストの最適解",
-    "🔗 リンクスキルを11本すべて新設（共通サブリンク コージー・ウォームベール／コトリのアクア・フープも新設）",
-    "🗂 Festival Archive GACHA を開設。フェスは登場から30日、20日を過ぎたキャラがここへ封入され、属性ごとに1体ずつピックアップできます",
-    "🎲 すべてのガチャのSSR合計を12%にそろえ、ピックアップの確率を見直しました",
-    "💥 フルバーストに2段階目（＋5ターンで威力×1.5・自強化+2ターン）。表記は「18＋5」",
-    "🎯 ショットスキルはアビリティに数えず、キャラ詳細でも別枠にしました",
-    "📝 MagiLex の確認テストは、最後にまとめて答え合わせを出す形にしました"
+    "🎮 新作『Magi: Arcana Rush』（β版）を公開しました。MagiBurst の派生作で、キャラクターもガチャも XEVARION と共通です（アプリ内にガチャはありません）。7属性・Link Arts・Elemental Resonance・Arcana Skill・Arcana Burst で戦います。",
+    "🔑 β版のため、Magi: Arcana Rush を開くたびにアクセスコードの入力が必要です（この端末には覚えません）。",
+    "📖 キャラクター図鑑と MagiBurst のキャラ図鑑に「入手方法」を追加しました。どのガチャで引けるのかをガチャの名前まで出します。",
+    "🗓 ホームに「アップデート情報」の欄を新設しました。これから先、アップデート内容はこちら・期間限定のイベントやガチャは「開催中のイベント」に分けて出します。",
+    "⚔ 戦姫祭6体のアビリティ構成を変更しました。アンチ4つ（オムニアンチなし）＋キラー3つ＋キラー以外3つで、アンチのうち1つはクロススキルになります。",
+    "🛑 フルバーストの2段階目は、ベータ版だったためいったん取り下げました（ターン表記も元に戻ります）。"
   ],
-  "bytes": 36822744,
-  "files": 372,
+  "bytes": 38352371,
+  "files": 391,
   "urls": [
     "index.html",
     "characters.html",
@@ -61,6 +59,7 @@
     "thumbs/MagiBattle.jpg",
     "thumbs/MagiLex.jpg",
     "thumbs/MagiBurst.jpg",
+    "thumbs/MagiArcanaRush.jpg",
     "thumbs/MagiArena.jpg",
     "thumbs/MagiLink.jpg",
     "thumbs/MagiChainParty.jpg",
@@ -278,6 +277,7 @@
     "MagiBurst/img/bn_fes9_s.webp",
     "MagiBurst/img/bn_fes10_s.webp",
     "MagiBurst/img/bn_archive_s.webp",
+    "MagiBurst/img/bn_fes11_s.webp",
     "img/t_Suzune.webp",
     "img/t_Minamo.webp",
     "img/t_Karin.webp",
@@ -303,6 +303,13 @@
     "img/t_Ryouka.webp",
     "img/t_Miko.webp",
     "img/t_Kotori.webp",
+    "img/t_Reina.webp",
+    "img/t_RanS.webp",
+    "img/t_Kurenai.webp",
+    "img/t_Yuki.webp",
+    "img/t_Marika.webp",
+    "img/t_YuukaS.webp",
+    "img/t_AnnaS.webp",
     "img/t_Karen.webp",
     "img/t_Tomoe.webp",
     "img/t_Himari.webp",
@@ -386,24 +393,94 @@
     "MagiLotto/img/ic_grand.webp",
     "MagiLotto/img/ic_free.webp",
     "MagiLotto/img/sym_s6.webp",
-    "MagiLotto/img/cutin_jackpot.webp"
+    "MagiLotto/img/cutin_jackpot.webp",
+    "MagiArcanaRush/index.html",
+    "MagiArcanaRush/manifest.webmanifest",
+    "MagiArcanaRush/mar.css",
+    "MagiArcanaRush/mar-core.js",
+    "MagiArcanaRush/mar-battle.js",
+    "MagiArcanaRush/mar-app.js",
+    "MagiArcanaRush/mar-192.png",
+    "MagiArcanaRush/mar-512.png",
+    "MagiArcanaRush/img/mar-key.webp",
+    "MagiArcanaRush/img/mar-bg.webp"
   ],
   "apps": [
-    "img",
+    "magiarcanarush",
     "magiburst",
-    "magichainparty",
-    "magijackpot",
     "magilex",
-    "magilotto",
-    "magimusic",
-    "tab:chars",
-    "tab:community",
-    "tab:gacha",
     "tab:home",
-    "xevynar"
+    "tab:gacha",
+    "tab:chars"
   ],
-  "changedFiles": 5,
+  "changedFiles": 3,
   "history": [
+    {
+      "version": "2026-08-29-1",
+      "date": "2026-08-29",
+      "title": "⚔ 戦姫祭 常時開催（限定SSR 6体・アビリティ10個）／✦ 極煌祭にレイナ参戦",
+      "notes": [
+        "⚔ 戦姫祭を開設（常時開催・限定SSR 6体／各1.2%・合計7.2%／🎫フェス券は使えません）",
+        "🔟 戦姫祭の6体は MagiBurst 初のアビリティ10個（素でアンチ4つ＋キラー3つ／クロスで3つ）",
+        "🏯 6体それぞれが 有利属性の蓬莱の九重 3クエストをまるごと完全対応",
+        "👑 アンナは MagiBurst 史上最強（キラー5つ／FB 合計 攻撃力×154.8）",
+        "✦ 極煌祭にレイナ参戦（FB 合計 攻撃力×113.2／担当は蓬莱天界）",
+        "🔗 リンクスキル7本・サブリンク2本・ショットスキル7本をすべて新設",
+        "✨ 極彩祭・極煌祭のネクサスをさらに強化／戦姫祭に 戦姫・ヴァロールネクサス",
+        "⚖️ GRAND DEBUT Ver.5.0 の5体を Cozy Haven FEST と同じ水準のアビリティへ調整",
+        "🏯 蓬莱の後半6階層の出撃条件を「前半9階層で通算30WAVE 到達」に変更（マルチも同じ）",
+        "🗓 ホームにスケジュール（月ごとのカレンダー）を追加",
+        "🔄 起動のたびに「終わるときは左上の🏠ホームへ戻る」を案内（設定で非表示にできます）",
+        "🎯 バトル中のキャラ詳細にショットスキルとフルバースト2段階目を表示",
+        "🔗 クロススキルのステータス条件をレベル・限界突破・アーク込みの「いまの値」で判定",
+        "🌍 みんなのクリア編成に使ったルーンと魂の紋章を表示",
+        "🎰 ガチャ一覧の並び・NEWマーク・最初に開くガチャを整理",
+        "👆 ダブルタップでの拡大を無効化"
+      ],
+      "apps": [
+        "img",
+        "magiburst",
+        "magichainparty",
+        "magijackpot",
+        "magilex",
+        "magilotto",
+        "magimusic",
+        "tab:chars",
+        "tab:community",
+        "tab:gacha",
+        "tab:home",
+        "xevynar"
+      ]
+    },
+    {
+      "version": "2026-08-28-2",
+      "date": "2026-08-28",
+      "title": "極華祭 開幕（コトリ）／Festival Archive GACHA 開設／全ガチャのSSRを12%に／フルバーストに2段階目",
+      "notes": [
+        "✦ 極華祭を追加（上旬＝極彩祭／中旬＝極華祭／下旬＝極煌祭）。コトリ参戦——バスケの乱打48連＋スラムダンクで史上最大の火力",
+        "✧ GRAND DEBUT GACHA Ver.5.0（5体）と Cozy Haven FEST（5体）を同時開幕。10体とも蓬莱天宮の続き5クエストの最適解",
+        "🔗 リンクスキルを11本すべて新設（共通サブリンク コージー・ウォームベール／コトリのアクア・フープも新設）",
+        "🗂 Festival Archive GACHA を開設。フェスは登場から30日、20日を過ぎたキャラがここへ封入され、属性ごとに1体ずつピックアップできます",
+        "🎲 すべてのガチャのSSR合計を12%にそろえ、ピックアップの確率を見直しました",
+        "💥 フルバーストに2段階目（＋5ターンで威力×1.5・自強化+2ターン）。表記は「18＋5」",
+        "🎯 ショットスキルはアビリティに数えず、キャラ詳細でも別枠にしました",
+        "📝 MagiLex の確認テストは、最後にまとめて答え合わせを出す形にしました"
+      ],
+      "apps": [
+        "img",
+        "magiburst",
+        "magichainparty",
+        "magijackpot",
+        "magilex",
+        "magilotto",
+        "magimusic",
+        "tab:chars",
+        "tab:community",
+        "tab:gacha",
+        "tab:home",
+        "xevynar"
+      ]
+    },
     {
       "version": "2026-08-28-1",
       "date": "2026-08-28",
@@ -771,36 +848,6 @@
         "レアリティ表記を ★5→SSR ／ ★4→SR に変更",
         "Wi-Fi のときとモバイルデータのときで「最新のデータを使う」「更新を自動でダウンロード」を別々に設定できるようにしました",
         "MagiLex: まちがえた問題からXEVYNARのくわしい解説へ飛べなかったのを修正／XEVA2倍キャンペーンを10/31まで延長"
-      ]
-    },
-    {
-      "version": "2026-08-20-2",
-      "date": "2026-08-20",
-      "title": "⚡ 物理βを288問追加／🧠 XEVYNAR が 93% に／🔗 MagiLink の引っ越し",
-      "notes": [
-        "⚡ MagiLex に「物理β」を新設。電磁気学（抵抗・直流回路・磁場・電磁誘導・導体棒・コイル）の24セット288問",
-        "⚡ これまでの物理は「物理α」に改名（中身と記録はそのまま）",
-        "🧠 XEVYNAR の言葉の理解が 83%→93%（下じきに無い29文で実測）",
-        "🧠 スケーリング則を実測：データを増やすと 9%→93%、モデルだけ大きくすると 93%→86%→72% と下がった。表はコードに記録",
-        "🧠 概念タグと下じきの文を約2倍に（モデルの大きさは据え置き）",
-        "🔗 MagiLink の Firebase を magilink-63067 から xevarion-online へ移行（使うサーバーを firebase-rules の4つにそろえるため）",
-        "⚠️ MagiLink の過去のメッセージ・友達・掲示板は引き継がれません（プロジェクト間でデータは移らないため）"
-      ]
-    },
-    {
-      "version": "2026-08-20-1",
-      "date": "2026-08-20",
-      "title": "🧪 化学δを324問追加／🧠 XEVYNAR に Transformer／💬 チャットで1手ずつ解説",
-      "notes": [
-        "🧪 MagiLex に「化学δ」を新設。脂質・芳香族とフェノール類・元素別各論（14〜18族）の27セット324問",
-        "🧠 XEVYNAR の中身を Transformer に作り直し（自己注意・多ヘッド・残差と層正規化）。言い回しがちがっても意味で通じます。未知の29文で 9%→83%",
-        "🧠 学習した重みはアカウントを通じてみんなで持ちより（xevarion-account の xevynar/brain）",
-        "💬 チャットに問題文を貼ると、その問題を1手ずつ（図つき）解説するように",
-        "📘 くわしい解説は「最難関」だけにしぼった（入門・中堅・難関は答えの下の解説と解きかたで扱う）",
-        "📐 図とグラフが科目をまたがないように修正（物理の問題に mol の図が出ていた）",
-        "📐 問題を解いている最中と、問題一覧の図・グラフは取りやめ",
-        "🤖 XEVYNAR のおすすめ編成も、みんなのクリア編成と MagiTier を見るように（MagiBurst と同じ重み）",
-        "🏷 MagiBurst の「前回編成」ボタンを「クリア編成」に改名"
       ]
     }
   ]

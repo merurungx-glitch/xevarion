@@ -38,7 +38,7 @@ function freshDB() {
     chars: {}, party: [],
     clears: {}, first: {}, day: "", dailyOrb: {}, pulls: 0, express: { best: 0 }, raid: null,
     fruits: {}, equip: {}, equip2: {}, equip3: {}, pickup: "kaguya", fesTicket: 0,
-    soul: 0, emblem: {}, lend: {}, gwBest: {}, lastClear: {}, lastTry: {},
+    soul: 0, emblem: {}, lend: {}, gwBest: {}, hwBest: {}, lastClear: {}, lastTry: {},
     items: {}, hero: {}, trans: {}, fav: {} };
 }
 let DB = freshDB();

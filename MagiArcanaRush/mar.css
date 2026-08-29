@@ -1,0 +1,380 @@
+/* ══════════════════════════════════════════════════════════════
+   Magi: Arcana Rush ── 見た目
+   ダークネイビーを土台に、ブルー／パープル／ホワイト／ゴールドの光。
+   魔法陣・星空・クリスタル・光の粒。
+   ★ 下バー（タブ）は端末のホームバーに重ならないよう、
+     XEVARION 共通の決まりどおり env(safe-area-inset-bottom) を足す。
+   ══════════════════════════════════════════════════════════════ */
+:root{
+  --mar-bg:#070a1e;
+  --mar-bg2:#0d1234;
+  --mar-card:rgba(24,32,74,.72);
+  --mar-card2:rgba(16,22,56,.86);
+  --mar-line:rgba(140,170,255,.22);
+  --mar-ink:#eaf0ff;
+  --mar-sub:#9fb0e0;
+  --mar-blue:#4b8bff;
+  --mar-pur:#a86bff;
+  --mar-gold:#ffcf5c;
+  --mar-pink:#ff3d8a;
+  --mar-cyan:#8ad4ff;
+  --mar-r:18px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;background:var(--mar-bg);color:var(--mar-ink);
+  font-family:'Noto Sans JP',system-ui,sans-serif;overscroll-behavior:none}
+body{min-height:100dvh}
+a{color:inherit;text-decoration:none}
+button{font-family:inherit;color:inherit}
+
+/* ── 背景 ── */
+#marBg{position:fixed;inset:0;z-index:0;pointer-events:none;
+  background:
+    radial-gradient(120% 70% at 50% 0%,rgba(120,90,255,.34),transparent 62%),
+    radial-gradient(90% 60% at 12% 88%,rgba(50,120,255,.24),transparent 60%),
+    radial-gradient(80% 50% at 92% 78%,rgba(255,90,180,.16),transparent 60%),
+    linear-gradient(180deg,#070a1e,#0d1234 45%,#06081a)}
+#marStars{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.9}
+
+#marApp{position:relative;z-index:1;max-width:520px;margin:0 auto;
+  padding:0 12px calc(84px + env(safe-area-inset-bottom));min-height:100dvh}
+
+/* ══ ヘッダー ══ */
+.mar-top{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:8px;
+  padding:calc(env(safe-area-inset-top) + 8px) 2px 8px;
+  background:linear-gradient(180deg,rgba(7,10,30,.96),rgba(7,10,30,.72) 70%,transparent)}
+.mar-top .back{width:34px;height:34px;flex:0 0 34px;display:grid;place-items:center;border-radius:11px;
+  background:var(--mar-card);border:1px solid var(--mar-line);font-size:20px;font-weight:900;line-height:1}
+.mar-top .brand{display:flex;align-items:center;gap:7px;min-width:0;flex:1}
+.mar-top .brand img{width:30px;height:30px;border-radius:9px;flex:0 0 30px;
+  box-shadow:0 0 14px rgba(150,110,255,.6)}
+.mar-top .brand b{font-family:'Orbitron','Noto Sans JP',sans-serif;font-size:12.5px;letter-spacing:.10em;
+  background:linear-gradient(180deg,#fff,#b9c8ff);-webkit-background-clip:text;background-clip:text;color:transparent;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mar-top .beta{font-size:8.5px;font-weight:900;letter-spacing:.1em;padding:2px 6px;border-radius:99px;
+  background:linear-gradient(135deg,var(--mar-pink),var(--mar-pur));color:#fff;flex:0 0 auto}
+.mar-top .ico{width:34px;height:34px;flex:0 0 34px;display:grid;place-items:center;border-radius:11px;
+  background:var(--mar-card);border:1px solid var(--mar-line);font-size:15px}
+
+/* ══ プレイヤー情報 ══ */
+.mar-prof{display:flex;align-items:center;gap:10px;padding:10px;border-radius:var(--mar-r);
+  background:var(--mar-card);border:1px solid var(--mar-line);
+  box-shadow:0 8px 26px rgba(0,0,0,.35),inset 0 1px 0 rgba(255,255,255,.06)}
+.mar-av{width:52px;height:52px;flex:0 0 52px;border-radius:15px;overflow:hidden;
+  border:2px solid rgba(255,255,255,.28);background:#151c46;display:grid;place-items:center}
+.mar-av img{width:100%;height:100%;object-fit:cover;display:block}
+.mar-pmain{flex:1;min-width:0}
+.mar-pn{display:flex;align-items:baseline;gap:7px}
+.mar-pn b{font-size:14px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mar-pn i{font-style:normal;font-family:'Orbitron',sans-serif;font-size:10px;color:var(--mar-gold);
+  border:1px solid rgba(255,207,92,.5);border-radius:99px;padding:1px 7px;flex:0 0 auto}
+.mar-xp{margin-top:5px;height:7px;border-radius:99px;background:rgba(0,0,0,.4);overflow:hidden}
+.mar-xp i{display:block;height:100%;border-radius:99px;
+  background:linear-gradient(90deg,#4b8bff,#a86bff,#8ad4ff)}
+.mar-xpn{margin-top:3px;font-size:9.5px;color:var(--mar-sub);font-weight:700}
+
+.mar-wal{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
+.mar-w{display:flex;align-items:center;gap:6px;padding:7px 8px;border-radius:13px;
+  background:var(--mar-card2);border:1px solid var(--mar-line);min-width:0}
+.mar-w .k{font-size:14px;flex:0 0 auto}
+.mar-w .v{font-size:11.5px;font-weight:900;font-family:'Orbitron',sans-serif;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mar-w .l{font-size:8px;color:var(--mar-sub);font-weight:800;letter-spacing:.06em}
+
+/* ══ セクション ══ */
+.mar-sec{margin-top:14px}
+.mar-h{display:flex;align-items:center;gap:7px;margin:0 2px 8px}
+.mar-h .dot{width:7px;height:7px;border-radius:50%;
+  background:linear-gradient(135deg,var(--mar-cyan),var(--mar-pur));box-shadow:0 0 10px var(--mar-pur)}
+.mar-h .t{font-family:'Orbitron','Noto Sans JP',sans-serif;font-size:11.5px;font-weight:900;
+  letter-spacing:.12em;color:#dbe4ff}
+.mar-h .more{margin-left:auto;font-size:10px;font-weight:800;color:var(--mar-cyan);
+  background:none;border:none;padding:4px 2px}
+
+/* ══ ホームの主役 ══ */
+.mar-hero{position:relative;border-radius:22px;overflow:hidden;border:1px solid var(--mar-line);
+  background:#0b1030;box-shadow:0 12px 34px rgba(0,0,0,.45)}
+.mar-hero .art{width:100%;aspect-ratio:16/11;object-fit:cover;display:block;opacity:.96}
+.mar-hero .veil{position:absolute;inset:0;
+  background:linear-gradient(180deg,rgba(7,10,30,.1) 0%,rgba(7,10,30,.05) 45%,rgba(7,10,30,.92) 100%)}
+.mar-hero .cap{position:absolute;left:12px;right:12px;bottom:10px}
+.mar-hero .cap .nm{font-size:17px;font-weight:900;text-shadow:0 2px 10px rgba(0,0,0,.7)}
+.mar-hero .cap .sb{font-size:10.5px;color:#cfe0ff;font-weight:700;margin-top:2px}
+.mar-hero .rar{position:absolute;top:10px;left:12px;font-family:'Orbitron',sans-serif;font-size:9.5px;
+  font-weight:900;letter-spacing:.14em;padding:4px 10px;border-radius:99px;
+  background:rgba(6,10,28,.7);border:1px solid rgba(255,255,255,.35)}
+
+/* ══ メインメニュー ══ */
+.mar-menu{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
+.mar-mb{display:flex;flex-direction:column;align-items:center;gap:5px;padding:11px 4px 9px;
+  border-radius:16px;background:var(--mar-card);border:1px solid var(--mar-line);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06);cursor:pointer}
+.mar-mb .g{width:34px;height:34px;display:grid;place-items:center;border-radius:12px;font-size:17px;
+  background:linear-gradient(140deg,rgba(80,120,255,.35),rgba(170,90,255,.28));
+  border:1px solid rgba(255,255,255,.18)}
+.mar-mb .n{font-family:'Orbitron','Noto Sans JP',sans-serif;font-size:9px;font-weight:900;letter-spacing:.06em}
+.mar-mb .j{font-size:8.5px;color:var(--mar-sub);font-weight:700}
+.mar-mb:active{transform:scale(.96)}
+
+/* ══ 大型バナー ══ */
+.mar-bn{position:relative;margin-top:12px;border-radius:20px;overflow:hidden;
+  border:1px solid rgba(255,207,92,.34);cursor:pointer;
+  background:linear-gradient(120deg,#22114a,#3a1c62 45%,#1a2a6e);
+  box-shadow:0 10px 30px rgba(0,0,0,.4)}
+.mar-bn img{width:100%;height:118px;object-fit:cover;opacity:.5;display:block}
+/* ★ 右下の「SUMMON」バッジと文字が重ならないよう、右側をあけておく */
+.mar-bn .in{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;
+  padding:0 96px 0 14px;text-shadow:0 2px 10px rgba(0,0,0,.7)}
+.mar-bn .t1{font-family:'Orbitron','Noto Sans JP',sans-serif;font-size:16px;font-weight:900;letter-spacing:.06em;
+  background:linear-gradient(180deg,#fff,var(--mar-gold));-webkit-background-clip:text;background-clip:text;color:transparent}
+.mar-bn .t2{font-size:10.5px;font-weight:700;color:#e6ecff;margin-top:3px}
+.mar-bn .go{position:absolute;right:12px;top:50%;transform:translateY(-50%);font-size:9.5px;font-weight:900;
+  padding:5px 11px;border-radius:99px;background:linear-gradient(135deg,var(--mar-gold),#ff9d2e);color:#2b1800}
+
+/* ══ 汎用カード ══ */
+.mar-card{border-radius:var(--mar-r);background:var(--mar-card);border:1px solid var(--mar-line);
+  padding:12px;box-shadow:0 8px 24px rgba(0,0,0,.32)}
+.mar-note{font-size:10.5px;line-height:1.75;color:var(--mar-sub);font-weight:600}
+.mar-note b{color:#dce6ff}
+
+/* ══ クエスト ══ */
+.mar-chtabs,.mar-difftabs{display:flex;gap:6px;overflow-x:auto;padding:2px 0 6px;scrollbar-width:none}
+.mar-chtabs::-webkit-scrollbar,.mar-difftabs::-webkit-scrollbar{display:none}
+.mar-tb{flex:0 0 auto;padding:7px 12px;border-radius:99px;font-size:10.5px;font-weight:900;
+  background:var(--mar-card2);border:1px solid var(--mar-line);color:var(--mar-sub);cursor:pointer}
+.mar-tb.on{color:#fff;border-color:transparent;
+  background:linear-gradient(135deg,var(--mar-blue),var(--mar-pur));box-shadow:0 4px 14px rgba(110,90,255,.45)}
+.mar-tb.lock{opacity:.45}
+.mar-stage{display:flex;gap:10px;align-items:center;padding:10px;border-radius:16px;margin-top:8px;
+  background:var(--mar-card);border:1px solid var(--mar-line);cursor:pointer}
+.mar-stage.lock{opacity:.5}
+.mar-stage .sq{width:58px;height:58px;flex:0 0 58px;border-radius:14px;display:grid;place-items:center;
+  font-size:24px;border:1px solid rgba(255,255,255,.2)}
+.mar-stage .bd{flex:1;min-width:0}
+.mar-stage .no{font-family:'Orbitron',sans-serif;font-size:9px;font-weight:900;color:var(--mar-cyan);letter-spacing:.1em}
+.mar-stage .nm{font-size:13.5px;font-weight:900;margin-top:1px}
+.mar-stage .mt{margin-top:4px;display:flex;flex-wrap:wrap;gap:5px}
+.mar-chip{font-size:8.5px;font-weight:800;padding:2px 7px;border-radius:99px;
+  background:rgba(255,255,255,.08);border:1px solid var(--mar-line);color:#cfdcff}
+.mar-stage .rk{flex:0 0 auto;font-family:'Orbitron',sans-serif;font-size:17px;font-weight:900;
+  color:var(--mar-gold);text-shadow:0 0 12px rgba(255,207,92,.6)}
+
+/* ══ キャラ一覧 ══ */
+.mar-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.mar-cc{position:relative;border-radius:15px;overflow:hidden;background:#101740;
+  border:1.5px solid var(--mar-line);cursor:pointer}
+.mar-cc img{width:100%;aspect-ratio:3/4;object-fit:cover;display:block}
+.mar-cc .nm{position:absolute;left:0;right:0;bottom:0;padding:14px 6px 5px;font-size:10.5px;font-weight:900;
+  background:linear-gradient(180deg,transparent,rgba(6,10,28,.94));text-align:center;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mar-cc .rr{position:absolute;top:4px;left:4px;font-family:'Orbitron',sans-serif;font-size:7.5px;
+  font-weight:900;letter-spacing:.08em;padding:2px 6px;border-radius:99px;background:rgba(6,10,28,.8)}
+.mar-cc .el{position:absolute;top:4px;right:4px;width:19px;height:19px;border-radius:50%;
+  display:grid;place-items:center;font-size:10px;font-weight:900;background:rgba(6,10,28,.8)}
+.mar-cc .pw{position:absolute;right:4px;bottom:22px;font-family:'Orbitron',sans-serif;font-size:8.5px;
+  font-weight:900;color:var(--mar-gold);text-shadow:0 1px 4px #000}
+
+/* ══ 編成 ══ */
+.mar-pstat{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-top:8px}
+.mar-ps{padding:8px 10px;border-radius:13px;background:var(--mar-card2);border:1px solid var(--mar-line)}
+.mar-ps .l{font-size:8.5px;font-weight:800;color:var(--mar-sub);letter-spacing:.06em}
+.mar-ps .v{font-family:'Orbitron',sans-serif;font-size:15px;font-weight:900;margin-top:2px}
+.mar-slots{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:10px}
+.mar-slot{position:relative;border-radius:14px;overflow:hidden;background:#101740;
+  border:1.5px dashed var(--mar-line);aspect-ratio:3/4;display:grid;place-items:center;cursor:pointer}
+.mar-slot.has{border-style:solid}
+.mar-slot img{width:100%;height:100%;object-fit:cover}
+.mar-slot .ld{position:absolute;top:3px;left:3px;font-size:7px;font-weight:900;padding:1px 5px;
+  border-radius:99px;background:linear-gradient(135deg,var(--mar-gold),#ff9d2e);color:#2b1800}
+.mar-slot .nm{position:absolute;left:0;right:0;bottom:0;padding:10px 3px 3px;font-size:8.5px;font-weight:900;
+  text-align:center;background:linear-gradient(180deg,transparent,rgba(6,10,28,.95));
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mar-slot .pl{font-size:22px;color:var(--mar-sub)}
+.mar-btns{display:grid;grid-template-columns:repeat(3,1fr);gap:7px;margin-top:10px}
+.mar-btn{padding:10px;border-radius:14px;font-size:11px;font-weight:900;border:1px solid var(--mar-line);
+  background:var(--mar-card2);cursor:pointer}
+.mar-btn.go{border-color:transparent;background:linear-gradient(135deg,var(--mar-blue),var(--mar-pur));color:#fff}
+.mar-btn.gold{border-color:transparent;background:linear-gradient(135deg,var(--mar-gold),#ff9d2e);color:#2b1800}
+.mar-btn:active{transform:scale(.97)}
+
+/* ══ バトル ══ */
+#marBattle{position:fixed;inset:0;z-index:80;display:none;flex-direction:column;
+  background:#05071a}
+#marBattle.on{display:flex}
+.marb-top{padding:calc(env(safe-area-inset-top) + 6px) 46px 6px 10px;flex:0 0 auto}
+.marb-boss{display:flex;align-items:center;gap:8px}
+.marb-boss .bn{font-size:11px;font-weight:900;white-space:nowrap}
+.marb-boss .bel{font-size:9px;font-weight:900;padding:2px 7px;border-radius:99px}
+.marb-hpbar{margin-top:4px;height:11px;border-radius:99px;background:rgba(0,0,0,.55);overflow:hidden;
+  border:1px solid rgba(255,255,255,.2)}
+.marb-hpbar i{display:block;height:100%;background:linear-gradient(90deg,#ff3d8a,#ff9d2e);transition:width .2s}
+.marb-meta{display:flex;gap:8px;margin-top:5px;font-family:'Orbitron',sans-serif;font-size:9.5px;
+  font-weight:900;color:#bcd0ff;flex-wrap:wrap}
+.marb-meta b{color:#fff}
+.marb-cvwrap{flex:1;min-height:0;display:grid;place-items:center;padding:4px 6px}
+#marCv{width:100%;height:100%;object-fit:contain;border-radius:16px;touch-action:none;
+  border:1px solid rgba(140,170,255,.28);box-shadow:0 0 40px rgba(90,60,200,.35)}
+.marb-bot{flex:0 0 auto;padding:6px 8px calc(env(safe-area-inset-bottom) + 8px)}
+.marb-team{height:9px;border-radius:99px;background:rgba(0,0,0,.55);overflow:hidden;margin-bottom:7px;
+  border:1px solid rgba(255,255,255,.18)}
+.marb-team i{display:block;height:100%;background:linear-gradient(90deg,#2fbf71,#7dffb0)}
+.marb-party{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.marb-m{position:relative;border-radius:13px;overflow:hidden;background:#101740;
+  border:1.5px solid var(--mar-line);padding:5px 4px 4px;text-align:center;cursor:pointer}
+.marb-m.turn{border-color:#fff;box-shadow:0 0 16px rgba(255,255,255,.4)}
+.marb-m .fc{width:100%;aspect-ratio:1;border-radius:10px;object-fit:cover;display:block}
+.marb-m .nm{font-size:8.5px;font-weight:900;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.marb-m .g{margin-top:3px;height:5px;border-radius:99px;background:rgba(0,0,0,.5);overflow:hidden}
+.marb-m .g i{display:block;height:100%;background:linear-gradient(90deg,#8ad4ff,#a86bff)}
+.marb-m .g.sk i{background:linear-gradient(90deg,#7dffb0,#ffe36a)}
+.marb-m .rd{position:absolute;top:3px;right:3px;font-size:7.5px;font-weight:900;padding:1px 5px;
+  border-radius:99px;background:linear-gradient(135deg,var(--mar-gold),#ff5d47);color:#2b1800}
+.marb-acts{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin-top:6px}
+.marb-a{padding:9px;border-radius:12px;font-family:'Orbitron','Noto Sans JP',sans-serif;font-size:10px;
+  font-weight:900;letter-spacing:.06em;border:1px solid var(--mar-line);background:var(--mar-card2);cursor:pointer}
+.marb-a.on{border-color:transparent;background:linear-gradient(135deg,var(--mar-gold),var(--mar-pink));color:#fff;
+  box-shadow:0 0 18px rgba(255,90,150,.5)}
+.marb-a[disabled]{opacity:.4}
+.marb-x{position:absolute;top:calc(env(safe-area-inset-top) + 6px);right:10px;width:30px;height:30px;
+  border-radius:10px;background:rgba(20,26,64,.9);border:1px solid var(--mar-line);font-size:15px;z-index:3}
+
+/* ══ シート（キャラ詳細・結果など）══ */
+.mar-ov{position:fixed;inset:0;z-index:90;background:rgba(4,6,20,.78);backdrop-filter:blur(6px);
+  display:none;align-items:flex-end;justify-content:center}
+.mar-ov.on{display:flex}
+.mar-sheet{width:100%;max-width:520px;max-height:92dvh;overflow:auto;border-radius:22px 22px 0 0;
+  background:linear-gradient(180deg,#141b46,#0a0e2a);border:1px solid var(--mar-line);border-bottom:none;
+  padding:14px 14px calc(18px + env(safe-area-inset-bottom));
+  animation:marUp .26s cubic-bezier(.2,.8,.3,1)}
+@keyframes marUp{from{transform:translateY(28px);opacity:0}to{transform:none;opacity:1}}
+.mar-sh-h{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.mar-sh-h .t{font-family:'Orbitron','Noto Sans JP',sans-serif;font-size:13px;font-weight:900;letter-spacing:.08em;flex:1}
+.mar-sh-h .x{width:30px;height:30px;border-radius:10px;background:var(--mar-card2);
+  border:1px solid var(--mar-line);font-size:15px}
+
+/* キャラ詳細 */
+.mar-dhero{position:relative;border-radius:18px;overflow:hidden;border:1px solid var(--mar-line)}
+.mar-dhero img{width:100%;aspect-ratio:4/5;object-fit:cover;display:block}
+.mar-dhero .v{position:absolute;inset:0;background:linear-gradient(180deg,transparent 40%,rgba(8,12,34,.95))}
+.mar-dhero .c{position:absolute;left:12px;right:12px;bottom:10px}
+.mar-dhero .c .n{font-size:20px;font-weight:900}
+.mar-dhero .c .s{font-size:10px;color:#cfe0ff;font-weight:700;margin-top:2px}
+.mar-dhero .frame{position:absolute;inset:0;border-radius:18px;pointer-events:none;
+  box-shadow:inset 0 0 0 2px rgba(255,255,255,.3),inset 0 0 40px rgba(140,110,255,.4)}
+.mar-st{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-top:10px}
+.mar-s1{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:12px;
+  background:var(--mar-card2);border:1px solid var(--mar-line)}
+.mar-s1 .k{font-family:'Orbitron',sans-serif;font-size:9px;font-weight:900;color:var(--mar-sub);
+  flex:0 0 52px;letter-spacing:.06em}
+.mar-s1 .v{font-family:'Orbitron',sans-serif;font-size:13px;font-weight:900;margin-left:auto}
+.mar-abs{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
+.mar-ab{font-size:9.5px;font-weight:800;padding:3px 8px;border-radius:99px;
+  background:rgba(120,150,255,.14);border:1px solid var(--mar-line);color:#dbe4ff}
+.mar-ab.cx{background:rgba(255,140,220,.14);border-color:rgba(255,140,220,.36)}
+.mar-sk{margin-top:9px;padding:10px;border-radius:14px;background:var(--mar-card2);border:1px solid var(--mar-line)}
+.mar-sk .h{font-family:'Orbitron','Noto Sans JP',sans-serif;font-size:9.5px;font-weight:900;
+  letter-spacing:.1em;color:var(--mar-cyan)}
+.mar-sk .n{font-size:13px;font-weight:900;margin-top:3px}
+.mar-sk .p{font-size:10px;font-weight:700;color:var(--mar-gold);margin-top:3px;line-height:1.6}
+.mar-sk .d{font-size:10.5px;line-height:1.75;color:#c3d0f0;margin-top:5px}
+
+/* 結果 */
+.mar-res{text-align:center;padding:6px 0 2px}
+.mar-res .big{font-family:'Orbitron',sans-serif;font-size:30px;font-weight:900;letter-spacing:.1em;
+  background:linear-gradient(180deg,#fff,var(--mar-gold));-webkit-background-clip:text;background-clip:text;color:transparent}
+.mar-res .big.lose{background:linear-gradient(180deg,#fff,#7f8bb5);-webkit-background-clip:text;background-clip:text}
+.mar-rw{display:flex;justify-content:center;gap:8px;margin-top:12px;flex-wrap:wrap}
+.mar-rw .r{padding:8px 14px;border-radius:13px;background:var(--mar-card2);border:1px solid var(--mar-line)}
+.mar-rw .r .l{font-size:8.5px;color:var(--mar-sub);font-weight:800}
+.mar-rw .r .v{font-family:'Orbitron',sans-serif;font-size:15px;font-weight:900;margin-top:1px}
+
+/* ══ 属性・システム紹介 ══ */
+.mar-els{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
+.mar-e1{padding:9px 4px;border-radius:14px;text-align:center;background:var(--mar-card2);
+  border:1px solid var(--mar-line)}
+.mar-e1 .i{font-size:19px}
+.mar-e1 .n{font-family:'Orbitron',sans-serif;font-size:8.5px;font-weight:900;margin-top:3px;letter-spacing:.06em}
+.mar-e1 .j{font-size:8.5px;color:var(--mar-sub);font-weight:700}
+.mar-resos{display:grid;grid-template-columns:1fr;gap:6px;margin-top:8px}
+.mar-r1{display:flex;align-items:center;gap:8px;padding:8px 10px;border-radius:13px;
+  background:var(--mar-card2);border:1px solid var(--mar-line)}
+.mar-r1 .pair{font-size:9px;font-weight:900;flex:0 0 92px;letter-spacing:.02em}
+.mar-r1 .nm{font-family:'Orbitron',sans-serif;font-size:10.5px;font-weight:900}
+.mar-r1 .ds{font-size:9.5px;color:var(--mar-sub);font-weight:700;line-height:1.5;margin-top:1px}
+.mar-rar{display:flex;flex-direction:column;gap:5px;margin-top:8px}
+.mar-rr{display:flex;align-items:center;gap:8px;padding:7px 10px;border-radius:12px;
+  background:var(--mar-card2);border:1px solid var(--mar-line);font-size:10px;font-weight:800}
+.mar-rr .n{font-family:'Orbitron',sans-serif;font-size:10.5px;font-weight:900;flex:0 0 88px;letter-spacing:.08em}
+.mar-rr .m{margin-left:auto;color:var(--mar-sub);font-size:9.5px}
+
+/* ══ 下タブ ══ */
+.mar-bar{position:fixed;left:0;right:0;bottom:0;z-index:30;display:grid;grid-template-columns:repeat(5,1fr);
+  gap:2px;padding:6px 8px calc(6px + env(safe-area-inset-bottom));
+  background:linear-gradient(180deg,rgba(9,13,36,.6),rgba(6,9,26,.97) 45%);
+  border-top:1px solid var(--mar-line);backdrop-filter:blur(12px)}
+.mar-tab{display:flex;flex-direction:column;align-items:center;gap:2px;padding:5px 2px;border:none;
+  background:none;cursor:pointer;color:var(--mar-sub);border-radius:12px}
+.mar-tab .g{font-size:16px;line-height:1}
+.mar-tab .l{font-size:8.5px;font-weight:900;letter-spacing:.04em}
+.mar-tab.on{color:#fff;background:linear-gradient(180deg,rgba(120,90,255,.28),transparent)}
+.mar-tab.on .g{filter:drop-shadow(0 0 8px rgba(150,120,255,.9))}
+
+/* ══ トースト ══ */
+#marToast{position:fixed;left:50%;bottom:calc(96px + env(safe-area-inset-bottom));transform:translateX(-50%);
+  z-index:120;max-width:88vw;padding:10px 16px;border-radius:14px;font-size:11.5px;font-weight:800;
+  background:rgba(16,22,58,.96);border:1px solid var(--mar-line);box-shadow:0 10px 30px rgba(0,0,0,.5);
+  opacity:0;pointer-events:none;transition:opacity .2s,transform .2s}
+#marToast.on{opacity:1;transform:translateX(-50%) translateY(-6px)}
+
+/* ══ β版の帯 ══ */
+.mar-beta{margin-top:12px;padding:10px 12px;border-radius:14px;font-size:10px;line-height:1.7;font-weight:700;
+  color:#ffd9ea;background:linear-gradient(135deg,rgba(255,61,138,.16),rgba(168,107,255,.14));
+  border:1px solid rgba(255,61,138,.34)}
+.mar-beta b{color:#fff}
+
+.mar-view{display:none}
+.mar-view.on{display:block;animation:marFade .22s}
+@keyframes marFade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-08-29c β版のアクセスゲート（ご指定: 開くたびに入力）
+   ・スプラッシュ（xeva-splash.js）の z-index は 2147483000 なので、
+     それより<b>すこしだけ下</b>に置く。こうするとスプラッシュが消えた瞬間に
+     ゲートが現れ、その下のゲーム画面には最後まで届かない。
+   ══════════════════════════════════════════════════════════════ */
+html.mar-locked #marApp,
+html.mar-locked .mar-bar,
+html.mar-locked #marBattle{display:none !important}
+html.mar-locked,html.mar-locked body{overflow:hidden}
+#marGate{position:fixed;inset:0;z-index:2147482900;display:grid;place-items:center;padding:20px;
+  background:
+    radial-gradient(120% 70% at 50% 0%,rgba(120,90,255,.4),transparent 62%),
+    radial-gradient(90% 60% at 12% 90%,rgba(50,120,255,.28),transparent 60%),
+    linear-gradient(180deg,#070a1e,#0d1234 45%,#06081a)}
+html:not(.mar-locked) #marGate{display:none}
+.mg-box{width:100%;max-width:340px;text-align:center;padding:22px 18px 18px;border-radius:22px;
+  background:rgba(18,24,60,.86);border:1px solid rgba(140,170,255,.28);
+  box-shadow:0 20px 60px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.08)}
+.mg-logo{width:76px;height:76px;border-radius:22px;box-shadow:0 0 28px rgba(150,110,255,.7)}
+.mg-t{margin-top:12px;font-family:'Orbitron','Noto Sans JP',sans-serif;font-size:14px;font-weight:900;
+  letter-spacing:.12em;background:linear-gradient(180deg,#fff,#b9c8ff);
+  -webkit-background-clip:text;background-clip:text;color:transparent}
+.mg-beta{display:inline-block;margin-top:7px;font-family:'Orbitron',sans-serif;font-size:9px;font-weight:900;
+  letter-spacing:.16em;padding:3px 10px;border-radius:99px;color:#fff;
+  background:linear-gradient(135deg,var(--mar-pink),var(--mar-pur))}
+.mg-d{margin-top:12px;font-size:11px;line-height:1.85;font-weight:700;color:#c3d0f0}
+.mg-d b{color:#fff}
+.mg-d small{color:var(--mar-sub);font-size:10px}
+#marGateCode{width:100%;margin-top:14px;padding:12px 14px;border-radius:14px;font-size:14px;
+  font-family:'Orbitron','Noto Sans JP',sans-serif;font-weight:800;letter-spacing:.08em;text-align:center;
+  color:#fff;background:rgba(8,12,34,.9);border:1.5px solid rgba(140,170,255,.34);outline:none}
+#marGateCode:focus{border-color:var(--mar-cyan);box-shadow:0 0 0 3px rgba(138,212,255,.18)}
+#marGateCode::placeholder{color:#6d7ba6;letter-spacing:.14em}
+.mg-msg{min-height:16px;margin-top:7px;font-size:10.5px;font-weight:800;color:#ff8fb0}
+.mg-msg.ok{color:#7dffb0}
+.mg-go{width:100%;margin-top:4px;padding:12px;border-radius:14px;border:none;cursor:pointer;
+  font-family:'Orbitron',sans-serif;font-size:12px;font-weight:900;letter-spacing:.14em;color:#fff;
+  background:linear-gradient(135deg,var(--mar-blue),var(--mar-pur));
+  box-shadow:0 8px 24px rgba(110,90,255,.45)}
+.mg-go:active{transform:scale(.98)}
+.mg-back{display:inline-block;margin-top:12px;font-size:10.5px;font-weight:800;color:var(--mar-sub)}

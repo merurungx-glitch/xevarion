@@ -280,6 +280,11 @@ body.xh-off .xh-offline{display:flex}
 .xh-ev .evt2{margin-top:3px;font-size:11px;font-weight:700;color:#e0577f;line-height:1.4;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .xh-ev .evt3{margin-top:4px;font-size:9.5px;font-weight:700;color:var(--xh-sub)}
+/* ★★ 2026-08-29b アップデート情報。イベントと同じ形のまま、差し色だけ青紫にして
+   「お知らせ」と「開催中のイベント」をひと目で見分けられるようにする。 */
+.xh-ev.up .evtag{background:linear-gradient(135deg,#4b8bff,#9b7bff)}
+.xh-ev.up .evt2{color:#4a63b8}
+.xh-ev.up .evt3{color:#6f7fa8;font-weight:800}
 .xh-evdots{display:flex;gap:6px;justify-content:center;margin-top:7px}
 .xh-evdots i{width:7px;height:7px;border-radius:50%;background:rgba(120,160,230,.32);cursor:pointer;transition:.2s}
 .xh-evdots i.on{background:linear-gradient(135deg,#4b8bff,#9b7bff);width:18px;border-radius:99px}
@@ -691,6 +696,25 @@ body.xh-dragging .xh-sheet-body{overflow:hidden}
   display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#4b8bff,#9b7bff)}
 .xh-inst-steps .x{font-size:12px;font-weight:700;color:var(--xh-ink);line-height:1.7}
 .xh-inst-steps .x b{color:#4b8bff}
+/* ══ ★★ 2026-08-29 同期のしかたの注意（起動のたび出るシート）══
+   インストール案内と同じ部品を使いまわす（見た目をそろえるため）。
+   ちがうのは「やってはいけない終わりかた」の赤い枠だけ。 */
+.xh-syncwarn .sw-lead{font-size:12.5px;font-weight:700;line-height:1.85;color:var(--xh-ink);
+  padding:13px 14px;border-radius:18px;
+  background:linear-gradient(120deg,#eaf3ff,#eefbf3);border:1.5px solid rgba(120,160,230,.26)}
+.xh-syncwarn .sw-lead b{color:#2b62d8}
+.xh-syncwarn .sw-steps{margin-top:11px}
+.xh-syncwarn .sw-steps .st{display:flex;gap:10px;align-items:center;padding:9px 12px;border-radius:14px;
+  background:#fff;border:1.5px solid rgba(120,160,230,.2);margin-bottom:6px;box-shadow:var(--xh-shadow-s)}
+.xh-syncwarn .sw-steps .n{width:22px;height:22px;flex-shrink:0;border-radius:8px;color:#fff;font-size:11px;font-weight:900;
+  display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#22b07a,#4b8bff)}
+.xh-syncwarn .sw-steps .x{font-size:12px;font-weight:700;color:var(--xh-ink);line-height:1.7}
+.xh-syncwarn .sw-steps .x b{color:#0e8a5c}
+.xh-syncwarn .sw-bad{margin-top:11px;padding:11px 13px;border-radius:16px;font-size:11.5px;font-weight:700;line-height:1.8;
+  color:#8c2340;background:linear-gradient(120deg,#fff0f4,#ffeaea);border:1.5px solid rgba(226,90,120,.32)}
+.xh-syncwarn .sw-bad b{color:#c22c4e}
+.xh-syncwarn .sw-who{margin-top:10px;font-size:11.5px;font-weight:700;line-height:1.7;color:var(--xh-sub)}
+.xh-syncwarn .sw-who b{color:var(--xh-ink)}
 
 /* 遷移時のスプラッシュ（bfcache の古い画面を隠す） */
 #xhCover{position:fixed;top:0;left:0;right:0;height:var(--xh-appvh);z-index:2147483000;display:none;flex-direction:column;
@@ -948,3 +972,46 @@ body.xh-dragging .xh-sheet-body{overflow:hidden}
 .xh-ask-cost .c img{width:20px;height:20px;object-fit:contain}
 .xh-ask-cost .ar{font-size:16px;font-weight:900;color:var(--xh-sub)}
 .xh-ask-btns{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+
+/* ══ ★★ 2026-08-29 スケジュール（月ごとのカレンダー）══
+   マスの中は「日にち」と「その日開催中の予定の帯」。
+   帯は最大4本までで、それ以上は「+N」で畳む（マスの高さをそろえるため）。 */
+.xh-calhd{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.xh-calhd .mv{width:38px;height:38px;flex:none;border-radius:12px;cursor:pointer;font-size:19px;font-weight:900;
+  border:1.5px solid rgba(120,160,230,.24);background:#fff;color:var(--xh-ink);font-family:inherit;
+  display:flex;align-items:center;justify-content:center;box-shadow:var(--xh-shadow-s)}
+.xh-calhd .mt{flex:1;text-align:center;font-family:'Orbitron',sans-serif;font-size:15px;font-weight:900;color:var(--xh-ink);
+  display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap}
+.xh-calhd .tdy{border:none;border-radius:99px;padding:4px 10px;cursor:pointer;font-family:inherit;
+  font-size:10px;font-weight:900;color:#fff;background:linear-gradient(135deg,#4b8bff,#9b7bff)}
+.xh-calw{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:4px}
+.xh-calw span{text-align:center;font-size:10.5px;font-weight:900;color:var(--xh-sub)}
+.xh-calw .sun{color:#e2506e}.xh-calw .sat{color:#3f86d8}
+.xh-cal{display:grid;grid-template-columns:repeat(7,1fr);gap:4px}
+.xh-cal-c{min-height:46px;border-radius:11px;cursor:pointer;font-family:inherit;padding:4px 2px 3px;
+  border:1.5px solid rgba(120,160,230,.18);background:#fff;
+  display:flex;flex-direction:column;align-items:center;gap:3px}
+.xh-cal-c.pad{border:none;background:transparent;pointer-events:none}
+.xh-cal-c .d{font-family:'Orbitron',sans-serif;font-size:12px;font-weight:900;color:var(--xh-ink);line-height:1}
+.xh-cal-c.sun .d{color:#e2506e}.xh-cal-c.sat .d{color:#3f86d8}
+.xh-cal-c .bars{display:flex;flex-wrap:wrap;justify-content:center;gap:2px;align-items:center;min-height:6px}
+.xh-cal-c .bars i{width:5px;height:5px;border-radius:99px;display:block}
+.xh-cal-c .bars em{font-style:normal;font-size:8px;font-weight:900;color:var(--xh-sub);line-height:1}
+.xh-cal-c.today{border-color:#4b8bff;box-shadow:0 0 0 2px rgba(75,139,255,.18)}
+.xh-cal-c.sel{background:linear-gradient(140deg,#4b8bff,#9b7bff);border-color:transparent;
+  box-shadow:0 5px 14px rgba(100,120,255,.35)}
+.xh-cal-c.sel .d,.xh-cal-c.sel.sun .d,.xh-cal-c.sel.sat .d{color:#fff}
+.xh-cal-c.sel .bars em{color:rgba(255,255,255,.85)}
+/* その日の予定の行 */
+.xh-schlist{display:flex;flex-direction:column;gap:6px}
+.xh-schrow{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:14px;text-decoration:none;
+  background:#fff;border:1.5px solid rgba(120,160,230,.2);box-shadow:var(--xh-shadow-s)}
+.xh-schrow .bar{width:4px;align-self:stretch;border-radius:99px;flex:none}
+.xh-schrow .tx{flex:1;min-width:0}
+.xh-schrow .tx b{display:block;font-size:12.5px;font-weight:900;color:var(--xh-ink);line-height:1.4}
+.xh-schrow .pd{display:block;font-size:10px;font-weight:900;color:#4b8bff;margin-top:2px;font-family:'Orbitron',sans-serif}
+.xh-schrow .sb{display:block;font-size:10.5px;font-weight:700;color:var(--xh-sub);margin-top:3px;line-height:1.6}
+.xh-schrow .go{font-size:17px;font-weight:900;color:var(--xh-sub);flex:none}
+.xh-schrow.on{border-color:rgba(75,139,255,.45);background:linear-gradient(120deg,#f2f7ff,#fbf5ff)}
+.xh-schnone{padding:16px;text-align:center;font-size:11.5px;font-weight:700;color:var(--xh-sub);
+  border-radius:14px;background:rgba(120,160,230,.07);border:1.5px dashed rgba(120,160,230,.28)}

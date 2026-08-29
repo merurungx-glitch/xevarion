@@ -966,9 +966,9 @@ window.lexKpDetail = async function(id){
       l.id = "mbDetCss"; l.rel = "stylesheet"; l.href = "../mb-char-detail.css?v=11";
       document.head.appendChild(l);
     }
-    if(typeof window.DB === "undefined") await _loadScript("../mb-boot.js?v=6");
-    if(typeof window.CHARS === "undefined") await _loadScript("../MagiBurst/js/mb-core.js?v=60");
-    if(typeof window.openDetX !== "function") await _loadScript("../mb-char-detail.js?v=11");
+    if(typeof window.DB === "undefined") await _loadScript("../mb-boot.js?v=8");
+    if(typeof window.CHARS === "undefined") await _loadScript("../MagiBurst/js/mb-core.js?v=63");
+    if(typeof window.openDetX !== "function") await _loadScript("../mb-char-detail.js?v=14");
     _kpDetReady = true;
     _kpOpen(id);
   }catch(e){

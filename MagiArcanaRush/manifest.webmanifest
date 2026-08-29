@@ -1,0 +1,16 @@
+{
+  "name": "Magi: Arcana Rush — 魔法と絆が導く、星と運命のRPG",
+  "short_name": "Arcana Rush",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#070a1e",
+  "theme_color": "#070a1e",
+  "description": "MagiBurst の派生作。引っぱって放つ魔導アクションRPG。Link Arts・Elemental Resonance・Arcana Skill・Arcana Burst の4つを組み合わせて戦います。キャラクターとガチャは XEVARION と共通です。",
+  "icons": [
+    { "src": "mar-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "mar-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "mar-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

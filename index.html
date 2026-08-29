@@ -19,21 +19,21 @@
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Exo+2:ital,wght@0,300;0,400;0,600;0,700;1,300&family=Noto+Sans+JP:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="xeva-theme.css?v=1">
 <link rel="stylesheet" href="xevarion.css?v=16">
-<link rel="stylesheet" href="xevarion-home.css?v=43">
+<link rel="stylesheet" href="xevarion-home.css?v=46">
 <!-- ★★ 2026-08-22b Xevion OS の見た目（テーマ・文字の大きさ・動きを減らす）。
      xevarion-home.css の<b>あと</b>に読む＝上書きできるようにする。 -->
-<link rel="stylesheet" href="xevion-os.css?v=5">
-<script src="xeva.js?v=47" defer></script>
+<link rel="stylesheet" href="xevion-os.css?v=7">
+<script src="xeva.js?v=49" defer></script>
 <!-- ★ 2026-08-20 通信設定（Wi-Fi／モバイルデータごとに「最新を取りに行くか」を決める）。
      決めた内容はここから各アプリの Service Worker へ送られ、SW 側が動きを切り替える。 -->
 <script src="xeva-netmode.js?v=2" defer></script>
 <!-- ★ 2026-08-18 新キャラ告知の台帳（MagiBurst と共通）。
      告知を<b>ポータルのログイン時</b>に一本化したので、ここでも読む。
      defer なので xevarion.js より先に実行される（書いた順番で走る）。 -->
-<script src="mb-newchars.js?v=8" defer></script>
+<script src="mb-newchars.js?v=10" defer></script>
 <!-- ★★ 2026-08-22b Xevion OS（XEVARION の UI をひとつの OS として扱う土台）。
      ほかの画面より<b>先に</b>読む（body のクラスを立てるので、あとから読むと一瞬ちらつく）。 -->
-<script src="xevion-os.js?v=3"></script>
+<script src="xevion-os.js?v=5"></script>
 <!-- ジェム⇄XEVA のレート（ドル円連動）。xevarion-home.js より先に読み込む -->
 <script src="xeva-fx.js?v=1" defer></script>
 <script src="xeva-loading.js?v=1" defer></script>
@@ -41,8 +41,8 @@
 <script type="module" src="xevarion-fb.js?v=22"></script>
 <script src="xeva-presence.js?v=1" defer></script>
 <script type="module" src="xeva-cloud.js?v=18"></script>
-<script src="xevarion.js?v=69" defer></script>
-<script src="xevarion-home.js?v=58" defer></script>
+<script src="xevarion.js?v=71" defer></script>
+<script src="xevarion-home.js?v=63" defer></script>
 </head>
 <body>
 <!-- ───── バックグラウンド音楽（Flagship Arrival。アクセス画面のタップで再生開始） ───── -->
@@ -314,6 +314,12 @@ body.music-on #beatFrame{opacity:1}
           <span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6.5 3.4 3.2 6.9 4.6a7.6 7.6 0 0110.2 0l3.5-1.4L19 6.5a7.4 7.4 0 011.6 4.6v4.6a5.3 5.3 0 01-5.3 5.3H8.7a5.3 5.3 0 01-5.3-5.3v-4.6A7.4 7.4 0 015 6.5Z" fill="#fff" opacity=".92"/><circle cx="9.2" cy="12.6" r="1.8" fill="#6a7bd8"/><circle cx="14.8" cy="12.6" r="1.8" fill="#6a7bd8"/><path d="M9.6 17h4.8" stroke="#6a7bd8" stroke-width="1.7" stroke-linecap="round"/></svg></span>
           <span class="lb">AI</span>
         </button>
+        <!-- ★★ 2026-08-29 スケジュール（ご指定：メールと AI のあいだ）。
+             ガチャの日程・開催中のイベントを<b>月ごとのカレンダー</b>で見る。 -->
+        <button class="xh-act" onclick="xhOpenSched()">
+          <span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4.6" width="18" height="16.4" rx="3.4" fill="#22b07a"/><path d="M3 9.6h18" stroke="#fff" stroke-width="1.8"/><path d="M7.6 2.6v3.6M16.4 2.6v3.6" stroke="#127a53" stroke-width="2.4" stroke-linecap="round"/><rect x="6.6" y="12" width="3.2" height="3.2" rx="1" fill="#fff"/><rect x="11.9" y="12" width="3.2" height="3.2" rx="1" fill="#fff" opacity=".75"/><rect x="6.6" y="16.6" width="3.2" height="2.6" rx="1" fill="#fff" opacity=".55"/></svg></span>
+          <span class="lb">スケジュール</span>
+        </button>
         <button class="xh-act" onclick="xhTapMail()">
           <span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="4.8" width="19" height="14.4" rx="3.4" fill="#4b8bff"/><path d="M4.4 7.4l7.6 5.6 7.6-5.6" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="bdg" id="xhMailBdg"></span></span>
           <span class="lb">メール</span>
@@ -407,6 +413,20 @@ body.music-on #beatFrame{opacity:1}
           <div class="xh-evtrack" id="xhEvTrack"></div>
         </div>
         <div class="xh-evdots" id="xhEvDots"></div>
+      </section>
+
+      <!-- ★★ 2026-08-29b アップデート情報（ご指定）
+           開催中のイベントと同じ見た目。出すのは<b>実装日</b>だけ。
+           台帳は xevarion-home.js の XH_UPDATES（イベントとは別の配列）。
+           これから先「アップデート内容系」はすべてこちらへ書く。 -->
+      <section class="xh-sec">
+        <div class="xh-sechead">
+          <div class="t"><span class="dot"></span>アップデート情報</div>
+        </div>
+        <div class="xh-evwrap" id="xhUpdate" style="margin-top:8px">
+          <div class="xh-evtrack" id="xhUpTrack"></div>
+        </div>
+        <div class="xh-evdots" id="xhUpDots"></div>
       </section>
 
       <!-- アプリ -->
@@ -590,6 +610,51 @@ body.music-on #beatFrame{opacity:1}
 <div class="xh-ask" id="xhAsk"><div class="xh-ask-card" id="xhAskCard"></div></div>
 
 <!-- ───── 初回インストール案内 ───── -->
+<!-- ───── ★★ 2026-08-29 スケジュール（月ごとのカレンダー）─────
+     中身は xevarion-home.js の xhPaintSched() が入れる。
+     予定の台帳は XH_EVENTS 1本（新しいフェスを足すと自動でここにも出る）。 -->
+<div class="xh-sheet" id="xhSchedSheet" onclick="if(event.target===this)xhCloseSheet('xhSchedSheet')">
+  <div class="xh-sheet-card">
+    <div class="xh-sheet-head">
+      <div class="xh-sheet-title">🗓 スケジュール</div>
+      <button class="xh-sheet-x" onclick="xhCloseSheet('xhSchedSheet')">✕</button>
+    </div>
+    <div class="xh-sheet-body" id="xhSchedBody"></div>
+  </div>
+</div>
+
+<!-- ───── ★★ 2026-08-29 同期のしかたの注意（ご指定）─────
+     iPhone / iPad では、アプリをそのまま閉じると進みぐあいがクラウドへ届かないことがある。
+     「各アプリの左上のホームボタンで戻る」を起動のたび知らせる。
+     ★ 非表示にできる（設定 › Xevion OS › 同期）。 -->
+<div class="xh-sheet" id="xhSyncWarnSheet" onclick="if(event.target===this)xhCloseSyncWarn()">
+  <div class="xh-sheet-card">
+    <div class="xh-sheet-head">
+      <div class="xh-sheet-title">🔄 終わるときは「🏠ホームへ戻る」</div>
+      <button class="xh-sheet-x" onclick="xhCloseSyncWarn()">✕</button>
+    </div>
+    <div class="xh-sheet-body">
+      <div class="xh-syncwarn">
+        <div class="sw-lead">アプリを遊び終えたら、<b>画面左上の🏠ホームボタン</b>を押して
+          XEVARION のホームへ戻ってください。<br>
+          <b>その戻るときに、進みぐあいがクラウドへ同期されます。</b></div>
+        <div class="sw-steps">
+          <div class="st"><span class="n">1</span><span class="x">アプリで遊ぶ</span></div>
+          <div class="st"><span class="n">2</span><span class="x">終わったら<b>左上の🏠</b>をタップ</span></div>
+          <div class="st"><span class="n">3</span><span class="x">ホームに戻る＝<b>同期完了</b></span></div>
+        </div>
+        <div class="sw-bad">⚠️ <b>やってはいけない終わりかた</b><br>
+          アプリの画面のまま<b>タブを閉じる</b>／<b>アプリを終了する</b>／
+          <b>ホーム画面へスワイプで抜ける</b>。<br>
+          この終わりかたをすると、<b>そのとき遊んだぶんが消えてしまう</b>ことがあります。</div>
+        <div class="sw-who" id="xhSyncWarnWho"></div>
+      </div>
+      <button class="xh-sbtn" onclick="xhCloseSyncWarn()">わかりました</button>
+      <button class="xh-sbtn ghost" onclick="xhSyncWarnOff()">今後は表示しない（設定から戻せます）</button>
+    </div>
+  </div>
+</div>
+
 <div class="xh-sheet" id="xhInstallSheet" onclick="if(event.target===this)xhCloseInstallHint()">
   <div class="xh-sheet-card">
     <div class="xh-sheet-head">
@@ -1552,6 +1617,74 @@ body.music-on #beatFrame{opacity:1}
 
   <div class="nm-body" id="newsBody">
     <div class="nm-divider" id="newDivider" style="display:none;">NEW — 前回から更新</div>
+    <!-- 2026-08-29 戦姫祭／レイナ／蓬莱の後半6階層の条件／スケジュール／同期の注意 -->
+    <div class="nm-item" data-tag="update" data-date="2026-08-29">
+      <div class="nm-date">2026<br>08.29</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">🎮 新作『Magi: Arcana Rush』β版／📖 図鑑に入手方法／⚔ 戦姫祭が常時開催（性能を調整）／🗓 アップデート情報の欄を新設</div>
+        <div class="nm-txt">
+          🎮 <b>新作『Magi: Arcana Rush』（β版）</b>を公開しました。MagiBurst の派生作で、
+          引っぱって放つ魔導アクションRPGです。<b>キャラクターもガチャも XEVARION と共通</b>——
+          所持キャラ・レベル・限界突破は MagiBurst とまるごと同じで、
+          <b>このアプリの中にガチャはありません</b>（SUMMON から XEVARION のガチャへ行けます）。
+          <b>7属性</b>（FLAME／FROST／VOLT／LUMEN／ABYSS／ASTRAL／CHAOS）、
+          <b>Link Arts</b>（味方にふれる順番で威力が変わる）、
+          <b>Elemental Resonance</b>（ちがう属性のリンクを2つつなぐと共鳴）、
+          <b>Arcana Skill</b>・<b>Arcana Burst</b> の4つを組み合わせて戦います。<br>
+          🔑 β版のため、<b>開くたびにアクセスコードの入力</b>が必要です
+          （合っても端末には覚えないので、毎回きかれます）。<br>
+          📖 <b>キャラクター図鑑・MagiBurst のキャラ図鑑に「入手方法」</b>を追加しました。
+          <b>どのガチャで引けるのかをガチャの名前まで</b>出します
+          （終わったフェスのキャラは <b>Festival Archive GACHA</b> も併記します）。<br>
+          🗓 ホームの「開催中のイベント」の下に <b>アップデート情報</b>の欄を新設しました。
+          これから先、<b>アップデート内容はこちら</b>・<b>期間限定のイベントやガチャは「開催中のイベント」</b>
+          に分けて出します。<br>
+          ⚔ <b>戦姫祭</b>を開設しました（<b>常時開催</b>）。極彩祭・極華祭・極煌祭と同じ
+          <b>限定キャラクターのガチャ</b>で、<b>🎫フェスチケットは使えません</b>（🎫ガチャチケットは使えます）。
+          登場するのは <b>ラン・クレナイ・ユキ・マリカ・ユウカ・アンナ</b> の6体（各1.2%・合計7.2%）。<br>
+          🔟 6体とも<b>アビリティを10個</b>持ちます（MagiBurst 初）——内わけは
+          <b>アンチ4つ（オムニアンチは持ちません）＋キラー3つ＋キラー以外3つ</b>。
+          ★ <b>アンチのうち1つはクロススキル</b>で、条件を満たしているあいだだけ
+          そのギミックにも対応できるようになります——
+          <b>ラン＝蓬莱神域（＋第八重）／クレナイ＝第八重（＋第三重）／ユキ＝第六重（＋蓬莱仙苑）／
+          マリカ＝第二重（＋蓬莱月宮）／ユウカ＝第五重（＋蓬莱天宮）／
+          アンナ＝第四重・第九重（＋第一重・第二重・第三重）</b>。<br>
+          👑 <b>アンナ</b>は<b>MagiBurst 史上最強</b>です。クロス込みで<b>5クエストに完全対応</b>（戦姫祭で最多）、
+          リンクスキル<b>アストラル・ソヴリン</b>（敵全体・降るたびに重くなる）、
+          フルバースト<b>ステラ・レガリア</b>（星屑の乱打64連＋戴冠＋落星＝合計 攻撃力×154.8）。<br>
+          🛑 <b>フルバーストの2段階目</b>は<b>いったん取り下げ</b>ました（ベータ版だったため）。
+          ターン数の表記は「18＋5」から<b>「18」に戻ります</b>。しくみは残してあるので、
+          調整がすんだらまた出します。<br>
+          ✦ <b>極煌祭</b>に <b>レイナ</b>（闇・貫通）が加わりました。
+          フルバースト<b>ノワール・ヴァルキュリア</b>は乱打56連＋大十字斬で<b>合計 攻撃力×113.2</b>、
+          リンクスキル<b>ヴォイド・ブルーム</b>は<b>倒すほど連鎖がのびて重くなる</b>これまでに無い形です。
+          担当は<b>🏯蓬莱天界</b>——有利属性で完全対応できる子が2体しかいなかったクエストです。<br>
+          ✨ <b>極彩祭・極煌祭のネクサスをさらに強化</b>しました（どちらも3つの効果を同時に持ちます）。
+          戦姫祭には<b>戦姫・ヴァロールネクサス</b>を用意しています。<br>
+          🎯 <b>ショットスキル</b>を持つキャラが7体ふえました。バトル中のキャラ詳細にも
+          <b>ショットスキル</b>を出すようにしています。<br>
+          ⚖️ <b>GRAND DEBUT GACHA Ver.5.0</b> の5体は、アビリティの等級を
+          <b>Cozy Haven FEST と同じ水準</b>にそろえました（超アンチ→素のアンチ、EL→M・L）。
+          担当する蓬莱のクエストは変わりません。<br>
+          🏯 <b>蓬莱の九重の後半6階層</b>（蓬莱天宮・仙苑・月宮・神域・天界・神天）の出撃条件を
+          <b>前半9階層（第一重〜第九重）で通算30WAVE 到達</b>に変更しました。マルチプレイも同じ条件です。<br>
+          🗓 ホームの上部に<b>スケジュール</b>を追加しました（メールとAIのあいだ）。
+          ガチャの日程・開催中のイベントを<b>月ごとのカレンダー</b>で見られます。<br>
+          🔄 iPhone・iPad で同期が届かないことがあるため、起動のたびに
+          <b>「終わるときは各アプリの左上の🏠ホームボタンでホームへ戻る」</b>という案内を出すようにしました。
+          <b>設定 › Xevion OS › 同期</b> から非表示にできます。<br>
+          🔗 <b>クロススキルのステータス条件</b>（チハヤ・トモエなど）は、
+          <b>レベル・限界突破・アーク強化まで入れた「いまの値」</b>で判定するようになりました
+          （見た目は満たしているのに発動しない、が直ります）。<br>
+          🌍 <b>みんなのクリア編成</b>に、使った<b>🔮ルーン</b>と<b>❖魂の紋章</b>も出るようにしました。<br>
+          🎰 ガチャの一覧は<b>新しいフェスが上・終了したフェスがいちばん下</b>の並びになり、
+          <b>更新されてからまだ開いていないガチャに NEW マーク</b>が付きます。
+          ガチャ画面は<b>開催中の極彩祭・極華祭・極煌祭</b>から開きます。<br>
+          👆 <b>ダブルタップで画面が拡大されない</b>ようにしました（ピンチ拡大はこれまでどおりです）。
+        </div>
+      </div>
+    </div>
     <!-- 2026-08-28 極華祭／GRAND DEBUT Ver.5.0／Cozy Haven FEST／Festival Archive／確率12%／FB2段階目 -->
     <div class="nm-item" data-tag="update" data-date="2026-08-28">
       <div class="nm-date">2026<br>08.28</div>

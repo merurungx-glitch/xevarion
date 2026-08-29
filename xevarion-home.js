@@ -44,6 +44,12 @@ const XH_APPS = [
   { id:"magiburst", name:"MagiBurst", sub:"爽快アクション", cat:"game", tone:"violet",
     href:"MagiBurst/index.html", img:"thumbs/MagiBurst.jpg",
     desc:"引っぱって、はなして、ぶっとばせ！最大4人マルチの引っぱりハンティング。オフラインでもソロクエストが遊べます。" },
+  /* ★★ 2026-08-29b 新作（β版）。MagiBurst の派生作で、
+     <b>キャラクターとガチャは XEVARION と共通</b>（このアプリの中にガチャは無い）。 */
+  { id:"magiarcanarush", name:"Arcana Rush", full:"Magi: Arcana Rush", sub:"魔導アクションRPG",
+    cat:"game", tone:"violet",
+    href:"MagiArcanaRush/index.html", img:"thumbs/MagiArcanaRush.jpg",
+    desc:"引っぱって放つ魔導アクションRPG（β版）。7属性・Link Arts・Elemental Resonance・Arcana Skill・Arcana Burst を組み合わせて戦います。キャラクターとガチャは XEVARION（MagiBurst）と共通です。" },
   { id:"magiarena", name:"MagiArena", sub:"PvPアリーナ", cat:"game", tone:"teal",
     href:"MagiArena/MagiArena.html", img:"thumbs/MagiArena.jpg",
     desc:"1台でみんなと対戦する闘技場。オリジナル陣取り「TAKAGAME」に加え、オセロ・五目並べ・神経衰弱を収録。2〜6人。" },
@@ -124,11 +130,13 @@ const XH_RETIRED_ON = "2026-07-29";
      枠は11個のままなので、押し出された MagiManor は「その他」へ移る。
    ★ 2026-08-13 11枠目を MagiCraft から ORDYXIS に入れ替え（MagiCraft は「その他」へ）。 */
 const XH_DEFAULT_ORDER = [
-  "magilex", "magilink", "magiburst", "xevynar",
-  "magichainparty", "magiempire", "magibattle", "magiranking",
-  "magilotto", "magijackpot", "ordyxis",
+  /* ★★ 2026-08-29b 新作 Magi: Arcana Rush を MagiBurst のとなりへ（同じ系統なので）。
+     枠は11個のままなので、押し出された ORDYXIS は「その他」へ移る。 */
+  "magilex", "magilink", "magiburst", "magiarcanarush",
+  "xevynar", "magichainparty", "magiempire", "magibattle",
+  "magiranking", "magilotto", "magijackpot",
   /* 以降は「その他」の中に入る */
-  "magicraft", "magimanor", "magiportfolio",
+  "ordyxis", "magicraft", "magimanor", "magiportfolio",
   "magiarena", "magidiamond", "magifocus", "magimusic", "magitier",
   "ngx", "ishida", "magicalfuture",
 ];
@@ -136,7 +144,7 @@ const XH_HOME_SLOTS = 11;
 const XH_ORDER_KEY = "xeva_home_order_v2";
 /* 並び順の世代。上げると保存済みの並びを一度だけ既定に戻す
    （アプリの入れ替えを、既にホームを触った人にも確実に反映させるため） */
-const XH_ORDER_GEN = "5";   /* ★ 2026-08-13 Magi Lotto を足したので一度だけ既定に戻す */
+const XH_ORDER_GEN = "6";   /* ★★ 2026-08-29b 新作 Magi: Arcana Rush を足したので一度だけ既定に戻す */
 const XH_ORDER_GEN_KEY = "xeva_home_order_gen";
 
 /* 期間限定イベント（from/to は YYYY-MM-DD。期間内のものだけ表示）
@@ -146,8 +154,20 @@ const XH_ORDER_GEN_KEY = "xeva_home_order_gen";
      ずっと後ろ、という状態を防ぐため。
      ＝ 新しいイベントを足すときは<b>この配列のどこに書いてもよい</b>。 */
 const XH_EVENTS = [
+  /* ★★ 2026-08-29 戦姫祭（常時開催の限定キャラガチャ）。
+     ★ 期間で終わらないので always:true。カレンダーでは「常時開催」と出る。 */
+  { tag:"SENKI FES", t1:"戦姫祭", t2:"常時開催。限定SSR 6体——アビリティ10個・アンナは MagiBurst 史上最強",
+    /* ★ perm:true を書かないと xhEventsLive の 「to があるか perm」のふるいに引っかかり、
+       「開催中のイベント」に<b>一切出ない</b>（実際そうなっていた）。
+       always はスケジュールのカレンダー用、perm はホームの一覧用で<b>別の台帳</b>。 */
+    always:true, perm:true, since:"2026-08-29", from:"2026-08-29", to:"",
+    href:"gacha.html#fes11", img:"thumbs/MagiBurst.jpg" },
   /* ★★ 2026-08-28 極華祭（毎月11〜20日）。極彩祭＝上旬／極華祭＝中旬／極煌祭＝下旬。 */
   { tag:"FES", t1:"極華祭", t2:"毎月11〜20日。限定SSR「コトリ」——バスケの乱打48連＋スラムダンクで史上最大の火力",
+    /* ★★ 2026-08-29 monthly を書くと、スケジュールのカレンダーに
+       <b>その日にちのところだけ</b>出る（from/to は広く取ってあるので、
+       書かないと1年じゅう毎日埋まってしまう）。 */
+    monthly:[11,20],
     from:"2026-08-28", to:"2027-12-31", img:"thumbs/MagiBurst.jpg", href:"gacha.html#fes9" },
   /* ★★ 2026-08-28 Cozy Haven FEST（登場から30日／20日でアーカイブ入り） */
   { tag:"COZY FES", t1:"Cozy Haven FEST", t2:"限定SSR 5体が参戦！ 蓬莱天宮の続き5クエストをまるごと担当します",
@@ -165,8 +185,10 @@ const XH_EVENTS = [
      ★ 毎月まるごと入れ替わるので、from / to は<b>広めに取っておく</b>
        （実際の開催判定は mb-core.js の monthly が行う）。 */
   { tag:"FES", t1:"極彩祭", t2:"毎月1〜10日。限定SSR「ヒナノ」——敵の属性を塗り替えるリンクスキル",
+    monthly:[1,10],
     from:"2026-08-27", to:"2027-12-31", img:"thumbs/MagiBurst.jpg", href:"gacha.html#fes7" },
-  { tag:"FES", t1:"極煌祭", t2:"毎月21日〜末日。限定SSR「ムツミ」——鏡写しの影が同時に走るリンクスキル",
+  { tag:"FES", t1:"極煌祭", t2:"毎月21日〜末日。限定SSR「ムツミ」＋新登場「レイナ」——史上最大火力のフルバースト",
+    monthly:[21,31],
     from:"2026-08-27", to:"2027-12-31", img:"thumbs/MagiBurst.jpg", href:"gacha.html#fes8" },
   /* ★★ 2026-08-26b GRAND DEBUT GACHA Ver.4.0。
      版ごとに10日間の決まりなので、Ver.2.0・Ver.3.0 とあわせて3本が同時に並ぶ。 */
@@ -177,15 +199,8 @@ const XH_EVENTS = [
   { tag:"GRAND DEBUT", t1:"GRAND DEBUT GACHA Ver.3.0", t2:"新SSR 5体が参戦！ 1体で2クエストの最適解になるユウカも",
     since:"2026-08-26", from:"2026-08-26", to:"2026-09-05",
     href:"gacha.html#debut:3.0", img:"thumbs/MagiBurst.jpg" },
-  /* ★★ 2026-08-26 MagiLex の KP交換所。 */
-  { tag:"NEW", t1:"MagiLex に KP交換所ができました", t2:"完全習得 +5KP・確認テスト合格 +10KP。80KPでキャラ・10KPで🎫ガチャチケット",
-    since:"2026-08-26", from:"2026-08-26", to:"2026-10-31",
-    href:"MagiLex/MagiLex.html", img:"thumbs/MagiLex.jpg" },
-  /* ★★ 2026-08-26 MagiLex 化学ε・物理γ（各20セット240問／あわせて480問）。
-     問題数はデータファイル（magilex-cheme.js / magilex-physg.js）とそろえること。 */
-  { tag:"NEW", t1:"MagiLex に 化学ε・物理γ を追加", t2:"全範囲の標準演習を各20セット240問ずつ。あわせて480問を新設しました",
-    since:"2026-08-26", from:"2026-08-26", to:"2026-10-31",
-    href:"MagiLex/MagiLex.html", img:"thumbs/MagiLex.jpg" },
+  /* ★★ 2026-08-29b MagiLex の KP交換所／化学ε・物理γ は
+     <b>アップデート情報（XH_UPDATES）へ移しました</b>（ご指定）。 */
   /* ★★ 2026-08-25b MagiBurst「Starlight Academy Fest 2」。
      排出キャラは MagiBurst/js/mb-core.js の FESTS.fes6 とそろえること。
      ★ 絵はほかのフェスと同じく thumbs/MagiBurst.jpg を使う
@@ -198,12 +213,7 @@ const XH_EVENTS = [
   { tag:"STAR FES", t1:"Starlight Academy Fest", t2:"星の学園の限定SSR 5体が排出中！ 蓬莱の九重向けのアンチ2種持ち",
     since:"2026-08-22", from:"2026-08-22", to:"2026-09-30",
     href:"MagiBurst/index.html", img:"thumbs/MagiBurst.jpg" },
-  /* ★ 2026-08-17 MagiLex に最難関セットを追加したことの告知。
-     問題数はデータファイル（magilex-suugaku.js / magilex-chemg.js / magilex-butsuri.js）と
-     そろえること。片方だけ直すと「告知の数と中身が合わない」になる。 */
-  { tag:"NEW", t1:"MagiLex に最難関問題を追加", t2:"数学・化学γ・物理に9セット108問。全1,500問に到達！",
-    since:"2026-08-17", from:"2026-08-17", to:"2026-09-30",
-    href:"MagiLex/MagiLex.html", img:"thumbs/MagiLex.jpg" },
+  /* ★★ 2026-08-29b MagiLex の最難関問題は<b>アップデート情報へ移しました</b>（ご指定）。 */
   /* ★ 2026-08-12 MagiBurst「蒼夏祭（Aoka Summer Fest）」。
      排出キャラは MagiBurst/js/mb-core.js の FESTS.fes4 とそろえること。 */
   { tag:"SUMMER FES", t1:"蒼夏祭", t2:"MagiBurst に水着の限定SSR 7体が参戦！ 新リンク・新クロススキル搭載",
@@ -215,8 +225,12 @@ const XH_EVENTS = [
   /* ★ 2026-08-07 MagiBurst「Phantom Legend Fest」の予告。
      8/10 0:00 の開催をまたぐと、下の xhRenderEvents が t1/t2 を「開催中」に差し替える
      （XH_FES3_OPEN と見くらべるだけなので、当日に書き直す必要はない）。
-     排出キャラは MagiBurst/index.html の FESTS.fes3 とそろえること。 */
-  { tag:"COMING SOON", t1:"Phantom Legend Fest（予告）",
+     排出キャラは MagiBurst/index.html の FESTS.fes3 とそろえること。
+     ★★ 2026-08-29b <b>非表示</b>にしました（ご指定）。
+       行そのものは残してあります——消すとカレンダーの過去の日付からも消えてしまうため。
+       hide:true は「開催中のイベント」と「スケジュール」の<b>両方</b>で見ています。 */
+  { hide:true,
+    tag:"COMING SOON", t1:"Phantom Legend Fest（予告）",
     t2:"8/10 0:00 スタート。MagiBurst に伝説の限定SSRが参戦！",
     liveTag:"LEGEND FES", liveT1:"Phantom Legend Fest",
     liveT2:"MagiBurst に伝説の限定SSR「野獣先輩」参戦！ クロススキル搭載",
@@ -230,24 +244,69 @@ const XH_EVENTS = [
      そろえること。 */
   { tag:"SUMMER FES", t1:"Luminous Summer Fest", t2:"MagiBurst に夏の限定SSR「カグヤα」「ミオンα」参戦！", from:"2026-07-31", to:"2026-08-31",
     href:"MagiBurst/index.html", img:"thumbs/MagiBurst.jpg" },
-  /* ★ 2026-08-13 新作 Magi Lotto の開幕。結果発表は毎月1日・16日なので、
-     バナーからそのまま次回の発表日を待つ導線にしている。 */
-  { tag:"NEW", t1:"Magi Lotto 開幕", t2:"デジタル宝くじ登場！ 毎月1日・16日に MAGI GRAND DRAW",
-    since:"2026-08-13", from:"2026-08-13", to:"2026-09-30",
-    href:"MagiLotto/index.html", img:"thumbs/MagiLotto.jpg" },
+  /* ★★ 2026-08-29b Magi Lotto 開幕は<b>アップデート情報へ移しました</b>（ご指定）。 */
   /* ★ MagiJackpot「ゴールドラッシュ」。期間・内容は MagiJackpot/mj-core.js の EVENTS と
      そろえること（片方だけ直すと、ポータルには出ているのに中では終わっている、が起きる）。 */
   { tag:"GOLD RUSH", t1:"ゴールドラッシュ", t2:"MagiJackpot 積立×2！ EP で限定スキン・称号", from:"2026-07-30", to:"2026-08-24",
     href:"MagiJackpot/index.html", img:"thumbs/MagiJackpot.jpg" },
   { tag:"FES", t1:"Nocturne Bloom Fest", t2:"MagiBurst で夜の限定SSR 5体が排出中！", from:"2026-01-01", to:"2026-08-31",
     href:"MagiBurst/index.html", img:"thumbs/MagiBurst.jpg" },
-  { tag:"COMING SOON", t1:"MagiLex に新コンテンツ", t2:"近日追加予定。続報をお待ちください！", from:"2026-07-31", to:"2026-08-31",
-    href:"MagiLex/MagiLex.html", img:"thumbs/MagiLex.jpg" },
+  /* ★★ 2026-08-29b MagiLex の新コンテンツ予告は<b>アップデート情報へ移しました</b>（ご指定）。 */
   { tag:"CAMPAIGN", t1:"夏の学習キャンペーン", t2:"MagiLex の獲得XEVA ×2！（10/31まで延長）", from:"2026-06-01", to:"2026-10-31",
     href:"MagiLex/MagiLex.html", img:"thumbs/MagiLex.jpg" },
   /* 常設（期間表示なし）: to を空にすると「開催期間」の行を出さない */
   { tag:"RANKING", t1:"月間XEVAランキング", t2:"今月の順位で最大 1,000 XEVA", from:"2026-01-01", to:"",
-    perm:true, href:"MagiRanking/index.html", img:"thumbs/MagiRanking.jpg" }
+    always:true, perm:true, href:"MagiRanking/index.html", img:"thumbs/MagiRanking.jpg" }
+];
+
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-08-29b アップデート情報（ご指定）
+   ------------------------------------------------------------
+   「開催中のイベント」のすぐ下に、同じ見た目でもう1本ならべる欄。
+
+   ★★ <b>これから先の書き分け</b>（ご指定）:
+       ・アップデート内容（新機能・新コンテンツ・追加された問題…）
+           → <b>この XH_UPDATES</b>
+       ・期間限定のイベント・ガチャ（フェス・キャンペーン…）
+           → <b>XH_EVENTS</b>（開催中のイベント）
+   ★ ここに書くのは<b>実装日だけ</b>——期間で消えたりしない。
+     並びは<b>実装日の新しい順</b>（at が同じなら書いた順）。
+     ★ at を未来の日付にすると、その日が来るまで出ない。
+     ★ soon:true を書くと、日付の代わりに「近日実装予定」と出る。
+   ★ 出す件数は XH_UPDATE_MAX まで（古いものは自然に流れていく）。
+   ══════════════════════════════════════════════════════════════ */
+const XH_UPDATE_MAX = 12;
+const XH_UPDATES = [
+  /* ★★ 2026-08-29b 新作 Magi Arcana Rush（β版） */
+  { tag:"NEW APP", t1:"新作『Magi: Arcana Rush』β版を公開", at:"2026-08-29",
+    t2:"7属性の魔導アクションRPG。β版のため、開くたびにアクセスコードが必要です",
+    href:"MagiArcanaRush/index.html", img:"thumbs/MagiArcanaRush.jpg" },
+  /* ★★ 2026-08-29b 図鑑の入手方法／戦姫祭の性能／FBの2段階目の取り下げ */
+  { tag:"UPDATE", t1:"キャラ図鑑に「入手方法」を追加", at:"2026-08-29",
+    t2:"どのガチャで引けるのかを、ガチャの名前まで出すようにしました",
+    href:"characters.html", img:"thumbs/MagiBurst.jpg" },
+  { tag:"UPDATE", t1:"戦姫祭6体のアビリティ構成を変更", at:"2026-08-29",
+    t2:"アンチ4つ＋キラー3つ＋その他3つに。アンチの1つはクロススキルへ",
+    href:"gacha.html#fes11", img:"thumbs/MagiBurst.jpg" },
+  { tag:"UPDATE", t1:"フルバーストの2段階目を一時停止", at:"2026-08-29",
+    t2:"ベータ版だったため、いったん取り下げました（ターン表記も元に戻ります）",
+    href:"MagiBurst/index.html", img:"thumbs/MagiBurst.jpg" },
+  /* ★★ 2026-08-29b ここから下は「開催中のイベント」から移してきたもの（ご指定） */
+  { tag:"NEW", t1:"MagiLex に KP交換所ができました", at:"2026-08-26",
+    t2:"完全習得 +5KP・確認テスト合格 +10KP。80KPでキャラ・10KPで🎫ガチャチケット",
+    href:"MagiLex/MagiLex.html", img:"thumbs/MagiLex.jpg" },
+  { tag:"NEW", t1:"MagiLex に 化学ε・物理γ を追加", at:"2026-08-26",
+    t2:"全範囲の標準演習を各20セット240問ずつ。あわせて480問を新設しました",
+    href:"MagiLex/MagiLex.html", img:"thumbs/MagiLex.jpg" },
+  { tag:"NEW", t1:"MagiLex に最難関問題を追加", at:"2026-08-17",
+    t2:"数学・化学γ・物理に9セット108問。全1,500問に到達！",
+    href:"MagiLex/MagiLex.html", img:"thumbs/MagiLex.jpg" },
+  { tag:"NEW", t1:"Magi Lotto 開幕", at:"2026-08-13",
+    t2:"デジタル宝くじ登場！ 毎月1日・16日に MAGI GRAND DRAW",
+    href:"MagiLotto/index.html", img:"thumbs/MagiLotto.jpg" },
+  { tag:"COMING SOON", t1:"MagiLex に新コンテンツ", at:"2026-07-31", soon:true,
+    t2:"近日追加予定。続報をお待ちください！",
+    href:"MagiLex/MagiLex.html", img:"thumbs/MagiLex.jpg" },
 ];
 
 const XH_SHOWCASE_MAX = 5;
@@ -1020,7 +1079,7 @@ function xhEventsLive() {
   const today = xhToday();
   const key = (e) => e.since || e.from || "";
   return XH_EVENTS
-    .filter((e) => e.from <= today && (e.perm || (e.to && today <= e.to)))
+    .filter((e) => !e.hide && e.from <= today && (e.perm || (e.to && today <= e.to)))
     .map((e, i) => ({ e, i }))
     .sort((a, b) => (key(a.e) < key(b.e) ? 1 : key(a.e) > key(b.e) ? -1 : a.i - b.i))
     .map((x) => x.e);
@@ -1086,6 +1145,72 @@ function xhTapEvent() {
   const e = _xhEvList[_xhEvIdx]; if (!e || !e.href) return;
   const app = XH_APPS.find((a) => a.href === e.href);
   xhOpenApp(app ? app.id : "", e.href);
+}
+
+/* ══════════════ アップデート情報（★★ 2026-08-29b 新設）══════════════
+   「開催中のイベント」とまったく同じ形のカルーセル。ちがうのは
+   ・期間ではなく<b>実装日</b>だけを出す
+   ・台帳が XH_UPDATES（アップデート内容専用）
+   の2点。描画の中身はイベント側と同じ .xh-ev を使う（見た目をそろえるため）。 */
+function xhUpdatesLive() {
+  const today = xhToday();
+  return XH_UPDATES
+    .filter((u) => !u.hide && (!u.at || u.at <= today))
+    .map((u, i) => ({ u, i }))
+    .sort((a, b) => (a.u.at < b.u.at ? 1 : a.u.at > b.u.at ? -1 : a.i - b.i))
+    .map((x) => x.u)
+    .slice(0, XH_UPDATE_MAX);
+}
+/* 実装日の文（2026-08-29 → 2026/08/29 実装） */
+function xhUpDateText(u) {
+  if (u.soon) return "近日実装予定";
+  if (!u.at) return "";
+  return u.at.replace(/-/g, "/") + " 実装";
+}
+let _xhUpIdx = 0, _xhUpList = [], _xhUpTimer = 0;
+function xhRenderUpdates() {
+  _xhUpList = xhUpdatesLive();
+  const track = xhEl("xhUpTrack"), dots = xhEl("xhUpDots");
+  if (!track || !dots) return;
+  if (!_xhUpList.length) {
+    _xhUpList = [{ tag: "INFO", t1: "アップデート情報", t2: "新しいお知らせはありません",
+                   href: "", img: "thumbs/Xevarion.png", at: "" }];
+  }
+  track.innerHTML = _xhUpList.map((u) =>
+    '<div class="xh-ev up">' +
+      '<div class="evimg"><img src="' + xhEscape(u.img) + '" alt=""></div>' +
+      '<div class="evbody">' +
+        '<span class="evtag">' + xhEscape(u.tag || "UPDATE") + "</span>" +
+        '<div class="evt1">' + xhEscape(u.t1) + "</div>" +
+        '<div class="evt2">' + xhEscape(u.t2 || "") + "</div>" +
+        '<div class="evt3">' + xhEscape(xhUpDateText(u)) + "</div>" +
+      "</div>" +
+    "</div>").join("");
+  dots.innerHTML = _xhUpList.map((_, i) => '<i class="' + (i === 0 ? "on" : "") + '" onclick="xhUpGo(' + i + ')"></i>').join("");
+  _xhUpIdx = 0; xhUpGo(0);
+  clearInterval(_xhUpTimer);
+  if (_xhUpList.length > 1) _xhUpTimer = setInterval(() => xhUpGo(_xhUpIdx + 1), 6200);
+}
+/* 回りこみ（端から端）のときだけアニメーションを切る＝イベント側とまったく同じ考えかた */
+function xhUpGo(i) {
+  if (!_xhUpList.length) return;
+  const prev = _xhUpIdx;
+  _xhUpIdx = ((i % _xhUpList.length) + _xhUpList.length) % _xhUpList.length;
+  const track = xhEl("xhUpTrack");
+  if (track) {
+    const wrap = Math.abs(_xhUpIdx - prev) > 1;
+    if (wrap) track.style.transition = "none";
+    track.style.transform = "translateX(" + (-_xhUpIdx * 100) + "%)";
+    if (wrap) requestAnimationFrame(() => { track.style.transition = ""; });
+  }
+  const dots = xhEl("xhUpDots");
+  if (dots) [...dots.children].forEach((d, k) => d.classList.toggle("on", k === _xhUpIdx));
+}
+window.xhUpGo = xhUpGo;
+function xhTapUpdate() {
+  const u = _xhUpList[_xhUpIdx]; if (!u || !u.href) return;
+  const app = XH_APPS.find((a) => a.href === u.href);
+  xhOpenApp(app ? app.id : "", u.href);
 }
 
 /* ══════════════ ホームのアプリ棚 ══════════════ */
@@ -1373,6 +1498,8 @@ const XOS_IC = {
   disk: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="12" cy="6.4" rx="7.6" ry="3"/><path d="M4.4 6.4v11.2c0 1.7 3.4 3 7.6 3s7.6-1.3 7.6-3V6.4"/><path d="M4.4 12c0 1.7 3.4 3 7.6 3s7.6-1.3 7.6-3"/></svg>',
   info: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v5.4"/><circle cx="12" cy="7.9" r="1.15" fill="currentColor" stroke="none"/></svg>',
   net: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8.4a12 12 0 0116 0"/><path d="M7 12a8 8 0 0110 0"/><path d="M10 15.4a3.6 3.6 0 014 0"/><circle cx="12" cy="19" r="1.3" fill="currentColor"/></svg>',
+  /* ★★ 2026-08-29 同期（ぐるっと回る2本の矢印） */
+  sync: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20.2 12a8.2 8.2 0 01-13.9 5.9"/><path d="M3.8 12a8.2 8.2 0 0113.9-5.9"/><path d="M17.7 2.6v3.5h-3.5"/><path d="M6.3 21.4v-3.5h3.5"/></svg>',
   /* ★ 2026-08-24 キャラ画像の表示設定（人のかたち＋額ぶち） */
   chr: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.4" y="3.4" width="17.2" height="17.2" rx="3.4"/><circle cx="12" cy="10" r="2.8"/><path d="M6.8 18.2a5.6 5.6 0 0110.4 0"/></svg>',
 };
@@ -1434,6 +1561,13 @@ function xhPaintXos() {
     ${xosRow(XOS_IC.ai, "XEVYNAR をひらく",
       "学習プラン・タイマー・解説・MagiBurst の編成相談まで。",
       '<span class="rv">›</span>', "xhOpenApp('xevynar','XEVYNAR/index.html')")}
+
+    <div class="xh-sec-label">同期</div>
+    ${xosRow(XOS_IC.sync, "終了のしかたの注意を出す",
+      "XEVARION を開くたびに、<b>各アプリを終わるときは左上の🏠ホームボタンでホームへ戻る</b>ことを"
+      + "お知らせします。iPhone・iPad では、この戻りかたをしないと"
+      + "<b>進みぐあいがクラウドに届かないこと</b>があります。",
+      xosSw(g("syncWarn")), "xhXosToggle('syncWarn')")}
 
     <div class="xh-sec-label">通信・保存領域</div>
     ${xosRow(XOS_IC.net, "オフライン・通信設定",
@@ -2044,6 +2178,219 @@ function xhPaintInstallSteps() {
   const btn = xhEl("xhInstBtn");
   if (btn) btn.style.display = _xhInstallPrompt ? "" : "none";
 }
+/* ═══════════════════════════════════════════════════════════════
+   ★★ 2026-08-29 「終わるときはホームに戻る」の注意（ご指定）
+   ------------------------------------------------------------
+   Android ・PC では同期されているが、iPhone ・iPad では
+   いろいろなアプリで<b>進みぐあいがクラウドへ届かない</b>ことが起きている。
+   （iOS はホームに戻した瞬間にページを凍結するので、
+     送りかけの通信が切れる——beacon での送信はすでに入れてあるが、
+     それでも取りこぼすときがある）。
+   ★ なので<b>確実な終わらせかた</b>を、起動のたびに知らせる。
+     各アプリの<b>左上のホームボタン</b>で戻ると、その場で同期が走る。
+   ★ 設定（Xevion OS の syncWarn）で<b>非表示にできる</b>。
+   ★ 出すのは<b>ホームを開いた最初の1回だけ</b>（セッションに1回）。
+     アプリを行き来するたびに出すと、遠ざけて逆に読まなくなる。
+   ═══════════════════════════════════════════════════════════════ */
+let _xhSyncWarnShown = false;
+function xhSyncWarnOn() {
+  try { return !window.XOS || !!XOS.get("syncWarn"); } catch (e) { return true; }
+}
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-08-29 スケジュール（ご指定）
+   ------------------------------------------------------------
+   ガチャの日程・開催中のイベントの日程を、<b>月ごとのカレンダー</b>で見られるようにする。
+   置き場所はホーム上部の <b>📧メール と 🤖AI のあいだ</b>。
+
+   ★ 台帳は<b>増やさない</b>。予定は
+       ・XH_EVENTS（ポータルの「開催中のイベント」＝ここが唯一の台帳）
+     から作る。新しいフェス・イベントを足すときは、これまでどおり XH_EVENTS に
+     1行足すだけで<b>カレンダーにも自動で出る</b>。
+   ★ 毎月まわってくるガチャ（極彩祭・極華祭・極煌祭・戦姫祭）は
+     from / to が「2027年まで」のように広く取ってあるので、そのまま描くと
+     <b>1年じゅう毎日が埋まって</b>しまう。そこで XH_EVENTS 側に
+       monthly: [開始日, 終了日]   … 毎月その日にちのあいだだけ
+       always:  true              … いつでも開催（常設）
+     を書けるようにした。書いていないものはこれまでどおり from / to で見る。
+     ★ monthly の終了日は 31 と書いてよい（その月の末日までになる）。
+   ★ 日付は<b>ローカル日付</b>で見る（toISOString は UTC なので日本は9時間ずれる）。
+   ══════════════════════════════════════════════════════════════ */
+const XH_SCHED_C = {
+  "FES": "#8e4fe0", "STAR FES": "#f0b429", "SUMMER FES": "#1d8fd8", "COZY FES": "#e8a06a",
+  "LEGEND FES": "#8e4fe0", "GRAND DEBUT": "#ff4d6d", "SENKI FES": "#e0405e",
+  "NEW": "#22b07a", "CAMPAIGN": "#ff9d2e", "RANKING": "#4b8bff",
+  "GOLD RUSH": "#e8a400", "COMING SOON": "#8e96b4",
+};
+function xhSchedColor(e) { return XH_SCHED_C[e.tag] || "#7b5cf0"; }
+/* いま見ている月（0 = 今月・-1 = 先月・+1 = 来月 …） */
+let _xhSchedOfs = 0;
+let _xhSchedPick = "";     /* えらんでいる日（"YYYY-MM-DD"）。空なら「きょう」 */
+
+function xhYmd(d) { return d.toLocaleDateString("sv-SE"); }
+function xhToday() { return xhYmd(new Date()); }
+/* その月の日数 */
+function xhDaysInMonth(y, m0) { return new Date(y, m0 + 1, 0).getDate(); }
+
+/* 予定の一覧（XH_EVENTS から作る。並びはホームの「開催中のイベント」と同じ新着順） */
+function xhSchedItems() {
+  /* ★★ 2026-08-29b hide:true の行はカレンダーにも出さない（ご指定） */
+  return XH_EVENTS.filter((e) => !e.hide).map((e) => ({
+    nm: e.t1, sub: e.t2 || "", tag: e.tag || "", href: e.href || "", img: e.img || "",
+    monthly: Array.isArray(e.monthly) ? e.monthly : null,
+    always: !!(e.always || (e.perm && !e.to)),
+    from: e.from || e.since || "", to: e.to || "",
+    c: xhSchedColor(e),
+  }));
+}
+/* その日にその予定が開催中か */
+function xhSchedOnDay(it, ymd) {
+  if (!ymd) return false;
+  if (it.always) return true;
+  if (it.monthly) {
+    /* 毎月まわるもの。from より前の日には出さない（まだ始まっていないので） */
+    if (it.from && ymd < it.from) return false;
+    const d = Number(ymd.slice(8, 10));
+    return d >= (it.monthly[0] | 0) && d <= (it.monthly[1] | 0);
+  }
+  if (it.from && ymd < it.from) return false;
+  if (it.to && ymd > it.to) return false;
+  return !!it.from;
+}
+/* その日に開催中の予定（色つきの帯を出すのに使う） */
+function xhSchedOf(ymd) { return xhSchedItems().filter((it) => xhSchedOnDay(it, ymd)); }
+/* その予定の「期間」の文（一覧に添える） */
+function xhSchedPeriod(it) {
+  if (it.always) return "常時開催";
+  if (it.monthly) {
+    return "毎月 " + it.monthly[0] + "日〜"
+      + (it.monthly[1] >= 31 ? "末日" : it.monthly[1] + "日");
+  }
+  const f = (s) => s ? Number(s.slice(5, 7)) + "/" + Number(s.slice(8, 10)) : "";
+  if (it.from && it.to) return f(it.from) + " 〜 " + f(it.to);
+  if (it.from) return f(it.from) + " 〜";
+  return "";
+}
+
+function xhOpenSched() {
+  _xhSchedOfs = 0;
+  _xhSchedPick = "";
+  xhPaintSched();
+  xhOpenSheet("xhSchedSheet");
+}
+window.xhOpenSched = xhOpenSched;
+function xhSchedMove(n) {
+  _xhSchedOfs += n;
+  _xhSchedPick = "";     /* 月を動かしたら選択は「その月の1日」あつかいに戻す */
+  xhPaintSched();
+}
+window.xhSchedMove = xhSchedMove;
+function xhSchedPick(ymd) { _xhSchedPick = ymd; xhPaintSched(); }
+window.xhSchedPick = xhSchedPick;
+
+function xhPaintSched() {
+  const box = xhEl("xhSchedBody"); if (!box) return;
+  const now = new Date();
+  const base = new Date(now.getFullYear(), now.getMonth() + _xhSchedOfs, 1);
+  const y = base.getFullYear(), m0 = base.getMonth();
+  const days = xhDaysInMonth(y, m0);
+  const lead = new Date(y, m0, 1).getDay();          /* 1日が何曜日か（0=日） */
+  const today = xhToday();
+  const inThisMonth = today.slice(0, 7) === xhYmd(base).slice(0, 7);
+  /* えらんでいる日。指定が無ければ「今月なら きょう／ほかの月なら 1日」 */
+  const pick = _xhSchedPick || (inThisMonth ? today : xhYmd(new Date(y, m0, 1)));
+
+  /* この月に1日でも顔を出す予定だけを下の一覧に出す */
+  const items = xhSchedItems().filter((it) => {
+    for (let d = 1; d <= days; d++) if (xhSchedOnDay(it, xhYmd(new Date(y, m0, d)))) return true;
+    return false;
+  });
+
+  /* ── カレンダーのマス ── */
+  const cells = [];
+  for (let i = 0; i < lead; i++) cells.push('<div class="xh-cal-c pad"></div>');
+  for (let d = 1; d <= days; d++) {
+    const ymd = xhYmd(new Date(y, m0, d));
+    const on = xhSchedOf(ymd);
+    const dow = new Date(y, m0, d).getDay();
+    const cls = ["xh-cal-c"];
+    if (ymd === today) cls.push("today");
+    if (ymd === pick) cls.push("sel");
+    if (dow === 0) cls.push("sun");
+    if (dow === 6) cls.push("sat");
+    /* 帯は最大4本まで。それ以上は「＋N」で畳む */
+    const bars = on.slice(0, 4).map((it) => '<i style="background:' + it.c + '"></i>').join("");
+    cls.push(on.length ? "has" : "none");
+    cells.push('<button class="' + cls.join(" ") + '" onclick="xhSchedPick(\'' + ymd + '\')">'
+      + '<span class="d">' + d + "</span>"
+      + '<span class="bars">' + bars + (on.length > 4 ? '<em>+' + (on.length - 4) + "</em>" : "") + "</span>"
+      + "</button>");
+  }
+
+  /* ── えらんだ日の予定 ── */
+  const pickOn = xhSchedOf(pick);
+  const pickTx = Number(pick.slice(5, 7)) + "月" + Number(pick.slice(8, 10)) + "日"
+    + "（" + "日月火水木金土".charAt(new Date(pick + "T00:00:00").getDay()) + "）"
+    + (pick === today ? " ・ きょう" : "");
+
+  const row = (it, cur) => '<a class="xh-schrow' + (cur ? " on" : "") + '" href="' + xhEscape(it.href || "#") + '">'
+    + '<span class="bar" style="background:' + it.c + '"></span>'
+    + '<span class="tx"><b>' + xhEscape(it.nm) + "</b>"
+    + '<span class="pd">' + xhEscape(xhSchedPeriod(it)) + "</span>"
+    + (it.sub ? '<span class="sb">' + xhEscape(it.sub) + "</span>" : "")
+    + "</span>"
+    + '<span class="go">›</span></a>';
+
+  box.innerHTML = ''
+    + '<div class="xh-calhd">'
+    +   '<button class="mv" onclick="xhSchedMove(-1)" aria-label="前の月">‹</button>'
+    +   '<div class="mt">' + y + "年 " + (m0 + 1) + "月"
+    +     (_xhSchedOfs ? '<button class="tdy" onclick="xhSchedMove(' + (-_xhSchedOfs) + ')">きょうへ</button>' : "")
+    +   "</div>"
+    +   '<button class="mv" onclick="xhSchedMove(1)" aria-label="次の月">›</button>'
+    + "</div>"
+    + '<div class="xh-calw">' + ["日", "月", "火", "水", "木", "金", "土"]
+        .map((w, i) => '<span class="' + (i === 0 ? "sun" : i === 6 ? "sat" : "") + '">' + w + "</span>").join("")
+    + "</div>"
+    + '<div class="xh-cal">' + cells.join("") + "</div>"
+    + '<div class="xh-sec-label">' + xhEscape(pickTx) + " の予定</div>"
+    + (pickOn.length
+        ? '<div class="xh-schlist">' + pickOn.map((it) => row(it, true)).join("") + "</div>"
+        : '<div class="xh-schnone">この日に開催しているものはありません。</div>')
+    + '<div class="xh-sec-label">' + (m0 + 1) + "月にある予定（" + items.length + "件）</div>"
+    + (items.length
+        ? '<div class="xh-schlist">' + items.map((it) => row(it, false)).join("") + "</div>"
+        : '<div class="xh-schnone">この月の予定はまだありません。</div>')
+    + '<p class="xos-note">★ 毎月まわってくるガチャ（極彩祭・極華祭・極煌祭）は、'
+    +   'その月の決まった日にちに自動で入れ替わります。戦姫祭は<b>常時開催</b>です。<br>'
+    +   '★ 日付はこの端末の時計で見ています。</p>';
+}
+
+function xhOpenSyncWarn(force) {
+  if (!force) {
+    if (_xhSyncWarnShown) return;
+    if (!xhSyncWarnOn()) return;
+    _xhSyncWarnShown = true;
+  }
+  const box = xhEl("xhSyncWarnWho");
+  if (box) {
+    box.innerHTML = xhIsIOS()
+      ? "この端末は <b>iPhone / iPad</b> です。<b>とくにこの戻りかたが必要</b>です。"
+      : "この端末（Android・PC）では自動でも同期されますが、"
+        + "<b>この戻りかたがいちばん確実</b>です。";
+  }
+  xhOpenSheet("xhSyncWarnSheet");
+}
+window.xhOpenSyncWarn = xhOpenSyncWarn;
+function xhCloseSyncWarn() { xhCloseSheet("xhSyncWarnSheet"); }
+window.xhCloseSyncWarn = xhCloseSyncWarn;
+/* 「今後は表示しない」＝ Xevion OS の設定を切る（設定からいつでも戻せる） */
+function xhSyncWarnOff() {
+  try { if (window.XOS) XOS.set("syncWarn", 0); } catch (e) {}
+  xhCloseSyncWarn();
+  try { xhToast("🔕 終了のしかたの注意を出さないようにしました<br><span style='font-size:11px;font-weight:700;color:#6f82ad'>設定 › Xevion OS › 同期 からいつでも戻せます</span>", 3400); } catch (e) {}
+}
+window.xhSyncWarnOff = xhSyncWarnOff;
+
 function xhOpenInstallHint(force) {
   if (!force) {
     if (xhIsInstalled()) return;
@@ -3893,19 +4240,25 @@ window.xhAiMic = xhAiMic;
 if (document.body) xhTimerLoad();
 else document.addEventListener("DOMContentLoaded", xhTimerLoad, { once: true });
 
-/* ══════════════ スワイプ（イベントバナー） ══════════════ */
-function xhBindSwipe() {
-  const ev = xhEl("xhEvent"); if (!ev) return;
+/* ══════════════ スワイプ（イベントバナー／アップデート情報） ══════════════
+   ★★ 2026-08-29b 2本になったので、<b>1つの関数で両方をつなぐ</b>形にした。
+     以前のように片方だけ書いていると、もう1本を足したときに必ず付け忘れる。 */
+function xhBindSwipeOn(boxId, go, idxOf, tap) {
+  const ev = xhEl(boxId); if (!ev) return;
   let x0 = 0, y0 = 0, on = false, moved = false;
   ev.addEventListener("touchstart", (e) => { const t = e.touches[0]; x0 = t.clientX; y0 = t.clientY; on = true; moved = false; }, { passive: true });
   ev.addEventListener("touchmove", () => { moved = true; }, { passive: true });
   ev.addEventListener("touchend", (e) => {
     if (!on) return; on = false;
     const t = e.changedTouches[0], dx = t.clientX - x0, dy = t.clientY - y0;
-    if (moved && Math.abs(dx) > 36 && Math.abs(dx) > Math.abs(dy)) xhEvGo(_xhEvIdx + (dx < 0 ? 1 : -1));
-    else if (Math.abs(dx) < 12 && Math.abs(dy) < 12) xhTapEvent();
+    if (moved && Math.abs(dx) > 36 && Math.abs(dx) > Math.abs(dy)) go(idxOf() + (dx < 0 ? 1 : -1));
+    else if (Math.abs(dx) < 12 && Math.abs(dy) < 12) tap();
   }, { passive: true });
-  ev.addEventListener("click", (e) => { if (!("ontouchstart" in window)) xhTapEvent(); });
+  ev.addEventListener("click", () => { if (!("ontouchstart" in window)) tap(); });
+}
+function xhBindSwipe() {
+  xhBindSwipeOn("xhEvent", xhEvGo, () => _xhEvIdx, xhTapEvent);
+  xhBindSwipeOn("xhUpdate", xhUpGo, () => _xhUpIdx, xhTapUpdate);
 }
 
 /* ══════════════ 画面のちらつき防止 ══════════════
@@ -3947,10 +4300,15 @@ function xhShow() {
     _xhShown = true;
     xhStartStars();
     xhRenderEvents();
+    xhRenderUpdates();
     xhBindSwipe();
     xhWatchBadges();
+    /* ★★ 2026-08-29 起動のたび「終わるときはホームに戻る」を知らせる（ご指定）。
+       ★ インストール案内と<b>同じタイミングに出さない</b>（シートが重なる）。
+         こちらを先に出し、インストール案内はそのあとへずらす。 */
+    setTimeout(() => { try { xhOpenSyncWarn(false); } catch (e) {} }, 900);
     /* 初回だけ「アプリとして入れられます」を案内（インストール済みなら出さない） */
-    setTimeout(() => { try { xhOpenInstallHint(false); } catch (e) {} }, 1800);
+    setTimeout(() => { try { if (!xhEl("xhSyncWarnSheet") || !xhEl("xhSyncWarnSheet").classList.contains("on")) xhOpenInstallHint(false); } catch (e) {} }, 4200);
     /* ★ 更新の確認が先。保留の更新があるときは自動ダウンロードせず、
        「サイズと更新内容を見せて → 同意 → ダウンロード」の順にする。 */
     setTimeout(() => {

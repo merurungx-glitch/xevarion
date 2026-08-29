@@ -16,10 +16,12 @@
 /* いま見ているガチャ。"premium" か FESTS のキー
    ★ 2026-08-11 既定は<b>いちばん新しいキャラが引けるガチャ</b>（mb-core の newestGachaMode）。
      新キャラを足したら、開いた瞬間にそのバナーが出る。 */
+/* ★★ 2026-08-29 ご指定により、最初に開くのは<b>開催中の 極彩祭・極華祭・極煌祭</b>。
+   開催中のものが無いときだけ「いちばん新しいキャラが引けるガチャ」に落ちる（firstGachaMode）。 */
 let gMode = (function () {
   /* この画面では mb-boot.js が先に DB を作っているので、ここで決めてよい。
      それでも念のため、失敗したらプレミアムに落とす。 */
-  try { return newestGachaMode(); } catch (e) { return "premium"; }
+  try { return firstGachaMode(); } catch (e) { return "premium"; }
 })();
 
 /* MagiBurst から「?#fes2」のように飛んでくることがある（バナーを押したときなど）。
@@ -62,6 +64,8 @@ window.toggleMenu = toggleMenu;
 function pickMode(k) {
   gMode = k;
   $("#gmenu").classList.remove("on");
+  /* ★★ 2026-08-29 押したガチャの NEW マークは、その場で消す（次の更新まで出ない） */
+  try { markGachaSeen(k); } catch (e) {}
   paintAll();
   window.scrollTo(0, 0);
 }
@@ -90,10 +94,13 @@ function modeDef(k) {
              : "封入されたキャラクターがまだいません" };
   }
   const f = fesDef(k);
+  /* ★★ 2026-08-29 極彩祭・極華祭・極煌祭・戦姫祭は<b>🎫フェス券が使えない</b>ので、
+     ここの1行にもそう書く（gachaMenuList の sub とそろえること）。 */
   return { nm: f.nm, ic: "✦", c: f.c, soon: fesLocked(k),
     sub: fesLocked(k) ? fesOpenText(f)
       : (fesTimed(f) ? "フェス限定SSR・🎫チケット優先／あと" + fesDaysLeft(k) + "日"
-                     : "限定キャラクター・🎫チケット優先") };
+        : (f.noFesTicket ? "限定キャラクター・🎫ガチャ券のみ"
+                         : "限定キャラクター・🎫チケット優先")) };
 }
 
 function paintPicker() {
@@ -102,14 +109,20 @@ function paintPicker() {
   $("#gpSub").textContent = d.sub;
   $("#gpIcon").textContent = d.ic;
   $("#gpIcon").style.background = "linear-gradient(135deg," + d.c + ",#ff6f91)";
-  /* 一覧は mb-core の gachaMenuList（ガチャが増えても自動でここに出る） */
-  $("#gmenu").innerHTML = gachaMenuList().map((m) => {
+  /* 一覧は mb-core の gachaMenuList（ガチャが増えても自動でここに出る）
+     ★★ 2026-08-29 更新されてからまだ一度も開いていないガチャには <b>NEW</b> を付ける。 */
+  const list = gachaMenuList();
+  $("#gmenu").innerHTML = list.map((m) => {
     const on = m.k === gMode;
     return `<button class="gmi ${on ? "on" : ""} ${m.soon ? "soon" : ""}" onclick="pickMode('${m.k}')">
       <span class="gmdot" style="background:${m.c}"></span>
-      <span style="flex:1;min-width:0"><b>${m.nm}</b><span>${m.sub}</span></span>
+      <span style="flex:1;min-width:0"><b>${m.nm}${m.isNew ? '<i class="gmnew">NEW</i>' : ""}</b><span>${m.sub}</span></span>
       ${on ? '<span style="color:#7b5cf0;font-weight:900">✓</span>' : ""}</button>`;
   }).join("");
+  /* ★ 一覧を開くボタンにも「NEW が何本あるか」を出す（開かないと気づけないため） */
+  const nNew = list.filter((m) => m.isNew && m.k !== gMode).length;
+  const bd = $("#gpNew");
+  if (bd) { bd.textContent = nNew ? "NEW " + nNew : ""; bd.style.display = nNew ? "" : "none"; }
 }
 
 /* ══════════ バナー ══════════ */
@@ -424,7 +437,13 @@ window.closeRes = closeRes;
 function paintNote() {
   const s4 = STAR4_POOL.length;
   /* 🎫の案内。★ 2026-08-13 チケットは2種類になった（フェス専用／全ガチャ共通） */
-  const tktLine = (gMode === "premium" || isDebutMode(gMode))
+  /* ★★ 2026-08-29 極彩祭・極華祭・極煌祭・戦姫祭は<b>フェスガチャではない</b>ので
+     🎫フェス券が使えない（ご指定）。案内文も支払いと同じ fesTicketOK を見て出し分ける。 */
+  const tktLine = (isFesMode(gMode) && !fesTicketOK(gMode))
+    ? `🎫 <b>ガチャチケット</b>を持っているときは<b>チケットから先に</b>使います（1枚＝1回ぶん）。
+       足りない分だけ<i class='icc ic-gem'></i>ジェムを消費します。
+       <b>フェスチケットはここでは使えません</b>——このガチャは<b>フェスガチャではなく、限定キャラクターのガチャ</b>だからです。`
+    : (gMode === "premium" || isDebutMode(gMode))
     ? `🎫 <b>ガチャチケット</b>を持っているときは<b>チケットから先に</b>使います（1枚＝1回ぶん）。
        足りない分だけ<i class='icc ic-gem'></i>ジェムを消費します。
        <b>フェスチケットはここでは使えません</b>（フェスガチャ専用です）。`
@@ -505,12 +524,16 @@ function paintPullBar() {
   /* ★ 2026-08-20 フェス券を使ってよいのは<b>フェスのときだけ</b>。
      GRAND DEBUT ではご指定どおりフェス券を使わない（gachaCost/payGacha に fes=false を渡す）。
      ここを `gMode !== "premium"` のままにすると、GRAND DEBUT でフェス券が減ってしまう。 */
-  const fes = isFesMode(gMode);
+  /* ★★ 2026-08-29 「フェスの画面かどうか」と「フェス券が使えるかどうか」は<b>別</b>。
+     極彩祭・極華祭・極煌祭・戦姫祭はフェスの画面だが<b>フェス券は使えない</b>（ご指定）。
+     ここを1つの変数で兼ねると、券が使えないガチャで開催前の判定まで外れてしまう。 */
+  const isFes = isFesMode(gMode);
+  const fes = isFes && fesTicketOK(gMode);
   /* ★★ 2026-08-26 GRAND DEBUT がスタンバイ中（掲載中の版が無い）なら引けない */
   const dStandby = isDebutMode(gMode) && !debutVerOfMode(gMode);
   /* ★★ 2026-08-28 Festival Archive は「封入0体」のときだけ回せない */
   const arcEmpty = gMode === ARCHIVE_KEY && !archiveChars().length;
-  const locked = (fes && fesLocked(gMode)) || dStandby || arcEmpty;
+  const locked = (isFes && fesLocked(gMode)) || dStandby || arcEmpty;
   /* ★ 値段の見積もりは mb-core.js の gachaCost() ひとつに任せる
      （ここで計算し直すと、実際に払う payGacha と食いちがう）。
      消費の順は フェス券 → ガチャ券 → 💎ジェム。プレミアムではフェス券は使わない。 */
@@ -901,4 +924,8 @@ window.addEventListener("xeva:change", () => { paintWal(); paintPullBar(); });
 window.addEventListener("xeva:gem", () => { paintWal(); paintPullBar(); });
 window.addEventListener("xeva:ticket", () => { paintWal(); paintPullBar(); });
 window.addEventListener("xeva:festicket", () => { paintWal(); paintPullBar(); });
+/* ★★ 2026-08-29 最初に開いているガチャも「開いた」ものとして NEW を消す。
+   ★ 塗ったあとに消すこと。先に消すと、いま見ているガチャの NEW が
+     1回目の描画から出なくなる（気づかないうちに消えた、になる）。 */
 paintAll();
+try { if (markGachaSeen(gMode)) paintPicker(); } catch (e) {}

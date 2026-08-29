@@ -156,3 +156,23 @@ body.xos-dark .xos-info{background:#1a2135;border-color:rgba(150,180,255,.16)}
 .xos-info dt{font-size:11px;font-weight:800;color:var(--xh-sub);white-space:nowrap}
 .xos-info dd{margin:0;font-size:11.5px;font-weight:800;color:var(--xh-ink);text-align:right;word-break:break-all}
 .xos-note{font-size:10.5px;font-weight:700;line-height:1.8;color:var(--xh-sub);margin:9px 2px 0}
+
+/* ══ ★★ 2026-08-29 同期の注意シート（ダーク） ══
+   明るいほうは xevarion-home.css にある。ここでは色だけ差し替える。 */
+body.xos-dark .xh-syncwarn .sw-lead{
+  background:linear-gradient(120deg,#182338,#152b26);border-color:rgba(150,180,255,.2)}
+body.xos-dark .xh-syncwarn .sw-lead b{color:#8fb6ff}
+body.xos-dark .xh-syncwarn .sw-steps .st{background:#1a2135;border-color:rgba(150,180,255,.16)}
+body.xos-dark .xh-syncwarn .sw-steps .x b{color:#5fe0a8}
+body.xos-dark .xh-syncwarn .sw-bad{
+  background:linear-gradient(120deg,#2a1622,#2a1518);border-color:rgba(226,90,120,.34);color:#ffc4d2}
+body.xos-dark .xh-syncwarn .sw-bad b{color:#ff8fa6}
+
+/* ══ ★★ 2026-08-29 スケジュールのカレンダー（ダーク）══ */
+body.xos-dark .xh-calhd .mv{background:#1a2135;border-color:rgba(150,180,255,.18)}
+body.xos-dark .xh-cal-c{background:#1a2135;border-color:rgba(150,180,255,.16)}
+body.xos-dark .xh-cal-c.sun .d{color:#ff8fa6}
+body.xos-dark .xh-cal-c.sat .d{color:#8fb6ff}
+body.xos-dark .xh-schrow{background:#1a2135;border-color:rgba(150,180,255,.16)}
+body.xos-dark .xh-schrow.on{background:linear-gradient(120deg,#1d2740,#241f3d);border-color:rgba(120,150,255,.4)}
+body.xos-dark .xh-schnone{background:rgba(150,180,255,.07);border-color:rgba(150,180,255,.24)}

@@ -737,6 +737,17 @@
     { id: "mb:miko", mbId: "miko", name:"ミコ", file: "../img/t_Miko.webp", since:"2026-08-28" },
     /* ★★ 2026-08-28 極華祭（毎月11〜20日）の限定SSR（No.174）。 */
     { id: "mb:kotori", mbId: "kotori", name:"コトリ", file: "../img/t_Kotori.webp", since:"2026-08-28" },
+    /* ★★ 2026-08-29 極煌祭（毎月21日〜末日）の限定SSR レイナ（No.175）。 */
+    { id: "mb:reina", mbId: "reina", name:"レイナ", file: "../img/t_Reina.webp", since:"2026-08-29" },
+    /* ★★ 2026-08-29 戦姫祭（常時開催）の限定SSR 6体（No.176〜181）。
+       ★ ラン／ユウカ／アンナは<b>すでにいる同名のキャラとは別人</b>なので、
+         mbId も画像も別（rans / yuukas / annas）。ここを既存の id にすると絵が入れかわる。 */
+    { id: "mb:rans", mbId: "rans", name:"ラン", file: "../img/t_RanS.webp", since:"2026-08-29" },
+    { id: "mb:kurenai", mbId: "kurenai", name:"クレナイ", file: "../img/t_Kurenai.webp", since:"2026-08-29" },
+    { id: "mb:yuki", mbId: "yuki", name:"ユキ", file: "../img/t_Yuki.webp", since:"2026-08-29" },
+    { id: "mb:marika", mbId: "marika", name:"マリカ", file: "../img/t_Marika.webp", since:"2026-08-29" },
+    { id: "mb:yuukas", mbId: "yuukas", name:"ユウカ", file: "../img/t_YuukaS.webp", since:"2026-08-29" },
+    { id: "mb:annas", mbId: "annas", name:"アンナ", file: "../img/t_AnnaS.webp", since:"2026-08-29" },
   ];
   /* ★ 2026-08-10 初期SR 4体（ゼラ・アヤメ・レイラ・セリーヌ）は廃止しました。
      いまは<b>全キャラがアイコンに選べる</b>ので、starter という区別そのものが要らない。 */
@@ -789,7 +800,11 @@
      ここに無いと <b>XEVAミッションの図鑑コレクションに出てこない</b>。 */
   , "yuika", "misuzu", "kazane", "kokoa", "nodoka"
   , "yua", "shiori", "rena", "ryouka", "miko"
-  , "kotori"];
+  , "kotori"
+  /* ★★ 2026-08-29 極煌祭のレイナ／戦姫祭の6体。
+     ここに無いと <b>XEVAミッションの図鑑コレクションに出てこない</b>。 */
+  , "reina"
+  , "rans", "kurenai", "yuki", "marika", "yuukas", "annas"];
   MB_CHAR_MASTER.forEach(function (c) { c.mb = true; c.starter = MB_STARTERS.indexOf(c.mbId) >= 0; });
   MB_CHAR_MASTER.forEach(function (c) { c.star5 = MB_STAR5.indexOf(c.mbId) >= 0; });
   /* id は "mb:zera" のように接頭辞つき。XEVAガチャにも同じ名前のキャラ（シオンなど）が
@@ -1654,6 +1669,53 @@
       }, { passive: false, capture: true });
       document.addEventListener("dragstart", function (e) {
         if (isArt(e.target)) e.preventDefault();
+      }, { passive: false, capture: true });
+    } catch (e) {}
+  })();
+
+  /* ══════════════════════════════════════════════════════════════
+     ★★ 2026-08-29 ダブルタップで画面が拡大されないようにする（ご指定）
+     ──────────────────────────────────────────────
+     iPhone/Android は<b>すばやく2回タップ</b>すると画面を拡大する。
+     ガチャの「もう1回引く」やホームのタブのように<b>同じ場所を続けて押す</b>作りだと、
+     ふつうに遊んでいるだけで勝手に拡大されてしまう（戻すにはピンチが要る）。
+     ★ 直しかたは <b>touch-action: manipulation</b> ——
+       <b>ダブルタップ拡大だけ</b>を止め、スクロールもピンチ拡大も残す。
+       viewport に maximum-scale=1 と書く手もあるが、それだと<b>ピンチまで奪う</b>ので採らない
+       （2026-08-26 に文字の大きさで直したときの決めごとと同じ）。
+     ★ <b>xeva.js は全アプリが読む</b>ので、ここに1本だけ置く
+       （2026-08-24 の決めごと: 全アプリに効かせるものは xeva.js）。
+     ★ 差しこむ <style> は <b>head のいちばん先頭</b>へ入れる。
+       `*{}` は詳細度が0なので、あとから読まれるページ側の指定
+       （MagiBurst の盤面キャンバス `touch-action:none` など）が必ず勝つ。
+     ★ touchend を preventDefault する直しかたは<b>採らない</b>——
+       クリックそのものが飛ばなくなり、連打できるボタンが押せなくなる。
+     ══════════════════════════════════════════════════════════════ */
+  (function () {
+    if (window.__xevaNoDblTapZoom) return;
+    window.__xevaNoDblTapZoom = true;
+    var CSS2 = "*{touch-action:manipulation}";
+    function addCss2() {
+      try {
+        if (document.getElementById("xevaNoDblTapCss")) return;
+        var h = document.head || document.documentElement;
+        if (!h) return;
+        var st = document.createElement("style");
+        st.id = "xevaNoDblTapCss";
+        st.textContent = CSS2;
+        h.insertBefore(st, h.firstChild);   /* ★ 先頭＝いちばん弱い（ページ側が勝つ） */
+      } catch (e) {}
+    }
+    addCss2();
+    if (!document.head) {
+      try { document.addEventListener("DOMContentLoaded", addCss2, { once: true }); } catch (e) {}
+    }
+    /* PC のダブルクリックで文字が選ばれるのも、ゲーム画面では要らない */
+    try {
+      document.addEventListener("dblclick", function (e) {
+        var t = e.target;
+        if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return;
+        e.preventDefault();
       }, { passive: false, capture: true });
     } catch (e) {}
   })();

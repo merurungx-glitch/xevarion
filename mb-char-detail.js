@@ -168,6 +168,12 @@ function openDetX(id) {
         <span class="dchip">${c.type}</span>
         <span class="dchip">${own ? "所持済み" : "未所持"}</span>
       </div>
+      ${/* ★★ 2026-08-29b <b>入手方法</b>（ご指定: ガチャの名前まで書く）。
+            中身は mb-core.js の charSourceList()——FESTS / DEBUT_VERSIONS /
+            PREMIUM_CHARS / RAIDS から機械的に組み立てるので、
+            キャラを足してもここに書き足す必要はない。 */""}
+      <div class="dsec"><div class="t">入手方法</div>
+        <div class="ddesc">${(typeof charSourceList === "function" ? charSourceList(id) : []).join("<br>")}</div></div>
       ${/* ★ 2026-08-12d 数字のうち<b>アーク強化で増えたぶん</b>を「＋◯◯」で添える（arcPlus は mb-core.js）
             ★ 2026-08-15 数字のうしろではなく<b>下の専用行</b>へ。
               くっつけていたころは、アークを振った項目だけ中の要素が増えて
@@ -235,10 +241,12 @@ function openDetX(id) {
       <div class="dsec"><div class="t">フルバースト<span class="turn">${fbTurnsText(c)}ターン</span></div>
         <div class="dsk">${c.ssName}</div>
         <div class="dpow">${c.ssPow || ""}</div>
-        <div class="ddesc">${c.ssDesc || ""}
-          <br><small>★ <b>2段階目</b>：さらに<b>${FB2_EXTRA}ターン</b>ためて撃つと、
+        ${/* ★★ 2026-08-29b フルバーストの2段階目は<b>いったん取り下げ</b>（ベータ版だったため）。
+              スイッチ（mb-core.js の FB2_ON）を true に戻すとこの案内も戻る。 */""}
+        <div class="ddesc">${c.ssDesc || ""}${(typeof FB2_ON !== "undefined" && FB2_ON)
+          ? `<br><small>★ <b>2段階目</b>：さらに<b>${FB2_EXTRA}ターン</b>ためて撃つと、
           威力が<b>×${FB2_MUL}</b>になり、自強化の持続も<b>+${FB2_BUFF_TURNS}ターン</b>のびます
-          （＝<b>${c.ssTurns}＋${FB2_EXTRA}</b> ターン目）。</small></div></div>
+          （＝<b>${c.ssTurns}＋${FB2_EXTRA}</b> ターン目）。</small>` : ""}</div></div>
 
       <div class="dsec"><div class="t">リンクスキル</div>
         <div class="dsk">${fsIcon(c.fsGlyph || c.fsKind, false, "#7b5cf0", 18)} ${c.fsName}</div>
