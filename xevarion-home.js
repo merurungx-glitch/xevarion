@@ -74,9 +74,10 @@ const XH_APPS = [
   { id:"magimanor", name:"MagiManor", sub:"探索ホラー", cat:"game", tone:"violet",
     href:"MagiManor/index.html", img:"thumbs/MagiManor.jpg",
     desc:"不気味な洋館からの脱出を目指す2D探索ホラーADV。謎解き・追跡者・恐怖ゲージ、6種類の結末。最大4人の共鳴探索も。" },
-  { id:"magidiamond", name:"Diamond", full:"MagiDiamond", sub:"読み合い野球盤", cat:"game", tone:"red",
+  /* ★★ 2026-08-30 大幅リニューアル。開くと最新版・過去版をえらべる（ご指定）。 */
+  { id:"magidiamond", name:"Diamond", full:"MagiDiamond", sub:"キャラクター野球", cat:"game", tone:"red",
     href:"MagiDiamond/index.html", img:"thumbs/MagiDiamond.jpg",
-    desc:"配球と狙いをこっそり決めて同時公開する読み合い野球盤。2〜6人の役割分担、CPU、2台オンライン対戦。" },
+    desc:"集めたキャラクターで、野球を極めろ。XEVARION の SR・SSR 全キャラクターが選手になり、育成・チーム編成・チームスキル・野球盤の打球処理・オンライン対戦まで。過去版の「読み合い野球盤」もそのまま遊べます。" },
   { id:"xevynar", name:"XEVYNAR", sub:"学習AI", cat:"learn", tone:"violet",
     href:"XEVYNAR/index.html", img:"thumbs/XEVYNAR.jpg",
     desc:"XEVARION の学習AI。勉強のプラン・自由なタイマー・記録に加えて、わからない問題の解説、MagiLex の苦手問題づくり、MagiBurst の編成・攻略、XEVARION の各アプリの質問にも答えます。" },
@@ -154,20 +155,27 @@ const XH_ORDER_GEN_KEY = "xeva_home_order_gen";
      ずっと後ろ、という状態を防ぐため。
      ＝ 新しいイベントを足すときは<b>この配列のどこに書いてもよい</b>。 */
 const XH_EVENTS = [
+  /* ★★ 2026-08-30 GRAND DEBUT GACHA Ver.6.0（版ごとに10日間） */
+  { tag:"GRAND DEBUT", t1:"GRAND DEBUT GACHA Ver.6.0", t2:"新SSR 5体が参戦！ 蓬莱天宮の続き5クエストの最適解——Cozy Haven を超える性能",
+    since:"2026-08-30", from:"2026-08-30", to:"2026-09-09",
+    href:"gacha.html#debut:6.0", img:"thumbs/MagiBurst.jpg" },
   /* ★★ 2026-08-29 戦姫祭（常時開催の限定キャラガチャ）。
      ★ 期間で終わらないので always:true。カレンダーでは「常時開催」と出る。 */
-  { tag:"SENKI FES", t1:"戦姫祭", t2:"常時開催。限定SSR 6体——アビリティ10個・アンナは MagiBurst 史上最強",
+  { tag:"SENKI FES", t1:"戦姫祭", t2:"常時開催。限定SSR 7体——アビリティ10個・アンナ(祭) は MagiBurst 史上最強",
     /* ★ perm:true を書かないと xhEventsLive の 「to があるか perm」のふるいに引っかかり、
        「開催中のイベント」に<b>一切出ない</b>（実際そうなっていた）。
        always はスケジュールのカレンダー用、perm はホームの一覧用で<b>別の台帳</b>。 */
     always:true, perm:true, since:"2026-08-29", from:"2026-08-29", to:"",
     href:"gacha.html#fes11", img:"thumbs/MagiBurst.jpg" },
   /* ★★ 2026-08-28 極華祭（毎月11〜20日）。極彩祭＝上旬／極華祭＝中旬／極煌祭＝下旬。 */
-  { tag:"FES", t1:"極華祭", t2:"毎月11〜20日。限定SSR「コトリ」——バスケの乱打48連＋スラムダンクで史上最大の火力",
+  { tag:"FES", t1:"極華祭", t2:"常時開催（毎月11〜20日）。限定SSR「コトリ」——バスケの乱打48連＋スラムダンクで史上最大の火力",
     /* ★★ 2026-08-29 monthly を書くと、スケジュールのカレンダーに
        <b>その日にちのところだけ</b>出る（from/to は広く取ってあるので、
-       書かないと1年じゅう毎日埋まってしまう）。 */
-    monthly:[11,20],
+       書かないと1年じゅう毎日埋まってしまう）。
+       ★★ 2026-08-30 <b>perm:true</b>（ご指定）。回せる日は月で決まっているが、
+         ガチャとして<b>終わる期限は無い</b>ので「開催期間 8/28〜2027/12/31」ではなく
+         <b>常時開催（毎月11〜20日）</b>と出す。表示は xhRenderEvents が monthly を見て作る。 */
+    monthly:[11,20], perm:true,
     from:"2026-08-28", to:"2027-12-31", img:"thumbs/MagiBurst.jpg", href:"gacha.html#fes9" },
   /* ★★ 2026-08-28 Cozy Haven FEST（登場から30日／20日でアーカイブ入り） */
   { tag:"COZY FES", t1:"Cozy Haven FEST", t2:"限定SSR 5体が参戦！ 蓬莱天宮の続き5クエストをまるごと担当します",
@@ -184,11 +192,11 @@ const XH_EVENTS = [
   /* ★★ 2026-08-27 極彩祭（毎月1〜15日）・極煌祭（毎月16日〜末日）。
      ★ 毎月まるごと入れ替わるので、from / to は<b>広めに取っておく</b>
        （実際の開催判定は mb-core.js の monthly が行う）。 */
-  { tag:"FES", t1:"極彩祭", t2:"毎月1〜10日。限定SSR「ヒナノ」——敵の属性を塗り替えるリンクスキル",
-    monthly:[1,10],
+  { tag:"FES", t1:"極彩祭", t2:"常時開催（毎月1〜10日）。限定SSR「ヒナノ」——敵の属性を塗り替えるリンクスキル",
+    monthly:[1,10], perm:true,
     from:"2026-08-27", to:"2027-12-31", img:"thumbs/MagiBurst.jpg", href:"gacha.html#fes7" },
-  { tag:"FES", t1:"極煌祭", t2:"毎月21日〜末日。限定SSR「ムツミ」＋新登場「レイナ」——史上最大火力のフルバースト",
-    monthly:[21,31],
+  { tag:"FES", t1:"極煌祭", t2:"常時開催（毎月21日〜末日）。限定SSR「ムツミ」＋新登場「レイナ」——史上最大火力のフルバースト",
+    monthly:[21,31], perm:true,
     from:"2026-08-27", to:"2027-12-31", img:"thumbs/MagiBurst.jpg", href:"gacha.html#fes8" },
   /* ★★ 2026-08-26b GRAND DEBUT GACHA Ver.4.0。
      版ごとに10日間の決まりなので、Ver.2.0・Ver.3.0 とあわせて3本が同時に並ぶ。 */
@@ -277,6 +285,29 @@ const XH_EVENTS = [
    ══════════════════════════════════════════════════════════════ */
 const XH_UPDATE_MAX = 12;
 const XH_UPDATES = [
+  /* ★★ 2026-08-30 MagiDiamond 大幅リニューアル／MagiLex 地理・化学ε増量 */
+  { tag:"UPDATE", t1:"MagiDiamond を大幅リニューアル", at:"2026-08-30",
+    t2:"XEVARION の SR・SSR 全キャラクターが野球選手に。開いたときに最新版と過去版をえらべます",
+    href:"MagiDiamond/index.html", img:"thumbs/MagiDiamond.jpg" },
+  { tag:"NEW", t1:"MagiLex に「地理」を追加", at:"2026-08-30",
+    t2:"工業・人口・人口問題の17セット204問。教科書の太字の用語と図・表の数値から作りました",
+    href:"MagiLex/MagiLex.html", img:"thumbs/MagiLex.jpg" },
+  { tag:"UPDATE", t1:"MagiLex 化学εを480問に倍増", at:"2026-08-30",
+    t2:"20セット240問 → 40セット480問。分野ごとにまとまるよう並べ直しました",
+    href:"MagiLex/MagiLex.html", img:"thumbs/MagiLex.jpg" },
+  /* ★★ 2026-08-30 💠結晶／完凸後も排出／戦姫祭にアンナ(祭)／同名キャラの整理 */
+  { tag:"NEW", t1:"💠結晶と結晶交換所を追加", at:"2026-08-30",
+    t2:"PREMIUM SELECT のキャラは完凸しても排出され続けます。出たら結晶（SSR5個・SR1個）、75個で好きな1体と交換",
+    href:"gacha.html", img:"thumbs/MagiBurst.jpg" },
+  { tag:"UPDATE", t1:"戦姫祭に「アンナ(祭)」が登場", at:"2026-08-30",
+    t2:"MagiBurst 史上最強。闇属性の蓬莱3クエストを有利属性のまま完全対応します",
+    href:"gacha.html#fes11", img:"thumbs/MagiBurst.jpg" },
+  { tag:"UPDATE", t1:"同じ名前のキャラに区別を付けました", at:"2026-08-30",
+    t2:"アンナ(煌)／アンナ(STAR)／アンナ(祭)、ラン(祈)／ラン(焔)、ユウカ(黒)／ユウカ(聖)",
+    href:"characters.html", img:"thumbs/MagiBurst.jpg" },
+  { tag:"UPDATE", t1:"極彩祭・極華祭・極煌祭は「常時開催」表記に", at:"2026-08-30",
+    t2:"回せる日は月で決まっていますが、ガチャとして終わる期限はありません",
+    href:"gacha.html#fes7", img:"thumbs/MagiBurst.jpg" },
   /* ★★ 2026-08-29b 新作 Magi Arcana Rush（β版） */
   { tag:"NEW APP", t1:"新作『Magi: Arcana Rush』β版を公開", at:"2026-08-29",
     t2:"7属性の魔導アクションRPG。β版のため、開くたびにアクセスコードが必要です",
@@ -873,6 +904,171 @@ window.xhDoExchange = xhDoExchange;
 function xhOpenShop() { xhPaintShop(); xhOpenSheet("xhShopSheet"); }
 window.xhOpenShop = xhOpenShop;
 
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-08-30 💠結晶交換所（ご指定）
+   ------------------------------------------------------------
+   ・結晶は <b>PREMIUM SELECT GACHA のキャラが完凸（限界突破MAX）になったあとに
+     もう一度出たとき</b>にもらえる（SSR＝5個 ／ SR＝1個）。
+   ・<b>CRYST_EXCHANGE（75）個</b>で、PREMIUM SELECT / GRAND DEBUT の
+     <b>好きな1体</b>と交換できる。
+   ★ なぜホーム（XEVARION のショップ）に置くか
+     キャラは XEVARION 共通の持ちものなので、入口もポータル側にそろえる（ご指定）。
+   ★ なぜ mb-core.js を<b>あとから</b>読むか
+     「いまどのキャラが PREMIUM SELECT / GRAND DEBUT に居るのか」を知っているのは
+     mb-core.js だけ。ここに顔ぶれを書き写すと、キャラを足すたびに片方だけ古くなる。
+     ただし mb-core.js は 1.4MB あるので、<b>交換所を開いたときだけ</b>読む。
+     読む順番は gacha.html と同じ ① mb-boot.js → ② mb-core.js。
+   ══════════════════════════════════════════════════════════════ */
+const XH_CRYST_COST_FALLBACK = 75;        /* mb-core を読む前の表示用 */
+function xhCrystBal() {
+  try { return (window.XEVA && window.XEVA.cryst) ? window.XEVA.cryst.get() : 0; } catch (e) { return 0; }
+}
+function xhCrystCost() {
+  try { if (typeof CRYST_EXCHANGE !== "undefined") return CRYST_EXCHANGE; } catch (e) {}
+  return XH_CRYST_COST_FALLBACK;
+}
+function xhCrystIcon(px) {
+  const s = px || 18;
+  return '<img src="img/cryst.webp" alt="結晶" style="width:' + s + 'px;height:' + s
+       + 'px;vertical-align:-3px;object-fit:contain">';
+}
+/* mb-core.js（と土台の mb-boot.js）を、必要になったときだけ読む */
+let _xhMbLoading = null;
+function xhLoadScript(src) {
+  return new Promise((res, rej) => {
+    const s = document.createElement("script");
+    s.src = src; s.onload = () => res(); s.onerror = () => rej(new Error(src));
+    document.head.appendChild(s);
+  });
+}
+function xhMbReady() {
+  if (typeof CHARS !== "undefined" && typeof PREMIUM_CHARS !== "undefined") return Promise.resolve(true);
+  if (_xhMbLoading) return _xhMbLoading;
+  _xhMbLoading = xhLoadScript("mb-boot.js?v=9")
+    .then(() => xhLoadScript("MagiBurst/js/mb-core.js?v=65"))
+    .then(() => true)
+    .catch((e) => { _xhMbLoading = null; throw e; });
+  return _xhMbLoading;
+}
+/* 交換できる顔ぶれ＝PREMIUM SELECT のSSR ＋ 掲載中の GRAND DEBUT のSSR
+   ★ 掲載が終わった GRAND DEBUT のキャラは debutRefresh() が PREMIUM_CHARS へ移すので、
+     ここで足し直す必要はない（二重に出さないよう重複は取りのぞく）。 */
+function xhCrystPool() {
+  try {
+    if (typeof debutRefresh === "function") debutRefresh();
+    const seen = {}, out = [];
+    const push = (id) => { if (!seen[id] && CHARS[id]) { seen[id] = 1; out.push(id); } };
+    PREMIUM_CHARS.forEach(push);
+    if (typeof DEBUT_CHARS !== "undefined") DEBUT_CHARS.forEach(push);
+    return (typeof byCharNoDesc === "function") ? byCharNoDesc(out) : out;
+  } catch (e) { return []; }
+}
+let _xhCrystBusy = false;
+function xhOpenCryst() {
+  xhOpenSheet("xhCrystSheet");
+  const box = xhEl("xhCrystBody");
+  if (box) box.innerHTML = '<div class="xh-crload">キャラクターの一覧を読み込んでいます…</div>';
+  xhMbReady().then(() => xhPaintCryst())
+    .catch(() => { if (box) box.innerHTML = '<div class="xh-crload err">キャラクターの一覧を読み込めませんでした。通信を確かめて、もう一度お試しください。</div>'; });
+}
+function xhPaintCryst() {
+  const box = xhEl("xhCrystBody"); if (!box) return;
+  const bal = xhCrystBal(), cost = xhCrystCost();
+  const pool = xhCrystPool();
+  const can = bal >= cost;
+  const cards = pool.map((id) => {
+    const c = CHARS[id];
+    const own = !!(DB.chars && DB.chars[id]);
+    const awk = own ? Math.max(0, Math.min(MAX_AWK, DB.chars[id].awk || 0)) : 0;
+    const mx = awk >= MAX_AWK;
+    const debut = (typeof DEBUT_CHARS !== "undefined") && DEBUT_CHARS.indexOf(id) >= 0;
+    return '<button class="xh-crc' + (own ? "" : " noown") + (can ? "" : " poor") + '"' +
+      (can ? ' onclick="xhCrystExchange(\'' + id + '\')"' : " disabled") + '>' +
+      '<img src="' + c.th + '" alt="" loading="lazy">' +
+      (debut ? '<span class="xh-crnew">DEBUT</span>' : "") +
+      '<span class="xh-crno">' + (typeof charNoOf === "function" ? charNoOf(id) : "") + '</span>' +
+      '<span class="xh-crnm">' + c.nm + '</span>' +
+      '<span class="xh-crown ' + (mx ? "mx" : own ? "ok" : "no") + '">' +
+        (own ? (mx ? "👑 完凸" : "所持 +" + awk) : "未所持") + '</span></button>';
+  }).join("");
+  box.innerHTML =
+    '<div class="xh-crhead">' +
+      '<div class="xh-crbal">' + xhCrystIcon(26) + '<b>' + bal.toLocaleString() + '</b>' +
+        '<small>／ 1体 ' + cost + '個</small></div>' +
+      '<div class="xh-crsub">' + (can
+        ? 'あと <b>' + Math.floor(bal / cost) + ' 体</b>ぶん交換できます。カードを押すと確認画面が出ます。'
+        : 'あと <b>' + (cost - bal % cost) + ' 個</b>で1体と交換できます。') + '</div>' +
+    '</div>' +
+    '<div class="xh-crnote">' +
+      '💠<b>結晶</b>は、<b>PREMIUM SELECT GACHA のキャラクターが👑完凸になったあと</b>に' +
+      'もう一度出たときにもらえます（<b>SSR＝5個 ／ SR＝1個</b>）。<br>' +
+      '完凸したキャラクターも<b>排出され続ける</b>ので、引き続けるほど結晶がたまります。<br>' +
+      '<b>' + cost + '個</b>で、<b>PREMIUM SELECT GACHA</b>と<b>GRAND DEBUT GACHA</b>の' +
+      '<b>好きな1体</b>と交換できます。すでに持っているキャラを選ぶと<b>限界突破が進みます</b>。' +
+    '</div>' +
+    '<div class="xh-crgrid">' + cards + '</div>' +
+    '<div class="xh-exmsg" id="xhCrystMsg"></div>';
+}
+async function xhCrystExchange(id) {
+  if (_xhCrystBusy) return;
+  const msg = xhEl("xhCrystMsg");
+  const say = (t, ok) => { if (msg) { msg.innerHTML = t; msg.style.color = ok ? "#0e8a5c" : "#e0405e"; } };
+  const cost = xhCrystCost();
+  if (xhCrystBal() < cost) { say("結晶が足りません（必要 " + cost + "個）"); return; }
+  const c = CHARS[id]; if (!c) return;
+  const own = !!(DB.chars && DB.chars[id]);
+  const awk = own ? Math.max(0, Math.min(MAX_AWK, DB.chars[id].awk || 0)) : 0;
+  const mx = awk >= MAX_AWK;
+  const ok = await xhAsk({
+    icon: "💠", title: c.nm + " と交換", ok: "この1体と交換する", cancel: "やめる",
+    body: '<b>' + c.nm + '</b>（' + (typeof ELEM !== "undefined" ? ELEM[c.el].nm : "") + '属性・' +
+      (c.shot === "pierce" ? "貫通" : "反射") + '）と交換します。<br><br>' +
+      '💠結晶 <b>' + cost + '個</b> を使います（残り ' + (xhCrystBal() - cost) + '個）。<br>' +
+      (mx ? '※ このキャラクターは<b>すでに👑完凸</b>です。交換しても凸は進まず、' +
+            '<b>結晶が ' + (typeof CRYST_SSR !== "undefined" ? CRYST_SSR : 5) + '個もどってくる</b>だけになります。'
+          : own ? '※ すでに持っているので、<b>限界突破が +' + (awk + 1) + ' に進みます</b>。'
+                : '※ <b>はじめて</b>手に入れます。'),
+  });
+  if (!ok) { say("交換をとりやめました"); return; }
+  if (xhCrystBal() < cost) { say("結晶が足りません（必要 " + cost + "個）"); xhPaintCryst(); return; }
+  _xhCrystBusy = true;
+  try {
+    /* ★ 先に受け取ってから支払う。逆にすると、途中で失敗したときに
+       「結晶だけ消えてキャラが来ない」が起きる。 */
+    const r = grantChar(id);
+    if (typeof save === "function") save();
+    try { if (window.XEVA && window.XEVA.cryst) window.XEVA.cryst.spend(cost, "結晶交換所：" + c.nm); } catch (e) {}
+    if (typeof saveNow === "function") saveNow();
+    const got = r && r.max ? "💠結晶 +" + (r.cryst || 5) + "（すでに完凸のため）"
+      : r && r.fullAwk ? "👑 限界突破MAX！"
+      : r && r.awk ? "限界突破 +" + r.awk : "NEW！";
+    /* ★ 先に描き直してから書く。逆にすると、描き直しでメッセージ欄ごと作り直されて消える。 */
+    xhPaintCryst();
+    xhRenderCrystCard();
+    const m2 = xhEl("xhCrystMsg");
+    if (m2) { m2.innerHTML = "<b>" + c.nm + "</b> を受け取りました（" + got + "）"; m2.style.color = "#0e8a5c"; }
+  } finally { _xhCrystBusy = false; }
+}
+/* ホームのショップカードに残高を出す */
+function xhRenderCrystCard() {
+  const b = xhEl("xhCrystBal");
+  if (b) b.textContent = xhCrystBal().toLocaleString();
+  const s = xhEl("xhCrystSub");
+  if (s) {
+    const bal = xhCrystBal(), cost = xhCrystCost();
+    s.innerHTML = bal >= cost ? "<b>あと " + Math.floor(bal / cost) + " 体</b>ぶん交換できます"
+                              : "あと <b>" + (cost - bal % cost) + " 個</b>で1体と交換";
+  }
+}
+window.addEventListener("xeva:cryst", () => {
+  try { xhRenderCrystCard(); } catch (e) {}
+  try { const sh = xhEl("xhCrystSheet"); if (sh && sh.classList.contains("open")) xhPaintCryst(); } catch (e) {}
+});
+window.xhOpenCryst = xhOpenCryst;
+window.xhCrystExchange = xhCrystExchange;
+window.xhPaintCryst = xhPaintCryst;
+window.xhRenderCrystCard = xhRenderCrystCard;
+
 function xhPaintShop() {
   const box = xhEl("xhShopBody"); if (!box) return;
   const xeva = window.XEVA ? window.XEVA.getBalance() : 0;
@@ -916,6 +1112,13 @@ function xhPaintShop() {
     '</div>';
   }).join("");
   box.innerHTML =
+    /* ★★ 2026-08-30 💠結晶交換所（ご指定）。パックより先に出す。 */
+    '<button class="xh-crentry" onclick="xhCloseSheet(\'xhShopSheet\');xhOpenCryst()">' +
+      '<span class="xh-crei">' + xhCrystIcon(30) + '</span>' +
+      '<span class="xh-cret"><b>💠 結晶交換所</b>' +
+        '<small>結晶 <b>' + xhCrystCost() + '個</b>で PREMIUM SELECT / GRAND DEBUT の<b>好きな1体</b>と交換できます</small></span>' +
+      '<span class="xh-cren" id="xhCrystBal">' + xhCrystBal().toLocaleString() + '</span>' +
+    '</button>' +
     xhFxPanel() +
     '<div class="xh-sortnote">通常より<b>ずっとお得なレート</b>で💎ジェムを買えるパックです。' +
     '値段は<b>そのときのドル円</b>から決まるので、変換所と同じように毎日すこし動きます' +
@@ -1075,6 +1278,29 @@ function xhWatchBadges() {}
 /* 開催中のイベントを<b>新着順（新しいものが先）</b>で返す。
    ★ 並びの基準は since（無ければ from）。同じ日付のものは XH_EVENTS に
      書いた順のまま（安定ソート）。MagiBurst 側の eventsLive() と同じ考えかた。 */
+/* ══ ★★ 2026-08-30 毎月まわってくるガチャの期間表示（ご指定）══
+   極彩祭・極華祭・極煌祭は「回せる日は月で決まっているが、ガチャとして終わる期限は無い」。
+   そこで「開催期間 8/27〜2027/12/31」ではなく <b>常時開催（毎月◯〜◯日）</b> と出し、
+   いまがその日にちの中かどうかも添える。
+   ★ 終了日は 31 のように月末より大きい数を書いてよい（「末日」と出す）。
+   ★ 判定は<b>ローカル日付</b>で行う（toISOString は UTC なので日本は9時間ずれる）。 */
+function xhMonthlyText(m) {
+  if (!m || m.length < 2) return "開催中（常設）";
+  const a = m[0] | 0, b = m[1] | 0;
+  const now = new Date();
+  const last = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  const bb = Math.min(b, last);
+  const range = "毎月" + a + "〜" + (b >= 31 ? "末" : b) + "日";
+  const d = now.getDate();
+  let st;
+  if (d >= a && d <= bb) st = "いま開催中（" + bb + "日まで）";
+  else if (d < a) st = "次は " + (now.getMonth() + 1) + "/" + a + " から";
+  else {
+    const nm = now.getMonth() === 11 ? 1 : now.getMonth() + 2;
+    st = "次は " + nm + "/" + a + " から";
+  }
+  return "常時開催（" + range + "）・" + st;
+}
 function xhEventsLive() {
   const today = xhToday();
   const key = (e) => e.since || e.from || "";
@@ -1107,7 +1333,8 @@ function xhRenderEvents() {
         '<span class="evtag">' + xhEscape(tag) + "</span>" +
         '<div class="evt1">' + xhEscape(t1) + "</div>" +
         '<div class="evt2">' + xhEscape(t2) + "</div>" +
-        (e.perm ? '<div class="evt3">開催中（常設）</div>'
+        (e.monthly ? '<div class="evt3">' + xhMonthlyText(e.monthly) + "</div>"
+                : e.perm ? '<div class="evt3">開催中（常設）</div>'
                 : (!live && e.openAt) ? '<div class="evt3">' + xhEscape(xhOpenText(e.openAt)) + "</div>"
                 : e.to ? '<div class="evt3">開催期間 ' + xhEscape(e.from.slice(5).replace("-", "/")) + " 〜 " +
                 xhEscape(e.to.slice(5).replace("-", "/")) + "</div>" : "") +

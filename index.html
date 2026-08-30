@@ -23,14 +23,14 @@
 <!-- ★★ 2026-08-22b Xevion OS の見た目（テーマ・文字の大きさ・動きを減らす）。
      xevarion-home.css の<b>あと</b>に読む＝上書きできるようにする。 -->
 <link rel="stylesheet" href="xevion-os.css?v=7">
-<script src="xeva.js?v=49" defer></script>
+<script src="xeva.js?v=50" defer></script>
 <!-- ★ 2026-08-20 通信設定（Wi-Fi／モバイルデータごとに「最新を取りに行くか」を決める）。
      決めた内容はここから各アプリの Service Worker へ送られ、SW 側が動きを切り替える。 -->
 <script src="xeva-netmode.js?v=2" defer></script>
 <!-- ★ 2026-08-18 新キャラ告知の台帳（MagiBurst と共通）。
      告知を<b>ポータルのログイン時</b>に一本化したので、ここでも読む。
      defer なので xevarion.js より先に実行される（書いた順番で走る）。 -->
-<script src="mb-newchars.js?v=10" defer></script>
+<script src="mb-newchars.js?v=11" defer></script>
 <!-- ★★ 2026-08-22b Xevion OS（XEVARION の UI をひとつの OS として扱う土台）。
      ほかの画面より<b>先に</b>読む（body のクラスを立てるので、あとから読むと一瞬ちらつく）。 -->
 <script src="xevion-os.js?v=5"></script>
@@ -40,9 +40,9 @@
 <script type="module" src="xeva-sync.js?v=8"></script>
 <script type="module" src="xevarion-fb.js?v=22"></script>
 <script src="xeva-presence.js?v=1" defer></script>
-<script type="module" src="xeva-cloud.js?v=18"></script>
+<script type="module" src="xeva-cloud.js?v=19"></script>
 <script src="xevarion.js?v=71" defer></script>
-<script src="xevarion-home.js?v=63" defer></script>
+<script src="xevarion-home.js?v=69" defer></script>
 </head>
 <body>
 <!-- ───── バックグラウンド音楽（Flagship Arrival。アクセス画面のタップで再生開始） ───── -->
@@ -916,6 +916,56 @@ body.music-on #beatFrame{opacity:1}
   </div>
 </div>
 
+<!-- ───── 💠結晶交換所シート（★★ 2026-08-30）─────
+     キャラクターの一覧は mb-core.js が持っているので、開いたときに読み込む。 -->
+<div class="xh-sheet" id="xhCrystSheet" onclick="if(event.target===this)xhCloseSheet('xhCrystSheet')">
+  <div class="xh-sheet-card">
+    <div class="xh-sheet-head">
+      <div class="xh-sheet-title">💠 結晶交換所</div>
+      <button class="xh-sheet-x" onclick="xhCloseSheet('xhCrystSheet')">✕</button>
+    </div>
+    <div class="xh-sheet-body" id="xhCrystBody"></div>
+  </div>
+</div>
+<style>
+/* ★★ 2026-08-30 💠結晶交換所 */
+.xh-crentry{display:flex;align-items:center;gap:11px;width:100%;text-align:left;cursor:pointer;
+  padding:13px 14px;border:none;border-radius:16px;color:#fff;font-family:inherit;margin:0 0 12px;
+  background:linear-gradient(135deg,#6a7bff,#b06bff 48%,#4fd2ff);
+  box-shadow:0 8px 24px rgba(120,110,255,.35)}
+.xh-crentry:active{transform:scale(.99)}
+.xh-crentry .xh-crei{flex:none;display:flex;align-items:center}
+.xh-crentry .xh-cret{flex:1;min-width:0}
+.xh-crentry .xh-cret > b{display:block;font-size:13.5px;font-weight:900;letter-spacing:.02em}
+.xh-crentry .xh-cret small{display:block;margin-top:3px;font-size:10.5px;font-weight:700;opacity:.94;line-height:1.6}
+.xh-crentry .xh-cren{flex:none;font-family:'Orbitron',sans-serif;font-weight:900;font-size:17px;
+  background:rgba(255,255,255,.92);color:#5b3fd8;border-radius:99px;padding:3px 11px}
+.xh-crload{padding:26px 10px;text-align:center;font-size:12.5px;font-weight:800;color:var(--sub,#6f82ad)}
+.xh-crload.err{color:#e0405e}
+.xh-crhead{display:flex;flex-direction:column;gap:5px;padding:12px 14px;border-radius:14px;margin-bottom:10px;
+  background:linear-gradient(135deg,rgba(106,123,255,.12),rgba(176,107,255,.12));
+  border:1.5px solid rgba(140,120,255,.35)}
+.xh-crbal{display:flex;align-items:center;gap:7px;font-family:'Orbitron',sans-serif;font-weight:900;font-size:22px;color:#5b3fd8}
+.xh-crbal small{font-family:inherit;font-size:11.5px;font-weight:800;color:var(--sub,#6f82ad)}
+.xh-crsub{font-size:11.5px;font-weight:800;color:var(--sub,#6f82ad);line-height:1.6}
+.xh-crnote{font-size:11px;font-weight:700;line-height:1.75;color:var(--sub,#6f82ad);margin-bottom:10px}
+.xh-crgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(94px,1fr));gap:8px}
+.xh-crc{position:relative;display:flex;flex-direction:column;gap:3px;padding:0 0 5px;cursor:pointer;
+  border:1.5px solid rgba(140,120,255,.35);border-radius:13px;background:#fff;overflow:hidden;font-family:inherit}
+.xh-crc:active{transform:scale(.97)}
+.xh-crc[disabled]{opacity:.55;cursor:default}
+.xh-crc img{display:block;width:100%;aspect-ratio:1/1;object-fit:cover}
+.xh-crc.noown img{filter:saturate(.5) brightness(.92)}
+.xh-crc .xh-crno{position:absolute;top:4px;left:4px;font-family:'Orbitron',sans-serif;font-size:9.5px;font-weight:900;
+  color:#fff;background:rgba(20,14,44,.62);border-radius:99px;padding:1px 6px}
+.xh-crc .xh-crnew{position:absolute;top:4px;right:4px;font-size:8.5px;font-weight:900;color:#3a2400;
+  background:linear-gradient(135deg,#ffe9a8,#d4a017);border-radius:99px;padding:2px 6px;letter-spacing:.04em}
+.xh-crc .xh-crnm{font-size:11px;font-weight:900;padding:0 5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;color:var(--txt,#2a2350)}
+.xh-crc .xh-crown{font-size:9.5px;font-weight:800;padding:0 5px;color:#6f82ad}
+.xh-crc .xh-crown.ok{color:#0e8a5c}
+.xh-crc .xh-crown.mx{color:#c98a10}
+</style>
+
 <!-- ───── オフライン設定シート ───── -->
 <div class="xh-sheet" id="xhOffSheet" onclick="if(event.target===this)xhCloseSheet('xhOffSheet')">
   <div class="xh-sheet-card">
@@ -1617,6 +1667,51 @@ body.music-on #beatFrame{opacity:1}
 
   <div class="nm-body" id="newsBody">
     <div class="nm-divider" id="newDivider" style="display:none;">NEW — 前回から更新</div>
+    <!-- 2026-08-30 💠結晶と交換所／完凸しても排出／アンナ(祭)／GRAND DEBUT Ver.6.0／同名の整理 -->
+    <div class="nm-item" data-tag="update" data-date="2026-08-30">
+      <div class="nm-date">2026<br>08.30</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">💠 結晶と結晶交換所／👑 完凸しても排出／⚔ 戦姫祭にアンナ(祭)（史上最強）／✧ GRAND DEBUT Ver.6.0</div>
+        <div class="nm-txt">
+          💠 <b>結晶</b>を追加しました。<b>PREMIUM SELECT GACHA のキャラクターは、限界突破MAX（完凸）に
+          なってもガチャから出続けます</b>。完凸したあとに出たときは、キャラクターのかわりに
+          <b>結晶が5個</b>（SRは1個）もらえます。<br>
+          🛒 結晶 <b>75個</b>で、<b>PREMIUM SELECT GACHA</b> と <b>GRAND DEBUT GACHA</b> の
+          <b>好きな1体</b>と交換できます。交換所は<b>ホームの 🛒ショップ</b>にあります
+          （持っているキャラを選ぶと限界突破が進みます）。<br>
+          ★ フェス・GRAND DEBUT の<b>限定キャラクター</b>は、これまでどおり完凸すると排出対象から外れます。<br>
+          ⚔ <b>戦姫祭</b>に <b>アンナ(祭)</b>（光・貫通）が加わりました（限定SSR 7体に）。
+          <b>MagiBurst 史上最強</b>で、<b>🏯第五重・🏯蓬莱天宮・🏯蓬莱神天</b>の
+          <b>闇属性3クエストすべて</b>を<b>有利属性のまま</b>完全対応できます。
+          フルバースト<b>千華繚乱・スターマイン</b>は乱打76連 → 夜空へ花火が6発つづけて上がって敵全体へ →
+          大玉「千華」で締め。リンクスキル<b>万灯祭天</b>は<b>味方全員の足もとから灯籠が上がって開く</b>、
+          史上いちばん重いリンクスキルです。<br>
+          ✧ <b>GRAND DEBUT GACHA Ver.6.0</b> を公開しました。
+          <b>チア（火）・リサ（水）・リン（闇）・ミノリ（木）・セイカ（光）</b>の5体が登場します。
+          5体とも<b>🏯蓬莱天宮の続き5クエスト</b>（仙苑・月宮・神域・天界・神天）の必要アンチと
+          ぴったり一致し、そのクエストで<b>有利属性</b>になります。
+          Cozy Haven FEST の5体と同じ担当ですが、<b>アンチは「超」つき</b>・
+          <b>キラーは 蓬莱族キラーEL ＋ L等級2つ</b>と、はっきり上の性能です。<br>
+          🏷 <b>同じ名前のキャラクター</b>に区別を付けました——
+          <b>アンナ(煌)／アンナ(STAR)／アンナ(祭)</b>、<b>ラン(祈)／ラン(焔)</b>、
+          <b>ユウカ(黒)／ユウカ(聖)</b>。性能・所持・限界突破は<b>なにも変わりません</b>。<br>
+          🗓 <b>極彩祭・極華祭・極煌祭</b>は「開催中のイベント」で
+          <b>常時開催（毎月◯〜◯日）</b>と出るようにしました。
+          回せる日は月で決まっていますが、<b>ガチャとして終わる期限はありません</b>。<br>
+          ⚾ <b>MagiDiamond を大幅リニューアル</b>しました。アプリを開くと、まず
+          <b>最新版</b>と<b>過去版</b>のどちらで遊ぶかをえらべます（過去版の「読み合い野球盤」は
+          これまでどおり遊べます）。最新版では <b>XEVARION の SR・SSR 全キャラクター</b>が
+          野球選手として使え、<b>育成・チーム編成・チームスキル・野球盤の打球処理・オンライン対戦</b>まで
+          そろっています。このアプリの中に<b>キャラクターのガチャはありません</b>——
+          選手は XEVARION のガチャで手に入れたキャラクターをそのまま使います。<br>
+          📚 <b>MagiLex に「地理」を追加</b>しました。<b>工業・人口・人口問題</b>の
+          <b>17セット204問</b>。教科書の太字の用語と、図・表の数値を確実に押さえられるようにしてあります。<br>
+          🧪 <b>MagiLex の化学ε</b>を <b>20セット240問 → 40セット480問</b>に倍増しました。
+          分野（理論・無機・有機・高分子）ごとにまとまるよう<b>並べ直して</b>あります。
+        </div>
+      </div>
+    </div>
     <!-- 2026-08-29 戦姫祭／レイナ／蓬莱の後半6階層の条件／スケジュール／同期の注意 -->
     <div class="nm-item" data-tag="update" data-date="2026-08-29">
       <div class="nm-date">2026<br>08.29</div>

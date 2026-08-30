@@ -56,6 +56,11 @@ function paintWal() {
   const g = $("#walGtk"); if (g) g.textContent = fmt(gachaTickets());
   const fi = $("#walFesIc"); if (fi && !fi.innerHTML) fi.innerHTML = fesTicketSVG(13);
   const gi = $("#walGacIc"); if (gi && !gi.innerHTML) gi.innerHTML = gachaTicketSVG(13);
+  /* ★★ 2026-08-30 💠結晶（完凸したプレミアムのキャラが出るともらえる） */
+  const cw = $("#walCryWrap"), cb = $("#walCry"), ci = $("#walCryIc");
+  if (cb) cb.textContent = fmt(crystGet());
+  if (ci && !ci.innerHTML) ci.innerHTML = crystIcon(16);
+  if (cw) cw.style.display = "";
 }
 
 /* ══════════ ガチャえらび ══════════ */
@@ -281,12 +286,12 @@ function paintPickup() {
     return;
   }
   const id = curPickup(), c = CHARS[id], maxed = isMaxAwk(id);
-  /* ★ 2026-08-10 限界突破MAXのキャラは排出対象から外れるので、確率はどうしても 0% になる。
-     以前はその 0.00% だけが出ていて「ピックアップなのに 0%？」と読めてしまったので、
-     MagiBurst と同じように<b>理由</b>まで書く。 */
+  /* ★★ 2026-08-30 完凸していても<b>排出は止まらない</b>（PREMIUM SELECT のキャラだから）。
+     出たときはキャラのかわりに 💠結晶が CRYST_SSR 個もらえる。
+     以前ここに出していた「排出対象外」は、いまは正しくないので出さない。 */
   w.innerHTML = `<div class="pkbox">
     <div class="pkhd"><span>✨ ピックアップ中のSSR</span>
-      <span style="color:${maxed ? "#c98a10" : "#e0577f"}">${maxed ? "👑 限界突破MAX・排出対象外" : ratePct(pickupRate())}</span></div>
+      <span style="color:${maxed ? "#8e6bff" : "#e0577f"}">${ratePct(pickupRate())}${maxed ? "（👑完凸 → " + crystIcon(13) + "結晶+" + CRYST_SSR + "）" : ""}</span></div>
     <div class="pkrow">
       <img src="${c.th}" alt="${c.nm}" onclick="openDetX('${id}')" style="cursor:pointer" title="${c.nm} の性能を見る">
       <div class="pkinfo" onclick="openDetX('${id}')" style="cursor:pointer">
@@ -593,13 +598,14 @@ function dupeBadge(id) {
 }
 
 /* ★★ 2026-08-18 ピックアップが<b>すでに完凸</b>のまま回そうとしたときの確認。
-   完凸したキャラはガチャの排出対象から外れる（isMaxAwk）ので、
-   そのままだとピックアップ枠がまるごと無駄になり、
-   SSR合計10%はほかのキャラで分け合われる。気づかずに回してしまわないよう、
-   回す直前に一度だけ確かめる。フェスにはピックアップが無いので premium のときだけ。 */
+   ★★ 2026-08-30 <b>もう止めない</b>——PREMIUM SELECT のキャラは完凸しても
+     出続けるようになり、出たときは 💠結晶 が CRYST_SSR 個もらえる（＝枠は無駄にならない）。
+     判定は isMaxAwk ではなく <b>isDropOut</b>（＝完凸で、かつ結晶にも換わらない）を見る。
+     プレミアムのピックアップは isDropOut が必ず false なので、実質いつも素通りする。
+     フェス・GRAND DEBUT の限定キャラを将来ここに通したときのために、形は残してある。 */
 async function okToPullPremium(n) {
   const id = curPickup();
-  if (!isMaxAwk(id)) return true;
+  if (!isDropOut(id)) return true;
   const c = CHARS[id] || { nm: id };
   const pool = gachaPool();                       /* まだ完凸していないSSR */
   if (!pool.length) {
@@ -657,7 +663,7 @@ window.pull = pull;
      確率が右へ押し出されて「名前とかけ離れた場所に数字がある」状態になっていた。 */
 function rateCharRow(id, rate, tag) {
   const c = CHARS[id]; if (!c) return "";
-  const sec = charSecret(id), mx = isMaxAwk(id), own = !!DB.chars[id];
+  const sec = charSecret(id), mx = isDropOut(id), own = !!DB.chars[id];
   const nm = sec ? "???" : c.nm;
   const sub = sec ? "登場前" : [ELEM[c.el].nm, c.shot === "pierce" ? "貫通" : "反射", dupeText(id).tx].join("・");
   return `<div class="rtrow ${sec ? "silh" : ""}" ${sec ? "" : `onclick="openDetX('${id}')"`}>
@@ -924,6 +930,8 @@ window.addEventListener("xeva:change", () => { paintWal(); paintPullBar(); });
 window.addEventListener("xeva:gem", () => { paintWal(); paintPullBar(); });
 window.addEventListener("xeva:ticket", () => { paintWal(); paintPullBar(); });
 window.addEventListener("xeva:festicket", () => { paintWal(); paintPullBar(); });
+/* ★★ 2026-08-30 💠結晶（ガチャで増える／ホームの交換所で減る） */
+window.addEventListener("xeva:cryst", () => { paintWal(); });
 /* ★★ 2026-08-29 最初に開いているガチャも「開いた」ものとして NEW を消す。
    ★ 塗ったあとに消すこと。先に消すと、いま見ているガチャの NEW が
      1回目の描画から出なくなる（気づかないうちに消えた、になる）。 */

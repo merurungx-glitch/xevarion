@@ -7,7 +7,7 @@
    ・オフライン中の進行は localStorage に残り、オンライン復帰時に
      xeva-cloud.js がタイムスタンプ比較でクラウドへ上書き反映する
    ============================================================ */
-const VERSION = "xevarion-sw-v109";
+const VERSION = "xevarion-sw-v112";
 
 /* ホームを成立させる最小セット（重い画像は runtime キャッシュに任せる） */
 const CORE = [
@@ -17,17 +17,17 @@ const CORE = [
   "./characters.html",
   /* ★ 2026-08-10 ガチャは XEVARION に一本化。中身は MagiBurst の共有モジュールが持つ */
   "./gacha.html",
-  "./gacha-ui.js?v=25",
-  "./mb-newchars.js?v=10",
+  "./gacha-ui.js?v=26",
+  "./mb-newchars.js?v=11",
   "./xevion-os.js?v=5",
   "./xevion-os.css?v=7",
   "./magibattle-stats.js?v=6",
-  "./MagiBurst/js/mb-core.js?v=63",
+  "./MagiBurst/js/mb-core.js?v=65",
   /* ★ 2026-08-10 ガチャと図鑑で共通の土台・キャラ詳細・結果演出 */
   /* ★ 2026-08-12 ポータルのガチャ・図鑑も magiburst_v1 を同期するようになった */
   "./app-cloud.js?v=4",
   "./MagiBurst/magiburst-cloud.js?v=6",
-  "./mb-boot.js?v=8",
+  "./mb-boot.js?v=9",
   "./mb-char-detail.js?v=14",
   "./mb-char-detail.css?v=11",
   "./mb-gacha-reveal.css?v=3",
@@ -37,14 +37,14 @@ const CORE = [
   "./xeva-theme.css?v=1",
   "./xevarion.css?v=16",
   "./xevarion-home.css?v=46",
-  "./xeva.js?v=49",
+  "./xeva.js?v=50",
   "./xeva-fx.js?v=1",
   "./xeva-loading.js?v=1",
   "./xevarion.js?v=71",
-  "./xevarion-home.js?v=63",
+  "./xevarion-home.js?v=69",
   "./maintenance-gate.js?v=5",
   "./xeva-back.js?v=1",
-  "./xeva-keys.js?v=7",
+  "./xeva-keys.js?v=8",
   /* ★ 2026-08-20 通信設定（Wi-Fi／モバイルデータごとの動き）。
      この SW へ設定を送る側なので、オフラインでも読めるようにここに入れておく。 */
   "./xeva-netmode.js?v=2",
@@ -76,6 +76,17 @@ const CORE = [
   "./thumbs/MagiCraft.jpg",
   "./thumbs/MagiManor.jpg",
   "./thumbs/MagiDiamond.jpg",
+  /* ★★ 2026-08-30 MagiDiamond 大幅リニューアル。
+     index.html は版えらび、latest.html が最新版、classic.html が過去版。 */
+  "./MagiDiamond/index.html",
+  "./MagiDiamond/latest.html",
+  "./MagiDiamond/classic.html",
+  "./MagiDiamond/css/md2.css?v=1",
+  "./MagiDiamond/js/md2-data.js?v=1",
+  "./MagiDiamond/js/md2-game.js?v=1",
+  "./MagiDiamond/js/md2-online.js?v=1",
+  "./MagiDiamond/img/logo.webp",
+  "./MagiDiamond/img/logo_s.webp",
   "./thumbs/MagiMusic.jpg",
   "./thumbs/MagiFocus.jpg",
   "./thumbs/MagiPortfolio.jpg",

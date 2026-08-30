@@ -358,6 +358,16 @@
      ★ 中身はチケットとまったく同じ作りなので、同じ makeTicketWallet で作る。 */
   var SEL_KEY = "xeva_selticket_v1";
   var selectTicket = makeTicketWallet(SEL_KEY, "xeva:selticket");
+  /* ══ ★★ 2026-08-30 💠結晶（クリスタル）══
+     PREMIUM SELECT GACHA のキャラは<b>完凸（限界突破MAX）になっても排出され続ける</b>。
+     そのとき手に入るのがこれ。SSR＝5個 ／ SR＝1個。
+     <b>75個</b>で PREMIUM SELECT / GRAND DEBUT の好きな1体と交換できる
+     （交換所は XEVARION ホームの 🛒ショップ）。
+     ★ 中身はチケットとまったく同じ作りなので、同じ makeTicketWallet で作る。
+     ★ 残高の持ち主は<b>XEVARION 共通ウォレット</b>。magiburst_v1 の中に置くと、
+       ポータルのショップから見えず「ガチャで増えたのに交換所では 0」になる。 */
+  var CRY_KEY = "xeva_cryst_v1";
+  var cryst = makeTicketWallet(CRY_KEY, "xeva:cryst");
   function loadTkt() { return ticket._load(); }
   function emitTkt(b) { ticket._emit(b); }
 
@@ -371,6 +381,7 @@
       if (e.key === TKT_KEY) ticket._emit(ticket.get());
       if (e.key === FTK_KEY) fesTicket._emit(fesTicket.get());
       if (e.key === SEL_KEY) selectTicket._emit(selectTicket.get());
+      if (e.key === CRY_KEY) cryst._emit(cryst.get());
       if (e.key === KEY) { state = load(); emit(); }
     });
     window.addEventListener("xeva:synced", function () {
@@ -379,6 +390,7 @@
       ticket._emit(ticket.get());
       fesTicket._emit(fesTicket.get());
       selectTicket._emit(selectTicket.get());
+      cryst._emit(cryst.get());
     });
   } catch (e) {}
 
@@ -614,7 +626,7 @@
     { id: "mb:kokoro", mbId: "kokoro", name:"ココロ", file: "../img/t_Kokoro.webp", since:"2026-08-08" },
     { id: "mb:ange", mbId: "ange", name:"アンジェ", file: "../img/t_Ange.webp", since:"2026-08-08" },
     { id: "mb:kotone", mbId: "kotone", name:"コトネ", file: "../img/t_Kotone.webp", since:"2026-08-08" },
-    { id: "mb:ran", mbId: "ran", name:"ラン", file: "../img/t_Ran.webp", since:"2026-08-08" },
+    { id: "mb:ran", mbId: "ran", name:"ラン(祈)", file: "../img/t_Ran.webp", since:"2026-08-08" },
     { id: "mb:ceris", mbId: "ceris", name:"セリス", file: "../img/t_Ceris.webp", since:"2026-08-08" },
     { id: "mb:kotomi", mbId: "kotomi", name:"コトミ", file: "../img/t_Kotomi.webp", since:"2026-08-10" },
     { id: "mb:riko", mbId: "riko", name:"リコ", file: "../img/t_Riko.webp", since:"2026-08-10" },
@@ -640,7 +652,7 @@
     { id: "mb:chizuru", mbId: "chizuru", name:"チヅル", file: "../img/t_Chizuru.webp", since:"2026-08-12" },
     { id: "mb:seira", mbId: "seira", name:"セイラ", file: "../img/t_Seira.webp", since:"2026-08-12" },
     /* ★ 2026-08-16 プレミアムSSR 2体 */
-    { id: "mb:anna", mbId: "anna", name:"アンナ", file: "../img/t_Anna.webp", since:"2026-08-16" },
+    { id: "mb:anna", mbId: "anna", name:"アンナ(煌)", file: "../img/t_Anna.webp", since:"2026-08-16" },
     { id: "mb:tsukino", mbId: "tsukino", name:"ツキノ", file: "../img/t_Tsukino.webp", since:"2026-08-16" },
     /* ★ 2026-08-16b プレミアムSSR 6体（No.110〜115）。並びは CHAR_IDS＝No. にそろえること */
     { id: "mb:moeka", mbId: "moeka", name:"モエカ", file: "../img/t_Moeka.webp", since:"2026-08-16" },
@@ -702,7 +714,7 @@
          ご指定どおり別の名前（<b>カリン／ユウカ</b>）にしてある。画像のファイル名も別。 */
     { id: "mb:karin", mbId: "karin", name:"カリン", file: "../img/t_Karin.webp", since:"2026-08-26" },
     { id: "mb:mirei", mbId: "mirei", name:"ミレイ", file: "../img/t_Mirei.webp", since:"2026-08-26" },
-    { id: "mb:yuuka", mbId: "yuuka", name:"ユウカ", file: "../img/t_Yuuka.webp", since:"2026-08-26" },
+    { id: "mb:yuuka", mbId: "yuuka", name:"ユウカ(黒)", file: "../img/t_Yuuka.webp", since:"2026-08-26" },
     { id: "mb:miyabi", mbId: "miyabi", name:"ミヤビ", file: "../img/t_Miyabi.webp", since:"2026-08-26" },
     { id: "mb:sumire", mbId: "sumire", name:"スミレ", file: "../img/t_Sumire.webp", since:"2026-08-26" },
     /* ★★ 2026-08-26 MagiLex の KP交換キャラ 4体（No.153〜156）。
@@ -742,12 +754,22 @@
     /* ★★ 2026-08-29 戦姫祭（常時開催）の限定SSR 6体（No.176〜181）。
        ★ ラン／ユウカ／アンナは<b>すでにいる同名のキャラとは別人</b>なので、
          mbId も画像も別（rans / yuukas / annas）。ここを既存の id にすると絵が入れかわる。 */
-    { id: "mb:rans", mbId: "rans", name:"ラン", file: "../img/t_RanS.webp", since:"2026-08-29" },
+    { id: "mb:rans", mbId: "rans", name:"ラン(焔)", file: "../img/t_RanS.webp", since:"2026-08-29" },
     { id: "mb:kurenai", mbId: "kurenai", name:"クレナイ", file: "../img/t_Kurenai.webp", since:"2026-08-29" },
     { id: "mb:yuki", mbId: "yuki", name:"ユキ", file: "../img/t_Yuki.webp", since:"2026-08-29" },
     { id: "mb:marika", mbId: "marika", name:"マリカ", file: "../img/t_Marika.webp", since:"2026-08-29" },
-    { id: "mb:yuukas", mbId: "yuukas", name:"ユウカ", file: "../img/t_YuukaS.webp", since:"2026-08-29" },
-    { id: "mb:annas", mbId: "annas", name:"アンナ", file: "../img/t_AnnaS.webp", since:"2026-08-29" },
+    { id: "mb:yuukas", mbId: "yuukas", name:"ユウカ(聖)", file: "../img/t_YuukaS.webp", since:"2026-08-29" },
+    { id: "mb:annas", mbId: "annas", name:"アンナ(STAR)", file: "../img/t_AnnaS.webp", since:"2026-08-29" },
+    /* ★★ 2026-08-30 戦姫祭 アンナ(祭)（No.182）。
+       ★ アンナ(STAR)（annas）とは別人なので mbId も画像も別。 */
+    { id: "mb:annam", mbId: "annam", name:"アンナ(祭)", file: "../img/t_AnnaM.webp", since:"2026-08-30" },
+    /* ★★ 2026-08-30 GRAND DEBUT GACHA Ver.6.0 の5体（No.183〜187）。
+       ★ リサは既存の「チハヤ（木・No.141）」と名前がかぶらないよう改名したキャラ（ご指定）。 */
+    { id: "mb:chia", mbId: "chia", name:"チア", file: "../img/t_Chia.webp", since:"2026-08-30" },
+    { id: "mb:risa", mbId: "risa", name:"リサ", file: "../img/t_Risa.webp", since:"2026-08-30" },
+    { id: "mb:rin", mbId: "rin", name:"リン", file: "../img/t_Rin.webp", since:"2026-08-30" },
+    { id: "mb:minori", mbId: "minori", name:"ミノリ", file: "../img/t_Minori.webp", since:"2026-08-30" },
+    { id: "mb:seika", mbId: "seika", name:"セイカ", file: "../img/t_Seika.webp", since:"2026-08-30" },
   ];
   /* ★ 2026-08-10 初期SR 4体（ゼラ・アヤメ・レイラ・セリーヌ）は廃止しました。
      いまは<b>全キャラがアイコンに選べる</b>ので、starter という区別そのものが要らない。 */
@@ -804,7 +826,10 @@
   /* ★★ 2026-08-29 極煌祭のレイナ／戦姫祭の6体。
      ここに無いと <b>XEVAミッションの図鑑コレクションに出てこない</b>。 */
   , "reina"
-  , "rans", "kurenai", "yuki", "marika", "yuukas", "annas"];
+  , "rans", "kurenai", "yuki", "marika", "yuukas", "annas"
+  /* ★★ 2026-08-30 戦姫祭 アンナ(祭) ＋ GRAND DEBUT Ver.6.0 の5体。
+     ここに無いと <b>XEVAミッションの図鑑コレクションに出てこない</b>。 */
+  , "annam", "chia", "risa", "rin", "minori", "seika"];
   MB_CHAR_MASTER.forEach(function (c) { c.mb = true; c.starter = MB_STARTERS.indexOf(c.mbId) >= 0; });
   MB_CHAR_MASTER.forEach(function (c) { c.star5 = MB_STAR5.indexOf(c.mbId) >= 0; });
   /* id は "mb:zera" のように接頭辞つき。XEVAガチャにも同じ名前のキャラ（シオンなど）が
@@ -1446,6 +1471,7 @@
     /* ★ 2026-08-24 プレミアムセレクト券（1枚＝プレミアムのSSRから好きな1体） */
     SEL_KEY: SEL_KEY,
     selectTicket: selectTicket,
+    cryst: cryst,                 /* ★★ 2026-08-30 💠結晶（完凸後の排出でもらえる） */
     /* ★ 2026-08-24 XEVARION 共通ステータス（レベル・EXP・スタミナ） */
     STATUS_KEY: ST_KEY,
     status: status,

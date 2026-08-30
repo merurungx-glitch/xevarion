@@ -17,6 +17,22 @@
      こちらに足したら<b>あちらにも since 付きで1行</b>足すこと（無いとポータルに絵が出ない）。
    ══════════════════════════════════════════════════════════════ */
 window.MB_NEW_CHARS = [
+  /* ── ★★ 2026-08-30 戦姫祭に アンナ(祭) が加わりました ──
+     ★ アンナ(STAR)（annas）とは<b>別人</b>。フルバースト・リンクとも史上最強。 */
+  { id: "annam", since: "2026-08-30", where: "戦姫祭（常時開催）", mode: "fes11",
+    catch: "花火が上がるたび、盤面ごと灼ける。", color: "#ffd257" },
+  /* ── ★★ 2026-08-30 GRAND DEBUT GACHA Ver.6.0 新SSR 5体 ──
+     ★ 蓬莱天宮の続き5クエスト（仙苑・月宮・神域・天界・神天）の<b>最適解</b>。 */
+  { id: "chia", since: "2026-08-30", where: "GRAND DEBUT GACHA Ver.6.0", mode: "debut:6.0",
+    catch: "はねるたびに、この気持ちは大きくなる。", color: "#ff8ab5" },
+  { id: "risa", since: "2026-08-30", where: "GRAND DEBUT GACHA Ver.6.0", mode: "debut:6.0",
+    catch: "凍らせてから、ゆっくり割る。", color: "#7cc4ff" },
+  { id: "rin", since: "2026-08-30", where: "GRAND DEBUT GACHA Ver.6.0", mode: "debut:6.0",
+    catch: "囲まれたら、もう逃げ場はないの。", color: "#e0405e" },
+  { id: "minori", since: "2026-08-30", where: "GRAND DEBUT GACHA Ver.6.0", mode: "debut:6.0",
+    catch: "面が増えるほど、光は逃さない。", color: "#8affc4" },
+  { id: "seika", since: "2026-08-30", where: "GRAND DEBUT GACHA Ver.6.0", mode: "debut:6.0",
+    catch: "夜が明けるまで、下から順に。", color: "#ffe9a8" },
   /* ── ★★ 2026-08-29 戦姫祭（常時開催）限定SSR 6体 ──
      ★ 極彩祭・極華祭・極煌祭と同じ<b>限定キャラクター</b>あつかい（🎫フェス券は使えない）。
      ★ 6体とも<b>アビリティ10個</b>（MagiBurst 初）。アンナは<b>史上最強</b>。 */

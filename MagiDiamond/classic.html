@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<script src="../maintenance-gate.js?v=5"></script>
+  <meta charset="UTF-8" />
+<script>(function(){try{var a=JSON.parse(localStorage.getItem('xeva_account_v1'));if(!a||!a.setupDone)location.replace('../index.html');}catch(e){}})();</script>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <title>MagiDiamond 過去版 — 読み合い野球盤</title>
+  <meta name="description" content="みんなで監督・選手になり、読み合いで勝つ野球戦略ボードゲーム。MagiOneシリーズ / XEVARION。" />
+  <link rel="icon" href="../thumbs/MagiDiamond.jpg" type="image/png" />
+  <link rel="apple-touch-icon" href="../thumbs/MagiDiamond.jpg" />
+  <meta name="theme-color" content="#1a7a4c" />
+  <link rel="stylesheet" href="css/style.css?v=2" />
+
+  <!-- ===== 起動スプラッシュ (NGX × Magical Future × ISHIDA Production → アプリロゴ + ロードバー) ===== -->
+  <style>
+  #md-splash{position:fixed;inset:0;z-index:99999;background:#0b0b16;overflow:hidden;display:flex;align-items:center;justify-content:center;transition:opacity .55s ease;}
+  #md-splash.out{opacity:0;pointer-events:none;}
+  #md-splash .ph{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;opacity:0;pointer-events:none;gap:14px;padding:5vh 24px;}
+  #md-splash .intro.in{opacity:1;}
+  #md-splash .intro.out{opacity:0;transition:opacity .5s ease;}
+  #md-splash .lg{width:min(540px,86vw);border-radius:20px;overflow:hidden;background:#fff;display:flex;align-items:center;justify-content:center;padding:14px 28px;}
+  #md-splash .lg img{max-width:100%;max-height:15vh;object-fit:contain;display:block;}
+  #md-splash .intro.in .lg:nth-child(1){animation:mdUp .8s cubic-bezier(.2,.7,.3,1) both;}
+  #md-splash .intro.in .amp:nth-child(2){animation:mdFade .8s ease .1s both;}
+  #md-splash .intro.in .lg:nth-child(3){animation:mdFade .8s cubic-bezier(.2,.7,.3,1) .12s both;}
+  #md-splash .intro.in .amp:nth-child(4){animation:mdFade .8s ease .2s both;}
+  #md-splash .intro.in .lg:nth-child(5){animation:mdDown .8s cubic-bezier(.2,.7,.3,1) .24s both;}
+  #md-splash .amp{color:#7886b4;font-weight:700;font-size:22px;opacity:.6;}
+  #md-splash .main{gap:26px;}
+  #md-splash .main.in{opacity:1;animation:mdFade .6s ease;}
+  #md-splash .applogo{width:min(300px,68vw);border-radius:26px;box-shadow:0 14px 50px rgba(26,122,76,.5);}
+  #md-splash .bar{width:min(320px,70vw);height:8px;border-radius:99px;background:rgba(255,255,255,.14);overflow:hidden;}
+  #md-splash .bar i{display:block;height:100%;width:0;border-radius:99px;background:linear-gradient(90deg,#1a7a4c,#3ec27b,#ffd23e,#ff5e5e);}
+  #md-splash .cap{color:#9aa0c0;font-size:13px;letter-spacing:.25em;}
+  #md-splash .tx{font-weight:800;letter-spacing:.1em;font-size:30px;color:#fff;}
+  @keyframes mdUp{from{opacity:0;transform:translateY(-30px)}to{opacity:1;transform:none}}
+  @keyframes mdDown{from{opacity:0;transform:translateY(30px)}to{opacity:1;transform:none}}
+  @keyframes mdFade{from{opacity:0;transform:scale(.94)}to{opacity:1;transform:none}}
+  </style>
+  <div id="md-splash">
+    <div class="ph intro" id="mdIntro">
+      <div class="lg"><img src="../brand/NGX.png" alt="NGX" onerror="this.parentNode.outerHTML='<div class=&quot;tx&quot; style=&quot;color:#e9b13c&quot;>NGX</div>'"></div>
+      <div class="amp">×</div>
+      <div class="lg"><img src="../brand/MagicalFuture.png" alt="Magical Future" onerror="this.parentNode.outerHTML='<div class=&quot;tx&quot;>Magical Future</div>'"></div>
+      <div class="amp">×</div>
+      <div class="lg"><img src="../brand/ISHIDA Production.png" alt="ISHIDA Production" onerror="this.parentNode.outerHTML='<div class=&quot;tx&quot;>ISHIDA Production</div>'"></div>
+    </div>
+    <div class="ph main" id="mdMain">
+      <img class="applogo" src="../thumbs/MagiDiamond.jpg" alt="MagiDiamond">
+      <div class="bar"><i id="mdFill"></i></div>
+      <div class="cap">Loading MagiDiamond ...</div>
+    </div>
+  </div>
+  <script>
+  (function(){
+    var el=document.getElementById("md-splash"),intro=document.getElementById("mdIntro"),
+        main=document.getElementById("mdMain"),fill=document.getElementById("mdFill");
+    var P1_HOLD=4200,P1_OUT=520,P2_BAR=1700,P2_END=250,PRELOAD_MAX=2000;
+    function preload(srcs,max){return new Promise(function(res){var n=srcs.length,done=false,f=function(){if(!done){done=true;res();}};
+      if(!n){f();return;} var t=setTimeout(f,max); srcs.forEach(function(s){var im=new Image();im.onload=im.onerror=function(){if(--n<=0){clearTimeout(t);f();}};im.src=s;});});}
+    preload(["../brand/NGX.png","../brand/MagicalFuture.png","../brand/ISHIDA Production.png","../thumbs/MagiDiamond.jpg"],PRELOAD_MAX).then(function(){
+      intro.classList.add("in");
+      setTimeout(function(){
+        intro.classList.add("out");
+        setTimeout(function(){
+          main.classList.add("in");
+          fill.style.transition="width "+P2_BAR+"ms ease";
+          setTimeout(function(){ fill.style.width="100%"; },60);
+          setTimeout(function(){ el.classList.add("out"); setTimeout(function(){ el.remove(); },600); },P2_BAR+P2_END);
+        },P1_OUT);
+      },P1_HOLD);
+    });
+  })();
+  </script>
+</head>
+<body>
+
+  <!-- ===== セットアップ ===== -->
+  <section id="setup" class="screen active">
+    <div class="setup-wrap">
+      <header class="su-top">
+        <a href="../index.html" class="back-portal">← ポータル</a>
+        <button id="show-rules" class="rules-chip">📖 あそびかた</button>
+      </header>
+      <h1 class="logo">Magi<span>Diamond</span></h1>
+      <p class="tag">みんなで監督・選手になる、読み合い野球盤 ⚾<br>配球 × 狙い打ち、同時公開で勝負！</p>
+
+      <button id="open-online" class="online-banner">
+        <span class="ob-ic">🌐</span>
+        <span class="ob-tx"><b>オンラインで対戦（2台）</b><small>部屋番号でつながる・投手画面／打者画面・XEVA賞金つき</small></span>
+        <span class="ob-go">→</span>
+      </button>
+
+      <div class="su-card">
+        <div class="su-title"><span class="su-ic">👥</span>プレイヤー<span class="su-hint">人数・名前・人/CPU・チーム</span></div>
+        <div id="player-seg" class="seg">
+          <button data-n="2" class="on">2人</button>
+          <button data-n="3">3人</button>
+          <button data-n="4">4人</button>
+          <button data-n="5">5人</button>
+          <button data-n="6">6人</button>
+        </div>
+        <div id="players-list"></div>
+        <p class="seg-note" id="team-note"></p>
+      </div>
+
+      <div class="su-card">
+        <div class="su-title"><span class="su-ic">⚾</span>イニング数<span class="su-hint">試合の長さ</span></div>
+        <div id="inning-seg" class="seg">
+          <button data-i="1">1回<small>約5分</small></button>
+          <button data-i="3" class="on">3回<small>10〜15分</small></button>
+          <button data-i="5">5回<small>15〜20分</small></button>
+          <button data-i="9">9回<small>25〜35分</small></button>
+        </div>
+      </div>
+
+      <div class="su-card">
+        <div class="su-title"><span class="su-ic">🤖</span>CPUの強さ</div>
+        <div id="cpu-seg" class="seg">
+          <button data-l="0">よわい</button>
+          <button data-l="1" class="on">ふつう</button>
+          <button data-l="2">つよい</button>
+        </div>
+      </div>
+
+      <div class="su-card">
+        <div class="su-title"><span class="su-ic">💬</span>作戦タイム<span class="su-hint">打席前のチーム相談</span></div>
+        <div id="talk-seg" class="seg">
+          <button data-t="0" class="on">なし</button>
+          <button data-t="10">10秒</button>
+        </div>
+        <p class="seg-note">チーム戦のとき、打席のはじめに相談タイムをはさみます。「ここはストレートで押そう」「盗塁を警戒しよう」など話し合いましょう。</p>
+      </div>
+    </div>
+    <div class="su-sticky">
+      <button id="start" class="primary big">▶ プレイボール！</button>
+    </div>
+  </section>
+
+  <!-- ===== オンライン対戦 ===== -->
+  <section id="online" class="screen">
+    <div class="setup-wrap">
+      <header class="su-top">
+        <button class="back-portal" id="ol-back">← もどる</button>
+      </header>
+      <h1 class="logo sm">オンライン<span>対戦</span></h1>
+      <p class="tag">2台の端末が「投手画面」と「打者画面」に！⚾<br>勝つと <b>XEVA 賞金</b>がもらえます（ポータルで受取）。</p>
+
+      <div id="ol-home">
+        <div class="su-card">
+          <div class="su-title"><span class="su-ic">🆕</span>部屋をつくる<span class="su-hint">ホストになる</span></div>
+          <p class="seg-note" style="margin-top:0">4桁の部屋番号が発行されます。相手に伝えて参加してもらいましょう。</p>
+          <div class="su-title" style="margin-top:10px"><span class="su-ic">⚾</span>イニング数</div>
+          <div id="ol-inning-seg" class="seg">
+            <button data-i="1">1回</button>
+            <button data-i="3" class="on">3回</button>
+            <button data-i="5">5回</button>
+          </div>
+          <button id="ol-create" class="primary">🆕 部屋をつくる（ホスト）</button>
+        </div>
+        <div class="su-card">
+          <div class="su-title"><span class="su-ic">🔢</span>部屋に参加する<span class="su-hint">番号を入力</span></div>
+          <div class="ol-join">
+            <input id="ol-code" inputmode="numeric" maxlength="4" placeholder="0000" />
+            <button id="ol-join-btn" class="primary">参加</button>
+          </div>
+        </div>
+        <p id="ol-msg" class="ol-msg"></p>
+      </div>
+
+      <div id="ol-lobby" class="hidden">
+        <div class="ol-roomcode">部屋番号 <b id="ol-roomnum">----</b></div>
+        <p class="seg-note" style="text-align:center">この番号を相手に伝えて参加してもらいましょう（2人でスタート）。</p>
+        <div class="su-card">
+          <div class="su-title"><span class="su-ic">👥</span>参加者</div>
+          <div id="ol-players"></div>
+        </div>
+      </div>
+    </div>
+    <div class="su-sticky ol hidden" id="ol-sticky">
+      <div class="ol-actions">
+        <button id="ol-start" class="primary big hidden">▶ プレイボール（ホスト）</button>
+        <div id="ol-wait" class="ol-wait hidden">ホストの開始を待っています…</div>
+      </div>
+      <button id="ol-leave" class="leave-link">部屋を出る</button>
+    </div>
+  </section>
+
+  <!-- ===== ゲーム ===== -->
+  <section id="game" class="screen">
+    <div id="scorebar"></div>
+    <div id="field-wrap">
+      <canvas id="field"></canvas>
+      <div id="zone-pop" class="zone-pop hidden"></div>
+      <div id="stamp" class="stamp hidden"></div>
+      <div id="conn-bar" class="conn-bar hidden">📡 通信が切れています…再接続中</div>
+    </div>
+    <div id="panel-area"></div>
+    <button id="menu-btn" class="corner-btn">≡</button>
+    <button id="sfx-btn" class="corner-btn sfx">🔊</button>
+  </section>
+
+  <!-- ===== あそびかた ===== -->
+  <div id="rules" class="modal hidden">
+    <div class="modal-card">
+      <button id="tut-x" class="modal-x">✕</button>
+      <h2 id="tut-title">あそびかた</h2>
+      <div class="tut-progress">ステップ <span id="tut-n">1</span> / <span id="tut-total">7</span></div>
+      <div id="tut-stage" class="tut-stage"></div>
+      <div id="tut-cap" class="demo-cap"></div>
+      <div class="tut-nav">
+        <button id="tut-prev" class="ghost">◀ もどる</button>
+        <button id="tut-next" class="primary">つぎへ ▶</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ===== メニュー ===== -->
+  <div id="menu-modal" class="modal hidden">
+    <div class="modal-card menu-card">
+      <h2>メニュー</h2>
+      <button id="mn-resume" class="primary">▶ 試合にもどる</button>
+      <button id="mn-rules" class="ghost">📖 あそびかた</button>
+      <button id="mn-quit" class="ghost danger">🏳 試合をやめて設定にもどる</button>
+    </div>
+  </div>
+
+  <!-- ===== 試合結果 ===== -->
+  <div id="result" class="modal hidden">
+    <div class="modal-card win-card">
+      <div id="res-emoji" class="win-emoji">🏆</div>
+      <h2 id="res-title">ゲームセット</h2>
+      <p id="res-sub" class="win-sub"></p>
+      <div id="res-line" class="res-line"></div>
+      <div id="res-stats" class="win-stats"></div>
+      <div id="res-prize" class="res-prize"></div>
+      <button id="play-again" class="primary">もう一度あそぶ</button>
+      <button id="back-setup" class="ghost">設定にもどる</button>
+    </div>
+  </div>
+
+  <!-- お知らせトースト -->
+  <div id="toast" class="toast"></div>
+
+  <script src="../xeva.js?v=50"></script>
+<script src="../xeva-loading.js?v=1" defer></script>
+  <script type="module" src="../xevarion-fb.js?v=22"></script>
+<script src="../xeva-presence.js?v=1" defer></script>
+  <script type="module" src="../xeva-cloud.js?v=19"></script>
+  <script type="module" src="js/online.js?v=1"></script>
+  <script src="../game-link.js?v=3"></script>
+  <script src="js/game.js?v=1"></script>
+</body>
+</html>

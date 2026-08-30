@@ -966,8 +966,8 @@ window.lexKpDetail = async function(id){
       l.id = "mbDetCss"; l.rel = "stylesheet"; l.href = "../mb-char-detail.css?v=11";
       document.head.appendChild(l);
     }
-    if(typeof window.DB === "undefined") await _loadScript("../mb-boot.js?v=8");
-    if(typeof window.CHARS === "undefined") await _loadScript("../MagiBurst/js/mb-core.js?v=63");
+    if(typeof window.DB === "undefined") await _loadScript("../mb-boot.js?v=9");
+    if(typeof window.CHARS === "undefined") await _loadScript("../MagiBurst/js/mb-core.js?v=65");
     if(typeof window.openDetX !== "function") await _loadScript("../mb-char-detail.js?v=14");
     _kpDetReady = true;
     _kpOpen(id);
@@ -1036,11 +1036,14 @@ window.lexLibToggleFilter=()=>{ libFilterOpen=!libFilterOpen; renderLibrary(); }
    未習得(none) と 習得中(learn) を合わせたもの＝まだ1問でも残っている範囲。
    仕上げのときに探すのはこれなのに、2つのチップを行き来しないと出せなかった。 */
 const LIB_FILTERS=[["all","すべて"],["quiz","選択クイズ"],["word","単語帳"],["undone","未完全習得"],["none","未習得"],["learn","習得中"],["done","完全習得"]];
-/* ★★ 2026-08-26 化学ε・物理γ を追加。標準演習なので、それぞれの科目のいちばん後ろに置く。 */
-const SUBJECT_ORDER=["英語","数学","化学α","化学β","化学γ","化学δ","化学ε","物理α","物理β","物理γ","国語"];
+/* ★★ 2026-08-26 化学ε・物理γ を追加。標準演習なので、それぞれの科目のいちばん後ろに置く。
+   ★★ 2026-08-30 <b>地理</b>を追加（ご指定）。理科・数学とは別の系統なので国語の前に置く。
+     ★ subjectOfSid には以前から "geo_" の行があったが、この並びに無かったため
+       <b>科目のふるいに一度も出てこなかった</b>。追加するときは必ず両方そろえること。 */
+const SUBJECT_ORDER=["英語","数学","化学α","化学β","化学γ","化学δ","化学ε","物理α","物理β","物理γ","地理","国語"];
 // 科目内ジャンル（例: 化学 → 理論・無機・有機・高分子）。表示順もここで決める
 /* ★ 2026-08-26 物理γのジャンル「熱・原子」を足した（既存の「熱・原子」と同じ並びに入る） */
-const GENRE_ORDER=["数と式・二次関数","場合の数・確率","整数","図形","三角関数","指数・対数","式と証明","図形と方程式","数列","ベクトル","データ・統計","極限","複素数平面","二次曲線","微分・積分","理論","無機","有機","高分子","物質別","力学","波動・光","電磁気","熱・原子","動詞","名詞","形容詞","副詞・接続","学術・社会","文法・敬語","古文単語"];
+const GENRE_ORDER=["数と式・二次関数","場合の数・確率","整数","図形","三角関数","指数・対数","式と証明","図形と方程式","数列","ベクトル","データ・統計","極限","複素数平面","二次曲線","微分・積分","理論","無機","有機","高分子","物質別","力学","波動・光","電磁気","熱・原子","工業","人口","人口問題","動詞","名詞","形容詞","副詞・接続","学術・社会","文法・敬語","古文単語"];
 function genreOf(c){
   const id = c.type==="word" ? c.key : (c.sid||"");
   // 英語
@@ -1064,6 +1067,10 @@ function genreOf(c){
   if(/^physb_b_/.test(id)) return "導体棒";
   if(/^physb_c_/.test(id)) return "コイル";
   /* 化学δ（★ 2026-08-20）。id の2文字めでジャンルが決まる。 */
+  /* ★★ 2026-08-30 地理（工業／人口／人口問題） */
+  if(/^geo_i_/.test(id)) return "工業";
+  if(/^geo_p_/.test(id)) return "人口";
+  if(/^geo_q_/.test(id)) return "人口問題";
   /* ★★ 2026-08-26 化学ε・物理γ */
   if(/^ceps_t_/.test(id)) return "理論";
   if(/^ceps_i_/.test(id)) return "無機";
@@ -1721,6 +1728,8 @@ function diffOf(c){
        化学δと同じ場所にそろえてある。 */
   if(/^ceps_/.test(id)) return 3;
   if(/^physg_/.test(id)) return 3;
+  /* ★★ 2026-08-30 地理も全範囲をむらなく取りきるための演習なので、まるごと「応用（★3）」。 */
+  if(/^geo_/.test(id)) return 3;
 
   /* ── ★5 最難関: 総合・記述の重い問題 ── */
   if(/^cgamma_[oi]_/.test(id)) return 5;   // 化学γ 有機・無機の総合

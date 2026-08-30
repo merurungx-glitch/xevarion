@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<script src="../maintenance-gate.js?v=5"></script>
+<meta charset="UTF-8" />
+<script>(function(){try{var a=JSON.parse(localStorage.getItem('xeva_account_v1'));if(!a||!a.setupDone)location.replace('../index.html');}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="mobile-web-app-capable" content="yes" />
+<title>MagiDiamond — 集めたキャラクターで、野球を極めろ。</title>
+<meta name="description" content="XEVARION の SR・SSR 全キャラクターが野球選手に。育成・チーム編成・野球盤の打球処理・オンライン対戦。" />
+<link rel="icon" href="../thumbs/MagiDiamond.jpg" type="image/png" />
+<link rel="apple-touch-icon" href="../thumbs/MagiDiamond.jpg" />
+<meta name="theme-color" content="#0b1226" />
+<link rel="stylesheet" href="css/md2.css?v=1" />
+<style>
+/* 起動中のスプラッシュ（mb-core.js を読み終わるまで） */
+#md2Splash{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;
+  background:linear-gradient(180deg,#0b1226,#080d1c);transition:opacity .5s ease}
+#md2Splash img{width:min(300px,66vw);border-radius:24px;box-shadow:0 20px 60px rgba(8,14,36,.8)}
+#md2Splash .bar{width:min(300px,64vw);height:7px;border-radius:99px;background:rgba(255,255,255,.12);overflow:hidden}
+#md2Splash .bar i{display:block;height:100%;width:0;border-radius:99px;
+  background:linear-gradient(90deg,#2f6bff,#ffd257,#ff5e5e);animation:md2load 2.6s ease-out forwards}
+@keyframes md2load{0%{width:4%}55%{width:72%}100%{width:96%}}
+#md2Splash .cap{font-size:11px;letter-spacing:.24em;color:#7286b8;font-weight:800}
+</style>
+</head>
+<body>
+
+<div id="md2Splash">
+  <img src="img/logo.webp" alt="MagiDiamond" onerror="this.src='../thumbs/MagiDiamond.jpg'">
+  <div class="bar"><i></i></div>
+  <div class="cap">LOADING PLAYERS ...</div>
+</div>
+
+<!-- ══ ヘッダー ══ -->
+<div class="hd">
+  <button class="bk" onclick="location.href='index.html'" aria-label="版えらびへ">←</button>
+  <div class="who">
+    <img class="av" id="meAv" src="../thumbs/MagiDiamond.jpg" alt="">
+    <div style="min-width:0">
+      <div class="nm" id="meName">プレイヤー</div>
+      <div class="lv" id="meLv">Lv.1</div>
+    </div>
+  </div>
+  <div class="wal">
+    <span class="w g">🪙<b id="walGold">0</b></span>
+    <span class="w t">TP<b id="walTp">0</b></span>
+    <span class="w d">🎫<b id="walCoin">0</b></span>
+  </div>
+</div>
+
+<!-- ══ 画面 ══ -->
+<section class="scr hide" id="sc-home"><div id="homeBody"></div></section>
+
+<section class="scr hide" id="sc-match">
+  <div class="pageT">⚾ 対戦 <small>MATCH</small></div>
+  <div id="matchBody"></div>
+</section>
+
+<section class="scr hide" id="sc-character">
+  <div class="pageT">👥 キャラクター <small>CHARACTER</small></div>
+  <div id="charBody"></div>
+</section>
+
+<section class="scr hide" id="sc-team">
+  <div class="pageT">🛡 チーム編成 <small>TEAM</small></div>
+  <div id="teamBody"></div>
+</section>
+
+<section class="scr hide" id="sc-shop">
+  <div class="pageT">🛒 ショップ <small>SHOP</small></div>
+  <div id="shopBody"></div>
+</section>
+
+<section class="scr hide" id="sc-mission">
+  <div class="pageT">🗒 ミッション <small>MISSION</small></div>
+  <div id="msnBody"></div>
+</section>
+
+<section class="scr hide" id="sc-rank">
+  <div class="pageT">👑 ランク <small>RANKED</small></div>
+  <div id="rankBody"></div>
+</section>
+
+<!-- ══ 下のタブ ══ -->
+<nav class="nav">
+  <button data-v="home" onclick="mdGo('home')"><span class="i">🏠</span>HOME</button>
+  <button data-v="match" onclick="mdGo('match')"><span class="i">⚾</span>MATCH</button>
+  <button data-v="team" onclick="mdGo('team')"><span class="i">🛡</span>TEAM</button>
+  <button data-v="character" onclick="mdGo('character')"><span class="i">👥</span>CHARA</button>
+  <button data-v="shop" onclick="mdGo('shop')"><span class="i">🛒</span>SHOP</button>
+</nav>
+
+<!-- ══ 試合画面（全画面でかぶせる） ══ -->
+<div id="mtWrap" class="hide">
+  <div class="mhd">
+    <button class="bk" onclick="mdQuitMatch()" aria-label="やめる">✕</button>
+    <div class="sc">
+      <span class="team">じぶん</span><span class="num" id="mtScoreMe">0</span>
+      <span style="color:var(--tx3)">−</span>
+      <span class="num" id="mtScoreCpu">0</span><span class="team">あいて</span>
+    </div>
+    <div class="inn"><span id="mtInn">1回表</span><span class="bso" id="mtBSO"></span></div>
+  </div>
+  <div id="mtField">
+    <canvas id="mtCv"></canvas>
+    <div class="mtOver"><div class="bigmsg" id="bigMsg"></div></div>
+  </div>
+  <div class="mtBot" id="mtBot"></div>
+</div>
+
+<!-- ══ シート ══ -->
+<div class="sheet" id="sheetChar" onclick="if(event.target===this)mdCloseSheet('sheetChar')">
+  <div class="cd">
+    <div class="hdr"><span class="t">選手データ</span><button class="x" onclick="mdCloseSheet('sheetChar')">✕</button></div>
+    <div id="detBody"></div>
+  </div>
+</div>
+<div class="sheet" id="sheetSlot" onclick="if(event.target===this)mdCloseSheet('sheetSlot')">
+  <div class="cd">
+    <div class="hdr"><span class="t">えらぶ</span><button class="x" onclick="mdCloseSheet('sheetSlot')">✕</button></div>
+    <div id="slotBody"></div>
+  </div>
+</div>
+
+<div class="toast2" id="toast2"></div>
+
+<script src="../xeva.js?v=50"></script>
+<script src="../xeva-loading.js?v=1" defer></script>
+<script type="module" src="../xevarion-fb.js?v=22"></script>
+<script src="../xeva-presence.js?v=1" defer></script>
+<script type="module" src="../xeva-cloud.js?v=19"></script>
+<script src="../game-link.js?v=3"></script>
+<script src="js/md2-data.js?v=1"></script>
+<script type="module" src="js/md2-online.js?v=1"></script>
+<script src="js/md2-game.js?v=1"></script>
+</body>
+</html>

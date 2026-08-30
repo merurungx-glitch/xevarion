@@ -1,17 +1,19 @@
 {
-  "version": "2026-08-29-2",
-  "date": "2026-08-29",
-  "title": "🎮 新作 Magi: Arcana Rush（β版）／📖 図鑑に入手方法／⚔ 戦姫祭の性能を調整",
+  "version": "2026-08-31-1",
+  "date": "2026-08-31",
+  "title": "💠 結晶と交換所／⚔ 戦姫祭にアンナ(祭)／✧ GRAND DEBUT Ver.6.0／⚾ MagiDiamond 大幅リニューアル／📚 MagiLex に地理",
   "notes": [
-    "🎮 新作『Magi: Arcana Rush』（β版）を公開しました。MagiBurst の派生作で、キャラクターもガチャも XEVARION と共通です（アプリ内にガチャはありません）。7属性・Link Arts・Elemental Resonance・Arcana Skill・Arcana Burst で戦います。",
-    "🔑 β版のため、Magi: Arcana Rush を開くたびにアクセスコードの入力が必要です（この端末には覚えません）。",
-    "📖 キャラクター図鑑と MagiBurst のキャラ図鑑に「入手方法」を追加しました。どのガチャで引けるのかをガチャの名前まで出します。",
-    "🗓 ホームに「アップデート情報」の欄を新設しました。これから先、アップデート内容はこちら・期間限定のイベントやガチャは「開催中のイベント」に分けて出します。",
-    "⚔ 戦姫祭6体のアビリティ構成を変更しました。アンチ4つ（オムニアンチなし）＋キラー3つ＋キラー以外3つで、アンチのうち1つはクロススキルになります。",
-    "🛑 フルバーストの2段階目は、ベータ版だったためいったん取り下げました（ターン表記も元に戻ります）。"
+    "PREMIUM SELECT GACHA のキャラクターは完凸しても排出され続けるようになりました。出たときは💠結晶（SSR 5個・SR 1個）がもらえ、75個で PREMIUM SELECT / GRAND DEBUT の好きな1体と交換できます（交換所はホームの🛒ショップ）",
+    "戦姫祭に アンナ(祭)（光・貫通）が登場。MagiBurst 史上最強で、闇属性の蓬莱3クエスト（第五重・蓬莱天宮・蓬莱神天）を有利属性のまま完全対応します",
+    "GRAND DEBUT GACHA Ver.6.0（チア・リサ・リン・ミノリ・セイカ）を公開。蓬莱天宮の続き5クエストの最適解で、リンクスキルは5本とも新設です",
+    "同じ名前のキャラクターに区別を付けました（アンナ(煌)／アンナ(STAR)／アンナ(祭)、ラン(祈)／ラン(焔)、ユウカ(黒)／ユウカ(聖)）",
+    "極彩祭・極華祭・極煌祭を「常時開催（毎月◯〜◯日）」表記にしました",
+    "MagiDiamond を大幅リニューアル。開くと最新版・過去版をえらべます。最新版は XEVARION の SR・SSR 全キャラクターが野球選手になり、育成・チーム編成・チームスキル・野球盤の打球処理・オンライン対戦まで遊べます",
+    "MagiLex に地理を追加しました（工業・人口・人口問題／17セット204問）",
+    "MagiLex の化学εを 20セット240問 → 40セット480問に倍増し、分野ごとに並べ直しました"
   ],
-  "bytes": 38352371,
-  "files": 391,
+  "bytes": 39511223,
+  "files": 408,
   "urls": [
     "index.html",
     "characters.html",
@@ -67,6 +69,15 @@
     "thumbs/MagiCraft.jpg",
     "thumbs/MagiManor.jpg",
     "thumbs/MagiDiamond.jpg",
+    "MagiDiamond/index.html",
+    "MagiDiamond/latest.html",
+    "MagiDiamond/classic.html",
+    "MagiDiamond/css/md2.css",
+    "MagiDiamond/js/md2-data.js",
+    "MagiDiamond/js/md2-game.js",
+    "MagiDiamond/js/md2-online.js",
+    "MagiDiamond/img/logo.webp",
+    "MagiDiamond/img/logo_s.webp",
     "thumbs/MagiMusic.jpg",
     "thumbs/MagiFocus.jpg",
     "thumbs/MagiPortfolio.jpg",
@@ -93,6 +104,7 @@
     "MagiLex/magilex-physb.js",
     "MagiLex/magilex-cheme.js",
     "MagiLex/magilex-physg.js",
+    "MagiLex/magilex-chiri.js",
     "MagiLex/mlhome_s.jpg",
     "MagiLex/kp.webp",
     "MagiLex/kp@2x.webp",
@@ -310,6 +322,13 @@
     "img/t_Marika.webp",
     "img/t_YuukaS.webp",
     "img/t_AnnaS.webp",
+    "img/t_AnnaM.webp",
+    "img/t_Chia.webp",
+    "img/t_Risa.webp",
+    "img/t_Rin.webp",
+    "img/t_Minori.webp",
+    "img/t_Seika.webp",
+    "img/cryst.webp",
     "img/t_Karen.webp",
     "img/t_Tomoe.webp",
     "img/t_Himari.webp",
@@ -406,15 +425,38 @@
     "MagiArcanaRush/img/mar-bg.webp"
   ],
   "apps": [
-    "magiarcanarush",
     "magiburst",
     "magilex",
-    "tab:home",
+    "magidiamond",
     "tab:gacha",
-    "tab:chars"
+    "tab:home",
+    "tab:chars",
+    "img",
+    "thumbs"
   ],
-  "changedFiles": 3,
+  "changedFiles": 2,
   "history": [
+    {
+      "version": "2026-08-29-2",
+      "date": "2026-08-29",
+      "title": "🎮 新作 Magi: Arcana Rush（β版）／📖 図鑑に入手方法／⚔ 戦姫祭の性能を調整",
+      "notes": [
+        "🎮 新作『Magi: Arcana Rush』（β版）を公開しました。MagiBurst の派生作で、キャラクターもガチャも XEVARION と共通です（アプリ内にガチャはありません）。7属性・Link Arts・Elemental Resonance・Arcana Skill・Arcana Burst で戦います。",
+        "🔑 β版のため、Magi: Arcana Rush を開くたびにアクセスコードの入力が必要です（この端末には覚えません）。",
+        "📖 キャラクター図鑑と MagiBurst のキャラ図鑑に「入手方法」を追加しました。どのガチャで引けるのかをガチャの名前まで出します。",
+        "🗓 ホームに「アップデート情報」の欄を新設しました。これから先、アップデート内容はこちら・期間限定のイベントやガチャは「開催中のイベント」に分けて出します。",
+        "⚔ 戦姫祭6体のアビリティ構成を変更しました。アンチ4つ（オムニアンチなし）＋キラー3つ＋キラー以外3つで、アンチのうち1つはクロススキルになります。",
+        "🛑 フルバーストの2段階目は、ベータ版だったためいったん取り下げました（ターン表記も元に戻ります）。"
+      ],
+      "apps": [
+        "magiarcanarush",
+        "magiburst",
+        "magilex",
+        "tab:home",
+        "tab:gacha",
+        "tab:chars"
+      ]
+    },
     {
       "version": "2026-08-29-1",
       "date": "2026-08-29",
@@ -828,18 +870,6 @@
     },
     {
       "version": "2026-08-20-4",
-      "date": "2026-08-20",
-      "title": "GRAND DEBUT GACHA 開幕 ／ レアリティを SSR・SR に ／ Wi-Fi・モバイルデータの通信設定",
-      "notes": [
-        "新キャラ専用の GRAND DEBUT GACHA を新設（Ver.1.0）。新キャラはこのガチャでのみ登場し、フェス・プレミアムのすり抜けや確定枠には出ません",
-        "新SSR 5体（ミレーユ・スカーレット・コユキ・アメリア・ミオ）。それぞれ蓬莱の九重の担当クエストを属性有利のまま全ギミック対応できます",
-        "レアリティ表記を ★5→SSR ／ ★4→SR に変更",
-        "Wi-Fi のときとモバイルデータのときで「最新のデータを使う」「更新を自動でダウンロード」を別々に設定できるようにしました",
-        "MagiLex: まちがえた問題からXEVYNARのくわしい解説へ飛べなかったのを修正／XEVA2倍キャンペーンを10/31まで延長"
-      ]
-    },
-    {
-      "version": "2026-08-20-3",
       "date": "2026-08-20",
       "title": "GRAND DEBUT GACHA 開幕 ／ レアリティを SSR・SR に ／ Wi-Fi・モバイルデータの通信設定",
       "notes": [
