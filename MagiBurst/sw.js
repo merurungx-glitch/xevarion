@@ -6,15 +6,15 @@
    ・オンライン対戦・XEVA換金はアプリ側でオフライン時に無効化している
    ・取得できたリソースは随時キャッシュ更新（stale-while-revalidate）
    ============================================================ */
-const VERSION = "magiburst-sw-v133";
+const VERSION = "magiburst-sw-v136";
 const CORE = [
   "./index.html",
-  "./js/mb-core.js?v=63",   /* ★ 2026-08-10 キャラ・ガチャの共有モジュール（XEVARION のガチャと共通） */
-  "../xeva.js?v=49",
+  "./js/mb-core.js?v=65",   /* ★ 2026-08-10 キャラ・ガチャの共有モジュール（XEVARION のガチャと共通） */
+  "../xeva.js?v=50",
   "../xeva-loading.js?v=1",
   "../xeva-splash.js?v=3",
   "../app-cloud.js?v=4",
-  "../xeva-keys.js?v=7",
+  "../xeva-keys.js?v=8",
   "./magiburst-cloud.js?v=6",
   "../maintenance-gate.js?v=5",
   "../app-install-notice.js?v=1",
@@ -287,6 +287,16 @@ const CORE = [
   "../img/t_Marika.webp",
   "../img/t_YuukaS.webp",
   "../img/t_AnnaS.webp",
+  /* ★★ 2026-08-30 戦姫祭 アンナ(祭)／GRAND DEBUT Ver.6.0 の5体。
+     ★ ここに無いとオフラインでその子だけ絵が出ず、update.json にも載らない。 */
+  "../img/t_AnnaM.webp",
+  "../img/t_Chia.webp",
+  "../img/t_Risa.webp",
+  "../img/t_Rin.webp",
+  "../img/t_Minori.webp",
+  "../img/t_Seika.webp",
+  /* ★★ 2026-08-30 💠結晶のアイコン（ガチャ結果・交換所で使う） */
+  "../img/cryst.webp",
   "../img/t_Karen.webp",
   "../img/t_Tomoe.webp",
   "../img/t_Himari.webp",

@@ -15,8 +15,8 @@
    <b>ふつうの &lt;script&gt;</b>（type="module" ではない）で読むこと。
    トップレベルの const/let はグローバルの字句環境に入るので、
    あとから読み込む MagiBurst 本体のスクリプトからそのまま見える。
-     MagiBurst : <script src="js/mb-core.js?v=63"></script>
-     gacha.html: <script src="MagiBurst/js/mb-core.js?v=63"></script>
+     MagiBurst : <script src="js/mb-core.js?v=65"></script>
+     gacha.html: <script src="MagiBurst/js/mb-core.js?v=65"></script>
 
    ── ホストが先に用意しておくもの ──
      window.MB_IMGD … 画像フォルダへの相対パス（MagiBurst は "../img/"、ポータルは "img/"）
@@ -881,8 +881,15 @@ const SHOTSK_MARIKA_FB = 1;       //   あわせて自分のフルバースト�
 const SHOTSK_YUUKA_PER = 0.50;    // ユウカ: 自分のまわりに聖杯の光
 const SHOTSK_YUUKA_R = 230;
 const SHOTSK_YUUKA_BAR = 620;     //   あわせて<b>味方全員</b>に張るバリア
-const SHOTSK_ANNA_PER = 0.66;     // アンナ: 敵<b>全体</b>へ星屑がふりそそぐ
+const SHOTSK_ANNA_PER = 0.66;     // アンナ(STAR): 敵<b>全体</b>へ星屑がふりそそぐ
 const SHOTSK_ANNA_R = 120;        //   1体ぶんの星屑の広がり（見た目）
+/* ★★ 2026-08-30 アンナ(祭)「ランタン・シュート」。
+   ★ ショットスキルの定数は、この下の <b>SHOTSKILLS より前</b>に置くこと。
+     あとのほうに書くと const の巻き上げが効かず（TDZ）、SHOTSKILLS の評価で落ちて
+     mb-core.js が丸ごと読めなくなる。 */
+const SHOTSK_ANNAM_PER = 0.70;    // アンナ(祭): 敵<b>全体</b>へ祭の灯がともる
+const SHOTSK_ANNAM_R = 130;       //   1体ぶんの灯の広がり（見た目）
+const SHOTSK_ANNAM_FB = 1;        //   あわせて自分のフルバーストが進むターン数
 /* ══ ★★ 2026-08-28 ショットスキルは<b>アビリティではない</b>（ご指定）══
    ・アビリティの数（クロス込みで8つ）には<b>数えない</b>。
    ・キャラ詳細でも<b>別枠</b>に出す（abil には入れない）。
@@ -965,6 +972,19 @@ const SHOTSKILLS = {
     desc: "自分のターンで<b>撃つたび毎回</b>、聖杯からあふれた光がまわりへ広がって削る。"
       + "<br>いちばんのちがいは、バリアが<b>自分だけでなく味方全員</b>に張られること"
       + "（" + SHOTSK_YUUKA_BAR + "）。撃つほどチーム全体が固くなる。",
+  },
+  /* ══ ★★ 2026-08-30 アンナ(祭)（戦姫祭）══ */
+  lantern: {
+    nm: "ランタン・シュート", c: "#ffd257",
+    pow: "<b>敵全体</b>に 攻撃力×" + SHOTSK_ANNAM_PER + " の灯（距離に関係なく当たる）"
+      + " ＋ <b>自分のフルバーストが" + SHOTSK_ANNAM_FB + "ターン進む</b>",
+    desc: "自分のターンで<b>撃つたび毎回</b>、盤面じゅうの敵に祭の灯がともる。"
+      + "<br><b>射程も範囲も関係なく、画面の敵すべてに入る</b>うえに、"
+      + "<b>撃つだけでフルバーストが" + SHOTSK_ANNAM_FB + "ターン進む</b>——"
+      + "全体攻撃とフルバースト短縮を<b>同時に</b>持つショットスキルはここだけ。"
+      + "<br>アンナ(STAR) の<b>アストラル・シュート</b>より1発が重く（×"
+      + SHOTSK_ANNA_PER + " → ×" + SHOTSK_ANNAM_PER + "）、そのうえ手番のたびに"
+      + "<b>史上最強のフルバーストが近づいていく</b>。",
   },
   astral: {
     nm: "アストラル・シュート", c: "#c9a6ff",
@@ -1244,6 +1264,138 @@ const ANNAFB_BARRAGE_PER = 1.95;   // 乱打1発ぶんの倍率
 const ANNAFB_FINALE_PER = 26.0;    // 締めの一撃（範囲）
 const ANNAFB_FINALE_R = 460;       // その範囲
 const ANNAFB_RAIN_PER = 4.00;      // フィナーレのあと、敵全体へ落ちる星
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-08-30 アンナ(祭)（戦姫祭・光・貫通）＝<b>MagiBurst 史上最強</b>（ご指定）
+   ------------------------------------------------------------
+   ★ アンナ(STAR)（annas・闇）とは別人。id も画像も別（annam / AnnaM.webp）。
+   ★ 数字は「アンナ(STAR) を確実に上回る」ことを基準に置いた。
+       フルバースト … ×253.3（アンナ(STAR) ×154.8 の 1.64倍）
+       リンクスキル … ×54.8（アンナ(STAR) ×39.6 の 1.38倍）
+   ══════════════════════════════════════════════════════════════ */
+/* ── アンナ(祭)「千華繚乱・スターマイン」（フルバースト）──
+   壁をすり抜けて進み、最初にふれた敵で停止して<b>灯火の乱打</b>を
+   ANNAM_BARRAGE_N 連たたき込む。そのあと<b>スターマイン</b>——
+   夜空へ花火が ANNAM_STARMINE_N 発つづけて上がり、開くたびに<b>敵全体</b>へ入る。
+   開くたびに1発が重くなり（+ANNAM_STARMINE_STEP）、最後に<b>大玉「千華」</b>で締める。
+   ★ 合計 = 76×2.05 ＋ スターマイン49.5 ＋ 大玉48.0 = <b>×253.3</b>。 */
+const ANNAM_ATK = 3.40;            // 自強化の攻撃倍率
+const ANNAM_SPD = 1.62;            // 自強化のスピード倍率
+const ANNAM_BARRAGE_N = 76;        // 灯火の乱打の連数
+const ANNAM_BARRAGE_PER = 2.05;    // 乱打1発ぶんの倍率
+const ANNAM_STARMINE_N = 6;        // スターマインの発数（敵全体）
+const ANNAM_STARMINE_PER = 4.50;   // 1発ぶんの倍率（敵全体）
+const ANNAM_STARMINE_STEP = 1.50;  // 開くたびの上乗せ
+const ANNAM_STARMINE_GAP = 11;     // 1発ごとの間隔（フレーム）
+const ANNAM_FINALE_PER = 48.0;     // 締めの大玉「千華」（敵全体）＋ふっとばし
+/* ── アンナ(祭)「万灯祭天（ばんとうさいてん）」（リンクスキル）──
+   ★ これまでに無い挙動: <b>味方全員の足もとから灯籠が上がる</b>。
+     上がっていく線にふれた敵を削り（LANFES_LIFT_PER）、
+     上がりきった灯籠が<b>1つずつ順に開いて敵全体</b>へ入る。
+     <b>開くたびに次の1発が重くなる</b>（+LANFES_BURST_STEP）ので、
+     <b>味方が多く残っているほど強い</b>——リンクスキルで味方の数を見るのは MagiBurst 初。
+   ★ 合計（灯籠4つ）= 4×1.30 ＋ (4×6.50 + 1.60×6) ＋ 14.0 = <b>×54.8</b>。 */
+const LANFES_MAX = 4;              // 灯籠の本数の上限（＝盤面の味方の数）
+/* ★ 2026-08-30 実測して調整（敵4体・攻撃力3000）。
+   もとの値だと実測 49.6 で、アストラル・ソヴリン（39.6）との差が小さかった。
+   「史上いちばん重い」がはっきり分かる <b>実測およそ64</b> にそろえてある。 */
+const LANFES_LIFT_PER = 1.30;      // 上がるときに線上の敵へ（1本あたり）
+const LANFES_BURST_PER = 8.40;     // 開いたとき敵全体へ（1発あたり）
+const LANFES_BURST_STEP = 2.10;    // 開くたびの上乗せ
+const LANFES_FINALE = 18.0;        // 最後の大玉（敵全体）
+const LANFES_R = 300;              // 開いたときの広がり（見た目）
+const LANFES_GAP = 8;
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-08-30 GRAND DEBUT GACHA Ver.6.0 の5体
+   （チア・リサ・リン・ミノリ・セイカ）
+   ------------------------------------------------------------
+   ★ 5体とも<b>蓬莱天宮の続き5クエスト</b>の必要アンチとぴったり一致し、
+     そのクエストで<b>有利属性</b>になる（＝最適解）。
+     チア＝蓬莱神域／リサ＝蓬莱仙苑／リン＝蓬莱天界／ミノリ＝蓬莱月宮／セイカ＝蓬莱神天。
+   ★ Cozy Haven の5体（同じ5クエスト担当）より<b>はっきり強い</b>が、
+     戦姫祭には届かない位置に置いてある（ご指定）——
+       アンチ … Cozy は素のもの／ここは<b>「超」つき</b>
+       キラー … Cozy は L＋M／ここは <b>EL×1＋L×2</b>／戦姫祭は EL×3
+   ★ リンクスキルは5本とも<b>新設</b>。共通サブリンクも新設（ジュエル・シャワー）。
+   ══════════════════════════════════════════════════════════════ */
+/* ── チア「ハートフル・リコシェ」──
+   ★ 新しい挙動: ハートの弾が<b>壁で跳ね返るたびに大きく・重くなる</b>。
+     跳ねるほど当たる範囲が広がるので、<b>狭い盤面ほど強い</b>。 */
+const RICO_N = 7;                  // 跳ね返る回数
+/* ★ 2026-08-30 実測して作り直した。
+   はじめは「壁ではねた<b>その場所だけ</b>」に当たり判定を出していたので、
+   壁ぎわに敵がいないと<b>1回も当たらなかった</b>（実測 0）。
+   いまは<b>飛んでいる線そのもの</b>にも当たり、壁ではねた場所でさらに大きく弾ける形。 */
+const RICO_PER = 3.60;             // 1段ぶんの倍率（線・はねた場所とも）
+const RICO_STEP = 1.05;            // 1回跳ねるごとの上乗せ
+const RICO_W = 112;                // 飛んでいる線の太さ
+const RICO_R0 = 150;               // はねた場所で弾ける大きさ（はじめ）
+const RICO_R1 = 360;               // 同（最後）
+const RICO_GAP = 8;
+/* ── リサ「フローズン・ノクターン」──
+   ★ 新しい挙動: 盤面ごと凍りついて<b>敵全体の攻撃ターンが遅れる</b>。
+     氷は FROZ_TICKS 回パキパキと割れ、<b>割れるたびに重くなる</b>。 */
+const FROZ_TICKS = 7;
+/* ★ 2026-08-30 実測 38.9（アストラル・ソヴリン 39.6 と並んでしまう）ので下げた → 実測およそ31 */
+const FROZ_PER = 2.60;
+const FROZ_STEP = 0.60;
+const FROZ_DELAY = 1;              // 敵全体の攻撃ターンを遅らせる数
+const FROZ_GAP = 8;
+/* ── リン「ローズ・カンデラブラ」──
+   ★ 新しい挙動: 盤面に<b>燭台が3本</b>立ち、灯どうしを黒薔薇の線が結ぶ。
+     線にふれた敵を削り、<b>3本が結んだ三角形の内側</b>にいる敵へ大ダメージ。
+     「囲んだ内側」を判定するリンクは MagiBurst 初。 */
+const CAND_N = 3;                  // 燭台の本数
+/* ★ 2026-08-30 実測して調整（実測およそ32）。 */
+const CAND_LINE_PER = 5.60;        // 線1本ぶん（貫通）
+const CAND_W = 56;                 // 線の太さ
+const CAND_INNER_PER = 30.0;       // 三角形の内側にいる敵へ
+const CAND_GAP = 9;
+/* ── ミノリ「ジュエル・カット」──
+   ★ 新しい挙動: 宝石のカット面が <b>三角形 → 八角形</b> へと面を増やしながら描かれる。
+     辺の上の敵を削り、<b>面が増えるたびに1段が重くなる</b>。 */
+const JCUT_FROM = 3;               // はじめの頂点数
+const JCUT_TO = 8;                 // 最後の頂点数
+/* ★ 2026-08-30 実測して作り直した。
+   半径を固定（300）にしていたので<b>その円周にいる敵にしか当たらず</b>、
+   実測 10.7 と低かった。いまは面が増えるのに合わせて<b>半径も外へ広がる</b>ので、
+   どの距離の敵にも必ずどれかの面が通る（実測およそ32）。 */
+const JCUT_PER = 6.10;             // 1段ぶんの倍率
+const JCUT_STEP = 1.60;            // 面が増えるたびの上乗せ
+const JCUT_R0 = 150;               // カット面の半径（3角形のとき）
+const JCUT_R1 = 430;               // 同（8角形のとき）
+const JCUT_R = JCUT_R1;            // 説明文に出す代表値（いちばん外）
+const JCUT_W = 86;                 // 辺の太さ
+const JCUT_GAP = 8;
+/* ── セイカ「サンライズ・ヴェール」──
+   ★ 新しい挙動: 夜明けの光の帯が<b>画面の下から上へ昇っていき</b>、通った敵を削る。
+     昇りきると盤面ぜんたいが明るくなり、<b>敵全体へ暁の一撃</b>。
+     「画面を縦になぞる帯」は MagiBurst 初。 */
+const SUNV_BANDS = 6;              // 帯が敵にふれる段
+/* ★ 2026-08-30 実測して調整。帯の通り道が画面の外まで行ってしまい、
+   6段のうち2段がむだになっていた（実測 21.7）。通り道を盤面の中だけにし、
+   帯も厚くして<b>どの高さの敵にも必ず当たる</b>ようにした → 実測およそ33。 */
+const SUNV_PER = 4.20;
+const SUNV_STEP = 1.00;
+const SUNV_FINALE = 17.0;          // 昇りきったときの敵全体
+const SUNV_H = 210;                // 帯の高さ（厚くして段どうしを重ねる）
+const SUNV_GAP = 7;
+/* ── 共通サブリンク「ジュエル・シャワー」──
+   ★ 新しい挙動: 宝石のかけらが上へ噴き上がり、そのあと<b>敵の頭上へ降ってくる</b>。
+     降る数は<b>画面の敵の数 ＋1</b>（最大 JSHOW_MAX）——
+     <b>敵が多いほど本数が増える</b>サブリンクは MagiBurst 初。 */
+const JSHOW_PER = 2.20;
+const JSHOW_MAX = 6;
+const JSHOW_GAP = 7;
+/* ── Ver.6.0 5体のフルバースト（自強化＋全体攻撃＋それぞれ別のおまけ効果）──
+   ★ おまけの効果は5体とも<b>別のもの</b>にしてある（同じにすると手ざわりが同じになる）。 */
+const CHIA_ATK = 2.62, CHIA_SPD = 1.36, CHIA_ALL = 2.35, CHIA_BARRIER = 1600;
+const RISA_ATK = 2.64, RISA_SPD = 1.38, RISA_ALL = 2.40;
+const RISA_ATKDOWN_TURNS = 4, RISA_ATKDOWN_MUL = 0.75;   /* 敵全体の攻撃力 −25% */
+const RIN_ATK = 2.66, RIN_SPD = 1.34, RIN_ALL = 2.45, RIN_SIGIL_TURNS = 3;
+const MINORI_ATK = 2.60, MINORI_SPD = 1.32, MINORI_ALL = 2.35;
+const MINORI_TEAM_ATK = 1.35, MINORI_TEAM_TURNS = 3;     /* 味方全員の攻撃力アップ */
+const SEIKA_ATK = 2.63, SEIKA_SPD = 1.37, SEIKA_ALL = 2.50;
+const SEIKA_HEAL = 0.40, SEIKA_BARRIER = 2000;
 /* ══ ★★ 2026-08-28 フルバーストの<b>2段階目</b>（ご指定）══
    ・1段階目（ssTurns）からさらに FB2_EXTRA ターンためると<b>2段階目</b>が撃てる。
    ・2段階目は<b>威力 ×FB2_MUL</b>・自強化の持続 <b>+FB2_BUFF_TURNS ターン</b>。
@@ -2977,6 +3129,18 @@ const SUBFS = {
       + "<br>当たるのは<b>そのときの輪の上にいる敵だけ</b>なので、"
       + "近い敵は早い回に、遠い敵は後の回に入る＝<b>どの距離の敵にも必ず1回は届く</b>。"
       + "<br>戦姫祭の6体が<b>全員そろって持つ</b>共通のサブリンクです" },
+  /* ══ ★★ 2026-08-30 GRAND DEBUT Ver.6.0 の5体の<b>共通</b>サブリンク（ご指定）══ */
+  jewelshower: { nm: "ジュエル・シャワー",
+    pow: "宝石のかけらが <b>画面の敵の数＋1</b> 発（最大 " + JSHOW_MAX + "）／"
+      + "1発 攻撃力×" + JSHOW_PER + "（<b>敵全体</b>）／"
+      + "敵4体なら 合計 攻撃力×" + (5 * JSHOW_PER).toFixed(2),
+    desc: "ふれた味方から<b>宝石のかけらが上へ噴き上がり</b>、"
+      + "少し遅れて<b>敵ぜんいんの頭上へ降ってくる</b>。"
+      + "<br>いちばんのちがいは<b>降る本数が敵の数で決まる</b>こと"
+      + "（敵の数＋1・最大 " + JSHOW_MAX + " 発）。"
+      + "<b>敵が多い場面ほど本数が増え、しかも1発ずつが敵全体に入る</b>ので、"
+      + "雑魚がそろっているWAVEでは総ダメージがふくれあがる。"
+      + "<br>GRAND DEBUT GACHA Ver.6.0 の5体が<b>全員そろって持つ</b>共通のサブリンクです" },
 };
 
 /* ══════════ ネクサススキル（v13.1） ══════════
@@ -3870,6 +4034,77 @@ const CONNECT = {
       { k: "annasAdw", nm: "超アンチダメージウォール", abil: "superadw" },
       { k: "annasDash", nm: "ダッシュL", abil: "dashL" },
       { k: "annasRegen", nm: "リジェネL", abil: "regenL" },
+    ],
+  },
+  /* ══════════════════════════════════════════════════════════════
+     ★★ 2026-08-30 アンナ(祭)のクロス（ご指定: アンチを1つ入れる）
+     ★ 素で <b>超アンチワープ＋超アンチ減速壁＋超アンチ重力バリア＋アンチ断絶界</b> の
+       4つを持っているので、ここで <b>超マインスイーパーEL</b> が加わると
+       <b>第五重・蓬莱天宮・蓬莱神天</b> の3つを<b>すべて有利属性のまま</b>完全対応できる。
+     ★ 条件は<b>撃種</b>で見る（属性では見ない）。
+       「自分と異なる属性の味方」を条件にするのは禁止（ご指定）なので、
+       ここでは<b>同じ撃種（貫通）の味方がいること</b>にしてある。
+     ══════════════════════════════════════════════════════════════ */
+  annam: {
+    nm: "祭灯のクロス",
+    condTx: "<b>自分と同じ撃種（貫通）の味方が1体以上</b>いること",
+    cond: (ids, me) => cnxSelfIn(ids, me) && cnxCount(ids, me, (c, m) => c.shot === m.shot) >= 1,
+    skills: [
+      { k: "annamMs", nm: "超マインスイーパーEL", abil: "supermsEL" },
+      { k: "annamBarrier", nm: "バリアEL", abil: "barrierEL" },
+      { k: "annamFsboost", nm: "リンクブーストEL", abil: "fsboostEL" },
+    ],
+  },
+  /* ══════════════════════════════════════════════════════════════
+     ★★ 2026-08-30 GRAND DEBUT Ver.6.0 の5体のクロス
+     ・アンチは<b>素の3つ</b>で足りている（担当クエストにぴったり）ので、
+       クロスは<b>キラーでもアンチでもないもの2つ</b>にしてある。
+       ＝ アビリティは「アンチ3＋キラー3＋クロス2」の<b>8つ</b>（ご指定の上限ちょうど）。
+     ・条件はどれも<b>属性を見ない</b>（ご指定）。HP・スピード・攻撃力・撃種で見る。
+     ══════════════════════════════════════════════════════════════ */
+  chia: {
+    nm: "恋灯のクロス",
+    condTx: "<b>自分よりHPが高い味方が1体以上</b>いること",
+    cond: (ids, me) => cnxSelfIn(ids, me) && cnxCount(ids, me, (c, m, cs, ms) => (cs.hp || 0) > (ms.hp || 0)) >= 1,
+    skills: [
+      { k: "chiaBarrier", nm: "バリアM", abil: "barrierM" },
+      { k: "chiaRegen", nm: "リジェネL", abil: "regenL" },
+    ],
+  },
+  risa: {
+    nm: "氷華のクロス",
+    condTx: "<b>自分より速い味方が1体以上</b>いること",
+    cond: (ids, me) => cnxSelfIn(ids, me) && cnxCount(ids, me, (c, m, cs, ms) => (cs.spd || 0) > (ms.spd || 0)) >= 1,
+    skills: [
+      { k: "risaHeal", nm: "回復M", abil: "healM" },
+      { k: "risaDash", nm: "ダッシュL", abil: "dashL" },
+    ],
+  },
+  rin: {
+    nm: "黒薔薇のクロス",
+    condTx: "<b>自分と撃種がちがう味方が2体以上</b>いること",
+    cond: (ids, me) => cnxSelfIn(ids, me) && cnxCount(ids, me, (c, m) => c.shot !== m.shot) >= 2,
+    skills: [
+      { k: "rinLaser", nm: "超レーザーストップM", abil: "laserstopM" },
+      { k: "rinDash", nm: "ダッシュM", abil: "dashM" },
+    ],
+  },
+  minori: {
+    nm: "宝石のクロス",
+    condTx: "<b>自分より攻撃力が高い味方が1体以上</b>いること",
+    cond: (ids, me) => cnxSelfIn(ids, me) && cnxCount(ids, me, (c, m, cs, ms) => (cs.atk || 0) > (ms.atk || 0)) >= 1,
+    skills: [
+      { k: "minoriFs", nm: "リンクブーストL", abil: "fsboostL" },
+      { k: "minoriBarrier", nm: "バリアL", abil: "barrierL" },
+    ],
+  },
+  seika: {
+    nm: "暁光のクロス",
+    condTx: "<b>自分よりHPが低い味方が2体以上</b>いること",
+    cond: (ids, me) => cnxSelfIn(ids, me) && cnxCount(ids, me, (c, m, cs, ms) => (cs.hp || 0) < (ms.hp || 0)) >= 2,
+    skills: [
+      { k: "seikaPhoton", nm: "エターナルエーテルM", abil: "eternalphotonM" },
+      { k: "seikaRegen", nm: "リジェネM", abil: "regenM" },
     ],
   },
 };
@@ -5562,7 +5797,7 @@ const CHARS = {
       + "特大リングが盤面じゅうを跳ねまわり、<b>同じ敵にも短い間隔で何度も入る</b>ので、味方が長く走るほど削り切れる",
   },
   ran: {
-    id: "ran", nm: "ラン", img: "Ran.webp", th: "t_Ran.webp",
+    id: "ran", nm: "ラン(祈)", img: "Ran.webp", th: "t_Ran.webp",
     el: "light", shot: "bounce", type: "祈祷支援型", gacha: true, lux: true, nexus: "mercy",
     hp: [906, 5970], atk: [480, 3060], spd: [286, 420],
     /* アンチ3種＋治癒の祈り＋ソウルスティールEL（新）＝「落ちない編成」を作るキャラ */
@@ -5899,7 +6134,7 @@ const CHARS = {
        既存のキー（superadw / superaw / superspinring …）をそのまま使うこと。
        ここで独自の名前・独自の数値を作らないこと。 */
   anna: {
-    id: "anna", nm: "アンナ", img: "Anna.webp", th: "t_Anna.webp",
+    id: "anna", nm: "アンナ(煌)", img: "Anna.webp", th: "t_Anna.webp",
     el: "light", shot: "bounce", type: "煌貴絶影型", gacha: true, lux: true, nexus: "force",
     hp: [906, 5970], atk: [506, 3220], spd: [288, 424],
     abil: [{ t: "superadw" }, { t: "superaw" }, { t: "ablock" },
@@ -7303,7 +7538,7 @@ const CHARS = {
     /* 闇・貫通。黒十字を背負う祈りの少女。
        ★ 担当は<b>第四重（光 {grav,ward}）と第九重（光 {slowwall,ward}）の両方</b>
          ＝ 超アンチ重力バリア＋アンチ断絶界＋超アンチ減速壁の3種で、2クエストを同時に満たす。 */
-    id: "yuuka", nm: "ユウカ", img: "Yuuka.webp", th: "t_Yuuka.webp",
+    id: "yuuka", nm: "ユウカ(黒)", img: "Yuuka.webp", th: "t_Yuuka.webp",
     el: "dark", shot: "pierce", type: "黒十字刻印型", gacha: true, debut: true, lux: true, nexus: "pierce", star5: true,
     connect: "yuuka",
     hp: [978, 6450], atk: [560, 3548], spd: [306, 455],
@@ -8386,7 +8621,7 @@ const CHARS = {
      ══════════════════════════════════════════════════════════════ */
   rans: {
     /* 火・反射。赤髪のメイド長。★ 既存の No.73「ラン」とは別人なので id も画像名も別。 */
-    id: "rans", nm: "ラン", img: "RanS.webp", th: "t_RanS.webp",
+    id: "rans", nm: "ラン(焔)", img: "RanS.webp", th: "t_RanS.webp",
     el: "fire", shot: "bounce", type: "紅焔給仕型", gacha: true, fes: true, fesKey: "senki", lux: true,
     nexus: "senkivalor", star5: true,
     connect: "rans",
@@ -8523,7 +8758,7 @@ const CHARS = {
   },
   yuukas: {
     /* 光・反射。聖杯の戦姫。★ 既存の No.150「ユウカ」とは別人なので id も画像名も別。 */
-    id: "yuukas", nm: "ユウカ", img: "YuukaS.webp", th: "t_YuukaS.webp",
+    id: "yuukas", nm: "ユウカ(聖)", img: "YuukaS.webp", th: "t_YuukaS.webp",
     el: "light", shot: "bounce", type: "聖杯灌光型", gacha: true, fes: true, fesKey: "senki", lux: true,
     nexus: "senkivalor", star5: true,
     connect: "yuukas",
@@ -8563,7 +8798,7 @@ const CHARS = {
          ・アンチの数はほかの5体と同じ4つだが、<b>クロス込みで5クエスト</b>を
            完全対応できる（戦姫祭で最多）
          ★ 2026-08-29b キラーは<b>3つ</b>にそろえました（ご指定・以前は5つ）。 */
-    id: "annas", nm: "アンナ", img: "AnnaS.webp", th: "t_AnnaS.webp",
+    id: "annas", nm: "アンナ(STAR)", img: "AnnaS.webp", th: "t_AnnaS.webp",
     el: "dark", shot: "pierce", type: "星冠戴天型", gacha: true, fes: true, fesKey: "senki", lux: true,
     nexus: "senkivalor", star5: true,
     connect: "annas",
@@ -8612,7 +8847,278 @@ const CHARS = {
       + (ANNA_TICKS * ANNA_PER + ANNA_STEP * (ANNA_TICKS * (ANNA_TICKS - 1) / 2) + ANNA_FINALE).toFixed(2)
       + " ——しかも<b>距離も向きも関係なく画面の敵すべてに入る</b>ので、"
       + "敵が多いほど総ダメージがそのまま倍になっていく。"
-      + "<b>MagiBurst 史上いちばん重いリンクスキル</b>",
+      + "<b>戦姫祭でいちばん重いリンクスキル</b>"
+      + "（★ 2026-08-30 <b>アンナ(祭)の「万灯祭天」（合計×"
+      + (LANFES_MAX * LANFES_LIFT_PER + LANFES_MAX * LANFES_BURST_PER
+         + LANFES_BURST_STEP * (LANFES_MAX * (LANFES_MAX - 1) / 2) + LANFES_FINALE).toFixed(1)
+      + "）に抜かれました</b>）",
+  },
+  /* ══════════════════════════════════════════════════════════════
+     ★★ 2026-08-30 アンナ(祭)（戦姫祭・光・貫通）＝<b>MagiBurst 史上最強</b>（ご指定）
+     ------------------------------------------------------------
+     ★ アンナ(STAR)（annas・闇）とは<b>別人</b>。id も画像も別（annam / AnnaM.webp）。
+     ★ アビリティは<b>10個</b>（アンチ4＋キラー3＋クロス3）。
+       クロスの3つのうち1つが<b>アンチ</b>（ご指定）＝アンチは合計<b>5つ</b>。
+     ★ 担当クエスト（有利属性のまま完全対応）
+         素の4つ（超アンチワープ・超アンチ減速壁・超アンチ重力バリア・アンチ断絶界）で
+           🏯第五重（闇 {warp,ward}）／🏯蓬莱天宮（闇 {grav,warp,slowwall}）
+         クロスの超マインスイーパーEL が加わると
+           🏯蓬莱神天（闇 {mine,slowwall,warp}）
+       ＝ <b>闇属性の蓬莱3クエストすべて</b>を有利属性のまま完全対応できる。
+       ★ 蓬莱天宮（適性4体）・蓬莱神天（適性3体）は<b>いちばん手薄な階層</b>（実測）。
+     ★ 撃種を<b>貫通</b>にしてあるのは、蓬莱神天が<b>内部弱点</b>のクエストだから
+       （反射では弱点を殴れない）。
+     ══════════════════════════════════════════════════════════════ */
+  annam: {
+    id: "annam", nm: "アンナ(祭)", img: "AnnaM.webp", th: "t_AnnaM.webp",
+    el: "light", shot: "pierce", type: "灯華祭天型", gacha: true, fes: true, fesKey: "senki", lux: true,
+    nexus: "senkivalor", star5: true,
+    connect: "annam",
+    hp: [1062, 6990], atk: [598, 3792], spd: [319, 478],
+    abil: [{ t: "superaw" }, { t: "superaslow" }, { t: "sgrav" }, { t: "award" },
+           { t: "houraikillerEL" }, { t: "weakkillerEL" }, { t: "killerEL", el: "dark" }],
+    shotskill: "lantern",
+    subfs: "senkirondo",
+    ssName: "千華繚乱・スターマイン", ssTurns: 20, ssKind: "annam",
+    ssPow: "自強化（攻撃×" + ANNAM_ATK + "・スピード×" + ANNAM_SPD + "）＋ <b>壁をすり抜けて</b>進み、"
+      + "<b>最初にふれた敵で停止</b>して 灯火の乱打" + ANNAM_BARRAGE_N + "連（各 攻撃力×" + ANNAM_BARRAGE_PER
+      + "＝合計×" + (ANNAM_BARRAGE_N * ANNAM_BARRAGE_PER).toFixed(1) + "）"
+      + " ＋ <b>スターマイン " + ANNAM_STARMINE_N + "発（敵全体・1発 攻撃力×" + ANNAM_STARMINE_PER
+      + "、開くたびに +" + ANNAM_STARMINE_STEP + "）</b>"
+      + " ＋ <b>大玉「千華」 敵全体へ 攻撃力×" + ANNAM_FINALE_PER + "</b> ＋ ふっとばし",
+    ssDesc: "夜空に祭囃子が鳴りひびき、<b>自強化（攻撃×" + ANNAM_ATK + "・スピード×" + ANNAM_SPD + "）</b>して"
+      + "<b>壁をすり抜けながら</b>走り出す。"
+      + "<br><b>最初にふれた敵の上で止まり</b>、そこへ<b>灯火の乱打" + ANNAM_BARRAGE_N
+      + "連（各×" + ANNAM_BARRAGE_PER + "）</b>を撃ち込む。"
+      + "<br>ここからが<b>これまでに無い形</b>——夜空へ<b>花火が" + ANNAM_STARMINE_N
+      + "発つづけて上がり</b>、1発開くたびに<b>敵全体</b>へ入る（1発目 ×" + ANNAM_STARMINE_PER
+      + "、開くたびに +" + ANNAM_STARMINE_STEP + " ずつ重くなり、最後の1発は ×"
+      + (ANNAM_STARMINE_PER + ANNAM_STARMINE_STEP * (ANNAM_STARMINE_N - 1)).toFixed(2) + "）。"
+      + "<br>締めは<b>大玉「千華」</b>——盤面いっぱいにひらいて<b>敵全体へ 攻撃力×"
+      + ANNAM_FINALE_PER + "</b>、そのままふっとばす。"
+      + "<br>全弾ヒットで合計<b>攻撃力×"
+      + (ANNAM_BARRAGE_N * ANNAM_BARRAGE_PER
+         + ANNAM_STARMINE_N * ANNAM_STARMINE_PER
+         + ANNAM_STARMINE_STEP * (ANNAM_STARMINE_N * (ANNAM_STARMINE_N - 1) / 2)
+         + ANNAM_FINALE_PER).toFixed(1) + "</b>——"
+      + "アンナ(STAR) の<b>ステラ・レガリア</b>（合計×"
+      + (ANNAFB_BARRAGE_N * ANNAFB_BARRAGE_PER + ANNAFB_FINALE_PER + ANNAFB_RAIN_PER).toFixed(1)
+      + "）を大きく超える<b>MagiBurst 史上最強のフルバースト</b>。"
+      + "<br>キラーは<b>3つ</b>——<b>蓬莱族キラーEL</b>・<b>弱点キラーEL</b>・<b>闇属性キラーEL</b>。"
+      + "<br>アンチは<b>超アンチワープ＋超アンチ減速壁＋超アンチ重力バリア＋アンチ断絶界</b>の4つ。"
+      + "これだけで<b>🏯第五重・🏯蓬莱天宮</b>を<b>有利属性のまま</b>完全対応でき、"
+      + "クロススキルの<b>超マインスイーパーEL</b>が点くと<b>🏯蓬莱神天</b>も加わる——"
+      + "<b>闇属性の蓬莱3クエストすべて</b>を有利属性のまま完全対応できる"
+      + "（アンナ(STAR) の5クエストのうち3つは属性が不利なので、"
+      + "<b>実際に有利属性で押しきれる数はこちらが上</b>）。",
+
+    fsName: "万灯祭天", fsKind: "lanternfes",
+    fsPow: "<b>味方全員の足もとから灯籠</b>が上がり（線上の敵に 攻撃力×" + LANFES_LIFT_PER + "）、"
+      + "上がりきった灯籠が<b>1つずつ開いて敵全体</b>へ（1発 攻撃力×" + LANFES_BURST_PER
+      + "・開くたびに +" + LANFES_BURST_STEP + "）＋ <b>大玉 敵全体へ 攻撃力×" + LANFES_FINALE + "</b>",
+    fsDesc: "<b>味方全員の足もとから灯籠が浮かび上がる</b>。"
+      + "上がっていく線にふれた敵は削られ（1本 攻撃力×" + LANFES_LIFT_PER + "）、"
+      + "上がりきった灯籠が<b>1つずつ順に開いて、そのたび敵全体</b>に入る"
+      + "（1つ目 ×" + LANFES_BURST_PER + "、開くたびに +" + LANFES_BURST_STEP + "）。"
+      + "<br>これまでに無いのは<b>灯籠の数が「盤面に残っている味方の数」で決まる</b>こと——"
+      + "<b>味方が多く残っているほど強い</b>リンクスキルは MagiBurst 初。"
+      + "<br>最後に<b>大玉</b>が開いて<b>敵全体へ 攻撃力×" + LANFES_FINALE + "</b>。"
+      + "<br>灯籠4つぶんで合計は1体あたり 攻撃力×"
+      + (LANFES_MAX * LANFES_LIFT_PER + LANFES_MAX * LANFES_BURST_PER
+         + LANFES_BURST_STEP * (LANFES_MAX * (LANFES_MAX - 1) / 2) + LANFES_FINALE).toFixed(1)
+      + " ——アンナ(STAR) の<b>アストラル・ソヴリン</b>（×"
+      + (ANNA_TICKS * ANNA_PER + ANNA_STEP * (ANNA_TICKS * (ANNA_TICKS - 1) / 2) + ANNA_FINALE).toFixed(2)
+      + "）を超える<b>MagiBurst 史上いちばん重いリンクスキル</b>",
+  },
+  /* ══════════════════════════════════════════════════════════════
+     ★★ 2026-08-30 GRAND DEBUT GACHA Ver.6.0 の5体
+     ------------------------------------------------------------
+     チア（火）＝🏯蓬莱神域／リサ（水）＝🏯蓬莱仙苑／リン（闇）＝🏯蓬莱天界／
+     ミノリ（木）＝🏯蓬莱月宮／セイカ（光）＝🏯蓬莱神天。
+     ★ 5体とも「アンチ3＋キラー3＋クロス2」の<b>8つ</b>（ご指定の上限ちょうど）。
+     ★ キラーは <b>蓬莱族キラーEL 1つ ＋ L等級2つ</b>（ご指定: EL×3 は付けない）。
+     ★ リサは既存の「チハヤ（木）」と名前がかぶらないよう、<b>リサ</b>に改名してあります（ご指定）。
+     ══════════════════════════════════════════════════════════════ */
+  chia: {
+    /* 火・貫通。ぬいぐるみを抱く恋色の少女。
+       ★ 担当は<b>蓬莱神域（木 {grav,mine,lockzone}）</b>
+         ＝ 超アンチ重力バリア＋超マインスイーパーL＋アンチロックゾーン。火は木に有利。
+       ★ 検算は charAntiKeys("chia") ⊇ counterKeysOf(HOURAI_STAGES[12])。 */
+    id: "chia", nm: "チア", img: "Chia.webp", th: "t_Chia.webp",
+    el: "fire", shot: "pierce", type: "恋灯抱擁型", gacha: true, debut: true, lux: true, star5: true,
+    nexus: "advantage",
+    connect: "chia",
+    hp: [1030, 6790], atk: [558, 3545], spd: [304, 452],
+    abil: [{ t: "sgrav" }, { t: "supermsL" }, { t: "antilock" },
+           { t: "houraikillerEL" }, { t: "killerL", el: "wood" }, { t: "sokojikaraL" }],
+    subfs: "jewelshower",
+    ssName: "ハートフル・ラプソディ", ssTurns: 20, ssKind: "chia",
+    ssPow: "自強化（攻撃×" + CHIA_ATK + "・スピード×" + CHIA_SPD + "）＋ <b>敵全体</b>へ恋色の衝撃波"
+      + "（攻撃力×" + CHIA_ALL + "）＋ <b>味方全員に " + CHIA_BARRIER + " のバリア</b>",
+    ssDesc: "抱えたぬいぐるみから恋色の鼓動が広がり、<b>敵全体</b>へ衝撃波が走る（攻撃力×"
+      + CHIA_ALL + "）。<br>あわせて<b>味方全員に " + CHIA_BARRIER + " のバリア</b>を張るので、"
+      + "回復とちがい<b>これから受けるぶん</b>を先に消せる——即死級の一撃の前に撃つのがいちばん効く。"
+      + "<br>アンチは<b>超アンチ重力バリア＋超マインスイーパーL＋アンチロックゾーン</b>——"
+      + "この3つで<b>🏯蓬莱神域</b>を<b>有利属性のまま</b>完全対応できる。",
+    fsName: "ハートフル・リコシェ", fsKind: "heartricochet",
+    fsPow: "ハートの弾が<b>壁で" + RICO_N + "回はね返り</b>、飛んでいる線（太さ " + RICO_W
+      + "）と<b>はねた場所ではじける輪</b>（" + RICO_R0 + " → " + RICO_R1 + "）に当たる"
+      + "（1段 攻撃力×" + RICO_PER + "・はねるたびに +" + RICO_STEP + "）／合計 攻撃力×"
+      + (RICO_N * RICO_PER + RICO_STEP * (RICO_N * (RICO_N - 1) / 2)).toFixed(1),
+    fsDesc: "ふれた味方からハートの弾が飛び出し、<b>壁に当たるたびに大きくふくらむ</b>"
+      + "（はじけるときの半径 " + RICO_R0 + " → " + RICO_R1 + "）。"
+      + "<br>飛んでいる<b>線そのもの</b>にも当たるので、途中の敵も削れる。"
+      + "<br>これまでに無いのは<b>はねるほど強くなる</b>こと——"
+      + "1回目は 攻撃力×" + RICO_PER + "、はねるごとに +" + RICO_STEP + " ずつ増え、"
+      + "最後の" + RICO_N + "回目は ×" + (RICO_PER + RICO_STEP * (RICO_N - 1)).toFixed(2) + "。"
+      + "<br>大きくなるぶん当たる範囲も広がるので、<b>盤面がせまいほど、壁ぎわで撃つほど強い</b>",
+  },
+  risa: {
+    /* 水・反射。氷と白薔薇の少女。★ 既存の「チハヤ（木・No.141）」とは別人。
+       ★ 担当は<b>蓬莱仙苑（火 {warp,slowwall,lockzone}）</b>
+         ＝ 超アンチワープ＋超アンチ減速壁＋アンチロックゾーン。水は火に有利。
+       ★ 検算は charAntiKeys("risa") ⊇ counterKeysOf(HOURAI_STAGES[10])。 */
+    id: "risa", nm: "リサ", img: "Risa.webp", th: "t_Risa.webp",
+    el: "water", shot: "bounce", type: "氷華静謐型", gacha: true, debut: true, lux: true, star5: true,
+    nexus: "gale",
+    connect: "risa",
+    hp: [1018, 6705], atk: [562, 3570], spd: [311, 464],
+    abil: [{ t: "superaw" }, { t: "superaslow" }, { t: "antilock" },
+           { t: "houraikillerEL" }, { t: "killerL", el: "fire" }, { t: "weakkillerL" }],
+    subfs: "jewelshower",
+    ssName: "フローズン・レクイエム", ssTurns: 20, ssKind: "risa",
+    ssPow: "自強化（攻撃×" + RISA_ATK + "・スピード×" + RISA_SPD + "）＋ <b>敵全体</b>へ氷結"
+      + "（攻撃力×" + RISA_ALL + "）＋ <b>敵全体の攻撃力を "
+      + RISA_ATKDOWN_TURNS + "ターン " + Math.round((1 - RISA_ATKDOWN_MUL) * 100) + "%ダウン</b>",
+    ssDesc: "盤面ごと凍りついて<b>敵全体</b>へ氷の刃が走る（攻撃力×" + RISA_ALL + "）。"
+      + "<br>あわせて<b>敵全体の攻撃力が " + RISA_ATKDOWN_TURNS + "ターンのあいだ "
+      + Math.round((1 - RISA_ATKDOWN_MUL) * 100) + "%下がる</b>——"
+      + "削りきれずに1周ぶん耐えるとき、受けるダメージがそのまま4分の3になる。"
+      + "<br>アンチは<b>超アンチワープ＋超アンチ減速壁＋アンチロックゾーン</b>——"
+      + "この3つで<b>🏯蓬莱仙苑</b>を<b>有利属性のまま</b>完全対応できる。",
+    fsName: "フローズン・ノクターン", fsKind: "frozennocturne",
+    fsPow: "盤面が凍りつき、氷が " + FROZ_TICKS + "回<b>割れるたびに敵全体</b>へ"
+      + "（1回 攻撃力×" + FROZ_PER + "・割れるたびに +" + FROZ_STEP + "）"
+      + " ＋ <b>敵全体の攻撃ターンを " + FROZ_DELAY + " 遅らせる</b>／合計 攻撃力×"
+      + (FROZ_TICKS * FROZ_PER + FROZ_STEP * (FROZ_TICKS * (FROZ_TICKS - 1) / 2)).toFixed(1),
+    fsDesc: "ふれた味方を中心に盤面ぜんたいが凍りつき、氷が<b>" + FROZ_TICKS
+      + "回パキパキと割れて</b>いく。割れるたびに<b>敵全体</b>へ入り、"
+      + "<b>割れるほど重くなる</b>（1回目 ×" + FROZ_PER + " → " + FROZ_TICKS + "回目 ×"
+      + (FROZ_PER + FROZ_STEP * (FROZ_TICKS - 1)).toFixed(2) + "）。"
+      + "<br>これまでに無いのは<b>リンクスキルで敵の攻撃ターンを遅らせられる</b>こと——"
+      + "凍りついた敵は攻撃ターンが <b>" + FROZ_DELAY + " 遅れる</b>ので、"
+      + "リンクをつなぐだけで<b>殴られる回数そのものが減っていく</b>",
+  },
+  rin: {
+    /* 闇・貫通。黒レースと紅薔薇、燭台の並ぶ聖堂。
+       ★ 担当は<b>蓬莱天界（光 {dw,lockzone,ward}）</b>
+         ＝ 超アンチダメージウォール＋アンチロックゾーン＋アンチ断絶界。闇は光に有利。
+       ★ 検算は charAntiKeys("rin") ⊇ counterKeysOf(HOURAI_STAGES[13])。 */
+    id: "rin", nm: "リン", img: "Rin.webp", th: "t_Rin.webp",
+    el: "dark", shot: "pierce", type: "黒薔薇燭華型", gacha: true, debut: true, lux: true, star5: true,
+    nexus: "vanguard",
+    connect: "rin",
+    hp: [1024, 6745], atk: [566, 3590], spd: [307, 457],
+    abil: [{ t: "superadw" }, { t: "antilock" }, { t: "award" },
+           { t: "houraikillerEL" }, { t: "killerL", el: "light" }, { t: "fatalkillerL" }],
+    subfs: "jewelshower",
+    ssName: "ローズ・レクイエム", ssTurns: 20, ssKind: "rin",
+    ssPow: "自強化（攻撃×" + RIN_ATK + "・スピード×" + RIN_SPD + "）＋ <b>敵全体</b>へ黒薔薇の茨"
+      + "（攻撃力×" + RIN_ALL + "）＋ <b>敵全体に追加の弱点を " + RIN_SIGIL_TURNS + "ターン刻む</b>",
+    ssDesc: "聖堂の燭台がいっせいに灯り、<b>敵全体</b>へ黒薔薇の茨が伸びる（攻撃力×" + RIN_ALL + "）。"
+      + "<br>いちばんの働きは<b>敵全体に弱点をもう1つ刻む</b>こと（" + RIN_SIGIL_TURNS + "ターン）——"
+      + "刻んだ弱点は<b>そのまま自分たちで殴れる</b>ので、次の数ターンのあいだ"
+      + "<b>チーム全体の火力がまるごと跳ね上がる</b>。"
+      + "<br>アンチは<b>超アンチダメージウォール＋アンチロックゾーン＋アンチ断絶界</b>——"
+      + "この3つで<b>🏯蓬莱天界</b>を<b>有利属性のまま</b>完全対応できる。",
+    fsName: "ローズ・カンデラブラ", fsKind: "rosecandelabra",
+    fsPow: "盤面に<b>燭台が" + CAND_N + "本</b>立ち、灯どうしを結ぶ黒薔薇の線（太さ " + CAND_W
+      + "・貫通）が 1本 攻撃力×" + CAND_LINE_PER
+      + " ＋ <b>三角形の内側にいる敵へ 攻撃力×" + CAND_INNER_PER + "</b>",
+    fsDesc: "ふれた味方から黒薔薇があふれ、盤面に<b>燭台が" + CAND_N + "本</b>立つ"
+      + "（HPの高い敵のところから順に立つ）。"
+      + "<br>灯った燭台どうしは<b>黒薔薇の線で結ばれ</b>、線にふれた敵を貫通で削る（1本 ×"
+      + CAND_LINE_PER + "）。"
+      + "<br>これまでに無いのは<b>結んだ三角形の「内側」を見る</b>こと——"
+      + "3本の線に<b>囲まれた敵</b>には、さらに<b>攻撃力×" + CAND_INNER_PER + "</b>が入る。"
+      + "敵がかたまっているほど囲みやすく、<b>まん中の敵ほど重い</b>",
+  },
+  minori: {
+    /* 木・反射。宝石とステンドグラスの少女。
+       ★ 担当は<b>蓬莱月宮（水 {dw,warp,ward}）</b>
+         ＝ 超アンチダメージウォール＋超アンチワープ＋アンチ断絶界。木は水に有利。
+       ★ 検算は charAntiKeys("minori") ⊇ counterKeysOf(HOURAI_STAGES[11])。 */
+    id: "minori", nm: "ミノリ", img: "Minori.webp", th: "t_Minori.webp",
+    el: "wood", shot: "bounce", type: "宝石煌耀型", gacha: true, debut: true, lux: true, star5: true,
+    nexus: "resonance",
+    connect: "minori",
+    hp: [1034, 6810], atk: [556, 3530], spd: [303, 450],
+    abil: [{ t: "superadw" }, { t: "superaw" }, { t: "award" },
+           { t: "houraikillerEL" }, { t: "killerL", el: "water" }, { t: "combokillerL" }],
+    subfs: "jewelshower",
+    ssName: "プリズム・ラプソディ", ssTurns: 20, ssKind: "minori",
+    ssPow: "自強化（攻撃×" + MINORI_ATK + "・スピード×" + MINORI_SPD + "）＋ <b>敵全体</b>へ七色の光"
+      + "（攻撃力×" + MINORI_ALL + "）＋ <b>味方全員の攻撃力を " + MINORI_TEAM_TURNS
+      + "ターン ×" + MINORI_TEAM_ATK + "</b>",
+    ssDesc: "宝石が砕けて七色の光が散り、<b>敵全体</b>へ降りそそぐ（攻撃力×" + MINORI_ALL + "）。"
+      + "<br>いちばんの働きは<b>味方全員の攻撃力が " + MINORI_TEAM_TURNS + "ターンのあいだ ×"
+      + MINORI_TEAM_ATK + " になる</b>こと——"
+      + "自分ひとりが強くなるのではなく、<b>チームの手番3周ぶんがまるごと重くなる</b>。"
+      + "<br>アンチは<b>超アンチダメージウォール＋超アンチワープ＋アンチ断絶界</b>——"
+      + "この3つで<b>🏯蓬莱月宮</b>を<b>有利属性のまま</b>完全対応できる。",
+    fsName: "ジュエル・カット", fsKind: "jewelcut",
+    fsPow: "宝石のカット面が <b>" + JCUT_FROM + "角形 → " + JCUT_TO
+      + "角形</b> へ面を増やしながら<b>外へ広がる</b>（半径 " + JCUT_R0 + " → " + JCUT_R1 + "・辺の太さ " + JCUT_W
+      + "）／1段 攻撃力×" + JCUT_PER + "・面が増えるたびに +" + JCUT_STEP + "／合計 攻撃力×"
+      + ((JCUT_TO - JCUT_FROM + 1) * JCUT_PER
+         + JCUT_STEP * ((JCUT_TO - JCUT_FROM + 1) * (JCUT_TO - JCUT_FROM) / 2)).toFixed(1),
+    fsDesc: "ふれた味方を中心に、宝石の<b>カット面</b>が光の線で描かれる。"
+      + "<br>これまでに無いのは<b>形そのものが育っていく</b>こと——"
+      + "はじめは<b>" + JCUT_FROM + "角形</b>、次は4角形…と<b>1段ごとに頂点が1つ増え</b>、"
+      + "最後は<b>" + JCUT_TO + "角形</b>になる。しかも<b>面が増えるのに合わせて外へ広がる</b>"
+      + "（半径 " + JCUT_R0 + " → " + JCUT_R1 + "）ので、"
+      + "<b>近い敵は早い段、遠い敵は後の段</b>で必ずどれかの辺が通る。"
+      + "<br>しかも<b>面が増えるたびに1段が重くなる</b>（×" + JCUT_PER + " → ×"
+      + (JCUT_PER + JCUT_STEP * (JCUT_TO - JCUT_FROM)).toFixed(2) + "）ので、"
+      + "<b>後半ほど当たりやすく、しかも重い</b>",
+  },
+  seika: {
+    /* 光・貫通。夜明けの光と花のカーテン。
+       ★ 担当は<b>蓬莱神天（闇 {mine,slowwall,warp}）</b>
+         ＝ 超マインスイーパーL＋超アンチ減速壁＋超アンチワープ。光は闇に有利。
+       ★ 撃種を<b>貫通</b>にしてあるのは、蓬莱神天が<b>内部弱点</b>のクエストだから。
+       ★ 検算は charAntiKeys("seika") ⊇ counterKeysOf(HOURAI_STAGES[14])。 */
+    id: "seika", nm: "セイカ", img: "Seika.webp", th: "t_Seika.webp",
+    el: "light", shot: "pierce", type: "暁光花明型", gacha: true, debut: true, lux: true, star5: true,
+    nexus: "ignition",
+    connect: "seika",
+    hp: [1028, 6775], atk: [564, 3578], spd: [309, 460],
+    abil: [{ t: "supermsL" }, { t: "superaslow" }, { t: "superaw" },
+           { t: "houraikillerEL" }, { t: "killerL", el: "dark" }, { t: "vitalL" }],
+    subfs: "jewelshower",
+    ssName: "サンライズ・レクイエム", ssTurns: 20, ssKind: "seika",
+    ssPow: "自強化（攻撃×" + SEIKA_ATK + "・スピード×" + SEIKA_SPD + "）＋ <b>敵全体</b>へ暁の光"
+      + "（攻撃力×" + SEIKA_ALL + "）＋ <b>チームHPを" + Math.round(SEIKA_HEAL * 100)
+      + "%回復し、味方全員に " + SEIKA_BARRIER + " のバリア</b>",
+    ssDesc: "夜が明けて、カーテンのすきまから差した光が<b>敵全体</b>を貫く（攻撃力×" + SEIKA_ALL + "）。"
+      + "<br>あわせて<b>チームHPを" + Math.round(SEIKA_HEAL * 100) + "%回復</b>し、"
+      + "そのうえ<b>味方全員に " + SEIKA_BARRIER + " のバリア</b>を張る——"
+      + "「受けたぶんを戻す」と「これから受けるぶんを消す」を<b>同時に</b>やる唯一のフルバースト。"
+      + "<br>アンチは<b>超マインスイーパーL＋超アンチ減速壁＋超アンチワープ</b>——"
+      + "この3つで<b>🏯蓬莱神天</b>（最奥）を<b>有利属性のまま</b>完全対応できる。"
+      + "撃種が<b>貫通</b>なので、内部弱点のこのクエストで<b>弱点をそのまま殴れる</b>。",
+    fsName: "サンライズ・ヴェール", fsKind: "sunriseveil",
+    fsPow: "夜明けの帯（高さ " + SUNV_H + "）が<b>画面の下から上へ</b>昇り、通った敵に "
+      + SUNV_BANDS + "回（1回 攻撃力×" + SUNV_PER + "・昇るたびに +" + SUNV_STEP + "）"
+      + " ＋ <b>昇りきった瞬間 敵全体へ 攻撃力×" + SUNV_FINALE + "</b>／合計 攻撃力×"
+      + (SUNV_BANDS * SUNV_PER + SUNV_STEP * (SUNV_BANDS * (SUNV_BANDS - 1) / 2) + SUNV_FINALE).toFixed(1),
+    fsDesc: "盤面の<b>いちばん下から夜明けの光の帯が昇っていく</b>。"
+      + "帯が通りすぎた敵は削られ、<b>高く昇るほど1回が重くなる</b>"
+      + "（×" + SUNV_PER + " → ×" + (SUNV_PER + SUNV_STEP * (SUNV_BANDS - 1)).toFixed(2) + "）。"
+      + "<br>これまでに無いのは<b>画面を縦になぞる</b>形——"
+      + "どこに居る敵にも<b>必ず1回は帯が通る</b>ので、散らばっていても取りこぼさない。"
+      + "<br>帯が上まで昇りきると盤面ぜんたいが明るくなり、"
+      + "<b>敵全体へ暁の一撃</b>（攻撃力×" + SUNV_FINALE + "）",
   },
 };
 /* エルシアのフルバースト説明は定数を使うのでここで組み立てる */
@@ -8775,6 +9281,15 @@ const CHAR_IDS = [
      ★ 新キャラは必ず<b>いちばん最後に追記</b>すること（既存の No. がずれないように）。
      ★ xeva.js の MB_CHAR_MASTER も同じ並びにそろえること（並び＝No.）。 */
   "rans", "kurenai", "yuki", "marika", "yuukas", "annas",
+  /* ★★ 2026-08-30 戦姫祭 アンナ(祭)（No.182）。
+     ★ アンナ(STAR)（annas）とは別人なので id も画像も別（annam / AnnaM.webp）。 */
+  "annam",
+  /* ★★ 2026-08-30 GRAND DEBUT GACHA Ver.6.0 限定SSR 5体（No.183〜187）
+     （チア・リサ・リン・ミノリ・セイカ）。
+     ★ リサは既存の「チハヤ（木・No.141）」と名前がかぶらないよう改名したキャラ（ご指定）。
+     ★ 新キャラは必ず<b>いちばん最後に追記</b>すること（既存の No. がずれないように）。
+     ★ xeva.js の MB_CHAR_MASTER も同じ並びにそろえること（並び＝No.）。 */
+  "chia", "risa", "rin", "minori", "seika",
 ];
 /* id → キャラクター番号（1始まり）。図鑑・詳細・ガチャ結果に「No.XX」として出す */
 const CHAR_NO = {};
@@ -10835,6 +11350,160 @@ function drawFsGlyph(kind, c, g) {
       ctx.beginPath(); ctx.arc(0, -6.8, 2.4, 0, Math.PI * 2); ctx.fill();
       ctx.lineWidth = 2; break;
     }
+    /* ══ ★★ 2026-08-30 アンナ(祭)＋ GRAND DEBUT Ver.6.0 の新リンク6本＋サブリンク1本 ══
+       ★ drawSubGlyph 側にも<b>同じ case</b>を置くこと（別の switch なので両方に要る）。
+         片方だけだと、絞り込みや詳細のどちらかでアイコンが「？」になる。 */
+    case "lanternfes": {     /* 万灯祭天（味方の足もとから上がって開く灯籠） */
+      /* 下から上へ伸びる3本の線＝上がっていく灯籠。上に開いた花火の光。 */
+      ctx.lineWidth = 1.5; ctx.globalAlpha = .72;
+      [[-6.4, 11.0, -5.2, 1.4], [0, 11.6, 0, 0.4], [6.4, 11.0, 5.2, 1.4]].forEach(([x0, y0, x1, y1]) => {
+        ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
+      });
+      ctx.globalAlpha = 1;
+      /* 灯籠（小さな四角）と、その上で開いた光 */
+      ctx.lineWidth = 1.6;
+      [[-5.2, 1.4], [0, 0.4], [5.2, 1.4]].forEach(([x, y]) => {
+        ctx.beginPath(); ctx.rect(x - 1.9, y - 2.4, 3.8, 4.8); ctx.stroke();
+      });
+      ctx.lineWidth = 1.4; ctx.globalAlpha = .85;
+      for (let k = 0; k < 8; k++) {
+        const a = (Math.PI * 2 / 8) * k - Math.PI / 2;
+        ctx.beginPath();
+        ctx.moveTo(Math.cos(a) * 4.0, Math.sin(a) * 4.0 - 6.6);
+        ctx.lineTo(Math.cos(a) * 9.4, Math.sin(a) * 9.4 - 6.6);
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+      ctx.beginPath(); ctx.arc(0, -6.6, 2.0, 0, Math.PI * 2); ctx.fill();
+      ctx.lineWidth = 2; break;
+    }
+    case "heartricochet": {  /* ハートフル・リコシェ（壁ではねるたびに育つハート） */
+      /* 小・中・大の3つのハート＝はねるたびに大きくなる。間を跳ねる線で結ぶ。 */
+      const heart = (cx, cy, s) => {
+        ctx.beginPath();
+        ctx.moveTo(cx, cy + s * 0.95);
+        ctx.bezierCurveTo(cx - s * 1.35, cy - s * 0.25, cx - s * 0.62, cy - s * 1.15, cx, cy - s * 0.35);
+        ctx.bezierCurveTo(cx + s * 0.62, cy - s * 1.15, cx + s * 1.35, cy - s * 0.25, cx, cy + s * 0.95);
+        ctx.stroke();
+      };
+      ctx.lineWidth = 1.3; ctx.globalAlpha = .45;
+      ctx.beginPath(); ctx.moveTo(-8.4, 6.6); ctx.lineTo(-2.2, 0.4);
+      ctx.lineTo(3.0, 6.0); ctx.lineTo(7.4, -2.6); ctx.stroke();
+      ctx.globalAlpha = 1;
+      ctx.lineWidth = 1.5; heart(-8.4, 6.4, 2.1);
+      ctx.lineWidth = 1.7; heart(-1.6, 1.6, 3.2);
+      ctx.lineWidth = 2.0; heart(6.2, -4.0, 4.6);
+      ctx.lineWidth = 2; break;
+    }
+    case "frozennocturne": { /* フローズン・ノクターン（割れていく氷＋止まった時計） */
+      /* 六角の氷の結晶＋ひび（割れるたびに重くなる）＋遅延を表す矢印 */
+      ctx.lineWidth = 1.8;
+      ctx.beginPath();
+      for (let k = 0; k < 6; k++) {
+        const a = (Math.PI * 2 / 6) * k - Math.PI / 2;
+        const x = Math.cos(a) * 9.4, y = Math.sin(a) * 9.4;
+        if (k === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.closePath(); ctx.stroke();
+      ctx.lineWidth = 1.4; ctx.globalAlpha = .8;
+      for (let k = 0; k < 6; k++) {
+        const a = (Math.PI * 2 / 6) * k - Math.PI / 2;
+        ctx.beginPath(); ctx.moveTo(0, 0);
+        ctx.lineTo(Math.cos(a) * 9.4, Math.sin(a) * 9.4); ctx.stroke();
+      }
+      /* ひび（割れ目） */
+      ctx.globalAlpha = .5; ctx.lineWidth = 1.1;
+      ctx.beginPath(); ctx.moveTo(-3.0, -2.0); ctx.lineTo(-0.6, 1.0); ctx.lineTo(-2.4, 4.2); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(3.2, -3.6); ctx.lineTo(1.4, -0.6); ctx.lineTo(4.0, 2.0); ctx.stroke();
+      ctx.globalAlpha = 1;
+      ctx.beginPath(); ctx.arc(0, 0, 1.8, 0, Math.PI * 2); ctx.fill();
+      ctx.lineWidth = 2; break;
+    }
+    case "rosecandelabra": { /* ローズ・カンデラブラ（3本の燭台と、結んだ三角形） */
+      const p = [[0, -9.2], [-8.4, 6.0], [8.4, 6.0]];
+      /* 結ぶ線（三角形） */
+      ctx.lineWidth = 1.6;
+      ctx.beginPath();
+      p.forEach(([x, y], i) => { if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y); });
+      ctx.closePath(); ctx.stroke();
+      /* 内側（囲まれた敵に入る）をうすく塗る */
+      ctx.globalAlpha = .18; ctx.fill(); ctx.globalAlpha = 1;
+      /* 3つの灯（ろうそくの炎） */
+      p.forEach(([x, y]) => {
+        ctx.beginPath();
+        ctx.moveTo(x, y - 3.4);
+        ctx.quadraticCurveTo(x + 2.0, y - 0.6, x, y + 1.8);
+        ctx.quadraticCurveTo(x - 2.0, y - 0.6, x, y - 3.4);
+        ctx.fill();
+      });
+      ctx.lineWidth = 2; break;
+    }
+    case "jewelcut": {       /* ジュエル・カット（面が増えていく多角形） */
+      /* 三角形（内側・うすい）→ 八角形（外側・濃い）を重ねて「育つ」ことを表す */
+      const poly = (n, r, a0, alpha, lw) => {
+        ctx.globalAlpha = alpha; ctx.lineWidth = lw;
+        ctx.beginPath();
+        for (let k = 0; k < n; k++) {
+          const a = (Math.PI * 2 / n) * k + a0;
+          const x = Math.cos(a) * r, y = Math.sin(a) * r;
+          if (k === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        }
+        ctx.closePath(); ctx.stroke(); ctx.globalAlpha = 1;
+      };
+      poly(3, 4.8, -Math.PI / 2, .45, 1.3);
+      poly(5, 7.2, -Math.PI / 2, .68, 1.5);
+      poly(8, 10.2, -Math.PI / 2, 1, 1.9);
+      ctx.beginPath(); ctx.arc(0, 0, 1.7, 0, Math.PI * 2); ctx.fill();
+      ctx.lineWidth = 2; break;
+    }
+    case "sunriseveil": {    /* サンライズ・ヴェール（下から上へ昇る夜明けの帯） */
+      /* 昇っていく3本の帯（下ほど濃い）＋上でのぼった太陽 */
+      ctx.lineWidth = 2.0;
+      [[8.8, 1], [4.6, .66], [0.6, .38]].forEach(([y, a]) => {
+        ctx.globalAlpha = a;
+        ctx.beginPath(); ctx.moveTo(-10.4, y); ctx.lineTo(10.4, y); ctx.stroke();
+      });
+      ctx.globalAlpha = 1;
+      /* 昇る矢印 */
+      ctx.lineWidth = 1.4; ctx.globalAlpha = .6;
+      [-6.0, 0, 6.0].forEach((x) => {
+        ctx.beginPath(); ctx.moveTo(x, 7.4); ctx.lineTo(x, 2.4);
+        ctx.moveTo(x - 1.5, 4.0); ctx.lineTo(x, 2.4); ctx.lineTo(x + 1.5, 4.0); ctx.stroke();
+      });
+      ctx.globalAlpha = 1;
+      /* 昇りきった太陽（半円＋光） */
+      ctx.lineWidth = 1.8;
+      ctx.beginPath(); ctx.arc(0, -3.8, 3.4, Math.PI, 0); ctx.stroke();
+      ctx.lineWidth = 1.3; ctx.globalAlpha = .8;
+      for (let k = 0; k < 5; k++) {
+        const a = Math.PI + (Math.PI / 4) * k;
+        ctx.beginPath();
+        ctx.moveTo(Math.cos(a) * 4.6, Math.sin(a) * 4.6 - 3.8);
+        ctx.lineTo(Math.cos(a) * 7.4, Math.sin(a) * 7.4 - 3.8);
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+      ctx.lineWidth = 2; break;
+    }
+    case "jewelshower": {    /* ジュエル・シャワー（噴き上がって降ってくる宝石のかけら） */
+      /* 上へ向かう線＋降ってくる宝石（ひし形）3つ */
+      ctx.lineWidth = 1.4; ctx.globalAlpha = .55;
+      ctx.beginPath(); ctx.moveTo(0, 10.6); ctx.lineTo(0, -2.0); ctx.stroke();
+      ctx.globalAlpha = 1;
+      const gem = (x, y, s) => {
+        ctx.beginPath();
+        ctx.moveTo(x, y - s); ctx.lineTo(x + s * 0.7, y);
+        ctx.lineTo(x, y + s); ctx.lineTo(x - s * 0.7, y);
+        ctx.closePath(); ctx.stroke();
+      };
+      ctx.lineWidth = 1.7;
+      gem(0, -6.4, 3.4);
+      gem(-7.0, 1.0, 2.6);
+      gem(7.0, 1.0, 2.6);
+      gem(-4.0, 8.2, 2.0);
+      gem(4.0, 8.2, 2.0);
+      ctx.lineWidth = 2; break;
+    }
     case "astralsovereign": { /* アストラル・ソヴリン（星図から降りそそぐ星） */
       /* 冠の形の星座＋降る星の線 */
       ctx.lineWidth = 1.4; ctx.globalAlpha = .72;
@@ -10916,6 +11585,160 @@ function drawSubGlyph(kind, c, g) {
   ctx.lineCap = "round"; ctx.lineJoin = "round";
   ctx.strokeStyle = c; ctx.fillStyle = c; ctx.lineWidth = 2;
   switch (kind) {
+    /* ══ ★★ 2026-08-30 アンナ(祭)＋ GRAND DEBUT Ver.6.0 の新リンク6本＋サブリンク1本 ══
+       ★ drawSubGlyph 側にも<b>同じ case</b>を置くこと（別の switch なので両方に要る）。
+         片方だけだと、絞り込みや詳細のどちらかでアイコンが「？」になる。 */
+    case "lanternfes": {     /* 万灯祭天（味方の足もとから上がって開く灯籠） */
+      /* 下から上へ伸びる3本の線＝上がっていく灯籠。上に開いた花火の光。 */
+      ctx.lineWidth = 1.5; ctx.globalAlpha = .72;
+      [[-6.4, 11.0, -5.2, 1.4], [0, 11.6, 0, 0.4], [6.4, 11.0, 5.2, 1.4]].forEach(([x0, y0, x1, y1]) => {
+        ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
+      });
+      ctx.globalAlpha = 1;
+      /* 灯籠（小さな四角）と、その上で開いた光 */
+      ctx.lineWidth = 1.6;
+      [[-5.2, 1.4], [0, 0.4], [5.2, 1.4]].forEach(([x, y]) => {
+        ctx.beginPath(); ctx.rect(x - 1.9, y - 2.4, 3.8, 4.8); ctx.stroke();
+      });
+      ctx.lineWidth = 1.4; ctx.globalAlpha = .85;
+      for (let k = 0; k < 8; k++) {
+        const a = (Math.PI * 2 / 8) * k - Math.PI / 2;
+        ctx.beginPath();
+        ctx.moveTo(Math.cos(a) * 4.0, Math.sin(a) * 4.0 - 6.6);
+        ctx.lineTo(Math.cos(a) * 9.4, Math.sin(a) * 9.4 - 6.6);
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+      ctx.beginPath(); ctx.arc(0, -6.6, 2.0, 0, Math.PI * 2); ctx.fill();
+      ctx.lineWidth = 2; break;
+    }
+    case "heartricochet": {  /* ハートフル・リコシェ（壁ではねるたびに育つハート） */
+      /* 小・中・大の3つのハート＝はねるたびに大きくなる。間を跳ねる線で結ぶ。 */
+      const heart = (cx, cy, s) => {
+        ctx.beginPath();
+        ctx.moveTo(cx, cy + s * 0.95);
+        ctx.bezierCurveTo(cx - s * 1.35, cy - s * 0.25, cx - s * 0.62, cy - s * 1.15, cx, cy - s * 0.35);
+        ctx.bezierCurveTo(cx + s * 0.62, cy - s * 1.15, cx + s * 1.35, cy - s * 0.25, cx, cy + s * 0.95);
+        ctx.stroke();
+      };
+      ctx.lineWidth = 1.3; ctx.globalAlpha = .45;
+      ctx.beginPath(); ctx.moveTo(-8.4, 6.6); ctx.lineTo(-2.2, 0.4);
+      ctx.lineTo(3.0, 6.0); ctx.lineTo(7.4, -2.6); ctx.stroke();
+      ctx.globalAlpha = 1;
+      ctx.lineWidth = 1.5; heart(-8.4, 6.4, 2.1);
+      ctx.lineWidth = 1.7; heart(-1.6, 1.6, 3.2);
+      ctx.lineWidth = 2.0; heart(6.2, -4.0, 4.6);
+      ctx.lineWidth = 2; break;
+    }
+    case "frozennocturne": { /* フローズン・ノクターン（割れていく氷＋止まった時計） */
+      /* 六角の氷の結晶＋ひび（割れるたびに重くなる）＋遅延を表す矢印 */
+      ctx.lineWidth = 1.8;
+      ctx.beginPath();
+      for (let k = 0; k < 6; k++) {
+        const a = (Math.PI * 2 / 6) * k - Math.PI / 2;
+        const x = Math.cos(a) * 9.4, y = Math.sin(a) * 9.4;
+        if (k === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.closePath(); ctx.stroke();
+      ctx.lineWidth = 1.4; ctx.globalAlpha = .8;
+      for (let k = 0; k < 6; k++) {
+        const a = (Math.PI * 2 / 6) * k - Math.PI / 2;
+        ctx.beginPath(); ctx.moveTo(0, 0);
+        ctx.lineTo(Math.cos(a) * 9.4, Math.sin(a) * 9.4); ctx.stroke();
+      }
+      /* ひび（割れ目） */
+      ctx.globalAlpha = .5; ctx.lineWidth = 1.1;
+      ctx.beginPath(); ctx.moveTo(-3.0, -2.0); ctx.lineTo(-0.6, 1.0); ctx.lineTo(-2.4, 4.2); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(3.2, -3.6); ctx.lineTo(1.4, -0.6); ctx.lineTo(4.0, 2.0); ctx.stroke();
+      ctx.globalAlpha = 1;
+      ctx.beginPath(); ctx.arc(0, 0, 1.8, 0, Math.PI * 2); ctx.fill();
+      ctx.lineWidth = 2; break;
+    }
+    case "rosecandelabra": { /* ローズ・カンデラブラ（3本の燭台と、結んだ三角形） */
+      const p = [[0, -9.2], [-8.4, 6.0], [8.4, 6.0]];
+      /* 結ぶ線（三角形） */
+      ctx.lineWidth = 1.6;
+      ctx.beginPath();
+      p.forEach(([x, y], i) => { if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y); });
+      ctx.closePath(); ctx.stroke();
+      /* 内側（囲まれた敵に入る）をうすく塗る */
+      ctx.globalAlpha = .18; ctx.fill(); ctx.globalAlpha = 1;
+      /* 3つの灯（ろうそくの炎） */
+      p.forEach(([x, y]) => {
+        ctx.beginPath();
+        ctx.moveTo(x, y - 3.4);
+        ctx.quadraticCurveTo(x + 2.0, y - 0.6, x, y + 1.8);
+        ctx.quadraticCurveTo(x - 2.0, y - 0.6, x, y - 3.4);
+        ctx.fill();
+      });
+      ctx.lineWidth = 2; break;
+    }
+    case "jewelcut": {       /* ジュエル・カット（面が増えていく多角形） */
+      /* 三角形（内側・うすい）→ 八角形（外側・濃い）を重ねて「育つ」ことを表す */
+      const poly = (n, r, a0, alpha, lw) => {
+        ctx.globalAlpha = alpha; ctx.lineWidth = lw;
+        ctx.beginPath();
+        for (let k = 0; k < n; k++) {
+          const a = (Math.PI * 2 / n) * k + a0;
+          const x = Math.cos(a) * r, y = Math.sin(a) * r;
+          if (k === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        }
+        ctx.closePath(); ctx.stroke(); ctx.globalAlpha = 1;
+      };
+      poly(3, 4.8, -Math.PI / 2, .45, 1.3);
+      poly(5, 7.2, -Math.PI / 2, .68, 1.5);
+      poly(8, 10.2, -Math.PI / 2, 1, 1.9);
+      ctx.beginPath(); ctx.arc(0, 0, 1.7, 0, Math.PI * 2); ctx.fill();
+      ctx.lineWidth = 2; break;
+    }
+    case "sunriseveil": {    /* サンライズ・ヴェール（下から上へ昇る夜明けの帯） */
+      /* 昇っていく3本の帯（下ほど濃い）＋上でのぼった太陽 */
+      ctx.lineWidth = 2.0;
+      [[8.8, 1], [4.6, .66], [0.6, .38]].forEach(([y, a]) => {
+        ctx.globalAlpha = a;
+        ctx.beginPath(); ctx.moveTo(-10.4, y); ctx.lineTo(10.4, y); ctx.stroke();
+      });
+      ctx.globalAlpha = 1;
+      /* 昇る矢印 */
+      ctx.lineWidth = 1.4; ctx.globalAlpha = .6;
+      [-6.0, 0, 6.0].forEach((x) => {
+        ctx.beginPath(); ctx.moveTo(x, 7.4); ctx.lineTo(x, 2.4);
+        ctx.moveTo(x - 1.5, 4.0); ctx.lineTo(x, 2.4); ctx.lineTo(x + 1.5, 4.0); ctx.stroke();
+      });
+      ctx.globalAlpha = 1;
+      /* 昇りきった太陽（半円＋光） */
+      ctx.lineWidth = 1.8;
+      ctx.beginPath(); ctx.arc(0, -3.8, 3.4, Math.PI, 0); ctx.stroke();
+      ctx.lineWidth = 1.3; ctx.globalAlpha = .8;
+      for (let k = 0; k < 5; k++) {
+        const a = Math.PI + (Math.PI / 4) * k;
+        ctx.beginPath();
+        ctx.moveTo(Math.cos(a) * 4.6, Math.sin(a) * 4.6 - 3.8);
+        ctx.lineTo(Math.cos(a) * 7.4, Math.sin(a) * 7.4 - 3.8);
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+      ctx.lineWidth = 2; break;
+    }
+    case "jewelshower": {    /* ジュエル・シャワー（噴き上がって降ってくる宝石のかけら） */
+      /* 上へ向かう線＋降ってくる宝石（ひし形）3つ */
+      ctx.lineWidth = 1.4; ctx.globalAlpha = .55;
+      ctx.beginPath(); ctx.moveTo(0, 10.6); ctx.lineTo(0, -2.0); ctx.stroke();
+      ctx.globalAlpha = 1;
+      const gem = (x, y, s) => {
+        ctx.beginPath();
+        ctx.moveTo(x, y - s); ctx.lineTo(x + s * 0.7, y);
+        ctx.lineTo(x, y + s); ctx.lineTo(x - s * 0.7, y);
+        ctx.closePath(); ctx.stroke();
+      };
+      ctx.lineWidth = 1.7;
+      gem(0, -6.4, 3.4);
+      gem(-7.0, 1.0, 2.6);
+      gem(7.0, 1.0, 2.6);
+      gem(-4.0, 8.2, 2.0);
+      gem(4.0, 8.2, 2.0);
+      ctx.lineWidth = 2; break;
+    }
     /* ══ ★★ 2026-08-29 ノワール・ロザリオ（レイナ）／ヴァルキュリア・ロンド（戦姫祭の共通）══
        ★ drawFsGlyph 側にも<b>同じ case</b>を置いてある（別の switch なので両方に要る）。 */
     case "noirrosary": {     /* ノワール・ロザリオ（回りながら伸びる黒い十字） */
@@ -14518,6 +15341,9 @@ function rollGachaItem(r, table) {
    ══════════════════════════════════════════════════════════════ */
 const DEBUT_DAYS = 10;                   // 1つの版が GRAND DEBUT に並ぶ日数
 const DEBUT_VERSIONS = [
+  /* ★★ 2026-08-30 Ver.6.0（チア・リサ・リン・ミノリ・セイカ）。
+     Ver.3.0/4.0（08-26）・Ver.5.0（08-28）がまだ10日以内なので、しばらく4本並ぶ。 */
+  { ver: "6.0", date: "2026-08-30", chars: ["chia", "risa", "rin", "minori", "seika"] },
   /* ★★ 2026-08-28 Ver.5.0（ユイカ・ミスズ・カザネ・ココア・ノドカ）。
      Ver.2.0（08-24）・Ver.3.0／4.0（08-26）がまだ10日以内なので、しばらく4本並ぶ。 */
   { ver: "5.0", date: "2026-08-28", chars: ["yuika", "misuzu", "kazane", "kokoa", "nodoka"] },
@@ -15095,36 +15921,46 @@ FESTS.fes11 = {
   banner: "../img/bn_fes11_s.webp", c: "#e0405e", leadCls: "star",
   luxGacha: true, noFesTicket: true, senki: true,
   since: "2026-08-29",
-  chars: ["rans", "kurenai", "yuki", "marika", "yuukas", "annas"],
+  chars: ["rans", "kurenai", "yuki", "marika", "yuukas", "annas", "annam"],
   itemTable: D_ITEM_TABLE,
-  lead: "戦姫祭の限定SSR <b>6体</b>（各" + ratePct(PICK_LUX) + "）に加えて、<b>" + PREMIUM_NM + "のSSRも排出</b>（SSR合計 " + ratePct(SSR_TOTAL) + "）",
-  sub: "戦姫祭の限定SSR <b>6体</b>（各" + ratePct(PICK_LUX) + "）＋ <b>残りは " + PREMIUM_NM + " のSSRが等確率</b>。"
+  lead: "戦姫祭の限定SSR <b>7体</b>（各" + ratePct(PICK_LUX) + "）に加えて、<b>" + PREMIUM_NM + "のSSRも排出</b>（SSR合計 " + ratePct(SSR_TOTAL) + "）",
+  sub: "戦姫祭の限定SSR <b>7体</b>（各" + ratePct(PICK_LUX) + "）＋ <b>残りは " + PREMIUM_NM + " のSSRが等確率</b>。"
     + "<b>常時開催</b>です（🎫フェス券は使えません）",
-  note: "<b>ラン・クレナイ・ユキ・マリカ・ユウカ・アンナ</b>の6体が登場する<b>常時開催</b>のガチャです。"
+  note: "<b>ラン(焔)・クレナイ・ユキ・マリカ・ユウカ(聖)・アンナ(STAR)・アンナ(祭)</b>の"
+    + "7体が登場する<b>常時開催</b>のガチャです。"
     + "極彩祭・極華祭・極煌祭と同じ<b>限定キャラクター</b>あつかいで、"
     + "<b>🎫フェスチケットは使えません</b>（🎫ガチャチケットは使えます）。"
-    + "<br>6体とも<b>アビリティを10個</b>持ちます（MagiBurst 初）——"
-    + "<b>アンチ4つ＋キラー3つ＋キラー以外3つ</b>。"
-    + "<b>オムニアンチは持ちません</b>。"
+    + "<br>7体とも<b>アビリティを10個</b>持ちます（MagiBurst 初）——"
+    + "<b>アンチ＋キラー3つ＋キラー以外</b>。<b>オムニアンチは持ちません</b>。"
     + "<br>★ <b>アンチのうち1つはクロススキル</b>です。条件を満たしているあいだだけ"
     + "そのギミックにも対応できるので、<b>完全対応できるクエストが増えます</b>——"
-    + "<b>ラン＝蓬莱神域（＋第八重）</b>／<b>クレナイ＝第八重（＋第三重）</b>／"
+    + "<b>ラン(焔)＝蓬莱神域（＋第八重）</b>／<b>クレナイ＝第八重（＋第三重）</b>／"
     + "<b>ユキ＝第六重（＋蓬莱仙苑）</b>／<b>マリカ＝第二重（＋蓬莱月宮）</b>／"
-    + "<b>ユウカ＝第五重（＋蓬莱天宮）</b>／"
-    + "<b>アンナ＝第四重・第九重（＋第一重・第二重・第三重）</b>"
+    + "<b>ユウカ(聖)＝第五重（＋蓬莱天宮）</b>／"
+    + "<b>アンナ(STAR)＝第四重・第九重（＋第一重・第二重・第三重）</b>／"
+    + "<b>アンナ(祭)＝第五重・蓬莱天宮（＋蓬莱神天）</b>"
     + "（カッコの中がクロス発動中に加わるぶんです）。"
-    + "<br>※ アンナのカッコ内3つだけは<b>属性が不利</b>——ギミックは完全に消せますが、"
+    + "<br>※ アンナ(STAR) のカッコ内3つだけは<b>属性が不利</b>——ギミックは完全に消せますが、"
     + "火力はキラーとフルバーストで押しきる形になります。"
-    + "<br>リンクスキルは6体とも<b>新設</b>で、<b>HPの低い順に重くなる配膳</b>／"
+    + "<b>アンナ(祭)</b>は3つとも<b>有利属性のまま</b>完全対応できます。"
+    + "<br>リンクスキルは7体とも<b>新設</b>で、<b>HPの低い順に重くなる配膳</b>／"
     + "<b>削るほど回復し、回復するほど重くなる湯けむり</b>／<b>立てるほど強くなる光の柱</b>／"
     + "<b>線どうしの交点で爆発する黒板</b>／<b>ためて、満ちた瞬間にあふれる聖杯</b>／"
-    + "<b>降るたびに重くなる星図</b>——どれもこれまでに無い挙動です。"
+    + "<b>降るたびに重くなる星図</b>／<b>味方の数だけ上がって開く灯籠</b>"
+    + "——どれもこれまでに無い挙動です。"
     + "共通サブリンクは<b>ヴァルキュリア・ロンド</b>（まわるたびに輪が大きくなります）。"
-    + "<br>★★ <b>アンナ</b>は<b>MagiBurst 史上最強</b>——クロス込みで<b>5クエストを完全対応</b>、"
-    + "リンクスキル<b>アストラル・ソヴリン</b>（敵全体・降るたびに重くなる）、"
-    + "フルバースト<b>ステラ・レガリア</b>（乱打" + ANNAFB_BARRAGE_N + "連＋戴冠＋落星＝合計 攻撃力×"
-    + (ANNAFB_BARRAGE_N * ANNAFB_BARRAGE_PER + ANNAFB_FINALE_PER + ANNAFB_RAIN_PER).toFixed(1) + "）。"
-    + "<br>★ 6体とも<b>ショットスキル</b>を持ち、<b>撃つたび毎回</b>発動します（アビリティ枠とは別）。",
+    + "<br>★★ <b>アンナ(祭)</b>は<b>MagiBurst 史上最強</b>——"
+    + "<b>闇属性の蓬莱3クエストすべて</b>を有利属性のまま完全対応し、"
+    + "リンクスキル<b>万灯祭天</b>（味方の数だけ灯籠が上がって開く／史上いちばん重い）、"
+    + "フルバースト<b>千華繚乱・スターマイン</b>（乱打" + ANNAM_BARRAGE_N + "連＋スターマイン"
+    + ANNAM_STARMINE_N + "発＋大玉＝合計 攻撃力×"
+    + (ANNAM_BARRAGE_N * ANNAM_BARRAGE_PER + ANNAM_STARMINE_N * ANNAM_STARMINE_PER
+       + ANNAM_STARMINE_STEP * (ANNAM_STARMINE_N * (ANNAM_STARMINE_N - 1) / 2)
+       + ANNAM_FINALE_PER).toFixed(1) + "）。"
+    + "アンナ(STAR) の<b>ステラ・レガリア</b>（×"
+    + (ANNAFB_BARRAGE_N * ANNAFB_BARRAGE_PER + ANNAFB_FINALE_PER + ANNAFB_RAIN_PER).toFixed(1)
+    + "）を大きく超えます。"
+    + "<br>★ 7体とも<b>ショットスキル</b>を持ち、<b>撃つたび毎回</b>発動します（アビリティ枠とは別）。",
 };
 /* ══════════════════════════════════════════════════════════════
    ★★ 2026-08-28 Festival Archive GACHA（archive）
@@ -15374,9 +16210,52 @@ function syncCrossChars() {
 
 /* SSRの合計排出は常に10%。ピックアップ5% ＋ 残りのSSRで5%を等分する（キャラが増えても総排出率は変わらない） */
 const PICK_RATE = 0.05;
-/* 限界突破MAX（覚醒MAX）のキャラはガチャの排出対象から除外する */
+/* 限界突破MAX（覚醒MAX）か */
 function isMaxAwk(id) { return DB.chars[id] && (DB.chars[id].awk || 0) >= MAX_AWK; }
-function gachaPool() { return PREMIUM_CHARS.filter((id) => !isMaxAwk(id)); }   // プレミアム＝Bシリーズ4体を除いた従来枠＋ナツキ
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-08-30 💠結晶 — 完凸しても排出され続ける枠（ご指定）
+   ------------------------------------------------------------
+   これまで: 限界突破MAX になったキャラは<b>どのガチャからも出なくなる</b>。
+             そのぶんの確率はほかのSSRへ配分されていた。
+   これから: <b>PREMIUM SELECT GACHA のキャラだけ</b>は完凸後も出続ける。
+             完凸後に出たときは、キャラのかわりに <b>💠結晶</b> がもらえる。
+               ・SSR … 5個   ・SR … 1個
+             結晶 <b>CRYST_EXCHANGE 個</b>で、PREMIUM SELECT / GRAND DEBUT の
+             好きな1体と交換できる（交換所は XEVARION ホームの 🛒ショップ）。
+   ★ フェス・GRAND DEBUT の<b>限定キャラ</b>は今までどおり完凸で排出対象から外れる
+     （debutPoolOf / fesPool / archivePool は !isMaxAwk のまま）。
+     「残りの確率で等確率に出るプレミアムのSSR」＝ gachaPool() だけが変わる。
+   ★ 判定は <b>isEverDrop / isDropOut の2本</b>に集約してある。
+     画面の「排出対象外」表示は必ず isDropOut を見ること——
+     isMaxAwk をそのまま見ていると、出続けるキャラに「排出対象外」と出てしまう。
+   ══════════════════════════════════════════════════════════════ */
+const CRYST_SSR = 5;          // 完凸後に出たとき：SSR 1体につき 💠5
+const CRYST_SR  = 1;          // 同・SR 1体につき 💠1
+const CRYST_EXCHANGE = 75;    // 💠この数で 好きな1体と交換
+const CRYST_NM = "結晶";
+/* 完凸しても排出され続けるキャラか（＝PREMIUM SELECT GACHA の顔ぶれ） */
+function isEverDrop(id) { return PREMIUM_CHARS.indexOf(id) >= 0; }
+/* ガチャの排出対象から外れているか（完凸、かつ結晶にも換わらない） */
+function isDropOut(id) { return isMaxAwk(id) && !isEverDrop(id); }
+/* 💠結晶の残高（XEVARION 共通ウォレット）。xeva.js が無い画面でも落ちないようにする */
+function crystGet() { try { return (window.XEVA && XEVA.cryst) ? XEVA.cryst.get() : 0; } catch (e) { return 0; } }
+function crystAdd(n, why) {
+  n = Math.max(0, Math.round(n || 0)); if (!n) return 0;
+  try { if (window.XEVA && XEVA.cryst) return XEVA.cryst.add(n, why || "ガチャ（限界突破MAX）"); } catch (e) {}
+  return 0;
+}
+function crystSpend(n, why) {
+  try { if (window.XEVA && XEVA.cryst) return XEVA.cryst.spend(n, why || "結晶交換所"); } catch (e) {}
+  return false;
+}
+/* 💠結晶のアイコン（画像1枚。ポータルと MagiBurst でフォルダが違うので MB_IMGD 越しに引く） */
+function crystIcon(px) {
+  const s = px || 18, d = (typeof MB_IMGD !== "undefined" ? MB_IMGD : "../img/");
+  return '<img src="' + d + 'cryst.webp" alt="' + CRYST_NM + '" style="width:' + s + 'px;height:' + s
+       + 'px;vertical-align:-3px;object-fit:contain">';
+}
+/* ★ プレミアムは<b>完凸でも外さない</b>（外すと結晶が手に入らなくなる） */
+function gachaPool() { return PREMIUM_CHARS.slice(); }   // プレミアム＝Bシリーズ4体を除いた従来枠＋ナツキ
 const S5_TOTAL = SSR_TOTAL;  /* ★★ 2026-08-28 10% → 12%（SSR_TOTAL）。古い呼び名も残してある */
 /* ══════════════════════════════════════════════════════════════
    ★★ 2026-08-28 抽選のしくみを1本にまとめた（ご指定の確率にそろえるため）
@@ -15625,16 +16504,19 @@ function evalHTMLWithMarks(id) {
 window.evalHTMLWithMarks = evalHTMLWithMarks;
 function charStrengths(id, isCross) {
   const c = CHARS[id], isPick = isCross ? curPickupX() === id : curPickup() === id;
-  const rate = isMaxAwk(id) ? "限界突破MAXのため排出対象外👑"
+  /* ★★ 2026-08-30 完凸でも PREMIUM SELECT のキャラは出続ける（💠結晶になる）ので、
+     「排出対象外」を出してよいのは isDropOut のときだけ。 */
+  const rate = isDropOut(id) ? "限界突破MAXのため排出対象外👑"
     : isCross ? (isPick ? ratePct(PICK_RATE) + "（ピックアップのみ排出）" : "排出対象外（ピックアップを切り替え）")
-    : (isPick && pickupRate() > 0 ? ratePct(PICK_RATE) + "（ピックアップ中！）" : ratePct(otherRate()));
+    : (isPick && pickupRate() > 0 ? ratePct(PICK_RATE) + "（ピックアップ中！）" : ratePct(otherRate()))
+      + (isMaxAwk(id) ? "（👑完凸 → " + crystIcon(13) + "結晶+" + (isStar5(id) ? CRYST_SSR : CRYST_SR) + "）" : "");
   return `<b>SSR「${c.nm}」の強み</b>（${ELEM[c.el].nm}属性・${c.shot === "pierce" ? "貫通" : "反射"}・${c.type}）
     ${strengthBarsHTML(id, (isCross ? "x_" : "p_") + id)}
     ${evalHTMLWithMarks(id)}
     ・アビリティ: ${sortedAbil(c).map(abilName).join("／")}<br>
     ・フルバースト「${c.ssName}」（${fbTurnsText(c)}ターン）: <b style="color:#d97800">${c.ssPow}</b><br>
     ・リンク「${c.fsName}」: <b style="color:#1d78d8">${c.fsPow}</b>／サブリンク「${SUBFS[c.subfs].nm}」<br>
-    <span style="color:${isMaxAwk(id) ? "#c98a10" : isPick ? "#e0405e" : "#8b87a8"}">排出率 ${rate}</span>
+    <span style="color:${isDropOut(id) ? "#c98a10" : isPick ? "#e0405e" : "#8b87a8"}">排出率 ${rate}</span>
     ${DB.chars[id] ? `<span style="color:#0e8a5c">所持済み（覚醒+${DB.chars[id].awk || 0}${(DB.chars[id].awk || 0) >= MAX_AWK ? "・限界突破MAX👑" : "・重複で覚醒+1）"}</span>` : '<span style="color:#d97800">未所持</span>'}`;
 }
 /* ══════════════════════════════════════════════════════════════
@@ -15921,7 +16803,7 @@ function paintGacha() {
     <div class="gpi">
       <div class="gpt">✦ PICKUP</div>
       <div class="gpn">${elIcon(pc.el, 18)} ${pc.nm}</div>
-      <div class="gpr">${maxed ? "👑 限界突破MAX・排出対象外" : "SSR 排出 " + ratePct(pickupRate()) + "（他のSSRは各 " + ratePct(otherRate()) + "）"}</div>
+      <div class="gpr">${"SSR 排出 " + ratePct(pickupRate()) + "（他のSSRは各 " + ratePct(otherRate()) + "）" + (maxed ? "／👑完凸 → " + crystIcon(13) + "結晶+" + CRYST_SSR : "")}</div>
     </div>
     <button class="gpinfo" onclick="openDet('${pick}','chars')" title="${pc.nm} の性能を見る">i</button>
     <button class="gpsel" onclick="openPickSel('premium')">セレクト<br>する</button>`;
@@ -16155,7 +17037,12 @@ function grantChar(id) {
     result.awk = DB.chars[id].awk;
     if (result.awk >= MAX_AWK) result.fullAwk = true;   // 限界突破MAX！
   }
-  else { result.max = true; DB.gold += 8000; }
+  /* ★★ 2026-08-30 完凸後に出たぶんは 💠結晶（ゴールドは廃止）。SSR＝5個／SR＝1個。 */
+  else {
+    result.max = true;
+    result.cryst = isStar5(id) ? CRYST_SSR : CRYST_SR;
+    crystAdd(result.cryst, "ガチャ（" + (CHARS[id] ? CHARS[id].nm : id) + "・限界突破MAX）");
+  }
   /* ★ 共有キャラ（Bシリーズ4体・ミズキ）は XEVAガチャ側のコレクションにも即時反映
      （所持・限界突破を両アプリで一致させる。クラウド同期は xeva_gacha_v1 ごと行われる） */
   if (SHARED_CHARS.includes(id)) {
@@ -16186,7 +17073,7 @@ function gachaCellHTML(r, i, willRankUp) {
     return `<div class="gm chr veiled ${s5 ? "s5" : ""} ${full && s5 ? "mx" : ""} ${r.sure ? "sure" : ""}">
       ${cov(s5 && !willRankUp ? "SSR" : "SR", s5 && !willRankUp ? "s5" : "s4")}
       ${r.sure ? '<span class="gsure">SSR 確定</span>' : ""}
-      <img src="${c.th}" alt="${c.nm}"><div class="gn"><b class="gnm">${charNoText(r.id)} ${s5 ? "SSR" : "SR"} ${c.nm}</b><i class="gst">${r.max ? "→G8,000" : r.fullAwk ? "👑限界突破MAX!!" : r.awk ? "覚醒+" + r.awk : "NEW!"}</i></div></div>`;
+      <img src="${c.th}" alt="${c.nm}"><div class="gn"><b class="gnm">${charNoText(r.id)} ${s5 ? "SSR" : "SR"} ${c.nm}</b><i class="gst">${r.max ? crystIcon(14) + "結晶+" + (r.cryst || CRYST_SSR) : r.fullAwk ? "👑限界突破MAX!!" : r.awk ? "覚醒+" + r.awk : "NEW!"}</i></div></div>`;
   }
   /* ★★ 2026-08-22b BLACK SELECT（豪華な黒のプレート）。
      開けると「そのガチャで出るSSR全員」から好きな1体をえらべる。 */
@@ -17221,7 +18108,8 @@ function openPickSel(mode) {
       const dots = own ? Array.from({ length: MAX_AWK }, (_, i) => `<i class="${i < awk ? "on" : ""}"></i>`).join("") : "";
       const rate = pickSelMode === "cross"
         ? (maxed ? "排出対象外" : on ? "SSR " + ratePct(PICK_RATE) : "選ぶと 5%")
-        : (maxed ? "排出対象外" : on ? "SSR " + ratePct(pickupRate()) : "いま " + ratePct(otherRate()) + " → 選ぶと " + ratePct(wouldPickRate()));
+        : ((on ? "SSR " + ratePct(pickupRate()) : "いま " + ratePct(otherRate()) + " → 選ぶと " + ratePct(wouldPickRate()))
+           + (maxed ? "／💠+" + CRYST_SSR : ""));
       /* ★ 2026-08-06: フェスガチャと同じように、ここからも<b>1体ずつ性能を確認</b>できるようにした。
          カードの本体＝ピックアップに選ぶ／右上の「i」＝キャラ詳細（#detOv=960 は #gselOv=640 より手前に出る）。
          ※ ボタンの中にボタンは置けないので、外側は div にしてある。 */
@@ -17238,7 +18126,10 @@ function openPickSel(mode) {
       </div>`;
     }).join("")}</div>
     <div class="gselnote">カードをタップで<b>ピックアップに設定</b>、右上の<b>i</b>で<b>そのキャラの詳細</b>（ステータス・アビリティ・リンク・フルバースト）を確認できます。<br>
-      所持キャラを選ぶと<b>重複で限界突破（凸）</b>が進みます。<b>限界突破MAX（👑）のキャラは排出対象外</b>になり、その分は他のSSRに配分されます。</div>
+      所持キャラを選ぶと<b>重複で限界突破（凸）</b>が進みます。
+      ★ <b>${PREMIUM_NM} のキャラは限界突破MAX（👑）になっても排出され続けます</b>——
+      そのときは ${crystIcon(13)}<b>結晶が ${CRYST_SSR} 個</b>もらえます（SRは ${CRYST_SR} 個）。
+      結晶 <b>${CRYST_EXCHANGE} 個</b>で、${PREMIUM_NM} / ${DEBUT_NM} の<b>好きな1体</b>と交換できます。</div>
     <button class="gimclose" onclick="closePickSel()">とじる</button>`;
   $("#gselOv").classList.add("on");
   SFX.pick();
@@ -17381,7 +18272,7 @@ function openRates(which) {
     rows.push(`<tr><td colspan="2" style="font-weight:900;color:${f.c}">✦ ${f.nm}（1回 🎫1枚 または <i class='icc ic-gem'></i>5 ／ 5連 ／ <b>10連・SSR確定</b>）</td></tr>`);
     rows.push(`<tr><td>✨ SSR 排出（合計）</td><td>10%</td></tr>`);
     byCharNoDesc(f.chars).forEach((id) => {
-      const maxed = isMaxAwk(id);
+      const maxed = isDropOut(id);
       /* ★ 2026-08-07: 登場前のキャラは提供割合でも名前を伏せる（???） */
       rows.push(`<tr><td>　└ ${charNmOf(id)}（フェス限定SSR${maxed ? "・<b style='color:#c98a10'>限界突破MAX/対象外</b>" : charSecret(id) ? "・<b style='color:#c9a6ff'>登場前</b>" : ""}）</td><td>${maxed ? "—" : ratePct(fesEachRate(which))}</td></tr>`);
     });

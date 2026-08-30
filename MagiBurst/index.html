@@ -24,11 +24,11 @@ if ("serviceWorker" in navigator) {
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
 <script src="../xeva-splash.js?v=3" data-app="MagiBurst" data-logo="../thumbs/MagiBurst.jpg"
         data-note="⚠️ このゲームの対象年齢は 13歳以上 です"></script>
-<script src="../xeva.js?v=49"></script>
+<script src="../xeva.js?v=50"></script>
 <script src="../xeva-loading.js?v=1" defer></script>
 <script type="module" src="../xevarion-fb.js?v=22"></script>
 <script src="../xeva-presence.js?v=1" defer></script>
-<script type="module" src="../xeva-cloud.js?v=18"></script>
+<script type="module" src="../xeva-cloud.js?v=19"></script>
 <script type="module" src="js/online.js?v=8"></script>
 <style>
 /* ═══ カジュアル・ライトテーマ（SUNNY POP） ═══ */
@@ -3825,8 +3825,8 @@ body.in-battle #top,body.in-battle #tabs{display:none}
 </div></div>
 
 <script>window.MB_IMGD = "../img/"; window.MB_GIMGD = "img/";</script>
-<script src="../mb-newchars.js?v=10"></script>
-<script src="js/mb-core.js?v=63"></script>
+<script src="../mb-newchars.js?v=11"></script>
+<script src="js/mb-core.js?v=65"></script>
 <script>
 "use strict";
 /* ══════════ アカウントガード ══════════ */
@@ -5768,6 +5768,54 @@ window.openNewChar = openNewChar; window.closeNewChar = closeNewChar;
 
 /* ══════════ お知らせ（アップデートのたびにここへ追記する） ══════════ */
 const NEWS = [
+  /* ★★ 2026-08-30 💠結晶／完凸後も排出／アンナ(祭)／GRAND DEBUT Ver.6.0／同名キャラの整理 */
+  { date: "2026-08-30", title: "💠 結晶と交換所／👑 完凸しても排出／⚔ 戦姫祭にアンナ(祭)（史上最強）／✧ GRAND DEBUT Ver.6.0", body: [
+    "💠 <b>結晶</b>を追加しました。<b>" + PREMIUM_NM + " のキャラクターは、限界突破MAX（完凸）になっても"
+      + "ガチャから出続けます</b>。完凸したあとに出たときは、キャラクターのかわりに"
+      + "<b>結晶が " + CRYST_SSR + " 個</b>（SRは " + CRYST_SR + " 個）もらえます。"
+      + "<br>結晶 <b>" + CRYST_EXCHANGE + " 個</b>で、<b>" + PREMIUM_NM + "</b> と <b>" + DEBUT_NM + "</b> の"
+      + "<b>好きな1体</b>と交換できます（交換所は <b>XEVARION ホームの 🛒ショップ</b>）。"
+      + "<br>★ フェス・" + DEBUT_NM + " の<b>限定キャラクター</b>は、これまでどおり完凸すると排出対象から外れます。",
+    "⚔ <b>戦姫祭</b>に <b>アンナ(祭)</b>（光・貫通）が加わりました（限定SSR 7体に）。"
+      + "<b>MagiBurst 史上最強</b>です。"
+      + "<br>アンチは<b>超アンチワープ＋超アンチ減速壁＋超アンチ重力バリア＋アンチ断絶界</b>の4つ、"
+      + "クロススキルの<b>超マインスイーパーEL</b>を入れて<b>5つ</b>——"
+      + "<b>🏯第五重・🏯蓬莱天宮・🏯蓬莱神天</b>の<b>闇属性3クエストすべて</b>を"
+      + "<b>有利属性のまま</b>完全対応できます。"
+      + "<br>フルバースト<b>千華繚乱・スターマイン</b>は、灯火の乱打" + ANNAM_BARRAGE_N + "連 →"
+      + "<b>夜空へ花火が" + ANNAM_STARMINE_N + "発つづけて上がって敵全体へ</b>（開くたびに重くなる）→"
+      + "<b>大玉「千華」</b>で締め。合計 <b>攻撃力×"
+      + (ANNAM_BARRAGE_N * ANNAM_BARRAGE_PER + ANNAM_STARMINE_N * ANNAM_STARMINE_PER
+         + ANNAM_STARMINE_STEP * (ANNAM_STARMINE_N * (ANNAM_STARMINE_N - 1) / 2)
+         + ANNAM_FINALE_PER).toFixed(1) + "</b>（アンナ(STAR) の×"
+      + (ANNAFB_BARRAGE_N * ANNAFB_BARRAGE_PER + ANNAFB_FINALE_PER + ANNAFB_RAIN_PER).toFixed(1)
+      + " を大きく超えます）。"
+      + "<br>リンクスキル<b>万灯祭天</b>は<b>味方全員の足もとから灯籠が上がり</b>、"
+      + "上がりきった灯籠が1つずつ開いて敵全体へ入ります（開くたびに重くなる）——"
+      + "<b>味方が多く残っているほど強い</b>、MagiBurst 史上いちばん重いリンクスキルです。"
+      + "<br>ショットスキル<b>ランタン・シュート</b>は<b>敵全体</b>に灯をともし、"
+      + "あわせて<b>自分のフルバーストが1ターン進み</b>ます。",
+    "✧ <b>" + DEBUT_NM + " Ver.6.0</b> を公開しました。"
+      + "<b>チア（火）・リサ（水）・リン（闇）・ミノリ（木）・セイカ（光）</b>の5体が登場します。"
+      + "<br>5体とも<b>アンチをちょうど3種</b>持ち、その3種が<b>🏯蓬莱天宮の続き5クエスト</b>"
+      + "（仙苑・月宮・神域・天界・神天）の必要アンチと<b>ぴったり一致</b>します——"
+      + "<b>リサ＝蓬莱仙苑／ミノリ＝蓬莱月宮／チア＝蓬莱神域／リン＝蓬莱天界／セイカ＝蓬莱神天</b>。"
+      + "<br>Cozy Haven FEST の5体と同じ担当ですが、"
+      + "<b>アンチは「超」つき</b>・<b>キラーは 蓬莱族キラーEL ＋ L等級2つ</b>と、"
+      + "<b>はっきり上の性能</b>にしてあります（戦姫祭には届かない位置です）。"
+      + "<br>リンクスキルは5本とも<b>新設</b>——<b>壁ではね返るたびに育つハート</b>／"
+      + "<b>凍らせて攻撃ターンを遅らせる氷</b>／<b>燭台で囲んだ内側に大ダメージ</b>／"
+      + "<b>面を増やしながら外へ広がる宝石のカット</b>／<b>下から上へ昇る夜明けの帯</b>。"
+      + "共通サブリンクは<b>ジュエル・シャワー</b>（降る本数が<b>敵の数＋1</b>で決まります）。",
+    "🏷 <b>同じ名前のキャラクター</b>に区別を付けました（ご指定）——"
+      + "<b>アンナ(煌)</b>（No.108）／<b>アンナ(STAR)</b>（戦姫祭）／<b>アンナ(祭)</b>（戦姫祭）、"
+      + "<b>ラン(祈)</b>（No.64）／<b>ラン(焔)</b>（戦姫祭）、"
+      + "<b>ユウカ(黒)</b>（No.150）／<b>ユウカ(聖)</b>（戦姫祭）。"
+      + "<br>キャラクターそのもの（性能・所持・限界突破）は<b>なにも変わりません</b>。",
+    "🗓 <b>極彩祭・極華祭・極煌祭</b>は、ホームの「開催中のイベント」で"
+      + "<b>常時開催（毎月◯〜◯日）</b>と出るようにしました。"
+      + "回せる日は月で決まっていますが、<b>ガチャとして終わる期限はありません</b>。",
+  ] },
   /* ★★ 2026-08-29 戦姫祭／レイナ／蓬莱の後半6階層の条件／Ver.5.0 の水準そろえ */
   { date: "2026-08-29", title: "🎮 新作 Magi: Arcana Rush（β）／📖 図鑑に入手方法／⚔ 戦姫祭 常時開催（性能を調整）／🛑 FBの2段階目は取り下げ", body: [
     "🎮 <b>新作『Magi: Arcana Rush』（β版）</b>が XEVARION に加わりました。"
@@ -12060,6 +12108,12 @@ const FS_SHORT = {
   hearthring: "ハースリング",   steamburst: "スチバスト",   noirblanket: "ノワブラン",
   shareharvest: "シェアハベ",   nightlamp: "ナイランプ",    alleyoop: "アリウープ",
   cozyveil: "コージベール",     aquahoop: "アクフープ",
+  /* ★★ 2026-08-30 アンナ(祭)＋ GRAND DEBUT Ver.6.0 5体 の新リンク6本＋サブリンク1本。
+     ★ ここに無いと「リンクスキルそのもの（fk:）」での絞り込みにも名前検索にも出てこない。 */
+  lanternfes: "バントウ",       heartricochet: "ハトリコ",
+  frozennocturne: "フロズノク",  rosecandelabra: "カンデラ",
+  jewelcut: "ジュエカット",      sunriseveil: "サンヴェール",
+  jewelshower: "ジュエシャワ",
   /* ★★ 2026-08-29 極煌祭（レイナ）＋ 戦姫祭6体 の新リンク7本＋サブリンク2本。
      ★ ここに無いと「リンクスキルそのもの（fk:）」での絞り込みにも名前検索にも出てこない。 */
   voidbloom: "ヴォイブル",       noirrosary: "ノワロザ",
@@ -12386,6 +12440,14 @@ const FS_TYPE = {
   alleyoop: "follow",       /* 味方から味方へパス */
   cozyveil: "ring",         /* 広がるベール（サブ専用だが両方に置く） */
   aquahoop: "shot",         /* 敵の上のフープをボールがくぐる */
+  /* ★★ 2026-08-30 アンナ(祭)＋ GRAND DEBUT Ver.6.0 5体 */
+  lanternfes: "all",        /* 味方の足もとから上がって、開くたびに敵全体へ */
+  heartricochet: "shot",    /* 壁ではね返りながら育つ弾 */
+  frozennocturne: "all",    /* 盤面ごと凍って敵全体を何度も削る */
+  rosecandelabra: "laser",  /* 燭台どうしを結ぶ線 */
+  jewelcut: "ring",         /* 面が増えていく多角形 */
+  sunriseveil: "all",       /* 下から上へ昇る帯 */
+  jewelshower: "all",       /* 敵全体へ降る（サブ専用だが両方に置く） */
   /* ★★ 2026-08-29 極煌祭（レイナ）＋ 戦姫祭6体 */
   voidbloom: "follow",      /* 敵から敵へ咲き移る */
   noirrosary: "laser",      /* 十字に伸びる（サブ専用だが両方に置く） */
@@ -12495,6 +12557,14 @@ const FS_TAGS = {
   alleyoop:        ["pierce", "long", "multi", "ally"],
   cozyveil:        ["wide", "multi", "heal", "ally"],
   aquahoop:        ["homing", "multi"],
+  /* ★★ 2026-08-30 アンナ(祭)＋ GRAND DEBUT Ver.6.0 5体 */
+  lanternfes:      ["wide", "multi", "ally"],
+  heartricochet:   ["bounce", "multi", "wide"],
+  frozennocturne:  ["wide", "multi", "status"],
+  rosecandelabra:  ["pierce", "long", "wide", "multi"],
+  jewelcut:        ["wide", "multi", "bounce"],
+  sunriseveil:     ["wide", "multi", "long"],
+  jewelshower:     ["wide", "multi"],
   /* ★★ 2026-08-29 極煌祭（レイナ）＋ 戦姫祭6体 */
   voidbloom:       ["homing", "multi", "wide"],
   noirrosary:      ["pierce", "long", "multi"],
@@ -12677,6 +12747,13 @@ const SS_TAGS = {
        既存の ssKind（mirelle / scarlet / sayuri / akari / otoha / hinata /
        setsuna / celine / nephia / hotaru）を使うので、ここに足すものは無い。 */
   kotori: ["self", "barrage", "knock"],
+  /* ★★ 2026-08-30 アンナ(祭)＋ GRAND DEBUT Ver.6.0 5体のフルバースト */
+  annam: ["self", "barrage", "knock", "all"],
+  chia: ["self", "all", "support"],
+  risa: ["self", "all", "debuff"],
+  rin: ["self", "all", "weak"],
+  minori: ["self", "all", "support"],
+  seika: ["self", "all", "heal", "support"],
   /* ★★ 2026-08-29 極煌祭（レイナ）＋ 戦姫祭6体のフルバースト */
   reina: ["self", "barrage", "knock"],
   annas: ["self", "barrage", "knock", "all"],
@@ -16008,6 +16085,35 @@ const FS_HIT = {
     nm: "聖杯にためている間の削り " + GRAIL_TICKS + "回（敵全体）",
     per2: GRAIL_OVER_PER, n2: 1,
     nm2: "満ちてあふれた瞬間（敵全体・味方全員のFBが" + GRAIL_FB + "ターン進む）" },
+  /* ★★ 2026-08-30 アンナ(祭)＋ GRAND DEBUT Ver.6.0 5体。
+     ★ ここに書き忘れると「!」ボタンの威力が 0 になる。 */
+  lanternfes: { per: LANFES_LIFT_PER, n: LANFES_MAX,
+    nm: "上がっていく灯籠 " + LANFES_MAX + "本（線上の敵）",
+    per2: LANFES_BURST_PER, n2: LANFES_MAX,
+    nm2: "灯籠が開く（敵全体・開くたびに +" + LANFES_BURST_STEP + "／最後に大玉 ×" + LANFES_FINALE + "）",
+    extra: LANFES_BURST_STEP * (LANFES_MAX * (LANFES_MAX - 1) / 2) + LANFES_FINALE },
+  heartricochet: { per: RICO_PER, n: RICO_N,
+    nm: "壁ではね返るハート " + RICO_N + "回（" + RICO_R0 + " → " + RICO_R1
+      + "・はねるたびに +" + RICO_STEP + "）",
+    extra: RICO_STEP * (RICO_N * (RICO_N - 1) / 2) },
+  frozennocturne: { per: FROZ_PER, n: FROZ_TICKS,
+    nm: "割れる氷 " + FROZ_TICKS + "回（敵全体・割れるたびに +" + FROZ_STEP
+      + "／敵全体の攻撃ターンを" + FROZ_DELAY + "遅らせる）",
+    extra: FROZ_STEP * (FROZ_TICKS * (FROZ_TICKS - 1) / 2) },
+  rosecandelabra: { per: CAND_LINE_PER, n: CAND_N,
+    nm: "燭台を結ぶ黒薔薇の線 " + CAND_N + "本（太さ " + CAND_W + "・貫通）",
+    per2: CAND_INNER_PER, n2: 1,
+    nm2: "三角形の内側にいる敵へ" },
+  jewelcut: { per: JCUT_PER, n: JCUT_TO - JCUT_FROM + 1,
+    nm: "宝石のカット面 " + JCUT_FROM + "角形 → " + JCUT_TO + "角形（半径 " + JCUT_R
+      + "・面が増えるたびに +" + JCUT_STEP + "）",
+    extra: JCUT_STEP * ((JCUT_TO - JCUT_FROM + 1) * (JCUT_TO - JCUT_FROM) / 2) },
+  sunriseveil: { per: SUNV_PER, n: SUNV_BANDS,
+    nm: "昇っていく夜明けの帯 " + SUNV_BANDS + "回（昇るたびに +" + SUNV_STEP + "）",
+    per2: SUNV_FINALE, n2: 1, nm2: "昇りきった瞬間（敵全体）",
+    extra: SUNV_STEP * (SUNV_BANDS * (SUNV_BANDS - 1) / 2) },
+  jewelshower: { per: JSHOW_PER, n: JSHOW_MAX,
+    nm: "降ってくる宝石のかけら（敵の数＋1・最大" + JSHOW_MAX + "発／敵全体）" },
   astralsovereign: { per: ANNA_PER, n: ANNA_TICKS,
     nm: "星図から降りそそぐ星 " + ANNA_TICKS + "回（敵全体・降るたびに +" + ANNA_STEP + "）",
     per2: ANNA_FINALE, n2: 1, nm2: "フィナーレの一降り（敵全体）",
@@ -16181,6 +16287,9 @@ const SUB_HIT = {
   /* ★★ 2026-08-29 ノワール・ロザリオ（レイナ）／ヴァルキュリア・ロンド（戦姫祭の共通） */
   noirrosary: { per: ROSARY_PER, n: ROSARY_TICKS },
   senkirondo: { per: SENKI_PER, n: SENKI_RINGS },
+  /* ★★ 2026-08-30 ジュエル・シャワー（GRAND DEBUT Ver.6.0 の共通サブリンク）。
+     ★ n は「敵が JSHOW_MAX-1 体いるときの最大発数」。実際は 敵の数＋1（最大 JSHOW_MAX）。 */
+  jewelshower: { per: JSHOW_PER, n: JSHOW_MAX },
   /* ★★ 2026-08-27 ウィークシギル（極彩祭・極煌祭の共通サブリンク）。
      ★ ここに書き忘れると「!」ボタンの威力が 0 になる。 */
   weaksigil: { per: WSIGIL_PER, n: 1 },
@@ -16835,6 +16944,9 @@ function launchShot(ball, ux, uy, power) {
     /* ★★ 2026-08-29 極煌祭（レイナ）＋ 戦姫祭6体（どれも自強化型） */
     || ssk === "reina" || ssk === "annas" || ssk === "rans" || ssk === "kurenai"
     || ssk === "yuki" || ssk === "marika" || ssk === "yuukas"
+    /* ★★ 2026-08-30 アンナ(祭)＋ GRAND DEBUT Ver.6.0 5体（どれも自強化型） */
+    || ssk === "annam" || ssk === "chia" || ssk === "risa" || ssk === "rin"
+    || ssk === "minori" || ssk === "seika"
     /* ★ 2026-08-08 カエデ・リノン・アンジェ（ココロは ssKind が "soleria" なので上で拾う） */
     || ssk === "kaede" || ssk === "rinon" || ssk === "ange"
     || ssk === "sheril" || ssk === "fia" || ssk === "lysera" || ssk === "soleria" || ssk === "beltia" || ssk === "astera"
@@ -17632,8 +17744,158 @@ function applyNewSS(ball) {
     spawnSparks(ball.x, ball.y, "#c9a6ff", 40);
     B.shake = Math.max(B.shake, 22);
     flash("#6f3fd0");
+  } else if (k === "annam") {
+    /* ══ ★★ 2026-08-30 アンナ(祭)（千華繚乱・スターマイン）＝ MagiBurst 史上最強 ══
+       ・自強化（ANNAM_ATK / ANNAM_SPD）
+       ・<b>壁をすり抜けて反対側から出る</b>（stepBall の wrap に "annam" を足してある）
+       ・<b>最初にふれた敵で停止</b>して灯火の乱打 → スターマイン → 大玉（hitEnemy 側）
+       ★ 発動の瞬間は「夜空がひらいて祭囃子が鳴る」ところまで。
+         乱打から先は最初の敵にふれてから始まる。 */
+    ball.selfBuff = { atk: ANNAM_ATK, spd: ANNAM_SPD, left: 2 };
+    B.pops.push({ x: ball.x, y: ball.y - ball.r - 22, t: 0,
+      txt: "自強化＆壁すり抜け＆最初の敵で停止して乱打" + ANNAM_BARRAGE_N
+        + "連＆スターマイン" + ANNAM_STARMINE_N + "発＆大玉!!",
+      c: "#ffe9a8", small: 0 });
+    /* 夜空がひらき、祭の提灯が輪になってともる */
+    B.effects.push({ type: "skydim", t: 0, dur: 48, a: 0.74, c: "#0a0616" });
+    for (let k2 = 0; k2 < 8; k2++) {
+      B.effects.push({ type: "ring", x: ball.x, y: ball.y, t: -k2 * 4, dur: 40,
+        r: 120 + k2 * 128, c: k2 % 2 ? "#ff9d2e" : "#ffe9a8" });
+    }
+    B.effects.push({ type: "pillar", x: ball.x, y: ball.y, t: 0, dur: 44, c: "#ffe9a8" });
+    B.effects.push({ type: "flashfx", t: 0, dur: 14 });
+    spawnSparks(ball.x, ball.y, "#ffd257", 60);
+    B.shake = Math.max(B.shake, 28);
+    flash("#ff9d2e");
+  } else if (k === "chia") {
+    /* ★★ 2026-08-30 チア（ハートフル・ラプソディ）:
+       自強化 ＋ 敵全体へ恋色の衝撃波 ＋ <b>味方全員に CHIA_BARRIER のバリア</b>。 */
+    ball.selfBuff = { atk: CHIA_ATK, spd: CHIA_SPD, left: 2 };
+    const _atkC = ball.st.atk * atkMulOf(ball);
+    withDmgSrc(ball, () => {
+      aliveEnemies().forEach((e) => {
+        if (!e || e.hp <= 0) return;
+        B.effects.push({ type: "boom", x: e.x, y: e.y, t: 0, dur: 26, r: 180, c: "#ff8ab5" });
+        spawnSparks(e.x, e.y, "#ffd7e6", 13);
+        dealDamage(e, _atkC * CHIA_ALL * elemMult(ball.ch.el, e.el), "#ff8ab5", true);
+      });
+    });
+    (B.balls || []).forEach((b) => { if (b) b.barrier = Math.max(b.barrier || 0, CHIA_BARRIER); });
+    B.pops.push({ x: ball.x, y: ball.y - ball.r - 22, t: 0,
+      txt: "自強化＆敵全体へ恋色の衝撃波＋味方全員にバリア " + fmt(CHIA_BARRIER) + "!!", c: "#ff8ab5", small: 0 });
+    for (let k2 = 0; k2 < 4; k2++) B.effects.push({ type: "ring", x: ball.x, y: ball.y, t: -k2 * 4, dur: 30, r: 150 + k2 * 125, c: k2 % 2 ? "#ff8ab5" : "#ffd7e6" });
+    B.effects.push({ type: "pillar", x: ball.x, y: ball.y, t: 0, dur: 34, c: "#ffd7e6" });
+    spawnSparks(ball.x, ball.y, "#ff8ab5", 34);
+    B.shake = Math.max(B.shake, 20);
+    flash("#ff8ab5");
+  } else if (k === "risa") {
+    /* ★★ 2026-08-30 リサ（フローズン・レクイエム）:
+       自強化 ＋ 敵全体へ氷結 ＋ <b>敵全体の攻撃力ダウン</b>。
+       ★ e.atkdown は {left, mul} の形（ミズキ・サユリのフルバーストと同じ）。 */
+    ball.selfBuff = { atk: RISA_ATK, spd: RISA_SPD, left: 2 };
+    const _atkR2 = ball.st.atk * atkMulOf(ball);
+    withDmgSrc(ball, () => {
+      aliveEnemies().forEach((e) => {
+        if (!e || e.hp <= 0) return;
+        e.atkdown = { left: RISA_ATKDOWN_TURNS, mul: RISA_ATKDOWN_MUL };
+        B.effects.push({ type: "boom", x: e.x, y: e.y, t: 0, dur: 26, r: 180, c: "#7cc4ff" });
+        B.effects.push({ type: "ring", x: e.x, y: e.y, t: 0, dur: 22, r: e.r * 2.6, c: "#bff0ff" });
+        spawnSparks(e.x, e.y, "#bff0ff", 13);
+        dealDamage(e, _atkR2 * RISA_ALL * elemMult(ball.ch.el, e.el), "#7cc4ff", true);
+        B.pops.push({ x: e.x, y: e.y - e.r - 40, t: 0,
+          txt: "攻撃力 −" + Math.round((1 - RISA_ATKDOWN_MUL) * 100) + "%（" + RISA_ATKDOWN_TURNS + "T）", c: "#bff0ff", small: 1 });
+      });
+    });
+    B.pops.push({ x: ball.x, y: ball.y - ball.r - 22, t: 0,
+      txt: "自強化＆敵全体へ氷結＋攻撃力ダウン!!", c: "#7cc4ff", small: 0 });
+    B.effects.push({ type: "skydim", t: 0, dur: 34, a: 0.34, c: "#0a1c34" });
+    for (let k2 = 0; k2 < 4; k2++) B.effects.push({ type: "ring", x: ball.x, y: ball.y, t: -k2 * 4, dur: 30, r: 150 + k2 * 125, c: k2 % 2 ? "#7cc4ff" : "#ffffff" });
+    B.effects.push({ type: "pillar", x: ball.x, y: ball.y, t: 0, dur: 34, c: "#bff0ff" });
+    spawnSparks(ball.x, ball.y, "#bff0ff", 34);
+    B.shake = Math.max(B.shake, 20);
+    flash("#7cc4ff");
+  } else if (k === "rin") {
+    /* ★★ 2026-08-30 リン（ローズ・レクイエム）:
+       自強化 ＋ 敵全体へ黒薔薇の茨 ＋ <b>敵全体に追加の弱点を刻む</b>（ウィークシギルと同じしくみ）。 */
+    ball.selfBuff = { atk: RIN_ATK, spd: RIN_SPD, left: 2 };
+    const _atkRi = ball.st.atk * atkMulOf(ball);
+    withDmgSrc(ball, () => {
+      aliveEnemies().forEach((e) => {
+        if (!e || e.hp <= 0) return;
+        e.sigil = { left: RIN_SIGIL_TURNS };
+        B.effects.push({ type: "boom", x: e.x, y: e.y, t: 0, dur: 26, r: 180, c: "#e0405e" });
+        B.effects.push({ type: "pillar", x: e.x, y: e.y, t: 0, dur: 28, c: "#ffd7e6" });
+        spawnSparks(e.x, e.y, "#ffd7e6", 13);
+        dealDamage(e, _atkRi * RIN_ALL * elemMult(ball.ch.el, e.el), "#e0405e", true);
+        B.pops.push({ x: e.x, y: e.y - e.r - 40, t: 0, txt: "弱点 +1（" + RIN_SIGIL_TURNS + "T）", c: "#ffd7e6", small: 1 });
+      });
+    });
+    B.pops.push({ x: ball.x, y: ball.y - ball.r - 22, t: 0,
+      txt: "自強化＆敵全体へ黒薔薇＋弱点を" + RIN_SIGIL_TURNS + "ターン刻む!!", c: "#e0405e", small: 0 });
+    B.effects.push({ type: "skydim", t: 0, dur: 36, a: 0.5, c: "#12060e" });
+    for (let k2 = 0; k2 < 5; k2++) B.effects.push({ type: "ring", x: ball.x, y: ball.y, t: -k2 * 4, dur: 32, r: 140 + k2 * 130, c: k2 % 2 ? "#e0405e" : "#ffd7e6" });
+    spawnSparks(ball.x, ball.y, "#e0405e", 38);
+    B.shake = Math.max(B.shake, 22);
+    flash("#e0405e");
+  } else if (k === "minori") {
+    /* ★★ 2026-08-30 ミノリ（プリズム・ラプソディ）:
+       自強化 ＋ 敵全体へ七色の光 ＋ <b>味方全員の攻撃力アップ</b>。
+       ★ 味方のバフは selfBuff（{atk,spd,left}）に合流させる。
+         すでに強い自強化がかかっている味方の値を<b>下げない</b>よう、必ず大きいほうを採る。 */
+    ball.selfBuff = { atk: MINORI_ATK, spd: MINORI_SPD, left: 2 };
+    const _atkM = ball.st.atk * atkMulOf(ball);
+    withDmgSrc(ball, () => {
+      aliveEnemies().forEach((e) => {
+        if (!e || e.hp <= 0) return;
+        B.effects.push({ type: "boom", x: e.x, y: e.y, t: 0, dur: 26, r: 180, c: "#8affc4" });
+        spawnSparks(e.x, e.y, "#e9d8ff", 13);
+        dealDamage(e, _atkM * MINORI_ALL * elemMult(ball.ch.el, e.el), "#8affc4", true);
+      });
+    });
+    (B.balls || []).forEach((b) => {
+      if (!b || b === ball) return;
+      const cur = b.selfBuff || { atk: 1, spd: 1, left: 0 };
+      b.selfBuff = { atk: Math.max(cur.atk || 1, MINORI_TEAM_ATK), spd: Math.max(cur.spd || 1, 1),
+                     left: Math.max(cur.left | 0, MINORI_TEAM_TURNS) };
+      B.effects.push({ type: "ring", x: b.x, y: b.y, t: 0, dur: 20, r: b.r * 2.6, c: "#e9d8ff" });
+    });
+    B.pops.push({ x: ball.x, y: ball.y - ball.r - 22, t: 0,
+      txt: "自強化＆敵全体へ七色の光＋味方全員 攻撃力×" + MINORI_TEAM_ATK
+        + "（" + MINORI_TEAM_TURNS + "T）!!", c: "#8affc4", small: 0 });
+    for (let k2 = 0; k2 < 5; k2++) B.effects.push({ type: "ring", x: ball.x, y: ball.y, t: -k2 * 4, dur: 32, r: 140 + k2 * 128, c: ["#ff8ab5", "#ffd257", "#8affc4", "#7cc4ff", "#c9a6ff"][k2 % 5] });
+    B.effects.push({ type: "pillar", x: ball.x, y: ball.y, t: 0, dur: 34, c: "#e9d8ff" });
+    spawnSparks(ball.x, ball.y, "#e9d8ff", 36);
+    B.shake = Math.max(B.shake, 20);
+    flash("#8affc4");
+  } else if (k === "seika") {
+    /* ★★ 2026-08-30 セイカ（サンライズ・レクイエム）:
+       自強化 ＋ 敵全体へ暁の光 ＋ <b>チームHP回復 ＋ 味方全員にバリア</b>。
+       ★ 「受けたぶんを戻す」と「これから受けるぶんを消す」を同時にやる唯一のフルバースト。 */
+    ball.selfBuff = { atk: SEIKA_ATK, spd: SEIKA_SPD, left: 2 };
+    const _atkS = ball.st.atk * atkMulOf(ball);
+    withDmgSrc(ball, () => {
+      aliveEnemies().forEach((e) => {
+        if (!e || e.hp <= 0) return;
+        B.effects.push({ type: "boom", x: e.x, y: e.y, t: 0, dur: 26, r: 185, c: "#ffe9a8" });
+        B.effects.push({ type: "pillar", x: e.x, y: e.y, t: 0, dur: 30, c: "#fff1b8" });
+        spawnSparks(e.x, e.y, "#fff1b8", 13);
+        dealDamage(e, _atkS * SEIKA_ALL * elemMult(ball.ch.el, e.el), "#ffe9a8", true);
+      });
+    });
+    const healS = Math.max(1, Math.round(B.maxhp * SEIKA_HEAL));
+    B.hp = Math.min(B.maxhp, B.hp + healS); paintHp();
+    (B.balls || []).forEach((b) => { if (b) b.barrier = Math.max(b.barrier || 0, SEIKA_BARRIER); });
+    B.pops.push({ x: ball.x, y: ball.y - ball.r - 22, t: 0,
+      txt: "自強化＆敵全体へ暁の光＋チームHP +" + fmt(healS) + "（" + Math.round(SEIKA_HEAL * 100)
+        + "%）＋味方全員にバリア " + fmt(SEIKA_BARRIER) + "!!", c: "#ffe9a8", small: 0 });
+    B.effects.push({ type: "healring", x: ball.x, y: ball.y, t: 0, dur: 30, c: "#4ade80" });
+    for (let k2 = 0; k2 < 5; k2++) B.effects.push({ type: "ring", x: ball.x, y: ball.y, t: -k2 * 4, dur: 32, r: 140 + k2 * 132, c: k2 % 2 ? "#ffe9a8" : "#ffffff" });
+    B.effects.push({ type: "flashfx", t: 0, dur: 12 });
+    spawnSparks(ball.x, ball.y, "#fff1b8", 40);
+    B.shake = Math.max(B.shake, 20);
+    flash("#ffe9a8"); SFX.heal();
   } else if (k === "annas") {
-    /* ══ ★★ 2026-08-29 アンナ（ステラ・レガリア）＝<b>MagiBurst 史上最強</b>（ご指定）══
+    /* ══ ★★ 2026-08-29 アンナ(STAR)（ステラ・レガリア）══
        ・自強化（ANNAFB_ATK / ANNAFB_SPD）
        ・<b>壁をすり抜けて反対側から出る</b>
        ・<b>最初にふれた敵で停止</b>し、星屑の乱打 ANNAFB_BARRAGE_N 連
@@ -18157,6 +18419,23 @@ function fireShotSkill(ball, ux, uy) {
     });
     B.pops.push({ x: ball.x, y: ball.y - ball.r - 30, t: 0,
       txt: "グレイル・シュート（味方全員にバリア " + fmt(SHOTSK_YUUKA_BAR) + "）", c: "#ffd257", small: 1 });
+    return;
+  }
+  if (k === "lantern") {
+    /* ★★ 2026-08-30 アンナ(祭)「ランタン・シュート」:
+       <b>敵全体</b>に祭の灯がともる（射程も範囲も関係ない）＋
+       <b>自分のフルバーストが SHOTSK_ANNAM_FB ターン進む</b>。 */
+    aliveEnemies().forEach((en) => {
+      B.effects.push({ type: "boltlink", x: en.x, y: en.y - 400, tx: en.x, ty: en.y, t: 0, dur: 10, c: "#ffe9a8" });
+      B.effects.push({ type: "ring", x: en.x, y: en.y, t: 0, dur: 14, r: SHOTSK_ANNAM_R, c: "#ffd257" });
+      dealDamage(en, atk * SHOTSK_ANNAM_PER * elemMult(el, en.el), "#ffd257", true);
+      spawnSparks(en.x, en.y, "#ffe9a8", 6);
+    });
+    const beforeL = ball.sc | 0;
+    ball.sc = Math.min(beforeL + SHOTSK_ANNAM_FB, fbMax(ball.st));
+    B.pops.push({ x: ball.x, y: ball.y - ball.r - 30, t: 0,
+      txt: "ランタン・シュート" + (ball.sc > beforeL ? "（FB +" + (ball.sc - beforeL) + "）" : ""),
+      c: "#ffd257", small: 1 });
     return;
   }
   if (k === "astral") {
@@ -19221,7 +19500,9 @@ function stepBall(ball) {
   /* ★★ 2026-08-29 レイナ（ノワール・ヴァルキュリア）・アンナ（ステラ・レガリア）も壁をすり抜ける */
   const wrap = B.ssArmed === ball.i && (ball.ch.ssKind === "abyss" || ball.ch.ssKind === "kaede"
     || ball.ch.ssKind === "seira" || ball.ch.ssKind === "kotori"
-    || ball.ch.ssKind === "reina" || ball.ch.ssKind === "annas");
+    || ball.ch.ssKind === "reina" || ball.ch.ssKind === "annas"
+    /* ★★ 2026-08-30 アンナ(祭)（千華繚乱・スターマイン）も壁をすり抜ける */
+    || ball.ch.ssKind === "annam");
   for (let s = 0; s < steps; s++) {
     ball.x += ball.vx / steps; ball.y += ball.vy / steps;
     if (ball.warpCd > 0) ball.warpCd -= 1 / steps;
@@ -20537,7 +20818,75 @@ function hitEnemy(ball, e, col) {
         if (t3) knockbackEnemy(ball, t3);
       } });
   }
-  /* ══ ★★ 2026-08-29 アンナ（ステラ・レガリア）＝ MagiBurst 史上最強 ══
+  /* ══ ★★ 2026-08-30 アンナ(祭)（千華繚乱・スターマイン）＝ MagiBurst 史上最強 ══
+     最初にふれた敵の上で止まり、灯火の乱打 → <b>スターマイン</b>（夜空へ花火が
+     ANNAM_STARMINE_N 発つづけて上がり、開くたびに敵全体へ・1発ごとに重くなる）
+     → <b>大玉「千華」</b>（敵全体）＋ふっとばし、の3段で締める。 */
+  if (B.ssArmed === ball.i && ball.ch.ssKind === "annam" && !B.ssFirstDone) {
+    B.ssFirstDone = true;
+    barrageHalt(ball);
+    fxBarrage(ball, e, ANNAM_BARRAGE_N, ANNAM_BARRAGE_PER, "#ffe9a8");
+    luxBurst(e.x, e.y, "#ff9d2e");
+    B.effects.push({ type: "skydim", t: 0, dur: ANNAM_BARRAGE_N * 2 + ANNAM_STARMINE_GAP * (ANNAM_STARMINE_N + 2) + 40,
+      a: 0.7, c: "#0a0616" });
+    B.pops.push({ x: e.x, y: e.y - e.r - 60, t: 0, txt: "SENKA RYORAN!!", c: "#ffe9a8", small: 0 });
+    const startAt = ANNAM_BARRAGE_N * 2 + 8;
+    const mEl = ball.ch.el, mTid = e.id;
+    B.effects.push({ type: "fxctl", t: 0,
+      dur: startAt + ANNAM_STARMINE_GAP * (ANNAM_STARMINE_N + 2) + 40, k: 0, fin: 0,
+      tick(fx) {
+        if (fx.t < startAt) return;
+        if ((fx.t - startAt) % ANNAM_STARMINE_GAP !== 0) return;
+        if (fx.k < ANNAM_STARMINE_N) {
+          /* ── スターマイン：夜空へ1発ずつ上がって開く（敵全体） ── */
+          const i = fx.k; fx.k++;
+          const per = ANNAM_STARMINE_PER + ANNAM_STARMINE_STEP * i;
+          const bx = W * (0.18 + 0.64 * ((i + 0.5) / ANNAM_STARMINE_N));
+          const by = H * (0.16 + 0.14 * (i % 2));
+          B.effects.push({ type: "boltlink", x: bx, y: H, tx: bx, ty: by, t: 0, dur: 10, c: "#ffd257" });
+          const cols = ["#ffd257", "#ff8ab5", "#8affc4", "#7cc4ff", "#c9a6ff", "#ffffff"];
+          for (let q = 0; q < 4; q++) {
+            B.effects.push({ type: "ring", x: bx, y: by, t: -q * 3 + 8, dur: 26,
+              r: 90 + q * (110 + i * 14), c: q % 2 ? "#ffffff" : cols[i % cols.length] });
+          }
+          spawnSparks(bx, by, cols[i % cols.length], 26 + i * 4);
+          withDmgSrc(ball, () => {
+            aliveEnemies().forEach((o) => {
+              B.effects.push({ type: "boom", x: o.x, y: o.y, t: 0, dur: 22, r: 190, c: cols[i % cols.length] });
+              dealDamage(o, ball.st.atk * atkMulOf(ball) * per * elemMult(mEl, o.el), cols[i % cols.length], true);
+              spawnSparks(o.x, o.y, "#ffe9a8", 7);
+            });
+          });
+          B.pops.push({ x: bx, y: by - 54, t: 0, txt: "STAR MINE " + (i + 1) + "!!", c: cols[i % cols.length], small: 1 });
+          B.shake = Math.max(B.shake, 9 + i * 2);
+          SFX.crit();
+          return;
+        }
+        if (fx.fin) return;
+        /* ── 大玉「千華」：盤面いっぱいにひらいて敵全体へ ── */
+        fx.fin = 1;
+        B.effects.push({ type: "flashfx", t: 0, dur: 18 });
+        for (let q = 0; q < 9; q++) {
+          B.effects.push({ type: "ring", x: W / 2, y: H * 0.36, t: -q * 3, dur: 40,
+            r: 120 + q * 165, c: q % 2 ? "#ffffff" : "#ff9d2e" });
+        }
+        B.effects.push({ type: "pillar", x: W / 2, y: H * 0.36, t: 0, dur: 42, c: "#ffe9a8" });
+        withDmgSrc(ball, () => {
+          aliveEnemies().forEach((o) => {
+            B.effects.push({ type: "boom", x: o.x, y: o.y, t: 0, dur: 34, r: 300, c: "#ffd257" });
+            B.effects.push({ type: "pillar", x: o.x, y: o.y, t: 0, dur: 32, c: "#fff1b8" });
+            dealDamage(o, ball.st.atk * atkMulOf(ball) * ANNAM_FINALE_PER * elemMult(mEl, o.el), "#ff9d2e", true);
+            spawnSparks(o.x, o.y, "#ffffff", 26);
+          });
+        });
+        B.pops.push({ x: W / 2, y: H * 0.28, t: 0, txt: "SENKA — 千華!!", c: "#ffe9a8", small: 0 });
+        B.shake = Math.max(B.shake, 34);
+        SFX.crit();
+        const t3 = B.enemies.find((x) => x.id === mTid && x.hp > 0);
+        if (t3) knockbackEnemy(ball, t3);
+      } });
+  }
+  /* ══ ★★ 2026-08-29 アンナ(STAR)（ステラ・レガリア）══
      最初にふれた敵の上で止まり、星屑の乱打 → <b>戴冠の一撃</b>（範囲）
      → <b>敵全体へ落星</b> の3段で締める。 */
   if (B.ssArmed === ball.i && ball.ch.ssKind === "annas" && !B.ssFirstDone) {
@@ -24148,6 +24497,323 @@ function fireFriendMain(owner, atk, mover, kindOverride) {
       B.pops.push({ x: owner.x, y: owner.y - owner.r - 24, t: 0, txt: "グレイル・オーバーフロー!!", c: col, small: 1 });
       break;
     }
+    case "lanternfes": {
+      /* ══ ★★ 2026-08-30 アンナ(祭)「万灯祭天」＝ MagiBurst 史上いちばん重いリンクスキル ══
+         <b>味方全員の足もとから灯籠が上がる</b>。上がる線にふれた敵を削り、
+         上がりきった灯籠が<b>1つずつ順に開いて敵全体</b>へ入る（開くたびに +LANFES_BURST_STEP）。
+         最後に<b>大玉</b>が開いて敵全体へ。
+         ★ 灯籠の数は<b>盤面に残っている味方の数</b>（最大 LANFES_MAX）。 */
+      const col = ELEM[owner.ch.el].c, el = owner.ch.el;
+      const src = (B.balls || []).filter((b) => b && b.st && (b.st.hp === undefined || true));
+      const spots = (src.length ? src : [owner]).slice(0, LANFES_MAX).map((b) => ({ x: b.x, y: b.y }));
+      const n = Math.max(1, spots.length);
+      B.effects.push({ type: "skydim", t: 0, dur: LANFES_GAP * (n + 3) + 40, a: 0.46, c: "#0a0618" });
+      /* ① 灯籠が上がる（線上の敵を削る） */
+      spots.forEach((p, i) => {
+        B.effects.push({ type: "boltlink", x: p.x, y: p.y, tx: p.x, ty: 60, t: -i * 3, dur: 18, c: "#ffe9a8" });
+      });
+      withDmgSrc(owner, () => {
+        aliveEnemies().forEach((e) => {
+          let hit = 0;
+          spots.forEach((p) => { if (Math.abs(e.x - p.x) < e.r + 44 && e.y < p.y) hit++; });
+          if (!hit) return;
+          dealDamage(e, atk * LANFES_LIFT_PER * hit * elemMult(el, e.el), "#ffe9a8", true);
+          spawnSparks(e.x, e.y, "#ffd257", 5);
+        });
+      });
+      /* ② 上がりきった灯籠が1つずつ開く（敵全体・開くたび重くなる）→ ③ 大玉 */
+      B.effects.push({ type: "fxctl", x: owner.x, y: owner.y, t: 0,
+        dur: LANFES_GAP * (n + 3) + 30, k: 0, c: col, owner,
+        tick(fx) {
+          if (fx.t < 18 || (fx.t - 18) % LANFES_GAP !== 0) return;
+          if (fx.k < n) {
+            const per = LANFES_BURST_PER + LANFES_BURST_STEP * fx.k;
+            const p = spots[fx.k]; fx.k++;
+            for (let q = 0; q < 3; q++) {
+              B.effects.push({ type: "ring", x: p.x, y: Math.max(70, p.y - 260), t: -q * 3, dur: 22,
+                r: LANFES_R * (0.4 + q * 0.3), c: q % 2 ? "#ffffff" : "#ffd257" });
+            }
+            spawnSparks(p.x, Math.max(70, p.y - 260), "#ffe9a8", 16);
+            withDmgSrc(fx.owner, () => {
+              aliveEnemies().forEach((e) => {
+                dealDamage(e, atk * per * elemMult(el, e.el), "#ffd257", true);
+                spawnSparks(e.x, e.y, "#ffe9a8", 5);
+              });
+            });
+            B.shake = Math.max(B.shake, 7); SFX.hit();
+            return;
+          }
+          /* 大玉「千華」 */
+          B.effects.push({ type: "flashfx", t: 0, dur: 14 });
+          for (let q = 0; q < 7; q++) {
+            B.effects.push({ type: "ring", x: W / 2, y: H * 0.34, t: -q * 3, dur: 34,
+              r: 130 + q * 150, c: q % 2 ? "#ffffff" : "#ff9d2e" });
+          }
+          withDmgSrc(fx.owner, () => {
+            aliveEnemies().forEach((e) => {
+              B.effects.push({ type: "boom", x: e.x, y: e.y, t: 0, dur: 30, r: 250, c: "#ffd257" });
+              B.effects.push({ type: "pillar", x: e.x, y: e.y, t: 0, dur: 30, c: "#ffe9a8" });
+              dealDamage(e, atk * LANFES_FINALE * elemMult(el, e.el), "#ffd257", true);
+              spawnSparks(e.x, e.y, "#ffffff", 18);
+            });
+          });
+          B.pops.push({ x: W / 2, y: H * 0.28, t: 0, txt: "LANTERN FESTIVAL!!", c: "#ffe9a8", small: 0 });
+          B.shake = Math.max(B.shake, 24); SFX.crit();
+          fx.t = fx.dur;
+        } });
+      B.pops.push({ x: owner.x, y: owner.y - owner.r - 24, t: 0,
+        txt: "万灯祭天!!（灯籠 " + n + "）", c: col, small: 1 });
+      break;
+    }
+    case "heartricochet": {
+      /* ══ ★★ 2026-08-30 チア「ハートフル・リコシェ」══
+         ハートの弾が壁ではね返るたびに<b>大きく・重く</b>なる。
+         ★ 弾そのものを飛ばすのではなく、「はね返った先」を順に計算して
+           そこで当たり判定を出す（fxctl 1本で完結＝ターンをまたがない）。 */
+      const col = ELEM[owner.ch.el].c, el = owner.ch.el;
+      /* いちばん近い敵の向きへ飛ばし、壁で反射させながら位置を進める */
+      const tg = aliveEnemies().slice().sort((a, b) =>
+        Math.hypot(a.x - owner.x, a.y - owner.y) - Math.hypot(b.x - owner.x, b.y - owner.y))[0];
+      let px = owner.x, py = owner.y;
+      let ang = tg ? Math.atan2(tg.y - owner.y, tg.x - owner.x) : -Math.PI / 2;
+      let vx = Math.cos(ang), vy = Math.sin(ang);
+      const stops = [];
+      for (let k = 0; k < RICO_N; k++) {
+        /* 壁までの距離を出して、そこを「はね返り点」にする */
+        const tx = vx > 0 ? (W - px) / vx : vx < 0 ? (0 - px) / vx : 1e9;
+        const ty = vy > 0 ? (H - py) / vy : vy < 0 ? (0 - py) / vy : 1e9;
+        const t = Math.max(24, Math.min(tx, ty));
+        px += vx * t; py += vy * t;
+        px = Math.max(20, Math.min(W - 20, px)); py = Math.max(20, Math.min(H - 20, py));
+        stops.push({ x: px, y: py });
+        if (tx < ty) vx = -vx; else vy = -vy;
+      }
+      B.effects.push({ type: "fxctl", x: owner.x, y: owner.y, t: 0,
+        dur: RICO_GAP * (RICO_N + 1) + 20, k: 0, owner,
+        tick(fx) {
+          if (fx.t % RICO_GAP !== 0 || fx.k >= RICO_N) return;
+          const i = fx.k; fx.k++;
+          const p = stops[i];
+          const a = i === 0 ? { x: fx.x, y: fx.y } : stops[i - 1];
+          const r = RICO_R0 + (RICO_R1 - RICO_R0) * (i / Math.max(1, RICO_N - 1));
+          const per = RICO_PER + RICO_STEP * i;
+          /* 飛んでいく線（ここにも当たる）＋ はねた場所ではじける輪 */
+          const dx = p.x - a.x, dy = p.y - a.y, len = Math.hypot(dx, dy) || 1;
+          const nx = dx / len, ny = dy / len;
+          B.effects.push({ type: "beam", x: a.x, y: a.y, nx, ny, t: 0, dur: 18, c: "#ff8ab5" });
+          B.effects.push({ type: "ring", x: p.x, y: p.y, t: 0, dur: 20, r, c: col });
+          B.effects.push({ type: "boom", x: p.x, y: p.y, t: 0, dur: 22, r: r * 0.9, c: "#ff8ab5" });
+          spawnSparks(p.x, p.y, "#ffd7e6", 10 + i * 2);
+          withDmgSrc(fx.owner, () => {
+            const done = new Set();
+            aliveEnemies().forEach((e) => {
+              const onLine = segHitsCircle(a.x, a.y, nx, ny, len, e.x, e.y, e.r + RICO_W);
+              const onBurst = Math.hypot(e.x - p.x, e.y - p.y) <= e.r + r;
+              if (!onLine && !onBurst) return;
+              if (done.has(e.id)) return;
+              done.add(e.id);
+              dealDamage(e, atk * per * elemMult(el, e.el), "#ff8ab5", true);
+              spawnSparks(e.x, e.y, "#ffd7e6", 6);
+            });
+          });
+          B.shake = Math.max(B.shake, 5 + i * 2);
+          if (i === RICO_N - 1) {
+            B.pops.push({ x: p.x, y: p.y - 54, t: 0, txt: "HEARTFUL RICOCHET!!", c: "#ffd7e6", small: 0 });
+            SFX.crit();
+          } else SFX.hit();
+        } });
+      B.pops.push({ x: owner.x, y: owner.y - owner.r - 24, t: 0, txt: "ハートフル・リコシェ!!", c: col, small: 1 });
+      break;
+    }
+    case "frozennocturne": {
+      /* ══ ★★ 2026-08-30 リサ「フローズン・ノクターン」══
+         盤面ごと凍りついて<b>敵全体の攻撃ターンを FROZ_DELAY 遅らせ</b>、
+         氷が FROZ_TICKS 回割れるたびに敵全体を削る（割れるたびに重くなる）。 */
+      const col = ELEM[owner.ch.el].c, el = owner.ch.el;
+      B.effects.push({ type: "skydim", t: 0, dur: FROZ_GAP * (FROZ_TICKS + 1) + 24, a: 0.34, c: "#0a1c34" });
+      /* 凍結（攻撃ターン遅延）は最初の1回だけ */
+      aliveEnemies().forEach((e) => {
+        delayEnemyTurn(e, FROZ_DELAY);
+        B.effects.push({ type: "ring", x: e.x, y: e.y, t: 0, dur: 20, r: e.r * 2.4, c: "#bff0ff" });
+        B.pops.push({ x: e.x, y: e.y - e.r - 38, t: 0, txt: "氷結 攻撃ターン +" + FROZ_DELAY, c: "#bff0ff", small: 1 });
+      });
+      B.effects.push({ type: "fxctl", x: owner.x, y: owner.y, t: 0,
+        dur: FROZ_GAP * (FROZ_TICKS + 1) + 20, n: 0, owner,
+        tick(fx) {
+          if (fx.t % FROZ_GAP !== 0 || fx.n >= FROZ_TICKS) return;
+          const per = FROZ_PER + FROZ_STEP * fx.n; fx.n++;
+          withDmgSrc(fx.owner, () => {
+            aliveEnemies().forEach((e) => {
+              B.effects.push({ type: "ring", x: e.x, y: e.y, t: 0, dur: 12, r: e.r * (1.4 + fx.n * 0.12), c: "#7cc4ff" });
+              dealDamage(e, atk * per * elemMult(el, e.el), "#7cc4ff", true);
+              spawnSparks(e.x, e.y, "#bff0ff", 6);
+            });
+          });
+          B.shake = Math.max(B.shake, 5);
+          if (fx.n >= FROZ_TICKS) {
+            B.effects.push({ type: "flashfx", t: 0, dur: 12 });
+            B.pops.push({ x: W / 2, y: 130, t: 0, txt: "FROZEN NOCTURNE!!", c: "#bff0ff", small: 0 });
+            SFX.crit();
+          } else SFX.hit();
+        } });
+      B.pops.push({ x: owner.x, y: owner.y - owner.r - 24, t: 0, txt: "フローズン・ノクターン!!", c: col, small: 1 });
+      break;
+    }
+    case "rosecandelabra": {
+      /* ══ ★★ 2026-08-30 リン「ローズ・カンデラブラ」══
+         燭台が CAND_N 本立ち、灯どうしを黒薔薇の線が結ぶ。
+         線にふれた敵を貫通で削り、<b>三角形の内側</b>にいる敵へさらに大ダメージ。 */
+      const col = ELEM[owner.ch.el].c, el = owner.ch.el;
+      const foes = aliveEnemies().slice().sort((a, b) => (b.hp || 0) - (a.hp || 0));
+      const pts = [];
+      for (let k = 0; k < CAND_N; k++) {
+        if (foes[k]) pts.push({ x: foes[k].x, y: foes[k].y });
+      }
+      /* 敵が足りないときは本人と盤面の角で三角をつくる（必ず CAND_N 点そろえる） */
+      const fill = [{ x: owner.x, y: owner.y }, { x: W * 0.18, y: H * 0.22 }, { x: W * 0.82, y: H * 0.78 }];
+      let fi = 0;
+      while (pts.length < CAND_N) pts.push(fill[fi++ % fill.length]);
+      pts.forEach((p, i) => {
+        B.effects.push({ type: "pillar", x: p.x, y: p.y, t: -i * 3, dur: 30, c: "#ffd7e6" });
+        spawnSparks(p.x, p.y, "#e0405e", 12);
+      });
+      B.effects.push({ type: "fxctl", x: owner.x, y: owner.y, t: 0, dur: CAND_GAP * 3 + 34, n: 0, owner,
+        tick(fx) {
+          if (fx.t % CAND_GAP !== 0) return;
+          if (fx.n < CAND_N) {
+            const a = pts[fx.n], b = pts[(fx.n + 1) % CAND_N]; fx.n++;
+            const dx = b.x - a.x, dy = b.y - a.y, len = Math.hypot(dx, dy) || 1;
+            const nx = dx / len, ny = dy / len;
+            B.effects.push({ type: "beam", x: a.x, y: a.y, nx, ny, t: 0, dur: 26, c: "#e0405e" });
+            withDmgSrc(fx.owner, () => {
+              aliveEnemies().forEach((e) => {
+                if (!segHitsCircle(a.x, a.y, nx, ny, len, e.x, e.y, e.r + CAND_W)) return;
+                dealDamage(e, atk * CAND_LINE_PER * elemMult(el, e.el), "#e0405e", true);
+                spawnSparks(e.x, e.y, "#ffd7e6", 7);
+              });
+            });
+            SFX.hit(); B.shake = Math.max(B.shake, 6);
+            return;
+          }
+          /* 三角形の内側にいる敵へ（外積の符号がそろっていれば内側） */
+          const side = (p, a, b) => (b.x - a.x) * (p.y - a.y) - (b.y - a.y) * (p.x - a.x);
+          let any = 0;
+          withDmgSrc(fx.owner, () => {
+            aliveEnemies().forEach((e) => {
+              const s1 = side(e, pts[0], pts[1]), s2 = side(e, pts[1], pts[2]), s3 = side(e, pts[2], pts[0]);
+              const inside = (s1 >= 0 && s2 >= 0 && s3 >= 0) || (s1 <= 0 && s2 <= 0 && s3 <= 0);
+              if (!inside) return;
+              any++;
+              B.effects.push({ type: "boom", x: e.x, y: e.y, t: 0, dur: 30, r: 240, c: "#e0405e" });
+              B.effects.push({ type: "pillar", x: e.x, y: e.y, t: 0, dur: 30, c: "#ffd7e6" });
+              dealDamage(e, atk * CAND_INNER_PER * elemMult(el, e.el), "#e0405e", true);
+              spawnSparks(e.x, e.y, "#ffffff", 18);
+            });
+          });
+          B.effects.push({ type: "flashfx", t: 0, dur: 12 });
+          B.pops.push({ x: W / 2, y: 130, t: 0,
+            txt: any ? "ROSE CANDELABRA!!（囲み " + any + "体）" : "ROSE CANDELABRA!!", c: "#ffd7e6", small: 0 });
+          B.shake = Math.max(B.shake, 22); SFX.crit();
+          fx.t = fx.dur;
+        } });
+      B.pops.push({ x: owner.x, y: owner.y - owner.r - 24, t: 0, txt: "ローズ・カンデラブラ!!", c: col, small: 1 });
+      break;
+    }
+    case "jewelcut": {
+      /* ══ ★★ 2026-08-30 ミノリ「ジュエル・カット」══
+         宝石のカット面が JCUT_FROM 角形 → JCUT_TO 角形へ<b>面を増やしながら</b>描かれる。
+         辺の上にいる敵を削り、面が増えるたびに1段が重くなる。 */
+      const col = ELEM[owner.ch.el].c, el = owner.ch.el;
+      const steps = JCUT_TO - JCUT_FROM + 1;
+      B.effects.push({ type: "fxctl", x: owner.x, y: owner.y, t: 0,
+        dur: JCUT_GAP * (steps + 1) + 24, n: 0, owner,
+        tick(fx) {
+          if (fx.t % JCUT_GAP !== 0 || fx.n >= steps) return;
+          const i = fx.n; fx.n++;
+          const sides = JCUT_FROM + i;
+          const per = JCUT_PER + JCUT_STEP * i;
+          const a0 = -Math.PI / 2 + i * 0.22;
+          /* ★ 面が増えるのに合わせて<b>半径も外へ広がる</b>。
+             固定にすると、その円周にいる敵にしか当たらない（実測して直した）。 */
+          const rad = JCUT_R0 + (JCUT_R1 - JCUT_R0) * (i / Math.max(1, steps - 1));
+          const vs = [];
+          for (let k = 0; k < sides; k++) {
+            const a = a0 + (Math.PI * 2 / sides) * k;
+            vs.push({ x: fx.x + Math.cos(a) * rad, y: fx.y + Math.sin(a) * rad });
+          }
+          withDmgSrc(fx.owner, () => {
+            const done = new Set();
+            for (let k = 0; k < sides; k++) {
+              const a = vs[k], b = vs[(k + 1) % sides];
+              const dx = b.x - a.x, dy = b.y - a.y, len = Math.hypot(dx, dy) || 1;
+              const nx = dx / len, ny = dy / len;
+              B.effects.push({ type: "beam", x: a.x, y: a.y, nx, ny, t: 0, dur: 16, c: col });
+              aliveEnemies().forEach((e) => {
+                if (done.has(e.id)) return;
+                if (!segHitsCircle(a.x, a.y, nx, ny, len, e.x, e.y, e.r + JCUT_W)) return;
+                done.add(e.id);
+                dealDamage(e, atk * per * elemMult(el, e.el), col, true);
+                spawnSparks(e.x, e.y, "#e9d8ff", 6);
+              });
+            }
+          });
+          B.effects.push({ type: "ring", x: fx.x, y: fx.y, t: 0, dur: 16, r: rad, c: i % 2 ? "#ffffff" : col });
+          B.shake = Math.max(B.shake, 5);
+          if (fx.n >= steps) {
+            B.effects.push({ type: "flashfx", t: 0, dur: 12 });
+            B.pops.push({ x: fx.x, y: fx.y - 62, t: 0, txt: "JEWEL CUT!!", c: "#e9d8ff", small: 0 });
+            SFX.crit();
+          } else SFX.hit();
+        } });
+      B.pops.push({ x: owner.x, y: owner.y - owner.r - 24, t: 0, txt: "ジュエル・カット!!", c: col, small: 1 });
+      break;
+    }
+    case "sunriseveil": {
+      /* ══ ★★ 2026-08-30 セイカ「サンライズ・ヴェール」══
+         夜明けの帯が<b>画面の下から上へ</b>昇り、通った敵を削る。
+         昇りきると盤面ぜんたいが明るくなり、敵全体へ暁の一撃。 */
+      const col = ELEM[owner.ch.el].c, el = owner.ch.el;
+      B.effects.push({ type: "fxctl", x: owner.x, y: owner.y, t: 0,
+        dur: SUNV_GAP * (SUNV_BANDS + 2) + 30, n: 0, owner,
+        tick(fx) {
+          if (fx.t % SUNV_GAP !== 0) return;
+          if (fx.n < SUNV_BANDS) {
+            const i = fx.n; fx.n++;
+            /* 下（H）から上（0）へ、SUNV_BANDS 段で昇る */
+            /* ★ 2026-08-30 盤面の<b>中だけ</b>を通す（外へ出すと段がむだになる）。
+               (i+0.5)/N なので、いちばん下と いちばん上のどちらにも帯が来る。 */
+            const cy = H - H * ((i + 0.5) / SUNV_BANDS);
+            const per = SUNV_PER + SUNV_STEP * i;
+            B.effects.push({ type: "ring", x: W / 2, y: cy, t: 0, dur: 16, r: W * 0.72, c: i % 2 ? "#ffe9a8" : col });
+            withDmgSrc(fx.owner, () => {
+              aliveEnemies().forEach((e) => {
+                if (Math.abs(e.y - cy) > e.r + SUNV_H / 2) return;
+                dealDamage(e, atk * per * elemMult(el, e.el), "#ffe9a8", true);
+                spawnSparks(e.x, e.y, "#fff1b8", 6);
+              });
+            });
+            B.shake = Math.max(B.shake, 5); SFX.hit();
+            return;
+          }
+          /* 昇りきった＝夜明け */
+          B.effects.push({ type: "flashfx", t: 0, dur: 16 });
+          for (let q = 0; q < 5; q++) {
+            B.effects.push({ type: "ring", x: W / 2, y: 90, t: -q * 3, dur: 30, r: 140 + q * 170, c: q % 2 ? "#ffffff" : "#ffe9a8" });
+          }
+          withDmgSrc(fx.owner, () => {
+            aliveEnemies().forEach((e) => {
+              B.effects.push({ type: "pillar", x: e.x, y: e.y, t: 0, dur: 30, c: "#fff1b8" });
+              dealDamage(e, atk * SUNV_FINALE * elemMult(el, e.el), "#ffe9a8", true);
+              spawnSparks(e.x, e.y, "#ffffff", 16);
+            });
+          });
+          B.pops.push({ x: W / 2, y: 130, t: 0, txt: "SUNRISE VEIL!!", c: "#fff1b8", small: 0 });
+          B.shake = Math.max(B.shake, 20); SFX.crit();
+          fx.t = fx.dur;
+        } });
+      B.pops.push({ x: owner.x, y: owner.y - owner.r - 24, t: 0, txt: "サンライズ・ヴェール!!", c: col, small: 1 });
+      break;
+    }
     case "astralsovereign": {
       /* アンナ「アストラル・ソヴリン」
          星図が盤面を覆い、敵全体へ<b>降るたびに重くなる</b>星が落ちる。
@@ -24809,6 +25475,39 @@ function fireAfterglowTrail(owner, mover, atk) {
    ★ <b>外側の環ほど強い</b>（1重進むごとに +KNOW_STEP）。
    ★ ひらききると、その味方のフルバーストが KNOW_FBCUT ターン近づく。
    ══════════════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-08-30 ジュエル・シャワー（GRAND DEBUT Ver.6.0 5体の共通サブリンク）
+   ------------------------------------------------------------
+   ふれた味方から宝石のかけらが<b>上へ噴き上がり</b>、少し遅れて
+   <b>敵ぜんいんの頭上へ降ってくる</b>。
+   ★ これまでに無いのは<b>降る本数が敵の数で決まる</b>こと（敵の数＋1・最大 JSHOW_MAX）。
+   ★ 威力は SUB_HIT.jewelshower と必ずそろえること。
+   ══════════════════════════════════════════════════════════════ */
+function fireJewelShower(owner, atk) {
+  const col = ELEM[owner.ch.el].c, el = owner.ch.el;
+  const n = Math.max(1, Math.min(JSHOW_MAX, aliveEnemies().length + 1));
+  /* ① 噴き上がる */
+  B.effects.push({ type: "boltlink", x: owner.x, y: owner.y, tx: owner.x, ty: 50, t: 0, dur: 14, c: col });
+  spawnSparks(owner.x, owner.y, "#e9d8ff", 12);
+  /* ② 敵の頭上へ降ってくる（n 発・1発ごとに敵全体） */
+  B.effects.push({ type: "fxctl", x: owner.x, y: owner.y, t: 0,
+    dur: JSHOW_GAP * (n + 1) + 22, k: 0, owner, wait: 12,
+    tick(fx) {
+      if (fx.t < fx.wait || (fx.t - fx.wait) % JSHOW_GAP !== 0 || fx.k >= n) return;
+      fx.k++;
+      withDmgSrc(fx.owner, () => {
+        aliveEnemies().forEach((e) => {
+          B.effects.push({ type: "boltlink", x: e.x, y: e.y - 380, tx: e.x, ty: e.y, t: 0, dur: 9, c: "#e9d8ff" });
+          B.effects.push({ type: "ring", x: e.x, y: e.y, t: 0, dur: 12, r: e.r * 1.6, c: col });
+          dealDamage(e, atk * JSHOW_PER * elemMult(el, e.el), col, true);
+          spawnSparks(e.x, e.y, "#ffffff", 5);
+        });
+      });
+      B.shake = Math.max(B.shake, 5); SFX.hit();
+    } });
+  B.pops.push({ x: owner.x, y: owner.y - owner.r - 24, t: 0,
+    txt: "ジュエル・シャワー（" + n + "発）", c: col, small: 1 });
+}
 function fireKnowledgeResonance(owner, atk) {
   const col = ELEM[owner.ch.el].c, el = owner.ch.el;
   for (let k = 0; k < KNOW_RINGS; k++) {
@@ -24875,6 +25574,14 @@ function fireSubFriend(owner, mover, atk) {
          「持っているのに発動しないサブリンク」になる。
        ★ 威力は SUB_HIT.senkirondo と必ずそろえること。 */
     fireSenkiRondo(owner, atk);
+    return;
+  }
+  if (kind === "jewelshower") {
+    /* ★★ 2026-08-30 ジュエル・シャワー（GRAND DEBUT Ver.6.0 5体の共通サブリンク）。
+       ★ ここに分岐が無いと、下の else-if 連鎖のどれにも当たらず
+         「持っているのに発動しないサブリンク」になる。
+       ★ 威力は SUB_HIT.jewelshower と必ずそろえること。 */
+    fireJewelShower(owner, atk);
     return;
   }
   if (kind === "weaksigil") {
