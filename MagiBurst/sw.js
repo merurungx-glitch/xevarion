@@ -6,18 +6,21 @@
    ・オンライン対戦・XEVA換金はアプリ側でオフライン時に無効化している
    ・取得できたリソースは随時キャッシュ更新（stale-while-revalidate）
    ============================================================ */
-const VERSION = "magiburst-sw-v136";
+const VERSION = "magiburst-sw-v138";
 const CORE = [
   "./index.html",
-  "./js/mb-core.js?v=65",   /* ★ 2026-08-10 キャラ・ガチャの共有モジュール（XEVARION のガチャと共通） */
-  "../xeva.js?v=50",
-  "../xeva-loading.js?v=1",
-  "../xeva-splash.js?v=3",
-  "../app-cloud.js?v=4",
-  "../xeva-keys.js?v=8",
-  "./magiburst-cloud.js?v=6",
-  "../maintenance-gate.js?v=5",
-  "../app-install-notice.js?v=1",
+  "./js/mb-core.js?v=68",   /* ★ 2026-08-10 キャラ・ガチャの共有モジュール（XEVARION のガチャと共通） */
+  /* ★★ 2026-09-01 ローカル通信マルチ。<b>オフラインで使うもの</b>なので、
+     ここに載せておかないと「オフラインのときだけ動かない」ことになる。 */
+  "./js/local.js?v=5",
+  "../xeva.js?v=53",
+  "../xeva-loading.js?v=3",
+  "../xeva-splash.js?v=5",
+  "../app-cloud.js?v=6",
+  "../xeva-keys.js?v=11",
+  "./magiburst-cloud.js?v=8",
+  "../maintenance-gate.js?v=7",
+  "../app-install-notice.js?v=3",
   "../XEVA.png",
   "../gem.png",
   /* ★ 2026-08-24 スタミナの絵（ヘッダーの⚡札） */
@@ -240,6 +243,7 @@ const CORE = [
   "img/bn_archive_s.webp",
   /* ★★ 2026-08-29 戦姫祭のバナー */
   "img/bn_fes11_s.webp",
+  "img/bn_fes12_s.webp",   /* ★★ 2026-09-01 RISING STAR FEST のバナー */
   "../img/t_Suzune.webp",
   "../img/t_Minamo.webp",
   /* ★★ 2026-08-26 GRAND DEBUT Ver.3.0 の5体 ＋ MagiLex の KP交換キャラ4体。
@@ -295,6 +299,13 @@ const CORE = [
   "../img/t_Rin.webp",
   "../img/t_Minori.webp",
   "../img/t_Seika.webp",
+  /* ★★ 2026-09-01 RISING STAR FEST の4体。
+     ★ ここに無いとオフラインでその子だけ絵が出ず、update.json にも載らない。 */
+  "../img/t_Riona.webp",
+  "../img/t_MireiR.webp",
+  "../img/t_SuzuhaR.webp",
+  "../img/t_SeiraK.webp",
+  "../img/t_Hanon.webp",   /* ★★ 2026-09-01 極彩祭 ハノン */
   /* ★★ 2026-08-30 💠結晶のアイコン（ガチャ結果・交換所で使う） */
   "../img/cryst.webp",
   "../img/t_Karen.webp",
@@ -392,6 +403,69 @@ async function serveAudio(req, cache) {
   });
 }
 
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-09-01 <b>キャラクターの絵は「版に縛られない置き場」にためる</b>（ご報告への対応）
+   ------------------------------------------------------------
+   ご報告: 「オフラインのとき、キャラ詳細の<b>大きい画像</b>が出ないことがある」
+
+   原因は<b>更新のたびに絵が消えていた</b>こと。
+   ・大きい絵（img/Xxx.webp・1枚 250〜380KB）は数が多すぎて事前キャッシュ（CORE）に載せられない。
+     そのため<b>一度見たときに実行時キャッシュへ入る</b>作りになっていた。
+   ・ところがその置き場は <b>VERSION（magiburst-sw-vNNN）</b> と同じキャッシュで、
+     activate で<b>古い VERSION をまるごと消す</b>ため、
+     <b>更新するたびに、見て貯めた大きい絵が全部消えていた</b>。
+     → 更新直後にオフラインにすると、見たことがある絵まで出なくなる。
+
+   → 絵だけ <b>XEV_IMG（版に縛られない名前）</b> に分ける。
+     ・activate は "magiburst-sw" で始まるものしか消さないので、ここは<b>残る</b>。
+     ・一度でも表示した絵は、更新をまたいでもオフラインで出る。
+   ★ 置き場は<b>アプリ共通の名前</b>にしてある。ポータルで見た絵は MagiBurst でも使える。
+   ★ 消えては困るものではない（次にオンラインで開けばまた貯まる）ので、
+     容量が足りなくなればブラウザが勝手に減らしてよい。
+   ══════════════════════════════════════════════════════════════ */
+const XEV_IMG = "xev-img-v1";
+const XEV_IMG_RE = /\.(webp|png|jpe?g|gif|svg)$/i;
+function xevIsImg(url) {
+  return XEV_IMG_RE.test(url.pathname);
+}
+async function xevImgFirst(req) {
+  const cache = await caches.open(XEV_IMG);
+  const hit = await cache.match(req, { ignoreSearch: false });
+  const net = fetch(req).then((res) => {
+    if (res && res.ok && (res.type === "basic" || res.type === "default")) {
+      cache.put(req, res.clone()).catch(() => {});
+    }
+    return res;
+  }).catch(() => null);
+  if (hit) { net; return hit; }               /* あればすぐ返し、裏で新しくする */
+  const res = await net;
+  if (res) return res;
+  /* ★ 取れなかった＝オフラインで未取得。<b>サムネイル（t_）で代用</b>してみる。
+     大きい絵より小さいが、<b>空っぽより読める</b>（ご報告の「出ない」を防ぐ）。 */
+  const alt = xevThumbURL(req.url);
+  if (alt) {
+    const a = await cache.match(alt, { ignoreSearch: false });
+    if (a) return a;
+    const a2 = await caches.match(alt, { ignoreSearch: true });
+    if (a2) return a2;
+  }
+  const loose = await caches.match(req, { ignoreSearch: true });
+  if (loose) return loose;
+  return new Response("", { status: 504 });
+}
+/* 大きい絵 → 同じ名前のサムネイル（t_ 付き）のURL。作れなければ null */
+function xevThumbURL(href) {
+  try {
+    const u = new URL(href);
+    const m = u.pathname.match(/^(.*\/)([^/]+)$/);
+    if (!m) return null;
+    if (/^t_/.test(m[2])) return null;                      /* もうサムネイル */
+    if (!/\/img\//.test(u.pathname)) return null;             /* img/ のものだけ */
+    u.pathname = m[1] + "t_" + m[2];
+    return u.href;
+  } catch (e) { return null; }
+}
+
 self.addEventListener("fetch", (e) => {
   const req = e.request;
   if (req.method !== "GET") return;
@@ -424,6 +498,9 @@ self.addEventListener("fetch", (e) => {
 
   // アセット（同一オリジン）：キャッシュ優先＋裏で更新
   if (url.origin !== self.location.origin) return;
+
+  /* ★★ 2026-09-01 画像は<b>版に縛られない置き場</b>へ（更新しても消えない） */
+  if (xevIsImg(url)) { e.respondWith(xevImgFirst(req)); return; }
 
   // BGM は Range 対応の専用ハンドラへ（オフラインでも再生できるようにする）
   if (/\.(mp3|m4a|ogg|wav)$/i.test(url.pathname)) {

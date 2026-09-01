@@ -15,8 +15,8 @@
    <b>ふつうの &lt;script&gt;</b>（type="module" ではない）で読むこと。
    トップレベルの const/let はグローバルの字句環境に入るので、
    あとから読み込む MagiBurst 本体のスクリプトからそのまま見える。
-     MagiBurst : <script src="js/mb-core.js?v=65"></script>
-     gacha.html: <script src="MagiBurst/js/mb-core.js?v=65"></script>
+     MagiBurst : <script src="js/mb-core.js?v=68"></script>
+     gacha.html: <script src="MagiBurst/js/mb-core.js?v=68"></script>
 
    ── ホストが先に用意しておくもの ──
      window.MB_IMGD … 画像フォルダへの相対パス（MagiBurst は "../img/"、ポータルは "img/"）
@@ -133,6 +133,22 @@ function elemMult(a, d) {
   if (BEATS[a] === d) return up;
   if (BEATS[d] === a) return 0.75;
   return 1;
+}
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-09-01 <b>二属性キャラ</b>（セイラ＆カナヅキ）の相性
+   ------------------------------------------------------------
+   c.el のほかに <b>c.el2</b> を持つキャラは、
+   <b>el と el2 のうち有利なほう</b>の倍率で殴る（＝2つの属性に対して有利）。
+   ★ elemMult(攻撃側の属性, 相手の属性) はそのまま。
+     「キャラを渡す版」をここに1本だけ足し、
+     <b>キャラが攻撃側になる場所</b>（直殴り・ダメージ内訳・適性判定・絞り込み）を
+     この関数に置きかえる。こうすると el2 を持たないキャラの動きは1つも変わらない。
+   ★ el2 を新しく足すときは、ここに書くだけでよい（判定はこの1本しかない）。
+   ══════════════════════════════════════════════════════════════ */
+function elemMultOf(c, d) {
+  const m1 = elemMult(c && c.el, d);
+  if (!c || !c.el2) return m1;
+  return Math.max(m1, elemMult(c.el2, d));
 }
 /* 撃種イラスト（SVG） */
 function shotSVG(shot, px) {
@@ -887,6 +903,10 @@ const SHOTSK_ANNA_R = 120;        //   1体ぶんの星屑の広がり（見た�
    ★ ショットスキルの定数は、この下の <b>SHOTSKILLS より前</b>に置くこと。
      あとのほうに書くと const の巻き上げが効かず（TDZ）、SHOTSKILLS の評価で落ちて
      mb-core.js が丸ごと読めなくなる。 */
+/* ★★ 2026-09-01 ハノン（極彩祭）: 敵<b>全体</b>へ光の球 ＋ <b>味方全員</b>のFBが進む */
+const SHOTSK_HANON_PER = 0.85;    // ハノン: 敵全体へ光の球
+const SHOTSK_HANON_R = 150;       //   1体ぶんの広がり（見た目）
+const SHOTSK_HANON_FB = 1;        //   あわせて<b>味方全員</b>のフルバーストが進むターン数
 const SHOTSK_ANNAM_PER = 0.70;    // アンナ(祭): 敵<b>全体</b>へ祭の灯がともる
 const SHOTSK_ANNAM_R = 130;       //   1体ぶんの灯の広がり（見た目）
 const SHOTSK_ANNAM_FB = 1;        //   あわせて自分のフルバーストが進むターン数
@@ -973,6 +993,17 @@ const SHOTSKILLS = {
       + "<br>いちばんのちがいは、バリアが<b>自分だけでなく味方全員</b>に張られること"
       + "（" + SHOTSK_YUUKA_BAR + "）。撃つほどチーム全体が固くなる。",
   },
+  /* ══ ★★ 2026-09-01 ハノン（極彩祭）══ */
+  hoop: {
+    nm: "フープ・シュート", c: "#ffd257",
+    pow: "<b>敵全体</b>に 攻撃力×" + SHOTSK_HANON_PER + " の光の球（距離に関係なく当たる）"
+      + " ＋ <b>味方全員のフルバーストが" + SHOTSK_HANON_FB + "ターン進む</b>",
+    desc: "自分のターンで<b>撃つたび毎回</b>、コートじゅうにゴールリングがひらいて光の球が落ちる。"
+      + "<br><b>射程も範囲も関係なく、画面の敵すべてに入る</b>うえに、"
+      + "<b>味方全員のフルバーストが" + SHOTSK_HANON_FB + "ターン進む</b>——"
+      + "アンナ(祭) の<b>ランタン・シュート</b>は自分のぶんだけでしたが、"
+      + "こちらは<b>チーム全員ぶん</b>進みます。",
+  },
   /* ══ ★★ 2026-08-30 アンナ(祭)（戦姫祭）══ */
   lantern: {
     nm: "ランタン・シュート", c: "#ffd257",
@@ -984,7 +1015,7 @@ const SHOTSKILLS = {
       + "全体攻撃とフルバースト短縮を<b>同時に</b>持つショットスキルはここだけ。"
       + "<br>アンナ(STAR) の<b>アストラル・シュート</b>より1発が重く（×"
       + SHOTSK_ANNA_PER + " → ×" + SHOTSK_ANNAM_PER + "）、そのうえ手番のたびに"
-      + "<b>史上最強のフルバーストが近づいていく</b>。",
+      + "<b>とても重いフルバーストが近づいていく</b>。",
   },
   astral: {
     nm: "アストラル・シュート", c: "#c9a6ff",
@@ -1396,6 +1427,110 @@ const MINORI_ATK = 2.60, MINORI_SPD = 1.32, MINORI_ALL = 2.35;
 const MINORI_TEAM_ATK = 1.35, MINORI_TEAM_TURNS = 3;     /* 味方全員の攻撃力アップ */
 const SEIKA_ATK = 2.63, SEIKA_SPD = 1.37, SEIKA_ALL = 2.50;
 const SEIKA_HEAL = 0.40, SEIKA_BARRIER = 2000;
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-09-01 RISING STAR FEST（fes12）の4体
+   ------------------------------------------------------------
+   リオナ（水）／ミレイ（木）／スズハ（光）／セイラ＆カナヅキ（闇＋火）。
+   ★ 4体とも<b>クロススキルを持たない</b>かわりに、
+     アビリティ8つを「アンチ3 ＋ キラー3 ＋ そのほか2」で<b>担当クエストに全振り</b>してある
+     （＝尖った性能。編成の条件に左右されず、いつでもこの性能が出る）。
+   ★ キラーは<b>蓬莱族キラーEL ＋ 属性キラーEL ＋ 底力EL／パワーオーラEL</b>の3つ。
+   ★ 共通サブリンクは<b>ライジング・タイド</b>（4体そろって持つ）。
+   ══════════════════════════════════════════════════════════════ */
+/* ── 共通サブリンク「ライジング・タイド」──
+   ★ 新しい挙動: 潮の帯が<b>下から上へ</b>ではなく<b>左右に往復</b>しながら満ちていく。
+     往復するたびに帯が高く（重く）なる。 */
+const RTIDE_N = 5;                 // 往復する回数
+const RTIDE_PER = 2.30;            // 1回ぶんの倍率（帯にふれている敵）
+const RTIDE_STEP = 0.55;           // 往復するたびの上乗せ
+const RTIDE_W = 240;               // 帯の幅
+const RTIDE_GAP = 7;
+/* ── リオナ「タイダル・クレッシェンド」──
+   寄せ波（敵全体）を RTC_N 回。そのあと<b>引き波</b>が同じ回数もどってくるが、
+   引き波は<b>もどるたびに重くなる</b>（寄せで満ちたぶんを一気に持っていく）。 */
+const RTC_N = 6;
+const RTC_PUSH = 3.40;             // 寄せ波1回（敵全体）
+const RTC_PULL0 = 3.40;            // 引き波1回目
+const RTC_PULL_STEP = 1.60;        // 引き波はもどるたびに +
+const RTC_FINALE = 12.0;           // 満ち潮の締め（敵全体）
+const RTC_GAP = 8;
+/* ── ミレイ「コモレビ・パラソル」──
+   日傘がひらくたびに<b>木漏れ日の光点が1つずつ増える</b>（1段目1つ → 6段目6つ）。
+   光点は1つずつが敵全体に落ちるので、<b>後半ほど段の重さが増す</b>。 */
+const KPAR_STEPS = 6;              // ひらく段数
+const KPAR_PER = 2.60;             // 光点1つぶん（敵全体）
+const KPAR_FINALE = 20.0;          // ひらききった瞬間（敵全体）
+const KPAR_R = 300;                // 傘の見た目の広がり
+const KPAR_GAP = 9;
+/* ── スズハ「スターリット・カスケード」──
+   星が階段状に落ちてきて、<b>段を降りるたびに割れて数が倍</b>になる（1→2→4→8→16）。
+   1粒ずつが敵全体に入るので、最後の段がいちばん重い。 */
+const SCAS_STEPS = 5;
+const SCAS_PER = 1.70;             // 星1粒ぶん（敵全体）
+const SCAS_FINALE = 22.0;          // 落ちきった瞬間（敵全体）
+const SCAS_GAP = 9;
+/* ── セイラ＆カナヅキ「ツインスプラッシュ」──
+   2人ぶんの水流が<b>交差しながら</b>撃ち合い、交差するたびに重くなる。 */
+const TSPL_N = 7;
+const TSPL_PER = 4.60;             // 交差1回（敵全体）
+const TSPL_STEP = 1.15;            // 交差するたびの上乗せ
+const TSPL_FINALE = 16.0;          // 最後の合流（敵全体）
+const TSPL_GAP = 8;
+/* ── 4体のフルバースト（自強化＋乱打＋波＋フィナーレ）──
+   ★ おまけの効果は<b>すでにある効果と同じもの</b>を使う（同じ効果には同じ名前が付く）。 */
+const RIONA_ATK = 3.45, RIONA_SPD = 1.60;
+const RIONA_BARRAGE_N = 78, RIONA_BARRAGE_PER = 2.10;
+const RIONA_WAVE_N = 6, RIONA_WAVE_PER = 4.70, RIONA_WAVE_STEP = 1.55;
+const RIONA_FINALE = 50.0;
+const RIONA_ATKDOWN_TURNS = 4, RIONA_ATKDOWN_MUL = 0.75;   /* 敵全体の攻撃力 −25%（リサと同じ） */
+const MIREIR_ATK = 3.46, MIREIR_SPD = 1.61;
+const MIREIR_BARRAGE_N = 76, MIREIR_BARRAGE_PER = 2.12;
+const MIREIR_WAVE_N = 6, MIREIR_WAVE_PER = 4.80, MIREIR_WAVE_STEP = 1.60;
+const MIREIR_FINALE = 52.0;
+const MIREIR_TEAM_ATK = 1.35, MIREIR_TEAM_TURNS = 3;       /* 味方全員の攻撃力アップ（ミノリと同じ） */
+const SUZUHAR_ATK = 3.48, SUZUHAR_SPD = 1.62;
+const SUZUHAR_BARRAGE_N = 80, SUZUHAR_BARRAGE_PER = 2.08;
+const SUZUHAR_WAVE_N = 6, SUZUHAR_WAVE_PER = 4.60, SUZUHAR_WAVE_STEP = 1.50;
+const SUZUHAR_FINALE = 50.0;
+const SUZUHAR_SIGIL_TURNS = 3;                             /* 敵全体に追加弱点（リンと同じ） */
+const SEIRAK_ATK = 3.50, SEIRAK_SPD = 1.63;
+const SEIRAK_BARRAGE_N = 74, SEIRAK_BARRAGE_PER = 2.16;
+const SEIRAK_WAVE_N = 7, SEIRAK_WAVE_PER = 4.40, SEIRAK_WAVE_STEP = 1.45;
+const SEIRAK_FINALE = 46.0;
+const SEIRAK_BARRIER = 1900;                               /* 味方全員にバリア（チアと同じ） */
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-09-01 極彩祭 ハノン（光・貫通）
+   ------------------------------------------------------------
+   ★ アンチは<b>オムニアンチ＋超アンチ減速壁の2つだけ</b>（ご指定の上限）。
+     この2つで<b>🏯蓬莱天宮（闇 {grav,warp,slowwall}）</b>と
+     <b>🏯蓬莱神天（闇 {warp,mine,slowwall}）</b>の<b>両方</b>を、
+     光の有利属性のまま完全対応できる（オムニが dw/grav/warp/mine を受け持つ）。
+   ★ キラーは<b>4つ</b>（蓬莱族キラーEL・属性キラーEL・パワーオーラEL・底力EL）。
+   ★ フルバーストは<b>バスケットボールの乱打</b>で、MagiBurst <b>史上最大の火力</b>。
+   ══════════════════════════════════════════════════════════════ */
+const HANON_ATK = 3.60;            // 自強化の攻撃倍率
+const HANON_SPD = 1.70;            // 自強化のスピード倍率
+const HANON_DRIBBLE_N = 110;       // ドリブルの乱打の連数（史上最多）
+const HANON_DRIBBLE_PER = 2.30;    // 乱打1発ぶんの倍率
+const HANON_HOOP_N = 8;            // ゴール（敵全体）の発数
+const HANON_HOOP_PER = 6.00;       // 1発ぶんの倍率（敵全体）
+const HANON_HOOP_STEP = 2.20;      // 決めるたびの上乗せ
+const HANON_HOOP_GAP = 11;         // 1発ごとの間隔（フレーム）
+const HANON_BUZZER = 140.0;        // ブザービーター（敵全体）＋ふっとばし
+/* ── ハノン「セレスト・ドミナンス」（リンクスキル）──
+   ★ 新しい挙動: 光の輪が<b>1段ごとに1つずつ重なって</b>いき、
+     <b>重なった枚数がそのまま倍率</b>になる（1段目 ×1、7段目 ×7）。 */
+const HDOM_STEPS = 7;
+const HDOM_PER = 3.10;             // 1枚ぶんの倍率（敵全体）
+const HDOM_FINALE = 28.0;          // 重なりきった瞬間（敵全体）
+const HDOM_GAP = 9;
+/* ── ハノン「ゴールデン・リバウンド」（サブリンク）──
+   ★ 極彩祭・極煌祭のサブリンクは<b>統一しなくてよい</b>（ご指定）ので、
+     ハノンだけ別のサブリンクを持つ。跳ね返るたびに重くなる。 */
+const GREB_N = 4;
+const GREB_PER = 3.10;
+const GREB_STEP = 0.90;
+const GREB_GAP = 8;
 /* ══ ★★ 2026-08-28 フルバーストの<b>2段階目</b>（ご指定）══
    ・1段階目（ssTurns）からさらに FB2_EXTRA ターンためると<b>2段階目</b>が撃てる。
    ・2段階目は<b>威力 ×FB2_MUL</b>・自強化の持続 <b>+FB2_BUFF_TURNS ターン</b>。
@@ -3141,6 +3276,31 @@ const SUBFS = {
       + "<b>敵が多い場面ほど本数が増え、しかも1発ずつが敵全体に入る</b>ので、"
       + "雑魚がそろっているWAVEでは総ダメージがふくれあがる。"
       + "<br>GRAND DEBUT GACHA Ver.6.0 の5体が<b>全員そろって持つ</b>共通のサブリンクです" },
+  /* ══ ★★ 2026-09-01 RISING STAR FEST の4体の<b>共通</b>サブリンク（ご指定）══ */
+  risingtide: { nm: "ライジング・タイド",
+    pow: "潮の帯（幅 " + RTIDE_W + "）が<b>左右に往復</b>しながら満ちていく "
+      + RTIDE_N + "回（1回 攻撃力×" + RTIDE_PER + "・往復するたびに +" + RTIDE_STEP + "）／"
+      + "合計 攻撃力×"
+      + (RTIDE_N * RTIDE_PER + RTIDE_STEP * (RTIDE_N * (RTIDE_N - 1) / 2)).toFixed(2),
+    desc: "ふれた味方のところから<b>潮の帯</b>が走り、"
+      + "<b>画面の端まで行っては返す</b>——往復しながら少しずつ満ちていく。"
+      + "<br>いままでのサブリンクは<b>一方通行</b>だったが、これは<b>行って帰る</b>ので"
+      + "<b>同じ敵にも往路と復路の2回ふれる</b>ことがある。"
+      + "<br>往復するたびに帯が高くなり、1回ぶんが重くなる"
+      + "（×" + RTIDE_PER + " → ×" + (RTIDE_PER + RTIDE_STEP * (RTIDE_N - 1)).toFixed(2) + "）。"
+      + "<br>RISING STAR FEST の4体が<b>全員そろって持つ</b>共通のサブリンクです" },
+  /* ══ ★★ 2026-09-01 ハノン（極彩祭）だけのサブリンク ══
+     ★ 極彩祭・極煌祭のサブリンクは<b>統一しなくてよい</b>（ご指定）ので、
+       ヒナノ（ウィークシギル）とは別のものを持たせてある。 */
+  goldenrebound: { nm: "ゴールデン・リバウンド",
+    pow: "光のボールが <b>" + GREB_N + "回はね返り</b>、はねるたびに<b>敵全体</b>へ"
+      + "（1回目 攻撃力×" + GREB_PER + "・はねるたびに +" + GREB_STEP + "）／合計 攻撃力×"
+      + (GREB_N * GREB_PER + GREB_STEP * (GREB_N * (GREB_N - 1) / 2)).toFixed(2),
+    desc: "ふれた味方から<b>光のボール</b>が上がり、リングに当たって "
+      + GREB_N + "回はね返る。"
+      + "<br>はねるたびに<b>敵全体</b>へ入り、しかも<b>はねるほど重くなる</b>"
+      + "（×" + GREB_PER + " → ×" + (GREB_PER + GREB_STEP * (GREB_N - 1)).toFixed(2) + "）。"
+      + "<br>ハノンだけが持つサブリンクです" },
 };
 
 /* ══════════ ネクサススキル（v13.1） ══════════
@@ -3194,17 +3354,27 @@ const NEXUS = {
      どちらも<b>3つの効果</b>を同時に持つ（ここまで盛るのは極彩・極煌だけの特別あつかい）。
      ★ 極華（luxbloom）は今回の指定に入っていないので<b>そのまま</b>にしてある。 */
   luxprism: { nm: "極彩・プリズムネクサス", c: "#8affc4",
-    desc: "<b>弱点</b>へのダメージが<b>35%</b>アップし、<b>リンクスキル・サブリンク</b>のダメージが<b>15%</b>アップ、"
-      + "さらに<b>味方全員の攻撃力</b>が<b>8%</b>アップする"
-      + "<br><small>※ ピアース・ネクサス（弱点+8%）の約4倍に、ボンド・フォースぶんを重ねた極彩祭だけの特別なネクサスです</small>",
-    weak: 1.35, link: 1.15, atk: 1.08 },
+    /* ★★ 2026-09-01 ご指定により<b>さらに強化</b>（効果は4つに） */
+    desc: "<b>弱点</b>へのダメージが<b>50%</b>アップし、<b>リンクスキル・サブリンク</b>のダメージが<b>25%</b>アップ、"
+      + "さらに<b>味方全員の攻撃力</b>が<b>14%</b>アップ、<b>ボス</b>へのダメージが<b>15%</b>アップする"
+      + "<br><small>※ ピアース・ネクサス（弱点+8%）の約6倍に、ボンド・フォース・スレイヤーぶんを重ねた極彩祭だけの特別なネクサスです</small>",
+    weak: 1.50, link: 1.25, atk: 1.14, boss: 1.15 },
   luxblaze: { nm: "極煌・ブレイズネクサス", c: "#ff5d47",
-    desc: "<b>ボス</b>へのダメージが<b>30%</b>アップし、<b>味方全員の攻撃力</b>が<b>12%</b>アップ、"
-      + "さらに<b>バトル開始時に味方全員へ700のバリア</b>を張る"
-      + "<br><small>※ スレイヤー・ネクサス（ボス+6%）の5倍に、フォース・イージスぶんを重ねた極煌祭だけの特別なネクサスです</small>",
-    boss: 1.30, atk: 1.12, barrier: 700 },
+    /* ★★ 2026-09-01 ご指定により<b>さらに強化</b>（効果は4つに） */
+    desc: "<b>ボス</b>へのダメージが<b>45%</b>アップし、<b>味方全員の攻撃力</b>が<b>18%</b>アップ、"
+      + "さらに<b>バトル開始時に味方全員へ1100のバリア</b>を張り、<b>弱点</b>へのダメージが<b>15%</b>アップする"
+      + "<br><small>※ スレイヤー・ネクサス（ボス+6%）の約7倍に、フォース・イージス・ピアースぶんを重ねた極煌祭だけの特別なネクサスです</small>",
+    boss: 1.45, atk: 1.18, barrier: 1100, weak: 1.15 },
   /* ★★ 2026-08-29 戦姫祭のネクサス。極◯祭と同じ「限定キャラクターのガチャ」なので、
      効き目もそこにそろえる（3つの効果を同時に持つ）。 */
+  /* ★★ 2026-09-01 RISING STAR FEST のネクサス。
+     4体ともクロススキルを持たないぶん、<b>リンクスキルに寄せた</b>効き目にしてある。 */
+  risingstar: { nm: "星導・ライジングネクサス", c: "#38a6ff",
+    desc: "<b>リンクスキル・サブリンク</b>のダメージが<b>22%</b>アップし、"
+      + "<b>味方全員の攻撃力</b>が<b>10%</b>アップ、さらに<b>味方全員のスピード</b>が<b>8%</b>アップする"
+      + "<br><small>※ ボンド・ネクサス（リンク+6%）の約4倍に、フォース・ゲイルぶんを重ねた "
+      + "RISING STAR FEST だけの特別なネクサスです</small>",
+    link: 1.22, atk: 1.10, spd: 1.08 },
   senkivalor: { nm: "戦姫・ヴァロールネクサス", c: "#e0405e",
     desc: "<b>味方全員の攻撃力</b>が<b>13%</b>アップし、<b>弱点</b>へのダメージが<b>18%</b>アップ、"
       + "さらに<b>各WAVEの開始時にチームHPを4%回復</b>する"
@@ -3223,7 +3393,7 @@ const NEXUS_CAT = {
      ★★ 2026-08-28 極華祭（luxbloom）も火力枠に足す */
   luxprism: "atk", luxblaze: "atk", luxbloom: "atk",
   /* ★★ 2026-08-29 戦姫祭のネクサス（火力枠） */
-  senkivalor: "atk",
+  senkivalor: "atk", risingstar: "atk",
   gale: "tempo", ignition: "tempo", tempo: "tempo",
   bond: "support", scout: "support", charge: "support", demolish: "support",
   fortune: "reward", wisdom: "reward",
@@ -3469,6 +3639,17 @@ const CONNECT = {
        ヒナノは<b>同じ撃種</b>、ムツミは<b>同じ属性</b>を見る。
      ★ キラーはクロス込みで3つまで。クロスに入れてよいキラーは1つだけ。
      ════════════════════════════════════════════════════════════ */
+  /* ★★ 2026-09-01 ハノン（極彩祭）。
+     ★ ご指定により、条件に<b>属性は使わない</b>（撃種でそろえる条件にしてある）。 */
+  hanon: {
+    nm: "極彩鼓動のクロス",
+    condTx: "<b>編成の4人が全員おなじ撃種</b>であること",
+    cond: (ids, me) => cnxSelfIn(ids, me) && cnxCount(ids, me, (c, m) => c.shot === m.shot) >= 3,
+    skills: [
+      { k: "hanonFs", nm: "リンクブーストEL", abil: "fsboostEL" },
+      { k: "hanonBarrier", nm: "バリアEL", abil: "barrierEL" },
+    ],
+  },
   hinano: {
     nm: "翠玉のクロス",
     condTx: "<b>自分と同じ撃種の味方が2体以上</b>いること（自分をのぞく）",
@@ -3622,8 +3803,11 @@ const CONNECT = {
   },
   miyabi: {
     nm: "翠孔雀のクロス",
-    condTx: "<b>自分とちがう属性の味方が3体</b>いること（＝編成の4人が全員ちがう属性）",
-    cond: (ids, me) => cnxSelfIn(ids, me) && cnxCount(ids, me, (c, m) => c.el !== m.el) >= 3,
+    /* ★★ 2026-09-01 ご指定により<b>「全員ちがう属性」→「全員おなじ属性」</b>へ裏返した。
+       蓬莱の九重は有利属性でそろえる編成が基本なので、
+       ちがう属性を求める条件では<b>いちばん使いたい場面で一生発動しない</b>。 */
+    condTx: "<b>自分と同じ属性の味方が3体</b>いること（＝編成の4人が全員おなじ属性）",
+    cond: (ids, me) => cnxSelfIn(ids, me) && cnxCount(ids, me, (c, m) => c.el === m.el) >= 3,
     skills: [
       { k: "miyabiCombo", nm: "連撃キラーEL", abil: "combokillerEL" },
       { k: "miyabiDash", nm: "ダッシュL", abil: "dashL" },
@@ -3631,8 +3815,9 @@ const CONNECT = {
   },
   sumire: {
     nm: "菫花のクロス",
-    condTx: "<b>自分と同じ属性の味方が1体もいない</b>こと（＝光は自分ひとり）",
-    cond: (ids, me) => cnxSelfIn(ids, me) && cnxCount(ids, me, (c, m) => c.el === m.el) === 0,
+    /* ★★ 2026-09-01 ご指定により<b>「1体もいない」→「1体以上いる」</b>へ裏返した（上と同じ理由）。 */
+    condTx: "<b>自分と同じ属性の味方が1体以上</b>いること",
+    cond: (ids, me) => cnxSelfIn(ids, me) && cnxCount(ids, me, (c, m) => c.el === m.el) >= 1,
     skills: [
       { k: "sumireAura", nm: "パワーオーラEL", abil: "auraEL" },
       { k: "sumireFb", nm: "FBターンブースト", abil: "fbturnboost" },
@@ -5797,7 +5982,7 @@ const CHARS = {
       + "特大リングが盤面じゅうを跳ねまわり、<b>同じ敵にも短い間隔で何度も入る</b>ので、味方が長く走るほど削り切れる",
   },
   ran: {
-    id: "ran", nm: "ラン(祈)", img: "Ran.webp", th: "t_Ran.webp",
+    id: "ran", nm: "ラナ", img: "Ran.webp", th: "t_Ran.webp",
     el: "light", shot: "bounce", type: "祈祷支援型", gacha: true, lux: true, nexus: "mercy",
     hp: [906, 5970], atk: [480, 3060], spd: [286, 420],
     /* アンチ3種＋治癒の祈り＋ソウルスティールEL（新）＝「落ちない編成」を作るキャラ */
@@ -6134,7 +6319,7 @@ const CHARS = {
        既存のキー（superadw / superaw / superspinring …）をそのまま使うこと。
        ここで独自の名前・独自の数値を作らないこと。 */
   anna: {
-    id: "anna", nm: "アンナ(煌)", img: "Anna.webp", th: "t_Anna.webp",
+    id: "anna", nm: "アンネ", img: "Anna.webp", th: "t_Anna.webp",
     el: "light", shot: "bounce", type: "煌貴絶影型", gacha: true, lux: true, nexus: "force",
     hp: [906, 5970], atk: [506, 3220], spd: [288, 424],
     abil: [{ t: "superadw" }, { t: "superaw" }, { t: "ablock" },
@@ -6298,7 +6483,7 @@ const CHARS = {
     fsDesc: "ふれた味方から<b>属性のリング弾</b>を放ち、<b>1回だけ壁で反射</b>して広範囲の敵を攻撃する",
   },
   suzuha: {
-    id: "suzuha", nm: "スズハ", img: "Suzuha.webp", th: "t_Suzuha.webp",
+    id: "suzuha", nm: "スズミ", img: "Suzuha.webp", th: "t_Suzuha.webp",
     el: "dark", shot: "pierce", type: "深宵絶影型", gacha: true, lux: true, nexus: "force",
     connect: "suzuha",
     hp: [920, 6060], atk: [518, 3290], spd: [288, 424],
@@ -7507,7 +7692,7 @@ const CHARS = {
   mirei: {
     /* 水・反射。蒼い月の湖にすむ鏡の巫女。
        ★ 担当は<b>第一重（火 {dw,grav}）</b>＝ 超ADW＋超アンチ重力バリアの<b>2種ちょうど</b>。 */
-    id: "mirei", nm: "ミレイ", img: "Mirei.webp", th: "t_Mirei.webp",
+    id: "mirei", nm: "ミレーヌ", img: "Mirei.webp", th: "t_Mirei.webp",
     el: "water", shot: "bounce", type: "蒼月鏡像型", gacha: true, debut: true, lux: true, nexus: "aegis", star5: true,
     hp: [986, 6505], atk: [551, 3492], spd: [309, 461],
     abil: [{ t: "superadw" }, { t: "sgrav" },
@@ -7538,7 +7723,7 @@ const CHARS = {
     /* 闇・貫通。黒十字を背負う祈りの少女。
        ★ 担当は<b>第四重（光 {grav,ward}）と第九重（光 {slowwall,ward}）の両方</b>
          ＝ 超アンチ重力バリア＋アンチ断絶界＋超アンチ減速壁の3種で、2クエストを同時に満たす。 */
-    id: "yuuka", nm: "ユウカ(黒)", img: "Yuuka.webp", th: "t_Yuuka.webp",
+    id: "yuuka", nm: "ユカリ", img: "Yuuka.webp", th: "t_Yuuka.webp",
     el: "dark", shot: "pierce", type: "黒十字刻印型", gacha: true, debut: true, lux: true, nexus: "pierce", star5: true,
     connect: "yuuka",
     hp: [978, 6450], atk: [560, 3548], spd: [306, 455],
@@ -7596,8 +7781,8 @@ const CHARS = {
       + "<br>キラーは<b>防御ダウンキラーM</b>（防御ダウン中の敵に×" + DEFKILLER_M_MUL + "）と<b>蓬莱族キラーL</b>。"
       + "防御ダウンを撒く味方（カリン・ミレーユ）と組むと、そこがそのまま追い打ちの枠になる。"
       + "<b>FBターンブースト</b>で倒すたび次のフルバーストが近づく。"
-      + "<br>クロススキル<b>翠孔雀のクロス</b>（編成の4人が全員ちがう属性）で"
-      + "<b>連撃キラーEL</b>と<b>ダッシュL</b>が付く——属性をばらけさせる編成のごほうび。",
+      + "<br>クロススキル<b>翠孔雀のクロス</b>（編成の4人が全員おなじ属性）で"
+      + "<b>連撃キラーEL</b>と<b>ダッシュL</b>が付く——属性をそろえる編成のごほうび。",
     fsName: "ピーコックファン", fsKind: "peacockfan",
     fsPow: "羽根の刃 " + MIYABI_N0 + "枚 → 壁で分裂して最大" + (MIYABI_N0 * (2 ** MIYABI_SPLITS)) + "枚（1ヒット 攻撃力×"
       + MIYABI_PER + "・分裂ごとに×" + MIYABI_DECAY + "）",
@@ -7634,8 +7819,8 @@ const CHARS = {
       + "キラーは<b>ファーストキラーEL</b>（そのショットで最初にふれた敵に×" + FIRSTKILLER_EL_MUL + "）と"
       + "<b>蓬莱族キラーL</b>——ひらいた弱点へ最初の一発を当てる撃ちかたと噛み合う。"
       + "<b>回復M</b>で削り合いを支える。"
-      + "<br>クロススキル<b>菫花のクロス</b>（自分と同じ属性の味方が1体もいない）で"
-      + "<b>パワーオーラEL</b>と<b>FBターンブースト</b>が付く——光を自分ひとりにする編成のごほうび。",
+      + "<br>クロススキル<b>菫花のクロス</b>（自分と同じ属性の味方が1体以上）で"
+      + "<b>パワーオーラEL</b>と<b>FBターンブースト</b>が付く——光でそろえる編成のごほうび。",
     fsName: "ソレイユサンクタム", fsKind: "sunsanctum",
     fsPow: "光の矢 " + SUMIRE_TICKS + "回（半径 " + SUMIRE_R + "・1本 攻撃力×" + SUMIRE_PER
       + "、その敵が<b>失っているHPの割合ぶん最大2倍</b>まで伸びる）",
@@ -8511,7 +8696,8 @@ const CHARS = {
       + "<br>全弾ヒットで合計<b>攻撃力×"
       + (KOTORI_BARRAGE_N * KOTORI_BARRAGE_PER + KOTORI_DUNK_PER).toFixed(1) + "</b>——"
       + "セイラの<b>アビス・ラプソディ</b>（合計×" + (SEIRA_BARRAGE_N * SEIRA_BARRAGE_PER).toFixed(1)
-      + "）を大きく超える<b>MagiBurst 史上最大の火力</b>。"
+      + "）を大きく超える火力です（2026-08-28 時点の史上最大。"
+      + "いまは<b>ハノン</b>の<b>オーロラ・ブザービーター</b>がいちばん重い）。"
       + "<br><b>オムニアンチ＋超アンチ減速壁</b>で、"
       + "<b>🏯第一重（火）と第六重（火）の2つを有利属性のまま完全対応</b>できる。"
       + "<br>キラーは<b>4つ</b>——<b>蓬莱族キラーEL</b>・<b>弱点キラーEL</b>・"
@@ -8575,7 +8761,8 @@ const CHARS = {
       + (REINA_BARRAGE_N * REINA_BARRAGE_PER + REINA_CROSS_PER).toFixed(1) + "</b>——"
       + "コトリの<b>アクア・ダンクラプソディ</b>（合計×"
       + (KOTORI_BARRAGE_N * KOTORI_BARRAGE_PER + KOTORI_DUNK_PER).toFixed(1)
-      + "）を大きく超える<b>MagiBurst 史上最大の火力</b>。"
+      + "）を大きく超える火力です（2026-08-29 時点の史上最大。"
+      + "いまは<b>ハノン</b>の<b>オーロラ・ブザービーター</b>がいちばん重い）。"
       + "<br><b>オムニアンチ＋アンチロックゾーン＋アンチ断絶界</b>で、"
       + "<b>🏯蓬莱天界（光）を有利属性のまま完全対応</b>できる"
       + "（これまで有利属性で完全対応できる子が2体しかいなかったクエスト）。"
@@ -8621,7 +8808,7 @@ const CHARS = {
      ══════════════════════════════════════════════════════════════ */
   rans: {
     /* 火・反射。赤髪のメイド長。★ 既存の No.73「ラン」とは別人なので id も画像名も別。 */
-    id: "rans", nm: "ラン(焔)", img: "RanS.webp", th: "t_RanS.webp",
+    id: "rans", nm: "ラン", img: "RanS.webp", th: "t_RanS.webp",
     el: "fire", shot: "bounce", type: "紅焔給仕型", gacha: true, fes: true, fesKey: "senki", lux: true,
     nexus: "senkivalor", star5: true,
     connect: "rans",
@@ -8758,7 +8945,7 @@ const CHARS = {
   },
   yuukas: {
     /* 光・反射。聖杯の戦姫。★ 既存の No.150「ユウカ」とは別人なので id も画像名も別。 */
-    id: "yuukas", nm: "ユウカ(聖)", img: "YuukaS.webp", th: "t_YuukaS.webp",
+    id: "yuukas", nm: "ユウカ", img: "YuukaS.webp", th: "t_YuukaS.webp",
     el: "light", shot: "bounce", type: "聖杯灌光型", gacha: true, fes: true, fesKey: "senki", lux: true,
     nexus: "senkivalor", star5: true,
     connect: "yuukas",
@@ -8826,7 +9013,7 @@ const CHARS = {
       + (REINA_BARRAGE_N * REINA_BARRAGE_PER + REINA_CROSS_PER).toFixed(1)
       + "）、コトリの<b>アクア・ダンクラプソディ</b>（合計×"
       + (KOTORI_BARRAGE_N * KOTORI_BARRAGE_PER + KOTORI_DUNK_PER).toFixed(1)
-      + "）をどちらも超える<b>MagiBurst 史上最強のフルバースト</b>。"
+      + "）をどちらも超えるフルバーストです（2026-08-29 時点の史上最強）。"
       + "<br>キラーは<b>3つ</b>——<b>蓬莱族キラーEL</b>・<b>弱点キラーEL</b>・<b>光属性キラーEL</b>。"
       + "<br>アンチは<b>アンチ断絶界＋超アンチ重力バリア＋超アンチ減速壁</b>——"
       + "この3つだけで<b>🏯第四重・第九重の2つ</b>を有利属性のまま完全対応できる"
@@ -8903,7 +9090,8 @@ const CHARS = {
          + ANNAM_FINALE_PER).toFixed(1) + "</b>——"
       + "アンナ(STAR) の<b>ステラ・レガリア</b>（合計×"
       + (ANNAFB_BARRAGE_N * ANNAFB_BARRAGE_PER + ANNAFB_FINALE_PER + ANNAFB_RAIN_PER).toFixed(1)
-      + "）を大きく超える<b>MagiBurst 史上最強のフルバースト</b>。"
+      + "）を大きく超えるフルバーストです（2026-08-30 時点の史上最強。"
+      + "いまは<b>ハノン</b>の<b>オーロラ・ブザービーター</b>がいちばん重い）。"
       + "<br>キラーは<b>3つ</b>——<b>蓬莱族キラーEL</b>・<b>弱点キラーEL</b>・<b>闇属性キラーEL</b>。"
       + "<br>アンチは<b>超アンチワープ＋超アンチ減速壁＋超アンチ重力バリア＋アンチ断絶界</b>の4つ。"
       + "これだけで<b>🏯第五重・🏯蓬莱天宮</b>を<b>有利属性のまま</b>完全対応でき、"
@@ -8928,7 +9116,8 @@ const CHARS = {
          + LANFES_BURST_STEP * (LANFES_MAX * (LANFES_MAX - 1) / 2) + LANFES_FINALE).toFixed(1)
       + " ——アンナ(STAR) の<b>アストラル・ソヴリン</b>（×"
       + (ANNA_TICKS * ANNA_PER + ANNA_STEP * (ANNA_TICKS * (ANNA_TICKS - 1) / 2) + ANNA_FINALE).toFixed(2)
-      + "）を超える<b>MagiBurst 史上いちばん重いリンクスキル</b>",
+      + "）を超える、2026-08-30 時点でいちばん重いリンクスキルでした"
+      + "（いまは<b>ハノン</b>の<b>セレスト・ドミナンス</b>がいちばん重い）",
   },
   /* ══════════════════════════════════════════════════════════════
      ★★ 2026-08-30 GRAND DEBUT GACHA Ver.6.0 の5体
@@ -9120,6 +9309,257 @@ const CHARS = {
       + "<br>帯が上まで昇りきると盤面ぜんたいが明るくなり、"
       + "<b>敵全体へ暁の一撃</b>（攻撃力×" + SUNV_FINALE + "）",
   },
+  /* ══════════════════════════════════════════════════════════════
+     ★★ 2026-09-01 RISING STAR FEST（fes12）の4体
+     ------------------------------------------------------------
+     リオナ（水）＝🏯蓬莱仙苑／ミレイ（木）＝🏯蓬莱月宮／
+     スズハ（光）＝🏯蓬莱神天／セイラ＆カナヅキ（闇＋火）＝🏯蓬莱天界。
+     ★ 4体とも「アンチ3 ＋ キラー3 ＋ そのほか2」の<b>8つ</b>（ご指定）。
+       <b>クロススキルは持たない</b>ので、編成の条件に関わらず<b>いつでもこの性能</b>が出る。
+     ★ キラーは<b>蓬莱族キラーEL ＋ 属性キラーEL ＋ 底力EL／パワーオーラEL</b>の3つ。
+     ★ セイラ＆カナヅキだけ <b>el2</b> を持つ（＝2つの属性に対して有利／MagiBurst 初）。
+     ══════════════════════════════════════════════════════════════ */
+  riona: {
+    /* 水・貫通。潮騒の歌姫。
+       ★ 担当は<b>蓬莱仙苑（火 {warp,slowwall,lockzone}）</b>
+         ＝ 超アンチワープ＋超アンチ減速壁＋アンチロックゾーン。水は火に有利。
+       ★ 検算は charAntiKeys("riona") ⊇ counterKeysOf(HOURAI_STAGES[10])。 */
+    id: "riona", nm: "リオナ", img: "Riona.webp", th: "t_Riona.webp",
+    el: "water", shot: "pierce", type: "潮騒星唄型", gacha: true, fes: true, fesKey: "rising", star5: true,
+    nexus: "risingstar",
+    hp: [1074, 7070], atk: [604, 3830], spd: [322, 482],
+    abil: [{ t: "superaw" }, { t: "superaslow" }, { t: "antilock" },
+           { t: "houraikillerEL" }, { t: "killerEL", el: "fire" }, { t: "sokojikaraEL" },
+           { t: "fsboostEL" }, { t: "barrierEL" }],
+    subfs: "risingtide",
+    ssName: "オーシャン・オーヴァチュア", ssTurns: 20, ssKind: "riona",
+    ssPow: "自強化（攻撃×" + RIONA_ATK + "・スピード×" + RIONA_SPD + "）＋ 潮の乱打 "
+      + RIONA_BARRAGE_N + "連（1発 攻撃力×" + RIONA_BARRAGE_PER + "）＋ 大波 "
+      + RIONA_WAVE_N + "発（<b>敵全体</b>・1発 攻撃力×" + RIONA_WAVE_PER + "、寄せるたびに +"
+      + RIONA_WAVE_STEP + "）＋ 締めの高波（<b>敵全体</b>・攻撃力×" + RIONA_FINALE + "）／"
+      + "合計 攻撃力×"
+      + (RIONA_BARRAGE_N * RIONA_BARRAGE_PER + RIONA_WAVE_N * RIONA_WAVE_PER
+         + RIONA_WAVE_STEP * (RIONA_WAVE_N * (RIONA_WAVE_N - 1) / 2) + RIONA_FINALE).toFixed(1)
+      + " ＋ <b>敵全体の攻撃力を " + RIONA_ATKDOWN_TURNS + "ターン "
+      + Math.round((1 - RIONA_ATKDOWN_MUL) * 100) + "%ダウン</b>",
+    ssDesc: "海鳴りとともに<b>自強化（攻撃×" + RIONA_ATK + "・スピード×" + RIONA_SPD + "）</b>し、"
+      + "ふれた敵へ<b>潮の乱打を " + RIONA_BARRAGE_N + "連</b>。"
+      + "<br>そのあと<b>大波が " + RIONA_WAVE_N + "回、敵全体へ寄せる</b>（寄せるたびに重くなる）。"
+      + "<br>最後に<b>締めの高波</b>が敵全体へ落ち、"
+      + "<b>敵全体の攻撃力が " + RIONA_ATKDOWN_TURNS + "ターン "
+      + Math.round((1 - RIONA_ATKDOWN_MUL) * 100) + "%下がる</b>。"
+      + "<br>アンチは<b>超アンチワープ＋超アンチ減速壁＋アンチロックゾーン</b>——"
+      + "この3つで<b>🏯蓬莱仙苑</b>を<b>有利属性のまま</b>完全対応できる。",
+    fsName: "タイダル・クレッシェンド", fsKind: "tidalcrescendo",
+    fsPow: "寄せ波 " + RTC_N + "回（<b>敵全体</b>・1回 攻撃力×" + RTC_PUSH + "）→ "
+      + "引き波 " + RTC_N + "回（<b>敵全体</b>・1回目 攻撃力×" + RTC_PULL0
+      + "・もどるたびに +" + RTC_PULL_STEP + "）＋ 締め（<b>敵全体</b>・攻撃力×" + RTC_FINALE + "）／"
+      + "合計 攻撃力×"
+      + (RTC_N * RTC_PUSH + RTC_N * RTC_PULL0 + RTC_PULL_STEP * (RTC_N * (RTC_N - 1) / 2) + RTC_FINALE).toFixed(1),
+    fsDesc: "ふれた味方から<b>波が寄せては返す</b>。"
+      + "<br>これまでに無いのは<b>行きと帰りで重さがちがう</b>こと——"
+      + "寄せ波はどれも 攻撃力×" + RTC_PUSH + " で一定だが、"
+      + "<b>引き波はもどるたびに重くなる</b>（×" + RTC_PULL0 + " → ×"
+      + (RTC_PULL0 + RTC_PULL_STEP * (RTC_N - 1)).toFixed(2) + "）。"
+      + "<br>寄せで満ちた潮を、帰りに<b>まとめて持っていく</b>形。"
+      + "<b>行きも帰りも敵全体</b>に入るので、散らばっていても取りこぼさない。",
+  },
+  mireir: {
+    /* 木・反射。木漏れ日の日傘。★ 既存の「ミレーヌ（No.149）」とは別人。
+       ★ 担当は<b>蓬莱月宮（水 {dw,warp,ward}）</b>
+         ＝ 超アンチダメージウォール＋超アンチワープ＋アンチ断絶界。木は水に有利。
+       ★ 検算は charAntiKeys("mireir") ⊇ counterKeysOf(HOURAI_STAGES[11])。 */
+    id: "mireir", nm: "ミレイ", img: "MireiR.webp", th: "t_MireiR.webp",
+    el: "wood", shot: "bounce", type: "翠夏微睡型", gacha: true, fes: true, fesKey: "rising", star5: true,
+    nexus: "risingstar",
+    hp: [1082, 7120], atk: [598, 3792], spd: [318, 476],
+    abil: [{ t: "superadw" }, { t: "superaw" }, { t: "award" },
+           { t: "houraikillerEL" }, { t: "killerEL", el: "water" }, { t: "auraEL" },
+           { t: "fsboostEL" }, { t: "regenL" }],
+    subfs: "risingtide",
+    ssName: "サマーシェイド・ロンド", ssTurns: 20, ssKind: "mireir",
+    ssPow: "自強化（攻撃×" + MIREIR_ATK + "・スピード×" + MIREIR_SPD + "）＋ 木漏れ日の乱打 "
+      + MIREIR_BARRAGE_N + "連（1発 攻撃力×" + MIREIR_BARRAGE_PER + "）＋ 緑光 "
+      + MIREIR_WAVE_N + "発（<b>敵全体</b>・1発 攻撃力×" + MIREIR_WAVE_PER + "、開くたびに +"
+      + MIREIR_WAVE_STEP + "）＋ 締めの一陣（<b>敵全体</b>・攻撃力×" + MIREIR_FINALE + "）／"
+      + "合計 攻撃力×"
+      + (MIREIR_BARRAGE_N * MIREIR_BARRAGE_PER + MIREIR_WAVE_N * MIREIR_WAVE_PER
+         + MIREIR_WAVE_STEP * (MIREIR_WAVE_N * (MIREIR_WAVE_N - 1) / 2) + MIREIR_FINALE).toFixed(1)
+      + " ＋ <b>味方全員の攻撃力を " + MIREIR_TEAM_TURNS + "ターン ×" + MIREIR_TEAM_ATK + "</b>",
+    ssDesc: "日傘がひらいて<b>自強化（攻撃×" + MIREIR_ATK + "・スピード×" + MIREIR_SPD + "）</b>し、"
+      + "<b>木漏れ日の乱打を " + MIREIR_BARRAGE_N + "連</b>。"
+      + "<br>そのあと<b>緑光が " + MIREIR_WAVE_N + "回、敵全体へ</b>（開くたびに重くなる）。"
+      + "<br>最後の一陣とあわせて、<b>味方全員の攻撃力が " + MIREIR_TEAM_TURNS + "ターン ×"
+      + MIREIR_TEAM_ATK + "</b>になる——自分だけでなく<b>チームごと</b>押しこむフルバースト。"
+      + "<br>アンチは<b>超アンチダメージウォール＋超アンチワープ＋アンチ断絶界</b>——"
+      + "この3つで<b>🏯蓬莱月宮</b>を<b>有利属性のまま</b>完全対応できる。",
+    fsName: "コモレビ・パラソル", fsKind: "komorebiparasol",
+    fsPow: "日傘が " + KPAR_STEPS + "段にひらき、<b>段ごとに光点が1つずつ増える</b>"
+      + "（1段目1つ → " + KPAR_STEPS + "段目" + KPAR_STEPS + "つ・計 "
+      + (KPAR_STEPS * (KPAR_STEPS + 1) / 2) + "点／1点 攻撃力×" + KPAR_PER + "・<b>敵全体</b>）"
+      + " ＋ ひらききった瞬間（<b>敵全体</b>・攻撃力×" + KPAR_FINALE + "）／合計 攻撃力×"
+      + (KPAR_PER * (KPAR_STEPS * (KPAR_STEPS + 1) / 2) + KPAR_FINALE).toFixed(1),
+    fsDesc: "ふれた味方の上に<b>日傘がひらき</b>、すきまから木漏れ日が落ちる。"
+      + "<br>これまでに無いのは<b>段を追うごとに光点そのものが増える</b>こと——"
+      + "1段目は1つ、2段目は2つ…と増え、" + KPAR_STEPS + "段目には "
+      + KPAR_STEPS + "つが同時に落ちる。"
+      + "<br>1点ずつが<b>敵全体</b>に入るので、<b>後半の段ほど一気に重くなる</b>。"
+      + "<br>ひらききると傘が裏返り、<b>敵全体へ締めの一撃</b>（攻撃力×" + KPAR_FINALE + "）",
+  },
+  suzuhar: {
+    /* 光・貫通。星涼の一閃。★ 既存の「スズミ（No.111）」とは別人。
+       ★ 担当は<b>蓬莱神天（闇 {warp,mine,slowwall}）</b>
+         ＝ 超アンチワープ＋超マインスイーパーEL＋超アンチ減速壁。光は闇に有利。
+       ★ 検算は charAntiKeys("suzuhar") ⊇ counterKeysOf(HOURAI_STAGES[14])。
+       ★ 蓬莱神天は<b>内部弱点</b>なので撃種は<b>貫通</b>。 */
+    id: "suzuhar", nm: "スズハ", img: "SuzuhaR.webp", th: "t_SuzuhaR.webp",
+    el: "light", shot: "pierce", type: "星涼一閃型", gacha: true, fes: true, fesKey: "rising", star5: true,
+    nexus: "risingstar",
+    hp: [1068, 7030], atk: [610, 3868], spd: [326, 488],
+    abil: [{ t: "superaw" }, { t: "supermsEL" }, { t: "superaslow" },
+           { t: "houraikillerEL" }, { t: "killerEL", el: "dark" }, { t: "sokojikaraEL" },
+           { t: "fsboostEL" }, { t: "laserstopM" }],
+    subfs: "risingtide",
+    ssName: "スターリット・レゾナンス", ssTurns: 20, ssKind: "suzuhar",
+    ssPow: "自強化（攻撃×" + SUZUHAR_ATK + "・スピード×" + SUZUHAR_SPD + "）＋ 星屑の乱打 "
+      + SUZUHAR_BARRAGE_N + "連（1発 攻撃力×" + SUZUHAR_BARRAGE_PER + "）＋ 星雨 "
+      + SUZUHAR_WAVE_N + "発（<b>敵全体</b>・1発 攻撃力×" + SUZUHAR_WAVE_PER + "、降るたびに +"
+      + SUZUHAR_WAVE_STEP + "）＋ 締めの一閃（<b>敵全体</b>・攻撃力×" + SUZUHAR_FINALE + "）／"
+      + "合計 攻撃力×"
+      + (SUZUHAR_BARRAGE_N * SUZUHAR_BARRAGE_PER + SUZUHAR_WAVE_N * SUZUHAR_WAVE_PER
+         + SUZUHAR_WAVE_STEP * (SUZUHAR_WAVE_N * (SUZUHAR_WAVE_N - 1) / 2) + SUZUHAR_FINALE).toFixed(1)
+      + " ＋ <b>敵全体に追加弱点を刻む</b>（" + SUZUHAR_SIGIL_TURNS + "ターン）",
+    ssDesc: "星がひとつ落ちて<b>自強化（攻撃×" + SUZUHAR_ATK + "・スピード×" + SUZUHAR_SPD + "）</b>し、"
+      + "<b>星屑の乱打を " + SUZUHAR_BARRAGE_N + "連</b>。"
+      + "<br>そのあと<b>星雨が " + SUZUHAR_WAVE_N + "回、敵全体へ降る</b>（降るたびに重くなる）。"
+      + "<br>締めの一閃とあわせて<b>敵全体に追加の弱点を刻む</b>（" + SUZUHAR_SIGIL_TURNS + "ターン）——"
+      + "貫通の本人はもちろん、<b>チーム全員がこのターンから弱点をねらいやすくなる</b>。"
+      + "<br>アンチは<b>超アンチワープ＋超マインスイーパーEL＋超アンチ減速壁</b>——"
+      + "この3つで<b>🏯蓬莱神天</b>（最奥）を<b>有利属性のまま</b>完全対応できる。",
+    fsName: "スターリット・カスケード", fsKind: "starlitcascade",
+    fsPow: "星が " + SCAS_STEPS + "段に落ち、<b>段を降りるたびに割れて数が倍</b>になる"
+      + "（1 → 2 → 4 → 8 → " + Math.pow(2, SCAS_STEPS - 1) + "・計 "
+      + (Math.pow(2, SCAS_STEPS) - 1) + "粒／1粒 攻撃力×" + SCAS_PER + "・<b>敵全体</b>）"
+      + " ＋ 落ちきった瞬間（<b>敵全体</b>・攻撃力×" + SCAS_FINALE + "）／合計 攻撃力×"
+      + (SCAS_PER * (Math.pow(2, SCAS_STEPS) - 1) + SCAS_FINALE).toFixed(1),
+    fsDesc: "ふれた味方から<b>星がひとつ、階段を降りるように落ちていく</b>。"
+      + "<br>これまでに無いのは<b>段を降りるたびに星が割れて数が倍になる</b>こと——"
+      + "1粒 → 2粒 → 4粒 → 8粒 → " + Math.pow(2, SCAS_STEPS - 1) + "粒。"
+      + "<br>1粒ずつが<b>敵全体</b>に入るので、"
+      + "<b>最後の段だけで前の段すべてを合わせたぶんとほぼ同じ</b>重さになる。"
+      + "<br>落ちきると光が跳ね返り、<b>敵全体へ締めの一撃</b>（攻撃力×" + SCAS_FINALE + "）",
+  },
+  seirak: {
+    /* 闇（＋火）・反射。水鉄砲で撃ち合う2人組。★ 既存の「セイラ（No.107）」とは別人。
+       ★ <b>el2</b> を持つ MagiBurst 唯一のキャラ＝<b>闇と火の両方で有利相性が取れる</b>。
+         判定は elemMultOf(c, 相手の属性) 1本に集約してある。
+       ★ 担当は<b>蓬莱天界（光 {dw,lockzone,ward}）</b>
+         ＝ 超アンチダメージウォール＋アンチロックゾーン＋アンチ断絶界。闇は光に有利。
+         火のぶんは<b>🏯蓬莱神域（木）</b>で有利相性が乗る（アンチはロックゾーンだけ一致）。
+       ★ 検算は charAntiKeys("seirak") ⊇ counterKeysOf(HOURAI_STAGES[13])。 */
+    id: "seirak", nm: "セイラ＆カナヅキ", img: "SeiraK.webp", th: "t_SeiraK.webp",
+    el: "dark", el2: "fire", shot: "bounce", type: "双星水沫型",
+    gacha: true, fes: true, fesKey: "rising", star5: true,
+    nexus: "risingstar",
+    hp: [1096, 7210], atk: [592, 3754], spd: [330, 494],
+    abil: [{ t: "superadw" }, { t: "antilock" }, { t: "award" },
+           { t: "houraikillerEL" }, { t: "killerEL", el: "light" }, { t: "auraEL" },
+           { t: "fsboostEL" }, { t: "dashL" }],
+    subfs: "risingtide",
+    ssName: "ダブル・スプラッシュフィナーレ", ssTurns: 20, ssKind: "seirak",
+    ssPow: "自強化（攻撃×" + SEIRAK_ATK + "・スピード×" + SEIRAK_SPD + "）＋ 二丁の乱打 "
+      + SEIRAK_BARRAGE_N + "連（1発 攻撃力×" + SEIRAK_BARRAGE_PER + "）＋ 交差 "
+      + SEIRAK_WAVE_N + "発（<b>敵全体</b>・1発 攻撃力×" + SEIRAK_WAVE_PER + "、交わるたびに +"
+      + SEIRAK_WAVE_STEP + "）＋ 締めの合流（<b>敵全体</b>・攻撃力×" + SEIRAK_FINALE + "）／"
+      + "合計 攻撃力×"
+      + (SEIRAK_BARRAGE_N * SEIRAK_BARRAGE_PER + SEIRAK_WAVE_N * SEIRAK_WAVE_PER
+         + SEIRAK_WAVE_STEP * (SEIRAK_WAVE_N * (SEIRAK_WAVE_N - 1) / 2) + SEIRAK_FINALE).toFixed(1)
+      + " ＋ <b>味方全員に " + SEIRAK_BARRIER + " のバリア</b>",
+    ssDesc: "2人が背中合わせに構えて<b>自強化（攻撃×" + SEIRAK_ATK + "・スピード×"
+      + SEIRAK_SPD + "）</b>し、<b>二丁の乱打を " + SEIRAK_BARRAGE_N + "連</b>。"
+      + "<br>そのあと<b>2本の水流が " + SEIRAK_WAVE_N + "回、敵全体で交差する</b>（交わるたびに重くなる）。"
+      + "<br>締めの合流とあわせて<b>味方全員に " + SEIRAK_BARRIER + " のバリア</b>を張る。"
+      + "<br>★ このキャラだけ<b>属性が2つ</b>——<b>闇と火のどちらでも有利相性が取れる</b>ので、"
+      + "<b>🏯蓬莱天界（光）</b>と<b>🏯蓬莱神域（木）</b>の<b>両方で有利属性</b>になる"
+      + "（アンチで完全対応できるのは蓬莱天界のほう）。"
+      + "<br>アンチは<b>超アンチダメージウォール＋アンチロックゾーン＋アンチ断絶界</b>。",
+    fsName: "ツインスプラッシュ", fsKind: "twinsplash",
+    fsPow: "2本の水流が " + TSPL_N + "回 交差（<b>敵全体</b>・1回 攻撃力×" + TSPL_PER
+      + "・交わるたびに +" + TSPL_STEP + "）＋ 締めの合流（<b>敵全体</b>・攻撃力×" + TSPL_FINALE + "）／"
+      + "合計 攻撃力×"
+      + (TSPL_N * TSPL_PER + TSPL_STEP * (TSPL_N * (TSPL_N - 1) / 2) + TSPL_FINALE).toFixed(1),
+    fsDesc: "ふれた味方から<b>2本の水流</b>が左右に分かれて走り、画面の真ん中で<b>交差する</b>。"
+      + "<br>これまでに無いのは<b>1本ではなく2本が同時に走り、交わった回数で重くなる</b>こと"
+      + "（×" + TSPL_PER + " → ×" + (TSPL_PER + TSPL_STEP * (TSPL_N - 1)).toFixed(2) + "）。"
+      + "<br>交差のたびに<b>敵全体</b>へ入るので、位置に関係なく最後まで届く。"
+      + "<br>" + TSPL_N + "回 交わりきると2本が1本に合わさり、<b>敵全体へ締めの一撃</b>"
+      + "（攻撃力×" + TSPL_FINALE + "）",
+  },
+  /* ══════════════════════════════════════════════════════════════
+     ★★ 2026-09-01 極彩祭 ハノン（光・貫通）
+     ------------------------------------------------------------
+     ★ アンチは<b>オムニアンチ＋超アンチ減速壁の2つだけ</b>（ご指定の上限）。
+       それで<b>🏯蓬莱天宮</b>と<b>🏯蓬莱神天</b>の<b>2つとも</b>有利属性のまま完全対応できる。
+       ★ 検算は charAntiKeys("hanon") ⊇ counterKeysOf(HOURAI_STAGES[9]) と [14]。
+     ★ アビリティは<b>クロス込みでちょうど8つ</b>（ここに6つ＋クロス2つ）。
+       ショットスキルはアビリティに数えない（ヒナノ・ムツミと同じ決まり）。
+     ★ キラーは<b>4つ</b>——蓬莱族キラーEL／属性キラーEL（闇）／パワーオーラEL／底力EL。
+     ★ クロスの条件に<b>属性は使わない</b>（ご指定）。撃種でそろえる条件にしてある。
+     ══════════════════════════════════════════════════════════════ */
+  hanon: {
+    id: "hanon", nm: "ハノン", img: "Hanon.webp", th: "t_Hanon.webp",
+    el: "light", shot: "pierce", type: "極彩鼓動型", gacha: true, fes: true, fesKey: "kokusai", lux: true,
+    nexus: "luxprism", star5: true,
+    connect: "hanon",
+    hp: [1108, 7290], atk: [628, 3980], spd: [334, 500],
+    abil: [{ t: "omni" }, { t: "superaslow" },
+           { t: "houraikillerEL" }, { t: "killerEL", el: "dark" },
+           { t: "auraEL" }, { t: "sokojikaraEL" }],
+    shotskill: "hoop",
+    subfs: "goldenrebound",
+    ssName: "オーロラ・ブザービーター", ssTurns: 22, ssKind: "hanon",
+    ssPow: "自強化（攻撃×" + HANON_ATK + "・スピード×" + HANON_SPD + "）＋ ドリブルの乱打 "
+      + HANON_DRIBBLE_N + "連（1発 攻撃力×" + HANON_DRIBBLE_PER + "）＋ ゴール "
+      + HANON_HOOP_N + "本（<b>敵全体</b>・1本 攻撃力×" + HANON_HOOP_PER + "、決めるたびに +"
+      + HANON_HOOP_STEP + "）＋ <b>ブザービーター</b>（<b>敵全体</b>・攻撃力×" + HANON_BUZZER + "）／"
+      + "合計 攻撃力×"
+      + (HANON_DRIBBLE_N * HANON_DRIBBLE_PER + HANON_HOOP_N * HANON_HOOP_PER
+         + HANON_HOOP_STEP * (HANON_HOOP_N * (HANON_HOOP_N - 1) / 2) + HANON_BUZZER).toFixed(1),
+    ssDesc: "コートに光が落ちて<b>自強化（攻撃×" + HANON_ATK + "・スピード×" + HANON_SPD + "）</b>し、"
+      + "<b>壁をすり抜けながら</b>最初にふれた敵の上で止まる。"
+      + "<br>そこから<b>ドリブルの乱打を " + HANON_DRIBBLE_N + "連</b>——"
+      + "<b>MagiBurst 史上いちばん長い乱打</b>です。"
+      + "<br>撃ち終えると<b>ゴールリングが " + HANON_HOOP_N + "本</b>ひらき、"
+      + "1本決めるごとに<b>敵全体</b>へ入る（決めるたびに重くなる）。"
+      + "<br>最後は<b>ブザービーター</b>——コート全体が白く飛び、"
+      + "<b>敵全体へ 攻撃力×" + HANON_BUZZER + "</b> ＋ ふっとばし。"
+      + "<br>★★ 合計 <b>攻撃力×"
+      + (HANON_DRIBBLE_N * HANON_DRIBBLE_PER + HANON_HOOP_N * HANON_HOOP_PER
+         + HANON_HOOP_STEP * (HANON_HOOP_N * (HANON_HOOP_N - 1) / 2) + HANON_BUZZER).toFixed(1)
+      + "</b>——アンナ(祭) の<b>千華繚乱・スターマイン</b>（×"
+      + (ANNAM_BARRAGE_N * ANNAM_BARRAGE_PER + ANNAM_STARMINE_N * ANNAM_STARMINE_PER
+         + ANNAM_STARMINE_STEP * (ANNAM_STARMINE_N * (ANNAM_STARMINE_N - 1) / 2)
+         + ANNAM_FINALE_PER).toFixed(1) + "）の<b>およそ2倍</b>で、"
+      + "<b>MagiBurst 史上最大の火力</b>です。"
+      + "<br>アンチは<b>オムニアンチ＋超アンチ減速壁</b>の2つだけ——"
+      + "それで<b>🏯蓬莱天宮</b>と<b>🏯蓬莱神天</b>の<b>2つとも</b>"
+      + "有利属性のまま完全対応できます。",
+    fsName: "セレスト・ドミナンス", fsKind: "celestdominance",
+    fsPow: "光の輪が " + HDOM_STEPS + "段かさなり、<b>重なった枚数がそのまま倍率</b>になる"
+      + "（1段目 攻撃力×" + HDOM_PER + " → " + HDOM_STEPS + "段目 攻撃力×"
+      + (HDOM_PER * HDOM_STEPS).toFixed(2) + "・<b>敵全体</b>）＋ "
+      + "重なりきった瞬間（<b>敵全体</b>・攻撃力×" + HDOM_FINALE + "）／合計 攻撃力×"
+      + (HDOM_PER * (HDOM_STEPS * (HDOM_STEPS + 1) / 2) + HDOM_FINALE).toFixed(1),
+    fsDesc: "ふれた味方のところに<b>光の輪</b>がひらき、"
+      + "1段ごとに<b>もう1枚かさなって</b>いく。"
+      + "<br>これまでに無いのは<b>重なった枚数がそのまま倍率になる</b>こと——"
+      + "1段目は1枚ぶん（×" + HDOM_PER + "）、" + HDOM_STEPS + "段目は "
+      + HDOM_STEPS + "枚ぶん（×" + (HDOM_PER * HDOM_STEPS).toFixed(2) + "）。"
+      + "<br>どの段も<b>敵全体</b>に入るので、位置に関係なく最後まで届く。"
+      + "<br>合計 攻撃力×"
+      + (HDOM_PER * (HDOM_STEPS * (HDOM_STEPS + 1) / 2) + HDOM_FINALE).toFixed(1)
+      + " ——<b>MagiBurst 最強のリンクスキル</b>です。",
+  },
 };
 /* エルシアのフルバースト説明は定数を使うのでここで組み立てる */
 CHARS.elsia.ssPow = "自強化（攻撃×1.6・スピード×1.2）＋ <b>残りチームHPの" + Math.round(ELSIA_HP_COST * 100) + "%を消費</b>し、"
@@ -9290,6 +9730,13 @@ const CHAR_IDS = [
      ★ 新キャラは必ず<b>いちばん最後に追記</b>すること（既存の No. がずれないように）。
      ★ xeva.js の MB_CHAR_MASTER も同じ並びにそろえること（並び＝No.）。 */
   "chia", "risa", "rin", "minori", "seika",
+  /* ★★ 2026-09-01 RISING STAR FEST 限定SSR 4体（No.188〜191）
+     （リオナ・ミレイ・スズハ・セイラ＆カナヅキ）。
+     ★ ミレイ／スズハ／セイラ は<b>既存キャラと名前がかぶる</b>ので、
+       古いほうを ミレーヌ／スズミ に改名し、id と画像名も別にしてある。 */
+  "riona", "mireir", "suzuhar", "seirak",
+  /* ★★ 2026-09-01 極彩祭 ハノン（No.192） */
+  "hanon",
 ];
 /* id → キャラクター番号（1始まり）。図鑑・詳細・ガチャ結果に「No.XX」として出す */
 const CHAR_NO = {};
@@ -11504,6 +11951,97 @@ function drawFsGlyph(kind, c, g) {
       gem(4.0, 8.2, 2.0);
       ctx.lineWidth = 2; break;
     }
+    /* ══ ★★ 2026-09-01 RISING STAR FEST の4本＋共通サブリンク1本 ══
+       ★ ここ（drawFsGlyph）と drawSubGlyph は<b>別の switch</b>。両方に同じ case を置くこと。 */
+    case "tidalcrescendo": {   /* タイダル・クレッシェンド（寄せては返す波） */
+      ctx.lineWidth = 1.9;
+      for (let i = 0; i < 3; i++) {
+        const y = -5.5 + i * 5.2, amp = 2.2 + i * 0.9;
+        ctx.globalAlpha = 0.45 + i * 0.27;
+        ctx.beginPath();
+        for (let x = -10; x <= 10; x += 1) {
+          const yy = y + Math.sin((x / 10) * Math.PI * 1.5) * amp;
+          if (x === -10) ctx.moveTo(x, yy); else ctx.lineTo(x, yy);
+        }
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1; ctx.lineWidth = 2; break;
+    }
+    case "komorebiparasol": {  /* コモレビ・パラソル（傘＋増えていく光点） */
+      ctx.lineWidth = 1.9;
+      ctx.beginPath(); ctx.arc(0, -1.5, 8.4, Math.PI, 0); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-8.4, -1.5); ctx.lineTo(8.4, -1.5); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0, -9.9); ctx.lineTo(0, 3.4); ctx.stroke();
+      ctx.lineWidth = 1.5; ctx.globalAlpha = 0.8;
+      const dot = (x, y) => { ctx.beginPath(); ctx.arc(x, y, 1.25, 0, 6.2832); ctx.stroke(); };
+      dot(-5.4, 4.4); dot(0, 6.6); dot(5.4, 4.4);
+      dot(-2.8, 9.4); dot(2.8, 9.4);
+      ctx.globalAlpha = 1; ctx.lineWidth = 2; break;
+    }
+    case "starlitcascade": {   /* スターリット・カスケード（段ごとに倍に割れる星） */
+      ctx.lineWidth = 1.6;
+      const star = (x, y, r) => {
+        ctx.beginPath();
+        for (let k = 0; k < 4; k++) {
+          const a = (Math.PI / 2) * k;
+          ctx.moveTo(x, y); ctx.lineTo(x + Math.cos(a) * r, y + Math.sin(a) * r);
+        }
+        ctx.stroke();
+      };
+      ctx.globalAlpha = 1;   star(0, -8.2, 3.2);
+      ctx.globalAlpha = 0.8; star(-4.4, -1.2, 2.6); star(4.4, -1.2, 2.6);
+      ctx.globalAlpha = 0.6; star(-7.6, 6.4, 2.1); star(-2.6, 6.4, 2.1);
+                             star(2.6, 6.4, 2.1);  star(7.6, 6.4, 2.1);
+      ctx.globalAlpha = 1; ctx.lineWidth = 2; break;
+    }
+    case "twinsplash": {       /* ツインスプラッシュ（交差する2本の水流） */
+      ctx.lineWidth = 2.1;
+      ctx.beginPath(); ctx.moveTo(-10, -8); ctx.lineTo(10, 8); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(10, -8);  ctx.lineTo(-10, 8); ctx.stroke();
+      ctx.lineWidth = 1.5; ctx.globalAlpha = 0.75;
+      ctx.beginPath(); ctx.arc(0, 0, 4.2, 0, 6.2832); ctx.stroke();
+      ctx.globalAlpha = 1; ctx.lineWidth = 2; break;
+    }
+    case "risingtide": {       /* ライジング・タイド（左右に往復しながら満ちる帯） */
+      ctx.lineWidth = 1.9;
+      for (let i = 0; i < 3; i++) {
+        const y = 6.6 - i * 5.4;
+        ctx.globalAlpha = 0.45 + i * 0.27;
+        ctx.beginPath();
+        for (let x = -10; x <= 10; x += 1) {
+          const yy = y + Math.sin((x / 10) * Math.PI + i) * 1.9;
+          if (x === -10) ctx.moveTo(x, yy); else ctx.lineTo(x, yy);
+        }
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 0.85; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(-6.4, -9.6); ctx.lineTo(-9.4, -6.6); ctx.lineTo(-6.4, -3.6); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(6.4, -9.6);  ctx.lineTo(9.4, -6.6);  ctx.lineTo(6.4, -3.6);  ctx.stroke();
+      ctx.globalAlpha = 1; ctx.lineWidth = 2; break;
+    }
+    /* ══ ★★ 2026-09-01 ハノン（極彩祭）の1本＋サブリンク1本 ══
+       ★ ここ（drawFsGlyph）と drawSubGlyph は<b>別の switch</b>。両方に同じ case を置くこと。 */
+    case "celestdominance": {  /* セレスト・ドミナンス（かさなっていく光の輪） */
+      ctx.lineWidth = 1.6;
+      for (let i = 0; i < 5; i++) {
+        ctx.globalAlpha = 0.35 + i * 0.16;
+        ctx.beginPath();
+        ctx.ellipse(0, 6.0 - i * 3.0, 9.0 - i * 1.1, 3.2 - i * 0.35, 0, 0, 6.2832);
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1; ctx.lineWidth = 2; break;
+    }
+    case "goldenrebound": {    /* ゴールデン・リバウンド（リングに当たってはね返るボール） */
+      ctx.lineWidth = 1.8;
+      ctx.beginPath(); ctx.ellipse(0, -7.0, 7.2, 2.4, 0, 0, 6.2832); ctx.stroke();
+      ctx.lineWidth = 1.5; ctx.globalAlpha = 0.85;
+      ctx.beginPath(); ctx.arc(-5.6, 2.4, 2.6, 0, 6.2832); ctx.stroke();
+      ctx.beginPath(); ctx.arc(1.0, 6.2, 2.1, 0, 6.2832); ctx.stroke();
+      ctx.beginPath(); ctx.arc(6.6, 9.0, 1.7, 0, 6.2832); ctx.stroke();
+      ctx.globalAlpha = 0.55; ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.moveTo(-5.6, 2.4); ctx.lineTo(1.0, 6.2); ctx.lineTo(6.6, 9.0); ctx.stroke();
+      ctx.globalAlpha = 1; ctx.lineWidth = 2; break;
+    }
     case "astralsovereign": { /* アストラル・ソヴリン（星図から降りそそぐ星） */
       /* 冠の形の星座＋降る星の線 */
       ctx.lineWidth = 1.4; ctx.globalAlpha = .72;
@@ -11738,6 +12276,97 @@ function drawSubGlyph(kind, c, g) {
       gem(-4.0, 8.2, 2.0);
       gem(4.0, 8.2, 2.0);
       ctx.lineWidth = 2; break;
+    }
+    /* ══ ★★ 2026-09-01 RISING STAR FEST の4本＋共通サブリンク1本 ══
+       ★ ここ（drawFsGlyph）と drawSubGlyph は<b>別の switch</b>。両方に同じ case を置くこと。 */
+    case "tidalcrescendo": {   /* タイダル・クレッシェンド（寄せては返す波） */
+      ctx.lineWidth = 1.9;
+      for (let i = 0; i < 3; i++) {
+        const y = -5.5 + i * 5.2, amp = 2.2 + i * 0.9;
+        ctx.globalAlpha = 0.45 + i * 0.27;
+        ctx.beginPath();
+        for (let x = -10; x <= 10; x += 1) {
+          const yy = y + Math.sin((x / 10) * Math.PI * 1.5) * amp;
+          if (x === -10) ctx.moveTo(x, yy); else ctx.lineTo(x, yy);
+        }
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1; ctx.lineWidth = 2; break;
+    }
+    case "komorebiparasol": {  /* コモレビ・パラソル（傘＋増えていく光点） */
+      ctx.lineWidth = 1.9;
+      ctx.beginPath(); ctx.arc(0, -1.5, 8.4, Math.PI, 0); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-8.4, -1.5); ctx.lineTo(8.4, -1.5); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0, -9.9); ctx.lineTo(0, 3.4); ctx.stroke();
+      ctx.lineWidth = 1.5; ctx.globalAlpha = 0.8;
+      const dot = (x, y) => { ctx.beginPath(); ctx.arc(x, y, 1.25, 0, 6.2832); ctx.stroke(); };
+      dot(-5.4, 4.4); dot(0, 6.6); dot(5.4, 4.4);
+      dot(-2.8, 9.4); dot(2.8, 9.4);
+      ctx.globalAlpha = 1; ctx.lineWidth = 2; break;
+    }
+    case "starlitcascade": {   /* スターリット・カスケード（段ごとに倍に割れる星） */
+      ctx.lineWidth = 1.6;
+      const star = (x, y, r) => {
+        ctx.beginPath();
+        for (let k = 0; k < 4; k++) {
+          const a = (Math.PI / 2) * k;
+          ctx.moveTo(x, y); ctx.lineTo(x + Math.cos(a) * r, y + Math.sin(a) * r);
+        }
+        ctx.stroke();
+      };
+      ctx.globalAlpha = 1;   star(0, -8.2, 3.2);
+      ctx.globalAlpha = 0.8; star(-4.4, -1.2, 2.6); star(4.4, -1.2, 2.6);
+      ctx.globalAlpha = 0.6; star(-7.6, 6.4, 2.1); star(-2.6, 6.4, 2.1);
+                             star(2.6, 6.4, 2.1);  star(7.6, 6.4, 2.1);
+      ctx.globalAlpha = 1; ctx.lineWidth = 2; break;
+    }
+    case "twinsplash": {       /* ツインスプラッシュ（交差する2本の水流） */
+      ctx.lineWidth = 2.1;
+      ctx.beginPath(); ctx.moveTo(-10, -8); ctx.lineTo(10, 8); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(10, -8);  ctx.lineTo(-10, 8); ctx.stroke();
+      ctx.lineWidth = 1.5; ctx.globalAlpha = 0.75;
+      ctx.beginPath(); ctx.arc(0, 0, 4.2, 0, 6.2832); ctx.stroke();
+      ctx.globalAlpha = 1; ctx.lineWidth = 2; break;
+    }
+    case "risingtide": {       /* ライジング・タイド（左右に往復しながら満ちる帯） */
+      ctx.lineWidth = 1.9;
+      for (let i = 0; i < 3; i++) {
+        const y = 6.6 - i * 5.4;
+        ctx.globalAlpha = 0.45 + i * 0.27;
+        ctx.beginPath();
+        for (let x = -10; x <= 10; x += 1) {
+          const yy = y + Math.sin((x / 10) * Math.PI + i) * 1.9;
+          if (x === -10) ctx.moveTo(x, yy); else ctx.lineTo(x, yy);
+        }
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 0.85; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(-6.4, -9.6); ctx.lineTo(-9.4, -6.6); ctx.lineTo(-6.4, -3.6); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(6.4, -9.6);  ctx.lineTo(9.4, -6.6);  ctx.lineTo(6.4, -3.6);  ctx.stroke();
+      ctx.globalAlpha = 1; ctx.lineWidth = 2; break;
+    }
+    /* ══ ★★ 2026-09-01 ハノン（極彩祭）の1本＋サブリンク1本 ══
+       ★ ここ（drawFsGlyph）と drawSubGlyph は<b>別の switch</b>。両方に同じ case を置くこと。 */
+    case "celestdominance": {  /* セレスト・ドミナンス（かさなっていく光の輪） */
+      ctx.lineWidth = 1.6;
+      for (let i = 0; i < 5; i++) {
+        ctx.globalAlpha = 0.35 + i * 0.16;
+        ctx.beginPath();
+        ctx.ellipse(0, 6.0 - i * 3.0, 9.0 - i * 1.1, 3.2 - i * 0.35, 0, 0, 6.2832);
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1; ctx.lineWidth = 2; break;
+    }
+    case "goldenrebound": {    /* ゴールデン・リバウンド（リングに当たってはね返るボール） */
+      ctx.lineWidth = 1.8;
+      ctx.beginPath(); ctx.ellipse(0, -7.0, 7.2, 2.4, 0, 0, 6.2832); ctx.stroke();
+      ctx.lineWidth = 1.5; ctx.globalAlpha = 0.85;
+      ctx.beginPath(); ctx.arc(-5.6, 2.4, 2.6, 0, 6.2832); ctx.stroke();
+      ctx.beginPath(); ctx.arc(1.0, 6.2, 2.1, 0, 6.2832); ctx.stroke();
+      ctx.beginPath(); ctx.arc(6.6, 9.0, 1.7, 0, 6.2832); ctx.stroke();
+      ctx.globalAlpha = 0.55; ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.moveTo(-5.6, 2.4); ctx.lineTo(1.0, 6.2); ctx.lineTo(6.6, 9.0); ctx.stroke();
+      ctx.globalAlpha = 1; ctx.lineWidth = 2; break;
     }
     /* ══ ★★ 2026-08-29 ノワール・ロザリオ（レイナ）／ヴァルキュリア・ロンド（戦姫祭の共通）══
        ★ drawFsGlyph 側にも<b>同じ case</b>を置いてある（別の switch なので両方に要る）。 */
@@ -15806,12 +16435,30 @@ FESTS.fes7 = {
   /* ★★ 2026-08-28 極華祭が増えたので 上旬／中旬／下旬 の3本立てになった（ご指定） */
   monthly: [1, 10],
   noFesTicket: true,   /* ★★ 2026-08-29 フェス券は使えない（フェスガチャではないため） */
-  chars: ["hinano"],
+  chars: ["hinano", "hanon"],
   itemTable: D_ITEM_TABLE,
-  lead: "極彩祭の限定SSR <b>1体</b>（10%・ピックアップなし）に加えて、<b>" + PREMIUM_NM + "のSSRも合計5%で排出</b>",
-  sub: "極彩祭の限定SSR <b>1体</b>（10%・ピックアップなし）＋ <b>プレミアムSSRも合計5%で排出</b>。"
-    + "<b>毎月 1〜10日（上旬）</b>だけの開催です",
-  note: "<b>ヒナノ</b>（木・貫通）が登場する<b>毎月1〜10日（上旬）</b>のフェスです。"
+  lead: "極彩祭の限定SSR <b>2体</b>（各" + ratePct(PICK_LUX) + "）に加えて、<b>" + PREMIUM_NM
+    + "のSSRも排出</b>（SSR合計 " + ratePct(SSR_TOTAL) + "）",
+  sub: "極彩祭の限定SSR <b>2体</b>（各" + ratePct(PICK_LUX) + "）＋ <b>残りは " + PREMIUM_NM
+    + " のSSRが等確率</b>。<b>毎月 1〜10日（上旬）</b>だけの開催です",
+  note: "<b>ヒナノ</b>（木・貫通）と<b>ハノン</b>（光・貫通）が登場する<b>毎月1〜10日（上旬）</b>のフェスです。"
+    + "<br>★★ <b>ハノン</b>のフルバースト<b>オーロラ・ブザービーター</b>は、"
+    + "<b>バスケットボールのドリブル乱打 " + HANON_DRIBBLE_N + "連 ＋ ゴール " + HANON_HOOP_N
+    + "本（敵全体）＋ ブザービーター（敵全体）</b>で、合計 攻撃力×"
+    + (HANON_DRIBBLE_N * HANON_DRIBBLE_PER + HANON_HOOP_N * HANON_HOOP_PER
+       + HANON_HOOP_STEP * (HANON_HOOP_N * (HANON_HOOP_N - 1) / 2) + HANON_BUZZER).toFixed(1)
+    + " ——<b>MagiBurst 史上最大の火力</b>です。"
+    + "リンクスキル<b>セレスト・ドミナンス</b>（重なった輪の枚数がそのまま倍率／合計 攻撃力×"
+    + (HDOM_PER * (HDOM_STEPS * (HDOM_STEPS + 1) / 2) + HDOM_FINALE).toFixed(1)
+    + "）も<b>史上最強</b>です。"
+    + "アンチは<b>オムニアンチ＋超アンチ減速壁の2つだけ</b>で、"
+    + "<b>🏯蓬莱天宮</b>と<b>🏯蓬莱神天</b>の<b>2つとも</b>有利属性のまま完全対応できます。"
+    + "キラーは<b>4つ</b>（蓬莱族キラーEL・闇キラーEL・パワーオーラEL・底力EL）。"
+    + "サブリンクは<b>ゴールデン・リバウンド</b>、ショットスキルは<b>フープ・シュート</b>"
+    + "（撃つたび敵全体＋<b>味方全員</b>のフルバーストが1ターン進む）。"
+    + "<br>★ <b>極彩・プリズムネクサス</b>と<b>極煌・ブレイズネクサス</b>も"
+    + "<b>さらに強化</b>しました（どちらも効果が4つに）。"
+    + "<br>■ <b>ヒナノ</b>: "
     + "リンクスキル<b>プリズム・ブルーム</b>は<b>当たった敵の属性を塗り替える</b>——"
     + "塗り替わっているあいだ、<b>味方全員の攻撃がその敵に対して有利倍率</b>になります"
     + "（1体のリンクがチーム全員の火力を底上げする、はじめての形）。"
@@ -15926,7 +16573,7 @@ FESTS.fes11 = {
   lead: "戦姫祭の限定SSR <b>7体</b>（各" + ratePct(PICK_LUX) + "）に加えて、<b>" + PREMIUM_NM + "のSSRも排出</b>（SSR合計 " + ratePct(SSR_TOTAL) + "）",
   sub: "戦姫祭の限定SSR <b>7体</b>（各" + ratePct(PICK_LUX) + "）＋ <b>残りは " + PREMIUM_NM + " のSSRが等確率</b>。"
     + "<b>常時開催</b>です（🎫フェス券は使えません）",
-  note: "<b>ラン(焔)・クレナイ・ユキ・マリカ・ユウカ(聖)・アンナ(STAR)・アンナ(祭)</b>の"
+  note: "<b>ラン・クレナイ・ユキ・マリカ・ユウカ・アンナ(STAR)・アンナ(祭)</b>の"
     + "7体が登場する<b>常時開催</b>のガチャです。"
     + "極彩祭・極華祭・極煌祭と同じ<b>限定キャラクター</b>あつかいで、"
     + "<b>🎫フェスチケットは使えません</b>（🎫ガチャチケットは使えます）。"
@@ -15934,9 +16581,9 @@ FESTS.fes11 = {
     + "<b>アンチ＋キラー3つ＋キラー以外</b>。<b>オムニアンチは持ちません</b>。"
     + "<br>★ <b>アンチのうち1つはクロススキル</b>です。条件を満たしているあいだだけ"
     + "そのギミックにも対応できるので、<b>完全対応できるクエストが増えます</b>——"
-    + "<b>ラン(焔)＝蓬莱神域（＋第八重）</b>／<b>クレナイ＝第八重（＋第三重）</b>／"
+    + "<b>ラン＝蓬莱神域（＋第八重）</b>／<b>クレナイ＝第八重（＋第三重）</b>／"
     + "<b>ユキ＝第六重（＋蓬莱仙苑）</b>／<b>マリカ＝第二重（＋蓬莱月宮）</b>／"
-    + "<b>ユウカ(聖)＝第五重（＋蓬莱天宮）</b>／"
+    + "<b>ユウカ＝第五重（＋蓬莱天宮）</b>／"
     + "<b>アンナ(STAR)＝第四重・第九重（＋第一重・第二重・第三重）</b>／"
     + "<b>アンナ(祭)＝第五重・蓬莱天宮（＋蓬莱神天）</b>"
     + "（カッコの中がクロス発動中に加わるぶんです）。"
@@ -15949,7 +16596,8 @@ FESTS.fes11 = {
     + "<b>降るたびに重くなる星図</b>／<b>味方の数だけ上がって開く灯籠</b>"
     + "——どれもこれまでに無い挙動です。"
     + "共通サブリンクは<b>ヴァルキュリア・ロンド</b>（まわるたびに輪が大きくなります）。"
-    + "<br>★★ <b>アンナ(祭)</b>は<b>MagiBurst 史上最強</b>——"
+    + "<br>★★ <b>アンナ(祭)</b>は<b>戦姫祭でいちばん強い1体</b>です（2026-08-30 時点では史上最強でした。"
+    + "いまは 2026-09-01 の<b>ハノン</b>／<b>RISING STAR FEST</b> が上回っています）——"
     + "<b>闇属性の蓬莱3クエストすべて</b>を有利属性のまま完全対応し、"
     + "リンクスキル<b>万灯祭天</b>（味方の数だけ灯籠が上がって開く／史上いちばん重い）、"
     + "フルバースト<b>千華繚乱・スターマイン</b>（乱打" + ANNAM_BARRAGE_N + "連＋スターマイン"
@@ -15961,6 +16609,52 @@ FESTS.fes11 = {
     + (ANNAFB_BARRAGE_N * ANNAFB_BARRAGE_PER + ANNAFB_FINALE_PER + ANNAFB_RAIN_PER).toFixed(1)
     + "）を大きく超えます。"
     + "<br>★ 7体とも<b>ショットスキル</b>を持ち、<b>撃つたび毎回</b>発動します（アビリティ枠とは別）。",
+};
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-09-01 RISING STAR FEST（fes12）
+   ------------------------------------------------------------
+   ・限定SSR 4体（リオナ・ミレイ・スズハ・セイラ＆カナヅキ）。
+   ・<b>新キャラ以外の排出・確率は Starlight Academy Fest 2（fes6）とまったく同じ</b>（ご指定）＝
+     限定SSR 1体あたり PICK_FES（1.8%）／残りは プレミアムのSSRが等分／SR 50%／
+     アイテム枠は <b>D_ITEM_TABLE</b>。
+   ・<b>🎫フェスチケットが使える</b>（＝ふつうのフェスガチャ。noFesTicket は書かない）。
+   ★ ガチャ一覧では<b>戦姫祭と GRAND DEBUT GACHA のあいだ</b>（ご指定）。
+     その位置決めのために <b>rising</b> のしるしを付けてある——
+     gachaMenuList が senki のすぐ後ろ・GRAND DEBUT の手前に差しこむ。
+     ★ 名前では判定しない（フェスが増えても壊れないように）。
+   ══════════════════════════════════════════════════════════════ */
+FESTS.fes12 = {
+  key: "fes12", sfx: "12", nm: "RISING STAR FEST", tab: "Rising<br>Star Fest",
+  banner: "../img/bn_fes12_s.webp", c: "#38a6ff", leadCls: "star",
+  rising: true,
+  since: "2026-09-01",
+  chars: ["riona", "mireir", "suzuhar", "seirak"],
+  itemTable: D_ITEM_TABLE,
+  lead: "RISING STAR FEST の限定SSR <b>4体</b>（各" + ratePct(PICK_FES) + "）に加えて、<b>"
+    + PREMIUM_NM + "のSSRも排出</b>（SSR合計 " + ratePct(SSR_TOTAL) + "）",
+  sub: "RISING STAR FEST の限定SSR <b>4体</b>（各" + ratePct(PICK_FES) + "）＋ <b>残りは "
+    + PREMIUM_NM + " のSSRが等確率</b>。キャラ以外の中身は <b>Starlight Academy Fest 2 と同じ</b>で、"
+    + "<b>🎫フェスチケットが使えます</b>",
+  note: "<b>リオナ（水）・ミレイ（木）・スズハ（光）・セイラ＆カナヅキ（闇＋火）</b>の4体が登場します。"
+    + "<br>4体とも<b>アビリティを8つ</b>持ちます——<b>アンチ3つ＋キラー3つ＋そのほか2つ</b>。"
+    + "<b>オムニアンチも治癒の祈りも持たず、クロススキルもありません</b>。"
+    + "そのぶん<b>編成の条件にいっさい左右されない</b>——いつ出しても、この性能がそのまま出ます。"
+    + "<br>アンチ3つは<b>それぞれの担当クエストの必要アンチとぴったり一致</b>していて、"
+    + "<b>蓬莱の九重の後半5階層</b>を有利属性のまま完全対応できます——"
+    + "<b>リオナ＝🏯蓬莱仙苑</b>／<b>ミレイ＝🏯蓬莱月宮</b>／"
+    + "<b>スズハ＝🏯蓬莱神天</b>／<b>セイラ＆カナヅキ＝🏯蓬莱天界</b>。"
+    + "<br>キラーは4体とも<b>蓬莱族キラーEL＋属性キラーEL</b>に加えて、"
+    + "<b>底力EL</b>（リオナ・スズハ）または<b>パワーオーラEL</b>（ミレイ・セイラ＆カナヅキ）。"
+    + "さらに全員が<b>リンクブーストEL</b>を持ちます。"
+    + "<br>★★ <b>セイラ＆カナヅキ</b>は<b>2人で1体</b>のキャラクターで、"
+    + "<b>属性を2つ持つ MagiBurst 唯一のキャラ</b>です——<b>闇と火の両方で有利相性が取れる</b>ので、"
+    + "<b>🏯蓬莱天界（光）</b>と<b>🏯蓬莱神域（木）</b>の<b>どちらでも有利属性</b>で戦えます。"
+    + "<br>リンクスキルは4体とも<b>新設</b>で、<b>行きと帰りで重さがちがう波</b>／"
+    + "<b>段ごとに光点が1つずつ増える日傘</b>／<b>降りるたびに割れて倍になる星</b>／"
+    + "<b>交わるほど重くなる2本の水流</b>——どれもこれまでに無い挙動です。"
+    + "共通サブリンクは<b>ライジング・タイド</b>（<b>行って帰る</b>はじめてのサブリンク）。"
+    + "<br>★ 4体とも<b>ネクサスは星導・ライジングネクサス</b>"
+    + "（リンク +22% ／ 攻撃力 +10% ／ スピード +8%）。",
 };
 /* ══════════════════════════════════════════════════════════════
    ★★ 2026-08-28 Festival Archive GACHA（archive）
@@ -16320,9 +17014,22 @@ function surePoolOfMode(m) {
   return out;
 }
 function guaranteedS5OfMode(m) {
-  const pool = surePoolOfMode(m);
-  if (!pool.length) return gachaRollOnce(m);   /* 全員が限界突破MAX＝確定枠も通常抽選に戻す */
+  const all = surePoolOfMode(m);
+  if (!all.length) return gachaRollOnce(m);   /* 出るSSRが1体もいない＝通常抽選に戻す */
+  /* ══ ★★ 2026-09-01 確定枠は<b>限界突破MAXのキャラを外す</b>（ご指定） ══
+     10連の最後の1枠は「まだ育てられるキャラ」が出るようにする。
+     ★ ただし、そのガチャで出るSSRが<b>全員</b>限界突破MAXのときは外す相手がいないので、
+       いままでどおり<b>全員から等確率</b>で出す（プレミアムなら💠結晶になる）。
+     ★ ここだけを絞る。ASTRAL BURST（luxAllSSR）と BLACK SELECT（luxSelectSlot）は
+       surePoolOfMode をそのまま使うので、これまでどおりの顔ぶれのまま。 */
+  const pool = guaranteedPoolOfMode(m);
   return grantChar(pool[Math.floor(Math.random() * pool.length)]);
+}
+/* ★ 確定枠が実際に引く顔ぶれ。<b>確率表もここを見る</b>こと（表と実物がずれないように） */
+function guaranteedPoolOfMode(m) {
+  const all = surePoolOfMode(m);
+  const fresh = all.filter((id) => !isMaxAwk(id));
+  return fresh.length ? fresh : all;
 }
 const S5_TOTAL_OLD = 0.10;       // SSRの合計排出率（ピックアップ＋その他）は常に10%
 /* ★ v10.1 修正: 「1体を残して全員が限界突破MAX」のとき、
@@ -16380,7 +17087,7 @@ function charFitQuests(id) {
     const keys = counterKeysOf(s);
     const cover = keys.filter((k) => mine.indexOf(k) >= 0).length;
     const boss = s.waves[s.waves.length - 1][0] || {};
-    const adv = elemMult(c.el, boss.el) > 1;
+    const adv = elemMultOf(c, boss.el) > 1;   /* ★ 2026-09-01 二属性キャラ（el2）も見る */
     /* 全ギミックを消せることを最優先、次に属性有利、最後に難易度（＝奥のクエストほど価値が高い） */
     const full = keys.length > 0 && cover === keys.length;
     /* 難しいクエストほど「適性が活きる」ので、部屋番号の重みを大きくとる
@@ -16590,6 +17297,7 @@ function firstGachaMode() {
    ★★ 2026-08-29 ガチャ一覧の並び（ご指定・2026-08-28 版から更新）
      ① 極彩祭・極華祭・極煌祭 の「開催中」のもの
      ② 戦姫祭（常時開催の限定キャラガチャ。①のすぐ下）
+     ②' RISING STAR FEST（★★ 2026-09-01 ご指定で<b>戦姫祭と GRAND DEBUT のあいだ</b>）
      ③ GRAND DEBUT GACHA
      ④ 各フェスガチャ … <b>新しいものが上</b>（since の新しい順）
      ⑤ PREMIUM SELECT GACHA
@@ -16602,7 +17310,7 @@ function firstGachaMode() {
      ここを FES_KEYS の順（＝定義順）のままにすると、新しいフェスが下に沈む。
    ══════════════════════════════════════════════════════════════ */
 function gachaMenuList() {
-  const lux = [], senki = [], fes = [], luxOff = [], ended = [];
+  const lux = [], senki = [], rising = [], fes = [], luxOff = [], ended = [];
   FES_KEYS.forEach((k) => {
     if (k === ARCHIVE_KEY) return;                       /* アーカイブは⑥（下で足す） */
     const f = fesDef(k);
@@ -16613,6 +17321,9 @@ function gachaMenuList() {
                                         : "限定キャラクター・🎫チケット優先")),
       soon: fesLocked(k), ended: fesEnded(k) };
     if (f.senki) senki.push(row);
+    /* ★★ 2026-09-01 RISING STAR FEST は<b>戦姫祭と GRAND DEBUT のあいだ</b>（ご指定）。
+       ふつうのフェスガチャなので、終わったら ended へ落とすところは同じ。 */
+    else if (f.rising) (fesEnded(k) ? ended : rising).push(row);
     else if (f.monthly) (fesInMonthly(f) ? lux : luxOff).push(row);
     else if (fesEnded(k)) ended.push(row);               /* ★ 終わったフェスはいちばん下へ */
     else fes.push(row);
@@ -16624,7 +17335,7 @@ function gachaMenuList() {
   const arcRow = { k: ARCHIVE_KEY, nm: arc.nm, c: arc.c,
     sub: archiveChars().length ? arc.sub : "封入されたキャラクターがまだいません",
     soon: !archiveChars().length };
-  const list = lux.concat(senki, gachaMenuDebutRows(), fes,
+  const list = lux.concat(senki, rising, gachaMenuDebutRows(), fes,
     [{ k: "premium", nm: PREMIUM_NM, sub: "ピックアップを1体えらべる常設ガチャ", c: "#ff9d2e" }],
     [arcRow], luxOff, ended);
   /* ★★ 2026-08-29 NEW マーク（ご指定）。まだ一度も開いていないガチャに付ける。 */
@@ -17016,7 +17727,7 @@ function doFesGacha(n, key) {
   const nm0 = fesDef(key).nm;
   /* ★★ 2026-08-22b 特別演出（10連のみ・超低確率） */
   const lux = luxRoll(n);
-  if (lux === "allssr") { revealGacha(luxAllSSR(fesSurePool(key)), nm0 + " 10連結果！" + payTx0); return; }
+  if (lux === "allssr") { revealGacha(luxAllSSR(fesSurePool(key)), nm0 + " 10連結果！" + payTx0, key); return; }
   const results = [];
   const normal = n === 10 ? 9 : n;
   const blk = lux === "black" ? luxSelectSlot(fesSurePool(key)) : null;
@@ -17026,7 +17737,7 @@ function doFesGacha(n, key) {
   if (n === 10) { const g = fesGuaranteedS5(key); g.sure = true; results.push(g); }
   const payTx = payTx0;
   const nm = nm0;
-  revealGacha(results, nm + (n === 10 ? " 10連結果！" : n === 5 ? " 5連結果！" : " 結果！") + payTx);
+  revealGacha(results, nm + (n === 10 ? " 10連結果！" : n === 5 ? " 5連結果！" : " 結果！") + payTx, key);
 }
 window.doFesGacha = doFesGacha;
 function grantChar(id) {
@@ -17830,7 +18541,7 @@ function luxAstralIntro(done) {
     if (done) done();
   }, 3300);
 }
-function revealGacha(results, title) {
+function revealGacha(results, title, gmode) {
   _revClear();
   _rev = { phase: "done", go: null, startOne: null, order: [], opened: null, covs: [], cells: [], sureIdx: -1,
            /* ★★ 2026-08-26 ranking を書き忘れていた。
@@ -17873,6 +18584,14 @@ function revealGacha(results, title) {
   const sureIdx = results.findIndex((r) => r.sure);
   /* ★ どのSSRを「昇格演出」で見せるかを先に抽選する（RANK UP は稀な演出）。
      昇格しないSSRは、最初からSSRのプレートで出す。 */
+  /* ══ ★★ 2026-09-01 昇格演出で見せるのは<b>そのガチャのピックアップだけ</b>（ご指定） ══
+     RANK UP!! は「そのガチャの主役が来た！」という合図にする。
+     ピックアップ以外のSSRは、いままでどおり<b>最初からSSRの札</b>で出る
+     （ピックアップも RANKUP_CHANCE を外せば普通に出る＝毎回は昇格しない）。
+     ★ gmode を渡さない入口（クロスガチャ・ポイント交換）は絞りこまない。 */
+  const upPick = (() => {
+    try { return gmode ? pickIdsOfMode(gmode) : null; } catch (e) { return null; }
+  })();
   const upSet = new Set();
   results.forEach((r, i) => {
     if (r.type !== "char" || !isStar5(r.id)) return;
@@ -17880,6 +18599,9 @@ function revealGacha(results, title) {
     if (r.sure) return;
     /* ★ ASTRAL BURST は全部SSRなので昇格そのものが起きない */
     if (r.lux === "allssr") return;
+    /* ★ 2026-08-30 完凸で💠結晶になった枠は、キャラが増えないので昇格させない */
+    if (r.max) return;
+    if (upPick && upPick.indexOf(r.id) < 0) return;
     if (Math.random() < RANKUP_CHANCE) upSet.add(i);
   });
   const _showCard = () => {
@@ -18041,7 +18763,7 @@ function doDebutGacha(n, mode) {
   /* ★★ 2026-08-22b 特別演出（10連のみ・超低確率） */
   const lux = luxRoll(n);
   if (lux === "allssr") {
-    revealGacha(luxAllSSR(debutSurePool(mode)), DEBUT_NM + " " + gachaVerText(dver) + " 10連結果！" + payTx);
+    revealGacha(luxAllSSR(debutSurePool(mode)), DEBUT_NM + " " + gachaVerText(dver) + " 10連結果！" + payTx, mode);
     return;
   }
   const results = [];
@@ -18052,7 +18774,7 @@ function doDebutGacha(n, mode) {
   for (let i = 0; i < normal; i++) results.push(i === blkIdx ? blk : debutRollOnce(mode));
   if (n === 10) { const g = debutGuaranteedS5(mode); g.sure = true; results.push(g); }
   revealGacha(results, DEBUT_NM + " " + gachaVerText(dver)
-    + (n === 10 ? " 10連結果！" : n === 5 ? " 5連結果！" : " 結果！") + payTx);
+    + (n === 10 ? " 10連結果！" : n === 5 ? " 5連結果！" : " 結果！") + payTx, mode);
 }
 window.doDebutGacha = doDebutGacha;
 function doGacha(n) {
@@ -18065,7 +18787,7 @@ function doGacha(n) {
   /* ★★ 2026-08-22b 特別演出（10連のみ・超低確率）。抽選そのものは luxRoll() 1本。 */
   const lux = luxRoll(n);
   if (lux === "allssr") {
-    revealGacha(luxAllSSR(gachaPool()), PREMIUM_NM + " 10連結果！" + gachaPayText(pay));
+    revealGacha(luxAllSSR(gachaPool()), PREMIUM_NM + " 10連結果！" + gachaPayText(pay), "premium");
     return;
   }
   const results = [];
@@ -18081,7 +18803,7 @@ function doGacha(n) {
     results.push(g);
   }
   revealGacha(results, PREMIUM_NM + (n === 10 ? " 10連結果！" : n === 5 ? " 5連結果！" : " 結果！")
-    + gachaPayText(pay));
+    + gachaPayText(pay), "premium");
 }
 window.doGacha = doGacha;
 
@@ -18287,10 +19009,10 @@ function openRates(which) {
     rows.push(`<tr><td colspan="2" style="font-size:10px;color:#8b87a8">※ <b>ピックアップはありません</b>。フェス限定SSRの合計10%を排出対象で等分します（現在 ${fesPool(which).length}体・各 ${ratePct(fesEachRate(which))}）。</td></tr>`);
     rows.push(`<tr><td colspan="2" style="font-size:10px;color:#8b87a8">※ <b>2026-08-03 から、通常抽選（道中）でも<b>プレミアムセレクトガチャのSSR</b>が合計 ${ratePct(FES_PREMIUM_TOTAL)} で排出されます</b>（フェス限定SSRの確率はそのまま）。Bシリーズ4体ともう一方のフェスのキャラは出ません。</td></tr>`);
     /* ★ v15: 10連の確定枠だけは「そのフェスの限定SSR ＋ プレミアムSSR」から等確率で出す */
-    const sure = fesSurePool(which);
+    const sure = guaranteedPoolOfMode(which);
     rows.push(`<tr><td colspan="2" style="font-weight:900;color:${f.c}">🎯 10連のSSR確定枠（最後の1枠・${sure.length}体から等確率）</td></tr>`);
     sure.forEach((id) => rows.push(`<tr><td>　└ ${charNmOf(id)}（${CHARS[id].fes ? "フェス限定SSR" : "プレミアムSSR"}）</td><td>${ratePct(sure.length ? 1 / sure.length : 0)}</td></tr>`));
-    rows.push(`<tr><td colspan="2" style="font-size:10px;color:#8b87a8">※ <b>確定枠だけは「${f.nm} の限定SSR」と「プレミアムセレクトガチャのSSR」をまとめた ${sure.length}体から、全員おなじ確率</b>で出ます（限界突破MAXのキャラは除外）。</td></tr>`);
+    rows.push(`<tr><td colspan="2" style="font-size:10px;color:#8b87a8">※ <b>確定枠だけは「${f.nm} の限定SSR」と「プレミアムセレクトガチャのSSR」をまとめた ${sure.length}体から、全員おなじ確率</b>で出ます。<b>限界突破MAXのキャラは確定枠には出ません</b>（全員が限界突破MAXのときだけ、その全員から等確率で出ます）。</td></tr>`);
     rows.push(`<tr><td colspan="2" style="font-size:10px;color:#8b87a8">※ 🎫チケットは<b>フェス券 → ガチャ券 → <i class='icc ic-gem'></i>ジェム</b>の順に消費します。フェス券はフェス専用、ガチャ券はどのガチャでも使えます。</td></tr>`);
   } else {
     const pick = curPickup();
@@ -18304,11 +19026,11 @@ function openRates(which) {
     /* ★ 2026-08-11 フェスガチャと同じように、<b>10連の確定枠の中身も一覧で</b>出す。
        これまでは注意書きに「排出対象のSSRが全員おなじ確率」と書いてあるだけで、
        誰が何%なのかはフェスガチャでしか見られなかった。 */
-    const psure = byCharNoDesc(gachaPool());
+    const psure = byCharNoDesc(guaranteedPoolOfMode("premium"));
     const pEachSure = psure.length ? 1 / psure.length : 0;
     rows.push(`<tr><td colspan="2" style="font-weight:900;color:#d97800">🎯 10連のSSR確定枠（最後の1枠・${psure.length}体から等確率）</td></tr>`);
     psure.forEach((id) => rows.push(`<tr><td>　└ ${CHARS[id].nm}（SSR ガチャ限定${id === pick ? "・<b style='color:#e0405e'>PICKUP</b>" : ""}）</td><td>${ratePct(pEachSure)}</td></tr>`));
-    rows.push(`<tr><td colspan="2" style="font-size:10px;color:#8b87a8">※ <b>10連は「最後の1枠」がSSR確定</b>です（前半9回は通常抽選なので、そこでもSSRは出ます）。<b>確定枠は排出対象のSSRがすべて同じ確率</b>で、<b>ピックアップの優遇はありません</b>（限界突破MAXのキャラは除外）。</td></tr>`);
+    rows.push(`<tr><td colspan="2" style="font-size:10px;color:#8b87a8">※ <b>10連は「最後の1枠」がSSR確定</b>です（前半9回は通常抽選なので、そこでもSSRは出ます）。<b>確定枠は排出対象のSSRがすべて同じ確率</b>で、<b>ピックアップの優遇はありません</b>。<b>限界突破MAXのキャラは確定枠には出ません</b>（全員が限界突破MAXのときだけ、その全員から等確率で出ます）。</td></tr>`);
     rows.push(`<tr><td colspan="2" style="font-size:10px;color:#8b87a8">※ 限界突破MAXのキャラは排出対象から外れ、その分は残りのSSRに配分されます（SSR合計は常に10%）。<b>排出対象が1体だけになった場合、そのキャラをピックアップに選ぶと10%になります。</b></td></tr>`);
     rows.push(`<tr><td>⭐ SR（合計・${STAR4_POOL.length}体で等分）</td><td>55%</td></tr>`);
     STAR4_POOL.forEach((id) => rows.push(`<tr><td>　└ ${CHARS[id].nm}</td><td>${ratePct(0.55 / STAR4_POOL.length)}</td></tr>`));

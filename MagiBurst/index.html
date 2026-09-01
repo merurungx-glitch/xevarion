@@ -9,7 +9,7 @@
 <link rel="icon" href="../thumbs/MagiBurst.jpg" type="image/png">
 <link rel="apple-touch-icon" href="../thumbs/MagiBurst.jpg">
 <!-- 単体でのアプリ配布は廃止（XEVARION を1つ入れれば3アプリともオフライン対応になる） -->
-<script src="../app-install-notice.js?v=1" defer></script>
+<script src="../app-install-notice.js?v=3" defer></script>
 <meta name="theme-color" content="#8e6bff">
 <meta name="apple-mobile-web-app-title" content="MagiBurst">
 <script>
@@ -18,18 +18,21 @@ if ("serviceWorker" in navigator) {
   window.addEventListener("load", function () { navigator.serviceWorker.register("sw.js").catch(function () {}); });
 }
 </script>
-<script src="../maintenance-gate.js?v=5"></script>
+<script src="../maintenance-gate.js?v=7"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
-<script src="../xeva-splash.js?v=3" data-app="MagiBurst" data-logo="../thumbs/MagiBurst.jpg"
+<script src="../xeva-splash.js?v=5" data-app="MagiBurst" data-logo="../thumbs/MagiBurst.jpg"
         data-note="⚠️ このゲームの対象年齢は 13歳以上 です"></script>
-<script src="../xeva.js?v=50"></script>
-<script src="../xeva-loading.js?v=1" defer></script>
-<script type="module" src="../xevarion-fb.js?v=22"></script>
-<script src="../xeva-presence.js?v=1" defer></script>
-<script type="module" src="../xeva-cloud.js?v=19"></script>
-<script type="module" src="js/online.js?v=8"></script>
+<script src="../xeva.js?v=53"></script>
+<script src="../xeva-loading.js?v=3" defer></script>
+<script type="module" src="../xevarion-fb.js?v=24"></script>
+<script src="../xeva-presence.js?v=3" defer></script>
+<script type="module" src="../xeva-cloud.js?v=22"></script>
+<script type="module" src="js/online.js?v=10"></script>
+<!-- ★★ 2026-09-01 ローカル通信マルチ（オフラインでも近くの人と遊べる）。
+     BurstOnline と同じ名前・同じ戻り値でそろえてあるので、画面側は NET() で切り替えるだけ。 -->
+<script src="js/local.js?v=5"></script>
 <style>
 /* ═══ カジュアル・ライトテーマ（SUNNY POP） ═══ */
 :root{
@@ -3113,6 +3116,28 @@ body.in-battle #top,body.in-battle #tabs{display:none}
 .pmem .pnm.off{color:#7b7f96;text-decoration:line-through}
 
 /* ═══ オンライン・ロビー ═══ */
+/* ★★ 2026-09-01 ローカル通信マルチ（合い言葉の受けわたし） */
+.onloc{margin:8px 0 4px;border:1.5px solid var(--line);border-radius:12px;
+  background:#fbfaff;padding:10px 12px}
+.onloc>summary{cursor:pointer;font-size:12.5px;font-weight:900;color:#5b46c8;list-style:none}
+.onloc>summary::-webkit-details-marker{display:none}
+/* ★★ 2026-09-01 マルチの2段の流れ（① クエスト／部屋番号 → ② キャラをえらぶ） */
+.onsteps{display:flex;align-items:center;justify-content:center;gap:8px;margin:8px 0 12px}
+.onstep{font-size:11.5px;font-weight:900;color:#7c86a8;border:1px solid rgba(160,180,255,.18);
+  border-radius:99px;padding:5px 12px;background:rgba(255,255,255,.03)}
+.onstep.on{color:#0b0a16;background:linear-gradient(135deg,#7ce8ff,#8affc4);border-color:transparent}
+.onstepar{color:#5a6386;font-weight:900}
+.onroomno{text-align:center;font-size:13px;font-weight:800;color:#9fb0d8;margin-bottom:8px}
+.onroomno b{font-size:20px;color:#7ce8ff;letter-spacing:.14em}
+.onquest{border:1px solid rgba(160,180,255,.16);border-radius:14px;padding:12px;
+  background:rgba(255,255,255,.03);margin-bottom:10px}
+.onquest .onqnm{font-weight:900;font-size:15px;color:#ffe9a8;margin-bottom:8px}
+.onqgims{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:8px}
+.onqgim{display:inline-flex;align-items:center;gap:5px;font-size:11.5px;font-weight:800;
+  color:var(--gc);border:1px solid color-mix(in srgb,var(--gc) 42%,transparent);
+  border-radius:99px;padding:4px 10px;background:color-mix(in srgb,var(--gc) 12%,transparent)}
+.onqbtns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.onqbtns .onbtn{flex:1 1 30%;margin:0;padding:10px 8px;font-size:12px}
 #onOv{position:fixed;inset:0;z-index:560;background:rgba(5,4,12,.86);display:none;align-items:center;justify-content:center;padding:16px}
 #onOv.on{display:flex}
 .oncard{width:min(440px,100%);max-height:calc(100dvh - 40px);overflow-y:auto;background:#fff;border:1.5px solid var(--line);border-radius:22px;padding:18px;color:var(--tx)}
@@ -3124,6 +3149,21 @@ body.in-battle #top,body.in-battle #tabs{display:none}
 .onlabel{font-size:11px;font-weight:900;color:#6a3fd8;margin:10px 0 5px}
 .onsel,.oninp{width:100%;padding:11px 13px;border:1.5px solid var(--line);border-radius:12px;font-size:15px;font-family:inherit;background:#fbfaff;color:var(--tx);outline:none}
 .oninp.code{letter-spacing:.5em;text-align:center;font-weight:900;font-family:'Orbitron',sans-serif}
+/* ══ ★★ 2026-09-01 合い言葉（まねき／へんじコード）の入力欄 ══
+   ★ .onsel,.oninp の<b>あと</b>に置くこと。前に置くと色が上書きされて読めなくなる。
+   ★ コードは空白の無い長い1本の文字列なので、<b>折り返し（break-all）</b>が要る。
+     等幅にしておくと、読み上げて渡すときも1文字ずつ追いやすい。 */
+textarea.oninp.mbcode{
+  display:block;width:100%;box-sizing:border-box;min-height:96px;resize:vertical;
+  font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  font-size:11.5px;line-height:1.55;letter-spacing:0;text-align:left;font-weight:600;
+  word-break:break-all;overflow-wrap:anywhere;white-space:pre-wrap;
+  background:#fbfaff;color:var(--tx);-webkit-user-select:text;user-select:text}
+textarea.oninp.mbcode::placeholder{color:#9aa3bd;font-family:inherit;letter-spacing:0}
+textarea.oninp.mbcode[readonly]{background:#f2f0fb;color:#3b3560}
+.mbcodewrap{position:relative}
+.mbcodelen{position:absolute;right:10px;bottom:8px;font-size:10px;font-weight:800;color:#9aa3bd;
+  background:rgba(251,250,255,.9);border-radius:6px;padding:1px 6px;pointer-events:none}
 .onchars{display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-top:5px;max-height:46vh;overflow-y:auto}
 .onfilter{margin:8px 0 4px}
 /* ★ v13.4: 育成タブは全セクションを畳んでも画面いっぱいの高さを保ち、下のタブバーが浮かないようにする */
@@ -3411,7 +3451,7 @@ body.in-battle #top,body.in-battle #tabs{display:none}
 .hcard td:last-child{text-align:right;font-weight:900;font-family:'Orbitron',sans-serif}
 @media(min-width:700px){ #cv{border-radius:20px} }
 </style>
-<script type="module" src="magiburst-cloud.js?v=6"></script>
+<script type="module" src="magiburst-cloud.js?v=8"></script>
 </head>
 <body>
 
@@ -3825,8 +3865,8 @@ body.in-battle #top,body.in-battle #tabs{display:none}
 </div></div>
 
 <script>window.MB_IMGD = "../img/"; window.MB_GIMGD = "img/";</script>
-<script src="../mb-newchars.js?v=11"></script>
-<script src="js/mb-core.js?v=65"></script>
+<script src="../mb-newchars.js?v=13"></script>
+<script src="js/mb-core.js?v=68"></script>
 <script>
 "use strict";
 /* ══════════ アカウントガード ══════════ */
@@ -5600,7 +5640,7 @@ function openCounters(stageId) {
   /* 0＝有利／1＝等倍／2＝不利（相性が分からないときは全部 1 にそろえる） */
   const elRank = (id) => {
     if (!bossEl) return 1;
-    const m = elemMult(CHARS[id].el, bossEl);
+    const m = elemMultOf(CHARS[id], bossEl);
     return m > 1 ? 0 : m < 1 ? 2 : 1;
   };
   /* ══ ★ 2026-08-08 並び順 ══
@@ -5768,6 +5808,77 @@ window.openNewChar = openNewChar; window.closeNewChar = closeNewChar;
 
 /* ══════════ お知らせ（アップデートのたびにここへ追記する） ══════════ */
 const NEWS = [
+  /* ★★ 2026-09-01 RISING STAR FEST／極彩祭にハノン／名前の整理／ガチャの直し */
+  { date: "2026-09-01", title: "🌊 RISING STAR FEST 開幕／🏀 極彩祭にハノン（史上最大の火力）／✦ RANK UP はピックアップだけ", body: [
+    "🌊 <b>RISING STAR FEST</b> を開幕しました。限定SSR <b>4体</b>——"
+      + "<b>リオナ</b>（水・貫通）／<b>ミレイ</b>（木・反射）／<b>スズハ</b>（光・貫通）／"
+      + "<b>セイラ＆カナヅキ</b>（闇＋火・反射）。ガチャ一覧では<b>戦姫祭と " + DEBUT_NM + " のあいだ</b>にあり、"
+      + "<b>🎫フェスチケットが使えます</b>（キャラ以外の中身と確率は Starlight Academy Fest 2 と同じ）。"
+      + "<br>4体とも<b>アビリティ8つ</b>（アンチ3＋キラー3＋そのほか2）で、<b>クロススキルは持ちません</b>——"
+      + "そのぶん<b>編成の条件にいっさい左右されず</b>、いつでもこの性能が出ます。"
+      + "アンチ3つは<b>蓬莱の九重の後半5階層</b>の必要アンチとぴったり一致します"
+      + "（リオナ＝🏯蓬莱仙苑／ミレイ＝🏯蓬莱月宮／スズハ＝🏯蓬莱神天／セイラ＆カナヅキ＝🏯蓬莱天界）。"
+      + "<br>★★ <b>セイラ＆カナヅキ</b>は<b>2人で1体</b>のキャラクターで、"
+      + "<b>属性を2つ持つ MagiBurst 唯一のキャラ</b>です——<b>闇と火の両方で有利相性</b>が取れるので、"
+      + "<b>🏯蓬莱天界（光）</b>と<b>🏯蓬莱神域（木）</b>のどちらでも有利属性で戦えます。"
+      + "<br>リンクスキルは4体とも新設で、共通サブリンクは<b>ライジング・タイド</b>"
+      + "（<b>行って帰る</b>はじめてのサブリンク）。ネクサスは<b>星導・ライジングネクサス</b>"
+      + "（リンク +22% ／ 攻撃力 +10% ／ スピード +8%）。",
+    "🏀 <b>極彩祭</b>に <b>ハノン</b>（光・貫通）が加わりました（限定SSR 2体に）。"
+      + "フルバースト<b>オーロラ・ブザービーター</b>は<b>バスケットボールのドリブル乱打 "
+      + HANON_DRIBBLE_N + "連</b>（史上いちばん長い乱打）→ <b>ゴール " + HANON_HOOP_N
+      + "本</b>（決めるたびに重くなる・敵全体）→ <b>ブザービーター</b>（敵全体）で締め、"
+      + "合計 <b>攻撃力×"
+      + (HANON_DRIBBLE_N * HANON_DRIBBLE_PER + HANON_HOOP_N * HANON_HOOP_PER
+         + HANON_HOOP_STEP * (HANON_HOOP_N * (HANON_HOOP_N - 1) / 2) + HANON_BUZZER).toFixed(1)
+      + "</b>——<b>MagiBurst 史上最大の火力</b>です。"
+      + "<br>リンクスキル<b>セレスト・ドミナンス</b>は<b>重なった輪の枚数がそのまま倍率</b>になる新しい形で、"
+      + "合計 攻撃力×"
+      + (HDOM_PER * (HDOM_STEPS * (HDOM_STEPS + 1) / 2) + HDOM_FINALE).toFixed(1)
+      + " ——<b>史上最強のリンクスキル</b>です。"
+      + "<br>アンチは<b>オムニアンチ＋超アンチ減速壁の2つだけ</b>で、"
+      + "<b>🏯蓬莱天宮</b>と<b>🏯蓬莱神天</b>の<b>2つとも</b>有利属性のまま完全対応できます。"
+      + "キラーは<b>4つ</b>（蓬莱族キラーEL・闇キラーEL・パワーオーラEL・底力EL）。"
+      + "サブリンクは<b>ゴールデン・リバウンド</b>、ショットスキル<b>フープ・シュート</b>は"
+      + "撃つたび敵全体＋<b>味方全員</b>のフルバーストが1ターン進みます。",
+    "✨ <b>極彩・プリズムネクサス</b>と<b>極煌・ブレイズネクサス</b>を<b>さらに強化</b>しました"
+      + "（どちらも効果が4つに）。極彩は 弱点+50% ／ リンク+25% ／ 攻撃力+14% ／ ボス+15%、"
+      + "極煌は ボス+45% ／ 攻撃力+18% ／ 開始時バリア1100 ／ 弱点+15% です。",
+    "✦ <b>RANK UP!! の昇格演出は、そのガチャのピックアップだけ</b>に出るようにしました"
+      + "（ピックアップのキャラも、昇格せずに最初からSSRの札で出ることがあります）。"
+      + "<br>🎯 <b>10連の最後のSSR確定枠から、限界突破MAXのキャラを外しました</b>。"
+      + "そのガチャで出るSSRが<b>全員</b>限界突破MAXのときだけ、これまでどおり全員から等確率で出ます。",
+    "✏️ <b>キャラクターの名前から括弧をなくしました</b>。括弧が付くのは"
+      + "<b>アンナ(STAR)</b>と<b>アンナ(祭)</b>だけです。名前がぶつかるところは"
+      + "<b>古いほうのキャラクター</b>の名前を変えました——"
+      + "<b>アンナ</b>（No.108）→<b>アンネ</b>、<b>ラン</b>（No.64）→<b>ラナ</b>、"
+      + "<b>ユウカ</b>（No.150）→<b>ユカリ</b>、<b>ミレイ</b>（No.149）→<b>ミレーヌ</b>、"
+      + "<b>スズハ</b>（No.111）→<b>スズミ</b>。性能・所持・限界突破は<b>なにも変わりません</b>。",
+    "📶 <b>ローカル通信マルチ</b>を追加しました。"
+      + "<b>同じ Wi-Fi につながっていれば、インターネットが無くても</b>近くの人と協力バトルができます。"
+      + "<br>マルチの入口の<b>「📶 近くの人と」</b>をひらき、"
+      + "ホストの画面に出る<b>まねきコード</b>を相手に渡す → 相手の<b>へんじコード</b>を貼りつける、の順でつながります。"
+      + "（ブラウザには「近くの端末をさがす」しくみが無いので、はじめの合い言葉だけ手わたしになります）"
+      + "<br>★ <b>Wi-Fi が無い場所でも遊べます</b>——どちらかの端末の<b>インターネット共有（テザリング）</b>を"
+      + "オンにして、もう一方をそれにつなげば、<b>回線が無くても</b>2台が同じネットワークになります。",
+    "📱 <b>「1台でまわして遊ぶ」</b>を追加しました（ローカル通信の3つめのタブ）。"
+      + "<b>通信をまったく使わず</b>、1台を順番にわたしながら<b>2〜4人</b>で同じバトルを遊べます。"
+      + "人数をえらんで、1人ずつ持ちよるキャラクターを決めるだけです。"
+      + "<br>手番が変わるたびに<b>「〇〇 の番です — 端末をわたしてください」</b>と大きく出ます。",
+    "🔡 ローカル通信の<b>まねきコード・へんじコードの入力欄</b>が読みづらかったのを直しました"
+      + "（ほかの入力欄と同じ明るい色・等幅・折り返しつきにし、<b>📥貼りつけ</b>のボタンも足しました）。",
+    "🌐 <b>部屋づくり・部屋入りを2段</b>にしました。"
+      + "①クエスト（または部屋番号）をえらぶ → ②<b>そのクエストのギミック・🛡対応キャラ・🌍クリア編成を見ながら</b>"
+      + "キャラをえらぶ、の順です。入ってから編成し直して待たせることがなくなります。",
+    "🖼 <b>オフラインのときにキャラ詳細の大きい画像が出ない</b>ことがあったのを直しました。"
+      + "更新のたびに、見て貯めた画像がまるごと消えていたのが原因です。"
+      + "これからは画像だけ<b>更新で消えない置き場</b>にためます。",
+    "🔗 <b>クロススキルの条件から「同じ属性の味方がいないこと」系をなくしました</b>——"
+      + "<b>翠孔雀のクロス</b>は「編成の4人が全員<b>おなじ</b>属性」、"
+      + "<b>菫花のクロス</b>は「自分と同じ属性の味方が1体以上」に変わります。"
+      + "蓬莱の九重は有利属性でそろえるのが基本なので、"
+      + "これまでは<b>いちばん使いたい場面で発動しない</b>条件になっていました。",
+  ] },
   /* ★★ 2026-08-30 💠結晶／完凸後も排出／アンナ(祭)／GRAND DEBUT Ver.6.0／同名キャラの整理 */
   { date: "2026-08-30", title: "💠 結晶と交換所／👑 完凸しても排出／⚔ 戦姫祭にアンナ(祭)（史上最強）／✧ GRAND DEBUT Ver.6.0", body: [
     "💠 <b>結晶</b>を追加しました。<b>" + PREMIUM_NM + " のキャラクターは、限界突破MAX（完凸）になっても"
@@ -5808,9 +5919,11 @@ const NEWS = [
       + "<b>面を増やしながら外へ広がる宝石のカット</b>／<b>下から上へ昇る夜明けの帯</b>。"
       + "共通サブリンクは<b>ジュエル・シャワー</b>（降る本数が<b>敵の数＋1</b>で決まります）。",
     "🏷 <b>同じ名前のキャラクター</b>に区別を付けました（ご指定）——"
-      + "<b>アンナ(煌)</b>（No.108）／<b>アンナ(STAR)</b>（戦姫祭）／<b>アンナ(祭)</b>（戦姫祭）、"
-      + "<b>ラン(祈)</b>（No.64）／<b>ラン(焔)</b>（戦姫祭）、"
-      + "<b>ユウカ(黒)</b>（No.150）／<b>ユウカ(聖)</b>（戦姫祭）。"
+      + "括弧を付けるのは<b>アンナ(STAR)</b>と<b>アンナ(祭)</b>だけにし、"
+      + "ぶつかるときは<b>古いほうのキャラクター</b>の名前を変えました——"
+      + "<b>アンナ</b>（No.108）→<b>アンネ</b>、<b>ラン</b>（No.64）→<b>ラナ</b>、"
+      + "<b>ユウカ</b>（No.150）→<b>ユカリ</b>、<b>ミレイ</b>（No.149）→<b>ミレーヌ</b>、"
+      + "<b>スズハ</b>（No.111）→<b>スズミ</b>。"
       + "<br>キャラクターそのもの（性能・所持・限界突破）は<b>なにも変わりません</b>。",
     "🗓 <b>極彩祭・極華祭・極煌祭</b>は、ホームの「開催中のイベント」で"
       + "<b>常時開催（毎月◯〜◯日）</b>と出るようにしました。"
@@ -9955,7 +10068,7 @@ async function openStaminaSheet() {
   if (v.stam >= v.max) { uiAlert(body, { icon: "⚡", title: "スタミナ" }); return; }
   if (gem < v.gemCost) {
     uiAlert(body + "<br><br><b>💎ジェムが足りません</b>（必要 " + v.gemCost + "）。"
-      + "ジェムは XEVARION ホームの<b>ジェム変換所</b>と<b>お得なパック</b>で手に入ります。",
+      + "ジェムは XEVARION ホームの<b>ジェム変換所</b>と<b>パックストア</b>で手に入ります。",
       { icon: "⚡", title: "スタミナ" });
     return;
   }
@@ -12114,6 +12227,13 @@ const FS_SHORT = {
   frozennocturne: "フロズノク",  rosecandelabra: "カンデラ",
   jewelcut: "ジュエカット",      sunriseveil: "サンヴェール",
   jewelshower: "ジュエシャワ",
+  /* ★★ 2026-09-01 RISING STAR FEST の新リンク4本＋共通サブリンク1本。
+     ★ ここに無いと「リンクスキルそのもの（fk:）」での絞り込みにも名前検索にも出てこない。 */
+  tidalcrescendo: "タイクレ",     komorebiparasol: "コモパラ",
+  starlitcascade: "スタカス",     twinsplash: "ツインスプ",
+  risingtide: "ライタイド",
+  /* ★★ 2026-09-01 ハノン（極彩祭）の新リンク1本＋サブリンク1本 */
+  celestdominance: "セレドミ",   goldenrebound: "ゴルリバ",
   /* ★★ 2026-08-29 極煌祭（レイナ）＋ 戦姫祭6体 の新リンク7本＋サブリンク2本。
      ★ ここに無いと「リンクスキルそのもの（fk:）」での絞り込みにも名前検索にも出てこない。 */
   voidbloom: "ヴォイブル",       noirrosary: "ノワロザ",
@@ -12448,6 +12568,15 @@ const FS_TYPE = {
   jewelcut: "ring",         /* 面が増えていく多角形 */
   sunriseveil: "all",       /* 下から上へ昇る帯 */
   jewelshower: "all",       /* 敵全体へ降る（サブ専用だが両方に置く） */
+  /* ★★ 2026-09-01 RISING STAR FEST */
+  tidalcrescendo: "all",    /* 寄せては返す波（どちらも敵全体） */
+  komorebiparasol: "all",   /* 段ごとに増える光点（敵全体） */
+  starlitcascade: "all",    /* 段ごとに倍に割れる星（敵全体） */
+  twinsplash: "all",        /* 交差する2本の水流（敵全体） */
+  risingtide: "wave",       /* 左右に往復する帯（サブ専用だが両方に置く） */
+  /* ★★ 2026-09-01 ハノン（極彩祭） */
+  celestdominance: "ring",  /* かさなっていく光の輪 */
+  goldenrebound: "all",     /* はねるたび敵全体（サブ専用だが両方に置く） */
   /* ★★ 2026-08-29 極煌祭（レイナ）＋ 戦姫祭6体 */
   voidbloom: "follow",      /* 敵から敵へ咲き移る */
   noirrosary: "laser",      /* 十字に伸びる（サブ専用だが両方に置く） */
@@ -12565,6 +12694,15 @@ const FS_TAGS = {
   jewelcut:        ["wide", "multi", "bounce"],
   sunriseveil:     ["wide", "multi", "long"],
   jewelshower:     ["wide", "multi"],
+  /* ★★ 2026-09-01 RISING STAR FEST */
+  tidalcrescendo:  ["wide", "multi"],
+  komorebiparasol: ["wide", "multi"],
+  starlitcascade:  ["wide", "multi"],
+  twinsplash:      ["wide", "multi", "pierce"],
+  risingtide:      ["wide", "multi", "long"],
+  /* ★★ 2026-09-01 ハノン（極彩祭） */
+  celestdominance: ["wide", "multi"],
+  goldenrebound:   ["wide", "multi", "bounce"],
   /* ★★ 2026-08-29 極煌祭（レイナ）＋ 戦姫祭6体 */
   voidbloom:       ["homing", "multi", "wide"],
   noirrosary:      ["pierce", "long", "multi"],
@@ -12749,6 +12887,13 @@ const SS_TAGS = {
   kotori: ["self", "barrage", "knock"],
   /* ★★ 2026-08-30 アンナ(祭)＋ GRAND DEBUT Ver.6.0 5体のフルバースト */
   annam: ["self", "barrage", "knock", "all"],
+  /* ★★ 2026-09-01 RISING STAR FEST の4体（どれも 自強化＋乱打＋全体＋おまけ） */
+  riona:   ["self", "barrage", "knock", "all", "debuff"],
+  mireir:  ["self", "barrage", "knock", "all", "support"],
+  suzuhar: ["self", "barrage", "knock", "all", "support"],
+  seirak:  ["self", "barrage", "knock", "all", "support"],
+  /* ★★ 2026-09-01 ハノン（極彩祭）＝ MagiBurst 史上最大の火力 */
+  hanon:   ["self", "barrage", "knock", "all"],
   chia: ["self", "all", "support"],
   risa: ["self", "all", "debuff"],
   rin: ["self", "all", "weak"],
@@ -12921,7 +13066,7 @@ function matchOne(k, c, id) {
     if (v === "full") return gk.length > 0 && gk.every(can);
     if (v === "ded")  return gk.length > 0 && gk.every(ded);
     if (v === "any")  return gk.some(can);
-    if (v === "adv") { const be = qFilterBossEl(stq); return be ? elemMult(c.el, be) > 1 : true; }
+    if (v === "adv") { const be = qFilterBossEl(stq); return be ? elemMultOf(c, be) > 1 : true; }
     return true;
   }
   if (t === "ab") {
@@ -13978,12 +14123,28 @@ window.openHelp = openHelp;
    オンライン・ロビー UI（黄昏の王城 マルチ）
    ══════════════════════════════════════════ */
 let ON = { mode: "create", stage: "tk1", charIds: [], room: null, msg: "" };
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-09-01 <b>いま使っている通信</b>（ご指定・ローカル通信マルチ）
+   ------------------------------------------------------------
+   ・オンライン（部屋番号）… window.BurstOnline（Firebase）
+   ・ローカル通信（近くの人）… window.BurstLocal（WebRTC・同じ Wi-Fi 内）
+   どちらも<b>名前も戻り値も同じ</b>にしてあるので、
+   画面側はこの1本で切り替えるだけでよい（分岐を散らさない）。
+   ★ ON.local が true のあいだだけ BurstLocal を使う。
+   ══════════════════════════════════════════════════════════════ */
+function NET() { return (ON && ON.local && window.BurstLocal) ? window.BurstLocal : window.BurstOnline; }
+window.NET = NET;
 function onOwned() { return CHAR_IDS.filter((id) => DB.chars[id]); }
 /* ★ マルチで遊べるクエスト（黄昏の王城＋禁忌の迷宮）。ser を渡すとその既定に合わせる */
 function onlineStages() { return STAGES.concat(LAB_STAGES, GARDEN_STAGES.filter((s) => !stageLocked(s))); }
 function openOnline(ser) {
-  if (isOffline()) { uiAlert("オフライン中は<b>マルチプレイ</b>はできません。オンラインに戻ってからお楽しみください。<br><br><small>※ ソロのクエストやガチャはオフラインでも遊べます</small>", { icon: "📴", title: "オフライン中" }); return; }
-  if (!window.BurstOnline) { uiAlert("オンライン機能を読み込めませんでした。<br>通信環境を確認してください。", { icon: "📡", title: "接続できません" }); return; }
+  /* ★★ 2026-09-01 オフラインでも<b>ローカル通信マルチ</b>は遊べる（ご指定）。
+     入口では止めず、いちばん上のタブで「近くの人と」を選べるようにしてある。
+     部屋番号のマルチ（オンライン）だけは、あとでボタンを押せなくする。 */
+  if (isOffline() && !window.BurstLocal) {
+    uiAlert("オフライン中は<b>マルチプレイ</b>はできません。オンラインに戻ってからお楽しみください。<br><br><small>※ ソロのクエストやガチャはオフラインでも遊べます</small>", { icon: "📴", title: "オフライン中" }); return;
+  }
+  if (!window.BurstOnline && !window.BurstLocal) { uiAlert("オンライン機能を読み込めませんでした。<br>通信環境を確認してください。", { icon: "📡", title: "接続できません" }); return; }
   /* ★ 2026-08-24 マルチも1プレイぶんのスタミナを使う。
      部屋が始まってからは止められないので、<b>入口で</b>足りないことを伝える。 */
   const _S = xstam();
@@ -14000,18 +14161,33 @@ function openOnline(ser) {
      ここで蓬莱の第一重を初期選択にする。ここを足さないと黄昏の王城に落ちる。 */
   if (ser === "hourai" && !/^hr/.test(st)) st = "hr1";
   if (!findStage(st) || stageLocked(findStage(st))) st = "tk1";
-  ON = { mode: "create", stage: st, charIds: keep.length ? keep : owned.slice(0, 2), room: null, msg: "" };
+  /* ★★ 2026-09-01 部屋づくり・部屋入りを<b>2段</b>にした（ご指定）。
+     step:"pick" … 部屋をつくる＝クエストをえらぶ／部屋に入る＝番号を入れる
+     step:"chars" … そのクエストの<b>ギミック・対応キャラ・クリア編成</b>を見ながらキャラをえらぶ */
+  ON = { mode: isOffline() ? "local" : "create", step: "pick", stage: st, joinCode: "", peeked: null,
+         /* ★★ 2026-09-01 ローカル通信（近くの人と・オフラインでも遊べる） */
+         local: isOffline(), lmode: "host", linvite: "", lanswer: "",
+         charIds: keep.length ? keep : owned.slice(0, 2), room: null, msg: "" };
   $("#onOv").classList.add("on");
   renderOnline();
 }
 window.openOnline = openOnline;
 function closeOnline() {
-  if (ON.room && window.BurstOnline) { try { BurstOnline.leave(); } catch (e) {} } try { if (window.XevaPresence) XevaPresence.leave(); } catch (e) {}
-  ON.room = null;
+  /* ★★ 2026-09-01 ローカル通信は「まだ部屋が届いていない」ことがある（合い言葉のやりとり中）。
+     ON.room が無くても、つないでいるものは必ず閉じる。 */
+  try { const N = NET(); if (N && N.inRoom && N.inRoom()) N.leave(); } catch (e) {}
+  try { if (window.XevaPresence) XevaPresence.leave(); } catch (e) {}
+  ON.room = null; ON.local = false; ON.linvite = ""; ON.lanswer = "";
   $("#onOv").classList.remove("on");
 }
 window.closeOnline = closeOnline;
-function onSetMode(m) { ON.mode = m; ON.msg = ""; renderOnline(); }
+function onSetMode(m) {
+  ON.mode = m; ON.step = "pick"; ON.msg = ""; ON.peeked = null;
+  /* ★★ 2026-09-01 「近くの人と」を選んだあいだだけ、通信が BurstLocal になる（NET()） */
+  ON.local = (m === "local");
+  ON.linvite = ""; ON.lanswer = "";
+  renderOnline();
+}
 window.onSetMode = onSetMode;
 /* キャラは最大2体まで選べる（人数によって使う数が決まる）。3体目を選ぶと最初の1体が外れる */
 function onPickChar(id) {
@@ -14026,6 +14202,244 @@ function onPickChar(id) {
 window.onPickChar = onPickChar;
 function onSetStage(v) { ON.stage = v; }
 window.onSetStage = onSetStage;
+/* ══ ★★ 2026-09-01 ①→② へ進む ══
+   ・部屋をつくる … えらんだクエストのまま次の画面へ
+   ・部屋に入る   … 先に部屋を<b>のぞいて</b>クエストを読み、それを次の画面で見せる
+     （入ってしまってからでは「どのクエストか見てからキャラを選ぶ」ができないため） */
+async function onNextStep() {
+  ON.msg = "";
+  /* ★★ 2026-09-01 ローカル通信の<b>ホスト</b>は「部屋をつくる」と同じ流れ
+     （クエストをえらんで、つぎの画面でキャラをえらぶ）。 */
+  if (ON.mode === "create" || (ON.mode === "local" && (ON.lmode === "host" || ON.lmode === "pass"))) {
+    if (!findStage(ON.stage)) { ON.msg = "クエストをえらんでください"; renderOnline(); return; }
+    /* ★ 蓬莱の後半6階層は、ホスト自身が条件を満たしていないと部屋を作れない（これまでと同じ） */
+    if (isTenkyuStage(ON.stage) && !houraiTenkyuOpen()) {
+      ON.msg = "蓬莱の後半6階層は、前半9階層（第一重〜第九重）で通算"
+        + HOURAI_BACK_NEED + "WAVE 到達してから挑戦できます（いま " + houraiWaveTotal() + "WAVE）";
+      renderOnline(); return;
+    }
+    ON.step = "chars"; renderOnline(); return;
+  }
+  const code = ($("#onCode") ? $("#onCode").value : "").trim();
+  if (!/^\d{4}$/.test(code)) { ON.msg = "4桁の部屋番号を入力してください"; renderOnline(); return; }
+  ON.joinCode = code;
+  ON.msg = "部屋をさがしています…"; renderOnline();
+  const r = (window.BurstOnline && BurstOnline.peek) ? await NET().peek(code) : { ok: true, stage: "" };
+  if (r && r.error) {
+    ON.msg = { nofound: "その部屋は見つかりません", full: "満員です（最大4人）",
+               started: "すでに開始しています", denied: "接続が拒否されました" }[r.error] || "参加できませんでした";
+    renderOnline(); return;
+  }
+  ON.peeked = r || null;
+  if (r && r.stage && findStage(r.stage)) ON.stage = r.stage;
+  ON.msg = ""; ON.step = "chars"; renderOnline();
+}
+window.onNextStep = onNextStep;
+function onBackStep() { ON.step = "pick"; ON.msg = ""; renderOnline(); }
+window.onBackStep = onBackStep;
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-09-01 ローカル通信マルチ（ご指定・オフラインでも近くの人と）
+   ------------------------------------------------------------
+   ブラウザには「近くの端末をさがす」しくみが無いので、
+   はじめの合い言葉だけ<b>人の手で渡して</b>つなぎます（3手）。
+     ① ホストが「まねきコード」を出す
+     ② ゲストが貼りつけて「へんじコード」を出す
+     ③ ホストが貼りつける → つながる
+   ★ 同じ Wi-Fi の中なら<b>インターネットが無くても</b>つながります。
+   ★ 3人め・4人めを入れるときは、ホストが①〜③をもう一度くり返します。
+   ══════════════════════════════════════════════════════════════ */
+function onSetLmode(m) {
+  ON.lmode = m; ON.msg = ""; ON.linvite = ""; ON.lanswer = "";
+  /* 1台でまわすときは、1人目から順に選び直す */
+  if (m === "pass") ON.pass = { n: (ON.pass && ON.pass.n) || 2, i: 0, picks: [] };
+  renderOnline();
+}
+window.onSetLmode = onSetLmode;
+function onPassN(n) { ON.pass = { n: n, i: 0, picks: [] }; ON.msg = ""; renderOnline(); }
+window.onPassN = onPassN;
+/* いま選んでいる人のキャラを控えて、つぎの人へ。最後の人まで来たら部屋をつくる */
+async function onPassNext() {
+  const ids = (ON.charIds || []).filter((id) => DB.chars[id]);
+  if (!ids.length) { ON.msg = "キャラクターを選んでください"; renderOnline(); return; }
+  const P = ON.pass || (ON.pass = { n: 2, i: 0, picks: [] });
+  P.picks[P.i] = ids.slice(0, 2);
+  if (P.i + 1 < P.n) {
+    P.i++;
+    /* つぎの人は「まだ使っていないキャラ」から選び直せるよう、選択をいったん空にする */
+    ON.charIds = [];
+    ON.msg = "";
+    renderOnline();
+    return;
+  }
+  /* 全員そろった → 1台ぶんの部屋をつくる */
+  if (isTenkyuStage(ON.stage) && !houraiTenkyuOpen()) {
+    ON.msg = "蓬莱の後半6階層は、前半9階層（第一重〜第九重）で通算"
+      + HOURAI_BACK_NEED + "WAVE 到達してから挑戦できます（いま " + houraiWaveTotal() + "WAVE）";
+    renderOnline(); return;
+  }
+  const base = onProfile();
+  const list = P.picks.map((cids, i) => {
+    const chars = cids.map((id) => {
+      const st = DB.chars[id] || { lv: 1, awk: 0 };
+      const fs = equippedFruits(id);
+      return { id, lv: st.lv, awk: st.awk || 0, fruit: fs[0] || "", fruits: fs,
+               emblem: ((emblemOfChar(id) || {}).fx || []).slice(), arc: arcSnapshot() };
+    });
+    return { uid: i === 0 ? (base.uid || "p0") : ("pass" + i),
+             name: i === 0 ? base.name : (i + 1) + "P",
+             chars, tenkyu: base.tenkyu, th: CHARS[cids[0]].th };
+  });
+  ON.local = true;
+  ON.msg = "はじめる準備をしています…"; renderOnline();
+  await BurstLocal.createPass(list, ON.stage);
+  watchRoom();
+  ON.msg = ""; renderOnline();
+}
+window.onPassNext = onPassNext;
+function onCopy(id) {
+  const el = $("#" + id); if (!el) return;
+  try { el.select(); el.setSelectionRange(0, 999999); } catch (e) {}
+  let ok = false;
+  try { ok = document.execCommand("copy"); } catch (e) {}
+  if (!ok && navigator.clipboard) { try { navigator.clipboard.writeText(el.value); ok = true; } catch (e) {} }
+  ON.msg = ok ? "コピーしました。相手に渡してください" : "コピーできませんでした。長押しで選んでコピーしてください";
+  const m = $("#onLmsg"); if (m) m.textContent = ON.msg;
+}
+window.onCopy = onCopy;
+/* ★★ 2026-09-01 貼りつけ。読み取りを許してもらえない端末もあるので、
+   だめだったときは<b>手で貼ってください</b>と伝えて、欄にカーソルを置くところまでやる。 */
+async function onPaste(id) {
+  const el = $("#" + id); if (!el) return;
+  let txt = "";
+  try { if (navigator.clipboard && navigator.clipboard.readText) txt = await navigator.clipboard.readText(); } catch (e) {}
+  if (txt && txt.trim()) {
+    el.value = txt.trim();
+    ON.msg = "貼りつけました";
+  } else {
+    el.focus();
+    ON.msg = "自動では貼れませんでした。欄を長押しして「ペースト」してください";
+  }
+  const m = $("#onLmsg"); if (m) m.textContent = ON.msg;
+}
+window.onPaste = onPaste;
+/* ゲスト: まねきコードを読んで、どのクエストか先に知る */
+async function onLocalPeek() {
+  const code = ($("#onLinv") ? $("#onLinv").value : "").trim();
+  if (!code) { ON.msg = "まねきコードを貼りつけてください"; renderOnline(); return; }
+  ON.msg = "まねきコードを読んでいます…"; renderOnline();
+  const r = await BurstLocal.peekInvite(code);
+  if (!r || r.error) { ON.msg = "まねきコードが読めませんでした（全部を貼れているか確かめてください）"; renderOnline(); return; }
+  ON.linvite = code;
+  if (r.stage && findStage(r.stage)) ON.stage = r.stage;
+  ON.msg = ""; ON.step = "chars"; renderOnline();
+}
+window.onLocalPeek = onLocalPeek;
+/* ホスト: 部屋をつくって、まねきコードを出す */
+async function onLocalHost() {
+  if (!ON.charIds.length) { ON.msg = "キャラクターを選んでください"; renderOnline(); return; }
+  if (isTenkyuStage(ON.stage) && !houraiTenkyuOpen()) {
+    ON.msg = "蓬莱の後半6階層は、前半9階層（第一重〜第九重）で通算"
+      + HOURAI_BACK_NEED + "WAVE 到達してから挑戦できます（いま " + houraiWaveTotal() + "WAVE）";
+    renderOnline(); return;
+  }
+  ON.local = true;
+  ON.msg = "部屋をつくっています…"; renderOnline();
+  await BurstLocal.create(onProfile(), ON.stage);
+  watchRoom();
+  const r = await BurstLocal.hostInvite();
+  ON.linvite = (r && r.code) || "";
+  ON.msg = r && r.error ? "まねきコードを作れませんでした" : "";
+  renderOnline();
+}
+window.onLocalHost = onLocalHost;
+/* ホスト: もう1人ぶんのまねきコードを出す */
+async function onLocalMore() {
+  ON.msg = "まねきコードを作っています…"; renderOnline();
+  const r = await BurstLocal.hostInvite();
+  if (r && r.error === "full") { ON.msg = "もう満員です（最大4人）"; renderOnline(); return; }
+  ON.linvite = (r && r.code) || ""; ON.lanswer = ""; ON.msg = "";
+  renderOnline();
+}
+window.onLocalMore = onLocalMore;
+/* ホスト: へんじコードを受け取ってつなぐ */
+async function onLocalAccept() {
+  const code = ($("#onLans") ? $("#onLans").value : "").trim();
+  if (!code) { ON.msg = "へんじコードを貼りつけてください"; renderOnline(); return; }
+  ON.msg = "つないでいます…"; renderOnline();
+  const r = await BurstLocal.hostAccept(code);
+  ON.msg = (r && r.error) ? "へんじコードが読めませんでした（全部を貼れているか確かめてください）"
+                          : "つながりました！ 相手が入るのを待っています…";
+  renderOnline();
+}
+window.onLocalAccept = onLocalAccept;
+/* ゲスト: 編成を決めて、へんじコードを出す */
+async function onLocalJoin() {
+  if (!ON.charIds.length) { ON.msg = "キャラクターを選んでください"; renderOnline(); return; }
+  ON.local = true;
+  ON.msg = "へんじコードを作っています…"; renderOnline();
+  watchRoom();
+  const r = await BurstLocal.guestAnswer(ON.linvite, onProfile());
+  if (!r || r.error) { ON.msg = "つなげませんでした（まねきコードをもう一度もらってください）"; renderOnline(); return; }
+  ON.lanswer = r.code || "";
+  ON.msg = "";
+  renderOnline();
+}
+window.onLocalJoin = onLocalJoin;
+/* 合い言葉の受けわたしの箱（ホスト／ゲストで中身がちがう） */
+function onLocalCodeHTML() {
+  if (ON.lmode === "host") {
+    return `
+      <div class="onlabel">① まねきコード（相手に渡す）</div>
+      <div class="mbcodewrap">
+        <textarea class="oninp mbcode" id="onLcode" readonly onclick="this.select()">${ON.linvite || ""}</textarea>
+        <span class="mbcodelen">${(ON.linvite || "").length} 文字</span>
+      </div>
+      <button class="onbtn sub" onclick="onCopy('onLcode')">📋 まねきコードをコピー</button>
+      <div class="onlabel" style="margin-top:10px">③ へんじコード（相手からもらう）</div>
+      <div class="mbcodewrap">
+        <textarea class="oninp mbcode" id="onLans" placeholder="相手の画面に出た『へんじコード』をここに貼りつけ"
+          autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false"></textarea>
+      </div>
+      <button class="onbtn sub" onclick="onPaste('onLans')">📥 貼りつける</button>
+      <button class="onbtn" onclick="onLocalAccept()">つなぐ</button>
+      <button class="onbtn sub" onclick="onLocalMore()">＋ もう1人ぶんのまねきコードを出す</button>`;
+  }
+  return `
+    <div class="onlabel">② へんじコード（ホストに渡す）</div>
+    <div class="mbcodewrap">
+      <textarea class="oninp mbcode" id="onLcode" readonly onclick="this.select()">${ON.lanswer || ""}</textarea>
+      <span class="mbcodelen">${(ON.lanswer || "").length} 文字</span>
+    </div>
+    <button class="onbtn sub" onclick="onCopy('onLcode')">📋 へんじコードをコピー</button>
+    <div class="onhint">ホストがこれを貼りつけると<b>つながります</b>。そのまま待っていてください。</div>`;
+}
+/* ══ ★★ 2026-09-01 ②の画面に出す「そのクエストの情報」（ご指定）══
+   ギミック・アンチ・報酬をその場に出し、
+   <b>🛡対応キャラ</b>と<b>🌍クリア編成</b>はボタンでいつもの画面をひらく
+   （どちらも #onOv より手前に出るので、マルチの画面を閉じずに見られる）。 */
+function onQuestInfoHTML() {
+  const s = findStage(ON.stage);
+  if (!s) return "";
+  const keys = (typeof gimListOf === "function") ? gimListOf(s) : [];
+  const chips = keys.length
+    ? keys.map((k) => {
+        const g = GIM_INFO[k] || { nm: k, c: "#9fb0d8" };
+        return `<span class="onqgim" style="--gc:${g.c}">${gimIconSVG(k, 18)}${g.nm}</span>`;
+      }).join("")
+    : '<span class="onqgim" style="--gc:#9fb0d8">ギミックなし</span>';
+  return `
+    <div class="onlabel">このクエスト</div>
+    <div class="onquest">
+      <div class="onqnm">${s.nm || ("第" + s.room + "の間")}${s.diff ? "（" + s.diff + "）" : ""}</div>
+      <div class="onqgims">${chips}</div>
+      ${questInfoHTML(s)}
+      <div class="onqbtns">
+        <button class="onbtn sub" onclick="openCounters('${s.id}')">🛡 対応キャラ</button>
+        <button class="onbtn sub" onclick="openLastClear('${s.id}')">🌍 クリア編成</button>
+        <button class="onbtn sub" onclick="openGimInfo('${s.id}')">🧩 ギミック詳細</button>
+      </div>
+    </div>`;
+}
 function onProfile() {
   const ids = (ON.charIds || []).filter((id) => DB.chars[id]);
   const chars = ids.map((id) => {
@@ -14069,7 +14483,7 @@ function tenkyuNgPlayers(room) {
 function onEditChars() {
   const room = ON.room; if (!room) return;
   /* いま自分がロビーで登録しているキャラを初期選択にする */
-  const me = room.players && room.players[BurstOnline.myUid()];
+  const me = room.players && room.players[NET().myUid()];
   const cur = (me && Array.isArray(me.chars) ? me.chars.map((c) => c.id) : []).filter((id) => DB.chars[id]);
   ON.editCharIds = cur.length ? cur.slice(0, 2) : (ON.charIds || []).slice(0, 2);
   ON.editing = true; ON.msg = "";
@@ -14091,7 +14505,7 @@ async function onEditApply() {
   /* ★ 2026-08-11 紋章と同じく、アークも持ちよる（相手のキャラには相手のアークが乗る） */
   const chars = ids.map((id) => { const st = DB.chars[id] || { lv: 1, awk: 0 }; const fs = equippedFruits(id); return { id, lv: st.lv, awk: st.awk || 0, fruit: fs[0] || "", fruits: fs, emblem: ((emblemOfChar(id) || {}).fx || []).slice(), arc: arcSnapshot() }; });
   ON.msg = "反映しています…"; renderOnline();
-  const r = await BurstOnline.updateChars(chars, CHARS[ids[0]].th);
+  const r = await NET().updateChars(chars, CHARS[ids[0]].th);
   if (r && r.error) { ON.msg = "反映できませんでした"; renderOnline(); return; }
   ON.charIds = ids.slice();      // 次に部屋を作る／連戦するときの初期値もそろえる
   ON.editing = false; ON.msg = "";
@@ -14110,7 +14524,7 @@ async function onCreate() {
     renderOnline(); return;
   }
   ON.msg = "部屋をつくっています…"; renderOnline();
-  const r = await BurstOnline.create(onProfile(), ON.stage);
+  const r = await NET().create(onProfile(), ON.stage);
   if (r.error) { ON.msg = r.error === "denied" ? "接続が拒否されました" : "部屋をつくれませんでした"; renderOnline(); return; }
   ON.msg = "";
   /* フレンドが番号なしで合流できるよう、いまの部屋を公開する */
@@ -14119,11 +14533,12 @@ async function onCreate() {
 }
 window.onCreate = onCreate;
 async function onJoin() {
-  const code = ($("#onCode") ? $("#onCode").value : "").trim();
+  /* ★★ 2026-09-01 番号は①の画面で入れてある（②にはもう入力欄が無い） */
+  const code = (ON.joinCode || ($("#onCode") ? $("#onCode").value : "")).trim();
   if (!/^\d{4}$/.test(code)) { ON.msg = "4桁の部屋番号を入力してください"; renderOnline(); return; }
   if (!ON.charIds.length) { ON.msg = "キャラクターを選んでください"; renderOnline(); return; }
   ON.msg = "参加しています…"; renderOnline();
-  const r = await BurstOnline.join(code, onProfile());
+  const r = await NET().join(code, onProfile());
   if (r.error) {
     ON.msg = { nofound: "その部屋は見つかりません", full: "満員です（最大4人）", started: "すでに開始しています", denied: "接続が拒否されました" }[r.error] || "参加できませんでした";
     renderOnline(); return;
@@ -14134,7 +14549,7 @@ async function onJoin() {
 }
 window.onJoin = onJoin;
 function watchRoom() {
-  BurstOnline.watch({
+  NET().watch({
     onRoom: (room) => {
       ON.room = room;
       /* ★ v13.6: バトル中に部屋が「ロビー」に戻ったら（連戦の準備）、全員ロビー画面へ帰る */
@@ -14159,7 +14574,7 @@ function watchRoom() {
     },
     onAbort: (room) => {
       if (!B || !B.online || B.over) return;
-      const byMe = room.meta.abortedBy === BurstOnline.myUid();
+      const byMe = room.meta.abortedBy === NET().myUid();
       if (byMe) return;            // 自分（ホスト）が中断した場合はすでに終了処理済み
       abortOnlineBattle("ホストとの接続が切れました");
     },
@@ -14218,7 +14633,7 @@ async function onStart() {
     renderOnline(); return;
   }
   ON.msg = "開始しています…"; renderOnline();
-  const r = await BurstOnline.start();
+  const r = await NET().start();
   if (r && r.error) {
     ON.msg = r.error === "few" ? "2人以上そろってから開始できます" : "開始できませんでした";
     renderOnline();
@@ -14240,7 +14655,7 @@ function onSortedPlayers(room) {
 }
 /* ★ ホストがロビーで「4体すべて」の手番を入れ替える（2人=2体ずつでも1体単位で並べ替えできる） */
 async function onMoveSlot(i, dir) {
-  if (!ON.room || !BurstOnline.isHost()) return;
+  if (!ON.room || !NET().isHost()) return;
   const players = onSortedPlayers(ON.room);
   const list = orderedSlotKeys(players, ON.room.meta && ON.room.meta.slots);
   const j = i + dir;
@@ -14250,7 +14665,7 @@ async function onMoveSlot(i, dir) {
   ON.room.meta = Object.assign({}, ON.room.meta, { slots: list });
   renderOnline();
   SFX.pick();
-  await BurstOnline.setSlots(list);
+  await NET().setSlots(list);
 }
 window.onMoveSlot = onMoveSlot;
 /* 4体ぶんの手番リスト（だれの何体目か＋キャラ）を組み立てる */
@@ -14262,7 +14677,7 @@ function slotRowsOf(room) {
     const pl = players[pi] || {};
     const cs = playerChars(pl);
     const src = cs[ci] || cs[0];
-    return { key: k, player: pl, ch: CHARS[src.id] || CHARS[STARTER_IDS[0]], lv: src.lv, awk: src.awk, mine: pl.uid === BurstOnline.myUid() };
+    return { key: k, player: pl, ch: CHARS[src.id] || CHARS[STARTER_IDS[0]], lv: src.lv, awk: src.awk, mine: pl.uid === NET().myUid() };
   });
 }
 /* オンラインのキャラ選択グリッド（絞り込み・並び替えに対応） */
@@ -14287,7 +14702,7 @@ function onCharGridHTML() {
 function renderOnlineChars() { const el = $("#onCharGrid"); if (el) el.innerHTML = onCharGridHTML(); }
 function renderOnline() {
   const owned = onOwned();
-  const inRoom = !!(ON.room && window.BurstOnline && BurstOnline.inRoom());
+  const inRoom = !!(ON.room && window.BurstOnline && NET().inRoom());
   const sel = ON.charIds || [];
   const charPicker = `
     <div class="onlabel">つかうキャラクター（最大2体）</div>
@@ -14295,43 +14710,151 @@ function renderOnline() {
     <div class="cfilter onfilter" id="onFilter"></div>
     <div class="onchars" id="onCharGrid">${onCharGridHTML()}</div>`;
   if (!inRoom) {
-    $("#onCard").innerHTML = `
+    /* ══ ★★ 2026-09-01 部屋づくり・部屋入りを<b>2段</b>にした（ご指定）══
+       ① 部屋をつくる → クエストをえらぶ ／ 部屋に入る → 番号を入れる
+       ② そのクエストの<b>ギミック・対応キャラ・クリア編成</b>を見ながらキャラをえらぶ → 出発
+       ★ 「入ってからキャラを選ぶ」ではなく「<b>選んでから入る</b>」ので、
+         入ったあとに編成し直して待たせることがなくなる。
+       ★ 部屋に入るほうは、②で情報を出すために <b>NET().peek()</b> で
+         クエストだけ先に読んでいる（入室はしない）。 */
+    const step2 = ON.step === "chars";
+    const head = `
       <h3>🌐 マルチプレイ</h3>
       <div class="onsub">部屋番号でつながって、最大4人で協力バトル！チーム4体を持ちよって、順番にショットします。<b>ホストは手番の順番を入れ替えられます。</b></div>
-      <div class="ontabs">
-        <button class="ontab ${ON.mode === "create" ? "on" : ""}" onclick="onSetMode('create')">部屋をつくる</button>
-        <button class="ontab ${ON.mode === "join" ? "on" : ""}" onclick="onSetMode('join')">部屋に入る</button>
-      </div>
-      ${ON.mode === "create" ? `
-        <div class="onlabel">クエスト</div>
-        <select class="onsel" onchange="onSetStage(this.value)">
-          <optgroup label="🏰 黄昏の王城">
-          ${STAGES.map((s) => `<option value="${s.id}" ${ON.stage === s.id ? "selected" : ""}>第${s.room}の間（${s.diff}）</option>`).join("")}
-          </optgroup>
-          <optgroup label="🌀 禁忌の迷宮">
-          ${LAB_STAGES.map((s) => `<option value="${s.id}" ${ON.stage === s.id ? "selected" : ""}>第${s.room}の間（${s.diff}）</option>`).join("")}
-          </optgroup>
-          <optgroup label="🌸 幽冥の庭園（超絶高難易度）">
-          ${GARDEN_STAGES.filter((s) => !stageLocked(s)).map((s) => `<option value="${s.id}" ${ON.stage === s.id ? "selected" : ""}>第${s.room}ノ園（${s.diff}）</option>`).join("")}
-          </optgroup>
-          ${/* ★★ 2026-08-24 蓬莱の九重（爆絶）もマルチで遊べるようにした（ご指定）。
-                ★ 蓬莱天宮（hr10）だけは<b>全員が挑戦条件を満たしていること</b>が要る。
-                  自分が満たしていないうちは、そもそも選択肢に出さない。 */""}
-          <optgroup label="🏯 蓬莱の九重（爆絶）">
-          ${HOURAI_STAGES.filter((s) => !stageLocked(s)).map((s) => `<option value="${s.id}" ${ON.stage === s.id ? "selected" : ""}>${s.nm}（${s.diff}）</option>`).join("")}
-          </optgroup>
-        </select>
-        ${ON.stage === "hr10" ? `<div class="onhint" style="color:#c8890f">🏯 <b>蓬莱天宮</b>は、<b>ホストをふくむ参加者全員</b>が挑戦条件（第一重〜第九重をすべてクリア）を満たしていないと出発できません。</div>` : ""}
-        ${charPicker}
-        <button class="onbtn" onclick="onCreate()">部屋をつくる</button>
-      ` : `
-        <div class="onlabel">部屋番号（4桁）</div>
-        <input class="oninp code" id="onCode" type="tel" maxlength="4" inputmode="numeric" placeholder="0000">
-        ${charPicker}
-        <button class="onbtn" onclick="onJoin()">この部屋に入る</button>
-      `}
-      <div class="onmsg">${ON.msg}</div>
-      <button class="onbtn sub" onclick="closeOnline()">とじる</button>`;
+      <div class="onsteps">
+        <span class="onstep ${step2 ? "" : "on"}">① ${ON.mode === "create" ? "クエスト"
+          : ON.mode === "local"
+            ? (ON.lmode === "host" ? "クエスト" : ON.lmode === "pass" ? "人数とクエスト" : "まねきコード")
+            : "部屋番号"}</span>
+        <span class="onstepar">›</span>
+        <span class="onstep ${step2 ? "on" : ""}">② ${ON.mode === "local" && ON.lmode === "pass"
+          ? (((ON.pass && ON.pass.i) | 0) + 1) + "人目のキャラ" : "キャラをえらぶ"}</span>
+      </div>`;
+    if (!step2) {
+      $("#onCard").innerHTML = head + `
+        <div class="ontabs">
+          <button class="ontab ${ON.mode === "create" ? "on" : ""}" onclick="onSetMode('create')">部屋をつくる</button>
+          <button class="ontab ${ON.mode === "join" ? "on" : ""}" onclick="onSetMode('join')">部屋に入る</button>
+          <button class="ontab ${ON.mode === "local" ? "on" : ""}" onclick="onSetMode('local')">📶 近くの人と</button>
+        </div>
+        ${ON.mode === "local" ? `
+          <div class="onhint">📶 <b>ローカル通信</b>＝<b>同じ Wi-Fi につながっていれば、インターネットが無くても</b>
+            近くの人と遊べます。はじめの<b>合い言葉</b>だけ、画面のコードをコピーして相手に渡してください。</div>
+          <details class="onloc">
+            <summary>❓ Wi-Fi が無い場所でも遊べますか？</summary>
+            <div class="onhint" style="margin-top:6px">
+              <b>遊べます。</b>やりかたは2つです。<br><br>
+              <b>① どちらかの端末で「インターネット共有（テザリング）」をオンにする</b><br>
+              もう一方をその Wi-Fi につなぐと、<b>電波（回線）が無くても</b>2台が同じネットワークになり、
+              このローカル通信でつながります。Wi-Fiルーターも通信量も要りません。<br><br>
+              <b>② 通信をまったく使わずに遊ぶ → 「📱 1台でまわす」</b><br>
+              1台を順番にわたしながら、2〜4人で同じバトルを遊びます。<br><br>
+              <small>※ Bluetooth では遊べません。ブラウザには「自分が相手役になって Bluetooth でつながる」
+              しくみが無く、アプリの側からはどうしても用意できないためです。</small>
+            </div>
+          </details>
+          <div class="ontabs" style="margin-top:8px">
+            <button class="ontab ${ON.lmode === "host" ? "on" : ""}" onclick="onSetLmode('host')">まねく</button>
+            <button class="ontab ${ON.lmode === "guest" ? "on" : ""}" onclick="onSetLmode('guest')">まねかれた</button>
+            <button class="ontab ${ON.lmode === "pass" ? "on" : ""}" onclick="onSetLmode('pass')">📱 1台でまわす</button>
+          </div>
+          ${ON.lmode === "pass" ? `
+            <div class="onhint">📱 <b>1台でまわして遊ぶ</b>＝<b>通信をまったく使いません</b>。
+              1台を順番にわたしながら、2〜4人で同じバトルを遊びます。<br>
+              人数を決めて、<b>1人ずつ</b>つかうキャラクターをえらんでください。</div>
+            <div class="onlabel" style="margin-top:8px">人数</div>
+            <div class="ontabs">
+              ${[2, 3, 4].map((n) => `<button class="ontab ${((ON.pass && ON.pass.n) || 2) === n ? "on" : ""}" onclick="onPassN(${n})">${n}人</button>`).join("")}
+            </div>
+            <div class="onlabel" style="margin-top:10px">クエスト</div>
+            <select class="onsel" onchange="onSetStage(this.value)">
+              <optgroup label="🏰 黄昏の王城">
+              ${STAGES.map((s) => `<option value="${s.id}" ${ON.stage === s.id ? "selected" : ""}>第${s.room}の間（${s.diff}）</option>`).join("")}
+              </optgroup>
+              <optgroup label="🌀 禁忌の迷宮">
+              ${LAB_STAGES.map((s) => `<option value="${s.id}" ${ON.stage === s.id ? "selected" : ""}>第${s.room}の間（${s.diff}）</option>`).join("")}
+              </optgroup>
+              <optgroup label="🌸 幽冥の庭園（超絶高難易度）">
+              ${GARDEN_STAGES.filter((s) => !stageLocked(s)).map((s) => `<option value="${s.id}" ${ON.stage === s.id ? "selected" : ""}>第${s.room}ノ園（${s.diff}）</option>`).join("")}
+              </optgroup>
+              <optgroup label="🏯 蓬莱の九重（爆絶）">
+              ${HOURAI_STAGES.filter((s) => !stageLocked(s)).map((s) => `<option value="${s.id}" ${ON.stage === s.id ? "selected" : ""}>${s.nm}（${s.diff}）</option>`).join("")}
+              </optgroup>
+            </select>
+            <button class="onbtn" onclick="onNextStep()">つぎへ（1人目のキャラをえらぶ）</button>
+          ` : ON.lmode === "host" ? `
+            <div class="onlabel">クエスト</div>
+            <select class="onsel" onchange="onSetStage(this.value)">
+              <optgroup label="🏰 黄昏の王城">
+              ${STAGES.map((s) => `<option value="${s.id}" ${ON.stage === s.id ? "selected" : ""}>第${s.room}の間（${s.diff}）</option>`).join("")}
+              </optgroup>
+              <optgroup label="🌀 禁忌の迷宮">
+              ${LAB_STAGES.map((s) => `<option value="${s.id}" ${ON.stage === s.id ? "selected" : ""}>第${s.room}の間（${s.diff}）</option>`).join("")}
+              </optgroup>
+              <optgroup label="🌸 幽冥の庭園（超絶高難易度）">
+              ${GARDEN_STAGES.filter((s) => !stageLocked(s)).map((s) => `<option value="${s.id}" ${ON.stage === s.id ? "selected" : ""}>第${s.room}ノ園（${s.diff}）</option>`).join("")}
+              </optgroup>
+              <optgroup label="🏯 蓬莱の九重（爆絶）">
+              ${HOURAI_STAGES.filter((s) => !stageLocked(s)).map((s) => `<option value="${s.id}" ${ON.stage === s.id ? "selected" : ""}>${s.nm}（${s.diff}）</option>`).join("")}
+              </optgroup>
+            </select>
+            <div class="onhint">つぎの画面で、このクエストの<b>ギミック・🛡対応キャラ・🌍クリア編成</b>を見ながらキャラをえらべます。</div>
+            <button class="onbtn" onclick="onNextStep()">つぎへ（キャラをえらぶ）</button>
+          ` : `
+            <div class="onlabel">① まねきコード（ホストからもらう）</div>
+            <div class="mbcodewrap">
+              <textarea class="oninp mbcode" id="onLinv" placeholder="ホストの画面に出た『まねきコード』をここに貼りつけ"
+                autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false">${ON.linvite || ""}</textarea>
+            </div>
+            <button class="onbtn sub" onclick="onPaste('onLinv')">📥 貼りつける</button>
+            <div class="onhint">貼りつけると、その部屋の<b>クエスト</b>が分かります。つぎの画面で見ながらキャラをえらべます。</div>
+            <button class="onbtn" onclick="onLocalPeek()">つぎへ（キャラをえらぶ）</button>
+          `}
+        ` : ON.mode === "create" ? `
+          <div class="onlabel">クエスト</div>
+          <select class="onsel" onchange="onSetStage(this.value)">
+            <optgroup label="🏰 黄昏の王城">
+            ${STAGES.map((s) => `<option value="${s.id}" ${ON.stage === s.id ? "selected" : ""}>第${s.room}の間（${s.diff}）</option>`).join("")}
+            </optgroup>
+            <optgroup label="🌀 禁忌の迷宮">
+            ${LAB_STAGES.map((s) => `<option value="${s.id}" ${ON.stage === s.id ? "selected" : ""}>第${s.room}の間（${s.diff}）</option>`).join("")}
+            </optgroup>
+            <optgroup label="🌸 幽冥の庭園（超絶高難易度）">
+            ${GARDEN_STAGES.filter((s) => !stageLocked(s)).map((s) => `<option value="${s.id}" ${ON.stage === s.id ? "selected" : ""}>第${s.room}ノ園（${s.diff}）</option>`).join("")}
+            </optgroup>
+            ${/* ★★ 2026-08-24 蓬莱の九重（爆絶）もマルチで遊べるようにした（ご指定）。 */""}
+            <optgroup label="🏯 蓬莱の九重（爆絶）">
+            ${HOURAI_STAGES.filter((s) => !stageLocked(s)).map((s) => `<option value="${s.id}" ${ON.stage === s.id ? "selected" : ""}>${s.nm}（${s.diff}）</option>`).join("")}
+            </optgroup>
+          </select>
+          ${isTenkyuStage(ON.stage) ? `<div class="onhint" style="color:#c8890f">🏯 <b>蓬莱の後半6階層</b>は、<b>ホストをふくむ参加者全員</b>が挑戦条件を満たしていないと出発できません。</div>` : ""}
+          <div class="onhint">つぎの画面で、このクエストの<b>ギミック・🛡対応キャラ・🌍クリア編成</b>を見ながらキャラをえらべます。</div>
+          <button class="onbtn" onclick="onNextStep()">つぎへ（キャラをえらぶ）</button>
+        ` : `
+          <div class="onlabel">部屋番号（4桁）</div>
+          <input class="oninp code" id="onCode" type="tel" maxlength="4" inputmode="numeric" placeholder="0000" value="${ON.joinCode || ""}">
+          <div class="onhint">番号を入れると、その部屋の<b>クエスト</b>が分かります。つぎの画面で<b>ギミック・🛡対応キャラ・🌍クリア編成</b>を見ながらキャラをえらべます。</div>
+          <button class="onbtn" onclick="onNextStep()">つぎへ（キャラをえらぶ）</button>
+        `}
+        <div class="onmsg">${ON.msg}</div>
+        <button class="onbtn sub" onclick="closeOnline()">とじる</button>`;
+      return;
+    }
+    /* ── ② キャラをえらぶ（クエストの情報つき） ── */
+    $("#onCard").innerHTML = head + `
+      ${ON.mode === "join" ? `<div class="onroomno">部屋番号 <b>${ON.joinCode || "----"}</b>${ON.peeked && ON.peeked.n ? `（いま ${ON.peeked.n} 人）` : ""}</div>` : ""}
+      ${onQuestInfoHTML()}
+      ${charPicker}
+      <div class="onmsg" id="onLmsg">${ON.msg}</div>
+      ${ON.mode === "local"
+        ? (ON.lmode === "pass"
+            ? `<div class="onhint">📱 <b>${((ON.pass && ON.pass.i) | 0) + 1}人目</b>のキャラクターをえらんでください（全 ${(ON.pass && ON.pass.n) || 2} 人）。</div>
+               <button class="onbtn" onclick="onPassNext()">${(((ON.pass && ON.pass.i) | 0) + 1) < ((ON.pass && ON.pass.n) || 2) ? "つぎの人へ" : "この編成ではじめる"}</button>`
+          : ON.lmode === "host"
+            ? `<button class="onbtn" onclick="onLocalHost()">この編成で部屋をつくる（まねきコードを出す）</button>`
+            : `<button class="onbtn" onclick="onLocalJoin()">この編成でつなぐ（へんじコードを出す）</button>`)
+        : `<button class="onbtn" onclick="${ON.mode === "create" ? "onCreate()" : "onJoin()"}">${ON.mode === "create" ? "この編成で部屋をつくる" : "この編成でこの部屋に入る"}</button>`}
+      <button class="onbtn sub" onclick="onBackStep()">もどる</button>`;
     /* 絞り込み・並び替えのUIを結びつける（オンラインのキャラ選択用） */
     paintFilterUI("online", $("#onFilter"));
     return;
@@ -14350,22 +14873,47 @@ function renderOnline() {
     paintFilterUI("online", $("#onFilter"));
     return;
   }
+  /* ── ★★ 2026-09-01 ローカル通信で、まだ部屋の中身が届いていないあいだ ──
+     ホストは「まねきコードを出したところ」、ゲストは「へんじコードを出したところ」。
+     ここで止まらないと、ON.room が無いのにロビーを描いて落ちる。 */
+  if (ON.local && !ON.room) {
+    $("#onCard").innerHTML = `
+      <h3>📶 ローカル通信マルチ</h3>
+      <div class="onsub">${ON.lmode === "host"
+        ? "下の<b>まねきコード</b>を相手に渡してください。相手の<b>へんじコード</b>を貼りつけるとつながります。"
+        : "下の<b>へんじコード</b>をホストに渡してください。ホストが貼りつけるとつながります。"}</div>
+      ${onLocalCodeHTML()}
+      <div class="onmsg" id="onLmsg">${ON.msg}</div>
+      <button class="onbtn sub" onclick="closeOnline()">やめる</button>`;
+    return;
+  }
   /* ロビー */
   const room = ON.room;
   const players = onSortedPlayers(room);
-  const isHost = BurstOnline.isHost();
+  const isHost = NET().isHost();
   const st = findStage(room.meta.stage);
   const counts = ballCounts(players.length);
   $("#onCard").innerHTML = `
-    <h3>🌐 部屋番号</h3>
-    <div class="oncode">${BurstOnline.code()}</div>
-    <div class="onsub">この番号を友だちに教えてね。<b>${st ? st.nm : ""}</b>（最大4人／現在 ${players.length}人）</div>
+    ${ON.local && room.meta && room.meta.pass ? `
+      <h3>📱 1台でまわして遊ぶ</h3>
+      <div class="onsub"><b>${st ? st.nm : ""}</b>（${players.length}人）——
+        <b>通信はつかいません</b>。手番が来た人に端末をわたしてください。</div>
+    ` : ON.local ? `
+      <h3>📶 ローカル通信マルチ</h3>
+      <div class="onsub"><b>${st ? st.nm : ""}</b>（最大4人／いま ${players.length}人）——
+        インターネットが無くても、同じ Wi-Fi の中でつながっています。</div>
+      ${isHost ? `<details class="onloc"><summary>📶 もう1人 まねく（合い言葉を出す）</summary>${onLocalCodeHTML()}</details>` : ""}
+    ` : `
+      <h3>🌐 部屋番号</h3>
+      <div class="oncode">${NET().code()}</div>
+      <div class="onsub">この番号を友だちに教えてね。<b>${st ? st.nm : ""}</b>（最大4人／現在 ${players.length}人）</div>
+    `}
     <div class="onplist">${players.map((p, i) => {
       const cs = playerChars(p);
       const n = counts[i] || 1;
       return `<div class="onp">
         <img src="${(CHARS[cs[0].id] || CHARS[STARTER_IDS[0]]).th}" alt="">
-        <div class="opn">${p.name}${p.uid === BurstOnline.myUid() ? "（あなた）" : ""}
+        <div class="opn">${p.name}${p.uid === NET().myUid() ? "（あなた）" : ""}
           <div class="opc">${cs.slice(0, n).map((c) => (CHARS[c.id] || {}).nm + "・Lv." + c.lv + (c.awk ? "・限界突破" + c.awk : "")).join(" ／ ")}<b class="opnb">${n}体</b></div></div>
         ${p.uid === room.meta.host ? '<span class="ophost">HOST</span>' : ""}
         ${/* ★ 2026-08-24 蓬莱天宮のときだけ、挑戦条件を満たしているかを1人ずつ出す */""}
@@ -14579,11 +15127,13 @@ function buildOnlineBattle(stage, seed, players, myUid, metaSlots) {
 function startOnlineBattle(stageId, seed, players, metaSlots) {
   const stage = findStage(stageId);
   if (!stage) return;
-  const myUid = (window.BurstOnline && BurstOnline.myUid()) || (ACC && ACC.xvUid);
+  const myUid = (window.BurstOnline && NET().myUid()) || (ACC && ACC.xvUid);
   /* ★ 2026-08-24 マルチも1プレイぶん。ここまで来ると部屋の全員が始まっているので、
      足りなくても止めずに<b>残っているぶんだけ</b>取る（入口の openOnline で先に案内している）。 */
   payStamina(true);
   B = buildOnlineBattle(stage, seed, players, myUid, metaSlots);
+  /* ★★ 2026-09-01 「1台でまわして遊ぶ」の印を、バトルにも渡す */
+  B.passPlay = !!(ON && ON.room && ON.room.meta && ON.room.meta.pass);
   spawnWave(0, true);
   const counts = ballCounts(players.length);
   $("#bStName").textContent = "🌐 " + stage.nm + "（" + players.length + "人・" + counts.join("+") + "体）";
@@ -14693,7 +15243,7 @@ function applySnapshot(s) {
   paintHp(); paintParty(); paintWave();
 }
 function pushHostSync() {
-  try { if (window.BurstOnline && BurstOnline.sendSync) BurstOnline.sendSync(snapshotBattle()); } catch (e) {}
+  try { if (window.BurstOnline && BurstOnline.sendSync) NET().sendSync(snapshotBattle()); } catch (e) {}
 }
 /* ゲスト: 受信済みのスナップショットのうち、いまの進行度に合うものを適用する */
 let _pendingSync = null;
@@ -15932,7 +16482,7 @@ function damageInfo(ball, e) {
   const parts = [], cond = [];
   const add = (nm, m) => { if (m && Math.abs(m - 1) > 0.001) parts.push({ nm, m }); };
   let mul = 1;
-  const em = elemMult(ball.ch.el, e.el);
+  const em = elemMultOf(ball.ch, e.el);   /* ★ 2026-09-01 二属性キャラ（el2）も見る */
   mul *= em; add(em > 1 ? "属性有利" : em < 1 ? "属性不利" : "属性等倍", em);
   const sm = ssMulOf(ball); mul *= sm; add("フルバースト体当たり", sm);
   mul *= ball.swordMul || 1; add("⚔剣", ball.swordMul || 1);
@@ -16114,6 +16664,34 @@ const FS_HIT = {
     extra: SUNV_STEP * (SUNV_BANDS * (SUNV_BANDS - 1) / 2) },
   jewelshower: { per: JSHOW_PER, n: JSHOW_MAX,
     nm: "降ってくる宝石のかけら（敵の数＋1・最大" + JSHOW_MAX + "発／敵全体）" },
+  /* ══ ★★ 2026-09-01 RISING STAR FEST の4本 ══
+     ★ ここに書き忘れると「!」ボタンの威力が 0 になる。 */
+  tidalcrescendo: { per: RTC_PUSH, n: RTC_N,
+    nm: "寄せ波 " + RTC_N + "回（敵全体）",
+    per2: RTC_PULL0, n2: RTC_N,
+    nm2: "引き波 " + RTC_N + "回（敵全体・もどるたびに +" + RTC_PULL_STEP + "）＋ 締め",
+    extra: RTC_PULL_STEP * (RTC_N * (RTC_N - 1) / 2) + RTC_FINALE },
+  komorebiparasol: { per: KPAR_PER, n: KPAR_STEPS * (KPAR_STEPS + 1) / 2,
+    nm: "木漏れ日の光点（1段目1つ → " + KPAR_STEPS + "段目" + KPAR_STEPS + "つ・敵全体）",
+    per2: KPAR_FINALE, n2: 1, nm2: "ひらききった瞬間（敵全体）" },
+  starlitcascade: { per: SCAS_PER, n: Math.pow(2, SCAS_STEPS) - 1,
+    nm: "段ごとに倍に割れる星（1 → " + Math.pow(2, SCAS_STEPS - 1) + "粒・敵全体）",
+    per2: SCAS_FINALE, n2: 1, nm2: "落ちきった瞬間（敵全体）" },
+  twinsplash: { per: TSPL_PER, n: TSPL_N,
+    nm: "2本の水流の交差 " + TSPL_N + "回（敵全体・交わるたびに +" + TSPL_STEP + "）",
+    per2: TSPL_FINALE, n2: 1, nm2: "締めの合流（敵全体）",
+    extra: TSPL_STEP * (TSPL_N * (TSPL_N - 1) / 2) },
+  risingtide: { per: RTIDE_PER, n: RTIDE_N,
+    nm: "左右に往復する潮の帯 " + RTIDE_N + "回（往復するたびに +" + RTIDE_STEP + "）",
+    extra: RTIDE_STEP * (RTIDE_N * (RTIDE_N - 1) / 2) },
+  /* ══ ★★ 2026-09-01 ハノン（極彩祭）＝ MagiBurst 最強のリンクスキル ══
+     ★ 1段目は1枚ぶん、n段目は n枚ぶん。合計は per × (1+2+…+n) ＋ finale。 */
+  celestdominance: { per: HDOM_PER, n: HDOM_STEPS * (HDOM_STEPS + 1) / 2,
+    nm: "かさなっていく光の輪（1段目 1枚 → " + HDOM_STEPS + "段目 " + HDOM_STEPS + "枚・敵全体）",
+    per2: HDOM_FINALE, n2: 1, nm2: "重なりきった瞬間（敵全体）" },
+  goldenrebound: { per: GREB_PER, n: GREB_N,
+    nm: "はね返る光のボール " + GREB_N + "回（敵全体・はねるたびに +" + GREB_STEP + "）",
+    extra: GREB_STEP * (GREB_N * (GREB_N - 1) / 2) },
   astralsovereign: { per: ANNA_PER, n: ANNA_TICKS,
     nm: "星図から降りそそぐ星 " + ANNA_TICKS + "回（敵全体・降るたびに +" + ANNA_STEP + "）",
     per2: ANNA_FINALE, n2: 1, nm2: "フィナーレの一降り（敵全体）",
@@ -16290,6 +16868,10 @@ const SUB_HIT = {
   /* ★★ 2026-08-30 ジュエル・シャワー（GRAND DEBUT Ver.6.0 の共通サブリンク）。
      ★ n は「敵が JSHOW_MAX-1 体いるときの最大発数」。実際は 敵の数＋1（最大 JSHOW_MAX）。 */
   jewelshower: { per: JSHOW_PER, n: JSHOW_MAX },
+  /* ★★ 2026-09-01 ライジング・タイド（RISING STAR FEST の共通サブリンク） */
+  risingtide: { per: RTIDE_PER, n: RTIDE_N },
+  /* ★★ 2026-09-01 ゴールデン・リバウンド（ハノンのサブリンク） */
+  goldenrebound: { per: GREB_PER, n: GREB_N },
   /* ★★ 2026-08-27 ウィークシギル（極彩祭・極煌祭の共通サブリンク）。
      ★ ここに書き忘れると「!」ボタンの威力が 0 になる。 */
   weaksigil: { per: WSIGIL_PER, n: 1 },
@@ -16371,7 +16953,7 @@ function linkInfo(ball, e, isSub) {
      ★ 2026-08-08b: 技ごとの1ヒット係数（hit.per）は base に混ぜず、
        ダメージ量を出すときだけ掛ける。最終倍率は<b>1倍を基準にした補正の合計</b>にしたいので、
        「拡散弾30発＝1発 ×0.22」のような技そのものの刻みを倍率に持ち込まない。 */
-  const em = elemMult(c.el, e.el); base *= em; add(em > 1 ? "属性有利" : em < 1 ? "属性不利" : "属性等倍", em);
+  const em = elemMultOf(c, e.el); base *= em; add(em > 1 ? "属性有利" : em < 1 ? "属性不利" : "属性等倍", em);
   const tags = [];
   const km = killerMul(ball, e, tags, true);   // ★ 殴り依存キラーは除外
   base *= km;
@@ -16801,6 +17383,10 @@ function cvPos(ev) {
 function ballOwner(b) { return b && b.owner != null ? b.owner : 0; }
 function canShoot() {
   if (!B || !B.online) return true;
+  /* ★★ 2026-09-01 1台でまわして遊ぶとき（おすそわけ）は、
+     全員がこの端末にいるので<b>だれの手番でも撃てる</b>。
+     だれの番かは手番のはじめに大きく出す（下の showBmsg）。 */
+  if (B.passPlay) return true;
   const own = ballOwner(B.balls[B.turn]);
   if (own === B.myIdx) return true;
   const p = B.players[own];
@@ -16834,7 +17420,7 @@ cv.addEventListener("pointerup", () => {
   if (B.online) {
     /* オンライン: 自分のショットを部屋に送り、キュー経由で全員が同じ手順で適用する */
     B.pending.push(shot);
-    if (window.BurstOnline) BurstOnline.sendShot(shot);
+    if (window.BurstOnline) NET().sendShot(shot);
   } else {
     doShot(shot);
   }
@@ -16906,7 +17492,8 @@ function doShot(s) {
     B.state = "aimshow";
     const own = ballOwner(ball);
     const pl = B.players && B.players[own];
-    if (own !== B.myIdx && pl) showBmsg("🎯 " + (pl.name || "?") + " のショット！", "#7cc4ff", 700);
+    if (B.passPlay && pl) showBmsg("👉 " + (pl.name || "?") + " の番です — 端末をわたしてください", "#ffd257", 1100);
+    else if (own !== B.myIdx && pl) showBmsg("🎯 " + (pl.name || "?") + " のショット！", "#7cc4ff", 700);
     return;
   }
   launchShot(ball, s.ux, s.uy, s.power);
@@ -16947,6 +17534,10 @@ function launchShot(ball, ux, uy, power) {
     /* ★★ 2026-08-30 アンナ(祭)＋ GRAND DEBUT Ver.6.0 5体（どれも自強化型） */
     || ssk === "annam" || ssk === "chia" || ssk === "risa" || ssk === "rin"
     || ssk === "minori" || ssk === "seika"
+    /* ★★ 2026-09-01 RISING STAR FEST 4体（どれも自強化型） */
+    || ssk === "riona" || ssk === "mireir" || ssk === "suzuhar" || ssk === "seirak"
+    /* ★★ 2026-09-01 ハノン（極彩祭・自強化型） */
+    || ssk === "hanon"
     /* ★ 2026-08-08 カエデ・リノン・アンジェ（ココロは ssKind が "soleria" なので上で拾う） */
     || ssk === "kaede" || ssk === "rinon" || ssk === "ange"
     || ssk === "sheril" || ssk === "fia" || ssk === "lysera" || ssk === "soleria" || ssk === "beltia" || ssk === "astera"
@@ -17767,6 +18358,87 @@ function applyNewSS(ball) {
     spawnSparks(ball.x, ball.y, "#ffd257", 60);
     B.shake = Math.max(B.shake, 28);
     flash("#ff9d2e");
+  } else if (k === "hanon") {
+    /* ══ ★★ 2026-09-01 ハノン（オーロラ・ブザービーター）＝ MagiBurst 史上最大の火力 ══
+       ・自強化（HANON_ATK / HANON_SPD）
+       ・<b>壁をすり抜けて反対側から出る</b>（stepBall の wrap に "hanon" を足してある）
+       ・<b>最初にふれた敵で停止</b>してドリブルの乱打 → ゴール → ブザービーター（hitEnemy 側）
+       ★ ここは発動の瞬間（コートに光が落ちる）まで。 */
+    ball.selfBuff = { atk: HANON_ATK, spd: HANON_SPD, left: 2 };
+    B.pops.push({ x: ball.x, y: ball.y - ball.r - 22, t: 0,
+      txt: "自強化＆壁すり抜け＆最初の敵で停止してドリブル" + HANON_DRIBBLE_N
+        + "連＆ゴール" + HANON_HOOP_N + "本＆ブザービーター!!",
+      c: "#ffe9a8", small: 0 });
+    B.effects.push({ type: "skydim", t: 0, dur: 52, a: 0.78, c: "#0b0a1e" });
+    for (let k2 = 0; k2 < 9; k2++) {
+      B.effects.push({ type: "ring", x: ball.x, y: ball.y, t: -k2 * 4, dur: 44,
+        r: 110 + k2 * 132, c: k2 % 2 ? "#ff9d2e" : "#ffe9a8" });
+    }
+    B.effects.push({ type: "pillar", x: ball.x, y: ball.y, t: 0, dur: 48, c: "#ffe9a8" });
+    B.effects.push({ type: "flashfx", t: 0, dur: 16 });
+    spawnSparks(ball.x, ball.y, "#ffd257", 70);
+    B.shake = Math.max(B.shake, 32);
+    flash("#ffd257");
+  } else if (k === "riona" || k === "mireir" || k === "suzuhar" || k === "seirak") {
+    /* ══ ★★ 2026-09-01 RISING STAR FEST の4体のフルバースト ══
+       4体とも「自強化 → 壁すり抜け → <b>最初にふれた敵で停止</b>して乱打 → 波 → 締め」。
+       乱打から先は hitEnemy 側（fireRisingStarFB）でやる。ここは発動の瞬間だけ。
+       ★ おまけの効果だけ1体ずつちがう。どれも<b>すでにある効果とまったく同じしくみ</b>を使う
+         （同じ効果には同じ名前が付く、という決まりに合わせるため）。 */
+    const cfgS = RSTAR_FB[k];
+    const bufS = { riona: [RIONA_ATK, RIONA_SPD], mireir: [MIREIR_ATK, MIREIR_SPD],
+                   suzuhar: [SUZUHAR_ATK, SUZUHAR_SPD], seirak: [SEIRAK_ATK, SEIRAK_SPD] }[k];
+    ball.selfBuff = { atk: bufS[0], spd: bufS[1], left: 2 };
+    let extraTx = "";
+    if (k === "riona") {
+      /* 敵全体の攻撃力ダウン（リサ「フローズン・レクイエム」と同じ・e.atkdown は {left,mul}） */
+      aliveEnemies().forEach((en) => {
+        if (!en || en.hp <= 0) return;
+        en.atkdown = { left: RIONA_ATKDOWN_TURNS, mul: RIONA_ATKDOWN_MUL };
+        B.effects.push({ type: "ring", x: en.x, y: en.y, t: 0, dur: 22, r: en.r * 2.6, c: cfgS.c2 });
+        B.pops.push({ x: en.x, y: en.y - en.r - 40, t: 0,
+          txt: "攻撃力 −" + Math.round((1 - RIONA_ATKDOWN_MUL) * 100) + "%（" + RIONA_ATKDOWN_TURNS + "T）",
+          c: cfgS.c2, small: 1 });
+      });
+      extraTx = "＆敵全体の攻撃力ダウン";
+    } else if (k === "mireir") {
+      /* 味方全員の攻撃力アップ（ミノリ「プリズム・ラプソディ」と同じ・selfBuff に合流） */
+      (B.balls || []).forEach((b) => {
+        if (!b || b === ball) return;
+        const cur = b.selfBuff || { atk: 1, spd: 1, left: 0 };
+        b.selfBuff = { atk: Math.max(cur.atk || 1, MIREIR_TEAM_ATK), spd: Math.max(cur.spd || 1, 1),
+                       left: Math.max(cur.left | 0, MIREIR_TEAM_TURNS) };
+        B.effects.push({ type: "ring", x: b.x, y: b.y, t: 0, dur: 20, r: b.r * 2.6, c: cfgS.c2 });
+      });
+      extraTx = "＆味方全員 攻撃力×" + MIREIR_TEAM_ATK + "（" + MIREIR_TEAM_TURNS + "T）";
+    } else if (k === "suzuhar") {
+      /* 敵全体に追加弱点（リン「ローズ・レクイエム」と同じ・e.sigil は {left}） */
+      aliveEnemies().forEach((en) => {
+        if (!en || en.hp <= 0) return;
+        en.sigil = { left: SUZUHAR_SIGIL_TURNS };
+        B.effects.push({ type: "pillar", x: en.x, y: en.y, t: 0, dur: 28, c: cfgS.c2 });
+        B.pops.push({ x: en.x, y: en.y - en.r - 40, t: 0,
+          txt: "弱点 +1（" + SUZUHAR_SIGIL_TURNS + "T）", c: cfgS.c2, small: 1 });
+      });
+      extraTx = "＆敵全体に追加弱点";
+    } else {
+      /* 味方全員にバリア（チア「ハートフル・ラプソディ」と同じ） */
+      (B.balls || []).forEach((b) => { if (b) b.barrier = Math.max(b.barrier || 0, SEIRAK_BARRIER); });
+      extraTx = "＆味方全員にバリア " + fmt(SEIRAK_BARRIER);
+    }
+    B.pops.push({ x: ball.x, y: ball.y - ball.r - 22, t: 0,
+      txt: "自強化＆壁すり抜け＆最初の敵で停止して乱打" + cfgS.n + "連＆波" + cfgS.wn + "発" + extraTx + "!!",
+      c: cfgS.c2, small: 0 });
+    B.effects.push({ type: "skydim", t: 0, dur: 44, a: 0.62, c: "#04102a" });
+    for (let k2 = 0; k2 < 7; k2++) {
+      B.effects.push({ type: "ring", x: ball.x, y: ball.y, t: -k2 * 4, dur: 38,
+        r: 120 + k2 * 126, c: k2 % 2 ? cfgS.c2 : cfgS.c });
+    }
+    B.effects.push({ type: "pillar", x: ball.x, y: ball.y, t: 0, dur: 42, c: cfgS.c2 });
+    B.effects.push({ type: "flashfx", t: 0, dur: 14 });
+    spawnSparks(ball.x, ball.y, cfgS.c, 54);
+    B.shake = Math.max(B.shake, 26);
+    flash(cfgS.c);
   } else if (k === "chia") {
     /* ★★ 2026-08-30 チア（ハートフル・ラプソディ）:
        自強化 ＋ 敵全体へ恋色の衝撃波 ＋ <b>味方全員に CHIA_BARRIER のバリア</b>。 */
@@ -18419,6 +19091,29 @@ function fireShotSkill(ball, ux, uy) {
     });
     B.pops.push({ x: ball.x, y: ball.y - ball.r - 30, t: 0,
       txt: "グレイル・シュート（味方全員にバリア " + fmt(SHOTSK_YUUKA_BAR) + "）", c: "#ffd257", small: 1 });
+    return;
+  }
+  if (k === "hoop") {
+    /* ★★ 2026-09-01 ハノン「フープ・シュート」:
+       <b>敵全体</b>に光の球（射程も範囲も関係ない）＋
+       <b>味方全員</b>のフルバーストが SHOTSK_HANON_FB ターン進む。
+       ★ ランタン・シュート（アンナ(祭)）は自分のぶんだけ。こちらは<b>チーム全員ぶん</b>。 */
+    aliveEnemies().forEach((en) => {
+      B.effects.push({ type: "ring", x: en.x, y: en.y, t: 0, dur: 16, r: SHOTSK_HANON_R, c: "#ffd257" });
+      B.effects.push({ type: "boltlink", x: en.x, y: en.y - 420, tx: en.x, ty: en.y, t: 0, dur: 10, c: "#ffe9a8" });
+      dealDamage(en, atk * SHOTSK_HANON_PER * elemMult(el, en.el), "#ffd257", true);
+      spawnSparks(en.x, en.y, "#ffe9a8", 6);
+    });
+    let up = 0;
+    (B.balls || []).forEach((b) => {
+      if (!b || !b.st) return;
+      const before = b.sc | 0;
+      b.sc = Math.min(before + SHOTSK_HANON_FB, fbMax(b.st));
+      if (b.sc > before) up++;
+    });
+    B.pops.push({ x: ball.x, y: ball.y - ball.r - 30, t: 0,
+      txt: "フープ・シュート" + (up ? "（味方" + up + "人のFB +" + SHOTSK_HANON_FB + "）" : ""),
+      c: "#ffd257", small: 1 });
     return;
   }
   if (k === "lantern") {
@@ -19502,7 +20197,12 @@ function stepBall(ball) {
     || ball.ch.ssKind === "seira" || ball.ch.ssKind === "kotori"
     || ball.ch.ssKind === "reina" || ball.ch.ssKind === "annas"
     /* ★★ 2026-08-30 アンナ(祭)（千華繚乱・スターマイン）も壁をすり抜ける */
-    || ball.ch.ssKind === "annam");
+    || ball.ch.ssKind === "annam"
+    /* ★★ 2026-09-01 RISING STAR FEST の4体（どれも「最初の敵で止まって乱打」型） */
+    || ball.ch.ssKind === "riona" || ball.ch.ssKind === "mireir"
+    || ball.ch.ssKind === "suzuhar" || ball.ch.ssKind === "seirak"
+    /* ★★ 2026-09-01 ハノン（オーロラ・ブザービーター）も壁をすり抜ける */
+    || ball.ch.ssKind === "hanon");
   for (let s = 0; s < steps; s++) {
     ball.x += ball.vx / steps; ball.y += ball.vy / steps;
     if (ball.warpCd > 0) ball.warpCd -= 1 / steps;
@@ -20270,7 +20970,7 @@ function weakPassHit(ball, e) {
   if (!e || e.hp <= 0) return;
   if (e.photonNeed && e.photonHit < e.photonNeed) return;   // エーテルシールドが割れていない敵には通らない
   const tags = ["弱点通過"];
-  let mul = elemMult(ball.ch.el, e.el) * ssMulOf(ball) * ball.swordMul
+  let mul = elemMultOf(ball.ch, e.el) * ssMulOf(ball) * ball.swordMul
     * (buffActive() ? B.buff.mul : 1) * (ballFruit(ball, "power") ? 1.15 : 1) * wallChangeMul();
   mul *= killerMul(ball, e, tags);
   if (auraActive(ball)) mul *= auraMulOf(ball);
@@ -20296,7 +20996,7 @@ function knockbackEnemy(ball, e) {
   /* カグヤは着地ダメージを強化。α版はさらに上（v15） */
   const landMul = ball.ch.ssKind === "kaguyaA" ? 3.0 : ball.ch.ssKind === "kaguya" ? 2.0 : 1.4;
   /* フルバースト派生の着地ダメージにもキラー系アビリティの倍率を反映する */
-  e.knock = { t: 0, dur: 30, dist: push, dmg: Math.round(ball.st.atk * atkMulOf(ball) * landMul * (push / 150) * elemMult(ball.ch.el, e.el) * killerMul(ball, e)) };
+  e.knock = { t: 0, dur: 30, dist: push, dmg: Math.round(ball.st.atk * atkMulOf(ball) * landMul * (push / 150) * elemMultOf(ball.ch, e.el) * killerMul(ball, e)) };
   e.hitFlash = 10;
   B.effects.push({ type: "gravity", x: e.x, y: e.y, r: e.r, t: 0, dur: 22, c: "#e9d8ff" });
   B.pops.push({ x: e.x, y: e.y - e.r - 24, t: 0, txt: "ふっとばし!", c: "#e9d8ff", small: 1 });
@@ -20378,9 +21078,9 @@ function hitEnemy(ball, e, col) {
     spawnSparks(ball.x, ball.y, "#fff1b8", 10);
     SFX.pick();
   }
-  let mul = elemMult(ball.ch.el, e.el) * ssMulOf(ball) * ball.swordMul * (buffActive() ? B.buff.mul : 1) * (ballFruit(ball, "power") ? 1.15 : 1);
+  let mul = elemMultOf(ball.ch, e.el) * ssMulOf(ball) * ball.swordMul * (buffActive() ? B.buff.mul : 1) * (ballFruit(ball, "power") ? 1.15 : 1);
   let tags = [];
-  if (elemMult(ball.ch.el, e.el) > 1) tags.push("WEAK");
+  if (elemMultOf(ball.ch, e.el) > 1) tags.push("WEAK");
   /* ウォールチェンジ: 壁の色でダメージが増減する（青＝入りづらい／赤以降＝多め） */
   if (wallChangeOn()) { mul *= wallChangeMul(); if (wallLv() >= 2) tags.push("ウォール" + WALLCHG[wallLv()].nm); }
   /* キラー系（属性/全属性/バイタル/毒/フェイタル/底力/防御変化）はリンクスキルと共通の計算 */
@@ -20438,7 +21138,7 @@ function hitEnemy(ball, e, col) {
       /* ★ v16 ソレリアフルバースト: 自強化中に弱点へ当てると、そのつど追加の大ダメージ。
          倍率ではなく<b>別枠の一撃</b>にしてあるので、弱点倍率アップなどと二重に掛からない。 */
       if (ball.ch.ssKind === "soleria" && ball.selfBuff && ball.selfBuff.left > 0) {
-        const extra = ball.st.atk * atkMulOf(ball) * SOLERIA_WEAK_MUL * elemMult(ball.ch.el, e.el);
+        const extra = ball.st.atk * atkMulOf(ball) * SOLERIA_WEAK_MUL * elemMultOf(ball.ch, e.el);
         B.effects.push({ type: "boom", x: e.x, y: e.y, t: 0, dur: 24, r: 190, c: "#ffb84d" });
         B.effects.push({ type: "ring", x: e.x, y: e.y, t: 0, dur: 18, r: e.r * 3, c: "#fff1b8" });
         B.effects.push({ type: "flashfx", t: 0, dur: 8 });
@@ -20818,6 +21518,18 @@ function hitEnemy(ball, e, col) {
         if (t3) knockbackEnemy(ball, t3);
       } });
   }
+  /* ══ ★★ 2026-09-01 ハノン（オーロラ・ブザービーター）══ */
+  if (B.ssArmed === ball.i && ball.ch.ssKind === "hanon" && !B.ssFirstDone) {
+    B.ssFirstDone = true;
+    fireHanonFB(ball, e);
+  }
+  /* ══ ★★ 2026-09-01 RISING STAR FEST の4体 ══
+     最初にふれた敵の上で止まり、乱打 → 波（敵全体・重くなる）→ 締め（敵全体）＋ふっとばし。
+     ★ 4体でちがうのは数字と色だけなので、RSTAR_FB の表を引いて1本の関数に渡す。 */
+  if (B.ssArmed === ball.i && RSTAR_FB[ball.ch.ssKind] && !B.ssFirstDone) {
+    B.ssFirstDone = true;
+    fireRisingStarFB(ball, e, RSTAR_FB[ball.ch.ssKind]);
+  }
   /* ══ ★★ 2026-08-30 アンナ(祭)（千華繚乱・スターマイン）＝ MagiBurst 史上最強 ══
      最初にふれた敵の上で止まり、灯火の乱打 → <b>スターマイン</b>（夜空へ花火が
      ANNAM_STARMINE_N 発つづけて上がり、開くたびに敵全体へ・1発ごとに重くなる）
@@ -21077,7 +21789,7 @@ function fxBarrage(ball, e, n, per, col) {
   SFX.barrage();
   const c = col || "#dff2ff";
   /* パワーオーラ／バフFB／キラーは dealDamage 側（DMG_SRC）で一括して重ね掛けされる */
-  const each = ball.st.atk * (per || 0.5) * elemMult(ball.ch.el, e.el);
+  const each = ball.st.atk * (per || 0.5) * elemMultOf(ball.ch, e.el);
   B.effects.push({ type: "barrageflash", x: e.x, y: e.y, r: e.r, t: 0, dur: 14, c });
   withDmgSrc(ball, () => {
     for (let i = 0; i < n; i++) {
@@ -24768,6 +25480,54 @@ function fireFriendMain(owner, atk, mover, kindOverride) {
       B.pops.push({ x: owner.x, y: owner.y - owner.r - 24, t: 0, txt: "ジュエル・カット!!", c: col, small: 1 });
       break;
     }
+    /* ══ ★★ 2026-09-01 RISING STAR FEST の4本 ══
+       4本とも「段ごとに敵全体へ入る」形。ちがうのは<b>段のならべかた</b>だけなので、
+       動かす部分は fireRisingLink() 1本にまとめ、ここでは<b>段の表</b>だけを作る。
+       ★ こうしておくと FS_HIT に書いた合計と、実際に入るダメージがずれない。 */
+    case "tidalcrescendo": {
+      /* リオナ「タイダル・クレッシェンド」＝ 寄せ波（一定）→ 引き波（もどるほど重い） */
+      const rounds = [];
+      for (let i = 0; i < RTC_N; i++) rounds.push({ hits: 1, per: RTC_PUSH, back: 0 });
+      for (let i = 0; i < RTC_N; i++) rounds.push({ hits: 1, per: RTC_PULL0 + RTC_PULL_STEP * i, back: 1 });
+      fireRisingLink(owner, atk, { rounds, gap: RTC_GAP, finale: RTC_FINALE,
+        c2: "#bfe6ff", nm: "タイダル・クレッシェンド", tx: "TIDAL CRESCENDO!!" });
+      break;
+    }
+    case "komorebiparasol": {
+      /* ミレイ「コモレビ・パラソル」＝ 段ごとに光点が1つずつ増える */
+      const rounds = [];
+      for (let i = 0; i < KPAR_STEPS; i++) rounds.push({ hits: i + 1, per: KPAR_PER });
+      fireRisingLink(owner, atk, { rounds, gap: KPAR_GAP, finale: KPAR_FINALE,
+        c2: "#d8ffe4", nm: "コモレビ・パラソル", tx: "KOMOREBI PARASOL!!", umbrella: KPAR_R });
+      break;
+    }
+    case "starlitcascade": {
+      /* スズハ「スターリット・カスケード」＝ 段を降りるたびに星が割れて倍になる */
+      const rounds = [];
+      for (let i = 0; i < SCAS_STEPS; i++) rounds.push({ hits: Math.pow(2, i), per: SCAS_PER });
+      fireRisingLink(owner, atk, { rounds, gap: SCAS_GAP, finale: SCAS_FINALE,
+        c2: "#fff1b8", nm: "スターリット・カスケード", tx: "STARLIT CASCADE!!" });
+      break;
+    }
+    case "twinsplash": {
+      /* セイラ＆カナヅキ「ツインスプラッシュ」＝ 交わるたびに重くなる2本の水流 */
+      const rounds = [];
+      for (let i = 0; i < TSPL_N; i++) rounds.push({ hits: 1, per: TSPL_PER + TSPL_STEP * i, cross: 1 });
+      fireRisingLink(owner, atk, { rounds, gap: TSPL_GAP, finale: TSPL_FINALE,
+        c2: "#ffd7e6", nm: "ツインスプラッシュ", tx: "TWIN SPLASH!!" });
+      break;
+    }
+    case "celestdominance": {
+      /* ★★ 2026-09-01 ハノン「セレスト・ドミナンス」＝ MagiBurst 最強のリンクスキル。
+         1段ごとに輪が1枚ずつかさなり、<b>重なった枚数がそのまま倍率</b>になる。
+         ★ 動かすところは RISING STAR FEST と同じ fireRisingLink を使う
+           （段の表を渡すだけ＝合計が FS_HIT とずれない）。 */
+      const rounds = [];
+      for (let i = 0; i < HDOM_STEPS; i++) rounds.push({ hits: i + 1, per: HDOM_PER });
+      fireRisingLink(owner, atk, { rounds, gap: HDOM_GAP, finale: HDOM_FINALE,
+        c2: "#ffe9a8", nm: "セレスト・ドミナンス", tx: "CELEST DOMINANCE!!", umbrella: 320 });
+      break;
+    }
     case "sunriseveil": {
       /* ══ ★★ 2026-08-30 セイカ「サンライズ・ヴェール」══
          夜明けの帯が<b>画面の下から上へ</b>昇り、通った敵を削る。
@@ -25508,6 +26268,268 @@ function fireJewelShower(owner, atk) {
   B.pops.push({ x: owner.x, y: owner.y - owner.r - 24, t: 0,
     txt: "ジュエル・シャワー（" + n + "発）", c: col, small: 1 });
 }
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-09-01 RISING STAR FEST — リンクスキル4本の共通の動かしかた
+   ------------------------------------------------------------
+   4本とも「段（round）を順に進め、1段ごとに<b>敵全体</b>へ入る」形。
+   ちがうのは<b>段のならべかた</b>だけなので、そこだけ呼ぶ側から渡す。
+     rounds … [{ hits: その段で入る回数, per: 1回ぶんの倍率 }, …]
+   ★ 段をぜんぶ出しきったら finale（敵全体）で締める。
+   ★ FS_HIT に書く合計は  Σ(hits × per) + finale  とそろえること。
+   ★ 属性は elemMultOf（二属性キャラも見る）で乗せる。
+   ══════════════════════════════════════════════════════════════ */
+function fireRisingLink(owner, atk, cfg) {
+  const col = ELEM[owner.ch.el].c;
+  const rounds = cfg.rounds || [];
+  const gap = cfg.gap || 8;
+  if (cfg.umbrella) {
+    /* 日傘の骨（見た目だけ） */
+    for (let q = 0; q < 6; q++) {
+      B.effects.push({ type: "ring", x: owner.x, y: owner.y, t: -q * 2, dur: 26,
+        r: cfg.umbrella * (0.35 + q * 0.13), c: q % 2 ? cfg.c2 : col });
+    }
+  }
+  B.effects.push({ type: "fxctl", x: owner.x, y: owner.y, t: 0,
+    dur: gap * (rounds.length + 3) + 44, k: 0, fin: 0, owner,
+    tick(fx) {
+      if (fx.t % gap !== 0) return;
+      if (fx.k < rounds.length) {
+        const i = fx.k; fx.k++;
+        const r = rounds[i];
+        /* ── 見た目：段の性格ごとに走らせる線をかえる ── */
+        if (r.cross) {
+          /* 交差する2本の水流 */
+          B.effects.push({ type: "boltlink", x: 0, y: 0, tx: W, ty: H, t: 0, dur: 10, c: col });
+          B.effects.push({ type: "boltlink", x: W, y: 0, tx: 0, ty: H, t: 0, dur: 10, c: cfg.c2 });
+        } else if (r.back != null) {
+          /* 寄せ波（右へ）と引き波（左へ） */
+          const y0 = H * 0.5;
+          B.effects.push({ type: "boltlink", x: r.back ? W : 0, y: y0, tx: r.back ? 0 : W, ty: y0,
+            t: 0, dur: 10, c: r.back ? cfg.c2 : col });
+        } else {
+          /* 上から落ちてくる（光点・星） */
+          for (let h = 0; h < Math.min(8, r.hits); h++) {
+            const px = W * ((h + 0.5) / Math.min(8, r.hits));
+            B.effects.push({ type: "boltlink", x: px, y: -40, tx: px, ty: H * 0.45, t: 0, dur: 9, c: cfg.c2 });
+          }
+        }
+        withDmgSrc(fx.owner, () => {
+          aliveEnemies().forEach((e) => {
+            B.effects.push({ type: "boom", x: e.x, y: e.y, t: 0, dur: 18,
+              r: 140 + i * 14, c: i % 2 ? cfg.c2 : col });
+            for (let h = 0; h < r.hits; h++) {
+              dealDamage(e, atk * r.per * elemMultOf(fx.owner.ch, e.el), col, true);
+            }
+            spawnSparks(e.x, e.y, cfg.c2, 5 + Math.min(10, r.hits));
+          });
+        });
+        B.shake = Math.max(B.shake, 5 + Math.min(8, i)); SFX.hit();
+        return;
+      }
+      if (fx.fin) return;
+      fx.fin = 1;
+      B.effects.push({ type: "flashfx", t: 0, dur: 16 });
+      for (let q = 0; q < 6; q++) {
+        B.effects.push({ type: "ring", x: W / 2, y: H / 2, t: -q * 3, dur: 32,
+          r: 130 + q * 160, c: q % 2 ? "#ffffff" : col });
+      }
+      withDmgSrc(fx.owner, () => {
+        aliveEnemies().forEach((e) => {
+          B.effects.push({ type: "pillar", x: e.x, y: e.y, t: 0, dur: 30, c: cfg.c2 });
+          dealDamage(e, atk * cfg.finale * elemMultOf(fx.owner.ch, e.el), col, true);
+          spawnSparks(e.x, e.y, "#ffffff", 16);
+        });
+      });
+      B.pops.push({ x: W / 2, y: 130, t: 0, txt: cfg.tx, c: cfg.c2, small: 0 });
+      B.shake = Math.max(B.shake, 20); SFX.crit();
+      fx.t = fx.dur;
+    } });
+  B.pops.push({ x: owner.x, y: owner.y - owner.r - 24, t: 0, txt: cfg.nm + "!!", c: col, small: 1 });
+}
+/* ══ ★★ 2026-09-01 ライジング・タイド（RISING STAR FEST の共通サブリンク）══
+   潮の帯が<b>左右に往復</b>しながら満ちていく。往復するたびに1回ぶんが重くなる。
+   ★ 威力は SUB_HIT.risingtide と必ずそろえること。 */
+function fireRisingTide(owner, atk) {
+  const col = ELEM[owner.ch.el].c;
+  B.effects.push({ type: "fxctl", x: owner.x, y: owner.y, t: 0,
+    dur: RTIDE_GAP * (RTIDE_N + 2) + 24, k: 0, owner,
+    tick(fx) {
+      if (fx.t % RTIDE_GAP !== 0 || fx.k >= RTIDE_N) return;
+      const i = fx.k; fx.k++;
+      const per = RTIDE_PER + RTIDE_STEP * i;
+      const toRight = i % 2 === 0;                 /* 奇数回は<b>もどり</b> */
+      const y0 = H * 0.5;
+      B.effects.push({ type: "boltlink", x: toRight ? 0 : W, y: y0,
+        tx: toRight ? W : 0, ty: y0, t: 0, dur: 10, c: i % 2 ? "#bfe6ff" : col });
+      withDmgSrc(fx.owner, () => {
+        aliveEnemies().forEach((e) => {
+          B.effects.push({ type: "boom", x: e.x, y: e.y, t: 0, dur: 16, r: RTIDE_W * 0.6, c: col });
+          dealDamage(e, atk * per * elemMultOf(fx.owner.ch, e.el), col, true);
+          spawnSparks(e.x, e.y, "#bfe6ff", 5);
+        });
+      });
+      B.shake = Math.max(B.shake, 4 + i); SFX.hit();
+    } });
+  B.pops.push({ x: owner.x, y: owner.y - owner.r - 24, t: 0,
+    txt: "ライジング・タイド（" + RTIDE_N + "往復）", c: col, small: 1 });
+}
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-09-01 RISING STAR FEST — フルバーストの共通の締め
+   ------------------------------------------------------------
+   4体とも「最初にふれた敵で止まる → 乱打 → 波（敵全体・重くなる）→ 締め（敵全体）」。
+   ★ 呼ぶのは hitEnemy の中（B.ssArmed のとき1回だけ）。
+   ★ 乱打が終わってから波が始まるように startAt をずらす。
+   ══════════════════════════════════════════════════════════════ */
+const RSTAR_FB = {
+  riona: { n: RIONA_BARRAGE_N, per: RIONA_BARRAGE_PER, wn: RIONA_WAVE_N,
+    wper: RIONA_WAVE_PER, wstep: RIONA_WAVE_STEP, fin: RIONA_FINALE,
+    c: "#38a6ff", c2: "#bfe6ff", tx: "OCEAN OVERTURE!!", tx2: "TIDAL FINALE!!" },
+  mireir: { n: MIREIR_BARRAGE_N, per: MIREIR_BARRAGE_PER, wn: MIREIR_WAVE_N,
+    wper: MIREIR_WAVE_PER, wstep: MIREIR_WAVE_STEP, fin: MIREIR_FINALE,
+    c: "#8affc4", c2: "#d8ffe4", tx: "SUMMER SHADE!!", tx2: "RONDO FINALE!!" },
+  suzuhar: { n: SUZUHAR_BARRAGE_N, per: SUZUHAR_BARRAGE_PER, wn: SUZUHAR_WAVE_N,
+    wper: SUZUHAR_WAVE_PER, wstep: SUZUHAR_WAVE_STEP, fin: SUZUHAR_FINALE,
+    c: "#ffe9a8", c2: "#fff1b8", tx: "STARLIT RESONANCE!!", tx2: "STAR FINALE!!" },
+  seirak: { n: SEIRAK_BARRAGE_N, per: SEIRAK_BARRAGE_PER, wn: SEIRAK_WAVE_N,
+    wper: SEIRAK_WAVE_PER, wstep: SEIRAK_WAVE_STEP, fin: SEIRAK_FINALE,
+    c: "#c9a6ff", c2: "#ffd7e6", tx: "DOUBLE SPLASH!!", tx2: "SPLASH FINALE!!" },
+};
+function fireRisingStarFB(ball, e, cfg) {
+  barrageHalt(ball);
+  fxBarrage(ball, e, cfg.n, cfg.per, cfg.c2);
+  luxBurst(e.x, e.y, cfg.c);
+  B.pops.push({ x: e.x, y: e.y - e.r - 60, t: 0, txt: cfg.tx, c: cfg.c2, small: 0 });
+  const gap = 11, startAt = cfg.n * 2 + 8, tid = e.id;
+  B.effects.push({ type: "fxctl", t: 0, dur: startAt + gap * (cfg.wn + 3) + 44, k: 0, fin: 0,
+    tick(fx) {
+      if (fx.t < startAt || (fx.t - startAt) % gap !== 0) return;
+      if (fx.k < cfg.wn) {
+        const i = fx.k; fx.k++;
+        const per = cfg.wper + cfg.wstep * i;
+        for (let q = 0; q < 4; q++) {
+          B.effects.push({ type: "ring", x: W / 2, y: H * 0.42, t: -q * 3, dur: 26,
+            r: 110 + q * (120 + i * 16), c: q % 2 ? "#ffffff" : cfg.c });
+        }
+        withDmgSrc(ball, () => {
+          aliveEnemies().forEach((o) => {
+            B.effects.push({ type: "boom", x: o.x, y: o.y, t: 0, dur: 22, r: 190, c: cfg.c });
+            dealDamage(o, ball.st.atk * atkMulOf(ball) * per * elemMultOf(ball.ch, o.el), cfg.c, true);
+            spawnSparks(o.x, o.y, cfg.c2, 8);
+          });
+        });
+        B.shake = Math.max(B.shake, 9 + i * 2); SFX.crit();
+        return;
+      }
+      if (fx.fin) return;
+      fx.fin = 1;
+      B.effects.push({ type: "flashfx", t: 0, dur: 18 });
+      for (let q = 0; q < 9; q++) {
+        B.effects.push({ type: "ring", x: W / 2, y: H * 0.38, t: -q * 3, dur: 40,
+          r: 120 + q * 165, c: q % 2 ? "#ffffff" : cfg.c });
+      }
+      B.effects.push({ type: "pillar", x: W / 2, y: H * 0.38, t: 0, dur: 42, c: cfg.c2 });
+      withDmgSrc(ball, () => {
+        aliveEnemies().forEach((o) => {
+          B.effects.push({ type: "boom", x: o.x, y: o.y, t: 0, dur: 34, r: 300, c: cfg.c });
+          B.effects.push({ type: "pillar", x: o.x, y: o.y, t: 0, dur: 32, c: cfg.c2 });
+          dealDamage(o, ball.st.atk * atkMulOf(ball) * cfg.fin * elemMultOf(ball.ch, o.el), cfg.c, true);
+          spawnSparks(o.x, o.y, "#ffffff", 26);
+        });
+      });
+      B.pops.push({ x: W / 2, y: H * 0.30, t: 0, txt: cfg.tx2, c: cfg.c2, small: 0 });
+      B.shake = Math.max(B.shake, 32); SFX.crit();
+      const t3 = B.enemies.find((x) => x.id === tid && x.hp > 0);
+      if (t3) knockbackEnemy(ball, t3);
+    } });
+}
+/* ══ ★★ 2026-09-01 ゴールデン・リバウンド（ハノンのサブリンク）══
+   光のボールがリングに当たってはね返り、はねるたびに<b>敵全体</b>へ。はねるほど重くなる。
+   ★ 威力は SUB_HIT.goldenrebound と必ずそろえること。 */
+function fireGoldenRebound(owner, atk) {
+  const col = "#ffd257";
+  B.effects.push({ type: "fxctl", x: owner.x, y: owner.y, t: 0,
+    dur: GREB_GAP * (GREB_N + 2) + 24, k: 0, owner,
+    tick(fx) {
+      if (fx.t % GREB_GAP !== 0 || fx.k >= GREB_N) return;
+      const i = fx.k; fx.k++;
+      const per = GREB_PER + GREB_STEP * i;
+      const bx = W * (0.2 + 0.6 * ((i + 0.5) / GREB_N)), by = H * 0.22;
+      B.effects.push({ type: "ring", x: bx, y: by, t: 0, dur: 18, r: 90 + i * 22, c: col });
+      withDmgSrc(fx.owner, () => {
+        aliveEnemies().forEach((e) => {
+          B.effects.push({ type: "boom", x: e.x, y: e.y, t: 0, dur: 18, r: 150 + i * 18, c: col });
+          dealDamage(e, atk * per * elemMultOf(fx.owner.ch, e.el), col, true);
+          spawnSparks(e.x, e.y, "#ffe9a8", 6);
+        });
+      });
+      B.shake = Math.max(B.shake, 5 + i * 2); SFX.hit();
+    } });
+  B.pops.push({ x: owner.x, y: owner.y - owner.r - 24, t: 0,
+    txt: "ゴールデン・リバウンド（" + GREB_N + "回）", c: col, small: 1 });
+}
+/* ══ ★★ 2026-09-01 ハノン（オーロラ・ブザービーター）＝ MagiBurst 史上最大の火力 ══
+   最初にふれた敵の上で止まり、ドリブルの乱打 → ゴール HANON_HOOP_N 本（敵全体・決めるたびに
+   重くなる）→ <b>ブザービーター</b>（敵全体）＋ふっとばし、の3段で締める。
+   ★ 呼ぶのは hitEnemy の中（B.ssArmed のとき1回だけ）。 */
+function fireHanonFB(ball, e) {
+  barrageHalt(ball);
+  fxBarrage(ball, e, HANON_DRIBBLE_N, HANON_DRIBBLE_PER, "#ffd257");
+  luxBurst(e.x, e.y, "#ff9d2e");
+  B.effects.push({ type: "skydim", t: 0,
+    dur: HANON_DRIBBLE_N * 2 + HANON_HOOP_GAP * (HANON_HOOP_N + 2) + 40, a: 0.7, c: "#0b0a1e" });
+  B.pops.push({ x: e.x, y: e.y - e.r - 60, t: 0, txt: "AURORA BUZZER BEATER!!", c: "#ffe9a8", small: 0 });
+  const startAt = HANON_DRIBBLE_N * 2 + 8, tid = e.id;
+  const cols = ["#ffd257", "#ff8ab5", "#8affc4", "#7cc4ff", "#c9a6ff", "#ffffff", "#ff9d2e", "#bfe6ff"];
+  B.effects.push({ type: "fxctl", t: 0,
+    dur: startAt + HANON_HOOP_GAP * (HANON_HOOP_N + 2) + 44, k: 0, fin: 0,
+    tick(fx) {
+      if (fx.t < startAt || (fx.t - startAt) % HANON_HOOP_GAP !== 0) return;
+      if (fx.k < HANON_HOOP_N) {
+        /* ── ゴール：リングがひらいて、決めるたびに敵全体へ ── */
+        const i = fx.k; fx.k++;
+        const per = HANON_HOOP_PER + HANON_HOOP_STEP * i;
+        const gx = W * (0.16 + 0.68 * ((i + 0.5) / HANON_HOOP_N));
+        const gy = H * (0.14 + 0.12 * (i % 2));
+        B.effects.push({ type: "boltlink", x: gx, y: H, tx: gx, ty: gy, t: 0, dur: 10, c: cols[i % cols.length] });
+        for (let q = 0; q < 4; q++) {
+          B.effects.push({ type: "ring", x: gx, y: gy, t: -q * 3 + 8, dur: 26,
+            r: 80 + q * (105 + i * 16), c: q % 2 ? "#ffffff" : cols[i % cols.length] });
+        }
+        spawnSparks(gx, gy, cols[i % cols.length], 26 + i * 4);
+        withDmgSrc(ball, () => {
+          aliveEnemies().forEach((o) => {
+            B.effects.push({ type: "boom", x: o.x, y: o.y, t: 0, dur: 22, r: 200, c: cols[i % cols.length] });
+            dealDamage(o, ball.st.atk * atkMulOf(ball) * per * elemMultOf(ball.ch, o.el), cols[i % cols.length], true);
+            spawnSparks(o.x, o.y, "#ffe9a8", 8);
+          });
+        });
+        B.pops.push({ x: gx, y: gy - 54, t: 0, txt: (i + 1) + " POINT!!", c: cols[i % cols.length], small: 1 });
+        B.shake = Math.max(B.shake, 10 + i * 2); SFX.crit();
+        return;
+      }
+      if (fx.fin) return;
+      /* ── ブザービーター：コートごと白く飛ぶ ── */
+      fx.fin = 1;
+      B.effects.push({ type: "flashfx", t: 0, dur: 22 });
+      for (let q = 0; q < 11; q++) {
+        B.effects.push({ type: "ring", x: W / 2, y: H * 0.36, t: -q * 3, dur: 44,
+          r: 110 + q * 175, c: q % 2 ? "#ffffff" : "#ffd257" });
+      }
+      B.effects.push({ type: "pillar", x: W / 2, y: H * 0.36, t: 0, dur: 46, c: "#ffe9a8" });
+      withDmgSrc(ball, () => {
+        aliveEnemies().forEach((o) => {
+          B.effects.push({ type: "boom", x: o.x, y: o.y, t: 0, dur: 38, r: 340, c: "#ffd257" });
+          B.effects.push({ type: "pillar", x: o.x, y: o.y, t: 0, dur: 36, c: "#fff1b8" });
+          dealDamage(o, ball.st.atk * atkMulOf(ball) * HANON_BUZZER * elemMultOf(ball.ch, o.el), "#ff9d2e", true);
+          spawnSparks(o.x, o.y, "#ffffff", 30);
+        });
+      });
+      B.pops.push({ x: W / 2, y: H * 0.28, t: 0, txt: "BUZZER BEATER!!", c: "#ffe9a8", small: 0 });
+      B.shake = Math.max(B.shake, 38); SFX.crit();
+      const t3 = B.enemies.find((x) => x.id === tid && x.hp > 0);
+      if (t3) knockbackEnemy(ball, t3);
+    } });
+}
 function fireKnowledgeResonance(owner, atk) {
   const col = ELEM[owner.ch.el].c, el = owner.ch.el;
   for (let k = 0; k < KNOW_RINGS; k++) {
@@ -25582,6 +26604,21 @@ function fireSubFriend(owner, mover, atk) {
          「持っているのに発動しないサブリンク」になる。
        ★ 威力は SUB_HIT.jewelshower と必ずそろえること。 */
     fireJewelShower(owner, atk);
+    return;
+  }
+  if (kind === "goldenrebound") {
+    /* ★★ 2026-09-01 ゴールデン・リバウンド（ハノンのサブリンク）。
+       ★ ここに分岐が無いと「持っているのに発動しないサブリンク」になる。
+       ★ 威力は SUB_HIT.goldenrebound と必ずそろえること。 */
+    fireGoldenRebound(owner, atk);
+    return;
+  }
+  if (kind === "risingtide") {
+    /* ★★ 2026-09-01 ライジング・タイド（RISING STAR FEST 4体の共通サブリンク）。
+       ★ ここに分岐が無いと、下の else-if 連鎖のどれにも当たらず
+         「持っているのに発動しないサブリンク」になる。
+       ★ 威力は SUB_HIT.risingtide と必ずそろえること。 */
+    fireRisingTide(owner, atk);
     return;
   }
   if (kind === "weaksigil") {
@@ -27897,7 +28934,7 @@ function closeNextPicker() { $("#nextOv").classList.remove("on"); }
 async function onNextRound(stageId) {
   const m = $("#nextMsg"); if (m) { m.style.color = "#8e4fe0"; m.textContent = "ロビーにもどっています…"; }
   /* ★ v13.6: すぐ開始せず「ロビー」へ戻す（同じメンバーで、編成を編集してから出発できる） */
-  const r = await BurstOnline.toLobby(stageId);
+  const r = await NET().toLobby(stageId);
   if (r && r.error) { if (m) { m.style.color = "#e0405e"; m.textContent = "もどれませんでした"; } return; }
   closeNextPicker();
   returnToLobby();   // ホスト自身もロビーへ（ゲストは onRoom の lobby 検知で戻る）
@@ -28011,7 +29048,7 @@ function retryBattle() { const id = B.stage.id; $("#resOv").classList.remove("on
 window.retryBattle = retryBattle;
 function closeBattle() {
   if (B) { B.leaveAt = null; B.leaveName = null; }
-  if (B && B.online && window.BurstOnline) { try { BurstOnline.leave(); } catch (e) {} } try { if (window.XevaPresence) XevaPresence.leave(); } catch (e) {}
+  if (B && B.online && window.BurstOnline) { try { NET().leave(); } catch (e) {} } try { if (window.XevaPresence) XevaPresence.leave(); } catch (e) {}
   $("#resOv").classList.remove("on");
   $("#battle").classList.remove("on");
   stopBattleWatchdog();   // ★ 2026-08-10 バトルを抜けたら見張りも止める
@@ -28045,7 +29082,7 @@ async function quitBattle() {
     if (!B.isHost) { showBmsg("中断できるのはホストだけです", "#ff8f8f", 1600); return; }
     if (!await uiConfirm("バトルを中断しますか？<br><small>参加者全員のバトルが終了し、仲間には「接続が切れました」と表示されます</small>", { icon: "⚠️", title: "バトルの中断", ok: "中断する" })) return;
     if (!B || B.over) return;
-    if (window.BurstOnline) { try { BurstOnline.abort("host"); } catch (e) {} }
+    if (window.BurstOnline) { try { NET().abort("host"); } catch (e) {} }
     abortOnlineBattle("あなた（ホスト）がバトルを中断しました");
     return;
   }
@@ -31511,6 +32548,6 @@ window.addEventListener("xeva:change", () => { paintWallet(); });
 })();
 </script>
 <!-- XEVARION へもどる導線（同期を送り切ってから移動する） -->
-<script src="../xeva-back.js?v=1" data-mode="hook"></script>
+<script src="../xeva-back.js?v=3" data-mode="hook"></script>
 </body>
 </html>

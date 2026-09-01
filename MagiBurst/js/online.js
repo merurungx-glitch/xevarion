@@ -91,6 +91,26 @@ async function create(profile, stageId) {
 }
 
 /* ── 部屋に入る ── */
+/* ══ ★★ 2026-09-01 部屋を<b>のぞく</b>（入る前にクエストだけ知る）══
+   部屋に入る流れを
+     ① 部屋番号を入れる → ② そのクエストの情報を見ながらキャラを選ぶ → ③ 入室
+   の2段にしたので、②のために<b>入らずにクエストだけ</b>読めるようにする。
+   戻り値 { ok:true, stage, status, n } ／ { error:"nofound" } など。 */
+async function peek(code) {
+  if (!/^\d{4}$/.test(String(code || ""))) return { error: "nofound" };
+  try {
+    const s = await get(ref(db, roomPath(code)));
+    if (!s.exists()) return { error: "nofound" };
+    const room = s.val() || {};
+    const meta = room.meta || {};
+    const ps = room.players || {};
+    const n = Object.keys(ps).filter((k) => ps[k] && !ps[k].left).length;
+    if (meta.status && meta.status !== "lobby") return { error: "started", stage: meta.stage || "" };
+    if (n >= MAX_PLAYERS) return { error: "full", stage: meta.stage || "" };
+    return { ok: true, stage: meta.stage || "", status: meta.status || "lobby", n };
+  } catch (e) { return { error: "denied" }; }
+}
+
 async function join(code, profile) {
   try {
     const rref = ref(db, roomPath(code));
@@ -348,7 +368,7 @@ async function updateChars(chars, th) {
 window.addEventListener("beforeunload", () => { if (cur) { try { leave(); } catch (e) {} } });
 
 window.BurstOnline = {
-  create, join, watch, start, nextRound, toLobby, leave, sendShot, abort, setOrder, setSlots, sendSync, updateChars,
+  create, join, peek, watch, start, nextRound, toLobby, leave, sendShot, abort, setOrder, setSlots, sendSync, updateChars,
   isHost: () => !!(cur && cur.host),
   myUid: () => (cur ? cur.uid : null),
   code: () => (cur ? cur.code : null),
