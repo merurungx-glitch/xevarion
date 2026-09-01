@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<script src="../maintenance-gate.js?v=5"></script>
+<script src="../maintenance-gate.js?v=7"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>XEVYNAR — XEVARION の学習AI</title>
@@ -10,12 +10,12 @@
 <link rel="apple-touch-icon" href="xevynar-192.png">
 <link rel="manifest" href="manifest.webmanifest">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="xevynar.css?v=12">
-<script src="../xeva-splash.js?v=3" data-app="XEVYNAR" data-logo="xevynar-mark.png"></script>
-<script src="../xeva.js?v=50"></script>
-<script type="module" src="../xevarion-fb.js?v=22"></script>
-<script src="../xeva-presence.js?v=1" defer></script>
-<script type="module" src="../xeva-cloud.js?v=19"></script>
+<link rel="stylesheet" href="xevynar.css?v=14">
+<script src="../xeva-splash.js?v=5" data-app="XEVYNAR" data-logo="xevynar-mark.png"></script>
+<script src="../xeva.js?v=53"></script>
+<script type="module" src="../xevarion-fb.js?v=24"></script>
+<script src="../xeva-presence.js?v=3" defer></script>
+<script type="module" src="../xeva-cloud.js?v=22"></script>
 </head>
 <body>
 
@@ -210,24 +210,24 @@
 
 <!-- ★★ 2026-08-20 Transformer エンジン（意図の見分けと、意味での検索）。
      ほかの台帳より先に読む（kb・talk・app から XVTF を使うため）。 -->
-<script src="xevynar-tf.js?v=2"></script>
-<script src="xevynar-kb.js?v=11"></script>
-<script src="xevynar-lex.js?v=9"></script>
+<script src="xevynar-tf.js?v=4"></script>
+<script src="xevynar-kb.js?v=14"></script>
+<script src="xevynar-lex.js?v=11"></script>
 <!-- ★ 2026-08-18 難問のステップ学習（定石・公式の台帳） -->
-<script src="xevynar-steps.js?v=6"></script>
+<script src="xevynar-steps.js?v=8"></script>
 <!-- ★ 2026-08-18b 1問ごとのくわしい解説（図・用語・本体） -->
-<script src="xevynar-figs.js?v=9"></script>
-<script src="xevynar-terms.js?v=3"></script>
-<script src="xevynar-deep.js?v=6"></script>
-<script src="xevynar-brain.js?v=12"></script>
-<script src="xevynar-talk.js?v=12"></script>
-<script src="xevynar-app.js?v=14"></script>
+<script src="xevynar-figs.js?v=11"></script>
+<script src="xevynar-terms.js?v=5"></script>
+<script src="xevynar-deep.js?v=8"></script>
+<script src="xevynar-brain.js?v=14"></script>
+<script src="xevynar-talk.js?v=14"></script>
+<script src="xevynar-app.js?v=16"></script>
 <script>
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => { navigator.serviceWorker.register("sw.js").catch(() => {}); });
 }
 </script>
 <!-- XEVARION へもどる導線（同期を送り切ってから移動する） -->
-<script src="../xeva-back.js?v=1" data-mode="hook"></script>
+<script src="../xeva-back.js?v=3" data-mode="hook"></script>
 </body>
 </html>

@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ja" data-theme="light">
 <head>
-<script src="../maintenance-gate.js?v=5"></script>
+<script src="../maintenance-gate.js?v=7"></script>
 <meta charset="UTF-8">
 <script>(function(){try{var a=JSON.parse(localStorage.getItem('xeva_account_v1'));if(!a||!a.setupDone)location.replace('../index.html');}catch(e){}
 /* 外観モードは描画前に当てる（あとから当てると一瞬白く光る） */
@@ -19,12 +19,12 @@ else if(matchMedia('(prefers-color-scheme:dark)').matches)document.documentEleme
 <!-- 起動スプラッシュは ../xeva-splash.js（全アプリ共通）に統一。
      以前は MagiTier だけ自前の #splash を持っていて、他アプリと見た目もタイミングも違った。
      共通スプラッシュ側が #splash を隠すので、旧マークアップは残さず消してある。 -->
-<script src="../xeva-splash.js?v=3" data-app="MagiTier" data-logo="../thumbs/MagiTier.jpg"></script>
-<link rel="stylesheet" href="magitier.css?v=13">
-<script src="../xeva.js?v=50"></script>
-<script type="module" src="../xevarion-fb.js?v=22"></script>
-<script type="module" src="../xeva-cloud.js?v=19"></script>
-<script src="../xeva-presence.js?v=1" defer></script>
+<script src="../xeva-splash.js?v=5" data-app="MagiTier" data-logo="../thumbs/MagiTier.jpg"></script>
+<link rel="stylesheet" href="magitier.css?v=15">
+<script src="../xeva.js?v=53"></script>
+<script type="module" src="../xevarion-fb.js?v=24"></script>
+<script type="module" src="../xeva-cloud.js?v=22"></script>
+<script src="../xeva-presence.js?v=3" defer></script>
 </head>
 <body>
 
@@ -346,7 +346,7 @@ else if(matchMedia('(prefers-color-scheme:dark)').matches)document.documentEleme
 <input type="file" id="camIn" accept="image/*" capture="environment" style="display:none">
 <input type="file" id="jsonIn" accept="application/json,.json" style="display:none">
 
-<script src="magitier.js?v=20"></script>
-<script src="../xeva-back.js?v=1" data-mode="hook"></script>
+<script src="magitier.js?v=22"></script>
+<script src="../xeva-back.js?v=3" data-mode="hook"></script>
 </body>
 </html>
