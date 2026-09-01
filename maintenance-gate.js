@@ -6,8 +6,8 @@
      メンテ中でも各ページを閲覧できる。オーバーレイ上でも同コードで解錠可能。
    ・どのフォルダ階層のページからでも読めるよう Firebase の絶対URLを使用。
      使い方（各ページの <head> 先頭付近に）:
-       <script src="maintenance-gate.js?v=1"></script>          （ルート）
-       <script src="../maintenance-gate.js?v=1"></script>       （1階層下）
+       <script src="maintenance-gate.js?v=3"></script>          （ルート）
+       <script src="../maintenance-gate.js?v=3"></script>       （1階層下）
    ============================================================ */
 (function () {
   "use strict";

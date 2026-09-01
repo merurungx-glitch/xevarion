@@ -13,36 +13,36 @@
 <link rel="icon" href="Xevarion.png" type="image/png">
 <link rel="apple-touch-icon" href="icons/xev-192.png">
 <link rel="manifest" href="manifest.webmanifest">
-<script src="maintenance-gate.js?v=5"></script>
+<script src="maintenance-gate.js?v=7"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Exo+2:ital,wght@0,300;0,400;0,600;0,700;1,300&family=Noto+Sans+JP:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="xeva-theme.css?v=1">
-<link rel="stylesheet" href="xevarion.css?v=16">
-<link rel="stylesheet" href="xevarion-home.css?v=46">
+<link rel="stylesheet" href="xeva-theme.css?v=3">
+<link rel="stylesheet" href="xevarion.css?v=18">
+<link rel="stylesheet" href="xevarion-home.css?v=48">
 <!-- ★★ 2026-08-22b Xevion OS の見た目（テーマ・文字の大きさ・動きを減らす）。
      xevarion-home.css の<b>あと</b>に読む＝上書きできるようにする。 -->
-<link rel="stylesheet" href="xevion-os.css?v=7">
-<script src="xeva.js?v=50" defer></script>
+<link rel="stylesheet" href="xevion-os.css?v=9">
+<script src="xeva.js?v=53" defer></script>
 <!-- ★ 2026-08-20 通信設定（Wi-Fi／モバイルデータごとに「最新を取りに行くか」を決める）。
      決めた内容はここから各アプリの Service Worker へ送られ、SW 側が動きを切り替える。 -->
-<script src="xeva-netmode.js?v=2" defer></script>
+<script src="xeva-netmode.js?v=4" defer></script>
 <!-- ★ 2026-08-18 新キャラ告知の台帳（MagiBurst と共通）。
      告知を<b>ポータルのログイン時</b>に一本化したので、ここでも読む。
      defer なので xevarion.js より先に実行される（書いた順番で走る）。 -->
-<script src="mb-newchars.js?v=11" defer></script>
+<script src="mb-newchars.js?v=13" defer></script>
 <!-- ★★ 2026-08-22b Xevion OS（XEVARION の UI をひとつの OS として扱う土台）。
      ほかの画面より<b>先に</b>読む（body のクラスを立てるので、あとから読むと一瞬ちらつく）。 -->
-<script src="xevion-os.js?v=5"></script>
+<script src="xevion-os.js?v=7"></script>
 <!-- ジェム⇄XEVA のレート（ドル円連動）。xevarion-home.js より先に読み込む -->
-<script src="xeva-fx.js?v=1" defer></script>
-<script src="xeva-loading.js?v=1" defer></script>
-<script type="module" src="xeva-sync.js?v=8"></script>
-<script type="module" src="xevarion-fb.js?v=22"></script>
-<script src="xeva-presence.js?v=1" defer></script>
-<script type="module" src="xeva-cloud.js?v=19"></script>
-<script src="xevarion.js?v=71" defer></script>
-<script src="xevarion-home.js?v=69" defer></script>
+<script src="xeva-fx.js?v=3" defer></script>
+<script src="xeva-loading.js?v=3" defer></script>
+<script type="module" src="xeva-sync.js?v=10"></script>
+<script type="module" src="xevarion-fb.js?v=24"></script>
+<script src="xeva-presence.js?v=3" defer></script>
+<script type="module" src="xeva-cloud.js?v=22"></script>
+<script src="xevarion.js?v=74" defer></script>
+<script src="xevarion-home.js?v=72" defer></script>
 </head>
 <body>
 <!-- ───── バックグラウンド音楽（Flagship Arrival。アクセス画面のタップで再生開始） ───── -->
@@ -63,9 +63,9 @@
 /* ── 背景（v2）: KV全体を必ず画面内に表示（contain）＋ 余白はぼかしたKVで埋める
       旧 cover 指定だと縦長KVがPC横画面で約3倍に拡大され大部分が画面外に出ていた ── */
 .xh-bg{position:absolute;inset:0;background:#0a0716;overflow:hidden}
-.xh-bg::before{content:"";position:absolute;inset:-48px;background:url('thumbs/xevarion-home_s.jpg?v=3') center/cover no-repeat;
+.xh-bg::before{content:"";position:absolute;inset:-48px;background:url('thumbs/xevarion-home_s.jpg?v=5') center/cover no-repeat;
   filter:blur(28px) brightness(.42) saturate(1.25);transform:scale(1.1)}
-.xh-kv{position:absolute;inset:0;background:url('thumbs/xevarion-home_s.jpg?v=3') center/contain no-repeat;
+.xh-kv{position:absolute;inset:0;background:url('thumbs/xevarion-home_s.jpg?v=5') center/contain no-repeat;
   transform:scale(calc(1 + var(--beat)*0.018));transition:transform .12s ease-out;
   filter:drop-shadow(0 0 60px rgba(120,80,220,.35))}
 /* オーロラ光彩（ゆっくり漂う紫〜青の光） */
@@ -380,7 +380,7 @@ body.music-on #beatFrame{opacity:1}
         </div>
       </section>
 
-      <!-- ショップ（ジェム変換所 ＆ お得なパック） -->
+      <!-- ショップ（ジェム変換所 ＆ パックストア） -->
       <section class="xh-sec">
         <div class="xh-sechead">
           <div class="t"><span class="dot"></span>ショップ</div>
@@ -397,7 +397,7 @@ body.music-on #beatFrame{opacity:1}
           </button>
           <button class="xh-xcard shop" onclick="xhOpenShop()">
             <span class="xhx-ic"><span class="bag">🏪</span></span>
-            <span class="xhx-t">お得なパック</span>
+            <span class="xhx-t">パックストア</span>
             <span class="xhx-s" id="xhShopSub">ジェム・チケットをお得に</span>
             <span class="xhx-badge" id="xhShopBdg"></span>
           </button>
@@ -905,11 +905,11 @@ body.music-on #beatFrame{opacity:1}
   </div>
 </div>
 
-<!-- ───── お得なパック（旧・ジェムショップ）シート ───── -->
+<!-- ───── パックストア（旧・お得なパック／ジェムショップ）シート ───── -->
 <div class="xh-sheet" id="xhShopSheet" onclick="if(event.target===this)xhCloseSheet('xhShopSheet')">
   <div class="xh-sheet-card">
     <div class="xh-sheet-head">
-      <div class="xh-sheet-title">🛒 お得なパック</div>
+      <div class="xh-sheet-title">🛒 パックストア</div>
       <button class="xh-sheet-x" onclick="xhCloseSheet('xhShopSheet')">✕</button>
     </div>
     <div class="xh-sheet-body" id="xhShopBody"></div>
@@ -1668,6 +1668,73 @@ body.music-on #beatFrame{opacity:1}
   <div class="nm-body" id="newsBody">
     <div class="nm-divider" id="newDivider" style="display:none;">NEW — 前回から更新</div>
     <!-- 2026-08-30 💠結晶と交換所／完凸しても排出／アンナ(祭)／GRAND DEBUT Ver.6.0／同名の整理 -->
+    <div class="nm-item" data-tag="update" data-date="2026-09-01">
+      <div class="nm-date">2026<br>09.01</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">🌊 RISING STAR FEST 開幕／🏀 極彩祭にハノン（史上最大の火力）／✦ RANK UP はピックアップだけ／🔄 同期の作り直し</div>
+        <div class="nm-txt">
+          🌊 <b>RISING STAR FEST</b> を開幕しました。限定SSR <b>4体</b>——<b>リオナ</b>（水・貫通）／
+          <b>ミレイ</b>（木・反射）／<b>スズハ</b>（光・貫通）／<b>セイラ＆カナヅキ</b>（闇＋火・反射）。
+          ガチャ一覧では<b>戦姫祭と GRAND DEBUT GACHA のあいだ</b>にあり、<b>🎫フェスチケットが使えます</b>。<br>
+          4体とも<b>アビリティ8つ</b>（アンチ3＋キラー3＋そのほか2）で<b>クロススキルを持たない</b>ので、
+          編成の条件にいっさい左右されません。アンチ3つは<b>蓬莱の九重の後半5階層</b>の必要アンチと
+          ぴったり一致します（リオナ＝蓬莱仙苑／ミレイ＝蓬莱月宮／スズハ＝蓬莱神天／
+          セイラ＆カナヅキ＝蓬莱天界）。<br>
+          ★ <b>セイラ＆カナヅキ</b>は<b>2人で1体</b>のキャラクターで、<b>属性を2つ持つ唯一のキャラ</b>です——
+          <b>闇と火の両方で有利相性</b>が取れるので、<b>蓬莱天界（光）</b>と<b>蓬莱神域（木）</b>の
+          どちらでも有利属性で戦えます。<br>
+          🏀 <b>極彩祭</b>に <b>ハノン</b>（光・貫通）が加わりました。フルバースト
+          <b>オーロラ・ブザービーター</b>は<b>バスケットボールのドリブル乱打110連 → ゴール8本（敵全体）→
+          ブザービーター（敵全体）</b>で、<b>MagiBurst 史上最大の火力</b>です。
+          リンクスキル<b>セレスト・ドミナンス</b>（重なった輪の枚数がそのまま倍率）も<b>史上最強</b>。
+          アンチは<b>オムニアンチ＋超アンチ減速壁の2つだけ</b>で、<b>蓬莱天宮</b>と<b>蓬莱神天</b>の
+          <b>2つとも</b>有利属性のまま完全対応できます。<br>
+          ✨ <b>極彩・プリズムネクサス</b>と<b>極煌・ブレイズネクサス</b>を<b>さらに強化</b>しました
+          （どちらも効果が4つに）。<br>
+          ✦ <b>RANK UP!! の昇格演出は、そのガチャのピックアップだけ</b>に出るようにしました。
+          🎯 <b>10連の最後のSSR確定枠からは、限界突破MAXのキャラを外しました</b>
+          （そのガチャのSSRが全員 限界突破MAX のときだけ、これまでどおり全員から等確率で出ます）。<br>
+          🖼 <b>アイコンを変えてもすぐ画面に出ない</b>ことがあったのを直しました。<br>
+          🔄 <b>オフラインとオンラインの同期を作り直しました</b>。これまでは「新しいほうが丸ごと勝つ」
+          決まりだったので、<b>オフラインで進めたぶん</b>と<b>そのあいだに別の端末で進めたぶん</b>の
+          どちらかが消えることがありました。これからは
+          <b>XEVA・💎ジェム・🎫チケット・💠結晶は増減を両方たして合わせ</b>、
+          <b>キャラクターは持っているほうを残して限界突破は大きいほうを採る</b>ようにしています。<br>
+          ✏️ <b>キャラクターの名前から括弧をなくしました</b>（括弧が付くのは アンナ(STAR) と アンナ(祭) だけ）。
+          名前がぶつかるところは<b>古いほう</b>を改名しています——<b>アンナ</b>（No.108）→<b>アンネ</b>、
+          <b>ラン</b>（No.64）→<b>ラナ</b>、<b>ユウカ</b>（No.150）→<b>ユカリ</b>、
+          <b>ミレイ</b>（No.149）→<b>ミレーヌ</b>、<b>スズハ</b>（No.111）→<b>スズミ</b>。
+          性能・所持・限界突破は<b>なにも変わりません</b>。<br>
+          🛒 ショップの<b>「お得なパック」</b>は<b>「パックストア」</b>に名前を変えました。<br>
+          🖼 <b>オフラインのときにキャラクターの大きい画像が出ない</b>ことがあったのを直しました。
+          原因は<b>更新のたびに、見て貯めた画像が消えていた</b>ことです。
+          これからは画像だけ<b>更新で消えない置き場</b>にためるので、
+          一度でも表示した絵はオフラインでもそのまま出ます
+          （まだ見ていない絵は、小さいサムネイルで代わりに出します）。<br>
+          📶 <b>MagiBurst にローカル通信マルチを追加</b>しました。
+          <b>同じ Wi-Fi につながっていれば、インターネットが無くても</b>近くの人と協力バトルができます。
+          マルチの入口の<b>「📶 近くの人と」</b>から、画面に出る<b>合い言葉のコード</b>を
+          相手に渡すだけでつながります。<b>Wi-Fi が無い場所</b>でも、どちらかの端末の
+          <b>インターネット共有（テザリング）</b>をオンにすれば、回線が無くてもつながります。<br>
+          📱 さらに<b>「1台でまわして遊ぶ」</b>を追加しました。<b>通信をまったく使わず</b>、
+          1台を順番にわたしながら<b>2〜4人</b>で同じバトルを遊べます。<br>
+          🌐 <b>マルチの部屋づくり・部屋入りを2段</b>にしました。
+          ①クエスト（または部屋番号）をえらぶ → ②<b>そのクエストのギミック・🛡対応キャラ・🌍クリア編成を見ながら</b>
+          キャラをえらぶ、の順になります。<br>
+          ⚾ <b>MagiDiamond の打席を「3D風」の画面</b>にしました。
+          マウンドの投手・打席の打者は<b>キャラクターの絵</b>で立ち、
+          ボールが<b>マウンドから手前へ近づいてくる</b>のに合わせてタイミングを取ります。
+          守備や走者の駒も<b>キャラクターの絵</b>になりました。<br>
+          💬 <b>MagiLink</b> は<b>アクセスコードの入力を当分のあいだ不要</b>にしました。
+          あわせて<b>ユーザーを一度すべてリセット</b>し、<b>アプリを開いた人から順に登録し直される</b>ようにしています。
+          <b>友達は XEVARION のコミュニティの友達と同じ</b>になりました
+          （どちらかで友達になれば、もう一方にも出ます）。
+          ホームのアイコンも<b>描き直しました</b>。
+        </div>
+      </div>
+    </div>
+
     <div class="nm-item" data-tag="update" data-date="2026-08-30">
       <div class="nm-date">2026<br>08.30</div>
       <div class="nm-content">
@@ -1694,8 +1761,12 @@ body.music-on #beatFrame{opacity:1}
           Cozy Haven FEST の5体と同じ担当ですが、<b>アンチは「超」つき</b>・
           <b>キラーは 蓬莱族キラーEL ＋ L等級2つ</b>と、はっきり上の性能です。<br>
           🏷 <b>同じ名前のキャラクター</b>に区別を付けました——
-          <b>アンナ(煌)／アンナ(STAR)／アンナ(祭)</b>、<b>ラン(祈)／ラン(焔)</b>、
-          <b>ユウカ(黒)／ユウカ(聖)</b>。性能・所持・限界突破は<b>なにも変わりません</b>。<br>
+          <b>アンナ(STAR)／アンナ(祭)</b> のほかは<b>括弧を付けない</b>ようにし、
+          名前がぶつかるときは<b>古いほうのキャラクター</b>の名前を変えました——
+          <b>アンナ</b>（No.108）→<b>アンネ</b>、<b>ラン</b>（No.64）→<b>ラナ</b>、
+          <b>ユウカ</b>（No.150）→<b>ユカリ</b>、<b>ミレイ</b>（No.149）→<b>ミレーヌ</b>、
+          <b>スズハ</b>（No.111）→<b>スズミ</b>。
+          性能・所持・限界突破は<b>なにも変わりません</b>。<br>
           🗓 <b>極彩祭・極華祭・極煌祭</b>は「開催中のイベント」で
           <b>常時開催（毎月◯〜◯日）</b>と出るようにしました。
           回せる日は月で決まっていますが、<b>ガチャとして終わる期限はありません</b>。<br>

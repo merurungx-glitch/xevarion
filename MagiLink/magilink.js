@@ -38,6 +38,15 @@ import("https://www.gstatic.com/firebasejs/12.14.0/firebase-analytics.js")
   .then((m) => { try { m.getAnalytics(app); } catch (e) {} }).catch(() => {});
 
 // ---- 定数 ----
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-09-01 アクセスコードを<b>一時的に</b>不要にしました（ご指定）
+   ------------------------------------------------------------
+   ACCESS_OFF を <b>true</b> にしているあいだは、開いてすぐ中に入れます。
+   ★ もどすときは <b>false に戻すだけ</b>（コードそのものは消していません）。
+   ★ ホストの管理画面（hostAccess）のコードは<b>そのまま残して</b>あります——
+     あちらは全員のデータを消せる画面なので、開けたままにはしない。
+   ══════════════════════════════════════════════════════════════ */
+const ACCESS_OFF = true;
 const ACCESS_CODE = "ML613Connect26";
 const DELETE_CODE = "ML613Delete26";
 const APP_VERSION = "2026.06.14";
@@ -113,6 +122,8 @@ else window.addEventListener("DOMContentLoaded", initAccess, { once: true });
 // アクセスゲート
 // ============================================================
 function initAccess(){
+  /* ★★ 2026-09-01 一時的にアクセスコード不要（ACCESS_OFF）。ゲートを出さずにそのまま中へ */
+  if(ACCESS_OFF){ try{ localStorage.setItem(LS_ACCESS,APP_VERSION); }catch(e){} hide("access"); initAccount(); return; }
   if(localStorage.getItem(LS_ACCESS)===APP_VERSION){ initAccount(); return; }
   show("access");
   $("accessGo").addEventListener("click", submitAccess);
@@ -130,7 +141,45 @@ function submitAccess(){
 // ============================================================
 
 
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-09-01 ユーザーを<b>一度だけ全部リセット</b>する（ご指定）
+   ------------------------------------------------------------
+   ・users（と friends / friendRequests / sentReq）を<b>まるごと1回だけ</b>消し、
+     そのあとは<b>アプリを開いた人から順に</b>作り直される
+     （XEVARION アカウントから自動でつくられるので、開くだけで入る）。
+   ・消すのは<b>いちばん最初に開いた1台だけ</b>。印（ml_reset_v3）はサーバー側にも置くので、
+     2台目からは消さずに自分のぶんを作り直すだけになる。
+   ★ 会話（messages / lobby / dm / groups）は<b>消さない</b>。
+     「ユーザーを一度リセット」というご指定なので、名簿だけを作り直す。
+   ★ この印を書き換えれば、また1回だけリセットできる。
+   ══════════════════════════════════════════════════════════════ */
+const ML_RESET_KEY = "ml_reset_v3";
+async function resetAllUsersOnce(){
+  if(localStorage.getItem(ML_RESET_KEY)) return;
+  localStorage.setItem(ML_RESET_KEY,"1");
+  try{
+    /* サーバーにも印を置く。ほかの端末は「もう済んでいる」と分かるので消しに行かない */
+    const mark=await get(ref(db,"meta/"+ML_RESET_KEY));
+    if(mark.exists()) return;
+    await set(ref(db,"meta/"+ML_RESET_KEY),{at:Date.now()});
+    await Promise.all([
+      set(ref(db,"users"),null),
+      set(ref(db,"friends"),null),
+      set(ref(db,"friendRequests"),null),
+      set(ref(db,"sentReq"),null),
+    ]);
+  }catch(e){}
+  /* 自分の端末の紐づけも外す（次の行で XEVARION アカウントから作り直される） */
+  try{
+    localStorage.removeItem(LS_ACCOUNT); localStorage.removeItem(LS_UNLOCK);
+    const xaRaw=localStorage.getItem("xeva_account_v1");
+    if(xaRaw){ const o=JSON.parse(xaRaw); delete o.mlUid; localStorage.setItem("xeva_account_v1",JSON.stringify(o)); }
+  }catch(e){}
+}
+
 async function initAccount(){
+  /* ★★ 2026-09-01 一度だけ全ユーザーをリセット（ご指定）。開いた人から順に入り直す */
+  await resetAllUsersOnce();
   // ── 一度だけ旧アカウント（絵文字アバターのまま自動作成されたもの）を削除してリセット
   if(!localStorage.getItem("ml_avatar_synced_v2")){
     localStorage.setItem("ml_avatar_synced_v2","1");
@@ -234,6 +283,10 @@ async function autoCreateFromXevarion(xa){
   const data={
     name:xa.name, avatar, avatarType, color:COLORS[0],
     bio:"", bday:xa.bday||"", pwHash:"",
+    /* ★★ 2026-09-01 XEVARION の uid を持たせる。
+       これがあると「MagiLink の友達＝XEVARION の友達」を突き合わせられる（ご指定）。 */
+    xvUid: xa.xvUid || "",
+    charFile: xa.charFile || "", charId: xa.charId || "",
     online:true, lastSeen:serverTimestamp(), createdAt:serverTimestamp(), source:"xevarion"
   };
   try{ await set(node,data); }catch(e){ showCreate(); return; }
@@ -332,6 +385,72 @@ async function createAccount(){
 // ============================================================
 // アプリ本体
 // ============================================================
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-09-01 友達を <b>XEVARION と1本</b>にする（ご指定）
+   ------------------------------------------------------------
+   これまで MagiLink の友達は MagiLink の DB（friends/…）だけにあり、
+   XEVARION の🌐コミュニティの友達とは<b>別のもの</b>だった。
+   → <b>正は XEVARION のアカウント（accounts/{uid}/friends）</b>にして、
+     MagiLink の friends/… は<b>その写し</b>にする。
+       ・アプリを開くたびに XEVARION の友達を読み、MagiLink 側をそろえる
+       ・MagiLink で「申請・承認・解除」したら <b>XEVARION 側を書き換える</b>
+         （そのあと写しを作り直す）
+   ★ 突き合わせのカギは<b>ユーザーに持たせた xvUid</b>。
+     2026-09-01 のリセットで、全員が XEVARION アカウントから作り直されるので必ず入る。
+   ★ XEVARION につながらないとき（オフライン）は<b>何もしない</b>——
+     写しをうっかり空にすると友達が消えたように見えるため。
+   ══════════════════════════════════════════════════════════════ */
+function xvUidOfMe(){
+  try{ const a=JSON.parse(localStorage.getItem("xeva_account_v1")||"null"); return (a&&a.xvUid)||""; }catch(e){ return ""; }
+}
+function whenXFB(timeout){
+  return new Promise((res)=>{
+    if(window.XEVARIONFB) return res(window.XEVARIONFB);
+    let done=false; const fin=()=>{ if(!done){ done=true; res(window.XEVARIONFB||null); } };
+    window.addEventListener("xevarionfb:ready",fin,{once:true});
+    setTimeout(fin,timeout||6000);
+  });
+}
+/* XEVARION の uid → MagiLink の uid（allUsers から引く） */
+function mlUidOfXv(xv){
+  if(!xv) return null;
+  const ids=Object.keys(allUsers||{});
+  for(const id of ids){ const u=allUsers[id]; if(u&&u.xvUid===xv) return id; }
+  return null;
+}
+let _friendSyncing=false;
+async function syncFriendsFromXevarion(){
+  if(_friendSyncing) return; _friendSyncing=true;
+  try{
+    const myXv=xvUidOfMe(); if(!myXv || !me) return;
+    const FB=await whenXFB(); if(!FB||!FB.listFriends) return;
+    const rows=await FB.listFriends(myXv);
+    if(!Array.isArray(rows)) return;                       /* 読めなかった＝そろえない */
+    /* XEVARION の友達を MagiLink の uid に置きかえる */
+    const want={};
+    rows.forEach((r)=>{ const ml=mlUidOfXv(r.uid); if(ml && ml!==me.uid) want[ml]=true; });
+    const have=myFriends||{};
+    const upd={};
+    Object.keys(want).forEach((id)=>{ if(!have[id]){ upd["friends/"+me.uid+"/"+id]=true; upd["friends/"+id+"/"+me.uid]=true; } });
+    Object.keys(have).forEach((id)=>{ if(!want[id]){ upd["friends/"+me.uid+"/"+id]=null; upd["friends/"+id+"/"+me.uid]=null; } });
+    if(Object.keys(upd).length) await update(ref(db),upd);
+    /* 申請も XEVARION 側が正。MagiLink 側の古い申請は消しておく */
+    if(FB.listFriendReqs){
+      const reqs=await FB.listFriendReqs(myXv);
+      if(Array.isArray(reqs)){
+        const rupd={};
+        const wantReq={};
+        reqs.forEach((r)=>{ const ml=mlUidOfXv(r.uid); if(ml) wantReq[ml]={name:(allUsers[ml]||{}).name||r.name||"?",at:Date.now()}; });
+        Object.keys(myReqs||{}).forEach((id)=>{ if(!wantReq[id]) rupd["friendRequests/"+me.uid+"/"+id]=null; });
+        Object.keys(wantReq).forEach((id)=>{ if(!(myReqs||{})[id]) rupd["friendRequests/"+me.uid+"/"+id]=wantReq[id]; });
+        if(Object.keys(rupd).length) await update(ref(db),rupd);
+      }
+    }
+  }catch(e){}finally{ _friendSyncing=false; }
+}
+/* MagiLink の uid → XEVARION の uid */
+function xvUidOfMl(mlUid){ const u=allUsers[mlUid]; return (u&&u.xvUid)||""; }
+
 function enterApp(){
   show("app");
   // XEVARION アカウントを唯一のプロフィール源として同期（名前・アイコン・誕生日）
@@ -343,6 +462,11 @@ function enterApp(){
       if(xa.name && xa.name!==me.name) upd.name=xa.name;
       if(avatarType==="img" && (me.avatar!==avatar || me.avatarType!=="img")){ upd.avatar=avatar; upd.avatarType=avatarType; }
       if((xa.bday||"")!==(me.bday||"")) upd.bday=xa.bday||"";
+      /* ★★ 2026-09-01 XEVARION の uid をユーザーに持たせる（友達を1本にするカギ）。
+         むかし作られたユーザーには入っていないので、開いたときに足しておく。 */
+      if(xa.xvUid && me.xvUid!==xa.xvUid) upd.xvUid=xa.xvUid;
+      if(xa.charFile && me.charFile!==xa.charFile) upd.charFile=xa.charFile;
+      if(xa.charId && me.charId!==xa.charId) upd.charId=xa.charId;
       if(Object.keys(upd).length){ update(ref(db,"users/"+me.uid),upd); Object.assign(me,upd); }
     }
   }catch(e){}
@@ -353,6 +477,9 @@ function enterApp(){
   const cs=$("collSearch"); if(cs) cs.addEventListener("input",renderCollections);
   // XEVARION 側でガチャを引いて戻ってきた時にも再同期
   window.addEventListener("focus",syncMyCollection);
+  /* ★★ 2026-09-01 友達は XEVARION が正。開いたとき・戻ってきたときにそろえ直す */
+  try{ syncFriendsFromXevarion(); }catch(e){}
+  window.addEventListener("focus",()=>{ try{ syncFriendsFromXevarion(); }catch(e){} });
   window.addEventListener("storage",(e)=>{ if(e.key==="xeva_gacha_v1"||e.key==="xeva_account_v1") syncMyCollection(); });
   window.mlGoTo = (v)=>{ if(v==="lobby"){ openChat("lobby","","ロビー","みんなが集まる公開チャット"); } switchView(v); };
   renderMyProfile(); renderHub();
@@ -373,6 +500,9 @@ function watchSelf(){
 }
 function watchUsers(){
   onValue(ref(db,"users"),(snap)=>{ allUsers=snap.val()||{};
+    /* ★★ 2026-09-01 名簿がそろってから XEVARION の友達を写す
+       （xvUid → MagiLink の uid の突き合わせに名簿が要るため） */
+    try{ syncFriendsFromXevarion(); }catch(e){}
     renderAllUsers(); renderDMList(); renderCollections(); if($("usersModal").classList.contains("show")) renderUsersModal();
     if($("profileModal").classList.contains("show")&&pvUid){ const pc=$("pvCollection"); if(pc&&allUsers[pvUid]) pc.innerHTML=collectionHTML(allUsers[pvUid]); }
     if(currentChat&&currentChat.kind==="lobby") renderBirthday();
@@ -731,8 +861,19 @@ function wireFriends(){
   const s=$("friendSearch"); if(s) s.addEventListener("input",()=>{ renderFriends(); renderAllUsers(); });
 }
 function friendQuery(){ const s=$("friendSearch"); return s?s.value.trim().toLowerCase():""; }
+/* ★★ 2026-09-01 解除は<b>XEVARION 側</b>を消してから写しを作り直す（ご指定） */
+async function unfriendXv(uid){
+  const myXv=xvUidOfMe(), otherXv=xvUidOfMl(uid);
+  if(!myXv||!otherXv) return false;
+  const FB=await whenXFB(); if(!FB||!FB.removeFriend) return false;
+  try{ await FB.removeFriend(myXv,otherXv); }catch(e){ return false; }
+  await syncFriendsFromXevarion();
+  return true;
+}
 function unfriend(uid,name){
   if(!confirm((name||"この友達")+" さんとの友達を解除しますか？")) return;
+  /* ★★ 2026-09-01 XEVARION 側も外す（友達は XEVARION が正） */
+  unfriendXv(uid);
   const updates={}; updates["friends/"+me.uid+"/"+uid]=null; updates["friends/"+uid+"/"+me.uid]=null;
   update(ref(db),updates).catch((e)=>alert("解除に失敗しました: "+(e&&e.message?e.message:e)));
 }
@@ -750,7 +891,17 @@ function renderRequests(){
     box.appendChild(row);
   });
 }
+/* ★★ 2026-09-01 承認も XEVARION 側でやる（ご指定） */
+async function acceptFriendXv(fromUid){
+  const myXv=xvUidOfMe(), otherXv=xvUidOfMl(fromUid);
+  if(!myXv||!otherXv) return false;
+  const FB=await whenXFB(); if(!FB||!FB.acceptFriendReq) return false;
+  try{ await FB.acceptFriendReq(myXv,otherXv); }catch(e){ return false; }
+  await syncFriendsFromXevarion();
+  return true;
+}
 function acceptFriend(fromUid){
+  acceptFriendXv(fromUid);
   const updates={};
   updates["friends/"+me.uid+"/"+fromUid]=true;
   updates["friends/"+fromUid+"/"+me.uid]=true;
@@ -774,6 +925,14 @@ function sendRequest(toUid,toName){
   if(myFriends[toUid]){ alert("すでに友達です"); return; }
   if(mySent[toUid]) return; // 既に申請中
   mySent[toUid]=true; // 即時に「申請中」反映
+  /* ★★ 2026-09-01 申請も XEVARION 側に出す（友達は XEVARION が正・ご指定）。
+     相手からすでに申請が来ていれば XEVARION 側がその場で相互フレンドにしてくれる。 */
+  (async()=>{
+    const myXv=xvUidOfMe(), otherXv=xvUidOfMl(toUid);
+    if(!myXv||!otherXv) return;
+    const FB=await whenXFB(); if(!FB||!FB.sendFriendReq) return;
+    try{ await FB.sendFriendReq(myXv,otherXv); await syncFriendsFromXevarion(); }catch(e){}
+  })();
   const updates={};
   updates["friendRequests/"+toUid+"/"+me.uid]={name:me.name,ts:serverTimestamp()};
   updates["sentReq/"+me.uid+"/"+toUid]=true;

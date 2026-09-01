@@ -1,19 +1,19 @@
 {
-  "version": "2026-08-31-1",
-  "date": "2026-08-31",
-  "title": "💠 結晶と交換所／⚔ 戦姫祭にアンナ(祭)／✧ GRAND DEBUT Ver.6.0／⚾ MagiDiamond 大幅リニューアル／📚 MagiLex に地理",
+  "version": "2026-09-02-1",
+  "date": "2026-09-02",
+  "title": "RISING STAR FEST 開幕／極彩祭にハノン／ローカル通信マルチ（1台でまわす対応）／MagiDiamond 3D風打席",
   "notes": [
-    "PREMIUM SELECT GACHA のキャラクターは完凸しても排出され続けるようになりました。出たときは💠結晶（SSR 5個・SR 1個）がもらえ、75個で PREMIUM SELECT / GRAND DEBUT の好きな1体と交換できます（交換所はホームの🛒ショップ）",
-    "戦姫祭に アンナ(祭)（光・貫通）が登場。MagiBurst 史上最強で、闇属性の蓬莱3クエスト（第五重・蓬莱天宮・蓬莱神天）を有利属性のまま完全対応します",
-    "GRAND DEBUT GACHA Ver.6.0（チア・リサ・リン・ミノリ・セイカ）を公開。蓬莱天宮の続き5クエストの最適解で、リンクスキルは5本とも新設です",
-    "同じ名前のキャラクターに区別を付けました（アンナ(煌)／アンナ(STAR)／アンナ(祭)、ラン(祈)／ラン(焔)、ユウカ(黒)／ユウカ(聖)）",
-    "極彩祭・極華祭・極煌祭を「常時開催（毎月◯〜◯日）」表記にしました",
-    "MagiDiamond を大幅リニューアル。開くと最新版・過去版をえらべます。最新版は XEVARION の SR・SSR 全キャラクターが野球選手になり、育成・チーム編成・チームスキル・野球盤の打球処理・オンライン対戦まで遊べます",
-    "MagiLex に地理を追加しました（工業・人口・人口問題／17セット204問）",
-    "MagiLex の化学εを 20セット240問 → 40セット480問に倍増し、分野ごとに並べ直しました"
+    "RISING STAR FEST（限定SSR4体・セイラ＆カナヅキは属性2つ）",
+    "極彩祭にハノン（史上最大の火力・史上最強のリンク）",
+    "RANK UP はピックアップのみ／10連の確定枠から完凸を除外",
+    "オフラインとオンラインの同期を作り直し",
+    "オフラインで大きい画像が出ない不具合を修正",
+    "MagiBurst にローカル通信マルチ／通信を使わない「1台でまわして遊ぶ」も追加",
+    "MagiDiamond の打席を3D風に・キャラクターの絵で表示",
+    "MagiLink をリセット＆コード不要に・友達を XEVARION と1本化"
   ],
-  "bytes": 39511223,
-  "files": 408,
+  "bytes": 40040284,
+  "files": 415,
   "urls": [
     "index.html",
     "characters.html",
@@ -120,6 +120,7 @@
     "MagiLex/magilex-cloud.js",
     "app-install-notice.js",
     "MagiBurst/index.html",
+    "MagiBurst/js/local.js",
     "MagiBurst/img/bn_premium_s.webp",
     "MagiBurst/img/bn_castle_s.webp",
     "MagiBurst/img/bn_lab_s.webp",
@@ -290,6 +291,7 @@
     "MagiBurst/img/bn_fes10_s.webp",
     "MagiBurst/img/bn_archive_s.webp",
     "MagiBurst/img/bn_fes11_s.webp",
+    "MagiBurst/img/bn_fes12_s.webp",
     "img/t_Suzune.webp",
     "img/t_Minamo.webp",
     "img/t_Karin.webp",
@@ -328,6 +330,11 @@
     "img/t_Rin.webp",
     "img/t_Minori.webp",
     "img/t_Seika.webp",
+    "img/t_Riona.webp",
+    "img/t_MireiR.webp",
+    "img/t_SuzuhaR.webp",
+    "img/t_SeiraK.webp",
+    "img/t_Hanon.webp",
     "img/cryst.webp",
     "img/t_Karen.webp",
     "img/t_Tomoe.webp",
@@ -425,17 +432,49 @@
     "MagiArcanaRush/img/mar-bg.webp"
   ],
   "apps": [
+    "img",
+    "magiarcanarush",
     "magiburst",
-    "magilex",
+    "magichainparty",
     "magidiamond",
+    "magijackpot",
+    "magilex",
+    "magilotto",
+    "magimusic",
+    "magilink",
+    "tab:chars",
+    "tab:community",
     "tab:gacha",
     "tab:home",
-    "tab:chars",
-    "img",
-    "thumbs"
+    "xevynar"
   ],
-  "changedFiles": 2,
+  "changedFiles": 28,
   "history": [
+    {
+      "version": "2026-08-31-1",
+      "date": "2026-08-31",
+      "title": "💠 結晶と交換所／⚔ 戦姫祭にアンナ(祭)／✧ GRAND DEBUT Ver.6.0／⚾ MagiDiamond 大幅リニューアル／📚 MagiLex に地理",
+      "notes": [
+        "PREMIUM SELECT GACHA のキャラクターは完凸しても排出され続けるようになりました。出たときは💠結晶（SSR 5個・SR 1個）がもらえ、75個で PREMIUM SELECT / GRAND DEBUT の好きな1体と交換できます（交換所はホームの🛒ショップ）",
+        "戦姫祭に アンナ(祭)（光・貫通）が登場。MagiBurst 史上最強で、闇属性の蓬莱3クエスト（第五重・蓬莱天宮・蓬莱神天）を有利属性のまま完全対応します",
+        "GRAND DEBUT GACHA Ver.6.0（チア・リサ・リン・ミノリ・セイカ）を公開。蓬莱天宮の続き5クエストの最適解で、リンクスキルは5本とも新設です",
+        "同じ名前のキャラクターに区別を付けました（アンナ(煌)／アンナ(STAR)／アンナ(祭)、ラン(祈)／ラン(焔)、ユウカ(黒)／ユウカ(聖)）",
+        "極彩祭・極華祭・極煌祭を「常時開催（毎月◯〜◯日）」表記にしました",
+        "MagiDiamond を大幅リニューアル。開くと最新版・過去版をえらべます。最新版は XEVARION の SR・SSR 全キャラクターが野球選手になり、育成・チーム編成・チームスキル・野球盤の打球処理・オンライン対戦まで遊べます",
+        "MagiLex に地理を追加しました（工業・人口・人口問題／17セット204問）",
+        "MagiLex の化学εを 20セット240問 → 40セット480問に倍増し、分野ごとに並べ直しました"
+      ],
+      "apps": [
+        "magiburst",
+        "magilex",
+        "magidiamond",
+        "tab:gacha",
+        "tab:home",
+        "tab:chars",
+        "img",
+        "thumbs"
+      ]
+    },
     {
       "version": "2026-08-29-2",
       "date": "2026-08-29",
@@ -865,18 +904,6 @@
         "リンクスキル「超強ハイクロススティンガー」を大幅強化（6本・×3.60）し、演出を作り直しました",
         "Wi-Fi のときとモバイルデータのときで「最新のデータを使う」「更新を自動でダウンロード」を別々に設定できるようにしました",
         "XEVYNAR の起動時に、解法・解説がまちがっていることがある旨のご案内を追加しました",
-        "MagiLex: まちがえた問題からXEVYNARのくわしい解説へ飛べなかったのを修正／XEVA2倍キャンペーンを10/31まで延長"
-      ]
-    },
-    {
-      "version": "2026-08-20-4",
-      "date": "2026-08-20",
-      "title": "GRAND DEBUT GACHA 開幕 ／ レアリティを SSR・SR に ／ Wi-Fi・モバイルデータの通信設定",
-      "notes": [
-        "新キャラ専用の GRAND DEBUT GACHA を新設（Ver.1.0）。新キャラはこのガチャでのみ登場し、フェス・プレミアムのすり抜けや確定枠には出ません",
-        "新SSR 5体（ミレーユ・スカーレット・コユキ・アメリア・ミオ）。それぞれ蓬莱の九重の担当クエストを属性有利のまま全ギミック対応できます",
-        "レアリティ表記を ★5→SSR ／ ★4→SR に変更",
-        "Wi-Fi のときとモバイルデータのときで「最新のデータを使う」「更新を自動でダウンロード」を別々に設定できるようにしました",
         "MagiLex: まちがえた問題からXEVYNARのくわしい解説へ飛べなかったのを修正／XEVA2倍キャンペーンを10/31まで延長"
       ]
     }

@@ -1,18 +1,18 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<script src="../maintenance-gate.js?v=5"></script>
+<script src="../maintenance-gate.js?v=7"></script>
 <meta charset="UTF-8">
 <script>(function(){try{var a=JSON.parse(localStorage.getItem('xeva_account_v1'));if(!a||!a.setupDone)location.replace('../index.html');}catch(e){}})();</script>
-<script type="module" src="../xevarion-fb.js?v=22"></script>
-<script type="module" src="../xeva-cloud.js?v=18"></script>
+<script type="module" src="../xevarion-fb.js?v=24"></script>
+<script type="module" src="../xeva-cloud.js?v=22"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>MagiLink — メッセンジャー</title>
 <link rel="icon" href="../thumbs/MagiLink.jpg" type="image/png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Exo+2:wght@300;400;600;700&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="magilink.css?v=12">
+<link rel="stylesheet" href="magilink.css?v=15">
 <style>
 /* ★ v4: ここも XEVARION の明るい配色にそろえた（本体のCSSは magilink.css） */
 /* avatar image fix */
@@ -22,6 +22,17 @@
 .hub-card{background:#fff;border:1.5px solid var(--border);border-radius:18px;padding:22px 16px;text-align:center;cursor:pointer;transition:transform .18s,border-color .18s,box-shadow .18s;display:flex;flex-direction:column;align-items:center;gap:8px;box-shadow:var(--shadow-s)}
 .hub-card:hover{transform:translateY(-2px);border-color:rgba(75,139,255,.45);box-shadow:var(--shadow)}
 .hub-card .hc-icon{font-size:34px;line-height:1}
+/* ★★ 2026-09-01 ホームのアイコン（線画・角丸の台つき）。
+   色は1枚ずつ --a / --b で変える。中の線は太さ・端の形をそろえてある。 */
+.hub-card .hc-ic{width:52px;height:52px;border-radius:16px;display:grid;place-items:center;
+  background:linear-gradient(140deg,color-mix(in srgb,var(--a) 16%,#fff),color-mix(in srgb,var(--b) 26%,#fff));
+  border:1.5px solid color-mix(in srgb,var(--a) 34%,transparent);
+  box-shadow:0 6px 16px color-mix(in srgb,var(--a) 22%,transparent);
+  transition:transform .18s,box-shadow .18s}
+.hub-card .hc-ic svg{width:30px;height:30px;fill:none;stroke:var(--a);
+  stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.hub-card:hover .hc-ic{transform:translateY(-1px) scale(1.04);
+  box-shadow:0 10px 22px color-mix(in srgb,var(--a) 30%,transparent)}
 .hub-card .hc-label{font-size:13px;font-weight:800;color:var(--txt)}
 .hub-card .hc-sub{font-size:10px;font-weight:600;color:var(--dim)}
 .hub-greet{display:flex;align-items:center;gap:14px;background:linear-gradient(135deg,rgba(75,139,255,.12),rgba(155,123,255,.09)),#fff;border:1.5px solid rgba(75,139,255,.25);border-radius:18px;padding:16px 18px;box-shadow:var(--shadow-s)}
@@ -46,8 +57,8 @@
 .col-empty{font-size:12px;font-weight:600;color:var(--dim);text-align:center;padding:18px 0}
 .coll-stat{display:inline-flex;align-items:center;gap:5px;background:rgba(255,201,60,.14);border:1.5px solid rgba(255,201,60,.42);color:#c98400;font-size:11px;font-weight:800;padding:4px 11px;border-radius:100px}
 </style>
-<script src="../xeva.js?v=44"></script>
-<script src="../xeva-splash.js?v=3" data-app="MagiLink" data-logo="../thumbs/MagiLink.jpg"></script>
+<script src="../xeva.js?v=53"></script>
+<script src="../xeva-splash.js?v=5" data-app="MagiLink" data-logo="../thumbs/MagiLink.jpg"></script>
 </head>
 <body>
 <div class="bg" aria-hidden="true"><i></i><i></i></div>
@@ -153,29 +164,65 @@
           <div class="prof-av" id="hubAv" style="width:56px;height:56px;font-size:22px;margin:0;flex-shrink:0;">🙂</div>
           <div class="hub-greet-text"><div class="hg-name" id="hubName">—</div><div class="hg-sub">おかえりなさい！</div></div>
         </div>
+        <!-- ══ ★★ 2026-09-01 ホームのアイコンを描き直しました（ご指定）══
+             絵文字（🌐💬👥📋🎴）は端末ごとに絵がちがい、大きさもそろわないので、
+             <b>同じ形・同じ太さの線画</b>にそろえた自前のアイコンにしてあります。
+             ・角の丸い正方形の台（.hc-ic）に、色は1枚ずつ変える（--a / --b）
+             ・中の線は太さ1.8で統一。塗りは使わず線だけなので、小さくしても潰れない -->
         <div class="hub-grid">
           <div class="hub-card" onclick="window.mlGoTo('lobby')">
-            <div class="hc-icon">🌐</div>
+            <div class="hc-ic" style="--a:#4b8bff;--b:#7bb6ff">
+              <svg viewBox="0 0 32 32" aria-hidden="true">
+                <circle cx="16" cy="16" r="9.5"/>
+                <path d="M16 6.5c3 3 3 16 0 19M16 6.5c-3 3-3 16 0 19"/>
+                <path d="M6.9 12.6h18.2M6.9 19.4h18.2"/>
+              </svg>
+            </div>
             <div class="hc-label">ロビー</div>
             <div class="hc-sub">全体チャット</div>
           </div>
           <div class="hub-card" onclick="window.mlGoTo('talks')">
-            <div class="hc-icon">💬</div>
+            <div class="hc-ic" style="--a:#9b7bff;--b:#c6a8ff">
+              <svg viewBox="0 0 32 32" aria-hidden="true">
+                <path d="M12.6 6.5h12.1a2.4 2.4 0 0 1 2.4 2.4v6.3a2.4 2.4 0 0 1-2.4 2.4h-1.1v3.6l-3.8-3.6"/>
+                <path d="M19.4 12.2H8.4a2.4 2.4 0 0 0-2.4 2.4v6.3a2.4 2.4 0 0 0 2.4 2.4h1.1v3.6l3.8-3.6h6.1a2.4 2.4 0 0 0 2.4-2.4v-6.3a2.4 2.4 0 0 0-2.4-2.4z"/>
+              </svg>
+            </div>
             <div class="hc-label">トーク</div>
             <div class="hc-sub">DM・グループ</div>
           </div>
           <div class="hub-card" onclick="window.mlGoTo('friends')">
-            <div class="hc-icon">👥</div>
+            <div class="hc-ic" style="--a:#2bb673;--b:#6fe3ab">
+              <svg viewBox="0 0 32 32" aria-hidden="true">
+                <circle cx="12" cy="11" r="4"/>
+                <path d="M5 24a7 7 0 0 1 14 0"/>
+                <circle cx="22.5" cy="12.5" r="3.2"/>
+                <path d="M19.5 24H27a5.6 5.6 0 0 0-4.2-5.4"/>
+              </svg>
+            </div>
             <div class="hc-label">友達</div>
             <div class="hc-sub">リスト・申請</div>
           </div>
           <div class="hub-card" onclick="window.mlGoTo('board')">
-            <div class="hc-icon">📋</div>
+            <div class="hc-ic" style="--a:#ff9a3d;--b:#ffc785">
+              <svg viewBox="0 0 32 32" aria-hidden="true">
+                <rect x="5.5" y="7.5" width="21" height="18" rx="2.5"/>
+                <path d="M10 13h12M10 17.5h9M10 22h6"/>
+                <path d="M16 3.5v4"/>
+                <circle cx="16" cy="3.2" r="1.6"/>
+              </svg>
+            </div>
             <div class="hc-label">掲示板</div>
             <div class="hc-sub">みんなの投稿</div>
           </div>
           <div class="hub-card" onclick="window.mlGoTo('collection')">
-            <div class="hc-icon">🎴</div>
+            <div class="hc-ic" style="--a:#ff5b9e;--b:#ffa3c8">
+              <svg viewBox="0 0 32 32" aria-hidden="true">
+                <rect x="4.5" y="8.5" width="11" height="16" rx="2.2" transform="rotate(-8 10 16.5)"/>
+                <rect x="16" y="7.5" width="11.5" height="17" rx="2.2"/>
+                <path d="M19 12.5h5.5M19 16.2h3.6"/>
+              </svg>
+            </div>
             <div class="hc-label">コレクション</div>
             <div class="hc-sub">みんなのキャラ</div>
           </div>
@@ -417,8 +464,8 @@
   <img id="imgFull" style="max-width:94vw;max-height:90vh;border-radius:12px;" alt="">
 </div>
 
-<script type="module" src="magilink.js?v=15"></script>
+<script type="module" src="magilink.js?v=18"></script>
 <!-- XEVARION へもどる導線（同期を送り切ってから移動する） -->
-<script src="../xeva-back.js?v=1" data-mode="hook"></script>
+<script src="../xeva-back.js?v=3" data-mode="hook"></script>
 </body>
 </html>

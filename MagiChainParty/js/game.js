@@ -292,6 +292,8 @@ function openSeatLink(idx) {
       setup.players[idx].link = { uid: res.uid, name: res.name, charFile: res.charFile || "", confirmed: true };
       renderPlayers(); saveSetup();
       toast("🔗 " + res.name + " を紐づけました", "#13c08a");
+      /* ★★ 2026-09-01 アイコン画像も控えて、一覧に顔を出せるようにする */
+      p.charFile = res.charFile || "";
     }
   });
 }
@@ -438,6 +440,7 @@ function buildPanels() {
     el.style.setProperty("--c", p.color);
     el.innerHTML = `
       <span class="pdot"></span>
+      ${olAvatarHTML(p.charFile, "sm")}
       <span class="pname">${escapeHtml(p.name)}</span>
       <span class="pbadge">${p.type === "cpu" ? "🤖" : ""}</span>
       <span class="pscore">0</span>
@@ -637,7 +640,7 @@ function endGame(winner) {
     row.className = "win-row"; row.style.setProperty("--c", p.color);
     const badge = medal[i] || (i + 1) + "位";
     const right = p.dead ? `${p.deadAt}番目に脱落` : `${gemCount(p.id)}個で制覇 🏆`;
-    row.innerHTML = `<span class="pdot"></span><span class="nm">${badge} ${escapeHtml(p.name)}${i === 0 ? "（優勝）" : ""}${p.xvUid ? " 🔗" : ""}</span><span>${right}</span>`;
+    row.innerHTML = `<span class="pdot"></span>${olAvatarHTML(p.charFile, "sm")}<span class="nm">${badge} ${escapeHtml(p.name)}${i === 0 ? "（優勝）" : ""}${p.xvUid ? " 🔗" : ""}</span><span>${right}</span>`;
     stats.appendChild(row);
   });
   awardChainPrizes(ranked);
@@ -672,7 +675,7 @@ function endByTerritory() {
     const row = document.createElement("div");
     row.className = "win-row"; row.style.setProperty("--c", p.color);
     const badge = medal[i] || (i + 1) + "位";
-    row.innerHTML = `<span class="pdot"></span><span class="nm">${badge} ${escapeHtml(p.name)}${i === 0 ? "（優勝）" : ""}${p.dead ? "・脱落" : ""}${p.xvUid ? " 🔗" : ""}</span><span>${terr(p)} マス</span>`;
+    row.innerHTML = `<span class="pdot"></span>${olAvatarHTML(p.charFile, "sm")}<span class="nm">${badge} ${escapeHtml(p.name)}${i === 0 ? "（優勝）" : ""}${p.dead ? "・脱落" : ""}${p.xvUid ? " 🔗" : ""}</span><span>${terr(p)} マス</span>`;
     stats.appendChild(row);
   });
   awardChainPrizes(ranked);
@@ -1047,7 +1050,36 @@ function whenMCP(timeout) {
     setTimeout(fin, timeout || 6000);
   });
 }
-function myOnlineAccount() {
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-09-01 オンライン対戦の「自分のアカウント」（ご報告への対応）
+   ------------------------------------------------------------
+   ご報告: 「マルチでアカウントの紐づけができない」
+
+   これまでは<b>この端末のポータルのアカウント（xeva_account_v1.xvUid）だけ</b>を見ていた。
+   そのため
+     ・ポータルでまだアカウントを作っていない
+     ・xvUid が欠けている（機種変・データ移行の直後に起こる）
+     ・友だちの端末を借りて、自分のアカウントで入りたい
+   のどれでも「オンライン対戦にはポータルでのアカウント設定が必要です」と出て、
+   <b>紐づける手立てがどこにも無かった</b>。
+
+   → オンラインの入口に <b>🔗 アカウントを紐づける</b> を置き、
+     ローカル対戦と<b>同じ道具（GameLink＝表示名で検索 → 4桁パスワード）</b>で
+     アカウントを選べるようにした。選んだアカウントはこの端末に控えて次回も使う。
+   ★ 紐づけたアカウントが<b>優先</b>。解除するとポータルのアカウントに戻る。
+   ══════════════════════════════════════════════════════════════ */
+const OL_ACC_KEY = "chainparty_online_acc_v1";
+let OL_LINK = null;
+function olLoadLink() {
+  try { const a = JSON.parse(localStorage.getItem(OL_ACC_KEY) || "null");
+        if (a && a.uid && a.name) return a; } catch (e) {}
+  return null;
+}
+function olSaveLink(a) {
+  try { a ? localStorage.setItem(OL_ACC_KEY, JSON.stringify(a)) : localStorage.removeItem(OL_ACC_KEY); } catch (e) {}
+}
+/* ポータルのアカウント（この端末で設定ずみのもの） */
+function portalAccount() {
   try {
     const a = JSON.parse(localStorage.getItem("xeva_account_v1") || "null");
     if (!a || !a.xvUid) return null;
@@ -1057,6 +1089,75 @@ function myOnlineAccount() {
     }
     return { uid: a.xvUid, name: (a.name || "プレイヤー").slice(0, 6), charFile };
   } catch (e) { return null; }
+}
+function myOnlineAccount() {
+  if (OL_LINK === null) OL_LINK = olLoadLink();
+  if (OL_LINK && OL_LINK.uid) return OL_LINK;
+  return portalAccount();
+}
+/* ── アカウントのアイコン画像のパス ──
+   ★ 保存されている charFile は移籍前の古いフォルダのことがあるので、必ず正規化してから組み立てる。
+   ★ MagiChainParty は XEVARION の1つ下なので、先頭に "../" を付ける。
+     MagiBurst のキャラは file が "../img/Xxx.webp" なので
+     "../chars_s/../img/t_Xxx.webp" ＝ XEVARION/img/t_Xxx.webp に解決される。 */
+function olCharImg(charFile, charId) {
+  if (!charFile) return "";
+  const X = window.XEVA || {};
+  const f = X.canonCharFile ? X.canonCharFile(charFile, charId) : String(charFile);
+  const isMb = X.isMbCharFile ? X.isMbCharFile(f) : /^\.\.\/(img|MagiBurst\/img)\//.test(f);
+  const th = isMb ? (X.charThumbFile ? X.charThumbFile(f) : f.replace(/\/([^/]+)$/, "/t_$1"))
+                  : f.replace(/\.(png|jpe?g)$/i, "") + ".jpg";
+  return "../chars_s/" + th;
+}
+/* 名前の左に出す丸いアイコン（画像が無ければ何も出さない） */
+function olAvatarHTML(charFile, cls) {
+  const src = olCharImg(charFile);
+  if (!src) return "";
+  return '<img class="ol-av' + (cls ? " " + cls : "") + '" src="' + src + '" alt="" loading="lazy">';
+}
+/* 入口の「🔗 アカウントを紐づける」ボタン */
+function olRenderLinkRow() {
+  const box = document.getElementById("ol-linkbox");
+  if (!box) return;
+  const linked = (OL_LINK === null ? (OL_LINK = olLoadLink()) : OL_LINK);
+  const portal = portalAccount();
+  const cur = linked || portal;
+  box.innerHTML =
+    '<div class="ol-linkcur">' +
+      (cur ? olAvatarHTML(cur.charFile) + '<span class="ol-linknm">' + escapeHtml(cur.name) + '</span>' +
+             '<span class="ol-linktag">' + (linked ? "紐づけ中" : "この端末のアカウント") + '</span>'
+           : '<span class="ol-linknm none">アカウント未設定</span>') +
+    '</div>' +
+    '<button id="ol-link-btn" class="ghost">' + (linked ? "🔗 別のアカウントにする／解除" : "🔗 アカウントを紐づける") + '</button>';
+  const b = document.getElementById("ol-link-btn");
+  if (b) b.addEventListener("click", olDoLink);
+}
+function olDoLink() {
+  if (!window.GameLink) { toast("紐づけ機能を準備中です…", "#8892a6"); return; }
+  if (navigator.onLine === false) { toast("オフライン中は紐づけできません", "#ff8c42"); return; }
+  const cur = myOnlineAccount();
+  GameLink.link(cur ? cur.name : "").then((res) => {
+    if (!res) return;
+    if (res.remove) { OL_LINK = null; olSaveLink(null); olRenderLinkRow(); olRefreshEntry();
+                      toast("紐づけを解除しました", "#8892a6"); return; }
+    if (res.uid) {
+      OL_LINK = { uid: res.uid, name: (res.name || "プレイヤー").slice(0, 6), charFile: res.charFile || "" };
+      olSaveLink(OL_LINK); olRenderLinkRow(); olRefreshEntry();
+      toast("🔗 " + OL_LINK.name + " を紐づけました", "#13c08a");
+    }
+  });
+}
+/* 入口のボタンの出しわけ（アカウントがあるかで決まる） */
+function olRefreshEntry() {
+  const acc = myOnlineAccount();
+  const c = $("#ol-create"), j = $("#ol-join-btn");
+  if (!acc) {
+    olMsg("オンライン対戦には<b>アカウントの紐づけ</b>が必要です。下の「🔗 アカウントを紐づける」から、表示名と4桁の番号でつないでください。", "#ff5d5d");
+    if (c) c.disabled = true; if (j) j.disabled = true;
+  } else {
+    olMsg("部屋をつくるか、4桁の番号で参加してください。");
+    if (c) c.disabled = false; if (j) j.disabled = false;
+  }
 }
 function isMyOnlineTurn() {
   return !!(ONLINE && ONLINE.entered && window.MCPOnline && S.players && S.players[S.turn] &&
@@ -1084,7 +1185,7 @@ function initOnline() {
   });
 }
 
-function olMsg(t, color) { const m = $("#ol-msg"); if (m) { m.textContent = t || ""; m.style.color = color || "#8892a6"; } }
+function olMsg(t, color) { const m = $("#ol-msg"); if (m) { m.innerHTML = t || ""; m.style.color = color || "#8892a6"; } }
 
 function openOnline() {
   /* ★ オフライン中はオンライン対戦に入れない */
@@ -1092,7 +1193,6 @@ function openOnline() {
     toast("📴 オフライン中はオンライン対戦できません（ローカル対戦は遊べます）", "#ff8c42");
     return;
   }
-  const acc = myOnlineAccount();
   showScreen("#online");
   $("#ol-lobby").classList.add("hidden");
   $("#ol-home").classList.remove("hidden");
@@ -1100,8 +1200,9 @@ function openOnline() {
   $("#ol-ready").classList.add("hidden");
   $("#ol-start").classList.add("hidden");
   $("#ol-code").value = "";
-  if (!acc) { olMsg("オンライン対戦にはポータルでのアカウント設定が必要です。", "#ff5d5d"); $("#ol-create").disabled = true; $("#ol-join-btn").disabled = true; }
-  else { olMsg("部屋をつくるか、4桁の番号で参加してください。"); $("#ol-create").disabled = false; $("#ol-join-btn").disabled = false; }
+  /* ★★ 2026-09-01 紐づけの行を出してから、ボタンの出しわけを決める */
+  olRenderLinkRow();
+  olRefreshEntry();
   whenMCP().then((M) => { if (!M) olMsg("オンライン接続を準備できませんでした。通信環境を確認してください。", "#ff5d5d"); });
 }
 
@@ -1212,8 +1313,11 @@ function renderLobby(room, players) {
     list.innerHTML = players.map((p, i) => {
       const isHostP = p.uid === host, me = p.uid === MCPOnline.myUid();
       const off = p.online === false;
+      /* ★★ 2026-09-01 紐づけたアカウントの<b>アイコン画像</b>も出す（ご指定）。
+         charFile は部屋に入るときに書きこんである（online.js の players[uid].charFile）。 */
       return `<div class="ol-prow" style="--c:${COLORS[i] || "#888"}">
         <span class="pdot"></span>
+        ${olAvatarHTML(p.charFile)}
         <span class="ol-pname">${escapeHtml(p.name || "?")}${me ? "（あなた）" : ""}${isHostP ? " 👑" : ""}${off ? " ⚪️" : ""}</span>
         <span class="ol-pready">${p.ready ? "✅ 準備OK" : "…待機中"}</span>
       </div>`;
@@ -1284,6 +1388,8 @@ function enterOnlineGame(state) {
       id: i, color: COLORS[i], face: FACES[i], seat: SEATS[n][i],
       name: p.name || NAMES[i], type: "human", started: false, dead: false, deadAt: 0,
       uid: p.uid, xvUid: p.uid, xvName: p.name,
+      /* ★★ 2026-09-01 紐づけたアカウントのアイコン（部屋の players[uid].charFile） */
+      charFile: p.charFile || "",
     })),
     history: [], onlineSeqApplied: state.seq || 0, onlineWinShown: false,
   };

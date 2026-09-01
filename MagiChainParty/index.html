@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<script src="../maintenance-gate.js?v=5"></script>
+<script src="../maintenance-gate.js?v=7"></script>
   <meta charset="UTF-8" />
 <script>(function(){try{var a=JSON.parse(localStorage.getItem('xeva_account_v1'));if(!a||!a.setupDone)location.replace('../index.html');}catch(e){}})();</script>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
@@ -12,17 +12,17 @@
   <link rel="apple-touch-icon" href="../thumbs/MagiChainParty.jpg" />
   <!-- PWA: オフラインでもローカル対戦が遊べる（オンライン対戦はオンライン時のみ） -->
   <!-- 単体でのアプリ配布は廃止（XEVARION を1つ入れれば3アプリともオフライン対応になる） -->
-<script src="../app-install-notice.js?v=1" defer></script>
+<script src="../app-install-notice.js?v=3" defer></script>
   <meta name="theme-color" content="#7c5bff" />
   <script>
   if ("serviceWorker" in navigator) {
     window.addEventListener("load", function () { navigator.serviceWorker.register("sw.js").catch(function () {}); });
   }
   </script>
-  <link rel="stylesheet" href="css/style.css?v=8" />
+  <link rel="stylesheet" href="css/style.css?v=10" />
 
   <!-- 起動スプラッシュは ../xeva-splash.js（全アプリ共通）に統一 -->
-  <script src="../xeva-splash.js?v=3" data-app="MagiChainParty" data-logo="../thumbs/MagiChainParty.jpg"></script>
+  <script src="../xeva-splash.js?v=5" data-app="MagiChainParty" data-logo="../thumbs/MagiChainParty.jpg"></script>
 </head>
 <body>
 
@@ -111,6 +111,13 @@
             <input id="ol-code" inputmode="numeric" maxlength="4" placeholder="0000" />
             <button id="ol-join-btn" class="primary">参加</button>
           </div>
+        </div>
+        <!-- ★★ 2026-09-01 オンライン対戦のアカウント紐づけ（ご指定）
+             ポータルのアカウントが無くても、ここから表示名＋4桁の番号でつなげる。 -->
+        <div class="su-card">
+          <div class="su-title"><span class="su-ic">🔗</span>アカウント<span class="su-hint">対戦に使う名前とアイコン</span></div>
+          <div id="ol-linkbox" class="ol-linkbox"></div>
+          <p class="seg-note" style="margin-bottom:0">紐づけると、参加者の一覧に<b>アイコンと表示名</b>が出て、順位に応じた XEVA も受け取れます。</p>
         </div>
         <p id="ol-msg" class="ol-msg"></p>
       </div>
@@ -206,15 +213,15 @@
   <!-- お知らせトースト -->
   <div id="toast" class="toast"></div>
 
-  <script src="../xeva.js?v=47"></script>
-<script src="../xeva-loading.js?v=1" defer></script>
-  <script type="module" src="../xevarion-fb.js?v=22"></script>
-<script src="../xeva-presence.js?v=1" defer></script>
-  <script type="module" src="../xeva-cloud.js?v=18"></script>
-  <script type="module" src="js/online.js?v=4"></script>
-  <script src="../game-link.js?v=3"></script>
-  <script src="js/game.js?v=8"></script>
+  <script src="../xeva.js?v=53"></script>
+<script src="../xeva-loading.js?v=3" defer></script>
+  <script type="module" src="../xevarion-fb.js?v=24"></script>
+<script src="../xeva-presence.js?v=3" defer></script>
+  <script type="module" src="../xeva-cloud.js?v=22"></script>
+  <script type="module" src="js/online.js?v=6"></script>
+  <script src="../game-link.js?v=5"></script>
+  <script src="js/game.js?v=10"></script>
 <!-- XEVARION へもどる導線（同期を送り切ってから移動する） -->
-<script src="../xeva-back.js?v=1" data-mode="hook"></script>
+<script src="../xeva-back.js?v=3" data-mode="hook"></script>
 </body>
 </html>

@@ -155,6 +155,11 @@ const XH_ORDER_GEN_KEY = "xeva_home_order_gen";
      ずっと後ろ、という状態を防ぐため。
      ＝ 新しいイベントを足すときは<b>この配列のどこに書いてもよい</b>。 */
 const XH_EVENTS = [
+  /* ★★ 2026-09-01 RISING STAR FEST（ふつうのフェスガチャ＝登場から30日） */
+  { tag:"RISING FES", t1:"RISING STAR FEST",
+    t2:"限定SSR 4体が参戦！ 蓬莱の九重の後半5階層を担当。セイラ＆カナヅキは属性を2つ持つ唯一のキャラ",
+    since:"2026-09-01", from:"2026-09-01", to:"2026-10-01",
+    href:"gacha.html#fes12", img:"thumbs/MagiBurst.jpg" },
   /* ★★ 2026-08-30 GRAND DEBUT GACHA Ver.6.0（版ごとに10日間） */
   { tag:"GRAND DEBUT", t1:"GRAND DEBUT GACHA Ver.6.0", t2:"新SSR 5体が参戦！ 蓬莱天宮の続き5クエストの最適解——Cozy Haven を超える性能",
     since:"2026-08-30", from:"2026-08-30", to:"2026-09-09",
@@ -192,7 +197,7 @@ const XH_EVENTS = [
   /* ★★ 2026-08-27 極彩祭（毎月1〜15日）・極煌祭（毎月16日〜末日）。
      ★ 毎月まるごと入れ替わるので、from / to は<b>広めに取っておく</b>
        （実際の開催判定は mb-core.js の monthly が行う）。 */
-  { tag:"FES", t1:"極彩祭", t2:"常時開催（毎月1〜10日）。限定SSR「ヒナノ」——敵の属性を塗り替えるリンクスキル",
+  { tag:"FES", t1:"極彩祭", t2:"常時開催（毎月1〜10日）。限定SSR「ヒナノ」＋新登場「ハノン」——バスケの乱打110連で史上最大の火力",
     monthly:[1,10], perm:true,
     from:"2026-08-27", to:"2027-12-31", img:"thumbs/MagiBurst.jpg", href:"gacha.html#fes7" },
   { tag:"FES", t1:"極煌祭", t2:"常時開催（毎月21日〜末日）。限定SSR「ムツミ」＋新登場「レイナ」——史上最大火力のフルバースト",
@@ -229,7 +234,7 @@ const XH_EVENTS = [
     /* ★ 2026-08-12 正方形の書き下ろしイラストに差し替え。
        ?v= を付けてあるのは、SW が stale-while-revalidate（古いほうを先に返す）で
        画像を持っているため。付けないと1回目は前の絵のままになる。 */
-    href:"MagiBurst/index.html", img:"thumbs/AokaSummerFest.jpg?v=2" },
+    href:"MagiBurst/index.html", img:"thumbs/AokaSummerFest.jpg?v=4" },
   /* ★ 2026-08-07 MagiBurst「Phantom Legend Fest」の予告。
      8/10 0:00 の開催をまたぐと、下の xhRenderEvents が t1/t2 を「開催中」に差し替える
      （XH_FES3_OPEN と見くらべるだけなので、当日に書き直す必要はない）。
@@ -285,6 +290,34 @@ const XH_EVENTS = [
    ══════════════════════════════════════════════════════════════ */
 const XH_UPDATE_MAX = 12;
 const XH_UPDATES = [
+  /* ★★ 2026-09-01 RISING STAR FEST／極彩祭にハノン／ガチャの直し／同期の作り直し */
+  { tag:"NEW", t1:"RISING STAR FEST 開幕", at:"2026-09-01",
+    t2:"限定SSR 4体。蓬莱の九重の後半5階層を担当。セイラ＆カナヅキは属性を2つ持つ唯一のキャラ",
+    href:"gacha.html#fes12", img:"thumbs/MagiBurst.jpg" },
+  { tag:"NEW", t1:"極彩祭にハノンが参戦", at:"2026-09-01",
+    t2:"バスケの乱打110連＋ゴール8本＋ブザービーターで史上最大の火力。リンクスキルも史上最強",
+    href:"gacha.html#fes7", img:"thumbs/MagiBurst.jpg" },
+  { tag:"UPDATE", t1:"RANK UP はピックアップだけに", at:"2026-09-01",
+    t2:"昇格演出に出るのはそのガチャのピックアップのみ。10連の確定枠からは限界突破MAXを外しました",
+    href:"gacha.html", img:"thumbs/MagiBurst.jpg" },
+  { tag:"UPDATE", t1:"オフラインとオンラインの同期を作り直し", at:"2026-09-01",
+    t2:"財布は増減を両方たす3方向マージ、キャラは取り合わせに。片方の進行が丸ごと消えなくなります",
+    href:"index.html", img:"thumbs/Xevarion.png" },   /* ★ 2026-09-01 .jpg は存在しない（404だった） */
+  { tag:"NEW", t1:"MagiBurst にローカル通信マルチ", at:"2026-09-01",
+    t2:"同じ Wi-Fi なら回線が無くても協力バトル。通信を使わない「1台でまわして遊ぶ」（2〜4人）も追加",
+    href:"MagiBurst/index.html", img:"thumbs/MagiBurst.jpg" },
+  { tag:"UPDATE", t1:"MagiDiamond の打席が3D風に", at:"2026-09-01",
+    t2:"投手・打者・守備がキャラクターの絵に。ボールが手前へ近づくのに合わせてタイミングを取ります",
+    href:"MagiDiamond/index.html", img:"thumbs/MagiDiamond.jpg" },
+  { tag:"UPDATE", t1:"MagiLink をリセット＆コード不要に", at:"2026-09-01",
+    t2:"ユーザーを一度すべてリセット。開いた人から順に登録され、友達は XEVARION のコミュニティと同じに",
+    href:"MagiLink/MagiLink.html", img:"thumbs/MagiLink.jpg" },
+  { tag:"FIX", t1:"オフラインで大きい画像が出ない不具合", at:"2026-09-01",
+    t2:"更新のたびに、見て貯めた画像が消えていました。画像だけ更新で消えない置き場にためます",
+    href:"index.html", img:"thumbs/Xevarion.png" },
+  { tag:"UPDATE", t1:"キャラクター名の括弧をやめました", at:"2026-09-01",
+    t2:"括弧は アンナ(STAR)・アンナ(祭) だけ。ぶつかる名前は古いほうを改名（アンナ→アンネ ほか）",
+    href:"index.html", img:"thumbs/MagiBurst.jpg" },
   /* ★★ 2026-08-30 MagiDiamond 大幅リニューアル／MagiLex 地理・化学ε増量 */
   { tag:"UPDATE", t1:"MagiDiamond を大幅リニューアル", at:"2026-08-30",
     t2:"XEVARION の SR・SSR 全キャラクターが野球選手に。開いたときに最新版と過去版をえらべます",
@@ -303,7 +336,7 @@ const XH_UPDATES = [
     t2:"MagiBurst 史上最強。闇属性の蓬莱3クエストを有利属性のまま完全対応します",
     href:"gacha.html#fes11", img:"thumbs/MagiBurst.jpg" },
   { tag:"UPDATE", t1:"同じ名前のキャラに区別を付けました", at:"2026-08-30",
-    t2:"アンナ(煌)／アンナ(STAR)／アンナ(祭)、ラン(祈)／ラン(焔)、ユウカ(黒)／ユウカ(聖)",
+    t2:"括弧は アンナ(STAR)・アンナ(祭) だけに。ぶつかる名前は古いほうを改名（アンナ→アンネ、ラン→ラナ、ユウカ→ユカリ ほか）",
     href:"characters.html", img:"thumbs/MagiBurst.jpg" },
   { tag:"UPDATE", t1:"極彩祭・極華祭・極煌祭は「常時開催」表記に", at:"2026-08-30",
     t2:"回せる日は月で決まっていますが、ガチャとして終わる期限はありません",
@@ -535,7 +568,7 @@ function xhPaintStamSheet() {
       v.gemCost + " で +" + v.gemGain + " 回復する" +
       (v.stam >= v.max ? "（いまは満タンです）" : gem < v.gemCost ? "（ジェムが足りません）" : "") + "</button>" +
     '<div class="xh-exmsg" id="xhStamMsg"></div>' +
-    '<button class="xh-sbtn ghost" style="margin-top:6px" onclick="xhCloseSheet(\'xhStamSheet\');xhOpenShop()">🛒 お得なパックでジェムを増やす</button>';
+    '<button class="xh-sbtn ghost" style="margin-top:6px" onclick="xhCloseSheet(\'xhStamSheet\');xhOpenShop()">🛒 パックストアでジェムを増やす</button>';
 }
 window.xhPaintStamSheet = xhPaintStamSheet;
 
@@ -591,7 +624,7 @@ function xhRenderGem() {
 window.xhRenderGem = xhRenderGem;
 
 /* ══════════════════════════════════════════════════════════
-   💎ジェム変換所 ＆ お得なパック（2026-07-30 新設）
+   💎ジェム変換所 ＆ パックストア（2026-07-30 新設・旧「お得なパック」）
    ・XEVA→ジェムの交換は、これまで MagiBurst と MagiJackpot にそれぞれ入口があった。
      ジェムが XEVARION 共通通貨になった以上、入口が散らばっていると
      「どこで交換したのか」「レートは同じなのか」が分からなくなるので、ここ1か所に集約する。
@@ -616,7 +649,7 @@ function xhGemRate() {
 const XH_EX_PRESETS = [1, 5, 25, 100];
 const XH_SHOP_KEY = "xeva_shop_v1";
 
-/* お得なパック。gem は「もらえるジェム」、xeva は「支払う XEVA」。
+/* パックストア。gem は「もらえるジェム」、xeva は「支払う XEVA」。
    base（＝通常レートで買える個数）との差ぶんがお得ぶん。
    ★ ticket を持つパックは 🎫フェスチケットが付く（フェスガチャ専用・従来どおり）。
      2026-08-13 に新設した🎫ガチャチケット（全ガチャ共通）とは別物なので混ぜないこと。
@@ -783,7 +816,7 @@ function xhRenderShopBadge() {
   b.textContent = n ? n : "";
   b.classList.toggle("show", n > 0);
   const s = xhEl("xhShopSub");
-  if (s) s.textContent = n ? "毎週リセットのお得なパック" : "今週のパックは買い切りました";
+  if (s) s.textContent = n ? "毎週リセットのパック" : "今週のパックは買い切りました";
 }
 
 /* ── 変換所 ── */
@@ -840,7 +873,7 @@ function xhPaintExchange() {
     '<div class="xh-sortnote">💎ジェムは <b>1個 ＝ 1米ドル</b>、XEVA は <b>1 ＝ 1円</b>。' +
     'だから交換レートは<b>そのときのドル円</b>です（いまは <b>' + rate.toLocaleString() + ' XEVA ＝ 💎1</b>）。' +
     'ジェムは <b>MagiBurst のガチャ</b>や <b>MagiJackpot のベット</b>など、XEVARION 全体で使えます。' +
-    'レートは為替に合わせて毎日すこし動きます（もっとお得に買いたいときは、となりの<b>🛒お得なパック</b>へ）。</div>' +
+    'レートは為替に合わせて毎日すこし動きます（もっとまとめて買いたいときは、となりの<b>🛒パックストア</b>へ）。</div>' +
     '<div class="xh-exbal">' +
       '<span><img src="XEVA.png" alt="XEVA">' + xeva.toLocaleString() + '</span>' +
       '<span><img src="gem.png" alt="ジェム">' + gem.toLocaleString() + '</span>' +
@@ -872,7 +905,7 @@ async function xhDoExchange() {
   if (!window.XEVA || !window.XEVA.gem) { xhExMsg("XEVA ウォレットに接続できません"); return; }
   if (window.XEVA.getBalance() < cost) { xhExMsg("XEVA が足りません（必要 " + cost.toLocaleString() + "）"); return; }
   /* ★ 交換の許可は必ず画面内のダイアログで取る（ブラウザの confirm は使わない）。
-     押した瞬間に XEVA が減る操作なので、お得なパックの購入と同じ手順にそろえる。 */
+     押した瞬間に XEVA が減る操作なので、パックストアの購入と同じ手順にそろえる。 */
   const ok = await xhAsk({
     icon: "🏪", title: "ジェムに交換しますか？",
     ok: "この内容で交換する", cancel: "やめる",
@@ -900,7 +933,7 @@ async function xhDoExchange() {
 }
 window.xhDoExchange = xhDoExchange;
 
-/* ── お得なパック（1回限りのパック） ── */
+/* ── パックストア（1回限りのパック） ── */
 function xhOpenShop() { xhPaintShop(); xhOpenSheet("xhShopSheet"); }
 window.xhOpenShop = xhOpenShop;
 
@@ -944,8 +977,8 @@ function xhLoadScript(src) {
 function xhMbReady() {
   if (typeof CHARS !== "undefined" && typeof PREMIUM_CHARS !== "undefined") return Promise.resolve(true);
   if (_xhMbLoading) return _xhMbLoading;
-  _xhMbLoading = xhLoadScript("mb-boot.js?v=9")
-    .then(() => xhLoadScript("MagiBurst/js/mb-core.js?v=65"))
+  _xhMbLoading = xhLoadScript("mb-boot.js?v=11")
+    .then(() => xhLoadScript("MagiBurst/js/mb-core.js?v=68"))
     .then(() => true)
     .catch((e) => { _xhMbLoading = null; throw e; });
   return _xhMbLoading;
@@ -1188,7 +1221,7 @@ async function xhBuyPack(id) {
   if (window.XEVA.getBalance() < price) { xhPaintShop(); say("XEVA が足りません（必要 " + price.toLocaleString() + "）"); return; }
   /* 「購入済みフラグを先に立てる」→「支払う」の順にはしない。
      支払いに失敗したのにフラグだけ残ると、二度と買えなくなってしまう。 */
-  if (!window.XEVA.spend(price, "お得なパック：" + p.nm)) { say("購入に失敗しました"); return; }
+  if (!window.XEVA.spend(price, "パックストア：" + p.nm)) { say("購入に失敗しました"); return; }
   const d = xhShopData();
   const per = xhPackPeriod(p);
   const rec = (d.n[p.id] && d.n[p.id].p === per) ? d.n[p.id] : { p: per, c: 0 };
@@ -1196,7 +1229,7 @@ async function xhBuyPack(id) {
   d.n[p.id] = rec;
   d.bought[p.id] = xhToday();          // 旧形式も残す（古い版のホームでも「買った」ことは伝わる）
   xhShopSave(d);
-  if (p.gem) window.XEVA.gem.add(p.gem, "お得なパック：" + p.nm);
+  if (p.gem) window.XEVA.gem.add(p.gem, "パックストア：" + p.nm);
   /* 🎫は MagiBurst のセーブにしか置き場所がないので、📧メールと同じ引換券キューに積む。
      ★ 引換券は id 単位で一度きりなので、購入回数まで含めた id にする。
        "shop_パックID" のままだと2回目のチケットが「配布済み」と見なされて消えてしまう。 */
@@ -1205,15 +1238,15 @@ async function xhBuyPack(id) {
      ガチャが XEVARION 側にある以上、その遠回りに理由がない。 */
   /* ★ 2026-08-24 🎫ガチャチケット（どのガチャでも使える）。フェス券とは別のキー。 */
   if (p.gticket && window.XEVA && window.XEVA.ticket) {
-    window.XEVA.ticket.add(p.gticket, "お得なパック：" + p.nm);
+    window.XEVA.ticket.add(p.gticket, "パックストア：" + p.nm);
   }
   /* ★ 2026-08-24 ★プレミアムセレクト券。使うのはガチャ画面。 */
   if (p.select && window.XEVA && window.XEVA.selectTicket) {
-    window.XEVA.selectTicket.add(p.select, "お得なパック：" + p.nm);
+    window.XEVA.selectTicket.add(p.select, "パックストア：" + p.nm);
   }
   if (p.ticket) {
     /* パックに付くのはフェスチケット（従来どおり） */
-    if (window.XEVA && window.XEVA.fesTicket) window.XEVA.fesTicket.add(p.ticket, "お得なパック：" + p.nm);
+    if (window.XEVA && window.XEVA.fesTicket) window.XEVA.fesTicket.add(p.ticket, "パックストア：" + p.nm);
     else if (typeof window.pushMbGift === "function") {
       /* XEVA が読めない異常系だけ、これまでどおり引換券に積む。
          引換券は id 単位で一度きりなので、購入回数まで含めた id にする。 */
@@ -1247,7 +1280,7 @@ function xhOpenGemGuide() {
   if (box) {
     box.innerHTML = [
       ["🏪", "ジェム変換所で交換する", "💎1 ＝ 1米ドル、XEVA 1 ＝ 1円。レートは<b>そのときのドル円</b>です（いまは " + xhGemRate().toLocaleString() + " XEVA ＝ 💎1）。ホームの「ジェム変換所」からいつでも交換できます。"],
-      ["🛒", "お得なパックのパック", "通常より 50〜70% 多く💎を受け取れます。常設パックは毎週リセット（週1回）、Luminous Summer Fest の記念パックは期間中2回まで買えて🎫フェスチケットも付きます。"],
+      ["🛒", "パックストアのパック", "通常より 50〜70% 多く💎を受け取れます。常設パックは毎週リセット（週1回）、Luminous Summer Fest の記念パックは期間中2回まで買えて🎫フェスチケットも付きます。"],
       ["⚔️", "クエストの初クリア", "MagiBurst の各クエストは初クリアで💎（毎月1日にリセットされ、また受け取れます）。以降も1日1回のクリアで💎+1がもらえます。"],
       ["🎰", "MagiJackpot で当てる", "ジャックポット・ボーナスゲーム・デイリーミッションの報酬に💎が含まれます。"],
       ["🎟", "Magi Lotto の Free Magi", "毎日1回無料で回せるルーレットに💎が入っています（まれに💎50も）。"],
@@ -1258,7 +1291,7 @@ function xhOpenGemGuide() {
       '<span><span class="rt">' + xhEscape(r[1]) + '</span><span class="rs">' +
       r[2].replace(/💎/g, '<img class="xv-gemico" src="gem.png" alt="ジェム">') + "</span></span></span></div>").join("")
       + '<button class="xh-sbtn" style="margin-top:12px" onclick="xhCloseSheet(\'xhGemSheet\');xhOpenExchange()">🏪 ジェム変換所をひらく</button>'
-      + '<button class="xh-sbtn ghost" style="margin-top:8px" onclick="xhCloseSheet(\'xhGemSheet\');xhOpenShop()">🛒 お得なパックを見る</button>';
+      + '<button class="xh-sbtn ghost" style="margin-top:8px" onclick="xhCloseSheet(\'xhGemSheet\');xhOpenShop()">🛒 パックストアを見る</button>';
   }
   const b = xhEl("xhGemBal"); if (b) b.textContent = bal.toLocaleString();
   xhCloseSheet("xhSetSheet");
@@ -1932,7 +1965,7 @@ function xhOpenXevaGuide() {
       '<div class="xh-row" style="cursor:default"><span class="rl"><span class="ri">' + r[0] + "</span>" +
       '<span><span class="rt">' + xhEscape(r[1]) + '</span><span class="rs">' + r[2] + "</span></span></span></div>").join("")
       + '<div class="xh-sortnote" style="margin-top:12px">貯めた XEVA は <b>XEVAガチャ</b>、<b>💎ジェムへの交換</b>（' + xhGemRate().toLocaleString() + ' XEVA ＝ 💎1・ドル円連動）、'
-      + '<b>🛒お得なパックのパック</b>、各アプリのベットや強化に使えます。</div>'
+      + '<b>🛒パックストア</b>、各アプリのベットや強化に使えます。</div>'
       + '<button class="xh-sbtn" style="margin-top:12px" onclick="xhCloseSheet(\'xhXevaSheet\');xhTapMission()">🎯 ミッションを見る</button>'
       + '<button class="xh-sbtn ghost" style="margin-top:8px" onclick="xhCloseSheet(\'xhXevaSheet\');xhOpenExchange()">🏪 ジェム変換所をひらく</button>';
   }
@@ -4607,8 +4640,23 @@ addEventListener("xeva:change", () => { xhRenderXeva(); });
 addEventListener("xeva:gem", () => { xhRenderGem(); });
 addEventListener("xeva:synced", () => { xhRenderXeva(); });
 addEventListener("xevacloud:ready", () => { xhRenderXeva(); });
+/* ══ ★★ 2026-09-01 アイコン・表示名の変更と、クラウドから戻ってきた値を画面に出す ══
+   ・xeva:account … 設定でアイコン／名前を変えた瞬間（xeva.js の account.save）
+   ・xeva:synced  … 別の端末で変えたぶんがクラウドから降りてきたとき
+     これまで synced では XEVA の残高しか描き直しておらず、
+     <b>アイコン・💎ジェム・💠結晶・レベル/スタミナは前のまま</b>だった。 */
+addEventListener("xeva:account", () => { try { xhRenderProfile(); } catch (e) {} });
+addEventListener("xeva:synced", () => {
+  try { xhRenderProfile(); } catch (e) {}
+  try { xhRenderGem(); } catch (e) {}
+  try { xhRenderStatus(); } catch (e) {}
+  try { xhPaintCryst(); } catch (e) {}
+});
 addEventListener("storage", (e) => {
-  if (!e.key || (e.key !== "xeva_gem_v1" && e.key !== "xeva_wallet_v1")) return;
+  if (!e.key) return;
+  /* ★ 2026-09-01 アカウント（アイコン・表示名）も別タブ／クラウドの書き戻しで変わる */
+  if (e.key === "xeva_account_v1") { try { xhRenderProfile(); } catch (er) {} return; }
+  if (e.key !== "xeva_gem_v1" && e.key !== "xeva_wallet_v1") return;
   xhRenderXeva();
 });
 addEventListener("online",  () => { xhApplyOfflineLocks(); xhToast("🌐 オンラインに復帰しました。データをクラウドへ反映します"); });

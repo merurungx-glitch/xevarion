@@ -7,7 +7,7 @@
    ・オフライン中の進行は localStorage に残り、オンライン復帰時に
      xeva-cloud.js がタイムスタンプ比較でクラウドへ上書き反映する
    ============================================================ */
-const VERSION = "xevarion-sw-v112";
+const VERSION = "xevarion-sw-v114";
 
 /* ホームを成立させる最小セット（重い画像は runtime キャッシュに任せる） */
 const CORE = [
@@ -17,38 +17,38 @@ const CORE = [
   "./characters.html",
   /* ★ 2026-08-10 ガチャは XEVARION に一本化。中身は MagiBurst の共有モジュールが持つ */
   "./gacha.html",
-  "./gacha-ui.js?v=26",
-  "./mb-newchars.js?v=11",
-  "./xevion-os.js?v=5",
-  "./xevion-os.css?v=7",
-  "./magibattle-stats.js?v=6",
-  "./MagiBurst/js/mb-core.js?v=65",
+  "./gacha-ui.js?v=29",
+  "./mb-newchars.js?v=13",
+  "./xevion-os.js?v=7",
+  "./xevion-os.css?v=9",
+  "./magibattle-stats.js?v=8",
+  "./MagiBurst/js/mb-core.js?v=68",
   /* ★ 2026-08-10 ガチャと図鑑で共通の土台・キャラ詳細・結果演出 */
   /* ★ 2026-08-12 ポータルのガチャ・図鑑も magiburst_v1 を同期するようになった */
-  "./app-cloud.js?v=4",
-  "./MagiBurst/magiburst-cloud.js?v=6",
-  "./mb-boot.js?v=9",
-  "./mb-char-detail.js?v=14",
-  "./mb-char-detail.css?v=11",
-  "./mb-gacha-reveal.css?v=3",
+  "./app-cloud.js?v=6",
+  "./MagiBurst/magiburst-cloud.js?v=8",
+  "./mb-boot.js?v=11",
+  "./mb-char-detail.js?v=16",
+  "./mb-char-detail.css?v=13",
+  "./mb-gacha-reveal.css?v=5",
   "./community.html",
   "./about.html",
   "./manifest.webmanifest",
-  "./xeva-theme.css?v=1",
-  "./xevarion.css?v=16",
-  "./xevarion-home.css?v=46",
-  "./xeva.js?v=50",
-  "./xeva-fx.js?v=1",
-  "./xeva-loading.js?v=1",
-  "./xevarion.js?v=71",
-  "./xevarion-home.js?v=69",
-  "./maintenance-gate.js?v=5",
-  "./xeva-back.js?v=1",
-  "./xeva-keys.js?v=8",
+  "./xeva-theme.css?v=3",
+  "./xevarion.css?v=18",
+  "./xevarion-home.css?v=48",
+  "./xeva.js?v=53",
+  "./xeva-fx.js?v=3",
+  "./xeva-loading.js?v=3",
+  "./xevarion.js?v=74",
+  "./xevarion-home.js?v=72",
+  "./maintenance-gate.js?v=7",
+  "./xeva-back.js?v=3",
+  "./xeva-keys.js?v=11",
   /* ★ 2026-08-20 通信設定（Wi-Fi／モバイルデータごとの動き）。
      この SW へ設定を送る側なので、オフラインでも読めるようにここに入れておく。 */
-  "./xeva-netmode.js?v=2",
-  "./game-link.js?v=1",
+  "./xeva-netmode.js?v=4",
+  "./game-link.js?v=3",
   "Xevarion.png",
   "XEVA.png",
   "./brand-xevarion-orb.png",
@@ -81,10 +81,10 @@ const CORE = [
   "./MagiDiamond/index.html",
   "./MagiDiamond/latest.html",
   "./MagiDiamond/classic.html",
-  "./MagiDiamond/css/md2.css?v=1",
-  "./MagiDiamond/js/md2-data.js?v=1",
-  "./MagiDiamond/js/md2-game.js?v=1",
-  "./MagiDiamond/js/md2-online.js?v=1",
+  "./MagiDiamond/css/md2.css?v=4",
+  "./MagiDiamond/js/md2-data.js?v=4",
+  "./MagiDiamond/js/md2-game.js?v=6",
+  "./MagiDiamond/js/md2-online.js?v=4",
   "./MagiDiamond/img/logo.webp",
   "./MagiDiamond/img/logo_s.webp",
   "./thumbs/MagiMusic.jpg",
@@ -94,7 +94,7 @@ const CORE = [
   "./thumbs/MagiTier.jpg",
   "./thumbs/Ordyxis.jpg",
   "./thumbs/MagicalFuture.jpg",
-  "./thumbs/xevarion-home_s.jpg?v=3",
+  "./thumbs/xevarion-home_s.jpg?v=5",
 ];
 
 /* このSWが触らないパス（各アプリの自前SWに任せる／通信必須） */
@@ -153,6 +153,69 @@ self.addEventListener("activate", (e) => {
   })());
 });
 
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-09-01 <b>キャラクターの絵は「版に縛られない置き場」にためる</b>（ご報告への対応）
+   ------------------------------------------------------------
+   ご報告: 「オフラインのとき、キャラ詳細の<b>大きい画像</b>が出ないことがある」
+
+   原因は<b>更新のたびに絵が消えていた</b>こと。
+   ・大きい絵（img/Xxx.webp・1枚 250〜380KB）は数が多すぎて事前キャッシュ（CORE）に載せられない。
+     そのため<b>一度見たときに実行時キャッシュへ入る</b>作りになっていた。
+   ・ところがその置き場は <b>VERSION（magiburst-sw-vNNN）</b> と同じキャッシュで、
+     activate で<b>古い VERSION をまるごと消す</b>ため、
+     <b>更新するたびに、見て貯めた大きい絵が全部消えていた</b>。
+     → 更新直後にオフラインにすると、見たことがある絵まで出なくなる。
+
+   → 絵だけ <b>XEV_IMG（版に縛られない名前）</b> に分ける。
+     ・activate は "magiburst-sw" で始まるものしか消さないので、ここは<b>残る</b>。
+     ・一度でも表示した絵は、更新をまたいでもオフラインで出る。
+   ★ 置き場は<b>アプリ共通の名前</b>にしてある。ポータルで見た絵は MagiBurst でも使える。
+   ★ 消えては困るものではない（次にオンラインで開けばまた貯まる）ので、
+     容量が足りなくなればブラウザが勝手に減らしてよい。
+   ══════════════════════════════════════════════════════════════ */
+const XEV_IMG = "xev-img-v1";
+const XEV_IMG_RE = /\.(webp|png|jpe?g|gif|svg)$/i;
+function xevIsImg(url) {
+  return XEV_IMG_RE.test(url.pathname);
+}
+async function xevImgFirst(req) {
+  const cache = await caches.open(XEV_IMG);
+  const hit = await cache.match(req, { ignoreSearch: false });
+  const net = fetch(req).then((res) => {
+    if (res && res.ok && (res.type === "basic" || res.type === "default")) {
+      cache.put(req, res.clone()).catch(() => {});
+    }
+    return res;
+  }).catch(() => null);
+  if (hit) { net; return hit; }               /* あればすぐ返し、裏で新しくする */
+  const res = await net;
+  if (res) return res;
+  /* ★ 取れなかった＝オフラインで未取得。<b>サムネイル（t_）で代用</b>してみる。
+     大きい絵より小さいが、<b>空っぽより読める</b>（ご報告の「出ない」を防ぐ）。 */
+  const alt = xevThumbURL(req.url);
+  if (alt) {
+    const a = await cache.match(alt, { ignoreSearch: false });
+    if (a) return a;
+    const a2 = await caches.match(alt, { ignoreSearch: true });
+    if (a2) return a2;
+  }
+  const loose = await caches.match(req, { ignoreSearch: true });
+  if (loose) return loose;
+  return new Response("", { status: 504 });
+}
+/* 大きい絵 → 同じ名前のサムネイル（t_ 付き）のURL。作れなければ null */
+function xevThumbURL(href) {
+  try {
+    const u = new URL(href);
+    const m = u.pathname.match(/^(.*\/)([^/]+)$/);
+    if (!m) return null;
+    if (/^t_/.test(m[2])) return null;                      /* もうサムネイル */
+    if (!/\/img\//.test(u.pathname)) return null;             /* img/ のものだけ */
+    u.pathname = m[1] + "t_" + m[2];
+    return u.href;
+  } catch (e) { return null; }
+}
+
 self.addEventListener("fetch", (e) => {
   const req = e.request;
   if (req.method !== "GET") return;
@@ -164,6 +227,9 @@ self.addEventListener("fetch", (e) => {
   if (url.origin !== self.location.origin) return;
   // 3アプリ配下は各アプリのSWに任せる
   if (PASS_THROUGH.test(url.pathname)) return;
+
+  /* ★★ 2026-09-01 画像は<b>版に縛られない置き場</b>へ（更新しても消えない） */
+  if (xevIsImg(url)) { e.respondWith(xevImgFirst(req)); return; }
 
   // ナビゲーション：ネット優先 → 失敗したらキャッシュ → 最後にホーム
   /* ★ 2026-08-20 通信設定（Wi-Fi／モバイルデータごとに切り替えられる）

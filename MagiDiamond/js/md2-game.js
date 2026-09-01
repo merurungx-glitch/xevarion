@@ -955,11 +955,212 @@ function step() {
   });
   for (let i = FX.length - 1; i >= 0; i--) { FX[i].t++; if (FX[i].t > FX[i].dur) FX.splice(i, 1); }
 }
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-09-01 打席の「3D風（2D）」画面（ご指定・画面案1〜3）
+   ------------------------------------------------------------
+   イメージは<b>パワプロ＋野球盤</b>。
+   ・投球・読み合い・タイミングのあいだは<b>キャッチャーのうしろから見た絵</b>にする。
+     マウンドの投手・打席の打者は<b>キャラクターの絵</b>をそのまま立たせる。
+   ・打球が飛んだら（M.phase が "ball" 以降）これまでの<b>真上から見た盤面</b>に戻す。
+     守備の駒も丸ではなく<b>キャラクターの絵</b>にする。
+   ★ 描く場所は1枚のキャンバス（#mtCv）のまま。
+     2枚重ねると「どちらが上か」で事故が起きるので、<b>描き分ける</b>だけにしてある。
+   ★ 絵は読み込みに時間がかかるので、間に合わないあいだは<b>丸</b>で描く
+     （読み込めたフレームから自然に絵へ変わる）。
+   ══════════════════════════════════════════════════════════════ */
+const IMGC = Object.create(null);
+function imgOf(src) {
+  if (!src) return null;
+  let im = IMGC[src];
+  if (im === undefined) {
+    im = new Image();
+    im.decoding = "async";
+    im.src = src;
+    IMGC[src] = im;
+  }
+  return (im && im.complete && im.naturalWidth > 0) ? im : null;
+}
+/* 円の中にキャラの絵を描く（顔が中心に来るよう、上寄りに切り出す） */
+function drawFace(g, src, cxp, cyp, r, ring) {
+  const im = imgOf(src);
+  g.save();
+  g.beginPath(); g.arc(cxp, cyp, r, 0, Math.PI * 2); g.closePath();
+  if (im) {
+    g.clip();
+    const s = im.naturalWidth, side = s, sx = 0, sy = 0;
+    g.drawImage(im, sx, sy, side, side * 0.92, cxp - r, cyp - r, r * 2, r * 2);
+  } else {
+    g.fillStyle = "#2a3352"; g.fill();
+  }
+  g.restore();
+  if (ring) {
+    g.strokeStyle = ring; g.lineWidth = Math.max(1.5, r * 0.14);
+    g.beginPath(); g.arc(cxp, cyp, r, 0, Math.PI * 2); g.stroke();
+  }
+}
+/* 立ち姿（絵を縦長に切り出して置く）。flip=true で左右を反転 */
+function drawStand(g, src, cxp, byp, hh, flip) {
+  const im = imgOf(src);
+  const ww = hh * 0.62;
+  g.save();
+  g.translate(cxp, byp);
+  if (flip) g.scale(-1, 1);
+  /* 足もとの影 */
+  g.fillStyle = "rgba(0,0,0,.35)";
+  g.beginPath(); g.ellipse(0, 0, ww * 0.42, ww * 0.14, 0, 0, Math.PI * 2); g.fill();
+  g.beginPath();
+  const rr = Math.min(ww, hh) * 0.16;
+  const x0 = -ww / 2, y0 = -hh;
+  g.moveTo(x0 + rr, y0);
+  g.arcTo(x0 + ww, y0, x0 + ww, y0 + hh, rr);
+  g.arcTo(x0 + ww, y0 + hh, x0, y0 + hh, rr);
+  g.arcTo(x0, y0 + hh, x0, y0, rr);
+  g.arcTo(x0, y0, x0 + ww, y0, rr);
+  g.closePath();
+  if (im) {
+    g.save(); g.clip();
+    /* 正方形の絵を縦長の枠に入れる＝上（顔）から順に見せる */
+    const s = im.naturalWidth;
+    g.drawImage(im, 0, 0, s, s, x0, y0, ww, ww * (hh / ww) * 0.62 + ww * 0.38);
+    g.restore();
+  } else {
+    g.fillStyle = "#28304e"; g.fill();
+  }
+  g.strokeStyle = "rgba(255,255,255,.35)"; g.lineWidth = Math.max(1, hh * 0.012); g.stroke();
+  g.restore();
+}
+/* いま「打席の絵」を出す場面か */
+function inBatView() {
+  return !!(M && (M.phase === "pitch" || M.phase === "swing" || M.phase === "timing"));
+}
+/* 打席の絵（キャッチャーのうしろから） */
+function drawBatView(w, h) {
+  const st = (M && M.stadium) || MD2DATA.STADIUMS[0];
+  const HZ = h * 0.30;                       /* 地平線 */
+  /* ── 空 ── */
+  let g = cx.createLinearGradient(0, 0, 0, HZ);
+  g.addColorStop(0, st.sky[0]); g.addColorStop(1, st.sky[1]);
+  cx.fillStyle = g; cx.fillRect(0, 0, w, HZ);
+  /* ── スタンド（観客） ── */
+  cx.fillStyle = "rgba(255,255,255,.06)";
+  cx.fillRect(0, HZ - h * 0.13, w, h * 0.13);
+  cx.globalAlpha = .5;
+  for (let i = 0; i < 90; i++) {
+    const px = (i * 97 % 1000) / 1000 * w;
+    const py = HZ - h * 0.13 + ((i * 53) % 100) / 100 * h * 0.12;
+    cx.fillStyle = ["#ffd257", "#7cc4ff", "#ff8ab5", "#8affc4", "#ffffff"][i % 5];
+    cx.fillRect(px, py, 2.4, 2.4);
+  }
+  cx.globalAlpha = 1;
+  /* ── 外野の芝（手前ほど広がる） ── */
+  g = cx.createLinearGradient(0, HZ, 0, h);
+  g.addColorStop(0, st.turf);
+  g.addColorStop(1, "#0f4a2c");
+  cx.fillStyle = g; cx.fillRect(0, HZ, w, h - HZ);
+  /* 刈り込みのしま（消失点へ集まる線） */
+  cx.save();
+  cx.beginPath(); cx.rect(0, HZ, w, h - HZ); cx.clip();
+  cx.globalAlpha = .07; cx.fillStyle = "#ffffff";
+  for (let i = -8; i <= 8; i++) {
+    if (i % 2) continue;
+    cx.beginPath();
+    cx.moveTo(w / 2 + i * w * 0.03, HZ);
+    cx.lineTo(w / 2 + (i + 1) * w * 0.03, HZ);
+    cx.lineTo(w / 2 + (i + 1) * w * 0.34, h);
+    cx.lineTo(w / 2 + i * w * 0.34, h);
+    cx.closePath(); cx.fill();
+  }
+  cx.globalAlpha = 1;
+  cx.restore();
+  /* ── 内野の土（手前・ホームまわり） ── */
+  cx.fillStyle = "#9a6b3f";
+  cx.beginPath(); cx.ellipse(w / 2, h * 1.02, w * 0.62, h * 0.26, 0, 0, Math.PI * 2); cx.fill();
+  /* ── マウンド ── */
+  cx.fillStyle = "#a97545";
+  cx.beginPath(); cx.ellipse(w / 2, h * 0.470, w * 0.115, h * 0.028, 0, 0, Math.PI * 2); cx.fill();
+  cx.fillStyle = "rgba(255,255,255,.75)";
+  cx.fillRect(w / 2 - w * 0.030, h * 0.466, w * 0.06, Math.max(2, h * 0.006));
+  /* ── 打席の枠（バッターボックス） ── */
+  cx.strokeStyle = "rgba(255,255,255,.55)"; cx.lineWidth = 2;
+  [-1, 1].forEach((sx) => {
+    cx.save();
+    cx.translate(w / 2 + sx * w * 0.145, h * 0.905);
+    cx.beginPath();
+    cx.moveTo(-w * 0.075, -h * 0.030); cx.lineTo(w * 0.075, -h * 0.030);
+    cx.lineTo(w * 0.098, h * 0.045); cx.lineTo(-w * 0.098, h * 0.045);
+    cx.closePath(); cx.stroke();
+    cx.restore();
+  });
+  /* ── ホームベース ── */
+  cx.fillStyle = "#ffffff";
+  cx.beginPath();
+  cx.moveTo(w / 2 - w * 0.048, h * 0.880);
+  cx.lineTo(w / 2 + w * 0.048, h * 0.880);
+  cx.lineTo(w / 2 + w * 0.038, h * 0.910);
+  cx.lineTo(w / 2, h * 0.925);
+  cx.lineTo(w / 2 - w * 0.038, h * 0.910);
+  cx.closePath(); cx.fill();
+  /* ── 捕手（手前・シルエット。打者より奥に描く） ── */
+  cx.fillStyle = "rgba(8,10,22,.82)";
+  cx.beginPath(); cx.ellipse(w / 2, h * 1.06, w * 0.115, h * 0.115, 0, 0, Math.PI * 2); cx.fill();
+  cx.beginPath(); cx.arc(w / 2, h * 0.968, w * 0.036, 0, Math.PI * 2); cx.fill();
+  /* ── 投手（キャラの絵） ── */
+  const pitS = mp(pitcherId(), !offMine());
+  if (pitS) drawStand(cx, pitS.th, w / 2, h * 0.478, h * 0.215, false);
+  /* ── 打者（キャラの絵。左打席に立たせる） ── */
+  const batS = mp(batterId(), offMine());
+  if (batS) drawStand(cx, batS.th, w / 2 - w * 0.215, h * 0.940, h * 0.33, false);
+  /* ── ストライクゾーン（3×3） ── */
+  const zx = w / 2 - w * 0.105, zy = h * 0.615, zw = w * 0.21, zh = h * 0.200;
+  const selZ = offMine() ? (M.bsel && M.bsel.zone) : (M.sel && M.sel.zone);
+  cx.lineWidth = 1.4;
+  for (let i = 0; i < 9; i++) {
+    const c0 = i % 3, r0 = (i / 3) | 0;
+    const x0 = zx + zw / 3 * c0, y0 = zy + zh / 3 * r0;
+    if (i === selZ) {
+      cx.fillStyle = "rgba(255,210,87,.30)";
+      cx.fillRect(x0, y0, zw / 3, zh / 3);
+      cx.strokeStyle = "#ffd257"; cx.lineWidth = 2.4;
+    } else {
+      cx.strokeStyle = "rgba(255,255,255,.42)"; cx.lineWidth = 1.4;
+    }
+    cx.strokeRect(x0, y0, zw / 3, zh / 3);
+  }
+  /* ── ボール（タイミングのあいだ、マウンド → ホームへ近づく） ── */
+  if (M.phase === "timing" && M.tm) {
+    const u = clamp(M.tm.t / 50, 0, 1.25);          /* 50 でちょうどホームに届く */
+    const zc = zx + zw / 3 * ((selZ % 3) + .5), zr = zy + zh / 3 * (((selZ / 3) | 0) + .5);
+    const bx = w / 2 + (zc - w / 2) * u;
+    const by = h * 0.430 + (zr - h * 0.430) * (u * u * 0.65 + u * 0.35);
+    const br = Math.max(3, h * (0.008 + 0.028 * u));
+    cx.globalAlpha = .30; cx.strokeStyle = "#ffffff"; cx.lineWidth = 2;
+    cx.beginPath(); cx.moveTo(w / 2, h * 0.430); cx.lineTo(bx, by); cx.stroke();
+    cx.globalAlpha = 1;
+    cx.fillStyle = "#ffffff";
+    cx.beginPath(); cx.arc(bx, by, br, 0, Math.PI * 2); cx.fill();
+    cx.strokeStyle = "#e2464f"; cx.lineWidth = Math.max(1, br * 0.22);
+    cx.beginPath(); cx.arc(bx, by, br * 0.62, Math.PI * .2, Math.PI * 1.1); cx.stroke();
+  }
+  /* ── 打者・投手の名札 ── */
+  cx.font = "800 12px system-ui"; cx.textAlign = "left";
+  const tag = (txt, x0, y0, col) => {
+    const pad = 6, tw = cx.measureText(txt).width + pad * 2;
+    cx.fillStyle = "rgba(8,10,22,.72)";
+    cx.beginPath(); cx.roundRect ? cx.roundRect(x0, y0 - 13, tw, 18, 9) : cx.rect(x0, y0 - 13, tw, 18);
+    cx.fill();
+    cx.fillStyle = col; cx.fillText(txt, x0 + pad, y0);
+  };
+  if (pitS) tag("P  " + pitS.nm, w * 0.5 + w * 0.075, h * 0.405, "#7cc4ff");
+  if (batS) tag("B  " + batS.nm, w / 2 - w * 0.315, h * 0.612, "#ffd257");
+}
 function draw() {
   resizeCanvas();                       /* ★ 大きさが変わっていたら合わせ直してから描く */
   const w = cv.clientWidth, h = cv.clientHeight;
   cx.setTransform(Math.min(2, window.devicePixelRatio || 1), 0, 0, Math.min(2, window.devicePixelRatio || 1), 0, 0);
   cx.clearRect(0, 0, w + 2, h + 2);     /* ★ 端まで確実に消す（1px 残ると前のフレームが見える） */
+  /* ★★ 2026-09-01 投球・読み合い・タイミングのあいだは<b>打席の絵</b>（3D風）にする（ご指定）。
+     打球が飛んだら（phase が "ball" 以降）これまでの真上からの盤面にもどる。 */
+  if (inBatView()) { drawBatView(w, h); return; }
   const st = (M && M.stadium) || MD2DATA.STADIUMS[0];
   /* 空 */
   const g = cx.createLinearGradient(0, 0, 0, h);
@@ -1005,19 +1206,21 @@ function draw() {
     cx.save(); cx.translate(X(b.x), Y(b.y)); cx.rotate(Math.PI / 4);
     cx.fillRect(-bs / 2, -bs / 2, bs, bs); cx.restore();
   });
-  /* 走者 */
+  /* 走者（★★ 2026-09-01 こちらもキャラクターの絵） */
   if (M) M.runners.forEach((id, i) => {
     if (!id) return;
     const b = BASES[i];
-    cx.fillStyle = "#ffd257";
-    cx.beginPath(); cx.arc(X(b.x), Y(b.y) - bs, bs * .55, 0, Math.PI * 2); cx.fill();
+    const rp = mp(id, offMine());
+    drawFace(cx, rp && rp.th, X(b.x), Y(b.y) - bs * 1.6, Math.max(6, U(.024)), "#ffd257");
   });
-  /* 野手 */
+  /* 野手（★★ 2026-09-01 丸ではなく<b>キャラクターの絵</b>で描く。ご指定） */
   FLD.forEach((f) => {
-    cx.fillStyle = f.c || "#eaf0ff";
-    cx.beginPath(); cx.arc(X(f.x), Y(f.y), Math.max(4, U(.016)), 0, Math.PI * 2); cx.fill();
-    cx.fillStyle = "rgba(0,0,0,.55)"; cx.font = "700 9px system-ui"; cx.textAlign = "center";
-    cx.fillText(f.lb || "", X(f.x), Y(f.y) + 3);
+    const r = Math.max(7, U(.028));
+    drawFace(cx, f.th, X(f.x), Y(f.y), r, f.c || "#eaf0ff");
+    cx.fillStyle = "rgba(255,255,255,.92)"; cx.font = "800 9px system-ui"; cx.textAlign = "center";
+    cx.strokeStyle = "rgba(0,0,0,.75)"; cx.lineWidth = 2.4;
+    cx.strokeText(f.lb || "", X(f.x), Y(f.y) + r + 9);
+    cx.fillText(f.lb || "", X(f.x), Y(f.y) + r + 9);
   });
   /* 打球 */
   if (B.on) {
@@ -1061,12 +1264,15 @@ function setFielders() {
     FLD.push({ id: id, ps: ps, x: sp.x, y: sp.y, hx: sp.x, hy: sp.y, tx: null, ty: null,
       /* ★ 実測して広げた。せまいと打球がほとんど抜けてしまい、点が入りすぎる。 */
       sp: 0.008 + (p ? p.run / 100 : .5) * 0.013, reach: 0.055 + (p ? p.field / 100 : .5) * 0.065,
-      c: "#eaf0ff", lb: ps[0] });
+      /* ★★ 2026-09-01 駒はキャラクターの絵で描くので、サムネイルも持たせる（ご指定） */
+      th: p ? p.th : "", c: "#eaf0ff", lb: ps[0] });
   });
   /* 投手・捕手も置く（送球先として使う） */
-  FLD.push({ id: pitcherId(), ps: "投手", x: FPOS["投手"].x, y: FPOS["投手"].y, hx: FPOS["投手"].x, hy: FPOS["投手"].y, tx: null, ty: null, sp: .009, reach: .05, c: "#8fd0ff", lb: "P" });
+  const pp = mp(pitcherId(), mine);
+  FLD.push({ id: pitcherId(), ps: "投手", x: FPOS["投手"].x, y: FPOS["投手"].y, hx: FPOS["投手"].x, hy: FPOS["投手"].y, tx: null, ty: null, sp: .009, reach: .05, th: pp ? pp.th : "", c: "#8fd0ff", lb: "P" });
   const cid = Object.keys(t.pos).find((k) => t.pos[k] === "捕手");
-  FLD.push({ id: cid, ps: "捕手", x: FPOS["捕手"].x, y: FPOS["捕手"].y, hx: FPOS["捕手"].x, hy: FPOS["捕手"].y, tx: null, ty: null, sp: .008, reach: .05, c: "#ffd257", lb: "C" });
+  const cp = cid ? mp(cid, mine) : null;
+  FLD.push({ id: cid, ps: "捕手", x: FPOS["捕手"].x, y: FPOS["捕手"].y, hx: FPOS["捕手"].x, hy: FPOS["捕手"].y, tx: null, ty: null, sp: .008, reach: .05, th: cp ? cp.th : "", c: "#ffd257", lb: "C" });
 }
 function bigMsg(txt, ms) {
   const el = $("bigMsg"); if (!el) return;

@@ -6,7 +6,7 @@
      終わってから数字を見せることで「XEVAが変化しない」状態を防ぐ。
    ・オフライン／未ログイン／同期が長引く場合はタイムアウトで先へ進む（待たせ続けない）。
 
-   使い方: <script src="../xeva-loading.js?v=1" defer></script>
+   使い方: <script src="../xeva-loading.js?v=3" defer></script>
    ============================================================ */
 (function () {
   "use strict";

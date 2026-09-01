@@ -685,7 +685,7 @@ const TKT_NOTE = "※ 🎫チケットは<b>2種類</b>あります。"
   + "<b>ガチャチケット</b>は<b>プレミアムでも各フェスでも</b>使えます（どちらも1枚＝1回ぶん）。<br>"
   + "回すときは <b>フェスチケット → ガチャチケット → <i class='icc ic-gem'></i>ジェム</b> の順に消費します"
   + "（フェス専用のほうから先に使わないと、余ってしまうため）。"
-  + "XEVARION の📧メールやお得なパックで受け取ったぶんは<b>その場ですぐ使えます</b>。";
+  + "XEVARION の📧メールやパックストアで受け取ったぶんは<b>その場ですぐ使えます</b>。";
 /* 育成アイテム。★ アイコンは MagiBurst と同じ自作SVG（itemIcon）にそろえてある
    （以前はこの画面だけ 🍐 📕 の絵文字で、MagiBurst の絵と食いちがっていた） */
 function rateItemRows(total, table) {
@@ -728,8 +728,9 @@ function openRatesX() {
     STAR4_POOL.forEach((id) => rows.push(rateCharRow(id, 0.50 / STAR4_POOL.length)));
     rows.push(rateHeadRow("🎁 育成アイテム（合計）", ratePct(itemTotalOfMode(gMode))));
     rows.push(rateItemRows(itemTotalOfMode(gMode), DEBUT_ITEM_TABLE));
-    const dsure = byCharNoDesc(debutSurePool(gMode));
+    const dsure = byCharNoDesc(guaranteedPoolOfMode(gMode));
     rows.push(rateHeadRow("🎯 10連の SSR 確定枠（最後の1枠・" + dsure.length + "体から等確率）", "", DEBUT_C));
+    rows.push(rateNoteRow("※ <b>限界突破MAX（👑）のキャラは10連の確定枠には出ません</b>（そのガチャで出るSSRが全員 限界突破MAX のときだけ、その全員から等確率で出ます）。"));
     dsure.forEach((id) => rows.push(rateCharRow(id, dsure.length ? 1 / dsure.length : 0,
       dchars.indexOf(id) >= 0 ? "GRAND DEBUT 限定" : PREMIUM_NM)));
     rows.push(rateNoteRow("※ <b>新キャラは1体あたり " + ratePct(PICK_DEBUT) + "</b>（合計 "
@@ -793,8 +794,9 @@ function openRatesX() {
        ＝ 既存のフェスの表示は1つも変わらない。
        ★ ここを直さないと「引くと出るもの」と「提供割合に書いてあるもの」が食いちがう。 */
     rows.push(rateItemRows(itemTotalOfMode(gMode), f.itemTable));
-    const sure = byCharNoDesc(fesSurePool(gMode));
+    const sure = byCharNoDesc(guaranteedPoolOfMode(gMode));
     rows.push(rateHeadRow("🎯 10連のSSR確定枠（最後の1枠・" + sure.length + "体から等確率）", "", f.c));
+    rows.push(rateNoteRow("※ <b>限界突破MAX（👑）のキャラは10連の確定枠には出ません</b>（そのガチャで出るSSRが全員 限界突破MAX のときだけ、その全員から等確率で出ます）。"));
     sure.forEach((id) => rows.push(rateCharRow(id, sure.length ? 1 / sure.length : 0, CHARS[id].fes ? "フェス限定SSR" : PREMIUM_NM)));
     rows.push(rateNoteRow(gMode === ARCHIVE_KEY
       ? "※ <b>属性ごとに1体ずつ（計5体）</b>をピックアップにえらべます（各 " + ratePct(PICK_ARCHIVE) + "）。"
@@ -827,11 +829,12 @@ function openRatesX() {
     rows.push(rateItemRows(itemTotalOfMode("premium")));
     /* ★ 2026-08-11 フェスガチャと同じく、10連の確定枠の中身も一覧で出す
        （これまでは注意書きに「全員おなじ確率」と書いてあるだけだった）。 */
-    const psure = byCharNoDesc(gachaPool());
+    const psure = byCharNoDesc(guaranteedPoolOfMode("premium"));
     rows.push(rateHeadRow("🎯 10連のSSR確定枠（最後の1枠・" + psure.length + "体から等確率）", "", "#d97800"));
     psure.forEach((id) => rows.push(rateCharRow(id, psure.length ? 1 / psure.length : 0,
       id === pick ? "<b style='color:#e0405e'>PICKUP</b>" : "SSR ガチャ限定")));
-    rows.push(rateNoteRow("※ <b>10連は「最後の1枠」がSSR確定</b>です（前半9回も通常抽選なので、そこでもSSRは出ます）。<b>確定枠は排出対象のSSRがすべて同じ確率</b>で、<b>ピックアップの優遇はありません</b>（限界突破MAXのキャラは除外）。"));
+    rows.push(rateNoteRow("※ <b>10連は「最後の1枠」がSSR確定</b>です（前半9回も通常抽選なので、そこでもSSRは出ます）。<b>確定枠は排出対象のSSRがすべて同じ確率</b>で、<b>ピックアップの優遇はありません</b>。"));
+    rows.push(rateNoteRow("※ <b>限界突破MAX（👑）のキャラは10連の確定枠には出ません</b>（そのガチャで出るSSRが全員 限界突破MAX のときだけ、その全員から等確率で出ます）。"));
     rows.push(rateNoteRow("※ 限界突破MAX（👑）のキャラは排出対象から外れ、その分は残りのSSRに配分されます（SSR合計は常に"
       + ratePct(SSR_TOTAL) + "）。"));
     rows.push(rateNoteRow(TKT_NOTE));

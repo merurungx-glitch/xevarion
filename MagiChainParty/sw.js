@@ -5,17 +5,17 @@
    ・セーブ・前回設定は localStorage 保存 → オンライン復帰時に xeva-cloud が同期
    ・Firebase など外部通信はキャッシュしない
    ============================================================ */
-const VERSION = "chainparty-sw-v20";
+const VERSION = "chainparty-sw-v25";
 const CORE = [
   "./index.html",
-  "./css/style.css?v=8",
-  "./js/game.js?v=8",
-  "../xeva.js?v=47",
-  "../xeva-loading.js?v=1",
-  "../xeva-splash.js?v=3",
-  "../game-link.js?v=3",
-  "../maintenance-gate.js?v=5",
-  "../app-install-notice.js?v=1",
+  "./css/style.css?v=10",
+  "./js/game.js?v=10",
+  "../xeva.js?v=53",
+  "../xeva-loading.js?v=3",
+  "../xeva-splash.js?v=5",
+  "../game-link.js?v=5",
+  "../maintenance-gate.js?v=7",
+  "../app-install-notice.js?v=3",
   "../thumbs/MagiChainParty.jpg",
   "../brand/NGX.png",
   "../brand/MagicalFuture.png",

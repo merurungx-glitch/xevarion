@@ -518,7 +518,18 @@
     try { var r = localStorage.getItem(ACC_KEY); if (r) { var a = JSON.parse(r); if (a) return a; } } catch (e) {}
     return null;
   }
-  function saveAcc(a) { try { localStorage.setItem(ACC_KEY, JSON.stringify(a)); } catch (e) {} }
+  /* ══ ★★ 2026-09-01 アカウントを保存したら<b>知らせる</b> ══
+     アイコンを変えても画面に出ないことがある、というご報告の原因。
+     ・変更を書いたあと、描き直していたのは xevarion.js の renderNavUser()。
+       ところが renderNavUser が描く #accFab は<b>旧ドックごと消えている</b>ので、
+       実際にはどこも描き直されず、<b>再読み込みするまで前のアイコンのまま</b>だった。
+     ・ホームの顔（#xhAv）を描くのは xevarion-home.js の xhRenderProfile()。
+       保存の側から合図を出しておけば、描く側がどこにあっても追いつける。
+     ★ アイコン・表示名を書き換えたら、ここを通るので必ずこの合図が出る。 */
+  function saveAcc(a) {
+    try { localStorage.setItem(ACC_KEY, JSON.stringify(a)); } catch (e) {}
+    try { window.dispatchEvent(new CustomEvent("xeva:account", { detail: a || null })); } catch (e) {}
+  }
 
   /* ══════════════════════════════════════════════════════════════
      ★ 2026-08-05 MagiBurst のキャラをアカウントアイコンに使う
@@ -626,7 +637,7 @@
     { id: "mb:kokoro", mbId: "kokoro", name:"ココロ", file: "../img/t_Kokoro.webp", since:"2026-08-08" },
     { id: "mb:ange", mbId: "ange", name:"アンジェ", file: "../img/t_Ange.webp", since:"2026-08-08" },
     { id: "mb:kotone", mbId: "kotone", name:"コトネ", file: "../img/t_Kotone.webp", since:"2026-08-08" },
-    { id: "mb:ran", mbId: "ran", name:"ラン(祈)", file: "../img/t_Ran.webp", since:"2026-08-08" },
+    { id: "mb:ran", mbId: "ran", name:"ラナ", file: "../img/t_Ran.webp", since:"2026-08-08" },
     { id: "mb:ceris", mbId: "ceris", name:"セリス", file: "../img/t_Ceris.webp", since:"2026-08-08" },
     { id: "mb:kotomi", mbId: "kotomi", name:"コトミ", file: "../img/t_Kotomi.webp", since:"2026-08-10" },
     { id: "mb:riko", mbId: "riko", name:"リコ", file: "../img/t_Riko.webp", since:"2026-08-10" },
@@ -652,11 +663,11 @@
     { id: "mb:chizuru", mbId: "chizuru", name:"チヅル", file: "../img/t_Chizuru.webp", since:"2026-08-12" },
     { id: "mb:seira", mbId: "seira", name:"セイラ", file: "../img/t_Seira.webp", since:"2026-08-12" },
     /* ★ 2026-08-16 プレミアムSSR 2体 */
-    { id: "mb:anna", mbId: "anna", name:"アンナ(煌)", file: "../img/t_Anna.webp", since:"2026-08-16" },
+    { id: "mb:anna", mbId: "anna", name:"アンネ", file: "../img/t_Anna.webp", since:"2026-08-16" },
     { id: "mb:tsukino", mbId: "tsukino", name:"ツキノ", file: "../img/t_Tsukino.webp", since:"2026-08-16" },
     /* ★ 2026-08-16b プレミアムSSR 6体（No.110〜115）。並びは CHAR_IDS＝No. にそろえること */
     { id: "mb:moeka", mbId: "moeka", name:"モエカ", file: "../img/t_Moeka.webp", since:"2026-08-16" },
-    { id: "mb:suzuha", mbId: "suzuha", name:"スズハ", file: "../img/t_Suzuha.webp", since:"2026-08-16" },
+    { id: "mb:suzuha", mbId: "suzuha", name:"スズミ", file: "../img/t_Suzuha.webp", since:"2026-08-16" },
     { id: "mb:violet", mbId: "violet", name:"ヴィオレット", file: "../img/t_Violet.webp", since:"2026-08-16" },
     { id: "mb:kanata", mbId: "kanata", name:"カナタ", file: "../img/t_Kanata.webp", since:"2026-08-16" },
     { id: "mb:touka", mbId: "touka", name:"トウカ", file: "../img/t_Touka.webp", since:"2026-08-16" },
@@ -713,8 +724,8 @@
        ★★ ご指定の名前 カレン／フウカ は<b>すでに別人がいる</b>（No.145 カレン／No.79 フウカ）ので、
          ご指定どおり別の名前（<b>カリン／ユウカ</b>）にしてある。画像のファイル名も別。 */
     { id: "mb:karin", mbId: "karin", name:"カリン", file: "../img/t_Karin.webp", since:"2026-08-26" },
-    { id: "mb:mirei", mbId: "mirei", name:"ミレイ", file: "../img/t_Mirei.webp", since:"2026-08-26" },
-    { id: "mb:yuuka", mbId: "yuuka", name:"ユウカ(黒)", file: "../img/t_Yuuka.webp", since:"2026-08-26" },
+    { id: "mb:mirei", mbId: "mirei", name:"ミレーヌ", file: "../img/t_Mirei.webp", since:"2026-08-26" },
+    { id: "mb:yuuka", mbId: "yuuka", name:"ユカリ", file: "../img/t_Yuuka.webp", since:"2026-08-26" },
     { id: "mb:miyabi", mbId: "miyabi", name:"ミヤビ", file: "../img/t_Miyabi.webp", since:"2026-08-26" },
     { id: "mb:sumire", mbId: "sumire", name:"スミレ", file: "../img/t_Sumire.webp", since:"2026-08-26" },
     /* ★★ 2026-08-26 MagiLex の KP交換キャラ 4体（No.153〜156）。
@@ -754,11 +765,11 @@
     /* ★★ 2026-08-29 戦姫祭（常時開催）の限定SSR 6体（No.176〜181）。
        ★ ラン／ユウカ／アンナは<b>すでにいる同名のキャラとは別人</b>なので、
          mbId も画像も別（rans / yuukas / annas）。ここを既存の id にすると絵が入れかわる。 */
-    { id: "mb:rans", mbId: "rans", name:"ラン(焔)", file: "../img/t_RanS.webp", since:"2026-08-29" },
+    { id: "mb:rans", mbId: "rans", name:"ラン", file: "../img/t_RanS.webp", since:"2026-08-29" },
     { id: "mb:kurenai", mbId: "kurenai", name:"クレナイ", file: "../img/t_Kurenai.webp", since:"2026-08-29" },
     { id: "mb:yuki", mbId: "yuki", name:"ユキ", file: "../img/t_Yuki.webp", since:"2026-08-29" },
     { id: "mb:marika", mbId: "marika", name:"マリカ", file: "../img/t_Marika.webp", since:"2026-08-29" },
-    { id: "mb:yuukas", mbId: "yuukas", name:"ユウカ(聖)", file: "../img/t_YuukaS.webp", since:"2026-08-29" },
+    { id: "mb:yuukas", mbId: "yuukas", name:"ユウカ", file: "../img/t_YuukaS.webp", since:"2026-08-29" },
     { id: "mb:annas", mbId: "annas", name:"アンナ(STAR)", file: "../img/t_AnnaS.webp", since:"2026-08-29" },
     /* ★★ 2026-08-30 戦姫祭 アンナ(祭)（No.182）。
        ★ アンナ(STAR)（annas）とは別人なので mbId も画像も別。 */
@@ -770,6 +781,15 @@
     { id: "mb:rin", mbId: "rin", name:"リン", file: "../img/t_Rin.webp", since:"2026-08-30" },
     { id: "mb:minori", mbId: "minori", name:"ミノリ", file: "../img/t_Minori.webp", since:"2026-08-30" },
     { id: "mb:seika", mbId: "seika", name:"セイカ", file: "../img/t_Seika.webp", since:"2026-08-30" },
+    /* ★★ 2026-09-01 RISING STAR FEST 限定SSR 4体（No.188〜191）。
+       ★ ミレイ／スズハ／セイラ は既存キャラと名前がかぶるので、
+         古いほうを ミレーヌ／スズミ に改名し、id も画像名も別にしてある。 */
+    { id: "mb:riona", mbId: "riona", name:"リオナ", file: "../img/t_Riona.webp", since:"2026-09-01" },
+    { id: "mb:mireir", mbId: "mireir", name:"ミレイ", file: "../img/t_MireiR.webp", since:"2026-09-01" },
+    { id: "mb:suzuhar", mbId: "suzuhar", name:"スズハ", file: "../img/t_SuzuhaR.webp", since:"2026-09-01" },
+    { id: "mb:seirak", mbId: "seirak", name:"セイラ＆カナヅキ", file: "../img/t_SeiraK.webp", since:"2026-09-01" },
+    /* ★★ 2026-09-01 極彩祭 ハノン（No.192） */
+    { id: "mb:hanon", mbId: "hanon", name:"ハノン", file: "../img/t_Hanon.webp", since:"2026-09-01" },
   ];
   /* ★ 2026-08-10 初期SR 4体（ゼラ・アヤメ・レイラ・セリーヌ）は廃止しました。
      いまは<b>全キャラがアイコンに選べる</b>ので、starter という区別そのものが要らない。 */
@@ -829,7 +849,13 @@
   , "rans", "kurenai", "yuki", "marika", "yuukas", "annas"
   /* ★★ 2026-08-30 戦姫祭 アンナ(祭) ＋ GRAND DEBUT Ver.6.0 の5体。
      ここに無いと <b>XEVAミッションの図鑑コレクションに出てこない</b>。 */
-  , "annam", "chia", "risa", "rin", "minori", "seika"];
+  , "annam", "chia", "risa", "rin", "minori", "seika"
+  /* ★★ 2026-09-01 RISING STAR FEST の4体。
+     ここに無いと <b>XEVAミッションの図鑑コレクションに出てこない</b>。 */
+  , "riona", "mireir", "suzuhar", "seirak"
+  /* ★★ 2026-09-01 極彩祭 ハノン。
+     ここに無いと <b>XEVAミッションの図鑑コレクションに出てこない</b>。 */
+  , "hanon"];
   MB_CHAR_MASTER.forEach(function (c) { c.mb = true; c.starter = MB_STARTERS.indexOf(c.mbId) >= 0; });
   MB_CHAR_MASTER.forEach(function (c) { c.star5 = MB_STAR5.indexOf(c.mbId) >= 0; });
   /* id は "mb:zera" のように接頭辞つき。XEVAガチャにも同じ名前のキャラ（シオンなど）が
@@ -1745,6 +1771,45 @@
       }, { passive: false, capture: true });
     } catch (e) {}
   })();
+
+  /* ══════════════════════════════════════════════════════════════
+     ★★ 2026-09-01 <b>絵が出ないときの差し戻し</b>（ご報告への対応）
+     ------------------------------------------------------------
+     ご報告: 「アイコンの画像が表示されないことがある」
+
+     キャラクターの絵は<b>置き場所が何度か変わっている</b>——
+       chars/（原寸・旧） → chars_s/（256px・旧） → <b>img/（いまここ・WebP統一）</b>
+     さらに小さい表示は <b>t_ 付き</b>（300px）を使う。
+     保存された charFile が古い形のままだったり、t_ が用意されていないキャラだと、
+     組み立てたURLが 404 になって<b>アイコンだけが真っ白</b>になる。
+
+     → ページ全体で<b>1回だけ</b> img の読み込み失敗を拾い、順に差し戻す。
+         ① img/t_Xxx.webp（サムネイル）が無い → <b>img/Xxx.webp</b>（原寸）
+         ② chars_s/… が無い → <b>chars/…</b>
+         ③ chars/… が無い → <b>img/…</b>
+       3回まで試して、それでも駄目なら<b>もう触らない</b>（無限ループにしない）。
+     ★ 1枚ずつ onerror を書くやりかたはやめる。書き忘れたところだけ白いままになるため。
+     ══════════════════════════════════════════════════════════════ */
+  try {
+    document.addEventListener("error", function (e) {
+      var el = e && e.target;
+      if (!el || el.tagName !== "IMG") return;
+      var tries = +(el.getAttribute("data-xevfix") || 0);
+      if (tries >= 3) return;
+      var src = el.getAttribute("src") || "";
+      if (!src || /^data:/.test(src) || /^blob:/.test(src)) return;
+      var next = "";
+      /* ① サムネイル（t_）が無い → 原寸へ */
+      if (/\/t_[^/]+$/.test(src)) next = src.replace(/\/t_([^/]+)$/, "/$1");
+      /* ② chars_s/（旧・軽量版）→ chars/（旧・原寸） */
+      if (!next && src.indexOf("chars_s/") >= 0) next = src.replace("chars_s/", "chars/");
+      /* ③ chars/（旧）→ img/（いまの置き場） */
+      if (!next && src.indexOf("chars/") >= 0) next = src.replace("chars/", "img/");
+      if (!next || next === src) return;
+      el.setAttribute("data-xevfix", String(tries + 1));
+      el.src = next;
+    }, true);
+  } catch (e) {}
 
   window.XEVA = XEVA;
   /* ★ 2026-08-24 レベル・スタミナはどの画面からも使うので、短い名前でも出しておく */

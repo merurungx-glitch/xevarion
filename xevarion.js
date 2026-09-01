@@ -1003,6 +1003,9 @@ function renderNavUser() {
   }
   const badge = document.getElementById("accXvBadge");
   if (badge) badge.style.display = (acc && acc.setupDone) ? "block" : "none";
+  /* ★★ 2026-09-01 いまホームの顔を描いているのは xevarion-home.js の xhRenderProfile()。
+     #accFab は旧ドックごと消えているので、ここだけでは<b>どこも変わらない</b>。 */
+  try { if (window.xhRenderProfile) window.xhRenderProfile(); } catch (e) {}
 }
 
 /* ── wizard ── */
@@ -2552,7 +2555,7 @@ function prepareAccessScreen(opts) {
   if (loading) loading.style.display = "flex";
   if (start) start.style.display = "none";
   const ready = () => { xhReady = true; if (loading) loading.style.display = "none"; if (start) start.style.display = "flex"; };
-  const img = new Image(); img.onload = ready; img.onerror = ready; img.src = "thumbs/xevarion-home_s.jpg?v=3";
+  const img = new Image(); img.onload = ready; img.onerror = ready; img.src = "thumbs/xevarion-home_s.jpg?v=5";
   if (img.complete) ready();
   setTimeout(ready, 2500);
 }

@@ -55,7 +55,7 @@ function loadMbCore() {
   if (_mbPromise) return _mbPromise;
   _mbPromise = new Promise(function (res, rej) {
     var s = document.createElement("script");
-    s.src = "../MagiBurst/js/mb-core.js?v=65";
+    s.src = "../MagiBurst/js/mb-core.js?v=68";
     s.onload = function () { res(); };
     s.onerror = function () { _mbPromise = null; rej(new Error("mb-core")); };
     document.head.appendChild(s);

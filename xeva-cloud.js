@@ -24,7 +24,7 @@
      以前はここに直接書いてあり、MagiBurst / MagiLex の一覧は別ファイルにあったため、
      新機能を足すたびに「同期リストへの入れ忘れ」が起きていた
      （ジェムショップの購入履歴 xeva_shop_v1 が同期されていなかったのがその例）。 */
-import { PORTAL_SYNC_KEYS, wipeAccountData, wipeAccountDataFull } from "./xeva-keys.js?v=8";
+import { PORTAL_SYNC_KEYS, wipeAccountData, wipeAccountDataFull } from "./xeva-keys.js?v=11";
 
 const SYNC_KEYS = PORTAL_SYNC_KEYS;
 const SYNC_SET = new Set(SYNC_KEYS);
@@ -190,7 +190,7 @@ function wipeLocalAccount(keepAcc) {
     const acc = keepAcc ? lsGet(ACC_KEY) : null;
     wipeAccountData(_rawRemove);
     if (acc != null) _rawSet(ACC_KEY, acc);      // ログイン処理が書き直す本体は残す
-    saveMeta({});
+    saveMeta({}); clearBase();                   /* ★ 2026-09-01 財布の土台も別アカウントへ持ち越さない */
     try { _rawRemove(OWNER_KEY); } catch (e) {}
     try { _rawRemove("xeva_pullrld"); } catch (e) {}
   } finally { pushSuspended = false; }
@@ -206,7 +206,7 @@ function purgeLocalAccount() {
   pushSuspended = true;
   try {
     wipeAccountDataFull(_rawRemove);
-    saveMeta({});
+    saveMeta({}); clearBase();
     try { _rawRemove(OWNER_KEY); } catch (e) {}
     try { _rawRemove("xeva_pullrld"); } catch (e) {}
   } finally { pushSuspended = false; }
@@ -219,8 +219,139 @@ function guardOwner(uid) {
   if (!uid) return;
   const owner = lsGet(OWNER_KEY);
   if (owner === uid) return;
-  if (owner && owner !== uid) wipeLocalAccount(true);   // アカウント本体は login/登録が書き直す
+  if (owner && owner !== uid) wipeLocalAccount(true);   // アカウント本体は login/登録が書き直す（土台も中で消える）
   try { _rawSet(OWNER_KEY, uid); } catch (e) {}
+}
+
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-09-01 オフラインとオンラインの<b>まぜ方</b>（ご報告への対応）
+   ------------------------------------------------------------
+   ご報告: 「キャラクターや XEVA が同期されないことがある」
+
+   これまでの決まりは <b>キーまるごと、新しい方が勝つ</b>（last-write-wins）だった。
+   これだと、こういうときに片方の進行が丸ごと消える:
+     ・iPhone を<b>オフライン</b>にしたまま MagiBurst でガチャを引いた
+     ・そのあいだに PC で XEVA を稼いだ
+     → あとからオンラインにした側の「まるごと」が、もう片方を上書きする。
+   退避（storeBak）は残るが、画面の上では<b>消えた</b>のと同じ。
+
+   そこで、<b>中身の性質に合わせて混ぜる</b>ようにした。
+
+   ① 財布（XEVA・💎ジェム・🎫各チケット・💠結晶）… <b>3方向マージ</b>
+      「前にクラウドとそろっていた値（base）」を覚えておき、
+        こちらの増減（L − base）と あちらの増減（R − base）の<b>両方</b>を足す。
+      ＝ オフラインで稼いだぶんも、別端末で使ったぶんも、どちらも残る。
+      ★ base は「クラウドに<b>確かにあると分かっている値</b>」だけを入れること。
+        送信できたか分からない値を入れると、次のマージで二重に足したり
+        巻き戻したりする。ここが唯一のこわいところ。
+      ★ base が無い（初回・機種変直後）ときは<b>多い方</b>を採る。
+        減る側に倒すと「使っていないのに減った」になるため。
+
+   ② キャラ（xeva_gacha_v1 の owned/dupes ／ magiburst_v1 の chars）… <b>取り合わせ</b>
+      キャラは<b>減らないもの</b>なので、
+        持っている … どちらかにあれば持っている（和）
+        限界突破・レベル・EXP … <b>大きい方</b>
+      まず今までどおり新しい方を選び、そのあとで<b>負けた方のキャラだけを拾い直す</b>。
+      ＝ ほかの項目（クリア状況・アイテムなど）の扱いは今までと変わらない。
+
+   ★ 履歴（history）は t＋量＋理由で重複を見分けて取り合わせる。
+   ══════════════════════════════════════════════════════════════ */
+const BASE_KEY = "xeva_syncbase_v1";   // 端末固有・同期しない。{ key: {b,e,u,s} }
+function getBase() { return jparse(lsGet(BASE_KEY), {}) || {}; }
+function saveBase(b) { try { _rawSet(BASE_KEY, JSON.stringify(b)); } catch (e) {} }
+function clearBase() { try { _rawRemove(BASE_KEY); } catch (e) {} }
+/* 財布から「数だけ」を抜き出す（base に丸ごと入れると容量を食うため） */
+function walletNums(s) {
+  const o = jparse(s, null);
+  if (!o || typeof o !== "object") return null;
+  return { b: Number(o.balance) || 0, e: Number(o.totalEarned) || 0,
+           u: Number(o.used) || 0, s: Number(o.spent) || 0 };
+}
+function setBaseFrom(k, valueString) {
+  if (!WALLET_KEYS.has(k)) return;
+  const n = walletNums(valueString);
+  const b = getBase();
+  if (n) b[k] = n; else delete b[k];
+  saveBase(b);
+}
+function setBaseMany(kv) {
+  const b = getBase(); let touched = false;
+  Object.keys(kv || {}).forEach((k) => {
+    if (!WALLET_KEYS.has(k)) return;
+    const n = walletNums(kv[k] && kv[k].v);
+    if (n) { b[k] = n; touched = true; } else if (b[k]) { delete b[k]; touched = true; }
+  });
+  if (touched) saveBase(b);
+}
+
+const WALLET_KEYS = new Set(["xeva_wallet_v1", "xeva_gem_v1", "xeva_gticket_v1",
+  "xeva_fticket_v1", "xeva_selticket_v1", "xeva_cryst_v1"]);
+const CHAR_KEYS = new Set(["xeva_gacha_v1", "magiburst_v1"]);
+function hasMergeRule(k) { return WALLET_KEYS.has(k) || CHAR_KEYS.has(k); }
+
+/* 履歴の取り合わせ（新しい順・上限100件） */
+function mergeHistory(a, b) {
+  const seen = Object.create(null), out = [];
+  [].concat(Array.isArray(a) ? a : [], Array.isArray(b) ? b : []).forEach((h) => {
+    if (!h || typeof h !== "object") return;
+    const k = (h.t || 0) + "|" + (h.amount || 0) + "|" + (h.reason || "");
+    if (seen[k]) return; seen[k] = 1; out.push(h);
+  });
+  out.sort((x, y) => (y.t || 0) - (x.t || 0));
+  if (out.length > 100) out.length = 100;
+  return out;
+}
+/* ① 財布の3方向マージ。混ぜられなければ null（＝今までどおりの勝ち負けに任せる） */
+function mergeWallet(k, lv, rv) {
+  const L = jparse(lv, null), R = jparse(rv, null);
+  if (!L || !R || typeof L !== "object" || typeof R !== "object") return null;
+  const base = getBase()[k] || null;
+  const three = (field, bf) => {
+    const ln = Number(L[field]) || 0, rn = Number(R[field]) || 0;
+    if (!base) return Math.max(ln, rn);                 /* 土台なし＝多い方（減らさない） */
+    const bn = Number(base[bf]) || 0;
+    return Math.max(0, bn + (ln - bn) + (rn - bn));
+  };
+  const out = {};
+  Object.keys(R).forEach((x) => { out[x] = R[x]; });
+  Object.keys(L).forEach((x) => { out[x] = L[x]; });
+  out.balance = three("balance", "b");
+  if ("totalEarned" in L || "totalEarned" in R) out.totalEarned = Math.max(three("totalEarned", "e"), out.balance);
+  if ("used" in L || "used" in R) out.used = three("used", "u");
+  if ("spent" in L || "spent" in R) out.spent = three("spent", "s");
+  out.mig = Object.assign({}, R.mig || {}, L.mig || {});   /* 移行ずみの印は消さない（二重付与よけ） */
+  out.history = mergeHistory(L.history, R.history);
+  out.at = Math.max(Number(L.at) || 0, Number(R.at) || 0);
+  return JSON.stringify(out);
+}
+/* ② キャラの拾い直し。winner に loser のキャラを足して返す（変化がなければ null） */
+function mergeCharsInto(k, winnerStr, loserStr) {
+  const W = jparse(winnerStr, null), Lo = jparse(loserStr, null);
+  if (!W || !Lo || typeof W !== "object" || typeof Lo !== "object") return null;
+  let touched = false;
+  const bigger = (a, b) => Math.max(Number(a) || 0, Number(b) || 0);
+  if (k === "xeva_gacha_v1") {
+    W.owned = W.owned || {}; W.dupes = W.dupes || {};
+    Object.keys(Lo.owned || {}).forEach((id) => {
+      if (Lo.owned[id] && !W.owned[id]) { W.owned[id] = true; touched = true; }
+    });
+    Object.keys(Lo.dupes || {}).forEach((id) => {
+      const v = bigger(W.dupes[id], Lo.dupes[id]);
+      if (v !== (Number(W.dupes[id]) || 0)) { W.dupes[id] = v; touched = true; }
+    });
+  } else {                                   /* magiburst_v1 */
+    W.chars = W.chars || {};
+    Object.keys(Lo.chars || {}).forEach((id) => {
+      const lc = Lo.chars[id]; if (!lc || typeof lc !== "object") return;
+      const wc = W.chars[id];
+      if (!wc) { W.chars[id] = lc; touched = true; return; }
+      const lv2 = bigger(wc.lv, lc.lv), aw = bigger(wc.awk, lc.awk), ex = bigger(wc.exp, lc.exp);
+      if (lv2 !== (Number(wc.lv) || 0) || aw !== (Number(wc.awk) || 0) || ex !== (Number(wc.exp) || 0)) {
+        wc.lv = lv2 || wc.lv; wc.awk = aw; wc.exp = ex; touched = true;
+      }
+    });
+  }
+  return touched ? JSON.stringify(W) : null;
 }
 
 /* ── マージ同期の本体 ──
@@ -236,6 +367,7 @@ function mergeStore(uid, remote, remoteT) {
   const meta = getMeta();
   const pushKv = {};      // key -> {v,t}
   const bak = {};         // key -> {v,t}（クラウドに負けて消えるローカル値）
+  const newBase = {};     // ★ 2026-09-01 財布の土台（クラウドに確かにあると分かった値）
   let changed = false;
   pushSuspended = true;
   try {
@@ -245,7 +377,11 @@ function mergeStore(uid, remote, remoteT) {
       const lv = lsGet(k);
       const lT = meta[k] || 0;
       if (rv != null) {
-        if (rv === lv) { if (rT > lT) meta[k] = rT; return; }
+        if (rv === lv) {
+          if (rT > lT) meta[k] = rT;
+          if (WALLET_KEYS.has(k)) newBase[k] = rv;      /* そろっている＝これが土台 */
+          return;
+        }
         /* ★ 勝敗の決め方（旧: 同着なら「データ量が多い方」＝誤判定の元）
            ・タイムスタンプが違う → 新しい方が勝つ（本来の規約）
            ・ローカルに書込記録が無い（lT=0）＝この端末では一度も触っていない
@@ -257,6 +393,25 @@ function mergeStore(uid, remote, remoteT) {
         if (rT !== lT) remoteWins = rT > lT;
         else if (lv == null) remoteWins = true;
         else remoteWins = false;
+        /* ══ ★★ 2026-09-01 混ぜられるキーは、勝ち負けを決める前に<b>混ぜる</b> ══
+           財布 … 3方向マージ（両方の増減を足す）
+           キャラ … 勝った側に、負けた側のキャラだけを拾い直す
+           混ぜられなかったとき（形がちがう・拾うものが無い）は null が返るので、
+           そのまま下の「新しい方が勝つ」に落ちる＝これまでどおりの動き。 */
+        let merged = null;
+        if (lv != null && hasMergeRule(k)) {
+          merged = WALLET_KEYS.has(k)
+            ? mergeWallet(k, lv, rv)
+            : mergeCharsInto(k, remoteWins ? rv : lv, remoteWins ? lv : rv);
+        }
+        if (merged != null) {
+          if (WALLET_KEYS.has(k)) newBase[k] = rv;      /* 土台は「クラウドに確かにある値」 */
+          if (merged !== lv) { _rawSet(k, merged); changed = true; }
+          if (remoteWins) bak[k] = { v: lv, t: lT };    /* 念のため負けた側も退避しておく */
+          meta[k] = nowMs(); dirty.delete(k);
+          pushKv[k] = { v: merged, t: meta[k] };
+          return;
+        }
         if (remoteWins) {
           if (lv != null) bak[k] = { v: lv, t: lT };
           _rawSet(k, rv); meta[k] = rT || nowMs(); changed = true;
@@ -279,10 +434,22 @@ function mergeStore(uid, remote, remoteT) {
       }
     });
     saveMeta(meta);
+    if (Object.keys(newBase).length) {
+      const b = getBase();
+      Object.keys(newBase).forEach((k) => { const n = walletNums(newBase[k]); if (n) b[k] = n; });
+      saveBase(b);
+    }
   } finally { pushSuspended = false; }
   if (FB) {
     if (Object.keys(bak).length) { try { FB.pushBackup && FB.pushBackup(uid, bak); } catch (e) {} }
-    if (Object.keys(pushKv).length) { try { FB.pushStore(uid, pushKv); } catch (e) {} }
+    if (Object.keys(pushKv).length) {
+      /* ★ 送信できたと分かってから土台を進める。分からないうちに進めると
+         次のマージで二重に足したり巻き戻したりする（ここが唯一のこわいところ）。 */
+      try {
+        const pr = FB.pushStore(uid, pushKv);
+        if (pr && pr.then) pr.then((r) => { if (r && r.ok) setBaseMany(pushKv); }).catch(() => {});
+      } catch (e) {}
+    }
   }
   return changed;
 }
@@ -296,7 +463,9 @@ async function pushAll(uid) {
     if (v != null) { if (!meta[k]) meta[k] = t0; kv[k] = { v, t: meta[k] }; }
   });
   saveMeta(meta);
-  if (Object.keys(kv).length) { try { await FB.pushStore(uid, kv); } catch (e) {} }
+  if (Object.keys(kv).length) {
+    try { const r = await FB.pushStore(uid, kv); if (r && r.ok) setBaseMany(kv); } catch (e) {}
+  }
 }
 
 /* ── 送信の間隔 ──
@@ -338,6 +507,7 @@ async function flushPush() {
   try { const r = await FB.pushStore(uid, kv); ok = !!(r && r.ok); } catch (e) { ok = false; }
   pushInFlight = false;
   if (!ok) { schedulePush(); return; }                 // dirty はそのまま＝次回まとめて再送
+  setBaseMany(kv);                                     // ★ 2026-09-01 送れた値＝クラウドにある値＝土台
   // 送信できた分だけ dirty から取り除く（送信中に上書きされた新しい値は残す）
   Object.keys(kv).forEach((k) => { const cur = dirty.get(k); if (cur && cur.t === kv[k].t) dirty.delete(k); });
 }
@@ -433,9 +603,14 @@ async function pullNow() {
   if (!uid || !FB || _pullBusy) return false;
   _pullBusy = true;
   try {
-    await flushPush();                                   // 自分の変更を先に確定させる
+    /* ★★ 2026-09-01 <b>順番を入れ替えた</b>。
+       これまでは「先に送る → 取りに行く」だったので、
+       こちらの値でクラウドを上書きしてから読み直すことになり、
+       別端末の増減が<b>混ざる前に消えて</b>いた。
+       いまは「取りに行く → 混ぜる → 送る」。 */
     const full = await FB.pullStoreFull(uid);
     const changed = mergeStore(uid, full.kv, full.t);
+    await flushPush();                                   // 混ざった結果と、未送信ぶんを送る
     try { window.dispatchEvent(new CustomEvent("xeva:synced", { detail: { changed } })); } catch (e) {}
     try { window.dispatchEvent(new CustomEvent("xeva:change", { detail: { balance: (window.XEVA && window.XEVA.getBalance()) || 0 } })); } catch (e) {}
     return changed;
@@ -672,7 +847,10 @@ window.addEventListener("online", async () => {
   _onlineResyncing = true;
   try {
     if (FB) {
-      await flushPush();                 // オフライン中の変更をクラウドへ（ローカルが勝つ）
+      /* ★★ 2026-09-01 いきなり送らず、まず<b>取りに行って混ぜる</b>（pullNow が
+         「取りに行く → 混ぜる → 送る」をやる）。オフライン中にこちらで増えたぶんと、
+         そのあいだに別端末で増えたぶんの<b>両方</b>を残すため。 */
+      await pullNow();
       await flushEarn();
     } else {
       // SDK 未読込 → 少し待って再読込（ユーザー操作中の巻き戻しを避けるため 3 秒後）

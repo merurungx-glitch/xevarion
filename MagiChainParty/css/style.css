@@ -315,6 +315,17 @@ body{
 .ol-roomcode b{display:block;font-size:46px;letter-spacing:.24em;color:#8b5bff;font-weight:900;margin-top:2px;
   text-indent:.24em;}
 #ol-players{display:flex;flex-direction:column;gap:8px;}
+/* ★★ 2026-09-01 紐づけたアカウントのアイコン（参加者一覧・対戦中・結果） */
+.ol-av{width:30px;height:30px;border-radius:50%;object-fit:cover;flex:none;
+  border:2px solid #fff;box-shadow:0 2px 8px rgba(40,30,80,.18);background:#eee;}
+.ol-av.sm{width:22px;height:22px;border-width:1.5px;}
+/* ★★ 2026-09-01 オンライン対戦のアカウント紐づけの箱 */
+.ol-linkbox{display:flex;flex-direction:column;gap:10px;margin-top:4px;}
+.ol-linkcur{display:flex;align-items:center;gap:10px;min-height:34px;}
+.ol-linkcur .ol-linknm{font-weight:900;font-size:15px;}
+.ol-linkcur .ol-linknm.none{color:var(--muted);font-weight:700;font-size:13px;}
+.ol-linkcur .ol-linktag{margin-left:auto;font-size:11px;font-weight:800;color:var(--muted);
+  border:1px solid var(--line);border-radius:99px;padding:3px 9px;}
 .ol-prow{display:flex;align-items:center;gap:10px;padding:12px 14px;border:1px solid var(--line);
   border-radius:14px;background:var(--soft);}
 .ol-prow .pdot{width:20px;height:20px;border-radius:50%;flex:none;background:var(--c);
