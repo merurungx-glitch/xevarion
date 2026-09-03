@@ -163,7 +163,9 @@ function openDetX(id) {
     </div>
     <div class="dbody">
       <div class="dchips">
-        <span class="dchip" style="color:${ELEM[c.el].c};border-color:${ELEM[c.el].c}66">${ELEM[c.el].nm}属性</span>
+        ${/* ★★ 2026-09-02 二属性キャラは「闇＆火」のように2つ並べる（リンクスキルの属性が先）。
+             elemNameOf は mb-core.js にあるが、ここは遅延読みこみされることがあるので保険をかける。 */""}
+        <span class="dchip" style="color:${ELEM[c.el].c};border-color:${ELEM[c.el].c}66">${typeof elemNameOf === "function" ? elemNameOf(c) : ELEM[c.el].nm}属性</span>
         <span class="dchip">${c.shot === "pierce" ? "貫通" : "反射"}</span>
         <span class="dchip">${c.type}</span>
         <span class="dchip">${own ? "所持済み" : "未所持"}</span>

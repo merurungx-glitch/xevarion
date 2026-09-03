@@ -296,7 +296,7 @@ function paintPickup() {
       <img src="${c.th}" alt="${c.nm}" onclick="openDetX('${id}')" style="cursor:pointer" title="${c.nm} の性能を見る">
       <div class="pkinfo" onclick="openDetX('${id}')" style="cursor:pointer">
         <div class="pknm">${charNoText(id)} ${c.nm}</div>
-        <div class="pksub">${ELEM[c.el].nm}／${c.shot === "pierce" ? "貫通" : "反射"}／${c.type}<br>
+        <div class="pksub">${typeof elemNameOf === "function" ? elemNameOf(c) : ELEM[c.el].nm}／${c.shot === "pierce" ? "貫通" : "反射"}／${c.type}<br>
           <b>${c.ssName}</b>（${fbTurnsText(c)}ターン）<br>
           <b style="color:${maxed ? "#c98a10" : DB.chars[id] ? "#0e7f57" : "#6f82ad"}">${dupeText(id).tx}</b></div>
       </div>

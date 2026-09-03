@@ -129,7 +129,7 @@
           document.getElementById("gl-sel-name").textContent = acc.name;
           var img = document.getElementById("gl-sel-img");
           img.onerror = function () { this.style.visibility = "hidden"; };
-          img.style.visibility = ""; img.src = avatar(acc.charFile);
+          img.style.visibility = ""; img.src = avatar(acc.charFile, acc.charId);
           pwInp.value = "";
           goBtn.textContent = "🔗 紐づける";
           msg.textContent = "";
@@ -175,15 +175,23 @@
             /* XEVARIONログインと同じ「候補から選ぶ」方式 */
             cands.innerHTML = rows.map(function (r, i) {
               return '<button class="gl-cand" data-i="' + i + '">' +
-                '<img src="' + esc(avatar(r.charFile)) + '" onerror="this.style.visibility=\'hidden\'" alt="">' +
+                '<img src="' + esc(avatar(r.charFile, r.charId)) + '" onerror="this.style.visibility=\'hidden\'" alt="">' +
                 '<span class="cn">' + esc(r.name) + '</span><span class="cg">›</span></button>';
             }).join("");
             cands.classList.add("show");
             cands.onclick = function (e) {
               var b = e.target.closest(".gl-cand"); if (!b) return;
               var r = rows[+b.dataset.i]; if (!r) return;
-              if (!r.gamePwHash && !r.hasPw) { msg.textContent = "このアカウントは4桁パスワード未設定です（ポータルで設定が必要）。"; return; }
-              showStep2({ uid: r.uid, name: r.name, charFile: r.charFile || "" });
+              /* ★★ 2026-09-02 ここで「未設定」と出てしまう不具合があった。
+                 searchAccounts が uid/name/charFile しか返しておらず、
+                 gamePwHash も hasPw も無いので<b>常に未設定あつかい</b>になっていた。
+                 xevarion-fb.js 側で hasPw を返すようにしたうえで、
+                 それでも情報が無いときは<b>止めずに進める</b>（本当の可否は照合で決まる）。 */
+              var pwKnown = ("hasPw" in r) || ("gamePwHash" in r);
+              if (pwKnown && !r.gamePwHash && !r.hasPw) {
+                msg.textContent = "このアカウントは4桁パスワード未設定です（ポータルで設定が必要）。"; return;
+              }
+              showStep2({ uid: r.uid, name: r.name, charFile: r.charFile || "", charId: r.charId || "" });
             };
           });
         }
@@ -198,7 +206,7 @@
           }).then(function (ok) {
             goBtn.disabled = false; goBtn.textContent = "🔗 紐づける";
             if (!ok) { msg.textContent = "パスワードが正しくありません。"; pwInp.value = ""; pwInp.focus(); return; }
-            close({ uid: hit.uid, name: hit.name, charFile: hit.charFile || "" });
+            close({ uid: hit.uid, name: hit.name, charFile: hit.charFile || "", charId: hit.charId || "" });
           });
         }
         goBtn.onclick = function () { if (stage === "search") doSearch(); else doVerify(); };
@@ -210,7 +218,26 @@
 
   function link(prefillName) { return openModal({ prefillName: prefillName }); }
   /* 前回の紐づけを引き継ぐときのパスワード確認（検索をとばして本人確認のみ） */
-  function confirm(acc) { return openModal({ confirmOnly: { uid: acc.uid, name: acc.name, charFile: acc.charFile || "" } }); }
+  function confirm(acc) { return openModal({ confirmOnly: { uid: acc.uid, name: acc.name, charFile: acc.charFile || "", charId: acc.charId || "" } }); }
+
+  /* ── ★★ 2026-09-02 紐づけ済みアカウントの「今の」名前・キャラを取り直す ──
+     紐づけたときの charFile を保存しっぱなしにしていたので、そのあとポータルで
+     キャラを変えてもゲーム側のプロフィールが古いままだった。
+     resolve({uid,name,charFile,charId}) 取得できた / resolve(null) 取れなかった（前の値を使う）。 */
+  function refresh(acc) {
+    return whenFB(4000).then(function (FB) {
+      if (!FB || !FB.getAccount || !acc || !acc.uid) return null;
+      return FB.getAccount(acc.uid).then(function (v) {
+        if (!v) return null;
+        return {
+          uid: acc.uid,
+          name: v.name || acc.name || "",
+          charFile: v.charFile || "",
+          charId: v.charId || ""
+        };
+      }, function () { return null; });
+    });
+  }
 
   /* ── 賞金配布。rankedUids = 順位順の {uid,name} 配列（紐づけ済みのみ）── */
   function awardPrizes(rankedUids) {
@@ -227,5 +254,5 @@
     });
   }
 
-  window.GameLink = { link: link, confirm: confirm, awardPrizes: awardPrizes, whenFB: whenFB, PRIZES: PRIZES };
+  window.GameLink = { link: link, confirm: confirm, refresh: refresh, awardPrizes: awardPrizes, whenFB: whenFB, PRIZES: PRIZES };
 })();

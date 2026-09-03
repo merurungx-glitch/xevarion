@@ -1,19 +1,19 @@
 {
-  "version": "2026-09-02-1",
-  "date": "2026-09-02",
-  "title": "RISING STAR FEST 開幕／極彩祭にハノン／ローカル通信マルチ（1台でまわす対応）／MagiDiamond 3D風打席",
+  "version": "2026-09-03-1",
+  "date": "2026-09-03",
+  "title": "🏰 新作 Magi Dominion Grid／🌊 RISING STAR FEST 第2弾（4体追加）／⚾ MagiDiamond リアルタイム打撃",
   "notes": [
-    "RISING STAR FEST（限定SSR4体・セイラ＆カナヅキは属性2つ）",
-    "極彩祭にハノン（史上最大の火力・史上最強のリンク）",
-    "RANK UP はピックアップのみ／10連の確定枠から完凸を除外",
-    "オフラインとオンラインの同期を作り直し",
-    "オフラインで大きい画像が出ない不具合を修正",
-    "MagiBurst にローカル通信マルチ／通信を使わない「1台でまわして遊ぶ」も追加",
-    "MagiDiamond の打席を3D風に・キャラクターの絵で表示",
-    "MagiLink をリセット＆コード不要に・友達を XEVARION と1本化"
+    "🏰 新作 <b>Magi Dominion Grid</b> を公開しました。1台の iPad を囲んで <b>2〜10人</b>、全員が同時に行動をえらぶリアルタイム陣取りです。<b>サイコロもランダムイベントも戦闘乱数もなく</b>、障害物もスタート位置も毎回まったく同じ——勝敗は<b>盤面の読みだけ</b>で決まります。攻撃の勝ち負けは「そのマスにとなり合う領地の数」で決まり（同点なら守り勝ち）、終盤には1人1回だけの切り札 <b>FINAL STRATEGY</b> が使えます。",
+    "🌊 <b>RISING STAR FEST</b> に限定SSR <b>4体</b>を追加しました——<b>シズル（水・反射）・ユウリ（木・貫通）・ヒスイ（火・貫通）・ライカ（闇・反射）</b>。第1弾と<b>同じクエストを担当</b>し、<b>撃種を入れかえて</b>あるので、同じクエストに反射と貫通の両方の答えができます。キラー3つ目はどの子も<b>弱点キラーEL</b>で、蓬莱のボスは弱点が常に出ていて壁ぎわに寄せてあるぶん<b>自分の意思で確実に乗せられます</b>。共通サブリンクは新設の<b>スターライト・チェイン</b>。",
+    "✦ <b>RISING STAR FEST は8体とも乱打フルバーストをやめました</b>（乱打は特別なキャラだけのものにします）。かわりに<b>1体ずつちがう型</b>にし、効果は<b>2〜3つ</b>にとどめてあります——リオナ＝<b>敵全体＋攻撃力ダウン</b>／ミレイ＝<b>敵全体＋味方全員の攻撃力アップ</b>／スズハ＝<b>敵全体＋追加弱点</b>／セイラ＆カナヅキ＝<b>突撃＋支援</b>／シズル＝<b>攻撃しない純支援</b>／ユウリ＝<b>自強化して単体へ突撃</b>／ヒスイ＝<b>敵全体＋チーム回復</b>／ライカ＝<b>妨害＋支援</b>。どれも<b>これまでにある型と同じしくみ</b>なので、ひとりだけ極端に強い、が起きません。限定が8体になったので1体あたりの排出率は <b>1.2%</b>（戦姫祭と同じ）になり、SSR合計は<b>12%のまま</b>です。",
+    "⚾ <b>MagiDiamond</b> の打席を<b>リアルタイム</b>にしました（プロスピ式）。球が本当のコースへ飛んでくるので、画面をなぞって<b>ミートの焦点</b>を合わせ、<b>指を離した瞬間に振り</b>ます。当たりはずれは<b>タイミングと焦点のずれ</b>の2つで決まります。キャラの絵も<b>正方形</b>で出るようになりました。",
+    "⚡ MagiBurst：引っぱって矢印が出ているあいだ、<b>自分のキラーが乗る敵</b>に <b>WEAK</b> と出るようにしました（有利属性では出ません）。<b>Lv.70 にしてもステータスが Lv.60 のまま</b>だった不具合、<b>底力の表示がボールの上と下の両方に出ていた</b>のを直し、<b>セイラ＆カナヅキの属性</b>を「闇＆火」と2つ並べて出すようにしました（先はリンクスキルの属性）。蓬莱で<b>敵が移動すると通り道の味方にダメージ</b>が入り、<b>クエストから編成へ来ても🌍クリア編成</b>を見られます。",
+    "📷 MagiBurst のローカル通信マルチで、まねきコードを <b>QRコード</b>で渡せるようにしました。QR の中身はこのページの URL なので、<b>iPhone は標準のカメラで読むだけ</b>で参加画面まで進みます。",
+    "🔧 <b>MagiChainParty</b>：4桁パスワードがあるのに「未設定」と出て紐づけられなかった不具合を直し、紐づけたアカウントの<b>キャラの絵も最新</b>になるようにしました。<b>MagiChainParty・MagiLink の下のバー</b>が画面の下端まで届かず浮いていたのも直しています。",
+    "📚 <b>MagiLex</b> に「<b>化学すべて</b>」「<b>物理すべて</b>」の絞り込みを追加しました（理論・無機・有機などの<b>範囲別</b>にも絞りこめます）。💬 <b>MagiLink</b> に新しいメッセージが届くと、XEVARION ホームのアイコンに印が出ます。"
   ],
-  "bytes": 40040284,
-  "files": 415,
+  "bytes": 40422176,
+  "files": 425,
   "urls": [
     "index.html",
     "characters.html",
@@ -36,6 +36,7 @@
     "xeva-theme.css",
     "xevarion.css",
     "xevarion-home.css",
+    "xeva-safebottom.js",
     "xeva.js",
     "xeva-fx.js",
     "xeva-loading.js",
@@ -65,6 +66,7 @@
     "thumbs/MagiArena.jpg",
     "thumbs/MagiLink.jpg",
     "thumbs/MagiChainParty.jpg",
+    "thumbs/MagiDominionGrid.jpg",
     "thumbs/MagiRanking.jpg",
     "thumbs/MagiCraft.jpg",
     "thumbs/MagiManor.jpg",
@@ -121,6 +123,7 @@
     "app-install-notice.js",
     "MagiBurst/index.html",
     "MagiBurst/js/local.js",
+    "xeva-qr.js",
     "MagiBurst/img/bn_premium_s.webp",
     "MagiBurst/img/bn_castle_s.webp",
     "MagiBurst/img/bn_lab_s.webp",
@@ -335,6 +338,10 @@
     "img/t_SuzuhaR.webp",
     "img/t_SeiraK.webp",
     "img/t_Hanon.webp",
+    "img/t_Shizuru.webp",
+    "img/t_Yuuri.webp",
+    "img/t_Hisui.webp",
+    "img/t_Raika.webp",
     "img/cryst.webp",
     "img/t_Karen.webp",
     "img/t_Tomoe.webp",
@@ -429,27 +436,55 @@
     "MagiArcanaRush/mar-192.png",
     "MagiArcanaRush/mar-512.png",
     "MagiArcanaRush/img/mar-key.webp",
-    "MagiArcanaRush/img/mar-bg.webp"
+    "MagiArcanaRush/img/mar-bg.webp",
+    "MagiDominionGrid/index.html",
+    "MagiDominionGrid/css/mdg.css",
+    "MagiDominionGrid/js/mdg.js"
   ],
   "apps": [
-    "img",
-    "magiarcanarush",
+    "magidominiongrid",
     "magiburst",
-    "magichainparty",
     "magidiamond",
-    "magijackpot",
-    "magilex",
-    "magilotto",
-    "magimusic",
+    "magichainparty",
     "magilink",
-    "tab:chars",
-    "tab:community",
-    "tab:gacha",
+    "magilex",
     "tab:home",
-    "xevynar"
+    "tab:gacha"
   ],
-  "changedFiles": 28,
+  "changedFiles": 9,
   "history": [
+    {
+      "version": "2026-09-02-1",
+      "date": "2026-09-02",
+      "title": "RISING STAR FEST 開幕／極彩祭にハノン／ローカル通信マルチ（1台でまわす対応）／MagiDiamond 3D風打席",
+      "notes": [
+        "RISING STAR FEST（限定SSR4体・セイラ＆カナヅキは属性2つ）",
+        "極彩祭にハノン（史上最大の火力・史上最強のリンク）",
+        "RANK UP はピックアップのみ／10連の確定枠から完凸を除外",
+        "オフラインとオンラインの同期を作り直し",
+        "オフラインで大きい画像が出ない不具合を修正",
+        "MagiBurst にローカル通信マルチ／通信を使わない「1台でまわして遊ぶ」も追加",
+        "MagiDiamond の打席を3D風に・キャラクターの絵で表示",
+        "MagiLink をリセット＆コード不要に・友達を XEVARION と1本化"
+      ],
+      "apps": [
+        "img",
+        "magiarcanarush",
+        "magiburst",
+        "magichainparty",
+        "magidiamond",
+        "magijackpot",
+        "magilex",
+        "magilotto",
+        "magimusic",
+        "magilink",
+        "tab:chars",
+        "tab:community",
+        "tab:gacha",
+        "tab:home",
+        "xevynar"
+      ]
+    },
     {
       "version": "2026-08-31-1",
       "date": "2026-08-31",
@@ -881,20 +916,6 @@
     },
     {
       "version": "2026-08-20-6",
-      "date": "2026-08-20",
-      "title": "GRAND DEBUT GACHA 開幕 ／ レアリティを SSR・SR に ／ Wi-Fi・モバイルデータの通信設定",
-      "notes": [
-        "新キャラ専用の GRAND DEBUT GACHA を新設（Ver.1.0）。キャラの排出と確定枠のしくみはフェスガチャと同じで、育成アイテムの中身だけ専用です",
-        "新SSR 5体（ミレーユ・スカーレット・コユキ・アメリア・ミオ）。それぞれ蓬莱の九重の担当クエストを属性有利のまま全ギミック対応できます",
-        "レアリティ表記を ★5→SSR ／ ★4→SR に変更。ガチャの名前も英語表記（PREMIUM SELECT GACHA）にそろえました",
-        "リンクスキル「超強ハイクロススティンガー」を大幅強化（6本・×3.60）し、演出を作り直しました",
-        "Wi-Fi のときとモバイルデータのときで「最新のデータを使う」「更新を自動でダウンロード」を別々に設定できるようにしました",
-        "XEVYNAR の起動時に、解法・解説がまちがっていることがある旨のご案内を追加しました",
-        "MagiLex: まちがえた問題からXEVYNARのくわしい解説へ飛べなかったのを修正／XEVA2倍キャンペーンを10/31まで延長"
-      ]
-    },
-    {
-      "version": "2026-08-20-5",
       "date": "2026-08-20",
       "title": "GRAND DEBUT GACHA 開幕 ／ レアリティを SSR・SR に ／ Wi-Fi・モバイルデータの通信設定",
       "notes": [

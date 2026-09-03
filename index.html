@@ -19,18 +19,18 @@
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Exo+2:ital,wght@0,300;0,400;0,600;0,700;1,300&family=Noto+Sans+JP:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="xeva-theme.css?v=3">
 <link rel="stylesheet" href="xevarion.css?v=18">
-<link rel="stylesheet" href="xevarion-home.css?v=48">
+<link rel="stylesheet" href="xevarion-home.css?v=49">
 <!-- ★★ 2026-08-22b Xevion OS の見た目（テーマ・文字の大きさ・動きを減らす）。
      xevarion-home.css の<b>あと</b>に読む＝上書きできるようにする。 -->
 <link rel="stylesheet" href="xevion-os.css?v=9">
-<script src="xeva.js?v=53" defer></script>
+<script src="xeva.js?v=54" defer></script>
 <!-- ★ 2026-08-20 通信設定（Wi-Fi／モバイルデータごとに「最新を取りに行くか」を決める）。
      決めた内容はここから各アプリの Service Worker へ送られ、SW 側が動きを切り替える。 -->
 <script src="xeva-netmode.js?v=4" defer></script>
 <!-- ★ 2026-08-18 新キャラ告知の台帳（MagiBurst と共通）。
      告知を<b>ポータルのログイン時</b>に一本化したので、ここでも読む。
      defer なので xevarion.js より先に実行される（書いた順番で走る）。 -->
-<script src="mb-newchars.js?v=13" defer></script>
+<script src="mb-newchars.js?v=14" defer></script>
 <!-- ★★ 2026-08-22b Xevion OS（XEVARION の UI をひとつの OS として扱う土台）。
      ほかの画面より<b>先に</b>読む（body のクラスを立てるので、あとから読むと一瞬ちらつく）。 -->
 <script src="xevion-os.js?v=7"></script>
@@ -38,11 +38,11 @@
 <script src="xeva-fx.js?v=3" defer></script>
 <script src="xeva-loading.js?v=3" defer></script>
 <script type="module" src="xeva-sync.js?v=10"></script>
-<script type="module" src="xevarion-fb.js?v=24"></script>
+<script type="module" src="xevarion-fb.js?v=25"></script>
 <script src="xeva-presence.js?v=3" defer></script>
 <script type="module" src="xeva-cloud.js?v=22"></script>
 <script src="xevarion.js?v=74" defer></script>
-<script src="xevarion-home.js?v=72" defer></script>
+<script src="xevarion-home.js?v=75" defer></script>
 </head>
 <body>
 <!-- ───── バックグラウンド音楽（Flagship Arrival。アクセス画面のタップで再生開始） ───── -->
@@ -1668,6 +1668,67 @@ body.music-on #beatFrame{opacity:1}
   <div class="nm-body" id="newsBody">
     <div class="nm-divider" id="newDivider" style="display:none;">NEW — 前回から更新</div>
     <!-- 2026-08-30 💠結晶と交換所／完凸しても排出／アンナ(祭)／GRAND DEBUT Ver.6.0／同名の整理 -->
+    <div class="nm-item" data-tag="new" data-date="2026-09-03">
+      <div class="nm-date">2026<br>09.03</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag new">NEW</span></div>
+        <div class="nm-title">🌊 RISING STAR FEST 第2弾（4体追加）／👑 新作「Magi Dominion Grid」／⚾ MagiDiamond がリアルタイム打撃に／📷 ローカル通信に QR／🔧 下のバーと Lv.70 の修正</div>
+        <div class="nm-txt">
+          🌊 <b>RISING STAR FEST 第2弾</b>を追加しました——
+          <b>シズル（水・反射）・ユウリ（木・貫通）・ヒスイ（火・貫通）・ライカ（闇・反射）</b>。
+          第1弾と<b>同じクエストを担当</b>し、<b>撃種を入れかえて</b>あるので、
+          同じクエストに<b>反射と貫通の両方の答え</b>ができます。<br>
+          キラー3つ目はどの子も<b>弱点キラーEL</b>。蓬莱のボスは
+          <b>いつも弱点が出ていて、しかも壁ぎわに寄せてある</b>ので、
+          挟まって弱点を通し続ければ<b>自分の意思で確実に乗せられます</b>。
+          共通サブリンクは新設の<b>スターライト・チェイン</b>（星の鎖で敵を近い順につなぎ、
+          つなぎ終わりに全部へ締めの一撃）。<br>
+          ✦ 限定が<b>8体</b>になったので、1体あたりの排出率は <b>1.2%</b>（戦姫祭と同じ）になりました。
+          SSR 合計は<b>12% のまま</b>で、プレミアムの SSR もこれまでどおり出ます。<br>
+          ✦ <b>RISING STAR FEST は8体とも乱打フルバーストをやめました</b>（乱打は特別なキャラだけのものにします）。
+          かわりに<b>1体ずつちがう型</b>にし、効果は<b>2〜3つ</b>にとどめてあります——
+          リオナ＝<b>敵全体＋攻撃力ダウン</b>／ミレイ＝<b>敵全体＋味方全員の攻撃力アップ</b>／
+          スズハ＝<b>敵全体＋追加弱点</b>／セイラ＆カナヅキ＝<b>突撃＋支援</b>／
+          シズル＝<b>攻撃しない純支援</b>／ユウリ＝<b>自強化して単体へ突撃</b>／
+          ヒスイ＝<b>敵全体＋チーム回復</b>／ライカ＝<b>妨害＋支援</b>。
+          どれも<b>これまでにある型と同じしくみ</b>なので、ひとりだけ極端に強い、が起きません。<br><br>
+          👑 新作 <b>Magi Dominion Grid</b> を公開しました。
+          <b>1台の iPad をテーブルの真ん中に置いて、2〜10人</b>で同じ画面を見ながら遊ぶ陣取りです。<br>
+          ★ このゲームには<b>サイコロもランダムイベントも戦闘乱数もありません</b>。
+          障害物もスタート位置も<b>毎回まったく同じ</b>なので、勝ち負けは<b>盤面の読みだけ</b>で決まります。<br>
+          1ターンは<b>計画フェーズ（全員が同時に、他の人に見せずに行動をえらぶ）</b> →
+          <b>実行フェーズ（全員ぶんを一斉に処理）</b>の2段。
+          行動は<b>移動・領地（取る／攻める）・特殊行動</b>の3つだけです。<br>
+          攻撃の勝ち負けは<b>そのマスにとなり合う領地の数</b>で決まります（同点なら守り勝ち）。
+          だから<b>どこに領地を作るか</b>がそのまま強さになります。<br>
+          終盤には<b>FINAL STRATEGY</b>（1人1回だけの切り札）が使えます。
+          最下位でも、盤面を正しく読めば逆転できます。<br><br>
+          ⚾ <b>MagiDiamond</b> の打席を<b>リアルタイム</b>にしました（プロスピ式）。
+          球が<b>本当のコースへ飛んでくる</b>ので、画面をなぞって<b>ミートの焦点</b>を合わせ、
+          <b>指を離した瞬間に振ります</b>。当たりはずれは<b>タイミングと焦点のずれ</b>の2つで決まります。
+          マウンドと打席の<b>キャラの絵も正方形</b>になり、縦にゆがむのをやめました。<br><br>
+          📷 <b>MagiBurst のローカル通信マルチ</b>で、まねきコードを<b>QRコード</b>で渡せるようにしました。
+          QR には<b>このページの URL</b> が入っているので、iPhone は<b>標準のカメラアプリで読むだけ</b>で
+          MagiBurst が開き、参加の画面まで進みます。コピー＆貼りつけもこれまでどおり使えます。<br><br>
+          🔧 <b>修正</b><br>
+          ・<b>MagiChainParty・MagiLink の下のバー</b>が、画面の下端まで届かずに浮いていました。<br>
+          ・<b>キャラを Lv.70 にしてもステータスが Lv.60 のまま</b>だったのを直しました。<br>
+          ・<b>MagiChainParty のアカウント紐づけ</b>で、4桁パスワードがあるのに
+            「未設定です」と出て紐づけられなかったのを直し、
+            紐づけたアカウントの<b>キャラの絵も最新</b>になるようにしました。<br>
+          ・<b>底力（敵多・敵少）の表示</b>がボールの<b>上と下の両方</b>に出ていたのを、下だけにまとめました。<br>
+          ・<b>セイラ＆カナヅキの属性</b>を「<b>闇＆火</b>」のように2つ並べて出すようにしました
+            （先に出るのは<b>リンクスキルの属性</b>）。<br>
+          ・<b>MagiLex</b> に「<b>化学すべて</b>」「<b>物理すべて</b>」の絞り込みを追加しました
+            （理論・無機・有機などの<b>範囲別</b>にも絞りこめます）。<br>
+          ・<b>MagiLink に新しいメッセージ</b>が届くと、XEVARION ホームのアイコンに印が出ます。<br>
+          ・<b>蘑莱の九重</b>などで敵が移動するとき、<b>通った道すじの近くにいる味方</b>に
+            ダメージが入るようになりました。<br>
+          ・引っぱって矢印が出ているあいだだけ、<b>キラーが効く敵に WEAK</b> と出ます。<br>
+          ・クエストから編成に来たときも、<b>🌍クリア編成</b>を見られるようにしました。
+        </div>
+      </div>
+    </div>
     <div class="nm-item" data-tag="update" data-date="2026-09-01">
       <div class="nm-date">2026<br>09.01</div>
       <div class="nm-content">

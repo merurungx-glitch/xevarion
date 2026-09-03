@@ -86,7 +86,9 @@ async function isNameTaken(name, exceptUid) {
 }
 
 /* ── ID（表示名）でアカウントを検索（サインイン用）。完全一致を先頭、次に部分一致。
-   戻り値 [{ uid, name, charFile }]（最大10件） ── */
+   戻り値 [{ uid, name, charFile, charId, hasPw }]（最大10件）
+   ★ 2026-09-02 hasPw / charId を足した。これが無いと GameLink（ゲーム内の紐づけ）が
+     「4桁パスワード未設定です」と出して、設定ずみのアカウントにも紐づけられなかった。 ── */
 async function searchAccounts(query) {
   const q = lowerName(query);
   if (!q) return [];
@@ -97,7 +99,8 @@ async function searchAccounts(query) {
       const v = c.val() || {};
       const nl = lowerName(v.name);
       if (!nl) return;
-      const row = { uid: c.key, name: v.name || "?", charFile: v.charFile || "" };
+      const row = { uid: c.key, name: v.name || "?", charFile: v.charFile || "",
+                    charId: v.charId || "", hasPw: !!v.gamePwHash };
       if (nl === q) exact.push(row);
       else if (nl.indexOf(q) >= 0) partial.push(row);
     });

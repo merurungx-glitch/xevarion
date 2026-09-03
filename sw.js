@@ -7,7 +7,7 @@
    ・オフライン中の進行は localStorage に残り、オンライン復帰時に
      xeva-cloud.js がタイムスタンプ比較でクラウドへ上書き反映する
    ============================================================ */
-const VERSION = "xevarion-sw-v114";
+const VERSION = "xevarion-sw-v116";
 
 /* ホームを成立させる最小セット（重い画像は runtime キャッシュに任せる） */
 const CORE = [
@@ -17,18 +17,18 @@ const CORE = [
   "./characters.html",
   /* ★ 2026-08-10 ガチャは XEVARION に一本化。中身は MagiBurst の共有モジュールが持つ */
   "./gacha.html",
-  "./gacha-ui.js?v=29",
-  "./mb-newchars.js?v=13",
+  "./gacha-ui.js?v=30",
+  "./mb-newchars.js?v=14",
   "./xevion-os.js?v=7",
   "./xevion-os.css?v=9",
   "./magibattle-stats.js?v=8",
-  "./MagiBurst/js/mb-core.js?v=68",
+  "./MagiBurst/js/mb-core.js?v=75",
   /* ★ 2026-08-10 ガチャと図鑑で共通の土台・キャラ詳細・結果演出 */
   /* ★ 2026-08-12 ポータルのガチャ・図鑑も magiburst_v1 を同期するようになった */
   "./app-cloud.js?v=6",
   "./MagiBurst/magiburst-cloud.js?v=8",
   "./mb-boot.js?v=11",
-  "./mb-char-detail.js?v=16",
+  "./mb-char-detail.js?v=17",
   "./mb-char-detail.css?v=13",
   "./mb-gacha-reveal.css?v=5",
   "./community.html",
@@ -36,19 +36,21 @@ const CORE = [
   "./manifest.webmanifest",
   "./xeva-theme.css?v=3",
   "./xevarion.css?v=18",
-  "./xevarion-home.css?v=48",
-  "./xeva.js?v=53",
+  "./xevarion-home.css?v=49",
+  /* ★★ 2026-09-03 下バーを画面の下端に合わせる共通部品 */
+  "./xeva-safebottom.js?v=2",
+  "./xeva.js?v=54",
   "./xeva-fx.js?v=3",
   "./xeva-loading.js?v=3",
   "./xevarion.js?v=74",
-  "./xevarion-home.js?v=72",
+  "./xevarion-home.js?v=75",
   "./maintenance-gate.js?v=7",
   "./xeva-back.js?v=3",
   "./xeva-keys.js?v=11",
   /* ★ 2026-08-20 通信設定（Wi-Fi／モバイルデータごとの動き）。
      この SW へ設定を送る側なので、オフラインでも読めるようにここに入れておく。 */
   "./xeva-netmode.js?v=4",
-  "./game-link.js?v=3",
+  "./game-link.js?v=4",
   "Xevarion.png",
   "XEVA.png",
   "./brand-xevarion-orb.png",
@@ -72,6 +74,8 @@ const CORE = [
   "./thumbs/MagiArena.jpg",
   "./thumbs/MagiLink.jpg",
   "./thumbs/MagiChainParty.jpg",
+  /* ★★ 2026-09-03 新作 Magi Dominion Grid */
+  "./thumbs/MagiDominionGrid.jpg",
   "./thumbs/MagiRanking.jpg",
   "./thumbs/MagiCraft.jpg",
   "./thumbs/MagiManor.jpg",
@@ -83,7 +87,7 @@ const CORE = [
   "./MagiDiamond/classic.html",
   "./MagiDiamond/css/md2.css?v=4",
   "./MagiDiamond/js/md2-data.js?v=4",
-  "./MagiDiamond/js/md2-game.js?v=6",
+  "./MagiDiamond/js/md2-game.js?v=9",
   "./MagiDiamond/js/md2-online.js?v=4",
   "./MagiDiamond/img/logo.webp",
   "./MagiDiamond/img/logo_s.webp",

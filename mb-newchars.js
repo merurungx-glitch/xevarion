@@ -17,6 +17,16 @@
      こちらに足したら<b>あちらにも since 付きで1行</b>足すこと（無いとポータルに絵が出ない）。
    ══════════════════════════════════════════════════════════════ */
 window.MB_NEW_CHARS = [
+  /* ── ★★ 2026-09-03 RISING STAR FEST 第2弾 新SSR 4体 ──
+     ★ 1弾目と<b>同じクエストを担当</b>し、撃種を入れかえてある。 */
+  { id: "shizuru", since: "2026-09-03", where: "RISING STAR FEST", mode: "fes12",
+    catch: "この波の音、聞こえてる？", color: "#38a6ff" },
+  { id: "yuuri", since: "2026-09-03", where: "RISING STAR FEST", mode: "fes12",
+    catch: "夜は、わたしの時間。", color: "#8affc4" },
+  { id: "hisui", since: "2026-09-03", where: "RISING STAR FEST", mode: "fes12",
+    catch: "ひとりで燃えるのは、もう飽きた。", color: "#ff5d47" },
+  { id: "raika", since: "2026-09-03", where: "RISING STAR FEST", mode: "fes12",
+    catch: "号令はひとつ。ついてきなさい。", color: "#c9a6ff" },
   /* ── ★★ 2026-08-30 戦姫祭に アンナ(祭) が加わりました ──
      ★ アンナ(STAR)（annas）とは<b>別人</b>。フルバースト・リンクとも史上最強。 */
   { id: "annam", since: "2026-08-30", where: "戦姫祭（常時開催）", mode: "fes11",

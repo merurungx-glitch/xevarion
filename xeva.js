@@ -790,6 +790,12 @@
     { id: "mb:seirak", mbId: "seirak", name:"セイラ＆カナヅキ", file: "../img/t_SeiraK.webp", since:"2026-09-01" },
     /* ★★ 2026-09-01 極彩祭 ハノン（No.192） */
     { id: "mb:hanon", mbId: "hanon", name:"ハノン", file: "../img/t_Hanon.webp", since:"2026-09-01" },
+    /* ★★ 2026-09-03 RISING STAR FEST 第2弾 4体（No.193〜196）。
+       ★ 並びは mb-core.js の CHAR_IDS と<b>必ず同じ</b>にする（並び＝No.）。 */
+    { id: "mb:shizuru", mbId: "shizuru", name:"シズル", file: "../img/t_Shizuru.webp", since:"2026-09-03" },
+    { id: "mb:yuuri", mbId: "yuuri", name:"ユウリ", file: "../img/t_Yuuri.webp", since:"2026-09-03" },
+    { id: "mb:hisui", mbId: "hisui", name:"ヒスイ", file: "../img/t_Hisui.webp", since:"2026-09-03" },
+    { id: "mb:raika", mbId: "raika", name:"ライカ", file: "../img/t_Raika.webp", since:"2026-09-03" },
   ];
   /* ★ 2026-08-10 初期SR 4体（ゼラ・アヤメ・レイラ・セリーヌ）は廃止しました。
      いまは<b>全キャラがアイコンに選べる</b>ので、starter という区別そのものが要らない。 */
@@ -855,7 +861,10 @@
   , "riona", "mireir", "suzuhar", "seirak"
   /* ★★ 2026-09-01 極彩祭 ハノン。
      ここに無いと <b>XEVAミッションの図鑑コレクションに出てこない</b>。 */
-  , "hanon"];
+  , "hanon"
+  /* ★★ 2026-09-03 RISING STAR FEST 第2弾の4体。
+     ここに無いと <b>XEVAミッションの図鑑コレクションに出てこない</b>。 */
+  , "shizuru", "yuuri", "hisui", "raika"];
   MB_CHAR_MASTER.forEach(function (c) { c.mb = true; c.starter = MB_STARTERS.indexOf(c.mbId) >= 0; });
   MB_CHAR_MASTER.forEach(function (c) { c.star5 = MB_STAR5.indexOf(c.mbId) >= 0; });
   /* id は "mb:zera" のように接頭辞つき。XEVAガチャにも同じ名前のキャラ（シオンなど）が

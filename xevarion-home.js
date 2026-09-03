@@ -59,6 +59,11 @@ const XH_APPS = [
   { id:"magichainparty", name:"ChainParty", full:"MagiChainParty", sub:"連鎖陣取り", cat:"game", tone:"gold",
     href:"MagiChainParty/index.html", img:"thumbs/MagiChainParty.jpg",
     desc:"2〜5人で囲む連鎖バクハツの陣取り頭脳戦。ルールは「マスをタップ」だけ・運ゼロ。CPU・部屋番号オンライン対戦つき。" },
+  /* ★★ 2026-09-03 新作。<b>1台を囲む</b>系統なので ChainParty のとなりへ。
+     運の要素が一つも無い（サイコロもランダムイベントも戦闘乱数もなし）のが特徴。 */
+  { id:"magidominiongrid", name:"Dominion", full:"Magi Dominion Grid", sub:"思考の陣取り", cat:"game", tone:"blue",
+    href:"MagiDominionGrid/index.html", img:"thumbs/MagiDominionGrid.jpg",
+    desc:"1台の iPad を囲んで 2〜10人。全員が<b>同時に</b>行動をえらび、一斉に処理するリアルタイム陣取り。サイコロもランダムイベントも無く、勝ち負けは盤面の読みだけで決まります。領地の連結・攻撃と防御・特殊行動・終盤の FINAL STRATEGY。" },
   { id:"magiranking", name:"Ranking", full:"MagiRanking", sub:"月間ランキング", cat:"social", tone:"gold",
     href:"MagiRanking/index.html", img:"thumbs/MagiRanking.jpg",
     desc:"獲得XEVAの合計を毎月集計して順位を競う月間ランキング。月末の順位に応じて最大1,000 XEVAを配布。" },
@@ -134,18 +139,18 @@ const XH_DEFAULT_ORDER = [
   /* ★★ 2026-08-29b 新作 Magi: Arcana Rush を MagiBurst のとなりへ（同じ系統なので）。
      枠は11個のままなので、押し出された ORDYXIS は「その他」へ移る。 */
   "magilex", "magilink", "magiburst", "magiarcanarush",
-  "xevynar", "magichainparty", "magiempire", "magibattle",
+  "xevynar", "magichainparty", "magidominiongrid", "magibattle",
   "magiranking", "magilotto", "magijackpot",
   /* 以降は「その他」の中に入る */
   "ordyxis", "magicraft", "magimanor", "magiportfolio",
-  "magiarena", "magidiamond", "magifocus", "magimusic", "magitier",
+  "magiarena", "magidiamond", "magiempire", "magifocus", "magimusic", "magitier",
   "ngx", "ishida", "magicalfuture",
 ];
 const XH_HOME_SLOTS = 11;
 const XH_ORDER_KEY = "xeva_home_order_v2";
 /* 並び順の世代。上げると保存済みの並びを一度だけ既定に戻す
    （アプリの入れ替えを、既にホームを触った人にも確実に反映させるため） */
-const XH_ORDER_GEN = "6";   /* ★★ 2026-08-29b 新作 Magi: Arcana Rush を足したので一度だけ既定に戻す */
+const XH_ORDER_GEN = "7";   /* ★★ 2026-09-03 新作 Magi Dominion Grid を足したので一度だけ既定に戻す */
 const XH_ORDER_GEN_KEY = "xeva_home_order_gen";
 
 /* 期間限定イベント（from/to は YYYY-MM-DD。期間内のものだけ表示）
@@ -157,7 +162,7 @@ const XH_ORDER_GEN_KEY = "xeva_home_order_gen";
 const XH_EVENTS = [
   /* ★★ 2026-09-01 RISING STAR FEST（ふつうのフェスガチャ＝登場から30日） */
   { tag:"RISING FES", t1:"RISING STAR FEST",
-    t2:"限定SSR 4体が参戦！ 蓬莱の九重の後半5階層を担当。セイラ＆カナヅキは属性を2つ持つ唯一のキャラ",
+    t2:"限定SSR が 8体 に！ 第2弾（シズル・ユウリ・ヒスイ・ライカ）は第1弾と同じクエストを担当し、撃種が逆",
     since:"2026-09-01", from:"2026-09-01", to:"2026-10-01",
     href:"gacha.html#fes12", img:"thumbs/MagiBurst.jpg" },
   /* ★★ 2026-08-30 GRAND DEBUT GACHA Ver.6.0（版ごとに10日間） */
@@ -290,6 +295,31 @@ const XH_EVENTS = [
    ══════════════════════════════════════════════════════════════ */
 const XH_UPDATE_MAX = 12;
 const XH_UPDATES = [
+  /* ★★ 2026-09-03 新作 Magi Dominion Grid／MagiDiamond のリアルタイム打撃／下バーの直し */
+  { tag:"NEW", t1:"RISING STAR FEST 第2弾", at:"2026-09-03",
+    t2:"シズル・ユウリ・ヒスイ・ライカ が参戦。第1弾と同じクエストを担当し、撃種が逆。キラー3つ目は弱点キラーEL",
+    href:"gacha.html#fes12", img:"thumbs/MagiBurst.jpg" },
+  { tag:"UPDATE", t1:"RISING STAR FEST のフルバースト", at:"2026-09-03",
+    t2:"8体とも乱打をやめ、1体ずつちがう型（妨害・バフ・弱点・支援・突撃・回復）に。効果は2〜3つ",
+    href:"gacha.html#fes12", img:"thumbs/MagiBurst.jpg" },
+  { tag:"NEW", t1:"新作 Magi Dominion Grid", at:"2026-09-03",
+    t2:"1台を囲んで 2〜10人。サイコロもランダムもなし。全員同時に行動をえらぶ、思考だけの陣取り",
+    href:"MagiDominionGrid/index.html", img:"thumbs/MagiDominionGrid.jpg" },
+  { tag:"UPDATE", t1:"MagiDiamond の打席がリアルタイムに", at:"2026-09-03",
+    t2:"飛んでくる球に焦点を合わせ、指を離した瞬間に振るプロスピ式。キャラの絵も正方形に",
+    href:"MagiDiamond/index.html", img:"thumbs/MagiDiamond.jpg" },
+  { tag:"UPDATE", t1:"MagiBurst のローカル通信に QR", at:"2026-09-03",
+    t2:"まねきコードを QR で渡せるように。iPhone は標準のカメラで読むだけで参加画面まで進みます",
+    href:"MagiBurst/index.html", img:"thumbs/MagiBurst.jpg" },
+  { tag:"FIX", t1:"下のバーが浮いていた不具合", at:"2026-09-03",
+    t2:"MagiChainParty・MagiLink で、下のバーが画面の下端まで届かなかったのを直しました",
+    href:"index.html", img:"thumbs/Xevarion.png" },
+  { tag:"FIX", t1:"キャラの Lv.70 が反映されない不具合", at:"2026-09-03",
+    t2:"九天の玉簡で Lv.70 にしても、ステータスは Lv.60 のままでした。図鑑・編成・バトルすべて直ります",
+    href:"MagiBurst/index.html", img:"thumbs/MagiBurst.jpg" },
+  { tag:"UPDATE", t1:"MagiLex に「化学すべて」「物理すべて」", at:"2026-09-03",
+    t2:"α〜ε をまとめて見られる絞り込みを追加。理論・無機・有機などの範囲別にも絞りこめます",
+    href:"MagiLex/MagiLex.html", img:"thumbs/MagiLex.jpg" },
   /* ★★ 2026-09-01 RISING STAR FEST／極彩祭にハノン／ガチャの直し／同期の作り直し */
   { tag:"NEW", t1:"RISING STAR FEST 開幕", at:"2026-09-01",
     t2:"限定SSR 4体。蓬莱の九重の後半5階層を担当。セイラ＆カナヅキは属性を2つ持つ唯一のキャラ",
@@ -978,7 +1008,7 @@ function xhMbReady() {
   if (typeof CHARS !== "undefined" && typeof PREMIUM_CHARS !== "undefined") return Promise.resolve(true);
   if (_xhMbLoading) return _xhMbLoading;
   _xhMbLoading = xhLoadScript("mb-boot.js?v=11")
-    .then(() => xhLoadScript("MagiBurst/js/mb-core.js?v=68"))
+    .then(() => xhLoadScript("MagiBurst/js/mb-core.js?v=75"))
     .then(() => true)
     .catch((e) => { _xhMbLoading = null; throw e; });
   return _xhMbLoading;
@@ -2808,6 +2838,71 @@ function xhMarkClear(key) {
 window.xhMarkClear = xhMarkClear;
 
 /* ── 印を画面に反映する ── */
+/* ══ ★★ 2026-09-02 MagiLinkの「新しいメッセージ」の印 ══
+   ご指定:「新しいメッセージを取得したら XEVARION ホームのアイコンに知らせるマークを」。
+
+   ★ ポータルは MagiLink の Firebase SDK を読まない（別プロジェクトで、
+     本文をさらうと画像ごと落ちてくる）。そこで MagiLink 側が書いている
+     <b>時刻だけの受信箱</b>を REST で 1～2 回読むだけにする。
+       mlInbox/<uid>/last   … 自分あて（DM・グループ）の最後のメッセージの時刻
+       mlInbox/_lobby/last  … ロビーの最後のメッセージの時刻
+     読んだ時刻は同じ端末の localStorage（xeva_magilink_note_v1）にある。
+   ★ 更新の印（.xh-updot ＝右上の赤い点）とは<b>別の印</b>にする。
+     ぶつからないよう、こちらは<b>左上の吹き出し</b>（.xh-msgdot）。
+   ★ MagiLink にログインしていない端末（uid が無い）には印を出さない。 */
+const XH_ML_NOTE_KEY = "xeva_magilink_note_v1";
+const XH_ML_DB = "https://xevarion-online-default-rtdb.asia-southeast1.firebasedatabase.app";
+let XH_ML_NEW = false;
+let xhMlTimer = null;
+
+function xhMlNote() {
+  try {
+    const o = JSON.parse(localStorage.getItem(XH_ML_NOTE_KEY) || "null");
+    if (o && typeof o === "object" && o.uid) return o;
+  } catch (e) {}
+  return null;
+}
+/* MagiLink のアカウントはあるが、まだ一度も読んだ時刻を保存していない端末への受け皿 */
+function xhMlUid() {
+  const n = xhMlNote();
+  if (n && n.uid) return n.uid;
+  try {
+    const a = JSON.parse(localStorage.getItem("magilink_account") || "null");
+    if (a && a.uid) return a.uid;
+  } catch (e) {}
+  return "";
+}
+async function xhMlFetchLast(path) {
+  try {
+    const r = await fetch(XH_ML_DB + "/mlInbox/" + path + "/last.json", { cache: "no-store" });
+    if (!r.ok) return 0;
+    const v = await r.json();
+    return typeof v === "number" ? v : 0;
+  } catch (e) { return 0; }
+}
+async function xhMlCheck() {
+  const uid = xhMlUid();
+  if (!uid) { if (XH_ML_NEW) { XH_ML_NEW = false; xhPaintMarks(); } return; }
+  if (navigator.onLine === false) return;
+  const note = xhMlNote();
+  const read = (note && typeof note.read === "number") ? note.read : 0;
+  const [mine, lobby] = await Promise.all([xhMlFetchLast(uid), xhMlFetchLast("_lobby")]);
+  /* 読んだ時刻を一度も保存していない端末に、いきなり印を出さない */
+  const next = read > 0 && Math.max(mine, lobby) > read;
+  if (next !== XH_ML_NEW) { XH_ML_NEW = next; xhPaintMarks(); }
+}
+window.xhMlCheck = xhMlCheck;
+/* MagiLink を開いたら印を消す（戻ってきたときにも見直す） */
+function xhMlStartWatch() {
+  if (xhMlTimer) return;
+  xhMlCheck();
+  xhMlTimer = setInterval(() => { if (!document.hidden) xhMlCheck(); }, 60000);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) xhMlCheck(); });
+  window.addEventListener("focus", () => xhMlCheck());
+  window.addEventListener("pageshow", () => xhMlCheck());
+}
+window.xhMlStartWatch = xhMlStartWatch;
+
 function xhPaintMarks() {
   const pend = xhMarkPend();
   /* ホームのアプリタイル・一覧の行 */
@@ -2822,6 +2917,9 @@ function xhPaintMarks() {
     /* ホームのタブは「ポータル本体が変わったとき」だけ */
     el.classList.toggle("xh-updot", !!pend["tab:" + t]);
   });
+  /* ★★ 2026-09-02 MagiLink の「新しいメッセージ」の印（更新の印とは別） */
+  document.querySelectorAll('#xhAppGrid .xh-app[data-app="magilink"], #xhAppList .xh-aitem[data-app="magilink"], #xhGridBody .xh-app[data-app="magilink"]')
+    .forEach((el) => el.classList.toggle("xh-msgdot", !!XH_ML_NEW));
   xhPaintGachaTabIcon();
   xhPaintGachaFree();
 }
@@ -4586,6 +4684,8 @@ function xhShow() {
   xhSyncBadges();
   /* ★ ガチャタブの新キャラアイコン（2026-08-24 に「3回まで」の条件は撤回した） */
   try { xhGtabTick(); xhPaintMarks(); } catch (e) {}
+  /* ★★ 2026-09-02 MagiLink の受信箱を見はじめる（新着があればアイコンに印） */
+  try { xhMlStartWatch(); } catch (e) {}
   xhConsumeHash();
   /* ★ 2026-08-12b 下バーの中身を実測で画面の下端に合わせる（xevarion.js の fitBar）。
      ホームは表示されて初めて測れるので、開いた直後に何回か測り直す。 */

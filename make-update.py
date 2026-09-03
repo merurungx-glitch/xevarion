@@ -19,7 +19,9 @@ BASE = os.path.dirname(os.path.abspath(__file__))
 SWS = ["sw.js", "MagiLex/sw.js", "MagiBurst/sw.js", "MagiChainParty/sw.js", "XEVYNAR/sw.js",
        "MagiJackpot/sw.js", "MagiMusic/sw.js", "MagiLotto/sw.js",
        # ★★ 2026-08-29b 新作 Magi: Arcana Rush（β版）
-       "MagiArcanaRush/sw.js"]
+       "MagiArcanaRush/sw.js",
+       # ★★ 2026-09-03 新作 Magi Dominion Grid
+       "MagiDominionGrid/sw.js"]
 
 
 # ══════════════════════════════════════════════════════════════
