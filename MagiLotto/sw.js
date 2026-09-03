@@ -7,18 +7,18 @@
    ・作りは MagiJackpot の SW と同じ（プレフィックスの付いたキャッシュだけ掃除する／
      xev-refresh で差分更新できる）。
    ============================================================ */
-const VERSION = "magilotto-sw-v9";
+const VERSION = "magilotto-sw-v15";
 const CORE = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
-  "./ml.css?v=3",
-  "./ml-core.js?v=3",
-  "./ml-draw.js?v=2",
-  "./ml-games.js?v=4",
-  "./ml-grand.js?v=3",
-  "./ml-admin.js?v=2",
-  "./ml-app.js?v=3",
+  "./ml.css?v=5",
+  "./ml-core.js?v=5",
+  "./ml-draw.js?v=4",
+  "./ml-games.js?v=6",
+  "./ml-grand.js?v=5",
+  "./ml-admin.js?v=4",
+  "./ml-app.js?v=5",
   "./ml-192.png",
   "./ml-512.png",
   "./img/banner_home.webp",
@@ -37,11 +37,11 @@ const CORE = [
   "../img/t_Suzuka.webp",
   "../img/t_Karem.webp",
   "../img/t_Chizuru.webp",
-  "../maintenance-gate.js?v=5",
-  "../xeva.js?v=47",
-  "../xeva-fx.js?v=1",
-  "../xeva-splash.js?v=3",
-  "../xeva-back.js?v=1",
+  "../maintenance-gate.js?v=7",
+  "../xeva.js?v=54",
+  "../xeva-fx.js?v=3",
+  "../xeva-splash.js?v=5",
+  "../xeva-back.js?v=3",
   "../XEVA.png",
   "../gem.png",
   "../icons/xev-192.png",
