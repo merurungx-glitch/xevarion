@@ -907,6 +907,7 @@ function initCanvas() {
   /* ★ 何度 startMatch を呼ばれても、resize の受け口とループは<b>1本だけ</b>にする。
      足し続けると同じフレームで2回描かれ、盤面が二重に見える（実際そうなっていた）。 */
   if (!_resizeHooked) { window.addEventListener("resize", resizeCanvas); _resizeHooked = true; }
+  hookBatInput();                       /* ★★ 2026-09-03 リアルタイム打撃の指の受け口 */
   if (raf) cancelAnimationFrame(raf);
   raf = requestAnimationFrame(loop);
 }
@@ -980,15 +981,20 @@ function imgOf(src) {
   }
   return (im && im.complete && im.naturalWidth > 0) ? im : null;
 }
-/* 円の中にキャラの絵を描く（顔が中心に来るよう、上寄りに切り出す） */
+/* 丸の中にキャラの絵を描く。
+   ★★ 2026-09-03 ご報告:「キャラの画像は正方形なので正方形で出して」。
+     切り出しを side × side*0.92 にしていたので、縦に 8% 伸びていた。
+     元の絵は正方形なので、<b>正方形のまま</b>入れればゆがまない。 */
 function drawFace(g, src, cxp, cyp, r, ring) {
   const im = imgOf(src);
   g.save();
   g.beginPath(); g.arc(cxp, cyp, r, 0, Math.PI * 2); g.closePath();
   if (im) {
     g.clip();
-    const s = im.naturalWidth, side = s, sx = 0, sy = 0;
-    g.drawImage(im, sx, sy, side, side * 0.92, cxp - r, cyp - r, r * 2, r * 2);
+    /* 縦横の短いほうで正方形に切り出す（中央寄せ・上寄り） */
+    const s = Math.min(im.naturalWidth, im.naturalHeight);
+    const sx = (im.naturalWidth - s) / 2, sy = 0;
+    g.drawImage(im, sx, sy, s, s, cxp - r, cyp - r, r * 2, r * 2);
   } else {
     g.fillStyle = "#2a3352"; g.fill();
   }
@@ -998,36 +1004,216 @@ function drawFace(g, src, cxp, cyp, r, ring) {
     g.beginPath(); g.arc(cxp, cyp, r, 0, Math.PI * 2); g.stroke();
   }
 }
-/* 立ち姿（絵を縦長に切り出して置く）。flip=true で左右を反転 */
+/* ══ ★★ 2026-09-03 マウンド・打席のキャラは<b>正方形</b>で出す（ご指定）══
+   これまでは縦長（幅＝高さ×0.62）の枠に入れ、絵を引き伸ばしていたので
+   顔が縦にゆがんで見えていた。元の絵は正方形なので、
+   <b>正方形のパネル</b>にそのまま入れる（ゆがまない）。
+   引数の hh は「一辺の長さ」として使う。 */
 function drawStand(g, src, cxp, byp, hh, flip) {
   const im = imgOf(src);
-  const ww = hh * 0.62;
+  const sz = hh;                       /* 一辺（正方形） */
   g.save();
   g.translate(cxp, byp);
   if (flip) g.scale(-1, 1);
   /* 足もとの影 */
   g.fillStyle = "rgba(0,0,0,.35)";
-  g.beginPath(); g.ellipse(0, 0, ww * 0.42, ww * 0.14, 0, 0, Math.PI * 2); g.fill();
+  g.beginPath(); g.ellipse(0, 0, sz * 0.40, sz * 0.10, 0, 0, Math.PI * 2); g.fill();
+  const rr = sz * 0.14;
+  const x0 = -sz / 2, y0 = -sz;
   g.beginPath();
-  const rr = Math.min(ww, hh) * 0.16;
-  const x0 = -ww / 2, y0 = -hh;
   g.moveTo(x0 + rr, y0);
-  g.arcTo(x0 + ww, y0, x0 + ww, y0 + hh, rr);
-  g.arcTo(x0 + ww, y0 + hh, x0, y0 + hh, rr);
-  g.arcTo(x0, y0 + hh, x0, y0, rr);
-  g.arcTo(x0, y0, x0 + ww, y0, rr);
+  g.arcTo(x0 + sz, y0, x0 + sz, y0 + sz, rr);
+  g.arcTo(x0 + sz, y0 + sz, x0, y0 + sz, rr);
+  g.arcTo(x0, y0 + sz, x0, y0, rr);
+  g.arcTo(x0, y0, x0 + sz, y0, rr);
   g.closePath();
   if (im) {
     g.save(); g.clip();
-    /* 正方形の絵を縦長の枠に入れる＝上（顔）から順に見せる */
-    const s = im.naturalWidth;
-    g.drawImage(im, 0, 0, s, s, x0, y0, ww, ww * (hh / ww) * 0.62 + ww * 0.38);
+    const s = Math.min(im.naturalWidth, im.naturalHeight);
+    const sx = (im.naturalWidth - s) / 2, sy = (im.naturalHeight - s) / 2;
+    g.drawImage(im, sx, sy, s, s, x0, y0, sz, sz);
     g.restore();
   } else {
     g.fillStyle = "#28304e"; g.fill();
   }
-  g.strokeStyle = "rgba(255,255,255,.35)"; g.lineWidth = Math.max(1, hh * 0.012); g.stroke();
+  g.strokeStyle = "rgba(255,255,255,.35)"; g.lineWidth = Math.max(1, sz * 0.012); g.stroke();
   g.restore();
+}
+
+/* ════════════════════════════════════════════════════════════
+   ★★ 2026-09-03 <b>リアルタイム打撃</b>（ご指定・プロスピ式）
+   ────────────────────────────────────────────────────────────
+   ご指定:「同期で球が飛んできて、バットの焦点をリアルタイムで合わせて打てるように」
+
+   ■ これまで
+     打つ側は「コースを読む（3×3のどこかをえらぶ）」→「左右に往復する帯をタップ」の2段。
+     球は演出として飛んでいるだけで、<b>球を見て打ってはいなかった</b>。
+
+   ■ これから
+     ① 打ちかた（ミート／強振／バント）をえらんで「構える」。
+     ② 投手が投げ、<b>球が本当のコースへ飛んでくる</b>（変化球は手元で曲がる）。
+     ③ 画面を<b>なぞってミートカーソルを動かし</b>、<b>指を離した瞬間に振る</b>。
+     ④ さわらなければ<b>見送り</b>（take）。
+
+   ■ 当たりはずれを 2つ で見る
+     ・<b>タイミング</b> … 振った瞬間の u（1.0 でホームベース）とのだけ
+     ・<b>ミート位置</b> … カーソルの中心と球の距離
+     この2つから read（0〜1）と M.timing（PERFECT/GREAT/GOOD/MISS）を作り、
+     <b>これまでの resolvePitch の式にそのまま流しこむ</b>（強さの基準を変えない）。
+
+   ★ CPU の打席はこれまでどおり（cpuGuess → resolvePitch）。
+   ★ カーソルの大きさはミート力と打ちかたで決まる。強振は小さく、ミート重視は大きい。
+   ════════════════════════════════════════════════════════════ */
+
+/* 球のいまの位置（ゾーンを 0〜1 とした座標）。u は進み具合。 */
+function livePitchPos(T, u) {
+  const zc = ((T.zone % 3) + .5) / 3;
+  const zr = (((T.zone / 3) | 0) + .5) / 3;
+  /* 変化は手元ほど大きく出る（uの2乗）。早く決めると騙される。 */
+  const b = T.move * 0.16 * (u * u);
+  return { x: zc + T.bx * b, y: zr + T.by * b };
+}
+/* リアルタイム打撃の絵（球・ミートカーソル・進み具合） */
+function drawLiveBat(w, h, zx, zy, zw, zh) {
+  const T = M.tm; if (!T) return;
+  const u = clamp(T.t / T.dur, 0, 1.4);
+  const P = livePitchPos(T, Math.min(u, 1.2));
+  const px = zx + zw * P.x, py = zy + zh * P.y;
+  const mx0 = w / 2, my0 = h * 0.430;
+  /* マウンド→ホームの途中を補間（奇数乗で手元で伸びて見える） */
+  const bx = mx0 + (px - mx0) * u;
+  const by = my0 + (py - my0) * (u * u * 0.55 + u * 0.45);
+  const br = Math.max(3, h * (0.007 + 0.030 * Math.min(u, 1.1)));
+  /* ミートカーソル（自分が打つときだけ） */
+  if (T.mine) {
+    const cxp = zx + zw * T.cx, cyp = zy + zh * T.cy, cr = zw * T.mr;
+    cx.save();
+    cx.strokeStyle = T.swung ? "#ffd257" : "rgba(140,255,200,.95)";
+    cx.lineWidth = 2.6;
+    cx.beginPath(); cx.arc(cxp, cyp, cr, 0, Math.PI * 2); cx.stroke();
+    cx.globalAlpha = .16;
+    cx.fillStyle = T.swung ? "#ffd257" : "#8cffc8";
+    cx.beginPath(); cx.arc(cxp, cyp, cr, 0, Math.PI * 2); cx.fill();
+    cx.globalAlpha = 1;
+    cx.beginPath();
+    cx.moveTo(cxp - cr * .45, cyp); cx.lineTo(cxp + cr * .45, cyp);
+    cx.moveTo(cxp, cyp - cr * .45); cx.lineTo(cxp, cyp + cr * .45);
+    cx.lineWidth = 1.8; cx.stroke();
+    cx.restore();
+  }
+  /* 球 */
+  cx.globalAlpha = .30; cx.strokeStyle = "#ffffff"; cx.lineWidth = 2;
+  cx.beginPath(); cx.moveTo(mx0, my0); cx.lineTo(bx, by); cx.stroke();
+  cx.globalAlpha = 1;
+  cx.fillStyle = "#ffffff";
+  cx.beginPath(); cx.arc(bx, by, br, 0, Math.PI * 2); cx.fill();
+  cx.strokeStyle = "#e2464f"; cx.lineWidth = Math.max(1, br * 0.22);
+  cx.beginPath(); cx.arc(bx, by, br * 0.62, Math.PI * .2, Math.PI * 1.1); cx.stroke();
+  /* 振った瞬間のひらめき */
+  if (T.flash > 0) {
+    cx.save();
+    cx.globalAlpha = clamp(T.flash / 12, 0, 1);
+    cx.strokeStyle = "#ffd257"; cx.lineWidth = 4;
+    cx.beginPath(); cx.arc(T.fx, T.fy, zw * (0.10 + 0.20 * (1 - T.flash / 12)), 0, Math.PI * 2); cx.stroke();
+    cx.restore();
+  }
+  /* あとどれくらいで届くかの目安（打つ側だけ） */
+  if (T.mine) {
+    const gy = h * 0.578, gx = zx - zw * 0.18, gw = zw * 1.36;
+    cx.fillStyle = "rgba(255,255,255,.14)"; cx.fillRect(gx, gy, gw, 4);
+    cx.fillStyle = (u >= 0.93 && u <= 1.07) ? "#ffd257" : "#8cffc8";
+    cx.fillRect(gx, gy, gw * clamp(u, 0, 1), 4);
+    /* 打ちごろの印 */
+    cx.fillStyle = "rgba(255,210,87,.85)";
+    cx.fillRect(gx + gw * 0.93 - 1, gy - 4, Math.max(2, gw * 0.14), 12);
+  }
+}
+
+/* キャンバスへの指の入力（ミートカーソル）。受け口は<b>1本だけ</b>。 */
+let _batInputHooked = false;
+function hookBatInput() {
+  if (_batInputHooked || !cv) return;
+  _batInputHooked = true;
+  const live = () => (M && M.phase === "timing" && M.tm && M.tm.mine && !M.tm.swung && !M.tm.done);
+  const put = (ev) => {
+    const T = M.tm, z = M.zrect;
+    if (!T || !z) return;
+    const r = cv.getBoundingClientRect();
+    const x = (ev.clientX - r.left - z.x) / z.w;
+    const y = (ev.clientY - r.top - z.y) / z.h;
+    /* ゾーンの少し外までは出せる（ボール球を追いかけられる） */
+    T.cx = clamp(x, -0.35, 1.35);
+    T.cy = clamp(y, -0.35, 1.35);
+  };
+  cv.addEventListener("pointerdown", (ev) => {
+    if (!live()) return;
+    ev.preventDefault();
+    try { cv.setPointerCapture(ev.pointerId); } catch (e) {}
+    M.tm.holding = true; put(ev);
+  });
+  cv.addEventListener("pointermove", (ev) => { if (live() && M.tm.holding) { ev.preventDefault(); put(ev); } });
+  const up = (ev) => {
+    if (!live() || !M.tm.holding) return;
+    ev.preventDefault();
+    M.tm.holding = false;
+    mdLiveSwing();
+  };
+  cv.addEventListener("pointerup", up);
+  cv.addEventListener("pointercancel", (ev) => { if (M && M.tm) M.tm.holding = false; });
+  cv.style.touchAction = "none";
+}
+
+/* 振る（指を離した瞬間 または SWING ボタン） */
+function mdLiveSwing() {
+  const T = M.tm;
+  if (!T || T.swung || T.done) return;
+  T.swung = true;
+  T.swingU = T.t / T.dur;
+  const P = livePitchPos(T, Math.min(T.swingU, 1.2));
+  T.fx = M.zrect.x + M.zrect.w * P.x;
+  T.fy = M.zrect.y + M.zrect.h * P.y;
+  T.flash = 12;
+  SFX.tap();
+  /* ズレを測る ── ①タイミング ②ミート位置 */
+  const dt = Math.abs(T.swingU - 1) * T.dur;          /* フレームでのだけ */
+  let q = "MISS";
+  if (dt <= T.perfF) q = "PERFECT";
+  else if (dt <= T.goodF) q = "GREAT";
+  else if (dt <= T.goodF * 2) q = "GOOD";
+  M.timing = q;
+  const dist = Math.hypot(P.x - T.cx, P.y - T.cy);     /* ゾーンを 1 とした距離 */
+  M.meetRead = clamp(1 - dist / Math.max(0.02, T.mr * 2.1), 0, 1);
+  /* カーソルが乗っているマスを、これまでの「読み」としても揃えておく */
+  const cc = clamp(Math.floor(T.cx * 3), 0, 2), cr2 = clamp(Math.floor(T.cy * 3), 0, 2);
+  if (M.bsel) M.bsel.zone = cr2 * 3 + cc;
+  bigMsg(q, 620);
+  finishLive("swing");
+}
+window.mdLiveSwing = mdLiveSwing;
+
+/* 見送る（さわないまま球が通りすぎた） */
+function finishLive(act) {
+  const T = M.tm; if (!T || T.done) return;
+  T.done = true;
+  if (T.raf) cancelAnimationFrame(T.raf);
+  setTimeout(() => resolvePitch(act), act === "swing" ? 240 : 120);
+}
+
+/* 毎フレーム、球を進める */
+function tickLive() {
+  const T = M.tm;
+  if (!T || T.done) return;
+  T.raf = requestAnimationFrame(tickLive);
+  if (T.flash > 0) T.flash--;
+  if (T.swung) return;                 /* 振ったあとは進めない（結果待ち） */
+  /* ★★ 2026-09-03 進み具合は<b>実時間</b>で測る。
+     T.t++ だと 120Hz の端末では球が<b>2倍速く届いてしまう</b>し、
+     タブを隠すと rAF が止まって球がとまる。
+     dur は「60fps で何フレーム相当か」のままにしてある。 */
+  if (T.t0 == null) T.t0 = performance.now();
+  T.t = (performance.now() - T.t0) / 16.6667;
+  /* CPU が打つときはここを通らないので、必ず mine だけ */
+  if (T.t > T.dur * 1.22) { M.timing = null; finishLive("take"); }
 }
 /* いま「打席の絵」を出す場面か */
 function inBatView() {
@@ -1105,14 +1291,23 @@ function drawBatView(w, h) {
   cx.beginPath(); cx.ellipse(w / 2, h * 1.06, w * 0.115, h * 0.115, 0, 0, Math.PI * 2); cx.fill();
   cx.beginPath(); cx.arc(w / 2, h * 0.968, w * 0.036, 0, Math.PI * 2); cx.fill();
   /* ── 投手（キャラの絵） ── */
+  /* ★★ 2026-09-03 正方形にしたぶん、大きさと位置を組み直した。
+     縦長のときと同じ高さのままだと、幅が1.6倍になってゾーンにかぶさる。
+     ★ 幅の狭い画面でもはみ出さないよう、w でも頭打ちにする。 */
   const pitS = mp(pitcherId(), !offMine());
-  if (pitS) drawStand(cx, pitS.th, w / 2, h * 0.478, h * 0.215, false);
+  if (pitS) drawStand(cx, pitS.th, w / 2, h * 0.470, Math.min(h * 0.165, w * 0.21), false);
   /* ── 打者（キャラの絵。左打席に立たせる） ── */
   const batS = mp(batterId(), offMine());
-  if (batS) drawStand(cx, batS.th, w / 2 - w * 0.215, h * 0.940, h * 0.33, false);
+  if (batS) drawStand(cx, batS.th, w / 2 - w * 0.300, h * 0.960, Math.min(h * 0.225, w * 0.27), false);
   /* ── ストライクゾーン（3×3） ── */
-  const zx = w / 2 - w * 0.105, zy = h * 0.615, zw = w * 0.21, zh = h * 0.200;
-  const selZ = offMine() ? (M.bsel && M.bsel.zone) : (M.sel && M.sel.zone);
+  /* ★★ 2026-09-03 ゾーンは<b>操作の中心</b>になったので少し大きくする。 */
+  const zx = w / 2 - w * 0.145, zy = h * 0.600, zw = w * 0.29, zh = h * 0.235;
+  /* ★★ 2026-09-03 リアルタイム打撃の入力はこの枠の中で測るので、
+     描いた位置を覚えておく（画面の大きさは変わるので毎フレーム）。 */
+  M.zrect = { x: zx, y: zy, w: zw, h: zh, mx: w / 2, my: h * 0.430 };
+  /* 守備側（自分が投げる）はえらんだコースを光らせる。
+     ★★ 2026-09-03 攻撃側は<b>何も光らせない</b>（コースは飛んでくる球を見て判断する）。 */
+  const selZ = offMine() ? -1 : (M.sel && M.sel.zone);
   cx.lineWidth = 1.4;
   for (let i = 0; i < 9; i++) {
     const c0 = i % 3, r0 = (i / 3) | 0;
@@ -1127,20 +1322,7 @@ function drawBatView(w, h) {
     cx.strokeRect(x0, y0, zw / 3, zh / 3);
   }
   /* ── ボール（タイミングのあいだ、マウンド → ホームへ近づく） ── */
-  if (M.phase === "timing" && M.tm) {
-    const u = clamp(M.tm.t / 50, 0, 1.25);          /* 50 でちょうどホームに届く */
-    const zc = zx + zw / 3 * ((selZ % 3) + .5), zr = zy + zh / 3 * (((selZ / 3) | 0) + .5);
-    const bx = w / 2 + (zc - w / 2) * u;
-    const by = h * 0.430 + (zr - h * 0.430) * (u * u * 0.65 + u * 0.35);
-    const br = Math.max(3, h * (0.008 + 0.028 * u));
-    cx.globalAlpha = .30; cx.strokeStyle = "#ffffff"; cx.lineWidth = 2;
-    cx.beginPath(); cx.moveTo(w / 2, h * 0.430); cx.lineTo(bx, by); cx.stroke();
-    cx.globalAlpha = 1;
-    cx.fillStyle = "#ffffff";
-    cx.beginPath(); cx.arc(bx, by, br, 0, Math.PI * 2); cx.fill();
-    cx.strokeStyle = "#e2464f"; cx.lineWidth = Math.max(1, br * 0.22);
-    cx.beginPath(); cx.arc(bx, by, br * 0.62, Math.PI * .2, Math.PI * 1.1); cx.stroke();
-  }
+  if (M.phase === "timing" && M.tm) drawLiveBat(w, h, zx, zy, zw, zh);
   /* ── 打者・投手の名札 ── */
   cx.font = "800 12px system-ui"; cx.textAlign = "left";
   const tag = (txt, x0, y0, col) => {
@@ -1286,7 +1468,7 @@ function nextBatter(first) {
   M.ball = 0; M.strike = 0;
   /* ★ 打席をまたいで持ち越さない。ここを消し忘れると、
      一度の PERFECT がその試合ずっと効き続けてしまう。 */
-  M.timing = null; M.boost = null;
+  M.timing = null; M.meetRead = null; M.boost = null;
   B.on = false; B.trail.length = 0;
   setFielders();
   paintMatchHead();
@@ -1351,21 +1533,22 @@ function askSwing() {
   if (offMine()) { if (!M.cpuPitch) M.cpuPitch = cpuChoosePitch(pit, bat); }
   else { if (!M.sel) M.sel = safePitchSel(pit); }
   if (offMine()) {
+    /* ★★ 2026-09-03 リアルタイム打撃（ご指定）。
+       「3×3 のコースをえらぶ」のはやめ、<b>飛んでくる球を見てカーソルを合わせる</b>。
+       ここでは<b>打ちかただけ</b>をえらんで、「構える」で投球が始まる。 */
     $("mtBot").innerHTML = `
       ${clutchBar()}
-      <div class="hint">🏏 <b>${esc(bat.nm)}</b> の打席 — <b>コースを読んで</b>、打ちかたをえらぶ<br>
+      <div class="hint">🏏 <b>${esc(bat.nm)}</b> の打席 — 打ちかたをえらんで<b>構える</b><br>
         <span style="color:var(--tx3)">ミート${bat.meet} パワー${bat.power} 走力${bat.run} ／ 弾道${"★".repeat(bat.traj)}</span></div>
-      <div class="zone big" id="zoneSel2">
-        ${Array.from({ length: 9 }, (_, i) => `<button class="${i === 4 ? "on" : ""}" data-z="${i}" onclick="mdReadZone(${i})"></button>`).join("")}
-      </div>
-      <div class="cardsel p3" style="margin-top:9px">
-        <button class="psel on" data-s="meet" onclick="mdSwingType('meet')">ミート重視<small>当たりやすい</small></button>
-        <button class="psel" data-s="power" onclick="mdSwingType('power')">強振<small>長打ねらい</small></button>
+      <div class="cardsel p3">
+        <button class="psel on" data-s="meet" onclick="mdSwingType('meet')">ミート重視<small>焦点が広い</small></button>
+        <button class="psel" data-s="power" onclick="mdSwingType('power')">強振<small>焦点は狭いが飛ぶ</small></button>
         <button class="psel" data-s="bunt" onclick="mdSwingType('bunt')">バント<small>送る</small></button>
       </div>
+      <div class="hint" style="margin-top:8px;color:var(--tx3)">
+        画面を<b>なぞって焦点を合わせ</b>、<b>指を離した瞬間に振ります</b>。振らなければ見送りです。</div>
       <div class="row" style="margin-top:9px">
-        <button class="btn" onclick="mdSwing('take')">見送る</button>
-        <button class="btn pri" style="flex:1" onclick="mdSwing('swing')">SWING</button>
+        <button class="btn pri" style="flex:1" onclick="mdReady()">構える</button>
       </div>`;
     M.bsel = { zone: 4, type: "meet" };
   } else {
@@ -1383,50 +1566,61 @@ window.mdSwingType = (t) => {
   M.bsel.type = t; SFX.tap();
   document.querySelectorAll('.psel[data-s]').forEach((b) => b.classList.toggle("on", b.dataset.s === t));
 };
+/* ★★ 2026-09-03 「構える」→ 投球が始まり、リアルタイムで振る。
+   バントだけはこれまでどおり即決（焦点を合わせる操作がないため）。 */
+window.mdReady = () => {
+  if (!M.bsel) M.bsel = { zone: 4, type: "meet" };
+  if (M.bsel.type === "bunt") { M.timing = "GOOD"; resolvePitch("swing"); return; }
+  SFX.pitch();
+  askTiming("swing");
+};
+/* 古い呼びかたも残しておく（オンラインの古い画面から呼ばれても落ちないように） */
 window.mdSwing = (act) => {
-  if (act === "swing" && M.bsel.type !== "bunt") { askTiming(act); return; }
+  if (act === "swing" && M.bsel && M.bsel.type !== "bunt") { askTiming(act); return; }
   resolvePitch(act);
 };
-/* ③ タイミング（スイングの精度） */
+/* ③ ★★ 2026-09-03 <b>リアルタイム打撃</b>（ご指定）。
+   球が飛んでくるあいだに焦点を合わせ、指を離して振る。
+   ★ 届くまでの長さ（dur）は<b>本当の球速</b>から作るので、
+     速い投手ほど判断の時間が短い。
+   ★ カーソルの大きさ（mr）はミート力と打ちかたで決まる。 */
 function askTiming(act) {
   M.phase = "timing";
   const bat = mp(batterId(), offMine());
-  const goodW = 20 + bat.meet * 0.22;     /* ミートが高いほど帯が広い */
-  const perfW = 6 + bat.meet * 0.09;
-  const gL = 50 - goodW / 2, pL = 50 - perfW / 2;
+  const pit = mp(pitcherId(), !offMine());
+  const pitSel = (offMine() ? M.cpuPitch : M.sel) || safePitchSel(pit);
+  const q = (pit.pitches || []).find((x) => x.k === pitSel.pitch) || { k: "straight", lv: 1 };
+  const d = MD2DATA.PITCH_ALL.find((x) => x.k === q.k) || { move: 0 };
+  const kmh = velOf(pit, q);
+  /* 届くまでのフレーム数。140km/h でおよそ 62フレーム（約1秒）。 */
+  const dur = clamp(Math.round(9000 / Math.max(90, kmh)), 38, 100);
+  /* ミートが高いほど、ずれを許す幅が広い */
+  const goodF = 4 + bat.meet * 0.055;
+  const perfF = 1.4 + bat.meet * 0.020;
+  const type = (M.bsel && M.bsel.type) || "meet";
+  /* 焦点（ゾーンの幅を 1 とした半径） */
+  const mr = clamp((type === "power" ? 0.115 : 0.165) + bat.meet * 0.00085, 0.09, 0.30);
   $("mtBot").innerHTML = `
     ${clutchBar()}
-    <div class="hint">⏱ 白い線が<b>まん中</b>に来た瞬間にタップ！ 金の帯で <b>PERFECT</b></div>
-    <div class="timing" id="tmBar">
-      <div class="good" style="left:${gL}%;width:${goodW}%"></div>
-      <div class="perf" style="left:${pL}%;width:${perfW}%"></div>
-      <div class="cur" id="tmCur" style="left:0%"></div>
-    </div>
-    <div class="row"><button class="btn pri" style="flex:1" onclick="mdTimingHit()">打つ！</button></div>`;
-  M.tm = { t: 0, dir: 1, sp: 1.6 + (M.top ? 0 : 0) + (cfg.cpu * .18), gL, goodW, pL, perfW, act, done: false };
-  tickTiming();
+    <div class="hint">⏱ <b>${d.nm}・${kmh}km/h</b> — 画面を<b>なぞって焦点を合わせ</b>、
+      <b>指を離して振る</b>！<br><span style="color:var(--tx3)">振らなければ見送りになります</span></div>
+    <div class="row" style="margin-top:9px">
+      <button class="btn pri" style="flex:1" onclick="mdLiveSwing()">SWING</button>
+      <button class="btn" onclick="mdLiveTake()">見送る</button>
+    </div>`;
+  M.tm = {
+    t: 0, dur, act, done: false, swung: false, holding: false, flash: 0,
+    mine: true, zone: pitSel.zone, move: d.move,
+    /* 変化の向き（球種でだいたい決まるが、少しだけゆらす） */
+    bx: (d.k === "curve" ? -0.8 : d.k === "slider" ? -1 : d.k === "sinker" ? 1 : 0) + (Math.random() - .5) * .4,
+    by: (d.k === "fork" ? 1 : d.k === "curve" ? 1 : d.k === "change" ? .6 : 0) + (Math.random() - .5) * .3,
+    cx: 0.5, cy: 0.5, mr, goodF, perfF,
+  };
+  M.meetRead = null;
+  tickLive();
 }
-function tickTiming() {
-  if (!M.tm || M.tm.done) return;
-  M.tm.t += M.tm.dir * M.tm.sp;
-  if (M.tm.t > 100) { M.tm.t = 100; M.tm.dir = -1; }
-  if (M.tm.t < 0) { M.tm.t = 0; M.tm.dir = 1; }
-  const c = $("tmCur"); if (c) c.style.left = M.tm.t + "%";
-  M.tm.raf = requestAnimationFrame(tickTiming);
-}
-window.mdTimingHit = () => {
-  if (!M.tm || M.tm.done) return;
-  M.tm.done = true; cancelAnimationFrame(M.tm.raf);
-  const t = M.tm.t;
-  let q = "MISS";
-  if (t >= M.tm.pL && t <= M.tm.pL + M.tm.perfW) q = "PERFECT";
-  else if (t >= M.tm.gL && t <= M.tm.gL + M.tm.goodW) q = "GREAT";
-  else if (Math.abs(t - 50) < 26) q = "GOOD";
-  M.timing = q;
-  bigMsg(q, 700);
-  SFX.tap();
-  resolvePitch(M.tm.act);
-};
+/* 見送る（ボタン） */
+window.mdLiveTake = () => { M.timing = null; finishLive("take"); };
 function clutchBar() {
   const mine = offMine();
   const c = mine ? M.clutch.me : M.clutch.cpu;
@@ -1500,9 +1694,18 @@ function resolvePitch(act) {
   }
   if (M.bsel.type === "bunt") return doBunt(bat, pit);
   /* 読みが当たったか */
-  const readHit = M.bsel.zone === pitSel.zone;
-  const near = Math.abs((M.bsel.zone % 3) - (pitSel.zone % 3)) + Math.abs(Math.floor(M.bsel.zone / 3) - Math.floor(pitSel.zone / 3));
-  let read = readHit ? 1 : near === 1 ? .58 : near === 2 ? .3 : .12;
+  /* ★★ 2026-09-03 リアルタイム打撃では、「読み」の代わりに
+     <b>焦点と球の距離</b>（M.meetRead）0〜1 を使う。
+     CPU の打席はこれまでどおりコースの読みで決めるので、
+     meetRead が無いときは旧来の式に落とす。 */
+  let read;
+  if (M.meetRead != null) {
+    read = M.meetRead;
+  } else {
+    const readHit = M.bsel.zone === pitSel.zone;
+    const near = Math.abs((M.bsel.zone % 3) - (pitSel.zone % 3)) + Math.abs(Math.floor(M.bsel.zone / 3) - Math.floor(pitSel.zone / 3));
+    read = readHit ? 1 : near === 1 ? .58 : near === 2 ? .3 : .12;
+  }
   read += sk(bat, "miss");                       /* WIDE HITTER */
   read = clamp(read, 0, 1);
   /* タイミング */
@@ -1546,7 +1749,7 @@ function afterCount() {
     addClutch(offMine() ? "cpu" : "me", 12);
     return outMade(1);
   }
-  M.timing = null;
+  M.timing = null; M.meetRead = null;
   setTimeout(askPitch, 340);
 }
 function walk() {
@@ -1673,6 +1876,17 @@ function askCatch(f, fly, bat, quality, through) {
     <div class="row"><button class="btn pri" style="flex:1" onclick="mdCatchNow()">捕る！</button></div>`;
   M.tm = { t: 0, dir: 1, sp: 2.0, gL, goodW, pL, perfW, done: false, f, fly, bat, quality };
   tickTiming();
+}
+/* ★★ 2026-09-03 左右に往復する帯（捕球のタイミング）。
+   打席のほうはリアルタイム打撃にしたので使わなくなったが、
+   <b>守備の捕球</b>はこの式のままなのでここに残してある。 */
+function tickTiming() {
+  if (!M.tm || M.tm.done) return;
+  M.tm.t += M.tm.dir * M.tm.sp;
+  if (M.tm.t > 100) { M.tm.t = 100; M.tm.dir = -1; }
+  if (M.tm.t < 0) { M.tm.t = 0; M.tm.dir = 1; }
+  const c = $("tmCur"); if (c) c.style.left = M.tm.t + "%";
+  M.tm.raf = requestAnimationFrame(tickTiming);
 }
 window.mdCatchNow = () => {
   if (!M.tm || M.tm.done) return;
