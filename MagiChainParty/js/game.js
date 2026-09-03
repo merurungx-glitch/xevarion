@@ -37,7 +37,7 @@ function saveSetup() {
       v: 1, n: setup.n, size: setup.size, cpuLevel: setup.cpuLevel, roundLimit: setup.roundLimit,
       players: setup.players.map((p) => ({
         name: p.name, type: p.type,
-        link: (p.link && p.link.uid) ? { uid: p.link.uid, name: p.link.name, charFile: p.link.charFile || "" } : null,
+        link: (p.link && p.link.uid) ? { uid: p.link.uid, name: p.link.name, charFile: p.link.charFile || "", charId: p.link.charId || "" } : null,
       })),
     }));
   } catch (e) {}
@@ -55,7 +55,10 @@ function loadSetup() {
       if (sp.name) setup.players[i].name = String(sp.name).slice(0, 6);
       if (sp.type === "cpu" || sp.type === "human") setup.players[i].type = sp.type;
       /* ★ 紐づけは「未確認」で復元 → タップして4桁パスワードを入力すると有効になる */
-      if (sp.link && sp.link.uid) setup.players[i].link = { uid: sp.link.uid, name: sp.link.name, charFile: sp.link.charFile || "", confirmed: false };
+      if (sp.link && sp.link.uid) {
+        setup.players[i].link = { uid: sp.link.uid, name: sp.link.name, charFile: sp.link.charFile || "", charId: sp.link.charId || "", confirmed: false };
+        setup.players[i].charFile = sp.link.charFile || "";
+      }
     });
     return true;
   } catch (e) { return false; }
@@ -92,6 +95,8 @@ function initSetup() {
   const restored = loadSetup();
   applySetupToUI();
   renderPlayers();
+  /* ★ 紐づけ済みの座席のキャラ画像を最新にする（結果が返ってから描き直す） */
+  setTimeout(() => { try { olRefreshProfiles(); } catch (e) {} }, 1200);
   if (restored && setup.players.some((p) => p.link && p.link.uid && !p.link.confirmed)) {
     setTimeout(() => toast("🔗 前回の紐づけを引き継ぎました。ボタンをタップしてパスワードを確認してください", "#8b5bff"), 900);
   }
@@ -279,7 +284,8 @@ function openSeatLink(idx) {
     GameLink.confirm(p.link).then((res) => {
       if (res && res.remove) { p.link = null; renderPlayers(); saveSetup(); toast("紐づけを解除しました", "#8892a6"); return; }
       if (res && res.uid) {
-        p.link = { uid: res.uid, name: res.name, charFile: res.charFile || "", confirmed: true };
+        p.link = { uid: res.uid, name: res.name, charFile: res.charFile || "", charId: res.charId || "", confirmed: true };
+        p.charFile = res.charFile || "";
         renderPlayers(); saveSetup();
         toast("🔗 " + res.name + " の紐づけを確認しました", "#13c08a");
       }
@@ -289,7 +295,7 @@ function openSeatLink(idx) {
   if (p.link && p.link.uid) { p.link = null; renderPlayers(); saveSetup(); toast("紐づけを解除しました", "#8892a6"); return; }
   GameLink.link(p.name).then((res) => {
     if (res && res.uid) {
-      setup.players[idx].link = { uid: res.uid, name: res.name, charFile: res.charFile || "", confirmed: true };
+      setup.players[idx].link = { uid: res.uid, name: res.name, charFile: res.charFile || "", charId: res.charId || "", confirmed: true };
       renderPlayers(); saveSetup();
       toast("🔗 " + res.name + " を紐づけました", "#13c08a");
       /* ★★ 2026-09-01 アイコン画像も控えて、一覧に顔を出せるようにする */
@@ -1078,6 +1084,51 @@ function olLoadLink() {
 function olSaveLink(a) {
   try { a ? localStorage.setItem(OL_ACC_KEY, JSON.stringify(a)) : localStorage.removeItem(OL_ACC_KEY); } catch (e) {}
 }
+/* ══ ★★ 2026-09-02 紐づけたアカウントの「今の」キャラ・表示名を取り直す ══
+   紐づけたその時の charFile を localStorage / 座席に控えたきりだったので、
+   あとからポータルでキャラを変えても<b>プロフィールの絵が古いまま</b>だった。
+   起動時とオンライン画面に入るときに Firebase から取り直して、変わっていたら
+   保存しなおして描き直す（取れなかったときは前の値をそのまま使う）。 */
+let OL_PROF_DONE = false;
+function olRefreshProfiles(force) {
+  if (!window.GameLink || !GameLink.refresh) return;
+  if (OL_PROF_DONE && !force) return;
+  if (navigator.onLine === false) return;
+  OL_PROF_DONE = true;
+  const jobs = [];
+  if (OL_LINK === null) OL_LINK = olLoadLink();
+  if (OL_LINK && OL_LINK.uid) {
+    jobs.push(GameLink.refresh(OL_LINK).then((v) => {
+      if (!v || !OL_LINK) return false;
+      const changed = (v.charFile || "") !== (OL_LINK.charFile || "") ||
+                      (v.name || "") !== (OL_LINK.name || "");
+      OL_LINK = { uid: v.uid, name: (v.name || OL_LINK.name || "プレイヤー").slice(0, 6),
+                  charFile: v.charFile || "", charId: v.charId || "" };
+      if (changed) olSaveLink(OL_LINK);
+      return changed;
+    }));
+  }
+  (setup.players || []).forEach((p) => {
+    if (!p.link || !p.link.uid) return;
+    jobs.push(GameLink.refresh(p.link).then((v) => {
+      if (!v || !p.link) return false;
+      const changed = (v.charFile || "") !== (p.link.charFile || "") ||
+                      (v.name || "") !== (p.link.name || "");
+      p.link.name = v.name || p.link.name;
+      p.link.charFile = v.charFile || "";
+      p.link.charId = v.charId || "";
+      p.charFile = p.link.charFile;
+      return changed;
+    }));
+  });
+  if (!jobs.length) return;
+  Promise.all(jobs).then((rs) => {
+    if (!rs.some(Boolean)) return;
+    try { saveSetup(); } catch (e) {}
+    try { renderPlayers(); } catch (e) {}
+    try { olRenderLinkRow(); } catch (e) {}
+  });
+}
 /* ポータルのアカウント（この端末で設定ずみのもの） */
 function portalAccount() {
   try {
@@ -1141,7 +1192,7 @@ function olDoLink() {
     if (res.remove) { OL_LINK = null; olSaveLink(null); olRenderLinkRow(); olRefreshEntry();
                       toast("紐づけを解除しました", "#8892a6"); return; }
     if (res.uid) {
-      OL_LINK = { uid: res.uid, name: (res.name || "プレイヤー").slice(0, 6), charFile: res.charFile || "" };
+      OL_LINK = { uid: res.uid, name: (res.name || "プレイヤー").slice(0, 6), charFile: res.charFile || "", charId: res.charId || "" };
       olSaveLink(OL_LINK); olRenderLinkRow(); olRefreshEntry();
       toast("🔗 " + OL_LINK.name + " を紐づけました", "#13c08a");
     }
@@ -1203,6 +1254,8 @@ function openOnline() {
   /* ★★ 2026-09-01 紐づけの行を出してから、ボタンの出しわけを決める */
   olRenderLinkRow();
   olRefreshEntry();
+  /* ★★ 2026-09-02 開くたびにキャラ・表示名を取り直す（force） */
+  try { olRefreshProfiles(true); } catch (e) {}
   whenMCP().then((M) => { if (!M) olMsg("オンライン接続を準備できませんでした。通信環境を確認してください。", "#ff5d5d"); });
 }
 

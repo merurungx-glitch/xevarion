@@ -1290,3 +1290,8 @@ body.in-quiz .memo-open{bottom:calc(20px + env(safe-area-inset-bottom,0px))}
 .res-all .ra-q{ font-size:.78rem; font-weight:800; line-height:1.35; }
 .res-all .ra-a{ font-size:.72rem; color:var(--ink2,#6f82ad); font-weight:700; }
 .res-all .ra-m{ flex:0 0 auto; font-size:1rem; }
+
+/* ══ ★★ 2026-09-02 ライブラリの「化学すべて」「物理すべて」のチップ ══
+   α・β…と同じ見た目だと、まとめて見るものだと気づかないので枠を強めにする。 */
+.fchip.grp{font-weight:900;border-style:dashed;border-width:1.6px}
+.fchip.grp.on{border-style:solid}

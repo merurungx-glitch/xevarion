@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<script src="../maintenance-gate.js?v=7"></script>
+<meta charset="UTF-8" />
+<script>(function(){try{var a=JSON.parse(localStorage.getItem('xeva_account_v1'));if(!a||!a.setupDone)location.replace('../index.html');}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<title>Magi Dominion Grid — 思考で勝つデジタルボードゲーム</title>
+<meta name="description" content="1台のiPadを囲んで2〜10人。運ではなく、読みと配置で勝つリアルタイム陣取り。MagiOneシリーズ / XEVARION。" />
+<link rel="icon" href="../thumbs/MagiDominionGrid.jpg" type="image/jpeg" />
+<link rel="apple-touch-icon" href="../thumbs/MagiDominionGrid.jpg" />
+<meta name="theme-color" content="#2f6fd0" />
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function () { navigator.serviceWorker.register("sw.js").catch(function () {}); });
+}
+</script>
+<script src="../xeva-safebottom.js?v=2"></script>
+<link rel="stylesheet" href="css/mdg.css?v=2" />
+<script src="../xeva-splash.js?v=5" data-app="Magi Dominion Grid" data-logo="../thumbs/MagiDominionGrid.jpg"></script>
+</head>
+<body>
+
+<!-- ═══════════════ ① タイトル ═══════════════ -->
+<section id="scr-title" class="screen on">
+  <div class="tl-bg"></div>
+  <div class="tl-wrap">
+    <a href="../index.html" class="back-portal">← ポータル</a>
+    <img class="tl-logo" src="../thumbs/MagiDominionGrid.jpg" alt="Magi Dominion Grid">
+    <h1 class="tl-name">Magi<span>Dominion</span>Grid</h1>
+    <p class="tl-tag">1台を囲んで 2〜10人。<b>運の要素はありません。</b><br>
+      盤面を読み、先を読み、いちばん多く支配した人が勝ちます。</p>
+    <div class="tl-btns">
+      <button class="mbtn pri" onclick="MDG.goLobby()">▶ はじめる</button>
+      <button class="mbtn" onclick="MDG.openRules()">📖 あそびかた</button>
+      <button class="mbtn" onclick="MDG.openRecords()">🏆 これまでの記録</button>
+    </div>
+    <p class="tl-note">同じ画面をみんなで見ながら遊びます。端末を回す必要はありません。</p>
+  </div>
+</section>
+
+<!-- ═══════════════ ② ロビー ═══════════════ -->
+<section id="scr-lobby" class="screen">
+  <div class="lb-wrap">
+    <header class="lb-top">
+      <button class="mbtn slim" onclick="MDG.goTitle()">← もどる</button>
+      <h2>プレイヤーを準備中… <span id="lbCount">2 / 10</span></h2>
+    </header>
+    <div class="lb-list" id="lbList"></div>
+    <div class="lb-opt">
+      <div class="opt-row">
+        <span class="opt-k">ターン数</span>
+        <div class="seg" id="optTurns"></div>
+      </div>
+      <div class="opt-row">
+        <span class="opt-k">計画フェーズの時間</span>
+        <div class="seg" id="optTime"></div>
+      </div>
+      <div class="opt-row">
+        <span class="opt-k">公開目標</span>
+        <div class="seg wide" id="optGoal"></div>
+      </div>
+      <p class="opt-note" id="goalNote"></p>
+    </div>
+    <button class="mbtn pri big" id="lbStart" onclick="MDG.startGame()">ゲーム開始</button>
+  </div>
+</section>
+
+<!-- ═══════════════ ③ ゲーム盤 ═══════════════ -->
+<section id="scr-game" class="screen">
+  <!-- 上：プレイヤー情報 -->
+  <div class="g-top" id="gTop"></div>
+
+  <!-- 中央：盤面（左右に順位） -->
+  <div class="g-mid">
+    <aside class="g-side left" id="gRankL"></aside>
+    <div class="g-boardwrap">
+      <div class="g-goal" id="gGoal"></div>
+      <div class="board" id="board"></div>
+      <div class="g-turnbadge"><span id="gTurn">1 / 30</span></div>
+    </div>
+    <aside class="g-side right" id="gRankR"></aside>
+  </div>
+
+  <!-- 下：ターン・のこり時間・行動 -->
+  <div class="g-bot">
+    <div class="g-phase">
+      <span class="ph" id="gPhase">計画フェーズ</span>
+      <span class="tm" id="gTime">のこり 25 秒</span>
+      <span class="msg" id="gMsg">全員の行動を待っています</span>
+      <button class="mbtn slim" onclick="MDG.openRules()">?</button>
+      <button class="mbtn slim" onclick="MDG.quit()">✕</button>
+    </div>
+    <div class="g-chips" id="gChips"></div>
+    <div class="g-exec" id="gExec"></div>
+  </div>
+</section>
+
+<!-- ═══════════════ 行動をえらぶパネル（本人だけが見る） ═══════════════ -->
+<div class="ov" id="ovPlan"><div class="card plan" id="planCard"></div></div>
+<!-- ═══════════════ その他のダイアログ ═══════════════ -->
+<div class="ov" id="ovDlg" onclick="if(event.target===this)MDG.closeDlg()"><div class="card" id="dlgCard"></div></div>
+
+<div class="toast" id="toast"></div>
+
+<script src="../xeva.js?v=54"></script>
+<script src="../xeva-loading.js?v=3" defer></script>
+<script src="js/mdg.js?v=2"></script>
+<script src="../xeva-back.js?v=3" data-mode="hook"></script>
+</body>
+</html>

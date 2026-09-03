@@ -967,8 +967,8 @@ window.lexKpDetail = async function(id){
       document.head.appendChild(l);
     }
     if(typeof window.DB === "undefined") await _loadScript("../mb-boot.js?v=11");
-    if(typeof window.CHARS === "undefined") await _loadScript("../MagiBurst/js/mb-core.js?v=68");
-    if(typeof window.openDetX !== "function") await _loadScript("../mb-char-detail.js?v=16");
+    if(typeof window.CHARS === "undefined") await _loadScript("../MagiBurst/js/mb-core.js?v=75");
+    if(typeof window.openDetX !== "function") await _loadScript("../mb-char-detail.js?v=17");
     _kpDetReady = true;
     _kpOpen(id);
   }catch(e){
@@ -1043,7 +1043,11 @@ const LIB_FILTERS=[["all","すべて"],["quiz","選択クイズ"],["word","単�
 const SUBJECT_ORDER=["英語","数学","化学α","化学β","化学γ","化学δ","化学ε","物理α","物理β","物理γ","地理","国語"];
 // 科目内ジャンル（例: 化学 → 理論・無機・有機・高分子）。表示順もここで決める
 /* ★ 2026-08-26 物理γのジャンル「熱・原子」を足した（既存の「熱・原子」と同じ並びに入る） */
-const GENRE_ORDER=["数と式・二次関数","場合の数・確率","整数","図形","三角関数","指数・対数","式と証明","図形と方程式","数列","ベクトル","データ・統計","極限","複素数平面","二次曲線","微分・積分","理論","無機","有機","高分子","物質別","力学","波動・光","電磁気","熱・原子","工業","人口","人口問題","動詞","名詞","形容詞","副詞・接続","学術・社会","文法・敬語","古文単語"];
+/* ★★ 2026-09-02 化学δ・物理β のこまかいジャンルがこの並びに無く、
+   genresPresent() は GENRE_ORDER でふるいにかけているので<b>候補に一度も出てこなかった</b>。
+   （化学：脂質・芳香族・フェノール・元素別各論 ／ 物理：抵抗・直流回路・磁場・電磁誘導・導体棒・コイル）
+   ジャンルを増やしたら、genreOf() と<b>この並びの両方</b>に入れること。 */
+const GENRE_ORDER=["数と式・二次関数","場合の数・確率","整数","図形","三角関数","指数・対数","式と証明","図形と方程式","数列","ベクトル","データ・統計","極限","複素数平面","二次曲線","微分・積分","理論","無機","有機","高分子","物質別","脂質","芳香族・フェノール","元素別各論","力学","波動・光","電磁気","抵抗","直流回路","磁場","電磁誘導","導体棒","コイル","熱・原子","工業","人口","人口問題","動詞","名詞","形容詞","副詞・接続","学術・社会","文法・敬語","古文単語"];
 function genreOf(c){
   const id = c.type==="word" ? c.key : (c.sid||"");
   // 英語
@@ -1135,9 +1139,59 @@ function genreOf(c){
   if(/^(gas_|metal|chem_inorg_|cbeta_)/.test(id)) return "無機";
   return "その他";
 }
+/* ═══════════════════════════════════════════════════════════
+   ★★ 2026-09-02 「化学」「物理」でまとめて見る絞り込み（ご指定）
+   ────────────────────────────────────────────────────────────
+   化学α～ε・物理α～γ は<b>そのまま残し</b>、その手前に
+   「化学」「物理」を足す。選ぶとその系統を<b>全部</b>並べる。
+
+   ★ まとめて見るときの「範囲」は大きな枠にそろえる。
+     化学δの「脂質」「芳香族・フェノール」は有機、「元素別各論」は無機、
+     物理βの「抵抗」「直流回路」…は電磁気。
+     こうしないと「化学」を選んだときに範囲の候補が 10 個以上になってしまう。
+     ★ 個別の科目（化学δ など）を選んだときは<b>こまかいジャンルのまま</b>。
+
+   ★ ミックスの範囲えらび（contentsBySubject）は subjectsPresent() を使うので
+     <b>ここには入れない</b>。入れると同じセットが二重に並ぶ。
+   ════════════════════════════════════════════════════════════ */
+const SUBJECT_GROUPS = {
+  "化学": ["化学α","化学β","化学γ","化学δ","化学ε"],
+  "物理": ["物理α","物理β","物理γ"],
+};
+function isSubjectGroup(s){ return !!SUBJECT_GROUPS[s]; }
+/* このコンテンツは選ばれている科目（まとめ含む）に入るか */
+function inSubject(c, sel){
+  if(!sel || sel==="all") return true;
+  const g = SUBJECT_GROUPS[sel];
+  const s = subjectOf(c);
+  return g ? g.indexOf(s) >= 0 : s === sel;
+}
+/* まとめて見るときだけ、こまかいジャンルを大きな枠へ寄せる */
+const BROAD_GENRE = {
+  "脂質":"有機", "芳香族・フェノール":"有機", "元素別各論":"無機",
+  "抵抗":"電磁気", "直流回路":"電磁気", "磁場":"電磁気",
+  "電磁誘導":"電磁気", "導体棒":"電磁気", "コイル":"電磁気",
+};
+function genreOfIn(c, sel){
+  const g = genreOf(c);
+  return isSubjectGroup(sel) ? (BROAD_GENRE[g] || g) : g;
+}
+/* ライブラリの科目チップ。実在する科目の並びに、
+   その系統の<b>最初の1つの手前</b>へまとめのチップを差しこむ。 */
+function libSubjectsPresent(){
+  const out = [];
+  subjectsPresent().forEach((s) => {
+    Object.keys(SUBJECT_GROUPS).forEach((g) => {
+      if(out.indexOf(g) < 0 && SUBJECT_GROUPS[g].indexOf(s) >= 0) out.push(g);
+    });
+    out.push(s);
+  });
+  return out;
+}
+
 function genresPresent(subject){
   const set={};
-  allContents().forEach(c=>{ if(subjectOf(c)===subject) set[genreOf(c)]=1; });
+  allContents().forEach(c=>{ if(inSubject(c,subject)) set[genreOfIn(c,subject)]=1; });
   const known=GENRE_ORDER.filter(g=>set[g]);
   if(set["その他"]) known.push("その他");
   return known;
@@ -1505,6 +1559,11 @@ function radicalize(h, stash) {
 /* esc したうえで数式に組む（画面に出す文字はこれを通す） */
 function escMath(t) { return mathFmt(esc(t)); }
 /* ★ ビンゴの科目マスは科目アイコンを借りる（SUBJ_ART の定義後でないと undefined になる） */
+/* ★★ 2026-09-02 まとめ科目（化学・物理）はα の絵・色をそのまま借りる */
+SUBJ_ART["化学"] = SUBJ_ART["化学α"];
+SUBJ_ART["物理"] = SUBJ_ART["物理α"];
+SUBJ_COLOR["化学"] = SUBJ_COLOR["化学α"];
+SUBJ_COLOR["物理"] = SUBJ_COLOR["物理α"];
 UI_ART.sMath = SUBJ_ART["数学"];
 UI_ART.sPhys = SUBJ_ART["物理α"];
 UI_ART.sChem = SUBJ_ART["化学α"];
@@ -1768,7 +1827,7 @@ function diffBadge(c, cls){
 }
 function libFilterSummary(){
   const parts=[];
-  parts.push(libSubject==="all"?"全科目":libSubject);
+  parts.push(libSubject==="all"?"全科目":(isSubjectGroup(libSubject)?libSubject+"すべて":libSubject));
   if(libSubject!=="all"&&libGenre!=="all") parts.push(libGenre);
   if(libFilter!=="all"){ const l=(LIB_FILTERS.find(f=>f[0]===libFilter)||[,""])[1]; if(l) parts.push(l); }
   return parts.join(" ・ ");
@@ -1779,7 +1838,7 @@ function renderLibrary(){
       <div class="filter-label">📂 科目</div>
       <div class="filters">
         <button class="fchip ${libSubject==='all'?'on':''}" onclick="lexLibSubject('all')">全科目</button>
-        ${subjectsPresent().map(s=>`<button class="fchip ${libSubject===s?'on':''}" onclick="lexLibSubject('${s}')">${s}</button>`).join("")}
+        ${libSubjectsPresent().map(s=>`<button class="fchip ${isSubjectGroup(s)?'grp ':''}${libSubject===s?'on':''}" onclick="lexLibSubject('${s}')">${isSubjectGroup(s)?s+'すべて':s}</button>`).join("")}
       </div>
       ${libSubject!=="all" && genresPresent(libSubject).length>1 ? `
       <div class="filter-label">🏷️ ジャンル</div>
@@ -1865,8 +1924,8 @@ let lastSearchQ="";
 function renderLibList(){
   const box=$("#libList"); if(!box) return;
   let list=allContents();
-  if(libSubject!=="all") list=list.filter(c=>subjectOf(c)===libSubject);
-  if(libSubject!=="all"&&libGenre!=="all") list=list.filter(c=>genreOf(c)===libGenre);
+  if(libSubject!=="all") list=list.filter(c=>inSubject(c,libSubject));
+  if(libSubject!=="all"&&libGenre!=="all") list=list.filter(c=>genreOfIn(c,libSubject)===libGenre);
   if(libFilter==="quiz"||libFilter==="word") list=list.filter(c=>c.type===libFilter);
   else if(libFilter==="undone") list=list.filter(c=>statusOf(c)!=="done");
   else if(libFilter==="none"||libFilter==="learn"||libFilter==="done") list=list.filter(c=>statusOf(c)===libFilter);

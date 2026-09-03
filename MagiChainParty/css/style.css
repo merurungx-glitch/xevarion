@@ -44,9 +44,9 @@ body{
 /* ================= セットアップ（カード分割の新デザイン） ================= */
 #setup,#online{
   overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;
-  padding:calc(14px + env(safe-area-inset-top)) 16px calc(120px + env(safe-area-inset-bottom));
+  padding:calc(14px + env(safe-area-inset-top)) 16px calc(120px + var(--xv-safeb,env(safe-area-inset-bottom,0px)));
 }
-#online{padding-bottom:calc(160px + env(safe-area-inset-bottom));}
+#online{padding-bottom:calc(160px + var(--xv-safeb,env(safe-area-inset-bottom,0px)));}
 #setup.active,#online.active{display:block;}
 .setup-wrap{width:100%;max-width:520px;margin:0 auto;text-align:center;}
 .su-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:2px;}
@@ -90,7 +90,7 @@ body{
 .su-sticky{
   position:fixed;left:0;right:0;bottom:0;z-index:20;
   display:flex;gap:10px;justify-content:center;
-  padding:14px 16px calc(14px + env(safe-area-inset-bottom));
+  padding:14px 16px calc(14px + var(--xv-safeb,env(safe-area-inset-bottom,0px)));
   background:linear-gradient(180deg,rgba(240,240,255,0),rgba(238,240,255,.92) 34%,rgba(238,240,255,.98));
   backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
 }
@@ -140,7 +140,7 @@ body{
 
 /* ================= 順番きめ ================= */
 #order{align-items:center;justify-content:center;
-  padding:calc(20px + env(safe-area-inset-top)) 20px calc(20px + env(safe-area-inset-bottom));}
+  padding:calc(20px + env(safe-area-inset-top)) 20px calc(20px + var(--xv-safeb,env(safe-area-inset-bottom,0px)));}
 .order-card{background:var(--card);border:1px solid var(--line);border-radius:26px;padding:28px;
   text-align:center;max-width:420px;width:100%;box-shadow:0 18px 50px rgba(70,90,160,.18);}
 .order-card h2{color:var(--ink);margin:0 0 14px;}
@@ -169,13 +169,13 @@ body{
   backdrop-filter:blur(6px);
 }
 #table{position:relative;flex:1;width:100%;display:flex;align-items:center;justify-content:center;overflow:hidden;
-  padding:0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);}
+  padding:0 env(safe-area-inset-right) var(--xv-safeb,env(safe-area-inset-bottom,0px)) env(safe-area-inset-left);}
 #board-area{display:flex;align-items:center;justify-content:center;}
 
 #board{
   display:grid;gap:min(1vmin,7px);
   --wreserve:calc(40px + env(safe-area-inset-left) + env(safe-area-inset-right));
-  --vreserve:calc(160px + env(safe-area-inset-top) + env(safe-area-inset-bottom));
+  --vreserve:calc(160px + env(safe-area-inset-top) + var(--xv-safeb,env(safe-area-inset-bottom,0px)));
   width:min(92vmin, calc(100vw - var(--wreserve)), calc(var(--app-vh) - var(--vreserve)));
   height:min(92vmin, calc(100vw - var(--wreserve)), calc(var(--app-vh) - var(--vreserve)));
   padding:min(1.4vmin,11px);border-radius:20px;
@@ -239,7 +239,7 @@ body{
 /* ================= モーダル ================= */
 .modal{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;
   background:rgba(40,55,110,.45);backdrop-filter:blur(3px);
-  padding:calc(18px + env(safe-area-inset-top)) 18px calc(18px + env(safe-area-inset-bottom));}
+  padding:calc(18px + env(safe-area-inset-top)) 18px calc(18px + var(--xv-safeb,env(safe-area-inset-bottom,0px)));}
 .modal-card{background:var(--card);border:1px solid var(--line);border-radius:24px;padding:24px;
   max-width:460px;width:100%;max-height:100%;overflow-y:auto;box-shadow:0 24px 60px rgba(40,55,110,.3);}
 .modal-card h2{margin:0 0 12px;text-align:center;color:var(--ink);}
@@ -370,3 +370,13 @@ body{
   font-size:14.5px;font-weight:900;cursor:pointer;font-family:inherit;}
 .install-banner small{font-size:11px;font-weight:700;opacity:.75;}
 .install-banner.hidden{display:none;}
+
+/* ══ ★★ 2026-09-02 下バーが画面の下端まで届かない件の仕上げ ══
+   余白は ../xeva-safebottom.js が実測した --xv-safeb で決める（env を2回引かない）。
+   そのうえで、バーの下に「色は同じだが何も無い帯」が残らないよう、
+   バーの背景だけを 260px ぶん下へ描き足しておく（中身の位置は動かさない）。 */
+.su-sticky{ position:fixed; }
+.su-sticky::after{
+  content:"";position:absolute;left:0;right:0;top:100%;height:260px;
+  background:rgba(238,240,255,.98);pointer-events:none;
+}

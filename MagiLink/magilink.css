@@ -38,7 +38,7 @@ button{font-family:inherit;color:inherit;}
 /* ---- overlays / cards ---- */
 .overlay{position:fixed;left:0;right:0;top:0;height:var(--ml-vph);z-index:1000;display:none;
   align-items:center;justify-content:center;box-sizing:border-box;
-  padding:calc(env(safe-area-inset-top,0px) + 22px) 20px calc(env(safe-area-inset-bottom,0px) + 22px);
+  padding:calc(env(safe-area-inset-top,0px) + 22px) 20px calc(var(--xv-safeb,env(safe-area-inset-bottom,0px)) + 22px);
   /* 明るいテーマなので、覆いも明るく。暗い幕をかけると画面全体がくすんで見える。 */
   background:rgba(228,237,253,.74);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
   overflow-y:auto;-webkit-overflow-scrolling:touch;}
@@ -176,7 +176,7 @@ a.nav-btn.xv-back:hover{color:var(--blue);background:rgba(75,139,255,.08);}
 
 /* composer */
 .composer{display:flex;gap:8px;align-items:flex-end;flex-shrink:0;
-  padding:11px 14px calc(11px + env(safe-area-inset-bottom,0px));
+  padding:11px 14px calc(11px + var(--xv-safeb,env(safe-area-inset-bottom,0px)));
   border-top:1px solid var(--border);background:rgba(255,255,255,.94);
   backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);}
 .composer .cbtn{width:42px;height:42px;border-radius:50%;border:1.5px solid var(--border);background:#fff;
@@ -259,12 +259,12 @@ a.nav-btn.xv-back:hover{color:var(--blue);background:rgba(75,139,255,.08);}
 @media(max-width:720px){
   .app.show{grid-template-columns:1fr;}
   .sidebar{flex-direction:row;position:fixed;bottom:0;left:0;right:0;top:auto;width:100%;
-    height:calc(62px + env(safe-area-inset-bottom,0px));
-    padding:0 6px env(safe-area-inset-bottom,0px);border-right:none;border-top:1px solid var(--border);
+    height:calc(62px + var(--xv-safeb,env(safe-area-inset-bottom,0px)));
+    padding:0 6px var(--xv-safeb,env(safe-area-inset-bottom,0px));border-right:none;border-top:1px solid var(--border);
     justify-content:space-around;z-index:50;background:rgba(255,255,255,.95);}
   .sidebar .sb-logo,.sidebar .grow{display:none;}
   .nav-btn{width:48px;height:50px;}
-  .main{height:var(--ml-vph);padding-bottom:calc(62px + env(safe-area-inset-bottom,0px));}
+  .main{height:var(--ml-vph);padding-bottom:calc(62px + var(--xv-safeb,env(safe-area-inset-bottom,0px)));}
   .m{max-width:90%;}
   .vhead .back{display:block;}
   /* 狭い画面では、丸ボタン（＋・✨・😊）を詰めて入力欄の幅を確保する */
@@ -322,3 +322,13 @@ a.nav-btn.xv-back:hover{color:var(--blue);background:rgba(75,139,255,.08);}
 #mlDraftBar button.dopt{text-align:left;font-size:.82rem;font-weight:600;line-height:1.6;color:var(--txt);
   background:#fff;border:1.5px solid rgba(139,122,232,.35);border-radius:13px;padding:10px 13px;cursor:pointer;}
 #mlDraftBar button.dopt:hover{background:#faf9ff;border-color:rgba(139,122,232,.6);}
+
+/* ══ ★★ 2026-09-02 下バー（スマホのナビ）が画面の下端まで届かない件 ══
+   余白は ../xeva-safebottom.js が実測した --xv-safeb で決める（env を2回引かない）。
+   さらにバーの背景だけを下へ描き足して、下に隙間の帯が残らないようにする。 */
+@media(max-width:720px){
+  .sidebar::after{
+    content:"";position:absolute;left:0;right:0;top:100%;height:260px;
+    background:rgba(255,255,255,.95);pointer-events:none;
+  }
+}

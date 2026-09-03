@@ -565,12 +565,69 @@ function renderHub(){
 // ============================================================
 // チャット（ロビー / DM / グループ 共通）
 // ============================================================
+/* ════════════════════════════════════════════════════════════
+   ★★ 2026-09-02 XEVARION ホームのアイコンに「新しいメッセージ」の印
+   ────────────────────────────────────────────────────────────
+   ポータル（XEVARION のホーム）は MagiLink の Firebase を読みこまないので、
+   本文を全部さらって数えるわけにはいかない（画像つきのメッセージは1通で数百 KB）。
+   そこで<b>時刻だけの小さな受信箱</b>を置き、ポータルはそこだけを見る。
+
+     mlInbox/<uid>   … その人あてに届いた<b>最後のメッセージの時刻</b>（DM・グループ）
+     mlInbox/_lobby  … ロビー（全員あて）の最後のメッセージの時刻
+
+   書くのは<b>送った側</b>。受け取る側が起動していなくても時刻は残る。
+   「読んだ時刻」はこの端末の localStorage（xeva_magilink_note_v1）に置き、
+   ポータルは <b>last > read</b> なら印を出す。
+   ★ 時刻はサーバー基準でそろえる（端末の時計がずれていると印が出っぱなしになる）。
+   ★ mlInbox は Firebase のルールに足すこと（firebase-rules/xevarion-online.rules.json）。
+   ════════════════════════════════════════════════════════════ */
+const ML_NOTE_KEY = "xeva_magilink_note_v1";     // { uid, read }
+let ML_SKEW = 0;
+try {
+  onValue(ref(db, ".info/serverTimeOffset"), (s) => {
+    const v = s.val();
+    if (typeof v === "number" && Math.abs(v) < 3 * 86400000) ML_SKEW = v;
+  });
+} catch (e) {}
+function mlNow(){ return Date.now() + ML_SKEW; }
+
+/* 送信したとき、届く相手の受信箱の時刻を更新する（本文は入れない） */
+function mlBumpInbox(kind, id){
+  if(!me || !me.uid) return;
+  const v = { last: serverTimestamp(), from: (me.name || "").slice(0, 20) };
+  try{
+    if(kind === "lobby"){
+      update(ref(db, "mlInbox/_lobby"), v);
+    } else if(kind === "dm"){
+      const other = String(id || "").split("__").filter((u) => u && u !== me.uid)[0];
+      if(other) update(ref(db, "mlInbox/" + other), v);
+    } else if(kind === "group"){
+      const gr = (window._groups || {})[id] || {};
+      Object.keys(gr.members || {}).forEach((u) => {
+        if(u && u !== me.uid) update(ref(db, "mlInbox/" + u), v);
+      });
+    }
+  }catch(e){}
+}
+
+/* MagiLink を開いているあいだは「読んだ」ことにする（ポータルの印を消す） */
+function mlMarkRead(){
+  if(!me || !me.uid) return;
+  try{ localStorage.setItem(ML_NOTE_KEY, JSON.stringify({ uid: me.uid, read: mlNow() })); }catch(e){}
+}
+window.mlMarkRead = mlMarkRead;
+/* 見ているあいだは定期的に更新（開きっぱなしでも印が残らないように） */
+setInterval(() => { if(!document.hidden) mlMarkRead(); }, 20000);
+document.addEventListener("visibilitychange", () => { if(!document.hidden) mlMarkRead(); });
+window.addEventListener("pagehide", mlMarkRead);
+
 function chatPath(kind,id){ if(kind==="lobby") return "messages"; if(kind==="dm") return "dms/"+id+"/messages"; return "groups/"+id+"/messages"; }
 function dmThread(a,b){ return [a,b].sort().join("__"); }
 
 function openChat(kind,id,title,sub){
   if(offMessages){ offMessages(); offMessages=null; }
   currentChat={kind,id,path:chatPath(kind,id),title,sub:sub||""};
+  mlMarkRead();
   $("chatTitle").textContent=title; $("chatSub").textContent=sub||"";
   $("chatBack").style.display=(kind==="lobby")?"none":"";
   $("chatInfo").style.display=(kind==="group")?"":"none";
@@ -593,6 +650,7 @@ function openChat(kind,id,title,sub){
       .sort((a,b)=>(a.ts||0)-(b.ts||0))
       .slice(-300);
     renderMessages(list);
+    if(!document.hidden) mlMarkRead();
     if(near) wrap.scrollTop=wrap.scrollHeight;
   });
 }
@@ -710,6 +768,9 @@ function sendMessage(){
   /* 引用返信（v4）: 元の発言のID・送信者・冒頭だけを持たせる（本文まるごとは持たない） */
   if(replyTo) msg.replyTo={ id:replyTo.id, name:replyTo.name||"", text:(replyTo.text||"").slice(0,120) };
   push(ref(db,currentChat.path),msg);
+  /* ★★ 2026-09-02 相手の受信箱（時刻だけ）を更新 → ポータルのアイコンに印が出る */
+  mlBumpInbox(currentChat.kind, currentChat.id);
+  mlMarkRead();
   input.value=""; clearAttach(); cancelReply(); input.focus();
 }
 
