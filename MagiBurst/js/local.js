@@ -76,6 +76,78 @@
     } catch (e) { return null; }
   }
 
+  /* ══════════════════════════════════════════════════════════════
+     ★★ 2026-09-03 合い言葉を <b>QRコードに入る長さ</b>まで短くする
+     ──────────────────────────────────────────────────────────────
+     ご指定:「接続用コードまたはQRコードを表示 → 他の端末がコード入力またはQR読み取り」
+
+     ■ なぜそのままでは QR にできないのか
+       WebRTC の SDP は 1〜2KB あり、圧縮して Base64 にしても 900〜1500 文字。
+       自前の QR（xeva-qr.js）は<b>最大 858 バイト</b>なので入りません。
+
+     ■ 何をしたか
+       SDP は「ほとんど毎回おなじ」形をしています。相手ごとに変わるのは4つだけ:
+         <b>ice-ufrag / ice-pwd / fingerprint(sha-256) / candidate の行</b>
+       この4つだけを運び、受け取った側で<b>同じ型紙に流しこむ</b>ようにしました。
+       これで 300〜450 文字になり、QR に収まります。
+
+     ★ 安全のため<b>2つの形を同時に出します</b>。
+         ・QR … 短い形（v:2）
+         ・文字（コピー＆貼りつけ） … これまでどおり<b>全文</b>（v:1）
+       もし短い形でつながらないブラウザがあっても、貼りつけならかならず通ります。
+     ★ 音声・映像は使わないので、型紙はデータチャネル1本ぶんで足ります。
+     ══════════════════════════════════════════════════════════════ */
+  function sdpPick(sdp) {
+    var u = /^a=ice-ufrag:(.+)$/m.exec(sdp);
+    var pw = /^a=ice-pwd:(.+)$/m.exec(sdp);
+    var f = /^a=fingerprint:sha-256 (.+)$/m.exec(sdp);
+    if (!u || !pw || !f) return null;
+    var cands = [];
+    (sdp.match(/^a=candidate:.+$/gm) || []).forEach(function (line) {
+      var m = /^a=candidate:(\S+) (\d+) (\S+) (\d+) (\S+) (\d+) typ (\S+)/.exec(line);
+      if (!m) return;
+      if (String(m[3]).toLowerCase() !== "udp") return;   /* 同じ Wi-Fi 内では TCP は要らない */
+      if (m[7] !== "host" && m[7] !== "srflx") return;
+      cands.push([m[1], m[2] | 0, m[4] | 0, m[5], m[6] | 0, m[7]]);
+    });
+    if (!cands.length) return null;                       /* 住所が1つも無いならつながらない */
+    return { u: u[1].trim(), p: pw[1].trim(),
+             f: f[1].trim().replace(/:/g, ""), c: cands.slice(0, 8) };
+  }
+  function sdpBuild(o, type) {
+    var fp = (String(o.f).match(/.{2}/g) || []).join(":").toUpperCase();
+    var lines = [
+      "v=0",
+      "o=- " + (Date.now() % 1e10) + " 2 IN IP4 127.0.0.1",
+      "s=-", "t=0 0",
+      "a=group:BUNDLE 0",
+      "a=extmap-allow-mixed",
+      "a=msid-semantic: WMS",
+      "m=application 9 UDP/DTLS/SCTP webrtc-datachannel",
+      "c=IN IP4 0.0.0.0",
+      "a=ice-ufrag:" + o.u,
+      "a=ice-pwd:" + o.p,
+      "a=ice-options:trickle",
+      "a=fingerprint:sha-256 " + fp,
+      "a=setup:" + (type === "offer" ? "actpass" : "active"),
+      "a=mid:0",
+      "a=sctp-port:5000",
+      "a=max-message-size:262144"
+    ];
+    (o.c || []).forEach(function (c) {
+      lines.push("a=candidate:" + c[0] + " " + c[1] + " udp " + c[2] + " " + c[3] +
+                 " " + c[4] + " typ " + c[5] + " generation 0");
+    });
+    return lines.join("\r\n") + "\r\n";
+  }
+  /* 受け取ったコードから SDP を取り出す（短い形・全文のどちらでも） */
+  function sdpOf(o, type) {
+    if (!o) return "";
+    if (o.sdp) return o.sdp;
+    if (o.m) { try { return sdpBuild(o.m, type); } catch (e) { return ""; } }
+    return "";
+  }
+
   /* ══════════ つなぎ方 ══════════
      ★ iceServers は<b>空</b>。インターネットに出ないので、
        相手の住所は同じ Wi-Fi の中のものだけになる（＝オフラインでつながる）。 */
@@ -243,17 +315,21 @@
     pending = p;
     /* ★ クエストも入れておく。ゲストは<b>つなぐ前に</b>どのクエストか分かるので、
          「対応キャラ・ギミック・クリア編成を見ながらキャラを選ぶ」ができる（ご指定）。 */
-    var code = await pack({ v: 1, t: "offer", sdp: pc.localDescription.sdp,
-                            stage: (room.meta && room.meta.stage) || "" });
-    return { ok: true, code: code };
+    var stage = (room.meta && room.meta.stage) || "";
+    var code = await pack({ v: 1, t: "offer", sdp: pc.localDescription.sdp, stage: stage });
+    /* ★★ 2026-09-03 QR 用の短い形（入らなければ空を返す＝画面はコードだけ出す） */
+    var mini = sdpPick(pc.localDescription.sdp);
+    var qr = mini ? await pack({ v: 2, t: "offer", m: mini, stage: stage }) : "";
+    return { ok: true, code: code, qr: qr };
   }
   /* ③ ゲストの「へんじコード」を受け取ってつなぐ */
   async function hostAccept(answerCode) {
     if (!cur || !cur.host || !pending) return { error: "noinvite" };
     var o = await unpack(answerCode);
-    if (!o || o.t !== "answer" || !o.sdp) return { error: "badcode" };
+    var sdp = sdpOf(o, "answer");
+    if (!o || o.t !== "answer" || !sdp) return { error: "badcode" };
     try {
-      await pending.pc.setRemoteDescription({ type: "answer", sdp: o.sdp });
+      await pending.pc.setRemoteDescription({ type: "answer", sdp: sdp });
     } catch (e) { return { error: "badcode" }; }
     peers.push(pending);
     pending = null;
@@ -264,13 +340,14 @@
   /* まねきコードを<b>つなぐ前に</b>のぞく（クエストだけ知る） */
   async function peekInvite(inviteCode) {
     var o = await unpack(inviteCode);
-    if (!o || o.t !== "offer" || !o.sdp) return { error: "badcode" };
+    if (!o || o.t !== "offer" || !sdpOf(o, "offer")) return { error: "badcode" };
     return { ok: true, stage: o.stage || "" };
   }
   /* ② まねきコードを受け取って、へんじコードを作る */
   async function guestAnswer(inviteCode, profile) {
     var o = await unpack(inviteCode);
-    if (!o || o.t !== "offer" || !o.sdp) return { error: "badcode" };
+    var offerSdp = sdpOf(o, "offer");
+    if (!o || o.t !== "offer" || !offerSdp) return { error: "badcode" };
     cur = { uid: profile.uid, host: false };
     peers = []; seenShot = {}; lastRound = -1; room = null;
     var pc = newPC();
@@ -282,14 +359,17 @@
       if (p.dc.readyState === "open") sendTo(p, { t: "hello", profile: profile });
     };
     try {
-      await pc.setRemoteDescription({ type: "offer", sdp: o.sdp });
+      await pc.setRemoteDescription({ type: "offer", sdp: offerSdp });
       var ans = await pc.createAnswer();
       await pc.setLocalDescription(ans);
       await whenIceDone(pc);
     } catch (e) { return { error: "fail" }; }
     peers.push(p);
     var code = await pack({ v: 1, t: "answer", sdp: pc.localDescription.sdp });
-    return { ok: true, code: code };
+    /* ★★ 2026-09-03 ホストがカメラで読めるよう、短い形も返す */
+    var mini = sdpPick(pc.localDescription.sdp);
+    var qr = mini ? await pack({ v: 2, t: "answer", m: mini }) : "";
+    return { ok: true, code: code, qr: qr };
   }
 
   /* ══════════ オンラインと同じ名前の入口 ══════════ */

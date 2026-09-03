@@ -15,8 +15,8 @@
    <b>ふつうの &lt;script&gt;</b>（type="module" ではない）で読むこと。
    トップレベルの const/let はグローバルの字句環境に入るので、
    あとから読み込む MagiBurst 本体のスクリプトからそのまま見える。
-     MagiBurst : <script src="js/mb-core.js?v=68"></script>
-     gacha.html: <script src="MagiBurst/js/mb-core.js?v=68"></script>
+     MagiBurst : <script src="js/mb-core.js?v=75"></script>
+     gacha.html: <script src="MagiBurst/js/mb-core.js?v=75"></script>
 
    ── ホストが先に用意しておくもの ──
      window.MB_IMGD … 画像フォルダへの相対パス（MagiBurst は "../img/"、ポータルは "img/"）
@@ -149,6 +149,27 @@ function elemMultOf(c, d) {
   const m1 = elemMult(c && c.el, d);
   if (!c || !c.el2) return m1;
   return Math.max(m1, elemMult(c.el2, d));
+}
+/* ══ ★★ 2026-09-02 二属性キャラの<b>属性の出しかた</b>（ご指定）══
+   ご報告:「セイラ＆カナヅキの属性を 火＆闇 のように分かりやすく」
+   今までは ELEM[c.el].nm しか出していなかったので、<b>二つめの属性（el2）が画面の
+   どこにも出ていなかった</b>。「闇＆火」のように2つ並べて出す。
+   ★ 並べる順番は<b>リンクスキルの属性が先</b>（ご指定）。
+     リンクスキルは owner.ch.el で打つので、<b>c.el がリンクの属性</b>。
+     だから el → el2 の順に並べればそのままリンク側が先になる。
+   ★ el2 を持たないキャラの見た目は1つも変わらない。 */
+function elemNameOf(c) {
+  if (!c || !ELEM[c.el]) return "";
+  const a = ELEM[c.el].nm;
+  if (!c.el2 || !ELEM[c.el2]) return a;
+  return a + "＆" + ELEM[c.el2].nm;
+}
+/* 属性の丸アイコン。二属性なら<b>2つ並べて</b>返す（順番は同じ）。 */
+function elIconsOf(c, px) {
+  if (!c || typeof elIcon !== "function") return "";
+  const a = elIcon(c.el, px);
+  if (!c.el2) return a;
+  return a + elIcon(c.el2, px);
 }
 /* 撃種イラスト（SVG） */
 function shotSVG(shot, px) {
@@ -1476,28 +1497,17 @@ const TSPL_PER = 4.60;             // 交差1回（敵全体）
 const TSPL_STEP = 1.15;            // 交差するたびの上乗せ
 const TSPL_FINALE = 16.0;          // 最後の合流（敵全体）
 const TSPL_GAP = 8;
+/* ══ ★★ 2026-09-03 RISING STAR FEST 第2弾の共通サブリンク「スターライト・チェイン」══
+   星の鎖が敵を<b>近い順に数珠つなぎ</b>にしていき、結ぶたびに重くなる。
+   つなぎ終わりに、<b>つないだ敵ぜんぶ</b>へ締めの一撃が落ちる。
+   ★ 実体は index.html の fireStarlightChain。威力は SUB_HIT.starlightchain とそろえること。 */
+const SLC_N = 6;                   // つなげる敵の数（上限）
+const SLC_PER = 2.10;              // 1つめの結び目
+const SLC_STEP = 0.55;             // 結ぶたびの上乗せ
+const SLC_FINALE = 9.0;            // つなぎ終わったときの締め（つないだ敵ぜんぶ）
+const SLC_GAP = 8;                 // 結び目どうしの間隔（フレーム）
 /* ── 4体のフルバースト（自強化＋乱打＋波＋フィナーレ）──
    ★ おまけの効果は<b>すでにある効果と同じもの</b>を使う（同じ効果には同じ名前が付く）。 */
-const RIONA_ATK = 3.45, RIONA_SPD = 1.60;
-const RIONA_BARRAGE_N = 78, RIONA_BARRAGE_PER = 2.10;
-const RIONA_WAVE_N = 6, RIONA_WAVE_PER = 4.70, RIONA_WAVE_STEP = 1.55;
-const RIONA_FINALE = 50.0;
-const RIONA_ATKDOWN_TURNS = 4, RIONA_ATKDOWN_MUL = 0.75;   /* 敵全体の攻撃力 −25%（リサと同じ） */
-const MIREIR_ATK = 3.46, MIREIR_SPD = 1.61;
-const MIREIR_BARRAGE_N = 76, MIREIR_BARRAGE_PER = 2.12;
-const MIREIR_WAVE_N = 6, MIREIR_WAVE_PER = 4.80, MIREIR_WAVE_STEP = 1.60;
-const MIREIR_FINALE = 52.0;
-const MIREIR_TEAM_ATK = 1.35, MIREIR_TEAM_TURNS = 3;       /* 味方全員の攻撃力アップ（ミノリと同じ） */
-const SUZUHAR_ATK = 3.48, SUZUHAR_SPD = 1.62;
-const SUZUHAR_BARRAGE_N = 80, SUZUHAR_BARRAGE_PER = 2.08;
-const SUZUHAR_WAVE_N = 6, SUZUHAR_WAVE_PER = 4.60, SUZUHAR_WAVE_STEP = 1.50;
-const SUZUHAR_FINALE = 50.0;
-const SUZUHAR_SIGIL_TURNS = 3;                             /* 敵全体に追加弱点（リンと同じ） */
-const SEIRAK_ATK = 3.50, SEIRAK_SPD = 1.63;
-const SEIRAK_BARRAGE_N = 74, SEIRAK_BARRAGE_PER = 2.16;
-const SEIRAK_WAVE_N = 7, SEIRAK_WAVE_PER = 4.40, SEIRAK_WAVE_STEP = 1.45;
-const SEIRAK_FINALE = 46.0;
-const SEIRAK_BARRIER = 1900;                               /* 味方全員にバリア（チアと同じ） */
 /* ══════════════════════════════════════════════════════════════
    ★★ 2026-09-01 極彩祭 ハノン（光・貫通）
    ------------------------------------------------------------
@@ -3289,6 +3299,19 @@ const SUBFS = {
       + "<br>往復するたびに帯が高くなり、1回ぶんが重くなる"
       + "（×" + RTIDE_PER + " → ×" + (RTIDE_PER + RTIDE_STEP * (RTIDE_N - 1)).toFixed(2) + "）。"
       + "<br>RISING STAR FEST の4体が<b>全員そろって持つ</b>共通のサブリンクです" },
+  /* ══ ★★ 2026-09-03 RISING STAR FEST 第2弾4体の<b>共通</b>サブリンク（ご指定）══ */
+  starlightchain: { nm: "スターライト・チェイン",
+    pow: "星の鎖が敵を近い順に <b>最大" + SLC_N + "体</b> つなぐ（1体目 攻撃力×" + SLC_PER
+      + "・結ぶたびに +" + SLC_STEP + "）＋ つなぎ終わりの締め（<b>つないだ敵ぜんぶ</b>・攻撃力×"
+      + SLC_FINALE + "）／合計 攻撃力×"
+      + (SLC_N * SLC_PER + SLC_STEP * (SLC_N * (SLC_N - 1) / 2) + SLC_FINALE).toFixed(2),
+    desc: "ふれた味方から<b>星の鎖</b>が伸び、<b>近い敵から順に数珠つなぎ</b>にしていく。"
+      + "<br>これまでのサブリンクとちがうのは<b>結ぶ順そのものが威力になる</b>こと——"
+      + "結び目が増えるほど1回ぶんが重くなり（×" + SLC_PER + " → ×"
+      + (SLC_PER + SLC_STEP * (SLC_N - 1)).toFixed(2) + "）、"
+      + "つなぎ終わった瞬間に<b>つないだ敵ぜんぶ</b>へ締めの一撃が落ちる。"
+      + "<br>敵がかたまっているほど鎖が長くのび、<b>1本で盤面をまとめて削れる</b>。"
+      + "<br>RISING STAR FEST <b>第2弾</b>の4体が<b>全員そろって持つ</b>共通のサブリンクです" },
   /* ══ ★★ 2026-09-01 ハノン（極彩祭）だけのサブリンク ══
      ★ 極彩祭・極煌祭のサブリンクは<b>統一しなくてよい</b>（ご指定）ので、
        ヒナノ（ウィークシギル）とは別のものを持たせてある。 */
@@ -9332,25 +9355,21 @@ const CHARS = {
            { t: "houraikillerEL" }, { t: "killerEL", el: "fire" }, { t: "sokojikaraEL" },
            { t: "fsboostEL" }, { t: "barrierEL" }],
     subfs: "risingtide",
-    ssName: "オーシャン・オーヴァチュア", ssTurns: 20, ssKind: "riona",
-    ssPow: "自強化（攻撃×" + RIONA_ATK + "・スピード×" + RIONA_SPD + "）＋ 潮の乱打 "
-      + RIONA_BARRAGE_N + "連（1発 攻撃力×" + RIONA_BARRAGE_PER + "）＋ 大波 "
-      + RIONA_WAVE_N + "発（<b>敵全体</b>・1発 攻撃力×" + RIONA_WAVE_PER + "、寄せるたびに +"
-      + RIONA_WAVE_STEP + "）＋ 締めの高波（<b>敵全体</b>・攻撃力×" + RIONA_FINALE + "）／"
-      + "合計 攻撃力×"
-      + (RIONA_BARRAGE_N * RIONA_BARRAGE_PER + RIONA_WAVE_N * RIONA_WAVE_PER
-         + RIONA_WAVE_STEP * (RIONA_WAVE_N * (RIONA_WAVE_N - 1) / 2) + RIONA_FINALE).toFixed(1)
-      + " ＋ <b>敵全体の攻撃力を " + RIONA_ATKDOWN_TURNS + "ターン "
-      + Math.round((1 - RIONA_ATKDOWN_MUL) * 100) + "%ダウン</b>",
-    ssDesc: "海鳴りとともに<b>自強化（攻撃×" + RIONA_ATK + "・スピード×" + RIONA_SPD + "）</b>し、"
-      + "ふれた敵へ<b>潮の乱打を " + RIONA_BARRAGE_N + "連</b>。"
-      + "<br>そのあと<b>大波が " + RIONA_WAVE_N + "回、敵全体へ寄せる</b>（寄せるたびに重くなる）。"
-      + "<br>最後に<b>締めの高波</b>が敵全体へ落ち、"
-      + "<b>敵全体の攻撃力が " + RIONA_ATKDOWN_TURNS + "ターン "
-      + Math.round((1 - RIONA_ATKDOWN_MUL) * 100) + "%下がる</b>。"
+    ssName: "オーシャン・オーヴァチュア", ssTurns: 20, ssKind: "risa",
+    /* ★★ 2026-09-03 フルバーストは<b>もともとある種類</b>を借りる（ご指定）。
+       敵全体＋敵の攻撃力ダウン（妨害型）。
+       ★ 借り元は<b>フローズン・レクイエム</b>（ssKind: "risa"）。
+         同じ効果なので ssPow / ssDesc / ssTurns も<b>そのまま写して</b>ある。
+         ここを自分で書き直さないこと（実装と数字が食いちがう）。 */
+    ssPow: "自強化（攻撃×" + RISA_ATK + "・スピード×" + RISA_SPD + "）＋ <b>敵全体</b>へ氷結"
+      + "（攻撃力×" + RISA_ALL + "）＋ <b>敵全体の攻撃力を "
+      + RISA_ATKDOWN_TURNS + "ターン " + Math.round((1 - RISA_ATKDOWN_MUL) * 100) + "%ダウン</b>",
+    ssDesc: "盤面ごと凍りついて<b>敵全体</b>へ氷の刃が走る（攻撃力×" + RISA_ALL + "）。"
+      + "<br>あわせて<b>敵全体の攻撃力が " + RISA_ATKDOWN_TURNS + "ターンのあいだ "
+      + Math.round((1 - RISA_ATKDOWN_MUL) * 100) + "%下がる</b>——"
+      + "削りきれずに1周ぶん耐えるとき、受けるダメージがそのまま4分の3になる。"
       + "<br>アンチは<b>超アンチワープ＋超アンチ減速壁＋アンチロックゾーン</b>——"
-      + "この3つで<b>🏯蓬莱仙苑</b>を<b>有利属性のまま</b>完全対応できる。",
-    fsName: "タイダル・クレッシェンド", fsKind: "tidalcrescendo",
+      + "この3つで<b>🏯蓬莱仙苑</b>を<b>有利属性のまま</b>完全対応できる。",    fsName: "タイダル・クレッシェンド", fsKind: "tidalcrescendo",
     fsPow: "寄せ波 " + RTC_N + "回（<b>敵全体</b>・1回 攻撃力×" + RTC_PUSH + "）→ "
       + "引き波 " + RTC_N + "回（<b>敵全体</b>・1回目 攻撃力×" + RTC_PULL0
       + "・もどるたびに +" + RTC_PULL_STEP + "）＋ 締め（<b>敵全体</b>・攻撃力×" + RTC_FINALE + "）／"
@@ -9377,23 +9396,21 @@ const CHARS = {
            { t: "houraikillerEL" }, { t: "killerEL", el: "water" }, { t: "auraEL" },
            { t: "fsboostEL" }, { t: "regenL" }],
     subfs: "risingtide",
-    ssName: "サマーシェイド・ロンド", ssTurns: 20, ssKind: "mireir",
-    ssPow: "自強化（攻撃×" + MIREIR_ATK + "・スピード×" + MIREIR_SPD + "）＋ 木漏れ日の乱打 "
-      + MIREIR_BARRAGE_N + "連（1発 攻撃力×" + MIREIR_BARRAGE_PER + "）＋ 緑光 "
-      + MIREIR_WAVE_N + "発（<b>敵全体</b>・1発 攻撃力×" + MIREIR_WAVE_PER + "、開くたびに +"
-      + MIREIR_WAVE_STEP + "）＋ 締めの一陣（<b>敵全体</b>・攻撃力×" + MIREIR_FINALE + "）／"
-      + "合計 攻撃力×"
-      + (MIREIR_BARRAGE_N * MIREIR_BARRAGE_PER + MIREIR_WAVE_N * MIREIR_WAVE_PER
-         + MIREIR_WAVE_STEP * (MIREIR_WAVE_N * (MIREIR_WAVE_N - 1) / 2) + MIREIR_FINALE).toFixed(1)
-      + " ＋ <b>味方全員の攻撃力を " + MIREIR_TEAM_TURNS + "ターン ×" + MIREIR_TEAM_ATK + "</b>",
-    ssDesc: "日傘がひらいて<b>自強化（攻撃×" + MIREIR_ATK + "・スピード×" + MIREIR_SPD + "）</b>し、"
-      + "<b>木漏れ日の乱打を " + MIREIR_BARRAGE_N + "連</b>。"
-      + "<br>そのあと<b>緑光が " + MIREIR_WAVE_N + "回、敵全体へ</b>（開くたびに重くなる）。"
-      + "<br>最後の一陣とあわせて、<b>味方全員の攻撃力が " + MIREIR_TEAM_TURNS + "ターン ×"
-      + MIREIR_TEAM_ATK + "</b>になる——自分だけでなく<b>チームごと</b>押しこむフルバースト。"
+    ssName: "サマーシェイド・ロンド", ssTurns: 20, ssKind: "minori",
+    /* ★★ 2026-09-03 フルバーストは<b>もともとある種類</b>を借りる（ご指定）。
+       敵全体＋味方全員の攻撃力アップ（バフ型）。
+       ★ 借り元は<b>プリズム・ラプソディ</b>（ssKind: "minori"）。
+         同じ効果なので ssPow / ssDesc / ssTurns も<b>そのまま写して</b>ある。
+         ここを自分で書き直さないこと（実装と数字が食いちがう）。 */
+    ssPow: "自強化（攻撃×" + MINORI_ATK + "・スピード×" + MINORI_SPD + "）＋ <b>敵全体</b>へ七色の光"
+      + "（攻撃力×" + MINORI_ALL + "）＋ <b>味方全員の攻撃力を " + MINORI_TEAM_TURNS
+      + "ターン ×" + MINORI_TEAM_ATK + "</b>",
+    ssDesc: "宝石が砕けて七色の光が散り、<b>敵全体</b>へ降りそそぐ（攻撃力×" + MINORI_ALL + "）。"
+      + "<br>いちばんの働きは<b>味方全員の攻撃力が " + MINORI_TEAM_TURNS + "ターンのあいだ ×"
+      + MINORI_TEAM_ATK + " になる</b>こと——"
+      + "自分ひとりが強くなるのではなく、<b>チームの手番3周ぶんがまるごと重くなる</b>。"
       + "<br>アンチは<b>超アンチダメージウォール＋超アンチワープ＋アンチ断絶界</b>——"
-      + "この3つで<b>🏯蓬莱月宮</b>を<b>有利属性のまま</b>完全対応できる。",
-    fsName: "コモレビ・パラソル", fsKind: "komorebiparasol",
+      + "この3つで<b>🏯蓬莱月宮</b>を<b>有利属性のまま</b>完全対応できる。",    fsName: "コモレビ・パラソル", fsKind: "komorebiparasol",
     fsPow: "日傘が " + KPAR_STEPS + "段にひらき、<b>段ごとに光点が1つずつ増える</b>"
       + "（1段目1つ → " + KPAR_STEPS + "段目" + KPAR_STEPS + "つ・計 "
       + (KPAR_STEPS * (KPAR_STEPS + 1) / 2) + "点／1点 攻撃力×" + KPAR_PER + "・<b>敵全体</b>）"
@@ -9420,23 +9437,20 @@ const CHARS = {
            { t: "houraikillerEL" }, { t: "killerEL", el: "dark" }, { t: "sokojikaraEL" },
            { t: "fsboostEL" }, { t: "laserstopM" }],
     subfs: "risingtide",
-    ssName: "スターリット・レゾナンス", ssTurns: 20, ssKind: "suzuhar",
-    ssPow: "自強化（攻撃×" + SUZUHAR_ATK + "・スピード×" + SUZUHAR_SPD + "）＋ 星屑の乱打 "
-      + SUZUHAR_BARRAGE_N + "連（1発 攻撃力×" + SUZUHAR_BARRAGE_PER + "）＋ 星雨 "
-      + SUZUHAR_WAVE_N + "発（<b>敵全体</b>・1発 攻撃力×" + SUZUHAR_WAVE_PER + "、降るたびに +"
-      + SUZUHAR_WAVE_STEP + "）＋ 締めの一閃（<b>敵全体</b>・攻撃力×" + SUZUHAR_FINALE + "）／"
-      + "合計 攻撃力×"
-      + (SUZUHAR_BARRAGE_N * SUZUHAR_BARRAGE_PER + SUZUHAR_WAVE_N * SUZUHAR_WAVE_PER
-         + SUZUHAR_WAVE_STEP * (SUZUHAR_WAVE_N * (SUZUHAR_WAVE_N - 1) / 2) + SUZUHAR_FINALE).toFixed(1)
-      + " ＋ <b>敵全体に追加弱点を刻む</b>（" + SUZUHAR_SIGIL_TURNS + "ターン）",
-    ssDesc: "星がひとつ落ちて<b>自強化（攻撃×" + SUZUHAR_ATK + "・スピード×" + SUZUHAR_SPD + "）</b>し、"
-      + "<b>星屑の乱打を " + SUZUHAR_BARRAGE_N + "連</b>。"
-      + "<br>そのあと<b>星雨が " + SUZUHAR_WAVE_N + "回、敵全体へ降る</b>（降るたびに重くなる）。"
-      + "<br>締めの一閃とあわせて<b>敵全体に追加の弱点を刻む</b>（" + SUZUHAR_SIGIL_TURNS + "ターン）——"
-      + "貫通の本人はもちろん、<b>チーム全員がこのターンから弱点をねらいやすくなる</b>。"
-      + "<br>アンチは<b>超アンチワープ＋超マインスイーパーEL＋超アンチ減速壁</b>——"
-      + "この3つで<b>🏯蓬莱神天</b>（最奥）を<b>有利属性のまま</b>完全対応できる。",
-    fsName: "スターリット・カスケード", fsKind: "starlitcascade",
+    ssName: "スターリット・レゾナンス", ssTurns: 20, ssKind: "rin",
+    /* ★★ 2026-09-03 フルバーストは<b>もともとある種類</b>を借りる（ご指定）。
+       敵全体＋敵全体に追加弱点（弱点強化型）。
+       ★ 借り元は<b>ローズ・レクイエム</b>（ssKind: "rin"）。
+         同じ効果なので ssPow / ssDesc / ssTurns も<b>そのまま写して</b>ある。
+         ここを自分で書き直さないこと（実装と数字が食いちがう）。 */
+    ssPow: "自強化（攻撃×" + RIN_ATK + "・スピード×" + RIN_SPD + "）＋ <b>敵全体</b>へ黒薔薇の茨"
+      + "（攻撃力×" + RIN_ALL + "）＋ <b>敵全体に追加の弱点を " + RIN_SIGIL_TURNS + "ターン刻む</b>",
+    ssDesc: "聖堂の燭台がいっせいに灯り、<b>敵全体</b>へ黒薔薇の茨が伸びる（攻撃力×" + RIN_ALL + "）。"
+      + "<br>いちばんの働きは<b>敵全体に弱点をもう1つ刻む</b>こと（" + RIN_SIGIL_TURNS + "ターン）——"
+      + "刻んだ弱点は<b>そのまま自分たちで殴れる</b>ので、次の数ターンのあいだ"
+      + "<b>チーム全体の火力がまるごと跳ね上がる</b>。"
+      + "<br>アンチは<b>超アンチダメージウォール＋アンチロックゾーン＋アンチ断絶界</b>——"
+      + "この3つで<b>🏯蓬莱天界</b>を<b>有利属性のまま</b>完全対応できる。",    fsName: "スターリット・カスケード", fsKind: "starlitcascade",
     fsPow: "星が " + SCAS_STEPS + "段に落ち、<b>段を降りるたびに割れて数が倍</b>になる"
       + "（1 → 2 → 4 → 8 → " + Math.pow(2, SCAS_STEPS - 1) + "・計 "
       + (Math.pow(2, SCAS_STEPS) - 1) + "粒／1粒 攻撃力×" + SCAS_PER + "・<b>敵全体</b>）"
@@ -9466,24 +9480,23 @@ const CHARS = {
            { t: "houraikillerEL" }, { t: "killerEL", el: "light" }, { t: "auraEL" },
            { t: "fsboostEL" }, { t: "dashL" }],
     subfs: "risingtide",
-    ssName: "ダブル・スプラッシュフィナーレ", ssTurns: 20, ssKind: "seirak",
-    ssPow: "自強化（攻撃×" + SEIRAK_ATK + "・スピード×" + SEIRAK_SPD + "）＋ 二丁の乱打 "
-      + SEIRAK_BARRAGE_N + "連（1発 攻撃力×" + SEIRAK_BARRAGE_PER + "）＋ 交差 "
-      + SEIRAK_WAVE_N + "発（<b>敵全体</b>・1発 攻撃力×" + SEIRAK_WAVE_PER + "、交わるたびに +"
-      + SEIRAK_WAVE_STEP + "）＋ 締めの合流（<b>敵全体</b>・攻撃力×" + SEIRAK_FINALE + "）／"
-      + "合計 攻撃力×"
-      + (SEIRAK_BARRAGE_N * SEIRAK_BARRAGE_PER + SEIRAK_WAVE_N * SEIRAK_WAVE_PER
-         + SEIRAK_WAVE_STEP * (SEIRAK_WAVE_N * (SEIRAK_WAVE_N - 1) / 2) + SEIRAK_FINALE).toFixed(1)
-      + " ＋ <b>味方全員に " + SEIRAK_BARRIER + " のバリア</b>",
-    ssDesc: "2人が背中合わせに構えて<b>自強化（攻撃×" + SEIRAK_ATK + "・スピード×"
-      + SEIRAK_SPD + "）</b>し、<b>二丁の乱打を " + SEIRAK_BARRAGE_N + "連</b>。"
-      + "<br>そのあと<b>2本の水流が " + SEIRAK_WAVE_N + "回、敵全体で交差する</b>（交わるたびに重くなる）。"
-      + "<br>締めの合流とあわせて<b>味方全員に " + SEIRAK_BARRIER + " のバリア</b>を張る。"
-      + "<br>★ このキャラだけ<b>属性が2つ</b>——<b>闇と火のどちらでも有利相性が取れる</b>ので、"
-      + "<b>🏯蓬莱天界（光）</b>と<b>🏯蓬莱神域（木）</b>の<b>両方で有利属性</b>になる"
-      + "（アンチで完全対応できるのは蓬莱天界のほう）。"
-      + "<br>アンチは<b>超アンチダメージウォール＋アンチロックゾーン＋アンチ断絶界</b>。",
-    fsName: "ツインスプラッシュ", fsKind: "twinsplash",
+    ssName: "ダブル・スプラッシュフィナーレ", ssTurns: 18, ssKind: "elena",
+    /* ★★ 2026-09-03 フルバーストは<b>もともとある種類</b>を借りる（ご指定）。
+       突撃＋支援（2人1組のダブル型）。
+       ★ 借り元は<b>アクア・ダブルレクイエム</b>（ssKind: "elena"）。
+         同じ効果なので ssPow / ssDesc / ssTurns も<b>そのまま写して</b>ある。
+         ここを自分で書き直さないこと（実装と数字が食いちがう）。 */
+    ssPow: "自強化（攻撃×" + ELENA_ATK + "・スピード×" + ELENA_SPD + "）＋ <b>撃った瞬間に味方全員で総攻撃</b>／"
+      + "<b>止まったあと もう一度動き出し、そのときも味方全員で総攻撃</b>",
+    ssDesc: "蒼波をまとって<b>自強化（攻撃×" + ELENA_ATK + "・スピード×" + ELENA_SPD + "）</b>し、"
+      + "<b>撃った瞬間に味方全員が突撃</b>する。"
+      + "<br>そして<b>自分が止まったあと、もう一度ひとりでに動き出し</b>、"
+      + "<b>その2回目にも味方全員がもう一度突撃</b>する——"
+      + "<b>1回のフルバーストで総攻撃が2回</b>入る、味方の数がそのまま火力になるタイプ。"
+      + "<br><b>エターナルエーテルM</b>で<b>各WAVEをエーテル" + ETERNAL_PHOTON_M_N + "個</b>から始められるので、"
+      + "運搬クエストでは初手から仕事ができる。"
+      + "<b>敵少底力EL</b>は残りが少なくなった場面で刺さり、<b>FBターン短縮</b>で2回目以降も回りやすい。"
+      + "<br><b>超アンチ重力バリア・超アンチ減速壁・アンチロックゾーン</b>の3種持ちで、足を止められない。",    fsName: "ツインスプラッシュ", fsKind: "twinsplash",
     fsPow: "2本の水流が " + TSPL_N + "回 交差（<b>敵全体</b>・1回 攻撃力×" + TSPL_PER
       + "・交わるたびに +" + TSPL_STEP + "）＋ 締めの合流（<b>敵全体</b>・攻撃力×" + TSPL_FINALE + "）／"
       + "合計 攻撃力×"
@@ -9494,6 +9507,195 @@ const CHARS = {
       + "<br>交差のたびに<b>敵全体</b>へ入るので、位置に関係なく最後まで届く。"
       + "<br>" + TSPL_N + "回 交わりきると2本が1本に合わさり、<b>敵全体へ締めの一撃</b>"
       + "（攻撃力×" + TSPL_FINALE + "）",
+  },
+  /* ══════════════════════════════════════════════════════════════
+     ★★ 2026-09-03 RISING STAR FEST <b>第2弾</b> — シズル／ユウリ／ヒスイ／ライカ
+     ------------------------------------------------------------
+     ★ 決まりは1弾目と同じ: <b>アビリティ8つ（アンチ3＋キラー3＋そのほか2）</b>、
+       <b>オムニアンチ・治癒の祈り・クロススキルは持たない</b>。
+     ★ 4体とも<b>キラー3つ目が 弱点キラーEL</b>——ここが1弾目より強い理由。
+       蓬莱のボスは弱点が常に出ていて壁ぎわに寄せてあるので、
+       挟まって弱点を通し続ければ<b>自分の意思で×3.0を乗せられる</b>。
+     ★ 検算は charAntiKeys(id) ⊇ counterKeysOf(HOURAI_STAGES[i]) で機械的に取れる。
+     ══════════════════════════════════════════════════════════════ */
+  shizuru: {
+    /* 水・反射。夕暮れの渚。ヘッドホンから潮騒が鳴っている。
+       ★ 担当は<b>蓬莱仙苑（火 {warp,slowwall,lockzone}）</b>
+         ＝ 超アンチワープ＋超アンチ減速壁＋アンチロックゾーン。水は火に有利。
+       ★ 検算は charAntiKeys("shizuru") ⊇ counterKeysOf(HOURAI_STAGES[10])。
+       ★ リオナ（水・貫通）と同じ担当だが<b>撃種が反射</b>。壁を使って挟まれる。 */
+    id: "shizuru", nm: "シズル", img: "Shizuru.webp", th: "t_Shizuru.webp",
+    el: "water", shot: "bounce", type: "潮汐残響型", gacha: true, fes: true, fesKey: "rising", star5: true,
+    nexus: "risingstar",
+    hp: [1118, 7360], atk: [618, 3918], spd: [330, 494],
+    abil: [{ t: "superaw" }, { t: "superaslow" }, { t: "antilock" },
+           { t: "houraikillerEL" }, { t: "killerEL", el: "fire" }, { t: "weakkillerEL" },
+           { t: "wallboostEL" }, { t: "dashL" }],
+    subfs: "starlightchain",
+    ssName: "サンセット・レゾナンス", ssTurns: 22, ssKind: "kotomi",
+    /* ★★ 2026-09-03 フルバーストは<b>もともとある種類</b>を借りる（ご指定）。
+       攻撃しない純支援型。
+       ★ 借り元は<b>ノクス・ルミナリエ</b>（ssKind: "kotomi"）。
+         同じ効果なので ssPow / ssDesc / ssTurns も<b>そのまま写して</b>ある。
+         ここを自分で書き直さないこと（実装と数字が食いちがう）。 */
+    ssPow: "自強化（攻撃×1.8・スピード×1.25）＋ <b>ふれた味方のステータスを×2.0</b>（その味方が2回行動するまで）",
+    ssDesc: "<b>夜の光をまとって自強化</b>（攻撃×1.8・スピード×1.25）し、"
+      + "<b>このショットでふれた味方すべてのステータス（攻撃力・スピード）を×2.0</b>に引き上げる。"
+      + "強化は<b>その味方が2回行動し終えるまで</b>続くので、味方の大技に合わせて撃ちこめば一気に決着がつく。"
+      + "<b>リンク×2</b>と<b>ラウンドチャージ</b>を併せ持つので、なぞるだけでチームのフルバーストも回り出す。",    fsName: "クロスノート", fsKind: "crossnote",
+    /* ★★ 2026-09-03 リンクスキルは<b>既存のもの</b>。同じ名前の技は同じ効果、という決まりなので
+       説明文（fsPow / fsDesc）は<b>もとのキャラのものをそのまま写して</b>ある。
+       ★ ここを自分で書き直さないこと（数字が食いちがう）。 */
+    fsPow: "<b>敵と敵を結ぶ線</b>を最大 " + XNOTE_LINES + "本、盤面をつらぬいて引く"
+      + "（線上の敵に 攻撃力×" + XNOTE_PER + "）／<b>線どうしの交点</b>すべてで 攻撃力×"
+      + XNOTE_CROSS_PER + "（半径 " + XNOTE_CROSS_R + "）の爆発",
+    fsDesc: "<b>敵と敵を結んだ線</b>が、黒板の線のように盤面をつらぬいて引かれる。"
+      + "<br>いちばんのちがいは<b>線どうしが交わった点で爆発する</b>こと。"
+      + "線が " + XNOTE_LINES + "本そろえば交点は最大 " + (XNOTE_LINES * (XNOTE_LINES - 1) / 2)
+      + " 個——<b>敵が多いほど爆発の数が増える</b>。"
+      + "<br>線そのものより<b>交点のほうが重い</b>（×" + XNOTE_PER + " に対して ×" + XNOTE_CROSS_PER + "）ので、"
+      + "<b>敵がバラバラに散っている盤面</b>でいちばん伸びる。"
+      + "<br>敵を結ぶステラコンステレーション・味方を結ぶハイドロアリウープと並ぶ、"
+      + "<b>「線」を武器にする3つ目の形</b>",
+  },
+  yuuri: {
+    /* 木・貫通。黒猫のゴシック。爪あとが十字に走る。
+       ★ 担当は<b>蓬莱月宮（水 {dw,warp,ward}）</b>
+         ＝ 超アンチダメージウォール＋超アンチワープ＋アンチ断絶界。木は水に有利。
+       ★ 検算は charAntiKeys("yuuri") ⊇ counterKeysOf(HOURAI_STAGES[11])。
+       ★ ミレイ（木・反射）と同じ担当だが<b>撃種が貫通</b>。 */
+    id: "yuuri", nm: "ユウリ", img: "Yuuri.webp", th: "t_Yuuri.webp",
+    el: "wood", shot: "pierce", type: "黒猫夜想型", gacha: true, fes: true, fesKey: "rising", star5: true,
+    nexus: "risingstar",
+    hp: [1124, 7400], atk: [616, 3906], spd: [336, 502],
+    abil: [{ t: "superadw" }, { t: "superaw" }, { t: "award" },
+           { t: "houraikillerEL" }, { t: "killerEL", el: "water" }, { t: "weakkillerEL" },
+           { t: "lightningEL" }, { t: "dashL" }],
+    subfs: "starlightchain",
+    ssName: "ノクターン・クロウ", ssTurns: 14, ssKind: "iori",
+    /* ★★ 2026-09-03 フルバーストは<b>もともとある種類</b>を借りる（ご指定）。
+       自強化して単体へ突撃（体当たり型）。
+       ★ 借り元は<b>夜刀・カラミティエッジ</b>（ssKind: "iori"）。
+         同じ効果なので ssPow / ssDesc / ssTurns も<b>そのまま写して</b>ある。
+         ここを自分で書き直さないこと（実装と数字が食いちがう）。 */
+    ssPow: "自強化（攻撃×1.8・スピード×1.3）＋ <b>ダメージウォールにふれるたび攻撃力UP（最大×10.0）</b>",
+    ssDesc: "<b>宵闇の刃をまとって自強化（攻撃×1.8・スピード×1.3）</b>し、"
+      + "そこから<b>ダメージウォールにふれるたびに攻撃力がどんどん上がっていく（最大×10.0）</b>。"
+      + "<b>超アンチダメージウォール</b>を持っているのでDWでダメージは受けず、"
+      + "ふつうなら避けて通る灼けた壁が、そのまま<b>火力をためる燃料</b>に変わるのがこのフルバーストの核心。"
+      + "<b>DWのあるクエストでは最大級の一撃</b>を、逆にDWの無いクエストでは自強化ぶんだけを撃つ、はっきり尖った切り札。",    fsName: "ジュエル・カット", fsKind: "jewelcut",
+    /* ★★ 2026-09-03 リンクスキルは<b>既存のもの</b>。同じ名前の技は同じ効果、という決まりなので
+       説明文（fsPow / fsDesc）は<b>もとのキャラのものをそのまま写して</b>ある。
+       ★ ここを自分で書き直さないこと（数字が食いちがう）。 */
+    fsPow: "宝石のカット面が <b>" + JCUT_FROM + "角形 → " + JCUT_TO
+      + "角形</b> へ面を増やしながら<b>外へ広がる</b>（半径 " + JCUT_R0 + " → " + JCUT_R1 + "・辺の太さ " + JCUT_W
+      + "）／1段 攻撃力×" + JCUT_PER + "・面が増えるたびに +" + JCUT_STEP + "／合計 攻撃力×"
+      + ((JCUT_TO - JCUT_FROM + 1) * JCUT_PER
+         + JCUT_STEP * ((JCUT_TO - JCUT_FROM + 1) * (JCUT_TO - JCUT_FROM) / 2)).toFixed(1),
+    fsDesc: "ふれた味方を中心に、宝石の<b>カット面</b>が光の線で描かれる。"
+      + "<br>これまでに無いのは<b>形そのものが育っていく</b>こと——"
+      + "はじめは<b>" + JCUT_FROM + "角形</b>、次は4角形…と<b>1段ごとに頂点が1つ増え</b>、"
+      + "最後は<b>" + JCUT_TO + "角形</b>になる。しかも<b>面が増えるのに合わせて外へ広がる</b>"
+      + "（半径 " + JCUT_R0 + " → " + JCUT_R1 + "）ので、"
+      + "<b>近い敵は早い段、遠い敵は後の段</b>で必ずどれかの辺が通る。"
+      + "<br>しかも<b>面が増えるたびに1段が重くなる</b>（×" + JCUT_PER + " → ×"
+      + (JCUT_PER + JCUT_STEP * (JCUT_TO - JCUT_FROM)).toFixed(2) + "）ので、"
+      + "<b>後半ほど当たりやすく、しかも重い</b>",
+  },
+  hisui: {
+    /* 火・貫通。緋い瞳と夜桜。ひとりで燃えている。
+       ★ 担当は<b>蓬莱神域（木 {grav,mine,lockzone}）</b>
+         ＝ 超アンチ重力バリア＋超マインスイーパーEL＋アンチロックゾーン。火は木に有利。
+       ★ 検算は charAntiKeys("hisui") ⊇ counterKeysOf(HOURAI_STAGES[12])。
+       ★ セイラ＆カナヅキ（火の側）と同じ担当だが、<b>火の単属性でアンチが完全一致</b>する。 */
+    id: "hisui", nm: "ヒスイ", img: "Hisui.webp", th: "t_Hisui.webp",
+    el: "fire", shot: "pierce", type: "緋眼夜桜型", gacha: true, fes: true, fesKey: "rising", star5: true,
+    nexus: "risingstar",
+    hp: [1130, 7440], atk: [622, 3944], spd: [332, 498],
+    abil: [{ t: "sgrav" }, { t: "supermsEL" }, { t: "antilock" },
+           { t: "houraikillerEL" }, { t: "killerEL", el: "wood" }, { t: "weakkillerEL" },
+           { t: "lightningEL" }, { t: "soulEL" }],
+    subfs: "starlightchain",
+    ssName: "スカーレット・ブロッサム", ssTurns: 17, ssKind: "kurenai",
+    /* ★★ 2026-09-03 フルバーストは<b>もともとある種類</b>を借りる（ご指定）。
+       敵全体＋チーム回復（回復型）。
+       ★ 借り元は<b>クレナイ・ゆけむり天上</b>（ssKind: "kurenai"）。
+         同じ効果なので ssPow / ssDesc / ssTurns も<b>そのまま写して</b>ある。
+         ここを自分で書き直さないこと（実装と数字が食いちがう）。 */
+    ssPow: "自強化（攻撃×2.50・スピード×1.28）＋ <b>敵全体</b>へ 攻撃力×2.30 の熱波"
+      + " ＋ <b>チームHPを35%回復</b>",
+    ssDesc: "湯けむりが天井まで立ちのぼり、<b>自強化（攻撃×2.50・スピード×1.28）</b>して"
+      + "<b>敵全体へ熱波</b>を浴びせる（攻撃力×2.30）。"
+      + "<br>いちばんの働きは<b>チームHPを35%も戻す</b>こと——"
+      + "削り合いの真ん中で撃てば、そのまま立て直せる。"
+      + "<br>アンチは<b>超アンチダメージウォール＋超アンチ重力バリア＋超マインスイーパーEL</b>——"
+      + "これだけで<b>🏯第八重</b>を有利属性のまま完全対応でき、"
+      + "クロススキルの<b>アンチ断絶界</b>が点くと<b>🏯第三重</b>も完全対応になる。",    fsName: "ランタン・フェスティバル", fsKind: "lanternfes",
+    /* ★★ 2026-09-03 リンクスキルは<b>既存のもの</b>。同じ名前の技は同じ効果、という決まりなので
+       説明文（fsPow / fsDesc）は<b>もとのキャラのものをそのまま写して</b>ある。
+       ★ ここを自分で書き直さないこと（数字が食いちがう）。 */
+    fsPow: "<b>味方全員の足もとから灯籠</b>が上がり（線上の敵に 攻撃力×" + LANFES_LIFT_PER + "）、"
+      + "上がりきった灯籠が<b>1つずつ開いて敵全体</b>へ（1発 攻撃力×" + LANFES_BURST_PER
+      + "・開くたびに +" + LANFES_BURST_STEP + "）＋ <b>大玉 敵全体へ 攻撃力×" + LANFES_FINALE + "</b>",
+    fsDesc: "<b>味方全員の足もとから灯籠が浮かび上がる</b>。"
+      + "上がっていく線にふれた敵は削られ（1本 攻撃力×" + LANFES_LIFT_PER + "）、"
+      + "上がりきった灯籠が<b>1つずつ順に開いて、そのたび敵全体</b>に入る"
+      + "（1つ目 ×" + LANFES_BURST_PER + "、開くたびに +" + LANFES_BURST_STEP + "）。"
+      + "<br>これまでに無いのは<b>灯籠の数が「盤面に残っている味方の数」で決まる</b>こと——"
+      + "<b>味方が多く残っているほど強い</b>リンクスキルは MagiBurst 初。"
+      + "<br>最後に<b>大玉</b>が開いて<b>敵全体へ 攻撃力×" + LANFES_FINALE + "</b>。"
+      + "<br>灯籠4つぶんで合計は1体あたり 攻撃力×"
+      + (LANFES_MAX * LANFES_LIFT_PER + LANFES_MAX * LANFES_BURST_PER
+         + LANFES_BURST_STEP * (LANFES_MAX * (LANFES_MAX - 1) / 2) + LANFES_FINALE).toFixed(1)
+      + " ——アンナ(STAR) の<b>アストラル・ソヴリン</b>（×"
+      + (ANNA_TICKS * ANNA_PER + ANNA_STEP * (ANNA_TICKS * (ANNA_TICKS - 1) / 2) + ANNA_FINALE).toFixed(2)
+      + "）を超える、2026-08-30 時点でいちばん重いリンクスキルでした"
+      + "（いまは<b>ハノン</b>の<b>セレスト・ドミナンス</b>がいちばん重い）",
+  },
+  raika: {
+    /* 闇・反射。深紅のネクタイと黒薔薇。号令ひとつで盤面が動く。
+       ★ 担当は<b>蓬莱天界（光 {dw,lockzone,ward}）</b>
+         ＝ 超アンチダメージウォール＋アンチロックゾーン＋アンチ断絶界。闇は光に有利。
+       ★ 検算は charAntiKeys("raika") ⊇ counterKeysOf(HOURAI_STAGES[13])。
+       ★ セイラ＆カナヅキ（闇の側）と同じ担当。あちらは二属性、こちらは<b>闇に全振り</b>。 */
+    id: "raika", nm: "ライカ", img: "Raika.webp", th: "t_Raika.webp",
+    el: "dark", shot: "bounce", type: "黒薔薇統率型", gacha: true, fes: true, fesKey: "rising", star5: true,
+    nexus: "risingstar",
+    hp: [1136, 7480], atk: [614, 3894], spd: [328, 490],
+    abil: [{ t: "superadw" }, { t: "antilock" }, { t: "award" },
+           { t: "houraikillerEL" }, { t: "killerEL", el: "light" }, { t: "weakkillerEL" },
+           { t: "wallboostEL" }, { t: "barrierEL" }],
+    subfs: "starlightchain",
+    ssName: "クリムゾン・オーダー", ssTurns: SCARLET_TURNS, ssKind: "scarlet",
+    /* ★★ 2026-09-03 フルバーストは<b>もともとある種類</b>を借りる（ご指定）。
+       妨害＋支援（サポート型）。
+       ★ 借り元は<b>アビス・ティアーズ・ソナタ</b>（ssKind: "scarlet"）。
+         同じ効果なので ssPow / ssDesc / ssTurns も<b>そのまま写して</b>ある。
+         ここを自分で書き直さないこと（実装と数字が食いちがう）。 */
+    ssPow: "自強化（攻撃×" + SCARLET_ATK + "・スピード×" + SCARLET_SPD + "）＋ <b>チームHPを"
+      + Math.round(SCARLET_HEAL * 100) + "%回復</b> ＋ <b>敵全体の攻撃ターンを" + SCARLET_DELAY + "遅延（即死のカウントも）</b>",
+    ssDesc: "蒼い涙が盤面いっぱいに降り、<b>自強化（攻撃×" + SCARLET_ATK + "・スピード×" + SCARLET_SPD + "）</b>して走り出す。"
+      + "<br>同時に<b>チームHPを最大HPの" + Math.round(SCARLET_HEAL * 100) + "%回復</b>し、"
+      + "<b>画面上のすべての敵の攻撃ターンを" + SCARLET_DELAY + "遅らせる</b>"
+      + "（<b>即死のカウントも同じだけ後ろへ</b>ずれる）。"
+      + "削りきれずに1ターン足りない——という場面を、<b>回復と遅延の両方から</b>引き延ばす立て直しのフルバースト。"
+      + "<br><b>超アンチダメージウォール・超アンチ重力バリア</b>は<b>第一重（火）の必要アンチとぴったり一致</b>し、"
+      + "<b>火属性キラーEL</b>と属性有利が重なる第一重の最適解。"
+      + "3つ目の<b>超アンチ減速壁</b>があるので、減速壁の張られた第六重でも足を止められない。"
+      + "<b>ボスキラーM</b>と<b>リジェネL</b>で、長い削り合いほど強くなる。",    fsName: "クロスグレイヴ", fsKind: "crossgrave",
+    /* ★★ 2026-09-03 リンクスキルは<b>既存のもの</b>。同じ名前の技は同じ効果、という決まりなので
+       説明文（fsPow / fsDesc）は<b>もとのキャラのものをそのまま写して</b>ある。
+       ★ ここを自分で書き直さないこと（数字が食いちがう）。 */
+    fsPow: "黒十字の刃（貫通・壁で" + YUUKA_BOUNCE + "回反射・刻印 攻撃力×" + YUUKA_MARK_PER + "）＋ 走りきると<b>刻印がいっせいに起爆</b> 1つ 攻撃力×"
+      + YUUKA_BOOM_PER + "（刻印1つ増えるごとに全部へ +" + YUUKA_STEP + "／最大" + YUUKA_CAP + "つぶんまで）",
+    fsDesc: "黒い十字の刃がまっすぐ走り、<b>敵を貫通しながら通り道の敵すべてに十字の刻印</b>を刻む。"
+      + "刃は<b>壁で" + YUUKA_BOUNCE + "回まで折り返す</b>ので、1本の線では届かない敵にも回りこむ。"
+      + "<br>そして刃が走りきった瞬間、<b>刻んだ十字がいっせいに起爆</b>する。"
+      + "<br>いちばんのちがいは<b>刻印の数が多いほど、1つあたりの威力も上がる</b>こと"
+      + "（1つ増えるごとに全部へ +" + YUUKA_STEP + "・" + YUUKA_CAP + "つぶんまで）。"
+      + "" + YUUKA_CAP + "体を1本の線に通せたときは、1つあたり<b>攻撃力×"
+      + (YUUKA_BOOM_PER + YUUKA_STEP * (YUUKA_CAP - 1)).toFixed(2) + "</b>まで育つ——"
+      + "<b>敵の並びを一直線に見つける</b>のが、そのまま火力になる技",
   },
   /* ══════════════════════════════════════════════════════════════
      ★★ 2026-09-01 極彩祭 ハノン（光・貫通）
@@ -9737,6 +9939,11 @@ const CHAR_IDS = [
   "riona", "mireir", "suzuhar", "seirak",
   /* ★★ 2026-09-01 極彩祭 ハノン（No.192） */
   "hanon",
+  /* ★★ 2026-09-03 RISING STAR FEST 第2弾 4体（No.193〜196）
+     （シズル・ユウリ・ヒスイ・ライカ）。
+     ★ 新キャラは必ず<b>いちばん最後に追記</b>すること（既存の No. がずれないように）。
+     ★ xeva.js の MB_CHAR_MASTER も同じ並びにそろえること（並び＝No.）。 */
+  "shizuru", "yuuri", "hisui", "raika",
 ];
 /* id → キャラクター番号（1始まり）。図鑑・詳細・ガチャ結果に「No.XX」として出す */
 const CHAR_NO = {};
@@ -9868,6 +10075,19 @@ const BATTLE_TYPES = {
      6. どれにも寄っていない …… バランス型
    ★ 新キャラを足したら、必ずここにも1行足すこと（抜けると自動で balance になる）。 */
 const CHAR_TYPE = {
+  /* ── ★★ 2026-09-03 RISING STAR FEST 第2弾（No.193〜196） ── */
+  shizuru: "striker", /* キラー3つ（弱点キラーEL含む）＋ウォールブーストEL＝壁を使って一点を溶かす */
+  yuuri: "speed",     /* 全キャラ最速級（502）＋ダッシュL＋貫通＝走って弱点を通す */
+  hisui: "striker",   /* ライトニングEL＋ソウルスティールEL＝削り合いでも手が止まらない */
+  raika: "support",   /* 味方全員の攻撃力×1.45（4T）＋バリアEL＝チーム全体を押し上げる */
+  /* ★★ 2026-09-03 登録もれの修正。RISING STAR FEST 1弾目の4体とハノンは
+     CHAR_TYPE に無く、すべて既定の「バランス型」として表示・絞り込みされていた
+     （2026-08-08c と同じ型の抜け）。 */
+  riona: "striker",   /* キラー3つ＋乱戓78連＋敵全体の攻撃力ダウン */
+  mireir: "support",  /* 味方全員の攻撃力アップ＋リジェネL */
+  suzuhar: "striker", /* 敵全体に追加弱点＋段ごとに倍に割れる星 */
+  seirak: "striker",  /* 二属性＋味方全員にバリア */
+  hanon: "striker",   /* 乱打110連＋ブザービーター＝史上最大の火力 */
   /* ── ★★ 2026-08-28 極華祭（No.174） ── */
   kotori: "striker",  /* キラー4つ＋史上最大火力の乱打FB＝一点を溶かしきる */
   /* ★★ 2026-08-29 極煌祭 レイナ／戦姫祭6体 */
@@ -10326,8 +10546,14 @@ function arcMulOf(arcTable, el, k) {
 /* レベル・限界突破を明示してステータスを計算（オンラインでは他プレイヤーの値をそのまま使う） */
 function statsOf(id, lv, awk, arc) {
   const c = CHARS[id];
-  /* ★ 超越の書でLv.60まで伸ばせるので、上限は TRANS_LV。Lv.51以降は同じ伸び幅で外挿する */
-  lv = clamp(lv || 1, 1, TRANS_LV); awk = clamp(awk || 0, 0, MAX_AWK);
+  /* ★★ 2026-09-02 ご報告:「育成で Lv.70 にしてもステータスに反映されない」の真因。
+     ここで lv を <b>TRANS_LV（60）で頭打ち</b>にしていたので、
+     九天の玉簡で Lv.70 まで上げても、得られる数字は Lv.60 のままだった
+     （図鑑・編成・バトル・助っ人のすべてがこの1か所を通る）。
+     上限を <b>JADE_LV（70）</b>にする。Lv.51 以降はこれまでどおり同じ伸び幅で外挿する。
+     ★ レベルそのものの上限（どこまで上げられるか）は lvCapOf() が決める。
+       ここは「渡された lv で数字を作る」だけなので、常に上限いっぱいまで許す。 */
+  lv = clamp(lv || 1, 1, JADE_LV); awk = clamp(awk || 0, 0, MAX_AWK);
   /* ★ 2026-08-05 アーク強化（属性ごとに振ったポイント）をここで合流させる。
      ここ1か所に入れておけば、図鑑・編成・バトル・助っ人のどこから見ても同じ数字になる。
      ★ 2026-08-11 作り直し: アークは<b>そのアカウントが持っているキャラにだけ</b>効く。
@@ -12019,6 +12245,26 @@ function drawFsGlyph(kind, c, g) {
       ctx.beginPath(); ctx.moveTo(6.4, -9.6);  ctx.lineTo(9.4, -6.6);  ctx.lineTo(6.4, -3.6);  ctx.stroke();
       ctx.globalAlpha = 1; ctx.lineWidth = 2; break;
     }
+    case "starlightchain": {   /* スターライト・チェイン（星を数珠つなぎにする鎖） */
+      /* 鎖の線 → その上に大きさのちがう星を4つ。結ぶほど大きくなるのを絵でも見せる。 */
+      const pts = [[-9.4, 6.6], [-3.4, 1.2], [2.8, 3.4], [9.0, -6.2]];
+      ctx.lineWidth = 1.5; ctx.globalAlpha = 0.7;
+      ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]);
+      for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
+      ctx.stroke();
+      ctx.globalAlpha = 1; ctx.lineWidth = 1.8;
+      pts.forEach((q, i) => {
+        const r = 2.0 + i * 0.9;
+        ctx.beginPath();
+        for (let k = 0; k < 4; k++) {
+          const a = (Math.PI / 2) * k + Math.PI / 4;
+          ctx.moveTo(q[0], q[1]); ctx.lineTo(q[0] + Math.cos(a) * r, q[1] + Math.sin(a) * r);
+        }
+        ctx.stroke();
+      });
+      ctx.lineWidth = 2; break;
+    }
+
     /* ══ ★★ 2026-09-01 ハノン（極彩祭）の1本＋サブリンク1本 ══
        ★ ここ（drawFsGlyph）と drawSubGlyph は<b>別の switch</b>。両方に同じ case を置くこと。 */
     case "celestdominance": {  /* セレスト・ドミナンス（かさなっていく光の輪） */
@@ -12345,6 +12591,26 @@ function drawSubGlyph(kind, c, g) {
       ctx.beginPath(); ctx.moveTo(6.4, -9.6);  ctx.lineTo(9.4, -6.6);  ctx.lineTo(6.4, -3.6);  ctx.stroke();
       ctx.globalAlpha = 1; ctx.lineWidth = 2; break;
     }
+    case "starlightchain": {   /* スターライト・チェイン（星を数珠つなぎにする鎖） */
+      /* 鎖の線 → その上に大きさのちがう星を4つ。結ぶほど大きくなるのを絵でも見せる。 */
+      const pts = [[-9.4, 6.6], [-3.4, 1.2], [2.8, 3.4], [9.0, -6.2]];
+      ctx.lineWidth = 1.5; ctx.globalAlpha = 0.7;
+      ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]);
+      for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
+      ctx.stroke();
+      ctx.globalAlpha = 1; ctx.lineWidth = 1.8;
+      pts.forEach((q, i) => {
+        const r = 2.0 + i * 0.9;
+        ctx.beginPath();
+        for (let k = 0; k < 4; k++) {
+          const a = (Math.PI / 2) * k + Math.PI / 4;
+          ctx.moveTo(q[0], q[1]); ctx.lineTo(q[0] + Math.cos(a) * r, q[1] + Math.sin(a) * r);
+        }
+        ctx.stroke();
+      });
+      ctx.lineWidth = 2; break;
+    }
+
     /* ══ ★★ 2026-09-01 ハノン（極彩祭）の1本＋サブリンク1本 ══
        ★ ここ（drawFsGlyph）と drawSubGlyph は<b>別の switch</b>。両方に同じ case を置くこと。 */
     case "celestdominance": {  /* セレスト・ドミナンス（かさなっていく光の輪） */
@@ -16628,32 +16894,57 @@ FESTS.fes12 = {
   banner: "../img/bn_fes12_s.webp", c: "#38a6ff", leadCls: "star",
   rising: true,
   since: "2026-09-01",
-  chars: ["riona", "mireir", "suzuhar", "seirak"],
+  /* ★★ 2026-09-03 限定が8体になったので、1体あたり <b>1.2%</b>（戦姫祭と同じ）。
+     8×1.2＝9.6% ＋ プレミアム 2.4% で、SSR 合計はこれまでどおり 12%。 */
+  pickEach: PICK_LUX,
+  /* ★★ 2026-09-03 第2弾の4体を追加（計8体）。1体あたりの確率は PICK_FES のまま。 */
+  chars: ["riona", "mireir", "suzuhar", "seirak", "shizuru", "yuuri", "hisui", "raika"],
   itemTable: D_ITEM_TABLE,
-  lead: "RISING STAR FEST の限定SSR <b>4体</b>（各" + ratePct(PICK_FES) + "）に加えて、<b>"
+  lead: "RISING STAR FEST の限定SSR <b>8体</b>（各" + ratePct(PICK_LUX) + "）に加えて、<b>"
     + PREMIUM_NM + "のSSRも排出</b>（SSR合計 " + ratePct(SSR_TOTAL) + "）",
-  sub: "RISING STAR FEST の限定SSR <b>4体</b>（各" + ratePct(PICK_FES) + "）＋ <b>残りは "
+  sub: "RISING STAR FEST の限定SSR <b>8体</b>（各" + ratePct(PICK_LUX) + "）＋ <b>残りは "
     + PREMIUM_NM + " のSSRが等確率</b>。キャラ以外の中身は <b>Starlight Academy Fest 2 と同じ</b>で、"
     + "<b>🎫フェスチケットが使えます</b>",
-  note: "<b>リオナ（水）・ミレイ（木）・スズハ（光）・セイラ＆カナヅキ（闇＋火）</b>の4体が登場します。"
-    + "<br>4体とも<b>アビリティを8つ</b>持ちます——<b>アンチ3つ＋キラー3つ＋そのほか2つ</b>。"
+  note: "<b>第1弾</b>：<b>リオナ（水）・ミレイ（木）・スズハ（光）・セイラ＆カナヅキ（闇＋火）</b>。"
+    + "<br><b>第2弾</b>（★★ 2026-09-03 追加）："
+    + "<b>シズル（水）・ユウリ（木）・ヒスイ（火）・ライカ（闇）</b>。"
+    + "<br>★ 第2弾の4体は<b>第1弾と同じクエストを担当</b>し、<b>撃種を入れかえて</b>あります——"
+    + "シズル（反射）＝🏯蓬莱仙苑／ユウリ（貫通）＝🏯蓬莱月宮／"
+    + "ヒスイ（貫通）＝🏯蓬莱神域／ライカ（反射）＝🏯蓬莱天界。"
+    + "<br>★ 第2弾のキラー3つ目はどの子も<b>弱点キラーEL（×3.0）</b>です。"
+    + "蓬莱のボスは<b>いつも弱点が出ていて、しかも壁ぎわに寄せてある</b>ので、"
+    + "挟まって弱点を通し続ければ<b>自分の意思で確実に乗せられます</b>"
+    + "（第1弾の 底力EL・パワーオーラEL は盤面まかせの条件つき）。"
+    + "<br>8体とも<b>アビリティを8つ</b>持ちます——<b>アンチ3つ＋キラー3つ＋そのほか2つ</b>。"
     + "<b>オムニアンチも治癒の祈りも持たず、クロススキルもありません</b>。"
     + "そのぶん<b>編成の条件にいっさい左右されない</b>——いつ出しても、この性能がそのまま出ます。"
     + "<br>アンチ3つは<b>それぞれの担当クエストの必要アンチとぴったり一致</b>していて、"
     + "<b>蓬莱の九重の後半5階層</b>を有利属性のまま完全対応できます——"
     + "<b>リオナ＝🏯蓬莱仙苑</b>／<b>ミレイ＝🏯蓬莱月宮</b>／"
     + "<b>スズハ＝🏯蓬莱神天</b>／<b>セイラ＆カナヅキ＝🏯蓬莱天界</b>。"
-    + "<br>キラーは4体とも<b>蓬莱族キラーEL＋属性キラーEL</b>に加えて、"
-    + "<b>底力EL</b>（リオナ・スズハ）または<b>パワーオーラEL</b>（ミレイ・セイラ＆カナヅキ）。"
-    + "さらに全員が<b>リンクブーストEL</b>を持ちます。"
+    + "<br>キラーは8体とも<b>蓬莱族キラーEL＋属性キラーEL</b>に加えて、"
+    + "<b>底力EL</b>（リオナ・スズハ）／<b>パワーオーラEL</b>（ミレイ・セイラ＆カナヅキ）／"
+    + "<b>弱点キラーEL</b>（シズル・ユウリ・ヒスイ・ライカ）。"
     + "<br>★★ <b>セイラ＆カナヅキ</b>は<b>2人で1体</b>のキャラクターで、"
     + "<b>属性を2つ持つ MagiBurst 唯一のキャラ</b>です——<b>闇と火の両方で有利相性が取れる</b>ので、"
     + "<b>🏯蓬莱天界（光）</b>と<b>🏯蓬莱神域（木）</b>の<b>どちらでも有利属性</b>で戦えます。"
-    + "<br>リンクスキルは4体とも<b>新設</b>で、<b>行きと帰りで重さがちがう波</b>／"
+    + "<br>第1弾のリンクスキルは4体とも<b>新設</b>で、<b>行きと帰りで重さがちがう波</b>／"
     + "<b>段ごとに光点が1つずつ増える日傘</b>／<b>降りるたびに割れて倍になる星</b>／"
-    + "<b>交わるほど重くなる2本の水流</b>——どれもこれまでに無い挙動です。"
-    + "共通サブリンクは<b>ライジング・タイド</b>（<b>行って帰る</b>はじめてのサブリンク）。"
-    + "<br>★ 4体とも<b>ネクサスは星導・ライジングネクサス</b>"
+    + "<b>交わるほど重くなる2本の水流</b>。"
+    + "第2弾は<b>既存の上位リンク</b>（クロスノート／ジュエル・カット／"
+    + "ランタン・フェスティバル／クロスグレイヴ）です。"
+    + "<br>共通サブリンクは、第1弾が<b>ライジング・タイド</b>（<b>行って帰る</b>帯）、"
+    + "第2弾が<b>スターライト・チェイン</b>"
+    + "（星の鎖で敵を<b>近い順に数珠つなぎ</b>にし、つなぎ終わりに全部へ締めの一撃）。"
+    + "<br>★ フルバーストは8体とも<b>乱打を持ちません</b>。"
+    + "<b>1体ずつちがう型</b>で、効果は<b>2〜3つ</b>にとどめてあります——"
+    + "リオナ＝<b>敵全体＋攻撃力ダウン</b>／ミレイ＝<b>敵全体＋味方全員の攻撃力アップ</b>／"
+    + "スズハ＝<b>敵全体＋追加弱点</b>／セイラ＆カナヅキ＝<b>突撃＋支援</b>／"
+    + "シズル＝<b>攻撃しない純支援</b>／ユウリ＝<b>自強化して単体へ突撃</b>／"
+    + "ヒスイ＝<b>敵全体＋チーム回復</b>／ライカ＝<b>妨害＋支援</b>。"
+    + "<br>どれも<b>これまでにある型と同じしくみ</b>なので、"
+    + "ひとりだけ極端に強い、ということが起きません。"
+    + "<br>★ 8体とも<b>ネクサスは星導・ライジングネクサス</b>"
     + "（リンク +22% ／ 攻撃力 +10% ／ スピード +8%）。",
 };
 /* ══════════════════════════════════════════════════════════════
@@ -16967,7 +17258,15 @@ function pickRateOfMode(m) {
   if (m === ARCHIVE_KEY) return PICK_ARCHIVE;
   /* ★★ 2026-08-29 極彩祭・極華祭・極煌祭（monthly）と 戦姫祭（luxGacha）は
      どちらも「限定キャラクターのガチャ」なので、1体あたりの排出率は PICK_LUX。 */
-  if (isFesMode(m)) { const f = fesDef(m); return (f.monthly || f.luxGacha) ? PICK_LUX : PICK_FES; }
+  /* ★★ 2026-09-03 限定の人数が多いフェスは <b>pickEach</b> で個別に指定できる。
+     RISING STAR FEST は限定が<b>8体</b>になったので、1体 1.8% のままだと
+     8×1.8＝14.4% で SSR 合計（12%）を超え、<b>プレミアムの SSR が1体も出なくなる</b>。
+     限定が7体の戦姫祭・17体の Festival Archive と同じ <b>1.2%</b> にそろえる。 */
+  if (isFesMode(m)) {
+    const f = fesDef(m);
+    if (f.pickEach) return f.pickEach;
+    return (f.monthly || f.luxGacha) ? PICK_LUX : PICK_FES;
+  }
   return PICK_PREMIUM;                                   /* premium（と未知のモード） */
 }
 /* ピックアップの顔ぶれ（限界突破MAXのキャラは外す＝そのぶんは②へまわる） */
@@ -17217,7 +17516,7 @@ function charStrengths(id, isCross) {
     : isCross ? (isPick ? ratePct(PICK_RATE) + "（ピックアップのみ排出）" : "排出対象外（ピックアップを切り替え）")
     : (isPick && pickupRate() > 0 ? ratePct(PICK_RATE) + "（ピックアップ中！）" : ratePct(otherRate()))
       + (isMaxAwk(id) ? "（👑完凸 → " + crystIcon(13) + "結晶+" + (isStar5(id) ? CRYST_SSR : CRYST_SR) + "）" : "");
-  return `<b>SSR「${c.nm}」の強み</b>（${ELEM[c.el].nm}属性・${c.shot === "pierce" ? "貫通" : "反射"}・${c.type}）
+  return `<b>SSR「${c.nm}」の強み</b>（${elemNameOf(c)}属性・${c.shot === "pierce" ? "貫通" : "反射"}・${c.type}）
     ${strengthBarsHTML(id, (isCross ? "x_" : "p_") + id)}
     ${evalHTMLWithMarks(id)}
     ・アビリティ: ${sortedAbil(c).map(abilName).join("／")}<br>
@@ -18842,7 +19141,7 @@ function openPickSel(mode) {
         <span class="gsown ${own ? (maxed ? "mx" : "ok") : "no"}">${own ? (maxed ? "👑 限界突破MAX" : "所持 +" + awk) : "未所持"}</span>
         ${dots ? '<span class="gsdots">' + dots + "</span>" : ""}
         <span class="gsn">${c.nm}</span>
-        <span class="gsel2">${ELEM[c.el].nm}・${c.shot === "pierce" ? "貫通" : "反射"}</span>
+        <span class="gsel2">${elemNameOf(c)}・${c.shot === "pierce" ? "貫通" : "反射"}</span>
         <span class="gsr">${rate}</span>
         ${on ? '<span class="gschk">✓ PICKUP</span>' : ""}
       </div>`;

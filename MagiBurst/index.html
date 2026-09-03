@@ -24,15 +24,16 @@ if ("serviceWorker" in navigator) {
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
 <script src="../xeva-splash.js?v=5" data-app="MagiBurst" data-logo="../thumbs/MagiBurst.jpg"
         data-note="⚠️ このゲームの対象年齢は 13歳以上 です"></script>
-<script src="../xeva.js?v=53"></script>
+<script src="../xeva.js?v=54"></script>
 <script src="../xeva-loading.js?v=3" defer></script>
-<script type="module" src="../xevarion-fb.js?v=24"></script>
+<script type="module" src="../xevarion-fb.js?v=25"></script>
 <script src="../xeva-presence.js?v=3" defer></script>
 <script type="module" src="../xeva-cloud.js?v=22"></script>
 <script type="module" src="js/online.js?v=10"></script>
 <!-- ★★ 2026-09-01 ローカル通信マルチ（オフラインでも近くの人と遊べる）。
      BurstOnline と同じ名前・同じ戻り値でそろえてあるので、画面側は NET() で切り替えるだけ。 -->
-<script src="js/local.js?v=5"></script>
+<script src="../xeva-qr.js?v=2"></script>
+<script src="js/local.js?v=6"></script>
 <style>
 /* ═══ カジュアル・ライトテーマ（SUNNY POP） ═══ */
 :root{
@@ -3138,6 +3139,16 @@ body.in-battle #top,body.in-battle #tabs{display:none}
   border-radius:99px;padding:4px 10px;background:color-mix(in srgb,var(--gc) 12%,transparent)}
 .onqbtns{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 .onqbtns .onbtn{flex:1 1 30%;margin:0;padding:10px 8px;font-size:12px}
+/* ══ ★★ 2026-09-03 ローカル通信の QR（見せる側・読む側） ══ */
+.onqr{display:flex;justify-content:center;margin:10px 0 4px;min-height:4px}
+.onqr canvas{border-radius:12px;background:#fff;padding:8px;box-shadow:0 6px 20px rgba(0,0,0,.45);max-width:100%;height:auto}
+#qrScanOv{position:fixed;inset:0;z-index:640;background:rgba(4,3,10,.94);display:none;
+  flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:18px}
+#qrScanOv.on{display:flex}
+#qrScanVid{width:min(88vw,420px);aspect-ratio:1;object-fit:cover;border-radius:18px;background:#000;
+  box-shadow:0 0 0 3px rgba(255,255,255,.25),0 14px 40px rgba(0,0,0,.6)}
+#qrScanOv .qshint{color:#cfd6ff;font-size:13px;font-weight:800;text-align:center;line-height:1.7}
+#qrScanOv .qsx{padding:12px 26px;border:none;border-radius:14px;background:#2a2745;color:#fff;font-weight:900;cursor:pointer}
 #onOv{position:fixed;inset:0;z-index:560;background:rgba(5,4,12,.86);display:none;align-items:center;justify-content:center;padding:16px}
 #onOv.on{display:flex}
 .oncard{width:min(440px,100%);max-height:calc(100dvh - 40px);overflow-y:auto;background:#fff;border:1.5px solid var(--line);border-radius:22px;padding:18px;color:var(--tx)}
@@ -3767,6 +3778,12 @@ textarea.oninp.mbcode[readonly]{background:#f2f0fb;color:#3b3560}
 
 <!-- ═══ オンライン（部屋番号・最大4人） ═══ -->
 <div id="onOv" onclick="if(event.target===this)closeOnline()"><div class="oncard" id="onCard"></div></div>
+<!-- ★★ 2026-09-03 ローカル通信の QR をカメラで読む（BarcodeDetector がある端末だけ） -->
+<div id="qrScanOv">
+  <video id="qrScanVid" playsinline muted></video>
+  <div class="qshint">相手の画面の <b>QRコード</b> を枠に入れてください</div>
+  <button class="qsx" onclick="onCloseScan()">やめる</button>
+</div>
 
 <!-- ═══ フルバーストカットイン ═══ -->
 <div id="ssCut">
@@ -3865,8 +3882,8 @@ textarea.oninp.mbcode[readonly]{background:#f2f0fb;color:#3b3560}
 </div></div>
 
 <script>window.MB_IMGD = "../img/"; window.MB_GIMGD = "img/";</script>
-<script src="../mb-newchars.js?v=13"></script>
-<script src="js/mb-core.js?v=68"></script>
+<script src="../mb-newchars.js?v=14"></script>
+<script src="js/mb-core.js?v=75"></script>
 <script>
 "use strict";
 /* ══════════ アカウントガード ══════════ */
@@ -5776,7 +5793,7 @@ function openNewChar(all) {
         <div class="ncnm">${elIcon(c.el, 22)} ${c.nm}<span class="ncno">${charNoText(n.id)}</span></div>
         <div class="ncchips">
           <span class="ncchip">SSR</span>
-          <span class="ncchip">${ELEM[c.el].nm}属性</span>
+          <span class="ncchip">${elemNameOf(c)}属性</span>
           <span class="ncchip">${shotSVG(c.shot, 12)}${c.shot === "pierce" ? "貫通" : "反射"}</span>
           <span class="ncchip">${c.type}</span>
           ${own ? '<span class="ncchip own">仲間になっています</span>' : ""}
@@ -5808,6 +5825,54 @@ window.openNewChar = openNewChar; window.closeNewChar = closeNewChar;
 
 /* ══════════ お知らせ（アップデートのたびにここへ追記する） ══════════ */
 const NEWS = [
+  /* ★★ 2026-09-03 RISING STAR FEST 第2弾／フルバーストの作り直し */
+  { date: "2026-09-03", title: "🌊 RISING STAR FEST 第2弾（シズル・ユウリ・ヒスイ・ライカ）／✦ フルバーストは1体ずつちがう型へ", body: [
+    "🌊 <b>RISING STAR FEST</b> に限定SSR <b>4体</b>が加わりました——"
+      + "<b>シズル</b>（水・反射）／<b>ユウリ</b>（木・貫通）／"
+      + "<b>ヒスイ</b>（火・貫通）／<b>ライカ</b>（闇・反射）。"
+      + "<br>4体とも<b>第1弾と同じクエストを担当</b>し、<b>撃種を入れかえて</b>あります——"
+      + "シズル＝🏯蓬莱仙苑／ユウリ＝🏯蓬莱月宮／ヒスイ＝🏯蓬莱神域／ライカ＝🏯蓬莱天界。"
+      + "同じクエストに<b>反射と貫通の両方の答え</b>ができます。",
+    "⚔ キラー3つ目はどの子も <b>弱点キラーEL（×3.0）</b>。"
+      + "蓬莱のボスは<b>いつも弱点が出ていて、しかも壁ぎわに寄せてある</b>ので、"
+      + "挟まって弱点を通し続ければ<b>自分の意思で確実に乗せられます</b>。"
+      + "<br>共通サブリンクは新設の <b>スターライト・チェイン</b>——"
+      + "星の鎖が敵を<b>近い順に数珠つなぎ</b>にし、結ぶたびに重くなって、"
+      + "つなぎ終わりに<b>つないだ敵ぜんぶ</b>へ締めの一撃が落ちます。",
+    "✦ <b>RISING STAR FEST は8体とも乱打フルバーストをやめました</b>（乱打は特別なキャラだけのものにします）。"
+      + "かわりに<b>1体ずつちがう型</b>にし、効果は<b>2〜3つ</b>にとどめてあります。"
+      + "<br>リオナ＝<b>敵全体＋攻撃力ダウン</b>／ミレイ＝<b>敵全体＋味方全員の攻撃力アップ</b>／"
+      + "スズハ＝<b>敵全体＋追加弱点</b>／セイラ＆カナヅキ＝<b>突撃＋支援</b>／"
+      + "シズル＝<b>攻撃しない純支援</b>／ユウリ＝<b>自強化して単体へ突撃</b>／"
+      + "ヒスイ＝<b>敵全体＋チーム回復</b>／ライカ＝<b>妨害＋支援</b>。"
+      + "<br>どれも<b>これまでにある型と同じしくみ</b>なので、ひとりだけ極端に強い、が起きません。",
+    "🎫 限定が<b>8体</b>になったので、1体あたりの排出率は <b>1.2%</b>（戦姫祭と同じ）になりました。"
+      + "SSR 合計は<b>12% のまま</b>で、プレミアムの SSR もこれまでどおり出ます。",
+  ] },
+  /* ★★ 2026-09-03 Lv.70 の修正／WEAK 表示／敵の移動でダメージ／QR でローカル通信 */
+  { date: "2026-09-03", title: "🔧 Lv.70 が反映されない不具合を修正／⚡ WEAK 表示／📷 ローカル通信に QR", body: [
+    "🔧 <b>キャラを Lv.70 にしても、ステータスが Lv.60 のまま</b>だった不具合を直しました。"
+      + "ステータスを作るところが Lv.60 で頭打ちになっていたのが原因で、"
+      + "<b>図鑑・編成・バトル・助っ人のすべて</b>がこの1か所を通っていました。"
+      + "九天の玉簡を使ってあるキャラは、この更新で<b>自動的に Lv.70 の数字</b>になります。",
+    "⚡ <b>引っぱって矢印が出ているあいだだけ</b>、そのキャラの<b>キラーが効く敵</b>に "
+      + "<b>WEAK</b> と出るようにしました。判定は「！ボタンの与ダメージの内わけ」と<b>同じ式</b>なので、"
+      + "出ているのに乗らない、ということは起きません。",
+    "💥 <b>蘑莱の九重</b>などで敵が<b>盤面の端へ移動</b>するとき、"
+      + "<b>通った道すじの近くにいた味方</b>をはね飛ばしてダメージを与えるようになりました。"
+      + "味方をどこに置いておくかを考える理由になります。",
+    "🔥 <b>底力（敵多底力・敵少底力など）の表示</b>がボールの<b>上と下の両方</b>に"
+      + "出ていたのを、<b>下の札だけ</b>にまとめました（倍率もその札に入れてあります）。",
+    "⚔ <b>セイラ＆カナヅキ</b>の属性を、<b>「闇＆火」</b>のように2つ並べて出すようにしました。"
+      + "先に出るのは<b>リンクスキルの属性</b>です。",
+    "🌍 クエストから<b>編成を経由したとき</b>も、その場で <b>クリア編成</b> を見られるようにしました。",
+    "📷 <b>ローカル通信マルチ</b>で、まねきコードを <b>QRコード</b>で渡せるようにしました。"
+      + "QR の中身は<b>このページの URL</b> なので、iPhone は<b>標準のカメラアプリで読むだけ</b>で"
+      + "MagiBurst が開き、参加の画面まで進みます。"
+      + "カメラで読める端末では、アプリの中にも<b>「QRを読み取る」</b>ボタンが出ます。"
+      + "<br>★ これまでの<b>コピー＆貼りつけ</b>もそのまま使えます（こちらは全文を渡すので、"
+      + "短い形でつながらない端末でも必ず通ります）。",
+  ] },
   /* ★★ 2026-09-01 RISING STAR FEST／極彩祭にハノン／名前の整理／ガチャの直し */
   { date: "2026-09-01", title: "🌊 RISING STAR FEST 開幕／🏀 極彩祭にハノン（史上最大の火力）／✦ RANK UP はピックアップだけ", body: [
     "🌊 <b>RISING STAR FEST</b> を開幕しました。限定SSR <b>4体</b>——"
@@ -9567,7 +9632,7 @@ const EVENTS = [
   (function () {
     const line = (id) => {
       const c = CHARS[id];
-      return "<b>" + c.nm + "</b>（" + ELEM[c.el].nm + "／" + (c.shot === "pierce" ? "貫通" : "反射") + "）";
+      return "<b>" + c.nm + "</b>（" + elemNameOf(c) + "／" + (c.shot === "pierce" ? "貫通" : "反射") + "）";
     };
     /* ★★ 2026-08-26 版ごとに10日間。2本並ぶことがあるので、
        このカードは<b>いちばん新しい掲載中の版</b>を主役にし、もう1本があれば1行そえる。 */
@@ -9607,7 +9672,7 @@ const EVENTS = [
        （長い本文はスライドの高さをふくらませ、ほかのイベントに大きな余白ができてしまう）。 */
     const line = (n) => {
       const c = CHARS[n.id];
-      return "<b>" + c.nm + "</b>（" + ELEM[c.el].nm + "／" + (c.shot === "pierce" ? "貫通" : "反射") + "）";
+      return "<b>" + c.nm + "</b>（" + elemNameOf(c) + "／" + (c.shot === "pierce" ? "貫通" : "反射") + "）";
     };
     return {
       id: "ev_newchar", nm: "新SSR 参戦キャンペーン", sub: "プレミアムセレクトガチャに新SSR " + ids.length + "体を追加", c: "#e0405e",
@@ -11024,8 +11089,8 @@ function autoPartyForStage(stageId, includeOmni) {
      そのため「まだ育てていないだけ」の子が弱く見えて候補から落ち、
      すでに育てた子ばかりが並んでいた。
      → ステータスは<b>最大育成時</b>（レベル上限・限界突破MAX・アークなし）でそろえて比べる。
-     ★ statsOf は lv を TRANS_LV（60）で頭打ちにするので、JADE_LV を渡しても 60 で計算される。
-       目的は「全員を同じ条件で並べる」ことなので、これで用は足りる。
+     ★★ 2026-09-02 statsOf の頭打ちを TRANS_LV（60）→ JADE_LV（70）に直したので、
+       maxTrainedStats（JADE_LV を渡す）は<b>本当に Lv.70 の値</b>になっている。
      ★ 第4引数に null を渡す＝<b>アーク強化を乗せない</b>（自分の育成ぶんを混ぜない）。
      ★ 「所持しているキャラから選ぶ」のはこれまでどおり（持っていない子は編成できない）。 */
   const power = (id) => { const s = maxTrainedStats(id); return s.hp + s.atk * 2; };
@@ -11248,6 +11313,9 @@ function teamGoHTML() {
       <button class="qgim" onclick="openGimInfo('${st.id}')" title="ギミック・報酬などの詳細を見る">${ICO.gim}ギミック</button>
       <button class="qgim qcc" onclick="openCounters('${st.id}')" title="ギミックに対応できる味方を見る">${ICO.counter}対応キャラ</button>
       <button class="qgim qap" onclick="autoPartyFor('${st.id}')" title="このクエストに合わせて自動で編成する">${ICO.autop}自動編成</button>
+      ${/* ★★ 2026-09-02 ご指定:「クエストから編成を経由したときにもクリア編成を見たい」。
+           マルチの画面（onQuestInfoHTML）にはもとからあるので、同じ openLastClear をここへも。 */""}
+      <button class="qgim qlc" onclick="openLastClear('${st.id}')" title="自分のクリア編成と、みんなのクリア編成を見る">🌍クリア編成</button>
       ${/* ★★ 2026-08-26c 下の一覧を「このクエストのギミックを1体で全部消せるキャラ」だけにする（ご指定）。
            絞り込み画面（🔍）の「⚔ いま出撃するクエスト」と<b>同じ条件</b>を、ここから1タップで入れられる。 */""}
       <button class="qgim qfl ${(FSCOPE.team.keys || []).indexOf("q:full") >= 0 ? "on" : ""}"
@@ -12232,6 +12300,7 @@ const FS_SHORT = {
   tidalcrescendo: "タイクレ",     komorebiparasol: "コモパラ",
   starlitcascade: "スタカス",     twinsplash: "ツインスプ",
   risingtide: "ライタイド",
+  starlightchain: "スタチェイン",   /* ★★ 2026-09-03 RISING STAR FEST 第2弾の共通サブリンク */
   /* ★★ 2026-09-01 ハノン（極彩祭）の新リンク1本＋サブリンク1本 */
   celestdominance: "セレドミ",   goldenrebound: "ゴルリバ",
   /* ★★ 2026-08-29 極煌祭（レイナ）＋ 戦姫祭6体 の新リンク7本＋サブリンク2本。
@@ -12574,6 +12643,7 @@ const FS_TYPE = {
   starlitcascade: "all",    /* 段ごとに倍に割れる星（敵全体） */
   twinsplash: "all",        /* 交差する2本の水流（敵全体） */
   risingtide: "wave",       /* 左右に往復する帯（サブ専用だが両方に置く） */
+  starlightchain: "line",   /* ★★ 2026-09-03 敵を線でつないでいく（サブ専用だが両方に置く） */
   /* ★★ 2026-09-01 ハノン（極彩祭） */
   celestdominance: "ring",  /* かさなっていく光の輪 */
   goldenrebound: "all",     /* はねるたび敵全体（サブ専用だが両方に置く） */
@@ -12700,6 +12770,7 @@ const FS_TAGS = {
   starlitcascade:  ["wide", "multi"],
   twinsplash:      ["wide", "multi", "pierce"],
   risingtide:      ["wide", "multi", "long"],
+  starlightchain:  ["wide", "multi", "chain"],   /* ★★ 2026-09-03 */
   /* ★★ 2026-09-01 ハノン（極彩祭） */
   celestdominance: ["wide", "multi"],
   goldenrebound:   ["wide", "multi", "bounce"],
@@ -12887,11 +12958,6 @@ const SS_TAGS = {
   kotori: ["self", "barrage", "knock"],
   /* ★★ 2026-08-30 アンナ(祭)＋ GRAND DEBUT Ver.6.0 5体のフルバースト */
   annam: ["self", "barrage", "knock", "all"],
-  /* ★★ 2026-09-01 RISING STAR FEST の4体（どれも 自強化＋乱打＋全体＋おまけ） */
-  riona:   ["self", "barrage", "knock", "all", "debuff"],
-  mireir:  ["self", "barrage", "knock", "all", "support"],
-  suzuhar: ["self", "barrage", "knock", "all", "support"],
-  seirak:  ["self", "barrage", "knock", "all", "support"],
   /* ★★ 2026-09-01 ハノン（極彩祭）＝ MagiBurst 史上最大の火力 */
   hanon:   ["self", "barrage", "knock", "all"],
   chia: ["self", "all", "support"],
@@ -13808,7 +13874,7 @@ function openDet(id, from) {
       </div>
     </div>
     <div class="dbody">
-      <div class="dtags"><span class="dtag">${ELEM[c.el].nm}属性</span><span class="dtag${shotChanged ? " chg" : ""}">${shotSVG(shotNow, 13)}${shotNow === "pierce" ? "貫通" : "反射"}${shotChanged ? "（" + (c.shot === "pierce" ? "貫通" : "反射") + "から変化中）" : ""}</span><span class="dtag">${c.type}</span>${kind}</div>
+      <div class="dtags"><span class="dtag">${elemNameOf(c)}属性</span><span class="dtag${shotChanged ? " chg" : ""}">${shotSVG(shotNow, 13)}${shotNow === "pierce" ? "貫通" : "反射"}${shotChanged ? "（" + (c.shot === "pierce" ? "貫通" : "反射") + "から変化中）" : ""}</span><span class="dtag">${c.type}</span>${kind}</div>
       ${/* ★★ 2026-08-22b 適性クエストの中身は<b>いちばん上</b>（🎯 ボタンのすぐ下）に出す */""}
       ${inBattle ? "" : '<div class="daptbox" id="daptBox"></div>'}
       ${/* ★ 2026-08-15 「素の値」と「アークで増えたぶん」を別の列にした。
@@ -14348,6 +14414,7 @@ async function onLocalHost() {
   watchRoom();
   const r = await BurstLocal.hostInvite();
   ON.linvite = (r && r.code) || "";
+  ON.linviteQR = (r && r.qr) || "";
   ON.msg = r && r.error ? "まねきコードを作れませんでした" : "";
   renderOnline();
 }
@@ -14357,7 +14424,7 @@ async function onLocalMore() {
   ON.msg = "まねきコードを作っています…"; renderOnline();
   const r = await BurstLocal.hostInvite();
   if (r && r.error === "full") { ON.msg = "もう満員です（最大4人）"; renderOnline(); return; }
-  ON.linvite = (r && r.code) || ""; ON.lanswer = ""; ON.msg = "";
+  ON.linvite = (r && r.code) || ""; ON.linviteQR = (r && r.qr) || ""; ON.lanswer = ""; ON.lanswerQR = ""; ON.msg = "";
   renderOnline();
 }
 window.onLocalMore = onLocalMore;
@@ -14381,21 +14448,115 @@ async function onLocalJoin() {
   const r = await BurstLocal.guestAnswer(ON.linvite, onProfile());
   if (!r || r.error) { ON.msg = "つなげませんでした（まねきコードをもう一度もらってください）"; renderOnline(); return; }
   ON.lanswer = r.code || "";
+  ON.lanswerQR = r.qr || "";
   ON.msg = "";
   renderOnline();
 }
 window.onLocalJoin = onLocalJoin;
+/* ════════════════════════════════════════════════════════════
+   ★★ 2026-09-03 合い言葉を <b>QRコード</b>でも渡せるように（ご指定）
+   ────────────────────────────────────────────────────────────
+   渡しかたは<b>3つ</b>。どれでも同じところへつながる。
+     ① QRを見せる→相手の<b>カメラアプリ</b>で読む（iPhone はこれが一番早い）
+     ② 画面の<b>」QRを読み取る」</b>でアプリの中から読む（BarcodeDetector がある端末）
+     ③ これまでどおり<b>コピー＆貼りつけ</b>
+   ★ QR に入れるのは<b>短い形</b>（js/local.js の sdpPick）。
+     入らない・作れないときは QR を出さず、コピーだけになる。
+   ★ QR の中身は<b>このページの URL ＋ #mbjoin=コード</b>。
+     こうしておくと、相手が普通のカメラで読んだだけで
+     MagiBurst が開いて<b>参加の画面まで進む</b>（アプリ内スキャナーが無い端末でも良い）。
+     ホストが受け取る「へんじ」のほうは、ページを開き直すと接続が切れるので
+     <b>アプリ内スキャナーか貼りつけ</b>を使う。
+   ════════════════════════════════════════════════════════════ */
+function onJoinURL(code) {
+  const base = location.origin + location.pathname.replace(/[^/]*$/, "");
+  return base + "index.html#mbjoin=" + encodeURIComponent(code || "");
+}
+/* QR を描く箱（描画は renderOnline のあと。文字列が長すぎるときは何も出さない） */
+function onQRBoxHTML(id) {
+  return `<div class="onqr" id="${id}"></div>`;
+}
+function onPaintQR(id, code) {
+  const box = document.getElementById(id);
+  if (!box) return;
+  box.innerHTML = "";
+  if (!code || !window.XevaQR) return;
+  const url = onJoinURL(code);
+  if (!XevaQR.fits(url)) {
+    box.innerHTML = '<div class="onhint">この回のコードは長すぎて QR に入りませんでした。'
+      + '下の<b>コピー</b>で渡してください。</div>';
+    return;
+  }
+  try { box.appendChild(XevaQR.canvas(url, 220)); }
+  catch (e) { box.innerHTML = '<div class="onhint">QR を作れませんでした。コピーで渡してください。</div>'; }
+}
+/* アプリの中で QR を読む（BarcodeDetector がある端末だけ） */
+function onCanScanQR() { return typeof window.BarcodeDetector === "function"; }
+let _qrScan = null;
+async function onScanQR(targetId) {
+  if (!onCanScanQR()) {
+    ON.msg = "この端末はアプリの中で QR を読めません。コピー＆貼りつけで渡してください。";
+    renderOnline(); return;
+  }
+  const ov = document.getElementById("qrScanOv");
+  const vid = document.getElementById("qrScanVid");
+  if (!ov || !vid) return;
+  ov.classList.add("on");
+  let stream = null;
+  try {
+    stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+  } catch (e) {
+    ov.classList.remove("on");
+    ON.msg = "カメラを使えませんでした（許可を確かめてください）";
+    renderOnline(); return;
+  }
+  vid.srcObject = stream; await vid.play().catch(() => {});
+  const det = new BarcodeDetector({ formats: ["qr_code"] });
+  let stop = false;
+  const close = () => {
+    stop = true; _qrScan = null;
+    try { stream.getTracks().forEach((t) => t.stop()); } catch (e) {}
+    vid.srcObject = null; ov.classList.remove("on");
+  };
+  _qrScan = close;
+  const tick = async () => {
+    if (stop) return;
+    try {
+      const codes = await det.detect(vid);
+      if (codes && codes.length) {
+        const raw = String(codes[0].rawValue || "");
+        const m = /#mbjoin=([^&\s]+)/.exec(raw);
+        const code = m ? decodeURIComponent(m[1]) : raw;
+        close();
+        const t = document.getElementById(targetId);
+        if (t) { t.value = code; }
+        ON.msg = "読み取りました。「つなぐ」を押してください。";
+        if (targetId === "onLans") onLocalAccept();
+        else if (targetId === "onLinv") { ON.linvite = code; onLocalPeek(); }
+        return;
+      }
+    } catch (e) {}
+    requestAnimationFrame(tick);
+  };
+  requestAnimationFrame(tick);
+}
+function onCloseScan() { if (_qrScan) _qrScan(); }
+window.onScanQR = onScanQR; window.onCloseScan = onCloseScan;
+
 /* 合い言葉の受けわたしの箱（ホスト／ゲストで中身がちがう） */
 function onLocalCodeHTML() {
   if (ON.lmode === "host") {
     return `
       <div class="onlabel">① まねきコード（相手に渡す）</div>
+      <div class="onhint">相手のカメラで下の QR を読んでもらうのが一番早いです。</div>
+      ${onQRBoxHTML("onQRinv")}
       <div class="mbcodewrap">
         <textarea class="oninp mbcode" id="onLcode" readonly onclick="this.select()">${ON.linvite || ""}</textarea>
         <span class="mbcodelen">${(ON.linvite || "").length} 文字</span>
       </div>
       <button class="onbtn sub" onclick="onCopy('onLcode')">📋 まねきコードをコピー</button>
       <div class="onlabel" style="margin-top:10px">③ へんじコード（相手からもらう）</div>
+      ${onCanScanQR() ? `<button class="onbtn sub" onclick="onScanQR('onLans')">📷 相手の QR を読み取る</button>` : ""}
       <div class="mbcodewrap">
         <textarea class="oninp mbcode" id="onLans" placeholder="相手の画面に出た『へんじコード』をここに貼りつけ"
           autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false"></textarea>
@@ -14406,12 +14567,14 @@ function onLocalCodeHTML() {
   }
   return `
     <div class="onlabel">② へんじコード（ホストに渡す）</div>
+    <div class="onhint">ホストに下の QR を読んでもらうか、コピーして渡してください。</div>
+    ${onQRBoxHTML("onQRans")}
     <div class="mbcodewrap">
       <textarea class="oninp mbcode" id="onLcode" readonly onclick="this.select()">${ON.lanswer || ""}</textarea>
       <span class="mbcodelen">${(ON.lanswer || "").length} 文字</span>
     </div>
     <button class="onbtn sub" onclick="onCopy('onLcode')">📋 へんじコードをコピー</button>
-    <div class="onhint">ホストがこれを貼りつけると<b>つながります</b>。そのまま待っていてください。</div>`;
+    <div class="onhint">ホストがこれを読むと<b>つながります</b>。そのまま待っていてください。</div>`;
 }
 /* ══ ★★ 2026-09-01 ②の画面に出す「そのクエストの情報」（ご指定）══
    ギミック・アンチ・報酬をその場に出し、
@@ -14806,6 +14969,7 @@ function renderOnline() {
               <textarea class="oninp mbcode" id="onLinv" placeholder="ホストの画面に出た『まねきコード』をここに貼りつけ"
                 autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false">${ON.linvite || ""}</textarea>
             </div>
+            ${onCanScanQR() ? `<button class="onbtn sub" onclick="onScanQR('onLinv')">📷 ホストの QR を読み取る</button>` : ""}
             <button class="onbtn sub" onclick="onPaste('onLinv')">📥 貼りつける</button>
             <div class="onhint">貼りつけると、その部屋の<b>クエスト</b>が分かります。つぎの画面で見ながらキャラをえらべます。</div>
             <button class="onbtn" onclick="onLocalPeek()">つぎへ（キャラをえらぶ）</button>
@@ -14885,6 +15049,9 @@ function renderOnline() {
       ${onLocalCodeHTML()}
       <div class="onmsg" id="onLmsg">${ON.msg}</div>
       <button class="onbtn sub" onclick="closeOnline()">やめる</button>`;
+    /* ★★ 2026-09-03 QR は canvas なので、HTML を入れたあとに貼る */
+    onPaintQR("onQRinv", ON.linviteQR);
+    onPaintQR("onQRans", ON.lanswerQR);
     return;
   }
   /* ロビー */
@@ -16276,6 +16443,59 @@ function makeEnemy(d, i, j, first) {
   if (!e.boss && partyHasFruit("sweep")) e.hp = Math.max(1, e.hp - Math.round(e.maxhp * 0.05));
   return e;
 }
+/* ════════════════════════════════════════════════════════════
+   ★★ 2026-09-02 敵が<b>移動したとき</b>、近くの味方にダメージ（ご指定）
+   ────────────────────────────────────────────────────────────
+   蓬莱の九重のボス（edgeDoom）は即死の前に<b>盤面の端まで移動</b>し、撫ったあともとの位置へ戻る。
+   これまではただテレポートするだけで、<b>味方をすり抜けても何も起きなかった</b>。
+   → 移動した<b>経路（元の位置 → 先の位置）の近くにいる味方</b>をはね飛ばし、ダメージを与える。
+
+   ★ 判定は<b>線分との距離</b>。元の位置と先の位置だけを見ると、
+     遠くへ飛んだときに<b>途中にいた味方を取りこぼす</b>。
+   ★ ダメージは<b>ふれた味方だけ</b>（damageTeam の targets に渡す）。
+     チーム全体に入れると、避けても意味がなくなる。
+   ★ 新しく敵を動かすときは、必ずこの enemyRelocate() を通すこと。
+     直接 e.x を書きかえると、このダメージが抜ける。
+   ════════════════════════════════════════════════════════════ */
+const EMOVE_PAD = 26;        // 敵の半径＋ボールの半径にこれだけ余裕を見る
+const EMOVE_DMG = 0.55;      // ふれた味方が受けるダメージ（その敵の攻撃力の何倍か）
+const EMOVE_PUSH = 7.5;      // はね飛ばす強さ
+/* 点と線分の距離 */
+function segDist(px, py, ax, ay, bx, by) {
+  const dx = bx - ax, dy = by - ay;
+  const L2 = dx * dx + dy * dy;
+  if (L2 < 0.0001) return Math.hypot(px - ax, py - ay);
+  let t = ((px - ax) * dx + (py - ay) * dy) / L2;
+  t = clamp(t, 0, 1);
+  return Math.hypot(px - (ax + dx * t), py - (ay + dy * t));
+}
+/* 敵を動かす（通ったところの味方にダメージ） */
+function enemyRelocate(e, nx, ny, label) {
+  const ox = e.x, oy = e.y;
+  e.x = nx; e.y = ny;
+  if (!B || !B.balls || !B.balls.length) return 0;
+  const hit = B.balls.filter((b) => b && !b.dead &&
+    segDist(b.x, b.y, ox, oy, nx, ny) < (e.r + b.r + EMOVE_PAD));
+  if (!hit.length) return 0;
+  /* ふれた味方を、敵の進む向きへはね飛ばす（めりこみをほどく） */
+  let ux = nx - ox, uy = ny - oy;
+  const uL = Math.hypot(ux, uy) || 1;
+  ux /= uL; uy /= uL;
+  hit.forEach((b) => {
+    let sx = b.x - nx, sy = b.y - ny;
+    const sL = Math.hypot(sx, sy);
+    if (sL < 1) { sx = ux; sy = uy; } else { sx /= sL; sy /= sL; }
+    b.x = clamp(nx + sx * (e.r + b.r + 4), b.r, W - b.r);
+    b.y = clamp(ny + sy * (e.r + b.r + 4), b.r, H - b.r);
+    if (b.moving) { b.vx += sx * EMOVE_PUSH; b.vy += sy * EMOVE_PUSH; }
+    B.effects.push({ type: "ring", x: b.x, y: b.y, t: 0, dur: 20, r: 70, c: "#ff8f6b" });
+  });
+  const dmg = Math.max(1, Math.round((e.atk || 0) * EMOVE_DMG * hit.length));
+  B.shake = Math.max(B.shake, 9);
+  damageTeam(dmg, nx, ny - e.r - 30, label || "ふみつぶし", e.el, hit);
+  paintHp();
+  return dmg;
+}
 /* 弱点：常に露出（当てると倍率アップ） */
 const WEAK_MUL = 2.6;
 /* MELEE_MUL / SPD_GLOBAL は NEWS より前（ファイル前方の定数ブロック）で宣言している。
@@ -16684,6 +16904,13 @@ const FS_HIT = {
   risingtide: { per: RTIDE_PER, n: RTIDE_N,
     nm: "左右に往復する潮の帯 " + RTIDE_N + "回（往復するたびに +" + RTIDE_STEP + "）",
     extra: RTIDE_STEP * (RTIDE_N * (RTIDE_N - 1) / 2) },
+  /* ══ ★★ 2026-09-03 RISING STAR FEST 第2弾の共通サブリンク ══
+     ★ ここに書き忘れると「！ボタン」の威力が 0 と出る。 */
+  starlightchain: { per: SLC_PER, n: SLC_N,
+    nm: "星の鎖で近い順につなぐ 最大" + SLC_N + "体（<b>1体につき1回ずつ</b>・結ぶたびに +"
+      + SLC_STEP + "）",
+    per2: SLC_FINALE, n2: 1, nm2: "つなぎ終わりの締め（<b>つないだ敵ぜんぶ</b>に1回）",
+    extra: SLC_STEP * (SLC_N * (SLC_N - 1) / 2) },
   /* ══ ★★ 2026-09-01 ハノン（極彩祭）＝ MagiBurst 最強のリンクスキル ══
      ★ 1段目は1枚ぶん、n段目は n枚ぶん。合計は per × (1+2+…+n) ＋ finale。 */
   celestdominance: { per: HDOM_PER, n: HDOM_STEPS * (HDOM_STEPS + 1) / 2,
@@ -16870,6 +17097,9 @@ const SUB_HIT = {
   jewelshower: { per: JSHOW_PER, n: JSHOW_MAX },
   /* ★★ 2026-09-01 ライジング・タイド（RISING STAR FEST の共通サブリンク） */
   risingtide: { per: RTIDE_PER, n: RTIDE_N },
+  /* ★★ 2026-09-03 スターライト・チェーン。実ダメージ（fireStarlightChain）と必ずそろえる。 */
+  starlightchain: { per: SLC_PER, n: SLC_N, per2: SLC_FINALE, n2: 1,
+    extra: SLC_STEP * (SLC_N * (SLC_N - 1) / 2) },
   /* ★★ 2026-09-01 ゴールデン・リバウンド（ハノンのサブリンク） */
   goldenrebound: { per: GREB_PER, n: GREB_N },
   /* ★★ 2026-08-27 ウィークシギル（極彩祭・極煌祭の共通サブリンク）。
@@ -17179,7 +17409,7 @@ function openStatus() {
         <img src="${b.ch.th}" alt="${b.ch.nm}">
         <div class="stbody">
           <div class="stnm">${b.ch.nm}${i === B.turn ? '<span class="now">この番</span>' : ""}${b.lent ? '<span class="lent">🤝</span>' : ""}</div>
-          <div class="stmeta">${elIcon(b.ch.el, 13)} ${ELEM[b.ch.el].nm}
+          <div class="stmeta">${elIconsOf(b.ch, 13)} ${elemNameOf(b.ch)}
             ／ ${sh === "pierce" ? "貫通" : "反射"}${changed ? "（変化中）" : ""}
             ／ <b class="${ready ? "fbok" : ""}">FB ${
               FB2_ON && b.sc >= fbMax(b.st) ? "2段階目 準備OK"
@@ -17534,8 +17764,6 @@ function launchShot(ball, ux, uy, power) {
     /* ★★ 2026-08-30 アンナ(祭)＋ GRAND DEBUT Ver.6.0 5体（どれも自強化型） */
     || ssk === "annam" || ssk === "chia" || ssk === "risa" || ssk === "rin"
     || ssk === "minori" || ssk === "seika"
-    /* ★★ 2026-09-01 RISING STAR FEST 4体（どれも自強化型） */
-    || ssk === "riona" || ssk === "mireir" || ssk === "suzuhar" || ssk === "seirak"
     /* ★★ 2026-09-01 ハノン（極彩祭・自強化型） */
     || ssk === "hanon"
     /* ★ 2026-08-08 カエデ・リノン・アンジェ（ココロは ssKind が "soleria" なので上で拾う） */
@@ -18379,91 +18607,39 @@ function applyNewSS(ball) {
     spawnSparks(ball.x, ball.y, "#ffd257", 70);
     B.shake = Math.max(B.shake, 32);
     flash("#ffd257");
-  } else if (k === "riona" || k === "mireir" || k === "suzuhar" || k === "seirak") {
-    /* ══ ★★ 2026-09-01 RISING STAR FEST の4体のフルバースト ══
-       4体とも「自強化 → 壁すり抜け → <b>最初にふれた敵で停止</b>して乱打 → 波 → 締め」。
-       乱打から先は hitEnemy 側（fireRisingStarFB）でやる。ここは発動の瞬間だけ。
-       ★ おまけの効果だけ1体ずつちがう。どれも<b>すでにある効果とまったく同じしくみ</b>を使う
-         （同じ効果には同じ名前が付く、という決まりに合わせるため）。 */
-    const cfgS = RSTAR_FB[k];
-    const bufS = { riona: [RIONA_ATK, RIONA_SPD], mireir: [MIREIR_ATK, MIREIR_SPD],
-                   suzuhar: [SUZUHAR_ATK, SUZUHAR_SPD], seirak: [SEIRAK_ATK, SEIRAK_SPD] }[k];
-    ball.selfBuff = { atk: bufS[0], spd: bufS[1], left: 2 };
-    let extraTx = "";
-    if (k === "riona") {
-      /* 敵全体の攻撃力ダウン（リサ「フローズン・レクイエム」と同じ・e.atkdown は {left,mul}） */
-      aliveEnemies().forEach((en) => {
-        if (!en || en.hp <= 0) return;
-        en.atkdown = { left: RIONA_ATKDOWN_TURNS, mul: RIONA_ATKDOWN_MUL };
-        B.effects.push({ type: "ring", x: en.x, y: en.y, t: 0, dur: 22, r: en.r * 2.6, c: cfgS.c2 });
-        B.pops.push({ x: en.x, y: en.y - en.r - 40, t: 0,
-          txt: "攻撃力 −" + Math.round((1 - RIONA_ATKDOWN_MUL) * 100) + "%（" + RIONA_ATKDOWN_TURNS + "T）",
-          c: cfgS.c2, small: 1 });
-      });
-      extraTx = "＆敵全体の攻撃力ダウン";
-    } else if (k === "mireir") {
-      /* 味方全員の攻撃力アップ（ミノリ「プリズム・ラプソディ」と同じ・selfBuff に合流） */
-      (B.balls || []).forEach((b) => {
-        if (!b || b === ball) return;
-        const cur = b.selfBuff || { atk: 1, spd: 1, left: 0 };
-        b.selfBuff = { atk: Math.max(cur.atk || 1, MIREIR_TEAM_ATK), spd: Math.max(cur.spd || 1, 1),
-                       left: Math.max(cur.left | 0, MIREIR_TEAM_TURNS) };
-        B.effects.push({ type: "ring", x: b.x, y: b.y, t: 0, dur: 20, r: b.r * 2.6, c: cfgS.c2 });
-      });
-      extraTx = "＆味方全員 攻撃力×" + MIREIR_TEAM_ATK + "（" + MIREIR_TEAM_TURNS + "T）";
-    } else if (k === "suzuhar") {
-      /* 敵全体に追加弱点（リン「ローズ・レクイエム」と同じ・e.sigil は {left}） */
-      aliveEnemies().forEach((en) => {
-        if (!en || en.hp <= 0) return;
-        en.sigil = { left: SUZUHAR_SIGIL_TURNS };
-        B.effects.push({ type: "pillar", x: en.x, y: en.y, t: 0, dur: 28, c: cfgS.c2 });
-        B.pops.push({ x: en.x, y: en.y - en.r - 40, t: 0,
-          txt: "弱点 +1（" + SUZUHAR_SIGIL_TURNS + "T）", c: cfgS.c2, small: 1 });
-      });
-      extraTx = "＆敵全体に追加弱点";
-    } else {
-      /* 味方全員にバリア（チア「ハートフル・ラプソディ」と同じ） */
-      (B.balls || []).forEach((b) => { if (b) b.barrier = Math.max(b.barrier || 0, SEIRAK_BARRIER); });
-      extraTx = "＆味方全員にバリア " + fmt(SEIRAK_BARRIER);
-    }
-    B.pops.push({ x: ball.x, y: ball.y - ball.r - 22, t: 0,
-      txt: "自強化＆壁すり抜け＆最初の敵で停止して乱打" + cfgS.n + "連＆波" + cfgS.wn + "発" + extraTx + "!!",
-      c: cfgS.c2, small: 0 });
-    B.effects.push({ type: "skydim", t: 0, dur: 44, a: 0.62, c: "#04102a" });
-    for (let k2 = 0; k2 < 7; k2++) {
-      B.effects.push({ type: "ring", x: ball.x, y: ball.y, t: -k2 * 4, dur: 38,
-        r: 120 + k2 * 126, c: k2 % 2 ? cfgS.c2 : cfgS.c });
-    }
-    B.effects.push({ type: "pillar", x: ball.x, y: ball.y, t: 0, dur: 42, c: cfgS.c2 });
-    B.effects.push({ type: "flashfx", t: 0, dur: 14 });
-    spawnSparks(ball.x, ball.y, cfgS.c, 54);
-    B.shake = Math.max(B.shake, 26);
-    flash(cfgS.c);
   } else if (k === "chia") {
     /* ★★ 2026-08-30 チア（ハートフル・ラプソディ）:
-       自強化 ＋ 敵全体へ恋色の衝撃波 ＋ <b>味方全員に CHIA_BARRIER のバリア</b>。 */
+       自強化 ＋ 敵全体へ恋色の衝撃波 ＋ <b>味方全員にバリア</b>。
+       ★★ 2026-09-03 復元。RISING STAR FEST の分岐を外したときに巻きぞえで消してしまった。
+         効果と定数は mb-core.js の ssPow / ssDesc のとおり。 */
     ball.selfBuff = { atk: CHIA_ATK, spd: CHIA_SPD, left: 2 };
-    const _atkC = ball.st.atk * atkMulOf(ball);
+    const _atkC2 = ball.st.atk * atkMulOf(ball);
     withDmgSrc(ball, () => {
       aliveEnemies().forEach((e) => {
         if (!e || e.hp <= 0) return;
         B.effects.push({ type: "boom", x: e.x, y: e.y, t: 0, dur: 26, r: 180, c: "#ff8ab5" });
+        B.effects.push({ type: "ring", x: e.x, y: e.y, t: 0, dur: 22, r: e.r * 2.6, c: "#ffd7e6" });
         spawnSparks(e.x, e.y, "#ffd7e6", 13);
-        dealDamage(e, _atkC * CHIA_ALL * elemMult(ball.ch.el, e.el), "#ff8ab5", true);
+        dealDamage(e, _atkC2 * CHIA_ALL * elemMult(ball.ch.el, e.el), "#ff8ab5", true);
       });
     });
-    (B.balls || []).forEach((b) => { if (b) b.barrier = Math.max(b.barrier || 0, CHIA_BARRIER); });
+    (B.balls || []).forEach((b) => {
+      if (!b) return;
+      b.barrier = Math.max(b.barrier || 0, CHIA_BARRIER);
+      B.effects.push({ type: "ring", x: b.x, y: b.y, t: 0, dur: 20, r: b.r * 2.6, c: "#ffd7e6" });
+    });
     B.pops.push({ x: ball.x, y: ball.y - ball.r - 22, t: 0,
-      txt: "自強化＆敵全体へ恋色の衝撃波＋味方全員にバリア " + fmt(CHIA_BARRIER) + "!!", c: "#ff8ab5", small: 0 });
+      txt: "自強化＆敵全体へ衝撃波＋味方全員にバリア " + fmt(CHIA_BARRIER) + "!!", c: "#ff8ab5", small: 0 });
+    B.effects.push({ type: "skydim", t: 0, dur: 34, a: 0.34, c: "#2a0d1a" });
     for (let k2 = 0; k2 < 4; k2++) B.effects.push({ type: "ring", x: ball.x, y: ball.y, t: -k2 * 4, dur: 30, r: 150 + k2 * 125, c: k2 % 2 ? "#ff8ab5" : "#ffd7e6" });
     B.effects.push({ type: "pillar", x: ball.x, y: ball.y, t: 0, dur: 34, c: "#ffd7e6" });
-    spawnSparks(ball.x, ball.y, "#ff8ab5", 34);
+    spawnSparks(ball.x, ball.y, "#ffd7e6", 34);
     B.shake = Math.max(B.shake, 20);
     flash("#ff8ab5");
   } else if (k === "risa") {
     /* ★★ 2026-08-30 リサ（フローズン・レクイエム）:
-       自強化 ＋ 敵全体へ氷結 ＋ <b>敵全体の攻撃力ダウン</b>。
-       ★ e.atkdown は {left, mul} の形（ミズキ・サユリのフルバーストと同じ）。 */
+       自強化 ＋ 敵全体へ氷結 ＋ <b>敵全体の攻撃力ダウン</b>（e.atkdown は {left,mul}）。
+       ★★ 2026-09-03 復元（上のチアと同じ理由）。 */
     ball.selfBuff = { atk: RISA_ATK, spd: RISA_SPD, left: 2 };
     const _atkR2 = ball.st.atk * atkMulOf(ball);
     withDmgSrc(ball, () => {
@@ -20198,9 +20374,6 @@ function stepBall(ball) {
     || ball.ch.ssKind === "reina" || ball.ch.ssKind === "annas"
     /* ★★ 2026-08-30 アンナ(祭)（千華繚乱・スターマイン）も壁をすり抜ける */
     || ball.ch.ssKind === "annam"
-    /* ★★ 2026-09-01 RISING STAR FEST の4体（どれも「最初の敵で止まって乱打」型） */
-    || ball.ch.ssKind === "riona" || ball.ch.ssKind === "mireir"
-    || ball.ch.ssKind === "suzuhar" || ball.ch.ssKind === "seirak"
     /* ★★ 2026-09-01 ハノン（オーロラ・ブザービーター）も壁をすり抜ける */
     || ball.ch.ssKind === "hanon");
   for (let s = 0; s < steps; s++) {
@@ -21522,13 +21695,6 @@ function hitEnemy(ball, e, col) {
   if (B.ssArmed === ball.i && ball.ch.ssKind === "hanon" && !B.ssFirstDone) {
     B.ssFirstDone = true;
     fireHanonFB(ball, e);
-  }
-  /* ══ ★★ 2026-09-01 RISING STAR FEST の4体 ══
-     最初にふれた敵の上で止まり、乱打 → 波（敵全体・重くなる）→ 締め（敵全体）＋ふっとばし。
-     ★ 4体でちがうのは数字と色だけなので、RSTAR_FB の表を引いて1本の関数に渡す。 */
-  if (B.ssArmed === ball.i && RSTAR_FB[ball.ch.ssKind] && !B.ssFirstDone) {
-    B.ssFirstDone = true;
-    fireRisingStarFB(ball, e, RSTAR_FB[ball.ch.ssKind]);
   }
   /* ══ ★★ 2026-08-30 アンナ(祭)（千華繚乱・スターマイン）＝ MagiBurst 史上最強 ══
      最初にふれた敵の上で止まり、灯火の乱打 → <b>スターマイン</b>（夜空へ花火が
@@ -26373,74 +26539,67 @@ function fireRisingTide(owner, atk) {
   B.pops.push({ x: owner.x, y: owner.y - owner.r - 24, t: 0,
     txt: "ライジング・タイド（" + RTIDE_N + "往復）", c: col, small: 1 });
 }
-/* ══════════════════════════════════════════════════════════════
-   ★★ 2026-09-01 RISING STAR FEST — フルバーストの共通の締め
+/* ════════════════════════════════════════════════════════════
+   ★★ 2026-09-03 スターライト・チェーン（RISING STAR FEST 第2弾の共通サブリンク）
    ------------------------------------------------------------
-   4体とも「最初にふれた敵で止まる → 乱打 → 波（敵全体・重くなる）→ 締め（敵全体）」。
-   ★ 呼ぶのは hitEnemy の中（B.ssArmed のとき1回だけ）。
-   ★ 乱打が終わってから波が始まるように startAt をずらす。
-   ══════════════════════════════════════════════════════════════ */
-const RSTAR_FB = {
-  riona: { n: RIONA_BARRAGE_N, per: RIONA_BARRAGE_PER, wn: RIONA_WAVE_N,
-    wper: RIONA_WAVE_PER, wstep: RIONA_WAVE_STEP, fin: RIONA_FINALE,
-    c: "#38a6ff", c2: "#bfe6ff", tx: "OCEAN OVERTURE!!", tx2: "TIDAL FINALE!!" },
-  mireir: { n: MIREIR_BARRAGE_N, per: MIREIR_BARRAGE_PER, wn: MIREIR_WAVE_N,
-    wper: MIREIR_WAVE_PER, wstep: MIREIR_WAVE_STEP, fin: MIREIR_FINALE,
-    c: "#8affc4", c2: "#d8ffe4", tx: "SUMMER SHADE!!", tx2: "RONDO FINALE!!" },
-  suzuhar: { n: SUZUHAR_BARRAGE_N, per: SUZUHAR_BARRAGE_PER, wn: SUZUHAR_WAVE_N,
-    wper: SUZUHAR_WAVE_PER, wstep: SUZUHAR_WAVE_STEP, fin: SUZUHAR_FINALE,
-    c: "#ffe9a8", c2: "#fff1b8", tx: "STARLIT RESONANCE!!", tx2: "STAR FINALE!!" },
-  seirak: { n: SEIRAK_BARRAGE_N, per: SEIRAK_BARRAGE_PER, wn: SEIRAK_WAVE_N,
-    wper: SEIRAK_WAVE_PER, wstep: SEIRAK_WAVE_STEP, fin: SEIRAK_FINALE,
-    c: "#c9a6ff", c2: "#ffd7e6", tx: "DOUBLE SPLASH!!", tx2: "SPLASH FINALE!!" },
-};
-function fireRisingStarFB(ball, e, cfg) {
-  barrageHalt(ball);
-  fxBarrage(ball, e, cfg.n, cfg.per, cfg.c2);
-  luxBurst(e.x, e.y, cfg.c);
-  B.pops.push({ x: e.x, y: e.y - e.r - 60, t: 0, txt: cfg.tx, c: cfg.c2, small: 0 });
-  const gap = 11, startAt = cfg.n * 2 + 8, tid = e.id;
-  B.effects.push({ type: "fxctl", t: 0, dur: startAt + gap * (cfg.wn + 3) + 44, k: 0, fin: 0,
+   ふれた味方から<b>星の鎖</b>が伸び、<b>近い敵から順に数珠つなぎ</b>にしていく。
+   結ぶたびに1回ぶんが重くなり（SLC_PER → +SLC_STEP）、つなぎ終わったところで
+   <b>つないだ敵ぜんぶ</b>へ締めの一撃（SLC_FINALE）が落ちる。
+   ★ 威力は SUB_HIT.starlightchain / FS_HIT.starlightchain と<b>必ず同じ</b>にすること。
+   ★ 進行役は<b>絵を持たない型（fxctl）</b>。await sleep だとオンラインでずれる。
+   ════════════════════════════════════════════════════════════ */
+function fireStarlightChain(owner, atk) {
+  const col = ELEM[owner.ch.el].c;
+  const chained = [];                       /* これまでにつないだ敵 */
+  let fromX = owner.x, fromY = owner.y;
+  B.effects.push({ type: "fxctl", x: owner.x, y: owner.y, t: 0,
+    dur: SLC_GAP * (SLC_N + 3) + 34, k: 0, done: 0, owner,
     tick(fx) {
-      if (fx.t < startAt || (fx.t - startAt) % gap !== 0) return;
-      if (fx.k < cfg.wn) {
-        const i = fx.k; fx.k++;
-        const per = cfg.wper + cfg.wstep * i;
-        for (let q = 0; q < 4; q++) {
-          B.effects.push({ type: "ring", x: W / 2, y: H * 0.42, t: -q * 3, dur: 26,
-            r: 110 + q * (120 + i * 16), c: q % 2 ? "#ffffff" : cfg.c });
-        }
-        withDmgSrc(ball, () => {
-          aliveEnemies().forEach((o) => {
-            B.effects.push({ type: "boom", x: o.x, y: o.y, t: 0, dur: 22, r: 190, c: cfg.c });
-            dealDamage(o, ball.st.atk * atkMulOf(ball) * per * elemMultOf(ball.ch, o.el), cfg.c, true);
-            spawnSparks(o.x, o.y, cfg.c2, 8);
-          });
+      if (fx.t % SLC_GAP !== 0) return;
+      if (fx.k < SLC_N) {
+        /* いまの結び目から<b>いちばん近い、まだつないでいない敵</b>を探す */
+        const rest = aliveEnemies().filter((e) => chained.indexOf(e) < 0);
+        if (!rest.length) { fx.k = SLC_N; return; }
+        let tgt = rest[0], bd = 1e9;
+        rest.forEach((e) => {
+          const d = Math.hypot(e.x - fromX, e.y - fromY);
+          if (d < bd) { bd = d; tgt = e; }
         });
-        B.shake = Math.max(B.shake, 9 + i * 2); SFX.crit();
+        const per = SLC_PER + SLC_STEP * fx.k;
+        B.effects.push({ type: "boltlink", x: fromX, y: fromY, tx: tgt.x, ty: tgt.y,
+          t: 0, dur: 12, c: fx.k % 2 ? "#fff1b8" : col });
+        withDmgSrc(fx.owner, () => {
+          B.effects.push({ type: "boom", x: tgt.x, y: tgt.y, t: 0, dur: 15, r: 72, c: col });
+          dealDamage(tgt, atk * per * elemMultOf(fx.owner.ch, tgt.el), col, true);
+          spawnSparks(tgt.x, tgt.y, "#fff1b8", 6);
+        });
+        chained.push(tgt);
+        fromX = tgt.x; fromY = tgt.y;
+        fx.k++;
+        B.shake = Math.max(B.shake, 3 + fx.k); SFX.hit();
         return;
       }
-      if (fx.fin) return;
-      fx.fin = 1;
-      B.effects.push({ type: "flashfx", t: 0, dur: 18 });
-      for (let q = 0; q < 9; q++) {
-        B.effects.push({ type: "ring", x: W / 2, y: H * 0.38, t: -q * 3, dur: 40,
-          r: 120 + q * 165, c: q % 2 ? "#ffffff" : cfg.c });
-      }
-      B.effects.push({ type: "pillar", x: W / 2, y: H * 0.38, t: 0, dur: 42, c: cfg.c2 });
-      withDmgSrc(ball, () => {
-        aliveEnemies().forEach((o) => {
-          B.effects.push({ type: "boom", x: o.x, y: o.y, t: 0, dur: 34, r: 300, c: cfg.c });
-          B.effects.push({ type: "pillar", x: o.x, y: o.y, t: 0, dur: 32, c: cfg.c2 });
-          dealDamage(o, ball.st.atk * atkMulOf(ball) * cfg.fin * elemMultOf(ball.ch, o.el), cfg.c, true);
-          spawnSparks(o.x, o.y, "#ffffff", 26);
+      /* つなぎ終わり → つないだ敵ぜんぶへ締めの一撃（1回だけ） */
+      if (fx.done) { fx.t = fx.dur; return; }
+      fx.done = 1;
+      const live = chained.filter((e) => e && e.hp > 0);
+      if (!live.length) { fx.t = fx.dur; return; }
+      withDmgSrc(fx.owner, () => {
+        live.forEach((e) => {
+          B.effects.push({ type: "boom", x: e.x, y: e.y, t: 0, dur: 24, r: 130, c: "#fff1b8" });
+          dealDamage(e, atk * SLC_FINALE * elemMultOf(fx.owner.ch, e.el), col, true);
+          spawnSparks(e.x, e.y, col, 10);
         });
       });
-      B.pops.push({ x: W / 2, y: H * 0.30, t: 0, txt: cfg.tx2, c: cfg.c2, small: 0 });
-      B.shake = Math.max(B.shake, 32); SFX.crit();
-      const t3 = B.enemies.find((x) => x.id === tid && x.hp > 0);
-      if (t3) knockbackEnemy(ball, t3);
+      B.pops.push({ x: W / 2, y: H * 0.36, t: 0, txt: "STARLIGHT CHAIN!!", c: "#fff1b8", small: 0 });
+      /* ★ flash() は別の関数の中だけの const なので、ここでは使えない。
+         同じ見た目になるよう、中身をそのまま書く。 */
+      B.effects.push({ type: "flashfx", t: 0, dur: 12 });
+      B.effects.push({ type: "ring", x: fx.x, y: fx.y, t: 0, dur: 26, r: 300, c: "#fff1b8" });
+      B.shake = Math.max(B.shake, 18);
     } });
+  B.pops.push({ x: owner.x, y: owner.y - owner.r - 24, t: 0,
+    txt: "スターライト・チェイン（最大" + SLC_N + "体）", c: col, small: 1 });
 }
 /* ══ ★★ 2026-09-01 ゴールデン・リバウンド（ハノンのサブリンク）══
    光のボールがリングに当たってはね返り、はねるたびに<b>敵全体</b>へ。はねるほど重くなる。
@@ -26611,6 +26770,14 @@ function fireSubFriend(owner, mover, atk) {
        ★ ここに分岐が無いと「持っているのに発動しないサブリンク」になる。
        ★ 威力は SUB_HIT.goldenrebound と必ずそろえること。 */
     fireGoldenRebound(owner, atk);
+    return;
+  }
+  if (kind === "starlightchain") {
+    /* ★★ 2026-09-03 スターライト・チェーン（RISING STAR FEST 第2弾4体の共通サブリンク）。
+       ★ ここに分岐が無いと、下の else-if 連鎖のどれにも当たらず
+         「持っているのに発動しないサブリンク」になる。
+       ★ 威力は SUB_HIT.starlightchain と必ずそろえること。 */
+    fireStarlightChain(owner, atk);
     return;
   }
   if (kind === "risingtide") {
@@ -28214,7 +28381,8 @@ async function enemyPhase() {
     if (dm.doom <= 0) {
       await doomAttack(dm); if (B.hp <= 0) return;
       /* 端に構えていたなら、撃ったあと元の位置へ戻る */
-      if (dm.edgeDoom && dm.homeX != null) { dm.x = dm.homeX; dm.y = dm.homeY; dm.homeX = null; }
+      /* ★★ 2026-09-02 戻るときも<b>通ったところの味方をはね飛ばす</b>（enemyRelocate） */
+      if (dm.edgeDoom && dm.homeX != null) { enemyRelocate(dm, dm.homeX, dm.homeY, "戻りざま"); dm.homeX = null; }
     }
     else if (dm.edgeDoom && dm.doom <= dm.edgeWarn) {
       /* ★ 2026-08-17j 端の即死。
@@ -28224,8 +28392,11 @@ async function enemyPhase() {
       if (dm.homeX == null) {
         dm.homeX = dm.x; dm.homeY = dm.y;
         dm.edgeSide = (dm.edgeSide == null) ? ((B.wave % 2) ? 1 : 0) : (1 - dm.edgeSide);
-        dm.x = dm.edgeSide ? (W - dm.r - 10) : (dm.r + 10);
-        dm.y = Math.max(dm.r + 10, H * 0.22);
+        /* ★★ 2026-09-02 ご指定: 敵が移動するときは、<b>通った道すじの近くにいる味方</b>に
+           ダメージを与える。味方の置き所を考える理由になる。 */
+        enemyRelocate(dm,
+          dm.edgeSide ? (W - dm.r - 10) : (dm.r + 10),
+          Math.max(dm.r + 10, H * 0.22), "端への突進");
         B.pops.push({ x: dm.x, y: dm.y - dm.r - 52, t: 0, txt: "端に構えた！", c: "#ff7b7b", small: 0 });
         B.shake = Math.max(B.shake, 10);
       }
@@ -29772,6 +29943,109 @@ function drawGuide() {
      ※ aimShotOf は撃種変化パネル・撃種が変わるフルバーストの予約をどちらも加味した撃種を返す。 */
   const arrowCol = fbReady ? gc : (shot === "bounce" ? "#7cc4ff" : "#ffd257");
   drawPullArrow(ball, -d.dx / len, -d.dy / len, p, arrowCol);
+  /* ★★ 2026-09-02 引っぱっているあいだだけ、キラーが効く敵に「WEAK」を出す（ご指定） */
+  drawWeakTags(ball);
+}
+/* ════════════════════════════════════════════════════════════
+   ★★ 2026-09-02 引っぱっているあいだだけ、キラーが効く敵に「WEAK」（ご指定）
+   ────────────────────────────────────────────────────────────
+   どの敵にキラーが乗るかは、これまで「！ボタン → 与ダメージの内わけ」を
+   開かないと分からなかった。狙っているその瞬間に<b>盤面の上で</b>分かるようにする。
+   ★ 出すのは<b>引っぱり矢印が出ているあいだだけ</b>（ご指定）。
+     いつも出しておくと盤面がうるさくなる。
+   ★ 判定は<b>属性有利（elemMultOf）またはキラー（killerMul）が1を超えること</b>。
+     どちらも damageInfo が使っているのと<b>同じ関数</b>なので、
+     「WEAK と出ているのに内わけには無い」が起きない。
+   ★ 文字はペルソナ風：<b>斜めに傈られた黒い帯に、白の太い斜体</b>。
+     専用フォントは読まない（オフラインでも出ることを優先）。
+     傾き（transform）と厳めのウェイトで雰囲気を作る。
+   ════════════════════════════════════════════════════════════ */
+/* ══ ★★ 2026-09-03 WEAK は<b>キラーの対象の敵</b>にだけ出す（ご指定）══
+   以前は「有利属性なら WEAK」にもしていたが、それだと
+   属性相性を見れば分かることを二重で出すだけになる。
+   ★ ここで数えるのは<b>相手の敵によって乗るか変わるキラー</b>だけ。
+     全属性キラー・底力・パワーオーラ・敵少/敵多底力・ネクサスのように
+     <b>盤面の敵全部に同じだけ乗るもの</b>は、印にしても見分けにならないので数えない。
+   ★ キラーを増やしたときは、<b>killerMul とここの両方</b>に足すこと。 */
+function weakTargetFor(ball, e) {
+  if (!ball || !ball.ch || !e || e.hp <= 0) return false;
+  if (typeof enemyShown === "function" && !enemyShown(e)) return false;
+  try {
+    const c = ball.ch;
+    const has = (t) => hasAbil(c, t);
+    const any = (list) => list.some(has);
+    /* ① 属性キラー（クロスで配られたぶんも含む） */
+    if (typeof killerEl === "function" && killerEl(c) === e.el) return true;
+    for (const k of ["killerEL", "killerL", "killerM"]) {
+      const a = (typeof elemKillerAbil === "function") ? elemKillerAbil(c, k) : null;
+      if (a && a.el === e.el) return true;
+    }
+    /* ② 種族キラー */
+    const race = (typeof raceOfSp === "function") ? raceOfSp(e.sp) : "";
+    if (race === HOURAI_RACE && any(["houraikillerEL", "houraikillerL"])) return true;
+    if (race === NETHER_RACE && any(["netherkillerEL", "netherkillerL", "netherkillerM"])) return true;
+    if (race === ECLIPSE_RACE && any(["eclipsekillerEL", "eclipsekillerM"])) return true;
+    if ((race === NETHER_RACE || race === ECLIPSE_RACE) && any(["eclipseslayerEL", "eclipseslayerM"])) return true;
+    /* ③ 敵の状態で決まるキラー */
+    if (e.hp >= e.maxhp * 0.5 && any(["vitalEL", "vitalL", "vitalM", "vital"])) return true;
+    if (e.hp <= e.maxhp * 0.5 && any(["fatalkillerL", "fatalkillerM", "fatalkiller"])) return true;
+    if (e.cd === 1 && has("atkturnkillerM")) return true;
+    if (e.poison && e.poison.left > 0 && any(["poisonkillerEL", "poisonkillerM", "poisonkiller"])) return true;
+    if (typeof enemyDefDown === "function" && enemyDefDown(e) && any(["defkillerM", "defkiller"])) return true;
+    if (e.grav && any(["gravkillerEL", "gravkillerL", "gravkillerM", "gravkiller"])) return true;
+    if (e.boss && has("bosskillerM")) return true;
+    if (!e.boss && any(["mobkillerL", "mobkillerM", "mobkiller"])) return true;
+    if (B && B.lastAttacker && B.lastAttacker === e.id && has("counterkiller")) return true;
+    /* ④ 弱点キラー（弱点を持っている敵にだけ意味がある） */
+    if (typeof weakActive === "function" && weakActive(e)
+        && any(["weakkillerEL", "weakkillerL", "weakkillerM", "weakkiller"])) return true;
+    /* ⑤ 位置で決まるキラー */
+    if (has("upkillerM") && e.y < H * 0.5) return true;
+    if (has("rightkillerL") && e.x > W * 0.5) return true;
+    if (has("leftkillerM") && e.x < W * 0.5) return true;
+    if (any(["outkillerL", "outkillerM"]) && typeof atOuterEdge === "function" && atOuterEdge(e)) return true;
+    /* ⑥ フルバーストで一時的に手に入れたキラー（ロゼリア） */
+    const sk = ball.ssKiller;
+    if (sk && sk.left > 0) {
+      if (sk.el && sk.el === e.el) return true;
+      if (sk.counter && B && B.lastAttacker === e.id) return true;
+    }
+    return false;
+  } catch (err) { return false; }
+}
+/* ペルソナ風の「WEAK」の札。1体ぶん。 */
+function drawWeakTag(e) {
+  const pulse = 0.82 + 0.18 * Math.sin(B.tick * 0.28);
+  const bob = Math.sin(B.tick * 0.14) * 2.4;
+  const x = e.x, y = e.y - e.r - 30 + bob;
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(-0.14);
+  ctx.font = "900 italic 30px 'Orbitron','Arial Black',sans-serif";
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  const tw = ctx.measureText("WEAK").width;
+  const bw = tw + 34, bh = 34;
+  /* 斜めに傈られた帯（ペルソナの当て字） */
+  const sk = 11;
+  ctx.beginPath();
+  ctx.moveTo(-bw / 2 + sk, -bh / 2);
+  ctx.lineTo(bw / 2 + sk, -bh / 2);
+  ctx.lineTo(bw / 2 - sk, bh / 2);
+  ctx.lineTo(-bw / 2 - sk, bh / 2);
+  ctx.closePath();
+  ctx.fillStyle = "rgba(8,6,14,.94)"; ctx.fill();
+  ctx.strokeStyle = hexA("#ff2f5e", pulse); ctx.lineWidth = 3; ctx.stroke();
+  /* 文字（赤い影 → 白い本体） */
+  ctx.fillStyle = hexA("#ff2f5e", 0.9);
+  ctx.fillText("WEAK", 2.5, 2.5);
+  ctx.fillStyle = "#fff";
+  ctx.fillText("WEAK", 0, 0);
+  ctx.restore();
+}
+/* 引っぱっているキャラが強く当たれる敵を全部探して札を出す */
+function drawWeakTags(ball) {
+  if (!ball || !B.enemies) return;
+  B.enemies.forEach((e) => { if (weakTargetFor(ball, e)) drawWeakTag(e); });
 }
 /* ★ 引っぱり度と方向を示す矢印（ガイドの点線とは別に、ボールから発射方向へ伸びる太い矢印） */
 function drawPullArrow(ball, ux, uy, power, col) {
@@ -30301,16 +30575,19 @@ function drawBall(b, isTurn) {
     /* 芯の輪 */
     ctx.beginPath(); ctx.arc(0, 0, b.r + 5, 0, Math.PI * 2);
     ctx.strokeStyle = hexA(soko.c, 0.9 * pl); ctx.lineWidth = 2.4; ctx.stroke();
-    /* 等級の名前（ボールの下。上はチップが積まれるので使わない） */
+    /* 等級の名前と倍率（ボールの下だけ）。
+       ★★ 2026-09-02 上のチップ（ballBuffChips）にも同じものを出していて
+         <b>上と下の両方に出ていた</b>ので、上をやめてこちらに倍率を入れた。 */
     ctx.font = "900 10px 'Noto Sans JP',sans-serif";
     ctx.textAlign = "center";
+    const stx = soko.nm + " ×" + soko.mul.toFixed(1);
     const ty = b.r + 20 + ((b.msStock || 0) > 0 || (b.balloon || 0) > 0 ? 12 : 0);
-    const tw = ctx.measureText(soko.nm).width + 12;
+    const tw = ctx.measureText(stx).width + 12;
     ctx.fillStyle = "rgba(10,8,22,.82)";
     roundRect(ctx, -tw / 2, ty - 8, tw, 15, 7); ctx.fill();
     ctx.strokeStyle = hexA(soko.c, 0.9); ctx.lineWidth = 1.3; ctx.stroke();
     ctx.fillStyle = soko.c; ctx.textBaseline = "middle";
-    ctx.fillText(soko.nm, 0, ty);
+    ctx.fillText(stx, 0, ty);
     ctx.textAlign = "start"; ctx.textBaseline = "alphabetic";
   }
   /* ★ v14.5 所持している地雷（マインスイーパーで回収したぶん）を、
@@ -30642,10 +30919,10 @@ function ballBuffChips(b) {
     if (sb.def) parts.push("防");
     out.push({ txt: (parts.join(" ") || "強化") + " 残" + sb.left, c: sb.def ? "#7ce8ff" : "#ff9d2e" });
   }
-  /* ★ 2026-08-15 底力（底力／状態異常底力／敵少底力／敵多底力）が乗っているあいだ。
-     ボール絵のほうにも炎の輪を出しているが、こちらでは<b>倍率まで</b>読める。 */
-  const soko = sokojikaraState(b);
-  if (soko) out.push({ txt: "🔥" + soko.nm + " ×" + soko.mul.toFixed(1), c: soko.c });
+  /* ★★ 2026-09-02 ご報告:「敵多・敵少底力の表示がボール絵の<b>上と下の両方</b>に出ている」
+     底力はここ（上のチップ）と drawBall の炎の輪（下の札）の<b>2か所</b>で出していた。
+     炎の輪はボールに巻く見た目とセットなので、<b>下の札だけを残し</b>、
+     倍率はその札に入れる（drawBall 側）。ここでは出さない。 */
   if (b.invuln && b.invuln.left > 0) out.push({ txt: "無敵 残" + b.invuln.left, c: "#ffd257" });
   if (b.phantom && b.phantom.left > 0) out.push({ txt: "ファントム 残" + b.phantom.left, c: "#c9a6ff" });
   if (b.bubbly > 0 || bubbleModeOn(b)) out.push({ txt: "バブリー", c: "#7ce8ff" });
@@ -32400,6 +32677,34 @@ window.addEventListener("xeva:change", () => { paintWallet(); });
     };
     if (document.readyState === "complete") setTimeout(go, 900);
     else window.addEventListener("load", () => setTimeout(go, 900), { once: true });
+  } catch (e) {}
+})();
+
+/* ══ ★★ 2026-09-03 QRをカメラで読んで開いたとき（#mbjoin=コード）══
+   iPhone にはアプリの中で QR を読むしくみ（BarcodeDetector）が無い。
+   そこでホストの QR には<b>このページの URL</b>を入れてあるので、
+   標準のカメラアプリで読むだけで MagiBurst が開く。
+   ここでそのコードを拾って、<b>参加の画面まで進めておく</b>。
+   ★ コードは一度使ったら hash から消す（再読みこみで二重に入らないように）。 */
+(function mbJoinBoot() {
+  try {
+    const m = /#mbjoin=([^&]+)/.exec(location.hash || "");
+    if (!m) return;
+    const code = decodeURIComponent(m[1]);
+    try { history.replaceState(null, "", location.pathname + location.search); } catch (e) {}
+    const go = () => {
+      try {
+        if (typeof openOnline !== "function") return;
+        openOnline();
+        ON.mode = "local"; ON.local = true; ON.lmode = "guest";
+        ON.step = "pick"; ON.linvite = code;
+        ON.msg = "まねきコードを受け取りました。キャラをえらんでつなげてください。";
+        renderOnline();
+        if (typeof onLocalPeek === "function") setTimeout(() => onLocalPeek(), 120);
+      } catch (e) {}
+    };
+    if (document.readyState === "complete") setTimeout(go, 1000);
+    else window.addEventListener("load", () => setTimeout(go, 1000), { once: true });
   } catch (e) {}
 })();
 

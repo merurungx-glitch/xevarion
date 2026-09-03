@@ -6,14 +6,16 @@
    ・オンライン対戦・XEVA換金はアプリ側でオフライン時に無効化している
    ・取得できたリソースは随時キャッシュ更新（stale-while-revalidate）
    ============================================================ */
-const VERSION = "magiburst-sw-v138";
+const VERSION = "magiburst-sw-v140";
 const CORE = [
   "./index.html",
-  "./js/mb-core.js?v=68",   /* ★ 2026-08-10 キャラ・ガチャの共有モジュール（XEVARION のガチャと共通） */
+  "./js/mb-core.js?v=75",   /* ★ 2026-08-10 キャラ・ガチャの共有モジュール（XEVARION のガチャと共通） */
   /* ★★ 2026-09-01 ローカル通信マルチ。<b>オフラインで使うもの</b>なので、
      ここに載せておかないと「オフラインのときだけ動かない」ことになる。 */
-  "./js/local.js?v=5",
-  "../xeva.js?v=53",
+  "./js/local.js?v=6",
+  /* ★★ 2026-09-03 ローカル通信の QR コード（自前・外部ライブラリなし） */
+  "../xeva-qr.js?v=2",
+  "../xeva.js?v=54",
   "../xeva-loading.js?v=3",
   "../xeva-splash.js?v=5",
   "../app-cloud.js?v=6",
@@ -305,7 +307,13 @@ const CORE = [
   "../img/t_MireiR.webp",
   "../img/t_SuzuhaR.webp",
   "../img/t_SeiraK.webp",
-  "../img/t_Hanon.webp",   /* ★★ 2026-09-01 極彩祭 ハノン */
+  "../img/t_Hanon.webp",
+  /* ★★ 2026-09-03 RISING STAR FEST 第2弾 4体。
+     ★ ここに無いとオフラインで<b>その子だけ絵が出ない</b>し、update.json にも載らない。 */
+  "../img/t_Shizuru.webp",
+  "../img/t_Yuuri.webp",
+  "../img/t_Hisui.webp",
+  "../img/t_Raika.webp",   /* ★★ 2026-09-01 極彩祭 ハノン */
   /* ★★ 2026-08-30 💠結晶のアイコン（ガチャ結果・交換所で使う） */
   "../img/cryst.webp",
   "../img/t_Karen.webp",
