@@ -1225,8 +1225,12 @@ function mlCharUrl(charFile, charId){
 const RAR_ORDER = { SSR: 0, SR: 1, R: 2 };
 function charList(){ return (window.XEVA && window.XEVA.CHARS) ? window.XEVA.CHARS : []; }
 function charById(id){ return charList().find(c=>c.id===id) || null; }
-// 同一オリジンの XEVARION ガチャ保存から自分の所持キャラ id を取得
+/* ★★ 2026-09-05 コレクションは XEVARION 全体で1本（../xeva-collection.js）。
+   これまでは XEVAガチャ（CHAR_MASTER）の id しか通していなかったので、
+   <b>MagiBurst で引いたキャラが1体も入らなかった</b>（ご報告）。
+   ★ 中身も見た目もポータル（アカウント設定）・コミュニティと同じになる。 */
 function myCollectionIds(){
+  if(window.XevaCollection) return window.XevaCollection.ids();
   const ids=new Set();
   try{ const g=JSON.parse(localStorage.getItem("xeva_gacha_v1")||"null");
     if(g&&g.owned) Object.keys(g.owned).forEach(id=>{ if(g.owned[id]) ids.add(id); }); }catch(e){}
@@ -1235,8 +1239,8 @@ function myCollectionIds(){
   const valid=charList();
   return [...ids].filter(id=>valid.some(c=>c.id===id));
 }
-// 同一オリジンの XEVARION ガチャ保存から凸（重複）レベルを取得
 function myCollectionDupes(){
+  if(window.XevaCollection) return window.XevaCollection.dupes();
   const out={};
   try{ const g=JSON.parse(localStorage.getItem("xeva_gacha_v1")||"null");
     if(g&&g.dupes) Object.keys(g.dupes).forEach(id=>{ const lv=Math.max(0,Math.min(4,g.dupes[id]||0)); if(lv>0) out[id]=lv; }); }catch(e){}
@@ -1264,6 +1268,15 @@ function syncMyCollection(){
 function collectionHTML(u){
   const ids=(u&&Array.isArray(u.collection))?u.collection:[];
   const dupes=(u&&u.collectionDupes&&typeof u.collectionDupes==="object")?u.collectionDupes:{};
+  /* ★★ 2026-09-05 MagiBurst のキャラ（id が "mb:xxx"）も並ぶ共通の描きかたへ。
+     画像は絶対URLなので base に CHARS_BASE の親（chars/ の1つ上）を渡す。 */
+  if(window.XevaCollection){
+    window.XevaCollection.injectCSS();
+    return window.XevaCollection.html(ids, dupes, {
+      base: CHARS_BASE.replace(/chars\/?$/, ""),
+      empty: "まだキャラを集めていません。XEVARION のガチャで仲間を増やそう！"
+    });
+  }
   const chars=ids.map(charById).filter(Boolean)
     .sort((a,b)=>(RAR_ORDER[a.rarity]??9)-(RAR_ORDER[b.rarity]??9) || (a.season||0)-(b.season||0));
   if(!chars.length) return `<div class="coll-head">🎴 コレクション</div><div class="col-empty">まだキャラを集めていません。<br>XEVARION のガチャで仲間を増やそう！</div>`;

@@ -1,0 +1,233 @@
+/* ══════════════════════════════════════════════════════════════
+   md2-ui.css — MagiDiamond の見た目を XEVARION の家族にそろえる
+   ──────────────────────────────────────────────────────────────
+   ★★ 2026-09-06 ご指定「UI を MagiBurst／XEVARION ホーム／MagiBattle 風に」。
+     MagiBurst の新UI（紙・墨・黄・赤）と同じ考えかたを、
+     野球場の暗い下地に置きかえて使う。
+       ・下地   … 夜の球場（深い墨＋グラウンドの緑をほんの少し）
+       ・面     … 墨の板 ＋ 2px の白いふち ＋ ずらした影
+       ・差し色 … 黄（いま選んでいる）／赤（危ない・強調）
+       ・形     … 角は丸めず<b>斜めに切る</b>
+   ★ md2.css は<b>そのまま残して、上から重ねる</b>。
+     こうしておくと、この1枚を外すだけで元の見た目に戻せる。
+   ★ 新しい部品（作戦の列・守備配置・球速・検索）もここに置く。
+   ══════════════════════════════════════════════════════════════ */
+:root{
+  --md-ink:#0d0b12;
+  --md-yel:#ffd400;
+  --md-red:#e2231a;
+  --md-grass:#1d5c34;
+}
+body{
+  background:
+    radial-gradient(120% 80% at 50% 0%, rgba(29,92,52,.30) 0%, rgba(29,92,52,0) 62%),
+    repeating-linear-gradient(115deg, rgba(255,255,255,.022) 0 2px, transparent 2px 10px),
+    linear-gradient(180deg,#12101a 0%,#0a0910 100%) !important;
+}
+
+/* ══ 上のバー ══ */
+.hd{
+  background:var(--md-ink) !important;
+  border-bottom:3px solid var(--md-yel) !important;
+}
+.hd .bk{
+  border-radius:0 !important;border:2px solid #fff !important;background:var(--md-ink) !important;
+  clip-path:polygon(5px 0,100% 0,calc(100% - 5px) 100%,0 100%);
+}
+.hd .who .av{ border-radius:0 !important;border:2px solid var(--md-yel) !important; }
+.wal .w{
+  border-radius:99px !important;border:2px solid #fff !important;background:rgba(255,255,255,.05) !important;
+}
+
+/* ══ 下のタブ（MagiBurst と同じ手ざわり）══ */
+.nav{
+  background:var(--md-ink) !important;
+  border-top:3px solid var(--md-yel) !important;
+}
+.nav button{ color:rgba(255,255,255,.62) !important;font-weight:900 !important;letter-spacing:.04em; }
+.nav button .i{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:36px;height:28px;border-radius:0;
+  clip-path:polygon(5px 0,100% 0,calc(100% - 5px) 100%,0 100%);
+  transition:background .16s ease, transform .16s ease;
+}
+.nav button.on{ color:var(--md-yel) !important; }
+.nav button.on .i{ background:var(--md-yel);transform:translateY(-2px);filter:grayscale(1) brightness(.2); }
+.nav button:active .i{ background:var(--md-red);transform:scale(.94);filter:none; }
+
+/* ══ 板・ボタン ══ */
+.card, .mbtn, .box, .pc, .row.box, .tcard, .skl{
+  border-radius:0 !important;
+  border:2px solid rgba(255,255,255,.55) !important;
+  background:linear-gradient(160deg,rgba(255,255,255,.09),rgba(255,255,255,.02)) !important;
+  box-shadow:4px 4px 0 rgba(0,0,0,.55) !important;
+}
+.mbtn, .pc{
+  clip-path:polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+  transition:transform .1s ease, box-shadow .1s ease, background .12s ease;
+}
+.mbtn:active, .pc:active{
+  transform:translate(3px,3px) !important;box-shadow:0 0 0 rgba(0,0,0,0) !important;
+  background:var(--md-yel) !important;color:#12100c !important;
+}
+.playball{
+  border-radius:0 !important;
+  background:var(--md-ink) !important;color:#fff !important;
+  border:2px solid #fff !important;
+  box-shadow:6px 6px 0 var(--md-yel) !important;
+  clip-path:polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px));
+}
+.playball:active{
+  transform:translate(6px,6px) !important;box-shadow:0 0 0 rgba(0,0,0,0) !important;
+  background:var(--md-red) !important;
+}
+.btn{
+  border-radius:0 !important;border:2px solid rgba(255,255,255,.6) !important;
+  clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 9px, 100% 100%, 9px 100%, 0 calc(100% - 9px));
+  font-weight:900 !important;
+}
+.btn.pri{
+  background:var(--md-yel) !important;color:#12100c !important;border-color:#fff !important;
+  box-shadow:3px 3px 0 rgba(0,0,0,.6) !important;
+}
+.btn:active{ transform:translate(3px,3px) !important;box-shadow:none !important; }
+.seg button, .psel{
+  border-radius:0 !important;border:2px solid rgba(255,255,255,.5) !important;font-weight:900 !important;
+  clip-path:polygon(0 0, calc(100% - 7px) 0, 100% 7px, 100% 100%, 7px 100%, 0 calc(100% - 7px));
+}
+.seg button.on, .psel.on{ background:var(--md-yel) !important;color:#12100c !important;border-color:#fff !important; }
+.seg button.cl{ border-color:var(--md-red) !important;color:#ff9b95 !important; }
+.pageT{ border-left:6px solid var(--md-yel);padding-left:9px }
+
+/* ══ ★ 2026-09-06 新しい部品 ══════════════════════════════ */
+/* 検索 */
+.csrch{
+  display:flex;align-items:center;gap:7px;margin:0 0 8px;padding:0 10px;
+  background:rgba(255,255,255,.06);border:2px solid rgba(255,255,255,.55);
+  clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 9px, 100% 100%, 9px 100%, 0 calc(100% - 9px));
+}
+.csrch .mg{ font-size:13px;opacity:.8 }
+.csrch input{
+  flex:1;min-width:0;background:none;border:none;outline:none;padding:10px 0;
+  font-size:13px;font-weight:800;color:var(--tx);
+}
+.csrch input::placeholder{ color:var(--tx3) }
+.csrch .cl{ background:none;border:none;color:var(--tx3);font-size:14px;cursor:pointer;padding:6px }
+/* 並び替え */
+.csort{ display:flex;align-items:center;gap:8px;margin:0 0 8px }
+.csort .lb{ font-size:11px;font-weight:900;color:var(--tx3);letter-spacing:.06em;flex:none }
+.csort select{
+  flex:1;background:rgba(255,255,255,.06);border:2px solid rgba(255,255,255,.5);
+  padding:8px 9px;font-size:12.5px;font-weight:900;border-radius:0;color:var(--tx);
+}
+/* 作戦・守備配置の列 */
+.tact{ display:flex;align-items:center;gap:6px;flex-wrap:wrap;margin-top:9px }
+.tact .lb{
+  font-size:10px;font-weight:900;letter-spacing:.1em;color:#12100c;background:var(--md-yel);
+  padding:4px 8px;flex:none;clip-path:polygon(4px 0,100% 0,calc(100% - 4px) 100%,0 100%);
+}
+.tact button{
+  display:flex;align-items:center;gap:4px;padding:7px 9px;cursor:pointer;
+  font-size:11.5px;font-weight:900;color:var(--tx);
+  background:rgba(255,255,255,.07);border:2px solid rgba(255,255,255,.5);border-radius:0;
+  clip-path:polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px));
+}
+.tact button i{ font-style:normal;font-size:12px }
+.tact button.on{ background:var(--md-yel);color:#12100c;border-color:#fff }
+.tact button.cl{ border-color:var(--md-red);color:#ff9b95 }
+.tact button:active{ transform:translate(2px,2px) }
+/* 守備の計算を見せる欄 */
+.calc{
+  display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;
+}
+.calc span{
+  font-size:11.5px;font-weight:900;padding:6px 9px;color:var(--tx);
+  background:rgba(255,255,255,.07);border:2px solid rgba(255,255,255,.45);
+  clip-path:polygon(0 0, calc(100% - 6px) 0, 100% 6px, 100% 100%, 6px 100%, 0 calc(100% - 6px));
+}
+.calc span b{ color:var(--md-yel) }
+.calc span.big{ background:var(--md-ink);border-color:var(--md-yel);font-size:13px }
+.calc span.big b{ color:#fff }
+/* 球速（上のバー） */
+.kmh{
+  flex:none;display:flex;align-items:baseline;gap:3px;padding:3px 9px;margin-left:6px;
+  background:var(--md-red);color:#fff;font-weight:900;
+  clip-path:polygon(5px 0,100% 0,calc(100% - 5px) 100%,0 100%);
+}
+.kmh:empty{ display:none }
+.kmh b{ font-size:16px;font-family:Orbitron,system-ui,sans-serif;letter-spacing:.02em }
+.kmh small{ font-size:9px;opacity:.9 }
+.kmh span{ font-size:10px;margin-left:4px;opacity:.92 }
+/* 守備配置（上のバー） */
+.shiftb{
+  flex:none;display:flex;align-items:center;gap:4px;padding:3px 9px;margin-left:6px;
+  background:var(--md-yel);color:#12100c;font-size:11px;font-weight:900;
+  clip-path:polygon(5px 0,100% 0,calc(100% - 5px) 100%,0 100%);
+}
+.shiftb:empty{ display:none }
+.shiftb i{ font-style:normal }
+/* 左右のしるし */
+.chip.hand{ background:rgba(255,212,0,.16) !important;border-color:rgba(255,212,0,.6) !important;color:#ffe98a !important }
+
+/* ══ ★ 2026-09-06 直したところ ══════════════════════════════ */
+/* 絞り込みの列は<b>折り返す</b>（横スクロールだと右のほうが見えない） */
+.seg{ flex-wrap:wrap !important; overflow-x:visible !important; }
+.seg button{ flex:0 0 auto; }
+/* 下のタブ: 絵文字は白黒にしない。選んでいるものは黄色い板を後ろに置く */
+.nav button.on{ background:none !important; }
+.nav button.on .i{ filter:none !important; background:var(--md-yel); }
+.nav button .i{ padding:2px 6px; }
+/* カードの総合力と名前が重なっていたので、総合力を絵の中へ戻す */
+.pc .ovr{ bottom:auto !important; top:auto !important; }
+.pc{ padding-bottom:2px }
+
+/* ══ 下バーの外側（画面のいちばん下）══════════════════════════
+   ★ fixed の箱の外は <html> の背景しか塗れない。
+     下のタブと同じ色をここにも敷かないと、いちばん下に色のちがうすきまが見える。 */
+html{ background:var(--md-ink); }
+
+/* ══ 走者のダイヤ図（上のバー）══════════════════════════════ */
+.diam{
+  position:relative;flex:none;width:34px;height:34px;margin-left:6px;
+}
+.diam i{
+  position:absolute;width:11px;height:11px;background:rgba(255,255,255,.16);
+  border:1.6px solid rgba(255,255,255,.5);transform:rotate(45deg);
+}
+.diam i.on{ background:var(--md-yel);border-color:#fff;box-shadow:0 0 8px rgba(255,212,0,.8) }
+.diam .b1{ right:0;  top:12px }   /* 一塁＝右 */
+.diam .b2{ left:12px; top:0 }     /* 二塁＝上 */
+.diam .b3{ left:0;   top:12px }   /* 三塁＝左 */
+
+/* ══ 試合の上のバーを2段に（ご報告の「はみ出し」対策）══════════
+   ★ 球速・守備配置・走者のダイヤを足したぶん、1段では入りきらなくなった。
+     <b>折り返してよい</b>ことにして、スコアの行と情報の行の2段にする。 */
+.mhd{ flex-wrap:wrap; row-gap:6px; }
+.mhd .sc{ flex:1 1 auto; min-width:0 }
+.mhd .inn{ margin-left:auto; flex:none }
+.mhd .diam,
+.mhd .kmh,
+.mhd .shiftb{ order:9 }
+.mhd .diam{ margin-left:0 }
+/* せまい画面では、情報の行を丸ごと下へ落とす */
+@media (max-width:430px){
+  .mhd .diam{ margin-left:auto }
+  .mhd .diam,.mhd .kmh,.mhd .shiftb{ margin-top:0 }
+  .mhd .sc{ flex:1 1 100% }
+  .mhd .inn{ flex:none;margin-left:0 }
+}
+
+/* ══ QR を読むカメラの画面（localplay.js が使う決まった id）══════
+   ★ MagiBurst では index.html の中に書いてあるが、MagiDiamond は
+     この1枚に置く。id を変えると localplay.js から見つからなくなる。 */
+#qrScanOv{position:fixed;inset:0;z-index:640;background:rgba(4,3,10,.94);display:none;
+  flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:18px}
+#qrScanOv.on{display:flex}
+#qrScanVid{width:min(88vw,420px);aspect-ratio:1;object-fit:cover;border-radius:18px;background:#000;
+  box-shadow:0 0 0 3px rgba(255,255,255,.25),0 14px 40px rgba(0,0,0,.6)}
+#qrScanOv .qshint{color:#cfd6ff;font-size:13px;font-weight:800;text-align:center;line-height:1.7}
+#qrScanOv .qsx{padding:12px 26px;border:none;border-radius:14px;background:#2a2745;color:#fff;font-weight:900;cursor:pointer}
+
+/* あぶない操作（中断・削除）だけ赤。★ .btn.pri（黄）より<b>あとに</b>書くこと */
+.btn.danger{ background:var(--md-red) !important;color:#fff !important;border-color:#fff !important;
+  box-shadow:3px 3px 0 rgba(0,0,0,.6) !important; }

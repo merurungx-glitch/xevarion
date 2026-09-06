@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<script src="../maintenance-gate.js?v=7"></script>
+<script src="../maintenance-gate.js?v=8"></script>
 <meta charset="UTF-8" />
 <script>(function(){try{var a=JSON.parse(localStorage.getItem('xeva_account_v1'));if(!a||!a.setupDone)location.replace('../index.html');}catch(e){}})();</script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
@@ -9,10 +9,16 @@
 <meta name="mobile-web-app-capable" content="yes" />
 <title>MagiDiamond — 集めたキャラクターで、野球を極めろ。</title>
 <meta name="description" content="XEVARION の SR・SSR 全キャラクターが野球選手に。育成・チーム編成・野球盤の打球処理・オンライン対戦。" />
-<link rel="icon" href="../thumbs/MagiDiamond.jpg" type="image/png" />
-<link rel="apple-touch-icon" href="../thumbs/MagiDiamond.jpg" />
-<meta name="theme-color" content="#0b1226" />
-<link rel="stylesheet" href="css/md2.css?v=4" />
+<!-- ★ 2026-09-06 新しいアイコン（墨・黄・赤・白の4色） -->
+<!-- ★ PNG を先に書く。webp のファビコンを読まないブラウザ（Safari など）でも出るように -->
+<link rel="icon" href="img/favicon32.png?v=1" sizes="32x32" type="image/png" />
+<link rel="icon" href="img/icon192.png?v=1" sizes="192x192" type="image/png" />
+<link rel="apple-touch-icon" href="img/icon.png?v=1" />
+<meta name="theme-color" content="#0d0b12" />
+<link rel="stylesheet" href="css/md2.css?v=5" />
+<!-- ★★ 2026-09-06 XEVARION の家族（MagiBurst 新UI）にそろえた見た目。md2.css の上に重ねる -->
+<link rel="stylesheet" href="../MagiBurst/css/localplay.css?v=3" />
+<link rel="stylesheet" href="css/md2-ui.css?v=7" />
 <style>
 /* 起動中のスプラッシュ（mb-core.js を読み終わるまで） */
 #md2Splash{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;
@@ -28,16 +34,19 @@
 <body>
 
 <div id="md2Splash">
-  <img src="img/logo.webp" alt="MagiDiamond" onerror="this.src='../thumbs/MagiDiamond.jpg'">
+  <img src="img/logo.webp" alt="MagiDiamond" onerror="this.src='img/icon.png'">
   <div class="bar"><i></i></div>
   <div class="cap">LOADING PLAYERS ...</div>
 </div>
 
 <!-- ══ ヘッダー ══ -->
 <div class="hd">
-  <button class="bk" onclick="location.href='index.html'" aria-label="版えらびへ">←</button>
+  <!-- ★★ 2026-09-06 旧版を廃止して index.html を latest.html への転送にしたので、
+       ここが index.html のままだと<b>自分自身に戻るだけ</b>で何も起きなかった（ご報告）。
+       XEVARION のホームへ戻す。 -->
+  <button class="bk" onclick="location.href='../index.html'" aria-label="XEVARION へもどる">←</button>
   <div class="who">
-    <img class="av" id="meAv" src="../thumbs/MagiDiamond.jpg" alt="">
+    <img class="av" id="meAv" src="img/icon192.png" alt="">
     <div style="min-width:0">
       <div class="nm" id="meName">プレイヤー</div>
       <div class="lv" id="meLv">Lv.1</div>
@@ -102,6 +111,15 @@
       <span class="num" id="mtScoreCpu">0</span><span class="team">あいて</span>
     </div>
     <div class="inn"><span id="mtInn">1回表</span><span class="bso" id="mtBSO"></span></div>
+    <!-- ★★ 2026-09-06 ご指定「走者のベースの位置をダイヤの図で」。
+         一塁・二塁・三塁の3つのひし形。走者がいる塁だけ黄色くなる。 -->
+    <div class="diam" id="mtDiam" aria-label="走者">
+      <i class="b2"></i><i class="b3"></i><i class="b1"></i>
+    </div>
+    <!-- ★★ 2026-09-06 ご指定「球速を毎度計測し表示」。直前の1球の実測値がここに出る。 -->
+    <div class="kmh" id="mtKmh"></div>
+    <!-- 守備しているときだけ、いまの守備配置を出す -->
+    <div class="shiftb" id="mtShift"></div>
   </div>
   <div id="mtField">
     <canvas id="mtCv"></canvas>
@@ -124,16 +142,39 @@
   </div>
 </div>
 
+<!-- ══ ★★ 2026-09-06 LOCAL PLAY（MagiBurst と同じ仕組み）══
+     ・通信は ../MagiBurst/js/local.js（BurstLocal）
+     ・画面は ../MagiBurst/js/localplay.js（LocalPlay）
+     ★ localplay.js は #qrScanOv / #qrScanVid という<b>決まった id</b> を探すので、
+       ここに同じものを置いておく（無いとカメラ読み取りが動かない）。 -->
+<div id="qrScanOv">
+  <video id="qrScanVid" playsinline muted></video>
+  <div class="qshint">相手の画面の <b>QRコード</b> を枠に入れてください</div>
+  <button class="qsx" onclick="LocalPlay.closeScan()">やめる</button>
+</div>
+
 <div class="toast2" id="toast2"></div>
 
-<script src="../xeva.js?v=54"></script>
-<script src="../xeva-loading.js?v=3" defer></script>
-<script type="module" src="../xevarion-fb.js?v=25"></script>
-<script src="../xeva-presence.js?v=3" defer></script>
-<script type="module" src="../xeva-cloud.js?v=22"></script>
-<script src="../game-link.js?v=6"></script>
-<script src="js/md2-data.js?v=4"></script>
-<script type="module" src="js/md2-online.js?v=4"></script>
-<script src="js/md2-game.js?v=9"></script>
+<script src="../xeva.js?v=55"></script>
+<script src="../xeva-loading.js?v=4" defer></script>
+<script type="module" src="../xevarion-fb.js?v=28"></script>
+<script src="../xeva-presence.js?v=4" defer></script>
+<script type="module" src="../xeva-cloud.js?v=23"></script>
+<script src="../game-link.js?v=7"></script>
+<script src="js/md2-data.js?v=7"></script>
+<script type="module" src="js/md2-online.js?v=5"></script>
+<!-- ★★ 2026-09-06 マルチは MagiBurst と<b>同じ2枚</b>を借りる（作りを分けない） -->
+<!-- ★★ 2026-09-06 英語版（ご指定「MagiDiamond も全ての画面で英語対応」）。
+     ★ 本体より<b>先</b>に読むこと（MutationObserver を先に仕掛けておく）。 -->
+<script src="../xeva-i18n.js?v=3"></script>
+<script src="../xeva-i18n-dict.js?v=7"></script>
+<script src="../xeva-i18n-mb5.js?v=2"></script>
+<script src="../xeva-i18n-p1.js?v=1"></script>
+<script src="../xeva-i18n-p3.js?v=2"></script>
+<script src="../xeva-i18n-md1.js?v=6"></script>
+<script src="../xeva-qr.js?v=3"></script>
+<script src="../MagiBurst/js/local.js?v=7"></script>
+<script src="../MagiBurst/js/localplay.js?v=3"></script>
+<script src="js/md2-game.js?v=17"></script>
 </body>
 </html>

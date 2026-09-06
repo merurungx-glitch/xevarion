@@ -5,32 +5,32 @@
      オンライン復帰後にポータル側へ自然に反映される
    ・取得できたリソースは随時キャッシュ更新（stale-while-revalidate）
    ============================================================ */
-const VERSION = "magilex-sw-v80";
+const VERSION = "magilex-sw-v81";
 const CORE = [
   /* ★ 2026-08-19 図・グラフのエンジンは XEVYNAR と共有。
      ここに無いと、オフラインで「図で見る」が出ない。 */
-  "../XEVYNAR/xevynar-figs.js?v=11",
+  "../XEVYNAR/xevynar-figs.js?v=12",
   "./MagiLex.html",
-  "./magilex.css?v=39",
-  "./magilex.js?v=65",
-  "./magilex-data.js?v=4",
-  "./magilex-eigo.js?v=3",
-  "./magilex-rika.js?v=3",
-  "./magilex-butsuri.js?v=4",
-  "./magilex-chemb.js?v=4",
-  "./magilex-math3.js?v=3",
-  "./magilex-chemg.js?v=5",
-  "./magilex-suugaku.js?v=5",
-  "./magilex-intro.js?v=3",
-  "./magilex-mid.js?v=3",
-  "./magilex-chemd.js?v=3",
-  "./magilex-physb.js?v=3",
+  "./magilex.css?v=40",
+  "./magilex.js?v=66",
+  "./magilex-data.js?v=5",
+  "./magilex-eigo.js?v=4",
+  "./magilex-rika.js?v=4",
+  "./magilex-butsuri.js?v=5",
+  "./magilex-chemb.js?v=5",
+  "./magilex-math3.js?v=4",
+  "./magilex-chemg.js?v=6",
+  "./magilex-suugaku.js?v=6",
+  "./magilex-intro.js?v=4",
+  "./magilex-mid.js?v=4",
+  "./magilex-chemd.js?v=4",
+  "./magilex-physb.js?v=4",
   /* ★★ 2026-08-26 化学ε・物理γ（全範囲の標準演習。各20セット240問）。
      ここに無いとオフラインでこの2科目だけ問題が出てこない。 */
-  "./magilex-cheme.js?v=5",
-  "./magilex-physg.js?v=4",
+  "./magilex-cheme.js?v=6",
+  "./magilex-physg.js?v=5",
   /* ★★ 2026-08-30 地理。ここに無いとオフラインで開けず、update.json にも載らない。 */
-  "./magilex-chiri.js?v=3",
+  "./magilex-chiri.js?v=4",
   "./mlhome_s.jpg",
   /* ★★ 2026-08-26 Knowledge Point（KP）のアイコン。
      ここに無いとオフラインで KP の絵が出ない。 */
@@ -48,14 +48,14 @@ const CORE = [
   "../brand/NGX.png",
   "../brand/MagicalFuture.png",
   "../brand/ISHIDA Production.png",
-  "../xeva.js?v=54",
-  "../xeva-loading.js?v=3",
-  "../xeva-splash.js?v=5",
-  "../app-cloud.js?v=6",
-  "../xeva-keys.js?v=11",
-  "./magilex-cloud.js?v=7",
-  "../maintenance-gate.js?v=7",
-  "../app-install-notice.js?v=3",
+  "../xeva.js?v=55",
+  "../xeva-loading.js?v=4",
+  "../xeva-splash.js?v=6",
+  "../app-cloud.js?v=7",
+  "../xeva-keys.js?v=12",
+  "./magilex-cloud.js?v=8",
+  "../maintenance-gate.js?v=8",
+  "../app-install-notice.js?v=4",
   "../XEVA.png",
 ];
 

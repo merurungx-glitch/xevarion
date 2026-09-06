@@ -147,7 +147,13 @@ function tr(id) {
   if (!t.pt) t.pt = {}; if (!t.sk) t.sk = {};
   return t;
 }
-function lvMax(id) { return LV_MAX_BASE + tr(id).lim * 10; }          /* 限界突破で +10 ずつ（最大5回） */
+/* ★★ 2026-09-06 ご指定「限界突破は XEVARION のものをそのまま使う」。
+   MagiDiamond の中に<b>もう1本</b>持つのをやめ、MagiBurst の限界突破（awk）を直接見る。
+   ★ ここが<b>唯一の出どころ</b>。レベル上限も能力も弾道も、すべてこの数から出す。
+   ★ 上限は MagiBurst と同じ 4（mb-core の MAX_AWK）。 */
+const LIM_MAX = 4;
+function limOf(id) { return Math.max(0, Math.min(LIM_MAX, awkOf(id) | 0)); }
+function lvMax(id) { return LV_MAX_BASE + limOf(id) * 10; }          /* 限界突破1つで +10 */
 function needExp(lv) { return 300 + lv * lv * 12; }
 const STAT_KEYS = ["meet", "power", "run", "field", "arm", "catch", "velo", "heavy", "ctrl", "stam", "brk", "mind"];
 const STAT_NM = { meet: "ミート", power: "パワー", run: "走力", field: "守備", arm: "肩力", catch: "捕球",
@@ -158,10 +164,14 @@ function eff(id) {
   const t = tr(id);
   const lvUp = Math.floor((t.lv - 1) * 0.28);      /* レベル1つで平均 +0.28 */
   const awkUp = (t.awk | 0) * 3;                   /* 覚醒1段で +3 */
+  /* ★★ 2026-09-06 限界突破は<b>XEVARION（MagiBurst）のもの</b>をそのまま使う（ご指定）。
+     1つにつき全能力 +2、3つ以上で弾道 +1、レベル上限 +10。
+     ★ MagiDiamond の中では上げられない。ガチャや結晶交換所で進めば、そのままここに効く。 */
+  const limUp = limOf(id) * 2;
   const o = Object.assign({}, base);
-  STAT_KEYS.forEach((k) => { o[k] = clamp(Math.round(base[k] + lvUp + awkUp + (t.pt[k] | 0)), 20, 120); });
-  o.lv = t.lv; o.lim = t.lim; o.awk = t.awk;
-  o.traj = clamp(base.traj + (t.sk.archist ? 1 : 0), 1, 4);
+  STAT_KEYS.forEach((k) => { o[k] = clamp(Math.round(base[k] + lvUp + awkUp + limUp + (t.pt[k] | 0)), 20, 120); });
+  o.lv = t.lv; o.lim = limOf(id); o.awk = t.awk;
+  o.traj = clamp(base.traj + (t.sk.archist ? 1 : 0) + (limOf(id) >= 3 ? 1 : 0), 1, 4);
   o.ovrNow = Math.round(((o.meet + o.power + o.run + o.field + o.arm + o.catch) / 6 * (base.role === "投手" ? .25 : .75)
                         + (o.velo + o.heavy + o.ctrl + o.stam + o.brk + o.mind) / 6 * (base.role === "投手" ? .75 : .25)) * 100);
   return o;
@@ -311,7 +321,7 @@ function paintHome() {
       このアプリでやることは <b>育てる → 組む → 戦う</b> の3つです。</p>
       <div class="row" style="margin-top:9px">
         <button class="btn" onclick="location.href='../gacha.html'">🎰 XEVARION のガチャへ</button>
-        <button class="btn" onclick="location.href='index.html'">↩ 版をえらび直す</button>
+        <button class="btn" onclick="location.href='../index.html'">↩ XEVARION へもどる</button>
       </div>
     </div>`;
 }
@@ -341,7 +351,7 @@ function paintMatch() {
   const ready = teamOk();
   $("matchBody").innerHTML = `
     <div class="seg">
-      ${[["cpu", "CPU戦"], ["quick", "クイック"], ["ranked", "ランク戦"], ["friend", "フレンド"], ["event", "イベント"]]
+      ${[["cpu", "CPU戦"], ["local", "近くの人と"], ["quick", "クイック"], ["ranked", "ランク戦"], ["friend", "フレンド"], ["event", "イベント"]]
         .map(([k, n]) => `<button class="${matchMode === k ? "on" : ""}" onclick="mdSetMode('${k}')">${n}</button>`).join("")}
     </div>
     ${!ready ? `<div class="box"><h3>⚠ チームが未完成です</h3>
@@ -363,8 +373,18 @@ function paintMatch() {
     </div>
     ${matchMode === "friend" || matchMode === "quick" || matchMode === "ranked" ? onlineBox() : ""}
     <div class="box">
-      <h3>${matchMode === "cpu" ? "🤖 CPU戦" : matchMode === "event" ? "🎪 イベント" : "🌐 オンライン"}</h3>
-      ${matchMode === "cpu" ? `
+      <h3>${matchMode === "cpu" ? "🤖 CPU戦" : matchMode === "local" ? "📶 LOCAL PLAY（近くの人と）"
+            : matchMode === "event" ? "🎪 イベント" : "🌐 オンライン"}</h3>
+      ${matchMode === "local" ? `
+        <p>★ <b>ゲームサーバーを使いません</b>。近くにいる人と、その場でつながって遊べます。<br>
+        MagiBurst の <b>LOCAL PLAY とまったく同じしくみ</b>です——
+        <b>ROOM CODE</b> か <b>QRコード</b> を相手に見せるだけ。最大4人。</p>
+        <div class="row" style="margin-top:11px">
+          <button class="btn pri" style="flex:1" ${ready ? "" : "disabled"} onclick="LocalPlay.open()">📶 LOCAL PLAY をひらく</button>
+        </div>
+        <p style="margin-top:9px;font-size:10.5px;color:var(--tx3)">
+        ★ インターネット回線はいりません。2台が<b>同じ Wi-Fi</b>（テザリングでも可）にいれば直接つながります。</p>`
+      : matchMode === "cpu" ? `
         <div style="font-size:11px;font-weight:800;color:var(--tx2);margin-bottom:6px">相手の強さ</div>
         <div class="cardsel p3">
           ${[[1, "やさしい", "はじめて向け"], [2, "ふつう", "腕だめし"], [3, "つよい", "本気の相手"]]
@@ -401,34 +421,87 @@ window.mdQuickPlay = () => { if (!teamOk()) { if (!autoTeam()) { toast("まず�
 window.mdStart = (m) => { if (!teamOk()) { toast("チームが未完成です"); return; } startMatch(m); };
 
 /* ══════════ キャラクター一覧 ══════════ */
-let charFilter = { q: "", rank: "", role: "", own: true };
+/* ★★ 2026-09-06 一覧の並び替え・検索・絞り込み（ご指定）。
+   ★ <b>はじめは「番号の新しい順」</b>＝あとから来たキャラが左上に来る。
+     no は MD_TIER の通し番号（MagiBurst の No. と同じ）。 */
+let charFilter = { q: "", rank: "", role: "", pos: "", hand: "", own: true, sort: "new" };
+const CH_SORTS = {
+  new:  { nm: "番号の新しい順", f: (a, b) => (b.no || 0) - (a.no || 0) },
+  old:  { nm: "番号の古い順",   f: (a, b) => (a.no || 0) - (b.no || 0) },
+  ovr:  { nm: "総合力の高い順", f: (a, b) => eff(b.id).ovrNow - eff(a.id).ovrNow },
+  lv:   { nm: "レベルの高い順", f: (a, b) => tr(b.id).lv - tr(a.id).lv },
+  meet: { nm: "ミートの高い順", f: (a, b) => eff(b.id).meet - eff(a.id).meet },
+  power:{ nm: "パワーの高い順", f: (a, b) => eff(b.id).power - eff(a.id).power },
+  run:  { nm: "走力の高い順",   f: (a, b) => eff(b.id).run - eff(a.id).run },
+  velo: { nm: "球速の速い順",   f: (a, b) => eff(b.id).velo - eff(a.id).velo },
+  nm:   { nm: "名前順",         f: (a, b) => String(a.nm).localeCompare(String(b.nm), "ja") },
+};
 function paintChars() {
   const own = ownedSet();
   let list = MD2DATA.all();
   if (charFilter.own) list = list.filter((p) => own.has(p.id));
   if (charFilter.rank) list = list.filter((p) => p.rank === charFilter.rank);
   if (charFilter.role) list = list.filter((p) => p.role === charFilter.role);
-  if (charFilter.q) { const q = charFilter.q; list = list.filter((p) => p.nm.indexOf(q) >= 0); }
-  list = list.slice().sort((a, b) => (eff(b.id).ovrNow - eff(a.id).ovrNow));
+  if (charFilter.pos) list = list.filter((p) => bestPos(p) === charFilter.pos);
+  if (charFilter.hand) list = list.filter((p) => p.bats === charFilter.hand || p.throws === charFilter.hand);
+  if (charFilter.q) {
+    /* ★ 名前だけでなく<b>ポジション・打撃タイプ・投手タイプ・左右</b>でも当たる */
+    const q = charFilter.q.toLowerCase();
+    list = list.filter((p) => [p.nm, p.role, p.bat, p.pitchType, p.bats, p.throws, bestPos(p), p.label]
+      .some((s) => String(s || "").toLowerCase().indexOf(q) >= 0));
+  }
+  const srt = CH_SORTS[charFilter.sort] || CH_SORTS.new;
+  list = list.slice().sort(srt.f);
+  const chip = (k, v, nm) => `<button class="${charFilter[k] === v ? "on" : ""}" onclick="mdCF('${k}','${v}')">${nm}</button>`;
   $("charBody").innerHTML = `
+    <div class="csrch">
+      <span class="mg">🔍</span>
+      <input id="chQ" type="search" placeholder="名前・ポジション・左右でさがす" value="${esc(charFilter.q)}"
+        oninput="mdCFq(this.value)" autocomplete="off" spellcheck="false">
+      ${charFilter.q ? `<button class="cl" onclick="mdCFq('')">✕</button>` : ""}
+    </div>
+    <div class="csort">
+      <span class="lb">↕ 並び替え</span>
+      <select onchange="mdCF('sort',this.value)">
+        ${Object.keys(CH_SORTS).map((k) => `<option value="${k}" ${charFilter.sort === k ? "selected" : ""}>${CH_SORTS[k].nm}</option>`).join("")}
+      </select>
+    </div>
     <div class="seg">
       <button class="${charFilter.own ? "on" : ""}" onclick="mdCF('own',1)">所持 ${own.size}</button>
       <button class="${!charFilter.own ? "on" : ""}" onclick="mdCF('own',0)">すべて</button>
-      <button class="${charFilter.rank === "SSR" ? "on" : ""}" onclick="mdCF('rank','SSR')">SSR</button>
-      <button class="${charFilter.rank === "SR" ? "on" : ""}" onclick="mdCF('rank','SR')">SR</button>
-      <button class="${charFilter.role === "投手" ? "on" : ""}" onclick="mdCF('role','投手')">投手</button>
-      <button class="${charFilter.role === "野手" ? "on" : ""}" onclick="mdCF('role','野手')">野手</button>
-      <button class="${!charFilter.rank && !charFilter.role ? "on" : ""}" onclick="mdCF('clear',1)">絞り込み解除</button>
+      ${chip("rank", "SSR", "SSR")}${chip("rank", "SR", "SR")}
+      ${chip("role", "投手", "投手")}${chip("role", "野手", "野手")}
     </div>
-    <div style="font-size:11px;font-weight:800;color:var(--tx3);margin-bottom:8px">${list.length} 人</div>
+    <div class="seg">
+      ${["捕", "一塁", "二塁", "三塁", "遊撃", "左翼", "中堅", "右翼"].map((ps) => chip("pos", ps, ps)).join("")}
+    </div>
+    <div class="seg">
+      ${chip("hand", "右打", "右打")}${chip("hand", "左打", "左打")}${chip("hand", "両打", "両打")}
+      ${chip("hand", "右投", "右投")}${chip("hand", "左投", "左投")}
+      <button class="cl" onclick="mdCF('clear',1)">絞り込み解除</button>
+    </div>
+    <div style="font-size:11px;font-weight:800;color:var(--tx3);margin:6px 0 8px">${list.length} 人 ／ ${srt.nm}</div>
     <div class="pgrid">${list.map((p) => pcard(p, own.has(p.id))).join("")}</div>
-    ${!list.length ? `<div class="empt">まだ選手がいません。<br>XEVARION のガチャでキャラクターを手に入れると、ここに並びます。</div>` : ""}`;
+    ${!list.length ? `<div class="empt">見つかりませんでした。<br>絞り込みを解除するか、XEVARION のガチャでキャラクターを増やしてください。</div>` : ""}`;
 }
 window.mdCF = (k, v) => {
-  if (k === "clear") { charFilter.rank = ""; charFilter.role = ""; charFilter.q = ""; }
+  if (k === "clear") { charFilter.rank = ""; charFilter.role = ""; charFilter.pos = ""; charFilter.hand = ""; charFilter.q = ""; }
   else if (k === "own") charFilter.own = !!v;
+  else if (k === "sort") charFilter.sort = v;
   else charFilter[k] = (charFilter[k] === v ? "" : v);
   SFX.tap(); paintChars();
+};
+/* ★ 検索は打つたびに描き直すので、<b>入力欄にカーソルを戻す</b>こと。
+   戻さないと1文字ごとにキーボードが閉じてしまう。 */
+let _chQT = null;
+window.mdCFq = (v) => {
+  charFilter.q = v;
+  clearTimeout(_chQT);
+  _chQT = setTimeout(() => {
+    paintChars();
+    const el = $("chQ");
+    if (el) { el.focus(); try { el.setSelectionRange(v.length, v.length); } catch (e) {} }
+  }, 160);
 };
 function pcard(p, owned, opt) {
   const e = eff(p.id) || p;
@@ -439,7 +512,7 @@ function pcard(p, owned, opt) {
     <img src="${esc(p.th)}" alt="" loading="lazy">
     <span class="ovr">${e.ovrNow}</span>
     <span class="nm">${esc(p.nm)}</span>
-    <span class="st">Lv.${tr(p.id).lv} ${esc(p.role)}</span>
+    <span class="st">Lv.${tr(p.id).lv} ${esc(p.role === "投手" ? p.throws || "" : p.bats || "")}</span>
   </div>`;
 }
 function bestPos(p) {
@@ -466,6 +539,8 @@ function paintDet() {
         <div class="row" style="margin-top:8px">
           <span class="chip">弾道 ${"★".repeat(e.traj)}</span>
           <span class="chip">${esc(p.bat)}</span>
+          <span class="chip hand">${esc(p.bats || "右打")}</span>
+          <span class="chip hand">${esc(p.throws || "右投")}</span>
           <span class="chip">${esc(p.el === "fire" ? "火" : p.el === "water" ? "水" : p.el === "wood" ? "木" : p.el === "light" ? "光" : "闇")}属性</span>
         </div></div>
       <div class="box"><h3>投球</h3><div class="stats">
@@ -492,25 +567,32 @@ function paintDet() {
           <button class="btn gold" ${t.lv >= maxLv || S.gold < lvCost(t.lv) ? "disabled" : ""} onclick="mdLvUp(10)">+10</button>
           <button class="btn" ${t.lv >= maxLv ? "disabled" : ""} onclick="mdLvUp(999)">上げられるだけ</button>
         </div></div>
-      <div class="box"><h3>能力強化<span class="sp">TP ${fmt(S.tp)}</span></h3>
+      <div class="box"><h3>能力を伸ばす<span class="sp">TP ${fmt(S.tp)}</span></h3>
         <p>トレーニングポイント（TP）で、好きな能力を1つずつ伸ばせます（1ポイント = 15 TP・1つの能力につき +20 まで）。</p>
         <div class="posgrid" style="margin-top:9px;grid-template-columns:repeat(2,1fr)">
           ${STAT_KEYS.map((k) => `<div class="p1"><span>${STAT_NM[k]} <b style="color:var(--grn)">+${t.pt[k] | 0}</b></span>
             <button class="btn" style="padding:3px 9px;font-size:11px" ${(t.pt[k] | 0) >= 20 || S.tp < 15 ? "disabled" : ""} onclick="mdPt('${k}')">+1</button></div>`).join("")}
         </div></div>
-      <div class="box"><h3>限界突破<span class="sp">${t.lim} / 5</span></h3>
-        <p>レベルの上限が 10 ずつ上がります。必要なのは <b>${fmt(limCost(t.lim))} Gold</b> と
-        <b>MagiBurst でのそのキャラの限界突破が ${t.lim + 1} 以上</b>であること。</p>
-        <div class="row" style="margin-top:9px">
-          <button class="btn pri" ${t.lim >= 5 || S.gold < limCost(t.lim) || awkOf(detId) < t.lim + 1 ? "disabled" : ""} onclick="mdLimit()">限界突破する</button>
+      <div class="box"><h3>限界突破<span class="sp">${limOf(detId)} / ${LIM_MAX}</span></h3>
+        ${/* ★★ 2026-09-06 ご指定により、ここは<b>XEVARION の限界突破をそのまま出すだけ</b>。
+              MagiDiamond の中で Gold を払って上げるやりかたは廃止した
+              （同じ言葉の限界突破が2つあって、食いちがっていたため）。 */""}
+        <p>この選手の限界突破は XEVARION（MagiBurst）のものをそのまま使います。</p>
+        <p>MagiDiamond の中で上げることはできません。</p>
+        <div class="posgrid" style="margin-top:9px;grid-template-columns:1fr">
+          <div class="p1"><span>レベル上限</span><b>${lvMax(detId)}</b></div>
+          <div class="p1"><span>全能力への上乗せ</span><b>+${limOf(detId) * 2}</b></div>
+          <div class="p1"><span>弾道</span><b>${limOf(detId) >= 3 ? "+1" : "±0"}</b></div>
         </div>
-        ${awkOf(detId) < t.lim + 1 ? `<p style="margin-top:7px;color:var(--tx3)">※ いまの MagiBurst 側の限界突破は <b>${awkOf(detId)}</b> です。
-        もう一度ガチャで引くか、結晶交換所で同じキャラを受け取ると進みます。</p>` : ""}</div>
+        ${limOf(detId) >= LIM_MAX
+          ? `<p style="margin-top:7px;color:var(--gold)">👑 限界突破MAX です。</p>`
+          : `<p style="margin-top:7px;color:var(--tx3)">※ 進めるには <b>XEVARION のガチャで同じキャラを引く</b>か、
+        <b>結晶交換所で受け取る</b>と、こちらにもそのまま反映されます。</p>`}</div>
       <div class="box"><h3>覚醒<span class="sp">${t.awk} / 3</span></h3>
-        <p>全能力が <b>+3</b> され、カードの見た目が変わります。<b>${fmt(awkCost(t.awk))} Gold</b> と
-        <b>限界突破 ${t.awk + 2} 以上</b>が必要です。</p>
+        <p>全能力が +3 され、カードの見た目が変わります。</p>
+        <p>${fmt(awkCost(t.awk))} Gold と、XEVARION の限界突破 ${t.awk + 2} 以上が必要です。</p>
         <div class="row" style="margin-top:9px">
-          <button class="btn grn" ${t.awk >= 3 || S.gold < awkCost(t.awk) || t.lim < t.awk + 2 ? "disabled" : ""} onclick="mdAwake()">覚醒する</button>
+          <button class="btn grn" ${t.awk >= 3 || S.gold < awkCost(t.awk) || limOf(detId) < t.awk + 2 ? "disabled" : ""} onclick="mdAwake()">覚醒する</button>
         </div></div>`;
   } else {
     body = `<div class="box"><h3>この選手の使いどころ</h3>
@@ -557,6 +639,8 @@ function useHint(p, e) {
   return s.join(" ");
 }
 function lvCost(lv) { return 500 + lv * 220; }
+/* ★ 2026-09-06 限界突破を XEVARION のものに一本化したので<b>もう使っていない</b>。
+   古いセーブや外部から呼ばれても落ちないように残してある。 */
 function limCost(n) { return 20000 * (n + 1); }
 function awkCost(n) { return 40000 * (n + 1); }
 window.mdLvUp = (n) => {
@@ -576,15 +660,14 @@ window.mdPt = (k) => {
   S.tp -= 15; t.pt[k] = (t.pt[k] | 0) + 1;
   SFX.tap(); save(); paintDet(); paintWallet();
 };
+/* ★★ 2026-09-06 限界突破は XEVARION のものを使うので、ここで上げる操作は廃止。
+   古い画面から呼ばれても落ちないように、案内だけ出す入口を残しておく。 */
 window.mdLimit = () => {
-  const t = tr(detId), c = limCost(t.lim);
-  if (t.lim >= 5 || S.gold < c || awkOf(detId) < t.lim + 1) return;
-  S.gold -= c; t.lim++;
-  SFX.run(); save(); toast("限界突破！ レベル上限が " + lvMax(detId) + " になりました"); paintDet(); paintWallet();
+  toast("限界突破は XEVARION（MagiBurst）のものをそのまま使います");
 };
 window.mdAwake = () => {
   const t = tr(detId), c = awkCost(t.awk);
-  if (t.awk >= 3 || S.gold < c || t.lim < t.awk + 2) return;
+  if (t.awk >= 3 || S.gold < c || limOf(detId) < t.awk + 2) return;
   S.gold -= c; t.awk++;
   SFX.win(); save(); toast("覚醒！ 全能力が上がりました"); paintDet(); paintWallet();
 };
@@ -829,6 +912,35 @@ const FPOS = {
   "三塁手": { x: .30, y: .62 }, "遊撃手": { x: .38, y: .52 },
   "左翼手": { x: .24, y: .26 }, "中堅手": { x: .50, y: .18 }, "右翼手": { x: .76, y: .26 },
 };
+/* ══ ★★ 2026-09-06 守備配置（ご指定「守備配置の指示も」）══
+   ・y が大きいほどホーム寄り（HOME.y = .90）。前進は y を<b>足す</b>。
+   ・ここで動かした位置が、そのまま<b>捕球のむずかしさ</b>（走る距離）に効く。
+     前に出れば内野ゴロは取りやすいが、頭を越されると外野まで抜ける——という形になる。
+   ★ 新しい配置を足すときは、この表に1行足すだけでよい。 */
+const SHIFTS = {
+  normal: { nm: "定位置", ic: "◎", desc: "ふつうの守り", off: {} },
+  in:     { nm: "前進守備", ic: "▲", desc: "内野を前に。ゴロは取りやすいが、抜かれると長打",
+            off: { "一塁手": [0, .06], "二塁手": [0, .06], "三塁手": [0, .06], "遊撃手": [0, .06] } },
+  deep:   { nm: "深めの守備", ic: "▼", desc: "外野を下げる。長打は防げるが、前に落ちる",
+            off: { "左翼手": [0, -.06], "中堅手": [0, -.05], "右翼手": [0, -.06] } },
+  left:   { nm: "左へ寄せる", ic: "◀", desc: "引っぱる右打者・流す左打者に",
+            off: { "一塁手": [-.05, 0], "二塁手": [-.06, 0], "三塁手": [-.04, 0], "遊撃手": [-.05, 0],
+                   "左翼手": [-.06, 0], "中堅手": [-.07, 0], "右翼手": [-.07, 0] } },
+  right:  { nm: "右へ寄せる", ic: "▶", desc: "引っぱる左打者・流す右打者に",
+            off: { "一塁手": [.04, 0], "二塁手": [.06, 0], "三塁手": [.05, 0], "遊撃手": [.05, 0],
+                   "左翼手": [.07, 0], "中堅手": [.07, 0], "右翼手": [.06, 0] } },
+  dp:     { nm: "ゲッツーシフト", ic: "⇄", desc: "二遊間を二塁へ寄せる。併殺は取りやすい",
+            off: { "二塁手": [-.04, -.02], "遊撃手": [.04, -.02] } },
+  bunt:   { nm: "バント警戒", ic: "⚑", desc: "一三塁を思い切り前へ。強い打球は抜ける",
+            off: { "一塁手": [-.03, .10], "三塁手": [.03, .10], "投手": [0, .04] } },
+};
+function shiftKey() { const t = team(); return SHIFTS[t.shift] ? t.shift : "normal"; }
+window.mdShift = (k) => {
+  const t = team(); t.shift = SHIFTS[k] ? k : "normal"; save(); SFX.tap();
+  if (M && M.phase) { setFielders(); paintMatchHead(); }
+  toast("守備配置：" + SHIFTS[shiftKey()].nm);
+  if (view === "team") paintTeam();
+};
 
 function makeCpuTeam(level) {
   /* CPU のチームは「その強さに近い総合力の選手」から組む。
@@ -871,6 +983,9 @@ function startMatch(mode, online) {
     phase: "pitch",
     log: [],
     stat: { hit: 0, hr: 0, k: 0 },
+    tactic: "",                               /* いま出している作戦（1球かぎり） */
+    lastPitch: null,                          /* 直前の1球（球種と実測の球速） */
+    shiftNow: "normal",                       /* いま守っている側の守備配置 */
     over: false,
   };
   $("mtWrap").classList.remove("hide");
@@ -897,6 +1012,28 @@ function paintMatchHead() {
   const c = offMine() ? M.clutch.me : M.clutch.cpu;
   const cb = $("clutchBar"); if (cb) cb.style.width = clamp(c, 0, 100) + "%";
   const cbt = $("clutchBtn"); if (cbt) cbt.disabled = !(offMine() ? M.clutch.me >= 80 : false);
+  /* ★★ 2026-09-06 走者のダイヤ図（ご指定）。走者のいる塁だけ黄色。 */
+  const dm2 = $("mtDiam");
+  if (dm2) {
+    const cls = ["b1", "b2", "b3"];
+    cls.forEach((c, i) => {
+      const el = dm2.querySelector("." + c);
+      if (el) el.classList.toggle("on", !!M.runners[i]);
+    });
+    dm2.title = "走者：" + (M.runners.some(Boolean)
+      ? M.runners.map((r, i) => r ? ["一塁", "二塁", "三塁"][i] : null).filter(Boolean).join("・")
+      : "なし");
+  }
+  /* ★★ 2026-09-06 いまの球速と守備配置（ご指定「球速を毎度計測し表示」） */
+  const kb = $("mtKmh");
+  if (kb) kb.innerHTML = M.lastPitch
+    ? `<b>${M.lastPitch.kmh}</b><small>km/h</small><span>${esc(M.lastPitch.nm)}</span>` : "";
+  const sb = $("mtShift");
+  if (sb) {
+    const s = SHIFTS[M.shiftNow || shiftKey()] || SHIFTS.normal;
+    sb.innerHTML = `<i>${s.ic}</i>${esc(s.nm)}`;
+    sb.style.display = offMine() ? "none" : "";
+  }
 }
 
 /* ══════════ キャンバス（野球盤） ══════════ */
@@ -1084,21 +1221,39 @@ function drawLiveBat(w, h, zx, zy, zw, zh) {
   const bx = mx0 + (px - mx0) * u;
   const by = my0 + (py - my0) * (u * u * 0.55 + u * 0.45);
   const br = Math.max(3, h * (0.007 + 0.030 * Math.min(u, 1.1)));
-  /* ミートカーソル（自分が打つときだけ） */
+  /* ══ ★★ 2026-09-06 ミートカーソルを<b>バットの形</b>に（ご指定）══
+     ・マルだと「どこで当てるか」が上下左右おなじに見えてしまう。
+       バットは<b>横に長い</b>ので、左右のズレには強く、上下のズレには弱い——
+       という<b>本当の野球の手ざわり</b>がそのまま絵になる。
+     ・当たる範囲は<b>だ円</b>（横 mr×1.75 ／ 縦 mr×0.72）。判定（mdLiveSwing）も同じ式。
+     ・向きは<b>打席の左右</b>で変える。右打はバットが右上から、左打は左上から出る。
+     ★ 絵と判定がずれると「当たったのに当たらない」になるので、
+       角度も半径も<b>T に入れた1組の値</b>だけを使うこと。 */
   if (T.mine) {
-    const cxp = zx + zw * T.cx, cyp = zy + zh * T.cy, cr = zw * T.mr;
+    const cxp = zx + zw * T.cx, cyp = zy + zh * T.cy;
+    const rx = zw * T.mr * 1.75, ry = zw * T.mr * 0.72;
+    const ang = T.leftBat ? -0.30 : 0.30;          /* バットの傾き（左打は逆向き） */
+    const col = T.swung ? "#ffd257" : (T.plat > 0 ? "#8cffc8" : "#ff9d6b");
     cx.save();
-    cx.strokeStyle = T.swung ? "#ffd257" : "rgba(140,255,200,.95)";
-    cx.lineWidth = 2.6;
-    cx.beginPath(); cx.arc(cxp, cyp, cr, 0, Math.PI * 2); cx.stroke();
-    cx.globalAlpha = .16;
-    cx.fillStyle = T.swung ? "#ffd257" : "#8cffc8";
-    cx.beginPath(); cx.arc(cxp, cyp, cr, 0, Math.PI * 2); cx.fill();
-    cx.globalAlpha = 1;
-    cx.beginPath();
-    cx.moveTo(cxp - cr * .45, cyp); cx.lineTo(cxp + cr * .45, cyp);
-    cx.moveTo(cxp, cyp - cr * .45); cx.lineTo(cxp, cyp + cr * .45);
-    cx.lineWidth = 1.8; cx.stroke();
+    cx.translate(cxp, cyp); cx.rotate(ang);
+    /* 当たる範囲（だ円） */
+    cx.globalAlpha = .16; cx.fillStyle = col;
+    cx.beginPath(); cx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2); cx.fill();
+    cx.globalAlpha = 1; cx.strokeStyle = col; cx.lineWidth = 2.4;
+    cx.beginPath(); cx.ellipse(0, 0, rx, ry, 0, 0, Math.PI * 2); cx.stroke();
+    /* バット本体（グリップ → 芯）。左打は左側から出す */
+    const dir = T.leftBat ? -1 : 1;
+    const gx = dir * rx * 1.62, tx2 = -dir * rx * 0.98;
+    cx.lineCap = "round";
+    cx.strokeStyle = "#3a2a18"; cx.lineWidth = Math.max(3, ry * 0.42);
+    cx.beginPath(); cx.moveTo(gx, 0); cx.lineTo(dir * rx * 0.55, 0); cx.stroke();
+    cx.strokeStyle = "#c89b5a"; cx.lineWidth = Math.max(5, ry * 0.95);
+    cx.beginPath(); cx.moveTo(dir * rx * 0.62, 0); cx.lineTo(tx2, 0); cx.stroke();
+    cx.strokeStyle = "#efd7a8"; cx.lineWidth = Math.max(2, ry * 0.34);
+    cx.beginPath(); cx.moveTo(dir * rx * 0.35, -ry * 0.18); cx.lineTo(tx2 + dir * rx * 0.1, -ry * 0.18); cx.stroke();
+    /* 芯（いちばん飛ぶところ） */
+    cx.fillStyle = T.swung ? "#fff" : col;
+    cx.beginPath(); cx.arc(0, 0, Math.max(2.4, ry * 0.30), 0, Math.PI * 2); cx.fill();
     cx.restore();
   }
   /* 球 */
@@ -1181,7 +1336,14 @@ function mdLiveSwing() {
   else if (dt <= T.goodF) q = "GREAT";
   else if (dt <= T.goodF * 2) q = "GOOD";
   M.timing = q;
-  const dist = Math.hypot(P.x - T.cx, P.y - T.cy);     /* ゾーンを 1 とした距離 */
+  /* ★★ 2026-09-06 バット（だ円）に合わせて測る。
+     絵と同じ角度に回してから、横 1.75・縦 0.72 で割る＝<b>だ円の内なら 1 未満</b>。
+     ★ 絵（drawLiveBat）と<b>同じ数字</b>を使うこと。片方だけ直すと当たらなくなる。 */
+  const _a = T.leftBat ? 0.30 : -0.30;                /* 絵の逆に回して、だ円を軸にそろえる */
+  const _dx = P.x - T.cx, _dy = P.y - T.cy;
+  const _rx = Math.cos(_a) * _dx - Math.sin(_a) * _dy;
+  const _ry = Math.sin(_a) * _dx + Math.cos(_a) * _dy;
+  const dist = Math.hypot(_rx / 1.75, _ry / 0.72);
   M.meetRead = clamp(1 - dist / Math.max(0.02, T.mr * 2.1), 0, 1);
   /* カーソルが乗っているマスを、これまでの「読み」としても揃えておく */
   const cc = clamp(Math.floor(T.cx * 3), 0, 2), cr2 = clamp(Math.floor(T.cy * 3), 0, 2);
@@ -1212,8 +1374,13 @@ function tickLive() {
      dur は「60fps で何フレーム相当か」のままにしてある。 */
   if (T.t0 == null) T.t0 = performance.now();
   T.t = (performance.now() - T.t0) / 16.6667;
-  /* CPU が打つときはここを通らないので、必ず mine だけ */
-  if (T.t > T.dur * 1.22) { M.timing = null; finishLive("take"); }
+  /* ★★ 2026-09-06 守備側（mine:false）もここを通るようになった。
+     そのときは<b>相手が振ったかどうか（T.act）</b>で結果へ渡す。
+     "take" 固定のままだと、CPU が振っても必ず見送り扱いになってしまう。 */
+  if (T.t > T.dur * 1.22) {
+    if (T.mine) { M.timing = null; finishLive("take"); }
+    else { M.timing = (T.act === "swing") ? "GOOD" : null; finishLive(T.act || "take"); }
+  }
 }
 /* いま「打席の絵」を出す場面か */
 function inBatView() {
@@ -1296,9 +1463,17 @@ function drawBatView(w, h) {
      ★ 幅の狭い画面でもはみ出さないよう、w でも頭打ちにする。 */
   const pitS = mp(pitcherId(), !offMine());
   if (pitS) drawStand(cx, pitS.th, w / 2, h * 0.470, Math.min(h * 0.165, w * 0.21), false);
-  /* ── 打者（キャラの絵。左打席に立たせる） ── */
+  /* ── 打者（キャラの絵）──
+     ★★ 2026-09-06 ご指定「バッターの画像の位置も右左に合わせて」。
+       右打ちは<b>捕手から見て左</b>（画面の左）、左打ちは<b>画面の右</b>の打席に立つ。
+       ★ 立つ側の決めかたは打席の判定（askTiming の leftBat）と<b>同じ式</b>にすること。 */
   const batS = mp(batterId(), offMine());
-  if (batS) drawStand(cx, batS.th, w / 2 - w * 0.300, h * 0.960, Math.min(h * 0.225, w * 0.27), false);
+  const pitS2 = mp(pitcherId(), !offMine());
+  const _bats = (batS && batS.bats) || "右打";
+  const _thr = (pitS2 && pitS2.throws) || "右投";
+  const _leftBox = (_bats === "左打") || (_bats === "両打" && _thr === "右投");
+  const _bx = w / 2 + (_leftBox ? 1 : -1) * w * 0.300;
+  if (batS) drawStand(cx, batS.th, _bx, h * 0.960, Math.min(h * 0.225, w * 0.27), _leftBox);
   /* ── ストライクゾーン（3×3） ── */
   /* ★★ 2026-09-03 ゾーンは<b>操作の中心</b>になったので少し大きくする。 */
   const zx = w / 2 - w * 0.145, zy = h * 0.600, zw = w * 0.29, zh = h * 0.235;
@@ -1333,7 +1508,7 @@ function drawBatView(w, h) {
     cx.fillStyle = col; cx.fillText(txt, x0 + pad, y0);
   };
   if (pitS) tag("P  " + pitS.nm, w * 0.5 + w * 0.075, h * 0.405, "#7cc4ff");
-  if (batS) tag("B  " + batS.nm, w / 2 - w * 0.315, h * 0.612, "#ffd257");
+  if (batS) tag("B  " + batS.nm, _bx - w * 0.015 - (_leftBox ? w * 0.10 : 0), h * 0.612, "#ffd257");
 }
 function draw() {
   resizeCanvas();                       /* ★ 大きさが変わっていたら合わせ直してから描く */
@@ -1438,11 +1613,20 @@ function draw() {
 function setFielders() {
   FLD.length = 0;
   const t = defTeam(), mine = !offMine();
+  /* ★★ 2026-09-06 守備配置。<b>自分が守っているときだけ</b>自分の指示を使う。
+     CPU が守るときは「走者と打者に合わせた素直な配置」を自動でえらぶ。 */
+  const shK = mine ? shiftKey() : cpuShift();
+  const OFF = (SHIFTS[shK] || SHIFTS.normal).off || {};
+  const spOf = (ps) => {
+    const b = FPOS[ps], o = OFF[ps];
+    return o ? { x: clamp(b.x + o[0], .06, .94), y: clamp(b.y + o[1], .12, .96) } : b;
+  };
+  M.shiftNow = shK;
   POS9.forEach((ps) => {
     if (ps === "投手" || ps === "捕手") return;
     const id = Object.keys(t.pos).find((k) => t.pos[k] === ps);
     const p = id ? mp(id, mine) : null;
-    const sp = FPOS[ps];
+    const sp = spOf(ps);
     FLD.push({ id: id, ps: ps, x: sp.x, y: sp.y, hx: sp.x, hy: sp.y, tx: null, ty: null,
       /* ★ 実測して広げた。せまいと打球がほとんど抜けてしまい、点が入りすぎる。 */
       sp: 0.008 + (p ? p.run / 100 : .5) * 0.013, reach: 0.055 + (p ? p.field / 100 : .5) * 0.065,
@@ -1455,6 +1639,14 @@ function setFielders() {
   const cid = Object.keys(t.pos).find((k) => t.pos[k] === "捕手");
   const cp = cid ? mp(cid, mine) : null;
   FLD.push({ id: cid, ps: "捕手", x: FPOS["捕手"].x, y: FPOS["捕手"].y, hx: FPOS["捕手"].x, hy: FPOS["捕手"].y, tx: null, ty: null, sp: .008, reach: .05, th: cp ? cp.th : "", c: "#ffd257", lb: "C" });
+}
+/* CPU が守るときの配置。走者と点差から素直にえらぶ。 */
+function cpuShift() {
+  if (M.runners[2] && M.out < 2) return "in";           /* 三塁に走者＝前進で本塁を守る */
+  if (M.runners[0] && M.out < 2) return "dp";           /* 一塁に走者＝ゲッツーねらい */
+  const lead = (M.top ? M.score.cpu - M.score.me : M.score.me - M.score.cpu);
+  if (M.inn >= cfg.inn && lead > 0) return "deep";      /* 逃げ切りたい終盤は深め */
+  return "normal";
 }
 function bigMsg(txt, ms) {
   const el = $("bigMsg"); if (!el) return;
@@ -1500,8 +1692,36 @@ function askPitch() {
     <div class="zone big" id="zoneSel" style="margin-top:8px">
       ${Array.from({ length: 9 }, (_, i) => `<button class="${i === 4 ? "on" : ""}" data-z="${i}" onclick="mdPickZone(${i})"></button>`).join("")}
     </div>
+    ${shiftRowHTML()}
     <div class="row" style="margin-top:9px"><button class="btn pri" style="flex:1" onclick="mdThrow()">投球開始</button></div>`;
   M.sel = { pitch: pit.pitches[0].k, zone: 4 };
+}
+/* ★★ 2026-09-06 1球ごとの実測球速。<b>投げるたびに必ずここを通す</b>。
+   素の球速（velOf）＝その投手の平均。実際の1球は
+     ・そのときのスタミナ（減るほど落ちる）
+     ・毎球のばらつき（±3km/h）
+   でぶれる。表示も、届くまでの速さ（dur）も、この<b>同じ値</b>から作る。 */
+function measurePitch(pit, q, stam) {
+  const d = MD2DATA.PITCH_ALL.find((x) => x.k === q.k) || { nm: "ストレート", move: 0 };
+  const kmh = Math.max(95, Math.round(velOf(pit, q) - (100 - clamp(stam, 0, 100)) * 0.06
+                                      + (Math.random() * 2 - 1) * 3));
+  M.lastPitch = { nm: d.nm, kmh: kmh, k: q.k, t: Date.now() };
+  paintMatchHead();
+  /* ★★ 2026-09-06 ご報告「次の投球まで出ていて分かりづらい」。
+     <b>2.6秒で消す</b>。前の球のタイマーは必ず止める（消し忘れると新しい球まで消える）。 */
+  if (M._kmhT) clearTimeout(M._kmhT);
+  M._kmhT = setTimeout(() => {
+    if (!M) return;
+    M.lastPitch = null; M._kmhT = null;
+    try { paintMatchHead(); } catch (e) {}
+  }, 2600);
+  return kmh;
+}
+/* ★★ 2026-09-06 いちばん最近の1球の球速（画面に大きく出す） */
+function lastKmhHTML() {
+  const L = M && M.lastPitch;
+  if (!L) return "";
+  return `<div class="kmh"><b>${L.kmh}</b><small>km/h</small><span>${esc(L.nm)}</span></div>`;
 }
 function velOf(p, q) {
   const d = MD2DATA.PITCH_ALL.find((x) => x.k === q.k) || { move: 0 };
@@ -1545,17 +1765,25 @@ function askSwing() {
         <button class="psel" data-s="power" onclick="mdSwingType('power')">強振<small>焦点は狭いが飛ぶ</small></button>
         <button class="psel" data-s="bunt" onclick="mdSwingType('bunt')">バント<small>送る</small></button>
       </div>
+      ${tacticRowHTML()}
       <div class="hint" style="margin-top:8px;color:var(--tx3)">
-        画面を<b>なぞって焦点を合わせ</b>、<b>指を離した瞬間に振ります</b>。振らなければ見送りです。</div>
+        画面を<b>なぞってバットを合わせ</b>、<b>指を離した瞬間に振ります</b>。振らなければ見送りです。</div>
       <div class="row" style="margin-top:9px">
         <button class="btn pri" style="flex:1" onclick="mdReady()">構える</button>
       </div>`;
     M.bsel = { zone: 4, type: "meet" };
   } else {
     /* 自分は守備。CPU（またはオンラインの相手）が読む */
+    /* ★ ここでも1球ごとに球速を測る（この道は askTiming を通らないため） */
+    const _q = (pit.pitches || []).find((x) => x.k === (M.sel && M.sel.pitch)) || (pit.pitches || [{ k: "straight", lv: 1 }])[0];
+    const _kmh = measurePitch(pit, _q, M.stam.me);
     const guess = cpuGuess(bat, M.sel);
     M.bsel = guess;
-    setTimeout(() => resolvePitch(guess.act), 420);
+    /* ★★ 2026-09-06 ご指定「守備側も球を投げたときラインの演出を出す」。
+       前は 420ms 待って結果だけ出していたので、<b>投げた実感がまったく無かった</b>。
+       打つときと同じ道具（M.tm ＋ tickLive ＋ drawLiveBat）を使い、
+       <b>カーソルだけ出さない</b>（mine:false）ことで、球の軌跡だけを見せる。 */
+    watchPitch(pit, _q, _kmh, guess.act);
   }
 }
 window.mdReadZone = (i) => {
@@ -1570,6 +1798,14 @@ window.mdSwingType = (t) => {
    バントだけはこれまでどおり即決（焦点を合わせる操作がないため）。 */
 window.mdReady = () => {
   if (!M.bsel) M.bsel = { zone: 4, type: "meet" };
+  /* ★ 作戦は「投げる前」に効くものと「結果と一緒」に効くものがある。
+     ・盗塁 … 投球の前に走る（結果を待たない）
+     ・スクイズ … バントに固定する
+     ・待球 … 見送りに固定する
+     ・エンドラン … 結果のところ（resolvePitch）で精算する */
+  if (M.tactic === "steal") { trySteal(); paintMatchHead(); if (M.out >= 3) return; }
+  if (M.tactic === "squeeze") M.bsel.type = "bunt";
+  if (M.tactic === "wait") { M.tactic = ""; M.timing = null; M.meetRead = null; resolvePitch("take"); return; }
   if (M.bsel.type === "bunt") { M.timing = "GOOD"; resolvePitch("swing"); return; }
   SFX.pitch();
   askTiming("swing");
@@ -1591,19 +1827,34 @@ function askTiming(act) {
   const pitSel = (offMine() ? M.cpuPitch : M.sel) || safePitchSel(pit);
   const q = (pit.pitches || []).find((x) => x.k === pitSel.pitch) || { k: "straight", lv: 1 };
   const d = MD2DATA.PITCH_ALL.find((x) => x.k === q.k) || { move: 0 };
-  const kmh = velOf(pit, q);
+  /* ══ ★★ 2026-09-06 球速は<b>1球ごとに測る</b>（ご指定）══
+     素の球速（velOf）は「その投手の平均」。実際の1球は
+       ・そのときのスタミナ（減るほど落ちる）
+       ・球種（変化球は遅い＝velOf にすでに入っている）
+       ・毎球のばらつき（±3km/h）
+     で決まる。表示している数字と<b>実際に届くまでの速さ（dur）は同じ値</b>から作る。 */
+  const kmh = measurePitch(pit, q, (!offMine() ? M.stam.me : M.stam.cpu));
   /* 届くまでのフレーム数。140km/h でおよそ 62フレーム（約1秒）。 */
   const dur = clamp(Math.round(9000 / Math.max(90, kmh)), 38, 100);
   /* ミートが高いほど、ずれを許す幅が広い */
   const goodF = 4 + bat.meet * 0.055;
   const perfF = 1.4 + bat.meet * 0.020;
   const type = (M.bsel && M.bsel.type) || "meet";
+  /* ══ ★★ 2026-09-06 左右の相性（ご指定）══
+     打者と投手の手が<b>逆</b>なら球筋が見やすい（バットが長くなる）、
+     <b>同じ</b>なら見づらい（短くなる）。両打はいつでも逆に立てるので、つねに有利。
+     ★ ここは<b>倍率1か所</b>にしてある。強さをいじるときはこの数字だけ動かすこと。 */
+  const bats = bat.bats || "右打", thr = pit.throws || "右投";
+  const plat = (bats === "両打") ? 1 : (((bats === "左打") === (thr === "左投")) ? -1 : 1);
+  const platMul = plat > 0 ? 1.14 : 0.88;
   /* 焦点（ゾーンの幅を 1 とした半径） */
-  const mr = clamp((type === "power" ? 0.115 : 0.165) + bat.meet * 0.00085, 0.09, 0.30);
+  const mr = clamp(((type === "power" ? 0.115 : 0.165) + bat.meet * 0.00085) * platMul, 0.08, 0.32);
   $("mtBot").innerHTML = `
     ${clutchBar()}
-    <div class="hint">⏱ <b>${d.nm}・${kmh}km/h</b> — 画面を<b>なぞって焦点を合わせ</b>、
-      <b>指を離して振る</b>！<br><span style="color:var(--tx3)">振らなければ見送りになります</span></div>
+    <div class="hint">⏱ <b>${d.nm}・${kmh}km/h</b> — 画面を<b>なぞってバットを合わせ</b>、
+      <b>指を離して振る</b>！<br>
+      <span style="color:${plat > 0 ? "#8cffc8" : "#ff9d6b"}">${esc(bats)} × ${esc(thr)} ${plat > 0 ? "（相性◎ バットが長い）" : "（相性△ バットが短い）"}</span>
+      <span style="color:var(--tx3)">／ 振らなければ見送り</span></div>
     <div class="row" style="margin-top:9px">
       <button class="btn pri" style="flex:1" onclick="mdLiveSwing()">SWING</button>
       <button class="btn" onclick="mdLiveTake()">見送る</button>
@@ -1615,12 +1866,98 @@ function askTiming(act) {
     bx: (d.k === "curve" ? -0.8 : d.k === "slider" ? -1 : d.k === "sinker" ? 1 : 0) + (Math.random() - .5) * .4,
     by: (d.k === "fork" ? 1 : d.k === "curve" ? 1 : d.k === "change" ? .6 : 0) + (Math.random() - .5) * .3,
     cx: 0.5, cy: 0.5, mr, goodF, perfF,
+    /* ★ 2026-09-06 バットの向きと相性（絵と判定の両方がこれを見る） */
+    leftBat: (bats === "左打") || (bats === "両打" && thr === "右投"),
+    plat, bats, thr, kmh,
   };
   M.meetRead = null;
   tickLive();
 }
 /* 見送る（ボタン） */
 window.mdLiveTake = () => { M.timing = null; finishLive("take"); };
+
+/* ★★ 2026-09-06 守備側の「投げる演出」。
+   打席のしくみをそのまま借りて、<b>ミートカーソルだけ出さない</b>。
+   ★ 進みかた（dur）は打席とまったく同じ式にする。ここがずれると、
+     自分が投げたときだけ球が速く／遅く見えて気持ちが悪い。 */
+function watchPitch(pit, q, kmh, act) {
+  const d = MD2DATA.PITCH_ALL.find((x) => x.k === q.k) || { move: 0 };
+  const pitSel = M.sel || safePitchSel(pit);
+  M.phase = "timing";
+  $("mtBot").innerHTML = `
+    ${clutchBar()}
+    <div class="hint">🥎 <b>${esc(d.nm)}・${kmh}km/h</b> — 投げました！</div>`;
+  M.tm = {
+    t: 0, dur: clamp(Math.round(9000 / Math.max(90, kmh)), 38, 100),
+    act: act, done: false, swung: false, holding: false, flash: 0,
+    mine: false, zone: pitSel.zone, move: d.move,
+    bx: (d.k === "curve" ? -0.8 : d.k === "slider" ? -1 : d.k === "sinker" ? 1 : 0) + (Math.random() - .5) * .4,
+    by: (d.k === "fork" ? 1 : d.k === "curve" ? 1 : d.k === "change" ? .6 : 0) + (Math.random() - .5) * .3,
+    cx: 0.5, cy: 0.5, mr: 0.14, goodF: 4, perfF: 1.4, kmh: kmh,
+  };
+  M.meetRead = null;
+  tickLive();
+}
+
+/* ══════════ ★★ 2026-09-06 作戦コマンド（旧版から移植）══════════
+   ・攻撃 … 盗塁／エンドラン／スクイズ／待球
+   ・守備 … 守備配置（SHIFTS）
+   ★ 作戦は<b>その1球かぎり</b>。投球の結果と一緒に精算して必ず消す（M.tactic）。
+     消し忘れると次の打席にも効いてしまう（旧版で実際にあった不具合）。 */
+const TACTICS = {
+  steal:  { nm: "盗塁", ic: "🏃", desc: "走者が次の塁をねらう（走力 × 捕手の肩）",
+            ok: () => (M.runners[0] || M.runners[1]) && M.out < 3 },
+  hitrun: { nm: "エンドラン", ic: "⚡", desc: "走者はスタート。ゴロなら余分に進めるが、三振だと刺される",
+            ok: () => M.runners[0] && M.out < 2 },
+  squeeze:{ nm: "スクイズ", ic: "🎯", desc: "三塁走者が本塁へ。バントで送る（失敗するとアウト）",
+            ok: () => M.runners[2] && M.out < 2 },
+  wait:   { nm: "待球", ic: "🕒", desc: "この球は見送る。四球をねらい、相手のスタミナを削る",
+            ok: () => true },
+};
+function tacticRowHTML() {
+  const list = Object.keys(TACTICS).filter((k) => { try { return TACTICS[k].ok(); } catch (e) { return false; } });
+  if (!list.length) return "";
+  const cur = M.tactic || "";
+  return `<div class="tact">
+    <span class="lb">作戦</span>
+    ${list.map((k) => `<button class="${cur === k ? "on" : ""}" onclick="mdTactic('${k}')"
+      title="${esc(TACTICS[k].desc)}"><i>${TACTICS[k].ic}</i>${TACTICS[k].nm}</button>`).join("")}
+    ${cur ? `<button class="cl" onclick="mdTactic('')">やめる</button>` : ""}
+  </div>${cur ? `<div class="hint" style="color:var(--tx3);margin-top:4px">${esc(TACTICS[cur].desc)}</div>` : ""}`;
+}
+window.mdTactic = (k) => {
+  M.tactic = (M.tactic === k || !k) ? "" : k;
+  SFX.tap();
+  if (M.phase === "swing") askSwing();
+};
+/* 守備配置をえらぶ列（守っているときだけ出す） */
+function shiftRowHTML() {
+  const cur = shiftKey();
+  return `<div class="tact">
+    <span class="lb">守備</span>
+    ${Object.keys(SHIFTS).map((k) => `<button class="${cur === k ? "on" : ""}" onclick="mdShift('${k}')"
+      title="${esc(SHIFTS[k].desc)}"><i>${SHIFTS[k].ic}</i>${SHIFTS[k].nm}</button>`).join("")}
+  </div><div class="hint" style="color:var(--tx3);margin-top:4px">${esc(SHIFTS[cur].desc)}</div>`;
+}
+
+/* 盗塁の精算。★ 攻撃側・守備側どちらの走者でも同じ式を使う。 */
+function trySteal() {
+  const from = M.runners[0] ? 0 : (M.runners[1] ? 1 : -1);
+  if (from < 0) return;
+  const rid = M.runners[from];
+  const r = mp(rid, offMine()) || { run: 60 };
+  const t = defTeam();
+  const cid = Object.keys(t.pos).find((k) => t.pos[k] === "捕手");
+  const c = cid ? (mp(cid, !offMine()) || { arm: 60 }) : { arm: 60 };
+  const pr = clamp(0.46 + (r.run - c.arm) / 150 + sk(r, "steal"), 0.10, 0.94);
+  if (Math.random() < pr) {
+    M.runners[from] = null; M.runners[from + 1] = rid;
+    note("盗塁成功！"); SFX.safe(); addClutch(offMine() ? "me" : "cpu", 8);
+  } else {
+    M.runners[from] = null;
+    note("盗塁失敗…"); SFX.out(); outMade(1);
+  }
+}
 function clutchBar() {
   const mine = offMine();
   const c = mine ? M.clutch.me : M.clutch.cpu;
@@ -1690,6 +2027,7 @@ function resolvePitch(act) {
   if (act === "take") {
     if (isBall) { M.ball++; addClutch(offMine() ? "me" : "cpu", 4); note("ボール"); }
     else { M.strike++; note("見逃しストライク"); }
+    M.tactic = "";
     return afterCount();
   }
   if (M.bsel.type === "bunt") return doBunt(bat, pit);
@@ -1742,12 +2080,16 @@ function addClutch(side, n) {
 }
 function afterCount() {
   paintMatchHead();
-  if (M.ball >= 4) { M.ball = 0; M.strike = 0; note("フォアボール"); SFX.safe(); return walk(); }
+  if (M.ball >= 4) { M.ball = 0; M.strike = 0; note("フォアボール"); SFX.safe(); M.tactic = ""; return walk(); }
   if (M.strike >= 3) {
     M.strike = 0; M.ball = 0; note("三振！"); SFX.out();
     if (!offMine()) { M.stat.k++; bump("k", 1); }
     addClutch(offMine() ? "cpu" : "me", 12);
-    return outMade(1);
+    /* ★ エンドランで走っていたら、三振と一緒に刺される（旧版と同じ） */
+    let extra = 0;
+    if (M.tactic === "hitrun" && M.runners[0]) { M.runners[0] = null; note("走者も刺された（ダブルプレー）"); extra = 1; }
+    M.tactic = "";
+    return outMade(1 + extra);
   }
   M.timing = null; M.meetRead = null;
   setTimeout(askPitch, 340);
@@ -1762,9 +2104,20 @@ function walk() {
   setTimeout(() => nextBatter(), 500);
 }
 function doBunt(bat, pit) {
-  const ok = Math.random() < .55 + bat.meet / 400;
-  if (!ok) { M.strike++; note("バント失敗"); SFX.miss(); return afterCount(); }
-  note("バント成功");
+  const squeeze = (M.tactic === "squeeze");
+  /* ★ スクイズは「三塁走者が走り出したあと」なので、失敗すると走者が刺される（旧版と同じ） */
+  const ok = Math.random() < (squeeze ? .50 : .55) + bat.meet / 400;
+  if (!ok) {
+    M.tactic = "";
+    if (squeeze && M.runners[2]) {
+      M.runners[2] = null;
+      note("スクイズ失敗！ 三塁走者が刺された"); SFX.out();
+      advanceBatter();
+      return outMade(1);
+    }
+    M.strike++; note("バント失敗"); SFX.miss(); return afterCount();
+  }
+  note(squeeze ? "スクイズ成功！" : "バント成功");
   SFX.hit();
   /* 走者を1つずつ進めて打者はアウト */
   for (let i = 2; i >= 0; i--) {
@@ -1772,6 +2125,7 @@ function doBunt(bat, pit) {
     if (i === 2) { M.runners[2] = null; scoreRun(1); }
     else { M.runners[i + 1] = M.runners[i]; M.runners[i] = null; }
   }
+  M.tactic = "";
   advanceBatter();
   outMade(1);
 }
@@ -1856,26 +2210,57 @@ function askCatch(f, fly, bat, quality, through) {
   const defMine = !offMine();
   if (through || !f) return resolveHit(bat, quality, "抜けた", null);
   if (!defMine) {
-    /* CPU の守備 */
-    const p = mp(f.id, false) || { catch: 60, field: 60 };
-    const ok = Math.random() < .55 + p.catch / 260 + (cfg.cpu * .04);
-    return finishCatch(f, fly, bat, quality, ok ? (Math.random() < .3 ? "PERFECT" : "GREAT") : "GOOD");
+    /* CPU の守備。★ 自分のときと<b>同じ式</b>で出す（強さの差は cfg.cpu のぶんだけ） */
+    const res = catchChance(f, fly, quality, false);
+    const q = rollCatch(clamp(res.p + (cfg.cpu - 2) * 0.05, 0.12, 0.985));
+    return finishCatch(f, fly, bat, quality, q);
   }
-  const p = mp(f.id, true) || { catch: 60 };
-  const goodW = 26 + p.catch * 0.24 + sk(p, "hands") * 100;
-  const perfW = 8 + p.catch * 0.10;
-  const gL = 50 - goodW / 2, pL = 50 - perfW / 2;
+  /* ══ ★★ 2026-09-06 ご指定により<b>ゲージをやめた</b>ここが要点 ══
+     これまでは「白い線が真ん中に来た瞬間にタップ」＝<b>選手の守備力が結果に出ない</b>
+     （反射神経のゲームになっていた）。
+     いまは
+       ① 選手の<b>捕球・守備</b>（と GUARDIAN/IRON WALL などのスキル）
+       ② <b>守備配置</b>から打球までの<b>走った距離</b>（配置の指示がそのまま効く）
+       ③ 打球の<b>強さ</b>（quality）とフライかゴロか
+     の3つで成功率を出し、その率で判定する。
+     ★ 出した数字は<b>画面に必ず見せる</b>（なぜ捕れた／こぼしたのかが分かるように）。 */
+  const res = catchChance(f, fly, quality, true);
   $("mtBot").innerHTML = `
-    <div class="hint">🧤 <b>${esc((mp(f.id, true) || {}).nm || f.ps)}</b>（${f.ps}）が追いついた！<br>
-      白い線がまん中に来た瞬間にタップして<b>捕球</b></div>
-    <div class="timing" id="tmBar">
-      <div class="good" style="left:${gL}%;width:${goodW}%"></div>
-      <div class="perf" style="left:${pL}%;width:${perfW}%"></div>
-      <div class="cur" id="tmCur" style="left:0%"></div>
+    <div class="hint">🧤 <b>${esc(res.nm)}</b>（${f.ps}）が追いついた！</div>
+    <div class="calc">
+      <span>守備力 <b>${res.skill}</b></span>
+      <span>走った距離 <b>${res.travel}</b>m</span>
+      <span>打球 <b>${res.hard}</b></span>
+      <span class="big">成功率 <b>${Math.round(res.p * 100)}%</b></span>
     </div>
-    <div class="row"><button class="btn pri" style="flex:1" onclick="mdCatchNow()">捕る！</button></div>`;
-  M.tm = { t: 0, dir: 1, sp: 2.0, gL, goodW, pL, perfW, done: false, f, fly, bat, quality };
-  tickTiming();
+    <div class="hint" style="color:var(--tx3);margin-top:6px">守備配置：<b>${SHIFTS[M.shiftNow || "normal"].nm}</b> — ${SHIFTS[M.shiftNow || "normal"].desc}</div>`;
+  const q = rollCatch(res.p);
+  bigMsg(q, 640);
+  if (q === "MISS") SFX.miss(); else SFX.catch2();
+  M.tm = null;
+  setTimeout(() => finishCatch(f, fly, bat, quality, q), 620);
+}
+/* 捕球の成功率。★ CPU と自分で<b>同じ式</b>を使う（片方だけ有利にしない）。 */
+function catchChance(f, fly, quality, mine) {
+  const p = mp(f.id, mine) || { catch: 60, field: 60, run: 60, nm: f.ps };
+  /* ① 守備力（捕球6：守備4）＋ スキル */
+  const skill = Math.round(p.catch * 0.6 + p.field * 0.4 + sk(p, "hands") * 60 + sk(p, "reach") * 40);
+  /* ② 定位置から打球までの距離（盤面の 1.0 ＝ およそ 60m として m に直す） */
+  const travelU = Math.hypot(f.hx - B.x, f.hy - B.y);
+  const travel = Math.round(travelU * 60);
+  const far = clamp((travelU - (f.reach || .08)) / 0.34, 0, 1);
+  /* ③ 打球の強さ */
+  const hard = quality > .82 ? "強烈" : quality > .58 ? "速い" : quality > .34 ? "ふつう" : "弱い";
+  let pr = 0.60 + (skill - 60) / 130 - far * 0.55 - (quality - 0.5) * 0.24 + (fly ? 0.08 : 0);
+  if (M.boost === "supercat" && mine) pr += 0.12;
+  pr = clamp(pr, 0.12, 0.985);
+  return { p: pr, skill, travel, hard, nm: p.nm || f.ps };
+}
+/* 成功率から結果を出す。うまくいったときは、どれくらいきれいに捕れたかも決める。 */
+function rollCatch(pr) {
+  if (Math.random() >= pr) return "MISS";
+  const r = Math.random();
+  return r < 0.22 + (pr - 0.5) * 0.4 ? "PERFECT" : r < 0.70 ? "GREAT" : "GOOD";
 }
 /* ★★ 2026-09-03 左右に往復する帯（捕球のタイミング）。
    打席のほうはリアルタイム打撃にしたので使わなくなったが、
@@ -1970,6 +2355,13 @@ function advanceRunnersOnGround(keepThird) {
   if (M.runners[1]) { M.runners[2] = M.runners[1]; M.runners[1] = null; }
   if (M.runners[0]) { M.runners[1] = M.runners[0]; M.runners[0] = null; }
 }
+/* ★★ 2026-09-06 エンドラン。走者は投球と同時に走っているので、
+   打球が前に飛んだら<b>もう1つ先まで</b>行ける。 */
+function hitrunBonus() {
+  if (M.tactic !== "hitrun") return;
+  if (M.runners[1] && !M.runners[2]) { M.runners[2] = M.runners[1]; M.runners[1] = null; note("エンドラン！ 走者が三塁へ"); }
+  else if (M.runners[0] && !M.runners[1]) { M.runners[1] = M.runners[0]; M.runners[0] = null; note("エンドラン！ 走者が二塁へ"); }
+}
 /* 抜けた・安打になったとき */
 function resolveHit(bat, quality, label, f) {
   B.on = false;
@@ -1995,6 +2387,8 @@ function resolveHit(bat, quality, label, f) {
   else if (bases === 2) { M.runners[1] = bat.id; }
   else { M.runners[0] = bat.id; }
   if (runs) scoreRun(runs);
+  hitrunBonus();
+  M.tactic = "";
   M.timing = null; M.boost = null;
   advanceBatter();
   setTimeout(() => nextBatter(), 1300);
@@ -2078,10 +2472,69 @@ window.mdEndMatch = () => {
 };
 window.mdQuitMatch = async () => {
   if (!M) return;
-  if (!confirm("試合をやめますか？（記録は残りません）")) return;
+  /* ★★ 2026-09-06 confirm() は<b>この環境では出ない</b>ので、押しても何も起きなかった（ご報告）。
+     MagiLex・MagiTier で踏んだのと同じ。<b>画面の中で聞く</b>形にする。 */
+  $("slotBody").innerHTML = `
+    <div style="font-size:13px;font-weight:900;margin-bottom:6px">試合を中断しますか？</div>
+    <div style="font-size:11.5px;font-weight:700;color:var(--tx2);line-height:1.8;margin-bottom:12px">
+      とちゅうでやめると<b>記録は残りません</b>（ミッションの数も増えません）。<br>
+      同じ相手ともう一度はじめからやり直せます。</div>
+    <div class="row">
+      <button class="btn" style="flex:1" onclick="mdCloseSheet('sheetSlot')">つづける</button>
+      <!-- ★ md2-ui.css の .btn.pri が !important で黄色にするので、
+           打ち消せるよう<b>専用のクラス</b>にする（style 属性では勝てない） -->
+      <button class="btn danger" style="flex:1" onclick="mdQuitMatchYes()">中断する</button>
+    </div>`;
+  openSheet("sheetSlot");
+};
+window.mdQuitMatchYes = () => {
+  closeSheet("sheetSlot");
+  if (M && M.tm && M.tm.raf) { try { cancelAnimationFrame(M.tm.raf); } catch (e) {} }
   $("mtWrap").classList.add("hide"); M = null; paint();
+  toast("試合を中断しました");
 };
 function bump(k, n) { msnCheck(); S.day[k] = (S.day[k] | 0) + n; save(); }
+
+/* ══════════ ★★ 2026-09-06 LOCAL PLAY（MagiBurst と同じ仕組み）══════════
+   ../MagiBurst/js/local.js（BurstLocal）と ../MagiBurst/js/localplay.js（LocalPlay）を
+   そのまま借りている。あちらが外から使うのは<b>この2つだけ</b>なので、ここで用意する。
+     ・window.onProfile() … 自分の名札（相手の画面の PLAYER 01〜04 に出る）
+     ・window.onStart()   … 全員そろって「ゲーム開始」を押したとき
+   ★ ここを消すと、部屋は作れても<b>名前が出ない／始められない</b>。 */
+window.onProfile = function () {
+  const t = team();
+  let nm = "";
+  try { nm = (JSON.parse(localStorage.getItem("xeva_account_v1") || "{}").name) || ""; } catch (e) {}
+  const ids = (t.order || []).slice(0, 2);
+  return {
+    name: nm || t.name || "Player",
+    th: (MD2DATA.get(ids[0]) || {}).th || "img/icon192.png",
+    power: teamPower(),
+    chars: ids.map((id) => { const e = eff(id) || {}; return { id: id, nm: e.nm, lv: e.lv, ovr: e.ovrNow }; }),
+  };
+};
+window.onStart = function () {
+  /* ★ つながった相手との対戦は、<b>ホストの端末が試合を進める</b>。
+     いまはまず「同じ部屋で同時に始める」ところまで。 */
+  if (!teamOk()) { toast("チームが未完成です（9人＋先発投手）"); return; }
+  matchMode = "local";
+  startMatch("local", { local: true });
+};
+
+/* QR をカメラで読んで開いたとき（#mbjoin=コード）＝ MagiBurst と同じ受けかた */
+(function mdJoinBoot() {
+  try {
+    const m = /#mbjoin=([^&]+)/.exec(location.hash || "");
+    if (!m) return;
+    const code = decodeURIComponent(m[1]);
+    try { history.replaceState(null, "", location.pathname + location.search); } catch (e) {}
+    const go = () => {
+      if (!window.LocalPlay) { setTimeout(go, 200); return; }
+      try { LocalPlay.open("guest"); LocalPlay.joinURL(code); } catch (e) {}
+    };
+    setTimeout(go, 1200);
+  } catch (e) {}
+})();
 
 /* ══════════ オンライン（xevarion-online の Firebase を使う） ══════════
    ★ 対戦のしくみそのものは<b>過去版と同じ部屋番号方式</b>。
@@ -2123,7 +2576,7 @@ function boot() {
     const s = $("md2Splash");
     if (s) s.innerHTML = '<div style="color:#ff8a8a;font-weight:900;font-size:13px;text-align:center;padding:20px;line-height:1.9">'
       + 'キャラクターのデータを読み込めませんでした。<br>通信を確かめて、もう一度開いてください。<br>'
-      + '<a href="index.html" style="color:#ffd257">← 版えらびへもどる</a></div>';
+      + '<a href="../index.html" style="color:#ffd257">← XEVARION へもどる</a></div>';
   });
 }
 if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot);

@@ -55,7 +55,7 @@ function loadMbCore() {
   if (_mbPromise) return _mbPromise;
   _mbPromise = new Promise(function (res, rej) {
     var s = document.createElement("script");
-    s.src = "../MagiBurst/js/mb-core.js?v=75";
+    s.src = "../MagiBurst/js/mb-core.js?v=89";
     s.onload = function () { res(); };
     s.onerror = function () { _mbPromise = null; rej(new Error("mb-core")); };
     document.head.appendChild(s);
@@ -173,11 +173,25 @@ function buildPlayer(id) {
   P.pitchType = pitchTypeOf(P);  /* 投手タイプ */
   P.role = roleOf(P);            /* 投手向き／野手向き */
   P.pos = posOf(P, id);          /* ポジション適性（S〜G） */
+  P.bats = batsOf(P, id);        /* ★ 2026-09-06 右打・左打・両打 */
+  P.throws = throwsOf(id);       /* ★ 2026-09-06 右投・左投 */
   P.pitches = pitchesOf(P, id);  /* 持ち球 */
   P.skills = skillsOf(P, c, id); /* 固有スキル */
   P.ovr = ovrOf(P);              /* 総合力 */
   return P;
 }
+
+/* ★★ 2026-09-06 左右（ご指定「左打者・右投手・両などの性能」）。
+   ★ id から<b>いつも同じ値</b>が出るようにする（seedOf はハッシュなので引き直しても変わらない）。
+   ★ 試合では「打者と投手の手が<b>逆</b>なら打ちやすい／<b>同じ</b>なら打ちにくい」効きかたをする。
+     両打はいつでも逆に立てるので、つねに打ちやすい側になる（そのぶん貴重）。 */
+function batsOf(P, id) {
+  var v = seedOf(id, "bats") - Math.max(0, (P.run - 70)) * 0.004;
+  if (v < 0.08) return "両打";
+  if (v < 0.40) return "左打";
+  return "右打";
+}
+function throwsOf(id) { return seedOf(id, "throws") < 0.26 ? "左投" : "右投"; }
 
 /* 弾道（1＝低い〜4＝アーチスト）。パワーと弾道の相性で長打が出やすくなる */
 function trajOf(P, id) {

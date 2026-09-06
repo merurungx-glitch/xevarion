@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<script src="../maintenance-gate.js?v=7"></script>
+<script src="../maintenance-gate.js?v=8"></script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Magi: Arcana Rush — 魔法と絆が導く、星と運命のRPG</title>
@@ -12,19 +12,19 @@
 <link rel="apple-touch-icon" href="mar-192.png">
 <link rel="manifest" href="manifest.webmanifest">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;900&family=Noto+Sans+JP:wght@400;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="mar.css?v=4">
+<link rel="stylesheet" href="mar.css?v=5">
 <!-- ★★ 2026-08-29c β版のアクセスゲート。
      読みこんだ瞬間から中身を隠しておく（CSS より先に効かせたいので、ここで印を付ける）。
      コードが合うと mar-app.js が この印を外して marBoot() を走らせる。 -->
 <script>document.documentElement.classList.add("mar-locked");</script>
 
 <!-- XEVARION 共通（XEVA・💎ジェム・アカウント・同期・スタミナ／レベル） -->
-<script src="../xeva-splash.js?v=5" data-app="Magi: Arcana Rush" data-logo="mar-192.png"></script>
-<script src="../xeva.js?v=54"></script>
-<script type="module" src="../xevarion-fb.js?v=25"></script>
-<script type="module" src="../xeva-cloud.js?v=22"></script>
+<script src="../xeva-splash.js?v=6" data-app="Magi: Arcana Rush" data-logo="mar-192.png"></script>
+<script src="../xeva.js?v=55"></script>
+<script type="module" src="../xevarion-fb.js?v=28"></script>
+<script type="module" src="../xeva-cloud.js?v=23"></script>
 <!-- 所持キャラ（magiburst_v1）のクラウド同期。ガチャで引いた子をここでも使うため -->
-<script type="module" src="../MagiBurst/magiburst-cloud.js?v=8"></script>
+<script type="module" src="../MagiBurst/magiburst-cloud.js?v=9"></script>
 </head>
 <body>
 
@@ -178,12 +178,12 @@
        すべて MagiBurst のもの（mb-core.js）をそのまま使う。
      ★ mb-boot.js は MB_IMGD を "img/"（ポータル用）に決め打ちするので、
        <b>そのあとで</b> このアプリ用のパスに直してから mb-core.js を読む。 -->
-<script src="../mb-boot.js?v=11"></script>
+<script src="../mb-boot.js?v=12"></script>
 <script>window.MB_IMGD = "../img/"; window.MB_GIMGD = "../MagiBurst/img/";</script>
-<script src="../MagiBurst/js/mb-core.js?v=75"></script>
-<script src="mar-core.js?v=3"></script>
-<script src="mar-battle.js?v=3"></script>
-<script src="mar-app.js?v=4"></script>
+<script src="../MagiBurst/js/mb-core.js?v=89"></script>
+<script src="mar-core.js?v=4"></script>
+<script src="mar-battle.js?v=4"></script>
+<script src="mar-app.js?v=5"></script>
 <script>
 /* Service Worker（オフラインでも遊べるようにする） */
 if ("serviceWorker" in navigator) {
@@ -193,6 +193,6 @@ if ("serviceWorker" in navigator) {
 }
 </script>
 <!-- XEVARION へもどる導線（同期を送り切ってから移動する） -->
-<script src="../xeva-back.js?v=3" data-mode="hook"></script>
+<script src="../xeva-back.js?v=4" data-mode="hook"></script>
 </body>
 </html>

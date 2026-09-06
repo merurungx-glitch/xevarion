@@ -18,11 +18,19 @@
   --shadow:0 10px 30px rgba(90,130,210,.16);
   --shadow-s:0 3px 12px rgba(90,130,210,.12);
   --ml-vph:100vh;
+  /* ★★ 2026-09-05 下ナビが画面の最下部まで届かない件。
+     --xv-safebar = max(実測した safe-area, 下へ伸ばすべき量)。../xeva-safebottom.js が入れる。 */
+  --xv-safebar:max(var(--xv-safeb,env(safe-area-inset-bottom,0px)), var(--xv-growb,0px));
+  --ml-barbg:#ffffff;
 }
 @supports (height:100dvh){ :root{ --ml-vph:100dvh } }
 
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 html,body{height:100%;}
+/* ★ position:fixed の箱の<b>外側</b>（iPhone のアプリ表示でできる帯）は CSS では塗れない。
+   そこは <html> の背景が使われるので、下ナビと同じ色にしておく。
+   ★ 幅の広い画面では下ナビが無いので、下の media の中だけで切りかえる。 */
+html{background:var(--bg);}
 body{background:var(--bg);color:var(--txt);font-family:'Noto Sans JP','Exo 2',system-ui,sans-serif;font-weight:500;overflow:hidden;}
 .orbitron{font-family:'Orbitron',sans-serif;}
 .bg{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;
@@ -258,13 +266,19 @@ a.nav-btn.xv-back:hover{color:var(--blue);background:rgba(75,139,255,.08);}
 /* ---- responsive ---- */
 @media(max-width:720px){
   .app.show{grid-template-columns:1fr;}
-  .sidebar{flex-direction:row;position:fixed;bottom:0;left:0;right:0;top:auto;width:100%;
-    height:calc(62px + var(--xv-safeb,env(safe-area-inset-bottom,0px)));
-    padding:0 6px var(--xv-safeb,env(safe-area-inset-bottom,0px));border-right:none;border-top:1px solid var(--border);
-    justify-content:space-around;z-index:50;background:rgba(255,255,255,.95);}
+  html{background:var(--ml-barbg);}
+  /* ★ バー本体を 240px 下へはみ出させる（別の板は使わない＝境目が出ない） */
+  .sidebar{flex-direction:row;position:fixed;left:0;right:0;top:auto;width:100%;
+    bottom:calc(-1 * var(--xv-fixgap,0px) - 240px);
+    height:calc(62px + var(--xv-safebar,env(safe-area-inset-bottom,0px)) + 240px);
+    align-items:flex-start;
+    padding:0 6px calc(var(--xv-safebar,env(safe-area-inset-bottom,0px)) + 240px);
+    border-right:none;border-top:1px solid var(--border);
+    justify-content:space-around;z-index:50;background:var(--ml-barbg);}
+  .sidebar .nav-btn{margin-top:6px;}
   .sidebar .sb-logo,.sidebar .grow{display:none;}
   .nav-btn{width:48px;height:50px;}
-  .main{height:var(--ml-vph);padding-bottom:calc(62px + var(--xv-safeb,env(safe-area-inset-bottom,0px)));}
+  .main{height:var(--ml-vph);padding-bottom:calc(62px + var(--xv-safebar,env(safe-area-inset-bottom,0px)));}
   .m{max-width:90%;}
   .vhead .back{display:block;}
   /* 狭い画面では、丸ボタン（＋・✨・😊）を詰めて入力欄の幅を確保する */
@@ -323,12 +337,6 @@ a.nav-btn.xv-back:hover{color:var(--blue);background:rgba(75,139,255,.08);}
   background:#fff;border:1.5px solid rgba(139,122,232,.35);border-radius:13px;padding:10px 13px;cursor:pointer;}
 #mlDraftBar button.dopt:hover{background:#faf9ff;border-color:rgba(139,122,232,.6);}
 
-/* ══ ★★ 2026-09-02 下バー（スマホのナビ）が画面の下端まで届かない件 ══
-   余白は ../xeva-safebottom.js が実測した --xv-safeb で決める（env を2回引かない）。
-   さらにバーの背景だけを下へ描き足して、下に隙間の帯が残らないようにする。 */
-@media(max-width:720px){
-  .sidebar::after{
-    content:"";position:absolute;left:0;right:0;top:100%;height:260px;
-    background:rgba(255,255,255,.95);pointer-events:none;
-  }
-}
+/* ★★ 2026-09-05 以前はここで ::after の板を敷いていたが廃止した。
+   板とバー本体で透けて見えるものが違い、<b>境目が線に見えてしまう</b>。
+   今はバー本体を 240px 下へはみ出させ、箱の外側は html の背景で揃えている。 */
