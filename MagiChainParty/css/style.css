@@ -22,11 +22,20 @@
      では、この箱が実際に見えている画面より短くなることがあり、余りが下の空白になる。
      共通の ../xeva-splash.js が実測値（innerHeight）をここへ流し込む。
      JS が動く前・非対応環境では dvh（無ければ vh）に落ちる。 */
+/* ★★ 2026-09-05 下バーが画面の最下部まで届かない件の作り直し
+   ・余白は --xv-safebar（= max(実測した safe-area, 下へ伸ばすべき量)）で決める。
+   ・箱の下端が見えている下端とずれているときは --xv-fixgap で位置を戻す。
+   ・★ position:fixed の箱の<b>外側</b>（iPhone のアプリ表示でできる帯）は
+     CSS では塗れない。そこは <html> の背景が使われるので、
+     <b>html の背景を下バーと同じ色</b>にしておく。これで色がつながる。 */
+:root{ --xv-safebar:max(var(--xv-safeb,env(safe-area-inset-bottom,0px)), var(--xv-growb,0px));
+       --cp-barbg:#eef0ff }
 :root{ --app-vh:100vh }
 @supports (height:100dvh){ :root{ --app-vh:100dvh } }
 
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation;}
 html,body{margin:0;height:var(--app-vh);width:100%;overflow:hidden;-webkit-text-size-adjust:100%;}
+html{background:var(--cp-barbg);}
 body{
   font-family:-apple-system,BlinkMacSystemFont,"Hiragino Maru Gothic ProN","Hiragino Sans","Yu Gothic",sans-serif;
   background:linear-gradient(160deg,#fff4e6 0%,#eaf2ff 45%,#f1e9ff 100%);
@@ -88,11 +97,12 @@ body{
 
 /* 下部固定のスタートバー */
 .su-sticky{
-  position:fixed;left:0;right:0;bottom:0;z-index:20;
-  display:flex;gap:10px;justify-content:center;
-  padding:14px 16px calc(14px + var(--xv-safeb,env(safe-area-inset-bottom,0px)));
-  background:linear-gradient(180deg,rgba(240,240,255,0),rgba(238,240,255,.92) 34%,rgba(238,240,255,.98));
-  backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  position:fixed;left:0;right:0;
+  /* ★ 箱のずれを戻したうえで 240px 下へはみ出す（別の板は使わない） */
+  bottom:calc(-1 * var(--xv-fixgap,0px) - 240px);z-index:20;
+  display:flex;gap:10px;justify-content:center;align-items:flex-start;
+  padding:14px 16px calc(14px + var(--xv-safebar,env(safe-area-inset-bottom,0px)) + 240px);
+  background:linear-gradient(180deg,rgba(240,240,255,0) 0,var(--cp-barbg) 34%,var(--cp-barbg) 100%);
 }
 .su-sticky>*{max-width:520px;}
 
@@ -371,12 +381,7 @@ body{
 .install-banner small{font-size:11px;font-weight:700;opacity:.75;}
 .install-banner.hidden{display:none;}
 
-/* ══ ★★ 2026-09-02 下バーが画面の下端まで届かない件の仕上げ ══
-   余白は ../xeva-safebottom.js が実測した --xv-safeb で決める（env を2回引かない）。
-   そのうえで、バーの下に「色は同じだが何も無い帯」が残らないよう、
-   バーの背景だけを 260px ぶん下へ描き足しておく（中身の位置は動かさない）。 */
-.su-sticky{ position:fixed; }
-.su-sticky::after{
-  content:"";position:absolute;left:0;right:0;top:100%;height:260px;
-  background:rgba(238,240,255,.98);pointer-events:none;
-}
+/* ★★ 2026-09-05 以前はここで ::after の板を敷いていたが廃止した。
+   板にはバー本体のすりガラス（backdrop-filter）もグラデーションも掛からず、
+   色が食いちがって<b>境目が線に見える</b>（ずれていなくても「隙間」に見える）。
+   今はバー本体を 240px 下へはみ出させている（上の .su-sticky）。 */
