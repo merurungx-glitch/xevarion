@@ -50,15 +50,27 @@ function renderTeam() {}
 /* ══════════ ウォレット ══════════
    ★ 2026-08-13 チケットは2種類（フェス専用／全ガチャ共通）。
      数字だけ並べても見分けられないので、券面のミニ絵を添える。 */
+/* ★★ 2026-09-06 せまい画面むけの短い書きかた。
+   4枠を1列に並べると、6桁の数字は枠から出てしまう。
+   1,000 未満はそのまま／それ以上は K・M にまとめる（44.0K のように小数1桁まで）。
+   ★ 画面が広いときは<b>これまでどおり</b>桁つきで出す。 */
+function walFmt(n) {
+  n = Math.max(0, Math.round(n || 0));
+  const narrow = (typeof matchMedia === "function") && matchMedia("(max-width:560px)").matches;
+  if (!narrow || n < 1000) return fmt(n);
+  if (n < 1000000) return (n / 1000).toFixed(n < 100000 ? 1 : 0) + "K";
+  return (n / 1000000).toFixed(1) + "M";
+}
+
 function paintWal() {
-  $("#walGem").textContent = fmt(DB.orbs);
-  $("#walTkt").textContent = fmt(fesTickets());
-  const g = $("#walGtk"); if (g) g.textContent = fmt(gachaTickets());
+  $("#walGem").textContent = walFmt(DB.orbs);
+  $("#walTkt").textContent = walFmt(fesTickets());
+  const g = $("#walGtk"); if (g) g.textContent = walFmt(gachaTickets());
   const fi = $("#walFesIc"); if (fi && !fi.innerHTML) fi.innerHTML = fesTicketSVG(13);
   const gi = $("#walGacIc"); if (gi && !gi.innerHTML) gi.innerHTML = gachaTicketSVG(13);
   /* ★★ 2026-08-30 💠結晶（完凸したプレミアムのキャラが出るともらえる） */
   const cw = $("#walCryWrap"), cb = $("#walCry"), ci = $("#walCryIc");
-  if (cb) cb.textContent = fmt(crystGet());
+  if (cb) cb.textContent = walFmt(crystGet());
   if (ci && !ci.innerHTML) ci.innerHTML = crystIcon(16);
   if (cw) cw.style.display = "";
 }

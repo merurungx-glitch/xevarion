@@ -139,18 +139,19 @@ const XH_DEFAULT_ORDER = [
   /* ★★ 2026-08-29b 新作 Magi: Arcana Rush を MagiBurst のとなりへ（同じ系統なので）。
      枠は11個のままなので、押し出された ORDYXIS は「その他」へ移る。 */
   "magilex", "magilink", "magiburst", "magiarcanarush",
-  "xevynar", "magichainparty", "magidominiongrid", "magibattle",
+  /* ★★ 2026-09-06 MagiBattle を「その他」へ、その位置に MagiDiamond（ご指定） */
+  "xevynar", "magichainparty", "magidominiongrid", "magidiamond",
   "magiranking", "magilotto", "magijackpot",
   /* 以降は「その他」の中に入る */
   "ordyxis", "magicraft", "magimanor", "magiportfolio",
-  "magiarena", "magidiamond", "magiempire", "magifocus", "magimusic", "magitier",
+  "magiarena", "magibattle", "magiempire", "magifocus", "magimusic", "magitier",
   "ngx", "ishida", "magicalfuture",
 ];
 const XH_HOME_SLOTS = 11;
 const XH_ORDER_KEY = "xeva_home_order_v2";
 /* 並び順の世代。上げると保存済みの並びを一度だけ既定に戻す
    （アプリの入れ替えを、既にホームを触った人にも確実に反映させるため） */
-const XH_ORDER_GEN = "7";   /* ★★ 2026-09-03 新作 Magi Dominion Grid を足したので一度だけ既定に戻す */
+const XH_ORDER_GEN = "8";   /* ★★ 2026-09-06 MagiBattle ⇄ MagiDiamond の入れかえを既存の並びにも効かせる */
 const XH_ORDER_GEN_KEY = "xeva_home_order_gen";
 
 /* 期間限定イベント（from/to は YYYY-MM-DD。期間内のものだけ表示）
@@ -219,6 +220,11 @@ const XH_EVENTS = [
     href:"gacha.html#debut:3.0", img:"thumbs/MagiBurst.jpg" },
   /* ★★ 2026-08-29b MagiLex の KP交換所／化学ε・物理γ は
      <b>アップデート情報（XH_UPDATES）へ移しました</b>（ご指定）。 */
+  /* ★★ 2026-09-05 新クエスト「天界の審判」（常設）。
+     ★ ホームの一覧に出すのは perm、カレンダーは always/monthly（別のふるい）。 */
+  { tag:"QUEST", t1:"天界の審判 実装", t2:"第一〜第十の審判・裁定級。ボスは天律族アストレア。蓬莱の最奥より難しい全10クエスト",
+    since:"2026-09-05", perm:true, always:true,
+    href:"MagiBurst/index.html", img:"thumbs/MagiBurst.jpg" },
   /* ★★ 2026-08-25b MagiBurst「Starlight Academy Fest 2」。
      排出キャラは MagiBurst/js/mb-core.js の FESTS.fes6 とそろえること。
      ★ 絵はほかのフェスと同じく thumbs/MagiBurst.jpg を使う
@@ -239,7 +245,7 @@ const XH_EVENTS = [
     /* ★ 2026-08-12 正方形の書き下ろしイラストに差し替え。
        ?v= を付けてあるのは、SW が stale-while-revalidate（古いほうを先に返す）で
        画像を持っているため。付けないと1回目は前の絵のままになる。 */
-    href:"MagiBurst/index.html", img:"thumbs/AokaSummerFest.jpg?v=4" },
+    href:"MagiBurst/index.html", img:"thumbs/AokaSummerFest.jpg?v=5" },
   /* ★ 2026-08-07 MagiBurst「Phantom Legend Fest」の予告。
      8/10 0:00 の開催をまたぐと、下の xhRenderEvents が t1/t2 を「開催中」に差し替える
      （XH_FES3_OPEN と見くらべるだけなので、当日に書き直す必要はない）。
@@ -295,6 +301,80 @@ const XH_EVENTS = [
    ══════════════════════════════════════════════════════════════ */
 const XH_UPDATE_MAX = 12;
 const XH_UPDATES = [
+  /* ★★ 2026-09-06（4回目）MagiDiamond の限界突破を XEVARION に一本化 */
+  { tag:"UPDATE", t1:"MagiDiamond の限界突破を一本化", at:"2026-09-06",
+    t2:"MagiDiamond の中にもう1本あった限界突破を廃止し、XEVARION（MagiBurst）のものをそのまま使います",
+    href:"MagiDiamond/latest.html", img:"thumbs/MagiDiamond.jpg" },
+  /* ★★ 2026-09-06（3回目）Xevion OS の言語／キャラ詳細の切りかえ／ご報告の修正 */
+  { tag:"NEW", t1:"言語の切りかえが Xevion OS に", at:"2026-09-06",
+    t2:"XEVARION 全体の土台の設定なので、ここに移しました。いままでの場所と同じ置き場所を見ています",
+    href:"index.html", img:"thumbs/Xevarion.png" },
+  { tag:"NEW", t1:"キャラ詳細に MagiDiamond の性能", at:"2026-09-06",
+    t2:"⚔MagiBurst ⇄ ⚾MagiDiamond を切りかえられます（開いたときは必ず MagiBurst）",
+    href:"characters.html", img:"thumbs/Xevarion.png" },
+  { tag:"UPDATE", t1:"ボスの攻撃ターンが進まない不具合を修正", at:"2026-09-06",
+    t2:"即死・クラッシュのあとで通常攻撃のカウントを巻きもどしていたため、両方を持つボスで数字が下がりきりませんでした",
+    href:"MagiBurst/index.html", img:"thumbs/MagiBurst.jpg" },
+  { tag:"UPDATE", t1:"下バーのすきまの色をそろえました", at:"2026-09-06",
+    t2:"fixed の箱の外側は <html> の背景しか塗れないので、そこにバーと同じ色を敷きました",
+    href:"index.html", img:"thumbs/Xevarion.png" },
+  { tag:"UPDATE", t1:"MagiDiamond のマルチが LOCAL PLAY に", at:"2026-09-06",
+    t2:"MagiBurst とまったく同じしくみ（ROOM CODE と QR・最大4人）。戻るボタン・試合の中断・球速の消えかたも直しました",
+    href:"MagiDiamond/latest.html", img:"thumbs/MagiDiamond.jpg" },
+  /* ★★ 2026-09-06（2回目）新UIの色／MagiDiamond 大改修／ご報告の修正 */
+  { tag:"UPDATE", t1:"新UIを黄・赤・黒・白に", at:"2026-09-06",
+    t2:"構想案どおりの4色に。角は斜めに切った板、押すと沈んで黄色く光ります。タップの演出も中心から開く形に",
+    href:"MagiBurst/index.html", img:"thumbs/MagiBurst.jpg" },
+  { tag:"NEW", t1:"MagiDiamond 大改修", at:"2026-09-06",
+    t2:"バット型の照準と左右の相性／守備はステータスと守備配置で計算／球速を1球ごとに計測／作戦コマンド／検索と並び替え",
+    href:"MagiDiamond/latest.html", img:"thumbs/MagiDiamond.jpg" },
+  { tag:"UPDATE", t1:"重力バリアが見えない不具合を修正", at:"2026-09-06",
+    t2:"天界の審判と蓬莱だけ、バリアの半径に 1〜2px を渡していました（ほかは 105〜165px）。敵の絵に埋もれて見えなくなっていました",
+    href:"MagiBurst/index.html", img:"thumbs/MagiBurst.jpg" },
+  { tag:"UPDATE", t1:"壁系ギミックは1クエストに1つ", at:"2026-09-06",
+    t2:"色や印で読ませる壁ギミックが重ならないようにしました。イベントのバナーも新しいものが必ず左に来ます",
+    href:"MagiBurst/index.html", img:"thumbs/MagiBurst.jpg" },
+  /* ★★ 2026-09-06 MagiBurst 新UI／LOCAL PLAY／属性の呼び名／ホームの整理 */
+  { tag:"NEW", t1:"MagiBurst の新UI", at:"2026-09-06",
+    t2:"深い紫紺と斜めに切った板の、スタイリッシュな見た目に。メニューの「UI デザイン」で旧UIにも戻せます",
+    href:"MagiBurst/index.html", img:"thumbs/MagiBurst.jpg" },
+  { tag:"NEW", t1:"LOCAL PLAY（近くの人と）", at:"2026-09-06",
+    t2:"サーバーもWi-Fiルーターも使わず、コードかQRで最大4人。Room Code・参加者・Player 01〜04 の専用画面にしました",
+    href:"MagiBurst/index.html", img:"thumbs/MagiBurst.jpg" },
+  { tag:"UPDATE", t1:"属性の呼び名が変わりました", at:"2026-09-06",
+    t2:"火→IGNIS ／ 水→AQUA ／ 木→VERDE ／ 光→LUMEN ／ 闇→UMBRA",
+    href:"MagiBurst/index.html", img:"thumbs/MagiBurst.jpg" },
+  { tag:"UPDATE", t1:"天界の審判をぜんぶ開放", at:"2026-09-06",
+    t2:"第一〜第十をはじめから。ギミックはWAVEごとに出しわけ、ザコとボスのHPも上げました",
+    href:"MagiBurst/index.html", img:"thumbs/MagiBurst.jpg" },
+  { tag:"UPDATE", t1:"ホームとガチャの整理", at:"2026-09-06",
+    t2:"ガチャの通貨表示を1列に／AI を廃止／下のショップ欄を廃止（上のバーへ）／MagiDiamond をホームへ",
+    href:"index.html", img:"thumbs/Xevarion.png" },
+  { tag:"UPDATE", t1:"英語版をひろげました", at:"2026-09-06",
+    t2:"開始画面・ログイン・ホーム・ガチャ・MagiBurst のクエストやショップまで。MagiBurst のメニューからも切りかえられます",
+    href:"index.html", img:"thumbs/Xevarion.png" },
+  /* ★★ 2026-09-05 天界の審判／ショップを上のバーへ／英語版／コレクション／演出の作り直し */
+  { tag:"NEW", t1:"新クエスト 天界の審判", at:"2026-09-05",
+    t2:"第一〜第十の審判。ボスは天律族アストレア。蓬莱の最奥より難しく、第六からは弱点がまんなか（貫通でしか殴れない）",
+    href:"MagiBurst/index.html", img:"thumbs/MagiBurst.jpg" },
+  { tag:"NEW", t1:"英語版に切りかえられるように", at:"2026-09-05",
+    t2:"初回起動時と設定からいつでも。開始画面・ホーム・ガチャ・MagiBurst が English になります",
+    href:"index.html", img:"thumbs/Xevarion.png" },
+  { tag:"UPDATE", t1:"ショップを上のバーへ", at:"2026-09-05",
+    t2:"スケジュールとメールのあいだに新設。ジェム変換所・パックストア・結晶交換所の3つの売り場をここから",
+    href:"index.html", img:"thumbs/Xevarion.png" },
+  { tag:"UPDATE", t1:"コレクションを1本に", at:"2026-09-05",
+    t2:"XEVAガチャと MagiBurst の<b>両方</b>を数えるようにしました。アカウント設定・MagiLink・コミュニティで同じ内容が見られます",
+    href:"community.html", img:"thumbs/MagiLink.jpg" },
+  { tag:"UPDATE", t1:"バトルの演出をスタイリッシュに", at:"2026-09-05",
+    t2:"引っぱり・ショット・敵にふれた瞬間を、斜めの帯と集中線でそろえました。敵のデバフも盤面に出ます",
+    href:"MagiBurst/index.html", img:"thumbs/MagiBurst.jpg" },
+  { tag:"UPDATE", t1:"ジェムのレートをくわしく", at:"2026-09-05",
+    t2:"1週・1月・3月・6月の切りかえ、期間の高安・平均、💎1/10/100 の早見表を追加しました",
+    href:"index.html", img:"thumbs/MagiPortfolio.jpg" },
+  { tag:"FIX", t1:"下のバーとアイコン設定の不具合", at:"2026-09-05",
+    t2:"下のバーの隙間と色のちがい／図鑑からアイコンにすると絵が消える／QRからローカル通信に入れない、を直しました",
+    href:"index.html", img:"thumbs/Xevarion.png" },
   /* ★★ 2026-09-03 新作 Magi Dominion Grid／MagiDiamond のリアルタイム打撃／下バーの直し */
   { tag:"NEW", t1:"RISING STAR FEST 第2弾", at:"2026-09-03",
     t2:"シズル・ユウリ・ヒスイ・ライカ が参戦。第1弾と同じクエストを担当し、撃種が逆。キラー3つ目は弱点キラーEL",
@@ -841,10 +921,12 @@ window.addEventListener("xevafx:change", () => {
 });
 
 function xhRenderShopBadge() {
-  const b = xhEl("xhShopBdg"); if (!b) return;
+  /* ★★ 2026-09-05 ショップは上のバーへ移したので、印もそちら（#xhShopBdg2）に付ける。 */
   const n = xhPacksLeft();
-  b.textContent = n ? n : "";
-  b.classList.toggle("show", n > 0);
+  const b2 = xhEl("xhShopBdg2");
+  if (b2) { b2.textContent = n ? n : ""; b2.classList.toggle("show", n > 0); }
+  const b = xhEl("xhShopBdg");
+  if (b) { b.textContent = n ? n : ""; b.classList.toggle("show", n > 0); }
   const s = xhEl("xhShopSub");
   if (s) s.textContent = n ? "毎週リセットのパック" : "今週のパックは買い切りました";
 }
@@ -862,7 +944,23 @@ window.xhOpenExchange = xhOpenExchange;
 function xhExSet(n) { _xhExQty = Math.max(1, Math.min(9999, Math.round(n) || 1)); xhPaintExchange(); }
 window.xhExSet = xhExSet;
 
-/* 為替の見出し（レート・前日比・グラフ）。変換所とショップの両方で使う。 */
+/* ══ ★★ 2026-09-05 為替（レート）の見出しを MagiPortfolio のように詳しく（ご指定）══
+   ・期間えらび（1週／1月／3月／6月）。持っている履歴（最大180日）の範囲で切りかえる。
+   ・現在レート／前日比／期間の高値・安値・平均／いまの位置／更新時刻。
+   ・「💎1 / 💎10 / 💎100 でいくら？」の早見表。
+   ★ 期間は _xhFxDays に持ち、押すたびに描き直すだけ（データの取り直しは不要）。 */
+let _xhFxDays = 90;
+const XH_FX_RANGES = [[7, "1週"], [30, "1月"], [90, "3月"], [180, "6月"]];
+function xhFxSetDays(d) {
+  _xhFxDays = d;
+  /* 開いているシートだけ描き直す */
+  const ex = xhEl("xhExBody"), sh = xhEl("xhShopBody");
+  if (ex && ex.offsetParent !== null) xhPaintExchange();
+  else if (sh && sh.offsetParent !== null) xhPaintShop();
+  else { if (ex) xhPaintExchange(); if (sh) xhPaintShop(); }
+}
+window.xhFxSetDays = xhFxSetDays;
+
 function xhFxPanel() {
   const FX = window.XevaFX;
   const r = xhGemRate();
@@ -870,22 +968,54 @@ function xhFxPanel() {
     return '<div class="xh-fx"><div class="xh-fxrate"><b>' + r + '</b> XEVA <span>＝ 💎1</span></div></div>';
   }
   const d = FX.delta();
-  const rg = FX.chartRange(90);
+  const days = _xhFxDays;
+  const rg = FX.chartRange(days);
   const fmtD = (t) => { const x = new Date(t); return (x.getMonth() + 1) + "/" + x.getDate(); };
   const upTx = d
     ? '<span class="xh-fxdl ' + (d.up ? "up" : "dn") + '">' + (d.up ? "▲" : "▼") + " " +
       Math.abs(d.d).toFixed(2) + "（" + (d.up ? "+" : "−") + Math.abs(d.pct).toFixed(2) + "%）</span>"
     : "";
-  const stamp = FX.live() && FX.updatedAt()
+  const live = FX.live() && FX.updatedAt();
+  const stamp = live
     ? new Date(FX.updatedAt()).toLocaleTimeString("ja-JP", { hour: "2-digit", minute: "2-digit" }) + " 更新"
     : "為替を取得できないため、前回のレートで交換します";
+
+  /* 期間の統計（平均・いまの位置） */
+  let series = FX.series() || [];
+  if (series.length > days) series = series.slice(-days);
+  const vs = series.map((p) => p.v);
+  const avg = vs.length ? vs.reduce((a, b) => a + b, 0) / vs.length : 0;
+  const pos = (rg && rg.hi > rg.lo) ? Math.max(0, Math.min(100, ((r - rg.lo) / (rg.hi - rg.lo)) * 100)) : 50;
+
+  const seg = '<div class="xh-fxseg">' + XH_FX_RANGES.map(([n, lb]) =>
+    '<button class="' + (n === days ? "on" : "") + '" onclick="xhFxSetDays(' + n + ')">' + lb + "</button>"
+  ).join("") + "</div>";
+
+  const stats = rg ? '<div class="xh-fxgrid">' +
+      '<div><small>期間の高値</small><b>' + rg.hi.toFixed(2) + "</b></div>" +
+      '<div><small>期間の安値</small><b>' + rg.lo.toFixed(2) + "</b></div>" +
+      '<div><small>期間の平均</small><b>' + avg.toFixed(2) + "</b></div>" +
+      '<div><small>記録した日数</small><b>' + rg.n + "日</b></div>" +
+    "</div>" +
+    '<div class="xh-fxbar" title="期間の安値〜高値の中で、いまがどのあたりか">' +
+      '<i style="left:' + pos.toFixed(1) + '%"></i>' +
+    "</div>" +
+    '<div class="xh-fxfoot"><span>' + rg.lo.toFixed(2) + "（安）</span>" +
+      "<span>" + fmtD(rg.from) + " 〜 " + fmtD(rg.to) + "</span>" +
+      "<span>" + rg.hi.toFixed(2) + "（高）</span></div>" : "";
+
+  /* 早見表：まとめて交換したときの支払い額 */
+  const quick = '<div class="xh-fxquick">' + [1, 10, 100].map((n) =>
+    "<div><small>💎" + n + "</small><b>" + (n * r).toLocaleString() + "</b><i>XEVA</i></div>"
+  ).join("") + "</div>";
+
   return '<div class="xh-fx">' +
     '<div class="xh-fxhd"><span class="xh-fxsym">USD/JPY</span>' +
-      '<span class="xh-fxstamp">' + stamp + "</span></div>" +
+      '<span class="xh-fxstamp' + (live ? "" : " ng") + '">' + stamp + "</span></div>" +
     '<div class="xh-fxrate"><b>' + r.toLocaleString() + '</b> XEVA <span>＝ 💎1</span>' + upTx + "</div>" +
-    FX.chartSVG({ days: 90, w: 320, h: 92 }) +
-    (rg ? '<div class="xh-fxfoot"><span>' + fmtD(rg.from) + " 〜 " + fmtD(rg.to) + "</span>" +
-          "<span>高 " + rg.hi.toFixed(2) + "　安 " + rg.lo.toFixed(2) + "</span></div>" : "") +
+    seg +
+    FX.chartSVG({ days: days, w: 320, h: 100 }) +
+    stats + quick +
   "</div>";
 }
 
@@ -963,6 +1093,40 @@ async function xhDoExchange() {
 }
 window.xhDoExchange = xhDoExchange;
 
+/* ══ ★★ 2026-09-05 ショップ（一覧）══
+   上のバーの「ショップ」から開く。売り場は3つ。
+   ★ 結晶交換所は<b>パックストアの中ではなく、ここに独立した枠</b>として置く（ご指定）。 */
+function xhOpenShopHub() { xhPaintShopHub(); xhOpenSheet("xhShopHubSheet"); }
+window.xhOpenShopHub = xhOpenShopHub;
+
+function xhPaintShopHub() {
+  const box = xhEl("xhShopHubBody"); if (!box) return;
+  const xeva = window.XEVA ? window.XEVA.getBalance() : 0;
+  const rate = xhGemRate();
+  const packs = xhPacksLeft();
+  box.innerHTML =
+    '<div class="xh-exbal">' +
+      '<span><img src="XEVA.png" alt="XEVA">' + xeva.toLocaleString() + "</span>" +
+      '<span><img src="gem.png" alt="ジェム">' + xhGemBal().toLocaleString() + "</span>" +
+      '<span>' + xhCrystIcon(16) + " " + xhCrystBal().toLocaleString() + "</span>" +
+    "</div>" +
+    '<div class="xh-shopmenu">' +
+      '<button class="xh-shopitem ex" onclick="xhCloseSheet(\'xhShopHubSheet\');xhOpenExchange()">' +
+        '<span class="si">💎</span><span class="st"><b>ジェム変換所</b>' +
+        "<small>XEVA を 💎ジェム に交換します。いまのレートは <b>" + rate.toLocaleString() +
+        " XEVA ＝ 💎1</b>（ドル円連動）</small></span><span class=\"sn\">›</span></button>" +
+      '<button class="xh-shopitem pk" onclick="xhCloseSheet(\'xhShopHubSheet\');xhOpenShop()">' +
+        '<span class="si">🛒</span><span class="st"><b>パックストア</b>' +
+        "<small>通常より 50〜70% お得に💎とチケットを。" +
+        (packs > 0 ? "いま <b>" + packs + "件</b> 買えます" : "いまは買えるパックがありません") +
+        "</small></span><span class=\"sn\">›</span></button>" +
+      '<button class="xh-shopitem cr" onclick="xhCloseSheet(\'xhShopHubSheet\');xhOpenCryst()">' +
+        '<span class="si">💠</span><span class="st"><b>結晶交換所</b>' +
+        "<small>結晶 <b>" + xhCrystCost() + "個</b>で PREMIUM SELECT / GRAND DEBUT の<b>好きな1体</b>と交換" +
+        "（いま " + xhCrystBal().toLocaleString() + "個）</small></span><span class=\"sn\">›</span></button>" +
+    "</div>";
+}
+
 /* ── パックストア（1回限りのパック） ── */
 function xhOpenShop() { xhPaintShop(); xhOpenSheet("xhShopSheet"); }
 window.xhOpenShop = xhOpenShop;
@@ -1007,8 +1171,8 @@ function xhLoadScript(src) {
 function xhMbReady() {
   if (typeof CHARS !== "undefined" && typeof PREMIUM_CHARS !== "undefined") return Promise.resolve(true);
   if (_xhMbLoading) return _xhMbLoading;
-  _xhMbLoading = xhLoadScript("mb-boot.js?v=11")
-    .then(() => xhLoadScript("MagiBurst/js/mb-core.js?v=75"))
+  _xhMbLoading = xhLoadScript("mb-boot.js?v=12")
+    .then(() => xhLoadScript("MagiBurst/js/mb-core.js?v=89"))
     .then(() => true)
     .catch((e) => { _xhMbLoading = null; throw e; });
   return _xhMbLoading;
@@ -1175,13 +1339,8 @@ function xhPaintShop() {
     '</div>';
   }).join("");
   box.innerHTML =
-    /* ★★ 2026-08-30 💠結晶交換所（ご指定）。パックより先に出す。 */
-    '<button class="xh-crentry" onclick="xhCloseSheet(\'xhShopSheet\');xhOpenCryst()">' +
-      '<span class="xh-crei">' + xhCrystIcon(30) + '</span>' +
-      '<span class="xh-cret"><b>💠 結晶交換所</b>' +
-        '<small>結晶 <b>' + xhCrystCost() + '個</b>で PREMIUM SELECT / GRAND DEBUT の<b>好きな1体</b>と交換できます</small></span>' +
-      '<span class="xh-cren" id="xhCrystBal">' + xhCrystBal().toLocaleString() + '</span>' +
-    '</button>' +
+    /* ★★ 2026-09-05 💠結晶交換所はここから<b>外した</b>（ご指定）。
+       パックストアにまとめず、ショップ一覧の<b>独立した枠</b>にしてある。 */
     xhFxPanel() +
     '<div class="xh-sortnote">通常より<b>ずっとお得なレート</b>で💎ジェムを買えるパックです。' +
     '値段は<b>そのときのドル円</b>から決まるので、変換所と同じように毎日すこし動きます' +
@@ -1801,6 +1960,21 @@ function xhOpenXos() {
 }
 window.xhOpenXos = xhOpenXos;
 
+/* ★★ 2026-09-06 いまの言語。置き場所は XevaI18n と<b>同じ1か所</b>。 */
+function xhLangNow() {
+  try { if (window.XevaI18n) return XevaI18n.get(); } catch (e) {}
+  try { return localStorage.getItem("xeva_lang_v1") === "en" ? "en" : "ja"; } catch (e) { return "ja"; }
+}
+window.xhXosLang = function (l) {
+  try {
+    if (window.XevaI18n) XevaI18n.set(l);
+    else localStorage.setItem("xeva_lang_v1", l);
+  } catch (e) {}
+  /* ★ 設定画面の中の「英語にする」ボタンとも見た目をそろえる（同じ値を見ている） */
+  try { if (typeof xvPaintLangSeg === "function") xvPaintLangSeg(); } catch (e) {}
+  xhPaintXos();
+  try { xhToast(l === "en" ? "Switched to English" : "日本語にしました"); } catch (e) {}
+};
 function xhPaintXos() {
   const box = xhEl("xhXosBody"); if (!box || !window.XOS) return;
   const g = (k) => XOS.get(k);
@@ -1813,6 +1987,15 @@ function xhPaintXos() {
       <span><b class="xos-nm">${XOS.NAME}</b>
         <span class="xos-vr">バージョン ${XOS.VERSION} ／ XEVARION のすべてのアプリを載せている土台です。<br>
         見た目・動き・通知・AI連携をここでまとめて決められます。</span></span>
+    </div>
+
+    <div class="xh-sec-label">言語 / Language</div>
+    <div class="xos-note" style="margin:0 2px 7px">
+      ★★ 2026-09-06 ご指定でここに移しました。<b>XEVARION 全体</b>（開始画面・ホーム・ガチャ・
+      コレクション・ミッション・MagiBurst・MagiDiamond）にそのまま効きます。</div>
+    <div class="xos-seg">
+      <button class="${xhLangNow() === "ja" ? "on" : ""}" onclick="xhXosLang('ja')">🇯🇵 日本語</button>
+      <button class="${xhLangNow() === "en" ? "on" : ""}" onclick="xhXosLang('en')">🇺🇸 English</button>
     </div>
 
     <div class="xh-sec-label">表示</div>
@@ -3942,6 +4125,14 @@ window.xhTimerPause = xhTimerPause;
 
 /* 画面の右下に出す、残り時間の小さなチップ（AIを閉じていても見える） */
 function xhTimerChip() {
+  /* ★★ 2026-09-06 AI（MagiAIAssistant）は廃止しました（ご指定）。
+     この右下のチップは<b>AI の中の機能</b>（「10分はかって」で出るタイマー）なので、
+     入口が無くなったいま残すと<b>止める道の無い迷子のボタン</b>になる。チップごと出さない。
+     ★ タイマー本体のコードは消していない（AI を戻すときはここの early return を外すだけ）。 */
+  const _old = xhEl("xhTimerChip");
+  if (_old) _old.classList.remove("on");
+  return;
+  /* eslint-disable no-unreachable */
   let chip = xhEl("xhTimerChip");
   if (!_xhTimers.length) { if (chip) chip.classList.remove("on"); return; }
   if (!chip) {

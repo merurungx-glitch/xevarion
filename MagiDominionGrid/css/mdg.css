@@ -15,11 +15,16 @@
   --blue:#2f6fd0; --blue2:#4b8bff; --gold:#f5b421; --red:#e2564f; --green:#25a06a;
   --shadow:0 10px 30px rgba(40,70,130,.14);
   --shadow-s:0 3px 10px rgba(40,70,130,.10);
-  --safeb: var(--xv-safeb, env(safe-area-inset-bottom,0px));
+  --safeb: max(var(--xv-safeb, env(safe-area-inset-bottom,0px)), var(--xv-growb,0px));
   --safet: var(--xv-safet, env(safe-area-inset-top,0px));
+  /* ★★ 2026-09-05 下バーの地の色。position:fixed の箱の<b>外側</b>（iPhone の
+     アプリ表示でできる帯）は CSS では塗れず、<html> の背景が使われる。
+     だから<b>バーと html を同じ不透明の色</b>にする（半透明だと必ず食いちがう）。 */
+  --botbg:#fafcff;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;height:100%;overflow:hidden;-webkit-text-size-adjust:100%}
+html{background:var(--botbg)}
 body{
   font-family:-apple-system,BlinkMacSystemFont,"Hiragino Maru Gothic ProN","Hiragino Sans","Yu Gothic",system-ui,sans-serif;
   background:var(--bg); color:var(--ink); user-select:none;-webkit-user-select:none;
@@ -164,9 +169,10 @@ body{
 
 /* 下のバー */
 .g-bot{
-  flex:none;padding:9px 10px calc(var(--safeb) + 10px);
-  background:rgba(255,255,255,.92);border-top:1.5px solid var(--line);
-  backdrop-filter:blur(10px);
+  /* ★ バー本体を 240px 下へはみ出させる（別の板を敷くと境目が線に見える） */
+  flex:none;margin-bottom:-240px;
+  padding:9px 10px calc(var(--safeb) + 10px + 240px);
+  background:var(--botbg);border-top:1.5px solid var(--line);
 }
 .g-phase{display:flex;align-items:center;gap:9px;margin-bottom:8px;flex-wrap:wrap}
 .g-phase .ph{font-size:12.5px;font-weight:900;background:#eaf1ff;color:var(--blue);border-radius:99px;padding:5px 12px}

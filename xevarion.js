@@ -1251,18 +1251,33 @@ async function wzNameNext() {
 /* 同名の「中身のない残骸レコード」を両DB（MagiLink users / XEVARION accounts）から掃除して
    名前を解放する。exceptMl/exceptXv には自分の uid を渡すと保護される。
    戻り値 { blocked:true } ＝ 中身のある同名アカウントが実在した（この名前は使えない）。 */
+/* ★★ 2026-09-05 作り直し（ご報告「使われていない名前で登録できない」）
+   ── 前の形の問題 ──
+   ① 最初に MagiLink（users）を<b>名前だけで消していた</b>。このあとで
+      「使われています」と止めても、<b>人の MagiLink プロフィールはもう消えている</b>。
+   ② 判定を accounts と users の両方に拡散させていたので、
+      users の残りかすだけで永久に登録できなくなりうる。
+   ── 今の形 ──
+   判定は <b>FB.nameStatus（accounts だけ）</b>。中身の無い残骸はあちらで片づく。
+   使われていないと分かったときだけ、MagiLink 側の残りを消す。 */
 async function freeUpName(name, exceptMl, exceptXv) {
   if (!name) return { blocked: false };
   let blocked = false;
-  try { if (window.XEVASync && window.XEVASync.deleteUserByName) await window.XEVASync.deleteUserByName(name, exceptMl); } catch (e) {}
   try {
     const FB = await waitXFB();
-    if (FB && FB.deleteAccountByName) {
-      const r = await FB.deleteAccountByName(name, exceptXv);
+    if (FB && FB.nameStatus) {
+      const r = await FB.nameStatus(name, exceptXv);
+      blocked = !!(r && r.taken);
+    } else if (FB && FB.deleteAccountByName) {
+      const r = await FB.deleteAccountByName(name, exceptXv);   // 古い版へのフォールバック
       if (r && r.blocked) blocked = true;
     }
   } catch (e) {}
-  return { blocked };
+  if (blocked) return { blocked: true };
+  /* ここまで来たら「この名前のアカウントは存在しない」。
+     MagiLink に同名が残っていたらそれは残りかすなので片づける。 */
+  try { if (window.XEVASync && window.XEVASync.deleteUserByName) await window.XEVASync.deleteUserByName(name, exceptMl); } catch (e) {}
+  return { blocked: false };
 }
 
 async function wzFinish() {
@@ -1474,6 +1489,15 @@ async function syncXFBProfile(acc) {
   acc = acc || getAcc();
   if (!acc || !acc.name) return;
   const FB = await waitXFB(); if (!FB) return;
+  /* ★★ 2026-09-05 コレクションも accounts へ写す（ご指定「コミュニティからも見られるように」）。
+     MagiLink（別プロジェクト）と<b>同じ中身</b>を送るので、どちらから見ても一致する。
+     ★ acc そのものには保存しない（端末の保存を太らせない）。送るときだけ足す。 */
+  if (window.XevaCollection) {
+    try {
+      const mine = window.XevaCollection.mine();
+      acc = Object.assign({}, acc, { col: mine.ids, colD: mine.dupes });
+    } catch (e) {}
+  }
   if (acc.xvUid) {
     await FB.updateProfile(acc);
   } else {
@@ -1551,6 +1575,40 @@ async function claimGameRewards() {
 }
 
 /* ── account settings ── */
+/* ══ ★★ 2026-09-05 言語（日本語 ⇄ English）══
+   実体は xeva-i18n.js。ここは画面の見た目（選ばれている印）と、初回の板だけ。
+   ★ 保存先は localStorage の "xeva_lang_v1"。どのアプリからも同じ値を見る。 */
+function xvPaintLangSeg() {
+  const seg = document.getElementById("langSeg");
+  if (!seg || !window.XevaI18n) return;
+  const cur = window.XevaI18n.get();
+  seg.querySelectorAll("button").forEach((b) => b.classList.toggle("on", b.dataset.l === cur));
+}
+function xvSetLang(l) {
+  if (!window.XevaI18n) return;
+  window.XevaI18n.set(l);
+  xvPaintLangSeg();
+}
+window.xvSetLang = xvSetLang;
+
+/* 初回だけ出る言語えらび。選ぶまでウィザードは出さない。 */
+function xvPickLang(l) {
+  xvSetLang(l);
+  const ov = document.getElementById("langGateOv");
+  if (ov) ov.classList.remove("open");
+}
+window.xvPickLang = xvPickLang;
+
+function xvLangGateNeeded() {
+  try { return !localStorage.getItem("xeva_lang_v1"); } catch (e) { return false; }
+}
+function xvOpenLangGate() {
+  const ov = document.getElementById("langGateOv");
+  if (ov) ov.classList.add("open");
+}
+window.xvOpenLangGate = xvOpenLangGate;
+window.xvLangGateNeeded = xvLangGateNeeded;
+
 function openAccSettings() {
   const acc = getAcc();
   const img = document.getElementById("setAvImg");
@@ -1570,6 +1628,8 @@ function openAccSettings() {
   ["setGamePwCurBoxes", "setGamePwBoxes"].forEach((id) => { pinBind(id); pinClear(id); });
   refreshAccPwUI();
   renderShowcaseSlots();
+  renderAccCollection();
+  xvPaintLangSeg();
   document.getElementById("accSettingsOv").classList.add("open");
 }
 function closeAccSettings() {
@@ -1640,8 +1700,58 @@ function refreshAccPwUI() {
   const gpWrap = document.getElementById("setGamePwCurWrap");
   if (gpWrap) gpWrap.hidden = !acc.gamePwHash;
 }
+/* ══ ★★ 2026-09-05 アカウント削除の確認 ══
+   ★★ confirm() はこの環境では<b>出ない</b>（MagiLex・MagiTier でも同じ落とし穴）。
+     つまりこれまでは「削除する」を押しても<b>何も起きない</b>状態だった。
+     （削除できない→名前が解放されない、の元でもある）
+   ★ 確かめは<b>デリートコード（XEVA613Delete26）の入力のみ</b>（ご指定）。
+     平文では持たず SHA-256 で照合する（admin.html と同じ値）。 */
+const XV_DELETE_HASH = "c6cfb6f3690644176e7bb599a95604b5149926d6cdd1bf6de1e04cf3b3dd774f";
+async function sha256Hex(str) {
+  try {
+    const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(str));
+    return Array.from(new Uint8Array(buf)).map((b) => b.toString(16).padStart(2, "0")).join("");
+  } catch (e) { return ""; }
+}
+function askDeleteCode() {
+  return new Promise((resolve) => {
+    const ov = document.createElement("div");
+    ov.className = "acc-overlay open";
+    ov.style.zIndex = 2400;
+    ov.innerHTML =
+      '<div class="acc-card" style="max-width:420px;padding:24px">'
+      + '<div style="font-size:17px;font-weight:900;color:#c0392b;text-align:center;margin-bottom:8px">\u26a0\ufe0f アカウントを削除します</div>'
+      + '<div style="font-size:12.5px;line-height:1.8;color:rgba(34,52,77,.72);margin-bottom:14px">'
+      + 'アカウント一覧・MagiRanking・MagiLink からも削除されます。<br>'
+      + 'XEVA・キャラクター（ガチャ）・各ゲームのデータは<b>すべてリセット</b>され、'
+      + '<b>元には戻せません</b>。</div>'
+      + '<div style="font-size:11.5px;font-weight:800;color:#6f82ad;margin-bottom:5px">デリートコード</div>'
+      + '<input id="xvDelCode" type="password" inputmode="text" autocomplete="off" placeholder="デリートコード"'
+      + ' style="width:100%;padding:13px 14px;border:1.5px solid rgba(120,160,230,.35);border-radius:13px;'
+      + 'font-size:16px;font-family:inherit;outline:none;box-sizing:border-box">'
+      + '<div id="xvDelMsg" style="min-height:17px;font-size:11.5px;font-weight:800;color:#c0392b;margin:7px 2px 12px"></div>'
+      + '<div style="display:flex;gap:9px">'
+      + '<button id="xvDelNo" style="flex:1;padding:13px;border:none;border-radius:13px;background:#eef3fb;'
+      + 'color:rgba(34,52,77,.66);font-weight:800;font-size:13.5px;cursor:pointer;font-family:inherit">やめる</button>'
+      + '<button id="xvDelYes" style="flex:1;padding:13px;border:none;border-radius:13px;'
+      + 'background:linear-gradient(135deg,#e2564f,#c0392b);color:#fff;font-weight:800;font-size:13.5px;'
+      + 'cursor:pointer;font-family:inherit">削除する</button></div></div>';
+    document.body.appendChild(ov);
+    const inp = ov.querySelector("#xvDelCode");
+    const msg = ov.querySelector("#xvDelMsg");
+    const done = (ok) => { ov.remove(); resolve(ok); };
+    ov.querySelector("#xvDelNo").onclick = () => done(false);
+    ov.querySelector("#xvDelYes").onclick = async () => {
+      const hex = await sha256Hex((inp.value || "").trim());
+      if (hex !== XV_DELETE_HASH) { msg.textContent = "デリートコードが正しくありません。"; inp.focus(); return; }
+      done(true);
+    };
+    inp.addEventListener("keydown", (e) => { if (e.key === "Enter") ov.querySelector("#xvDelYes").click(); });
+    setTimeout(() => { try { inp.focus(); } catch (e) {} }, 60);
+  });
+}
 async function deleteAccount() {
-  if (!confirm("アカウントを削除しますか？\nアカウント一覧・MagiRanking・MagiLink からも削除されます。\n⚠ このアカウントの XEVA・キャラクター（ガチャ）・各ゲームのデータはすべてリセットされ、元に戻せません。")) return;
+  if (!(await askDeleteCode())) return;
   const acc = getAcc() || {};
   // XEVARION（アカウント一覧＝accounts）から削除。
   //   uid で消したうえで、表示名でも一掃する（uid が失われた orphan/重複を残さず、名前を再利用可能にする）。
@@ -1681,6 +1791,42 @@ async function deleteAccount() {
      サインイン画面に入る（描画だけ古いまま残るのを防ぐ）。 */
   setTimeout(() => { try { location.reload(); } catch (e) { showXevaHome(); } }, 200);
 }
+
+/* ══ ★★ 2026-09-05 アカウント設定の「コレクション」（ご指定）══
+   MagiLink のコレクションと<b>同じ中身・同じ見た目</b>（xeva-collection.js）。
+   XEVAガチャと MagiBurst の<b>両方</b>を数えるので、これまで抜けていたキャラも並ぶ。 */
+function renderAccCollection() {
+  /* ★★ 2026-09-06 設定シートには<b>件数だけ</b>を出す（一覧は別の板）。
+     190体ぶんをシートに直接ならべると、下の設定へスクロールできなかった。 */
+  if (!window.XevaCollection) return;
+  const lb = document.getElementById("accCollCount");
+  if (lb) {
+    try {
+      const mine = window.XevaCollection.mine();
+      const es = window.XevaCollection.entries(mine.ids);
+      const ssr = es.filter((c) => c.star5).length;
+      lb.textContent = es.length + " 体（SSR " + ssr + "）— タップして見る";
+    } catch (e) { lb.textContent = "タップして見る"; }
+  }
+}
+window.renderAccCollection = renderAccCollection;
+
+/* コレクションの板を開く（中身はここで作る＝設定を開くたびに 190体ぶん作らない） */
+function openAccCollOv() {
+  const box = document.getElementById("accCollBox");
+  const ov = document.getElementById("accCollOv");
+  if (!box || !ov || !window.XevaCollection) return;
+  window.XevaCollection.injectCSS();
+  const mine = window.XevaCollection.mine();
+  box.innerHTML = window.XevaCollection.html(mine.ids, mine.dupes, { base: "" });
+  ov.classList.add("open");
+}
+function closeAccCollOv() {
+  const ov = document.getElementById("accCollOv");
+  if (ov) ov.classList.remove("open");
+}
+window.openAccCollOv = openAccCollOv;
+window.closeAccCollOv = closeAccCollOv;
 
 /* ── char picker for settings ── */
 let setSelectedChar = null;
@@ -2555,7 +2701,7 @@ function prepareAccessScreen(opts) {
   if (loading) loading.style.display = "flex";
   if (start) start.style.display = "none";
   const ready = () => { xhReady = true; if (loading) loading.style.display = "none"; if (start) start.style.display = "flex"; };
-  const img = new Image(); img.onload = ready; img.onerror = ready; img.src = "thumbs/xevarion-home_s.jpg?v=5";
+  const img = new Image(); img.onload = ready; img.onerror = ready; img.src = "thumbs/xevarion-home_s.jpg?v=6";
   if (img.complete) ready();
   setTimeout(ready, 2500);
 }
@@ -2651,6 +2797,18 @@ async function xhDoLogin() {
 }
 window.xhDoLogin = xhDoLogin;
 function xhStartCreate() { hideXevaHome(); openAccWizard(); }
+
+/* ★★ 2026-09-05 いちばん最初に言語をえらんでもらう（ご指定）。
+   まだ一度も選んでいない端末だけ。選ぶまで下の画面は触れない（.open の板）。
+   ★ アカウント登録より<b>前</b>に出す（登録の画面そのものを訳したいので）。 */
+(function () {
+  function go() {
+    if (!xvLangGateNeeded()) return;
+    xvOpenLangGate();
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => setTimeout(go, 400));
+  else setTimeout(go, 400);
+})();
 window.xhStartCreate = xhStartCreate;
 
 /* ログアウト（アカウント設定／アクセス画面から） */

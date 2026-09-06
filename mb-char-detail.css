@@ -59,6 +59,23 @@
   border-radius:7px;padding:4px 7px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .dab.cnx.on{color:#8a5a00;background:linear-gradient(135deg,rgba(200,107,255,.18),rgba(240,192,64,.2));border-color:rgba(230,170,40,.6)}
 .dab.cnx.off{color:#8f9ab8;background:#f2f5fa;border-color:var(--bdr)}
+/* ══ ★★ 2026-09-05 アビリティの説明を1つ1枚のカードで並べる（ご指定）══
+   ・広い画面は2列・スマホは1列。番号を行頭に置くので、名前の左端が必ずそろう。
+   ・align-items:start にすること。stretch のままだと短い説明のカードが
+     となりの長いカードに合わせて伸びて、すきまが目立つ。 */
+.dablist{display:grid;grid-template-columns:1fr;gap:7px;margin-top:8px;align-items:start}
+@media(min-width:560px){ .dablist{grid-template-columns:1fr 1fr} }
+.dabitem{border:1px solid rgba(142,107,255,.22);border-radius:11px;padding:8px 10px;
+  background:linear-gradient(180deg,rgba(142,107,255,.05),rgba(142,107,255,.02))}
+.dabitem > b{display:flex;align-items:center;gap:6px;font-size:11.5px;font-weight:900;color:#4a3f7a;margin-bottom:3px}
+.dabitem > b > i{font-style:normal;flex:none;display:flex;align-items:center;justify-content:center;
+  width:17px;height:17px;border-radius:6px;font-size:9.5px;font-weight:900;
+  background:rgba(142,107,255,.2);color:#5b45c8}
+.dabitem > span{display:block;font-size:11px;font-weight:600;color:var(--txt2);line-height:1.8}
+.dabitem.cx{border-color:rgba(79,224,176,.45);
+  background:linear-gradient(180deg,rgba(79,224,176,.08),rgba(79,224,176,.03))}
+.dabitem.cx > b{color:#0e7a5c}
+.dabitem.cx > b > i{background:rgba(79,224,176,.28);color:#0b6b4f}
 /* ★ クロスマーク。1em の SVG なので、この指定が無いと絵だけ巨大になる（MagiBurst と同じ CSS） */
 .cnxmk{display:inline-block;width:1em;height:1em;vertical-align:-.14em;margin-right:.28em;flex:none}
 .cnxmk svg{width:100%;height:100%;display:block}
@@ -175,3 +192,16 @@
 .pw-facts .pwh{color:var(--txt2,#6f82ad);opacity:.9}
 .pw-facts .pwh b{color:#e0574c}
 @media (max-width:400px){.pw-facts .pwh{display:block;margin-top:2px}}
+
+/* ══ ★★ 2026-09-06 どのゲームの性能を見るか（MagiBurst ⇄ MagiDiamond）══ */
+.dgseg{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:0 0 10px}
+.dgseg button{border:1.5px solid var(--line,rgba(142,107,255,.28));border-radius:12px;background:#fff;
+  color:var(--tx,#3a3350);font-size:12.5px;font-weight:900;font-family:inherit;padding:10px 8px;cursor:pointer}
+.dgseg button.on{border-color:#8e6bff;color:#8e6bff;background:rgba(142,107,255,.12)}
+.dgseg button:active{transform:translateY(1px)}
+/* MagiDiamond の能力バー */
+.mdrow{display:flex;align-items:center;gap:8px;margin:4px 0}
+.mdrow .k{flex:none;width:64px;font-size:11px;font-weight:900;color:var(--sub,#8b87a8)}
+.mdrow .b{flex:1;height:8px;border-radius:99px;background:rgba(142,107,255,.14);overflow:hidden}
+.mdrow .b i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#ffd257,#ff9d2e)}
+.mdrow .v{flex:none;width:30px;text-align:right;font-size:12px;font-weight:900;font-family:'Orbitron',ui-monospace,monospace}

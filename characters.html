@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<script src="maintenance-gate.js?v=7"></script>
+<script src="maintenance-gate.js?v=8"></script>
 <meta charset="UTF-8">
 <script>(function(){try{var a=JSON.parse(localStorage.getItem('xeva_account_v1'));if(!a||!a.setupDone)location.replace('index.html');}catch(e){}})();</script>
-<script type="module" src="xevarion-fb.js?v=25"></script>
-<script src="xeva-presence.js?v=3" defer></script>
-<script type="module" src="xeva-cloud.js?v=22"></script>
+<script type="module" src="xevarion-fb.js?v=28"></script>
+<script src="xeva-presence.js?v=4" defer></script>
+<script type="module" src="xeva-cloud.js?v=23"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -17,13 +17,29 @@
 <title>キャラクター図鑑 — XEVARION</title>
 <link rel="icon" href="Xevarion.png" type="image/png">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="xeva-theme.css?v=3">
+<link rel="stylesheet" href="xeva-theme.css?v=4">
 <!-- ★ 2026-08-10 キャラ詳細（性能画面）の見た目。ガチャ（gacha.html）と共通 -->
-<link rel="stylesheet" href="mb-char-detail.css?v=13">
-<script src="xeva.js?v=54"></script>
-<script src="xeva-loading.js?v=3" defer></script>
-<script src="magibattle-stats.js?v=8"></script>
-<script type="module" src="xeva-sync.js?v=10"></script>
+<link rel="stylesheet" href="mb-char-detail.css?v=17">
+<script src="xeva.js?v=55"></script>
+<!-- ★★ 2026-09-05 言語切りかえ（日本語 ⇄ English）。辞書は本体のあとに読むこと。 -->
+<script src="xeva-i18n.js?v=3"></script>
+<script src="xeva-i18n-dict.js?v=7"></script>
+<!-- ★★ 2026-09-06 MagiBurst の語彙（技の名前・ギミック・クエスト名・威力の行）。
+     ★ mb4 は「威力：」を<b>かけら単位</b>で英語にする（新しいキャラを足してもそのまま効く）。 -->
+<script src="xeva-i18n-mb1.js?v=2"></script>
+<script src="xeva-i18n-mb2.js?v=2"></script>
+<script src="xeva-i18n-mb3.js?v=3"></script>
+<script src="xeva-i18n-mb4.js?v=4"></script>
+<script src="xeva-i18n-mb5.js?v=2"></script>
+<script src="xeva-i18n-p1.js?v=1"></script>
+<script src="xeva-i18n-p2.js?v=1"></script>
+<script src="xeva-i18n-mb6.js?v=2"></script>
+<script src="xeva-i18n-p3.js?v=2"></script>
+<script src="xeva-i18n-mb7.js?v=2"></script>
+<script src="xeva-i18n-p4.js?v=2"></script>
+<script src="xeva-loading.js?v=4" defer></script>
+<script src="magibattle-stats.js?v=9"></script>
+<script type="module" src="xeva-sync.js?v=13"></script>
 <style>
 :root{
   --bg:#eaf4ff;--bg2:#ffffff;--card:#ffffff;--bdr:rgba(120,160,230,0.22);
@@ -247,17 +263,49 @@ function getAccCharId(){
   return a ? a.charId : null;
 }
 
+/* ══ ★★ 2026-09-05 アイコンに設定（ご報告2件） ══
+   ① 設定したのに絵が出なくなる真因
+      MagiBurst のキャラの c.img は<b>もう "img/" を含んでいる</b>（MB_IMGD）のに、
+      setAnyChar がさらに "../img/" を足して "../img/img/Xxx.webp" にしていた。
+      保存は通るが、どの画面でも 404 になる→アイコンが消える。
+      ★ 正しい保存形式は "../img/Xxx.webp"。"chars/" を前に付けて打ち消す約束（xeva.js）。
+      ★ 検算は XEVA.charSrc() の結果を fetch して 200 か見ること。
+   ② 設定する前に必ず確かめる。
+      ★★ confirm() はこの環境では<b>出ない</b>（MagiLex・MagiTier でも同じ落とし穴）ので、
+        .ov を使った自前の確認板を出す。 */
+function askSetIcon(name, src, onOk){
+  var ov = document.createElement("div");
+  ov.className = "ov";
+  ov.style.zIndex = 320;
+  ov.innerHTML =
+    '<div class="ov-card"><div class="ov-body" style="text-align:center">'
+    + (src ? '<img src="' + src + '" alt="" style="width:112px;height:112px;object-fit:cover;border-radius:24px;'
+           + 'box-shadow:0 10px 26px rgba(60,100,180,.28);margin-bottom:12px">' : '')
+    + '<div class="ov-name" style="font-size:19px">アイコンを変えますか？</div>'
+    + '<div class="ov-sub" style="margin-bottom:16px">あなたのアイコンを <b>' + name + '</b> にします。'
+    + '<br>MagiLink やコミュニティなど、XEVARION 全体に反映されます。</div>'
+    + '<div class="ov-btns"><button class="ov-btn sec" data-no>やめる</button>'
+    + '<button class="ov-btn pri" data-yes>これにする</button></div></div></div>';
+  ov.addEventListener("click", function (e) {
+    if (e.target === ov || e.target.hasAttribute("data-no")) { ov.remove(); return; }
+    if (e.target.hasAttribute("data-yes")) { ov.remove(); onOk(); }
+  });
+  document.body.appendChild(ov);
+}
+
 function setAccChar(charId){
   if(!window.XEVA) return;
-  var a = window.XEVA.account.get() || {};
   var ch = XCHARS.find(function(c){return c.id===charId;});
   if(!ch) return;
-  a.charId = charId;
-  a.charFile = ch.file;
-  window.XEVA.account.save(a);
-  if(window.XEVASync) window.XEVASync.syncProfile(a);   // MagiLink へアイコン同期
-  renderGrid();
-  toast("✨ アイコンを「"+ch.name+"」に変更しました！");
+  askSetIcon(ch.name, window.XEVA.charSrc(ch.file, charId, null, "s"), function(){
+    var a = window.XEVA.account.get() || {};
+    a.charId = charId;
+    a.charFile = ch.file;
+    window.XEVA.account.save(a);
+    if(window.XEVASync) window.XEVASync.syncProfile(a);   // MagiLink へアイコン同期
+    renderGrid();
+    toast("✨ アイコンを「"+ch.name+"」に変更しました！");
+  });
 }
 
 function toast(msg){
@@ -342,7 +390,7 @@ function openDetail(id){
           [1,2,3,4].map(function(i){return '<div class="ov-pip'+(dupeOf(c.id)>=i?" on":"")+'">'+i+'</div>';}).join("")+'</div>'):'')+
         (window.MBStats?window.MBStats.statsHTML(c):'')+
         '<div class="ov-btns">'+
-          (isOwned?'<button class="ov-btn pri'+(isCurrent?" c-set-btn current":"")+'" onclick="setAccChar(\''+c.id+'\');this.closest(\'.ov\').remove()">'+(isCurrent?"✓ アイコン設定中":"アイコンに設定")+'</button>':(c.reward?'<a class="ov-btn pri" href="MagiLex/MagiLex.html">📚 MagiLexへ</a>':(c.cdk?'<button class="ov-btn pri" style="opacity:.7;cursor:default">🔑 CDK限定</button>':'<a class="ov-btn pri" href="gacha.html">🎰 ガチャへ</a>')))+
+          (isOwned?'<button class="ov-btn pri'+(isCurrent?" c-set-btn current":"")+'" onclick="this.closest(\'.ov\').remove();setAccChar(\''+c.id+'\')">'+(isCurrent?"✓ アイコン設定中":"アイコンに設定")+'</button>':(c.reward?'<a class="ov-btn pri" href="MagiLex/MagiLex.html">📚 MagiLexへ</a>':(c.cdk?'<button class="ov-btn pri" style="opacity:.7;cursor:default">🔑 CDK限定</button>':'<a class="ov-btn pri" href="gacha.html">🎰 ガチャへ</a>')))+
           '<button class="ov-btn sec" onclick="this.closest(\'.ov\').remove()">閉じる</button>'+
         '</div>'+
       '</div>'+
@@ -367,10 +415,10 @@ renderGrid();
      同期を担当する magiburst-cloud.js を読んでいなかった。
      そのためポータルで引いたキャラはクラウドに上がらず、
      別の端末の MagiBurst が書いたセーブに負けて<b>消えて</b>いた。 -->
-<script type="module" src="MagiBurst/magiburst-cloud.js?v=8"></script>
-<script src="mb-boot.js?v=11"></script>
-<script src="MagiBurst/js/mb-core.js?v=75"></script>
-<script src="mb-char-detail.js?v=17"></script>
+<script type="module" src="MagiBurst/magiburst-cloud.js?v=9"></script>
+<script src="mb-boot.js?v=12"></script>
+<script src="MagiBurst/js/mb-core.js?v=89"></script>
+<script src="mb-char-detail.js?v=22"></script>
 <script>
 "use strict";
 /* MagiBurst のキャラを、この図鑑のカードの形で描く */
@@ -575,13 +623,17 @@ function setAnyChar(id){
   if (!window.XEVA) return;
   var c = (typeof CHARS !== "undefined") ? CHARS[id] : null;
   if (!c) return;
-  var a = window.XEVA.account.get() || {};
-  a.charId = id;
-  a.charFile = "../img/" + (c.img || "");
-  window.XEVA.account.save(a);
-  if (window.XEVASync) window.XEVASync.syncProfile(a);
-  renderGrid();
-  toast("✨ アイコンを「" + c.nm + "」に変更しました！");
+  /* ★ c.img は "img/Xxx.webp"（MB_IMGD 込み）。"../img/" を足すと二重になるので "../" だけ。 */
+  var file = "../" + String(c.img || "").replace(/^\.\.\//, "");
+  askSetIcon(c.nm, window.XEVA.charSrc(file, id, null, "s"), function(){
+    var a = window.XEVA.account.get() || {};
+    a.charId = id;
+    a.charFile = file;
+    window.XEVA.account.save(a);
+    if (window.XEVASync) window.XEVASync.syncProfile(a);
+    renderGrid();
+    toast("✨ アイコンを「" + c.nm + "」に変更しました！");
+  });
 }
 renderStats = function(){
   var ids = allCharIds();

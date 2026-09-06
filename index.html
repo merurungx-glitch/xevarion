@@ -13,36 +13,57 @@
 <link rel="icon" href="Xevarion.png" type="image/png">
 <link rel="apple-touch-icon" href="icons/xev-192.png">
 <link rel="manifest" href="manifest.webmanifest">
-<script src="maintenance-gate.js?v=7"></script>
+<script src="maintenance-gate.js?v=8"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Exo+2:ital,wght@0,300;0,400;0,600;0,700;1,300&family=Noto+Sans+JP:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="xeva-theme.css?v=3">
-<link rel="stylesheet" href="xevarion.css?v=18">
-<link rel="stylesheet" href="xevarion-home.css?v=49">
+<link rel="stylesheet" href="xeva-theme.css?v=4">
+<link rel="stylesheet" href="xevarion.css?v=19">
+<link rel="stylesheet" href="xevarion-home.css?v=53">
 <!-- ★★ 2026-08-22b Xevion OS の見た目（テーマ・文字の大きさ・動きを減らす）。
      xevarion-home.css の<b>あと</b>に読む＝上書きできるようにする。 -->
-<link rel="stylesheet" href="xevion-os.css?v=9">
-<script src="xeva.js?v=54" defer></script>
+<link rel="stylesheet" href="xevion-os.css?v=10">
+<script src="xeva.js?v=55" defer></script>
+<!-- ★★ 2026-09-05 コレクションを XEVARION 全体で1本にする共通部品。
+     xeva.js の iconCharList() を使うので、必ず xeva.js の<b>あと</b>に置く。 -->
+<script src="xeva-collection.js?v=2" defer></script>
+<!-- ★★ 2026-09-05 言語切りかえ（日本語 ⇄ English）。
+     画面の中身はあとから JS が作るので、辞書を当てるのは MutationObserver。
+     ★ 辞書（xeva-i18n-dict.js）は本体のあとに読むこと。 -->
+<script src="xeva-i18n.js?v=3"></script>
+<script src="xeva-i18n-dict.js?v=7"></script>
+<!-- ★★ 2026-09-06 MagiBurst の語彙（技の名前・ギミック・クエスト名・威力の行）。
+     ★ mb4 は「威力：」を<b>かけら単位</b>で英語にする（新しいキャラを足してもそのまま効く）。 -->
+<script src="xeva-i18n-mb1.js?v=2"></script>
+<script src="xeva-i18n-mb2.js?v=2"></script>
+<script src="xeva-i18n-mb3.js?v=3"></script>
+<script src="xeva-i18n-mb4.js?v=4"></script>
+<script src="xeva-i18n-mb5.js?v=2"></script>
+<script src="xeva-i18n-p1.js?v=1"></script>
+<script src="xeva-i18n-p2.js?v=1"></script>
+<script src="xeva-i18n-mb6.js?v=2"></script>
+<script src="xeva-i18n-p3.js?v=2"></script>
+<script src="xeva-i18n-mb7.js?v=2"></script>
+<script src="xeva-i18n-p4.js?v=2"></script>
 <!-- ★ 2026-08-20 通信設定（Wi-Fi／モバイルデータごとに「最新を取りに行くか」を決める）。
      決めた内容はここから各アプリの Service Worker へ送られ、SW 側が動きを切り替える。 -->
-<script src="xeva-netmode.js?v=4" defer></script>
+<script src="xeva-netmode.js?v=5" defer></script>
 <!-- ★ 2026-08-18 新キャラ告知の台帳（MagiBurst と共通）。
      告知を<b>ポータルのログイン時</b>に一本化したので、ここでも読む。
      defer なので xevarion.js より先に実行される（書いた順番で走る）。 -->
-<script src="mb-newchars.js?v=14" defer></script>
+<script src="mb-newchars.js?v=15" defer></script>
 <!-- ★★ 2026-08-22b Xevion OS（XEVARION の UI をひとつの OS として扱う土台）。
      ほかの画面より<b>先に</b>読む（body のクラスを立てるので、あとから読むと一瞬ちらつく）。 -->
-<script src="xevion-os.js?v=7"></script>
+<script src="xevion-os.js?v=8"></script>
 <!-- ジェム⇄XEVA のレート（ドル円連動）。xevarion-home.js より先に読み込む -->
-<script src="xeva-fx.js?v=3" defer></script>
-<script src="xeva-loading.js?v=3" defer></script>
-<script type="module" src="xeva-sync.js?v=10"></script>
-<script type="module" src="xevarion-fb.js?v=25"></script>
-<script src="xeva-presence.js?v=3" defer></script>
-<script type="module" src="xeva-cloud.js?v=22"></script>
-<script src="xevarion.js?v=74" defer></script>
-<script src="xevarion-home.js?v=75" defer></script>
+<script src="xeva-fx.js?v=4" defer></script>
+<script src="xeva-loading.js?v=4" defer></script>
+<script type="module" src="xeva-sync.js?v=13"></script>
+<script type="module" src="xevarion-fb.js?v=28"></script>
+<script src="xeva-presence.js?v=4" defer></script>
+<script type="module" src="xeva-cloud.js?v=23"></script>
+<script src="xevarion.js?v=78" defer></script>
+<script src="xevarion-home.js?v=81" defer></script>
 </head>
 <body>
 <!-- ───── バックグラウンド音楽（Flagship Arrival。アクセス画面のタップで再生開始） ───── -->
@@ -63,9 +84,9 @@
 /* ── 背景（v2）: KV全体を必ず画面内に表示（contain）＋ 余白はぼかしたKVで埋める
       旧 cover 指定だと縦長KVがPC横画面で約3倍に拡大され大部分が画面外に出ていた ── */
 .xh-bg{position:absolute;inset:0;background:#0a0716;overflow:hidden}
-.xh-bg::before{content:"";position:absolute;inset:-48px;background:url('thumbs/xevarion-home_s.jpg?v=5') center/cover no-repeat;
+.xh-bg::before{content:"";position:absolute;inset:-48px;background:url('thumbs/xevarion-home_s.jpg?v=6') center/cover no-repeat;
   filter:blur(28px) brightness(.42) saturate(1.25);transform:scale(1.1)}
-.xh-kv{position:absolute;inset:0;background:url('thumbs/xevarion-home_s.jpg?v=5') center/contain no-repeat;
+.xh-kv{position:absolute;inset:0;background:url('thumbs/xevarion-home_s.jpg?v=6') center/contain no-repeat;
   transform:scale(calc(1 + var(--beat)*0.018));transition:transform .12s ease-out;
   filter:drop-shadow(0 0 60px rgba(120,80,220,.35))}
 /* オーロラ光彩（ゆっくり漂う紫〜青の光） */
@@ -310,15 +331,19 @@ body.music-on #beatFrame{opacity:1}
         <span class="xh-word">XEVARION</span>
       </div>
       <div class="xh-acts">
-        <button class="xh-act ai" onclick="xhOpenAi()">
-          <span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 6.5 3.4 3.2 6.9 4.6a7.6 7.6 0 0110.2 0l3.5-1.4L19 6.5a7.4 7.4 0 011.6 4.6v4.6a5.3 5.3 0 01-5.3 5.3H8.7a5.3 5.3 0 01-5.3-5.3v-4.6A7.4 7.4 0 015 6.5Z" fill="#fff" opacity=".92"/><circle cx="9.2" cy="12.6" r="1.8" fill="#6a7bd8"/><circle cx="14.8" cy="12.6" r="1.8" fill="#6a7bd8"/><path d="M9.6 17h4.8" stroke="#6a7bd8" stroke-width="1.7" stroke-linecap="round"/></svg></span>
-          <span class="lb">AI</span>
-        </button>
+        <!-- ★★ 2026-09-06 AI（MagiAIAssistant）は廃止しました（ご指定）。ボタンごと消してあります。 -->
         <!-- ★★ 2026-08-29 スケジュール（ご指定：メールと AI のあいだ）。
              ガチャの日程・開催中のイベントを<b>月ごとのカレンダー</b>で見る。 -->
         <button class="xh-act" onclick="xhOpenSched()">
           <span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4.6" width="18" height="16.4" rx="3.4" fill="#22b07a"/><path d="M3 9.6h18" stroke="#fff" stroke-width="1.8"/><path d="M7.6 2.6v3.6M16.4 2.6v3.6" stroke="#127a53" stroke-width="2.4" stroke-linecap="round"/><rect x="6.6" y="12" width="3.2" height="3.2" rx="1" fill="#fff"/><rect x="11.9" y="12" width="3.2" height="3.2" rx="1" fill="#fff" opacity=".75"/><rect x="6.6" y="16.6" width="3.2" height="2.6" rx="1" fill="#fff" opacity=".55"/></svg></span>
           <span class="lb">スケジュール</span>
+        </button>
+        <!-- ★★ 2026-09-05 ショップ（ご指定：スケジュールとメールのあいだ）。
+             ここから 💎ジェム変換所 ／ 🛒パックストア ／ 💠結晶交換所 へ入る。
+             アイコンは新規デザイン＝のれんを下ろした小さなお店の中に💎。 -->
+        <button class="xh-act" onclick="xhOpenShopHub()">
+          <span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.4 7.6 5 3.9a1.4 1.4 0 011.3-.9h11.4A1.4 1.4 0 0119 3.9l1.6 3.7Z" fill="#ff7ab8"/><path d="M3.4 7.6h3.4V9a1.7 1.7 0 11-3.4 0Zm3.4 0h3.4V9a1.7 1.7 0 11-3.4 0Zm3.4 0h3.4V9a1.7 1.7 0 11-3.4 0Zm3.4 0h3.4V9a1.7 1.7 0 11-3.4 0Zm3.4 0h3.4V9a1.7 1.7 0 11-3.4 0Z" fill="#ffd0e6"/><path d="M4.8 10.9v8.3a1.9 1.9 0 001.9 1.9h10.6a1.9 1.9 0 001.9-1.9v-8.3" fill="#8e6bff"/><path d="M12 12.6l2.5 2-2.5 3.6-2.5-3.6Z" fill="#fff" opacity=".95"/></svg><span class="bdg" id="xhShopBdg2"></span></span>
+          <span class="lb">ショップ</span>
         </button>
         <button class="xh-act" onclick="xhTapMail()">
           <span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="4.8" width="19" height="14.4" rx="3.4" fill="#4b8bff"/><path d="M4.4 7.4l7.6 5.6 7.6-5.6" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="bdg" id="xhMailBdg"></span></span>
@@ -380,29 +405,9 @@ body.music-on #beatFrame{opacity:1}
         </div>
       </section>
 
-      <!-- ショップ（ジェム変換所 ＆ パックストア） -->
-      <section class="xh-sec">
-        <div class="xh-sechead">
-          <div class="t"><span class="dot"></span>ショップ</div>
-          <button class="more" onclick="xhOpenGemGuide()">ジェムとは？</button>
-        </div>
-        <div class="xh-xrow" style="margin-top:9px">
-          <button class="xh-xcard exch" onclick="xhOpenExchange()">
-            <span class="xhx-ic">
-              <img src="XEVA.png" alt="XEVA"><span class="ar">›</span><img src="gem.png" alt="ジェム">
-            </span>
-            <span class="xhx-t">ジェム変換所</span>
-            <!-- レートはドル円連動。中身は xhRenderGemRate() が入れる -->
-            <span class="xhx-s" id="xhExSub">レート取得中…</span>
-          </button>
-          <button class="xh-xcard shop" onclick="xhOpenShop()">
-            <span class="xhx-ic"><span class="bag">🏪</span></span>
-            <span class="xhx-t">パックストア</span>
-            <span class="xhx-s" id="xhShopSub">ジェム・チケットをお得に</span>
-            <span class="xhx-badge" id="xhShopBdg"></span>
-          </button>
-        </div>
-      </section>
+      <!-- ★★ 2026-09-06 ホームの「ショップ」の欄は<b>丸ごと廃止</b>しました（ご指定）。
+           売り場は上のバーの「ショップ」に完全に移っています。
+           この下がすぐ「開催中のイベント」になります。 -->
 
       <!-- イベント -->
       <section class="xh-sec">
@@ -905,6 +910,43 @@ body.music-on #beatFrame{opacity:1}
   </div>
 </div>
 
+<!-- ───── ★★ 2026-09-05 ショップ（一覧）シート ─────
+     上のバーの「ショップ」から開く。ここから3つの売り場へ入る。 -->
+<div class="xh-sheet" id="xhShopHubSheet" onclick="if(event.target===this)xhCloseSheet('xhShopHubSheet')">
+  <div class="xh-sheet-card">
+    <div class="xh-sheet-head">
+      <div class="xh-sheet-title">🏪 ショップ</div>
+      <button class="xh-sheet-x" onclick="xhCloseSheet('xhShopHubSheet')">✕</button>
+    </div>
+    <div class="xh-sheet-body" id="xhShopHubBody"></div>
+  </div>
+</div>
+<style>
+/* ホームに残した案内 */
+.xh-shopjump{display:flex;align-items:center;gap:11px;width:100%;margin-top:9px;padding:13px 14px;
+  border:1.5px solid rgba(120,160,230,.24);border-radius:16px;background:#fff;cursor:pointer;
+  font-family:inherit;text-align:left;color:#22345c;box-shadow:0 4px 14px rgba(90,130,210,.12)}
+.xh-shopjump .sj-ic{font-size:22px;flex:none}
+.xh-shopjump .sj-t{flex:1;min-width:0}
+.xh-shopjump .sj-t b{display:block;font-size:13px;font-weight:900}
+.xh-shopjump .sj-t small{display:block;margin-top:3px;font-size:10.5px;font-weight:700;color:#6f82ad}
+.xh-shopjump .sj-go{flex:none;font-size:20px;color:#9fb2d4}
+/* 一覧の大きなボタン */
+.xh-shopmenu{display:flex;flex-direction:column;gap:11px}
+.xh-shopitem{display:flex;align-items:center;gap:12px;width:100%;padding:15px 14px;border:none;
+  border-radius:18px;cursor:pointer;font-family:inherit;text-align:left;color:#fff;
+  box-shadow:0 8px 22px rgba(90,130,210,.24)}
+.xh-shopitem:active{transform:scale(.99)}
+.xh-shopitem.ex{background:linear-gradient(135deg,#2fb0ff,#7b6bff)}
+.xh-shopitem.pk{background:linear-gradient(135deg,#ff9d4d,#ff6f91)}
+.xh-shopitem.cr{background:linear-gradient(135deg,#6a7bff,#b06bff 48%,#4fd2ff)}
+.xh-shopitem .si{flex:none;width:44px;height:44px;border-radius:14px;display:flex;align-items:center;
+  justify-content:center;font-size:22px;background:rgba(255,255,255,.22)}
+.xh-shopitem .st{flex:1;min-width:0}
+.xh-shopitem .st b{display:block;font-size:14px;font-weight:900;letter-spacing:.02em}
+.xh-shopitem .st small{display:block;margin-top:3px;font-size:10.5px;font-weight:700;opacity:.95;line-height:1.6}
+.xh-shopitem .sn{flex:none;font-family:'Orbitron',sans-serif;font-size:14px;font-weight:900}
+</style>
 <!-- ───── パックストア（旧・お得なパック／ジェムショップ）シート ───── -->
 <div class="xh-sheet" id="xhShopSheet" onclick="if(event.target===this)xhCloseSheet('xhShopSheet')">
   <div class="xh-sheet-card">
@@ -1668,6 +1710,178 @@ body.music-on #beatFrame{opacity:1}
   <div class="nm-body" id="newsBody">
     <div class="nm-divider" id="newDivider" style="display:none;">NEW — 前回から更新</div>
     <!-- 2026-08-30 💠結晶と交換所／完凸しても排出／アンナ(祭)／GRAND DEBUT Ver.6.0／同名の整理 -->
+    <div class="nm-item" data-tag="new" data-date="2026-09-06">
+      <div class="nm-date">2026<br>09.06</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag new">NEW</span></div>
+        <div class="nm-title">🎨 MagiBurst の新UIを「黄・赤・黒・白」に／⚾ MagiDiamond を大改修／📶 LOCAL PLAY／🔤 属性の呼び名／🌐 英語版をひろげました</div>
+        <div class="nm-txt">
+          🎨 <b>MagiBurst の見た目を新しくしました</b>。いただいた構想案のとおり、
+          <b>白い紙 ＋ 黒 ＋ 黄色 ＋ 赤</b>の4色に。角は丸めず<b>斜めに切った板</b>で、
+          押すと板が<b>沈んで黄色く光ります</b>。下のバーは黒く、いま開いている場所が<b>黄色</b>になります。<br>
+          ★ 前の版は「暗い色でぜんぶ塗りかえる」作りだったので、塗り忘れた面が
+          <b>白いまま残って白地に白文字</b>になっていました。いまは<b>明るいまま、線と差し色だけ</b>を
+          変える作りなので、その手の見づらさは起きません。<br>
+          ★ タップの演出も作り直しました。前は<b>右へ伸びる帯</b>だったので画面の右はしでは見えませんでしたが、
+          いまは<b>押した点を中心に</b>星・集中線・輪が開きます。<br>
+          <b>メニュー → UI デザイン</b>で<b>旧UIにも戻せます</b>（ふだんは新UI）。<br><br>
+
+          ⚾ <b>MagiDiamond を大きく作り直しました</b>。<br>
+          ・打席の<b>当てる形をマルからバット</b>に。<b>右打・左打・両打／右投・左投</b>を選手ごとに持たせ、
+          <b>手が逆なら相性◎（バットが長い）／同じなら相性△（短い）</b>になります。<br>
+          ・<b>守備はゲージをやめました</b>。<b>選手の捕球・守備 × 守備配置からの走った距離 × 打球の強さ</b>で
+          成功率を出し、その数字を画面に見せてから判定します。<br>
+          ・<b>守備配置の指示</b>（定位置／前進／深め／左寄り／右寄り／ゲッツー／バント警戒）を足しました。<br>
+          ・<b>球速を1球ごとに測って</b>上のバーに出します（スタミナが減ると落ちます）。<br>
+          ・旧版の<b>作戦コマンド</b>（盗塁・エンドラン・スクイズ・待球）を移植し、<b>旧版は廃止</b>しました。<br>
+          ・キャラ一覧に<b>検索・並び替え・絞り込み</b>（はじめは<b>番号の新しい順</b>）。<br>
+          ・<b>限界突破で能力も上がる</b>ようにしました（1段ごとに全能力 +2、3段目で弾道 +1）。<br>
+          ・見た目を XEVARION の家族にそろえ、<b>アイコンも新しく</b>しました。<br><br>
+
+          📶 <b>LOCAL PLAY</b>（近くの人と遊ぶ）を、いただいた仕様のとおりに作り直しました。
+          <b>ゲームサーバーは使いません</b>。Wi-Fiルーターも必須ではありません（テザリングでも可）。
+          <b>ルームを作る／ルームに参加</b>の2択から始まり、
+          作ると <b>ROOM CODE と QRコード</b>、<b>参加者 1/4</b>、<b>PLAYER 01〜04</b> が並びます。
+          最大4人。<br>
+          ★ QRの中身は<b>このページのURL</b>なので、iPhone は<b>標準のカメラで読むだけ</b>で参加画面まで進みます。<br>
+          ★ <b>なぜ「ABC123」のような短い合い言葉にできないのか</b>：短い言葉で相手を見つけるには
+          受付サーバーが要ります。「サーバーを使わない」ご指定なので、
+          <b>接続情報そのもの</b>を渡す形にしてあります（だから QR とコピーの2通りを用意しました）。<br><br>
+
+          🔤 <b>属性の呼び名を変えました</b>——
+          火→<b>IGNIS</b>／水→<b>AQUA</b>／木→<b>VERDE</b>／光→<b>LUMEN</b>／闇→<b>UMBRA</b>。<br><br>
+
+          ⚖ <b>天界の審判</b>を<b>はじめから全10クエスト開放</b>にしました。
+          特殊ギミックを<b>1クエストに2つ</b>持たせて<b>WAVEごとに出しわける</b>ようにしたので、
+          6WAVEに同じ顔がありません。エーテルに偏っていたのもならしてあります。
+          <b>ザコとボスのHP</b>も上げました。クエスト選択のボスの絵は<b>属性で色を変えず元の絵のまま</b>です。<br><br>
+
+          🌐 <b>英語版をひろげました</b>。開始画面・ログイン・ホーム・ガチャ・コレクション、
+          MagiBurst のクエスト・ショップ・メニューまで。
+          <b>MagiBurst のメニューからも切りかえられ</b>、XEVARION の設定と同期します。<br><br>
+
+          🧹 まとめて整理したところ<br>
+          ・ガチャの<b>ジェム・チケットの表示</b>が画面からはみ出していたのを、<b>1列</b>に収めました。<br>
+          ・ホーム上部の <b>AI を廃止</b>（ボタンごと消しました）。<br>
+          ・ホーム下部の<b>ショップの欄を廃止</b>し、イベントが上に来るようにしました。<br>
+          ・アカウント設定の<b>コレクションはボタン1つ</b>にし、押すと別の板で見られるようにしました
+          （下の設定までスクロールできるようになります）。<br>
+          ・<b>MagiBattle をその他へ、その位置に MagiDiamond</b>。<br>
+          ・MagiBurst の<b>省電力モード</b>を<b>オン・オフのスイッチ</b>にしました。<br>
+          ・<b>ギミック図鑑</b>に<b>全ギミック</b>が並ぶようにしました（超特急のものの流用をやめました）。<br>
+          ・キャラ詳細の<b>アビリティを各列2つずつ</b>にそろえ、<b>クロスのアビリティも押すと説明</b>が出ます
+          （XEVARION 側の並びは<b>もとに戻して</b>あります）。<br>
+          ・<b>敵のデバフ</b>を大きく、<b>何がどうなるか</b>まで書くようにしました。<br>
+          ・<b>ザコの攻撃</b>も、ためる→走る帯→着弾の3段の演出にしました。<br><br>
+
+          🔧 <b>ご報告いただいた点</b><br>
+          ・<b>天界の審判で重力バリアが見えない</b>ことがある——真因は、蓬莱と天界の審判だけ
+          バリアの<b>半径に 1〜2px</b> を渡していたことでした（ほかのクエストは 105〜165px）。
+          敵の絵の中に埋もれて<b>描いても見えない</b>状態だったので、ほかと同じ大きさにそろえました。<br>
+          ・<b>敵のデバフの札</b>を、白い斜めの札＋黒文字にして必ず読めるようにしました。
+          <b>重力バリアや毒のように見れば分かるものは、札に出さない</b>ようにしています。<br>
+          ・<b>壁系のギミック</b>（ダメージウォール・減速壁・ウォールチェンジ・カウントブースト・回復壁）が
+          1つのクエストで重ならないようにしました。<br>
+          ・対応キャラの案内が「オムニアンチか、複数のキャラで分担」となっていましたが、
+          <b>オムニで消せるのは4種だけ</b>、<b>アンチは持っている本人にしか効かない（分担できない）</b>ので、
+          正しい説明に書き直しました。<br>
+          ・<b>イベントのバナー</b>は<b>新しいものが必ずいちばん左</b>に来るようにしました
+          （ガチャのバナーが日付を見ずに並んでいたのが原因です）。<br>
+          ・英語版の<b>訳し漏れ</b>を、画面から機械的に集めて 1,000 件以上つぶしました
+          （絞り込み・技の名前・威力の行・ミッション・設定・スケジュールなど）。<br><br>
+
+          🧭 <b>そのほか、いただいたご報告</b><br>
+          ・<b>下のバーと画面のいちばん下のすきま</b>の色をそろえました。
+          fixed の箱の<b>外側は &lt;html&gt; の背景しか塗れない</b>ので、そこにバーと同じ色を敷いています
+          （MagiBurst は新UI／旧UIで色が変わるので、切りかえるたびに塗り直します）。<br>
+          ・<b>言語の切りかえを Xevion OS の設定</b>に置きました（XEVARION 全体の土台の設定なので）。
+          いままでの場所とも<b>同じ置き場所</b>を見ているので、どちらで変えても両方に効きます。<br>
+          ・XEVARION のキャラ詳細に <b>⚔MagiBurst ⇄ ⚾MagiDiamond の切りかえ</b>を足しました
+          （<b>開いたときは必ず MagiBurst</b>）。<br>
+          ・MagiBurst の<b>ボスの攻撃ターンが進まない</b>ことがあったのを直しました——
+          即死攻撃とクラッシュ攻撃のあとで<b>通常攻撃のカウントを満タンに巻きもどして</b>いたため、
+          両方を持つボスでは数字が下がりきらなくなっていました。<br>
+          ・<b>クリア編成</b>と<b>開催中イベントの詳細</b>の文字が読みづらかったのを直しました
+          （この2つは<b>暗いカード用</b>の文字色で書かれているので、下地を墨の板にそろえました）。<br>
+          ・クエスト検索の欄に<b>枠が二重</b>にできていたのを直しました。<br>
+          ・<b>並び替え</b>を端末のピッカーから<b>画面の中のパネル</b>にしました（英語版にもなります）。<br>
+          ・<b>バトル中の WAVE CLEAR・ダメージ表示・味方の枠・ボスのHPバー</b>も新UIの顔にそろえました。<br>
+          ・<b>「AQUA属性キラー」→「AQUAキラー」</b>に短くしました（AQUA がすでに属性名なので二重でした）。<br>
+          ・MagiDiamond の<b>戻るボタン</b>（自分自身に戻っていました）と<b>試合の中断</b>
+          （confirm がこの環境では出ませんでした）を直し、<b>球速は2.6秒で消える</b>ようにしました。
+          <b>打者の絵も左右の打席に合わせて</b>入れかわり、<b>走者のダイヤ図</b>と
+          <b>守備側の投球の演出</b>も足しました。<br>
+          ・MagiDiamond の<b>マルチを MagiBurst と同じ LOCAL PLAY</b> にしました
+          （同じ2つのファイルをそのまま使っています）。<b>アイコン</b>も PNG を先に置いて、
+          タブやホーム画面に出るようにしました。<br>
+          ・MagiDiamond の<b>限界突破を XEVARION のものに一本化</b>しました。
+          これまでは MagiDiamond の中に<b>もう1本の限界突破</b>があり、Gold で買う形でしたが、
+          同じ言葉のものが2つあって食いちがっていました。
+          いまは<b>XEVARION（MagiBurst）の限界突破がそのまま</b>——
+          レベル上限（1つにつき +10）も、全能力への上乗せ（+2）も、弾道（3つ以上で +1）も
+          ここから決まります。ガチャや結晶交換所で進めば、そのまま反映されます。
+        </div>
+      </div>
+    </div>
+    <div class="nm-item" data-tag="new" data-date="2026-09-05">
+      <div class="nm-date">2026<br>09.05</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag new">NEW</span></div>
+        <div class="nm-title">⚖ 新クエスト「天界の審判」／🌐 英語版に切りかえ／🏪 ショップを上のバーへ／🎴 コレクションを1本に／🎨 バトルの演出をスタイリッシュに／🔧 まとめて修正</div>
+        <div class="nm-txt">
+          ⚖ <b>新クエスト「天界の審判」</b>を追加しました——<b>第一〜第十の審判</b>の全10クエスト。
+          ボスは<b>天律族「アストレア」</b>。難易度は<b>蓬莱の九重の最下層より上</b>で、
+          <b>第一〜第五</b>と<b>第六〜第十</b>の2段（それぞれ火・水・木・光・闇の5属性ぶん）に分かれ、
+          <b>同じ段のなかでは属性による難易度差をつけていません</b>。<br>
+          ・アンチギミックは<b>3つずつ</b>。蓬莱で使っていない<b>これまでに無い組み合わせ</b>だけです。<br>
+          ・ボスは<b>壁とザコにはさまれる</b>置きかたなので、あいだに入って連続で殴れます。
+          <b>挟まる側に弱点</b>が出ます。<br>
+          ・<b>第六〜第十は弱点が「まんなか」</b>にあります。中央の弱点は<b>貫通でしか殴れません</b>
+          （ギミック欄に<b>内部弱点</b>と出ます）。<br>
+          ・アストレアだけの攻撃を3つ用意しました——<b>⚖ 天秤の裁定</b>（上下から帯が閉じる）／
+          <b>🔨 断罪の槌</b>（近いほど重い衝撃波）／<b>✦ 判決の光柱</b>（味方全員の真上に落ちる）。
+          <b>つぎに来る攻撃</b>は敵の<b>右下</b>に出ます。<br><br>
+
+          🌐 <b>英語版に切りかえられる</b>ようになりました。<b>初回起動時</b>に選び、
+          あとからは<b>設定 → 言語 / Language</b> でいつでも変えられます。
+          いまの対応は<b>開始画面・XEVARION のホームとガチャなどの全機能・MagiBurst</b> です
+          （お知らせ・イベントの本文は日本語のままです）。<br><br>
+
+          🏪 <b>ショップを上のバー</b>（スケジュールとメールのあいだ）に移しました。
+          そこから <b>💎ジェム変換所</b>・<b>🛒パックストア</b>・<b>💠結晶交換所</b>の3つへ入れます。
+          結晶交換所は<b>パックストアの中ではなく独立した枠</b>になりました。
+          ジェムのレートは<b>1週・1月・3月・6月</b>の切りかえ、期間の高安・平均、
+          <b>💎1／10／100 の早見表</b>まで見られます。<br><br>
+
+          🎴 <b>コレクションを XEVARION 全体で1本</b>にしました。
+          これまで<b>XEVAガチャのキャラしか数えていなかった</b>ので、
+          MagiBurst で引いたキャラが1体も入っていませんでした。
+          いまは<b>両方</b>を数え、<b>アカウント設定・MagiLink・コミュニティ</b>のどこから見ても同じ内容です。
+          コミュニティの一覧やフレンドの行にある <b>🎴</b> から、その人のコレクションを見られます。<br><br>
+
+          🎨 <b>バトルの演出をスタイリッシュ</b>にそろえました。引っぱっているあいだの<b>集中線と撃種の札</b>、
+          撃った瞬間の<b>斜めの帯</b>、敵にふれた瞬間の<b>網点と角ばった閃光</b>。
+          あわせて<b>敵にかかっているデバフ</b>（攻撃力ダウン・防御ダウン・毒・属性の塗り替え・追加弱点）を
+          <b>敵のHPバーの下</b>に出すようにしました。<br><br>
+
+          🔧 まとめて直したところ<br>
+          ・下のバーが画面の最下部まで届かず、<b>すきまの色も食いちがっていた</b>件
+          （XEVARION ホーム・MagiChainParty・MagiLink・Magi Dominion Grid）。<br>
+          ・キャラ図鑑から<b>アイコンに設定すると絵が出なくなる</b>件。設定する前に<b>画面内で確認</b>するようにしました。<br>
+          ・QR から入った<b>ローカル通信マルチ</b>が始められなかった件。<br>
+          ・<b>アカウント削除</b>が動かなかった件。確認は<b>デリートコードの入力のみ</b>になりました。<br>
+          ・削除・改名で<b>使われなくなった名前で新規登録できなかった</b>件。<br>
+          ・アカウント管理の上部が<b>カメラの帯に重なる</b>件。<br>
+          ・<b>弱点が上に固定</b>で、左右の壁に寄せた回では光っている場所と当たる場所が食いちがっていた件。<br>
+          ・敵が移動するとき、<b>ダメージが入るエリア</b>に印が出るようになりました。<br>
+          ・「対応キャラ」に<b>クロススキルで持つアンチ</b>も出るようになりました
+          （クロスが未発動のまま出撃しようとすると警告します）。<br>
+          ・リンクとフルバーストの<b>表記と実際の動作のズレ</b>を点検し、
+          ヒナ系のリング・ルナ・ヴィオラ・エルナ・ヘカーティア・ココナα を直しました。<br>
+          ・キャラ詳細の<b>アビリティの並び</b>をカードにそろえました。
+        </div>
+      </div>
+    </div>
     <div class="nm-item" data-tag="new" data-date="2026-09-03">
       <div class="nm-date">2026<br>09.03</div>
       <div class="nm-content">
@@ -3918,6 +4132,31 @@ body.music-on #beatFrame{opacity:1}
 </div>
 
 <!-- ───── ACCOUNT SETUP WIZARD ───── -->
+<!-- ★★ 2026-09-05 初回起動時の言語えらび（ご指定）。
+     まだ一度も選んでいないときだけ出る。あとから設定でいつでも変えられる。 -->
+<div class="acc-overlay" id="langGateOv">
+  <div class="acc-card" style="max-width:400px;padding:26px 24px;text-align:center">
+    <img src="brand-xevarion-orb.png" alt="" style="width:64px;height:64px;margin-bottom:10px">
+    <div style="font-family:'Orbitron',sans-serif;font-size:16px;font-weight:900;color:#22344d;margin-bottom:4px">XEVARION</div>
+    <div style="font-size:13px;font-weight:800;color:#22345c;margin-bottom:2px">言語を選んでください</div>
+    <div style="font-size:12px;font-weight:700;color:rgba(34,52,77,.6);margin-bottom:18px">Choose your language</div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <button onclick="xvPickLang('ja')" style="padding:15px;border:none;border-radius:14px;cursor:pointer;
+        background:linear-gradient(135deg,#8e6bff,#38a6ff);color:#fff;font-size:14.5px;font-weight:900;font-family:inherit">日本語</button>
+      <button onclick="xvPickLang('en')" style="padding:15px;border:1.5px solid rgba(120,160,230,.4);border-radius:14px;cursor:pointer;
+        background:#fff;color:#22345c;font-size:14.5px;font-weight:900;font-family:inherit">English</button>
+    </div>
+    <div style="font-size:10.5px;color:rgba(34,52,77,.5);margin-top:14px">
+      あとから設定でいつでも変えられます<br>You can change this any time in Settings</div>
+  </div>
+</div>
+<style>
+.lang-seg{display:flex;gap:8px}
+.lang-seg button{flex:1;padding:12px;border:1.5px solid rgba(120,160,230,.32);border-radius:12px;
+  background:#fff;color:#6f82ad;font-family:inherit;font-size:13px;font-weight:900;cursor:pointer}
+.lang-seg button.on{background:linear-gradient(135deg,#8e6bff,#38a6ff);border-color:transparent;color:#fff}
+</style>
+
 <div class="acc-overlay" id="accWizardOv">
   <div class="acc-card wz-card" id="accWizardCard">
 
@@ -4110,6 +4349,19 @@ body.music-on #beatFrame{opacity:1}
       </div>
     </div>
 
+    <!-- ★★ 2026-09-06 コレクションは<b>ボタン1つ</b>にして、押したら別の板で見せる（ご指定）。
+         190体ぶんをここに直接ならべると、下の設定までスクロールできなかった。 -->
+    <div class="acc-set-section">
+      <div class="acc-set-label">コレクション（XEVAガチャ ＋ MagiBurst）</div>
+      <button class="acc-collbtn" onclick="openAccCollOv()">
+        <span class="ic">🎴</span>
+        <span class="tx"><b>コレクションを見る</b><small id="accCollCount">読み込み中…</small></span>
+        <span class="go">›</span>
+      </button>
+      <div style="font-size:10px;color:rgba(34,52,77,.55);margin-top:6px;text-align:center">
+        MagiLink の「コレクション」・コミュニティのプロフィールにも同じ内容が出ます</div>
+    </div>
+
     <!-- character showcase -->
     <div class="acc-set-section">
       <div class="acc-set-label">キャラ・ショーケース（ホーム表示／推し5体）</div>
@@ -4154,6 +4406,17 @@ body.music-on #beatFrame{opacity:1}
     </div>
 
     <!-- delete -->
+    <!-- ★★ 2026-09-05 言語（ご指定：設定からいつでも変えられる） -->
+    <div class="acc-set-section">
+      <div class="acc-set-label">言語 / Language</div>
+      <div class="lang-seg" id="langSeg">
+        <button type="button" data-l="ja" onclick="xvSetLang('ja')">日本語</button>
+        <button type="button" data-l="en" onclick="xvSetLang('en')">English</button>
+      </div>
+      <div style="font-size:10px;color:rgba(34,52,77,.55);margin-top:6px;text-align:center">
+        XEVARION のホーム・ガチャ・MagiBurst に反映されます</div>
+    </div>
+
     <div class="acc-set-section">
       <div class="acc-set-label">XEVA ガイド</div>
       <button onclick="closeAccSettings();xhOpenXevaGuide()" style="width:100%;padding:11px;background:linear-gradient(135deg,#8e6bff,#ff6f91);border:none;border-radius:12px;color:#fff;font-weight:700;cursor:pointer;font-size:13px;font-family:'Noto Sans JP',sans-serif">✨ XEVAの入手方法を見る</button>
@@ -4173,6 +4436,29 @@ body.music-on #beatFrame{opacity:1}
     </div>
   </div>
 </div>
+
+<!-- ★★ 2026-09-06 コレクションの板（アカウント設定から開く） -->
+<div class="acc-overlay sheetify" id="accCollOv" onclick="if(event.target===this)closeAccCollOv()">
+  <div class="acc-card">
+    <div class="accset-head">
+      <div class="accset-title">🎴 コレクション</div>
+      <button class="accset-x" onclick="closeAccCollOv()">✕</button>
+    </div>
+    <div class="accset-body" id="accCollBox"></div>
+  </div>
+</div>
+<style>
+.acc-collbtn{display:flex;align-items:center;gap:11px;width:100%;padding:13px 14px;cursor:pointer;
+  border:1.5px solid rgba(120,160,230,.28);border-radius:15px;background:#fff;font-family:inherit;
+  text-align:left;color:#22345c;box-shadow:0 4px 14px rgba(90,130,210,.12)}
+.acc-collbtn .ic{font-size:22px;flex:none}
+.acc-collbtn .tx{flex:1;min-width:0}
+.acc-collbtn .tx b{display:block;font-size:13px;font-weight:900}
+.acc-collbtn .tx small{display:block;margin-top:2px;font-size:10.5px;font-weight:700;color:#6f82ad}
+.acc-collbtn .go{flex:none;font-size:20px;color:#9fb2d4}
+/* ★ コレクションの板は設定シートより手前に出す（設定を閉じずに見られるように） */
+#accCollOv{z-index:2300}
+</style>
 
 <!-- ── char pick for settings ── -->
 <div class="acc-overlay" id="accCharPickOv">

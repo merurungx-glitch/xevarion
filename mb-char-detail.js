@@ -125,8 +125,75 @@ function mtEnsureCSS() {
   document.head.appendChild(st);
 }
 /* ══════════ キャラ詳細（MagiBurst の評価そのまま ＋ MagiBattle の評価） ══════════ */
-function openDetX(id) {
+/* ★★ 2026-09-06 キャラ詳細の「どのゲームの性能を見るか」。
+   ★ ご指定により<b>開いたときは必ず MagiBurst</b>。切りかえても覚えない
+     （次に別のキャラを開いたら、また MagiBurst から始まる）。 */
+let detGame = "burst";
+window.setDetGame = function (g) {
+  detGame = (g === "diamond") ? "diamond" : "burst";
+  if (detCurId) openDetX(detCurId, true);
+};
+let detCurId = null;
+
+/* MagiDiamond の性能。MD2DATA が読めていないときは、その場で読みこむ。 */
+function mdEnsure() {
+  if (window.MD2DATA) return Promise.resolve();
+  if (window.__mdLoading) return window.__mdLoading;
+  window.__mdLoading = new Promise((res) => {
+    const s = document.createElement("script");
+    s.src = "MagiDiamond/js/md2-data.js?v=7";
+    s.onload = () => res(); s.onerror = () => res();
+    document.head.appendChild(s);
+  }).then(() => {
+    /* md2-data は「使うときに組み立てる」作りなので、ここで一度呼んで用意させる */
+    try { if (window.MD2DATA) MD2DATA.build(); } catch (e) {}
+    return null;
+  });
+  return window.__mdLoading;
+}
+const MD_STAT_NM = { meet: "ミート", power: "パワー", run: "走力", field: "守備", arm: "肩力", catch: "捕球",
+  velo: "球速", heavy: "球威", ctrl: "制球", stam: "スタミナ", brk: "変化量", mind: "精神力" };
+function magiDiamondHTML(id) {
+  let p = null;
+  try { p = window.MD2DATA ? MD2DATA.get(id) : null; } catch (e) { p = null; }
+  if (!p) {
+    return `<div class="dsec mbb"><div class="t">評価（MagiDiamond）</div>
+      <div class="mbnone">読みこんでいます…（出ないときは、いちど MagiDiamond を開いてから戻ってきてください）</div></div>`;
+  }
+  const bar = (k) => `<div class="mdrow"><span class="k">${MD_STAT_NM[k]}</span>
+      <span class="b"><i style="width:${Math.max(0, Math.min(100, p[k]))}%"></i></span><span class="v">${p[k]}</span></div>`;
+  const bat = ["meet", "power", "run", "field", "arm", "catch"].map(bar).join("");
+  const pit = ["velo", "heavy", "ctrl", "stam", "brk", "mind"].map(bar).join("");
+  const pos = (MD2DATA.POS || []).map((ps) => `<span class="dchip">${ps} ${p.pos[ps]}</span>`).join("");
+  return `<div class="dsec mbb"><div class="t">評価（MagiDiamond）<span class="turn">${p.role}</span></div>
+    <div class="dchips">
+      <span class="dchip">総合 ${p.ovr}</span>
+      <span class="dchip">${p.bats || "右打"}</span>
+      <span class="dchip">${p.throws || "右投"}</span>
+      <span class="dchip">弾道 ${"★".repeat(p.traj)}</span>
+      <span class="dchip">${p.bat}</span>
+      <span class="dchip">${p.pitchType}</span>
+    </div>
+    <div class="ddesc" style="margin:8px 0 4px"><b>打撃・走塁・守備</b></div>${bat}
+    <div class="ddesc" style="margin:8px 0 4px"><b>投球</b></div>${pit}
+    <div class="ddesc" style="margin:8px 0 4px"><b>ポジション適性</b></div>
+    <div class="dchips">${pos}</div>
+    <div class="ddesc" style="margin-top:6px;font-size:10px">
+      ※ MagiDiamond の性能は<b>MagiBurst のステータスとアビリティから決まります</b>
+      （速いキャラはミートと走力、力のあるキャラはパワーと球速が高くなります）。
+      レベルや限界突破は MagiDiamond の中だけで育てます。</div>
+  </div>`;
+}
+
+function openDetX(id, keepGame) {
   const c = CHARS[id]; if (!c) return;
+  detCurId = id;
+  if (!keepGame) detGame = "burst";       /* ★ 開いたときは必ず MagiBurst（ご指定） */
+  /* ★ MD2DATA がまだ無いときだけ読みこんで、読めたら1回だけ開き直す。
+     「あるとき」も呼ぶと Promise.resolve → openDetX → … と<b>無限に回る</b>。 */
+  if (detGame === "diamond" && !window.MD2DATA) {
+    mdEnsure().then(() => { if (detCurId === id && detGame === "diamond") openDetX(id, true); });
+  }
   if (charSecret(id)) return;
   const st = charStats(id), own = !!DB.chars[id], awk = own ? (DB.chars[id].awk || 0) : 0;
   const sub = SUBFS[c.subfs] || {};
@@ -162,6 +229,11 @@ function openDetX(id) {
       <div class="dnm"><b>${c.nm}</b><span>${charNoText(id)}　<em class="drar ${s5 ? "ssr" : "sr"}">${s5 ? "SSR" : "SR"}</em>${awk ? (awk >= MAX_AWK ? "　👑完凸" : "　覚醒+" + awk) : ""}</span></div>
     </div>
     <div class="dbody">
+      ${/* ★★ 2026-09-06 どのゲームの性能を見るか（ご指定・はじめは MagiBurst） */""}
+      <div class="dgseg">
+        <button class="${detGame === "burst" ? "on" : ""}" onclick="setDetGame('burst')">⚔ MagiBurst</button>
+        <button class="${detGame === "diamond" ? "on" : ""}" onclick="setDetGame('diamond')">⚾ MagiDiamond</button>
+      </div>
       <div class="dchips">
         ${/* ★★ 2026-09-02 二属性キャラは「闇＆火」のように2つ並べる（リンクスキルの属性が先）。
              elemNameOf は mb-core.js にあるが、ここは遅延読みこみされることがあるので保険をかける。 */""}
@@ -218,6 +290,8 @@ function openDetX(id) {
           + 'キャラどうしを同じ条件で見くらべられるようにするためです。' : ""}${
         !showMax && arcHas(st) ? '青い <i class="arcup">＋</i> は<b>アーク強化</b>で増えたぶん（上の数字にはもう含まれています）。' : ""}</div>
 
+      ${/* ★★ 2026-09-06 カードの並びは<b>MagiBurst の方だけ</b>にしました（ご指定の言い直し）。
+            XEVARION（この画面）は<b>もとの流し込み</b>に戻してあります。 */""}
       <div class="dsec"><div class="t">アビリティ</div>
         <div class="dabs">${sortedAbil(c).map((a) => `<span class="dab" title="${abilDesc(a)}">${abilName(a)}</span>`).join("")
           + connectAbils(id).map((k) => connectChip(k, "dab")).join("")}</div>
@@ -270,7 +344,7 @@ function openDetX(id) {
         <div class="t">評価（MagiTier）</div>
         <div class="ddesc">読み込んでいます…</div></div>
 
-      ${magiBattleHTML(id)}
+      ${detGame === "diamond" ? magiDiamondHTML(id) : magiBattleHTML(id)}
       ${/* ★ 2026-08-26 ページ側が足したい行（図鑑の「アイコンに設定」など）。
             フックを立てていない画面（ガチャ）では何も出ない。 */""}
       ${(typeof window.MBDET_FOOT === "function" ? (window.MBDET_FOOT(id) || "") : "")}

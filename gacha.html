@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<script src="maintenance-gate.js?v=7"></script>
+<script src="maintenance-gate.js?v=8"></script>
 <meta charset="UTF-8">
 <script>(function(){try{var a=JSON.parse(localStorage.getItem('xeva_account_v1'));if(!a||!a.setupDone)location.replace('index.html');}catch(e){}})();</script>
-<script type="module" src="xevarion-fb.js?v=25"></script>
-<script src="xeva-presence.js?v=3" defer></script>
-<script type="module" src="xeva-cloud.js?v=22"></script>
+<script type="module" src="xevarion-fb.js?v=28"></script>
+<script src="xeva-presence.js?v=4" defer></script>
+<script type="module" src="xeva-cloud.js?v=23"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -17,15 +17,31 @@
 <title>ガチャ — XEVARION</title>
 <link rel="icon" href="XEVA.png" type="image/png">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+JP:wght@300;400;500;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="xeva-theme.css?v=3">
+<link rel="stylesheet" href="xeva-theme.css?v=4">
 <!-- ★ 2026-08-10 ガチャ結果の演出（1枚ずつ公開・昇格演出）の見た目。MagiBurst と共通 -->
-<link rel="stylesheet" href="mb-gacha-reveal.css?v=5">
+<link rel="stylesheet" href="mb-gacha-reveal.css?v=6">
 <!-- ★ 2026-08-10 キャラ詳細（性能画面）の見た目。図鑑（characters.html）と共通 -->
-<link rel="stylesheet" href="mb-char-detail.css?v=13">
-<script src="xeva.js?v=54"></script>
-<script src="xeva-loading.js?v=3" defer></script>
-<script src="magibattle-stats.js?v=8"></script>
-<script type="module" src="xeva-sync.js?v=10"></script>
+<link rel="stylesheet" href="mb-char-detail.css?v=17">
+<script src="xeva.js?v=55"></script>
+<!-- ★★ 2026-09-05 言語切りかえ（日本語 ⇄ English）。辞書は本体のあとに読むこと。 -->
+<script src="xeva-i18n.js?v=3"></script>
+<script src="xeva-i18n-dict.js?v=7"></script>
+<!-- ★★ 2026-09-06 MagiBurst の語彙（技の名前・ギミック・クエスト名・威力の行）。
+     ★ mb4 は「威力：」を<b>かけら単位</b>で英語にする（新しいキャラを足してもそのまま効く）。 -->
+<script src="xeva-i18n-mb1.js?v=2"></script>
+<script src="xeva-i18n-mb2.js?v=2"></script>
+<script src="xeva-i18n-mb3.js?v=3"></script>
+<script src="xeva-i18n-mb4.js?v=4"></script>
+<script src="xeva-i18n-mb5.js?v=2"></script>
+<script src="xeva-i18n-p1.js?v=1"></script>
+<script src="xeva-i18n-p2.js?v=1"></script>
+<script src="xeva-i18n-mb6.js?v=2"></script>
+<script src="xeva-i18n-p3.js?v=2"></script>
+<script src="xeva-i18n-mb7.js?v=2"></script>
+<script src="xeva-i18n-p4.js?v=2"></script>
+<script src="xeva-loading.js?v=4" defer></script>
+<script src="magibattle-stats.js?v=9"></script>
+<script type="module" src="xeva-sync.js?v=13"></script>
 <style>
 /* ══════════════════════════════════════════════════════════════
    XEVARION ガチャ（2026-08-10 作り直し）
@@ -70,6 +86,24 @@ body::after{width:320px;height:320px;background:radial-gradient(circle,rgba(255,
   background:linear-gradient(135deg,var(--pur),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 .gh h1 small{display:block;font-size:8px;letter-spacing:.22em;color:var(--txt2);-webkit-text-fill-color:var(--txt2)}
 .wal{display:flex;gap:6px;align-items:center}
+/* ══ ★★ 2026-09-06 せまい画面では財布を<b>次の行に1列</b>で（ご指定）══
+   ・見出しと同じ行に置くと 375px では必ずはみ出す。
+   ・4枠を等分（1fr）にして、数字が長いときは枠の中で縮める。
+   ★ .gh に flex-wrap を付けるのを忘れないこと（これが無いと折り返さない）。 */
+@media (max-width:560px){
+  .gh{flex-wrap:wrap;row-gap:8px;column-gap:8px}
+  .gh h1{flex:1 1 auto;min-width:0}
+  .wal{flex:1 0 100%;display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+  .walc{justify-content:center;gap:3px;padding:5px 4px;font-size:11px;min-width:0}
+  .walc.tkt,.walc.cry{padding:4px 4px}
+  .walc b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+  .walc .tkic svg{width:16px;height:auto;flex:none}
+  .walc .icc{flex:none}
+}
+/* さらにせまい端末（〜360px）では文字をもう一段小さく */
+@media (max-width:360px){
+  .walc{font-size:10px}
+}
 .walc{display:flex;align-items:center;gap:5px;background:linear-gradient(135deg,rgba(124,58,237,.10),rgba(240,192,64,.12));
   border:1.5px solid var(--bdr);border-radius:100px;padding:5px 11px;font-family:'Orbitron',sans-serif;font-size:12.5px;font-weight:800}
 .walc.gem{color:var(--blu)}
@@ -466,17 +500,17 @@ body::after{width:320px;height:320px;background:radial-gradient(circle,rgba(255,
      同期を担当する magiburst-cloud.js を読んでいなかった。
      そのためポータルで引いたキャラはクラウドに上がらず、
      別の端末の MagiBurst が書いたセーブに負けて<b>消えて</b>いた。 -->
-<script type="module" src="MagiBurst/magiburst-cloud.js?v=8"></script>
-<script src="mb-boot.js?v=11"></script>
+<script type="module" src="MagiBurst/magiburst-cloud.js?v=9"></script>
+<script src="mb-boot.js?v=12"></script>
 <!-- ★ MagiBurst のドメイン層（キャラ・アビリティ・技・ガチャの規則）。
      MagiBurst と<b>同じファイル</b>を読むので、キャラを足せば両方に反映される。 -->
-<script src="MagiBurst/js/mb-core.js?v=75"></script>
+<script src="MagiBurst/js/mb-core.js?v=89"></script>
 <!-- ★ 2026-08-10 キャラ詳細（性能画面）。図鑑（characters.html）と同じものを使う -->
 <!-- ★★ 2026-08-22 ガチャの詳細だけ「このキャラの最大値」も並べる（ご指定）。
      図鑑（characters.html）はこの旗を立てないので、これまでどおり いまの値だけ。
      旗は mb-char-detail.js を読む<b>前</b>に立てること。 -->
 <script>window.MBDET_MAXSTATS = true;</script>
-<script src="mb-char-detail.js?v=17"></script>
-<script src="gacha-ui.js?v=30"></script>
+<script src="mb-char-detail.js?v=22"></script>
+<script src="gacha-ui.js?v=33"></script>
 </body>
 </html>

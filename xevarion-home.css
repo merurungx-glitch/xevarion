@@ -38,7 +38,17 @@ body.xh-mode .aurora{display:none}
    背景色だけ</b>が iOS によって塗られる。そこにバーを伸ばすことはできないので、
    せめて<b>下バーと同じ色</b>にして、バーが画面の下端まで続いて見えるようにする。
    （.xh-bar のグラデーション #f6f0ff〜#fff1f7 の中間あたり） */
-body.xh-mode{overflow:hidden;background:#f1f4fd}
+/* ★★ 2026-09-05 「隙間の色が揃っていない」の真因と直し
+   下バーは<b>横方向のパステルグラデーション</b>なのに、箱の外の帯は
+   平らな1色（#f1f4fd）だった。だから左右の端ではどうしても色が合わず、
+   位置が合っていても「下に別の帯がある」ように見えていた。
+   → 下バーと<b>まったく同じグラデーション</b>をページの背景にも敷く。
+   ★ 向きは<b>90deg（真横）</b>にすること。斜めだと高さの違いで色がずれる。 */
+:root{ --xh-barwash:linear-gradient(90deg,#f6f0ff 0%,#eef4ff 34%,#e9f7ff 62%,#fff1f7 100%) }
+body.xh-mode{overflow:hidden;background:#f1f4fd;background-image:var(--xh-barwash)}
+/* ★★ 2026-09-06 下バーの<b>外側</b>（画面のいちばん下）は <html> の背景しか塗れない。
+   バーと同じ色をここにも敷かないと、下に色のちがうすきまが見える。 */
+html:has(body.xh-mode){background:#f1f4fd;background-image:var(--xh-barwash)}
 
 /* ══════════ 画面いっぱいの土台の高さ（--xh-appvh） ══════════
    ★ iPhone でホーム画面から「アプリとして」開いたとき、下に空白の帯ができて
@@ -371,7 +381,7 @@ body.xh-off .xh-offline{display:flex}
   grid-auto-rows:min-content;align-content:start;
   margin-bottom:calc(-1 * var(--xh-dockover));
   padding:6px 8px calc(var(--xh-barpad) + var(--xh-dockover));
-  background:linear-gradient(98deg,#f6f0ff 0%,#eef4ff 34%,#e9f7ff 62%,#fff1f7 100%);
+  background:#f1f4fd;background-image:var(--xh-barwash);
   box-shadow:0 -8px 26px rgba(90,130,210,.18),0 -1px 0 rgba(255,255,255,.92) inset}
 .xh-bar::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;pointer-events:none;
   background:linear-gradient(90deg,#8e6bff 0%,#38a6ff 30%,#22c7a9 52%,#ffb020 74%,#ff6f91 100%);
@@ -891,6 +901,31 @@ body.xh-dragging .xh-sheet-body{overflow:hidden}
 .xh-fxfoot{display:flex;justify-content:space-between;gap:8px;margin-top:2px;
   font-size:9.5px;font-weight:700;color:#8ea3c8}
 .xh-fxempty{padding:22px 8px;text-align:center;font-size:11px;font-weight:700;color:#8ea3c8}
+/* ══ ★★ 2026-09-05 レートを MagiPortfolio のように詳しく（ご指定）══ */
+.xh-fxstamp.ng{color:#e0405e}
+/* 期間えらび */
+.xh-fxseg{display:flex;gap:5px;margin:2px 0 6px}
+.xh-fxseg button{flex:1;padding:6px 4px;border:1.5px solid rgba(120,160,230,.26);border-radius:9px;
+  background:#fff;color:#6f82ad;font-family:inherit;font-size:10.5px;font-weight:900;cursor:pointer}
+.xh-fxseg button.on{background:linear-gradient(135deg,#4b8bff,#9b7bff);border-color:transparent;color:#fff}
+/* 期間の統計 */
+.xh-fxgrid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin:8px 0 2px}
+.xh-fxgrid > div{background:#fff;border:1.5px solid rgba(120,160,230,.2);border-radius:11px;
+  padding:7px 4px;text-align:center}
+.xh-fxgrid small{display:block;font-size:9px;font-weight:800;color:#8ea3c8;margin-bottom:2px}
+.xh-fxgrid b{display:block;font-family:'Orbitron',sans-serif;font-size:12.5px;color:var(--xh-ink)}
+/* 期間の安値〜高値の中でいまがどこか */
+.xh-fxbar{position:relative;height:6px;border-radius:99px;margin:9px 2px 4px;
+  background:linear-gradient(90deg,#1d8fd8,#ffc93c,#e0405e)}
+.xh-fxbar i{position:absolute;top:50%;width:12px;height:12px;border-radius:50%;background:#fff;
+  border:2.5px solid var(--xh-ink);transform:translate(-50%,-50%);box-shadow:0 2px 6px rgba(40,70,130,.28)}
+/* まとめて交換したときの支払い額 */
+.xh-fxquick{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:9px}
+.xh-fxquick > div{background:linear-gradient(160deg,#fff,#f2f7ff);border:1.5px solid rgba(120,160,230,.2);
+  border-radius:12px;padding:8px 4px;text-align:center}
+.xh-fxquick small{display:block;font-size:10.5px;font-weight:900;color:#6f82ad}
+.xh-fxquick b{display:block;font-family:'Orbitron',sans-serif;font-size:13px;color:var(--xh-ink);margin:2px 0 1px}
+.xh-fxquick i{font-style:normal;font-size:9px;font-weight:800;color:#8ea3c8}
 
 /* ── 変換所シートの中身 ── */
 .xh-exbal{display:flex;justify-content:center;gap:10px;margin:2px 0 12px;flex-wrap:wrap}

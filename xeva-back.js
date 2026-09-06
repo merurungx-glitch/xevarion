@@ -15,9 +15,9 @@
      残高が食い違わなくなる。
 
    使い方（各アプリの <head> か </body> 直前に置く）:
-     <script src="../xeva-back.js?v=3"></script>
+     <script src="../xeva-back.js?v=4"></script>
        → 画面の左上に浮かぶボタンを出す
-     <script src="../xeva-back.js?v=3" data-mode="hook"></script>
+     <script src="../xeva-back.js?v=4" data-mode="hook"></script>
        → ボタンは出さず、既にあるもどるリンクに①②の処理だけ足す
      data-pos="tl|tr|bl|br"   ボタンの位置（既定 tl）
      data-label="ホーム"       文字（既定 XEVARION）

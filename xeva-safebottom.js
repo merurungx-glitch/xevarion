@@ -29,7 +29,7 @@
 
   var root = document.documentElement;
   var boxProbe = null, envProbe = null;
-  var last = { b: -1, t: -1, h: -1 };
+  var last = { b: -1, t: -1, h: -1, g: -99999 };
 
   function host() { return document.body || document.documentElement; }
 
@@ -87,6 +87,18 @@
     } catch (e) { return 0; }
   }
 
+  /* ★★ 2026-09-05 「下のバーと最下部のあいだにすきまがある」の仕上げ
+     余白（--xv-safeb）だけでは足りない。箱の下端自体が「見えている下端」と
+     ずれていることがあるので、MagiBurst と同じやりかたでその差も測る。
+       --xv-fixgap … 見えている下端 − 箱の下端。正＝下へ伸ばす／負＝上へ戻す。
+       --xv-growb  … max(0, fixgap)。下へ伸ばしたときの余白。
+       --xv-safebar… 下バーが実際に使う余白 = max(safeb, growb)。
+     ★ 下バーの CSS はこの3つを使って
+         bottom: calc(-1 * var(--xv-fixgap,0px) - 240px);
+         padding-bottom: calc(var(--xv-safebar,0px) + 240px);
+       と書く。★★ 別の板（::after）を敷くのは<b>だめ</b>——
+       板には backdrop-filter もグラデーションも掛からないので、
+       バー本体と色が食いちがって、ずれていなくても境目が線に見える。 */
   function measure() {
     var box = boxHeight();
     if (!(box > 120)) return;
@@ -99,9 +111,20 @@
     var safet = Math.round(ei.top * 10) / 10;
     var vph = Math.round(vv ? vv.height : box);
 
+    var gap = 0;
+    if (vv && box > 120) {
+      gap = Math.round((vv.offsetTop || 0) + vv.height - box);
+      if (Math.abs(gap) > 160) gap = 0;        // 測り損ね（PCのウィンドウなど）
+    }
+
     if (safeb !== last.b) { root.style.setProperty("--xv-safeb", safeb + "px"); last.b = safeb; }
     if (safet !== last.t) { root.style.setProperty("--xv-safet", safet + "px"); last.t = safet; }
     if (vph !== last.h) { root.style.setProperty("--xv-vph", vph + "px"); last.h = vph; }
+    if (gap !== last.g) {
+      root.style.setProperty("--xv-fixgap", gap + "px");
+      root.style.setProperty("--xv-growb", (gap > 0 ? gap : 0) + "px");
+      last.g = gap;
+    }
   }
 
   var pending = false;
@@ -111,7 +134,7 @@
     var run = function () { pending = false; measure(); };
     if (window.requestAnimationFrame) requestAnimationFrame(run); else setTimeout(run, 0);
   }
-  window.xvFitSafeBottom = function () { last.b = last.t = last.h = -1; measure(); };
+  window.xvFitSafeBottom = function () { last.b = last.t = last.h = -1; last.g = -99999; measure(); };
   window.__xvSafeBottom = true;
 
   /* ★ 測り直す機会をひととおり拾う（別アプリから戻った・回した・ツールバーが出入りした）。

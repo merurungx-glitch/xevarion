@@ -53,9 +53,12 @@ function charAvatar(acc) {
   return { avatar: "🙂", avatarType: "emoji" };
 }
 
-// コレクション（ガチャ所持キャラ）の charId 配列を取得
-//   xeva_gacha_v1.owned + スターター/アカウントの charId
+/* ★★ 2026-09-05 コレクションは <b>XEVARION 全体で1本</b>（xeva-collection.js）。
+   これまでは XEVAガチャの CHAR_MASTER にある id しか通さなかったので、
+   <b>MagiBurst で引いたキャラが1体も入らなかった</b>（ご報告「すべてのキャラが実装されていない」）。
+   ★ MagiBurst のキャラは id が "mb:xxx"。XEVAガチャの "xxx" とは別人なので混ぜないこと。 */
 function collectionIds(acc) {
+  if (window.XevaCollection) return window.XevaCollection.ids();
   var ids = {};
   try {
     var g = JSON.parse(localStorage.getItem("xeva_gacha_v1") || "null");
@@ -68,6 +71,7 @@ function collectionIds(acc) {
 
 // 凸（重複）レベル: xeva_gacha_v1.dupes（id→0〜4）。所持キャラのみ返す
 function collectionDupes(acc) {
+  if (window.XevaCollection) return window.XevaCollection.dupes();
   var out = {};
   var owned = collectionIds(acc);
   try {
@@ -136,7 +140,15 @@ async function linkAccount(acc) {
       if (s.exists()) { await syncProfile(acc); return { uid: acc.mlUid }; }
     } catch (e) {}
   }
-  if (await isNameTaken(acc.name, acc.mlUid)) return { error: "name" };
+  /* ★★ 2026-09-05 同名がいてもすぐにはあきらめない。
+     XEVARION（accounts）ではもう使われていない名前でも、MagiLink（users）に
+     残りかすが居ると永久に登録できなくなっていた（ご報告）。
+     ここに来るのは呼び出し側がすでに accounts を見て「空いている」と判断したときなので、
+     残りかすを消してからもう一度だけ見る。 */
+  if (await isNameTaken(acc.name, acc.mlUid)) {
+    try { await deleteUserByName(acc.name, acc.mlUid); } catch (e) {}
+    if (await isNameTaken(acc.name, acc.mlUid)) return { error: "name" };
+  }
   const { avatar, avatarType } = charAvatar(acc);
   const node = push(ref(db, "users"));
   const uid = node.key;

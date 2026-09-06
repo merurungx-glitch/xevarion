@@ -85,6 +85,41 @@ async function isNameTaken(name, exceptUid) {
   }
 }
 
+/* ══ ★★ 2026-09-05 表示名の「使われているか」を<b>この1か所だけ</b>で決める ══
+   ご報告「削除・改名で使われなくなった名前で新規登録できない」への作り直し。
+   ★ 判定の元は <b>accounts だけ</b>。MagiLink（users）の残りかすで
+     登録を止めてはいけない（あちらは写しなので、遅れる・残ることがある）。
+   ★ 中身の無い残骸レコード（accountHasData が false）は<b>その場で片づけて</b>
+     名前を解放する。中身のあるアカウントは絶対に消さない。
+   戻り値: { taken:boolean, freed:number, owner:uid|null } */
+async function nameStatus(name, exceptUid) {
+  const lower = lowerName(name);
+  if (!lower) return { taken: false, freed: 0, owner: null };
+  const rows = [];
+  try {
+    const snap = await get(query(ref(db, NODE), orderByChild("nameLower"), equalTo(lower)));
+    snap.forEach((c) => { if (c.key !== exceptUid) rows.push({ uid: c.key, v: c.val() }); });
+  } catch (e) {
+    try {
+      const all = await get(ref(db, NODE));
+      all.forEach((c) => {
+        const u = c.val();
+        if (c.key !== exceptUid && u && lowerName(u.name) === lower) rows.push({ uid: c.key, v: u });
+      });
+    } catch (e2) { return { taken: false, freed: 0, owner: null, error: "net" }; }
+  }
+  let freed = 0, owner = null;
+  for (const r of rows) {
+    if (accountHasData(r.v)) { owner = owner || r.uid; continue; }
+    try {
+      await remove(ref(db, NODE + "/" + r.uid));
+      try { await remove(ref(db, "magicraft/" + r.uid)); } catch (e) {}
+      freed++;
+    } catch (e) { owner = owner || r.uid; }   /* 消せなかったら安全側へ倒す */
+  }
+  return { taken: !!owner, freed, owner };
+}
+
 /* ── ID（表示名）でアカウントを検索（サインイン用）。完全一致を先頭、次に部分一致。
    戻り値 [{ uid, name, charFile, charId, hasPw }]（最大10件）
    ★ 2026-09-02 hasPw / charId を足した。これが無いと GameLink（ゲーム内の紐づけ）が
@@ -157,7 +192,24 @@ async function updateProfile(acc) {
   if (acc.charFile != null) upd.charFile = acc.charFile;
   if (acc.charId != null) upd.charId = acc.charId;
   if (acc.gamePwHash != null) upd.gamePwHash = acc.gamePwHash;
+  /* ★★ 2026-09-05 コレクションも accounts に写す（ご指定「コミュニティからも見られるように」）。
+     MagiLink（別プロジェクト）を読まなくても、コミュニティ＝この accounts だけで一覧が出せる。
+       col  … 持っている id の配列   colD … 凸（id → 1〜4）
+     ★ 中身は xeva-collection.js が作る。書くのは呼び出し側（syncXFBProfile）。 */
+  if (acc.col != null) upd.col = acc.col;
+  if (acc.colD != null) upd.colD = acc.colD;
   try { await update(ref(db, NODE + "/" + acc.xvUid), upd); return { ok: true }; } catch (e) { return { error: "net" }; }
+}
+
+/* ── そのアカウントのコレクションだけ読む（コミュニティ用） ── */
+async function getCollection(uid) {
+  if (!uid) return null;
+  try {
+    const s = await get(ref(db, NODE + "/" + uid));
+    const v = s.val();
+    if (!v) return null;
+    return { name: v.name || "", ids: Array.isArray(v.col) ? v.col : [], dupes: v.colD || {} };
+  } catch (e) { return null; }
 }
 
 /* ── 4桁ゲームパスワード照合 ── */
@@ -1258,7 +1310,7 @@ async function listFriendReqs(uid) {
 
 window.XEVARIONFB = {
   ready: true,
-  hashPw, isNameTaken, findByName, searchAccounts, register, updateProfile,
+  hashPw, isNameTaken, nameStatus, findByName, searchAccounts, register, updateProfile, getCollection,
   verifyGamePw, awardXeva, addMonthlyEarn, claimPending,
   monthKey, prevMonthKey, getRanking, getMcpRanking, claimRankReward,
   submitMagiCraftRecord, getMagiCraftRanking,

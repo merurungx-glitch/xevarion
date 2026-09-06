@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<script src="maintenance-gate.js?v=7"></script>
+<script src="maintenance-gate.js?v=8"></script>
 <meta charset="UTF-8">
 <script>(function(){try{var a=JSON.parse(localStorage.getItem('xeva_account_v1'));if(!a||!a.setupDone)location.replace('index.html');}catch(e){}})();</script>
-<script type="module" src="xevarion-fb.js?v=25"></script>
-<script src="xeva-presence.js?v=3" defer></script>
-<script type="module" src="xeva-cloud.js?v=22"></script>
+<script type="module" src="xevarion-fb.js?v=28"></script>
+<script src="xeva-presence.js?v=4" defer></script>
+<script type="module" src="xeva-cloud.js?v=23"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#eaf4ff">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -19,10 +19,27 @@
 <link rel="icon" href="Xevarion.png" type="image/png">
 <link rel="manifest" href="manifest.webmanifest">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+JP:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="xeva-theme.css?v=3">
-<script src="xeva.js?v=54"></script>
-<script src="xeva-loading.js?v=3" defer></script>
-<script type="module" src="xeva-sync.js?v=10"></script>
+<link rel="stylesheet" href="xeva-theme.css?v=4">
+<script src="xeva.js?v=55"></script>
+<!-- ★★ 2026-09-05 言語切りかえ（日本語 ⇄ English）。辞書は本体のあとに読むこと。 -->
+<script src="xeva-i18n.js?v=3"></script>
+<script src="xeva-i18n-dict.js?v=7"></script>
+<!-- ★★ 2026-09-06 MagiBurst の語彙（技の名前・ギミック・クエスト名・威力の行）。
+     ★ mb4 は「威力：」を<b>かけら単位</b>で英語にする（新しいキャラを足してもそのまま効く）。 -->
+<script src="xeva-i18n-mb1.js?v=2"></script>
+<script src="xeva-i18n-mb2.js?v=2"></script>
+<script src="xeva-i18n-mb3.js?v=3"></script>
+<script src="xeva-i18n-mb4.js?v=4"></script>
+<script src="xeva-i18n-mb5.js?v=2"></script>
+<script src="xeva-i18n-p1.js?v=1"></script>
+<script src="xeva-i18n-p2.js?v=1"></script>
+<script src="xeva-i18n-mb6.js?v=2"></script>
+<script src="xeva-i18n-p3.js?v=2"></script>
+<script src="xeva-i18n-mb7.js?v=2"></script>
+<script src="xeva-i18n-p4.js?v=2"></script>
+<script src="xeva-collection.js?v=2"></script>
+<script src="xeva-loading.js?v=4" defer></script>
+<script type="module" src="xeva-sync.js?v=13"></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Noto Sans JP',sans-serif;color:#22345c;min-height:100vh;
@@ -219,6 +236,34 @@ body.isoff .off{display:block}
   </div>
 </div>
 
+<!-- ★★ 2026-09-05 コレクションを見る板（ご指定「コミュニティからも見られるように」）。
+     中身は accounts/{uid}.col（xeva-collection.js が作ったもの）を読んで描く。 -->
+<div id="collOv" onclick="if(event.target===this)closeColl()">
+  <div class="coll-card">
+    <div class="coll-head2">
+      <div class="coll-nm" id="collNm">コレクション</div>
+      <button class="coll-x" onclick="closeColl()">✕</button>
+    </div>
+    <div class="coll-body" id="collBody"><div class="empty">読み込み中…</div></div>
+  </div>
+</div>
+<style>
+#collOv{position:fixed;inset:0;z-index:300;display:none;align-items:flex-end;justify-content:center;
+  background:rgba(40,70,130,.36);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}
+#collOv.open{display:flex}
+#collOv .coll-card{width:100%;max-width:600px;height:min(78svh,720px);display:flex;flex-direction:column;
+  border-radius:24px 24px 0 0;background:linear-gradient(180deg,#ffffff,#f4f9ff);
+  box-shadow:0 -10px 40px rgba(60,100,180,.28)}
+#collOv .coll-head2{flex:none;display:flex;align-items:center;justify-content:space-between;gap:8px;
+  padding:15px 16px 12px;border-bottom:1.5px solid rgba(120,160,230,.18)}
+#collOv .coll-nm{font-size:14.5px;font-weight:900;color:#22345c}
+#collOv .coll-x{background:rgba(120,160,230,.14);border:none;border-radius:11px;width:34px;height:34px;
+  color:#6f82ad;font-size:16px;cursor:pointer;flex:none}
+#collOv .coll-body{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding:14px 16px calc(env(safe-area-inset-bottom,0px) + 18px)}
+.uact.coll{background:rgba(142,107,255,.12);color:#7b5cf0}
+</style>
+
 <script>
 "use strict";
 function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));}
@@ -282,11 +327,34 @@ async function doSearch(){
     const added=have.has(r.uid);
     return '<div class="urow">'+avatar(r)+
       '<div class="ubody"><div class="unm">'+esc(r.name)+'</div><div class="usub">ID: '+esc(r.uid.slice(0,8))+'…</div></div>'+
+      '<button class="uact coll" onclick="openColl(\'' + r.uid + '\',\'' + esc(r.name).replace(/'/g,"&#39;") + '\')">🎴</button>'+
       '<button class="uact'+(added?'':' ok')+'" '+(added?'disabled':'')+
       ' onclick="reqFriend(\'' + r.uid + '\',\'' + esc(r.name).replace(/'/g,"&#39;") + '\')">'+
       (added?'フレンド':'＋ 申請')+'</button></div>';
   }).join("");
 }
+
+/* ══ ★★ 2026-09-05 その人のコレクションを見る ══
+   accounts/{uid} に写してある col / colD を読むだけ（MagiLink を開かなくてよい）。
+   ★ 描きかたは xeva-collection.js の1本。ポータル・MagiLink と同じ見た目になる。 */
+async function openColl(uid, name){
+  const ov=document.getElementById("collOv");
+  document.getElementById("collNm").textContent = "🎴 " + name + " さんのコレクション";
+  document.getElementById("collBody").innerHTML = '<div class="empty">読み込み中…</div>';
+  ov.classList.add("open");
+  const FB = await waitFB();
+  if(!FB || !FB.getCollection){
+    document.getElementById("collBody").innerHTML='<div class="empty">いまは読み込めません</div>'; return;
+  }
+  const c = await FB.getCollection(uid);
+  const box = document.getElementById("collBody");
+  if(!c){ box.innerHTML='<div class="empty">読み込めませんでした</div>'; return; }
+  if(!window.XevaCollection){ box.innerHTML='<div class="empty">読み込めませんでした</div>'; return; }
+  window.XevaCollection.injectCSS();
+  box.innerHTML = window.XevaCollection.html(c.ids, c.dupes, {
+    base: "", empty: name + " さんはまだコレクションを公開していません。" });
+}
+function closeColl(){ document.getElementById("collOv").classList.remove("open"); }
 
 function avatar(r, online){
   const d = online===undefined ? "" : '<span class="dot'+(online?" on":"")+'"></span>';
@@ -369,6 +437,7 @@ async function loadFriends(){
       '<div class="ubody"><div class="unm">'+esc(f.name)+'</div>'+sub+
       '<div class="usub">今月の獲得 '+m.toLocaleString()+' XEVA</div></div>'+
       '<span class="uacts">'+room+
+      '<button class="uact coll" onclick="openColl(\'' + f.uid + '\',\'' + esc(f.name).replace(/'/g,"&#39;") + '\')">🎴</button>'+
       '<button class="uact rm" onclick="delFriend(\'' + f.uid + '\')">解除</button></span></div>';
   }).join("");
 }
@@ -470,7 +539,9 @@ function paintPlayers(){
     else                      btn='<button class="uact ok" onclick="reqFriendFromList(\'' + p.uid + '\',\'' + esc(p.name).replace(/'/g,"&#39;") + '\')">＋ 申請</button>';
     return '<div class="urow">'+avatar(p, p.online)+
       '<div class="ubody"><div class="unm">'+esc(p.name)+'</div>'+sub+'</div>'+
-      '<span class="uacts">'+btn+'</span></div>';
+      '<span class="uacts">'+
+      '<button class="uact coll" onclick="openColl(\'' + p.uid + '\',\'' + esc(p.name).replace(/'/g,"&#39;") + '\')">🎴</button>'+
+      btn+'</span></div>';
   }).join("");
 }
 

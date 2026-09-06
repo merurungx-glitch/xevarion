@@ -11,7 +11,7 @@
      ② アプリロゴ ＋ ロードバー ＋ "Loading <App> ..."
 
    使い方（<head> に、defer なしで置く）:
-     <script src="../xeva-splash.js?v=3"
+     <script src="../xeva-splash.js?v=4"
              data-app="MagiLex"
              data-logo="../thumbs/MagiLex.jpg"></script>
 
