@@ -1,9 +1,9 @@
 /* MagiBurst のステージ攻略情報・キャラ所持／詳細をアカウントに紐づけてクラウド保存（magiburst） */
-import { initAppCloud } from "../app-cloud.js?v=6";
+import { initAppCloud } from "../app-cloud.js?v=7";
 /* ★ 同期するキーの一覧は ../xeva-keys.js の台帳が正。
    ここに直接書くと「ログアウト時に消すキー」の一覧とズレて、
    前のアカウントのセーブが端末に残る（＝新規登録に引き継がれる）原因になる。 */
-import { APP_SYNC_KEYS } from "../xeva-keys.js?v=11";
+import { APP_SYNC_KEYS } from "../xeva-keys.js?v=12";
 
 /* ══════════════════════════════════════════════════════════════
    ★★ 2026-08-12 「引いたはずのキャラが、持っていないことになる」への対策

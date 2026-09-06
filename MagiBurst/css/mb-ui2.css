@@ -1,0 +1,678 @@
+/* ══════════════════════════════════════════════════════════════
+   mb-ui2.css — MagiBurst 新UI（body.mb-ui2 のときだけ効く）
+   ──────────────────────────────────────────────────────────────
+   ★★ 2026-09-06c ご指定により<b>作り直し</b>。
+     前の版は「黒と紫」でした。ご指定の構想案1にそろえて
+     <b>白い紙 ＋ 黒 ＋ 黄色 ＋ 赤</b>の4色にします。
+
+   ★ なぜ作り直しのほうが早いのか
+     本体（index.html）の色は<b>もともと明るい</b>（--bg:#fdf8ef / --card:#fff）。
+     前の版はそれを<b>ぜんぶ暗くひっくり返して</b>いたので、
+     塗り忘れた面が「白いまま」残り、白地に白文字ができていました。
+     いまは<b>ひっくり返さない</b>＝明るいまま、線と差し色だけを変える。
+     これだけで「色が反転して見づらい」は原理的に起きません。
+
+   ★ 色の決めごと（この4つ以外は使わない）
+       紙   #f3efe4 ／ 墨 #12100c ／ 黄 #ffd400 ／ 赤 #e2231a ／ 白 #ffffff
+     ・ふつうの面 … 白 ＋ 2px の墨のふち
+     ・押せるもの … 墨の板に白文字（大事なもの）／白い板に墨文字（ふつう）
+     ・いま選んでいるもの … 黄色
+     ・危ない・強調 … 赤
+   ★ 形の決めごと … 角は丸めず、<b>斜めに切る</b>（clip-path）。
+   ★ 旧UIに戻すのは body から mb-ui2 を外すだけ（HTML は1つも変えていない）。
+   ══════════════════════════════════════════════════════════════ */
+
+/* ══ ① 色の置きかえ ══════════════════════════════════════════ */
+body.mb-ui2{
+  --u2paper:#f3efe4;
+  --u2ink:#12100c;
+  --u2yel:#ffd400;
+  --u2red:#e2231a;
+  --u2blue:#1268d8;
+
+  --bg:#f3efe4;
+  --bg2:#ffffff;
+  --card:#ffffff;
+  --line:rgba(18,16,12,.88);
+  --tx:#12100c;
+  --fg:#12100c;
+  --sub:#6d6759;
+  --vio:#e2231a;          /* 紫だった差し色 → 赤 */
+  --org:#ffd400;          /* 橙だった差し色 → 黄 */
+  --pk:#e2231a;
+  --cy:#1268d8;
+  --grad:linear-gradient(120deg,#ffd400,#ffb000 52%,#e2231a);
+  color:var(--tx);
+}
+
+/* ══ ② 下地（紙＋斜めの黒いかたまり）══════════════════════════
+   ★ 背景は body ではなく <b>body::before の1枚もの</b>。
+     body に敷くと、スクロールでくり返して色が飛ぶ（2026-08-06 に踏んだ）。 */
+body.mb-ui2::before{
+  content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
+  background:
+    /* 右上と左下に、大きく斜めの黒 */
+    linear-gradient(200deg, rgba(18,16,12,.92) 0 12%, transparent 12.2%),
+    linear-gradient(20deg,  rgba(18,16,12,.92) 0 8%,  transparent 8.2%),
+    /* うっすらとした紙の目 */
+    repeating-linear-gradient(115deg, rgba(18,16,12,.028) 0 2px, transparent 2px 9px),
+    var(--u2paper);
+}
+
+/* ══ ③ 共通のかたち ══════════════════════════════════════════ */
+body.mb-ui2 .qcard,
+body.mb-ui2 .lbsec,
+body.mb-ui2 .statcard,
+body.mb-ui2 .res,
+body.mb-ui2 .mnrow,
+body.mb-ui2 .msrow,
+body.mb-ui2 .gmrow,
+body.mb-ui2 .arcard,
+body.mb-ui2 .evrule,
+body.mb-ui2 .nxpanel,
+body.mb-ui2 .hcard,
+body.mb-ui2 .ptrow,
+body.mb-ui2 .swrow,
+body.mb-ui2 .lcsec{
+  background:#fff !important;
+  border:2px solid var(--u2ink) !important;
+  border-radius:0 !important;
+  box-shadow:5px 5px 0 rgba(18,16,12,.9) !important;
+}
+/* 角を斜めに切る（大きい板） */
+body.mb-ui2 .qcard,
+body.mb-ui2 .lbsec,
+body.mb-ui2 .statcard,
+body.mb-ui2 .res,
+body.mb-ui2 .nxpanel{
+  clip-path:polygon(0 0, calc(100% - 16px) 0, 100% 16px, 100% 100%, 16px 100%, 0 calc(100% - 16px));
+}
+/* 見出しは墨の帯に白文字 */
+body.mb-ui2 .lbsec > .lbh,
+body.mb-ui2 .lbsecttl,
+body.mb-ui2 h3.u2ttl{
+  background:var(--u2ink);color:#fff;
+}
+
+/* ══ ④ 上のバー ══════════════════════════════════════════════ */
+body.mb-ui2 #top{
+  background:rgba(255,255,255,.96) !important;
+  backdrop-filter:none !important;-webkit-backdrop-filter:none !important;
+  border-bottom:2.5px solid var(--u2ink) !important;
+  box-shadow:0 4px 0 rgba(18,16,12,.14) !important;
+}
+body.mb-ui2 #top,
+body.mb-ui2 #top b,
+body.mb-ui2 #top small,
+body.mb-ui2 .tpid b{ color:var(--u2ink) !important; }
+/* 通貨の札 */
+body.mb-ui2 .tpb{
+  background:#fff !important;border:2px solid var(--u2ink) !important;border-radius:99px !important;
+  color:var(--u2ink) !important;font-weight:900;
+}
+body.mb-ui2 .tpback{
+  background:var(--u2ink) !important;color:#fff !important;border:none !important;border-radius:0 !important;
+  clip-path:polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%);
+}
+body.mb-ui2 .tplvbg{ stroke:rgba(18,16,12,.16) !important; }
+body.mb-ui2 .tplvfg{ stroke:var(--u2red) !important; }
+
+/* ══ ⑤ 下のバー（構想案1: 黒い帯＋選んでいるものが黄色）══════ */
+body.mb-ui2 #tabs{
+  background:var(--u2ink) !important;
+  backdrop-filter:none !important;-webkit-backdrop-filter:none !important;
+  border-top:3px solid var(--u2yel) !important;
+  box-shadow:0 -6px 0 rgba(18,16,12,.18) !important;
+}
+body.mb-ui2 #tabs button{
+  color:rgba(255,255,255,.66) !important;font-weight:900;letter-spacing:.02em;
+  font-family:'Orbitron','Noto Sans JP',sans-serif;
+}
+body.mb-ui2 #tabs button svg{ opacity:.72 !important; filter:none !important; }
+body.mb-ui2 #tabs .tbi{
+  border-radius:0 !important;
+  clip-path:polygon(5px 0,100% 0,calc(100% - 5px) 100%,0 100%);
+  transition:background .16s ease, transform .16s ease;
+}
+body.mb-ui2 #tabs button.on{ color:var(--u2yel) !important; }
+body.mb-ui2 #tabs button.on .tbi{
+  background:var(--u2yel) !important;transform:translateY(-2px) !important;
+  box-shadow:0 3px 0 rgba(0,0,0,.5);
+}
+body.mb-ui2 #tabs button.on svg{ opacity:1 !important; color:var(--u2ink) !important; }
+body.mb-ui2 #tabs button.on::after{ background:var(--u2yel) !important; }
+/* ★ 押している間（ご指定「下バーで押しているときのデザイン」） */
+body.mb-ui2 #tabs button:active .tbi{
+  background:var(--u2red) !important;transform:translateY(0) scale(.94) !important;
+}
+body.mb-ui2 #tabs button:active svg{ color:#fff !important;opacity:1 !important; }
+body.mb-ui2 #tabs button:active{ color:#fff !important; }
+
+/* ══ ⑥ ボタン ════════════════════════════════════════════════ */
+/* ふつうのボタン＝白い板に墨文字 */
+body.mb-ui2 .lbt,
+body.mb-ui2 .lbc,
+body.mb-ui2 .qfchip,
+body.mb-ui2 .segbar .seg,
+body.mb-ui2 .gtb,
+body.mb-ui2 .tsecbtn,
+body.mb-ui2 .fsopt,
+body.mb-ui2 .empc,
+body.mb-ui2 .eqopt,
+body.mb-ui2 .csort .cssel,
+body.mb-ui2 .csort .csdir,
+body.mb-ui2 .abchip,
+body.mb-ui2 .nxrow .nxg,
+body.mb-ui2 .arbt button{
+  background:#fff !important;
+  border:2px solid var(--u2ink) !important;
+  border-radius:0 !important;
+  color:var(--u2ink) !important;
+  font-weight:900;
+  box-shadow:3px 3px 0 rgba(18,16,12,.9) !important;
+  clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 9px, 100% 100%, 9px 100%, 0 calc(100% - 9px));
+  transition:transform .1s ease, box-shadow .1s ease, background .12s ease;
+}
+/* 押している間は<b>板が沈む</b>（影が消えてずれる）＝紙を押した手ざわり */
+body.mb-ui2 .lbt:active,
+body.mb-ui2 .lbc:active,
+body.mb-ui2 .qfchip:active,
+body.mb-ui2 .segbar .seg:active,
+body.mb-ui2 .gtb:active,
+body.mb-ui2 .tsecbtn:active,
+body.mb-ui2 .arbt button:active,
+body.mb-ui2 .mnrow:active,
+body.mb-ui2 .qcard:active{
+  transform:translate(3px,3px) !important;box-shadow:0 0 0 rgba(0,0,0,0) !important;
+  background:var(--u2yel) !important;color:var(--u2ink) !important;
+}
+/* えらばれているもの＝黄色 */
+body.mb-ui2 .qfchip.on,
+body.mb-ui2 .segbar .seg.on,
+body.mb-ui2 .gtb.on,
+body.mb-ui2 .empc.cur,
+body.mb-ui2 .swrow.cur,
+body.mb-ui2 .eqslot.on,
+body.mb-ui2 .gmrow.on{
+  background:var(--u2yel) !important;color:var(--u2ink) !important;
+  border-color:var(--u2ink) !important;
+}
+/* 大事なボタン＝墨の板に白文字（＋黄色のふち） */
+body.mb-ui2 .teamgo,
+body.mb-ui2 .ccauto,
+body.mb-ui2 .abgo,
+body.mb-ui2 .msb,
+body.mb-ui2 .gbtn,
+body.mb-ui2 .multib,
+body.mb-ui2 .goldbuy,
+body.mb-ui2 .fbuy,
+body.mb-ui2 .pnbtn,
+body.mb-ui2 .dlgb,
+body.mb-ui2 .lpbtn.go,
+body.mb-ui2 .lpbtn.go.big{
+  background:var(--u2ink) !important;
+  color:#fff !important;
+  border:2px solid var(--u2ink) !important;
+  border-radius:0 !important;
+  box-shadow:4px 4px 0 var(--u2yel) !important;
+  clip-path:polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+  font-weight:900;letter-spacing:.02em;
+}
+body.mb-ui2 .teamgo small,
+body.mb-ui2 .ccauto small,
+body.mb-ui2 .multib small{ color:rgba(255,255,255,.78) !important; }
+body.mb-ui2 .teamgo:active,
+body.mb-ui2 .ccauto:active,
+body.mb-ui2 .multib:active,
+body.mb-ui2 .gbtn:active,
+body.mb-ui2 .pnbtn:active,
+body.mb-ui2 .dlgb:active,
+body.mb-ui2 .lpbtn.go:active{
+  transform:translate(4px,4px) !important;box-shadow:0 0 0 rgba(0,0,0,0) !important;
+  background:var(--u2red) !important;
+}
+/* 「マルチ参加」の浮いているボタン（構想案1・右下） */
+body.mb-ui2 .fmulti,
+body.mb-ui2 .floatmulti,
+body.mb-ui2 .qmulti{
+  background:var(--u2ink) !important;color:#fff !important;
+  border:2.5px solid var(--u2yel) !important;border-radius:99px !important;
+  box-shadow:0 8px 0 rgba(18,16,12,.35) !important;font-weight:900;
+}
+body.mb-ui2 .fmulti:active,
+body.mb-ui2 .floatmulti:active,
+body.mb-ui2 .qmulti:active{
+  transform:translateY(5px) !important;box-shadow:0 2px 0 rgba(18,16,12,.35) !important;
+  background:var(--u2red) !important;
+}
+/* とじる（✕）は赤い丸 */
+body.mb-ui2 .ovx,
+body.mb-ui2 .lpx{
+  background:var(--u2red) !important;color:#fff !important;
+  border:2.5px solid var(--u2ink) !important;box-shadow:2px 2px 0 rgba(18,16,12,.9) !important;
+}
+
+/* ══ ⑦ 入力・検索（★ここが「見づらい」の常連）══════════════ */
+body.mb-ui2 .qfsearch,
+body.mb-ui2 .csearch,
+body.mb-ui2 input[type="text"],
+body.mb-ui2 input[type="search"],
+body.mb-ui2 input[type="tel"],
+body.mb-ui2 input[type="number"],
+body.mb-ui2 select,
+body.mb-ui2 textarea{
+  background:#fff !important;
+  border:2px solid var(--u2ink) !important;
+  border-radius:0 !important;
+  color:var(--u2ink) !important;
+  font-weight:800;
+}
+body.mb-ui2 .qfsearch input,
+body.mb-ui2 .csearch input{ background:transparent !important;color:var(--u2ink) !important; }
+body.mb-ui2 input::placeholder,
+body.mb-ui2 textarea::placeholder{ color:#8d8778 !important; }
+body.mb-ui2 .qfmag{ color:var(--u2ink) !important; }
+
+/* ══ ⑧ 小さい文字・線 ════════════════════════════════════════ */
+body.mb-ui2 .qsub,
+body.mb-ui2 .mntx small,
+body.mb-ui2 .gimd,
+body.mb-ui2 .lbc small,
+body.mb-ui2 .lbt small{ color:var(--sub) !important; }
+body.mb-ui2 hr,
+body.mb-ui2 .sep{ border-color:rgba(18,16,12,.3) !important; }
+/* すりガラスのシートの下地（黒くしすぎない） */
+body.mb-ui2 .ov,
+body.mb-ui2 .sheet,
+body.mb-ui2 #onOv,
+body.mb-ui2 #ccOv{ background:rgba(18,16,12,.55) !important; }
+
+/* ══ ⑨ イベントのバナー ══════════════════════════════════════ */
+body.mb-ui2 .lbevc{
+  background:#fff !important;border:2px solid var(--u2ink) !important;border-radius:0 !important;
+  box-shadow:5px 5px 0 rgba(18,16,12,.9) !important;
+  clip-path:polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px));
+}
+body.mb-ui2 .lbevt i{
+  background:var(--u2red) !important;color:#fff !important;border-radius:0 !important;
+  clip-path:polygon(4px 0,100% 0,calc(100% - 4px) 100%,0 100%);
+  font-weight:900;letter-spacing:.08em;
+}
+body.mb-ui2 .lbevt b{ color:var(--u2ink) !important; }
+body.mb-ui2 .lbevt small{ color:var(--sub) !important; }
+body.mb-ui2 .lbevd i{ background:rgba(18,16,12,.24) !important;border-radius:0 !important; }
+body.mb-ui2 .lbevd i.on{ background:var(--u2red) !important; }
+
+/* ══ ⑩ タップの演出（ご指定でつくり直し）══════════════════════
+   ★ 前の版は<b>右へ伸びる帯</b>だったので、画面の右はしを押すと
+     帯が外へ出てしまって<b>何も見えない</b>（ご報告のとおり）。
+   ★ いまは<b>押した点を中心に左右対称</b>に開く。どこを押しても同じ見えかた。
+     ① 黄色い星のはじけ（中心から）
+     ② 黒い集中線のリング
+     ③ 赤いふちの輪
+   ★ どれも pointer-events:none。位置は fixed なのでスクロールしてもずれない。 */
+.u2tap{
+  position:fixed;z-index:9999;pointer-events:none;
+  width:14px;height:14px;margin:-7px 0 0 -7px;border-radius:0;
+  background:var(--u2yel,#ffd400);
+  clip-path:polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%);
+  animation:u2star .42s cubic-bezier(.15,.85,.3,1) forwards;
+}
+@keyframes u2star{
+  0%  { transform:scale(.4) rotate(-18deg); opacity:1 }
+  55% { opacity:1 }
+  100%{ transform:scale(7.5) rotate(16deg); opacity:0 }
+}
+/* 集中線（中心から放射状に開く輪） */
+.u2tapbar{
+  position:fixed;z-index:9998;pointer-events:none;
+  width:26px;height:26px;margin:-13px 0 0 -13px;border-radius:50%;
+  background:
+    conic-gradient(from 0deg,
+      rgba(18,16,12,.85) 0 3deg, transparent 3deg 18deg,
+      rgba(18,16,12,.85) 18deg 21deg, transparent 21deg 36deg,
+      rgba(18,16,12,.85) 36deg 39deg, transparent 39deg 54deg,
+      rgba(18,16,12,.85) 54deg 57deg, transparent 57deg 72deg,
+      rgba(18,16,12,.85) 72deg 75deg, transparent 75deg 90deg,
+      rgba(18,16,12,.85) 90deg 93deg, transparent 93deg 108deg,
+      rgba(18,16,12,.85) 108deg 111deg, transparent 111deg 126deg,
+      rgba(18,16,12,.85) 126deg 129deg, transparent 129deg 144deg,
+      rgba(18,16,12,.85) 144deg 147deg, transparent 147deg 162deg,
+      rgba(18,16,12,.85) 162deg 165deg, transparent 165deg 180deg,
+      rgba(18,16,12,.85) 180deg 183deg, transparent 183deg 198deg,
+      rgba(18,16,12,.85) 198deg 201deg, transparent 201deg 216deg,
+      rgba(18,16,12,.85) 216deg 219deg, transparent 219deg 234deg,
+      rgba(18,16,12,.85) 234deg 237deg, transparent 237deg 252deg,
+      rgba(18,16,12,.85) 252deg 255deg, transparent 255deg 270deg,
+      rgba(18,16,12,.85) 270deg 273deg, transparent 273deg 288deg,
+      rgba(18,16,12,.85) 288deg 291deg, transparent 291deg 306deg,
+      rgba(18,16,12,.85) 306deg 309deg, transparent 309deg 324deg,
+      rgba(18,16,12,.85) 324deg 327deg, transparent 327deg 342deg,
+      rgba(18,16,12,.85) 342deg 345deg, transparent 345deg 360deg);
+  -webkit-mask:radial-gradient(circle, transparent 0 34%, #000 40% 100%);
+          mask:radial-gradient(circle, transparent 0 34%, #000 40% 100%);
+  animation:u2rays .40s cubic-bezier(.15,.85,.3,1) forwards;
+}
+@keyframes u2rays{
+  0%  { transform:scale(.5) rotate(0deg); opacity:.85 }
+  100%{ transform:scale(5.4) rotate(24deg); opacity:0 }
+}
+/* 赤い輪（3枚目・JS が置く .u2tapring） */
+.u2tapring{
+  position:fixed;z-index:9997;pointer-events:none;
+  width:20px;height:20px;margin:-10px 0 0 -10px;border-radius:50%;
+  border:3px solid var(--u2red,#e2231a);
+  animation:u2ring .46s cubic-bezier(.1,.8,.3,1) forwards;
+}
+@keyframes u2ring{
+  0%  { transform:scale(.4); opacity:.9; border-width:5px }
+  100%{ transform:scale(6.5); opacity:0; border-width:1px }
+}
+
+/* ══ ⑪ バトル中の画面（ここだけ暗いまま・構想案1の1枚目）══════ */
+body.mb-ui2 #battle{
+  background:linear-gradient(180deg,#141210,#0d0b09 55%,#141210) !important;
+}
+body.mb-ui2 #bhead{
+  background:linear-gradient(180deg,rgba(13,11,9,.96),rgba(13,11,9,.55)) !important;
+  border-bottom:2px solid rgba(255,212,0,.35) !important;
+}
+/* 「中断」「♪」「!状態」＝斜めに切った黒い板に白文字 */
+body.mb-ui2 #bquit,
+body.mb-ui2 #bgmb,
+body.mb-ui2 #bstatb{
+  border-radius:0 !important;
+  clip-path:polygon(9px 0,100% 0,calc(100% - 9px) 100%,0 100%);
+  background:#12100c !important;
+  border:2px solid #fff !important;
+  color:#fff !important;
+  font-family:'Orbitron','Noto Sans JP',sans-serif;letter-spacing:.06em;font-weight:900;
+}
+body.mb-ui2 #bstatb.hasst{
+  background:var(--u2red) !important;border-color:#fff !important;color:#fff !important;
+}
+body.mb-ui2 .bst{ color:#fff !important;font-family:'Orbitron','Noto Sans JP',sans-serif; }
+/* WAVE は赤いリボン */
+body.mb-ui2 #bWave,
+body.mb-ui2 .bwave{
+  border-radius:0 !important;
+  clip-path:polygon(10px 0,100% 0,calc(100% - 10px) 100%,0 100%);
+  background:var(--u2red) !important;color:#fff !important;
+  font-family:'Orbitron',sans-serif;font-weight:900;letter-spacing:.14em;
+  box-shadow:3px 3px 0 rgba(0,0,0,.6);
+}
+body.mb-ui2 #bwrap{
+  border:3px solid var(--u2yel) !important;
+  box-shadow:0 0 0 2px #12100c, 0 14px 40px rgba(0,0,0,.6) !important;
+  clip-path:polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 18px 100%, 0 calc(100% - 18px));
+}
+body.mb-ui2 #cv{ border:none !important;box-shadow:none !important;clip-path:none !important; }
+body.mb-ui2 #bfoot{
+  background:linear-gradient(0deg,rgba(13,11,9,.97),rgba(13,11,9,.6)) !important;
+  border-top:2px solid rgba(255,212,0,.35) !important;
+}
+body.mb-ui2 #phpwrap{ color:#fff !important; }
+body.mb-ui2 #phpnum,
+body.mb-ui2 #teamHp{ color:#fff !important;font-family:'Orbitron',sans-serif; }
+body.mb-ui2 #phpbar,
+body.mb-ui2 #phpbar > i{ border-radius:0 !important; }
+body.mb-ui2 .pmem{
+  border-radius:0 !important;
+  clip-path:polygon(0 0, calc(100% - 10px) 0, 100% 10px, 100% 100%, 10px 100%, 0 calc(100% - 10px));
+}
+body.mb-ui2 .pmem.turn .pfr{ border-color:var(--u2yel) !important;box-shadow:0 0 14px rgba(255,212,0,.6) !important; }
+body.mb-ui2 #bTurn{
+  border-radius:0 !important;
+  clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%);
+  background:#12100c !important;border:2px solid #fff !important;color:#fff !important;
+}
+
+/* ══ ⑫ キャラ詳細（構想案1の3枚目＝黒地に白文字）══════════════ */
+body.mb-ui2 .det{
+  background:#12100c !important;color:#fff !important;
+  border:3px solid var(--u2yel) !important;border-radius:0 !important;
+  clip-path:polygon(0 0, calc(100% - 18px) 0, 100% 18px, 100% 100%, 18px 100%, 0 calc(100% - 18px));
+  --tx:#ffffff; --fg:#ffffff; --sub:#b9b2a3; --line:rgba(255,255,255,.28); --card:#1c1913;
+}
+body.mb-ui2 .det .bdn1 b,
+body.mb-ui2 .det .dnm{ color:#fff !important;font-family:'Orbitron','Noto Sans JP',sans-serif;letter-spacing:.03em; }
+body.mb-ui2 .det .dno,
+body.mb-ui2 .det .bdn2{ color:var(--u2yel) !important;font-family:'Orbitron',sans-serif; }
+body.mb-ui2 .det .bdav{ border:3px solid var(--u2yel) !important;border-radius:0 !important; }
+body.mb-ui2 .det .bdel,
+body.mb-ui2 .det .dtag,
+body.mb-ui2 .det .bdm,
+body.mb-ui2 .det .emdchip{
+  border-radius:0 !important;
+  clip-path:polygon(7px 0,100% 0,calc(100% - 7px) 100%,0 100%);
+  background:#241f17 !important;border:2px solid rgba(255,255,255,.5) !important;color:#fff !important;
+}
+body.mb-ui2 .det .dsk,
+body.mb-ui2 .det .bdsec,
+body.mb-ui2 .det .cnxrow,
+body.mb-ui2 .det .dtrain,
+body.mb-ui2 .det .dexp{
+  background:#1c1913 !important;border:2px solid rgba(255,255,255,.26) !important;border-radius:0 !important;
+  color:#fff !important;
+}
+body.mb-ui2 .det .dsk > .t,
+body.mb-ui2 .det .bdsec > .t{
+  color:var(--u2yel) !important;font-family:'Orbitron','Noto Sans JP',sans-serif;letter-spacing:.1em;
+}
+body.mb-ui2 .det .dsrow{ background:#1c1913 !important;border-radius:0 !important;color:#fff !important; }
+body.mb-ui2 .det .dsrow .v{ font-family:'Orbitron',sans-serif;color:#fff !important; }
+body.mb-ui2 .det .abchip,
+body.mb-ui2 .det .bdab{
+  background:#241f17 !important;border:2px solid rgba(255,255,255,.5) !important;color:#fff !important;
+  border-radius:0 !important;box-shadow:none !important;
+  clip-path:polygon(7px 0,100% 0,calc(100% - 7px) 100%,0 100%);
+}
+body.mb-ui2 .det .abdesc{
+  background:#0b0906 !important;border:2px solid rgba(255,255,255,.3) !important;color:#fff !important;
+  border-radius:0 !important;
+}
+body.mb-ui2 .det small,
+body.mb-ui2 .det .d{ color:#bfb8a8 !important; }
+body.mb-ui2 .det .ovx{ background:var(--u2red) !important;border-color:#fff !important;color:#fff !important; }
+
+/* ══ ⑬ 図鑑・一覧のカード ═══════════════════════════════════ */
+body.mb-ui2 .rc,
+body.mb-ui2 .ccch,
+body.mb-ui2 .slot{
+  border-radius:0 !important;border:2px solid var(--u2ink) !important;
+}
+body.mb-ui2 .rc .rn{ color:var(--u2ink) !important;font-weight:900; }
+
+/* ══ ⑭ 進行バー・ゲージは<b>塗らない</b>（色に意味があるため）══ */
+body.mb-ui2 #phpbar,
+body.mb-ui2 .msbar,
+body.mb-ui2 .arrw,
+body.mb-ui2 .evdots i{ background:revert; }
+
+/* ══ ⑮ アイコンの色（構想案1は<b>黒い線画</b>）══════════════════
+   ★ .lbci / .lbti / .mnic は本体で紫（#5b45c8）を直に指定しているので、
+     変数を塗りかえるだけでは変わらない。ここで名指しで黒にする。 */
+body.mb-ui2 .lbci,
+body.mb-ui2 .lbti,
+body.mb-ui2 .mnic,
+body.mb-ui2 .lbc svg,
+body.mb-ui2 .lbt svg{ color:var(--u2ink) !important; }
+body.mb-ui2 .lbc:active .lbci,
+body.mb-ui2 .lbt:active .lbti{ color:var(--u2red) !important; }
+/* 新着の赤丸はそのまま赤で（意味のある色） */
+body.mb-ui2 .lbtd,
+body.mb-ui2 .lbcd{ background:var(--u2red) !important; }
+
+/* ══ ⑯ 下地の黒いかたまりを、構想案1くらいはっきりさせる ══════ */
+body.mb-ui2::before{
+  background:
+    linear-gradient(196deg, rgba(18,16,12,.95) 0 7.5%, transparent 7.7%),
+    linear-gradient(16deg,  rgba(18,16,12,.95) 0 5.5%, transparent 5.7%),
+    linear-gradient(150deg, rgba(226,35,26,.10) 0 2.2%, transparent 2.4%),
+    repeating-linear-gradient(115deg, rgba(18,16,12,.03) 0 2px, transparent 2px 9px),
+    var(--u2paper);
+}
+
+/* ══ ⑰ 変数を通していない紫のグラデーション ═════════════════
+   ★ 本体で rgba(142,107,255,…) などを<b>直に</b>書いている場所は、
+     変数を塗りかえても変わらない。ブラウザで
+       [...document.querySelectorAll('*')] → getComputedStyle → backgroundImage に
+       紫がまざっているもの
+     を機械的に集めて、ここで名指しにしている。
+   ★ 目で探すと必ず取りこぼす。増えたらこの手で集め直すこと。 */
+body.mb-ui2 .mtierbtn{
+  background:#fff !important;border:2px solid var(--u2ink) !important;border-radius:0 !important;
+  box-shadow:4px 4px 0 rgba(18,16,12,.9) !important;color:var(--u2ink) !important;
+  clip-path:polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+}
+body.mb-ui2 .mtierbtn b{ color:var(--u2ink) !important; }
+body.mb-ui2 .mtierbtn small{ color:var(--sub) !important; }
+/* 「さがす対象」などの、選んでいる小さな札 */
+body.mb-ui2 .csmb,
+body.mb-ui2 .cssegb,
+body.mb-ui2 .csfil{
+  background:#fff !important;border:2px solid var(--u2ink) !important;border-radius:99px !important;
+  color:var(--u2ink) !important;font-weight:900;
+}
+body.mb-ui2 .csmb.on,
+body.mb-ui2 .cssegb.on,
+body.mb-ui2 .csfil.on{
+  background:var(--u2yel) !important;color:var(--u2ink) !important;border-color:var(--u2ink) !important;
+}
+/* 育成タブの丸アイコン・パーティのバッジ */
+body.mb-ui2 .tsi,
+body.mb-ui2 .ptbic{
+  background:var(--u2yel) !important;color:var(--u2ink) !important;
+  border:2px solid var(--u2ink) !important;border-radius:0 !important;
+  clip-path:polygon(5px 0,100% 0,calc(100% - 5px) 100%,0 100%);
+}
+body.mb-ui2 .tsi svg,
+body.mb-ui2 .ptbic svg{ color:var(--u2ink) !important; }
+
+/* ══ ⑱ 2026-09-06d ご報告の3点 ═══════════════════════════════
+   ★ ①検索の中にもう1つ枠ができていた
+     .qfsearch（外の箱）に加えて、その中の <input type="search"> にも
+     ⑦の入力欄のきまりが当たっていたため。<b>中の input は枠なし</b>にする。 */
+body.mb-ui2 .qfsearch input,
+body.mb-ui2 .csearch input,
+body.mb-ui2 .qfsearch input[type="search"],
+body.mb-ui2 .csearch input[type="search"]{
+  border:none !important;box-shadow:none !important;clip-path:none !important;
+  background:transparent !important;
+}
+
+/* ★ ②クリア編成・イベント詳細の文字が見づらい
+   この2つは<b>もともと「暗いカードの中」用</b>に作られていて、
+   文字が明るい色（#e7deff / #cfc9f0 / #fff）で書いてある。
+   新UIは明るい紙なので<b>明るい面に明るい文字</b>になっていた。
+   → 文字の色は触らず、<b>下地を墨の板に</b>する（ペルソナの黒パネル）。 */
+body.mb-ui2 .evslide,
+body.mb-ui2 .lcsec,
+body.mb-ui2 .lchd,
+body.mb-ui2 .lcm,
+body.mb-ui2 .evrule,
+body.mb-ui2 .lcmet span{
+  background:#12100c !important;
+  border-color:rgba(255,212,0,.55) !important;
+  border-radius:0 !important;
+}
+body.mb-ui2 .evslide{
+  border:2px solid var(--u2ink) !important;
+  box-shadow:5px 5px 0 rgba(18,16,12,.9) !important;
+  clip-path:polygon(0 0, calc(100% - 14px) 0, 100% 14px, 100% 100%, 14px 100%, 0 calc(100% - 14px));
+}
+body.mb-ui2 .evnm,
+body.mb-ui2 .evtx,
+body.mb-ui2 .evtx b,
+body.mb-ui2 .evch b,
+body.mb-ui2 .lcst,
+body.mb-ui2 .lcmn{ color:#fff !important; }
+body.mb-ui2 .evsub,
+body.mb-ui2 .evper,
+body.mb-ui2 .evrule,
+body.mb-ui2 .lcml,
+body.mb-ui2 .lcnone{ color:#cfc9b8 !important; }
+body.mb-ui2 .lchd{ color:var(--u2yel) !important; }
+body.mb-ui2 .lcmet span b{ color:var(--u2yel) !important; }
+body.mb-ui2 .evgo,
+body.mb-ui2 .lcuse{
+  background:var(--u2yel) !important;color:#12100c !important;border-radius:0 !important;
+  box-shadow:3px 3px 0 rgba(18,16,12,.9) !important;font-weight:900;
+}
+body.mb-ui2 #lcOv .lclist{ }
+body.mb-ui2 #lcOv > div,
+body.mb-ui2 #lcOv .lcbox{ background:#12100c !important; }
+
+/* ★ ③大事なボタンは<b>色で役割を分ける</b>（ご指定）
+     すすむ（編成を確定・出撃・OK）＝ 黄色
+     やめる・中断・キャンセル       ＝ 赤
+     それ以外                       ＝ 白い板 */
+body.mb-ui2 .teamgo .tgbtn,
+body.mb-ui2 .dlgb,
+body.mb-ui2 .dlgb.alt,
+body.mb-ui2 .gok,
+body.mb-ui2 .psedit{
+  background:var(--u2yel) !important;color:#12100c !important;
+  border:2px solid var(--u2ink) !important;border-radius:0 !important;
+  box-shadow:4px 4px 0 rgba(18,16,12,.9) !important;
+  clip-path:polygon(0 0, calc(100% - 12px) 0, 100% 12px, 100% 100%, 12px 100%, 0 calc(100% - 12px));
+  font-weight:900;
+}
+body.mb-ui2 .teamgo .tgbtn:disabled{ background:#cfc9b8 !important;color:#6d6759 !important; }
+body.mb-ui2 .dlgb.sub,
+body.mb-ui2 .teamgo .tgx,
+body.mb-ui2 #bquit,
+body.mb-ui2 .gskip,
+body.mb-ui2 .lpx,
+body.mb-ui2 .ovx{
+  background:var(--u2red) !important;color:#fff !important;
+  border:2px solid var(--u2ink) !important;border-radius:0 !important;
+  box-shadow:3px 3px 0 rgba(18,16,12,.9) !important;font-weight:900;
+}
+body.mb-ui2 .teamgo .tgx{ clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 9px, 100% 100%, 9px 100%, 0 calc(100% - 9px)); }
+/* ★ ✕ は丸のままのほうが押しやすいので、丸に戻す */
+body.mb-ui2 .ovx,
+body.mb-ui2 .lpx{ border-radius:50% !important;clip-path:none !important; }
+body.mb-ui2 .dlgb:active,
+body.mb-ui2 .teamgo .tgbtn:active{ transform:translate(4px,4px) !important;box-shadow:none !important; }
+
+/* ══ ⑲ バトル中の大きな文字と状態の板（ご指定）══════════════ */
+/* WAVE CLEAR / ONE PUNCH などの大文字は<b>黄色い斜めの札</b>に */
+body.mb-ui2 #bmsg{
+  font-family:'Orbitron','Noto Sans JP',sans-serif;font-weight:900;letter-spacing:.14em;
+  color:#12100c !important;
+  background:var(--u2yel);
+  padding:10px 26px;margin:0 auto;width:max-content;max-width:88%;
+  transform:skewX(-8deg);
+  border:3px solid #12100c;
+  box-shadow:7px 7px 0 rgba(226,35,26,.9);
+  text-shadow:none;
+}
+/* 状態の板（「!」から開くもの）＝墨のパネルに黄色のふち */
+body.mb-ui2 .statcard{
+  background:#12100c !important;color:#fff !important;
+  border:3px solid var(--u2yel) !important;
+  --tx:#ffffff; --fg:#ffffff; --sub:#bfb8a8; --line:rgba(255,255,255,.26); --card:#1c1913;
+}
+body.mb-ui2 .statcard .strow{
+  background:#1c1913 !important;border:2px solid rgba(255,255,255,.24) !important;
+  border-radius:0 !important;color:#fff !important;box-shadow:none !important;
+}
+body.mb-ui2 .statcard .strow.turn{ border-color:var(--u2yel) !important; }
+body.mb-ui2 .statcard .t{ border-radius:0 !important; }
+body.mb-ui2 .statcard .stwall{ background:#241f17 !important;border-color:rgba(255,255,255,.3) !important;color:#fff !important; }
+/* クエスト詳細の敵ステータス欄 */
+body.mb-ui2 .qenemy{
+  background:#12100c !important;color:#fff !important;
+  border:2px solid var(--u2yel) !important;border-radius:0 !important;
+  --tx:#ffffff; --fg:#ffffff; --sub:#bfb8a8; --line:rgba(255,255,255,.26);
+}
+
+/* 並び替えのパネル（画面の中で開くもの） */
+body.mb-ui2 .cspanel button{
+  background:#fff !important;border:2px solid var(--u2ink) !important;border-radius:0 !important;
+  color:var(--u2ink) !important;box-shadow:3px 3px 0 rgba(18,16,12,.9) !important;
+  clip-path:polygon(0 0, calc(100% - 8px) 0, 100% 8px, 100% 100%, 8px 100%, 0 calc(100% - 8px));
+}
+body.mb-ui2 .cspanel button.on{ background:var(--u2yel) !important;color:var(--u2ink) !important; }
+body.mb-ui2 .cspanel button:active{ transform:translate(3px,3px) !important;box-shadow:none !important; }

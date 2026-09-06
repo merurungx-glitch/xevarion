@@ -9,7 +9,7 @@
 <link rel="icon" href="../thumbs/MagiBurst.jpg" type="image/png">
 <link rel="apple-touch-icon" href="../thumbs/MagiBurst.jpg">
 <!-- 単体でのアプリ配布は廃止（XEVARION を1つ入れれば3アプリともオフライン対応になる） -->
-<script src="../app-install-notice.js?v=3" defer></script>
+<script src="../app-install-notice.js?v=4" defer></script>
 <meta name="theme-color" content="#8e6bff">
 <meta name="apple-mobile-web-app-title" content="MagiBurst">
 <script>
@@ -18,22 +18,39 @@ if ("serviceWorker" in navigator) {
   window.addEventListener("load", function () { navigator.serviceWorker.register("sw.js").catch(function () {}); });
 }
 </script>
-<script src="../maintenance-gate.js?v=7"></script>
+<script src="../maintenance-gate.js?v=8"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
-<script src="../xeva-splash.js?v=5" data-app="MagiBurst" data-logo="../thumbs/MagiBurst.jpg"
+<script src="../xeva-splash.js?v=6" data-app="MagiBurst" data-logo="../thumbs/MagiBurst.jpg"
         data-note="⚠️ このゲームの対象年齢は 13歳以上 です"></script>
-<script src="../xeva.js?v=54"></script>
-<script src="../xeva-loading.js?v=3" defer></script>
-<script type="module" src="../xevarion-fb.js?v=25"></script>
-<script src="../xeva-presence.js?v=3" defer></script>
-<script type="module" src="../xeva-cloud.js?v=22"></script>
-<script type="module" src="js/online.js?v=10"></script>
+<script src="../xeva.js?v=55"></script>
+<!-- ★★ 2026-09-05 言語切りかえ（日本語 ⇄ English）。辞書は本体のあとに読むこと。 -->
+<script src="../xeva-i18n.js?v=3"></script>
+<script src="../xeva-i18n-dict.js?v=7"></script>
+<!-- ★★ 2026-09-06 MagiBurst の語彙（技の名前・ギミック・クエスト名・威力の行）。
+     ★ mb4 は「威力：」を<b>かけら単位</b>で英語にする（新しいキャラを足してもそのまま効く）。 -->
+<script src="../xeva-i18n-mb1.js?v=2"></script>
+<script src="../xeva-i18n-mb2.js?v=2"></script>
+<script src="../xeva-i18n-mb3.js?v=3"></script>
+<script src="../xeva-i18n-mb4.js?v=4"></script>
+<script src="../xeva-i18n-mb5.js?v=2"></script>
+<script src="../xeva-i18n-p1.js?v=1"></script>
+<script src="../xeva-i18n-p2.js?v=1"></script>
+<script src="../xeva-i18n-mb6.js?v=2"></script>
+<script src="../xeva-i18n-p3.js?v=2"></script>
+<script src="../xeva-i18n-mb7.js?v=2"></script>
+<script src="../xeva-i18n-p4.js?v=2"></script>
+<script src="../xeva-loading.js?v=4" defer></script>
+<script type="module" src="../xevarion-fb.js?v=28"></script>
+<script src="../xeva-presence.js?v=4" defer></script>
+<script type="module" src="../xeva-cloud.js?v=23"></script>
+<script type="module" src="js/online.js?v=11"></script>
 <!-- ★★ 2026-09-01 ローカル通信マルチ（オフラインでも近くの人と遊べる）。
      BurstOnline と同じ名前・同じ戻り値でそろえてあるので、画面側は NET() で切り替えるだけ。 -->
-<script src="../xeva-qr.js?v=2"></script>
-<script src="js/local.js?v=6"></script>
+<script src="../xeva-qr.js?v=3"></script>
+<script src="js/local.js?v=7"></script>
+<script src="js/localplay.js?v=3"></script>
 <style>
 /* ═══ カジュアル・ライトテーマ（SUNNY POP） ═══ */
 :root{
@@ -1452,6 +1469,18 @@ main.on{display:block;min-height:100svh;box-sizing:border-box}
 .mntx{flex:1;min-width:0;display:flex;flex-direction:column;gap:1px}
 .mntx b{font-size:13px;font-weight:900}
 .mntx small{font-size:10px;font-weight:700;color:#8b87a8}
+/* ══ ★★ 2026-09-06 メニューのオン・オフ スイッチ（省電力・UI・言語）══
+   ★ 文字（ON/OFF）と<b>つまみの位置</b>の両方で示す。色だけだと分かりにくい。 */
+.mnsw{flex:0 0 auto;position:relative;display:inline-flex;align-items:center;justify-content:flex-end;
+  width:62px;height:28px;border-radius:99px;padding:0 9px 0 26px;
+  background:#e6e3f2;border:1.6px solid rgba(142,107,255,.22);transition:background .18s ease,border-color .18s ease}
+.mnsw > i{position:absolute;left:3px;top:2.6px;width:21px;height:21px;border-radius:50%;
+  background:#fff;box-shadow:0 2px 6px rgba(60,40,120,.28);transition:left .18s cubic-bezier(.3,.9,.3,1)}
+.mnsw > b{font-family:'Orbitron',sans-serif;font-size:9.5px;font-weight:900;letter-spacing:.04em;color:#8b87a8}
+.mnsw.on{background:linear-gradient(135deg,#8e6bff,#38a6ff);border-color:transparent}
+.mnsw.on > i{left:calc(100% - 24px)}
+.mnsw.on > b{color:#fff}
+.mnsw.on{padding:0 26px 0 9px;justify-content:flex-start}
 .mnb{flex:0 0 auto;min-width:18px;height:18px;border-radius:99px;background:#ff3a6b;color:#fff;font-style:normal;
   font-size:10px;font-weight:900;display:grid;place-items:center;padding:0 5px}
 .mnar{flex:0 0 auto;font-size:18px;font-weight:900;color:#c3bedd}
@@ -1516,6 +1545,16 @@ main.on{display:block;min-height:100svh;box-sizing:border-box}
 .arbulk:active:not(:disabled){transform:scale(.94)}
 .archd small.arsum{margin-left:0}
 /* ── まとめて強化シート（#arcOv） ── */
+/* ══ ★★ 2026-09-06 アビリティの札は<b>各列2つずつ</b>（ご指定）══
+   ★ もとは幅まかせの折り返しだったので、名前の長さで段がガタガタになっていた。
+     2列に固定すると、どのキャラでも同じ形で読める。 */
+.abrow.abgrid,.det .abrow.abgrid{display:grid;grid-template-columns:1fr 1fr;gap:6px;align-items:stretch;
+  padding:0;border:none;background:none;margin-bottom:8px}
+.abrow.abgrid .abchip,.det .abrow.abgrid .abchip{display:flex;align-items:center;justify-content:space-between;gap:5px;
+  width:100%;min-height:34px;text-align:left;line-height:1.35;padding:7px 9px}
+.abrow.abgrid .abchip.cnx{background:rgba(79,224,176,.14);border-color:rgba(79,224,176,.44);color:#bff0dd}
+.abrow.abgrid .abchip.cnx.off{opacity:.6}
+.abrow.abgrid .abchip.on{outline:1.5px solid rgba(142,107,255,.8);outline-offset:-1.5px}
 .abrow{display:grid;grid-template-columns:64px 1fr auto;align-items:center;gap:9px;
   padding:10px 11px;border-radius:13px;border:1px solid rgba(255,255,255,.12);background:rgba(255,255,255,.05);margin-bottom:8px}
 .abn{font-size:11.5px;font-weight:900}
@@ -1791,6 +1830,15 @@ body.in-battle #top,body.in-battle #tabs{display:none}
   font-size:11.5px;font-weight:900;font-family:inherit;padding:9px 11px;cursor:pointer;white-space:nowrap}
 .csort .csdir.up{border-color:#8e6bff;color:#8e6bff;background:rgba(142,107,255,.1)}
 .csort .csdir:active{transform:translateY(1px)}
+/* ★★ 2026-09-06 画面の中で開く並び替えのパネル */
+.csort .cssel{display:flex;align-items:center;justify-content:space-between;gap:6px;text-align:left}
+.csort .cssel .csar{flex:none;font-size:11px;opacity:.7}
+.csort .cssel.open .csar{transform:rotate(180deg)}
+.cspanel{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:-2px 0 10px}
+.cspanel button{border:1.5px solid var(--line);border-radius:12px;background:#fff;color:var(--tx);
+  font-size:12px;font-weight:800;font-family:inherit;padding:9px 8px;cursor:pointer;text-align:left}
+.cspanel button.on{border-color:#8e6bff;color:#8e6bff;background:rgba(142,107,255,.1)}
+.cspanel button:active{transform:translateY(1px)}
 /* 検索クリアの✕は、文字が入っているときだけ出す（入力欄を作り直さずに出し分ける） */
 .csearch .csx{display:none}
 .csearch.has .csx{display:block}
@@ -2592,7 +2640,8 @@ body.in-battle #top,body.in-battle #tabs{display:none}
 .det.bt{overflow-y:auto;overflow-x:hidden;max-height:100%;width:min(460px,100%);
   background:linear-gradient(170deg,#1b1730,#141024 62%,#1b1730);border-color:rgba(150,130,255,.42)}
 .bdwrap{display:flex;flex-direction:column;gap:clamp(4px,.85dvh,7px);padding:clamp(9px,1.5dvh,13px)}
-.bdtop{display:flex;align-items:center;gap:9px}
+/* ★ 2026-09-06b 右上の✕ボタンと属性の札が重なっていたので、分だけ道をあける */
+.bdtop{display:flex;align-items:center;gap:9px;padding-right:34px}
 .bdav{width:clamp(44px,6.4dvh,58px);aspect-ratio:1;border-radius:11px;object-fit:cover;border:2px solid var(--bdc)}
 .bdnm{flex:1;min-width:0}
 .bdn1{display:flex;align-items:center;gap:5px;font-size:clamp(13px,1.9dvh,16px);font-weight:900;line-height:1.2}
@@ -2657,7 +2706,20 @@ body.in-battle #top,body.in-battle #tabs{display:none}
 /* リンク／サブリンクは横2列に並ぶ狭い枠なので、こちらは4行までにしておく
    （長いものはスクロールではなく「…」で畳んだほうが、左右の高さがそろって読みやすい） */
 .bdsec2 .bdpow{overflow:hidden;display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical}
-.bdabs{display:grid;grid-template-columns:1fr 1fr;gap:3px}
+/* ══ ★★ 2026-09-06 アビリティは<b>各列2つずつ</b>そろえ、押すと説明が出る ══ */
+.bdabs{display:grid;grid-template-columns:1fr 1fr;gap:5px;align-items:stretch}
+.bdab.tap{display:flex;align-items:center;justify-content:space-between;gap:5px;
+  width:100%;text-align:left;cursor:pointer;font-family:inherit;line-height:1.35}
+.bdab.tap em{font-style:normal;flex:none;opacity:.55;font-size:9px;transition:transform .18s ease}
+.bdab.tap.open em{transform:rotate(180deg);opacity:1}
+.bdab.tap.open{outline:1.5px solid rgba(142,107,255,.75);outline-offset:-1.5px}
+.bdab.tap.cx{background:rgba(79,224,176,.16);border-color:rgba(79,224,176,.46);color:#bff0dd}
+.bdab.tap.cx.off{opacity:.62}
+.bdabd{margin-top:7px;padding:9px 11px;border:1px solid rgba(142,107,255,.34);
+  background:rgba(20,14,48,.72);color:#dfe6ff;
+  font-size:clamp(10px,1.4dvh,12px);font-weight:700;line-height:1.85}
+.bdabd > b{display:block;margin-bottom:3px;color:#ffe6a6;font-size:1.04em}
+.bdst > i{font-style:normal;margin-left:8px;font-size:.82em;font-weight:800;opacity:.7}
 .bdab{font-size:clamp(9px,1.28dvh,11px);font-weight:900;color:#dfe6ff;background:rgba(142,107,255,.16);border:1px solid rgba(142,107,255,.34);border-radius:6px;padding:3px 6px;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 /* ══════════ クロススキルのチップ（2026-08-10 作り直し） ══════════
@@ -2928,6 +2990,11 @@ body.in-battle #top,body.in-battle #tabs{display:none}
 .rc .rccx svg{width:15px;height:15px}
 /* 対応キャラでは絶対配置をやめ、🌟の隣（.ccmk の中）に並べる */
 .ccch .cccx{position:static;width:13px;height:13px;box-shadow:0 0 5px rgba(79,224,176,.7)}
+/* ★★ 2026-09-05 クロススキルで持つアンチの札。
+   実際に効くのは<b>クロスが発動しているときだけ</b>なので、見分けがつく色にする。 */
+.ccch .cccxB{font-style:normal;font-size:8.5px;font-weight:900;letter-spacing:.02em;
+  padding:1px 5px;border-radius:99px;color:#0b3a2c;white-space:nowrap;
+  background:linear-gradient(135deg,#7cf0d0,#4fe0b0);box-shadow:0 0 6px rgba(79,224,176,.55)}
 .ccch .cccx svg{width:9px;height:9px}
 /* ★ クロスの書で発動しているぶんは色を変える（条件で点いているものと見分ける） */
 .rc .rccx.book,.ccch .cccx.book{color:#3a2400;
@@ -3462,7 +3529,7 @@ textarea.oninp.mbcode[readonly]{background:#f2f0fb;color:#3b3560}
 .hcard td:last-child{text-align:right;font-weight:900;font-family:'Orbitron',sans-serif}
 @media(min-width:700px){ #cv{border-radius:20px} }
 </style>
-<script type="module" src="magiburst-cloud.js?v=8"></script>
+<script type="module" src="magiburst-cloud.js?v=9"></script>
 </head>
 <body>
 
@@ -3882,8 +3949,14 @@ textarea.oninp.mbcode[readonly]{background:#f2f0fb;color:#3b3560}
 </div></div>
 
 <script>window.MB_IMGD = "../img/"; window.MB_GIMGD = "img/";</script>
-<script src="../mb-newchars.js?v=14"></script>
-<script src="js/mb-core.js?v=75"></script>
+<script src="../mb-newchars.js?v=15"></script>
+<!-- ★★ 2026-09-06 新UI（スタイリッシュ）。
+     body.mb-ui2 の中だけにかかるので、旧UIに戻すのは class を外すだけ。
+     ★ 本文の <style> より<b>あと</b>に置くこと（あとに来たほうが勝つ）。 -->
+<link rel="stylesheet" href="css/mb-ui2.css?v=15">
+<!-- ★★ 2026-09-06 LOCAL PLAY（近距離ローカルマルチ）の画面 -->
+<link rel="stylesheet" href="css/localplay.css?v=2">
+<script src="js/mb-core.js?v=89"></script>
 <script>
 "use strict";
 /* ══════════ アカウントガード ══════════ */
@@ -4343,6 +4416,15 @@ function applyMonthlyReset() {
       if (DB.first) delete DB.first[s.id];   // 初クリアのジェムももう一度もらえる
     });
   }
+  /* ★★ 2026-09-05 天界の審判も<b>毎月リセット</b>（蓬莱と同じ扱い）。
+     ★ 開放条件に使う通算記録は DB.jwBest（消さない別枠）に持ってある。 */
+  if (typeof JUDGE_STAGES !== "undefined") {
+    JUDGE_STAGES.forEach((s) => {
+      delete DB.clears[s.id];
+      delete DB.waveBest[s.id];
+      if (DB.first) delete DB.first[s.id];
+    });
+  }
   /* ★ 2026-08-08d <b>永久引き継ぎ</b>。
      「先月クリアしたか」ではなく「<b>これまでに一度でもクリアしたか</b>」で判定する。
      もとになる DB.clears は毎月のリセットで消さないので、
@@ -4456,6 +4538,21 @@ function syncHouraiWaveBest() {
   return changed;
 }
 syncHouraiWaveBest();
+/* ★★ 2026-09-05 天界の審判ぶん。<b>applyMonthlyReset より前</b>に走らせること。 */
+function syncJudgeWaveBest() {
+  if (typeof JUDGE_STAGES === "undefined") return false;
+  DB.jwBest = DB.jwBest || {};
+  let changed = false;
+  JUDGE_STAGES.forEach((s) => {
+    const cap = (s.waves || []).length;
+    const v = Math.min(cap, Math.max((DB.jwBest[s.id] | 0), (DB.waveBest[s.id] | 0),
+                                     DB.clears[s.id] ? cap : 0));
+    if (v > (DB.jwBest[s.id] | 0)) { DB.jwBest[s.id] = v; changed = true; }
+  });
+  if (changed) save();
+  return changed;
+}
+syncJudgeWaveBest();
 applyMonthlyReset();
 applyGardenSpanReset();
 syncWaveBestWithClears();
@@ -4685,12 +4782,16 @@ async function preload(onStep) {
      新しいボスを足すときは「SW の CORE」と「この読みこみ」の<b>両方</b>に足すこと。 */
   jobs.push(["youka", GIMGD + "e_Youka.webp"]);        // 第一重〜第九重のボス「瑶華＆玉蘭」
   jobs.push(["youhi", GIMGD + "e_Youhi.webp"]);        // 蓬莱天宮のボス「瑶妃」
+  /* ★★ 2026-09-05 天界の審判のボス「アストレア」（天律族）。
+     ★ ここと SW の CORE の<b>両方</b>に足すこと（片方だけだと初回だけ落ちる）。 */
+  jobs.push(["astraea", GIMGD + "e_Astraea.webp"]);
   /* ★ 2026-08-04: 王城・迷宮 第1〜25の間のボス5体 */
   BOSS_KEYS.forEach((k) => jobs.push([k, GIMGD + BOSSES[k].img]));
   jobs.push(["garden", GIMGD + "backgarden_s.webp"]);  // 幽冥の庭園の戦闘背景
   /* ★ 2026-08-17k 蓬莱の九重。第一重〜第九重と、最上階の蓬莱天宮で背景を分ける */
   jobs.push(["hourai", GIMGD + "backhourai_s.webp"]);
   jobs.push(["tenkyu", GIMGD + "backtenkyu_s.webp"]);
+  jobs.push(["judge", GIMGD + "backjudge_s.webp"]);    // ★★ 2026-09-05 天界の審判の戦闘背景
   jobs.push(["back1", GIMGD + "back1_s.webp"]);
   jobs.push(["back2", GIMGD + "back2_s.webp"]);
   jobs.push(["maxspeed", GIMGD + "maxspeed_s.webp"]);
@@ -4734,8 +4835,10 @@ function enemyImg(e) {
   /* ★ 2026-08-17m 瑶華＆玉蘭・瑶妃も「元絵のまま」の側。
      ここから漏れると属性ティントの表（SP_TINT）を見に行き、
      載っていないので ultra の絵（別人）になってしまう。 */
+  /* ★★ 2026-09-05 アストレアも「元絵のまま」の側。
+     ここから漏れると SP_TINT を見に行き、載っていないので別人（ultra）の絵になる。 */
   if (e.sp === "hecatia" || e.sp === "misora" || e.sp === "dominia"
-      || e.sp === "youka" || e.sp === "youhi" || BOSSES[e.sp]) return IMG[e.sp] || IMG.zenos || IMG.ultra;
+      || e.sp === "youka" || e.sp === "youhi" || e.sp === "astraea" || BOSSES[e.sp]) return IMG[e.sp] || IMG.zenos || IMG.ultra;
   const sp = SP_TINT[e.sp] ? e.sp : "ultra";
   return SP_TINT[sp][e.el] || IMG[sp] || IMG.ultra;
 }
@@ -4832,9 +4935,9 @@ function waveSeriesOf(stage) {
   if (!stage || !stage.room) return null;   // EX降臨・超特急は対象外（部屋のあるクエストだけ）
   /* ★ 2026-08-17n 蓬莱を足し忘れると、蓬莱のWAVEが<b>黄昏の王城の踏破に混ざる</b>。
      シリーズを見分けるのはこの1か所なので、クエスト系統を増やしたら必ずここに書く。 */
-  return stage.hourai ? "hourai" : stage.garden ? "garden" : stage.lab ? "lab" : "castle";
+  return stage.judge ? "judge" : stage.hourai ? "hourai" : stage.garden ? "garden" : stage.lab ? "lab" : "castle";
 }
-function waveStagesOf(series) { return series === "lab" ? LAB_STAGES : series === "garden" ? GARDEN_STAGES : series === "hourai" ? HOURAI_STAGES : STAGES; }
+function waveStagesOf(series) { return series === "judge" ? JUDGE_STAGES : series === "lab" ? LAB_STAGES : series === "garden" ? GARDEN_STAGES : series === "hourai" ? HOURAI_STAGES : STAGES; }
 /* ★ 2026-08-11 WAVE突破報酬の対象になるクエスト。
    幽冥の庭園だけ「そのスパンの10クエスト」に絞る（チャレンジ側は報酬に入らない）。 */
 function waveScoreStagesOf(series) {
@@ -4846,8 +4949,8 @@ function waveScoreStagesOf(series) {
    節目は10刻み＝40・50・60 がちょうど報酬の置き場所になる。 */
 function waveStepOf(series) { return series === "garden" ? GARDEN_WAVE_STEP : WAVE_STEP; }
 /* シリーズごとの満了WAVE数（王城・迷宮＝30部屋×6＝180／幽冥の庭園＝今回の10クエスト×6＝60） */
-function waveMaxOf(series) { return series === "garden" ? GARDEN_SPAN_PICK * 6 : series === "hourai" ? HOURAI_N * 6 : WAVE_TOTAL; }
-const SERIES_NM = { castle: "黄昏の王城", lab: "禁忌の迷宮", garden: "幽冥の庭園", hourai: "蓬莱の九重" };
+function waveMaxOf(series) { return series === "garden" ? GARDEN_SPAN_PICK * 6 : series === "hourai" ? HOURAI_N * 6 : series === "judge" ? JUDGE_N * 6 : WAVE_TOTAL; }
+const SERIES_NM = { castle: "黄昏の王城", lab: "禁忌の迷宮", garden: "幽冥の庭園", hourai: "蓬莱の九重", judge: "天界の審判" };
 /* そのシリーズの合計踏破WAVE数（幽冥の庭園は今回の10クエストぶんだけ数える） */
 function waveTotalOf(series) {
   return waveScoreStagesOf(series).reduce((a, s) => a + Math.min(s.waves.length, DB.waveBest[s.id] || 0), 0);
@@ -4861,7 +4964,7 @@ function waveTotalOf(series) {
 /* ★ 2026-08-05: WAVE突破報酬に「魂気」を必ず追加する（紋章の素材）。
    奥のシリーズほど多く出る。紋章1つ刻むのに 20,000 なので、
    王城・迷宮を1シリーズ満了（180WAVE）でおよそ 1.5 個ぶんになる計算。 */
-const SOUL_PER_WAVE_STEP = { castle: 1400, lab: 1800, garden: 2600, hourai: 3400 };
+const SOUL_PER_WAVE_STEP = { castle: 1400, lab: 1800, garden: 2600, hourai: 3400, judge: 4200 };
 function waveSoulAt(series, n) {
   const base = SOUL_PER_WAVE_STEP[series] || 1400;
   /* 50WAVEごとの節目は多め（3倍）に出す */
@@ -4896,6 +4999,17 @@ function waveRewardBaseAt(series, n) {
      40＝クロスの書 ／ 50＝瑶華＆玉蘭 ／ 60＝九天の玉簡（Lv.70解放）。
      ★ 60WAVE は「10クエスト全部を6WAVEまで踏破」＝この系統を極めた証。
        九天の玉簡の入手経路はここだけ。 */
+  /* ★★ 2026-09-05 天界の審判（全60WAVE・10刻み）。蓬莱より1段ずつ良くする。
+     ★ 60WAVE は「全10クエストを6WAVEまで踏破」＝この系統を極めた証。 */
+  if (series === "judge") {
+    if (n === 10) return { item: "wisdom", n: 2, nm: "叡智の果実 ×2" };
+    if (n === 20) return { item: "hero", n: 1, nm: "🎖️ 英傑の証 ×1" };
+    if (n === 30) return { orbs: 40, nm: "<i class='icc ic-gem'></i>ジェム ×40" };
+    if (n === 40) return { item: "trans", n: 1, nm: "📕 超越の書 ×1" };
+    if (n === 50) return { item: "crossbook", n: 1, nm: "📘 クロスの書 ×1" };
+    if (n >= 60) return { char: "astraea", nm: "降臨キャラ「アストレア」" };
+    return { orbs: 20, nm: "<i class='icc ic-gem'></i>ジェム ×20" };
+  }
   if (series === "hourai") {
     if (n === 10) return { item: "wisdom", n: 1, nm: "叡智の果実 ×1" };
     if (n === 20) return { item: "hero", n: 1, nm: "🎖️ 英傑の証 ×1" };
@@ -4968,6 +5082,12 @@ function recordWave(stage, reached) {
   if (stage.hourai) {
     DB.hwBest = DB.hwBest || {};
     if ((DB.hwBest[stage.id] || 0) < v) { DB.hwBest[stage.id] = v; save(); }
+  }
+  /* ★★ 2026-09-05 天界の審判も、開放条件に使う通算記録は<b>月リセットしない別枠</b>に持つ。
+     ここを書き忘れると、月が変わったとたんに開いていた第6〜10の審判が閉じる。 */
+  if (stage.judge) {
+    DB.jwBest = DB.jwBest || {};
+    if ((DB.jwBest[stage.id] || 0) < v) { DB.jwBest[stage.id] = v; save(); }
   }
   if ((DB.waveBest[stage.id] || 0) >= v) return null;   // 自己ベスト更新なし
   DB.waveBest[stage.id] = v;
@@ -5103,7 +5223,7 @@ document.querySelectorAll("#tabs button").forEach((b) => {
    画面右下に「🌐 マルチ参加」ボタンを常に出す（下のクエストで対応キャラを見てからすぐ参加できる）。 */
 function paintFloatMulti() {
   const el = $("#floatMulti"); if (!el) return;
-  const show = curView === "vhome" && (questSeries === "castle" || questSeries === "lab" || questSeries === "garden" || questSeries === "hourai");
+  const show = curView === "vhome" && (questSeries === "castle" || questSeries === "lab" || questSeries === "garden" || questSeries === "hourai" || questSeries === "judge");
   el.style.display = show ? "flex" : "none";
 }
 window.paintFloatMulti = paintFloatMulti;
@@ -5209,6 +5329,16 @@ const GIM_INFO = {
     art: `<circle cx="32" cy="32" r="7" fill="#ff8ad0"/><rect x="2" y="28" width="60" height="8" rx="4" fill="#ff8ad0" opacity=".55"/><rect x="28" y="2" width="8" height="60" rx="4" fill="#ff8ad0" opacity=".55"/><rect x="2" y="30.5" width="60" height="3" rx="1.5" fill="#fff"/><rect x="30.5" y="2" width="3" height="60" rx="1.5" fill="#fff"/>` },
   homing:{ nm: "ホーミング（新）", c: "#c86bff", desc: "<b>味方全員を追尾する光弾</b>を放つ。<b>必中</b>なので立ち位置では避けられないが、1発あたりの威力は控えめ。レーザーとは逆に、散開しても軽減できない。",
     art: `<circle cx="14" cy="18" r="6" fill="#c86bff"/><path d="M18 22c10 4 16 10 20 20" stroke="#e0a6ff" stroke-width="2.5" fill="none" stroke-dasharray="3 3"/><circle cx="42" cy="46" r="8" fill="none" stroke="#e0a6ff" stroke-width="2"/><circle cx="42" cy="46" r="3" fill="#fff"/>` },
+  /* ★★ 2026-09-05 天界の審判（アストレア）の3つの攻撃。
+     どれも「予兆 → ためる → 本命」なので、予兆のあいだに立ち位置を直せば軽くできる。 */
+  judgeatk:{ nm: "裁きの攻撃（新）", c: "#8fd0ff",
+    desc: "<b>天界の審判</b>のボス「アストレア」だけが使う3つの攻撃。"
+      + "<b>⚖ 天秤の裁定</b>＝上下から2本の帯が閉じる。<b>帯の上にいる味方の数だけ重くなる</b>ので、"
+      + "帯の外（画面のまんなかと端）に散らしておけば軽い。"
+      + "<b>🔨 断罪の槌</b>＝ボスを中心に衝撃波が広がる。<b>近いほど重い</b>ので、削り終わったら離れる。"
+      + "<b>✦ 判決の光柱</b>＝味方1体ずつの真上に落ちる。<b>必中</b>だが1体あたりは軽い。"
+      + "どれも<b>予兆（光の輪）</b>が出てから落ちるので、その間に立ち位置を決めよう。",
+    art: `<path d="M32 6v52" stroke="#8fd0ff" stroke-width="3" stroke-linecap="round"/><path d="M10 18h44" stroke="#8fd0ff" stroke-width="3" stroke-linecap="round"/><circle cx="12" cy="30" r="8" fill="none" stroke="#fff3c4" stroke-width="2.5"/><circle cx="52" cy="30" r="8" fill="none" stroke="#fff3c4" stroke-width="2.5"/><circle cx="32" cy="8" r="4" fill="#fff3c4"/>` },
   innerweak:{ nm: "内部弱点（新）", c: "#ff8ab5", desc: "敵の内側にある弱点。<b>貫通キャラの直殴り</b>と<b>リンクスキル・サブリンク</b>でのみ殴れて大ダメージ！<b>反射の直殴りでは届かない</b>ので、貫通キャラや強力なリンクを持つ味方を編成しよう。",
     art: `<rect x="14" y="14" width="36" height="36" rx="8" fill="#3a2050"/><circle cx="32" cy="32" r="12" fill="none" stroke="#ff8ab5" stroke-width="2" stroke-dasharray="4 3"/><circle cx="32" cy="32" r="6" fill="#ff4d6d"/><path d="M8 32h14M42 32h14" stroke="#ff8ab5" stroke-width="2.5" stroke-linecap="round"/>` },
   lockzone:{ nm: "ロックゾーン（新）", c: "#c86bff", desc: "紫の円のエリア（<b>かなり広い</b>）。<b>この中にいる味方はリンクスキルが出ず無効化</b>される。ゾーンの外に出てから味方に触れよう。<b>アンチロックゾーン</b>を持つ味方はゾーン内でもリンクスキルを撃てる。",
@@ -5320,7 +5450,10 @@ function gimListOf(stage) {
   if (g.dw) keys.push("dw");
   if (g.mine) keys.push("mine");
   if (g.warp) keys.push("warp");
-  if (stage && stage.blocks && stage.blocks.some((b) => !b.pass)) keys.push("block");
+  /* ★★ 2026-09-05 ブロックは stage.blocks（王城・迷宮）だけでなく
+     <b>gim.block</b>（蓬莱・天界の審判）でも立つ。片方しか見ていなかったので、
+     アンチブロックが要るクエストなのにギミック欄に出ていなかった。 */
+  if ((stage && stage.blocks && stage.blocks.some((b) => !b.pass)) || g.block) keys.push("block");
   if (stage && stage.blocks && stage.blocks.some((b) => b.pass)) keys.push("passblock");
   if (stage && stage.ghost && stage.ghost.length) keys.push("ghost");
   if (stage && stage.swap && stage.swap.length) keys.push("swap");
@@ -5343,10 +5476,14 @@ function gimListOf(stage) {
   if (flat.some((d) => d && d.poisonAtk)) keys.push("poison");
   if (flat.some((d) => d && d.fbDelay)) keys.push("fbdelay");   // ★ 2026-08-05 FB遅延攻撃
   if (flat.some((d) => d && d.weak)) keys.push("weak");
-  if (g.innerweak || flat.some((d) => d && d.innerWeak)) keys.push("innerweak");
+  /* ★★ 2026-09-05 <b>まんなかの弱点</b>（wside:"center"）もそのまま内部弱点。
+     ここに足さないと、貫通が要るクエストなのにギミック欄に出ない。 */
+  if (g.innerweak || flat.some((d) => d && (d.innerWeak || d.wside === "center" || d.wside === "middle"))) keys.push("innerweak");
   if (flat.some((d) => d && (d.doomMax || d.doomMob || d.boss))) keys.push("doom");
   if (flat.some((d) => d && d.crush)) keys.push("crush");
   if (flat.some((d) => d && d.pattern === "laser")) keys.push("laser");
+  /* ★★ 2026-09-05 天界の審判の3種も「レーザー」と同じ枠で知らせる（避けかたが要る攻撃なので） */
+  if (flat.some((d) => d && (d.pattern === "scales" || d.pattern === "gavel" || d.pattern === "verdict"))) keys.push("judgeatk");
   if (flat.some((d) => d && d.pattern === "crosslaser")) keys.push("crosslaser");   /* ★ 2026-08-06 十字レーザー */
   if (flat.some((d) => d && d.pattern === "homing")) keys.push("homing");
   /* ★ 2026-08-07: アンチで対策できるギミックを先頭にまとめ、その中は ANTI_ORDER の順にそろえる
@@ -5409,7 +5546,15 @@ function transNoteHTML(stage) {
 }
 function openGimInfo(stageId) {
   let keys, title, sub, topHTML = "";
-  if (stageId === "express") {
+  /* ★★ 2026-09-06 ギミック図鑑は<b>全ギミック</b>を出す（ご指定）。
+     これまでは超特急のギミック一覧（expressGimKeys）を流用していたので、
+     超特急に出ないギミック（内部弱点・裁きの攻撃など）が1つも載っていなかった。
+     ★ GIM_INFO に足したギミックは<b>自動でここに載る</b>（台帳がそのまま一覧になる）。 */
+  if (stageId === "all") {
+    keys = Object.keys(GIM_INFO);
+    title = "🧩 ギミック図鑑";
+    sub = "MagiBurst に出てくる全ギミック（" + keys.length + "種）";
+  } else if (stageId === "express") {
     /* 超特急は号車ごとにギミックが変わるので、登場しうるものを全部まとめて見せる */
     keys = expressGimKeys();
     title = "🧩 超特急 MAXSPEED のギミック";
@@ -5454,10 +5599,11 @@ function questEnemyHTML(stage) {
   const tags = [];
   if (flat.some((d) => d && (d.doomMax || d.doomMob))) tags.push(["即死攻撃", "#c86bff"]);
   if (flat.some((d) => d && d.crush)) tags.push(["クラッシュ攻撃", "#ffb84d"]);
-  if (flat.some((d) => d && (d.innerWeak)) || (stage.gim && stage.gim.innerweak)) tags.push(["内部弱点", "#ff5d8f"]);
+  if (flat.some((d) => d && (d.innerWeak || d.wside === "center" || d.wside === "middle")) || (stage.gim && stage.gim.innerweak)) tags.push(["内部弱点", "#ff5d8f"]);
   if (flat.some((d) => d && d.poisonAtk)) tags.push(["毒攻撃", "#2fbf71"]);
   if (flat.some((d) => d && d.grav)) tags.push(["重力バリア", "#7cc4ff"]);
   if (flat.some((d) => d && d.pattern === "laser")) tags.push(["レーザー", "#ffd257"]);
+  if (flat.some((d) => d && (d.pattern === "scales" || d.pattern === "gavel" || d.pattern === "verdict"))) tags.push(["裁きの攻撃", "#8fd0ff"]);
   if (flat.some((d) => d && d.pattern === "crosslaser")) tags.push(["十字レーザー", "#ff8ad0"]);
   if (flat.some((d) => d && d.pattern === "homing")) tags.push(["ホーミング", "#8affc4"]);
   const tagHTML = tags.map(([t, c]) =>
@@ -5611,9 +5757,17 @@ function openCounters(stageId) {
   const isOmni = (id) => hasAbil(CHARS[id], "omni");
   /* 専用のアンチアビリティ（オムニ以外）でそのギミックを消せるか */
   const canDedicated = (id, k) => COUNTER_ABIL[k].need.some((a) => hasAbil(CHARS[id], a));
-  const canCounter = (id, k) => (isOmni(id) && OMNI_GIMS.has(k)) || canDedicated(id, k);
+  /* ══ ★★ 2026-09-05 クロススキルで持てるアンチも数える（ご指定）══
+     hasAbil は「クロスが<b>いま発動している</b>とき」しかクロスぶんを見ない。
+     この一覧はバトルの外（編成もまだ）なので、これまではクロスぶんが1つも出ていなかった。
+     ★ 実際に効くのはクロスが発動しているときだけなので、
+       クロスでしか持てない枠には<b>⚔クロス</b>の札を付け、
+       出撃するときは crossWarnHTML() で「未発動」を知らせる。 */
+  const crossKeysOf = (id) => (typeof charAntiKeysCross === "function") ? charAntiKeysCross(id) : [];
+  const canCross = (id, k) => crossKeysOf(id).indexOf(k) >= 0;
+  const canCounter = (id, k) => (isOmni(id) && OMNI_GIMS.has(k)) || canDedicated(id, k) || canCross(id, k);
   /* viaOmni ＝ そのギミックを「オムニで」カバーしているキャラ（マークを付ける） */
-  const chip = (id, viaOmni) => {
+  const chip = (id, viaOmni, viaCross) => {
     const c = CHARS[id], own = !!DB.chars[id], inP = own && DB.party.indexOf(id) >= 0;
     const awk = own ? (DB.chars[id].awk || 0) : 0;
     /* ★ v14.5: SSRバッジと金枠の判定を isStar5 にそろえた。
@@ -5636,6 +5790,7 @@ function openCounters(stageId) {
              名前の下の帯（.ccmk）に置くので、絵にも名前にも重ならない。 */""}
         <i class="ccshot ${c.shot === "pierce" ? "pi" : "bo"}" title="${c.shot === "pierce" ? "貫通タイプ" : "反射タイプ"}">${c.shot === "pierce" ? "貫" : "反"}</i>
         <i class="ccomniB ${viaOmni ? "" : "off"}" title="${viaOmni ? "オムニアンチで対応（専用のアンチではない）" : ""}">🌟</i>
+        ${viaCross ? '<i class="cccxB" title="クロススキルで持つアンチ（クロスが発動していないと効きません）">⚔クロス</i>' : ""}
         ${sec ? "" : crossCardMark(id, "cccx")}
       </span>
       ${own ? (awk ? '<i class="ccawk' + (awk >= MAX_AWK ? " mx" : "") + '">'
@@ -5670,9 +5825,9 @@ function openCounters(stageId) {
      オムニで肩代わりしている枠には 🌟オムニ のマークが付く。 */
   const listFor = (k) => CHAR_IDS.filter((id) => canCounter(id, k)).sort(sortOwn);
   /* viaOmniFn(id) が true を返したキャラのチップに 🌟オムニ を付ける */
-  const section = (title, ids, color, sub, viaOmniFn) => {
+  const section = (title, ids, color, sub, viaOmniFn, viaCrossFn) => {
     const own = ids.filter((id) => DB.chars[id]), no = ids.filter((id) => !DB.chars[id]);
-    const draw = (id) => chip(id, !!(viaOmniFn && viaOmniFn(id)));
+    const draw = (id) => chip(id, !!(viaOmniFn && viaOmniFn(id)), !!(viaCrossFn && viaCrossFn(id)));
     /* 候補が1体もいない枠は、体数の内訳や「所持している対応キャラ」の見出しを出さない（読みづらいため） */
     if (!ids.length) return `<div class="ccrow"><div class="cchead">${title}</div>${sub || ""}</div>`;
     return `<div class="ccrow">
@@ -5688,7 +5843,7 @@ function openCounters(stageId) {
     const info = COUNTER_ABIL[k], g = GIM_INFO[k];
     return section(
       `${gimIconSVG(k, 34)}<div><b style="color:${g.c}">${info.nm}</b><small>対策アビリティ：${info.label}</small></div>`,
-      listFor(k), null, "", (id) => !canDedicated(id, k));
+      listFor(k), null, "", (id) => !canDedicated(id, k) && !canCross(id, k), (id) => !canDedicated(id, k) && canCross(id, k));
   }).join("") : '<div class="gimnone">このクエストに「アンチ系アビリティで対策するギミック」はありません。</div>';
   /* ★ 2026-08-08: 「オムニアンチだけを持つキャラ」の専用枠は廃止した。
      オムニで対応しているキャラも上の各ギミック一覧に 🌟オムニ 付きで並んでいるので、
@@ -5709,12 +5864,13 @@ function openCounters(stageId) {
      「専用アンチだけで全部を消しているのか、オムニ込みなのか」が見分けられるようにする。 */
   if (keys.length >= 2) {
     const allIds = CHAR_IDS.filter((id) => keys.every((k) => canCounter(id, k))).sort(sortOwn);
-    const viaOmni = (id) => keys.some((k) => !canDedicated(id, k));
+    const viaOmni = (id) => keys.some((k) => !canDedicated(id, k) && !canCross(id, k));
+    const viaCross = (id) => keys.some((k) => !canDedicated(id, k) && canCross(id, k));
     rows = section(
       `<span class="ccstar">👑</span><div><b style="color:#ffd257">全ギミック対応</b><small>${keys.map((k) => COUNTER_ABIL[k].nm).join("＋")} を1体でカバー（🌟オムニ ＝ オムニアンチで肩代わり）</small></div>`,
       allIds, null,
-      allIds.length ? "" : '<div class="ccnone" style="margin-bottom:6px">1体で全部に対応できるキャラはいません。オムニアンチか、複数のキャラで分担しましょう。</div>',
-      viaOmni
+      allIds.length ? "" : '<div class="ccnone" style="margin-bottom:6px">1体で全部に対応できるキャラはいません。<br>★ アンチ系アビリティは<b>持っているキャラ自身にしか効きません</b>（味方全員を守るものではないので、他のキャラと<b>分担することはできません</b>）。<br>★ オムニアンチで消せるのは<b>ダメージウォール・重力バリア・ワープ・地雷の4つだけ</b>です。<br>→ 下のギミックごとの一覧から、<b>できるだけ多くのギミックを止められるキャラ</b>をえらび、止められないキャラは<b>そのギミックにふれないように動かす</b>のが基本です。</div>',
+      viaOmni, viaCross
     ) + rows;
   }
   $("#ccCard").innerHTML = `
@@ -5849,6 +6005,101 @@ const NEWS = [
     "🎫 限定が<b>8体</b>になったので、1体あたりの排出率は <b>1.2%</b>（戦姫祭と同じ）になりました。"
       + "SSR 合計は<b>12% のまま</b>で、プレミアムの SSR もこれまでどおり出ます。",
   ] },
+  /* ★★ 2026-09-06 新UI／LOCAL PLAY／属性の呼び名／天界の審判の調整 */
+  { date: "2026-09-06", title: "🎨 新UIを「黄・赤・黒・白」に／📶 LOCAL PLAY を作り直し／🔤 属性の呼び名を変更／⚖ 天界の審判をぜんぶ開放", body: [
+    "🎨 <b>見た目を新しくしました</b>。いただいた構想案のとおり、"
+      + "<b>白い紙 ＋ 黒 ＋ 黄色 ＋ 赤</b>の4色です。角は丸めず<b>斜めに切った板</b>、"
+      + "押すと板が<b>沈んで黄色く光ります</b>。下のバーは黒く、いま開いている場所が<b>黄色</b>に。"
+      + "<br>★ はじめの版は「暗い色でぜんぶ塗りかえる」作りだったので、"
+      + "塗り忘れた面が<b>白いまま残って白地に白文字</b>になっていました。"
+      + "いまは<b>明るいまま、線と差し色だけ</b>を変える作りなので、その手の見づらさは起きません。"
+      + "<br>★ <b>タップの演出</b>も作り直しました。前は<b>右へ伸びる帯</b>だったので画面の右はしでは見えませんでしたが、"
+      + "いまは<b>押した点を中心に</b>星・集中線・輪が開きます。"
+      + "<br><b>メニュー → UI デザイン</b>で<b>旧UIにも戻せます</b>（ふだんは新UI）。",
+    "🔧 <b>ご報告いただいた点を直しました</b>。"
+      + "<br>・<b>重力バリアが見えないことがある</b>——真因は、天界の審判と蓬莱だけ"
+      + "バリアの<b>半径に 1〜2px</b> を渡していたことでした（ほかのクエストは 105〜165px）。"
+      + "敵の絵の中に埋もれて<b>描いても見えない</b>状態だったので、ほかと同じ大きさにそろえました。"
+      + "<br>・<b>敵のデバフの札</b>を、白い斜めの札＋黒文字にして必ず読めるようにしました。"
+      + "<b>重力バリアや毒のように、見れば分かるものは札に出しません</b>。"
+      + "右下の「つぎに来る攻撃」も、丸から<b>名前入りの札</b>にしました。"
+      + "<br>・<b>壁系のギミック</b>（ダメージウォール・減速壁・ウォールチェンジ・カウントブーストウォール・ヒーリングウォール）が"
+      + "1つのクエストで重ならないようにしました。壁の色や印が2つの意味を持たなくなります。"
+      + "<br>・<b>対応キャラ</b>の案内が「オムニアンチか、複数のキャラで分担」となっていましたが、"
+      + "<b>オムニで消せるのは4種だけ</b>、<b>アンチは持っている本人にしか効かない（分担できない）</b>ので、"
+      + "正しい説明に書き直しました。"
+      + "<br>・<b>イベントのバナー</b>は<b>新しいものが必ずいちばん左</b>に来るようにしました。"
+      + "<br>・英語版の<b>訳し漏れ</b>を、画面から機械的に集めて 1,000 件以上つぶしました"
+      + "（絞り込み・技の名前・威力の行・ミッション・設定・スケジュールなど）。",
+    "📶 <b>LOCAL PLAY</b>（近くの人と遊ぶ）を作り直しました。"
+      + "<b>ゲームサーバーは使いません</b>。Wi-Fiルーターも必須ではありません（テザリングでも可）。"
+      + "<br><b>ルームを作る／ルームに参加</b>の2択から始まり、作ると <b>ROOM CODE と QRコード</b>、"
+      + "<b>参加者 1/4</b>、<b>PLAYER 01〜04</b> が並びます。最大4人。"
+      + "<br>★ QR の中身は<b>このページの URL</b> なので、iPhone は<b>標準のカメラで読むだけ</b>で参加画面まで進みます。"
+      + "<br>★ 「ABC123」のような<b>短い合い言葉にできない理由</b>：短い言葉で相手を見つけるには受付サーバーが要ります。"
+      + "「サーバーを使わない」というご指定なので、<b>接続情報そのもの</b>を渡す形にしてあります"
+      + "（そのぶん QR とコピーの2通りを用意しました）。",
+    "🔤 <b>属性の呼び名を変えました</b>——"
+      + "火→<b>IGNIS</b>／水→<b>AQUA</b>／木→<b>VERDE</b>／光→<b>LUMEN</b>／闇→<b>UMBRA</b>。",
+    "⚖ <b>天界の審判</b>を<b>はじめから全10クエスト開放</b>にしました。"
+      + "<br>・特殊ギミックを<b>1クエストに2つ</b>持たせ、<b>WAVEごとに出しわける</b>ようにしたので、"
+      + "6WAVEに同じ顔がありません。エーテルに偏っていたのもならしました。"
+      + "<br>・<b>ザコとボスのHP</b>を上げました。"
+      + "<br>・クエスト選択のボスの絵は、<b>属性で色を変えず元の絵のまま</b>にしました。",
+    "🌐 <b>言語（日本語 ⇄ English）</b>を<b>メニューから</b>切りかえられるようにしました。"
+      + "XEVARION の設定と<b>同じ置き場所</b>を見るので、どちらで変えても両方に効きます。",
+    "🔋 <b>省電力モード</b>を<b>オン・オフのスイッチ</b>にして、いまどちらなのかが見て分かるようにしました。",
+    "🧩 <b>ギミック図鑑</b>に<b>全ギミック</b>が並ぶようにしました（超特急のものの流用をやめました）。",
+    "📋 キャラ詳細の<b>アビリティを各列2つずつ</b>にそろえ、"
+      + "<b>クロスで持つアビリティも押すと説明</b>が出るようにしました。",
+    "🧪 <b>敵のデバフ</b>の札を大きくし、<b>何がどうなるか</b>（こうげき −35%／被ダメ ×1.25 など）と"
+      + "残りターンを必ず書くようにしました。多いときは2段に折り返します。",
+    "💥 <b>ザコの攻撃</b>も、<b>ためる → 味方へ走る帯 → 着弾の閃光</b>の3段にしました。"
+      + "どこから何が飛んできたのかが見て分かります（省電力モードでは軽い形になります）。",
+  ] },
+  /* ★★ 2026-09-05 天界の審判／弱点の位置／デバフ表示／ペルソナ風の演出 */
+  { date: "2026-09-05", title: "⚖ 新クエスト「天界の審判」／🎯 弱点は上下左右＋まんなかへ／🎨 演出をスタイリッシュに／🔧 表記と動作のズレを点検", body: [
+    "⚖ <b>天界の審判</b>を追加しました——<b>第一〜第十の審判</b>の全10クエスト。"
+      + "ボスは<b>天律族「アストレア」</b>。難易度は<b>蓬莱の九重の最下層より上</b>です。"
+      + "<br>・<b>第一〜第五</b>と<b>第六〜第十</b>の2段（それぞれ火・水・木・光・闇の5属性ぶん）。"
+      + "同じ段のなかでは<b>属性による難易度差をつけていません</b>。"
+      + "<br>・アンチギミックは<b>3つずつ</b>で、蓬莱では使っていない<b>これまでに無い組み合わせ</b>だけです。"
+      + "<br>・ボスは<b>壁とザコにはさまれる</b>置きかたなので、あいだに入って連続で殴れます。"
+      + "<br>・<b>第二の審判から先は、1つ前の審判をクリア</b>すると開きます。"
+      + "<b>第六の審判</b>だけは、それに加えて<b>蓬莱の九重を通算 " + JUDGE_NEED_HOURAI + "WAVE 踏破</b>していることが要ります。",
+    "🎯 <b>弱点の位置</b>を<b>上下左右</b>と<b>まんなか</b>に置けるようにしました。"
+      + "上下左右は<b>敵の外側</b>なので反射でも殴れます。"
+      + "<b>まんなかの弱点は貫通でしか殴れません</b>（ギミック欄に<b>内部弱点</b>と出ます）。"
+      + "天界の審判の<b>第六〜第十</b>がこの形です。"
+      + "<br>★ あわせて、これまで<b>弱点の絵だけが「まっすぐ上」に固定</b>されていて、"
+      + "左右の壁に寄せた回では<b>光っている場所と当たる場所が食いちがっていた</b>のを直しました。"
+      + "<b>追加弱点（ウィークシギル）</b>も盤面に出るようになりました。",
+    "⚔ アストレアだけの攻撃を3つ用意しました——<b>⚖ 天秤の裁定</b>（上下から帯が閉じる・帯の上にいる人数ぶん重い）／"
+      + "<b>🔨 断罪の槌</b>（近いほど重い衝撃波）／<b>✦ 判決の光柱</b>（味方全員の真上に落ちる・必中）。"
+      + "どれも<b>予兆 → ためる → 本命</b>の3段なので、予兆のあいだに立ち位置を決められます。"
+      + "<b>つぎに来る攻撃</b>は敵の<b>右下</b>に出ます。",
+    "🚩 敵が<b>移動する</b>ときに<b>ダメージが入るエリア</b>へ印（DANGER の帯）を出すようにしました。"
+      + "見えている帯＝当たる帯です。",
+    "🧪 <b>敵にかかっているデバフ</b>を盤面に出すようにしました——"
+      + "<b>攻撃力ダウン・防御ダウン・毒・属性の塗り替え・追加弱点</b>を、残りターンつきで敵のHPバーの下に並べます。",
+    "🎨 <b>演出をスタイリッシュ</b>にそろえました。引っぱっているあいだの<b>集中線と撃種の札</b>、"
+      + "撃った瞬間の<b>斜めに走る帯</b>、敵にふれた瞬間の<b>網点と角ばった閃光</b>。"
+      + "ガイドの線も、同じ傾きの帯と<b>跳ね返る点の印</b>になりました。",
+    "🛡 <b>対応キャラ</b>に、<b>クロススキルで持つアンチ</b>も出るようになりました（<b>⚔クロス</b>の札つき）。"
+      + "クロスは<b>相方が同じ編成にいないと発動しません</b>ので、"
+      + "そのまま出撃しようとすると<b>警告</b>を出します。",
+    "📷 QR から入った<b>ローカル通信マルチ</b>が始められなかったのを直しました。"
+      + "参加の画面を<b>スプラッシュ・年齢確認・「タップしてスタート」が終わってから</b>開くようにしています。",
+    "🔧 <b>リンクとフルバーストの「書いてあること」と「実際の動き」</b>を点検し、食いちがいを直しました——"
+      + "<b>リング</b>（×0.24 → 実装どおり ×0.26）／<b>ルミナスレイ</b>と<b>回転斬</b>（!ボタンの内わけが ×0.30 のままだった）／"
+      + "<b>エルナのリンク</b>（実際は<b>ジャベリン8本</b>なのに「光の槍1本」と書いてあった。名前も"
+      + "<b>ジャベリンレイン</b>に改めました）／<b>ヘカーティア</b>（×1.0 → 実装どおり ×1.25）／"
+      + "<b>ココナα</b>のフルバースト（×2.6 と書いてあるのに ×2.0 だった）。",
+    "🧩 <b>ブロック</b>が要るクエストなのに「対応キャラ」に出ていなかったのを直しました"
+      + "（蓬莱の九重・天界の審判が対象です）。",
+    "📋 キャラ詳細の<b>アビリティの並び</b>を、1つ1枚のカードにそろえました。"
+      + "クロススキルで持つアビリティも同じ形で並びます。",
+  ] },
   /* ★★ 2026-09-03 Lv.70 の修正／WEAK 表示／敵の移動でダメージ／QR でローカル通信 */
   { date: "2026-09-03", title: "🔧 Lv.70 が反映されない不具合を修正／⚡ WEAK 表示／📷 ローカル通信に QR", body: [
     "🔧 <b>キャラを Lv.70 にしても、ステータスが Lv.60 のまま</b>だった不具合を直しました。"
@@ -5956,7 +6207,7 @@ const NEWS = [
       + "<b>MagiBurst 史上最強</b>です。"
       + "<br>アンチは<b>超アンチワープ＋超アンチ減速壁＋超アンチ重力バリア＋アンチ断絶界</b>の4つ、"
       + "クロススキルの<b>超マインスイーパーEL</b>を入れて<b>5つ</b>——"
-      + "<b>🏯第五重・🏯蓬莱天宮・🏯蓬莱神天</b>の<b>闇属性3クエストすべて</b>を"
+      + "<b>🏯第五重・🏯蓬莱天宮・🏯蓬莱神天</b>の<b>UMBRA属性3クエストすべて</b>を"
       + "<b>有利属性のまま</b>完全対応できます。"
       + "<br>フルバースト<b>千華繚乱・スターマイン</b>は、灯火の乱打" + ANNAM_BARRAGE_N + "連 →"
       + "<b>夜空へ花火が" + ANNAM_STARMINE_N + "発つづけて上がって敵全体へ</b>（開くたびに重くなる）→"
@@ -6425,7 +6676,7 @@ const NEWS = [
       + "<b>サヤカ</b>は底力EL →<b>攻撃力チャージM</b>（×" + ATKCHARGE_MUL + " → <b>×" + ATKCHARGE_M_MUL + "</b>）、"
       + "リンクを<b>サーキュレーション</b>に変更、フルバーストは"
       + "<b>自強化＋味方全員が貫通になって総攻撃</b>になりました。",
-    "✦ <b>サユリ</b>はフェイタルキラーL →<b>光属性耐性M</b>、クロススキルを<b>防御ダウンキラーM</b>へ。"
+    "✦ <b>サユリ</b>はフェイタルキラーL →<b>LUMEN属性耐性M</b>、クロススキルを<b>防御ダウンキラーM</b>へ。"
       + "<b>ヒナタ</b>はファーストキラーEL →<b>M</b>にするかわりに、"
       + "フルバーストの<b>光の柱を大幅に強化</b>しました（攻撃力×1.55 → <b>×" + HINATA_PILLAR_MUL + "</b>）。",
     "📊 <b>キャラの評価を小数第一位まで</b>出すようにしました。"
@@ -6503,7 +6754,7 @@ const NEWS = [
       + "どこで曲がってどの敵に入ったのかが目で追えます（ソレリア／スカーレット）。",
     "✨ <b>ミオのリンクスキルを「超強ルミナスレイ」に変更しました。</b>"
       + "砲台が <b>4基 → " + SLUMI_N + "基</b>に増え、レーザーの威力も当たり判定の太さも上がります。",
-    "🔧 <b>ミレーユ</b>の木属性キラーを <b>EL → M</b> に、"
+    "🔧 <b>ミレーユ</b>のVERDE属性キラーを <b>EL → M</b> に、"
       + "<b>コユキ</b>のファーストキラーLを <b>重力バリアキラーL</b> に変更しました。",
     "🏅 <b>レアリティの表記を「★5 → SSR」「★4 → SR」に変えました。</b>"
       + "図鑑・編成・ガチャ・結果の演出まですべてそろえています（強さは変わりません）。",
@@ -6581,7 +6832,7 @@ const NEWS = [
   ] },
   /* ★ 2026-08-18 プレミアムSSR 9体／超レーザーストップ作り直し／雷アビリティ強化 */
   { date: "2026-08-18", title: "⚡ 新SSR 9体（ロキシー実装）／超レーザーストップを作り直し／ラウンド系の範囲拡大", body: [
-    "⚡ <b>ロキシー（No.127）を実装しました。</b>水属性・反射の<b>雷使い</b>です。"
+    "⚡ <b>ロキシー（No.127）を実装しました。</b>AQUA属性・反射の<b>雷使い</b>です。"
       + "<br>フルバースト<b>「豪雷積層雲」（20ターン）</b>は、<b>残りチームHPの15%</b>を雷雲へ捧げて放ちます。"
       + "撃った瞬間に<b>画面全体が暗転</b>し、<b>巨大な黒雲がステージを覆って豪雨</b>が降りそそぎ、"
       + "<b>最強の雷がボスへ落ちます</b>。"
@@ -7006,7 +7257,7 @@ const NEWS = [
     "✦ <b>プレミアムセレクトガチャに新SSRが2体</b>参戦します——"
       + "<b>ナナミ</b>（火/反射・壁にふれるたび" + Math.round(NANAMI_WALL_P * 100) + "%でスピードとパワーがアップ／"
       + "リンクは超強三方向追従型貫通弾）、"
-      + "<b>チトセ</b>（水/貫通・ロゼリア型のフルバースト＋火属性キラー／"
+      + "<b>チトセ</b>（水/貫通・ロゼリア型のフルバースト＋IGNIS属性キラー／"
       + "リンクは新しい<b>超強クイックチャージショット</b>、サブリンクは新しい<b>貫通拡散弾3</b>）。",
     "❄ <b>ユキノのリンクスキルを「超強オービタルエッジ」に強化</b>しました。"
       + "リングが<b>7基 → " + SSPIN_N + "基</b>に増え、<b>大きさ・威力・速さ</b>がすべて上がります（威力 ×0.30 → <b>×" + SSPIN_MUL + "</b>）。",
@@ -7160,7 +7411,7 @@ const NEWS = [
       + "デイリーは毎日、ウィークリーは月曜に<b>まるごとリセットされる</b>ので、段を上げていく必要がありません。"
       + "これからは<b>その期間ぶんのミッションが最初から全部ならびます</b>（どこまでやれば終わりかが一目で分かります）。"
       + "リセットのない<b>「達成」だけは段階式のまま</b>——受け取ると次の段が出てきます。",
-    "🌙 <b>闇属性アイコンの右上に四角い角が見えていたのを直しました</b>。"
+    "🌙 <b>UMBRA属性アイコンの右上に四角い角が見えていたのを直しました</b>。"
       + "三日月を「大きい円から円を引く」作り方にしていたため、はみ出したぶんが塗りつぶされて枠で切られていたのが原因です。"
       + "<b>三日月そのものの形</b>で描き直しています。",
     "🎪 <b>イベントを「新しく始まったものから順」にならべました</b>。"
@@ -7248,7 +7499,7 @@ const NEWS = [
       + "<b>超アンチワープ／マインスイーパーEL／冥花種キラーEL／底力M／ソウルスティールM</b>。"
       + "リンクは<b>鋭角三方向追従型貫通弾</b>、サブリンクは<b>防御ダウンブラスト</b>。",
     "🔥 <b style='color:#ff5d47'>新SSR「アルティア」</b>（火／貫通）参戦。フルバーストは<b>アヤカと同じ</b>。"
-      + "<b>超アンチダメージウォール／アンチロックゾーン／冥花種キラーEL／木属性キラーM／バリアM／ダッシュM</b>。"
+      + "<b>超アンチダメージウォール／アンチロックゾーン／冥花種キラーEL／VERDE属性キラーM／バリアM／ダッシュM</b>。"
       + "リンクは<b>ツインインボリュートスフィア</b>、サブリンクは<b>貫通ターゲットロックオン衝撃波8</b>。",
     "✨ <b style='color:#ffd257'>新SSR「リアナ」</b>（光／反射）参戦。フルバーストは<b>ナズナと同じ</b>で、"
       + "<b>壁にふれるたびパワーUP（最大×10.0）＋味方全員で総攻撃</b>。"
@@ -7293,7 +7544,7 @@ const NEWS = [
       + "その場で<b>助っ人として借りられます</b>。助っ人が入る枠は<b>編成の④番目に固定</b>になり、"
       + "<b>自分の編成にいるキャラと同じキャラでも借りられます</b>（性能は貸してくれたフレンドの状態が乗ります）。",
     "🌹 <b style='color:#e0405e'>新SSR「ロゼリア」</b>（木／貫通）参戦。フルバースト<b>「ロサ・ヴィンディクタ」（18ターン）</b>は、"
-      + "<b>撃ったターンを含めて自分が2回行動し終えるまで</b> 自強化＋<b>カウンターキラー</b>＋<b>水属性キラー</b>＋<b>バブリー</b>。"
+      + "<b>撃ったターンを含めて自分が2回行動し終えるまで</b> 自強化＋<b>カウンターキラー</b>＋<b>AQUA属性キラー</b>＋<b>バブリー</b>。"
       + "さらに<b>ふれた敵の攻撃ターンが20%で+2</b>されます。リンクは<b>超強ルミナスレイ</b>（砲台" + SLUMI_N + "基・威力×" + SLUMI_MUL + "）。",
     "🌙 <b style='color:#a86bff'>新SSR「シズカ」</b>（闇／反射）参戦。フルバーストは<b>ネフィアと同じ</b>で、"
       + "ふれた味方のパワーを<b>×2.0</b>（その味方が2回行動するまで）。"
@@ -7330,9 +7581,9 @@ const NEWS = [
     "🌸 <b>アイラEX降臨の出現場所を 第6・7ノ園 → 第8〜12ノ園</b>へ移しました。"
       + "あわせて<b>アイラの性能をガチャSSRと同格まで引き上げ</b>（HP5,880／攻撃3,060／速さ422・アビリティ7種）、"
       + "フルバーストを<b>「味方全員で総攻撃」</b>に作り直しています。",
-    "✦ <b>プレミアムセレクトガチャに新SSR「ネム」</b>が参戦！ <b>光属性・貫通</b>。"
+    "✦ <b>プレミアムセレクトガチャに新SSR「ネム」</b>が参戦！ <b>LUMEN属性・貫通</b>。"
       + "フルバーストは<b>アリシアと同じ「全ギミック無効＋自分を反射化」</b>。"
-      + "リンクスキルは<b>コピー</b>で、<b>ネムの光属性とネムのキラーを乗せたまま、ふれた味方のリンクを撃ちます</b>。"
+      + "リンクスキルは<b>コピー</b>で、<b>ネムのLUMEN属性とネムのキラーを乗せたまま、ふれた味方のリンクを撃ちます</b>。"
       + "サブリンクは新しい<b>リンスピアップ</b>（ふれた味方のリンク威力×" + LINKUP_MUL + "＋加速）。",
     "🔗 <b>リンクスキル「コピー」の仕様をはっきりさせました。</b>"
       + "コピーは<b>持ち主の属性・持ち主のキラー</b>で、<b>ふれた味方のリンクスキル</b>を発動します"
@@ -7413,7 +7664,7 @@ const NEWS = [
       + "仕組みは <b>Nocturne Bloom Fest とまったく同じ</b>（ピックアップなし・SSR合計10%・10連はSSR確定・🎫チケット優先消費）です。",
     "<b style='color:#ff9d2e'>カグヤα</b>（火・貫通・No.45）が参戦。フルバースト<b>「灼夏重力・ルナグラビトンα」（14ターン）</b>は、"
       + "カグヤのルナグラビトンをそのまま<b>体当たり ×3.2 ／ 着地ダメージ ×3.0〜</b>まで引き上げたもの。"
-      + "アビリティは<b>超アンチダメージウォール・アンチロックゾーン・アンチブロック・パワーオーラEL・木属性キラー・エターナルエーテル</b>。"
+      + "アビリティは<b>超アンチダメージウォール・アンチロックゾーン・アンチブロック・パワーオーラEL・VERDE属性キラー・エターナルエーテル</b>。"
       + "リンクは<b>オービタルエッジ</b>、サブリンクは<b>プラズマネット</b>。",
     "<b style='color:#8e4fe0'>ミオンα</b>（闇・反射・No.46）が参戦。フルバースト<b>「終焔連撃・ダブルオーヴァードライヴα」（20ターン）</b>は、"
       + "1stラン <b>×2.7</b> → 停止後の2ndラン <b>×4.0</b>。<b>反射</b>になったことで同じ敵を擦り続けられるようになりました。"
@@ -7582,7 +7833,7 @@ const NEWS = [
       + "<b style='color:#ff5d47'>SSR「ナズナ」</b>（火・貫通）／<b style='color:#2fbf71'>SSR「リリア」</b>（木・貫通）／"
       + "<b style='color:#a86bff'>SSR「レヴィア」</b>（闇・貫通）の<b>5体が同時参戦</b>！",
     "<b>セツナ</b>（FB12ターン）… 自強化しつつ<b>ふれた味方1体ごとにチームHPを12%回復</b>。<b>ダッシュL（速さ×2.5）</b>と<b>リンクブーストL（リンク×2.5）</b>を持つ支援の決定版。",
-    "<b>セレネ</b>（FB18ターン）… 自強化して<b>貫通タイプ</b>に変化し、<b>止まると最も近い敵へ再走（×2.6）</b>。リンクは新技<b>コピー</b>——<b>ふれた味方のリンクスキルを、水属性にしてそのまま発動</b>します。",
+    "<b>セレネ</b>（FB18ターン）… 自強化して<b>貫通タイプ</b>に変化し、<b>止まると最も近い敵へ再走（×2.6）</b>。リンクは新技<b>コピー</b>——<b>ふれた味方のリンクスキルを、AQUA属性にしてそのまま発動</b>します。",
     "<b>ナズナ</b>（FB20ターン）… <b>壁にふれるたびパワーUP（最大×10.0）</b>し、<b>止まると味方全員で総攻撃</b>。リンクは新技<b>オートジャベリンバースト</b>、サブリンクは<b>放電</b>（敵を伝うほど威力アップ）。",
     "<b>リリア</b>（FB16ターン）… 止まると<b>そのショットでふれた敵の数だけメテオ</b>が降ります。<b>連撃キラーM</b>で同じ敵を擦り続けるほど強化。リンクは新技<b>リレーションカッター</b>。",
     "<b>レヴィア</b>（FB20ターン）… <b>ジャッジメント</b>（ボス戦の初回行動で全敵の防御ダウン）・<b>インフィニティブレイクM</b>・<b>敵少底力M</b>を備えた決定力の塊。リンクは新技<b>ブレイドオービット</b>、サブリンクは<b>ネビュラスフィア</b>（当たるたび分裂・最大7個）。",
@@ -7646,7 +7897,7 @@ const NEWS = [
     "<b>カリナ・ネフィアのイラスト</b>を追加しました。",
   ] },
   { date: "2026-07-22", title: "✦ v12 大型アップデート — 新SSR「カリナ」「ネフィア」／第26〜28の間／超越の書", body: [
-    "プレミアムセレクトガチャに <b style='color:#a86bff'>SSR「カリナ」</b>（闇属性・反射）と <b style='color:#f0b429'>SSR「ネフィア」</b>（光属性・貫通）が参戦！ "
+    "プレミアムセレクトガチャに <b style='color:#a86bff'>SSR「カリナ」</b>（UMBRA属性・反射）と <b style='color:#f0b429'>SSR「ネフィア」</b>（LUMEN属性・貫通）が参戦！ "
       + "<b>セレクト画面は新しいキャラほど上</b>に並ぶようになりました。",
     "カリナのフルバースト<b>「叡智ノ浮環・ソフィアリング」（24ターン）</b>は、<b>その場から動かず</b>、引っぱった<b>方向を中心に視野角180°</b>の敵すべてに<b>叡智の浮き輪</b>を装着。"
       + "<b>4ターンのあいだ毎ターン最大HPの10%</b>を削り、<b>防御力ダウン</b>も同時に入ります。アビリティは<b>マインスイーパーM／超アンチ重力バリア／バリアM／ウォールブーストM</b>。",
@@ -7667,7 +7918,7 @@ const NEWS = [
     "黄昏の王城・禁忌の迷宮の敵は、<b>幽冥の庭園の敵（ボスをのぞく）からランダムに配置</b>されるようになりました。",
   ] },
   { date: "2026-07-22", title: "✦ 新SSR「エルシア」参戦 ＆ ウォールチェンジ調整", body: [
-    "プレミアムセレクトガチャに <b style='color:#f0b429'>SSR「エルシア」</b>（光属性・貫通）が登場！ "
+    "プレミアムセレクトガチャに <b style='color:#f0b429'>SSR「エルシア」</b>（LUMEN属性・貫通）が登場！ "
       + "アビリティは<b>超アンチダメージウォール／アンチブロック／全属性耐性／リンク×2／カウンターキラー</b>。"
       + "<b>リンク×2</b>は、1回のショットで<b>自分のリンクスキル（ルミナスレイ）を最大2回まで発動</b>できる強力な性能です（いったん離れてから再び触れると2回目が出ます）。",
     "エルシアのフルバースト<b>「セイクリッド・サクリファイス」（18ターン）</b>は、自強化しつつ<b>残りチームHPの40%を捧げ、最初にふれた敵に「捧げたHP×6」の大ダメージ</b>を叩き込みます。HPが多いほど強い諸刃の一撃！",
@@ -7994,7 +8245,7 @@ function questElemHTML(stage) {
 function hueFor(el) { return { fire: 80, water: -70, wood: -150, light: 125, dark: 0 }[el] || 0; }
 function spThumb(sp) {
   if (BOSSES[sp]) return IMGD + BOSSES[sp].th;
-  return IMGD + (sp === "omega" ? "t_Omega.webp" : sp === "zenos" ? "t_Zenosu.webp" : sp === "valga" ? "t_Valga.webp" : sp === "hecatia" ? "t_Hecatia.webp" : sp === "dominia" ? "t_Dominia.webp" : sp === "misora" ? "t_Misora.webp" : sp === "youka" ? "t_Youka.webp" : sp === "youhi" ? "t_Youhi.webp" : "t_Ultra.webp"); }
+  return IMGD + (sp === "omega" ? "t_Omega.webp" : sp === "zenos" ? "t_Zenosu.webp" : sp === "valga" ? "t_Valga.webp" : sp === "hecatia" ? "t_Hecatia.webp" : sp === "dominia" ? "t_Dominia.webp" : sp === "misora" ? "t_Misora.webp" : sp === "youka" ? "t_Youka.webp" : sp === "youhi" ? "t_Youhi.webp" : sp === "astraea" ? "t_Astraea.webp" : "t_Ultra.webp"); }
 /* ── クエストホーム：バナーでシリーズを選ぶ（黄昏の王城／禁忌の迷宮／超特急） ── */
 let questSeries = null;   // null=バナー一覧 / "castle" / "lab"
 function openSeries(ser) { questSeries = ser; renderQuests(); window.scrollTo(0, 0); }
@@ -8014,7 +8265,7 @@ function dailyBadgeHTML(s) {
 function carryBadgeHTML(s) {
   /* ★ 2026-08-17o 蓬莱の九重も対象外。毎月リセットするクエストなので、
      「ずっと CLEAR」を出すと嘘になる（実際その表示が出たままになっていた）。 */
-  if (!s || s.raid || s.garden || s.hourai || !s.room || s.room > CARRY_MAX_ROOM) return "";
+  if (!s || s.raid || s.garden || s.hourai || s.judge || !s.room || s.room > CARRY_MAX_ROOM) return "";
   return DB.clears[s.id]
     ? `<span class="qdaily carry">🔁 ずっと CLEAR</span>`
     : `<span class="qdaily carry off">🔁 クリアすればずっと CLEAR</span>`;
@@ -8073,13 +8324,16 @@ function stageCardHTML(s) {
     /* ★ 2026-08-17m 蓬莱天宮は理由が庭園とちがうので、専用の文面を出す */
     /* ★★ 2026-08-29 蓬莱の後半6階層は「前半9階層で通算30WAVE 到達」（ご指定）。
        あと何WAVEかまで出したいので、文は mb-core の houraiBackLockText() 1本にまとめてある。 */
-    const lockTx = s.needHouraiWave
+    /* ★★ 2026-09-05 天界の審判は「1つ前の審判をクリア」＋第六だけ蓬莱の踏破が要る */
+    const lockTx = s.judge
+      ? judgeLockText(s.room)
+      : s.needHouraiWave
       ? houraiBackLockText()
       : s.needAllClear
       ? "<b>蓬莱天宮</b>は、<b>第一重から第九重までを すべてクリア</b>すると開きます。"
       : gardenLockText(s.room);
     return `<div class="qcard hiq locked slim" style="opacity:.72;filter:saturate(.5)" onclick="uiAlert('${lockTx.replace(/'/g, "\\'")}<br><br><small>🧩ギミック・🛡対応キャラは先に確認できます。</small>',{icon:'🔒',title:'まだ開放されていません'})">
-      <img class="qimg" src="${spThumb(boss.sp)}" alt="" style="${(boss.sp === "hecatia" || boss.sp === "misora" || boss.sp === "dominia" || boss.sp === "youka" || boss.sp === "youhi" || boss.el === "dark") ? "" : "filter:hue-rotate(" + hueFor(boss.el) + "deg) saturate(1.2)"}">
+      <img class="qimg" src="${spThumb(boss.sp)}" alt="" style="${(boss.sp === "hecatia" || boss.sp === "misora" || boss.sp === "dominia" || boss.sp === "youka" || boss.sp === "youhi" || boss.sp === "astraea" || boss.el === "dark") ? "" : "filter:hue-rotate(" + hueFor(boss.el) + "deg) saturate(1.2)"}">
       <div class="qi">
         <div class="qn">🔒 ${s.nm} <span class="diff">${s.diff}</span></div>
         ${antiChipsHTML(s)}
@@ -8095,7 +8349,7 @@ function stageCardHTML(s) {
      説明文・報酬・属性相性などの詳細は 🧩ギミック詳細 にまとめてある。
      ＋ 1日1回のジェムがまだ残っているクエストには「本日未クリア」バッジを出す。 */
   return `<div class="qcard slim ${s.hi ? "hiq" : ""}" onclick="startBattle('${s.id}')">
-    <img class="qimg" src="${spThumb(boss.sp)}" alt="" style="${(boss.sp === "hecatia" || boss.sp === "misora" || boss.sp === "dominia" || boss.sp === "youka" || boss.sp === "youhi" || boss.el === "dark") ? "" : "filter:hue-rotate(" + hueFor(boss.el) + "deg) saturate(1.2)"}">
+    <img class="qimg" src="${spThumb(boss.sp)}" alt="" style="${(boss.sp === "hecatia" || boss.sp === "misora" || boss.sp === "dominia" || boss.sp === "youka" || boss.sp === "youhi" || boss.sp === "astraea" || boss.el === "dark") ? "" : "filter:hue-rotate(" + hueFor(boss.el) + "deg) saturate(1.2)"}">
     <div class="qi">
       <div class="qn">${elIcon(boss.el, 19)} ${s.nm} <span class="diff">${s.diff}</span>${dailyBadgeHTML(s)}${carryBadgeHTML(s)}${resumeFor(s.id) ? '<span class="qdaily rsm">⏸ WAVE ' + (resumeFor(s.id).wave + 1) + " から再開できます</span>" : ""}${s.fsMul ? '<span class="qdaily fs50">⚔ 殴り×' + (s.meleeMul || 2.0) + " ／ リンク×" + s.fsMul + "</span>" : ""}</div>
       ${antiChipsHTML(s)}
@@ -8493,10 +8747,11 @@ function renderQuests() {
   </div>` : "";
 
   /* ── シリーズ内の部屋一覧 ── */
-  if (questSeries === "castle" || questSeries === "lab" || questSeries === "garden" || questSeries === "hourai") {
+  if (questSeries === "castle" || questSeries === "lab" || questSeries === "garden" || questSeries === "hourai" || questSeries === "judge") {
     const ser = questSeries;
-    const hero = ser === "lab" ? "bn_lab_s.webp" : ser === "garden" ? "bn_garden_s.webp" : ser === "hourai" ? "bn_hourai_s.webp" : "bn_castle_s.webp";
-    const secTx = ser === "hourai" ? "🏯 蓬莱の九重 <span class='qsub'>第一重〜第九重＋蓬莱天宮・爆絶高難易度・全6WAVE</span>"
+    const hero = ser === "judge" ? "bn_judge_s.webp" : ser === "lab" ? "bn_lab_s.webp" : ser === "garden" ? "bn_garden_s.webp" : ser === "hourai" ? "bn_hourai_s.webp" : "bn_castle_s.webp";
+    const secTx = ser === "judge" ? "⚖ 天界の審判 <span class='qsub'>第一〜第十の審判・裁定級・全6WAVE</span>"
+      : ser === "hourai" ? "🏯 蓬莱の九重 <span class='qsub'>第一重〜第九重＋蓬莱天宮・爆絶高難易度・全6WAVE</span>"
       : ser === "lab" ? "🌀 禁忌の迷宮 <span class='qsub'>第1〜30の間・全6WAVE・挟み撃ち地形</span>"
       : ser === "garden" ? "🌸 幽冥の庭園 <span class='qsub'>第1〜" + GARDEN_N + "ノ園・超絶高難易度・全6WAVE・WAVEごとに導線が変化</span>"
       : "🏰 黄昏の王城 <span class='qsub'>第1〜30の間・全6WAVE</span>";
@@ -8551,6 +8806,8 @@ function QUEST_SERIES() {
   /* ★ 2026-08-07: 幽冥の庭園をいちばん上に置く（最高難易度＝いちばんよく遊ぶ入口）。 */
   return [
     /* ★ 2026-08-17m 蓬莱の九重は幽冥の庭園より上に置く（爆絶＝いちばん高い難度） */
+    /* ★★ 2026-09-05 天界の審判は蓬莱よりさらに上（いちばん高い難度）なので先頭に置く */
+    { k: "judge", ic: "⚖", nm: "天界の審判", sub: "第一〜第十の審判・裁定級", img: "bn_judge_s.webp", tag: "踏破 " + pct("judge") + "%", go: "openSeries('judge')" },
     { k: "hourai", ic: "🏯", nm: "蓬莱の九重", sub: "第一重〜第九重＋蓬莱天宮・爆絶高難易度", img: "bn_hourai_s.webp", tag: "踏破 " + pct("hourai") + "%", go: "openSeries('hourai')" },
     { k: "garden", ic: "🌸", nm: "幽冥の庭園", sub: "第1〜" + GARDEN_N + "ノ園・超絶高難易度", img: "bn_garden_s.webp", tag: "踏破 " + pct("garden") + "%", go: "openSeries('garden')" },
     { k: "castle", ic: "🏰", nm: "黄昏の王城", sub: "第1〜30の間", img: "bn_castle_s.webp", tag: "踏破 " + pct("castle") + "%", go: "openSeries('castle')" },
@@ -8723,20 +8980,38 @@ function startLobbyAuto() {
      「EVENT Nocturne Bloom Fest」と「GACHA Nocturne Bloom Fest」のように
      <b>同じ内容のバナーが2枚ならぶ</b>状態になっていた。
      開催中のイベントと<b>行き先が同じガチャ</b>は、あとから足さない。 */
+/* きょうの日付（YYYY-MM-DD・ローカル）。★ toISOString は UTC なので日本は9時間ずれる。 */
+function todayStr() { return new Date().toLocaleDateString("sv-SE"); }
 function lobbyBanners() {
+  /* ★★ 2026-09-06 ご指定「新しいものは常にいちばん左」。
+     前は<b>イベントを日付順に並べたあと、ガチャを FESTS に書いた順で足す</b>だけだったので、
+     あとから足したフェスが古いフェスのうしろに来ていた。
+     いまは<b>イベントもガチャも1つの列にまぜてから、新着日で並べ直す</b>。
+     ★ 日付は EVENT なら since/from、GACHA なら FESTS[k].since を見る。
+       新しいフェスを足すときは <b>since を必ず書く</b>こと（無いと右端へ行く）。 */
   const live = eventsLive();
+  const dOf = (e) => e.since || e.from || "";
   const out = live.map((e) => ({
-    tag: "EVENT", nm: e.nm, sub: e.sub, img: e.img, c: e.c, go: `openEvents('${e.id}')`,
+    tag: "EVENT", nm: e.nm, sub: e.sub, img: e.img, c: e.c, go: `openEvents('${e.id}')`, d: dOf(e),
   }));
   const covered = {};                       /* イベントがすでに案内している行き先 */
   live.forEach((e) => { covered[e.go] = 1; });
   const addGacha = (b) => { if (!covered[b.go]) out.push(b); };
   Object.keys(FESTS).forEach((k) => {
     const f = FESTS[k];
-    addGacha({ tag: "GACHA", nm: f.nm, sub: "限定SSR " + f.chars.length + "体が排出中", img: fesBannerOf(k), c: f.c, go: `goShop('${k}')` });
+    /* ★ いま回せないフェス（毎月フェスの期間外・配信終了ずみ）はバナーに出さない。
+       出しても押した先で「開催前です」と言われるだけで、新着の邪魔になる。 */
+    try { if (typeof fesLocked === "function" && fesLocked(k)) return; } catch (e) {}
+    /* ★ 毎月まわってくるフェス（monthly）は since を持たないので、
+       開催中は「きょう」として扱う＝新しいものとしていちばん左に来る。 */
+    const _d = f.since || (f.monthly ? todayStr() : "");
+    addGacha({ tag: "GACHA", nm: f.nm, sub: "限定SSR " + f.chars.length + "体が排出中", img: fesBannerOf(k), c: f.c, go: `goShop('${k}')`, d: _d });
   });
-  addGacha({ tag: "GACHA", nm: "プレミアムセレクトガチャ", sub: "ピックアップを自分でえらべる", img: "img/bn_premium_s.webp", c: "#ff9d2e", go: "goShop('premium')" });
-  return out;
+  addGacha({ tag: "GACHA", nm: "プレミアムセレクトガチャ", sub: "ピックアップを自分でえらべる", img: "img/bn_premium_s.webp", c: "#ff9d2e", go: "goShop('premium')", d: "" });
+  /* 新着日の大きい順。同じ日のものは元の並びのまま（安定ソート） */
+  return out.map((b, i) => ({ b, i }))
+    .sort((x, y) => (x.b.d < y.b.d ? 1 : x.b.d > y.b.d ? -1 : x.i - y.i))
+    .map((x) => x.b);
 }
 /* Shop（ガチャ）を開いて、指定のガチャに合わせる */
 /* ★ 2026-08-10 ガチャは XEVARION（gacha.html）へ一本化した。
@@ -9689,6 +9964,26 @@ const EVENTS = [
       go: "goShop('premium')", goNm: "🎰 ガチャへ行く",
     };
   })(),
+  /* ★★ 2026-09-06 天界の審判の登場告知（いちばん新しいので先頭に置く） */
+  {
+    id: "ev_judge", nm: "天界の審判 実装", sub: "裁定級・全10クエスト（はじめから全開放）", c: "#8fd0ff",
+    img: "img/bn_judge_s.webp", since: "2026-09-05", from: "2026-09-05", to: "2026-12-31",
+    chars: [],
+    body: "<b>裁定級クエスト「天界の審判」</b>が登場しました。"
+      + "<b>第一の審判〜第十の審判</b>の全10クエストで、<b>はじめから全部あそべます</b>。"
+      + "<br>ボスは新種族<b>天律族</b>の<b>アストレア</b>。"
+      + "難易度は<b>蓬莱の九重の最下層より上</b>です。"
+      + "<br><b>第一〜第五</b>と<b>第六〜第十</b>の2段（それぞれ IGNIS・AQUA・VERDE・LUMEN・UMBRA の5属性ぶん）で、"
+      + "<b>同じ段のなかでは属性による難易度差をつけていません</b>。"
+      + "<br>アンチギミックは<b>3つずつ</b>で、これまでのどのクエストとも重ならない組み合わせです。"
+      + "さらに<b>盤面を変える特殊ギミックを1クエストに2つ</b>持たせ、<b>WAVEごとに出しわけて</b>あります。"
+      + "<br>ボスは<b>壁とザコにはさまれる</b>置きかたなので、あいだに入って連続で殴れます。"
+      + "<b>第六〜第十は弱点がまんなか</b>にあり、<b>貫通でしか殴れません</b>（内部弱点）。"
+      + "<br>アストレアだけの攻撃は3つ——<b>⚖ 天秤の裁定</b>／<b>🔨 断罪の槌</b>／<b>✦ 判決の光柱</b>。"
+      + "つぎに来る攻撃は敵の<b>右下</b>に出ます。"
+      + "<br><b>60WAVE</b>踏破で<b>アストレア</b>が仲間になります。",
+    go: "openSeries('judge')", goNm: "⚖ 天界の審判へ行く",
+  },
   /* ★ 2026-08-17m 蓬莱の九重の登場告知 */
   {
     id: "ev_hourai", nm: "蓬莱の九重 実装", sub: "爆絶高難易度・全10クエスト", c: "#ff9ec4",
@@ -10036,6 +10331,9 @@ function renderMenu() {
     { t: "あそぶ", items: [
       { ic: ICO.quest, nm: "クエスト", sub: "黄昏の王城・禁忌の迷宮・幽冥の庭園・超特急", go: "goTab('vhome')" },
       { ic: ICO.multi, nm: "マルチプレイ", sub: "部屋番号で最大4人", go: "openOnline('castle')" },
+      /* ★★ 2026-09-06 LOCAL PLAY（ご指定のプロンプトどおりの専用画面）。
+         Wi-Fi ルーターもゲームサーバーも使わず、近くの人と P2P でつながる。 */
+      { ic: ICO.multi, nm: "LOCAL PLAY", sub: "近くの人と（サーバー不要・最大4人）", go: "LocalPlay.open()" },
       { ic: ICO.event, nm: "イベント", sub: "開催中のイベントとガチャ", go: "openEvents()" },
       { ic: ICO.mission, nm: "ミッション", sub: "デイリー・ウィークリー・達成", go: "openMissions()", dot: missionClaimable() },
     ] },
@@ -10058,13 +10356,24 @@ function renderMenu() {
     ] },
     { t: "しらべる", items: [
       { ic: ICO.guide, nm: "あそびかた", sub: "引っぱりハンティング入門", go: "openHelp()" },
-      { ic: ICO.gim, nm: "ギミック図鑑", sub: "全ギミックの説明", go: "openGimInfo('express')" },
+      { ic: ICO.gim, nm: "ギミック図鑑", sub: "全ギミックの説明", go: "openGimInfo('all')" },
       { ic: ICO.news, nm: "お知らせ", sub: "アップデート情報", go: "openNews()" },
-      /* ★ 2026-08-07 発熱・電池の設定 */
-      { ic: TICO.battery, nm: "省電力モード" + (PW_SAVE ? "：ON" : "：OFF"),
-        sub: PW_SAVE ? "描画を間引き、飾りを止めて発熱と電池の減りを抑えます（タップでOFF）"
-                     : "見た目そのまま。タップでONにすると発熱と電池の減りを抑えます",
-        go: "togglePwSave()" },
+      /* ★★ 2026-09-06 スイッチの形（sw）で、いま ON なのか OFF なのかを見て分かるようにする（ご指定）。
+         ★ 押したあとは renderLobby() で描き直すので、スイッチの絵も自動で切りかわる。 */
+      { ic: TICO.battery, nm: "省電力モード",
+        sub: PW_SAVE ? "描画を間引き、飾りを止めて発熱と電池の減りを抑えています"
+                     : "見た目そのまま（電池をもたせたいときは ON に）",
+        sw: PW_SAVE, go: "togglePwSave()" },
+      /* ★★ 2026-09-06 UI の切りかえ（新／旧）。ふだんは新UI。 */
+      { ic: TICO.ui || ICO.gim, nm: "UI デザイン",
+        sub: mbNewUI() ? "新UI（スタイリッシュ）で表示しています" : "旧UI（これまでの見た目）で表示しています",
+        sw: mbNewUI(), swOn: "新", swOff: "旧", go: "toggleMbUI()" },
+      /* ★★ 2026-09-06 言語。XEVARION の設定と<b>同じ置き場所</b>（xeva_lang_v1）を見るので、
+         どちらで変えても両方に効く。 */
+      { ic: TICO.lang || ICO.guide, nm: "言語 / Language",
+        sub: mbLangEn() ? "English で表示しています（tap to switch to 日本語）"
+                        : "日本語で表示しています（tap to switch to English）",
+        sw: mbLangEn(), swOn: "EN", swOff: "JA", go: "toggleMbLang()" },
       { ic: ICO.acct, nm: "アカウント", sub: "ログイン／切り替え", go: "openAccount()" },
     ] },
   ];
@@ -10075,7 +10384,10 @@ function renderMenu() {
         <span class="mnic">${x.ic}</span>
         <span class="mntx"><b>${x.nm}</b><small>${x.sub}</small></span>
         ${x.dot ? `<i class="mnb">${x.dot}</i>` : ""}
-        <span class="mnar">›</span>
+        ${/* ★★ 2026-09-06 オン・オフのスイッチ（省電力・UI・言語）。
+             文字（ON/OFF）と<b>つまみの位置</b>の両方で分かるようにする。 */""}
+        ${x.sw === undefined ? '<span class="mnar">›</span>'
+          : `<span class="mnsw ${x.sw ? "on" : ""}"><i></i><b>${x.sw ? (x.swOn || "ON") : (x.swOff || "OFF")}</b></span>`}
       </button>`).join("")}</div>
   </section>`).join("");
 }
@@ -10206,6 +10518,10 @@ const TICO = (function () {
   return {
     /* 入れ替え＝上下2本の矢印がすれちがう */
     swap: s('<path d="M4 8.6h12"/><path d="M13 5.4l3.4 3.2L13 11.8"/><path d="M20 15.4H8"/><path d="M11 12.2 7.6 15.4 11 18.6"/>'),
+    /* ★★ 2026-09-06 UI の切りかえ＝画面の枠がふたつ */
+    ui: s('<rect x="2.6" y="4.6" width="12" height="9.4" rx="2.4"/><rect x="9.4" y="10" width="12" height="9.4" rx="2.4"/>'),
+    /* ★★ 2026-09-06 言語＝地球に横線 */
+    lang: s('<circle cx="12" cy="12" r="8.6"/><path d="M3.6 12h16.8"/><path d="M12 3.4c2.6 2.6 2.6 14.6 0 17.2"/><path d="M12 3.4c-2.6 2.6-2.6 14.6 0 17.2"/>'),
     /* 詳細＝丸に i */
     info: s('<circle cx="12" cy="12" r="8.4"/><path d="M12 11.2v5"/><path d="M12 7.9h.01"/>'),
     /* 育成＝上向きの矢印＋伸びるバー */
@@ -11323,20 +11639,54 @@ function teamGoHTML() {
         ${ICO.counter}完全対応だけ</button>
     </div>
     ${locked
-      ? `<div class="tgd2">${gardenLockText(st.room)}<br>編成だけ準備しておけます。</div>`
+      ? `<div class="tgd2">${st.judge ? judgeLockText(st.room) : gardenLockText(st.room)}<br>編成だけ準備しておけます。</div>`
       : `<button class="tgbtn" ${ok ? "" : "disabled"} onclick="teamGoNow()">${ok ? "⚔ このパーティーで出発する" : "4体そろえてください"}</button>`}
     <button class="tgx" onclick="setTeamGoStage(null);renderTeam()">✕ 出撃をやめる</button>
   </div>`;
 }
+/* ══ ★★ 2026-09-05 クロスが未発動のまま出撃しようとしていないか（ご指定）══
+   「対応キャラ」でクロスのアンチを見て編成に入れても、
+   <b>クロスの相方がいないと1つも効かない</b>。押す前に気づけるようにする。
+   ★ 止めはしない（そのまま行くのも自由）。「このまま出発」を選べる。
+   戻り値: true＝進んでよい／false＝やめる */
+async function crossWarnBeforeGo(st) {
+  try {
+    if (!st || typeof counterKeysOf !== "function") return true;
+    const keys = counterKeysOf(st);
+    if (!keys.length) return true;
+    const party = (DB.party || []).filter(Boolean);
+    const bad = [];
+    party.forEach((id) => {
+      const c = CHARS[id]; if (!c || !c.connect) return;
+      if (typeof connectOnId === "function" && connectOnId(id)) return;   /* もう発動している */
+      const cx = (typeof charAntiKeysCross === "function") ? charAntiKeysCross(id) : [];
+      const need = cx.filter((k) => keys.indexOf(k) >= 0);
+      if (need.length) bad.push({ id, nm: c.nm, need });
+    });
+    if (!bad.length) return true;
+    const lines = bad.map((b) =>
+      "・<b>" + b.nm + "</b>… <b>" + b.need.map((k) => COUNTER_ABIL[k].nm).join("・") + "</b>"
+      + "（クロス「" + ((connectDef(b.id) || {}).nm || "クロススキル") + "」で持つアンチ）").join("<br>");
+    return await uiConfirm(
+      "このクエストに必要なアンチを<b>クロススキルでしか持っていない</b>キャラがいますが、"
+      + "<b>クロスがまだ発動していません</b>。<br><br>" + lines
+      + "<br><br>クロスは<b>相方が同じ編成にいる</b>と発動します（クロスの書があれば条件を無視できます）。"
+      + "<br>このまま出発すると、上のアンチは<b>1つも効きません</b>。",
+      { icon: "⚔", title: "クロスが発動していません", ok: "このまま出発する", cancel: "編成を直す" });
+  } catch (e) { return true; }
+}
+
 async function teamGoNow() {
   const id = teamGoStage; if (!id) return;
   /* ★ v14.5: クエストへ出発する前に、この編成でよいかを画面内で確認する */
   if (!await confirmPartyLeave()) return;
-  const st = findStage(id);
+  const st0 = findStage(id);
+  if (!(await crossWarnBeforeGo(st0))) return;
+  const st = st0;
   if (!st) { teamGoStage = null; renderTeam(); return; }
   /* ★ v13.9: 未開放クエスト（幽冥の庭園の先の園）には入れない */
   if (stageLocked(st)) {
-    uiAlert("このクエストはまだ開放されていません。<br>" + gardenLockText(st.room), { icon: "🔒", title: "まだ開放されていません" });
+    uiAlert("このクエストはまだ開放されていません。<br>" + (st.judge ? judgeLockText(st.room) : gardenLockText(st.room)), { icon: "🔒", title: "まだ開放されていません" });
     return;
   }
   if (!partyReady(DB.party)) return;
@@ -12409,8 +12759,9 @@ function subfsLabel(k) { return (SUBFS[k] || {}).nm || k || ""; }
 
 const FILTERS = [
   { k: "all", label: "すべて" },
-  { k: "el:fire", label: "火" }, { k: "el:water", label: "水" }, { k: "el:wood", label: "木" },
-  { k: "el:light", label: "光" }, { k: "el:dark", label: "闇" },
+  /* ★★ 2026-09-06 属性の呼び名（ご指定）。ELEM の nm と<b>同じ字</b>にすること。 */
+  { k: "el:fire", label: "IGNIS" }, { k: "el:water", label: "AQUA" }, { k: "el:wood", label: "VERDE" },
+  { k: "el:light", label: "LUMEN" }, { k: "el:dark", label: "UMBRA" },
   { k: "shot:bounce", label: "反射" }, { k: "shot:pierce", label: "貫通" },
   /* ★ 2026-08-07: 戦型は6分類。BATTLE_TYPES と同じ並びにそろえる */
   { k: "type:balance", label: "バランス" }, { k: "type:striker", label: "アタッカー" },
@@ -13153,7 +13504,7 @@ function matchOne(k, c, id) {
   return true;
 }
 /* ★ v10.1: 絞り込みは「選んだ条件をすべて満たす（＝且）」で判定する。
-   （例: 火＋反射＋ADW → 火属性で反射でADW持ちのキャラだけ。火と水を同時に選ぶと0件になる） */
+   （例: 火＋反射＋ADW → IGNIS属性で反射でADW持ちのキャラだけ。火と水を同時に選ぶと0件になる） */
 /* ★ v12.6: 属性だけは「複数選ぶと“どれか”＝OR」。
    火＋水 を選んだら「火か水のキャラ」が出る（以前は“かつ”だったので必ず0件になっていた）。
    属性いがいの枠は今までどおり「選んだ条件をすべて満たす＝AND」。 */
@@ -13184,7 +13535,7 @@ function kanaNorm(s) {
    という2つの問題があった。検索の対象を <b>キャラ名／リンク／アビ</b> から選ぶ方式にする。
      name … キャラ名・No.（ひらがな・カタカナどちらでもOK）
      link … リンクスキル名＋その短縮形＋サブリンクスキル名
-     abil … アビリティ名（属性キラーなどは「火属性キラーM」の形で入っている）
+     abil … アビリティ名（属性キラーなどは「IGNIS属性キラーM」の形で入っている）
    ★ キャラを追加したときに直す場所は無い（CHARS からその場で組み立てている）。 */
 const SEARCH_MODES = [
   { k: "name", label: "キャラ名", ph: "キャラ名でさがす（ひらがな・カタカナOK）" },
@@ -13525,16 +13876,31 @@ function searchBoxHTML(scope) {
     <button class="csx" onclick="clearSearch('${scope}')" title="検索をクリア">✕</button>
   </div>`;
 }
+/* ★★ 2026-09-06 並び替えを<b>画面の中</b>で（ご指定）。
+   前は <select>。スマホでは端末のピッカーが開くので
+     ・ゲームの画面の外に出てしまう
+     ・<option> は端末が描くので<b>英語版の対象にもならない</b>
+   いまは「押すと下に開く札の一覧」。ふつうの HTML なので英語にもなる。 */
+let sortOpenScope = null;
+window.toggleSortPanel = (scope) => {
+  sortOpenScope = (sortOpenScope === scope) ? null : scope;
+  SFX.pick();
+  const st = FSCOPE[scope];
+  if (st && st.render) keepScroll(() => st.render());
+};
+window.pickSort = (scope, k) => { sortOpenScope = null; setSortKey(scope, k); };
 function sortBarHTML(scope) {
   const st = FSCOPE[scope];
   const cur = st.sort || "def", desc = !!st.desc;
+  const now = (SORTS.find((s) => s.k === cur) || SORTS[0]).label;
+  const open = (sortOpenScope === scope);
   return `<div class="csort">
     <span class="cslab">↕ 並び替え</span>
-    <select class="cssel" onchange="setSortKey('${scope}',this.value)">
-      ${SORTS.map((s) => `<option value="${s.k}" ${s.k === cur ? "selected" : ""}>${s.label}</option>`).join("")}
-    </select>
+    <button class="cssel ${open ? "open" : ""}" onclick="toggleSortPanel('${scope}')">${now}<span class="csar">▾</span></button>
     <button class="csdir ${desc ? "up" : ""}" onclick="toggleSortDir('${scope}')" title="上下を逆にする">${desc ? "▲ 逆順" : "▼ 通常"}</button>
-  </div>`;
+  </div>
+  ${open ? `<div class="cspanel">${SORTS.map((s) =>
+      `<button class="${s.k === cur ? "on" : ""}" onclick="pickSort('${scope}','${s.k}')">${s.label}</button>`).join("")}</div>` : ""}`;
 }
 function filterUIHTML(scope) {
   const st = FSCOPE[scope];
@@ -13592,6 +13958,27 @@ function toggleAbil(ai) {
   SFX.pick();
 }
 window.toggleAbil = toggleAbil;
+/* ★★ 2026-09-06 クロスで持つアビリティの説明（ご指定）。
+   ★ 本人のアビリティ（toggleAbil）と<b>同じ欄</b>に出す。別の欄を作ると
+     どちらが開いているのか分からなくなる。開いている印も共通で消す。 */
+let _detCnx = [];
+let _cnxOpen = -1;
+function toggleCnxAbil(ci) {
+  const box = $("#abDesc"); if (!box) return;
+  const was = _cnxOpen;
+  _abilOpen = -1; _cnxOpen = (was === ci) ? -1 : ci;
+  document.querySelectorAll(".abbtn").forEach((b) => b.classList.remove("on"));
+  if (_cnxOpen < 0 || !_detCnx[_cnxOpen]) { box.classList.remove("on"); box.innerHTML = ""; return; }
+  const s = _detCnx[_cnxOpen];
+  const btns = document.querySelectorAll(".abbtn.cnx");
+  if (btns[_cnxOpen]) btns[_cnxOpen].classList.add("on");
+  box.innerHTML = "<b>" + s.nm + "</b>：" + s.desc
+    + '<br><small style="opacity:.8">※ クロススキルで持つアビリティです'
+    + (s.on ? "（<b>いま発動中</b>）" : "（未発動・" + (s.why || "条件外") + "）") + "</small>";
+  box.classList.add("on");
+  SFX.pick();
+}
+window.toggleCnxAbil = toggleCnxAbil;
 /* ══════════════════════════════════════════════════════════════
    ★ 2026-08-05 バトル中のキャラ詳細（1画面に収まる版）
    参考にしたのはモンストの「モンスター情報」。上から順に
@@ -13664,11 +14051,20 @@ function openBattleDetHTML(id, ball, shotNow, shotChanged, st, showNexus, inBatt
         ${inBattle || own ? "" : '<span class="bdm" style="color:#ff8f8f;border-color:rgba(255,143,143,.45)">未所持</span>'}
         ${ball && ball.barrier > 0 ? '<span class="bdm bar">🛡 ' + fmt(Math.round(ball.barrier)) + "</span>" : ""}
       </div>
-      <div class="bdsec"><span class="bdst">アビリティ</span>
-        ${/* ★ 2026-08-08b 発動中のクロススキルは<b>アビリティと同じ扱い</b>なので、ここにも並べる */""}
-        <div class="bdabs">${sortedAbil(c).map((a) => `<span class="bdab">${abilName(a)}</span>`).join("")
-          + connectAbils(id, st.awk).map((k) => connectChip(k, "bdab")).join("")
+      ${/* ══ ★★ 2026-09-06 アビリティ（ご指定）══
+            ・<b>各列2つずつ</b>にそろえる（.bdabs はもともと 1fr 1fr）。
+            ・<b>タップすると説明が出る</b>。押した札の下に開く形にしてあるので、
+              画面が飛ばず、いくつでも開いたままにできる。
+            ★ クロスで持つアビリティも同じ形（緑の枠）で並べる。 */""}
+      <div class="bdsec"><span class="bdst">アビリティ<i>タップで説明</i></span>
+        <div class="bdabs">${
+          sortedAbil(c).map((a, i) => `<button type="button" class="bdab tap" onclick="event.stopPropagation();mbAbilTap(this)"
+              data-d="${escAttr(abilDesc(a))}">${abilName(a)}<em>▾</em></button>`).join("")
+          + connectAbils(id, st.awk).map((s) => `<button type="button" class="bdab tap cx${s.on ? " on" : " off"}"
+              onclick="event.stopPropagation();mbAbilTap(this)"
+              data-d="${escAttr(s.desc + "<br>※ クロススキルで持つアビリティ" + (s.on ? "（いま発動中）" : "（" + (s.why || "未発動") + "）"))}">${s.nm}<em>▾</em></button>`).join("")
           || '<span class="bdnone">なし</span>'}</div>
+        <div class="bdabd" id="bdAbilDesc" hidden></div>
       </div>
       ${/* ★ 2026-08-07: クロススキルはアビリティのすぐ下（＝増えるアビリティなので隣に置く） */""}
       ${/* ★ 2026-08-10 クロス欄には<b>発動条件</b>を書く。
@@ -13771,6 +14167,32 @@ function openSecretDet(id) {
     </div>`;
   $("#detOv").classList.add("on");
 }
+/* ══ ★★ 2026-09-06 アビリティをタップすると説明が出る（ご指定）══
+   ★ 説明は data-d に入れておき、押されたらその<b>すぐ下の欄</b>へ写す。
+     別の板を開かないので、読みながら次の札も押せる。
+   ★ 説明には <b> などのタグが入るので、属性に入れるときは escAttr で包むこと。
+     ここを忘れると引用符でタグが切れて、画面が崩れる。 */
+function escAttr(s) {
+  return String(s == null ? "" : s)
+    .replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/'/g, "&#39;")
+    .replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+window.escAttr = escAttr;
+function mbAbilTap(btn) {
+  if (!btn) return;
+  const box = document.getElementById("bdAbilDesc");
+  if (!box) return;
+  const on = btn.classList.contains("open");
+  /* 同じ札をもう一度押したら閉じる */
+  document.querySelectorAll(".bdab.tap.open").forEach((b) => b.classList.remove("open"));
+  if (on) { box.hidden = true; box.innerHTML = ""; return; }
+  btn.classList.add("open");
+  const d = btn.getAttribute("data-d") || "";
+  box.innerHTML = '<b>' + btn.textContent.replace(/[▾▴]$/, "").trim() + "</b>" + d;
+  box.hidden = false;
+}
+window.mbAbilTap = mbAbilTap;
+
 function openDet(id, from) {
   $("#detCard").classList.remove("bt");   // 前回がバトル用レイアウトだったときのために毎回もどす
   $("#detOv").classList.remove("btmode");
@@ -13906,8 +14328,10 @@ function openDet(id, from) {
       <div class="dsk ab"><div class="t">ABILITY — アビリティ<small style="color:var(--sub);font-weight:700;margin-left:6px">タップで説明</small></div>
         <!-- ★ 2026-08-06: 並びは _detAbil（アンチ対応 → キラー系 → その他）にそろえる。
              toggleAbil(ai) は _detAbil の番号を見るので、ここも同じ配列から作ること。 -->
-        <div class="abrow">${_detAbil.map((a, ai) => `<button class="abchip abbtn" onclick="toggleAbil(${ai})">${abilName(a)}<i class="abar">▾</i></button>`).join("")
-          + connectAbils(id).map((k) => connectChip(k, "abchip")).join("")}</div>
+        ${/* ★★ 2026-09-06 クロスで持つアビリティも<b>押すと説明</b>が出る（ご指定）。
+              連番は本人のアビリティのあとに続ける（_detCnx に控えておく）。 */""}
+        <div class="abrow abgrid">${_detAbil.map((a, ai) => `<button class="abchip abbtn" onclick="toggleAbil(${ai})">${abilName(a)}<i class="abar">▾</i></button>`).join("")
+          + (_detCnx = connectAbils(id)).map((s, ci) => `<button class="abchip abbtn cnx ${s.on ? "on" : "off"}" onclick="toggleCnxAbil(${ci})">${s.nm}<i class="abar">▾</i></button>`).join("")}</div>
         <div class="abdesc" id="abDesc"></div></div>
       ${/* ★ 2026-08-07: クロススキルは「条件を満たすと増えるアビリティ」なので、
             アビリティのすぐ下に置く（以前はいちばん下にあり、関係が読み取れなかった）。 */""}
@@ -14202,7 +14626,7 @@ function NET() { return (ON && ON.local && window.BurstLocal) ? window.BurstLoca
 window.NET = NET;
 function onOwned() { return CHAR_IDS.filter((id) => DB.chars[id]); }
 /* ★ マルチで遊べるクエスト（黄昏の王城＋禁忌の迷宮）。ser を渡すとその既定に合わせる */
-function onlineStages() { return STAGES.concat(LAB_STAGES, GARDEN_STAGES.filter((s) => !stageLocked(s))); }
+function onlineStages() { return STAGES.concat(LAB_STAGES, GARDEN_STAGES.filter((s) => !stageLocked(s)), JUDGE_STAGES.filter((s) => !stageLocked(s))); }
 function openOnline(ser) {
   /* ★★ 2026-09-01 オフラインでも<b>ローカル通信マルチ</b>は遊べる（ご指定）。
      入口では止めず、いちばん上のタブで「近くの人と」を選べるようにしてある。
@@ -14226,6 +14650,7 @@ function openOnline(ser) {
      クエスト一覧の「🌐 マルチプレイ」から来ると ser="hourai" で入ってくるので、
      ここで蓬莱の第一重を初期選択にする。ここを足さないと黄昏の王城に落ちる。 */
   if (ser === "hourai" && !/^hr/.test(st)) st = "hr1";
+  if (ser === "judge" && !/^jg/.test(st)) st = "jg1";
   if (!findStage(st) || stageLocked(findStage(st))) st = "tk1";
   /* ★★ 2026-09-01 部屋づくり・部屋入りを<b>2段</b>にした（ご指定）。
      step:"pick" … 部屋をつくる＝クエストをえらぶ／部屋に入る＝番号を入れる
@@ -14604,7 +15029,12 @@ function onQuestInfoHTML() {
     </div>`;
 }
 function onProfile() {
-  const ids = (ON.charIds || []).filter((id) => DB.chars[id]);
+  /* ★★ 2026-09-06 キャラをまだ選んでいないときは<b>いまの編成</b>を使う。
+     LOCAL PLAY は「先に部屋を作ってからキャラを選ぶ」流れなので、ここが空のまま呼ばれる。
+     以前は下の CHARS[ids[0]].th で<b>例外になって部屋が作れなかった</b>。 */
+  let ids = (ON.charIds || []).filter((id) => DB.chars[id]);
+  if (!ids.length) ids = (DB.party || []).filter((id) => id && DB.chars[id]).slice(0, 2);
+  if (!ids.length) ids = Object.keys(DB.chars || {}).slice(0, 1);
   const chars = ids.map((id) => {
     const st = DB.chars[id] || { lv: 1, awk: 0 };
     /* fruit は旧クライアント互換のため第1枠を、fruits に2枠ぶんを送る */
@@ -14621,7 +15051,8 @@ function onProfile() {
     chars,
     /* ★ 2026-08-24 蓬莱天宮の挑戦条件を満たしているか（部屋の全員ぶんを見て判定する） */
     tenkyu: (typeof houraiTenkyuOpen === "function") ? !!houraiTenkyuOpen() : false,
-    th: CHARS[ids[0]].th,
+    /* ★ ids が空でも落ちないようにする（絵が無いだけで通信はできる） */
+    th: (ids[0] && CHARS[ids[0]]) ? CHARS[ids[0]].th : "",
   };
 }
 /* ══ ★★ 2026-08-24 蓬莱の「後半6階層」のマルチ条件 ══
@@ -14898,7 +15329,7 @@ function renderOnline() {
         <div class="ontabs">
           <button class="ontab ${ON.mode === "create" ? "on" : ""}" onclick="onSetMode('create')">部屋をつくる</button>
           <button class="ontab ${ON.mode === "join" ? "on" : ""}" onclick="onSetMode('join')">部屋に入る</button>
-          <button class="ontab ${ON.mode === "local" ? "on" : ""}" onclick="onSetMode('local')">📶 近くの人と</button>
+          <button class="ontab" onclick="closeOnline();LocalPlay.open()">📶 LOCAL PLAY</button>
         </div>
         ${ON.mode === "local" ? `
           <div class="onhint">📶 <b>ローカル通信</b>＝<b>同じ Wi-Fi につながっていれば、インターネットが無くても</b>
@@ -14943,6 +15374,10 @@ function renderOnline() {
               <optgroup label="🏯 蓬莱の九重（爆絶）">
               ${HOURAI_STAGES.filter((s) => !stageLocked(s)).map((s) => `<option value="${s.id}" ${ON.stage === s.id ? "selected" : ""}>${s.nm}（${s.diff}）</option>`).join("")}
               </optgroup>
+              ${/* ★★ 2026-09-05 天界の審判もマルチで遊べるようにする */""}
+              <optgroup label="⚖ 天界の審判（裁定級）">
+              ${JUDGE_STAGES.filter((s) => !stageLocked(s)).map((s) => `<option value="${s.id}" ${ON.stage === s.id ? "selected" : ""}>${s.nm}（${s.diff}）</option>`).join("")}
+              </optgroup>
             </select>
             <button class="onbtn" onclick="onNextStep()">つぎへ（1人目のキャラをえらぶ）</button>
           ` : ON.lmode === "host" ? `
@@ -14959,6 +15394,9 @@ function renderOnline() {
               </optgroup>
               <optgroup label="🏯 蓬莱の九重（爆絶）">
               ${HOURAI_STAGES.filter((s) => !stageLocked(s)).map((s) => `<option value="${s.id}" ${ON.stage === s.id ? "selected" : ""}>${s.nm}（${s.diff}）</option>`).join("")}
+              </optgroup>
+              <optgroup label="⚖ 天界の審判（裁定級）">
+              ${JUDGE_STAGES.filter((s) => !stageLocked(s)).map((s) => `<option value="${s.id}" ${ON.stage === s.id ? "selected" : ""}>${s.nm}（${s.diff}）</option>`).join("")}
               </optgroup>
             </select>
             <div class="onhint">つぎの画面で、このクエストの<b>ギミック・🛡対応キャラ・🌍クリア編成</b>を見ながらキャラをえらべます。</div>
@@ -14989,6 +15427,9 @@ function renderOnline() {
             ${/* ★★ 2026-08-24 蓬莱の九重（爆絶）もマルチで遊べるようにした（ご指定）。 */""}
             <optgroup label="🏯 蓬莱の九重（爆絶）">
             ${HOURAI_STAGES.filter((s) => !stageLocked(s)).map((s) => `<option value="${s.id}" ${ON.stage === s.id ? "selected" : ""}>${s.nm}（${s.diff}）</option>`).join("")}
+            </optgroup>
+            <optgroup label="⚖ 天界の審判（裁定級）">
+            ${JUDGE_STAGES.filter((s) => !stageLocked(s)).map((s) => `<option value="${s.id}" ${ON.stage === s.id ? "selected" : ""}>${s.nm}（${s.diff}）</option>`).join("")}
             </optgroup>
           </select>
           ${isTenkyuStage(ON.stage) ? `<div class="onhint" style="color:#c8890f">🏯 <b>蓬莱の後半6階層</b>は、<b>ホストをふくむ参加者全員</b>が挑戦条件を満たしていないと出発できません。</div>` : ""}
@@ -16417,7 +16858,9 @@ function makeEnemy(d, i, j, first) {
   if (d.crush) { e.crushMax = d.crush + _doomBonus; e.crush = e.crushMax; }
   if (d.weak) { e.weak = 1; e.weakPeriod = d.weakPeriod || 190; e.weakOn = d.weakOn || 118; }   // 弱点の出現周期
   /* 内部弱点: 貫通キャラの直殴り・リンクスキルでしか弱点を殴れない。stage.gim.innerweak でボスに付与 */
-  if (d.innerWeak || (curGim().innerweak && d.boss)) e.innerWeak = 1;
+  /* ★★ 2026-09-05 弱点が<b>まんなか（center）</b>のときは、それ自体が内部弱点。
+     外から届かないので、貫通の直殴りとリンクでしか殴れない。 */
+  if (d.innerWeak || (curGim().innerweak && d.boss) || d.wside === "center" || d.wside === "middle") e.innerWeak = 1;
   if (d.poisonAtk) e.poisonAtk = 1;   // 毒攻撃をする敵
   if (d.fbDelay) e.fbDelay = d.fbDelay | 0;   // ★ 2026-08-05 FB遅延攻撃をする敵（巻きもどすターン数）
   if (d.grav) e.grav = d.grav;        // 重力バリア（周囲フィールドの半径）
@@ -16472,6 +16915,13 @@ function segDist(px, py, ax, ay, bx, by) {
 /* 敵を動かす（通ったところの味方にダメージ） */
 function enemyRelocate(e, nx, ny, label) {
   const ox = e.x, oy = e.y;
+  /* ★★ 2026-09-05 通り道に印を出す（ご指定「ダメージが入るエリアにマークを付ける」）。
+     判定にそのまま使っている幅（敵の半径＋味方の半径＋EMOVE_PAD）で描くので、
+     <b>見えている帯＝当たる帯</b>になる。味方の半径は BALL_R でそろえる。 */
+  if (B && B.effects) {
+    B.effects.push({ type: "emovepath", x: ox, y: oy, x2: nx, y2: ny,
+      w: (e.r || 40) + BALL_R + EMOVE_PAD, t: 0, dur: 40, c: "#ff8f6b" });
+  }
   e.x = nx; e.y = ny;
   if (!B || !B.balls || !B.balls.length) return 0;
   const hit = B.balls.filter((b) => b && !b.dead &&
@@ -16504,6 +16954,19 @@ const MINE_MAX = 4;   // ★ v13.6: 地雷の所持上限（超えた分は回�
 /* ルミナスレイ（ミオンのリンクスキル）のレーザーの「半分の太さ」。
    当たり判定（横ずれの許容量）と見た目の太さの両方でこの値を使う。v12.6 で 26 → 46。 */
 const BEAM_HALF = 46;
+/* ★★ 2026-09-05 敵の攻撃の種類（右下の札に出す）。
+   ★ 攻撃パターンを増やしたら<b>ここにも足す</b>こと。無いと札が出ないだけで落ちはしない。 */
+const ATK_PATTERN_INFO = {
+  laser:      { ic: "／", nm: "レーザー",   c: "#ff5d6c" },
+  crosslaser: { ic: "✚", nm: "十字レーザー", c: "#ff8ad0" },
+  homing:     { ic: "◎", nm: "ホーミング",  c: "#c86bff" },
+  burst:      { ic: "✹", nm: "バースト",    c: "#ff9f2e" },
+  all:        { ic: "☰", nm: "ぜんたい",    c: "#ffb0b0" },
+  /* 天界の審判（アストレア） */
+  scales:     { ic: "⚖", nm: "天秤の裁定",  c: "#8fd0ff" },
+  gavel:      { ic: "🔨", nm: "断罪の槌",   c: "#c9a6ff" },
+  verdict:    { ic: "✦", nm: "判決の光柱",  c: "#fff3c4" },
+};
 function weakActive(e) { return !!e.weak; }
 /* ══ ★★ 2026-08-27 弱点は<b>挟まる側</b>に置く（ご指定）══
    ------------------------------------------------------------
@@ -16561,11 +17024,23 @@ function markSigil(e, turns) {
   B.effects.push({ type: "weakcross", x: w2.x, y: w2.y, t: 0, dur: 22, c: "#ffe14d", boost: 1 });
   B.pops.push({ x: e.x, y: e.y - e.r - 28, t: 0, txt: "弱点 ＋1", c: "#ffe14d", small: 1 });
 }
+/* ★★ 2026-09-05 弱点はキャラのどの位置にも置ける（ご指定）。
+     "up"（既定）／"down"／"left"／"right"／"center"
+   ・上下左右 … 敵の外側なので<b>反射でも殴れる</b>。
+   ・center  … 敵の<b>まんなか</b>。外からは届かないので<b>貫通の直殴り</b>と
+     <b>リンクスキル・サブリンク</b>でしか殴れない＝<b>内部弱点</b>。
+     makeEnemy で e.innerWeak を立て、ギミック欄にも「内部弱点」を出している。
+   ★ ここを増やしたら、<b>weakCore / weakPassCore / 絵</b>の3つが同じ式を通ることを確かめる。 */
 function weakSide(e) {
-  if (e && e.wside === "left")  return { dx: -0.5, dy: 0 };
-  if (e && e.wside === "right") return { dx:  0.5, dy: 0 };
-  return { dx: 0, dy: -0.5 };
+  const w = e && e.wside;
+  if (w === "left")  return { dx: -0.5, dy: 0 };
+  if (w === "right") return { dx:  0.5, dy: 0 };
+  if (w === "bottom" || w === "down") return { dx: 0, dy:  0.5 };
+  if (w === "center" || w === "middle") return { dx: 0, dy: 0 };
+  return { dx: 0, dy: -0.5 };                       /* "top" / "up" / 指定なし */
 }
+/* 弱点がまんなか＝内部弱点かどうか */
+function weakIsInner(e) { return !!(e && (e.wside === "center" || e.wside === "middle")); }
 function weakCore(e) { const s = weakSide(e); return { x: e.x + e.r * s.dx, y: e.y + e.r * s.dy, r: e.r * 0.66 }; }
 /* ══════════ 弱点「通過」判定（v11） ══════════
    これまでの弱点直撃は「ボールが最初にふれた点が弱点コアの中か」だけを見ていたため、
@@ -16960,22 +17435,26 @@ const FS_HIT = {
   /* ★ 2026-08-08 追記もれの修正: 野獣突撃（2026-08-07 追加）がこの表に無く、
      !ボタンのリンクスキル欄が「威力 0」と表示されていた。 */
   beastcharge: { per: BEASTCHARGE_PER, n: BEASTCHARGE_N, nm: "追尾突進弾" + BEASTCHARGE_N + "発（味方が止まるまで持続）" },
-  ring: { per: 0.30, n: 1, nm: "リング（継続ヒット）" },
+  /* ★★ 2026-09-05 実装は ×0.26（v6.6 で 0.40→0.26）。表だけ 0.30 のままだった */
+  ring: { per: 0.26, n: 1, nm: "リング（継続ヒット）" },
   /* ★ 2026-08-08 プレミアム新SSR 4体 */
   reflectring: { per: REFRING_PER, n: REFRING_MAX, nm: "反射リング弾" + REFRING_MAX + "発（壁で１回反射・順に射出）" },
   supercrossclone: { per: SCC_PER, n: SCC_CLONES, nm: "分身" + SCC_CLONES + "体（壁で反射・貫通・継続）" },
-  spin: { per: 0.30, n: 1, nm: "回転斬（継続ヒット）" },
+  /* ★★ 2026-09-05 実装は ×0.42。表だけ 0.30 のままだった */
+  spin: { per: 0.42, n: 1, nm: "回転斬（継続ヒット）" },
   /* ★ 2026-08-08b クロス分身弾（ココナ／リセラ）。ここが「巡回カッター ×0.30」のままで、
      まったく別の技の数値になっていた（!ボタンのダメージ見積もりが実戦とズレる）。 */
   cross: { per: CC_PER, n: CC_CLONES, nm: "分身" + CC_CLONES + "体（壁で反射・貫通・継続）" },
   spiral: { per: 0.30, n: 6, nm: "螺旋サークル6基（継続）" },
-  luminous: { per: 0.30, n: 1, nm: "ルミナスレイ（継続）" },
+  /* ★★ 2026-09-05 実装は ×0.95。表だけ 0.30 のままだった */
+  luminous: { per: 0.95, n: 1, nm: "ルミナスレイ（継続）" },
   /* ★ 2026-08-10 ここは「巡回カッター ×0.30 × 1本」のままで、まったく別の技の数字だった
      （実際は 2本 × 攻撃力×1.55）。!ボタンの見積りが実戦と合っていなかったので、
      倍率のもと（HICROSS_PER / HICROSS_N）を直接見るようにした。 */
   hicross: { per: HICROSS_PER, n: HICROSS_N, nm: "ハイクロススティンガー" + HICROSS_N + "本（貫通・折り返し）" },
   plasmanova: { per: BLAST_MUL, n: 1, nm: "連続爆発" },
-  javelin: { per: 0.60, n: 3, nm: "ジャベリン" },
+  /* ★★ 2026-09-05 実装は<b>オートジャベリン8本（各 ×0.42）</b>。表は 0.60×3 のままだった */
+  javelin: { per: 0.42, n: 8, nm: "オートジャベリン8本（貫通・追尾・着弾で爆発）" },
   relaycut: { per: 0.30, n: 1, nm: "巡回カッター（継続）" },
   bladeorbit: { per: 0.30, n: 6, nm: "回転剣6本（継続）" },
   /* ★ 2026-08-08d コピーは「写した技の威力」で撃つので、ここの per は目安でしかない。
@@ -17828,6 +18307,15 @@ function launchShot(ball, ux, uy, power) {
     B.effects.push({ type: "ring", x: ball.x, y: ball.y, t: 0, dur: 20, r: 150, c: "#bff0ff" });
   }
   B.shotNo++;                                        // 透明パネルの実体化⇄透過が入れ替わる
+  /* ★★ 2026-09-05 撃った瞬間のペルソナ風カットイン（ご指定）。
+     黒い帯が斜めに走り、集中線が閉じる。撃種で色と文字を変える。
+     ★ 短命（22フレーム）にすること。長いと毎ショット目ざわりになる。 */
+  {
+    const _sh = (typeof shotOf === "function") ? shotOf(ball) : (ball.ch && ball.ch.shot);
+    B.effects.push({ type: "personacut", x: ball.x, y: ball.y, ang: Math.atan2(uy, ux),
+      t: 0, dur: 22, c: _sh === "pierce" ? "#ffd257" : "#7cc4ff",
+      txt: _sh === "pierce" ? "PIERCE" : "BOUNCE" });
+  }
   B.state = "move";
   /* ★★ 2026-08-27 ショットスキル（撃った瞬間に出る技・ご指定）。
      <b>自分のターンで撃つたび毎回</b>発動する。クールダウンは無い。 */
@@ -18290,7 +18778,7 @@ function applyNewSS(ball) {
     spawnSparks(ball.x, ball.y, "#d8c4ff", 32);
     flash("#6f3fd0");
   } else if (k === "roselia") {
-    /* ★ 2026-08-05 ロゼリア: 自強化＋臨時キラー（カウンター／水属性）＋バブリー を
+    /* ★ 2026-08-05 ロゼリア: 自強化＋臨時キラー（カウンター／AQUA属性）＋バブリー を
        「撃ったターンを含めて自分が2回行動し終えるまで」続ける。
        own:1 なので、チームのターンではなく<b>本人の手番</b>が終わるたびに1ずつ減る。
        ssKiller は killerMul が読む「一時的に持っているキラー」（アビリティと同じ倍率で乗る）。
@@ -18395,7 +18883,7 @@ function applyNewSS(ball) {
     flash("#8e4fe0");
   } else if (k === "chitose") {
     /* ★ 2026-08-08 チトセ: ロゼリアとまったく同じ形。ちがいは臨時キラーの属性だけ
-       （水属性キラー → <b>火属性キラー</b>）。ふれた敵の攻撃ターン遅延も同じ扱いなので、
+       （AQUA属性キラー → <b>IGNIS属性キラー</b>）。ふれた敵の攻撃ターン遅延も同じ扱いなので、
        hitEnemy 側の分岐（roseliaDelay）は "roselia" と "chitose" の両方を見ること。 */
     ball.selfBuff = { atk: 1.8, spd: 1.3, left: 2, own: 1 };
     ball.ssKiller = { counter: COUNTER_KILLER_MUL, el: "fire", elMul: 2.0, left: 2, own: 1 };
@@ -18435,7 +18923,9 @@ function applyNewSS(ball) {
        ノーマル版（kokona）と同じく「停止したら全画面のハート爆撃」なのに、
        endShot の B.ssPend に "kokona" しか書かれておらず<b>何も起きていなかった</b>。
        ここで自強化を付け、停止時の爆撃は endShot 側で kokonaA も拾うようにしてある。 */
-    ball.selfBuff = { atk: 2.0, spd: 1.25, left: 2 };
+    /* ★★ 2026-09-05 ssPow は「体当たり 攻撃力×2.6」なのに、ここが 2.0 だった（表記と動作のズレ）。
+       ほかの α（シェリーα・アンネ）は ssPow の数字がそのまま selfBuff.atk になっているので、そろえる。 */
+    ball.selfBuff = { atk: 2.6, spd: 1.25, left: 2 };
     B.pops.push({ x: ball.x, y: ball.y - ball.r - 22, t: 0, txt: "自強化＆止まったら全体ハート爆撃!!", c: "#ff8ab5", small: 1 });
     for (let k2 = 0; k2 < 4; k2++) B.effects.push({ type: "ring", x: ball.x, y: ball.y, t: -k2 * 4, dur: 30, r: 155 + k2 * 130, c: k2 % 2 ? "#ff8ab5" : "#ffd7f0" });
     B.effects.push({ type: "pillar", x: ball.x, y: ball.y, t: 0, dur: 34, c: "#ffd7f0" });
@@ -18962,7 +19452,7 @@ function applyNewSS(ball) {
     /* ヒナタ（ステラ・オーロラ・レイ）: 自強化 ＋ <b>画面上のすべての敵へ光の柱</b>。
        ★ 柱はディバインピラー（ミズキのサブリンク）とまったく同じ形の effect。
          ねらいを付けずに<b>全員に1本ずつ</b>落とすので、取りこぼしが出ない。
-       ★ withDmgSrc で本人を包むこと。包まないとキラー倍率（光属性キラーEL・
+       ★ withDmgSrc で本人を包むこと。包まないとキラー倍率（LUMEN属性キラーEL・
          蓬莱族キラーL）が乗らず、説明より弱くなる（ミレーユのメテオと同じ約束）。 */
     ball.selfBuff = { atk: HINATA_ATK, spd: HINATA_SPD, left: 2 };
     const foes = aliveEnemies();
@@ -19621,6 +20111,93 @@ function togglePwSave() {
   toastMission(PW_SAVE ? "🔋 省電力モードを ON にしました" : "✨ 省電力モードを OFF にしました");
 }
 window.togglePwSave = togglePwSave;
+
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-09-06 UI の切りかえ（新UI ⇄ 旧UI）と 言語の切りかえ（ご指定）
+   ------------------------------------------------------------
+   ・UI は <b>body の class（mb-ui2）</b>だけで切りかえる。
+     画面を作り直すのではなく、<b>見た目の層をかぶせる</b>形にしてあるので、
+     どの画面でも同じ1行で新旧が入れかわる（ロジックには一切さわらない）。
+   ・言語は <b>XEVARION と同じ置き場所</b>（localStorage "xeva_lang_v1"）を見る。
+     どちらで変えても両方に効く＝同期している。
+   ══════════════════════════════════════════════════════════════ */
+const MB_UI_KEY = "mburst_ui_v1";          /* "2"＝新UI（既定）／"1"＝旧UI */
+function mbNewUI() {
+  try { return (localStorage.getItem(MB_UI_KEY) || "2") !== "1"; } catch (e) { return true; }
+}
+/* ★★ 2026-09-06 下のバーの<b>外側</b>（画面のいちばん下）を、バーと同じ色にそろえる。
+   fixed の箱の外は <html> の背景しか塗れないので、ここで塗る。
+   ★ 新UIは黒、旧UIは白（すりガラス）なので、UI を切りかえるたびに塗り直す。 */
+function paintHtmlBottom() {
+  try {
+    document.documentElement.style.background = mbNewUI() ? "#12100c" : "#fdf8ef";
+  } catch (e) {}
+}
+function applyMbUI() {
+  document.body.classList.toggle("mb-ui2", mbNewUI());
+  paintHtmlBottom();
+}
+function toggleMbUI() {
+  try { localStorage.setItem(MB_UI_KEY, mbNewUI() ? "1" : "2"); } catch (e) {}
+  applyMbUI();
+  SFX.pick();
+  if (curView === "vmenu") renderMenu();
+  toastMission(mbNewUI() ? "🎨 新UI に切りかえました" : "🎨 旧UI に切りかえました");
+}
+window.mbNewUI = mbNewUI; window.toggleMbUI = toggleMbUI; window.applyMbUI = applyMbUI;
+
+function mbLangEn() {
+  try {
+    if (window.XevaI18n) return XevaI18n.get() === "en";
+    return localStorage.getItem("xeva_lang_v1") === "en";
+  } catch (e) { return false; }
+}
+function toggleMbLang() {
+  const to = mbLangEn() ? "ja" : "en";
+  try { if (window.XevaI18n) XevaI18n.set(to); else localStorage.setItem("xeva_lang_v1", to); } catch (e) {}
+  SFX.pick();
+  if (curView === "vmenu") renderMenu();
+  toastMission(to === "en" ? "🌐 Switched to English" : "🌐 日本語に切りかえました");
+}
+window.mbLangEn = mbLangEn; window.toggleMbLang = toggleMbLang;
+/* ★ 言語が変わったらメニューの札（いま EN なのか JA なのか）も描き直す。
+   XevaI18n は切りかえるたび "xeva:lang" を投げるので、それを拾うだけ。 */
+window.addEventListener("xeva:lang", () => { try { if (curView === "vmenu") renderMenu(); } catch (e) {} });
+
+/* ══ ★★ 2026-09-06 タップの演出（新UIのときだけ）══
+   押したところに<b>広がる光</b>と<b>斜めに走る帯</b>を1枚ずつ置く。
+   ★ 見た目は css/mb-ui2.css。ここは「置いて、終わったら片づける」だけ。
+   ★ バトルの canvas（#stage）では出さない——盤面の演出とけんかするため。
+   ★ passive のリスナーにすること（スクロールの邪魔をしない）。 */
+function mbTapFx(x, y) {
+  if (!mbNewUI()) return;
+  /* ★★ 2026-09-06 作り直し（ご報告「右に流れて端の方だと見えない」）。
+     前は帯を<b>右へ伸ばして</b>いたので、右はしを押すと画面の外へ出ていた。
+     いまは3枚とも<b>押した点が中心</b>なので、どこを押しても同じ見えかたになる。
+     ★ 省電力モードのときは1枚だけにする（毎タップ3枚は重い）。 */
+  try {
+    const light = (typeof PW_SAVE !== "undefined" && PW_SAVE);
+    const put = (cls) => {
+      const el = document.createElement("span");
+      el.className = cls;
+      el.style.left = x + "px"; el.style.top = y + "px";
+      document.body.appendChild(el);
+      return el;
+    };
+    const els = light ? [put("u2tap")]
+                      : [put("u2tapring"), put("u2tapbar"), put("u2tap")];
+    setTimeout(() => els.forEach((e) => e.remove()), 500);
+  } catch (e) {}
+}
+document.addEventListener("pointerdown", (ev) => {
+  if (!ev.isPrimary) return;
+  const t = ev.target;
+  if (t && t.closest && t.closest("#stage, canvas")) return;
+  mbTapFx(ev.clientX, ev.clientY);
+}, { passive: true });
+/* 起動時に当てる（★ body ができてから） */
+if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", applyMbUI);
+else applyMbUI();
 document.addEventListener("DOMContentLoaded", applyPwSave);
 applyPwSave();
 function battleIdle() {
@@ -21328,6 +21905,13 @@ function hitEnemy(ball, e, col) {
   if ((B.tick || 0) - (e._sfxT || -99) > 6) {
     e._sfxT = B.tick || 0;
     if (shotOf(ball) === "pierce") SFX.pierce(); else SFX.bounce();
+    /* ★★ 2026-09-05 ふれた瞬間のペルソナ風の閃光（ご指定）。
+       ★ 音と<b>同じ間引き</b>（6フレーム）に乗せること。
+         毎フレーム出すと、めりこんでいるあいだ大量に積もって重くなる。 */
+    const _wk = (typeof weakTargetFor === "function") && weakTargetFor(ball, e);
+    B.effects.push({ type: "personahit", x: e.x, y: e.y, t: 0, dur: 20,
+      c: _wk ? "#ff2f5e" : (shotOf(ball) === "pierce" ? "#ffd257" : "#7cc4ff"),
+      txt: _wk ? "WEAK" : "HIT", big: _wk ? 1 : 0 });
   }
   /* 内部弱点: 貫通の直殴りなら弱点として大ダメージ（反射の直殴りは殴れない）。リンクスキルは dealDamage 側で処理 */
   if (e.innerWeak && shotOf(ball) === "pierce") {
@@ -28125,6 +28709,116 @@ function laserStopAbsorb(b, ang, tag, col) {
 
 /* ── レーザー: 最も近い味方へ照準 → 画面を貫くビーム。
    線上に乗っている味方の数だけ威力が乗るので、散開しておけば軽傷で済む＝配置で対処できる攻撃。 ── */
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-09-05 天界の審判（アストレア）の攻撃 3種（ご指定）
+   ------------------------------------------------------------
+   どれも「予兆 → ためる → 本命」の3段。予兆で<b>どこが危ないか</b>を見せてから撃つ。
+   ★ 使っているエフェクトは既存の型だけ（ring / boom / pillar / flashfx / skydim / eatk）。
+     新しい型を足すと render 側の switch にも case が要り、書き忘れると落ちる。
+   ══════════════════════════════════════════════════════════════ */
+const JUDGE_C1 = "#8fd0ff", JUDGE_C2 = "#fff3c4", JUDGE_C3 = "#c9a6ff";
+
+/* ⚖ 天秤の裁定 … 上下から2本の帯が閉じてくる。帯にいる味方が焼かれる。 */
+async function scalesAttack(e, dmg) {
+  const y1 = H * 0.30, y2 = H * 0.70, half = 78;
+  B.pops.push({ x: e.x, y: e.y + e.r + 26, t: 0, txt: "天秤の裁定…", c: JUDGE_C1, small: 1 });
+  B.effects.push({ type: "skydim", t: 0, dur: 46, a: 0.34, c: "#0b1830" });
+  [y1, y2].forEach((yy) => {
+    for (let k = 0; k < 3; k++) {
+      B.effects.push({ type: "ring", x: W * (0.16 + 0.34 * k), y: yy, t: -k * 3, dur: 30, r: 120, c: JUDGE_C1 });
+    }
+  });
+  SFX.ehit();
+  await sleep(520);
+  /* ためる（皿がきしむ） */
+  for (let k = 0; k < 6; k++) {
+    B.effects.push({ type: "ring", x: W / 2, y: (k % 2 ? y1 : y2), t: -k * 2, dur: 20, r: 60 + k * 70, c: JUDGE_C2 });
+  }
+  B.shake = Math.max(B.shake, 10);
+  await sleep(360);
+  /* 本命 */
+  B.effects.push({ type: "flashfx", t: 0, dur: 12 });
+  B.shake = Math.max(B.shake, 20); B.freeze = Math.max(B.freeze, 5);
+  [y1, y2].forEach((yy) => {
+    for (let x = 40; x < W; x += 92) {
+      B.effects.push({ type: "boom", x, y: yy, t: 0, dur: 22, r: 128, c: JUDGE_C1 });
+      spawnSparks(x, yy, JUDGE_C2, 6);
+    }
+  });
+  const hit = B.balls.filter((b) => b && !b.dead &&
+    (Math.abs(b.y - y1) < half + b.r * 0.7 || Math.abs(b.y - y2) < half + b.r * 0.7));
+  if (hit.length) {
+    B.pops.push({ x: W / 2, y: H * 0.5, t: 0, txt: "天秤の裁定！！ " + hit.length + "体が皿の上", c: JUDGE_C1, small: 0 });
+    damageTeam(dmg * 0.9 * hit.length, null, null, "", e.el, hit);
+  } else {
+    B.pops.push({ x: W / 2, y: H * 0.5, t: 0, txt: "天秤の裁定 — 皿の外！", c: JUDGE_C2, small: 1 });
+    damageTeam(dmg * 0.45, null, null, "", e.el, null);
+  }
+  await sleep(320);
+}
+
+/* 🔨 断罪の槌 … ボスを中心に輪の衝撃波が広がる。近いほど重い。 */
+async function gavelAttack(e, dmg) {
+  B.pops.push({ x: e.x, y: e.y + e.r + 26, t: 0, txt: "断罪の槌をかまえる…", c: JUDGE_C3, small: 1 });
+  B.effects.push({ type: "skydim", t: 0, dur: 44, a: 0.38, c: "#1a1030" });
+  for (let k = 0; k < 4; k++) {
+    B.effects.push({ type: "ring", x: e.x, y: e.y, t: -k * 5, dur: 26, r: 220 - k * 44, c: JUDGE_C3 });
+  }
+  SFX.ehit();
+  await sleep(560);
+  B.effects.push({ type: "pillar", x: e.x, y: e.y, t: 0, dur: 30, c: JUDGE_C2 });
+  B.shake = Math.max(B.shake, 12);
+  await sleep(300);
+  /* 本命：外へ広がる衝撃波 */
+  B.effects.push({ type: "flashfx", t: 0, dur: 14 });
+  B.shake = Math.max(B.shake, 24); B.freeze = Math.max(B.freeze, 6);
+  for (let k = 0; k < 6; k++) {
+    B.effects.push({ type: "ring", x: e.x, y: e.y, t: -k * 4, dur: 34, r: 150 + k * 150, c: k % 2 ? JUDGE_C3 : JUDGE_C2 });
+  }
+  spawnSparks(e.x, e.y, JUDGE_C3, 40);
+  /* 近いほど重い（0.5r 以内で満額・遠いと半分） */
+  const near = [], far = [];
+  B.balls.forEach((b) => {
+    if (!b || b.dead) return;
+    (Math.hypot(b.x - e.x, b.y - e.y) < e.r * 3.2 ? near : far).push(b);
+  });
+  near.forEach((b) => B.effects.push({ type: "boom", x: b.x, y: b.y, t: 0, dur: 20, r: 84, c: JUDGE_C3 }));
+  B.pops.push({ x: W / 2, y: H * 0.5, t: 0,
+    txt: "断罪の槌！！" + (near.length ? "　近くの " + near.length + "体に直撃" : ""), c: JUDGE_C3, small: 0 });
+  if (near.length) damageTeam(dmg * 1.05 * near.length, null, null, "", e.el, near);
+  if (far.length) damageTeam(dmg * 0.42 * far.length, null, null, "", e.el, far);
+  await sleep(340);
+}
+
+/* ✦ 判決の光柱 … 味方1体ずつの真上から光の柱が落ちる（全員が受ける） */
+async function verdictAttack(e, dmg) {
+  const alive = B.balls.filter((b) => b && !b.dead);
+  B.pops.push({ x: e.x, y: e.y + e.r + 26, t: 0, txt: "判決を下す…", c: JUDGE_C2, small: 1 });
+  B.effects.push({ type: "skydim", t: 0, dur: 60, a: 0.44, c: "#0c1226" });
+  alive.forEach((b, i) => {
+    B.effects.push({ type: "ring", x: b.x, y: b.y, t: -i * 3, dur: 34, r: 130, c: JUDGE_C2 });
+  });
+  SFX.ehit();
+  await sleep(560);
+  B.shake = Math.max(B.shake, 10);
+  /* 1体ずつ順に落ちる（ためて見せる） */
+  for (let i = 0; i < alive.length; i++) {
+    const b = alive[i];
+    if (!b || b.dead) continue;
+    B.effects.push({ type: "pillar", x: b.x, y: b.y, t: 0, dur: 26, c: JUDGE_C2 });
+    B.effects.push({ type: "boom", x: b.x, y: b.y, t: 0, dur: 20, r: 96, c: JUDGE_C1 });
+    for (let k = 0; k < 3; k++) B.effects.push({ type: "ring", x: b.x, y: b.y, t: -k * 3, dur: 24, r: 70 + k * 60, c: k % 2 ? JUDGE_C1 : JUDGE_C2 });
+    spawnSparks(b.x, b.y, JUDGE_C2, 14);
+    B.shake = Math.max(B.shake, 14);
+    await sleep(130);
+  }
+  B.effects.push({ type: "flashfx", t: 0, dur: 16 });
+  B.freeze = Math.max(B.freeze, 6);
+  B.pops.push({ x: W / 2, y: H * 0.5, t: 0, txt: "判決の光柱！！", c: JUDGE_C2, small: 0 });
+  damageTeam(dmg * 0.62 * Math.max(1, alive.length), null, null, "", e.el, alive.length ? alive : null);
+  await sleep(340);
+}
+
 async function laserAttack(e, dmg) {
   /* ★ 2026-08-18 超レーザーストップがいても<b>レーザーは撃つ</b>。
      受け止めるかどうかは、下の laserStopScan で<b>射線に乗った味方ごと</b>に決まる。 */
@@ -28273,7 +28967,7 @@ async function homingAttack(e, dmg) {
 
 /* ── 即死攻撃（カウントダウン式）。★ v12: ボスも雑魚も、全クエストで必ずHPが0になる ── */
 async function doomAttack(e) {
-  e.doom = e.doomMax; e.cd = e.cdMax; e.attacking = 26;   // この巡目は通常攻撃をスキップ
+  e.doom = e.doomMax; e.skipAtk = 1; e.attacking = 26;   // ★ 2026-09-06 この巡目だけ数えない（カウントは巻きもどさない）
   B.lastAttacker = e.id;                                   // ★ カウンターキラー用
   SFX.doom();
   /* ── 派手な予兆演出（豪華版） ── */
@@ -28309,7 +29003,7 @@ async function doomAttack(e) {
    ・確定値なので、バリアや耐性では減らせない（カウントを0にしないことが対策）。
    ・すでに20%以下なら<b>何もしない</b>。回復させてしまっては攻撃にならない。 */
 async function crushAttack(e) {
-  e.crush = e.crushMax; e.cd = e.cdMax; e.attacking = 26;   // この巡目は通常攻撃をスキップ
+  e.crush = e.crushMax; e.skipAtk = 1; e.attacking = 26;   // ★ 2026-09-06 この巡目だけ数えない（カウントは巻きもどさない）
   B.lastAttacker = e.id;
   SFX.doom();
   B.pops.push({ x: e.x, y: e.y - e.r - 40, t: 0, txt: "クラッシュ攻撃!!", c: "#ffb84d", small: 1 });
@@ -28438,6 +29132,10 @@ async function enemyPhase() {
   }
   for (const e of aliveEnemies()) {
     /* ★ 2026-08-08c 透明中の敵もふつうに攻撃してくる（enemyShown による除外は廃止） */
+    /* ★★ 2026-09-06 即死・クラッシュを撃った巡目は<b>数えない</b>だけにする。
+       前はここでカウントを満タンへ戻していたので、両方を持つボスは
+       数字が下がりきらず「攻撃ターンが進まない」ように見えていた（ご報告）。 */
+    if (e.skipAtk) { e.skipAtk = 0; continue; }
     e.cd--;
     if (e.cd <= 0) {
       e.cd = e.cdMax; e.atkCount++;
@@ -28471,18 +29169,39 @@ async function enemyPhase() {
       if (B.ssGuard > 0) { dmg *= 0.5; B.ssGuard--; }
       /* ★ レーザー／ホーミングは専用の演出と判定を持つので、通常攻撃の流れから分岐する。
          毒持ちならこの2種でもチーム毒は乗る。 */
-      if (e.pattern === "laser" || e.pattern === "homing" || e.pattern === "crosslaser") {
+      if (e.pattern === "laser" || e.pattern === "homing" || e.pattern === "crosslaser"
+          || e.pattern === "scales" || e.pattern === "gavel" || e.pattern === "verdict") {
         if (e.pattern === "laser") await laserAttack(e, dmg);
         else if (e.pattern === "crosslaser") await crossLaserAttack(e, dmg);
+        /* ★★ 2026-09-05 天界の審判（アストレア）の3種 */
+        else if (e.pattern === "scales") await scalesAttack(e, dmg);
+        else if (e.pattern === "gavel") await gavelAttack(e, dmg);
+        else if (e.pattern === "verdict") await verdictAttack(e, dmg);
         else await homingAttack(e, dmg);
         if (poison) applyTeamPoison(e.atk * 0.35);
         paintHp();
         if (B.hp <= 0) return;
         continue;
       }
+      /* ══ ★★ 2026-09-06 ザコの攻撃も見ごたえのある3段に（ご指定）══
+         ためる → 味方へ走る帯 → 当たったところで閃光。
+         ★ 省電力モードのときは帯だけにして軽くする。 */
+      const _col = poison ? "#c86bff" : (e.boss ? "#ff9f2e" : "#ff5d6c");
       B.pops.push({ x: e.x, y: e.y + e.r + 26, t: 0, txt: label || "こうげき！", c: poison ? "#c86bff" : "#ff8f8f", small: 1 });
-      B.effects.push({ type: "eatk", x: e.x, y: e.y, t: 0, dur: 16, c: poison ? "#b06bff" : "#ff5d6c" });
-      B.shake = Math.max(B.shake, 8);
+      B.effects.push({ type: "eatk", x: e.x, y: e.y, t: 0, dur: 16, c: _col });
+      if (!PW_SAVE) {
+        /* ためる（内へ縮む輪を2枚） */
+        for (let k = 0; k < 2; k++) {
+          B.effects.push({ type: "ring", x: e.x, y: e.y, t: -k * 3, dur: 16, r: e.r * (2.4 - k * 0.6), c: _col });
+        }
+      }
+      /* 味方へ走る帯（どこへ飛んだかが見える） */
+      (B.balls || []).forEach((b, bi) => {
+        if (!b || b.dead) return;
+        B.effects.push({ type: "moblash", x: e.x, y: e.y, x2: b.x, y2: b.y,
+          t: -bi * 2, dur: PW_SAVE ? 12 : 20, c: _col });
+      });
+      B.shake = Math.max(B.shake, poison ? 10 : 12);
       damageTeam(dmg, null, null, "");
       if (poison) applyTeamPoison(e.atk * 0.35);
       $("#phpwrap").animate([{ transform: "translateX(0)" }, { transform: "translateX(-5px)" }, { transform: "translateX(5px)" }, { transform: "translateX(0)" }], { duration: 200 });
@@ -29211,7 +29930,7 @@ function defeat() {
 function toQuestList(ser) {
   closeBattle();
   goTab("vhome");
-  if (ser === "castle" || ser === "lab" || ser === "garden" || ser === "hourai") { questSeries = ser; renderQuests(); }
+  if (ser === "castle" || ser === "lab" || ser === "garden" || ser === "hourai" || ser === "judge") { questSeries = ser; renderQuests(); }
   window.scrollTo(0, 0);
 }
 window.toQuestList = toQuestList;
@@ -29234,7 +29953,7 @@ function closeBattle() {
   if (backToQuestAfter != null) {
     const ser = backToQuestAfter; backToQuestAfter = null;
     goTab("vhome");
-    if (ser === "castle" || ser === "lab" || ser === "garden" || ser === "hourai") questSeries = ser;
+    if (ser === "castle" || ser === "lab" || ser === "garden" || ser === "hourai" || ser === "judge") questSeries = ser;
     renderQuests();
     window.scrollTo(0, 0);
   }
@@ -29406,25 +30125,75 @@ function render() {
     ctx.beginPath(); ctx.moveTo(-len * (0.4 + p), 0.57 * len * (0.4 + p)); ctx.lineTo(len * (0.4 + p), -0.57 * len * (0.4 + p)); ctx.stroke();
     ctx.restore();
   });
+  const _u2 = mbUI2();
   B.pops.forEach((p) => {
     const a = 1 - p.t / 52;
     ctx.font = (p.small ? "700 24px" : p.big ? "900 42px" : "900 34px") + " Orbitron, 'Noto Sans JP', sans-serif";
     ctx.textAlign = "center";
+    const py = p.y - p.t * 0.9;
+    if (_u2) {
+      /* ★★ 2026-09-06 新UIのヒット表示（ご指定）。
+         <b>少し傾けた文字＋太い黒フチ</b>にして、どんな盤面の上でも必ず読めるようにする。
+         大きいもの（クリティカルなど）は<b>黄色い札</b>を後ろに敷く。 */
+      ctx.save();
+      ctx.translate(p.x, py); ctx.rotate(-0.06);
+      if (p.big) {
+        const w = ctx.measureText(p.txt).width + 26, h = 46;
+        slabPath(ctx, -w / 2, -h + 12, w, h, 10);
+        ctx.fillStyle = "rgba(255,212,0,.94)"; ctx.fill();
+        ctx.strokeStyle = "rgba(18,16,12," + a + ")"; ctx.lineWidth = 3; ctx.stroke();
+        ctx.fillStyle = "rgba(18,16,12," + a + ")";
+        ctx.fillText(p.txt, 0, 0);
+      } else {
+        ctx.lineJoin = "round";
+        ctx.strokeStyle = "rgba(12,10,8," + (a * 0.92) + ")";
+        ctx.lineWidth = p.small ? 5 : 7;
+        ctx.strokeText(p.txt, 0, 0);
+        ctx.fillStyle = p.c.startsWith("rgba") ? p.c : hexA(p.c, a);
+        ctx.fillText(p.txt, 0, 0);
+      }
+      ctx.restore();
+      return;
+    }
     ctx.fillStyle = "rgba(0,0,0," + (a * 0.55) + ")";
-    ctx.fillText(p.txt, p.x + 2, p.y - p.t * 0.9 + 2);
+    ctx.fillText(p.txt, p.x + 2, py + 2);
     ctx.fillStyle = p.c.startsWith("rgba") ? p.c : hexA(p.c, a);
-    ctx.fillText(p.txt, p.x, p.y - p.t * 0.9);
+    ctx.fillText(p.txt, p.x, py);
   });
   ctx.restore();
 
   const boss = B.enemies.find((e) => e.boss && e.hp > 0);
   if (boss) {
     const p = boss.hp / boss.maxhp;
-    ctx.fillStyle = "rgba(0,0,0,.5)"; roundRect(ctx, W * 0.1, 14, W * 0.8, 16, 8); ctx.fill();
-    ctx.fillStyle = ELEM[boss.el].c; roundRect(ctx, W * 0.1 + 2, 16, (W * 0.8 - 4) * p, 12, 6); ctx.fill();
-    ctx.font = "700 15px Orbitron"; ctx.textAlign = "center"; ctx.fillStyle = "#fff";
-    ctx.fillText("BOSS", W / 2, 46);
+    if (mbUI2()) {
+      /* ★ 新UI: 角を斜めに切った黒い枠＋属性色のゲージ＋黄色の見出し */
+      slabPath(ctx, W * 0.1, 12, W * 0.8, 20, 10);
+      ctx.fillStyle = "rgba(12,10,8,.92)"; ctx.fill();
+      ctx.strokeStyle = "rgba(255,212,0,.9)"; ctx.lineWidth = 2.4; ctx.stroke();
+      ctx.save(); slabPath(ctx, W * 0.1, 12, W * 0.8, 20, 10); ctx.clip();
+      ctx.fillStyle = ELEM[boss.el].c;
+      ctx.fillRect(W * 0.1, 12, W * 0.8 * p, 20);
+      ctx.restore();
+      ctx.font = "900 15px Orbitron"; ctx.textAlign = "center";
+      ctx.fillStyle = "#12100c";
+      slabPath(ctx, W / 2 - 40, 34, 80, 20, 8); ctx.fillStyle = "rgba(255,212,0,.95)"; ctx.fill();
+      ctx.fillStyle = "#12100c"; ctx.fillText("BOSS", W / 2, 49);
+    } else {
+      ctx.fillStyle = "rgba(0,0,0,.5)"; roundRect(ctx, W * 0.1, 14, W * 0.8, 16, 8); ctx.fill();
+      ctx.fillStyle = ELEM[boss.el].c; roundRect(ctx, W * 0.1 + 2, 16, (W * 0.8 - 4) * p, 12, 6); ctx.fill();
+      ctx.font = "700 15px Orbitron"; ctx.textAlign = "center"; ctx.fillStyle = "#fff";
+      ctx.fillText("BOSS", W / 2, 46);
+    }
   }
+}
+/* ★★ 2026-09-06 canvas は CSS が効かないので、新UIかどうかをここで見て描き分ける。
+   ★ 毎フレーム呼ぶので classList を1回だけ読む形にしておく。 */
+function mbUI2() { return document.body.classList.contains("mb-ui2"); }
+/* 斜めに切った札（ペルソナ風）。canvas 用の下ごしらえ。 */
+function slabPath(c, x, y, w, h, sk) {
+  c.beginPath();
+  c.moveTo(x + sk, y); c.lineTo(x + w, y);
+  c.lineTo(x + w - sk, y + h); c.lineTo(x, y + h); c.closePath();
 }
 function hexA(hex, a) {
   const n = parseInt(hex.slice(1), 16);
@@ -29926,13 +30695,30 @@ function drawGuide() {
   }
   pts.push([sim.x, sim.y]);
   ctx.save();
-  ctx.setLineDash([14, 12]);
-  ctx.lineWidth = 7;
-  ctx.strokeStyle = "rgba(255,255,255,.75)";
+  /* ★★ 2026-09-05 ガイドもペルソナ風に（ご指定）。
+     丸い点線ではなく、<b>同じ傾きの短い帯</b>を軌道にそって並べる。
+     ★ 黒い縁を先に太く引いてから白を重ねる＝どの背景でも読める。 */
+  ctx.lineCap = "butt";
+  ctx.setLineDash([16, 13]);
+  ctx.lineWidth = 11; ctx.strokeStyle = "rgba(8,6,14,.7)";
   ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]);
   for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
   ctx.stroke();
-  ctx.setLineDash([]);
+  ctx.lineWidth = 7; ctx.strokeStyle = "rgba(255,255,255,.9)";
+  ctx.lineDashOffset = -B.tick * 1.2;               /* 進む向きへ流れる */
+  ctx.beginPath(); ctx.moveTo(pts[0][0], pts[0][1]);
+  for (let i = 1; i < pts.length; i++) ctx.lineTo(pts[i][0], pts[i][1]);
+  ctx.stroke();
+  ctx.setLineDash([]); ctx.lineDashOffset = 0;
+  /* 跳ね返る点に角ばった印を置く（どこで曲がるかが読める） */
+  for (let i = 1; i < pts.length - 1; i++) {
+    ctx.save(); ctx.translate(pts[i][0], pts[i][1]); ctx.rotate(0.5 + B.tick * 0.02);
+    ctx.beginPath(); ctx.moveTo(0, -9); ctx.lineTo(9, 0); ctx.lineTo(0, 9); ctx.lineTo(-9, 0);
+    ctx.closePath();
+    ctx.fillStyle = "rgba(8,6,14,.85)"; ctx.fill();
+    ctx.strokeStyle = "rgba(255,255,255,.9)"; ctx.lineWidth = 2; ctx.stroke();
+    ctx.restore();
+  }
   const p = clamp(len / 190, 0.15, 1);
   ctx.beginPath(); ctx.arc(ball.x, ball.y, ball.r + 12, -Math.PI / 2, -Math.PI / 2 + p * Math.PI * 2);
   const fbReady = (B.ssPlan && ball.sc >= ball.st.ssTurns) || B.ssArmed;
@@ -29943,6 +30729,17 @@ function drawGuide() {
      ※ aimShotOf は撃種変化パネル・撃種が変わるフルバーストの予約をどちらも加味した撃種を返す。 */
   const arrowCol = fbReady ? gc : (shot === "bounce" ? "#7cc4ff" : "#ffd257");
   drawPullArrow(ball, -d.dx / len, -d.dy / len, p, arrowCol);
+  /* ★★ 2026-09-05 引っぱりが強いほど濃くなる集中線と、撃種の札（ご指定・ペルソナ風）。
+     ★ 札は<b>キャラの下</b>に置く。上には WEAK の札が出るので重ならないようにする。 */
+  psnRays(ball.x, ball.y, 0.5 - p * 0.28, arrowCol, 14, 300 + p * 260);
+  ctx.save();
+  ctx.translate(ball.x, ball.y + ball.r + 26);
+  ctx.rotate(-0.14);
+  const _tx = fbReady ? "FULL BURST" : (shot === "pierce" ? "PIERCE" : "BOUNCE");
+  const _sz = fbReady ? 15 : 17;
+  psnSlab(_sz * (_tx.length * 0.66) + 20, _sz + 11, PSN_INK, hexA(arrowCol, 0.95), 2.6);
+  psnText(_tx, _sz, hexA(arrowCol, 0.9), 0, 0);
+  ctx.restore();
   /* ★★ 2026-09-02 引っぱっているあいだだけ、キラーが効く敵に「WEAK」を出す（ご指定） */
   drawWeakTags(ball);
 }
@@ -30014,6 +30811,87 @@ function weakTargetFor(ball, e) {
   } catch (err) { return false; }
 }
 /* ペルソナ風の「WEAK」の札。1体ぶん。 */
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-09-05 ペルソナ風の描きかた（合いことば）
+   ------------------------------------------------------------
+   どの演出も<b>同じ傾き（PSN_SKEW）</b>と<b>同じ形（平行四辺形）</b>で作る。
+   ここを1か所にまとめてあるので、演出を足すときもここを呼べば絵がそろう。
+   ══════════════════════════════════════════════════════════════ */
+const PSN_SKEW = 0.16;          /* 帯の傾き（rad 相当のずらし量の比） */
+const PSN_INK = "rgba(8,6,14,.94)";
+
+/* 斜めに切られた帯。中心 (0,0)・幅 w・高さ h の平行四辺形を今の座標系に描く */
+function psnSlab(w, h, fill, stroke, lw) {
+  const sk = h * PSN_SKEW * 2;
+  ctx.beginPath();
+  ctx.moveTo(-w / 2 + sk, -h / 2);
+  ctx.lineTo(w / 2 + sk, -h / 2);
+  ctx.lineTo(w / 2 - sk, h / 2);
+  ctx.lineTo(-w / 2 - sk, h / 2);
+  ctx.closePath();
+  if (fill) { ctx.fillStyle = fill; ctx.fill(); }
+  if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = lw || 3; ctx.stroke(); }
+}
+/* 斜体の白抜き文字（色の影をずらして2回描く） */
+function psnText(txt, size, col, x, y) {
+  ctx.font = "900 italic " + size + "px 'Orbitron','Arial Black',sans-serif";
+  ctx.textAlign = "center"; ctx.textBaseline = "middle";
+  ctx.fillStyle = col; ctx.fillText(txt, (x || 0) + size * 0.09, (y || 0) + size * 0.09);
+  ctx.fillStyle = "#fff"; ctx.fillText(txt, x || 0, y || 0);
+}
+/* 放射状の集中線。k=0→1 で外から内へ閉じる */
+function psnRays(cx, cy, k, col, n, far) {
+  const N = n || 18, R = far || 460;
+  ctx.save(); ctx.translate(cx, cy);
+  ctx.globalAlpha = 0.55 * (1 - Math.abs(k - 0.5) * 1.6);
+  for (let i = 0; i < N; i++) {
+    const a = (Math.PI * 2 / N) * i + k * 0.4;
+    const w = 5 + (i % 3) * 5;
+    const r0 = R * (1 - k), r1 = r0 + 150 + (i % 4) * 60;
+    ctx.beginPath();
+    ctx.moveTo(Math.cos(a) * r0, Math.sin(a) * r0);
+    ctx.lineTo(Math.cos(a + w / 420) * r1, Math.sin(a + w / 420) * r1);
+    ctx.lineTo(Math.cos(a - w / 420) * r1, Math.sin(a - w / 420) * r1);
+    ctx.closePath();
+    ctx.fillStyle = i % 2 ? col : PSN_INK;
+    ctx.fill();
+  }
+  ctx.restore();
+}
+/* 網点（ハーフトーン）。中心ほど大きい点を斜めの格子に打つ */
+function psnHalftone(cx, cy, r, k, col) {
+  ctx.save(); ctx.translate(cx, cy); ctx.rotate(0.35);
+  ctx.globalAlpha = 0.5 * (1 - k);
+  const step = 13;
+  for (let y = -r; y <= r; y += step) {
+    for (let x = -r; x <= r; x += step) {
+      const d = Math.hypot(x, y);
+      if (d > r) continue;
+      const s = (1 - d / r) * 4.4 * (0.5 + k);
+      if (s <= 0.3) continue;
+      ctx.beginPath(); ctx.arc(x, y, s, 0, Math.PI * 2);
+      ctx.fillStyle = col; ctx.fill();
+    }
+  }
+  ctx.restore();
+}
+/* 角ばったかけら（丸い火花ではなく三角） */
+function psnShards(cx, cy, k, col, n) {
+  const N = n || 10;
+  ctx.save(); ctx.translate(cx, cy);
+  ctx.globalAlpha = 1 - k;
+  for (let i = 0; i < N; i++) {
+    const a = (Math.PI * 2 / N) * i + i * 0.7;
+    const d = 30 + k * 150 + (i % 3) * 22;
+    const s = 16 * (1 - k) + 4;
+    ctx.save(); ctx.translate(Math.cos(a) * d, Math.sin(a) * d); ctx.rotate(a + k * 3);
+    ctx.beginPath(); ctx.moveTo(0, -s); ctx.lineTo(s * 0.5, s * 0.7); ctx.lineTo(-s * 0.5, s * 0.4);
+    ctx.closePath(); ctx.fillStyle = i % 3 ? col : "#fff"; ctx.fill();
+    ctx.restore();
+  }
+  ctx.restore();
+}
+
 function drawWeakTag(e) {
   const pulse = 0.82 + 0.18 * Math.sin(B.tick * 0.28);
   const bob = Math.sin(B.tick * 0.14) * 2.4;
@@ -30233,13 +31111,114 @@ function drawEnemyBody(e, ghost) {
       ctx.fillStyle = "#e9d8ff"; ctx.fillText("⏳", r * 0.82, r * 0.82 + 1);
       ctx.textBaseline = "alphabetic";
     }
+    /* ══ ★★ 2026-09-05 つぎに来る攻撃の種類（右下）══
+       ご指定「攻撃のターン表示で右下が空いているのでそこに表示」。
+       ★ ⏳（FB遅延）を持つ敵は右下がふさがるので、その場合だけ内側へずらす。 */
+    const _atkInfo = ATK_PATTERN_INFO[e.pattern];
+    if (_atkInfo && e.hp > 0) {
+      const bx = e.fbDelay ? r * 0.30 : r * 0.82;
+      const by = r * 0.82;
+      /* ★★ 2026-09-06 丸だと「何が来るのか」が記号だけで伝わらないので、
+         <b>斜めに切った白い札＋黒文字</b>にして、<b>名前を必ず</b>出す。 */
+      ctx.font = "900 12px 'Noto Sans JP',system-ui";
+      ctx.textAlign = "left"; ctx.textBaseline = "middle";
+      const _al = _atkInfo.ic + " " + _atkInfo.nm;
+      const _aw = ctx.measureText(_al).width + 20, _ah = 24, _sk = 6;
+      const _ax = bx - _aw / 2, _ay = by;
+      ctx.beginPath();
+      ctx.moveTo(_ax + _sk, _ay - _ah / 2); ctx.lineTo(_ax + _aw, _ay - _ah / 2);
+      ctx.lineTo(_ax + _aw - _sk, _ay + _ah / 2); ctx.lineTo(_ax, _ay + _ah / 2); ctx.closePath();
+      ctx.fillStyle = "rgba(255,255,255,.96)"; ctx.fill();
+      ctx.strokeStyle = "#0b0910"; ctx.lineWidth = 2.4; ctx.stroke();
+      ctx.save();
+      ctx.beginPath();
+      ctx.moveTo(_ax + _sk, _ay - _ah / 2); ctx.lineTo(_ax + _aw, _ay - _ah / 2);
+      ctx.lineTo(_ax + _aw - _sk, _ay + _ah / 2); ctx.lineTo(_ax, _ay + _ah / 2); ctx.closePath();
+      ctx.clip(); ctx.fillStyle = _atkInfo.c; ctx.fillRect(_ax, _ay - _ah / 2, 6, _ah);
+      ctx.restore();
+      ctx.fillStyle = "#100c1a"; ctx.fillText(_al, _ax + 12, _ay + 1);
+      ctx.textAlign = "start"; ctx.textBaseline = "alphabetic";
+    }
+    /* ══ ★★ 2026-09-05 敵にかかっているデバフ（ご指定）══
+       HPバーのすぐ下に小さな札で並べる。残りターンも出す。
+       ★ 効果を足したら<b>ここにも足す</b>こと（見えないデバフは無いのと同じ）。 */
+    (function drawDebuffs() {
+      /* ★★ 2026-09-06 作り直し（ご報告「見づらい・効果がわかりづらい」）。
+         1つの札に <b>記号 ／ 何がどうなるか ／ 残りターン</b> をぜんぶ入れる。
+         ★ 敵が重なっても読めるよう、<b>黒フチ＋濃い下地</b>を必ず敷く。
+         ★ 3つを超えたら<b>2段</b>に折り返す（横に伸ばすと画面から切れる）。 */
+      const tags = [];
+      if (e.atkdown && e.atkdown.left > 0) {
+        const cut = Math.round((1 - (e.atkdown.mul || 0.65)) * 100);
+        tags.push({ ic: "▼", nm: "こうげき −" + cut + "%", n: e.atkdown.left, c: "#1f7ae0" });
+      }
+      if (e.defdown && e.defdown.left > 0)
+        tags.push({ ic: "🛡", nm: "被ダメ ×1.25", n: e.defdown.left, c: "#e0a000" });
+      /* ★★ 2026-09-06 <b>見れば分かる状態は札にしない</b>（ご指定）。
+         毒は緑の泡、重力バリアは紫の渦が<b>盤面に出ている</b>ので、
+         札にも出すと同じことを二度言って場所を食うだけになる。
+         札に出すのは<b>見ても分からない数値の変化</b>だけ。 */
+      if (e.elPaint && e.elPaint.left > 0)
+        tags.push({ ic: "◆", nm: ELEM[e.el].nm + "に塗り替え", n: e.elPaint.left, c: ELEM[e.el].c });
+      if (typeof sigilOn === "function" && sigilOn(e))
+        tags.push({ ic: "✚", nm: "弱点がもう1つ", n: e.sigil.left, c: "#d94b1f" });
+      if (!tags.length) return;
+
+      /* ★★ 2026-09-06 作り直し（ご報告「まだ改善されていない」）。
+         黒地に色文字だと、背景が暗いこのゲームでは<b>地に溶けて読めない</b>。
+         <b>白い札＋黒文字＋斜めに切った形</b>にすると、どんな盤面でも必ず読める。 */
+      const FS = 13, H = 26, PAD = 10, GAP = 7, SK = 7;
+      ctx.font = "900 " + FS + "px 'Noto Sans JP',system-ui";
+      ctx.textAlign = "left"; ctx.textBaseline = "middle";
+      const label = (t) => t.nm + (t.n != null ? "  " + t.n + "T" : "");
+      const ws = tags.map((t) => ctx.measureText(label(t)).width + PAD * 2 + 12);
+      /* 3つを超えたら2段に分ける */
+      const rows = [];
+      if (tags.length <= 3) rows.push(tags.map((t, i) => ({ t, w: ws[i] })));
+      else {
+        const half = Math.ceil(tags.length / 2);
+        rows.push(tags.slice(0, half).map((t, i) => ({ t, w: ws[i] })));
+        rows.push(tags.slice(half).map((t, i) => ({ t, w: ws[half + i] })));
+      }
+      let y = r + 54;
+      rows.forEach((row) => {
+        const total = row.reduce((a, b) => a + b.w, 0) + GAP * (row.length - 1);
+        let x = -total / 2;
+        row.forEach((it) => {
+          const top = y - H / 2, bot = y + H / 2;
+          /* 斜めに切った札（平行四辺形） */
+          const slab = (x0, w0) => {
+            ctx.beginPath();
+            ctx.moveTo(x0 + SK, top); ctx.lineTo(x0 + w0, top);
+            ctx.lineTo(x0 + w0 - SK, bot); ctx.lineTo(x0, bot); ctx.closePath();
+          };
+          slab(x, it.w);
+          ctx.fillStyle = "rgba(255,255,255,.96)"; ctx.fill();
+          ctx.strokeStyle = "#0b0910"; ctx.lineWidth = 2.4; ctx.stroke();
+          /* 左端に色のブロック（何のデバフか、色でも分かる） */
+          ctx.save(); slab(x, it.w); ctx.clip();
+          ctx.fillStyle = it.t.c; ctx.fillRect(x, top, 13, H);
+          ctx.restore();
+          ctx.fillStyle = "#100c1a";
+          ctx.fillText(label(it.t), x + PAD + 8, y + 1);
+          x += it.w + GAP;
+        });
+        y += H + 5;
+      });
+      ctx.textAlign = "start"; ctx.textBaseline = "alphabetic";
+    })();
     /* 弱点コア（★常に露出。当てると大ダメージ）
        ★ v11: 弱点倍率アップ中（ベルニカ／コハルのフルバースト）は、
          回転する光輪・虹色のオーラ・拡大するパルスを重ねて「いま狙いどき」だと一目で分かるようにする。 */
     if (e.weak) {
       const bo = weakBoostLv(e);
       const wr = r * 0.26 * (1 + bo * 0.16), pulse = 0.5 + 0.5 * Math.sin(B.tick * (0.22 + bo * 0.12));
-      ctx.save(); ctx.translate(0, -r * 0.5);
+      /* ★★ 2026-09-05 ここは<b>「まっすぐ上」の決め打ち</b>だった。
+         当たり判定（weakCore）は wside で左右にずれるので、
+         左右の壁に寄せた回では<b>光っている場所と当たる場所が食いちがって</b>いた。
+         判定とまったく同じ式（weakSide）で置く。 */
+      const _ws = weakSide(e);
+      ctx.save(); ctx.translate(r * _ws.dx, r * _ws.dy);
       if (bo) {
         /* 外側のオーラ（呼吸するグロー） */
         ctx.save(); ctx.globalCompositeOperation = "lighter";
@@ -30274,7 +31253,34 @@ function drawEnemyBody(e, ghost) {
       ctx.beginPath(); ctx.arc(0, 0, wr * 0.5, 0, Math.PI * 2); ctx.fillStyle = "#fff7c8"; ctx.fill();
       ctx.strokeStyle = "#fff"; ctx.lineWidth = 2;
       for (let k = 0; k < 4; k++) { const a = Math.PI / 2 * k; ctx.beginPath(); ctx.moveTo(Math.cos(a) * (wr + 3), Math.sin(a) * (wr + 3)); ctx.lineTo(Math.cos(a) * (wr + 11), Math.sin(a) * (wr + 11)); ctx.stroke(); }
+      /* ★★ 2026-09-05 まんなかの弱点は<b>貫通でしか殴れない</b>ので、そうと分かる印を出す。 */
+      if (weakIsInner(e)) {
+        ctx.save(); ctx.rotate(-B.tick * 0.03);
+        ctx.beginPath(); ctx.arc(0, 0, wr + 17 + pulse * 3, 0, Math.PI * 2);
+        ctx.strokeStyle = hexA("#ff8ab5", 0.75); ctx.lineWidth = 2.4;
+        ctx.setLineDash([6, 7]); ctx.stroke(); ctx.setLineDash([]);
+        ctx.restore();
+        ctx.font = "900 11px Orbitron"; ctx.textAlign = "center";
+        ctx.fillStyle = hexA("#ffd0e4", 0.9);
+        ctx.fillText("INNER", 0, wr + 32);
+        ctx.textAlign = "start";
+      }
       ctx.restore();
+      /* ★★ 2026-09-05 追加弱点（ウィークシギル）も描く。
+         これまで<b>1つも描いていなかった</b>ので、刻んでも見えなかった。
+         位置はもとの弱点の<b>反対がわ</b>（weakCore2 と同じ式）。 */
+      if (typeof sigilOn === "function" && sigilOn(e)) {
+        const s2 = weakSide(e), pz3 = 0.5 + 0.5 * Math.sin(B.tick * 0.19);
+        ctx.save(); ctx.translate(-r * s2.dx, -r * s2.dy);
+        ctx.beginPath(); ctx.arc(0, 0, wr * 0.9 + 5 + pz3 * 4, 0, Math.PI * 2);
+        ctx.strokeStyle = hexA("#ffe14d", 0.8); ctx.lineWidth = 2.6; ctx.stroke();
+        ctx.beginPath(); ctx.arc(0, 0, wr * 0.9, 0, Math.PI * 2); ctx.fillStyle = hexA("#ff4d6d", 0.85); ctx.fill();
+        ctx.beginPath(); ctx.arc(0, 0, wr * 0.45, 0, Math.PI * 2); ctx.fillStyle = "#fff7c8"; ctx.fill();
+        ctx.font = "900 10px Orbitron"; ctx.textAlign = "center";
+        ctx.fillStyle = hexA("#ffe14d", 0.9); ctx.fillText("+1", 0, -wr - 8);
+        ctx.textAlign = "start";
+        ctx.restore();
+      }
     }
     /* ══ ★ 2026-08-08 「この敵は毒攻撃をしてくる」を先に見せる ══
        毒は受けると毎ターン削られるのに、これまでは<b>受けてからしか分からなかった</b>。
@@ -30502,11 +31508,27 @@ function drawBall(b, isTurn) {
     gr.addColorStop(0, `rgba(${tc},${0.30 * pulse})`);
     gr.addColorStop(1, `rgba(${tc},0)`);
     ctx.beginPath(); ctx.arc(0, 0, b.r + 42, 0, Math.PI * 2); ctx.fillStyle = gr; ctx.fill();
-    /* 回転する破線リング */
+    /* 回転するリング。
+       ★★ 2026-09-06 新UIでは<b>六角の角ばった枠</b>にする（ご指定「ボール絵もペルソナ風に」）。
+         当たり判定は丸のままなので、<b>見た目だけ</b>を変えている。 */
     ctx.save(); ctx.rotate(B.tick * 0.035);
-    ctx.beginPath(); ctx.arc(0, 0, b.r + (b.barrier > 0 ? 18 : 11), 0, Math.PI * 2);
-    ctx.strokeStyle = B.ssArmed === b.i ? "rgba(255,157,46,.98)" : "rgba(255,255,255,.95)";
-    ctx.lineWidth = 4; ctx.setLineDash([12, 9]); ctx.stroke(); ctx.setLineDash([]);
+    const _rr = b.r + (b.barrier > 0 ? 18 : 11);
+    if (mbUI2()) {
+      ctx.beginPath();
+      for (let k = 0; k < 6; k++) {
+        const a2 = Math.PI / 3 * k - Math.PI / 6;
+        const px = Math.cos(a2) * _rr, py = Math.sin(a2) * _rr;
+        if (k === 0) ctx.moveTo(px, py); else ctx.lineTo(px, py);
+      }
+      ctx.closePath();
+      ctx.strokeStyle = "rgba(12,10,8,.85)"; ctx.lineWidth = 7; ctx.stroke();
+      ctx.strokeStyle = B.ssArmed === b.i ? "#e2231a" : "#ffd400";
+      ctx.lineWidth = 4; ctx.stroke();
+    } else {
+      ctx.beginPath(); ctx.arc(0, 0, _rr, 0, Math.PI * 2);
+      ctx.strokeStyle = B.ssArmed === b.i ? "rgba(255,157,46,.98)" : "rgba(255,255,255,.95)";
+      ctx.lineWidth = 4; ctx.setLineDash([12, 9]); ctx.stroke(); ctx.setLineDash([]);
+    }
     ctx.restore();
     /* 上に浮かぶ三角矢印（YOUR TURN） */
     const bob = Math.sin(B.tick * 0.11) * 5;
@@ -31833,6 +32855,116 @@ function drawEffect(fx) {
       g.addColorStop(0, hexA(fx.c, 0.85 * (1 - p))); g.addColorStop(1, hexA(fx.c, 0));
       ctx.fillStyle = g; ctx.fillRect(s[1], s[2], s[3], s[4]);
     });
+  } else if (fx.type === "moblash") {
+    /* ★★ 2026-09-06 ザコの攻撃が味方へ走る帯。
+       前半で伸び、後半で消える。着弾の位置では角ばった閃光を出す。 */
+    const k = Math.max(0, fx.t) / fx.dur;
+    const grow = Math.min(1, k / 0.45);
+    const fade = k < 0.45 ? 1 : 1 - (k - 0.45) / 0.55;
+    const ang = Math.atan2(fx.y2 - fx.y, fx.x2 - fx.x);
+    const len = Math.hypot(fx.x2 - fx.x, fx.y2 - fx.y) * grow;
+    ctx.save();
+    ctx.translate(fx.x, fx.y); ctx.rotate(ang);
+    ctx.globalAlpha = 0.9 * fade;
+    /* 外側の太い帯 */
+    ctx.beginPath();
+    ctx.moveTo(0, -9); ctx.lineTo(len, -2.5); ctx.lineTo(len, 2.5); ctx.lineTo(0, 9);
+    ctx.closePath();
+    ctx.fillStyle = hexA(fx.c, 0.5); ctx.fill();
+    /* 芯（白） */
+    ctx.beginPath();
+    ctx.moveTo(0, -3.4); ctx.lineTo(len, -1); ctx.lineTo(len, 1); ctx.lineTo(0, 3.4);
+    ctx.closePath();
+    ctx.fillStyle = hexA("#ffffff", 0.85); ctx.fill();
+    ctx.restore();
+    /* 着弾（帯が届いてから） */
+    if (grow >= 1) {
+      const kk = (k - 0.45) / 0.55;
+      ctx.save(); ctx.translate(fx.x2, fx.y2);
+      ctx.globalAlpha = 1 - kk;
+      for (let i = 0; i < 6; i++) {
+        const a = (Math.PI * 2 / 6) * i + kk * 1.6;
+        const d = 14 + kk * 44;
+        const s = 11 * (1 - kk) + 3;
+        ctx.save(); ctx.translate(Math.cos(a) * d, Math.sin(a) * d); ctx.rotate(a);
+        ctx.beginPath(); ctx.moveTo(0, -s); ctx.lineTo(s * 0.5, s * 0.6); ctx.lineTo(-s * 0.5, s * 0.4);
+        ctx.closePath(); ctx.fillStyle = i % 2 ? fx.c : "#fff"; ctx.fill();
+        ctx.restore();
+      }
+      ctx.beginPath(); ctx.arc(0, 0, 22 + kk * 34, 0, Math.PI * 2);
+      ctx.strokeStyle = hexA(fx.c, 0.8 * (1 - kk)); ctx.lineWidth = 3 * (1 - kk) + 1; ctx.stroke();
+      ctx.restore();
+    }
+    ctx.globalAlpha = 1;
+  } else if (fx.type === "personacut") {
+    /* ★★ 2026-09-05 撃った瞬間。黒い帯が撃つ向きへ走り、集中線が閉じる。 */
+    const k = fx.t / fx.dur;
+    psnRays(fx.x, fx.y, k, fx.c, 16, 380);
+    ctx.save();
+    ctx.translate(fx.x, fx.y); ctx.rotate(fx.ang);
+    ctx.globalAlpha = 1 - k;
+    const len = 120 + k * 620;
+    psnSlab(len, 30 * (1 - k * 0.6), PSN_INK, hexA(fx.c, 0.95), 3);
+    ctx.globalAlpha = (1 - k) * 0.95;
+    psnText(fx.txt, 19, hexA(fx.c, 0.9), 0, 0);
+    ctx.restore();
+    ctx.globalAlpha = 1;
+  } else if (fx.type === "personahit") {
+    /* ★★ 2026-09-05 敵にふれた瞬間。角ばった閃光＋網点＋札。 */
+    const k = fx.t / fx.dur;
+    psnHalftone(fx.x, fx.y, 90 + k * 60, k, hexA(fx.c, 0.9));
+    psnShards(fx.x, fx.y, k, fx.c, fx.big ? 12 : 8);
+    ctx.save();
+    ctx.translate(fx.x, fx.y - 6 - k * 26);
+    ctx.rotate(-0.14);
+    ctx.globalAlpha = 1 - k;
+    const sz = fx.big ? 26 : 19;
+    const w = sz * (fx.txt.length * 0.68) + 22;
+    psnSlab(w, sz + 12, PSN_INK, hexA(fx.c, 0.95), 2.6);
+    psnText(fx.txt, sz, hexA(fx.c, 0.9), 0, 0);
+    ctx.restore();
+    ctx.globalAlpha = 1;
+  } else if (fx.type === "emovepath") {
+    /* ★★ 2026-09-05 敵が移動したときに<b>ダメージが入るエリア</b>。
+       元の位置から先の位置までを、判定と同じ太さの帯で描く。
+       ・進むほど濃くなる斜線（どちらへ動いたかが分かる）
+       ・両端に丸（敵の当たり半径ぶん）
+       ★ この case を書き忘れると render は落ちないが<b>何も出ない</b>。 */
+    const k = fx.t / fx.dur, a = (1 - k) * 0.55;
+    const ang = Math.atan2(fx.y2 - fx.y, fx.x2 - fx.x);
+    const len = Math.hypot(fx.x2 - fx.x, fx.y2 - fx.y);
+    ctx.save();
+    ctx.translate(fx.x, fx.y); ctx.rotate(ang);
+    /* 帯 */
+    ctx.beginPath(); roundRect(ctx, 0, -fx.w, len, fx.w * 2, fx.w);
+    ctx.fillStyle = hexA(fx.c, a * 0.34); ctx.fill();
+    ctx.strokeStyle = hexA(fx.c, a + 0.15); ctx.lineWidth = 3; ctx.stroke();
+    /* 流れる斜線 */
+    ctx.save();
+    ctx.beginPath(); roundRect(ctx, 0, -fx.w, len, fx.w * 2, fx.w); ctx.clip();
+    ctx.strokeStyle = hexA("#fff2c8", a * 0.75); ctx.lineWidth = 4;
+    const off = (B.tick * 3) % 34;
+    for (let x = -fx.w * 2; x < len + fx.w * 2; x += 34) {
+      ctx.beginPath();
+      ctx.moveTo(x + off, -fx.w); ctx.lineTo(x + off - fx.w * 2, fx.w);
+      ctx.stroke();
+    }
+    ctx.restore();
+    ctx.restore();
+    /* 両端の丸 */
+    [[fx.x, fx.y], [fx.x2, fx.y2]].forEach((pt, i) => {
+      ctx.beginPath(); ctx.arc(pt[0], pt[1], fx.w * (i ? 1 : 0.86), 0, Math.PI * 2);
+      ctx.strokeStyle = hexA(i ? "#ffd257" : fx.c, a + 0.2);
+      ctx.lineWidth = i ? 4 : 2.4;
+      ctx.setLineDash(i ? [] : [8, 8]); ctx.stroke(); ctx.setLineDash([]);
+    });
+    /* 「危険」の札（先の位置の上） */
+    if (k < 0.6) {
+      ctx.font = "900 13px Orbitron"; ctx.textAlign = "center";
+      ctx.fillStyle = hexA("#ffd257", (1 - k / 0.6) * 0.95);
+      ctx.fillText("DANGER", fx.x2, fx.y2 - fx.w - 10);
+      ctx.textAlign = "start";
+    }
   } else if (fx.type === "weakcross") {
     /* 弱点倍率アップ中の十字閃光（弱点をつらぬいた手ごたえを強調する） */
     const len = 120 + p * 340, w = (16 + (fx.boost || 0) * 6) * (1 - p);
@@ -32692,19 +33824,60 @@ window.addEventListener("xeva:change", () => { paintWallet(); });
     if (!m) return;
     const code = decodeURIComponent(m[1]);
     try { history.replaceState(null, "", location.pathname + location.search); } catch (e) {}
+
+    /* ★★ 2026-09-05 ここが直したところ。
+       前の版は「読みこみの1秒後」に開いていたので、まだ上にかぶさっている
+         ・スプラッシュ（../xeva-splash.js）
+         ・年齢確認（#ageGate）
+         ・タップしてスタート（#mbHome）
+       の<b>下</b>で参加画面が開いてしまい、タップして進むと消えていた。
+       ＝ ご報告の「ローカルの部分の表示が前のままで、行うことができません」。
+       いまは<b>上のものが全部いなくなってから</b>開く。 */
+    const blocked = () => {
+      const ag = document.getElementById("ageGate");
+      const hm = document.getElementById("mbHome");
+      const sp = document.getElementById("xevaSplash");   /* ★ xeva-splash.js の id */
+      if (ag && ag.classList.contains("open")) return true;
+      if (hm && hm.classList.contains("open")) return true;
+      if (sp && sp.offsetParent !== null) return true;
+      if (typeof openOnline !== "function" || typeof ON !== "object") return true;
+      if (!window.LocalPlay) return true;   /* ★ LOCAL PLAY の部品が読み終わるまで待つ */
+      return false;
+    };
     const go = () => {
       try {
-        if (typeof openOnline !== "function") return;
+        /* ★★ 2026-09-06 新しい LOCAL PLAY の画面で受ける（ご指定のプロンプトどおりの画面）。
+           前の版は古いマルチ画面のタブを開いていたので、
+           「表示が前のまま」「指示した機能と違う」になっていた。 */
+        if (window.LocalPlay) {
+          LocalPlay.open("guest");
+          LP.invite = code;
+          LocalPlay.render();
+          const el = document.getElementById("lpInv");
+          if (el) el.value = code;
+          setTimeout(() => { try { LocalPlay.joinRoom(); } catch (e) {} }, 250);
+          return;
+        }
         openOnline();
         ON.mode = "local"; ON.local = true; ON.lmode = "guest";
-        ON.step = "pick"; ON.linvite = code;
-        ON.msg = "まねきコードを受け取りました。キャラをえらんでつなげてください。";
+        ON.step = "code";
+        ON.linvite = code;
+        ON.msg = "まねきコードを受け取りました。キャラをえらんで「つぎへ」を押してください。";
         renderOnline();
-        if (typeof onLocalPeek === "function") setTimeout(() => onLocalPeek(), 120);
+        const el = document.getElementById("onLinv");
+        if (el) el.value = code;
+        if (typeof onLocalPeek === "function") setTimeout(() => onLocalPeek(), 200);
       } catch (e) {}
     };
-    if (document.readyState === "complete") setTimeout(go, 1000);
-    else window.addEventListener("load", () => setTimeout(go, 1000), { once: true });
+    /* ★ 何度も見にいく。上のものが消えるのはユーザーのタップ次第なので、時間では決められない。 */
+    let tries = 0;
+    const wait = () => {
+      if (++tries > 600) return;              /* 5分であきらめる */
+      if (blocked()) { setTimeout(wait, 500); return; }
+      setTimeout(go, 250);
+    };
+    if (document.readyState === "complete") setTimeout(wait, 600);
+    else window.addEventListener("load", () => setTimeout(wait, 600), { once: true });
   } catch (e) {}
 })();
 
@@ -32742,7 +33915,7 @@ window.addEventListener("xeva:change", () => { paintWallet(); });
         const flat = s.waves.flat ? s.waves.flat() : [].concat.apply([], s.waves);
         if (flat.some((d) => d && d.grav)) set.add("grav");
         if (flat.some((d) => d && d.weak)) set.add("weak");
-        if (flat.some((d) => d && d.innerWeak)) set.add("innerweak");
+        if (flat.some((d) => d && (d.innerWeak || d.wside === "center" || d.wside === "middle"))) set.add("innerweak");
         if (flat.some((d) => d && d.doomMax)) set.add("doom");
         if (flat.some((d) => d && d.poisonAtk)) set.add("poison");
         if (flat.some((d) => d && d.pattern === "laser")) set.add("laser");
@@ -32756,7 +33929,9 @@ window.addEventListener("xeva:change", () => { paintWallet(); });
            ここに無かったので、XEVYNAR は「蓬莱天宮のギミックは？」に答えられなかった。
            キャラを足したときと同じで、<b>系統を足したらここにも足す</b>こと。 */
       const houraiList = (typeof HOURAI_STAGES !== "undefined") ? HOURAI_STAGES : [];
-      const stages = STAGES.concat(LAB_STAGES, GARDEN_STAGES, houraiList).map((s) => {
+      /* ★★ 2026-09-05 天界の審判も XEVYNAR に渡す（渡さないと相談で出てこない） */
+      const judgeList = (typeof JUDGE_STAGES !== "undefined") ? JUDGE_STAGES : [];
+      const stages = STAGES.concat(LAB_STAGES, GARDEN_STAGES, houraiList, judgeList).map((s) => {
         let k = [];
         try { k = counterKeysOf(s); } catch (e) {}
         const waves = s.waves || [];
@@ -32765,7 +33940,7 @@ window.addEventListener("xeva:change", () => { paintWallet(); });
         const hp = last.filter(Boolean).reduce((a, d) => a + (d.hp || 0), 0);
         return [s.id, s.nm, s.diff || "", waves.length, k.join(","),
           boss.el || "", hp, gimKeysOf(s).join(","),
-          s.hourai ? "hourai" : s.garden ? "garden" : s.lab ? "lab" : "castle", s.room || 0, s.orb || 0];
+          s.judge ? "judge" : s.hourai ? "hourai" : s.garden ? "garden" : s.lab ? "lab" : "castle", s.room || 0, s.orb || 0];
       });
       /* EX降臨（そのキャラを入手できる唯一の場所なので、目標として案内できるようにする） */
       const raids = Object.keys(RAIDS).map((k) => {
@@ -32853,6 +34028,6 @@ window.addEventListener("xeva:change", () => { paintWallet(); });
 })();
 </script>
 <!-- XEVARION へもどる導線（同期を送り切ってから移動する） -->
-<script src="../xeva-back.js?v=3" data-mode="hook"></script>
+<script src="../xeva-back.js?v=4" data-mode="hook"></script>
 </body>
 </html>

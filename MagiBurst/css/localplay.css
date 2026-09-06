@@ -1,0 +1,81 @@
+/* ══════════════════════════════════════════════════════════════
+   localplay.css — LOCAL PLAY（近距離ローカルマルチ）の見た目
+   ★ 画面案（新UI）にそろえた深い紫紺＋シアン。旧UIでも読めるよう、
+     この画面だけは<b>いつも暗い下地</b>にしてある（QRの白がよく映える）。
+   ══════════════════════════════════════════════════════════════ */
+.lpov{
+  position:fixed;inset:0;z-index:2600;display:none;align-items:flex-start;justify-content:center;
+  background:rgba(6,4,16,.72);backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);
+  overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding:calc(env(safe-area-inset-top,0px) + 18px) 14px calc(env(safe-area-inset-bottom,0px) + 24px);
+}
+.lpov.on{display:flex}
+.lpcard{
+  width:min(460px,100%);margin:auto;padding:18px 16px 20px;
+  background:linear-gradient(170deg,#1a1442,#0e0a26);
+  border:1px solid rgba(150,120,255,.3);
+  color:#e9e4ff;
+  clip-path:polygon(0 0, calc(100% - 20px) 0, 100% 20px, 100% 100%, 20px 100%, 0 calc(100% - 20px));
+  box-shadow:0 26px 70px rgba(0,0,0,.62);
+}
+.lphead{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:12px}
+.lptitle{
+  font-family:'Orbitron',sans-serif;font-size:19px;font-weight:900;letter-spacing:.16em;
+  background:linear-gradient(100deg,#a77bff,#4fe3ff);
+  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;
+}
+.lpx{
+  flex:none;width:34px;height:34px;border:1px solid rgba(150,120,255,.3);background:rgba(150,120,255,.12);
+  color:#cfc4ff;font-size:15px;cursor:pointer;border-radius:0;
+  clip-path:polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%);
+}
+.lpnote,.lphelp{font-size:11.5px;font-weight:700;line-height:1.85;color:#a49bd4;margin:0 0 12px}
+.lphelp{margin-top:10px;padding:10px 11px;border:1px solid rgba(150,120,255,.22);background:rgba(10,7,26,.5)}
+.lpsec{
+  font-family:'Orbitron',sans-serif;font-size:10.5px;font-weight:900;letter-spacing:.14em;
+  color:#8f87bd;margin:14px 0 7px;display:flex;align-items:center;gap:7px;
+}
+.lpsec::before{content:"";width:10px;height:10px;background:linear-gradient(135deg,#a77bff,#4fe3ff);transform:skewX(-16deg)}
+.lpbtns{display:flex;flex-direction:column;gap:9px}
+.lpbtn{
+  width:100%;padding:13px;border:1px solid rgba(150,120,255,.3);cursor:pointer;
+  background:rgba(150,120,255,.12);color:#cfc4ff;
+  font-family:'Orbitron','Noto Sans JP',sans-serif;font-size:13px;font-weight:900;letter-spacing:.05em;
+  border-radius:0;clip-path:polygon(10px 0,100% 0,calc(100% - 10px) 100%,0 100%);
+  margin-top:8px;
+}
+.lpbtn.go{background:linear-gradient(100deg,#a77bff,#6a4fe0 55%,#4fe3ff);color:#0b0620;border-color:transparent;
+  box-shadow:0 0 18px rgba(120,90,255,.45)}
+.lpbtn.big{padding:16px;font-size:15px}
+.lpbtn.sm{padding:10px;font-size:11.5px}
+.lpbtn:active{transform:scale(.99)}
+/* QR は白地の板に置く（暗い下地のままだと読めない端末がある） */
+.lpqr{
+  display:flex;align-items:center;justify-content:center;min-height:120px;
+  padding:12px;background:#fff;margin:0 0 10px;
+}
+.lpqr canvas{display:block;image-rendering:pixelated}
+.lpqr .lphelp{color:#5a5478;margin:0;background:none;border:none}
+.lpcode{position:relative;margin:0 0 6px}
+.lpcode textarea{
+  width:100%;min-height:74px;resize:vertical;padding:10px 11px;
+  background:rgba(8,5,22,.8);border:1px solid rgba(150,120,255,.3);color:#dcd5ff;
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:11px;line-height:1.6;
+  word-break:break-all;
+}
+.lplen{position:absolute;right:8px;bottom:8px;font-size:9.5px;font-weight:800;color:#7c74a8}
+.lpjoined{font-size:12.5px;font-weight:900;color:#cfc4ff;margin:12px 0 8px}
+.lpjoined b{font-family:'Orbitron',sans-serif;font-size:15px;color:#4fe3ff}
+.lplist{display:flex;flex-direction:column;gap:6px}
+.lprow{
+  display:flex;align-items:center;gap:10px;padding:10px 12px;
+  border:1px solid rgba(150,120,255,.2);background:rgba(10,7,26,.5);opacity:.5;
+  clip-path:polygon(0 0, calc(100% - 9px) 0, 100% 9px, 100% 100%, 9px 100%, 0 calc(100% - 9px));
+}
+.lprow.on{opacity:1;background:linear-gradient(100deg,rgba(167,123,255,.2),rgba(79,227,255,.12));
+  border-color:rgba(150,120,255,.45)}
+.lpno{font-family:'Orbitron',sans-serif;font-size:11px;font-weight:900;letter-spacing:.1em;color:#a77bff;flex:none}
+.lpnm{flex:1;min-width:0;font-size:12px;font-weight:800;color:#e9e4ff;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.lpdot{flex:none;width:9px;height:9px;border-radius:50%;background:#3b3560}
+.lpdot.on{background:#4fe3ff;box-shadow:0 0 8px rgba(79,227,255,.9)}
+.lpmsg{margin:10px 0 0;font-size:11.5px;font-weight:800;color:#ffd257;line-height:1.7;min-height:17px}

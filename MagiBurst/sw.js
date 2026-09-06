@@ -6,23 +6,39 @@
    ・オンライン対戦・XEVA換金はアプリ側でオフライン時に無効化している
    ・取得できたリソースは随時キャッシュ更新（stale-while-revalidate）
    ============================================================ */
-const VERSION = "magiburst-sw-v140";
+const VERSION = "magiburst-sw-v144";
 const CORE = [
   "./index.html",
-  "./js/mb-core.js?v=75",   /* ★ 2026-08-10 キャラ・ガチャの共有モジュール（XEVARION のガチャと共通） */
+  "./css/mb-ui2.css?v=15",
+  "./css/localplay.css?v=2",
+  "./js/localplay.js?v=3",
+  "./js/mb-core.js?v=89",   /* ★ 2026-08-10 キャラ・ガチャの共有モジュール（XEVARION のガチャと共通） */
   /* ★★ 2026-09-01 ローカル通信マルチ。<b>オフラインで使うもの</b>なので、
      ここに載せておかないと「オフラインのときだけ動かない」ことになる。 */
-  "./js/local.js?v=6",
+  "./js/local.js?v=7",
   /* ★★ 2026-09-03 ローカル通信の QR コード（自前・外部ライブラリなし） */
-  "../xeva-qr.js?v=2",
-  "../xeva.js?v=54",
-  "../xeva-loading.js?v=3",
-  "../xeva-splash.js?v=5",
-  "../app-cloud.js?v=6",
-  "../xeva-keys.js?v=11",
-  "./magiburst-cloud.js?v=8",
-  "../maintenance-gate.js?v=7",
-  "../app-install-notice.js?v=3",
+  "../xeva-qr.js?v=3",
+  "../xeva-i18n.js?v=3",
+  "../xeva-i18n-dict.js?v=7",
+  "../xeva-i18n-mb1.js?v=2",
+  "../xeva-i18n-mb2.js?v=2",
+  "../xeva-i18n-mb3.js?v=3",
+  "../xeva-i18n-mb4.js?v=4",
+  "../xeva-i18n-mb5.js?v=2",
+  "../xeva-i18n-p1.js?v=1",
+  "../xeva-i18n-p2.js?v=1",
+  "../xeva-i18n-mb6.js?v=2",
+  "../xeva-i18n-p3.js?v=2",
+  "../xeva-i18n-mb7.js?v=2",
+  "../xeva-i18n-p4.js?v=2",
+  "../xeva.js?v=55",
+  "../xeva-loading.js?v=4",
+  "../xeva-splash.js?v=6",
+  "../app-cloud.js?v=7",
+  "../xeva-keys.js?v=12",
+  "./magiburst-cloud.js?v=9",
+  "../maintenance-gate.js?v=8",
+  "../app-install-notice.js?v=4",
   "../XEVA.png",
   "../gem.png",
   /* ★ 2026-08-24 スタミナの絵（ヘッダーの⚡札） */
@@ -321,6 +337,10 @@ const CORE = [
   "../img/t_Himari.webp",
   "./img/e_Youka.webp",
   "./img/e_Youhi.webp",
+  "./img/e_Astraea.webp",
+  "../img/t_Astraea.webp",
+  "./img/bn_judge_s.webp",
+  "./img/backjudge_s.webp",
   "./img/bn_hourai_s.webp",
   "./img/backhourai_s.webp",
   "./img/backtenkyu_s.webp",
