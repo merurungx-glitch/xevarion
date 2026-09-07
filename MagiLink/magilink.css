@@ -33,7 +33,10 @@ html,body{height:100%;}
 html{background:var(--bg);}
 body{background:var(--bg);color:var(--txt);font-family:'Noto Sans JP','Exo 2',system-ui,sans-serif;font-weight:500;overflow:hidden;}
 .orbitron{font-family:'Orbitron',sans-serif;}
-.bg{position:fixed;inset:0;z-index:0;pointer-events:none;overflow:hidden;
+/* ★★ 2026-09-06 背景の板も<b>下へ 300px はみ出させる</b>。
+   position:fixed の箱はアプリ表示だと画面より短いことがあり、
+   その外は &lt;html&gt; の背景しか塗れない（＝いちばん下に色のちがう帯）。 */
+.bg{position:fixed;left:0;right:0;top:0;bottom:calc(-1 * var(--xv-fixgap,0px) - 300px);z-index:0;pointer-events:none;overflow:hidden;
   background:
     radial-gradient(120% 55% at 12% -8%,rgba(75,139,255,.18),transparent 60%),
     radial-gradient(110% 50% at 100% 0%,rgba(255,122,184,.14),transparent 55%),
