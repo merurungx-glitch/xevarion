@@ -676,3 +676,426 @@ body.mb-ui2 .cspanel button{
 }
 body.mb-ui2 .cspanel button.on{ background:var(--u2yel) !important;color:var(--u2ink) !important; }
 body.mb-ui2 .cspanel button:active{ transform:translate(3px,3px) !important;box-shadow:none !important; }
+
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-09-06 「このクエストに合わせて自動編成する」ボタンが見づらい（ご報告）
+   ------------------------------------------------------------
+   もとの .ccauto は<b>暗いカードの上</b>用に作られていて、
+   うすい緑の文字（#d6ffe8）＋半透明の緑という配色だった。
+   新UIは<b>明るい紙</b>なので、明るい面にうすい緑＝ほとんど読めない。
+   → <b>墨の板に金の文字</b>（このUIでいちばん強いコントラスト）にそろえる。
+   ══════════════════════════════════════════════════════════════ */
+body.mb-ui2 .ccauto{
+  background:linear-gradient(100deg,#17141f,#221c2c) !important;
+  border:2px solid var(--mb-yel,#ffd400) !important;
+  color:#fff !important;
+  box-shadow:3px 3px 0 rgba(0,0,0,.55) !important;
+}
+body.mb-ui2 .ccauto small{ color:var(--mb-yel,#ffd400) !important; opacity:.95 }
+body.mb-ui2 .ccauto svg{ color:var(--mb-yel,#ffd400) }
+
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-09-06 属性の札だけは<b>属性の色</b>を残す（ご指定）
+   ------------------------------------------------------------
+   上の「.bdel / .dtag / .bdm をまとめて白にする」上書きが、
+   <b>属性の札まで白く</b>していたので、AQUA も IGNIS も同じ見た目だった。
+   下地は墨のまま（新UIの手ざわりを崩さない）で、
+   <b>枠と文字だけ</b>その属性の色（--elc）にする。
+   ══════════════════════════════════════════════════════════════ */
+body.mb-ui2 .det .bdel,
+body.mb-ui2 .det .dtag.elc,
+body.mb-ui2 .det .bdm.src{
+  border-color:var(--elc,rgba(255,255,255,.5)) !important;
+  color:var(--elc,#fff) !important;
+}
+body.mb-ui2 .det .bdel{ letter-spacing:.06em }
+body.mb-ui2 .det .bdel svg,
+body.mb-ui2 .det .dtag.elc svg{ vertical-align:-2px;margin-right:3px }
+
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-09-06b お知らせを1件ずつめくる（ボタンは<b>下に固定</b>）
+   ------------------------------------------------------------
+   カードを縦のフレックスにして、本文だけを伸び縮みさせる。
+   ボタンの帯は<b>いつも下</b>にあるので、どれだけ長い記事でも押せる。
+   ══════════════════════════════════════════════════════════════ */
+#newsCard{display:flex;flex-direction:column;max-height:100%}
+#newsCard h3,#newsCard .gimsub{flex:none}
+#newsCard .gimlist.newsone{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch}
+#newsCard .newsnav{
+  flex:none;display:grid;grid-template-columns:1fr auto 1fr auto;gap:6px;align-items:center;
+  margin-top:10px;padding-top:10px;border-top:2px solid rgba(255,255,255,.22);
+}
+#newsCard .newsnav .nvb{
+  padding:11px 8px;border:2px solid rgba(255,255,255,.4);background:#17141f;color:#fff;
+  font-family:inherit;font-size:12.5px;font-weight:900;cursor:pointer;border-radius:0;
+  clip-path:polygon(7px 0,100% 0,calc(100% - 7px) 100%,0 100%);
+}
+#newsCard .newsnav .nvb:disabled{opacity:.34;cursor:default}
+#newsCard .newsnav .nvb.x{border-color:var(--u2yel,#ffd400);color:var(--u2yel,#ffd400)}
+#newsCard .newsnav .nvn{
+  font-size:11.5px;font-weight:900;color:var(--u2yel,#ffd400);
+  font-family:'Orbitron',ui-monospace,monospace;letter-spacing:.06em;white-space:nowrap;padding:0 4px;
+}
+@media (max-width:400px){
+  #newsCard .newsnav{grid-template-columns:1fr auto 1fr;grid-auto-rows:auto}
+  #newsCard .newsnav .nvb.x{grid-column:1 / -1}
+}
+
+/* ══ ★★ 2026-09-06b index.html の <style> からこちらへ移しました ══
+   理由: あの <style> は #ssCut の定義より<b>前</b>にあるので、
+   同じ強さの上書き（background など）が<b>元の規則に負けていた</b>。
+   mb-ui2.css は <style> の<b>あと</b>に読まれるので、ここなら必ず勝つ。 */
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-09-06 装備（頭・腕・胸・足）まわりの見た目
+   ------------------------------------------------------------
+   ・育成タブの「装備の装着」はルーンのカードをそのまま流用し、
+     枠だけ 4つ（.gslots）に増やしている。
+   ・<b>上位3割</b>を引いた装備は<b>金の枠</b>にする（ひと目で当たりが分かる）。
+   ══════════════════════════════════════════════════════════════ */
+.gslots{display:grid;grid-template-columns:1fr 1fr;gap:5px;width:100%;margin-top:5px}
+.gslot{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;
+  min-height:52px;padding:5px 3px;border:1.4px dashed rgba(150,130,255,.35);border-radius:11px;
+  background:rgba(255,255,255,.04);cursor:pointer;font-family:inherit}
+.gslot.on{border-style:solid;border-color:rgba(200,180,255,.7);background:rgba(255,255,255,.08)}
+.gslot.hi{border-color:#ffd257;box-shadow:0 0 0 1px rgba(255,210,87,.45) inset}
+.gslot img{width:26px;height:26px;object-fit:contain;display:block}
+.gslot .gsfx{font-size:8.5px;font-weight:900;line-height:1.2;text-align:center}
+.gslot .gsempty{font-size:9.5px;font-weight:900;color:var(--sub,#8b87a8)}
+/* 一覧の札 */
+.gcard{position:relative;display:flex;gap:10px;align-items:center;padding:9px 10px;border-radius:13px;
+  border:1.4px solid rgba(150,130,255,.28);background:rgba(255,255,255,.05);margin-bottom:7px}
+.gcard.hi{border-color:#ffd257;background:rgba(255,210,87,.10)}
+.gcard .gci{flex:none;width:44px;height:44px;display:flex;align-items:center;justify-content:center;
+  border-radius:11px;background:rgba(0,0,0,.28)}
+.gcard .gci img{width:38px;height:38px;object-fit:contain}
+.gcard .gcb{flex:1;min-width:0}
+.gcard .gcn{font-size:11.5px;font-weight:900;display:flex;align-items:center;gap:6px}
+.gcard .gcn .gcp{font-size:9.5px;font-weight:900;color:var(--sub,#8b87a8);border:1px solid rgba(150,130,255,.35);
+  border-radius:6px;padding:1px 6px}
+.gcard .gcf{font-size:11px;font-weight:900;margin-top:2px}
+.gcard .gcr{height:5px;border-radius:99px;background:rgba(150,130,255,.2);overflow:hidden;margin-top:4px}
+.gcard .gcr i{display:block;height:100%;border-radius:99px}
+.gcard .gchi{position:absolute;top:6px;right:8px;color:#ffd257;font-size:12px;font-weight:900}
+/* 編成カード・バトルの小さな印 */
+.gbdg{position:absolute;left:2px;bottom:2px;display:flex;gap:1px;padding:1px 2px;border-radius:6px;
+  background:rgba(8,6,18,.6)}
+.gbdg.hi{box-shadow:0 0 0 1px #ffd257}
+.gbdg img{display:block;object-fit:contain}
+/* 所持アイテム一覧 */
+#ilCard{max-width:min(560px,94vw);max-height:100%;overflow-y:auto}
+.ilhint{font-size:11px;color:var(--sub,#8b87a8);line-height:1.7;margin:2px 0 10px}
+.ilchips{display:flex;flex-wrap:wrap;gap:5px;margin:0 0 8px}
+.ilchips.top{margin-bottom:12px}
+.ilchip{font-size:10.5px;font-weight:900;font-family:inherit;cursor:pointer;padding:5px 10px;border-radius:99px;
+  border:1.3px solid rgba(150,130,255,.35);background:rgba(255,255,255,.05);color:var(--tx2,#cfd0f0)}
+.ilchip.on{border-color:#ffd257;color:#ffd257;background:rgba(255,210,87,.14)}
+.ilsec{margin:0 0 16px}
+.ilsh{font-size:12.5px;font-weight:900;margin:0 0 7px;padding-bottom:5px;border-bottom:1px solid rgba(150,130,255,.22)}
+.ilsub{font-size:10.5px;font-weight:800;color:var(--sub,#8b87a8);margin:0 0 8px}
+.ilrow{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.ilcell{display:flex;align-items:center;gap:8px;padding:7px 9px;border-radius:11px;
+  border:1.3px solid rgba(150,130,255,.25);background:rgba(255,255,255,.05)}
+.ilcell.zero{opacity:.42}
+.ilcell .ilic{flex:none;display:flex;align-items:center;justify-content:center;width:28px}
+.ilcell .iltx{flex:1;min-width:0;font-size:10.5px;line-height:1.4}
+.ilcell .iltx small{display:block;font-size:9px;font-weight:800;color:var(--sub,#8b87a8)}
+.ilcell .ilnum{flex:none;font-size:15px;font-weight:900;font-family:'Orbitron',ui-monospace,monospace;text-align:right}
+.ilcell .ilnum small{display:block;font-size:8.5px;font-weight:800;color:var(--sub,#8b87a8);font-family:inherit}
+.ilwear{font-size:9.5px;font-weight:800;color:var(--sub,#8b87a8);margin:-4px 0 8px 56px}
+@media (max-width:420px){ .ilrow{grid-template-columns:1fr} }
+
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-09-06 フルバーストのカットインを<b>よりペルソナ風</b>に（ご指定）
+   ------------------------------------------------------------
+   もとの作りは「光る額＋回るリング」で、<b>やわらかい光</b>が主役だった。
+   ペルソナ風は逆で、主役は<b>墨（黒）の面と、角ばった切り口</b>——
+     ① 上下から<b>斜めの墨の板</b>が突っこんできて画面を切る
+     ② <b>網点</b>を重ねて「刷りもの」の手ざわりを出す
+     ③ 額は<b>平行四辺形</b>にして、輪郭を<b>墨で太く</b>取る（丸みをやめる）
+     ④ 技名は<b>斜体＋墨の縁取り</b>
+   ★ ここは<b>上書き</b>なので、元の定義はそのまま残してある
+     （戻したいときはこのブロックを消すだけ）。
+   ══════════════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-09-06b いただいた案（FullBurst案3）に合わせて作り直しました
+   ------------------------------------------------------------
+   ・<b>枠の絵そのもの</b>（img/fbframe_v.webp）を画面いっぱいにかぶせる。
+     赤と黒のとがった飾り・網点・鎖・仮面・Full Burst のロゴが1枚に入っている。
+   ・キャラの絵は枠の<b>まんなかの穴</b>から見せる（枠の下に置く）。
+   ・枠は<b>比率を保ったまま</b>中央に置き、上下に余る場所は
+     同じ赤黒の地＋網点で埋める（切れて見えないように）。
+   ★ 枠に合わせて、前に入れた墨の板（.scink）は<b>上下のはしだけ</b>に弱めてある。
+   ══════════════════════════════════════════════════════════════ */
+#ssCut{background:radial-gradient(120% 90% at 50% 40%,#3a0410 0%,#12040a 62%,#08040a 100%)}
+#ssCut .scfrm{position:absolute;inset:0;z-index:6;pointer-events:none;display:flex;
+  align-items:center;justify-content:center;overflow:hidden}
+/* ★★ 2026-09-07 大きさは fbFitFrame() が決める（画面をおおいきる／横長は640pxまで）。
+   ここの値は、絵が届く前の<b>保険</b>だけ。 */
+#ssCut .scfrmimg{width:106%;height:auto;max-height:none;display:block;
+  animation:scFrm 1.5s cubic-bezier(.16,.94,.24,1) both}
+@keyframes scFrm{
+  0%{opacity:0;transform:scale(1.22) rotate(-2.4deg)}
+  14%{opacity:1;transform:scale(1.02) rotate(.6deg)}
+  22%{transform:scale(1) rotate(0deg)}
+  82%{opacity:1;transform:scale(1.02) rotate(0deg)}
+  100%{opacity:0;transform:scale(1.10) rotate(1.6deg)}}
+/* ★★ 2026-09-07 横長の画面では、枠の外側（640px より外）を
+   <b>地と網点で埋めるだけ</b>にする。大きさの決めは JS 側。 */
+#ssCut .scdots{inset:-14%}
+/* 枠の帯（scband）は要らない＝枠の絵が同じ役目をする */
+#ssCut .scband{display:none}
+#ssCut .scstripe{display:none}
+/* ① 斜めの墨の板（枠の外側だけを埋める。弱めにする） */
+#ssCut .scink{position:absolute;left:-20%;right:-20%;height:34vh;pointer-events:none;z-index:1;
+  background:linear-gradient(180deg,#12040a,#2a0610);
+  box-shadow:0 0 0 3px #e2231a inset,0 0 40px rgba(0,0,0,.7)}
+#ssCut .scink.a{top:-2vh;transform:skewY(-5deg) translateY(-120%);
+  animation:scInkA 1.5s cubic-bezier(.18,.92,.24,1) both}
+#ssCut .scink.b{bottom:-2vh;transform:skewY(-5deg) translateY(120%);
+  animation:scInkB 1.5s cubic-bezier(.18,.92,.24,1) both}
+@keyframes scInkA{0%{transform:skewY(-5deg) translateY(-120%)}
+  15%{transform:skewY(-5deg) translateY(-64%)}
+  22%,82%{transform:skewY(-5deg) translateY(-58%)}
+  100%{transform:skewY(-5deg) translateY(-120%)}}
+@keyframes scInkB{0%{transform:skewY(-5deg) translateY(120%)}
+  15%{transform:skewY(-5deg) translateY(64%)}
+  22%,82%{transform:skewY(-5deg) translateY(58%)}
+  100%{transform:skewY(-5deg) translateY(120%)}}
+/* ② 網点 */
+#ssCut .scdots{position:absolute;inset:-10%;pointer-events:none;z-index:1;opacity:0;
+  background-image:radial-gradient(#e2231a 1.8px,transparent 1.9px);
+  background-size:12px 12px;transform:rotate(-14deg);
+  animation:scDots 1.5s ease both}
+@keyframes scDots{0%,10%{opacity:0}20%{opacity:.30}72%{opacity:.20}100%{opacity:0}}
+/* ③ キャラの絵は<b>枠の穴のまんなか</b>に置く（枠より下のレイヤー） */
+#ssCut .scport{
+  --scsz:min(56vw,min(40svh,300px));
+  top:0;bottom:6%;                      /* 枠の穴は少し上寄りなので、下に余白を足して上げる */
+  transform:none;z-index:2;
+}
+#ssCut .scport::after{border-radius:0;border-width:5px;border-color:#0b0810;
+  box-shadow:0 0 0 3px #e2231a,0 0 34px rgba(226,35,26,.7),0 10px 0 rgba(0,0,0,.5)}
+#ssCut .scimg{border-radius:0}
+#ssCut .scshine{border-radius:0}
+#ssCut .scring{display:none}
+/* 四隅のカギカッコは要らない（枠の絵にとがった飾りが入っている） */
+#ssCut .sccnr{display:none}
+/* ロゴは枠に描きこまれているので出さない */
+#ssCut .sclogo{display:none !important}
+/* 技名は枠の下の帯に */
+#ssCut .scnm{bottom:6%;z-index:7}
+/* ④ 技名は斜体＋墨の縁取り（光ではなく<b>面</b>で読ませる） */
+#ssCut .scnm{font-style:italic;color:#fff;
+  -webkit-text-stroke:0;
+  text-shadow:3px 3px 0 #0b0810,-2px 2px 0 #0b0810,2px -2px 0 #0b0810,-2px -2px 0 #0b0810,
+    0 0 26px var(--scc,#8e6bff)}
+/* ロゴは新しく描き直した「FULL BURST」（img/fullburst-logo.webp）。
+   にじみは弱めて、板と文字のコントラストで見せる。 */
+#ssCut .sclogo{filter:drop-shadow(0 6px 0 rgba(0,0,0,.55)) drop-shadow(0 0 30px rgba(255,180,60,.45))}
+
+
+/* ══ ★★ 2026-09-06b 装備の装着画面を見やすく（ご報告）══ */
+.eqcard.gearcard{padding:9px 8px}
+.eqcard.gearcard .eqnm{display:flex;align-items:center;justify-content:center;gap:6px}
+.eqcard.gearcard .gcnt{font-size:9.5px;font-weight:900;color:var(--u2yel,#ffd400);
+  font-family:'Orbitron',ui-monospace,monospace}
+.eqcard.gearcard.has{box-shadow:0 0 0 2px rgba(255,212,0,.35) inset}
+.gslots{gap:6px}
+.gslot{position:relative;min-height:74px;padding:6px 4px 5px;gap:1px;
+  border-width:2px;border-radius:0;background:rgba(255,255,255,.05)}
+.gslot .gsp{position:absolute;top:2px;left:4px;font-size:8.5px;font-weight:900;
+  color:var(--sub,#8b87a8);letter-spacing:.06em}
+.gslot .gshi{position:absolute;top:2px;right:4px;font-style:normal;color:#ffd257;font-size:11px}
+.gslot img{width:28px;height:28px;margin-top:6px}
+.gslot .gsfx{font-size:9px;font-weight:900;line-height:1.15;text-align:center}
+.gslot .gsv{font-size:10.5px;font-weight:900;font-family:'Orbitron',ui-monospace,monospace;color:#fff}
+.gslot .gsempty{font-size:20px;font-weight:900;color:var(--sub,#8b87a8);line-height:1;margin-top:10px}
+.gslot .gsnone{font-size:9px;font-weight:800;color:var(--sub,#8b87a8)}
+.gsums{display:flex;flex-wrap:wrap;gap:4px;justify-content:center;margin-top:6px}
+.gsums .gsm{font-size:8.5px;font-weight:900;padding:2px 6px;border:1.2px solid var(--bc,#fff);
+  color:var(--bc,#fff);background:rgba(0,0,0,.25)}
+/* キャラ詳細の装備の札 */
+.bdchip.gchip img{width:14px;height:14px;object-fit:contain;vertical-align:-2px;margin-right:3px}
+.bdchip.gchip.hi{box-shadow:0 0 0 1.5px #ffd257}
+.bdchip.gsum{background:rgba(255,212,0,.14)}
+.dsrow .gplus,.bdc .gplus{display:inline-block;margin-left:5px;font-size:9.5px;font-weight:900;
+  font-style:normal;color:#ffd257;vertical-align:2px}
+
+/* ══ ★★ 2026-09-06b 図鑑・編成の詳細に出す「🛡 装備」の欄 ══ */
+.dsk.gr .gchips{display:flex;flex-wrap:wrap;gap:5px;margin-top:2px}
+.dsk.gr .bdchip{font-size:9.5px;font-weight:900;padding:3px 7px;border:1.4px solid var(--bc,#fff);
+  color:var(--bc,#fff);background:rgba(0,0,0,.28);display:inline-flex;align-items:center}
+.dsk.gr .bdnone{font-size:11px;color:var(--sub,#8b87a8)}
+/* バトル中の味方アイコンの装備印（ルーンは右上・装備は左下） */
+.pmem .pfr .gbdg{left:1px;bottom:1px;padding:0 1px;gap:0;background:rgba(6,4,14,.72)}
+
+/* ════════════════════════════════════════════════════════════
+   ★★ 2026-09-07 フルバーストの技名と絵の位置（ご報告）
+   ------------------------------------------------------------
+   ご報告：「技名が見づらい」「画像の位置をきれいに整理して」
+   原因：
+     ・技名を<b>画面の一番下</b>に置いていたので、枠の赤と黒の模様に埋もれていた。
+       光（text-shadow）だけで浮かせようとしていたので、下地が派手だと勝てない。
+     ・絵は top:24% / bottom:6% の<b>決め打ち</b>だったので、枠の穴の中で
+       上に寄ってしまい、下に大きなすきまができていた。
+   なおしかた：
+     ・<b>枠の穴を実測</b>して --fbx / --fby / --fbw / --fbh に入れ、その中に絵と技名を置く。
+     ・技名は<b>墨の板</b>（上下に赤い線）にのせ、絵の下に<b>重ねて</b>出す。
+       ★ 字は<b>墨で縁取り</b>する（光ではなく面で読ませる＝ペルソナ風）。
+   ════════════════════════════════════════════════════════════ */
+#ssCut{
+  /* 実測が入るまでの保険値（だいたいの位置） */
+  --fbx:13vw; --fby:22vh; --fbw:74vw; --fbh:46vh;
+  --scsz:min(var(--fbw), calc(var(--fbh) * 0.74));
+}
+#ssCut .scport{
+  /* ★ --scsz は<b>ここで</b>上書きすること。
+     前のブロックが .scport 自身に --scsz を置いているので、
+     親（#ssCut）に書いただけだと子の値に負ける。 */
+  --scsz:min(calc(var(--fbw) * 0.92), calc(var(--fbh) * 0.70));
+  left:calc(var(--fbx) + (var(--fbw) - var(--scsz)) / 2);
+  top:calc(var(--fby) + var(--fbh) * 0.075);
+  right:auto; bottom:auto; margin:0;
+  width:var(--scsz); height:var(--scsz);
+}
+@media (max-width:520px){ #ssCut .scport{ top:calc(var(--fby) + var(--fbh) * 0.075); } }
+
+/* ── 技名の板 ── */
+#ssCut .scnm{
+  /* ★★ 2026-09-07 枠を画面いっぱいに広げたので、穴の左端が<b>画面の外</b>に
+     出ることがある。板が切れてキャラ名の1文字目が欠けたので、画面内にとどめる。 */
+  left:max(10px, calc(var(--fbx) - var(--fbw) * 0.045));
+  width:min(calc(100% - 20px), calc(var(--fbw) * 1.09));
+  max-width:none;
+  top:calc(var(--fby) + var(--fbh) * 0.775);
+  bottom:auto;
+  z-index:9;
+  box-sizing:border-box;
+  padding:7px 14px 9px;
+  background:linear-gradient(180deg,#17111d 0%,#0a0710 100%);
+  border-top:3px solid #e2231a; border-bottom:3px solid #e2231a;
+  box-shadow:0 9px 0 rgba(0,0,0,.55), 0 0 26px rgba(226,35,26,.45);
+  font-family:'Orbitron',sans-serif; font-weight:900; font-style:italic;
+  font-size:clamp(14px,4.5vw,25px); line-height:1.14; letter-spacing:.03em;
+  /* ★ 長い技名は<b>折り返す</b>（前は nowrap で「ツインローズ・レクイエ…」と切れていた）。
+     板は上をとめてあるので、２行になっても<b>下へ伸びる</b>だけで絵にかぶらない。 */
+  color:#fff; text-align:left; white-space:normal; overflow:visible; word-break:normal;
+  -webkit-text-stroke:0;
+  /* ★ 墨で縁取る（下地が何色でも読める） */
+  text-shadow:
+    3px 0 0 #08060c, -3px 0 0 #08060c, 0 3px 0 #08060c, 0 -3px 0 #08060c,
+    2px 2px 0 #08060c, -2px 2px 0 #08060c, 2px -2px 0 #08060c, -2px -2px 0 #08060c,
+    0 6px 0 rgba(0,0,0,.5);
+  animation:scNm2 1.5s ease both;
+}
+/* キャラの名前は<b>赤い小さな札</b>にする（技名と見分けられる） */
+#ssCut .scnm small{
+  display:inline-block; margin:0 9px 3px 0; padding:1px 8px 2px; vertical-align:2px;
+  background:#e2231a; color:#fff;
+  font-family:'Orbitron',sans-serif; font-style:normal; font-weight:900;
+  font-size:.40em; letter-spacing:.20em; line-height:1.5;
+  text-shadow:none; box-shadow:2px 2px 0 rgba(0,0,0,.55);
+}
+@keyframes scNm2{
+  0%,10%{opacity:0;transform:skewY(-2deg) translateX(-34px)}
+  24%,84%{opacity:1;transform:skewY(-2deg) translateX(0)}
+  100%{opacity:0;transform:skewY(-2deg) translateX(22px)}}
+/* ガチャSSRの豪華版でも、字は墨で縁取ったままにする
+   （前はグラデーションを字に抜いていたので、縁取りが消えて見づらかった） */
+#ssCut.lux .scnm{
+  -webkit-background-clip:border-box; background-clip:border-box;
+  -webkit-text-fill-color:#fff;
+  background:linear-gradient(180deg,#1d1420 0%,#0a0710 100%);
+  border-color:#ffd257;
+  animation:scNm2 1.5s ease both;
+}
+#ssCut.lux .scnm small{background:#ffd257;color:#1a1206}
+
+/* ── ★★ 2026-09-07 アビリティのカットインは「フルバースト」ではない ──
+   2026-09-06b に FULL BURST の額（枠の絵）を足したとき、
+   <b>アビリティのカットインにも額が出てしまっていた</b>
+   （治癒の祈りなのに「FULL BURST」と大書きされていた）。
+   額と墨の板はフルバーストだけのものなので、ここで消す。
+   ★ 2026-09-06b で全体に display:none にした .scband / .scstripe は、
+     アビリティ側では元の役目（帯）があるので<b>もどす</b>。 */
+#ssCut.abil .scfrm{display:none !important}
+#ssCut.abil .scink{display:none}
+#ssCut.abil .scdots{display:none}
+#ssCut.abil .scband{display:block}
+#ssCut.abil .scstripe{display:block}
+#ssCut.abil .scport{
+  --scsz:min(58vw,min(46svh,340px));
+  left:0; right:0; margin:auto; top:24%; bottom:14%;
+  width:var(--scsz); height:var(--scsz);
+}
+#ssCut.abil.sscut .scport{
+  --ssh:min(78svh,130vw); --ssw:calc(var(--ssh) * 0.563);
+  left:0; right:0; margin:auto; top:2%; bottom:12%;
+  width:var(--ssw); height:var(--ssh);
+}
+/* 技名の板の置きかたは、フルバーストと同じ「読ませる」形のまま下に置く */
+#ssCut.abil .scnm{
+  left:6%; width:88%; top:auto; bottom:7%; text-align:left;
+  border-color:var(--scc2,#8affc4);
+}
+#ssCut.abil .scnm small{background:var(--scc2,#8affc4);color:#08150f}
+/* 横長の画面は枠の穴が細くなるので、技名の字も小さくする（3行に折れないように） */
+@media (min-aspect-ratio:1/1){
+  #ssCut .scnm{font-size:clamp(12px,4.4vh,22px);padding:5px 10px 7px}
+  #ssCut .scnm small{font-size:.42em}
+}
+
+/* ══ ★★ 2026-09-07 イベント詳細のページ送りを<b>下に固定</b>（ご指定）══
+   お知らせ（#newsCard）とまったく同じ作り。
+   カードを縦のフレックスにし、中身（.evbody）だけをスクロールさせる。 */
+#evCard{display:flex;flex-direction:column;max-height:100%;overflow:hidden}
+#evCard h3,#evCard .gimsub{flex:none}
+#evCard .evbody{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain}
+#evCard .evnav{
+  flex:none;display:grid;grid-template-columns:auto 1fr auto auto;gap:8px;align-items:center;
+  margin:10px 0 0;padding-top:10px;border-top:2px solid rgba(255,255,255,.22);
+}
+#evCard .evnav .evdots{justify-content:center}
+#evCard .evnav .nvn{margin:0}
+#evCard .evnav .nvb.x{grid-column:1 / -1}
+/* ボタンの見た目はお知らせと共用にする */
+#newsCard .newsnav .nvb,
+#evCard .evnav .nvb{
+  padding:11px 8px;border:2px solid rgba(255,255,255,.4);background:#17141f;color:#fff;
+  font-family:inherit;font-size:12.5px;font-weight:900;cursor:pointer;border-radius:0;
+  clip-path:polygon(7px 0,100% 0,calc(100% - 7px) 100%,0 100%);
+}
+#newsCard .newsnav .nvb:disabled,
+#evCard .evnav .nvb:disabled{opacity:.34;cursor:default}
+#newsCard .newsnav .nvb.x,
+#evCard .evnav .nvb.x{border-color:var(--u2yel,#ffd400);color:var(--u2yel,#ffd400)}
+#newsCard .newsnav .nvn,
+#evCard .evnav .nvn{
+  font-size:11.5px;font-weight:900;color:var(--u2yel,#ffd400);
+  font-family:'Orbitron',ui-monospace,monospace;letter-spacing:.06em;white-space:nowrap;padding:0 4px;
+}
+/* ★ すべての幅で「← 前｜ドット｜次 →｜1 / 12」の1行＋「とじる」の2行にする。
+   （3行にすると帯が高くなりすぎて、イベントの本文が狭くなる） */
+#evCard .evnav .nvb{padding:9px 6px;font-size:12px}
+#evCard .evnav .evdots{flex-wrap:wrap;gap:5px}
+@media (max-width:340px){
+  #evCard .evnav .evdots{display:none}
+}
+/* ★★ 2026-09-07 イベントのドットは新UIで background:revert されていて<b>見えなかった</b>。
+   下に固定した帯の中では「いま何枚目か」の手がかりになるので、色をつけなおす。 */
+#evCard .evnav .evdots i{width:7px;height:7px;border-radius:50%;
+  background:rgba(255,255,255,.26);cursor:pointer;transition:width .18s,background .18s}
+#evCard .evnav .evdots i.on{width:18px;border-radius:99px;background:var(--u2yel,#ffd400)}
+
+/* ══ ★★ 2026-09-07 装備の検索・絞り込み・並び替え ══ */
+.gbar{display:grid;gap:6px;margin:0 0 10px}
+.gbar .ilchips{display:flex;flex-wrap:wrap;gap:5px;align-items:center}
+.gblb{font-size:10px;font-weight:900;color:var(--sub,#8b87a8);letter-spacing:.06em;margin-right:2px}
+.ilfind{position:relative;margin:8px 0 4px}
+.ilfind input{width:100%;box-sizing:border-box;padding:10px 34px 10px 12px;border:2px solid rgba(255,255,255,.28);
+  background:#100d18;color:#fff;font:inherit;font-size:12.5px;font-weight:700;border-radius:0;
+  clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%)}
+.ilfind input::placeholder{color:var(--sub,#8b87a8);font-weight:600}
+.ilfind .ilqx{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:22px;height:22px;
+  border:0;background:transparent;color:var(--sub,#8b87a8);font-size:13px;font-weight:900;cursor:pointer}
+.gpnote{font-size:10.5px;line-height:1.7;color:var(--sub,#8b87a8);margin-top:8px}

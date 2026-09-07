@@ -6,39 +6,43 @@
    ・オンライン対戦・XEVA換金はアプリ側でオフライン時に無効化している
    ・取得できたリソースは随時キャッシュ更新（stale-while-revalidate）
    ============================================================ */
-const VERSION = "magiburst-sw-v144";
+const VERSION = "magiburst-sw-v148";
 const CORE = [
   "./index.html",
-  "./css/mb-ui2.css?v=15",
-  "./css/localplay.css?v=2",
-  "./js/localplay.js?v=3",
-  "./js/mb-core.js?v=89",   /* ★ 2026-08-10 キャラ・ガチャの共有モジュール（XEVARION のガチャと共通） */
+  "./css/mb-ui2.css?v=22",
+  "./css/localplay.css?v=6",
+  "./js/localplay.js?v=7",
+  "./js/mb-core.js?v=98",   /* ★ 2026-08-10 キャラ・ガチャの共有モジュール（XEVARION のガチャと共通） */
+  /* ★★ 2026-09-06 装備（頭・腕・胸・足）。ここに載せないとオフラインで丸ごと動かない。 */
+  "./js/mb-gear.js?v=6",
   /* ★★ 2026-09-01 ローカル通信マルチ。<b>オフラインで使うもの</b>なので、
      ここに載せておかないと「オフラインのときだけ動かない」ことになる。 */
-  "./js/local.js?v=7",
+  "./js/local.js?v=11",
   /* ★★ 2026-09-03 ローカル通信の QR コード（自前・外部ライブラリなし） */
-  "../xeva-qr.js?v=3",
-  "../xeva-i18n.js?v=3",
-  "../xeva-i18n-dict.js?v=7",
-  "../xeva-i18n-mb1.js?v=2",
-  "../xeva-i18n-mb2.js?v=2",
-  "../xeva-i18n-mb3.js?v=3",
-  "../xeva-i18n-mb4.js?v=4",
-  "../xeva-i18n-mb5.js?v=2",
-  "../xeva-i18n-p1.js?v=1",
-  "../xeva-i18n-p2.js?v=1",
-  "../xeva-i18n-mb6.js?v=2",
-  "../xeva-i18n-p3.js?v=2",
-  "../xeva-i18n-mb7.js?v=2",
-  "../xeva-i18n-p4.js?v=2",
-  "../xeva.js?v=55",
-  "../xeva-loading.js?v=4",
-  "../xeva-splash.js?v=6",
-  "../app-cloud.js?v=7",
-  "../xeva-keys.js?v=12",
-  "./magiburst-cloud.js?v=9",
-  "../maintenance-gate.js?v=8",
-  "../app-install-notice.js?v=4",
+  "../xeva-qr.js?v=7",
+  "../xeva-i18n.js?v=7",
+  "../xeva-i18n-dict.js?v=11",
+  "../xeva-i18n-mb1.js?v=6",
+  "../xeva-i18n-mb2.js?v=6",
+  "../xeva-i18n-mb3.js?v=7",
+  "../xeva-i18n-mb4.js?v=8",
+  "../xeva-i18n-mb5.js?v=6",
+  "../xeva-i18n-p1.js?v=5",
+  "../xeva-i18n-p2.js?v=5",
+  "../xeva-i18n-mb6.js?v=6",
+  "../xeva-i18n-p3.js?v=6",
+  "../xeva-i18n-mb7.js?v=6",
+  "../xeva-i18n-p4.js?v=6",
+  "../xeva-i18n-n1.js?v=4",
+  "../xeva-i18n-n2.js?v=2",
+  "../xeva.js?v=60",
+  "../xeva-loading.js?v=9",
+  "../xeva-splash.js?v=10",
+  "../app-cloud.js?v=11",
+  "../xeva-keys.js?v=16",
+  "./magiburst-cloud.js?v=13",
+  "../maintenance-gate.js?v=12",
+  "../app-install-notice.js?v=8",
   "../XEVA.png",
   "../gem.png",
   /* ★ 2026-08-24 スタミナの絵（ヘッダーの⚡札） */
@@ -330,6 +334,45 @@ const CORE = [
   "../img/t_Yuuri.webp",
   "../img/t_Hisui.webp",
   "../img/t_Raika.webp",   /* ★★ 2026-09-01 極彩祭 ハノン */
+  /* ★★ 2026-09-06 今回の14体。
+     ★ ここに無いとオフラインで<b>その子だけ絵が出ない</b>し、update.json にも載らない。 */
+  "../img/t_ReiS.webp",
+  "../img/t_Rika.webp",
+  "../img/t_AnnaRan.webp",
+  "../img/t_Yoiduki.webp",
+  "../img/t_Kayo.webp",
+  "../img/t_Shino.webp",
+  "../img/t_Maaya.webp",
+  "../img/t_Asuka.webp",
+  "../img/t_RenaD.webp",
+  "../img/t_Kaoru.webp",
+  "../img/t_Subaru.webp",
+  "../img/t_Kasumi.webp",
+  "../img/t_TsukinoD.webp",
+  "../img/t_AstraeaC.webp",
+  /* ★★ 2026-09-07 戦姫祭 第2弾（ナオ・ハルカ）。
+     ★ ここに無いとオフラインで<b>その子だけ絵が出ない</b>し、update.json にも載らない。 */
+  "../img/t_NaoS.webp",
+  "../img/t_HarukaS.webp",
+  /* ★★ 2026-09-06 同期の画面に出る案内役（立ち姿とお辞儀・2人ぶん）。
+     ここに無いとオフラインのときだけ絵が出ない。 */
+  "../img/ld_a_stand.webp",
+  "../img/ld_a_bow.webp",
+  "../img/ld_b_stand.webp",
+  "../img/ld_b_bow.webp",
+  /* ★★ 2026-09-06 装備（頭・腕・胸・足）。天界の審判の 5WAVE ごとに落ちる。 */
+  "./img/eq_head.webp",
+  "./img/eq_arm.webp",
+  "./img/eq_body.webp",
+  "./img/eq_leg.webp",
+  "./img/eq_head_s.webp",
+  "./img/eq_arm_s.webp",
+  "./img/eq_body_s.webp",
+  "./img/eq_leg_s.webp",
+  /* ★★ 2026-09-06b フルバーストの額（ご提示の絵から作った。まんなかは透明に抜いてある） */
+  "./img/fbframe_v.webp",
+  "./img/fbframe_h.webp",
+  "./img/fullburst-logo.webp",
   /* ★★ 2026-08-30 💠結晶のアイコン（ガチャ結果・交換所で使う） */
   "../img/cryst.webp",
   "../img/t_Karen.webp",

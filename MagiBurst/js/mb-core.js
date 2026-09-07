@@ -15,8 +15,8 @@
    <b>ふつうの &lt;script&gt;</b>（type="module" ではない）で読むこと。
    トップレベルの const/let はグローバルの字句環境に入るので、
    あとから読み込む MagiBurst 本体のスクリプトからそのまま見える。
-     MagiBurst : <script src="js/mb-core.js?v=89"></script>
-     gacha.html: <script src="MagiBurst/js/mb-core.js?v=89"></script>
+     MagiBurst : <script src="js/mb-core.js?v=98"></script>
+     gacha.html: <script src="MagiBurst/js/mb-core.js?v=98"></script>
 
    ── ホストが先に用意しておくもの ──
      window.MB_IMGD … 画像フォルダへの相対パス（MagiBurst は "../img/"、ポータルは "img/"）
@@ -127,7 +127,11 @@ function fsElemChip(el, kind, sub, sm) {
     return `<span class="elmk no${sm ? " sm" : ""}" title="属性に関係なく効果が出ます">${noElIcon(px)}無属性</span>`;
   }
   const e = ELEM[el] || {};
-  return `<span class="elmk${sm ? " sm" : ""}" style="--emc:${e.c}" title="${e.nm}属性のダメージになります（属性相性が乗ります）">${elIcon(el, px)}${e.nm}属性</span>`;
+  /* ★★ 2026-09-06b 札の中は<b>属性の名前だけ</b>（ご指定）。
+     IGNIS / AQUA / VERDE / LUMEN / UMBRA はそれ自体が属性の名前なので、
+     うしろに「属性」と付けると<b>二重</b>になっていた（キラーの札と同じ話）。
+     ★ 何のことか分からなくならないよう、説明（title）には残す。 */
+  return `<span class="elmk${sm ? " sm" : ""}" style="--emc:${e.c}" title="${e.nm}属性のダメージになります（属性相性が乗ります）">${elIcon(el, px)}${e.nm}</span>`;
 }
 const BEATS = { fire: "wood", wood: "water", water: "fire" };
 /* 属性相性: 有利属性への攻撃は1.25倍・不利属性へは0.75倍 */
@@ -152,8 +156,14 @@ function elemMult(a, d) {
    ══════════════════════════════════════════════════════════════ */
 function elemMultOf(c, d) {
   const m1 = elemMult(c && c.el, d);
-  if (!c || !c.el2) return m1;
-  return Math.max(m1, elemMult(c.el2, d));
+  let m = (!c || !c.el2) ? m1 : Math.max(m1, elemMult(c.el2, d));
+  /* ★★ 2026-09-06 装備の<b>有利コードダメージ増加</b>。
+     <b>有利を取っているときだけ</b>乗る。ここは「キャラが攻撃側になる場所」の
+     入口が1本にまとまっているので、ここだけで直殴りもリンクもさわる。 */
+  if (m > 1 && typeof gearPctOfChar === "function") {
+    const g = gearPctOfChar(c, "elemdmg"); if (g) m *= (1 + g);
+  }
+  return m;
 }
 /* ══ ★★ 2026-09-02 二属性キャラの<b>属性の出しかた</b>（ご指定）══
    ご報告:「セイラ＆カナヅキの属性を 火＆闇 のように分かりやすく」
@@ -257,7 +267,11 @@ const AB_NM = {
   sokojikaraM: "底力M", allkillerM: "全属性キラーM",
   /* ★ 2026-08-06: プレミアム新SSR「ソレア」用（重力バリアキラーの等級M） */
   gravkillerM: "重力バリアキラーM",
-  /* ★ 2026-08-07: Phantom Legend Fest「野獣先輩」用 */
+  /* ★ 2026-08-07: Phantom Legend Fest「野獣先輩」用
+     ★★ 2026-09-07 この3つは<b>野獣先輩だけのアビリティ</b>。
+       全キャラの調整などで<b>ほかのキャラに配らないこと</b>（ご指定）。
+       一度、「やりますねぇ!」をチトセ・カナデ・ヨイヅキに配ってしまって戻している。
+       ※ 状態異常レジストはもとから他のキャラも持っているのでそのまま。 */
   allykillfb: "やりますねぇ!", beastrage: "野獣の本気", ailmentresist: "状態異常レジスト",
   /* ★ 2026-08-07: 新アンチギミック「断絶界」（旧・結界）用 */
   award: "アンチ断絶界",
@@ -342,6 +356,8 @@ const AB_NM = {
   cumulonimbusEL: "キュムロニンバスEL", houraikillerL: "蓬莱族キラーL", gravkillerL: "重力バリアキラーL",
   /* ★★ 2026-08-27 蓬莱族キラーの最上位（極彩祭・極煌祭の2体だけ） */
   houraikillerEL: "蓬莱族キラーEL",
+  /* ★★ 2026-09-06 天律族キラー（天界の審判のボス＝アストレアの種族） */
+  judgekillerL: "天律族キラーL", judgekillerEL: "天律族キラーEL",
   /* ★★ 2026-08-27 ショットスキル（撃った瞬間に出る技）。アビリティ欄にも並べて、
      「この子は撃つたびに何かする」ことが性能画面で分かるようにする。 */
   shotVerdant: "ショットスキル：ヴェルダント・シュート",
@@ -942,6 +958,26 @@ const SHOTSK_ANNAM_FB = 1;        //   あわせて自分のフルバースト�
    ・アビリティの数（クロス込みで8つ）には<b>数えない</b>。
    ・キャラ詳細でも<b>別枠</b>に出す（abil には入れない）。
    ★ 名前と説明はここ1か所。画面はこの表を引くだけにして、書き分けが起きないようにする。 */
+/* ★★ 2026-09-06 戦姫祭の新3体ぶん。
+   ★ ここは <b>SHOTSKILLS より前</b>に置くこと（下の表がすぐ読むので、
+     あとに置くと「初期化前にアクセス」で丸ごと落ちる＝TDZ）。 */
+/* ── ショットスキル（戦姫祭 3体）── */
+const SHOTSK_REIS_PER = 0.66;      // レイ: 進行方向へ闇のバーコード（貫通）
+const SHOTSK_REIS_LEN = 560;
+const SHOTSK_REIS_W = 58;
+const SHOTSK_RIKAS_PER = 0.60;     // リカ: 前方へ竜のブレス（扇）
+const SHOTSK_RIKAS_R = 260;
+const SHOTSK_RIKAS_FB = 1;         // あわせて自分のFBが1ターン進む
+const SHOTSK_ANNARAN_PER = 0.72;   // アンナ＆ラン: 敵全体へ薔薇の花びら
+const SHOTSK_ANNARAN_DELAY = 1;    // いちばん近い敵の攻撃ターンを1遅らせる
+
+/* ══ ★★ 2026-09-07 戦姫祭 ナオ／ハルカ のショットスキル ══════════════
+   ★ 定数は必ず <b>SHOTSKILLS より前</b>に置く（あとに置くと TDZ で落ちる）。 */
+const SHOTSK_NAOS_PER = 1.35;      // ナオ: 進む向きへ伸びる水柱（線上の敵を貫く）
+const SHOTSK_NAOS_W = 78;          // 水柱の太さ（当たり判定）
+const SHOTSK_NAOS_BARRIER = 900;   // 撃つたびに自分へ乗るバリア
+const SHOTSK_HARUKAS_PER = 1.15;   // ハルカ: いちばん近い敵へ刺さる結晶
+const SHOTSK_HARUKAS_MARK = 1.22;  // 刺さっている敵への与ダメージ倍率（その手番だけ）
 const SHOTSKILLS = {
   verdant: {
     nm: "ヴェルダント・シュート", c: "#8affc4",
@@ -1044,6 +1080,50 @@ const SHOTSKILLS = {
       + "<br>アンナ(STAR) の<b>アストラル・シュート</b>より1発が重く（×"
       + SHOTSK_ANNA_PER + " → ×" + SHOTSK_ANNAM_PER + "）、そのうえ手番のたびに"
       + "<b>とても重いフルバーストが近づいていく</b>。",
+  },
+  /* ══ ★★ 2026-09-06 戦姫祭の新3体（レイ・リカ・アンナ＆ラン）══ */
+  midnight: {
+    nm: "ミッドナイト・シュート", c: "#c9a6ff",
+    pow: "進行方向へ 射程 " + SHOTSK_REIS_LEN + " の闇の帯（貫通・太さ " + SHOTSK_REIS_W + "）／"
+      + "線上の敵に 攻撃力×" + SHOTSK_REIS_PER + " ＋ <b>当たった敵の防御力を1ターン下げる</b>",
+    desc: "自分のターンで<b>撃つたび毎回</b>、進行方向へ<b>深夜の帯</b>が伸びる。"
+      + "<br>貫通するので並んだ敵はまとめて削れ、さらに<b>当たった敵の守りが1ターンゆるむ</b>——"
+      + "<b>そのままの手番で自分が殴りに行ける</b>ので、削りがそのまま伸びる。",
+  },
+  dragonbreath: {
+    nm: "ドラグーン・シュート", c: "#8affc4",
+    pow: "自分の前方 半径 " + SHOTSK_RIKAS_R + " の扇に 攻撃力×" + SHOTSK_RIKAS_PER
+      + " ＋ <b>自分のフルバーストが" + SHOTSK_RIKAS_FB + "ターン進む</b>",
+    desc: "自分のターンで<b>撃つたび毎回</b>、進む向きへ<b>竜の吐息</b>が広がる。"
+      + "<br>1本の線ではなく<b>扇</b>なので、狙いが少しずれても当たる。"
+      + "<br>あわせて<b>撃つだけでフルバーストが" + SHOTSK_RIKAS_FB + "ターン近づく</b>。",
+  },
+  rosepetal: {
+    nm: "ローズ・シュート", c: "#ff5d47",
+    pow: "<b>敵全体</b>に 攻撃力×" + SHOTSK_ANNARAN_PER + " の花びら（距離に関係なく当たる）"
+      + " ＋ <b>いちばん近い敵の攻撃ターンを" + SHOTSK_ANNARAN_DELAY + "遅らせる</b>",
+    desc: "自分のターンで<b>撃つたび毎回</b>、紅と金の花びらが盤面じゅうに舞う。"
+      + "<br><b>射程も範囲も関係なく画面の敵すべてに入る</b>うえ、"
+      + "<b>いちばん近い敵の攻撃ターンを" + SHOTSK_ANNARAN_DELAY + "遅らせる</b>——"
+      + "全体攻撃と足止めを<b>同時に</b>持つ、いまいちばん強いショットスキル。",
+  },
+  /* ══ ★★ 2026-09-07 戦姫祭 ナオ／ハルカ ══ */
+  tidalshot: {
+    nm: "タイダル・シュート", c: "#38c8ff",
+    pow: "進む向きへ<b>水柱</b>が伸びて<b>線上の敵を貫く</b>（1体 攻撃力×" + SHOTSK_NAOS_PER + "・太さ "
+      + SHOTSK_NAOS_W + "）＋ <b>自分にバリア " + SHOTSK_NAOS_BARRIER + "</b>",
+    desc: "自分のターンで<b>撃つたび毎回</b>、進む向きへまっすぐ<b>水柱</b>が立つ。"
+      + "<br>線の上にいる敵を<b>まとめて貫く</b>ので、敵が一列に並んでいるときほど伸びる。"
+      + "<br>さらに撃つたび<b>自分にバリア</b>が乗るので、殴りに行くほど硬くなる——"
+      + "攻めと守りを同時にこなす、はじめてのショットスキル。",
+  },
+  crystalshot: {
+    nm: "クリスタル・シュート", c: "#7cc4ff",
+    pow: "<b>いちばん近い敵</b>に青の結晶（攻撃力×" + SHOTSK_HARUKAS_PER + "）＋ "
+      + "その敵への<b>与ダメージが ×" + SHOTSK_HARUKAS_MARK + "</b>（その手番のあいだ）",
+    desc: "自分のターンで<b>撃つたび毎回</b>、いちばん近い敵に<b>青の結晶</b>が突き刺さる。"
+      + "<br>刺さっているあいだ、その敵への<b>チーム全員の与ダメージが上がる</b>——"
+      + "撃つ前に狙いを決めるだけで、<b>そのターンの本命を1体えらべる</b>。",
   },
   astral: {
     nm: "アストラル・シュート", c: "#c9a6ff",
@@ -2098,6 +2178,8 @@ function abilDesc(a) {
     case "gravkillerL": return "<b>重力バリアを持つ敵</b>へのダメージが<b>" + GRAVKILLER_L_MUL + "倍</b>（等級L）";
     case "houraikillerL": return "<b>蓬莱族</b>（🏯 蓬莱の九重のボスなど）へのダメージが<b>" + HOURAIKILLER_L_MUL + "倍</b>（等級L）。<b>属性キラーとは別枠</b>なので重ねて効く";
     case "houraikillerEL": return "<b>蓬莱族</b>（🏯 蓬莱の九重のボスなど）へのダメージが<b>" + HOURAIKILLER_EL_MUL + "倍</b>（等級EL・最上位）。<b>属性キラーとは別枠</b>なので重ねて効く";
+    case "judgekillerL": return "<b>天律族</b>（⚖ 天界の審判のボス「アストレア」）へのダメージが<b>" + JUDGEKILLER_L_MUL + "倍</b>（等級L）。<b>属性キラーとは別枠</b>なので重ねて効く";
+    case "judgekillerEL": return "<b>天律族</b>（⚖ 天界の審判のボス「アストレア」）へのダメージが<b>" + JUDGEKILLER_EL_MUL + "倍</b>（等級EL・最上位）。<b>属性キラーとは別枠</b>なので重ねて効く";
     case "shotVerdant": return "<b>ショットスキル</b>。自分のターンで<b>撃つたび毎回</b>、進行方向へ翠光の衝撃波（射程 "
       + SHOTSK_HINANO_LEN + "・太さ " + SHOTSK_HINANO_R + "）を放ち、線上の敵に 攻撃力×" + SHOTSK_HINANO_PER + " のダメージ<br><small>※ 貫通するので、並んだ敵はまとめて削れます</small>";
     case "shotIgnite": return "<b>ショットスキル</b>。自分のターンで<b>撃つたび毎回</b>、自分のまわり（半径 "
@@ -2480,6 +2562,15 @@ function atkMulOf(ball) {
   if (hasCumulo(ball.ch)) m *= (ball._cumuloBoost || 1); // v14 キュムロニンバス（走った距離ぶん）
   if (ball.atkUp && ball.atkUp > 1) m *= ball.atkUp;   /* ★ 2026-08-07 サブリンク「野獣インパクト」 */
   /* ★ 2026-08-17b 攻撃力チャージ（グレースが配る）。1巡＝味方の人数ぶんの行動で切れる */
+  /* ★★ 2026-09-06 <b>装備</b>（mb-gear.js）。
+     ・攻撃力増加          … いつでも乗る
+     ・チャージダメージ増加 … <b>フルバースト中だけ</b>乗る
+     ★ ここ 1か所に入れると、直殴り・リンク・FB派生のどれにも自動で乗る
+       （技ごとに掛け忘れる、という抜けが原理的に起きない）。 */
+  if (typeof ballGear === "function") {
+    const gAtk = ballGear(ball, "atk"); if (gAtk) m *= (1 + gAtk);
+    if (B && B.ssArmed === ball.i) { const gCh = ballGear(ball, "chgdmg"); if (gCh) m *= (1 + gCh); }
+  }
   if (ball.atkCharge && ball.atkCharge.left > 0) m *= ball.atkCharge.mul;
   m *= beastMulOf(ball);   /* ★ 2026-08-07 野獣先輩（野獣の本気＋クロススキル） */
   return m;
@@ -2542,6 +2633,14 @@ function effFriction(ball) {
   if (inGravField(ball) && !antiGim(ball, "agrav")) f -= 0.045;
   /* ★ 減速壁にふれたショットは、そのターンのあいだ止まりやすい */
   if (ball._slowWall) f -= SLOWWALL_FRICTION;
+  /* ★★ 2026-09-06 装備の<b>最大装弾数増加</b>＝<b>1ターンに走る距離</b>。
+     走る距離はおよそ <b>初速 ÷ (1 − f)</b> に比例するので、
+     距離を k 倍にするには <b>(1 − f) を 1/k</b> にすればよい。
+     ★ f を直に足すと上限（1）を越えて<b>永遠に止まらなく</b>なるので、必ずこの式で。 */
+  if (typeof ballGear === "function") {
+    const k = 1 + ballGear(ball, "ammo");
+    if (k > 1) f = 1 - (1 - f) / k;
+  }
   return f;
 }
 /* 重力バリア: そのアビリティを持つ敵の周囲フィールド */
@@ -2734,6 +2833,9 @@ function killerMul(ball, e, tags, forLink) {
   /* ★ 2026-08-18 蓬莱族キラーL（ロキシーのクロススキル）。
      冥花種・蝕魔族と<b>まったく同じ形</b>の種族キラー。属性キラーとは別枠なので重なる。 */
   /* ★★ 2026-08-27 EL を先に見る（EL と L を両方持つことは無いが、順番を決めておく） */
+  /* ★★ 2026-09-06 天律族キラー（天界の審判） */
+  if (eRace === JUDGE_RACE && hasAbil(ball.ch, "judgekillerEL")) { m *= JUDGEKILLER_EL_MUL; tag("天律族KILLER EL"); }
+  else if (eRace === JUDGE_RACE && hasAbil(ball.ch, "judgekillerL")) { m *= JUDGEKILLER_L_MUL; tag("天律族KILLER L"); }
   if (eRace === HOURAI_RACE && hasAbil(ball.ch, "houraikillerEL")) { m *= HOURAIKILLER_EL_MUL; tag("蓬莱族KILLER EL"); }
   else if (eRace === HOURAI_RACE && hasAbil(ball.ch, "houraikillerL")) { m *= HOURAIKILLER_L_MUL; tag("蓬莱族KILLER L"); }
   if (hasAbil(ball.ch, "vitalEL") && e.hp >= e.maxhp * 0.5) { m *= VITALEL_MUL; tag("VITAL EL"); }
@@ -3062,6 +3164,249 @@ function playerExpForStage(st) {
   const e = Math.max(1, (st && st.exp) || 200);
   return Math.max(1, Math.round(PLV_REF_GAIN * Math.pow(e / PLV_REF_EXP, PLV_POW)));
 }
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-09-06 新キャラ14体ぶんの数値（ご指定）
+   ------------------------------------------------------------
+   ・戦姫祭 3体（レイ・リカ・アンナ＆ラン）… <b>MagiBurst 史上最強</b>。
+     リンクスキルの<b>素の威力</b>で突き抜ける形にしてある（キラーは3つのまま）。
+     いまの最強はアンナ(祭)の「万灯祭天」（実測およそ ×64）なので、
+     この3本はそれを<b>はっきり超える</b>ところに置いた。
+   ・RISING STAR FEST 5体 … 上澄み（戦姫祭には届かない位置）。
+   ・GRAND DEBUT GACHA 5体 … 登場したばかりなので<b>控えめ</b>（等級は L・M 中心）。
+   ・アストレア … 天界の審判 60WAVE 踏破の報酬。
+   ★ 数字はここ1か所。表示（fsPow / FS_HIT）も実装（index.html）も必ずここを見ること。
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── レイ「フラクタル・ミッドナイト」（リンクスキル・闇）──
+   ★ これまでに無い挙動: 闇の稲妻が<b>二股に分かれながら</b>段を下りていく。
+     1段目1発 → 2段目2発 → 3段目4発 → 4段目8発 の<b>計15発</b>。
+     <b>段が下がるほど1発が重くなる</b>ので、後半ほど盤面が灼ける。
+   ★ 合計（1体に全部入ったとき）
+       1×2.10 + 2×2.70 + 4×3.30 + 8×3.90 ＝ ×49.5 ／ ＋ 締め ×30.0 ＝ <b>×79.5</b>。 */
+const FNIGHT_DEPTH = 4;            // 段の数
+const FNIGHT_PER = 3.20;           // 1段目の1発
+const FNIGHT_STEP = 0.95;          // 段が下がるごとの上乗せ
+const FNIGHT_R = 156;              // 1発の半径
+const FNIGHT_GAP = 8;              // 段と段の間かく（フレーム）
+const FNIGHT_FINALE = 52.0;        // 締め（敵全体・真夜中の鐘）
+const FNIGHT_TOTAL = (function () {
+  let t = 0;
+  for (let d = 0; d < FNIGHT_DEPTH; d++) t += Math.pow(2, d) * (FNIGHT_PER + FNIGHT_STEP * d);
+  return t + FNIGHT_FINALE;
+})();
+
+/* ── リカ「ヴェルダンテ・ドラグーン」（リンクスキル・木）──
+   ★ これまでに無い挙動: 翠の竜が盤面を<b>周回</b>し、<b>まわるたびに太くなる</b>。
+     線の太さそのものが増えるので、後半は<b>避けようがない</b>。
+     まわり終えたら<b>いちばんHPの高い敵に咬みつき</b、最後に<b>尾で盤面をなぎ払う</b>。
+   ★ 合計 ＝ 5周ぶん（5×4.40 ＋ 1.20×(0+1+2+3+4)＝34.0）＋ 咬みつき 26.0 ＋ 尾 20.0 ＝ <b>×80.0</b>。 */
+const DRAGV_LAPS = 5;              // 周回の数
+const DRAGV_PER = 6.60;            // 1周ぶん（線上の敵）
+const DRAGV_STEP = 1.80;           // まわるごとの上乗せ
+const DRAGV_W0 = 66;               // 1周目の線の太さ
+const DRAGV_W_STEP = 22;           // まわるごとに太くなる量
+const DRAGV_GAP = 11;              // 1周にかける時間（フレーム）
+const DRAGV_BITE = 45.0;           // 咬みつき（HPのいちばん高い敵＋その周囲）
+const DRAGV_BITE_R = 210;
+const DRAGV_TAIL = 40.0;           // 尾のなぎ払い（敵全体）
+const DRAGV_TOTAL = DRAGV_LAPS * DRAGV_PER + DRAGV_STEP * (DRAGV_LAPS * (DRAGV_LAPS - 1) / 2)
+  + DRAGV_BITE + DRAGV_TAIL;
+
+/* ── アンナ＆ラン「ツインローズ・カタストロフ」（リンクスキル・火＆光）──
+   ★ これまでに無い挙動: <b>紅と金、2本の螺旋が同時に走る</b>。
+     螺旋そのものも敵全体を削るが、いちばん重いのは<b>2本が交わった瞬間の共鳴</b>——
+     <b>交わるたびに次の共鳴が重くなる</b>。2人で1体のキャラだからできる技。
+   ★ 合計 ＝ 螺旋 8×2.00（＝16.0）＋ 共鳴 6×5.00＋1.40×15（＝51.0）＋ 大薔薇 22.0 ＝ <b>×89.0</b>。
+     <b>MagiBurst 史上いちばん重いリンクスキル</b>（万灯祭天 ×64 を超える）。 */
+const TROSE_TICKS = 8;             // 螺旋の刻み（敵全体）
+const TROSE_PER = 5.20;            // 1刻み ★★ 2026-09-06b 200人目の記念に超強化
+const TROSE_CROSS_N = 8;           // 共鳴の回数 ★★ 2026-09-06b 6 → 8
+const TROSE_CROSS = 14.00;         // 1回目の共鳴（半径 TROSE_R）★★ 2026-09-06b 超強化
+const TROSE_CROSS_STEP = 4.20;     // 共鳴するたびの上乗せ ★★ 2026-09-06b 超強化
+const TROSE_R = 240;
+const TROSE_GAP = 7;
+const TROSE_FINALE = 66.0;         // 締め（敵全体・二輪の大薔薇）★★ 2026-09-06b 超強化
+const TROSE_TOTAL = TROSE_TICKS * TROSE_PER
+  + TROSE_CROSS_N * TROSE_CROSS + TROSE_CROSS_STEP * (TROSE_CROSS_N * (TROSE_CROSS_N - 1) / 2)
+  + TROSE_FINALE;
+
+/* ── ヨイヅキ「プリズム・タイド」（リンクスキル・水）──
+   ★ 新しい挙動: <b>七色の波が別々の向きから来る</b>。
+     波が当たるたびにその敵に「色」がたまり、最後の締めは<b>たまった色の数だけ重い</b>。
+     ＝ <b>散らばっているほど色がそろわない／中央にいるほど灼ける</b>。 */
+const PTIDE_N = 7;                 // 波の数（七色）
+const PTIDE_PER = 4.60;            // 1波ぶん
+const PTIDE_W = 128;               // 波の太さ
+const PTIDE_GAP = 9;
+const PTIDE_FINALE = 20.0;         // 締めの基本
+const PTIDE_BONUS = 3.20;          // 締めに乗る「色1つぶん」
+const PTIDE_TOTAL = PTIDE_N * PTIDE_PER + PTIDE_FINALE + PTIDE_BONUS * PTIDE_N;
+
+/* ── アスカ「メイプル・スパイラル」（リンクスキル・火）──
+   ★ 新しい挙動: 紅葉の輪が<b>外から内へ</b>すぼまっていき、
+     中心に集まりきった瞬間に一点へ爆ぜる。<b>中心に近い敵ほど締めが重い</b>。 */
+const MSPIR_RINGS = 6;             // 輪の数
+const MSPIR_PER = 6.40;            // 輪1つぶん（輪の上の敵）
+const MSPIR_R0 = 430;              // 1つ目の輪の半径
+const MSPIR_GAP = 8;
+const MSPIR_FINALE = 36.0;         // 中心の爆発（中心にいるほど重い）
+const MSPIR_FR = 300;              // 爆発の届く距離
+const MSPIR_TOTAL = MSPIR_RINGS * MSPIR_PER + MSPIR_FINALE;
+
+/* ── レナ「パルフェ・カスケード」（リンクスキル・火）──
+   ★ 新しい挙動: 上の段から果実が落ちてきて、<b>下の段ほど数が増える</b>（1→2→3→4）。
+     最後にクリームが盤面いっぱいへ広がる。GRAND DEBUT なので<b>控えめ</b>。 */
+const PARF_ROWS = 4;
+const PARF_PER = 4.40;             // 1粒
+const PARF_R = 150;
+const PARF_GAP = 10;
+const PARF_FINALE = 14.0;          // 締め（敵全体）
+const PARF_TOTAL = PARF_PER * (PARF_ROWS * (PARF_ROWS + 1) / 2) + PARF_FINALE;
+
+/* ── アストレア「ジャッジメント・スケール」（リンクスキル・光）──
+   ★ 新しい挙動: <b>盤面を天秤の左右に分け、重い側（HP合計が多い側）へ判決の光柱</b>が落ちる。
+     3回はかり直すので、削るたびに<b>落ちる側が入れかわる</b>。 */
+const SCALEV_N = 3;                // はかる回数
+const SCALEV_HEAVY = 9.00;         // 重い側へ
+const SCALEV_LIGHT = 5.00;         // 軽い側へ
+const SCALEV_GAP = 14;
+const SCALEV_FINALE = 22.0;        // 締め（敵全体・判決）
+const SCALEV_TOTAL = SCALEV_N * (SCALEV_HEAVY + SCALEV_LIGHT) + SCALEV_FINALE;
+
+/* ── RISING STAR FEST（新5体）の<b>共通</b>サブリンク「スターバースト・ウェイブ」── */
+const SBWAVE_N = 3;                // 波の数
+const SBWAVE_PER = 1.05;           // 1波ぶん
+const SBWAVE_R0 = 220;             // 1波目の半径
+const SBWAVE_R_STEP = 90;          // 波ごとに広がる量
+const SBWAVE_GAP = 8;
+
+/* ── GRAND DEBUT GACHA（新5体）の<b>共通</b>サブリンク「デビュー・コード」── */
+const DCHORD_PER = 0.90;           // 三角の頂点1つぶん
+const DCHORD_EDGE = 0.45;          // 三角の辺の上の敵
+const DCHORD_R = 168;              // 頂点の爆発の半径
+const DCHORD_D = 210;              // 頂点までの距離
+const DCHORD_TOTAL = DCHORD_PER * 3 + DCHORD_EDGE * 3;
+
+/* ── フルバースト（戦姫祭 新3体・新設）──
+   ★ ご指定「FBも史上最強で、演出もキャラに合わせた派手で豪華なもの」。
+     効果は<b>3つまで</b>（自強化／敵全体／もう1つ）に抑え、数字で最強にしてある。 */
+const REIS_ATK = 2.70, REIS_SPD = 1.40;       // レイ: 自強化
+const REIS_ALL = 2.60;                        // 敵全体へ
+const REIS_DEFDOWN_TURNS = 4;                 // 敵全体の防御力ダウンの持続
+const RIKAS_ATK = 2.65, RIKAS_SPD = 1.36;     // リカ: 自強化
+const RIKAS_ALL = 2.55;                       // 敵全体へ
+const RIKAS_FB = 3;                           // 味方全員のフルバーストを進めるターン
+const RIKAS_BARRIER = 3000;                   // 味方全員に張るバリア
+/* ── アンナ＆ラン（No.200）のフルバースト「ツインローズ・レクイエム」──
+   ★★ 2026-09-06b <b>2体の乱打</b>に作り直しました（ご指定）。
+     紅（アンナ）と金（ラン）が<b>同時に</b>たたき込むので、1回の発動で
+       ANNARAN_BARRAGE_N × 2 発
+     が入る。<b>MagiBurst 史上いちばん重いフルバースト</b>。
+   ★ 乱打は「最初にふれた敵の上で止まってから」（barrageHalt）。ほかの乱打FBと同じ作り。 */
+/* ★★ 2026-09-07 <b>断トツ最強</b>にしました（ご指定）。
+   これまでの最強は アンナ(極華祭)「万華繚乱・千夜ノ大花火」＝<b>×253.3</b>。
+   前のアンナ＆ランは 68×1.30 ＋ 60.0 ＝ ×148.4 で、実は<b>届いていなかった</b>。
+   ★ 新しい内わけ（合計 <b>×544.2</b>＝これまでの記録の 2.15 倍）
+       ・乱打    44連 × 2体 ＝ 88発。<b>1発ごとに重くなる</b>（+STEP）
+                  = (44×2.60 + 0.05×(0+…+43)) × 2 = 161.7 × 2 = <b>323.4</b>
+       ・共鳴    二輪が 8 回交わる（敵全体）。交わるたびに重くなる
+                  = 8×7.20 + 2.40×(0+…+7) = <b>124.8</b>
+       ・締め    二輪の大薆薇（敵全体・ふっとばし） = <b>96.0</b>
+   ★ 式を変えたときは <b>ANNARAN_TOTAL</b> も直すこと（画面に出る数字）。 */
+const ANNARAN_BARRAGE_N = 44;      // 片方ぶんの連数（2体ぶんなので実際は 88 連）
+const ANNARAN_BARRAGE_PER = 2.60;  // 1発の倍率（紅）
+const ANNARAN_BARRAGE_PER2 = 2.60; // 1発の倍率（金）
+const ANNARAN_BARRAGE_STEP = 0.05; // 1発ごとの上乗せ（撃つほど重くなる）
+const ANNARAN_RESO_N = 8;          // 二輪が交わる回数（敵全体）
+const ANNARAN_RESO_PER = 7.20;     // 1回目の倍率
+const ANNARAN_RESO_STEP = 2.40;    // 交わるたびの上乗せ
+const ANNARAN_RESO_GAP = 10;       // 1回ごとの間隔（フレーム）
+const ANNARAN_FINALE_PER = 96.0;   // 締めの二輪（敵全体・ふっとばし）
+const ANNARAN_BARRAGE_TOTAL =
+  (ANNARAN_BARRAGE_N * ANNARAN_BARRAGE_PER + ANNARAN_BARRAGE_STEP * (ANNARAN_BARRAGE_N * (ANNARAN_BARRAGE_N - 1) / 2))
+  + (ANNARAN_BARRAGE_N * ANNARAN_BARRAGE_PER2 + ANNARAN_BARRAGE_STEP * (ANNARAN_BARRAGE_N * (ANNARAN_BARRAGE_N - 1) / 2));
+const ANNARAN_RESO_TOTAL =
+  ANNARAN_RESO_N * ANNARAN_RESO_PER + ANNARAN_RESO_STEP * (ANNARAN_RESO_N * (ANNARAN_RESO_N - 1) / 2);
+const ANNARAN_TOTAL = ANNARAN_BARRAGE_TOTAL + ANNARAN_RESO_TOTAL + ANNARAN_FINALE_PER;
+const ANNARAN_ATK = 3.10, ANNARAN_SPD = 1.55; // アンナ＆ラン: 自強化 ★★ 2026-09-06b 超強化
+const ANNARAN_ALL = 2.85;                     // 敵全体へ
+const ANNARAN_DELAY = 3;                      // 敵全体の攻撃ターンを遅らせる数
+const ANNARAN_HEAL = 0.40;                    // チームHPの回復割合
+
+/* ── 天律族キラー（★★ 2026-09-06 新設）──
+   蓬莱族キラーと同じ<b>種族キラー</b>。天界の審判のボス（アストレア）が天律族。
+   ★ 直すのは ABIL_NM ／ abilDesc ／ killerMul ／ index.html の絞り込み表の4か所。 */
+const JUDGEKILLER_L_MUL = 2.5;
+const JUDGEKILLER_EL_MUL = 3.4;
+
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-09-07 戦姫祭 ナオ（No.211）／ハルカ（No.212）
+   ------------------------------------------------------------
+   ご指定：リンクスキルは<b>挙動も新しい</b>もの。ただし<b>遅延は使わない</b>。
+   ・ナオ「タイダル・オーバーフロー」
+       ＝ <b>盤面に残っている敵の数だけ「潮の段」が上がる</b>。
+         段が上がるたび<b>敵全体</b>へ入り、<b>1段ごとに重くなる</b>。
+         ＝ 敵が多い場面ほど伸びる（MagiBurst で<b>敵の数が段数を決める</b>のは初）。
+   ・ハルカ「クリスタル・レゾナンス」
+       ＝ <b>結晶が4段階に育つ</b>（輪がどんどん大きくなる）。
+         <b>その段でふれた敵の数だけ、次の段が重くなる</b>＝当てるほど雪だるま式。
+   ★ 強さの位置づけ（ご指定）
+       アンナ＆ラン（No.200・記念キャラ）は別格のまま。この2体は<b>歴代2位</b>。
+       FB 合計 ×318.0／×318.8（アンナ極華祭 ×253.3 を超え、アンナ＆ラン ×544.2 には届かない）
+   ══════════════════════════════════════════════════════════════ */
+/* ── ナオ「タイダル・オーバーフロー」（リンクスキル）── */
+const TOVF_PER = 9.60;             // 1段ぶんの倍率（敵全体）
+const TOVF_STEP = 4.80;            // 段が上がるごとの上乗せ
+const TOVF_MAX = 8;                // 段の上限（敵が9体以上でも8段まで）
+const TOVF_FINALE = 66.0;          // 締めの大波（敵全体）
+const TOVF_GAP = 9;                // 1段ごとの間隔（フレーム）
+function tovfTotal(n) {
+  const k = Math.max(1, Math.min(TOVF_MAX, n | 0));
+  return k * TOVF_PER + TOVF_STEP * (k * (k - 1) / 2) + TOVF_FINALE;
+}
+const TOVF_TOTAL_MAX = tovfTotal(TOVF_MAX);
+
+/* ── ハルカ「クリスタル・レゾナンス」（リンクスキル）── */
+const CRES_STEPS = 4;              // 結晶が育つ段数
+const CRES_R = [150, 260, 380, 520];
+const CRES_PER = 15.0;             // 1段目の倍率（輪にふれた敵）
+const CRES_HITBONUS = 6.5;         // 前の段でふれた敵1体につき、次の段に上乗せ
+const CRES_FINALE = 62.0;          // 最後に結晶が砕けて 敵全体
+const CRES_GAP = 12;               // 1段ごとの間隔（フレーム）
+/* 毎段 h 体にふれたときの、1体あたりの合計 */
+function cresTotal(h) {
+  let per = CRES_PER, t = 0;
+  for (let i = 0; i < CRES_STEPS; i++) { t += per; per += CRES_HITBONUS * Math.max(0, h | 0); }
+  return t + CRES_FINALE;
+}
+const CRES_TOTAL_MAX = cresTotal(4);
+
+/* ── ナオ「ミッドサマー・タイダルウェイブ」（フルバースト）── */
+const NAOS_ATK = 2.95, NAOS_SPD = 1.50;
+const NAOS_WAVE_N = 3;             // 大津波が盤面を往復する回数（敵全体）
+const NAOS_WAVE_PER = 46.0;        // 1往復目の倍率
+const NAOS_WAVE_STEP = 24.0;       // 往復するたびの上乗せ
+const NAOS_WAVE_GAP = 16;          // 1往復ごとの間隔（フレーム）
+const NAOS_FINALE = 108.0;         // 締めのサマー・スプラッシュ（敵全体・ふっとばし）
+const NAOS_BARRIER = 5200;         // 味方全員に張るバリア
+const NAOS_TOTAL =
+  NAOS_WAVE_N * NAOS_WAVE_PER + NAOS_WAVE_STEP * (NAOS_WAVE_N * (NAOS_WAVE_N - 1) / 2) + NAOS_FINALE;
+
+/* ── ハルカ「クリスタル・パピヨン」（フルバースト）── */
+const HARUKAS_ATK = 2.90, HARUKAS_SPD = 1.48;
+const HARUKAS_BARRAGE_N = 40;      // 結晶の檻の中での乱打
+const HARUKAS_BARRAGE_PER = 2.85;  // 1発の倍率
+const HARUKAS_BARRAGE_STEP = 0.06; // 1発ごとの上乗せ
+const HARUKAS_SHATTER = 92.0;      // 檻が砕けて 敵全体
+const HARUKAS_FLUTTER_N = 6;       // 舞う蝶の数（敵全体）
+const HARUKAS_FLUTTER_PER = 11.0;  // 蝶1羽ぶんの倍率
+const HARUKAS_FLUTTER_GAP = 9;
+const HARUKAS_FBCUT = 2;           // 味方全員のフルバーストを進めるターン
+const HARUKAS_TOTAL =
+  HARUKAS_BARRAGE_N * HARUKAS_BARRAGE_PER
+  + HARUKAS_BARRAGE_STEP * (HARUKAS_BARRAGE_N * (HARUKAS_BARRAGE_N - 1) / 2)
+  + HARUKAS_SHATTER + HARUKAS_FLUTTER_N * HARUKAS_FLUTTER_PER;
+
 const SUBFS = {
   plasma: { nm: "プラズマ", pow: "初撃 攻撃力×0.8 ＋ 電撃リンク中 1ヒット 攻撃力×0.34", desc: "自分と触れた味方の間に強力なプラズマを走らせて攻撃（味方が止まるまで持続）" },
   accel: { nm: "加速", pow: "弾速 ×1.4（ダメージなし）", desc: "触れた味方（動いているキャラ）を加速させる" },
@@ -3274,6 +3619,29 @@ const SUBFS = {
       + "<br>いちばんのちがいは<b>1回ごとに少しずつ回る</b>こと（約22度ずつ）。"
       + "同じ場所を4回たたくのではなく、<b>毎回ちがう向きへ</b>伸びるので、"
       + "散らばった敵にも順に当たっていく" },
+  /* ══ ★★ 2026-09-06 RISING STAR FEST（新5体）の<b>共通</b>サブリンク ══
+     ★ ご指定「新キャラのサブリンクスキルは統一したい」。
+       第1弾＝ライジング・タイド／第2弾＝スターライト・チェイン／
+       <b>第3弾（今回の5体）＝スターバースト・ウェイブ</b>。 */
+  starburstwave: { nm: "スターバースト・ウェイブ",
+    pow: "星の波が " + SBWAVE_N + "回、<b>1回ごとに大きく</b>広がる（1波 攻撃力×" + SBWAVE_PER
+      + "・半径 " + SBWAVE_R0 + " → " + (SBWAVE_R0 + SBWAVE_R_STEP * (SBWAVE_N - 1)) + "）／"
+      + "合計 攻撃力×" + (SBWAVE_N * SBWAVE_PER).toFixed(2),
+    desc: "ふれた味方から<b>星の波</b>が広がる。"
+      + "<br>ちがいは<b>広がるたびに輪が大きくなる</b>こと（半径 " + SBWAVE_R0 + " → "
+      + (SBWAVE_R0 + SBWAVE_R_STEP * (SBWAVE_N - 1)) + "）——"
+      + "近くの敵は3回とも当たり、遠くの敵にも<b>最後の波はきっちり届く</b>。"
+      + "<br>RISING STAR FEST の<b>ヨイヅキ・カヨ・シノ・マアヤ・アスカ</b>が全員そろって持つ共通のサブリンクです" },
+  /* ══ ★★ 2026-09-06 GRAND DEBUT GACHA（新5体）の<b>共通</b>サブリンク ══ */
+  debutchord: { nm: "デビュー・コード",
+    pow: "ふれた味方を中心に<b>三和音</b>（正三角形の3頂点・距離 " + DCHORD_D + "）／"
+      + "頂点で 攻撃力×" + DCHORD_PER + "（半径 " + DCHORD_R + "）＋ 辺の上の敵に 攻撃力×" + DCHORD_EDGE
+      + "／合計 攻撃力×" + DCHORD_TOTAL.toFixed(2),
+    desc: "ふれた味方を中心に、<b>三和音</b>が鳴って正三角形の3つの頂点で弾ける。"
+      + "<br>ちがいは<b>頂点だけでなく、頂点と頂点を結ぶ辺の上の敵にも入る</b>こと——"
+      + "<b>円ではなく三角形</b>なので、味方のまわりに寄っていない敵にも届く。"
+      + "<br>GRAND DEBUT GACHA の<b>レナ・カオル・スバル・カスミ・ツキノ</b>が"
+      + "全員そろって持つ共通のサブリンクです" },
   /* ══ ★★ 2026-08-29 戦姫祭の<b>共通</b>サブリンク（ご指定: 戦姫祭のキャラだけ統一する）══ */
   senkirondo: { nm: "ヴァルキュリア・ロンド",
     pow: "刃の輪が " + SENKI_RINGS + "回、半径 " + SENKI_R0 + " → " + SENKI_R1
@@ -4274,6 +4642,113 @@ const CONNECT = {
     ],
   },
   /* ══════════════════════════════════════════════════════════════
+     ★★ 2026-09-06 戦姫祭の新3体のクロス（ご指定: アンチを1つ入れる）
+     ★ 条件に<b>自分と異なる属性</b>は使わない（ご指定）。
+     ══════════════════════════════════════════════════════════════ */
+  /* ══ ★★ 2026-09-07 戦姫祭 第2弾 ══
+     ★ ご指定どおり<b>条件に自分と異なる属性を出さない</b>（どちらも「自分と同じ属性」）。
+     ★ クロスの3つのうち<b>1つはアンチ</b>（アンチロックゾーン）。 */
+  naos: {
+    nm: "真夏のクロス",
+    condTx: "<b>自分と同じ属性の味方が1体以上</b>いること（自分をのぞく）",
+    cond: (ids, me) => cnxSelfIn(ids, me) && cnxCount(ids, me, (c, m) => c.el === m.el) >= 1,
+    skills: [
+      { k: "naosLock", nm: "アンチロックゾーン", abil: "antilock" },
+      { k: "naosWall", nm: "ウォールブーストEL", abil: "wallboostEL" },
+      { k: "naosBarrier", nm: "バリアEL", abil: "barrierEL" },
+    ],
+  },
+  harukas: {
+    nm: "蒼晶のクロス",
+    condTx: "<b>自分と同じ属性の味方が1体以上</b>いること（自分をのぞく）",
+    cond: (ids, me) => cnxSelfIn(ids, me) && cnxCount(ids, me, (c, m) => c.el === m.el) >= 1,
+    skills: [
+      { k: "harukasLock", nm: "アンチロックゾーン", abil: "antilock" },
+      { k: "harukasBoost", nm: "リンクブーストEL", abil: "fsboostEL" },
+      { k: "harukasSoul", nm: "ソウルスティールEL", abil: "soulEL" },
+    ],
+  },
+  reis: {
+    nm: "深夜のクロス",
+    condTx: "<b>自分と同じ属性の味方が1体以上</b>いること（自分をのぞく）",
+    cond: (ids, me) => cnxSelfIn(ids, me) && cnxCount(ids, me, (c, m) => c.el === m.el) >= 1,
+    skills: [
+      { k: "reisBlock", nm: "アンチブロック", abil: "ablock" },
+      { k: "reisBoost", nm: "リンクブーストEL", abil: "fsboostEL" },
+      { k: "reisBarrier", nm: "バリアEL", abil: "barrierEL" },
+    ],
+  },
+  rikas: {
+    nm: "竜姫のクロス",
+    condTx: "<b>自分と同じ撃種の味方が1体以上</b>いること（自分をのぞく）",
+    cond: (ids, me) => cnxSelfIn(ids, me) && cnxCount(ids, me, (c, m) => c.shot === m.shot) >= 1,
+    skills: [
+      { k: "rikasAdw", nm: "超アンチダメージウォール", abil: "superadw" },
+      { k: "rikasBoost", nm: "リンクブーストEL", abil: "fsboostEL" },
+      { k: "rikasRegen", nm: "リジェネL", abil: "regenL" },
+    ],
+  },
+  annaran: {
+    nm: "双薔薇のクロス",
+    condTx: "<b>自分より攻撃力が低い味方が1体以上</b>いること",
+    cond: (ids, me) => cnxSelfIn(ids, me) && cnxCount(ids, me, (c, m, cs, ms) => (cs.atk || 0) < (ms.atk || 0)) >= 1,
+    skills: [
+      { k: "annaranGrav", nm: "超アンチ重力バリア", abil: "sgrav" },
+      { k: "annaranBoost", nm: "リンクブーストEL", abil: "fsboostEL" },
+      { k: "annaranBarrier", nm: "バリアEL", abil: "barrierEL" },
+    ],
+  },
+  /* ══════════════════════════════════════════════════════════════
+     ★★ 2026-09-06 GRAND DEBUT GACHA（今回の5体）のクロス
+     ★ 登場したばかりなので<b>控えめ</b>（等級は L・M）。
+       アビリティは<b>クロス込みで8つ</b>＝ 素6（アンチ3＋キラー3）＋クロス2。
+     ══════════════════════════════════════════════════════════════ */
+  renad: {
+    nm: "パルフェのクロス",
+    condTx: "<b>自分と同じ属性の味方が1体以上</b>いること（自分をのぞく）",
+    cond: (ids, me) => cnxSelfIn(ids, me) && cnxCount(ids, me, (c, m) => c.el === m.el) >= 1,
+    skills: [
+      { k: "renadBoost", nm: "リンクブーストL", abil: "fsboostL" },
+      { k: "renadRegen", nm: "リジェネM", abil: "regenM" },
+    ],
+  },
+  kaoru: {
+    nm: "ひだまりのクロス",
+    condTx: "<b>自分よりHPが高い味方が1体以上</b>いること",
+    cond: (ids, me) => cnxSelfIn(ids, me) && cnxCount(ids, me, (c, m, cs, ms) => (cs.hp || 0) > (ms.hp || 0)) >= 1,
+    skills: [
+      { k: "kaoruBoost", nm: "リンクブーストL", abil: "fsboostL" },
+      { k: "kaoruBarrier", nm: "バリアL", abil: "barrierL" },
+    ],
+  },
+  subaru: {
+    nm: "夜想のクロス（昴）",
+    condTx: "<b>自分と同じ撃種の味方が1体以上</b>いること（自分をのぞく）",
+    cond: (ids, me) => cnxSelfIn(ids, me) && cnxCount(ids, me, (c, m) => c.shot === m.shot) >= 1,
+    skills: [
+      { k: "subaruBoost", nm: "リンクブーストL", abil: "fsboostL" },
+      { k: "subaruDash", nm: "ダッシュM", abil: "dashM" },
+    ],
+  },
+  kasumi: {
+    nm: "若葉のクロス",
+    condTx: "<b>自分よりスピードが低い味方が1体以上</b>いること",
+    cond: (ids, me) => cnxSelfIn(ids, me) && cnxCount(ids, me, (c, m, cs, ms) => (cs.spd || 0) < (ms.spd || 0)) >= 1,
+    skills: [
+      { k: "kasumiBoost", nm: "リンクブーストL", abil: "fsboostL" },
+      { k: "kasumiRegen", nm: "リジェネM", abil: "regenM" },
+    ],
+  },
+  tsukinod: {
+    nm: "月華のクロス",
+    condTx: "<b>自分より攻撃力が低い味方が1体以上</b>いること",
+    cond: (ids, me) => cnxSelfIn(ids, me) && cnxCount(ids, me, (c, m, cs, ms) => (cs.atk || 0) < (ms.atk || 0)) >= 1,
+    skills: [
+      { k: "tsukinodBoost", nm: "リンクブーストL", abil: "fsboostL" },
+      { k: "tsukinodBarrier", nm: "バリアL", abil: "barrierL" },
+    ],
+  },
+  /* ══════════════════════════════════════════════════════════════
      ★★ 2026-08-30 GRAND DEBUT Ver.6.0 の5体のクロス
      ・アンチは<b>素の3つ</b>で足りている（担当クエストにぴったり）ので、
        クロスは<b>キラーでもアンチでもないもの2つ</b>にしてある。
@@ -4629,8 +5104,9 @@ const CHARS = {
   yuina: {
     id: "yuina", nm: "ユイナ", img: "Yuina.webp", th: "t_Yuina.webp",
     el: "dark", shot: "pierce", type: "アタッカー型", nexus: "force",
-    hp: [800, 5060], atk: [420, 2660], spd: [270, 398],
-    abil: [{ t: "aw" }, { t: "agrav" }, { t: "killer", el: "light" }, { t: "firstkiller" }], subfs: "hitouchray",
+    hp: [800, 5060], atk: [630, 3990], spd: [270, 398],
+    abil: [{ t: "aw" }, { t: "agrav" }, { t: "killer", el: "light" },
+           { t: "barrierL" }], subfs: "hitouchray",
     ssName: "蝕月ノ牙・エクリプスファング", ssTurns: 18, ssKind: "leila",
     ssPow: "自強化（攻撃×1.6・スピード×1.6）＋ 最初にふれた敵で<b>停止</b>して 高速乱打16連（各 攻撃力×0.6）",
     ssDesc: "<b>自強化して闇夜を駆け抜け</b>、<b>最初にふれた敵の上で止まって</b><b>高速乱打16連</b>をたたき込む。ファーストキラーと噛み合う手数型",
@@ -4662,8 +5138,9 @@ const CHARS = {
   akane: {
     id: "akane", nm: "アカネ", img: "Akane.webp", th: "t_Akane.webp",
     el: "fire", shot: "pierce", type: "アタッカー型", nexus: "slayer",
-    hp: [795, 5030], atk: [424, 2680], spd: [274, 404],
-    abil: [{ t: "adw" }, { t: "ablock" }, { t: "killer", el: "wood" }, { t: "sokojikara" }], subfs: "pspread5",
+    hp: [795, 5030], atk: [636, 4020], spd: [274, 404],
+    abil: [{ t: "adw" }, { t: "ablock" }, { t: "killer", el: "wood" },
+           { t: "fsboostL" }], subfs: "pspread5",
     ssName: "紅刃ノ一閃・スカーレットエッジ", ssTurns: 18, ssKind: "leila",
     ssPow: "自強化（攻撃×1.6・スピード×1.6）＋ 最初にふれた敵で<b>停止</b>して 高速乱打16連（各 攻撃力×0.6）",
     ssDesc: "<b>紅の刃で自強化して駆け抜け</b>、<b>最初にふれた敵の上で止まって</b><b>高速乱打16連</b>を叩き込む。SRのなかでは攻撃力がいちばん高い",
@@ -4707,8 +5184,9 @@ const CHARS = {
   mika: {
     id: "mika", nm: "ミカ", img: "Mika.webp", th: "t_Mika.webp",
     el: "fire", shot: "pierce", type: "アタッカー型", nexus: "ignition",
-    hp: [805, 5070], atk: [422, 2670], spd: [272, 400],
-    abil: [{ t: "ms" }, { t: "aslow" }, { t: "killer", el: "wood" }, { t: "aura" }], subfs: "blast",
+    hp: [805, 5070], atk: [633, 4005], spd: [272, 400],
+    abil: [{ t: "ms" }, { t: "aslow" }, { t: "killer", el: "wood" },
+           { t: "dashM" }], subfs: "blast",
     ssName: "焔冠ノ舞・インフェルノクラウン", ssTurns: 18, ssKind: "koharu",
     ssPow: "自強化（攻撃×1.6）＋ ふれた敵の弱点倍率アップ",
     ssDesc: "<b>焔の冠をまとって自強化</b>し、<b>ふれた敵の弱点倍率を上げる</b>。弱点持ちのボスに刺さる、火力の起点になれるSR",
@@ -4783,9 +5261,10 @@ const CHARS = {
     id: "kotomi", nm: "コトミ", img: "Kotomi.webp", th: "t_Kotomi.webp",
     el: "dark", shot: "pierce", type: "支援砲撃型", gacha: true, lux: true, nexus: "resonance",
     connect: "kotomi",
-    hp: [892, 5880], atk: [492, 3140], spd: [296, 436],
-    abil: [{ t: "superadw" }, { t: "sgrav" }, { t: "award" }, { t: "netherkillerEL" },
-           { t: "mobkillerM" }, { t: "fsdouble" }, { t: "drainM" }],
+    hp: [892, 5880], atk: [984, 6280], spd: [296, 436],
+    abil: [{ t: "superadw" }, { t: "sgrav" }, { t: "award" },
+           { t: "netherkillerEL" }, { t: "wallboostL" }, { t: "fsdouble" },
+           { t: "drainM" }],
     subfs: "roundcharge",
     ssName: "ノクス・ルミナリエ", ssTurns: 22, ssKind: "kotomi",
     ssPow: "自強化（攻撃×1.8・スピード×1.25）＋ <b>ふれた味方のステータスを×2.0</b>（その味方が2回行動するまで）",
@@ -4817,8 +5296,9 @@ const CHARS = {
     id: "kaho", nm: "カホ", img: "Kaho.webp", th: "t_Kaho.webp",
     el: "water", shot: "bounce", type: "技巧型", gacha: true, lux: true, nexus: "demolish",
     connect: "kaho",
-    hp: [896, 5900], atk: [484, 3090], spd: [286, 420],
-    abil: [{ t: "ablock" }, { t: "antilock" }, { t: "eclipsekillerEL" }, { t: "upkillerM" }],
+    hp: [896, 5900], atk: [968, 6180], spd: [286, 420],
+    abil: [{ t: "ablock" }, { t: "antilock" }, { t: "eclipsekillerEL" },
+           { t: "speedmode" }],
     subfs: "wallcircuit",
     ssName: "碧洋ノ浮環・アクアリング", ssTurns: 16, ssKind: "kaho",
     ssPow: "その場に停止し、<b>狙った方向の視野角180°にいる敵すべて</b>に浮き輪を装着（毎ターンのスリップダメージ＋防御ダウン）",
@@ -4901,8 +5381,9 @@ const CHARS = {
   },
   sakura: {
     id: "sakura", nm: "サクラ", img: "Sakura.webp", th: "t_Sakura.webp", el: "water", shot: "bounce", type: "反射再走型", gacha: true, lux: true, nexus: "vanguard",
-    hp: [830, 5450], atk: [445, 2860], spd: [285, 420],
-    abil: [{ t: "superms" }, { t: "superaw" }, { t: "allkiller" }, { t: "sokojikara" }], subfs: "hitouchray",
+    hp: [830, 5450], atk: [668, 4290], spd: [285, 420],
+    abil: [{ t: "superms" }, { t: "superaw" }, { t: "impulseboost" },
+           { t: "sokojikara" }], subfs: "hitouchray",
     ssName: "蒼閃烈破・サッカーストライカー", ssTurns: 18, ssKind: "sakuraX",
     ssPow: "自強化（攻撃×1.7・スピード×1.5）＋ 停止後にさらに強化して再走 ＋ 再走時に大量のサッカーボールを射出",
     ssDesc: "<b>自強化して駆けまわり</b>（攻撃×1.7・スピード×1.5）、<b>止まるとさらに強化してもう一度自動で走り出す（再走）</b>。再走のときは<b>大量のサッカーボールを一気に射出</b>し、壁で跳ねながら敵をなぎ倒す超火力フルバースト！",
@@ -4923,8 +5404,9 @@ const CHARS = {
   },
   kaguya: {
     id: "kaguya", nm: "カグヤ", img: "Kaguya.webp", th: "t_Kaguya.webp", el: "light", shot: "pierce", type: "超バランス型", gacha: true, lux: true, nexus: "resonance",
-    hp: [800, 5200], atk: [430, 2750], spd: [280, 410],
-    abil: [{ t: "omni" }, { t: "aura" }, { t: "vital" }, { t: "eternalphoton" }, { t: "resonance" }], subfs: "hiplasma",
+    hp: [800, 5200], atk: [645, 4125], spd: [280, 410],
+    abil: [{ t: "omni" }, { t: "aura" }, { t: "atkchargeM" },
+           { t: "eternalphoton" }, { t: "resonance" }], subfs: "hiplasma",
     ssName: "月虹重力・ルナグラビトン", ssTurns: 14, ssKind: "kaguya",
     ssPow: "体当たり 攻撃力×2.3 ＋ 着地ダメージ 攻撃力×2.0以上（吹っ飛び量に比例）",
     ssDesc: "大きく攻撃力アップ（×2.3）＋ふれた敵を月の重力で強烈に吹っ飛ばし、<b>吹っ飛んだ勢いの分だけ着地時に大ダメージ（×2.0〜）</b>を与える",
@@ -4933,8 +5415,9 @@ const CHARS = {
   },
   cheryl: {
     id: "cheryl", nm: "シェリー", img: "Cheryl.webp", th: "t_Cheryl.webp", el: "dark", shot: "pierce", type: "超乱打型", gacha: true, lux: true, nexus: "force",
-    hp: [820, 5400], atk: [450, 2900], spd: [290, 425],
-    abil: [{ t: "vital" }, { t: "omni" }, { t: "allkiller" }, { t: "drain" }], subfs: "accel",
+    hp: [820, 5400], atk: [675, 4350], spd: [290, 425],
+    abil: [{ t: "vital" }, { t: "omni" }, { t: "linkcharge" },
+           { t: "drain" }], subfs: "accel",
     ssName: "紫焔絶影・ヴァイオレットラプソディ", ssTurns: 20, ssKind: "cheryl",
     ssPow: "最初にふれた敵で<b>停止</b>して 乱打30連（各 攻撃力×0.7＝合計×21.0）＋ 体当たり 攻撃力×1.8",
     ssDesc: "攻撃力アップ（×1.8）、<b>そのショットで最初にふれた敵の上で止まり、紫焔の乱打30連（各×0.7）</b>をたたき込む超乱打フルバースト（当たるのは最初の1体だけ）。全弾ヒットで合計 攻撃力×21.0 の大ダメージ！",
@@ -5008,8 +5491,9 @@ const CHARS = {
     id: "mao", nm: "マオ", img: "Mao.webp", th: "t_Mao.webp", el: "dark", shot: "bounce", type: "壁撃型", gacha: true, lux: true, nexus: "sweep",
     /* ★ 2026-08-10 上方修正（プレミアムへ移行）。アンチは<b>2種</b>（減速壁＋ブロック）に増やし、
        キラーは弱点L・毒EL・バイタルLへ引き上げる。オムニは付けない。 */
-    hp: [910, 5840], atk: [490, 3110], spd: [290, 426],
-    abil: [{ t: "weakkillerL" }, { t: "aslow" }, { t: "ablock" }, { t: "poisonkillerEL" }, { t: "firstkillerM" }, { t: "vitalL" }], subfs: "poison",
+    hp: [910, 5840], atk: [1225, 7775], spd: [290, 426],
+    abil: [{ t: "drainM" }, { t: "aslow" }, { t: "ablock" },
+           { t: "poisonkillerEL" }, { t: "firstkillerM" }, { t: "vitalL" }], subfs: "poison",
     ssName: "壊劫反響・カルマインリコシェ", ssTurns: 22, ssKind: "mao",
     ssPow: "体当たり 攻撃力×1.8（壁に当たるたびに +0.4／最大 ×4.2）",
     ssDesc: "自強化して飛び出し（×1.8）、<b>壁にぶつかるたびに紅蓮の力が増していく（1反射ごとに +0.4・最大×4.2）</b>。壁を使うほど加速度的に火力が伸びる",
@@ -5064,9 +5548,9 @@ const CHARS = {
        ★ 所持・限界突破は xeva_gacha_v1 で全アプリ共有（XEVARIONアイコン・MagiBattle でも使用可）。 */
     id: "mizuki", nm: "ミズキ", img: "Mizuki.webp", th: "t_Mizuki.webp",
     el: "wood", shot: "pierce", type: "翠光審判型", lux: true, reward: true, lexchar: true, nexus: "lexforce", star5: true,
-    hp: [968, 6410], atk: [552, 3500], spd: [305, 452],
-    abil: [{ t: "superadw" }, { t: "superaslow" },
-           { t: "killerEL", el: "water" }, { t: "houraikillerL" }, { t: "barrierEL" }, { t: "regenL" }],
+    hp: [968, 6410], atk: [1656, 10500], spd: [305, 452],
+    abil: [{ t: "superadw" }, { t: "superaslow" }, { t: "allresM" },
+           { t: "houraikillerL" }, { t: "barrierEL" }, { t: "regenL" }],
     subfs: "knowledgeresonance",
     ssName: "翠光審判・セイクリッドヴァーディクト", ssTurns: 14, ssKind: "mizuki",
     ssPow: "自強化（攻撃×1.6・スピード×1.2）＋ ふれた敵の<b>攻撃ターンを+2遅延（即死ターンも+2）</b> ＋ ふれた敵の<b>攻撃力・防御力ダウン（4ターン）</b>",
@@ -5088,8 +5572,9 @@ const CHARS = {
   },
   natsuki: {
     id: "natsuki", nm: "ナツキ", img: "Natsuki.webp", th: "t_Natsuki.webp", el: "fire", shot: "bounce", type: "毒華強襲型", gacha: true, lux: true, nexus: "sweep",
-    hp: [815, 5400], atk: [450, 2880], spd: [275, 405],
-    abil: [{ t: "omni" }, { t: "poisonkillerM" }, { t: "firstkillerM" }, { t: "killer", el: "wood" }, { t: "drain" }], subfs: "boundcharge",
+    hp: [815, 5400], atk: [900, 5760], spd: [275, 405],
+    abil: [{ t: "omni" }, { t: "poisonkillerM" }, { t: "protection" },
+           { t: "killer", el: "wood" }, { t: "drain" }], subfs: "boundcharge",
     ssName: "焔華繚乱・スカーレットヴェノム", ssTurns: 18, ssKind: "natsuki",
     ssPow: "自強化（攻撃×1.8・スピード×1.2）＋ ふれた敵を<b>毒状態（4ターン）</b> ＋ <b>弱点ヒットでさらに大ダメージ（×1.6）</b>",
     ssDesc: "<b>紅蓮の華をまとって自強化（攻撃×1.8・スピード×1.2）</b>。このショット中に<b>ふれた敵すべてを毒状態（4ターン）</b>にし、<b>弱点に当てるとさらに×1.6の大ダメージ</b>。毒キラーMとの相性は最凶！",
@@ -5142,8 +5627,9 @@ const CHARS = {
   /* ══ v9 プレミアムガチャSSR 4体（コハル・ユリ・ホタル・リンネ） ══ */
   hotaru: {
     id: "hotaru", nm: "ホタル", img: "Hotaru.webp", th: "t_Hotaru.webp", el: "wood", shot: "pierce", type: "支援砲撃型", gacha: true, lux: true, nexus: "pierce",
-    hp: [820, 5400], atk: [455, 2900], spd: [275, 405],
-    abil: [{ t: "ms" }, { t: "adw" }, { t: "allkiller" }, { t: "weakkillerM" }], subfs: "boundcharge",
+    hp: [820, 5400], atk: [910, 5800], spd: [275, 405],
+    abil: [{ t: "ms" }, { t: "adw" }, { t: "allkiller" },
+           { t: "mirage" }], subfs: "boundcharge",
     ssName: "ルシオル・ブレイズ", ssTurns: 16, ssKind: "hotaru",
     ssPow: "自強化（攻撃×1.7・スピード×1.2）＋ このショット中に触れた敵の弱点を一定期間すべて出現させる",
     ssDesc: "<b>自強化して駆けまわり（攻撃×1.7・スピード×1.2）</b>、<b>ふれた敵に弱点コアを出現させる</b>。弱点の無い敵にも弱点を作り出し、弱点キラーMで一気に大ダメージを狙える砲撃型フルバースト！",
@@ -5334,8 +5820,9 @@ const CHARS = {
   },
   abyss: {
     id: "abyss", nm: "アビス", img: "Abyss.webp", th: "t_Abyss.webp", el: "dark", shot: "pierce", type: "雷撃強襲型", fes: true, lux: true, nexus: "slayer",
-    hp: [875, 5770], atk: [500, 3190], spd: [290, 426],
-    abil: [{ t: "superaw" }, { t: "msEL" }, { t: "weakkillerL" }, { t: "auraM" }, { t: "bubblemode" }, { t: "cumulonimbus" }], subfs: "absoluteray",
+    hp: [875, 5770], atk: [1250, 7975], spd: [290, 426],
+    abil: [{ t: "superaw" }, { t: "msEL" }, { t: "phantomdrive" },
+           { t: "auraM" }, { t: "bubblemode" }, { t: "cumulonimbus" }], subfs: "absoluteray",
     ssName: "ヴォイド・サンダーレイド", ssTurns: 16, ssKind: "abyss",
     ssPow: "自強化（攻撃×1.9・スピード×1.3）＋ <b>ダメージウォール・重力バリアを無効化</b>＋ <b>壁をすり抜けて反対側から出現</b>＋ 敵にふれるたび落雷（攻撃力×1.1）",
     ssDesc: "<b>虚無の雷をまとって自強化（攻撃×1.9・スピード×1.3）</b>。このショット中は<b>ダメージウォールと重力バリアを完全に無効化</b>し、さらに<b>画面の端をすり抜けて反対側の壁から出現</b>する（＝止まらずに走り続けられる）。<b>敵にふれるたびに落雷で追い打ち</b>を加える、圧倒的な機動力の強襲フルバースト！",
@@ -5362,8 +5849,10 @@ const CHARS = {
      ══════════════════════════════════════════════════════════════ */
   chloe: {
     id: "chloe", nm: "クロエ", img: "Chloe.webp", th: "t_Chloe.webp", el: "water", shot: "pierce", type: "深海制圧型", gacha: true, lux: true, nexus: "sweep",
-    hp: [890, 5860], atk: [494, 3150], spd: [288, 424],
-    abil: [{ t: "supermsEL" }, { t: "agrav" }, { t: "ablock" }, { t: "fatalkillerM" }, { t: "poisonkillerM" }, { t: "allkiller" }, { t: "bubblemode" }], subfs: "poisoncurrent",
+    hp: [890, 5860], atk: [741, 4725], spd: [288, 424],
+    abil: [{ t: "supermsEL" }, { t: "agrav" }, { t: "ablock" },
+           { t: "fatalkillerM" }, { t: "poisonkillerM" }, { t: "lightning" },
+           { t: "bubblemode" }], subfs: "poisoncurrent",
     ssName: "ホロックス・オーシャン", ssTurns: 24, ssKind: "chloe",
     ssPow: "自分が<b>2回行動し終えるまで</b> ステータスアップ（攻撃×1.9・スピード×1.35）＋ <b>すべてのアンチギミックを無効化</b>　／　停止後に<b>海を展開してシャチを召喚</b>（1体 攻撃力×" + CHLOE_SEA_HITS + "）し、<b>巨大なシャチに乗って再攻撃</b>（体当たり×" + CHLOE_SEA_MUL + "）",
     ssDesc: "<b>蒼の潮をまとって自強化（攻撃×1.9・スピード×1.35）</b>し、同時に<b>ダメージウォール・ワープ・地雷・ブロック・重力バリア・ロックゾーンのすべてを無効化</b>する。"
@@ -5385,8 +5874,9 @@ const CHARS = {
   sheril: {
     id: "sheril", nm: "シェリル", img: "Sheril.webp", th: "t_Sheril.webp",
     el: "water", shot: "bounce", type: "碧渚制圧型", gacha: true, lux: true, nexus: "bond",
-    hp: [880, 5810], atk: [488, 3120], spd: [286, 420],
-    abil: [{ t: "sgrav" }, { t: "aslow" }, { t: "upkillerM" }, { t: "gravkiller" }, { t: "fbshort" }], subfs: "alllock3",
+    hp: [880, 5810], atk: [732, 4680], spd: [286, 420],
+    abil: [{ t: "sgrav" }, { t: "aslow" }, { t: "upkillerM" },
+           { t: "cumulonimbus" }, { t: "fbshort" }], subfs: "alllock3",
     ssName: "セイレーン・タイドコール", ssTurns: 20, ssKind: "sheril",
     ssPow: "自強化（攻撃×1.8・スピード×1.25）＋ <b>味方全員で総攻撃</b>＋ <b>ふれた敵の弱点倍率アップ</b>（6ターン）",
     ssDesc: "<b>碧い潮をまとって自強化（攻撃×1.8・スピード×1.25）</b>し、撃ったその瞬間に<b>味方全員がいっせいに突っ込む総攻撃</b>を号令する。"
@@ -5448,8 +5938,10 @@ const CHARS = {
   beltia: {
     id: "beltia", nm: "ベルティア", img: "Beltia.webp", th: "t_Beltia.webp",
     el: "wood", shot: "bounce", type: "翠獄要塞型", gacha: true, lux: true, nexus: "aegis",
-    hp: [902, 5950], atk: [484, 3090], spd: [280, 412],
-    abil: [{ t: "antilock" }, { t: "superaslow" }, { t: "superaw" }, { t: "barrierL" }, { t: "fewfoeM" }, { t: "dashL" }, { t: "killerM", el: "water" }], subfs: "poison",
+    hp: [902, 5950], atk: [968, 6180], spd: [280, 412],
+    abil: [{ t: "antilock" }, { t: "superaslow" }, { t: "superaw" },
+           { t: "barrierL" }, { t: "destroyboostM" }, { t: "dashL" },
+           { t: "killerM", el: "water" }], subfs: "poison",
     ssName: "ヴェルデ・タイラント", ssTurns: 18, ssKind: "beltia",
     ssPow: "自強化（攻撃×1.8・スピード×1.2）＋ <b>味方全員で総攻撃</b>＋ <b>ふれた敵の攻撃ターンを2増加</b>",
     ssDesc: "<b>翠の茨をまとって自強化（攻撃×1.8・スピード×1.2）</b>し、撃った瞬間に<b>味方全員で総攻撃</b>を仕掛ける。"
@@ -5463,8 +5955,9 @@ const CHARS = {
   astera: {
     id: "astera", nm: "アステラ", img: "Astera.webp", th: "t_Astera.webp",
     el: "wood", shot: "pierce", type: "宵星狙撃型", gacha: true, lux: true, nexus: "slayer",
-    hp: [868, 5740], atk: [486, 3100], spd: [290, 426],
-    abil: [{ t: "antilock" }, { t: "aslow" }, { t: "poisonkillerM" }, { t: "vitalM" }], subfs: "lock8",
+    hp: [868, 5740], atk: [972, 6200], spd: [290, 426],
+    abil: [{ t: "antilock" }, { t: "aslow" }, { t: "darkmatch" },
+           { t: "vitalM" }], subfs: "lock8",
     ssName: "ステラ・ナイトフェスタ", ssTurns: 14, ssKind: "astera",
     ssPow: "自強化（攻撃×1.65・スピード×1.25）＋ <b>ふれた敵の攻撃ターンを2増加</b>",
     ssDesc: "<b>宵の星をまとって自強化（攻撃×1.65・スピード×1.25）</b>し、<b>ふれた敵の攻撃ターンを2ずつ遅らせて</b>いく。"
@@ -5517,8 +6010,9 @@ const CHARS = {
   roselia: {
     id: "roselia", nm: "ロゼリア", img: "Roselia.webp", th: "t_Roselia.webp",
     el: "wood", shot: "pierce", type: "薔薇報復型", gacha: true, lux: true, nexus: "slayer",
-    hp: [884, 5840], atk: [496, 3160], spd: [288, 424],
-    abil: [{ t: "ablock" }, { t: "sgrav" }, { t: "msM" }, { t: "weakkillerM" }, { t: "vital" }], subfs: "linkspeedup",
+    hp: [884, 5840], atk: [992, 6320], spd: [288, 424],
+    abil: [{ t: "ablock" }, { t: "sgrav" }, { t: "msM" },
+           { t: "resonance" }, { t: "vital" }], subfs: "linkspeedup",
     ssName: "ロサ・ヴィンディクタ", ssTurns: 18, ssKind: "roselia",
     ssPow: "<b>撃ったターンを含めて自分が2回行動し終えるまで</b>：自強化（攻撃×1.8・スピード×1.3）＋ <b>カウンターキラー（×"
       + COUNTER_KILLER_MUL + "）とAQUA属性キラー（×2.0）を獲得</b>＋ <b>バブリー状態</b>　／　ふれた敵の攻撃ターンが <b>20%の確率で+2</b>",
@@ -5562,8 +6056,9 @@ const CHARS = {
   yuria: {
     id: "yuria", nm: "ユリア", img: "Yuria.webp", th: "t_Yuria.webp",
     el: "dark", shot: "bounce", type: "冥花狩り型", gacha: true, lux: true, nexus: "sweep",
-    hp: [892, 5900], atk: [496, 3160], spd: [286, 420],
-    abil: [{ t: "superaw" }, { t: "msEL" }, { t: "netherkillerEL" }, { t: "sokojikaraM" }, { t: "soulM" }],
+    hp: [892, 5900], atk: [992, 6320], spd: [286, 420],
+    abil: [{ t: "superaw" }, { t: "msEL" }, { t: "netherkillerEL" },
+           { t: "konshin" }, { t: "soulM" }],
     subfs: "defdownblast",
     ssName: "ノクターナル・オーヴァル", ssTurns: 12, ssKind: "ayaka",
     ssPow: "自強化（攻撃×1.6・スピード×1.4）＋ このショット中に触れた味方をバブリー状態に（その味方の次の行動まで）",
@@ -5576,9 +6071,9 @@ const CHARS = {
   altia: {
     id: "altia", nm: "アルティア", img: "Altia.webp", th: "t_Altia.webp",
     el: "fire", shot: "pierce", type: "灼花突撃型", gacha: true, lux: true, nexus: "ignition",
-    hp: [886, 5860], atk: [490, 3120], spd: [294, 432],
-    abil: [{ t: "superadw" }, { t: "antilock" }, { t: "netherkillerEL" }, { t: "killerM", el: "wood" },
-           { t: "barrierM" }, { t: "dashM" }],
+    hp: [886, 5860], atk: [980, 6240], spd: [294, 432],
+    abil: [{ t: "superadw" }, { t: "antilock" }, { t: "netherkillerEL" },
+           { t: "sscharge" }, { t: "barrierM" }, { t: "dashM" }],
     subfs: "lock8",
     ssName: "フランベル・オーヴァル", ssTurns: 12, ssKind: "ayaka",
     ssPow: "自強化（攻撃×1.6・スピード×1.4）＋ このショット中に触れた味方をバブリー状態に（その味方の次の行動まで）",
@@ -5593,9 +6088,10 @@ const CHARS = {
   liana: {
     id: "liana", nm: "リアナ", img: "Liana.webp", th: "t_Liana.webp",
     el: "light", shot: "bounce", type: "聖光壁撃型", gacha: true, lux: true, nexus: "guard",
-    hp: [904, 5980], atk: [486, 3100], spd: [280, 412],
-    abil: [{ t: "superaw" }, { t: "antilock" }, { t: "netherkillerM" }, { t: "allkillerM" },
-           { t: "allres" }, { t: "regenM" }, { t: "wallfbshort" }],
+    hp: [904, 5980], atk: [972, 6200], spd: [280, 412],
+    abil: [{ t: "superaw" }, { t: "antilock" }, { t: "netherkillerM" },
+           { t: "ssboost" }, { t: "allres" }, { t: "regenM" },
+           { t: "wallfbshort" }],
     subfs: "blast",
     ssName: "セイントフレア・ランページ", ssTurns: 20, ssKind: "nazuna",
     ssPow: "自強化（攻撃×1.6）＋ <b>壁にふれるたびパワーUP（最大×10.0）</b> ＋ <b>撃った瞬間に味方全員で総攻撃（全員が動く・突撃中の直殴り×" + RALLY_MUL + "）</b>",
@@ -5646,8 +6142,9 @@ const CHARS = {
   kaguyaalpha: {
     id: "kaguyaalpha", nm: "カグヤα", img: "KaguyaAlpha.webp", th: "t_KaguyaAlpha.webp",
     el: "fire", shot: "pierce", type: "超重力砲型", fes: true, fesKey: "luminous", lux: true, nexus: "force",
-    hp: [885, 5840], atk: [492, 3130], spd: [290, 425],
-    abil: [{ t: "superadw" }, { t: "antilock" }, { t: "ablock" }, { t: "auraEL" }, { t: "killer", el: "wood" }, { t: "eternalphoton" }],
+    hp: [885, 5840], atk: [1476, 9390], spd: [290, 425],
+    abil: [{ t: "superadw" }, { t: "antilock" }, { t: "ablock" },
+           { t: "fbaccel" }, { t: "killer", el: "wood" }, { t: "eternalphoton" }],
     subfs: "plasmanet",
     ssName: "灼夏重力・ルナグラビトンα", ssTurns: 14, ssKind: "kaguyaA",
     ssPow: "体当たり 攻撃力×3.2 ＋ 着地ダメージ 攻撃力×3.0以上（吹っ飛び量に比例）",
@@ -5754,9 +6251,10 @@ const CHARS = {
   iori: {
     id: "iori", nm: "イオリ", img: "Iori.webp", th: "t_Iori.webp",
     el: "dark", shot: "pierce", gacha: true, lux: true, nexus: "force",
-    hp: [886, 5840], atk: [516, 3290], spd: [292, 430],
-    abil: [{ t: "superadw" }, { t: "sgrav" }, { t: "netherkillerM" }, { t: "weakkillerM" },
-           { t: "killerM", el: "light" }, { t: "eternalphoton" }, { t: "drain" }],
+    hp: [886, 5840], atk: [1032, 6580], spd: [292, 430],
+    abil: [{ t: "superadw" }, { t: "sgrav" }, { t: "netherkillerM" },
+           { t: "fbshort" }, { t: "killerM", el: "light" }, { t: "eternalphoton" },
+           { t: "drain" }],
     subfs: "alllock3",
     ssName: "夜刀・カラミティエッジ", ssTurns: 14, ssKind: "iori",
     ssPow: "自強化（攻撃×1.8・スピード×1.3）＋ <b>ダメージウォールにふれるたび攻撃力UP（最大×10.0）</b>",
@@ -5774,9 +6272,9 @@ const CHARS = {
   noelle: {
     id: "noelle", nm: "ノエル", img: "Noelle.webp", th: "t_Noelle.webp",
     el: "dark", shot: "bounce", gacha: true, lux: true, nexus: "aegis",
-    hp: [928, 6120], atk: [492, 3140], spd: [278, 410],
-    abil: [{ t: "adw" }, { t: "agrav" }, { t: "award" }, { t: "netherkillerL" },
-           { t: "combokillerL" }, { t: "elemres", el: "light" }],
+    hp: [928, 6120], atk: [1230, 7850], spd: [278, 410],
+    abil: [{ t: "adw" }, { t: "agrav" }, { t: "award" },
+           { t: "netherkillerL" }, { t: "fbtouch" }, { t: "elemres", el: "light" }],
     subfs: "nebula",
     ssName: "ノクターン・インヴィオラブル", ssTurns: 12, ssKind: "noelle",
     ssPow: "<b>自分の行動2ターンぶん</b>の自強化（攻撃×1.9・スピード×1.25）＋ <b>自分の行動2ターンぶん無敵</b>",
@@ -5822,9 +6320,9 @@ const CHARS = {
   reika: {
     id: "reika", nm: "レイカ", img: "Reika.webp", th: "t_Reika.webp",
     el: "light", shot: "bounce", gacha: true, lux: true, nexus: "pierce",
-    hp: [898, 5920], atk: [504, 3210], spd: [284, 418],
-    abil: [{ t: "omni" }, { t: "aslow" }, { t: "eclipseslayerM" }, { t: "poisonkillerM" },
-           { t: "elemresM", el: "dark" }, { t: "drainM" }],
+    hp: [898, 5920], atk: [1008, 6420], spd: [284, 418],
+    abil: [{ t: "omni" }, { t: "aslow" }, { t: "eclipseslayerM" },
+           { t: "wallfbshort" }, { t: "elemresM", el: "dark" }, { t: "drainM" }],
     subfs: "fbburst4",
     ssName: "ルミナ・ヴェノムピアス", ssTurns: 14, ssKind: "soleria",
     ssPow: "自強化（攻撃×1.75・スピード×1.3）＋ <b>ふれた敵を毒状態</b>（4ターン）＋ <b>弱点ヒット時に大ダメージ</b>（攻撃力×" + SOLERIA_WEAK_MUL + "）",
@@ -5851,9 +6349,10 @@ const CHARS = {
   nanami: {
     id: "nanami", nm: "ナナミ", img: "Nanami.webp", th: "t_Nanami.webp",
     el: "fire", shot: "bounce", type: "紅蓮踏破型", gacha: true, lux: true, nexus: "ignition",
-    hp: [896, 5910], atk: [502, 3200], spd: [296, 436],
-    abil: [{ t: "supermsM" }, { t: "aslow" }, { t: "ablock" }, { t: "allkillerM" },
-           { t: "mobkillerM" }, { t: "eclipsekillerM" }, { t: "dashM" }],
+    hp: [896, 5910], atk: [1004, 6400], spd: [296, 436],
+    abil: [{ t: "supermsM" }, { t: "aslow" }, { t: "ablock" },
+           { t: "fbturnboost" }, { t: "mobkillerM" }, { t: "eclipsekillerM" },
+           { t: "dashM" }],
     subfs: "blast",
     ssName: "紅蓮疾走・ブレイズランナー", ssTurns: 16, ssKind: "nanami",
     ssPow: "自強化（攻撃×1.7・スピード×1.25）＋ <b>壁にふれるたび" + Math.round(NANAMI_WALL_P * 100)
@@ -5874,9 +6373,9 @@ const CHARS = {
   chitose: {
     id: "chitose", nm: "チトセ", img: "Chitose.webp", th: "t_Chitose.webp",
     el: "water", shot: "pierce", type: "蒼雷砲撃型", gacha: true, lux: true, nexus: "force",
-    hp: [902, 5950], atk: [500, 3190], spd: [288, 424],
+    hp: [902, 5950], atk: [1250, 7975], spd: [288, 424],
     abil: [{ t: "superadw" }, { t: "ablock" }, { t: "antilock" },
-           { t: "rightkillerL" }, { t: "vitalL" }, { t: "protection" }],
+           { t: "barrierL" }, { t: "vitalL" }, { t: "protection" }],
     subfs: "pspread3",
     ssName: "セルリアン・ヴィンディクタ", ssTurns: 18, ssKind: "chitose",
     ssPow: "<b>撃ったターンを含めて自分が2回行動し終えるまで</b>：自強化（攻撃×1.8・スピード×1.3）＋ <b>カウンターキラー（×"
@@ -5922,9 +6421,9 @@ const CHARS = {
        id は据え置き（rinon）＝所持データ・限界突破・ルーンはそのまま引き継がれる。 */
     id: "rinon", nm: "ルクシア", img: "Rinon.webp", th: "t_Rinon.webp",
     el: "light", shot: "pierce", type: "模倣支援型", gacha: true, lux: true, nexus: "resonance",
-    hp: [874, 5760], atk: [488, 3110], spd: [296, 436],
-    abil: [{ t: "superaw" }, { t: "aslow" }, { t: "eclipsekillerM" }, { t: "mobkillerM" },
-           { t: "ailmentresist" }, { t: "fbturnboost" }],
+    hp: [874, 5760], atk: [976, 6220], spd: [296, 436],
+    abil: [{ t: "superaw" }, { t: "aslow" }, { t: "eclipsekillerM" },
+           { t: "bubblemode" }, { t: "ailmentresist" }, { t: "fbturnboost" }],
     subfs: "crossclone",
     ssName: "ルクス・ミラージュエコー", ssTurns: 16, ssKind: "rinon",
     ssPow: "自強化（攻撃×1.85・スピード×1.3）＋ <b>このショット中は、ふれた味方のリンクスキルが2回発動</b>"
@@ -5944,9 +6443,10 @@ const CHARS = {
   kokoro: {
     id: "kokoro", nm: "ココロ", img: "Kokoro.webp", th: "t_Kokoro.webp",
     el: "wood", shot: "bounce", type: "聖域守護型", gacha: true, lux: true, nexus: "aegis",
-    hp: [908, 5970], atk: [482, 3070], spd: [278, 410],
-    abil: [{ t: "adw" }, { t: "aw" }, { t: "bosskillerM" }, { t: "allresM" },
-           { t: "leftkillerM" }, { t: "eternalphoton" }, { t: "fsdouble" }],
+    hp: [908, 5970], atk: [964, 6140], spd: [278, 410],
+    abil: [{ t: "adw" }, { t: "aw" }, { t: "soulM" },
+           { t: "allresM" }, { t: "leftkillerM" }, { t: "eternalphoton" },
+           { t: "fsdouble" }],
     subfs: "roundcharge",
     ssName: "ヴェルダン・ヴェノムピアス", ssTurns: 14, ssKind: "soleria",
     ssPow: "自強化（攻撃×1.75・スピード×1.3）＋ <b>ふれた敵を毒状態</b>（4ターン）＋ <b>弱点ヒット時に大ダメージ</b>（攻撃力×6.0）",
@@ -5966,9 +6466,9 @@ const CHARS = {
   ange: {
     id: "ange", nm: "アンジェ", img: "Ange.webp", th: "t_Ange.webp",
     el: "dark", shot: "bounce", type: "癒し殲滅型", gacha: true, lux: true, nexus: "mercy",
-    hp: [896, 5900], atk: [492, 3140], spd: [284, 418],
-    abil: [{ t: "msEL" }, { t: "aslow" }, { t: "award" }, { t: "laserstopM" },
-           { t: "ailsokojikaraM" }, { t: "killer", el: "light" }],
+    hp: [896, 5900], atk: [984, 6280], spd: [284, 418],
+    abil: [{ t: "msEL" }, { t: "aslow" }, { t: "award" },
+           { t: "laserstopM" }, { t: "judgment" }, { t: "killer", el: "light" }],
     subfs: "supercrossclone",
     ssName: "ノワール・レクイエム", ssTurns: 14, ssKind: "ange",
     ssPow: "自強化（攻撃×1.75・スピード×1.25）＋ <b>味方にふれるたびにチームHPを"
@@ -6019,10 +6519,11 @@ const CHARS = {
   ran: {
     id: "ran", nm: "ラナ", img: "Ran.webp", th: "t_Ran.webp",
     el: "light", shot: "bounce", type: "祈祷支援型", gacha: true, lux: true, nexus: "mercy",
-    hp: [906, 5970], atk: [480, 3060], spd: [286, 420],
+    hp: [906, 5970], atk: [720, 4590], spd: [286, 420],
     /* アンチ3種＋治癒の祈り＋ソウルスティールEL（新）＝「落ちない編成」を作るキャラ */
-    abil: [{ t: "superaw" }, { t: "aslow" }, { t: "antilock" }, { t: "pray" },
-           { t: "vitalL" }, { t: "fatalkiller" }, { t: "soulEL" }],
+    abil: [{ t: "superaw" }, { t: "aslow" }, { t: "antilock" },
+           { t: "pray" }, { t: "vitalL" }, { t: "fsdouble" },
+           { t: "soulEL" }],
     subfs: "absoluteray",
     ssName: "オーロラ・カタストロフ", ssTurns: 20, ssKind: "arche",
     ssPow: "自強化（攻撃×1.8・スピード×1.2）＋ <b>最初にふれた敵で超大爆発（攻撃力×14.0・周囲の敵を巻き込む）</b>",
@@ -6040,10 +6541,10 @@ const CHARS = {
   ceris: {
     id: "ceris", nm: "セリス", img: "Ceris.webp", th: "t_Ceris.webp",
     el: "wood", shot: "pierce", type: "翠壁堅守型", gacha: true, lux: true, nexus: "tempo",
-    hp: [912, 6000], atk: [492, 3140], spd: [284, 418],
+    hp: [912, 6000], atk: [984, 6280], spd: [284, 418],
     /* 超アンチ2種＋バリアM で耐えつつ、壁FBターン短縮＋乱FB短縮弾で編成のFBを回す */
-    abil: [{ t: "superadw" }, { t: "superaw" }, { t: "barrierM" }, { t: "manyfoeM" },
-           { t: "eclipsekillerM" }, { t: "wallfbshort" }],
+    abil: [{ t: "superadw" }, { t: "superaw" }, { t: "barrierM" },
+           { t: "overheat" }, { t: "eclipsekillerM" }, { t: "wallfbshort" }],
     subfs: "fbburst4",
     ssName: "シルヴァ・レガリア", ssTurns: 18, ssKind: "milfy",
     ssPow: "自強化（攻撃×1.8・スピード×1.2）＋ ふれた味方を<b>ステータス×1.8</b>＋<b>無敵</b>（どちらも<b>各自1行動目まで</b>）",
@@ -6068,15 +6569,15 @@ const CHARS = {
   dominia: {
     id: "dominia", nm: "ドミニア", img: "Dominia.webp", th: "t_Dominia.webp",
     el: "dark", shot: "pierce", garden: true, lux: true, nexus: "slayer", star5: true,
-    hp: [942, 6210], atk: [520, 3320], spd: [290, 428],
+    hp: [942, 6210], atk: [1300, 8300], spd: [290, 428],
     /* ★ 2026-08-07 作り直し: 種族キラー（冥花種キラーL・蝕冥滅殺M）は<b>持たせない</b>。
        庭園のボス本人が庭園特化キラーまで持つと、降臨キャラ1体で庭園が終わってしまい、
        種族キラーを積むために引くプレミアムSSRの役目がなくなるため。
        かわりに<b>ザコキラーL</b>（ボス以外の敵に×2.5）で「道中の掃除役」に寄せ、
        オムニアンチも外して<b>マインスイーパーL</b>（拾って×2.5）に置きかえてある。 */
     abil: [{ t: "msL" }, { t: "superaslow" }, { t: "award" },
-           { t: "mobkillerL" }, { t: "weakkillerL" },
-           { t: "soulM" }, { t: "barrierL" }],
+           { t: "mobkillerL" }, { t: "atkcharge" }, { t: "soulM" },
+           { t: "barrierL" }],
     /* ★ サブリンクはリンクスキル（アブソリュートレイ10）と役割が重ならないものにする。
        放電は「敵から敵へ伝うたびに威力が上がる」連鎖型なので、
        雑魚が多い庭園のWAVEで、薙ぎ払いのレイと綺麗に住み分けられる。 */
@@ -6107,8 +6608,9 @@ const CHARS = {
   shizuku: {
     id: "shizuku", nm: "シズク", img: "Shizuku.webp", th: "t_Shizuku.webp",
     el: "water", shot: "bounce", type: "碧滴支援型", gacha: true, lux: true, nexus: "mercy",
-    hp: [902, 5950], atk: [478, 3050], spd: [284, 418],
-    abil: [{ t: "supermsM" }, { t: "sgrav" }, { t: "killerM", el: "fire" }, { t: "weakkillerM" }, { t: "regenM" }],
+    hp: [902, 5950], atk: [956, 6100], spd: [284, 418],
+    abil: [{ t: "supermsM" }, { t: "sgrav" }, { t: "killerM", el: "fire" },
+           { t: "wallboostM" }, { t: "regenM" }],
     subfs: "boundheal",
     ssName: "アクアティア・ルミナスドロップ", ssTurns: 12, ssKind: "setsuna",
     ssPow: "自強化（攻撃×1.8・スピード×1.3）＋ ふれた味方1体につき <b>チームHPを12%回復</b>",
@@ -6124,8 +6626,9 @@ const CHARS = {
   yuunagi: {
     id: "yuunagi", nm: "ユウナギ", img: "Yuunagi.webp", th: "t_Yuunagi.webp",
     el: "light", shot: "pierce", type: "宵凪壁撃型", gacha: true, lux: true, nexus: "charge",
-    hp: [886, 5840], atk: [496, 3160], spd: [282, 414],
-    abil: [{ t: "superaw" }, { t: "ablock" }, { t: "eclipsekillerM" }, { t: "vitalL" }, { t: "wallfbshort" }],
+    hp: [886, 5840], atk: [1240, 7900], spd: [282, 414],
+    abil: [{ t: "superaw" }, { t: "ablock" }, { t: "eclipsekillerM" },
+           { t: "barrierM" }, { t: "wallfbshort" }],
     subfs: "atkspdup",
     ssName: "ヨイナギ・ゴールドフィナーレ", ssTurns: 20, ssKind: "nazuna",
     ssPow: "自強化（攻撃×1.6）＋ <b>壁にふれるたびパワーUP（最大×10.0）</b> ＋ <b>撃った瞬間に味方全員で総攻撃（全員が動く・突撃中の直殴り×" + RALLY_MUL + "）</b>",
@@ -6161,8 +6664,9 @@ const CHARS = {
   fuka: {
     id: "fuka", nm: "フウカ", img: "Fuka.webp", th: "t_Fuka.webp",
     el: "water", shot: "bounce", type: "蒼波支援型", fes: true, fesKey: "aoka", lux: true, nexus: "tempo",
-    hp: [892, 5880], atk: [488, 3100], spd: [286, 420],
-    abil: [{ t: "ablock" }, { t: "award" }, { t: "killer", el: "fire" }, { t: "vitalM" }, { t: "soulM" }, { t: "fbshort" }],
+    hp: [892, 5880], atk: [976, 6200], spd: [286, 420],
+    abil: [{ t: "ablock" }, { t: "award" }, { t: "killer", el: "fire" },
+           { t: "fsboostM" }, { t: "soulM" }, { t: "fbshort" }],
     subfs: "boundcharge",
     ssName: "アズュール・ブレッシング", ssTurns: 20, ssKind: "nephia",
     ssPow: "自強化（攻撃×1.7・スピード×1.2）＋ <b>ふれた味方のパワーを×2.0</b>（その味方が2回行動するまで）",
@@ -6201,9 +6705,9 @@ const CHARS = {
   suzuka: {
     id: "suzuka", nm: "スズカ", img: "Suzuka.webp", th: "t_Suzuka.webp",
     el: "light", shot: "pierce", type: "超連撃型", fes: true, fesKey: "aoka", lux: true, nexus: "pierce",
-    hp: [884, 5830], atk: [506, 3220], spd: [292, 430],
-    abil: [{ t: "superaw" }, { t: "ablock" }, { t: "outkillerL" }, { t: "fatalkillerL" },
-           { t: "allresM" }, { t: "ailmentresist" }],
+    hp: [884, 5830], atk: [1265, 8050], spd: [292, 430],
+    abil: [{ t: "superaw" }, { t: "ablock" }, { t: "dashL" },
+           { t: "fatalkillerL" }, { t: "allresM" }, { t: "ailmentresist" }],
     subfs: "wallcircuit",
     ssName: "白閃連撃・サマーオーヴァードライヴ", ssTurns: 16, ssKind: "mionA",
     ssPow: "1st 体当たり 攻撃力×2.7 ／ 停止後の 2nd 体当たり 攻撃力×4.0（再加速）",
@@ -6327,8 +6831,9 @@ const CHARS = {
   izumi: {
     id: "izumi", nm: "イズミ", img: "Izumi.webp", th: "t_Izumi.webp",
     el: "wood", shot: "bounce", type: "翠庭技巧型", gacha: true, lux: true, nexus: "bond",
-    hp: [894, 5890], atk: [484, 3080], spd: [288, 424],
-    abil: [{ t: "sgrav" }, { t: "ablock" }, { t: "netherkillerM" }, { t: "killerM", el: "water" }, { t: "regenL" }],
+    hp: [894, 5890], atk: [968, 6160], spd: [288, 424],
+    abil: [{ t: "sgrav" }, { t: "ablock" }, { t: "netherkillerM" },
+           { t: "drain" }, { t: "regenL" }],
     subfs: "roundcharge",
     ssName: "ヴェルデ・スプリングノート", ssTurns: 14, ssKind: "astera",
     ssPow: "自強化（攻撃×1.65・スピード×1.25）＋ <b>ふれた敵の攻撃ターンを2増加</b>",
@@ -6356,9 +6861,9 @@ const CHARS = {
   anna: {
     id: "anna", nm: "アンネ", img: "Anna.webp", th: "t_Anna.webp",
     el: "light", shot: "bounce", type: "煌貴絶影型", gacha: true, lux: true, nexus: "force",
-    hp: [906, 5970], atk: [506, 3220], spd: [288, 424],
+    hp: [906, 5970], atk: [1265, 8050], spd: [288, 424],
     abil: [{ t: "superadw" }, { t: "superaw" }, { t: "ablock" },
-           { t: "eclipsekillerM" }, { t: "sokojikaraL" }, { t: "bubblemode" }],
+           { t: "eclipsekillerM" }, { t: "allres" }, { t: "bubblemode" }],
     subfs: "positionlimit",
     ssName: "煌貴絶影・オーロララプソディ", ssTurns: 20, ssKind: "annaA",
     ssPow: "最初にふれた敵で<b>停止</b>して 乱打" + CHERYLA_BARRAGE_N + "連（各 攻撃力×" + CHERYLA_BARRAGE_PER
@@ -6443,10 +6948,11 @@ const CHARS = {
     id: "youhi", nm: "瑶妃", img: "Youhi.webp", th: "t_Youhi.webp",
     el: "fire", shot: "pierce", type: "天宮撃滅型", star5: true, quest: true, nexus: "slayer",
     connect: "youhi",
-    hp: [948, 6280], atk: [534, 3380], spd: [296, 442],
+    hp: [948, 6280], atk: [1068, 6760], spd: [296, 442],
     /* ★ 2026-08-17L キラーを3つ → 2つに、等級も EL → L / L → M に下げた。
        「ガチャより少し強い」を守りつつ、キラーの重ねがけで壊れないようにする。 */
-    abil: [{ t: "sgrav" }, { t: "superaw" }, { t: "killerL", el: "wood" }, { t: "weakkillerM" }, { t: "fbshort" }],
+    abil: [{ t: "sgrav" }, { t: "superaw" }, { t: "killerL", el: "wood" },
+           { t: "phantomdriveEL" }, { t: "fbshort" }],
     subfs: "phoming20",
     ssName: "天宮・九天繚乱", ssTurns: 19, ssKind: "youhi",
     ssPow: "自強化（攻撃×1.85・スピード×1.22）＋ <b>撃った瞬間に味方全員で総攻撃</b>",
@@ -6496,9 +7002,10 @@ const CHARS = {
   moeka: {
     id: "moeka", nm: "モエカ", img: "Moeka.webp", th: "t_Moeka.webp",
     el: "water", shot: "bounce", type: "蒼滴撹乱型", gacha: true, lux: true, nexus: "gale",
-    hp: [884, 5830], atk: [488, 3110], spd: [296, 436],
+    hp: [884, 5830], atk: [1220, 7775], spd: [296, 436],
     abil: [{ t: "antilock" }, { t: "award" }, { t: "eclipsekillerM" },
-           { t: "elemresM", el: "fire" }, { t: "sokojikaraL" }, { t: "barrierL" }, { t: "fsdouble" }],
+           { t: "elemresM", el: "fire" }, { t: "lightningEL" }, { t: "barrierL" },
+           { t: "fsdouble" }],
     subfs: "phoming20",
     /* ★ ユキノと同じフルバーストだが、無効化するのは<b>ブロックだけ</b>（moeka 分岐で処理） */
     ssName: "アクア・ブレイクスルー", ssTurns: 7, ssKind: "moeka",
@@ -6521,9 +7028,9 @@ const CHARS = {
     id: "suzuha", nm: "スズミ", img: "Suzuha.webp", th: "t_Suzuha.webp",
     el: "dark", shot: "pierce", type: "深宵絶影型", gacha: true, lux: true, nexus: "force",
     connect: "suzuha",
-    hp: [920, 6060], atk: [518, 3290], spd: [288, 424],
+    hp: [920, 6060], atk: [1554, 9870], spd: [288, 424],
     abil: [{ t: "supermsEL" }, { t: "sgrav" }, { t: "superaw" },
-           { t: "weakkillerEL" }, { t: "speedmode" }, { t: "auraM" }],
+           { t: "cumulonimbusEL" }, { t: "speedmode" }, { t: "auraM" }],
     subfs: "roundheal",
     /* ★ セイラと同じフルバースト（ssKind を共有＝実装も文言も自動でそろう） */
     ssName: "宵闇絶影・アビスラプソディ", ssTurns: 20, ssKind: "seira",
@@ -6601,8 +7108,8 @@ const CHARS = {
   touka: {
     id: "touka", nm: "トウカ", img: "Touka.webp", th: "t_Touka.webp",
     el: "light", shot: "pierce", type: "超連撃型", gacha: true, lux: true, nexus: "pierce",
-    hp: [902, 5950], atk: [504, 3200], spd: [290, 428],
-    abil: [{ t: "superaw" }, { t: "aslow" }, { t: "outkillerM" },
+    hp: [902, 5950], atk: [1008, 6400], spd: [290, 428],
+    abil: [{ t: "superaw" }, { t: "aslow" }, { t: "wallboostEL" },
            { t: "counterkiller" }, { t: "allresM" }, { t: "ailmentresist" }],
     subfs: "poison",
     /* ★ スズカと同じフルバースト（ssKind "mionA" を共有） */
@@ -6686,8 +7193,9 @@ const CHARS = {
        ★ 担当は<b>第五重（闇 {ward,warp}）</b>＝ アンチ断絶界＋超アンチワープで完全対応。 */
     id: "artemia", nm: "アルテミア", img: "Artemia.webp", th: "t_Artemia.webp",
     el: "light", shot: "pierce", type: "聖裁狙撃型", gacha: true, lux: true, nexus: "slayer", star5: true,
-    hp: [900, 5960], atk: [520, 3300], spd: [298, 440],
-    abil: [{ t: "award" }, { t: "superaw" }, { t: "weakkillerL" }, { t: "firstkillerM" }, { t: "barrierL" }],
+    hp: [900, 5960], atk: [1300, 8250], spd: [298, 440],
+    abil: [{ t: "award" }, { t: "superaw" }, { t: "soulEL" },
+           { t: "firstkillerM" }, { t: "barrierL" }],
     subfs: "lock8",
     ssName: "セラフィカル・ジャッジレイ", ssTurns: 18, ssKind: "selene",
     ssPow: "自強化（攻撃×1.9・スピード×1.25）＋ <b>貫通タイプになって敵を激しく貫く</b> ＋ <b>停止後に最も近い敵へ再走（攻撃×2.6）</b>",
@@ -6731,8 +7239,9 @@ const CHARS = {
        ★ 担当は<b>第六重（火 {mine,slowwall}）</b>＝ 超マインスイーパーM＋超アンチ減速壁で完全対応。 */
     id: "blair", nm: "ブレア", img: "Blair.webp", th: "t_Blair.webp",
     el: "water", shot: "pierce", type: "驟雨強襲型", gacha: true, lux: true, nexus: "force", star5: true,
-    hp: [890, 5870], atk: [516, 3280], spd: [300, 444],
-    abil: [{ t: "supermsM" }, { t: "superaslow" }, { t: "sokojikaraL" }, { t: "counterkiller" }, { t: "dashM" }],
+    hp: [890, 5870], atk: [774, 4920], spd: [300, 444],
+    abil: [{ t: "supermsM" }, { t: "superaslow" }, { t: "sokojikaraL" },
+           { t: "destroyboost" }, { t: "dashM" }],
     subfs: "pspread5",
     ssName: "レイニー・ラッシュブレイズ", ssTurns: 16, ssKind: "leila",
     ssPow: "自強化（攻撃×1.6・スピード×1.6）＋ <b>最初にふれた敵で停止して 高速乱打16連（各 攻撃力×0.6）</b>",
@@ -6805,8 +7314,9 @@ const CHARS = {
          （持たせるとアンチ3種になり、ご指定の「ちょうど2種」を満たさない）。 */
     id: "satsuki", nm: "サツキ", img: "Satsuki.webp", th: "t_Satsuki.webp",
     el: "fire", shot: "pierce", type: "紅焔連撃型", gacha: true, lux: true, nexus: "force", star5: true,
-    hp: [886, 5840], atk: [524, 3340], spd: [296, 438],
-    abil: [{ t: "superadw" }, { t: "award" }, { t: "combokillerM" }, { t: "sokojikaraM" }, { t: "dashL" }],
+    hp: [886, 5840], atk: [1048, 6680], spd: [296, 438],
+    abil: [{ t: "superadw" }, { t: "award" }, { t: "soul" },
+           { t: "sokojikaraM" }, { t: "dashL" }],
     subfs: "discharge",
     ssName: "スカーレット・ネオンラッシュ", ssTurns: 16, ssKind: "nanami",
     ssPow: "自強化（攻撃×1.7・スピード×1.25）＋ <b>壁にふれるたび20%の確率でスピードとパワーがアップ</b>（1段ごと 攻撃+22%・スピード+10%・最大8段）",
@@ -6830,8 +7340,9 @@ const CHARS = {
          キラーの中身（あちらは弱点・ファースト／こちらはフェイタル・ボス）で役割を分けてある。 */
     id: "sayo", nm: "サヨ", img: "Sayo.webp", th: "t_Sayo.webp",
     el: "light", shot: "pierce", type: "黒薔薇絞殺型", gacha: true, lux: true, nexus: "tempo", star5: true,
-    hp: [906, 5970], atk: [522, 3320], spd: [294, 434],
-    abil: [{ t: "award" }, { t: "superaw" }, { t: "fatalkillerL" }, { t: "bosskillerM" }, { t: "ailmentresist" }],
+    hp: [906, 5970], atk: [1044, 6640], spd: [294, 434],
+    abil: [{ t: "award" }, { t: "superaw" }, { t: "fatalkillerL" },
+           { t: "barrierL" }, { t: "ailmentresist" }],
     subfs: "positionlimit",
     ssName: "ローズ・ガロット", ssTurns: 20, ssKind: "beltia",
     ssPow: "自強化（攻撃×1.8・スピード×1.2）＋ <b>味方全員で総攻撃</b>＋ <b>ふれた敵の攻撃ターンを2増加</b>",
@@ -6971,9 +7482,9 @@ const CHARS = {
     id: "otoha", nm: "オトハ", img: "Otoha.webp", th: "t_Otoha.webp",
     el: "fire", shot: "pierce", type: "焔奏貫穿型", fes: true, fesKey: "starlight", lux: true, nexus: "advantage",
     connect: "otoha",
-    hp: [962, 6360], atk: [548, 3470], spd: [304, 452],
-    abil: [{ t: "superadw" }, { t: "award" },
-           { t: "sokojikaraEL" }, { t: "houraikillerL" }, { t: "laserstopM" }, { t: "barrierL" }],
+    hp: [962, 6360], atk: [1644, 10410], spd: [304, 452],
+    abil: [{ t: "superadw" }, { t: "award" }, { t: "fsboostL" },
+           { t: "houraikillerL" }, { t: "laserstopM" }, { t: "barrierL" }],
     subfs: "starveil",
     ssName: "フランメ・カンタービレ", ssTurns: STARLIGHT_TURNS, ssKind: "otoha",
     ssPow: "自強化（攻撃×" + OTOHA_ATK + "・スピード×" + OTOHA_SPD + "）＋ <b>敵全体の弱点コアを開放（"
@@ -7002,9 +7513,9 @@ const CHARS = {
     id: "sayaka", nm: "サヤカ", img: "Sayaka.webp", th: "t_Sayaka.webp",
     el: "water", shot: "bounce", type: "蒼流奔騰型", fes: true, fesKey: "starlight", lux: true, nexus: "aegis",
     connect: "sayaka",
-    hp: [970, 6420], atk: [536, 3400], spd: [300, 444],
-    abil: [{ t: "supermsEL" }, { t: "superaslow" },
-           { t: "upkillerM" }, { t: "houraikillerL" }, { t: "atkchargeM" }, { t: "soulEL" }],
+    hp: [970, 6420], atk: [1072, 6800], spd: [300, 444],
+    abil: [{ t: "supermsEL" }, { t: "superaslow" }, { t: "dashM" },
+           { t: "houraikillerL" }, { t: "atkchargeM" }, { t: "soulEL" }],
     subfs: "starveil",
     ssName: "アクア・ノクターン・ドライブ", ssTurns: STARLIGHT_TURNS, ssKind: "sayaka",
     ssPow: "自強化（攻撃×" + SAYAKA_ATK + "・スピード×" + SAYAKA_SPD + "）＋ <b>味方全員が貫通になって総攻撃</b>"
@@ -7038,9 +7549,9 @@ const CHARS = {
     id: "sayuri", nm: "サユリ", img: "Sayuri.webp", th: "t_Sayuri.webp",
     el: "dark", shot: "pierce", type: "玄墨一閃型", fes: true, fesKey: "starlight", lux: true, nexus: "demolish",
     connect: "sayuri",
-    hp: [950, 6300], atk: [552, 3490], spd: [306, 458],
-    abil: [{ t: "superaslow" }, { t: "award" },
-           { t: "killerL", el: "light" }, { t: "houraikillerL" }, { t: "combokillerEL" }, { t: "elemresM", el: "light" }],
+    hp: [950, 6300], atk: [1656, 10470], spd: [306, 458],
+    abil: [{ t: "superaslow" }, { t: "award" }, { t: "killerL", el: "light" },
+           { t: "houraikillerL" }, { t: "wallboostL" }, { t: "elemresM", el: "light" }],
     subfs: "starveil",
     ssName: "ノクス・カリグラフィ", ssTurns: STARLIGHT_TURNS, ssKind: "sayuri",
     ssPow: "自強化（攻撃×" + SAYURI_ATK + "・スピード×" + SAYURI_SPD + "）＋ <b>敵全体の攻撃力を"
@@ -7068,9 +7579,9 @@ const CHARS = {
     id: "akari", nm: "アカリ", img: "Akari.webp", th: "t_Akari.webp",
     el: "wood", shot: "bounce", type: "翠陽律動型", fes: true, fesKey: "starlight", lux: true, nexus: "charge",
     connect: "akari",
-    hp: [978, 6470], atk: [528, 3350], spd: [298, 440],
-    abil: [{ t: "superadw" }, { t: "superaslow" },
-           { t: "outkillerL" }, { t: "houraikillerL" }, { t: "fsboostEL" }, { t: "healM" }],
+    hp: [978, 6470], atk: [1320, 8375], spd: [298, 440],
+    abil: [{ t: "superadw" }, { t: "superaslow" }, { t: "speedmode" },
+           { t: "houraikillerL" }, { t: "fsboostEL" }, { t: "healM" }],
     subfs: "starveil",
     ssName: "ヴィリディス・ソレイユ", ssTurns: STARLIGHT_TURNS, ssKind: "akari",
     ssPow: "自強化（攻撃×" + AKARI_ATK + "・スピード×" + AKARI_SPD + "）＋ <b>味方全員のフルバーストターンを"
@@ -7094,9 +7605,9 @@ const CHARS = {
     id: "hinata", nm: "ヒナタ", img: "Hinata.webp", th: "t_Hinata.webp",
     el: "light", shot: "pierce", type: "曙光疾走型", fes: true, fesKey: "starlight", lux: true, nexus: "pierce",
     connect: "hinata",
-    hp: [956, 6330], atk: [545, 3455], spd: [308, 462],
-    abil: [{ t: "award" }, { t: "superaw" },
-           { t: "rightkillerL" }, { t: "houraikillerL" }, { t: "firstkillerM" }, { t: "linkcharge" }],
+    hp: [956, 6330], atk: [1090, 6910], spd: [308, 462],
+    abil: [{ t: "award" }, { t: "superaw" }, { t: "rightkillerL" },
+           { t: "houraikillerL" }, { t: "impulseboost" }, { t: "linkcharge" }],
     subfs: "starveil",
     ssName: "ステラ・オーロラ・レイ", ssTurns: STARLIGHT_TURNS, ssKind: "hinata",
     ssPow: "自強化（攻撃×" + HINATA_ATK + "・スピード×" + HINATA_SPD + "）＋ <b>画面上のすべての敵へ光の柱（1本 攻撃力×"
@@ -7154,9 +7665,9 @@ const CHARS = {
     id: "guren", nm: "グレン", img: "Guren.webp", th: "t_Guren.webp",
     el: "fire", shot: "pierce", type: "業火穿貫型", gacha: true, debut: true, lux: true, nexus: "force", star5: true,
     connect: "guren",
-    hp: [968, 6390], atk: [556, 3520], spd: [307, 458],
+    hp: [968, 6390], atk: [1668, 10560], spd: [307, 458],
     abil: [{ t: "superadw" }, { t: "supermsEL" }, { t: "sgrav" },
-           { t: "killerEL", el: "wood" }, { t: "houraikillerL" }, { t: "barrierEL" }],
+           { t: "atkchargeM" }, { t: "houraikillerL" }, { t: "barrierEL" }],
     subfs: "pspread3",
     ssName: "グレンフレア・カタストロフ", ssTurns: MIRELLE_TURNS, ssKind: "mirelle",
     ssPow: "自強化（攻撃×" + MIRELLE_ATK + "・スピード×" + MIRELLE_SPD + "）＋ <b>敵全体を防御ダウン（"
@@ -7185,9 +7696,9 @@ const CHARS = {
     id: "yuuna", nm: "ユウナ", img: "Yuuna.webp", th: "t_Yuuna.webp",
     el: "water", shot: "bounce", type: "碧漣奔流型", gacha: true, debut: true, lux: true, nexus: "mercy", star5: true,
     connect: "yuuna",
-    hp: [976, 6430], atk: [548, 3492], spd: [305, 454],
+    hp: [976, 6430], atk: [1370, 8730], spd: [305, 454],
     abil: [{ t: "supermsEL" }, { t: "superaslow" }, { t: "superadw" },
-           { t: "mobkillerL" }, { t: "houraikillerL" }, { t: "regenL" }],
+           { t: "linkcharge" }, { t: "houraikillerL" }, { t: "regenL" }],
     subfs: "boundheal",
     ssName: "アクア・タイダル・レクイエム", ssTurns: STARLIGHT_TURNS, ssKind: "sayaka",
     ssPow: "自強化（攻撃×" + SAYAKA_ATK + "・スピード×" + SAYAKA_SPD + "）＋ <b>味方全員が貫通になって総攻撃</b>"
@@ -7221,9 +7732,9 @@ const CHARS = {
     id: "momo", nm: "モモ", img: "Momo.webp", th: "t_Momo.webp",
     el: "dark", shot: "bounce", type: "宵桃反射型", gacha: true, debut: true, lux: true, nexus: "slayer", star5: true,
     connect: "momo",
-    hp: [966, 6382], atk: [552, 3505], spd: [308, 460],
+    hp: [966, 6382], atk: [1656, 10515], spd: [308, 460],
     abil: [{ t: "sgrav" }, { t: "award" }, { t: "superaslow" },
-           { t: "poisonkillerEL" }, { t: "houraikillerL" }, { t: "fbaccel" }],
+           { t: "drainM" }, { t: "houraikillerL" }, { t: "fbaccel" }],
     subfs: "poison",
     ssName: "ノワール・ペタル・ラプソディ", ssTurns: KOYUKI_TURNS, ssKind: "koyuki",
     ssPow: "自強化（攻撃×" + KOYUKI_ATK + "・スピード×" + KOYUKI_SPD + "）＋ <b>味方全員で総攻撃</b> ＋ <b>敵全体を毒状態（"
@@ -7255,9 +7766,9 @@ const CHARS = {
     id: "chihaya", nm: "チハヤ", img: "Chihaya.webp", th: "t_Chihaya.webp",
     el: "wood", shot: "pierce", type: "翠風穿風型", gacha: true, debut: true, lux: true, nexus: "bond", star5: true,
     connect: "chihaya",
-    hp: [970, 6400], atk: [550, 3498], spd: [306, 456],
+    hp: [970, 6400], atk: [1650, 10494], spd: [306, 456],
     abil: [{ t: "supermsEL" }, { t: "award" }, { t: "superaslow" },
-           { t: "auraEL" }, { t: "houraikillerL" }, { t: "laserstopM" }],
+           { t: "allresM" }, { t: "houraikillerL" }, { t: "laserstopM" }],
     subfs: "phoming20",
     ssName: "ヴェルデ・ゲイル・オード", ssTurns: STARLIGHT_TURNS, ssKind: "akari",
     ssPow: "自強化（攻撃×" + AKARI_ATK + "・スピード×" + AKARI_SPD + "）＋ <b>味方全員のフルバーストターンを"
@@ -7291,9 +7802,9 @@ const CHARS = {
     id: "yui", nm: "ユイ", img: "Yui.webp", th: "t_Yui.webp",
     el: "light", shot: "bounce", type: "聖環天穿型", gacha: true, debut: true, lux: true, nexus: "vanguard", star5: true,
     connect: "yui",
-    hp: [974, 6420], atk: [554, 3512], spd: [307, 457],
+    hp: [974, 6420], atk: [1662, 10536], spd: [307, 457],
     abil: [{ t: "sgrav" }, { t: "superaw" }, { t: "superaslow" },
-           { t: "allkillerEL" }, { t: "houraikillerL" }, { t: "barrierEL" }],
+           { t: "protection" }, { t: "houraikillerL" }, { t: "barrierEL" }],
     subfs: "divinepillar",
     ssName: "サンクチュアリ・ダブルレクイエム", ssTurns: 18, ssKind: "elena",
     ssPow: "自強化（攻撃×" + ELENA_ATK + "・スピード×" + ELENA_SPD + "）＋ <b>撃った瞬間に味方全員で総攻撃</b>／"
@@ -7361,9 +7872,9 @@ const CHARS = {
     id: "suzune", nm: "スズネ", img: "Suzune.webp", th: "t_Suzune.webp",
     el: "fire", shot: "pierce", type: "烈焔連鎖型", fes: true, fesKey: "starlight2", lux: true, nexus: "pierce",
     connect: "suzune",
-    hp: [952, 6280], atk: [566, 3585], spd: [305, 452],
-    abil: [{ t: "superadw" }, { t: "award" },
-           { t: "bosskillerM" }, { t: "houraikillerL" }, { t: "fsboostEL" }, { t: "barrierEL" }],
+    hp: [952, 6280], atk: [1132, 7170], spd: [305, 452],
+    abil: [{ t: "superadw" }, { t: "award" }, { t: "mirage" },
+           { t: "houraikillerL" }, { t: "fsboostEL" }, { t: "barrierEL" }],
     subfs: "auroracurtain",
     ssName: "クリムゾン・ベルカント", ssTurns: MIRELLE_TURNS, ssKind: "mirelle",
     ssPow: "自強化（攻撃×" + MIRELLE_ATK + "・スピード×" + MIRELLE_SPD + "）＋ <b>敵全体を防御ダウン（"
@@ -7399,9 +7910,9 @@ const CHARS = {
     id: "minamo", nm: "ミナモ", img: "Minamo.webp", th: "t_Minamo.webp",
     el: "water", shot: "bounce", type: "碧水回帰型", fes: true, fesKey: "starlight2", lux: true, nexus: "vigor",
     connect: "minamo",
-    hp: [992, 6540], atk: [540, 3425], spd: [300, 446],
-    abil: [{ t: "superadw" }, { t: "sgrav" },
-           { t: "manyfoeEL" }, { t: "houraikillerL" }, { t: "soulEL" }, { t: "regenL" }],
+    hp: [992, 6540], atk: [1620, 10275], spd: [300, 446],
+    abil: [{ t: "superadw" }, { t: "sgrav" }, { t: "phantomdrive" },
+           { t: "houraikillerL" }, { t: "soulEL" }, { t: "regenL" }],
     subfs: "auroracurtain",
     ssName: "アクア・リフレイン", ssTurns: STARLIGHT_TURNS, ssKind: "akari",
     ssPow: "自強化（攻撃×" + AKARI_ATK + "・スピード×" + AKARI_SPD + "）＋ <b>味方全員のフルバーストターンを"
@@ -7431,9 +7942,9 @@ const CHARS = {
     id: "karen", nm: "カレン", img: "Karen.webp", th: "t_Karen.webp",
     el: "dark", shot: "pierce", type: "黒淵吸引型", fes: true, fesKey: "starlight2", lux: true, nexus: "slayer",
     connect: "karen",
-    hp: [968, 6395], atk: [562, 3560], spd: [309, 462],
-    abil: [{ t: "superaslow" }, { t: "award" },
-           { t: "vitalEL" }, { t: "houraikillerL" }, { t: "fbaccel" }, { t: "barrierEL" }],
+    hp: [968, 6395], atk: [1686, 10680], spd: [309, 462],
+    abil: [{ t: "superaslow" }, { t: "award" }, { t: "lightning" },
+           { t: "houraikillerL" }, { t: "fbaccel" }, { t: "barrierEL" }],
     subfs: "auroracurtain",
     ssName: "ノワール・カーテンコール", ssTurns: STARLIGHT_TURNS, ssKind: "sayuri",
     ssPow: "自強化（攻撃×" + SAYURI_ATK + "・スピード×" + SAYURI_SPD + "）＋ <b>敵全体の攻撃力を"
@@ -7466,9 +7977,9 @@ const CHARS = {
     id: "tomoe", nm: "トモエ", img: "Tomoe.webp", th: "t_Tomoe.webp",
     el: "wood", shot: "bounce", type: "翠芽播種型", fes: true, fesKey: "starlight2", lux: true, nexus: "demolish",
     connect: "tomoe",
-    hp: [974, 6425], atk: [551, 3500], spd: [311, 468],
-    abil: [{ t: "supermsEL" }, { t: "award" },
-           { t: "fatalkillerL" }, { t: "houraikillerL" }, { t: "laserstopM" }, { t: "healM" }],
+    hp: [974, 6425], atk: [1378, 8750], spd: [311, 468],
+    abil: [{ t: "supermsEL" }, { t: "award" }, { t: "cumulonimbus" },
+           { t: "houraikillerL" }, { t: "laserstopM" }, { t: "healM" }],
     subfs: "auroracurtain",
     ssName: "ヴェルデ・スプラウト・オード", ssTurns: STARLIGHT_TURNS, ssKind: "sayaka",
     ssPow: "自強化（攻撃×" + SAYAKA_ATK + "・スピード×" + SAYAKA_SPD + "）＋ <b>味方全員が貫通になって総攻撃</b>"
@@ -7503,9 +8014,9 @@ const CHARS = {
     id: "himari", nm: "ヒマリ", img: "Himari.webp", th: "t_Himari.webp",
     el: "light", shot: "pierce", type: "星辰連星型", fes: true, fesKey: "starlight2", lux: true, nexus: "tempo",
     connect: "himari",
-    hp: [958, 6320], atk: [556, 3530], spd: [314, 478],
-    abil: [{ t: "award" }, { t: "superaw" },
-           { t: "firstkillerEL" }, { t: "houraikillerL" }, { t: "mirage" }, { t: "dashL" }],
+    hp: [958, 6320], atk: [1668, 10590], spd: [314, 478],
+    abil: [{ t: "award" }, { t: "superaw" }, { t: "destroyboostM" },
+           { t: "houraikillerL" }, { t: "mirage" }, { t: "dashL" }],
     subfs: "auroracurtain",
     ssName: "ステラ・ドーン・レイ", ssTurns: STARLIGHT_TURNS, ssKind: "hinata",
     ssPow: "自強化（攻撃×" + HINATA_ATK + "・スピード×" + HINATA_SPD + "）＋ <b>画面上のすべての敵へ光の柱（1本 攻撃力×"
@@ -7544,9 +8055,9 @@ const CHARS = {
     id: "mirelle", nm: "ミレーユ", img: "Mirelle.webp", th: "t_Mirelle.webp",
     el: "fire", shot: "pierce", type: "焔纏貫穿型", gacha: true, debut: true, lux: true, nexus: "force", star5: true,
     connect: "mirelle",
-    hp: [958, 6340], atk: [542, 3440], spd: [302, 450],
+    hp: [958, 6340], atk: [1626, 10320], spd: [302, 450],
     abil: [{ t: "superadw" }, { t: "supermsEL" }, { t: "sgrav" },
-           { t: "killerM", el: "wood" }, { t: "weakkillerEL" }, { t: "barrierL" }],
+           { t: "killerM", el: "wood" }, { t: "darkmatch" }, { t: "barrierL" }],
     subfs: "supercrossclone",
     ssName: "フランベルジュ・インフェルノ", ssTurns: MIRELLE_TURNS, ssKind: "mirelle",
     ssPow: "自強化（攻撃×" + MIRELLE_ATK + "・スピード×" + MIRELLE_SPD + "）＋ <b>敵全体を防御ダウン（"
@@ -7575,9 +8086,9 @@ const CHARS = {
     id: "scarlet", nm: "スカーレット", img: "Scarlet.webp", th: "t_Scarlet.webp",
     el: "water", shot: "bounce", type: "蒼月反射型", gacha: true, debut: true, lux: true, nexus: "mercy", star5: true,
     connect: "scarlet",
-    hp: [966, 6390], atk: [538, 3420], spd: [300, 446],
+    hp: [966, 6390], atk: [1076, 6840], spd: [300, 446],
     abil: [{ t: "superadw" }, { t: "sgrav" }, { t: "superaslow" },
-           { t: "killerEL", el: "fire" }, { t: "bosskillerM" }, { t: "regenL" }],
+           { t: "killerEL", el: "fire" }, { t: "resonance" }, { t: "regenL" }],
     subfs: "pspread3",
     ssName: "アビス・ティアーズ・ソナタ", ssTurns: SCARLET_TURNS, ssKind: "scarlet",
     ssPow: "自強化（攻撃×" + SCARLET_ATK + "・スピード×" + SCARLET_SPD + "）＋ <b>チームHPを"
@@ -7606,9 +8117,9 @@ const CHARS = {
     id: "koyuki", nm: "コユキ", img: "Koyuki.webp", th: "t_Koyuki.webp",
     el: "dark", shot: "pierce", type: "宵闇魔猫型", gacha: true, debut: true, lux: true, nexus: "slayer", star5: true,
     connect: "koyuki",
-    hp: [954, 6320], atk: [546, 3460], spd: [304, 454],
+    hp: [954, 6320], atk: [1365, 8650], spd: [304, 454],
     abil: [{ t: "sgrav" }, { t: "award" }, { t: "superaslow" },
-           { t: "killerEL", el: "light" }, { t: "poisonkillerEL" }, { t: "gravkillerL" }],
+           { t: "killerEL", el: "light" }, { t: "poisonkillerEL" }, { t: "konshin" }],
     subfs: "positionlimit",
     ssName: "ノワール・クロウ・ラプソディ", ssTurns: KOYUKI_TURNS, ssKind: "koyuki",
     ssPow: "自強化（攻撃×" + KOYUKI_ATK + "・スピード×" + KOYUKI_SPD + "）＋ <b>味方全員で総攻撃</b> ＋ <b>敵全体を毒状態（"
@@ -7655,9 +8166,9 @@ const CHARS = {
        ★ 担当は<b>第五重（闇 {ward,warp}）</b>＝ アンチ断絶界＋超アンチワープの<b>2種ちょうど</b>。 */
     id: "mio", nm: "ミオ", img: "Mio.webp", th: "t_Mio.webp",
     el: "light", shot: "pierce", type: "曙光貫通型", gacha: true, debut: true, lux: true, nexus: "vanguard", star5: true,
-    hp: [896, 5920], atk: [512, 3250], spd: [296, 436],
-    abil: [{ t: "award" }, { t: "superaw" },
-           { t: "killerL", el: "dark" }, { t: "weakkillerL" }, { t: "linkcharge" }],
+    hp: [896, 5920], atk: [1280, 8125], spd: [296, 436],
+    abil: [{ t: "award" }, { t: "superaw" }, { t: "killerL", el: "dark" },
+           { t: "sscharge" }, { t: "linkcharge" }],
     subfs: "lock8",
     ssName: "ソレイユ・ピアース", ssTurns: 20, ssKind: "selene",
     ssPow: "自強化（攻撃×1.9・スピード×1.25）＋ <b>貫通タイプになって敵を激しく貫く</b> ＋ <b>停止後に最も近い敵へ再走（攻撃×2.6）</b>",
@@ -7697,9 +8208,9 @@ const CHARS = {
        ★ 担当は<b>第三重（木 {dw,ward}）</b>＝ 超ADW＋アンチ断絶界の<b>2種ちょうど</b>。 */
     id: "karin", nm: "カリン", img: "Karin.webp", th: "t_Karin.webp",
     el: "fire", shot: "pierce", type: "紅薔薇閉環型", gacha: true, debut: true, lux: true, nexus: "slayer", star5: true,
-    hp: [963, 6370], atk: [566, 3585], spd: [305, 452],
-    abil: [{ t: "superadw" }, { t: "award" },
-           { t: "weakkillerEL" }, { t: "houraikillerL" }, { t: "barrierEL" }, { t: "fbaccel" }],
+    hp: [963, 6370], atk: [1698, 10755], spd: [305, 452],
+    abil: [{ t: "superadw" }, { t: "award" }, { t: "ssboost" },
+           { t: "houraikillerL" }, { t: "barrierEL" }, { t: "fbaccel" }],
     subfs: "afterglowtrail",
     ssName: "クリムゾンローズ・ヴァルス", ssTurns: 16, ssKind: "mirelle",
     ssPow: "自強化（攻撃×" + MIRELLE_ATK + "・スピード×" + MIRELLE_SPD + "）＋ <b>敵全体を防御ダウン（"
@@ -7729,9 +8240,9 @@ const CHARS = {
        ★ 担当は<b>第一重（火 {dw,grav}）</b>＝ 超ADW＋超アンチ重力バリアの<b>2種ちょうど</b>。 */
     id: "mirei", nm: "ミレーヌ", img: "Mirei.webp", th: "t_Mirei.webp",
     el: "water", shot: "bounce", type: "蒼月鏡像型", gacha: true, debut: true, lux: true, nexus: "aegis", star5: true,
-    hp: [986, 6505], atk: [551, 3492], spd: [309, 461],
-    abil: [{ t: "superadw" }, { t: "sgrav" },
-           { t: "combokillerEL" }, { t: "houraikillerL" }, { t: "regenL" }, { t: "barrierEL" }],
+    hp: [986, 6505], atk: [1653, 10476], spd: [309, 461],
+    abil: [{ t: "superadw" }, { t: "sgrav" }, { t: "fbaccel" },
+           { t: "houraikillerL" }, { t: "regenL" }, { t: "barrierEL" }],
     subfs: "afterglowtrail",
     ssName: "ルナ・ダブルミラージュ", ssTurns: 17, ssKind: "elena",
     ssPow: "自強化（攻撃×" + ELENA_ATK + "・スピード×" + ELENA_SPD + "）＋ <b>撃った瞬間に味方全員で総攻撃</b>／"
@@ -7761,9 +8272,9 @@ const CHARS = {
     id: "yuuka", nm: "ユカリ", img: "Yuuka.webp", th: "t_Yuuka.webp",
     el: "dark", shot: "pierce", type: "黒十字刻印型", gacha: true, debut: true, lux: true, nexus: "pierce", star5: true,
     connect: "yuuka",
-    hp: [978, 6450], atk: [560, 3548], spd: [306, 455],
+    hp: [978, 6450], atk: [1680, 10644], spd: [306, 455],
     abil: [{ t: "sgrav" }, { t: "award" }, { t: "superaslow" },
-           { t: "sokojikaraEL" }, { t: "houraikillerL" }, { t: "pray" }],
+           { t: "fbshort" }, { t: "houraikillerL" }, { t: "pray" }],
     subfs: "afterglowtrail",
     ssName: "ノワールクルス・レクイエム", ssTurns: 15, ssKind: "sayuri",
     ssPow: "自強化（攻撃×" + SAYURI_ATK + "・スピード×" + SAYURI_SPD + "）＋ <b>画面上のすべての敵の攻撃力を×"
@@ -7799,9 +8310,9 @@ const CHARS = {
     id: "miyabi", nm: "ミヤビ", img: "Miyabi.webp", th: "t_Miyabi.webp",
     el: "wood", shot: "pierce", type: "翠孔雀分刃型", gacha: true, debut: true, lux: true, nexus: "tempo", star5: true,
     connect: "miyabi",
-    hp: [971, 6410], atk: [558, 3536], spd: [308, 459],
+    hp: [971, 6410], atk: [1116, 7072], spd: [308, 459],
     abil: [{ t: "supermsEL" }, { t: "award" }, { t: "superaslow" },
-           { t: "defkillerM" }, { t: "houraikillerL" }, { t: "fbturnboost" }],
+           { t: "fbtouch" }, { t: "houraikillerL" }, { t: "fbturnboost" }],
     subfs: "afterglowtrail",
     ssName: "ペイルペイオウ・センスウ", ssTurns: 17, ssKind: "sayaka",
     ssPow: "自強化（攻撃×" + SAYAKA_ATK + "・スピード×" + SAYAKA_SPD + "）＋ <b>味方全員を"
@@ -7835,9 +8346,9 @@ const CHARS = {
     id: "sumire", nm: "スミレ", img: "Sumire.webp", th: "t_Sumire.webp",
     el: "light", shot: "bounce", type: "陽環聖域型", gacha: true, debut: true, lux: true, nexus: "mercy", star5: true,
     connect: "sumire",
-    hp: [992, 6540], atk: [548, 3475], spd: [304, 450],
+    hp: [992, 6540], atk: [1644, 10425], spd: [304, 450],
     abil: [{ t: "sgrav" }, { t: "superaw" }, { t: "superaslow" },
-           { t: "firstkillerEL" }, { t: "houraikillerL" }, { t: "healM" }],
+           { t: "wallfbshort" }, { t: "houraikillerL" }, { t: "healM" }],
     subfs: "afterglowtrail",
     ssName: "ソレイユ・アウェイクン", ssTurns: 19, ssKind: "otoha",
     ssPow: "自強化（攻撃×" + OTOHA_ATK + "・スピード×" + OTOHA_SPD + "）＋ <b>画面上のすべての敵の弱点コアを"
@@ -7883,9 +8394,9 @@ const CHARS = {
        ★ 担当は<b>第五重（闇 {ward,warp}）</b>＝ アンチ断絶界＋超アンチワープの<b>2種ちょうど</b>。 */
     id: "kanade", nm: "カナデ", img: "Kanade.webp", th: "t_Kanade.webp",
     el: "light", shot: "bounce", type: "鐘光共鳴型", lux: true, reward: true, lexchar: true, nexus: "lexbond", star5: true,
-    hp: [984, 6490], atk: [552, 3500], spd: [306, 454],
-    abil: [{ t: "award" }, { t: "superaw" },
-           { t: "weakkillerEL" }, { t: "houraikillerL" }, { t: "healM" }, { t: "fbturnboost" }],
+    hp: [984, 6490], atk: [1656, 10500], spd: [306, 454],
+    abil: [{ t: "award" }, { t: "superaw" }, { t: "impulseboost" },
+           { t: "houraikillerL" }, { t: "healM" }, { t: "fbturnboost" }],
     subfs: "knowledgeresonance",
     ssName: "カリヨン・オブ・ソフィア", ssTurns: 16, ssKind: "akari",
     ssPow: "自強化（攻撃×" + AKARI_ATK + "・スピード×" + AKARI_SPD + "）＋ <b>味方全員のフルバーストターンを"
@@ -7915,9 +8426,9 @@ const CHARS = {
        ★ 担当は<b>第三重（木 {dw,ward}）</b>＝ 超ADW＋アンチ断絶界の<b>2種ちょうど</b>。 */
     id: "homura", nm: "ホムラ", img: "Homura.webp", th: "t_Homura.webp",
     el: "fire", shot: "pierce", type: "灼夏雷撃型", lux: true, reward: true, lexchar: true, swim: true, nexus: "lexignition", star5: true,
-    hp: [966, 6385], atk: [564, 3572], spd: [307, 457],
-    abil: [{ t: "superadw" }, { t: "award" },
-           { t: "sokojikaraEL" }, { t: "houraikillerL" }, { t: "fbaccel" }, { t: "barrierEL" }],
+    hp: [966, 6385], atk: [1692, 10716], spd: [307, 457],
+    abil: [{ t: "superadw" }, { t: "award" }, { t: "bubblemode" },
+           { t: "houraikillerL" }, { t: "fbaccel" }, { t: "barrierEL" }],
     subfs: "knowledgeresonance",
     ssName: "サマーインフェルノ・ボルト", ssTurns: 18, ssKind: "roxy",
     ssPow: "<b>自分のHPを" + Math.round(ROXY_HP_COST * 100) + "%支払い</b>、自強化（攻撃×" + ROXY_ATK
@@ -7947,9 +8458,9 @@ const CHARS = {
        ★ 担当は<b>第六重（火 {mine,slowwall}）</b>＝ 超マインスイーパーEL＋超アンチ減速壁の<b>2種ちょうど</b>。 */
     id: "yoizuki", nm: "ヨイヅキ", img: "Yoizuki.webp", th: "t_Yoizuki.webp",
     el: "water", shot: "bounce", type: "氷夜掃滅型", lux: true, reward: true, lexchar: true, swim: true, nexus: "lexaegis", star5: true,
-    hp: [989, 6520], atk: [549, 3480], spd: [310, 463],
-    abil: [{ t: "supermsEL" }, { t: "superaslow" },
-           { t: "manyfoeEL" }, { t: "houraikillerL" }, { t: "soulEL" }, { t: "dashL" }],
+    hp: [989, 6520], atk: [1647, 10440], spd: [310, 463],
+    abil: [{ t: "supermsEL" }, { t: "superaslow" }, { t: "soulM" },
+           { t: "houraikillerL" }, { t: "soulEL" }, { t: "dashL" }],
     subfs: "knowledgeresonance",
     ssName: "アイスヴェール・ミッドナイト", ssTurns: 15, ssKind: "koyuki",
     ssPow: "自強化（攻撃×" + KOYUKI_ATK + "・スピード×" + KOYUKI_SPD + "）＋ <b>ふれた敵を毒（"
@@ -7975,9 +8486,9 @@ const CHARS = {
        ★ 担当は<b>第九重（光 {slowwall,ward}）</b>＝ 超アンチ減速壁＋アンチ断絶界の<b>2種ちょうど</b>。 */
     id: "sumika", nm: "スミカ", img: "Sumika.webp", th: "t_Sumika.webp",
     el: "dark", shot: "pierce", type: "紫宵穿命型", lux: true, reward: true, lexchar: true, swim: true, nexus: "lexvigor", star5: true,
-    hp: [975, 6435], atk: [561, 3552], spd: [305, 452],
-    abil: [{ t: "superaslow" }, { t: "award" },
-           { t: "vitalEL" }, { t: "houraikillerL" }, { t: "laserstopM" }, { t: "drainM" }],
+    hp: [975, 6435], atk: [1683, 10656], spd: [305, 452],
+    abil: [{ t: "superaslow" }, { t: "award" }, { t: "judgment" },
+           { t: "houraikillerL" }, { t: "laserstopM" }, { t: "drainM" }],
     subfs: "knowledgeresonance",
     ssName: "ヴィオラナイト・オルタンシア", ssTurns: 17, ssKind: "scarlet",
     ssPow: "自強化（攻撃×" + SCARLET_ATK + "・スピード×" + SCARLET_SPD + "）＋ <b>チームHPを"
@@ -8020,9 +8531,9 @@ const CHARS = {
     id: "seina", nm: "セイナ", img: "Seina.webp", th: "t_Seina.webp",
     el: "fire", shot: "pierce", type: "紅薔薇円舞型", gacha: true, debut: true, lux: true, nexus: "force", star5: true,
     connect: "seina",
-    hp: [970, 6400], atk: [570, 3610], spd: [306, 454],
+    hp: [970, 6400], atk: [1710, 10830], spd: [306, 454],
     abil: [{ t: "superadw" }, { t: "supermsEL" }, { t: "sgrav" },
-           { t: "gravkillerEL" }, { t: "houraikillerL" }, { t: "barrierEL" }],
+           { t: "fsdouble" }, { t: "houraikillerL" }, { t: "barrierEL" }],
     subfs: "bloomingecho",
     ssName: "クリムゾン・ブロッサムレイン", ssTurns: 16, ssKind: "hinata",
     ssPow: "自強化（攻撃×" + HINATA_ATK + "・スピード×" + HINATA_SPD + "）＋ <b>画面上のすべての敵へ紅の花柱（1本 攻撃力×"
@@ -8054,9 +8565,9 @@ const CHARS = {
     id: "shiduki", nm: "シヅキ", img: "Shiduki.webp", th: "t_Shiduki.webp",
     el: "water", shot: "bounce", type: "蒼薔薇降雨型", gacha: true, debut: true, lux: true, nexus: "guard", star5: true,
     connect: "shiduki",
-    hp: [990, 6530], atk: [553, 3505], spd: [310, 463],
+    hp: [990, 6530], atk: [1659, 10515], spd: [310, 463],
     abil: [{ t: "superadw" }, { t: "sgrav" }, { t: "award" },
-           { t: "fewfoeEL" }, { t: "houraikillerL" }, { t: "regenL" }],
+           { t: "overheat" }, { t: "houraikillerL" }, { t: "regenL" }],
     subfs: "bloomingecho",
     ssName: "アズールローズ・レクイエム", ssTurns: 18, ssKind: "scarlet",
     ssPow: "自強化（攻撃×" + SCARLET_ATK + "・スピード×" + SCARLET_SPD + "）＋ <b>チームHPを"
@@ -8089,9 +8600,9 @@ const CHARS = {
     id: "sayuki", nm: "サユキ", img: "Sayuki.webp", th: "t_Sayuki.webp",
     el: "dark", shot: "pierce", type: "夜想連刃型", gacha: true, debut: true, lux: true, nexus: "vanguard", star5: true,
     connect: "sayuki",
-    hp: [974, 6425], atk: [566, 3588], spd: [309, 461],
+    hp: [974, 6425], atk: [1698, 10764], spd: [309, 461],
     abil: [{ t: "sgrav" }, { t: "award" }, { t: "superaw" },
-           { t: "killerEL", el: "light" }, { t: "houraikillerL" }, { t: "fbaccel" }],
+           { t: "atkcharge" }, { t: "houraikillerL" }, { t: "fbaccel" }],
     subfs: "bloomingecho",
     ssName: "ミッドナイト・ヴェノムプレイ", ssTurns: 14, ssKind: "koyuki",
     ssPow: "自強化（攻撃×" + KOYUKI_ATK + "・スピード×" + KOYUKI_SPD + "）＋ <b>ふれた敵を毒（"
@@ -8122,9 +8633,9 @@ const CHARS = {
     id: "sara", nm: "サラ", img: "Sara.webp", th: "t_Sara.webp",
     el: "wood", shot: "bounce", type: "翠葉幸運型", gacha: true, debut: true, lux: true, nexus: "scout", star5: true,
     connect: "sara",
-    hp: [984, 6490], atk: [556, 3524], spd: [308, 458],
+    hp: [984, 6490], atk: [1668, 10572], spd: [308, 458],
     abil: [{ t: "superadw" }, { t: "superaslow" }, { t: "award" },
-           { t: "allkillerEL" }, { t: "houraikillerL" }, { t: "healM" }],
+           { t: "wallboostM" }, { t: "houraikillerL" }, { t: "healM" }],
     subfs: "bloomingecho",
     ssName: "フォーリーフ・ミラクル", ssTurns: 17, ssKind: "akari",
     ssPow: "自強化（攻撃×" + AKARI_ATK + "・スピード×" + AKARI_SPD + "）＋ <b>味方全員のフルバーストターンを"
@@ -8158,9 +8669,9 @@ const CHARS = {
     id: "sakuya", nm: "サクヤ", img: "Sakuya.webp", th: "t_Sakuya.webp",
     el: "light", shot: "bounce", type: "桜暦残響型", gacha: true, debut: true, lux: true, nexus: "advantage", star5: true,
     connect: "sakuya",
-    hp: [996, 6560], atk: [551, 3494], spd: [305, 452],
+    hp: [996, 6560], atk: [1653, 10482], spd: [305, 452],
     abil: [{ t: "sgrav" }, { t: "superaw" }, { t: "superaslow" },
-           { t: "weakkillerEL" }, { t: "houraikillerL" }, { t: "soulEL" }],
+           { t: "barrierM" }, { t: "houraikillerL" }, { t: "soulEL" }],
     subfs: "bloomingecho",
     ssName: "サクラ・ダブルスマイル", ssTurns: 19, ssKind: "elena",
     ssPow: "自強化（攻撃×" + ELENA_ATK + "・スピード×" + ELENA_SPD + "）＋ <b>撃った瞬間に味方全員で総攻撃</b>／"
@@ -8215,14 +8726,14 @@ const CHARS = {
     el: "wood", shot: "pierce", type: "極彩分光型", gacha: true, fes: true, fesKey: "kokusai", lux: true,
     nexus: "luxprism", star5: true,
     connect: "hinano",
-    hp: [1024, 6740], atk: [566, 3588], spd: [312, 462],
+    hp: [1024, 6740], atk: [1698, 10764], spd: [312, 462],
     /* ★ アビリティは<b>クロス込みでちょうど8つ</b>（ご指定）。
        ここに6つ＋クロス2つ＝8。ショットスキルも<b>1つと数える</b>。 */
     /* ★★ 2026-08-28 ご指定により<b>ショットスキルはアビリティに数えない</b>。
        abil から外して shotskill の別枠だけに置き、代わりに<b>リンクブーストEL</b>を1つ足して
        「クロス込みでちょうど8つ」を保っている。 */
     abil: [{ t: "omni" }, { t: "award" }, { t: "ablock" },
-           { t: "houraikillerEL" }, { t: "weakkillerEL" }, { t: "fsboostEL" }],
+           { t: "houraikillerEL" }, { t: "fsboostM" }, { t: "fsboostEL" }],
     shotskill: "verdant",
     subfs: "weaksigil",
     ssName: "エメラルド・カレイドスコープ", ssTurns: 18, ssKind: "hinano",
@@ -8255,14 +8766,14 @@ const CHARS = {
     el: "fire", shot: "bounce", type: "極煌双影型", gacha: true, fes: true, fesKey: "kokukou", lux: true,
     nexus: "luxblaze", star5: true,
     connect: "mutsumi",
-    hp: [1042, 6860], atk: [572, 3630], spd: [300, 444],
+    hp: [1042, 6860], atk: [1716, 10890], spd: [300, 444],
     /* ★ アビリティは<b>クロス込みでちょうど8つ</b>（ご指定）。
        ここに6つ＋クロス2つ＝8。ショットスキルも<b>1つと数える</b>。 */
     /* ★★ 2026-08-28 ご指定により<b>ショットスキルはアビリティに数えない</b>。
        abil から外して shotskill の別枠だけに置き、代わりに<b>バリアEL</b>を1つ足して
        「クロス込みでちょうど8つ」を保っている。 */
     abil: [{ t: "omni" }, { t: "antilock" }, { t: "superaslow" },
-           { t: "houraikillerEL" }, { t: "combokillerEL" }, { t: "barrierEL" }],
+           { t: "houraikillerEL" }, { t: "dashL" }, { t: "barrierEL" }],
     shotskill: "ignite",
     subfs: "weaksigil",
     ssName: "クリムゾン・ソレイユ", ssTurns: 19, ssKind: "mutsumi",
@@ -8308,12 +8819,12 @@ const CHARS = {
     id: "yuika", nm: "ユイカ", img: "Yuika.webp", th: "t_Yuika.webp",
     el: "fire", shot: "pierce", type: "紅焔横断型", gacha: true, debut: true, lux: true, nexus: "force", star5: true,
     connect: "yuika",
-    hp: [968, 6390], atk: [566, 3585], spd: [306, 455],
+    hp: [968, 6390], atk: [1132, 7170], spd: [306, 455],
     /* ★★ 2026-08-29 ご指定により <b>Cozy Haven FEST と同じ水準</b>へそろえた
        （超アンチ重力バリア→アンチ重力バリア／超マインスイーパーEL→マインスイーパーL／
          バリアEL→バリアM）。アンチの<b>キー</b>は変わらないので担当クエストはそのまま。 */
     abil: [{ t: "agrav" }, { t: "msL" }, { t: "antilock" },
-           { t: "houraikillerL" }, { t: "bosskillerM" }, { t: "barrierM" }],
+           { t: "houraikillerL" }, { t: "drain" }, { t: "barrierM" }],
     subfs: "cozyveil",
     ssName: "イグニス・オーヴァチュア", ssTurns: 17, ssKind: "mirelle",
     ssPow: "自強化（攻撃×" + MIRELLE_ATK + "・スピード×" + MIRELLE_SPD + "）＋ <b>敵全体を防御ダウン（"
@@ -8348,11 +8859,11 @@ const CHARS = {
     id: "misuzu", nm: "ミスズ", img: "Misuzu.webp", th: "t_Misuzu.webp",
     el: "water", shot: "bounce", type: "碧鎖連結型", gacha: true, debut: true, lux: true, nexus: "bond", star5: true,
     connect: "misuzu",
-    hp: [995, 6560], atk: [552, 3500], spd: [303, 450],
+    hp: [995, 6560], atk: [1104, 7000], spd: [303, 450],
     /* ★★ 2026-08-29 Cozy Haven 水準へ（超AW→AW／超アンチ減速壁→アンチ減速壁／
        弱点キラーEL→弱点キラーM／リジェネL→リジェネM） */
     abil: [{ t: "aw" }, { t: "aslow" }, { t: "antilock" },
-           { t: "houraikillerL" }, { t: "weakkillerM" }, { t: "regenM" }],
+           { t: "houraikillerL" }, { t: "allres" }, { t: "regenM" }],
     subfs: "cozyveil",
     ssName: "アクア・ノクターンレイン", ssTurns: 18, ssKind: "scarlet",
     ssPow: "自強化（攻撃×" + SCARLET_ATK + "・スピード×" + SCARLET_SPD + "）＋ <b>チームHPを"
@@ -8387,10 +8898,10 @@ const CHARS = {
     id: "kazane", nm: "カザネ", img: "Kazane.webp", th: "t_Kazane.webp",
     el: "dark", shot: "pierce", type: "黒零計時型", gacha: true, debut: true, lux: true, nexus: "slayer", star5: true,
     connect: "kazane",
-    hp: [962, 6350], atk: [572, 3625], spd: [308, 459],
+    hp: [962, 6350], atk: [1144, 7250], spd: [308, 459],
     /* ★★ 2026-08-29 Cozy Haven 水準へ（超ADW→ADW／バイタルキラーEL→バイタルキラーM） */
     abil: [{ t: "adw" }, { t: "antilock" }, { t: "award" },
-           { t: "houraikillerL" }, { t: "vitalM" }, { t: "fbaccel" }],
+           { t: "houraikillerL" }, { t: "phantomdriveEL" }, { t: "fbaccel" }],
     subfs: "cozyveil",
     ssName: "ノワール・ゼロアワー", ssTurns: 18, ssKind: "sayuri",
     ssPow: "自強化（攻撃×" + SAYURI_ATK + "・スピード×" + SAYURI_SPD + "）＋ <b>敵全体の攻撃力を"
@@ -8427,11 +8938,11 @@ const CHARS = {
     id: "kokoa", nm: "ココア", img: "Kokoa.webp", th: "t_Kokoa.webp",
     el: "wood", shot: "bounce", type: "翠蔓螺旋型", gacha: true, debut: true, lux: true, nexus: "tempo", star5: true,
     connect: "kokoa",
-    hp: [980, 6465], atk: [558, 3540], spd: [310, 464],
+    hp: [980, 6465], atk: [1116, 7080], spd: [310, 464],
     /* ★★ 2026-08-29 Cozy Haven 水準へ（超ADW→ADW／超AW→AW／
        連撃キラーEL→連撃キラーM／リンクブーストEL→リンクブーストL） */
     abil: [{ t: "adw" }, { t: "aw" }, { t: "award" },
-           { t: "houraikillerL" }, { t: "combokillerM" }, { t: "fsboostL" }],
+           { t: "houraikillerL" }, { t: "lightningEL" }, { t: "fsboostL" }],
     subfs: "cozyveil",
     ssName: "ヴェルデ・ルナリウム", ssTurns: 17, ssKind: "akari",
     ssPow: "自強化（攻撃×" + AKARI_ATK + "・スピード×" + AKARI_SPD + "）＋ <b>味方全員のフルバーストターンを"
@@ -8466,11 +8977,11 @@ const CHARS = {
     id: "nodoka", nm: "ノドカ", img: "Nodoka.webp", th: "t_Nodoka.webp",
     el: "light", shot: "pierce", type: "聖光屈折型", gacha: true, debut: true, lux: true, nexus: "pierce", star5: true,
     connect: "nodoka",
-    hp: [955, 6310], atk: [569, 3605], spd: [312, 470],
+    hp: [955, 6310], atk: [1138, 7210], spd: [312, 470],
     /* ★★ 2026-08-29 Cozy Haven 水準へ（超マインスイーパーEL→マインスイーパーL／
        超アンチ減速壁→アンチ減速壁／超AW→AW／弱点キラーEL→弱点キラーM） */
     abil: [{ t: "msL" }, { t: "aslow" }, { t: "aw" },
-           { t: "houraikillerL" }, { t: "weakkillerM" }, { t: "mirage" }],
+           { t: "houraikillerL" }, { t: "cumulonimbusEL" }, { t: "mirage" }],
     subfs: "cozyveil",
     ssName: "ルクス・ダイアデム", ssTurns: 18, ssKind: "otoha",
     ssPow: "自強化（攻撃×" + OTOHA_ATK + "・スピード×" + OTOHA_SPD + "）＋ <b>敵全体の弱点コアを開放</b>（"
@@ -8517,9 +9028,9 @@ const CHARS = {
     id: "yua", nm: "ユア", img: "Yua.webp", th: "t_Yua.webp",
     el: "fire", shot: "bounce", type: "暖炉熾火型", fes: true, fesKey: "cozy", lux: true, nexus: "mercy", star5: true,
     connect: "yua",
-    hp: [986, 6505], atk: [540, 3425], spd: [297, 441],
+    hp: [986, 6505], atk: [1080, 6850], spd: [297, 441],
     abil: [{ t: "agrav" }, { t: "msL" }, { t: "antilock" },
-           { t: "houraikillerL" }, { t: "bosskillerM" }, { t: "regenM" }],
+           { t: "houraikillerL" }, { t: "wallboostEL" }, { t: "regenM" }],
     subfs: "cozyveil",
     ssName: "ハース・ノクターン", ssTurns: 18, ssKind: "hinata",
     ssPow: "自強化（攻撃×" + HINATA_ATK + "・スピード×" + HINATA_SPD + "）＋ <b>画面上のすべての敵へ熾火の柱（1本 攻撃力×"
@@ -8553,9 +9064,9 @@ const CHARS = {
     id: "shiori", nm: "シオリ", img: "Shiori.webp", th: "t_Shiori.webp",
     el: "water", shot: "pierce", type: "湯煙癒香型", fes: true, fesKey: "cozy", lux: true, nexus: "vigor", star5: true,
     connect: "shiori",
-    hp: [1002, 6610], atk: [534, 3385], spd: [300, 446],
+    hp: [1002, 6610], atk: [1068, 6770], spd: [300, 446],
     abil: [{ t: "aw" }, { t: "aslow" }, { t: "antilock" },
-           { t: "houraikillerL" }, { t: "weakkillerM" }, { t: "healM" }],
+           { t: "houraikillerL" }, { t: "soulEL" }, { t: "healM" }],
     subfs: "cozyveil",
     ssName: "アクア・ハーモニクス", ssTurns: 16, ssKind: "setsuna",
     ssPow: "自強化（攻撃×1.8・スピード×1.3）＋ ふれた味方1体につき <b>チームHPを12%回復</b>",
@@ -8589,9 +9100,9 @@ const CHARS = {
     id: "rena", nm: "レナ", img: "Rena.webp", th: "t_Rena.webp",
     el: "dark", shot: "bounce", type: "黒衣安寧型", fes: true, fesKey: "cozy", lux: true, nexus: "guard", star5: true,
     connect: "rena",
-    hp: [1010, 6660], atk: [531, 3365], spd: [292, 434],
+    hp: [1010, 6660], atk: [1328, 8412], spd: [292, 434],
     abil: [{ t: "adw" }, { t: "antilock" }, { t: "award" },
-           { t: "houraikillerL" }, { t: "fatalkillerL" }, { t: "barrierM" }],
+           { t: "houraikillerL" }, { t: "destroyboost" }, { t: "barrierM" }],
     subfs: "cozyveil",
     ssName: "ノワール・ララバイ", ssTurns: 16, ssKind: "celine",
     ssPow: "自強化（攻撃×1.5・スピード×1.2）＋ ふれた敵の攻撃力ダウン",
@@ -8623,9 +9134,9 @@ const CHARS = {
     id: "ryouka", nm: "リョウカ", img: "Ryouka.webp", th: "t_Ryouka.webp",
     el: "wood", shot: "pierce", type: "翠風収穫型", fes: true, fesKey: "cozy", lux: true, nexus: "sweep", star5: true,
     connect: "ryouka",
-    hp: [978, 6455], atk: [546, 3465], spd: [304, 452],
+    hp: [978, 6455], atk: [819, 5198], spd: [304, 452],
     abil: [{ t: "adw" }, { t: "aw" }, { t: "award" },
-           { t: "houraikillerL" }, { t: "mobkiller" }, { t: "fsboostL" }],
+           { t: "houraikillerL" }, { t: "soul" }, { t: "fsboostL" }],
     subfs: "cozyveil",
     ssName: "ヴェルデ・ハーヴェストソング", ssTurns: 18, ssKind: "nephia",
     ssPow: "自強化（攻撃×1.7・スピード×1.2）＋ <b>ふれた味方のパワーを×2.0</b>（その味方が2回行動するまで）",
@@ -8660,9 +9171,9 @@ const CHARS = {
     id: "miko", nm: "ミコ", img: "Miko.webp", th: "t_Miko.webp",
     el: "light", shot: "bounce", type: "灯明巡行型", fes: true, fesKey: "cozy", lux: true, nexus: "aegis", star5: true,
     connect: "miko",
-    hp: [992, 6540], atk: [543, 3445], spd: [301, 448],
+    hp: [992, 6540], atk: [1086, 6890], spd: [301, 448],
     abil: [{ t: "msL" }, { t: "aslow" }, { t: "aw" },
-           { t: "houraikillerL" }, { t: "firstkillerM" }, { t: "soulM" }],
+           { t: "houraikillerL" }, { t: "barrierL" }, { t: "soulM" }],
     subfs: "cozyveil",
     ssName: "ルクス・イブニングベル", ssTurns: 17, ssKind: "hotaru",
     ssPow: "自強化（攻撃×1.8・スピード×1.2）＋ <b>ふれた敵の弱点コアを開放</b>",
@@ -8707,14 +9218,14 @@ const CHARS = {
     el: "water", shot: "bounce", type: "極華蒼弾型", gacha: true, fes: true, fesKey: "kokuka", lux: true,
     nexus: "luxbloom", star5: true,
     connect: "kotori",
-    hp: [1036, 6820], atk: [578, 3665], spd: [309, 458],
+    hp: [1036, 6820], atk: [1734, 10995], spd: [309, 458],
     /* ★ アビリティは<b>クロス込みでちょうど8つ</b>。
        ★★ 2026-08-28 ご指定により<b>ショットスキルはアビリティに数えない</b>ので、
          ここは6つ＋クロス2つ＝8。ショットスキルは shotskill に別枠で持つ。
        ★ キラーは4つ＝蓬莱族キラーEL／弱点キラーEL／パワーオーラEL／底力EL。
          パワーオーラEL（HP50%以上）と底力EL（HP50%以下）は<b>必ずどちらかが立つ</b>。 */
-    abil: [{ t: "omni" }, { t: "superaslow" },
-           { t: "houraikillerEL" }, { t: "weakkillerEL" }, { t: "auraEL" }, { t: "sokojikaraEL" }],
+    abil: [{ t: "omni" }, { t: "superaslow" }, { t: "houraikillerEL" },
+           { t: "fsboostL" }, { t: "auraEL" }, { t: "sokojikaraEL" }],
     shotskill: "aqua",
     subfs: "aquahoop",
     ssName: "アクア・ダンクラプソディ", ssTurns: 19, ssKind: "kotori",
@@ -8777,9 +9288,9 @@ const CHARS = {
     el: "dark", shot: "pierce", type: "黒薔薇聖歌型", gacha: true, fes: true, fesKey: "kokukou", lux: true,
     nexus: "luxblaze", star5: true,
     connect: "reina",
-    hp: [1024, 6740], atk: [582, 3690], spd: [311, 462],
+    hp: [1024, 6740], atk: [1746, 11070], spd: [311, 462],
     abil: [{ t: "omni" }, { t: "antilock" }, { t: "award" },
-           { t: "houraikillerEL" }, { t: "killerEL", el: "light" }, { t: "auraEL" }],
+           { t: "houraikillerEL" }, { t: "killerEL", el: "light" }, { t: "dashM" }],
     shotskill: "noir",
     subfs: "noirrosary",
     ssName: "ノワール・ヴァルキュリア", ssTurns: 19, ssKind: "reina",
@@ -8847,9 +9358,9 @@ const CHARS = {
     el: "fire", shot: "bounce", type: "紅焔給仕型", gacha: true, fes: true, fesKey: "senki", lux: true,
     nexus: "senkivalor", star5: true,
     connect: "rans",
-    hp: [1030, 6780], atk: [572, 3630], spd: [307, 456],
+    hp: [1030, 6780], atk: [1716, 10890], spd: [307, 456],
     abil: [{ t: "sgrav" }, { t: "supermsEL" }, { t: "antilock" },
-           { t: "houraikillerEL" }, { t: "killerEL", el: "wood" }, { t: "auraEL" },
+           { t: "houraikillerEL" }, { t: "killerEL", el: "wood" }, { t: "wallboostL" },
            { t: "dashL" }],
     shotskill: "flambe",
     subfs: "senkirondo",
@@ -8880,9 +9391,9 @@ const CHARS = {
     el: "fire", shot: "pierce", type: "紅蓮湯浴型", gacha: true, fes: true, fesKey: "senki", lux: true,
     nexus: "senkivalor", star5: true,
     connect: "kurenai",
-    hp: [1012, 6660], atk: [578, 3665], spd: [309, 460],
+    hp: [1012, 6660], atk: [1734, 10995], spd: [309, 460],
     abil: [{ t: "superadw" }, { t: "sgrav" }, { t: "supermsEL" },
-           { t: "houraikillerEL" }, { t: "weakkillerEL" }, { t: "sokojikaraEL" },
+           { t: "houraikillerEL" }, { t: "speedmode" }, { t: "sokojikaraEL" },
            { t: "healM" }],
     shotskill: "mist",
     subfs: "senkirondo",
@@ -8914,9 +9425,9 @@ const CHARS = {
     el: "water", shot: "pierce", type: "銀夜摩天型", gacha: true, fes: true, fesKey: "senki", lux: true,
     nexus: "senkivalor", star5: true,
     connect: "yuki",
-    hp: [1006, 6620], atk: [575, 3648], spd: [314, 470],
+    hp: [1006, 6620], atk: [1725, 10944], spd: [314, 470],
     abil: [{ t: "superaslow" }, { t: "supermsEL" }, { t: "antilock" },
-           { t: "houraikillerEL" }, { t: "killerEL", el: "fire" }, { t: "combokillerEL" },
+           { t: "houraikillerEL" }, { t: "killerEL", el: "fire" }, { t: "impulseboost" },
            { t: "dashL" }],
     shotskill: "snow",
     subfs: "senkirondo",
@@ -8947,9 +9458,9 @@ const CHARS = {
     el: "wood", shot: "bounce", type: "翠板筆記型", gacha: true, fes: true, fesKey: "senki", lux: true,
     nexus: "senkivalor", star5: true,
     connect: "marika",
-    hp: [1042, 6860], atk: [568, 3605], spd: [305, 452],
+    hp: [1042, 6860], atk: [1704, 10815], spd: [305, 452],
     abil: [{ t: "superadw" }, { t: "superaslow" }, { t: "award" },
-           { t: "houraikillerEL" }, { t: "killerEL", el: "water" }, { t: "sokojikaraEL" },
+           { t: "houraikillerEL" }, { t: "killerEL", el: "water" }, { t: "atkchargeM" },
            { t: "laserstopM" }],
     shotskill: "chalk",
     subfs: "senkirondo",
@@ -8984,9 +9495,9 @@ const CHARS = {
     el: "light", shot: "bounce", type: "聖杯灌光型", gacha: true, fes: true, fesKey: "senki", lux: true,
     nexus: "senkivalor", star5: true,
     connect: "yuukas",
-    hp: [1036, 6820], atk: [571, 3622], spd: [308, 458],
+    hp: [1036, 6820], atk: [1713, 10866], spd: [308, 458],
     abil: [{ t: "superaw" }, { t: "award" }, { t: "superaslow" },
-           { t: "houraikillerEL" }, { t: "vitalEL" }, { t: "auraEL" },
+           { t: "houraikillerEL" }, { t: "linkcharge" }, { t: "auraEL" },
            { t: "barrierEL" }],
     shotskill: "grail",
     subfs: "senkirondo",
@@ -9024,9 +9535,9 @@ const CHARS = {
     el: "dark", shot: "pierce", type: "星冠戴天型", gacha: true, fes: true, fesKey: "senki", lux: true,
     nexus: "senkivalor", star5: true,
     connect: "annas",
-    hp: [1048, 6900], atk: [588, 3730], spd: [316, 474],
+    hp: [1048, 6900], atk: [1764, 11190], spd: [316, 474],
     abil: [{ t: "award" }, { t: "sgrav" }, { t: "superaslow" },
-           { t: "houraikillerEL" }, { t: "weakkillerEL" }, { t: "killerEL", el: "light" },
+           { t: "houraikillerEL" }, { t: "drainM" }, { t: "killerEL", el: "light" },
            { t: "barrierEL" }],
     shotskill: "astral",
     subfs: "senkirondo",
@@ -9096,9 +9607,10 @@ const CHARS = {
     el: "light", shot: "pierce", type: "灯華祭天型", gacha: true, fes: true, fesKey: "senki", lux: true,
     nexus: "senkivalor", star5: true,
     connect: "annam",
-    hp: [1062, 6990], atk: [598, 3792], spd: [319, 478],
-    abil: [{ t: "superaw" }, { t: "superaslow" }, { t: "sgrav" }, { t: "award" },
-           { t: "houraikillerEL" }, { t: "weakkillerEL" }, { t: "killerEL", el: "dark" }],
+    hp: [1062, 6990], atk: [1794, 11376], spd: [319, 478],
+    abil: [{ t: "superaw" }, { t: "superaslow" }, { t: "sgrav" },
+           { t: "award" }, { t: "houraikillerEL" }, { t: "allresM" },
+           { t: "killerEL", el: "dark" }],
     shotskill: "lantern",
     subfs: "senkirondo",
     ssName: "千華繚乱・スターマイン", ssTurns: 20, ssKind: "annam",
@@ -9172,9 +9684,9 @@ const CHARS = {
     el: "fire", shot: "pierce", type: "恋灯抱擁型", gacha: true, debut: true, lux: true, star5: true,
     nexus: "advantage",
     connect: "chia",
-    hp: [1030, 6790], atk: [558, 3545], spd: [304, 452],
+    hp: [1030, 6790], atk: [1395, 8862], spd: [304, 452],
     abil: [{ t: "sgrav" }, { t: "supermsL" }, { t: "antilock" },
-           { t: "houraikillerEL" }, { t: "killerL", el: "wood" }, { t: "sokojikaraL" }],
+           { t: "houraikillerEL" }, { t: "killerL", el: "wood" }, { t: "protection" }],
     subfs: "jewelshower",
     ssName: "ハートフル・ラプソディ", ssTurns: 20, ssKind: "chia",
     ssPow: "自強化（攻撃×" + CHIA_ATK + "・スピード×" + CHIA_SPD + "）＋ <b>敵全体</b>へ恋色の衝撃波"
@@ -9206,9 +9718,9 @@ const CHARS = {
     el: "water", shot: "bounce", type: "氷華静謐型", gacha: true, debut: true, lux: true, star5: true,
     nexus: "gale",
     connect: "risa",
-    hp: [1018, 6705], atk: [562, 3570], spd: [311, 464],
+    hp: [1018, 6705], atk: [1405, 8925], spd: [311, 464],
     abil: [{ t: "superaw" }, { t: "superaslow" }, { t: "antilock" },
-           { t: "houraikillerEL" }, { t: "killerL", el: "fire" }, { t: "weakkillerL" }],
+           { t: "houraikillerEL" }, { t: "killerL", el: "fire" }, { t: "mirage" }],
     subfs: "jewelshower",
     ssName: "フローズン・レクイエム", ssTurns: 20, ssKind: "risa",
     ssPow: "自強化（攻撃×" + RISA_ATK + "・スピード×" + RISA_SPD + "）＋ <b>敵全体</b>へ氷結"
@@ -9242,9 +9754,9 @@ const CHARS = {
     el: "dark", shot: "pierce", type: "黒薔薇燭華型", gacha: true, debut: true, lux: true, star5: true,
     nexus: "vanguard",
     connect: "rin",
-    hp: [1024, 6745], atk: [566, 3590], spd: [307, 457],
+    hp: [1024, 6745], atk: [1415, 8975], spd: [307, 457],
     abil: [{ t: "superadw" }, { t: "antilock" }, { t: "award" },
-           { t: "houraikillerEL" }, { t: "killerL", el: "light" }, { t: "fatalkillerL" }],
+           { t: "houraikillerEL" }, { t: "killerL", el: "light" }, { t: "phantomdrive" }],
     subfs: "jewelshower",
     ssName: "ローズ・レクイエム", ssTurns: 20, ssKind: "rin",
     ssPow: "自強化（攻撃×" + RIN_ATK + "・スピード×" + RIN_SPD + "）＋ <b>敵全体</b>へ黒薔薇の茨"
@@ -9276,9 +9788,9 @@ const CHARS = {
     el: "wood", shot: "bounce", type: "宝石煌耀型", gacha: true, debut: true, lux: true, star5: true,
     nexus: "resonance",
     connect: "minori",
-    hp: [1034, 6810], atk: [556, 3530], spd: [303, 450],
+    hp: [1034, 6810], atk: [1390, 8825], spd: [303, 450],
     abil: [{ t: "superadw" }, { t: "superaw" }, { t: "award" },
-           { t: "houraikillerEL" }, { t: "killerL", el: "water" }, { t: "combokillerL" }],
+           { t: "houraikillerEL" }, { t: "killerL", el: "water" }, { t: "lightning" }],
     subfs: "jewelshower",
     ssName: "プリズム・ラプソディ", ssTurns: 20, ssKind: "minori",
     ssPow: "自強化（攻撃×" + MINORI_ATK + "・スピード×" + MINORI_SPD + "）＋ <b>敵全体</b>へ七色の光"
@@ -9316,9 +9828,9 @@ const CHARS = {
     el: "light", shot: "pierce", type: "暁光花明型", gacha: true, debut: true, lux: true, star5: true,
     nexus: "ignition",
     connect: "seika",
-    hp: [1028, 6775], atk: [564, 3578], spd: [309, 460],
+    hp: [1028, 6775], atk: [1410, 8945], spd: [309, 460],
     abil: [{ t: "supermsL" }, { t: "superaslow" }, { t: "superaw" },
-           { t: "houraikillerEL" }, { t: "killerL", el: "dark" }, { t: "vitalL" }],
+           { t: "houraikillerEL" }, { t: "killerL", el: "dark" }, { t: "cumulonimbus" }],
     subfs: "jewelshower",
     ssName: "サンライズ・レクイエム", ssTurns: 20, ssKind: "seika",
     ssPow: "自強化（攻撃×" + SEIKA_ATK + "・スピード×" + SEIKA_SPD + "）＋ <b>敵全体</b>へ暁の光"
@@ -9362,9 +9874,9 @@ const CHARS = {
     id: "riona", nm: "リオナ", img: "Riona.webp", th: "t_Riona.webp",
     el: "water", shot: "pierce", type: "潮騒星唄型", gacha: true, fes: true, fesKey: "rising", star5: true,
     nexus: "risingstar",
-    hp: [1074, 7070], atk: [604, 3830], spd: [322, 482],
+    hp: [1074, 7070], atk: [1812, 11490], spd: [322, 482],
     abil: [{ t: "superaw" }, { t: "superaslow" }, { t: "antilock" },
-           { t: "houraikillerEL" }, { t: "killerEL", el: "fire" }, { t: "sokojikaraEL" },
+           { t: "houraikillerEL" }, { t: "killerEL", el: "fire" }, { t: "destroyboostM" },
            { t: "fsboostEL" }, { t: "barrierEL" }],
     subfs: "risingtide",
     ssName: "オーシャン・オーヴァチュア", ssTurns: 20, ssKind: "risa",
@@ -9403,9 +9915,9 @@ const CHARS = {
     id: "mireir", nm: "ミレイ", img: "MireiR.webp", th: "t_MireiR.webp",
     el: "wood", shot: "bounce", type: "翠夏微睡型", gacha: true, fes: true, fesKey: "rising", star5: true,
     nexus: "risingstar",
-    hp: [1082, 7120], atk: [598, 3792], spd: [318, 476],
+    hp: [1082, 7120], atk: [1794, 11376], spd: [318, 476],
     abil: [{ t: "superadw" }, { t: "superaw" }, { t: "award" },
-           { t: "houraikillerEL" }, { t: "killerEL", el: "water" }, { t: "auraEL" },
+           { t: "houraikillerEL" }, { t: "killerEL", el: "water" }, { t: "darkmatch" },
            { t: "fsboostEL" }, { t: "regenL" }],
     subfs: "risingtide",
     ssName: "サマーシェイド・ロンド", ssTurns: 20, ssKind: "minori",
@@ -9444,9 +9956,9 @@ const CHARS = {
     id: "suzuhar", nm: "スズハ", img: "SuzuhaR.webp", th: "t_SuzuhaR.webp",
     el: "light", shot: "pierce", type: "星涼一閃型", gacha: true, fes: true, fesKey: "rising", star5: true,
     nexus: "risingstar",
-    hp: [1068, 7030], atk: [610, 3868], spd: [326, 488],
+    hp: [1068, 7030], atk: [1830, 11604], spd: [326, 488],
     abil: [{ t: "superaw" }, { t: "supermsEL" }, { t: "superaslow" },
-           { t: "houraikillerEL" }, { t: "killerEL", el: "dark" }, { t: "sokojikaraEL" },
+           { t: "houraikillerEL" }, { t: "killerEL", el: "dark" }, { t: "resonance" },
            { t: "fsboostEL" }, { t: "laserstopM" }],
     subfs: "risingtide",
     ssName: "スターリット・レゾナンス", ssTurns: 20, ssKind: "rin",
@@ -9487,9 +9999,9 @@ const CHARS = {
     el: "dark", el2: "fire", shot: "bounce", type: "双星水沫型",
     gacha: true, fes: true, fesKey: "rising", star5: true,
     nexus: "risingstar",
-    hp: [1096, 7210], atk: [592, 3754], spd: [330, 494],
+    hp: [1096, 7210], atk: [1776, 11262], spd: [330, 494],
     abil: [{ t: "superadw" }, { t: "antilock" }, { t: "award" },
-           { t: "houraikillerEL" }, { t: "killerEL", el: "light" }, { t: "auraEL" },
+           { t: "houraikillerEL" }, { t: "killerEL", el: "light" }, { t: "konshin" },
            { t: "fsboostEL" }, { t: "dashL" }],
     subfs: "risingtide",
     ssName: "ダブル・スプラッシュフィナーレ", ssTurns: 18, ssKind: "elena",
@@ -9539,9 +10051,9 @@ const CHARS = {
     id: "shizuru", nm: "シズル", img: "Shizuru.webp", th: "t_Shizuru.webp",
     el: "water", shot: "bounce", type: "潮汐残響型", gacha: true, fes: true, fesKey: "rising", star5: true,
     nexus: "risingstar",
-    hp: [1118, 7360], atk: [618, 3918], spd: [330, 494],
+    hp: [1118, 7360], atk: [1854, 11754], spd: [330, 494],
     abil: [{ t: "superaw" }, { t: "superaslow" }, { t: "antilock" },
-           { t: "houraikillerEL" }, { t: "killerEL", el: "fire" }, { t: "weakkillerEL" },
+           { t: "houraikillerEL" }, { t: "killerEL", el: "fire" }, { t: "sscharge" },
            { t: "wallboostEL" }, { t: "dashL" }],
     subfs: "starlightchain",
     ssName: "サンセット・レゾナンス", ssTurns: 22, ssKind: "kotomi",
@@ -9579,9 +10091,9 @@ const CHARS = {
     id: "yuuri", nm: "ユウリ", img: "Yuuri.webp", th: "t_Yuuri.webp",
     el: "wood", shot: "pierce", type: "黒猫夜想型", gacha: true, fes: true, fesKey: "rising", star5: true,
     nexus: "risingstar",
-    hp: [1124, 7400], atk: [616, 3906], spd: [336, 502],
+    hp: [1124, 7400], atk: [1848, 11718], spd: [336, 502],
     abil: [{ t: "superadw" }, { t: "superaw" }, { t: "award" },
-           { t: "houraikillerEL" }, { t: "killerEL", el: "water" }, { t: "weakkillerEL" },
+           { t: "houraikillerEL" }, { t: "killerEL", el: "water" }, { t: "ssboost" },
            { t: "lightningEL" }, { t: "dashL" }],
     subfs: "starlightchain",
     ssName: "ノクターン・クロウ", ssTurns: 14, ssKind: "iori",
@@ -9623,9 +10135,9 @@ const CHARS = {
     id: "hisui", nm: "ヒスイ", img: "Hisui.webp", th: "t_Hisui.webp",
     el: "fire", shot: "pierce", type: "緋眼夜桜型", gacha: true, fes: true, fesKey: "rising", star5: true,
     nexus: "risingstar",
-    hp: [1130, 7440], atk: [622, 3944], spd: [332, 498],
+    hp: [1130, 7440], atk: [1866, 11832], spd: [332, 498],
     abil: [{ t: "sgrav" }, { t: "supermsEL" }, { t: "antilock" },
-           { t: "houraikillerEL" }, { t: "killerEL", el: "wood" }, { t: "weakkillerEL" },
+           { t: "houraikillerEL" }, { t: "killerEL", el: "wood" }, { t: "fbaccel" },
            { t: "lightningEL" }, { t: "soulEL" }],
     subfs: "starlightchain",
     ssName: "スカーレット・ブロッサム", ssTurns: 17, ssKind: "kurenai",
@@ -9673,9 +10185,9 @@ const CHARS = {
     id: "raika", nm: "ライカ", img: "Raika.webp", th: "t_Raika.webp",
     el: "dark", shot: "bounce", type: "黒薔薇統率型", gacha: true, fes: true, fesKey: "rising", star5: true,
     nexus: "risingstar",
-    hp: [1136, 7480], atk: [614, 3894], spd: [328, 490],
+    hp: [1136, 7480], atk: [1842, 11682], spd: [328, 490],
     abil: [{ t: "superadw" }, { t: "antilock" }, { t: "award" },
-           { t: "houraikillerEL" }, { t: "killerEL", el: "light" }, { t: "weakkillerEL" },
+           { t: "houraikillerEL" }, { t: "killerEL", el: "light" }, { t: "fbshort" },
            { t: "wallboostEL" }, { t: "barrierEL" }],
     subfs: "starlightchain",
     ssName: "クリムゾン・オーダー", ssTurns: SCARLET_TURNS, ssKind: "scarlet",
@@ -9725,10 +10237,9 @@ const CHARS = {
     el: "light", shot: "pierce", type: "極彩鼓動型", gacha: true, fes: true, fesKey: "kokusai", lux: true,
     nexus: "luxprism", star5: true,
     connect: "hanon",
-    hp: [1108, 7290], atk: [628, 3980], spd: [334, 500],
-    abil: [{ t: "omni" }, { t: "superaslow" },
-           { t: "houraikillerEL" }, { t: "killerEL", el: "dark" },
-           { t: "auraEL" }, { t: "sokojikaraEL" }],
+    hp: [1108, 7290], atk: [1884, 11940], spd: [334, 500],
+    abil: [{ t: "omni" }, { t: "superaslow" }, { t: "houraikillerEL" },
+           { t: "killerEL", el: "dark" }, { t: "fbtouch" }, { t: "sokojikaraEL" }],
     shotskill: "hoop",
     subfs: "goldenrebound",
     ssName: "オーロラ・ブザービーター", ssTurns: 22, ssKind: "hanon",
@@ -9772,7 +10283,620 @@ const CHARS = {
       + "<br>どの段も<b>敵全体</b>に入るので、位置に関係なく最後まで届く。"
       + "<br>合計 攻撃力×"
       + (HDOM_PER * (HDOM_STEPS * (HDOM_STEPS + 1) / 2) + HDOM_FINALE).toFixed(1)
-      + " ——<b>MagiBurst 最強のリンクスキル</b>です。",
+      + " ——<b>MagiBurst 最強のリンクスキル</b>でした"
+      + "（★★ 2026-09-06 <b>アンナ＆ラン</b>の<b>ツインローズ・カタストロフ</b>（×"
+      + TROSE_TOTAL.toFixed(1) + "）に抜かれました）。",
+  },
+  /* ══════════════════════════════════════════════════════════════
+     ★★ 2026-09-06 戦姫祭（fes11）に加わる<b>新3体</b>＝ MagiBurst 史上最強（ご指定）
+     ------------------------------------------------------------
+     ・アビリティは<b>10個</b>（素7＝アンチ3＋キラー3＋その他1 ／ クロス3＝アンチ1＋その他2）。
+     ・<b>オムニアンチも治癒の祈りも持たない</b>（ご指定）。
+     ・<b>キラーは3つまで</b>（パワーオーラ・底力もキラーに数える）。
+     ・<b>ショットスキル</b>を持ち、撃つたび毎回発動する（アビリティ枠とは別）。
+     ・サブリンクは戦姫祭で<b>統一</b>（ヴァルキュリア・ロンド）。
+     ★ 強さの置きかたは<b>リンクスキルの素の威力</b>（ご指定）。
+       キラーは3つのままで、リンクの合計倍率がハノンの<b>セレスト・ドミナンス（×114.8）</b>を
+       はっきり超える——レイ ×132.3 ／ リカ ×136.0 ／ <b>アンナ＆ラン ×151.4</b>。
+     ★ 担当する天界の審判（有利属性のまま完全対応）
+         レイ（闇）        … 第四の審判（光 {ロックゾーン・減速壁・重力バリア}）
+                             ＋クロスのアンチブロックで 第七の審判（水・属性は不利）
+         リカ（木）        … 第七の審判（水 {ブロック・重力バリア・ロックゾーン}）
+                             ＋クロスの超アンチダメージウォールで 第三・第八の審判（木・属性は不利）
+         アンナ＆ラン（火＆光）… 第三の審判（木 {ブロック・ダメージウォール・ロックゾーン}）
+                             ＋クロスの超アンチ重力バリアで <b>第八の審判も有利属性のまま</b>
+     ══════════════════════════════════════════════════════════════ */
+  reis: {
+    /* 闇・貫通。深夜のコンビニ。★ 既存の No.（レイ）とは別人なので id も画像も別。 */
+    id: "reis", nm: "レイ", img: "ReiS.webp", th: "t_ReiS.webp",
+    el: "dark", shot: "pierce", type: "深夜静寂型", gacha: true, fes: true, fesKey: "senki", lux: true,
+    nexus: "senkivalor", star5: true,
+    connect: "reis",
+    hp: [1104, 7260], atk: [1866, 11832], spd: [326, 488],
+    abil: [{ t: "sgrav" }, { t: "superaslow" }, { t: "antilock" },
+           { t: "judgekillerEL" }, { t: "killerEL", el: "light" }, { t: "wallfbshort" },
+           { t: "dashL" }],
+    shotskill: "midnight",
+    subfs: "senkirondo",
+    ssName: "ミッドナイト・クロージング", ssTurns: 18, ssKind: "reis",
+    ssPow: "自強化（攻撃×" + REIS_ATK + "・スピード×" + REIS_SPD + "）＋ <b>敵全体</b>へ深夜の帳"
+      + "（攻撃力×" + REIS_ALL + "）＋ <b>敵全体の防御力を" + REIS_DEFDOWN_TURNS + "ターン下げる</b>",
+    ssDesc: "店の灯りがいっせいに落ち、盤面が<b>閉店後の暗がり</b>になる。"
+      + "<b>自強化（攻撃×" + REIS_ATK + "・スピード×" + REIS_SPD + "）</b>して"
+      + "<b>敵全体へ深夜の帳</b>を落とす（攻撃力×" + REIS_ALL + "）。"
+      + "<br>いちばんの働きは<b>敵全体の防御力を" + REIS_DEFDOWN_TURNS + "ターン下げる</b>こと——"
+      + "下がっているあいだは<b>チーム全員の与ダメージがまとめて増える</b>ので、"
+      + "撃った次の1周がまるごと重くなる。"
+      + "<br>アンチは<b>超アンチ重力バリア＋超アンチ減速壁＋アンチロックゾーン</b>——"
+      + "これだけで<b>⚖第四の審判</b>を有利属性のまま完全対応でき、"
+      + "クロススキルの<b>アンチブロック</b>が点くと<b>⚖第七の審判</b>も（属性は不利ですが）完全対応になる。",
+    fsName: "フラクタル・ミッドナイト", fsKind: "fractalnight",
+    fsPow: "闇の稲妻が<b>二股に分かれながら</b> " + FNIGHT_DEPTH + "段（1→2→4→8＝計"
+      + (Math.pow(2, FNIGHT_DEPTH) - 1) + "発／1発 攻撃力×" + FNIGHT_PER
+      + "・段が下がるごとに +" + FNIGHT_STEP + "・半径 " + FNIGHT_R + "）"
+      + " ＋ 締めの鐘（<b>敵全体</b>・攻撃力×" + FNIGHT_FINALE + "）／合計 攻撃力×"
+      + FNIGHT_TOTAL.toFixed(1),
+    fsDesc: "ふれた味方から<b>闇の稲妻</b>が走り、進むたびに<b>二股に分かれて</b>いく。"
+      + "<br>これまでに無いのは<b>枝分かれで数が倍になり、しかも1発ずつが重くなる</b>こと——"
+      + "1段目は1発（×" + FNIGHT_PER + "）、4段目は<b>8発</b>（1発 ×"
+      + (FNIGHT_PER + FNIGHT_STEP * (FNIGHT_DEPTH - 1)).toFixed(2) + "）。"
+      + "<br>枝は<b>敵のいるほうへ優先して</b>伸びるので、敵が多いほど取りこぼさない。"
+      + "<br>最後に<b>真夜中の鐘</b>が鳴って<b>敵全体へ 攻撃力×" + FNIGHT_FINALE + "</b>。"
+      + "<br>合計 攻撃力×" + FNIGHT_TOTAL.toFixed(1)
+      + " ——ハノンの<b>セレスト・ドミナンス</b>（×"
+      + (HDOM_PER * (HDOM_STEPS * (HDOM_STEPS + 1) / 2) + HDOM_FINALE).toFixed(1) + "）を超えます。",
+  },
+  rikas: {
+    /* 木・反射。城の庭で竜と語らう姫。★ 既存の「リリカ」「マリカ」とは別人。 */
+    id: "rikas", nm: "リカ", img: "Rika.webp", th: "t_Rika.webp",
+    el: "wood", shot: "bounce", type: "翠竜庭園型", gacha: true, fes: true, fesKey: "senki", lux: true,
+    nexus: "senkivalor", star5: true,
+    connect: "rikas",
+    hp: [1118, 7350], atk: [1848, 11718], spd: [322, 482],
+    abil: [{ t: "sgrav" }, { t: "ablock" }, { t: "antilock" },
+           { t: "judgekillerEL" }, { t: "killerEL", el: "water" }, { t: "fbturnboost" },
+           { t: "laserstopM" }],
+    shotskill: "dragonbreath",
+    subfs: "senkirondo",
+    ssName: "ヴェルダンテ・アウェイクン", ssTurns: 18, ssKind: "rikas",
+    ssPow: "自強化（攻撃×" + RIKAS_ATK + "・スピード×" + RIKAS_SPD + "）＋ <b>敵全体</b>へ翠竜の咆哮"
+      + "（攻撃力×" + RIKAS_ALL + "）＋ <b>味方全員のフルバーストを" + RIKAS_FB + "ターン進め、"
+      + RIKAS_BARRIER + " のバリアを張る</b>",
+    ssDesc: "眠っていた翠の竜が目を覚まし、盤面ぜんたいへ<b>咆哮</b>が渡る（攻撃力×" + RIKAS_ALL + "）。"
+      + "<br>いちばんの働きは<b>味方全員のフルバーストを" + RIKAS_FB + "ターン進め、"
+      + "そのうえ全員に " + RIKAS_BARRIER + " のバリアを張る</b>こと——"
+      + "<b>攻めと守りを同時に前へ出す</b>ので、次の1周でチーム全体のフルバーストが連鎖する。"
+      + "<br>アンチは<b>超アンチ重力バリア＋アンチブロック＋アンチロックゾーン</b>——"
+      + "これだけで<b>⚖第七の審判</b>を有利属性のまま完全対応でき、"
+      + "クロススキルの<b>超アンチダメージウォール</b>が点くと"
+      + "<b>⚖第三の審判・⚖第八の審判</b>も（属性は不利ですが）完全対応になる。",
+    fsName: "ヴェルダンテ・ドラグーン", fsKind: "dragonveil",
+    fsPow: "翠の竜が盤面を " + DRAGV_LAPS + "周（1周 攻撃力×" + DRAGV_PER
+      + "・まわるごとに +" + DRAGV_STEP + "／線の太さ " + DRAGV_W0 + " → "
+      + (DRAGV_W0 + DRAGV_W_STEP * (DRAGV_LAPS - 1)) + "）"
+      + " ＋ <b>HPのいちばん高い敵へ咬みつき</b>（攻撃力×" + DRAGV_BITE + "・半径 " + DRAGV_BITE_R + "）"
+      + " ＋ <b>尾のなぎ払い</b>（敵全体・攻撃力×" + DRAGV_TAIL + "）／合計 攻撃力×"
+      + DRAGV_TOTAL.toFixed(1),
+    fsDesc: "翠の竜が<b>盤面をぐるりと周回</b>する。"
+      + "<br>これまでに無いのは<b>まわるたびに竜が太くなる</b>こと——"
+      + "線の太さそのものが " + DRAGV_W0 + " → " + (DRAGV_W0 + DRAGV_W_STEP * (DRAGV_LAPS - 1))
+      + " と広がるので、<b>後半は避けようがない</b>。1周ぶんの重さも +" + DRAGV_STEP + " ずつ増える。"
+      + "<br>まわり終えると<b>HPのいちばん高い敵に咬みつき</b>（×" + DRAGV_BITE + "）、"
+      + "最後に<b>尾で盤面をなぎ払う</b>（敵全体・×" + DRAGV_TAIL + "）。"
+      + "<br>合計 攻撃力×" + DRAGV_TOTAL.toFixed(1)
+      + " ——<b>ボスにいちばん重く入る</b>リンクスキル。",
+  },
+  annaran: {
+    /* 火＆光・貫通。紅と金、2人で1体。★ セイラ＆カナヅキに続く<b>二属性キャラ</b>。 */
+    id: "annaran", nm: "アンナ＆ラン", img: "AnnaRan.webp", th: "t_AnnaRan.webp",
+    el: "fire", el2: "light", shot: "pierce", type: "双薔薇灼熱型",
+    gacha: true, fes: true, fesKey: "senki", lux: true,
+    nexus: "senkivalor", star5: true,
+    connect: "annaran",
+    /* ★★ 2026-09-06b <b>200人目のキャラ</b>（No.200）を記念して超強化（ご指定）。
+       ・<b>オムニアンチ</b>を持つ（ダメージウォール・重力バリア・ワープ・地雷をまとめて無効）。
+       ・アンチはオムニ＋アンチブロック＋アンチロックゾーンで、
+         <b>⚖第三の審判・第八の審判の両方</b>を素のまま完全対応できる。
+       ・キラーは3つのまま（天律族EL＋VERDE EL＋バイタルEL）。
+       ・攻撃力は<b>ほかのキャラと同じ考えかた</b>で上げてある（×3.4ぶん）。 */
+    hp: [1180, 7760], atk: [2135, 13538], spd: [346, 518],
+    abil: [{ t: "omni" }, { t: "ablock" }, { t: "antilock" },
+           { t: "judgekillerEL" }, { t: "killerEL", el: "wood" }, { t: "vitalEL" },
+           { t: "dashL" }],
+    shotskill: "rosepetal",
+    subfs: "senkirondo",
+    ssName: "ツインローズ・レクイエム", ssTurns: 20, ssKind: "annaran",
+    ssPow: "自強化（攻撃×" + ANNARAN_ATK + "・スピード×" + ANNARAN_SPD + "）＋ "
+      + "<b>紅と金の2体が同時に乱打</b>（" + ANNARAN_BARRAGE_N + "連 ×2体＝<b>"
+      + (ANNARAN_BARRAGE_N * 2) + "発</b>／1発 攻撃力×" + ANNARAN_BARRAGE_PER
+      + "・1発ごとに +" + ANNARAN_BARRAGE_STEP + "）"
+      + " ＋ <b>二輪の共鳴</b>（敵全体・" + ANNARAN_RESO_N + "回・攻撃力×" + ANNARAN_RESO_PER
+      + " から 1回ごとに +" + ANNARAN_RESO_STEP + "）"
+      + " ＋ <b>締めの二輪</b>（敵全体・攻撃力×" + ANNARAN_FINALE_PER + "・ふっとばし）"
+      + " ＋ <b>敵全体の攻撃ターンを" + ANNARAN_DELAY + "遅らせ、チームHPを"
+      + Math.round(ANNARAN_HEAL * 100) + "%回復</b>"
+      + "／<b>合計 攻撃力×" + ANNARAN_TOTAL.toFixed(1) + "</b>",
+    ssDesc: "★★ <b>200人目のキャラクター</b>を記念した、<b>MagiBurst 史上断トツで最強のフルバースト</b>です"
+      + "（合計 <b>攻撃力×" + ANNARAN_TOTAL.toFixed(1) + "</b>——これまでいちばん重かった"
+      + "アンナ(極華祭)の<b>×253.3</b>の<b>2倍以上</b>）。"
+      + "<br>最初にふれた敵の上で止まり、<b>紅（アンナ）と金（ラン）が同時に</b>たたき込みます——"
+      + "<b>" + ANNARAN_BARRAGE_N + "連 × 2体＝" + (ANNARAN_BARRAGE_N * 2) + "発</b>。"
+      + "乱打を<b>2体で同時に</b>撃つのは MagiBurst 初で、しかも<b>撃つほど1発が重くなります</b>"
+      + "（1発ごとに +" + ANNARAN_BARRAGE_STEP + "）。"
+      + "<br>撃ち終わると<b>二輪が" + ANNARAN_RESO_N + "回交わり</b>、そのたびに<b>敵全体</b>へ入ります"
+      + "（攻撃力×" + ANNARAN_RESO_PER + " から 1回ごとに +" + ANNARAN_RESO_STEP + "）。"
+      + "<br>最後に<b>二輪の大薔薇</b>がひらいて<b>敵全体へ 攻撃力×" + ANNARAN_FINALE_PER + "</b>、"
+      + "そのまま<b>ふっとばし</b>ます。"
+      + "<br>あわせて<b>敵全体の攻撃ターンを" + ANNARAN_DELAY + "遅らせ</b>、"
+      + "<b>チームHPを" + Math.round(ANNARAN_HEAL * 100) + "%戻します</b>——"
+      + "攻めと守りが1回でぜんぶ片づく形です。"
+      + "<br>アンチは<b>オムニアンチ＋アンチブロック＋アンチロックゾーン</b>——"
+      + "これだけで<b>⚖第三の審判</b>と<b>⚖第八の審判</b>の<b>両方</b>を"
+      + "有利属性のまま完全対応できます（クロスを待たずに、素のままで）。"
+      + "<br>★ <b>火と光の二属性</b>なので、木の敵にも闇の敵にも有利が取れます。",
+    fsName: "ツインローズ・カタストロフ", fsKind: "twinrose",
+    fsPow: "<b>紅と金、2本の螺旋</b>が同時に走る（" + TROSE_TICKS + "刻み・1刻み <b>敵全体</b>へ 攻撃力×"
+      + TROSE_PER + "）／<b>2本が交わるたびに共鳴</b>（" + TROSE_CROSS_N + "回・1回目 攻撃力×"
+      + TROSE_CROSS + "・交わるたびに +" + TROSE_CROSS_STEP + "・半径 " + TROSE_R + "）"
+      + " ＋ <b>二輪の大薔薇</b>（敵全体・攻撃力×" + TROSE_FINALE + "）／合計 攻撃力×"
+      + TROSE_TOTAL.toFixed(1),
+    fsDesc: "紅の薔薇と金の薔薇が、<b>2本の螺旋</b>になって同時に盤面を走る。"
+      + "<br>これまでに無いのは<b>2本が交わった瞬間に共鳴して爆ぜる</b>こと——"
+      + "しかも<b>交わるたびに次の共鳴が重くなる</b>（×" + TROSE_CROSS + " → ×"
+      + (TROSE_CROSS + TROSE_CROSS_STEP * (TROSE_CROSS_N - 1)).toFixed(2) + "）。"
+      + "<b>2人で1体のキャラだからできる技</b>で、螺旋そのものも敵全体に入る。"
+      + "<br>走りきると2輪が重なって<b>大薔薇</b>がひらき、<b>敵全体へ 攻撃力×" + TROSE_FINALE + "</b>。"
+      + "<br>合計 攻撃力×" + TROSE_TOTAL.toFixed(1)
+      + " ——<b>MagiBurst 史上いちばん重いリンクスキル</b>です"
+      + "（ハノンの<b>セレスト・ドミナンス</b> ×"
+      + (HDOM_PER * (HDOM_STEPS * (HDOM_STEPS + 1) / 2) + HDOM_FINALE).toFixed(1) + " を大きく超えます）。",
+  },
+  /* ══════════════════════════════════════════════════════════════
+     ★★ 2026-09-06 RISING STAR FEST（fes12）の<b>第3弾 5体</b>
+     ------------------------------------------------------------
+     ・アビリティは<b>8つ</b>（アンチ3＋キラー3＋その他2）。
+       <b>オムニアンチも治癒の祈りも持たず、クロススキルもありません</b>。
+     ・アンチ3つは<b>担当する天界の審判の必要アンチとぴったり一致</b>する。
+         ヨイヅキ（水）→ ⚖第一の審判（火 {ブロック・ワープ・重力バリア}）
+         カヨ（木）　　→ ⚖第二の審判（水 {ブロック・地雷・断絶界}）
+         シノ（光）　　→ ⚖第五の審判（闇 {ロックゾーン・地雷・ワープ}）
+         マアヤ（闇）　→ ⚖第九の審判（光 {地雷・ワープ・断絶界}）
+         アスカ（火）　→ ⚖第八の審判（木 {ダメージウォール・重力バリア・ロックゾーン}）
+     ・キラー3つは<b>天律族キラーEL ＋ 属性キラーEL ＋ もう1つ</b>。
+     ・サブリンクは5体とも<b>スターバースト・ウェイブ</b>で統一（ご指定）。
+     ══════════════════════════════════════════════════════════════ */
+  yoiduki: {
+    id: "yoiduki", nm: "ヨイヅキ", img: "Yoiduki.webp", th: "t_Yoiduki.webp",
+    el: "water", shot: "pierce", type: "宵月霜華型", gacha: true, fes: true, fesKey: "rising", star5: true,
+    nexus: "risingstar",
+    hp: [1084, 7130], atk: [1794, 11376], spd: [318, 476],
+    abil: [{ t: "sgrav" }, { t: "superaw" }, { t: "ablock" },
+           { t: "judgekillerEL" }, { t: "killerEL", el: "fire" }, { t: "sscharge" },
+           { t: "fsboostEL" }, { t: "dashL" }],
+    subfs: "starburstwave",
+    ssName: "ヨイヅキ・フロストレクイエム", ssTurns: 20, ssKind: "risa",
+    /* ★ フルバーストは<b>もともとある種類</b>を借りる（2026-09-03 の第2弾と同じ考えかた）。
+       借り元は<b>フローズン・レクイエム</b>（ssKind: "risa"）。数字も説明もそのまま写す。 */
+    ssPow: "自強化（攻撃×" + RISA_ATK + "・スピード×" + RISA_SPD + "）＋ <b>敵全体</b>へ氷結"
+      + "（攻撃力×" + RISA_ALL + "）＋ <b>敵全体の攻撃力を "
+      + RISA_ATKDOWN_TURNS + "ターン " + Math.round((1 - RISA_ATKDOWN_MUL) * 100) + "%ダウン</b>",
+    ssDesc: "宵の月の光が霜になって降り、<b>敵全体</b>へ氷の刃が走る（攻撃力×" + RISA_ALL + "）。"
+      + "<br>あわせて<b>敵全体の攻撃力が " + RISA_ATKDOWN_TURNS + "ターンのあいだ "
+      + Math.round((1 - RISA_ATKDOWN_MUL) * 100) + "%下がる</b>。"
+      + "<br>アンチは<b>超アンチ重力バリア＋超アンチワープ＋アンチブロック</b>——"
+      + "この3つで<b>⚖第一の審判</b>を<b>有利属性のまま</b>完全対応できる。",
+    fsName: "プリズム・タイド", fsKind: "prismtide",
+    fsPow: "<b>七色の波</b>が " + PTIDE_N + "方向から順に走る（1波 攻撃力×" + PTIDE_PER
+      + "・太さ " + PTIDE_W + "・貫通）／締めは<b>その敵が浴びた色の数だけ重い</b>"
+      + "（基本 攻撃力×" + PTIDE_FINALE + " ＋ 色1つにつき +" + PTIDE_BONUS + "）／"
+      + "全部浴びたときの合計 攻撃力×" + PTIDE_TOTAL.toFixed(1),
+    fsDesc: "ふれた味方を中心に、<b>七色の波が別々の向きから</b>順に走りぬける。"
+      + "<br>これまでに無いのは<b>浴びた色の数を敵ごとに数えている</b>こと——"
+      + "締めの一撃は<b>その敵が何色浴びたか</b>で重さが変わる"
+      + "（0色なら ×" + PTIDE_FINALE + "、" + PTIDE_N + "色すべてなら ×"
+      + (PTIDE_FINALE + PTIDE_BONUS * PTIDE_N).toFixed(2) + "）。"
+      + "<br>波は<b>放射状に均等な向き</b>で走るので、"
+      + "<b>味方の近くにいる敵ほど色がそろい</b>、そのぶん締めが重くなる。",
+  },
+  kayo: {
+    id: "kayo", nm: "カヨ", img: "Kayo.webp", th: "t_Kayo.webp",
+    el: "wood", shot: "bounce", type: "南風花咲型", gacha: true, fes: true, fesKey: "rising", star5: true,
+    nexus: "risingstar",
+    hp: [1090, 7170], atk: [1782, 11298], spd: [316, 472],
+    abil: [{ t: "supermsEL" }, { t: "ablock" }, { t: "award" },
+           { t: "judgekillerEL" }, { t: "killerEL", el: "water" }, { t: "bubblemode" },
+           { t: "fsboostEL" }, { t: "regenL" }],
+    subfs: "starburstwave",
+    ssName: "サザンウィンド・ラプソディ", ssTurns: 20, ssKind: "minori",
+    ssPow: "自強化（攻撃×" + MINORI_ATK + "・スピード×" + MINORI_SPD + "）＋ <b>敵全体</b>へ南風"
+      + "（攻撃力×" + MINORI_ALL + "）＋ <b>味方全員の攻撃力を " + MINORI_TEAM_TURNS
+      + "ターン ×" + MINORI_TEAM_ATK + "</b>",
+    ssDesc: "南の風が花を巻き上げ、<b>敵全体</b>へ吹き抜ける（攻撃力×" + MINORI_ALL + "）。"
+      + "<br>いちばんの働きは<b>味方全員の攻撃力が " + MINORI_TEAM_TURNS + "ターンのあいだ ×"
+      + MINORI_TEAM_ATK + " になる</b>こと——<b>チームの手番3周ぶんがまるごと重くなる</b>。"
+      + "<br>アンチは<b>超マインスイーパーEL＋アンチブロック＋アンチ断絶界</b>——"
+      + "この3つで<b>⚖第二の審判</b>を<b>有利属性のまま</b>完全対応できる。",
+    fsName: "コモレビ・パラソル", fsKind: "komorebiparasol",
+    fsPow: "日傘が " + KPAR_STEPS + "段にひらき、<b>段ごとに光点が1つずつ増える</b>"
+      + "（1段目1つ → " + KPAR_STEPS + "段目" + KPAR_STEPS + "つ・1つ 攻撃力×" + KPAR_PER
+      + "・<b>敵全体</b>）＋ ひらききった瞬間（敵全体・攻撃力×" + KPAR_FINALE + "）／合計 攻撃力×"
+      + (KPAR_PER * (KPAR_STEPS * (KPAR_STEPS + 1) / 2) + KPAR_FINALE).toFixed(1),
+    fsDesc: "ふれた味方の上に日傘がひらき、<b>段ごとに光点が1つずつ増えて</b>いく。"
+      + "<br>1段目は1つ、" + KPAR_STEPS + "段目は " + KPAR_STEPS + " つ——"
+      + "<b>後半の段だけで前半すべてを合わせたぶんより重い</b>。"
+      + "<br>どの光点も<b>敵全体</b>に入るので、位置に関係なく最後まで届く。"
+      + "<br>★ ミレイ（RISING STAR FEST 第1弾）と<b>同じリンクスキル</b>です。",
+  },
+  shino: {
+    id: "shino", nm: "シノ", img: "Shino.webp", th: "t_Shino.webp",
+    el: "light", shot: "pierce", type: "金灯夜景型", gacha: true, fes: true, fesKey: "rising", star5: true,
+    nexus: "risingstar",
+    hp: [1078, 7090], atk: [1800, 11412], spd: [320, 480],
+    abil: [{ t: "superaw" }, { t: "supermsEL" }, { t: "antilock" },
+           { t: "judgekillerEL" }, { t: "killerEL", el: "dark" }, { t: "soulM" },
+           { t: "dashL" }, { t: "barrierEL" }],
+    subfs: "starburstwave",
+    ssName: "ゴールドナイト・ヴァース", ssTurns: 20, ssKind: "rin",
+    /* ★ 借り元は<b>ローズ・レクイエム</b>（ssKind: "rin"）＝敵全体＋追加弱点。
+       同じ効果なので ssPow / ssDesc / ssTurns も<b>そのまま写して</b>ある。 */
+    ssPow: "自強化（攻撃×" + RIN_ATK + "・スピード×" + RIN_SPD + "）＋ <b>敵全体</b>へ金の光"
+      + "（攻撃力×" + RIN_ALL + "）＋ <b>敵全体に追加の弱点を " + RIN_SIGIL_TURNS + "ターン刻む</b>",
+    ssDesc: "夜景の灯りが金にかわり、<b>敵全体</b>へ降りそそぐ（攻撃力×" + RIN_ALL + "）。"
+      + "<br>いちばんの働きは<b>敵全体に弱点をもう1つ刻む</b>こと（" + RIN_SIGIL_TURNS + "ターン）——"
+      + "刻んだ弱点は<b>チーム全員で殴れる</b>。"
+      + "<br>アンチは<b>超アンチワープ＋超マインスイーパーEL＋アンチロックゾーン</b>——"
+      + "この3つで<b>⚖第五の審判</b>を<b>有利属性のまま</b>完全対応できる。",
+    fsName: "シルバー・スカイライン", fsKind: "skyline",
+    fsPow: "光の柱が " + SKYLINE_N + "本、1本ずつ（1本 攻撃力×" + SKYLINE_PER + "・半径 " + SKYLINE_R
+      + "）／<b>1本立つごとに次の柱が +" + SKYLINE_STEP + "</b>",
+    fsDesc: "夜景のビル群のように、<b>光の柱が1本ずつ立っていく</b>。"
+      + "<br><b>立てた柱がその場に残り、次の柱を強くする</b>（1本につき +" + SKYLINE_STEP + "）。"
+      + "最後の " + SKYLINE_N + "本目は 攻撃力×"
+      + (SKYLINE_PER + SKYLINE_STEP * (SKYLINE_N - 1)).toFixed(2) + " になる。"
+      + "<br>★ ユキ（戦姫祭）と<b>同じリンクスキル</b>です。",
+  },
+  maaya: {
+    id: "maaya", nm: "マアヤ", img: "Maaya.webp", th: "t_Maaya.webp",
+    el: "dark", shot: "bounce", type: "紫闇静謐型", gacha: true, fes: true, fesKey: "rising", star5: true,
+    nexus: "risingstar",
+    hp: [1092, 7180], atk: [1788, 11340], spd: [317, 474],
+    abil: [{ t: "superaw" }, { t: "supermsEL" }, { t: "award" },
+           { t: "judgekillerEL" }, { t: "killerEL", el: "light" }, { t: "judgment" },
+           { t: "fsboostEL" }, { t: "dashL" }],
+    subfs: "starburstwave",
+    ssName: "ヴィオレット・コマンド", ssTurns: SCARLET_TURNS, ssKind: "scarlet",
+    /* ★ 借り元は<b>アビス・ティアーズ・ソナタ</b>（ssKind: "scarlet"）。
+       同じ効果なので ssPow / ssDesc / ssTurns も<b>そのまま写して</b>ある。 */
+    ssPow: "自強化（攻撃×" + SCARLET_ATK + "・スピード×" + SCARLET_SPD + "）＋ <b>チームHPを"
+      + Math.round(SCARLET_HEAL * 100) + "%回復</b>",
+    ssDesc: "紫の涙が盤面いっぱいに降り、<b>自強化（攻撃×" + SCARLET_ATK + "・スピード×"
+      + SCARLET_SPD + "）</b>して走り出す。"
+      + "<br>あわせて<b>チームHPが" + Math.round(SCARLET_HEAL * 100) + "%戻る</b>。"
+      + "<br>アンチは<b>超アンチワープ＋超マインスイーパーEL＋アンチ断絶界</b>——"
+      + "この3つで<b>⚖第九の審判</b>を<b>有利属性のまま</b>完全対応できる。",
+    fsName: "ヴォイド・ブルーム", fsKind: "voidbloom",
+    fsPow: "黒薔薇が咲き移る（基本 " + VBLOOM_N + "回・半径 " + VBLOOM_R
+      + "・1回 攻撃力×" + VBLOOM_PER + "）／<b>倒すたびに連鎖がのび、威力も +" + VBLOOM_STEP + "</b>",
+    fsDesc: "ふれた味方から<b>黒薔薇が咲き移って</b>いく。"
+      + "<br><b>咲いた先で敵を倒すと連鎖がのび、次の一輪が重くなる</b>ので、"
+      + "雑魚が並んでいる盤面ではそのまま端まで咲ききる。"
+      + "<br>★ レイナ（極煌祭）と<b>同じリンクスキル</b>です。",
+  },
+  asuka: {
+    id: "asuka", nm: "アスカ", img: "Asuka.webp", th: "t_Asuka.webp",
+    el: "fire", shot: "pierce", type: "紅葉焔舞型", gacha: true, fes: true, fesKey: "rising", star5: true,
+    nexus: "risingstar",
+    hp: [1086, 7140], atk: [1806, 11454], spd: [319, 478],
+    abil: [{ t: "superadw" }, { t: "sgrav" }, { t: "antilock" },
+           { t: "judgekillerEL" }, { t: "killerEL", el: "wood" }, { t: "fsdouble" },
+           { t: "fsboostEL" }, { t: "dashL" }],
+    subfs: "starburstwave",
+    ssName: "オータム・エンブレイス", ssTurns: 17, ssKind: "kurenai",
+    /* ★ 借り元は<b>クレナイ・ゆけむり天上</b>（ssKind: "kurenai"）＝敵全体＋チーム回復。
+       同じ効果なので ssPow / ssDesc / ssTurns も<b>そのまま写して</b>ある。 */
+    ssPow: "自強化（攻撃×2.50・スピード×1.28）＋ <b>敵全体</b>へ 攻撃力×2.30 の紅葉の焔"
+      + " ＋ <b>チームHPを35%回復</b>",
+    ssDesc: "紅葉が舞い上がって焔になり、<b>敵全体</b>を包む（攻撃力×2.30）。"
+      + "<br>あわせて<b>チームHPを35%戻す</b>ので、"
+      + "削り合いの真ん中で撃てばそのまま立て直せる。"
+      + "<br>アンチは<b>超アンチダメージウォール＋超アンチ重力バリア＋アンチロックゾーン</b>——"
+      + "この3つで<b>⚖第八の審判</b>を<b>有利属性のまま</b>完全対応できる。",
+    fsName: "メイプル・スパイラル", fsKind: "maplespiral",
+    fsPow: "紅葉の輪が <b>外から内へ</b> " + MSPIR_RINGS + " 重すぼまる"
+      + "（1輪 攻撃力×" + MSPIR_PER + "・半径 " + MSPIR_R0 + " → "
+      + Math.round(MSPIR_R0 / MSPIR_RINGS) + "）＋ <b>中心の爆発</b>"
+      + "（攻撃力×" + MSPIR_FINALE + "・中心に近い敵ほど重い／届く距離 " + MSPIR_FR + "）／"
+      + "合計 攻撃力×" + MSPIR_TOTAL.toFixed(1),
+    fsDesc: "ふれた味方を中心に、紅葉の輪が<b>外から内へ</b>すぼまっていく。"
+      + "<br>これまでに無いのは<b>輪が縮んでいく</b>こと——"
+      + "ふつうの波紋は外へ広がるので<b>遠くの敵にしか当たらない瞬間</b>があるが、"
+      + "こちらは<b>遠くから近くへ順に</b>入るので、盤面のどこにいても必ず1回は通る。"
+      + "<br>すぼまりきった瞬間に中心が爆ぜ、<b>中心に近い敵ほど重い</b>締めが入る"
+      + "（真ん中で ×" + MSPIR_FINALE + "）。",
+  },
+  /* ══════════════════════════════════════════════════════════════
+     ★★ 2026-09-06 GRAND DEBUT GACHA の<b>新5体</b>
+     ------------------------------------------------------------
+     ・アビリティは<b>クロス込みで8つ</b>（素6＝アンチ3＋キラー3 ／ クロス2）。
+     ・<b>登場したばかりなので控えめ</b>（ご指定）——キラーは EL を使わず <b>L・M</b> 中心。
+     ・アンチ3つは担当する天界の審判とぴったり一致する。
+         レナ（火）　→ ⚖第三の審判（木 {ブロック・ダメージウォール・ロックゾーン}）
+         カオル（水）→ ⚖第六の審判（火 {ブロック・減速壁・断絶界}）
+         スバル（闇）→ ⚖第四の審判（光 {ロックゾーン・減速壁・重力バリア}）
+         カスミ（木）→ ⚖第七の審判（水 {ブロック・重力バリア・ロックゾーン}）
+         ツキノ（光）→ ⚖第十の審判（闇 {ブロック・断絶界・ワープ}）
+     ・サブリンクは5体とも<b>デビュー・コード</b>で統一（ご指定）。
+     ══════════════════════════════════════════════════════════════ */
+  renad: {
+    id: "renad", nm: "レナ", img: "RenaD.webp", th: "t_RenaD.webp",
+    el: "fire", shot: "bounce", type: "苺甘露型", gacha: true, debut: true, lux: true, star5: true,
+    nexus: "advantage",
+    connect: "renad",
+    hp: [1038, 6840], atk: [1120, 7116], spd: [305, 454],
+    abil: [{ t: "adw" }, { t: "ablock" }, { t: "antilock" },
+           { t: "judgekillerL" }, { t: "killerL", el: "wood" }, { t: "overheat" }],
+    subfs: "debutchord",
+    ssName: "ストロベリー・セレナーデ", ssTurns: 20, ssKind: "chia",
+    ssPow: "自強化（攻撃×" + CHIA_ATK + "・スピード×" + CHIA_SPD + "）＋ <b>敵全体</b>へ甘い衝撃波"
+      + "（攻撃力×" + CHIA_ALL + "）＋ <b>味方全員に " + CHIA_BARRIER + " のバリア</b>",
+    ssDesc: "スプーンが鳴って、盤面いっぱいに甘い衝撃波が広がる（攻撃力×" + CHIA_ALL + "）。"
+      + "<br>あわせて<b>味方全員に " + CHIA_BARRIER + " のバリア</b>を張るので、"
+      + "受けるダメージを先に消してから攻めに移れる。"
+      + "<br>アンチは<b>アンチダメージウォール＋アンチブロック＋アンチロックゾーン</b>——"
+      + "この3つで<b>⚖第三の審判</b>を<b>有利属性のまま</b>完全対応できる。",
+    fsName: "パルフェ・カスケード", fsKind: "parfaitfall",
+    fsPow: "果実が上の段から落ちてくる（" + PARF_ROWS + "段・<b>下の段ほど数が増える</b>"
+      + "＝1→2→3→4／1粒 攻撃力×" + PARF_PER + "・半径 " + PARF_R + "）"
+      + " ＋ 締めのクリーム（<b>敵全体</b>・攻撃力×" + PARF_FINALE + "）／合計 攻撃力×"
+      + PARF_TOTAL.toFixed(1),
+    fsDesc: "ふれた味方の上から、<b>果実が段ちがいに落ちてくる</b>。"
+      + "<br>これまでに無いのは<b>下の段ほど粒の数が増える</b>こと——"
+      + "1段目1粒、" + PARF_ROWS + "段目は " + PARF_ROWS + " 粒。"
+      + "粒は<b>敵のいるところへ寄せて</b>落ちるので、散らばっていても取りこぼさない。"
+      + "<br>最後にクリームが盤面いっぱいへ広がって<b>敵全体へ 攻撃力×" + PARF_FINALE + "</b>。",
+  },
+  kaoru: {
+    id: "kaoru", nm: "カオル", img: "Kaoru.webp", th: "t_Kaoru.webp",
+    el: "water", shot: "pierce", type: "碧空微睡型", gacha: true, debut: true, lux: true, star5: true,
+    nexus: "advantage",
+    connect: "kaoru",
+    hp: [1044, 6880], atk: [1390, 8830], spd: [303, 450],
+    abil: [{ t: "superaslow" }, { t: "ablock" }, { t: "award" },
+           { t: "judgekillerL" }, { t: "killerL", el: "fire" }, { t: "atkcharge" }],
+    subfs: "debutchord",
+    ssName: "クラウド・ロンド", ssTurns: 20, ssKind: "risa",
+    ssPow: "自強化（攻撃×" + RISA_ATK + "・スピード×" + RISA_SPD + "）＋ <b>敵全体</b>へ雲の刃"
+      + "（攻撃力×" + RISA_ALL + "）＋ <b>敵全体の攻撃力を "
+      + RISA_ATKDOWN_TURNS + "ターン " + Math.round((1 - RISA_ATKDOWN_MUL) * 100) + "%ダウン</b>",
+    ssDesc: "空いっぱいの雲がほどけて刃になり、<b>敵全体</b>へ走る（攻撃力×" + RISA_ALL + "）。"
+      + "<br>あわせて<b>敵全体の攻撃力が " + RISA_ATKDOWN_TURNS + "ターン "
+      + Math.round((1 - RISA_ATKDOWN_MUL) * 100) + "%下がる</b>。"
+      + "<br>アンチは<b>超アンチ減速壁＋アンチブロック＋アンチ断絶界</b>——"
+      + "この3つで<b>⚖第六の審判</b>を<b>有利属性のまま</b>完全対応できる。",
+    fsName: "タイダル・クレッシェンド", fsKind: "tidalcrescendo",
+    fsPow: "寄せ波 " + RTC_N + "回（<b>敵全体</b>・1回 攻撃力×" + RTC_PUSH + "）→ "
+      + "引き波 " + RTC_N + "回（<b>敵全体</b>・1回目 攻撃力×" + RTC_PULL0
+      + "・もどるたびに +" + RTC_PULL_STEP + "）＋ 締め（<b>敵全体</b>・攻撃力×" + RTC_FINALE + "）",
+    fsDesc: "ふれた味方から<b>波が寄せては返す</b>。"
+      + "<b>行きと帰りで重さがちがう</b>のがちがいで、<b>引き波はもどるたびに重くなる</b>。"
+      + "<br>★ リオナ（RISING STAR FEST 第1弾）と<b>同じリンクスキル</b>です。",
+  },
+  subaru: {
+    id: "subaru", nm: "スバル", img: "Subaru.webp", th: "t_Subaru.webp",
+    el: "dark", shot: "bounce", type: "紫夜静観型", gacha: true, debut: true, lux: true, star5: true,
+    nexus: "advantage",
+    connect: "subaru",
+    hp: [1032, 6800], atk: [1124, 7140], spd: [307, 458],
+    abil: [{ t: "agrav" }, { t: "aslow" }, { t: "antilock" },
+           { t: "judgekillerL" }, { t: "killerL", el: "light" }, { t: "wallboostM" }],
+    subfs: "debutchord",
+    ssName: "ミッドナイト・オーダー", ssTurns: SCARLET_TURNS, ssKind: "scarlet",
+    /* ★ 借り元は<b>アビス・ティアーズ・ソナタ</b>（ssKind: "scarlet"）。
+       同じ効果なので ssPow / ssDesc / ssTurns も<b>そのまま写して</b>ある。 */
+    ssPow: "自強化（攻撃×" + SCARLET_ATK + "・スピード×" + SCARLET_SPD + "）＋ <b>チームHPを"
+      + Math.round(SCARLET_HEAL * 100) + "%回復</b>",
+    ssDesc: "夜のビル群が静まりかえり、<b>自強化（攻撃×" + SCARLET_ATK + "・スピード×"
+      + SCARLET_SPD + "）</b>して走り出す。"
+      + "<br>あわせて<b>チームHPが" + Math.round(SCARLET_HEAL * 100) + "%戻る</b>。"
+      + "<br>アンチは<b>アンチ重力バリア＋アンチ減速壁＋アンチロックゾーン</b>——"
+      + "この3つで<b>⚖第四の審判</b>を<b>有利属性のまま</b>完全対応できる。",
+    fsName: "ノワール・ロザリオ（昴）", fsKind: "noirrosary",
+    fsPow: "黒い十字（4方向・射程 " + ROSARY_LEN + "・太さ " + ROSARY_W + "）が "
+      + ROSARY_TICKS + "回、少しずつ回りながら／1回 攻撃力×" + ROSARY_PER + "（線上の敵すべて）",
+    fsDesc: "ふれた味方を中心に、<b>黒い十字</b>が4方向へ伸びる。"
+      + "<b>1回ごとに少しずつ回る</b>ので、散らばった敵にも順に当たっていく。"
+      + "<br>★ レイナ（極煌祭）の<b>サブリンク</b>と同じ動きを、こちらは<b>リンクスキル</b>として持つ。",
+  },
+  kasumi: {
+    id: "kasumi", nm: "カスミ", img: "Kasumi.webp", th: "t_Kasumi.webp",
+    el: "wood", shot: "pierce", type: "翠風学園型", gacha: true, debut: true, lux: true, star5: true,
+    nexus: "advantage",
+    connect: "kasumi",
+    hp: [1040, 6860], atk: [1395, 8862], spd: [306, 456],
+    abil: [{ t: "agrav" }, { t: "ablock" }, { t: "antilock" },
+           { t: "judgekillerL" }, { t: "killerL", el: "water" }, { t: "barrierM" }],
+    subfs: "debutchord",
+    ssName: "フレッシュ・ブルーム", ssTurns: 20, ssKind: "minori",
+    ssPow: "自強化（攻撃×" + MINORI_ATK + "・スピード×" + MINORI_SPD + "）＋ <b>敵全体</b>へ若葉の光"
+      + "（攻撃力×" + MINORI_ALL + "）＋ <b>味方全員の攻撃力を " + MINORI_TEAM_TURNS
+      + "ターン ×" + MINORI_TEAM_ATK + "</b>",
+    ssDesc: "若葉がいっせいにひらいて、<b>敵全体</b>へ光が散る（攻撃力×" + MINORI_ALL + "）。"
+      + "<br><b>味方全員の攻撃力が " + MINORI_TEAM_TURNS + "ターンのあいだ ×"
+      + MINORI_TEAM_ATK + " になる</b>。"
+      + "<br>アンチは<b>アンチ重力バリア＋アンチブロック＋アンチロックゾーン</b>——"
+      + "この3つで<b>⚖第七の審判</b>を<b>有利属性のまま</b>完全対応できる。",
+    fsName: "ヴェルデ・クロスノート（霞）", fsKind: "crossnote",
+    fsPow: "<b>敵と敵を結ぶ線</b>を最大 " + XNOTE_LINES + "本、盤面をつらぬいて引く"
+      + "（線上の敵に 攻撃力×" + XNOTE_PER + "）／<b>線どうしの交点</b>すべてで 攻撃力×"
+      + XNOTE_CROSS_PER + "（半径 " + XNOTE_CROSS_R + "）の爆発",
+    fsDesc: "<b>敵と敵を結んだ線</b>が盤面をつらぬいて引かれ、<b>線どうしが交わった点で爆発</b>する。"
+      + "<b>敵がバラバラに散っている盤面</b>でいちばん伸びる。"
+      + "<br>★ マリカ（戦姫祭）と<b>同じリンクスキル</b>です。",
+  },
+  tsukinod: {
+    id: "tsukinod", nm: "ツキノ", img: "TsukinoD.webp", th: "t_TsukinoD.webp",
+    el: "light", shot: "bounce", type: "花月香衣型", gacha: true, debut: true, lux: true, star5: true,
+    nexus: "advantage",
+    connect: "tsukinod",
+    hp: [1046, 6900], atk: [1385, 8800], spd: [304, 452],
+    abil: [{ t: "aw" }, { t: "ablock" }, { t: "award" },
+           { t: "judgekillerL" }, { t: "killerL", el: "dark" }, { t: "fsboostM" }],
+    subfs: "debutchord",
+    ssName: "ハナヅキ・ヴェスパー", ssTurns: 17, ssKind: "kurenai",
+    /* ★ 借り元は<b>クレナイ・ゆけむり天上</b>（ssKind: "kurenai"）＝敵全体＋チーム回復。 */
+    ssPow: "自強化（攻撃×2.50・スピード×1.28）＋ <b>敵全体</b>へ 攻撃力×2.30 の月光"
+      + " ＋ <b>チームHPを35%回復</b>",
+    ssDesc: "袖から月光がこぼれ、<b>敵全体</b>へ静かに落ちる（攻撃力×2.30）。"
+      + "<br>あわせて<b>チームHPを35%戻す</b>。"
+      + "<br>アンチは<b>アンチワープ＋アンチブロック＋アンチ断絶界</b>——"
+      + "この3つで<b>⚖第十の審判</b>を<b>有利属性のまま</b>完全対応できる。",
+    fsName: "グレイル・オーバーフロー（月）", fsKind: "grailflow",
+    fsPow: "聖杯に " + GRAIL_TICKS + "回ためる（1回 <b>敵全体</b>へ 攻撃力×" + GRAIL_TICK_PER + "）"
+      + " ＋ <b>満ちた瞬間にあふれて 敵全体へ 攻撃力×" + GRAIL_OVER_PER + "</b>"
+      + " ＋ <b>味方全員のフルバーストが" + GRAIL_FB + "ターン進む</b>",
+    fsDesc: "杯に光が<b>少しずつたまって</b>いき、満ちた瞬間にあふれ出す。"
+      + "<br>★ ユウカ（戦姫祭）と<b>同じリンクスキル</b>です。",
+  },
+  /* ══════════════════════════════════════════════════════════════
+     ★★ 2026-09-06 アストレア（天律族）＝ <b>天界の審判 60WAVE 踏破</b>の報酬
+     ------------------------------------------------------------
+     ★ ご報告「天界の審判の最後の報酬にアストレアが居るのに入手できない」の直し。
+       これまで astraea は<b>敵の絵しか無く CHARS に居なかった</b>ので、
+       報酬に書いてあっても grantChar が何もできずに終わっていた。
+       ここで<b>味方としても登録</b>したので、60WAVE 踏破で仲間になる。
+     ★ 降臨・報酬キャラなのでガチャからは出ない（gacha を書かない）。
+     ══════════════════════════════════════════════════════════════ */
+  astraea: {
+    id: "astraea", nm: "アストレア", img: "Astraea.webp", th: "t_AstraeaC.webp",
+    el: "light", shot: "pierce", type: "天律断罪型", star5: true, raid: true,
+    nexus: "advantage",
+    hp: [1062, 6990], atk: [1440, 9145], spd: [312, 464],
+    abil: [{ t: "superaw" }, { t: "award" }, { t: "antilock" },
+           { t: "judgekillerEL" }, { t: "killerL", el: "dark" }, { t: "dashL" },
+           { t: "healM" }, { t: "fsboostL" }],
+    subfs: "divinepillar",
+    ssName: "ラスト・ジャッジメント", ssTurns: 19, ssKind: "yuukas",
+    ssPow: "自強化（攻撃×2.52・スピード×1.30）＋ <b>敵全体</b>へ裁きの光（攻撃力×2.40）"
+      + " ＋ <b>味方全員に 2600 のバリア</b>",
+    ssDesc: "天秤がかたむき、盤面ぜんたいへ<b>裁きの光</b>が落ちる（攻撃力×2.40）。"
+      + "<br>あわせて<b>味方全員に 2600 のバリア</b>を張る——"
+      + "即死級の一撃の前に撃つのがいちばん効く。"
+      + "<br>アンチは<b>超アンチワープ＋アンチ断絶界＋アンチロックゾーン</b>。",
+    fsName: "ジャッジメント・スケール", fsKind: "scaleverdict",
+    fsPow: "盤面を<b>天秤の左右に分け</b>、HPの合計が多い側へ判決の光柱（攻撃力×" + SCALEV_HEAVY
+      + "）、少ない側へ（攻撃力×" + SCALEV_LIGHT + "）を " + SCALEV_N + "回"
+      + " ＋ 締めの判決（<b>敵全体</b>・攻撃力×" + SCALEV_FINALE + "）／合計 攻撃力×"
+      + SCALEV_TOTAL.toFixed(1),
+    fsDesc: "盤面のまんなかに天秤が立ち、敵を<b>左右に分けて量る</b>。"
+      + "<br>これまでに無いのは<b>はかった結果で落ちる場所が変わる</b>こと——"
+      + "<b>HPの合計が多い側</b>に重い光柱（×" + SCALEV_HEAVY + "）、"
+      + "少ない側にも軽い光柱（×" + SCALEV_LIGHT + "）が落ちる。"
+      + "<br>" + SCALEV_N + "回はかり直すので、削るたびに<b>重い側が入れかわり</b>、"
+      + "結果として<b>盤面がならされていく</b>。"
+      + "<br>最後に<b>敵全体へ判決</b>（攻撃力×" + SCALEV_FINALE + "）。",
+  },
+  /* ══════════ ★★ 2026-09-07 戦姫祭 第2弾 ナオ・ハルカ（No.211〜212）══════════ */
+  naos: {
+    /* 水・反射。真夏のプール。★ 既存の「ノア」とは別人なので id も画像も別。 */
+    id: "naos", nm: "ナオ", img: "NaoS.webp", th: "t_NaoS.webp",
+    el: "water", shot: "reflect", type: "真夏水泡型", gacha: true, fes: true, fesKey: "senki", lux: true,
+    nexus: "senkivalor", star5: true,
+    connect: "naos",
+    hp: [1132, 7440], atk: [1938, 12288], spd: [332, 497],
+    /* アンチ3つ（素）＋クロスで1つ＝<b>合計4つ</b>。キラーは2つ。
+       ★ 超アンチ重力バリア＋超アンチワープ＋アンチブロック で <b>⚖第一の審判</b>を
+         有利属性のまま<b>素のまま</b>完全対応できる（対応キャラが1体しかいなかった面）。 */
+    abil: [{ t: "sgrav" }, { t: "superaw" }, { t: "ablock" },
+           { t: "judgekillerEL" }, { t: "killerEL", el: "fire" }, { t: "fsboostEL" },
+           { t: "dashL" }],
+    shotskill: "tidalshot",
+    subfs: "senkirondo",
+    ssName: "ミッドサマー・タイダルウェイブ", ssTurns: 19, ssKind: "naos",
+    ssPow: "自強化（攻撃×" + NAOS_ATK + "・スピード×" + NAOS_SPD + "）＋ "
+      + "<b>大津波が盤面を" + NAOS_WAVE_N + "往復</b>（<b>敵全体</b>・1往復目 攻撃力×" + NAOS_WAVE_PER
+      + "・往復ごとに +" + NAOS_WAVE_STEP + "）"
+      + " ＋ <b>サマー・スプラッシュ</b>（敵全体・攻撃力×" + NAOS_FINALE + "・ふっとばし）"
+      + " ＋ <b>味方全員にバリア " + NAOS_BARRIER + "</b>"
+      + "／<b>合計 攻撃力×" + NAOS_TOTAL.toFixed(1) + "</b>",
+    ssDesc: "空が真夏になり、盤面がまるごと<b>プール</b>になる。"
+      + "<b>自強化（攻撃×" + NAOS_ATK + "・スピード×" + NAOS_SPD + "）</b>して、"
+      + "<b>大津波が盤面を" + NAOS_WAVE_N + "往復</b>——"
+      + "<b>往復するたびに重くなる</b>（×" + NAOS_WAVE_PER + " → ×"
+      + (NAOS_WAVE_PER + NAOS_WAVE_STEP * (NAOS_WAVE_N - 1)).toFixed(1) + "）。"
+      + "<br>最後に<b>サマー・スプラッシュ</b>が弾けて<b>敵全体へ 攻撃力×" + NAOS_FINALE + "</b>、"
+      + "そのまま<b>ふっとばし</b>ます。あわせて<b>味方全員にバリア " + NAOS_BARRIER + "</b>。"
+      + "<br>合計 攻撃力×" + NAOS_TOTAL.toFixed(1) + " ——"
+      + "<b>アンナ(極華祭)の ×253.3 を超える歴代2位</b>の重さです"
+      + "（1位は200体目記念の<b>アンナ＆ラン ×544.2</b>）。"
+      + "<br>アンチは<b>超アンチ重力バリア＋超アンチワープ＋アンチブロック</b>——"
+      + "これだけで<b>⚖第一の審判</b>を有利属性のまま<b>素のまま</b>完全対応できます"
+      + "（これまで対応できるのは1体だけでした）。"
+      + "クロススキルの<b>アンチロックゾーン</b>が点くと守れるギミックがさらに増えます。",
+    fsName: "タイダル・オーバーフロー", fsKind: "tidalovf",
+    fsPow: "<b>盤面に残っている敵の数</b>だけ潮の段が上がる（最大 " + TOVF_MAX + "段）／"
+      + "1段ごとに<b>敵全体</b>へ 攻撃力×" + TOVF_PER + "（段が上がるたびに +" + TOVF_STEP + "）"
+      + " ＋ 締めの大波（敵全体・攻撃力×" + TOVF_FINALE + "）／"
+      + "合計 攻撃力×" + tovfTotal(1).toFixed(1) + "（敵1体）〜<b>×"
+      + TOVF_TOTAL_MAX.toFixed(1) + "</b>（敵" + TOVF_MAX + "体）",
+    fsDesc: "ふれた味方との線から<b>潮が満ちて</b>いく。"
+      + "<br>これまでに無いのは<b>盤面に残っている敵の数が、そのまま「段の数」になる</b>こと——"
+      + "敵が1体なら1段、<b>" + TOVF_MAX + "体以上なら" + TOVF_MAX + "段</b>まで満ちる。"
+      + "<br>段が上がるたびに<b>敵全体</b>へ入り、しかも<b>1段ごとに重くなる</b>"
+      + "（×" + TOVF_PER + " → ×" + (TOVF_PER + TOVF_STEP * (TOVF_MAX - 1)).toFixed(1) + "）。"
+      + "<br>最後に<b>大波</b>が敵全体へ（攻撃力×" + TOVF_FINALE + "）。"
+      + "<br>敵が多い場面ほど伸びるので、<b>雑魚が並ぶWAVEでいちばん強い</b>リンクスキルです"
+      + "（最大 攻撃力×" + TOVF_TOTAL_MAX.toFixed(1) + "）。",
+  },
+  harukas: {
+    /* 水・貫通。青の結晶と蝶の教室。★ 既存の「ハルカ」とは別人なので id も画像も別。 */
+    id: "harukas", nm: "ハルカ", img: "HarukaS.webp", th: "t_HarukaS.webp",
+    el: "water", shot: "pierce", type: "蒼晶蝶舞型", gacha: true, fes: true, fesKey: "senki", lux: true,
+    nexus: "senkivalor", star5: true,
+    connect: "harukas",
+    hp: [1148, 7548], atk: [1902, 12060], spd: [329, 492],
+    /* 超アンチ減速壁＋アンチブロック＋アンチ断絶界 で <b>⚖第六の審判</b>を
+       有利属性のまま<b>素のまま</b>完全対応できる。 */
+    abil: [{ t: "superaslow" }, { t: "ablock" }, { t: "award" },
+           { t: "judgekillerEL" }, { t: "vitalEL" }, { t: "barrierEL" },
+           { t: "sscharge" }],
+    shotskill: "crystalshot",
+    subfs: "senkirondo",
+    ssName: "クリスタル・パピヨン", ssTurns: 19, ssKind: "harukas",
+    ssPow: "自強化（攻撃×" + HARUKAS_ATK + "・スピード×" + HARUKAS_SPD + "）＋ "
+      + "<b>結晶の檻</b>に閉じこめて内側で乱打（" + HARUKAS_BARRAGE_N + "連・1発 攻撃力×"
+      + HARUKAS_BARRAGE_PER + "・1発ごとに +" + HARUKAS_BARRAGE_STEP + "）"
+      + " ＋ <b>檻が砕けて敵全体</b>（攻撃力×" + HARUKAS_SHATTER + "）"
+      + " ＋ <b>蒼の蝶</b> " + HARUKAS_FLUTTER_N + "羽（敵全体・1羽 攻撃力×" + HARUKAS_FLUTTER_PER + "）"
+      + " ＋ <b>味方全員のフルバーストを" + HARUKAS_FBCUT + "ターン進める</b>"
+      + "／<b>合計 攻撃力×" + HARUKAS_TOTAL.toFixed(1) + "</b>",
+    ssDesc: "最初にふれた敵を<b>青い結晶の檻</b>が包みこみ、外へは出られなくなる。"
+      + "<b>自強化（攻撃×" + HARUKAS_ATK + "・スピード×" + HARUKAS_SPD + "）</b>して、"
+      + "檻の内側で<b>" + HARUKAS_BARRAGE_N + "連の乱打</b>——<b>撃つほど1発が重くなります</b>"
+      + "（1発ごとに +" + HARUKAS_BARRAGE_STEP + "）。"
+      + "<br>撃ち終わると檻が<b>砕けて敵全体へ 攻撃力×" + HARUKAS_SHATTER + "</b>、"
+      + "そのかけらが<b>蒼の蝶</b>になって" + HARUKAS_FLUTTER_N + "羽舞い、"
+      + "1羽ごとに<b>敵全体</b>へ 攻撃力×" + HARUKAS_FLUTTER_PER + " が入ります。"
+      + "<br>あわせて<b>味方全員のフルバーストを" + HARUKAS_FBCUT + "ターン進めます</b>。"
+      + "<br>合計 攻撃力×" + HARUKAS_TOTAL.toFixed(1) + " ——ナオと並ぶ<b>歴代2位</b>の重さです。"
+      + "<br>アンチは<b>超アンチ減速壁＋アンチブロック＋アンチ断絶界</b>——"
+      + "これだけで<b>⚖第六の審判</b>を有利属性のまま<b>素のまま</b>完全対応できます。",
+    fsName: "クリスタル・レゾナンス", fsKind: "crystalreso",
+    fsPow: "ふれた味方を中心に結晶が <b>" + CRES_STEPS + "段階に育つ</b>（半径 "
+      + CRES_R[0] + " → " + CRES_R[CRES_STEPS - 1] + "）／1段目 攻撃力×" + CRES_PER
+      + "・<b>その段でふれた敵1体につき次の段に +" + CRES_HITBONUS + "</b>"
+      + " ＋ 砕けて敵全体（攻撃力×" + CRES_FINALE + "）／"
+      + "合計 攻撃力×" + cresTotal(1).toFixed(1) + "（毎段1体）〜<b>×"
+      + CRES_TOTAL_MAX.toFixed(1) + "</b>（毎段4体）",
+    fsDesc: "ふれた味方を中心に<b>青い結晶が育って</b>いく（" + CRES_STEPS + "段階）。"
+      + "<br>これまでに無いのは<b>その段でふれた敵の数が、そのまま次の段の重さになる</b>こと——"
+      + "1体にふれれば次は +" + CRES_HITBONUS + "、4体にふれれば次は +"
+      + (CRES_HITBONUS * 4).toFixed(1) + "。<b>当てるほど雪だるま式に伸びます</b>。"
+      + "<br>輪は " + CRES_R[0] + " → " + CRES_R[CRES_STEPS - 1] + " まで広がるので、"
+      + "近い敵も遠い敵も<b>どこかの段で必ず輪に入ります</b>。"
+      + "<br>最後に結晶が<b>砕けて敵全体へ 攻撃力×" + CRES_FINALE + "</b>。"
+      + "<br>敵をまとめてかすめる置きかたを覚えるほど伸びる、"
+      + "<b>腕前がそのまま威力になる</b>リンクスキルです（最大 攻撃力×"
+      + CRES_TOTAL_MAX.toFixed(1) + "）。",
   },
 };
 /* エルシアのフルバースト説明は定数を使うのでここで組み立てる */
@@ -9956,6 +11080,20 @@ const CHAR_IDS = [
      ★ 新キャラは必ず<b>いちばん最後に追記</b>すること（既存の No. がずれないように）。
      ★ xeva.js の MB_CHAR_MASTER も同じ並びにそろえること（並び＝No.）。 */
   "shizuru", "yuuri", "hisui", "raika",
+  /* ══ ★★ 2026-09-06b 今回の14体（No.197〜210）══
+     ★ 並びは<b>実装の時期</b>にそろえる（ご指定）。
+       アストレアは<b>ライカとレイのあいだ</b>なので、ライカの次＝<b>No.197</b>。
+       そのぶん、あとの13体は1つずつ後ろへずれる。
+       → <b>アンナ＆ランが No.200（ちょうど200人目）</b>になる。
+     ★ xeva.js の MB_CHAR_MASTER も<b>同じ並び</b>にそろえること（並び＝No.）。 */
+  "astraea",                                   /* No.197 天界の審判 60WAVE 踏破の報酬 */
+  "reis", "rikas", "annaran",                  /* No.198〜200 戦姫祭（アンナ＆ラン＝200人目） */
+  "yoiduki", "kayo", "shino", "maaya", "asuka",        /* No.201〜205 RISING STAR FEST */
+  "renad", "kaoru", "subaru", "kasumi", "tsukinod",    /* No.206〜210 GRAND DEBUT Ver.7.0 */
+  /* ══ ★★ 2026-09-07 戦姫祭 第2弾（No.211〜212）══
+     ★ 新キャラは必ず<b>いちばん最後に追記</b>すること（既存の No. がずれないように）。
+     ★ xeva.js の MB_CHAR_MASTER も<b>同じ並び</b>にそろえること（並び＝No.）。 */
+  "naos", "harukas",                                   /* No.211〜212 戦姫祭（ナオ・ハルカ） */
 ];
 /* id → キャラクター番号（1始まり）。図鑑・詳細・ガチャ結果に「No.XX」として出す */
 const CHAR_NO = {};
@@ -10091,6 +11229,24 @@ const CHAR_TYPE = {
      ここに無いキャラは「バランス型」で表示・絞り込みされてしまう。
      ★ 新キャラを足したら CHAR_IDS / MB_CHAR_MASTER / MB_STAR5 とあわせて<b>ここも</b>。
      ★ 検算: CHAR_IDS.filter(id => !CHAR_TYPE[id]) が空であること。 */
+  /* ── ★★ 2026-09-07 戦姫祭 第2弾 ── */
+  naos:    "cannon",    /* ナオ：敵が多いほど伸びる全体リンク */
+  harukas: "cannon",    /* ハルカ：当てるほど育つ結晶のリンク */
+  /* ── ★★ 2026-09-06 今回の14体 ── */
+  reis:    "cannon",    /* レイ：リンクの素の威力がいちばんの武器 */
+  rikas:   "cannon",    /* リカ：周回するほど太くなるリンク */
+  annaran: "cannon",    /* アンナ＆ラン：史上いちばん重いリンク */
+  yoiduki: "cannon",    /* ヨイヅキ：七色の波＋リンクブーストEL */
+  kayo:    "support",   /* カヨ：味方全員の攻撃力アップ＋リジェネL */
+  shino:   "striker",   /* シノ：キラー3つ＋バリアEL */
+  maaya:   "cannon",    /* マアヤ：リンクブーストEL＋連鎖リンク */
+  asuka:   "striker",   /* アスカ：キラー3つ＋高火力リンク */
+  renad:   "balance",   /* レナ：控えめな万能型 */
+  kaoru:   "support",   /* カオル：バリアL＋敵の攻撃力ダウン */
+  subaru:  "trick",     /* スバル：妨害＋ダッシュM */
+  kasumi:  "balance",   /* カスミ：バイタルL＋味方強化 */
+  tsukinod: "support",  /* ツキノ：チーム回復＋バリアL */
+  astraea: "cannon",    /* アストレア：天秤のリンク＋リンクブーストL */
   annam: "striker",   /* アンナ(祭)：キラー多重＋史上最強クラスの火力 */
   chia:  "support",   /* チア：味方全員にバリア */
   risa:  "trick",     /* リサ：敵全体の攻撃力ダウン（妨害） */
@@ -11960,6 +13116,168 @@ function drawFsGlyph(kind, c, g) {
       });
       ctx.lineWidth = 2; break;
     }
+    /* ══ ★★ 2026-09-06 今回の新リンク7本＋新サブリンク2本 ══
+       ★ サブリンクの2本（starburstwave / debutchord）は SUB_GLYPH_FALLBACK に名前を足して
+         この絵を流用する（drawSubGlyph に同じ case を二重に書かない）。 */
+    case "tidalovf": {       /* タイダル・オーバーフロー（段々に上がっていく潮） */
+      /* 下から上へ 3本の波。上に行くほど幅が広く・濃くなる＝「段が上がる」 */
+      ctx.lineWidth = 2.0;
+      for (let k = 0; k < 3; k++) {
+        const y = 6.4 - k * 5.4, amp = 1.6 + k * 0.9, w = 7.4 + k * 2.0;
+        ctx.globalAlpha = 0.45 + k * 0.28;
+        ctx.beginPath();
+        for (let i = 0; i <= 16; i++) {
+          const x = -w + (w * 2) * (i / 16);
+          const yy = y + Math.sin(i / 16 * Math.PI * 2 + k) * amp;
+          if (i === 0) ctx.moveTo(x, yy); else ctx.lineTo(x, yy);
+        }
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+      /* 上へ向かう矢印（水位が上がる印） */
+      ctx.lineWidth = 1.8;
+      ctx.beginPath(); ctx.moveTo(0, 7.0); ctx.lineTo(0, -8.6); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-3.0, -5.6); ctx.lineTo(0, -8.8); ctx.lineTo(3.0, -5.6); ctx.stroke();
+      ctx.lineWidth = 2; break;
+    }
+    case "crystalreso": {    /* クリスタル・レゾナンス（育つ結晶の輪） */
+      /* まんなかの結晶＋外へ広がる3重の輪 */
+      ctx.lineWidth = 2.0;
+      ctx.beginPath();
+      ctx.moveTo(0, -5.2); ctx.lineTo(3.0, -1.6); ctx.lineTo(1.9, 4.2);
+      ctx.lineTo(-1.9, 4.2); ctx.lineTo(-3.0, -1.6); ctx.closePath(); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-3.0, -1.6); ctx.lineTo(3.0, -1.6); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0, -5.2); ctx.lineTo(0, 4.2); ctx.stroke();
+      for (let k = 0; k < 3; k++) {
+        ctx.globalAlpha = 0.62 - k * 0.17;
+        ctx.lineWidth = 1.7 - k * 0.25;
+        ctx.beginPath(); ctx.arc(0, 0, 6.4 + k * 2.7, 0, Math.PI * 2); ctx.stroke();
+      }
+      ctx.globalAlpha = 1; ctx.lineWidth = 2; break;
+    }
+    case "fractalnight": {   /* フラクタル・ミッドナイト（二股に分かれる稲妻） */
+      ctx.lineWidth = 1.9;
+      ctx.beginPath(); ctx.moveTo(0, -11.5); ctx.lineTo(0, -4.5); ctx.stroke();
+      [[-1, -4.5], [1, -4.5]].forEach(([s, y0]) => {
+        ctx.beginPath(); ctx.moveTo(0, y0); ctx.lineTo(s * 5.6, 1.2); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(s * 5.6, 1.2); ctx.lineTo(s * 3.0, 8.6); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(s * 5.6, 1.2); ctx.lineTo(s * 9.6, 8.6); ctx.stroke();
+      });
+      [[-3.0, 8.6], [-9.6, 8.6], [3.0, 8.6], [9.6, 8.6]].forEach(([x, y]) => {
+        ctx.beginPath(); ctx.arc(x, y, 1.5, 0, Math.PI * 2); ctx.fill();
+      });
+      ctx.lineWidth = 2; break;
+    }
+    case "dragonveil": {     /* ヴェルダンテ・ドラグーン（盤面を周回する竜） */
+      ctx.lineWidth = 1.5; ctx.globalAlpha = .4;
+      ctx.beginPath(); ctx.rect(-11, -9.5, 22, 19); ctx.stroke();
+      ctx.globalAlpha = .7; ctx.lineWidth = 2.2;
+      ctx.beginPath(); ctx.rect(-8, -6.6, 16, 13.2); ctx.stroke();
+      ctx.globalAlpha = 1; ctx.lineWidth = 3.0;
+      ctx.beginPath(); ctx.moveTo(-5, -3.6); ctx.lineTo(5, -3.6); ctx.stroke();
+      /* 竜の頭 */
+      ctx.beginPath(); ctx.moveTo(5, -3.6); ctx.lineTo(9.4, -6.2); ctx.lineTo(9.4, -1.0); ctx.closePath(); ctx.fill();
+      ctx.lineWidth = 2; break;
+    }
+    case "twinrose": {       /* ツインローズ・カタストロフ（2本の螺旋と共鳴） */
+      ctx.lineWidth = 1.7;
+      [1, -1].forEach((s) => {
+        ctx.beginPath();
+        for (let i = 0; i <= 26; i++) {
+          const a = (i / 26) * Math.PI * 2.2, r = 1.2 + (i / 26) * 10.4;
+          const x = s * Math.cos(a) * r, y = s * Math.sin(a) * r;
+          if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+        }
+        ctx.stroke();
+      });
+      ctx.beginPath(); ctx.arc(0, 0, 3.2, 0, Math.PI * 2); ctx.fill();
+      ctx.lineWidth = 2; break;
+    }
+    case "prismtide": {      /* プリズム・タイド（七色の波が放射状に） */
+      ctx.lineWidth = 1.8;
+      for (let i = 0; i < 7; i++) {
+        const a = (Math.PI * 2 / 7) * i + 0.3;
+        ctx.globalAlpha = i % 2 ? .55 : 1;
+        ctx.beginPath();
+        ctx.moveTo(Math.cos(a) * 3.4, Math.sin(a) * 3.4);
+        ctx.lineTo(Math.cos(a) * 11.4, Math.sin(a) * 11.4);
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1;
+      ctx.beginPath(); ctx.arc(0, 0, 2.6, 0, Math.PI * 2); ctx.fill();
+      ctx.lineWidth = 2; break;
+    }
+    case "maplespiral": {    /* メイプル・スパイラル（外から内へすぼまる輪） */
+      ctx.lineWidth = 1.6;
+      [11.2, 8.2, 5.4, 3.0].forEach((r, i) => {
+        ctx.globalAlpha = .38 + i * 0.2;
+        ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.stroke();
+      });
+      ctx.globalAlpha = 1;
+      /* 内向きの矢 */
+      [[0, -1], [0, 1], [-1, 0], [1, 0]].forEach(([dx, dy]) => {
+        ctx.beginPath();
+        ctx.moveTo(dx * 9.4, dy * 9.4); ctx.lineTo(dx * 5.4, dy * 5.4); ctx.stroke();
+      });
+      ctx.beginPath(); ctx.arc(0, 0, 1.6, 0, Math.PI * 2); ctx.fill();
+      ctx.lineWidth = 2; break;
+    }
+    case "parfaitfall": {    /* パルフェ・カスケード（下の段ほど数が増える） */
+      ctx.lineWidth = 1.7;
+      [[0, -9.0, 1], [0, -3.2, 2], [0, 2.6, 3], [0, 8.4, 4]].forEach(([, y, n]) => {
+        for (let i = 0; i < n; i++) {
+          const x = (i - (n - 1) / 2) * 5.4;
+          ctx.beginPath(); ctx.arc(x, y, 1.9, 0, Math.PI * 2); ctx.fill();
+        }
+      });
+      ctx.globalAlpha = .5;
+      ctx.beginPath(); ctx.moveTo(-10.4, -11.4); ctx.lineTo(10.4, -11.4); ctx.stroke();
+      ctx.globalAlpha = 1;
+      ctx.lineWidth = 2; break;
+    }
+    case "scaleverdict": {   /* ジャッジメント・スケール（天秤） */
+      ctx.lineWidth = 1.9;
+      ctx.beginPath(); ctx.moveTo(0, -10.4); ctx.lineTo(0, 8.6); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-10.2, -6.6); ctx.lineTo(10.2, -6.6); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-5.6, 9.6); ctx.lineTo(5.6, 9.6); ctx.stroke();
+      /* 左右の皿（左が重い＝下がっている） */
+      ctx.lineWidth = 1.6;
+      ctx.beginPath(); ctx.moveTo(-10.2, -6.6); ctx.lineTo(-10.2, -1.4); ctx.stroke();
+      ctx.beginPath(); ctx.arc(-10.2, -1.4, 3.6, 0, Math.PI); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(10.2, -6.6); ctx.lineTo(10.2, -3.8); ctx.stroke();
+      ctx.beginPath(); ctx.arc(10.2, -3.8, 3.0, 0, Math.PI); ctx.stroke();
+      ctx.lineWidth = 2; break;
+    }
+    case "starburstwave": {  /* スターバースト・ウェイブ（広がるほど大きくなる波） */
+      ctx.lineWidth = 1.8;
+      [3.4, 7.0, 11.0].forEach((r, i) => {
+        ctx.globalAlpha = 1 - i * 0.26;
+        ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.stroke();
+      });
+      ctx.globalAlpha = 1;
+      /* 中心の星 */
+      ctx.beginPath();
+      for (let i = 0; i < 10; i++) {
+        const a = -Math.PI / 2 + (Math.PI / 5) * i, r = i % 2 ? 1.3 : 3.2;
+        const x = Math.cos(a) * r, y = Math.sin(a) * r;
+        if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
+      }
+      ctx.closePath(); ctx.fill();
+      ctx.lineWidth = 2; break;
+    }
+    case "debutchord": {     /* デビュー・コード（三和音＝三角形の3頂点） */
+      ctx.lineWidth = 1.8;
+      const P = [0, 1, 2].map((i) => {
+        const a = -Math.PI / 2 + (Math.PI * 2 / 3) * i;
+        return [Math.cos(a) * 9.6, Math.sin(a) * 9.6];
+      });
+      ctx.beginPath();
+      P.forEach((p, i) => { if (i === 0) ctx.moveTo(p[0], p[1]); else ctx.lineTo(p[0], p[1]); });
+      ctx.closePath(); ctx.stroke();
+      P.forEach((p) => { ctx.beginPath(); ctx.arc(p[0], p[1], 2.6, 0, Math.PI * 2); ctx.fill(); });
+      ctx.beginPath(); ctx.arc(0, 0, 1.5, 0, Math.PI * 2); ctx.fill();
+      ctx.lineWidth = 2; break;
+    }
     case "serveplate": {     /* フランベ・サーヴィス（配るたびに大きくなる炎の皿） */
       /* 皿を3枚、右へいくほど大きく。上に炎 */
       [[-8.0, 4.6, 3.2], [0.0, 2.4, 4.4], [8.4, -0.2, 5.6]].forEach(([x, y, w]) => {
@@ -12378,6 +13696,8 @@ function drawFsGlyph(kind, c, g) {
    ★ サブリンクを新しく足したときは、drawSubGlyph に case を書くか、ここに名前を足すこと。
    ★ drawSubGlyph より<b>前</b>で宣言すること（const は巻き上がらないため）。 */
 const SUB_GLYPH_FALLBACK = new Set([
+  /* ★★ 2026-09-06 新しい共通サブリンク2本（絵は drawFsGlyph 側に1つだけ置く） */
+  "starburstwave", "debutchord",
   "wallcircuit",     /* ウォールサーキットリング（カホのサブリンク。これが無くて絵が真っ白だった） */
   "spinring", "superspinring", "twininvolute", "reflectring", "holoxstream",
   "kiblast", "kiblastex", "javelin", "copy", "autoaimbit", "beastcharge",
@@ -16396,6 +17716,8 @@ function charSourceList(id) {
   if (id === "dominia") out.push("🌿 <b>幽冥の庭園 80WAVE 踏破</b>の報酬");
   if (id === "youka") out.push("🏯 <b>蓬莱の九重 50WAVE 踏破</b>の報酬");
   if (id === "youhi") out.push("🏯 <b>蓬莱天宮 クリア</b>の報酬");
+  /* ★★ 2026-09-06 天界の審判の踏破報酬 */
+  if (id === "astraea") out.push("⚖ <b>天界の審判 60WAVE 踏破</b>の報酬");
   /* ⑦ MagiLex（KP交換所）・XEVARION のCDK */
   if (c.lexchar) out.push("📚 <b>MagiLex の KP交換所</b>（80KP）");
   else if (c.reward) out.push("🎁 配布キャラ（XEVARION のミッション報酬）");
@@ -16585,6 +17907,9 @@ function rollGachaItem(r, table) {
    ══════════════════════════════════════════════════════════════ */
 const DEBUT_DAYS = 10;                   // 1つの版が GRAND DEBUT に並ぶ日数
 const DEBUT_VERSIONS = [
+  /* ★★ 2026-09-06 Ver.7.0（レナ・カオル・スバル・カスミ・ツキノ）。
+     Ver.6.0（08-30）はもう10日を過ぎているので、しばらく1本だけ並ぶ。 */
+  { ver: "7.0", date: "2026-09-06", chars: ["renad", "kaoru", "subaru", "kasumi", "tsukinod"] },
   /* ★★ 2026-08-30 Ver.6.0（チア・リサ・リン・ミノリ・セイカ）。
      Ver.3.0/4.0（08-26）・Ver.5.0（08-28）がまだ10日以内なので、しばらく4本並ぶ。 */
   { ver: "6.0", date: "2026-08-30", chars: ["chia", "risa", "rin", "minori", "seika"] },
@@ -16826,6 +18151,14 @@ const PICK_PREMIUM = 0.050;     // PREMIUM SELECT GACHA のピックアップ
 const PICK_FES     = 0.018;     // 各フェスガチャの限定SSR 1体ぶん
 const PICK_ARCHIVE = 0.012;     // Festival Archive GACHA の1体ぶん
 const PICK_LUX     = 0.012;     // 極彩祭・極華祭・極煌祭の1体ぶん
+/* ══ ★★ 2026-09-06 <b>古い限定キャラは各 0.2%</b>（ご指定）══════════════
+   キャラが増えて「1体あたりの確率 × 人数」が SSR 合計（12%）を超えるようになった。
+   そこで <b>そのガチャの新キャラ（FESTS[k].newChars）だけ今までどおりの確率</b>にし、
+   <b>残りの限定キャラは全員 0.2%</b>、あまったぶんは
+   <b>プレミアムセレクトガチャのSSRが等確率</b>で受け取る、という形にした。
+   ★ 10連の<b>確定枠</b>はこれまでどおり<b>そのガチャの限定キャラの等確率</b>
+     （完凸の子だけ外す）。確定枠は pickIdsOfMode を見るので、ここを変えても影響しない。 */
+const PICK_OLD     = 0.002;     // 新キャラ以外の限定キャラ 1体ぶん
 /* ══════════════════════════════════════════════════════════════
    ★★ 2026-08-28 フェスガチャに「期間」ができた（ご指定）
    ------------------------------------------------------------
@@ -17183,13 +18516,46 @@ FESTS.fes11 = {
   banner: "../img/bn_fes11_s.webp", c: "#e0405e", leadCls: "star",
   luxGacha: true, noFesTicket: true, senki: true,
   since: "2026-08-29",
-  chars: ["rans", "kurenai", "yuki", "marika", "yuukas", "annas", "annam"],
+  /* ★★ 2026-09-06 新3体（レイ・リカ・アンナ＆ラン）を追加＝計10体。
+     ★ 排出は「新キャラは今までどおりの確率／古いキャラは各0.2%」（ご指定）。
+       newChars に新3体を書くと、それ以外は自動で 0.2% になる（pickRateOf）。 */
+  /* ★★ 2026-09-07 ナオ・ハルカ（ともに水）を追加＝計12体。
+     新しく入った2体だけが newChars（各 PICK_LUX）で、
+     レイ・リカ・アンナ＆ランを含む残り10体は自動で PICK_OLD（0.2%）になる。 */
+  chars: ["naos", "harukas", "reis", "rikas", "annaran", "rans", "kurenai", "yuki", "marika", "yuukas", "annas", "annam"],
+  newChars: ["naos", "harukas"],
   itemTable: D_ITEM_TABLE,
-  lead: "戦姫祭の限定SSR <b>7体</b>（各" + ratePct(PICK_LUX) + "）に加えて、<b>" + PREMIUM_NM + "のSSRも排出</b>（SSR合計 " + ratePct(SSR_TOTAL) + "）",
-  sub: "戦姫祭の限定SSR <b>7体</b>（各" + ratePct(PICK_LUX) + "）＋ <b>残りは " + PREMIUM_NM + " のSSRが等確率</b>。"
+  lead: "戦姫祭の<b>新2体</b>（各" + ratePct(PICK_LUX) + "）＋ これまでの10体（各" + ratePct(PICK_OLD)
+    + "）に加えて、<b>" + PREMIUM_NM + "のSSRも排出</b>（SSR合計 " + ratePct(SSR_TOTAL) + "）",
+  sub: "戦姫祭の限定SSR <b>12体</b>——<b>新2体（ナオ・ハルカ）は各" + ratePct(PICK_LUX) + "</b>、"
+    + "これまでの10体は<b>各" + ratePct(PICK_OLD) + "</b>／<b>残りは " + PREMIUM_NM + " のSSRが等確率</b>。"
     + "<b>常時開催</b>です（🎫フェス券は使えません）",
-  note: "<b>ラン・クレナイ・ユキ・マリカ・ユウカ・アンナ(STAR)・アンナ(祭)</b>の"
-    + "7体が登場する<b>常時開催</b>のガチャです。"
+  note: "<b>★★ 2026-09-07 <b>ナオ（水）・ハルカ（水）</b>の2体が加わりました。</b>"
+    + "この2体は<b>アンナ＆ラン（No.200・記念キャラ）に次ぐ歴代2位</b>の性能です——"
+    + "フルバーストは<b>ナオ ×" + NAOS_TOTAL.toFixed(1) + " ／ ハルカ ×" + HARUKAS_TOTAL.toFixed(1)
+    + "</b>（これまで2位だったアンナ(極華祭) ×253.3 を超えます）。"
+    + "<br>★ 2体とも<b>⚖ 天界の審判</b>を<b>素のまま</b>有利属性で完全対応できます——"
+    + "<b>ナオ＝第一の審判</b>（対応キャラが1体しかいなかった面）／<b>ハルカ＝第六の審判</b>。"
+    + "<br>★ リンクスキルはどちらも<b>これまでに無い挙動</b>です。"
+    + "<b>ナオ「タイダル・オーバーフロー」＝盤面に残っている敵の数だけ潮の段が上がる</b>"
+    + "（敵が多いほど強い・最大 攻撃力×" + TOVF_TOTAL_MAX.toFixed(1) + "）。"
+    + "<b>ハルカ「クリスタル・レゾナンス」＝その段でふれた敵の数だけ次の段が重くなる</b>"
+    + "（当てるほど雪だるま式・最大 攻撃力×" + CRES_TOTAL_MAX.toFixed(1) + "）。"
+    + "<br>★ 排出は<b>この2体が各" + ratePct(PICK_LUX) + "</b>、これまでの10体は<b>各"
+    + ratePct(PICK_OLD) + "</b>です。"
+    + "<br><br><b>★★ 2026-09-06 <b>レイ（闇）・リカ（木）・アンナ＆ラン（火＆光）</b>の3体が加わりました。</b>"
+    + "この3体は<b>MagiBurst 史上最強</b>で、リンクスキルの<b>素の威力</b>が"
+    + "これまでいちばん重かったハノンの<b>セレスト・ドミナンス</b>を大きく超えます——"
+    + "<b>レイ ×" + FNIGHT_TOTAL.toFixed(1) + " ／ リカ ×" + DRAGV_TOTAL.toFixed(1)
+    + " ／ アンナ＆ラン ×" + TROSE_TOTAL.toFixed(1) + "</b>。"
+    + "<br>★ <b>アンナ＆ラン</b>は<b>火と光の二属性</b>（セイラ＆カナヅキに続く2体目）。"
+    + "<br>★ 3体とも<b>⚖ 天界の審判</b>を有利属性のまま完全対応できます——"
+    + "<b>レイ＝第四の審判／リカ＝第七の審判／アンナ＆ラン＝第三・第八の審判</b>。"
+    + "<br>★ 排出は<b>新3体が各" + ratePct(PICK_LUX) + "</b>、"
+    + "これまでの7体は<b>各" + ratePct(PICK_OLD) + "</b>です"
+    + "（10連の<b>確定枠</b>はこれまでどおり、このガチャで出るSSR全部から等確率）。"
+    + "<br><br><b>ラン・クレナイ・ユキ・マリカ・ユウカ・アンナ(STAR)・アンナ(祭)</b>も"
+    + "そのまま登場する<b>常時開催</b>のガチャです。"
     + "極彩祭・極華祭・極煌祭と同じ<b>限定キャラクター</b>あつかいで、"
     + "<b>🎫フェスチケットは使えません</b>（🎫ガチャチケットは使えます）。"
     + "<br>7体とも<b>アビリティを10個</b>持ちます（MagiBurst 初）——"
@@ -17247,14 +18613,25 @@ FESTS.fes12 = {
      8×1.2＝9.6% ＋ プレミアム 2.4% で、SSR 合計はこれまでどおり 12%。 */
   pickEach: PICK_LUX,
   /* ★★ 2026-09-03 第2弾の4体を追加（計8体）。1体あたりの確率は PICK_FES のまま。 */
-  chars: ["riona", "mireir", "suzuhar", "seirak", "shizuru", "yuuri", "hisui", "raika"],
+  /* ★★ 2026-09-06 第3弾5体（ヨイヅキ・カヨ・シノ・マアヤ・アスカ）を追加＝計13体。 */
+  chars: ["yoiduki", "kayo", "shino", "maaya", "asuka",
+          "riona", "mireir", "suzuhar", "seirak", "shizuru", "yuuri", "hisui", "raika"],
+  newChars: ["yoiduki", "kayo", "shino", "maaya", "asuka"],
   itemTable: D_ITEM_TABLE,
-  lead: "RISING STAR FEST の限定SSR <b>8体</b>（各" + ratePct(PICK_LUX) + "）に加えて、<b>"
-    + PREMIUM_NM + "のSSRも排出</b>（SSR合計 " + ratePct(SSR_TOTAL) + "）",
-  sub: "RISING STAR FEST の限定SSR <b>8体</b>（各" + ratePct(PICK_LUX) + "）＋ <b>残りは "
+  lead: "RISING STAR FEST の<b>新5体</b>（各" + ratePct(PICK_LUX) + "）＋ これまでの8体（各"
+    + ratePct(PICK_OLD) + "）に加えて、<b>" + PREMIUM_NM + "のSSRも排出</b>（SSR合計 " + ratePct(SSR_TOTAL) + "）",
+  sub: "RISING STAR FEST の限定SSR <b>13体</b>——<b>新5体は各" + ratePct(PICK_LUX) + "</b>、"
+    + "これまでの8体は<b>各" + ratePct(PICK_OLD) + "</b>／<b>残りは "
     + PREMIUM_NM + " のSSRが等確率</b>。キャラ以外の中身は <b>Starlight Academy Fest 2 と同じ</b>で、"
     + "<b>🎫フェスチケットが使えます</b>",
-  note: "<b>第1弾</b>：<b>リオナ（水）・ミレイ（木）・スズハ（光）・セイラ＆カナヅキ（闇＋火）</b>。"
+  note: "<b>★★ 2026-09-06 第3弾</b>：<b>ヨイヅキ（水）・カヨ（木）・シノ（光）・マアヤ（闇）・アスカ（火）</b>。"
+    + "<br>この5体は<b>⚖ 天界の審判</b>を有利属性のまま完全対応します——"
+    + "<b>ヨイヅキ＝第一／カヨ＝第二／シノ＝第五／マアヤ＝第九／アスカ＝第八の審判</b>。"
+    + "<br>キラーは5体とも<b>天律族キラーEL（新設）＋ 属性キラーEL ＋ もう1つ</b>。"
+    + "共通サブリンクは<b>スターバースト・ウェイブ</b>（広がるたびに輪が大きくなります）。"
+    + "<br>★ 排出は<b>新5体が各" + ratePct(PICK_LUX) + "</b>、これまでの8体は<b>各"
+    + ratePct(PICK_OLD) + "</b>です。"
+    + "<br><br><b>第1弾</b>：<b>リオナ（水）・ミレイ（木）・スズハ（光）・セイラ＆カナヅキ（闇＋火）</b>。"
     + "<br><b>第2弾</b>（★★ 2026-09-03 追加）："
     + "<b>シズル（水）・ユウリ（木）・ヒスイ（火）・ライカ（闇）</b>。"
     + "<br>★ 第2弾の4体は<b>第1弾と同じクエストを担当</b>し、<b>撃種を入れかえて</b>あります——"
@@ -17601,6 +18978,18 @@ const S5_TOTAL = SSR_TOTAL;  /* ★★ 2026-08-28 10% → 12%（SSR_TOTAL）。�
      ④ 育成アイテム                   … 残り全部
    ★ ここを1本にしておくと「このガチャだけ確率が古いまま」が起きない。
    ══════════════════════════════════════════════════════════════ */
+/* ★★ 2026-09-06 <b>そのガチャの、この1体</b>の確率。
+   新キャラ（FESTS[k].newChars）は pickRateOfMode（今までどおり）、
+   それ以外の限定キャラは PICK_OLD（0.2%）。
+   ★ newChars を書いていないガチャは<b>今までとまったく同じ</b>（全員が pickRateOfMode）。 */
+function pickRateOf(m, id) {
+  const base = pickRateOfMode(m);
+  if (!isFesMode(m)) return base;
+  const f = fesDef(m);
+  const nw = f && f.newChars;
+  if (!nw || !nw.length) return base;
+  return nw.indexOf(id) >= 0 ? base : PICK_OLD;
+}
 /* ピックアップ1体ぶんの確率 */
 function pickRateOfMode(m) {
   if (isDebutMode(m)) return PICK_DEBUT;
@@ -17626,7 +19015,10 @@ function pickIdsOfMode(m) {
   const p = curPickup();
   return gachaPool().indexOf(p) >= 0 ? [p] : [];
 }
-function pickTotalOfMode(m) { return Math.min(SSR_TOTAL, pickRateOfMode(m) * pickIdsOfMode(m).length); }
+function pickTotalOfMode(m) {
+  const t = pickIdsOfMode(m).reduce((a, id) => a + pickRateOf(m, id), 0);
+  return Math.min(SSR_TOTAL, t);
+}
 /* 残りを受け取る PREMIUM SELECT GACHA のSSR（ピックアップと重なるキャラは外す） */
 function fillIdsOfMode(m) {
   const pk = pickIdsOfMode(m);
@@ -17645,8 +19037,10 @@ function itemTableOfMode(m) {
 /* ★ 1回ぶんの抽選（すべてのガチャ共通） */
 function gachaRollOnce(m) {
   let r = Math.random();
-  const pk = pickIdsOfMode(m), pe = pickRateOfMode(m);
-  for (const id of pk) { if (r < pe) return grantChar(id); r -= pe; }
+  const pk = pickIdsOfMode(m);
+  /* ★★ 2026-09-06 1体ずつ確率がちがう（新キャラ／古いキャラ）ので、
+     まとめた pe ではなく<b>その子の確率</b>を引くこと。 */
+  for (const id of pk) { const pe = pickRateOf(m, id); if (r < pe) return grantChar(id); r -= pe; }
   const fl = fillIdsOfMode(m), fe = fillEachOfMode(m);
   for (const id of fl) { if (r < fe) return grantChar(id); r -= fe; }
   const s4 = STAR4_POOL.length ? srTotalOfMode(m) / STAR4_POOL.length : 0;
