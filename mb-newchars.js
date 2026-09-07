@@ -17,6 +17,43 @@
      こちらに足したら<b>あちらにも since 付きで1行</b>足すこと（無いとポータルに絵が出ない）。
    ══════════════════════════════════════════════════════════════ */
 window.MB_NEW_CHARS = [
+  /* ── ★★ 2026-09-07 戦姫祭 第2弾（アンナ＆ランに次ぐ歴代2位）── */
+  { id: "naos", since: "2026-09-07", where: "戦姫祭（常時開催）", mode: "fes11",
+    catch: "敵が多いほど、潮は高くなる。", color: "#38c8ff" },
+  { id: "harukas", since: "2026-09-07", where: "戦姫祭（常時開催）", mode: "fes11",
+    catch: "当てるほど、結晶は育つの。", color: "#7cc4ff" },
+  /* ── ★★ 2026-09-06 戦姫祭に新3体（MagiBurst 史上最強）── */
+  { id: "reis", since: "2026-09-06", where: "戦姫祭（常時開催）", mode: "fes11",
+    catch: "閉店後の暗がりで、ぜんぶ終わらせる。", color: "#c9a6ff" },
+  { id: "rikas", since: "2026-09-06", where: "戦姫祭（常時開催）", mode: "fes11",
+    catch: "まわるほど、この子は太くなるの。", color: "#8affc4" },
+  { id: "annaran", since: "2026-09-06", where: "戦姫祭（常時開催）", mode: "fes11",
+    catch: "紅と金。交わるたびに重くなる。", color: "#ffd257" },
+  /* ── ★★ 2026-09-06 RISING STAR FEST 第3弾 5体 ── */
+  { id: "yoiduki", since: "2026-09-06", where: "RISING STAR FEST", mode: "fes12",
+    catch: "七色の波を、ぜんぶ浴びてみる？", color: "#7cc4ff" },
+  { id: "kayo", since: "2026-09-06", where: "RISING STAR FEST", mode: "fes12",
+    catch: "南風、いっしょに連れてくね。", color: "#8affc4" },
+  { id: "shino", since: "2026-09-06", where: "RISING STAR FEST", mode: "fes12",
+    catch: "灯りは、一本ずつ高くなる。", color: "#ffd257" },
+  { id: "maaya", since: "2026-09-06", where: "RISING STAR FEST", mode: "fes12",
+    catch: "しずかに。……はじめるよ。", color: "#c9a6ff" },
+  { id: "asuka", since: "2026-09-06", where: "RISING STAR FEST", mode: "fes12",
+    catch: "外から内へ。逃げ場は真ん中にもないよ。", color: "#ff5d47" },
+  /* ── ★★ 2026-09-06 GRAND DEBUT GACHA Ver.7.0 5体 ── */
+  { id: "renad", since: "2026-09-06", where: "GRAND DEBUT GACHA Ver.7.0", mode: "debut:7.0",
+    catch: "下の段ほど、たくさん落ちるよ。", color: "#ff8ab5" },
+  { id: "kaoru", since: "2026-09-06", where: "GRAND DEBUT GACHA Ver.7.0", mode: "debut:7.0",
+    catch: "雲がほどけたら、刃になる。", color: "#7cc4ff" },
+  { id: "subaru", since: "2026-09-06", where: "GRAND DEBUT GACHA Ver.7.0", mode: "debut:7.0",
+    catch: "この街の時間、少し止めておく。", color: "#8e6bff" },
+  { id: "kasumi", since: "2026-09-06", where: "GRAND DEBUT GACHA Ver.7.0", mode: "debut:7.0",
+    catch: "線と線が交わるところ、見ててね。", color: "#8affc4" },
+  { id: "tsukinod", since: "2026-09-06", where: "GRAND DEBUT GACHA Ver.7.0", mode: "debut:7.0",
+    catch: "袖からこぼれる月を、どうぞ。", color: "#ffe9a8" },
+  /* ── ★★ 2026-09-06 天界の審判 60WAVE 踏破の報酬 ── */
+  { id: "astraea", since: "2026-09-06", where: "天界の審判 60WAVE 踏破",
+    catch: "天秤は、もう傾いている。", color: "#fff1b8" },
   /* ── ★★ 2026-09-03 RISING STAR FEST 第2弾 新SSR 4体 ──
      ★ 1弾目と<b>同じクエストを担当</b>し、撃種を入れかえてある。 */
   { id: "shizuru", since: "2026-09-03", where: "RISING STAR FEST", mode: "fes12",

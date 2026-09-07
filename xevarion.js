@@ -2273,6 +2273,10 @@ function grantMbGift(srcId, mb) {
 }
 
 const INITIAL_MAILS = [
+  /* ── ★★ 2026-09-06 ジェフユナイテッド市原・千葉 17年ぶりの J1 勝利記念（17,000 XEVA）── */
+  { id:"mail_jef_j1_260906", icon:"⚽", title:"ジェフ千葉 17年ぶりJ1勝利記念 配布（17,000 XEVA）", date:"2026-09-06",
+    body:"いつも XEVARION をご利用いただきありがとうございます。\n\nジェフユナイテッド市原・千葉の 17年ぶりとなる J1 での勝利 を記念して、全ユーザーに 17,000 XEVA をお贈りします。\n\n17年という年月にちなんだ 17,000 XEVA です。💎ジェムへの交換は XEVARION ホームの変換所から行えます。\n\nこれからも XEVARION をよろしくお願いします。",
+    amount:17000 },
   /* ── ★★ 2026-08-26 夏キャンペーン（🎫ガチャチケット30枚） ──
      ★ mb:{gticket:30} ＝<b>ガチャチケット</b>（全ガチャ共通）。
        mb:{ticket:N} は<b>フェスチケット</b>（フェス専用）なので取りちがえないこと。
@@ -2661,6 +2665,7 @@ function showXevaHome(opts) {
     try { accessed = sessionStorage.getItem("xeva_accessed") === "1"; } catch (e) {}
     if (accessed) {
       ov.classList.remove("open");
+      document.documentElement.classList.remove("xv-gate");
       xhMode = "";
       xevaStartMusic();          // 再生中なら継続、自動再生がブロックされたら次の操作で再開
       enterPortal();
@@ -2674,6 +2679,9 @@ function showXevaHome(opts) {
   ov.classList.toggle("access", logged);
   ov.classList.toggle("auth", !logged);
   ov.classList.add("open");
+  /* ★★ 2026-09-06 起動画面も<b>いちばん下まで</b>。#xevaHome は overflow:hidden なので
+     痬似要素では外へ伸ばせない。&lt;html&gt; の背景を KV の土台と同じ墅にする。 */
+  document.documentElement.classList.add("xv-gate");
   document.getElementById("xhAcctMenu")?.classList.remove("open");
   if (logged) prepareAccessScreen(opts);
   else {
@@ -2685,7 +2693,10 @@ function showXevaHome(opts) {
   }
 }
 window.showXevaHome = showXevaHome;
-function hideXevaHome() { const ov = document.getElementById("xevaHome"); if (ov) ov.classList.remove("open"); }
+function hideXevaHome() {
+  const ov = document.getElementById("xevaHome"); if (ov) ov.classList.remove("open");
+  document.documentElement.classList.remove("xv-gate");
+}
 
 /* ── アクセス画面（XEVARION Home 画像 → ロード後タップスタート） ── */
 function prepareAccessScreen(opts) {
@@ -2701,7 +2712,7 @@ function prepareAccessScreen(opts) {
   if (loading) loading.style.display = "flex";
   if (start) start.style.display = "none";
   const ready = () => { xhReady = true; if (loading) loading.style.display = "none"; if (start) start.style.display = "flex"; };
-  const img = new Image(); img.onload = ready; img.onerror = ready; img.src = "thumbs/xevarion-home_s.jpg?v=6";
+  const img = new Image(); img.onload = ready; img.onerror = ready; img.src = "thumbs/xevarion-home_s.jpg?v=10";
   if (img.complete) ready();
   setTimeout(ready, 2500);
 }
@@ -3089,7 +3100,9 @@ const CDK_CODES = {
        コードを増やすときは必ずここ1か所に足すこと（別表を作らない）。 */
   "XEVARIONSUMMER2026": { xeva: 200000, name: "200,000 XEVA" },
   /* ★★ 2026-08-29 追加。こちらも<b>お知らせ・更新内容には載せない</b>（ご指定）。 */
-  "XEVARION2025": { xeva: 400000, name: "400,000 XEVA" }
+  "XEVARION2025": { xeva: 400000, name: "400,000 XEVA" },
+  /* ★★ 2026-09-06 追加。こちらも<b>お知らせ・更新内容には載せない</b>（ご指定）。 */
+  "RISINGSTARFEST": { xeva: 500000, name: "500,000 XEVA" }
 };
 
 // WAVETOYOU2026 を一度だけリセット（凸システム対応で「完凸5体分」へ仕様変更したため、使用済みでも再入手可能にする）

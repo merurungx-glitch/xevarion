@@ -796,6 +796,27 @@
     { id: "mb:yuuri", mbId: "yuuri", name:"ユウリ", file: "../img/t_Yuuri.webp", since:"2026-09-03" },
     { id: "mb:hisui", mbId: "hisui", name:"ヒスイ", file: "../img/t_Hisui.webp", since:"2026-09-03" },
     { id: "mb:raika", mbId: "raika", name:"ライカ", file: "../img/t_Raika.webp", since:"2026-09-03" },
+    /* ★★ 2026-09-06b 今回の14体（No.197〜210）。
+       ★ 並びは mb-core.js の CHAR_IDS と<b>必ず同じ</b>にする（並び＝No.）。
+         アストレアは<b>ライカの次（No.197）</b>。アンナ＆ランが No.200（200人目）。 */
+    { id: "mb:astraea", mbId: "astraea", name:"アストレア", file: "../img/t_AstraeaC.webp", since:"2026-09-06" },
+    { id: "mb:reis", mbId: "reis", name:"レイ", file: "../img/t_ReiS.webp", since:"2026-09-06" },
+    { id: "mb:rikas", mbId: "rikas", name:"リカ", file: "../img/t_Rika.webp", since:"2026-09-06" },
+    { id: "mb:annaran", mbId: "annaran", name:"アンナ＆ラン", file: "../img/t_AnnaRan.webp", since:"2026-09-06" },
+    { id: "mb:yoiduki", mbId: "yoiduki", name:"ヨイヅキ", file: "../img/t_Yoiduki.webp", since:"2026-09-06" },
+    { id: "mb:kayo", mbId: "kayo", name:"カヨ", file: "../img/t_Kayo.webp", since:"2026-09-06" },
+    { id: "mb:shino", mbId: "shino", name:"シノ", file: "../img/t_Shino.webp", since:"2026-09-06" },
+    { id: "mb:maaya", mbId: "maaya", name:"マアヤ", file: "../img/t_Maaya.webp", since:"2026-09-06" },
+    { id: "mb:asuka", mbId: "asuka", name:"アスカ", file: "../img/t_Asuka.webp", since:"2026-09-06" },
+    { id: "mb:renad", mbId: "renad", name:"レナ", file: "../img/t_RenaD.webp", since:"2026-09-06" },
+    { id: "mb:kaoru", mbId: "kaoru", name:"カオル", file: "../img/t_Kaoru.webp", since:"2026-09-06" },
+    { id: "mb:subaru", mbId: "subaru", name:"スバル", file: "../img/t_Subaru.webp", since:"2026-09-06" },
+    { id: "mb:kasumi", mbId: "kasumi", name:"カスミ", file: "../img/t_Kasumi.webp", since:"2026-09-06" },
+    { id: "mb:tsukinod", mbId: "tsukinod", name:"ツキノ", file: "../img/t_TsukinoD.webp", since:"2026-09-06" },
+    /* ★★ 2026-09-07 戦姫祭 第2弾（ナオ・No.211 ／ ハルカ・No.212）。
+       ★ 既存の「ノア」「ハルカ」とは<b>別人</b>なので、id も絵も別。 */
+    { id: "mb:naos", mbId: "naos", name:"ナオ", file: "../img/t_NaoS.webp", since:"2026-09-07" },
+    { id: "mb:harukas", mbId: "harukas", name:"ハルカ", file: "../img/t_HarukaS.webp", since:"2026-09-07" },
   ];
   /* ★ 2026-08-10 初期SR 4体（ゼラ・アヤメ・レイラ・セリーヌ）は廃止しました。
      いまは<b>全キャラがアイコンに選べる</b>ので、starter という区別そのものが要らない。 */
@@ -864,7 +885,16 @@
   , "hanon"
   /* ★★ 2026-09-03 RISING STAR FEST 第2弾の4体。
      ここに無いと <b>XEVAミッションの図鑑コレクションに出てこない</b>。 */
-  , "shizuru", "yuuri", "hisui", "raika"];
+  , "shizuru", "yuuri", "hisui", "raika"
+  /* ★★ 2026-09-06 戦姫祭の新3体／RISING STAR FEST の新5体／GRAND DEBUT の新5体／アストレア。
+     ここに無いと <b>XEVAミッションの図鑑コレクションに出てこない</b>。 */
+  , "astraea"
+  , "reis", "rikas", "annaran"
+  , "yoiduki", "kayo", "shino", "maaya", "asuka"
+  , "renad", "kaoru", "subaru", "kasumi", "tsukinod"
+  /* ★★ 2026-09-07 戦姫祭 第2弾。ここに無いと
+     <b>XEVAミッションの図鑑コレクションに出てこない</b>。 */
+  , "naos", "harukas"];
   MB_CHAR_MASTER.forEach(function (c) { c.mb = true; c.starter = MB_STARTERS.indexOf(c.mbId) >= 0; });
   MB_CHAR_MASTER.forEach(function (c) { c.star5 = MB_STAR5.indexOf(c.mbId) >= 0; });
   /* id は "mb:zera" のように接頭辞つき。XEVAガチャにも同じ名前のキャラ（シオンなど）が

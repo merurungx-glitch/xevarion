@@ -141,7 +141,7 @@ function mdEnsure() {
   if (window.__mdLoading) return window.__mdLoading;
   window.__mdLoading = new Promise((res) => {
     const s = document.createElement("script");
-    s.src = "MagiDiamond/js/md2-data.js?v=7";
+    s.src = "MagiDiamond/js/md2-data.js?v=11";
     s.onload = () => res(); s.onerror = () => res();
     document.head.appendChild(s);
   }).then(() => {
@@ -248,6 +248,13 @@ function openDetX(id, keepGame) {
             キャラを足してもここに書き足す必要はない。 */""}
       <div class="dsec"><div class="t">入手方法</div>
         <div class="ddesc">${(typeof charSourceList === "function" ? charSourceList(id) : []).join("<br>")}</div></div>
+
+      ${/* ★★ 2026-09-06 ここから下は<b>MagiBurst（MagiBattle）の性能だけ</b>（ご指定）。
+            ⚑の切りかえで MagiDiamond にしたときは、この箱ごと隠す——
+            以前は MagiBurst の<b>下に足される</b>形だったので、
+            どちらの数字を見ているのか分からなかった。
+            隠しかたは #detCard の .gdia （下で付け外しする）。 */""}
+      <div class="dgpart dgburst">
       ${/* ★ 2026-08-12d 数字のうち<b>アーク強化で増えたぶん</b>を「＋◯◯」で添える（arcPlus は mb-core.js）
             ★ 2026-08-15 数字のうしろではなく<b>下の専用行</b>へ。
               くっつけていたころは、アークを振った項目だけ中の要素が増えて
@@ -344,11 +351,14 @@ function openDetX(id, keepGame) {
         <div class="t">評価（MagiTier）</div>
         <div class="ddesc">読み込んでいます…</div></div>
 
-      ${detGame === "diamond" ? magiDiamondHTML(id) : magiBattleHTML(id)}
+        ${magiBattleHTML(id)}
+      </div>
+      ${detGame === "diamond" ? magiDiamondHTML(id) : ""}
       ${/* ★ 2026-08-26 ページ側が足したい行（図鑑の「アイコンに設定」など）。
             フックを立てていない画面（ガチャ）では何も出ない。 */""}
       ${(typeof window.MBDET_FOOT === "function" ? (window.MBDET_FOOT(id) || "") : "")}
     </div>`;
+  $("#detCard").classList.toggle("gdia", detGame === "diamond");
   $("#detOv").classList.add("on");
   try { replayStrengthAnim($("#detCard")); } catch (e) {}
   try { mtEnsureCSS(); paintTierInto(id); } catch (e) {}

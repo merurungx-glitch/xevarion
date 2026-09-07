@@ -11,7 +11,7 @@
      ② アプリロゴ ＋ ロードバー ＋ "Loading <App> ..."
 
    使い方（<head> に、defer なしで置く）:
-     <script src="../xeva-splash.js?v=4"
+     <script src="../xeva-splash.js?v=8"
              data-app="MagiLex"
              data-logo="../thumbs/MagiLex.jpg"></script>
 
@@ -119,6 +119,15 @@
     "background:linear-gradient(160deg,#fff,#ffeede);transition:opacity .55s;" +
     "font-family:'Noto Sans JP',system-ui,-apple-system,'Segoe UI',sans-serif}" +
     "#" + ID + ".hide{opacity:0;pointer-events:none}" +
+    /* ★★ 2026-09-06 「いちばん下まで色が届かない」対策（ご指定）。
+       position:fixed の箱はアプリ表示だと画面より<b>短い</b>ことがあるので、
+       痬似要素で<b>上下にもう 420px ずつ板を延ばす</b>。
+       色はグラデーションの<b>端の色</b>にあわせる（引き伸ばさない）。
+       さらに &lt;html&gt; の背景も同じ色に塗る（build の中）。 */
+    "#" + ID + "::before,#" + ID + "::after{content:'';position:absolute;left:0;right:0;" +
+    "height:420px;pointer-events:none}" +
+    "#" + ID + "::before{bottom:100%;background:#fff}" +
+    "#" + ID + "::after{top:100%;background:#ffeede}" +
     "#" + ID + " .xsph{position:absolute;inset:0;display:flex;flex-direction:column;" +
     "align-items:center;justify-content:center;gap:14px;opacity:0;padding:5vh 20px}" +
     "#" + ID + " .xsintro.in{opacity:1}" +
@@ -170,8 +179,15 @@
       "onerror=\"this.parentNode.outerHTML='<div class=&quot;xstx&quot;>" + esc(b.alt) + "</div>'\"></div>";
   }
 
+  /* ★ &lt;html&gt; の背景をスプラッシュと同じにする（箱の外はここしか塗れない） */
+  var SPLASH_BG = "linear-gradient(160deg,#fff,#ffeede)";
+  function paintHtml(on) {
+    if (window.xvPaintHtml) { window.xvPaintHtml("xevaSplash", on ? SPLASH_BG : null); return; }
+    try { document.documentElement.style.background = on ? SPLASH_BG : ""; } catch (e) {}
+  }
   function build() {
     if (el || closed) return;
+    paintHtml(true);
     el = document.createElement("div");
     el.id = ID;
     el.innerHTML =
@@ -243,7 +259,7 @@
     var e = el || document.getElementById(ID);
     if (e) {
       e.classList.add("hide");
-      setTimeout(function () { if (e.parentNode) e.parentNode.removeChild(e); }, T_FADE);
+      setTimeout(function () { if (e.parentNode) e.parentNode.removeChild(e); paintHtml(false); }, T_FADE);
     }
     try { window.dispatchEvent(new CustomEvent("xeva:splash-done")); } catch (err) {}
   }

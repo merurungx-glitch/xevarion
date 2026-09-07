@@ -517,7 +517,9 @@ function paintNote() {
   } else {
     const f = fesDef(gMode);
     $("#gnote").innerHTML = `${f.sub}<br>
-      <b>限定SSR 各${ratePct(pickRateOfMode(gMode))}</b>（${f.chars.length}体・合計 ${ratePct(pickTotalOfMode(gMode))}）
+      <b>限定SSR ${(f.newChars && f.newChars.length)
+        ? "新キャラ 各" + ratePct(pickRateOfMode(gMode)) + "／それ以外 各" + ratePct(PICK_OLD)
+        : "各" + ratePct(pickRateOfMode(gMode))}</b>（${f.chars.length}体・合計 ${ratePct(pickTotalOfMode(gMode))}）
       ／ <b>${PREMIUM_NM} のSSR 合計${ratePct(fillTotalOfMode(gMode))}</b>
       ／ <b>SSRの合計は ${ratePct(SSR_TOTAL)}</b>
       ／ <b>SR 合計50%</b>／ <b>育成アイテム ${ratePct(itemTotalOfMode(gMode))}</b>。<br>
@@ -781,11 +783,18 @@ function openRatesX() {
       + "<b>🪭九天の玉簡</b>と<b>📘クロスの書</b>を極低確率で入れてあります。"));
   } else if (fes) {
     const f = fesDef(gMode);
+    /* ★★ 2026-09-06 1体ずつ確率がちがうガチャ（newChars を書いたもの）は、
+       見出しにも「新キャラ 各◯% ／ それ以外 各0.2%」と出す。
+       ★ 行の確率は必ず <b>pickRateOf(gMode, id)</b> を使うこと（表と実物がずれないように）。 */
+    const _hasNew = !!(f.newChars && f.newChars.length);
     rows.push(rateHeadRow("✨ " + (gMode === ARCHIVE_KEY ? "ピックアップ" : "フェス限定SSR")
-      + "（各 " + ratePct(pickRateOfMode(gMode)) + "）", ratePct(pickTotalOfMode(gMode)), f.c));
+      + (_hasNew ? "（新キャラ 各 " + ratePct(pickRateOfMode(gMode)) + " ／ それ以外 各 " + ratePct(PICK_OLD) + "）"
+                 : "（各 " + ratePct(pickRateOfMode(gMode)) + "）"),
+      ratePct(pickTotalOfMode(gMode)), f.c));
     /* ★ 2026-08-11 並びは番号の新しい順 */
-    byCharNoDesc(pickIdsOfMode(gMode)).forEach((id) => rows.push(rateCharRow(id, pickRateOfMode(gMode),
-      gMode === ARCHIVE_KEY ? "<b style='color:#e0405e'>PICKUP</b>" : "フェス限定SSR")));
+    byCharNoDesc(pickIdsOfMode(gMode)).forEach((id) => rows.push(rateCharRow(id, pickRateOf(gMode, id),
+      gMode === ARCHIVE_KEY ? "<b style='color:#e0405e'>PICKUP</b>"
+        : (_hasNew && f.newChars.indexOf(id) >= 0 ? "<b style='color:#e0405e'>NEW</b> フェス限定SSR" : "フェス限定SSR"))));
     if (gMode === ARCHIVE_KEY) {
       const rest = byCharNoDesc(archivePool().filter((id) => pickIdsOfMode(gMode).indexOf(id) < 0));
       if (rest.length) {
@@ -814,7 +823,9 @@ function openRatesX() {
       ? "※ <b>属性ごとに1体ずつ（計5体）</b>をピックアップにえらべます（各 " + ratePct(PICK_ARCHIVE) + "）。"
         + "<b>SSRの合計はどのガチャも " + ratePct(SSR_TOTAL) + "</b>で、差の <b>"
         + ratePct(fillTotalOfMode(gMode)) + "</b> は " + PREMIUM_NM + " のSSRが等確率で受け取ります。"
-      : "※ <b>限定SSRは1体あたり " + ratePct(pickRateOfMode(gMode)) + "</b>（合計 "
+      : "※ <b>限定SSRは" + (_hasNew
+          ? "新キャラが1体あたり " + ratePct(pickRateOfMode(gMode)) + "、それ以外は1体あたり " + ratePct(PICK_OLD)
+          : "1体あたり " + ratePct(pickRateOfMode(gMode))) + "</b>（合計 "
         + ratePct(pickTotalOfMode(gMode)) + "）。<b>SSRの合計はどのガチャも " + ratePct(SSR_TOTAL)
         + "</b>で、差の <b>" + ratePct(fillTotalOfMode(gMode)) + "</b> は "
         + PREMIUM_NM + " のSSRが等確率で受け取ります。"));

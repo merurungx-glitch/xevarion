@@ -199,6 +199,8 @@
   color:var(--tx,#3a3350);font-size:12.5px;font-weight:900;font-family:inherit;padding:10px 8px;cursor:pointer}
 .dgseg button.on{border-color:#8e6bff;color:#8e6bff;background:rgba(142,107,255,.12)}
 .dgseg button:active{transform:translateY(1px)}
+/* ★★ 2026-09-06 MagiDiamond を選んでいるあいだは、MagiBurst の性能を丸ごと隠す。 */
+#detCard.gdia .dgburst{display:none}
 /* MagiDiamond の能力バー */
 .mdrow{display:flex;align-items:center;gap:8px;margin:4px 0}
 .mdrow .k{flex:none;width:64px;font-size:11px;font-weight:900;color:var(--sub,#8b87a8)}

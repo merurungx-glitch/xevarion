@@ -48,7 +48,13 @@ body.xh-mode .aurora{display:none}
 body.xh-mode{overflow:hidden;background:#f1f4fd;background-image:var(--xh-barwash)}
 /* ★★ 2026-09-06 下バーの<b>外側</b>（画面のいちばん下）は <html> の背景しか塗れない。
    バーと同じ色をここにも敷かないと、下に色のちがうすきまが見える。 */
-html:has(body.xh-mode){background:#f1f4fd;background-image:var(--xh-barwash)}
+/* ★★ 2026-09-06 <b>:has() だけに頼らない</b>こと。
+   :has() は iOS Safari 15.3 以前で<b>丸ごと無視</b>されるので、
+   古い端末ではこの1行が何もしていなかった（＝いちばん下に白い帯）。
+   xevarion-home.js の xhShow()/xhHide() が &lt;html&gt; に .xh-html を付け外しする。 */
+html.xh-html,html:has(body.xh-mode){background:#f1f4fd;background-image:var(--xh-barwash)}
+/* アクセス画面（タップしてスタート）の下の帯。KV の土台と同じ墅にする。 */
+html.xv-gate{background:#0a0716}
 
 /* ══════════ 画面いっぱいの土台の高さ（--xh-appvh） ══════════
    ★ iPhone でホーム画面から「アプリとして」開いたとき、下に空白の帯ができて
@@ -77,10 +83,16 @@ html:has(body.xh-mode){background:#f1f4fd;background-image:var(--xh-barwash)}
 #xhome{
   position:fixed;top:0;left:0;right:0;bottom:calc(-1 * var(--xh-fixgap, 0px));
   z-index:120;display:none;flex-direction:column;
+  /* ★★ 2026-09-06 箱の<b>外側</b>にも下バーと同じ紙を敷く。
+     position:fixed の箱はアプリ表示だと画面より短いことがあり、
+     その外は &lt;html&gt; の背景しか塗れない。html.xh-html と両方やる。 */
+  overflow:visible;
   color:var(--xh-ink);font-family:'Noto Sans JP',sans-serif;
   overscroll-behavior:none;-webkit-tap-highlight-color:transparent;
 }
 #xhome.on{display:flex}
+#xhome::after{content:"";position:absolute;left:0;right:0;top:100%;height:420px;
+  pointer-events:none;background:#f1f4fd;background-image:var(--xh-barwash)}
 
 /* 背景：空色〜白のグラデ＋パステルのぼかし玉 */
 #xhBg{position:absolute;inset:0;z-index:0;overflow:hidden;

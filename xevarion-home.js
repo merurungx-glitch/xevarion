@@ -161,6 +161,26 @@ const XH_ORDER_GEN_KEY = "xeva_home_order_gen";
      ずっと後ろ、という状態を防ぐため。
      ＝ 新しいイベントを足すときは<b>この配列のどこに書いてもよい</b>。 */
 const XH_EVENTS = [
+  /* ★★ 2026-09-06 戦姫祭に新3体（MagiBurst 史上最強）。常時開催なので perm:true。 */
+  { tag:"SENKI FES", t1:"戦姫祭 に 新3体",
+    t2:"レイ（闇）・リカ（木）・アンナ＆ラン（火＆光）が参戦！ リンクスキルの素の威力が MagiBurst 史上最強",
+    always:true, perm:true, since:"2026-09-06", from:"2026-09-06", to:"",
+    href:"gacha.html#fes11", img:"thumbs/MagiBurst.jpg" },
+  /* ★★ 2026-09-06 RISING STAR FEST 第3弾 5体 */
+  { tag:"RISING FES", t1:"RISING STAR FEST 第3弾",
+    t2:"ヨイヅキ・カヨ・シノ・マアヤ・アスカ が参戦！ 天界の審判を有利属性のまま完全対応します",
+    since:"2026-09-06", from:"2026-09-06", to:"2026-10-06",
+    href:"gacha.html#fes12", img:"thumbs/MagiBurst.jpg" },
+  /* ★★ 2026-09-06 GRAND DEBUT GACHA Ver.7.0（版ごとに10日間） */
+  { tag:"GRAND DEBUT", t1:"GRAND DEBUT GACHA Ver.7.0",
+    t2:"新SSR 5体が参戦！ レナ・カオル・スバル・カスミ・ツキノ——天界の審判のアンチにぴったり合わせた5体",
+    since:"2026-09-06", from:"2026-09-06", to:"2026-09-16",
+    href:"gacha.html#debut:7.0", img:"thumbs/MagiBurst.jpg" },
+  /* ★★ 2026-09-06 天界の審判の報酬を作り直し（装備＋アストレア） */
+  { tag:"UPDATE", t1:"天界の審判に「装備」が登場",
+    t2:"5WAVE 踏破するごとに 頭・腕・胸・足 のどれかが1つ。60WAVE 踏破で アストレア が仲間に",
+    since:"2026-09-06", from:"2026-09-06", to:"2027-12-31",
+    href:"", img:"thumbs/MagiBurst.jpg" },
   /* ★★ 2026-09-01 RISING STAR FEST（ふつうのフェスガチャ＝登場から30日） */
   { tag:"RISING FES", t1:"RISING STAR FEST",
     t2:"限定SSR が 8体 に！ 第2弾（シズル・ユウリ・ヒスイ・ライカ）は第1弾と同じクエストを担当し、撃種が逆",
@@ -245,7 +265,7 @@ const XH_EVENTS = [
     /* ★ 2026-08-12 正方形の書き下ろしイラストに差し替え。
        ?v= を付けてあるのは、SW が stale-while-revalidate（古いほうを先に返す）で
        画像を持っているため。付けないと1回目は前の絵のままになる。 */
-    href:"MagiBurst/index.html", img:"thumbs/AokaSummerFest.jpg?v=5" },
+    href:"MagiBurst/index.html", img:"thumbs/AokaSummerFest.jpg?v=9" },
   /* ★ 2026-08-07 MagiBurst「Phantom Legend Fest」の予告。
      8/10 0:00 の開催をまたぐと、下の xhRenderEvents が t1/t2 を「開催中」に差し替える
      （XH_FES3_OPEN と見くらべるだけなので、当日に書き直す必要はない）。
@@ -301,10 +321,64 @@ const XH_EVENTS = [
    ══════════════════════════════════════════════════════════════ */
 const XH_UPDATE_MAX = 12;
 const XH_UPDATES = [
+  /* ★★ 2026-09-07（3回目）戦姫祭 第2弾・FB演出・装備の検索・同期の画面 */
+  { tag:"NEW", t1:"戦姫祭に ナオ・ハルカ", at:"2026-09-07",
+    t2:"どちらも水属性で、200体目のアンナ＆ランに次ぐ歴代2位。天界の審判の第一・第六を素のまま完全対応できます",
+    href:"MagiBurst/index.html", img:"thumbs/MagiBurst.jpg" },
+  { tag:"UPDATE", t1:"フルバーストの演出を作り直し", at:"2026-09-07",
+    t2:"技名を墨の板にのせて読みやすくし、絵を額の穴に揃え、額は画面の端まで（横長な画面では本体と同じ幅）",
+    href:"MagiBurst/index.html", img:"thumbs/MagiBurst.jpg" },
+  { tag:"UPDATE", t1:"装備の検索・絞り込み・並び替え", at:"2026-09-07",
+    t2:"育成と所持アイテム一覧に追加。装着のえらび画面では、いま付けているものがいちばん上に出ます",
+    href:"MagiBurst/index.html", img:"thumbs/MagiBurst.jpg" },
+  { tag:"UPDATE", t1:"同期の画面のお辞儀を早く", at:"2026-09-07",
+    t2:"切りかえが遅くてロード中にお辞儀できなかったのを直しました（出てすぐお辞儀します）",
+    href:"index.html", img:"thumbs/Xevarion.png" },
+  /* ★★ 2026-09-07（2回目のご依頼）200体目・全キャラ調整・MagiDiamond の試合まわり */
+  { tag:"NEW", t1:"MagiBurst キャラが 200体に", at:"2026-09-07",
+    t2:"200体目のアンナ＆ランをお祝いとして超強化（全属性アンチ・2人同時の乱打FB）。アストレアは No.197 に入りました",
+    href:"MagiBurst/index.html", img:"thumbs/MagiBurst.jpg" },
+  { tag:"UPDATE", t1:"MagiBurst 全キャラの調整", at:"2026-09-07",
+    t2:"キラーを1つ外して別のアビリティを入れ、そのぶん攻撃力を上げました（最終的な攻撃力はほぼ同じ）",
+    href:"MagiBurst/index.html", img:"thumbs/MagiBurst.jpg" },
+  { tag:"UPDATE", t1:"装備をステータスに含めました", at:"2026-09-07",
+    t2:"編成・バトル中・キャラ詳細のどこからでも分かります。同じ効果を別の部位で持っていたら両方とも効きます",
+    href:"MagiBurst/index.html", img:"thumbs/MagiBurst.jpg" },
+  { tag:"NEW", t1:"MagiDiamond にスタメンと選手交代", at:"2026-09-07",
+    t2:"試合のはじめに両チームの打順・守備・ベンチを見られ、投手交代と代打も出せます（打率などの成績つき）",
+    href:"MagiDiamond/index.html", img:"thumbs/MagiDiamond.jpg" },
+  { tag:"UPDATE", t1:"MagiDiamond の不具合をまとめて修正", at:"2026-09-07",
+    t2:"相手の打順が変わらない・守備ターンに打たれる演出がない・守備位置の印が動かない・球速がちがう・中断ボタンが見づらい",
+    href:"MagiDiamond/index.html", img:"thumbs/MagiDiamond.jpg" },
+  { tag:"NEW", t1:"ジェフ千葉 17年ぶりJ1勝利記念の配布", at:"2026-09-07",
+    t2:"📧 メールに 17,000 XEVA をお届けしています",
+    href:"index.html", img:"thumbs/Xevarion.png" },
+  { tag:"UPDATE", t1:"新しい中身を英語版にも", at:"2026-09-07",
+    t2:"新キャラ・装備・クリティカル・MagiDiamond のスタメンや交代など、今回足したものを英語にしました",
+    href:"index.html", img:"thumbs/Xevarion.png" },
+  /* ★★ 2026-09-06（5回目）新キャラ14体・装備・クリティカル・下バー・同期画面 */
+  { tag:"NEW", t1:"MagiBurst に 新キャラ 14体", at:"2026-09-06",
+    t2:"戦姫祭に レイ・リカ・アンナ＆ラン（史上最強）／RISING STAR FEST 第3弾 5体／GRAND DEBUT Ver.7.0 5体／天界の審判の報酬 アストレア",
+    href:"MagiBurst/index.html", img:"thumbs/MagiBurst.jpg" },
+  { tag:"NEW", t1:"MagiBurst に「装備」システム", at:"2026-09-06",
+    t2:"天界の審判を 5WAVE 踏破するごとに1つ。頭・腕・胸・足が各25%で、効果も数値も引くたびに変わります",
+    href:"MagiBurst/index.html", img:"thumbs/MagiBurst.jpg" },
+  { tag:"NEW", t1:"MagiBurst にクリティカル", at:"2026-09-06",
+    t2:"全キャラ共通で 1% の確率で殴りが3倍。装備で確率も倍率も伸ばせます（演出はペルソナ風）",
+    href:"MagiBurst/index.html", img:"thumbs/MagiBurst.jpg" },
+  { tag:"UPDATE", t1:"同期の画面を作り直しました", at:"2026-09-06",
+    t2:"アプリを行き来するときの「データをお預かりしています」に案内役が出て、立ち姿とお辞儀をくり返します",
+    href:"index.html", img:"thumbs/Xevarion.png" },
+  { tag:"UPDATE", t1:"いちばん下まで色が届くようにしました", at:"2026-09-06",
+    t2:"起動画面・ホーム・MagiLink・MagiDiamond で、下バーと画面のいちばん下のあいだにできていたすきまを埋めました",
+    href:"index.html", img:"thumbs/Xevarion.png" },
+  { tag:"UPDATE", t1:"MagiDiamond のアイコンを描き直しました", at:"2026-09-06",
+    t2:"下バーで開いているタブのアイコンが板にまぎれて見えなかったのを直し、線だけの自前アイコンにそろえました",
+    href:"MagiDiamond/index.html", img:"thumbs/MagiDiamond.jpg" },
   /* ★★ 2026-09-06（4回目）MagiDiamond の限界突破を XEVARION に一本化 */
   { tag:"UPDATE", t1:"MagiDiamond の限界突破を一本化", at:"2026-09-06",
     t2:"MagiDiamond の中にもう1本あった限界突破を廃止し、XEVARION（MagiBurst）のものをそのまま使います",
-    href:"MagiDiamond/latest.html", img:"thumbs/MagiDiamond.jpg" },
+    href:"MagiDiamond/index.html", img:"thumbs/MagiDiamond.jpg" },
   /* ★★ 2026-09-06（3回目）Xevion OS の言語／キャラ詳細の切りかえ／ご報告の修正 */
   { tag:"NEW", t1:"言語の切りかえが Xevion OS に", at:"2026-09-06",
     t2:"XEVARION 全体の土台の設定なので、ここに移しました。いままでの場所と同じ置き場所を見ています",
@@ -320,14 +394,14 @@ const XH_UPDATES = [
     href:"index.html", img:"thumbs/Xevarion.png" },
   { tag:"UPDATE", t1:"MagiDiamond のマルチが LOCAL PLAY に", at:"2026-09-06",
     t2:"MagiBurst とまったく同じしくみ（ROOM CODE と QR・最大4人）。戻るボタン・試合の中断・球速の消えかたも直しました",
-    href:"MagiDiamond/latest.html", img:"thumbs/MagiDiamond.jpg" },
+    href:"MagiDiamond/index.html", img:"thumbs/MagiDiamond.jpg" },
   /* ★★ 2026-09-06（2回目）新UIの色／MagiDiamond 大改修／ご報告の修正 */
   { tag:"UPDATE", t1:"新UIを黄・赤・黒・白に", at:"2026-09-06",
     t2:"構想案どおりの4色に。角は斜めに切った板、押すと沈んで黄色く光ります。タップの演出も中心から開く形に",
     href:"MagiBurst/index.html", img:"thumbs/MagiBurst.jpg" },
   { tag:"NEW", t1:"MagiDiamond 大改修", at:"2026-09-06",
     t2:"バット型の照準と左右の相性／守備はステータスと守備配置で計算／球速を1球ごとに計測／作戦コマンド／検索と並び替え",
-    href:"MagiDiamond/latest.html", img:"thumbs/MagiDiamond.jpg" },
+    href:"MagiDiamond/index.html", img:"thumbs/MagiDiamond.jpg" },
   { tag:"UPDATE", t1:"重力バリアが見えない不具合を修正", at:"2026-09-06",
     t2:"天界の審判と蓬莱だけ、バリアの半径に 1〜2px を渡していました（ほかは 105〜165px）。敵の絵に埋もれて見えなくなっていました",
     href:"MagiBurst/index.html", img:"thumbs/MagiBurst.jpg" },
@@ -1171,8 +1245,8 @@ function xhLoadScript(src) {
 function xhMbReady() {
   if (typeof CHARS !== "undefined" && typeof PREMIUM_CHARS !== "undefined") return Promise.resolve(true);
   if (_xhMbLoading) return _xhMbLoading;
-  _xhMbLoading = xhLoadScript("mb-boot.js?v=12")
-    .then(() => xhLoadScript("MagiBurst/js/mb-core.js?v=89"))
+  _xhMbLoading = xhLoadScript("mb-boot.js?v=16")
+    .then(() => xhLoadScript("MagiBurst/js/mb-core.js?v=98"))
     .then(() => true)
     .catch((e) => { _xhMbLoading = null; throw e; });
   return _xhMbLoading;
@@ -4844,6 +4918,10 @@ let _xhShown = false;
 function xhShow() {
   const home = xhEl("xhome"); if (!home) return;
   document.body.classList.add("xh-mode");
+  /* ★★ 2026-09-06 いちばん下の帯（箱の外）を下バーと同じ色にする。
+     CSS の :has() は古い iOS で効かないので、ここでも付ける。 */
+  document.documentElement.classList.add("xh-html");
+  document.documentElement.classList.remove("xv-gate");
   home.classList.add("on");
   if (!_xhShown) {
     _xhShown = true;
@@ -4896,6 +4974,7 @@ function xhConsumeHash() {
 function xhHide() {
   const home = xhEl("xhome"); if (home) home.classList.remove("on");
   document.body.classList.remove("xh-mode");
+  document.documentElement.classList.remove("xh-html");
 }
 window.xhHide = xhHide;
 

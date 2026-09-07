@@ -14,10 +14,10 @@
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
 <!-- キャラ画像パスの正規化（XEVA.canonCharFile）に使う。古いフォルダのまま保存された
      charFile を現行パスへ直してからアイコンを表示するため。 -->
-<script src="xeva-safebottom.js?v=3"></script>
-<script src="xeva.js?v=55"></script>
-<script type="module" src="xevarion-fb.js?v=28"></script>
-<script type="module" src="xeva-sync.js?v=13"></script>
+<script src="xeva-safebottom.js?v=8"></script>
+<script src="xeva.js?v=60"></script>
+<script type="module" src="xevarion-fb.js?v=32"></script>
+<script type="module" src="xeva-sync.js?v=17"></script>
 <style>
 :root{
   --bg:#0d1022; --bg2:#141a33; --panel:#1a2140; --panel2:#222b52;
@@ -31,6 +31,19 @@
      大きいほうを使う。 */
   --gh-safet:max(env(safe-area-inset-top,0px), var(--xv-safet,0px));
 }
+/* ★★ 2026-09-06 「まだカメラに重なる」の決着（ご指定）。
+   これまでは env と実測の<b>大きいほう</b>を使っていたが、
+   iPhone をアプリとして開くと env が <b>0 や 20 など小さすぎる値</b>を
+   返すことがあり、両方小さいとそのまますり抜けていた。
+   カメラの帯はどの機種でも 44px より薄いので、
+   <b>アプリ表示のときだけ 44px を下限にする</b>。
+   env が正しく 59 を返す端末では max なので 59 のまま（余分には空かない）。 */
+@media (display-mode:standalone){
+  :root{ --gh-safet:max(env(safe-area-inset-top,0px), var(--xv-safet,0px), 44px) }
+}
+/* iOS の古い版は display-mode を見ないことがあるので、
+   navigator.standalone でも同じことをする（下のスクリプトがクラスを付ける）。 */
+html.xv-standalone{ --gh-safet:max(env(safe-area-inset-top,0px), var(--xv-safet,0px), 44px) }
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Noto Sans JP',system-ui,sans-serif;color:var(--txt);min-height:100vh;
   background:radial-gradient(120% 60% at 12% -10%,rgba(107,139,255,.22),transparent 60%),
@@ -190,20 +203,14 @@ input.code:focus{border-color:var(--accent)}
      条件: アプリ表示 かつ env上が実質0 かつ 画面と表示領域の高さがほぼ同じ
            （＝ステータスバーの下に避けて置かれてはいない）  */
 (function () {
+  /* ★★ 2026-09-06 やることは<b>クラスを付けるだけ</b>にした。
+     以前はここで --gh-top を計算して足していたが、
+     「畫面と表示領域の高さがほぼ同じ」という条件が外れると何もしないし、
+     外れないと今度は env と<b>二重</b>になる——どちらにも転ぶ作りだった。
+     いまは CSS の max() だけで決める（下限 44px）ので、二重になりようがない。 */
   try {
-    if (!(matchMedia("(display-mode: standalone)").matches || navigator.standalone)) return;
-    var p = document.createElement("div");
-    p.style.cssText = "position:fixed;top:0;left:0;width:0;height:0;box-sizing:content-box;" +
-      "padding-top:env(safe-area-inset-top,0px);visibility:hidden;pointer-events:none";
-    document.body.appendChild(p);
-    var envT = parseFloat(getComputedStyle(p).paddingTop) || 0;
-    p.remove();
-    var sMax = Math.max(screen.width, screen.height);
-    /* ★★ 2026-09-05 条件をゆるめた。env が 0 のときだけでなく、
-       「小さすぎる」ときも下げる（実機では 20 前後しか返さないことがある）。
-       カメラの帯はどの機種でも 44px より薄いので、そこまでを埋める。 */
-    if (envT < 44 && sMax - window.innerHeight < 90) {
-      document.documentElement.style.setProperty("--gh-top", (44 - envT) + "px");
+    if (matchMedia("(display-mode: standalone)").matches || navigator.standalone) {
+      document.documentElement.classList.add("xv-standalone");
     }
   } catch (e) {}
 })();

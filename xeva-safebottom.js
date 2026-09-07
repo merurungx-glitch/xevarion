@@ -127,6 +127,58 @@
     }
   }
 
+
+  /* ══════════════════════════════════════════════════════════════
+     ★★ 2026-09-06 「いちばん下まで色が届かない」の決着（ご指定）
+     ------------------------------------------------------------
+     position:fixed の箱が<b>見えている画面より短い</b>ことがある（アプリ表示）。
+     いくら中身を下ぞろえにしても、<b>箱の外は &lt;html&gt; の背景しか塗れない</b>ので、
+     いちばん下に色のちがう帯が残る。直しかたは2つあり、<b>両方</b>やる。
+
+       ① &lt;html&gt; の背景をその画面と同じ色にする  … xvPaintHtml()
+       ② 全画面の板を<b>上下にはみ出させる</b>       … class="xv-bleed"
+
+     ★ ② は<b>疑似要素</b>で外へ板を伸ばす。要素そのものを大きくすると、
+       中身の中央ぞろえがずれるうえグラデーションが引き伸ばされる。
+       色は --xv-bleed-top / --xv-bleed-bottom に<b>そのグラデーションの端の色</b>を書く。
+       （はみ出しは position:fixed なので、画面のスクロールには影響しない）
+     ★ 使う要素に overflow:hidden が付いていると疑似要素が切られる。その場合は ① だけにする。
+     ══════════════════════════════════════════════════════════════ */
+  var BLEED_CSS =
+    ".xv-bleed{overflow:visible}" +
+    ".xv-bleed>.xv-bleed-in{position:absolute;inset:0;overflow:hidden}" +
+    ".xv-bleed::before,.xv-bleed::after{content:'';position:absolute;left:0;right:0;" +
+    "height:420px;pointer-events:none;z-index:0}" +
+    ".xv-bleed::before{bottom:100%;background:var(--xv-bleed-top,transparent)}" +
+    ".xv-bleed::after{top:100%;background:var(--xv-bleed-bottom,transparent)}";
+  function injectBleedCss() {
+    if (document.getElementById("xvBleedCss")) return;
+    var h = document.head || document.documentElement;
+    if (!h) return;
+    var st = document.createElement("style");
+    st.id = "xvBleedCss";
+    st.textContent = BLEED_CSS;
+    h.appendChild(st);
+  }
+  injectBleedCss();
+  document.addEventListener("DOMContentLoaded", injectBleedCss);
+
+  /* ★ &lt;html&gt; の背景を塗る。積み重ねられるように「誰が塗ったか」で持つ。
+       xvPaintHtml("splash", "linear-gradient(...)")  … 塗る
+       xvPaintHtml("splash", null)                    … その塗りをやめる（1つ前へ戻る）
+     いちばん最後に塗ったものが見える（後から出た全画面の板が勝つ）。 */
+  var paints = [];
+  window.xvPaintHtml = function (who, css) {
+    paints = paints.filter(function (p) { return p.who !== who; });
+    if (css) paints.push({ who: who, css: css });
+    var top = paints.length ? paints[paints.length - 1].css : "";
+    try {
+      root.style.background = top || "";
+      /* ★ 背景を html に置くと、スクロールしても伸び縮みしないよう固定しておく */
+      root.style.backgroundAttachment = top ? "fixed" : "";
+    } catch (e) {}
+  };
+
   var pending = false;
   function sync() {
     if (pending) return;
