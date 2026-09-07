@@ -482,8 +482,10 @@
       /* ★★ 2026-08-26e 表より後に増えたキャラは、平均より<b>少し高め</b>にする（ご指定）。
          新しく作るキャラは過去のキャラより強めに作ってあるのがふつうなので、
          「まだ載っていないから平均ちょうど」だと、こんどは少し控えめすぎる。
-         ★ 上げ幅は MagiBurst の TIER_NEW_BONUS と<b>同じ 0.15</b> にそろえること。 */
-      const NEW_BONUS = 0.15;
+         ★ 上げ幅は MagiBurst の TIER_NEW_BONUS と<b>同じ値</b>にそろえること。
+         ★★ 2026-09-06 <b>0.15 → 0.30</b> に引き上げ（ご指定「やや大幅に」）。
+           MagiBurst 側（index.html の TIER_NEW_BONUS）も同じ値にしてある。 */
+      const NEW_BONUS = 0.30;
       const newScore = Math.min(1, avg + NEW_BONUS);
       return {
         m: m, n: cnt, maxNo: maxNo, avg: avg,

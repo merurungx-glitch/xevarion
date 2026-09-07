@@ -231,3 +231,97 @@ html{ background:var(--md-ink); }
 /* あぶない操作（中断・削除）だけ赤。★ .btn.pri（黄）より<b>あとに</b>書くこと */
 .btn.danger{ background:var(--md-red) !important;color:#fff !important;border-color:#fff !important;
   box-shadow:3px 3px 0 rgba(0,0,0,.6) !important; }
+
+
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-09-06 下バーの作り直し（ご指定）
+   ------------------------------------------------------------
+   ① アイコンを<b>自前のSVG</b>に（md2-icons.js）。
+      これまでは絵文字のうしろに黄色い板を敷いていたので、
+      <b>選んでいるタブだけ絵が板にまぎれて見えなかった</b>。
+      いまは「金の板＋墨の線」「下地＋灰の線」で、必ず明るさが離れる。
+   ② バーを<b>240px 下へはみ出させる</b>。
+      position:fixed の箱はアプリ表示だと画面より短いことがあり、
+      その外側は &lt;html&gt; の背景しか塗れない＝いちばん下にすきまが見える。
+      別の板を敷くと境目が線に見えるので、<b>バー本体を伸ばす</b>。
+   ③ 余白は env() ではなく <b>--xv-safeb</b>（xeva-safebottom.js の実測）を使う。
+      アプリ表示では env をそのまま入れると<b>同じぶんを2回</b>引いてしまう。
+   ══════════════════════════════════════════════════════════════ */
+:root{
+  --xv-safebar:max(var(--xv-safeb,env(safe-area-inset-bottom,0px)), var(--xv-growb,0px));
+}
+.nav{
+  margin-bottom:-240px;
+  padding:6px 6px calc(var(--xv-safebar,env(safe-area-inset-bottom,0px)) + 6px + 240px) !important;
+  align-content:start;
+  background:linear-gradient(180deg,rgba(14,20,42,.7),rgba(10,15,32,.98)),var(--md-ink,#0b1020) !important;
+}
+/* 試合中の下のバー・シート類も同じ考えかたでそろえる */
+.mtBot{ padding-bottom:calc(var(--xv-safebar,env(safe-area-inset-bottom,0px)) + 10px) !important }
+
+/* ── アイコン（線だけの SVG） ── */
+.mdic{width:21px;height:21px;display:block}
+.nav button .i{
+  padding:0 !important;background:none !important;filter:none !important;
+  display:flex;align-items:center;justify-content:center;
+  width:38px;height:28px;border-radius:10px;transition:background .16s,color .16s;
+}
+.nav button{ color:rgba(233,238,255,.62) !important;background:none !important }
+.nav button.on{ color:var(--md-yel,#ffd257) !important }
+/* 選んでいるタブ＝金の板に墨の線。板と線の明るさが必ず離れるので、つぶれない。 */
+.nav button.on .i{ background:var(--md-yel,#ffd257) !important;color:#141018 }
+.nav button.on .i .mdic{ stroke-width:2.1 }
+.pageT .ti{display:inline-flex;vertical-align:-4px;color:var(--md-yel,#ffd257)}
+.pageT .ti .mdic{width:19px;height:19px}
+.mbtn .i{display:flex;align-items:center;justify-content:center;color:var(--md-yel,#ffd257)}
+.mbtn .i .mdic{width:26px;height:26px}
+.mbtn.rk .i{color:#ffd257}
+.mbtn.qk .i{color:#7ad0ff}
+.mbtn.ev .i{color:#ff8fb8}
+.mbtn.fr .i{color:#ffa06a}
+
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-09-06b 中断ボタン／スタメン一覧／交代
+   ══════════════════════════════════════════════════════════════ */
+/* 中断は「赤い板＋文字」。✕ だけでは何のボタンか分からなかった。 */
+.mhd .bk.quit{
+  flex:none;display:inline-flex;align-items:center;gap:4px;
+  padding:5px 10px !important;border-radius:0 !important;
+  background:var(--md-red,#e2464f) !important;color:#fff !important;
+  border:2px solid #fff !important;box-shadow:2px 2px 0 rgba(0,0,0,.55) !important;
+  font-size:11px;font-weight:900;letter-spacing:.06em;line-height:1;
+}
+.mhd .lineupb{
+  flex:none;margin-left:6px;padding:5px 10px;border-radius:0;
+  background:#17141f;color:var(--md-yel,#ffd400);
+  border:2px solid var(--md-yel,#ffd400);box-shadow:2px 2px 0 rgba(0,0,0,.55);
+  font-size:11px;font-weight:900;letter-spacing:.04em;line-height:1;cursor:pointer;font-family:inherit;
+}
+/* スタメン一覧 */
+.luseg{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:2px 0 10px}
+.luseg button{padding:9px;border:2px solid rgba(255,255,255,.28);background:#17141f;color:#fff;
+  font-size:12px;font-weight:900;font-family:inherit;cursor:pointer}
+.luseg button.on{border-color:var(--md-yel,#ffd400);color:var(--md-yel,#ffd400);background:rgba(255,212,0,.12)}
+.lusec{display:flex;align-items:center;gap:8px;font-size:12.5px;font-weight:900;margin:12px 0 6px;
+  padding-bottom:5px;border-bottom:1px solid rgba(255,255,255,.18)}
+.lusec .lusub{margin-left:auto;font-size:10.5px;font-weight:800;color:var(--tx3,#8b87a8)}
+.lulist{display:flex;flex-direction:column;gap:5px}
+.lurow{display:flex;align-items:center;gap:9px;padding:7px 9px;background:rgba(255,255,255,.05);
+  border:1.5px solid rgba(255,255,255,.16);width:100%;text-align:left;font-family:inherit;color:inherit}
+.lurow.now{border-color:var(--md-yel,#ffd400);background:rgba(255,212,0,.12)}
+.lurow.pick{cursor:pointer}
+.lurow.pick:active{transform:scale(.99)}
+.lurow.sm{padding:6px 9px}
+.lurow .lun{flex:none;width:18px;text-align:center;font-size:12px;font-weight:900;color:var(--md-yel,#ffd400);
+  font-family:'Orbitron',ui-monospace,monospace}
+.lurow .luav{flex:none;width:34px;height:34px;object-fit:cover;border:1.5px solid rgba(255,255,255,.3)}
+.lurow .lutx{flex:1;min-width:0;font-size:12.5px;line-height:1.35}
+.lurow .lutx small{display:block;font-size:10px;font-weight:800;color:var(--tx3,#8b87a8)}
+.lurow .lust{flex:none;text-align:right;font-size:11px;font-weight:800;color:var(--tx2,#cfd0f0)}
+.lurow .lust b{font-size:14px;font-family:'Orbitron',ui-monospace,monospace;color:#fff}
+.lurow .lust small{display:block;font-size:9.5px;font-weight:800;color:var(--tx3,#8b87a8)}
+.luempty{font-size:11px;line-height:1.7;color:var(--tx3,#8b87a8);padding:8px 2px}
+.lubtn{width:100%;margin-top:8px}
+
+/* ★★ 2026-09-06b 投手が疲れてきたら球速の横に ▼ を出す */
+.psel small i.tired{font-style:normal;color:#ff6f6f;margin-left:3px;font-weight:900}

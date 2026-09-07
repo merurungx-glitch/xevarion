@@ -55,7 +55,7 @@ function loadMbCore() {
   if (_mbPromise) return _mbPromise;
   _mbPromise = new Promise(function (res, rej) {
     var s = document.createElement("script");
-    s.src = "../MagiBurst/js/mb-core.js?v=89";
+    s.src = "../MagiBurst/js/mb-core.js?v=98";
     s.onload = function () { res(); };
     s.onerror = function () { _mbPromise = null; rej(new Error("mb-core")); };
     document.head.appendChild(s);
@@ -100,7 +100,12 @@ function MD_TIER(id) {
    ・MagiBurst の hp / atk / spd（限界まで育てた値）を 0〜1 にならしてから使う。
    ・そのうえで「型」（撃種・属性・持っているアビリティ）で味付けする。
    ★ ここが選手の個性のもと。式を変えると全選手がいっせいに変わる。 */
-var REF = { hp: [900, 7000], atk: [480, 3800], spd: [270, 480] };
+/* ★★ 2026-09-06b <b>MagiBurst の攻撃力の幅が変わったので、ここも直す</b>。
+   MagiBurst 側で「キラーを1つ外して、そのぶん攻撃力を上げる」調整をしたため、
+   最大まで育てた攻撃力が およそ 3800 → <b>2,400〜11,940</b> になった。
+   ★ ここを直さないと norm() が<b>全員 1.0 に張りつき</b>、
+     パワーも球速も<b>みんな同じ 99</b>になって個性が消える（前にも一度起きた）。 */
+var REF = { hp: [900, 7000], atk: [2300, 12000], spd: [270, 480] };
 function norm(v, lo, hi) { return Math.max(0, Math.min(1, (v - lo) / (hi - lo))); }
 function statOf(c) {
   var hp = Array.isArray(c.hp) ? c.hp[1] : 3000;

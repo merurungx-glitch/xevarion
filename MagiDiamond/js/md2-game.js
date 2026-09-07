@@ -234,10 +234,17 @@ function autoTeam() {
   S.team = t; save();
   return true;
 }
+/* ★★ 2026-09-06b ご報告「相手の打順が変わらない」の<b>真因</b>。
+   ここで <b>p.ovrNow</b> だけを見ていたが、ovrNow は eff()（育成を乗せた味方）にしか付かない。
+   CPU の選手は生のデータなので undefined → <b>NaN</b> になり、
+   makeCpuTeam の 「s > bs」がずっと false。結果、相手の打順に
+   <b>投手の１人しか入らなかった</b>（だから毎回同じ人が打席に立っていた）。
+   ★ 育成前の総合力（p.ovr）を控えにする。 */
 function posScore(p, ps) {
   const g = p.pos[ps] || "G";
   const gv = { S: 100, A: 86, B: 74, C: 62, D: 50, E: 40, F: 30, G: 20 }[g] || 20;
-  return gv * 1.6 + p.ovrNow / 8;
+  const ov = (typeof p.ovrNow === "number" && isFinite(p.ovrNow)) ? p.ovrNow : (p.ovr || 0);
+  return gv * 1.6 + ov / 8;
 }
 
 /* ══════════ 画面のきりかえ ══════════ */
@@ -289,14 +296,14 @@ function paintHome() {
     </div>
     <button class="playball" onclick="mdQuickPlay()">PLAY BALL<small>${ready ? "CPU戦をすぐ始める" : "まずはチームを作ろう"}</small></button>
     <div class="grid2">
-      <button class="mbtn rk" onclick="mdGo('match');mdSetMode('ranked')"><span class="i">👑</span><span class="t">RANKED</span><span class="s">ランク戦</span></button>
-      <button class="mbtn qk" onclick="mdGo('match');mdSetMode('quick')"><span class="i">⚡</span><span class="t">QUICK</span><span class="s">クイックマッチ</span></button>
-      <button class="mbtn fr" onclick="mdGo('match');mdSetMode('friend')"><span class="i">🤝</span><span class="t">FRIEND</span><span class="s">フレンドマッチ</span></button>
-      <button class="mbtn ev" onclick="mdGo('match');mdSetMode('event')"><span class="i">🎪</span><span class="t">EVENT</span><span class="s">イベント</span></button>
+      <button class="mbtn rk" onclick="mdGo('match');mdSetMode('ranked')"><span class="i" data-ic="ranked"></span><span class="t">RANKED</span><span class="s">ランク戦</span></button>
+      <button class="mbtn qk" onclick="mdGo('match');mdSetMode('quick')"><span class="i" data-ic="quick"></span><span class="t">QUICK</span><span class="s">クイックマッチ</span></button>
+      <button class="mbtn fr" onclick="mdGo('match');mdSetMode('friend')"><span class="i" data-ic="friend"></span><span class="t">FRIEND</span><span class="s">フレンドマッチ</span></button>
+      <button class="mbtn ev" onclick="mdGo('match');mdSetMode('event')"><span class="i" data-ic="event"></span><span class="t">EVENT</span><span class="s">イベント</span></button>
     </div>
     <div class="grid2" style="margin-top:10px">
-      <button class="mbtn" onclick="mdGo('character')"><span class="i">👥</span><span class="t">CHARACTER</span><span class="s">キャラクター</span></button>
-      <button class="mbtn" onclick="mdGo('team')"><span class="i">🛡</span><span class="t">TEAM</span><span class="s">チーム編成</span></button>
+      <button class="mbtn" onclick="mdGo('character')"><span class="i" data-ic="chara"></span><span class="t">CHARACTER</span><span class="s">キャラクター</span></button>
+      <button class="mbtn" onclick="mdGo('team')"><span class="i" data-ic="team"></span><span class="t">TEAM</span><span class="s">チーム編成</span></button>
     </div>
     <div class="box" style="margin-top:12px">
       <h3>🛡 いまのチーム<span class="sp">${ready ? "出場できます" : "9人＋投手が必要です"}</span></h3>
@@ -938,6 +945,20 @@ function shiftKey() { const t = team(); return SHIFTS[t.shift] ? t.shift : "norm
 window.mdShift = (k) => {
   const t = team(); t.shift = SHIFTS[k] ? k : "normal"; save(); SFX.tap();
   if (M && M.phase) { setFielders(); paintMatchHead(); }
+  /* ★★ 2026-09-06b ご報告「守備の位置で押してもボタンのマークが動かない」。
+     配置そのものは変わっていたのに、<b>ボタンの .on を付けかえていなかった</b>ので
+     押しても見た目が動かなかった。説明文もその場で書きかえる。 */
+  try {
+    const cur = shiftKey();
+    document.querySelectorAll('.tact button[onclick^="mdShift"]').forEach((b) => {
+      const m = /mdShift\('([a-z]+)'\)/.exec(b.getAttribute("onclick") || "");
+      if (m) b.classList.toggle("on", m[1] === cur);
+    });
+    const first = document.querySelector('.tact button[onclick^="mdShift"]');
+    const box = first && first.parentNode;
+    const hint = box && box.nextElementSibling;
+    if (hint && hint.classList.contains("hint")) hint.textContent = SHIFTS[cur].desc;
+  } catch (e) {}
   toast("守備配置：" + SHIFTS[shiftKey()].nm);
   if (view === "team") paintTeam();
 };
@@ -959,6 +980,20 @@ function makeCpuTeam(level) {
     use.forEach((p) => { if (used.has(p.id)) return; const s = posScore(p, ps); if (s > bs) { bs = s; best = p; } });
     if (best) { t.order.push(best.id); t.pos[best.id] = ps; used.add(best.id); }
   });
+  /* ★★ 2026-09-06b 打順を並べかえる（足の速い人が上位・長打のある人が3〜5番・投手は9番）。
+     これまでは守備位置の順（投手が１番）のままだった。 */
+  const nine = t.order.map((id) => MD2DATA.get(id)).filter(Boolean);
+  const pitcher = nine.find((p) => t.pos[p.id] === "投手");
+  const rest = nine.filter((p) => p !== pitcher);
+  rest.sort((a, b) => (b.run + b.meet) - (a.run + a.meet));
+  const lead = rest.slice(0, 2);
+  const pw = rest.slice(2).sort((a, b) => (b.power + b.meet) - (a.power + a.meet));
+  t.order = lead.concat(pw).concat(pitcher ? [pitcher] : []).map((p) => p.id);
+  /* ★★ 2026-09-06b 相手にも<b>ベンチ</b>を持たせる（スタメンの画面で見られるように）。
+     控えの投手（t.sp の２人め）と、残りから総合力の高い４人。 */
+  (t.sp || []).slice(1).forEach((id) => { if (!used.has(id)) { t.bench.push(id); used.add(id); } });
+  use.filter((p) => !used.has(p.id)).sort((a, b) => (b.ovr || 0) - (a.ovr || 0))
+     .slice(0, 4).forEach((p) => { t.bench.push(p.id); used.add(p.id); });
   return t;
 }
 /* 試合で使う選手の値（味方は育成ぶんを乗せ、CPU は素の値） */
@@ -985,12 +1020,20 @@ function startMatch(mode, online) {
     stat: { hit: 0, hr: 0, k: 0 },
     tactic: "",                               /* いま出している作戦（1球かぎり） */
     lastPitch: null,                          /* 直前の1球（球種と実測の球速） */
+    /* ★★ 2026-09-06b その試合の<b>選手ごとの成績</b>（交代のときに出す）。
+       id → { ab打数, h安打, hr本塁打, k三振, bb四球, rbi打点 } */
+    pstat: {},
+    /* ★★ 2026-09-06b 使った交代の回数（1試合で何回でもよいが、記録は残す） */
+    subs: [],
     shiftNow: "normal",                       /* いま守っている側の守備配置 */
     over: false,
   };
   $("mtWrap").classList.remove("hide");
   initCanvas();
   paintMatchHead();
+  /* ★★ 2026-09-06b 試合のはじめに<b>スタメン</b>を出す（ご指定）。
+     自分と相手の打順・守備位置・ベンチ・投手をここで確かめてから始められる。 */
+  try { setTimeout(() => { if (M && !M.over) mdOpenLineup(); }, 260); } catch (e) {}
   nextBatter(true);
 }
 function myTurnOffense() { return !M.top; }   /* 裏が自分の攻撃 */
@@ -1255,6 +1298,44 @@ function drawLiveBat(w, h, zx, zy, zw, zh) {
     cx.fillStyle = T.swung ? "#fff" : col;
     cx.beginPath(); cx.arc(0, 0, Math.max(2.4, ry * 0.30), 0, Math.PI * 2); cx.fill();
     cx.restore();
+  }
+  /* ══ ★★ 2026-09-06b 守備のターンの「打たれる」演出（ご報告）══
+     これまで守備のターンは<b>球が飛ぶだけ</b>で、相手が振ったのかどうかも
+     打ったのかどうかも画面に出ていなかった。
+     ・相手が振る打席（T.act === "swing"）なら、届く直前に<b>相手のバットが出てくる</b>。
+     ・当たる瞬間（u ≒ 1）に<b>白い閃光と弧</b>を出す。
+     ★ 判定には一切かかわらない（絵だけ）。結果は tickLive → finishLive が決める。 */
+  if (!T.mine && T.act === "swing") {
+    const sw = clamp((u - 0.72) / 0.34, 0, 1);          /* 0→1 でバットが出る */
+    if (sw > 0) {
+      const bxp = zx + zw * 0.5, byp = zy + zh * 0.62;
+      const ang = -1.15 + sw * 2.10;                     /* 振り抜く角度 */
+      const rx = zw * 0.30;
+      cx.save();
+      cx.translate(bxp, byp); cx.rotate(ang);
+      cx.lineCap = "round";
+      cx.strokeStyle = "#3a2a18"; cx.lineWidth = Math.max(3, zw * 0.030);
+      cx.beginPath(); cx.moveTo(rx * 1.55, 0); cx.lineTo(rx * 0.55, 0); cx.stroke();
+      cx.strokeStyle = "#c89b5a"; cx.lineWidth = Math.max(5, zw * 0.055);
+      cx.beginPath(); cx.moveTo(rx * 0.62, 0); cx.lineTo(-rx * 0.98, 0); cx.stroke();
+      cx.restore();
+      /* 振り抜きの弧（残像） */
+      cx.save();
+      cx.globalAlpha = 0.30 * (1 - Math.abs(sw - 0.7) / 0.7);
+      cx.strokeStyle = "#ffffff"; cx.lineWidth = Math.max(2, zw * 0.03);
+      cx.beginPath(); cx.arc(bxp, byp, rx * 1.35, -1.15, ang); cx.stroke();
+      cx.restore();
+      /* 当たる瞬間の閃光 */
+      if (u > 0.95 && u < 1.12) {
+        cx.save();
+        cx.globalAlpha = 1 - Math.abs(u - 1.03) / 0.09;
+        cx.fillStyle = "#fff7c8";
+        cx.beginPath(); cx.arc(bx, by, zw * 0.09, 0, Math.PI * 2); cx.fill();
+        cx.strokeStyle = "#ffd257"; cx.lineWidth = 3;
+        cx.beginPath(); cx.arc(bx, by, zw * (0.10 + (u - 0.95) * 1.2), 0, Math.PI * 2); cx.stroke();
+        cx.restore();
+      }
+    }
   }
   /* 球 */
   cx.globalAlpha = .30; cx.strokeStyle = "#ffffff"; cx.lineWidth = 2;
@@ -1687,7 +1768,11 @@ function askPitch() {
       <span style="color:var(--tx3)">スタミナ ${Math.round(stam)} / 100</span></div>
     <div class="cardsel p3" id="pitchSel">
       ${pit.pitches.map((q, i) => { const d = MD2DATA.PITCH_ALL.find((x) => x.k === q.k);
-        return `<button class="psel ${i === 0 ? "on" : ""}" data-k="${q.k}" onclick="mdPickPitch('${q.k}')">${d.nm}<small>${Math.round(velOf(pit, q))} km/h</small></button>`; }).join("")}
+        /* ★★ 2026-09-06b ボタンの km/h にも<b>いまのスタミナ</b>を反映させる。
+           疲れてきたのが数字で見えるので、交代の判断ができる。 */
+        const _s2 = clamp(stam, 0, 100);
+        const _kmh2 = Math.max(95, Math.round(velOf(pit, q) - ((100 - _s2) * 0.06 + Math.max(0, 60 - _s2) * 0.15)));
+        return `<button class="psel ${i === 0 ? "on" : ""}" data-k="${q.k}" onclick="mdPickPitch('${q.k}')">${d.nm}<small>${_kmh2} km/h${_s2 < 60 ? '<i class="tired">▼</i>' : ""}</small></button>`; }).join("")}
     </div>
     <div class="zone big" id="zoneSel" style="margin-top:8px">
       ${Array.from({ length: 9 }, (_, i) => `<button class="${i === 4 ? "on" : ""}" data-z="${i}" onclick="mdPickZone(${i})"></button>`).join("")}
@@ -1703,8 +1788,14 @@ function askPitch() {
    でぶれる。表示も、届くまでの速さ（dur）も、この<b>同じ値</b>から作る。 */
 function measurePitch(pit, q, stam) {
   const d = MD2DATA.PITCH_ALL.find((x) => x.k === q.k) || { nm: "ストレート", move: 0 };
-  const kmh = Math.max(95, Math.round(velOf(pit, q) - (100 - clamp(stam, 0, 100)) * 0.06
-                                      + (Math.random() * 2 - 1) * 3));
+  /* ★★ 2026-09-06b スタミナが減ったときの落ちかたをはっきりさせた（ご指定）。
+     前はスタミナ0でも <b>-6km/h</b> しか落ちず、疲れが分からなかった。
+     ・全体でゆるやかに落ちる分（×0.06）
+     ・<b>スタミナ60を割ってから</b>はっきり落ちる分（×0.15）
+     ⇒ スタミナ100で0 / 60で-2.4 / 20で-10.8 / 0で<b>-15km/h</b>。 */
+  const _s = clamp(stam, 0, 100);
+  const _drop = (100 - _s) * 0.06 + Math.max(0, 60 - _s) * 0.15;
+  const kmh = Math.max(95, Math.round(velOf(pit, q) - _drop + (Math.random() * 2 - 1) * 3));
   M.lastPitch = { nm: d.nm, kmh: kmh, k: q.k, t: Date.now() };
   paintMatchHead();
   /* ★★ 2026-09-06 ご報告「次の投球まで出ていて分かりづらい」。
@@ -1717,6 +1808,11 @@ function measurePitch(pit, q, stam) {
   }, 2600);
   return kmh;
 }
+/* ★★ 2026-09-06b 球が届くまでの長さ（フレーム）。
+   <b>攻撃のターンも守備のターンも、必ずこの1本を通す</b>（ご指定）。
+   前は askTiming と watchPitch に同じ式が2つ書いてあったので、
+   どちらかを直すともう片方とずれた。 */
+function pitchDur(kmh) { return clamp(Math.round(9000 / Math.max(90, kmh)), 38, 100); }
 /* ★★ 2026-09-06 いちばん最近の1球の球速（画面に大きく出す） */
 function lastKmhHTML() {
   const L = M && M.lastPitch;
@@ -1834,8 +1930,9 @@ function askTiming(act) {
        ・毎球のばらつき（±3km/h）
      で決まる。表示している数字と<b>実際に届くまでの速さ（dur）は同じ値</b>から作る。 */
   const kmh = measurePitch(pit, q, (!offMine() ? M.stam.me : M.stam.cpu));
-  /* 届くまでのフレーム数。140km/h でおよそ 62フレーム（約1秒）。 */
-  const dur = clamp(Math.round(9000 / Math.max(90, kmh)), 38, 100);
+  /* 届くまでのフレーム数。140km/h でおよそ 62フレーム（約1秒）。
+     ★★ 2026-09-06b 守備のターンとまったく同じ式（pitchDur）を使う。 */
+  const dur = pitchDur(kmh);
   /* ミートが高いほど、ずれを許す幅が広い */
   const goodF = 4 + bat.meet * 0.055;
   const perfF = 1.4 + bat.meet * 0.020;
@@ -1888,7 +1985,7 @@ function watchPitch(pit, q, kmh, act) {
     ${clutchBar()}
     <div class="hint">🥎 <b>${esc(d.nm)}・${kmh}km/h</b> — 投げました！</div>`;
   M.tm = {
-    t: 0, dur: clamp(Math.round(9000 / Math.max(90, kmh)), 38, 100),
+    t: 0, dur: pitchDur(kmh),
     act: act, done: false, swung: false, holding: false, flash: 0,
     mine: false, zone: pitSel.zone, move: d.move,
     bx: (d.k === "curve" ? -0.8 : d.k === "slider" ? -1 : d.k === "sinker" ? 1 : 0) + (Math.random() - .5) * .4,
@@ -2020,8 +2117,11 @@ function resolvePitch(act) {
   const ctrl = pit.ctrl * (0.6 + stam / 250) + (defMine ? teamEff().ctrl : 0);
   const wild = Math.random() > (0.42 + ctrl / 220);
   const isBall = wild;
-  /* スタミナを減らす */
-  const stamCut = 1.6 * (1 - sk(pit, "stam")) * (defMine ? (1 - teamEff().stam) : 1);
+  /* スタミナを減らす。
+     ★★ 2026-09-06b １球あたり 1.6 → <b>0.9</b>。
+     前は 60 球あたりで尽きてしまい、３回ぐらいで継投になっていた。
+     0.9 なら <b>100球で残り10</b>、８７球あたりで交代の目安（スタミナ22）になる。 */
+  const stamCut = 0.9 * (1 - sk(pit, "stam")) * (defMine ? (1 - teamEff().stam) : 1);
   if (defMine) M.stam.me = Math.max(0, M.stam.me - stamCut); else M.stam.cpu = Math.max(0, M.stam.cpu - stamCut);
 
   if (act === "take") {
@@ -2089,6 +2189,13 @@ function afterCount() {
     let extra = 0;
     if (M.tactic === "hitrun" && M.runners[0]) { M.runners[0] = null; note("走者も刺された（ダブルプレー）"); extra = 1; }
     M.tactic = "";
+    /* ★★ 2026-09-06b ご報告「相手の打者の順番が変わらない」の真因。
+       <b>三振のときだけ advanceBatter() を呼んでいなかった</b>ので、
+       三振の多い相手だと同じ打者がずっと出てきていた。
+       （四球・バント・本塁打・安打・捕球・送球の道にはすべて入っている。
+         outMade 側に入れると<b>二重に進む</b>ので、ここで呼ぶこと。） */
+    mdRecAB(batterId(), { ab: 1, k: 1 });
+    advanceBatter();
     return outMade(1 + extra);
   }
   M.timing = null; M.meetRead = null;
@@ -2096,6 +2203,7 @@ function afterCount() {
 }
 function walk() {
   const id = batterId();
+  mdRecAB(id, { bb: 1 });
   /* 押し出しをふくめて1つずつ進める */
   let carry = id;
   for (let i = 0; i < 3 && carry; i++) { const t = M.runners[i]; M.runners[i] = carry; carry = t; }
@@ -2192,6 +2300,7 @@ function trackBall(bat, quality, power) {
   }, 45);
 }
 function doHomerun(bat) {
+  mdRecAB(bat.id, { ab: 1, h: 1, hr: 1 });
   FX.push({ type: "ring", x: B.x, y: B.y, r: 60, c: "#ffd257", t: 0, dur: 34 });
   FX.push({ type: "spark", x: B.x, y: B.y, c: "#ff9d2e", t: 0, dur: 30 });
   bigMsg("HOME RUN!!", 1600);
@@ -2288,6 +2397,7 @@ window.mdCatchNow = () => {
 function finishCatch(f, fly, bat, quality, q) {
   B.on = false;
   if (q === "MISS") return resolveHit(bat, quality, "エラー", f);
+  mdRecAB(bat.id, { ab: 1 });
   if (fly) {
     note("フライアウト");
     SFX.out();
@@ -2373,6 +2483,7 @@ function resolveHit(bat, quality, label, f) {
   if (sk(bat, "extra") > 0 && Math.random() < sk(bat, "extra")) bases = Math.min(3, bases + 1);
   const nm = bases === 3 ? "スリーベースヒット！" : bases === 2 ? "ツーベースヒット！" : (label === "エラー" ? "エラー出塁" : label === "内野安打" ? "内野安打！" : "ヒット！");
   bigMsg(nm, 1200); SFX.run();
+  mdRecAB(bat.id, { ab: 1, h: 1 });
   if (offMine()) { M.stat.hit++; bump("hit", 1); }
   addClutch(offMine() ? "me" : "cpu", 16);
   /* 走者を進める */
@@ -2394,6 +2505,38 @@ function resolveHit(bat, quality, label, f) {
   setTimeout(() => nextBatter(), 1300);
 }
 function advanceBatter() { const k = M.top ? "cpu" : "me"; M.idx[k] = (M.idx[k] + 1) % offTeam().order.length; }
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-09-06b 選手ごとの成績（ご指定「選手が変わる際に打率などの詳細を表示」）
+   ------------------------------------------------------------
+   ・<b>その試合ぶん</b>を M.pstat に貯める（打数・安打・本塁打・三振・四球・打点）。
+   ・試合前や、まだ打っていない選手には<b>推定打率</b>を出す——
+     ミートとパワーから作る目安で、実際の打席が増えるほど<b>実測が主役</b>になる。
+   ★ 数字の出どころはここ1か所。表示している式と、実際に貯めている場所を分けない。
+   ══════════════════════════════════════════════════════════════ */
+function mdRecAB(id, d) {
+  if (!M || !id) return;
+  if (!M.pstat) M.pstat = {};
+  const s = M.pstat[id] || (M.pstat[id] = { ab: 0, h: 0, hr: 0, k: 0, bb: 0, rbi: 0 });
+  Object.keys(d || {}).forEach((k) => { s[k] = (s[k] | 0) + (d[k] | 0); });
+}
+function mdStatOf(id) { return (M && M.pstat && M.pstat[id]) || { ab: 0, h: 0, hr: 0, k: 0, bb: 0, rbi: 0 }; }
+/* 推定打率（ミート・パワーから。実際に打った試合ぶんが増えるほど実測に寄る） */
+function estAvg(p) {
+  if (!p) return 0;
+  const base = 0.170 + (p.meet || 50) * 0.00155 + (p.power || 50) * 0.00035;
+  const s = mdStatOf(p.id);
+  if (!s.ab) return clamp(base, 0.120, 0.400);
+  const w = Math.min(1, s.ab / 12);                 /* 12打数でほぼ実測 */
+  return clamp(base * (1 - w) + (s.h / s.ab) * w, 0, 1);
+}
+/* 推定防御率（球威・制球・変化から。低いほどよい） */
+function estEra(p) {
+  if (!p) return 0;
+  const q = ((p.heavy || 50) + (p.ctrl || 50) + (p.brk || 50)) / 3;
+  return clamp(7.60 - q * 0.062, 0.80, 7.50);
+}
+function avgTx(p) { const v = estAvg(p); return "." + String(Math.round(v * 1000)).padStart(3, "0"); }
+function eraTx(p) { return estEra(p).toFixed(2); }
 function scoreRun(n) {
   const k = offMine() ? "me" : "cpu";
   M.score[k] += n;
@@ -2493,6 +2636,182 @@ window.mdQuitMatchYes = () => {
   $("mtWrap").classList.add("hide"); M = null; paint();
   toast("試合を中断しました");
 };
+
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-09-06b スタメン一覧と選手交代（ご指定）
+   ------------------------------------------------------------
+   ・<b>試合が始まったとき</b>に一度だけ出す（自分と相手の両方が見られる）。
+   ・上のバーの「📋 スタメン」からいつでも開ける。
+   ・自分のチームだけ、ここから<b>投手交代</b>と<b>代打</b>ができる。
+     交代の候補には<b>打率・本塁打・三振</b>（投手は防御率・球速・スタミナ）を並べる。
+   ★ 交代できるのは<b>自分の手番のあいだ</b>（投球前／打席前）だけ。
+     球が飛んでいる最中に入れかえると、その打球の持ち主が消えて計算が壊れる。
+   ══════════════════════════════════════════════════════════════ */
+let lineupSide = "me";        /* 見ている側（"me" / "cpu"） */
+
+/* 交代できる場面か。★ 種類ごとに<b>自分の側の手番</b>であることまで見る。
+   ・投手交代 … 自分が<b>守っている</b>とき
+   ・代打     … 自分が<b>攻めている</b>とき
+   これを見ないと、相手の打者を自分のベンチと入れかえられてしまう。 */
+function mdCanSub(kind) {
+  if (!(M && !M.over && (M.phase === "pitch" || M.phase === "swing"))) return false;
+  if (kind === "pitcher") return !offMine();
+  if (kind === "bat") return offMine();
+  return true;
+}
+/* 交代に出せる控え（ベンチ＋まだ出ていない先発投手） */
+function benchIds(forPitcher) {
+  const t = M.myTeam;
+  const inGame = new Set(t.order);
+  const out = [];
+  if (forPitcher) {
+    (t.sp || []).forEach((id) => { if (id !== M.pitcher.me) out.push(id); });
+  }
+  (t.bench || []).forEach((id) => { if (!inGame.has(id)) out.push(id); });
+  /* 重複を落とす */
+  const seen = new Set();
+  return out.filter((id) => (seen.has(id) ? false : (seen.add(id), true)));
+}
+function lineupRowHTML(id, mine, i, pos) {
+  const p = mp(id, mine);
+  if (!p) return "";
+  const s = mdStatOf(id);
+  const cur = (M && batterId() === id && ((M.top ? "cpu" : "me") === (mine ? "me" : "cpu")));
+  const isP = pos === "投手";
+  return `<div class="lurow${cur ? " now" : ""}">
+    <span class="lun">${i + 1}</span>
+    <img class="luav" src="${esc(p.img || "")}" alt="" onerror="this.style.visibility='hidden'">
+    <span class="lutx"><b>${esc(p.nm)}</b><small>${esc(pos || "")}　${esc(p.bats || "")}／${esc(p.throws || "")}</small></span>
+    <span class="lust">${isP
+      ? `防御率 <b>${eraTx(p)}</b><small>球速 ${Math.round(velOf(p, (p.pitches || [{ k: "straight", lv: 1 }])[0]))}km/h</small>`
+      : `打率 <b>${avgTx(p)}</b><small>${s.ab}打数${s.h}安打${s.hr ? "・本" + s.hr : ""}</small>`}</span>
+  </div>`;
+}
+function lineupHTML() {
+  const mine = lineupSide === "me";
+  const t = mine ? M.myTeam : M.cpuTeam;
+  const pid = mine ? M.pitcher.me : M.pitcher.cpu;
+  const pit = mp(pid, mine);
+  const stam = mine ? M.stam.me : M.stam.cpu;
+  const rows = (t.order || []).map((id, i) => lineupRowHTML(id, mine, i, t.pos[id] || "")).join("");
+  const bench = mine ? benchIds(false) : ((t.bench || []).slice(0, 8));
+  const benchHTML = bench.length
+    ? bench.map((id, i) => {
+        const p = mp(id, mine); if (!p) return "";
+        return `<div class="lurow sm">
+          <img class="luav" src="${esc(p.img || "")}" alt="" onerror="this.style.visibility='hidden'">
+          <span class="lutx"><b>${esc(p.nm)}</b><small>${esc(bestPos(p))}　${esc(p.bats || "")}／${esc(p.throws || "")}</small></span>
+          <span class="lust">打率 <b>${avgTx(p)}</b><small>総合 ${p.ovrNow || p.ovr}</small></span>
+        </div>`;
+      }).join("")
+    : '<div class="luempty">控えの選手がいません。<b>TEAM</b> タブでベンチに入れておくと、試合中に交代できます。</div>';
+  return `
+    <div class="luseg">
+      <button class="${mine ? "on" : ""}" onclick="mdLineupSide('me')">じぶん</button>
+      <button class="${mine ? "" : "on"}" onclick="mdLineupSide('cpu')">あいて</button>
+    </div>
+    <div class="lusec">🥎 投手<span class="lusub">スタミナ ${Math.round(stam)} / 100</span></div>
+    <div class="lulist">${lineupRowHTML(pid, mine, 0, "投手")}</div>
+    ${mine && mdCanSub("pitcher") ? `<button class="btn pri lubtn" onclick="mdOpenSub('pitcher')">🔁 投手を交代する</button>`
+      : (mine ? '<div class="luempty">※ 投手を交代できるのは<b>自分が守っているとき</b>（投球の前）だけです。</div>' : "")}
+    <div class="lusec">🏏 打順<span class="lusub">${mine ? "自分のチーム" : "相手のチーム"}</span></div>
+    <div class="lulist">${rows}</div>
+    ${mine && mdCanSub("bat") ? `<button class="btn lubtn" onclick="mdOpenSub('bat')">🔁 代打・守備交代</button>`
+      : (mine ? '<div class="luempty">※ 代打を出せるのは<b>自分の打席のまえ</b>だけです。</div>' : "")}
+    <div class="lusec">🪑 ベンチ<span class="lusub">${bench.length} 人</span></div>
+    <div class="lulist">${benchHTML}</div>
+    <div class="luempty" style="margin-top:8px">※ 打率は<b>この試合の打数が少ないあいだ</b>はミート・パワーからの目安で、
+      打席が増えるほど<b>実際の成績</b>に近づきます。</div>`;
+}
+function mdPaintLineup() { const b = $("lineupBody"); if (b) b.innerHTML = lineupHTML(); }
+/* ★ HTML の onclick から呼ぶので、<b>window に出す</b>こと。
+   md2-game.js は丸ごと (function(){…})() の中なので、出さないと「定義されていません」になる。 */
+window.mdPaintLineup = mdPaintLineup;
+window.mdLineupSide = (s) => { lineupSide = s; SFX.tap(); mdPaintLineup(); };
+window.mdOpenLineup = () => {
+  if (!M) return;
+  lineupSide = "me";
+  mdPaintLineup();
+  openSheet("sheetLineup");
+  SFX.tap();
+};
+window.mdCloseLineup = () => closeSheet("sheetLineup");
+
+/* ── 交代のえらび画面 ── */
+function subListHTML(kind) {
+  const cands = benchIds(kind === "pitcher");
+  if (!cands.length) return '<div class="luempty">交代できる選手がいません。<b>TEAM</b> タブでベンチに入れておいてください。</div>';
+  return cands.map((id) => {
+    const p = mp(id, true); if (!p) return "";
+    const s = mdStatOf(id);
+    return `<button class="lurow pick" onclick="mdDoSub('${kind}','${id}')">
+      <img class="luav" src="${esc(p.img || "")}" alt="" onerror="this.style.visibility='hidden'">
+      <span class="lutx"><b>${esc(p.nm)}</b><small>${esc(bestPos(p))}　${esc(p.bats || "")}／${esc(p.throws || "")}　総合 ${p.ovrNow || p.ovr}</small></span>
+      <span class="lust">${kind === "pitcher"
+        ? `防御率 <b>${eraTx(p)}</b><small>球速 ${Math.round(velOf(p, (p.pitches || [{ k: "straight", lv: 1 }])[0]))}km/h ／ スタミナ ${p.stam}</small>`
+        : `打率 <b>${avgTx(p)}</b><small>ミート${p.meet} パワー${p.power}${s.ab ? "／" + s.ab + "打数" + s.h + "安打" : ""}</small>`}</span>
+    </button>`;
+  }).join("");
+}
+window.mdOpenSub = (kind) => {
+  if (!mdCanSub(kind)) {
+    toast(kind === "pitcher" ? "投手交代は、自分が守っているとき（投球の前）だけです"
+                             : "代打は、自分の打席のまえだけです");
+    return;
+  }
+  const cur = kind === "pitcher" ? mp(M.pitcher.me, true) : mp(batterId(), true);
+  const b = $("lineupBody"); if (!b) return;
+  b.innerHTML = `
+    <div class="lusec">🔁 ${kind === "pitcher" ? "投手交代" : "代打・守備交代"}</div>
+    ${cur ? `<div class="lurow now">
+      <img class="luav" src="${esc(cur.img || "")}" alt="" onerror="this.style.visibility='hidden'">
+      <span class="lutx"><b>${esc(cur.nm)}</b><small>いま出ている選手</small></span>
+      <span class="lust">${kind === "pitcher"
+        ? `防御率 <b>${eraTx(cur)}</b><small>スタミナ ${Math.round(M.stam.me)}</small>`
+        : `打率 <b>${avgTx(cur)}</b><small>${mdStatOf(cur.id).ab}打数${mdStatOf(cur.id).h}安打</small>`}</span>
+    </div>` : ""}
+    <div class="lusec">だれと代えますか？</div>
+    <div class="lulist">${subListHTML(kind)}</div>
+    <button class="btn lubtn" onclick="mdPaintLineup()">← もどる</button>`;
+  SFX.tap();
+};
+window.mdDoSub = (kind, id) => {
+  if (!mdCanSub(kind)) { toast("いまは交代できません"); return; }
+  const t = M.myTeam;
+  const inp = mp(id, true); if (!inp) return;
+  if (kind === "pitcher") {
+    const outId = M.pitcher.me;
+    const outP = mp(outId, true);
+    M.pitcher.me = id;
+    M.stam.me = 100;                                   /* 交代した投手は元気 */
+    /* 打順の「投手」の枠も入れかえる（守備につくため） */
+    const oi = t.order.indexOf(outId);
+    if (oi >= 0) { t.order[oi] = id; t.pos[id] = "投手"; delete t.pos[outId]; }
+    if (!t.bench) t.bench = [];
+    if (outId && t.bench.indexOf(outId) < 0) t.bench.push(outId);
+    M.subs.push({ kind: "pitcher", out: outId, in: id, inn: M.inn });
+    note("投手交代：" + ((outP || {}).nm || "") + " → " + inp.nm);
+  } else {
+    const outId = batterId();
+    const outP = mp(outId, true);
+    const oi = t.order.indexOf(outId);
+    if (oi >= 0) { t.order[oi] = id; t.pos[id] = t.pos[outId] || bestPos(inp); delete t.pos[outId]; }
+    if (!t.bench) t.bench = [];
+    if (outId && t.bench.indexOf(outId) < 0) t.bench.push(outId);
+    M.subs.push({ kind: "bat", out: outId, in: id, inn: M.inn });
+    note("代打：" + ((outP || {}).nm || "") + " → " + inp.nm);
+  }
+  save();
+  setFielders();
+  paintMatchHead();
+  mdPaintLineup();
+  SFX.tap();
+  toast("交代しました");
+  /* いまの場面をやり直す（打順・守備の絵をそろえる） */
+  if (M.phase === "pitch") askPitch();
+  else if (M.phase === "swing") askSwing();
+};
+
 function bump(k, n) { msnCheck(); S.day[k] = (S.day[k] | 0) + n; save(); }
 
 /* ══════════ ★★ 2026-09-06 LOCAL PLAY（MagiBurst と同じ仕組み）══════════
