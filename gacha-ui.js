@@ -267,6 +267,10 @@ function paintPickup() {
     /* ★★ 2026-08-28 「まだ始まっていない（fesSoon）」ときだけ顔ぶれを伏せる。
        配信が終わったフェスは、もう見たことがあるので伏せない。 */
     const locked = fesSoon(gMode);
+    /* ★★ 2026-09-08 表紙のカードの確率が<b>全員同じ</b>になっていた（fesEachRate）。
+       実際の抽選は 1体ずつちがう（pickRateOf）ので、古いキャラも 1.2% と出ていた。
+       ★ 提供割合の表と同じ <b>pickRateOf(gMode, id)</b> を見ること。 */
+    const _newIds = (typeof fesNewIds === "function") ? fesNewIds(gMode) : (f.newChars || []);
     const cards = f.chars.map((id) => {
       const c = CHARS[id];
       /* 開催前は顔ぶれを伏せる（ガチャ側で伏せている意味がなくなるため） */
@@ -278,7 +282,8 @@ function paintPickup() {
       const aw = own ? Math.max(0, Math.min(MAX_AWK, DB.chars[id].awk || 0)) : 0;
       return `<button class="fcard" onclick="openDetX('${id}')" title="${c.nm} の性能を見る">
         <img src="${c.th}" alt="${c.nm}">
-        <span class="fr">${mx ? "対象外" : ratePct(fesEachRate(gMode))}</span>
+        <span class="fr">${mx ? "対象外" : ratePct(pickRateOf(gMode, id))}</span>
+        ${_newIds.indexOf(id) >= 0 ? '<span class="fnew">NEW</span>' : ""}
         <span class="fo ${own ? "ok" : "no"}">${own ? (mx ? "👑MAX" : aw ? "+" + aw + "凸" : "所持") : "未所持"}</span>
         <span class="fn">${c.nm}</span></button>`;
     }).join("");
@@ -786,15 +791,21 @@ function openRatesX() {
     /* ★★ 2026-09-06 1体ずつ確率がちがうガチャ（newChars を書いたもの）は、
        見出しにも「新キャラ 各◯% ／ それ以外 各0.2%」と出す。
        ★ 行の確率は必ず <b>pickRateOf(gMode, id)</b> を使うこと（表と実物がずれないように）。 */
-    const _hasNew = !!(f.newChars && f.newChars.length);
+    /* ★★ 2026-09-08 「新キャラ」は<b>実装から10日</b>だけ。
+       10日を過ぎたら newChars に残っていても全員 PICK_OLD になるので、
+       見出しも「各 0.4%」に切りかえる（表と実物がズレないように）。 */
+    const _newIds = (typeof fesNewIds === "function") ? fesNewIds(gMode) : (f.newChars || []);
+    const _hasNew = !!_newIds.length;
+    const _wasNew = !!(f.newChars && f.newChars.length);
     rows.push(rateHeadRow("✨ " + (gMode === ARCHIVE_KEY ? "ピックアップ" : "フェス限定SSR")
       + (_hasNew ? "（新キャラ 各 " + ratePct(pickRateOfMode(gMode)) + " ／ それ以外 各 " + ratePct(PICK_OLD) + "）"
+                 : _wasNew ? "（各 " + ratePct(PICK_OLD) + "）"
                  : "（各 " + ratePct(pickRateOfMode(gMode)) + "）"),
       ratePct(pickTotalOfMode(gMode)), f.c));
     /* ★ 2026-08-11 並びは番号の新しい順 */
     byCharNoDesc(pickIdsOfMode(gMode)).forEach((id) => rows.push(rateCharRow(id, pickRateOf(gMode, id),
       gMode === ARCHIVE_KEY ? "<b style='color:#e0405e'>PICKUP</b>"
-        : (_hasNew && f.newChars.indexOf(id) >= 0 ? "<b style='color:#e0405e'>NEW</b> フェス限定SSR" : "フェス限定SSR"))));
+        : (_newIds.indexOf(id) >= 0 ? "<b style='color:#e0405e'>NEW</b> フェス限定SSR" : "フェス限定SSR"))));
     if (gMode === ARCHIVE_KEY) {
       const rest = byCharNoDesc(archivePool().filter((id) => pickIdsOfMode(gMode).indexOf(id) < 0));
       if (rest.length) {
@@ -825,6 +836,7 @@ function openRatesX() {
         + ratePct(fillTotalOfMode(gMode)) + "</b> は " + PREMIUM_NM + " のSSRが等確率で受け取ります。"
       : "※ <b>限定SSRは" + (_hasNew
           ? "新キャラが1体あたり " + ratePct(pickRateOfMode(gMode)) + "、それ以外は1体あたり " + ratePct(PICK_OLD)
+          : _wasNew ? "1体あたり " + ratePct(PICK_OLD)
           : "1体あたり " + ratePct(pickRateOfMode(gMode))) + "</b>（合計 "
         + ratePct(pickTotalOfMode(gMode)) + "）。<b>SSRの合計はどのガチャも " + ratePct(SSR_TOTAL)
         + "</b>で、差の <b>" + ratePct(fillTotalOfMode(gMode)) + "</b> は "
@@ -835,6 +847,16 @@ function openRatesX() {
         + "ちがうのは<b>育成アイテムの中身</b>だけで、<b>" + DEBUT_NM + " と同じ内容</b>になっています——"
         + "叡智の果実は<b>3個・5個の束</b>が主体、🎫ガチャチケット・📕超越の書・🎖️英傑の証を厚くし、"
         + "<b>🪭九天の玉簡</b>と<b>📘クロスの書</b>も極低確率で出ます。"));
+    }
+    /* ★★ 2026-09-08 「あと何日で確率が下がるのか」を画面に書く */
+    if (_hasNew && typeof fesNewDaysLeft === "function") {
+      const _dl = fesNewDaysLeft(gMode);
+      if (_dl > 0) rows.push(rateNoteRow("※ <b>新キャラあつかいは実装から " + NEW_CHAR_DAYS
+        + "日間</b>です（あと<b>" + _dl + "日</b>）。過ぎるとその子も<b>各 "
+        + ratePct(PICK_OLD) + "</b>になります。"));
+    } else if (_wasNew) {
+      rows.push(rateNoteRow("※ このガチャの限定SSRは<b>全員が実装から " + NEW_CHAR_DAYS
+        + "日を過ぎている</b>ので、<b>各 " + ratePct(PICK_OLD) + "</b>です。"));
     }
     rows.push(rateNoteRow(TKT_NOTE));
   } else {

@@ -1,18 +1,15 @@
 {
-  "version": "2026-09-07-2",
-  "date": "2026-09-07",
-  "title": "戦姫祭にナオ・ハルカ／フルバーストの演出を作り直し／装備の検索・絞り込み・並び替え",
+  "version": "2026-09-09-2",
+  "date": "2026-09-09",
+  "title": "ホームの並びの入れかえ ／ 新しい案内役 ／ Boccia Rush の手ごたえ",
   "notes": [
-    "MagiBurst：戦姫祭に ナオ（水・No.211）・ハルカ（水・No.212）を追加。200体目のアンナ＆ランに次ぐ歴代2位の性能で、天界の審判の第一・第六を素のまま完全対応できます",
-    "MagiBurst：リンクスキルはどちらも新しい挙動（ナオ＝盤面に残っている敵の数だけ潮の段が上がる／ハルカ＝その段でふれた敵の数だけ次の段が重くなる）",
-    "MagiBurst：フルバーストの演出を作り直しました。技名を墨の板にのせて読みやすくし、絵を額の穴に揃え、額は画面の端まで（横長の画面では本体と同じ幅）",
-    "MagiBurst：装備の検索・絞り込み・並び替えを、育成と所持アイテム一覧に追加。装着のえらび画面では、いま付けているものが一番上に出ます",
-    "MagiBurst：イベント詳細のページ送りを下に固定しました",
-    "MagiBurst：野獣先輩だけのアビリティ「やりますねぇ!」を、ほかのキャラから外しました",
-    "XEVARION：同期の画面のお辞儀の切りかえを早くしました（出てすぐお辞儀します）"
+    "🏠 ホームの11枠を入れかえました。XEVYNAR・MagiRanking・MagiCounter・Magi: Boccia Rush が並び、Arcana Rush と Magi Lotto は「その他」へ移りました（並びはご自分で変えられます）",
+    "🐣 ロード中の案内役（2人目）を新しい絵に差しかえました。立ち絵とお辞儀で足の位置がずれないようにそろえてあります",
+    "🔎 MagiCounter と Magi: Boccia Rush がアプリ一覧に出ていなかったのを直しました",
+    "🥎 Magi: Boccia Rush のボールの減速を少し強くしました。同じ強さで転がる距離がおよそ12%短くなります"
   ],
-  "bytes": 43686663,
-  "files": 487,
+  "bytes": 44701340,
+  "files": 505,
   "urls": [
     "index.html",
     "characters.html",
@@ -82,6 +79,8 @@
     "thumbs/MagiLink.jpg",
     "thumbs/MagiChainParty.jpg",
     "thumbs/MagiDominionGrid.jpg",
+    "thumbs/MagiCounter.jpg",
+    "thumbs/MagiBocciaRush.jpg",
     "thumbs/MagiRanking.jpg",
     "thumbs/MagiCraft.jpg",
     "thumbs/MagiManor.jpg",
@@ -389,6 +388,9 @@
     "img/t_AstraeaC.webp",
     "img/t_NaoS.webp",
     "img/t_HarukaS.webp",
+    "img/t_Reia.webp",
+    "img/t_Miori.webp",
+    "img/t_AnnaMaid.webp",
     "MagiBurst/img/eq_head.webp",
     "MagiBurst/img/eq_arm.webp",
     "MagiBurst/img/eq_body.webp",
@@ -500,27 +502,100 @@
     "MagiArcanaRush/img/mar-bg.webp",
     "MagiDominionGrid/index.html",
     "MagiDominionGrid/css/mdg.css",
-    "MagiDominionGrid/js/mdg.js"
+    "MagiDominionGrid/js/mdg.js",
+    "MagiCounter/index.html",
+    "MagiCounter/manifest.webmanifest",
+    "MagiCounter/css/mc.css",
+    "MagiCounter/js/mc-icons.js",
+    "MagiCounter/js/mc-data.js",
+    "MagiCounter/js/mc-core.js",
+    "MagiCounter/js/mc-ui.js",
+    "MagiCounter/data/meta.json",
+    "MagiBocciaRush/index.html",
+    "MagiBocciaRush/manifest.webmanifest",
+    "MagiBocciaRush/css/mbr.css",
+    "MagiBocciaRush/js/mbr-core.js",
+    "MagiBocciaRush/js/mbr-ui.js"
   ],
   "apps": [
-    "img",
-    "magiarcanarush",
+    "magibocciarush",
     "magiburst",
     "magichainparty",
+    "magicounter",
     "magidiamond",
     "magidominiongrid",
-    "magijackpot",
     "magilex",
-    "magilotto",
-    "magimusic",
     "tab:chars",
     "tab:community",
     "tab:gacha",
-    "tab:home",
-    "xevynar"
+    "tab:home"
   ],
-  "changedFiles": 35,
+  "changedFiles": 19,
   "history": [
+    {
+      "version": "2026-09-09-1",
+      "date": "2026-09-09",
+      "title": "新作 Magi: Boccia Rush ／ 新作 MagiCounter ／ 戦姫祭 第3弾（史上最強）",
+      "notes": [
+        "🥎 新作 <b>Magi: Boccia Rush</b>。本物のボッチャを引っぱって離すだけで。コート・物理・得点は公式ルールにそろえ、CPU（EASY〜MASTER）・1台でのチーム戦・部屋番号のオンライン・ランクマッチ・練習・ルールブックを収録。キャラクターとガチャは XEVARION と共通です",
+        "🎯 新作 <b>MagiCounter</b>。Pokémon Champions の対戦支援アプリで、相手の編成を分析して自分の6体から最適な3体とその理由を出します。本物のポケモンの絵とタイプの記号つき・英語版・オフライン対応",
+        "🌸 戦姫祭に <b>レイア（火）・ミオリ（闇）・アンナ(メイド)（光）</b> が参戦。3体とも MagiBurst 史上最強で、天界の審判の第八・第九・第十を素のまま有利属性で完全対応します",
+        "⚡ 天界の審判・蓬莱の九重で、ボスが降臨した瞬間に天から裁きが落ちてチーム全体にダメージが入るようになりました（これで全滅はしません）",
+        "🩹 ガチャの表紙のカードが全員同じ確率を出していたのを1体ごとの確率に直し、新キャラあつかいは実装から10日間・古い限定キャラは 0.2% → 0.4% になりました",
+        "🩹 適性クエストに天界の審判が丸ごと抜けていたのを直し、2件分を足しました（8件→10件）",
+        "🩹 MagiBurst：フルバーストの額がスマホではみ出していたのと、編成でえらんでいる枠が分かりづらかったのを直し、編成から装備の印を外して4体のカードをそろえました",
+        "🩹 MagiBurst：重力バリアの減速を強くし、敵の攻撃ターンを遅らせるリンクスキル・ショットスキルを廃止しました（そのぶん威力を上げています）",
+        "🖼 XEVARION の起動画面の絵を新しくし、ロード中の案内役が2人からランダムで出るようになりました"
+      ],
+      "apps": [
+        "magiarcanarush",
+        "magibocciarush",
+        "magiburst",
+        "magichainparty",
+        "magicounter",
+        "magidiamond",
+        "magidominiongrid",
+        "magijackpot",
+        "magilex",
+        "magilotto",
+        "magimusic",
+        "tab:chars",
+        "tab:community",
+        "tab:gacha",
+        "tab:home",
+        "xevynar"
+      ]
+    },
+    {
+      "version": "2026-09-07-2",
+      "date": "2026-09-07",
+      "title": "戦姫祭にナオ・ハルカ／フルバーストの演出を作り直し／装備の検索・絞り込み・並び替え",
+      "notes": [
+        "MagiBurst：戦姫祭に ナオ（水・No.211）・ハルカ（水・No.212）を追加。200体目のアンナ＆ランに次ぐ歴代2位の性能で、天界の審判の第一・第六を素のまま完全対応できます",
+        "MagiBurst：リンクスキルはどちらも新しい挙動（ナオ＝盤面に残っている敵の数だけ潮の段が上がる／ハルカ＝その段でふれた敵の数だけ次の段が重くなる）",
+        "MagiBurst：フルバーストの演出を作り直しました。技名を墨の板にのせて読みやすくし、絵を額の穴に揃え、額は画面の端まで（横長の画面では本体と同じ幅）",
+        "MagiBurst：装備の検索・絞り込み・並び替えを、育成と所持アイテム一覧に追加。装着のえらび画面では、いま付けているものが一番上に出ます",
+        "MagiBurst：イベント詳細のページ送りを下に固定しました",
+        "MagiBurst：野獣先輩だけのアビリティ「やりますねぇ!」を、ほかのキャラから外しました",
+        "XEVARION：同期の画面のお辞儀の切りかえを早くしました（出てすぐお辞儀します）"
+      ],
+      "apps": [
+        "magiarcanarush",
+        "magiburst",
+        "magichainparty",
+        "magidiamond",
+        "magidominiongrid",
+        "magijackpot",
+        "magilex",
+        "magilotto",
+        "magimusic",
+        "tab:chars",
+        "tab:community",
+        "tab:gacha",
+        "tab:home",
+        "xevynar"
+      ]
+    },
     {
       "version": "2026-09-07-1",
       "date": "2026-09-07",
@@ -565,7 +640,6 @@
         "旧UIを廃止して新UIに一本化"
       ],
       "apps": [
-        "img",
         "magiarcanarush",
         "magiburst",
         "magichainparty",
@@ -756,14 +830,14 @@
       ],
       "apps": [
         "magiburst",
-        "magilex",
         "magichainparty",
-        "magilink",
-        "magidominiongrid",
         "magidiamond",
-        "tab:home",
+        "magidominiongrid",
+        "magilex",
+        "magilink",
+        "tab:community",
         "tab:gacha",
-        "tab:community"
+        "tab:home"
       ]
     },
     {
@@ -784,13 +858,13 @@
       ],
       "apps": [
         "magiburst",
-        "magilex",
         "magichainparty",
-        "magilink",
         "magidominiongrid",
-        "tab:home",
+        "magilex",
+        "magilink",
+        "tab:community",
         "tab:gacha",
-        "tab:community"
+        "tab:home"
       ]
     },
     {
@@ -808,14 +882,14 @@
         "📚 <b>MagiLex</b> に「<b>化学すべて</b>」「<b>物理すべて</b>」の絞り込みを追加しました（理論・無機・有機などの<b>範囲別</b>にも絞りこめます）。💬 <b>MagiLink</b> に新しいメッセージが届くと、XEVARION ホームのアイコンに印が出ます。"
       ],
       "apps": [
-        "magidominiongrid",
         "magiburst",
-        "magidiamond",
         "magichainparty",
-        "magilink",
+        "magidiamond",
+        "magidominiongrid",
         "magilex",
-        "tab:home",
-        "tab:gacha"
+        "magilink",
+        "tab:gacha",
+        "tab:home"
       ]
     },
     {
@@ -833,16 +907,15 @@
         "MagiLink をリセット＆コード不要に・友達を XEVARION と1本化"
       ],
       "apps": [
-        "img",
         "magiarcanarush",
         "magiburst",
         "magichainparty",
         "magidiamond",
         "magijackpot",
         "magilex",
+        "magilink",
         "magilotto",
         "magimusic",
-        "magilink",
         "tab:chars",
         "tab:community",
         "tab:gacha",
@@ -866,13 +939,11 @@
       ],
       "apps": [
         "magiburst",
-        "magilex",
         "magidiamond",
-        "tab:gacha",
-        "tab:home",
+        "magilex",
         "tab:chars",
-        "img",
-        "thumbs"
+        "tab:gacha",
+        "tab:home"
       ]
     },
     {
@@ -891,9 +962,9 @@
         "magiarcanarush",
         "magiburst",
         "magilex",
-        "tab:home",
+        "tab:chars",
         "tab:gacha",
-        "tab:chars"
+        "tab:home"
       ]
     },
     {
@@ -919,7 +990,6 @@
         "👆 ダブルタップでの拡大を無効化"
       ],
       "apps": [
-        "img",
         "magiburst",
         "magichainparty",
         "magijackpot",
@@ -948,7 +1018,6 @@
         "📝 MagiLex の確認テストは、最後にまとめて答え合わせを出す形にしました"
       ],
       "apps": [
-        "img",
         "magiburst",
         "magichainparty",
         "magijackpot",
@@ -974,7 +1043,6 @@
         "🏯 蓬莱天宮の続きに 蓬莱仙苑・月宮・神域・天界・神天 の5クエストを追加（アンチ3種・すべて新しい組み合わせ）"
       ],
       "apps": [
-        "img",
         "magiburst",
         "magichainparty",
         "magijackpot",
@@ -1006,39 +1074,6 @@
         "tab:chars",
         "tab:gacha",
         "tab:home"
-      ]
-    },
-    {
-      "version": "2026-08-26-5",
-      "date": "2026-08-26",
-      "title": "MagiTier に「Tierのあいだに段を追加」と「表からもどす」／新キャラの評価を少し高めに",
-      "notes": [
-        "🏗 MagiTier で Tier と Tier のあいだに段を追加できるように（アルファベットを1つずつずらす選択つき・できあがりのプレビュー付き）",
-        "🧹 MagiTier に「表からもどす（未配置へ）」を追加（全部／段をえらんで／その段だけ）",
-        "🏅 MagiTier の表より新しいキャラの Tier 評価を、表の平均より少し高めに（自動編成・XEVYNAR のおすすめ編成）"
-      ],
-      "apps": [
-        "magiburst",
-        "tab:home",
-        "xevynar"
-      ]
-    },
-    {
-      "version": "2026-08-26-4",
-      "date": "2026-08-26",
-      "title": "MagiTier の評価は表より新しいキャラを不利にしないように／RANK UP は低確率にもどしました",
-      "notes": [
-        "🏅 自動編成・XEVYNAR のおすすめ編成が見る MagiTier の点で、表より後に追加されたキャラを最下位あつかいせず表の平均点にするよう修正",
-        "✦ ランクアップ（RANK UP!!）演出は必ず出す→低確率にもどしました（レア度を保つため・演出は画面いっぱいのまま）",
-        "🛡 対応キャラの貫通／反射の表示を1文字の丸い札にしてコンパクトに"
-      ],
-      "apps": [
-        "magiburst",
-        "magilex",
-        "tab:chars",
-        "tab:gacha",
-        "tab:home",
-        "xevynar"
       ]
     }
   ]

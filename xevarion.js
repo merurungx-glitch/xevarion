@@ -2712,7 +2712,7 @@ function prepareAccessScreen(opts) {
   if (loading) loading.style.display = "flex";
   if (start) start.style.display = "none";
   const ready = () => { xhReady = true; if (loading) loading.style.display = "none"; if (start) start.style.display = "flex"; };
-  const img = new Image(); img.onload = ready; img.onerror = ready; img.src = "thumbs/xevarion-home_s.jpg?v=10";
+  const img = new Image(); img.onload = ready; img.onerror = ready; img.src = "thumbs/xevarion-home_s.jpg?v=11";
   if (img.complete) ready();
   setTimeout(ready, 2500);
 }

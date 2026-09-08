@@ -817,6 +817,11 @@
        ★ 既存の「ノア」「ハルカ」とは<b>別人</b>なので、id も絵も別。 */
     { id: "mb:naos", mbId: "naos", name:"ナオ", file: "../img/t_NaoS.webp", since:"2026-09-07" },
     { id: "mb:harukas", mbId: "harukas", name:"ハルカ", file: "../img/t_HarukaS.webp", since:"2026-09-07" },
+    /* ★★ 2026-09-08 戦姫祭 第3弾（No.213～215）。
+       ★ 並びは mb-core.js の CHAR_IDS と<b>同じ順</b>にそろえる（並び＝No.）。 */
+    { id: "mb:reia", mbId: "reia", name:"レイア", file: "../img/t_Reia.webp", since:"2026-09-08" },
+    { id: "mb:miori", mbId: "miori", name:"ミオリ", file: "../img/t_Miori.webp", since:"2026-09-08" },
+    { id: "mb:annamd", mbId: "annamd", name:"アンナ(メイド)", file: "../img/t_AnnaMaid.webp", since:"2026-09-08" },
   ];
   /* ★ 2026-08-10 初期SR 4体（ゼラ・アヤメ・レイラ・セリーヌ）は廃止しました。
      いまは<b>全キャラがアイコンに選べる</b>ので、starter という区別そのものが要らない。 */
@@ -894,7 +899,10 @@
   , "renad", "kaoru", "subaru", "kasumi", "tsukinod"
   /* ★★ 2026-09-07 戦姫祭 第2弾。ここに無いと
      <b>XEVAミッションの図鑑コレクションに出てこない</b>。 */
-  , "naos", "harukas"];
+  , "naos", "harukas"
+  /* ★★ 2026-09-08 戦姫祭 第3弾。ここに無いと
+     <b>XEVAミッションの図鑑コレクションに出てこない</b>。 */
+  , "reia", "miori", "annamd"];
   MB_CHAR_MASTER.forEach(function (c) { c.mb = true; c.starter = MB_STARTERS.indexOf(c.mbId) >= 0; });
   MB_CHAR_MASTER.forEach(function (c) { c.star5 = MB_STAR5.indexOf(c.mbId) >= 0; });
   /* id は "mb:zera" のように接頭辞つき。XEVAガチャにも同じ名前のキャラ（シオンなど）が

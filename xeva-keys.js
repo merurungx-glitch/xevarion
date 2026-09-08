@@ -113,6 +113,15 @@ export const PORTAL_SYNC_KEYS = [
      どちらも小さな JSON（上限つき）なので、同期に載せて困らない。 */
   "xevynar_learn_v1",      // 聞きかた → 話題 の結びつき（会話から覚える）
   "xevynar_steps_v1",      // 解きかた（定石）をどこまで読んだか
+  /* ★★ 2026-09-08 MagiCounter（Pokémon Champions 対戦支援）。
+     マイ編成・お気に入り・選出の履歴が入っている。
+     ★ 小さな JSON なので専用 Firebase は作らず、ポータルの store で同期する。
+     ★ 環境データの控え（magicounter_meta_v1）は<b>同期しない</b>——
+       オンラインに戻ればその端末で取り直せるキャッシュだから。 */
+  "magicounter_v1",
+  /* ★★ 2026-09-08 Magi: Boccia Rush。ランク・RP・戦績・使うキャラ・設定。
+     ★ キャラとガチャは magiburst_v1 に入っているので、ここには入れない。 */
+  "mbr_v1",
 ];
 
 /* ── ② アプリ専用 Firebase（app-cloud.js）で同期するキー ──

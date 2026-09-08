@@ -18,7 +18,7 @@
        の<b>両方</b>を使う。①②は xeva-safebottom.js が持っているので、
        読まれていないページでは<b>自分で読みこむ</b>。
 
-   使い方: <script src="../xeva-loading.js?v=10" defer></script>
+   使い方: <script src="../xeva-loading.js?v=12" defer></script>
    ============================================================ */
 (function () {
   "use strict";
@@ -74,12 +74,25 @@
   }
 
   /* ══ 案内役（立ち絵とお辞儀）══
-     ★★ 2026-09-06b <b>1人だけ</b>にしました（ご指定）。
-       もう1人（ld_b_*）の絵はそのまま置いてありますが、ここでは使いません。
-       戻したくなったら CAST に "b" を足すだけで、また交互に出ます。 */
-  var CAST = ["a"];
+     ★★ 2026-09-08 ご指定により<b>2人のどちらかがランダムで出る</b>ようにしました。
+       絵は img/ld_a_stand.webp・ld_a_bow.webp（フードの子）と
+       img/ld_b_stand.webp・ld_b_bow.webp（メイドの子・2026-09-09 に差しかえ）。
+       ★★ 4枚とも <b>560×560 で、足の裏が同じ y（=555）・足元の中心が同じ x（=280）</b>
+         になるように切りぬいてある。立ち絵↔お辞儀で<b>足が跳ねない</b>ようにするため。
+         （側は object-fit:contain の正方形なので、絵の中の位置がそのまま画面の位置になる）
+       ★ 選ぶのは<b>画面を作るときに1回だけ</b>なので、
+         同じロード中に人が入れかわることはありません。 */
+  var CAST = ["a", "b"];
   var who = CAST[Math.floor(Math.random() * CAST.length)];
-  function poseSrc(pose) { return baseUrl() + "img/ld_" + who + "_" + pose + ".webp"; }
+  /* ★★ 絵は<b>4本ともフルの名前で書く</b>。
+     ・SW は絵を「版に縛られない置き場（xev-img-v1）」に控えるので、
+       <b>?v= を上げないと古い絵がそのまま出る</b>（裏では差しかわるが1回遅れる）。
+     ・分けて書くと bump-v.py が見つけられないので、<b>連結せずに並べてある</b>。 */
+  var LD_SRC = {
+    a: { stand: "img/ld_a_stand.webp?v=2", bow: "img/ld_a_bow.webp?v=2" },
+    b: { stand: "img/ld_b_stand.webp?v=2", bow: "img/ld_b_bow.webp?v=2" },
+  };
+  function poseSrc(pose) { return baseUrl() + (LD_SRC[who] || LD_SRC.a)[pose]; }
 
   function build() {
     if (document.getElementById(ID)) return;

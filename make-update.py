@@ -21,7 +21,11 @@ SWS = ["sw.js", "MagiLex/sw.js", "MagiBurst/sw.js", "MagiChainParty/sw.js", "XEV
        # ★★ 2026-08-29b 新作 Magi: Arcana Rush（β版）
        "MagiArcanaRush/sw.js",
        # ★★ 2026-09-03 新作 Magi Dominion Grid
-       "MagiDominionGrid/sw.js"]
+       "MagiDominionGrid/sw.js",
+       # ★★ 2026-09-08 新作 MagiCounter（Pokémon Champions 対戦支援）
+       "MagiCounter/sw.js",
+       # ★★ 2026-09-08 新作 Magi: Boccia Rush
+       "MagiBocciaRush/sw.js"]
 
 
 # ══════════════════════════════════════════════════════════════
@@ -44,6 +48,10 @@ FOLDER_APP = {
     "ishidaproduction": "ishida",
     "magibattle": "magibattle",
 }
+# ★★ 2026-09-09 アプリではない<b>共通の置き場</b>。
+#   ここを見逃すと apps に "img" や "thumbs" が入り、
+#   どのタイルにも当たらない印が<b>消せないまま残る</b>。
+SHARED_DIRS = {"img", "thumbs", "brand", "icons"}
 # ルート直下のファイルは「どのタブの話か」に振り分ける（tab: を付けて区別する）
 ROOT_TAB = {
     "gacha.html": "tab:gacha", "gacha-ui.js": "tab:gacha",
@@ -67,8 +75,10 @@ def app_of(path):
     """パッケージ内の相対パス → アプリのキー（分からなければ None）"""
     parts = path.split("/")
     if len(parts) > 1:
-        key = FOLDER_APP.get(parts[0].lower(), parts[0].lower())
-        return key
+        low = parts[0].lower()
+        if low in SHARED_DIRS:
+            return "tab:home"
+        return FOLDER_APP.get(low, low)
     return ROOT_TAB.get(parts[0], "tab:home")
 
 

@@ -7,7 +7,7 @@
    ・オフライン中の進行は localStorage に残り、オンライン復帰時に
      xeva-cloud.js がタイムスタンプ比較でクラウドへ上書き反映する
    ============================================================ */
-const VERSION = "xevarion-sw-v125";
+const VERSION = "xevarion-sw-v128";
 
 /* ホームを成立させる最小セット（重い画像は runtime キャッシュに任せる） */
 const CORE = [
@@ -17,16 +17,16 @@ const CORE = [
   "./characters.html",
   /* ★ 2026-08-10 ガチャは XEVARION に一本化。中身は MagiBurst の共有モジュールが持つ */
   "./gacha.html",
-  "./gacha-ui.js?v=37",
-  "./mb-newchars.js?v=20",
+  "./gacha-ui.js?v=38",
+  "./mb-newchars.js?v=21",
   "./xevion-os.js?v=12",
   "./xevion-os.css?v=14",
   "./magibattle-stats.js?v=13",
-  "./MagiBurst/js/mb-core.js?v=98",
+  "./MagiBurst/js/mb-core.js?v=100",
   /* ★ 2026-08-10 ガチャと図鑑で共通の土台・キャラ詳細・結果演出 */
   /* ★ 2026-08-12 ポータルのガチャ・図鑑も magiburst_v1 を同期するようになった */
   "./app-cloud.js?v=11",
-  "./MagiBurst/magiburst-cloud.js?v=13",
+  "./MagiBurst/magiburst-cloud.js?v=14",
   "./mb-boot.js?v=16",
   "./mb-char-detail.js?v=26",
   "./mb-char-detail.css?v=21",
@@ -55,14 +55,14 @@ const CORE = [
   "./xeva-i18n-p4.js?v=6",
   "./xeva-i18n-n1.js?v=4",
   "./xeva-i18n-n2.js?v=2",
-  "./xeva.js?v=60",
+  "./xeva.js?v=61",
   "./xeva-fx.js?v=8",
-  "./xeva-loading.js?v=9",
+  "./xeva-loading.js?v=11",
   "./xevarion.js?v=82",
-  "./xevarion-home.js?v=85",
+  "./xevarion-home.js?v=88",
   "./maintenance-gate.js?v=12",
   "./xeva-back.js?v=8",
-  "./xeva-keys.js?v=16",
+  "./xeva-keys.js?v=18",
   /* ★ 2026-08-20 通信設定（Wi-Fi／モバイルデータごとの動き）。
      この SW へ設定を送る側なので、オフラインでも読めるようにここに入れておく。 */
   "./xeva-netmode.js?v=9",
@@ -92,6 +92,9 @@ const CORE = [
   "./thumbs/MagiChainParty.jpg",
   /* ★★ 2026-09-03 新作 Magi Dominion Grid */
   "./thumbs/MagiDominionGrid.jpg",
+  /* ★★ 2026-09-08 新作 MagiCounter。ここに無いとオフラインでアプリ一覧の絵が出ない。 */
+  "./thumbs/MagiCounter.jpg",
+  "./thumbs/MagiBocciaRush.jpg",
   "./thumbs/MagiRanking.jpg",
   "./thumbs/MagiCraft.jpg",
   "./thumbs/MagiManor.jpg",
@@ -124,7 +127,7 @@ const CORE = [
   "./thumbs/MagiTier.jpg",
   "./thumbs/Ordyxis.jpg",
   "./thumbs/MagicalFuture.jpg",
-  "./thumbs/xevarion-home_s.jpg?v=10",
+  "./thumbs/xevarion-home_s.jpg?v=11",
   /* ★★ 2026-09-06 同期の画面に出る案内役（立ち姿とお辞儀・2人ぶん）。 */
   "./img/ld_a_stand.webp",
   "./img/ld_a_bow.webp",

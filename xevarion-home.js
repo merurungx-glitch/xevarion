@@ -64,6 +64,12 @@ const XH_APPS = [
   { id:"magidominiongrid", name:"Dominion", full:"Magi Dominion Grid", sub:"思考の陣取り", cat:"game", tone:"blue",
     href:"MagiDominionGrid/index.html", img:"thumbs/MagiDominionGrid.jpg",
     desc:"1台の iPad を囲んで 2〜10人。全員が<b>同時に</b>行動をえらび、一斉に処理するリアルタイム陣取り。サイコロもランダムイベントも無く、勝ち負けは盤面の読みだけで決まります。領地の連結・攻撃と防御・特殊行動・終盤の FINAL STRATEGY。" },
+  /* ★★ 2026-09-08 新作。本物のボッチャ × 引っばりアクション。
+     キャラクターとガチャは XEVARION（MagiBurst）と<b>共通</b>。 */
+  { id:"magibocciarush", name:"Boccia Rush", full:"Magi: Boccia Rush", sub:"ボッチャ対戦", cat:"game", tone:"blue",
+    href:"MagiBocciaRush/index.html", img:"thumbs/MagiBocciaRush.jpg",
+    desc:"引っばって、はなすだけ。<b>本物のボッチャ</b>をスマホで。コート・物理・得点は公式ルールに合わせ、キャラクターの能力とスキルで戦術が広がります。CPU（EASY～MASTER）・1台でのチーム戦（2vs2～4vs4）・部屋番号のオンライン・ランクマッチ・練習・ルールブック。遊びながらボッチャのルールを覚えられます。",
+  },
   { id:"magiranking", name:"Ranking", full:"MagiRanking", sub:"月間ランキング", cat:"social", tone:"gold",
     href:"MagiRanking/index.html", img:"thumbs/MagiRanking.jpg",
     desc:"獲得XEVAの合計を毎月集計して順位を競う月間ランキング。月末の順位に応じて最大1,000 XEVAを配布。" },
@@ -98,6 +104,12 @@ const XH_APPS = [
   { id:"magiportfolio", name:"Portfolio", full:"MagiPortfolio", sub:"持ち株管理", cat:"info", tone:"blue",
     href:"MagiPortfolio/MagiPortfolio.html", img:"thumbs/MagiPortfolio.jpg",
     desc:"買った株を登録するだけの持ち株マネージャー。取得単価を自動逆引きし、伸び率・評価損益・資産配分を一覧。" },
+  /* ★★ 2026-09-08 新作。Pokémon Champions の<b>対戦支援・編成分析</b>。
+     道具の仲間なので MagiTier のとなりに置く。 */
+  { id:"magicounter", name:"MagiCounter", sub:"対戦支援・編成分析", cat:"info", tone:"blue",
+    href:"MagiCounter/index.html", img:"thumbs/MagiCounter.jpg",
+    desc:"Pokémon Champions 専用の対策・分析ツール。検索 → 相手を分析 → 対策を確認 → <b>最適な3体を選出</b> → 編成を改善、までをスマホで一気に。タイプ相性表・対策検索・使用率ランキング・編成分析・対面シミュレーターを収録。英語版・オフライン対応。",
+  },
   { id:"magitier", name:"MagiTier", sub:"Tier表作成", cat:"info", tone:"pink",
     href:"MagiTier/MagiTier.html", img:"thumbs/MagiTier.jpg",
     desc:"Tier表の作成からプレゼンまで。カードを魔法のように並べ替え、あなたのランキングを世界へ発信。" },
@@ -136,13 +148,20 @@ const XH_RETIRED_ON = "2026-07-29";
      枠は11個のままなので、押し出された MagiManor は「その他」へ移る。
    ★ 2026-08-13 11枠目を MagiCraft から ORDYXIS に入れ替え（MagiCraft は「その他」へ）。 */
 const XH_DEFAULT_ORDER = [
-  /* ★★ 2026-08-29b 新作 Magi: Arcana Rush を MagiBurst のとなりへ（同じ系統なので）。
-     枠は11個のままなので、押し出された ORDYXIS は「その他」へ移る。 */
-  "magilex", "magilink", "magiburst", "magiarcanarush",
-  /* ★★ 2026-09-06 MagiBattle を「その他」へ、その位置に MagiDiamond（ご指定） */
-  "xevynar", "magichainparty", "magidominiongrid", "magidiamond",
-  "magiranking", "magilotto", "magijackpot",
+  /* ★★ 2026-09-09 ホームの11枠を入れかえ（ご指定）。
+     ・Arcana Rush の位置 → <b>XEVYNAR</b>
+     ・もとの XEVYNAR の位置 → <b>MagiRanking</b>
+     ・もとの MagiRanking の位置 → <b>MagiCounter</b>
+     ・もとの Magi Lotto の位置 → <b>Magi: Boccia Rush</b>
+     ・Arcana Rush と Magi Lotto は「その他」へ下げる。
+     ★★ MagiCounter と Boccia Rush は XH_APPS にだけ足して<b>この並びに無かった</b>ので、
+        アプリ一覧（ホームも「その他」も）に一切出ていなかった。
+        ★ <b>新しいアプリは XH_APPS と XH_DEFAULT_ORDER の両方</b>に必ず書くこと。 */
+  "magilex", "magilink", "magiburst", "xevynar",
+  "magiranking", "magichainparty", "magidominiongrid", "magidiamond",
+  "magicounter", "magibocciarush", "magijackpot",
   /* 以降は「その他」の中に入る */
+  "magiarcanarush", "magilotto",
   "ordyxis", "magicraft", "magimanor", "magiportfolio",
   "magiarena", "magibattle", "magiempire", "magifocus", "magimusic", "magitier",
   "ngx", "ishida", "magicalfuture",
@@ -151,7 +170,7 @@ const XH_HOME_SLOTS = 11;
 const XH_ORDER_KEY = "xeva_home_order_v2";
 /* 並び順の世代。上げると保存済みの並びを一度だけ既定に戻す
    （アプリの入れ替えを、既にホームを触った人にも確実に反映させるため） */
-const XH_ORDER_GEN = "8";   /* ★★ 2026-09-06 MagiBattle ⇄ MagiDiamond の入れかえを既存の並びにも効かせる */
+const XH_ORDER_GEN = "9";   /* ★★ 2026-09-09 11枠の入れかえと、抹けていた新作2本を既存の並びにも効かせる */
 const XH_ORDER_GEN_KEY = "xeva_home_order_gen";
 
 /* 期間限定イベント（from/to は YYYY-MM-DD。期間内のものだけ表示）
@@ -321,6 +340,44 @@ const XH_EVENTS = [
    ══════════════════════════════════════════════════════════════ */
 const XH_UPDATE_MAX = 12;
 const XH_UPDATES = [
+  /* ★★ 2026-09-08 戦姫祭 第3弾（史上最強）・降臨の一撃・ガチャの確率表記・適性クエスト */
+  /* ★★ 2026-09-09 ホームの並びの入れかえ・案内役の差しかえ・Boccia の手ごたえ */
+  { tag:"UPDATE", t1:"ホームの並びを入れかえました", at:"2026-09-09",
+    t2:"XEVYNAR・MagiRanking・MagiCounter・Magi: Boccia Rush をホームの11枠へ。Arcana Rush と Magi Lotto は「その他」に移りました（並びはご自分で変えられます）",
+    href:"index.html", img:"thumbs/xevarion-home_s.jpg" },
+  { tag:"UPDATE", t1:"ロード中の案内役が新しくなりました", at:"2026-09-09",
+    t2:"2人目の案内役を差しかえ、<b>立ち絵とお辞儀で足の位置がずれない</b>ようにそろえました",
+    href:"index.html", img:"img/ld_b_stand.webp" },
+  { tag:"UPDATE", t1:"Boccia Rush のボールが少し早く止まります", at:"2026-09-09",
+    t2:"同じ強さで転がる距離がおよそ 12% 短くなり、狙った位置に置きやすくなりました",
+    href:"MagiBocciaRush/index.html", img:"thumbs/MagiBocciaRush.jpg" },
+  { tag:"NEW", t1:"新作 Magi: Boccia Rush", at:"2026-09-09",
+    t2:"本物のボッチャを引っぱり操作で。コートも得点も公式ルール。キャラとガチャは XEVARION と共通です",
+    href:"MagiBocciaRush/index.html", img:"thumbs/MagiBocciaRush.jpg" },
+  { tag:"NEW", t1:"新作 MagiCounter", at:"2026-09-09",
+    t2:"Pokémon Champions の対戦支援アプリ。相手の編成を分析して、自分の6体から<b>最適な3体</b>とその理由を出します。英語版・オフライン対応",
+    href:"MagiCounter/index.html", img:"thumbs/MagiCounter.jpg" },
+  { tag:"UPDATE", t1:"MagiBurst の見やすさと重力バリア", at:"2026-09-09",
+    t2:"編成から装備の印を外して4体のカードをそろえ、重力バリアの減速を強くしました。敵を遅延するリンク・ショットスキルは廃止です",
+    href:"MagiBurst/index.html", img:"thumbs/MagiBurst.jpg" },
+  { tag:"NEW", t1:"戦姫祭に レイア・ミオリ・アンナ(メイド)", at:"2026-09-08",
+    t2:"MagiBurst 史上最強の3体。天界の審判の第八・第九・第十を素のまま有利属性で完全対応。リンクスキルは3本とも新設です",
+    href:"MagiBurst/index.html", img:"thumbs/MagiBurst.jpg" },
+  { tag:"UPDATE", t1:"降臨の一撃（天界の審判・蓬莱の九重）", at:"2026-09-08",
+    t2:"ボスが降臨した瞬間、天から裁きが落ちてチーム全体にダメージが入ります（これで全滅はしません）",
+    href:"MagiBurst/index.html", img:"thumbs/MagiBurst.jpg" },
+  { tag:"FIX", t1:"ガチャの表紙の確率表記", at:"2026-09-08",
+    t2:"表紙のカードが全員同じ確率を出していたのを、提供割合の表と同じ「1体ごとの確率」に直しました",
+    href:"gacha.html", img:"thumbs/Xevarion.png" },
+  { tag:"UPDATE", t1:"新キャラ扱いは実装から10日間・古い限定は 0.4%", at:"2026-09-08",
+    t2:"これまでは次の追加が来るまで確率が下がりませんでした。あわせて 0.2% → 0.4% に引き上げています",
+    href:"gacha.html", img:"thumbs/Xevarion.png" },
+  { tag:"FIX", t1:"適性クエストに天界の審判", at:"2026-09-08",
+    t2:"天界の審判が丸ごと抜けていたのを直し、5つめの系統として2件分を足しました（合計 8件⇒10件）",
+    href:"characters.html", img:"thumbs/Xevarion.png" },
+  { tag:"FIX", t1:"MagiBurst の見やすさ・同期", at:"2026-09-08",
+    t2:"フルバーストの額がスマホではみ出していたのと、編成でえらんでいる枠が分からなかったのを直しました",
+    href:"MagiBurst/index.html", img:"thumbs/MagiBurst.jpg" },
   /* ★★ 2026-09-07（3回目）戦姫祭 第2弾・FB演出・装備の検索・同期の画面 */
   { tag:"NEW", t1:"戦姫祭に ナオ・ハルカ", at:"2026-09-07",
     t2:"どちらも水属性で、200体目のアンナ＆ランに次ぐ歴代2位。天界の審判の第一・第六を素のまま完全対応できます",
@@ -1246,7 +1303,7 @@ function xhMbReady() {
   if (typeof CHARS !== "undefined" && typeof PREMIUM_CHARS !== "undefined") return Promise.resolve(true);
   if (_xhMbLoading) return _xhMbLoading;
   _xhMbLoading = xhLoadScript("mb-boot.js?v=16")
-    .then(() => xhLoadScript("MagiBurst/js/mb-core.js?v=98"))
+    .then(() => xhLoadScript("MagiBurst/js/mb-core.js?v=100"))
     .then(() => true)
     .catch((e) => { _xhMbLoading = null; throw e; });
   return _xhMbLoading;
