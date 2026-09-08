@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<script src="../maintenance-gate.js?v=12"></script>
+<meta charset="UTF-8" />
+<script>(function(){try{var a=JSON.parse(localStorage.getItem('xeva_account_v1'));if(!a||!a.setupDone)location.replace('../index.html');}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<title>Magi: Boccia Rush — キャラクター×ボッチャ</title>
+<meta name="description" content="本物のボッチャ × 引っぱりアクション × キャラクターコレクション × オンラインチーム対戦。引っぱって、はなすだけ。キャラクターとガチャは XEVARION と共通です。" />
+<link rel="icon" href="../thumbs/MagiBocciaRush.jpg" type="image/jpeg" />
+<link rel="apple-touch-icon" href="../thumbs/MagiBocciaRush.jpg" />
+<meta name="theme-color" content="#070c18" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function () { navigator.serviceWorker.register("sw.js").catch(function () {}); });
+}
+</script>
+<script src="../xeva-safebottom.js?v=8"></script>
+<link rel="stylesheet" href="css/mbr.css?v=1" />
+<script src="../xeva-splash.js?v=10" data-app="Magi Boccia Rush" data-logo="../thumbs/MagiBocciaRush.jpg"></script>
+</head>
+<body>
+
+<!-- ═══════════════ 上のバー ═══════════════ -->
+<header id="top">
+  <a class="tb" href="../index.html" aria-label="ポータルへもどる" title="ポータルへもどる">←</a>
+  <div class="lg">
+    <img src="../thumbs/MagiBocciaRush.jpg" alt="Magi: Boccia Rush">
+    <div style="min-width:0">
+      <div class="t1">Magi</div>
+      <div class="t2">BOCCIA RUSH</div>
+    </div>
+  </div>
+  <button class="tb" onclick="MBRUI.openRule()" title="ルール">?</button>
+  <button class="tb" onclick="MBRUI.openSettings()" title="設定">⚙</button>
+</header>
+
+<!-- ═══════════════ 画面 ═══════════════ -->
+<main>
+  <section class="scr on" id="s-home"></section>
+  <section class="scr" id="s-play"></section>
+  <section class="scr" id="s-match"></section>
+  <section class="scr" id="s-chars"></section>
+  <section class="scr" id="s-friend"></section>
+  <section class="scr" id="s-profile"></section>
+</main>
+
+<!-- ═══════════════ 下のナビ ═══════════════ -->
+<nav id="nav"></nav>
+
+<!-- ═══════════════ モーダル ═══════════════ -->
+<div id="ov"><div id="ovc"></div></div>
+
+<!-- ★ アカウント同期（ランク・戦績・設定は mbr_v1。xeva-keys.js に登録してある） -->
+<script type="module" src="../xeva-cloud.js?v=27"></script>
+<!-- ★ キャラクターとガチャは XEVARION（MagiBurst）と共通。
+     mb-boot.js は MB_IMGD を "img/"（ポータル用）に決め打ちするので、
+     そのあとで このアプリ用のパスに直してから mb-core.js を読む。 -->
+<script src="../xeva.js?v=61"></script>
+<script src="../xeva-loading.js?v=11" defer></script>
+<script src="../mb-boot.js?v=16"></script>
+<script>window.MB_IMGD = "../img/"; window.MB_GIMGD = "../MagiBurst/img/";</script>
+<script src="../MagiBurst/js/mb-core.js?v=100"></script>
+<script src="js/mbr-core.js?v=2"></script>
+<script src="js/mbr-ui.js?v=1"></script>
+<script type="module" src="js/mbr-online.js?v=1"></script>
+<script src="../xeva-back.js?v=8" data-mode="hook"></script>
+</body>
+</html>

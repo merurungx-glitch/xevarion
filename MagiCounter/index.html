@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<script src="../maintenance-gate.js?v=12"></script>
+<meta charset="UTF-8" />
+<script>(function(){try{var a=JSON.parse(localStorage.getItem('xeva_account_v1'));if(!a||!a.setupDone)location.replace('../index.html');}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<title>MagiCounter — Pokémon Champions 対戦支援・編成分析</title>
+<meta name="description" content="相手を分析し、自分の編成から最適な3体を素早く導き出す Pokémon Champions 専用の対策・分析ツール。タイプ相性・対策検索・編成分析・3体選出シミュレーター。" />
+<link rel="icon" href="../thumbs/MagiCounter.jpg" type="image/jpeg" />
+<link rel="apple-touch-icon" href="../thumbs/MagiCounter.jpg" />
+<meta name="theme-color" content="#1f6fe5" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function () { navigator.serviceWorker.register("sw.js").catch(function () {}); });
+}
+</script>
+<script src="../xeva-safebottom.js?v=8"></script>
+<link rel="stylesheet" href="css/mc.css?v=2" />
+<script src="../xeva-splash.js?v=10" data-app="MagiCounter" data-logo="../thumbs/MagiCounter.jpg"></script>
+</head>
+<body>
+
+<!-- ═══════════════ 上のバー ═══════════════ -->
+<header id="top">
+  <a class="tbtn" href="../index.html" aria-label="ポータルへもどる" title="ポータルへもどる">←</a>
+  <div class="logo">
+    <img src="../thumbs/MagiCounter.jpg" alt="MagiCounter">
+    <div style="min-width:0">
+      <div class="nm">MagiCounter</div>
+      <div class="sb" id="topSub">相手を分析して、最適な3体を。</div>
+    </div>
+  </div>
+  <button class="tbtn" id="langBtn" onclick="MCUI.toggleLang()" title="Language">EN</button>
+</header>
+
+<!-- ═══════════════ 画面 ═══════════════ -->
+<main>
+  <section class="screen on" id="sc-home"></section>
+  <section class="screen" id="sc-search"></section>
+  <section class="screen" id="sc-counter"></section>
+  <section class="screen" id="sc-team"></section>
+  <section class="screen" id="sc-rank"></section>
+</main>
+
+<!-- ═══════════════ オフラインの帯 ═══════════════ -->
+<div id="offbar">オフラインです（保存してあるデータで動いています）</div>
+
+<!-- ═══════════════ 下のナビ ═══════════════ -->
+<nav id="nav"></nav>
+
+<!-- ═══════════════ モーダル ═══════════════ -->
+<div id="modal"><div id="modalCard"></div></div>
+
+<!-- ★ アカウント同期。マイ編成・お気に入り・履歴は
+     <b>magicounter_v1</b> に入っていて、xeva-keys.js の PORTAL_SYNC_KEYS に登録してある。
+     ★ 専用 Firebase は作らない（小さな JSON なのでポータルの store で十分）。 -->
+<script type="module" src="../xeva-cloud.js?v=27"></script>
+<script src="../xeva.js?v=61"></script>
+<script src="../xeva-loading.js?v=11" defer></script>
+<!-- ★★ 2026-09-08 アイコン（自前の SVG）。mc-ui.js より<b>前</b>に読むこと。 -->
+<script src="js/mc-icons.js?v=1"></script>
+<script src="js/mc-data.js?v=2"></script>
+<script src="js/mc-core.js?v=2"></script>
+<script src="js/mc-ui.js?v=2"></script>
+<script src="../xeva-back.js?v=8" data-mode="hook"></script>
+</body>
+</html>

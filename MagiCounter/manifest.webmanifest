@@ -1,0 +1,15 @@
+{
+  "name": "MagiCounter — Pokémon Champions 対戦支援",
+  "short_name": "MagiCounter",
+  "description": "相手を分析し、自分の編成から最適な3体を素早く導き出す対策・分析ツール。",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f2f7ff",
+  "theme_color": "#1f6fe5",
+  "lang": "ja",
+  "icons": [
+    { "src": "../thumbs/MagiCounter.jpg", "sizes": "512x512", "type": "image/jpeg", "purpose": "any" }
+  ]
+}

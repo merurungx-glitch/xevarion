@@ -1,0 +1,295 @@
+/* ══════════════════════════════════════════════════════════════
+   MagiCounter — 見た目
+   ・いただいた画面案に合わせた<b>明るく洗練された未来的なUI</b>。
+   ・白と淡い水色の地に、青のグラデーションと細い光の線。
+   ・情報量は多いが、<b>カード</b>と<b>アイコン</b>でまとめて散らかさない。
+   ・片手で使えるよう、押すところは 44px 以上、下にナビを固定。
+   ══════════════════════════════════════════════════════════════ */
+:root{
+  --bg:#f2f7ff; --bg2:#e7f0ff;
+  --card:#ffffff; --card2:#f7fbff;
+  --line:#d8e6fa; --line2:#c3d9f5;
+  --tx:#12233d; --tx2:#3f5a7d;
+  --sub:#6c86a8;
+  --pri:#1f6fe5; --pri2:#3fa9ff; --pri3:#7cd4ff;
+  --grad:linear-gradient(135deg,#1f6fe5,#3fa9ff 55%,#7cd4ff);
+  --ok:#12a06a; --warn:#e8912b; --ng:#e0405e;
+  --shadow:0 8px 24px rgba(31,111,229,.10);
+  --shadow2:0 14px 38px rgba(31,111,229,.18);
+  --r:16px;
+  --navh:60px;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html{background:var(--bg)}
+body{
+  margin:0;background:
+    radial-gradient(120% 60% at 100% 0%,rgba(124,212,255,.30),transparent 60%),
+    radial-gradient(90% 50% at 0% 6%,rgba(31,111,229,.16),transparent 62%),
+    var(--bg);
+  color:var(--tx);
+  font-family:'Noto Sans JP','Hiragino Kaku Gothic ProN',system-ui,-apple-system,sans-serif;
+  font-size:14px;line-height:1.6;
+  padding-bottom:calc(var(--navh) + env(safe-area-inset-bottom,0px) + 8px);
+  overflow-x:hidden;
+}
+b{font-weight:800}
+button,input,select,textarea{font-family:inherit;font-size:inherit;color:inherit}
+a{color:var(--pri);text-decoration:none}
+
+/* ── 上のバー ── */
+#top{
+  position:sticky;top:0;z-index:60;
+  padding:calc(env(safe-area-inset-top,0px) + 8px) 14px 10px;
+  background:linear-gradient(180deg,rgba(242,247,255,.98),rgba(242,247,255,.86));
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--line);
+  display:flex;align-items:center;gap:10px;
+}
+#top .logo{display:flex;align-items:center;gap:9px;min-width:0;flex:1}
+#top .logo img{width:34px;height:34px;border-radius:10px;box-shadow:var(--shadow);flex:none}
+#top .nm{font-family:'Orbitron',sans-serif;font-weight:900;font-size:16px;letter-spacing:.02em;
+  background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent;line-height:1.1}
+#top .sb{font-size:9.5px;font-weight:800;color:var(--sub);letter-spacing:.04em;line-height:1.1}
+.tbtn{
+  flex:none;min-width:38px;height:38px;padding:0 10px;border-radius:12px;
+  border:1.5px solid var(--line2);background:#fff;color:var(--pri);
+  font-weight:900;font-size:12px;cursor:pointer;display:grid;place-items:center;
+}
+.tbtn:active{transform:scale(.94)}
+.tbtn.on{background:var(--grad);color:#fff;border-color:transparent}
+
+/* ── 画面 ── */
+.screen{display:none;padding:14px 14px 6px;max-width:720px;margin:0 auto}
+.screen.on{display:block;animation:scIn .26s ease both}
+@keyframes scIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* ── 見出し ── */
+.h{display:flex;align-items:center;gap:8px;margin:18px 0 9px;font-weight:900;font-size:14.5px}
+.h:first-child{margin-top:2px}
+.h .ic{width:22px;height:22px;border-radius:8px;background:var(--grad);color:#fff;
+  display:grid;place-items:center;font-size:12px;flex:none;box-shadow:var(--shadow)}
+.h .more{margin-left:auto;font-size:11px;font-weight:800;color:var(--pri);cursor:pointer}
+
+/* ── カード ── */
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);
+  box-shadow:var(--shadow);padding:12px 13px;margin-bottom:10px}
+.card.tight{padding:9px 10px}
+.card.hero{background:var(--grad);color:#fff;border:none;box-shadow:var(--shadow2);position:relative;overflow:hidden}
+.card.hero::after{content:"";position:absolute;inset:-40% -20% auto auto;width:220px;height:220px;
+  background:radial-gradient(circle,rgba(255,255,255,.30),transparent 65%);pointer-events:none}
+.card.hero .t{font-family:'Orbitron',sans-serif;font-weight:900;font-size:18px;line-height:1.25}
+.card.hero .s{font-size:11.5px;opacity:.92;margin-top:4px}
+
+/* ── 検索バー ── */
+.searchbar{display:flex;align-items:center;gap:8px;background:#fff;border:2px solid var(--line2);
+  border-radius:99px;padding:9px 14px;box-shadow:var(--shadow)}
+.searchbar:focus-within{border-color:var(--pri2);box-shadow:0 0 0 4px rgba(63,169,255,.16)}
+.searchbar input{flex:1;border:0;outline:0;background:none;font-size:15px;font-weight:700;min-width:0}
+.searchbar .si{font-size:17px;color:var(--pri)}
+
+/* ── クイックアクセス ── */
+.quick{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.qa{background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px 4px 8px;
+  text-align:center;cursor:pointer;box-shadow:var(--shadow)}
+.qa:active{transform:scale(.95)}
+.qa .qi{width:34px;height:34px;margin:0 auto 5px;border-radius:11px;background:var(--bg2);
+  display:grid;place-items:center;font-size:17px}
+.qa .qt{font-size:10px;font-weight:900;line-height:1.2}
+
+/* ── ポケモンの行 ── */
+.prow{display:flex;align-items:center;gap:10px;padding:8px 4px;border-bottom:1px solid var(--line);cursor:pointer}
+.prow:last-child{border-bottom:0}
+.prow:active{background:var(--card2)}
+.pav{width:42px;height:42px;border-radius:12px;flex:none;display:grid;place-items:center;
+  font-weight:900;font-size:15px;color:#fff;box-shadow:var(--shadow);letter-spacing:-.02em}
+.pav.sm{width:32px;height:32px;font-size:12px;border-radius:10px}
+.pav.lg{width:64px;height:64px;font-size:22px;border-radius:18px}
+.pnm{font-weight:900;font-size:13.5px;line-height:1.25;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pmeta{font-size:10.5px;color:var(--sub);display:flex;align-items:center;gap:5px;flex-wrap:wrap}
+.prank{margin-left:auto;text-align:right;flex:none}
+.prank b{font-family:'Orbitron',sans-serif;font-size:14px;color:var(--pri)}
+.prank i{display:block;font-style:normal;font-size:9.5px;color:var(--sub)}
+
+/* ── タイプの札 ── */
+.tt{display:inline-flex;align-items:center;justify-content:center;
+  font-size:9.5px;font-weight:900;color:#fff;border-radius:6px;padding:2px 7px;
+  letter-spacing:.02em;white-space:nowrap;line-height:1.4}
+.tt.big{font-size:11.5px;padding:4px 11px;border-radius:8px}
+.tt.gh{background:none!important;border:1.5px solid currentColor}
+
+/* ── 倍率の色 ── */
+.mx{display:inline-grid;place-items:center;min-width:34px;height:26px;border-radius:8px;
+  font-family:'Orbitron',sans-serif;font-weight:900;font-size:11px;padding:0 4px}
+.mx.m0{background:#eceff4;color:#7a8698;text-decoration:line-through}
+.mx.m25{background:#dff3e8;color:#0d7a51}
+.mx.m50{background:#e8f6ee;color:#12a06a}
+.mx.m1{background:#f1f4f8;color:#8b95a6}
+.mx.m2{background:#ffe9e4;color:#e0553a}
+.mx.m4{background:#ffdad2;color:#c02a12;box-shadow:0 0 0 1.5px #e0553a inset}
+
+/* ── 相性表 ── */
+.chartwrap{overflow-x:auto;-webkit-overflow-scrolling:touch;border-radius:12px;border:1px solid var(--line);background:#fff}
+.chart{border-collapse:separate;border-spacing:0;font-size:10px;min-width:640px}
+.chart th,.chart td{padding:0;text-align:center}
+.chart th{position:sticky;top:0;background:#fff;z-index:2}
+.chart th.rowh{position:sticky;left:0;z-index:3;background:#fff}
+.chart td .cell{width:30px;height:26px;display:grid;place-items:center;font-weight:900;font-size:9.5px;
+  border-right:1px solid #eef3fa;border-bottom:1px solid #eef3fa}
+.chart .thh{width:30px;height:34px;display:grid;place-items:center;border-bottom:2px solid var(--line)}
+.chart .rowlab{position:sticky;left:0;background:#fff;z-index:1;padding-right:4px}
+
+/* ── 帯グラフ ── */
+.bar{height:8px;border-radius:99px;background:var(--bg2);overflow:hidden}
+.bar i{display:block;height:100%;background:var(--grad);border-radius:99px}
+.bar.g i{background:linear-gradient(90deg,#12a06a,#5fd6a3)}
+.bar.r i{background:linear-gradient(90deg,#e0405e,#ff8aa0)}
+
+/* ── 点数（大） ── */
+.score{display:flex;align-items:baseline;gap:4px;font-family:'Orbitron',sans-serif;font-weight:900}
+.score b{font-size:34px;line-height:1}
+.score i{font-style:normal;font-size:12px;opacity:.7}
+
+/* ── 選出のカード ── */
+.pickcard{border:2px solid var(--line2);border-radius:18px;padding:12px;background:#fff;
+  box-shadow:var(--shadow);margin-bottom:12px}
+.pickcard.best{border-color:var(--pri2);box-shadow:0 0 0 4px rgba(63,169,255,.14),var(--shadow2)}
+.pickhead{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+.picktag{font-family:'Orbitron',sans-serif;font-size:10px;font-weight:900;letter-spacing:.10em;
+  padding:3px 9px;border-radius:99px;background:var(--grad);color:#fff}
+.picktag.atk{background:linear-gradient(135deg,#e0553a,#ff9d5c)}
+.picktag.def{background:linear-gradient(135deg,#12a06a,#5fd6a3)}
+.pick3{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.p3{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:9px 6px;text-align:center;cursor:pointer}
+.p3 .pav{margin:0 auto 5px}
+.p3 .nm{font-size:11px;font-weight:900;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.reason{display:flex;gap:7px;align-items:flex-start;font-size:11.5px;line-height:1.5;
+  padding:7px 9px;border-radius:11px;background:var(--card2);margin-top:6px}
+.reason .ri{flex:none;width:18px;height:18px;border-radius:6px;display:grid;place-items:center;
+  font-size:10px;color:#fff;background:var(--ok)}
+.reason.warn .ri{background:var(--warn)}
+.reason.cover .ri{background:var(--pri)}
+
+/* ── 枠（編成の6マス） ── */
+.slots6{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.slot{aspect-ratio:1/1;border:2px dashed var(--line2);border-radius:16px;background:#fff;
+  display:grid;place-items:center;cursor:pointer;position:relative;overflow:hidden}
+.slot.has{border-style:solid;border-color:var(--line2);background:var(--card2)}
+.slot .plus{font-size:24px;color:var(--line2);font-weight:900}
+.slot .inner{display:grid;place-items:center;gap:4px;padding:5px;width:100%}
+.slot .nm{font-size:10.5px;font-weight:900;line-height:1.2;text-align:center;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+.slot .rm{position:absolute;top:3px;right:3px;width:20px;height:20px;border-radius:7px;border:0;
+  background:rgba(224,64,94,.12);color:var(--ng);font-weight:900;font-size:11px;cursor:pointer;display:grid;place-items:center}
+
+/* ── ボタン ── */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  min-height:44px;padding:0 18px;border-radius:14px;border:1.5px solid var(--line2);
+  background:#fff;color:var(--tx);font-weight:900;font-size:13px;cursor:pointer;width:100%}
+.btn:active{transform:scale(.97)}
+.btn.pri{background:var(--grad);color:#fff;border-color:transparent;box-shadow:var(--shadow2)}
+.btn.sm{min-height:34px;padding:0 12px;font-size:11.5px;border-radius:11px;width:auto}
+.btn.ghost{background:none}
+.btn.ng{color:var(--ng);border-color:rgba(224,64,94,.4);background:rgba(224,64,94,.06)}
+.btnrow{display:flex;gap:8px;margin-top:10px}
+
+/* ── 札（チップ） ── */
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font-size:11px;font-weight:800;padding:5px 11px;border-radius:99px;
+  border:1.5px solid var(--line2);background:#fff;cursor:pointer;white-space:nowrap}
+.chip.on{background:var(--grad);color:#fff;border-color:transparent}
+.chip.plain{cursor:default;background:var(--card2)}
+
+/* ── 下のナビ ── */
+#nav{position:fixed;left:0;right:0;bottom:0;z-index:70;height:calc(var(--navh) + env(safe-area-inset-bottom,0px));
+  padding-bottom:env(safe-area-inset-bottom,0px);
+  background:rgba(255,255,255,.94);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(5,1fr)}
+#nav button{border:0;background:none;cursor:pointer;display:grid;place-items:center;gap:2px;
+  color:var(--sub);font-weight:900;font-size:9.5px;padding:6px 0 4px;position:relative}
+#nav button .ni{font-size:18px;line-height:1}
+#nav button.on{color:var(--pri)}
+#nav button.on::before{content:"";position:absolute;top:0;left:50%;transform:translateX(-50%);
+  width:26px;height:3px;border-radius:0 0 4px 4px;background:var(--grad)}
+
+/* ── モーダル ── */
+#modal{position:fixed;inset:0;z-index:90;display:none;align-items:flex-end;justify-content:center;
+  background:rgba(10,26,48,.42);backdrop-filter:blur(3px)}
+#modal.on{display:flex}
+#modalCard{width:100%;max-width:720px;max-height:88vh;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  background:var(--bg);border-radius:22px 22px 0 0;padding:8px 14px calc(env(safe-area-inset-bottom,0px) + 20px);
+  box-shadow:0 -14px 44px rgba(10,26,48,.28);animation:mUp .26s cubic-bezier(.2,.9,.3,1) both}
+@keyframes mUp{from{transform:translateY(30px);opacity:0}to{transform:none;opacity:1}}
+#modalCard .mgrip{width:44px;height:4px;border-radius:99px;background:var(--line2);margin:6px auto 10px}
+.mclose{position:sticky;top:0;float:right;width:32px;height:32px;border-radius:11px;border:0;
+  background:#fff;color:var(--sub);font-weight:900;font-size:14px;cursor:pointer;box-shadow:var(--shadow);z-index:3}
+
+/* ── 詳細のヘッダー ── */
+.dhead{display:flex;gap:12px;align-items:center;margin-bottom:10px}
+.dhead .nm{font-size:19px;font-weight:900;line-height:1.2}
+.dhead .no{font-family:'Orbitron',sans-serif;font-size:10px;color:var(--sub);letter-spacing:.06em}
+.stats{display:grid;grid-template-columns:auto 1fr auto;gap:5px 8px;align-items:center;font-size:11px}
+.stats .k{color:var(--sub);font-weight:800}
+.stats .v{font-family:'Orbitron',sans-serif;font-weight:900;font-size:11.5px;text-align:right;min-width:30px}
+
+/* ── 小さな表 ── */
+.kv{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;font-size:11.5px}
+.kv .k{color:var(--sub);font-weight:800;white-space:nowrap}
+.note{font-size:11px;color:var(--sub);line-height:1.6}
+.note b{color:var(--tx)}
+
+/* ── タブ ── */
+.tabs{display:flex;gap:6px;background:var(--bg2);padding:4px;border-radius:13px;margin-bottom:10px}
+.tabs button{flex:1;border:0;background:none;border-radius:10px;min-height:34px;font-weight:900;
+  font-size:11.5px;color:var(--sub);cursor:pointer}
+.tabs button.on{background:#fff;color:var(--pri);box-shadow:var(--shadow)}
+
+/* ── 空っぽのとき ── */
+.empty{text-align:center;color:var(--sub);font-size:12px;padding:22px 10px;line-height:1.7}
+.empty .ei{font-size:30px;display:block;margin-bottom:6px;opacity:.6}
+
+/* ── 上がった・下がった ── */
+.tr{font-family:'Orbitron',sans-serif;font-weight:900;font-size:10.5px}
+.tr.up{color:var(--ok)} .tr.dn{color:var(--ng)} .tr.fl{color:var(--sub)}
+
+/* ── オフラインの帯 ── */
+#offbar{position:fixed;left:0;right:0;bottom:calc(var(--navh) + env(safe-area-inset-bottom,0px));z-index:69;
+  background:#12233d;color:#fff;font-size:11px;font-weight:800;padding:6px 14px;text-align:center;display:none}
+#offbar.on{display:block}
+
+/* ── 幅の広い画面 ── */
+@media (min-width:720px){
+  .quick{grid-template-columns:repeat(8,1fr)}
+  .slots6{grid-template-columns:repeat(6,1fr)}
+}
+
+/* ══════ ★★ 2026-09-08 本物の絵と、自前のアイコン ══════ */
+/* 線画アイコン（mc-icons.js）。置いた場所の色になる。 */
+.mci{display:block;flex:none}
+/* タイプの丸い記号（単体で使うとき） */
+.mct{display:inline-grid;place-items:center;border-radius:50%;flex:none;
+  box-shadow:0 2px 6px rgba(18,35,61,.18)}
+/* タイプの札：記号＋名前 */
+.tt{gap:3px;padding:2px 7px 2px 5px}
+.tt i{font-style:normal}
+.tt.big{gap:4px;padding:4px 11px 4px 8px}
+/* ポケモンの絵。届くまでは頭文字を見せ、届いたらフェードで入れかわる。 */
+.pav.art{position:relative;overflow:hidden}
+.pav.art .pavi{position:absolute;inset:0;display:grid;place-items:center;font-style:normal;
+  font-weight:900;color:#fff;letter-spacing:-.02em}
+.pav.art img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;
+  opacity:0;transition:opacity .22s ease;background:rgba(255,255,255,.14);
+  filter:drop-shadow(0 2px 5px rgba(18,35,61,.28))}
+.pav.art img.ok{opacity:1}
+.pav.art img.ok + .pavi,.pav.art .pavi:has(+ img.ok){opacity:0}
+/* :has がない端末でも困らないよう、絵は不透明な地の上に重ねる */
+.pav.art img.ok{background:linear-gradient(135deg,rgba(255,255,255,.92),rgba(255,255,255,.82))}
+/* 下のナビの線画 */
+#nav button .ni{display:grid;place-items:center;height:23px}
+/* 見出しの丸いアイコンの中身 */
+.h .ic .mci{width:14px;height:14px}
+/* 検索バーの虫めがね */
+.searchbar .si{display:grid;place-items:center}
+/* クイックアクセスのアイコン */
+.qa .qi{color:var(--pri)}
+/* ボタンの中のアイコン */
+.btn .mci{margin-right:2px}
