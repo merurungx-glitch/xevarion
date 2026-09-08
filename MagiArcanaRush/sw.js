@@ -8,7 +8,7 @@
    ・作りは Magi Lotto / MagiJackpot の SW と同じ
      （自分の接頭辞のキャッシュだけ掃除する／xev-refresh で差分更新できる）。
    ============================================================ */
-const VERSION = "magiarcanarush-sw-v7";
+const VERSION = "magiarcanarush-sw-v10";
 const CORE = [
   "./",
   "./index.html",
@@ -23,11 +23,11 @@ const CORE = [
   "./img/mar-bg.webp",
   /* XEVARION 共通と、キャラ表の持ち主（mb-core.js） */
   "../maintenance-gate.js?v=12",
-  "../xeva.js?v=60",
+  "../xeva.js?v=61",
   "../xeva-splash.js?v=10",
   "../xeva-back.js?v=8",
   "../mb-boot.js?v=16",
-  "../MagiBurst/js/mb-core.js?v=98",
+  "../MagiBurst/js/mb-core.js?v=100",
   "../XEVA.png",
   "../gem.png",
   "../icons/xev-192.png",

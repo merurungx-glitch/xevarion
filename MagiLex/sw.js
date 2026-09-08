@@ -5,7 +5,7 @@
      オンライン復帰後にポータル側へ自然に反映される
    ・取得できたリソースは随時キャッシュ更新（stale-while-revalidate）
    ============================================================ */
-const VERSION = "magilex-sw-v81";
+const VERSION = "magilex-sw-v84";
 const CORE = [
   /* ★ 2026-08-19 図・グラフのエンジンは XEVYNAR と共有。
      ここに無いと、オフラインで「図で見る」が出ない。 */
@@ -48,11 +48,11 @@ const CORE = [
   "../brand/NGX.png",
   "../brand/MagicalFuture.png",
   "../brand/ISHIDA Production.png",
-  "../xeva.js?v=60",
-  "../xeva-loading.js?v=9",
+  "../xeva.js?v=61",
+  "../xeva-loading.js?v=11",
   "../xeva-splash.js?v=10",
   "../app-cloud.js?v=11",
-  "../xeva-keys.js?v=16",
+  "../xeva-keys.js?v=18",
   "./magilex-cloud.js?v=12",
   "../maintenance-gate.js?v=12",
   "../app-install-notice.js?v=8",
