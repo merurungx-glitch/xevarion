@@ -481,6 +481,34 @@ body.mb-ui2 .ccch,
 body.mb-ui2 .slot{
   border-radius:0 !important;border:2px solid var(--u2ink) !important;
 }
+/* ══ ★★ 2026-09-08 編成画面で<b>えらんでいる枠</b>が分からなかった（ご報告）══
+   真因：すぐ上の .slot の規則が <b>border を !important で墓に固定</b>していたので、
+     本体の .slot.sel（border-color:橙）が<b>丸ごと負けて</b>いた。
+     残っていたのは alpha .18 のうすい影だけで、ほぼ見えない。
+   なおしかた：この規則の<b>あと</b>に書いて、新UIの色（黄×赤×墓）で強く囲う。
+   ★ CSS は<b>同点ならあとが勝つ</b>ので、必ずこの位置より下に置くこと。 */
+body.mb-ui2 .slot.sel{
+  border-color:var(--u2red) !important;
+  background:#fffbe8 !important;
+  box-shadow:0 0 0 3px var(--u2yel), 4px 4px 0 var(--u2ink) !important;
+  transform:translateY(-2px);
+}
+body.mb-ui2 .slot.sel .sno{
+  background:var(--u2red);color:#fff;border-radius:0;padding:0 5px;letter-spacing:0;
+}
+body.mb-ui2 .slot.sel .slav{ border-color:var(--u2ink) !important; }
+body.mb-ui2 .slot.sel .slnm{ color:var(--u2ink) !important; }
+body.mb-ui2 .slot.sel .sllv{ color:#6b6455 !important; }
+/* 空の枠をえらんでいるときも同じように強く出す */
+body.mb-ui2 .slot.empty.sel{ border-style:solid !important; }
+body.mb-ui2 .slot.sel .slplus{ color:var(--u2red) !important; }
+/* 「ここに入る」の札。カードの頭に重ねる（下に出すと sticky の箱で切れる） */
+body.mb-ui2 .slot.sel::before{
+  content:"HERE";position:absolute;right:-2px;top:-11px;z-index:3;
+  font-family:'Orbitron',sans-serif;font-size:8px;font-weight:900;letter-spacing:.10em;
+  color:var(--u2ink);background:var(--u2yel);border:2px solid var(--u2ink);
+  padding:0 5px;line-height:14px;pointer-events:none;
+}
 body.mb-ui2 .rc .rn{ color:var(--u2ink) !important;font-weight:900; }
 
 /* ══ ⑭ 進行バー・ゲージは<b>塗らない</b>（色に意味があるため）══ */

@@ -3,7 +3,7 @@ import { initAppCloud } from "../app-cloud.js?v=11";
 /* ★ 同期するキーの一覧は ../xeva-keys.js の台帳が正。
    ここに直接書くと「ログアウト時に消すキー」の一覧とズレて、
    前のアカウントのセーブが端末に残る（＝新規登録に引き継がれる）原因になる。 */
-import { APP_SYNC_KEYS } from "../xeva-keys.js?v=16";
+import { APP_SYNC_KEYS } from "../xeva-keys.js?v=18";
 
 /* ══════════════════════════════════════════════════════════════
    ★★ 2026-08-12 「引いたはずのキャラが、持っていないことになる」への対策
@@ -70,8 +70,30 @@ function rescue(key, winStr, loseStr) {
   const c = mergeChars(win.chars, lose.chars);
   win.chars = c.out; fixed += c.fixed;
   /* 幽冥の庭園の開放に使う通算WAVE。これも減らしてはいけない記録。 */
-  const g = mergeMaxMap(win.gwBest, lose.gwBest);
-  win.gwBest = g.out; fixed += g.fixed;
+  /* ★★ 2026-09-08 <b>蓬莱の九重（hwBest）と天界の審判（jwBest）が抜けていた</b>。
+     どちらも<b>月リセットしない通算の到達WAVE</b>で、
+     蓬莱後半6階層の開放や装備の配布の根拠になる。
+     ここに無いと、別の端末のセーブが勝ったときに
+     <b>踏破したはずの階層が閉じる</b>。新しい系統を作ったらここにも足すこと。 */
+  ["gwBest", "hwBest", "jwBest"].forEach((k) => {
+    const m = mergeMaxMap(win[k], lose[k]);
+    win[k] = m.out; fixed += m.fixed;
+  });
+  /* ★★ 2026-09-08 <b>装備（gear / gearOn）</b>も合流させる。
+     装備は<b>天界の審判を 5WAVE 踏破するごとに1つ</b>もらえる一方通行の記録で、
+     拾いなおせない（同じWAVEの報酬は二度と出ない）。
+     gear   … 片方にしか無い装備は必ず残す。
+     gearOn … 「いま着けている場所」なので、<b>勝った側を優先</b>し、
+              勝った側にそのキャラの行が無いときだけ負けた側を使う。 */
+  if (lose.gear && typeof lose.gear === "object") {
+    win.gear = win.gear || {};
+    Object.keys(lose.gear).forEach((gid) => {
+      if (!win.gear[gid]) { win.gear[gid] = lose.gear[gid]; fixed++; }
+    });
+  }
+  if (lose.gearOn && typeof lose.gearOn === "object") {
+    win.gearOn = Object.assign({}, lose.gearOn, win.gearOn || {});
+  }
   /* 一度でも手に入れたクロスの書の使い先も、消えると取り返しがつかない */
   if (lose.crossBook) {
     win.crossBook = Object.assign({}, lose.crossBook, win.crossBook || {});

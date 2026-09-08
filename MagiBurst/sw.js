@@ -6,13 +6,13 @@
    ・オンライン対戦・XEVA換金はアプリ側でオフライン時に無効化している
    ・取得できたリソースは随時キャッシュ更新（stale-while-revalidate）
    ============================================================ */
-const VERSION = "magiburst-sw-v148";
+const VERSION = "magiburst-sw-v151";
 const CORE = [
   "./index.html",
-  "./css/mb-ui2.css?v=22",
+  "./css/mb-ui2.css?v=24",
   "./css/localplay.css?v=6",
   "./js/localplay.js?v=7",
-  "./js/mb-core.js?v=98",   /* ★ 2026-08-10 キャラ・ガチャの共有モジュール（XEVARION のガチャと共通） */
+  "./js/mb-core.js?v=100",   /* ★ 2026-08-10 キャラ・ガチャの共有モジュール（XEVARION のガチャと共通） */
   /* ★★ 2026-09-06 装備（頭・腕・胸・足）。ここに載せないとオフラインで丸ごと動かない。 */
   "./js/mb-gear.js?v=6",
   /* ★★ 2026-09-01 ローカル通信マルチ。<b>オフラインで使うもの</b>なので、
@@ -35,12 +35,12 @@ const CORE = [
   "../xeva-i18n-p4.js?v=6",
   "../xeva-i18n-n1.js?v=4",
   "../xeva-i18n-n2.js?v=2",
-  "../xeva.js?v=60",
-  "../xeva-loading.js?v=9",
+  "../xeva.js?v=61",
+  "../xeva-loading.js?v=11",
   "../xeva-splash.js?v=10",
   "../app-cloud.js?v=11",
-  "../xeva-keys.js?v=16",
-  "./magiburst-cloud.js?v=13",
+  "../xeva-keys.js?v=18",
+  "./magiburst-cloud.js?v=14",
   "../maintenance-gate.js?v=12",
   "../app-install-notice.js?v=8",
   "../XEVA.png",
@@ -354,6 +354,11 @@ const CORE = [
      ★ ここに無いとオフラインで<b>その子だけ絵が出ない</b>し、update.json にも載らない。 */
   "../img/t_NaoS.webp",
   "../img/t_HarukaS.webp",
+  /* ★★ 2026-09-08 戦姫祭 第3弾（レイア・ミオリ・アンナ(メイド)）。
+     ★ ここに無いとオフラインで<b>その子だけ絵が出ない</b>し、update.json にも載らない。 */
+  "../img/t_Reia.webp",
+  "../img/t_Miori.webp",
+  "../img/t_AnnaMaid.webp",
   /* ★★ 2026-09-06 同期の画面に出る案内役（立ち姿とお辞儀・2人ぶん）。
      ここに無いとオフラインのときだけ絵が出ない。 */
   "../img/ld_a_stand.webp",

@@ -15,8 +15,8 @@
    <b>ふつうの &lt;script&gt;</b>（type="module" ではない）で読むこと。
    トップレベルの const/let はグローバルの字句環境に入るので、
    あとから読み込む MagiBurst 本体のスクリプトからそのまま見える。
-     MagiBurst : <script src="js/mb-core.js?v=98"></script>
-     gacha.html: <script src="MagiBurst/js/mb-core.js?v=98"></script>
+     MagiBurst : <script src="js/mb-core.js?v=100"></script>
+     gacha.html: <script src="MagiBurst/js/mb-core.js?v=100"></script>
 
    ── ホストが先に用意しておくもの ──
      window.MB_IMGD … 画像フォルダへの相対パス（MagiBurst は "../img/"、ポータルは "img/"）
@@ -210,6 +210,14 @@ const SGRAV_ACCEL = 1.55;
    ★ NEWS の本文から参照するので、必ず NEWS より前で定義すること（const の TDZ 対策）。 */
 const FES_PREMIUM_TOTAL = 0.05;
 /* ★ 2026-08-03 新ギミック「減速壁」: ふれるとその攻撃ターンのあいだ大幅に減速する */
+/* ★★ 2026-09-08 重力バリアの減速（ご指定で強くした）。
+   摩擦は 1 フレームごとに掛ける値で、走る距離はおよそ <b>初速 ÷ (1 − f)</b>。
+   普段の f は 0.9865 なので、
+     0.045 のとき… (1-0.9415)=0.0585 → 普段のおよそ <b>23%</b> の距離
+     0.075 のとき… (1-0.9115)=0.0885 → 普段のおよそ <b>15%</b> の距離
+   ★ アンチ重力バリアを持っている子にはかからないので、
+     「アンチを入れる価値」がそのまま上がる。 */
+const GRAV_FRICTION = 0.075;
 const SLOWWALL_MUL = 0.42;   // ふれた瞬間にスピードをこの倍率にする
 const SLOWWALL_FRICTION = 0.045;  // さらに、そのターンのあいだ摩擦をこのぶん強くする
 const PRAY_CHANCE = 0.30;    // 治癒の祈り: ボス戦のマップ開始時に30%でHP全回復
@@ -923,11 +931,13 @@ const SHOTSK_REINA_PER = 0.62;    // レイナ: 進行方向へ黒薔薇の茨�
 const SHOTSK_REINA_LEN = 560;     //   その射程
 const SHOTSK_REINA_R = 58;        //   その太さ
 const SHOTSK_REINA_SIGIL = 1;     //   当たった敵に刻む追加弱点のターン数
-const SHOTSK_RAN_PER = 0.54;      // ラン: 進行方向へ銀のトレイ2枚（貫通・八の字）
+const SHOTSK_RAN_PER = 0.78;      // ラン: 進行方向へ銀のトレイ2枚（貫通・八の字）
 const SHOTSK_RAN_LEN = 520;   /* ★★ 2026-08-29 実測して延ばした（430 だと遠い敵に届かなかった） */
 const SHOTSK_RAN_R = 46;
 const SHOTSK_RAN_SPREAD = 0.30;   //   2枚の開き（ラジアン）
-const SHOTSK_RAN_DELAY = 1;       //   いちばん近い敵の攻撃ターンを遅らせる数
+/* ★★ 2026-09-08 ご指定により<b>敵を遅延するショットスキル・リンクスキルは廃止</b>。
+   そのぶんを<b>威力</b>へ振りかえてある（0.54 → 0.78）。
+   ★ フルバーストの遅延はご指定の対象外なのでそのまま。 */
 const SHOTSK_KURENAI_PER = 0.56;  // クレナイ: 自分のまわりに熱の湯けむり
 const SHOTSK_KURENAI_R = 235;
 const SHOTSK_KURENAI_HEAL = 0.018;//   あわせて戻るチームHP
@@ -968,8 +978,8 @@ const SHOTSK_REIS_W = 58;
 const SHOTSK_RIKAS_PER = 0.60;     // リカ: 前方へ竜のブレス（扇）
 const SHOTSK_RIKAS_R = 260;
 const SHOTSK_RIKAS_FB = 1;         // あわせて自分のFBが1ターン進む
-const SHOTSK_ANNARAN_PER = 0.72;   // アンナ＆ラン: 敵全体へ薔薇の花びら
-const SHOTSK_ANNARAN_DELAY = 1;    // いちばん近い敵の攻撃ターンを1遅らせる
+/* ★★ 2026-09-08 遅延をやめ、そのぶん威力へ（0.72 → 1.02）。 */
+const SHOTSK_ANNARAN_PER = 1.02;   // アンナ＆ラン: 敵全体へ薔薇の花びら
 
 /* ══ ★★ 2026-09-07 戦姫祭 ナオ／ハルカ のショットスキル ══════════════
    ★ 定数は必ず <b>SHOTSKILLS より前</b>に置く（あとに置くと TDZ で落ちる）。 */
@@ -978,6 +988,20 @@ const SHOTSK_NAOS_W = 78;          // 水柱の太さ（当たり判定）
 const SHOTSK_NAOS_BARRIER = 900;   // 撃つたびに自分へ乗るバリア
 const SHOTSK_HARUKAS_PER = 1.15;   // ハルカ: いちばん近い敵へ刺さる結晶
 const SHOTSK_HARUKAS_MARK = 1.22;  // 刺さっている敵への与ダメージ倍率（その手番だけ）
+
+/* ══ ★★ 2026-09-08 戦姫祭 第3弾 レイア／ミオリ／アンナ(メイド) のショットスキル ══
+   ★ 定数は必ず <b>SHOTSKILLS より前</b>に置く（あとに置くと TDZ で丸ごと落ちる）。 */
+const SHOTSK_REIA_R = 300;         // レイア: 自分のまわりに広がる華焔の輪
+const SHOTSK_REIA_PER = 1.28;      // 輪にふれた敵への倍率
+const SHOTSK_REIA_FB = 1;          // あわせて自分のフルバーストが1ターン進む
+const SHOTSK_MIORI_PER = 1.10;     // ミオリ: 敵全体へ宵闇の羽根（距離に関係なく当たる）
+/* ★★ 2026-09-08 遅延をやめ、<b>いちばんHPが高い敵の防御力を下げる</b>に差しかえた。
+   ボスを柔らかくするという役目は残しつつ、手番は止めない。 */
+const SHOTSK_MIORI_DEFDOWN = 1;    // いちばんHPの高い敵の防御力を下げるターン
+const SHOTSK_ANNAMD_PER = 1.30;    // アンナ(メイド): 前方へ銀のトレイ2枚（貫通）
+const SHOTSK_ANNAMD_LEN = 620;
+const SHOTSK_ANNAMD_W = 66;
+const SHOTSK_ANNAMD_BAR = 700;     // 味方全員に張るバリア
 const SHOTSKILLS = {
   verdant: {
     nm: "ヴェルダント・シュート", c: "#8affc4",
@@ -1016,12 +1040,11 @@ const SHOTSKILLS = {
   flambe: {
     nm: "フランベ・シュート", c: "#ff5d47",
     pow: "進行方向へ 射程 " + SHOTSK_RAN_LEN + " の銀のトレイ<b>2枚</b>（貫通・八の字）／"
-      + "線上の敵に 攻撃力×" + SHOTSK_RAN_PER
-      + " ＋ <b>いちばん近い敵の攻撃ターンを" + SHOTSK_RAN_DELAY + "遅らせる</b>",
+      + "線上の敵に 攻撃力×" + SHOTSK_RAN_PER,
     desc: "自分のターンで<b>撃つたび毎回</b>、進行方向へ炎をまとった銀のトレイが<b>2枚</b>、"
-      + "少し開いて飛ぶ。<br>1本の線より<b>当たる幅が広い</b>のがちがい。"
-      + "あわせて<b>いちばん近い敵の攻撃ターンを" + SHOTSK_RAN_DELAY + "遅らせる</b>ので、"
-      + "撃つだけで受けるダメージが減っていく。",
+      + "少し開いて飛ぶ。<br>1本の線より<b>当たる幅が広い</b>のがちがいで、"
+      + "1発の重さも<b>貫通型のショットスキルでは最大級</b>。"
+      + "並んだ敵を<b>まとめて貫ける</b>ので、撃つ向きを決めるだけで削りが伸びる。",
   },
   mist: {
     nm: "ミスト・シュート", c: "#ff9d2e",
@@ -1100,12 +1123,11 @@ const SHOTSKILLS = {
   },
   rosepetal: {
     nm: "ローズ・シュート", c: "#ff5d47",
-    pow: "<b>敵全体</b>に 攻撃力×" + SHOTSK_ANNARAN_PER + " の花びら（距離に関係なく当たる）"
-      + " ＋ <b>いちばん近い敵の攻撃ターンを" + SHOTSK_ANNARAN_DELAY + "遅らせる</b>",
+    pow: "<b>敵全体</b>に 攻撃力×" + SHOTSK_ANNARAN_PER + " の花びら（距離に関係なく当たる）",
     desc: "自分のターンで<b>撃つたび毎回</b>、紅と金の花びらが盤面じゅうに舞う。"
-      + "<br><b>射程も範囲も関係なく画面の敵すべてに入る</b>うえ、"
-      + "<b>いちばん近い敵の攻撃ターンを" + SHOTSK_ANNARAN_DELAY + "遅らせる</b>——"
-      + "全体攻撃と足止めを<b>同時に</b>持つ、いまいちばん強いショットスキル。",
+      + "<br><b>射程も範囲も関係なく画面の敵すべてに入る</b>うえに、"
+      + "<b>1発の重さが全体攻撃のショットスキルでは最大</b>（攻撃力×" + SHOTSK_ANNARAN_PER + "）。"
+      + "<br>★ 2026-09-08：敵を遅延させる効果は<b>廃止</b>し、そのぶん威力を上げました。",
   },
   /* ══ ★★ 2026-09-07 戦姫祭 ナオ／ハルカ ══ */
   tidalshot: {
@@ -1124,6 +1146,39 @@ const SHOTSKILLS = {
     desc: "自分のターンで<b>撃つたび毎回</b>、いちばん近い敵に<b>青の結晶</b>が突き刺さる。"
       + "<br>刺さっているあいだ、その敵への<b>チーム全員の与ダメージが上がる</b>——"
       + "撃つ前に狙いを決めるだけで、<b>そのターンの本命を1体えらべる</b>。",
+  },
+  /* ══ ★★ 2026-09-08 戦姫祭 第3弾（レイア・ミオリ・アンナ(メイド)）══
+     3体とも<b>いまいちばん強いショットスキル</b>。1つずつ役目を変えてある——
+     レイア＝火力＋FB短縮／ミオリ＝全体攻撃＋足止め／アンナ(メイド)＝貫通＋チーム防御。 */
+  bloomshot: {
+    nm: "フルール・シュート", c: "#ff6f9c",
+    pow: "自分のまわり 半径 " + SHOTSK_REIA_R + " に 攻撃力×" + SHOTSK_REIA_PER
+      + " の華焔の輪 ＋ <b>自分のフルバーストが" + SHOTSK_REIA_FB + "ターン進む</b>",
+    desc: "自分のターンで<b>撃つたび毎回</b>、足もとから<b>桜色の焔</b>が輪になって広がる。"
+      + "<br>半径 " + SHOTSK_REIA_R + " はショットスキルの中でいちばん広く、"
+      + "<b>1発の重さも最大級</b>（攻撃力×" + SHOTSK_REIA_PER + "）。"
+      + "<br>そのうえ<b>撃つだけでフルバーストが" + SHOTSK_REIA_FB + "ターン近づく</b>ので、"
+      + "史上最強のフルバーストに<b>手番のたびに近づいていきます</b>。",
+  },
+  nocturneshot: {
+    nm: "ノクターン・シュート", c: "#b06bff",
+    pow: "<b>敵全体</b>に 攻撃力×" + SHOTSK_MIORI_PER + " の宵闇の羽根（距離に関係なく当たる）"
+      + " ＋ <b>いちばんHPが高い敵の防御力を" + SHOTSK_MIORI_DEFDOWN + "ターン下げる</b>",
+    desc: "自分のターンで<b>撃つたび毎回</b>、盤面じゅうに<b>紫の羽根</b>が舞い落ちる。"
+      + "<br><b>射程も範囲も関係なく画面の敵すべてに入る</b>うえに、"
+      + "<b>いちばんHPが高い敵</b>——たいていはボス——の<b>守りをゆるめます</b>。"
+      + "<br>その手番のうちに自分で殴りに行けるので、<b>削りがそのまま伸びます</b>。"
+      + "<br>★ 2026-09-08：敵を遅延させる効果は<b>廃止</b>し、防御力ダウンに差しかえました。",
+  },
+  servishot: {
+    nm: "セルヴィス・シュート", c: "#ffd257",
+    pow: "進行方向へ 射程 " + SHOTSK_ANNAMD_LEN + " の銀のトレイ<b>2枚</b>（貫通・太さ "
+      + SHOTSK_ANNAMD_W + "）／線上の敵に 攻撃力×" + SHOTSK_ANNAMD_PER
+      + " ＋ <b>味方全員に " + SHOTSK_ANNAMD_BAR + " のバリア</b>",
+    desc: "自分のターンで<b>撃つたび毎回</b>、進む向きへ<b>銀のトレイが2枚</b>、少し開いて飛ぶ。"
+      + "<br>1本の線より<b>当たる幅が広い</b>ので、並んだ敵をまとめて貫きます。"
+      + "<br>そして撃つたび<b>味方全員</b>に " + SHOTSK_ANNAMD_BAR + " のバリア——"
+      + "ユウカの<b>グレイル・シュート</b>と同じ役目を、<b>ずっと重い一撃</b>と一緒にこなします。",
   },
   astral: {
     nm: "アストラル・シュート", c: "#c9a6ff",
@@ -2629,8 +2684,8 @@ function effFriction(ball) {
         バブリー 0.9880 → 0.9905 ＝ v14.2 でしぼったぶんを一段もどした）。 */
   let f = isBubbly(ball) ? 0.9905 : 0.9865;
   /* 敵の重力バリアの中にいると減速する（アンチ重力バリア／アリシアフルバーストで無効）
-     ★ v10: 減速率を強化（0.03 → 0.045）＝バリア内に居座るとかなり止まりやすい */
-  if (inGravField(ball) && !antiGim(ball, "agrav")) f -= 0.045;
+     ★ v10: 0.03 → 0.045。★★ 2026-09-08: 0.045 → GRAV_FRICTION（0.075）。 */
+  if (inGravField(ball) && !antiGim(ball, "agrav")) f -= GRAV_FRICTION;
   /* ★ 減速壁にふれたショットは、そのターンのあいだ止まりやすい */
   if (ball._slowWall) f -= SLOWWALL_FRICTION;
   /* ★★ 2026-09-06 装備の<b>最大装弾数増加</b>＝<b>1ターンに走る距離</b>。
@@ -3406,6 +3461,107 @@ const HARUKAS_TOTAL =
   HARUKAS_BARRAGE_N * HARUKAS_BARRAGE_PER
   + HARUKAS_BARRAGE_STEP * (HARUKAS_BARRAGE_N * (HARUKAS_BARRAGE_N - 1) / 2)
   + HARUKAS_SHATTER + HARUKAS_FLUTTER_N * HARUKAS_FLUTTER_PER;
+
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-09-08 戦姫祭 第3弾 — レイア／ミオリ／アンナ(メイド)
+   ------------------------------------------------------------
+   ・リンクスキルは3本とも<b>これまでに無い挙動</b>（ご指定）。
+       サンクタ・ペタリア  … <b>味方4体を結んだ陣</b>が燃え、陣の内と外で重さが変わる。
+                              しかも<b>陣が大きいほど倍率が上がる</b>（立ち位置が威力になる）。
+       ヴォイド・アワーグラス… <b>奪った攻撃ターンの合計が、そのまま締めの威力になる</b>。
+       グランメゾン・セルヴィス… 銀のワゴンが走り、<b>壁で跳ね返るたびに重く</b>なり、
+                              <b>味方にふれるたび1台増える</b>。
+   ・素の合計はどれも <b>アンナ＆ランのツインローズ（×337.2）を超える</b>。
+   ・フルバーストは3本とも <b>アンナ＆ラン（×544.2）を超える</b>＝MagiBurst 史上最強。
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── レイア「サンクタ・ペタリア」（リンク・味方4体を結んだ華焔の陣）── */
+const SANCT_N = 6;                 // 花びらが陣をめぐる回数（段）
+const SANCT_PER = 22.0;            // 1段の倍率（陣の内側にいる敵）
+const SANCT_STEP = 4.0;            // 段ごとの上乗せ
+const SANCT_OUT = 0.45;            // 陣の外にいる敵への割合
+const SANCT_AREA_MAX = 0.40;       // 陣が広いほど倍率が上がる（最大 +40%）
+const SANCT_FINALE = 110.0;        // 締めの大輪（敵全体）
+const SANCT_GAP = 11;              // 1段ごとの間隔（フレーム）
+const SANCT_BASE = SANCT_N * SANCT_PER + SANCT_STEP * (SANCT_N * (SANCT_N - 1) / 2);
+const SANCT_TOTAL_MIN = SANCT_BASE + SANCT_FINALE;
+const SANCT_TOTAL_MAX = SANCT_BASE * (1 + SANCT_AREA_MAX) + SANCT_FINALE;
+
+/* ── ミオリ「ヴォイド・アワーグラス」（リンク）──
+   ★★ 2026-09-08 ご指定により<b>敵を遅延させるリンクスキルは廃止</b>。
+   仕掛けの目新しさ（「これまでの分が積み上がって最後に落ちる」）は残し、
+   <b>遅延</b>ではなく<b>その回にふれた敵の数</b>を数える形に差しかえた。
+     ・その回にふれた敵1体につき、<b>次の回が重く</b>なる（VGLASS_STEP）
+     ・同じく、<b>砂がたまる</b>（VGLASS_SAND）。最後にたまった砂が一気に落ちる。
+   ★ 合計の値（最大 352）はこれまでと同じになるようにしてある。 */
+const VGLASS_N = 8;                // 砂が落ちる回数（敵全体）
+const VGLASS_PER = 15.0;           // 1回の倍率
+const VGLASS_STEP = 1.5;           // その回にふれた敵1体につき、次の回に上乗せ
+const VGLASS_SAND = 2.0;           // その回にふれた敵1体につきたまる砂（締めの倍率）
+const VGLASS_GAP = 12;
+function vglassTotal(h) {          // h = 毎回そろってふれられる敵の数
+  const n = Math.max(1, h | 0);
+  let per = VGLASS_PER, t = 0;
+  for (let i = 0; i < VGLASS_N; i++) { t += per; per += VGLASS_STEP * n; }
+  return t + VGLASS_N * n * VGLASS_SAND;
+}
+const VGLASS_TOTAL_MAX = vglassTotal(4);
+
+/* ── アンナ(メイド)「グランメゾン・セルヴィス」（リンク・走って増える銀のワゴン）── */
+const MAISON_N0 = 3;               // 最初に走り出すワゴンの数
+const MAISON_MAX = 12;             // 増える上限
+const MAISON_PER = 12.0;           // ワゴンが敵にふれたとき（1台1回ぶん）
+const MAISON_BOUNCE = 3.0;         // 壁で跳ね返るたびに、その台の威力に上乗せ
+const MAISON_BOUNCE_MAX = 3;       // 上乗せの上限（跳ね返り回数）
+const MAISON_SPEED = 17;           // ワゴンの速さ
+const MAISON_FRAMES = 100;         // 走っている時間（フレーム）
+const MAISON_HITGAP = 14;          // 同じ敵に続けて当たらない間隔（フレーム）
+const MAISON_FINALE = 170.0;       // 締めのデセール（敵全体）
+const MAISON_TOTAL_MAX =
+  MAISON_MAX * (MAISON_PER + MAISON_BOUNCE * MAISON_BOUNCE_MAX) + MAISON_FINALE;
+
+/* ── レイア「フルール・ド・フェニックス」（フルバースト）── */
+const REIA_ATK = 2.95, REIA_SPD = 1.50;
+const REIA_BLOOM_N = 14;           // 花が開く段（敵全体）
+const REIA_BLOOM_PER = 16.0;       // 1段目の倍率
+const REIA_BLOOM_STEP = 1.4;       // 段ごとの上乗せ
+const REIA_BLOOM_GAP = 8;
+const REIA_PHOENIX = 240.0;        // 締めの不死鳥（敵全体・ふっとばし）
+const REIA_HEAL = 0.40;            // チームHPの回復割合
+const REIA_TOTAL =
+  REIA_BLOOM_N * REIA_BLOOM_PER
+  + REIA_BLOOM_STEP * (REIA_BLOOM_N * (REIA_BLOOM_N - 1) / 2)
+  + REIA_PHOENIX;
+
+/* ── ミオリ「ノクターン・ヴォイドクイーン」（フルバースト）── */
+const MIORI_ATK = 3.00, MIORI_SPD = 1.52;
+const MIORI_BARRAGE_N = 46;        // 紫の鎖で縛って乱打
+const MIORI_BARRAGE_PER = 4.20;
+const MIORI_BARRAGE_STEP = 0.10;   // 1発ごとの上乗せ
+const MIORI_BURST = 150.0;         // 鎖が弾けて 敵全体
+const MIORI_ECLIPSE_N = 6;         // 月食の輪（敵全体）
+const MIORI_ECLIPSE_PER = 28.0;
+const MIORI_ECLIPSE_GAP = 10;
+const MIORI_DEFDOWN_TURNS = 3;     // 敵全体の防御力ダウン
+const MIORI_DELAY = 2;             // 敵全体の攻撃ターン遅延
+const MIORI_TOTAL =
+  MIORI_BARRAGE_N * MIORI_BARRAGE_PER
+  + MIORI_BARRAGE_STEP * (MIORI_BARRAGE_N * (MIORI_BARRAGE_N - 1) / 2)
+  + MIORI_BURST + MIORI_ECLIPSE_N * MIORI_ECLIPSE_PER;
+
+/* ── アンナ(メイド)「グラン・フィナーレ・セルヴィス」（フルバースト）── */
+const ANNAMD_ATK = 3.05, ANNAMD_SPD = 1.55;
+const ANNAMD_TRAY_N = 20;          // 銀のトレイが降る回数（敵全体）
+const ANNAMD_TRAY_PER = 12.0;
+const ANNAMD_TRAY_STEP = 0.9;      // 1回ごとの上乗せ
+const ANNAMD_TRAY_GAP = 7;
+const ANNAMD_TOWER = 250.0;        // シャンパンタワーの崩落（敵全体）
+const ANNAMD_FB = 3;               // 味方全員のフルバーストを進めるターン
+const ANNAMD_BARRIER = 3000;       // 味方全員に張るバリア
+const ANNAMD_TOTAL =
+  ANNAMD_TRAY_N * ANNAMD_TRAY_PER
+  + ANNAMD_TRAY_STEP * (ANNAMD_TRAY_N * (ANNAMD_TRAY_N - 1) / 2)
+  + ANNAMD_TOWER;
 
 const SUBFS = {
   plasma: { nm: "プラズマ", pow: "初撃 攻撃力×0.8 ＋ 電撃リンク中 1ヒット 攻撃力×0.34", desc: "自分と触れた味方の間に強力なプラズマを走らせて攻撃（味方が止まるまで持続）" },
@@ -4648,6 +4804,39 @@ const CONNECT = {
   /* ══ ★★ 2026-09-07 戦姫祭 第2弾 ══
      ★ ご指定どおり<b>条件に自分と異なる属性を出さない</b>（どちらも「自分と同じ属性」）。
      ★ クロスの3つのうち<b>1つはアンチ</b>（アンチロックゾーン）。 */
+  /* ══ ★★ 2026-09-08 戦姫祭 第3弾（レイア・ミオリ・アンナ(メイド)）══
+     ★ ご指定どおり<b>条件に自分と異なる属性は出さない</b>。
+     ★ 3つのうち<b>1つはアンチ</b>（アンチアビリティは素の3つとあわせて計4つ）。 */
+  reia: {
+    nm: "華焔のクロス",
+    condTx: "<b>自分と同じ属性の味方が1体以上</b>いること（自分をのぞく）",
+    cond: (ids, me) => cnxSelfIn(ids, me) && cnxCount(ids, me, (c, m) => c.el === m.el) >= 1,
+    skills: [
+      { k: "reiaBlock", nm: "アンチブロック", abil: "ablock" },
+      { k: "reiaDash", nm: "ダッシュL", abil: "dashL" },
+      { k: "reiaBarrier", nm: "バリアEL", abil: "barrierEL" },
+    ],
+  },
+  miori: {
+    nm: "宵闇のクロス",
+    condTx: "<b>自分と同じ撃種の味方が1体以上</b>いること（自分をのぞく）",
+    cond: (ids, me) => cnxSelfIn(ids, me) && cnxCount(ids, me, (c, m) => c.shot === m.shot) >= 1,
+    skills: [
+      { k: "mioriBlock", nm: "アンチブロック", abil: "ablock" },
+      { k: "mioriBarrier", nm: "バリアEL", abil: "barrierEL" },
+      { k: "mioriSoul", nm: "ソウルスティールEL", abil: "soulEL" },
+    ],
+  },
+  annamd: {
+    nm: "給仕のクロス",
+    condTx: "<b>自分と同じ属性の味方が1体以上</b>いること（自分をのぞく）",
+    cond: (ids, me) => cnxSelfIn(ids, me) && cnxCount(ids, me, (c, m) => c.el === m.el) >= 1,
+    skills: [
+      { k: "annamdMs", nm: "超マインスイーパーEL", abil: "supermsEL" },
+      { k: "annamdCharge", nm: "FBターンチャージ", abil: "sscharge" },
+      { k: "annamdRegen", nm: "リジェネL", abil: "regenL" },
+    ],
+  },
   naos: {
     nm: "真夏のクロス",
     condTx: "<b>自分と同じ属性の味方が1体以上</b>いること（自分をのぞく）",
@@ -10898,6 +11087,189 @@ const CHARS = {
       + "<b>腕前がそのまま威力になる</b>リンクスキルです（最大 攻撃力×"
       + CRES_TOTAL_MAX.toFixed(1) + "）。",
   },
+  /* ══════════ ★★ 2026-09-08 戦姫祭 第3弾（No.213〜215）══════════
+     レイア（火）・ミオリ（闇）・アンナ(メイド)（光）。<b>MagiBurst 史上最強</b>。
+     ・アビリティは<b>10個</b>（アンチ4＝うち1つはクロス／キラー2／そのほか4）。
+       <b>治癒の祈りもオムニアンチも持たない</b>（ご指定）。
+     ・アンチの素の3つは、担当する<b>⚖天界の審判</b>の必要アンチと<b>ぴったり一致</b>する。
+       クロスのアンチ1つが点くと、さらに別の審判にも手が届く。
+     ・クロスの条件に<b>自分と異なる属性は出さない</b>（ご指定）。
+     ・共通サブリンクは<b>ヴァルキュリア・ロンド</b>（戦姫祭で統一）。
+     ・3体ともショットスキルを持ち、<b>撃つたび毎回</b>発動する。
+     ══════════════════════════════════════════════════════════════ */
+  reia: {
+    /* 火・貫通。桜と薔薇の華焔。★ 既存の「レイ（光）」「レイ（闇）」とは別人。 */
+    id: "reia", nm: "レイア", img: "Reia.webp", th: "t_Reia.webp",
+    el: "fire", shot: "pierce", type: "聖華焔陣型", gacha: true, fes: true, fesKey: "senki", lux: true,
+    nexus: "senkivalor", star5: true,
+    connect: "reia",
+    hp: [1196, 7860], atk: [2165, 13725], spd: [349, 522],
+    /* アンチ3つ（素）＋クロスで1つ＝<b>合計4つ</b>。キラーは2つ。
+       ★ 超ADW＋超アンチ重力バリア＋アンチロックゾーン で <b>⚖第八の審判</b>を
+         有利属性のまま<b>素のまま</b>完全対応できる。
+       ★ クロスの<b>アンチブロック</b>が点くと <b>⚖第三の審判</b>（木）にも完全対応
+         ——こちらも<b>有利属性のまま</b>。 */
+    abil: [{ t: "superadw" }, { t: "sgrav" }, { t: "antilock" },
+           { t: "judgekillerEL" }, { t: "killerEL", el: "wood" }, { t: "fsboostEL" },
+           { t: "sscharge" }],
+    shotskill: "bloomshot",
+    subfs: "senkirondo",
+    ssName: "フルール・ド・フェニックス", ssTurns: 20, ssKind: "reia",
+    ssPow: "自強化（攻撃×" + REIA_ATK + "・スピード×" + REIA_SPD + "）＋ "
+      + "<b>盤面いっぱいの華が" + REIA_BLOOM_N + "段に咲く</b>（<b>敵全体</b>・1段目 攻撃力×"
+      + REIA_BLOOM_PER + "・1段ごとに +" + REIA_BLOOM_STEP + "）"
+      + " ＋ <b>不死鳥が起きあがる</b>（敵全体・攻撃力×" + REIA_PHOENIX + "・ふっとばし）"
+      + " ＋ <b>チームHPを" + Math.round(REIA_HEAL * 100) + "%回復</b>"
+      + "／<b>合計 攻撃力×" + REIA_TOTAL.toFixed(1) + "</b>",
+    ssDesc: "盤面がまるごと<b>桜と薔薇の庭</b>になる。"
+      + "<b>自強化（攻撃×" + REIA_ATK + "・スピード×" + REIA_SPD + "）</b>して、"
+      + "<b>華が" + REIA_BLOOM_N + "段に咲きひらく</b>——<b>咲くほど1段が重くなります</b>"
+      + "（×" + REIA_BLOOM_PER + " → ×"
+      + (REIA_BLOOM_PER + REIA_BLOOM_STEP * (REIA_BLOOM_N - 1)).toFixed(1) + "）。"
+      + "<br>咲ききったところで灰の中から<b>不死鳥</b>が起きあがり、"
+      + "<b>敵全体へ 攻撃力×" + REIA_PHOENIX + "</b>、そのまま<b>ふっとばし</b>ます。"
+      + "あわせて<b>チームHPを" + Math.round(REIA_HEAL * 100) + "%戻します</b>。"
+      + "<br>合計 攻撃力×" + REIA_TOTAL.toFixed(1) + " ——"
+      + "<b>アンナ＆ラン（×544.2）を超える MagiBurst 史上最強クラス</b>です。"
+      + "<br>アンチは<b>超アンチダメージウォール＋超アンチ重力バリア＋アンチロックゾーン</b>——"
+      + "これだけで<b>⚖第八の審判</b>を有利属性のまま<b>素のまま</b>完全対応できます。"
+      + "クロスの<b>アンチブロック</b>が点くと<b>⚖第三の審判</b>にも、"
+      + "やはり<b>有利属性のまま</b>完全対応できます。",
+    fsName: "サンクタ・ペタリア", fsKind: "sanctapetal",
+    fsPow: "<b>味方4体を結んだ陣</b>が華焔で燃える（" + SANCT_N + "段・1段目 攻撃力×"
+      + SANCT_PER + "・段ごとに +" + SANCT_STEP + "）／<b>陣の内側は全部・外側は×"
+      + SANCT_OUT + "</b>／<b>陣が広いほど最大 +" + Math.round(SANCT_AREA_MAX * 100) + "%</b>"
+      + " ＋ 締めの大輪（敵全体・攻撃力×" + SANCT_FINALE + "）／"
+      + "合計 攻撃力×" + SANCT_TOTAL_MIN.toFixed(1) + "〜<b>×"
+      + SANCT_TOTAL_MAX.toFixed(1) + "</b>",
+    fsDesc: "ふれた味方から<b>味方4人をぐるりと結ぶ陣</b>が引かれ、線の上を華焔がめぐる。"
+      + "<br>これまでに無いのは<b>味方の立ち位置そのものが威力になる</b>こと——"
+      + "<b>陣の内側にいる敵</b>には満額、外側の敵には×" + SANCT_OUT + "。"
+      + "そして<b>陣が広いほど倍率が上がります</b>（最大 +"
+      + Math.round(SANCT_AREA_MAX * 100) + "%）。"
+      + "<br>陣は" + SANCT_N + "段めぐり、<b>めぐるたびに重く</b>なります"
+      + "（×" + SANCT_PER + " → ×"
+      + (SANCT_PER + SANCT_STEP * (SANCT_N - 1)).toFixed(1) + "）。"
+      + "<br>最後に陣の中心から<b>大輪</b>が開いて敵全体へ（攻撃力×" + SANCT_FINALE + "）。"
+      + "<br>味方を広く散らして、敵をその内側に入れる——"
+      + "<b>編成と立ち回りがそのまま威力になる</b>リンクスキルです"
+      + "（最大 攻撃力×" + SANCT_TOTAL_MAX.toFixed(1) + "）。",
+  },
+  miori: {
+    /* 闇・反射。紫の鎖と宵の砂時計。★ 既存の「ミオ（光）」とは別人。 */
+    id: "miori", nm: "ミオリ", img: "Miori.webp", th: "t_Miori.webp",
+    el: "dark", shot: "reflect", type: "宵闇簒奪型", gacha: true, fes: true, fesKey: "senki", lux: true,
+    nexus: "senkivalor", star5: true,
+    connect: "miori",
+    hp: [1188, 7810], atk: [2188, 13872], spd: [354, 530],
+    /* ★ 超マインスイーパーEL＋超アンチワープ＋アンチ断絶界 で <b>⚖第九の審判</b>を
+         有利属性のまま<b>素のまま</b>完全対応できる。
+       ★ クロスの<b>アンチブロック</b>が点くと <b>⚖第十の審判</b>と <b>⚖第二の審判</b>にも
+         ギミックを完全に消せる（属性は不利なので、火力はキラーとFBで押しきる形）。 */
+    abil: [{ t: "supermsEL" }, { t: "superaw" }, { t: "award" },
+           { t: "judgekillerEL" }, { t: "killerEL", el: "light" }, { t: "fsboostEL" },
+           { t: "dashL" }],
+    shotskill: "nocturneshot",
+    subfs: "senkirondo",
+    ssName: "ノクターン・ヴォイドクイーン", ssTurns: 20, ssKind: "miori",
+    ssPow: "自強化（攻撃×" + MIORI_ATK + "・スピード×" + MIORI_SPD + "）＋ "
+      + "<b>紫の鎖</b>で縛って乱打（" + MIORI_BARRAGE_N + "連・1発 攻撃力×"
+      + MIORI_BARRAGE_PER + "・1発ごとに +" + MIORI_BARRAGE_STEP + "）"
+      + " ＋ <b>鎖が弾けて敵全体</b>（攻撃力×" + MIORI_BURST + "）"
+      + " ＋ <b>月食の輪</b> " + MIORI_ECLIPSE_N + "重（敵全体・1重 攻撃力×"
+      + MIORI_ECLIPSE_PER + "）"
+      + " ＋ <b>敵全体の防御力ダウン(" + MIORI_DEFDOWN_TURNS + "T)＋攻撃ターン"
+      + MIORI_DELAY + "遅延</b>／<b>合計 攻撃力×" + MIORI_TOTAL.toFixed(1) + "</b>",
+    ssDesc: "最初にふれた敵を<b>紫の鎖</b>が縛りあげ、外へは出られなくなる。"
+      + "<b>自強化（攻撃×" + MIORI_ATK + "・スピード×" + MIORI_SPD + "）</b>して、"
+      + "鎖の内側で<b>" + MIORI_BARRAGE_N + "連の乱打</b>——<b>撃つほど1発が重くなります</b>"
+      + "（1発ごとに +" + MIORI_BARRAGE_STEP + "）。"
+      + "<br>撃ち終わると鎖が<b>弾けて敵全体へ 攻撃力×" + MIORI_BURST + "</b>、"
+      + "そのまま<b>月食の輪</b>が" + MIORI_ECLIPSE_N + "重に重なって、"
+      + "1重ごとに<b>敵全体</b>へ 攻撃力×" + MIORI_ECLIPSE_PER + " が入ります。"
+      + "<br>締めに<b>敵全体の防御力を" + MIORI_DEFDOWN_TURNS + "ターン下げ、"
+      + "攻撃ターンを" + MIORI_DELAY + "遅らせます</b>——"
+      + "<b>削りながら、次の一発の準備までしてしまう</b>フルバーストです。"
+      + "<br>合計 攻撃力×" + MIORI_TOTAL.toFixed(1) + "。"
+      + "<br>アンチは<b>超マインスイーパーEL＋超アンチワープ＋アンチ断絶界</b>——"
+      + "これだけで<b>⚖第九の審判</b>を有利属性のまま<b>素のまま</b>完全対応できます。"
+      + "クロスの<b>アンチブロック</b>が点くと<b>⚖第十の審判・第二の審判</b>のギミックも"
+      + "完全に消せます（属性は不利なので、火力はキラーとフルバーストで押しきる形です）。",
+    fsName: "ヴォイド・アワーグラス", fsKind: "voidglass",
+    fsPow: "宵の砂時計が " + VGLASS_N + "回落ちる（1回 <b>敵全体</b>へ 攻撃力×" + VGLASS_PER + "）／"
+      + "<b>その回にふれた敵1体につき、次の回に +" + VGLASS_STEP
+      + " と 砂が +" + VGLASS_SAND + "</b>"
+      + " ＋ 締めは<b>たまった砂をまるごと敵全体へ</b>／"
+      + "合計 攻撃力×" + vglassTotal(1).toFixed(1) + "（敵1体）〜<b>×"
+      + VGLASS_TOTAL_MAX.toFixed(1) + "</b>（敵4体）",
+    fsDesc: "ふれた味方の上に<b>宵の砂時計</b>が立ち、" + VGLASS_N + "回ひっくり返る。"
+      + "<br>これまでに無いのは<b>当てたぶんが砂としてたまり、最後に一気に落ちる</b>こと——"
+      + "砂時計が落ちるたびに<b>敵全体</b>へ入り、"
+      + "<b>その回にふれた敵の数だけ次の砂が重くなります</b>（1体につき +" + VGLASS_STEP + "）。"
+      + "<br>同じく<b>砂もたまっていき</b>（1体につき +" + VGLASS_SAND + "）、"
+      + "最後に<b>たまった砂をまるごと敵全体へ</b>こぼします。"
+      + "<br>敵が多いほど砂は早くたまるので、<b>雑魚が並ぶWAVEでいちばん伸びます</b>"
+      + "（最大 攻撃力×" + VGLASS_TOTAL_MAX.toFixed(1) + "）。"
+      + "<br>★ 2026-09-08：敵を遅延させる効果は<b>廃止</b>しました（合計の重さは同じです）。",
+  },
+  annamd: {
+    /* 光・貫通。黒と金の給仕。★ アンナ(STAR)・アンナ(祭)・アンナ＆ランとは別人。 */
+    id: "annamd", nm: "アンナ(メイド)", img: "AnnaMaid.webp", th: "t_AnnaMaid.webp",
+    el: "light", shot: "pierce", type: "黄金給仕型", gacha: true, fes: true, fesKey: "senki", lux: true,
+    nexus: "senkivalor", star5: true,
+    connect: "annamd",
+    hp: [1210, 7950], atk: [2210, 14012], spd: [348, 520],
+    /* ★ 超アンチワープ＋アンチブロック＋アンチ断絶界 で <b>⚖第十の審判</b>を
+         有利属性のまま<b>素のまま</b>完全対応できる（適性キャラが1体しかいなかった面）。
+       ★ クロスの<b>超マインスイーパーEL</b>が点くと <b>⚖第九の審判</b>と
+         <b>⚖第二の審判</b>のギミックも完全に消せる。 */
+    abil: [{ t: "superaw" }, { t: "ablock" }, { t: "award" },
+           { t: "judgekillerEL" }, { t: "killerEL", el: "dark" }, { t: "fsboostEL" },
+           { t: "barrierEL" }],
+    shotskill: "servishot",
+    subfs: "senkirondo",
+    ssName: "グラン・フィナーレ・セルヴィス", ssTurns: 20, ssKind: "annamd",
+    ssPow: "自強化（攻撃×" + ANNAMD_ATK + "・スピード×" + ANNAMD_SPD + "）＋ "
+      + "<b>銀のトレイが" + ANNAMD_TRAY_N + "回ふりそそぐ</b>（<b>敵全体</b>・1回目 攻撃力×"
+      + ANNAMD_TRAY_PER + "・1回ごとに +" + ANNAMD_TRAY_STEP + "）"
+      + " ＋ <b>シャンパンタワーの崩落</b>（敵全体・攻撃力×" + ANNAMD_TOWER + "）"
+      + " ＋ <b>味方全員のフルバーストが" + ANNAMD_FB + "ターン進み、バリア "
+      + ANNAMD_BARRIER + "</b>／<b>合計 攻撃力×" + ANNAMD_TOTAL.toFixed(1) + "</b>",
+    ssDesc: "広間の灯りが金に変わり、<b>閉店後のフルコース</b>がはじまる。"
+      + "<b>自強化（攻撃×" + ANNAMD_ATK + "・スピード×" + ANNAMD_SPD + "）</b>して、"
+      + "<b>銀のトレイが" + ANNAMD_TRAY_N + "回ふりそそぎ</b>——"
+      + "<b>出すほど1皿が重くなります</b>（×" + ANNAMD_TRAY_PER + " → ×"
+      + (ANNAMD_TRAY_PER + ANNAMD_TRAY_STEP * (ANNAMD_TRAY_N - 1)).toFixed(1) + "）。"
+      + "<br>締めは<b>シャンパンタワーの崩落</b>——敵全体へ 攻撃力×" + ANNAMD_TOWER + "。"
+      + "あわせて<b>味方全員のフルバーストが" + ANNAMD_FB + "ターン進み、"
+      + "バリア " + ANNAMD_BARRIER + " が張られます</b>。"
+      + "<br>合計 攻撃力×" + ANNAMD_TOTAL.toFixed(1) + " ——"
+      + "<b>MagiBurst 史上いちばん重いフルバースト</b>です"
+      + "（これまでの1位はアンナ＆ラン ×544.2）。"
+      + "<br>アンチは<b>超アンチワープ＋アンチブロック＋アンチ断絶界</b>——"
+      + "これだけで<b>⚖第十の審判</b>を有利属性のまま<b>素のまま</b>完全対応できます"
+      + "（これまで対応できるのは1体だけでした）。"
+      + "クロスの<b>超マインスイーパーEL</b>が点くと<b>⚖第九の審判・第二の審判</b>の"
+      + "ギミックも完全に消せます。",
+    fsName: "グランメゾン・セルヴィス", fsKind: "maisonservice",
+    fsPow: "銀のワゴンが " + MAISON_N0 + "台走り出す／<b>壁で跳ね返るたびに +"
+      + MAISON_BOUNCE + "</b>（1台 攻撃力×" + MAISON_PER + "から・上限 "
+      + MAISON_BOUNCE_MAX + "回）／<b>味方にふれるたび1台増える</b>（最大 "
+      + MAISON_MAX + "台）＋ 締めのデセール（敵全体・攻撃力×" + MAISON_FINALE + "）／"
+      + "合計 <b>最大 攻撃力×" + MAISON_TOTAL_MAX.toFixed(1) + "</b>",
+    fsDesc: "ふれた味方から<b>銀のワゴン</b>が" + MAISON_N0 + "台、盤面へ走り出す。"
+      + "<br>これまでに無いのは<b>走りながら増えて、走りながら重くなる</b>こと——"
+      + "<b>壁で跳ね返るたびにその1台が重くなり</b>（+" + MAISON_BOUNCE + "・上限 "
+      + MAISON_BOUNCE_MAX + "回）、<b>味方にふれるたびに1台増えます</b>（最大 "
+      + MAISON_MAX + "台）。"
+      + "<br>味方を盤面に散らしておくほどワゴンが増え、壁の多い盤面ほど1台が重くなる——"
+      + "<b>盤面のかたちがそのまま威力になる</b>リンクスキルです。"
+      + "<br>走り終わると全ワゴンが中央に集まり、<b>デセール</b>が敵全体へ"
+      + "（攻撃力×" + MAISON_FINALE + "）。"
+      + "<br>最大 攻撃力×" + MAISON_TOTAL_MAX.toFixed(1) + " ——"
+      + "<b>MagiBurst 史上いちばん重いリンクスキル</b>です"
+      + "（これまでの1位はアンナ＆ランの ×337.2）。",
+  },
 };
 /* エルシアのフルバースト説明は定数を使うのでここで組み立てる */
 CHARS.elsia.ssPow = "自強化（攻撃×1.6・スピード×1.2）＋ <b>残りチームHPの" + Math.round(ELSIA_HP_COST * 100) + "%を消費</b>し、"
@@ -11094,6 +11466,10 @@ const CHAR_IDS = [
      ★ 新キャラは必ず<b>いちばん最後に追記</b>すること（既存の No. がずれないように）。
      ★ xeva.js の MB_CHAR_MASTER も<b>同じ並び</b>にそろえること（並び＝No.）。 */
   "naos", "harukas",                                   /* No.211〜212 戦姫祭（ナオ・ハルカ） */
+  /* ══ ★★ 2026-09-08 戦姫祭 第3弾（No.213〜215）══
+     ★ 新キャラは必ず<b>いちばん最後に追記</b>すること（既存の No. がずれないように）。
+     ★ xeva.js の MB_CHAR_MASTER も<b>同じ並び</b>にそろえること（並び＝No.）。 */
+  "reia", "miori", "annamd",                           /* No.213〜215 戦姫祭 第3弾 */
 ];
 /* id → キャラクター番号（1始まり）。図鑑・詳細・ガチャ結果に「No.XX」として出す */
 const CHAR_NO = {};
@@ -11229,6 +11605,10 @@ const CHAR_TYPE = {
      ここに無いキャラは「バランス型」で表示・絞り込みされてしまう。
      ★ 新キャラを足したら CHAR_IDS / MB_CHAR_MASTER / MB_STAR5 とあわせて<b>ここも</b>。
      ★ 検算: CHAR_IDS.filter(id => !CHAR_TYPE[id]) が空であること。 */
+  /* ── ★★ 2026-09-08 戦姫祭 第3弾 ── */
+  reia:    "cannon",    /* レイア：味方の立ち位置が威力になる陣のリンク */
+  miori:   "cannon",    /* ミオリ：奪った時間が威力になるリンク */
+  annamd:  "cannon",    /* アンナ(メイド)：史上いちばん重いリンクとフルバースト */
   /* ── ★★ 2026-09-07 戦姫祭 第2弾 ── */
   naos:    "cannon",    /* ナオ：敵が多いほど伸びる全体リンク */
   harukas: "cannon",    /* ハルカ：当てるほど育つ結晶のリンク */
@@ -13154,6 +13534,69 @@ function drawFsGlyph(kind, c, g) {
         ctx.beginPath(); ctx.arc(0, 0, 6.4 + k * 2.7, 0, Math.PI * 2); ctx.stroke();
       }
       ctx.globalAlpha = 1; ctx.lineWidth = 2; break;
+    }
+    /* ══ ★★ 2026-09-08 戦姫祭 第3弾の新リンク3本のアイコン ══
+       ★ ここに case を書き忘れると、リンクの絵が<b>まっさらな丸</b>になる。 */
+    case "sanctapetal": {    /* サンクタ・ペタリア（味方4体を結んだ陣＋華） */
+      /* 四角い陣（4つの頂点を結ぶ）＋まんなかに花 */
+      const vp = [[0, -9.6], [9.2, 0.6], [3.4, 9.4], [-8.0, 5.0]];
+      ctx.lineWidth = 1.8; ctx.globalAlpha = .85;
+      ctx.beginPath();
+      vp.forEach(([x, y], i) => { if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y); });
+      ctx.closePath(); ctx.stroke();
+      ctx.globalAlpha = 1;
+      /* 頂点（味方）を小さな丸で */
+      vp.forEach(([x, y]) => { ctx.beginPath(); ctx.arc(x, y, 1.5, 0, Math.PI * 2); ctx.fill(); });
+      /* まんなかの5弁の華 */
+      ctx.lineWidth = 1.6;
+      for (let k = 0; k < 5; k++) {
+        const a = -Math.PI / 2 + k * Math.PI * 2 / 5;
+        ctx.beginPath();
+        ctx.moveTo(0.6, 1.2);
+        ctx.quadraticCurveTo(Math.cos(a) * 4.6 - 1.6, Math.sin(a) * 4.6 + 1.2,
+                             Math.cos(a) * 4.0 + 0.6, Math.sin(a) * 4.0 + 1.2);
+        ctx.quadraticCurveTo(Math.cos(a) * 4.6 + 2.2, Math.sin(a) * 4.6 + 1.2, 0.6, 1.2);
+        ctx.stroke();
+      }
+      ctx.lineWidth = 2; break;
+    }
+    case "voidglass": {      /* ヴォイド・アワーグラス（奪った時間が威力になる砂時計） */
+      ctx.lineWidth = 1.9;
+      /* 砂時計の外枠 */
+      ctx.beginPath();
+      ctx.moveTo(-7.4, -9.4); ctx.lineTo(7.4, -9.4);
+      ctx.lineTo(0.8, 0); ctx.lineTo(7.4, 9.4); ctx.lineTo(-7.4, 9.4);
+      ctx.lineTo(-0.8, 0); ctx.closePath(); ctx.stroke();
+      /* 上下のふた */
+      ctx.beginPath(); ctx.moveTo(-9.0, -9.4); ctx.lineTo(9.0, -9.4); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-9.0, 9.4); ctx.lineTo(9.0, 9.4); ctx.stroke();
+      /* 落ちている砂（下に3段たまる＝重くなっていく） */
+      ctx.globalAlpha = .8;
+      ctx.beginPath(); ctx.moveTo(0, -1.0); ctx.lineTo(0, 6.4); ctx.stroke();
+      for (let k = 0; k < 3; k++) {
+        ctx.globalAlpha = 0.4 + k * 0.2;
+        ctx.beginPath(); ctx.moveTo(-2.2 - k * 1.5, 8.4 - k * 1.5);
+        ctx.lineTo(2.2 + k * 1.5, 8.4 - k * 1.5); ctx.stroke();
+      }
+      ctx.globalAlpha = 1; ctx.lineWidth = 2; break;
+    }
+    case "maisonservice": {  /* グランメゾン・セルヴィス（跳ね返って増える銀のワゴン） */
+      /* 外わく（盤面）＋なかを跳ね返る線＋ワゴン3台 */
+      ctx.lineWidth = 1.4; ctx.globalAlpha = .38;
+      ctx.beginPath(); ctx.rect(-10.6, -9.4, 21.2, 18.8); ctx.stroke();
+      ctx.globalAlpha = .9; ctx.lineWidth = 1.7;
+      ctx.beginPath();
+      ctx.moveTo(-10.6, 3.0); ctx.lineTo(-2.0, -9.4);
+      ctx.lineTo(6.4, 3.2); ctx.lineTo(10.6, -2.4);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+      /* 銀のトレイ（横棒＋ドーム）を3つ、大きさを変えて＝増えていく */
+      [[-7.6, 5.8, 2.6], [1.4, 7.0, 3.2], [8.0, 4.2, 2.0]].forEach(([x, y, w]) => {
+        ctx.lineWidth = 1.6;
+        ctx.beginPath(); ctx.moveTo(x - w, y); ctx.lineTo(x + w, y); ctx.stroke();
+        ctx.beginPath(); ctx.arc(x, y, w * 0.78, Math.PI, 0); ctx.stroke();
+      });
+      ctx.lineWidth = 2; break;
     }
     case "fractalnight": {   /* フラクタル・ミッドナイト（二股に分かれる稲妻） */
       ctx.lineWidth = 1.9;
@@ -17081,6 +17524,16 @@ const JUDGE_BOSS_HP = [
   372000000, 372000000, 372000000, 372000000, 372000000,
 ];
 /* ★ 天界の審判も「殴りが主役」。蓬莱と同じ考えかたにそろえる。 */
+/* ══ ★★ 2026-09-08 <b>降臨の一撃</b>（ご指定）════════════════
+   ⚖天界の審判と🏯蓬莱の九重では、ボスが姿を見せた瞬間に
+   天から裁きが落ちて<b>チーム全体にダメージ</b>が入る。
+   ★ 実際に落とすのは index.html の playDescentStrike()。
+     数字だけこちらに置いてあるのは、<b>お知らせ（NEWS）がこの数字を使う</b>から。
+     index.html の下のほうで const にすると TDZ で画面が丸ごと落ちる。
+   ★ ボスWAVEは1クエストに3つあるので、合計で 45%（審判）／33%（蓬莱）ぶん。
+   ★ <b>これで全滅はしない</b>（HPは必ず1残る）。 */
+const DESCENT_CUT_JUDGE = 0.15;    // 天界の審判：チーム最大HPの15%
+const DESCENT_CUT_HOURAI = 0.11;   // 蓬莱の九重：11%
 const JUDGE_FS_MUL = 0.5;
 const JUDGE_MELEE_MUL = 2.0;
 
@@ -18158,7 +18611,13 @@ const PICK_LUX     = 0.012;     // 極彩祭・極華祭・極煌祭の1体ぶ�
    <b>プレミアムセレクトガチャのSSRが等確率</b>で受け取る、という形にした。
    ★ 10連の<b>確定枠</b>はこれまでどおり<b>そのガチャの限定キャラの等確率</b>
      （完凸の子だけ外す）。確定枠は pickIdsOfMode を見るので、ここを変えても影響しない。 */
-const PICK_OLD     = 0.002;     // 新キャラ以外の限定キャラ 1体ぶん
+const PICK_OLD     = 0.004;     // 新キャラ以外の限定キャラ 1体ぶん（★ 2026-09-08 0.2%→0.4%）
+/* ★★ 2026-09-08 <b>新キャラあつかいは「実装から10日間」</b>（ご指定）。
+   これまでは FESTS[k].newChars に書いてあるあいだ ずっと新キャラ扱いだったので、
+   次の追加が来るまで確率が下がらなかった。実装日（mb-newchars.js の since）から
+   NEW_CHAR_DAYS 日を過ぎたら、newChars に残っていても自動で PICK_OLD になる。
+   ★ 判定は charIsNewNow() 1本。表示（gacha-ui.js）も同じ関数を見るのでズレない。 */
+const NEW_CHAR_DAYS = 10;
 /* ══════════════════════════════════════════════════════════════
    ★★ 2026-08-28 フェスガチャに「期間」ができた（ご指定）
    ------------------------------------------------------------
@@ -18177,6 +18636,56 @@ function fesAddDays(ymd, n) {
   const d = new Date(String(ymd) + "T00:00:00");
   d.setDate(d.getDate() + n);
   return d.toLocaleDateString("sv-SE");
+}
+/* ══ ★★ 2026-09-08 「新キャラあつかい」は<b>実装から NEW_CHAR_DAYS（10）日</b> ══════
+   実装日の持ち主は <b>mb-newchars.js（window.MB_NEW_CHARS）の since</b>。
+   ★ 台帳に無いキャラ（告知より前の子）は、そのガチャの since を実装日とみなす。
+     どの道ずっと昔なので「もう新キャラではない」に落ちる。
+   ★ MB_NEW_CHARS が読み込まれていない画面でも落ちないよう try で包む。 */
+const _implDateCache = Object.create(null);
+function charImplDate(id) {
+  if (id in _implDateCache) return _implDateCache[id];
+  let d = "";
+  try {
+    const L = (typeof window !== "undefined") && window.MB_NEW_CHARS;
+    if (L && L.length) {
+      for (let i = 0; i < L.length; i++) {
+        if (L[i] && L[i].id === id) { d = String(L[i].since || "").slice(0, 10); break; }
+      }
+    }
+  } catch (e) {}
+  _implDateCache[id] = d;
+  return d;
+}
+/* そのキャラが「実装から10日以内」か（f はガチャの定義＝台帳に無いときの保険） */
+function charIsNewNow(id, f) {
+  const d = charImplDate(id) || (f && (f.newSince || f.since)) || "";
+  if (!d) return true;
+  return fesToday() < fesAddDays(d, NEW_CHAR_DAYS);
+}
+/* そのガチャの newChars のうち、<b>まだ新キャラあつかいの子</b>だけ */
+function fesNewIds(m) {
+  const f = fesDef(m);
+  if (!f || !f.newChars || !f.newChars.length) return [];
+  return f.newChars.filter(function (id) { return charIsNewNow(id, f); });
+}
+/* newChars を書いてあるガチャか（＝1体ずつ確率がちがう形か） */
+function fesHasNewList(m) {
+  const f = fesDef(m);
+  return !!(f && f.newChars && f.newChars.length);
+}
+/* 新キャラあつかいが終わるまであと何日か（0 なら終了ずみ） */
+function fesNewDaysLeft(m) {
+  const f = fesDef(m); if (!f || !f.newChars || !f.newChars.length) return 0;
+  const t = fesToday(); let best = 0;
+  f.newChars.forEach(function (id) {
+    const d = charImplDate(id) || f.newSince || f.since; if (!d) return;
+    const end = fesAddDays(d, NEW_CHAR_DAYS);
+    if (t >= end) return;
+    const n = Math.ceil((new Date(end + "T00:00:00") - new Date(t + "T00:00:00")) / 86400000);
+    if (n > best) best = n;
+  });
+  return best;
 }
 /* そのフェスが「期間つき（monthly でない・since がある）」か */
 /* ★★ 2026-08-29 <b>luxGacha</b>（極◯祭・戦姫祭＝フェスガチャではない限定キャラのガチャ）は
@@ -18522,15 +19031,55 @@ FESTS.fes11 = {
   /* ★★ 2026-09-07 ナオ・ハルカ（ともに水）を追加＝計12体。
      新しく入った2体だけが newChars（各 PICK_LUX）で、
      レイ・リカ・アンナ＆ランを含む残り10体は自動で PICK_OLD（0.2%）になる。 */
-  chars: ["naos", "harukas", "reis", "rikas", "annaran", "rans", "kurenai", "yuki", "marika", "yuukas", "annas", "annam"],
-  newChars: ["naos", "harukas"],
+  /* ★★ 2026-09-08 第3弾（レイア・ミオリ・アンナ(メイド)）を追加＝計15体。
+     ★ newChars は<b>直近に足した子の台帳</b>。実装から NEW_CHAR_DAYS（10日）を過ぎると
+       charIsNewNow() が false になって、自動で PICK_OLD（0.4%）に落ちる。 */
+  chars: ["reia", "miori", "annamd", "naos", "harukas", "reis", "rikas", "annaran",
+          "rans", "kurenai", "yuki", "marika", "yuukas", "annas", "annam"],
+  newChars: ["reia", "miori", "annamd"],
+  newSince: "2026-09-08",
   itemTable: D_ITEM_TABLE,
-  lead: "戦姫祭の<b>新2体</b>（各" + ratePct(PICK_LUX) + "）＋ これまでの10体（各" + ratePct(PICK_OLD)
-    + "）に加えて、<b>" + PREMIUM_NM + "のSSRも排出</b>（SSR合計 " + ratePct(SSR_TOTAL) + "）",
-  sub: "戦姫祭の限定SSR <b>12体</b>——<b>新2体（ナオ・ハルカ）は各" + ratePct(PICK_LUX) + "</b>、"
-    + "これまでの10体は<b>各" + ratePct(PICK_OLD) + "</b>／<b>残りは " + PREMIUM_NM + " のSSRが等確率</b>。"
-    + "<b>常時開催</b>です（🎫フェス券は使えません）",
-  note: "<b>★★ 2026-09-07 <b>ナオ（水）・ハルカ（水）</b>の2体が加わりました。</b>"
+  /* ★★ 2026-09-08 人数を直に書くと、新キャラが10日で外れたときに
+     表紙の文面だけ古いままになる。<b>ゲッターにして毎回数える</b>。 */
+  get lead() {
+    const nw = fesNewIds("fes11").length, od = this.chars.length - nw;
+    return "戦姫祭の" + (nw ? "<b>新" + nw + "体</b>（各" + ratePct(PICK_LUX) + "）＋ " : "")
+      + "限定" + od + "体（各" + ratePct(PICK_OLD)
+      + "）に加えて、<b>" + PREMIUM_NM + "のSSRも排出</b>（SSR合計 " + ratePct(SSR_TOTAL) + "）";
+  },
+  get sub() {
+    const ids = fesNewIds("fes11"), nw = ids.length, od = this.chars.length - nw;
+    const nms = ids.map(function (id) { return (CHARS[id] || {}).nm || id; }).join("・");
+    return "戦姫祭の限定SSR <b>" + this.chars.length + "体</b>——"
+      + (nw ? "<b>新" + nw + "体（" + nms + "）は各" + ratePct(PICK_LUX) + "</b>、のこり" + od + "体は"
+           : "<b>全" + od + "体</b>が実装から" + NEW_CHAR_DAYS + "日を過ぎているので")
+      + "<b>各" + ratePct(PICK_OLD) + "</b>／<b>残りは " + PREMIUM_NM + " のSSRが等確率</b>。"
+      + "<b>常時開催</b>です（🎫フェス券は使えません）";
+  },
+  note: "<b>★★ 2026-09-08 <b>レイア（火）・ミオリ（闇）・アンナ(メイド)（光）</b>の3体が加わりました。</b>"
+    + "この3体は<b>MagiBurst 史上最強</b>です——"
+    + "フルバーストは<b>レイア ×" + REIA_TOTAL.toFixed(1) + " ／ ミオリ ×" + MIORI_TOTAL.toFixed(1)
+    + " ／ アンナ(メイド) ×" + ANNAMD_TOTAL.toFixed(1)
+    + "</b>（これまで1位だったアンナ＆ラン ×544.2 を3体とも超えます）。"
+    + "<br>★ リンクスキルも<b>3本とも新設</b>で、素の合計が"
+    + "アンナ＆ランの<b>ツインローズ（×337.2）</b>を超えます——"
+    + "<b>レイア ×" + SANCT_TOTAL_MAX.toFixed(1) + " ／ ミオリ ×" + VGLASS_TOTAL_MAX.toFixed(1)
+    + " ／ アンナ(メイド) ×" + MAISON_TOTAL_MAX.toFixed(1) + "</b>（いずれも最大）。"
+    + "<br>★ 挙動もこれまでに無いものです——"
+    + "<b>レイア「サンクタ・ペタリア」＝味方4体を結んだ陣が燃え、陣の内と外で重さが変わる</b>"
+    + "（陣が広いほど倍率が上がる＝<b>立ち位置がそのまま威力</b>）。"
+    + "<b>ミオリ「ヴォイド・アワーグラス」＝奪った攻撃ターンの合計が、そのまま締めの威力になる</b>。"
+    + "<b>アンナ(メイド)「グランメゾン・セルヴィス」＝壁で跳ね返るたびに重くなり、"
+    + "味方にふれるたび1台増える銀のワゴン</b>。"
+    + "<br>★ 3体とも<b>⚖ 天界の審判</b>を<b>素のまま</b>有利属性で完全対応できます——"
+    + "<b>レイア＝第八の審判／ミオリ＝第九の審判／アンナ(メイド)＝第十の審判</b>"
+    + "（第十は対応キャラが1体しかいなかった、いちばん手薄な面です）。"
+    + "<br>★ アビリティは<b>10個</b>（アンチ4＝うち1つはクロス／キラー2／そのほか4）。"
+    + "<b>治癒の祈りもオムニアンチも持ちません</b>。"
+    + "クロスの条件は<b>自分と異なる属性を出しません</b>。"
+    + "<br>★ 3体とも<b>ショットスキル</b>を持ち、<b>撃つたび毎回</b>発動します。"
+    + "共通サブリンクは<b>ヴァルキュリア・ロンド</b>（戦姫祭で統一）。"
+    + "<br><br><b>★★ 2026-09-07 <b>ナオ（水）・ハルカ（水）</b>の2体が加わりました。</b>"
     + "この2体は<b>アンナ＆ラン（No.200・記念キャラ）に次ぐ歴代2位</b>の性能です——"
     + "フルバーストは<b>ナオ ×" + NAOS_TOTAL.toFixed(1) + " ／ ハルカ ×" + HARUKAS_TOTAL.toFixed(1)
     + "</b>（これまで2位だったアンナ(極華祭) ×253.3 を超えます）。"
@@ -18618,12 +19167,23 @@ FESTS.fes12 = {
           "riona", "mireir", "suzuhar", "seirak", "shizuru", "yuuri", "hisui", "raika"],
   newChars: ["yoiduki", "kayo", "shino", "maaya", "asuka"],
   itemTable: D_ITEM_TABLE,
-  lead: "RISING STAR FEST の<b>新5体</b>（各" + ratePct(PICK_LUX) + "）＋ これまでの8体（各"
-    + ratePct(PICK_OLD) + "）に加えて、<b>" + PREMIUM_NM + "のSSRも排出</b>（SSR合計 " + ratePct(SSR_TOTAL) + "）",
-  sub: "RISING STAR FEST の限定SSR <b>13体</b>——<b>新5体は各" + ratePct(PICK_LUX) + "</b>、"
-    + "これまでの8体は<b>各" + ratePct(PICK_OLD) + "</b>／<b>残りは "
-    + PREMIUM_NM + " のSSRが等確率</b>。キャラ以外の中身は <b>Starlight Academy Fest 2 と同じ</b>で、"
-    + "<b>🎫フェスチケットが使えます</b>",
+  /* ★★ 2026-09-08 人数はゲッターで毎回数える（新キャラは10日で外れるため） */
+  get lead() {
+    const nw = fesNewIds("fes12").length, od = this.chars.length - nw;
+    return "RISING STAR FEST の" + (nw ? "<b>新" + nw + "体</b>（各" + ratePct(PICK_LUX) + "）＋ " : "")
+      + "限定" + od + "体（各" + ratePct(PICK_OLD)
+      + "）に加えて、<b>" + PREMIUM_NM + "のSSRも排出</b>（SSR合計 " + ratePct(SSR_TOTAL) + "）";
+  },
+  get sub() {
+    const ids = fesNewIds("fes12"), nw = ids.length, od = this.chars.length - nw;
+    const nms = ids.map(function (id) { return (CHARS[id] || {}).nm || id; }).join("・");
+    return "RISING STAR FEST の限定SSR <b>" + this.chars.length + "体</b>——"
+      + (nw ? "<b>新" + nw + "体（" + nms + "）は各" + ratePct(PICK_LUX) + "</b>、のこり" + od + "体は"
+           : "<b>全" + od + "体</b>が実装から" + NEW_CHAR_DAYS + "日を過ぎているので")
+      + "<b>各" + ratePct(PICK_OLD) + "</b>／<b>残りは "
+      + PREMIUM_NM + " のSSRが等確率</b>。キャラ以外の中身は <b>Starlight Academy Fest 2 と同じ</b>で、"
+      + "<b>🎫フェスチケットが使えます</b>";
+  },
   note: "<b>★★ 2026-09-06 第3弾</b>：<b>ヨイヅキ（水）・カヨ（木）・シノ（光）・マアヤ（闇）・アスカ（火）</b>。"
     + "<br>この5体は<b>⚖ 天界の審判</b>を有利属性のまま完全対応します——"
     + "<b>ヨイヅキ＝第一／カヨ＝第二／シノ＝第五／マアヤ＝第九／アスカ＝第八の審判</b>。"
@@ -18982,13 +19542,32 @@ const S5_TOTAL = SSR_TOTAL;  /* ★★ 2026-08-28 10% → 12%（SSR_TOTAL）。�
    新キャラ（FESTS[k].newChars）は pickRateOfMode（今までどおり）、
    それ以外の限定キャラは PICK_OLD（0.2%）。
    ★ newChars を書いていないガチャは<b>今までとまったく同じ</b>（全員が pickRateOfMode）。 */
-function pickRateOf(m, id) {
+/* 生の確率（保険をかける前） */
+function rawPickRateOf(m, id) {
   const base = pickRateOfMode(m);
   if (!isFesMode(m)) return base;
   const f = fesDef(m);
   const nw = f && f.newChars;
   if (!nw || !nw.length) return base;
-  return nw.indexOf(id) >= 0 ? base : PICK_OLD;
+  /* ★★ 2026-09-08 newChars に書いてあっても<b>実装から10日</b>を過ぎたら PICK_OLD。
+     ＝ 次の追加を待たずに、その子自身の実装日で自動的に切りかわる。 */
+  return (nw.indexOf(id) >= 0 && charIsNewNow(id, f)) ? base : PICK_OLD;
+}
+/* ★★ 2026-09-08 保険：限定キャラの確率の<b>合計が SSR_TOTAL（12%）を超えたら</b>
+   全員を同じ割合で縮める。これが無いと、新キャラが重なったときに
+   <b>プレミアムのSSRが1体も出なくなり、SSR合計が12%を超えてしまう</b>。
+   ★ 普段は 1 なので、これまでの表示・抽選は1つも変わらない。 */
+function pickScaleOfMode(m) {
+  if (!isFesMode(m)) return 1;
+  const ids = pickIdsOfMode(m);
+  let t = 0;
+  for (let i = 0; i < ids.length; i++) t += rawPickRateOf(m, ids[i]);
+  return t > SSR_TOTAL ? (SSR_TOTAL / t) : 1;
+}
+function pickRateOf(m, id) {
+  const r = rawPickRateOf(m, id);
+  const k = pickScaleOfMode(m);
+  return k === 1 ? r : r * k;
 }
 /* ピックアップ1体ぶんの確率 */
 function pickRateOfMode(m) {
@@ -19094,7 +19673,12 @@ function otherRateOld() {
 }
 /* 排出対象のキャラを新たにピックアップに選んだ場合の排出率（対象が1体だけなら10%） */
 function wouldPickRate() { return gachaPool().length <= 1 ? SSR_TOTAL : PICK_PREMIUM; }
-function ratePct(v) { return (v * 100).toFixed(v * 100 < 1 ? 2 : 1).replace(/\.0$/, "") + "%"; }
+/* ★★ 2026-09-08 末尾の 0 をきちんと落とす。
+   前は /\.0$/ だけだったので 0.4% が「0.40%」と出ていた（小数第2位まで出す側）。 */
+function ratePct(v) {
+  return (v * 100).toFixed(v * 100 < 1 ? 2 : 1)
+    .replace(/(\.\d*?)0+$/, "$1").replace(/\.$/, "") + "%";
+}
 function curPickup() { return PREMIUM_CHARS.includes(DB.pickup) ? DB.pickup : PREMIUM_CHARS[0]; }
 function setPickup(id) {
   if (!PREMIUM_CHARS.includes(id)) return;
@@ -19155,7 +19739,12 @@ function charAntiKeysAll(id) {
 /* 適性クエスト: そのキャラのアンチ系アビリティが「そのクエストのアンチギミックをどれだけ消せるか」＋属性有利で選ぶ */
 function charFitQuests(id) {
   const c = CHARS[id], mine = charAntiKeys(id);
-  const all = STAGES.concat(LAB_STAGES, GARDEN_STAGES, HOURAI_STAGES);
+  /* ★★ 2026-09-08 <b>天界の審判（JUDGE_STAGES）が丸ごと抜けていた</b>。
+     新しい系統を作ったときにここを足し忘れると、
+     そのクエストにひったりのキャラでも適性クエストに1件も出てこない。
+     （过去に同じことを 2026-08-17 の蓬莱でもやっている） */
+  const _jg = (typeof JUDGE_STAGES !== "undefined") ? JUDGE_STAGES : [];
+  const all = STAGES.concat(LAB_STAGES, GARDEN_STAGES, HOURAI_STAGES, _jg);
   const scored = all.map((s) => {
     const keys = counterKeysOf(s);
     const cover = keys.filter((k) => mine.indexOf(k) >= 0).length;
@@ -19167,7 +19756,8 @@ function charFitQuests(id) {
        ★★ 2026-08-22b 幽冥の庭園・蓬莱の九重は<b>別格</b>として上に出す（ご指定）。
          部屋番号だけで並べると、蓬莱は room が 1〜10 しかないので
          王城の第30の間（room 30）より下に沈んでしまっていた。 */
-    const top = s.hourai ? 900 : s.garden ? 700 : 0;
+    /* ★★ 2026-09-08 天界の審判は蓬莱の最奥よりさらに上の難度なので、いちばん上に出す。 */
+    const top = s.judge ? 1100 : s.hourai ? 900 : s.garden ? 700 : 0;
     return { s, keys, cover, adv, full, score: (full ? 2000 : cover * 300) + (adv ? 150 : 0) + top + (s.room || 0) * 20 };
   }).filter((x) => x.cover > 0 || x.adv);
   scored.sort((a, b) => b.score - a.score);
@@ -19177,17 +19767,19 @@ function charFitQuests(id) {
     /* ★ 2026-08-17L 蓬莱の九重を4つ目の系統として足す。
        ほかと同じく<b>2つまで</b>。ここを足し忘れると、蓬莱に刺さるキャラなのに
        適性クエストに1件も出てこない（庭園までしか見ていなかった）。 */
-    const ser = x.s.hourai ? "hourai" : x.s.garden ? "garden" : x.s.lab ? "lab" : "castle";
+    /* ★★ 2026-09-08 <b>天界の審判を 5つ目の系統</b>として足した（ご指定「2つ分追加」）。
+       ほかと同じく<b>2つまで</b>で、合計は 8 件→<b>10 件</b>。 */
+    const ser = x.s.judge ? "judge" : x.s.hourai ? "hourai" : x.s.garden ? "garden" : x.s.lab ? "lab" : "castle";
     if ((per[ser] || 0) >= 2) continue;
     per[ser] = (per[ser] || 0) + 1;
     out.push(x);
-    if (out.length >= 8) break;   /* ★ 4系統×2枠 */
+    if (out.length >= 10) break;   /* ★ 5系統×2枠 */
   }
   /* シリーズごとにまとめて並べる（王城→迷宮→庭園） */
-  const order = { castle: 0, lab: 1, garden: 2, hourai: 3 };
+  const order = { castle: 0, lab: 1, garden: 2, hourai: 3, judge: 4 };
   out.sort((a, b) => {
-    const sa = a.s.hourai ? "hourai" : a.s.garden ? "garden" : a.s.lab ? "lab" : "castle";
-    const sb = b.s.hourai ? "hourai" : b.s.garden ? "garden" : b.s.lab ? "lab" : "castle";
+    const sa = a.s.judge ? "judge" : a.s.hourai ? "hourai" : a.s.garden ? "garden" : a.s.lab ? "lab" : "castle";
+    const sb = b.s.judge ? "judge" : b.s.hourai ? "hourai" : b.s.garden ? "garden" : b.s.lab ? "lab" : "castle";
     return (order[sa] - order[sb]) || (b.score - a.score);
   });
   return out;
