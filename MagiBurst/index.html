@@ -44,7 +44,7 @@ if ("serviceWorker" in navigator) {
 <!-- ★★ 2026-09-06b 今回足したもの（新キャラ14体・装備・クリティカルなど）の英語辞書 -->
 <script src="../xeva-i18n-n1.js?v=4"></script>
 <script src="../xeva-i18n-n2.js?v=2"></script>
-<script src="../xeva-loading.js?v=11" defer></script>
+<script src="../xeva-loading.js?v=13" defer></script>
 <script type="module" src="../xevarion-fb.js?v=32"></script>
 <script src="../xeva-presence.js?v=8" defer></script>
 <script type="module" src="../xeva-cloud.js?v=27"></script>
@@ -3019,11 +3019,25 @@ body.in-battle #top,body.in-battle #tabs{display:none}
 .rc .rccx svg{width:15px;height:15px}
 /* 対応キャラでは絶対配置をやめ、🌟の隣（.ccmk の中）に並べる */
 .ccch .cccx{position:static;width:13px;height:13px;box-shadow:0 0 5px rgba(79,224,176,.7)}
-/* ★★ 2026-09-05 クロススキルで持つアンチの札。
-   実際に効くのは<b>クロスが発動しているときだけ</b>なので、見分けがつく色にする。 */
-.ccch .cccxB{font-style:normal;font-size:8.5px;font-weight:900;letter-spacing:.02em;
-  padding:1px 5px;border-radius:99px;color:#0b3a2c;white-space:nowrap;
-  background:linear-gradient(135deg,#7cf0d0,#4fe0b0);box-shadow:0 0 6px rgba(79,224,176,.55)}
+/* ★★ 2026-09-10 「そのギミックのアンチをクロススキルで持っている」枠。
+   ★ ご指定により<b>札（⚔クロス）はやめ</b>、もともと出している鎖のマークを
+     <b>桃色</b>に変えて知らせる。青緑＝ただのクロス持ち／桃色＝クロスでアンチ。
+   ★ 色だけに頼らないよう、輪郭も太くして吹き出し（title）も差しかえてある。 */
+.ccch .cccx.anti,.rc .rccx.anti{color:#4a0a22;
+  background:linear-gradient(140deg,#ffd6e6,#ff77ab 58%,#e01f6a);
+  border-color:rgba(255,255,255,.92);box-shadow:0 0 9px rgba(255,80,150,.95)}
+.ccch .cccx.anti{border-width:2px}
+/* ★ アンチ（桃）は書（金）より前に出す——「なぜこの子が候補にいるのか」のほうが大事なので。 */
+.ccch .cccx.book.anti,.rc .rccx.book.anti{color:#4a0a22;
+  background:linear-gradient(140deg,#ffd6e6,#ff77ab 58%,#e01f6a)}
+/* 凡例のなかに置くとき（文章の行に混ぜる） */
+.ccomni .cccx.lgd{position:static;display:inline-flex;width:14px;height:14px;vertical-align:-3px;
+  border-radius:50%;align-items:center;justify-content:center;
+  color:#0b2f26;background:linear-gradient(140deg,#b6ffe4,#4fe0b0 60%,#18a97e);
+  border:1.5px solid rgba(255,255,255,.7);box-shadow:0 0 5px rgba(79,224,176,.7)}
+.ccomni .cccx.lgd svg{width:10px;height:10px}
+.ccomni .cccx.lgd.anti{color:#4a0a22;background:linear-gradient(140deg,#ffd6e6,#ff77ab 58%,#e01f6a);
+  border-color:rgba(255,255,255,.92);box-shadow:0 0 6px rgba(255,80,150,.9)}
 .ccch .cccx svg{width:9px;height:9px}
 /* ★ クロスの書で発動しているぶんは色を変える（条件で点いているものと見分ける） */
 .rc .rccx.book,.ccch .cccx.book{color:#3a2400;
@@ -3992,14 +4006,14 @@ textarea.oninp.mbcode[readonly]{background:#f2f0fb;color:#3b3560}
 </div></div>
 
 <script>window.MB_IMGD = "../img/"; window.MB_GIMGD = "img/";</script>
-<script src="../mb-newchars.js?v=21"></script>
+<script src="../mb-newchars.js?v=22"></script>
 <!-- ★★ 2026-09-06 新UI（スタイリッシュ）。
      body.mb-ui2 の中だけにかかるので、旧UIに戻すのは class を外すだけ。
      ★ 本文の <style> より<b>あと</b>に置くこと（あとに来たほうが勝つ）。 -->
 <link rel="stylesheet" href="css/mb-ui2.css?v=24">
 <!-- ★★ 2026-09-06 LOCAL PLAY（近距離ローカルマルチ）の画面 -->
 <link rel="stylesheet" href="css/localplay.css?v=6">
-<script src="js/mb-core.js?v=101"></script>
+<script src="js/mb-core.js?v=102"></script>
 <!-- ★★ 2026-09-06 装備（頭・腕・胸・足）。mb-core のあと・本体の前に読む -->
 <script src="js/mb-gear.js?v=6"></script>
 <script>
@@ -5861,8 +5875,11 @@ function openCounters(stageId) {
              名前の下の帯（.ccmk）に置くので、絵にも名前にも重ならない。 */""}
         <i class="ccshot ${c.shot === "pierce" ? "pi" : "bo"}" title="${c.shot === "pierce" ? "貫通タイプ" : "反射タイプ"}">${c.shot === "pierce" ? "貫" : "反"}</i>
         <i class="ccomniB ${viaOmni ? "" : "off"}" title="${viaOmni ? "オムニアンチで対応（専用のアンチではない）" : ""}">🌟</i>
-        ${viaCross ? '<i class="cccxB" title="クロススキルで持つアンチ（クロスが発動していないと効きません）">⚔クロス</i>' : ""}
-        ${sec ? "" : crossCardMark(id, "cccx")}
+        ${/* ★★ 2026-09-10 ご指定：クロススキルでアンチを持つ枠は<b>札を増やさず</b>、
+             もともと出している<b>クロスのマークの色を変えて</b>知らせる。
+             （前は ⚔クロス という札をもう1つ足していたので、狭い帯に
+               「貫／反・🌟・⚔クロス・鎖マーク」と4つ並んで読みづらかった） */""}
+        ${sec ? "" : crossCardMark(id, "cccx", viaCross ? "anti" : "")}
       </span>
       ${own ? (awk ? '<i class="ccawk' + (awk >= MAX_AWK ? " mx" : "") + '">'
         + (awk >= MAX_AWK ? "完凸" : "+" + awk) + "</i>" : "") : '<i class="ccno">未所持</i>'}
@@ -5924,7 +5941,10 @@ function openCounters(stageId) {
   if (keys.length) {
     rows += `<div class="ccrow dim"><div class="cchead">
         <span class="ccstar">🌟</span><div><b style="color:#c9a6ff">🌟オムニ のマークについて</b><small>専用のアンチではなく、オムニアンチで肩代わりしている枠です</small></div></div>
-      <div class="ccomni weak">オムニアンチは<b>そのWAVEで自分が2回行動するまで、ダメージウォール・重力バリア・ワープ・地雷を無効化</b>します。`
+      <div class="ccomni weak">${/* ★★ 2026-09-10 クロスのマークの色の見かた（凡例） */""}
+      鎖のマーク <i class="cccx lgd"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.6 14.4 14.4 9.6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" fill="none"/><path d="M13 6.4l1.6-1.6a3.4 3.4 0 014.8 4.8L17.8 11" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" fill="none"/><path d="M11 17.6l-1.6 1.6a3.4 3.4 0 01-4.8-4.8L6.2 13" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" fill="none"/></svg></i> は<b>クロススキル持ち</b>、
+      <i class="cccx anti lgd"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9.6 14.4 14.4 9.6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" fill="none"/><path d="M13 6.4l1.6-1.6a3.4 3.4 0 014.8 4.8L17.8 11" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" fill="none"/><path d="M11 17.6l-1.6 1.6a3.4 3.4 0 01-4.8-4.8L6.2 13" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" fill="none"/></svg></i>（桃色）は<b>そのギミックのアンチをクロススキルで持っている</b>枠です——<b>クロスが発動していないと効きません</b>。
+      <br>オムニアンチは<b>そのWAVEで自分が2回行動するまで、ダメージウォール・重力バリア・ワープ・地雷を無効化</b>します。`
       + (restKeys.length
           ? `<br>このクエストの <b>${restKeys.map((k) => COUNTER_ABIL[k].nm).join("・")}</b> には効きません（そちらは専用のアンチを持つキャラが必要です）。`
           : "<br>このクエストのギミックは<b>すべてオムニアンチで無効化できます</b>。")
@@ -6052,6 +6072,15 @@ window.openNewChar = openNewChar; window.closeNewChar = closeNewChar;
 
 /* ══════════ お知らせ（アップデートのたびにここへ追記する） ══════════ */
 const NEWS = [
+  /* ★★ 2026-09-10 対応キャラの印を減らした（クロスの色で示す） */
+  { date: "2026-09-10", title: "🛡 対応キャラの印を整理しました", body: [
+    "🔗 <b>クロススキルで持つアンチ</b>の示しかたを変えました（ご指定）。"
+      + "これまでは <b>⚔クロス</b> という札をもう1つ足していましたが、"
+      + "名前の下の狭い帯に「貫／反・🌟オムニ・⚔クロス・鎖のマーク」と4つも並んで読みづらくなっていました。"
+      + "これからは<b>札を増やさず</b>、もともと出している<b>鎖のマークを桃色</b>にしてお知らせします。",
+    "🎨 見わけかたは<b>青緑＝ただのクロススキル持ち／桃色＝そのギミックのアンチをクロスで持っている</b>。"
+      + "桃色のときは<b>クロスが発動していないと効かない</b>ので、一覧の下の説明にも同じことを書いてあります。",
+  ] },
   /* ★★ 2026-09-09 編成の見やすさ・重力バリア・遅延の廃止 */
   { date: "2026-09-09", title: "🧩 編成を見やすく／⚡ 重力バリアを強く／🔄 遅延の廃止", body: [
     "🧩 <b>編成画面で装備の印を出さない</b>ようにしました（ご指定）。"

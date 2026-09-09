@@ -15,8 +15,8 @@
    <b>ふつうの &lt;script&gt;</b>（type="module" ではない）で読むこと。
    トップレベルの const/let はグローバルの字句環境に入るので、
    あとから読み込む MagiBurst 本体のスクリプトからそのまま見える。
-     MagiBurst : <script src="js/mb-core.js?v=100"></script>
-     gacha.html: <script src="MagiBurst/js/mb-core.js?v=100"></script>
+     MagiBurst : <script src="js/mb-core.js?v=102"></script>
+     gacha.html: <script src="MagiBurst/js/mb-core.js?v=102"></script>
 
    ── ホストが先に用意しておくもの ──
      window.MB_IMGD … 画像フォルダへの相対パス（MagiBurst は "../img/"、ポータルは "img/"）
@@ -5177,14 +5177,24 @@ function connectChip(k, cls) {
    ・出すのは「持っているかどうか」だけ。発動しているかどうかは出さない
      （図鑑やガチャでは編成が決まっていないので、発動を出しても意味がない）。
    ・cls は置き場所ごとのクラス名（.rc 用と .ccch 用で大きさが違う）。 */
-function crossCardMark(id, cls) {
+function crossCardMark(id, cls, extra) {
   const d = connectDef(id); if (!d) return "";
   /* ★ 2026-08-16b クロスの書で発動しているぶんは色を変える。
      編成の条件を満たして点いているのか、書で無理やり点けているのかが
      一覧のまま分かるようにする（書は数に限りがあるので、どこに使ったか追いたい）。 */
   const byBook = (typeof crossBookOn === "function") && crossBookOn(id);
-  const tip = byBook ? "クロススキル持ち（クロスの書）：" : "クロススキル持ち：";
-  return '<i class="' + (cls || "rccx") + (byBook ? " book" : "") + '" title="' + tip + d.nm + '" aria-label="クロススキル持ち">'
+  /* ★★ 2026-09-10 3つめの引数 extra で<b>色を変えるクラス</b>を足せるようにした。
+     対応キャラの一覧では「そのギミックのアンチを<b>クロススキルで</b>持っている」枠に
+     "anti" を渡す。ご指定により<b>札（⚔クロス）は増やさず</b>、
+     もともと出しているこのマークの色だけを変えて知らせる。
+     ★ 色だけでは何がちがうのか読めないので、吹き出し（title）も差しかえる。 */
+  const isAnti = (" " + (extra || "") + " ").indexOf(" anti ") >= 0;
+  const tip = isAnti ? "このギミックのアンチをクロススキルで持っています（クロスが発動していないと効きません）："
+    : byBook ? "クロススキル持ち（クロスの書）："
+    : "クロススキル持ち：";
+  return '<i class="' + (cls || "rccx") + (byBook ? " book" : "") + (extra ? " " + extra : "")
+    + '" title="' + tip + d.nm + '" aria-label="'
+    + (isAnti ? "クロススキルで持つアンチ" : "クロススキル持ち") + '">'
     + '<svg viewBox="0 0 24 24" aria-hidden="true">'
     + '<path d="M9.6 14.4 14.4 9.6" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" fill="none"/>'
     + '<path d="M13 6.4l1.6-1.6a3.4 3.4 0 014.8 4.8L17.8 11" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" fill="none"/>'
