@@ -7,7 +7,7 @@
    ・作りは MagiJackpot の SW と同じ（プレフィックスの付いたキャッシュだけ掃除する／
      xev-refresh で差分更新できる）。
    ============================================================ */
-const VERSION = "magilotto-sw-v18";
+const VERSION = "magilotto-sw-v19";
 const CORE = [
   "./",
   "./index.html",
@@ -144,7 +144,24 @@ async function xevRefreshAll() {
   let done = 0, got = 0, hit = 0, bytes = 0;
   const send = () => post({ type: "xev-precache", scope: XEV_SCOPE, done, total: urls.length, got, hit, bytes });
   await send();
-  for (const u of urls) {
+  /* ══ ★★ 2026-09-10 「更新に時間がかかる」の直し ══
+     ここは<b>キャッシュにある全ファイル</b>を1件ずつ
+     「変わっていませんか？」と聞いて回るところ。落とす量は差分だけで正しいのだが、
+     <b>聞くのが1本ずつ</b>だった。1往復 100ms × 400件＝それだけで40秒かかる。
+     ★ 同時に <b>6本</b>まで聞くようにした。<b>取ってくる量は1バイトも変わらない</b>。
+     ★ 進み具合の知らせも1件ごとに送っていたので、<b>120ms ごとに間引く</b>。
+       SW → 画面の postMessage は数が多いとそれ自体が重く、
+       これも「進みかたがカクつく／戻って見える」原因になっていた。 */
+  const CONC = 6;
+  let lastPost = 0;
+  const tickPost = async (force) => {
+    const now = Date.now();
+    if (!force && now - lastPost < 120) return;
+    lastPost = now;
+    await send();
+  };
+  const queue = urls.slice();
+  const one = async (u) => {
     try {
       const old = await cache.match(u);
       const h = {};
@@ -155,17 +172,23 @@ async function xevRefreshAll() {
       }
       const opt = Object.keys(h).length ? { cache: "no-store", headers: h } : { cache: "no-cache" };
       const res = await fetch(u, opt);
-      if (res && res.status === 304 && old) hit++;
-      else if (res && res.ok && res.type === "basic") {
+      if (res && res.status === 304 && old) {
+        hit++;                                   // 変更なし→何もしない
+      } else if (res && res.ok && res.type === "basic") {
         let n = Number(res.headers.get("content-length")) || 0;
         await cache.put(u, res.clone());
         if (!n) { try { n = (await res.clone().blob()).size || 0; } catch (e2) { n = 0; } }
         got++; bytes += n;
       }
-    } catch (e) {}
+    } catch (e) { /* 落とせなかったぶんは今のキャッシュを残す（消さない） */ }
     done++;
-    await send();
-  }
+    await tickPost();
+  };
+  const worker = async () => { while (queue.length) await one(queue.shift()); };
+  const crew = [];
+  for (let ci = 0; ci < CONC; ci++) crew.push(worker());
+  await Promise.all(crew);
+  await tickPost(true);
   await post({ type: "xev-refreshed", scope: XEV_SCOPE, total: urls.length, got, hit, bytes });
 }
 self.addEventListener("message", (e) => {

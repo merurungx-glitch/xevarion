@@ -340,6 +340,30 @@ const XH_EVENTS = [
    ══════════════════════════════════════════════════════════════ */
 const XH_UPDATE_MAX = 12;
 const XH_UPDATES = [
+  /* ★★ 2026-09-10 メガシンカ（MagiCounter） */
+  { tag:"NEW", t1:"MagiCounter がメガシンカに対応", at:"2026-09-10",
+    t2:"編成の枠の <b>M</b> を押すと<b>メガの姿で</b>相性・選出・出す順番を計算します（1チーム1体）。"
+      + "ギャラドスの<b>でんき4倍→2倍</b>のように、メガでタイプが変わる子は読みが丸ごと変わります",
+    href:"MagiCounter/index.html", img:"thumbs/MagiCounter.jpg" },
+  /* ★★ 2026-09-10 下バーの刷新・更新画面のコンパクト化・Boccia Rush・MagiCounter */
+  { tag:"UPDATE", t1:"下のバーと更新画面を作り直しました", at:"2026-09-10",
+    t2:"下のバーを MagiCounter / Boccia Rush と同じ薄い作りにして、<b>下の余白</b>をなくしました。更新の画面は「なにが新しくなるか」を先頭に置いた<b>1画面ぶん</b>にまとめ、<b>進み具合のバーが戻らない</b>ようにしています",
+    href:"index.html", img:"thumbs/xevarion-home_s.jpg" },
+  { tag:"FIX", t1:"更新のダウンロードが速くなりました", at:"2026-09-10",
+    t2:"「変わっていませんか？」の問い合わせを<b>1本ずつから6本同時</b>に。落とす量はこれまでとまったく同じで、待ち時間だけが短くなります",
+    href:"index.html", img:"thumbs/xevarion-home_s.jpg" },
+  { tag:"UPDATE", t1:"Boccia Rush にペルソナ風のカットイン", at:"2026-09-10",
+    t2:"スキルを使ったとき・使うキャラをえらんだときに演出が入ります。キャラ一覧に<b>検索・型やレアでのしぼりこみ・能力での並びかえ</b>も付きました",
+    href:"MagiBocciaRush/index.html", img:"thumbs/MagiBocciaRush.jpg" },
+  { tag:"UPDATE", t1:"図鑑のキャラ詳細に Boccia Rush の性能", at:"2026-09-10",
+    t2:"MagiDiamond の右に <b>🎯 Boccia</b> を足しました。ボッチャの7つの能力・アビリティ・スキルが、ゲームの中とまったく同じ数字で出ます",
+    href:"characters.html", img:"thumbs/MagiBocciaRush.jpg" },
+  { tag:"UPDATE", t1:"MagiCounter にカメラ読み取りと出す順番", at:"2026-09-10",
+    t2:"相手の選出画面を撮ると<b>6体の候補</b>を出します。選んだ3体の<b>出す順番</b>も理由つきで。表に無いポケモンも<b>自分で登録</b>できます",
+    href:"MagiCounter/index.html", img:"thumbs/MagiCounter.jpg" },
+  { tag:"UPDATE", t1:"ロード中の案内役が新しくなりました", at:"2026-09-10",
+    t2:"案内役を<b>新しい2人</b>に入れかえました（これまでの絵は削除）。立ち絵とお辞儀で<b>足の位置がずれない</b>ようにそろえてあります",
+    href:"index.html", img:"img/ld_a_stand.webp" },
   /* ★★ 2026-09-08 戦姫祭 第3弾（史上最強）・降臨の一撃・ガチャの確率表記・適性クエスト */
   /* ★★ 2026-09-09 ホームの並びの入れかえ・案内役の差しかえ・Boccia の手ごたえ */
   { tag:"UPDATE", t1:"ホームの並びを入れかえました", at:"2026-09-09",
@@ -347,7 +371,7 @@ const XH_UPDATES = [
     href:"index.html", img:"thumbs/xevarion-home_s.jpg" },
   { tag:"UPDATE", t1:"ロード中の案内役が新しくなりました", at:"2026-09-09",
     t2:"2人目の案内役を差しかえ、<b>立ち絵とお辞儀で足の位置がずれない</b>ようにそろえました",
-    href:"index.html", img:"img/ld_b_stand.webp" },
+    href:"index.html", img:"thumbs/xevarion-home_s.jpg" },
   { tag:"UPDATE", t1:"Boccia Rush のボールが少し早く止まります", at:"2026-09-09",
     t2:"同じ強さで転がる距離がおよそ 12% 短くなり、狙った位置に置きやすくなりました",
     href:"MagiBocciaRush/index.html", img:"thumbs/MagiBocciaRush.jpg" },
@@ -1303,7 +1327,7 @@ function xhMbReady() {
   if (typeof CHARS !== "undefined" && typeof PREMIUM_CHARS !== "undefined") return Promise.resolve(true);
   if (_xhMbLoading) return _xhMbLoading;
   _xhMbLoading = xhLoadScript("mb-boot.js?v=16")
-    .then(() => xhLoadScript("MagiBurst/js/mb-core.js?v=100"))
+    .then(() => xhLoadScript("MagiBurst/js/mb-core.js?v=102"))
     .then(() => true)
     .catch((e) => { _xhMbLoading = null; throw e; });
   return _xhMbLoading;
@@ -3642,15 +3666,29 @@ function xhUpdTally() {
   const pct = total ? Math.min(100, Math.round((done / total) * 100)) : 0;
   return { done, total, pct, got, hit, bytes };
 }
+/* ★★ 2026-09-10 画面に出している割合。<b>下げない</b>ために覚えておく。 */
+let _xhUpdShownPct = 0;
+function xhUpdResetPct() { _xhUpdShownPct = 0; }
 function xhUpdPaint() {
   const { done, total, pct, got, hit, bytes } = xhUpdTally();
-  const bar = xhEl("xhUpdBar"); if (bar) bar.style.width = pct + "%";
+  /* ══ ★★ 2026-09-10 「バーが戻る」の直し ══
+     たし合わせの分母（total）は、SW が名乗り出るたびに<b>あとから増える</b>。
+       例）MagiLex だけ返事 → 10/100 ＝ 10%
+           そこへ MagiBurst（0/400）→ 10/500 ＝ 2%
+     数え方は正しいのに、割合だけが 10% → 2% と<b>後退して見えていた</b>。
+     ★ 出す割合は<b>いちど上がったら下げない</b>。
+     ★ 全部終わるまでは 99% で止める（先に 100% にして止まって見えるのを防ぐ）。 */
+  const finished = !!(total && done >= total);
+  const want = finished ? 100 : Math.min(99, pct);
+  if (want > _xhUpdShownPct) _xhUpdShownPct = want;
+  const shown = _xhUpdShownPct;
+  const bar = xhEl("xhUpdBar"); if (bar) bar.style.width = shown + "%";
   const pt = xhEl("xhUpdPct");
   /* 100% に届いたあとも、遅れて動きだすSWがないか少しだけ見届ける。
      そのあいだ「ダウンロード中… 100%」のままだと止まって見えるので文言を変える。 */
-  if (pt) pt.textContent = (total && done >= total)
+  if (pt) pt.textContent = finished
     ? "確認完了（" + done + " ファイル）— 仕上げています…"
-    : "確認中… " + pct + "%（" + done + " / " + (total || "?") + " ファイル）";
+    : "確認中… " + shown + "%（" + done + " / " + (total || "?") + " ファイル）";
   /* ★ 差分更新になったので「実際に落としたぶん」を見せる。
      変更が無ければ 0 件・0 B のまま終わるのが正しい姿。 */
   const dl = xhEl("xhUpdDl");
@@ -3960,6 +3998,7 @@ async function xhUpdStart(keepVer) {
   /* ★ 2026-08-20 通信設定: いまの回線で「更新を自動でダウンロード」をオフにしているときは一度きく */
   if (!(await xhAskBigDownload(keepVer ? "足りないファイル" : "最新のデータ"))) { _xhUpdRunning = false; return; }
   _xhUpdRunning = true;
+  xhUpdResetPct();          /* ★ 走りはじめは 0% から（前回の値を引きずらない） */
   ["xhUpdGo", "xhUpdSkip", "xhUpdX"].forEach((id) => { const e = xhEl(id); if (e) e.style.display = "none"; });
   const pg = xhEl("xhUpdProg"); if (pg) pg.classList.add("on");
   xhDlStep(1, "① くらべています");

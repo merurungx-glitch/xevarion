@@ -7,7 +7,7 @@
    ・オフライン中の進行は localStorage に残り、オンライン復帰時に
      xeva-cloud.js がタイムスタンプ比較でクラウドへ上書き反映する
    ============================================================ */
-const VERSION = "xevarion-sw-v128";
+const VERSION = "xevarion-sw-v130";
 
 /* ホームを成立させる最小セット（重い画像は runtime キャッシュに任せる） */
 const CORE = [
@@ -18,25 +18,25 @@ const CORE = [
   /* ★ 2026-08-10 ガチャは XEVARION に一本化。中身は MagiBurst の共有モジュールが持つ */
   "./gacha.html",
   "./gacha-ui.js?v=38",
-  "./mb-newchars.js?v=21",
+  "./mb-newchars.js?v=22",
   "./xevion-os.js?v=12",
   "./xevion-os.css?v=14",
   "./magibattle-stats.js?v=13",
-  "./MagiBurst/js/mb-core.js?v=100",
+  "./MagiBurst/js/mb-core.js?v=102",
   /* ★ 2026-08-10 ガチャと図鑑で共通の土台・キャラ詳細・結果演出 */
   /* ★ 2026-08-12 ポータルのガチャ・図鑑も magiburst_v1 を同期するようになった */
   "./app-cloud.js?v=11",
   "./MagiBurst/magiburst-cloud.js?v=14",
   "./mb-boot.js?v=16",
-  "./mb-char-detail.js?v=26",
-  "./mb-char-detail.css?v=21",
+  "./mb-char-detail.js?v=27",
+  "./mb-char-detail.css?v=22",
   "./mb-gacha-reveal.css?v=10",
   "./community.html",
   "./about.html",
   "./manifest.webmanifest",
   "./xeva-theme.css?v=8",
   "./xevarion.css?v=23",
-  "./xevarion-home.css?v=57",
+  "./xevarion-home.css?v=58",
   /* ★★ 2026-09-03 下バーを画面の下端に合わせる共通部品 */
   "./xeva-safebottom.js?v=8",
   "./xeva-collection.js?v=6",
@@ -57,9 +57,9 @@ const CORE = [
   "./xeva-i18n-n2.js?v=2",
   "./xeva.js?v=61",
   "./xeva-fx.js?v=8",
-  "./xeva-loading.js?v=11",
-  "./xevarion.js?v=82",
-  "./xevarion-home.js?v=88",
+  "./xeva-loading.js?v=13",
+  "./xevarion.js?v=83",
+  "./xevarion-home.js?v=90",
   "./maintenance-gate.js?v=12",
   "./xeva-back.js?v=8",
   "./xeva-keys.js?v=18",
@@ -116,6 +116,8 @@ const CORE = [
   /* ★★ 2026-09-06 MagiDiamond の自前アイコン（絵文字をやめた） */
   "./MagiDiamond/js/md2-icons.js?v=5",
   "./MagiDiamond/js/md2-data.js?v=11",
+  /* ★★ 2026-09-10 図鑑のキャラ詳細で Magi: Boccia Rush の性能も出すので、ここでも持つ */
+  "./MagiBocciaRush/js/mbr-core.js?v=2",
   "./MagiDiamond/js/md2-game.js?v=21",
   "./MagiDiamond/js/md2-online.js?v=9",
   "./MagiDiamond/img/logo.webp",
@@ -361,13 +363,29 @@ async function xevRefreshAll() {
   const post = () => xevRefreshPost({ type: "xev-precache", scope: XEV_SCOPE,
     done: done, total: urls.length, got: got, hit: hit, bytes: bytes });
   await post();
-  for (const u of urls) {
+  /* ══ ★★ 2026-09-10 「更新に時間がかかる」の直し ══
+     ここは<b>キャッシュにある全ファイル</b>を1件ずつ
+     「変わっていませんか？」と聞いて回るところ。落とす量は差分だけで正しいのだが、
+     <b>聞くのが1本ずつ</b>だった。1往復 100ms × 400件＝それだけで40秒かかる。
+     ★ 同時に <b>6本</b>まで聞くようにした。<b>取ってくる量は1バイトも変わらない</b>。
+     ★ 進み具合の知らせも1件ごとに送っていたので、<b>120ms ごとに間引く</b>。
+       SW → 画面の postMessage は数が多いとそれ自体が重く、
+       これも「進みかたがカクつく／戻って見える」原因になっていた。 */
+  const CONC = 6;
+  let lastPost = 0;
+  const tickPost = async (force) => {
+    const now = Date.now();
+    if (!force && now - lastPost < 120) return;
+    lastPost = now;
+    await post();
+  };
+  const queue = urls.slice();
+  const one = async (u) => {
     try {
       const old = await cache.match(u);
       const h = {};
       if (old) {
-        const et = old.headers.get("ETag");
-        const lm = old.headers.get("Last-Modified");
+        const et = old.headers.get("ETag"), lm = old.headers.get("Last-Modified");
         if (et) h["If-None-Match"] = et;
         if (lm) h["If-Modified-Since"] = lm;
       }
@@ -383,8 +401,13 @@ async function xevRefreshAll() {
       }
     } catch (e) { /* 落とせなかったぶんは今のキャッシュを残す（消さない） */ }
     done++;
-    await post();
-  }
+    await tickPost();
+  };
+  const worker = async () => { while (queue.length) await one(queue.shift()); };
+  const crew = [];
+  for (let ci = 0; ci < CONC; ci++) crew.push(worker());
+  await Promise.all(crew);
+  await tickPost(true);
   await xevRefreshPost({ type: "xev-refreshed", scope: XEV_SCOPE, total: urls.length,
     got: got, hit: hit, bytes: bytes });
 }

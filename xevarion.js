@@ -3380,6 +3380,14 @@ addEventListener("DOMContentLoaded", () => { if (_xevLang === "en") applyLang("e
      はみ出し量 > 測定誤差の上限 にしておけば、どちらへズレても
      バーは必ず画面の下端を越える＝隙間が原理的に出ない。 */
   var MAXG = 130;          // これ以上の差は測り損ねとみなす
+  /* ★★ 2026-09-10 アプリ表示（ホーム画面から起動）かどうか。
+     ここでしか使わないので軽い判定でよい。 */
+  function isStandaloneApp() {
+    try {
+      if (navigator.standalone) return true;
+      return !!(window.matchMedia && matchMedia("(display-mode: standalone)").matches);
+    } catch (e) { return false; }
+  }
   var probe = null;
 
   /* position:fixed がぶら下がる箱の高さを実測する */
@@ -3539,6 +3547,16 @@ addEventListener("DOMContentLoaded", () => { if (_xevLang === "en") applyLang("e
       if (vv.height > box * 0.72) {
         g = Math.round((vv.offsetTop || 0) + vv.height - box);
         if (Math.abs(g) > MAXG) g = 0;
+        /* ★★ 2026-09-10 ご報告「ホームの下がまだ画面の下と空間が残っている」の直し。
+           g が<b>マイナス</b>＝「箱のほうが見えている高さより長い」。
+           ・ブラウザ … 下のツールバーが箱の下を隠しているので、そのぶん<b>持ち上げる</b>のが正しい
+           ・アプリ表示 … そのツールバーが無い。それでも visualViewport.height は
+             セーフエリアぶん短い値を返すことがあり、そのまま持ち上げると
+             下バーが<b>セーフエリアぶんまるごと浮く</b>（実測 59px）。
+           そこで<b>アプリ表示のときは持ち上げない</b>。
+           MagiCounter・Magi Boccia Rush の下バーにすきまが無いのは、
+           そもそもこの持ち上げをしていないから。 */
+        if (g < 0 && isStandaloneApp()) g = 0;
       }
     }
     /* ★ 測ったあと、次のフレームでもう一度だけ測り直す（again で無限ループを防ぐ） */

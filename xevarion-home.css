@@ -387,17 +387,24 @@ body.xh-off .xh-offline{display:flex}
      always 240px ぶん下へ出る（margin-bottom と padding で打ち消してある）ので、
      どれだけ調整しても背景が途切れることはない。 */
 :root{ --xh-dockover:240px; --xh-barpad:calc(env(safe-area-inset-bottom,0px) + 4px) }
-.xh-bar{position:relative;flex-shrink:0;display:grid;grid-template-columns:repeat(5,1fr);gap:3px;
-  /* ★ はみ出したぶんにボタンが引き伸ばされないよう、行は中身の高さで上詰めにする
-     （これをしないと選択中タブの色付きピルが縦長になる）。 */
+/* ══ ★★ 2026-09-10 下バーの作り直し（ご指定：MagiCounter / Magi Boccia Rush と同じに）══
+   あの2つの下バーは
+     ・地は<b>うすい1枚の板</b>（すりガラス）＋<b>上に細い線1本</b>だけ
+     ・選んでいるタブは<b>色が変わる＋上に短い線</b>。塗りつぶしのカプセルは使わない
+   という作りで、そのぶん<b>薄くて下端にぴったり</b>見える。ここも同じにする。
+   ★ はみ出し（--xh-dockover）と --xh-barpad の実測はそのまま残す。
+     あれは端末ごとのすきま対策で、見た目とは別の役目。 */
+.xh-bar{position:relative;flex-shrink:0;display:grid;grid-template-columns:repeat(5,1fr);gap:2px;
+  /* ★ はみ出したぶんにボタンが引き伸ばされないよう、行は中身の高さで上詰めにする */
   grid-auto-rows:min-content;align-content:start;
   margin-bottom:calc(-1 * var(--xh-dockover));
-  padding:6px 8px calc(var(--xh-barpad) + var(--xh-dockover));
-  background:#f1f4fd;background-image:var(--xh-barwash);
-  box-shadow:0 -8px 26px rgba(90,130,210,.18),0 -1px 0 rgba(255,255,255,.92) inset}
-.xh-bar::before{content:"";position:absolute;top:0;left:0;right:0;height:3px;pointer-events:none;
-  background:linear-gradient(90deg,#8e6bff 0%,#38a6ff 30%,#22c7a9 52%,#ffb020 74%,#ff6f91 100%);
-  box-shadow:0 1px 8px rgba(120,110,255,.35)}
+  padding:2px 6px calc(var(--xh-barpad) + var(--xh-dockover));
+  background:rgba(248,250,255,.92);background-image:var(--xh-barwash);
+  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
+  box-shadow:0 -6px 20px rgba(90,130,210,.13)}
+/* 上の細い線（あの2つと同じく<b>1本だけ</b>） */
+.xh-bar::before{content:"";position:absolute;top:0;left:0;right:0;height:1.5px;pointer-events:none;
+  background:rgba(120,160,230,.34)}
 /* ══════════════════════════════════════════════════════════════
    ★★ 2026-08-22b 自動更新のマーク／更新の印／ガチャタブの新キャラアイコン
    ══════════════════════════════════════════════════════════════ */
@@ -432,7 +439,8 @@ body.xh-off .xh-offline{display:flex}
      アイコンの実幅は min(セル幅, 64px)。その右はしから内側へ15px の位置に置き直す。 */
   left:calc(50% + min(50%, 32px) - 15px)}
 .xh-aitem.xh-updot::after{left:6px;top:10px}
-.xh-ntab.xh-updot::after{right:calc(50% - 17px);top:3px}
+/* ★ 2026-09-10 選択中タブの上の線（top:0・高さ3px）とぶつからないよう少し下げる */
+.xh-ntab.xh-updot::after{right:calc(50% - 17px);top:5px}
 @keyframes xhUpDot{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.22);opacity:.75}}
 
 /* ══ ★★ 2026-09-02 MagiLinkの「新しいメッセージ」の印 ══
@@ -456,7 +464,7 @@ body.xh-off .xh-offline{display:flex}
 /* ★ 置き場所はアイコンの<b>左上のかど</b>。right で右はしを揃えると、
    タブの幅が変わってもアイコンとの重なりが一定になる
    （更新の赤い点は右上なので、左右でぶつからない）。 */
-.xh-ntab .xh-freetag{position:absolute;right:calc(50% + 8px);top:2px;z-index:2;
+.xh-ntab .xh-freetag{position:absolute;right:calc(50% + 8px);top:4px;z-index:2;
   font-size:7.5px;font-weight:900;letter-spacing:-.03em;line-height:1;
   padding:2px 4px;border-radius:99px;color:#08301f;
   background:linear-gradient(135deg,#ffd257,#37e0a0 70%,#14a877);
@@ -474,14 +482,18 @@ body.xh-off .xh-offline{display:flex}
 /* ★★ 2026-08-25b position:relative をここに置く。
    以前は .xh-ntab.xh-updot のときだけ relative になっていたので、
    「無料」の印（.xh-freetag）を出すときに印だけが見当違いの場所へ飛んでしまう。 */
-.xh-ntab{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 2px 4px;border:none;
-  background:none;cursor:pointer;color:var(--xh-sub);border-radius:16px;
+.xh-ntab{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;
+  padding:8px 2px 5px;border:none;
+  background:none;cursor:pointer;color:var(--xh-sub);border-radius:14px;
   font-family:'Noto Sans JP',sans-serif;transition:color .16s,background .16s}
 .xh-ntab svg{width:23px;height:23px}
 .xh-ntab .tl{font-size:8.5px;font-weight:900;letter-spacing:-.01em;white-space:nowrap}
 @media (max-width:360px){.xh-ntab .tl{font-size:7.5px}}
-.xh-ntab.on{color:#fff;background:linear-gradient(150deg,#3f7dff,#8e6bff 55%,#ff6f91);
-  box-shadow:0 6px 18px rgba(100,130,255,.45),0 1px 0 rgba(255,255,255,.5) inset}
+/* ★ 選んでいるタブ：塗りつぶさず<b>色を変える＋上に短い線</b>（MagiCounter と同じ） */
+.xh-ntab.on{color:#3f7dff;background:none;box-shadow:none}
+.xh-ntab.on::before{content:"";position:absolute;top:0;left:50%;transform:translateX(-50%);
+  width:28px;height:3px;border-radius:0 0 3px 3px;pointer-events:none;
+  background:linear-gradient(90deg,#3f7dff,#8e6bff 55%,#ff6f91)}
 .xh-ntab:not(.on):active{background:rgba(120,140,255,.14)}
 .xh-ntab:disabled{opacity:.4;cursor:not-allowed}
 
@@ -817,6 +829,29 @@ body.xh-dragging .xh-sheet-body{overflow:hidden}
   transition:transform .2s ease}
 .xh-upd-notes li.ver > details[open] > summary .ar{transform:rotate(90deg)}
 .xh-upd-notes li.ver > details > .vn{list-style:none;margin:7px 0 0;padding:0}
+/* ══ ★★ 2026-09-10 更新の画面をコンパクトに（ご指定）══ */
+/* 見出しの箱を薄く（前は 14px 四方の大きな箱だった） */
+.xh-upd-head{padding:11px 13px!important;border-radius:15px!important}
+.xh-upd-ttl{font-size:13.5px!important;line-height:1.45!important}
+/* いちばん下の一言 */
+.xh-upd-tip{font-size:10.5px;color:rgba(111,130,173,.9);text-align:center;
+  margin-top:10px;line-height:1.7;font-weight:600}
+.xh-upd-tip b{color:var(--xh-ink)}
+/* 「くわしく」（説明とよくある質問は<b>たたんでおく</b>） */
+.xh-upd-more{margin-top:14px;border-top:1px solid rgba(120,160,230,.22);padding-top:10px}
+.xh-upd-more > summary{list-style:none;cursor:pointer;font-size:11.5px;font-weight:800;
+  color:#4b8bff;padding:8px 12px;border-radius:99px;background:rgba(63,125,255,.08);
+  text-align:center}
+.xh-upd-more > summary::-webkit-details-marker{display:none}
+.xh-upd-more > summary::marker{content:""}
+.xh-upd-more > summary::after{content:" ▾"}
+.xh-upd-more[open] > summary::after{content:" ▴"}
+.xh-upd-more[open] > summary{margin-bottom:4px}
+/* たたんだ中では、しくみの箱の上の余白はいらない */
+.xh-upd-more .xh-dlg{margin-top:10px}
+/* 進み具合のすぐ上に出す「いま何をしているか」 */
+.xh-upd-prog > .xh-dlg-live{display:block;margin:0 0 7px;text-align:center}
+
 .xh-upd-prog{display:none;margin-top:14px}
 .xh-upd-prog.on{display:block}
 .xh-upd-prog .bar{height:10px;border-radius:99px;background:rgba(120,160,230,.2);overflow:hidden}

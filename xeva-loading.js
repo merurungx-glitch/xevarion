@@ -10,7 +10,7 @@
    ★★ 2026-09-06 刷新（ご指定）
      ・案内役の女の子が<b>立ち絵</b>と<b>お辞儀</b>を交互にくり返す。
        ★★ 2026-09-06b 出るのは<b>1人だけ</b>（ご指定）。
-       絵は img/ld_a_stand.webp ／ ld_a_bow.webp。
+       絵は img/ld_a_stand.webp ／ ld_a_bow.webp（下の LD_SRC が持ち主）。
      ・<b>いちばん下まで色が届く</b>ようにした。position:fixed の箱はアプリ表示だと
        画面より短いことがあるので、
          ① &lt;html&gt; の背景を同じ色に塗る（xvPaintHtml）
@@ -18,7 +18,7 @@
        の<b>両方</b>を使う。①②は xeva-safebottom.js が持っているので、
        読まれていないページでは<b>自分で読みこむ</b>。
 
-   使い方: <script src="../xeva-loading.js?v=12" defer></script>
+   使い方: <script src="../xeva-loading.js?v=13" defer></script>
    ============================================================ */
 (function () {
   "use strict";
@@ -74,9 +74,12 @@
   }
 
   /* ══ 案内役（立ち絵とお辞儀）══
-     ★★ 2026-09-08 ご指定により<b>2人のどちらかがランダムで出る</b>ようにしました。
-       絵は img/ld_a_stand.webp・ld_a_bow.webp（フードの子）と
-       img/ld_b_stand.webp・ld_b_bow.webp（メイドの子・2026-09-09 に差しかえ）。
+     ★★ 2026-09-10 ご指定により<b>2人のどちらかがランダムで出る</b>ようにしました。
+       ・a … フードの子（青と白）
+       ・b … 水晶ドレスの子
+       絵は img/ld_a_stand.webp・ld_a_bow.webp ／ ld_b_stand.webp・ld_b_bow.webp。
+       ★ これまでの案内役の絵（メイドの子・古いフードの子）は<b>ファイルごと削除</b>しました。
+         残っているのはこの4枚だけです。
        ★★ 4枚とも <b>560×560 で、足の裏が同じ y（=555）・足元の中心が同じ x（=280）</b>
          になるように切りぬいてある。立ち絵↔お辞儀で<b>足が跳ねない</b>ようにするため。
          （側は object-fit:contain の正方形なので、絵の中の位置がそのまま画面の位置になる）
@@ -89,8 +92,8 @@
        <b>?v= を上げないと古い絵がそのまま出る</b>（裏では差しかわるが1回遅れる）。
      ・分けて書くと bump-v.py が見つけられないので、<b>連結せずに並べてある</b>。 */
   var LD_SRC = {
-    a: { stand: "img/ld_a_stand.webp?v=2", bow: "img/ld_a_bow.webp?v=2" },
-    b: { stand: "img/ld_b_stand.webp?v=2", bow: "img/ld_b_bow.webp?v=2" },
+    a: { stand: "img/ld_a_stand.webp?v=4", bow: "img/ld_a_bow.webp?v=4" },
+    b: { stand: "img/ld_b_stand.webp?v=4", bow: "img/ld_b_bow.webp?v=4" },
   };
   function poseSrc(pose) { return baseUrl() + (LD_SRC[who] || LD_SRC.a)[pose]; }
 

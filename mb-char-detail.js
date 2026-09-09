@@ -128,9 +128,11 @@ function mtEnsureCSS() {
 /* ★★ 2026-09-06 キャラ詳細の「どのゲームの性能を見るか」。
    ★ ご指定により<b>開いたときは必ず MagiBurst</b>。切りかえても覚えない
      （次に別のキャラを開いたら、また MagiBurst から始まる）。 */
+/* ★★ 2026-09-10 3つめ "boccia"（Magi: Boccia Rush）を足した（ご指定）。 */
 let detGame = "burst";
+const DET_GAMES = ["burst", "diamond", "boccia"];
 window.setDetGame = function (g) {
-  detGame = (g === "diamond") ? "diamond" : "burst";
+  detGame = DET_GAMES.indexOf(g) >= 0 ? g : "burst";
   if (detCurId) openDetX(detCurId, true);
 };
 let detCurId = null;
@@ -150,6 +152,73 @@ function mdEnsure() {
     return null;
   });
   return window.__mdLoading;
+}
+/* ══ ★★ 2026-09-10 Magi: Boccia Rush の性能 ══
+   ★ ボッチャの能力は <b>MagiBocciaRush/js/mbr-core.js</b> が
+     mb-core.js の CHARS から<b>式で</b>作る（あちらに手書きの台帳は無い）。
+     ここでも同じ関数を呼ぶので、<b>ゲーム内とまったく同じ数字</b>が出る。
+   ★ mbr-core.js は window.MBR を作るだけで画面には触らないので、
+     図鑑・ガチャから読みこんでも副作用がない。 */
+function mbrEnsure() {
+  if (window.MBR) return Promise.resolve();
+  if (window.__mbrLoading) return window.__mbrLoading;
+  window.__mbrLoading = new Promise((res) => {
+    const s = document.createElement("script");
+    s.src = "MagiBocciaRush/js/mbr-core.js?v=2";
+    s.onload = () => res(); s.onerror = () => res();
+    document.head.appendChild(s);
+  });
+  return window.__mbrLoading;
+}
+/* ★ buildRoster は215体ぶんを組み立てるので、<b>1回だけ</b>にして id で引けるようにする。 */
+let MBR_MAP = null;
+function mbrCharOf(id) {
+  if (!window.MBR) return null;
+  if (!MBR_MAP) {
+    MBR_MAP = {};
+    try { MBR.buildRoster().forEach((c) => { MBR_MAP[c.id] = c; }); } catch (e) { MBR_MAP = null; return null; }
+  }
+  return MBR_MAP[id] || null;
+}
+const MBR_STAT_NM = {
+  power: "パワー", control: "コントロール", friction: "止まりやすさ",
+  hit: "ヒット", jack: "ジャック", technique: "テクニック", support: "サポート",
+};
+function magiBocciaHTML(id) {
+  const c = mbrCharOf(id);
+  if (!c) {
+    return `<div class="dsec mbb"><div class="t">評価（Magi: Boccia Rush）</div>
+      <div class="mbnone">読みこんでいます…（出ないときは、いちど Magi: Boccia Rush を開いてから戻ってきてください）</div></div>`;
+  }
+  const ty = MBR.TYPES[c.type] || { ja: "", nm: "", c: "#2f8fff", d: {} };
+  const sk = MBR.SKILLS[c.skill] || { nm: {}, d: {} };
+  const ab = MBR.ABILS[c.ability] || { nm: {}, d: {} };
+  const jaOf = (o) => (o && (o.ja != null ? o.ja : o)) || "";
+  const keys = ["power", "control", "friction", "hit", "jack", "technique", "support"];
+  let sum = 0;
+  keys.forEach((k) => { sum += c.st[k]; });
+  const bar = (k) => `<div class="mdrow bc"><span class="k">${MBR_STAT_NM[k]}</span>
+      <span class="b"><i style="width:${Math.max(0, Math.min(100, c.st[k]))}%"></i></span>
+      <span class="v">${c.st[k]}</span></div>`;
+  return `<div class="dsec mbb"><div class="t">評価（Magi: Boccia Rush）<span class="turn">${ty.nm || ty.ja}</span></div>
+    <div class="dchips">
+      <span class="dchip" style="color:${ty.c};border-color:${ty.c}66">${ty.ja}</span>
+      <span class="dchip">${c.rarity}</span>
+      <span class="dchip">合計 ${sum}</span>
+      <span class="dchip">平均 ${Math.round(sum / keys.length)}</span>
+    </div>
+    <div class="ddesc" style="margin:8px 0 4px"><b>ボッチャの能力</b></div>${keys.map(bar).join("")}
+    <div class="ddesc" style="margin:10px 0 4px"><b>アビリティ（常時）</b></div>
+    <div class="ddesc"><b>${jaOf(ab.nm)}</b> … ${jaOf(ab.d)}</div>
+    <div class="ddesc" style="margin:10px 0 4px"><b>スキル（1試合に1回）</b></div>
+    <div class="ddesc"><b style="color:#e0952b">${jaOf(sk.nm)}</b> … ${jaOf(sk.d)}</div>
+    <div class="ddesc" style="margin-top:8px">${jaOf(ty.d)}</div>
+    <div class="ddesc" style="margin-top:6px;font-size:10px">
+      ※ Magi: Boccia Rush の能力は<b>MagiBurst のステータスと戦型から決まります</b>
+      （攻撃力の高い子はパワーとヒット、速い子はテクニックとジャックが高くなります）。
+      数字は <b>40〜96</b> の帯におさめてあるので、<b>レアリティだけで勝敗は決まりません</b>。
+      <b>競技モード</b>では、ここの能力の効きが<b>3分の1</b>になります。</div>
+  </div>`;
 }
 const MD_STAT_NM = { meet: "ミート", power: "パワー", run: "走力", field: "守備", arm: "肩力", catch: "捕球",
   velo: "球速", heavy: "球威", ctrl: "制球", stam: "スタミナ", brk: "変化量", mind: "精神力" };
@@ -194,6 +263,12 @@ function openDetX(id, keepGame) {
   if (detGame === "diamond" && !window.MD2DATA) {
     mdEnsure().then(() => { if (detCurId === id && detGame === "diamond") openDetX(id, true); });
   }
+  /* ★★ 2026-09-10 同じ考えかたで Magi: Boccia Rush も。
+     「あるとき」も呼ぶと Promise.resolve → openDetX → … と<b>無限に回る</b>ので、
+     <b>無いときだけ</b>読みこんで、読めたら1回だけ開き直す。 */
+  if (detGame === "boccia" && !window.MBR) {
+    mbrEnsure().then(() => { if (detCurId === id && detGame === "boccia") openDetX(id, true); });
+  }
   if (charSecret(id)) return;
   const st = charStats(id), own = !!DB.chars[id], awk = own ? (DB.chars[id].awk || 0) : 0;
   const sub = SUBFS[c.subfs] || {};
@@ -230,9 +305,11 @@ function openDetX(id, keepGame) {
     </div>
     <div class="dbody">
       ${/* ★★ 2026-09-06 どのゲームの性能を見るか（ご指定・はじめは MagiBurst） */""}
-      <div class="dgseg">
+      <div class="dgseg g3">
         <button class="${detGame === "burst" ? "on" : ""}" onclick="setDetGame('burst')">⚔ MagiBurst</button>
         <button class="${detGame === "diamond" ? "on" : ""}" onclick="setDetGame('diamond')">⚾ MagiDiamond</button>
+        ${/* ★★ 2026-09-10 ご指定により <b>MagiDiamond の右</b>に足す */""}
+        <button class="${detGame === "boccia" ? "on" : ""}" onclick="setDetGame('boccia')">🎯 Boccia</button>
       </div>
       <div class="dchips">
         ${/* ★★ 2026-09-02 二属性キャラは「闇＆火」のように2つ並べる（リンクスキルの属性が先）。
@@ -354,11 +431,13 @@ function openDetX(id, keepGame) {
         ${magiBattleHTML(id)}
       </div>
       ${detGame === "diamond" ? magiDiamondHTML(id) : ""}
+      ${detGame === "boccia" ? magiBocciaHTML(id) : ""}
       ${/* ★ 2026-08-26 ページ側が足したい行（図鑑の「アイコンに設定」など）。
             フックを立てていない画面（ガチャ）では何も出ない。 */""}
       ${(typeof window.MBDET_FOOT === "function" ? (window.MBDET_FOOT(id) || "") : "")}
     </div>`;
-  $("#detCard").classList.toggle("gdia", detGame === "diamond");
+  /* ★ gdia は「MagiBurst 以外を見ている」＝上の箱を丸ごと隠す、の意味 */
+  $("#detCard").classList.toggle("gdia", detGame !== "burst");
   $("#detOv").classList.add("on");
   try { replayStrengthAnim($("#detCard")); } catch (e) {}
   try { mtEnsureCSS(); paintTierInto(id); } catch (e) {}

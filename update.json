@@ -1,15 +1,27 @@
 {
-  "version": "2026-09-09-2",
-  "date": "2026-09-09",
-  "title": "ホームの並びの入れかえ ／ 新しい案内役 ／ Boccia Rush の手ごたえ",
+  "version": "2026-09-10-1",
+  "date": "2026-09-10",
+  "title": "下のバーと更新画面の刷新 ／ Boccia Rush の演出と検索 ／ MagiCounter のカメラ読み取り",
   "notes": [
-    "🏠 ホームの11枠を入れかえました。XEVYNAR・MagiRanking・MagiCounter・Magi: Boccia Rush が並び、Arcana Rush と Magi Lotto は「その他」へ移りました（並びはご自分で変えられます）",
-    "🐣 ロード中の案内役（2人目）を新しい絵に差しかえました。立ち絵とお辞儀で足の位置がずれないようにそろえてあります",
-    "🔎 MagiCounter と Magi: Boccia Rush がアプリ一覧に出ていなかったのを直しました",
-    "🥎 Magi: Boccia Rush のボールの減速を少し強くしました。同じ強さで転がる距離がおよそ12%短くなります"
+    "ホームの下のバーを MagiCounter・Magi: Boccia Rush と同じ薄い作りに刷新。アプリ表示のときに箱ごと持ち上げていたのをやめ、バーの下に残っていた空間をなくしました",
+    "更新の画面をコンパクトに。「なにが新しくなるか」を先頭に置き、しくみの説明とよくある質問は「くわしく」にたたみました",
+    "更新の進み具合のバーが戻らないようにしました（あとから名乗り出るアプリのぶんで分母が増えていたのが原因）",
+    "更新のダウンロードを高速化。問い合わせを1本ずつから6本同時にしました（落とす量はこれまでと同じ）",
+    "Magi: Boccia Rush にペルソナ風のカットイン（スキル発動・キャラ選択）を追加",
+    "Magi: Boccia Rush のキャラ一覧に検索・型／レアのしぼりこみ・7つの能力での並びかえを追加",
+    "Magi: Boccia Rush で最新のキャラが出ないことがあるのを修正（?v= を無視して引き当てていたため）",
+    "Magi: Boccia Rush で矢印の反対向きに出ていた予測の点線を修正（画面の角度をそのまま渡していたため）",
+    "図鑑のキャラ詳細に MagiDiamond の右へ「🎯 Boccia」を追加。ボッチャの能力・アビリティ・スキルが見られます",
+    "MagiCounter に相手6体のカメラ読み取りを追加（色で候補を出し、1体ずつ確かめて確定します）",
+    "MagiCounter に選出した3体の「出す順番」を理由つきで追加",
+    "MagiCounter でランク外のポケモンを自分で登録できるようにしました",
+    "MagiCounter でタイプの札が枠からはみ出していたのを修正",
+    "MagiBurst の対応キャラで、クロススキルで持つアンチを札ではなく鎖のマークの色（桃色）で示すようにしました",
+    "MagiCounter がメガシンカに対応。編成の枠の M を押すとメガの姿で相性・選出・出す順番を計算します（1チーム1体）",
+    "ロード中の案内役を新しい2人に入れかえました（これまでの絵はファイルごと削除）。立ち絵とお辞儀で足の位置がそろえてあります"
   ],
-  "bytes": 44701340,
-  "files": 505,
+  "bytes": 44875817,
+  "files": 506,
   "urls": [
     "index.html",
     "characters.html",
@@ -98,6 +110,7 @@
     "MagiDiamond/img/icon192.webp",
     "MagiDiamond/js/md2-icons.js",
     "MagiDiamond/js/md2-data.js",
+    "MagiBocciaRush/js/mbr-core.js",
     "MagiDiamond/js/md2-game.js",
     "MagiDiamond/js/md2-online.js",
     "MagiDiamond/img/logo.webp",
@@ -510,14 +523,15 @@
     "MagiCounter/js/mc-data.js",
     "MagiCounter/js/mc-core.js",
     "MagiCounter/js/mc-ui.js",
+    "MagiCounter/js/mc-scan.js",
     "MagiCounter/data/meta.json",
     "MagiBocciaRush/index.html",
     "MagiBocciaRush/manifest.webmanifest",
     "MagiBocciaRush/css/mbr.css",
-    "MagiBocciaRush/js/mbr-core.js",
     "MagiBocciaRush/js/mbr-ui.js"
   ],
   "apps": [
+    "magiarcanarush",
     "magibocciarush",
     "magiburst",
     "magichainparty",
@@ -530,8 +544,32 @@
     "tab:gacha",
     "tab:home"
   ],
-  "changedFiles": 19,
+  "changedFiles": 22,
   "history": [
+    {
+      "version": "2026-09-09-2",
+      "date": "2026-09-09",
+      "title": "ホームの並びの入れかえ ／ 新しい案内役 ／ Boccia Rush の手ごたえ",
+      "notes": [
+        "🏠 ホームの11枠を入れかえました。XEVYNAR・MagiRanking・MagiCounter・Magi: Boccia Rush が並び、Arcana Rush と Magi Lotto は「その他」へ移りました（並びはご自分で変えられます）",
+        "🐣 ロード中の案内役（2人目）を新しい絵に差しかえました。立ち絵とお辞儀で足の位置がずれないようにそろえてあります",
+        "🔎 MagiCounter と Magi: Boccia Rush がアプリ一覧に出ていなかったのを直しました",
+        "🥎 Magi: Boccia Rush のボールの減速を少し強くしました。同じ強さで転がる距離がおよそ12%短くなります"
+      ],
+      "apps": [
+        "magibocciarush",
+        "magiburst",
+        "magichainparty",
+        "magicounter",
+        "magidiamond",
+        "magidominiongrid",
+        "magilex",
+        "tab:chars",
+        "tab:community",
+        "tab:gacha",
+        "tab:home"
+      ]
+    },
     {
       "version": "2026-09-09-1",
       "date": "2026-09-09",
@@ -1054,26 +1092,6 @@
         "tab:gacha",
         "tab:home",
         "xevynar"
-      ]
-    },
-    {
-      "version": "2026-08-27-1",
-      "date": "2026-08-27",
-      "title": "「まとめて見る」でも RANK UP／ロキシーのFB／蓬莱は挟まる位置に弱点／MagiLex の XEVA 表示",
-      "notes": [
-        "✦ 10連の「まとめて見る」で昇格演出がまるごと飛んでいたのを修正（結果はこれまでどおりすぐ出ます）",
-        "📚 MagiLex の完全習得・確認テスト合格で XEVA の獲得が見えなかったのを修正（KP の知らせが上書きしていた）",
-        "⚡ ロキシーのフルバーストは、本人が止まるまで嵐を続け、止まってから落雷するように",
-        "🎯 蓬莱の九重の弱点を、壁とボスのすきま（挟まる位置）に置くように",
-        "🚫 敵を動かすリンクスキルを廃止（ノワールシンギュラリティの引き寄せ／削りと崩壊の威力で埋め合わせ）",
-        "🌍 みんなのクリア編成から手数・残りHP・時間の表示を削除／🛡対応キャラのマークを詰めて表示"
-      ],
-      "apps": [
-        "magiburst",
-        "magilex",
-        "tab:chars",
-        "tab:gacha",
-        "tab:home"
       ]
     }
   ]

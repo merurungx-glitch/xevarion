@@ -201,9 +201,19 @@
 .dgseg button:active{transform:translateY(1px)}
 /* ★★ 2026-09-06 MagiDiamond を選んでいるあいだは、MagiBurst の性能を丸ごと隠す。 */
 #detCard.gdia .dgburst{display:none}
+/* ★★ 2026-09-10 3つめ（Magi: Boccia Rush）が増えたので3列に。
+   狭い画面では文字が入りきらないので、ここだけ字を小さくして詰める。 */
+.dgseg.g3{grid-template-columns:repeat(3,1fr);gap:4px}
+.dgseg.g3 button{font-size:10.5px;padding:9px 2px;letter-spacing:-.01em;border-radius:10px}
+@media (max-width:360px){.dgseg.g3 button{font-size:9.5px}}
 /* MagiDiamond の能力バー */
 .mdrow{display:flex;align-items:center;gap:8px;margin:4px 0}
 .mdrow .k{flex:none;width:64px;font-size:11px;font-weight:900;color:var(--sub,#8b87a8)}
 .mdrow .b{flex:1;height:8px;border-radius:99px;background:rgba(142,107,255,.14);overflow:hidden}
 .mdrow .b i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#ffd257,#ff9d2e)}
 .mdrow .v{flex:none;width:30px;text-align:right;font-size:12px;font-weight:900;font-family:'Orbitron',ui-monospace,monospace}
+/* Magi: Boccia Rush の能力バー（同じ形・色だけ青にして見分けがつくように）
+   ★ 名前が長い（「止まりやすさ」）ので、見出しの幅を少しだけ広くする。 */
+.mdrow.bc .k{width:78px;font-size:10.5px}
+.mdrow.bc .b{background:rgba(47,143,255,.14)}
+.mdrow.bc .b i{background:linear-gradient(90deg,#2f8fff,#7cd4ff)}

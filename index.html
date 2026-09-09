@@ -19,7 +19,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Exo+2:ital,wght@0,300;0,400;0,600;0,700;1,300&family=Noto+Sans+JP:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="xeva-theme.css?v=8">
 <link rel="stylesheet" href="xevarion.css?v=23">
-<link rel="stylesheet" href="xevarion-home.css?v=57">
+<link rel="stylesheet" href="xevarion-home.css?v=58">
 <!-- ★★ 2026-08-22b Xevion OS の見た目（テーマ・文字の大きさ・動きを減らす）。
      xevarion-home.css の<b>あと</b>に読む＝上書きできるようにする。 -->
 <link rel="stylesheet" href="xevion-os.css?v=14">
@@ -54,19 +54,19 @@
 <!-- ★ 2026-08-18 新キャラ告知の台帳（MagiBurst と共通）。
      告知を<b>ポータルのログイン時</b>に一本化したので、ここでも読む。
      defer なので xevarion.js より先に実行される（書いた順番で走る）。 -->
-<script src="mb-newchars.js?v=21" defer></script>
+<script src="mb-newchars.js?v=22" defer></script>
 <!-- ★★ 2026-08-22b Xevion OS（XEVARION の UI をひとつの OS として扱う土台）。
      ほかの画面より<b>先に</b>読む（body のクラスを立てるので、あとから読むと一瞬ちらつく）。 -->
 <script src="xevion-os.js?v=12"></script>
 <!-- ジェム⇄XEVA のレート（ドル円連動）。xevarion-home.js より先に読み込む -->
 <script src="xeva-fx.js?v=8" defer></script>
-<script src="xeva-loading.js?v=11" defer></script>
+<script src="xeva-loading.js?v=13" defer></script>
 <script type="module" src="xeva-sync.js?v=17"></script>
 <script type="module" src="xevarion-fb.js?v=32"></script>
 <script src="xeva-presence.js?v=8" defer></script>
 <script type="module" src="xeva-cloud.js?v=27"></script>
-<script src="xevarion.js?v=82" defer></script>
-<script src="xevarion-home.js?v=88" defer></script>
+<script src="xevarion.js?v=83" defer></script>
+<script src="xevarion-home.js?v=90" defer></script>
 </head>
 <body>
 <!-- ───── バックグラウンド音楽（Flagship Arrival。アクセス画面のタップで再生開始） ───── -->
@@ -553,27 +553,18 @@ body.music-on #beatFrame{opacity:1}
       <!-- ★ ダウンロード量の内訳。「何回ぶんたまっていても取り直す量は同じ」を明示する -->
       <div class="xh-upd-size" id="xhUpdSizeNote"></div>
 
-      <!-- ══ ダウンロードのしくみガイド（2026-08-10 追加） ══
-           「読むだけの説明」は読まれないので、<b>いま実際に起きていること</b>に
-           合わせて段が光るようにした。押すと更新が始まり、①→④ が順に進む。
-           ＝ 説明を読みながら、そのまま実践できる。 -->
-      <div class="xh-dlg" id="xhDlGuide">
-        <div class="xh-dlg-h">📘 ダウンロードって、何をしているの？
-          <span class="xh-dlg-live" id="xhDlLive">押すと①から順に進みます</span></div>
-        <ol class="xh-dlg-steps" id="xhDlSteps">
-          <li data-s="1"><b>くらべる</b><span>サーバーにある最新の一覧と、いまスマホに入っているデータを1件ずつつき合わせます。<em>ここでは通信量はほとんど使いません。</em></span></li>
-          <li data-s="2"><b>変わったぶんだけ落とす</b><span>中身が変わったファイルだけを取りにいきます。前と同じファイルは<em>落とし直しません</em>——だから「約○○MB」より実際はずっと小さくなります。</span></li>
-          <li data-s="3"><b>スマホに保存する</b><span>落としたデータをスマホの中にしまいます。これが終わると<em>機内モード・電波なしでも</em> MagiLex / MagiBurst / MagiChainParty などが遊べます。</span></li>
-          <li data-s="4"><b>最新版に切り替える</b><span>画面を自動で読み込み直して完了。<em>セーブデータ（進行・所持キャラ・XEVA）はそのまま</em>です。</span></li>
-        </ol>
-      </div>
 
       <!-- ★★ 2026-08-22 自動ダウンロードの状態（設定の「更新を自動でダウンロード」がオンの回線だけ出る）。
            中身は xevarion-home.js の xhPaintAutoDl() が入れる。 -->
       <div class="xh-updauto" id="xhUpdAuto" style="display:none"></div>
 
+      <!-- ★★ 2026-09-10 いちばん知りたい「なにが新しくなるの？」を<b>いちばん上</b>に。 -->
       <ul class="xh-upd-notes" id="xhUpdNotes"></ul>
+
       <div class="xh-upd-prog" id="xhUpdProg">
+        <!-- ★★ 2026-09-10 いま何をしているか（①〜④）を<b>1行だけ</b>ここに出す。
+             くわしい4段は下の「くわしく」の中。xhDlStep() が両方を書きかえる。 -->
+        <div class="xh-dlg-live" id="xhDlLive">押すと①から順に進みます</div>
         <div class="bar"><i id="xhUpdBar"></i></div>
         <div class="pt" id="xhUpdPct">確認中… 0%</div>
         <!-- ★ 差分更新（変更のあったファイルだけ落とす）の実績 -->
@@ -581,8 +572,25 @@ body.music-on #beatFrame{opacity:1}
       </div>
       <button class="xh-sbtn" id="xhUpdGo" onclick="xhUpdStart()">⬇ 更新する（最大 <span id="xhUpdSize2">—</span>）</button>
       <button class="xh-sbtn ghost" id="xhUpdSkip" onclick="xhUpdLater()">あとで</button>
-      <div style="font-size:10.5px;color:rgba(111,130,173,.85);text-align:center;margin-top:10px;line-height:1.75;font-weight:600">
-        Wi-Fi での更新をおすすめします。更新するとオフラインでも最新版で遊べます。
+      <div class="xh-upd-tip">Wi-Fi での更新をおすすめします。更新すると<b>オフラインでも最新版</b>で遊べます。</div>
+
+      <!-- ══ ★★ 2026-09-10 説明は<b>たたんでおく</b>（ご指定：コンパクトに）══
+           読みたい人だけが開ける。中身はこれまでと同じもの。 -->
+      <details class="xh-upd-more">
+        <summary>くわしく（ダウンロードのしくみ・よくある質問）</summary>
+      <!-- ══ ダウンロードのしくみガイド（2026-08-10 追加） ══
+           「読むだけの説明」は読まれないので、<b>いま実際に起きていること</b>に
+           合わせて段が光るようにした。押すと更新が始まり、①→④ が順に進む。
+           ＝ 説明を読みながら、そのまま実践できる。 -->
+      <div class="xh-dlg" id="xhDlGuide">
+        <div class="xh-dlg-h">📘 ダウンロードって、何をしているの？
+          <span class="xh-dlg-live xh-dlg-live2">①から順に進みます</span></div>
+        <ol class="xh-dlg-steps" id="xhDlSteps">
+          <li data-s="1"><b>くらべる</b><span>サーバーにある最新の一覧と、いまスマホに入っているデータを1件ずつつき合わせます。<em>ここでは通信量はほとんど使いません。</em></span></li>
+          <li data-s="2"><b>変わったぶんだけ落とす</b><span>中身が変わったファイルだけを取りにいきます。前と同じファイルは<em>落とし直しません</em>——だから「約○○MB」より実際はずっと小さくなります。</span></li>
+          <li data-s="3"><b>スマホに保存する</b><span>落としたデータをスマホの中にしまいます。これが終わると<em>機内モード・電波なしでも</em> MagiLex / MagiBurst / MagiChainParty などが遊べます。</span></li>
+          <li data-s="4"><b>最新版に切り替える</b><span>画面を自動で読み込み直して完了。<em>セーブデータ（進行・所持キャラ・XEVA）はそのまま</em>です。</span></li>
+        </ol>
       </div>
       <!-- ══ よくある疑問（2026-08-10 追加）══ -->
       <div class="xh-faq">
@@ -610,6 +618,7 @@ body.music-on #beatFrame{opacity:1}
           進行・所持キャラ・XEVA・ジェムは別に保存されています。
           アカウントでログインしていれば、機種変更のときもクラウドから引き継げます。</p></details>
       </div>
+      </details>
     </div>
   </div>
 </div>
@@ -1712,6 +1721,72 @@ body.music-on #beatFrame{opacity:1}
 
   <div class="nm-body" id="newsBody">
     <div class="nm-divider" id="newDivider" style="display:none;">NEW — 前回から更新</div>
+    <!-- 2026-09-10 下バーの刷新／更新画面／Boccia Rush／MagiCounter／図鑑／案内役 -->
+    <div class="nm-item" data-tag="update" data-date="2026-09-10">
+      <div class="nm-date">2026<br>09.10</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">📱 下のバーと更新画面を刷新／🎯 Boccia Rush にカットインと検索／📸 MagiCounter にカメラ読み取り・出す順番・<b>メガシンカ</b>／🔗 対応キャラの印を整理</div>
+        <div class="nm-txt">
+          📱 <b>ホームの下のバーを作り直しました</b>。MagiCounter・Magi: Boccia Rush と同じ、
+          <b>うすい1枚の板＋上に細い線</b>だけの作りに。選んでいるタブは塗りつぶさず、
+          <b>色が変わって上に短い線</b>が出ます。<br>
+          ★ <b>「バーの下に空間が残る」</b>の真因も直しました。アプリとして起動したとき、
+          見えている高さ（visualViewport）が<b>セーフエリアぶん短く</b>返ることがあり、
+          そのぶん箱ごと<b>持ち上げて</b>いたのが原因です。
+          持ち上げが要るのは<b>ブラウザの下のツールバーがあるとき</b>だけなので、
+          アプリ表示では持ち上げないようにしました。<br><br>
+
+          🚀 <b>更新の画面をコンパクトにしました</b>。
+          いちばん知りたい「なにが新しくなるの？」を<b>いちばん上</b>に置き、
+          しくみの説明とよくある質問は<b>「くわしく」の中へたたみました</b>。<br>
+          ★ <b>進み具合のバーが戻る</b>のを直しました。アプリ（SW）ごとの件数を足し合わせているため、
+          あとから名乗り出たアプリのぶんだけ<b>分母が増えて割合が下がって</b>いたのが原因です。
+          出す割合は<b>いちど上がったら下げない</b>ようにしました。<br>
+          ★ <b>更新が速くなりました</b>。「変わっていませんか？」の問い合わせを
+          <b>1本ずつから6本同時</b>に。<b>落とす量はまったく同じ</b>で、待ち時間だけが短くなります。<br><br>
+
+          🎯 <b>Magi: Boccia Rush</b><br>
+          ・スキル発動と「使うキャラをえらんだとき」に<b>ペルソナ風のカットイン</b>が入ります。<br>
+          ・キャラ一覧に<b>検索・型／レアでのしぼりこみ・7つの能力での並びかえ</b>を足しました。<br>
+          ・<b>最新のキャラが出ないことがある</b>のを直しました。
+          保存したデータを引き当てるときに <b>?v= を無視</b>していたのが原因で、
+          いまは <b>?v= まで見て</b>引き当て、当たったときも<b>裏で取り直し</b>ます。<br>
+          ・矢印の<b>反対向きに出ていた点線</b>を直しました。予測の線に<b>画面の角度をそのまま渡していた</b>のが原因で、
+          いまは矢印と同じ向き＝<b>本当に飛ぶ道すじ</b>を示します。<br><br>
+
+          📚 <b>図鑑のキャラ詳細</b>に <b>🎯 Boccia</b> を足しました（MagiDiamond の右）。
+          ボッチャの7つの能力・アビリティ・スキルが、ゲームの中と<b>まったく同じ数字</b>で出ます。<br><br>
+
+          📸 <b>MagiCounter</b><br>
+          ・相手の選出画面を<b>カメラで撮る（写真をえらぶ）と6体の候補</b>を出します。
+          当てているのは<b>色のかたち</b>なので、1体ずつ<b>押して確かめる</b>作りです。<br>
+          ・選んだ3体の<b>出す順番</b>を理由つきで出します（先発は事故りにくい子、最後は詰めの子）。<br>
+          ・<b>表に載っていないポケモン</b>も、名前とタイプを入れれば分析にそのまま使えます。<br>
+          ・<b>タイプの札が枠からはみ出す</b>のを直しました。<br><br>
+
+          🔗 <b>MagiBurst の対応キャラ</b>で、クロススキルで持つアンチの示しかたを変えました。
+          札を足すのをやめ、<b>鎖のマークを桃色</b>にしてお知らせします
+          （青緑＝ただのクロス持ち／桃色＝そのギミックのアンチをクロスで持っている）。<br><br>
+
+          🔮 <b>MagiCounter がメガシンカに対応しました</b>。
+          編成の枠に出る <b>M</b> を押すと、その子を<b>メガの姿で</b>相性・選出・出す順番まで計算します
+          （メガは<b>1チーム1体</b>まで。2種類ある リザードン・ミュウツー は押すたびに X → Y → もどす と回ります）。<br>
+          ★ 大事なのは<b>タイプが変わる</b>こと。ギャラドスは みず／ひこう（でんき<b>4倍</b>）から
+          みず／あく（でんき<b>2倍</b>）になり、読みが丸ごと変わります。
+          キャラ詳細には<b>「メガシンカで変わるところ」</b>——弱点でなくなるタイプ・やわらぐタイプ・
+          新しく弱点になるタイプ——を名指しで出します。<br>
+          ★ 入れたのは<b>公式のメガシンカとゲンシカイキだけ</b>（16体・18のすがた）。
+          タイプ・種族値・特性は実データから取っています。
+          ゲンシカイオーガの<b>ほのお無効</b>、ゲンシグラードンの<b>みず無効</b>、
+          メガレックウザの<b>ひこうの弱点が消える</b>ところまで計算に入っています。<br><br>
+
+          👧 <b>ロード中の案内役を新しい2人に入れかえました</b>。
+          これまでの案内役の絵は<b>ファイルごと削除</b>しています。
+          <b>立ち絵とお辞儀で足の位置がずれない</b>ようにそろえてあります。
+        </div>
+      </div>
+    </div>
     <!-- 2026-08-30 💠結晶と交換所／完凸しても排出／アンナ(祭)／GRAND DEBUT Ver.6.0／同名の整理 -->
     <div class="nm-item" data-tag="new" data-date="2026-09-06">
       <div class="nm-date">2026<br>09.06</div>
