@@ -23,6 +23,15 @@
     seenOpp: [],          /* 過去に分析した相手編成 */
     rule: "double",       /* double / single */
     period: "30d",        /* 7d / 30d / all */
+    /* ★★ 2026-09-10 ご指定「ランク外のポケモンも入力できるように」。
+       使用率の表に載っていない子（環境外・新しく解禁された子・独自の型）を
+       ここに書きためて、起動のたびに DEX へ混ぜる。
+       [{ id:"cx_...", ja, en, types:[..], base:{...}, dex, custom:true }] */
+    custom: [],           /* 自分で足したポケモン */
+    /* ★★ 2026-09-10 メガシンカ（ご指定）。{ ポケモンid: メガの番号(0/1) }。
+       ★ <b>1チームに1体だけ</b>なので、中身はいつも 0〜1件。 */
+    megaMine: {},         /* 自分の編成でメガシンカさせる子 */
+    megaOpp: {},          /* 相手の編成でメガシンカすると読む子 */
   };
   let SAVE = null;
 
@@ -32,14 +41,123 @@
     try { o = JSON.parse(localStorage.getItem(KEY) || "null"); } catch (e) { o = null; }
     SAVE = Object.assign({}, DEFAULT_SAVE, o || {});
     /* 配列が壊れていても落ちないようにそろえる */
-    ["myTeams", "oppIds", "favs", "recent", "history", "seenOpp"].forEach((k) => {
+    ["myTeams", "oppIds", "favs", "recent", "history", "seenOpp", "custom"].forEach((k) => {
       if (!Array.isArray(SAVE[k])) SAVE[k] = [];
     });
+    ["megaMine", "megaOpp"].forEach((k) => {
+      if (!SAVE[k] || typeof SAVE[k] !== "object" || Array.isArray(SAVE[k])) SAVE[k] = {};
+    });
+    applyCustom();
     return SAVE;
+  }
+
+  /* ══ ★★ 2026-09-10 ランク外のポケモン ══
+     ★ DEX と BY_ID に<b>混ぜてしまう</b>のがいちばん確実。
+       検索・対面・選出・編成分析はすべて BY_ID を見ているので、
+       ここで混ぜれば全部の画面でそのまま使える。
+     ★ 使用率・勝率は<b>持っていない</b>ので 0 と 50 にしておく
+       （ランキングには出るが最下位になる＝表を汚さない）。 */
+  function normCustom(c) {
+    const types = (c.types || []).filter(Boolean).slice(0, 2);
+    const b = c.base || {};
+    const base = {
+      hp: +b.hp || 80, atk: +b.atk || 80, def: +b.def || 80,
+      spa: +b.spa || 80, spd: +b.spd || 80, spe: +b.spe || 80,
+    };
+    return {
+      id: c.id, ja: c.ja || c.en || "?", en: c.en || c.ja || "?",
+      types: types.length ? types : ["normal"],
+      base, bst: base.hp + base.atk + base.def + base.spa + base.spd + base.spe,
+      gen: c.gen || 9,
+      abilities: c.abilities || [], moves: c.moves || [], items: c.items || [],
+      roles: c.roles || [], usage: 0, win: 50, trend: 0,
+      dex: c.dex || null, form: c.form || null,
+      custom: true,
+    };
+  }
+  function applyCustom() {
+    /* 前に混ぜたぶんを一度どける（名前やタイプを直したときに古いのが残らないように） */
+    for (let i = D.DEX.length - 1; i >= 0; i--) {
+      if (D.DEX[i].custom) { delete D.BY_ID[D.DEX[i].id]; D.DEX.splice(i, 1); }
+    }
+    (SAVE.custom || []).forEach((c) => {
+      if (!c || !c.id) return;
+      const p = normCustom(c);
+      D.DEX.push(p); D.BY_ID[p.id] = p;
+    });
+  }
+  function addCustom(c) {
+    const s2 = load();
+    const id = c.id || ("cx_" + Date.now().toString(36) + Math.floor(Math.random() * 1e4).toString(36));
+    const i = s2.custom.findIndex((x) => x.id === id);
+    const rec = Object.assign({}, c, { id: id });
+    if (i >= 0) s2.custom[i] = rec; else s2.custom.push(rec);
+    applyCustom(); save();
+    return id;
+  }
+  function delCustom(id) {
+    const s2 = load();
+    const i = s2.custom.findIndex((x) => x.id === id);
+    if (i < 0) return false;
+    s2.custom.splice(i, 1);
+    /* 編成に入っていたら外す（消したのに枠に残ると分析が落ちる） */
+    s2.oppIds = s2.oppIds.filter((x) => x !== id);
+    s2.myTeams.forEach((tm) => { tm.ids = (tm.ids || []).filter((x) => x !== id); });
+    s2.favs = s2.favs.filter((x) => x !== id);
+    s2.recent = s2.recent.filter((x) => x !== id);
+    applyCustom(); save();
+    return true;
   }
   function save() {
     try { localStorage.setItem(KEY, JSON.stringify(load())); } catch (e) {}
     try { if (window.MagiCounterCloud && window.MagiCounterCloud.push) window.MagiCounterCloud.push(); } catch (e) {}
+  }
+
+  /* ══════════ ★★ 2026-09-10 メガシンカ ══════════
+     ★ ここが<b>ただ1つのすり替え口</b>。
+       相性・対面・選出・編成分析はどれも「id → ポケモンの入れもの」を通るので、
+       そこでメガの姿を返すだけで、下流の計算は<b>1行も変えずに</b>追従する。
+     ★ 返すのは<b>元の入れもののコピー</b>（Object.assign）。
+       D.BY_ID の中身そのものを書きかえると、図鑑や検索まで
+       メガの姿になってしまう（＝戻せなくなる）。 */
+  function megaFormOf(p, idx) {
+    const m = p && p.megas && p.megas[idx | 0];
+    if (!m) return p;
+    return Object.assign({}, p, {
+      ja: m.ja, en: m.en, types: m.types, base: m.base, bst: m.bst,
+      abilities: [m.abil], form: m.form,
+      megaOn: true, megaIdx: idx | 0, mega: m, basePoke: p,
+    });
+  }
+  function megaMapOf(side) {
+    const s2 = load();
+    return side === "opp" ? s2.megaOpp : side === "mine" ? s2.megaMine : null;
+  }
+  /* side を渡さなければ<b>いつもの姿</b>（図鑑・検索はこちら） */
+  function pokeOf(id, side) {
+    const p = D.BY_ID[id];
+    if (!p) return null;
+    const map = megaMapOf(side);
+    const idx = map ? map[id] : null;
+    return (idx == null) ? p : megaFormOf(p, idx);
+  }
+  function megaIdxOf(id, side) {
+    const map = megaMapOf(side);
+    const v = map ? map[id] : null;
+    return v == null ? -1 : (v | 0);
+  }
+  /* idx に -1 を渡すと解除。★ 同じ側の他のメガは<b>必ず外す</b>（1チーム1体）。 */
+  function setMega(side, id, idx) {
+    const map = megaMapOf(side);
+    if (!map) return;
+    Object.keys(map).forEach((k) => { delete map[k]; });
+    if (idx != null && idx >= 0) map[id] = idx | 0;
+    save();
+  }
+  /* いま何体がメガの候補か（画面の案内に使う） */
+  function canMega(id) {
+    const p = D.BY_ID[id];
+    return !!(p && p.megas && p.megas.length);
   }
 
   /* ══════════ 言語 ══════════ */
@@ -81,6 +199,14 @@
     if (kind === "immune" && arg === atk) return 0;
     if (kind === "half" && String(arg).split(",").indexOf(atk) >= 0) return m * 0.5;
     if (kind === "weakhalf" && m > 1) return m * 0.75;
+    /* ★★ 2026-09-10 デルタストリーム（メガレックウザ）
+       ＝ <b>ひこうタイプの弱点だけ</b>を打ち消す。
+       ひこうの倍率が 2 なら、その 2 を割って戻す（＝ひこうぶんが等倍になる）。
+       もう一方のタイプの相性はそのまま残るのが正しい。 */
+    if (kind === "delta" && defTypes.indexOf("flying") >= 0) {
+      const fly = (D.CHART[atk] && D.CHART[atk].flying) || 1;
+      if (fly > 1) m = m / fly;
+    }
     return m;
   }
   /* そのポケモンの「受け」の一覧 { type: 倍率 } */
@@ -92,9 +218,20 @@
   /* そのポケモンが持つ攻撃タイプ（技から拾う。自分のタイプも「使える見込み」として足す） */
   function offenseTypes(p) {
     const set = new Set();
+    /* ★★ 2026-09-10 スキン系（スカイスキン／フェアリースキン）は
+       <b>ノーマル技を別のタイプに変える</b>ので、攻撃範囲もそのぶん変わる。
+       メガボーマンダの「しんそく」は<b>ひこう</b>技として数えるのが正しい。 */
+    let skin = null;
+    const ab = D.ABIL[(p.abilities || [])[0]];
+    if (ab && ab.eff) {
+      const [k, arg] = ab.eff.split(":");
+      if (k === "skin") skin = arg;
+    }
+    if ((p.abilities || [])[0] === "pixilate") skin = "fairy";
     (p.moves || []).forEach((mk) => {
       const m = D.MOVES[mk];
-      if (m && m.c !== "status") set.add(m.t);
+      if (!m || m.c === "status") return;
+      set.add(skin && m.t === "normal" ? skin : m.t);
     });
     return [...set];
   }
@@ -208,8 +345,9 @@
   /* ══════════════════════════════════════════════════════════════
      ④ 編成の分析（自分の6体）
      ══════════════════════════════════════════════════════════════ */
-  function teamAnalysis(ids) {
-    const team = ids.map((id) => D.BY_ID[id]).filter(Boolean);
+  /* side に "mine" / "opp" を渡すと<b>メガの姿</b>で分析する（省略すればいつもの姿）。 */
+  function teamAnalysis(ids, side) {
+    const team = ids.map((id) => pokeOf(id, side)).filter(Boolean);
     const weak = {}, resist = {}, immune = {};
     D.TK.forEach((t) => { weak[t] = []; resist[t] = []; immune[t] = []; });
     team.forEach((p) => {
@@ -276,8 +414,8 @@
   /* ══════════════════════════════════════════════════════════════
      ⑤ 相手編成の分析
      ══════════════════════════════════════════════════════════════ */
-  function oppAnalysis(ids) {
-    const team = ids.map((id) => D.BY_ID[id]).filter(Boolean);
+  function oppAnalysis(ids, side) {
+    const team = ids.map((id) => pokeOf(id, side === undefined ? "opp" : side)).filter(Boolean);
     /* 何タイプの技が何体に刺さるか */
     const hit = D.TK.map((t) => {
       const n = team.filter((p) => effWithAbility(t, p.types, (p.abilities || [])[0]) >= 2).length;
@@ -319,8 +457,10 @@
     return out;
   }
   function evaluatePick(pickIds, oppIds, mode) {
-    const pick = pickIds.map((id) => D.BY_ID[id]).filter(Boolean);
-    const opp = oppIds.map((id) => D.BY_ID[id]).filter(Boolean);
+    /* ★★ 2026-09-10 ここで<b>メガの姿</b>にすり替える。
+       これだけで、対面・攻撃範囲・耐性・交代の対応力まで全部がメガの数字で回る。 */
+    const pick = pickIds.map((id) => pokeOf(id, "mine")).filter(Boolean);
+    const opp = oppIds.map((id) => pokeOf(id, "opp")).filter(Boolean);
     if (!pick.length || !opp.length) return null;
 
     /* A/B 対面 */
@@ -397,6 +537,10 @@
       ids: pickIds, pick, grid, score, atkScore, defScore,
       avg: Math.round(avg), winN, loseN, hitN, cover, overlap,
       uncovered, mainTypes, offense: offArr,
+      /* ★★ 2026-09-10 grid の<b>列がどの相手か</b>を持たせる。
+         これが無いと説明文で相手の名前が出せず、攻撃範囲の分母も
+         いつも 6 の決め打ちになっていた（相手が4体でも「/6」と出ていた）。 */
+      gridOpp: opp.map((p) => p.id), oppPoke: opp,
       mode: mode || "balance",
     };
   }
@@ -414,6 +558,120 @@
       all: byBalance.slice(0, 10),
     };
   }
+  /* ══════════ ★★ 2026-09-10 出す順番（ご指定）══════════
+     ★ 「どの3体か」だけでなく<b>どの順で出すか</b>まで出す。
+     ★ 考えかた
+       ・<b>先発</b>… 相手の<b>出てきやすい子</b>（使用率が高い子）に負けないこと。
+         平均だけを見ると「いちばん強い子」が先発になってしまうが、
+         先発でいちばん困るのは<b>不利対面での事故</b>なので、
+         いちばん悪い対面（worst）を重く見る。起点作り・サポートも少し加点。
+       ・<b>2番手</b>… 先発が苦手な相手を<b>受けられる</b>子。
+       ・<b>3番手</b>… 残った1体＝<b>詰めの担当</b>（そのぶん速さと火力を見る）。
+     ★ ダブル（rule="double"）では先発が2体なので、
+       「先発の2体」と「控え1体」という出しかたに変える。 */
+  function pickOrder(ev, rule) {
+    if (!ev || !ev.pick || ev.pick.length < 2) return null;
+    const dbl = (rule || load().rule) === "double";
+    const opp = ev.oppPoke || (ev.gridOpp || []).map((id) => D.BY_ID[id]).filter(Boolean);
+    if (!opp.length) return null;
+    /* 相手のうち「出てきやすい」順の重み（使用率）。合計が1になるようにそろえる。 */
+    const wsum = opp.reduce((a, p) => a + Math.max(0.5, p.usage || 0.5), 0);
+    const w = opp.map((p) => Math.max(0.5, p.usage || 0.5) / wsum);
+
+    const info = ev.pick.map((mp, mi) => {
+      const row = ev.grid[mi];
+      const weighted = row.reduce((a, m, oi) => a + m.score * w[oi], 0);
+      const worst = Math.min.apply(null, row.map((m) => m.score));
+      const wins = row.filter((m) => m.score >= 15).length;
+      const roles = mp.roles || [];
+      const leadRole = (roles.indexOf("pivot") >= 0 ? 8 : 0) + (roles.indexOf("support") >= 0 ? 6 : 0)
+        + (roles.indexOf("wall") >= 0 ? 3 : 0);
+      const closeRole = (roles.indexOf("setup") >= 0 ? 9 : 0) + (roles.indexOf("sweeper") >= 0 ? 6 : 0);
+      return {
+        mi, p: mp, row, weighted, worst, wins, leadRole, closeRole,
+        /* 先発の点：事故りにくさ（worst）を半分ぶん見る */
+        lead: weighted * 0.55 + worst * 0.45 + leadRole + Math.min(10, mp.base.spe * 0.05),
+        /* 詰めの点：速さと火力 */
+        close: weighted * 0.4 + wins * 6 + closeRole
+          + Math.min(14, mp.base.spe * 0.07) + Math.min(10, Math.max(mp.base.atk, mp.base.spa) * 0.05),
+      };
+    });
+
+    const byLead = info.slice().sort((a, b) => b.lead - a.lead);
+    const lead = byLead[0];
+    const rest = info.filter((x) => x !== lead);
+    /* 先発が苦手な相手（-15以下）を、だれがいちばん受けられるか */
+    const badIdx = [];
+    lead.row.forEach((m, oi) => { if (m.score <= -15) badIdx.push(oi); });
+    const coverOf = (x) => badIdx.length
+      ? badIdx.reduce((a, oi) => a + x.row[oi].score, 0) / badIdx.length
+      : x.weighted;
+    const second = rest.slice().sort((a, b) => (coverOf(b) - coverOf(a)) || (b.close - a.close))[0];
+    const third = rest.find((x) => x !== second) || null;
+    const order = [lead, second, third].filter(Boolean);
+
+    /* 説明 */
+    const rs = [];
+    const nmOf = (x) => pname(x.p);
+    const topOpp = opp.slice().sort((a, b) => (b.usage || 0) - (a.usage || 0))[0];
+    rs.push({
+      kind: "good",
+      ja: (dbl ? "先発は <b>" + nmOf(order[0]) + "</b>（と " + (order[1] ? nmOf(order[1]) : "") + "）"
+                : "先発は <b>" + nmOf(order[0]) + "</b>")
+          + "。相手のどの子と当たっても大きく崩れにくく、"
+          + (topOpp ? "いちばん出てきやすい <b>" + pname(topOpp) + "</b> にも" : "")
+          + (lead.row[opp.indexOf(topOpp)] && lead.row[opp.indexOf(topOpp)].score >= 0 ? "負けていません。" : "対応できます。"),
+      en: "Lead with <b>" + nmOf(order[0]) + "</b> — it has the safest worst case across their team.",
+    });
+    if (badIdx.length && order[1]) {
+      rs.push({
+        kind: "cover",
+        ja: "<b>" + nmOf(order[0]) + "</b> が苦手な <b>"
+          + badIdx.map((oi) => pname(opp[oi])).join("・") + "</b> が出てきたら、<b>"
+          + nmOf(order[1]) + "</b> に交代します。",
+        en: "If <b>" + badIdx.map((oi) => pname(opp[oi])).join(", ") + "</b> comes in, switch to <b>"
+          + nmOf(order[1]) + "</b>.",
+      });
+    } else if (order[1]) {
+      rs.push({
+        kind: "good",
+        ja: "2番手は <b>" + nmOf(order[1]) + "</b>。先発が落ちたあとの受け直しを担当します。",
+        en: "<b>" + nmOf(order[1]) + "</b> comes in second to re-stabilise.",
+      });
+    }
+    if (order[2]) {
+      rs.push({
+        kind: "good",
+        ja: "最後に <b>" + nmOf(order[2]) + "</b>。"
+          + (order[2].closeRole ? "積み・抜き役なので、" : "")
+          + "相手が削れてから出すと通しやすくなります。",
+        en: "Save <b>" + nmOf(order[2]) + "</b> for last as the win condition.",
+      });
+    }
+    if (lead.worst <= -45) {
+      rs.push({
+        kind: "warn",
+        ja: "ただし先発の <b>" + nmOf(order[0]) + "</b> は <b>"
+          + pname(opp[lead.row.findIndex((m) => m.score === lead.worst)])
+          + "</b> に非常に不利です。相手がそこから来たら<b>すぐ交代</b>してください。",
+        en: "Watch out: the lead is strongly unfavored into <b>"
+          + pname(opp[lead.row.findIndex((m) => m.score === lead.worst)]) + "</b>.",
+      });
+    }
+    return {
+      double: dbl,
+      order: order.map((x) => x.p),
+      slots: order.map((x, i) => ({
+        p: x.p,
+        label: dbl ? (i < 2 ? { ja: "先発", en: "Lead" } : { ja: "控え", en: "Back" })
+                   : (i === 0 ? { ja: "先発", en: "Lead" }
+                      : i === 1 ? { ja: "2番手", en: "2nd" } : { ja: "3番手", en: "3rd" }),
+        worst: x.worst, wins: x.wins,
+      })),
+      reasons: rs,
+    };
+  }
+
   /* 「なぜこの3体か」の説明カード */
   function pickReasons(ev) {
     if (!ev) return [];
@@ -632,7 +890,10 @@
     eff, effWithAbility, defenseTable, offenseTypes,
     matchup, RANK_TXT, bestOffense,
     counters, teamAnalysis, suggestForTeam, oppAnalysis,
-    combos3, evaluatePick, bestPicks, pickReasons,
+    combos3, evaluatePick, bestPicks, pickReasons, pickOrder,
+    addCustom, delCustom, applyCustom,
+    /* ★★ 2026-09-10 メガシンカ */
+    pokeOf, megaFormOf, megaIdxOf, setMega, canMega,
     search, ranking, partners, checkedBy,
     meta,
     newTeam, getTeam, delTeam, toggleFav, touchRecent, pushHistory,

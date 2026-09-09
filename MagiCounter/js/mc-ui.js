@@ -88,6 +88,35 @@
       ja: "※ 使用率・勝率は<b>この土台に入っているサンプル値</b>です。オンラインに戻ると自動で最新のデータを取りに行きます。",
       en: "Usage and win rates are <b>sample values bundled with the app</b>. They refresh automatically when you are back online.",
     },
+    /* ★★ 2026-09-10 ここから下は、この日に足したぶん */
+    order: { ja: "出す順番", en: "Order to bring them out" },
+    orderNote: {
+      ja: "先発は<b>事故りにくい子</b>、最後は<b>詰めの子</b>という並びです。相手の並びが変わると順番も変わります。",
+      en: "Lead with the safest matchup, finish with the win condition. The order changes with their team.",
+    },
+    custom: { ja: "ランク外のポケモン", en: "Off-list Pokémon" },
+    customAdd: { ja: "＋ ランク外のポケモンを入れる", en: "+ Add an off-list Pokémon" },
+    customNote: {
+      ja: "使用率の表に載っていない子も、<b>名前とタイプ</b>を入れれば相性・選出の分析にそのまま使えます。"
+        + "種族値はわかる範囲で。空欄のままでも動きます（80であつかいます）。",
+      en: "Not on the usage list? Enter a name and its types and it will work everywhere. Base stats are optional (80 is used).",
+    },
+    customName: { ja: "名前", en: "Name" },
+    customTypes: { ja: "タイプ（1つか2つ）", en: "Types (one or two)" },
+    customBase: { ja: "種族値（わかれば）", en: "Base stats (optional)" },
+    customDex: { ja: "図鑑番号（絵を出したいとき）", en: "Dex number (for the artwork)" },
+    customSave: { ja: "この内容で登録", en: "Save" },
+    customList: { ja: "登録したポケモン", en: "Your entries" },
+    customNeed: { ja: "名前とタイプを1つ以上入れてください。", en: "Enter a name and at least one type." },
+    scan: { ja: "カメラで読み取る", en: "Scan with the camera" },
+    mega: { ja: "メガシンカ", en: "Mega Evolution" },
+    megaOff: { ja: "メガシンカしない", en: "No Mega" },
+    megaHint: {
+      ja: "<b>M</b> が付いている子はメガシンカできます。押すと<b>メガの姿で</b>相性・選出を計算します（<b>1チーム1体</b>まで）。",
+      en: "Pokémon marked <b>M</b> can Mega Evolve. Tap it to run the analysis in its Mega form (one per team).",
+    },
+    megaChange: { ja: "メガシンカで変わるところ", en: "What Mega Evolution changes" },
+    megaNone: { ja: "この子はメガシンカできません。", en: "This Pokémon cannot Mega Evolve." },
     sortBy: { ja: "並び替え", en: "Sort" },
     filters: { ja: "絞りこみ", en: "Filters" },
     clear: { ja: "解除", en: "Clear" },
@@ -126,6 +155,23 @@
       + (g ? '<svg viewBox="0 0 24 24" width="' + sz + '" height="' + sz + '" fill="#fff" aria-hidden="true">'
              + g + "</svg>" : "")
       + "<i>" + esc(C.tname(k)) + "</i></span>";
+  }
+  /* ══ ★★ 2026-09-10 せまい枠（編成の6マス）用の札 ══
+     ★ ご報告「タイプが枠からはみ出して表示されていることがあります」の直し。
+       6マスは <b>aspect-ratio:1/1 の正方形＋overflow:hidden</b> なので、
+       「ゴースト」「フェアリー」のように長い名前が2つ並ぶと必ず外へ出ていた。
+       名前を消すのではなく<b>記号だけの丸</b>にして、名前は吹き出し（title）に残す。 */
+  function typeDot(k) {
+    const g = (window.MC_ICON ? MC_ICON.typeGlyph(k) : "");
+    return '<span class="tt ico" style="background:' + C.tcolor(k) + '" title="' + esc(C.tname(k)) + '">'
+      + (g ? '<svg viewBox="0 0 24 24" width="12" height="12" fill="#fff" aria-hidden="true">' + g + "</svg>"
+           : "<i>" + esc(C.tname(k).slice(0, 1)) + "</i>") + "</span>";
+  }
+  /* 札を並べる行。<b>必ず折り返す</b>ので、どんな幅でも枠から出ない。 */
+  function typeRow(types, mode) {
+    if (mode === "dot") return '<div class="ttrow dot">' + types.map(typeDot).join("") + "</div>";
+    return '<div class="ttrow' + (mode === "big" ? " big" : "") + '">'
+      + types.map((x) => typePill(x, mode === "big")).join("") + "</div>";
   }
   /* ══ ポケモンの絵 ══
      ★★ 2026-09-08 ご指定により<b>本物の絵</b>を出す。
@@ -371,7 +417,7 @@
     const list = C.counters(p.id, null, 15);
     h += '<div class="card"><div class="dhead">' + avatar(p, "lg")
       + '<div><div class="nm">' + esc(C.pname(p)) + "</div>"
-      + '<div style="display:flex;gap:5px;margin-top:4px">' + p.types.map((x) => typePill(x, true)).join("") + "</div></div></div>"
+      + typeRow(p.types, "big") + "</div></div>"
       + '<div class="note">' + esc(t("usage")) + " <b>" + p.usage.toFixed(1) + "%</b>　"
       + esc(t("win")) + " <b>" + p.win.toFixed(1) + "%</b>　" + trendTx(p.trend) + "</div></div>";
     h += '<div class="h">' + hIc('counter') + '' + esc(t("howToBeat")) + "</div>";
@@ -389,19 +435,37 @@
 
   /* ── 3体選出シミュレーター ── */
   function slotGrid(ids, which) {
+    /* ★★ 2026-09-10 「メガシンカも考慮できる？」への答え。
+       ★ 枠の中の <b>M</b> を押すと、その子を<b>メガの姿</b>で計算する。
+         2種類あるリザードン・ミュウツーは押すたびに X → Y → もどす と回る。
+       ★ メガは<b>1チーム1体</b>なので、setMega が同じ側の他のメガを外す。
+       ★ 姿がメガのときは<b>名前もタイプも絵もメガのもの</b>を出す
+         （C.pokeOf が入れものごとすり替えてくれる）。 */
+    const side = which === "opp" ? "opp" : "mine";
     let h = '<div class="slots6">';
     for (let i = 0; i < 6; i++) {
-      const p = D.BY_ID[ids[i]];
+      const id = ids[i];
+      const p = id ? C.pokeOf(id, side) : null;
       if (p) {
-        h += '<div class="slot has"><button class="rm" onclick="event.stopPropagation();MCUI.slotDel(\'' + which + '\',' + i + ')">✕</button>'
-          + '<div class="inner" onclick="MCUI.openPoke(\'' + p.id + '\')">' + avatar(p, "sm")
+        const can = C.canMega(id);
+        const on = C.megaIdxOf(id, side) >= 0;
+        h += '<div class="slot has' + (on ? " mega" : "") + '">'
+          + '<button class="rm" onclick="event.stopPropagation();MCUI.slotDel(\'' + which + '\',' + i + ')">✕</button>'
+          + (can ? '<button class="mg' + (on ? " on" : "") + '" title="' + esc(t("mega"))
+              + '" onclick="event.stopPropagation();MCUI.megaCycle(\'' + side + '\',\'' + id + '\')">M</button>' : "")
+          + '<div class="inner" onclick="MCUI.openPoke(\'' + id + '\')">' + avatar(p, "sm")
           + '<div class="nm">' + esc(C.pname(p)) + "</div>"
-          + '<div style="display:flex;gap:2px">' + p.types.map((x) => typePill(x)).join("") + "</div></div></div>";
+          + typeRow(p.types, "dot") + "</div></div>";
       } else {
         h += '<div class="slot" onclick="MCUI.slotAdd(\'' + which + '\')"><span class="plus">＋</span></div>';
       }
     }
-    return h + "</div>";
+    h += "</div>";
+    /* メガにできる子がいる枠にだけ、短い案内を出す */
+    if (ids.filter(Boolean).some(C.canMega)) {
+      h += '<div class="note megahint">' + C.L(T.megaHint) + "</div>";
+    }
+    return h;
   }
   function simBody() {
     const s = C.load();
@@ -412,7 +476,12 @@
       + slotGrid(mine, "mine") + "</div>"
       + '<div class="card"><div class="h" style="margin:0 0 8px">' + hIc('opp') + '' + esc(t("oppTeam"))
       + '<span class="more" onclick="MCUI.clearOpp()">' + esc(t("resetAll")) + "</span></div>"
-      + slotGrid(opp, "opp") + "</div>"
+      + slotGrid(opp, "opp")
+      /* ★★ 2026-09-10 ご指定「相手の6体をカメラで読み取る」。
+         6つ手で入れるのがいちばん面倒なので、<b>相手の枠のすぐ下</b>に置く。 */
+      + '<button class="btn" style="margin-top:9px" onclick="MCUI.openScan()">'
+      + icon("search", 15) + " " + esc(t("scan")) + "</button>"
+      + "</div>"
       + '<button class="btn pri" onclick="MCUI.runSim()">' + icon("bolt", 16) + " " + esc(t("run")) + "</button>";
     if (!mine.filter(Boolean).length || !opp.filter(Boolean).length) {
       h += '<div class="empty">' + icon("info",30) + ''
@@ -454,7 +523,7 @@
       + '<div class="pick3">' + ev.pick.map((p) =>
           '<div class="p3" onclick="MCUI.openPoke(\'' + p.id + '\')">' + avatar(p)
           + '<div class="nm">' + esc(C.pname(p)) + "</div>"
-          + '<div style="display:flex;gap:2px;justify-content:center;margin-top:3px">' + p.types.map((x) => typePill(x)).join("") + "</div></div>").join("")
+          + typeRow(p.types) + "</div>").join("")
       + "</div>"
       + '<div style="display:flex;gap:10px;margin-top:9px;font-size:11px;color:var(--sub);font-weight:800">'
       + '<span>' + (C.lang() === "en" ? "Favored" : "有利") + ' <b style="color:var(--ok)">' + ev.winN + "</b></span>"
@@ -465,8 +534,30 @@
           '<div class="reason ' + (r.kind === "warn" ? "warn" : r.kind === "cover" ? "cover" : "") + '">'
           + '<span class="ri">' + (r.kind === "warn" ? "!" : r.kind === "cover" ? "↔" : "✓") + "</span>"
           + "<span>" + C.L(r) + "</span></div>").join("")
+      /* ★★ 2026-09-10 ご指定「選出したキャラで出す順番も教えて」 */
+      + orderBlock(ev)
       + "</div>";
   }
+  /* ══ ★★ 2026-09-10 出す順番 ══
+     ★ 3体をえらんだあと、いちばん迷うのが<b>どれから出すか</b>。
+       中身の決めかたは mc-core の pickOrder（先発は事故りにくさ・最後は詰め）。 */
+  function orderBlock(ev) {
+    const o = C.pickOrder(ev);
+    if (!o) return "";
+    return '<div class="ordwrap"><div class="ordh">' + icon("bolt", 14) + " " + esc(t("order")) + "</div>"
+      + '<div class="ord">' + o.slots.map((sl, i) =>
+          (i ? '<span class="ordar">›</span>' : "")
+          + '<div class="ordi" onclick="MCUI.openPoke(\'' + sl.p.id + '\')">'
+          + '<span class="ordn">' + C.L(sl.label) + "</span>"
+          + avatar(sl.p, "sm")
+          + '<span class="ordnm">' + esc(C.pname(sl.p)) + "</span></div>").join("") + "</div>"
+      + o.reasons.map((r) =>
+          '<div class="reason ' + (r.kind === "warn" ? "warn" : r.kind === "cover" ? "cover" : "") + '">'
+          + '<span class="ri">' + (r.kind === "warn" ? "!" : r.kind === "cover" ? "↔" : "✓") + "</span>"
+          + "<span>" + C.L(r) + "</span></div>").join("")
+      + '<div class="note" style="margin-top:6px">' + C.L(T.orderNote) + "</div></div>";
+  }
+
   function gridCard(ev, oppIds) {
     const opp = oppIds.map((i) => D.BY_ID[i]).filter(Boolean);
     let h = '<div class="h">' + hIc('duel') + ''
@@ -603,7 +694,7 @@
     if (!ids.length) return void ($("#sc-team").innerHTML = h + '<div class="empty">' + icon("info",30) + ''
       + (C.lang() === "en" ? "Add up to 6 Pokémon to analyze this team." : "6体まで入れると、チーム全体の分析が出ます。") + "</div>");
 
-    const a = C.teamAnalysis(ids);
+    const a = C.teamAnalysis(ids, "mine");     /* ★ メガの姿で分析する */
     /* 弱点・耐性の一覧 */
     h += '<div class="h">' + hIc('counter') + '' + esc(t("balance")) + '</div><div class="card">'
       + '<div class="chartwrap"><table class="chart" style="min-width:0;width:100%"><tr>'
@@ -708,7 +799,7 @@
       + '<div style="min-width:0"><div class="no">No.' + (D.DEX.indexOf(p) + 1) + " ／ "
       + (C.lang() === "en" ? "Gen " + p.gen : "第" + p.gen + "世代") + "</div>"
       + '<div class="nm">' + esc(C.pname(p)) + "</div>"
-      + '<div style="display:flex;gap:5px;margin-top:5px">' + p.types.map((x) => typePill(x, true)).join("") + "</div></div>"
+      + typeRow(p.types, "big") + "</div>"
       + '<button class="tbtn ' + (s.favs.indexOf(id) >= 0 ? "on" : "") + '" style="margin-left:auto" onclick="MCUI.fav(\'' + id + '\')">⭐</button></div>';
 
     h += '<div class="card"><div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;text-align:center">'
@@ -727,6 +818,58 @@
 
     h += '<div class="btnrow"><button class="btn sm pri" onclick="MCUI.addToMine(\'' + id + '\')">＋ ' + esc(t("addMine")) + "</button>"
       + '<button class="btn sm" onclick="MCUI.addToOpp(\'' + id + '\')">＋ ' + esc(t("addOpp")) + "</button></div>";
+
+    /* ══ ★★ 2026-09-10 メガシンカ（ご指定）══
+       ★ 大事なのは<b>タイプがどう変わるか</b>。
+         ギャラドスは みず/ひこう（でんき4倍）→ みず/あく（でんき<b>無効</b>）と
+         読みが丸ごとひっくり返るので、<b>弱点の増減を名指しで</b>出す。 */
+    if (p.megas && p.megas.length) {
+      h += '<div class="h">' + hIc('star') + "" + esc(t("mega")) + "</div>"
+        + p.megas.map((m) => {
+            const mp = C.megaFormOf(p, p.megas.indexOf(m));
+            const before = C.defenseTable(p, (p.abilities || [])[0]);
+            const after = C.defenseTable(mp, m.abil);
+            const gone = D.TK.filter((k) => before[k] > 1 && after[k] <= 1);
+            const born = D.TK.filter((k) => before[k] <= 1 && after[k] > 1);
+            /* ★ 4倍 → 2倍 のように<b>弱点は残るがやわらぐ</b>ぶん。
+               ギャラドスの でんき4倍→2倍 はいちばん大事な変化なので、消さずに出す。 */
+            const easy = D.TK.filter((k) => before[k] > 1 && after[k] > 1 && after[k] < before[k]);
+            const dSt = ["hp", "atk", "def", "spa", "spd", "spe"]
+              .map((k) => ({ k: k, d: m.base[k] - p.base[k] }))
+              .filter((x) => x.d !== 0).sort((a, b) => Math.abs(b.d) - Math.abs(a.d)).slice(0, 3);
+            const SNM = { hp: "HP", atk: C.lang() === "en" ? "Atk" : "こうげき", def: C.lang() === "en" ? "Def" : "ぼうぎょ",
+                          spa: C.lang() === "en" ? "Sp.Atk" : "とくこう", spd: C.lang() === "en" ? "Sp.Def" : "とくぼう",
+                          spe: C.lang() === "en" ? "Speed" : "すばやさ" };
+            return '<div class="card"><div class="dhead" style="margin-bottom:8px">' + avatar(mp, "sm")
+              + '<div style="min-width:0;flex:1"><div class="pnm">' + esc(C.pname(mp)) + "</div>"
+              + typeRow(mp.types) + "</div>"
+              + '<div class="prank"><b>' + m.bst + "</b><i>" + (C.lang() === "en" ? "Total" : "合計")
+              + " " + (m.bst - p.bst > 0 ? "+" : "") + (m.bst - p.bst) + "</i></div></div>"
+              + '<div class="note" style="margin-bottom:6px"><b>' + esc(C.aname(m.abil)) + "</b>"
+              + (D.ABIL[m.abil] ? " … " + C.L(D.ABIL[m.abil].d) : "") + "</div>"
+              + '<div class="note"><b>' + esc(t("megaChange")) + "</b></div>"
+              + '<div class="megadiff">'
+              + dSt.map((x) => '<span class="chip plain">' + esc(SNM[x.k]) + " "
+                  + (x.d > 0 ? '<em class="up">+' : '<em class="dn">') + x.d + "</em></span>").join("")
+              + "</div>"
+              + (gone.length ? '<div class="reason"><span class="ri">✓</span><span>'
+                  + (C.lang() === "en" ? "No longer weak to " : "弱点でなくなる：")
+                  + "<b>" + gone.map((k) => esc(C.tname(k))).join("・") + "</b>"
+                  + (after[gone[0]] === 0 ? (C.lang() === "en" ? " (immune)" : "（無効になります）") : "")
+                  + "</span></div>" : "")
+              + (easy.length ? '<div class="reason"><span class="ri">✓</span><span>'
+                  + (C.lang() === "en" ? "Weakness eased: " : "弱点がやわらぐ：")
+                  + easy.map((k) => "<b>" + esc(C.tname(k)) + "</b>（" + multTx(before[k]) + " → " + multTx(after[k]) + "）").join("・")
+                  + "</span></div>" : "")
+              + (born.length ? '<div class="reason warn"><span class="ri">!</span><span>'
+                  + (C.lang() === "en" ? "New weakness: " : "新しく弱点になる：")
+                  + "<b>" + born.map((k) => esc(C.tname(k))).join("・") + "</b></span></div>" : "")
+              + (!gone.length && !born.length && !easy.length ? '<div class="note">'
+                  + (C.lang() === "en" ? "Type matchups do not change." : "タイプ相性は変わりません（数字だけが伸びます）。") + "</div>" : "")
+              + "</div>";
+          }).join("")
+        + '<div class="card tight"><div class="note">' + C.L(T.megaHint) + "</div></div>";
+    }
 
     h += '<div class="h">' + hIc('counter') + '' + esc(t("defTable")) + '</div><div class="card">'
       + [[4, t("weakTo")], [2, t("weakTo")], [0.5, t("resistTo")], [0.25, t("resistTo")], [0, t("immuneTo")]]
@@ -840,12 +983,75 @@
     const list = C.search({ text: pickText, sort: "usage" }).slice(0, 60);
     openModal('<div class="searchbar" style="margin:4px 0 10px"><span class="si">' + icon("search", 18) + '</span>'
       + '<input id="pkText" placeholder="' + esc(t("searchPh")) + '" value="' + esc(pickText) + '" oninput="MCUI.pickText(this.value)"></div>'
-      + '<div class="card">' + list.map((p) =>
+      + '<div class="card">' + (list.length ? list.map((p) =>
           '<div class="prow" onclick="MCUI.pickDone(\'' + p.id + '\')">' + avatar(p)
-          + '<div style="min-width:0;flex:1"><div class="pnm">' + esc(C.pname(p)) + "</div>"
-          + '<div class="pmeta">' + p.types.map((x) => typePill(x)).join("") + "</div></div>"
-          + usageRight(p) + "</div>").join("") + "</div>");
+          + '<div style="min-width:0;flex:1"><div class="pnm">' + esc(C.pname(p))
+          + (p.custom ? ' <span class="cxbadge">' + (C.lang() === "en" ? "OFF-LIST" : "ランク外") + "</span>" : "")
+          + "</div>" + typeRow(p.types) + "</div>"
+          + (p.custom ? "" : usageRight(p)) + "</div>").join("")
+        : '<div class="empty">' + icon("info", 26) + ""
+          + (C.lang() === "en" ? "No Pokémon matches." : "見つかりませんでした。") + "</div>") + "</div>"
+      /* ★★ 2026-09-10 ご指定「ランク外のポケモンも入力できるように」。
+         さがして出てこなかったときにこそ要るので、<b>一覧のすぐ下</b>に置く。 */
+      + '<button class="btn" onclick="MCUI.openCustom(\'\')">' + esc(t("customAdd")) + "</button>");
     const e = $("#pkText"); if (e) { e.focus(); try { e.setSelectionRange(e.value.length, e.value.length); } catch (x) {} }
+  }
+
+  /* ══ ★★ 2026-09-10 ランク外のポケモンの登録 ══
+     ★ 相性・選出の分析に要るのは<b>タイプ</b>だけ。種族値は無くても動く（80であつかう）。
+       だからここは「名前とタイプ」を主役にして、種族値は<b>あとから足せるおまけ</b>にしてある。
+     ★ 中身は mc-core の addCustom が DEX に混ぜるので、
+       検索・対面・編成分析など<b>すべての画面でそのまま使える</b>。 */
+  let cxDraft = null;
+  function openCustom(id) {
+    const s2 = C.load();
+    const rec = id ? s2.custom.find((x) => x.id === id) : null;
+    cxDraft = rec ? JSON.parse(JSON.stringify(rec))
+      : { ja: pickText || "", en: "", types: [], base: {}, dex: null };
+    if (!Array.isArray(cxDraft.types)) cxDraft.types = [];
+    if (!cxDraft.base) cxDraft.base = {};
+    drawCustom();
+  }
+  function drawCustom() {
+    const d = cxDraft, en = C.lang() === "en";
+    const num = (k, lab) => '<label class="cxnum"><i>' + lab + "</i>"
+      + '<input type="number" inputmode="numeric" min="1" max="255" value="'
+      + (d.base[k] == null ? "" : d.base[k]) + '" oninput="MCUI.cxBase(\'' + k + '\',this.value)"></label>';
+    openModal('<div class="h" style="margin-top:4px">' + hIc('team') + "" + esc(t("custom")) + "</div>"
+      + '<div class="card"><div class="note">' + C.L(T.customNote) + "</div></div>"
+      + '<div class="card">'
+      + '<div class="cxlab">' + esc(t("customName")) + "</div>"
+      + '<input class="cxin" id="cxNm" value="' + esc(d.ja || "") + '" placeholder="'
+      + (en ? "e.g. Ogerpon (Hearthflame)" : "例：オーガポン（かまど）") + '" oninput="MCUI.cxSet(\'ja\',this.value)">'
+      + '<div class="cxlab">' + esc(t("customTypes")) + "</div>"
+      + '<div class="chips">' + D.TYPES.map((ty) =>
+          '<button class="chip' + (d.types.indexOf(ty.k) >= 0 ? " on" : "") + '"'
+          + (d.types.indexOf(ty.k) >= 0 ? ' style="background:' + ty.c + ';border-color:transparent;color:#fff"' : "")
+          + ' onclick="MCUI.cxType(\'' + ty.k + '\')">' + esc(C.tname(ty.k)) + "</button>").join("") + "</div>"
+      + '<div class="cxlab">' + esc(t("customBase")) + "</div>"
+      + '<div class="cxnums">' + num("hp", "HP") + num("atk", en ? "Atk" : "こうげき") + num("def", en ? "Def" : "ぼうぎょ")
+      + num("spa", en ? "SpA" : "とくこう") + num("spd", en ? "SpD" : "とくぼう") + num("spe", en ? "Spe" : "すばやさ") + "</div>"
+      + '<div class="cxlab">' + esc(t("customDex")) + "</div>"
+      + '<input class="cxin" type="number" inputmode="numeric" value="' + (d.dex == null ? "" : d.dex)
+      + '" placeholder="1025" oninput="MCUI.cxSet(\'dex\',this.value)">'
+      + '<button class="btn pri" style="margin-top:12px" onclick="MCUI.cxSave()">' + esc(t("customSave")) + "</button>"
+      + "</div>"
+      + (s2CustomList()));
+  }
+  function s2CustomList() {
+    const list = C.load().custom || [];
+    if (!list.length) return "";
+    return '<div class="h">' + hIc('info') + "" + esc(t("customList")) + "</div>"
+      + '<div class="card">' + list.map((c) => {
+          const p = D.BY_ID[c.id];
+          return '<div class="prow">' + (p ? avatar(p) : "")
+            + '<div style="min-width:0;flex:1"><div class="pnm">' + esc(c.ja || c.en || "?") + "</div>"
+            + (p ? typeRow(p.types) : "") + "</div>"
+            + '<button class="btn sm ghost" onclick="MCUI.openCustom(\'' + c.id + '\')">'
+            + (C.lang() === "en" ? "Edit" : "編集") + "</button>"
+            + '<button class="btn sm ng" onclick="MCUI.cxDel(\'' + c.id + '\')">'
+            + esc(t("del")) + "</button></div>";
+        }).join("") + "</div>";
   }
 
   /* ── 人気編成の一覧・詳細 ── */
@@ -856,7 +1062,7 @@
   function openTeam(id) {
     const tm = D.TEAMS.find((x) => x.id === id); if (!tm) return;
     const ids = tm.ids.filter((i) => D.BY_ID[i]);
-    const a = C.teamAnalysis(ids);
+    const a = C.teamAnalysis(ids);            /* ★ 人気の編成は「いつもの姿」で見る */
     openModal('<div class="h" style="margin-top:4px">' + hIc('team') + '' + esc(C.L({ ja: tm.ja, en: tm.en })) + "</div>"
       + '<div class="card"><div style="display:flex;gap:14px;margin-bottom:9px">'
       + kpi(t("usage"), tm.usage.toFixed(1) + "%") + kpi(t("win"), tm.win.toFixed(1) + "%") + "</div>"
@@ -917,6 +1123,56 @@
     pickText(v) { pickText = v; drawPick(); },
     pickDone(id) { const cb = pickCb; closeModal(); if (cb) cb(id); },
     slotAdd(which) { slotWhich = which; pickPoke((id) => API.slotSet(which, id)); },
+    /* ── ランク外のポケモン ── */
+    openCustom, cxSet(k, v) { cxDraft[k] = (k === "dex" ? (parseInt(v, 10) || null) : v); },
+    cxBase(k, v) { cxDraft.base[k] = v === "" ? null : Math.max(1, Math.min(255, parseInt(v, 10) || 0)); },
+    cxType(k) {
+      const a = cxDraft.types, i = a.indexOf(k);
+      if (i >= 0) a.splice(i, 1);
+      else { if (a.length >= 2) a.shift(); a.push(k); }
+      drawCustom();
+    },
+    cxSave() {
+      const d = cxDraft;
+      if (!(d.ja || d.en) || !d.types.length) return toast(C.L(T.customNeed));
+      const base = {};
+      ["hp", "atk", "def", "spa", "spd", "spe"].forEach((k) => { if (d.base[k]) base[k] = d.base[k]; });
+      const id = C.addCustom({ id: d.id, ja: d.ja, en: d.en || d.ja, types: d.types, base: base, dex: d.dex });
+      closeModal();
+      toast(C.lang() === "en" ? "Saved" : "登録しました");
+      /* 枠から呼ばれていたら、そのまま入れてあげる */
+      const cb = pickCb; pickCb = null;
+      if (cb) cb(id); else render(cur);
+    },
+    cxDel(id) {
+      if (!confirm(C.lang() === "en" ? "Delete this entry?" : "この登録を消しますか？")) return;
+      C.delCustom(id); drawCustom(); render(cur);
+    },
+    /* ── ★★ 2026-09-10 メガシンカ ── */
+    /* 押すたびに メガ1 → メガ2 → もどす と回る（2種類ある子だけ2段になる） */
+    megaCycle(side, id) {
+      const p = D.BY_ID[id]; if (!p || !p.megas) return;
+      const now = C.megaIdxOf(id, side);
+      const next = now + 1 >= p.megas.length ? -1 : now + 1;
+      C.setMega(side, id, next);
+      render(cur);                                   /* いま開いている画面を描き直す */
+      toast(next < 0 ? C.L(T.megaOff) : C.pname(C.pokeOf(id, side)));
+    },
+    megaSet(side, id, idx) { C.setMega(side, id, idx); render(cur); },
+    /* ── カメラ読み取り ── */
+    openScan() {
+      if (!window.MCScan) return toast(C.lang() === "en" ? "Camera is unavailable." : "カメラが使えません。");
+      MCScan.open((ids) => {
+        const s3 = C.load();
+        s3.oppIds = ids.slice(0, 6);
+        C.save(); render(cur);
+        toast(C.lang() === "en" ? "Filled the opponent's team" : "相手の編成に入れました");
+      });
+    },
+    _openModal: openModal, _closeModal: closeModal, _avatar: avatar, _typeRow: typeRow, _toast: toast,
+    _hIc: hIc, _icon: icon,
+    /* ★ カメラ読み取りから「手で選ぶ」ときに使う（候補に無かった子を探す入口） */
+    _pickInto(fn) { pickPoke(fn); },
     slotSet(which, id) {
       const s = C.load();
       if (which === "opp") { if (s.oppIds.length < 6 && s.oppIds.indexOf(id) < 0) s.oppIds.push(id); }

@@ -220,6 +220,24 @@
     stalwart:     { ja: "ばんけん", en: "Stalwart", d: { ja: "技の向きが変えられない", en: "Ignores redirection" } },
     stamina:      { ja: "スタミナ", en: "Stamina", d: { ja: "技を受けると防御が上がる", en: "Raises Defense when hit" } },
     solarpower:   { ja: "さんぷわー", en: "Solar Power", d: { ja: "晴れで特攻が上がる（HPが減る）", en: "Boosts Sp.Atk in sun (loses HP)" } },
+    /* ══ ★★ 2026-09-10 メガシンカ・ゲンシカイキの特性 ══
+       ★ eff が付いているものだけが<b>相性の計算に効く</b>。
+         それ以外は説明だけ（画面には出るが、点数は動かない）。 */
+    toughclaws:   { ja: "かたいツメ", en: "Tough Claws", d: { ja: "接触する技の威力が上がる", en: "Powers up contact moves" } },
+    shadowtag:    { ja: "かげふみ", en: "Shadow Tag", d: { ja: "相手を逃がさない（交代できない）", en: "The foe cannot switch out" } },
+    steadfast:    { ja: "ふくつのこころ", en: "Steadfast", d: { ja: "ひるむと素早さが上がる", en: "Raises Speed when it flinches" } },
+    insomnia:     { ja: "ふみん", en: "Insomnia", d: { ja: "ねむりにならない", en: "Prevents sleep" } },
+    adaptability: { ja: "てきおうりょく", en: "Adaptability", d: { ja: "自分と同じタイプの技がさらに強くなる", en: "Powers up same-type moves further" } },
+    sandforce:    { ja: "すなのちから", en: "Sand Force", d: { ja: "砂嵐で いわ・じめん・はがね の技が強くなる", en: "Boosts Rock/Ground/Steel in a sandstorm" } },
+    aerilate:     { ja: "スカイスキン", en: "Aerilate", eff: "skin:flying", d: { ja: "ノーマル技が<b>ひこう</b>になり、威力も上がる", en: "Normal moves become Flying and are boosted" } },
+    /* ★ ゲンシカイキの天候は<b>ほのお／みずを完全に無効</b>にする。相性の計算に効く。 */
+    primordialsea: { ja: "はじまりのうみ", en: "Primordial Sea", eff: "immune:fire",
+      d: { ja: "大雨で<b>ほのお技が発動しない</b>（無効）", en: "Heavy rain — Fire moves fail" } },
+    desolateland: { ja: "おわりのだいち", en: "Desolate Land", eff: "immune:water",
+      d: { ja: "大日照りで<b>みず技が発動しない</b>（無効）", en: "Harsh sun — Water moves fail" } },
+    /* ★ デルタストリームは「ひこうの弱点を打ち消す」。専用のあつかいが要るので eff は delta。 */
+    deltastream:  { ja: "デルタストリーム", en: "Delta Stream", eff: "delta",
+      d: { ja: "乱気流で<b>ひこうタイプの弱点が無くなる</b>", en: "Strong winds remove Flying's weaknesses" } },
   };
 
   /* ══════════ ⑤ 技 ══════════
@@ -557,6 +575,56 @@
     ursalunabm: 10272, goodrahisui: 10244, palafin: 10258, indeedeef: 10101,
   };
   DEX.forEach((p) => { p.dex = DEXNO[p.id] || 0; p.form = FORMNO[p.id] || 0; });
+
+  /* ══════════ ⑬ メガシンカ・ゲンシカイキ（★★ 2026-09-10 ご指定）══════════
+     ★ <b>公式のものだけ</b>を入れてあります。
+       （PokeAPI には非公式の「〜-mega」も混じっていますが、それは入れていません）
+     ★ 数字（タイプ・種族値・特性）は PokeAPI から取った<b>本物</b>です。
+     ★ ここに<b>タイプが変わる子</b>が多いのが大事なところ。たとえば
+         ギャラドス … みず／ひこう（でんき4倍）→ <b>みず／あく（でんき無効）</b>
+         リザードン … ほのお／ひこう（いわ4倍）→ X は <b>ほのお／ドラゴン</b>
+       ので、メガを考えずに相性を出すと<b>読みが丸ごとひっくり返ります</b>。
+     ★ 1チームに<b>1体だけ</b>。その決まりは mc-core.js の setMega が守ります。
+     形： [ 日本語名, English, タイプ1, タイプ2, HP, こうげき, ぼうぎょ, とくこう, とくぼう, すばやさ, 特性, フォルム番号 ] */
+  const MEGA_RAW = {
+    charizard: [
+      ["メガリザードンX", "Mega Charizard X", "fire", "dragon", 78, 130, 111, 130, 85, 100, "toughclaws", 10034],
+      ["メガリザードンY", "Mega Charizard Y", "fire", "flying", 78, 104, 78, 159, 115, 100, "drought", 10035],
+    ],
+    gengar:     [["メガゲンガー", "Mega Gengar", "ghost", "poison", 60, 65, 80, 170, 95, 130, "shadowtag", 10038]],
+    gyarados:   [["メガギャラドス", "Mega Gyarados", "water", "dark", 95, 155, 109, 70, 130, 81, "moldbreaker", 10041]],
+    mewtwo: [
+      ["メガミュウツーX", "Mega Mewtwo X", "psychic", "fighting", 106, 190, 100, 154, 100, 130, "steadfast", 10043],
+      ["メガミュウツーY", "Mega Mewtwo Y", "psychic", null, 106, 150, 70, 194, 120, 140, "insomnia", 10044],
+    ],
+    scizor:     [["メガハッサム", "Mega Scizor", "bug", "steel", 70, 150, 140, 65, 100, 75, "technician", 10046]],
+    tyranitar:  [["メガバンギラス", "Mega Tyranitar", "rock", "dark", 100, 164, 150, 95, 120, 71, "sandstream", 10049]],
+    gardevoir:  [["メガサーナイト", "Mega Gardevoir", "psychic", "fairy", 68, 85, 65, 165, 135, 100, "pixilate", 10051]],
+    metagross:  [["メガメタグロス", "Mega Metagross", "steel", "psychic", 80, 145, 150, 105, 110, 110, "toughclaws", 10076]],
+    latias:     [["メガラティアス", "Mega Latias", "dragon", "psychic", 80, 100, 120, 140, 150, 110, "levitate", 10062]],
+    latios:     [["メガラティオス", "Mega Latios", "dragon", "psychic", 80, 130, 100, 160, 120, 110, "levitate", 10063]],
+    kyogre:     [["ゲンシカイオーガ", "Primal Kyogre", "water", null, 100, 150, 90, 180, 160, 90, "primordialsea", 10077]],
+    groudon:    [["ゲンシグラードン", "Primal Groudon", "ground", "fire", 100, 180, 160, 150, 90, 90, "desolateland", 10078]],
+    rayquaza:   [["メガレックウザ", "Mega Rayquaza", "dragon", "flying", 105, 180, 100, 180, 100, 115, "deltastream", 10079]],
+    salamence:  [["メガボーマンダ", "Mega Salamence", "dragon", "flying", 95, 145, 130, 120, 90, 120, "aerilate", 10089]],
+    garchomp:   [["メガガブリアス", "Mega Garchomp", "dragon", "ground", 108, 170, 115, 120, 95, 92, "sandforce", 10058]],
+    lucario:    [["メガルカリオ", "Mega Lucario", "fighting", "steel", 70, 145, 88, 140, 70, 112, "adaptability", 10059]],
+  };
+  /* ★ ここではまだ BY_ID が作られていないので、DEX から直に引く。 */
+  const _byId = {};
+  DEX.forEach((p) => { _byId[p.id] = p; });
+  Object.keys(MEGA_RAW).forEach((id) => {
+    const p = _byId[id];
+    if (!p) return;                       /* 図鑑にいない子のぶんは無視（データを増やさない） */
+    p.megas = MEGA_RAW[id].map((r) => {
+      const base = { hp: r[4], atk: r[5], def: r[6], spa: r[7], spd: r[8], spe: r[9] };
+      return {
+        ja: r[0], en: r[1], types: r[3] ? [r[2], r[3]] : [r[2]],
+        base: base, bst: r[4] + r[5] + r[6] + r[7] + r[8] + r[9],
+        abil: r[10], form: r[11],
+      };
+    });
+  });
   const BY_ID = {};
   DEX.forEach((p) => { BY_ID[p.id] = p; });
 

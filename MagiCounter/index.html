@@ -21,7 +21,7 @@ if ("serviceWorker" in navigator) {
 }
 </script>
 <script src="../xeva-safebottom.js?v=8"></script>
-<link rel="stylesheet" href="css/mc.css?v=2" />
+<link rel="stylesheet" href="css/mc.css?v=4" />
 <script src="../xeva-splash.js?v=10" data-app="MagiCounter" data-logo="../thumbs/MagiCounter.jpg"></script>
 </head>
 <body>
@@ -62,12 +62,15 @@ if ("serviceWorker" in navigator) {
      ★ 専用 Firebase は作らない（小さな JSON なのでポータルの store で十分）。 -->
 <script type="module" src="../xeva-cloud.js?v=27"></script>
 <script src="../xeva.js?v=61"></script>
-<script src="../xeva-loading.js?v=11" defer></script>
+<script src="../xeva-loading.js?v=13" defer></script>
 <!-- ★★ 2026-09-08 アイコン（自前の SVG）。mc-ui.js より<b>前</b>に読むこと。 -->
 <script src="js/mc-icons.js?v=1"></script>
-<script src="js/mc-data.js?v=2"></script>
-<script src="js/mc-core.js?v=2"></script>
-<script src="js/mc-ui.js?v=2"></script>
+<script src="js/mc-data.js?v=3"></script>
+<script src="js/mc-core.js?v=4"></script>
+<script src="js/mc-ui.js?v=4"></script>
+<!-- ★★ 2026-09-10 カメラで相手の6体を読み取る。mc-ui.js の<b>あと</b>に読む
+     （MCUI._openModal などを借りているため）。 -->
+<script src="js/mc-scan.js?v=2"></script>
 <script src="../xeva-back.js?v=8" data-mode="hook"></script>
 </body>
 </html>

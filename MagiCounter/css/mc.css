@@ -116,6 +116,19 @@ a{color:var(--pri);text-decoration:none}
   letter-spacing:.02em;white-space:nowrap;line-height:1.4}
 .tt.big{font-size:11.5px;padding:4px 11px;border-radius:8px}
 .tt.gh{background:none!important;border:1.5px solid currentColor}
+/* ══ ★★ 2026-09-10 タイプの札が枠からはみ出さないようにする ══
+   ★ ご報告の直し。原因は<b>折り返さない1行</b>に長い名前の札を2つ並べていたこと。
+     ここで「必ず折り返す・札そのものも縮む」ようにしておくと、
+     どの画面のどんな細い枠に置いても外へ出ない。 */
+.ttrow{display:flex;flex-wrap:wrap;gap:3px;justify-content:center;
+  max-width:100%;min-width:0;margin-top:3px}
+.ttrow.big{gap:5px;margin-top:4px;justify-content:flex-start}
+.ttrow.dot{gap:3px}
+.tt{max-width:100%;min-width:0}
+.tt i{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+/* 記号だけの丸（編成の6マスなど、名前を出す幅がないところ） */
+.tt.ico{width:18px;height:18px;padding:0;gap:0;border-radius:50%;flex:none}
+.tt.ico i{font-size:9px;line-height:1}
 
 /* ── 倍率の色 ── */
 .mx{display:inline-grid;place-items:center;min-width:34px;height:26px;border-radius:8px;
@@ -162,6 +175,8 @@ a{color:var(--pri);text-decoration:none}
 .p3{background:var(--card2);border:1px solid var(--line);border-radius:14px;padding:9px 6px;text-align:center;cursor:pointer}
 .p3 .pav{margin:0 auto 5px}
 .p3 .nm{font-size:11px;font-weight:900;line-height:1.2;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* ★ 3枚のカードは縦に伸びてよいので、札は折り返して名前ごと見せる */
+.p3 .ttrow{justify-content:center}
 .reason{display:flex;gap:7px;align-items:flex-start;font-size:11.5px;line-height:1.5;
   padding:7px 9px;border-radius:11px;background:var(--card2);margin-top:6px}
 .reason .ri{flex:none;width:18px;height:18px;border-radius:6px;display:grid;place-items:center;
@@ -293,3 +308,76 @@ a{color:var(--pri);text-decoration:none}
 .qa .qi{color:var(--pri)}
 /* ボタンの中のアイコン */
 .btn .mci{margin-right:2px}
+
+/* ══════ ★★ 2026-09-10 ここから下はこの日に足したぶん ══════ */
+
+/* ── 出す順番 ── */
+.ordwrap{margin-top:10px;padding-top:10px;border-top:1px dashed var(--line2)}
+.ordh{display:flex;align-items:center;gap:5px;font-weight:900;font-size:12px;color:var(--pri);
+  margin-bottom:8px;letter-spacing:.02em}
+.ordh svg{stroke:currentColor;fill:none}
+.ord{display:flex;align-items:stretch;gap:4px;margin-bottom:9px}
+.ordi{flex:1;min-width:0;background:var(--card2);border:1px solid var(--line);border-radius:13px;
+  padding:8px 4px 7px;text-align:center;cursor:pointer;display:grid;justify-items:center;gap:3px}
+.ordi .ordn{font-family:'Orbitron',sans-serif;font-size:9px;font-weight:900;letter-spacing:.10em;
+  color:#fff;background:var(--grad);border-radius:99px;padding:1px 8px}
+.ordi .ordnm{font-size:10.5px;font-weight:900;line-height:1.2;max-width:100%;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ordar{align-self:center;flex:none;color:var(--line2);font-weight:900;font-size:15px}
+
+/* ── ランク外のポケモン ── */
+.cxbadge{font-size:8.5px;font-weight:900;letter-spacing:.06em;padding:1px 6px;border-radius:99px;
+  background:var(--bg2);color:var(--sub);vertical-align:1px}
+.cxlab{font-size:11px;font-weight:900;color:var(--sub);margin:11px 0 5px;letter-spacing:.02em}
+.cxlab:first-child{margin-top:2px}
+.cxin{width:100%;min-height:42px;border:1.5px solid var(--line2);border-radius:12px;background:#fff;
+  padding:0 12px;font-weight:800;outline:0}
+.cxin:focus{border-color:var(--pri)}
+.cxnums{display:grid;grid-template-columns:repeat(3,1fr);gap:7px}
+.cxnum{display:grid;gap:3px}
+.cxnum i{font-style:normal;font-size:9.5px;font-weight:900;color:var(--sub);text-align:center}
+.cxnum input{width:100%;min-height:38px;border:1.5px solid var(--line2);border-radius:11px;background:#fff;
+  text-align:center;font-weight:900;outline:0}
+.cxnum input:focus{border-color:var(--pri)}
+
+/* ── カメラ読み取り ── */
+.scam{display:none}
+.scam.on{display:block}
+.scam video{width:100%;border-radius:14px;background:#0d1726;display:block;aspect-ratio:4/3;object-fit:cover}
+.scstage{position:relative;border-radius:14px;overflow:hidden;background:#0d1726;line-height:0}
+.scstage img{width:100%;display:block}
+.scgrid{position:absolute;display:grid;gap:0;pointer-events:none}
+.scgrid i{border:2px solid rgba(63,178,255,.95);box-shadow:0 0 0 1px rgba(6,20,40,.55) inset;
+  font-style:normal;font-family:'Orbitron',sans-serif;font-size:11px;font-weight:900;color:#fff;
+  display:grid;place-items:start;padding:2px 4px;text-shadow:0 1px 3px rgba(0,0,0,.9)}
+.sctrim{display:flex;align-items:center;gap:9px;margin:6px 0}
+.sctrim i{font-style:normal;flex:none;width:34px;font-size:11px;font-weight:900;color:var(--sub)}
+.sctrim input{flex:1;min-width:0;accent-color:var(--pri)}
+.sctrim b{flex:none;width:38px;text-align:right;font-family:'Orbitron',sans-serif;font-size:11px}
+.sccell{display:flex;gap:10px;align-items:flex-start;padding:9px 0;border-bottom:1px solid var(--line)}
+.sccell:last-child{border-bottom:0}
+.scthumb{width:56px;height:56px;flex:none;border-radius:12px;object-fit:cover;background:#0d1726;
+  border:1px solid var(--line)}
+.scpick{flex:1;min-width:0}
+.scpick .scno{font-family:'Orbitron',sans-serif;font-size:9.5px;font-weight:900;color:var(--sub);letter-spacing:.1em}
+.scpick .scnm{font-size:13px;font-weight:900;margin:1px 0 6px;overflow:hidden;
+  text-overflow:ellipsis;white-space:nowrap}
+.scpick .chip{font-size:10.5px;padding:4px 9px}
+.scpick .chip em{font-style:normal;font-family:'Orbitron',sans-serif;font-size:9px;opacity:.6;margin-left:4px}
+.scpick .chip.on em{opacity:.85}
+
+/* ── ★★ 2026-09-10 メガシンカ ── */
+/* 6マスの中の M ボタン（押すとメガの姿で計算する） */
+.slot .mg{position:absolute;top:3px;left:3px;width:20px;height:20px;border-radius:7px;border:1.5px solid var(--line2);
+  background:#fff;color:var(--sub);font-family:'Orbitron',sans-serif;font-weight:900;font-size:10px;
+  cursor:pointer;display:grid;place-items:center;z-index:2;line-height:1}
+.slot .mg.on{background:var(--grad);border-color:transparent;color:#fff;box-shadow:0 2px 8px rgba(99,102,241,.45)}
+.slot.mega{border-color:var(--pri);box-shadow:0 0 0 2px rgba(99,102,241,.18)}
+.megahint{margin-top:9px;line-height:1.7}
+.megahint b{color:var(--pri)}
+/* メガシンカで変わるところ */
+.megadiff{display:flex;flex-wrap:wrap;gap:5px;margin:5px 0 7px}
+.megadiff .chip{font-size:10.5px;padding:4px 9px}
+.megadiff em{font-style:normal;font-family:'Orbitron',sans-serif;font-weight:900;margin-left:3px}
+.megadiff em.up{color:var(--ok)}
+.megadiff em.dn{color:var(--ng)}

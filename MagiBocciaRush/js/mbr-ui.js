@@ -480,17 +480,26 @@
     if (M.cfg.competition) vis = Math.min(vis, 0.35);
     if (M.cfg.difficulty === "expert") vis *= 0.7;
     if (M.cfg.difficulty === "master") vis *= 0.45;
-    const pr = B.predict(M, { side: M.turn, jack: isJack, angle: ang, power: p, char: ch, slot });
+    /* ★★ 2026-09-10 ここに渡すのは<b>コートの角度</b>。
+       ang は<b>画面の角度</b>（下が +y）なので、そのまま渡すと予測の点線が
+       矢印の<b>上下ちょうど反対</b>へ伸びていた（ご報告「矢印の反対方向に出ている点線」）。
+       実際に投げる doThrow は toCourtAngle を通していたので、
+       <b>点線だけ</b>が本当の飛び方と食いちがっていたことになる。 */
+    const pr = B.predict(M, { side: M.turn, jack: isJack, angle: toCourtAngle(ang),
+                              power: p, char: ch, slot });
     const pts = pr.path;
     const n = Math.max(2, Math.round(pts.length * Math.max(0.12, vis)));
-    ctx.setLineDash([5, 6]); ctx.lineWidth = 2;
-    ctx.strokeStyle = "rgba(233,242,255,.55)";
+    /* ★ 矢印と<b>同じ向き</b>に重なるので、うすいと埋もれてしまう。
+       墨の線を1本下に敷いてから白で描く（コートの上でも矢印の上でも読める）。 */
     ctx.beginPath();
     for (let i = 0; i < n; i++) {
       const q = pts[i];
       if (i === 0) ctx.moveTo(sx(q.x), sy(q.y)); else ctx.lineTo(sx(q.x), sy(q.y));
     }
-    ctx.stroke(); ctx.setLineDash([]);
+    ctx.setLineDash([6, 7]); ctx.lineCap = "butt";
+    ctx.strokeStyle = "rgba(4,10,24,.55)"; ctx.lineWidth = 5; ctx.stroke();
+    ctx.strokeStyle = "rgba(255,255,255,.92)"; ctx.lineWidth = 2.4; ctx.stroke();
+    ctx.setLineDash([]);
     /* 止まる位置（見えるときだけ） */
     if (vis >= 0.9) {
       ctx.beginPath(); ctx.arc(sx(pr.stop.x), sy(pr.stop.y), r, 0, Math.PI * 2);
@@ -740,8 +749,111 @@
     M.buffs[M.turn][k] = true;
     /* 1投だけのものは、投げたら消える（次の投球で使い切る） */
     B.pushHint(M, "skill");
-    toast(L(B.SKILLS[k].nm) + " " + (lang() === "en" ? "activated" : "発動！"));
+    /* ★★ 2026-09-10 ご指定でカットインを足した（前はトーストだけ） */
+    cutIn(ch, L(B.SKILLS[k].nm), lang() === "en" ? "SKILL" : "スキル発動");
     renderMatch();
+  }
+
+  /* ══════════════════════════════════════════════════════════════
+     ⑥-b キャラクターのカットイン（ペルソナ風）
+     ──────────────────────────────────────────────────────────────
+     ★ 出すのは<b>スキルを使った瞬間</b>と、<b>使うキャラをえらんだ瞬間</b>。
+     ★ 作りは「板を3枚すべらせる」だけ。絵は1枚しか使わないので軽い。
+       ① 斜めの帯が左右から入る（型の色）
+       ② 網点の地の上にキャラ絵が左から飛びこむ
+       ③ スキル名が右から入って、白いフラッシュで消える
+     ★ <b>連打しても重ならない</b>ように、出ている箱は先に消す。
+     ★ 音は鳴らさない（設定の sound は効果音用で、ここでは触らない）。
+     ══════════════════════════════════════════════════════════════ */
+  function cutinCSS() {
+    if (document.getElementById("mbrCutCSS")) return;
+    const st = document.createElement("style");
+    st.id = "mbrCutCSS";
+    st.textContent = [
+      "#mbrCut{position:fixed;inset:0;z-index:120;pointer-events:none;overflow:hidden;",
+      "  font-family:'Orbitron','Noto Sans JP',sans-serif}",
+      /* 地（暗くする） */
+      "#mbrCut .cbg{position:absolute;inset:0;animation:mbrCbg 1.15s ease both;",
+      "  background:radial-gradient(75% 62% at 32% 52%,rgba(8,16,34,.62),rgba(3,6,14,.93))}",
+      "@keyframes mbrCbg{0%{opacity:0}14%{opacity:1}74%{opacity:1}100%{opacity:0}}",
+      /* ★ 網点は<b>専用の keyframes</b>。mbrCbg を使うと opacity:1 まで上がって、
+         .cdot{opacity:.16} が丸ごと打ち消されてしまう（アニメのほうが強い）。 */
+      "@keyframes mbrCdot{0%{opacity:0}14%{opacity:.16}74%{opacity:.16}100%{opacity:0}}",
+      /* 網点（ペルソナの地） */
+      /* ★ 網点は<b>うすく・端だけ</b>。濃いと絵より目立ってしまう。 */
+      "#mbrCut .cdot{position:absolute;inset:-14%;opacity:.16;transform:rotate(-12deg);",
+      "  background-image:radial-gradient(rgba(255,255,255,.95) 1.05px,transparent 1.5px);",
+      "  background-size:13px 13px;animation:mbrCdot 1.15s ease both;",
+      "  -webkit-mask-image:radial-gradient(62% 54% at 38% 52%,transparent 0%,#000 78%);",
+      "  mask-image:radial-gradient(62% 54% at 38% 52%,transparent 0%,#000 78%)}",
+      /* 斜めの帯（3本。太さを変えて重ねるとペルソナらしくなる） */
+      "#mbrCut .cband{position:absolute;left:-22%;width:144%;transform:skewY(-12deg);will-change:transform}",
+      "#mbrCut .cb1{top:31%;height:19vh;opacity:.92;animation:mbrCbL 1.15s cubic-bezier(.16,.92,.22,1) both}",
+      "#mbrCut .cb2{top:52.5%;height:4.2vh;animation:mbrCbR 1.15s cubic-bezier(.16,.92,.22,1) both;animation-delay:.05s}",
+      "#mbrCut .cb3{top:58.5%;height:1.1vh;opacity:.85;animation:mbrCbR 1.15s cubic-bezier(.16,.92,.22,1) both;animation-delay:.1s}",
+      "@keyframes mbrCbL{0%{transform:skewY(-12deg) translateX(-125%)}",
+      "  20%{transform:skewY(-12deg) translateX(0)}72%{transform:skewY(-12deg) translateX(0)}",
+      "  100%{transform:skewY(-12deg) translateX(126%)}}",
+      "@keyframes mbrCbR{0%{transform:skewY(-12deg) translateX(126%)}",
+      "  20%{transform:skewY(-12deg) translateX(0)}72%{transform:skewY(-12deg) translateX(0)}",
+      "  100%{transform:skewY(-12deg) translateX(-126%)}}",
+      /* キャラの額。★ 絵は正方形のサムネなので<b>斜めに切った額</b>で見せる */
+      "#mbrCut .cfr{position:absolute;left:6%;top:53%;width:min(60vw,268px);aspect-ratio:1;",
+      "  padding:5px;transform-origin:50% 50%;",
+      "  clip-path:polygon(17px 0,100% 0,calc(100% - 17px) 100%,0 100%);",
+      "  filter:drop-shadow(9px 9px 0 rgba(4,10,24,.92)) drop-shadow(0 18px 34px rgba(0,0,0,.55));",
+      "  animation:mbrCimg 1.15s cubic-bezier(.14,.94,.2,1) both}",
+      "#mbrCut .cfr img{width:100%;height:100%;object-fit:cover;display:block;",
+      "  clip-path:polygon(15px 0,100% 0,calc(100% - 15px) 100%,0 100%)}",
+      "@keyframes mbrCimg{0%{transform:translate(-58%,-50%) rotate(-7deg) scale(1.1);opacity:0}",
+      "  22%{transform:translate(0,-50%) rotate(-3.2deg) scale(1);opacity:1}",
+      "  72%{transform:translate(0,-50%) rotate(-3.2deg) scale(1);opacity:1}",
+      "  100%{transform:translate(16%,-50%) rotate(-1deg) scale(1.04);opacity:0}}",
+      /* 文字 */
+      "#mbrCut .ctx{position:absolute;right:5%;top:16%;max-width:72%;text-align:right;",
+      "  animation:mbrCtx 1.15s cubic-bezier(.14,.94,.2,1) both;animation-delay:.06s}",
+      "@keyframes mbrCtx{0%{transform:translateX(54%);opacity:0}",
+      "  24%{transform:translateX(0);opacity:1}72%{transform:translateX(0);opacity:1}",
+      "  100%{transform:translateX(-16%);opacity:0}}",
+      "#mbrCut .ctx .cnm{font-size:12px;font-weight:900;letter-spacing:.26em;color:#fff;opacity:.86}",
+      "#mbrCut .ctx .cti{font-style:italic;font-weight:900;font-size:clamp(21px,7.2vw,42px);line-height:1.04;",
+      "  color:#fff;margin-top:3px;text-shadow:4px 4px 0 rgba(4,10,24,.92),0 0 26px rgba(255,255,255,.30)}",
+      "#mbrCut .ctx .csb{margin-top:8px;font-size:11px;font-weight:900;letter-spacing:.14em;",
+      "  display:inline-block;padding:3px 13px;color:#04101f;",
+      "  clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%)}",
+      /* フラッシュ */
+      "#mbrCut .cfl{position:absolute;inset:0;background:#fff;opacity:0;animation:mbrCfl 1.15s ease both}",
+      "@keyframes mbrCfl{0%{opacity:0}17%{opacity:.5}27%{opacity:0}100%{opacity:0}}",
+      "@media (prefers-reduced-motion:reduce){#mbrCut *{animation-duration:.01s!important}}",
+    ].join("\n");
+    document.head.appendChild(st);
+  }
+  let cutTimer = 0;
+  function cutIn(ch, title, sub) {
+    if (!ch) return;
+    cutinCSS();
+    const old = document.getElementById("mbrCut");
+    if (old && old.parentNode) old.parentNode.removeChild(old);
+    clearTimeout(cutTimer);
+    const ty = B.TYPES[ch.type] || { c: "#2f8fff", ja: "" };
+    const el = document.createElement("div");
+    el.id = "mbrCut";
+    el.innerHTML = ''
+      + '<div class="cbg"></div><div class="cdot"></div>'
+      + '<div class="cband cb1" style="background:linear-gradient(96deg,' + ty.c + ' 0%,'
+      + ty.c + '33 62%,transparent 100%)"></div>'
+      + '<div class="cband cb2" style="background:linear-gradient(268deg,#ffffff,' + ty.c + ')"></div>'
+      + '<div class="cband cb3" style="background:' + ty.c + '"></div>'
+      + '<div class="cfr" style="background:linear-gradient(135deg,#ffffff,' + ty.c + ')">'
+      + '<img src="' + charImg(ch) + '" alt=""></div>'
+      + '<div class="ctx"><div class="cnm">' + esc(ch.nm) + '</div>'
+      + '<div class="cti">' + esc(title) + '</div>'
+      + '<div class="csb" style="background:' + ty.c + '">' + esc(sub || ty.ja) + '</div></div>'
+      + '<div class="cfl"></div>';
+    document.body.appendChild(el);
+    /* ★ animation の終わりに頼らない（タブが裏だと発火せず、出っぱなしになる）。
+       時間で必ず片づける——xevarion-home の演出と同じ考えかた。 */
+    cutTimer = setTimeout(() => { if (el.parentNode) el.parentNode.removeChild(el); }, 1260);
   }
 
   /* ══════════════════════════════════════════════════════════════
@@ -875,24 +987,110 @@
   /* ══════════════════════════════════════════════════════════════
      ⑩ キャラクター
      ══════════════════════════════════════════════════════════════ */
+  /* ══ 一覧のしぼりこみ・並びかえ（ご指定）══
+     ★ <b>&lt;select&gt; は使わない</b>。端末のピッカーが出てしまうと
+       英語版のときだけ日本語のまま／画面の外に出る、という不具合になる
+       （xevarion-2026-09-06c で踏んだところ）。全部<b>画面の中のボタン</b>にする。 */
+  const CFILT = { q: "", type: "", rarity: "", sort: "no", desc: false, owned: true };
+  const SORTS = [
+    { k: "no",   ja: "図鑑順",   en: "No." },
+    { k: "name", ja: "名前",     en: "Name" },
+    { k: "sum",  ja: "総合",     en: "Total" },
+    { k: "power", ja: "パワー",  en: "Power" },
+    { k: "control", ja: "コントロール", en: "Control" },
+    { k: "friction", ja: "止まりやすさ", en: "Friction" },
+    { k: "hit",  ja: "ヒット",   en: "Hit" },
+    { k: "jack", ja: "ジャック", en: "Jack" },
+    { k: "technique", ja: "テクニック", en: "Technique" },
+    { k: "support", ja: "サポート", en: "Support" },
+  ];
+  function stSum(c) {
+    let n = 0;
+    for (const k in c.st) n += c.st[k];
+    return n;
+  }
+  /* ★ 検索は<b>名前・型・レアリティ</b>のどれかに当たればよい。
+     ひらがな／カタカナのゆれは取らない（キャラ名はカタカナで統一されているため）。 */
+  function charHit(c, q) {
+    if (!q) return true;
+    const ty = B.TYPES[c.type] || {};
+    return (c.nm + " " + c.id + " " + c.rarity + " " + (ty.ja || "") + " " + (ty.nm || ""))
+      .toLowerCase().indexOf(q) >= 0;
+  }
+  function filteredChars() {
+    const q = CFILT.q.trim().toLowerCase();
+    const base = CFILT.owned ? ROSTER : (ALL || (ALL = B.buildRoster()));
+    let list = base.filter((c) =>
+      (!CFILT.type || c.type === CFILT.type) &&
+      (!CFILT.rarity || c.rarity === CFILT.rarity) &&
+      charHit(c, q));
+    const k = CFILT.sort;
+    if (k === "name") list.sort((a, b) => a.nm.localeCompare(b.nm, "ja"));
+    else if (k === "sum") list.sort((a, b) => stSum(b) - stSum(a));
+    else if (k !== "no") list.sort((a, b) => b.st[k] - a.st[k]);
+    /* "no" は buildRoster が図鑑順に並べたまま＝なにもしない */
+    if (CFILT.desc) list = list.slice().reverse();
+    return list;
+  }
+  /* カード1枚ぶん。★ 一覧と検索の両方から呼ぶ（見た目がずれないように1本にする） */
+  function charCardHTML(c, sel) {
+    return '<div class="cc' + (c.id === sel ? " on" : "") + '" onclick="MBRUI.openChar(\'' + c.id + '\')">'
+      + '<span class="rr' + (c.rarity === "SR" ? " sr" : "") + '">' + c.rarity + "</span>"
+      + '<span class="ty" style="color:' + B.TYPES[c.type].c + '">' + B.TYPES[c.type].ja + "</span>"
+      + (c.id === sel ? '<span class="lead">USE</span>' : "")
+      + '<img src="' + charImg(c) + '" alt="" loading="lazy">'
+      + '<div class="nm">' + esc(c.nm) + "</div>"
+      + (CFILT.sort !== "no" && CFILT.sort !== "name"
+          ? '<div class="cnum">' + (CFILT.sort === "sum" ? stSum(c) : c.st[CFILT.sort]) + "</div>" : "")
+      + "</div>";
+  }
   function renderChars() {
     loadRoster();
+    ALL = null;                       /* ★ 引いたばかりの子も拾うため、毎回組み立て直す */
     const s = B.load();
     const sel = s.team[0] || (ROSTER[0] && ROSTER[0].id);
+    const en = lang() === "en";
+    const list = filteredChars();
+    const chip = (on, label, fn) =>
+      '<button class="fchip' + (on ? " on" : "") + '" onclick="' + fn + '">' + label + "</button>";
+    const tyChips = chip(!CFILT.type, en ? "ALL" : "すべて", "MBRUI.cset('type','')")
+      + Object.keys(B.TYPES).map((k) =>
+          '<button class="fchip' + (CFILT.type === k ? " on" : "") + '" style="'
+          + (CFILT.type === k ? "border-color:" + B.TYPES[k].c + ";color:" + B.TYPES[k].c : "")
+          + '" onclick="MBRUI.cset(\'type\',\'' + k + '\')">' + B.TYPES[k].ja + "</button>").join("");
+    const rrChips = chip(!CFILT.rarity, en ? "ALL" : "すべて", "MBRUI.cset('rarity','')")
+      + chip(CFILT.rarity === "SSR", "SSR", "MBRUI.cset('rarity','SSR')")
+      + chip(CFILT.rarity === "SR", "SR", "MBRUI.cset('rarity','SR')");
+    const sortChips = SORTS.map((o) =>
+      chip(CFILT.sort === o.k, en ? o.en : o.ja, "MBRUI.cset('sort','" + o.k + "')")).join("");
+
     $("#s-chars").innerHTML = ''
-      + '<div class="hd" style="margin-top:2px">CHARACTER</div>'
-      + (ROSTER.length ? '<div class="cgrid">' + ROSTER.map((c) =>
-          '<div class="cc' + (c.id === sel ? " on" : "") + '" onclick="MBRUI.openChar(\'' + c.id + '\')">'
-          + '<span class="rr' + (c.rarity === "SR" ? " sr" : "") + '">' + c.rarity + "</span>"
-          + '<span class="ty" style="color:' + B.TYPES[c.type].c + '">' + B.TYPES[c.type].ja + "</span>"
-          + (c.id === sel ? '<span class="lead">USE</span>' : "")
-          + '<img src="' + charImg(c) + '" alt="" loading="lazy">'
-          + '<div class="nm">' + esc(c.nm) + "</div></div>").join("") + "</div>"
-        : '<div class="slab"><div class="empty">' + L(T.noChar)
-          + '<br><br><button class="b sm pri" onclick="location.href=\'../gacha.html\'">'
-          + esc(t("gacha")) + "</button></div></div>")
+      + '<div class="hd" style="margin-top:2px">CHARACTER'
+      + '<span class="more" onclick="MBRUI.cReset()">' + (en ? "Reset" : "リセット") + "</span></div>"
+      + '<div class="slab tight fbox">'
+      + '<div class="fsearch"><span>🔍</span><input class="inp" id="cq" type="search" '
+      + 'placeholder="' + (en ? "Search by name or type" : "名前・型でさがす") + '" value="' + esc(CFILT.q) + '" '
+      + 'oninput="MBRUI.cq(this.value)"></div>'
+      + '<div class="frow"><i>' + (en ? "TYPE" : "型") + "</i><div class=\"fchips\">" + tyChips + "</div></div>"
+      + '<div class="frow"><i>' + (en ? "RARITY" : "レア") + "</i><div class=\"fchips\">" + rrChips + "</div></div>"
+      + '<div class="frow"><i>' + (en ? "SORT" : "並び") + "</i><div class=\"fchips\">" + sortChips
+      + chip(CFILT.desc, CFILT.desc ? "▲ " + (en ? "ASC" : "逆順") : "▼ " + (en ? "DESC" : "順"),
+             "MBRUI.cset('desc'," + (CFILT.desc ? "false" : "true") + ")") + "</div></div>"
+      + '<div class="frow"><i>' + (en ? "SHOW" : "対象") + "</i><div class=\"fchips\">"
+      + chip(CFILT.owned, en ? "Owned" : "所持のみ", "MBRUI.cset('owned',true)")
+      + chip(!CFILT.owned, en ? "All characters" : "全キャラ", "MBRUI.cset('owned',false)")
+      + "</div></div>"
+      + '<div class="fcount">' + list.length + (en ? " characters" : "体") + "</div></div>"
+
+      + (list.length ? '<div class="cgrid">' + list.map((c) => charCardHTML(c, sel)).join("") + "</div>"
+        : '<div class="slab"><div class="empty">'
+          + (CFILT.q || CFILT.type || CFILT.rarity
+              ? (en ? "No character matches." : "あてはまるキャラクターがいません。")
+              : L(T.noChar) + '<br><br><button class="b sm pri" onclick="location.href=\'../gacha.html\'">'
+                + esc(t("gacha")) + "</button>")
+          + "</div></div>")
       + '<div class="slab tight" style="margin-top:10px"><div class="note">'
-      + (lang() === "en"
+      + (en
         ? "Characters and the gacha are <b>shared with XEVARION</b>. Anything you pull there can be used here."
         : "キャラクターとガチャは <b>XEVARION と共通</b>です。あちらで引いた子は、そのままここで使えます。")
       + "</div></div>";
@@ -922,7 +1120,9 @@
     const s = B.load();
     s.team[0] = id; B.save();
     close(); renderChars();
-    toast(lang() === "en" ? "Set as your character" : "使うキャラクターにしました");
+    /* ★★ 2026-09-10 えらんだ瞬間もカットイン（ご指定「キャラ使用時の演出」） */
+    cutIn(charById(id), lang() === "en" ? "READY" : "出場",
+          lang() === "en" ? "YOUR CHARACTER" : "使うキャラクター");
   }
 
   /* ══════════════════════════════════════════════════════════════
@@ -1106,6 +1306,22 @@
   const API = {
     go, quick, setup, startMatch, useSkill, nextEnd, openReplay, openChar, pick,
     openRule, openSettings, setSet, tutorial, startTutorial, close,
+    /* ★ キャラ一覧のしぼりこみ・並びかえ（2026-09-10） */
+    cset(k, v) { CFILT[k] = v; renderChars(); },
+    cReset() { CFILT.q = ""; CFILT.type = ""; CFILT.rarity = ""; CFILT.sort = "no";
+               CFILT.desc = false; CFILT.owned = true; renderChars(); },
+    cq(v) {
+      /* ★ 1文字ごとに全部描き直すと入力欄からフォーカスが外れるので、
+         <b>並びだけ</b>を描き直して入力欄はそのまま残す。 */
+      CFILT.q = v;
+      const g = document.querySelector("#s-chars .cgrid");
+      const box = document.querySelector("#s-chars .fcount");
+      const list = filteredChars();
+      const s = B.load(), sel = s.team[0] || (ROSTER[0] && ROSTER[0].id);
+      if (box) box.textContent = list.length + (lang() === "en" ? " characters" : "体");
+      if (!g) { renderChars(); return; }
+      g.innerHTML = list.map((c) => charCardHTML(c, sel)).join("");
+    },
     setCfg(k, v) { pendingCfg[k] = v; if (k === "competition") pendingCfg.competition = !!v; drawSetup(); },
     clearGuide() { lastGuide = null; renderMatch(); },
     quit() {
