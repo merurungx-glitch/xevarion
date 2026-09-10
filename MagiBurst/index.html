@@ -55,15 +55,38 @@ if ("serviceWorker" in navigator) {
 <script src="js/local.js?v=11"></script>
 <script src="js/localplay.js?v=7"></script>
 <style>
-/* ═══ カジュアル・ライトテーマ（SUNNY POP） ═══ */
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-09-10 <b>旧UIはここから完全に消しました</b>（ご指定）
+   ──────────────────────────────────────────────────────────────
+   もとはここに「SUNNY POP」（紫 #8e6bff ／ 橙 #ff9d2e ／ 桃 #ff5d8f の
+   パステル）という<b>旧UIの色</b>が置いてあり、それを css/mb-ui2.css が
+   body.mb-ui2 で上から塗りつぶしていました。
+   ＝ 旧UIの指定が<b>生きたまま残っていた</b>ので、
+      ・うっかり旧UI側の行を直してしまう
+      ・塗り忘れた面に旧UIの色がそのまま出る
+   ということが起きていました。
+
+   いまは<b>新UIの色をここ（:root）に直接置いて</b>あります。
+   旧UIの色は1つも残っていません。色を変えるときは<b>ここだけ</b>直します。
+
+   ★ 色の決めごと（この5つ以外は使わない）
+       紙 #f3efe4 ／ 墨 #12100c ／ 黄 #ffd400 ／ 赤 #e2231a ／ 白 #ffffff
+   ══════════════════════════════════════════════════════════════ */
 :root{
-  --bg:#fdf8ef; --bg2:#ffffff; --card:#ffffff; --line:rgba(142,107,255,.18);
-  --tx:#3a3350; --sub:#8b87a8; --vio:#8e6bff; --org:#ff9d2e; --pk:#ff5d8f; --cy:#38a6ff;
-  /* ★ 2026-08-07: --fg は「その場所での本文の色」。以前は定義がなく、
-     var(--fg) を使っている行がまるごと無効になって色を受け継いでいた。
+  /* 新UIの土台色（css/mb-ui2.css もこの名前を見る） */
+  --u2paper:#f3efe4;
+  --u2ink:#12100c;
+  --u2yel:#ffd400;
+  --u2red:#e2231a;
+  --u2blue:#1268d8;
+
+  --bg:#f3efe4; --bg2:#ffffff; --card:#ffffff; --line:rgba(18,16,12,.88);
+  --tx:#12100c; --sub:#6d6759; --vio:#e2231a; --org:#ffd400; --pk:#e2231a; --cy:#1268d8;
+  /* ★ --fg は「その場所での本文の色」。定義が無いと var(--fg) の行が
+     まるごと無効になって色を受け継いでしまう（2026-08-07 に踏んだ）。
      明るい画面では --tx と同じ、暗いカード（.gimcard）の中では明るい色に上書きする。 */
-  --fg:#3a3350;
-  --grad:linear-gradient(135deg,#ff9d2e,#ff5d8f,#8e6bff);
+  --fg:#12100c;
+  --grad:linear-gradient(120deg,#ffd400,#ffb000 52%,#e2231a);
 }
 /* touch-action:manipulation はダブルタップ拡大だけを無効化し、スクロール・ピンチは維持する（iPhone対策） */
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;touch-action:manipulation}
@@ -86,16 +109,9 @@ body{background:var(--bg);color:var(--tx);font-family:'Noto Sans JP',system-ui,s
      やわらかい光を3つ重ねた「オーロラ」。カード（白の半透明＋blur）が上に乗ると
      アプリらしい奥行きが出る。PC・スマホどちらも同じ背景にそろえた。
    ══════════════════════════════════════════════════════════════ */
-body::before{
-  content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;
-  background:
-    radial-gradient(105% 62% at 8% -8%,  rgba(142,107,255,.26), rgba(142,107,255,0) 62%),
-    radial-gradient(85% 55% at 98% 2%,   rgba(255,157,46,.20),  rgba(255,157,46,0)  60%),
-    radial-gradient(95% 60% at 50% 106%, rgba(255,93,143,.20),  rgba(255,93,143,0)  64%),
-    radial-gradient(70% 45% at 84% 62%,  rgba(56,166,255,.14),  rgba(56,166,255,0)  62%),
-    linear-gradient(178deg,#fbf6ff 0%,#fdf9f1 44%,#fff4f7 100%);
-  background-repeat:no-repeat;
-}
+/* ★★ 2026-09-10 旧UIの背景（紫・橙・桃の「オーロラ」）は<b>削除しました</b>。
+   新UIの下地（紙＋斜めの墨）は css/mb-ui2.css の body.mb-ui2::before が持っています。
+   ここに2枚目を敷くと、下の1枚が透けて旧UIの色がにじむので<b>置かないこと</b>。 */
 button{font-family:inherit;color:inherit}
 /* ★ 2026-08-10 画像の長押しを禁止。
    iOS/Android は画像を長押しすると「保存」「コピー」のメニューが出て、
@@ -4010,7 +4026,7 @@ textarea.oninp.mbcode[readonly]{background:#f2f0fb;color:#3b3560}
 <!-- ★★ 2026-09-06 新UI（スタイリッシュ）。
      body.mb-ui2 の中だけにかかるので、旧UIに戻すのは class を外すだけ。
      ★ 本文の <style> より<b>あと</b>に置くこと（あとに来たほうが勝つ）。 -->
-<link rel="stylesheet" href="css/mb-ui2.css?v=24">
+<link rel="stylesheet" href="css/mb-ui2.css?v=25">
 <!-- ★★ 2026-09-06 LOCAL PLAY（近距離ローカルマルチ）の画面 -->
 <link rel="stylesheet" href="css/localplay.css?v=6">
 <script src="js/mb-core.js?v=102"></script>
