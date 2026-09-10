@@ -730,13 +730,92 @@
   /* ══════════════════════════════════════════════════════════════
      ⑦ 検索
      ══════════════════════════════════════════════════════════════ */
+  /* ══ ★★ 2026-09-10 探すための「文字のならし」（ご指定）══
+     これまでは打った文字をそのまま比べていたので、
+       ・ひらがなで打つと<b>カタカナの名前に当たらない</b>
+       ・「ポケモン・ずかん」の中黒や、長音「ー」で当たらない
+     ということが起きていました。両方を<b>同じ形</b>に直してから比べます。
+
+     ★ ならすもの
+       ・大文字 → 小文字
+       ・全角の英数字 → 半角
+       ・ひらがな → カタカナ（「がぶりあす」で「ガブリアス」に当たる）
+       ・長音ー ／ 中黒・ ／ 空白 ／ かっこ ／ ハイフン → 取りのぞく
+     ★ 濁点・半濁点は<b>残す</b>こと。取ると「ハ」と「バ」が同じになって
+       まったく別の子まで出てしまいます。 */
+  function normKey(v) {
+    let s = String(v == null ? "" : v).toLowerCase();
+    s = s.replace(/[Ａ-Ｚａ-ｚ０-９]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xFEE0));
+    s = s.replace(/[\u3041-\u3096]/g, (c) => String.fromCharCode(c.charCodeAt(0) + 0x60));
+    s = s.replace(/[\u30fc\u30fb\u00b7\s()（）「」『』・･'’`\-_.,]/g, "");
+    return s;
+  }
+
+  /* ══ 技 → その技を覚える子 の逆引き ══
+     ★ 1回作ったら使いまわす（毎回作ると 267体 × 約90手 を数えなおすことになる）。 */
+  let _mvIdx = null;
+  function moveIndex() {
+    if (_mvIdx) return _mvIdx;
+    _mvIdx = {};
+    const L = D.LEARN || {};
+    Object.keys(L).forEach((id) => {
+      (L[id] || []).forEach((n) => { (_mvIdx[n] || (_mvIdx[n] = [])).push(id); });
+    });
+    return _mvIdx;
+  }
+  /* 打った文字に当たる技（の番号）を返す */
+  function movesMatching(text) {
+    const q = normKey(text);
+    if (!q) return [];
+    const MK = D.MK || [];
+    const out = [];
+    for (let n = 0; n < MK.length; n++) {
+      const m = D.MOVES[MK[n]];
+      if (!m) continue;
+      if (normKey(m.ja).indexOf(q) >= 0 || normKey(m.en).indexOf(q) >= 0) out.push(n);
+    }
+    return out;
+  }
+  /* 打った文字に当たる技を覚える子の id（重複なし） */
+  function findByMove(text) {
+    const idx = moveIndex(), set = new Set();
+    movesMatching(text).forEach((n) => (idx[n] || []).forEach((id) => set.add(id)));
+    return [...set];
+  }
+  /* この子が覚える技の名前の並び */
+  function learnsOf(id) {
+    return ((D.LEARN || {})[id] || []).map((n) => (D.MK || [])[n]).filter(Boolean);
+  }
+  /* 打った文字に当たった技の名前（画面に「〇〇で当たりました」と出すため） */
+  function matchedMoveNames(text) {
+    return movesMatching(text).map((n) => (D.MK || [])[n]).filter(Boolean);
+  }
+  /* 特性の名前で当たるか */
+  function abilHit(p, q) {
+    return (p.abilities || []).some((k) => {
+      const a = D.ABIL[k];
+      return a && (normKey(a.ja).indexOf(q) >= 0 || normKey(a.en).indexOf(q) >= 0);
+    });
+  }
+
   function search(q) {
     const f = Object.assign({ text: "", types: [], weak: [], resist: [], ability: "", roles: [], gen: 0,
-      usageMin: 0, sort: "usage" }, q || {});
-    const txt = String(f.text || "").trim().toLowerCase();
+      usageMin: 0, sort: "usage", mega: 0 }, q || {});
+    const txt = normKey(f.text);
     let list = D.DEX.slice();
-    if (txt) list = list.filter((p) =>
-      p.ja.toLowerCase().indexOf(txt) >= 0 || p.en.toLowerCase().indexOf(txt) >= 0 || p.id.indexOf(txt) >= 0);
+    if (txt) {
+      /* ★ 技で当たった子は Set にしておく（1体ずつ技を全部見にいくと遅い） */
+      const mv = new Set(findByMove(f.text));
+      list = list.filter((p) =>
+        normKey(p.ja).indexOf(txt) >= 0
+        || normKey(p.en).indexOf(txt) >= 0
+        || p.id.indexOf(txt) >= 0
+        || String(p.dex || "") === txt
+        || abilHit(p, txt)
+        || mv.has(p.id)
+        /* メガの名前でも当たるようにする（「メガリザードン」で探せる） */
+        || (p.megas || []).some((m) => normKey(m.ja).indexOf(txt) >= 0 || normKey(m.en).indexOf(txt) >= 0));
+    }
     if (f.types.length) list = list.filter((p) => f.types.every((t) => p.types.indexOf(t) >= 0));
     if (f.weak.length) list = list.filter((p) => f.weak.every((t) => eff(t, p.types) > 1));
     if (f.resist.length) list = list.filter((p) => f.resist.every((t) => eff(t, p.types) < 1));
@@ -744,18 +823,19 @@
     if (f.roles.length) list = list.filter((p) => f.roles.every((r) => (p.roles || []).indexOf(r) >= 0));
     if (f.gen) list = list.filter((p) => p.gen === f.gen);
     if (f.usageMin) list = list.filter((p) => (p.usage || 0) >= f.usageMin);
+    if (f.mega) list = list.filter((p) => (p.megas || []).length > 0);
     const S = {
       usage: (a, b) => b.usage - a.usage,
       win:   (a, b) => b.win - a.win,
       trend: (a, b) => b.trend - a.trend,
       bst:   (a, b) => b.bst - a.bst,
       spe:   (a, b) => b.base.spe - a.base.spe,
+      dex:   (a, b) => (a.dex - b.dex) || a.id.localeCompare(b.id),
       name:  (a, b) => (lang() === "en" ? a.en.localeCompare(b.en) : a.ja.localeCompare(b.ja)),
     };
     list.sort(S[f.sort] || S.usage);
     return list;
   }
-
   /* ランキング */
   function ranking(kind, limit) {
     const l = D.DEX.slice();
@@ -895,6 +975,8 @@
     /* ★★ 2026-09-10 メガシンカ */
     pokeOf, megaFormOf, megaIdxOf, setMega, canMega,
     search, ranking, partners, checkedBy,
+    /* ★★ 2026-09-10 名前のならし・技名での検索（mc-ui.js の検索欄と一覧が使う） */
+    normKey, findByMove, learnsOf, matchedMoveNames, movesMatching,
     meta,
     newTeam, getTeam, delTeam, toggleFav, touchRecent, pushHistory,
   };

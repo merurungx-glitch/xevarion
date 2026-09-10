@@ -340,6 +340,41 @@ const XH_EVENTS = [
    ══════════════════════════════════════════════════════════════ */
 const XH_UPDATE_MAX = 12;
 const XH_UPDATES = [
+  /* ★★ 2026-09-10d 下バーの入れかえ・PC の大きさ・見出しの絵 */
+  { tag:"UPDATE", t1:"下のバーのまん中がガチャになりました", at:"2026-09-10",
+    t2:"ガチャと図鑑を入れかえ、<b>ガチャを金のメダル</b>にしました。新しいキャラの顔がメダルの中に出るので、いま引けるキャラがひと目で分かります。「無料」の印もメダルの左上に出ます",
+    href:"index.html", img:"thumbs/xevarion-home_s.jpg" },
+  { tag:"UPDATE", t1:"見出しの印を欄ごとの絵にしました", at:"2026-09-10",
+    t2:"<b>開催中のイベント＝炎（赤）</b>／<b>アップデート情報＝ダウンロード（青）</b>／<b>アプリ＝4つのマス（紫）</b>。カードの透かしも同じ絵にそろえたので、文字を読まなくても何の欄か分かります",
+    href:"index.html", img:"thumbs/xevarion-home_s.jpg" },
+  /* ★★ 2026-09-10c ホームの仕上げ */
+  { tag:"FIX", t1:"ガチャの「無料」の印が見えるようになりました", at:"2026-09-10",
+    t2:"無料の単発・10連が残っている日に出る<b>金色の「無料」</b>が、となりの<b>図鑑の丸いメダル</b>に隠れて見えていませんでした。ガチャのアイコンの左上に置きなおしています",
+    href:"index.html", img:"thumbs/xevarion-home_s.jpg" },
+  { tag:"UPDATE", t1:"ホームの上のプロフィールを整理", at:"2026-09-10",
+    t2:"レベル・スタミナ・XEVA・ジェムを<b>名前の右に2段2列</b>でならべ、4つとも同じ大きさにそろえました。上のバーと下のバーのアイコンも描き直しています",
+    href:"index.html", img:"thumbs/xevarion-home_s.jpg" },
+  /* ★★ 2026-09-10b ホームの新UI・MagiCounter の作り直し・CM */
+  { tag:"NEW", t1:"ホームの見た目を新しくしました", at:"2026-09-10",
+    t2:"ホームを<b>妖怪ウォッチ風</b>に作り直しました。空の下にクリーム色のカードがならび、下のバーのまん中には<b>丸い時計のメダル（図鑑）</b>が出ます。"
+      + "<b>前のホームUIは中身ごと消して</b>あるので、うっかり前の見た目に戻ることはありません",
+    href:"index.html", img:"thumbs/xevarion-home_s.jpg" },
+  { tag:"NEW", t1:"MagiCounter が Champions の全キャラに対応", at:"2026-09-10",
+    t2:"顔ぶれを <b>Pokémon Champions（スマホ版）そのもの</b>に入れかえました（<b>267体</b>＋<b>メガ81種</b>）。"
+      + "<b>全キャラ一覧</b>の画面も足したので、タイプ・世代・役割・メガの有無でしぼって見られます",
+    href:"MagiCounter/index.html", img:"thumbs/MagiCounter.jpg" },
+  { tag:"FIX", t1:"MagiCounter の検索を直しました", at:"2026-09-10",
+    t2:"1文字打つと<b>2文字入ってしまう</b>のを直しました（打つたびに入力欄ごと作り直していたのが原因）。"
+      + "あわせて<b>ひらがなのまま</b>カタカナの名前に当たるようにし、<b>技名・特性名</b>でもさがせるようにしています",
+    href:"MagiCounter/index.html", img:"thumbs/MagiCounter.jpg" },
+  { tag:"FIX", t1:"MagiCounter のカメラ読み取りの精度", at:"2026-09-10",
+    t2:"<b>たて1列</b>を初期の並びにして、<b>行の位置を自分でさがす</b>ようにしました。"
+      + "行の中から<b>絵のところだけ</b>を切り出すので、名前の文字にじゃまされません。実測で1位の的中が<b>17%→43%</b>、候補6体の中に入る率が<b>67%</b>になりました",
+    href:"MagiCounter/index.html", img:"thumbs/MagiCounter.jpg" },
+  { tag:"UPDATE", t1:"MagiBurst の旧UIを完全に削除", at:"2026-09-10",
+    t2:"見た目を上から塗りつぶすのをやめ、<b>旧UIの色と背景をファイルごと削除</b>しました。"
+      + "うっかり旧UI側を直してしまったり、塗り忘れた面に前の色が出たりすることが無くなります",
+    href:"MagiBurst/index.html", img:"thumbs/MagiBurst.jpg" },
   /* ★★ 2026-09-10 メガシンカ（MagiCounter） */
   { tag:"NEW", t1:"MagiCounter がメガシンカに対応", at:"2026-09-10",
     t2:"編成の枠の <b>M</b> を押すと<b>メガの姿で</b>相性・選出・出す順番を計算します（1チーム1体）。"
@@ -644,6 +679,14 @@ const XH_SHOWCASE_MAX = 5;
 function xhEl(id) { return document.getElementById(id); }
 function xhAcc() { try { return window.XEVA ? window.XEVA.account.get() : null; } catch (e) { return null; } }
 function xhOnline() { return navigator.onLine !== false; }
+/* ★★ 2026-09-10 帯（イベント／アップデートの1行プレビュー）用。
+   t2 には <b> で強調が書いてあるが、帯は xhEscape() で出しているので
+   そのままだと<b>タグの文字がそのまま見えて</b>しまう。
+   帯では<b>タグを外した素の文</b>にしてから escape する。
+   ★ 詳細のシートは今までどおり HTML として描くので、強調は残る。 */
+function xhPlain(v){
+  return String(v == null ? "" : v).replace(/<[^>]*>/g, "");
+}
 function xhEscape(s) {
   return String(s == null ? "" : s).replace(/[&<>"']/g, (c) =>
     ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -1709,7 +1752,7 @@ function xhRenderEvents() {
       '<div class="evbody">' +
         '<span class="evtag">' + xhEscape(tag) + "</span>" +
         '<div class="evt1">' + xhEscape(t1) + "</div>" +
-        '<div class="evt2">' + xhEscape(t2) + "</div>" +
+        '<div class="evt2">' + xhEscape(xhPlain(t2)) + "</div>" +
         (e.monthly ? '<div class="evt3">' + xhMonthlyText(e.monthly) + "</div>"
                 : e.perm ? '<div class="evt3">開催中（常設）</div>'
                 : (!live && e.openAt) ? '<div class="evt3">' + xhEscape(xhOpenText(e.openAt)) + "</div>"
@@ -1786,7 +1829,7 @@ function xhRenderUpdates() {
       '<div class="evbody">' +
         '<span class="evtag">' + xhEscape(u.tag || "UPDATE") + "</span>" +
         '<div class="evt1">' + xhEscape(u.t1) + "</div>" +
-        '<div class="evt2">' + xhEscape(u.t2 || "") + "</div>" +
+        '<div class="evt2">' + xhEscape(xhPlain(u.t2 || "")) + "</div>" +
         '<div class="evt3">' + xhEscape(xhUpDateText(u)) + "</div>" +
       "</div>" +
     "</div>").join("");

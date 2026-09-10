@@ -381,3 +381,28 @@ a{color:var(--pri);text-decoration:none}
 .megadiff em{font-style:normal;font-family:'Orbitron',sans-serif;font-weight:900;margin-left:3px}
 .megadiff em.up{color:var(--ok)}
 .megadiff em.dn{color:var(--ng)}
+
+
+/* ══ ★★ 2026-09-10 全キャラ一覧（#sc-dex）══
+   ★ 1行に3枚。狭い画面（360px 未満）では2枚に落とす。 */
+.dexgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+@media (max-width:359px){ .dexgrid{grid-template-columns:repeat(2,1fr)} }
+.dexc{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px;
+  padding:10px 6px 9px;border-radius:14px;background:#fff;cursor:pointer;
+  border:1.5px solid var(--line2);box-shadow:0 2px 8px rgba(30,80,170,.07);
+  transition:transform .13s,box-shadow .13s}
+.dexc:active{transform:scale(.96);box-shadow:0 1px 4px rgba(30,80,170,.1)}
+.dexc .dxno{position:absolute;top:5px;left:7px;font-size:8.5px;font-weight:800;color:var(--sub);
+  font-family:'Orbitron',sans-serif}
+.dexc .dxnm{font-size:10.5px;font-weight:900;line-height:1.25;text-align:center;
+  overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;
+  min-height:2.5em}
+.dexc .dxty{display:flex;gap:3px;flex-wrap:wrap;justify-content:center}
+.dexc .dxbs{font-size:8.5px;font-weight:800;color:var(--sub)}
+/* メガをもつ子の印 */
+.dexc .dxmg{position:absolute;top:5px;right:6px;font-size:7px;font-weight:900;letter-spacing:.02em;
+  padding:2px 5px;border-radius:99px;color:#fff;background:linear-gradient(135deg,#8b5cf6,#d946ef)}
+
+/* ★★ 2026-09-10 自動でマスをさがしたとき、帯と帯の「すきま」は薄く出す
+   （読み取りに使わないところだと一目で分かるように）。 */
+.scgrid i.gap{border-color:rgba(255,255,255,.18);background:rgba(0,0,0,.28)}

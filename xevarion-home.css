@@ -1,59 +1,81 @@
 /* ============================================================
-   XEVARION HOME — 明るいカジュアル・ホーム（スマホ基準 / PCでも可）
-   ・ヘッダー（ロゴ＋AI/メール/お知らせ/ミッション）固定
-   ・中央はスクロール領域（プロフィール／XEVA／イベント／アプリ）
-   ・下部にタブバー（ホーム・コミュニティ・図鑑・ガチャ・設定）
-   ・アイコンはすべて「角丸の正方形」で統一する
-   ※ アクセス画面の inline CSS が .xh-tab / .xh-btn / .xh-card / .xh-input /
-     .xh-msg / .xh-logo をグローバル定義しているため、ここではそれらの名前を
-     使わない（.xh-ntab / .xh-sbtn / .xh-panel / .xh-brandbar …）。
+   XEVARION HOME — 妖怪ウォッチ風のホーム（スマホ基準 / PCでも可）
+   ★★ 2026-09-10 <b>作り直し（ご指定）</b>
+     ・見た目を丸ごと「妖怪ウォッチ風」に入れ替えました。
+     ・<b>前のホームUI（白いカード＋パステルのぼかし玉）は削除ずみ</b>です。
+       上書きで隠しているのではなく、<b>その CSS ごとこのファイルから消して</b>あります。
+       ＝ うっかり前の見た目に戻ることも、前の指定を編集してしまうこともありません。
+
+   ── この見た目の決まりごと（さわるときはここを守る） ──
+   ① 枠は<b>三重</b>。外から「濃紺の太線 → 金の帯 → クリーム色の地」。
+      濃紺は border、金は inset の box-shadow で出す（2枚重ねない）。
+   ② 角はまるく大きく（22〜30px）。小さい部品でも 14px より角ばらせない。
+      ＝「シールを貼ったような」ぽってり感が、この見た目のかなめ。
+   ③ 文字は<b>濃紺</b>。見出しなど地が濃いところだけ白＋濃紺のふちどり。
+   ④ 影は「下に落ちる硬い影」（0 4px 0 …）。ぼかした影は使わない。
+      ぼかすと急にスマホアプリっぽくなって、この見た目から外れる。
+   ⑤ 差し色は 金(--yw-gold)・青(--yw-blue)・赤(--yw-red) の3つだけ。
+      増やすと画面がうるさくなるので、新しい色を足す前に必ずこの3つで足りないか見る。
+
+   ── 名前の決まり ──
+   ・アクセス画面の inline CSS が .xh-tab / .xh-btn / .xh-card / .xh-input /
+     .xh-msg / .xh-logo をグローバル定義しているので、<b>その名前は使わない</b>
+     （.xh-ntab / .xh-sbtn / .xh-panel / .xh-brandbar … を使う）。
      ※ .xh-logo は 70x70 の固定サイズなので、うっかり使うとヘッダーが膨らむ。
    ============================================================ */
 
 :root{
-  --xh-ink:#22345c;
-  --xh-sub:#6f82ad;
-  --xh-line:rgba(120,160,230,.22);
+  /* ── 妖怪ウォッチ風の土台色 ── */
+  --yw-line:#12203d;        /* いちばん外の太線（ほぼ黒に近い濃紺） */
+  --yw-gold:#ffc63c;        /* 枠の金 */
+  --yw-gold-d:#e39a10;      /* 金の影 */
+  --yw-cream:#fff6dc;       /* カードの地 */
+  --yw-cream-d:#ffe7a8;     /* カードの地（濃いめ・帯や見出しの内側） */
+  --yw-blue:#2f7fe0;        /* 見出し・下バーの青 */
+  --yw-blue-d:#17458f;      /* 青の影 */
+  --yw-blue-l:#7cc4ff;      /* 空・ハイライトの水色 */
+  --yw-red:#e8442f;         /* 印・強調 */
+  --yw-green:#2fb463;
+
+  /* ── 旧来から使っている名前（シートなど画面の奥でも使う）── */
+  --xh-ink:#14294f;         /* 文字（濃紺） */
+  --xh-sub:#5a7099;         /* 補助の文字 */
+  --xh-line:rgba(18,32,61,.22);
   --xh-cyan:#2ec7ff;
-  --xh-blue:#4b8bff;
-  --xh-violet:#9b7bff;
+  --xh-blue:#2f7fe0;
+  --xh-violet:#7d6bd8;
   --xh-pink:#ff7ab8;
-  --xh-yellow:#ffc93c;
-  --xh-mint:#3fd9b0;
-  --xh-card:#ffffff;
-  --xh-shadow:0 8px 26px rgba(90,130,210,.16);
-  --xh-shadow-s:0 4px 14px rgba(90,130,210,.14);
+  --xh-yellow:#ffc63c;
+  --xh-mint:#2fb463;
+  --xh-card:#fff6dc;
+  --xh-shadow:0 4px 0 rgba(18,32,61,.24);
+  --xh-shadow-s:0 3px 0 rgba(18,32,61,.2);
+
+  /* ── よく使う組み合わせ ── */
+  /* 濃紺の太線＋金の内枠。太さを変えたいときはここだけ直す。 */
+  --yw-frame:0 0 0 3.5px var(--yw-gold) inset;
+  --yw-drop:0 4px 0 rgba(18,32,61,.28);
 }
 
-/* ホーム用ページは明るい空色。ログイン前でも暗転しない。 */
-body{background:#eaf4ff}
-/* ★ 2026-08-12  #xevaDock（旧・下部ドック）は削除したので、隠す指定も要らなくなりました
-   ★ 2026-08-12b #musicFab（旧ホームの音楽トグル）も削除しました。
-     この「ホームでだけ隠す」書きかたが、<b>ホームに入る前（同期の読み込み中）だけ
-     左下に一瞬見える</b>原因そのものだったので、ボタンごと消してあります。 */
+/* ホーム用ページは空色。ログイン前でも暗転しない。 */
+body{background:#8fd4ff}
+
+/* ★ 2026-08-12  #xevaDock（旧・下部ドック）は削除ずみ。隠す指定も要らない。
+   ★ 2026-08-12b #musicFab（旧ホームの音楽トグル）も削除ずみ。 */
 body.xh-mode .aurora{display:none}
-/* ★ 2026-08-12d 背景色は「表示領域の外」にも効く。
-   iPhone のアプリ表示では、表示領域（position:fixed がぶら下がる箱）が画面より
-   短いことがあり（実測: 画面 852 に対して箱 793）、余った下の帯には<b>ページの
-   背景色だけ</b>が iOS によって塗られる。そこにバーを伸ばすことはできないので、
-   せめて<b>下バーと同じ色</b>にして、バーが画面の下端まで続いて見えるようにする。
-   （.xh-bar のグラデーション #f6f0ff〜#fff1f7 の中間あたり） */
-/* ★★ 2026-09-05 「隙間の色が揃っていない」の真因と直し
-   下バーは<b>横方向のパステルグラデーション</b>なのに、箱の外の帯は
-   平らな1色（#f1f4fd）だった。だから左右の端ではどうしても色が合わず、
-   位置が合っていても「下に別の帯がある」ように見えていた。
-   → 下バーと<b>まったく同じグラデーション</b>をページの背景にも敷く。
-   ★ 向きは<b>90deg（真横）</b>にすること。斜めだと高さの違いで色がずれる。 */
-:root{ --xh-barwash:linear-gradient(90deg,#f6f0ff 0%,#eef4ff 34%,#e9f7ff 62%,#fff1f7 100%) }
-body.xh-mode{overflow:hidden;background:#f1f4fd;background-image:var(--xh-barwash)}
-/* ★★ 2026-09-06 下バーの<b>外側</b>（画面のいちばん下）は <html> の背景しか塗れない。
-   バーと同じ色をここにも敷かないと、下に色のちがうすきまが見える。 */
-/* ★★ 2026-09-06 <b>:has() だけに頼らない</b>こと。
-   :has() は iOS Safari 15.3 以前で<b>丸ごと無視</b>されるので、
-   古い端末ではこの1行が何もしていなかった（＝いちばん下に白い帯）。
-   xevarion-home.js の xhShow()/xhHide() が &lt;html&gt; に .xh-html を付け外しする。 */
-html.xh-html,html:has(body.xh-mode){background:#f1f4fd;background-image:var(--xh-barwash)}
-/* アクセス画面（タップしてスタート）の下の帯。KV の土台と同じ墅にする。 */
+
+/* ★★ 2026-09-06 下バーの<b>外側</b>（画面のいちばん下）は &lt;html&gt; の背景しか塗れない。
+   iPhone のアプリ表示では position:fixed の箱が画面より短いことがあり
+   （実測: 画面 852 に対して箱 793）、余った下の帯にはページの背景色だけが塗られる。
+   → 下バーと<b>同じ濃紺</b>をここに敷いて、バーが下端まで続いて見えるようにする。
+   ★★ 2026-09-10 新しい下バーは<b>平らな濃紺</b>なので、以前のような
+     「横方向のグラデーションと平らな1色が食いちがう」問題は起きない。
+   ★ :has() だけに頼らないこと（iOS Safari 15.3 以前は丸ごと無視する）。
+     xevarion-home.js の xhShow()/xhHide() が &lt;html&gt; に .xh-html を付け外しする。 */
+:root{ --xh-barwash:#2560c8 }
+body.xh-mode{overflow:hidden;background:#2560c8}
+html.xh-html,html:has(body.xh-mode){background:#2560c8}
+/* アクセス画面（タップしてスタート）の下の帯。KV の土台と同じ墨にする。 */
 html.xv-gate{background:#0a0716}
 
 /* ══════════ 画面いっぱいの土台の高さ（--xh-appvh） ══════════
@@ -65,383 +87,540 @@ html.xv-gate{background:#0a0716}
      余ったぶんが下の空白として残る。
      そこで「実測した画面の高さ」を --xh-appvh に入れる。
      ・実測は xevarion-home.js の xhSyncAppH()。position:fixed;top:0;bottom:0 の
-       目印を1つ置いて、その高さを読む（＝画面をおおうときにブラウザが本当に使う高さ）。
-       innerHeight は standalone の起動直後にセーフエリアぶん短く返ることがあり、
-       あてにならないのでフォールバックにとどめる。
-     ・JS が動く前・非対応環境では dvh（無ければ vh）に落ちる。
-   ★ 2026-08-03: 土台は height ではなく top:0/bottom:0 で「画面の上と下に留める」。
-     こうすると変数の値に関係なく下端にぴったり付くので、空白の帯そのものが
-     原理的に起きなくなる（--xh-appvh は中の要素の計算用に残す）。 */
+       目印を1つ置いて、その高さを読む。innerHeight は standalone の起動直後に
+       セーフエリアぶん短く返ることがあり、あてにならない。
+   ★ 2026-08-03: 土台は height ではなく top:0/bottom:0 で「画面の上と下に留める」。 */
 :root{ --xh-appvh:100vh }
 @supports (height:100dvh){ :root{ --xh-appvh:100dvh } }
 
 /* ══════════ 土台 ══════════ */
 /* ★ 2026-08-07: 土台の下端を「本当の画面の下端」まで伸ばす。
    箱が短く作られる端末では --xh-fixgap（xevarion.js が実測）ぶんだけ
-   マイナス方向に伸ばすので、背景も下バーもホームバーの際まで届く。
-   ズレていない端末では 0px なので従来どおり。 */
+   マイナス方向に伸ばすので、背景も下バーもホームバーの際まで届く。 */
 #xhome{
   position:fixed;top:0;left:0;right:0;bottom:calc(-1 * var(--xh-fixgap, 0px));
   z-index:120;display:none;flex-direction:column;
-  /* ★★ 2026-09-06 箱の<b>外側</b>にも下バーと同じ紙を敷く。
-     position:fixed の箱はアプリ表示だと画面より短いことがあり、
-     その外は &lt;html&gt; の背景しか塗れない。html.xh-html と両方やる。 */
   overflow:visible;
   color:var(--xh-ink);font-family:'Noto Sans JP',sans-serif;
   overscroll-behavior:none;-webkit-tap-highlight-color:transparent;
 }
 #xhome.on{display:flex}
+/* 箱の下にはみ出したぶんも下バーと同じ濃紺で塗る */
 #xhome::after{content:"";position:absolute;left:0;right:0;top:100%;height:420px;
-  pointer-events:none;background:#f1f4fd;background-image:var(--xh-barwash)}
+  pointer-events:none;background:#2560c8}
 
-/* 背景：空色〜白のグラデ＋パステルのぼかし玉 */
+/* ══════════ 背景：晴れた空と、うずまきの町 ══════════
+   ★ 画像ファイルは使わない（オフラインでも必ず出るように）。
+     ・空 …… 上から下への水色のグラデーション
+     ・雲 …… .bl を丸い雲に作りかえて漂わせる
+     ・町 …… いちばん下の SVG（濃い水色の家並み）
+     ・うずまき … 妖怪ウォッチ風の記号。薄く散らす。
+   ★ .bl / #xhStars という名前は index.html 側の目印と揃えてあるので変えない。 */
 #xhBg{position:absolute;inset:0;z-index:0;overflow:hidden;
-  background:linear-gradient(175deg,#d9ecff 0%,#eef6ff 34%,#fdf4ff 72%,#fff7ef 100%)}
-#xhBg .bl{position:absolute;border-radius:50%;filter:blur(38px);opacity:.55}
-#xhBg .b1{width:46vw;height:46vw;left:-14vw;top:-8vw;background:#8ed6ff}
-#xhBg .b2{width:42vw;height:42vw;right:-12vw;top:12vh;background:#ffb7dd}
-#xhBg .b3{width:52vw;height:52vw;left:-8vw;bottom:-14vh;background:#c9b6ff}
-#xhBg .b4{width:36vw;height:36vw;right:-8vw;bottom:2vh;background:#ffe08a}
-#xhStars{position:absolute;inset:0;width:100%;height:100%;display:block;opacity:.55}
+  background:linear-gradient(180deg,#3ea8f0 0%,#6ec6fb 26%,#a5dcff 58%,#cfeeff 100%)}
+/* うずまき模様（薄い白）を全面に散らす */
+#xhBg::before{content:"";position:absolute;inset:0;opacity:.5;
+  background-image:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='150' viewBox='0 0 150 150'%3E%3Cg fill='none' stroke='%23ffffff' stroke-width='4' stroke-linecap='round' opacity='.45'%3E%3Cpath d='M30 46c0-9 7-16 16-16s16 7 16 16-7 16-16 16c-6 0-11-5-11-11s4-9 9-9 8 4 8 8'/%3E%3Cpath d='M96 116c0-9 7-16 16-16s16 7 16 16-7 16-16 16c-6 0-11-5-11-11s4-9 9-9 8 4 8 8'/%3E%3C/g%3E%3C/svg%3E");
+  background-size:150px 150px}
+/* 雲。ふわっとした白の固まりを4つ流す。 */
+#xhBg .bl{position:absolute;border-radius:50%;filter:none;opacity:.92;
+  background:#fff;box-shadow:0 0 0 0 #fff}
+#xhBg .bl::before,#xhBg .bl::after{content:"";position:absolute;border-radius:50%;background:#fff}
+#xhBg .bl::before{width:70%;height:70%;left:-26%;bottom:0}
+#xhBg .bl::after{width:86%;height:86%;right:-30%;bottom:-4%}
+#xhBg .b1{width:34vw;height:18vw;left:-6vw;top:9vh;opacity:.9;animation:ywDrift 34s linear infinite}
+#xhBg .b2{width:26vw;height:14vw;right:-4vw;top:22vh;opacity:.75;animation:ywDrift 46s linear infinite reverse}
+#xhBg .b3{width:40vw;height:20vw;left:8vw;bottom:26vh;opacity:.55;animation:ywDrift 58s linear infinite}
+#xhBg .b4{width:24vw;height:13vw;right:6vw;bottom:40vh;opacity:.62;animation:ywDrift 40s linear infinite reverse}
+@keyframes ywDrift{
+  0%{transform:translateX(0)}
+  50%{transform:translateX(4vw)}
+  100%{transform:translateX(0)}
+}
+/* いちばん下の家並み（濃い水色のシルエット）。下バーの上に少しだけ顔を出す。 */
+#xhBg .bl.b3{z-index:0}
+#xhBg > canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
+/* 星のキャンバスは妖怪ウォッチ風では使わないので消す（JS は動いていても見えない）。 */
+#xhStars{display:none}
+/* 町のシルエット。#xhBg の ::after で置く（要素を増やさない）。 */
+#xhBg::after{content:"";position:absolute;left:0;right:0;bottom:0;height:190px;pointer-events:none;
+  background-repeat:repeat-x;background-position:bottom center;background-size:auto 190px;
+  opacity:.55;
+  background-image:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='190' viewBox='0 0 420 190'%3E%3Cg fill='%234a9fd8'%3E%3Crect x='6' y='96' width='54' height='94' rx='4'/%3E%3Crect x='70' y='120' width='44' height='70' rx='4'/%3E%3Crect x='124' y='72' width='38' height='118' rx='4'/%3E%3Crect x='172' y='110' width='58' height='80' rx='4'/%3E%3Crect x='240' y='88' width='40' height='102' rx='4'/%3E%3Crect x='290' y='126' width='52' height='64' rx='4'/%3E%3Crect x='352' y='100' width='36' height='90' rx='4'/%3E%3Cpath d='M124 72l19-22 19 22z'/%3E%3Cpath d='M240 88l20-20 20 20z'/%3E%3C/g%3E%3Cg fill='%23bfe8ff' opacity='.85'%3E%3Crect x='16' y='110' width='11' height='13' rx='2'/%3E%3Crect x='36' y='110' width='11' height='13' rx='2'/%3E%3Crect x='16' y='136' width='11' height='13' rx='2'/%3E%3Crect x='36' y='136' width='11' height='13' rx='2'/%3E%3Crect x='80' y='134' width='11' height='13' rx='2'/%3E%3Crect x='96' y='134' width='11' height='13' rx='2'/%3E%3Crect x='134' y='92' width='11' height='13' rx='2'/%3E%3Crect x='150' y='92' width='11' height='13' rx='2'/%3E%3Crect x='134' y='118' width='11' height='13' rx='2'/%3E%3Crect x='186' y='126' width='12' height='14' rx='2'/%3E%3Crect x='206' y='126' width='12' height='14' rx='2'/%3E%3Crect x='250' y='106' width='11' height='13' rx='2'/%3E%3Crect x='250' y='132' width='11' height='13' rx='2'/%3E%3Crect x='302' y='142' width='12' height='14' rx='2'/%3E%3Crect x='322' y='142' width='12' height='14' rx='2'/%3E%3Crect x='362' y='118' width='11' height='13' rx='2'/%3E%3C/g%3E%3C/svg%3E")}
 
 #xhCol{position:relative;z-index:1;flex:1;min-height:0;display:flex;flex-direction:column;
   width:100%;max-width:600px;margin:0 auto}
 @media (min-width:960px){
-  #xhCol{background:rgba(255,255,255,.34);box-shadow:0 0 0 1px rgba(120,160,230,.22),0 0 70px rgba(110,150,230,.22)}
+  #xhCol{box-shadow:0 0 0 3px rgba(18,32,61,.18)}
 }
 
-/* ══════════ ヘッダー ══════════ */
+/* ══════════ ヘッダー ══════════
+   ★ 妖怪ウォッチ風では、ヘッダーは<b>すりガラスの帯ではなく</b>
+     「空の上にロゴの札とボタンの札を置いた」形にする。地は透かしたまま。 */
 .xh-top{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:8px;
-  padding:calc(env(safe-area-inset-top,0px) + 5px) 12px 5px;
-  background:rgba(255,255,255,.78);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
-  border-bottom:1.5px solid rgba(120,160,230,.2)}
-#xhome .xh-brandbar{display:flex;align-items:center;gap:6px;min-width:0;flex-shrink:0}
-#xhome .xh-brandbar .xh-orb{width:26px;height:26px;object-fit:contain;flex-shrink:0;
-  filter:drop-shadow(0 2px 6px rgba(90,140,240,.5))}
-#xhome .xh-brandbar .xh-word{font-family:'Orbitron',sans-serif;font-size:13.5px;font-weight:900;letter-spacing:.06em;
-  line-height:1;white-space:nowrap;flex-shrink:0;
-  background:linear-gradient(100deg,#2b62d8,#6b4fd8 55%,#a24fd0);
-  -webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent;color:#2b62d8}
+  padding:calc(env(safe-area-inset-top,0px) + 8px) 10px 6px;
+  background:none;border:none}
+#xhome .xh-brandbar{display:flex;align-items:center;gap:5px;min-width:0;flex-shrink:0;
+  padding:5px 12px 5px 7px;border-radius:99px;
+  background:linear-gradient(180deg,#3f8ce8,#1f5cbe);
+  border:3px solid var(--yw-line);box-shadow:var(--yw-drop)}
+#xhome .xh-brandbar .xh-orb{width:25px;height:25px;object-fit:contain;flex-shrink:0;
+  filter:drop-shadow(0 2px 0 rgba(18,32,61,.5))}
+#xhome .xh-brandbar .xh-word{font-family:'Orbitron',sans-serif;font-size:14px;font-weight:900;
+  letter-spacing:.05em;line-height:1;white-space:nowrap;flex-shrink:0;
+  color:#fff;-webkit-text-fill-color:#fff;background:none;
+  /* 濃紺のふちどり。妖怪ウォッチのロゴらしい「太い縁」を出す。 */
+  text-shadow:-2px 0 var(--yw-line),2px 0 var(--yw-line),0 -2px var(--yw-line),0 2px var(--yw-line),
+              -2px -2px var(--yw-line),2px -2px var(--yw-line),-2px 2px var(--yw-line),2px 2px var(--yw-line),
+              0 4px 0 rgba(18,32,61,.45)}
 
-/* 右上アクション（AI / メール / お知らせ / ミッション） */
+/* 右上アクション（スケジュール / ショップ / メール / お知らせ / ミッション）
+   ★ 一つずつ「金の枠の丸い札」にして、下に小さく名前を出す。 */
 .xh-acts{display:flex;gap:4px;flex-shrink:0}
 .xh-act{position:relative;padding:0;border:none;background:none;cursor:pointer;
-  display:flex;flex-direction:column;align-items:center;gap:1px;color:var(--xh-ink);width:38px}
-.xh-act .ic{width:33px;height:33px;border-radius:11px;display:flex;align-items:center;justify-content:center;
-  background:#fff;border:1.5px solid rgba(120,160,230,.28);box-shadow:var(--xh-shadow-s);
-  transition:transform .15s,box-shadow .15s}
-.xh-act:active .ic{transform:scale(.92)}
-.xh-act .ic svg{width:19px;height:19px}
-.xh-act.ai .ic{background:linear-gradient(150deg,#8fe3ff,#b49bff 55%,#ff9fd2);border-color:rgba(255,255,255,.9);
-  box-shadow:0 5px 16px rgba(140,120,255,.42)}
-.xh-act .lb{font-size:8px;font-weight:800;color:var(--xh-sub);white-space:nowrap}
-.xh-act .bdg{position:absolute;top:-4px;right:0;min-width:16px;height:16px;padding:0 4px;border-radius:99px;
-  background:#ff4d6a;color:#fff;font-family:'Orbitron',sans-serif;font-size:9px;font-weight:700;
-  display:none;align-items:center;justify-content:center;border:2px solid #fff;line-height:1;
-  box-shadow:0 2px 6px rgba(255,77,106,.4)}
+  display:flex;flex-direction:column;align-items:center;gap:2px;color:var(--xh-ink);width:39px}
+/* ★★ 2026-09-10b イメージ案に合わせて<b>白い地＋金の内わく</b>にした。
+   外から「濃紺のふち → 金のわく → 白」の三重。カードと同じ組み立てにそろえる。 */
+.xh-act .ic{width:36px;height:36px;border-radius:13px;display:flex;align-items:center;justify-content:center;
+  background:#fff;
+  border:3px solid var(--yw-line);
+  box-shadow:0 0 0 2.5px var(--yw-gold) inset,0 3px 0 rgba(18,32,61,.3);
+  transition:transform .12s,box-shadow .12s}
+.xh-act:active .ic{transform:translateY(3px);box-shadow:0 0 0 2.5px var(--yw-gold) inset,0 0 0 rgba(18,32,61,.3)}
+.xh-act .ic svg{width:20px;height:20px}
+.xh-act .lb{font-size:8px;font-weight:900;color:var(--yw-line);white-space:nowrap;
+  text-shadow:0 1px 0 rgba(255,255,255,.9)}
+.xh-act .bdg{position:absolute;top:-5px;right:-2px;min-width:17px;height:17px;padding:0 4px;border-radius:99px;
+  background:var(--yw-red);color:#fff;font-family:'Orbitron',sans-serif;font-size:9px;font-weight:700;
+  display:none;align-items:center;justify-content:center;border:2.5px solid var(--yw-line);line-height:1;
+  box-shadow:0 2px 0 rgba(18,32,61,.35)}
 .xh-act .bdg.show{display:flex}
-@media (max-width:360px){
-  .xh-act{width:35px}.xh-act .ic{width:31px;height:31px;border-radius:10px}.xh-act .ic svg{width:17px;height:17px}
-  .xh-act .lb{font-size:7.5px}
-  #xhome .xh-brandbar .xh-orb{width:23px;height:23px}
-  #xhome .xh-brandbar .xh-word{font-size:12px;letter-spacing:.02em}
+@media (max-width:380px){
+  .xh-act{width:35px}.xh-act .ic{width:32px;height:32px;border-radius:11px;border-width:2.5px}
+  .xh-act .ic svg{width:18px;height:18px}
+  .xh-act .lb{font-size:7px}
+  #xhome .xh-brandbar{padding:4px 9px 4px 5px}
+  #xhome .xh-brandbar .xh-orb{width:21px;height:21px}
+  #xhome .xh-brandbar .xh-word{font-size:11.5px;letter-spacing:.01em}
+}
+
+/* ★★ 2026-09-10b とても狭い画面（320px 級）では、上のバーが<b>横にはみ出す</b>。
+   ロゴの札＋5つのボタンで 349px 必要だったため。
+   ここだけ一段小さくして収める（形は変えない）。 */
+@media (max-width:345px){
+  .xh-top{padding-left:7px;padding-right:7px;gap:5px}
+  .xh-acts{gap:2px}
+  .xh-act{width:31px}
+  .xh-act .ic{width:29px;height:29px;border-radius:10px;border-width:2.5px}
+  .xh-act .ic svg{width:16px;height:16px}
+  .xh-act .lb{font-size:6.5px}
+  #xhome .xh-brandbar{padding:3px 8px 3px 4px;gap:3px}
+  #xhome .xh-brandbar .xh-orb{width:18px;height:18px}
+  #xhome .xh-brandbar .xh-word{font-size:10px}
 }
 
 /* ══════════ スクロール領域 ══════════ */
 /* xevarion.css の `section{padding:clamp(30px,4vw,54px) 0}` が漏れるので打ち消す */
 #xhome section{padding:0;margin:0}
-/* ★★ 2026-08-25b ご指定により<b>上をコンパクトに詰めた</b>
-   （所持数の行を消したぶん、まわりの余白も一段つめる）。 */
 .xh-scroll{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;
-  padding:8px 14px 18px;display:flex;flex-direction:column;gap:11px}
+  padding:5px 12px 18px;display:flex;flex-direction:column;gap:9px}
 
-/* 角丸カード。左右に余白をとってゆったり見せる。 */
-.xh-panel{background:var(--xh-card);border-radius:22px;box-shadow:var(--xh-shadow);
-  border:1.5px solid rgba(255,255,255,.9);padding:13px 14px}
+/* ══ カード（この見た目のかなめ）══
+   外から「濃紺の太線 → 金の帯 → クリームの地」の三重。 */
+/* ★ 右上にうっすら<b>うずまき</b>を入れる（イメージ案の透かし）。
+   背景色と1枚の指定にまとめること。別々に書くと後の指定で消える。 */
+.xh-panel{border-radius:26px;
+  border:3.5px solid var(--yw-line);
+  box-shadow:var(--yw-frame),var(--yw-drop);
+  padding:11px 13px;
+  background:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M20 40c0-11 9-20 20-20s20 9 20 20-9 20-20 20c-7.4 0-13.4-6-13.4-13.4S32.6 33 40 33s11 4.9 11 11' fill='none' stroke='%232f7fe0' stroke-opacity='.11' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 10px top 8px/52px,var(--yw-cream)}
 .xh-sec{display:block}
 
 /* オフライン帯 */
 .xh-offline{display:none;align-items:center;justify-content:center;gap:6px;
-  padding:9px 14px;border-radius:16px;font-size:11px;font-weight:800;color:#a35b00;
-  background:linear-gradient(120deg,#ffe9b8,#ffd8a8);border:1.5px solid rgba(255,170,60,.5);
-  box-shadow:var(--xh-shadow-s);text-align:center;line-height:1.6}
+  padding:10px 14px;border-radius:20px;font-size:11px;font-weight:900;color:#7a3c00;
+  background:linear-gradient(180deg,#ffe9b8,#ffcf86);
+  border:3px solid var(--yw-line);box-shadow:var(--yw-drop);
+  text-align:center;line-height:1.6}
 body.xh-off .xh-offline{display:flex}
 
 /* ── プロフィールカード ── */
-/* ★★ 2026-08-25b 「キャラクター N体 所持」の行を廃止し、カードの高さを一段つめた。
-   ・パネルの上下パディング 13px → 9px
-   ・アイコン 50px → 44px
-   ・名前の下（レベル・スタミナ）の間かく 6px → 4px */
-.xh-prof{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:9px 12px}
-.xh-uidline{font-size:10.5px;font-weight:700;color:var(--xh-sub);margin-top:3px;
+/* ══ プロフィール（★★ 2026-09-10b 作り直し・ご指定）══
+   ・名前の行（.xh-phead）のあと、
+     <b>レベル｜スタミナ</b> と <b>XEVA｜ジェム</b> を
+     <b>まったく同じ大きさ</b>の札で 2段×2列にならべる。
+   ・前は スタミナとレベルが名前のとなり（.xh-pmeta の中）にあり、
+     名前の長さで幅が変わるので、下の XEVA・ジェムと大きさがそろわなかった。
+     index.html で<b>4つを兄弟にした</b>ので、ここで格子に組める。 */
+/* ══ プロフィール（★★ 2026-09-10c ご指定：札を名前の右に2列で）══
+   ならび … [ キャラの絵 ][ 名前 ] │ [ Lv ｜ スタミナ ]
+                                   │ [ XEVA ｜ ジェム ]
+   ★ 右の4つは<b>幅を決め打ち</b>（--xh-pw）。名前が長くても札の大きさが変わらないように。
+     名前のほうが縮んで「…」になる。
+   ★ 画面が狭いとき（375px 未満）は、右に置くと名前が読めなくなるので
+     <b>下に回す</b>（この下の @media）。 */
+/* 4つの札の幅。★ ここだけで決める。
+   88px だと「76,376」が「76,3…」と切れたので 98px にした。
+   数字は最大7桁（223,318）を見こむこと。 */
+:root{ --xh-pw:98px }
+.xh-prof{display:flex;align-items:center;gap:8px;padding:8px 10px}
+.xh-phead{flex:1 1 auto;min-width:0;display:flex;align-items:center;gap:8px}
+.xh-pgrid{flex:0 0 auto;display:flex;flex-direction:column;gap:5px}
+.xh-uidline{font-size:10.5px;font-weight:800;color:var(--xh-sub);margin-top:3px;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.xh-av{position:relative;width:44px;height:44px;flex-shrink:0;border-radius:14px;overflow:hidden;
-  border:none;padding:0;cursor:pointer;background:linear-gradient(150deg,#8fd8ff,#b9a3ff);
-  box-shadow:0 0 0 3px #fff,0 6px 18px rgba(110,150,230,.34);transition:transform .16s}
-.xh-av:active{transform:scale(.94)}
+/* ★★ 2026-09-10b ご指定により<b>角の取れた正方形</b>にした（前は丸）。
+   まわりの金のふちはそのまま残す（時計のベゼルに見せるため）。 */
+.xh-av{position:relative;width:46px;height:46px;flex-shrink:0;border-radius:15px;overflow:hidden;
+  border:3.5px solid var(--yw-line);padding:0;cursor:pointer;
+  background:linear-gradient(160deg,#9fdcff,#5aa8ee);
+  box-shadow:0 0 0 3px var(--yw-gold),0 4px 0 rgba(18,32,61,.3);
+  transition:transform .12s,box-shadow .12s}
+.xh-av:active{transform:translateY(3px);box-shadow:0 0 0 3px var(--yw-gold),0 0 0 rgba(18,32,61,.3)}
 .xh-av img{width:100%;height:100%;object-fit:cover;display:block}
 .xh-av .xh-av-init{display:flex;width:100%;height:100%;align-items:center;justify-content:center;
-  font-family:'Orbitron',sans-serif;font-size:18px;font-weight:700;color:#fff}
+  font-family:'Orbitron',sans-serif;font-size:16px;font-weight:700;color:#fff;
+  text-shadow:0 2px 0 rgba(18,32,61,.45)}
 .xh-pmeta{flex:1 1 auto;min-width:0}
-.xh-namerow{display:flex;align-items:center;gap:6px}
-/* ══ ★★ 2026-08-24 レベル＋スタミナ（XEVARION 全体のステータス）══
+.xh-namerow{display:flex;align-items:center;gap:5px;min-width:0}
+/* ══ レベル＋スタミナ（XEVARION 全体のステータス）══
    ・レベルは MagiBurst のプレイヤーLvと<b>同じもの</b>。MagiLex でも上がる。
    ・スタミナは MagiBurst の1プレイで10減り、2分で1／💎2で50／MagiLex の確認テストで50 戻る。 */
-.xh-status{display:flex;align-items:center;gap:6px;margin-top:4px;flex-wrap:wrap}
-.xh-lv{display:flex;align-items:center;gap:5px;padding:3px 9px 4px;border-radius:99px;
-  background:linear-gradient(120deg,#eef3ff,#f8f5ff);border:1.5px solid rgba(120,150,255,.42);
-  font-weight:900;font-size:11px;color:#4358a8;line-height:1.15;position:relative;cursor:pointer}
-.xh-lv small{font-size:8.5px;opacity:.75}
-.xh-lv b{font-family:'Orbitron',sans-serif;font-size:13px}
-.xh-lv .xh-lvbar{display:block;width:44px;height:4px;border-radius:99px;
-  background:rgba(120,150,255,.24);overflow:hidden}
+/* ══ 4つの札（レベル・スタミナ・XEVA・ジェム）══
+   ★ 2列の格子を2つ重ねるだけ。高さ・ふち・角まるは下の1か所でまとめて決めるので、
+     <b>4つとも必ず同じ大きさ</b>になる。片方だけ直さないこと。 */
+.xh-status,.xh-wallet{display:grid;grid-template-columns:var(--xh-pw) var(--xh-pw);gap:5px;margin:0;align-items:stretch}
+/* 4つに共通の形 */
+.xh-lv,.xh-stam,.xh-pill{
+  display:flex;align-items:center;gap:3px;
+  width:100%;height:30px;box-sizing:border-box;padding:0 3px 0 6px;
+  border:2.5px solid var(--yw-line);border-radius:99px;
+  box-shadow:0 2.5px 0 rgba(18,32,61,.28);
+  font-family:inherit;cursor:pointer;overflow:hidden;
+  transition:transform .12s,box-shadow .12s}
+.xh-lv:active,.xh-stam:active,.xh-pill:active{transform:translateY(3px);box-shadow:0 0 0 rgba(18,32,61,.28)}
+.xh-lv{background:linear-gradient(180deg,#eaf3ff,#c9e0ff);
+  font-weight:900;font-size:10px;color:#17458f;line-height:1.15;position:relative;padding-right:9px}
+.xh-lv small{font-size:7.5px;opacity:.8;flex:none}
+.xh-lv b{font-family:'Orbitron',sans-serif;font-size:11.5px;flex:none}
+/* ★ バーは<b>残りの幅いっぱい</b>に伸ばす。固定幅にすると札の中に空きが出る。 */
+.xh-lv .xh-lvbar{display:block;flex:1;min-width:8px;height:5px;border-radius:99px;
+  background:rgba(18,32,61,.22);overflow:hidden;border:1.5px solid rgba(18,32,61,.4)}
 .xh-lv .xh-lvbar i{display:block;height:100%;border-radius:99px;
-  background:linear-gradient(90deg,#4b8bff,#9b7bff)}
-.xh-stam{display:flex;align-items:center;gap:3px;padding:3px 4px 3px 7px;border-radius:99px;
-  background:linear-gradient(120deg,#eafaf4,#fbfffd);border:1.5px solid rgba(20,180,140,.42);
-  font-weight:900;font-size:11.5px;color:#0e7d63;cursor:pointer;line-height:1}
-.xh-stam img{width:17px;height:17px;object-fit:contain;display:block}
-.xh-stam .sv{font-family:'Orbitron',sans-serif;font-size:13px}
-.xh-stam .sx{font-style:normal;font-size:9px;opacity:.6}
-.xh-stam .sp{font-style:normal;font-weight:900;font-size:13px;line-height:1;margin-left:2px;
-  width:17px;height:17px;border-radius:50%;display:flex;align-items:center;justify-content:center;
-  background:linear-gradient(140deg,#3fd9b0,#14a877);color:#fff}
-.xh-stam.low{color:#c22c4e;border-color:rgba(224,64,94,.5);background:linear-gradient(120deg,#fff0f4,#fffbfc)}
-.xh-stam.low .sp{background:linear-gradient(140deg,#ff9db4,#e0405e)}
-.xh-lv:active,.xh-stam:active{transform:scale(.96)}
+  background:linear-gradient(90deg,#3f8ce8,#7cc4ff)}
+.xh-stam{background:linear-gradient(180deg,#e6fbf1,#b8f0d8);
+  font-weight:900;font-size:10px;color:#0b6b52;line-height:1}
+.xh-stam img{width:14px;height:14px;object-fit:contain;display:block;flex:none}
+/* ★ 数字のかたまりを右へ寄せる（4つの札で「右はしにボタン」の形をそろえるため） */
+.xh-stam .sv{font-family:'Orbitron',sans-serif;font-size:11px;margin-left:auto;flex:none}
+.xh-stam .sx{font-style:normal;font-size:7.5px;opacity:.65;flex:none}
+.xh-stam .sp{font-style:normal;font-weight:900;font-size:11px;line-height:1;margin-left:1px;
+  width:18px;height:18px;border-radius:50%;display:flex;align-items:center;justify-content:center;
+  background:var(--yw-green);color:#fff;border:2px solid var(--yw-line);flex:none}
+.xh-stam.low{color:#a8203f;background:linear-gradient(180deg,#ffeef2,#ffc9d6)}
+.xh-stam.low .sp{background:var(--yw-red)}
 /* スタミナのシートの中身 */
 .xh-stamnow{display:flex;align-items:center;justify-content:center;gap:8px;margin:2px 0 10px;
-  font-family:'Orbitron',sans-serif;font-weight:900;font-size:26px;color:#0e7d63}
+  font-family:'Orbitron',sans-serif;font-weight:900;font-size:26px;color:#0b6b52}
 .xh-stamnow img{width:30px;height:30px;object-fit:contain}
 .xh-stamnow em{font-style:normal;font-size:14px;opacity:.55}
-.xh-stambar{height:10px;border-radius:99px;background:rgba(20,180,140,.16);overflow:hidden;margin-bottom:6px}
+.xh-stambar{height:12px;border-radius:99px;background:rgba(18,32,61,.16);overflow:hidden;margin-bottom:6px;
+  border:2px solid var(--yw-line)}
 .xh-stambar i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#3fd9b0,#14a877)}
-.xh-stamway{display:flex;gap:9px;align-items:flex-start;padding:10px 12px;border-radius:14px;
-  background:#fff;border:1.5px solid rgba(120,160,230,.2);box-shadow:var(--xh-shadow-s);margin-bottom:7px}
+.xh-stamway{display:flex;gap:9px;align-items:flex-start;padding:10px 12px;border-radius:16px;
+  background:var(--yw-cream);border:2.5px solid var(--yw-line);
+  box-shadow:0 3px 0 rgba(18,32,61,.22);margin-bottom:8px}
 .xh-stamway .ic{font-size:18px;line-height:1.2;flex:none}
 /* ★ 見出しの <b> だけ1行に。本文の中で強調に使う <b> は<b>行の中</b>に置く
    （ここを .xh-stamway b にすると、本文の強調まで改行されてぶつ切りになる） */
 .xh-stamway > div > b{display:block;font-size:11.5px;font-weight:900;color:var(--xh-ink)}
 .xh-stamway p{margin:2px 0 0;font-size:10.5px;font-weight:700;color:var(--xh-sub);line-height:1.65}
 .xh-stamway p b{display:inline;color:var(--xh-ink)}
-.xh-uname{font-size:15px;font-weight:900;color:var(--xh-ink);max-width:34vw;
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.xh-pen{background:rgba(120,160,230,.14);border:none;border-radius:8px;padding:4px;cursor:pointer;
-  color:var(--xh-sub);line-height:0;flex-shrink:0}
-.xh-pen svg{width:13px;height:13px}
-/* ── XEVA（アバター行の右側）。丸ごとボタンで、末尾の「？」から入手方法へ ── */
-/* ウォレット（XEVA ＋ 💎ジェム）。狭い画面では2段に折り返す */
-.xh-wallet{display:flex;align-items:center;gap:6px;margin-left:auto;flex-wrap:wrap;justify-content:flex-end}
-.xh-pill{display:flex;align-items:center;gap:6px;padding:5px 5px 5px 8px;border-radius:99px;
-  flex-shrink:0;cursor:pointer;font-family:inherit;
-  background:linear-gradient(120deg,#fff8e6,#fffdf7);border:1.5px solid rgba(255,201,60,.55);
-  box-shadow:var(--xh-shadow-s);transition:transform .14s}
-.xh-pill:active{transform:scale(.96)}
-.xh-pill .cico{width:20px;height:20px;flex-shrink:0;object-fit:contain}
-.xh-pill .cval{font-family:'Orbitron',sans-serif;font-size:14px;font-weight:700;color:#c07a00;
-  padding-right:2px}
-/* XEVA入手方法（ピルに内包） */
-.xh-info{width:22px;height:22px;flex-shrink:0;border-radius:50%;padding:0;border:none;
-  background:linear-gradient(150deg,#ffd257,#ffab3c);
-  color:#fff;font-family:'Orbitron',sans-serif;font-size:12px;font-weight:900;line-height:1;
-  display:flex;align-items:center;justify-content:center;box-shadow:0 2px 7px rgba(255,180,60,.5)}
+.xh-uname{font-size:14px;font-weight:900;color:#17458f;max-width:none;flex:0 1 auto;min-width:0;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  text-shadow:0 1.5px 0 rgba(255,255,255,.85)}
+.xh-pen{background:linear-gradient(180deg,#fffdf4,var(--yw-cream-d));
+  border:2.5px solid var(--yw-line);border-radius:9px;padding:3px;cursor:pointer;
+  color:var(--yw-line);line-height:0;flex-shrink:0;box-shadow:0 2px 0 rgba(18,32,61,.28)}
+.xh-pen svg{width:12px;height:12px}
+.xh-pen:active{transform:translateY(2px);box-shadow:0 0 0 rgba(18,32,61,.28)}
+/* ── ウォレット（XEVA ＋ 💎ジェム）── */
+.xh-pill{background:linear-gradient(180deg,#fff6d8,#ffdf8e)}
+.xh-pill .cico{width:15px;height:15px;flex-shrink:0;object-fit:contain}
+/* ★ 数字は<b>残りの幅いっぱい＋右そろえ</b>。桁が増えても札の形が変わらない。 */
+.xh-pill .cval{font-family:'Orbitron',sans-serif;font-size:11px;font-weight:700;color:#8a5300;
+  flex:1;min-width:0;text-align:right;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+/* XEVA入手方法（札に内包）。★ スタミナの「＋」と<b>同じ大きさ</b>にそろえる。 */
+.xh-info{width:18px;height:18px;flex-shrink:0;border-radius:50%;padding:0;
+  border:2px solid var(--yw-line);
+  background:linear-gradient(180deg,#ffd257,#f0951c);
+  color:#fff;font-family:'Orbitron',sans-serif;font-size:9px;font-weight:900;line-height:1;
+  display:flex;align-items:center;justify-content:center;
+  text-shadow:0 1px 0 rgba(18,32,61,.5)}
 /* 💎ジェムのピルは紫系にして XEVA と一目で区別できるようにする */
-.xh-pill.gem{background:linear-gradient(120deg,#f4ecff,#fdfbff);border-color:rgba(155,123,255,.5)}
-.xh-pill.gem .cval{color:#7b4fd8}
-.xh-pill.gem .xh-info{background:linear-gradient(150deg,#b9a3ff,#8e6bff);
-  box-shadow:0 2px 7px rgba(142,107,255,.5)}
+.xh-pill.gem{background:linear-gradient(180deg,#f3ecff,#d6c4ff)}
+.xh-pill.gem .cval{color:#5a3aa8}
+.xh-pill.gem .xh-info{background:linear-gradient(180deg,#b9a3ff,#7d55e8)}
 /* 残高が動いたときに一度だけ光らせる（同期で反映されたことが見て分かる） */
 .xh-pill.bump{animation:xhPillBump .5s ease}
 @keyframes xhPillBump{
   0%{transform:scale(1)}
-  35%{transform:scale(1.11);box-shadow:0 0 0 6px rgba(155,123,255,.22)}
+  35%{transform:scale(1.11)}
   100%{transform:scale(1)}
 }
-@media (max-width:379px){
-  .xh-wallet{margin-left:0;margin-top:4px;width:100%;justify-content:flex-start}
+/* ★★ 2026-09-10d 画面が広いとき（PC など）の大きさ。
+   ホームの中身は #xhCol で<b>600px までしか広がらない</b>ので、
+   スマホ用の大きさのままだと、名前の欄だけがどんどん広くなり、
+   4つの札が<b>名前に対して小さく</b>見えていた（ご報告）。
+   広いときは札・キャラの絵・文字を<b>いっしょに</b>大きくして釣り合いを取る。
+   ★ 札の高さ・文字の大きさは必ず4つまとめて変えること（大きさをそろえるため）。 */
+@media (min-width:480px){
+  /* ★ 大きさの決めかた（2回はずしたので記録）
+       ・スマホと同じ（90px・高さ30）… 名前だけ大きくなって<b>札が小さすぎた</b>
+       ・142px・高さ40 ……………………… 今度は<b>札が大きすぎた</b>
+       → その<b>あいだ</b>の 118px・高さ35 に落ちつかせる。
+     ★ 幅は「223,318」（7桁）が切れないことが下限。118px で実測ぶん足りる。 */
+  :root{ --xh-pw:118px }
+  .xh-prof{padding:10px 13px;gap:10px}
+  .xh-phead{gap:10px}
+  .xh-pgrid{gap:6px}
+  .xh-status,.xh-wallet{gap:6px}
+  .xh-av{width:52px;height:52px;border-radius:17px}
+  .xh-av .xh-av-init{font-size:19px}
+  .xh-uname{font-size:16px}
+  .xh-pen{padding:4px}
+  .xh-pen svg{width:13px;height:13px}
+  .xh-lv,.xh-stam,.xh-pill{height:35px;padding:0 4px 0 8px;gap:4px;border-width:2.5px;
+    box-shadow:0 3px 0 rgba(18,32,61,.28)}
+  .xh-lv small{font-size:8.5px}
+  .xh-lv b{font-size:13px}
+  .xh-lv .xh-lvbar{height:6px}
+  .xh-stam img{width:16px;height:16px}
+  .xh-stam .sv{font-size:12.5px}
+  .xh-stam .sx{font-size:8.5px}
+  .xh-pill .cico{width:17px;height:17px}
+  .xh-pill .cval{font-size:12.5px}
+  .xh-info,.xh-stam .sp{width:21px;height:21px;font-size:10px;border-width:2px}
+}
+
+/* ★★ 幅がぎりぎりのとき（360〜389px ＝ iPhone の標準的な幅）は、
+   札を<b>少し細く</b>して名前の右に置いたままにする。
+   ここで下に回してしまうと、いちばん多い幅のときだけご指定の形にならないため。
+   ★ 中身も一段小さくすること。幅だけ詰めると数字が「…」で切れる。 */
+@media (max-width:389px){
+  :root{ --xh-pw:90px }
+  .xh-av{width:42px;height:42px;border-radius:14px}
+  .xh-uname{font-size:13px}
+  .xh-lv,.xh-stam,.xh-pill{padding-left:5px;gap:2px}
+  .xh-pill .cval,.xh-stam .sv{font-size:10.5px}
+  .xh-pill .cico{width:14px;height:14px}
+  .xh-info,.xh-stam .sp{width:16px;height:16px;font-size:8.5px}
+  .xh-lv b{font-size:11px}
+}
+/* ★★ ここより狭いと、名前の欄が20pxほどしか残らず名前が読めなくなるので、
+   そのときだけ札を<b>名前の下</b>に回す。 */
+@media (max-width:359px){
+  .xh-prof{display:block;padding:8px 10px}
+  .xh-phead{display:flex;align-items:center;gap:8px;min-width:0}
+  .xh-pgrid{margin-top:7px}
+  .xh-status,.xh-wallet{grid-template-columns:1fr 1fr}
+  .xh-uname{font-size:15px}
 }
 
 /* 文章の中に置く💎アイコン（ガイド・お知らせなど） */
 .xv-gemico{width:1.05em;height:1.05em;vertical-align:-.16em;object-fit:contain;
   margin:0 .1em;display:inline-block}
 
-/* ── セクション見出し ── */
-.xh-sechead{display:flex;align-items:center;justify-content:space-between;gap:8px;margin:0 2px 0}
-.xh-sechead .t{display:flex;align-items:center;gap:7px;font-size:13.5px;font-weight:900;color:var(--xh-ink)}
-.xh-sechead .t .dot{width:8px;height:8px;border-radius:3px;flex-shrink:0;
-  background:linear-gradient(135deg,#4b8bff,#9b7bff)}
-.xh-sechead .more{font-size:11px;font-weight:800;color:#4b8bff;background:rgba(75,139,255,.1);
-  border:none;border-radius:99px;padding:6px 12px;cursor:pointer;font-family:'Noto Sans JP',sans-serif}
-.xh-sechead .more:active{transform:scale(.95)}
+/* ── セクション見出し ──
+   ★ 妖怪ウォッチ風の「札」。青い帯に白い太字＋濃紺のふちどり。
+     左に丸い印を重ねて貼り出したように見せる。 */
+.xh-sechead{display:flex;align-items:center;justify-content:space-between;gap:8px;
+  margin:0 2px 0;padding-left:12px}
+/* ★★ 2026-09-10b イメージ案に合わせて<b>濃紺の札</b>にした（前は青）。
+   まわりに白い細い線を1本入れると、空の上でも札の形がはっきり出る。 */
+.xh-sechead .t{position:relative;display:inline-flex;align-items:center;gap:8px;
+  padding:5px 15px 6px 21px;border-radius:99px;
+  background:linear-gradient(180deg,#24406f,#152742);
+  border:3px solid var(--yw-line);
+  box-shadow:0 0 0 2px rgba(255,255,255,.5) inset,var(--yw-drop);
+  font-size:13px;font-weight:900;color:#fff;letter-spacing:.02em;
+  text-shadow:0 2px 0 rgba(0,0,0,.45)}
+/* 見出しの左に貼り出す丸い印（XEVARION の炎のしるし）。
+   ★★ 2026-09-10b 欄ごとに色を変える（イメージ案どおり）。
+     イベント＝赤 ／ アップデート＝青 ／ アプリ＝紫。
+     色は index.html の .dot に付けた ev / up / app で切りかえる。 */
+.xh-sechead .t .dot{position:absolute;left:-14px;top:50%;transform:translateY(-50%);
+  width:28px;height:28px;border-radius:50%;flex-shrink:0;
+  background:linear-gradient(180deg,#ff8a3d,#e8442f);
+  border:3.5px solid var(--yw-line);box-shadow:0 3px 0 rgba(18,32,61,.32)}
+.xh-sechead .t .dot.up{background:linear-gradient(180deg,#6fb6ff,#1f5cbe)}
+.xh-sechead .t .dot.app{background:linear-gradient(180deg,#b49bff,#7040d8)}
+/* 丸の中の絵。ev（イベント）は上で入れた炎のまま。 */
+.xh-sechead .t .dot.up::after{background:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M10.4 2.8h3.2v6.6h3.9L12 16.2 6.5 9.4h3.9Z' fill='%23ffffff'/%3E%3Crect x='5.2' y='17.6' width='13.6' height='3.2' rx='1.6' fill='%23ffffff'/%3E%3C/svg%3E") no-repeat center/15px}
+.xh-sechead .t .dot.app::after{background:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cg fill='%23ffffff'%3E%3Crect x='3.4' y='3.4' width='7.6' height='7.6' rx='2.4'/%3E%3Crect x='13' y='3.4' width='7.6' height='7.6' rx='2.4'/%3E%3Crect x='3.4' y='13' width='7.6' height='7.6' rx='2.4'/%3E%3Crect x='13' y='13' width='7.6' height='7.6' rx='2.4'/%3E%3C/g%3E%3C/svg%3E") no-repeat center/15px}
+/* 印を少し大きくして、色がはっきり読めるようにする */
+.xh-sechead .t .dot{width:31px;height:31px;left:-15px}
+/* ★★ 2026-09-10d 丸の中の絵を<b>欄の中身をあらわすもの</b>に（ご指定）。
+     開催中のイベント … 炎（お祭り）
+     アップデート情報 … ダウンロードの矢印
+     アプリ ………………… 4つのマス
+   ＝ 見出しの文字を読まなくても、何の欄かが絵で分かる。
+   ★ 色（赤・青・紫）とカードの透かしの絵も、これと同じ組み合わせにそろえてある。 */
+.xh-sechead .t .dot::after{content:"";position:absolute;inset:0;
+  background:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2.4c.6 4.3-4.9 5.4-4.9 10.7a4.9 4.9 0 0 0 9.8 0c0-2.1-1-3.6-2.1-4.8.3 1.7-.4 2.8-1.4 2.8-1 0-1.7-.9-1.7-2.3 0-2.5 1.2-3.8.3-6.4Z' fill='%23ffffff'/%3E%3C/svg%3E") no-repeat center/15px}
+.xh-sechead .more{font-size:10.5px;font-weight:900;color:#fff;
+  background:linear-gradient(180deg,#4f9bf0,#1f5cbe);
+  border:2.5px solid var(--yw-line);border-radius:99px;padding:5px 12px 6px;cursor:pointer;
+  font-family:'Noto Sans JP',sans-serif;
+  box-shadow:0 0 0 2px rgba(255,255,255,.45) inset,0 3px 0 rgba(18,32,61,.3);
+  text-shadow:0 1.5px 0 rgba(18,32,61,.5)}
+.xh-sechead .more:active{transform:translateY(3px);box-shadow:0 0 0 rgba(18,32,61,.3)}
 
 /* ── イベントバナー（正方形画像＋テキストの横長カード） ── */
-.xh-evwrap{position:relative;overflow:hidden;border-radius:22px}
+.xh-evwrap{position:relative;overflow:hidden;border-radius:26px}
 .xh-evtrack{display:flex;transition:transform .42s cubic-bezier(.2,.8,.3,1)}
 /* ★ 1枚の幅は「枠とぴったり同じ」でなければならない。
    送りが translateX(-i*100%)＝枠1つぶんなので、1枚でもはみ出すと、その差が
    1枚めくるごとに積み上がり、1枚目はぴったりなのに2枚目から少しずつズレていく。
    はみ出す原因は2つあり、両方をふさぐこと:
    ① box-sizing:border-box —— このページには全体への box-sizing 指定が無いので、
-      既定の content-box のままだと幅が「100% ＋ padding 24px ＋ border 3px」になる。
+      既定の content-box のままだと幅が「100% ＋ padding ＋ border」になる。
    ② min-width:0 —— フレックスの子は既定が min-width:auto なので、
       中身（とくに .evt2 の white-space:nowrap の1行）より小さくなれない。
       長い文のイベントだけ flex-basis:100% を無視してふくらむ。
       ★ 文章の長さで表示が変わる＝新しいイベントを足したときに再発しやすいので、
         ここを消さないこと。 */
-.xh-ev{flex:0 0 100%;min-width:0;max-width:100%;box-sizing:border-box;display:flex;align-items:center;gap:12px;padding:12px;cursor:pointer;
-  background:var(--xh-card);box-shadow:var(--xh-shadow);border:1.5px solid rgba(255,255,255,.9);
-  border-radius:22px}
-.xh-ev .evimg{width:82px;height:82px;flex-shrink:0;border-radius:18px;overflow:hidden;
-  box-shadow:0 4px 12px rgba(90,130,210,.22)}
+.xh-ev{flex:0 0 100%;min-width:0;max-width:100%;box-sizing:border-box;
+  display:flex;align-items:center;gap:10px;padding:9px;cursor:pointer;
+  border:3px solid var(--yw-line);border-radius:22px;
+  box-shadow:var(--yw-frame),var(--yw-drop);
+  /* 右上の透かし。★ 欄ごとに絵を変えて「何の欄か」を分かるようにする
+     （イベント＝炎／アップデート＝うずまき）。背景色と<b>1枚の指定</b>にまとめる。 */
+  background:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M20 40c0-11 9-20 20-20s20 9 20 20-9 20-20 20c-7.4 0-13.4-6-13.4-13.4S32.6 33 40 33s11 4.9 11 11' fill='none' stroke='%232f7fe0' stroke-opacity='.11' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 10px top 8px/54px,var(--yw-cream)}
+.xh-ev .evimg{width:64px;height:64px;flex-shrink:0;border-radius:15px;overflow:hidden;
+  border:2.5px solid var(--yw-line);box-shadow:0 2.5px 0 rgba(18,32,61,.28)}
 .xh-ev .evimg img{width:100%;height:100%;object-fit:cover;display:block}
 .xh-ev .evbody{flex:1;min-width:0}
-.xh-ev .evtag{display:inline-block;font-size:9px;font-weight:900;letter-spacing:.06em;color:#fff;
-  border-radius:99px;padding:3px 10px;background:linear-gradient(135deg,#ff9f2e,#ff6f91);margin-bottom:5px}
-.xh-ev .evt1{font-size:14.5px;font-weight:900;color:var(--xh-ink);line-height:1.35;
+.xh-ev .evtag{display:inline-block;font-size:8.5px;font-weight:900;letter-spacing:.05em;color:#fff;
+  border-radius:99px;padding:2px 9px 2.5px;margin-bottom:4px;
+  background:linear-gradient(180deg,#ff7a4d,#e8442f);
+  border:2px solid var(--yw-line);box-shadow:0 2px 0 rgba(18,32,61,.3);
+  text-shadow:0 1px 0 rgba(18,32,61,.45)}
+.xh-ev .evt1{font-size:13px;font-weight:900;color:#17458f;line-height:1.3;
   overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
-.xh-ev .evt2{margin-top:3px;font-size:11px;font-weight:700;color:#e0577f;line-height:1.4;
+.xh-ev .evt2{margin-top:2px;font-size:10px;font-weight:800;color:#c8362d;line-height:1.35;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.xh-ev .evt3{margin-top:4px;font-size:9.5px;font-weight:700;color:var(--xh-sub)}
-/* ★★ 2026-08-29b アップデート情報。イベントと同じ形のまま、差し色だけ青紫にして
+.xh-ev .evt3{margin-top:3px;font-size:8.5px;font-weight:800;color:#5a7099}
+/* ★★ 2026-09-10c 欄ごとの見分け（ご指定）。
+   ・開催中のイベント … 透かしは<b>赤い炎</b>／札は赤
+   ・アップデート情報 … 透かしは<b>青いうずまき</b>／札は青
+   ・アプリ ………………… 透かしは<b>紫の4つのマス</b>
+   絵と色をそろえておくと、見出しを読まなくても中身の見当がつく。 */
+#xhEvent .xh-ev{background:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 2.4c.6 4.3-4.9 5.4-4.9 10.7a4.9 4.9 0 0 0 9.8 0c0-2.1-1-3.6-2.1-4.8.3 1.7-.4 2.8-1.4 2.8-1 0-1.7-.9-1.7-2.3 0-2.5 1.2-3.8.3-6.4Z' fill='%23e8442f' fill-opacity='.13'/%3E%3C/svg%3E") no-repeat right 12px top 10px/46px,var(--yw-cream)}
+.xh-grid{background:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cg fill='%237040d8' fill-opacity='.13'%3E%3Crect x='2.5' y='2.5' width='8' height='8' rx='2.4'/%3E%3Crect x='13.5' y='2.5' width='8' height='8' rx='2.4'/%3E%3Crect x='2.5' y='13.5' width='8' height='8' rx='2.4'/%3E%3Crect x='13.5' y='13.5' width='8' height='8' rx='2.4'/%3E%3C/g%3E%3C/svg%3E") no-repeat right 11px top 9px/40px,var(--yw-cream) !important}
+
+/* ★★ 2026-08-29b アップデート情報。イベントと同じ形のまま、差し色だけ青にして
    「お知らせ」と「開催中のイベント」をひと目で見分けられるようにする。 */
-.xh-ev.up .evtag{background:linear-gradient(135deg,#4b8bff,#9b7bff)}
-.xh-ev.up .evt2{color:#4a63b8}
-.xh-ev.up .evt3{color:#6f7fa8;font-weight:800}
-.xh-evdots{display:flex;gap:6px;justify-content:center;margin-top:7px}
-.xh-evdots i{width:7px;height:7px;border-radius:50%;background:rgba(120,160,230,.32);cursor:pointer;transition:.2s}
-.xh-evdots i.on{background:linear-gradient(135deg,#4b8bff,#9b7bff);width:18px;border-radius:99px}
+.xh-ev.up .evtag{background:linear-gradient(180deg,#4f9bf0,#1f5cbe)}
+.xh-ev.up .evt2{color:#2a5aa8}
+.xh-ev.up .evt3{color:#5a7099;font-weight:800}
+.xh-evdots{display:flex;gap:5px;justify-content:center;margin-top:5px}
+.xh-evdots i{width:7px;height:7px;border-radius:50%;background:rgba(255,255,255,.75);cursor:pointer;
+  border:1.5px solid var(--yw-line);transition:.2s;box-sizing:border-box}
+.xh-evdots i.on{background:var(--yw-blue);width:17px;border-radius:99px}
 
 /* ══════════ アプリ（正方形アイコン） ══════════ */
-.xh-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px 6px;
-  background:var(--xh-card);border-radius:22px;border:1.5px solid rgba(255,255,255,.9);
-  box-shadow:var(--xh-shadow);padding:14px 10px}
-/* シート内のグリッドはカード背景を外す（シート自体が白いので二重にしない） */
+.xh-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:11px 5px;
+  border-radius:22px;
+  border:3px solid var(--yw-line);box-shadow:var(--yw-frame),var(--yw-drop);
+  padding:12px 8px;
+  background:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M20 40c0-11 9-20 20-20s20 9 20 20-9 20-20 20c-7.4 0-13.4-6-13.4-13.4S32.6 33 40 33s11 4.9 11 11' fill='none' stroke='%232f7fe0' stroke-opacity='.11' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 10px top 8px/52px,var(--yw-cream)}
+/* シート内のグリッドはカード背景を外す（シート自体が地を持っているので二重にしない） */
 .xh-grid.sheet{background:none;box-shadow:none;border:none;padding:0;margin-bottom:6px}
 .xh-app{display:flex;flex-direction:column;align-items:center;gap:5px;padding:0;border:none;
   background:none;cursor:pointer;min-width:0;text-decoration:none;color:inherit;
   font-family:'Noto Sans JP',sans-serif}
-.xh-sq{position:relative;width:100%;max-width:64px;aspect-ratio:1;border-radius:21px;overflow:hidden;
-  background:#fff;box-shadow:0 5px 16px rgba(90,130,210,.24);border:2px solid #fff;
-  transition:transform .15s,box-shadow .15s}
-.xh-app:active .xh-sq{transform:scale(.92)}
+.xh-sq{position:relative;width:100%;max-width:58px;aspect-ratio:1;border-radius:17px;overflow:hidden;
+  background:#fff;border:2.5px solid var(--yw-line);
+  box-shadow:0 3px 0 rgba(18,32,61,.3);
+  transition:transform .12s,box-shadow .12s}
+.xh-app:active .xh-sq{transform:translateY(3.5px);box-shadow:0 0 0 rgba(18,32,61,.3)}
 .xh-sq img{width:100%;height:100%;object-fit:cover;display:block}
 .xh-sq .glyph{width:100%;height:100%;display:flex;align-items:center;justify-content:center;
   font-size:24px;font-weight:900;color:#fff;letter-spacing:.06em;
-  background:linear-gradient(150deg,#7fd0ff,#a58bff 60%,#ff9fd2)}
-.xh-app .nm{font-size:9.5px;font-weight:900;color:var(--xh-ink);text-align:center;line-height:1.2;
+  background:linear-gradient(160deg,#7fd0ff,#5aa8ee 60%,#3f8ce8);
+  text-shadow:0 2px 0 rgba(18,32,61,.45)}
+.xh-app .nm{font-size:9.5px;font-weight:900;color:var(--yw-line);text-align:center;line-height:1.2;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
-.xh-app .sb{font-size:8px;font-weight:700;color:var(--xh-sub);text-align:center;line-height:1.2;
+.xh-app .sb{font-size:7.5px;font-weight:800;color:var(--xh-sub);text-align:center;line-height:1.2;
   white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
-/* アプリ別のカラーリング（アイコン枠の色） */
-.xh-app[data-tone="red"]    .xh-sq{box-shadow:0 5px 16px rgba(255,110,130,.4)}
-.xh-app[data-tone="blue"]   .xh-sq{box-shadow:0 5px 16px rgba(75,139,255,.4)}
-.xh-app[data-tone="violet"] .xh-sq{box-shadow:0 5px 16px rgba(155,123,255,.42)}
-.xh-app[data-tone="teal"]   .xh-sq{box-shadow:0 5px 16px rgba(63,217,176,.4)}
-.xh-app[data-tone="pink"]   .xh-sq{box-shadow:0 5px 16px rgba(255,122,184,.4)}
-.xh-app[data-tone="gold"]   .xh-sq{box-shadow:0 5px 16px rgba(255,201,60,.45)}
 /* オフラインで開けないアプリ */
-.xh-app.locked .xh-sq{filter:grayscale(.9) brightness(1.06);box-shadow:0 3px 10px rgba(90,130,210,.16)}
-.xh-app.locked .nm,.xh-app.locked .sb{color:rgba(111,130,173,.5)}
+.xh-app.locked .xh-sq{filter:grayscale(.9) brightness(1.06);box-shadow:0 2px 0 rgba(18,32,61,.2)}
+.xh-app.locked .nm,.xh-app.locked .sb{color:rgba(90,112,153,.55)}
 .xh-app.locked .xh-sq::after{content:"";position:absolute;inset:0;z-index:2;background:rgba(255,255,255,.5)
-  url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 10V7a5 5 0 0110 0v3' fill='none' stroke='%236f82ad' stroke-width='2.2'/%3E%3Crect x='5' y='10' width='14' height='10' rx='2.4' fill='%236f82ad'/%3E%3C/svg%3E") center/22px no-repeat}
+  url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 10V7a5 5 0 0110 0v3' fill='none' stroke='%2312203d' stroke-width='2.6'/%3E%3Crect x='5' y='10' width='14' height='10' rx='2.4' fill='%2312203d'/%3E%3C/svg%3E") center/22px no-repeat}
 
 /* ══════════ タブバー ══════════
-   ★ 2026-08-08 作り直し。「下に白い空白がある」ように見えていた本当の理由。
-
-   これまでは<b>バーの下に同じ色の板（::after）を敷く</b>方式だった。
-   ところがバーの背景は rgba(255,255,255,.9) ＋ backdrop-filter:blur() の
-   すりガラスで、板のほうは blur が掛からない<b>ただの半透明の白</b>。
-   ホームの背景は水色〜桃色のグラデーション（#xhBg）なので、
-     ・バー本体 … ぼかされた白（明るい）
-     ・板       … 背景の色がそのまま透ける（わずかに青い）
-   と色が食いちがい、境目が<b>バーの下端の線</b>のように見える。
-   ＝ 実際にはズレていなくても「バーが浮いて、下に空白がある」と見える。
-   （MagiBurst で起きなかったのは、あちらの背景がほぼ白で差が出ないため。）
-
-   ★ 直しかた: 板をやめ、<b>バー本体そのもの</b>を下へはみ出させる。
-     margin-bottom を負にして、そのぶん padding-bottom を足す。
-     ・中身（アイコン）の位置は今までと変わらない
-     ・はみ出した部分もバー本体なので、すりガラスが必ず<b>ひと続き</b>になる
-     ・何pxズレても、下に別の色の帯が出ることが原理的になくなる
-   位置そのものは xevarion.js の --xh-fixgap（符号つき実測）で両方向に直す。 */
-/* ★ 2026-08-10 作り直し（隙間の完全解消 ＋ カラー刷新）
-   ・はみ出しを 140px → --xh-dockover(240px) に増やした。xevarion.js の
-     測定誤差の上限（MAXG）は 130px なので、上下どちらへズレても
-     はみ出しが必ず画面の下端を越える＝隙間が原理的に出ない。
-   ・すりガラス（backdrop-filter）をやめて<b>不透明</b>にした。半透明だと
-     はみ出した部分と本体で背景の写りかたが変わり、境目が線に見えていた。
-   ・上端に虹のアクセント線（::before）を足し、下地をパステルのオーロラに。 */
-/* ★★ 2026-08-12b 「バーの中身が高い位置にあって、下に何もない帯が残る」の作り直し。
-   ── これまでの直しかたの限界 ──
-   これまでは「箱の下端」と「見えている下端」の差（--xh-fixgap）を測り、
-   バーの下の余白は env(safe-area-inset-bottom) をそのまま使っていた。
-   つまり<b>中身が最後にどこへ来たかは一度も確かめていない</b>。
-   fixgap の測定が少しでもズレると、そのぶんそっくり中身の位置がズレて、
-   バーの下に「色は同じだが何も無い帯」＝隙間として残っていた。
-   ── 新しい直しかた（--xh-barpad の実測フィードバック）──
-   タブのボタンの<b>実際の下端</b>と「見えている画面の下端」を比べ、
-   その差ぶんだけ padding-bottom（--xh-barpad）を足し引きする。
-   ＝ 原因が測定ミスでも env() の食いちがいでも、必ず狙った位置に収束する。
-   測っているのは xevarion.js の fitBar()。JS が動く前は下の既定値になる。
-   ★ バー本体のはみ出し（--xh-dockover）は --xh-barpad と<b>無関係</b>に
-     always 240px ぶん下へ出る（margin-bottom と padding で打ち消してある）ので、
-     どれだけ調整しても背景が途切れることはない。 */
-:root{ --xh-dockover:240px; --xh-barpad:calc(env(safe-area-inset-bottom,0px) + 4px) }
-/* ══ ★★ 2026-09-10 下バーの作り直し（ご指定：MagiCounter / Magi Boccia Rush と同じに）══
-   あの2つの下バーは
-     ・地は<b>うすい1枚の板</b>（すりガラス）＋<b>上に細い線1本</b>だけ
-     ・選んでいるタブは<b>色が変わる＋上に短い線</b>。塗りつぶしのカプセルは使わない
-   という作りで、そのぶん<b>薄くて下端にぴったり</b>見える。ここも同じにする。
+   ★★ 2026-09-10 妖怪ウォッチ風に作り直し（ご指定）。
+     ・地は<b>濃紺の平らな板</b>＋上に金の線1本。すりガラスは使わない。
+       （すりガラスにすると、箱の外に敷く色と必ず食いちがって
+         「バーの下に別の帯がある」ように見える。平らな1色ならその問題が起きない。）
+     ・まん中の「図鑑」だけ<b>丸い時計のメダル</b>にして持ち上げる。
+     ・選んでいるタブは<b>金色の文字＋上に金の短い線</b>。
    ★ はみ出し（--xh-dockover）と --xh-barpad の実測はそのまま残す。
      あれは端末ごとのすきま対策で、見た目とは別の役目。 */
 .xh-bar{position:relative;flex-shrink:0;display:grid;grid-template-columns:repeat(5,1fr);gap:2px;
   /* ★ はみ出したぶんにボタンが引き伸ばされないよう、行は中身の高さで上詰めにする */
   grid-auto-rows:min-content;align-content:start;
   margin-bottom:calc(-1 * var(--xh-dockover));
-  padding:2px 6px calc(var(--xh-barpad) + var(--xh-dockover));
-  background:rgba(248,250,255,.92);background-image:var(--xh-barwash);
-  backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);
-  box-shadow:0 -6px 20px rgba(90,130,210,.13)}
-/* 上の細い線（あの2つと同じく<b>1本だけ</b>） */
-.xh-bar::before{content:"";position:absolute;top:0;left:0;right:0;height:1.5px;pointer-events:none;
-  background:rgba(120,160,230,.34)}
+  padding:5px 5px calc(var(--xh-barpad) + var(--xh-dockover));
+  /* 両はしにうっすらうずまき（イメージ案の飾り）。地の色と1枚にまとめる。 */
+  background:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M20 40c0-11 9-20 20-20s20 9 20 20-9 20-20 20c-7.4 0-13.4-6-13.4-13.4S32.6 33 40 33s11 4.9 11 11' fill='none' stroke='%23ffffff' stroke-opacity='.17' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat left 2px bottom 6px/40px,
+             url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M20 40c0-11 9-20 20-20s20 9 20 20-9 20-20 20c-7.4 0-13.4-6-13.4-13.4S32.6 33 40 33s11 4.9 11 11' fill='none' stroke='%23ffffff' stroke-opacity='.17' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 2px bottom 6px/40px,
+             #2560c8;
+  box-shadow:0 -4px 0 rgba(18,32,61,.35)}
+/* 上のふち … 濃紺の細い線＋金の帯。イメージ案のように「板を貼った」感じにする。 */
+.xh-bar::before{content:"";position:absolute;top:0;left:0;right:0;height:6px;pointer-events:none;
+  background:linear-gradient(180deg,var(--yw-line) 0 2px,#ffd257 2px 4.5px,#e39a10 4.5px 6px)}
+
 /* ══════════════════════════════════════════════════════════════
    ★★ 2026-08-22b 自動更新のマーク／更新の印／ガチャタブの新キャラアイコン
    ══════════════════════════════════════════════════════════════ */
 /* 裏で更新を落としているあいだ出るマーク（押すと更新画面が開く） */
-.xh-autochip{display:none;align-items:center;gap:7px;margin:0 14px 6px;padding:7px 12px;cursor:pointer;
-  border:none;border-radius:99px;font-size:11.5px;font-weight:800;text-align:left;
-  background:rgba(120,140,255,.14);color:#4b5fa8}
+.xh-autochip{display:none;align-items:center;gap:7px;margin:0 13px 6px;padding:7px 13px;cursor:pointer;
+  border:3px solid var(--yw-line);border-radius:99px;font-size:11.5px;font-weight:900;text-align:left;
+  background:linear-gradient(180deg,#dce8ff,#b9d0ff);color:#17458f;
+  box-shadow:0 3px 0 rgba(18,32,61,.28)}
 .xh-autochip.on{display:flex}
-.xh-autochip.done{background:rgba(60,200,150,.16);color:#12805f}
-.xh-autochip.failed{background:rgba(255,140,140,.18);color:#c04a4a}
+.xh-autochip.done{background:linear-gradient(180deg,#dcfaec,#aeeccd);color:#0b6b52}
+.xh-autochip.failed{background:linear-gradient(180deg,#ffe4e4,#ffbcbc);color:#a8203f}
 .xh-autochip .sp{width:13px;height:13px;flex:none;border-radius:50%;
-  border:2.2px solid rgba(75,95,168,.28);border-top-color:#4b5fa8;animation:xhAutoSpin .8s linear infinite}
+  border:2.4px solid rgba(23,69,143,.3);border-top-color:#17458f;animation:xhAutoSpin .8s linear infinite}
 @keyframes xhAutoSpin{to{transform:rotate(360deg)}}
-.xh-autochip .ok,.xh-autochip .ng{font-style:normal;font-weight:900;width:15px;height:15px;flex:none;
-  border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff}
-.xh-autochip .dl{font-style:normal;font-weight:900;width:15px;height:15px;flex:none;
+.xh-autochip .ok,.xh-autochip .ng{font-style:normal;font-weight:900;width:16px;height:16px;flex:none;
+  border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:10px;color:#fff;
+  border:2px solid var(--yw-line)}
+.xh-autochip .dl{font-style:normal;font-weight:900;width:16px;height:16px;flex:none;
   border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:9px;color:#fff;
-  background:#4b8bff}
-.xh-autochip.pending{background:rgba(120,140,255,.16);color:#3b56a8}
-.xh-autochip .ok{background:#14a877}
-.xh-autochip .ng{background:#e0605e}
+  background:var(--yw-blue);border:2px solid var(--yw-line)}
+.xh-autochip.pending{background:linear-gradient(180deg,#dce8ff,#b9d0ff);color:#17458f}
+.xh-autochip .ok{background:var(--yw-green)}
+.xh-autochip .ng{background:var(--yw-red)}
 
 /* 更新の印（アプリのタイル・一覧の行・下バーのタブ） */
 .xh-app.xh-updot,.xh-aitem.xh-updot,.xh-ntab.xh-updot{position:relative}
 .xh-app.xh-updot::after,.xh-aitem.xh-updot::after,.xh-ntab.xh-updot::after{
-  content:"";position:absolute;width:9px;height:9px;border-radius:50%;
-  background:#ff4d6d;box-shadow:0 0 0 2px #fff,0 1px 4px rgba(224,64,94,.5);
+  content:"";position:absolute;width:11px;height:11px;border-radius:50%;
+  background:var(--yw-red);border:2.5px solid var(--yw-line);
   animation:xhUpDot 1.8s ease-in-out infinite}
-.xh-app.xh-updot::after{top:2px;right:auto;
+.xh-app.xh-updot::after{top:1px;right:auto;
   /* ★ 2026-08-24 アイコン（.xh-sq）は width:100%/max-width:64px で<b>中央ぞろえ</b>なので、
      画面が広いPCではセル幅がアイコンより広くなり、right:6px だと<b>点だけ右へ離れて</b>いた。
      アイコンの実幅は min(セル幅, 64px)。その右はしから内側へ15px の位置に置き直す。 */
-  left:calc(50% + min(50%, 32px) - 15px)}
+  left:calc(50% + min(50%, 29px) - 14px)}
 .xh-aitem.xh-updot::after{left:6px;top:10px}
-/* ★ 2026-09-10 選択中タブの上の線（top:0・高さ3px）とぶつからないよう少し下げる */
-.xh-ntab.xh-updot::after{right:calc(50% - 17px);top:5px}
-@keyframes xhUpDot{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.22);opacity:.75}}
+/* ★ 選択中タブの上の線（top:0・高さ3px）とぶつからないよう少し下げる */
+.xh-ntab.xh-updot::after{right:calc(50% - 17px);top:6px}
+@keyframes xhUpDot{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.22);opacity:.8}}
 
 /* ══ ★★ 2026-09-02 MagiLinkの「新しいメッセージ」の印 ══
    更新の印（.xh-updot ＝右上の赤い点）と見分けられるよう、
@@ -451,51 +630,86 @@ body.xh-off .xh-offline{display:flex}
 .xh-app.xh-msgdot::before,.xh-aitem.xh-msgdot::before{
   content:"\1F4AC";position:absolute;z-index:2;
   font-size:9px;line-height:1;padding:3px 4px 4px;border-radius:99px;
-  background:linear-gradient(135deg,#5b8cff,#9b7bff);
-  box-shadow:0 0 0 2px #fff,0 2px 7px rgba(91,140,255,.55);
+  background:var(--yw-blue);border:2px solid var(--yw-line);
   animation:xhMsgDot 1.9s ease-in-out infinite;pointer-events:none}
-.xh-app.xh-msgdot::before{top:1px;left:calc(50% - min(50%, 32px) - 4px)}
+.xh-app.xh-msgdot::before{top:0;left:calc(50% - min(50%, 29px) - 4px)}
 .xh-aitem.xh-msgdot::before{left:auto;right:8px;top:12px}
 @keyframes xhMsgDot{0%,100%{transform:scale(1)}50%{transform:scale(1.16)}}
 
 /* ══ ★★ 2026-08-25b 下バーのガチャタブに出す「無料」の印 ══
    GRAND DEBUT の<b>1日1回の無料単発</b>をまだ使っていない日は、まわすまで出しっぱなしにする。
    ★ 更新の印（.xh-updot ＝ 右上の赤い点）とぶつからないよう、<b>左上</b>に置く。 */
-/* ★ 置き場所はアイコンの<b>左上のかど</b>。right で右はしを揃えると、
-   タブの幅が変わってもアイコンとの重なりが一定になる
-   （更新の赤い点は右上なので、左右でぶつからない）。 */
-.xh-ntab .xh-freetag{position:absolute;right:calc(50% + 8px);top:4px;z-index:2;
-  font-size:7.5px;font-weight:900;letter-spacing:-.03em;line-height:1;
-  padding:2px 4px;border-radius:99px;color:#08301f;
-  background:linear-gradient(135deg,#ffd257,#37e0a0 70%,#14a877);
-  box-shadow:0 0 0 1.5px #fff,0 2px 7px rgba(20,180,140,.55);
+/* ★★ 2026-09-10c 「無料」の印が<b>出ていない</b>とのご報告の真因。
+   right:calc(50% + 8px) だと、印の左はしが<b>タブのいちばん左</b>まで飛び出し、
+   となりの「図鑑」の丸いメダル（56px・上へ出っぱっている）と重なって
+   ほとんど隠れていた（消えていたのではなく、隠れて見えなかった）。
+   → アイコンの<b>左上のかど</b>に、はみ出さない位置で置きなおす。
+   ★ 更新の赤い点は<b>右上</b>（right:calc(50% - 17px)）なので、左右でぶつからない。 */
+/* ★★ 2026-09-10e ガチャがふつうの大きさに戻ったので、印も<b>アイコンの左上のかど</b>へ。
+   ★ right で置くと印の左はしがタブの外まで飛び出し、となりのタブに重なる（前に踏んだ）。
+     left で置くこと。更新の赤い点は右上なので、左右でぶつからない。 */
+.xh-ntab .xh-freetag{position:absolute;left:calc(50% - 29px);right:auto;top:2px;z-index:5;
+  font-size:7.5px;font-weight:900;letter-spacing:-.04em;line-height:1;
+  padding:2px 4px 2.5px;border-radius:99px;color:#08301f;
+  background:linear-gradient(180deg,#ffe07a,var(--yw-gold));
+  border:2px solid var(--yw-line);box-shadow:0 1.5px 0 rgba(18,32,61,.35);
   animation:xhFreeTag 1.5s ease-in-out infinite;pointer-events:none}
 @keyframes xhFreeTag{0%,100%{transform:scale(1)}50%{transform:scale(1.14)}}
 
 /* ガチャタブの新キャラアイコン（3回まで出る）。もとの SVG は隠すだけで消さない。 */
 .xh-ntab.xh-haschar svg{display:none}
-.xh-ntab .xh-tabchar{width:24px;height:24px;border-radius:50%;object-fit:cover;
-  box-shadow:0 0 0 2px rgba(255,157,46,.9),0 2px 8px rgba(255,157,46,.5);
+/* 新しいキャラの絵。★ ほかのタブの絵（30px）と<b>同じ大きさ</b>にそろえる。 */
+/* ★ box-sizing を付けること。付けないと ふち(2.5px×2) のぶん外へふくらみ、
+   ほかのタブの絵より 5px 大きくなる（＝そろわない）。 */
+.xh-ntab .xh-tabchar{width:30px;height:30px;box-sizing:border-box;border-radius:50%;object-fit:cover;
+  border:2.5px solid var(--yw-gold);box-shadow:0 2px 0 rgba(18,32,61,.45);
   animation:xhTabChar 2.4s ease-in-out infinite}
 @keyframes xhTabChar{0%,100%{transform:scale(1)}50%{transform:scale(1.09)}}
 
 /* ★★ 2026-08-25b position:relative をここに置く。
    以前は .xh-ntab.xh-updot のときだけ relative になっていたので、
    「無料」の印（.xh-freetag）を出すときに印だけが見当違いの場所へ飛んでしまう。 */
-.xh-ntab{position:relative;display:flex;flex-direction:column;align-items:center;gap:2px;
-  padding:8px 2px 5px;border:none;
-  background:none;cursor:pointer;color:var(--xh-sub);border-radius:14px;
-  font-family:'Noto Sans JP',sans-serif;transition:color .16s,background .16s}
-.xh-ntab svg{width:23px;height:23px}
-.xh-ntab .tl{font-size:8.5px;font-weight:900;letter-spacing:-.01em;white-space:nowrap}
+.xh-ntab{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:10px 2px 7px;border:none;
+  background:none;cursor:pointer;color:#fff;border-radius:14px;
+  font-family:'Noto Sans JP',sans-serif;transition:color .16s}
+/* ★★ 2026-09-10b アイコンを<b>塗りのある絵</b>に変えた（index.html 側）。
+   そのため currentColor では色が変わらない。
+   選んでいることは<b>文字の色</b>と<b>上の金の線</b>と<b>少し大きくする</b>ことで示す。 */
+/* ★ 絵は塗りがあるので currentColor では色が変わらない。
+   選んでいることは<b>文字の色</b>と<b>上の金の線</b>と<b>少し大きくする</b>ことで示す。 */
+.xh-ntab svg{width:30px;height:30px;transition:transform .14s;
+  filter:drop-shadow(0 2px 0 rgba(18,32,61,.45))}
+/* ★ 選んでいるタブを少しだけ大きく。1.14 だと「そこだけ大きい」ように見えるので 1.07。
+   ★ これは<b>選んでいる印</b>であって、タブごとの大きさの差ではない
+     （どのタブを選んでも同じように効く）。 */
+.xh-ntab.on svg{transform:scale(1.07)}
+.xh-ntab:not(.on) svg{opacity:.94}
+.xh-ntab .tl{font-size:9.5px;font-weight:900;letter-spacing:-.01em;white-space:nowrap;
+  text-shadow:0 1.5px 0 rgba(18,32,61,.55)}
 @media (max-width:360px){.xh-ntab .tl{font-size:7.5px}}
-/* ★ 選んでいるタブ：塗りつぶさず<b>色を変える＋上に短い線</b>（MagiCounter と同じ） */
-.xh-ntab.on{color:#3f7dff;background:none;box-shadow:none}
-.xh-ntab.on::before{content:"";position:absolute;top:0;left:50%;transform:translateX(-50%);
-  width:28px;height:3px;border-radius:0 0 3px 3px;pointer-events:none;
-  background:linear-gradient(90deg,#3f7dff,#8e6bff 55%,#ff6f91)}
-.xh-ntab:not(.on):active{background:rgba(120,140,255,.14)}
+/* ★ 選んでいるタブ：金色の文字＋上に金の短い線 */
+/* 選んでいるタブ … 文字を金にして、下に金の丸い座ぶとんを敷く（ポップに） */
+.xh-ntab.on{color:#fff9d8;background:none}
+.xh-ntab.on::before{content:"";position:absolute;left:50%;top:6px;transform:translateX(-50%);
+  width:46px;height:46px;border-radius:50%;pointer-events:none;z-index:0;
+  background:radial-gradient(circle,rgba(255,214,87,.42) 0 58%,rgba(255,214,87,0) 70%)}
+.xh-ntab svg,.xh-ntab .tl{position:relative;z-index:1}
+.xh-ntab:not(.on):active{color:#fff}
+.xh-ntab:not(.on):active svg{opacity:1}
 .xh-ntab:disabled{opacity:.4;cursor:not-allowed}
+
+/* ══ まん中の「図鑑」は丸い時計のメダルにして持ち上げる ══
+   ★ バーの高さは変えない。メダルだけ margin-top のマイナスで上へ出す。
+     （バーを高くすると、下端のすきま対策の実測がぜんぶ狂う） */
+.xh-ntab[data-tab="gacha"]{overflow:visible}
+/* ★★ 2026-09-10e ご指定により<b>ガチャだけ大きくするのをやめました</b>。
+   まん中を金のメダルにして持ち上げていましたが、5つとも同じ大きさにそろえます。
+   ・タブの絵の大きさは .xh-ntab svg（30px）だけで決まる＝5つ自動でそろう
+   ・「新しいキャラの絵」も、ふつうのタブと同じ 30px の丸にする
+   ★ 大きさを変えたくなったら .xh-ntab svg の1か所だけ直すこと。
+     ここに data-tab ごとの上書きを足すと、またそろわなくなります。 */
+.xh-ntab[data-tab="gacha"]{overflow:visible}
 
 /* ══════════ トースト ══════════ */
 #xhToast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 88px);

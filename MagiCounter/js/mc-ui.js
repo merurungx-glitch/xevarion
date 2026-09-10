@@ -19,6 +19,15 @@
     counter: { ja: "対策", en: "Counter" },
     team: { ja: "編成", en: "Team" },
     rank: { ja: "ランキング", en: "Ranking" },
+    dex: { ja: "図鑑", en: "Pokédex" },
+    dexAll: { ja: "全キャラ一覧", en: "All Pokémon" },
+    dexSub: { ja: "Pokémon Champions に出ている全員。名前・技・特性でさがせます。",
+              en: "Everyone in Pokémon Champions. Search by name, move or ability." },
+    dexPh: { ja: "名前・技名・特性でさがす", en: "Name, move or ability" },
+    hasMega: { ja: "メガあり", en: "Has Mega" },
+    more: { ja: "もっと見る", en: "Show more" },
+    byMove: { ja: "技名で一致", en: "matched a move" },
+    allTypes: { ja: "すべて", en: "All" },
     tagline: { ja: "相手を分析して、最適な3体を。", en: "Analyze the foe. Pick the right three." },
     findBest: { ja: "最適な3体を見つけよう", en: "Find your best three" },
     findBestSub: { ja: "自分の編成と相手の編成を入れると、選ぶべき3体とその理由が出ます。",
@@ -241,6 +250,7 @@
     else if (id === "counter") renderCounter();
     else if (id === "team") renderTeam();
     else if (id === "rank") renderRank();
+    else if (id === "dex") renderDex();
   }
 
   /* ══════════════════════════════════════════════════════════════
@@ -267,6 +277,7 @@
 
       + '<div class="h">' + hIc('bolt') + '' + esc(t("quick")) + "</div>"
       + '<div class="quick">'
+      + qa("team", t("dexAll"), "MCUI.go('dex')")
       + qa("chart", t("typechart"), "MCUI.openChart()")
       + qa("search", t("search"), "MCUI.go('search')")
       + qa("sim", t("pickSim"), "MCUI.go('counter');MCUI.counterTab('sim')")
@@ -346,14 +357,19 @@
      ══════════════════════════════════════════════════════════════ */
   let Q = { text: "", types: [], weak: [], resist: [], ability: "", roles: [], gen: 0, usageMin: 0, sort: "usage" };
   let qMode = "types";     /* types / weak / resist */
+  let _qTimer = 0;         /* 打っている間の待ち時間（描き直しをまとめる） */
   function renderSearch() {
     const list = C.search(Q);
     const abilKeys = [...new Set(D.DEX.reduce((a, p) => a.concat(p.abilities || []), []))]
       .filter((k) => D.ABIL[k]).sort((a, b) => C.aname(a).localeCompare(C.aname(b)));
     $("#sc-search").innerHTML = ''
       + '<div class="searchbar"><span class="si">' + icon("search", 18) + '</span>'
-      + '<input id="qText" placeholder="' + esc(t("searchPh")) + '" value="' + esc(Q.text) + '" '
-      + 'oninput="MCUI.qSet(\'text\',this.value)"></div>'
+      /* ★★ 2026-09-10 ここを oninput="MCUI.qSet('text',...)" にしてはいけない。
+         qSet は画面ごと描き直すので、この <input> が作り直されて
+         日本語入力が<b>1文字を2文字</b>にしてしまう（ご報告の不具合）。
+         qText() は入力欄にさわらず、結果の一覧だけを描き直す。 */
+      + '<input id="qText" placeholder="' + esc(t("dexPh")) + '" value="' + esc(Q.text) + '" '
+      + 'oninput="MCUI.qText(event,this)" oncompositionend="MCUI.qText(null,this)"></div>'
 
       + '<div class="tabs" style="margin-top:10px">'
       + ["types", "weak", "resist"].map((k) => '<button class="' + (qMode === k ? "on" : "") + '" onclick="MCUI.qMode(\'' + k + '\')">'
@@ -372,15 +388,42 @@
           ["bst", C.lang()==="en"?"Base stat total":"種族値合計"], ["spe", C.lang()==="en"?"Speed":"素早さ"], ["name", C.lang()==="en"?"Name":"名前"]], Q.sort)
       + "</div>"
       + '<div class="btnrow"><button class="btn sm ghost" onclick="MCUI.qClear()">' + esc(t("clear")) + "</button>"
-      + '<span class="note" style="margin-left:auto;align-self:center">' + list.length + " " + esc(t("result")) + "</span></div></div>"
+      + '<span class="note" id="qCount" style="margin-left:auto;align-self:center"></span></div></div>'
 
-      + '<div class="card">' + (list.length
-          ? list.slice(0, 80).map((p) => pokeRow(p, usageRight(p))).join("")
-          : '<div class="empty">' + icon("info",30) + '' + esc(t("none")) + "</div>") + "</div>";
+      /* ★ 結果はここにだけ入れる。入力欄は二度と作り直さない。 */
+      + '<div id="qList"></div>';
+    renderSearchList();
+  }
+  /* ══ 結果の一覧だけを描き直す（入力欄にはさわらない）══ */
+  function renderSearchList() {
+    const box = $("#qList");
+    if (!box) return;
+    const list = C.search(Q);
+    const cnt = $("#qCount");
+    if (cnt) cnt.textContent = list.length + " " + t("result");
+    /* 技名で当たったときは「どの技で当たったか」を上に出す */
+    let head = "";
+    if (Q.text) {
+      const mvs = (C.matchedMoveNames ? C.matchedMoveNames(Q.text) : []).slice(0, 6);
+      if (mvs.length) {
+        head = '<div class="card tight"><div class="note"><b>' + esc(t("byMove")) + '</b></div>'
+          + '<div class="chips" style="margin-top:5px">'
+          + mvs.map((k) => {
+              const m = D.MOVES[k];
+              return '<span class="chip" style="background:' + C.tcolor(m.t) + ';color:#fff">'
+                + esc(C.lang() === "en" ? m.en : m.ja) + "</span>";
+            }).join("") + "</div></div>";
+      }
+    }
+    box.innerHTML = head + '<div class="card">' + (list.length
+        ? list.slice(0, 80).map((p) => pokeRow(p, usageRight(p))).join("")
+        : '<div class="empty">' + icon("info",30) + '' + esc(t("none")) + "</div>") + "</div>";
   }
   function selBox(label, key, opts, val) {
+    /* ★ キーが dx で始まるものは全キャラ一覧の指定 → dxSel へ回す */
+    const fn = key.indexOf("dx") === 0 ? "dxSel" : "qSel";
     return '<label style="display:block"><div class="note" style="margin-bottom:3px">' + esc(label) + "</div>"
-      + '<select onchange="MCUI.qSel(\'' + key + '\',this.value)" style="width:100%;min-height:36px;border-radius:10px;'
+      + '<select onchange="MCUI.' + fn + '(\'' + key + '\',this.value)" style="width:100%;min-height:36px;border-radius:10px;'
       + 'border:1.5px solid var(--line2);background:#fff;padding:0 8px;font-weight:800;font-size:12px">'
       + opts.map((o) => '<option value="' + esc(o[0]) + '" ' + (String(o[0]) === String(val) ? "selected" : "") + ">" + esc(o[1]) + "</option>").join("")
       + "</select></label>";
@@ -977,24 +1020,35 @@
   }
 
   /* ── ポケモンを選ぶ ── */
-  let pickCb = null, pickText = "";
+  let pickCb = null, pickText = "", _pkTimer = 0;
   function pickPoke(cb) { pickCb = cb; pickText = ""; drawPick(); }
-  function drawPick() {
+  function drawPick(listOnly) {
     const list = C.search({ text: pickText, sort: "usage" }).slice(0, 60);
+    /* 文字を打ち直したときは<b>一覧だけ</b>入れかえる（入力欄は残す） */
+    if (listOnly) {
+      const box = $("#pkList");
+      if (box) { box.innerHTML = pickListHtml(list); return; }
+    }
     openModal('<div class="searchbar" style="margin:4px 0 10px"><span class="si">' + icon("search", 18) + '</span>'
-      + '<input id="pkText" placeholder="' + esc(t("searchPh")) + '" value="' + esc(pickText) + '" oninput="MCUI.pickText(this.value)"></div>'
-      + '<div class="card">' + (list.length ? list.map((p) =>
-          '<div class="prow" onclick="MCUI.pickDone(\'' + p.id + '\')">' + avatar(p)
-          + '<div style="min-width:0;flex:1"><div class="pnm">' + esc(C.pname(p))
-          + (p.custom ? ' <span class="cxbadge">' + (C.lang() === "en" ? "OFF-LIST" : "ランク外") + "</span>" : "")
-          + "</div>" + typeRow(p.types) + "</div>"
-          + (p.custom ? "" : usageRight(p)) + "</div>").join("")
-        : '<div class="empty">' + icon("info", 26) + ""
-          + (C.lang() === "en" ? "No Pokémon matches." : "見つかりませんでした。") + "</div>") + "</div>"
+      /* ★★ 2026-09-10 検索欄と同じ直し。drawPick は中身ごと作り直すので、
+         oninput から呼ぶと日本語入力が1文字を2文字にしてしまう。 */
+      + '<input id="pkText" placeholder="' + esc(t("dexPh")) + '" value="' + esc(pickText) + '" '
+      + 'oninput="MCUI.pickText(event,this)" oncompositionend="MCUI.pickText(null,this)"></div>'
+      + '<div id="pkList">' + pickListHtml(list) + "</div>"
       /* ★★ 2026-09-10 ご指定「ランク外のポケモンも入力できるように」。
          さがして出てこなかったときにこそ要るので、<b>一覧のすぐ下</b>に置く。 */
       + '<button class="btn" onclick="MCUI.openCustom(\'\')">' + esc(t("customAdd")) + "</button>");
     const e = $("#pkText"); if (e) { e.focus(); try { e.setSelectionRange(e.value.length, e.value.length); } catch (x) {} }
+  }
+  function pickListHtml(list) {
+    return '<div class="card">' + (list.length ? list.map((p) =>
+        '<div class="prow" onclick="MCUI.pickDone(\'' + p.id + '\')">' + avatar(p)
+        + '<div style="min-width:0;flex:1"><div class="pnm">' + esc(C.pname(p))
+        + (p.custom ? ' <span class="cxbadge">' + (C.lang() === "en" ? "OFF-LIST" : "ランク外") + "</span>" : "")
+        + "</div>" + typeRow(p.types) + "</div>"
+        + (p.custom ? "" : usageRight(p)) + "</div>").join("")
+      : '<div class="empty">' + icon("info", 26) + ""
+        + (C.lang() === "en" ? "No Pokémon matches." : "見つかりませんでした。") + "</div>") + "</div>";
   }
 
   /* ══ ★★ 2026-09-10 ランク外のポケモンの登録 ══
@@ -1098,6 +1152,99 @@
         }).join(""));
   }
 
+
+  /* ══════════════════════════════════════════════════════════════
+     ⑥ 全キャラ一覧（★★ 2026-09-10 ご指定）
+     ──────────────────────────────────────────────────────────────
+     Pokemon Champions に出ている<b>全員</b>を並べる画面。
+     ・名前（日本語・English）／<b>技名</b>／特性名でさがせる
+     ・タイプ・世代・役割・メガの有無でしぼれる／並べ替えもできる
+     ★ 検索の当たり判定は mc-core.js の search() が持つ（この画面と検索画面で同じもの）。
+     ★ 一度に全部描くと重いので、60体ずつ「もっと見る」で増やす。
+       しぼり直したときは必ず DX.limit を 60 に戻すこと（前の続きから出てしまう）。
+     ══════════════════════════════════════════════════════════════ */
+  let DX = { text: "", types: [], gen: 0, roles: [], mega: 0, sort: "dex", limit: 60 };
+  let _dxTimer = 0;
+
+  function renderDex() {
+    $("#sc-dex").innerHTML = ''
+      + '<div class="card hero" style="padding:13px 14px">'
+      + '<div class="t" style="font-size:15px">' + esc(t("dexAll")) + "</div>"
+      + '<div class="s">' + esc(t("dexSub")) + "</div></div>"
+
+      + '<div class="searchbar" style="margin-top:10px"><span class="si">' + icon("search", 18) + '</span>'
+      /* ★ 検索画面と同じ理由で、ここも入力欄は作り直さない（1文字が2文字になるため） */
+      + '<input id="dxText" placeholder="' + esc(t("dexPh")) + '" value="' + esc(DX.text) + '" '
+      + 'oninput="MCUI.dxText(event,this)" oncompositionend="MCUI.dxText(null,this)"></div>'
+
+      + '<div class="chips" style="margin-top:9px">'
+      + '<span class="chip ' + (DX.types.length ? "" : "on") + '" onclick="MCUI.dxClearTypes()">' + esc(t("allTypes")) + "</span>"
+      + D.TK.map((k) => '<span class="chip ' + (DX.types.indexOf(k) >= 0 ? "on" : "") + '" onclick="MCUI.dxType(\'' + k + '\')" '
+          + 'style="' + (DX.types.indexOf(k) >= 0 ? "background:" + C.tcolor(k) + ";color:#fff" : "") + '">' + esc(C.tname(k)) + "</span>").join("")
+      + "</div>"
+
+      + '<div class="card tight"><div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">'
+      + selBox(C.lang() === "en" ? "Gen" : "世代", "dxgen",
+          [["0", "—"]].concat([1,2,3,4,5,6,7,8,9].map((g) => [String(g), (C.lang()==="en"?"Gen ":"第")+g+(C.lang()==="en"?"":"世代")])), String(DX.gen))
+      + selBox(C.lang() === "en" ? "Role" : "役割", "dxrole",
+          [["", "—"]].concat(D.ROLES.map((r) => [r.k, C.rname(r.k)])), DX.roles[0] || "")
+      + selBox(t("hasMega"), "dxmega",
+          [["0", "—"], ["1", C.lang() === "en" ? "Only Mega" : "メガありだけ"]], String(DX.mega))
+      + selBox(t("sortBy"), "dxsort",
+          [["dex", C.lang()==="en"?"Dex no.":"図鑑番号"], ["name", C.lang()==="en"?"Name":"名前"],
+           ["bst", C.lang()==="en"?"Base stat total":"種族値合計"], ["spe", C.lang()==="en"?"Speed":"素早さ"],
+           ["usage", t("usage")]], DX.sort)
+      + "</div>"
+      + '<div class="btnrow"><button class="btn sm ghost" onclick="MCUI.dxClear()">' + esc(t("clear")) + "</button>"
+      + '<span class="note" id="dxCount" style="margin-left:auto;align-self:center"></span></div></div>'
+
+      + '<div id="dxList"></div>';
+    renderDexList();
+  }
+
+  function dxQuery() {
+    return { text: DX.text, types: DX.types, gen: DX.gen, roles: DX.roles, mega: DX.mega, sort: DX.sort };
+  }
+  function renderDexList() {
+    const box = $("#dxList");
+    if (!box) return;
+    const list = C.search(dxQuery());
+    const cnt = $("#dxCount");
+    if (cnt) cnt.textContent = list.length + " " + t("result");
+    const shown = list.slice(0, DX.limit);
+    let head = "";
+    if (DX.text) {
+      const mvs = (C.matchedMoveNames ? C.matchedMoveNames(DX.text) : []).slice(0, 6);
+      if (mvs.length) {
+        head = '<div class="card tight"><div class="note"><b>' + esc(t("byMove")) + "</b></div>"
+          + '<div class="chips" style="margin-top:5px">'
+          + mvs.map((k) => {
+              const m = D.MOVES[k];
+              return '<span class="chip" style="background:' + C.tcolor(m.t) + ';color:#fff">'
+                + esc(C.lang() === "en" ? m.en : m.ja) + "</span>";
+            }).join("") + "</div></div>";
+      }
+    }
+    box.innerHTML = head + (shown.length
+        ? '<div class="dexgrid">' + shown.map(dexCard).join("") + "</div>"
+          + (list.length > shown.length
+              ? '<button class="btn ghost" style="margin-top:10px" onclick="MCUI.dxMore()">'
+                + esc(t("more")) + " (" + (list.length - shown.length) + ")</button>"
+              : "")
+        : '<div class="empty">' + icon("info", 30) + "" + esc(t("none")) + "</div>");
+  }
+  /* 一覧の1枚 */
+  function dexCard(p) {
+    return '<div class="dexc" onclick="MCUI.openPoke(\'' + p.id + '\')">'
+      + '<div class="dxno">#' + (p.dex || "—") + "</div>"
+      + avatar(p, "lg")
+      + '<div class="dxnm">' + esc(C.pname(p)) + "</div>"
+      + '<div class="dxty">' + p.types.map((x) => typePill(x)).join("") + "</div>"
+      + '<div class="dxbs">' + (C.lang() === "en" ? "BST" : "種族値") + " " + p.bst + "</div>"
+      + ((p.megas || []).length ? '<span class="dxmg">MEGA' + (p.megas.length > 1 ? " ×" + p.megas.length : "") + "</span>" : "")
+      + "</div>";
+  }
+
   /* ══════════════════════════════════════════════════════════════
      ⑦ 操作
      ══════════════════════════════════════════════════════════════ */
@@ -1107,7 +1254,39 @@
     setRank(k) { rKind = k; renderRank(); },
     setRule(v) { C.load().rule = v; C.save(); renderRank(); },
     setPeriod(v) { C.load().period = v; C.save(); renderRank(); },
-    qSet(k, v) { Q[k] = v; renderSearch(); const e = $("#qText"); if (e) { e.focus(); try { e.setSelectionRange(e.value.length, e.value.length); } catch (x) {} } },
+    /* ★★ 2026-09-10 文字を打っている間は<b>入力欄を作り直さない</b>。
+       ・変換中（isComposing）は何もしない … 変換の途中で確定させないため
+       ・少し待ってから一覧を描く（90ms）… 1文字ごとに 267体 を数えなおさないため */
+    qText(ev, el) {
+      if (ev && ev.isComposing) return;
+      Q.text = el.value;
+      clearTimeout(_qTimer);
+      _qTimer = setTimeout(renderSearchList, 90);
+    },
+    qSet(k, v) { Q[k] = v; renderSearch(); },
+    /* ── 全キャラ一覧（★★ 2026-09-10）── */
+    dxText(ev, el) {
+      if (ev && ev.isComposing) return;
+      DX.text = el.value; DX.limit = 60;
+      clearTimeout(_dxTimer);
+      _dxTimer = setTimeout(renderDexList, 90);
+    },
+    dxType(k) {
+      const i = DX.types.indexOf(k);
+      if (i >= 0) DX.types.splice(i, 1); else DX.types.push(k);
+      DX.limit = 60; renderDex();
+    },
+    dxClearTypes() { DX.types = []; DX.limit = 60; renderDex(); },
+    dxSel(k, v) {
+      if (k === "dxgen") DX.gen = parseInt(v, 10) || 0;
+      else if (k === "dxrole") DX.roles = v ? [v] : [];
+      else if (k === "dxmega") DX.mega = parseInt(v, 10) || 0;
+      else if (k === "dxsort") DX.sort = v;
+      DX.limit = 60; renderDexList();
+    },
+    dxMore() { DX.limit += 60; renderDexList(); },
+    dxClear() { DX = { text: "", types: [], gen: 0, roles: [], mega: 0, sort: "dex", limit: 60 }; renderDex(); },
+
     qMode(k) { qMode = k; renderSearch(); },
     qType(k) { const a = Q[qMode]; const i = a.indexOf(k); if (i >= 0) a.splice(i, 1); else a.push(k); renderSearch(); },
     qSel(k, v) {
@@ -1120,7 +1299,12 @@
     setTarget(id) { cTarget = id; closeModal(); renderCounter(); },
     setDuel(side, id) { if (side === "A") duelA = id; else duelB = id; closeModal(); renderCounter(); },
     openDuel(a, b) { duelA = a; duelB = b; cTab = "duel"; renderCounter(); window.scrollTo(0, 0); },
-    pickText(v) { pickText = v; drawPick(); },
+    pickText(ev, el) {
+      if (ev && ev.isComposing) return;
+      pickText = el.value;
+      clearTimeout(_pkTimer);
+      _pkTimer = setTimeout(() => drawPick(true), 90);
+    },
     pickDone(id) { const cb = pickCb; closeModal(); if (cb) cb(id); },
     slotAdd(which) { slotWhich = which; pickPoke((id) => API.slotSet(which, id)); },
     /* ── ランク外のポケモン ── */
