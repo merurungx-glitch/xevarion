@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>MagiQuest — 知識を、答えに組み立てる。</title>
+<meta name="theme-color" content="#12306b">
+<link rel="icon" href="img/kv.webp">
+<link rel="apple-touch-icon" href="img/kv.webp">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/mq.css?v=2">
+</head>
+<body>
+
+<!-- ══════════ タイトル ══════════ -->
+<div id="scrTitle">
+  <div class="kv"></div>
+  <!-- ★ キービジュアルに「MagiQuest」のロゴがすでに入っているので、文字は重ねない。
+       重ねるとロゴが二重に見える（実際そうなっていた）。 -->
+  <div class="tw">
+    <p>知識を、答えに組み立てる。</p>
+    <div class="tap">TAP TO START</div>
+  </div>
+</div>
+
+<div class="mq-app">
+
+  <!-- ══════════ ホーム ══════════ -->
+  <section id="scrhome" class="scr">
+    <div class="mq-top">
+      <div class="ttl">MagiQuest</div>
+      <div class="sp">
+        <span class="mq-chip">📚 <b id="hmQn">-</b> 問</span>
+        <span class="mq-chip">⚔ <b id="hmPow">0</b></span>
+      </div>
+    </div>
+    <div class="mq-hero">
+      <img src="img/kv.webp" alt="MagiQuest">
+      <div class="cap"><b>今日の挑戦</b><small id="hmToday">化学</small></div>
+    </div>
+    <div class="mq-party" id="hmParty"></div>
+    <div class="mq-menu">
+      <div class="big">
+        <button class="mq-btn pri" data-go="quest"><div class="ic">⚔</div><div class="nm">クエスト</div><div class="en">QUEST</div></button>
+        <button class="mq-btn pri" data-go="party"><div class="ic">👥</div><div class="nm">編成</div><div class="en">PARTY</div></button>
+      </div>
+      <button class="mq-btn" data-go="chars"><div class="ic">🎴</div><div class="nm">キャラクター</div><div class="en">CHARACTER</div></button>
+      <button class="mq-btn" id="hmGacha"><div class="ic">🎁</div><div class="nm">ガチャ</div><div class="en">GACHA</div></button>
+    </div>
+    <div class="mq-note" style="margin-top:11px">
+      <b>MagiQuest</b> は、<b>MagiLex に入っている問題</b>をそのまま使うゲームです。<br>
+      4つから選ぶのではなく、<b>盤面のパーツを拾って答えを組み立てます</b>。
+      正解するとキャラクターが攻撃し、続けて正解すると <b>COMBO</b> で威力が上がります。<br>
+      キャラクターは <b>XEVARION 共通のガチャ</b>のキャラをそのまま使います。
+    </div>
+  </section>
+
+  <!-- ══════════ クエスト ══════════ -->
+  <section id="scrquest" class="scr">
+    <div class="mq-top">
+      <button class="bk" data-go="home">‹</button>
+      <div class="ttl">クエスト</div>
+    </div>
+    <div class="mq-tabs" id="qTabs"></div>
+    <div class="mq-list" id="qList"></div>
+    <div class="mq-note" style="margin-top:11px">
+      出題は <b>MagiLex の問題</b>から、クエストごとの<b>ジャンルと難易度の帯</b>に合うものを選んで出します。
+      MagiLex に問題が増えれば、ここにも自動で増えます。
+    </div>
+  </section>
+
+  <!-- ══════════ 編成 ══════════ -->
+  <section id="scrparty" class="scr">
+    <div class="mq-top">
+      <button class="bk" data-go="home">‹</button>
+      <div class="ttl">編成</div>
+      <div class="sp"><span class="mq-chip">総戦力 <b id="pwPow">0</b></span></div>
+    </div>
+    <div class="mq-party" id="pwParty"></div>
+    <div class="mq-note" id="pwLead" style="margin-bottom:10px"></div>
+    <div class="mq-note">
+      枠をタップすると入れかえられます。<b>いちばん左がリーダー</b>で、
+      攻撃力・制限時間・ヒントに効きます。<br>
+      能力は<b>教科に関係のないもの</b>（攻撃力・HP・防御力・速度・回復・クリティカル・
+      コンボ補助・回答補助・時間補助・盤面操作）だけです。
+    </div>
+  </section>
+
+  <!-- ══════════ キャラクター ══════════ -->
+  <section id="scrchars" class="scr">
+    <div class="mq-top">
+      <button class="bk" data-go="home">‹</button>
+      <div class="ttl">キャラクター</div>
+      <div class="sp"><span class="mq-chip" id="chCount">0 体</span></div>
+    </div>
+    <div class="mq-grid" id="chGrid"></div>
+  </section>
+
+  <!-- ══════════ リザルト ══════════ -->
+  <section id="scrresult" class="scr">
+    <div class="mq-top"><div class="ttl">リザルト</div></div>
+    <div class="mq-res" id="resBox"></div>
+  </section>
+
+  <!-- ══════════ メニュー ══════════ -->
+  <section id="scrmenu" class="scr">
+    <div class="mq-top">
+      <button class="bk" data-go="home">‹</button>
+      <div class="ttl">メニュー</div>
+    </div>
+    <div class="mq-list">
+      <button class="mq-q" id="mnGacha"><div class="th">🎁</div><div class="in"><b>ガチャ</b><small>XEVARION 共通のガチャへ</small></div></button>
+      <button class="mq-q" id="mnLex"><div class="th">📘</div><div class="in"><b>MagiLex</b><small>問題のもとになっている学習アプリ</small></div></button>
+      <button class="mq-q" id="mnHome"><div class="th">🏠</div><div class="in"><b>XEVARION ホーム</b><small>アプリ一覧へもどる</small></div></button>
+    </div>
+    <div class="mq-note" style="margin-top:11px">
+      <b>MagiQuest</b> の考えかた<br>
+      ・MagiLex ＝「選んで学ぶ」／MagiQuest ＝「組み立てて戦う」<br>
+      ・問題は MagiLex のものをそのまま使い、<b>回答のしかただけ</b>を変えています<br>
+      ・いまは<b>化学</b>が中心ですが、数学・物理・生物・英語・国語・地理も
+      <b>同じしくみのまま</b>あそべます
+    </div>
+  </section>
+</div>
+
+<!-- ══════════ バトル ══════════ -->
+<div id="scrBattle">
+  <div class="bt-top">
+    <div class="bt-wave">
+      <span id="btWave">WAVE 1/1</span>
+      <span id="btCombo" style="color:#ffd257"></span>
+      <span class="x" id="btQn">1 / 1 問</span>
+      <span class="x" id="btSec">30s</span>
+    </div>
+    <div class="bt-enemy">
+      <div class="face">👾</div>
+      <div class="in">
+        <div class="nm" id="btEnemyNm">—</div>
+        <div class="bt-hp" id="btEnemyHp"><i style="width:100%"></i></div>
+        <div class="bt-hpn" id="btEnemyN">0 / 0</div>
+      </div>
+    </div>
+    <div class="bt-time" id="btTime"><i></i></div>
+  </div>
+  <div class="bt-mid">
+    <div class="bt-qbox" id="btQ"></div>
+    <div class="bt-lab">回答を組み立てよう</div>
+    <div class="bt-ans" id="btAns"></div>
+    <div class="bt-lab">回答パーツ</div>
+    <div class="bt-pool" id="btPool"></div>
+    <div class="bt-tools" id="btTools"></div>
+  </div>
+  <div class="bt-team" id="btTeam"></div>
+  <div id="btFx"></div>
+</div>
+
+<!-- ══════════ 下のバー ══════════ -->
+<nav id="mqNav">
+  <button data-go="home" class="on"><span class="ni">🏠</span>ホーム</button>
+  <button data-go="quest"><span class="ni">⚔</span>クエスト</button>
+  <button data-go="party"><span class="ni">👥</span>編成</button>
+  <button data-go="chars"><span class="ni">🎴</span>キャラ</button>
+  <button data-go="menu"><span class="ni">☰</span>メニュー</button>
+</nav>
+
+<!-- ══════════ シート ══════════ -->
+<div class="mq-ov" id="qOv"><div class="mq-sheet" id="qSheet"></div></div>
+<div class="mq-ov" id="chOv"><div class="mq-sheet" id="chSheet"></div></div>
+<div class="mq-ov" id="pickOv"><div class="mq-sheet">
+  <h3><span>キャラクターをえらぶ</span><button class="x" data-close>✕</button></h3>
+  <div class="mq-grid" id="pickList"></div>
+</div></div>
+<div class="mq-toast" id="mqToast"></div>
+
+<!-- ══════════════════════════════════════════════════════════════
+     読みこみの順番（★ ここを入れかえないこと）
+       ① xeva.js …… XEVARION 共通（アカウント・スタミナ・XEVA・同期）
+       ② mb-boot.js → mb-core.js …… ガチャキャラ（CHARS）を借りる
+          ★ Magi: Boccia Rush と同じ形。MB_IMGD / MB_GIMGD を先に置いてから読む。
+       ③ MagiLex のデータ …… 問題そのもの（window.LEX_SECTIONS）
+          ★ <b>MagiQuest 用の問題は作らない</b>。ここで読んだものだけを使う。
+       ④ MagiQuest 本体
+     ══════════════════════════════════════════════════════════════ -->
+<script>
+  /* mb-core が使うホスト側の最小限（Boccia Rush と同じ） */
+  window.MB_IMGD = "../img/";
+  window.MB_GIMGD = "../MagiBurst/img/";
+  window.B = null;
+  window.DB = {};
+  window.save = function () {};
+  window.$ = function () { return null; };
+  window.toast = function () {};
+  window.SFX = {};
+  window.uiAlert = function (m) { try { alert(m); } catch (e) {} };
+  window.uiConfirm = function () { return Promise.resolve(false); };
+</script>
+<script src="../xeva.js?v=62"></script>
+<script src="../MagiBurst/js/mb-core.js?v=112"></script>
+<script>
+  /* ★★ mb-core.js の CHARS / CHAR_IDS / ELEM は <b>const</b> なので window には出ていない。
+     素の名前なら読めるので、ここで1回だけ window に写す（MagiTier・Boccia と同じやりかた）。 */
+  try { window.CHARS = CHARS; window.CHAR_IDS = CHAR_IDS; window.ELEM = ELEM; } catch (e) {}
+</script>
+<!-- MagiLex の問題データ（MagiLex.html と同じ順で読む） -->
+<script src="../MagiLex/magilex-data.js?v=10"></script>
+<script src="../MagiLex/magilex-rika.js?v=9"></script>
+<script src="../MagiLex/magilex-chemb.js?v=10"></script>
+<script src="../MagiLex/magilex-chemg.js?v=11"></script>
+<script src="../MagiLex/magilex-chemd.js?v=9"></script>
+<script src="../MagiLex/magilex-cheme.js?v=11"></script>
+<script src="../MagiLex/magilex-butsuri.js?v=10"></script>
+<script src="../MagiLex/magilex-physb.js?v=9"></script>
+<script src="../MagiLex/magilex-physg.js?v=10"></script>
+<script src="../MagiLex/magilex-suugaku.js?v=11"></script>
+<script src="../MagiLex/magilex-math3.js?v=9"></script>
+<script src="../MagiLex/magilex-eigo.js?v=9"></script>
+<script src="../MagiLex/magilex-chiri.js?v=9"></script>
+<!-- MagiQuest 本体 -->
+<script src="js/mq-data.js?v=4"></script>
+<script src="js/mq-core.js?v=3"></script>
+<script src="js/mq-ui.js?v=4"></script>
+<script src="../xeva-safebottom.js?v=9"></script>
+<script>
+  document.getElementById("hmGacha").onclick = function () { location.href = "../gacha.html"; };
+  document.getElementById("mnGacha").onclick = function () { location.href = "../gacha.html"; };
+  document.getElementById("mnLex").onclick = function () { location.href = "../MagiLex/MagiLex.html"; };
+  document.getElementById("mnHome").onclick = function () { location.href = "../index.html"; };
+  mqBoot();
+  if ("serviceWorker" in navigator) {
+    addEventListener("load", function () { navigator.serviceWorker.register("sw.js").catch(function () {}); });
+  }
+</script>
+</body>
+</html>
