@@ -293,10 +293,10 @@ function paintPickup() {
       <div class="fgrid">${cards}</div>
       <div class="pksub" style="margin-top:9px">${f.lead}。<br>${f.note}
         ${fesTimed(f) ? (fesEnded(gMode)
-          ? `<br>⏳ <b>このフェスの配信は終了しました</b>（${f.since} から${FES_DAYS}日間）。
+          ? `<br>⏳ <b>このフェスの配信は終了しました</b>（${fesPeriodText(gMode)}）。
              この${f.chars.length}体は <b>${ARCHIVE_NM}</b> で引けます。`
-          : `<br>⏳ このフェスは <b>${f.since} から${FES_DAYS}日間</b>（あと<b>${fesDaysLeft(gMode)}日</b>）。
-             <b>${FES_ARCHIVE_DAYS}日</b>を過ぎると、この${f.chars.length}体は
+          : `<br>⏳ このフェスは ${fesPeriodText(gMode)}（あと<b>${fesDaysLeft(gMode)}日</b>）。
+             ${fesArchiveText(gMode)}、この${f.chars.length}体は
              <b>${ARCHIVE_NM}</b> にも封入されます${fesArchived(gMode) ? "（<b>封入ずみ</b>）" : ""}。`) : ""}
       </div>
     </div>`;
@@ -530,8 +530,8 @@ function paintNote() {
       ／ <b>SR 合計50%</b>／ <b>育成アイテム ${ratePct(itemTotalOfMode(gMode))}</b>。<br>
       ${fesTimed(f) ? (fesEnded(gMode)
         ? "⏳ <b>このフェスの配信は終了しました</b>。キャラクターは <b>" + ARCHIVE_NM + "</b> で引けます。<br>"
-        : "⏳ このフェスは <b>" + f.since + " から" + FES_DAYS + "日間</b>（あと<b>" + fesDaysLeft(gMode) + "日</b>）。"
-          + FES_ARCHIVE_DAYS + "日を過ぎると <b>" + ARCHIVE_NM + "</b> にも封入されます"
+        : "⏳ このフェスは " + fesPeriodText(gMode) + "（あと<b>" + fesDaysLeft(gMode) + "日</b>）。"
+          + fesArchiveText(gMode) + " <b>" + ARCHIVE_NM + "</b> にも封入されます"
           + (fesArchived(gMode) ? "（<b>封入ずみ</b>）" : "") + "。<br>") : ""}
       ${tktLine}<br>
       <b>10連は最後の1枠がSSR確定</b>（このフェスの限定SSR＋${PREMIUM_NM} のSSRから等確率）。`;

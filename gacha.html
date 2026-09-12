@@ -1,12 +1,12 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<script src="maintenance-gate.js?v=12"></script>
+<script src="maintenance-gate.js?v=13"></script>
 <meta charset="UTF-8">
 <script>(function(){try{var a=JSON.parse(localStorage.getItem('xeva_account_v1'));if(!a||!a.setupDone)location.replace('index.html');}catch(e){}})();</script>
-<script type="module" src="xevarion-fb.js?v=32"></script>
-<script src="xeva-presence.js?v=8" defer></script>
-<script type="module" src="xeva-cloud.js?v=27"></script>
+<script type="module" src="xevarion-fb.js?v=33"></script>
+<script src="xeva-presence.js?v=9" defer></script>
+<script type="module" src="xeva-cloud.js?v=28"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -17,34 +17,34 @@
 <title>ガチャ — XEVARION</title>
 <link rel="icon" href="XEVA.png" type="image/png">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+JP:wght@300;400;500;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="xeva-theme.css?v=8">
+<link rel="stylesheet" href="xeva-theme.css?v=9">
 <!-- ★ 2026-08-10 ガチャ結果の演出（1枚ずつ公開・昇格演出）の見た目。MagiBurst と共通 -->
-<link rel="stylesheet" href="mb-gacha-reveal.css?v=10">
+<link rel="stylesheet" href="mb-gacha-reveal.css?v=11">
 <!-- ★ 2026-08-10 キャラ詳細（性能画面）の見た目。図鑑（characters.html）と共通 -->
-<link rel="stylesheet" href="mb-char-detail.css?v=22">
-<script src="xeva.js?v=61"></script>
+<link rel="stylesheet" href="mb-char-detail.css?v=23">
+<script src="xeva.js?v=62"></script>
 <!-- ★★ 2026-09-05 言語切りかえ（日本語 ⇄ English）。辞書は本体のあとに読むこと。 -->
-<script src="xeva-i18n.js?v=7"></script>
-<script src="xeva-i18n-dict.js?v=11"></script>
+<script src="xeva-i18n.js?v=8"></script>
+<script src="xeva-i18n-dict.js?v=12"></script>
 <!-- ★★ 2026-09-06 MagiBurst の語彙（技の名前・ギミック・クエスト名・威力の行）。
      ★ mb4 は「威力：」を<b>かけら単位</b>で英語にする（新しいキャラを足してもそのまま効く）。 -->
-<script src="xeva-i18n-mb1.js?v=6"></script>
-<script src="xeva-i18n-mb2.js?v=6"></script>
-<script src="xeva-i18n-mb3.js?v=7"></script>
-<script src="xeva-i18n-mb4.js?v=8"></script>
-<script src="xeva-i18n-mb5.js?v=6"></script>
-<script src="xeva-i18n-p1.js?v=5"></script>
-<script src="xeva-i18n-p2.js?v=5"></script>
-<script src="xeva-i18n-mb6.js?v=6"></script>
-<script src="xeva-i18n-p3.js?v=6"></script>
-<script src="xeva-i18n-mb7.js?v=6"></script>
-<script src="xeva-i18n-p4.js?v=6"></script>
+<script src="xeva-i18n-mb1.js?v=7"></script>
+<script src="xeva-i18n-mb2.js?v=7"></script>
+<script src="xeva-i18n-mb3.js?v=8"></script>
+<script src="xeva-i18n-mb4.js?v=9"></script>
+<script src="xeva-i18n-mb5.js?v=7"></script>
+<script src="xeva-i18n-p1.js?v=6"></script>
+<script src="xeva-i18n-p2.js?v=6"></script>
+<script src="xeva-i18n-mb6.js?v=7"></script>
+<script src="xeva-i18n-p3.js?v=7"></script>
+<script src="xeva-i18n-mb7.js?v=7"></script>
+<script src="xeva-i18n-p4.js?v=7"></script>
 <!-- ★★ 2026-09-06b 今回足したもの（新キャラ14体・装備・スタメンなど）の英語辞書 -->
-<script src="xeva-i18n-n1.js?v=4"></script>
-<script src="xeva-i18n-n2.js?v=2"></script>
-<script src="xeva-loading.js?v=13" defer></script>
-<script src="magibattle-stats.js?v=13"></script>
-<script type="module" src="xeva-sync.js?v=17"></script>
+<script src="xeva-i18n-n1.js?v=5"></script>
+<script src="xeva-i18n-n2.js?v=3"></script>
+<script src="xeva-loading.js?v=14" defer></script>
+<script src="magibattle-stats.js?v=14"></script>
+<script type="module" src="xeva-sync.js?v=18"></script>
 <style>
 /* ══════════════════════════════════════════════════════════════
    XEVARION ガチャ（2026-08-10 作り直し）
@@ -508,21 +508,21 @@ body::after{width:320px;height:320px;background:radial-gradient(circle,rgba(255,
      同期を担当する magiburst-cloud.js を読んでいなかった。
      そのためポータルで引いたキャラはクラウドに上がらず、
      別の端末の MagiBurst が書いたセーブに負けて<b>消えて</b>いた。 -->
-<script type="module" src="MagiBurst/magiburst-cloud.js?v=14"></script>
-<script src="mb-boot.js?v=16"></script>
+<script type="module" src="MagiBurst/magiburst-cloud.js?v=15"></script>
+<script src="mb-boot.js?v=17"></script>
 <!-- ★ MagiBurst のドメイン層（キャラ・アビリティ・技・ガチャの規則）。
      MagiBurst と<b>同じファイル</b>を読むので、キャラを足せば両方に反映される。 -->
 <!-- ★★ 2026-09-08 新キャラの<b>実装日</b>の台帳。
      mb-core.js の charImplDate() がこれを見て「実装から10日以内か」を判定する。
      ★ mb-core.js より<b>前</b>に読むこと（defer にしない）。 -->
-<script src="mb-newchars.js?v=22"></script>
-<script src="MagiBurst/js/mb-core.js?v=102"></script>
+<script src="mb-newchars.js?v=23"></script>
+<script src="MagiBurst/js/mb-core.js?v=112"></script>
 <!-- ★ 2026-08-10 キャラ詳細（性能画面）。図鑑（characters.html）と同じものを使う -->
 <!-- ★★ 2026-08-22 ガチャの詳細だけ「このキャラの最大値」も並べる（ご指定）。
      図鑑（characters.html）はこの旗を立てないので、これまでどおり いまの値だけ。
      旗は mb-char-detail.js を読む<b>前</b>に立てること。 -->
 <script>window.MBDET_MAXSTATS = true;</script>
-<script src="mb-char-detail.js?v=27"></script>
-<script src="gacha-ui.js?v=38"></script>
+<script src="mb-char-detail.js?v=28"></script>
+<script src="gacha-ui.js?v=40"></script>
 </body>
 </html>

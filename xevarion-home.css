@@ -566,13 +566,16 @@ body.xh-off .xh-offline{display:flex}
          「バーの下に別の帯がある」ように見える。平らな1色ならその問題が起きない。）
      ・まん中の「図鑑」だけ<b>丸い時計のメダル</b>にして持ち上げる。
      ・選んでいるタブは<b>金色の文字＋上に金の短い線</b>。
-   ★ はみ出し（--xh-dockover）と --xh-barpad の実測はそのまま残す。
-     あれは端末ごとのすきま対策で、見た目とは別の役目。 */
+   ★★ 2026-09-11 下の余白は <b>env(safe-area-inset-bottom) だけ</b>にした（ご指定）。
+     ・--xh-dockover（240px）… バー本体を下へはみ出させる。ズレても色が途切れない。
+     ・--xh-safeb（＝env のみ）… ホームバーぶんの余白。<b>同じぶんを2回引かない</b>。
+     ★ JS の実測ループ（xevarion.js の fitBar）は<b>廃止</b>。MagiBurst の #tabs と
+       MagiCounter の #nav にはあの層が無く、だからあちらでは隙間が出ていない。 */
 .xh-bar{position:relative;flex-shrink:0;display:grid;grid-template-columns:repeat(5,1fr);gap:2px;
   /* ★ はみ出したぶんにボタンが引き伸ばされないよう、行は中身の高さで上詰めにする */
   grid-auto-rows:min-content;align-content:start;
-  margin-bottom:calc(-1 * var(--xh-dockover));
-  padding:5px 5px calc(var(--xh-barpad) + var(--xh-dockover));
+  margin-bottom:calc(-1 * var(--xh-dockover, 240px));
+  padding:5px 5px calc(var(--xh-safeb, env(safe-area-inset-bottom, 0px)) + var(--xh-dockover, 240px));
   /* 両はしにうっすらうずまき（イメージ案の飾り）。地の色と1枚にまとめる。 */
   background:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M20 40c0-11 9-20 20-20s20 9 20 20-9 20-20 20c-7.4 0-13.4-6-13.4-13.4S32.6 33 40 33s11 4.9 11 11' fill='none' stroke='%23ffffff' stroke-opacity='.17' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat left 2px bottom 6px/40px,
              url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M20 40c0-11 9-20 20-20s20 9 20 20-9 20-20 20c-7.4 0-13.4-6-13.4-13.4S32.6 33 40 33s11 4.9 11 11' fill='none' stroke='%23ffffff' stroke-opacity='.17' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 2px bottom 6px/40px,

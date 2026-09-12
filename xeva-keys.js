@@ -122,6 +122,10 @@ export const PORTAL_SYNC_KEYS = [
   /* ★★ 2026-09-08 Magi: Boccia Rush。ランク・RP・戦績・使うキャラ・設定。
      ★ キャラとガチャは magiburst_v1 に入っているので、ここには入れない。 */
   "mbr_v1",
+  /* ★★ 2026-09-12 MagiQuest。編成・クリア状況・ベストスコアが入っている。
+     ★ 所持キャラは magiburst_v1 が持ち主なので、ここには入れない（二重管理しない）。
+     ★ 問題そのものは MagiLex のファイルなので、同期するものは何もない。 */
+  "magiquest_v1",
 ];
 
 /* ── ② アプリ専用 Firebase（app-cloud.js）で同期するキー ──

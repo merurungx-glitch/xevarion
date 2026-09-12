@@ -71,6 +71,23 @@
   --xh-fixgap: 0px;
   --xh-growb: 0px;
   --xh-safeb: env(safe-area-inset-bottom, 0px);
+  /* ══ ★★ 2026-09-11 下バーのすきまの<b>本当の原因</b>と、その直しかた ══
+     2026-09-10 に xevarion-home.css の 1〜499行を丸ごと書きかえたとき、
+     <b>--xh-dockover と --xh-barpad を定義していた :root ブロックごと消えていた</b>。
+     .xh-bar 側には
+         margin-bottom: calc(-1 * var(--xh-dockover));
+         padding:5px 5px calc(var(--xh-barpad) + var(--xh-dockover));
+     が残っていたので、<b>中身の無い var() で calc() が丸ごと無効</b>になり
+     （invalid at computed-value time）、実測では <b>padding-bottom:0px / margin-bottom:0px</b>。
+     ＝「ホームバーぶんの余白」も「下へはみ出す板」も<b>どちらも効いていなかった</b>。
+     ★ 直しかたは MagiBurst（#tabs）・MagiCounter（#nav）と<b>まったく同じ形</b>にする:
+         ・下へ大きくはみ出させる（--xh-dockover）… ズレても色が途切れない
+         ・中身の余白は <b>env() だけ</b>（--xh-safeb）… 同じぶんを2回引かない
+     ★ そのうえで <b>JS の実測ループ（fitBar）は廃止</b>した（ご指定「制約を無くしてみる」）。
+       あれはボタンの実位置を見て --xh-barpad を足し引きする収束ループで、
+       うまく収束しないと「バーの下に何も無い帯」が残る。MagiBurst にはこの層が無く、
+       だからあちらでは同じ症状が起きていない。 */
+  --xh-dockover: 240px;
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }

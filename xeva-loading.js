@@ -18,7 +18,7 @@
        の<b>両方</b>を使う。①②は xeva-safebottom.js が持っているので、
        読まれていないページでは<b>自分で読みこむ</b>。
 
-   使い方: <script src="../xeva-loading.js?v=13" defer></script>
+   使い方: <script src="../xeva-loading.js?v=14" defer></script>
    ============================================================ */
 (function () {
   "use strict";
@@ -60,7 +60,7 @@
   function ensureSafeBottom() {
     if (window.__xvSafeBottom) return;
     var s = document.createElement("script");
-    s.src = baseUrl() + "xeva-safebottom.js?v=8";
+    s.src = baseUrl() + "xeva-safebottom.js?v=9";
     (document.head || document.documentElement).appendChild(s);
   }
 
@@ -92,8 +92,8 @@
        <b>?v= を上げないと古い絵がそのまま出る</b>（裏では差しかわるが1回遅れる）。
      ・分けて書くと bump-v.py が見つけられないので、<b>連結せずに並べてある</b>。 */
   var LD_SRC = {
-    a: { stand: "img/ld_a_stand.webp?v=4", bow: "img/ld_a_bow.webp?v=4" },
-    b: { stand: "img/ld_b_stand.webp?v=4", bow: "img/ld_b_bow.webp?v=4" },
+    a: { stand: "img/ld_a_stand.webp?v=5", bow: "img/ld_a_bow.webp?v=5" },
+    b: { stand: "img/ld_b_stand.webp?v=5", bow: "img/ld_b_bow.webp?v=5" },
   };
   function poseSrc(pose) { return baseUrl() + (LD_SRC[who] || LD_SRC.a)[pose]; }
 

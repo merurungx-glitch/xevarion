@@ -2712,7 +2712,7 @@ function prepareAccessScreen(opts) {
   if (loading) loading.style.display = "flex";
   if (start) start.style.display = "none";
   const ready = () => { xhReady = true; if (loading) loading.style.display = "none"; if (start) start.style.display = "flex"; };
-  const img = new Image(); img.onload = ready; img.onerror = ready; img.src = "thumbs/xevarion-home_s.jpg?v=11";
+  const img = new Image(); img.onload = ready; img.onerror = ready; img.src = "thumbs/xevarion-home_s.jpg?v=12";
   if (img.complete) ready();
   setTimeout(ready, 2500);
 }
@@ -3462,78 +3462,22 @@ addEventListener("DOMContentLoaded", () => { if (_xevLang === "en") applyLang("e
      ★ ホームバーのある端末（env>0）では env ぶんだけ内側に入れる。無い端末では
        4px だけ空ける。バー本体は --xh-dockover(240px) ぶん常に下へはみ出すので、
        ここをどう動かしても背景が途切れることはない。 */
-  var BARPAD_MAX = 180;
+  /* ══ ★★ 2026-09-11 fitBar（下バーの実測ループ）は<b>廃止</b>しました（ご指定）══
+     ── なぜやめたか ──
+     これは「タブのボタンの実際の下端」と「見えている画面の下端」を毎フレーム比べて
+     --xh-barpad を足し引きする<b>収束ループ</b>だった。原理上ねらいの位置に寄っていくが、
+       ・どちらの「下端」を正としても端末ごとに食いちがう
+       ・収束の途中で描かれると、そのフレームだけバーが浮く
+       ・ズレの原因（ツールバー／ホームバー／箱の作られかた）を値から見分けられない
+     ので、「ときどき下に何も無い帯が残る」が何度直しても再発していた。
+     ★ MagiBurst の #tabs と MagiCounter の #nav には<b>この層がそもそも無い</b>。
+       どちらも「env() ぶんだけ内側に余白／本体は下へ大きくはみ出す」の2つだけで、
+       同じ症状が出ていない。ホームもその形にそろえた（CSS 側だけで完結する）。
+     ★ 呼び出し箇所を消すと漏れるので、<b>関数は残して何もしない</b>ようにしてある。
+       あわせて、古い版が残した --xh-barpad の実測値も1度だけ消す
+       （残っていると、いまの CSS では使われないのに「設定済み」に見えて紛らわしい）。 */
   function fitBar() {
-    var home = document.getElementById("xhome");
-    if (!home || !home.classList.contains("on")) return;
-    var bar = home.querySelector(".xh-bar");
-    var btn = bar && bar.querySelector(".xh-ntab");
-    if (!btn) return;
-    var vv = window.visualViewport;
-    var box = boxHeight();
-    if (!vv || !(box > 200)) return;
-    /* キーボードが出ているあいだは見えている高さが極端に縮むので触らない */
-    if (!(vv.height > box * 0.72)) return;
-    /* ★★ 2026-08-12c 「バーが上のほうにあって、下に何もない帯が残る」の真因。
-       ── 何が起きていたか ──
-       ねらいの位置を <b>visualViewport の下端 −（env + 4）</b> で決めていた。
-       ところが iPhone をホーム画面から「アプリとして」開くと、
-       visualViewport.height が<b>すでにホームバーぶんを引いた高さ</b>を返すことがある。
-       すると
-         ・--xh-fixgap（＝visualViewport の下端 − 箱の下端）が -env になって
-           #xhome の下端がホームバーぶん持ち上がる
-         ・その上でさらに env ぶんの余白（--xh-barpad）を入れる
-       と<b>同じ env を2回引く</b>ことになり、バーの中身が env ぶん（iPhone なら約34pt）
-       余計に高い位置で止まる。バー本体は 240px はみ出しているので背景は下まで
-       続いており、「色は同じだが何も無い帯」だけが残る＝「バーが上にある」。
-       ── 直しかた ──
-       「本当の画面の下端」を2つの測りかたで出して突き合わせる。
-         A: visualViewport の下端
-         B: position:fixed;bottom:0 が着く下端（envInfo().bottom）
-       ・B のほうが env より大きく下 … ブラウザの下部ツールバーが隠している
-                                      → 見えている A に合わせる（バーが裏に入らない）
-       ・それ以外                   … 下にあるほう＝max(A,B) が本当の画面の下端
-       どちらの端末でも env を引くのは<b>1回だけ</b>になる。 */
-    var ei = envInfo();
-    var envB = ei.env;
-    var visBottom = (vv.offsetTop || 0) + vv.height;
-    var fixBottom = ei.ok ? ei.bottom : visBottom;
-    var screenBottom = (fixBottom - visBottom > envB + 2) ? visBottom : Math.max(visBottom, fixBottom);
-    /* ★★ 2026-08-12d 端末で実測してわかった本当の姿（iPhone・ホーム画面から起動）
-         screen 393×852 なのに <b>表示領域（箱）は 393×793</b>。差の 59 は env 上と同じ値で、
-         上端は画面のてっぺん（カメラの下）から始まっている＝<b>足りない 59pt は画面の下</b>にある。
-         ところが env() は「端末の」値をそのまま返すので、下に env 下（34）を空けると、
-         その 34pt は<b>そもそも表示領域の外にあるホームバーぶんと二重</b>になる。
-         合計 59+38＝97pt の帯ができて「バーが上にある」ように見えていた。
-       ── 直しかた ──
-         空けるのは「ホームバーの帯のうち<b>表示領域の中に食いこんでいるぶん</b>」だけ。
-           食いこみ = max(0, env下 − 足りないぶん)
-         ・表示領域が画面いっぱい（足りないぶん 0）… これまでどおり env下 + 4
-         ・この端末（足りないぶん 59 ≥ env下 34）  … 4 だけ（＝タブが 34pt 下がる）
-       ★ 足りないぶんは position:fixed の外なので、ここへバーを伸ばすことはできない
-         （画面の外側は body の背景色が iOS によって塗られる。だから帯の色は続いて見える）。
-       ★ アプリ表示のときだけ見る。ブラウザでは screen と箱の差＝ブラウザのUIぶんなので使えない。 */
-    var shortB = 0;
-    try {
-      if (matchMedia("(display-mode: standalone)").matches || navigator.standalone) {
-        var sMin = Math.min(screen.width, screen.height), sMax = Math.max(screen.width, screen.height);
-        var s = (window.innerWidth > window.innerHeight ? sMin : sMax) - box;
-        if (s > 0 && s < 200) shortB = s;      // 200 以上は測り損ね（PCのウィンドウなど）
-      }
-    } catch (e) {}
-    var want = Math.max(0, envB - shortB) + 4;
-    var root = document.documentElement;
-    var cur = parseFloat(root.style.getPropertyValue("--xh-barpad"));
-    if (!isFinite(cur)) {
-      /* まだ JS が入れていない＝CSS の既定値。実際に効いている値を読む。 */
-      var pb = parseFloat(getComputedStyle(bar).paddingBottom) || 0;
-      var ov = parseFloat(getComputedStyle(root).getPropertyValue("--xh-dockover")) || 0;
-      cur = pb - ov;
-    }
-    var err = btn.getBoundingClientRect().bottom - (screenBottom - want);
-    if (Math.abs(err) < 0.6) return;            // すでに合っている
-    var next = Math.max(0, Math.min(BARPAD_MAX, Math.round((cur + err) * 10) / 10));
-    if (next !== Math.round(cur * 10) / 10) root.style.setProperty("--xh-barpad", next + "px");
+    try { document.documentElement.style.removeProperty("--xh-barpad"); } catch (e) {}
   }
   window.xhFitBar = fitBar;
 

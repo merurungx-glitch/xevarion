@@ -70,6 +70,13 @@ const XH_APPS = [
     href:"MagiBocciaRush/index.html", img:"thumbs/MagiBocciaRush.jpg",
     desc:"引っばって、はなすだけ。<b>本物のボッチャ</b>をスマホで。コート・物理・得点は公式ルールに合わせ、キャラクターの能力とスキルで戦術が広がります。CPU（EASY～MASTER）・1台でのチーム戦（2vs2～4vs4）・部屋番号のオンライン・ランクマッチ・練習・ルールブック。遊びながらボッチャのルールを覚えられます。",
   },
+  /* ★★ 2026-09-12 新作 MagiQuest（学習バトル）。
+     ★ 並びは XH_DEFAULT_ORDER で <b>MagiRanking と入れかえ</b>てある（ご指定）。
+     ★ 新しいアプリは <b>XH_APPS と XH_DEFAULT_ORDER の両方</b>に書くこと
+       （片方だけだとアプリ一覧に一切出ない＝2026-09-09 に踏んだ罠）。 */
+  { id:"magiquest", name:"MagiQuest", full:"MagiQuest", sub:"学習バトル", cat:"game", tone:"blue",
+    href:"MagiQuest/index.html", img:"thumbs/MagiQuest.jpg",
+    desc:"MagiLex の問題をそのまま出題する学習バトル。4択ではなく、盤面のパーツを拾って答えを組み立てて戦う。正解するとキャラが攻撃し、連続正解でコンボが伸びる。" },
   { id:"magiranking", name:"Ranking", full:"MagiRanking", sub:"月間ランキング", cat:"social", tone:"gold",
     href:"MagiRanking/index.html", img:"thumbs/MagiRanking.jpg",
     desc:"獲得XEVAの合計を毎月集計して順位を競う月間ランキング。月末の順位に応じて最大1,000 XEVAを配布。" },
@@ -157,11 +164,13 @@ const XH_DEFAULT_ORDER = [
      ★★ MagiCounter と Boccia Rush は XH_APPS にだけ足して<b>この並びに無かった</b>ので、
         アプリ一覧（ホームも「その他」も）に一切出ていなかった。
         ★ <b>新しいアプリは XH_APPS と XH_DEFAULT_ORDER の両方</b>に必ず書くこと。 */
+  /* ★★ 2026-09-12 <b>MagiRanking の場所を MagiQuest と入れかえ</b>（ご指定）。
+     MagiRanking は「その他」のいちばん前へ下げる。 */
   "magilex", "magilink", "magiburst", "xevynar",
-  "magiranking", "magichainparty", "magidominiongrid", "magidiamond",
+  "magiquest", "magichainparty", "magidominiongrid", "magidiamond",
   "magicounter", "magibocciarush", "magijackpot",
   /* 以降は「その他」の中に入る */
-  "magiarcanarush", "magilotto",
+  "magiranking", "magiarcanarush", "magilotto",
   "ordyxis", "magicraft", "magimanor", "magiportfolio",
   "magiarena", "magibattle", "magiempire", "magifocus", "magimusic", "magitier",
   "ngx", "ishida", "magicalfuture",
@@ -180,6 +189,16 @@ const XH_ORDER_GEN_KEY = "xeva_home_order_gen";
      ずっと後ろ、という状態を防ぐため。
      ＝ 新しいイベントを足すときは<b>この配列のどこに書いてもよい</b>。 */
 const XH_EVENTS = [
+  /* ★★ 2026-09-11 BUNNY GIRL FEST（10月31日まで）。ふつうのフェスガチャ＝期間つき。 */
+  { tag:"BUNNY FES", t1:"BUNNY GIRL FEST",
+    t2:"限定SSR 15体が参戦！ 全員が⚖天界の審判を有利属性のまま完全対応。サヤは MagiBurst 初の「全属性有利」",
+    since:"2026-09-11", from:"2026-09-11", to:"2026-10-31",
+    href:"gacha.html#fes13", img:"thumbs/MagiBurst.jpg" },
+  /* ★★ 2026-09-11 極華祭に カグラ（火）が参戦。毎月11〜20日の開催。 */
+  { tag:"FES", t1:"極華祭 に カグラ",
+    t2:"史上最大の火力（乱打64連＋彼岸の大輪）と史上最重のリンクスキル。極華・ブルームネクサスも強化",
+    always:true, perm:true, monthly:[11, 20], since:"2026-09-11", from:"2026-09-11", to:"2027-12-31",
+    href:"gacha.html#fes9", img:"thumbs/MagiBurst.jpg" },
   /* ★★ 2026-09-06 戦姫祭に新3体（MagiBurst 史上最強）。常時開催なので perm:true。 */
   { tag:"SENKI FES", t1:"戦姫祭 に 新3体",
     t2:"レイ（闇）・リカ（木）・アンナ＆ラン（火＆光）が参戦！ リンクスキルの素の威力が MagiBurst 史上最強",
@@ -284,7 +303,7 @@ const XH_EVENTS = [
     /* ★ 2026-08-12 正方形の書き下ろしイラストに差し替え。
        ?v= を付けてあるのは、SW が stale-while-revalidate（古いほうを先に返す）で
        画像を持っているため。付けないと1回目は前の絵のままになる。 */
-    href:"MagiBurst/index.html", img:"thumbs/AokaSummerFest.jpg?v=9" },
+    href:"MagiBurst/index.html", img:"thumbs/AokaSummerFest.jpg?v=10" },
   /* ★ 2026-08-07 MagiBurst「Phantom Legend Fest」の予告。
      8/10 0:00 の開催をまたぐと、下の xhRenderEvents が t1/t2 を「開催中」に差し替える
      （XH_FES3_OPEN と見くらべるだけなので、当日に書き直す必要はない）。
@@ -340,6 +359,26 @@ const XH_EVENTS = [
    ══════════════════════════════════════════════════════════════ */
 const XH_UPDATE_MAX = 12;
 const XH_UPDATES = [
+  /* ★★ 2026-09-12 新作 MagiQuest ／ MagiBurst の調整 ／ ホームの下バー */
+  { tag:"NEW", t1:"新作「MagiQuest」が登場", at:"2026-09-12",
+    t2:"<b>MagiLex の問題をそのまま出題</b>する学習バトル。4択ではなく<b>盤面のパーツを拾って答えを組み立てて</b>戦います。正解するとキャラが攻撃し、連続正解で<b>COMBO</b>が伸びる。キャラは<b>XEVARION 共通のガチャ</b>のまま。化学・数学・物理・国語・地理の<b>2,800問以上</b>を収録",
+    href:"MagiQuest/index.html", img:"thumbs/MagiQuest.jpg" },
+  { tag:"UPDATE", t1:"MagiBurst のリンクスキルを調整", at:"2026-09-12",
+    t2:"リンクスキルの威力が<b>フルバーストと同じ桁</b>まで上がっていたので、跳ねていたぶんを下げました。リンクは<b>味方にふれるたび何度でも</b>出るので、実際の総ダメージがフルバーストを大きく上回っていたためです（フルバーストは<b>そのまま</b>）",
+    href:"MagiBurst/index.html", img:"thumbs/MagiBurst.jpg" },
+  { tag:"UPDATE", t1:"BUNNY GIRL FEST のフルバーストを作り直し", at:"2026-09-12",
+    t2:"12体とも<b>別々の型</b>になりました——総攻撃／分身／追加弱点／単体特大／純支援／回復変換／ふっとばし／バリア転化／ドレイン／味方強化／ボス特化／継続ダメージ。<b>ためるターン数もキャラごと</b>（11〜26）に。アビリティの組み合わせも16体すべて別のものにしています",
+    href:"gacha.html#fes13", img:"thumbs/MagiBurst.jpg" },
+  { tag:"FIX", t1:"ホームの下のバーと画面の下のすきまを直しました", at:"2026-09-12",
+    t2:"下バーの余白とはみ出しを決めていた<b>2つの変数が消えていた</b>のが原因でした（CSS の書きかえで巻きこまれていた）。MagiBurst・MagiCounter と<b>同じ作り</b>にそろえ、位置を測り直す処理は<b>やめました</b>",
+    href:"index.html", img:"thumbs/xevarion-home_s.jpg" },
+  /* ★★ 2026-09-11 BUNNY GIRL FEST／極華祭 カグラ */
+  { tag:"NEW", t1:"BUNNY GIRL FEST 開幕（10月31日まで）", at:"2026-09-11",
+    t2:"限定SSR <b>15体</b>が登場。<b>15体すべてが⚖天界の審判を有利属性のまま完全対応</b>し、<b>リンクスキルは15本すべて新設</b>。サヤは MagiBurst 初の<b>全属性有利</b>、アオイ＆クロハは<b>水と闇の二属性</b>。登場から10日はSSR枠がまるごとこの15体です",
+    href:"gacha.html#fes13", img:"thumbs/MagiBurst.jpg" },
+  { tag:"NEW", t1:"極華祭に「カグラ」が登場", at:"2026-09-11",
+    t2:"フルバースト<b>ヒガン・センリンザン</b>（乱打64連＋彼岸の大輪）は<b>MagiBurst 史上最大の火力</b>。リンク<b>マンジュシャゲ・ヒャッカ</b>は<b>咲くほど線が二次で増える</b>史上最重のリンク。<b>極華・ブルームネクサスも強化</b>（リンク+45%／攻撃+15%／スピード+12%／WAVE開始時HP+6%）",
+    href:"gacha.html#fes9", img:"thumbs/MagiBurst.jpg" },
   /* ★★ 2026-09-10d 下バーの入れかえ・PC の大きさ・見出しの絵 */
   { tag:"UPDATE", t1:"下のバーのまん中がガチャになりました", at:"2026-09-10",
     t2:"ガチャと図鑑を入れかえ、<b>ガチャを金のメダル</b>にしました。新しいキャラの顔がメダルの中に出るので、いま引けるキャラがひと目で分かります。「無料」の印もメダルの左上に出ます",
@@ -1369,8 +1408,8 @@ function xhLoadScript(src) {
 function xhMbReady() {
   if (typeof CHARS !== "undefined" && typeof PREMIUM_CHARS !== "undefined") return Promise.resolve(true);
   if (_xhMbLoading) return _xhMbLoading;
-  _xhMbLoading = xhLoadScript("mb-boot.js?v=16")
-    .then(() => xhLoadScript("MagiBurst/js/mb-core.js?v=102"))
+  _xhMbLoading = xhLoadScript("mb-boot.js?v=17")
+    .then(() => xhLoadScript("MagiBurst/js/mb-core.js?v=112"))
     .then(() => true)
     .catch((e) => { _xhMbLoading = null; throw e; });
   return _xhMbLoading;

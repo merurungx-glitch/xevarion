@@ -25,7 +25,9 @@ SWS = ["sw.js", "MagiLex/sw.js", "MagiBurst/sw.js", "MagiChainParty/sw.js", "XEV
        # ★★ 2026-09-08 新作 MagiCounter（Pokémon Champions 対戦支援）
        "MagiCounter/sw.js",
        # ★★ 2026-09-08 新作 Magi: Boccia Rush
-       "MagiBocciaRush/sw.js"]
+       "MagiBocciaRush/sw.js",
+       # ★★ 2026-09-12 新作 MagiQuest（学習バトル）
+       "MagiQuest/sw.js"]
 
 
 # ══════════════════════════════════════════════════════════════

@@ -822,6 +822,24 @@
     { id: "mb:reia", mbId: "reia", name:"レイア", file: "../img/t_Reia.webp", since:"2026-09-08" },
     { id: "mb:miori", mbId: "miori", name:"ミオリ", file: "../img/t_Miori.webp", since:"2026-09-08" },
     { id: "mb:annamd", mbId: "annamd", name:"アンナ(メイド)", file: "../img/t_AnnaMaid.webp", since:"2026-09-08" },
+    /* ★★ 2026-09-11 BUNNY GIRL FEST 15体（No.216〜230）＋ 極華祭 カグラ（No.231）。
+       ★ 並びは mb-core.js の CHAR_IDS と<b>同じ順</b>にそろえる（並び＝No.）。 */
+    { id: "mb:saya", mbId: "saya", name:"サヤ", file: "../img/t_Saya.webp", since:"2026-09-11" },
+    { id: "mb:aoik", mbId: "aoik", name:"アオイ＆クロハ", file: "../img/t_AoiKuroha.webp", since:"2026-09-11" },
+    { id: "mb:narumi", mbId: "narumi", name:"ナルミ", file: "../img/t_Narumi.webp", since:"2026-09-11" },
+    { id: "mb:ayame", mbId: "ayame", name:"アヤメ", file: "../img/t_Ayame.webp", since:"2026-09-11" },
+    { id: "mb:misaki", mbId: "misaki", name:"ミサキ", file: "../img/t_Misaki.webp", since:"2026-09-11" },
+    { id: "mb:kyoka", mbId: "kyoka", name:"キョウカ", file: "../img/t_Kyoka.webp", since:"2026-09-11" },
+    { id: "mb:haduki", mbId: "haduki", name:"ハヅキ", file: "../img/t_Haduki.webp", since:"2026-09-11" },
+    { id: "mb:hikari", mbId: "hikari", name:"ヒカリ", file: "../img/t_Hikari.webp", since:"2026-09-11" },
+    { id: "mb:ruri", mbId: "ruri", name:"ルリ", file: "../img/t_Ruri.webp", since:"2026-09-11" },
+    { id: "mb:nagisa", mbId: "nagisa", name:"ナギサ", file: "../img/t_Nagisa.webp", since:"2026-09-11" },
+    { id: "mb:hiyori", mbId: "hiyori", name:"ヒヨリ", file: "../img/t_Hiyori.webp", since:"2026-09-11" },
+    { id: "mb:erika", mbId: "erika", name:"エリカ", file: "../img/t_Erika.webp", since:"2026-09-11" },
+    { id: "mb:momoka", mbId: "momoka", name:"モモカ", file: "../img/t_Momoka.webp", since:"2026-09-11" },
+    { id: "mb:miyuki", mbId: "miyuki", name:"ミユキ", file: "../img/t_Miyuki.webp", since:"2026-09-11" },
+    { id: "mb:natsume", mbId: "natsume", name:"ナツメ", file: "../img/t_Natsume.webp", since:"2026-09-11" },
+    { id: "mb:kagura", mbId: "kagura", name:"カグラ", file: "../img/t_Kagura.webp", since:"2026-09-11" },
   ];
   /* ★ 2026-08-10 初期SR 4体（ゼラ・アヤメ・レイラ・セリーヌ）は廃止しました。
      いまは<b>全キャラがアイコンに選べる</b>ので、starter という区別そのものが要らない。 */
@@ -902,7 +920,13 @@
   , "naos", "harukas"
   /* ★★ 2026-09-08 戦姫祭 第3弾。ここに無いと
      <b>XEVAミッションの図鑑コレクションに出てこない</b>。 */
-  , "reia", "miori", "annamd"];
+  , "reia", "miori", "annamd"
+  /* ★★ 2026-09-11 BUNNY GIRL FEST 15体 ＋ 極華祭 カグラ。ここに無いと
+     <b>XEVAミッションの図鑑コレクションに出てこない</b>。 */
+  , "saya", "aoik", "narumi", "ayame", "misaki"
+  , "kyoka", "haduki", "hikari", "ruri", "nagisa"
+  , "hiyori", "erika", "momoka", "miyuki", "natsume"
+  , "kagura"];
   MB_CHAR_MASTER.forEach(function (c) { c.mb = true; c.starter = MB_STARTERS.indexOf(c.mbId) >= 0; });
   MB_CHAR_MASTER.forEach(function (c) { c.star5 = MB_STAR5.indexOf(c.mbId) >= 0; });
   /* id は "mb:zera" のように接頭辞つき。XEVAガチャにも同じ名前のキャラ（シオンなど）が
