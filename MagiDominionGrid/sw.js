@@ -7,14 +7,14 @@
 const VERSION = "mdgrid-sw-v7";
 const CORE = [
   "./index.html",
-  "./css/mdg.css?v=8",
-  "./js/mdg.js?v=7",
-  "../xeva.js?v=61",
-  "../xeva-loading.js?v=13",
-  "../xeva-splash.js?v=10",
-  "../xeva-safebottom.js?v=8",
-  "../xeva-back.js?v=8",
-  "../maintenance-gate.js?v=12",
+  "./css/mdg.css?v=9",
+  "./js/mdg.js?v=8",
+  "../xeva.js?v=62",
+  "../xeva-loading.js?v=14",
+  "../xeva-splash.js?v=11",
+  "../xeva-safebottom.js?v=9",
+  "../xeva-back.js?v=9",
+  "../maintenance-gate.js?v=13",
   "../thumbs/MagiDominionGrid.jpg",
 ];
 
