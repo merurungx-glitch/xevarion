@@ -6,43 +6,43 @@
    ・オンライン対戦・XEVA換金はアプリ側でオフライン時に無効化している
    ・取得できたリソースは随時キャッシュ更新（stale-while-revalidate）
    ============================================================ */
-const VERSION = "magiburst-sw-v154";
+const VERSION = "magiburst-sw-v156";
 const CORE = [
   "./index.html",
-  "./css/mb-ui2.css?v=25",
-  "./css/localplay.css?v=6",
-  "./js/localplay.js?v=7",
-  "./js/mb-core.js?v=102",   /* ★ 2026-08-10 キャラ・ガチャの共有モジュール（XEVARION のガチャと共通） */
+  "./css/mb-ui2.css?v=26",
+  "./css/localplay.css?v=7",
+  "./js/localplay.js?v=8",
+  "./js/mb-core.js?v=112",   /* ★ 2026-08-10 キャラ・ガチャの共有モジュール（XEVARION のガチャと共通） */
   /* ★★ 2026-09-06 装備（頭・腕・胸・足）。ここに載せないとオフラインで丸ごと動かない。 */
-  "./js/mb-gear.js?v=6",
+  "./js/mb-gear.js?v=7",
   /* ★★ 2026-09-01 ローカル通信マルチ。<b>オフラインで使うもの</b>なので、
      ここに載せておかないと「オフラインのときだけ動かない」ことになる。 */
-  "./js/local.js?v=11",
+  "./js/local.js?v=12",
   /* ★★ 2026-09-03 ローカル通信の QR コード（自前・外部ライブラリなし） */
-  "../xeva-qr.js?v=7",
-  "../xeva-i18n.js?v=7",
-  "../xeva-i18n-dict.js?v=11",
-  "../xeva-i18n-mb1.js?v=6",
-  "../xeva-i18n-mb2.js?v=6",
-  "../xeva-i18n-mb3.js?v=7",
-  "../xeva-i18n-mb4.js?v=8",
-  "../xeva-i18n-mb5.js?v=6",
-  "../xeva-i18n-p1.js?v=5",
-  "../xeva-i18n-p2.js?v=5",
-  "../xeva-i18n-mb6.js?v=6",
-  "../xeva-i18n-p3.js?v=6",
-  "../xeva-i18n-mb7.js?v=6",
-  "../xeva-i18n-p4.js?v=6",
-  "../xeva-i18n-n1.js?v=4",
-  "../xeva-i18n-n2.js?v=2",
-  "../xeva.js?v=61",
-  "../xeva-loading.js?v=13",
-  "../xeva-splash.js?v=10",
-  "../app-cloud.js?v=11",
-  "../xeva-keys.js?v=18",
-  "./magiburst-cloud.js?v=14",
-  "../maintenance-gate.js?v=12",
-  "../app-install-notice.js?v=8",
+  "../xeva-qr.js?v=8",
+  "../xeva-i18n.js?v=8",
+  "../xeva-i18n-dict.js?v=12",
+  "../xeva-i18n-mb1.js?v=7",
+  "../xeva-i18n-mb2.js?v=7",
+  "../xeva-i18n-mb3.js?v=8",
+  "../xeva-i18n-mb4.js?v=9",
+  "../xeva-i18n-mb5.js?v=7",
+  "../xeva-i18n-p1.js?v=6",
+  "../xeva-i18n-p2.js?v=6",
+  "../xeva-i18n-mb6.js?v=7",
+  "../xeva-i18n-p3.js?v=7",
+  "../xeva-i18n-mb7.js?v=7",
+  "../xeva-i18n-p4.js?v=7",
+  "../xeva-i18n-n1.js?v=5",
+  "../xeva-i18n-n2.js?v=3",
+  "../xeva.js?v=62",
+  "../xeva-loading.js?v=14",
+  "../xeva-splash.js?v=11",
+  "../app-cloud.js?v=12",
+  "../xeva-keys.js?v=20",
+  "./magiburst-cloud.js?v=15",
+  "../maintenance-gate.js?v=13",
+  "../app-install-notice.js?v=9",
   "../XEVA.png",
   "../gem.png",
   /* ★ 2026-08-24 スタミナの絵（ヘッダーの⚡札） */
@@ -266,6 +266,7 @@ const CORE = [
   /* ★★ 2026-08-29 戦姫祭のバナー */
   "img/bn_fes11_s.webp",
   "img/bn_fes12_s.webp",   /* ★★ 2026-09-01 RISING STAR FEST のバナー */
+  "img/bn_fes13_s.webp",   /* ★★ 2026-09-11 BUNNY GIRL FEST のバナー */
   "../img/t_Suzune.webp",
   "../img/t_Minamo.webp",
   /* ★★ 2026-08-26 GRAND DEBUT Ver.3.0 の5体 ＋ MagiLex の KP交換キャラ4体。
@@ -359,6 +360,24 @@ const CORE = [
   "../img/t_Reia.webp",
   "../img/t_Miori.webp",
   "../img/t_AnnaMaid.webp",
+  /* ★★ 2026-09-11 BUNNY GIRL FEST 15体 ＋ 極華祭 カグラ。
+     ★ ここに無いとオフラインで<b>その子だけ絵が出ない</b>し、update.json にも載らない。 */
+  "../img/t_Saya.webp",
+  "../img/t_AoiKuroha.webp",
+  "../img/t_Narumi.webp",
+  "../img/t_Ayame.webp",
+  "../img/t_Misaki.webp",
+  "../img/t_Kyoka.webp",
+  "../img/t_Haduki.webp",
+  "../img/t_Hikari.webp",
+  "../img/t_Ruri.webp",
+  "../img/t_Nagisa.webp",
+  "../img/t_Hiyori.webp",
+  "../img/t_Erika.webp",
+  "../img/t_Momoka.webp",
+  "../img/t_Miyuki.webp",
+  "../img/t_Natsume.webp",
+  "../img/t_Kagura.webp",
   /* ★★ 2026-09-06 同期の画面に出る案内役（立ち姿とお辞儀・2人ぶん）。
      ここに無いとオフラインのときだけ絵が出ない。 */
   "../img/ld_a_stand.webp",

@@ -15,8 +15,8 @@
    <b>ふつうの &lt;script&gt;</b>（type="module" ではない）で読むこと。
    トップレベルの const/let はグローバルの字句環境に入るので、
    あとから読み込む MagiBurst 本体のスクリプトからそのまま見える。
-     MagiBurst : <script src="js/mb-core.js?v=102"></script>
-     gacha.html: <script src="MagiBurst/js/mb-core.js?v=102"></script>
+     MagiBurst : <script src="js/mb-core.js?v=112"></script>
+     gacha.html: <script src="MagiBurst/js/mb-core.js?v=112"></script>
 
    ── ホストが先に用意しておくもの ──
      window.MB_IMGD … 画像フォルダへの相対パス（MagiBurst は "../img/"、ポータルは "img/"）
@@ -157,6 +157,12 @@ function elemMult(a, d) {
 function elemMultOf(c, d) {
   const m1 = elemMult(c && c.el, d);
   let m = (!c || !c.el2) ? m1 : Math.max(m1, elemMult(c.el2, d));
+  /* ══ ★★ 2026-09-11 <b>全属性有利</b>（アビリティ elemadv・サヤ）══
+     el2 と同じくここ1か所だけで効かせる。どの属性の相手でも<b>有利の倍率</b>になる。
+     ★ 判定を増やさないこと（直殴り・リンク・適性判定は全部この関数を通っている）。 */
+  if (c && typeof hasAbil === "function" && hasAbil(c, "elemadv")) {
+    m = Math.max(m, (typeof elemUpMul === "function") ? elemUpMul() : 1.25);
+  }
   /* ★★ 2026-09-06 装備の<b>有利コードダメージ増加</b>。
      <b>有利を取っているときだけ</b>乗る。ここは「キャラが攻撃側になる場所」の
      入口が1本にまとまっているので、ここだけで直殴りもリンクもさわる。 */
@@ -377,6 +383,10 @@ const AB_NM = {
      ★ 等級ちがいは<b>無印と同じ判定・倍率だけ差し替え</b>にすること。
        別の判定を書くと「無印は乗るのにMは乗らない」がすぐ起きる。 */
   atkchargeM: "攻撃力チャージM", defkillerM: "防御ダウンキラーM",
+  /* ══ ★★ 2026-09-11 BUNNY GIRL FEST サヤ用 ══
+     ・elemadv … <b>全属性有利</b>。どの属性の敵に対しても「属性有利」になる。
+       判定は elemMultOf の1か所だけ（＝乗せ忘れが原理的に起きない）。 */
+  elemadv: "全属性有利",
 };
 /* ══ ★ 2026-08-16b 上の新アビリティの数値 ══ */
 const KILLER_EL_MUL = 3.0;        // 属性キラーEL
@@ -991,6 +1001,13 @@ const SHOTSK_HARUKAS_MARK = 1.22;  // 刺さっている敵への与ダメージ
 
 /* ══ ★★ 2026-09-08 戦姫祭 第3弾 レイア／ミオリ／アンナ(メイド) のショットスキル ══
    ★ 定数は必ず <b>SHOTSKILLS より前</b>に置く（あとに置くと TDZ で丸ごと落ちる）。 */
+/* ══ ★★ 2026-09-11 カグラ「ヒガン・シュート」（ショットスキル）══
+   ★ SHOTSKILLS の表はこのすぐ下（1150行あたり）で組み立てるので、
+     数字は<b>かならずその前</b>に置くこと。あとに置くと TDZ でファイルごと落ちる。 */
+const SHOTSK_KAGURA_PER = 3.6;     // 進む向きへ飛ぶ緋の刃（貫通）
+const SHOTSK_KAGURA_LEN = 760;
+const SHOTSK_KAGURA_W = 60;
+const SHOTSK_KAGURA_FB = 1;        // 自分のフルバーストが進むターン
 const SHOTSK_REIA_R = 300;         // レイア: 自分のまわりに広がる華焔の輪
 const SHOTSK_REIA_PER = 1.28;      // 輪にふれた敵への倍率
 const SHOTSK_REIA_FB = 1;          // あわせて自分のフルバーストが1ターン進む
@@ -1186,6 +1203,18 @@ const SHOTSKILLS = {
     desc: "自分のターンで<b>撃つたび毎回</b>、盤面いっぱいに星屑がふりそそぐ。"
       + "<br>ほかのショットスキルとちがい<b>射程も範囲も関係なく、画面の敵すべてに入る</b>のが"
       + "いちばんの強み。撃つ向きも位置も選ばないので、<b>毎ターン必ず全部に入る</b>。",
+  },
+  /* ══ ★★ 2026-09-11 極華祭 カグラ ══ */
+  higanshot: {
+    nm: "ヒガン・シュート", c: "#ff3b5c",
+    pow: "進む向きへ<b>緋の刃</b>（貫通・射程 " + SHOTSK_KAGURA_LEN + "・太さ "
+      + SHOTSK_KAGURA_W + "）／線上の敵に 攻撃力×" + SHOTSK_KAGURA_PER
+      + " ＋ <b>自分のフルバーストが" + SHOTSK_KAGURA_FB + "ターン進む</b>",
+    desc: "自分のターンで<b>撃つたび毎回</b>、進む向きへ<b>緋色の刃</b>が走る。"
+      + "<br>1発の重さは<b>ショットスキルの中でいちばん</b>（攻撃力×" + SHOTSK_KAGURA_PER + "）で、"
+      + "しかも<b>貫通</b>なので並んだ敵をまとめて斬ります。"
+      + "<br>そのうえ<b>撃つだけでフルバーストが" + SHOTSK_KAGURA_FB + "ターン近づく</b>——"
+      + "史上最大火力の<b>ヒガン・センリンザン</b>に、手番のたびに近づいていきます。",
   },
 };
 function shotSkillOf(id) {
@@ -1673,8 +1702,8 @@ const HANON_BUZZER = 140.0;        // ブザービーター（敵全体）＋ふ
    ★ 新しい挙動: 光の輪が<b>1段ごとに1つずつ重なって</b>いき、
      <b>重なった枚数がそのまま倍率</b>になる（1段目 ×1、7段目 ×7）。 */
 const HDOM_STEPS = 7;
-const HDOM_PER = 3.10;             // 1枚ぶんの倍率（敵全体）
-const HDOM_FINALE = 28.0;          // 重なりきった瞬間（敵全体）
+const HDOM_PER = 2.00;             // 1枚ぶんの倍率（敵全体）
+const HDOM_FINALE = 18.0;          // 重なりきった瞬間（敵全体）
 const HDOM_GAP = 9;
 /* ── ハノン「ゴールデン・リバウンド」（サブリンク）──
    ★ 極彩祭・極煌祭のサブリンクは<b>統一しなくてよい</b>（ご指定）ので、
@@ -2159,6 +2188,10 @@ function abilDesc(a) {
       + "<b>ダメージウォール・重力バリア・ワープ・地雷</b>を無効化（地雷は回収せず無効化のみ）"
       + "<br><small>※ ブロック・ロックゾーン・減速壁など、ほかのギミックには効きません</small>";
     case "allkiller": return "すべての属性の敵へのダメージが1.5倍";
+    /* ★★ 2026-09-11 全属性有利（サヤ）。属性キラーとはちがい<b>属性相性そのもの</b>を書きかえる */
+    case "elemadv": return "<b>すべての属性の敵に対して属性有利</b>になる（ダメージ ×"
+      + ((typeof elemUpMul === "function" ? elemUpMul() : 1.25)).toFixed(2)
+      + "）<br><small>※ 不利属性でも 0.75 倍にならず、必ず有利の倍率になります</small>";
     case "drain": return "敵にふれるたびにチームHPを" + Math.round(DRAIN_RATE * 100) + "%回復する";
     case "fsboost": return "自分のリンクスキル・サブリンクの威力が" + FSBOOST_MUL + "倍になる";
     /* ★ 2026-08-07: 耐性・プロテクションは「攻撃を受けたキャラ本人」だけに効く。
@@ -3274,13 +3307,13 @@ const DRAGV_TOTAL = DRAGV_LAPS * DRAGV_PER + DRAGV_STEP * (DRAGV_LAPS * (DRAGV_L
    ★ 合計 ＝ 螺旋 8×2.00（＝16.0）＋ 共鳴 6×5.00＋1.40×15（＝51.0）＋ 大薔薇 22.0 ＝ <b>×89.0</b>。
      <b>MagiBurst 史上いちばん重いリンクスキル</b>（万灯祭天 ×64 を超える）。 */
 const TROSE_TICKS = 8;             // 螺旋の刻み（敵全体）
-const TROSE_PER = 5.20;            // 1刻み ★★ 2026-09-06b 200人目の記念に超強化
+const TROSE_PER = 1.16;            // 1刻み ★★ 2026-09-06b 200人目の記念に超強化
 const TROSE_CROSS_N = 8;           // 共鳴の回数 ★★ 2026-09-06b 6 → 8
-const TROSE_CROSS = 14.00;         // 1回目の共鳴（半径 TROSE_R）★★ 2026-09-06b 超強化
-const TROSE_CROSS_STEP = 4.20;     // 共鳴するたびの上乗せ ★★ 2026-09-06b 超強化
+const TROSE_CROSS = 3.10;         // 1回目の共鳴（半径 TROSE_R）★★ 2026-09-06b 超強化
+const TROSE_CROSS_STEP = 0.94;     // 共鳴するたびの上乗せ ★★ 2026-09-06b 超強化
 const TROSE_R = 240;
 const TROSE_GAP = 7;
-const TROSE_FINALE = 66.0;         // 締め（敵全体・二輪の大薔薇）★★ 2026-09-06b 超強化
+const TROSE_FINALE = 14.7;         // 締め（敵全体・二輪の大薔薇）★★ 2026-09-06b 超強化
 const TROSE_TOTAL = TROSE_TICKS * TROSE_PER
   + TROSE_CROSS_N * TROSE_CROSS + TROSE_CROSS_STEP * (TROSE_CROSS_N * (TROSE_CROSS_N - 1) / 2)
   + TROSE_FINALE;
@@ -3410,10 +3443,10 @@ const JUDGEKILLER_EL_MUL = 3.4;
        FB 合計 ×318.0／×318.8（アンナ極華祭 ×253.3 を超え、アンナ＆ラン ×544.2 には届かない）
    ══════════════════════════════════════════════════════════════ */
 /* ── ナオ「タイダル・オーバーフロー」（リンクスキル）── */
-const TOVF_PER = 9.60;             // 1段ぶんの倍率（敵全体）
-const TOVF_STEP = 4.80;            // 段が上がるごとの上乗せ
+const TOVF_PER = 5.40;             // 1段ぶんの倍率（敵全体）
+const TOVF_STEP = 2.70;            // 段が上がるごとの上乗せ
 const TOVF_MAX = 8;                // 段の上限（敵が9体以上でも8段まで）
-const TOVF_FINALE = 66.0;          // 締めの大波（敵全体）
+const TOVF_FINALE = 37.0;          // 締めの大波（敵全体）
 const TOVF_GAP = 9;                // 1段ごとの間隔（フレーム）
 function tovfTotal(n) {
   const k = Math.max(1, Math.min(TOVF_MAX, n | 0));
@@ -3477,11 +3510,11 @@ const HARUKAS_TOTAL =
 
 /* ── レイア「サンクタ・ペタリア」（リンク・味方4体を結んだ華焔の陣）── */
 const SANCT_N = 6;                 // 花びらが陣をめぐる回数（段）
-const SANCT_PER = 22.0;            // 1段の倍率（陣の内側にいる敵）
-const SANCT_STEP = 4.0;            // 段ごとの上乗せ
+const SANCT_PER = 8.20;            // 1段の倍率（陣の内側にいる敵）
+const SANCT_STEP = 1.50;            // 段ごとの上乗せ
 const SANCT_OUT = 0.45;            // 陣の外にいる敵への割合
 const SANCT_AREA_MAX = 0.40;       // 陣が広いほど倍率が上がる（最大 +40%）
-const SANCT_FINALE = 110.0;        // 締めの大輪（敵全体）
+const SANCT_FINALE = 41.0;        // 締めの大輪（敵全体）
 const SANCT_GAP = 11;              // 1段ごとの間隔（フレーム）
 const SANCT_BASE = SANCT_N * SANCT_PER + SANCT_STEP * (SANCT_N * (SANCT_N - 1) / 2);
 const SANCT_TOTAL_MIN = SANCT_BASE + SANCT_FINALE;
@@ -3495,9 +3528,9 @@ const SANCT_TOTAL_MAX = SANCT_BASE * (1 + SANCT_AREA_MAX) + SANCT_FINALE;
      ・同じく、<b>砂がたまる</b>（VGLASS_SAND）。最後にたまった砂が一気に落ちる。
    ★ 合計の値（最大 352）はこれまでと同じになるようにしてある。 */
 const VGLASS_N = 8;                // 砂が落ちる回数（敵全体）
-const VGLASS_PER = 15.0;           // 1回の倍率
-const VGLASS_STEP = 1.5;           // その回にふれた敵1体につき、次の回に上乗せ
-const VGLASS_SAND = 2.0;           // その回にふれた敵1体につきたまる砂（締めの倍率）
+const VGLASS_PER = 3.20;           // 1回の倍率
+const VGLASS_STEP = 0.32;           // その回にふれた敵1体につき、次の回に上乗せ
+const VGLASS_SAND = 0.43;           // その回にふれた敵1体につきたまる砂（締めの倍率）
 const VGLASS_GAP = 12;
 function vglassTotal(h) {          // h = 毎回そろってふれられる敵の数
   const n = Math.max(1, h | 0);
@@ -3510,13 +3543,13 @@ const VGLASS_TOTAL_MAX = vglassTotal(4);
 /* ── アンナ(メイド)「グランメゾン・セルヴィス」（リンク・走って増える銀のワゴン）── */
 const MAISON_N0 = 3;               // 最初に走り出すワゴンの数
 const MAISON_MAX = 12;             // 増える上限
-const MAISON_PER = 12.0;           // ワゴンが敵にふれたとき（1台1回ぶん）
-const MAISON_BOUNCE = 3.0;         // 壁で跳ね返るたびに、その台の威力に上乗せ
+const MAISON_PER = 3.40;           // ワゴンが敵にふれたとき（1台1回ぶん）
+const MAISON_BOUNCE = 0.85;         // 壁で跳ね返るたびに、その台の威力に上乗せ
 const MAISON_BOUNCE_MAX = 3;       // 上乗せの上限（跳ね返り回数）
 const MAISON_SPEED = 17;           // ワゴンの速さ
 const MAISON_FRAMES = 100;         // 走っている時間（フレーム）
 const MAISON_HITGAP = 14;          // 同じ敵に続けて当たらない間隔（フレーム）
-const MAISON_FINALE = 170.0;       // 締めのデセール（敵全体）
+const MAISON_FINALE = 48.0;       // 締めのデセール（敵全体）
 const MAISON_TOTAL_MAX =
   MAISON_MAX * (MAISON_PER + MAISON_BOUNCE * MAISON_BOUNCE_MAX) + MAISON_FINALE;
 
@@ -3563,7 +3596,413 @@ const ANNAMD_TOTAL =
   + ANNAMD_TRAY_STEP * (ANNAMD_TRAY_N * (ANNAMD_TRAY_N - 1) / 2)
   + ANNAMD_TOWER;
 
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-09-11b <b>リンクスキルの威力を全体的に下げた</b>（ご指定）
+   ------------------------------------------------------------
+   ── 何が起きていたか ──
+   リンクスキルの「合計 攻撃力×N」が<b>フルバーストと同じ桁</b>になっていた
+   （例: レイアの FB ×591 に対してリンク ×379／アンナ(メイド) FB ×661 に対して ×422）。
+   ところがリンクは<b>味方にふれるたび・1ターンに何度でも</b>出るので、
+   実際の総ダメージはフルバーストを大きく上回っていた。
+   ── 実測（敵4体・攻撃力3000・600フレーム）──
+     古いリンク    32〜50   （コンステレーション38／ローズケージ46／孔雀扇49）
+     中堅          110〜170 （プリズムタイド111／クロスノート163／天秤172）
+     2026-09 の新作 288〜1806  ← <b>ここだけ跳ねていた</b>
+   ── 直しかた ──
+   跳ねていたぶんだけを縮めて、<b>いちばん強いリンクでも実測 420 まで</b>にそろえた
+   （セレスト・ドミナンス／ツインローズ／ヴォイド・アワーグラス／グランメゾン／
+     サンクタ・ペタリア／タイダル・オーバーフロー／BUNNY の15本／マンジュシャゲ）。
+   ★ <b>フルバーストは触っていない</b>（ご指定「FBは良い」）。
+   ★ 倍率の定数だけを縮めてあるので、<b>画面に出る数字も同じだけ下がる</b>
+     （表記と実際がずれない）。
+   ══════════════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-09-11 BUNNY GIRL FEST（fes13）— 限定SSR 15体
+   ------------------------------------------------------------
+   ・15体とも <b>アンチ3つ ＋ キラー2つ ＋ そのほか3つ ＝ アビリティ8つ</b>。
+     <b>クロススキル・オムニアンチ・治癒の祈りは持たない</b>（ご指定）ので、
+     編成の条件にいっさい左右されず、いつ出してもこの性能がそのまま出る。
+   ・アンチ3つは、担当する <b>⚖天界の審判</b> の必要アンチと<b>ぴったり一致</b>し、
+     しかも<b>有利属性</b>で入れる。
+   ・リンクスキルは <b>15本すべて新設</b>（ご指定「挙動も新しいものを」）。
+     どれも「これまでに無い決まりかた」で威力が決まる。
+   ・共通サブリンクは <b>ラッキー・ハートカウント</b>（15体で統一）。
+   ・フルバーストに<b>乱打を持つのは3体だけ</b>（ナルミ・アヤメ・ミサキ／ご指定）。
+   ══════════════════════════════════════════════════════════════ */
+
+/* ── 共通サブリンク「ラッキー・ハートカウント」──
+   これまでに無いのは<b>三角数で伸びる</b>こと。
+   そのショットで敵にふれた数 n を数え、止まったときに <b>n(n+1)/2 段</b>のハート弾が
+   敵全体へ落ちる（1体ふれるごとに「もう1段ぶん多く」増える）。 */
+const LHEART_PER = 0.38;           // ハート1段の倍率（敵全体）
+const LHEART_MAX = 8;              // たまるハートの上限
+const LHEART_GAP = 3;              // 1段ごとの間隔（フレーム）
+function lheartSteps(n) { const h = Math.max(0, Math.min(LHEART_MAX, n | 0)); return h * (h + 1) / 2; }
+const LHEART_TOTAL_MAX = LHEART_PER * lheartSteps(LHEART_MAX);
+
+/* ── ① サヤ「ミラージュ・ツインエッジ」（リンク）──
+   新しいのは<b>盤面の中心をはさんだ点対称の位置から、同じ形の斬撃がもう1本出る</b>こと。
+   <b>2本とも当たった敵</b>だけ倍率がはね上がる＝敵を盤面の中心に寄せるほど強い。 */
+const MBLADE_N = 9;                // 斬撃の段
+const MBLADE_PER = 6.10;           // 1段（刃の線上の敵へ）
+const MBLADE_STEP = 0.66;           // 段ごとの上乗せ
+const MBLADE_DOUBLE = 1.8;         // 2本とも当たった敵への倍率
+const MBLADE_W = 46;               // 刃の太さ
+const MBLADE_GAP = 9;
+const MBLADE_FINALE = 43.6;       // 締めの十字閃（敵全体）
+const MBLADE_BASE = MBLADE_N * MBLADE_PER + MBLADE_STEP * (MBLADE_N * (MBLADE_N - 1) / 2);
+const MBLADE_TOTAL_MIN = MBLADE_BASE + MBLADE_FINALE;
+const MBLADE_TOTAL_MAX = MBLADE_BASE * MBLADE_DOUBLE + MBLADE_FINALE;
+
+/* ── ② アオイ＆クロハ「ツインムーン・パ・ド・ドゥ」（リンク）──
+   新しいのは<b>2つの輪が逆回りに回り、重なった瞬間だけ炸裂する</b>こと。
+   輪はそれぞれ独立に敵を削り、<b>位相がそろった回</b>に大きな一撃が入る。 */
+const TORBIT_N = 12;               // 回る回数（1回＝半周ぶん）
+const TORBIT_PER = 2.82;            // 輪にふれている敵へ（1回・輪1つぶん）
+const TORBIT_R = 210;              // 輪の半径
+const TORBIT_SYNC = 10.8;          // 2つの輪が重なった瞬間の炸裂（敵全体）
+const TORBIT_SYNCS = 4;            // 重なる回数
+const TORBIT_FINALE = 30.1;        // 締めのハート（敵全体）
+const TORBIT_GAP = 7;
+const TORBIT_TOTAL = TORBIT_N * TORBIT_PER * 2 + TORBIT_SYNCS * TORBIT_SYNC + TORBIT_FINALE;
+
+/* ── ③ ナルミ「エメラルド・ルーレット」（リンク）──
+   新しいのは<b>盤面をルーレットのマスに切って、1マスずつ順に見ていく</b>こと。
+   マスの上に敵がいれば当たり、<b>当たるたびに次のマスが重くなる</b>。
+   一周し終えたら<b>当たったマスの数だけ配当</b>が敵全体へ落ちる。 */
+const JROU_CELLS = 24;             // ルーレットのマス数（一周）
+const JROU_PER = 17.9;              // マスの上の敵へ（1マス）
+const JROU_STEP = 1.20;             // 当たりが出るたび、次のマスに上乗せ
+const JROU_PAYOUT = 14.9;           // 当たり1マスにつき、配当が敵全体へ
+const JROU_PAY_MAX = 6;           // 配当に数える当たりの上限
+const JROU_GAP = 3;
+/* ★ ルーレットは「1体の敵が乗っているマスは1つだけ」なので、
+   合計は<b>敵1体が受ける最大</b>＝ 自分のマス1回 ＋ 当たり JROU_PAY_MAX 回ぶんの配当 で表す。
+   （マスの数 JROU_CELLS をそのまま掛けると、実際には出ない数字になる） */
+const JROU_TOTAL_MAX = JROU_PER + JROU_STEP * (JROU_PAY_MAX - 1)
+  + JROU_PAY_MAX * JROU_PAYOUT;
+
+/* ── ④ アヤメ「ヴェルヴェット・カクテル」（リンク）──
+   新しいのは<b>盤面をたてに3層に区切り、下の層から順に注いでいく</b>こと。
+   当たるのは<b>いま注いでいる層にいる敵だけ</b>で、<b>上の層ほど1段が重い</b>。
+   3層すべて満ちるとグラスが割れて敵全体へ。 */
+const VCOCK_LAYERS = 3;            // 層の数（下→中→上）
+const VCOCK_TICKS = 7;             // 1層が満ちるまでの段
+const VCOCK_PER = 1.59;             // 1段（その層にいる敵へ）
+const VCOCK_STEP = 1.84;            // 層が1つ上がるごとの上乗せ
+const VCOCK_SHATTER = 31.9;       // グラスが割れて敵全体へ
+const VCOCK_GAP = 6;
+const VCOCK_TOTAL = VCOCK_TICKS * (VCOCK_PER * VCOCK_LAYERS
+  + VCOCK_STEP * (VCOCK_LAYERS * (VCOCK_LAYERS - 1) / 2)) + VCOCK_SHATTER;
+
+/* ── ⑤ ミサキ「アイスミラー・カスケード」（リンク）──
+   新しいのは<b>壁に立った氷の鏡に当たるたびに、光そのものが倍に増える</b>こと。
+   段が進むごとに 2 → 4 → 8 → 16 本（上限あり）と<b>本数が倍々に増える</b>。 */
+const IMIR_WAVES = 4;              // 反射の段
+const IMIR_N0 = 2;                 // 最初の本数
+const IMIR_MAXN = 16;              // 1段の本数の上限
+const IMIR_PER = 4.00;              // 1本が敵にふれたとき
+const IMIR_FINALE = 64.7;         // 締めの鏡砕き（敵全体）
+const IMIR_GAP = 10;
+function imirCount() { let n = IMIR_N0, t = 0; for (let i = 0; i < IMIR_WAVES; i++) { t += Math.min(IMIR_MAXN, n); n *= 2; } return t; }
+const IMIR_TOTAL = imirCount() * IMIR_PER + IMIR_FINALE;
+
+/* ── ⑥ キョウカ「ミッドナイト・ネオンサイン」（リンク）──
+   新しいのは<b>盤面にネオンの文字が1画ずつ点灯していく</b>こと。
+   当たるのは<b>いま点いた画の線の上にいる敵</b>だけで、<b>画が増えるほど1画が重い</b>。
+   全部の画が点くと看板がフラッシュして敵全体へ。 */
+const NEON_STROKES = 11;           // 点灯する画の数
+const NEON_PER = 5.83;             // 1画（その線上の敵へ）
+const NEON_STEP = 0.64;             // 画が増えるごとの上乗せ
+const NEON_W = 42;                 // 線の太さ
+const NEON_FLASH = 58.8;          // 全画点灯のフラッシュ（敵全体）
+const NEON_GAP = 7;
+const NEON_TOTAL = NEON_STROKES * NEON_PER
+  + NEON_STEP * (NEON_STROKES * (NEON_STROKES - 1) / 2) + NEON_FLASH;
+
+/* ── ⑦ ハヅキ「ジェイド・ロングレンジ」（リンク）──
+   新しいのは<b>いちばん遠い敵から順に渡り歩き、飛んだ距離がそのまま威力になる</b>こと
+   （HPの高い順に渡る「ナイトランプ」の距離版）。遠くの敵が多い盤面ほど重い。 */
+const FSNIPE_N = 7;                // 渡り歩く回数
+const FSNIPE_PER = 6.98;           // 1発の基本倍率
+const FSNIPE_DIST = 0.0098;         // 飛んだ距離1pxごとの上乗せ
+const FSNIPE_DIST_MAX = 11.0;      // 1発の上乗せ上限
+const FSNIPE_FINALE = 60.0;       // 締めの一射（敵全体）
+const FSNIPE_GAP = 8;
+const FSNIPE_TOTAL_MAX = FSNIPE_N * (FSNIPE_PER + FSNIPE_DIST_MAX) + FSNIPE_FINALE;
+
+/* ── ⑧ ヒカリ「ゴールデン・チップベット」（リンク）──
+   新しいのは<b>チームの残りHPの割合がそのまま配当になる</b>こと。
+   HPが満タンなら ×CHIP_HP_MAX、0に近いほど ×CHIP_HP_MIN。
+   「底力」の裏返しで、<b>減らさずに勝っている編成ほど強い</b>。 */
+const CHIP_N = 8;                  // 配当の段（敵全体）
+const CHIP_PER = 4.21;             // 1段の倍率
+const CHIP_HP_MIN = 0.70;          // チームHP 0% のときの配当
+const CHIP_HP_MAX = 1.30;          // チームHP 100% のときの配当
+const CHIP_JACKPOT = 35.8;        // 締めのジャックポット（敵全体）
+const CHIP_GAP = 8;
+const CHIP_TOTAL_MIN = CHIP_N * CHIP_PER * CHIP_HP_MIN + CHIP_JACKPOT;
+const CHIP_TOTAL_MAX = CHIP_N * CHIP_PER * CHIP_HP_MAX + CHIP_JACKPOT;
+
+/* ── ⑨ ルリ「ラピス・ハイタイド」（リンク）──
+   新しいのは<b>画面の下から水位が上がっていく</b>こと。
+   当たるのは<b>水につかっている敵だけ</b>で、<b>水位が高いほど1段が重い</b>。
+   下にいる敵ほど長くつかるので、盤面の下側に敵が寄っているほど総ダメージが伸びる。 */
+const HTIDE_TICKS = 22;            // 水位が上がる段
+const HTIDE_PER = 1.72;             // 1段（つかっている敵へ）
+const HTIDE_STEP = 0.12;            // 水位が上がるごとの上乗せ
+const HTIDE_FINALE = 34.3;        // 満潮からの引き波（敵全体）
+const HTIDE_GAP = 4;
+const HTIDE_TOTAL = HTIDE_TICKS * HTIDE_PER
+  + HTIDE_STEP * (HTIDE_TICKS * (HTIDE_TICKS - 1) / 2) + HTIDE_FINALE;
+
+/* ── ⑩ ナギサ「フォンテーヌ・アルカード」（リンク）──
+   新しいのは<b>噴水の弧が内側から外側へ順に開き、外の弧ほど重い</b>こと。
+   遠くの敵ほど大きな倍率で当たる＝<b>離れているほど強い</b>めずらしい形。 */
+const FARC_N = 7;                  // 弧の本数（内→外）
+const FARC_PER = 6.08;             // いちばん内側の弧
+const FARC_STEP = 2.28;             // 1本外へ行くごとの上乗せ
+const FARC_R0 = 120;               // 内側の弧の半径
+const FARC_DR = 62;                // 1本ごとに広がる幅
+const FARC_FINALE = 47.8;         // 締めの落水（敵全体）
+const FARC_GAP = 9;
+const FARC_TOTAL = FARC_N * FARC_PER + FARC_STEP * (FARC_N * (FARC_N - 1) / 2) + FARC_FINALE;
+
+/* ── ⑪ ヒヨリ「バルーン・アセンション」（リンク）──
+   新しいのは<b>味方の足もとから風船が上がり、天井まで届いた数が締めの威力になる</b>こと。
+   上がる途中で当たった敵は割れる原因になる（当たると風船は止まる）ので、
+   <b>敵に当てるか、天井まで届かせるか</b>のどちらかを選ぶ形になる。 */
+const BALN_N = 6;                  // 上がる風船の数（味方の数ぶん・上限）
+const BALN_PER = 3.28;              // 風船が敵にふれたとき（1回）
+const BALN_HITS = 4;               // 1つの風船が当てられる回数
+const BALN_POP = 12.4;             // 天井まで届いた風船1つにつき敵全体へ
+const BALN_SPEED = 9;              // 上がる速さ
+const BALN_FRAMES = 96;
+const BALN_TOTAL_MAX = BALN_N * BALN_HITS * BALN_PER + BALN_N * BALN_POP;
+
+/* ── ⑫ エリカ「クリムゾン・ローズテーブル」（リンク）──
+   新しいのは<b>敵どうしを全部つないだ棘の線</b>が武器になること。
+   敵が n 体なら線は n(n-1)/2 本——<b>敵が増えるほど線は二次で増える</b>。
+   しかも<b>線が増えるごとに1本が重くなる</b>。 */
+const RTABLE_PER = 8.62;           // 棘の線1本（線上の敵へ）
+const RTABLE_MAX = 10;             // 引く線の上限（敵5体で10本）
+const RTABLE_STEP = 0.71;           // 線が増えるごとの上乗せ
+const RTABLE_W = 40;               // 線の太さ
+const RTABLE_FINALE = 51.0;       // 円卓が閉じて敵全体へ
+const RTABLE_GAP = 5;
+const RTABLE_TOTAL_MAX = RTABLE_MAX * RTABLE_PER
+  + RTABLE_STEP * (RTABLE_MAX * (RTABLE_MAX - 1) / 2) + RTABLE_FINALE;
+
+/* ── ⑬ モモカ「ピースサイン・ダブルビート」（リンク）──
+   新しいのは<b>2本のビームが開いていき、開いた角度がそのまま倍率になる</b>こと。
+   開くほど1段が重くなるかわりに、<b>せまい角度のときしか当たらない敵</b>もいる。 */
+const PBEAT_N = 10;                // ビームが開く段
+const PBEAT_PER = 5.64;            // 1段（2本の線上の敵へ）
+const PBEAT_ANG0 = 0.10;           // はじめの開き（ラジアン）
+const PBEAT_ANG1 = 1.20;           // 全開の開き
+const PBEAT_BONUS = 0.85;          // 全開のときの上乗せ（+85%）
+const PBEAT_W = 40;
+const PBEAT_FINALE = 60.5;        // 締めのハートビート（敵全体）
+const PBEAT_GAP = 7;
+const PBEAT_TOTAL_MIN = PBEAT_N * PBEAT_PER + PBEAT_FINALE;
+const PBEAT_TOTAL_MAX = PBEAT_N * PBEAT_PER * (1 + PBEAT_BONUS) + PBEAT_FINALE;
+
+/* ── ⑭ ミユキ「シルヴァン・カウントダウン」（リンク）──
+   新しいのは<b>5・4・3・2・1 と数が減り、0 になった瞬間に「それまでの合計と同じ量」が
+   もう一度まとめて入る</b>こと。前半を見ていれば、後半にいくら来るかが読める。 */
+const SCNT_N = 5;                  // カウント（5→1）
+const SCNT_PER = 4.92;             // 1カウント（敵全体）
+const SCNT_STEP = 1.69;             // カウントが進むごとの上乗せ
+const SCNT_ECHO = 1.00;            // 0 の瞬間、それまでの合計 × この倍率がもう一度
+const SCNT_GAP = 13;
+const SCNT_BASE = SCNT_N * SCNT_PER + SCNT_STEP * (SCNT_N * (SCNT_N - 1) / 2);
+const SCNT_TOTAL = SCNT_BASE * (1 + SCNT_ECHO);
+
+/* ── ⑮ ナツメ「オランジェ・マーマレード」（リンク）──
+   新しいのは<b>飴に浸かっていた時間がそのまま締めの威力になる</b>こと。
+   広がる飴の輪に早く入った敵ほど長く固まり、最後に<b>固まっていた段の数だけ重く砕ける</b>。 */
+const MARM_R0 = 120;               // 飴の輪の初期半径
+const MARM_R1 = 480;               // 同・最大半径
+const MARM_TICKS = 18;             // 広がる段
+const MARM_PER = 2.13;              // 1段（飴につかっている敵へ）
+const MARM_HOLD = 0.93;             // 固まっていた段1つにつき、締めに上乗せ
+const MARM_SHATTER = 35.3;        // 一斉に砕ける（敵全体）
+const MARM_GAP = 4;
+const MARM_TOTAL_MAX = MARM_TICKS * MARM_PER + MARM_TICKS * MARM_HOLD + MARM_SHATTER;
+
+/* ══════════ BUNNY GIRL FEST — フルバースト ══════════
+   ★★ 2026-09-11b <b>12通りの型に作り直した</b>（ご指定）。
+   ------------------------------------------------------------
+   前の版は12体とも「段を重ねる全体攻撃 ＋ 締め」で、見た目も手ざわりも
+   <b>乱打とほとんど同じ</b>になっていた。そこで<b>1体ずつ役目の違う型</b>にした——
+     サヤ         … <b>総攻撃</b>（味方全員でつっこむ）＋締めの一閃
+     アオイ＆クロハ … <b>分身2体</b>が走り回る＋チーム回復＋バリア
+     キョウカ     … <b>追加弱点を刻む</b>＋防御力ダウン（妨害型）
+     ハヅキ       … <b>単体に特大の一射</b>（最初にふれた敵だけ）
+     ヒカリ       … <b>純支援</b>（味方全員のFB短縮＋攻撃力アップ＋バリア）
+     ルリ         … <b>回復した量がそのままダメージ</b>になる
+     ナギサ       … <b>ふっとばし</b>（壁にぶつけた敵に追い討ち）
+     ヒヨリ       … <b>張ったバリアの量がそのままダメージ</b>になる
+     エリカ       … <b>ドレイン</b>（与えたぶんチームHPが戻る）＋防御力ダウン
+     モモカ       … <b>味方全員を自強化</b>（攻撃・スピード）＋FB短縮＋回復
+     ミユキ       … <b>HPがいちばん高い敵1体</b>へ特大＋ふっとばし＋バリア
+     ナツメ       … <b>敵全体を毒に</b>して、じわじわ削る＋チーム回復
+   ★ 乱打を持つのは<b>ナルミ・アヤメ・ミサキ</b>の3体だけ（ご指定）。
+   ★★ FBターン数は<b>キャラごとに変える</b>（ご指定）。支援型は軽く・特大型は重く。 */
+/* ① サヤ「ゲッコウ・センバヅル」— 総攻撃型（FB 20ターン） */
+const SAYA_ATK = 3.00, SAYA_SPD = 1.50;
+const SAYA_FINALE = 330.0;         // 総攻撃のあと、締めの一閃（敵全体・ふっとばし）
+const SAYA_WAIT = 96;              // 締めが出るまで（フレーム）
+const SAYA_TOTAL = SAYA_FINALE;
+/* ② アオイ＆クロハ「ダブルムーン・エンブレイス」— 分身型（FB 22ターン） */
+const AOIK_ATK = 3.10, AOIK_SPD = 1.52;
+const AOIK_CLONES = 2;             // 分身の数（水と闇）
+const AOIK_CLONE_PER = 4.20;       // 分身1体の1ヒット
+const AOIK_CLONE_LIFE = 230;       // 走り続けるフレーム
+const AOIK_CLONE_HITGAP = 12;      // 同じ敵に続けて当たらない間隔
+const AOIK_FINALE = 210.0;         // 締めのハート（敵全体）
+const AOIK_HEAL = 0.30;
+const AOIK_BARRIER = 2600;
+const AOIK_TOTAL = AOIK_FINALE + AOIK_CLONES * AOIK_CLONE_PER * Math.floor(AOIK_CLONE_LIFE / AOIK_CLONE_HITGAP);
+/* ③ キョウカ「ミッドナイト・ラストコール」— 妨害型（FB 16ターン） */
+const KYOKA_FLASH = 260.0;         // 看板のフラッシュ（敵全体）
+const KYOKA_SIGIL = 4;             // 敵全体に刻む追加弱点のターン数
+const KYOKA_DEFDOWN = 4;           // 敵全体の防御力ダウン（ターン）
+const KYOKA_TOTAL = KYOKA_FLASH;
+/* ④ ハヅキ「ジェイド・ワンショット」— 単体特大（FB 18ターン） */
+const HADUKI_ATK = 2.95, HADUKI_SPD = 1.55;
+const HADUKI_SNIPE = 520.0;        // 最初にふれた敵<b>1体だけ</b>への一射
+const HADUKI_TOTAL = HADUKI_SNIPE;
+/* ⑤ ヒカリ「ゴールデン・ジャックポット」— 純支援（FB 14ターン・ダメージなし） */
+const HIKARI_FB = 4;               // 味方全員のフルバーストを進めるターン
+const HIKARI_BUFF = 1.80;          // 味方全員の攻撃力倍率
+const HIKARI_BUFF_T = 3;           // その持続ターン
+const HIKARI_BARRIER = 3200;
+/* ⑥ ルリ「ラピス・ムーンライトソナタ」— 回復変換（FB 15ターン）
+   ★ ダメージは<b>攻撃力ベース</b>にしてある。回復した「実数」をそのままダメージにすると、
+     HP（数万）と最近のフルバースト（攻撃力×数百＝数百万）で<b>桁が3つちがう</b>ため。
+     かわりに<b>どれだけ回復できたか（割合）</b>を倍率に掛ける——
+     満タンなら 0、削られているほど満額。「削られたあとに撃つのがいちばん強い」は同じ。 */
+const RURI_HEAL = 0.45;            // チームHPの回復割合
+const RURI_PER = 470.0;            // 満額のときの倍率（敵全体）
+/* ⑦ ナギサ「アクア・ミストラルダンス」— ふっとばし型（FB 17ターン） */
+const NAGISA_ATK = 2.95, NAGISA_SPD = 1.52;
+const NAGISA_BLOW = 200.0;         // ふっとばしの初撃（敵全体）
+const NAGISA_WALL = 240.0;         // 壁にぶつかった敵への追い討ち
+const NAGISA_TOTAL = NAGISA_BLOW + NAGISA_WALL;
+/* ⑧ ヒヨリ「スカイ・フェスティバル」— バリア転化（FB 14ターン）
+   ★ こちらも<b>攻撃力ベース</b>。「バリアの実数 × 係数」だと桁が足りないので、
+     <b>バリアを張れた味方の数</b>を倍率に掛ける（＝生き残っているほど強い）。 */
+const HIYORI_BARRIER = 6000;       // 味方全員に張るバリア
+const HIYORI_PER = 120.0;          // バリアを張れた味方1体につき 敵全体へ（4体で ×480）
+/* ⑨ エリカ「クリムゾン・ラストワルツ」— ドレイン型（FB 18ターン） */
+const ERIKA_ATK = 3.00, ERIKA_SPD = 1.50;
+const ERIKA_DRAIN = 430.0;         // 敵全体へ
+const ERIKA_LEECH = 0.12;          // 与えたダメージの何割をチームHPへ戻すか
+const ERIKA_DEFDOWN = 3;
+const ERIKA_TOTAL = ERIKA_DRAIN;
+/* ⑩ モモカ「ピース・ハートフルビート」— 味方強化（FB 12ターン・ダメージなし） */
+const MOMOKA_ALLY_ATK = 1.80;      // 味方全員の攻撃力倍率
+const MOMOKA_ALLY_SPD = 1.30;      // 同・スピード倍率
+const MOMOKA_ALLY_T = 3;           // その持続ターン
+const MOMOKA_FB = 3;               // 味方全員のFBを進めるターン
+const MOMOKA_HEAL = 0.35;
+/* ⑪ ミユキ「シルヴァン・ロイヤルレクイエム」— 単体特大（FB 21ターン） */
+const MIYUKI_ATK = 3.05, MIYUKI_SPD = 1.52;
+const MIYUKI_JUDGE = 640.0;        // HPがいちばん高い敵1体へ
+const MIYUKI_BARRIER = 2800;
+const MIYUKI_TOTAL = MIYUKI_JUDGE;
+/* ⑫ ナツメ「オランジェ・サンライズ」— 継続ダメージ（FB 16ターン） */
+const NATSUME_HIT = 300.0;         // 初撃（敵全体）
+const NATSUME_HEAL = 0.32;
+const NATSUME_TOTAL = NATSUME_HIT;
+/* ── 乱打を持つ3体（ナルミ・アヤメ・ミサキ）はそのまま ── */
+/* ③ ナルミ「エメラルド・オールイン」（乱打・FB 23ターン） */
+const NARUMI_ATK = 3.05, NARUMI_SPD = 1.50;
+const NARUMI_BARRAGE_N = 42, NARUMI_BARRAGE_PER = 9.0, NARUMI_BARRAGE_STEP = 0.12;
+const NARUMI_FINALE = 194.0;
+const NARUMI_TOTAL = NARUMI_BARRAGE_N * NARUMI_BARRAGE_PER
+  + NARUMI_BARRAGE_STEP * (NARUMI_BARRAGE_N * (NARUMI_BARRAGE_N - 1) / 2) + NARUMI_FINALE;
+/* ④ アヤメ「ヴァイオレット・ラストオーダー」（乱打・FB 23ターン） */
+const AYAME_ATK = 3.05, AYAME_SPD = 1.50;
+const AYAME_BARRAGE_N = 44, AYAME_BARRAGE_PER = 8.8, AYAME_BARRAGE_STEP = 0.13;
+const AYAME_FINALE = 168.0;
+const AYAME_DEFDOWN = 3;
+const AYAME_TOTAL = AYAME_BARRAGE_N * AYAME_BARRAGE_PER
+  + AYAME_BARRAGE_STEP * (AYAME_BARRAGE_N * (AYAME_BARRAGE_N - 1) / 2) + AYAME_FINALE;
+/* ⑤ ミサキ「クリスタル・ブリザードヴェイル」（乱打・FB 23ターン） */
+const MISAKI_ATK = 3.05, MISAKI_SPD = 1.50;
+const MISAKI_BARRAGE_N = 46, MISAKI_BARRAGE_PER = 8.5, MISAKI_BARRAGE_STEP = 0.12;
+const MISAKI_FINALE = 157.0;
+const MISAKI_DEFDOWN = 3;
+const MISAKI_TOTAL = MISAKI_BARRAGE_N * MISAKI_BARRAGE_PER
+  + MISAKI_BARRAGE_STEP * (MISAKI_BARRAGE_N * (MISAKI_BARRAGE_N - 1) / 2) + MISAKI_FINALE;
+
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-09-11 極華祭 — カグラ（火・貫通）
+   ------------------------------------------------------------
+   ・アンチは<b>オムニアンチ＋アンチロックゾーン</b>のちょうど2つ。
+     オムニが ADW と重力バリアを消すので、これだけで
+     <b>⚖第八の審判</b>（ADW・重力バリア・ロックゾーン）を<b>有利属性のまま完全対応</b>できる。
+   ・キラーは2つ（天律族キラーEL ＋ VERDEキラーEL）。
+   ・クロススキルあり。条件に<b>自分と異なる属性は出さない</b>（ご指定）。
+   ・フルバーストは<b>MagiBurst 史上最大の火力</b>（乱打64連＋彼岸の大輪）。
+   ══════════════════════════════════════════════════════════════ */
+/* ── カグラ「ヒガン・センリンザン（彼岸千輪斬）」（フルバースト）── */
+const KAGURA_ATK = 3.40, KAGURA_SPD = 1.60;
+const KAGURA_BARRAGE_N = 64;       // 乱打の連数（史上最多）
+const KAGURA_BARRAGE_PER = 6.0;    // 1発の倍率
+const KAGURA_BARRAGE_STEP = 0.11;  // 1発ごとの上乗せ
+const KAGURA_BARRAGE_GAP = 3;
+const KAGURA_FINALE = 300.0;       // 締めの彼岸の大輪（敵全体）
+const KAGURA_HEAL = 0.25;          // チームHPの回復割合
+const KAGURA_DEFDOWN = 3;          // 敵全体の防御力ダウン（ターン）
+const KAGURA_TOTAL = KAGURA_BARRAGE_N * KAGURA_BARRAGE_PER
+  + KAGURA_BARRAGE_STEP * (KAGURA_BARRAGE_N * (KAGURA_BARRAGE_N - 1) / 2) + KAGURA_FINALE;
+/* ── カグラ「マンジュシャゲ・ヒャッカ（曼珠沙華・百華）」（リンク）──
+   新しいのは<b>咲いた花どうしが必ず線で結ばれ、線の本数が二次で増えていく</b>こと。
+   n 輪目の花は<b>それまでに咲いた n-1 輪すべて</b>と結ばれるので、
+   KLILY_N 輪 咲ききると線は KLILY_N(KLILY_N-1)/2 本。締めに<b>全部の線が同時に燃える</b>。 */
+const KLILY_N = 9;                 // 咲く花の数
+const KLILY_PER = 4.41;            // 線1本（線の上の敵へ）
+const KLILY_W = 38;                // 線の太さ
+const KLILY_FINALE = 72.0;        // 全線同時炎上（敵全体）
+const KLILY_GAP = 9;
+const KLILY_LINES = KLILY_N * (KLILY_N - 1) / 2;
+const KLILY_TOTAL = KLILY_LINES * KLILY_PER + KLILY_FINALE;
+/* ── カグラ「ヒガン・ペタルバースト」（サブリンク）── */
+const HPETAL_RINGS = 3;            // 花びらの輪（内→外）
+const HPETAL_PER = 2.55;            // いちばん内側の輪
+const HPETAL_STEP = 1.88;           // 1つ外へ行くごとの上乗せ
+const HPETAL_R0 = 120;
+const HPETAL_DR = 105;
+const HPETAL_TOTAL = HPETAL_RINGS * HPETAL_PER
+  + HPETAL_STEP * (HPETAL_RINGS * (HPETAL_RINGS - 1) / 2);
+
 const SUBFS = {
+  /* ══ ★★ 2026-09-11 BUNNY GIRL FEST 15体の<b>共通</b>サブリンク（ご指定: 統一する）══ */
+  luckyheart: { nm: "ラッキー・ハートカウント",
+    pow: "そのショットで<b>敵にふれた数 n</b>（最大 " + LHEART_MAX + "）を数え、"
+      + "<b>n(n+1)/2 段</b>のハート弾が<b>敵全体</b>へ落ちる／"
+      + "1段 攻撃力×" + LHEART_PER + "／最大 合計 攻撃力×" + LHEART_TOTAL_MAX.toFixed(2),
+    desc: "ふれた味方のところに、<b>そこまでに敵へふれた数だけハートがたまっている</b>。"
+      + "<br>これまでに無いのは<b>段の数が三角数で伸びる</b>こと——"
+      + "1体ふれれば1段、2体で3段、3体で6段…と、"
+      + "<b>1体増えるごとに「増える幅」そのものが増えます</b>（最大 "
+      + LHEART_MAX + "体で " + lheartSteps(LHEART_MAX) + " 段）。"
+      + "<br>1段ずつが<b>敵全体</b>に入るので、"
+      + "<b>雑魚をなぞってから止まる</b>だけで総ダメージがふくれあがる。"
+      + "<br>BUNNY GIRL FEST の15体が<b>全員そろって持つ</b>共通のサブリンクです" },
+  /* ══ ★★ 2026-09-11 極華祭 カグラのサブリンク ══ */
+  higanpetal: { nm: "ヒガン・ペタルバースト",
+    pow: "緋色の花びらが " + HPETAL_RINGS + "重の輪に開く（半径 " + HPETAL_R0 + " → "
+      + (HPETAL_R0 + HPETAL_DR * (HPETAL_RINGS - 1)) + "）／"
+      + "内側 攻撃力×" + HPETAL_PER + "・1つ外へ行くごとに +" + HPETAL_STEP + "／"
+      + "合計 攻撃力×" + HPETAL_TOTAL.toFixed(2),
+    desc: "ふれた味方を中心に、<b>彼岸花の花びら</b>が" + HPETAL_RINGS + "重の輪になって開く。"
+      + "<br>ふつうの輪とちがい<b>外の輪ほど重い</b>ので、"
+      + "<b>遠くの敵にこそ大きく入ります</b>（内側 ×" + HPETAL_PER + " → 外側 ×"
+      + (HPETAL_PER + HPETAL_STEP * (HPETAL_RINGS - 1)).toFixed(1) + "）。" },
   plasma: { nm: "プラズマ", pow: "初撃 攻撃力×0.8 ＋ 電撃リンク中 1ヒット 攻撃力×0.34", desc: "自分と触れた味方の間に強力なプラズマを走らせて攻撃（味方が止まるまで持続）" },
   accel: { nm: "加速", pow: "弾速 ×1.4（ダメージなし）", desc: "触れた味方（動いているキャラ）を加速させる" },
   blast: { nm: "爆発", pow: "爆発 攻撃力×" + BLAST_MUL + " ＋ 他の味方のリンクスキルを威力75%で誘発", desc: "自分を中心に<b>強烈な爆発</b>を起こし、まわりの敵をまとめて吹き飛ばす。さらに<b>他の味方全員のリンクスキルを誘発</b>する（範囲はせまいぶん威力が高い）" },
@@ -3937,10 +4376,26 @@ const NEXUS = {
       + "さらに<b>各WAVEの開始時にチームHPを4%回復</b>する"
       + "<br><small>※ フォース・ネクサス（攻撃+5%）の約2.6倍に、ピアース・マーシーぶんを重ねた戦姫祭だけの特別なネクサスです</small>",
     atk: 1.13, weak: 1.18, waveHeal: 0.04 },
+  /* ══ ★★ 2026-09-11 極華・ブルームネクサスを<b>強化</b>（ご指定）══
+     極彩（弱点+50%／リンク+25%／攻撃+14%／ボス+15%）・
+     極煌（ボス+45%／攻撃+18%／バリア1100／弱点+15%）にくらべて、
+     極華だけ<b>2つの効果しか無く</b>、しかも数字も小さかった。
+     ★ 極華の持ち味（<b>リンクスキル</b>）はそのまま伸ばし、
+       ほかの極◯祭と同じ<b>4つの効果</b>までそろえる。 */
   luxbloom: { nm: "極華・ブルームネクサス", c: "#38a6ff",
-    desc: "<b>リンクスキル・サブリンク</b>のダメージが<b>20%</b>アップし、さらに<b>味方全員のスピード</b>が<b>6%</b>アップする"
-      + "<br><small>※ ボンド・ネクサス（リンク+6%）の3倍に、ゲイル・ネクサスぶんを重ねた極華祭だけの特別なネクサスです</small>",
-    link: 1.20, spd: 1.06 },
+    desc: "<b>リンクスキル・サブリンク</b>のダメージが<b>45%</b>アップし、"
+      + "<b>味方全員の攻撃力</b>が<b>15%</b>アップ、さらに<b>味方全員のスピード</b>が<b>12%</b>アップ、"
+      + "<b>各WAVEの開始時にチームHPを6%回復</b>する"
+      + "<br><small>※ ボンド・ネクサス（リンク+6%）の約7.5倍に、フォース・ゲイル・マーシーぶんを重ねた極華祭だけの特別なネクサスです</small>",
+    link: 1.45, atk: 1.15, spd: 1.12, waveHeal: 0.06 },
+  /* ══ ★★ 2026-09-11 BUNNY GIRL FEST のネクサス ══
+     15体ともクロススキルを持たないぶん、<b>リンクスキルと弱点</b>に寄せてある。 */
+  bunnyfortune: { nm: "幸運・フォーチュンネクサス", c: "#ff6fa8",
+    desc: "<b>リンクスキル・サブリンク</b>のダメージが<b>30%</b>アップし、"
+      + "<b>弱点</b>へのダメージが<b>25%</b>アップ、さらに<b>味方全員の攻撃力</b>が<b>12%</b>アップ、"
+      + "<b>ボス</b>へのダメージが<b>12%</b>アップする"
+      + "<br><small>※ ボンド・ネクサス（リンク+6%）の5倍に、ピアース・フォース・スレイヤーぶんを重ねた BUNNY GIRL FEST だけの特別なネクサスです</small>",
+    link: 1.30, weak: 1.25, atk: 1.12, boss: 1.12 },
 };
 /* ネクサススキルのカテゴリ（絞り込み用）。 */
 const NEXUS_CAT = {
@@ -3951,6 +4406,8 @@ const NEXUS_CAT = {
   luxprism: "atk", luxblaze: "atk", luxbloom: "atk",
   /* ★★ 2026-08-29 戦姫祭のネクサス（火力枠） */
   senkivalor: "atk", risingstar: "atk",
+  /* ★★ 2026-09-11 BUNNY GIRL FEST のネクサス（火力枠） */
+  bunnyfortune: "atk",
   gale: "tempo", ignition: "tempo", tempo: "tempo",
   bond: "support", scout: "support", charge: "support", demolish: "support",
   fortune: "reward", wisdom: "reward",
@@ -4807,6 +5264,21 @@ const CONNECT = {
   /* ══ ★★ 2026-09-08 戦姫祭 第3弾（レイア・ミオリ・アンナ(メイド)）══
      ★ ご指定どおり<b>条件に自分と異なる属性は出さない</b>。
      ★ 3つのうち<b>1つはアンチ</b>（アンチアビリティは素の3つとあわせて計4つ）。 */
+  /* ══ ★★ 2026-09-11 極華祭 カグラのクロス ══
+     ★ 条件に<b>自分と異なる属性は出さない</b>（ご指定）。
+     ★ クロスに<b>アンチもキラーも入れない</b>——
+       アンチは「オムニ＋もう1つまで」、キラーは「2つ」というご指定なので、
+       ここに足すとどちらの約束も崩れる。 */
+  kagura: {
+    nm: "彼岸のクロス",
+    condTx: "<b>自分と同じ属性の味方が1体以上</b>いること（自分をのぞく）",
+    cond: (ids, me) => cnxSelfIn(ids, me) && cnxCount(ids, me, (c, m) => c.el === m.el) >= 1,
+    skills: [
+      { k: "kaguraFsboost", nm: "リンクブーストEL", abil: "fsboostEL" },
+      { k: "kaguraBarrier", nm: "バリアEL", abil: "barrierEL" },
+      { k: "kaguraDash", nm: "ダッシュL", abil: "dashL" },
+    ],
+  },
   reia: {
     nm: "華焔のクロス",
     condTx: "<b>自分と同じ属性の味方が1体以上</b>いること（自分をのぞく）",
@@ -11280,6 +11752,809 @@ const CHARS = {
       + "<b>MagiBurst 史上いちばん重いリンクスキル</b>です"
       + "（これまでの1位はアンナ＆ランの ×337.2）。",
   },
+  /* ══════════ ★★ 2026-09-11 BUNNY GIRL FEST 限定SSR 15体（No.216〜230）══════════
+     ・15体とも <b>アンチ3つ ＋ キラー2つ ＋ そのほか3つ ＝ アビリティ8つ</b>。
+       <b>クロススキル・オムニアンチ・治癒の祈りは持たない</b>（ご指定）。
+     ・アンチ3つは担当する <b>⚖天界の審判</b> の必要アンチと<b>ぴったり一致</b>し、
+       しかも<b>有利属性</b>で入れる（＝素のまま完全対応）。
+     ・共通サブリンクは <b>ラッキー・ハートカウント</b>。
+     ・リンクスキルは <b>15本すべて新設</b>（挙動もすべて新しい）。
+     ・フルバーストに<b>乱打を持つのは ナルミ・アヤメ・ミサキ の3体だけ</b>（ご指定）。
+     ══════════════════════════════════════════════════════════════ */
+  saya: {
+    /* 光・貫通。月華抜刀型
+       ★ 担当は <b>⚖第二の審判</b>（水ボス）＝ 超マインスイーパーEL＋アンチブロック＋アンチ断絶界。
+         全属性有利・リンクブーストEL・FBターンチャージ
+       ★ 検算: charAntiKeys("saya") ⊇ counterKeysOf(JUDGE_STAGES[1]) かつ elemMultOf > 1。 */
+    id: "saya", nm: "サヤ", img: "Saya.webp", th: "t_Saya.webp",
+    el: "light", shot: "pierce", type: "月華抜刀型", gacha: true, fes: true, fesKey: "bunny", lux: true,
+    nexus: "bunnyfortune", star5: true,
+    hp: [1218, 8010], atk: [2205, 13980], spd: [352, 527],
+    /* アンチ3つ＋キラー2つ＋そのほか3つ＝<b>アビリティ8つ</b>。
+       クロススキル・オムニアンチ・治癒の祈りは<b>持たない</b>（ご指定）。 */
+    /* ★★ 2026-09-11b アンチ3つ＋キラー2つ＋そのほか3つ＝<b>アビリティ8つ</b>。
+       ★ 16体で<b>同じ組み合わせが1つも無い</b>ようにばらけさせてある（ご指定）。
+       ★ オムニアンチ・治癒の祈り・野獣先輩のアビリティは付けない（ご指定）。 */
+    abil: [{ t: "supermsEL" }, { t: "ablock" }, { t: "award" },
+           { t: "judgekillerEL" }, { t: "weakkillerEL" }, { t: "elemadv" },
+           { t: "speedmode" }, { t: "laserstopM" }],
+    subfs: "luckyheart",
+    ssName: "ゲッコウ・センバヅル", ssTurns: 22, ssKind: "saya",
+    ssPow: "自強化（攻撃×" + SAYA_ATK + "・スピード×" + SAYA_SPD + "）＋ "
+      + "<b>味方全員でつっこむ総攻撃</b>（突撃中は与ダメージ×" + RALLY_MUL + "）"
+      + " ＋ <b>締めの一閃</b>（敵全体・攻撃力×" + SAYA_FINALE + "・ふっとばし）",
+    ssDesc: "月光が盤面に落ち、<b>味方全員が一斉に走り出す</b>。"
+      + "<b>自強化（攻撃×" + SAYA_ATK + "・スピード×" + SAYA_SPD + "）</b>したうえで、"
+      + "<b>4体そろっての総攻撃</b>——突撃中は全員の与ダメージが ×" + RALLY_MUL + " になります。"
+      + "<br>走りきったところで<b>銀の千羽が舞い、締めの一閃</b>が敵全体へ"
+      + "（攻撃力×" + SAYA_FINALE + "）。そのまま<b>ふっとばし</b>ます。"
+      + "<br>自分ひとりで削る型ではなく、<b>編成全体の火力をまとめて押し出す</b>型です。"
+      + "<br>アンチは<b>超マインスイーパーEL＋アンチブロック＋アンチ断絶界</b>——"
+      + "これだけで<b>⚖第二の審判</b>を<b>有利属性のまま完全対応</b>できます"
+      + "（クロススキルもオムニアンチも要りません）。",
+    fsName: "ミラージュ・ツインエッジ", fsKind: "mirrorblade",
+    fsPow: "<b>盤面の中心をはさんだ点対称の位置から、同じ形の刃がもう1本</b>／"
+      + MBLADE_N + "段（1段 攻撃力×" + MBLADE_PER + "・段ごとに +" + MBLADE_STEP + "・太さ "
+      + MBLADE_W + "）／<b>2本とも当たった敵は ×" + MBLADE_DOUBLE + "</b>"
+      + " ＋ 締めの十字閃（敵全体・攻撃力×" + MBLADE_FINALE + "）／"
+      + "合計 攻撃力×" + MBLADE_TOTAL_MIN.toFixed(1) + "〜<b>×" + MBLADE_TOTAL_MAX.toFixed(1) + "</b>",
+    fsDesc: "ふれた味方から刃が走る——と同時に、<b>盤面の中心をはさんだ点対称の位置</b>から"
+      + "<b>まったく同じ形の刃</b>がもう1本走り出す。"
+      + "<br>これまでに無いのは<b>鏡写しの2本が同時に走る</b>こと。"
+      + "<b>2本とも当たった敵だけ ×" + MBLADE_DOUBLE + "</b>になるので、"
+      + "<b>敵を盤面の中央に寄せているほど重い</b>——立ち位置がそのまま威力になります。"
+      + "<br>刃は" + MBLADE_N + "段めぐり、<b>めぐるたびに重く</b>なります"
+      + "（×" + MBLADE_PER + " → ×" + (MBLADE_PER + MBLADE_STEP * (MBLADE_N - 1)).toFixed(1) + "）。"
+      + "<br>締めは中央でまじわる<b>十字閃</b>（敵全体・攻撃力×" + MBLADE_FINALE + "）。"
+      + "<br>最大 攻撃力×" + MBLADE_TOTAL_MAX.toFixed(1) + "。",
+  },
+  aoik: {
+    /* 水＆闇・反射。双月連舞型
+       ★ 担当は <b>⚖第九の審判</b>（光ボス）＝ 超アンチワープ＋超マインスイーパーEL＋アンチ断絶界。
+         リンクブーストEL・バリアEL・FBターンチャージ
+       ★ 検算: charAntiKeys("aoik") ⊇ counterKeysOf(JUDGE_STAGES[8]) かつ elemMultOf > 1。 */
+    id: "aoik", nm: "アオイ＆クロハ", img: "AoiKuroha.webp", th: "t_AoiKuroha.webp",
+    el: "water", el2: "dark", shot: "bounce", type: "双月連舞型", gacha: true, fes: true, fesKey: "bunny", lux: true,
+    nexus: "bunnyfortune", star5: true,
+    hp: [1232, 8060], atk: [2222, 14090], spd: [347, 519],
+    /* アンチ3つ＋キラー2つ＋そのほか3つ＝<b>アビリティ8つ</b>。
+       クロススキル・オムニアンチ・治癒の祈りは<b>持たない</b>（ご指定）。 */
+    /* ★★ 2026-09-11b アンチ3つ＋キラー2つ＋そのほか3つ＝<b>アビリティ8つ</b>。
+       ★ 16体で<b>同じ組み合わせが1つも無い</b>ようにばらけさせてある（ご指定）。
+       ★ オムニアンチ・治癒の祈り・野獣先輩のアビリティは付けない（ご指定）。 */
+    abil: [{ t: "superaw" }, { t: "supermsEL" }, { t: "award" },
+           { t: "judgekillerEL" }, { t: "killerEL", el: "light" }, { t: "fsboostEL" },
+           { t: "regenL" }, { t: "mirage" }],
+    subfs: "luckyheart",
+    ssName: "ダブルムーン・エンブレイス", ssTurns: 18, ssKind: "aoik",
+    ssPow: "自強化（攻撃×" + AOIK_ATK + "・スピード×" + AOIK_SPD + "）＋ "
+      + "<b>水と闇の分身が" + AOIK_CLONES + "体</b>、" + AOIK_CLONE_LIFE + "フレーム走り回る"
+      + "（1ヒット 攻撃力×" + AOIK_CLONE_PER + "）"
+      + " ＋ <b>締めのハート</b>（敵全体・攻撃力×" + AOIK_FINALE + "）"
+      + " ＋ <b>チームHPを" + Math.round(AOIK_HEAL * 100) + "%回復＋味方全員にバリア "
+      + AOIK_BARRIER + "</b>",
+    ssDesc: "ふたりが手を重ねると、<b>水の分身と闇の分身</b>が飛び出して盤面を走り回る。"
+      + "<br>分身は<b>味方ではないのでリンクスキルを誘発しません</b>が、"
+      + "そのぶん<b>本人が止まったあとも走り続けます</b>（" + AOIK_CLONE_LIFE + "フレーム）。"
+      + "<br>走り終わると<b>ふたりぶんのハート</b>が弾けて敵全体へ（攻撃力×" + AOIK_FINALE + "）。"
+      + "あわせて<b>チームHPを" + Math.round(AOIK_HEAL * 100) + "%回復</b>し、"
+      + "<b>味方全員にバリア " + AOIK_BARRIER + "</b>を張ります。"
+      + "<br>アンチは<b>超アンチワープ＋超マインスイーパーEL＋アンチ断絶界</b>——"
+      + "これだけで<b>⚖第九の審判</b>を<b>有利属性のまま完全対応</b>できます"
+      + "（クロススキルもオムニアンチも要りません）。",
+    fsName: "ツインムーン・パ・ド・ドゥ", fsKind: "twinorbit",
+    fsPow: "<b>水の輪と闇の輪が逆回りに回る</b> " + TORBIT_N + "回（1回・輪1つ 攻撃力×" + TORBIT_PER
+      + "・半径 " + TORBIT_R + "）／<b>2つの輪が重なった瞬間に炸裂</b>（" + TORBIT_SYNCS
+      + "回・敵全体・攻撃力×" + TORBIT_SYNC + "）"
+      + " ＋ 締めのハート（敵全体・攻撃力×" + TORBIT_FINALE + "）／"
+      + "合計 攻撃力×" + TORBIT_TOTAL.toFixed(1),
+    fsDesc: "ふれた味方を中心に、<b>青い輪</b>と<b>黒い輪</b>が<b>逆向きに</b>回りはじめる。"
+      + "<br>これまでに無いのは<b>2つの輪の位相</b>が武器になること——"
+      + "輪はそれぞれ独立に敵を削りますが、"
+      + "<b>2つがぴったり重なった瞬間だけ</b>大きな炸裂が起きて<b>敵全体</b>に入ります"
+      + "（" + TORBIT_SYNCS + "回・攻撃力×" + TORBIT_SYNC + "）。"
+      + "<br>輪は" + TORBIT_N + "回まわり、そのあいだずっと"
+      + "<b>輪の上にいる敵</b>を削り続けます（1回・輪1つ 攻撃力×" + TORBIT_PER + "）。"
+      + "<br>締めはふたりぶんのハートが弾けて敵全体へ（攻撃力×" + TORBIT_FINALE + "）。"
+      + "<br>合計 攻撃力×" + TORBIT_TOTAL.toFixed(1) + "。"
+      + "<br>アオイ＆クロハは<b>水と闇の二属性</b>なので、"
+      + "<b>火のボスにも光のボスにも有利</b>——輪の色がそのまま相性になります。",
+  },
+  narumi: {
+    /* 木・貫通。翠賭博型
+       ★ 担当は <b>⚖第二の審判</b>（水ボス）＝ 超マインスイーパーEL＋アンチブロック＋アンチ断絶界。
+         リンクブーストEL・ダッシュL・FBターンブースト
+       ★ 検算: charAntiKeys("narumi") ⊇ counterKeysOf(JUDGE_STAGES[1]) かつ elemMultOf > 1。 */
+    id: "narumi", nm: "ナルミ", img: "Narumi.webp", th: "t_Narumi.webp",
+    el: "wood", shot: "pierce", type: "翠賭博型", gacha: true, fes: true, fesKey: "bunny", lux: true,
+    nexus: "bunnyfortune", star5: true,
+    hp: [1204, 7920], atk: [2212, 14020], spd: [356, 533],
+    /* アンチ3つ＋キラー2つ＋そのほか3つ＝<b>アビリティ8つ</b>。
+       クロススキル・オムニアンチ・治癒の祈りは<b>持たない</b>（ご指定）。 */
+    /* ★★ 2026-09-11b アンチ3つ＋キラー2つ＋そのほか3つ＝<b>アビリティ8つ</b>。
+       ★ 16体で<b>同じ組み合わせが1つも無い</b>ようにばらけさせてある（ご指定）。
+       ★ オムニアンチ・治癒の祈り・野獣先輩のアビリティは付けない（ご指定）。 */
+    abil: [{ t: "supermsEL" }, { t: "ablock" }, { t: "award" },
+           { t: "sokojikaraEL" }, { t: "killerEL", el: "water" }, { t: "sscharge" },
+           { t: "fbturnboost" }, { t: "atkchargeM" }],
+    subfs: "luckyheart",
+    ssName: "エメラルド・オールイン", ssTurns: 20, ssKind: "narumi",
+    ssPow: "自強化（攻撃×" + NARUMI_ATK + "・スピード×" + NARUMI_SPD + "）＋ "
+      + "<b>チップの乱打" + NARUMI_BARRAGE_N + "連</b>（1発 攻撃力×" + NARUMI_BARRAGE_PER
+      + "・1発ごとに +" + NARUMI_BARRAGE_STEP + "）"
+      + " ＋ <b>ディーラーの総取り</b>（敵全体・攻撃力×" + NARUMI_FINALE + "）"
+      + "／<b>合計 攻撃力×" + NARUMI_TOTAL.toFixed(1) + "</b>",
+    ssDesc: "<b>自強化（攻撃×" + NARUMI_ATK + "・スピード×" + NARUMI_SPD + "）</b>して、"
+      + "最初にふれた敵へ<b>チップの乱打" + NARUMI_BARRAGE_N + "連</b>——"
+      + "<b>撃つほど1発が重くなります</b>（1発ごとに +" + NARUMI_BARRAGE_STEP + "）。"
+      + "<br>撃ち終わると<b>ディーラーの総取り</b>が敵全体へ（攻撃力×" + NARUMI_FINALE + "）。"
+      + "<br>合計 攻撃力×" + NARUMI_TOTAL.toFixed(1) + "。"
+      + "<br>アンチは<b>超マインスイーパーEL＋アンチブロック＋アンチ断絶界</b>——"
+      + "これだけで<b>⚖第二の審判</b>を<b>有利属性のまま完全対応</b>できます"
+      + "（クロススキルもオムニアンチも要りません）。",
+    fsName: "エメラルド・ルーレット", fsKind: "jaderoulette",
+    fsPow: "盤面が <b>" + JROU_CELLS + "マスのルーレット</b>になり、1マスずつ順に光が進む／"
+      + "マスの上の敵に 攻撃力×" + JROU_PER + "（<b>当たりが出るたび次のマスに +" + JROU_STEP + "</b>）"
+      + " ＋ 一周後、<b>当たったマス1つにつき配当</b>が敵全体へ（攻撃力×" + JROU_PAYOUT
+      + "・最大 " + JROU_PAY_MAX + "回）／最大 合計 攻撃力×" + JROU_TOTAL_MAX.toFixed(1),
+    fsDesc: "ふれた味方を軸にして、盤面が<b>" + JROU_CELLS + "マスのルーレット</b>に変わる。"
+      + "<br>これまでに無いのは<b>盤面をマスに切って、1マスずつ順番に見ていく</b>こと——"
+      + "光が止まったマスに敵がいれば<b>当たり</b>で、"
+      + "<b>当たりが出るたびに次のマスが重くなります</b>（+" + JROU_STEP + "）。"
+      + "<br>一周し終えると、<b>当たったマスの数だけ配当</b>が敵全体へ落ちます"
+      + "（1回 攻撃力×" + JROU_PAYOUT + "・最大 " + JROU_PAY_MAX + "回）。"
+      + "<br><b>敵が散らばっているほど当たりのマスが増える</b>ので、"
+      + "雑魚が広がっているWAVEでいちばん伸びます（最大 攻撃力×" + JROU_TOTAL_MAX.toFixed(1) + "）。",
+  },
+  ayame: {
+    /* 闇・反射。宵酔玲瓏型
+       ★ 担当は <b>⚖第四の審判</b>（光ボス）＝ 超アンチ重力バリア＋超アンチ減速壁＋アンチロックゾーン。
+         リンクブーストEL・ソウルスティールEL・FBターンチャージ
+       ★ 検算: charAntiKeys("ayame") ⊇ counterKeysOf(JUDGE_STAGES[3]) かつ elemMultOf > 1。 */
+    id: "ayame", nm: "アヤメ", img: "Ayame.webp", th: "t_Ayame.webp",
+    el: "dark", shot: "bounce", type: "宵酔玲瓏型", gacha: true, fes: true, fesKey: "bunny", lux: true,
+    nexus: "bunnyfortune", star5: true,
+    hp: [1210, 7960], atk: [2216, 14045], spd: [350, 524],
+    /* アンチ3つ＋キラー2つ＋そのほか3つ＝<b>アビリティ8つ</b>。
+       クロススキル・オムニアンチ・治癒の祈りは<b>持たない</b>（ご指定）。 */
+    /* ★★ 2026-09-11b アンチ3つ＋キラー2つ＋そのほか3つ＝<b>アビリティ8つ</b>。
+       ★ 16体で<b>同じ組み合わせが1つも無い</b>ようにばらけさせてある（ご指定）。
+       ★ オムニアンチ・治癒の祈り・野獣先輩のアビリティは付けない（ご指定）。 */
+    abil: [{ t: "sgrav" }, { t: "superaslow" }, { t: "antilock" },
+           { t: "judgekillerEL" }, { t: "fatalkillerL" }, { t: "soulEL" },
+           { t: "dashL" }, { t: "eternalphotonM" }],
+    subfs: "luckyheart",
+    /* ★★ 2026-09-12 ssKind は <b>ayameb</b>（BUNNY のアヤメ専用）。
+       "ayame" は<b>ノア・リリカ・アイリ が共用している古い ssKind</b>なので、
+       そのまま使うと<b>あの3体がアヤメの乱打を撃ってしまう</b>（実際そうなっていた）。 */
+    ssName: "ヴァイオレット・ラストオーダー", ssTurns: 19, ssKind: "ayameb",
+    ssPow: "自強化（攻撃×" + AYAME_ATK + "・スピード×" + AYAME_SPD + "）＋ "
+      + "<b>グラスの乱打" + AYAME_BARRAGE_N + "連</b>（1発 攻撃力×" + AYAME_BARRAGE_PER
+      + "・1発ごとに +" + AYAME_BARRAGE_STEP + "）"
+      + " ＋ <b>閉店のベル</b>（敵全体・攻撃力×" + AYAME_FINALE + "）"
+      + " ＋ <b>敵全体の防御力ダウン</b>"
+      + "／<b>合計 攻撃力×" + AYAME_TOTAL.toFixed(1) + "</b>",
+    ssDesc: "<b>自強化（攻撃×" + AYAME_ATK + "・スピード×" + AYAME_SPD + "）</b>して、"
+      + "最初にふれた敵へ<b>グラスの乱打" + AYAME_BARRAGE_N + "連</b>——"
+      + "<b>撃つほど1発が重くなります</b>（1発ごとに +" + AYAME_BARRAGE_STEP + "）。"
+      + "<br>撃ち終わると<b>閉店のベル</b>が敵全体へ（攻撃力×" + AYAME_FINALE + "）。"
+      + "<br>あわせて<b>敵全体の防御力ダウン</b>。"
+      + "<br>合計 攻撃力×" + AYAME_TOTAL.toFixed(1) + "。"
+      + "<br>アンチは<b>超アンチ重力バリア＋超アンチ減速壁＋アンチロックゾーン</b>——"
+      + "これだけで<b>⚖第四の審判</b>を<b>有利属性のまま完全対応</b>できます"
+      + "（クロススキルもオムニアンチも要りません）。",
+    fsName: "ヴェルヴェット・カクテル", fsKind: "velvetlayer",
+    fsPow: "盤面をたてに<b>" + VCOCK_LAYERS + "層</b>に区切り、<b>下の層から順に注ぐ</b>（1層 " + VCOCK_TICKS + "段）／"
+      + "その層にいる敵に 攻撃力×" + VCOCK_PER + "（<b>1つ上の層に上がるごとに +" + VCOCK_STEP + "</b>）"
+      + " ＋ グラスが割れて敵全体へ（攻撃力×" + VCOCK_SHATTER + "）／"
+      + "合計 攻撃力×" + VCOCK_TOTAL.toFixed(1),
+    fsDesc: "ふれた味方の位置から、盤面が<b>1杯のグラス</b>になる。"
+      + "<br>これまでに無いのは<b>盤面をたてに" + VCOCK_LAYERS + "層に区切り、下から順に注いでいく</b>こと——"
+      + "当たるのは<b>いま注いでいる層にいる敵だけ</b>で、"
+      + "<b>上の層へ上がるほど1段が重くなります</b>"
+      + "（×" + VCOCK_PER + " → ×" + (VCOCK_PER + VCOCK_STEP * (VCOCK_LAYERS - 1)).toFixed(1) + "）。"
+      + "<br>盤面の<b>上のほうにいる敵</b>——たいていは奥に構えているボス——に"
+      + "いちばん重い層が当たる、というめずらしい形です。"
+      + "<br>" + VCOCK_LAYERS + "層すべて満ちるとグラスが割れて、敵全体へ 攻撃力×" + VCOCK_SHATTER + "。"
+      + "<br>合計 攻撃力×" + VCOCK_TOTAL.toFixed(1) + "。",
+  },
+  misaki: {
+    /* 水・貫通。氷晶結霜型
+       ★ 担当は <b>⚖第一の審判</b>（火ボス）＝ 超アンチ重力バリア＋超アンチワープ＋アンチブロック。
+         リンクブーストEL・バリアEL・スピードモード
+       ★ 検算: charAntiKeys("misaki") ⊇ counterKeysOf(JUDGE_STAGES[0]) かつ elemMultOf > 1。 */
+    id: "misaki", nm: "ミサキ", img: "Misaki.webp", th: "t_Misaki.webp",
+    el: "water", shot: "pierce", type: "氷晶結霜型", gacha: true, fes: true, fesKey: "bunny", lux: true,
+    nexus: "bunnyfortune", star5: true,
+    hp: [1206, 7935], atk: [2214, 14030], spd: [351, 526],
+    /* アンチ3つ＋キラー2つ＋そのほか3つ＝<b>アビリティ8つ</b>。
+       クロススキル・オムニアンチ・治癒の祈りは<b>持たない</b>（ご指定）。 */
+    /* ★★ 2026-09-11b アンチ3つ＋キラー2つ＋そのほか3つ＝<b>アビリティ8つ</b>。
+       ★ 16体で<b>同じ組み合わせが1つも無い</b>ようにばらけさせてある（ご指定）。
+       ★ オムニアンチ・治癒の祈り・野獣先輩のアビリティは付けない（ご指定）。 */
+    abil: [{ t: "sgrav" }, { t: "superaw" }, { t: "ablock" },
+           { t: "judgekillerEL" }, { t: "killerEL", el: "fire" }, { t: "barrierEL" },
+           { t: "wallfbshort" }, { t: "allresM" }],
+    subfs: "luckyheart",
+    ssName: "クリスタル・ブリザードヴェイル", ssTurns: 19, ssKind: "misaki",
+    ssPow: "自強化（攻撃×" + MISAKI_ATK + "・スピード×" + MISAKI_SPD + "）＋ "
+      + "<b>氷の刃の乱打" + MISAKI_BARRAGE_N + "連</b>（1発 攻撃力×" + MISAKI_BARRAGE_PER
+      + "・1発ごとに +" + MISAKI_BARRAGE_STEP + "）"
+      + " ＋ <b>氷結のヴェール</b>（敵全体・攻撃力×" + MISAKI_FINALE + "）"
+      + " ＋ <b>敵全体の防御力ダウン</b>"
+      + "／<b>合計 攻撃力×" + MISAKI_TOTAL.toFixed(1) + "</b>",
+    ssDesc: "<b>自強化（攻撃×" + MISAKI_ATK + "・スピード×" + MISAKI_SPD + "）</b>して、"
+      + "最初にふれた敵へ<b>氷の刃の乱打" + MISAKI_BARRAGE_N + "連</b>——"
+      + "<b>撃つほど1発が重くなります</b>（1発ごとに +" + MISAKI_BARRAGE_STEP + "）。"
+      + "<br>撃ち終わると<b>氷結のヴェール</b>が敵全体へ（攻撃力×" + MISAKI_FINALE + "）。"
+      + "<br>あわせて<b>敵全体の防御力ダウン</b>。"
+      + "<br>合計 攻撃力×" + MISAKI_TOTAL.toFixed(1) + "。"
+      + "<br>アンチは<b>超アンチ重力バリア＋超アンチワープ＋アンチブロック</b>——"
+      + "これだけで<b>⚖第一の審判</b>を<b>有利属性のまま完全対応</b>できます"
+      + "（クロススキルもオムニアンチも要りません）。",
+    fsName: "アイスミラー・カスケード", fsKind: "icemirror",
+    fsPow: "氷の鏡が盤面の四辺に立ち、<b>鏡に当たるたびに光そのものが倍に増える</b>／"
+      + IMIR_WAVES + "段（" + IMIR_N0 + " → " + (IMIR_N0 * 2) + " → " + (IMIR_N0 * 4)
+      + " → " + Math.min(IMIR_MAXN, IMIR_N0 * 8) + " 本・合計 " + imirCount() + " 本）／"
+      + "1本 攻撃力×" + IMIR_PER + " ＋ 締めの鏡砕き（敵全体・攻撃力×" + IMIR_FINALE + "）／"
+      + "合計 攻撃力×" + IMIR_TOTAL.toFixed(1),
+    fsDesc: "ふれた味方から光が走ると、盤面の四辺に<b>氷の鏡</b>が立ちあがる。"
+      + "<br>これまでに無いのは<b>鏡に当たるたびに光そのものが倍に増える</b>こと——"
+      + IMIR_N0 + " 本 → " + (IMIR_N0 * 2) + " 本 → " + (IMIR_N0 * 4) + " 本 → "
+      + Math.min(IMIR_MAXN, IMIR_N0 * 8) + " 本と、段が進むごとに<b>本数が倍々</b>になります"
+      + "（合計 " + imirCount() + " 本）。"
+      + "<br>1本の重さは変わらないので、<b>後の段ほど盤面が光でうめつくされます</b>。"
+      + "<br>締めは鏡が一斉に砕けて敵全体へ（攻撃力×" + IMIR_FINALE + "）。"
+      + "<br>合計 攻撃力×" + IMIR_TOTAL.toFixed(1) + "。",
+  },
+  kyoka: {
+    /* 闇・貫通。宵街灯影型
+       ★ 担当は <b>⚖第九の審判</b>（光ボス）＝ 超アンチワープ＋超マインスイーパーEL＋アンチ断絶界。
+         リンクブーストEL・ダッシュL・FBターンチャージ
+       ★ 検算: charAntiKeys("kyoka") ⊇ counterKeysOf(JUDGE_STAGES[8]) かつ elemMultOf > 1。 */
+    id: "kyoka", nm: "キョウカ", img: "Kyoka.webp", th: "t_Kyoka.webp",
+    el: "dark", shot: "pierce", type: "宵街灯影型", gacha: true, fes: true, fesKey: "bunny", lux: true,
+    nexus: "bunnyfortune", star5: true,
+    hp: [1196, 7880], atk: [2198, 13930], spd: [354, 530],
+    /* アンチ3つ＋キラー2つ＋そのほか3つ＝<b>アビリティ8つ</b>。
+       クロススキル・オムニアンチ・治癒の祈りは<b>持たない</b>（ご指定）。 */
+    /* ★★ 2026-09-11b アンチ3つ＋キラー2つ＋そのほか3つ＝<b>アビリティ8つ</b>。
+       ★ 16体で<b>同じ組み合わせが1つも無い</b>ようにばらけさせてある（ご指定）。
+       ★ オムニアンチ・治癒の祈り・野獣先輩のアビリティは付けない（ご指定）。 */
+    abil: [{ t: "superaw" }, { t: "supermsEL" }, { t: "award" },
+           { t: "auraEL" }, { t: "defkillerM" }, { t: "fbtouch" },
+           { t: "drainM" }, { t: "protection" }],
+    subfs: "luckyheart",
+    ssName: "ミッドナイト・ラストコール", ssTurns: 13, ssKind: "kyoka",
+    ssPow: "<b>敵全体に追加弱点（ウィークシギル）を" + KYOKA_SIGIL + "ターン刻む</b>"
+      + " ＋ <b>敵全体の防御力ダウン(" + KYOKA_DEFDOWN + "T)</b>"
+      + " ＋ 看板のフラッシュ（敵全体・攻撃力×" + KYOKA_FLASH + "）",
+    ssDesc: "店じまいのベルが鳴り、街のネオンがいっせいに落ちる。"
+      + "<br>この技は<b>削るためではなく、次の何ターンかをまるごと有利にする</b>ためのものです——"
+      + "<b>敵全体に追加の弱点を" + KYOKA_SIGIL + "ターン刻み</b>"
+      + "（もとの弱点の反対側にもう1つできます）、"
+      + "<b>防御力も" + KYOKA_DEFDOWN + "ターン下げます</b>。"
+      + "<br>弱点が2つになるので、<b>味方全員の弱点狙いが通りやすく</b>なり、"
+      + "弱点キラーを持つ子がいれば効果はさらに大きくなります。"
+      + "<br>最後に看板が一気にフラッシュして敵全体へ（攻撃力×" + KYOKA_FLASH + "）。"
+      + "<br>アンチは<b>超アンチワープ＋超マインスイーパーEL＋アンチ断絶界</b>——"
+      + "これだけで<b>⚖第九の審判</b>を<b>有利属性のまま完全対応</b>できます"
+      + "（クロススキルもオムニアンチも要りません）。",
+    fsName: "ミッドナイト・ネオンサイン", fsKind: "neonsign",
+    fsPow: "盤面に<b>ネオンの看板が1画ずつ点灯</b>していく " + NEON_STROKES + "画／"
+      + "その画の線上の敵に 攻撃力×" + NEON_PER + "（<b>画が増えるごとに +" + NEON_STEP + "</b>・太さ "
+      + NEON_W + "）＋ 全画点灯で看板がフラッシュ（敵全体・攻撃力×" + NEON_FLASH + "）／"
+      + "合計 攻撃力×" + NEON_TOTAL.toFixed(1),
+    fsDesc: "ふれた味方の上に<b>ネオンの看板</b>がともり、<b>1画ずつ順に点灯</b>していく。"
+      + "<br>これまでに無いのは<b>点いた画の線の上にいる敵だけ</b>に入ること——"
+      + "看板は盤面いっぱいに描かれるので、"
+      + "<b>どこにいる敵にも、どこかの画が必ず通ります</b>。"
+      + "<br>そして<b>画が増えるほど1画が重くなります</b>"
+      + "（×" + NEON_PER + " → ×" + (NEON_PER + NEON_STEP * (NEON_STROKES - 1)).toFixed(1) + "）。"
+      + "<br>" + NEON_STROKES + "画すべてが点いた瞬間、看板が一気にフラッシュして敵全体へ"
+      + "（攻撃力×" + NEON_FLASH + "）。"
+      + "<br>合計 攻撃力×" + NEON_TOTAL.toFixed(1) + "。",
+  },
+  haduki: {
+    /* 木・反射。翠弾狙撃型
+       ★ 担当は <b>⚖第七の審判</b>（水ボス）＝ 超アンチ重力バリア＋アンチブロック＋アンチロックゾーン。
+         リンクブーストEL・スピードモード・攻撃力チャージM
+       ★ 検算: charAntiKeys("haduki") ⊇ counterKeysOf(JUDGE_STAGES[6]) かつ elemMultOf > 1。 */
+    id: "haduki", nm: "ハヅキ", img: "Haduki.webp", th: "t_Haduki.webp",
+    el: "wood", shot: "bounce", type: "翠弾狙撃型", gacha: true, fes: true, fesKey: "bunny", lux: true,
+    nexus: "bunnyfortune", star5: true,
+    hp: [1188, 7830], atk: [2190, 13870], spd: [359, 536],
+    /* アンチ3つ＋キラー2つ＋そのほか3つ＝<b>アビリティ8つ</b>。
+       クロススキル・オムニアンチ・治癒の祈りは<b>持たない</b>（ご指定）。 */
+    /* ★★ 2026-09-11b アンチ3つ＋キラー2つ＋そのほか3つ＝<b>アビリティ8つ</b>。
+       ★ 16体で<b>同じ組み合わせが1つも無い</b>ようにばらけさせてある（ご指定）。
+       ★ オムニアンチ・治癒の祈り・野獣先輩のアビリティは付けない（ご指定）。 */
+    abil: [{ t: "sgrav" }, { t: "ablock" }, { t: "antilock" },
+           { t: "firstkillerEL" }, { t: "killerEL", el: "water" }, { t: "atkcharge" },
+           { t: "dashM" }, { t: "destroyboostM" }],
+    subfs: "luckyheart",
+    ssName: "ジェイド・ワンショット", ssTurns: 17, ssKind: "haduki",
+    ssPow: "自強化（攻撃×" + HADUKI_ATK + "・スピード×" + HADUKI_SPD + "）＋ "
+      + "<b>最初にふれた敵1体だけへ、特大の一射</b>（攻撃力×" + HADUKI_SNIPE + "）",
+    ssDesc: "翠の照準が1体だけを捉える。"
+      + "<b>自強化（攻撃×" + HADUKI_ATK + "・スピード×" + HADUKI_SPD + "）</b>して、"
+      + "<b>そのショットで最初にふれた敵ただ1体</b>へ、攻撃力×" + HADUKI_SNIPE + " の一射を撃ちこみます。"
+      + "<br>敵全体には<b>いっさい入りません</b>。そのかわり1発の重さはフルバーストの中でも屈指——"
+      + "<b>ボス1体だけを一気に削りたい場面</b>のための技です。"
+      + "<br>狙いを外すと何も起きないので、<b>どの敵に当てるかを自分で決める</b>手ごたえがあります。"
+      + "<br>アンチは<b>超アンチ重力バリア＋アンチブロック＋アンチロックゾーン</b>——"
+      + "これだけで<b>⚖第七の審判</b>を<b>有利属性のまま完全対応</b>できます"
+      + "（クロススキルもオムニアンチも要りません）。",
+    fsName: "ジェイド・ロングレンジ", fsKind: "farshot",
+    fsPow: "<b>いちばん遠い敵から順に</b>渡り歩く " + FSNIPE_N + "発／1発 攻撃力×" + FSNIPE_PER
+      + " ＋ <b>飛んだ距離ぶん上乗せ</b>（100pxごとに +" + (FSNIPE_DIST * 100).toFixed(1)
+      + "・1発の上限 +" + FSNIPE_DIST_MAX + "）"
+      + " ＋ 締めの一射（敵全体・攻撃力×" + FSNIPE_FINALE + "）／"
+      + "最大 合計 攻撃力×" + FSNIPE_TOTAL_MAX.toFixed(1),
+    fsDesc: "ふれた味方が、<b>いちばん遠くにいる敵</b>から順にねらい撃つ。"
+      + "<br>これまでに無いのは<b>飛んだ距離がそのまま威力になる</b>こと——"
+      + "遠くへ飛ぶほど1発が重くなり（100pxごとに +" + (FSNIPE_DIST * 100).toFixed(1)
+      + "・1発 最大 +" + FSNIPE_DIST_MAX + "）、"
+      + "当てたら<b>そこから次に遠い敵</b>へ跳んでいきます（全" + FSNIPE_N + "発）。"
+      + "<br>敵が盤面いっぱいに散らばっているほど1発ずつが長く飛ぶ——"
+      + "<b>散らばりがそのまま火力になる</b>リンクスキルです。"
+      + "<br>締めは自分の位置から放つ一射で敵全体へ（攻撃力×" + FSNIPE_FINALE + "）。"
+      + "<br>最大 攻撃力×" + FSNIPE_TOTAL_MAX.toFixed(1) + "。",
+  },
+  hikari: {
+    /* 光・貫通。黄金賭博型
+       ★ 担当は <b>⚖第十の審判</b>（闇ボス）＝ 超アンチワープ＋アンチブロック＋アンチ断絶界。
+         リンクブーストEL・FBターンチャージ・リジェネL
+       ★ 検算: charAntiKeys("hikari") ⊇ counterKeysOf(JUDGE_STAGES[9]) かつ elemMultOf > 1。 */
+    id: "hikari", nm: "ヒカリ", img: "Hikari.webp", th: "t_Hikari.webp",
+    el: "light", shot: "pierce", type: "黄金賭博型", gacha: true, fes: true, fesKey: "bunny", lux: true,
+    nexus: "bunnyfortune", star5: true,
+    hp: [1214, 7985], atk: [2202, 13960], spd: [349, 522],
+    /* アンチ3つ＋キラー2つ＋そのほか3つ＝<b>アビリティ8つ</b>。
+       クロススキル・オムニアンチ・治癒の祈りは<b>持たない</b>（ご指定）。 */
+    /* ★★ 2026-09-11b アンチ3つ＋キラー2つ＋そのほか3つ＝<b>アビリティ8つ</b>。
+       ★ 16体で<b>同じ組み合わせが1つも無い</b>ようにばらけさせてある（ご指定）。
+       ★ オムニアンチ・治癒の祈り・野獣先輩のアビリティは付けない（ご指定）。 */
+    abil: [{ t: "superaw" }, { t: "ablock" }, { t: "award" },
+           { t: "judgekillerEL" }, { t: "vitalEL" }, { t: "fsboostEL" },
+           { t: "regenL" }, { t: "fbaccel" }],
+    subfs: "luckyheart",
+    ssName: "ゴールデン・ジャックポット", ssTurns: 12, ssKind: "hikari",
+    ssPow: "<b>ダメージなしの純支援</b>／<b>味方全員のフルバーストが" + HIKARI_FB + "ターン進む</b>"
+      + " ＋ <b>味方全員の攻撃力 ×" + HIKARI_BUFF + "（" + HIKARI_BUFF_T + "ターン）</b>"
+      + " ＋ <b>味方全員にバリア " + HIKARI_BARRIER + "</b>",
+    ssDesc: "コインが天井まで噴き上がり、盤面が金色に染まる。"
+      + "<br>この技は<b>いっさいダメージを出しません</b>——そのかわり、"
+      + "<b>味方全員のフルバーストが" + HIKARI_FB + "ターン進み</b>、"
+      + "<b>攻撃力が" + HIKARI_BUFF_T + "ターンのあいだ ×" + HIKARI_BUFF + "</b>になり、"
+      + "<b>バリア " + HIKARI_BARRIER + "</b>が張られます。"
+      + "<br>自分で殴るかわりに<b>ほかの3体のフルバーストを早める</b>——"
+      + "重いフルバーストを持つ子と組ませるほど強くなる、支援に振りきった型です。"
+      + "<br>ためるターンも<b>" + 12 + "ターン</b>——MagiBurst でいちばん軽いフルバーストのひとつです。"
+      + "<br>アンチは<b>超アンチワープ＋アンチブロック＋アンチ断絶界</b>——"
+      + "これだけで<b>⚖第十の審判</b>を<b>有利属性のまま完全対応</b>できます"
+      + "（クロススキルもオムニアンチも要りません）。",
+    fsName: "ゴールデン・チップベット", fsKind: "chipbet",
+    fsPow: "チップを賭けて配当が " + CHIP_N + "段（<b>敵全体</b>・1段 攻撃力×" + CHIP_PER + "）／"
+      + "<b>チームの残りHPの割合がそのまま配当</b>（HP0%で ×" + CHIP_HP_MIN
+      + " ／ HP100%で ×" + CHIP_HP_MAX + "）"
+      + " ＋ 締めのジャックポット（敵全体・攻撃力×" + CHIP_JACKPOT + "）／"
+      + "合計 攻撃力×" + CHIP_TOTAL_MIN.toFixed(1) + "〜<b>×" + CHIP_TOTAL_MAX.toFixed(1) + "</b>",
+    fsDesc: "ふれた味方の足もとに<b>金のチップ</b>が積まれ、配当が" + CHIP_N + "段に分かれて降る。"
+      + "<br>これまでに無いのは<b>チームの残りHPの割合がそのまま配当になる</b>こと——"
+      + "<b>HPが満タンなら ×" + CHIP_HP_MAX + "、減っているほど ×" + CHIP_HP_MIN + "に近づきます</b>。"
+      + "<br>「HPが減るほど強くなる」<b>底力の、ちょうど裏返し</b>です。"
+      + "削られずに勝っている編成ほど伸びるので、"
+      + "<b>回復とバリアを厚くした組みかたがそのまま火力</b>になります。"
+      + "<br>締めはジャックポットが敵全体へ（攻撃力×" + CHIP_JACKPOT + "）。"
+      + "<br>最大 攻撃力×" + CHIP_TOTAL_MAX.toFixed(1) + "。",
+  },
+  ruri: {
+    /* 水・反射。瑠璃夜奏型
+       ★ 担当は <b>⚖第六の審判</b>（火ボス）＝ 超アンチ減速壁＋アンチブロック＋アンチ断絶界。
+         リンクブーストEL・リジェネL・バリアEL
+       ★ 検算: charAntiKeys("ruri") ⊇ counterKeysOf(JUDGE_STAGES[5]) かつ elemMultOf > 1。 */
+    id: "ruri", nm: "ルリ", img: "Ruri.webp", th: "t_Ruri.webp",
+    el: "water", shot: "bounce", type: "瑠璃夜奏型", gacha: true, fes: true, fesKey: "bunny", lux: true,
+    nexus: "bunnyfortune", star5: true,
+    hp: [1200, 7900], atk: [2186, 13845], spd: [353, 528],
+    /* アンチ3つ＋キラー2つ＋そのほか3つ＝<b>アビリティ8つ</b>。
+       クロススキル・オムニアンチ・治癒の祈りは<b>持たない</b>（ご指定）。 */
+    /* ★★ 2026-09-11b アンチ3つ＋キラー2つ＋そのほか3つ＝<b>アビリティ8つ</b>。
+       ★ 16体で<b>同じ組み合わせが1つも無い</b>ようにばらけさせてある（ご指定）。
+       ★ オムニアンチ・治癒の祈り・野獣先輩のアビリティは付けない（ご指定）。 */
+    abil: [{ t: "superaslow" }, { t: "ablock" }, { t: "award" },
+           { t: "combokillerEL" }, { t: "killerEL", el: "fire" }, { t: "healM" },
+           { t: "bubblemode" }, { t: "linkcharge" }],
+    subfs: "luckyheart",
+    ssName: "ラピス・ムーンライトソナタ", ssTurns: 15, ssKind: "ruri",
+    ssPow: "<b>チームHPを" + Math.round(RURI_HEAL * 100) + "%回復</b>し、"
+      + "<b>実際に回復できた割合</b>ぶんの倍率で<b>敵全体</b>へ（満額 攻撃力×" + RURI_PER + "）",
+    ssDesc: "青い旋律が広がり、傷がふさがっていく。"
+      + "<br>これまでに無いのは<b>回復できた量がそのまま威力になる</b>こと——"
+      + "<b>チームHPを" + Math.round(RURI_HEAL * 100) + "%戻し、"
+      + "「実際に戻せた割合」をそのまま倍率に掛けて</b>敵全体へ叩きこみます"
+      + "（満額で 攻撃力×" + RURI_PER + "）。"
+      + "<br>つまり<b>HPが満タンのときはほとんど出ません</b>。"
+      + "<b>削られたあとに撃つのがいちばん強い</b>、攻めと守りが逆さまになった型です。"
+      + "<br>アンチは<b>超アンチ減速壁＋アンチブロック＋アンチ断絶界</b>——"
+      + "これだけで<b>⚖第六の審判</b>を<b>有利属性のまま完全対応</b>できます"
+      + "（クロススキルもオムニアンチも要りません）。",
+    fsName: "ラピス・ハイタイド", fsKind: "hightide",
+    fsPow: "<b>画面の下から水位が上がっていく</b> " + HTIDE_TICKS + "段／"
+      + "<b>水につかっている敵だけ</b>に 攻撃力×" + HTIDE_PER
+      + "（<b>水位が上がるごとに +" + HTIDE_STEP + "</b>）"
+      + " ＋ 満潮からの引き波（敵全体・攻撃力×" + HTIDE_FINALE + "）／"
+      + "合計 攻撃力×" + HTIDE_TOTAL.toFixed(1),
+    fsDesc: "ふれた味方を起点に、<b>盤面の下から水位が上がりはじめる</b>。"
+      + "<br>これまでに無いのは<b>水につかっている敵だけ</b>が削られること——"
+      + "<b>下にいる敵ほど早くつかり、長く削られます</b>。"
+      + "<br>しかも<b>水位が上がるほど1段が重くなる</b>ので"
+      + "（×" + HTIDE_PER + " → ×"
+      + (HTIDE_PER + HTIDE_STEP * (HTIDE_TICKS - 1)).toFixed(1) + "）、"
+      + "上のほうの敵にも最後は大きく入ります。"
+      + "<br>" + HTIDE_TICKS + "段のぼりきると<b>満潮から一気に引き波</b>が起きて敵全体へ"
+      + "（攻撃力×" + HTIDE_FINALE + "）。"
+      + "<br>合計 攻撃力×" + HTIDE_TOTAL.toFixed(1) + "。",
+  },
+  nagisa: {
+    /* 水・貫通。清泉噴湧型
+       ★ 担当は <b>⚖第一の審判</b>（火ボス）＝ 超アンチ重力バリア＋超アンチワープ＋アンチブロック。
+         リンクブーストEL・ダッシュL・ウォールブーストEL
+       ★ 検算: charAntiKeys("nagisa") ⊇ counterKeysOf(JUDGE_STAGES[0]) かつ elemMultOf > 1。 */
+    id: "nagisa", nm: "ナギサ", img: "Nagisa.webp", th: "t_Nagisa.webp",
+    el: "water", shot: "pierce", type: "清泉噴湧型", gacha: true, fes: true, fesKey: "bunny", lux: true,
+    nexus: "bunnyfortune", star5: true,
+    hp: [1192, 7855], atk: [2182, 13820], spd: [357, 534],
+    /* アンチ3つ＋キラー2つ＋そのほか3つ＝<b>アビリティ8つ</b>。
+       クロススキル・オムニアンチ・治癒の祈りは<b>持たない</b>（ご指定）。 */
+    /* ★★ 2026-09-11b アンチ3つ＋キラー2つ＋そのほか3つ＝<b>アビリティ8つ</b>。
+       ★ 16体で<b>同じ組み合わせが1つも無い</b>ようにばらけさせてある（ご指定）。
+       ★ オムニアンチ・治癒の祈り・野獣先輩のアビリティは付けない（ご指定）。 */
+    abil: [{ t: "sgrav" }, { t: "superaw" }, { t: "ablock" },
+           { t: "judgekillerEL" }, { t: "outkillerL" }, { t: "wallboostEL" },
+           { t: "dashL" }, { t: "ssboost" }],
+    subfs: "luckyheart",
+    ssName: "アクア・ミストラルダンス", ssTurns: 17, ssKind: "nagisa",
+    ssPow: "自強化（攻撃×" + NAGISA_ATK + "・スピード×" + NAGISA_SPD + "）＋ "
+      + "<b>敵全体をふっとばす</b>（攻撃力×" + NAGISA_BLOW + "）"
+      + " ＋ <b>壁にぶつかった敵へ追い討ち</b>（攻撃力×" + NAGISA_WALL + "）",
+    ssDesc: "渦を巻いた水流が盤面を走り、敵をまとめて壁ぎわまで運ぶ。"
+      + "<b>自強化（攻撃×" + NAGISA_ATK + "・スピード×" + NAGISA_SPD + "）</b>して、"
+      + "<b>敵全体をふっとばし</b>ます（攻撃力×" + NAGISA_BLOW + "）。"
+      + "<br>これまでに無いのは<b>ふっとばした先が武器になる</b>こと——"
+      + "<b>壁にぶつかった敵には追い討ち</b>（攻撃力×" + NAGISA_WALL + "）が入ります。"
+      + "<br>ふっとばしは位置も変えるので、"
+      + "<b>次のターンに挟まりやすい場所へ敵を寄せる</b>使いかたもできます。"
+      + "<br>アンチは<b>超アンチ重力バリア＋超アンチワープ＋アンチブロック</b>——"
+      + "これだけで<b>⚖第一の審判</b>を<b>有利属性のまま完全対応</b>できます"
+      + "（クロススキルもオムニアンチも要りません）。",
+    fsName: "フォンテーヌ・アルカード", fsKind: "fountain",
+    fsPow: "噴水の弧が<b>内側から外側へ</b> " + FARC_N + "本（半径 " + FARC_R0 + " → "
+      + (FARC_R0 + FARC_DR * (FARC_N - 1)) + "）／"
+      + "内側の弧 攻撃力×" + FARC_PER + "・<b>1本外へ行くごとに +" + FARC_STEP + "</b>"
+      + " ＋ 締めの落水（敵全体・攻撃力×" + FARC_FINALE + "）／"
+      + "合計 攻撃力×" + FARC_TOTAL.toFixed(1),
+    fsDesc: "ふれた味方から<b>噴水の弧</b>が、内側から外側へ順に開いていく。"
+      + "<br>これまでに無いのは<b>外の弧ほど重い</b>こと——"
+      + "ふつうの輪は「近い敵ほど得」ですが、これは逆で"
+      + "<b>離れている敵ほど大きな倍率で当たります</b>"
+      + "（内側 ×" + FARC_PER + " → 外側 ×"
+      + (FARC_PER + FARC_STEP * (FARC_N - 1)).toFixed(1) + "）。"
+      + "<br>味方の近くに寄せられない盤面——たとえば<b>ボスが壁ぎわに構えている面</b>で"
+      + "そのまま強みになります。"
+      + "<br>締めは" + FARC_N + "本の弧がまとめて落ちて敵全体へ（攻撃力×" + FARC_FINALE + "）。"
+      + "<br>合計 攻撃力×" + FARC_TOTAL.toFixed(1) + "。",
+  },
+  hiyori: {
+    /* 水・反射。晴空風船型
+       ★ 担当は <b>⚖第六の審判</b>（火ボス）＝ 超アンチ減速壁＋アンチブロック＋アンチ断絶界。
+         リンクブーストEL・バリアEL・FBターンアクセル
+       ★ 検算: charAntiKeys("hiyori") ⊇ counterKeysOf(JUDGE_STAGES[5]) かつ elemMultOf > 1。 */
+    id: "hiyori", nm: "ヒヨリ", img: "Hiyori.webp", th: "t_Hiyori.webp",
+    el: "water", shot: "bounce", type: "晴空風船型", gacha: true, fes: true, fesKey: "bunny", lux: true,
+    nexus: "bunnyfortune", star5: true,
+    hp: [1186, 7825], atk: [2176, 13780], spd: [358, 535],
+    /* アンチ3つ＋キラー2つ＋そのほか3つ＝<b>アビリティ8つ</b>。
+       クロススキル・オムニアンチ・治癒の祈りは<b>持たない</b>（ご指定）。 */
+    /* ★★ 2026-09-11b アンチ3つ＋キラー2つ＋そのほか3つ＝<b>アビリティ8つ</b>。
+       ★ 16体で<b>同じ組み合わせが1つも無い</b>ようにばらけさせてある（ご指定）。
+       ★ オムニアンチ・治癒の祈り・野獣先輩のアビリティは付けない（ご指定）。 */
+    abil: [{ t: "superaslow" }, { t: "ablock" }, { t: "award" },
+           { t: "bosskillerM" }, { t: "killerEL", el: "fire" }, { t: "barrierL" },
+           { t: "fbshort" }, { t: "pimmune" }],
+    subfs: "luckyheart",
+    ssName: "スカイ・フェスティバル", ssTurns: 15, ssKind: "hiyori",
+    ssPow: "<b>味方全員にバリア " + HIYORI_BARRIER + "</b>を張り、"
+      + "<b>バリアを張れた味方1体につき 攻撃力×" + HIYORI_PER + "</b>を<b>敵全体</b>へ"
+      + "（4体なら ×" + (HIYORI_PER * 4) + "）",
+    ssDesc: "空いっぱいに風船が上がり、味方をやわらかく包む。"
+      + "<br>これまでに無いのは<b>守りがそのまま攻めになる</b>こと——"
+      + "<b>味方全員に " + HIYORI_BARRIER + " のバリア</b>を張り、"
+      + "<b>バリアを張れた味方の数だけ</b>威力が上がります"
+      + "（1体につき 攻撃力×" + HIYORI_PER + "・4体そろえば ×" + (HIYORI_PER * 4) + "）。"
+      + "<br>つまり<b>味方が倒れていないほど強い</b>——"
+      + "ルリとは逆に、<b>削られる前に撃つ</b>のがいちばん強い型です。"
+      + "<br>ためるターンは<b>15ターン</b>と短いので、"
+      + "<b>削られる前にこまめに撃って立て直す</b>使いかたが合っています。"
+      + "<br>アンチは<b>超アンチ減速壁＋アンチブロック＋アンチ断絶界</b>——"
+      + "これだけで<b>⚖第六の審判</b>を<b>有利属性のまま完全対応</b>できます"
+      + "（クロススキルもオムニアンチも要りません）。",
+    fsName: "バルーン・アセンション", fsKind: "balloon",
+    fsPow: "<b>味方の足もとから風船が上がる</b>（最大 " + BALN_N + "個）／"
+      + "上がる途中でふれた敵に 攻撃力×" + BALN_PER + "（1個 " + BALN_HITS + "回まで）"
+      + " ＋ <b>天井まで届いた風船1個につき</b> 敵全体へ 攻撃力×" + BALN_POP + "／"
+      + "最大 合計 攻撃力×" + BALN_TOTAL_MAX.toFixed(1),
+    fsDesc: "ふれた味方だけでなく、<b>味方全員の足もとから風船が上がる</b>（最大 " + BALN_N + "個）。"
+      + "<br>これまでに無いのは<b>天井まで届いた風船の数が、そのまま締めの威力になる</b>こと。"
+      + "<br>風船は上がる途中で<b>敵にふれると削り</b>（1個 " + BALN_HITS + "回まで・攻撃力×"
+      + BALN_PER + "）、<b>天井まで届くと割れて敵全体</b>へ入ります（攻撃力×" + BALN_POP + "）。"
+      + "<br>味方を<b>敵の下に置くか、まっすぐ上が空いた場所に置くか</b>——"
+      + "編成の立ち位置で、削りと締めのどちらに寄せるかを選べます。"
+      + "<br>最大 攻撃力×" + BALN_TOTAL_MAX.toFixed(1) + "。",
+  },
+  erika: {
+    /* 闇・貫通。紅薔薇円卓型
+       ★ 担当は <b>⚖第四の審判</b>（光ボス）＝ 超アンチ重力バリア＋超アンチ減速壁＋アンチロックゾーン。
+         リンクブーストEL・ソウルスティールEL・ダッシュL
+       ★ 検算: charAntiKeys("erika") ⊇ counterKeysOf(JUDGE_STAGES[3]) かつ elemMultOf > 1。 */
+    id: "erika", nm: "エリカ", img: "Erika.webp", th: "t_Erika.webp",
+    el: "dark", shot: "pierce", type: "紅薔薇円卓型", gacha: true, fes: true, fesKey: "bunny", lux: true,
+    nexus: "bunnyfortune", star5: true,
+    hp: [1208, 7950], atk: [2208, 13995], spd: [350, 525],
+    /* アンチ3つ＋キラー2つ＋そのほか3つ＝<b>アビリティ8つ</b>。
+       クロススキル・オムニアンチ・治癒の祈りは<b>持たない</b>（ご指定）。 */
+    /* ★★ 2026-09-11b アンチ3つ＋キラー2つ＋そのほか3つ＝<b>アビリティ8つ</b>。
+       ★ 16体で<b>同じ組み合わせが1つも無い</b>ようにばらけさせてある（ご指定）。
+       ★ オムニアンチ・治癒の祈り・野獣先輩のアビリティは付けない（ご指定）。 */
+    abil: [{ t: "sgrav" }, { t: "superaslow" }, { t: "antilock" },
+           { t: "judgekillerEL" }, { t: "sokojikaraEL" }, { t: "soulEL" },
+           { t: "phantomdriveEL" }, { t: "dashL" }],
+    subfs: "luckyheart",
+    ssName: "クリムゾン・ラストワルツ", ssTurns: 25, ssKind: "erika",
+    ssPow: "自強化（攻撃×" + ERIKA_ATK + "・スピード×" + ERIKA_SPD + "）＋ "
+      + "<b>敵全体へ</b>（攻撃力×" + ERIKA_DRAIN + "）"
+      + " ＋ <b>与えたダメージの" + Math.round(ERIKA_LEECH * 100) + "%をチームHPへ吸い上げる</b>"
+      + " ＋ <b>敵全体の防御力ダウン(" + ERIKA_DEFDOWN + "T)</b>",
+    ssDesc: "紅い薔薇が敵を包み、棘が根を下ろす。"
+      + "<b>自強化（攻撃×" + ERIKA_ATK + "・スピード×" + ERIKA_SPD + "）</b>して、"
+      + "敵全体へ 攻撃力×" + ERIKA_DRAIN + "。"
+      + "<br>これまでに無いのは<b>与えたダメージがそのままチームHPに戻る</b>こと——"
+      + "<b>入れたぶんの" + Math.round(ERIKA_LEECH * 100) + "%</b>を吸い上げます。"
+      + "敵が多いほど、弱点を通すほど、<b>回復量も一緒に増えます</b>。"
+      + "<br>あわせて<b>敵全体の防御力を" + ERIKA_DEFDOWN + "ターン下げる</b>ので、"
+      + "そのまま味方の削りにつながります。"
+      + "<br>アンチは<b>超アンチ重力バリア＋超アンチ減速壁＋アンチロックゾーン</b>——"
+      + "これだけで<b>⚖第四の審判</b>を<b>有利属性のまま完全対応</b>できます"
+      + "（クロススキルもオムニアンチも要りません）。",
+    fsName: "クリムゾン・ローズテーブル", fsKind: "rosetable",
+    fsPow: "<b>敵どうしを全部つなぐ棘の線</b>（敵 n 体で n(n-1)/2 本・最大 " + RTABLE_MAX + "本・太さ "
+      + RTABLE_W + "）／1本 攻撃力×" + RTABLE_PER + "（<b>線が増えるごとに +" + RTABLE_STEP + "</b>）"
+      + " ＋ 円卓が閉じて敵全体へ（攻撃力×" + RTABLE_FINALE + "）／"
+      + "最大 合計 攻撃力×" + RTABLE_TOTAL_MAX.toFixed(1),
+    fsDesc: "ふれた味方を合図に、<b>敵と敵のあいだ</b>に紅い薔薇の棘が渡される。"
+      + "<br>これまでに無いのは<b>敵どうしを全部つなぐ</b>こと——"
+      + "敵が n 体いれば線は <b>n(n-1)/2 本</b>。"
+      + "2体なら1本ですが、<b>4体なら6本、5体なら10本</b>と、"
+      + "<b>敵が増えるほど線は二次で増えます</b>。"
+      + "<br>しかも<b>線が増えるごとに1本が重くなる</b>ので"
+      + "（×" + RTABLE_PER + " → ×"
+      + (RTABLE_PER + RTABLE_STEP * (RTABLE_MAX - 1)).toFixed(1) + "）、"
+      + "<b>雑魚がそろっているWAVEで爆発的に伸びます</b>。"
+      + "<br>締めは円卓が閉じて敵全体へ（攻撃力×" + RTABLE_FINALE + "）。"
+      + "<br>最大 攻撃力×" + RTABLE_TOTAL_MAX.toFixed(1) + "。",
+  },
+  momoka: {
+    /* 光・反射。桃彩鼓動型
+       ★ 担当は <b>⚖第五の審判</b>（闇ボス）＝ 超アンチワープ＋超マインスイーパーEL＋アンチロックゾーン。
+         リンクブーストEL・リジェネL・FBターンチャージ
+       ★ 検算: charAntiKeys("momoka") ⊇ counterKeysOf(JUDGE_STAGES[4]) かつ elemMultOf > 1。 */
+    id: "momoka", nm: "モモカ", img: "Momoka.webp", th: "t_Momoka.webp",
+    el: "light", shot: "bounce", type: "桃彩鼓動型", gacha: true, fes: true, fesKey: "bunny", lux: true,
+    nexus: "bunnyfortune", star5: true,
+    hp: [1182, 7810], atk: [2170, 13740], spd: [355, 532],
+    /* アンチ3つ＋キラー2つ＋そのほか3つ＝<b>アビリティ8つ</b>。
+       クロススキル・オムニアンチ・治癒の祈りは<b>持たない</b>（ご指定）。 */
+    /* ★★ 2026-09-11b アンチ3つ＋キラー2つ＋そのほか3つ＝<b>アビリティ8つ</b>。
+       ★ 16体で<b>同じ組み合わせが1つも無い</b>ようにばらけさせてある（ご指定）。
+       ★ オムニアンチ・治癒の祈り・野獣先輩のアビリティは付けない（ご指定）。 */
+    abil: [{ t: "superaw" }, { t: "supermsEL" }, { t: "antilock" },
+           { t: "auraEL" }, { t: "killerEL", el: "dark" }, { t: "regenL" },
+           { t: "sscharge" }, { t: "atkchargeM" }],
+    subfs: "luckyheart",
+    ssName: "ピース・ハートフルビート", ssTurns: 11, ssKind: "momoka",
+    ssPow: "<b>ダメージなしの味方強化</b>／<b>味方全員が自強化</b>"
+      + "（攻撃×" + MOMOKA_ALLY_ATK + "・スピード×" + MOMOKA_ALLY_SPD + "・"
+      + MOMOKA_ALLY_T + "ターン）"
+      + " ＋ <b>味方全員のフルバーストが" + MOMOKA_FB + "ターン進む</b>"
+      + " ＋ <b>チームHPを" + Math.round(MOMOKA_HEAL * 100) + "%回復</b>",
+    ssDesc: "ピースサインを合図に、味方全員の鼓動がそろう。"
+      + "<br>この技も<b>ダメージを出しません</b>。かわりに"
+      + "<b>味方4体すべてが自強化</b>します——"
+      + "<b>攻撃力×" + MOMOKA_ALLY_ATK + "・スピード×" + MOMOKA_ALLY_SPD + "が"
+      + MOMOKA_ALLY_T + "ターン</b>続きます。"
+      + "<br>ふつう自強化は「撃った本人だけ」ですが、これは<b>全員にかかる</b>のがちがいます。"
+      + "直殴りもリンクスキルも、そのあいだずっと重くなります。"
+      + "<br>あわせて<b>味方全員のFBが" + MOMOKA_FB + "ターン進み</b>、"
+      + "<b>チームHPも" + Math.round(MOMOKA_HEAL * 100) + "%戻ります</b>。"
+      + "<br>ためるターンは<b>11ターン</b>——MagiBurst でいちばん軽いフルバーストです。"
+      + "<br>アンチは<b>超アンチワープ＋超マインスイーパーEL＋アンチロックゾーン</b>——"
+      + "これだけで<b>⚖第五の審判</b>を<b>有利属性のまま完全対応</b>できます"
+      + "（クロススキルもオムニアンチも要りません）。",
+    fsName: "ピースサイン・ダブルビート", fsKind: "peacebeam",
+    fsPow: "<b>V字の2本のビームが少しずつ開いていく</b> " + PBEAT_N + "段（太さ " + PBEAT_W + "）／"
+      + "1段 攻撃力×" + PBEAT_PER + "・<b>開いた角度ぶん上乗せ</b>（全開で +"
+      + Math.round(PBEAT_BONUS * 100) + "%）"
+      + " ＋ 締めのハートビート（敵全体・攻撃力×" + PBEAT_FINALE + "）／"
+      + "合計 攻撃力×" + PBEAT_TOTAL_MIN.toFixed(1) + "〜<b>×" + PBEAT_TOTAL_MAX.toFixed(1) + "</b>",
+    fsDesc: "ふれた味方から<b>2本の光のビーム</b>がV字に伸び、段が進むごとに<b>だんだん開いて</b>いく。"
+      + "<br>これまでに無いのは<b>開いた角度そのものが倍率になる</b>こと——"
+      + "はじめはせまく重なった2本ですが、開ききると"
+      + "<b>1段が +" + Math.round(PBEAT_BONUS * 100) + "%</b>まで重くなります。"
+      + "<br>そのかわり、<b>せまい角度のときにしか当たらない敵</b>もいます。"
+      + "近い敵は早い段で、遠い敵は後の段で——"
+      + "<b>どの距離の敵にも、いちばん良い角度が必ず一度は来ます</b>。"
+      + "<br>締めはハートビートが敵全体へ（攻撃力×" + PBEAT_FINALE + "）。"
+      + "<br>最大 攻撃力×" + PBEAT_TOTAL_MAX.toFixed(1) + "。",
+  },
+  miyuki: {
+    /* 光・貫通。銀冠戴雪型
+       ★ 担当は <b>⚖第十の審判</b>（闇ボス）＝ 超アンチワープ＋アンチブロック＋アンチ断絶界。
+         リンクブーストEL・バリアEL・プロテクション
+       ★ 検算: charAntiKeys("miyuki") ⊇ counterKeysOf(JUDGE_STAGES[9]) かつ elemMultOf > 1。 */
+    id: "miyuki", nm: "ミユキ", img: "Miyuki.webp", th: "t_Miyuki.webp",
+    el: "light", shot: "pierce", type: "銀冠戴雪型", gacha: true, fes: true, fesKey: "bunny", lux: true,
+    nexus: "bunnyfortune", star5: true,
+    hp: [1226, 8035], atk: [2218, 14060], spd: [346, 518],
+    /* アンチ3つ＋キラー2つ＋そのほか3つ＝<b>アビリティ8つ</b>。
+       クロススキル・オムニアンチ・治癒の祈りは<b>持たない</b>（ご指定）。 */
+    /* ★★ 2026-09-11b アンチ3つ＋キラー2つ＋そのほか3つ＝<b>アビリティ8つ</b>。
+       ★ 16体で<b>同じ組み合わせが1つも無い</b>ようにばらけさせてある（ご指定）。
+       ★ オムニアンチ・治癒の祈り・野獣先輩のアビリティは付けない（ご指定）。 */
+    abil: [{ t: "superaw" }, { t: "ablock" }, { t: "award" },
+           { t: "judgekillerEL" }, { t: "bosskillerM" }, { t: "protection" },
+           { t: "barrierEL" }, { t: "laserstop" }],
+    subfs: "luckyheart",
+    ssName: "シルヴァン・ロイヤルレクイエム", ssTurns: 16, ssKind: "miyuki",
+    ssPow: "自強化（攻撃×" + MIYUKI_ATK + "・スピード×" + MIYUKI_SPD + "）＋ "
+      + "<b>HPがいちばん高い敵1体へ</b>（攻撃力×" + MIYUKI_JUDGE + "・ふっとばし）"
+      + " ＋ <b>味方全員にバリア " + MIYUKI_BARRIER + "</b>",
+    ssDesc: "銀の花びらが降りしきり、盤面のまん中に王冠が降りる。"
+      + "<b>自強化（攻撃×" + MIYUKI_ATK + "・スピード×" + MIYUKI_SPD + "）</b>して、"
+      + "<b>HPがいちばん高い敵——ふつうはボス——ただ1体</b>へ"
+      + "攻撃力×" + MIYUKI_JUDGE + " を落とします。"
+      + "<br>ハヅキの一射とちがい<b>狙いを定める必要がありません</b>"
+      + "（自動でいちばん硬い敵を選びます）。ためるターンは<b>16</b>です。"
+      + "<br>そのままふっとばし、<b>味方全員にバリア " + MIYUKI_BARRIER + "</b>を張ります。"
+      + "<br>アンチは<b>超アンチワープ＋アンチブロック＋アンチ断絶界</b>——"
+      + "これだけで<b>⚖第十の審判</b>を<b>有利属性のまま完全対応</b>できます"
+      + "（クロススキルもオムニアンチも要りません）。",
+    fsName: "シルヴァン・カウントダウン", fsKind: "countdown",
+    fsPow: "<b>" + SCNT_N + " → 1 のカウントダウン</b>（1カウント <b>敵全体</b>へ 攻撃力×" + SCNT_PER
+      + "・<b>進むごとに +" + SCNT_STEP + "</b>）"
+      + " ＋ <b>0 の瞬間、それまでの合計と同じ量がもう一度</b>まとめて入る／"
+      + "合計 攻撃力×" + SCNT_TOTAL.toFixed(1),
+    fsDesc: "ふれた味方の頭上に<b>銀の数字</b>が浮かび、" + SCNT_N + " から 1 へと数が減っていく。"
+      + "<br>これまでに無いのは<b>0 になった瞬間、それまでに入れた合計と同じ量が、もう一度まとめて入る</b>こと。"
+      + "<br>カウントは1つ進むごとに重くなり"
+      + "（×" + SCNT_PER + " → ×"
+      + (SCNT_PER + SCNT_STEP * (SCNT_N - 1)).toFixed(1) + "）、"
+      + "そこまでの合計 攻撃力×" + SCNT_BASE.toFixed(1) + " が"
+      + "<b>0 の瞬間にそっくりそのままもう一度</b>——合計 攻撃力×" + SCNT_TOTAL.toFixed(1) + "。"
+      + "<br>前半を見ていれば<b>後半にいくら来るかが読める</b>、"
+      + "MagiBurst でいちばん分かりやすいリンクスキルです。",
+  },
+  natsume: {
+    /* 火・反射。橙陽飴糖型
+       ★ 担当は <b>⚖第三の審判</b>（木ボス）＝ 超アンチダメージウォール＋アンチブロック＋アンチロックゾーン。
+         リンクブーストEL・FBターンチャージ・ドレインM
+       ★ 検算: charAntiKeys("natsume") ⊇ counterKeysOf(JUDGE_STAGES[2]) かつ elemMultOf > 1。 */
+    id: "natsume", nm: "ナツメ", img: "Natsume.webp", th: "t_Natsume.webp",
+    el: "fire", shot: "bounce", type: "橙陽飴糖型", gacha: true, fes: true, fesKey: "bunny", lux: true,
+    nexus: "bunnyfortune", star5: true,
+    hp: [1180, 7800], atk: [2168, 13725], spd: [356, 533],
+    /* アンチ3つ＋キラー2つ＋そのほか3つ＝<b>アビリティ8つ</b>。
+       クロススキル・オムニアンチ・治癒の祈りは<b>持たない</b>（ご指定）。 */
+    /* ★★ 2026-09-11b アンチ3つ＋キラー2つ＋そのほか3つ＝<b>アビリティ8つ</b>。
+       ★ 16体で<b>同じ組み合わせが1つも無い</b>ようにばらけさせてある（ご指定）。
+       ★ オムニアンチ・治癒の祈り・野獣先輩のアビリティは付けない（ご指定）。 */
+    abil: [{ t: "superadw" }, { t: "ablock" }, { t: "antilock" },
+           { t: "poisonkillerEL" }, { t: "killerEL", el: "wood" }, { t: "drainM" },
+           { t: "pimmune" }, { t: "fbturnboost" }],
+    subfs: "luckyheart",
+    ssName: "オランジェ・サンライズ", ssTurns: 14, ssKind: "natsume",
+    ssPow: "<b>敵全体を毒状態にする</b>（飴漬け・以降じわじわ削れる）"
+      + " ＋ 初撃（敵全体・攻撃力×" + NATSUME_HIT + "）"
+      + " ＋ <b>チームHPを" + Math.round(NATSUME_HEAL * 100) + "%回復</b>",
+    ssDesc: "朝日の色をした飴が盤面いっぱいに広がり、敵をゆっくり包みこむ。"
+      + "<br>これまでに無いのは<b>撃ったあとも効き続ける</b>こと——"
+      + "<b>敵全体が毒状態</b>になり、そのあと<b>敵が動くたびに削れ続けます</b>。"
+      + "<br>初撃そのものは 攻撃力×" + NATSUME_HIT + " と控えめですが、"
+      + "<b>長いWAVEほど効いてきます</b>。毒キラーを持っているので、"
+      + "<b>自分で毒にして、自分でその毒を狙い撃つ</b>ことができます。"
+      + "<br>あわせて<b>チームHPを" + Math.round(NATSUME_HEAL * 100) + "%回復</b>します。"
+      + "<br>アンチは<b>超アンチダメージウォール＋アンチブロック＋アンチロックゾーン</b>——"
+      + "これだけで<b>⚖第三の審判</b>を<b>有利属性のまま完全対応</b>できます"
+      + "（クロススキルもオムニアンチも要りません）。",
+    fsName: "オランジェ・マーマレード", fsKind: "marmalade",
+    fsPow: "橙の飴の輪が広がる " + MARM_TICKS + "段（半径 " + MARM_R0 + " → " + MARM_R1 + "）／"
+      + "飴につかっている敵に 攻撃力×" + MARM_PER + "／"
+      + "<b>固まっていた段の数だけ締めが重くなる</b>（1段につき +" + MARM_HOLD + "）"
+      + " ＋ 一斉に砕ける（敵全体・攻撃力×" + MARM_SHATTER + "）／"
+      + "最大 合計 攻撃力×" + MARM_TOTAL_MAX.toFixed(1),
+    fsDesc: "ふれた味方から<b>橙色の飴</b>が広がり、つかった敵を少しずつ固めていく。"
+      + "<br>これまでに無いのは<b>飴に浸かっていた時間が、そのまま締めの威力になる</b>こと——"
+      + "<b>早く飴に入った敵ほど長く固まり、最後に重く砕けます</b>"
+      + "（固まっていた1段につき +" + MARM_HOLD + "）。"
+      + "<br>飴の輪は半径 " + MARM_R0 + " から " + MARM_R1 + " まで広がるので、"
+      + "<b>味方の近くにいる敵ほど得</b>——"
+      + "距離が近いほど強い、というめずらしい決まりかたです。"
+      + "<br>" + MARM_TICKS + "段ひろがりきると飴が一斉に砕けて敵全体へ（攻撃力×" + MARM_SHATTER + "）。"
+      + "<br>最大 攻撃力×" + MARM_TOTAL_MAX.toFixed(1) + "。",
+  },
+  /* ══════════ ★★ 2026-09-11 極華祭 カグラ（No.231）══════════
+     火・貫通。彼岸花と緋刃。★ 既存の「カグヤ」「カグヤα」とは別人。
+     ・アンチは<b>オムニアンチ＋アンチロックゾーン</b>のちょうど2つ（ご指定「オムニ＋もう1つまで」）。
+       オムニが ADW と重力バリアを消すので、これだけで
+       <b>⚖第八の審判</b>（ADW・重力バリア・ロックゾーン）を<b>有利属性のまま完全対応</b>できる。
+     ・キラーは2つ（天律族キラーEL ＋ VERDEキラーEL）。<b>クロスにキラーは入れない</b>
+       （入れると「キラー2つ」の約束が崩れる）。
+     ・クロスの条件は<b>自分と異なる属性を出さない</b>（ご指定）。
+     ・<b>治癒の祈りは持たない</b>。 */
+  kagura: {
+    id: "kagura", nm: "カグラ", img: "Kagura.webp", th: "t_Kagura.webp",
+    el: "fire", shot: "pierce", type: "彼岸緋刃型", gacha: true, fes: true, fesKey: "kokuka", lux: true,
+    nexus: "luxbloom", star5: true,
+    connect: "kagura",
+    hp: [1240, 8120], atk: [2246, 14260], spd: [352, 528],
+    /* 素5つ ＋ クロス3つ ＝ <b>アビリティ8つ</b>（クロスも数に入れる・ご指定）。 */
+    abil: [{ t: "omni" }, { t: "antilock" },
+           { t: "judgekillerEL" }, { t: "killerEL", el: "wood" },
+           { t: "sscharge" }],
+    shotskill: "higanshot",
+    subfs: "higanpetal",
+    ssName: "ヒガン・センリンザン", ssTurns: 26, ssKind: "kagura",
+    ssPow: "自強化（攻撃×" + KAGURA_ATK + "・スピード×" + KAGURA_SPD + "）＋ "
+      + "<b>緋刃の乱打" + KAGURA_BARRAGE_N + "連</b>（1発 攻撃力×" + KAGURA_BARRAGE_PER
+      + "・1発ごとに +" + KAGURA_BARRAGE_STEP + "）"
+      + " ＋ <b>彼岸の大輪</b>（敵全体・攻撃力×" + KAGURA_FINALE + "・ふっとばし）"
+      + " ＋ <b>チームHPを" + Math.round(KAGURA_HEAL * 100) + "%回復</b>"
+      + " ＋ <b>敵全体の防御力ダウン(" + KAGURA_DEFDOWN + "T)</b>"
+      + "／<b>合計 攻撃力×" + KAGURA_TOTAL.toFixed(1) + "</b>",
+    ssDesc: "盤面が<b>彼岸の緋</b>に染まり、鳥居の影から無数の刃が立ちあがる。"
+      + "<b>自強化（攻撃×" + KAGURA_ATK + "・スピード×" + KAGURA_SPD + "）</b>して、"
+      + "最初にふれた敵へ<b>" + KAGURA_BARRAGE_N + "連の乱打</b>——"
+      + "<b>MagiBurst 史上いちばん長い乱打</b>で、"
+      + "<b>撃つほど1発が重くなります</b>（×" + KAGURA_BARRAGE_PER + " → ×"
+      + (KAGURA_BARRAGE_PER + KAGURA_BARRAGE_STEP * (KAGURA_BARRAGE_N - 1)).toFixed(1) + "）。"
+      + "<br>斬り終わると盤面いっぱいに<b>彼岸花の大輪</b>が開き、"
+      + "敵全体へ 攻撃力×" + KAGURA_FINALE + " とふっとばし。"
+      + "そのまま<b>チームHPを" + Math.round(KAGURA_HEAL * 100) + "%戻し</b>、"
+      + "<b>敵全体の防御力を" + KAGURA_DEFDOWN + "ターン下げます</b>。"
+      + "<br>合計 攻撃力×" + KAGURA_TOTAL.toFixed(1) + " ——"
+      + "<b>MagiBurst 史上最大の火力</b>です"
+      + "（これまでの1位はアンナ(メイド) ×" + ANNAMD_TOTAL.toFixed(1) + "）。"
+      + "<br>アンチは<b>オムニアンチ＋アンチロックゾーン</b>のたった2つ。"
+      + "オムニがダメージウォールと重力バリアを消すので、"
+      + "これだけで<b>⚖第八の審判</b>を<b>有利属性のまま完全対応</b>できます。",
+    fsName: "マンジュシャゲ・ヒャッカ", fsKind: "higanlily",
+    fsPow: "彼岸花が " + KLILY_N + "輪 順に咲き、<b>咲いた花は「それまでに咲いた花すべて」と線で結ばれる</b>"
+      + "（合計 " + KLILY_LINES + "本・太さ " + KLILY_W + "）／線の上の敵に 攻撃力×" + KLILY_PER
+      + " ＋ <b>締めに全部の線が同時に燃える</b>（敵全体・攻撃力×" + KLILY_FINALE + "）／"
+      + "合計 攻撃力×" + KLILY_TOTAL.toFixed(1),
+    fsDesc: "ふれた味方のまわりに<b>彼岸花</b>が一輪ずつ咲いていく。"
+      + "<br>これまでに無いのは<b>咲いた花どうしが必ず線で結ばれ、線の本数が二次で増えていく</b>こと——"
+      + "2輪目は1本、3輪目は2本、4輪目は3本…と、"
+      + "<b>あとから咲く花ほど多くの線を引きます</b>。"
+      + KLILY_N + "輪 咲ききると、盤面には<b>" + KLILY_LINES + "本</b>の緋い線が張りめぐらされます。"
+      + "<br>線はどれも<b>その上にいる敵</b>を斬り（1本 攻撃力×" + KLILY_PER + "）、"
+      + "締めに<b>" + KLILY_LINES + "本すべてが同時に燃えあがって</b>敵全体へ"
+      + "（攻撃力×" + KLILY_FINALE + "）。"
+      + "<br>合計 攻撃力×" + KLILY_TOTAL.toFixed(1) + " ——"
+      + "<b>MagiBurst 史上いちばん重いリンクスキル</b>です"
+      + "（これまでの1位はアンナ(メイド)のグランメゾン・セルヴィス ×"
+      + MAISON_TOTAL_MAX.toFixed(1) + "）。",
+  },
 };
 /* エルシアのフルバースト説明は定数を使うのでここで組み立てる */
 CHARS.elsia.ssPow = "自強化（攻撃×1.6・スピード×1.2）＋ <b>残りチームHPの" + Math.round(ELSIA_HP_COST * 100) + "%を消費</b>し、"
@@ -11479,7 +12754,14 @@ const CHAR_IDS = [
   /* ══ ★★ 2026-09-08 戦姫祭 第3弾（No.213〜215）══
      ★ 新キャラは必ず<b>いちばん最後に追記</b>すること（既存の No. がずれないように）。
      ★ xeva.js の MB_CHAR_MASTER も<b>同じ並び</b>にそろえること（並び＝No.）。 */
-  "reia", "miori", "annamd",                           /* No.213〜215 戦姫祭 第3弾 */
+  "reia", "miori", "annamd",
+  /* ══ ★★ 2026-09-11 BUNNY GIRL FEST 15体（No.216〜230）＋ 極華祭 カグラ（No.231）══
+     ★ 新キャラは必ず<b>いちばん最後に追記</b>すること（既存の No. がずれないように）。
+     ★ xeva.js の MB_CHAR_MASTER も<b>同じ並び</b>にそろえること（並び＝No.）。 */
+  "saya", "aoik", "narumi", "ayame", "misaki",         /* No.216〜220 */
+  "kyoka", "haduki", "hikari", "ruri", "nagisa",       /* No.221〜225 */
+  "hiyori", "erika", "momoka", "miyuki", "natsume",    /* No.226〜230 */
+  "kagura",                                            /* No.231 極華祭 */                           /* No.213〜215 戦姫祭 第3弾 */
 ];
 /* id → キャラクター番号（1始まり）。図鑑・詳細・ガチャ結果に「No.XX」として出す */
 const CHAR_NO = {};
@@ -13608,6 +14890,314 @@ function drawFsGlyph(kind, c, g) {
       });
       ctx.lineWidth = 2; break;
     }
+    /* ══ ★★ 2026-09-11 BUNNY GIRL FEST の新リンク15本＋カグラ1本＋サブリンク2本のアイコン ══
+       ★ ここに case を書き忘れると、リンクの絵が<b>まっさらな丸</b>になる。
+         検算は「48×48 の canvas に描いて、塗られた画素数が 20 未満のものを探す」。 */
+    case "mirrorblade": {    /* ミラージュ・ツインエッジ（点対称にもう1本） */
+      /* 中心の点＋点対称の2本の刃（同じ形を 180°回して描く） */
+      ctx.lineWidth = 2.0;
+      [1, -1].forEach((s) => {
+        ctx.beginPath();
+        ctx.moveTo(s * -9.8, s * 6.2); ctx.lineTo(s * 2.2, s * -6.4);
+        ctx.stroke();
+        ctx.beginPath();
+        ctx.moveTo(s * 2.2, s * -6.4); ctx.lineTo(s * 0.2, s * -2.8);
+        ctx.lineTo(s * 4.4, s * -4.0); ctx.closePath(); ctx.fill();
+      });
+      ctx.globalAlpha = .40; ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.arc(0, 0, 10.4, 0, Math.PI * 2); ctx.stroke();
+      ctx.globalAlpha = 1;
+      ctx.beginPath(); ctx.arc(0, 0, 1.7, 0, Math.PI * 2); ctx.fill();
+      ctx.lineWidth = 2; break;
+    }
+    case "twinorbit": {      /* ツインムーン・パ・ド・ドゥ（逆回りの2つの輪） */
+      ctx.lineWidth = 1.8;
+      ctx.beginPath(); ctx.ellipse(0, 0, 10.2, 5.2, -0.42, 0, Math.PI * 2); ctx.stroke();
+      ctx.globalAlpha = .62;
+      ctx.beginPath(); ctx.ellipse(0, 0, 10.2, 5.2, 0.42, 0, Math.PI * 2); ctx.stroke();
+      ctx.globalAlpha = 1;
+      /* 逆向きの矢（回っている向き）と、重なった点 */
+      ctx.beginPath(); ctx.moveTo(6.4, -6.2); ctx.lineTo(9.2, -4.0); ctx.lineTo(5.6, -3.0); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-6.4, 6.2); ctx.lineTo(-9.2, 4.0); ctx.lineTo(-5.6, 3.0); ctx.stroke();
+      ctx.beginPath(); ctx.arc(0, 0, 2.4, 0, Math.PI * 2); ctx.fill();
+      ctx.lineWidth = 2; break;
+    }
+    case "jaderoulette": {   /* エメラルド・ルーレット（マスに切った円盤） */
+      ctx.lineWidth = 1.7;
+      ctx.beginPath(); ctx.arc(0, 0, 10.2, 0, Math.PI * 2); ctx.stroke();
+      ctx.lineWidth = 1.1; ctx.globalAlpha = .55;
+      for (let k = 0; k < 12; k++) {
+        const a = k * Math.PI / 6;
+        ctx.beginPath();
+        ctx.moveTo(Math.cos(a) * 4.6, Math.sin(a) * 4.6);
+        ctx.lineTo(Math.cos(a) * 10.2, Math.sin(a) * 10.2);
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 1; ctx.lineWidth = 1.7;
+      ctx.beginPath(); ctx.arc(0, 0, 4.6, 0, Math.PI * 2); ctx.stroke();
+      /* 当たったマス（塗り）と針 */
+      ctx.beginPath(); ctx.moveTo(0, 0);
+      ctx.arc(0, 0, 10.2, -Math.PI / 3, -Math.PI / 6); ctx.closePath();
+      ctx.globalAlpha = .78; ctx.fill(); ctx.globalAlpha = 1;
+      ctx.lineWidth = 2.0;
+      ctx.beginPath(); ctx.moveTo(0, 0); ctx.lineTo(0, -11.4); ctx.stroke();
+      ctx.lineWidth = 2; break;
+    }
+    case "velvetlayer": {    /* ヴェルヴェット・カクテル（3層のグラス） */
+      ctx.lineWidth = 1.8;
+      ctx.beginPath();
+      ctx.moveTo(-9.4, -8.6); ctx.lineTo(9.4, -8.6); ctx.lineTo(1.4, 4.2);
+      ctx.lineTo(1.4, 9.6); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-1.4, 4.2); ctx.lineTo(-9.4, -8.6); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-1.4, 4.2); ctx.lineTo(-1.4, 9.6); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-5.2, 10.4); ctx.lineTo(5.2, 10.4); ctx.stroke();
+      /* 3層の液面（下ほどこい） */
+      ctx.lineWidth = 1.5;
+      [[0.6, .95], [-2.2, .66], [-5.0, .38]].forEach(([y, a]) => {
+        const w = 5.6 + (y + 5.0) * 0.62;
+        ctx.globalAlpha = a;
+        ctx.beginPath(); ctx.moveTo(-w, y); ctx.lineTo(w, y); ctx.stroke();
+      });
+      ctx.globalAlpha = 1; ctx.lineWidth = 2; break;
+    }
+    case "icemirror": {      /* アイスミラー・カスケード（倍々に増える光） */
+      ctx.lineWidth = 1.9;
+      ctx.beginPath(); ctx.moveTo(-10.4, 9.4); ctx.lineTo(-3.4, 1.2); ctx.stroke();
+      [[-3.4, 1.2, -8.6, -6.4], [-3.4, 1.2, 0.6, -6.4]].forEach(([x0, y0, x1, y1]) => {
+        ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x1, y1); ctx.stroke();
+      });
+      ctx.lineWidth = 1.5; ctx.globalAlpha = .8;
+      [[-8.6, -6.4], [0.6, -6.4]].forEach(([x0, y0]) => {
+        ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x0 - 2.6, -11.2); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(x0, y0); ctx.lineTo(x0 + 2.6, -11.2); ctx.stroke();
+      });
+      /* 鏡（壁） */
+      ctx.globalAlpha = .45; ctx.lineWidth = 1.6;
+      ctx.beginPath(); ctx.moveTo(-11.0, -8.8); ctx.lineTo(11.0, -8.8); ctx.stroke();
+      ctx.globalAlpha = 1; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(-10.4, 9.4, 1.8, 0, Math.PI * 2); ctx.fill();
+      break;
+    }
+    case "neonsign": {       /* ミッドナイト・ネオンサイン（1画ずつ点く看板） */
+      ctx.lineWidth = 1.3; ctx.globalAlpha = .35;
+      ctx.beginPath(); ctx.rect(-10.6, -7.6, 21.2, 15.2); ctx.stroke();
+      ctx.globalAlpha = 1;
+      /* 「N」の3画（点いている画ほど太い） */
+      ctx.lineWidth = 2.4;
+      ctx.beginPath(); ctx.moveTo(-6.2, 4.6); ctx.lineTo(-6.2, -4.6); ctx.stroke();
+      ctx.lineWidth = 1.9; ctx.globalAlpha = .8;
+      ctx.beginPath(); ctx.moveTo(-6.2, -4.6); ctx.lineTo(1.4, 4.6); ctx.stroke();
+      ctx.lineWidth = 1.4; ctx.globalAlpha = .45;
+      ctx.beginPath(); ctx.moveTo(1.4, 4.6); ctx.lineTo(1.4, -4.6); ctx.stroke();
+      ctx.globalAlpha = 1;
+      /* うさぎの耳（看板の飾り） */
+      ctx.lineWidth = 1.6;
+      ctx.beginPath(); ctx.moveTo(5.6, 3.4); ctx.lineTo(4.6, -3.0); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(5.6, 3.4); ctx.lineTo(8.4, -2.4); ctx.stroke();
+      ctx.beginPath(); ctx.arc(6.4, 5.2, 1.9, 0, Math.PI * 2); ctx.fill();
+      ctx.lineWidth = 2; break;
+    }
+    case "farshot": {        /* ジェイド・ロングレンジ（遠い順に渡り歩く） */
+      ctx.lineWidth = 1.5; ctx.globalAlpha = .8;
+      ctx.beginPath();
+      ctx.moveTo(-9.6, 7.4); ctx.lineTo(8.4, -7.0);
+      ctx.lineTo(-6.8, -3.2); ctx.lineTo(6.2, 6.6);
+      ctx.stroke();
+      ctx.globalAlpha = 1;
+      [[-9.6, 7.4, 2.2], [8.4, -7.0, 2.6], [-6.8, -3.2, 2.0], [6.2, 6.6, 1.7]].forEach(([x, y, r]) => {
+        ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+      });
+      /* 距離の目盛り */
+      ctx.lineWidth = 1.1; ctx.globalAlpha = .45;
+      ctx.beginPath(); ctx.moveTo(-10.8, 10.6); ctx.lineTo(10.8, 10.6); ctx.stroke();
+      [-6.0, -1.2, 3.6, 8.4].forEach((x) => {
+        ctx.beginPath(); ctx.moveTo(x, 9.0); ctx.lineTo(x, 10.6); ctx.stroke();
+      });
+      ctx.globalAlpha = 1; ctx.lineWidth = 2; break;
+    }
+    case "chipbet": {        /* ゴールデン・チップベット（積んだチップとHPのゲージ） */
+      ctx.lineWidth = 1.6;
+      [[-4.6, 6.4], [-4.6, 3.0], [-4.6, -0.4]].forEach(([x, y]) => {
+        ctx.beginPath(); ctx.ellipse(x, y, 5.6, 2.1, 0, 0, Math.PI * 2); ctx.stroke();
+      });
+      ctx.beginPath(); ctx.arc(-4.6, -0.4, 1.4, 0, Math.PI * 2); ctx.fill();
+      /* 満タンのHPゲージ（配当が最大になる印） */
+      ctx.lineWidth = 1.3; ctx.globalAlpha = .45;
+      ctx.beginPath(); ctx.rect(1.4, -9.6, 9.0, 3.4); ctx.stroke();
+      ctx.globalAlpha = 1;
+      ctx.beginPath(); ctx.rect(1.9, -9.1, 8.0, 2.4); ctx.fill();
+      ctx.lineWidth = 1.7;
+      ctx.beginPath(); ctx.moveTo(3.0, -3.4); ctx.lineTo(9.4, -3.4); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(8.0, -5.0); ctx.lineTo(9.8, -3.4); ctx.lineTo(8.0, -1.8); ctx.stroke();
+      ctx.lineWidth = 2; break;
+    }
+    case "hightide": {       /* ラピス・ハイタイド（下から上がる水位） */
+      ctx.lineWidth = 1.3; ctx.globalAlpha = .35;
+      ctx.beginPath(); ctx.rect(-10.4, -10.0, 20.8, 20.0); ctx.stroke();
+      ctx.globalAlpha = 1;
+      /* 3本の波（下ほど太い＝先に満ちた） */
+      [[6.0, 2.1, 1.0], [1.6, 1.7, .72], [-2.8, 1.3, .45]].forEach(([y, lw, a]) => {
+        ctx.lineWidth = lw; ctx.globalAlpha = a;
+        ctx.beginPath();
+        for (let x = -10.0; x <= 10.0; x += 1.0) {
+          const yy = y + Math.sin((x + y) * 0.62) * 1.05;
+          if (x === -10.0) ctx.moveTo(x, yy); else ctx.lineTo(x, yy);
+        }
+        ctx.stroke();
+      });
+      ctx.globalAlpha = 1; ctx.lineWidth = 1.7;
+      /* 上向きの矢（上がっていく） */
+      ctx.beginPath(); ctx.moveTo(0, -3.4); ctx.lineTo(0, -9.4); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-2.2, -7.2); ctx.lineTo(0, -9.8); ctx.lineTo(2.2, -7.2); ctx.stroke();
+      ctx.lineWidth = 2; break;
+    }
+    case "fountain": {       /* フォンテーヌ・アルカード（外ほど大きい弧） */
+      ctx.lineWidth = 1.9;
+      [[3.6, 1.0], [6.8, .74], [10.2, .48]].forEach(([r, a], i) => {
+        ctx.globalAlpha = a; ctx.lineWidth = 2.1 - i * 0.42;
+        ctx.beginPath(); ctx.arc(0, 8.2, r, Math.PI * 1.12, Math.PI * 1.88); ctx.stroke();
+      });
+      ctx.globalAlpha = 1; ctx.lineWidth = 1.7;
+      ctx.beginPath(); ctx.moveTo(-5.4, 9.8); ctx.lineTo(5.4, 9.8); ctx.stroke();
+      ctx.beginPath(); ctx.arc(0, 8.2, 1.7, 0, Math.PI * 2); ctx.fill();
+      /* いちばん外の弧の先の水滴（外ほど重い印） */
+      [[-10.2, 6.2, 1.9], [10.2, 6.2, 1.9]].forEach(([x, y, r]) => {
+        ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+      });
+      ctx.lineWidth = 2; break;
+    }
+    case "balloon": {        /* バルーン・アセンション（上がる風船と天井） */
+      ctx.lineWidth = 1.3; ctx.globalAlpha = .45;
+      ctx.beginPath(); ctx.moveTo(-10.6, -9.4); ctx.lineTo(10.6, -9.4); ctx.stroke();
+      ctx.globalAlpha = 1; ctx.lineWidth = 1.6;
+      [[-6.4, -4.6, 3.2], [0.4, 0.2, 2.8], [7.0, 4.0, 2.4]].forEach(([x, y, r]) => {
+        ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(x, y + r); ctx.lineTo(x - 0.6, y + r + 3.4); ctx.stroke();
+      });
+      /* 天井で割れた風船（締めの印） */
+      ctx.lineWidth = 1.5;
+      for (let k = 0; k < 6; k++) {
+        const a = -Math.PI / 2 + (k - 2.5) * 0.34;
+        ctx.beginPath();
+        ctx.moveTo(-6.4 + Math.cos(a) * 4.2, -8.2 + Math.sin(a) * 1.4);
+        ctx.lineTo(-6.4 + Math.cos(a) * 6.2, -8.2 + Math.sin(a) * 2.6);
+        ctx.stroke();
+      }
+      ctx.lineWidth = 2; break;
+    }
+    case "rosetable": {      /* クリムゾン・ローズテーブル（敵どうしを全部つなぐ） */
+      const pt = [[0, -9.4], [9.0, -2.6], [5.6, 8.4], [-5.6, 8.4], [-9.0, -2.6]];
+      ctx.lineWidth = 1.15; ctx.globalAlpha = .78;
+      for (let i = 0; i < pt.length; i++) {
+        for (let j = i + 1; j < pt.length; j++) {
+          ctx.beginPath(); ctx.moveTo(pt[i][0], pt[i][1]); ctx.lineTo(pt[j][0], pt[j][1]); ctx.stroke();
+        }
+      }
+      ctx.globalAlpha = 1;
+      pt.forEach(([x, y]) => { ctx.beginPath(); ctx.arc(x, y, 1.9, 0, Math.PI * 2); ctx.fill(); });
+      ctx.lineWidth = 2; break;
+    }
+    case "peacebeam": {      /* ピースサイン・ダブルビート（開いていく2本） */
+      ctx.lineWidth = 2.0;
+      ctx.beginPath(); ctx.moveTo(0, 9.4); ctx.lineTo(-8.6, -8.6); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0, 9.4); ctx.lineTo(8.6, -8.6); ctx.stroke();
+      ctx.lineWidth = 1.4; ctx.globalAlpha = .5;
+      ctx.beginPath(); ctx.moveTo(0, 9.4); ctx.lineTo(-4.0, -9.4); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0, 9.4); ctx.lineTo(4.0, -9.4); ctx.stroke();
+      ctx.globalAlpha = .72; ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.arc(0, 9.4, 7.6, -Math.PI * 0.86, -Math.PI * 0.14); ctx.stroke();
+      ctx.globalAlpha = 1;
+      ctx.beginPath(); ctx.arc(0, 9.4, 2.0, 0, Math.PI * 2); ctx.fill();
+      ctx.lineWidth = 2; break;
+    }
+    case "countdown": {      /* シルヴァン・カウントダウン（数字と2重の輪） */
+      ctx.lineWidth = 1.6; ctx.globalAlpha = .45;
+      ctx.beginPath(); ctx.arc(0, 0, 10.2, 0, Math.PI * 2); ctx.stroke();
+      ctx.globalAlpha = .9; ctx.lineWidth = 2.0;
+      ctx.beginPath(); ctx.arc(0, 0, 10.2, -Math.PI / 2, Math.PI * 0.62); ctx.stroke();
+      ctx.globalAlpha = 1;
+      /* まん中の「1」（最後のカウント）と、もう一度ぶんの二重線 */
+      ctx.lineWidth = 2.1;
+      ctx.beginPath(); ctx.moveTo(-1.8, -3.8); ctx.lineTo(0.6, -5.4); ctx.lineTo(0.6, 5.0); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-2.6, 5.0); ctx.lineTo(3.8, 5.0); ctx.stroke();
+      ctx.lineWidth = 1.3; ctx.globalAlpha = .6;
+      ctx.beginPath(); ctx.arc(0, 0, 6.6, 0, Math.PI * 2); ctx.stroke();
+      ctx.globalAlpha = 1; ctx.lineWidth = 2; break;
+    }
+    case "marmalade": {      /* オランジェ・マーマレード（広がる飴と固まった敵） */
+      ctx.lineWidth = 1.9;
+      ctx.beginPath(); ctx.arc(0, 0, 4.2, 0, Math.PI * 2); ctx.stroke();
+      ctx.globalAlpha = .62; ctx.lineWidth = 1.6;
+      ctx.beginPath(); ctx.arc(0, 0, 7.4, 0, Math.PI * 2); ctx.stroke();
+      ctx.globalAlpha = .34; ctx.lineWidth = 1.3;
+      ctx.beginPath(); ctx.arc(0, 0, 10.4, 0, Math.PI * 2); ctx.stroke();
+      ctx.globalAlpha = 1;
+      /* 固まった敵（四角に閉じこめられた印） */
+      ctx.lineWidth = 1.5;
+      [[-2.6, -2.6], [3.4, 1.4]].forEach(([x, y]) => {
+        ctx.beginPath(); ctx.rect(x - 2.1, y - 2.1, 4.2, 4.2); ctx.stroke();
+        ctx.beginPath(); ctx.arc(x, y, 1.0, 0, Math.PI * 2); ctx.fill();
+      });
+      /* ひび（最後に砕ける） */
+      ctx.lineWidth = 1.2; ctx.globalAlpha = .8;
+      ctx.beginPath(); ctx.moveTo(6.2, -6.6); ctx.lineTo(8.6, -9.0); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(7.4, -7.8); ctx.lineTo(9.8, -7.0); ctx.stroke();
+      ctx.globalAlpha = 1; ctx.lineWidth = 2; break;
+    }
+    case "higanlily": {      /* マンジュシャゲ・ヒャッカ（咲くほど線が増える） */
+      const fp = [[0, -9.0], [8.2, -4.2], [8.2, 4.2], [0, 9.0], [-8.2, 4.2], [-8.2, -4.2]];
+      ctx.lineWidth = 1.05; ctx.globalAlpha = .70;
+      for (let i = 0; i < fp.length; i++) {
+        for (let j = i + 1; j < fp.length; j++) {
+          ctx.beginPath(); ctx.moveTo(fp[i][0], fp[i][1]); ctx.lineTo(fp[j][0], fp[j][1]); ctx.stroke();
+        }
+      }
+      ctx.globalAlpha = 1;
+      /* 彼岸花（そりかえった6弁）を1輪 */
+      ctx.lineWidth = 1.5;
+      for (let k = 0; k < 6; k++) {
+        const a = -Math.PI / 2 + k * Math.PI / 3;
+        ctx.beginPath();
+        ctx.moveTo(0, 0);
+        ctx.quadraticCurveTo(Math.cos(a) * 5.4 - Math.sin(a) * 3.2,
+                             Math.sin(a) * 5.4 + Math.cos(a) * 3.2,
+                             Math.cos(a) * 3.4, Math.sin(a) * 3.4);
+        ctx.stroke();
+      }
+      ctx.beginPath(); ctx.arc(0, 0, 1.6, 0, Math.PI * 2); ctx.fill();
+      ctx.lineWidth = 2; break;
+    }
+    case "luckyheart": {     /* ラッキー・ハートカウント（三角に積むハート） */
+      const heart = (x, y, s) => {
+        ctx.beginPath();
+        ctx.moveTo(x, y + s * 0.95);
+        ctx.bezierCurveTo(x - s * 1.35, y - s * 0.15, x - s * 0.62, y - s * 1.15, x, y - s * 0.32);
+        ctx.bezierCurveTo(x + s * 0.62, y - s * 1.15, x + s * 1.35, y - s * 0.15, x, y + s * 0.95);
+        ctx.closePath(); ctx.fill();
+      };
+      heart(0, -6.6, 3.0);
+      ctx.globalAlpha = .82; heart(-4.6, 1.2, 2.7); heart(4.6, 1.2, 2.7);
+      ctx.globalAlpha = .58; heart(-8.4, 8.4, 2.4); heart(0, 8.4, 2.4); heart(8.4, 8.4, 2.4);
+      ctx.globalAlpha = 1; ctx.lineWidth = 2; break;
+    }
+    case "higanpetal": {     /* ヒガン・ペタルバースト（外ほど重い3重の花びら） */
+      for (let r = 0; r < 3; r++) {
+        const rad = 3.6 + r * 3.3, n = 6 + r * 2;
+        ctx.lineWidth = 1.1 + r * 0.42;
+        ctx.globalAlpha = 0.42 + r * 0.29;
+        for (let k = 0; k < n; k++) {
+          const a = -Math.PI / 2 + k * Math.PI * 2 / n + r * 0.22;
+          ctx.beginPath();
+          ctx.moveTo(Math.cos(a) * (rad - 2.2), Math.sin(a) * (rad - 2.2));
+          ctx.quadraticCurveTo(Math.cos(a + 0.28) * (rad + 0.8), Math.sin(a + 0.28) * (rad + 0.8),
+                               Math.cos(a) * (rad + 1.6), Math.sin(a) * (rad + 1.6));
+          ctx.stroke();
+        }
+      }
+      ctx.globalAlpha = 1;
+      ctx.beginPath(); ctx.arc(0, 0, 1.5, 0, Math.PI * 2); ctx.fill();
+      ctx.lineWidth = 2; break;
+    }
     case "fractalnight": {   /* フラクタル・ミッドナイト（二股に分かれる稲妻） */
       ctx.lineWidth = 1.9;
       ctx.beginPath(); ctx.moveTo(0, -11.5); ctx.lineTo(0, -4.5); ctx.stroke();
@@ -14151,6 +15741,8 @@ function drawFsGlyph(kind, c, g) {
 const SUB_GLYPH_FALLBACK = new Set([
   /* ★★ 2026-09-06 新しい共通サブリンク2本（絵は drawFsGlyph 側に1つだけ置く） */
   "starburstwave", "debutchord",
+  /* ★★ 2026-09-11 BUNNY GIRL FEST の共通サブリンク／極華祭 カグラのサブリンク */
+  "luckyheart", "higanpetal",
   "wallcircuit",     /* ウォールサーキットリング（カホのサブリンク。これが無くて絵が真っ白だった） */
   "spinring", "superspinring", "twininvolute", "reflectring", "holoxstream",
   "kiblast", "kiblastex", "javelin", "copy", "autoaimbit", "beastcharge",
@@ -18703,24 +20295,54 @@ function fesNewDaysLeft(m) {
    ★ monthly を持つ極◯祭はもともと除いてあったが、常時開催の戦姫祭は monthly を持たないので、
      ここに luxGacha を足さないと<b>30日で配信終了になってしまう</b>。 */
 function fesTimed(f) { return !!(f && !f.monthly && !f.luxGacha && f.since); }
-/* 配信が終わったフェスか（since + FES_DAYS 日） */
+/* ══ ★★ 2026-09-11 <b>終わる日をそのまま書けるようにした</b>（ご指定「10月31日まで」）══
+   これまで期間つきのフェスは「since ＋ FES_DAYS（30日）」しか表せなかった。
+   <b>until: "2026-10-31"</b> と書いてあれば<b>その翌日の 0:00 で終わる</b>。
+   ★ 終わりの日を見るところは fesEnded / fesArchived / fesDaysLeft の3つ。
+     ここ1本（fesEndDate）にまとめてあるので、片方だけ古い、が起きない。 */
+function fesEndDate(f) {
+  if (f && f.until) return fesAddDays(f.until, 1);   /* until は「その日いっぱい」 */
+  return fesAddDays((f && f.since) || "", FES_DAYS);
+}
+/* 配信が終わったフェスか（until があればその翌日／無ければ since + FES_DAYS 日） */
 function fesEnded(key) {
   const f = fesDef(key);
   if (!fesTimed(f)) return false;
-  return fesToday() >= fesAddDays(f.since, FES_DAYS);
+  return fesToday() >= fesEndDate(f);
 }
 /* アーカイブへ封入ずみか（since + FES_ARCHIVE_DAYS 日） */
 function fesArchived(key) {
   const f = fesDef(key);
   if (!fesTimed(f)) return false;
+  /* ★★ 2026-09-11 until を書いたフェスは<b>終わってからアーカイブ入り</b>にする
+     （since からの日数で数えると、まだ開催中なのに封入されてしまう）。 */
+  if (f.until) return fesToday() >= fesEndDate(f);
   return fesToday() >= fesAddDays(f.since, FES_ARCHIVE_DAYS);
+}
+/* ══ ★★ 2026-09-11 フェスの<b>期間の言いかた</b>を1本にまとめた ══
+   until を書いたフェス（BUNNY GIRL FEST）は「◯月◯日まで」、
+   書いていないフェスは これまでどおり「since から FES_DAYS 日間」と読ませる。
+   ★ 画面（gacha-ui.js）は<b>必ずこの関数</b>を通すこと。
+     直に FES_DAYS を書くと、until のフェスで<b>まちがった終わり方</b>を出してしまう。 */
+function fesPeriodText(key) {
+  const f = fesDef(key);
+  if (f && f.until) {
+    const d = f.until.split("-");
+    return "<b>" + (+d[1]) + "月" + (+d[2]) + "日まで</b>";
+  }
+  return "<b>" + ((f && f.since) || "") + " から" + FES_DAYS + "日間</b>";
+}
+/* アーカイブ入りの言いかた（until のフェスは「配信終了後」） */
+function fesArchiveText(key) {
+  const f = fesDef(key);
+  return f && f.until ? "<b>配信が終わったあと</b>" : "<b>" + FES_ARCHIVE_DAYS + "日</b>を過ぎると";
 }
 /* 配信終了まであと何日か */
 function fesDaysLeft(key) {
   const f = fesDef(key);
   if (!fesTimed(f)) return 99;
   const a = new Date(fesToday() + "T00:00:00");
-  const b = new Date(fesAddDays(f.since, FES_DAYS) + "T00:00:00");
+  const b = new Date(fesEndDate(f) + "T00:00:00");
   return Math.max(0, Math.round((b - a) / 86400000));
 }
 /* ══ ★★ 2026-08-28 Festival Archive GACHA ══
@@ -18971,16 +20593,53 @@ FESTS.fes9 = {
   banner: "../img/bn_fes9_s.webp", c: "#38a6ff", leadCls: "star",
   monthly: [11, 20],
   noFesTicket: true,   /* ★★ 2026-08-29 フェス券は使えない（フェスガチャではないため） */
-  chars: ["kotori"],
+  /* ★★ 2026-09-11 <b>カグラ</b>を追加＝2体になった（ご指定）。
+     ★ ここに書き足さないと GACHA_CHARS にも入らず、図鑑の「入手方法」も出ない。 */
+  chars: ["kagura", "kotori"],
+  newChars: ["kagura"],
+  newSince: "2026-09-11",
   itemTable: D_ITEM_TABLE,
-  lead: "極華祭の限定SSR <b>1体</b>（" + ratePct(PICK_LUX) + "）に加えて、<b>" + PREMIUM_NM + "のSSRも排出</b>（SSR合計 " + ratePct(SSR_TOTAL) + "）",
-  sub: "極華祭の限定SSR <b>1体</b>（" + ratePct(PICK_LUX) + "）＋ <b>残りは " + PREMIUM_NM + " のSSRが等確率</b>。"
-    + "<b>毎月 11〜20日（中旬）</b>だけの開催です",
-  note: "<b>コトリ</b>（水・反射）が登場する<b>毎月11〜20日（中旬）</b>のフェスです。"
+  /* ★★ 2026-09-11 2体になったので、<b>新キャラと古いキャラで確率がちがう</b>。
+     表紙も表と同じ関数（pickRateOf）から作る。 */
+  get lead() {
+    const nw = fesNewIds("fes9").length, od = this.chars.length - nw;
+    return "極華祭の"
+      + (nw ? "<b>新" + nw + "体</b>（各" + ratePct(pickRateOf("fes9", fesNewIds("fes9")[0])) + "）"
+            + (od ? " ＋ " : "") : "")
+      + (od ? "限定" + od + "体（各" + ratePct(PICK_OLD) + "）" : "")
+      + "に加えて、<b>" + PREMIUM_NM + "のSSRも排出</b>（SSR合計 " + ratePct(SSR_TOTAL) + "）";
+  },
+  get sub() {
+    const nw = fesNewIds("fes9").length, od = this.chars.length - nw;
+    return "極華祭の限定SSR <b>" + this.chars.length + "体</b>——"
+      + (nw ? "<b>新" + nw + "体は各" + ratePct(pickRateOf("fes9", fesNewIds("fes9")[0])) + "</b>"
+            + (od ? "、のこり" + od + "体は各" + ratePct(PICK_OLD) : "")
+            : "<b>全" + od + "体</b>が各" + ratePct(PICK_OLD))
+      + "／<b>残りは " + PREMIUM_NM + " のSSRが等確率</b>。"
+      + "<b>毎月 11〜20日（中旬）</b>だけの開催です";
+  },
+  note: "<b>★★ 2026-09-11 <b>カグラ</b>（火・貫通）が加わりました。</b>"
+    + "<br>★ フルバースト<b>ヒガン・センリンザン</b>は<b>緋刃の乱打" + KAGURA_BARRAGE_N
+    + "連＋彼岸の大輪</b>——合計 攻撃力×" + KAGURA_TOTAL.toFixed(1)
+    + " で<b>MagiBurst 史上最大の火力</b>です"
+    + "（これまでの1位はアンナ(メイド) ×" + ANNAMD_TOTAL.toFixed(1) + "）。"
+    + "<br>★ リンクスキル<b>マンジュシャゲ・ヒャッカ</b>は"
+    + "<b>咲いた花どうしが必ず線で結ばれ、線の本数が二次で増えていく</b>——"
+    + KLILY_N + "輪で <b>" + KLILY_LINES + "本</b>。合計 攻撃力×" + KLILY_TOTAL.toFixed(1)
+    + " で<b>MagiBurst 史上いちばん重いリンクスキル</b>です。"
+    + "<br>★ アンチは<b>オムニアンチ＋アンチロックゾーン</b>のたった2つで、"
+    + "<b>⚖第八の審判を有利属性のまま完全対応</b>できます。"
+    + "<br>★ <b>ショットスキル ヒガン・シュート</b>（撃つたび毎回・アビリティ枠とは別）と"
+    + "サブリンク<b>ヒガン・ペタルバースト</b>（外の輪ほど重い）も持ちます。"
+    + "<br>★ アビリティは<b>8つ</b>（クロス3つを含む）。"
+    + "<b>治癒の祈りは持たず</b>、クロスの条件に<b>自分と異なる属性は出しません</b>。"
+    + "<br>★ <b>極華・ブルームネクサスを強化しました</b>——"
+    + "リンク +45% ／ 攻撃力 +15% ／ スピード +12% ／ 各WAVE開始時にチームHP +6%。"
+    + "<br><br><b>コトリ</b>（水・反射）も登場する<b>毎月11〜20日（中旬）</b>のフェスです。"
     + "フルバースト<b>アクア・ダンクラプソディ</b>は"
     + "<b>バスケットボールの乱打" + KOTORI_BARRAGE_N + "連＋スラムダンク</b>——"
     + "合計 攻撃力×" + (KOTORI_BARRAGE_N * KOTORI_BARRAGE_PER + KOTORI_DUNK_PER).toFixed(1)
-    + " で<b>MagiBurst 史上最大の火力</b>です。"
+    + "です。"
     + "リンクスキル<b>ハイドロ・アリウープ</b>は<b>味方どうしを結ぶパス</b>が武器になり、"
     + "<b>パスが通った本数ぶん最後のシュートが重くなります</b>。"
     + "サブリンク<b>アクア・フープ</b>、<b>ショットスキル アクア・シュート</b>（アビリティ枠とは別）も持ち、"
@@ -19244,6 +20903,110 @@ FESTS.fes12 = {
     + "（リンク +22% ／ 攻撃力 +10% ／ スピード +8%）。",
 };
 /* ══════════════════════════════════════════════════════════════
+   ★★ 2026-09-11 BUNNY GIRL FEST（fes13）＝<b>期間限定</b>のフェスガチャ（ご指定）
+   ------------------------------------------------------------
+   ・<b>2026年10月31日まで</b>（until）。ふつうのフェスガチャなので🎫フェス券が使える。
+   ・扱いは<b>戦姫祭と同じ</b>にする（ご指定「使用は戦姫祭と同様に」）＝
+       ・限定SSR 1体あたり <b>PICK_LUX（1.2%）</b>
+       ・新キャラは実装から NEW_CHAR_DAYS 日を過ぎると自動で PICK_OLD へ落ちる
+       ・アイテム枠は D_ITEM_TABLE
+   ・ガチャ一覧では<b>戦姫祭のすぐ下</b>（ご指定）。その位置決めのために
+     <b>bunny</b> のしるしを付けてある——名前では判定しない。
+   ══════════════════════════════════════════════════════════════ */
+FESTS.fes13 = {
+  key: "fes13", sfx: "13", nm: "BUNNY GIRL FEST", tab: "Bunny<br>Girl Fest",
+  banner: "../img/bn_fes13_s.webp", c: "#ff6fa8", leadCls: "star",
+  bunny: true,
+  since: "2026-09-11",
+  until: "2026-10-31",          /* ★ この日いっぱいで配信終了 */
+  /* ★★ 2026-09-11 <b>1体あたり 0.8%</b>（ご指定「戦姫祭と同様に」＝限定キャラのガチャ）。
+     ★ 15体そろって新キャラなので、戦姫祭と同じ 1.2% にすると 15×1.2＝18% で
+       SSR 合計（12%）を超えてしまい、pickScaleOfMode に勝手に縮められる
+       （＝表紙に書いた確率と実物がずれる）。
+       <b>15×0.8＝12.0%</b> にそろえて、<b>登場から10日はSSR枠がまるごとこの15体</b>にする。
+     ★ 10日を過ぎると各キャラが自動で PICK_OLD（0.4%）へ落ち、
+       あいた枠は プレミアムのSSR にまわる（rawPickRateOf が面倒を見る）。 */
+  pickEach: 0.008,
+  chars: ["saya", "aoik", "narumi", "ayame", "misaki",
+          "kyoka", "haduki", "hikari", "ruri", "nagisa",
+          "hiyori", "erika", "momoka", "miyuki", "natsume"],
+  newChars: ["saya", "aoik", "narumi", "ayame", "misaki",
+             "kyoka", "haduki", "hikari", "ruri", "nagisa",
+             "hiyori", "erika", "momoka", "miyuki", "natsume"],
+  newSince: "2026-09-11",
+  itemTable: D_ITEM_TABLE,
+  /* ★ 人数はゲッターで毎回数える（新キャラは10日で外れるため） */
+  /* ★★ 表紙の確率は<b>提供割合の表と同じ関数</b>（pickRateOf）から作る。
+     直に PICK_LUX などと書くと、pickScaleOfMode で縮んだときに表と食いちがう
+     （2026-09-09 に一度やっている）。 */
+  get lead() {
+    const nw = fesNewIds("fes13").length, od = this.chars.length - nw;
+    const rn = ratePct(pickRateOf("fes13", this.chars[0]));
+    return "BUNNY GIRL FEST の" + (nw ? "<b>新" + nw + "体</b>（各" + rn + "）" + (od ? " ＋ " : "") : "")
+      + (od ? "限定" + od + "体（各" + ratePct(PICK_OLD) + "）" : "")
+      + (nw >= this.chars.length
+          ? "。<b>SSR枠（" + ratePct(SSR_TOTAL) + "）はまるごとこの" + nw + "体</b>です"
+          : "に加えて、<b>" + PREMIUM_NM + "のSSRも排出</b>（SSR合計 " + ratePct(SSR_TOTAL) + "）");
+  },
+  get sub() {
+    const nw = fesNewIds("fes13").length, od = this.chars.length - nw;
+    const rn = ratePct(pickRateOf("fes13", this.chars[0]));
+    return "BUNNY GIRL FEST の限定SSR <b>" + this.chars.length + "体</b>——"
+      + (nw >= this.chars.length
+          ? "<b>全" + nw + "体が各" + rn + "</b>／<b>SSR枠はまるごとこの15体</b>"
+          : (nw ? "<b>新" + nw + "体は各" + rn + "</b>、のこり" + od + "体は各" + ratePct(PICK_OLD)
+                : "<b>全" + od + "体</b>が各" + ratePct(PICK_OLD))
+            + "／<b>残りは " + PREMIUM_NM + " のSSRが等確率</b>")
+      + "。<b>2026年10月31日まで</b>（🎫フェスチケットが使えます）";
+  },
+  /* ★ note も<b>ゲッター</b>にする。ここは FESTS.fes13 を組み立てている最中なので、
+     素のプロパティにすると fesDef("fes13") がまだ見つからず、
+     pickRateOf が既定（プレミアムの 5%）を返してしまう（実際そうなっていた）。 */
+  get note() {
+    return "<b>バニーガール</b>の限定SSR <b>15体</b>が登場する、<b>10月31日まで</b>のフェスです。"
+    + "<br>★ 排出は<b>1体あたり " + ratePct(pickRateOf("fes13", "saya")) + "</b>——"
+    + "登場から" + NEW_CHAR_DAYS + "日のあいだは<b>SSR枠（" + ratePct(SSR_TOTAL)
+    + "）がまるごとこの15体</b>です（" + PREMIUM_NM + " のSSRは出ません）。"
+    + NEW_CHAR_DAYS + "日を過ぎると各" + ratePct(PICK_OLD) + "に下がり、"
+    + "あいたぶんは " + PREMIUM_NM + " のSSRにまわります。"
+    + "<br>★ <b>15体すべてが⚖天界の審判を「有利属性のまま・素のまま」完全対応</b>します——"
+    + "アンチ3つが、担当するクエストの必要アンチと<b>ぴったり一致</b>しているからです。"
+    + "<br>担当は <b>ミサキ・ナギサ＝第一／サヤ・ナルミ＝第二／ナツメ＝第三／"
+    + "アヤメ・エリカ＝第四／モモカ＝第五／ルリ・ヒヨリ＝第六／ハヅキ＝第七／"
+    + "キョウカ・アオイ＆クロハ＝第九／ヒカリ・ミユキ＝第十</b>。"
+    + "<br>★ <b>サヤ</b>は MagiBurst で初めて<b>全属性有利</b>を持ちます——"
+    + "<b>どの属性の敵に対しても有利の倍率</b>で殴れるので、"
+    + "属性を気にせずどのクエストにも連れて行けます。"
+    + "<br>★ <b>アオイ＆クロハ</b>は<b>水と闇の二属性</b>"
+    + "（セイラ＆カナヅキ・アンナ＆ランに続く3体目）。"
+    + "<br>★ アビリティは15体とも<b>8つ</b>（アンチ3／キラー2／そのほか3）。"
+    + "<b>クロススキルもオムニアンチも治癒の祈りも持ちません</b>——"
+    + "そのぶん<b>編成の条件にいっさい左右されず</b>、いつ出してもこの性能がそのまま出ます。"
+    + "<br>★ リンクスキルは<b>15本すべて新設</b>で、<b>どれもこれまでに無い決まりかた</b>です——"
+    + "<b>盤面の中心をはさんだ点対称にもう1本</b>（サヤ）／"
+    + "<b>逆回りの2つの輪が重なった瞬間に炸裂</b>（アオイ＆クロハ）／"
+    + "<b>盤面をルーレットのマスに切って1マスずつ</b>（ナルミ）／"
+    + "<b>盤面をたてに3層に区切って下から注ぐ</b>（アヤメ）／"
+    + "<b>鏡に当たるたびに光が倍に増える</b>（ミサキ）／"
+    + "<b>ネオンの看板が1画ずつ点灯</b>（キョウカ）／"
+    + "<b>飛んだ距離がそのまま威力</b>（ハヅキ）／"
+    + "<b>チームの残りHPの割合が配当</b>（ヒカリ）／"
+    + "<b>画面の下から水位が上がる</b>（ルリ）／"
+    + "<b>外の弧ほど重い噴水</b>（ナギサ）／"
+    + "<b>天井まで届いた風船の数が締めの威力</b>（ヒヨリ）／"
+    + "<b>敵どうしを全部つなぐ棘の線</b>（エリカ）／"
+    + "<b>開いた角度そのものが倍率</b>（モモカ）／"
+    + "<b>0 の瞬間に、それまでの合計がもう一度</b>（ミユキ）／"
+    + "<b>飴に浸かっていた時間が締めの威力</b>（ナツメ）。"
+    + "<br>★ 共通サブリンクは<b>ラッキー・ハートカウント</b>——"
+    + "そのショットで<b>敵にふれた数だけ、三角数でハートが増えます</b>。"
+    + "<br>★ フルバーストで<b>乱打を撃つのは ナルミ・アヤメ・ミサキ の3体だけ</b>。"
+    + "ほかの12体は<b>段を重ねる全体攻撃＋締め＋支援</b>の形にそろえてあります。"
+    + "<br>★ 15体とも<b>ネクサスは幸運・フォーチュンネクサス</b>"
+    + "（リンク +30% ／ 弱点 +25% ／ 攻撃力 +12% ／ ボス +12%）。";
+  },
+};
+/* ══════════════════════════════════════════════════════════════
    ★★ 2026-08-28 Festival Archive GACHA（archive）
    ・<b>20日を過ぎたフェスガチャの限定キャラ</b>だけが封入される（ご指定）。
    ・そのなかから<b>属性ごとに1体ずつ・計5体</b>をピックアップして引く。
@@ -19335,7 +21098,13 @@ const FESKEY_MAP = { luminous: "fes2", phantom: "fes3", aoka: "fes4", starlight:
   /* ★★ 2026-08-28 極華祭・Cozy Haven FEST */
   kokuka: "fes9", cozy: "fes10",
   /* ★★ 2026-08-29 戦姫祭 */
-  senki: "fes11" };
+  senki: "fes11",
+  /* ★★ 2026-09-11 <b>足しわすれの修正</b>: RISING STAR FEST（rising）がここに無かったので、
+     fesKeyOf が既定の "fes"（Nocturne Bloom Fest）を返し、
+     図鑑の「入手方法」に<b>まちがったガチャの名前</b>が出ていた。 */
+  rising: "fes12",
+  /* ★★ 2026-09-11 BUNNY GIRL FEST */
+  bunny: "fes13" };
 function fesKeyOf(id) { const c = CHARS[id]; return c && c.fes ? (FESKEY_MAP[c.fesKey] || "fes") : null; }
 function fesNameOf(id) { const k = fesKeyOf(id); return k ? fesDef(k).nm : ""; }
 const FES_ALL_CHARS = FES_KEYS.reduce((a, k) => a.concat(FESTS[k].chars), []);
@@ -19972,6 +21741,7 @@ function firstGachaMode() {
    ★★ 2026-08-29 ガチャ一覧の並び（ご指定・2026-08-28 版から更新）
      ① 極彩祭・極華祭・極煌祭 の「開催中」のもの
      ② 戦姫祭（常時開催の限定キャラガチャ。①のすぐ下）
+     ②′ BUNNY GIRL FEST（★★ 2026-09-11 ご指定で<b>戦姫祭のすぐ下</b>）
      ②' RISING STAR FEST（★★ 2026-09-01 ご指定で<b>戦姫祭と GRAND DEBUT のあいだ</b>）
      ③ GRAND DEBUT GACHA
      ④ 各フェスガチャ … <b>新しいものが上</b>（since の新しい順）
@@ -19985,7 +21755,7 @@ function firstGachaMode() {
      ここを FES_KEYS の順（＝定義順）のままにすると、新しいフェスが下に沈む。
    ══════════════════════════════════════════════════════════════ */
 function gachaMenuList() {
-  const lux = [], senki = [], rising = [], fes = [], luxOff = [], ended = [];
+  const lux = [], senki = [], bunny = [], rising = [], fes = [], luxOff = [], ended = [];
   FES_KEYS.forEach((k) => {
     if (k === ARCHIVE_KEY) return;                       /* アーカイブは⑥（下で足す） */
     const f = fesDef(k);
@@ -19996,6 +21766,9 @@ function gachaMenuList() {
                                         : "限定キャラクター・🎫チケット優先")),
       soon: fesLocked(k), ended: fesEnded(k) };
     if (f.senki) senki.push(row);
+    /* ★★ 2026-09-11 BUNNY GIRL FEST は<b>戦姫祭のすぐ下</b>（ご指定）。
+       期間つきのふつうのフェスガチャなので、終わったら ended へ落とすところは rising と同じ。 */
+    else if (f.bunny) (fesEnded(k) ? ended : bunny).push(row);
     /* ★★ 2026-09-01 RISING STAR FEST は<b>戦姫祭と GRAND DEBUT のあいだ</b>（ご指定）。
        ふつうのフェスガチャなので、終わったら ended へ落とすところは同じ。 */
     else if (f.rising) (fesEnded(k) ? ended : rising).push(row);
@@ -20010,7 +21783,7 @@ function gachaMenuList() {
   const arcRow = { k: ARCHIVE_KEY, nm: arc.nm, c: arc.c,
     sub: archiveChars().length ? arc.sub : "封入されたキャラクターがまだいません",
     soon: !archiveChars().length };
-  const list = lux.concat(senki, rising, gachaMenuDebutRows(), fes,
+  const list = lux.concat(senki, bunny, rising, gachaMenuDebutRows(), fes,
     [{ k: "premium", nm: PREMIUM_NM, sub: "ピックアップを1体えらべる常設ガチャ", c: "#ff9d2e" }],
     [arcRow], luxOff, ended);
   /* ★★ 2026-08-29 NEW マーク（ご指定）。まだ一度も開いていないガチャに付ける。 */
