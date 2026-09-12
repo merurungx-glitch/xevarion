@@ -18,7 +18,7 @@ const CORE = [
   "../brand/NGX.png",
   "../brand/MagicalFuture.png",
   "../brand/ISHIDA Production.png",
-  "../maintenance-gate.js?v=12",
+  "../maintenance-gate.js?v=13",
 ];
 
 /* プレイヤーが扱う全曲（アプリ側の DEFAULT_TRACKS と揃えること） */
