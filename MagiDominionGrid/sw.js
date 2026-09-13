@@ -4,13 +4,13 @@
    ・記録（mdg_records_v1）は localStorage
    ・Firebase など外部通信はキャッシュしない
    ============================================================ */
-const VERSION = "mdgrid-sw-v7";
+const VERSION = "mdgrid-sw-v9";
 const CORE = [
   "./index.html",
   "./css/mdg.css?v=9",
   "./js/mdg.js?v=8",
-  "../xeva.js?v=62",
-  "../xeva-loading.js?v=14",
+  "../xeva.js?v=65",
+  "../xeva-loading.js?v=15",
   "../xeva-splash.js?v=11",
   "../xeva-safebottom.js?v=9",
   "../xeva-back.js?v=9",
@@ -189,6 +189,16 @@ async function xevRefreshAll() {
   await xevRefreshPost({ type: "xev-refreshed", scope: XEV_SCOPE, total: urls.length,
     got: got, hit: hit, bytes: bytes });
 }
+self.addEventListener("message", (e) => {
+  /* ★★ 2026-09-13 「進捗が 100% なのに終わらない」への保険。
+     新しい SW は「古い SW が手を離すまで waiting」になることがあり、
+     ホーム側がそれを待ってしまうと永遠に終わらない。
+     この便りをもらったら<b>待たずに進む</b>。 */
+  const m = e.data;
+  if (!m || m.type !== "SKIP_WAITING") return;
+  self.skipWaiting();
+});
+
 self.addEventListener("message", (e) => {
   const m = e.data;
   if (!m || m.type !== "xev-refresh") return;

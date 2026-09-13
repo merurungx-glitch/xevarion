@@ -5,7 +5,7 @@
    ・XEVA・ジェムの残高だけはクラウド同期が要るが、オフライン中の増減は端末に貯まり、
      オンラインに戻った時点で xeva-cloud.js が送り直す。
    ============================================================ */
-const VERSION = "magijackpot-sw-v30";
+const VERSION = "magijackpot-sw-v32";
 const CORE = [
   "./",
   "./index.html",
@@ -45,7 +45,7 @@ const CORE = [
   "./img/banner_fortune.webp",
   "./img/banner_luxuria.webp",
   "../maintenance-gate.js?v=13",
-  "../xeva.js?v=62",
+  "../xeva.js?v=65",
   "../xeva-splash.js?v=11",
   "../xeva-back.js?v=9",
   "../game-link.js?v=10",
@@ -236,6 +236,16 @@ async function xevRefreshAll() {
   await xevRefreshPost({ type: "xev-refreshed", scope: XEV_SCOPE, total: urls.length,
     got: got, hit: hit, bytes: bytes });
 }
+self.addEventListener("message", (e) => {
+  /* ★★ 2026-09-13 「進捗が 100% なのに終わらない」への保険。
+     新しい SW は「古い SW が手を離すまで waiting」になることがあり、
+     ホーム側がそれを待ってしまうと永遠に終わらない。
+     この便りをもらったら<b>待たずに進む</b>。 */
+  const m = e.data;
+  if (!m || m.type !== "SKIP_WAITING") return;
+  self.skipWaiting();
+});
+
 self.addEventListener("message", (e) => {
   const m = e.data;
   if (!m || m.type !== "xev-refresh") return;
