@@ -1,0 +1,211 @@
+/* ══════════════════════════════════════════════════════════════
+   mb-create.css — MagiBurst クエスト作成（ステージエディター）
+   ------------------------------------------------------------
+   ★ アクセスコード MB613Create26 で メニュー から開く（ご指定）。
+   ★ スマートフォンで操作しやすい「ゲーム制作ツール」の見た目にする（画面案1・2）。
+     ・地は<b>濃紺</b>。パネルは1段明るい紺＋青の細い枠。
+     ・<b>ステージを見ながら設定する</b>のがいちばん大事なので、
+       盤面はいつも大きく、設定は下から出るシートにする。
+   ★ 全画面（#mbcRoot）は position:fixed。箱の外まで同じ色で塗るため、
+     上下にはみ出す板（::before / ::after）を敷いてある。
+   ══════════════════════════════════════════════════════════════ */
+#mbcRoot{position:fixed;inset:0;z-index:2147481000;display:none;overflow:hidden;
+  font-family:'Noto Sans JP',sans-serif;color:#e6ecff;background:#0b1220;
+  -webkit-tap-highlight-color:transparent;overscroll-behavior:none}
+#mbcRoot.on{display:flex;flex-direction:column}
+#mbcRoot::before,#mbcRoot::after{content:"";position:absolute;left:0;right:0;height:420px;
+  pointer-events:none;background:#0b1220}
+#mbcRoot::before{bottom:100%}
+#mbcRoot::after{top:100%}
+#mbcRoot *{box-sizing:border-box}
+
+/* ══ 上のバー ══ */
+.mbc-top{flex:none;display:flex;align-items:center;gap:8px;
+  padding:calc(env(safe-area-inset-top,0px) + 8px) 10px 8px;
+  background:linear-gradient(180deg,#12203a,#0e1930);border-bottom:1px solid rgba(90,140,220,.28)}
+.mbc-top .tt{flex:1;min-width:0;font-size:14px;font-weight:900;letter-spacing:.02em;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mbc-top .tt small{display:block;font-size:10px;font-weight:700;color:#8fa8d8;margin-top:1px}
+.mbc-ico{flex:none;display:grid;place-items:center;width:34px;height:34px;border:none;cursor:pointer;
+  border-radius:10px;background:rgba(90,140,220,.16);color:#cfe0ff;font-size:15px;font-weight:900}
+.mbc-ico:active{transform:scale(.95)}
+.mbc-ico.pri{background:linear-gradient(135deg,#2f7bff,#1a5ce0);color:#fff}
+
+/* ══ 本体（スクロールする） ══ */
+.mbc-body{flex:1;min-height:0;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  padding:10px 10px calc(env(safe-area-inset-bottom,0px) + 84px)}
+
+/* ══ 下のバー ══ */
+.mbc-nav{position:absolute;left:0;right:0;bottom:0;z-index:5;display:grid;
+  grid-template-columns:repeat(5,1fr);gap:2px;
+  margin-bottom:-240px;padding:6px 6px calc(env(safe-area-inset-bottom,0px) + 240px);
+  background:#12203a;border-top:1px solid rgba(90,140,220,.28)}
+.mbc-nav button{display:flex;flex-direction:column;align-items:center;gap:3px;padding:5px 2px;
+  border:none;background:none;cursor:pointer;color:#7f96c4;font-family:inherit;
+  font-size:9.5px;font-weight:800}
+.mbc-nav button i{font-style:normal;font-size:17px;line-height:1}
+.mbc-nav button.on{color:#7cb3ff}
+
+/* ══ パネル ══ */
+.mbc-panel{margin:0 0 10px;padding:11px 12px;border-radius:12px;
+  background:linear-gradient(180deg,#152643,#111d34);border:1px solid rgba(90,140,220,.26)}
+.mbc-panel > h3{display:flex;align-items:center;gap:7px;margin:0 0 9px;font-size:12.5px;font-weight:900;color:#9fc2ff}
+.mbc-panel > h3 span{margin-left:auto;font-size:10.5px;font-weight:700;color:#7f96c4}
+.mbc-note{font-size:10.5px;font-weight:700;color:#8fa8d8;line-height:1.7}
+.mbc-note b{color:#cfe0ff}
+
+/* ══ 入力 ══ */
+.mbc-row{display:flex;align-items:center;gap:8px;margin:0 0 8px}
+.mbc-row > label{flex:none;width:82px;font-size:11px;font-weight:800;color:#9fb6e0}
+.mbc-row.wide > label{width:100%;margin-bottom:4px}
+.mbc-row.col{display:block}
+.mbc-in,.mbc-sel,.mbc-ta{flex:1;min-width:0;width:100%;padding:8px 10px;border-radius:9px;
+  border:1px solid rgba(90,140,220,.34);background:#0d182c;color:#e6ecff;
+  font-family:inherit;font-size:12.5px;font-weight:700}
+.mbc-ta{min-height:64px;resize:vertical;line-height:1.6}
+.mbc-in:focus,.mbc-sel:focus,.mbc-ta:focus{outline:2px solid #2f7bff;outline-offset:0}
+.mbc-in.num{max-width:110px;flex:none;text-align:right}
+.mbc-grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mbc-grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:6px}
+.mbc-btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;
+  padding:9px 14px;border:none;border-radius:99px;cursor:pointer;font-family:inherit;
+  font-size:12px;font-weight:900;background:rgba(90,140,220,.18);color:#cfe0ff}
+.mbc-btn.pri{background:linear-gradient(135deg,#2f7bff,#1a5ce0);color:#fff}
+.mbc-btn.go{background:linear-gradient(135deg,#19c37d,#0e9b62);color:#fff}
+.mbc-btn.dan{background:rgba(224,64,94,.2);color:#ff9fb2}
+.mbc-btn.full{display:flex;width:100%}
+.mbc-btn:active{transform:scale(.98)}
+.mbc-btns{display:flex;gap:8px;margin-top:10px}
+.mbc-btns .mbc-btn{flex:1}
+
+/* ══ WAVE タブ ══ */
+.mbc-waves{display:flex;gap:5px;overflow-x:auto;padding:2px 0 6px;-webkit-overflow-scrolling:touch}
+.mbc-waves button{flex:none;padding:7px 13px;border:none;border-radius:9px;cursor:pointer;
+  font-family:inherit;font-size:11.5px;font-weight:900;
+  background:rgba(90,140,220,.16);color:#9fb6e0}
+.mbc-waves button.on{background:linear-gradient(135deg,#2f7bff,#1a5ce0);color:#fff}
+.mbc-waves button.off{opacity:.42}
+
+/* ══ ステージエディタ ══ */
+.mbc-stage{position:relative;width:100%;aspect-ratio:720/920;border-radius:12px;overflow:hidden;
+  background:radial-gradient(120% 90% at 50% 0%,#1b2f52,#0c1526);
+  border:1px solid rgba(90,140,220,.34);touch-action:none;user-select:none}
+.mbc-stage .grid{position:absolute;inset:0;pointer-events:none;opacity:.34;
+  background-image:linear-gradient(rgba(120,170,255,.22) 1px,transparent 1px),
+                   linear-gradient(90deg,rgba(120,170,255,.22) 1px,transparent 1px);
+  background-size:10% 7.826%}
+.mbc-obj{position:absolute;transform:translate(-50%,-50%);display:grid;place-items:center;
+  border-radius:8px;font-size:10px;font-weight:900;color:#fff;text-align:center;line-height:1.1;
+  border:2px solid rgba(255,255,255,.5);cursor:grab;overflow:hidden}
+.mbc-obj.sel{outline:2px dashed #ffd257;outline-offset:2px;z-index:9}
+.mbc-obj.round{border-radius:50%}
+.mbc-obj img{width:100%;height:100%;object-fit:cover}
+.mbc-obj small{position:absolute;bottom:1px;left:0;right:0;font-size:8px;opacity:.9}
+.mbc-hint{position:absolute;left:8px;right:8px;bottom:8px;padding:6px 9px;border-radius:8px;
+  background:rgba(6,12,24,.76);font-size:10px;font-weight:800;color:#bfd4ff;pointer-events:none}
+
+/* パレット */
+.mbc-pal{display:grid;grid-template-columns:repeat(auto-fill,minmax(72px,1fr));gap:6px;margin-bottom:9px}
+.mbc-pal button{display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 3px;
+  border:1px solid rgba(90,140,220,.28);border-radius:9px;cursor:pointer;
+  background:#0d182c;color:#bfd4ff;font-family:inherit;font-size:9.5px;font-weight:800}
+.mbc-pal button i{font-style:normal;font-size:16px;line-height:1}
+.mbc-pal button.on{border-color:#2f7bff;background:rgba(47,123,255,.18);color:#fff}
+
+/* レイヤー */
+.mbc-layers{display:flex;flex-direction:column;gap:5px}
+.mbc-layers .ly{display:flex;align-items:center;gap:7px;padding:6px 9px;border-radius:8px;
+  background:#0d182c;border:1px solid rgba(90,140,220,.22);font-size:11px;font-weight:800}
+.mbc-layers .ly .nm{flex:1;min-width:0}
+.mbc-layers .ly button{border:none;background:none;cursor:pointer;color:#9fb6e0;font-size:13px;padding:2px 4px}
+.mbc-layers .ly button.off{opacity:.34}
+
+/* 一覧の行 */
+.mbc-list{display:flex;flex-direction:column;gap:7px}
+.mbc-item{display:flex;align-items:center;gap:9px;padding:9px 10px;border-radius:10px;cursor:pointer;
+  background:#0d182c;border:1px solid rgba(90,140,220,.24)}
+.mbc-item.on{border-color:#2f7bff;background:rgba(47,123,255,.14)}
+.mbc-item .ic{flex:none;display:grid;place-items:center;width:34px;height:34px;border-radius:8px;
+  background:rgba(90,140,220,.2);font-size:16px}
+.mbc-item .ic img{width:100%;height:100%;object-fit:cover;border-radius:8px}
+.mbc-item .tx{flex:1;min-width:0}
+.mbc-item .tx b{display:block;font-size:12.5px;font-weight:900;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mbc-item .tx small{display:block;font-size:10px;font-weight:700;color:#8fa8d8;margin-top:1px}
+.mbc-item .act{flex:none;display:flex;gap:4px}
+.mbc-item .act button{border:none;background:rgba(90,140,220,.18);color:#cfe0ff;cursor:pointer;
+  width:28px;height:28px;border-radius:7px;font-size:12px}
+.mbc-item .act button.dan{background:rgba(224,64,94,.2);color:#ff9fb2}
+.mbc-item .act button.fav{color:#ffd257}
+
+/* 下から出るシート */
+.mbc-sheet{position:fixed;inset:0;z-index:2147481200;display:none;align-items:flex-end;
+  background:rgba(4,9,18,.66)}
+.mbc-sheet.on{display:flex}
+.mbc-sheet-card{width:100%;max-height:88vh;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  border-radius:16px 16px 0 0;background:#101c33;border-top:1px solid rgba(90,140,220,.34);
+  padding:12px 12px calc(env(safe-area-inset-bottom,0px) + 16px)}
+.mbc-sheet-hd{display:flex;align-items:center;gap:8px;margin-bottom:10px}
+.mbc-sheet-hd b{flex:1;min-width:0;font-size:13.5px;font-weight:900}
+@media (min-width: 760px){
+  .mbc-sheet{align-items:center;justify-content:center}
+  .mbc-sheet-card{max-width:620px;border-radius:16px;max-height:84vh}
+}
+
+/* チップ（属性・撃種などの選択） */
+.mbc-chips{display:flex;flex-wrap:wrap;gap:5px}
+.mbc-chips button{padding:6px 11px;border:1px solid rgba(90,140,220,.3);border-radius:99px;
+  cursor:pointer;background:#0d182c;color:#bfd4ff;font-family:inherit;font-size:11px;font-weight:800}
+.mbc-chips button.on{border-color:#2f7bff;background:rgba(47,123,255,.22);color:#fff}
+
+/* テストプレイ中のデバッグメニュー */
+.mbc-debug{position:fixed;right:8px;bottom:calc(env(safe-area-inset-bottom,0px) + 96px);
+  z-index:2147481300;width:min(56vw,240px);display:none;
+  border-radius:12px;background:rgba(10,18,34,.92);border:1px solid rgba(90,140,220,.4);
+  padding:9px 10px;font-size:10.5px;font-weight:800;color:#cfe0ff;line-height:1.7}
+.mbc-debug.on{display:block}
+.mbc-debug .dh{display:flex;align-items:center;gap:6px;margin-bottom:5px;font-size:11px;color:#9fc2ff}
+.mbc-debug .dh button{margin-left:auto;border:none;background:none;color:#8fa8d8;cursor:pointer;font-size:13px}
+.mbc-debug dl{display:grid;grid-template-columns:auto 1fr;gap:1px 8px;margin:0 0 7px}
+.mbc-debug dt{color:#8fa8d8}
+.mbc-debug dd{margin:0;text-align:right;font-family:'Orbitron',sans-serif}
+.mbc-debug .db{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.mbc-debug .db button{padding:6px 4px;border:none;border-radius:7px;cursor:pointer;
+  font-family:inherit;font-size:10px;font-weight:900;background:rgba(90,140,220,.2);color:#cfe0ff}
+.mbc-debug .db button.dan{background:rgba(224,64,94,.24);color:#ff9fb2}
+/* テストプレイ中に出す小さな呼び出しボタン */
+.mbc-dbgfab{position:fixed;right:8px;bottom:calc(env(safe-area-inset-bottom,0px) + 58px);
+  z-index:2147481300;display:none;width:36px;height:36px;border:none;border-radius:50%;cursor:pointer;
+  background:rgba(47,123,255,.9);color:#fff;font-size:15px;font-weight:900;
+  box-shadow:0 4px 14px rgba(0,0,0,.4)}
+.mbc-dbgfab.on{display:block}
+
+/* ホーム画面の大きなボタン */
+.mbc-home{display:flex;flex-direction:column;gap:9px;margin-top:10px}
+.mbc-home button{display:flex;align-items:center;gap:11px;padding:14px 14px;border:none;cursor:pointer;
+  border-radius:13px;font-family:inherit;text-align:left;
+  background:linear-gradient(135deg,#1c3a6e,#152c55);color:#e6ecff}
+.mbc-home button i{font-style:normal;font-size:22px;line-height:1}
+.mbc-home button b{display:block;font-size:13.5px;font-weight:900}
+.mbc-home button small{display:block;font-size:10.5px;font-weight:700;color:#9fb6e0;margin-top:2px}
+.mbc-hero{padding:16px 14px;border-radius:14px;text-align:center;
+  background:radial-gradient(120% 120% at 50% 0%,#2a4c8c,#132444)}
+.mbc-hero b{display:block;font-size:17px;font-weight:900;letter-spacing:.02em}
+.mbc-hero small{display:block;margin-top:5px;font-size:10.5px;font-weight:700;color:#a9c2ee}
+
+/* コード入力 */
+.mbc-gate{position:fixed;inset:0;z-index:2147481400;display:none;align-items:center;justify-content:center;
+  background:rgba(4,9,18,.78);padding:18px}
+.mbc-gate.on{display:flex}
+.mbc-gate-card{width:100%;max-width:360px;border-radius:14px;padding:18px 16px;text-align:center;
+  background:#101c33;border:1px solid rgba(90,140,220,.34);color:#e6ecff}
+.mbc-gate-card b{display:block;font-size:15px;font-weight:900;margin-bottom:6px}
+.mbc-gate-card small{display:block;font-size:11px;font-weight:700;color:#9fb6e0;line-height:1.7;margin-bottom:12px}
+.mbc-gate-card .err{color:#ff9fb2;font-size:11px;font-weight:800;min-height:16px;margin-top:6px}
+
+/* エクスポートのテキスト */
+.mbc-out{width:100%;min-height:170px;padding:9px;border-radius:9px;font-size:10px;line-height:1.5;
+  font-family:ui-monospace,Menlo,Consolas,monospace;
+  border:1px solid rgba(90,140,220,.3);background:#0a1322;color:#bfe0ff;resize:vertical}
+
+@media (prefers-reduced-motion: reduce){ #mbcRoot *{animation:none!important;transition:none!important} }

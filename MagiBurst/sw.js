@@ -6,20 +6,26 @@
    ・オンライン対戦・XEVA換金はアプリ側でオフライン時に無効化している
    ・取得できたリソースは随時キャッシュ更新（stale-while-revalidate）
    ============================================================ */
-const VERSION = "magiburst-sw-v156";
+const VERSION = "magiburst-sw-v158";
 const CORE = [
   "./index.html",
   "./css/mb-ui2.css?v=26",
   "./css/localplay.css?v=7",
   "./js/localplay.js?v=8",
-  "./js/mb-core.js?v=112",   /* ★ 2026-08-10 キャラ・ガチャの共有モジュール（XEVARION のガチャと共通） */
+  "./js/mb-core.js?v=115",
+  /* ★★ 2026-09-13 クエスト作成（ステージエディター・MB613Create26）。
+     遅延読みこみだが、オフラインでも開けるようにここには入れておく。 */
+  "./js/mb-create.js?v=2",
+  "./js/mb-create-ui.js?v=2",
+  "./js/mb-create-test.js?v=2",
+  "./css/mb-create.css?v=2",   /* ★ 2026-08-10 キャラ・ガチャの共有モジュール（XEVARION のガチャと共通） */
   /* ★★ 2026-09-06 装備（頭・腕・胸・足）。ここに載せないとオフラインで丸ごと動かない。 */
   "./js/mb-gear.js?v=7",
   /* ★★ 2026-09-01 ローカル通信マルチ。<b>オフラインで使うもの</b>なので、
      ここに載せておかないと「オフラインのときだけ動かない」ことになる。 */
   "./js/local.js?v=12",
   /* ★★ 2026-09-03 ローカル通信の QR コード（自前・外部ライブラリなし） */
-  "../xeva-qr.js?v=8",
+  "../xeva-qr.js?v=9",
   "../xeva-i18n.js?v=8",
   "../xeva-i18n-dict.js?v=12",
   "../xeva-i18n-mb1.js?v=7",
@@ -35,11 +41,11 @@ const CORE = [
   "../xeva-i18n-p4.js?v=7",
   "../xeva-i18n-n1.js?v=5",
   "../xeva-i18n-n2.js?v=3",
-  "../xeva.js?v=62",
-  "../xeva-loading.js?v=14",
+  "../xeva.js?v=65",
+  "../xeva-loading.js?v=15",
   "../xeva-splash.js?v=11",
   "../app-cloud.js?v=12",
-  "../xeva-keys.js?v=20",
+  "../xeva-keys.js?v=23",
   "./magiburst-cloud.js?v=15",
   "../maintenance-gate.js?v=13",
   "../app-install-notice.js?v=9",
@@ -266,7 +272,8 @@ const CORE = [
   /* ★★ 2026-08-29 戦姫祭のバナー */
   "img/bn_fes11_s.webp",
   "img/bn_fes12_s.webp",   /* ★★ 2026-09-01 RISING STAR FEST のバナー */
-  "img/bn_fes13_s.webp",   /* ★★ 2026-09-11 BUNNY GIRL FEST のバナー */
+  "img/bn_fes13_s.webp",
+  "img/bn_fes14_s.webp",   /* ★★ 2026-09-13 SOFT NIGHT FEST のバナー */   /* ★★ 2026-09-11 BUNNY GIRL FEST のバナー */
   "../img/t_Suzune.webp",
   "../img/t_Minamo.webp",
   /* ★★ 2026-08-26 GRAND DEBUT Ver.3.0 の5体 ＋ MagiLex の KP交換キャラ4体。
@@ -378,6 +385,24 @@ const CORE = [
   "../img/t_Miyuki.webp",
   "../img/t_Natsume.webp",
   "../img/t_Kagura.webp",
+  /* ★★ 2026-09-13 SOFT NIGHT FEST 5体。ここに無いと
+     オフラインでその子だけ絵が出ず、update.json にも載らない。 */
+  "../img/t_AnnaAlpha.webp",
+  "../img/t_AsuhaAlpha.webp",
+  "../img/t_RanAlpha.webp",
+  "../img/t_SayakaAlpha.webp",
+  "../img/t_KotoriAlpha.webp",
+  /* ★★ 2026-09-13 BUNNY GIRL FEST 追加2体 */
+  "../img/t_Kana.webp",
+  "../img/t_Maki.webp",
+  /* ★★ 2026-09-13 極華祭 クミコ＆レイナ */
+  "../img/t_KumikoReina.webp",
+  /* ★★ 2026-09-13 GRAND DEBUT GACHA Ver.8.0 5体 */
+  "../img/t_Miya.webp",
+  "../img/t_Emika.webp",
+  "../img/t_Uta.webp",
+  "../img/t_Shiho.webp",
+  "../img/t_Kiduki.webp",
   /* ★★ 2026-09-06 同期の画面に出る案内役（立ち姿とお辞儀・2人ぶん）。
      ここに無いとオフラインのときだけ絵が出ない。 */
   "../img/ld_a_stand.webp",
@@ -716,6 +741,16 @@ async function xevRefreshAll() {
   await xevRefreshPost({ type: "xev-refreshed", scope: XEV_SCOPE, total: urls.length,
     got: got, hit: hit, bytes: bytes });
 }
+self.addEventListener("message", (e) => {
+  /* ★★ 2026-09-13 「進捗が 100% なのに終わらない」への保険。
+     新しい SW は「古い SW が手を離すまで waiting」になることがあり、
+     ホーム側がそれを待ってしまうと永遠に終わらない。
+     この便りをもらったら<b>待たずに進む</b>。 */
+  const m = e.data;
+  if (!m || m.type !== "SKIP_WAITING") return;
+  self.skipWaiting();
+});
+
 self.addEventListener("message", (e) => {
   const m = e.data;
   if (!m || m.type !== "xev-refresh") return;
