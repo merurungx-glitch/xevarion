@@ -6,7 +6,7 @@
    ・オフライン中の記録は localStorage に残り、オンライン復帰時に
      xeva-cloud.js がクラウドへ反映する。
    ============================================================ */
-const VERSION = "xevynar-sw-v38";
+const VERSION = "xevynar-sw-v40";
 const CORE = [
   "./",
   "./index.html",
@@ -27,9 +27,9 @@ const CORE = [
   "./xevynar-192.png",
   "./xevynar-512.png",
   "../maintenance-gate.js?v=13",
-  "../xeva.js?v=62",
+  "../xeva.js?v=65",
   "../xeva-splash.js?v=11",
-  "../xeva-loading.js?v=14",
+  "../xeva-loading.js?v=15",
   "../XEVA.png",
   "../gem.png",
   /* ★ MagiLex の問題データ。オフラインでも「苦手問題の出題」「問題の解説」を
@@ -213,6 +213,16 @@ async function xevRefreshAll() {
   await xevRefreshPost({ type: "xev-refreshed", scope: XEV_SCOPE, total: urls.length,
     got: got, hit: hit, bytes: bytes });
 }
+self.addEventListener("message", (e) => {
+  /* ★★ 2026-09-13 「進捗が 100% なのに終わらない」への保険。
+     新しい SW は「古い SW が手を離すまで waiting」になることがあり、
+     ホーム側がそれを待ってしまうと永遠に終わらない。
+     この便りをもらったら<b>待たずに進む</b>。 */
+  const m = e.data;
+  if (!m || m.type !== "SKIP_WAITING") return;
+  self.skipWaiting();
+});
+
 self.addEventListener("message", (e) => {
   const m = e.data;
   if (!m || m.type !== "xev-refresh") return;

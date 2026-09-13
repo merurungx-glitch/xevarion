@@ -5,15 +5,15 @@
    ・セーブ・前回設定は localStorage 保存 → オンライン復帰時に xeva-cloud が同期
    ・Firebase など外部通信はキャッシュしない
    ============================================================ */
-const VERSION = "chainparty-sw-v32";
+const VERSION = "chainparty-sw-v34";
 const CORE = [
   "./index.html",
   "./css/style.css?v=18",
   "./js/game.js?v=17",
   /* ★★ 2026-09-03 下バーを画面の下端に合わせる共通部品 */
   "../xeva-safebottom.js?v=9",
-  "../xeva.js?v=62",
-  "../xeva-loading.js?v=14",
+  "../xeva.js?v=65",
+  "../xeva-loading.js?v=15",
   "../xeva-splash.js?v=11",
   "../game-link.js?v=12",
   "../maintenance-gate.js?v=13",
@@ -195,6 +195,16 @@ async function xevRefreshAll() {
   await xevRefreshPost({ type: "xev-refreshed", scope: XEV_SCOPE, total: urls.length,
     got: got, hit: hit, bytes: bytes });
 }
+self.addEventListener("message", (e) => {
+  /* ★★ 2026-09-13 「進捗が 100% なのに終わらない」への保険。
+     新しい SW は「古い SW が手を離すまで waiting」になることがあり、
+     ホーム側がそれを待ってしまうと永遠に終わらない。
+     この便りをもらったら<b>待たずに進む</b>。 */
+  const m = e.data;
+  if (!m || m.type !== "SKIP_WAITING") return;
+  self.skipWaiting();
+});
+
 self.addEventListener("message", (e) => {
   const m = e.data;
   if (!m || m.type !== "xev-refresh") return;
