@@ -368,6 +368,96 @@
        ポータルのショップから見えず「ガチャで増えたのに交換所では 0」になる。 */
   var CRY_KEY = "xeva_cryst_v1";
   var cryst = makeTicketWallet(CRY_KEY, "xeva:cryst");
+
+  /* ══ ★★ 2026-09-13 フェスセレクト券（ご指定）══
+     BUNNY GIRL FEST ・戦姫祭 ・ RISING STAR FEST の<b>好きなキャラを 1体</b>
+     えらんで確定で手に入るパックを作った。その券の残高。
+     ★ 券は<b>フェスごとに別</b>なので、makeTicketWallet を 3本作ると
+       フェスが増えるたびに xeva.js / xeva-keys.js / xeva-cloud.js の 3か所へ
+       同じ書き足しが必要になり、必ずどれか忘れる。
+       そこで<b>1つのキーの中でフェスのキーごとに数える</b>。
+     ★ 中身は { f:{ fes13:{e:もらった総数, u:使った総数} }, history:[…] }。
+       <b>残高を直に持たない</b>のが大事——e と u は<b>増えるだけ</b>なので、
+       端末をまたいだときも e=max / u=max で混ぜれば正しい残高になる
+       （残高を直に持つと「新しい方が勝つ」で買った券が消える）。 */
+  /* ★★ 2026-09-13c <b>同じ形のウォレットが2本になったので作り手を1つにする</b>。
+     ------------------------------------------------------------
+     ・xeva_fessel_v1 … フェスセレクト券（フェスごと）
+     ・xeva_seal_v1   … ★星煌印＝<b>天井</b>（ガチャごと）
+     どちらも「1つのキーの中で<b>ガチャのキーごとに {e,u} を数える</b>」まったく同じ形。
+     ★ 別々に書くと、直すたびに片方だけ直して<b>ずれる</b>ので makeCountMap にまとめる。
+     ★ e（もらった総数）と u（使った総数）は<b>増えるだけ</b>なので、
+       端末をまたいでも e=max / u=max で混ぜれば正しい残高になる
+       （残高を直に持つと「新しい方が勝つ」で買った券・ためた印が消える）。 */
+  function makeCountMap(KEY, EVENT) {
+    function load() {
+      var s = null;
+      try { var r = localStorage.getItem(KEY); if (r) s = JSON.parse(r); } catch (e) {}
+      if (!s || typeof s !== "object") s = {};
+      if (!s.f || typeof s.f !== "object") s.f = {};
+      if (!Array.isArray(s.history)) s.history = [];
+      return s;
+    }
+    function cell(s, k) {
+      var c = s.f[k];
+      if (!c || typeof c !== "object") c = s.f[k] = { e: 0, u: 0 };
+      c.e = Math.max(0, c.e | 0); c.u = Math.max(0, c.u | 0);
+      return c;
+    }
+    function all() {
+      var s = load(), out = {};
+      Object.keys(s.f).forEach(function (k) { var c = cell(s, k); out[k] = Math.max(0, c.e - c.u); });
+      return out;
+    }
+    function emit() { try { window.dispatchEvent(new CustomEvent(EVENT, { detail: all() })); } catch (e) {} }
+    function save(s) {
+      s.at = Date.now();
+      try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {}
+      emit();
+    }
+    function get(k) { var s = load(), c = cell(s, String(k || "")); return Math.max(0, c.e - c.u); }
+    return {
+      KEY: KEY,
+      get: get,
+      all: all,
+      /* もらった総数（＝これまでに積んだ数）。天井の「通算◯回引いた」の表示に使う。 */
+      earned: function (k) { var s = load(), c = cell(s, String(k || "")); return c.e; },
+      total: function () { var a = all(), n = 0; Object.keys(a).forEach(function (k) { n += a[k]; }); return n; },
+      add: function (k, n, reason) {
+        k = String(k || ""); n = Math.max(0, Math.round(n || 0));
+        if (!k || !n) return get(k);
+        var s = load(), c = cell(s, k);
+        c.e += n;
+        s.history.unshift({ k: k, amount: n, reason: reason || "", t: Date.now() });
+        if (s.history.length > 100) s.history.length = 100;
+        save(s);
+        return Math.max(0, c.e - c.u);
+      },
+      /* 足りなければ false を返して何もしない */
+      spend: function (k, n, reason) {
+        k = String(k || ""); n = Math.max(0, Math.round(n || 0));
+        if (!k) return false;
+        if (!n) return true;
+        var s = load(), c = cell(s, k);
+        if (c.e - c.u < n) return false;
+        c.u += n;
+        s.history.unshift({ k: k, amount: -n, reason: reason || "", t: Date.now() });
+        if (s.history.length > 100) s.history.length = 100;
+        save(s);
+        return true;
+      },
+      getHistory: function () { return load().history || []; },
+      _emit: emit,
+    };
+  }
+  var FSEL_KEY = "xeva_fessel_v1";
+  var fesSelect = makeCountMap(FSEL_KEY, "xeva:fessel");
+  /* ★★ 2026-09-13c <b>★星煌印＝ガチャの天井</b>（ご指定）。
+     ガチャ1連ごとに 1つたまり、150個でそのガチャのピックアップキャラと交換できる。
+     ★ ガチャごとに別勘定（fes14 / premium / debut:8.0 …）。
+       まとめて1本にすると、フェスで引いた印で GRAND DEBUT のキャラが取れてしまう。 */
+  var SEAL_KEY = "xeva_seal_v1";
+  var seal = makeCountMap(SEAL_KEY, "xeva:seal");
   function loadTkt() { return ticket._load(); }
   function emitTkt(b) { ticket._emit(b); }
 
@@ -381,6 +471,8 @@
       if (e.key === TKT_KEY) ticket._emit(ticket.get());
       if (e.key === FTK_KEY) fesTicket._emit(fesTicket.get());
       if (e.key === SEL_KEY) selectTicket._emit(selectTicket.get());
+      if (e.key === FSEL_KEY) fesSelect._emit();
+      if (e.key === SEAL_KEY) seal._emit();
       if (e.key === CRY_KEY) cryst._emit(cryst.get());
       if (e.key === KEY) { state = load(); emit(); }
     });
@@ -390,6 +482,8 @@
       ticket._emit(ticket.get());
       fesTicket._emit(fesTicket.get());
       selectTicket._emit(selectTicket.get());
+      fesSelect._emit();
+      seal._emit();
       cryst._emit(cryst.get());
     });
   } catch (e) {}
@@ -840,6 +934,19 @@
     { id: "mb:miyuki", mbId: "miyuki", name:"ミユキ", file: "../img/t_Miyuki.webp", since:"2026-09-11" },
     { id: "mb:natsume", mbId: "natsume", name:"ナツメ", file: "../img/t_Natsume.webp", since:"2026-09-11" },
     { id: "mb:kagura", mbId: "kagura", name:"カグラ", file: "../img/t_Kagura.webp", since:"2026-09-11" },
+    { id: "mb:annaalpha", mbId: "annaalpha", name:"アンナα", file: "../img/t_AnnaAlpha.webp", since:"2026-09-13" },
+    { id: "mb:asuhaalpha", mbId: "asuhaalpha", name:"アスハα", file: "../img/t_AsuhaAlpha.webp", since:"2026-09-13" },
+    { id: "mb:ranalpha", mbId: "ranalpha", name:"ランα", file: "../img/t_RanAlpha.webp", since:"2026-09-13" },
+    { id: "mb:sayakaalpha", mbId: "sayakaalpha", name:"サヤカα", file: "../img/t_SayakaAlpha.webp", since:"2026-09-13" },
+    { id: "mb:kotorialpha", mbId: "kotorialpha", name:"コトリα", file: "../img/t_KotoriAlpha.webp", since:"2026-09-13" },
+    { id: "mb:kana", mbId: "kana", name:"カナ", file: "../img/t_Kana.webp", since:"2026-09-13" },
+    { id: "mb:maki", mbId: "maki", name:"マキ", file: "../img/t_Maki.webp", since:"2026-09-13" },
+    { id: "mb:kumireina", mbId: "kumireina", name:"クミコ＆レイナ", file: "../img/t_KumikoReina.webp", since:"2026-09-13" },
+    { id: "mb:miya", mbId: "miya", name:"ミヤ", file: "../img/t_Miya.webp", since:"2026-09-13" },
+    { id: "mb:emika", mbId: "emika", name:"エミカ", file: "../img/t_Emika.webp", since:"2026-09-13" },
+    { id: "mb:uta", mbId: "uta", name:"ウタ", file: "../img/t_Uta.webp", since:"2026-09-13" },
+    { id: "mb:shiho", mbId: "shiho", name:"シホ", file: "../img/t_Shiho.webp", since:"2026-09-13" },
+    { id: "mb:kiduki", mbId: "kiduki", name:"キヅキ", file: "../img/t_Kiduki.webp", since:"2026-09-13" },
   ];
   /* ★ 2026-08-10 初期SR 4体（ゼラ・アヤメ・レイラ・セリーヌ）は廃止しました。
      いまは<b>全キャラがアイコンに選べる</b>ので、starter という区別そのものが要らない。 */
@@ -926,7 +1033,16 @@
   , "saya", "aoik", "narumi", "ayame", "misaki"
   , "kyoka", "haduki", "hikari", "ruri", "nagisa"
   , "hiyori", "erika", "momoka", "miyuki", "natsume"
-  , "kagura"];
+  , "kagura"
+  /* ★★ 2026-09-13 SOFT NIGHT FEST 5体。ここに無いと
+     <b>XEVAミッションの図鑑コレクションに出てこない</b>。 */
+  , "annaalpha", "asuhaalpha", "ranalpha", "sayakaalpha", "kotorialpha"
+  /* ★★ 2026-09-13 BUNNY GIRL FEST 追加2体 */
+  , "kana", "maki"
+  /* ★★ 2026-09-13 極華祭 クミコ＆レイナ */
+  , "kumireina"
+  /* ★★ 2026-09-13 GRAND DEBUT GACHA Ver.8.0 5体 */
+  , "miya", "emika", "uta", "shiho", "kiduki"];
   MB_CHAR_MASTER.forEach(function (c) { c.mb = true; c.starter = MB_STARTERS.indexOf(c.mbId) >= 0; });
   MB_CHAR_MASTER.forEach(function (c) { c.star5 = MB_STAR5.indexOf(c.mbId) >= 0; });
   /* id は "mb:zera" のように接頭辞つき。XEVAガチャにも同じ名前のキャラ（シオンなど）が
@@ -1568,6 +1684,14 @@
     /* ★ 2026-08-24 プレミアムセレクト券（1枚＝プレミアムのSSRから好きな1体） */
     SEL_KEY: SEL_KEY,
     selectTicket: selectTicket,
+    /* ★★ 2026-09-13 フェスセレクト券（フェスごとに 1枚＝そのフェスの限定SSRから好きな1体）
+       使いかた: XEVA.fesSelect.get("fes13") / .add("fes13",1,"…") / .spend("fes13",1,"…") */
+    FSEL_KEY: FSEL_KEY,
+    fesSelect: fesSelect,
+    /* ★★ 2026-09-13c ★星煌印（ガチャの天井）。
+       使いかた: XEVA.seal.get("fes14") / .add("fes14",1,"…") / .spend("fes14",150,"…")
+       ★ 引いた数そのものは .earned("fes14")（減らない通算）。 */
+    seal: seal,
     cryst: cryst,                 /* ★★ 2026-08-30 💠結晶（完凸後の排出でもらえる） */
     /* ★ 2026-08-24 XEVARION 共通ステータス（レベル・EXP・スタミナ） */
     STATUS_KEY: ST_KEY,

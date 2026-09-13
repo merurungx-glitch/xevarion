@@ -7,7 +7,7 @@
    ・オフライン中の進行は localStorage に残り、オンライン復帰時に
      xeva-cloud.js がタイムスタンプ比較でクラウドへ上書き反映する
    ============================================================ */
-const VERSION = "xevarion-sw-v139";
+const VERSION = "xevarion-sw-v141";
 
 /* ホームを成立させる最小セット（重い画像は runtime キャッシュに任せる） */
 const CORE = [
@@ -17,12 +17,12 @@ const CORE = [
   "./characters.html",
   /* ★ 2026-08-10 ガチャは XEVARION に一本化。中身は MagiBurst の共有モジュールが持つ */
   "./gacha.html",
-  "./gacha-ui.js?v=40",
-  "./mb-newchars.js?v=23",
+  "./gacha-ui.js?v=43",
+  "./mb-newchars.js?v=24",
   "./xevion-os.js?v=13",
   "./xevion-os.css?v=15",
   "./magibattle-stats.js?v=14",
-  "./MagiBurst/js/mb-core.js?v=112",
+  "./MagiBurst/js/mb-core.js?v=115",
   /* ★ 2026-08-10 ガチャと図鑑で共通の土台・キャラ詳細・結果演出 */
   /* ★ 2026-08-12 ポータルのガチャ・図鑑も magiburst_v1 を同期するようになった */
   "./app-cloud.js?v=12",
@@ -36,9 +36,11 @@ const CORE = [
   "./manifest.webmanifest",
   "./xeva-theme.css?v=9",
   "./xevarion.css?v=25",
-  "./xevarion-home.css?v=74",
+  "./xevarion-home.css?v=77",
   /* ★★ 2026-09-03 下バーを画面の下端に合わせる共通部品 */
   "./xeva-safebottom.js?v=9",
+  "./xeva-qr.js?v=9",
+  /* ★★ 2026-09-13 更新中の全画面で流す PR 動画（字幕は JS が出す） */
   "./xeva-collection.js?v=7",
   "./xeva-i18n.js?v=8",
   "./xeva-i18n-dict.js?v=12",
@@ -55,14 +57,14 @@ const CORE = [
   "./xeva-i18n-p4.js?v=7",
   "./xeva-i18n-n1.js?v=5",
   "./xeva-i18n-n2.js?v=3",
-  "./xeva.js?v=62",
+  "./xeva.js?v=65",
   "./xeva-fx.js?v=9",
-  "./xeva-loading.js?v=14",
-  "./xevarion.js?v=85",
-  "./xevarion-home.js?v=98",
+  "./xeva-loading.js?v=15",
+  "./xevarion.js?v=88",
+  "./xevarion-home.js?v=101",
   "./maintenance-gate.js?v=13",
   "./xeva-back.js?v=9",
-  "./xeva-keys.js?v=20",
+  "./xeva-keys.js?v=23",
   /* ★ 2026-08-20 通信設定（Wi-Fi／モバイルデータごとの動き）。
      この SW へ設定を送る側なので、オフラインでも読めるようにここに入れておく。 */
   "./xeva-netmode.js?v=10",
@@ -77,6 +79,10 @@ const CORE = [
   /* ★ 2026-08-24 スタミナの絵（ホームの⚡札とスタミナのシートで使う）。
      ここに無いとオフラインで絵が出ず、update.json にも載らない。 */
   "./stamina.png",
+  /* ★★ 2026-09-13c ★星煌印（ガチャの天井）の絵。
+     ここに無いとオフラインで帯の絵が出ず、update.json にも載らない。 */
+  "./img/seal.webp",
+  "./img/seal_s.webp",
   "./thumbs/XEVYNAR.jpg",
   "./thumbs/MagiJackpot.jpg",
   "./thumbs/MagiLotto.jpg",
@@ -413,6 +419,16 @@ async function xevRefreshAll() {
   await xevRefreshPost({ type: "xev-refreshed", scope: XEV_SCOPE, total: urls.length,
     got: got, hit: hit, bytes: bytes });
 }
+self.addEventListener("message", (e) => {
+  /* ★★ 2026-09-13 「進捗が 100% なのに終わらない」への保険。
+     新しい SW は「古い SW が手を離すまで waiting」になることがあり、
+     ホーム側がそれを待ってしまうと永遠に終わらない。
+     この便りをもらったら<b>待たずに進む</b>。 */
+  const m = e.data;
+  if (!m || m.type !== "SKIP_WAITING") return;
+  self.skipWaiting();
+});
+
 self.addEventListener("message", (e) => {
   const m = e.data;
   if (!m || m.type !== "xev-refresh") return;

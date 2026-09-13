@@ -85,6 +85,8 @@ function pickMode(k) {
   try { markGachaSeen(k); } catch (e) {}
   paintAll();
   window.scrollTo(0, 0);
+  /* ★★ 2026-09-13c 切りかえた先のガチャにまだ見ていない紹介があれば 1回だけ流す */
+  try { nciMaybeAuto(); } catch (e) {}
 }
 window.pickMode = pickMode;
 
@@ -116,8 +118,11 @@ function modeDef(k) {
   return { nm: f.nm, ic: "✦", c: f.c, soon: fesLocked(k),
     sub: fesLocked(k) ? fesOpenText(f)
       : (fesTimed(f) ? "フェス限定SSR・🎫チケット優先／あと" + fesDaysLeft(k) + "日"
+        /* ★★ 2026-09-13 無期限開催（perm）は「あと◯日」でなくそう書く */
+        : (fesPerm(f) ? (f.noFesTicket ? "限定キャラクター・🎫ガチャ券のみ／無期限開催"
+                                       : "フェス限定SSR・🎫チケット優先／無期限開催")
         : (f.noFesTicket ? "限定キャラクター・🎫ガチャ券のみ"
-                         : "限定キャラクター・🎫チケット優先")) };
+                         : "限定キャラクター・🎫チケット優先"))) };
 }
 
 function paintPicker() {
@@ -297,7 +302,8 @@ function paintPickup() {
              この${f.chars.length}体は <b>${ARCHIVE_NM}</b> で引けます。`
           : `<br>⏳ このフェスは ${fesPeriodText(gMode)}（あと<b>${fesDaysLeft(gMode)}日</b>）。
              ${fesArchiveText(gMode)}、この${f.chars.length}体は
-             <b>${ARCHIVE_NM}</b> にも封入されます${fesArchived(gMode) ? "（<b>封入ずみ</b>）" : ""}。`) : ""}
+             <b>${ARCHIVE_NM}</b> にも封入されます${fesArchived(gMode) ? "（<b>封入ずみ</b>）" : ""}。`)
+          : (fesPerm(f) ? `<br>⏳ このフェスは <b>無期限開催</b>です（配信終了はありません）。` : "")}
       </div>
     </div>`;
     return;
@@ -532,7 +538,8 @@ function paintNote() {
         ? "⏳ <b>このフェスの配信は終了しました</b>。キャラクターは <b>" + ARCHIVE_NM + "</b> で引けます。<br>"
         : "⏳ このフェスは " + fesPeriodText(gMode) + "（あと<b>" + fesDaysLeft(gMode) + "日</b>）。"
           + fesArchiveText(gMode) + " <b>" + ARCHIVE_NM + "</b> にも封入されます"
-          + (fesArchived(gMode) ? "（<b>封入ずみ</b>）" : "") + "。<br>") : ""}
+          + (fesArchived(gMode) ? "（<b>封入ずみ</b>）" : "") + "。<br>")
+        : (fesPerm(f) ? "⏳ このフェスは <b>無期限開催</b>です（配信終了はありません）。<br>" : "")}
       ${tktLine}<br>
       <b>10連は最後の1枠がSSR確定</b>（このフェスの限定SSR＋${PREMIUM_NM} のSSRから等確率）。`;
   }
@@ -909,6 +916,65 @@ window.closeRatesX = closeRatesX;
 function selTickets() {
   try { return (window.XEVA && XEVA.selectTicket) ? XEVA.selectTicket.get() : 0; } catch (e) { return 0; }
 }
+/* ═════════════════════════════════════════════════════
+   ★★ 2026-09-13 フェスセレクト券（ご指定）
+   ------------------------------------------------------------
+   BUNNY GIRL FEST（fes13）・戦姫祭（fes11）・RISING STAR FEST（fes12）に
+   「好きなキャラを 1体えらんで入手できるパック」を作った。その券を使うのがここ。
+   ★ 券は<b>そのフェスを開いているときだけ</b>出す（プレミアム券と同じ考えかた）。
+   ★ えらぶ画面は BLACK SELECT と同じ luxOpenSelect を使いまわす
+     （＝限界突破の進みかた・演出・所持の反映が必ずそろう）。
+   ═════════════════════════════════════════════════════ */
+function fesSelTickets(key) {
+  try { return (window.XEVA && XEVA.fesSelect) ? XEVA.fesSelect.get(key) : 0; } catch (e) { return 0; }
+}
+function paintFesSelTicket() {
+  const box = $("#fselbar"); if (!box) return;
+  const key = gMode;
+  const n = (typeof FESSEL_KEYS !== "undefined" && FESSEL_KEYS.indexOf(key) >= 0) ? fesSelTickets(key) : 0;
+  if (!n) { box.innerHTML = ""; return; }
+  const f = fesDef(key), pool = fesSelPool(key);
+  box.innerHTML =
+    '<button class="selcard f" onclick="useFesSelTicket()">' +
+      '<span class="seli">★</span>' +
+      '<span class="selt"><b>' + f.nm + ' セレクト券を使う</b>' +
+        "<small>" + f.nm + " の<b>限定SSR " + pool.length +
+        "体</b>の中から、<b>好きな1体を確定で</b>受け取れます" +
+        "（持っているキャラをえらぶと限界突破が進みます）</small></span>" +
+      '<span class="seln">' + fmt(n) + "</span>" +
+    "</button>";
+}
+let _fselUsing = false;
+function useFesSelTicket() {
+  if (_fselUsing) return;
+  const key = gMode;
+  if (typeof FESSEL_KEYS === "undefined" || FESSEL_KEYS.indexOf(key) < 0) return;
+  if (fesSelTickets(key) <= 0) { paintFesSelTicket(); return; }
+  const f = fesDef(key), pool = fesSelPool(key);
+  if (!pool.length) { paintFesSelTicket(); return; }
+  _fselUsing = true;
+  luxOpenSelect(pool, (id) => {
+    _fselUsing = false;
+    if (!id) { paintFesSelTicket(); return; }   // えらばずに閉じた＝券はそのまま残す
+    /* ★ キャラを受け取れてから券を減らす。順番を逆にすると、
+       途中で失敗したときに「券だけ消えてキャラが来ない」が起きる。 */
+    try { if (window.XEVA && XEVA.fesSelect) XEVA.fesSelect.spend(key, 1, f.nm + " セレクト券"); } catch (e) {}
+    paintAll();
+  }, {
+    cap: (f.nm || "FEST") + " SELECT TICKET",
+    ttl: "★ " + f.nm + " セレクト券",
+    sub: "<b>" + f.nm + "</b> の <b>限定SSR " + pool.length + "体</b>から、"
+       + "<b>好きな1体</b>をえらんで手に入れられます。<br>"
+       + "すでに持っているキャラをえらぶと<b>限界突破</b>が進みます。",
+    cancel: "まだ使用しない",
+    note: "※ この一覧は<b>" + f.nm + " にいま入っている限定SSR そのまま</b>です"
+        + "（あとから加わったキャラもえらべます）。"
+        + "<br>※「まだ使用しない」を押しても<b>券は減りません</b>。あとからいつでも使えます。",
+  });
+}
+window.useFesSelTicket = useFesSelTicket;
+window.addEventListener("xeva:fessel", () => { try { paintFesSelTicket(); } catch (e) {} });
+
 function paintSelTicket() {
   const box = $("#selbar"); if (!box) return;
   const n = selTickets();
@@ -962,9 +1028,300 @@ function useSelTicket() {
 window.useSelTicket = useSelTicket;
 window.addEventListener("xeva:selticket", () => { try { paintSelTicket(); } catch (e) {} });
 
+/* ═════════════════════════════════════════════════════
+   ★★ 2026-09-13c ガチャの<b>天井</b>＝★星煌印（ご指定）
+   ------------------------------------------------------------
+   ・ガチャ<b>1連ごとに 1つ</b>たまる（数えるのは mb-core.js の sealAdd）。
+   ・<b>150個</b>で、そのガチャの<b>ピックアップキャラ</b>から好きな1体と交換。
+   ★ たまっていないときも帯を<b>出しておく</b>。「あと何回で確実にもらえるか」を
+     見せるのが天井の役目なので、隠すと機能そのものが伝わらない。
+   ★ えらぶ画面は BLACK SELECT と同じ luxOpenSelect を使いまわす
+     （＝限界突破の進みかた・演出・所持の反映が必ずそろう）。
+   ═════════════════════════════════════════════════════ */
+function paintSealBar() {
+  const box = $("#sealbar"); if (!box) return;
+  if (typeof sealGet !== "function" || typeof sealKeyOfMode !== "function") { box.innerHTML = ""; return; }
+  const key = sealKeyOfMode(gMode);
+  const pool = (typeof sealPool === "function") ? sealPool(gMode) : [];
+  /* 交換できる相手がいないガチャ（スタンバイ中の GRAND DEBUT など）では出さない */
+  if (!key || !pool.length) { box.innerHTML = ""; return; }
+  const n = sealGet(gMode), need = SEAL_NEED;
+  const rdy = n >= need;
+  const pct = Math.max(0, Math.min(100, (n / need) * 100));
+  const left = Math.max(0, need - n);
+  box.innerHTML =
+    '<div class="sealcard' + (rdy ? " rdy" : "") + '"' + (rdy ? ' onclick="useSeal()"' : "") + ">" +
+      '<img class="sealic" src="' + SEAL_IMG + '" alt="★星煌印">' +
+      '<span class="sealbd"><b>★星煌印（天井）</b>' +
+        "<small>" + (rdy
+          ? "<b>" + need + "個</b>たまりました！ <b>" + gachaNmOfMode(gMode) +
+            "</b> のピックアップ <b>" + pool.length + "体</b>から好きな1体と交換できます"
+          : "1連ごとに1つたまります。<b>あと " + left + "個</b>（＝あと " + left +
+            "回）で、ピックアップ <b>" + pool.length + "体</b>から好きな1体と交換できます") +
+        "</small>" +
+        '<span class="sealtr"><i style="width:' + pct.toFixed(1) + '%"></i></span>' +
+      "</span>" +
+      (rdy ? '<button class="sealgo" onclick="event.stopPropagation();useSeal()">交換する</button>'
+           : '<span class="sealn"><b>' + fmt(n) + "</b><span>／ " + need + "</span></span>") +
+    "</div>";
+}
+let _sealUsing = false;
+function useSeal() {
+  if (_sealUsing) return;
+  const mode = gMode, key = sealKeyOfMode(mode);
+  if (!key) return;
+  if (sealGet(mode) < SEAL_NEED) { paintSealBar(); return; }
+  const pool = sealPool(mode);
+  if (!pool.length) { paintSealBar(); return; }
+  const nm = gachaNmOfMode(mode);
+  _sealUsing = true;
+  luxOpenSelect(pool, (id) => {
+    _sealUsing = false;
+    if (!id) { paintSealBar(); return; }   // えらばずに閉じた＝印はそのまま残す
+    /* ★ キャラを受け取れてから印を減らす。順番を逆にすると、
+       途中で失敗したときに「印だけ消えてキャラが来ない」が起きる。 */
+    try { if (window.XEVA && XEVA.seal) XEVA.seal.spend(key, SEAL_NEED, nm + " 天井交換"); } catch (e) {}
+    paintAll();
+  }, {
+    cap: "SEAL EXCHANGE",
+    ttl: "★星煌印 " + SEAL_NEED + "個 と交換",
+    sub: "<b>" + nm + "</b> の <b>ピックアップ " + pool.length + "体</b>から、"
+       + "<b>好きな1体</b>をえらんで手に入れられます。<br>"
+       + "すでに持っているキャラをえらぶと<b>限界突破</b>が進みます。",
+    cancel: "まだ交換しない",
+    note: "※ ★星煌印は<b>ガチャごとに別</b>にたまります（このガチャのぶんだけが減ります）。"
+        + "<br>※「まだ交換しない」を押しても<b>印は減りません</b>。あとからいつでも交換できます。",
+  });
+}
+window.useSeal = useSeal;
+window.addEventListener("xeva:seal", () => { try { paintSealBar(); } catch (e) {} });
+
+/* ═════════════════════════════════════════════════════
+   ★★ 2026-09-13c 新キャラの<b>紹介アニメ</b>（ご指定）
+   ------------------------------------------------------------
+   「それぞれのガチャで新キャラの紹介のアニメーションを作成し、
+     それぞれのガチャで表示してください」＝ ガチャごとに、そのガチャの
+   NEW キャラを1体ずつ舞台に出す短い映像を流す。
+
+   ★ 出演者は <b>gachaNewIds(mode) 1本</b>（mb-core.js）。
+     確率の NEW 判定（charIsNewNow）と<b>同じ関数</b>を使うので、
+     「NEW と出ているのに紹介に居ない」が起きない。
+   ★ 演出は<b>全部 CSS のアニメ</b>。動画も画像シーケンスも使わない
+     （更新画面と同じ理由——重いし、端末によっては再生されない）。
+   ★ 絵は<b>すでにガチャで読んでいるキャラ絵</b>（CHARS[id].img）だけ。
+     新しい素材を作らないので、キャラを足せば紹介も自動で増える。
+   ★ 自動再生は<b>そのガチャの その顔ぶれで1回だけ</b>（見た印を localStorage に持つ）。
+     顔ぶれが変われば印も変わる＝キャラが増えたらまた流れる。
+     何度でも見たい人のために、帯（#ncibar）から手で開ける。
+   ═════════════════════════════════════════════════════ */
+const NCI_SEEN_KEY = "mb_nci_seen_v1";
+/* ★ このファイルにはエスケープの道具が無かったので作る
+   （キャラの名前・技の名前を innerHTML へ入れるので必ず通す）。 */
+function nciEsc(s) {
+  return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+const NCI_MS = 5200;                 /* 1体を見せる長さ（帯が5本あるので長め） */
+
+/* ══ ★★ 2026-09-13d 技の帯の台帳（ご指定の配置案どおり）══
+   BURST ／ LINK SKILL ／ SUB LINK SKILL ／ SHOT SKILL ／ NEXUS SKILL の5本。
+   ★ 色と印はここ1か所。帯を足すときもここへ1行足すだけにする。
+   ★ 印（SVG）は<b>直に書く</b>——外の画像にすると、オフラインで穴が開く。 */
+const NCI_KIND = {
+  burst: { en: "BURST",          jp: "バースト",         c: "#ff5b9c", c2: "#c2185b",
+    ic: '<svg viewBox="0 0 24 24"><path d="M12 1.6l2.2 6.1 6.2 2.3-6.2 2.3L12 18.4l-2.2-6.1L3.6 10l6.2-2.3Z" fill="#fff"/><path d="M19.4 15.6l.9 2.4 2.4.9-2.4.9-.9 2.4-.9-2.4-2.4-.9 2.4-.9Z" fill="#fff" opacity=".85"/></svg>' },
+  link:  { en: "LINK SKILL",     jp: "リンクスキル",      c: "#4fb0ff", c2: "#1f5cbe",
+    ic: '<svg viewBox="0 0 24 24"><g fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round"><path d="M9.6 14.4l4.8-4.8"/><path d="M13 6.6l1.3-1.3a3.9 3.9 0 015.5 5.5l-1.3 1.3"/><path d="M11 17.4l-1.3 1.3a3.9 3.9 0 01-5.5-5.5l1.3-1.3"/></g></svg>' },
+  sub:   { en: "SUB LINK SKILL", jp: "サブリンクスキル",  c: "#3fd9b4", c2: "#0e8a5c",
+    ic: '<svg viewBox="0 0 24 24"><g fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round"><path d="M8.4 13.2l4-4"/><path d="M11.4 6.4l1.1-1.1a3.5 3.5 0 014.9 4.9l-1.1 1.1"/><path d="M9.6 16l-1.1 1.1a3.5 3.5 0 01-4.9-4.9l1.1-1.1"/><path d="M18 15v5M15.5 17.5h5"/></g></svg>' },
+  shot:  { en: "SHOT SKILL",     jp: "ショットスキル",    c: "#a97bff", c2: "#5b32c8",
+    ic: '<svg viewBox="0 0 24 24"><g fill="none" stroke="#fff" stroke-width="2"><circle cx="12" cy="12" r="6.6"/><circle cx="12" cy="12" r="2.4" fill="#fff" stroke="none"/><path d="M12 1.8v3.2M12 19v3.2M1.8 12h3.2M19 12h3.2" stroke-linecap="round"/></g></svg>' },
+  nexus: { en: "NEXUS SKILL",    jp: "ネクサススキル",    c: "#ffc247", c2: "#c07a00",
+    ic: '<svg viewBox="0 0 24 24"><path d="M12 1.4l2 6.1 6.1 2-6.1 2-2 6.1-2-6.1-6.1-2 6.1-2Z" fill="#fff"/><path d="M12 19.2l.9 2.6.9-2.6-.9-.5Z" fill="#fff" opacity=".8"/><circle cx="12" cy="11.5" r="1.6" fill="#c07a00"/></svg>' },
+};
+/* 説明は台帳のまま（<b> や <br> 入り）なので、<b>ふつうの文字にほどく</b>。
+   ★ innerHTML へ入れる前に必ず通すこと。 */
+function nciPlain(s) {
+  return String(s == null ? "" : s)
+    .replace(/<br\s*\/?>/gi, " ")
+    .replace(/<[^>]+>/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+/* そのキャラの5本ぶんを組み立てる。★ <b>持っているものだけ</b>並べる。 */
+function nciRowsOf(c) {
+  const rows = [];
+  const push = (k, nm, d) => { if (nm) rows.push({ k, nm, d: nciPlain(d) }); };
+  push("burst", c.ssName, c.ssDesc || c.ssPow);
+  push("link", c.fsName, c.fsDesc || c.fsPow);
+  try {
+    const s = (typeof SUBFS !== "undefined" && c.subfs) ? SUBFS[c.subfs] : null;
+    if (s) push("sub", s.nm, s.desc || s.pow);
+  } catch (e) {}
+  try {
+    const s = (typeof SHOTSKILLS !== "undefined" && c.shotskill) ? SHOTSKILLS[c.shotskill] : null;
+    if (s) push("shot", s.nm, s.desc || s.pow);
+  } catch (e) {}
+  try {
+    const n = (typeof NEXUS !== "undefined" && c.nexus) ? NEXUS[c.nexus] : null;
+    if (n) push("nexus", n.nm, n.desc);
+  } catch (e) {}
+  return rows;
+}
+
+function nciSeenLoad() {
+  try { const r = localStorage.getItem(NCI_SEEN_KEY); const o = r ? JSON.parse(r) : null;
+        return (o && typeof o === "object") ? o : {}; } catch (e) { return {}; }
+}
+function nciSeenSave(o) { try { localStorage.setItem(NCI_SEEN_KEY, JSON.stringify(o)); } catch (e) {} }
+/* 「そのガチャの いまの顔ぶれ」を1本の文字列にしたもの（＝見た印のしるし） */
+function nciSig(mode) {
+  const ids = (typeof gachaNewIds === "function") ? gachaNewIds(mode) : [];
+  return ids.length ? ids.slice().sort().join(",") : "";
+}
+function nciIsSeen(mode) {
+  const sig = nciSig(mode);
+  return !sig || nciSeenLoad()[sealKeyOfMode(mode) || mode] === sig;
+}
+function nciMarkSeen(mode) {
+  const sig = nciSig(mode); if (!sig) return;
+  const o = nciSeenLoad(); o[sealKeyOfMode(mode) || mode] = sig; nciSeenSave(o);
+}
+
+/* 入口の帯。NEW のキャラがいるときだけ出す。 */
+function paintNciBar() {
+  const box = $("#ncibar"); if (!box) return;
+  if (typeof gachaNewIds !== "function") { box.innerHTML = ""; return; }
+  const ids = gachaNewIds(gMode);
+  if (!ids.length) { box.innerHTML = ""; return; }
+  const face = ids.slice(0, 5).map((id) =>
+    '<img src="' + CHARS[id].th + '" alt="' + nciEsc(CHARS[id].nm) + '" loading="lazy">').join("");
+  box.innerHTML =
+    '<button class="ncib" onclick="nciOpen()">' +
+      '<span class="ncibi">🎬</span>' +
+      '<span class="ncibt"><b>新キャラクター紹介を見る</b>' +
+        "<small>" + gachaNmOfMode(gMode) + " の <b>NEW " + ids.length + "体</b>を紹介します</small></span>" +
+      '<span class="ncibf">' + face + "</span>" +
+    "</button>";
+}
+
+let _nciIds = [], _nciAt = 0, _nciT = 0, _nciMode = "";
+function nciClose() {
+  const ov = $("#nciOv"); if (!ov) return;
+  if (_nciT) { clearTimeout(_nciT); _nciT = 0; }
+  ov.classList.remove("on");
+  try { document.body.style.overflow = ""; } catch (e) {}
+  try { nciMarkSeen(_nciMode); } catch (e) {}
+  try { paintNciBar(); } catch (e) {}
+}
+window.nciClose = nciClose;
+
+/* 1体ぶんを舞台に出す。★ 毎回 class を付け直さないとアニメが再生されない
+   （同じ要素を使いまわしているので、いったん外して次のフレームで付ける）。 */
+function nciShow(i) {
+  const c = CHARS[_nciIds[i]]; if (!c) { nciClose(); return; }
+  const el = ELEM[c.el] || { jp: "", nm: "", c: "#4f9bf0" };
+  const ov = $("#nciOv");
+  /* 空の色はその子の属性に寄せる（案の「水色の空」を属性色でうっすら染める） */
+  ov.style.setProperty("--nc", el.c);
+  ov.style.setProperty("--nc2", el.tint || el.c);
+
+  const fl = $("#nciFlash"); fl.classList.remove("go"); void fl.offsetWidth; fl.classList.add("go");
+
+  /* ★★ 2026-09-13c 立ち絵（c.img）はキャッシュしていないので、
+     オフラインだと取れないことがある。そのときは<b>サムネイル（c.th）へ落とす</b>。 */
+  const art = $("#nciArt");
+  art.classList.remove("go");
+  art.innerHTML = '<img src="' + c.img + '" alt="' + nciEsc(c.nm) + '" ' +
+    'onerror="if(this.dataset.fb)return;this.dataset.fb=1;this.src=' + "'" + c.th + "'" + '">';
+  void art.offsetWidth; art.classList.add("go");
+
+  $("#nciEl").textContent = el.jp + "属性 ・ " + el.nm;
+
+  /* 名前は1文字ずつ跳ねる（更新画面・同期画面とそろえてある） */
+  const nm = $("#nciNm");
+  nm.innerHTML = String(c.nm).split("").map((ch, k) =>
+    '<span class="hp' + (ch === " " ? " sp" : "") + '" style="animation-delay:'
+    + (0.28 + k * 0.07).toFixed(3) + 's">' + (ch === " " ? "" : nciEsc(ch)) + "</span>").join("");
+
+  const no = (typeof charNoOf === "function") ? charNoOf(_nciIds[i]) : "";
+  $("#nciTy").textContent = (no ? no + " ・ " : "") + (c.type || "");
+
+  /* 技の帯。★ ある項目だけ出す（無いキャラで空の帯が残らないように） */
+  const rows = nciRowsOf(c);
+  const sk = $("#nciSk");
+  sk.innerHTML = rows.map((r, k) => {
+    const d = NCI_KIND[r.k];
+    return '<div class="nrow" style="--rc:' + d.c + ';--rc2:' + d.c2 + ';animation-delay:'
+      + (0.5 + k * 0.15).toFixed(2) + 's">' +
+      '<span class="nr-badge"><span class="nr-ic">' + d.ic + "</span>" +
+        '<span class="nr-lb">' + d.en + "<i>" + d.jp + "</i></span></span>" +
+      '<span class="nr-bd">' +
+        '<span class="nr-t"><b>' + nciEsc(r.nm) + "</b><s></s><em>✦</em></span>" +
+        '<span class="nr-d">' + nciEsc(r.d) + "</span>" +
+      "</span>" +
+      '<span class="nr-th"><img src="' + c.th + '" alt="" loading="lazy"></span>' +
+      "</div>";
+  }).join("");
+  requestAnimationFrame(() => sk.querySelectorAll(".nrow").forEach((r) => r.classList.add("go")));
+
+  const dots = $("#nciDots");
+  dots.innerHTML = _nciIds.map((x, k) => '<i class="' + (k === i ? "on" : "") + '"></i>').join("");
+  $("#nciCap").textContent = (i + 1) + " / " + _nciIds.length;
+
+  /* パネルは1体ごとに上へ戻す（前の子で下までスクロールしたまま次が出ない） */
+  try { const p = ov.querySelector(".nci-panel"); if (p) p.scrollTop = 0; } catch (e) {}
+
+  if (_nciT) { clearTimeout(_nciT); }
+  _nciT = setTimeout(nciNext, NCI_MS);
+}
+function nciNext() {
+  _nciAt++;
+  if (_nciAt >= _nciIds.length) { nciClose(); return; }
+  nciShow(_nciAt);
+}
+
+function nciOpen(mode) {
+  mode = mode || gMode;
+  if (typeof gachaNewIds !== "function") return;
+  const ids = gachaNewIds(mode);
+  if (!ids.length) return;
+  const ov = $("#nciOv"); if (!ov) return;
+  _nciIds = ids; _nciAt = 0; _nciMode = mode;
+  ov.classList.add("on");
+  try { document.body.style.overflow = "hidden"; } catch (e) {}
+  /* ★ タップで次へ。閉じるボタンと<b>スクロールできる帯の上</b>では拾わない
+     （説明を読もうとしただけで次へ飛んでしまう）。 */
+  ov.onclick = (e) => {
+    const t = e.target;
+    if (t && t.closest && (t.closest(".nci-x") || t.closest(".nrow"))) return;
+    nciNext();
+  };
+  try { if (window.SFX && SFX.pick) SFX.pick(); } catch (e) {}
+  nciShow(0);
+}
+window.nciOpen = nciOpen;
+
+/* ガチャを開いたとき・切りかえたときに、まだ見ていない紹介を1回だけ自動で流す。
+   ★ 描き終わってから開く（描画の途中で全画面をかぶせると、下の画面が組み上がらない）。 */
+let _nciAuto = 0;
+function nciMaybeAuto() {
+  if (_nciAuto) { clearTimeout(_nciAuto); _nciAuto = 0; }
+  const mode = gMode;
+  _nciAuto = setTimeout(() => {
+    try {
+      if (document.getElementById("nciOv") && !nciIsSeen(mode) && mode === gMode
+          && !document.querySelector("#luxSelOv")) nciOpen(mode);
+    } catch (e) {}
+  }, 620);
+}
+
 function paintAll() {
   paintWal(); paintPicker(); paintHero(); paintPickup(); paintNote(); paintPullBar();
+  paintNciBar();
   paintSelTicket();
+  paintFesSelTicket();
+  paintSealBar();
   /* ★★ 2026-08-22b えらばずに閉じた BLACK SELECT（SSRセレクト）があれば出しなおす。
      mb-core.js の paintGacha は gacha-ui.js が丸ごと上書きしているので、こちらにも要る。 */
   try {
@@ -985,3 +1342,5 @@ window.addEventListener("xeva:cryst", () => { paintWal(); });
      1回目の描画から出なくなる（気づかないうちに消えた、になる）。 */
 paintAll();
 try { if (markGachaSeen(gMode)) paintPicker(); } catch (e) {}
+/* ★★ 2026-09-13c まだ見ていない新キャラ紹介を1回だけ自動で流す（ご指定） */
+try { nciMaybeAuto(); } catch (e) {}

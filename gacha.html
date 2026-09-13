@@ -6,7 +6,7 @@
 <script>(function(){try{var a=JSON.parse(localStorage.getItem('xeva_account_v1'));if(!a||!a.setupDone)location.replace('index.html');}catch(e){}})();</script>
 <script type="module" src="xevarion-fb.js?v=33"></script>
 <script src="xeva-presence.js?v=9" defer></script>
-<script type="module" src="xeva-cloud.js?v=28"></script>
+<script type="module" src="xeva-cloud.js?v=31"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -22,7 +22,7 @@
 <link rel="stylesheet" href="mb-gacha-reveal.css?v=11">
 <!-- ★ 2026-08-10 キャラ詳細（性能画面）の見た目。図鑑（characters.html）と共通 -->
 <link rel="stylesheet" href="mb-char-detail.css?v=23">
-<script src="xeva.js?v=62"></script>
+<script src="xeva.js?v=65"></script>
 <!-- ★★ 2026-09-05 言語切りかえ（日本語 ⇄ English）。辞書は本体のあとに読むこと。 -->
 <script src="xeva-i18n.js?v=8"></script>
 <script src="xeva-i18n-dict.js?v=12"></script>
@@ -42,7 +42,7 @@
 <!-- ★★ 2026-09-06b 今回足したもの（新キャラ14体・装備・スタメンなど）の英語辞書 -->
 <script src="xeva-i18n-n1.js?v=5"></script>
 <script src="xeva-i18n-n2.js?v=3"></script>
-<script src="xeva-loading.js?v=14" defer></script>
+<script src="xeva-loading.js?v=15" defer></script>
 <script src="magibattle-stats.js?v=14"></script>
 <script type="module" src="xeva-sync.js?v=18"></script>
 <style>
@@ -450,7 +450,22 @@ body::after{width:320px;height:320px;background:radial-gradient(circle,rgba(255,
          持っているときだけ出る。中身は gacha-ui.js の paintSelTicket() が入れる。 -->
     <div id="selbar"></div>
 
+    <!-- ★★ 2026-09-13 フェスセレクト券（BUNNY GIRL・戦姫祭・RISING STAR）。
+         そのフェスを開いていて、券を持っているときだけ出る。
+         中身は gacha-ui.js の paintFesSelTicket() が入れる。 -->
+    <div id="fselbar"></div>
+
+    <!-- ★★ 2026-09-13c ガチャの<b>天井</b>（★星煌印）。
+         1連ごとに1つたまり、150個でそのガチャのピックアップキャラと交換できる。
+         中身は gacha-ui.js の paintSealBar() が入れる。 -->
+    <div id="sealbar"></div>
+
     <div class="ghero" id="ghero"></div>
+
+    <!-- ★★ 2026-09-13c 新キャラ紹介アニメの入口（ご指定）。
+         そのガチャに NEW のキャラがいるときだけ出る。
+         中身は gacha-ui.js の paintNciBar() が入れる。 -->
+    <div id="ncibar"></div>
     <div id="pkwrap"></div>
     <div class="note" id="gnote"></div>
     <style>
@@ -470,6 +485,228 @@ body::after{width:320px;height:320px;background:radial-gradient(circle,rgba(255,
       #selbar .selt small b{display:inline;font-weight:900}
       #selbar .seln{flex:none;font-family:'Orbitron',sans-serif;font-weight:900;font-size:17px;
         background:rgba(255,255,255,.92);color:#c2185b;border-radius:99px;padding:3px 11px}
+      /* ★★ 2026-09-13 フェスセレクト券の帯。見た目はプレミアム券とそろえ、
+         地の色だけ変えて「別の券」と分かるようにする。 */
+      #fselbar{margin:0 0 12px}
+      #fselbar .selcard{display:flex;align-items:center;gap:11px;width:100%;text-align:left;cursor:pointer;
+        padding:13px 14px;border-radius:16px;border:none;color:#fff;font-family:inherit;
+        background:linear-gradient(135deg,#7b5cf0,#ff5d8f 55%,#38a6ff);
+        box-shadow:0 8px 24px rgba(123,92,240,.4)}
+      #fselbar .selcard:active{transform:scale(.99)}
+      #fselbar .seli{flex:none;font-size:24px;line-height:1}
+      #fselbar .selt{flex:1;min-width:0}
+      #fselbar .selt > b{display:block;font-size:13.5px;font-weight:900;letter-spacing:.02em}
+      #fselbar .selt small{display:block;margin-top:3px;font-size:10.5px;font-weight:700;opacity:.92;line-height:1.6}
+      #fselbar .selt small b{display:inline;font-weight:900}
+      #fselbar .seln{flex:none;font-family:'Orbitron',sans-serif;font-weight:900;font-size:17px;
+        background:rgba(255,255,255,.92);color:#5b32c8;border-radius:99px;padding:3px 11px}
+      /* ★★ 2026-09-13c 天井（★星煌印）の帯。
+         ★ たまっていないときも<b>出しておく</b>——「あと何回で確実にもらえるか」が
+           見えていないと天井の意味が無い（券の帯は持っているときだけ、とは考えかたが違う）。 */
+      #sealbar{margin:0 0 12px}
+      #sealbar .sealcard{display:flex;align-items:center;gap:11px;width:100%;text-align:left;
+        padding:12px 14px;border-radius:16px;border:1px solid rgba(123,92,240,.26);
+        background:linear-gradient(135deg,#131a3a,#241a4d 58%,#123049);color:#fff;
+        font-family:inherit;box-shadow:0 8px 22px rgba(20,26,64,.28)}
+      #sealbar .sealcard.rdy{border-color:#ffd257;cursor:pointer;
+        box-shadow:0 8px 26px rgba(255,210,87,.34)}
+      #sealbar .sealcard.rdy:active{transform:scale(.99)}
+      #sealbar .sealic{flex:none;width:44px;height:44px;display:block}
+      #sealbar .sealbd{flex:1;min-width:0}
+      #sealbar .sealbd > b{display:block;font-size:13px;font-weight:900;letter-spacing:.02em}
+      #sealbar .sealbd small{display:block;margin-top:3px;font-size:10.5px;font-weight:700;
+        opacity:.9;line-height:1.6}
+      #sealbar .sealbd small b{display:inline;font-weight:900;color:#ffd257}
+      #sealbar .sealtr{margin-top:7px;height:8px;border-radius:99px;overflow:hidden;
+        background:rgba(255,255,255,.14)}
+      #sealbar .sealtr i{display:block;height:100%;width:0;border-radius:99px;
+        background:linear-gradient(90deg,#38a6ff,#8e6bff 52%,#ffd257);
+        transition:width .45s cubic-bezier(.3,.8,.35,1)}
+      #sealbar .sealn{flex:none;text-align:right;font-family:'Orbitron',sans-serif;font-weight:900}
+      #sealbar .sealn b{display:block;font-size:19px;line-height:1.1;color:#ffd257}
+      #sealbar .sealn span{display:block;font-size:10px;opacity:.7}
+      #sealbar .sealgo{flex:none;padding:8px 14px;border:none;border-radius:99px;cursor:pointer;
+        font-family:inherit;font-size:12px;font-weight:900;color:#3a2600;
+        background:linear-gradient(135deg,#ffd257,#ff9f2e)}
+
+      /* ══ ★★ 2026-09-13d 新キャラ紹介アニメ（ご指定の<b>配置案</b>どおりに作り直し）══
+         ------------------------------------------------------------
+         ・左に<b>立ち絵</b>（画面の端まで）／右に「NEW CHARACTER」の見出しと
+           <b>5本の技の帯</b>（BURST／LINK／SUB LINK／SHOT／NEXUS）。
+         ・帯はそれぞれ<b>丸い印＋英日の札</b>、名前、説明、右に小さな絵。
+         ・演出は<b>全部 CSS のアニメ</b>。動画も画像シーケンスも使わない。
+         ★ せまい画面（スマホ）では立ち絵を<b>背景</b>に回して1列にする。
+           2列のまま縮めると、帯の文字が3文字ずつになって読めない。 */
+      #ncibar{margin:0 0 12px}
+      #ncibar .ncib{display:flex;align-items:center;gap:11px;width:100%;text-align:left;cursor:pointer;
+        padding:11px 14px;border-radius:16px;border:none;color:#fff;font-family:inherit;
+        background:linear-gradient(120deg,#1b1140,#5b32c8 46%,#ff5d8f);
+        box-shadow:0 8px 24px rgba(91,50,200,.4);position:relative;overflow:hidden}
+      #ncibar .ncib::after{content:"";position:absolute;top:-60%;left:-30%;width:36%;height:220%;
+        background:linear-gradient(90deg,transparent,rgba(255,255,255,.42),transparent);
+        transform:rotate(18deg);animation:nciSheen 2.8s ease-in-out infinite}
+      @keyframes nciSheen{0%{left:-40%}55%,100%{left:120%}}
+      #ncibar .ncib:active{transform:scale(.99)}
+      #ncibar .ncibi{flex:none;font-size:22px;line-height:1;z-index:2}
+      #ncibar .ncibt{flex:1;min-width:0;z-index:2}
+      #ncibar .ncibt > b{display:block;font-size:13.5px;font-weight:900;letter-spacing:.02em}
+      #ncibar .ncibt small{display:block;margin-top:3px;font-size:10.5px;font-weight:700;opacity:.94}
+      #ncibar .ncibf{flex:none;display:flex;z-index:2}
+      #ncibar .ncibf img{width:30px;height:30px;border-radius:50%;object-fit:cover;
+        border:2px solid rgba(255,255,255,.9);margin-left:-11px;background:#2a2050}
+      #ncibar .ncibf img:first-child{margin-left:0}
+
+      /* ── 全画面の紹介 ── */
+      .nci{position:fixed;inset:0;z-index:9600;display:none;overflow:hidden;
+        background:#eaf3ff;opacity:0;transition:opacity .32s ease;
+        --nc:#4f9bf0;--nc2:#1f5cbe}
+      .nci.on{display:block;opacity:1}
+      /* 空。案のとおり<b>明るい水色〜白</b>の下地に、属性の色をうっすら混ぜる。 */
+      .nci .nci-sky{position:absolute;inset:0;overflow:hidden;
+        background:linear-gradient(160deg,#f4fbff 0%,#e7f2ff 42%,#eef0ff 100%)}
+      .nci .nci-sky i{position:absolute;border-radius:50%;filter:blur(60px);opacity:.5}
+      .nci .nci-sky .s1{width:70vw;height:70vw;left:-22vw;top:-18vw;background:var(--nc)}
+      .nci .nci-sky .s2{width:62vw;height:62vw;right:-20vw;bottom:-16vw;background:var(--nc2);opacity:.28}
+      .nci .nci-rays{position:absolute;left:50%;top:22%;width:190vmax;height:190vmax;
+        transform:translate(-50%,-50%);opacity:.16;
+        background:repeating-conic-gradient(from 0deg,rgba(255,255,255,.95) 0deg 2.2deg,transparent 2.2deg 11deg);
+        animation:nciSpin 30s linear infinite}
+      @keyframes nciSpin{to{transform:translate(-50%,-50%) rotate(360deg)}}
+      .nci .nci-flash{position:absolute;inset:0;background:#fff;opacity:0;pointer-events:none;z-index:5}
+      .nci .nci-flash.go{animation:nciFlash .62s ease-out both}
+      @keyframes nciFlash{0%{opacity:.95}100%{opacity:0}}
+
+      /* 立ち絵。
+         ★★ 2026-09-13d せまい画面（スマホ）では<b>画面いっぱいに注ぎこんで顔を上に出す</b>。
+         contain だと絵が<b>下に居座ってしまい、下のパネルに丸ごと隠れる</b>
+         （実際、上半分が空っぽになった）。 */
+      .nci .nci-art{position:absolute;left:0;top:0;bottom:0;width:100%;z-index:1;
+        display:grid;place-items:stretch;pointer-events:none}
+      .nci .nci-art img{width:100%;height:100%;object-fit:cover;object-position:top center}
+      .nci .nci-art.go img{animation:nciRise 1.05s cubic-bezier(.2,.85,.3,1) both}
+      @keyframes nciRise{
+        0%{opacity:0;transform:translateY(7%) scale(1.09)}
+        100%{opacity:1;transform:translateY(0) scale(1)}}
+      /* 文字の地。立ち絵が明るいと読めないので、必ず薄い幕を敷く。 */
+      .nci .nci-scrim{position:absolute;inset:0;z-index:2;pointer-events:none;
+        background:linear-gradient(180deg,rgba(244,251,255,.55) 0%,rgba(240,248,255,.2) 16%,
+          rgba(238,246,255,.84) 36%,rgba(240,247,255,.96) 52%,rgba(240,247,255,.99) 100%)}
+
+      /* 手書き風の飾り（案の左下） */
+      .nci .nci-script{position:absolute;left:14px;z-index:3;pointer-events:none;
+        top:calc(12px + env(safe-area-inset-top,0px));
+        font-family:'Georgia','Times New Roman',serif;font-style:italic;
+        font-size:13px;line-height:1.25;color:var(--nc2);opacity:.5;letter-spacing:.02em}
+      .nci .nci-script em{font-size:16px}
+
+      .nci .nci-panel{position:absolute;left:0;right:0;bottom:0;z-index:4;
+        max-height:76%;overflow-y:auto;-webkit-overflow-scrolling:touch;
+        padding:4px 14px calc(46px + env(safe-area-inset-bottom,0px));
+        display:flex;flex-direction:column;align-items:center}
+
+      /* ── 見出し ── */
+      .nci .nci-head{text-align:center;flex:none}
+      .nci .nh-orn{display:block;font-size:13px;color:var(--nc2);opacity:.75;line-height:1}
+      .nci .nh-en{font-family:'Orbitron',sans-serif;font-weight:900;font-size:clamp(21px,6.6vw,40px);
+        letter-spacing:.02em;line-height:1.05;
+        background:linear-gradient(180deg,#5aa8ff 0%,#2b64d8 52%,#1b3fa0 100%);
+        -webkit-background-clip:text;background-clip:text;color:transparent;
+        filter:drop-shadow(0 2px 0 rgba(255,255,255,.9)) drop-shadow(0 6px 14px rgba(40,80,170,.28))}
+      .nci .nh-jp{display:flex;align-items:center;justify-content:center;gap:8px;margin-top:3px}
+      .nci .nh-jp i{flex:0 0 26px;height:1px;background:var(--nc2);opacity:.45}
+      .nci .nh-jp span{font-size:10.5px;font-weight:900;letter-spacing:.34em;color:#3a5da8}
+
+      /* ── 名前の行 ── */
+      .nci .nci-who{margin-top:8px;text-align:center;flex:none}
+      .nci .nw-el{display:inline-block;padding:2px 11px;border-radius:99px;
+        font-size:10px;font-weight:900;letter-spacing:.08em;color:#fff;
+        background:linear-gradient(135deg,var(--nc),var(--nc2));
+        box-shadow:0 4px 12px rgba(40,80,170,.3)}
+      .nci .nw-nm{display:block;margin-top:4px;font-size:clamp(20px,5.6vw,30px);font-weight:900;
+        color:#16336e;line-height:1.15;text-shadow:0 2px 0 rgba(255,255,255,.85)}
+      .nci .nw-nm .hp{display:inline-block;white-space:pre;transform-origin:50% 100%;
+        animation:nciHop 1.05s cubic-bezier(.3,.8,.35,1) both}
+      .nci .nw-nm .hp.sp{width:.32em}
+      @keyframes nciHop{
+        0%{opacity:0;transform:translateY(46%) scale(.86)}
+        58%{opacity:1;transform:translateY(-16%) scale(1.06,.95)}
+        78%{transform:translateY(0) scale(1.03,.98)}
+        100%{opacity:1;transform:translateY(0) scale(1)}}
+      .nci .nw-ty{display:block;margin-top:1px;font-size:10.5px;font-weight:800;color:#5f79ad}
+
+      /* ── 技の帯 ── */
+      .nci .nci-rows{margin-top:10px;width:min(96vw,560px);display:flex;flex-direction:column;gap:8px}
+      .nci .nrow{display:flex;align-items:center;gap:9px;padding:7px 9px 7px 7px;
+        border-radius:16px;opacity:0;transform:translateX(14px);
+        background:linear-gradient(100deg,rgba(255,255,255,.96),rgba(255,255,255,.8));
+        border:1.5px solid color-mix(in srgb,var(--rc) 46%,#ffffff);
+        box-shadow:0 6px 16px rgba(40,80,170,.14),inset 0 0 0 1px rgba(255,255,255,.7)}
+      .nci .nrow.go{animation:nciSlide .52s cubic-bezier(.2,.85,.3,1) both}
+      @keyframes nciSlide{to{opacity:1;transform:translateX(0)}}
+      .nci .nr-badge{flex:none;width:58px;display:flex;flex-direction:column;align-items:center;gap:3px}
+      .nci .nr-ic{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;
+        background:radial-gradient(120% 120% at 35% 25%,#fff 0%,var(--rc) 46%,var(--rc2) 100%);
+        box-shadow:0 3px 10px color-mix(in srgb,var(--rc) 55%,transparent),
+          inset 0 0 0 2px rgba(255,255,255,.55)}
+      .nci .nr-ic svg{width:21px;height:21px;display:block}
+      .nci .nr-lb{display:block;width:100%;text-align:center;border-radius:99px;padding:1.5px 2px 2px;
+        background:linear-gradient(180deg,var(--rc),var(--rc2));color:#fff;
+        font-family:'Orbitron',sans-serif;font-size:6.5px;font-weight:900;letter-spacing:.04em;
+        line-height:1.15;box-shadow:0 2px 6px rgba(40,80,170,.24)}
+      .nci .nr-lb i{display:block;font-style:normal;font-family:inherit;font-size:6px;
+        font-weight:700;opacity:.92;letter-spacing:0}
+      .nci .nr-bd{flex:1;min-width:0}
+      .nci .nr-t{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:900;
+        color:var(--rc2);line-height:1.25}
+      .nci .nr-t b{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+      .nci .nr-t s{flex:1;height:1px;min-width:10px;background:var(--rc);opacity:.35;text-decoration:none}
+      .nci .nr-t em{flex:none;font-style:normal;font-size:10px;color:var(--rc)}
+      .nci .nr-d{margin-top:2px;font-size:10px;font-weight:700;color:#43567e;line-height:1.45;
+        overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+      .nci .nr-th{flex:none;width:46px;height:38px;border-radius:9px;overflow:hidden;
+        border:1.5px solid color-mix(in srgb,var(--rc) 55%,#ffffff);background:#dfe9fb}
+      .nci .nr-th img{width:100%;height:100%;object-fit:cover;display:block}
+
+      /* ── 下の帯 ── */
+      .nci .nci-foot{position:absolute;left:0;right:0;z-index:6;display:flex;
+        align-items:center;justify-content:center;gap:9px;
+        bottom:calc(22px + env(safe-area-inset-bottom,0px))}
+      .nci .nci-dots{display:flex;gap:5px}
+      .nci .nci-dots i{width:6px;height:6px;border-radius:50%;background:rgba(40,80,170,.26);
+        transition:width .3s,background .3s}
+      .nci .nci-dots i.on{width:18px;border-radius:99px;background:var(--nc2)}
+      .nci .nci-cap{font-family:'Orbitron',sans-serif;font-size:10px;font-weight:900;color:#5f79ad}
+      .nci .nci-x{position:absolute;top:calc(12px + env(safe-area-inset-top,0px));right:12px;z-index:7;
+        padding:7px 14px;border:none;border-radius:99px;cursor:pointer;font-family:inherit;
+        font-size:11.5px;font-weight:900;color:#284b90;background:rgba(255,255,255,.82);
+        box-shadow:0 4px 12px rgba(40,80,170,.2)}
+      .nci .nci-tap{position:absolute;left:0;right:0;z-index:6;text-align:center;
+        bottom:calc(7px + env(safe-area-inset-bottom,0px));
+        font-size:9.5px;font-weight:800;color:rgba(60,90,150,.5)}
+
+      /* ── ひろい画面（タブレット・PC）は<b>案のとおり2列</b> ── */
+      @media (min-width:860px){
+        /* ★★ 2026-09-13d 広い画面では立ち絵を<b>左半分に注ぎこむ</b>（配置案どおり）。
+           contain のままだと下に小さく居座るだけで、案の「端まで絵」にならない。 */
+        .nci .nci-art{right:auto;width:46%;place-items:stretch}
+        .nci .nci-art img{width:100%;height:100%;max-height:none;object-fit:cover;object-position:top center}
+        .nci .nci-scrim{background:linear-gradient(90deg,rgba(240,247,255,0) 26%,
+          rgba(240,247,255,.72) 40%,rgba(240,247,255,.97) 52%)}
+        .nci .nci-panel{left:47%;right:0;top:0;bottom:0;max-height:none;justify-content:center;
+          padding:18px 26px 60px}
+        .nci .nci-rows{width:100%}
+        .nci .nr-d{-webkit-line-clamp:3;font-size:11px}
+        .nci .nci-script{left:22px;top:auto;bottom:34px;font-size:17px}
+        .nci .nci-script em{font-size:21px}
+      }
+      @media (max-width:359px){
+        .nci .nr-th{display:none}
+        .nci .nr-badge{width:50px}
+      }
+      @media (prefers-reduced-motion: reduce){
+        .nci .nci-rays,#ncibar .ncib::after{animation:none}
+        .nci .nw-nm .hp,.nci .nci-art.go img,.nci .nrow.go{animation-duration:.01s}
+      }
     </style>
     <button class="ratebtn" onclick="openRatesX()">📊 提供割合を見る（排出キャラクターの一覧）<span>›</span></button>
     <!-- ★ 2026-08-10 ここにあった「排出キャラクター」のグリッド（#cgrid）は廃止しました。
@@ -515,14 +752,42 @@ body::after{width:320px;height:320px;background:radial-gradient(circle,rgba(255,
 <!-- ★★ 2026-09-08 新キャラの<b>実装日</b>の台帳。
      mb-core.js の charImplDate() がこれを見て「実装から10日以内か」を判定する。
      ★ mb-core.js より<b>前</b>に読むこと（defer にしない）。 -->
-<script src="mb-newchars.js?v=23"></script>
-<script src="MagiBurst/js/mb-core.js?v=112"></script>
+<script src="mb-newchars.js?v=24"></script>
+<script src="MagiBurst/js/mb-core.js?v=115"></script>
 <!-- ★ 2026-08-10 キャラ詳細（性能画面）。図鑑（characters.html）と同じものを使う -->
 <!-- ★★ 2026-08-22 ガチャの詳細だけ「このキャラの最大値」も並べる（ご指定）。
      図鑑（characters.html）はこの旗を立てないので、これまでどおり いまの値だけ。
      旗は mb-char-detail.js を読む<b>前</b>に立てること。 -->
 <script>window.MBDET_MAXSTATS = true;</script>
 <script src="mb-char-detail.js?v=28"></script>
-<script src="gacha-ui.js?v=40"></script>
+<script src="gacha-ui.js?v=43"></script>
+    <!-- ★★ 2026-09-13c 新キャラ紹介アニメの舞台。中身は gacha-ui.js の nciOpen() が入れる。 -->
+    <div class="nci" id="nciOv">
+      <div class="nci-sky"><i class="s1"></i><i class="s2"></i><div class="nci-rays"></div></div>
+      <div class="nci-flash" id="nciFlash"></div>
+      <div class="nci-art" id="nciArt"></div>
+      <div class="nci-scrim"></div>
+      <div class="nci-script">Special<br><em>New Character</em></div>
+      <button class="nci-x" onclick="nciClose()">スキップ ✕</button>
+      <div class="nci-panel">
+        <div class="nci-head">
+          <span class="nh-orn">✧</span>
+          <div class="nh-en">NEW CHARACTER</div>
+          <div class="nh-jp"><i></i><span>新キャラクター登場</span><i></i></div>
+        </div>
+        <div class="nci-who">
+          <span class="nw-el" id="nciEl"></span>
+          <span class="nw-nm" id="nciNm"></span>
+          <span class="nw-ty" id="nciTy"></span>
+        </div>
+        <div class="nci-rows" id="nciSk"></div>
+      </div>
+      <div class="nci-foot">
+        <span class="nci-dots" id="nciDots"></span>
+        <span class="nci-cap" id="nciCap"></span>
+      </div>
+      <div class="nci-tap">タップで次のキャラへ</div>
+    </div>
+
 </body>
 </html>

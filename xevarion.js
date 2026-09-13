@@ -2273,6 +2273,15 @@ function grantMbGift(srcId, mb) {
 }
 
 const INITIAL_MAILS = [
+  /* ── ★★ 2026-09-13 新ガチャ実装記念（🎫ガチャチケット20枚）──
+     ★ mb:{gticket:20} ＝<b>ガチャチケット</b>（全ガチャ共通）。
+       mb:{ticket:N} は<b>フェスチケット</b>（フェス専用）なので取りちがえないこと。
+       今回は GRAND DEBUT Ver.8.0 も同時に来ているので、
+       フェスでも DEBUT でも使える<b>ガチャ券</b>で配る。
+     ★ 受け取った瞬間に XEVARION 共通ウォレット（XEVA.ticket）へ入る（grantMbGift）。 */
+  { id:"mail_newgacha_260913", icon:"🎫", title:"新ガチャ実装記念 配布（🎫ガチャチケット20枚）", date:"2026-09-13",
+    body:"いつも XEVARION をご利用いただきありがとうございます。\n\n新しいガチャの実装を記念して、全ユーザーに ガチャチケット20枚 をお贈りします。\n\n【今回追加されたガチャ】\n・SOFT NIGHT FEST — 新★5「アンナα」「アスハα」「ランα」「サヤカα」「コトリα」の5体。1体あたり 1.8%、20日間の期間限定です。\n・BUNNY GIRL FEST に「カナ」「マキ」が追加参戦。どちらも乱打フルバーストを持ちます。\n・極華祭に「クミコ＆レイナ」が参戦。全属性に有利で、史上最大の火力を持つ乱打フルバーストです。\n・GRAND DEBUT GACHA Ver.8.0 — 「ミヤ」「エミカ」「ウタ」「シホ」「キヅキ」の5体。\n\n【ガチャがもっと引きやすくなりました】\n・天井機能 を追加しました。1連ごとに ★星煌印 が1つたまり、150個でそのガチャのピックアップキャラを好きに選んで交換できます。\n・ガチャが オフラインでも引ける ようになりました。通信が戻ったときにきちんと同期されます。\n・NEW のあいだ（登場から15日）はピックアップ確率、それを過ぎたらほかのキャラと同じ確率になります。あとから別のキャラが追加されても、その子の15日は変わりません。\n・期限のあるガチャは すべて20日間 にそろえました。\n\n・ガチャチケットは 各フェス・PREMIUM SELECT GACHA・GRAND DEBUT GACHA の どのガチャでも 使える共通チケットです（1枚＝1回ぶん）。\n・回すときは、フェスチケット → ガチャチケット → 💎ジェム の順に自動で使われます。\n・受け取ったその場で増えて、そのままガチャで使えます。\n\nこれからも XEVARION をよろしくお願いします。",
+    mb:{ gticket:20 } },
   /* ── ★★ 2026-09-06 ジェフユナイテッド市原・千葉 17年ぶりの J1 勝利記念（17,000 XEVA）── */
   { id:"mail_jef_j1_260906", icon:"⚽", title:"ジェフ千葉 17年ぶりJ1勝利記念 配布（17,000 XEVA）", date:"2026-09-06",
     body:"いつも XEVARION をご利用いただきありがとうございます。\n\nジェフユナイテッド市原・千葉の 17年ぶりとなる J1 での勝利 を記念して、全ユーザーに 17,000 XEVA をお贈りします。\n\n17年という年月にちなんだ 17,000 XEVA です。💎ジェムへの交換は XEVARION ホームの変換所から行えます。\n\nこれからも XEVARION をよろしくお願いします。",
@@ -3102,7 +3111,9 @@ const CDK_CODES = {
   /* ★★ 2026-08-29 追加。こちらも<b>お知らせ・更新内容には載せない</b>（ご指定）。 */
   "XEVARION2025": { xeva: 400000, name: "400,000 XEVA" },
   /* ★★ 2026-09-06 追加。こちらも<b>お知らせ・更新内容には載せない</b>（ご指定）。 */
-  "RISINGSTARFEST": { xeva: 500000, name: "500,000 XEVA" }
+  "RISINGSTARFEST": { xeva: 500000, name: "500,000 XEVA" },
+  /* ★★ 2026-09-13 追加。こちらも<b>お知らせ・更新内容には載せない</b>（ご指定）。 */
+  "BUNNYGIRLFEST2026": { xeva: 500000, name: "500,000 XEVA" }
 };
 
 // WAVETOYOU2026 を一度だけリセット（凸システム対応で「完凸5体分」へ仕様変更したため、使用済みでも再入手可能にする）
@@ -3388,6 +3399,26 @@ addEventListener("DOMContentLoaded", () => { if (_xevLang === "en") applyLang("e
       return !!(window.matchMedia && matchMedia("(display-mode: standalone)").matches);
     } catch (e) { return false; }
   }
+
+  /* ★★ 2026-09-13 「アプリ表示で下バーが上に上がっている」の直し。
+     iPhone をホーム画面から<b>アプリとして</b>開くと、position:fixed がぶら下がる箱が
+     画面よりホームバーぶん短く作られることがある（実測 screen 852 / 箱 793）。
+     ところが env(safe-area-inset-bottom) は「端末の」値をそのまま返すので、
+     その短い箱の中でさらに env（34pt）を余白に入れると<b>同じぶんを 2 回</b>引く。
+     合わせて 68pt ほどの帯ができ、<b>下バーだけが浮いて見える</b>。
+     ⇒ 箱が画面よりどれだけ短いか（shortfall）を測り、env から<b>引いてから</b>余白にする。
+     これは xeva-safebottom.js の --xv-safeb とまったく同じ計算（ポータルはあのファイルを
+     読まないので、ここで同じことをする）。 */
+  function shortfall(box) {
+    try {
+      if (!isStandaloneApp()) return 0;
+      var sMin = Math.min(screen.width, screen.height);
+      var sMax = Math.max(screen.width, screen.height);
+      var s = (window.innerWidth > window.innerHeight ? sMin : sMax) - box;
+      /* 0 < s < 200 のときだけ信じる（それ以上は測り損ない＝PC のウィンドウなど） */
+      return (s > 0 && s < 200) ? s : 0;
+    } catch (e) { return 0; }
+  }
   var probe = null;
 
   /* position:fixed がぶら下がる箱の高さを実測する */
@@ -3513,6 +3544,21 @@ addEventListener("DOMContentLoaded", () => { if (_xevLang === "en") applyLang("e
     if (root.style.getPropertyValue("--xh-growb") !== grow + "px") {
       root.style.setProperty("--xh-growb", grow + "px");
     }
+    /* ★★ 2026-09-13 下バーの中身の余白。
+       CSS の :root には --xh-safeb: env(safe-area-inset-bottom) と書いてあるが、
+       アプリ表示で箱が短いとそれだけでは<b>2 回引く</b>ことになるので、
+       実測した値（env − 箱の足りないぶん）で上書きする。
+       ブラウザ表示や env が読めない環境では env そのままになる。 */
+    try {
+      var ei2 = envInfo();
+      if (ei2 && ei2.ok) {
+        var sfall = shortfall(box);
+        var sb = Math.max(0, Math.round((ei2.env - sfall) * 10) / 10);
+        if (root.style.getPropertyValue("--xh-safeb") !== sb + "px") {
+          root.style.setProperty("--xh-safeb", sb + "px");
+        }
+      }
+    } catch (e) {}
     /* ★ 位置を直したあとで、中身が本当に下端に来ているかを実測して詰める */
     try { fitBar(); } catch (e) {}
   }

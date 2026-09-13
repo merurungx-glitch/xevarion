@@ -17,6 +17,38 @@
      こちらに足したら<b>あちらにも since 付きで1行</b>足すこと（無いとポータルに絵が出ない）。
    ══════════════════════════════════════════════════════════════ */
 window.MB_NEW_CHARS = [
+  /* ── ★★ 2026-09-13 GRAND DEBUT GACHA Ver.8.0（版ごと10日間）── */
+  { id: "miya", since: "2026-09-13", where: "GRAND DEBUT GACHA Ver.8.0", mode: "debut",
+    catch: "このゲージが満ちたら、一瞬だよ。", color: "#ff7a2a" },
+  { id: "emika", since: "2026-09-13", where: "GRAND DEBUT GACHA Ver.8.0", mode: "debut",
+    catch: "浅く跳ねるほど、遠くまで強く。", color: "#8fdcff" },
+  { id: "uta", since: "2026-09-13", where: "GRAND DEBUT GACHA Ver.8.0", mode: "debut",
+    catch: "きみのHP、何桁？", color: "#c9b4ff" },
+  { id: "shiho", since: "2026-09-13", where: "GRAND DEBUT GACHA Ver.8.0", mode: "debut",
+    catch: "分かれて、分かれて、やがて周り中。", color: "#bcf4c8" },
+  { id: "kiduki", since: "2026-09-13", where: "GRAND DEBUT GACHA Ver.8.0", mode: "debut",
+    catch: "影が長いほど、朝は近い。", color: "#ffe9a8" },
+  /* ── ★★ 2026-09-13 極華祭（毎月11〜20日）── */
+  { id: "kumireina", since: "2026-09-13", where: "極華祭（毎月 11〜20日）", mode: "fes9",
+    catch: "ひとつの音になるまで、何度でも。", color: "#ff8ab5" },
+  /* ── ★★ 2026-09-13 BUNNY GIRL FEST 追加2体（無期限開催）── */
+  { id: "kana", since: "2026-09-13", where: "BUNNY GIRL FEST（無期限開催）", mode: "fes13",
+    catch: "この鐘が鳴ったら、もうおしまい。", color: "#ffd257" },
+  { id: "maki", since: "2026-09-13", where: "BUNNY GIRL FEST（無期限開催）", mode: "fes13",
+    catch: "偶数でそろえて。半端は嫌いなの。", color: "#c9b4ff" },
+  /* ── ★★ 2026-09-13 SOFT NIGHT FEST（無期限開催）──
+     ★ この since は<b>実装日</b>でもある。mb-core.js の charImplDate() がここを見て
+       「実装から 10 日以内か（＝新キャラの確率か）」を判定する。 */
+  { id: "annaalpha", since: "2026-09-13", where: "SOFT NIGHT FEST（無期限開催）", mode: "fes14",
+    catch: "月の階段は、上へ行くほど重くなる。", color: "#e8e4ff" },
+  { id: "asuhaalpha", since: "2026-09-13", where: "SOFT NIGHT FEST（無期限開催）", mode: "fes14",
+    catch: "よく眠れるように、ゆっくりいくよ。", color: "#bcf4c8" },
+  { id: "ranalpha", since: "2026-09-13", where: "SOFT NIGHT FEST（無期限開催）", mode: "fes14",
+    catch: "通ったあとのほうが、熱いんだ。", color: "#ffb04a" },
+  { id: "sayakaalpha", since: "2026-09-13", where: "SOFT NIGHT FEST（無期限開催）", mode: "fes14",
+    catch: "影は、覚えている。", color: "#c9b4ff" },
+  { id: "kotorialpha", since: "2026-09-13", where: "SOFT NIGHT FEST（無期限開催）", mode: "fes14",
+    catch: "この雨は、弱った子から捕まえる。", color: "#8fdcff" },
   /* ── ★★ 2026-09-08 戦姫祭 第3弾（MagiBurst 史上最強）──
      ★ この since は<b>実装日</b>でもある。mb-core.js の charImplDate() がここを見て
        「実装から 10 日以内か（＝新キャラの確率か）」を判定する。 */

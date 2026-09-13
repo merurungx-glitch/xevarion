@@ -21,8 +21,34 @@ const XH_OFFLINE_OK = {
   /* Magi Lotto は画面も演出も端末の中で完結するのでオフラインでも遊べる。
      通信できないあいだの抽選は「ローカル抽選」として印が付き、
      Magi Grand Draw の結果発表と賞金プールの同期だけは通信が戻ってから行う。 */
-  magilotto:      { name: "Magi Lotto",     href: "MagiLotto/index.html",       sw: "MagiLotto/sw.js" }
+  magilotto:      { name: "Magi Lotto",     href: "MagiLotto/index.html",       sw: "MagiLotto/sw.js" },
+  /* ★★ 2026-09-13c <b>自前の Service Worker を持つアプリが台帳から抜けていた</b>（ご指定の不具合の真因）。
+     ------------------------------------------------------------
+     オフラインで押せるかどうかは <b>この台帳1つ</b>だけで決まる（xhApplyOfflineLocks／
+     xhAppRow／xhOpenApp の3か所がここを見る）。
+     ところが下の6本は sw.js を持って CORE も全部キャッシュしているのに
+     台帳に載っていなかったので、<b>オフラインだと灰色になって押せなかった</b>。
+     ★ 逆に MagiDiamond・MagiBattle などは sw.js が無いので、ここには足さない
+       （押せても白い画面になるだけ）。足すときは必ず sw.js の有無を確かめること。 */
+  magiquest:       { name: "MagiQuest",      href: "MagiQuest/index.html",       sw: "MagiQuest/sw.js" },
+  magidominiongrid:{ name: "Dominion",       href: "MagiDominionGrid/index.html",sw: "MagiDominionGrid/sw.js" },
+  magibocciarush:  { name: "Boccia Rush",    href: "MagiBocciaRush/index.html",  sw: "MagiBocciaRush/sw.js" },
+  magiarcanarush:  { name: "Arcana Rush",    href: "MagiArcanaRush/index.html",  sw: "MagiArcanaRush/sw.js" },
+  /* MagiMusic は端末の中の曲を鳴らすだけなので通信は要らない。 */
+  magimusic:       { name: "MagiMusic",      href: "MagiMusic/MagiMusic.html",   sw: "MagiMusic/sw.js" },
+  /* MagiCounter は数字（data/meta.json）を全部キャッシュしてあるので判定はできる。
+     ★ ポケモンの絵だけは PokeAPI なので、まだ見ていない子は絵が出ない（別の入れ物にためている）。 */
+  magicounter:     { name: "MagiCounter",    href: "MagiCounter/index.html",     sw: "MagiCounter/sw.js" }
 };
+/* オフラインでも遊べるアプリの名前を「◯◯ ／ ◯◯」でつなぐ。
+   ★★ 2026-09-13c <b>案内の文面を手で書かない</b>ためのもの。
+     これまで3か所に名前を直書きしていたので、台帳に足しても文面が古いままだった。 */
+function xhOfflineOkNames(max) {
+  const ks = Object.keys(XH_OFFLINE_OK);
+  const n = max || ks.length;
+  const nm = ks.slice(0, n).map(function (id) { return XH_OFFLINE_OK[id].name; });
+  return nm.join(" ／ ") + (ks.length > n ? " ほか計 " + ks.length + " 本" : "");
+}
 
 const XH_CATS = [
   { id: "all",    label: "すべて" },
@@ -189,10 +215,28 @@ const XH_ORDER_GEN_KEY = "xeva_home_order_gen";
      ずっと後ろ、という状態を防ぐため。
      ＝ 新しいイベントを足すときは<b>この配列のどこに書いてもよい</b>。 */
 const XH_EVENTS = [
-  /* ★★ 2026-09-11 BUNNY GIRL FEST（10月31日まで）。ふつうのフェスガチャ＝期間つき。 */
+  /* ★★ 2026-09-13c GRAND DEBUT GACHA Ver.8.0（版ごと<b>20日間</b>へ統一・ご指定） */
+  { tag:"GRAND DEBUT", t1:"GRAND DEBUT GACHA Ver.8.0",
+    t2:"新SSR 5体が参戦！ ミヤ・エミカ・ウタ・シホ・キヅキ——天界の審判の手薄な5つを有利属性のまま完全対応",
+    since:"2026-09-13", from:"2026-09-13", to:"2026-10-03",
+    href:"gacha.html#debut:8.0", img:"thumbs/MagiBurst.jpg" },
+  /* ★★ 2026-09-13 極華祭に クミコ＆レイナ（火＆光）が参戦。毎月 11〜20日の開催。 */
+  { tag:"FES", t1:"極華祭 に クミコ＆レイナ",
+    t2:"MagiBurst 史上最大のフルバースト（乱打70連）と史上最強のリンク。全属性有利・ショットスキル付き。極華・ブルームネクサスも強化",
+    always:true, perm:true, monthly:[11, 20], since:"2026-09-13", from:"2026-09-13", to:"2027-12-31",
+    href:"gacha.html#fes9", img:"thumbs/MagiBurst.jpg" },
+  /* ★★ 2026-09-13c SOFT NIGHT FEST は<b>期限あり（20日間）</b>に戻した（ご指定）。
+     ★ always/perm を<b>外す</b>こと——付けたままだとカレンダーにずっと出つづける。 */
+  { tag:"SOFT FES", t1:"SOFT NIGHT FEST",
+    t2:"20日間の期間限定。アンナα・アスハα・ランα・サヤカα・コトリα が参戦！ いま対応キャラが少ない天界の審判 5つを有利属性のまま完全対応",
+    since:"2026-09-13", from:"2026-09-13", to:"2026-10-03",
+    href:"gacha.html#fes14", img:"thumbs/MagiBurst.jpg" },
+  /* ★★ 2026-09-13 BUNNY GIRL FEST は<b>無期限開催</b>になった（ご指定）。
+     戦姫祭と同じように always:true / perm:true を付け、to は空にする。
+     ★ perm を書かないと xhEventsLive の「to があるか perm」のふるいに引っかかる。 */
   { tag:"BUNNY FES", t1:"BUNNY GIRL FEST",
-    t2:"限定SSR 15体が参戦！ 全員が⚖天界の審判を有利属性のまま完全対応。サヤは MagiBurst 初の「全属性有利」",
-    since:"2026-09-11", from:"2026-09-11", to:"2026-10-31",
+    t2:"無期限開催。限定SSR 17体が参戦！ 全員が⚖天界の審判を有利属性のまま完全対応。サヤは MagiBurst 初の「全属性有利」",
+    always:true, perm:true, since:"2026-09-11", from:"2026-09-11", to:"",
     href:"gacha.html#fes13", img:"thumbs/MagiBurst.jpg" },
   /* ★★ 2026-09-11 極華祭に カグラ（火）が参戦。毎月11〜20日の開催。 */
   { tag:"FES", t1:"極華祭 に カグラ",
@@ -204,10 +248,10 @@ const XH_EVENTS = [
     t2:"レイ（闇）・リカ（木）・アンナ＆ラン（火＆光）が参戦！ リンクスキルの素の威力が MagiBurst 史上最強",
     always:true, perm:true, since:"2026-09-06", from:"2026-09-06", to:"",
     href:"gacha.html#fes11", img:"thumbs/MagiBurst.jpg" },
-  /* ★★ 2026-09-06 RISING STAR FEST 第3弾 5体 */
-  { tag:"RISING FES", t1:"RISING STAR FEST 第3弾",
-    t2:"ヨイヅキ・カヨ・シノ・マアヤ・アスカ が参戦！ 天界の審判を有利属性のまま完全対応します",
-    since:"2026-09-06", from:"2026-09-06", to:"2026-10-06",
+  /* ★★ 2026-09-13 RISING STAR FEST も<b>無期限開催</b>になった（ご指定） */
+  { tag:"RISING FES", t1:"RISING STAR FEST",
+    t2:"無期限開催。限定SSR 13体——第3弾（ヨイヅキ・カヨ・シノ・マアヤ・アスカ）は天界の審判を有利属性のまま完全対応",
+    always:true, perm:true, since:"2026-09-06", from:"2026-09-06", to:"",
     href:"gacha.html#fes12", img:"thumbs/MagiBurst.jpg" },
   /* ★★ 2026-09-06 GRAND DEBUT GACHA Ver.7.0（版ごとに10日間） */
   { tag:"GRAND DEBUT", t1:"GRAND DEBUT GACHA Ver.7.0",
@@ -219,11 +263,6 @@ const XH_EVENTS = [
     t2:"5WAVE 踏破するごとに 頭・腕・胸・足 のどれかが1つ。60WAVE 踏破で アストレア が仲間に",
     since:"2026-09-06", from:"2026-09-06", to:"2027-12-31",
     href:"", img:"thumbs/MagiBurst.jpg" },
-  /* ★★ 2026-09-01 RISING STAR FEST（ふつうのフェスガチャ＝登場から30日） */
-  { tag:"RISING FES", t1:"RISING STAR FEST",
-    t2:"限定SSR が 8体 に！ 第2弾（シズル・ユウリ・ヒスイ・ライカ）は第1弾と同じクエストを担当し、撃種が逆",
-    since:"2026-09-01", from:"2026-09-01", to:"2026-10-01",
-    href:"gacha.html#fes12", img:"thumbs/MagiBurst.jpg" },
   /* ★★ 2026-08-30 GRAND DEBUT GACHA Ver.6.0（版ごとに10日間） */
   { tag:"GRAND DEBUT", t1:"GRAND DEBUT GACHA Ver.6.0", t2:"新SSR 5体が参戦！ 蓬莱天宮の続き5クエストの最適解——Cozy Haven を超える性能",
     since:"2026-08-30", from:"2026-08-30", to:"2026-09-09",
@@ -359,6 +398,69 @@ const XH_EVENTS = [
    ══════════════════════════════════════════════════════════════ */
 const XH_UPDATE_MAX = 12;
 const XH_UPDATES = [
+  /* ★★ 2026-09-13c ガチャの決めごとの作り直し（天井・NEW 15日・20日統一・オフライン）
+     ／ 新キャラ紹介アニメ ／ 🎫20枚配布 ／ 更新の動画をやめた ／ オフラインで開けるアプリ
+     ★ CDK は、ご指定によりお知らせにも更新内容にも書かない。 */
+  { tag:"NEW", t1:"ガチャに<b>天井</b>（★星煌印）を追加", at:"2026-09-13",
+    t2:"ガチャ<b>1連ごとに ★星煌印が1つ</b>たまり、<b>150個</b>でそのガチャの<b>ピックアップキャラから好きな1体</b>と交換できます。印は<b>ガチャごとに別</b>にたまり（フェスの印で GRAND DEBUT のキャラは取れません）、たまり具合はガチャ画面の帯でいつでも見られます。無料の単発・初回10連もちゃんと数えます",
+    href:"gacha.html", img:"thumbs/MagiBurst.jpg" },
+  { tag:"NEW", t1:"新キャラクター紹介アニメ", at:"2026-09-13",
+    t2:"ガチャごとに、その<b>NEW キャラを1体ずつ紹介する演出</b>を追加しました。立ち絵を背に、<b>BURST／LINK SKILL／SUB LINK SKILL／SHOT SKILL／NEXUS SKILL</b> の5本が順に出てきます。はじめてそのガチャを開いたときに1回だけ自動で流れ、あとは<b>🎬 の帯</b>から何度でも見られます",
+    href:"gacha.html", img:"thumbs/MagiBurst.jpg" },
+  { tag:"UPDATE", t1:"ガチャが<b>オフラインでも引けます</b>", at:"2026-09-13",
+    t2:"ガチャの抽選も支払いも<b>端末の中だけ</b>で終わるのに、オフラインだとタブごと押せなくなっていました。開けるようにしています。引いた結果（キャラ・限界突破・💎・🎫・💠）は、<b>オンラインに戻ったときにちゃんと同期</b>されます（「みんな」だけは相手のデータが要るので今までどおり閉じます）",
+    href:"gacha.html", img:"thumbs/MagiBurst.jpg" },
+  { tag:"UPDATE", t1:"NEW は「登場から10日」・期限は「20日」にそろえました", at:"2026-09-13",
+    t2:"<b>NEW の印が付くのは登場から10日</b>——<b>そのあとに別のキャラが追加されても変わりません</b>。NEW のあいだは<b>ピックアップ確率</b>、過ぎたら<b>ほかのキャラと同じ通常の確率</b>になります。あわせて、期限のあるガチャは<b>フェスも GRAND DEBUT も 20日間</b>に統一しました",
+    href:"gacha.html", img:"thumbs/MagiBurst.jpg" },
+  { tag:"UPDATE", t1:"💠結晶で Festival Archive のキャラも交換できます", at:"2026-09-13",
+    t2:"ショップの結晶交換所に、<b>Festival Archive GACHA のキャラ</b>（配信の終わったフェスの限定SSR）を並べました。<b>150個</b>で好きな1体と交換できます（PREMIUM／GRAND DEBUT はこれまでどおり 75個）。カードの <b>ARCHIVE</b> の印が目じるしです",
+    href:"index.html", img:"thumbs/Xevarion.png" },
+  { tag:"NEW", t1:"⚖ 天界の審判に<b>第十一〜第十五</b>を追加", at:"2026-09-13",
+    t2:"第三段「終審」の5クエストを追加し、<b>全15クエスト・90WAVE</b>になりました。<b>特殊ギミックが1クエスト3つ</b>、<b>ボスがザコを呼び出す</b>、新ギミック<b>🔗連結の鎖</b>（2体のあいだを通り抜けると切れる）と<b>✦弱点シフト</b>（弱点がターンごとに回る）、護衛が<b>ボスの両どなり</b>——今までに無い組み立てです",
+    href:"MagiBurst/index.html", img:"thumbs/MagiBurst.jpg" },
+  { tag:"UPDATE", t1:"更新中の PR をアプリ紹介に作り直しました", at:"2026-09-13",
+    t2:"絵が枠に合わず<b>大きく切れて</b>いたので、<b>ホームのアップデート情報とまったく同じカード</b>にそろえました。中身も<b>台帳（アプリ一覧）からそのまま</b>作るので、<b>全アプリ</b>が順に出ます（アプリを足すと自動でここにも出ます）",
+    href:"index.html", img:"thumbs/Xevarion.png" },
+  { tag:"FIX", t1:"オフラインで遊べるアプリが押せないのを直しました", at:"2026-09-13",
+    t2:"<b>MagiQuest・Dominion・Boccia Rush・Arcana Rush・MagiMusic・MagiCounter</b> は自前のサービスワーカーで全部キャッシュしてあるのに、<b>台帳（オフライン対応アプリの一覧）に載っていなかった</b>ため灰色のままでした。オフラインで遊べるアプリは <b>6本 → 12本</b> になります。<b>MagiCounter</b> は起動に要るファイルが事前キャッシュから抜けていたので、そちらも直しました",
+    href:"index.html", img:"thumbs/Xevarion.png" },
+  { tag:"UPDATE", t1:"更新中の演出から動画をやめました", at:"2026-09-13",
+    t2:"更新中に流していた PR 動画をやめ、<b>すでにキャッシュしてある絵だけ</b>で作る<b>ショーケース</b>に置きかえました。動画は端末によっては自動再生されず<b>黒い四角</b>が残るうえ、いちばん帯域が欲しい場面で<b>更新のダウンロードと食い合って</b>いたためです",
+    href:"index.html", img:"thumbs/Xevarion.png" },
+  /* ★★ 2026-09-13 SOFT NIGHT FEST ／ BUNNY 追加2体 ／ 極華祭 クミコ＆レイナ ／
+     GRAND DEBUT Ver.8.0 ／ リンクの再調整 ／ クエスト作成 ／ 下バー・QR・更新演出
+     ★ CDK は、ご指定によりお知らせにも更新内容にも書かない。 */
+  { tag:"FES", t1:"SOFT NIGHT FEST が開幕", at:"2026-09-13",
+    t2:"<b>アンナα（光）・アスハα（木）・ランα（火）・サヤカα（闇）・コトリα（水）</b>の5体が参戦。いま対応キャラがいちばん少ない<b>天界の審判 5つ</b>を有利属性のまま完全対応します。リンクは5本とも新しい挙動、共通サブリンクは<b>ムーンフェイズ・リング</b>。<b>20日間の期間限定</b>で🎫フェス券が使えます",
+    href:"gacha.html#fes14", img:"thumbs/MagiBurst.jpg" },
+  { tag:"FES", t1:"極華祭に クミコ＆レイナ（史上最大のFB）", at:"2026-09-13",
+    t2:"フルバースト<b>×1153.8</b>で MagiBurst 史上最大（これまでの1位はカグラ ×905.8）。リンク「クレッシェンド・オクターブ」は<b>1オクターブ上がるごとに届く敵が1体ずつ増える</b>——いまいちばん重いリンクです。<b>全属性有利</b>＋<b>ショットスキル</b>持ち。極華・ブルームネクサスも強化",
+    href:"gacha.html#fes9", img:"thumbs/MagiBurst.jpg" },
+  { tag:"FES", t1:"BUNNY GIRL FEST に カナ・マキ", at:"2026-09-13",
+    t2:"2体とも<b>乱打のフルバースト</b>（カナ ×785.9 ／ マキ ×779.3）で、BUNNY でいちばん重い。リンクは<b>黄金比 ×1.618 ずつ増える等比の渦</b>と<b>偶数と奇数がつりあうと締めが2倍</b>",
+    href:"gacha.html#fes13", img:"thumbs/MagiBurst.jpg" },
+  { tag:"GRAND DEBUT", t1:"GRAND DEBUT GACHA Ver.8.0", at:"2026-09-13",
+    t2:"新SSR 5体（ミヤ・エミカ・ウタ・シホ・キヅキ）。担当は<b>第三／第一／第四／第二／第十</b>の審判。リンクは<b>ためて満ちた瞬間だけ爆ぜる</b>ヒートゲージなど5本とも新規",
+    href:"gacha.html#debut:8.0", img:"thumbs/MagiBurst.jpg" },
+  { tag:"UPDATE", t1:"リンクスキルの威力をもう一段下げました", at:"2026-09-13",
+    t2:"前回の上限 420 でも<b>フルバーストと同じ桁</b>でした。リンクは<b>ふれるたび何度でも</b>出るので、実測（敵4体・攻撃力3000）で<b>上限 ×120</b> にそろえています。古参（38〜58）はそのまま、<b>強い順は1つも入れ替わっていません</b>",
+    href:"MagiBurst/index.html", img:"thumbs/MagiBurst.jpg" },
+  { tag:"NEW", t1:"MagiBurst に「クエスト作成」", at:"2026-09-13",
+    t2:"最大6WAVE のオリジナルクエストを作れる<b>ステージエディター</b>（アクセスコードが必要）。敵・壁・ギミックをドラッグして置き、<b>行動パターン・攻撃・IF→THENのイベント・WAVE遷移</b>まで設定して、<b>好きなキャラ・好きな育成状態・好きなWAVE</b>からそのままテストプレイできます",
+    href:"MagiBurst/index.html", img:"thumbs/MagiBurst.jpg" },
+  { tag:"NEW", t1:"フェスの「好きな1体」パックを追加", at:"2026-09-13",
+    t2:"パックストアに<b>BUNNY GIRL／戦姫祭／RISING STAR</b>のセレクトパック。そのフェスの<b>限定SSRから好きな1体を確定で</b>受け取れます（使うのはガチャ画面）。<b>RISING STAR FEST と BUNNY GIRL FEST は無期限開催</b>になりました（戦姫祭と同じあつかいです）",
+    href:"gacha.html#fes13", img:"thumbs/MagiBurst.jpg" },
+  { tag:"UPDATE", t1:"更新の画面と同期の画面を作り直しました", at:"2026-09-13",
+    t2:"更新を押すと<b>画面ごと移動</b>して、お辞儀の案内役・<b>1文字ずつ跳ねる文字</b>・％つきのロードバー・PR のショーケースが出ます。<b>進捗が100%なのに終わらない</b>のも直しました（真因は waiting のサービスワーカーを60秒待っていたこと）",
+    href:"index.html", img:"thumbs/Xevarion.png" },
+  { tag:"FIX", t1:"下のバーが上に上がるのを直しました", at:"2026-09-13",
+    t2:"iPhone のアプリ表示で、<b>position:fixed の箱が画面よりホームバーぶん短く作られる</b>ことがあります。そこへ env(safe-area-inset-bottom) をそのまま足すと<b>同じぶんを2回引く</b>ので、バーだけが浮いていました。<b>箱の足りないぶんを実測して引いてから</b>余白にしています",
+    href:"index.html", img:"thumbs/Xevarion.png" },
+  { tag:"NEW", t1:"設定のインストールに QR コード", at:"2026-09-13",
+    t2:"設定 ›「XEVARION をインストール」に<b>公開URLの QR</b>を出しました。ほかの端末で読み取れば、そのままインストールの案内まで進めます（URL のコピーもできます）",
+    href:"index.html", img:"thumbs/Xevarion.png" },
   /* ★★ 2026-09-12 新作 MagiQuest ／ MagiBurst の調整 ／ ホームの下バー */
   { tag:"NEW", t1:"新作「MagiQuest」が登場", at:"2026-09-12",
     t2:"<b>MagiLex の問題をそのまま出題</b>する学習バトル。4択ではなく<b>盤面のパーツを拾って答えを組み立てて</b>戦います。正解するとキャラが攻撃し、連続正解で<b>COMBO</b>が伸びる。キャラは<b>XEVARION 共通のガチャ</b>のまま。化学・数学・物理・国語・地理の<b>2,800問以上</b>を収録",
@@ -1018,6 +1120,22 @@ const XH_TICKET_GEM = 5;                 // 🎫1枚＝ジェム5個ぶん（ガ
      「変換所より高い（安い）パック」が生まれてしまう。
      お得ぶん（増量率）は pay と中身の比で決まるので、為替が動いても変わらない。 */
 const XH_PACKS = [
+  /* ── ★★ 2026-09-13 フェスセレクトパック（ご指定）──
+     BUNNY GIRL FEST ・戦姫祭 ・ RISING STAR FEST の<b>好きなキャラを 1体</b>
+     えらんで確定で手に入る。どのフェスの券かは <b>fsel</b> で持つ。
+     ★ 3つとも<b>無期限開催</b>のフェスなので、パックも to を書かない（常設）。
+       ただし<b>一生に 3回まで</b>（cycle:"term" → 期間キーは "tall"）。
+     ★ 戦姫祭は🎫フェス券が使えないガチャなので、付けるのは🎫<b>ガチャ券</b>（gticket）。
+       ここを間違えると「チケットがもらえたのにそのガチャで使えない」になる。 */
+  { id:"pk_bunny_select", ic:"🐰", nm:"BUNNY GIRL セレクトパック", pay:280, gem:130, ticket:24,
+    fsel:"fes13", c:"#ff6fa8", cycle:"term", max:3,
+    desc:"BUNNY GIRL FEST の限定SSRから<b>好きな1体を確定で</b>。💎130 と 🎫フェスチケット24枚つき。" },
+  { id:"pk_senki_select", ic:"⚔️", nm:"戦姫祭 セレクトパック", pay:280, gem:130, gticket:24,
+    fsel:"fes11", c:"#e0405e", cycle:"term", max:3,
+    desc:"戦姫祭の限定SSRから<b>好きな1体を確定で</b>。💎130 と 🎫ガチャチケット24枚つき。" },
+  { id:"pk_rising_select", ic:"🌟", nm:"RISING STAR セレクトパック", pay:280, gem:130, ticket:24,
+    fsel:"fes12", c:"#38a6ff", cycle:"term", max:3,
+    desc:"RISING STAR FEST の限定SSRから<b>好きな1体を確定で</b>。💎130 と 🎫フェスチケット24枚つき。" },
   /* ── ☀ 夏限定パック（★★ 2026-08-24 新設・ご指定）──
      中身は <b>💎ジェム ＋ 🎫ガチャチケット ＋ ★プレミアムセレクト券1枚</b>。
      セレクト券は<b>PREMIUM SELECT GACHA から出るSSRの中から好きな1体を確定で</b>
@@ -1089,12 +1207,21 @@ function xhPackBase(p) { return p.pay; }
    プレミアムのSSRは 1回 💎5 のガチャで <b>SSR 10%</b>＝ならすと 💎50 で1体。
    ただし「<b>好きな1体を確実に</b>」なので、そのぶんを見て少し高く見積もる。 */
 const XH_SELECT_GEM = 120;
+/* ★★ 2026-09-13 フェスセレクト券 1枚を、ジェム何個ぶんとして数えるか。
+   フェスの限定SSR は 1体あたり 0.8〜1.2%（プレミアムの SSR 10% よりはるかに重い）。
+   「好きな1体を確定で」なので、プレミアムセレクト券より高く見積もる。 */
+const XH_FESSEL_GEM = 150;
+/* フェスの呼び名とガチャ画面への行き先。
+   ★ mb-core.js の FESTS はポータルから見えないので、<b>名前だけ</b>ここに持つ。
+     中身（えらべる顔ぶれ）は必ずガチャ画面側（fesSelPool）が決める。 */
+const XH_FESSEL_NM = { fes11:"戦姫祭", fes12:"RISING STAR FEST", fes13:"BUNNY GIRL FEST" };
 /* パックの中身をジェム換算した合計
    （🎫は XH_TICKET_GEM 個ぶん、★セレクト券は XH_SELECT_GEM 個ぶんとして数える） */
 function xhPackValue(p) {
   return p.gem
     + ((p.ticket || 0) + (p.gticket || 0)) * XH_TICKET_GEM
-    + (p.select || 0) * XH_SELECT_GEM;
+    + (p.select || 0) * XH_SELECT_GEM
+    + (p.fsel ? XH_FESSEL_GEM : 0);
 }
 function xhPackUp(p) { return Math.round((xhPackValue(p) / xhPackBase(p) - 1) * 100); }
 /* 期間内か（to のないパックは常設） */
@@ -1391,6 +1518,25 @@ function xhCrystCost() {
   try { if (typeof CRYST_EXCHANGE !== "undefined") return CRYST_EXCHANGE; } catch (e) {}
   return XH_CRYST_COST_FALLBACK;
 }
+/* ★★ 2026-09-13b Festival Archive GACHA のキャラは<b>150個</b>（ご指定）。 */
+function xhCrystCostArchive() {
+  try { if (typeof CRYST_EXCHANGE_ARCHIVE !== "undefined") return CRYST_EXCHANGE_ARCHIVE; } catch (e) {}
+  return xhCrystCost() * 2;
+}
+/* アーカイブ限定のキャラ（＝PREMIUM / GRAND DEBUT には居ない子）の一覧 */
+function xhArchiveOnlyIds() {
+  try {
+    if (typeof archiveChars !== "function") return [];
+    const seen = {};
+    PREMIUM_CHARS.forEach((id) => { seen[id] = 1; });
+    if (typeof DEBUT_CHARS !== "undefined") DEBUT_CHARS.forEach((id) => { seen[id] = 1; });
+    return archiveChars().filter((id) => !seen[id] && CHARS[id]);
+  } catch (e) { return []; }
+}
+/* そのキャラ1体ぶんの値段 */
+function xhCrystCostOf(id) {
+  return xhArchiveOnlyIds().indexOf(id) >= 0 ? xhCrystCostArchive() : xhCrystCost();
+}
 function xhCrystIcon(px) {
   const s = px || 18;
   return '<img src="img/cryst.webp" alt="結晶" style="width:' + s + 'px;height:' + s
@@ -1409,7 +1555,7 @@ function xhMbReady() {
   if (typeof CHARS !== "undefined" && typeof PREMIUM_CHARS !== "undefined") return Promise.resolve(true);
   if (_xhMbLoading) return _xhMbLoading;
   _xhMbLoading = xhLoadScript("mb-boot.js?v=17")
-    .then(() => xhLoadScript("MagiBurst/js/mb-core.js?v=112"))
+    .then(() => xhLoadScript("MagiBurst/js/mb-core.js?v=115"))
     .then(() => true)
     .catch((e) => { _xhMbLoading = null; throw e; });
   return _xhMbLoading;
@@ -1424,6 +1570,9 @@ function xhCrystPool() {
     const push = (id) => { if (!seen[id] && CHARS[id]) { seen[id] = 1; out.push(id); } };
     PREMIUM_CHARS.forEach(push);
     if (typeof DEBUT_CHARS !== "undefined") DEBUT_CHARS.forEach(push);
+    /* ★★ 2026-09-13b <b>Festival Archive GACHA のキャラ</b>も並べる（150個・ご指定）。
+       ★ すでに PREMIUM / GRAND DEBUT に居る子は足さない（重複＝二重表示になる）。 */
+    xhArchiveOnlyIds().forEach(push);
     return (typeof byCharNoDesc === "function") ? byCharNoDesc(out) : out;
   } catch (e) { return []; }
 }
@@ -1437,8 +1586,9 @@ function xhOpenCryst() {
 }
 function xhPaintCryst() {
   const box = xhEl("xhCrystBody"); if (!box) return;
-  const bal = xhCrystBal(), cost = xhCrystCost();
+  const bal = xhCrystBal(), cost = xhCrystCost(), acost = xhCrystCostArchive();
   const pool = xhCrystPool();
+  const arc = xhArchiveOnlyIds();
   const can = bal >= cost;
   const cards = pool.map((id) => {
     const c = CHARS[id];
@@ -1446,19 +1596,25 @@ function xhPaintCryst() {
     const awk = own ? Math.max(0, Math.min(MAX_AWK, DB.chars[id].awk || 0)) : 0;
     const mx = awk >= MAX_AWK;
     const debut = (typeof DEBUT_CHARS !== "undefined") && DEBUT_CHARS.indexOf(id) >= 0;
-    return '<button class="xh-crc' + (own ? "" : " noown") + (can ? "" : " poor") + '"' +
-      (can ? ' onclick="xhCrystExchange(\'' + id + '\')"' : " disabled") + '>' +
+    /* ★★ 2026-09-13b 値段は<b>1枚ごと</b>に見る（アーカイブだけ 150個）。 */
+    const isArc = arc.indexOf(id) >= 0;
+    const cc = isArc ? acost : cost;
+    const ok2 = bal >= cc;
+    return '<button class="xh-crc' + (own ? "" : " noown") + (ok2 ? "" : " poor") + '"' +
+      (ok2 ? ' onclick="xhCrystExchange(\'' + id + '\')"' : " disabled") + '>' +
       '<img src="' + c.th + '" alt="" loading="lazy">' +
-      (debut ? '<span class="xh-crnew">DEBUT</span>' : "") +
+      (isArc ? '<span class="xh-crnew arc">ARCHIVE</span>'
+             : debut ? '<span class="xh-crnew">DEBUT</span>' : "") +
       '<span class="xh-crno">' + (typeof charNoOf === "function" ? charNoOf(id) : "") + '</span>' +
       '<span class="xh-crnm">' + c.nm + '</span>' +
+      '<span class="xh-crcost">💠' + cc + '</span>' +
       '<span class="xh-crown ' + (mx ? "mx" : own ? "ok" : "no") + '">' +
         (own ? (mx ? "👑 完凸" : "所持 +" + awk) : "未所持") + '</span></button>';
   }).join("");
   box.innerHTML =
     '<div class="xh-crhead">' +
       '<div class="xh-crbal">' + xhCrystIcon(26) + '<b>' + bal.toLocaleString() + '</b>' +
-        '<small>／ 1体 ' + cost + '個</small></div>' +
+        '<small>／ 1体 ' + cost + '個（アーカイブは ' + acost + '個）</small></div>' +
       '<div class="xh-crsub">' + (can
         ? 'あと <b>' + Math.floor(bal / cost) + ' 体</b>ぶん交換できます。カードを押すと確認画面が出ます。'
         : 'あと <b>' + (cost - bal % cost) + ' 個</b>で1体と交換できます。') + '</div>' +
@@ -1468,7 +1624,10 @@ function xhPaintCryst() {
       'もう一度出たときにもらえます（<b>SSR＝5個 ／ SR＝1個</b>）。<br>' +
       '完凸したキャラクターも<b>排出され続ける</b>ので、引き続けるほど結晶がたまります。<br>' +
       '<b>' + cost + '個</b>で、<b>PREMIUM SELECT GACHA</b>と<b>GRAND DEBUT GACHA</b>の' +
-      '<b>好きな1体</b>と交換できます。すでに持っているキャラを選ぶと<b>限界突破が進みます</b>。' +
+      '<b>好きな1体</b>と交換できます。すでに持っているキャラを選ぶと<b>限界突破が進みます</b>。<br>' +
+      '★ <b>' + acost + '個</b>で、<b>' + (typeof ARCHIVE_NM !== "undefined" ? ARCHIVE_NM : "Festival Archive GACHA") +
+      '</b>のキャラ（配信の終わったフェスの限定SSR）とも交換できます' +
+      '（カードの <b>ARCHIVE</b> の印が目じるしです）。' +
     '</div>' +
     '<div class="xh-crgrid">' + cards + '</div>' +
     '<div class="xh-exmsg" id="xhCrystMsg"></div>';
@@ -1477,7 +1636,7 @@ async function xhCrystExchange(id) {
   if (_xhCrystBusy) return;
   const msg = xhEl("xhCrystMsg");
   const say = (t, ok) => { if (msg) { msg.innerHTML = t; msg.style.color = ok ? "#0e8a5c" : "#e0405e"; } };
-  const cost = xhCrystCost();
+  const cost = xhCrystCostOf(id);
   if (xhCrystBal() < cost) { say("結晶が足りません（必要 " + cost + "個）"); return; }
   const c = CHARS[id]; if (!c) return;
   const own = !!(DB.chars && DB.chars[id]);
@@ -1554,6 +1713,8 @@ function xhPaintShop() {
         '<div class="xh-pknm">' + xhEscape(p.nm) + '</div>' +
         '<div class="xh-pkgem">' +
           (p.select ? '<span class="xh-pksel">★セレクト' + (p.select > 1 ? "×" + p.select : "") + '</span>' : "") +
+          /* ★★ 2026-09-13 フェスセレクト券（どのフェスの券かを必ず書く） */
+          (p.fsel ? '<span class="xh-pksel f">★' + xhEscape(XH_FESSEL_NM[p.fsel] || p.fsel) + ' セレクト</span>' : "") +
           (p.ticket ? '<span class="xh-pkticket">🎫' + p.ticket.toLocaleString() + '</span>' : "") +
           (p.gticket ? '<span class="xh-pkticket g">🎫' + p.gticket.toLocaleString() + '</span>' : "") +
           '<img src="gem.png" alt="ジェム">' +
@@ -1565,8 +1726,14 @@ function xhPaintShop() {
           (p.gticket ? '<br>🎫は <b>ガチャチケット</b>（プレミアムでも各フェスでも使えます・1枚＝1回ぶん）' : "") +
           (p.select ? '<br>★<b>プレミアムセレクト券</b>は、<b>ガチャ画面</b>で使います'
             + '（PREMIUM SELECT GACHA から出るSSRの中から、好きな1体を確定で受け取れます）' : "") +
-          (p.to ? '<br><b>' + p.to.replace(/-/g, "/") + ' まで・期間中' + max + '回まで</b>'
-                : '<br><b>週' + max + '回まで</b>（毎週月曜にリセット）') + '</div>' +
+          (p.fsel ? '<br>★<b>' + xhEscape(XH_FESSEL_NM[p.fsel] || p.fsel) + ' セレクト券</b>は、<b>ガチャ画面のそのフェス</b>で使います'
+            + '（限定SSRの中から<b>好きな1体を確定で</b>。持っているキャラをえらぶと限界突破が進みます）' : "") +
+          /* ★★ 2026-09-13 ここは to ではなく<b>cycle</b>で場合分けする。
+             to を書かない常設の term パック（フェスセレクト）を
+             「週N回まで」と誤って書いてしまうため。 */
+          (weekly ? '<br><b>週' + max + '回まで</b>（毎週月曜にリセット）'
+            : p.to ? '<br><b>' + p.to.replace(/-/g, "/") + ' まで・期間中' + max + '回まで</b>'
+                   : '<br><b>常設・全部で' + max + '回まで</b>') + '</div>' +
       '</div>' +
       '<div class="xh-pkbuy">' +
         '<button class="xh-pkbtn" ' + (sold || poor ? "disabled" : "") + ' onclick="xhBuyPack(\'' + p.id + '\')">' +
@@ -1586,7 +1753,10 @@ function xhPaintShop() {
     '🗓 <b>常設パックは毎週リセット</b>：週に1回ずつ買えます（次のリセットまであと' + xhWeekResetIn() + '日）。<br>' +
     '☀ <b>Luminous Summer Fest 開幕記念パック</b>は<b>期間中2回まで</b>。' +
     '🎫<b>フェスチケット</b>が付き、<b>どのフェスガチャでも</b>使えます' +
-    '（1枚＝1回ぶん・買ったその場で増えます）。</div>' +
+    '（1枚＝1回ぶん・買ったその場で増えます）。<br>' +
+    '★ <b>セレクトパック</b>（BUNNY GIRL・戦姫祭・RISING STAR）は、' +
+    'そのフェスの<b>限定SSRから好きな1体を確定で</b>受け取れます' +
+    '（使うのは<b>ガチャ画面</b>・常設・全部で 3回まで）。</div>' +
     '<div class="xh-exbal">' +
       '<span><img src="XEVA.png" alt="XEVA">' + xeva.toLocaleString() + '</span>' +
       '<span><img src="gem.png" alt="ジェム">' + xhGemBal().toLocaleString() + '</span>' +
@@ -1599,6 +1769,7 @@ function xhPaintShop() {
 function xhPackGot(p) {
   const t = [];
   if (p.select) t.push("★プレミアムセレクト券" + p.select + "枚");
+  if (p.fsel) t.push("★" + (XH_FESSEL_NM[p.fsel] || p.fsel) + " セレクト券1枚");
   if (p.ticket) t.push("🎫フェスチケット" + p.ticket.toLocaleString() + "枚");
   if (p.gticket) t.push("🎫ガチャチケット" + p.gticket.toLocaleString() + "枚");
   if (p.gem) t.push("💎" + p.gem.toLocaleString());
@@ -1670,6 +1841,10 @@ async function xhBuyPack(id) {
   if (p.select && window.XEVA && window.XEVA.selectTicket) {
     window.XEVA.selectTicket.add(p.select, "パックストア：" + p.nm);
   }
+  /* ★★ 2026-09-13 フェスセレクト券。フェスごとに数えるのでキーを渡す。 */
+  if (p.fsel && window.XEVA && window.XEVA.fesSelect) {
+    window.XEVA.fesSelect.add(p.fsel, 1, "パックストア：" + p.nm);
+  }
   if (p.ticket) {
     /* パックに付くのはフェスチケット（従来どおり） */
     if (window.XEVA && window.XEVA.fesTicket) window.XEVA.fesTicket.add(p.ticket, "パックストア：" + p.nm);
@@ -1696,6 +1871,17 @@ async function xhBuyPack(id) {
         + "<b>PREMIUM SELECT GACHA から出るSSR</b>の中から、<b>好きな1体を確定で</b>受け取れます"
         + "（すでに持っているキャラをえらぶと<b>限界突破</b>が進みます）。",
     }).then((go) => { if (go) location.href = "gacha.html#premium"; });
+  }
+  /* ★★ 2026-09-13 フェスセレクト券も同じように「どこで使うのか」をその場で案内する */
+  if (p.fsel) {
+    const fnm = XH_FESSEL_NM[p.fsel] || p.fsel;
+    xhAsk({
+      icon: "★", title: fnm + " セレクト券を受け取りました", ok: "ガチャ画面へ行く", cancel: "あとで",
+      body: "<b>★" + xhEscape(fnm) + " セレクト券 1枚</b>を受け取りました。<br><br>"
+        + "この券は<b>ガチャ画面の「" + xhEscape(fnm) + "」</b>を開いて使います。"
+        + "そのフェスの<b>限定SSRの中から好きな1体を確定で</b>受け取れます"
+        + "（すでに持っているキャラをえらぶと<b>限界突破</b>が進みます）。",
+    }).then((go) => { if (go) location.href = "gacha.html#" + p.fsel; });
   }
 }
 window.xhBuyPack = xhBuyPack;
@@ -2134,12 +2320,26 @@ function xhApplyOfflineLocks() {
     const id = el.dataset.app;
     el.classList.toggle("locked", off && id !== "more" && !XH_OFFLINE_OK[id]);
   });
+  /* ★★ 2026-09-13c <b>ガチャはオフラインでも引ける</b>（ご指定）。
+     ------------------------------------------------------------
+     ガチャの中身（gacha.html／gacha-ui.js／mb-boot.js／mb-core.js／mb-newchars.js）は
+     ルートの sw.js の CORE に全部入っていて、抽選も支払いも<b>端末の中だけ</b>で終わる。
+     ＝ 通信が要る処理は1つも無いのに、<b>ここでタブを disabled にしていたのが真因</b>。
+     引いた結果は localStorage に入り、オンラインに戻ったときに
+     xeva-cloud.js が 3-way マージで上げるので<b>取り消されない</b>
+     （ウォレットは WALLET_KEYS、引いたキャラは CHAR_KEYS、券は COUNT_KEYS）。
+     ★ community（みんな・ランキング）だけは相手の端末のデータが要るので、
+       オフラインでは今までどおり閉じる。 */
   document.querySelectorAll(".xh-ntab").forEach((el) => {
     const t = el.dataset.tab;
-    el.disabled = off && (t === "gacha" || t === "community");
+    el.disabled = off && t === "community";
   });
   const st = xhEl("xhOfflineState");
   if (st) st.textContent = off ? "オフライン中" : "›";
+  /* ★★ 2026-09-13c 画面上の帯も<b>台帳から</b>書く（手書きだと追加したときに古いままになる）。 */
+  const ob = xhEl("xhOfflineBar");
+  if (ob) ob.innerHTML = "📴 オフライン中 — " + xhEscape(xhOfflineOkNames(6)) +
+    " と 🎰 ガチャは遊べます";
   if (xhEl("xhAppsSheet") && xhEl("xhAppsSheet").classList.contains("on")) xhPaintAppList();
 }
 function xhOpenApp(id, href) {
@@ -2148,7 +2348,7 @@ function xhOpenApp(id, href) {
        次に開いたときには印が無く「更新に気づけない」が起きる。 */
   if (!xhOnline() && !XH_OFFLINE_OK[id]) {
     xhToast("📴 オフライン中は開けません<br><span style='font-size:11px;font-weight:700;color:#6f82ad'>" +
-            "MagiLex ／ MagiBurst ／ MagiChainParty ／ XEVYNAR ／ MagiJackpot ／ Magi Lotto は遊べます</span>", 3200);
+            xhOfflineOkNames(6) + " は遊べます</span>", 3200);
     return;
   }
   try { xhMarkClear(id); } catch (e) {}
@@ -2881,13 +3081,66 @@ function xhInstallSteps() {
            "<b>「インストール」</b>を選ぶ"]];
 }
 function xhPaintInstallSteps() {
-  const box = xhEl("xhInstSteps"); if (!box) return;
-  const steps = xhInstallSteps()[0];
-  box.innerHTML = steps.map((t, i) =>
-    '<div class="st"><span class="n">' + (i + 1) + '</span><span class="x">' + t + "</span></div>").join("");
+  const box = xhEl("xhInstSteps");
+  if (box) {
+    const steps = xhInstallSteps()[0];
+    box.innerHTML = steps.map((t, i) =>
+      '<div class="st"><span class="n">' + (i + 1) + '</span><span class="x">' + t + "</span></div>").join("");
+  }
   const btn = xhEl("xhInstBtn");
   if (btn) btn.style.display = _xhInstallPrompt ? "" : "none";
+  xhPaintInstallQr();
 }
+
+/* ═════════════════════════════════════════════════════
+   ★★ 2026-09-13 インストール案内の QR コード（ご指定）
+   ------------------------------------------------------------
+   設定 ›「XEVARION をインストール」を開くと、公開 URL の QR を出す。
+   ★ 中身は<b>常に公開 URL</b>（XH_INSTALL_URL）。location.href ではだめ——
+     検証中は localhost になるし、アプリ表示では # 付きの途中の URL になる。
+   ★ xeva-qr.js は外部ライブラリを使わないのでオフラインでも描ける。
+     defer で読んでいるので、まだ届いていなければ少し待ってもう一度描く。
+   ═════════════════════════════════════════════════════ */
+const XH_INSTALL_URL = "https://merurungx-glitch.github.io/xevarion/index.html";
+window.XH_INSTALL_URL = XH_INSTALL_URL;
+
+function xhPaintInstallQr(retry) {
+  const box = xhEl("xhInstQr");
+  if (!box) return;
+  const us = xhEl("xhInstQrUrl");
+  if (us) us.textContent = XH_INSTALL_URL;
+  if (!window.XevaQR || typeof XevaQR.canvas !== "function") {
+    if (!retry) setTimeout(() => xhPaintInstallQr(1), 260);
+    return;
+  }
+  if (box.dataset.url === XH_INSTALL_URL && box.firstChild) return;   // 描き直さない
+  box.innerHTML = "";
+  try {
+    box.appendChild(XevaQR.canvas(XH_INSTALL_URL, 220));
+    box.dataset.url = XH_INSTALL_URL;
+  } catch (e) {
+    box.innerHTML = '<div style="font-size:11px;font-weight:800;color:#a8203f">QR を描けませんでした</div>';
+  }
+}
+window.xhPaintInstallQr = xhPaintInstallQr;
+
+async function xhCopyInstallUrl() {
+  try {
+    await navigator.clipboard.writeText(XH_INSTALL_URL);
+    xhToast("📋 URL をコピーしました");
+  } catch (e) {
+    /* クリップボードが使えない環境では古いやりかたで逃げる */
+    try {
+      const ta = document.createElement("textarea");
+      ta.value = XH_INSTALL_URL;
+      ta.style.cssText = "position:fixed;left:-9999px;top:0";
+      document.body.appendChild(ta);
+      ta.select(); document.execCommand("copy"); ta.remove();
+      xhToast("📋 URL をコピーしました");
+    } catch (e2) { xhToast("コピーできませんでした。URL を長押しして選んでください"); }
+  }
+}
+window.xhCopyInstallUrl = xhCopyInstallUrl;
 /* ═══════════════════════════════════════════════════════════════
    ★★ 2026-08-29 「終わるときはホームに戻る」の注意（ご指定）
    ------------------------------------------------------------
@@ -3177,6 +3430,212 @@ function xhFmtSize(b) {
      xhUpdStart   … 1（くらべる）→ 進むごとに 2・3
      完了時        … 4（切り替える）
    n=0 なら全部リセット。live は右上の小さな見出し。 */
+/* ══════════════════════════════════════════════════════
+   ★★ 2026-09-13 更新中の全画面（ご指定）
+   ------------------------------------------------------------
+   「更新する」を押したら<b>画面を移動</b>して、
+     ・ロードバー（割合付き）
+     ・同期の画面と同じ<b>お辞儀の案内役</b>
+     ・<b>1文字ずつ跳ねる</b>文字
+     ・PR の<b>ショーケース</b>（★★ 2026-09-13c 動画は使わない・ご指定）
+   を見せる。待ち時間が「何も起きていない時間」にならないようにするため。
+   ★ シート側の進捗表示も<b>残してある</b>——自動ダウンロードなど、
+     この全画面を出さない場面ではそちらが使われる。
+   ══════════════════════════════════════════════════════ */
+/* 文字列を「1文字ずつ跳ねる span」に組み直す（xeva-loading.js と同じ考えかた）。
+   ★ 組み直した文字列はそのまま HTML になるので<b>必ずエスケープ</b>する。 */
+function xhHopHtml(text, step) {
+  step = step || 0.055;
+  let out = "";
+  for (let i = 0; i < text.length; i++) {
+    const ch = text.charAt(i);
+    out += '<span class="hp' + (ch === " " ? " sp" : "") + '" style="animation-delay:'
+         + (i * step).toFixed(3) + 's">' + (ch === " " ? "" : xhEscape(ch)) + "</span>";
+  }
+  return out;
+}
+window.xhHopHtml = xhHopHtml;
+
+/* ★★ 2026-09-13c PR の<b>ショーケース</b>の台帳（ご指定：動画は使わない）。
+   ------------------------------------------------------------
+   もとは XEVARION-CM-15s.mp4 を字幕つきで流していた。やめた理由は2つ:
+     ・muted でも自動再生を断る端末があり、断られると<b>黒い四角</b>が残る
+       （box.classList.add("hide") で隠していたが、隠れると演出が半分消える）
+     ・更新のダウンロード中に<b>数MB の動画を同時に取る</b>ことになり、
+       いちばん帯域が欲しい場面で食い合う
+   代わりに<b>すでに precache してあるタイル絵</b>だけでスライドを作る。
+   ★ 絵は必ずルートの sw.js の CORE に載っているものだけにする
+     （載っていない絵を書くと、オフラインで穴が開く＝動画と同じ失敗になる）。 */
+/* そのアプリの「札」（ジャンル）。XH_CATS のラベルから絵文字を外して使う。 */
+const XH_UR_TAG = { game: "ゲーム", learn: "学習", social: "つながる",
+                    info: "情報・ツール", shop: "店舗・公式" };
+/* ★★ 2026-09-13d ショーケースの中身は<b>XH_APPS からそのまま作る</b>（ご指定）。
+   ------------------------------------------------------------
+   前の版は5枚を手で書いていたので、
+     ・アプリを足しても<b>ここに出てこない</b>
+     ・絵を 16:10 の枠に object-fit:cover で入れていたので<b>正方形のタイル絵が大きく切れる</b>
+   の2つが起きていた（ご指定の「画像が全て表示されていない」「他のアプリも追加して」）。
+   ★ 見た目は<b>ホームのアップデート情報（.xh-ev.up）とそろえる</b>（ご指定）。
+     64px の正方の枠にタイル絵をそのまま入れるので<b>切れない</b>。
+   ★ 並びはホームの既定の並び（XH_DEFAULT_ORDER）に合わせ、
+     毎回ちがう場所から始める（同じアプリばかり見えないように）。 */
+function xhUrShowList() {
+  let list = [];
+  try {
+    const byId = {};
+    XH_APPS.forEach((a) => { byId[a.id] = a; });
+    const order = (typeof XH_DEFAULT_ORDER !== "undefined" && XH_DEFAULT_ORDER.length)
+      ? XH_DEFAULT_ORDER : XH_APPS.map((a) => a.id);
+    const seen = {};
+    order.forEach((id) => { if (byId[id] && !seen[id]) { seen[id] = 1; list.push(byId[id]); } });
+    XH_APPS.forEach((a) => { if (!seen[a.id]) { seen[a.id] = 1; list.push(a); } });
+  } catch (e) { list = []; }
+  if (!list.length) return [];
+  /* 始まりの場所だけ日ごとに変える（回るたびに変えると、見ている途中で並びが動く） */
+  let off = 0;
+  try { off = Math.abs(Number(String(xhToday()).replace(/-/g, ""))) % list.length; } catch (e) {}
+  return list.slice(off).concat(list.slice(0, off));
+}
+const XH_UR_SHOW_MS = 2600;     // 1枚を見せる時間
+/* 案内役（同期の画面と同じ絵） */
+const XH_UR_STAND = "img/ld_a_stand.webp?v=5";
+const XH_UR_BOW   = "img/ld_a_bow.webp?v=5";
+const XH_UR_SWAP  = 420;        // 立ち絵 ⇄ お辞儀 の入れかえ間隔
+let _xhUrSwap = 0, _xhUrCc = 0, _xhUrOpen = false;
+
+function xhUrLang() {
+  try { if (window.XevaI18N && XevaI18N.lang) return XevaI18N.lang() === "en" ? "en" : "ja"; } catch (e) {}
+  try { if (localStorage.getItem("xeva_lang_v1") === "en") return "en"; } catch (e) {}
+  return "ja";
+}
+
+/* 全画面を出す。title と say は 1文字ずつ跳ねる文字になる。 */
+function xhUrOpen(title, say) {
+  const el = xhEl("xhUpdRun"); if (!el) return;
+  _xhUrOpen = true;
+  const t = xhEl("xhUrTitle");
+  if (t) t.innerHTML = xhHopHtml(title || "最新のデータをとりこんでいます", 0.045);
+  const s = xhEl("xhUrSay");
+  if (s) s.innerHTML = xhHopHtml(say || "しばらくお待ちください", 0.055);
+  const st = xhEl("xhUrStand"), bw = xhEl("xhUrBow");
+  if (st && !st.getAttribute("src")) st.src = XH_UR_STAND;
+  if (bw && !bw.getAttribute("src")) bw.src = XH_UR_BOW;
+  const cl = xhEl("xhUrClose"); if (cl) cl.style.display = "none";
+  xhUrSet({ pct: 0, sub: "確認をはじめています…", dl: "", step: 1 });
+
+  /* ほかの画面はしまう（＝画面ごと移動する） */
+  try { xhCloseSheet("xhUpdSheet"); } catch (e) {}
+  el.classList.add("on");
+  /* 箱の外まで同じ色で埋める（アプリ表示で下に別の帯が残らないように） */
+  try { if (window.xvPaintHtml) xvPaintHtml("xhUpdRun", "linear-gradient(178deg,#e6f1ff 0%,#f2f7ff 30%,#fdf3ff 68%,#fff8ef 100%)"); } catch (e) {}
+  try { document.body.style.overflow = "hidden"; } catch (e) {}
+
+  /* 立ち絵 ⇄ お辞儀。出てすぐ一度お辞儀する（同期の画面と同じ）。 */
+  if (_xhUrSwap) { clearTimeout(_xhUrSwap); clearInterval(_xhUrSwap); _xhUrSwap = 0; }
+  let on = 0;
+  const flip = () => {
+    on ^= 1;
+    if (st) st.classList.toggle("on", !on);
+    if (bw) bw.classList.toggle("on", !!on);
+  };
+  _xhUrSwap = setTimeout(() => { flip(); _xhUrSwap = setInterval(flip, XH_UR_SWAP); }, 220);
+
+  xhUrStartShow();
+}
+window.xhUrOpen = xhUrOpen;
+
+/* ★★ 2026-09-13c PR のショーケースを回す（動画は使わない・ご指定）。
+   ------------------------------------------------------------
+   ・スライドは<b>最初に全部作って重ねておく</b>（.on を付け替えるだけにする）。
+     1枚ずつ作り直すと、そのたびに絵を読みに行って<b>ちらつく</b>。
+   ・文字は同期の画面と同じ<b>1文字ずつ跳ねる</b>形にする。
+     ★ 跳ねるアニメは付け直さないと再生されないので、
+       innerHTML を入れ直す＝毎回いちから跳ねる（これで良い）。
+   ・絵が取れなかったときは<b>その1枚だけ飛ばす</b>（枠ごと隠さない）。 */
+function xhUrStartShow() {
+  const box = xhEl("xhUrShow"), st = xhEl("xhUrStage"),
+        cc = xhEl("xhUrCc"), dt = xhEl("xhUrDots");
+  if (!box || !st) return;
+  box.classList.remove("hide");
+  const list = xhUrShowList();
+  if (!list.length) { box.classList.add("hide"); return; }
+  if (!st.childElementCount) {
+    /* ★ カードは<b>横に一列</b>に並べて、translateX で送る（ホームのカルーセルと同じ）。
+       1枚ずつ作り直すと、そのたびに絵を読みに行って<b>ちらつく</b>。 */
+    st.innerHTML = list.map((a) => {
+      const nm = a.full || a.name;
+      const tx = xhPlain(a.desc || a.sub || "");
+      return '<div class="us-card">' +
+        '<span class="us-ic"><img src="' + xhEscape(a.img) + '" alt="" loading="lazy" ' +
+          'onerror="if(this.dataset.fb)return;this.dataset.fb=1;this.src=&#39;thumbs/Xevarion.png&#39;">' +
+        "</span>" +
+        '<span class="us-bd">' +
+          '<span class="us-tag">' + xhEscape(XH_UR_TAG[a.cat] || "アプリ") + "</span>" +
+          '<span class="us-t1">' + xhEscape(nm) + "</span>" +
+          '<span class="us-t2">' + xhEscape(tx) + "</span>" +
+        "</span></div>";
+    }).join("");
+    st.style.width = (list.length * 100) + "%";
+    Array.prototype.forEach.call(st.children, (el) => { el.style.width = (100 / list.length) + "%"; });
+    if (dt) dt.innerHTML = list.map((a, i) =>
+      '<i class="' + (i === 0 ? "on" : "") + '"></i>').join("");
+  }
+  const dots = dt ? dt.children : null;
+  let i = 0;
+  const show = () => {
+    st.style.transform = "translateX(" + (-i * (100 / list.length)) + "%)";
+    if (dots) for (let k = 0; k < dots.length; k++) dots[k].classList.toggle("on", k === i);
+    if (cc) cc.textContent = (i + 1) + " / " + list.length;
+  };
+  show();
+  if (_xhUrCc) { clearInterval(_xhUrCc); _xhUrCc = 0; }
+  _xhUrCc = setInterval(() => { i = (i + 1) % list.length; show(); }, XH_UR_SHOW_MS);
+}
+
+/* 割合・文言・段を書きかえる。渡さなかった項目は触らない。 */
+function xhUrSet(o) {
+  if (!_xhUrOpen) return;
+  o = o || {};
+  if (typeof o.pct === "number") {
+    const bar = xhEl("xhUrBar"); if (bar) bar.style.width = Math.max(0, Math.min(100, o.pct)) + "%";
+    const pt = xhEl("xhUrPct"); if (pt) pt.textContent = Math.round(o.pct);
+  }
+  if (typeof o.sub === "string") { const e = xhEl("xhUrSub"); if (e) e.innerHTML = o.sub; }
+  if (typeof o.dl === "string") { const e = xhEl("xhUrDl"); if (e) e.innerHTML = o.dl; }
+  if (typeof o.say === "string") { const e = xhEl("xhUrSay"); if (e) e.innerHTML = xhHopHtml(o.say, 0.055); }
+  if (typeof o.step === "number") {
+    const box = xhEl("xhUrSteps");
+    if (box) {
+      Array.prototype.forEach.call(box.children, (li) => {
+        const s = Number(li.getAttribute("data-s")) || 0;
+        li.classList.toggle("now", s === o.step);
+        li.classList.toggle("done", o.step > s);
+      });
+    }
+  }
+}
+window.xhUrSet = xhUrSet;
+
+/* 閉じる（再読み込みしない場面・失敗したときだけ） */
+function xhUrClose() {
+  _xhUrOpen = false;
+  if (_xhUrSwap) { clearTimeout(_xhUrSwap); clearInterval(_xhUrSwap); _xhUrSwap = 0; }
+  /* ★ 2026-09-13c 動画をやめたので pause() は不要。回しているのはこの1本だけ。 */
+  if (_xhUrCc) { clearInterval(_xhUrCc); _xhUrCc = 0; }
+  const el = xhEl("xhUpdRun"); if (el) el.classList.remove("on");
+  try { if (window.xvPaintHtml) xvPaintHtml("xhUpdRun", null); } catch (e) {}
+  try { document.body.style.overflow = ""; } catch (e) {}
+}
+window.xhUrClose = xhUrClose;
+
+/* 終わったとき。reload する場面では閉じるボタンを出さない。 */
+function xhUrFinish(msg, showClose) {
+  xhUrSet({ pct: 100, step: 4, sub: msg || "最新版に切りかえています…",
+            say: showClose ? "お待たせしました" : "もうすぐ終わります" });
+  const cl = xhEl("xhUrClose"); if (cl) cl.style.display = showClose ? "" : "none";
+}
+window.xhUrFinish = xhUrFinish;
+
 function xhDlStep(n, live) {
   const box = xhEl("xhDlSteps");
   if (box) {
@@ -3188,6 +3647,8 @@ function xhDlStep(n, live) {
   }
   const lv = xhEl("xhDlLive");
   if (lv) lv.textContent = live || (n ? "いま ステップ " + n + " を実行中" : "押すと①から順に進みます");
+  /* ★★ 2026-09-13 更新中の全画面の段もいっしょに動かす（片方だけ古くならないように） */
+  if (n) xhUrSet({ step: n });
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -3779,6 +4240,15 @@ function xhUpdPaint() {
     dl.innerHTML = "更新したファイル <b>" + got.toLocaleString() + "</b> 件（" + xhFmtSize(bytes) + "）"
       + "　／　変更なし " + hit.toLocaleString() + " 件";
   }
+  /* ★★ 2026-09-13 更新中の全画面にも同じものを出す */
+  xhUrSet({
+    pct: shown,
+    sub: finished
+      ? "確認完了（" + done.toLocaleString() + " ファイル）— 仕上げています…"
+      : "確認中… " + done.toLocaleString() + " / " + (total ? total.toLocaleString() : "?") + " ファイル",
+    dl: "更新したファイル <b>" + got.toLocaleString() + "</b> 件（" + xhFmtSize(bytes) + "）"
+      + "　／　変更なし " + hit.toLocaleString() + " 件",
+  });
   /* ★ しくみガイドを実際の動きに同期させる。
      ・まだ1件も落としていない → ①くらべる
      ・落としはじめた           → ②変わったぶんだけ落とす
@@ -3951,6 +4421,17 @@ async function xhDownloadCore(paint) {
   const GRACE = 2500;      // 最後の動きからこれだけ静かなら「もう来ない」とみなす
   const LATE  = 60000;     // installing/waiting を待つのはここまで
   const STALL = 90000;     // 進捗が止まったきり動かない（回線が落ちた等）ときの打ち切り
+  /* ══ ★★ 2026-09-13 ご報告「進捗率が 100% なのに終わらないことがある」の直し ══
+     真因は<b>installing/waiting の SW を LATE（60秒）も待っていた</b>こと。
+     新しい SW は「古い SW が手を離すまで<b>waiting のまま</b>」になる。
+     ところが古い SW を手放すのは<b>このあとの location.reload()</b> なので、
+     ここで待っても<b>永遠に waiting のまま</b>＝必ず 60 秒消える。
+     ★ 直しかたは2つ。
+       ① waiting には <b>skipWaiting を頂む</b>（待つのではなく<b>進める</b>）。
+       ② 100% に届いたあとは、busy でも <b>FULL_WAIT（6秒）だけ</b>で打ち切る。
+         落とすものはもう無い（done >= total）のだから、それ以上待つ意味がない。 */
+  const FULL_WAIT = 6000;  // 100% に届いてから installing/waiting を待つ上限
+  let fullAt = 0;
   const started = Date.now();
   let lastMove = Date.now(), lastKey = "", iv = null;
   let endMsg = "";
@@ -3968,13 +4449,25 @@ async function xhDownloadCore(paint) {
       if (key !== lastKey) { lastKey = key; lastMove = Date.now(); }
       const quiet = Date.now() - lastMove, age = Date.now() - started;
 
+      if (scopes >= 1 && total > 0 && done >= total) {
+        if (!fullAt) fullAt = Date.now();     /* ★ 100% に届いた時刻を覚えておく */
+      } else {
+        fullAt = 0;
+      }
       if (scopes >= 1 && total > 0 && done >= total && quiet > GRACE) {
-        /* まだ install 中の SW がいるなら、そのぶんは待ってあげる（ただし LATE まで） */
+        /* まだ install 中の SW がいるなら、そのぶんは待ってあげる——
+           ただし<b>100% に届いてからは FULL_WAIT まで</b>（上の★★参照）。 */
         let busy = false;
-        if (age < LATE) {
+        if (age < LATE && Date.now() - fullAt < FULL_WAIT) {
           try {
             const regs = await navigator.serviceWorker.getRegistrations();
             busy = regs.some((r) => r.installing || r.waiting);
+            /* ★ waiting は「待つ」のではなく<b>進める</b>。
+               これを頂かないと waiting のまま永遠に終わらない。 */
+            regs.forEach((r) => {
+              const w = r.waiting;
+              if (w) { try { w.postMessage({ type: "SKIP_WAITING" }); } catch (e) {} }
+            });
           } catch (e) {}
         }
         if (!busy) { finish(); return; }
@@ -4072,17 +4565,26 @@ async function xhUpdStart(keepVer) {
     const pg0 = xhEl("xhUpdProg"); if (pg0) pg0.classList.add("on");
     const bar0 = xhEl("xhUpdBar"); if (bar0) bar0.style.width = "100%";
     const pt0 = xhEl("xhUpdPct"); if (pt0) pt0.textContent = "自動ダウンロード済みのデータを適用しています…";
+    /* ★★ 2026-09-13 ここも<b>画面ごと移動</b>する（短いが、途中で見た目が変わらないのが大事） */
+    xhUrOpen("ダウンロード済みのデータを適用しています",
+             "もうすぐ終わります");
+    xhUrSet({ pct: 100, step: 4, sub: "追加のダウンロードはありません。画面を読み込み直して完了です。" });
     xhDlStep(4, "④ 最新版に切り替えます");
     try { localStorage.setItem(XH_PKG_KEY, _xhUpd.version || ""); } catch (e) {}
-    setTimeout(() => { try { location.reload(); } catch (e) {} }, 700);
+    setTimeout(() => { try { location.reload(); } catch (e) {} }, 1600);
     return;
   }
   /* ★ 2026-08-20 通信設定: いまの回線で「更新を自動でダウンロード」をオフにしているときは一度きく */
-  if (!(await xhAskBigDownload(keepVer ? "足りないファイル" : "最新のデータ"))) { _xhUpdRunning = false; return; }
+  if (!(await xhAskBigDownload(keepVer ? "足りないファイル" : "最新のデータ"))) { _xhUpdRunning = false; xhUrClose(); return; }
   _xhUpdRunning = true;
   xhUpdResetPct();          /* ★ 走りはじめは 0% から（前回の値を引きずらない） */
   ["xhUpdGo", "xhUpdSkip", "xhUpdX"].forEach((id) => { const e = xhEl(id); if (e) e.style.display = "none"; });
   const pg = xhEl("xhUpdProg"); if (pg) pg.classList.add("on");
+  /* ★★ 2026-09-13 ここで<b>更新中の全画面へ移動</b>する（ご指定）。
+     シートは閉じる（xhUrOpen の中で）。 */
+  xhUrOpen(keepVer ? "オフライン用のデータをそろえています"
+                   : "最新のデータをとりこんでいます",
+           "しばらくお待ちください");
   xhDlStep(1, "① くらべています");
   xhUpdPaint();
 
@@ -4092,6 +4594,9 @@ async function xhUpdStart(keepVer) {
   const bar = xhEl("xhUpdBar"); if (bar) bar.style.width = "100%";
   const pt = xhEl("xhUpdPct");
   if (pt) pt.textContent = r.msg || (keepVer ? "オフライン用のデータがそろいました" : "更新を適用しています…");
+  /* ★★ 2026-09-13 全画面も仕上げにする。このあと reload するので閉じるボタンは出さない。 */
+  xhUrFinish(r.msg || (keepVer ? "オフライン用のデータがそろいました。画面を読み込み直します…"
+                              : "更新を適用しています… 画面を読み込み直して完了です"), false);
   xhDlStep(4, keepVer ? "④ 完了しました" : "④ 最新版に切り替えます");
   /* ★ 再ダウンロードでは版を書き換えない（見送り中の更新の案内を消さないため） */
   if (!keepVer) { try { localStorage.setItem(XH_PKG_KEY, (_xhUpd && _xhUpd.version) || ""); } catch (e) {} }
@@ -5208,7 +5713,12 @@ addEventListener("storage", (e) => {
   xhRenderXeva();
 });
 addEventListener("online",  () => { xhApplyOfflineLocks(); xhToast("🌐 オンラインに復帰しました。データをクラウドへ反映します"); });
-addEventListener("offline", () => { xhApplyOfflineLocks(); xhToast("📴 オフラインになりました<br><span style='font-size:11px;font-weight:700;color:#6f82ad'>MagiLex ／ MagiBurst ／ MagiChainParty ／ XEVYNAR ／ MagiJackpot は遊べます</span>", 3400); });
+addEventListener("offline", () => {
+  xhApplyOfflineLocks();
+  /* ★★ 2026-09-13c ガチャも引けるようになったので、それも書く（ご指定）。 */
+  xhToast("📴 オフラインになりました<br><span style='font-size:11px;font-weight:700;color:#6f82ad'>" +
+          xhOfflineOkNames(6) + " と 🎰 ガチャは遊べます</span>", 3400);
+});
 
 addEventListener("focus", () => { if (_xhShown) { xhRenderProfile(); xhRenderXeva(); } });
 document.addEventListener("visibilitychange", () => {

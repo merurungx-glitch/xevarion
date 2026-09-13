@@ -24,7 +24,7 @@
      以前はここに直接書いてあり、MagiBurst / MagiLex の一覧は別ファイルにあったため、
      新機能を足すたびに「同期リストへの入れ忘れ」が起きていた
      （ジェムショップの購入履歴 xeva_shop_v1 が同期されていなかったのがその例）。 */
-import { PORTAL_SYNC_KEYS, wipeAccountData, wipeAccountDataFull } from "./xeva-keys.js?v=20";
+import { PORTAL_SYNC_KEYS, wipeAccountData, wipeAccountDataFull } from "./xeva-keys.js?v=23";
 
 const SYNC_KEYS = PORTAL_SYNC_KEYS;
 const SYNC_SET = new Set(SYNC_KEYS);
@@ -287,7 +287,30 @@ function setBaseMany(kv) {
 const WALLET_KEYS = new Set(["xeva_wallet_v1", "xeva_gem_v1", "xeva_gticket_v1",
   "xeva_fticket_v1", "xeva_selticket_v1", "xeva_cryst_v1"]);
 const CHAR_KEYS = new Set(["xeva_gacha_v1", "magiburst_v1"]);
-function hasMergeRule(k) { return WALLET_KEYS.has(k) || CHAR_KEYS.has(k); }
+/* ★★ 2026-09-13 「もらった総数 / 使った総数」を項目ごとに持つ台帳（フェスセレクト券）。
+   どちらも<b>増えるだけ</b>なので、両方を max で混ぜるだけで正しい残高になる。
+   （残高を直に持っていると「新しい方が勝つ」で買った券が消える） */
+const COUNT_KEYS = new Set(["xeva_fessel_v1", "xeva_seal_v1"]);
+function hasMergeRule(k) { return WALLET_KEYS.has(k) || CHAR_KEYS.has(k) || COUNT_KEYS.has(k); }
+/* 項目ごとに e / u を max で取り、履歴は取り合わせる */
+function mergeCountMap(k, lv, rv) {
+  const L = jparse(lv, null), R = jparse(rv, null);
+  if (!L || !R || typeof L !== "object") return null;
+  const out = { f: {}, history: [] };
+  const put = (src) => {
+    const f = (src && src.f) || {};
+    Object.keys(f).forEach((key) => {
+      const cell = f[key] || {};
+      const cur = out.f[key] || { e: 0, u: 0 };
+      out.f[key] = { e: Math.max(cur.e, Number(cell.e) || 0), u: Math.max(cur.u, Number(cell.u) || 0) };
+    });
+  };
+  put(R); put(L);
+  Object.keys(out.f).forEach((key) => { if (out.f[key].u > out.f[key].e) out.f[key].u = out.f[key].e; });
+  out.history = mergeHistory(L.history, R.history);
+  out.at = Math.max(Number(L.at) || 0, Number(R.at) || 0);
+  return JSON.stringify(out);
+}
 
 /* 履歴の取り合わせ（新しい順・上限100件） */
 function mergeHistory(a, b) {
@@ -402,7 +425,9 @@ function mergeStore(uid, remote, remoteT) {
         if (lv != null && hasMergeRule(k)) {
           merged = WALLET_KEYS.has(k)
             ? mergeWallet(k, lv, rv)
-            : mergeCharsInto(k, remoteWins ? rv : lv, remoteWins ? lv : rv);
+            : COUNT_KEYS.has(k)
+              ? mergeCountMap(k, lv, rv)
+              : mergeCharsInto(k, remoteWins ? rv : lv, remoteWins ? lv : rv);
         }
         if (merged != null) {
           if (WALLET_KEYS.has(k)) newBase[k] = rv;      /* 土台は「クラウドに確かにある値」 */
@@ -484,7 +509,9 @@ const URGENT_KEYS = new Set(["xeva_wallet_v1", "xeva_gem_v1", "xeva_gticket_v1",
   /* ★ 2026-08-24 プレミアムセレクト券。買ってすぐ使うので送信の遅れが致命的 */
   "xeva_selticket_v1",
   /* ★ 2026-08-30 💠結晶。ガチャで増えて、そのままショップの交換所で使うので同じ理由。 */
-  "xeva_cryst_v1"]);
+  "xeva_cryst_v1",
+  /* ★★ 2026-09-13 フェスセレクト券。買ってそのままガチャ画面で使うので同じ理由。 */
+  "xeva_fessel_v1", "xeva_seal_v1"]);
 
 function schedulePush(urgent) {
   if (urgent) { if (pushTimer) { clearTimeout(pushTimer); pushTimer = null; } flushPush(); return; }

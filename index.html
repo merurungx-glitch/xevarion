@@ -19,11 +19,11 @@
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Exo+2:ital,wght@0,300;0,400;0,600;0,700;1,300&family=Noto+Sans+JP:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="xeva-theme.css?v=9">
 <link rel="stylesheet" href="xevarion.css?v=25">
-<link rel="stylesheet" href="xevarion-home.css?v=74">
+<link rel="stylesheet" href="xevarion-home.css?v=77">
 <!-- ★★ 2026-08-22b Xevion OS の見た目（テーマ・文字の大きさ・動きを減らす）。
      xevarion-home.css の<b>あと</b>に読む＝上書きできるようにする。 -->
 <link rel="stylesheet" href="xevion-os.css?v=15">
-<script src="xeva.js?v=62" defer></script>
+<script src="xeva.js?v=65" defer></script>
 <!-- ★★ 2026-09-05 コレクションを XEVARION 全体で1本にする共通部品。
      xeva.js の iconCharList() を使うので、必ず xeva.js の<b>あと</b>に置く。 -->
 <script src="xeva-collection.js?v=7" defer></script>
@@ -54,19 +54,20 @@
 <!-- ★ 2026-08-18 新キャラ告知の台帳（MagiBurst と共通）。
      告知を<b>ポータルのログイン時</b>に一本化したので、ここでも読む。
      defer なので xevarion.js より先に実行される（書いた順番で走る）。 -->
-<script src="mb-newchars.js?v=23" defer></script>
+<script src="mb-newchars.js?v=24" defer></script>
 <!-- ★★ 2026-08-22b Xevion OS（XEVARION の UI をひとつの OS として扱う土台）。
      ほかの画面より<b>先に</b>読む（body のクラスを立てるので、あとから読むと一瞬ちらつく）。 -->
 <script src="xevion-os.js?v=13"></script>
 <!-- ジェム⇄XEVA のレート（ドル円連動）。xevarion-home.js より先に読み込む -->
 <script src="xeva-fx.js?v=9" defer></script>
-<script src="xeva-loading.js?v=14" defer></script>
+<script src="xeva-loading.js?v=15" defer></script>
 <script type="module" src="xeva-sync.js?v=18"></script>
 <script type="module" src="xevarion-fb.js?v=33"></script>
 <script src="xeva-presence.js?v=9" defer></script>
-<script type="module" src="xeva-cloud.js?v=28"></script>
-<script src="xevarion.js?v=85" defer></script>
-<script src="xevarion-home.js?v=98" defer></script>
+<script type="module" src="xeva-cloud.js?v=31"></script>
+<script src="xeva-qr.js?v=9" defer></script>
+<script src="xevarion.js?v=88" defer></script>
+<script src="xevarion-home.js?v=101" defer></script>
 </head>
 <body>
 <!-- ───── バックグラウンド音楽（Flagship Arrival。アクセス画面のタップで再生開始） ───── -->
@@ -373,7 +374,9 @@ body.music-on #beatFrame{opacity:1}
     <!-- ───── スクロール領域 ───── -->
     <div class="xh-scroll" id="xhScroll">
 
-      <div class="xh-offline">📴 オフライン中 — MagiLex ／ MagiBurst ／ MagiChainParty ／ XEVYNAR ／ MagiJackpot のみ遊べます</div>
+      <!-- ★★ 2026-09-13c 文面は xevarion-home.js が台帳（XH_OFFLINE_OK）から入れ直す。
+           ここに書いてあるのは JS が動く前に一瞬だけ出る初期表示。 -->
+      <div class="xh-offline" id="xhOfflineBar">📴 オフライン中 — オフライン対応アプリと 🎰 ガチャは遊べます</div>
 
       <!-- プロフィール（EXPは廃止。XEVAはアバター行の右側に置く） -->
       <section class="xh-panel xh-prof">
@@ -635,6 +638,60 @@ body.music-on #beatFrame{opacity:1}
   </div>
 </div>
 
+<!-- ═════ ★★ 2026-09-13 更新中の全画面（ご指定）═════
+     「更新する」を押すと<b>画面ごと移動</b>してここになる。
+       ・ロードバー（割合付き）
+       ・同期の画面と同じ<b>お辞儀の案内役</b>（立ち絵 ⇄ お辞儀）
+       ・文字は<b>1文字ずつ跳ねる</b>
+       ・PR の<b>ショーケース</b>（動画は使わない・2026-09-13c）
+     ★ 中身は xevarion-home.js の xhUrOpen() / xhUrSet() が書きかえる。
+     ★ シート（#xhUpdSheet）の進捗表示も<b>残してある</b>——
+       この全画面を出せない場面（自動ダウンロードなど）の受け皿。 -->
+<div class="xh-updrun" id="xhUpdRun">
+  <div class="ur-bg"><i class="b1"></i><i class="b2"></i><i class="b3"></i></div>
+  <div class="ur-in">
+    <div class="ur-cap">XEVARION UPDATE</div>
+    <div class="ur-ttl" id="xhUrTitle"></div>
+
+    <div class="ur-cast">
+      <img class="ps stand on" id="xhUrStand" alt="">
+      <img class="ps bow" id="xhUrBow" alt="">
+    </div>
+    <div class="ur-say" id="xhUrSay"></div>
+
+    <div class="ur-barwrap">
+      <div class="ur-bar"><i id="xhUrBar"></i></div>
+      <div class="ur-pct"><b id="xhUrPct">0</b>%</div>
+    </div>
+    <div class="ur-sub" id="xhUrSub">確認をはじめています…</div>
+    <div class="ur-dl" id="xhUrDl"></div>
+
+    <ol class="ur-steps" id="xhUrSteps">
+      <li data-s="1"><b>1</b><span>くらべる</span></li>
+      <li data-s="2"><b>2</b><span>落とす</span></li>
+      <li data-s="3"><b>3</b><span>保存する</span></li>
+      <li data-s="4"><b>4</b><span>切りかえ</span></li>
+    </ol>
+
+    <!-- ★★ 2026-09-13c <b>動画は使わない</b>（ご指定）。
+         もとは XEVARION-CM-15s.mp4 を字幕つきで流していたが、
+           ・端末によっては自動再生できず<b>黒い四角</b>が残る
+           ・mp4 は 1本で数MB あり、更新のダウンロードと帯域を食い合う
+         ので、<b>すでにキャッシュしてあるタイル絵</b>だけで作る
+         「ショーケース」に置きかえた。中身は xevarion-home.js の
+         xhUrStartShow() が組み立てる（絵は thumbs/ の precache 済みのものだけ）。 -->
+    <div class="ur-show" id="xhUrShow">
+      <div class="us-cap">XEVARION のアプリ</div>
+      <div class="us-win"><div class="us-track" id="xhUrStage"></div></div>
+      <div class="us-foot"><span class="us-dots" id="xhUrDots"></span>
+        <span class="us-cc" id="xhUrCc"></span></div>
+    </div>
+
+    <div class="ur-tip" id="xhUrTip">更新のあいだは<b>このままお待ちください</b>。セーブデータ（進行・所持キャラ・XEVA）はそのままです。</div>
+    <button class="ur-close" id="xhUrClose" onclick="xhUrClose()" style="display:none">閉じる</button>
+  </div>
+</div>
+
 <!-- ───── 画面内の確認ダイアログ（購入など・xhAsk が中身を組み立てる） ───── -->
 <div class="xh-ask" id="xhAsk"><div class="xh-ask-card" id="xhAskCard"></div></div>
 
@@ -705,6 +762,17 @@ body.music-on #beatFrame{opacity:1}
         オフライン中の進行は、オンラインに戻った時点でクラウドへ反映されます。
       </div>
       <div class="xh-inst-steps" id="xhInstSteps"></div>
+
+      <!-- ★★ 2026-09-13 他の端末で開くための QR（ご指定）。
+           中身は公開 URL（XH_INSTALL_URL）。xeva-qr.js でその場で描くので
+           オフラインでも出る（CDN を使わない）。 -->
+      <div class="xh-instqr" id="xhInstQrWrap">
+        <div class="xh-instqr-t">📱 この QR を読み取ると、その端末で XEVARION が開きます</div>
+        <div class="xh-instqr-cv" id="xhInstQr"></div>
+        <div class="xh-instqr-u" id="xhInstQrUrl"></div>
+        <button class="xh-sbtn ghost" type="button" onclick="xhCopyInstallUrl()">📋 URL をコピー</button>
+      </div>
+
       <button class="xh-sbtn" id="xhInstBtn" onclick="xhInstallApp()">インストールする</button>
       <button class="xh-sbtn ghost" onclick="xhCloseInstallHint()">あとで（設定からいつでも追加できます）</button>
     </div>
@@ -755,7 +823,7 @@ body.music-on #beatFrame{opacity:1}
           <span><span class="rt">BGM</span><span class="rs">ホームの音楽を再生する</span></span></span>
         <span class="xh-sw" id="xhSwMusic"></span>
       </button>
-      <button class="xh-row" onclick="xhInstallApp()">
+      <button class="xh-row" onclick="xhOpenInstallHint(true)">
         <span class="rl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.4v11.2"/><path d="M7.6 10.4 12 14.8l4.4-4.4"/><path d="M4.4 19.6h15.2"/></svg>
           <span><span class="rt">XEVARION をインストール</span><span class="rs" id="xhInstallSub">ホーム画面に追加してアプリとして使う</span></span></span>
         <span class="rv">›</span>
@@ -2516,6 +2584,97 @@ body.music-on #beatFrame{opacity:1}
           残っているあいだは<b>ボタン自体が大きく光ります</b>。
           あわせて、ホーム下部の<b>ガチャのアイコンに「無料」の印</b>が付くようにしました——
           <b>その日まわすまで出しっぱなし</b>なので、取りこぼしません。
+        </div>
+      </div>
+    </div>
+    <!-- 2026-09-13 SOFT NIGHT FEST ／ BUNNY 追加2体 ／ 極華祭 クミコ＆レイナ ／
+         GRAND DEBUT Ver.8.0 ／ リンクの再調整 ／ クエスト作成 ／ 下バー・QR・更新演出
+         ★ CDK（BUNNYGIRLFEST2026）は、ご指定によりお知らせにも更新内容にも書かない -->
+    <div class="nm-item" data-tag="update" data-date="2026-09-13">
+      <div class="nm-date">2026<br>09.13</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">🌙 SOFT NIGHT FEST 開幕 ／ 👑 史上最大のフルバースト ／ ★ ガチャに天井 ／ 🎬 新キャラ紹介 ／ ⚖ 天界の審判 第十一〜第十五 ／ 🛠 クエスト作成</div>
+        <div class="nm-txt">
+          🌙 <b>SOFT NIGHT FEST（20日間の期間限定）</b>が始まりました。
+          <b>アンナα（光）・アスハα（木）・ランα（火）・サヤカα（闇）・コトリα（水）</b>の5体。
+          5体とも<b>⚖天界の審判</b>を有利属性のまま完全対応します（第五／第七／第三／第四／第六）。
+          リンクスキルは<b>5本とも新しい挙動</b>、共通サブリンクは<b>ムーンフェイズ・リング</b>です。<br>
+          🎺 <b>極華祭に クミコ＆レイナ（火＆光）</b>が参戦。フルバーストは<b>合計 攻撃力×1153.8</b> で
+          <b>MagiBurst 史上最大</b>（これまでの1位はカグラ ×905.8）。<b>全属性有利</b>と
+          <b>ショットスキル</b>を持ち、<b>極華・ブルームネクサスも強化</b>しました。<br>
+          🐰 <b>BUNNY GIRL FEST に カナ（光）・マキ（闇）</b>が加わって17体に。2体とも<b>乱打</b>で、
+          BUNNY でいちばん重いフルバーストです。<br>
+          ✧ <b>GRAND DEBUT GACHA Ver.8.0</b>（ミヤ・エミカ・ウタ・シホ・キヅキ）。<br>
+          🔗 <b>リンクスキルの威力をもう一段下げました</b>。実測（敵4体・攻撃力3000）で
+          <b>上限 ×120</b>。古参はそのままで、<b>強い順は1つも入れ替わっていません</b>。<br>
+          🛒 パックストアに<b>フェスの「好きな1体」パック</b>（BUNNY GIRL／戦姫祭／RISING STAR）を追加。
+          <b>RISING STAR FEST と BUNNY GIRL FEST は無期限開催</b>になりました。<br>
+          🛠 MagiBurst のメニューに<b>クエスト作成（ステージエディター）</b>を追加しました
+          （アクセスコードが必要）。<br>
+          🔧 <b>下のバーが上に上がる</b>のを直しました。iPhone のアプリ表示で
+          <b>箱が画面よりホームバーぶん短く作られる</b>ことがあり、そこへ env をそのまま足すと
+          <b>同じぶんを2回引く</b>のが原因でした。<br>
+          🔧 <b>更新の画面</b>を作り直しました。押すと<b>画面ごと移動</b>して、お辞儀の案内役・
+          <b>1文字ずつ跳ねる文字</b>・％つきのロードバー・<b>PR のショーケース</b>が出ます。
+          <b>進捗が100%なのに終わらない</b>のも直しています。
+          ★ <b>動画は使いません</b>——端末によっては自動再生されず<b>黒い四角</b>が残るうえ、
+          いちばん帯域が欲しい場面で<b>更新のダウンロードと食い合って</b>いたためです。<br>
+          📲 設定 ›「XEVARION をインストール」に<b>公開URLの QR コード</b>を出しました。<br><br>
+
+          <b>── ガチャの決めごとを作り直しました ──</b><br>
+          ★ <b>ガチャに天井（★星煌印）を追加しました。</b>
+          ガチャ<b>1連ごとに ★星煌印が1つ</b>たまり、<b>150個</b>で
+          そのガチャの<b>ピックアップキャラから好きな1体</b>と交換できます。
+          印は<b>ガチャごとに別</b>にたまります（フェスでためた印で GRAND DEBUT のキャラは取れません）。
+          たまり具合はガチャ画面の帯にいつでも出ていて、
+          <b>無料の単発・初回10連もちゃんと数えます</b>。<br>
+          🎬 <b>新キャラクター紹介</b>を追加しました。ガチャごとに、その<b>NEW キャラを1体ずつ</b>
+          紹介する演出が流れます（属性・型・リンク／サブリンク／フルバーストの名前）。
+          はじめてそのガチャを開いたときに1回だけ自動で流れ、あとは<b>🎬 の帯</b>から何度でも見られます。<br>
+          📴 <b>ガチャがオフラインでも引けるようになりました。</b>
+          抽選も支払いも<b>端末の中だけ</b>で終わるのに、タブごと押せなくなっていたためです。
+          引いた結果（キャラ・限界突破・💎・🎫・💠）は
+          <b>オンラインに戻ったときにちゃんと同期</b>されます
+          （「みんな」だけは相手のデータが要るので、今までどおり閉じます）。<br>
+          🆕 <b>NEW の印が付くのは「登場から10日」</b>にそろえました——
+          <b>そのあとに別のキャラが追加されても変わりません</b>。
+          NEW のあいだは<b>ピックアップ確率</b>、過ぎたら<b>ほかのキャラと同じ通常の確率</b>です。<br>
+          🗓 <b>期限のあるガチャは 20日間に統一</b>しました（フェスも GRAND DEBUT も同じ長さです）。
+          <b>SOFT NIGHT FEST の排出率も、ほかのフェスと同じ 1体 1.8%</b> にそろえています。
+          ガチャの並びでは <b>RISING STAR FEST を戦姫祭のすぐ下に固定</b>しました。<br>
+          💠 <b>結晶交換所に Festival Archive GACHA のキャラ</b>（配信の終わったフェスの限定SSR）を
+          並べました。<b>150個</b>で好きな1体と交換できます
+          （PREMIUM／GRAND DEBUT はこれまでどおり 75個）。<br>
+          🔧 <b>オフラインで遊べるアプリが押せない</b>のを直しました。
+          <b>MagiQuest・Dominion・Boccia Rush・Arcana Rush・MagiMusic・MagiCounter</b> は
+          自前のサービスワーカーで全部キャッシュしてあるのに、
+          <b>台帳に載っていなかった</b>ため灰色のままでした。オフラインで遊べるアプリは
+          <b>6本 → 12本</b>になります。<br>
+          🎫 新ガチャ実装を記念して、全ユーザーに<b>ガチャチケット20枚</b>をお贈りします
+          （📧メールから受け取れます）。<br><br>
+
+          <b>── ⚖ 天界の審判 第三段「終審」──</b><br>
+          ⚖ <b>第十一〜第十五の審判</b>を追加しました。全<b>15クエスト・90WAVE</b>になり、
+          こちらも<b>はじめから全部あそべます</b>。第三段はこれまでの2段と組み立てが違います——<br>
+          ★ <b>特殊ギミックが1クエスト3つ</b>。うち1つは全WAVEに出るので、
+          6WAVEすべてが<b>2つ以上の重ね掛け</b>になります。<br>
+          ★ <b>ボスがザコを呼び出します</b>。呼ばれたザコも<b>倒さないと次へ進めません</b>。<br>
+          ★ 新ギミック <b>🔗連結の鎖</b>——2体が鎖でつながっていて、つながっているあいだは
+          <b>ダメージが半分</b>。<b>2体のあいだを通り抜ける</b>と鎖が切れます
+          （＝<b>敵と敵に挟まる立ち回りが、そのまま対策</b>）。<br>
+          ★ 新ギミック <b>✦弱点シフト</b>——ボスの弱点が<b>ターンごとに回ります</b>。<br>
+          ★ 護衛が<b>ボスの両どなり</b>に付き、<b>十字の挟まり</b>が作れます。<br>
+          ボスHPは<b>10.6億</b>、攻撃力も第一段を上回ります。
+          <b>90WAVE</b>踏破が、この系統を極めた証です。<br><br>
+
+          🎬 <b>新キャラクター紹介</b>の画面を作り直しました。立ち絵を背に、
+          <b>BURST／LINK SKILL／SUB LINK SKILL／SHOT SKILL／NEXUS SKILL</b> の5本が順に出てきます。<br>
+          📱 <b>更新中の PR</b> を、<b>ホームのアップデート情報とまったく同じカード</b>にそろえました。
+          絵が枠に合わず大きく切れていたのを直し、中身も<b>台帳からそのまま</b>作るので
+          <b>全アプリ</b>が順に出ます。<br>
+          🔧 <b>MagiCounter</b> が オフラインで開けないことがあったのを直しました
+          （起動に要るファイルが事前キャッシュから抜けていました）。
         </div>
       </div>
     </div>

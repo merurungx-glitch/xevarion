@@ -1329,3 +1329,163 @@ body.xh-dragging .xh-sheet-body{overflow:hidden}
 .xh-schrow.on{border-color:rgba(75,139,255,.45);background:linear-gradient(120deg,#f2f7ff,#fbf5ff)}
 .xh-schnone{padding:16px;text-align:center;font-size:11.5px;font-weight:700;color:var(--xh-sub);
   border-radius:14px;background:rgba(120,160,230,.07);border:1.5px dashed rgba(120,160,230,.28)}
+
+/* ══════ ★★ 2026-09-13 インストール案内の QR ══════
+   他の端末（スマホ）で XEVARION を開いてそのままインストールできるようにする。
+   QR は xeva-qr.js が <canvas> を返すので、白地の台にのせて中定めにする。 */
+.xh-instqr{margin-top:14px;padding:14px 12px 12px;border-radius:16px;text-align:center;
+  border:3px solid var(--yw-line,#12203d);background:linear-gradient(180deg,#ffffff,#eef4ff);
+  box-shadow:0 4px 0 rgba(18,32,61,.22)}
+.xh-instqr-t{font-size:11.5px;font-weight:900;color:#17458f;line-height:1.5;margin-bottom:10px}
+.xh-instqr-cv{display:flex;align-items:center;justify-content:center;min-height:80px}
+.xh-instqr-cv canvas{max-width:100%;height:auto;border-radius:8px;
+  border:3px solid #12203d;background:#fff;box-shadow:0 3px 0 rgba(18,32,61,.2)}
+.xh-instqr-u{margin:9px 0 10px;font-size:10.5px;font-weight:800;color:#5a7099;
+  word-break:break-all;line-height:1.45}
+.xh-instqr .xh-sbtn{margin:0}
+
+/* ★★ 2026-09-13 フェスセレクトパックの印（プレミアムの★セレクトと見分ける） */
+.xh-pksel.f{background:linear-gradient(135deg,#ff5d8f,#8e6bff);color:#fff}
+
+/* ══════════════════════════════════════════════════════
+   ★★ 2026-09-13 更新中の全画面（#xhUpdRun）
+   ------------------------------------------------------------
+   ・下のバーも上のバーも隠して<b>この画面だけ</b>にする（画面ごと移動）。
+   ・同期の画面（xeva-loading.js）と<b>同じ地の色・同じ案内役</b>にして、
+     「これは XEVARION の待ち画面」と一目で分かるようにする。
+   ★ 箱の外（アプリ表示で短く作られるぶん）も同じ色で埋めるため、
+     上下にはみ出す板（::before / ::after）を敷く。
+   ══════════════════════════════════════════════════════ */
+.xh-updrun{position:fixed;inset:0;z-index:2147482500;display:none;overflow:hidden;
+  font-family:'Noto Sans JP',sans-serif;color:#3c4d7a;
+  background:linear-gradient(178deg,#e6f1ff 0%,#f2f7ff 30%,#fdf3ff 68%,#fff8ef 100%)}
+.xh-updrun.on{display:block}
+.xh-updrun::before,.xh-updrun::after{content:"";position:absolute;left:0;right:0;height:420px;pointer-events:none}
+.xh-updrun::before{bottom:100%;background:#e6f1ff}
+.xh-updrun::after{top:100%;background:#fff8ef}
+/* うしろで漂う光の玉 */
+.xh-updrun .ur-bg{position:absolute;inset:0;pointer-events:none}
+.xh-updrun .ur-bg i{position:absolute;border-radius:50%;filter:blur(42px);opacity:.5}
+.xh-updrun .ur-bg .b1{width:52vw;height:52vw;left:-16vw;top:-10vw;background:#9ad4ff}
+.xh-updrun .ur-bg .b2{width:44vw;height:44vw;right:-14vw;top:16vh;background:#ffbde0}
+.xh-updrun .ur-bg .b3{width:56vw;height:56vw;left:-10vw;bottom:-16vh;background:#cdb9ff}
+
+.xh-updrun .ur-in{position:relative;z-index:2;height:100%;overflow-y:auto;-webkit-overflow-scrolling:touch;
+  display:flex;flex-direction:column;align-items:center;text-align:center;
+  padding:calc(env(safe-area-inset-top,0px) + 20px) 18px calc(env(safe-area-inset-bottom,0px) + 24px)}
+.xh-updrun .ur-cap{font-family:'Orbitron',sans-serif;font-size:10.5px;font-weight:900;
+  letter-spacing:.28em;color:#8fa2cc;margin-bottom:4px}
+.xh-updrun .ur-ttl{font-size:17px;font-weight:900;line-height:1.45;color:#2c3c68;max-width:520px}
+
+/* 案内役（立ち絵 ⇄ お辞儀）。xeva-loading.js と同じ作りにそろえてある。 */
+.xh-updrun .ur-cast{position:relative;margin-top:10px;width:min(46vw,178px);height:min(46vw,178px);
+  display:grid;place-items:end center;flex:none}
+.xh-updrun .ur-cast::after{content:"";position:absolute;left:50%;bottom:2px;transform:translateX(-50%);
+  width:60%;height:14px;border-radius:50%;background:rgba(110,140,200,.20);filter:blur(7px)}
+.xh-updrun .ur-cast img{grid-area:1/1;width:100%;height:100%;object-fit:contain;object-position:bottom center;
+  opacity:0;transition:opacity .16s ease,transform .16s ease;transform:translateY(3px) scale(.985);
+  filter:drop-shadow(0 10px 22px rgba(90,130,210,.30))}
+.xh-updrun .ur-cast img.on{opacity:1;transform:none}
+
+.xh-updrun .ur-say{margin-top:10px;padding:9px 18px;border-radius:99px;max-width:92%;
+  background:rgba(255,255,255,.88);box-shadow:0 8px 22px rgba(90,130,210,.16);
+  font-size:12.5px;font-weight:900;color:#4d6096;letter-spacing:.02em}
+
+.xh-updrun .ur-barwrap{margin-top:16px;width:min(86vw,420px);display:flex;align-items:center;gap:11px}
+.xh-updrun .ur-bar{position:relative;flex:1;height:12px;border-radius:99px;overflow:hidden;
+  background:rgba(120,150,215,.20);box-shadow:inset 0 1px 3px rgba(60,90,150,.18)}
+.xh-updrun .ur-bar i{position:absolute;left:0;top:0;bottom:0;width:0%;border-radius:99px;
+  background:linear-gradient(90deg,#8e6bff,#38a6ff 55%,#22c7a9);
+  transition:width .4s cubic-bezier(.25,.8,.3,1)}
+/* バーの中を流れる光（止まって見えないように） */
+.xh-updrun .ur-bar i::after{content:"";position:absolute;inset:0;border-radius:99px;
+  background:linear-gradient(100deg,rgba(255,255,255,0) 30%,rgba(255,255,255,.55) 50%,rgba(255,255,255,0) 70%);
+  background-size:220% 100%;animation:xhUrShine 1.25s linear infinite}
+@keyframes xhUrShine{0%{background-position:120% 0}100%{background-position:-120% 0}}
+.xh-updrun .ur-pct{flex:none;font-family:'Orbitron',sans-serif;font-weight:900;font-size:13px;color:#5b6f9f;
+  min-width:56px;text-align:right}
+.xh-updrun .ur-pct b{font-size:20px;color:#3a4f86}
+.xh-updrun .ur-sub{margin-top:9px;font-size:11.5px;font-weight:800;color:#6f82ad;line-height:1.6;max-width:92%}
+.xh-updrun .ur-dl{margin-top:4px;font-size:10.5px;font-weight:800;color:#8fa2cc}
+
+/* ①〜④ の小さな印 */
+.xh-updrun .ur-steps{list-style:none;display:flex;gap:7px;margin:14px 0 0;padding:0;flex-wrap:wrap;justify-content:center}
+.xh-updrun .ur-steps li{display:flex;align-items:center;gap:5px;padding:5px 11px 5px 6px;border-radius:99px;
+  background:rgba(255,255,255,.7);color:#8fa2cc;font-size:11px;font-weight:900;
+  transition:background .25s ease,color .25s ease,transform .25s ease}
+.xh-updrun .ur-steps li b{display:grid;place-items:center;width:19px;height:19px;border-radius:50%;
+  background:rgba(143,162,204,.25);color:#6f82ad;font-size:10.5px;font-weight:900}
+.xh-updrun .ur-steps li.done{background:rgba(34,199,169,.14);color:#0e8a5c}
+.xh-updrun .ur-steps li.done b{background:#22c7a9;color:#fff}
+.xh-updrun .ur-steps li.now{background:linear-gradient(135deg,#8e6bff,#38a6ff);color:#fff;transform:scale(1.06)}
+.xh-updrun .ur-steps li.now b{background:rgba(255,255,255,.92);color:#5b32c8}
+
+/* ★★ 2026-09-13c 動画をやめて「ショーケース」に置きかえた（ご指定）。
+   ★ .ur-pr（動画の枠）の CSS は<b>丸ごと消した</b>——残しておくと
+     「もう使っていないもの」を次に直す人が探すことになる。 */
+.xh-updrun .ur-show{position:relative;margin-top:16px;width:min(86vw,420px)}
+.xh-updrun .ur-show.hide{display:none}
+/* ── ショーケース（動画なし）──
+   ★★ 2026-09-13d 見た目を<b>ホームのアップデート情報（.xh-ev.up）</b>とそろえた（ご指定）。
+   ★ 前の版は 16:10 の枠に object-fit:cover で入れていたので、
+     正方形のタイル絵が<b>大きく切れて</b>いた（「画像が全て表示されない」の真因）。
+     いまは 64px の<b>正方の枠</b>にそのまま入れるので切れない。 */
+.xh-updrun .us-cap{font-family:'Orbitron',sans-serif;font-size:9.5px;font-weight:900;
+  letter-spacing:.3em;color:#8fa2cc;text-align:center;margin-bottom:7px}
+.xh-updrun .us-win{overflow:hidden;border-radius:22px}
+.xh-updrun .us-track{display:flex;transition:transform .5s cubic-bezier(.3,.8,.35,1)}
+.xh-updrun .us-card{flex:0 0 auto;box-sizing:border-box;display:flex;align-items:center;gap:10px;
+  padding:9px;border:3px solid #12203d;border-radius:22px;background:#fffaf0;
+  box-shadow:inset 0 -3px 0 rgba(18,32,61,.1),0 4px 0 rgba(18,32,61,.22)}
+.xh-updrun .us-ic{flex:none;width:64px;height:64px;border-radius:15px;overflow:hidden;
+  border:2.5px solid #12203d;box-shadow:0 2.5px 0 rgba(18,32,61,.28);background:#e8eefb}
+.xh-updrun .us-ic img{width:100%;height:100%;object-fit:cover;display:block}
+.xh-updrun .us-bd{flex:1;min-width:0;text-align:left}
+.xh-updrun .us-tag{display:inline-block;font-size:8.5px;font-weight:900;letter-spacing:.05em;color:#fff;
+  border-radius:99px;padding:2px 9px 2.5px;margin-bottom:4px;
+  background:linear-gradient(180deg,#4f9bf0,#1f5cbe);
+  border:2px solid #12203d;box-shadow:0 2px 0 rgba(18,32,61,.3);
+  text-shadow:0 1px 0 rgba(18,32,61,.45)}
+.xh-updrun .us-t1{display:block;font-size:13px;font-weight:900;color:#17458f;line-height:1.3;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.xh-updrun .us-t2{display:block;margin-top:2px;font-size:10px;font-weight:800;color:#2a5aa8;
+  line-height:1.4;overflow:hidden;text-overflow:ellipsis;
+  display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.xh-updrun .us-foot{margin-top:8px;display:flex;align-items:center;justify-content:center;gap:9px}
+.xh-updrun .us-dots{display:flex;gap:4px;flex-wrap:wrap;justify-content:center;max-width:74%}
+.xh-updrun .us-dots i{width:5px;height:5px;border-radius:50%;background:rgba(60,80,130,.24);
+  transition:background .3s,width .3s}
+.xh-updrun .us-dots i.on{width:13px;border-radius:99px;background:#5b6f9f}
+.xh-updrun .us-cc{flex:none;font-family:'Orbitron',sans-serif;font-size:10px;font-weight:900;
+  color:#8fa2cc}
+.xh-updrun .ur-tip{margin-top:14px;font-size:10.5px;font-weight:700;color:#8fa2cc;line-height:1.7;max-width:92%}
+.xh-updrun .ur-close{margin-top:14px;padding:11px 26px;border:none;border-radius:99px;cursor:pointer;
+  font-family:inherit;font-size:13px;font-weight:900;color:#fff;
+  background:linear-gradient(135deg,#8e6bff,#38a6ff);box-shadow:0 8px 22px rgba(123,92,240,.34)}
+
+/* ★★ 1文字ずつ跳ねる（同期の画面と揃えてある）。
+   横には動かさない（周りの文字が押されて行がゆれるため）。 */
+.xh-updrun .hp{display:inline-block;white-space:pre;transform-origin:50% 100%;
+  animation:xhUrHop 1.25s cubic-bezier(.3,.8,.35,1) infinite both}
+.xh-updrun .hp.sp{width:.34em}
+@keyframes xhUrHop{
+  0%,58%,100%{transform:translateY(0) scale(1)}
+  14%{transform:translateY(-26%) scale(1.06,.96)}
+  30%{transform:translateY(-46%) scale(.97,1.05)}
+  46%{transform:translateY(0) scale(1.07,.93)}
+  52%{transform:translateY(0) scale(1)}}
+@media (prefers-reduced-motion: reduce){
+  .xh-updrun .hp{animation:none}
+  .xh-updrun .ur-bar i::after{animation:none}
+}
+/* 狭い端末では PR のショーケースを小さく（バーと割合が先） */
+@media (max-height: 660px){
+  .xh-updrun .ur-cast{width:min(34vw,128px);height:min(34vw,128px)}
+  .xh-updrun .ur-show{width:min(78vw,320px)}
+  .xh-updrun .ur-ttl{font-size:15px}
+}
+
+/* ★★ 2026-09-13b 結晶交換所：1枚ごとの値段の札と ARCHIVE の印 */
+.xh-crc .xh-crcost{position:absolute;left:5px;top:5px;padding:2px 7px;border-radius:99px;
+  background:rgba(91,63,216,.92);color:#fff;font-size:9.5px;font-weight:900;letter-spacing:.02em}
+.xh-crnew.arc{background:linear-gradient(135deg,#e08a12,#c2185b)}

@@ -18,7 +18,7 @@
        の<b>両方</b>を使う。①②は xeva-safebottom.js が持っているので、
        読まれていないページでは<b>自分で読みこむ</b>。
 
-   使い方: <script src="../xeva-loading.js?v=14" defer></script>
+   使い方: <script src="../xeva-loading.js?v=15" defer></script>
    ============================================================ */
 (function () {
   "use strict";
@@ -97,6 +97,21 @@
   };
   function poseSrc(pose) { return baseUrl() + (LD_SRC[who] || LD_SRC.a)[pose]; }
 
+  /* ★★ 2026-09-13 文字列を「1文字ずつ跳ねる span」に組み直す。
+     step は隣の文字との遅れ（秒）。loop は一周の長さに合わせてある。
+     ★ 組み直した文字列はそのまま HTML になるので、<b>必ずエスケープする</b>。 */
+  function hopHtml(text, step) {
+    step = step || 0.055;
+    var out = "", i, ch, esc;
+    for (i = 0; i < text.length; i++) {
+      ch = text.charAt(i);
+      esc = ch === "&" ? "&amp;" : ch === "<" ? "&lt;" : ch === ">" ? "&gt;" : ch;
+      out += '<span class="hp' + (ch === " " ? " sp" : "") + '" style="animation-delay:'
+           + (i * step).toFixed(3) + 's">' + (ch === " " ? "" : esc) + "</span>";
+    }
+    return out;
+  }
+
   function build() {
     if (document.getElementById(ID)) return;
     ensureSafeBottom();
@@ -138,15 +153,32 @@
       '#' + ID + ' .tx{position:relative;z-index:2;margin-top:9px;font-size:11px;font-weight:800;' +
       'color:#7386ad;letter-spacing:.06em}' +
       '@keyframes xvlSlide{0%{left:-42%}100%{left:100%}}' +
+      /* ══ ★★ 2026-09-13 文字を<b>1文字ずつ跳ねさせる</b>（ご指定）══
+         ・1文字を <span class="hp"> 1つに分け、<b>animation-delay を順にずらす</b>。
+           左から右へ波が伝わるように見える。
+         ・跳ねるのは<b>縦の移動と少しの拡大</b>だけにする。
+           文字の幅（横）を動かすと、周りの文字まで押されて行がゆれる。
+         ★ 半角の空白は <span> にするとつぶれるので、<b>幅を持たせる</b>（.sp）。
+         ★ 「動きを減らす」設定の端末では跳ねない（prefers-reduced-motion）。 */
+      '#' + ID + ' .hp{display:inline-block;white-space:pre;transform-origin:50% 100%;' +
+      'animation:xvlHop 1.25s cubic-bezier(.3,.8,.35,1) infinite both}' +
+      '#' + ID + ' .hp.sp{width:.34em}' +
+      '@keyframes xvlHop{' +
+      '0%,58%,100%{transform:translateY(0) scale(1)}' +
+      '14%{transform:translateY(-26%) scale(1.06,.96)}' +
+      '30%{transform:translateY(-46%) scale(.97,1.05)}' +
+      '46%{transform:translateY(0) scale(1.07,.93)}' +
+      '52%{transform:translateY(0) scale(1)}}' +
+      '@media (prefers-reduced-motion: reduce){#' + ID + ' .hp{animation:none}}' +
       '</style>' +
       '<div class="bl b1"></div><div class="bl b2"></div><div class="bl b3"></div>' +
       '<div class="cast">' +
         '<img class="ps stand on" src="' + poseSrc("stand") + '" alt="">' +
         '<img class="ps bow" src="' + poseSrc("bow") + '" alt="">' +
       '</div>' +
-      '<div class="say">データをお預かりしています</div>' +
+      '<div class="say">' + hopHtml("データをお預かりしています", 0.055) + '</div>' +
       '<div class="bar"><i></i></div>' +
-      '<div class="tx">SYNCING XEVA DATA</div>';
+      '<div class="tx">' + hopHtml("SYNCING XEVA DATA", 0.045) + '</div>';
     (document.body || document.documentElement).appendChild(el);
     paintHtml(true);
     shownAt = Date.now();
