@@ -6,7 +6,7 @@
      一度でも再生した曲は fetch ハンドラが自動でキャッシュする。
    ・キャッシュ済みの曲はオフライン（機内モード）でもそのまま再生できる。
    ============================================================ */
-const VERSION = "magimusic-sw-v12";
+const VERSION = "magimusic-sw-v14";
 const AUDIO_CACHE = "magimusic-audio-v1";   // 曲は本体と別キャッシュ（本体更新で消えないように）
 
 const CORE = [
@@ -122,6 +122,16 @@ self.addEventListener("fetch", (e) => {
      Service Worker の中から数MBのファイルを fetch すると、環境によっては
      応答が返らずタイムアウトすることがあるため、SWは「配信」に専念させる。
      ページが caches.open(AUDIO_CACHE) に直接保存し、SWはそれを読んで返す。 */
+self.addEventListener("message", (e) => {
+  /* ★★ 2026-09-13 「進捗が 100% なのに終わらない」への保険。
+     新しい SW は「古い SW が手を離すまで waiting」になることがあり、
+     ホーム側がそれを待ってしまうと永遠に終わらない。
+     この便りをもらったら<b>待たずに進む</b>。 */
+  const m = e.data;
+  if (!m || m.type !== "SKIP_WAITING") return;
+  self.skipWaiting();
+});
+
 self.addEventListener("message", (e) => {
   const d = e.data || {};
   if (d.type === "CLEAR_AUDIO") { e.waitUntil(caches.delete(AUDIO_CACHE)); return; }

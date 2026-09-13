@@ -7,7 +7,7 @@
    ・作りは MagiJackpot の SW と同じ（プレフィックスの付いたキャッシュだけ掃除する／
      xev-refresh で差分更新できる）。
    ============================================================ */
-const VERSION = "magilotto-sw-v19";
+const VERSION = "magilotto-sw-v21";
 const CORE = [
   "./",
   "./index.html",
@@ -38,7 +38,7 @@ const CORE = [
   "../img/t_Karem.webp",
   "../img/t_Chizuru.webp",
   "../maintenance-gate.js?v=13",
-  "../xeva.js?v=62",
+  "../xeva.js?v=65",
   "../xeva-fx.js?v=9",
   "../xeva-splash.js?v=11",
   "../xeva-back.js?v=9",
@@ -191,6 +191,16 @@ async function xevRefreshAll() {
   await tickPost(true);
   await post({ type: "xev-refreshed", scope: XEV_SCOPE, total: urls.length, got, hit, bytes });
 }
+self.addEventListener("message", (e) => {
+  /* ★★ 2026-09-13 「進捗が 100% なのに終わらない」への保険。
+     新しい SW は「古い SW が手を離すまで waiting」になることがあり、
+     ホーム側がそれを待ってしまうと永遠に終わらない。
+     この便りをもらったら<b>待たずに進む</b>。 */
+  const m = e.data;
+  if (!m || m.type !== "SKIP_WAITING") return;
+  self.skipWaiting();
+});
+
 self.addEventListener("message", (e) => {
   const m = e.data;
   if (!m || m.type !== "xev-refresh") return;
