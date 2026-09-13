@@ -18,7 +18,7 @@
        の<b>両方</b>を使う。①②は xeva-safebottom.js が持っているので、
        読まれていないページでは<b>自分で読みこむ</b>。
 
-   使い方: <script src="../xeva-loading.js?v=15" defer></script>
+   使い方: <script src="../xeva-loading.js?v=16" defer></script>
    ============================================================ */
 (function () {
   "use strict";
@@ -60,8 +60,35 @@
   function ensureSafeBottom() {
     if (window.__xvSafeBottom) return;
     var s = document.createElement("script");
-    s.src = baseUrl() + "xeva-safebottom.js?v=9";
+    s.src = baseUrl() + "xeva-safebottom.js?v=10";
     (document.head || document.documentElement).appendChild(s);
+  }
+
+  /* ★★ 2026-09-13 --xv-under（箱が画面より短いぶん）をその場で1回測る。
+     xeva-safebottom.js は <script> を足して読むので<b>間に合わないことがある</b>。
+     板を出す最初のフレームから帯が出ないよう、ここでも同じ計算をしておく
+     （あとで xeva-safebottom.js が同じ値を書き直すだけなので、ぶつからない）。 */
+  function measureUnder() {
+    try {
+      var standalone = (window.matchMedia && matchMedia("(display-mode: standalone)").matches) ||
+                       navigator.standalone;
+      if (!standalone) return;
+      var host = document.body || document.documentElement;
+      if (!host) return;
+      var pr = document.createElement("div");
+      pr.setAttribute("aria-hidden", "true");
+      pr.style.cssText =
+        "position:fixed;top:0;bottom:0;left:0;width:0;margin:0;padding:0;border:0;" +
+        "visibility:hidden;pointer-events:none;z-index:-2147483000";
+      host.appendChild(pr);
+      var box = pr.getBoundingClientRect().height;
+      pr.parentNode.removeChild(pr);
+      if (!(box > 200)) return;
+      var sMin = Math.min(screen.width, screen.height);
+      var sMax = Math.max(screen.width, screen.height);
+      var s = Math.round((window.innerWidth > window.innerHeight ? sMin : sMax) - box);
+      if (s > 0 && s < 200) document.documentElement.style.setProperty("--xv-under", s + "px");
+    } catch (e) {}
   }
 
   function paintHtml(on) {
@@ -115,6 +142,7 @@
   function build() {
     if (document.getElementById(ID)) return;
     ensureSafeBottom();
+    measureUnder();
     var el = document.createElement("div");
     el.id = ID;
     el.className = "xv-bleed";
@@ -122,10 +150,17 @@
     el.style.setProperty("--xv-bleed-bottom", BG_BOT);
     el.innerHTML =
       '<style>' +
-      '#' + ID + '{position:fixed;inset:0;z-index:2147482000;display:flex;flex-direction:column;' +
+      /* ★★ 2026-09-13 下に帯が残るのを止める。
+         アプリ表示では position:fixed の箱が画面より短いことがある（実測 852 / 793）。
+         inset:0 のままだと箱の下端で色が切れて、下に帯が残る。
+         → <b>箱の足りないぶん（--xv-under）だけ下へ伸ばし、同じぶんを padding にも足す</b>。
+           中身（中央ぞろえ）の位置はまったく変わらず、色だけ本当の下端まで届く。 */
+      '#' + ID + '{position:fixed;top:0;left:0;right:0;bottom:calc(-1 * var(--xv-under,0px));' +
+      'z-index:2147482000;display:flex;flex-direction:column;' +
       'align-items:center;justify-content:center;gap:0;font-family:"Noto Sans JP",sans-serif;' +
       'background:' + BG + ';transition:opacity .34s ease;' +
-      'padding:calc(env(safe-area-inset-top,0px) + 8px) 18px calc(env(safe-area-inset-bottom,0px) + 8px)}' +
+      'padding:calc(env(safe-area-inset-top,0px) + 8px) 18px ' +
+      'calc(env(safe-area-inset-bottom,0px) + 8px + var(--xv-under,0px))}' +
       '#' + ID + '.out{opacity:0;pointer-events:none}' +
       /* うしろで漂う光の玉 */
       '#' + ID + ' .bl{position:absolute;border-radius:50%;filter:blur(42px);opacity:.5;pointer-events:none}' +

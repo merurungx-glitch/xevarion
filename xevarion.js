@@ -3537,6 +3537,23 @@ addEventListener("DOMContentLoaded", () => { if (_xevLang === "en") applyLang("e
     /* ★ 測ったあと、次のフレームでもう一度だけ測り直す（again で無限ループを防ぐ） */
     if (!again) { try { requestAnimationFrame(function () { sync(true); }); } catch (e) {} }
     var root = document.documentElement;
+    /* ★★ 2026-09-13b 「起動画面・ロード画面の下に帯が残る」と
+         「ホームの下バーだけが MagiBurst より高い」の<b>共通の真因</b>と直しかた。
+       iPhone をアプリ表示で開くと position:fixed がぶら下がる箱が画面より短く作られる
+       （実測: 画面 852 / 箱 793 ＝ 足りないぶん 59）。
+       前の版はこの 59 を<b>下バーの余白から引いて</b>つじつまを合わせていたが、それだと
+         ・タブの中身は<b>やはり 59px 上に居たまま</b>
+           （＝「バーが高い」の正体。色だけ --xh-dockover のはみ出しで下まで続いている）
+         ・箱いっぱいの板（起動画面 #xevaHome ／ ロード画面）は<b>箱の下端で終わる</b>ので
+           下に 59px の帯が残る
+       の2つが同時に起きる。
+       ⇒ <b>余白を削るのではなく、箱そのものを下へ伸ばす</b>。
+         --xh-fixgap に shortfall を入れると、bottom:calc(-1 * var(--xh-fixgap)) で
+         組んである板（#xhome / #xevaHome）がすべて本当の画面の下端まで届く。
+         そのうえで余白（--xh-safeb）は env の実測値そのままでよい
+         （同じぶんを2回引く心配がなくなる）＝ MagiBurst の #tabs と同じ位置に揃う。 */
+    var sfall = shortfall(box);
+    if (sfall > g) g = sfall;
     var grow = g > 0 ? g : 0;
     if (root.style.getPropertyValue("--xh-fixgap") !== g + "px") {
       root.style.setProperty("--xh-fixgap", g + "px");
@@ -3544,16 +3561,12 @@ addEventListener("DOMContentLoaded", () => { if (_xevLang === "en") applyLang("e
     if (root.style.getPropertyValue("--xh-growb") !== grow + "px") {
       root.style.setProperty("--xh-growb", grow + "px");
     }
-    /* ★★ 2026-09-13 下バーの中身の余白。
-       CSS の :root には --xh-safeb: env(safe-area-inset-bottom) と書いてあるが、
-       アプリ表示で箱が短いとそれだけでは<b>2 回引く</b>ことになるので、
-       実測した値（env − 箱の足りないぶん）で上書きする。
-       ブラウザ表示や env が読めない環境では env そのままになる。 */
+    /* 下バーの中身の余白。箱は上で本当の下端まで伸ばしてあるので、
+       ここは<b>env の実測値そのまま</b>でよい（shortfall を引かない）。 */
     try {
       var ei2 = envInfo();
       if (ei2 && ei2.ok) {
-        var sfall = shortfall(box);
-        var sb = Math.max(0, Math.round((ei2.env - sfall) * 10) / 10);
+        var sb = Math.max(0, Math.round(ei2.env * 10) / 10);
         if (root.style.getPropertyValue("--xh-safeb") !== sb + "px") {
           root.style.setProperty("--xh-safeb", sb + "px");
         }

@@ -29,7 +29,7 @@
 
   var root = document.documentElement;
   var boxProbe = null, envProbe = null;
-  var last = { b: -1, t: -1, h: -1, g: -99999 };
+  var last = { b: -1, t: -1, h: -1, g: -99999, u: -1 };
 
   function host() { return document.body || document.documentElement; }
 
@@ -116,6 +116,14 @@
       gap = Math.round((vv.offsetTop || 0) + vv.height - box);
       if (Math.abs(gap) > 160) gap = 0;        // 測り損ね（PCのウィンドウなど）
     }
+    /* ★★ 2026-09-13 --xv-under … 箱が画面より短いぶん（＝箱の外に残る帯の厚み）。
+       画面いっぱいの板（ロード画面・スプラッシュ）は
+         bottom: calc(-1 * var(--xv-under, 0px));
+         padding-bottom: calc(…いままでの余白… + var(--xv-under, 0px));
+       と書けば、<b>中身の位置を変えずに</b>色だけ本当の下端まで届く。
+       疑似要素のはみ出し（.xv-bleed）はページ側の overflow に切られることがあるので、
+       確実にしたいときはこちらを使う。 */
+    var under = Math.round(shortfall(box));
 
     if (safeb !== last.b) { root.style.setProperty("--xv-safeb", safeb + "px"); last.b = safeb; }
     if (safet !== last.t) { root.style.setProperty("--xv-safet", safet + "px"); last.t = safet; }
@@ -125,6 +133,7 @@
       root.style.setProperty("--xv-growb", (gap > 0 ? gap : 0) + "px");
       last.g = gap;
     }
+    if (under !== last.u) { root.style.setProperty("--xv-under", under + "px"); last.u = under; }
   }
 
 
@@ -186,7 +195,7 @@
     var run = function () { pending = false; measure(); };
     if (window.requestAnimationFrame) requestAnimationFrame(run); else setTimeout(run, 0);
   }
-  window.xvFitSafeBottom = function () { last.b = last.t = last.h = -1; last.g = -99999; measure(); };
+  window.xvFitSafeBottom = function () { last.b = last.t = last.h = last.u = -1; last.g = -99999; measure(); };
   window.__xvSafeBottom = true;
 
   /* ★ 測り直す機会をひととおり拾う（別アプリから戻った・回した・ツールバーが出入りした）。

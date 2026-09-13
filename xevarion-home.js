@@ -398,6 +398,10 @@ const XH_EVENTS = [
    ══════════════════════════════════════════════════════════════ */
 const XH_UPDATE_MAX = 12;
 const XH_UPDATES = [
+  /* ★★ 2026-09-13d 下バーの高さ／起動画面・ロード画面の下に残る帯（ご報告） */
+  { tag:"FIX", t1:"ホームの下バーの高さと、起動中の下の帯を直しました", at:"2026-09-13",
+    t2:"iPhone のアプリ表示では、画面いっぱいの土台が<b>ホームバーぶんだけ短く</b>作られることがあります。これまではそのぶんを<b>下バーの余白から引いて</b>いたため、<b>タブだけが浮いて下バーが高く</b>見え、さらに<b>起動画面・ロード画面の下に帯</b>が残っていました。<b>土台そのものを画面の下端まで伸ばす</b>ように直したので、下バーの高さは MagiLex・MagiBurst とそろい、起動中の帯も出ません",
+    href:"index.html", img:"thumbs/Xevarion.png" },
   /* ★★ 2026-09-13c ガチャの決めごとの作り直し（天井・NEW 15日・20日統一・オフライン）
      ／ 新キャラ紹介アニメ ／ 🎫20枚配布 ／ 更新の動画をやめた ／ オフラインで開けるアプリ
      ★ CDK は、ご指定によりお知らせにも更新内容にも書かない。 */
@@ -2813,11 +2817,12 @@ function xhBarInfo() {
     ["fixed bottom:0 の下端 🔴", r1(fixBottom)],
     ["visualViewport 下端 🟠", r1(visBottom) + "  (h " + r1(vv ? vv.height : 0) + " / offTop " + r1(vv ? vv.offsetTop : 0) + " / scale " + (vv ? vv.scale : "-") + ")"],
     ["env 上 / 下", r1(envT) + " / " + r1(envB)],
-    ["画面 − 箱（下の死角）", r1(Math.max(screen.width, screen.height) - box)],
-    ["目標 🔵", r1(fixBottom - Math.max(0, envB - Math.max(0, Math.max(screen.width, screen.height) - box)) - 4)],
+    ["画面 − 箱（下の死角）", r1(Math.max(0, Math.max(screen.width, screen.height) - box))],
+    ["目標 🔵", r1(fixBottom + Math.max(0, Math.max(screen.width, screen.height) - box) - envB)],
     ["タブボタン下端 🟢", r1(rBtn.bottom) + "  (上 " + r1(rBtn.top) + ")"],
     ["バー 上端 / 下端", r1(rBar.top) + " / " + r1(rBar.bottom)],
     ["--xh-fixgap", (document.documentElement.style.getPropertyValue("--xh-fixgap") || "(未設定)")],
+    ["--xh-safeb", (document.documentElement.style.getPropertyValue("--xh-safeb") || "(未設定)")],
     ["--xh-barpad", (document.documentElement.style.getPropertyValue("--xh-barpad") || "(未設定)") + " / 実効 " + r1(parseFloat(getComputedStyle(bar).paddingBottom) - (parseFloat(cs.getPropertyValue("--xh-dockover")) || 0))],
     ["standalone", (matchMedia("(display-mode: standalone)").matches ? "yes" : "no") + " / navigator " + (navigator.standalone ? "yes" : "no")]
   ];
@@ -2830,7 +2835,10 @@ function xhBarInfo() {
   ov.id = id;
   ov.style.cssText = "position:fixed;inset:0;z-index:2147483600;background:rgba(255,255,255,.72);" +
     "font-family:'Noto Sans JP',sans-serif;-webkit-tap-highlight-color:transparent";
-  const wantB = Math.max(0, envB - Math.max(0, Math.max(screen.width, screen.height) - box)) + 4;
+  /* ★★ 2026-09-13b 目標の出しかたを変更。
+     箱が短いぶん（下の死角）は --xh-fixgap で<b>箱ごと下へ伸ばして</b>埋めるので、
+     タブの下端のねらいは「本当の画面の下端 − env(下)」になる。 */
+  const wantB = envB - Math.max(0, Math.max(screen.width, screen.height) - box);
   ov.innerHTML =
     line(fixBottom, "#e01b3c", "🔴 fixed bottom:0") +
     line(fixBottom - wantB, "#1163e8", "🔵 目標") +

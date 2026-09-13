@@ -11,7 +11,7 @@
      ② アプリロゴ ＋ ロードバー ＋ "Loading <App> ..."
 
    使い方（<head> に、defer なしで置く）:
-     <script src="../xeva-splash.js?v=11"
+     <script src="../xeva-splash.js?v=12"
              data-app="MagiLex"
              data-logo="../thumbs/MagiLex.jpg"></script>
 
@@ -67,12 +67,29 @@
       host.appendChild(probe);
       return probe;
     }
+    /* ★★ 2026-09-13 箱が画面よりどれだけ短いか（アプリ表示のときだけ）。
+       これを --xv-under に入れておくと、スプラッシュを同じぶんだけ下へ伸ばせる
+       ＝いちばん下に色のちがう帯が残らない。xeva-safebottom.js も同じ値を配るので、
+       どちらが先に走っても結果は変わらない。 */
+    function shortfall(box) {
+      try {
+        var standalone = (window.matchMedia && matchMedia("(display-mode: standalone)").matches) ||
+                         navigator.standalone;
+        if (!standalone || !(box > 200)) return 0;
+        var sMin = Math.min(screen.width, screen.height);
+        var sMax = Math.max(screen.width, screen.height);
+        var s = Math.round((window.innerWidth > window.innerHeight ? sMin : sMax) - box);
+        return (s > 0 && s < 200) ? s : 0;
+      } catch (e) { return 0; }
+    }
     function sync() {
       var p = getProbe();
       var h = 0;
       if (p) { try { h = Math.round(p.getBoundingClientRect().height); } catch (e) { h = 0; } }
+      var boxH = h;
       if (h <= 200) h = Math.round(window.innerHeight || 0);
       if (h > 200) root.style.setProperty("--app-vh", h + "px");
+      if (boxH > 200) root.style.setProperty("--xv-under", shortfall(boxH) + "px");
     }
     window.addEventListener("resize", sync);
     window.addEventListener("pageshow", sync);
@@ -115,7 +132,10 @@
 
   /* ══ スタイル（MagiBurst の #splash をそのまま共通化したもの） ══ */
   var CSS =
-    "#" + ID + "{position:fixed;inset:0;z-index:2147483000;" +
+    /* ★★ 2026-09-13 箱が画面より短いとき（アプリ表示）に下へ伸ばす。
+       padding-bottom を同じぶん足すので、中の .xsph（inset:0）の位置は変わらない。 */
+    "#" + ID + "{position:fixed;top:0;left:0;right:0;bottom:calc(-1 * var(--xv-under,0px));" +
+    "padding-bottom:var(--xv-under,0px);z-index:2147483000;" +
     "background:linear-gradient(160deg,#fff,#ffeede);transition:opacity .55s;" +
     "font-family:'Noto Sans JP',system-ui,-apple-system,'Segoe UI',sans-serif}" +
     "#" + ID + ".hide{opacity:0;pointer-events:none}" +
