@@ -30,10 +30,8 @@ const XH_OFFLINE_OK = {
      台帳に載っていなかったので、<b>オフラインだと灰色になって押せなかった</b>。
      ★ 逆に MagiDiamond・MagiBattle などは sw.js が無いので、ここには足さない
        （押せても白い画面になるだけ）。足すときは必ず sw.js の有無を確かめること。 */
-  magiquest:       { name: "MagiQuest",      href: "MagiQuest/index.html",       sw: "MagiQuest/sw.js" },
   magidominiongrid:{ name: "Dominion",       href: "MagiDominionGrid/index.html",sw: "MagiDominionGrid/sw.js" },
   magibocciarush:  { name: "Boccia Rush",    href: "MagiBocciaRush/index.html",  sw: "MagiBocciaRush/sw.js" },
-  magiarcanarush:  { name: "Arcana Rush",    href: "MagiArcanaRush/index.html",  sw: "MagiArcanaRush/sw.js" },
   /* MagiMusic は端末の中の曲を鳴らすだけなので通信は要らない。 */
   magimusic:       { name: "MagiMusic",      href: "MagiMusic/MagiMusic.html",   sw: "MagiMusic/sw.js" },
   /* MagiCounter は数字（data/meta.json）を全部キャッシュしてあるので判定はできる。
@@ -70,12 +68,6 @@ const XH_APPS = [
   { id:"magiburst", name:"MagiBurst", sub:"爽快アクション", cat:"game", tone:"violet",
     href:"MagiBurst/index.html", img:"thumbs/MagiBurst.jpg",
     desc:"引っぱって、はなして、ぶっとばせ！最大4人マルチの引っぱりハンティング。オフラインでもソロクエストが遊べます。" },
-  /* ★★ 2026-08-29b 新作（β版）。MagiBurst の派生作で、
-     <b>キャラクターとガチャは XEVARION と共通</b>（このアプリの中にガチャは無い）。 */
-  { id:"magiarcanarush", name:"Arcana Rush", full:"Magi: Arcana Rush", sub:"魔導アクションRPG",
-    cat:"game", tone:"violet",
-    href:"MagiArcanaRush/index.html", img:"thumbs/MagiArcanaRush.jpg",
-    desc:"引っぱって放つ魔導アクションRPG（β版）。7属性・Link Arts・Elemental Resonance・Arcana Skill・Arcana Burst を組み合わせて戦います。キャラクターとガチャは XEVARION（MagiBurst）と共通です。" },
   { id:"magiarena", name:"MagiArena", sub:"PvPアリーナ", cat:"game", tone:"teal",
     href:"MagiArena/MagiArena.html", img:"thumbs/MagiArena.jpg",
     desc:"1台でみんなと対戦する闘技場。オリジナル陣取り「TAKAGAME」に加え、オセロ・五目並べ・神経衰弱を収録。2〜6人。" },
@@ -92,17 +84,12 @@ const XH_APPS = [
     desc:"1台の iPad を囲んで 2〜10人。全員が<b>同時に</b>行動をえらび、一斉に処理するリアルタイム陣取り。サイコロもランダムイベントも無く、勝ち負けは盤面の読みだけで決まります。領地の連結・攻撃と防御・特殊行動・終盤の FINAL STRATEGY。" },
   /* ★★ 2026-09-08 新作。本物のボッチャ × 引っばりアクション。
      キャラクターとガチャは XEVARION（MagiBurst）と<b>共通</b>。 */
-  { id:"magibocciarush", name:"Boccia Rush", full:"Magi: Boccia Rush", sub:"ボッチャ対戦", cat:"game", tone:"blue",
+  { id:"magibocciarush", name:"MagiBocciaRush", full:"MagiBocciaRush", sub:"ボッチャ対戦", cat:"game", tone:"blue",
     href:"MagiBocciaRush/index.html", img:"thumbs/MagiBocciaRush.jpg",
-    desc:"引っばって、はなすだけ。<b>本物のボッチャ</b>をスマホで。コート・物理・得点は公式ルールに合わせ、キャラクターの能力とスキルで戦術が広がります。CPU（EASY～MASTER）・1台でのチーム戦（2vs2～4vs4）・部屋番号のオンライン・ランクマッチ・練習・ルールブック。遊びながらボッチャのルールを覚えられます。",
+    desc:"本格ボッチャ × 引っぱりショット × キャラクター固有能力。<b>3人の編成を順番に</b>投げる戦略型スポーツゲーム。6能力・7つの型・特殊ショット・アルティメット・Tactical Chain・専用ボール・熟練度とストーリー。キャラクター能力モード／ルール準拠モード、CPU・チーム戦・ランク・オンライン（ルームコード）・チュートリアル",
   },
-  /* ★★ 2026-09-12 新作 MagiQuest（学習バトル）。
-     ★ 並びは XH_DEFAULT_ORDER で <b>MagiRanking と入れかえ</b>てある（ご指定）。
-     ★ 新しいアプリは <b>XH_APPS と XH_DEFAULT_ORDER の両方</b>に書くこと
+  /* ★ 新しいアプリは <b>XH_APPS と XH_DEFAULT_ORDER の両方</b>に書くこと
        （片方だけだとアプリ一覧に一切出ない＝2026-09-09 に踏んだ罠）。 */
-  { id:"magiquest", name:"MagiQuest", full:"MagiQuest", sub:"学習バトル", cat:"game", tone:"blue",
-    href:"MagiQuest/index.html", img:"thumbs/MagiQuest.jpg",
-    desc:"MagiLex の問題をそのまま出題する学習バトル。4択ではなく、盤面のパーツを拾って答えを組み立てて戦う。正解するとキャラが攻撃し、連続正解でコンボが伸びる。" },
   { id:"magiranking", name:"Ranking", full:"MagiRanking", sub:"月間ランキング", cat:"social", tone:"gold",
     href:"MagiRanking/index.html", img:"thumbs/MagiRanking.jpg",
     desc:"獲得XEVAの合計を毎月集計して順位を競う月間ランキング。月末の順位に応じて最大1,000 XEVAを配布。" },
@@ -192,20 +179,26 @@ const XH_DEFAULT_ORDER = [
         ★ <b>新しいアプリは XH_APPS と XH_DEFAULT_ORDER の両方</b>に必ず書くこと。 */
   /* ★★ 2026-09-12 <b>MagiRanking の場所を MagiQuest と入れかえ</b>（ご指定）。
      MagiRanking は「その他」のいちばん前へ下げる。 */
-  "magilex", "magilink", "magiburst", "xevynar",
-  "magiquest", "magichainparty", "magidominiongrid", "magidiamond",
-  "magicounter", "magibocciarush", "magijackpot",
+  /* ★★ 2026-09-17 <b>XEVYNAR の位置に Boccia Rush</b>、<b>MagiJackpot の位置に XEVYNAR</b>（ご指定）。
+     空いたもとの Boccia Rush の枠（10番目）には MagiJackpot を入れる。 */
+  /* ★★ 2026-09-17e <b>MagiArcanaRush を廃止</b>（ご指定）。その位置に MagiJackpot、
+     もとの MagiJackpot の位置（ホーム10番目）に MagiTier。 */
+  /* ★★ 2026-09-17f <b>MagiQuest を廃止</b>（ご指定）。後ろのアプリを1つずつ前へつめ、
+     もとの XEVYNAR の位置（ホーム11番目）に MagiJackpot。 */
+  "magilex", "magilink", "magiburst", "magibocciarush",
+  "magichainparty", "magidominiongrid", "magidiamond",
+  "magicounter", "magitier", "xevynar", "magijackpot",
   /* 以降は「その他」の中に入る */
-  "magiranking", "magiarcanarush", "magilotto",
+  "magiranking", "magilotto",
   "ordyxis", "magicraft", "magimanor", "magiportfolio",
-  "magiarena", "magibattle", "magiempire", "magifocus", "magimusic", "magitier",
+  "magiarena", "magibattle", "magiempire", "magifocus", "magimusic",
   "ngx", "ishida", "magicalfuture",
 ];
 const XH_HOME_SLOTS = 11;
 const XH_ORDER_KEY = "xeva_home_order_v2";
 /* 並び順の世代。上げると保存済みの並びを一度だけ既定に戻す
    （アプリの入れ替えを、既にホームを触った人にも確実に反映させるため） */
-const XH_ORDER_GEN = "9";   /* ★★ 2026-09-09 11枠の入れかえと、抹けていた新作2本を既存の並びにも効かせる */
+const XH_ORDER_GEN = "9-0917f";   /* ★★ 2026-09-17e Arcana Rush 廃止・MagiTier をホームへ（保存ずみの並びも一度だけ既定へ） */   /* ★★ 2026-09-09 11枠の入れかえと、抹けていた新作2本を既存の並びにも効かせる */
 const XH_ORDER_GEN_KEY = "xeva_home_order_gen";
 
 /* 期間限定イベント（from/to は YYYY-MM-DD。期間内のものだけ表示）
@@ -215,6 +208,11 @@ const XH_ORDER_GEN_KEY = "xeva_home_order_gen";
      ずっと後ろ、という状態を防ぐため。
      ＝ 新しいイベントを足すときは<b>この配列のどこに書いてもよい</b>。 */
 const XH_EVENTS = [
+  /* ★★ 2026-09-17d 花宴祭（アカツキ）＝<b>無期限開催</b>。戦姫祭と同じく always/perm を付け、to は空。 */
+  { tag:"FES", t1:"花宴祭 に アカツキ",
+    t2:"無期限開催。MagiBurst 史上最大の乱打フルバースト・全属性有利＋全属性キラーEL・オムニアンチ＋治癒の祈り。天界の審判 7つを有利属性のまま完全対応",
+    always:true, perm:true, since:"2026-09-17", from:"2026-09-17", to:"",
+    href:"gacha.html#fes15", img:"thumbs/MagiBurst.jpg" },
   /* ★★ 2026-09-13c GRAND DEBUT GACHA Ver.8.0（版ごと<b>20日間</b>へ統一・ご指定） */
   { tag:"GRAND DEBUT", t1:"GRAND DEBUT GACHA Ver.8.0",
     t2:"新SSR 5体が参戦！ ミヤ・エミカ・ウタ・シホ・キヅキ——天界の審判の手薄な5つを有利属性のまま完全対応",
@@ -269,7 +267,7 @@ const XH_EVENTS = [
     href:"gacha.html#debut:6.0", img:"thumbs/MagiBurst.jpg" },
   /* ★★ 2026-08-29 戦姫祭（常時開催の限定キャラガチャ）。
      ★ 期間で終わらないので always:true。カレンダーでは「常時開催」と出る。 */
-  { tag:"SENKI FES", t1:"戦姫祭", t2:"常時開催。限定SSR 7体——アビリティ10個・アンナ(祭) は MagiBurst 史上最強",
+  { tag:"SENKI FES", t1:"戦姫祭", t2:"無期限開催。限定SSR 7体——アビリティ10個・アンナ(祭) は MagiBurst 史上最強",
     /* ★ perm:true を書かないと xhEventsLive の 「to があるか perm」のふるいに引っかかり、
        「開催中のイベント」に<b>一切出ない</b>（実際そうなっていた）。
        always はスケジュールのカレンダー用、perm はホームの一覧用で<b>別の台帳</b>。 */
@@ -398,6 +396,58 @@ const XH_EVENTS = [
    ══════════════════════════════════════════════════════════════ */
 const XH_UPDATE_MAX = 12;
 const XH_UPDATES = [
+  /* ★★ 2026-09-17g 果実の個数えらび／極◯祭の残り日数 */
+  { tag:"UPDATE", t1:"極◯祭に「今回はあと◯日」", at:"2026-09-17",
+    t2:"極彩祭・極華祭・極煌祭は開催中のあいだ、今回の開催の残り日数を表示。MagiBocciaRush の叡智の果実は個数をえらび、確認してから使えるように",
+    href:"gacha.html", img:"thumbs/MagiBurst.jpg" },
+  /* ★★ 2026-09-17f MagiBocciaRush 凸の表示・1台対戦の育成／MagiQuest 廃止 */
+  { tag:"UPDATE", t1:"MagiBocciaRush に凸の表示", at:"2026-09-17",
+    t2:"MagiBurst と同じ凸の表示と完凸エフェクト・1台対戦で1P／2Pの育成状況をえらべる・育成の反映に？の説明・ステージ名は英語表記",
+    href:"MagiBocciaRush/index.html", img:"thumbs/MagiBocciaRush.jpg" },
+  { tag:"UPDATE", t1:"MagiQuest の提供終了", at:"2026-09-17",
+    t2:"ホームの並びは後ろのアプリが1つずつ前へつまり、XEVYNAR のあとに MagiJackpot",
+    href:"MagiJackpot/index.html", img:"thumbs/MagiJackpot.jpg" },
+  /* ★★ 2026-09-17e MagiBocciaRush 凸・開始画面／Arcana Rush 廃止 */
+  { tag:"UPDATE", t1:"MagiBocciaRush に凸を反映", at:"2026-09-17",
+    t2:"凸1つごとに全能力+1（完凸で+4）・新しい開始画面・BOSS STAGE の難易度は HARD／NORMAL／EASY 表記に・ホームはアカツキ、PLAY は QUICK MATCH＝カナ／BOSS STAGE＝マキ",
+    href:"MagiBocciaRush/index.html", img:"thumbs/MagiBocciaRush.jpg" },
+  { tag:"UPDATE", t1:"Arcana Rush の提供終了", at:"2026-09-17",
+    t2:"ホームの並びは Arcana Rush の場所に MagiJackpot、MagiJackpot の場所に MagiTier",
+    href:"MagiTier/MagiTier.html", img:"thumbs/MagiTier.jpg" },
+  /* ★★ 2026-09-17d 花宴祭／MagiBocciaRush BOSS STAGE */
+  { tag:"NEW", t1:"花宴祭 に アカツキ", at:"2026-09-17",
+    t2:"無期限開催。MagiBurst 史上最大の乱打フルバースト・枝分かれするリンクスキル・全属性有利＋全属性キラーEL。天界の審判 7つを有利属性のまま完全対応",
+    href:"gacha.html#fes15", img:"thumbs/MagiBurst.jpg" },
+  { tag:"NEW", t1:"MagiBocciaRush に BOSS STAGE", at:"2026-09-17",
+    t2:"5ステージ×難易度3つ・初回クリアでジェム。叡智の果実で熟練度アップ（MagiBurst と共有）・英語版とオフラインに対応・キャラボイスは廃止",
+    href:"MagiBocciaRush/index.html", img:"thumbs/MagiBocciaRush.jpg" },
+  /* ★★ 2026-09-17c MagiBocciaRush ボイス・ルール説明・絞り込み */
+  { tag:"UPDATE", t1:"MagiBocciaRush にキャラボイス", at:"2026-09-17",
+    t2:"ずんだもんなど VOICEVOX の26人の声でキャラがしゃべり、チュートリアルはずんだもんが案内。スキル発動の詳しいルール・試合中の編成キャラ詳細・MagiBurst と同じ絞り込み・レアリティは SSR／SR に統一",
+    href:"MagiBocciaRush/index.html", img:"thumbs/MagiBocciaRush.jpg" },
+  /* ★★ 2026-09-17b RISING STAR FEST 第4弾／MagiBocciaRush の改善／アニメ Tier表／ホーム */
+  { tag:"NEW", t1:"RISING STAR FEST に新5体", at:"2026-09-17",
+    t2:"クオン・アサヒ・ソウゲツ・ナツネ・アマネ。天界の審判 第十一〜第十五を有利属性のまま完全対応。フルバーストは5体とも<b>味方全員で総攻撃</b>、リンクスキルは5体とも新しい挙動",
+    href:"gacha.html", img:"thumbs/MagiBurst.jpg" },
+  { tag:"UPDATE", t1:"MagiBocciaRush を6体編成に", at:"2026-09-17",
+    t2:"6体編成・検索と絞り込み・どのモードでも壁で反射・試合の中断と再開・未所持キャラの詳細・1台対戦は全キャラから・オンラインは瞬断に強く＆マッチ後90秒の編成タイム",
+    href:"MagiBocciaRush/index.html", img:"thumbs/MagiBocciaRush.jpg" },
+  { tag:"NEW", t1:"MagiTier にアニメ Tier表", at:"2026-09-17",
+    t2:"だれでも見られる固定のアニメ Tier表。アニメを検索して、題名にその文字が入る作品を画像ごと並べられます（編集はアクセスコード）",
+    href:"MagiTier/MagiTier.html", img:"thumbs/MagiTier.jpg" },
+  /* ★★ 2026-09-17 MagiBocciaRush 全面刷新／ピックアップ／アプリアイコン／新キャラ紹介の詳細 */
+  { tag:"NEW", t1:"MagiBocciaRush を全面リニューアル", at:"2026-09-17",
+    t2:"<b>3人の編成を順番に</b>投げる戦略型ボッチャに。6能力と7つの型、特殊ショット・アクティブ・パッシブ・<b>アルティメット</b>、Tactical Chain、専用ボール、熟練度・ボイス・ストーリー。能力の合計は全キャラ同じなので<b>レアリティで強さは決まりません</b>。ルール準拠モード・ランク・チーム戦・オンライン（盤面の相互照合・切断復帰）・チュートリアルも",
+    href:"MagiBocciaRush/index.html", img:"thumbs/MagiBocciaRush.jpg" },
+  { tag:"NEW", t1:"ホームにピックアップキャラクター", at:"2026-09-17",
+    t2:"いま引ける新しいキャラを<b>4枚ずつ</b>並べました。所持／未入手・NEW・LIMITED・属性がひと目で分かり、「ピックアップ召喚へ」でそのガチャへ。登場前のキャラは <b>？？？</b> で予告します",
+    href:"gacha.html", img:"thumbs/MagiBurst.jpg" },
+  { tag:"NEW", t1:"アプリのアイコンをキャラ画像に変えられます", at:"2026-09-17",
+    t2:"<b>設定 → アプリの並び替え・アイコン</b>の画像ボタンから、アプリごとに<b>持っているキャラの画像</b>をアイコンにできます。いつでも元に戻せます",
+    href:"index.html", img:"thumbs/Xevarion.png" },
+  { tag:"UPDATE", t1:"新キャラ紹介に「詳細を見る」", at:"2026-09-17",
+    t2:"紹介アニメの中で、MagiBurst の<b>高難易度（天界の審判・蓬莱の九重・幽冥の庭園）の最適性クエスト</b>と、<b>Magi: Boccia Rush の性能</b>を見られます。開くと自動送りが止まります",
+    href:"gacha.html", img:"thumbs/MagiBurst.jpg" },
   /* ★★ 2026-09-13d 下バーの高さ／起動画面・ロード画面の下に残る帯（ご報告） */
   { tag:"FIX", t1:"ホームの下バーの高さと、起動中の下の帯を直しました", at:"2026-09-13",
     t2:"iPhone のアプリ表示では、画面いっぱいの土台が<b>ホームバーぶんだけ短く</b>作られることがあります。これまではそのぶんを<b>下バーの余白から引いて</b>いたため、<b>タブだけが浮いて下バーが高く</b>見え、さらに<b>起動画面・ロード画面の下に帯</b>が残っていました。<b>土台そのものを画面の下端まで伸ばす</b>ように直したので、下バーの高さは MagiLex・MagiBurst とそろい、起動中の帯も出ません",
@@ -465,10 +515,7 @@ const XH_UPDATES = [
   { tag:"NEW", t1:"設定のインストールに QR コード", at:"2026-09-13",
     t2:"設定 ›「XEVARION をインストール」に<b>公開URLの QR</b>を出しました。ほかの端末で読み取れば、そのままインストールの案内まで進めます（URL のコピーもできます）",
     href:"index.html", img:"thumbs/Xevarion.png" },
-  /* ★★ 2026-09-12 新作 MagiQuest ／ MagiBurst の調整 ／ ホームの下バー */
-  { tag:"NEW", t1:"新作「MagiQuest」が登場", at:"2026-09-12",
-    t2:"<b>MagiLex の問題をそのまま出題</b>する学習バトル。4択ではなく<b>盤面のパーツを拾って答えを組み立てて</b>戦います。正解するとキャラが攻撃し、連続正解で<b>COMBO</b>が伸びる。キャラは<b>XEVARION 共通のガチャ</b>のまま。化学・数学・物理・国語・地理の<b>2,800問以上</b>を収録",
-    href:"MagiQuest/index.html", img:"thumbs/MagiQuest.jpg" },
+  /* ★★ 2026-09-12 MagiBurst の調整 ／ ホームの下バー */
   { tag:"UPDATE", t1:"MagiBurst のリンクスキルを調整", at:"2026-09-12",
     t2:"リンクスキルの威力が<b>フルバーストと同じ桁</b>まで上がっていたので、跳ねていたぶんを下げました。リンクは<b>味方にふれるたび何度でも</b>出るので、実際の総ダメージがフルバーストを大きく上回っていたためです（フルバーストは<b>そのまま</b>）",
     href:"MagiBurst/index.html", img:"thumbs/MagiBurst.jpg" },
@@ -786,10 +833,6 @@ const XH_UPDATES = [
   { tag:"UPDATE", t1:"極彩祭・極華祭・極煌祭は「常時開催」表記に", at:"2026-08-30",
     t2:"回せる日は月で決まっていますが、ガチャとして終わる期限はありません",
     href:"gacha.html#fes7", img:"thumbs/MagiBurst.jpg" },
-  /* ★★ 2026-08-29b 新作 Magi Arcana Rush（β版） */
-  { tag:"NEW APP", t1:"新作『Magi: Arcana Rush』β版を公開", at:"2026-08-29",
-    t2:"7属性の魔導アクションRPG。β版のため、開くたびにアクセスコードが必要です",
-    href:"MagiArcanaRush/index.html", img:"thumbs/MagiArcanaRush.jpg" },
   /* ★★ 2026-08-29b 図鑑の入手方法／戦姫祭の性能／FBの2段階目の取り下げ */
   { tag:"UPDATE", t1:"キャラ図鑑に「入手方法」を追加", at:"2026-08-29",
     t2:"どのガチャで引けるのかを、ガチャの名前まで出すようにしました",
@@ -1559,7 +1602,7 @@ function xhMbReady() {
   if (typeof CHARS !== "undefined" && typeof PREMIUM_CHARS !== "undefined") return Promise.resolve(true);
   if (_xhMbLoading) return _xhMbLoading;
   _xhMbLoading = xhLoadScript("mb-boot.js?v=17")
-    .then(() => xhLoadScript("MagiBurst/js/mb-core.js?v=115"))
+    .then(() => xhLoadScript("MagiBurst/js/mb-core.js?v=120"))
     .then(() => true)
     .catch((e) => { _xhMbLoading = null; throw e; });
   return _xhMbLoading;
@@ -1942,7 +1985,8 @@ function xhMonthlyText(m) {
   const range = "毎月" + a + "〜" + (b >= 31 ? "末" : b) + "日";
   const d = now.getDate();
   let st;
-  if (d >= a && d <= bb) st = "いま開催中（" + bb + "日まで）";
+  /* ★★ 2026-09-17g 今回の残り日数も出す（今日も1日に数える） */
+  if (d >= a && d <= bb) st = "いま開催中・あと" + (bb - d + 1) + "日（" + bb + "日まで）";
   else if (d < a) st = "次は " + (now.getMonth() + 1) + "/" + a + " から";
   else {
     const nm = now.getMonth() === 11 ? 1 : now.getMonth() + 2;
@@ -2057,7 +2101,7 @@ function xhRenderUpdates() {
       '<div class="evimg"><img src="' + xhEscape(u.img) + '" alt=""></div>' +
       '<div class="evbody">' +
         '<span class="evtag">' + xhEscape(u.tag || "UPDATE") + "</span>" +
-        '<div class="evt1">' + xhEscape(u.t1) + "</div>" +
+        '<div class="evt1">' + xhEscape(xhPlain(u.t1 || "")) + "</div>" +
         '<div class="evt2">' + xhEscape(xhPlain(u.t2 || "")) + "</div>" +
         '<div class="evt3">' + xhEscape(xhUpDateText(u)) + "</div>" +
       "</div>" +
@@ -2099,6 +2143,8 @@ function xhOrder() {
       localStorage.removeItem(XH_ORDER_KEY);
       localStorage.setItem(XH_ORDER_GEN_KEY, XH_ORDER_GEN);
     }
+    /* ★★ 2026-09-17f MagiQuest は廃止。端末に残ったセーブを消す */
+    localStorage.removeItem("magiquest_v1");
   } catch (e) {}
   try { saved = JSON.parse(localStorage.getItem(XH_ORDER_KEY) || "[]"); } catch (e) {}
   if (!Array.isArray(saved)) saved = [];
@@ -2113,7 +2159,7 @@ function xhSaveOrder(order) {
 function xhAppTile(a) {
   return '<button class="xh-app" data-app="' + a.id + '" data-tone="' + a.tone + '" ' +
          'onclick="xhOpenApp(\'' + a.id + "','" + a.href + "')\">" +
-         '<span class="xh-sq"><img src="' + xhEscape(a.img) + '" alt="" loading="lazy"></span>' +
+         '<span class="xh-sq"><img src="' + xhEscape(xhAppIconSrc(a)) + '" alt="" loading="lazy"></span>' +
          '<span class="nm">' + xhEscape(a.name) + "</span>" +
          '<span class="sb">' + xhEscape(a.sub) + "</span></button>";
 }
@@ -2181,7 +2227,7 @@ function xhAppRow(a, off) {
   const locked = off && !XH_OFFLINE_OK[a.id];
   return '<button class="xh-aitem' + (locked ? " locked" : "") + '" data-app="' + a.id + '" ' +
     'onclick="xhOpenApp(\'' + a.id + "','" + a.href + "')\">" +
-    '<span class="ai-ic"><img src="' + xhEscape(a.img) + '" alt="" loading="lazy"></span>' +
+    '<span class="ai-ic"><img src="' + xhEscape(xhAppIconSrc(a)) + '" alt="" loading="lazy"></span>' +
     '<span class="ai-bd">' +
       '<span class="ai-nm">' + xhEscape(xhFullName(a)) + "</span>" +
       '<span class="ai-sb">' + xhEscape(a.sub) + "</span>" +
@@ -2233,9 +2279,12 @@ function xhPaintSort() {
         '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h16M4 12h16M4 16h16" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" fill="none"/></svg>' +
       "</span>" +
       '<span class="sn">' + (i + 1) + "</span>" +
-      '<span class="si"><img src="' + xhEscape(a.img) + '" alt="" loading="lazy"></span>' +
+      '<span class="si"><img src="' + xhEscape(xhAppIconSrc(a)) + '" alt="" loading="lazy"></span>' +
       '<span class="st">' + xhEscape(xhFullName(a)) + "</span>" +
       '<span class="sb2">' +
+        /* ★★ 2026-09-17 アイコンをキャラ画像に変える（ご指定） */
+        '<button class="sic' + (xhAppIconOf(a.id) ? " on" : "") + '" onclick="xhOpenAppIcon(\'' + a.id + '\')" aria-label="アイコンを変更" title="アイコンを変更">' +
+          '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.4" y="3.4" width="17.2" height="17.2" rx="4" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="9" cy="9.4" r="1.8" fill="currentColor"/><path d="M4.2 18 9 13.6l3.2 2.8 3-2.4 4.6 4" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"/></svg></button>' +
         '<button onclick="xhSortMove(' + i + ',-1)"' + (i === 0 ? " disabled" : "") + ' aria-label="上へ">▲</button>' +
         '<button onclick="xhSortMove(' + i + ',1)"' + (i === _xhSortOrder.length - 1 ? " disabled" : "") + ' aria-label="下へ">▼</button>' +
       "</span></div>";
@@ -2315,6 +2364,246 @@ function xhResetSort() {
   xhToast("初期の並びに戻しました（保存で確定）");
 }
 window.xhResetSort = xhResetSort;
+
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-09-17 アプリのアイコンを<b>好きなキャラ画像</b>に変える（ご指定）
+   ------------------------------------------------------------
+   ・入口は 設定 → アプリの並び替え（カスタム）の各行の 🖼 ボタン。
+   ・えらべるのは<b>持っているキャラだけ</b>（ガチャで引く理由になるように、
+     持っていない子は 🔒 付きで並べて見せる）。
+   ・保存は xeva_home_appicon_v1 = { アプリid: キャラid }（xeva-keys.js で同期）。
+   ・キャラの絵は XEVA.iconCharList() 1本から引く（MagiBurst の子も XEVA ガチャの子も同じ）。
+   ★ 絵が取れないときは onerror で元のアイコンに戻る（xeva.js の差し戻しも効く）。
+   ══════════════════════════════════════════════════════════════ */
+const XH_APPICON_KEY = "xeva_home_appicon_v1";
+let _xhIconCache = null;
+function xhAppIconMap() {
+  if (_xhIconCache) return _xhIconCache;
+  let m = null;
+  try { m = JSON.parse(localStorage.getItem(XH_APPICON_KEY) || "null"); } catch (e) {}
+  _xhIconCache = (m && typeof m === "object") ? m : {};
+  return _xhIconCache;
+}
+function xhAppIconOf(appId) { return xhAppIconMap()[appId] || ""; }
+function xhIconChars() {
+  try { return (window.XEVA && XEVA.iconCharList) ? XEVA.iconCharList() : []; } catch (e) { return []; }
+}
+function xhAppIconSrc(a) {
+  if (!a) return "";
+  const cid = xhAppIconOf(a.id);
+  if (!cid) return a.img;
+  const c = xhIconChars().find((x) => x.id === cid);
+  return c ? xhCharS(c.file, c.id) : a.img;
+}
+/* 同期で別の端末から書きかわったとき、次に読むときに取り直す */
+window.addEventListener("storage", (e) => { if (e.key === XH_APPICON_KEY) _xhIconCache = null; });
+window.addEventListener("xeva:synced", () => { _xhIconCache = null; try { xhRenderShelf(); } catch (e) {} });
+
+let _xhIconApp = "", _xhIconQ = "";
+function xhOpenAppIcon(appId) {
+  const a = xhApp(appId); if (!a) return;
+  _xhIconApp = appId; _xhIconQ = "";
+  const t = xhEl("xhIconTitle"); if (t) t.textContent = xhFullName(a) + " のアイコン";
+  const q = xhEl("xhIconQ"); if (q) q.value = "";
+  xhPaintAppIcon();
+  xhOpenSheet("xhIconSheet");
+}
+window.xhOpenAppIcon = xhOpenAppIcon;
+function xhIconSearch(v) { _xhIconQ = String(v || "").trim().toLowerCase(); xhPaintAppIcon(); }
+window.xhIconSearch = xhIconSearch;
+function xhPaintAppIcon() {
+  const g = xhEl("xhIconGrid"); if (!g) return;
+  const a = xhApp(_xhIconApp); if (!a) return;
+  const cur = xhAppIconOf(a.id);
+  const pv = xhEl("xhIconPrev");
+  if (pv) pv.innerHTML = '<span class="xh-sq"><img src="' + xhEscape(xhAppIconSrc(a)) + '" alt=""></span>'
+    + '<span class="pvt"><b>' + xhEscape(xhFullName(a)) + '</b><small>' + (cur ? "キャラ画像を使用中" : "元のアイコン") + "</small></span>";
+  let list = xhIconChars();
+  if (_xhIconQ) list = list.filter((c) => String(c.name).toLowerCase().indexOf(_xhIconQ) >= 0);
+  /* 持っている子を先に、同じなら新しい子（No. の大きい MagiBurst の子）を先に */
+  list = list.slice().sort((x, y) => (y.own - x.own) || (y.mb - x.mb) || (y.no - x.no));
+  const own = list.filter((c) => c.own).length;
+  const hint = xhEl("xhIconHint");
+  if (hint) hint.textContent = "所持 " + own + "体から選べます" + (list.length > own ? "（🔒は未所持）" : "");
+  if (!list.length) { g.innerHTML = '<div class="xh-empty" style="grid-column:1/-1">あてはまるキャラクターがいません。</div>'; return; }
+  g.innerHTML = list.slice(0, 400).map((c) =>
+    '<button class="xh-cpick' + (c.id === cur ? " sel" : "") + (c.own ? "" : " lock") + '" '
+    + 'onclick="xhSetAppIcon(\'' + c.id + '\')">'
+    + '<img src="' + xhCharS(c.file, c.id) + '" alt="" loading="lazy">'
+    + (c.own ? "" : '<span class="lk">🔒</span>')
+    + '<span class="cn">' + xhEscape(c.name) + "</span></button>").join("");
+}
+function xhSetAppIcon(cid) {
+  const a = xhApp(_xhIconApp); if (!a) return;
+  const m = Object.assign({}, xhAppIconMap());
+  if (cid) {
+    const c = xhIconChars().find((x) => x.id === cid);
+    if (!c) return;
+    if (!c.own) { xhToast("まだ持っていないキャラです。ガチャで仲間にしよう！"); return; }
+    m[a.id] = cid;
+  } else {
+    delete m[a.id];
+  }
+  try { localStorage.setItem(XH_APPICON_KEY, JSON.stringify(m)); } catch (e) {}
+  _xhIconCache = m;
+  xhPaintAppIcon();
+  try { xhPaintSort(); } catch (e) {}
+  xhRenderShelf();
+  xhToast(cid ? "アイコンを変更しました" : "元のアイコンに戻しました");
+}
+window.xhSetAppIcon = xhSetAppIcon;
+
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-09-17 ピックアップキャラクター（ご指定・ホーム案どおり）
+   ------------------------------------------------------------
+   ・いま引ける<b>新しいキャラ</b>を4枚ずつのカードで見せて、入手意欲を上げる欄。
+   ・顔ぶれの持ち主は <b>mb-newchars.js（MB_NEW_CHARS）</b>。
+     実装から NEW_CHAR_DAYS（10日）以内の子を新しい順に並べ、
+     足りなければ直近のガチャ排出キャラで埋める。
+   ・<b>since が未来の子</b>は「？？？」の伏せカードで予告だけ出す（名前も絵も出さない）。
+   ・属性の印と「いま本当にそのガチャで引けるか」は mb-core.js を見ないと分からないので、
+     ホームが落ち着いてから<b>あとから</b>読んで描き直す（xhMbReady・交換所と共用）。
+     読めなくてもカードはそのまま使える。
+   ══════════════════════════════════════════════════════════════ */
+const XH_PICK_NEW_DAYS = 10;           /* mb-core.js の NEW_CHAR_DAYS と同じ */
+const XH_PICK_MAX = 12;
+function xhAddDays(ymd, n) {
+  const d = new Date(String(ymd).slice(0, 10) + "T00:00:00");
+  d.setDate(d.getDate() + n);
+  return d.toLocaleDateString("sv-SE");
+}
+function xhPickList() {
+  const T = window.MB_NEW_CHARS || [];
+  const today = new Date().toLocaleDateString("sv-SE");
+  const seen = {}, live = [], past = [], soon = [];
+  T.forEach((n) => {
+    if (!n || !n.id || !n.mode || seen[n.id]) return;
+    seen[n.id] = 1;
+    const d = String(n.since || "").slice(0, 10);
+    if (d > today) soon.push(n);
+    else if (today < xhAddDays(d, XH_PICK_NEW_DAYS)) live.push(n);
+    else past.push(n);
+  });
+  const by = (a, b) => String(b.since).localeCompare(String(a.since));
+  live.sort(by); past.sort(by); soon.sort((a, b) => String(a.since).localeCompare(String(b.since)));
+  let out = live.map((n) => ({ n, isNew: true }));
+  if (out.length < 8) out = out.concat(past.slice(0, 8 - out.length).map((n) => ({ n, isNew: false })));
+  out = out.slice(0, XH_PICK_MAX - Math.min(2, soon.length));
+  /* ★ mb-core が読めていれば、いま開いていないガチャの子は外す（終わったフェスの子を勧めない） */
+  try {
+    if (typeof CHARS !== "undefined" && typeof charSecret === "function") {
+      out = out.filter((x) => CHARS[x.n.id] && !charSecret(x.n.id));
+    }
+  } catch (e) {}
+  soon.slice(0, 2).forEach((n) => out.push({ n, soon: true }));
+  return out;
+}
+function xhPickMaster(mbId) {
+  const L = xhIconChars();
+  return L.find((c) => c.id === "mb:" + mbId) || null;
+}
+const XH_ELEM_MARK = {
+  fire:  { c: "#ff5d47", p: '<path d="M12 2c1 4 5 6 5 11a5 5 0 01-10 0c0-2.6 1.4-4.2 2.7-5.7C10.2 9 11 9.4 12 9c.9-.4 1-2.8 0-7Z" fill="#fff"/>' },
+  water: { c: "#38a6ff", p: '<path d="M12 3c3.6 4.6 6 7.7 6 10.6A6 6 0 016 13.6C6 10.7 8.4 7.6 12 3Z" fill="#fff"/>' },
+  wood:  { c: "#2fbf71", p: '<path d="M12 21C6 17 5 9 12 3c7 6 6 14 0 18Z" fill="#fff"/>' },
+  light: { c: "#f0b429", p: '<path d="M12 2l1.9 6.3L20 10l-6.1 1.7L12 18l-1.9-6.3L4 10l6.1-1.7Z" fill="#fff"/>' },
+  dark:  { c: "#8a55f0", p: '<path d="M15.5 3.2A8.6 8.6 0 1020.8 15 7 7 0 0115.5 3.2Z" fill="#fff"/>' },
+};
+function xhPickCard(x) {
+  const n = x.n;
+  if (x.soon) {
+    return '<div class="xh-ev pk soon" style="--pk:' + (n.color || "#a58bff") + '">'
+      + '<div class="evimg"><span class="pkq">?</span></div>'
+      + '<div class="evbody"><span class="evtag">COMING SOON</span>'
+      + '<div class="evt1">？？？ <small>SSR</small></div>'
+      + '<div class="evt2">' + xhEscape(n.where || "") + '</div>'
+      + '<div class="evt3">🔒 ' + xhEscape(String(n.since).slice(5, 10).replace("-", "/")) + ' 登場予定</div></div></div>';
+  }
+  const m = xhPickMaster(n.id);
+  const nm = m ? m.name : n.id;
+  const art = m ? String(m.file || "").replace(/^\.\.\//, "") : "";
+  let el = "";
+  try { if (typeof CHARS !== "undefined" && CHARS[n.id]) el = CHARS[n.id].el; } catch (e) {}
+  const em = XH_ELEM_MARK[el];
+  const lim = /^fes/.test(n.mode);
+  const own = m && m.own;
+  const tag = x.isNew ? (lim ? "NEW ・ LIMITED" : "NEW") : (lim ? "LIMITED" : "PICK UP");
+  return '<div class="xh-ev pk" style="--pk:' + (n.color || "#ffb84d") + '">'
+    + '<div class="evimg">' + (art ? '<img src="' + xhEscape(art) + '" alt="" loading="lazy">' : "")
+    + (em ? '<span class="pkel" style="background:' + em.c + '"><svg viewBox="0 0 24 24">' + em.p + "</svg></span>" : "") + "</div>"
+    + '<div class="evbody"><span class="evtag">' + tag + "</span>"
+    + '<div class="evt1">' + xhEscape(nm) + ' <small>' + (m && m.star5 === false ? "SR" : "SSR") + "</small></div>"
+    + '<div class="evt2">' + xhEscape(n.catch || n.where || "") + "</div>"
+    + '<div class="evt3"><b class="' + (own ? "own" : "") + '">' + (own ? "✔ 所持" : "未入手") + "</b>　" + xhEscape(n.where || "") + "</div></div></div>";
+}
+let _xhPkList = [], _xhPkIdx = 0, _xhPkTimer = 0;
+function xhRenderPickup() {
+  const sec = xhEl("xhPickSec"), tr = xhEl("xhPkTrack"), dots = xhEl("xhPkDots");
+  if (!sec || !tr) return;
+  _xhPkList = xhPickList();
+  if (!_xhPkList.length) { sec.hidden = true; return; }
+  sec.hidden = false;
+  tr.innerHTML = _xhPkList.map(xhPickCard).join("");
+  if (dots) dots.innerHTML = _xhPkList.map((_, i) => '<i class="' + (i === _xhPkIdx ? "on" : "") + '" onclick="xhPickGo(' + i + ')"></i>').join("");
+  if (_xhPkIdx >= _xhPkList.length) _xhPkIdx = 0;
+  xhPickGo(_xhPkIdx);
+  clearInterval(_xhPkTimer);
+  if (_xhPkList.length > 1) _xhPkTimer = setInterval(() => xhPickGo(_xhPkIdx + 1), 5800);
+  if (!sec._bound) { sec._bound = 1; xhBindSwipeOn("xhPick", xhPickGo, () => _xhPkIdx, xhPickTap); }
+}
+/* 回りこみ（端から端）のときだけアニメーションを切る＝イベント側と同じ */
+function xhPickGo(i) {
+  if (!_xhPkList.length) return;
+  const prev = _xhPkIdx;
+  _xhPkIdx = ((i % _xhPkList.length) + _xhPkList.length) % _xhPkList.length;
+  const track = xhEl("xhPkTrack");
+  if (track) {
+    const wrap = Math.abs(_xhPkIdx - prev) > 1;
+    if (wrap) track.style.transition = "none";
+    track.style.transform = "translateX(" + (-_xhPkIdx * 100) + "%)";
+    if (wrap) requestAnimationFrame(() => { track.style.transition = ""; });
+  }
+  const dots = xhEl("xhPkDots");
+  if (dots) [...dots.children].forEach((d, k) => d.classList.toggle("on", k === _xhPkIdx));
+}
+window.xhPickGo = xhPickGo;
+function xhPickTap() {
+  const x = _xhPkList[_xhPkIdx];
+  if (!x || x.soon) return;
+  xhPickOpen(x.n.id);
+}
+function xhPickOpen(id) { location.href = "characters.html?c=" + encodeURIComponent(id); }
+window.xhPickOpen = xhPickOpen;
+/* 「召喚へ」＝ いま見ている子（伏せカードなら先頭の子）が引けるガチャを開く */
+function xhPickGacha() {
+  const cur = _xhPkList[_xhPkIdx];
+  const x = cur && !cur.soon ? cur : _xhPkList.find((y) => !y.soon);
+  location.href = "gacha.html" + (x && x.n.mode ? "#" + x.n.mode : "");
+}
+window.xhPickGacha = xhPickGacha;
+
+/* ══ ★★ 2026-09-17 見出しの名前を押すと畳む（開催中のイベント／ピックアップ／アップデート情報）══
+   ★ 畳んだかどうかは端末に覚える（xeva_home_fold_v1）。ホームを開き直しても同じ形で出る。 */
+const XH_FOLD_KEY = "xeva_home_fold_v1";
+function xhFoldMap() { try { return JSON.parse(localStorage.getItem(XH_FOLD_KEY) || "{}") || {}; } catch (e) { return {}; } }
+function xhApplyFold() {
+  const m = xhFoldMap();
+  document.querySelectorAll(".xh-sec[data-fold]").forEach((sec) => sec.classList.toggle("folded", !!m[sec.dataset.fold]));
+}
+function xhFold(k) {
+  const m = xhFoldMap();
+  m[k] = !m[k];
+  try { localStorage.setItem(XH_FOLD_KEY, JSON.stringify(m)); } catch (e) {}
+  xhApplyFold();
+}
+window.xhFold = xhFold;
+/* ホームが落ち着いてから mb-core を読んで、属性の印と開催判定を足す */
+function xhPickEnrichLater() {
+  try { if (navigator.connection && navigator.connection.saveData) return; } catch (e) {}
+  const go = () => { xhMbReady().then(() => { try { xhRenderPickup(); } catch (e) {} }).catch(() => {}); };
+  setTimeout(() => { if (window.requestIdleCallback) requestIdleCallback(go, { timeout: 4000 }); else go(); }, 3500);
+}
+window.addEventListener("xeva:account", () => { try { xhRenderPickup(); } catch (e) {} });
 
 /* ══════════════ オフライン制御 ══════════════ */
 function xhApplyOfflineLocks() {
@@ -3332,7 +3621,7 @@ function xhPaintSched() {
         ? '<div class="xh-schlist">' + items.map((it) => row(it, false)).join("") + "</div>"
         : '<div class="xh-schnone">この月の予定はまだありません。</div>')
     + '<p class="xos-note">★ 毎月まわってくるガチャ（極彩祭・極華祭・極煌祭）は、'
-    +   'その月の決まった日にちに自動で入れ替わります。戦姫祭は<b>常時開催</b>です。<br>'
+    +   'その月の決まった日にちに自動で入れ替わります。戦姫祭は<b>無期限開催</b>です。<br>'
     +   '★ 日付はこの端末の時計で見ています。</p>';
 }
 
@@ -5618,6 +5907,7 @@ function xhShow() {
     _xhShown = true;
     xhStartStars();
     xhRenderEvents();
+    try { xhApplyFold(); xhRenderPickup(); xhPickEnrichLater(); } catch (e) {}
     xhRenderUpdates();
     xhBindSwipe();
     xhWatchBadges();

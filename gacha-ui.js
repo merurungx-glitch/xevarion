@@ -117,6 +117,8 @@ function modeDef(k) {
      ここの1行にもそう書く（gachaMenuList の sub とそろえること）。 */
   return { nm: f.nm, ic: "✦", c: f.c, soon: fesLocked(k),
     sub: fesLocked(k) ? fesOpenText(f)
+      /* ★★ 2026-09-17g 極◯祭は今回の残り日数（gachaMenuList とそろえる） */
+      : f.monthly ? (f.noFesTicket ? "限定キャラクター・🎫ガチャ券のみ" : "限定キャラクター・🎫チケット優先") + "／" + fesMonthlyLeftText(f)
       : (fesTimed(f) ? "フェス限定SSR・🎫チケット優先／あと" + fesDaysLeft(k) + "日"
         /* ★★ 2026-09-13 無期限開催（perm）は「あと◯日」でなくそう書く */
         : (fesPerm(f) ? (f.noFesTicket ? "限定キャラクター・🎫ガチャ券のみ／無期限開催"
@@ -271,7 +273,8 @@ function paintPickup() {
     const f = fesDef(gMode);
     /* ★★ 2026-08-28 「まだ始まっていない（fesSoon）」ときだけ顔ぶれを伏せる。
        配信が終わったフェスは、もう見たことがあるので伏せない。 */
-    const locked = fesSoon(gMode);
+    /* ★★ 2026-09-17d 毎月の極◯祭は期間外でも ? で伏せない（ご指定）。伏せるのは openAt の前だけ */
+    const locked = fesVeiled(gMode);
     /* ★★ 2026-09-08 表紙のカードの確率が<b>全員同じ</b>になっていた（fesEachRate）。
        実際の抽選は 1体ずつちがう（pickRateOf）ので、古いキャラも 1.2% と出ていた。
        ★ 提供割合の表と同じ <b>pickRateOf(gMode, id)</b> を見ること。 */
@@ -304,6 +307,7 @@ function paintPickup() {
              ${fesArchiveText(gMode)}、この${f.chars.length}体は
              <b>${ARCHIVE_NM}</b> にも封入されます${fesArchived(gMode) ? "（<b>封入ずみ</b>）" : ""}。`)
           : (fesPerm(f) ? `<br>⏳ このフェスは <b>無期限開催</b>です（配信終了はありません）。` : "")}
+        ${f.monthly && fesMonthlyLeft(f) ? `<br>⏳ <b>${fesMonthlyLeftText(f)}</b>。次は ${fesNextMonthlyText(f)}です。` : ""}
       </div>
     </div>`;
     return;
@@ -540,6 +544,7 @@ function paintNote() {
           + fesArchiveText(gMode) + " <b>" + ARCHIVE_NM + "</b> にも封入されます"
           + (fesArchived(gMode) ? "（<b>封入ずみ</b>）" : "") + "。<br>")
         : (fesPerm(f) ? "⏳ このフェスは <b>無期限開催</b>です（配信終了はありません）。<br>" : "")}
+      ${f.monthly && fesMonthlyLeft(f) ? "⏳ <b>" + fesMonthlyLeftText(f) + "</b>。<br>" : ""}
       ${tktLine}<br>
       <b>10連は最後の1枠がSSR確定</b>（このフェスの限定SSR＋${PREMIUM_NM} のSSRから等確率）。`;
   }
@@ -1265,6 +1270,15 @@ function nciShow(i) {
   }).join("");
   requestAnimationFrame(() => sk.querySelectorAll(".nrow").forEach((r) => r.classList.add("go")));
 
+  /* ★★ 2026-09-17b 詳細は<b>ボタンを作らず一面に</b>（ご指定の言い直し）。
+     まず MagiBurst の面（技の帯＋ステータス＋アビリティ）、時間がたつと<b>自動で MagiBocciaRush の面</b>へ。
+     ★ MagiBurst の適性クエストは出さない（ご指定）。 */
+  const bx = $("#nciBurstX");
+  if (bx) bx.innerHTML = nciBurstHTML(_nciIds[i]);
+  const bc = $("#nciBoccia");
+  if (bc) bc.innerHTML = nciBocciaHTML(_nciIds[i]);
+  nciPage("burst");
+
   const dots = $("#nciDots");
   dots.innerHTML = _nciIds.map((x, k) => '<i class="' + (k === i ? "on" : "") + '"></i>').join("");
   $("#nciCap").textContent = (i + 1) + " / " + _nciIds.length;
@@ -1273,7 +1287,75 @@ function nciShow(i) {
   try { const p = ov.querySelector(".nci-panel"); if (p) p.scrollTop = 0; } catch (e) {}
 
   if (_nciT) { clearTimeout(_nciT); }
-  _nciT = setTimeout(nciNext, NCI_MS);
+  _nciT = setTimeout(nciAdvance, NCI_MS);
+}
+/* ══ ★★ 2026-09-17b 1体の中の2つの面（MagiBurst → MagiBocciaRush）══ */
+const NCI_BOCCIA_MS = 5200;
+let _nciPg = "burst";
+function nciPage(pg) {
+  _nciPg = pg;
+  const ov = $("#nciOv"); if (!ov) return;
+  ov.classList.toggle("pg-boccia", pg === "boccia");
+  document.querySelectorAll("#nciPg button").forEach((b) => b.classList.toggle("on", b.dataset.pg === pg));
+  try { const p = ov.querySelector(".nci-panel"); if (p) p.scrollTop = 0; } catch (e) {}
+  if (pg === "boccia") {
+    const bc = $("#nciBoccia");
+    if (bc) { bc.classList.remove("go"); void bc.offsetWidth; bc.classList.add("go"); }
+  }
+}
+/* 時間がたったとき・余白をタップしたとき：MagiBurst の面なら Boccia の面へ、Boccia の面なら次のキャラへ */
+function nciAdvance() {
+  if (_nciT) { clearTimeout(_nciT); _nciT = 0; }
+  if (_nciPg === "burst") {
+    nciPage("boccia");
+    _nciT = setTimeout(nciAdvance, NCI_BOCCIA_MS);
+  } else {
+    nciNext();
+  }
+}
+function nciGoPage(pg, ev) {
+  if (ev) ev.stopPropagation();
+  if (_nciT) { clearTimeout(_nciT); _nciT = 0; }
+  nciPage(pg);
+  _nciT = setTimeout(nciAdvance, pg === "burst" ? NCI_MS : NCI_BOCCIA_MS);
+}
+window.nciGoPage = nciGoPage;
+function nciBurstHTML(id) {
+  const c = CHARS[id];
+  let st = null;
+  try { st = statsOf(id, MAX_LV, MAX_AWK, null); } catch (e) {}
+  const num = (v) => Number(v || 0).toLocaleString();
+  let abs = [];
+  try { abs = (typeof sortedAbil === "function" ? sortedAbil(c) : (c.abil || [])); } catch (e) { abs = c.abil || []; }
+  const abil = abs.map((a) => '<span class="nd-chip">' + nciEsc(typeof abilName === "function" ? abilName(a) : a.t) + "</span>").join("");
+  return (st ? '<div class="nd-stats">'
+    + '<span><i>HP</i><b>' + num(st.hp) + "</b></span>"
+    + '<span><i>攻撃力</i><b>' + num(st.atk) + "</b></span>"
+    + '<span><i>スピード</i><b>' + nciEsc(typeof spdKmh === "function" ? spdKmh(st.spd) : num(st.spd)) + "</b></span></div>" : "")
+    + '<div class="nd-chips">' + abil + "</div>";
+}
+function nciBocciaHTML(id) {
+  if (!(window.MBR && MBR.VERSION >= 4)) {
+    if (typeof mbrEnsure === "function") mbrEnsure().then(() => {
+      if (window.MBR && MBR.VERSION >= 4 && _nciIds[_nciAt] === id) { const bc = $("#nciBoccia"); if (bc) bc.innerHTML = nciBocciaHTML(id); }
+    });
+    return '<div class="nd-note">MagiBocciaRush の性能を読みこんでいます…</div>';
+  }
+  const c = MBR.charOf(id);
+  if (!c) return '<div class="nd-note">このキャラの MagiBocciaRush の性能はまだありません。</div>';
+  const kit = MBR.kitText(c, "ja");
+  const ty = kit.type;
+  const bars = MBR.STAT_KEYS.map((k) => '<div class="nd-bar"><span class="k">' + MBR.STAT_NM[k].en.replace("SKILL ", "") + "</span>"
+    + '<span class="b"><i style="width:' + Math.round((c.st[k] - 20) / 80 * 100) + "%;background:" + (k === ty.main ? "#ff3b52" : k === ty.weak ? "#9aa3b5" : "#4f9bf0") + '"></i></span>'
+    + '<span class="v">' + c.st[k] + "</span></div>").join("");
+  const sk = (tag, col, nm, d) => '<div class="nd-sk" style="--kc:' + col + '"><b>' + nciEsc(nm) + "</b><small>" + tag + "</small><div>" + d + "</div></div>";
+  return '<div class="nd-ty"><span style="background:' + ty.c + '">' + ty.ja + " TYPE</span>"
+    + "得意 <b>" + nciEsc(kit.strong) + "</b>／苦手 <b>" + nciEsc(kit.weak) + "</b></div>"
+    + '<div class="nd-bars">' + bars + "</div>"
+    + kit.specials.map((x) => sk("特殊ショット", x.c, x.nm, x.d)).join("")
+    + sk("アクティブ", "#2f8fff", kit.active.nm, kit.active.d)
+    + sk("パッシブ", "#2fd18c", kit.passive.nm, kit.passive.d)
+    + sk("アルティメット", "#e39a10", kit.ult.nm, kit.ult.d);
 }
 function nciNext() {
   _nciAt++;
@@ -1294,8 +1376,8 @@ function nciOpen(mode) {
      （説明を読もうとしただけで次へ飛んでしまう）。 */
   ov.onclick = (e) => {
     const t = e.target;
-    if (t && t.closest && (t.closest(".nci-x") || t.closest(".nrow"))) return;
-    nciNext();
+    if (t && t.closest && (t.closest(".nci-x") || t.closest(".nrow") || t.closest(".nd-sk") || t.closest("#nciPg"))) return;
+    nciAdvance();
   };
   try { if (window.SFX && SFX.pick) SFX.pick(); } catch (e) {}
   nciShow(0);

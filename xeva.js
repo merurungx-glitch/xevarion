@@ -947,6 +947,14 @@
     { id: "mb:uta", mbId: "uta", name:"ウタ", file: "../img/t_Uta.webp", since:"2026-09-13" },
     { id: "mb:shiho", mbId: "shiho", name:"シホ", file: "../img/t_Shiho.webp", since:"2026-09-13" },
     { id: "mb:kiduki", mbId: "kiduki", name:"キヅキ", file: "../img/t_Kiduki.webp", since:"2026-09-13" },
+    /* ★★ 2026-09-17 RISING STAR FEST 第4弾（No.245〜249） */
+    { id: "mb:kuon", mbId: "kuon", name:"クオン", file: "../img/t_Kuon.webp", since:"2026-09-17" },
+    { id: "mb:asahi", mbId: "asahi", name:"アサヒ", file: "../img/t_Asahi.webp", since:"2026-09-17" },
+    { id: "mb:sougetsu", mbId: "sougetsu", name:"ソウゲツ", file: "../img/t_Sougetsu.webp", since:"2026-09-17" },
+    { id: "mb:natsune", mbId: "natsune", name:"ナツネ", file: "../img/t_Natsune.webp", since:"2026-09-17" },
+    { id: "mb:amane", mbId: "amane", name:"アマネ", file: "../img/t_Amane.webp", since:"2026-09-17" },
+    /* ★★ 2026-09-17d 花宴祭（No.250） */
+    { id: "mb:akatsuki", mbId: "akatsuki", name:"アカツキ", file: "../img/t_Akatsuki.webp", since:"2026-09-17" },
   ];
   /* ★ 2026-08-10 初期SR 4体（ゼラ・アヤメ・レイラ・セリーヌ）は廃止しました。
      いまは<b>全キャラがアイコンに選べる</b>ので、starter という区別そのものが要らない。 */
@@ -1042,7 +1050,10 @@
   /* ★★ 2026-09-13 極華祭 クミコ＆レイナ */
   , "kumireina"
   /* ★★ 2026-09-13 GRAND DEBUT GACHA Ver.8.0 5体 */
-  , "miya", "emika", "uta", "shiho", "kiduki"];
+  , "miya", "emika", "uta", "shiho", "kiduki"
+  , "kuon", "asahi", "sougetsu", "natsune", "amane"
+  /* ★★ 2026-09-17d 花宴祭 */
+  , "akatsuki"];
   MB_CHAR_MASTER.forEach(function (c) { c.mb = true; c.starter = MB_STARTERS.indexOf(c.mbId) >= 0; });
   MB_CHAR_MASTER.forEach(function (c) { c.star5 = MB_STAR5.indexOf(c.mbId) >= 0; });
   /* id は "mb:zera" のように接頭辞つき。XEVAガチャにも同じ名前のキャラ（シオンなど）が

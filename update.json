@@ -1,14 +1,12 @@
 {
-  "version": "2026-09-13-3",
-  "date": "2026-09-13",
-  "title": "下バーの高さ／起動画面・ロード画面の下に残る帯を直しました",
+  "version": "2026-09-17-8",
+  "date": "2026-09-17",
+  "title": "MagiBocciaRush 相手の残り球数の表示を修正",
   "notes": [
-    "iPhone のアプリ表示で、画面いっぱいの土台がホームバーぶん短く作られるぶんを、下バーの余白から引くのではなく土台そのものを画面の下端まで伸ばして埋めるようにしました。ホームの下バーの高さが MagiLex・MagiBurst とそろいます",
-    "起動画面（タップしてスタート）と、アプリから戻るときのロード画面の下に残っていた帯が出なくなりました",
-    "同じ直しをスプラッシュ（企業ロゴ・アプリロゴ）とロード画面の共通部品に入れたので、全アプリで下端まで色が届きます"
+    "MagiBocciaRush：試合中、相手（青）の残り球数の点が減らなかったのを修正"
   ],
-  "bytes": 47852757,
-  "files": 551,
+  "bytes": 47692441,
+  "files": 546,
   "urls": [
     "index.html",
     "characters.html",
@@ -76,14 +74,12 @@
     "thumbs/MagiBattle.jpg",
     "thumbs/MagiLex.jpg",
     "thumbs/MagiBurst.jpg",
-    "thumbs/MagiArcanaRush.jpg",
     "thumbs/MagiArena.jpg",
     "thumbs/MagiLink.jpg",
     "thumbs/MagiChainParty.jpg",
     "thumbs/MagiDominionGrid.jpg",
     "thumbs/MagiCounter.jpg",
     "thumbs/MagiBocciaRush.jpg",
-    "thumbs/MagiQuest.jpg",
     "thumbs/MagiRanking.jpg",
     "thumbs/MagiCraft.jpg",
     "thumbs/MagiManor.jpg",
@@ -216,6 +212,7 @@
     "MagiBurst/img/ss/KokonaSS.webp",
     "MagiBurst/img/ss/RezeliaSS.webp",
     "MagiBurst/img/ss/RanSS.webp",
+    "MagiBurst/img/ss/AkatsukiSS.webp",
     "MagiBurst/img/ss/YajuSS.webp",
     "MagiBurst/img/ss/KokonaAlphaSS.webp",
     "img/Kaede.webp",
@@ -333,6 +330,7 @@
     "MagiBurst/img/bn_fes11_s.webp",
     "MagiBurst/img/bn_fes12_s.webp",
     "MagiBurst/img/bn_fes13_s.webp",
+    "MagiBurst/img/bn_fes15_s.webp",
     "MagiBurst/img/bn_fes14_s.webp",
     "img/t_Suzune.webp",
     "img/t_Minamo.webp",
@@ -429,6 +427,12 @@
     "img/t_Uta.webp",
     "img/t_Shiho.webp",
     "img/t_Kiduki.webp",
+    "img/t_Kuon.webp",
+    "img/t_Asahi.webp",
+    "img/t_Sougetsu.webp",
+    "img/t_Natsune.webp",
+    "img/t_Amane.webp",
+    "img/t_Akatsuki.webp",
     "MagiBurst/img/eq_head.webp",
     "MagiBurst/img/eq_arm.webp",
     "MagiBurst/img/eq_body.webp",
@@ -528,16 +532,6 @@
     "MagiLotto/img/ic_free.webp",
     "MagiLotto/img/sym_s6.webp",
     "MagiLotto/img/cutin_jackpot.webp",
-    "MagiArcanaRush/index.html",
-    "MagiArcanaRush/manifest.webmanifest",
-    "MagiArcanaRush/mar.css",
-    "MagiArcanaRush/mar-core.js",
-    "MagiArcanaRush/mar-battle.js",
-    "MagiArcanaRush/mar-app.js",
-    "MagiArcanaRush/mar-192.png",
-    "MagiArcanaRush/mar-512.png",
-    "MagiArcanaRush/img/mar-key.webp",
-    "MagiArcanaRush/img/mar-bg.webp",
     "MagiDominionGrid/index.html",
     "MagiDominionGrid/css/mdg.css",
     "MagiDominionGrid/js/mdg.js",
@@ -554,34 +548,225 @@
     "MagiBocciaRush/index.html",
     "MagiBocciaRush/manifest.webmanifest",
     "MagiBocciaRush/css/mbr.css",
+    "MagiBocciaRush/js/mbr-voice.js",
+    "MagiBocciaRush/js/mbr-stage.js",
+    "MagiBocciaRush/js/mbr-fx.js",
     "MagiBocciaRush/js/mbr-ui.js",
-    "MagiQuest/index.html",
-    "MagiQuest/css/mq.css",
-    "MagiQuest/js/mq-data.js",
-    "MagiQuest/js/mq-core.js",
-    "MagiQuest/js/mq-ui.js",
-    "MagiQuest/img/kv.webp"
+    "MagiBocciaRush/img/mbrhome_s.webp",
+    "MagiBocciaRush/js/mbr-online.js"
   ],
   "apps": [
-    "magiarcanarush",
-    "magibocciarush",
-    "magiburst",
-    "magichainparty",
-    "magicounter",
-    "magidiamond",
-    "magidominiongrid",
-    "magijackpot",
-    "magilex",
-    "magilotto",
-    "magiquest",
-    "tab:chars",
-    "tab:community",
-    "tab:gacha",
-    "tab:home",
-    "xevynar"
+    "magibocciarush"
   ],
-  "changedFiles": 22,
+  "changedFiles": 2,
   "history": [
+    {
+      "version": "2026-09-17-7",
+      "date": "2026-09-17",
+      "title": "果実の個数えらび／極◯祭の残り日数",
+      "notes": [
+        "MagiBocciaRush：叡智の果実は個数をえらび、確認してから使える",
+        "MagiBocciaRush：PLAY の絵の明るさを元にもどした（大きさはそのまま）",
+        "極彩祭・極華祭・極煌祭に今回の開催の残り日数"
+      ],
+      "apps": [
+        "magibocciarush",
+        "magiburst",
+        "magidiamond",
+        "magilex",
+        "tab:chars",
+        "tab:gacha",
+        "tab:home"
+      ]
+    },
+    {
+      "version": "2026-09-17-6",
+      "date": "2026-09-17",
+      "title": "MagiBocciaRush 凸の表示・1台対戦の育成／MagiQuest 終了",
+      "notes": [
+        "MagiBocciaRush：MagiBurst と同じ凸の表示と完凸エフェクト",
+        "MagiBocciaRush：FRIEND MATCH で1P・2Pの育成状況をえらべる",
+        "MagiBocciaRush：育成の反映に？の説明（レベルと凸で最大+7）",
+        "MagiBocciaRush：ステージ名・ボス名を英語表記に・PLAY の絵を見やすく",
+        "戦姫祭に無期限開催の表記",
+        "MagiQuest を終了。ホームは1つずつ前へつめ、XEVYNAR のあとに MagiJackpot"
+      ],
+      "apps": [
+        "magibocciarush",
+        "magiburst",
+        "magichainparty",
+        "magicounter",
+        "magidiamond",
+        "magijackpot",
+        "magilex",
+        "magilotto",
+        "magimusic",
+        "tab:chars",
+        "tab:community",
+        "tab:gacha",
+        "tab:home",
+        "xevynar"
+      ]
+    },
+    {
+      "version": "2026-09-17-5",
+      "date": "2026-09-17",
+      "title": "MagiBocciaRush 凸の反映・開始画面／Arcana Rush 終了",
+      "notes": [
+        "MagiBocciaRush：MagiBurst の凸1つごとに全能力+1（完凸で+4）",
+        "MagiBocciaRush：開始画面を新しいキービジュアルに",
+        "MagiBocciaRush：BOSS STAGE の難易度を HARD・NORMAL・EASY 表記に",
+        "MagiBocciaRush：ホームはアカツキ、PLAY は QUICK MATCH＝カナ／BOSS STAGE＝マキ固定",
+        "RISING STAR FEST に無期限開催の表記",
+        "Magi: Arcana Rush を終了。ホームは Arcana Rush の場所に MagiJackpot、MagiJackpot の場所に MagiTier"
+      ],
+      "apps": [
+        "magibocciarush",
+        "magiburst",
+        "magidiamond",
+        "magilex",
+        "magiquest",
+        "tab:chars",
+        "tab:gacha",
+        "tab:home"
+      ]
+    },
+    {
+      "version": "2026-09-17-4",
+      "date": "2026-09-17",
+      "title": "花宴祭 アカツキ／MagiBocciaRush BOSS STAGE",
+      "notes": [
+        "花宴祭（無期限開催）に アカツキ：史上最大の乱打FB・枝分かれするリンク・全属性有利＋全属性キラーEL・天界の審判7つに完全対応",
+        "MagiBocciaRush に BOSS STAGE（5ステージ×高中低・初回クリアでジェム 15/10/5）",
+        "MagiBocciaRush：叡智の果実で熟練度アップ（MagiBurst と共有・同期）／英語版・オフライン対応／キャラボイス廃止",
+        "叡智の果実はガチャ限定に（MagiBurst のクエスト報酬・アークのごほうびはジェムへ）",
+        "毎月の極◯祭は期間外でもキャラクターを ? で伏せない"
+      ],
+      "apps": [
+        "magiarcanarush",
+        "magibocciarush",
+        "magiburst",
+        "magichainparty",
+        "magicounter",
+        "magidiamond",
+        "magidominiongrid",
+        "magijackpot",
+        "magilex",
+        "magilotto",
+        "magimusic",
+        "magiquest",
+        "tab:chars",
+        "tab:community",
+        "tab:gacha",
+        "tab:home",
+        "xevynar"
+      ]
+    },
+    {
+      "version": "2026-09-17-3",
+      "date": "2026-09-17",
+      "title": "MagiBocciaRush にキャラボイス（VOICEVOX）・スキル発動のルール説明",
+      "notes": [
+        "MagiBocciaRush：ずんだもん・四国めたんなど VOICEVOX 26人の声でキャラがしゃべる（戦型に合う声）。チュートリアルはずんだもんが案内",
+        "ルールブックに投げかた・スキルの発動・ゲージ・特殊ショット／アクティブ／パッシブ／ULT 一覧・状態の用語を追加",
+        "試合中に編成キャラ全員の詳細（この試合のゲージ・使用ずみつき）を確認できるように",
+        "キャラ一覧・キャラをえらぶ画面の検索・並び替え・絞り込みを MagiBurst と同じ形に。詳細から戻ると元の位置へ",
+        "ルールブック・キャラ一覧のボタンが画面外に出ていたのを修正／レアリティ表記を SSR・SR に統一"
+      ],
+      "apps": [
+        "magibocciarush",
+        "magilex",
+        "tab:chars",
+        "tab:gacha",
+        "tab:home"
+      ]
+    },
+    {
+      "version": "2026-09-17-2",
+      "date": "2026-09-17",
+      "title": "RISING STAR FEST 新5体／MagiBocciaRush 6体編成／アニメ Tier表",
+      "notes": [
+        "RISING STAR FEST にクオン・アサヒ・ソウゲツ・ナツネ・アマネ（天界の審判 第十一〜第十五の最適性・総攻撃FB・新リンク5種・共通サブリンク ホライゾン・コール）",
+        "MagiBocciaRush：6体編成・検索と絞り込み・壁で反射・中断と再開・未所持キャラの詳細・1台対戦は全キャラ・オンラインの瞬断対策と90秒の編成タイム",
+        "MagiTier にだれでも見られるアニメ Tier表（アニメを検索して追加）",
+        "ホーム：ピックアップをコンパクトに・見出しで畳める・アイコン変更のボタンを固定・並び順の入れかえ・新キャラ紹介に性能を一面表示"
+      ],
+      "apps": [
+        "magiarcanarush",
+        "magibocciarush",
+        "magiburst",
+        "magichainparty",
+        "magicounter",
+        "magidiamond",
+        "magidominiongrid",
+        "magijackpot",
+        "magilex",
+        "magilotto",
+        "magimusic",
+        "magiquest",
+        "tab:chars",
+        "tab:community",
+        "tab:gacha",
+        "tab:home",
+        "xevynar"
+      ]
+    },
+    {
+      "version": "2026-09-17-1",
+      "date": "2026-09-17",
+      "title": "Magi: Boccia Rush 全面リニューアル／ピックアップキャラクター",
+      "notes": [
+        "Magi: Boccia Rush を戦略型ボッチャに刷新（3人の順番・6能力と7つの型・特殊ショット・アルティメット・Tactical Chain・専用ボール・熟練度・ストーリー・ルール準拠モード・オンライン相互照合）",
+        "ホームにピックアップキャラクターの欄を追加",
+        "設定のアプリ並び替えから、アプリのアイコンを持っているキャラの画像に変更できるように",
+        "新キャラ紹介アニメに「詳細を見る」（MagiBurst 高難易度の最適性クエスト／Boccia Rush の性能）"
+      ],
+      "apps": [
+        "magiarcanarush",
+        "magibocciarush",
+        "magiburst",
+        "magichainparty",
+        "magicounter",
+        "magidiamond",
+        "magijackpot",
+        "magilex",
+        "magilotto",
+        "magimusic",
+        "tab:chars",
+        "tab:community",
+        "tab:gacha",
+        "tab:home",
+        "xevynar"
+      ]
+    },
+    {
+      "version": "2026-09-13-3",
+      "date": "2026-09-13",
+      "title": "下バーの高さ／起動画面・ロード画面の下に残る帯を直しました",
+      "notes": [
+        "iPhone のアプリ表示で、画面いっぱいの土台がホームバーぶん短く作られるぶんを、下バーの余白から引くのではなく土台そのものを画面の下端まで伸ばして埋めるようにしました。ホームの下バーの高さが MagiLex・MagiBurst とそろいます",
+        "起動画面（タップしてスタート）と、アプリから戻るときのロード画面の下に残っていた帯が出なくなりました",
+        "同じ直しをスプラッシュ（企業ロゴ・アプリロゴ）とロード画面の共通部品に入れたので、全アプリで下端まで色が届きます"
+      ],
+      "apps": [
+        "magiarcanarush",
+        "magibocciarush",
+        "magiburst",
+        "magichainparty",
+        "magicounter",
+        "magidiamond",
+        "magidominiongrid",
+        "magijackpot",
+        "magilex",
+        "magilotto",
+        "magiquest",
+        "tab:chars",
+        "tab:community",
+        "tab:gacha",
+        "tab:home",
+        "xevynar"
+      ]
+    },
     {
       "version": "2026-09-13-2",
       "date": "2026-09-13",
@@ -918,233 +1103,6 @@
         "magicounter",
         "magidiamond",
         "magidominiongrid",
-        "magilex",
-        "tab:chars",
-        "tab:community",
-        "tab:gacha",
-        "tab:home"
-      ]
-    },
-    {
-      "version": "2026-09-09-2",
-      "date": "2026-09-09",
-      "title": "ホームの並びの入れかえ ／ 新しい案内役 ／ Boccia Rush の手ごたえ",
-      "notes": [
-        "🏠 ホームの11枠を入れかえました。XEVYNAR・MagiRanking・MagiCounter・Magi: Boccia Rush が並び、Arcana Rush と Magi Lotto は「その他」へ移りました（並びはご自分で変えられます）",
-        "🐣 ロード中の案内役（2人目）を新しい絵に差しかえました。立ち絵とお辞儀で足の位置がずれないようにそろえてあります",
-        "🔎 MagiCounter と Magi: Boccia Rush がアプリ一覧に出ていなかったのを直しました",
-        "🥎 Magi: Boccia Rush のボールの減速を少し強くしました。同じ強さで転がる距離がおよそ12%短くなります"
-      ],
-      "apps": [
-        "magibocciarush",
-        "magiburst",
-        "magichainparty",
-        "magicounter",
-        "magidiamond",
-        "magidominiongrid",
-        "magilex",
-        "tab:chars",
-        "tab:community",
-        "tab:gacha",
-        "tab:home"
-      ]
-    },
-    {
-      "version": "2026-09-09-1",
-      "date": "2026-09-09",
-      "title": "新作 Magi: Boccia Rush ／ 新作 MagiCounter ／ 戦姫祭 第3弾（史上最強）",
-      "notes": [
-        "🥎 新作 <b>Magi: Boccia Rush</b>。本物のボッチャを引っぱって離すだけで。コート・物理・得点は公式ルールにそろえ、CPU（EASY〜MASTER）・1台でのチーム戦・部屋番号のオンライン・ランクマッチ・練習・ルールブックを収録。キャラクターとガチャは XEVARION と共通です",
-        "🎯 新作 <b>MagiCounter</b>。Pokémon Champions の対戦支援アプリで、相手の編成を分析して自分の6体から最適な3体とその理由を出します。本物のポケモンの絵とタイプの記号つき・英語版・オフライン対応",
-        "🌸 戦姫祭に <b>レイア（火）・ミオリ（闇）・アンナ(メイド)（光）</b> が参戦。3体とも MagiBurst 史上最強で、天界の審判の第八・第九・第十を素のまま有利属性で完全対応します",
-        "⚡ 天界の審判・蓬莱の九重で、ボスが降臨した瞬間に天から裁きが落ちてチーム全体にダメージが入るようになりました（これで全滅はしません）",
-        "🩹 ガチャの表紙のカードが全員同じ確率を出していたのを1体ごとの確率に直し、新キャラあつかいは実装から10日間・古い限定キャラは 0.2% → 0.4% になりました",
-        "🩹 適性クエストに天界の審判が丸ごと抜けていたのを直し、2件分を足しました（8件→10件）",
-        "🩹 MagiBurst：フルバーストの額がスマホではみ出していたのと、編成でえらんでいる枠が分かりづらかったのを直し、編成から装備の印を外して4体のカードをそろえました",
-        "🩹 MagiBurst：重力バリアの減速を強くし、敵の攻撃ターンを遅らせるリンクスキル・ショットスキルを廃止しました（そのぶん威力を上げています）",
-        "🖼 XEVARION の起動画面の絵を新しくし、ロード中の案内役が2人からランダムで出るようになりました"
-      ],
-      "apps": [
-        "magiarcanarush",
-        "magibocciarush",
-        "magiburst",
-        "magichainparty",
-        "magicounter",
-        "magidiamond",
-        "magidominiongrid",
-        "magijackpot",
-        "magilex",
-        "magilotto",
-        "magimusic",
-        "tab:chars",
-        "tab:community",
-        "tab:gacha",
-        "tab:home",
-        "xevynar"
-      ]
-    },
-    {
-      "version": "2026-09-07-2",
-      "date": "2026-09-07",
-      "title": "戦姫祭にナオ・ハルカ／フルバーストの演出を作り直し／装備の検索・絞り込み・並び替え",
-      "notes": [
-        "MagiBurst：戦姫祭に ナオ（水・No.211）・ハルカ（水・No.212）を追加。200体目のアンナ＆ランに次ぐ歴代2位の性能で、天界の審判の第一・第六を素のまま完全対応できます",
-        "MagiBurst：リンクスキルはどちらも新しい挙動（ナオ＝盤面に残っている敵の数だけ潮の段が上がる／ハルカ＝その段でふれた敵の数だけ次の段が重くなる）",
-        "MagiBurst：フルバーストの演出を作り直しました。技名を墨の板にのせて読みやすくし、絵を額の穴に揃え、額は画面の端まで（横長の画面では本体と同じ幅）",
-        "MagiBurst：装備の検索・絞り込み・並び替えを、育成と所持アイテム一覧に追加。装着のえらび画面では、いま付けているものが一番上に出ます",
-        "MagiBurst：イベント詳細のページ送りを下に固定しました",
-        "MagiBurst：野獣先輩だけのアビリティ「やりますねぇ!」を、ほかのキャラから外しました",
-        "XEVARION：同期の画面のお辞儀の切りかえを早くしました（出てすぐお辞儀します）"
-      ],
-      "apps": [
-        "magiarcanarush",
-        "magiburst",
-        "magichainparty",
-        "magidiamond",
-        "magidominiongrid",
-        "magijackpot",
-        "magilex",
-        "magilotto",
-        "magimusic",
-        "tab:chars",
-        "tab:community",
-        "tab:gacha",
-        "tab:home",
-        "xevynar"
-      ]
-    },
-    {
-      "version": "2026-09-07-1",
-      "date": "2026-09-07",
-      "title": "200体目記念のアンナ＆ラン・全キャラの調整・装備をステータスに・MagiDiamond の選手交代",
-      "notes": [
-        "MagiBurst：アンナ＆ランが No.200 に（200体目のお祝いとして超強化・全属性アンチ・2人同時の乱打フルバースト）。アストレアは No.197 に入りました",
-        "MagiBurst：全キャラの調整（キラーを1つ外して別のアビリティを入れ、そのぶん攻撃力を上げたので最終的な攻撃力はほぼ同じ）",
-        "MagiBurst：装備をステータスに含め、編成・バトル中・キャラ詳細のどこからでも分かるようにしました（同じ効果を別の部位で持っていたら両方とも効きます）",
-        "MagiBurst：フルバーストの額とバリア・パワーオーラの玉の絵を作り直しました（地雷の回転はそのまま）",
-        "MagiBurst：AQUA の札・お知らせの「次 →」の固定・天界の審判の WAVE 報酬の欄・旧UIのプログラムの削除・ボスのそのほかの攻撃の表示",
-        "MagiDiamond：試合のはじめに両チームのスタメンを表示し、投手交代と代打を出せるようにしました",
-        "MagiDiamond：相手の打順が変わらない／守備ターンに打たれる演出がない／守備位置の印が動かない／球速がちがう／中断ボタンが見づらい を修正",
-        "XEVARION：ジェフ千葉 17年ぶりJ1勝利記念として 17,000 XEVA を配布",
-        "XEVARION：今回足したものを英語版にも反映しました"
-      ],
-      "apps": [
-        "magiarcanarush",
-        "magiburst",
-        "magichainparty",
-        "magidiamond",
-        "magidominiongrid",
-        "magijackpot",
-        "magilex",
-        "magilotto",
-        "magimusic",
-        "tab:chars",
-        "tab:community",
-        "tab:gacha",
-        "tab:home",
-        "xevynar"
-      ]
-    },
-    {
-      "version": "2026-09-06-8",
-      "date": "2026-09-06",
-      "title": "新キャラ14体・装備・クリティカル",
-      "notes": [
-        "戦姫祭にレイ・リカ・アンナ＆ラン（史上最強）",
-        "RISING STAR FEST 第3弾5体／GRAND DEBUT Ver.7.0 5体",
-        "天界の審判に装備／60WAVEでアストレア",
-        "全キャラ1%のクリティカル（ペルソナ風演出）",
-        "旧UIを廃止して新UIに一本化"
-      ],
-      "apps": [
-        "magiarcanarush",
-        "magiburst",
-        "magichainparty",
-        "magidiamond",
-        "magidominiongrid",
-        "magijackpot",
-        "magilex",
-        "magilotto",
-        "magimusic",
-        "tab:chars",
-        "tab:community",
-        "tab:gacha",
-        "tab:home",
-        "xevynar"
-      ]
-    },
-    {
-      "version": "2026-09-06-7",
-      "date": "2026-09-06",
-      "title": "🎨 新UIを「黄・赤・黒・白」に／⚾ MagiDiamond 大改修／🔧 ご報告いただいた点をまとめて修正",
-      "notes": [
-        "🎨 MagiBurst の新UIを構想案どおりの4色に。押すと板が沈んで光り、タップの演出も中心から開きます",
-        "🎨 WAVE CLEAR・ダメージ表示・味方の枠・ボスのHPバーも新UIの顔にそろえました",
-        "⚾ MagiDiamond：バット型の照準と左右の相性／守備はステータスと守備配置で計算／球速を1球ごとに計測",
-        "⚾ MagiDiamond：作戦コマンドを移植して旧版を廃止／検索・並び替え・絞り込み／アイコン新設",
-        "⚾ MagiDiamond：マルチを MagiBurst と同じ LOCAL PLAY に。戻るボタンと試合の中断も直しました",
-        "🌐 言語の切りかえを Xevion OS の設定へ。キャラ詳細に MagiDiamond の性能を足しました",
-        "🔧 天界の審判で重力バリアが見えない不具合／ボスの攻撃ターンが進まない不具合を修正",
-        "🔧 クリア編成とイベント詳細の文字／検索欄の二重の枠／下バーのすきまの色を直しました",
-        "🔤 「AQUA属性キラー」を「AQUAキラー」に短縮／🌐 英語の訳し漏れをさらにつぶしました",
-        "⚾ MagiDiamond の限界突破を XEVARION のものに一本化しました（中にもう1本あったものを廃止）"
-      ],
-      "apps": [
-        "magiarcanarush",
-        "magiburst",
-        "magidiamond",
-        "magilex",
-        "tab:chars",
-        "tab:community",
-        "tab:gacha",
-        "tab:home"
-      ]
-    },
-    {
-      "version": "2026-09-06-6",
-      "date": "2026-09-06",
-      "title": "🎨 新UIを「黄・赤・黒・白」に／⚾ MagiDiamond 大改修／🔧 ご報告いただいた点をまとめて修正",
-      "notes": [
-        "🎨 MagiBurst の新UIを構想案どおりの4色に。押すと板が沈んで光り、タップの演出も中心から開きます",
-        "🎨 WAVE CLEAR・ダメージ表示・味方の枠・ボスのHPバーも新UIの顔にそろえました",
-        "⚾ MagiDiamond：バット型の照準と左右の相性／守備はステータスと守備配置で計算／球速を1球ごとに計測",
-        "⚾ MagiDiamond：作戦コマンドを移植して旧版を廃止／検索・並び替え・絞り込み／アイコン新設",
-        "⚾ MagiDiamond：マルチを MagiBurst と同じ LOCAL PLAY に。戻るボタンと試合の中断も直しました",
-        "🌐 言語の切りかえを Xevion OS の設定へ。キャラ詳細に MagiDiamond の性能を足しました",
-        "🔧 天界の審判で重力バリアが見えない不具合／ボスの攻撃ターンが進まない不具合を修正",
-        "🔧 クリア編成とイベント詳細の文字／検索欄の二重の枠／下バーのすきまの色を直しました",
-        "🔤 「AQUA属性キラー」を「AQUAキラー」に短縮／🌐 英語の訳し漏れをさらにつぶしました"
-      ],
-      "apps": [
-        "magiarcanarush",
-        "magiburst",
-        "magidiamond",
-        "magilex",
-        "tab:chars",
-        "tab:community",
-        "tab:gacha",
-        "tab:home"
-      ]
-    },
-    {
-      "version": "2026-09-06-5",
-      "date": "2026-09-06",
-      "title": "🎨 新UIを「黄・赤・黒・白」に／⚾ MagiDiamond 大改修／🔧 ご報告いただいた点をまとめて修正",
-      "notes": [
-        "🎨 MagiBurst の新UIを構想案どおりの4色に。押すと板が沈んで光り、タップの演出も中心から開きます",
-        "🎨 WAVE CLEAR・ダメージ表示・味方の枠・ボスのHPバーも新UIの顔にそろえました",
-        "⚾ MagiDiamond：バット型の照準と左右の相性／守備はステータスと守備配置で計算／球速を1球ごとに計測",
-        "⚾ MagiDiamond：作戦コマンドを移植して旧版を廃止／検索・並び替え・絞り込み／アイコン新設",
-        "⚾ MagiDiamond：マルチを MagiBurst と同じ LOCAL PLAY に。戻るボタンと試合の中断も直しました",
-        "🌐 言語の切りかえを Xevion OS の設定へ。キャラ詳細に MagiDiamond の性能を足しました",
-        "🔧 天界の審判で重力バリアが見えない不具合／ボスの攻撃ターンが進まない不具合を修正",
-        "🔧 クリア編成とイベント詳細の文字／検索欄の二重の枠／下バーのすきまの色を直しました",
-        "🔤 「AQUA属性キラー」を「AQUAキラー」に短縮／🌐 英語の訳し漏れをさらにつぶしました"
-      ],
-      "apps": [
-        "magiarcanarush",
-        "magiburst",
-        "magidiamond",
         "magilex",
         "tab:chars",
         "tab:community",

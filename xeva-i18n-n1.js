@@ -15,12 +15,29 @@
   var NAMES = {
     "アストレア": "Astraea",
     "レイ": "Rei", "リカ": "Rika", "アンナ＆ラン": "Anna & Ran",
-    "ヨイヅキ": "Yoiduki", "カヨ": "Kayo", "シノ": "Shino", "マアヤ": "Maaya", "アスカ": "Asuka",
+    "ヨイヅキ": "Yoiduki", "カヨ": "Kayo", "シノ": "Shino", "マアヤ": "Maaya", "アスカ": "Asuka", "クオン": "Kuon", "アサヒ": "Asahi", "ソウゲツ": "Sougetsu", "ナツネ": "Natsune", "アマネ": "Amane",
+    /* ★★ 2026-09-17d 花宴祭 */
+    "アカツキ": "Akatsuki",
     "レナ": "Rena", "カオル": "Kaoru", "スバル": "Subaru", "カスミ": "Kasumi", "ツキノ": "Tsukino",
   };
 
   /* ── 新しいリンクスキル・サブリンク・フルバースト・ショットスキル ── */
   var SKILLS = {
+    /* ★★ 2026-09-17d 花宴祭 アカツキ */
+    "ハナウタゲ・センボンザクラ": "Hana-Utage Senbonzakura",
+    "チヨザクラ・ブランチ": "Chiyozakura Branch",
+    "ベニチョウチン・リターン": "Beni-Chochin Return",
+    "花宴・ヨザクラネクサス": "Kaen Yozakura Nexus",
+    "緋桜宴舞型": "Scarlet Sakura Dancer",
+    "花宴祭": "Kaen Festival",
+    "花宴祭（無期限開催）": "Kaen Festival (permanent)",
+    /* ★★ 2026-09-17f 無期限開催の表記 */
+    "戦姫祭（無期限開催）": "Valkyrie Fest (permanent)",
+    "RISING STAR FEST（無期限開催）": "RISING STAR FEST (permanent)",
+    "BUNNY GIRL FEST（無期限開催）": "BUNNY GIRL FEST (permanent)",
+    "SOFT NIGHT FEST（無期限開催）": "SOFT NIGHT FEST (permanent)",
+    "チヨブランチ": "Chiyo Branch", "ベニチョウチン": "Beni Lantern",
+    "サクラ・ブルーム": "Sakura Bloom",
     "フラクタル・ミッドナイト": "Fractal Midnight",
     "ヴェルダンテ・ドラグーン": "Verdante Dragoon",
     "ツインローズ・カタストロフ": "Twin Rose Catastrophe",

@@ -6,7 +6,7 @@
 <script>(function(){try{var a=JSON.parse(localStorage.getItem('xeva_account_v1'));if(!a||!a.setupDone)location.replace('index.html');}catch(e){}})();</script>
 <script type="module" src="xevarion-fb.js?v=33"></script>
 <script src="xeva-presence.js?v=9" defer></script>
-<script type="module" src="xeva-cloud.js?v=31"></script>
+<script type="module" src="xeva-cloud.js?v=33"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -22,7 +22,7 @@
 <link rel="stylesheet" href="mb-gacha-reveal.css?v=11">
 <!-- ★ 2026-08-10 キャラ詳細（性能画面）の見た目。図鑑（characters.html）と共通 -->
 <link rel="stylesheet" href="mb-char-detail.css?v=23">
-<script src="xeva.js?v=65"></script>
+<script src="xeva.js?v=67"></script>
 <!-- ★★ 2026-09-05 言語切りかえ（日本語 ⇄ English）。辞書は本体のあとに読むこと。 -->
 <script src="xeva-i18n.js?v=8"></script>
 <script src="xeva-i18n-dict.js?v=12"></script>
@@ -40,7 +40,7 @@
 <script src="xeva-i18n-mb7.js?v=7"></script>
 <script src="xeva-i18n-p4.js?v=7"></script>
 <!-- ★★ 2026-09-06b 今回足したもの（新キャラ14体・装備・スタメンなど）の英語辞書 -->
-<script src="xeva-i18n-n1.js?v=5"></script>
+<script src="xeva-i18n-n1.js?v=8"></script>
 <script src="xeva-i18n-n2.js?v=3"></script>
 <script src="xeva-loading.js?v=16" defer></script>
 <script src="magibattle-stats.js?v=14"></script>
@@ -680,6 +680,54 @@ body::after{width:320px;height:320px;background:radial-gradient(circle,rgba(255,
         padding:7px 14px;border:none;border-radius:99px;cursor:pointer;font-family:inherit;
         font-size:11.5px;font-weight:900;color:#284b90;background:rgba(255,255,255,.82);
         box-shadow:0 4px 12px rgba(40,80,170,.2)}
+      /* ── ★★ 2026-09-17b 新キャラの詳細：一面に出して MagiBurst → MagiBocciaRush を自動で切りかえ ──
+         ★ はみ出し対策：幅は<b>100%＋最大560px</b>（96vw にパネルの余白を足すと画面より広くなっていた）。 */
+      .nci .nci-pg{display:flex;gap:6px;width:100%;max-width:560px;margin-top:8px;flex:none}
+      .nci .nci-pg button{flex:1;min-width:0;border:none;border-radius:99px;padding:6px 0;font-family:inherit;font-size:11.5px;font-weight:900;
+        cursor:pointer;background:rgba(255,255,255,.75);color:#3a5da8;box-shadow:0 2px 8px rgba(40,80,170,.14)}
+      .nci .nci-pg button.on{background:linear-gradient(135deg,#2b64d8,#5aa8ff);color:#fff}
+      .nci .nci-pane{width:100%;max-width:560px;min-width:0;flex:none;box-sizing:border-box}
+      .nci .nci-pane.boccia{display:none}
+      .nci.pg-boccia .nci-pane.burst{display:none}
+      .nci.pg-boccia .nci-pane.boccia{display:block;background:rgba(255,255,255,.95);border-radius:16px;padding:10px 12px;margin-top:10px;
+        box-shadow:0 8px 22px rgba(40,80,170,.18)}
+      .nci .nci-pane.boccia.go{animation:nciSlide .45s cubic-bezier(.2,.85,.3,1) both;transform:translateX(14px);opacity:0}
+      .nci .nci-rows{width:100%!important;max-width:560px}
+      /* ★ 一面に収めるため、スマホ幅では技の帯を1段ぶん薄くする（説明は1行） */
+      @media (max-width:859px){
+        .nci .nci-rows{gap:5px;margin-top:6px}
+        .nci .nrow{padding:4px 7px 4px 5px;border-radius:13px}
+        .nci .nr-badge{width:50px}
+        .nci .nr-ic{width:30px;height:30px}
+        .nci .nr-ic svg{width:17px;height:17px}
+        .nci .nr-t{font-size:12px}
+        .nci .nr-d{-webkit-line-clamp:1}
+        .nci .nr-th{width:36px;height:30px}
+        .nci .nh-en{font-size:clamp(18px,5.6vw,34px)}
+        .nci .nci-who{margin-top:4px}
+        .nci .nw-nm{font-size:clamp(18px,5vw,26px)}
+      }
+      .nci .nci-x2{margin-top:8px}
+      .nci .nd-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:5px}
+      .nci .nd-stats span{background:rgba(255,255,255,.92);border-radius:10px;padding:4px 3px;text-align:center;min-width:0}
+      .nci .nd-stats i{display:block;font-style:normal;font-size:9px;font-weight:900;color:#5f79ad}
+      .nci .nd-stats b{display:block;font-size:12px;font-weight:900;color:#16336e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+      .nci .nd-note{font-size:10px;font-weight:700;color:#5f79ad;line-height:1.55;margin-top:4px}
+      .nci .nd-chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+      .nci .nd-chip{font-size:9.5px;font-weight:800;color:#3a5da8;background:rgba(232,240,255,.95);border-radius:99px;padding:2px 7px}
+      .nci .nd-ty{font-size:10.5px;font-weight:700;color:#43567e;line-height:1.6}
+      .nci .nd-ty span{display:inline-block;color:#000;font-weight:900;font-size:9.5px;padding:1px 7px;border-radius:5px;margin-right:5px}
+      .nci .nd-bars{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:3px 10px;margin-top:5px}
+      .nci .nd-bar{display:grid;grid-template-columns:58px minmax(0,1fr) 20px;align-items:center;gap:5px;min-width:0}
+      .nci .nd-bar .k{font-family:'Orbitron',sans-serif;font-size:8px;font-weight:900;color:#16336e;white-space:nowrap;overflow:hidden}
+      .nci .nd-bar .b{height:7px;background:#e3e9f5;border-radius:99px;overflow:hidden}
+      .nci .nd-bar .b i{display:block;height:100%;border-radius:99px}
+      .nci .nd-bar .v{font-size:10px;font-weight:900;color:#16336e;text-align:right}
+      .nci .nd-sk{margin-top:6px;padding:4px 8px;border-left:3px solid var(--kc);background:#f7f9ff;border-radius:0 8px 8px 0;min-width:0}
+      .nci .nd-sk b{font-size:11px;color:#16336e}
+      .nci .nd-sk small{font-size:9px;font-weight:800;color:#5f79ad;margin-left:5px}
+      .nci .nd-sk div{font-size:10px;color:#43567e;line-height:1.45;margin-top:1px;
+        overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
       .nci .nci-tap{position:absolute;left:0;right:0;z-index:6;text-align:center;
         bottom:calc(7px + env(safe-area-inset-bottom,0px));
         font-size:9.5px;font-weight:800;color:rgba(60,90,150,.5)}
@@ -745,22 +793,22 @@ body::after{width:320px;height:320px;background:radial-gradient(circle,rgba(255,
      同期を担当する magiburst-cloud.js を読んでいなかった。
      そのためポータルで引いたキャラはクラウドに上がらず、
      別の端末の MagiBurst が書いたセーブに負けて<b>消えて</b>いた。 -->
-<script type="module" src="MagiBurst/magiburst-cloud.js?v=15"></script>
+<script type="module" src="MagiBurst/magiburst-cloud.js?v=17"></script>
 <script src="mb-boot.js?v=17"></script>
 <!-- ★ MagiBurst のドメイン層（キャラ・アビリティ・技・ガチャの規則）。
      MagiBurst と<b>同じファイル</b>を読むので、キャラを足せば両方に反映される。 -->
 <!-- ★★ 2026-09-08 新キャラの<b>実装日</b>の台帳。
      mb-core.js の charImplDate() がこれを見て「実装から10日以内か」を判定する。
      ★ mb-core.js より<b>前</b>に読むこと（defer にしない）。 -->
-<script src="mb-newchars.js?v=24"></script>
-<script src="MagiBurst/js/mb-core.js?v=115"></script>
+<script src="mb-newchars.js?v=28"></script>
+<script src="MagiBurst/js/mb-core.js?v=120"></script>
 <!-- ★ 2026-08-10 キャラ詳細（性能画面）。図鑑（characters.html）と同じものを使う -->
 <!-- ★★ 2026-08-22 ガチャの詳細だけ「このキャラの最大値」も並べる（ご指定）。
      図鑑（characters.html）はこの旗を立てないので、これまでどおり いまの値だけ。
      旗は mb-char-detail.js を読む<b>前</b>に立てること。 -->
 <script>window.MBDET_MAXSTATS = true;</script>
-<script src="mb-char-detail.js?v=28"></script>
-<script src="gacha-ui.js?v=43"></script>
+<script src="mb-char-detail.js?v=31"></script>
+<script src="gacha-ui.js?v=49"></script>
     <!-- ★★ 2026-09-13c 新キャラ紹介アニメの舞台。中身は gacha-ui.js の nciOpen() が入れる。 -->
     <div class="nci" id="nciOv">
       <div class="nci-sky"><i class="s1"></i><i class="s2"></i><div class="nci-rays"></div></div>
@@ -780,7 +828,16 @@ body::after{width:320px;height:320px;background:radial-gradient(circle,rgba(255,
           <span class="nw-nm" id="nciNm"></span>
           <span class="nw-ty" id="nciTy"></span>
         </div>
-        <div class="nci-rows" id="nciSk"></div>
+        <!-- ★★ 2026-09-17b 面の切りかえ（MagiBurst → MagiBocciaRush は時間で自動。押しても切りかえられる） -->
+        <div class="nci-pg" id="nciPg">
+          <button data-pg="burst" class="on" onclick="nciGoPage('burst',event)">⚔ MagiBurst</button>
+          <button data-pg="boccia" onclick="nciGoPage('boccia',event)">🎯 MagiBocciaRush</button>
+        </div>
+        <div class="nci-pane burst">
+          <div class="nci-rows" id="nciSk"></div>
+          <div class="nci-x2" id="nciBurstX"></div>
+        </div>
+        <div class="nci-pane boccia" id="nciBoccia"></div>
       </div>
       <div class="nci-foot">
         <span class="nci-dots" id="nciDots"></span>

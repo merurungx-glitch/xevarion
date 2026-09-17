@@ -84,6 +84,7 @@ export const PORTAL_SYNC_KEYS = [
   "xeva_s5banner_v1",       // シーズンバナーの既読
   "xeva_home_order_v2",     // ホームのアプリ並び順（端末をまたいで同じ並びにする）
   "xeva_home_order_gen",
+  "xeva_home_appicon_v1",   // ★ 2026-09-17 アプリのアイコンをキャラ画像に（アプリid → キャラid）
   "xeva_ai_timers_v2",      // Magi AI Assistant の学習タイマー
 
   /* ══ 各ゲームのセーブ ══
@@ -129,10 +130,7 @@ export const PORTAL_SYNC_KEYS = [
   /* ★★ 2026-09-08 Magi: Boccia Rush。ランク・RP・戦績・使うキャラ・設定。
      ★ キャラとガチャは magiburst_v1 に入っているので、ここには入れない。 */
   "mbr_v1",
-  /* ★★ 2026-09-12 MagiQuest。編成・クリア状況・ベストスコアが入っている。
-     ★ 所持キャラは magiburst_v1 が持ち主なので、ここには入れない（二重管理しない）。
-     ★ 問題そのものは MagiLex のファイルなので、同期するものは何もない。 */
-  "magiquest_v1",
+  /* ★★ 2026-09-17f MagiQuest は廃止（magiquest_v1 は同期しない。端末に残ったぶんはホームが消す） */
 ];
 
 /* ── ② アプリ専用 Firebase（app-cloud.js）で同期するキー ──

@@ -17,6 +17,20 @@
      こちらに足したら<b>あちらにも since 付きで1行</b>足すこと（無いとポータルに絵が出ない）。
    ══════════════════════════════════════════════════════════════ */
 window.MB_NEW_CHARS = [
+  /* ── ★★ 2026-09-17d 花宴祭（無期限開催）── */
+  { id: "akatsuki", since: "2026-09-17", where: "花宴祭（無期限開催）", mode: "fes15",
+    catch: "今宵の宴、最後まで咲き誇りなさい。", color: "#ff4d6d" },
+  /* ── ★★ 2026-09-17 RISING STAR FEST 第4弾（天界の審判 第十一〜第十五）── */
+  { id: "kuon", since: "2026-09-17", where: "RISING STAR FEST（無期限開催）", mode: "fes12",
+    catch: "灯りは消えない。久遠に、ね。", color: "#ffe9a8" },
+  { id: "asahi", since: "2026-09-17", where: "RISING STAR FEST（無期限開催）", mode: "fes12",
+    catch: "夜明けは、黒くても来るの。", color: "#c9a6ff" },
+  { id: "sougetsu", since: "2026-09-17", where: "RISING STAR FEST（無期限開催）", mode: "fes12",
+    catch: "その円から、動かないでね。", color: "#8fdcff" },
+  { id: "natsune", since: "2026-09-17", where: "RISING STAR FEST（無期限開催）", mode: "fes12",
+    catch: "バトン、ちゃんと受け取って！", color: "#bcf4c8" },
+  { id: "amane", since: "2026-09-17", where: "RISING STAR FEST（無期限開催）", mode: "fes12",
+    catch: "撃った弾は、ちゃんと戻ってくる。", color: "#ff6b6b" },
   /* ── ★★ 2026-09-13 GRAND DEBUT GACHA Ver.8.0（版ごと10日間）── */
   { id: "miya", since: "2026-09-13", where: "GRAND DEBUT GACHA Ver.8.0", mode: "debut",
     catch: "このゲージが満ちたら、一瞬だよ。", color: "#ff7a2a" },
@@ -52,34 +66,34 @@ window.MB_NEW_CHARS = [
   /* ── ★★ 2026-09-08 戦姫祭 第3弾（MagiBurst 史上最強）──
      ★ この since は<b>実装日</b>でもある。mb-core.js の charImplDate() がここを見て
        「実装から 10 日以内か（＝新キャラの確率か）」を判定する。 */
-  { id: "reia", since: "2026-09-08", where: "戦姫祭（常時開催）", mode: "fes11",
+  { id: "reia", since: "2026-09-08", where: "戦姫祭（無期限開催）", mode: "fes11",
     catch: "この陣の内側は、もうわたしの庭。", color: "#ff6f9c" },
-  { id: "miori", since: "2026-09-08", where: "戦姫祭（常時開催）", mode: "fes11",
+  { id: "miori", since: "2026-09-08", where: "戦姫祭（無期限開催）", mode: "fes11",
     catch: "時間は、奴ってから使うの。", color: "#b06bff" },
-  { id: "annamd", since: "2026-09-08", where: "戦姫祭（常時開催）", mode: "fes11",
+  { id: "annamd", since: "2026-09-08", where: "戦姫祭（無期限開催）", mode: "fes11",
     catch: "閉店後のフルコース、お具します。", color: "#ffd257" },
   /* ── ★★ 2026-09-07 戦姫祭 第2弾（アンナ＆ランに次ぐ歴代2位）── */
-  { id: "naos", since: "2026-09-07", where: "戦姫祭（常時開催）", mode: "fes11",
+  { id: "naos", since: "2026-09-07", where: "戦姫祭（無期限開催）", mode: "fes11",
     catch: "敵が多いほど、潮は高くなる。", color: "#38c8ff" },
-  { id: "harukas", since: "2026-09-07", where: "戦姫祭（常時開催）", mode: "fes11",
+  { id: "harukas", since: "2026-09-07", where: "戦姫祭（無期限開催）", mode: "fes11",
     catch: "当てるほど、結晶は育つの。", color: "#7cc4ff" },
   /* ── ★★ 2026-09-06 戦姫祭に新3体（MagiBurst 史上最強）── */
-  { id: "reis", since: "2026-09-06", where: "戦姫祭（常時開催）", mode: "fes11",
+  { id: "reis", since: "2026-09-06", where: "戦姫祭（無期限開催）", mode: "fes11",
     catch: "閉店後の暗がりで、ぜんぶ終わらせる。", color: "#c9a6ff" },
-  { id: "rikas", since: "2026-09-06", where: "戦姫祭（常時開催）", mode: "fes11",
+  { id: "rikas", since: "2026-09-06", where: "戦姫祭（無期限開催）", mode: "fes11",
     catch: "まわるほど、この子は太くなるの。", color: "#8affc4" },
-  { id: "annaran", since: "2026-09-06", where: "戦姫祭（常時開催）", mode: "fes11",
+  { id: "annaran", since: "2026-09-06", where: "戦姫祭（無期限開催）", mode: "fes11",
     catch: "紅と金。交わるたびに重くなる。", color: "#ffd257" },
   /* ── ★★ 2026-09-06 RISING STAR FEST 第3弾 5体 ── */
-  { id: "yoiduki", since: "2026-09-06", where: "RISING STAR FEST", mode: "fes12",
+  { id: "yoiduki", since: "2026-09-06", where: "RISING STAR FEST（無期限開催）", mode: "fes12",
     catch: "七色の波を、ぜんぶ浴びてみる？", color: "#7cc4ff" },
-  { id: "kayo", since: "2026-09-06", where: "RISING STAR FEST", mode: "fes12",
+  { id: "kayo", since: "2026-09-06", where: "RISING STAR FEST（無期限開催）", mode: "fes12",
     catch: "南風、いっしょに連れてくね。", color: "#8affc4" },
-  { id: "shino", since: "2026-09-06", where: "RISING STAR FEST", mode: "fes12",
+  { id: "shino", since: "2026-09-06", where: "RISING STAR FEST（無期限開催）", mode: "fes12",
     catch: "灯りは、一本ずつ高くなる。", color: "#ffd257" },
-  { id: "maaya", since: "2026-09-06", where: "RISING STAR FEST", mode: "fes12",
+  { id: "maaya", since: "2026-09-06", where: "RISING STAR FEST（無期限開催）", mode: "fes12",
     catch: "しずかに。……はじめるよ。", color: "#c9a6ff" },
-  { id: "asuka", since: "2026-09-06", where: "RISING STAR FEST", mode: "fes12",
+  { id: "asuka", since: "2026-09-06", where: "RISING STAR FEST（無期限開催）", mode: "fes12",
     catch: "外から内へ。逃げ場は真ん中にもないよ。", color: "#ff5d47" },
   /* ── ★★ 2026-09-06 GRAND DEBUT GACHA Ver.7.0 5体 ── */
   { id: "renad", since: "2026-09-06", where: "GRAND DEBUT GACHA Ver.7.0", mode: "debut:7.0",
@@ -97,17 +111,17 @@ window.MB_NEW_CHARS = [
     catch: "天秤は、もう傾いている。", color: "#fff1b8" },
   /* ── ★★ 2026-09-03 RISING STAR FEST 第2弾 新SSR 4体 ──
      ★ 1弾目と<b>同じクエストを担当</b>し、撃種を入れかえてある。 */
-  { id: "shizuru", since: "2026-09-03", where: "RISING STAR FEST", mode: "fes12",
+  { id: "shizuru", since: "2026-09-03", where: "RISING STAR FEST（無期限開催）", mode: "fes12",
     catch: "この波の音、聞こえてる？", color: "#38a6ff" },
-  { id: "yuuri", since: "2026-09-03", where: "RISING STAR FEST", mode: "fes12",
+  { id: "yuuri", since: "2026-09-03", where: "RISING STAR FEST（無期限開催）", mode: "fes12",
     catch: "夜は、わたしの時間。", color: "#8affc4" },
-  { id: "hisui", since: "2026-09-03", where: "RISING STAR FEST", mode: "fes12",
+  { id: "hisui", since: "2026-09-03", where: "RISING STAR FEST（無期限開催）", mode: "fes12",
     catch: "ひとりで燃えるのは、もう飽きた。", color: "#ff5d47" },
-  { id: "raika", since: "2026-09-03", where: "RISING STAR FEST", mode: "fes12",
+  { id: "raika", since: "2026-09-03", where: "RISING STAR FEST（無期限開催）", mode: "fes12",
     catch: "号令はひとつ。ついてきなさい。", color: "#c9a6ff" },
   /* ── ★★ 2026-08-30 戦姫祭に アンナ(祭) が加わりました ──
      ★ アンナ(STAR)（annas）とは<b>別人</b>。フルバースト・リンクとも史上最強。 */
-  { id: "annam", since: "2026-08-30", where: "戦姫祭（常時開催）", mode: "fes11",
+  { id: "annam", since: "2026-08-30", where: "戦姫祭（無期限開催）", mode: "fes11",
     catch: "花火が上がるたび、盤面ごと灼ける。", color: "#ffd257" },
   /* ── ★★ 2026-08-30 GRAND DEBUT GACHA Ver.6.0 新SSR 5体 ──
      ★ 蓬莱天宮の続き5クエスト（仙苑・月宮・神域・天界・神天）の<b>最適解</b>。 */
@@ -124,17 +138,17 @@ window.MB_NEW_CHARS = [
   /* ── ★★ 2026-08-29 戦姫祭（常時開催）限定SSR 6体 ──
      ★ 極彩祭・極華祭・極煌祭と同じ<b>限定キャラクター</b>あつかい（🎫フェス券は使えない）。
      ★ 6体とも<b>アビリティ10個</b>（MagiBurst 初）。アンナは<b>史上最強</b>。 */
-  { id: "annas", since: "2026-08-29", where: "戦姫祭（常時開催）", mode: "fes11",
+  { id: "annas", since: "2026-08-29", where: "戦姫祭（無期限開催）", mode: "fes11",
     catch: "星が降るたび、重くなる。これが最強。", color: "#c9a6ff" },
-  { id: "rans", since: "2026-08-29", where: "戦姫祭（常時開催）", mode: "fes11",
+  { id: "rans", since: "2026-08-29", where: "戦姫祭（無期限開催）", mode: "fes11",
     catch: "お待たせしました。次の一皿はもっと重い。", color: "#ff5d47" },
-  { id: "kurenai", since: "2026-08-29", where: "戦姫祭（常時開催）", mode: "fes11",
+  { id: "kurenai", since: "2026-08-29", where: "戦姫祭（無期限開催）", mode: "fes11",
     catch: "削るほど癒える。癒えるほど、削れる。", color: "#ff9d2e" },
-  { id: "yuki", since: "2026-08-29", where: "戦姫祭（常時開催）", mode: "fes11",
+  { id: "yuki", since: "2026-08-29", where: "戦姫祭（無期限開催）", mode: "fes11",
     catch: "灯りが1本ずつ、夜景を高くしていく。", color: "#7cc4ff" },
-  { id: "marika", since: "2026-08-29", where: "戦姫祭（常時開催）", mode: "fes11",
+  { id: "marika", since: "2026-08-29", where: "戦姫祭（無期限開催）", mode: "fes11",
     catch: "線と線が交わるところで、答えが出る。", color: "#8affc4" },
-  { id: "yuukas", since: "2026-08-29", where: "戦姫祭（常時開催）", mode: "fes11",
+  { id: "yuukas", since: "2026-08-29", where: "戦姫祭（無期限開催）", mode: "fes11",
     catch: "満ちるまで待って。あふれた瞬間が本番。", color: "#ffd257" },
   /* ── ★★ 2026-08-29 極煌祭（毎月21日〜末日）にレイナが加わりました ── */
   { id: "reina", since: "2026-08-29", where: "極煌祭（毎月21日〜末日）", mode: "fes8",

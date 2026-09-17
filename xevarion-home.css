@@ -1489,3 +1489,50 @@ body.xh-dragging .xh-sheet-body{overflow:hidden}
 .xh-crc .xh-crcost{position:absolute;left:5px;top:5px;padding:2px 7px;border-radius:99px;
   background:rgba(91,63,216,.92);color:#fff;font-size:9.5px;font-weight:900;letter-spacing:.02em}
 .xh-crnew.arc{background:linear-gradient(135deg,#e08a12,#c2185b)}
+
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-09-17 ピックアップキャラクター（ホーム案どおり）
+   ・クリーム地の札の中に、4枚ずつのカード（横にスワイプでページ送り）。
+   ・カードは <b>SSR の札・属性の丸印・NEW／LIMITED・名前の帯・所持・詳細</b>。
+   ══════════════════════════════════════════════════════════════ */
+.xh-sechead .t .dot.pk{background:linear-gradient(180deg,#ffd257,#e39a10)}
+.xh-sechead .t .dot.pk::after{background:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 8.6l4.6 3.6L12 5l4.4 7.2L21 8.6 19.2 19H4.8Z' fill='%23ffffff'/%3E%3C/svg%3E") no-repeat center/15px}
+/* ★★ 2026-09-17 アプリのアイコンをキャラ画像に */
+.xh-sortrow .sb2 button.sic{color:#8a6bff}
+.xh-sortrow .sb2 button.sic svg{width:17px;height:17px;display:block;margin:auto}
+.xh-sortrow .sb2 button.sic.on{background:linear-gradient(135deg,#f2ebff,#ffeaf4);border-color:#b49bff}
+.xh-iconprev{display:flex;align-items:center;gap:12px;margin-bottom:10px}
+.xh-iconprev .xh-sq{width:62px;max-width:none;flex:none}
+.xh-iconprev .pvt b{display:block;font-size:14px;font-weight:900;color:var(--xh-ink)}
+.xh-iconprev .pvt small{display:block;font-size:11px;font-weight:800;color:var(--xh-sub);margin-top:2px}
+.xh-iconq{width:100%;box-sizing:border-box;padding:11px 14px;border-radius:14px;border:1.5px solid rgba(120,160,230,.35);
+  font-size:15px;font-family:inherit;background:#fff;color:var(--xh-ink);outline:none}
+.xh-cpick.lock img{filter:grayscale(.85) brightness(.9)}
+.xh-cpick .lk{position:absolute;right:5px;top:5px;font-size:13px}
+
+/* ══ ★★ 2026-09-17b ピックアップは「イベント・アップデート情報と同じコンパクトなカード」 ══ */
+.xh-ev.pk{background:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M3 8.6l4.6 3.6L12 5l4.4 7.2L21 8.6 19.2 19H4.8Z' fill='%23e39a10' fill-opacity='.14'/%3E%3C/svg%3E") no-repeat right 12px top 8px/46px,var(--yw-cream)}
+.xh-ev.pk .evimg{position:relative;background:linear-gradient(160deg,color-mix(in srgb,var(--pk) 45%,#fff),var(--pk))}
+.xh-ev.pk .evimg img{object-position:50% 12%}
+.xh-ev.pk .evtag{background:linear-gradient(180deg,#ff8a3d,#e8442f)}
+.xh-ev.pk .evt1 small{font-family:'Orbitron',sans-serif;font-size:9px;font-weight:900;color:#8a6bff;margin-left:2px}
+.xh-ev.pk .evt2{color:#6b4a00}
+.xh-ev.pk .evt3 b{color:#c8362d}
+.xh-ev.pk .evt3 b.own{color:#0e8a5c}
+.xh-ev.pk .pkel{position:absolute;right:2px;bottom:2px;width:18px;height:18px;border-radius:50%;display:grid;place-items:center;border:2px solid #fff}
+.xh-ev.pk .pkel svg{width:11px;height:11px}
+.xh-ev.pk.soon .evimg{background:radial-gradient(90% 70% at 50% 30%,#6d58c8,#241845)}
+.xh-ev.pk .pkq{position:absolute;inset:0;display:grid;place-items:center;font-family:'Orbitron',sans-serif;font-size:28px;font-weight:900;color:rgba(255,255,255,.4)}
+
+/* ══ ★★ 2026-09-17b 見出しの名前を押すと畳む ══ */
+.xh-sechead button.t{border:3px solid var(--yw-line);cursor:pointer;font-family:'Noto Sans JP',sans-serif;appearance:none;-webkit-appearance:none}
+.xh-sechead .t .fold{display:inline-block;width:8px;height:8px;margin-left:4px;border-right:2.5px solid #fff;border-bottom:2.5px solid #fff;
+  transform:translateY(-2px) rotate(45deg);transition:transform .2s}
+.xh-sec.folded .xh-sechead .t .fold{transform:translateY(1px) rotate(-135deg)}
+.xh-sec.folded > :not(.xh-sechead){display:none!important}
+.xh-sec.folded .xh-sechead .t{opacity:.92}
+
+/* ══ ★★ 2026-09-17b シートの足もとに固定するボタン（アイコン変更） ══ */
+.xh-sheet-foot{flex-shrink:0;display:flex;gap:8px;padding:10px 16px calc(12px + env(safe-area-inset-bottom,0px));
+  background:#fff;border-top:1.5px solid rgba(120,160,230,.2)}
+.xh-sheet-foot .xh-sbtn{margin:0;flex:1}

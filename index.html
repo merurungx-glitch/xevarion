@@ -19,11 +19,11 @@
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Exo+2:ital,wght@0,300;0,400;0,600;0,700;1,300&family=Noto+Sans+JP:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="xeva-theme.css?v=9">
 <link rel="stylesheet" href="xevarion.css?v=25">
-<link rel="stylesheet" href="xevarion-home.css?v=77">
+<link rel="stylesheet" href="xevarion-home.css?v=79">
 <!-- ★★ 2026-08-22b Xevion OS の見た目（テーマ・文字の大きさ・動きを減らす）。
      xevarion-home.css の<b>あと</b>に読む＝上書きできるようにする。 -->
 <link rel="stylesheet" href="xevion-os.css?v=15">
-<script src="xeva.js?v=65" defer></script>
+<script src="xeva.js?v=67" defer></script>
 <!-- ★★ 2026-09-05 コレクションを XEVARION 全体で1本にする共通部品。
      xeva.js の iconCharList() を使うので、必ず xeva.js の<b>あと</b>に置く。 -->
 <script src="xeva-collection.js?v=7" defer></script>
@@ -46,7 +46,7 @@
 <script src="xeva-i18n-mb7.js?v=7"></script>
 <script src="xeva-i18n-p4.js?v=7"></script>
 <!-- ★★ 2026-09-06b 今回足したもの（新キャラ14体・装備・スタメンなど）の英語辞書 -->
-<script src="xeva-i18n-n1.js?v=5"></script>
+<script src="xeva-i18n-n1.js?v=8"></script>
 <script src="xeva-i18n-n2.js?v=3"></script>
 <!-- ★ 2026-08-20 通信設定（Wi-Fi／モバイルデータごとに「最新を取りに行くか」を決める）。
      決めた内容はここから各アプリの Service Worker へ送られ、SW 側が動きを切り替える。 -->
@@ -54,7 +54,7 @@
 <!-- ★ 2026-08-18 新キャラ告知の台帳（MagiBurst と共通）。
      告知を<b>ポータルのログイン時</b>に一本化したので、ここでも読む。
      defer なので xevarion.js より先に実行される（書いた順番で走る）。 -->
-<script src="mb-newchars.js?v=24" defer></script>
+<script src="mb-newchars.js?v=28" defer></script>
 <!-- ★★ 2026-08-22b Xevion OS（XEVARION の UI をひとつの OS として扱う土台）。
      ほかの画面より<b>先に</b>読む（body のクラスを立てるので、あとから読むと一瞬ちらつく）。 -->
 <script src="xevion-os.js?v=13"></script>
@@ -64,10 +64,10 @@
 <script type="module" src="xeva-sync.js?v=18"></script>
 <script type="module" src="xevarion-fb.js?v=33"></script>
 <script src="xeva-presence.js?v=9" defer></script>
-<script type="module" src="xeva-cloud.js?v=31"></script>
+<script type="module" src="xeva-cloud.js?v=33"></script>
 <script src="xeva-qr.js?v=9" defer></script>
 <script src="xevarion.js?v=89" defer></script>
-<script src="xevarion-home.js?v=102" defer></script>
+<script src="xevarion-home.js?v=112" defer></script>
 </head>
 <body>
 <!-- ───── バックグラウンド音楽（Flagship Arrival。アクセス画面のタップで再生開始） ───── -->
@@ -427,10 +427,11 @@ body.music-on #beatFrame{opacity:1}
            売り場は上のバーの「ショップ」に完全に移っています。
            この下がすぐ「開催中のイベント」になります。 -->
 
-      <!-- イベント -->
-      <section class="xh-sec">
+      <!-- イベント
+           ★★ 2026-09-17 見出しの名前を押すと畳める（ご指定）。data-fold が畳みの印のキー。 -->
+      <section class="xh-sec" data-fold="ev">
         <div class="xh-sechead">
-          <div class="t"><span class="dot ev"></span>開催中のイベント</div>
+          <button class="t" onclick="xhFold('ev')"><span class="dot ev"></span>開催中のイベント<i class="fold"></i></button>
         </div>
         <div class="xh-evwrap" id="xhEvent" style="margin-top:8px">
           <div class="xh-evtrack" id="xhEvTrack"></div>
@@ -438,13 +439,26 @@ body.music-on #beatFrame{opacity:1}
         <div class="xh-evdots" id="xhEvDots"></div>
       </section>
 
+      <!-- ★★ 2026-09-17 ピックアップキャラクター。
+           ★ 2回目のご指定で「イベント・アップデート情報と同じコンパクトなカルーセル」に作り直した。
+           中身は xevarion-home.js の xhRenderPickup()。顔ぶれは mb-newchars.js。 -->
+      <section class="xh-sec" id="xhPickSec" data-fold="pk" hidden>
+        <div class="xh-sechead">
+          <button class="t" onclick="xhFold('pk')"><span class="dot pk"></span>ピックアップキャラクター<i class="fold"></i></button>
+          <button class="more" onclick="xhPickGacha()">召喚へ</button>
+        </div>
+        <div class="xh-evwrap" id="xhPick" style="margin-top:8px">
+          <div class="xh-evtrack" id="xhPkTrack"></div>
+        </div>
+        <div class="xh-evdots" id="xhPkDots"></div>
+      </section>
+
       <!-- ★★ 2026-08-29b アップデート情報（ご指定）
            開催中のイベントと同じ見た目。出すのは<b>実装日</b>だけ。
-           台帳は xevarion-home.js の XH_UPDATES（イベントとは別の配列）。
-           これから先「アップデート内容系」はすべてこちらへ書く。 -->
-      <section class="xh-sec">
+           台帳は xevarion-home.js の XH_UPDATES（イベントとは別の配列）。 -->
+      <section class="xh-sec" data-fold="up">
         <div class="xh-sechead">
-          <div class="t"><span class="dot up"></span>アップデート情報</div>
+          <button class="t" onclick="xhFold('up')"><span class="dot up"></span>アップデート情報<i class="fold"></i></button>
         </div>
         <div class="xh-evwrap" id="xhUpdate" style="margin-top:8px">
           <div class="xh-evtrack" id="xhUpTrack"></div>
@@ -810,7 +824,7 @@ body.music-on #beatFrame{opacity:1}
       <div class="xh-sec-label">アプリ</div>
       <button class="xh-row" onclick="xhOpenSort()">
         <span class="rl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4.4v15M7 4.4 4.2 7.6M7 4.4l2.8 3.2"/><path d="M17 19.6v-15M17 19.6l2.8-3.2M17 19.6l-2.8-3.2"/></svg>
-          <span><span class="rt">アプリの並び替え</span><span class="rs">ホームに並ぶ順番を自由に変更</span></span></span>
+          <span><span class="rt">アプリの並び替え・アイコン</span><span class="rs">並ぶ順番と、アイコンのキャラ画像を自由に変更</span></span></span>
         <span class="rv">›</span>
       </button>
       <button class="xh-row" onclick="xhOpenAllApps()">
@@ -906,10 +920,31 @@ body.music-on #beatFrame{opacity:1}
       <button class="xh-sheet-x" onclick="xhCloseSheet('xhSortSheet')">✕</button>
     </div>
     <div class="xh-sheet-body">
-      <div class="xh-sortnote"><b>☰ をつまんで上下にスライド</b>、または ▲▼ で順番を入れ替えられます。<b>上から11個</b>がホームに並びます（12枠目は「その他」）。</div>
+      <div class="xh-sortnote"><b>☰ をつまんで上下にスライド</b>、または ▲▼ で順番を入れ替えられます。<b>上から11個</b>がホームに並びます（12枠目は「その他」）。<br>画像のボタンを押すと、そのアプリのアイコンを<b>持っているキャラの画像</b>に変えられます（すぐに反映）。</div>
       <div class="xh-sortlist" id="xhSortList"></div>
       <button class="xh-sbtn" onclick="xhSaveSort()">この順番で保存</button>
       <button class="xh-sbtn ghost" onclick="xhResetSort()">初期の並びに戻す</button>
+    </div>
+  </div>
+</div>
+
+<!-- ───── ★★ 2026-09-17 アプリアイコンをキャラ画像に（並び替えシートの 🖼 から） ───── -->
+<div class="xh-sheet" id="xhIconSheet" onclick="if(event.target===this)xhCloseSheet('xhIconSheet')">
+  <div class="xh-sheet-card">
+    <div class="xh-sheet-head">
+      <div class="xh-sheet-title" id="xhIconTitle">アプリのアイコン</div>
+      <button class="xh-sheet-x" onclick="xhCloseSheet('xhIconSheet')">✕</button>
+    </div>
+    <div class="xh-sheet-body">
+      <div class="xh-iconprev" id="xhIconPrev"></div>
+      <input class="xh-iconq" id="xhIconQ" type="search" placeholder="キャラの名前でさがす" oninput="xhIconSearch(this.value)">
+      <div class="xh-sortnote" id="xhIconHint" style="margin-top:8px"></div>
+      <div class="xh-cgrid" id="xhIconGrid"></div>
+    </div>
+    <!-- ★★ 2026-09-17 ボタンは本文の外に出して<b>常に見える</b>ようにした（ご指定） -->
+    <div class="xh-sheet-foot">
+      <button class="xh-sbtn ghost" onclick="xhSetAppIcon('')">元のアイコンに戻す</button>
+      <button class="xh-sbtn" onclick="xhCloseSheet('xhIconSheet')">とじる</button>
     </div>
   </div>
 </div>
@@ -1801,6 +1836,165 @@ body.music-on #beatFrame{opacity:1}
 
   <div class="nm-body" id="newsBody">
     <div class="nm-divider" id="newDivider" style="display:none;">NEW — 前回から更新</div>
+    <!-- 2026-09-17g 果実の個数えらび／極◯祭の残り日数 -->
+    <div class="nm-item" data-tag="update" data-date="2026-09-17">
+      <div class="nm-date">2026<br>09.17</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">🍐 MagiBocciaRush の果実は個数をえらんで使える／🎰 極◯祭に「今回はあと◯日」</div>
+        <div class="nm-txt">
+          🍐 <b>MagiBocciaRush</b> で叡智の果実を使うとき、<b>−／＋・スライダー・+1／+5／+10／MAX</b> で使う個数をえらび、
+          <b>Lv の上がり方と残りの個数を確認してから</b>使えるようになりました。<br>
+          ・PLAY の QUICK MATCH・BOSS STAGE の絵は、大きさはそのままで<b>明るさを元にもどしました</b>。<br><br>
+          🎰 <b>極彩祭・極華祭・極煌祭</b>は、開催中のあいだ<b>今回の開催があと何日か</b>を表示します。
+        </div>
+      </div>
+    </div>
+    <!-- 2026-09-17f MagiBocciaRush 凸の表示・1台対戦の育成／MagiQuest 廃止 -->
+    <div class="nm-item" data-tag="update" data-date="2026-09-17">
+      <div class="nm-date">2026<br>09.17</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">🎯 MagiBocciaRush に凸の表示・1台対戦の育成設定／⚔ 戦姫祭は無期限開催／🗂 MagiQuest の終了</div>
+        <div class="nm-txt">
+          🎯 <b>MagiBocciaRush</b><br>
+          ・キャラクターに MagiBurst と同じ<b>凸の表示</b>（限界突破+n／👑限界突破MAX）。完凸の SSR には<b>金に光るエフェクト</b>が付きます。<br>
+          ・<b>FRIEND MATCH（1台で対戦）</b>で、1P・2P それぞれの<b>育成状況</b>（育成なし／この端末の育成／最大）をえらべるようにしました。<br>
+          ・「育成の反映」の横の <b>？</b> で、レベルと凸の補正（合わせて最大+7）の説明を見られます。<br>
+          ・BOSS STAGE のステージ名・ボス名を<b>英語表記</b>に。PLAY の QUICK MATCH・BOSS STAGE のキャラクターを見やすくしました。<br><br>
+
+          ⚔ <b>戦姫祭</b>にも「<b>無期限開催</b>」の表記を付けました（開催の条件は変わりません）。<br><br>
+
+          🗂 <b>MagiQuest は提供を終了</b>しました。ホームの並びは後ろのアプリが1つずつ前へつまり、XEVYNAR のあとに <b>MagiJackpot</b> が入ります。
+        </div>
+      </div>
+    </div>
+    <!-- 2026-09-17e MagiBocciaRush 凸・開始画面／Arcana Rush 廃止 -->
+    <div class="nm-item" data-tag="update" data-date="2026-09-17">
+      <div class="nm-date">2026<br>09.17</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">🎯 MagiBocciaRush に凸を反映・開始画面を新しく／🗂 Arcana Rush の終了とホームの並び</div>
+        <div class="nm-txt">
+          🎯 <b>MagiBocciaRush</b><br>
+          ・MagiBurst の<b>凸（限界突破）</b>が能力に乗るようになりました。<b>凸1つごとに全能力 +1</b>（完凸で +4）。
+          レベルと同じく、性能統一の試合（オンラインなど）では反映されません。<br>
+          ・アプリを開いたときの<b>開始画面を新しいキービジュアル</b>にしました。<br>
+          ・BOSS STAGE の難易度の表記を <b>HARD・NORMAL・EASY</b> に変更しました。<br>
+          ・ホームの大きなキャラクターは<b>アカツキ</b>に。PLAY の <b>QUICK MATCH はカナ</b>、<b>BOSS STAGE はマキ</b>で固定、ほかのモードは新しいキャラクターに入れかわっていきます。<br><br>
+
+          🌟 <b>RISING STAR FEST</b> にも「<b>無期限開催</b>」の表記を付けました（開催の条件は変わりません）。<br><br>
+
+          🗂 <b>Magi: Arcana Rush（β版）は提供を終了</b>しました。
+          ホームの並びは、Arcana Rush の場所に <b>MagiJackpot</b>、MagiJackpot の場所に <b>MagiTier</b> が入ります。
+        </div>
+      </div>
+    </div>
+    <!-- 2026-09-17d 花宴祭 アカツキ／MagiBocciaRush BOSS STAGE -->
+    <div class="nm-item" data-tag="new" data-date="2026-09-17">
+      <div class="nm-date">2026<br>09.17</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag new">NEW</span></div>
+        <div class="nm-title">🌸 花宴祭 に アカツキ（無期限開催）／🎯 MagiBocciaRush に BOSS STAGE／🍐 叡智の果実を共有</div>
+        <div class="nm-txt">
+          🌸 <b>花宴祭</b>（無期限開催・ガチャ一覧で極◯祭のすぐ下）に <b>アカツキ（火）</b>。
+          乱打フルバーストは<b>MagiBurst 史上最大</b>、リンクスキルは<b>敵から敵へ枝分かれして増える</b>新しい挙動。
+          全属性有利＋全属性キラーEL・オムニアンチ＋治癒の祈りで、<b>天界の審判 7つ</b>を有利属性のまま完全対応します。
+          MagiBocciaRush でも<b>最強の性能</b>です。<br><br>
+
+          🎯 <b>MagiBocciaRush</b><br>
+          ・新モード <b>BOSS STAGE</b>：Crimson Factory・Frozen Observatory・Circuit Arena・Gale Labyrinth・Terra Sanctuary の<b>5ステージ×難易度 HARD・NORMAL・EASY</b>。
+          ゲート・装甲・衝撃波・滑走床・氷壁・凍結・回路パネル・風・動く障害物・結晶・根・ジャック結界を、
+          <b>属性ではなく</b>ショットの向き・強さ・壁反射・キャラの型と固有スキルで攻略します。
+          <b>初回クリア</b>で 💎ジェム 15・10・5。<br>
+          ・<b>叡智の果実</b>で熟練度 Lv を上げられます（1個で +1）。所持数は MagiBurst と共有・同期します。<br>
+          ・キャラクターのボイスは廃止しました（チュートリアルの読み上げは残ります）。<br>
+          ・<b>英語版</b>（キャラ名・技名も英語に）と<b>オフライン</b>（辞書・同期モジュール・チュートリアル音声も保存）に対応。<br><br>
+
+          🍐 <b>叡智の果実はガチャでだけ</b>手に入るようになりました（MagiBurst のクエスト報酬・アークのごほうびはジェムに変更）。<br>
+          🎰 毎月の極◯祭は、期間外でもキャラクターを <b>?</b> で伏せなくなりました。
+        </div>
+      </div>
+    </div>
+    <!-- 2026-09-17c MagiBocciaRush ボイス・ルール説明・絞り込み -->
+    <div class="nm-item" data-tag="update" data-date="2026-09-17">
+      <div class="nm-date">2026<br>09.17</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">🎯 MagiBocciaRush にキャラボイス（VOICEVOX）／スキル発動のルール説明／MagiBurst と同じ絞り込み</div>
+        <div class="nm-txt">
+          🔊 <b>キャラボイス</b>：登場・ヒット・ジャック・ULT・勝敗のせりふを、<b>ずんだもん・四国めたん・春日部つむぎ</b>など
+          26人の VOICEVOX の声で再生します。声はキャラの戦型に合う性格から1人ずつ決まり、新キャラはキャッチコピーもしゃべります。
+          チュートリアルは<b>ずんだもん</b>が案内します（設定の「キャラボイス」で OFF にできます）。<br><br>
+          📖 ルールブックに<b>投げかた・スキルの発動・ゲージのたまりかた・特殊ショット／アクティブ／パッシブ／アルティメット一覧・状態の用語</b>を追加。<br>
+          👥 試合中に<b>編成キャラ全員の詳細</b>（能力・スキル・ボール・ボイス＋この試合のゲージと使用ずみ）を見られます。上の順番の帯を押すか、メニューの TEAM から。<br>
+          🔍 キャラクター一覧とキャラをえらぶ画面の<b>検索・並び替え・絞り込みを MagiBurst と同じ形</b>に。詳細から戻ると<b>押す前の位置</b>に戻ります。<br>
+          ・ルールブックやキャラ一覧で<b>ボタンが画面の外に出ていた</b>のを直しました。<br>
+          ・レアリティ表記を <b>XEVARION と同じ SSR／SR</b> にそろえました（「UR」表記はなくなりました）。
+        </div>
+      </div>
+    </div>
+    <!-- 2026-09-17b RISING STAR FEST 第4弾／MagiBocciaRush 改善／ホーム／アニメ Tier表 -->
+    <div class="nm-item" data-tag="new" data-date="2026-09-17">
+      <div class="nm-date">2026<br>09.17</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag new">NEW</span></div>
+        <div class="nm-title">🌟 RISING STAR FEST に新5体／🎯 MagiBocciaRush を6体編成に／📺 MagiTier にアニメ Tier表／🏠 ホームを畳める</div>
+        <div class="nm-txt">
+          🌟 <b>RISING STAR FEST</b> に <b>クオン（光）・アサヒ（闇）・ソウゲツ（水）・ナツネ（木）・アマネ（火）</b>。
+          天界の審判 <b>第十一〜第十五</b>を有利属性のまま完全対応し、フルバーストは5体とも<b>味方全員で総攻撃</b>、
+          リンクスキルは5体とも<b>新しい挙動</b>です。<br><br>
+
+          🎯 <b>MagiBocciaRush</b>（正式名称になりました）<br>
+          ・編成は<b>6体</b>（6球を1体ずつ投げます）。編成画面で<b>検索・絞り込み・キャラ詳細</b>。<br>
+          ・どのモードでも<b>壁で反射</b>。ボールを少し大きく。<b>試合の中断と再開</b>。<br>
+          ・キャラクター一覧に<b>未所持のキャラ</b>も並び、詳細を見られます。<br>
+          ・1台で友達と遊ぶときは<b>全キャラ</b>から編成できます。RANKED・TEAM MATCH は準備中です。<br>
+          ・プライベートルームは<b>回線が一瞬切れても試合を止めず</b>、離脱中の人の番はホストが代わりに投げられます。
+          マッチしたあとに<b>90秒の編成タイム</b>があります。<br><br>
+
+          📺 <b>MagiTier</b> に、だれでも見られる<b>アニメ Tier表</b>。アニメを検索して画像ごと並べられます（編集はアクセスコード）。<br><br>
+
+          🏠 ホームの<b>開催中のイベント・ピックアップキャラクター・アップデート情報</b>は、見出しを押すと畳めます。
+          ピックアップは<b>イベントと同じコンパクトなカード</b>に。並び順は <b>MagiBocciaRush と XEVYNAR</b> を入れかえました。
+          ガチャの新キャラ紹介は、<b>MagiBurst → MagiBocciaRush の性能</b>を自動で切りかえて一面に出します。
+        </div>
+      </div>
+    </div>
+    <!-- 2026-09-17 MagiBocciaRush 全面刷新／ピックアップキャラクター／アプリアイコン／新キャラ紹介の詳細 -->
+    <div class="nm-item" data-tag="new" data-date="2026-09-17">
+      <div class="nm-date">2026<br>09.17</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag new">NEW</span></div>
+        <div class="nm-title">🎯 MagiBocciaRush を全面リニューアル／👑 ホームにピックアップキャラクター／🖼 アプリアイコンをキャラ画像に／🎬 新キャラ紹介に詳細</div>
+        <div class="nm-txt">
+          🎯 <b>MagiBocciaRush</b> を「本格ボッチャ × 引っぱりショット × キャラクター固有能力 × 演出」の
+          <b>戦略型スポーツゲーム</b>に作り直しました。<br>
+          ・<b>3人の編成を順番に</b>投げます（6球＝3人×2周）。守り→崩し→仕上げ、の順番そのものが作戦です。<br>
+          ・キャラごとに <b>POWER／CONTROL／FRICTION／BOUNCE／JACK／SKILL CHARGE</b> の6能力と、
+          <b>7つの型</b>（POWER・TECHNIQUE・BOUNCE・JACK・DEFENSE・SUPPORT・TRICK）。
+          ★ 6能力の<b>合計はどのキャラも同じ</b>で、ちがうのは得意と苦手の配分だけ＝<b>レアリティで強さは決まりません</b>。<br>
+          ・<b>特殊ショット</b>2種（STRAIGHT・BANK・CURVE・POWER HIT・SOFT STOP・JACK PUSH・GUARD・SPLIT から）、
+          <b>アクティブ</b>・<b>パッシブ</b>・ゲージをためて撃つ<b>アルティメット</b>（技名はそのキャラのフルバースト）。<br>
+          ・壁→ヒット→ジャックと続けて決める <b>Tactical Chain</b>、IMPACT!／BANK SHOT／JACK RESONANCE の演出、
+          ULT のカットイン（タップでスキップ・設定で FULL／SHORT／OFF）。<br>
+          ・キャラごとの<b>専用ボール</b>（顔のエンブレムが転がりに合わせて回る。R／SR／SSR／UR の装飾は<b>見た目だけ</b>）、
+          <b>熟練度</b>・<b>ボイス</b>（読み上げ可）・<b>キャラクターストーリー</b>・称号とバッジ。<br>
+          ・<b>キャラクター能力モード</b>と<b>ルール準拠モード</b>（壁なし・スキルなし・能力の効き1/3）。ランクマッチは常にルール準拠＋<b>性能統一</b>。<br>
+          ・クイックマッチ／ランク／フレンド／チーム（CPU補充）／プライベートルーム／練習／CPU／<b>投げながら覚えるチュートリアル</b>／ルールブック／ランキング／リプレイ。<br>
+          ・オンラインは<b>1投ごとに両方の端末の盤面を照合</b>し、ずれたら記録から組み立て直します。切断しても入り直せば<b>記録から復元</b>します。<br><br>
+
+          👑 <b>ホームに「ピックアップキャラクター」</b>を足しました。いま引ける新しいキャラを4枚ずつ並べ、
+          <b>所持／未入手</b>・NEW・LIMITED・属性がひと目で分かります。まだ登場前のキャラは <b>？？？</b> で予告します。<br><br>
+
+          🖼 <b>設定 → アプリの並び替え・アイコン</b>から、それぞれのアプリのアイコンを<b>持っているキャラの画像</b>に変えられます。<br><br>
+
+          🎬 ガチャの<b>新キャラ紹介アニメ</b>に「<b>詳細を見る</b>」を足しました。
+          MagiBurst の<b>高難易度（天界の審判・蓬莱の九重・幽冥の庭園）の最適性クエスト</b>と、
+          <b>MagiBocciaRush の性能</b>をその場で見られます。
+        </div>
+      </div>
+    </div>
     <!-- 2026-09-10 下バーの刷新／更新画面／Boccia Rush／MagiCounter／図鑑／案内役 -->
     <div class="nm-item" data-tag="update" data-date="2026-09-10">
       <div class="nm-date">2026<br>09.10</div>

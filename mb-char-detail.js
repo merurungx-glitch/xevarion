@@ -128,7 +128,7 @@ function mtEnsureCSS() {
 /* ★★ 2026-09-06 キャラ詳細の「どのゲームの性能を見るか」。
    ★ ご指定により<b>開いたときは必ず MagiBurst</b>。切りかえても覚えない
      （次に別のキャラを開いたら、また MagiBurst から始まる）。 */
-/* ★★ 2026-09-10 3つめ "boccia"（Magi: Boccia Rush）を足した（ご指定）。 */
+/* ★★ 2026-09-10 3つめ "boccia"（MagiBocciaRush）を足した（ご指定）。 */
 let detGame = "burst";
 const DET_GAMES = ["burst", "diamond", "boccia"];
 window.setDetGame = function (g) {
@@ -153,71 +153,61 @@ function mdEnsure() {
   });
   return window.__mdLoading;
 }
-/* ══ ★★ 2026-09-10 Magi: Boccia Rush の性能 ══
+/* ══ ★★ 2026-09-10 MagiBocciaRush の性能 ══
    ★ ボッチャの能力は <b>MagiBocciaRush/js/mbr-core.js</b> が
      mb-core.js の CHARS から<b>式で</b>作る（あちらに手書きの台帳は無い）。
      ここでも同じ関数を呼ぶので、<b>ゲーム内とまったく同じ数字</b>が出る。
    ★ mbr-core.js は window.MBR を作るだけで画面には触らないので、
      図鑑・ガチャから読みこんでも副作用がない。 */
 function mbrEnsure() {
-  if (window.MBR) return Promise.resolve();
+  if (window.MBR && window.MBR.VERSION >= 4) return Promise.resolve();
   if (window.__mbrLoading) return window.__mbrLoading;
   window.__mbrLoading = new Promise((res) => {
     const s = document.createElement("script");
-    s.src = "MagiBocciaRush/js/mbr-core.js?v=3";
+    s.src = "MagiBocciaRush/js/mbr-core.js?v=8";
     s.onload = () => res(); s.onerror = () => res();
     document.head.appendChild(s);
   });
   return window.__mbrLoading;
 }
-/* ★ buildRoster は215体ぶんを組み立てるので、<b>1回だけ</b>にして id で引けるようにする。 */
-let MBR_MAP = null;
+/* ★★ 2026-09-17 MagiBocciaRush を<b>全面刷新</b>したので、性能の出しかたも新しい形へ。
+   6能力（POWER/CONTROL/FRICTION/BOUNCE/JACK/SKILL CHARGE）・7つの型・
+   特殊ショット2つ・アクティブ・パッシブ・アルティメット・ボールの格。
+   ★ 中身は MBR.charOf / MBR.kitText が持ち主（ゲーム内とまったく同じ数字と文面）。
+   ★ buildRoster は mbr-core の中で1回だけ組み立ててキャッシュされる。 */
 function mbrCharOf(id) {
-  if (!window.MBR) return null;
-  if (!MBR_MAP) {
-    MBR_MAP = {};
-    try { MBR.buildRoster().forEach((c) => { MBR_MAP[c.id] = c; }); } catch (e) { MBR_MAP = null; return null; }
-  }
-  return MBR_MAP[id] || null;
+  if (!window.MBR || !MBR.charOf) return null;
+  try { return MBR.charOf(id); } catch (e) { return null; }
 }
-const MBR_STAT_NM = {
-  power: "パワー", control: "コントロール", friction: "止まりやすさ",
-  hit: "ヒット", jack: "ジャック", technique: "テクニック", support: "サポート",
-};
 function magiBocciaHTML(id) {
   const c = mbrCharOf(id);
   if (!c) {
-    return `<div class="dsec mbb"><div class="t">評価（Magi: Boccia Rush）</div>
-      <div class="mbnone">読みこんでいます…（出ないときは、いちど Magi: Boccia Rush を開いてから戻ってきてください）</div></div>`;
+    return `<div class="dsec mbb"><div class="t">評価（MagiBocciaRush）</div>
+      <div class="mbnone">読みこんでいます…（出ないときは、いちど MagiBocciaRush を開いてから戻ってきてください）</div></div>`;
   }
-  const ty = MBR.TYPES[c.type] || { ja: "", nm: "", c: "#2f8fff", d: {} };
-  const sk = MBR.SKILLS[c.skill] || { nm: {}, d: {} };
-  const ab = MBR.ABILS[c.ability] || { nm: {}, d: {} };
-  const jaOf = (o) => (o && (o.ja != null ? o.ja : o)) || "";
-  const keys = ["power", "control", "friction", "hit", "jack", "technique", "support"];
-  let sum = 0;
-  keys.forEach((k) => { sum += c.st[k]; });
-  const bar = (k) => `<div class="mdrow bc"><span class="k">${MBR_STAT_NM[k]}</span>
-      <span class="b"><i style="width:${Math.max(0, Math.min(100, c.st[k]))}%"></i></span>
+  const kit = MBR.kitText(c, "ja");
+  const ty = kit.type;
+  const bar = (k) => `<div class="mdrow bc"><span class="k">${MBR.STAT_NM[k].ja}</span>
+      <span class="b"><i style="width:${Math.max(0, Math.min(100, Math.round((c.st[k] - 20) / 80 * 100)))}%;${k === ty.main ? "background:linear-gradient(90deg,#e0952b,#ffd257)" : k === ty.weak ? "background:linear-gradient(90deg,#8a8fa3,#b9bfd0)" : ""}"></i></span>
       <span class="v">${c.st[k]}</span></div>`;
-  return `<div class="dsec mbb"><div class="t">評価（Magi: Boccia Rush）<span class="turn">${ty.nm || ty.ja}</span></div>
+  const row = (tag, col, nm, sub, d, note) => `<div class="ddesc" style="margin-top:7px;padding-left:8px;border-left:3px solid ${col}">
+      <b>${nm}</b> <small style="opacity:.75">${tag}・${sub}</small>${note ? ` <small style="color:#e0952b">${note}</small>` : ""}<br>${d}</div>`;
+  return `<div class="dsec mbb"><div class="t">評価（MagiBocciaRush）<span class="turn">${ty.ja} TYPE</span></div>
     <div class="dchips">
       <span class="dchip" style="color:${ty.c};border-color:${ty.c}66">${ty.ja}</span>
-      <span class="dchip">${c.rarity}</span>
-      <span class="dchip">合計 ${sum}</span>
-      <span class="dchip">平均 ${Math.round(sum / keys.length)}</span>
+      <span class="dchip">得意 ${kit.strong}</span>
+      <span class="dchip">苦手 ${kit.weak}</span>
     </div>
-    <div class="ddesc" style="margin:8px 0 4px"><b>ボッチャの能力</b></div>${keys.map(bar).join("")}
-    <div class="ddesc" style="margin:10px 0 4px"><b>アビリティ（常時）</b></div>
-    <div class="ddesc"><b>${jaOf(ab.nm)}</b> … ${jaOf(ab.d)}</div>
-    <div class="ddesc" style="margin:10px 0 4px"><b>スキル（1試合に1回）</b></div>
-    <div class="ddesc"><b style="color:#e0952b">${jaOf(sk.nm)}</b> … ${jaOf(sk.d)}</div>
-    <div class="ddesc" style="margin-top:8px">${jaOf(ty.d)}</div>
-    <div class="ddesc" style="margin-top:6px;font-size:10px">
-      ※ Magi: Boccia Rush の能力は<b>MagiBurst のステータスと戦型から決まります</b>
-      （攻撃力の高い子はパワーとヒット、速い子はテクニックとジャックが高くなります）。
-      数字は <b>40〜96</b> の帯におさめてあるので、<b>レアリティだけで勝敗は決まりません</b>。
-      <b>競技モード</b>では、ここの能力の効きが<b>3分の1</b>になります。</div>
+    <div class="ddesc" style="margin:6px 0 2px">${ty.d.ja}</div>
+    <div class="ddesc" style="margin:8px 0 4px"><b>基本性能</b>（合計はどのキャラも ${MBR.STAT_SUM}）</div>${MBR.STAT_KEYS.map(bar).join("")}
+    ${kit.specials.map((s) => row("特殊ショット", s.c, s.nm, s.sub, s.d, "1エンド1回" + (s.cost ? "・ゲージ" + s.cost : ""))).join("")}
+    ${row("アクティブ", "#2f8fff", kit.active.nm, kit.active.sub, kit.active.d, "1エンド1回")}
+    ${row("パッシブ", "#35d49a", kit.passive.nm, kit.passive.sub, kit.passive.d, "")}
+    ${row("アルティメット", "#ffc83d", kit.ult.nm, kit.ult.sub, kit.ult.d, "ゲージ100・1エンド1回")}
+    <div class="ddesc" style="margin-top:8px;font-size:10px">
+      ※ 能力は<b>MagiBurst の戦型とステータスから</b>決まり、<b>6つの合計は全キャラ同じ</b>（得意と苦手の配分だけがちがう）
+      ＝<b>レアリティで強さは決まりません</b>。ボールの格（SR/SSR/UR）は<b>見た目だけ</b>です。
+      <b>ルール準拠モード・ランクマッチ</b>では能力の効きが1/3になり、スキルは使えません。</div>
   </div>`;
 }
 const MD_STAT_NM = { meet: "ミート", power: "パワー", run: "走力", field: "守備", arm: "肩力", catch: "捕球",
@@ -263,11 +253,12 @@ function openDetX(id, keepGame) {
   if (detGame === "diamond" && !window.MD2DATA) {
     mdEnsure().then(() => { if (detCurId === id && detGame === "diamond") openDetX(id, true); });
   }
-  /* ★★ 2026-09-10 同じ考えかたで Magi: Boccia Rush も。
+  /* ★★ 2026-09-10 同じ考えかたで MagiBocciaRush も。
      「あるとき」も呼ぶと Promise.resolve → openDetX → … と<b>無限に回る</b>ので、
      <b>無いときだけ</b>読みこんで、読めたら1回だけ開き直す。 */
-  if (detGame === "boccia" && !window.MBR) {
-    mbrEnsure().then(() => { if (detCurId === id && detGame === "boccia") openDetX(id, true); });
+  if (detGame === "boccia" && !(window.MBR && MBR.VERSION >= 4)) {
+    /* ★ 読めたとき（VERSION 4 になったとき）だけ開き直す。読めないまま開き直すと無限に回る */
+    mbrEnsure().then(() => { if (detCurId === id && detGame === "boccia" && window.MBR && MBR.VERSION >= 4) openDetX(id, true); });
   }
   if (charSecret(id)) return;
   const st = charStats(id), own = !!DB.chars[id], awk = own ? (DB.chars[id].awk || 0) : 0;
