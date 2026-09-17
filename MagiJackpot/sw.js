@@ -5,7 +5,7 @@
    ・XEVA・ジェムの残高だけはクラウド同期が要るが、オフライン中の増減は端末に貯まり、
      オンラインに戻った時点で xeva-cloud.js が送り直す。
    ============================================================ */
-const VERSION = "magijackpot-sw-v32";
+const VERSION = "magijackpot-sw-v36";
 const CORE = [
   "./",
   "./index.html",
@@ -45,8 +45,8 @@ const CORE = [
   "./img/banner_fortune.webp",
   "./img/banner_luxuria.webp",
   "../maintenance-gate.js?v=13",
-  "../xeva.js?v=65",
-  "../xeva-splash.js?v=11",
+  "../xeva.js?v=67",
+  "../xeva-splash.js?v=12",
   "../xeva-back.js?v=9",
   "../game-link.js?v=10",
   "../XEVA.png",
