@@ -1,6 +1,6 @@
 {
-  "name": "Magi: Boccia Rush",
-  "short_name": "Boccia Rush",
+  "name": "MagiBocciaRush",
+  "short_name": "MagiBocciaRush",
   "description": "本物のボッチャ × 引っぱりアクション × キャラクターコレクション × オンラインチーム対戦。",
   "start_url": "./index.html",
   "scope": "./",

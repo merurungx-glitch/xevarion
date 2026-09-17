@@ -1,28 +1,54 @@
 /* ============================================================
-   Magi: Boccia Rush Service Worker — オフライン対応
+   MagiBocciaRush Service Worker — オフライン対応
    ・CPU戦・練習・チュートリアル・ルールブックは<b>完全にオフライン</b>で動く。
    ・オンライン（部屋番号）は当然ネットが要る。Firebase はキャッシュしない。
    ・キャラクターの絵は XEVARION の img/ にあるので、ここでは丸ごと持たない
      （ポータル側の SW が持っている。開いたぶんだけ実行時に控える）。
    ============================================================ */
-const VERSION = "boccia-sw-v7";
+const VERSION = "boccia-sw-v16";
 const RUNTIME = "boccia-rt-v1";
 const CORE = [
   "./index.html",
   "./manifest.webmanifest",
-  "./css/mbr.css?v=3",
-  "./js/mbr-core.js?v=3",
-  "./js/mbr-ui.js?v=3",
+  "./css/mbr.css?v=14",
+  "./js/mbr-voice.js?v=2",
+  "./js/mbr-core.js?v=8",
+  "./js/mbr-stage.js?v=4",
+  "./js/mbr-fx.js?v=4",
+  "./js/mbr-ui.js?v=11",
+  "../mb-newchars.js?v=28",
   "../mb-boot.js?v=17",
-  "../MagiBurst/js/mb-core.js?v=115",
-  "../xeva.js?v=65",
-  "../xeva-loading.js?v=15",
-  "../xeva-splash.js?v=11",
-  "../xeva-safebottom.js?v=9",
+  "../MagiBurst/js/mb-core.js?v=120",
+  "../xeva.js?v=67",
+  "../xeva-loading.js?v=16",
+  "../xeva-splash.js?v=12",
+  "../xeva-safebottom.js?v=10",
   "../xeva-back.js?v=9",
   "../maintenance-gate.js?v=13",
   "../thumbs/MagiBocciaRush.jpg",
+  "./img/mbrhome_s.webp",   /* ★★ 2026-09-17e 開始画面のキービジュアル */
+  /* ★★ 2026-09-17d オフライン対応の穴うめ（ご指定）：
+     ・オンライン対戦とアカウント同期のモジュール（読めないと console が赤くなるだけで遊べるが、そろえておく）
+     ・英語版の辞書（オフラインで英語にしたとき、キャラ名が日本語に戻らないように） */
+  "./js/mbr-online.js?v=4",
+  "../xeva-cloud.js?v=33",
+  "../MagiBurst/magiburst-cloud.js?v=17",
+  "../app-cloud.js?v=12",
+  "../xeva-keys.js?v=25",
+  "../xeva-i18n.js?v=8",
+  "../xeva-i18n-dict.js?v=12",
+  "../xeva-i18n-mb1.js?v=7",
+  "../xeva-i18n-mb2.js?v=7",
+  "../xeva-i18n-mb3.js?v=8",
+  "../xeva-i18n-mb4.js?v=9",
+  "../xeva-i18n-mb5.js?v=7",
+  "../xeva-i18n-mb6.js?v=7",
+  "../xeva-i18n-mb7.js?v=7",
+  "../xeva-i18n-n1.js?v=8",
+  "../xeva-i18n-n2.js?v=3",
 ];
+/* チュートリアルの音声（ずんだもん）。Range で取りに来るので CORE とは別の入れ物に置き、下の fetch で切り出して返す */
+const VOICE_FILES = [0, 1, 2, 3, 4, 5, 6, 7, 8].map((i) => "./voice/3/tut-" + i + ".m4a");
 
 async function xevPost(msg) {
   try {
@@ -44,6 +70,7 @@ self.addEventListener("install", (e) => {
   e.waitUntil((async () => {
     const cache = await caches.open(VERSION);
     await xevPrecache(cache, CORE, "magibocciarush");
+    try { const rt = await caches.open(RUNTIME); await Promise.all(VOICE_FILES.map((u) => rt.add(u).catch(() => {}))); } catch (e) {}
     self.skipWaiting();
   })());
 });
@@ -63,6 +90,34 @@ self.addEventListener("fetch", (e) => {
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
   if (url.hostname.indexOf("firebase") >= 0 || url.hostname.indexOf("googleapis") >= 0) return;
+
+  /* ★★ 2026-09-17d チュートリアルの音声（voice/*.m4a）もオフラインで鳴らす。
+     Safari は Range（206）で取りに来るので、キャッシュの丸ごとの音声から<b>その範囲だけ切り出して 206 で返す</b>。
+     （前は SW を通さなかったので、オフラインでは鳴らなかった） */
+  if (/\/voice\/.+\.m4a$/i.test(url.pathname)) {
+    e.respondWith((async () => {
+      const rt = await caches.open(RUNTIME);
+      const key = new URL(url.pathname, self.location.origin).href;
+      let res = await rt.match(key, { ignoreSearch: true });
+      if (!res) {
+        try {
+          const r = await fetch(key);
+          if (r && r.status === 200) { await rt.put(key, r.clone()); res = r; } else return r;
+        } catch (err) { return new Response("", { status: 504 }); }
+      }
+      const range = req.headers.get("range");
+      if (!range) return res;
+      const buf = await res.clone().arrayBuffer();
+      const size = buf.byteLength;
+      const m = /bytes=(\d*)-(\d*)/.exec(range) || [];
+      const start = m[1] ? +m[1] : 0;
+      const end = Math.min(m[2] ? +m[2] : size - 1, size - 1);
+      return new Response(buf.slice(start, end + 1), { status: 206, headers: {
+        "Content-Type": "audio/mp4", "Content-Range": "bytes " + start + "-" + end + "/" + size,
+        "Content-Length": String(end - start + 1), "Accept-Ranges": "bytes" } });
+    })());
+    return;
+  }
 
   /* キャラクターの絵は「一度見たら控える」（XEVARION の img/） */
   if (/\/img\/.+\.(webp|png|jpg)$/i.test(url.pathname)) {

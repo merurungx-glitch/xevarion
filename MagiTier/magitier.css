@@ -675,3 +675,16 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.7}
   opacity:.55;transition:opacity .15s ease,transform .12s ease}
 .icard:hover .mbinfo,.icard .mbinfo:focus{opacity:1}
 .icard .mbinfo:active{transform:scale(.88)}
+
+/* ══ ★★ 2026-09-17 アニメ Tier表 ══ */
+.mbtag.an{background:linear-gradient(135deg,#2b64d8,#8a55f0)}
+.pchip.an{--pc:#5b7cf0;padding:6px 12px;font-weight:900}
+.anres{display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:8px;margin-top:10px;max-height:55vh;overflow-y:auto}
+.anitem{position:relative;display:flex;flex-direction:column;gap:3px;padding:5px;border-radius:12px;border:1.5px solid rgba(120,140,200,.3);
+  background:var(--card,#fff);cursor:pointer;text-align:left;font-family:inherit;color:inherit}
+.anitem img{width:100%;aspect-ratio:3/4;object-fit:cover;border-radius:8px;display:block}
+.anitem .t{font-size:11px;font-weight:900;line-height:1.3;overflow:hidden;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.anitem .s{font-size:9.5px;opacity:.7;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.anitem .b{font-size:10px;font-weight:900;color:#2b64d8}
+.anitem.have{opacity:.55}
+.anitem.have .b{color:#12a07a}

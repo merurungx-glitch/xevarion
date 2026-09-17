@@ -179,6 +179,13 @@ const MB_CODE_KEY = "magitier_mbcode_v1";
 const MB_TABLE_ID = "t_mb_chars";
 const MB_ACCESS_CODE = "MB613Tier26";
 const MB_FB_PATH = "magitier/mbtier";
+/* ── ★★ 2026-09-17 アニメ Tier表（ご指定）──
+   ・MagiBurst のキャラTier表と<b>同じしくみ</b>：だれでも閲覧／編集はアクセスコード（MB613Tier26）だけ。
+   ・プールは<b>アニメを検索</b>して、題名にその文字が入る作品の一覧から画像ごと足す（AniList → 見つからなければ Jikan）。
+   ・公開先は magitier/animetier。送るのは<b>作品id・題名・画像URL</b>だけ（画像そのものは送らない）。 */
+const AN_TABLE_ID = "t_anime_tier";
+const AN_FB_PATH = "magitier/animetier";
+const isFixedTable = (id) => id === MB_TABLE_ID || id === AN_TABLE_ID;
 function fbUrl() {
   const u = (window.XEVARIONFB && window.XEVARIONFB.DB_URL)
     || "https://xevarion-account-default-rtdb.asia-southeast1.firebasedatabase.app";
@@ -239,9 +246,10 @@ function cardHTML(t) {
   /* ★ 2026-08-17b MagiBurst のキャラTier表は<b>いちばん上に固定</b>して、
      ひと目でそれと分かるようにする。消せない表なので削除ボタンも出さない
      （押せるのに断られる、という見た目にしない）。編集にはアクセスコードが要る。 */
-  const isMb = t.id === MB_TABLE_ID;
+  const isMb = isFixedTable(t.id);
   return `<div class="tcard${isMb ? " mbfix" : ""}" data-id="${t.id}" onclick="MT.open('${t.id}')">
-    ${isMb ? '<div class="mbtag">⚔ MagiBurst 公式・固定<span>編集にはアクセスコード</span></div>' : ""}
+    ${t.id === MB_TABLE_ID ? '<div class="mbtag">⚔ MagiBurst 公式・固定<span>編集にはアクセスコード</span></div>' : ""}
+    ${t.id === AN_TABLE_ID ? '<div class="mbtag an">📺 アニメ Tier・固定<span>編集にはアクセスコード</span></div>' : ""}
     ${t.password ? '<div class="lock">🔒</div>' : ""}
     <div class="acts">
       <button title="名前を変える" onclick="event.stopPropagation();MT.renameDlg('${t.id}')">✎</button>
@@ -262,7 +270,9 @@ function renderHome(mineOnly) {
      更新日順にまかせると、しばらく触らないうちに下へ流れて見失う。
      この1枚は MagiBurst から常に参照されているので、いつでも入口が見えている必要がある。 */
   let list = tables.slice().sort((a, b) =>
-    (a.id === MB_TABLE_ID ? -1 : b.id === MB_TABLE_ID ? 1 : 0) || (b.updatedAt || 0) - (a.updatedAt || 0));
+    (a.id === MB_TABLE_ID ? -1 : b.id === MB_TABLE_ID ? 1 : 0)
+    || (a.id === AN_TABLE_ID ? -1 : b.id === AN_TABLE_ID ? 1 : 0)
+    || (b.updatedAt || 0) - (a.updatedAt || 0));
   if (q) list = list.filter((t) => t.name.toLowerCase().includes(q));
   $("#tcnt").textContent = "（" + list.length + " 件）";
   const g = $("#tgrid");
@@ -392,6 +402,10 @@ async function del(id) {
   /* ★ 2026-08-16 MagiBurst のキャラTier表は消せない。
      この表は MagiBurst 側から参照されている「共有の1枚」で、
      消すと向こうの画面から中身が消えるうえ、作り直しても別物になる。 */
+  if (id === AN_TABLE_ID) {
+    alert("この表は削除できません。\n\n「アニメ Tier表」はだれでも閲覧できる共有の1枚です。作品を外したいときは、表を開いて「未配置の画像」へ戻してください。");
+    return;
+  }
   if (id === MB_TABLE_ID) {
     /* ★ 2026-08-16c ここはトーストだと気づかれず「押しても反応しない」と受け取られていた。
        消せない理由と、代わりにできること（中身を空にする）まで出す。 */
@@ -416,6 +430,7 @@ function open(id) {
      いきなりアクセスコードを聞かれると、ただ見たいだけの人が入口で止まってしまう。
      編集は閲覧モードの中の「✎ 編集する」から（そこでコードを聞く）。 */
   if (id === MB_TABLE_ID) { openMbViewer(); return; }
+  if (id === AN_TABLE_ID) { openAnViewer(); return; }
   if (t.password) {
     const pw = prompt("🔒 パスワードを入力してください");
     if (pw === null) return;
@@ -524,12 +539,13 @@ async function saveOrPublish() {
     await mbPublish();        // そのまま共有まで
     return;
   }
+  if (cur && cur.id === AN_TABLE_ID) { await save(cur); await anPublish(); return; }
   await saveNow();
 }
 /* ボタンの見た目を表に合わせて出し分ける */
 function syncSaveBtn() {
   const b = $("#etSaveBtn"); if (!b) return;
-  const isMb = !!(cur && cur.id === MB_TABLE_ID);
+  const isMb = !!(cur && isFixedTable(cur.id));
   b.textContent = isMb ? "公開" : "保存";
   b.title = isMb ? "端末に保存して、MagiBurst と他の端末に共有します" : "この端末に保存します";
   b.classList.toggle("pub", isMb);
@@ -665,6 +681,10 @@ function renderPoolSort() {
 function setSortQuick(k) { cur.sortMode = k; save(cur, true); refresh(); toast("「" + (poolSorts().find(x => x[0] === k) || [, k])[1] + "」に並べ替えました"); }
 function renderPoolChips() {
   const box = $("#poolChips"); if (!box) return;
+  if (cur && cur.id === AN_TABLE_ID) {
+    box.innerHTML = '<button class="pchip an" onclick="MT.anSearchDlg()">📺 アニメを検索して追加</button>';
+    return;
+  }
   if (!cur || cur.id !== MB_TABLE_ID) { box.innerHTML = ""; return; }
   box.innerHTML = MB_ATTRS.map(([nm, c]) =>
     `<button class="pchip${poolAttr === nm ? " on" : ""}" style="--pc:${c}"
@@ -2516,6 +2536,7 @@ async function pubPayload(t) {
 async function publishTable() {
   if (!cur) return;
   if (cur.id === MB_TABLE_ID) { mbPublish(); return; }   /* MagiBurst 表は専用の窓口へ */
+  if (cur.id === AN_TABLE_ID) { anPublish(); return; }   /* アニメ表も専用の窓口へ */
   const ok = await askHtml({
     icon: "🌐", title: "この Tier表を公開しますか？",
     body: "公開すると、<b>URL や QR コードを知っている人はだれでも</b>この表を見られるようになります"
@@ -3042,7 +3063,7 @@ function loadScriptOnce(src) {
 function loadMbCore() {
   mbShim();
   if (mbChars() && mbCharIds()) return Promise.resolve();
-  return loadScriptOnce("../MagiBurst/js/mb-core.js?v=115");
+  return loadScriptOnce("../MagiBurst/js/mb-core.js?v=120");
 }
 /* ══ ★★ 2026-08-22 キャラ詳細は XEVARION と<b>同じ1本</b>（mb-char-detail.js）を読む ══
    自前で組み直すと、アビリティ・クロススキル・リンクの文面が必ず食いちがっていく。
@@ -3057,7 +3078,7 @@ async function loadMbDetail() {
   }
   /* MagiBattle の評価も出したいので、その計算だけ先に読む（無くても詳細は開く） */
   if (!window.MBStats) { try { await loadScriptOnce("../magibattle-stats.js?v=14"); } catch (e) {} }
-  if (typeof window.openDetX !== "function") await loadScriptOnce("../mb-char-detail.js?v=28");
+  if (typeof window.openDetX !== "function") await loadScriptOnce("../mb-char-detail.js?v=31");
   _mbDetailReady = true;
 }
 /* ══ ★ 2026-08-17f MagiBurst 表の中身をそろえ直す ══
@@ -3148,8 +3169,24 @@ async function buildMbTable() {
      編集した人の端末以外では、手元の表は空だから。
    ・キャラをタップすると、そのキャラの評価・メモを1体ぶん出す。 */
 let mvData = null;
+/* 閲覧画面のまわり（案内・戻る・編集ボタン）を表の種類に合わせる。
+   ★ renderPubViewer が書き換えたままだと、次に MagiBurst 表を開いたときに文面が残るので毎回そろえる。 */
+function setViewerChrome(kind) {
+  const note = $(".mvnote");
+  const back = document.querySelector("#scr-mbview .homehead .btn");
+  if (kind === "anime") {
+    if (note) note.innerHTML = '<b>閲覧モード</b><p>この <b>アニメ Tier表</b> は MagiTier で作られ、公開されたものです。だれでも見られます。作品をタップすると題名が出ます。</p>'
+      + '<button class="btn pri" onclick="MT.openAnEdit()" style="margin-top:8px">✎ この表を編集する（アクセスコードが必要）</button>';
+    if (back) { back.textContent = "MagiTier のホームへ"; back.setAttribute("href", "#"); back.onclick = (e) => { e.preventDefault(); go("home"); }; }
+  } else {
+    if (note) note.innerHTML = '<b>閲覧モード</b><p>この表は <b>MagiTier</b> で作られ、公開されたものです。キャラをタップすると、<b>Tier評価</b>と <b>MagiBurst での性能</b>まで読めます。</p>'
+      + '<button class="btn pri" id="mvEditBtn" onclick="MT.openMbEdit()" style="margin-top:8px">✎ この表を編集する（アクセスコードが必要）</button>';
+    if (back) { back.textContent = "MagiBurst へもどる"; back.setAttribute("href", "../MagiBurst/index.html"); back.onclick = null; }
+  }
+}
 async function openMbViewer() {
   go("mbview");
+  setViewerChrome("mb");
   $("#mvTable").innerHTML = '<div class="empty">読み込んでいます…</div>';
   $("#mvEmpty").classList.add("hide");
   /* キャラ絵と名前は mb-core から取る（公開ぶんには id しか入っていない） */
@@ -3281,6 +3318,169 @@ async function mbOpenDetail(id) {
 function mvChar(id) { mbOpenDetail(id); }
 function mvCloseChar() { $("#mvOv").classList.remove("on"); }
 
+/* ══════════════════════════════════════════════════════════════
+   20c. ★★ 2026-09-17 アニメ Tier表
+   ══════════════════════════════════════════════════════════════ */
+async function ensureAnTable() {
+  if (tables.some((x) => x.id === AN_TABLE_ID)) return;
+  const t = normalize({
+    id: AN_TABLE_ID, name: "アニメ Tier表", images: [],
+    tiers: mkTiers([["SS","殿堂入り","#be123c"],["S","神作",C.s],["A","名作",C.a],["B","良作",C.b],["C","好みが分かれる",C.c],["D","これから見る",C.d]]),
+  });
+  t.cardName = true; t.author = "MagiTier 公式";
+  tables.push(t);
+  await save(t, true);
+}
+function openAnEdit() {
+  if (!mbCodeOK()) { anCodeDlg(); return; }
+  mbUnlocked = true;
+  ensureAnTable().then(() => openTable(AN_TABLE_ID));
+}
+function anCodeDlg() {
+  dlgOpen(`<h2>アクセスコードが必要です</h2>
+    <p class="dsub">アニメ Tier表を<b>編集</b>するには、アクセスコードが要ります。<br>（閲覧はだれでもできます）</p>
+    <div class="fld"><label class="lbl">アクセスコード</label><input class="inp" id="anCode" placeholder="コードを入力"></div>
+    <div class="foot"><button class="btn" onclick="MT.closeDlg()">やめる</button><button class="btn pri" onclick="MT.anCheck()">かくにん</button></div>`);
+  setTimeout(() => { const e = $("#anCode"); if (e) e.focus(); }, 60);
+}
+function anCheck() {
+  const v = ($("#anCode").value || "").trim();
+  if (v !== MB_ACCESS_CODE) { toast("コードがちがいます"); return; }
+  mbUnlocked = true; lsSet(MB_CODE_KEY, v); dlgClose(); openAnEdit();
+}
+/* ── 検索：AniList（GraphQL）→ 0件なら Jikan（MyAnimeList）──
+   ★ どちらも鍵なし・CORS で読める公開 API。
+   ★ 「その文字が入る作品」だけを残す（API はあいまい検索で、関係ない作品も混ざるため）。 */
+let anResults = [], anQuery = "";
+function anHas(r, q) {
+  const k = q.trim().toLowerCase().replace(/\s+/g, "");
+  if (!k) return true;
+  return r.titles.some((t) => String(t || "").toLowerCase().replace(/\s+/g, "").includes(k));
+}
+async function anFetchAniList(q) {
+  const query = "query($q:String){Page(perPage:40){media(search:$q,type:ANIME,sort:SEARCH_MATCH){id title{native romaji english} synonyms seasonYear format coverImage{large}}}}";
+  const r = await fetch("https://graphql.anilist.co", { method: "POST",
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    body: JSON.stringify({ query, variables: { q } }) });
+  if (!r.ok) throw new Error("anilist " + r.status);
+  const j = await r.json();
+  return ((j.data && j.data.Page && j.data.Page.media) || []).map((m) => ({
+    id: "al:" + m.id, nm: (m.title && (m.title.native || m.title.romaji || m.title.english)) || "",
+    sub: [m.title && m.title.romaji, m.seasonYear, m.format].filter(Boolean).join(" ・ "),
+    src: (m.coverImage && m.coverImage.large) || "",
+    titles: [m.title && m.title.native, m.title && m.title.romaji, m.title && m.title.english].concat(m.synonyms || []),
+  })).filter((x) => x.src);
+}
+async function anFetchJikan(q) {
+  const r = await fetch("https://api.jikan.moe/v4/anime?limit=25&q=" + encodeURIComponent(q));
+  if (!r.ok) throw new Error("jikan " + r.status);
+  const j = await r.json();
+  return (j.data || []).map((m) => ({
+    id: "mal:" + m.mal_id, nm: m.title_japanese || m.title || "",
+    sub: [m.title, m.year, m.type].filter(Boolean).join(" ・ "),
+    src: (m.images && m.images.jpg && (m.images.jpg.large_image_url || m.images.jpg.image_url)) || "",
+    titles: [m.title_japanese, m.title, m.title_english].concat((m.titles || []).map((t) => t.title)),
+  })).filter((x) => x.src);
+}
+function anSearchDlg() {
+  dlgOpen(`<h2>📺 アニメを検索して追加</h2>
+    <p class="dsub">作品名の一部を入れると、<b>その文字が入るアニメ</b>を画像つきで一覧にします。押すとプールに入ります。</p>
+    <div class="row" style="gap:6px"><input class="inp" id="anQ" placeholder="例：ぼっち、進撃、Frieren" value="${esc(anQuery)}"
+      onkeydown="if(event.key==='Enter'&&!event.isComposing)MT.anSearch()"><button class="btn pri" onclick="MT.anSearch()">検索</button></div>
+    <div id="anRes" class="anres"><div class="muted" style="padding:10px">検索するとここに並びます</div></div>
+    <div class="foot"><button class="btn" onclick="MT.anAddAll()">表示中をすべて追加</button><button class="btn pri" onclick="MT.closeDlg()">とじる</button></div>`);
+  setTimeout(() => { const e = $("#anQ"); if (e) e.focus(); }, 60);
+  if (anResults.length) anPaintRes();
+}
+async function anSearch() {
+  const q = (($("#anQ") || {}).value || "").trim();
+  if (!q) { toast("作品名を入れてください"); return; }
+  anQuery = q;
+  const box = $("#anRes"); if (box) box.innerHTML = '<div class="muted" style="padding:10px">さがしています…</div>';
+  let list = [];
+  try { list = (await anFetchAniList(q)).filter((r) => anHas(r, q)); } catch (e) { list = []; }
+  if (!list.length) { try { list = (await anFetchJikan(q)).filter((r) => anHas(r, q)); } catch (e) {} }
+  const seen = {};
+  anResults = list.filter((r) => (seen[r.id] ? false : (seen[r.id] = 1)));
+  anPaintRes();
+}
+function anInTable(id) {
+  const t = tables.find((x) => x.id === AN_TABLE_ID); if (!t) return false;
+  return t.images.some((im) => im.id === id) || t.tiers.some((tr) => tr.images.some((im) => im.id === id));
+}
+function anPaintRes() {
+  const box = $("#anRes"); if (!box) return;
+  if (!anResults.length) {
+    box.innerHTML = '<div class="muted" style="padding:10px">「' + esc(anQuery) + '」が入るアニメは見つかりませんでした（通信を確かめるか、ひらがな／英字でも試してください）</div>';
+    return;
+  }
+  box.innerHTML = anResults.map((r, i) => {
+    const have = anInTable(r.id);
+    return `<button class="anitem${have ? " have" : ""}" onclick="MT.anAdd(${i})">
+      <img src="${esc(r.src)}" alt="" loading="lazy"><span class="t">${esc(r.nm)}</span><span class="s">${esc(r.sub)}</span>
+      <span class="b">${have ? "追加ずみ" : "＋ 追加"}</span></button>`;
+  }).join("");
+}
+async function anAdd(i, quiet) {
+  const r = anResults[i]; if (!r) return;
+  await ensureAnTable();
+  const t = tables.find((x) => x.id === AN_TABLE_ID);
+  if (anInTable(r.id)) { if (!quiet) toast("すでに入っています"); return; }
+  t.images.push(normImg({ id: r.id, src: r.src, name: r.nm, memo: r.sub, addedAt: Date.now() + i }));
+  await save(t, true);
+  if (!quiet) { toast("「" + r.nm + "」をプールに追加しました"); anPaintRes(); if (screen === "edit" && cur && cur.id === AN_TABLE_ID) renderEditor(); }
+}
+async function anAddAll() {
+  let n = 0;
+  for (let i = 0; i < anResults.length; i++) { if (!anInTable(anResults[i].id)) { await anAdd(i, true); n++; } }
+  anPaintRes();
+  if (screen === "edit" && cur && cur.id === AN_TABLE_ID) renderEditor();
+  toast(n ? n + " 作品をプールに追加しました" : "追加できる作品はありません");
+}
+async function anPublish() {
+  const t = tables.find((x) => x.id === AN_TABLE_ID);
+  if (!t) return;
+  if (!mbCodeOK()) { anCodeDlg(); return; }
+  const payload = {
+    nm: t.name, at: Date.now(),
+    by: ((window.XEVA && XEVA.account.get()) || {}).name || "",
+    tiers: t.tiers.map((tr) => ({ label: tr.label, name: tr.name, bg: tr.bg, tc: tr.tc,
+      items: tr.images.map((im) => ({ id: im.id, nm: String(im.name || "").slice(0, 80), src: /^https?:/.test(im.src) ? im.src : "" })) })),
+  };
+  try {
+    const r = await fetch(fbUrl() + "/" + AN_FB_PATH + ".json", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+    if (r.status === 401 || r.status === 403) throw new Error("denied");
+    if (!r.ok) throw new Error("http " + r.status);
+    t.publishedAt = Date.now(); await save(t, true);
+    toast("公開しました。だれでも閲覧できます"); syncSaveBtn();
+  } catch (e) {
+    if (String(e.message) === "denied") alert("公開できませんでした（アクセス権がありません）。Firebase のルールの magitier ブロックを公開してください。");
+    else toast("公開できませんでした（通信）");
+  }
+}
+async function openAnViewer() {
+  go("mbview");
+  setViewerChrome("anime");
+  $("#mvTitle").textContent = "アニメ Tier表";
+  $("#mvSub").textContent = "";
+  $("#mvTable").innerHTML = '<div class="empty">読み込んでいます…</div>';
+  $("#mvEmpty").classList.add("hide");
+  let d = null;
+  try { const r = await fetch(fbUrl() + "/" + AN_FB_PATH + ".json", { cache: "no-store" }); d = r.ok ? await r.json() : null; } catch (e) {}
+  if (!d || !Array.isArray(d.tiers) || !d.tiers.length) {
+    $("#mvTable").innerHTML = ""; $("#mvEmpty").classList.remove("hide"); return;
+  }
+  $("#mvTitle").textContent = d.nm || "アニメ Tier表";
+  $("#mvSub").textContent = [d.by || "", d.at ? "更新 " + fmtDay(d.at) : ""].filter(Boolean).join("　・　");
+  $("#mvTable").innerHTML = d.tiers.map((tr) => {
+    const cells = (tr.items || []).filter((x) => x && x.src).map((x) =>
+      `<button class="mvc" onclick="MT.toastMsg('${esc(String(x.nm || "").replace(/'/g, "’"))}')"><img src="${esc(x.src)}" alt="" loading="lazy"><span>${esc(x.nm)}</span></button>`).join("");
+    return `<div class="mvrow"><div class="mvlab" style="background:${esc(tr.bg || "#555")};color:${esc(tr.tc || "#fff")}">
+      <b>${esc(tr.label || "")}</b>${tr.name ? `<small>${esc(tr.name)}</small>` : ""}</div>
+      <div class="mvcell">${cells || '<span class="muted">まだ入っていません</span>'}</div></div>`;
+  }).join("");
+}
+
 /* Firebase へ公開（キャラidの並びだけ） */
 async function mbPublish() {
   const t = tables.find((x) => x.id === MB_TABLE_ID);
@@ -3374,9 +3574,11 @@ async function boot() {
     const raw = await idbAll();
     tables = raw.map(normalize);
     try { await ensureMbTable(); } catch (e) {}
+    try { await ensureAnTable(); } catch (e) {}
     bindGlobal();
     /* ★ MagiBurst の「MagiTier で詳細を見る」から来たときは閲覧モードで開く */
     if (/#view=mb\b/.test(location.hash || "")) { openMbViewer(); return; }
+    if (/#view=anime\b/.test(location.hash || "")) { openAnViewer(); return; }
     /* URL に #t=<id> が付いていたら、そのままその Tier表を開く（共有リンク）
        ★★ 2026-08-18 手元に無いときは<b>公開ぶん</b>を読みにいく。
          これが無かったので、送られたリンクを開いてもホームに落ちていた
@@ -3429,6 +3631,9 @@ window.MT = {
   mbDetail: mbOpenDetail,                               /* ★ 2026-08-22 ゲームのキャラ詳細（XEVARION と同じ） */
   mbDedupe,
   openMbViewer, mvChar, mvCloseChar,
+  /* ★★ 2026-09-17 アニメ Tier表 */
+  openAnViewer, openAnEdit, anCheck, anSearchDlg, anSearch, anAdd, anAddAll, anPublish,
+  toastMsg: (m) => toast(m),
 };
 boot();
 })();
