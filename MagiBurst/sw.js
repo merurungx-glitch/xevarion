@@ -6,13 +6,13 @@
    ・オンライン対戦・XEVA換金はアプリ側でオフライン時に無効化している
    ・取得できたリソースは随時キャッシュ更新（stale-while-revalidate）
    ============================================================ */
-const VERSION = "magiburst-sw-v158";
+const VERSION = "magiburst-sw-v166";
 const CORE = [
   "./index.html",
   "./css/mb-ui2.css?v=26",
   "./css/localplay.css?v=7",
   "./js/localplay.js?v=8",
-  "./js/mb-core.js?v=115",
+  "./js/mb-core.js?v=120",
   /* ★★ 2026-09-13 クエスト作成（ステージエディター・MB613Create26）。
      遅延読みこみだが、オフラインでも開けるようにここには入れておく。 */
   "./js/mb-create.js?v=2",
@@ -39,14 +39,14 @@ const CORE = [
   "../xeva-i18n-p3.js?v=7",
   "../xeva-i18n-mb7.js?v=7",
   "../xeva-i18n-p4.js?v=7",
-  "../xeva-i18n-n1.js?v=5",
+  "../xeva-i18n-n1.js?v=8",
   "../xeva-i18n-n2.js?v=3",
-  "../xeva.js?v=65",
-  "../xeva-loading.js?v=15",
-  "../xeva-splash.js?v=11",
+  "../xeva.js?v=67",
+  "../xeva-loading.js?v=16",
+  "../xeva-splash.js?v=12",
   "../app-cloud.js?v=12",
-  "../xeva-keys.js?v=23",
-  "./magiburst-cloud.js?v=15",
+  "../xeva-keys.js?v=25",
+  "./magiburst-cloud.js?v=17",
   "../maintenance-gate.js?v=13",
   "../app-install-notice.js?v=9",
   "../XEVA.png",
@@ -127,6 +127,7 @@ const CORE = [
   "img/ss/KokonaSS.webp",
   "img/ss/RezeliaSS.webp",
   "img/ss/RanSS.webp",
+  "img/ss/AkatsukiSS.webp",   /* ★★ 2026-09-17d 花宴祭 アカツキ（治癒の祈り）用 */
   "img/ss/YajuSS.webp",   /* ★ 2026-08-08d クロススキル「お待たせ!」用 */
   "img/ss/KokonaAlphaSS.webp",   /* ★ 2026-08-11 ココナα（治癒の祈り）用 */
   /* ★ 2026-08-08 プレミアム新SSR「カエデ」「リノン」「ココロ」「アンジェ」 */
@@ -273,6 +274,7 @@ const CORE = [
   "img/bn_fes11_s.webp",
   "img/bn_fes12_s.webp",   /* ★★ 2026-09-01 RISING STAR FEST のバナー */
   "img/bn_fes13_s.webp",
+  "img/bn_fes15_s.webp",   /* ★★ 2026-09-17d 花宴祭のバナー */
   "img/bn_fes14_s.webp",   /* ★★ 2026-09-13 SOFT NIGHT FEST のバナー */   /* ★★ 2026-09-11 BUNNY GIRL FEST のバナー */
   "../img/t_Suzune.webp",
   "../img/t_Minamo.webp",
@@ -403,6 +405,13 @@ const CORE = [
   "../img/t_Uta.webp",
   "../img/t_Shiho.webp",
   "../img/t_Kiduki.webp",
+  "../img/t_Kuon.webp",
+  "../img/t_Asahi.webp",
+  "../img/t_Sougetsu.webp",
+  "../img/t_Natsune.webp",
+  "../img/t_Amane.webp",
+  /* ★★ 2026-09-17d 花宴祭 */
+  "../img/t_Akatsuki.webp",
   /* ★★ 2026-09-06 同期の画面に出る案内役（立ち姿とお辞儀・2人ぶん）。
      ここに無いとオフラインのときだけ絵が出ない。 */
   "../img/ld_a_stand.webp",

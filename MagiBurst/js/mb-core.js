@@ -15,8 +15,8 @@
    <b>ふつうの &lt;script&gt;</b>（type="module" ではない）で読むこと。
    トップレベルの const/let はグローバルの字句環境に入るので、
    あとから読み込む MagiBurst 本体のスクリプトからそのまま見える。
-     MagiBurst : <script src="js/mb-core.js?v=115"></script>
-     gacha.html: <script src="MagiBurst/js/mb-core.js?v=115"></script>
+     MagiBurst : <script src="js/mb-core.js?v=120"></script>
+     gacha.html: <script src="MagiBurst/js/mb-core.js?v=120"></script>
 
    ── ホストが先に用意しておくもの ──
      window.MB_IMGD … 画像フォルダへの相対パス（MagiBurst は "../img/"、ポータルは "img/"）
@@ -3394,6 +3394,60 @@ const SBWAVE_R0 = 220;             // 1波目の半径
 const SBWAVE_R_STEP = 90;          // 波ごとに広がる量
 const SBWAVE_GAP = 8;
 
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-09-17 RISING STAR FEST 第4弾（クオン・アサヒ・ソウゲツ・ナツネ・アマネ）
+   ------------------------------------------------------------
+   ・リンクスキルは5体とも<b>新規・新しい挙動</b>（ご指定）。
+   ・サブリンクは5体<b>共通</b>の「ホライゾン・コール」（新規）。
+   ・フルバーストは5体とも<b>味方全員で総攻撃</b>＋キャラごとに違う締め（ご指定）。
+   ★ 威力は index.html の FS_HIT / SUB_HIT と<b>同じ定数</b>を見ること（表記と動作をずらさない）。
+   ══════════════════════════════════════════════════════════════ */
+/* クオン「リフレクト・ヘイロー」：盤面の4辺から光の帯が内側へ走り、中央で交差して炸裂 */
+const RHALO_STEPS = 5;              // 1辺ぶんの帯が中央へ届くまでの刻み
+const RHALO_W = 110;                // 帯の太さ
+const RHALO_PER = 5.30;             // 帯1本が1体に入る威力（1辺につき1回）★ 実測で ×147 → ×110 に合わせた
+const RHALO_R = 280;                // 中央の炸裂の半径
+const RHALO_FINALE = 11.60;         // 中央の炸裂
+const RHALO_GAP = 3;
+/* アサヒ「イクリプス・オービット」：敵ごとに黒い衛星が周回。HPが減っている敵ほど速く回る＝ヒット数が増える */
+const EORB_N = 6;                   // 満タンの敵に入る回数
+const EORB_EXTRA = 6;               // HPが0に近いほど増える回数（最大）
+const EORB_PER = 2.60;              // 1周ぶん
+const EORB_FINALE = 12.00;          // 衛星が敵に落ちる締め
+const EORB_GAP = 5;
+/* ソウゲツ「ムーン・ティア」：敵の足もとに予告の円 → 少し遅れて月の雫が落ちる。円の中にいた敵は×2 */
+const MTEAR_MAX = 8;                // 雫の数（敵の数まで）
+const MTEAR_R = 120;                // 円の半径
+const MTEAR_PER = 13.60;            // 1滴
+const MTEAR_IN = 2.0;               // 円の中にいたとき
+const MTEAR_DELAY = 30;             // 予告から落ちるまで（フレーム）
+/* ナツネ「サマー・リレー」：近い敵から近い敵へバトンが跳び、跳ぶたびに重くなる（同じ敵には戻らない） */
+const SRELAY_PER = 14.00;           // 1本目
+const SRELAY_STEP = 9.00;           // 跳ぶたびに増える
+const SRELAY_MAX = 8;
+const SRELAY_GAP = 8;
+/* アマネ「クリムゾン・ブーメラン」：炎の刃が8方向へ飛んで戻ってくる。行きと帰りの2回、帰りは×1.5 */
+const CBOOM_N = 8;
+const CBOOM_W = 120;
+const CBOOM_PER = 11.00;            // 行き
+const CBOOM_BACK = 1.5;             // 帰りの倍率
+const CBOOM_TRIP = 14;              // 片道のフレーム
+/* 共通サブリンク「ホライゾン・コール」：ふれた味方の高さに、水平線の光の帯が3回（1回ごとに太く） */
+const HCALL_N = 3;
+const HCALL_PER = 1.15;
+const HCALL_H0 = 110;
+const HCALL_H_STEP = 70;
+const HCALL_GAP = 8;
+
+/* ── フルバースト（5体とも 総攻撃 ＋ 締め）── */
+const RS4_ATK = 3.10, RS4_SPD = 1.50;
+const RS4_WAIT = 100;               // 総攻撃のあと締めが出るまで（フレーム）
+const KUON_BASE = 240.0, KUON_PER = 30.0, KUON_CAP = 8;      // 刻んだ光輪1つにつき +30（8つまで）
+const ASAHI_FINALE = 380.0, ASAHI_DEF_TURNS = 3;             // 黒い日輪＋防御力ダウン
+const SOUG_BASE = 220.0, SOUG_PER = 18.0, SOUG_CAP = 10, SOUG_R = 150;   // 水の線に近い点1つにつき +18（10まで）
+const NATSU_PER = 95.0, NATSU_MAX = 4, NATSU_HEAL = 0.30;    // 味方の人数ぶんの花火＋チーム回復
+const AMANE_FINALE = 360.0, AMANE_TEAM_ATK = 1.35, AMANE_TEAM_TURNS = 3;   // 紅炎＋味方全員の攻撃力アップ
+
 /* ── GRAND DEBUT GACHA（新5体）の<b>共通</b>サブリンク「デビュー・コード」── */
 const DCHORD_PER = 0.90;           // 三角の頂点1つぶん
 const DCHORD_EDGE = 0.45;          // 三角の辺の上の敵
@@ -4183,6 +4237,43 @@ const PAR_TOTAL4 = PAR_N * (2 * PAR_A + 2 * PAR_B) + 4 * PAR_FIN * PAR_BAL;
    ・リンクは<b>×120.0</b>＝2026-09-13 の調整後でいちばん重い（higanlily と同着）。
    ══════════════════════════════════════════════════════════════ */
 /* ── FB「ソウソウ・フィナーレ」（乱打）── */
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-09-17d 花宴祭 アカツキ（火・貫通・No.250）
+   ------------------------------------------------------------
+   ・フルバーストは<b>乱打</b>（ご指定）。締めは敵全体＋チーム回復＋防御力ダウン＋味方全員の攻撃力アップ。
+   ・リンクは<b>新規・新しい挙動</b>（千代桜の枝が敵から敵へ<b>枝分かれ</b>して広がる）。
+   ・サブリンクも<b>新規</b>（紅い提灯の輪が<b>広がってから戻ってくる</b>・帰りのほうが重い）。
+   ★ 威力は index.html の FS_HIT / SUB_HIT と<b>同じ定数</b>を見ること（表記と動作をずらさない）。
+   ══════════════════════════════════════════════════════════════ */
+const AKA_ATK = 3.40, AKA_SPD = 1.60;
+const AKA_BARRAGE_N = 72, AKA_BARRAGE_PER = 7.30, AKA_BARRAGE_STEP = 0.12;
+const AKA_FINALE = 390.0;          // 締めの千本桜（敵全体）
+const AKA_HEAL = 0.25;             // チームHPの回復割合
+const AKA_DEFDOWN = 4;             // 敵全体の防御力ダウン（ターン）
+const AKA_TEAM_ATK = 1.30, AKA_TEAM_TURNS = 3;   // 味方全員の攻撃力アップ
+const AKA_TOTAL = AKA_BARRAGE_N * AKA_BARRAGE_PER
+  + AKA_BARRAGE_STEP * AKA_BARRAGE_N * (AKA_BARRAGE_N - 1) / 2 + AKA_FINALE;
+/* リンク「チヨザクラ・ブランチ」：ふれた味方から桜の枝が<b>全部の敵</b>へ伸び（1代目）、
+   そこから<b>それぞれいちばん近い2体</b>へ枝分かれ（2代目）、さらにもう一度枝分かれ（3代目）。
+   代を重ねるほど重く、<b>3本以上の枝が届いた敵</b>は最後に満開（もう一撃）。 */
+const AKB_GEN1 = 2.14;             // 1代目の枝（味方 → 敵）
+const AKB_GEN2 = 2.95;             // 2代目（敵 → いちばん近い2体）
+const AKB_GEN3 = 3.93;             // 3代目（さらに2体ずつ・同じ枝を戻らない）
+const AKB_FIN = 6.25;              // 満開（3本以上とどいた敵）
+const AKB_BLOOM = 3;               // 満開になる本数
+const AKB_MAX1 = 8, AKB_MAX3 = 16; // 1代目・3代目の上限本数
+const AKB_GAP = 11;
+/* ★ 実測（敵4体・十字・攻撃力3000）: ×120.0＝2026-09-13 の調整後の上限（higanlily・crescoct と同着）。
+   サブリンク benilantern は ×58 前後（twinreed ×60 の少し下）。 */
+/* 敵4体（十字）のときの合計（1代目4本・2代目8本・3代目8本・満開4体） */
+const AKB_TOTAL4 = 4 * AKB_GEN1 + 8 * AKB_GEN2 + 8 * AKB_GEN3 + 4 * AKB_FIN;
+/* サブリンク「ベニチョウチン・リターン」：紅い提灯の輪が広がってから<b>戻ってくる</b>。行き×1・帰り×BLAN_BACK */
+const BLAN_PER = 5.40;             // 行き（輪の中の敵）
+const BLAN_BACK = 1.70;            // 帰りの倍率
+const BLAN_R = 380;                // いちばん広がったときの半径
+const BLAN_TRIP = 18;              // 片道のフレーム
+const BLAN_TOTAL = BLAN_PER * (1 + BLAN_BACK);
+
 const KUMI_ATK = 3.30, KUMI_SPD = 1.60;
 const KUMI_BARRAGE_N = 70, KUMI_BARRAGE_PER = 7.20, KUMI_BARRAGE_STEP = 0.12;
 const KUMI_FINALE = 360.0;        // 締めの譜面発光（敵全体）
@@ -4317,6 +4408,14 @@ const SUBFS = {
       + "1通 → 2通 → 3通 → " + FLET_WAVES + "通と、<b>あと半分ほどでいちばん多く届きます</b>。"
       + "<br>1通ずつが敵全体に入るので、数がそのまま総ダメージになります。"
       + "<br>GRAND DEBUT GACHA Ver.8.0 の5体が<b>全員そろって持つ</b>共通のサブリンクです" },
+  /* ══ ★★ 2026-09-17d 花宴祭 アカツキのサブリンク（新規）══ */
+  benilantern: { nm: "ベニチョウチン・リターン",
+    pow: "紅い提灯の輪が半径 " + BLAN_R + " まで<b>広がってから戻ってくる</b>（行き 攻撃力×" + BLAN_PER
+      + "・<b>帰り ×" + (BLAN_PER * BLAN_BACK).toFixed(2) + "</b>・輪の中の敵）／1体あたり 合計 攻撃力×" + BLAN_TOTAL.toFixed(2),
+    desc: "ふれた味方から、<b>紅い提灯の輪</b>が広がる。"
+      + "<br>これまでに無いのは<b>いちばん外まで広がったあと、もう一度内側へ戻ってくる</b>こと——"
+      + "同じ敵を<b>行きと帰りの2回</b>包み、<b>帰りのほうが重い</b>（×" + BLAN_BACK + "）。"
+      + "<br>花宴祭 アカツキのサブリンクです" },
   /* ══ ★★ 2026-09-13 極華祭 クミコ＆レイナのサブリンク ══ */
   twinreed: { nm: "ダブルリード・エコー",
     pow: "金と緋の音帯が<b>十字に走る</b>（太さ " + DREED_W + "・1本 攻撃力×" + DREED_PER
@@ -4584,6 +4683,15 @@ const SUBFS = {
       + (SBWAVE_R0 + SBWAVE_R_STEP * (SBWAVE_N - 1)) + "）——"
       + "近くの敵は3回とも当たり、遠くの敵にも<b>最後の波はきっちり届く</b>。"
       + "<br>RISING STAR FEST の<b>ヨイヅキ・カヨ・シノ・マアヤ・アスカ</b>が全員そろって持つ共通のサブリンクです" },
+  /* ══ ★★ 2026-09-17 RISING STAR FEST 第4弾（5体）の<b>共通</b>サブリンク（新規）══ */
+  horizoncall: { nm: "ホライゾン・コール",
+    pow: "ふれた味方の高さに<b>水平線の光の帯</b>が " + HCALL_N + "回（1回 攻撃力×" + HCALL_PER
+      + "・太さ " + HCALL_H0 + " → " + (HCALL_H0 + HCALL_H_STEP * (HCALL_N - 1)) + "・左右の端まで貫通）／"
+      + "合計 攻撃力×" + (HCALL_N * HCALL_PER).toFixed(2),
+    desc: "ふれた味方の高さに、<b>盤面の左端から右端まで</b>水平線の光が走る。"
+      + "<br>ちがいは<b>円ではなく横一文字</b>で、<b>1回ごとに太くなる</b>こと——"
+      + "同じ高さに並んだ敵は、どれだけ離れていても全員に届く。"
+      + "<br>RISING STAR FEST の<b>クオン・アサヒ・ソウゲツ・ナツネ・アマネ</b>が全員そろって持つ共通のサブリンクです" },
   /* ══ ★★ 2026-09-06 GRAND DEBUT GACHA（新5体）の<b>共通</b>サブリンク ══ */
   debutchord: { nm: "デビュー・コード",
     pow: "ふれた味方を中心に<b>三和音</b>（正三角形の3頂点・距離 " + DCHORD_D + "）／"
@@ -4763,6 +4871,14 @@ const NEXUS = {
       + "<b>各WAVEの開始時にチームHPを5%回復</b>する"
       + "<br><small>※ ボンド・ネクサス（リンク+6%）の5.3倍に、ゲイル・フォース・マーシーぶんを重ねた SOFT NIGHT FEST だけの特別なネクサスです</small>",
     link: 1.32, spd: 1.14, atk: 1.12, waveHeal: 0.05 },
+  /* ══ ★★ 2026-09-17d 花宴祭のネクサス（アカツキ）══
+     ガチャキャラの中でも<b>上澄み</b>の性能にする（ご指定）ので、リンク・攻撃・ボス・回復の4つをそろえた。 */
+  kaenbloom: { nm: "花宴・ヨザクラネクサス", c: "#ff4d6d",
+    desc: "<b>リンクスキル・サブリンク</b>のダメージが<b>50%</b>アップし、"
+      + "<b>味方全員の攻撃力</b>が<b>20%</b>アップ、さらに<b>ボス</b>へのダメージが<b>15%</b>アップ、"
+      + "<b>各WAVEの開始時にチームHPを8%回復</b>する"
+      + "<br><small>※ 花宴祭だけの特別なネクサスです</small>",
+    link: 1.50, atk: 1.20, boss: 1.15, waveHeal: 0.08 },
 };
 /* ネクサススキルのカテゴリ（絞り込み用）。 */
 const NEXUS_CAT = {
@@ -4777,6 +4893,8 @@ const NEXUS_CAT = {
   bunnyfortune: "atk",
   /* ★★ 2026-09-13 SOFT NIGHT FEST のネクサス（火力枠） */
   softnight: "atk",
+  /* ★★ 2026-09-17d 花宴祭のネクサス（火力枠） */
+  kaenbloom: "atk",
   gale: "tempo", ignition: "tempo", tempo: "tempo",
   bond: "support", scout: "support", charge: "support", demolish: "support",
   fortune: "reward", wisdom: "reward",
@@ -11722,6 +11840,155 @@ const CHARS = {
       + "（真ん中で ×" + MSPIR_FINALE + "）。",
   },
   /* ══════════════════════════════════════════════════════════════
+     ★★ 2026-09-17 RISING STAR FEST <b>第4弾 5体</b>（ご指定・性能は相談して決定）
+     ------------------------------------------------------------
+     ・アビリティは<b>8つ</b>＝<b>アンチ3つ＋キラー2つ（天律族キラーEL・パワーオーラEL）＋そのほか3つ</b>。
+       <b>オムニアンチ・治癒の祈り・クロススキルは持たない</b>。そのほか3つは5体で<b>同じ組み合わせを作らない</b>。
+     ・アンチ3つは<b>最適性のキャラが少なかった</b>天界の審判 第十一〜第十五にぴったり一致させた：
+         ソウゲツ（水）→ ⚖第十一の審判（火 {重力バリア・地雷・減速壁}）
+         ナツネ（木）　→ ⚖第十二の審判（水 {重力バリア・ワープ・地雷}）
+         アマネ（火）　→ ⚖第十三の審判（木 {ダメージウォール・地雷・ロックゾーン}）
+         アサヒ（闇）　→ ⚖第十四の審判（光 {ダメージウォール・重力バリア・断絶界}）
+         クオン（光）　→ ⚖第十五の審判（闇 {ダメージウォール・ワープ・減速壁}）
+     ・ステータスは第3弾より<b>一段上</b>（攻撃力 約13,600）。
+     ・フルバーストは5体とも<b>総攻撃</b>、締めがキャラごとに違う。
+     ・リンクは5体とも<b>新規</b>、サブリンクは<b>ホライゾン・コール</b>で統一。
+     ★ 「アカネ」は既存キャラと名前がかぶるので <b>アマネ</b>（id: amane・画像 Amane.webp）にした。
+     ══════════════════════════════════════════════════════════════ */
+  kuon: {
+    id: "kuon", nm: "クオン", img: "Kuon.webp", th: "t_Kuon.webp",
+    el: "light", shot: "bounce", type: "久遠灯華型", gacha: true, fes: true, fesKey: "rising", star5: true,
+    nexus: "risingstar",
+    hp: [1128, 9480], atk: [2152, 13620], spd: [326, 488],
+    abil: [{ t: "superadw" }, { t: "superaw" }, { t: "superaslow" },
+           { t: "judgekillerEL" }, { t: "auraEL" },
+           { t: "fsboostEL" }, { t: "sscharge" }, { t: "barrierEL" }],
+    subfs: "horizoncall",
+    ssName: "クオン・ヘイロー・ランタン", ssTurns: 21, ssKind: "kuon",
+    ssPow: "自強化（攻撃×" + RS4_ATK + "・スピード×" + RS4_SPD + "）＋ <b>味方全員で総攻撃</b>"
+      + "（突撃中に味方が敵にふれるたび<b>光輪を刻む</b>）＋ 締めの灯籠（敵ごとに 攻撃力×" + KUON_BASE
+      + " ＋ 光輪1つにつき +" + KUON_PER + "・最大 ×" + (KUON_BASE + KUON_PER * KUON_CAP) + "）",
+    ssDesc: "金の灯籠がいっせいに灯り、<b>味方全員が敵へ突撃</b>する。"
+      + "<br>突撃のあいだ、<b>味方が敵にふれるたび、その敵に光輪がひとつ刻まれる</b>。"
+      + "<br>締めでは灯籠が弾け、<b>刻んだ光輪の数だけ重い</b>一撃が敵ごとに入る——"
+      + "たくさん殴られた敵ほど重くなる（最大 ×" + (KUON_BASE + KUON_PER * KUON_CAP) + "）。"
+      + "<br>アンチは<b>超アンチダメージウォール＋超アンチワープ＋超アンチ減速壁</b>——"
+      + "この3つで<b>⚖第十五の審判</b>を<b>有利属性のまま</b>完全対応できる。",
+    fsName: "リフレクト・ヘイロー", fsKind: "reflecthalo",
+    fsPow: "盤面の<b>4辺</b>から光の帯が中央へ走る（1辺につき1回 攻撃力×" + RHALO_PER + "・太さ " + RHALO_W
+      + "）＋ <b>中央で交差して炸裂</b>（半径 " + RHALO_R + "・攻撃力×" + RHALO_FINALE + "）",
+    fsDesc: "ふれた味方からではなく、<b>盤面の上下左右の壁</b>から光の帯が内側へ走る。"
+      + "<br>これまでに無いのは<b>壁から撃つ</b>こと——味方がどこにいても、盤面の上半分の敵には上から、"
+      + "左半分の敵には左から、<b>必ず2本</b>届く。"
+      + "<br>4本が中央に集まった瞬間に交差して炸裂し、<b>盤面の真ん中に近い敵</b>にもう一撃が入る。",
+  },
+  asahi: {
+    id: "asahi", nm: "アサヒ", img: "Asahi.webp", th: "t_Asahi.webp",
+    el: "dark", shot: "pierce", type: "紫暁夢見型", gacha: true, fes: true, fesKey: "rising", star5: true,
+    nexus: "risingstar",
+    hp: [1134, 9520], atk: [2146, 13580], spd: [324, 486],
+    abil: [{ t: "superadw" }, { t: "sgrav" }, { t: "award" },
+           { t: "judgekillerEL" }, { t: "auraEL" },
+           { t: "soulEL" }, { t: "fsboostEL" }, { t: "dashL" }],
+    subfs: "horizoncall",
+    ssName: "ブラック・サンライズ", ssTurns: 20, ssKind: "asahi",
+    ssPow: "自強化（攻撃×" + RS4_ATK + "・スピード×" + RS4_SPD + "）＋ <b>味方全員で総攻撃</b> ＋ 締めの<b>黒い日輪</b>"
+      + "（敵全体・攻撃力×" + ASAHI_FINALE + "）＋ <b>敵全体の防御力ダウン " + ASAHI_DEF_TURNS + "ターン</b>",
+    ssDesc: "紫の夜明けの空から、<b>味方全員が敵へ突撃</b>する。"
+      + "<br>突撃が終わると<b>黒い日輪</b>がのぼり、<b>敵全体</b>を焼く（攻撃力×" + ASAHI_FINALE + "）。"
+      + "<br>あわせて<b>敵全体の防御力が " + ASAHI_DEF_TURNS + "ターン下がる</b>ので、"
+      + "次の味方の手番がまるごと重くなる。"
+      + "<br>アンチは<b>超アンチダメージウォール＋超アンチ重力バリア＋アンチ断絶界</b>——"
+      + "この3つで<b>⚖第十四の審判</b>を<b>有利属性のまま</b>完全対応できる。",
+    fsName: "イクリプス・オービット", fsKind: "eclipseorbit",
+    fsPow: "<b>敵ごと</b>に黒い衛星が周回（1周 攻撃力×" + EORB_PER + "・満タンの敵に " + EORB_N
+      + "周／<b>HPが減っている敵ほど速く回り、最大 +" + EORB_EXTRA + "周</b>）＋ 衛星が落ちる締め（攻撃力×" + EORB_FINALE + "）",
+    fsDesc: "敵1体1体のまわりを、<b>小さな黒い衛星</b>が回りはじめる。"
+      + "<br>これまでに無いのは<b>敵のHPで回る速さが変わる</b>こと——"
+      + "満タンの敵には " + EORB_N + "周、<b>瀕死の敵には " + (EORB_N + EORB_EXTRA) + "周</b>。"
+      + "<br>削れている敵ほどたくさん当たるので、<b>とどめを刺しに行くリンク</b>になる。",
+  },
+  sougetsu: {
+    id: "sougetsu", nm: "ソウゲツ", img: "Sougetsu.webp", th: "t_Sougetsu.webp",
+    el: "water", shot: "bounce", type: "蒼花月影型", gacha: true, fes: true, fesKey: "rising", star5: true,
+    nexus: "risingstar",
+    hp: [1122, 9440], atk: [2158, 13660], spd: [327, 490],
+    abil: [{ t: "sgrav" }, { t: "supermsEL" }, { t: "superaslow" },
+           { t: "judgekillerEL" }, { t: "auraEL" },
+           { t: "wallboostEL" }, { t: "fbtouch" }, { t: "regenL" }],
+    subfs: "horizoncall",
+    ssName: "蒼月・アネモネ・フロウ", ssTurns: 20, ssKind: "sougetsu",
+    ssPow: "自強化（攻撃×" + RS4_ATK + "・スピード×" + RS4_SPD + "）＋ <b>味方全員で総攻撃</b>"
+      + "（突撃した味方の通った跡に<b>水の線</b>が残る）＋ 締めの水流（敵ごとに 攻撃力×" + SOUG_BASE
+      + " ＋ 近くを通った線1つにつき +" + SOUG_PER + "・最大 ×" + (SOUG_BASE + SOUG_PER * SOUG_CAP) + "）",
+    ssDesc: "青いアネモネが揺れ、<b>味方全員が敵へ突撃</b>する。"
+      + "<br>突撃した味方の<b>通った跡には水の線</b>が残る。"
+      + "<br>締めでは線が一斉に流れ出し、<b>線が近くを通った敵ほど重い</b>水流が入る"
+      + "（最大 ×" + (SOUG_BASE + SOUG_PER * SOUG_CAP) + "）——味方が走り回った場所ほど強い。"
+      + "<br>アンチは<b>超アンチ重力バリア＋超マインスイーパーEL＋超アンチ減速壁</b>——"
+      + "この3つで<b>⚖第十一の審判</b>を<b>有利属性のまま</b>完全対応できる。",
+    fsName: "ムーン・ティア", fsKind: "moontear",
+    fsPow: "<b>敵の足もとに予告の円</b>（半径 " + MTEAR_R + "・最大 " + MTEAR_MAX + "つ）→ 少し遅れて月の雫が落ちる"
+      + "（1滴 攻撃力×" + MTEAR_PER + "・<b>落ちる瞬間に円の中にいた敵は×" + MTEAR_IN + "</b>）",
+    fsDesc: "ふれた瞬間、<b>すべての敵の足もとに青い円</b>が浮かぶ。"
+      + "<br>これまでに無いのは<b>予告してから少し遅れて落ちる</b>こと——"
+      + "その間に<b>ふっとばされて円から出た敵</b>は×1、<b>円の中にとどまった敵は×" + MTEAR_IN + "</b>。"
+      + "<br>ふっとばしの少ない編成で使うほど、ほぼ全部が×" + MTEAR_IN + "で入る。",
+  },
+  natsune: {
+    id: "natsune", nm: "ナツネ", img: "Natsune.webp", th: "t_Natsune.webp",
+    el: "wood", shot: "pierce", type: "夏音小鳥型", gacha: true, fes: true, fesKey: "rising", star5: true,
+    nexus: "risingstar",
+    hp: [1140, 9560], atk: [2140, 13540], spd: [325, 487],
+    abil: [{ t: "sgrav" }, { t: "superaw" }, { t: "supermsEL" },
+           { t: "judgekillerEL" }, { t: "auraEL" },
+           { t: "fsboostEL" }, { t: "regenL" }, { t: "sscharge" }],
+    subfs: "horizoncall",
+    ssName: "サマーバード・フェスティバル", ssTurns: 19, ssKind: "natsune",
+    ssPow: "自強化（攻撃×" + RS4_ATK + "・スピード×" + RS4_SPD + "）＋ <b>味方全員で総攻撃</b> ＋ 締めの<b>花火</b>"
+      + "（<b>味方の人数ぶん</b>・1発 敵全体へ 攻撃力×" + NATSU_PER + "・最大 " + NATSU_MAX + "発＝×"
+      + (NATSU_PER * NATSU_MAX) + "）＋ <b>チームHPを" + Math.round(NATSU_HEAL * 100) + "%回復</b>",
+    ssDesc: "青い小鳥の合図で、<b>味方全員が敵へ突撃</b>する。"
+      + "<br>突撃が終わると、<b>味方の人数ぶんの花火</b>が夏の空に上がり、1発ずつ<b>敵全体</b>へ降りそそぐ"
+      + "（4人なら ×" + (NATSU_PER * NATSU_MAX) + "）。"
+      + "<br>あわせて<b>チームHPが" + Math.round(NATSU_HEAL * 100) + "%戻る</b>。"
+      + "<br>アンチは<b>超アンチ重力バリア＋超アンチワープ＋超マインスイーパーEL</b>——"
+      + "この3つで<b>⚖第十二の審判</b>を<b>有利属性のまま</b>完全対応できる。",
+    fsName: "サマー・リレー", fsKind: "summerrelay",
+    fsPow: "<b>近い敵から近い敵へ</b>バトンが跳ぶ（1本目 攻撃力×" + SRELAY_PER + "・<b>跳ぶたび +" + SRELAY_STEP
+      + "</b>・同じ敵には戻らない・最大 " + SRELAY_MAX + "本）",
+    fsDesc: "ふれた味方から、<b>いちばん近い敵</b>へ青い小鳥がバトンを運ぶ。"
+      + "<br>そこから<b>まだ受け取っていない敵のうち、いちばん近い敵</b>へ次々と渡していく。"
+      + "<br>これまでに無いのは<b>渡すたびに重くなる</b>こと——"
+      + "敵が多いほど最後のバトンは重い（4体目で ×" + (SRELAY_PER + SRELAY_STEP * 3) + "）。",
+  },
+  amane: {
+    id: "amane", nm: "アマネ", img: "Amane.webp", th: "t_Amane.webp",
+    el: "fire", shot: "bounce", type: "紅天銃華型", gacha: true, fes: true, fesKey: "rising", star5: true,
+    nexus: "risingstar",
+    hp: [1126, 9460], atk: [2164, 13700], spd: [326, 489],
+    abil: [{ t: "superadw" }, { t: "supermsEL" }, { t: "antilock" },
+           { t: "judgekillerEL" }, { t: "auraEL" },
+           { t: "fsdouble" }, { t: "dashL" }, { t: "barrierEL" }],
+    subfs: "horizoncall",
+    ssName: "クリムゾン・アマテラス", ssTurns: 20, ssKind: "amane",
+    ssPow: "自強化（攻撃×" + RS4_ATK + "・スピード×" + RS4_SPD + "）＋ <b>味方全員で総攻撃</b> ＋ 締めの<b>紅炎</b>"
+      + "（敵全体・攻撃力×" + AMANE_FINALE + "）＋ <b>味方全員の攻撃力 ×" + AMANE_TEAM_ATK
+      + "（" + AMANE_TEAM_TURNS + "ターン）</b>",
+    ssDesc: "ネオンの街に紅い光が走り、<b>味方全員が敵へ突撃</b>する。"
+      + "<br>突撃が終わると<b>紅炎</b>が天から落ち、<b>敵全体</b>を焼く（攻撃力×" + AMANE_FINALE + "）。"
+      + "<br>あわせて<b>味方全員の攻撃力が " + AMANE_TEAM_TURNS + "ターン ×" + AMANE_TEAM_ATK + "</b>——"
+      + "総攻撃のあとの手番までまるごと重くなる。"
+      + "<br>アンチは<b>超アンチダメージウォール＋超マインスイーパーEL＋アンチロックゾーン</b>——"
+      + "この3つで<b>⚖第十三の審判</b>を<b>有利属性のまま</b>完全対応できる。",
+    fsName: "クリムゾン・ブーメラン", fsKind: "crimsonboomerang",
+    fsPow: "炎の刃が " + CBOOM_N + "方向へ飛んで<b>戻ってくる</b>（太さ " + CBOOM_W + "・行き 攻撃力×" + CBOOM_PER
+      + "・<b>帰り ×" + (CBOOM_PER * CBOOM_BACK).toFixed(1) + "</b>）",
+    fsDesc: "ふれた味方から、<b>いちばん近い敵の向きを先頭に</b>炎の刃が " + CBOOM_N + "方向へ飛ぶ。"
+      + "<br>これまでに無いのは<b>壁まで届いたら戻ってくる</b>こと——"
+      + "同じ敵を<b>行きと帰りで2回</b>斬り、<b>帰りは×" + CBOOM_BACK + "</b>。",
+  },
+  /* ══════════════════════════════════════════════════════════════
      ★★ 2026-09-06 GRAND DEBUT GACHA の<b>新5体</b>
      ------------------------------------------------------------
      ・アビリティは<b>クロス込みで8つ</b>（素6＝アンチ3＋キラー3 ／ クロス2）。
@@ -13177,6 +13444,66 @@ const CHARS = {
       + "<br>「どこで当てるか」ではなく<b>「敵がどこにいるか」</b>で決まる、"
       + "はじめての位置依存のリンクです。",
   },
+  /* ══════════════════════════════════════════════════════════════
+     ★★ 2026-09-17d 花宴祭 <b>アカツキ</b>（火・貫通・No.250）（ご指定）
+     ------------------------------------------------------------
+     ・<b>全属性有利</b>（elemadv）と<b>全属性キラーEL</b>を持つ。
+     ・<b>オムニアンチ＋治癒の祈り</b>を持ち、アンチは<b>オムニのほかに2つ</b>（アンチロックゾーン・超アンチ減速壁）。
+       オムニ（ダメージウォール・ワープ・地雷・重力バリア）と合わせて、
+       ⚖ 天界の審判の <b>第四・第五・第八・第十一・第十二・第十三・第十五</b>（7つ）に
+       <b>全属性有利のまま</b>完全対応する。
+       ★ ブロック＋ロックゾーンも7つだが、こちらは<b>対応キャラの少ない審判（第十一4体・第十二3体・第十五4体）</b>を
+         まとめて埋められるので、ロックゾーン＋減速壁にした（実測: 審判ごとの完全対応キャラ数から選んだ）。
+     ・キラーは<b>ちょうど2つ</b>（全属性キラーEL・天律族キラーEL）。<b>クロススキルは持たない</b>。
+     ・アビリティは<b>10個</b>（ご指定）：アンチ3（オムニ・ロック・減速壁）／キラー2／全属性有利／治癒の祈り／
+       リンクブーストEL／リンク×2／FBターンチャージ。
+     ・フルバーストは<b>乱打</b>（72連）＋千本桜。合計はクミコ＆レイナ（×1153.8）を超える。
+     ・治癒の祈りのカットインは<b>SS絵</b>（img/ss/AkatsukiSS.webp・index.html の SS_ART）。
+     ══════════════════════════════════════════════════════════════ */
+  akatsuki: {
+    id: "akatsuki", nm: "アカツキ", img: "Akatsuki.webp", th: "t_Akatsuki.webp",
+    el: "fire", shot: "pierce", type: "緋桜宴舞型",
+    gacha: true, fes: true, fesKey: "kaen", lux: true,
+    nexus: "kaenbloom", star5: true,
+    hp: [1282, 8360], atk: [2306, 14620], spd: [360, 540],
+    abil: [{ t: "omni" }, { t: "antilock" }, { t: "superaslow" },
+           { t: "allkillerEL" }, { t: "judgekillerEL" },
+           { t: "elemadv" }, { t: "pray" },
+           { t: "fsboostEL" }, { t: "fsdouble" }, { t: "sscharge" }],
+    subfs: "benilantern",
+    ssName: "ハナウタゲ・センボンザクラ", ssTurns: 30, ssKind: "akatsuki",
+    ssPow: "自強化（攻撃×" + AKA_ATK + "・スピード×" + AKA_SPD + "）＋ "
+      + "最初にふれた敵の上で止まって<b>緋桜の乱打 " + AKA_BARRAGE_N + "連</b>"
+      + "（1発 攻撃力×" + AKA_BARRAGE_PER + "・撃つごとに +" + AKA_BARRAGE_STEP + "）"
+      + " ＋ <b>千本桜</b>（敵全体・攻撃力×" + AKA_FINALE + "）"
+      + " ＋ <b>チームHPを" + Math.round(AKA_HEAL * 100) + "%回復</b>"
+      + " ＋ <b>敵全体の防御力ダウン " + AKA_DEFDOWN + "ターン</b>"
+      + " ＋ <b>味方全員の攻撃力 ×" + AKA_TEAM_ATK + "（" + AKA_TEAM_TURNS + "ターン）</b>／"
+      + "合計 攻撃力×" + AKA_TOTAL.toFixed(1),
+    ssDesc: "紅い月の夜、千年桜の下で<b>花の宴</b>がはじまる。"
+      + "<br><b>自強化（攻撃×" + AKA_ATK + "・スピード×" + AKA_SPD + "）</b>して、"
+      + "<b>最初にふれた敵の上でいったん止まり</b>、緋桜の刃を<b>" + AKA_BARRAGE_N + "連</b>——"
+      + "撃つほど重くなる（×" + AKA_BARRAGE_PER + " → ×"
+      + (AKA_BARRAGE_PER + AKA_BARRAGE_STEP * (AKA_BARRAGE_N - 1)).toFixed(2) + "）。"
+      + "<br>斬り終わると盤面いっぱいに<b>千本桜</b>が舞い、敵全体へ 攻撃力×" + AKA_FINALE + "。"
+      + "そのまま<b>チームHPを" + Math.round(AKA_HEAL * 100) + "%戻し</b>、"
+      + "<b>敵全体の防御力を " + AKA_DEFDOWN + "ターン</b>下げ、"
+      + "<b>味方全員の攻撃力を " + AKA_TEAM_TURNS + "ターン ×" + AKA_TEAM_ATK + "</b>にします。"
+      + "<br>合計 攻撃力×" + AKA_TOTAL.toFixed(1) + " ——"
+      + "<b>MagiBurst 史上最大のフルバースト</b>です（これまでの1位はクミコ＆レイナ ×" + KUMI_TOTAL.toFixed(1) + "）。",
+    fsName: "チヨザクラ・ブランチ", fsKind: "chiyobranch",
+    fsPow: "桜の枝が<b>全部の敵</b>へ伸びる（1代目 攻撃力×" + AKB_GEN1 + "）→ "
+      + "<b>それぞれいちばん近い2体へ枝分かれ</b>（2代目 ×" + AKB_GEN2 + "）→ "
+      + "<b>もう一度枝分かれ</b>（3代目 ×" + AKB_GEN3 + "）／"
+      + "<b>" + AKB_BLOOM + "本以上とどいた敵は満開</b>（攻撃力×" + AKB_FIN + "）／"
+      + "敵4体のとき 合計 攻撃力×" + AKB_TOTAL4.toFixed(1),
+    fsDesc: "ふれた味方から、紅い月の光をまとった<b>千代桜の枝</b>が伸びる。"
+      + "<br>これまでに無いのは<b>枝が敵から敵へ「枝分かれ」して増えていく</b>こと——"
+      + "1代目は<b>全部の敵</b>へ1本ずつ、そこから<b>いちばん近い2体</b>へ2本ずつ、さらにもう一度2本ずつ。"
+      + "<br>代を重ねるほど枝は重くなり（×" + AKB_GEN1 + " → ×" + AKB_GEN2 + " → ×" + AKB_GEN3 + "）、"
+      + "<b>敵が固まっているほど同じ敵に枝が集まり</b>、" + AKB_BLOOM + "本以上とどいた敵は<b>満開</b>してもう一撃。"
+      + "<br>枝分かれ先がいないとき（ボス1体など）は<b>同じ敵へ返り咲く</b>ので、単体にもしっかり届きます。",
+  },
   kumireina: {
     id: "kumireina", nm: "クミコ＆レイナ", img: "KumikoReina.webp", th: "t_KumikoReina.webp",
     el: "fire", el2: "light", shot: "pierce", type: "双奏協奏型",
@@ -13694,7 +14021,11 @@ const CHAR_IDS = [
   /* ══ ★★ 2026-09-13 極華祭 クミコ＆レイナ（No.239）══ */
   "kumireina",                                         /* No.239 極華祭 */
   /* ══ ★★ 2026-09-13 GRAND DEBUT GACHA Ver.8.0（No.240〜244）══ */
-  "miya", "emika", "uta", "shiho", "kiduki",           /* No.240〜244 */                           /* No.213〜215 戦姫祭 第3弾 */
+  "miya", "emika", "uta", "shiho", "kiduki",           /* No.240〜244 */
+  /* ══ ★★ 2026-09-17 RISING STAR FEST 第4弾（No.245〜249）══ */
+  "kuon", "asahi", "sougetsu", "natsune", "amane",     /* No.245〜249 */
+  /* ══ ★★ 2026-09-17d 花宴祭（No.250）══ */
+  "akatsuki",                                          /* No.250 花宴祭 */                           /* No.213〜215 戦姫祭 第3弾 */
 ];
 /* id → キャラクター番号（1始まり）。図鑑・詳細・ガチャ結果に「No.XX」として出す */
 const CHAR_NO = {};
@@ -13830,6 +14161,14 @@ const CHAR_TYPE = {
      ここに無いキャラは「バランス型」で表示・絞り込みされてしまう。
      ★ 新キャラを足したら CHAR_IDS / MB_CHAR_MASTER / MB_STAR5 とあわせて<b>ここも</b>。
      ★ 検算: CHAR_IDS.filter(id => !CHAR_TYPE[id]) が空であること。 */
+  /* ── ★★ 2026-09-17d 花宴祭 ── */
+  akatsuki: "striker",  /* アカツキ：乱打FB＋全属性有利＋全属性キラーEL */
+  /* ── ★★ 2026-09-17 RISING STAR FEST 第4弾 ── */
+  kuon:     "cannon",   /* クオン：リンクブーストEL＋盤面の4辺から撃つリンク */
+  asahi:    "striker",  /* アサヒ：ソウルスティールEL＋防御力ダウンの総攻撃 */
+  sougetsu: "trick",    /* ソウゲツ：ウォールブーストEL＋予告して落とすリンク */
+  natsune:  "support",  /* ナツネ：リジェネL＋チーム回復の総攻撃 */
+  amane:    "striker",  /* アマネ：リンク2回発動＋味方全員の攻撃力アップ */
   /* ── ★★ 2026-09-08 戦姫祭 第3弾 ── */
   reia:    "cannon",    /* レイア：味方の立ち位置が威力になる陣のリンク */
   miori:   "cannon",    /* ミオリ：奪った時間が威力になるリンク */
@@ -14120,7 +14459,7 @@ const WISDOM_LV = 3;
 const ITEMS = {
   /* ★ 2026-08-12 上限は「そのキャラの上限」＝超越の書を使ってあれば Lv.60 まで上がる。
      ここに Lv.50 と書いてあると、解放済みのキャラでも 50 で止まるように読めてしまう。 */
-  wisdom: { id: "wisdom", nm: "叡智の果実", c: "#7ce8ff", icon: "🍐", desc: "使ったキャラのレベルが必ず" + WISDOM_LV + "つ上がる（そのキャラのレベル上限まで／📕超越の書を使ってあれば Lv." + TRANS_LV + " まで）。<b>まとめて使えます</b>" },
+  wisdom: { id: "wisdom", nm: "叡智の果実", c: "#7ce8ff", icon: "🍐", desc: "使ったキャラのレベルが必ず" + WISDOM_LV + "つ上がる（そのキャラのレベル上限まで／📕超越の書を使ってあれば Lv." + TRANS_LV + " まで）。<b>まとめて使えます</b>。<br>★ <b>ガチャでだけ</b>手に入り、<b>MagiBocciaRush と所持数を共有</b>しています（あちらでは1個で熟練度 Lv.+1）" },
   hero:   { id: "hero",   nm: "英傑の証",   c: "#f0c040", icon: "🎖️", desc: "使ったキャラの「ルーン」の装備枠を 2 → 3 に解放する（1キャラにつき1回だけ）" },
   /* ★ v12: 黄昏の王城／禁忌の迷宮 を全部屋クリアするともらえる。1体のレベル上限を60まで解放する */
   trans:  { id: "trans",  nm: "超越の書",   c: "#a86bff", icon: "📕", desc: "使ったキャラのレベル上限を 50 → 60 に解放する（1キャラにつき1回だけ）。さらに上の <b>Lv." + JADE_LV + "</b> は 🪭九天の玉簡 で解放できる" },
@@ -16148,6 +16487,39 @@ function drawFsGlyph(kind, c, g) {
 
     /* ══ ★★ 2026-09-13 極華祭 クミコ＆レイナ（リンク1本＋サブリンク1本）══
        ★ サブリンク（twinreed）は SUB_GLYPH_FALLBACK に入れてあるので絵はここ1つでよい。 */
+    /* ══ ★★ 2026-09-17d 花宴祭 アカツキ（リンク1本＋サブリンク1本）══
+       ★ サブリンク（benilantern）は SUB_GLYPH_FALLBACK に入れてあるので絵はここ1つでよい。 */
+    case "chiyobranch": {    /* チヨザクラ・ブランチ（幹から2本ずつ枝分かれ＋先端の花） */
+      ctx.lineWidth = 1.9;
+      ctx.beginPath(); ctx.moveTo(0, 11); ctx.lineTo(0, 3); ctx.stroke();                 /* 幹 */
+      ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.moveTo(0, 3); ctx.lineTo(-6, -3); ctx.moveTo(0, 3); ctx.lineTo(6, -3); ctx.stroke();
+      ctx.lineWidth = 1.1;
+      [[-6, -3], [6, -3]].forEach(([x, y]) => {
+        ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x - 3.6, y - 6); ctx.moveTo(x, y); ctx.lineTo(x + 3.6, y - 6); ctx.stroke();
+      });
+      [[-9.6, -9], [-2.4, -9], [2.4, -9], [9.6, -9]].forEach(([x, y]) => {
+        for (let k = 0; k < 5; k++) {
+          const a = k * Math.PI * 2 / 5;
+          ctx.beginPath(); ctx.arc(x + Math.cos(a) * 1.5, y + Math.sin(a) * 1.5, 1.05, 0, Math.PI * 2); ctx.fill();
+        }
+      });
+      ctx.lineWidth = 2; break;
+    }
+    case "benilantern": {    /* ベニチョウチン・リターン（外へ広がって戻る輪と提灯） */
+      ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.arc(0, 0, 10.4, -Math.PI * 0.85, Math.PI * 0.35); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(10.4 * Math.cos(Math.PI * 0.35), 10.4 * Math.sin(Math.PI * 0.35));
+      ctx.lineTo(10.4 * Math.cos(Math.PI * 0.35) - 3.4, 10.4 * Math.sin(Math.PI * 0.35) - 0.6); ctx.stroke();
+      ctx.globalAlpha = .55;
+      ctx.beginPath(); ctx.arc(0, 0, 6.2, Math.PI * 0.2, Math.PI * 1.3); ctx.stroke();
+      ctx.globalAlpha = 1;
+      /* 提灯 */
+      ctx.beginPath(); ctx.ellipse(0, 0.6, 3.2, 4.2, 0, 0, Math.PI * 2); ctx.fill();
+      ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.moveTo(-2, -4.2); ctx.lineTo(2, -4.2); ctx.moveTo(-2, 5.4); ctx.lineTo(2, 5.4); ctx.stroke();
+      ctx.lineWidth = 2; break;
+    }
     case "crescoct": {       /* クレッシェンド・オクターブ（上がるほど輪が広がる音） */
       /* 右上へ高くなる音符の並び＋そのまわりに広がる輪 */
       ctx.lineWidth = 1.3; ctx.globalAlpha = .45;
@@ -16453,6 +16825,59 @@ function drawFsGlyph(kind, c, g) {
       ctx.beginPath(); ctx.arc(-10.2, -1.4, 3.6, 0, Math.PI); ctx.stroke();
       ctx.beginPath(); ctx.moveTo(10.2, -6.6); ctx.lineTo(10.2, -3.8); ctx.stroke();
       ctx.beginPath(); ctx.arc(10.2, -3.8, 3.0, 0, Math.PI); ctx.stroke();
+      ctx.lineWidth = 2; break;
+    }
+    /* ══ ★★ 2026-09-17 RISING STAR FEST 第4弾の新リンク5つ＋共通サブリンク ══ */
+    case "reflecthalo": {    /* リフレクト・ヘイロー（4辺から内へ走る帯＋中央の交差） */
+      ctx.lineWidth = 1.8;
+      ctx.strokeRect(-11, -11, 22, 22);
+      [[0, -11, 0, -4], [0, 11, 0, 4], [-11, 0, -4, 0], [11, 0, 4, 0]].forEach(([a, b, c2, d]) => {
+        ctx.beginPath(); ctx.moveTo(a, b); ctx.lineTo(c2, d); ctx.stroke();
+      });
+      ctx.beginPath(); ctx.arc(0, 0, 2.8, 0, Math.PI * 2); ctx.fill();
+      ctx.lineWidth = 2; break;
+    }
+    case "eclipseorbit": {   /* イクリプス・オービット（敵のまわりを回る衛星） */
+      ctx.lineWidth = 1.7;
+      ctx.beginPath(); ctx.arc(0, 0, 4.4, 0, Math.PI * 2); ctx.stroke();
+      ctx.globalAlpha = .55;
+      ctx.beginPath(); ctx.ellipse(0, 0, 11, 6, -0.5, 0, Math.PI * 2); ctx.stroke();
+      ctx.globalAlpha = 1;
+      [[9.4, -4.9], [-9.4, 4.9]].forEach(([x, y]) => { ctx.beginPath(); ctx.arc(x, y, 2.2, 0, Math.PI * 2); ctx.fill(); });
+      ctx.lineWidth = 2; break;
+    }
+    case "moontear": {       /* ムーン・ティア（予告の円と落ちる雫） */
+      ctx.lineWidth = 1.7;
+      ctx.setLineDash([2.2, 2.2]);
+      ctx.beginPath(); ctx.ellipse(0, 7.4, 9.6, 3.6, 0, 0, Math.PI * 2); ctx.stroke();
+      ctx.setLineDash([]);
+      ctx.beginPath(); ctx.moveTo(0, -11.2); ctx.quadraticCurveTo(5.6, -2.4, 0, 2.6); ctx.quadraticCurveTo(-5.6, -2.4, 0, -11.2); ctx.fill();
+      ctx.lineWidth = 2; break;
+    }
+    case "summerrelay": {    /* サマー・リレー（点から点へ跳ぶバトン） */
+      ctx.lineWidth = 1.6;
+      const pts = [[-10, 7], [-3, -6], [5, 4], [10, -8]];
+      ctx.beginPath(); pts.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y))); ctx.stroke();
+      pts.forEach(([x, y], i) => { ctx.beginPath(); ctx.arc(x, y, 1.5 + i * 0.55, 0, Math.PI * 2); ctx.fill(); });
+      ctx.lineWidth = 2; break;
+    }
+    case "crimsonboomerang": {  /* クリムゾン・ブーメラン（行って戻る刃） */
+      ctx.lineWidth = 1.9;
+      ctx.beginPath(); ctx.moveTo(-10, 6); ctx.quadraticCurveTo(-2, -10, 10, -6); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(10, -6); ctx.lineTo(5.6, -8.8); ctx.moveTo(10, -6); ctx.lineTo(6.6, -2.4); ctx.stroke();
+      ctx.globalAlpha = .55;
+      ctx.beginPath(); ctx.moveTo(9, 9); ctx.quadraticCurveTo(0, 4, -8, 10); ctx.stroke();
+      ctx.globalAlpha = 1;
+      ctx.lineWidth = 2; break;
+    }
+    case "horizoncall": {    /* ホライゾン・コール（横一文字に広がる帯） */
+      ctx.lineWidth = 1.6;
+      [[2.2, 1], [5.6, .6], [9.4, .32]].forEach(([h, a]) => {
+        ctx.globalAlpha = a;
+        ctx.beginPath(); ctx.moveTo(-11.4, -h); ctx.lineTo(11.4, -h); ctx.moveTo(-11.4, h); ctx.lineTo(11.4, h); ctx.stroke();
+      });
+      ctx.globalAlpha = 1;
+      ctx.beginPath(); ctx.arc(0, 0, 2.4, 0, Math.PI * 2); ctx.fill();
       ctx.lineWidth = 2; break;
     }
     case "starburstwave": {  /* スターバースト・ウェイブ（広がるほど大きくなる波） */
@@ -16905,10 +17330,14 @@ function drawFsGlyph(kind, c, g) {
 const SUB_GLYPH_FALLBACK = new Set([
   /* ★★ 2026-09-06 新しい共通サブリンク2本（絵は drawFsGlyph 側に1つだけ置く） */
   "starburstwave", "debutchord",
+  /* ★★ 2026-09-17 RISING STAR FEST 第4弾の共通サブリンク */
+  "horizoncall",
   /* ★★ 2026-09-11 BUNNY GIRL FEST の共通サブリンク／極華祭 カグラのサブリンク */
   "luckyheart", "higanpetal",
   /* ★★ 2026-09-13 SOFT NIGHT FEST の共通サブリンク／極華祭 クミコ＆レイナのサブリンク */
   "moonphase", "twinreed",
+  /* ★★ 2026-09-17d 花宴祭 アカツキのサブリンク */
+  "benilantern",
   /* ★★ 2026-09-13 GRAND DEBUT Ver.8.0 の共通サブリンク */
   "fanletter",
   "wallcircuit",     /* ウォールサーキットリング（カホのサブリンク。これが無くて絵が真っ白だった） */
@@ -21021,7 +21450,7 @@ function charSourceList(id) {
   const out = [];
   const fesLabel = (f) => f.nm
     + (f.monthly ? "（毎月" + f.monthly[0] + "日〜" + (f.monthly[1] >= 31 ? "末日" : f.monthly[1] + "日") + "）"
-      : f.luxGacha ? "（常時開催）" : "");
+      : f.perm ? "（無期限開催）" : f.luxGacha ? "（常時開催）" : "");
   /* ① フェス限定（Festival Archive はあとから封入されるほうなので別あつかい） */
   Object.keys(FESTS).forEach((k) => {
     const f = FESTS[k];
@@ -22057,6 +22486,8 @@ FESTS.fes11 = {
   key: "fes11", sfx: "11", nm: "戦姫祭", tab: "戦姫祭",
   banner: "../img/bn_fes11_s.webp", c: "#e0405e", leadCls: "star",
   luxGacha: true, noFesTicket: true, senki: true,
+  /* ★★ 2026-09-17f <b>無期限開催</b>の表記を付ける（ご指定）。luxGacha なので期間の動きはもともと無期限——perm は表記のためのしるし */
+  perm: true,
   since: "2026-08-29",
   /* ★★ 2026-09-06 新3体（レイ・リカ・アンナ＆ラン）を追加＝計10体。
      ★ 排出は「新キャラは今までどおりの確率／古いキャラは各0.2%」（ご指定）。
@@ -22087,7 +22518,7 @@ FESTS.fes11 = {
       + (nw ? "<b>新" + nw + "体（" + nms + "）は各" + ratePct(PICK_LUX) + "</b>、のこり" + od + "体は"
            : "<b>全" + od + "体</b>が実装から" + NEW_CHAR_DAYS + "日を過ぎているので")
       + "<b>各" + ratePct(PICK_OLD) + "</b>／<b>残りは " + PREMIUM_NM + " のSSRが等確率</b>。"
-      + "<b>常時開催</b>です（🎫フェス券は使えません）";
+      + "<b>無期限開催</b>です（🎫フェス券は使えません）";
   },
   note: "<b>★★ 2026-09-08 <b>レイア（火）・ミオリ（闇）・アンナ(メイド)（光）</b>の3体が加わりました。</b>"
     + "この3体は<b>MagiBurst 史上最強</b>です——"
@@ -22137,7 +22568,7 @@ FESTS.fes11 = {
     + "これまでの7体は<b>各" + ratePct(PICK_OLD) + "</b>です"
     + "（10連の<b>確定枠</b>はこれまでどおり、このガチャで出るSSR全部から等確率）。"
     + "<br><br><b>ラン・クレナイ・ユキ・マリカ・ユウカ・アンナ(STAR)・アンナ(祭)</b>も"
-    + "そのまま登場する<b>常時開催</b>のガチャです。"
+    + "そのまま登場する<b>無期限開催</b>のガチャです。"
     + "極彩祭・極華祭・極煌祭と同じ<b>限定キャラクター</b>あつかいで、"
     + "<b>🎫フェスチケットは使えません</b>（🎫ガチャチケットは使えます）。"
     + "<br>7体とも<b>アビリティを10個</b>持ちます（MagiBurst 初）——"
@@ -22199,9 +22630,12 @@ FESTS.fes12 = {
   pickEach: PICK_LUX,
   /* ★★ 2026-09-03 第2弾の4体を追加（計8体）。1体あたりの確率は PICK_FES のまま。 */
   /* ★★ 2026-09-06 第3弾5体（ヨイヅキ・カヨ・シノ・マアヤ・アスカ）を追加＝計13体。 */
-  chars: ["yoiduki", "kayo", "shino", "maaya", "asuka",
+  /* ★★ 2026-09-17 第4弾5体（クオン・アサヒ・ソウゲツ・ナツネ・アマネ）を追加＝計18体。
+     新5体 1.2%×5＝6.0% ＋ ほか13体 0.4%×13＝5.2% ＝ 11.2%（SSR 合計 12% の中におさまる）。 */
+  chars: ["kuon", "asahi", "sougetsu", "natsune", "amane",
+          "yoiduki", "kayo", "shino", "maaya", "asuka",
           "riona", "mireir", "suzuhar", "seirak", "shizuru", "yuuri", "hisui", "raika"],
-  newChars: ["yoiduki", "kayo", "shino", "maaya", "asuka"],
+  newChars: ["kuon", "asahi", "sougetsu", "natsune", "amane"],
   itemTable: D_ITEM_TABLE,
   /* ★★ 2026-09-08 人数はゲッターで毎回数える（新キャラは10日で外れるため） */
   get lead() {
@@ -22218,9 +22652,14 @@ FESTS.fes12 = {
            : "<b>全" + od + "体</b>が実装から" + NEW_CHAR_DAYS + "日を過ぎているので")
       + "<b>各" + ratePct(PICK_OLD) + "</b>／<b>残りは "
       + PREMIUM_NM + " のSSRが等確率</b>。キャラ以外の中身は <b>Starlight Academy Fest 2 と同じ</b>で、"
-      + "<b>🎫フェスチケットが使えます</b>";
+      + "<b>🎫フェスチケットが使えます</b>。<b>無期限開催</b>です";
   },
-  note: "<b>★★ 2026-09-06 第3弾</b>：<b>ヨイヅキ（水）・カヨ（木）・シノ（光）・マアヤ（闇）・アスカ（火）</b>。"
+  note: "<b>★★ 2026-09-17 第4弾</b>：<b>クオン（光）・アサヒ（闇）・ソウゲツ（水）・ナツネ（木）・アマネ（火）</b>。"
+    + "<br>この5体は<b>⚖ 天界の審判の第十一〜第十五</b>を有利属性のまま完全対応します——"
+    + "<b>ソウゲツ＝第十一／ナツネ＝第十二／アマネ＝第十三／アサヒ＝第十四／クオン＝第十五の審判</b>。"
+    + "<br>キラーは5体とも<b>天律族キラーEL＋パワーオーラEL</b>。フルバーストは5体とも<b>味方全員で総攻撃</b>（締めがキャラごとに違います）。"
+    + "<br>リンクスキルは5体とも<b>新しい挙動</b>、共通サブリンクは<b>ホライゾン・コール</b>です。"
+    + "<br><br><b>★★ 2026-09-06 第3弾</b>：<b>ヨイヅキ（水）・カヨ（木）・シノ（光）・マアヤ（闇）・アスカ（火）</b>。"
     + "<br>この5体は<b>⚖ 天界の審判</b>を有利属性のまま完全対応します——"
     + "<b>ヨイヅキ＝第一／カヨ＝第二／シノ＝第五／マアヤ＝第九／アスカ＝第八の審判</b>。"
     + "<br>キラーは5体とも<b>天律族キラーEL（新設）＋ 属性キラーEL ＋ もう1つ</b>。"
@@ -22463,6 +22902,45 @@ FESTS.fes14 = {
 };
 
 /* ══════════════════════════════════════════════════════════════
+   ★★ 2026-09-17d 花宴祭（fes15）＝<b>無期限開催</b>の限定キャラクターのガチャ（ご指定）
+   ------------------------------------------------------------
+   ・登場するのは<b>アカツキ（火・貫通）</b>1体。
+   ・戦姫祭と同じく <b>luxGacha</b>（1体1.2%・🎫フェス券は使えない・アーカイブに入らない）。
+   ・ガチャ一覧では<b>開催中の極◯祭のすぐ下</b>（ご指定）。その位置決めのために <b>kaen</b> の印を付ける。
+   ══════════════════════════════════════════════════════════════ */
+FESTS.fes15 = {
+  key: "fes15", sfx: "15", nm: "花宴祭", tab: "花宴祭",
+  banner: "../img/bn_fes15_s.webp", c: "#ff4d6d", leadCls: "star",
+  luxGacha: true, noFesTicket: true, perm: true, kaen: true,
+  since: "2026-09-17",
+  chars: ["akatsuki"],
+  newChars: ["akatsuki"],
+  newSince: "2026-09-17",
+  itemTable: D_ITEM_TABLE,
+  get lead() {
+    return "花宴祭の限定SSR <b>アカツキ</b>（" + ratePct(pickRateOf("fes15", "akatsuki")) + "）に加えて、<b>"
+      + PREMIUM_NM + "のSSRも排出</b>（SSR合計 " + ratePct(SSR_TOTAL) + "）";
+  },
+  get sub() {
+    return "花宴祭の限定SSR <b>1体</b>（" + ratePct(pickRateOf("fes15", "akatsuki")) + "）／<b>残りは "
+      + PREMIUM_NM + " のSSRが等確率</b>。<b>無期限開催</b>です（🎫フェス券は使えません）";
+  },
+  get note() {
+    return "<b>★★ 2026-09-17 花宴祭</b>：<b>アカツキ（火・貫通）</b>。"
+      + "<br>★ <b>全属性有利</b>と<b>全属性キラーEL</b>を持ち、<b>オムニアンチ＋治癒の祈り</b>、"
+      + "アンチは<b>アンチロックゾーン＋超アンチ減速壁</b>の2つ。"
+      + "<b>⚖ 天界の審判の第四・第五・第八・第十一・第十二・第十三・第十五</b>を<b>有利属性のまま</b>完全対応します。"
+      + "<br>★ キラーは<b>全属性キラーEL＋天律族キラーEL</b>、アビリティは<b>10個</b>（クロススキルは持ちません）。"
+      + "<br>★ フルバースト<b>ハナウタゲ・センボンザクラ</b>は乱打" + AKA_BARRAGE_N + "連＋千本桜——"
+      + "合計 攻撃力×" + AKA_TOTAL.toFixed(1) + " で<b>MagiBurst 史上最大</b>。"
+      + "<br>★ リンクスキル<b>チヨザクラ・ブランチ</b>は<b>枝が敵から敵へ枝分かれして増えていく</b>、これまでに無い形。"
+      + "サブリンク<b>ベニチョウチン・リターン</b>は<b>広がった輪が戻ってくる</b>（帰りのほうが重い）。"
+      + "<br>★ ネクサスは<b>花宴・ヨザクラネクサス</b>（リンク +50% ／ 攻撃力 +20% ／ ボス +15% ／ 各WAVE開始時にチームHP +8%）。"
+      + "<br>★ " + fesPeriodText("fes15") + "。";
+  },
+};
+
+/* ══════════════════════════════════════════════════════════════
    ★★ 2026-08-28 Festival Archive GACHA（archive）
    ・<b>20日を過ぎたフェスガチャの限定キャラ</b>だけが封入される（ご指定）。
    ・そのなかから<b>属性ごとに1体ずつ・計5体</b>をピックアップして引く。
@@ -22508,6 +22986,23 @@ function fesInMonthly(f) {
   const d = new Date().getDate();
   return d >= (m[0] | 0) && d <= (m[1] | 0);
 }
+/* ★★ 2026-09-17g 毎月まわる極◯祭の<b>今回の開催があと何日か</b>（ご指定）。
+   開催中でなければ空文字。終わりの日は monthly[1] と<b>その月の末日の小さいほう</b>、今日も1日に数える
+   （fesDaysLeft と同じ数え方＝最終日は「あと1日」）。 */
+function fesMonthlyLeft(f) {
+  const m = f && f.monthly;
+  if (!m || !fesInMonthly(f)) return 0;
+  const now = new Date();
+  const last = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  return Math.max(1, Math.min(m[1] | 0, last) - now.getDate() + 1);
+}
+function fesMonthlyLeftText(f) {
+  const n = fesMonthlyLeft(f);
+  if (!n) return "";
+  const now = new Date();
+  const last = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+  return "今回はあと" + n + "日（" + (now.getMonth() + 1) + "/" + Math.min(f.monthly[1] | 0, last) + "まで）";
+}
 /* 次にその期間が始まる日（「◯月◯日から」を出すのに使う） */
 function fesNextMonthlyText(f) {
   const m = f && f.monthly; if (!m) return "";
@@ -22529,6 +23024,13 @@ function fesSoon(key) {
 function fesLocked(key) {
   return fesSoon(key) || fesEnded(key);
 }
+/* ★★ 2026-09-17d 「顔ぶれを ? で伏せるか」は<b>本当に始まる前（openAt の前）だけ</b>（ご指定）。
+   毎月まわってくる極◯祭は、期間外でも<b>回せないだけ</b>でキャラはもう知られているので伏せない。
+   ★ 回せるか（fesLocked）と、伏せるか（fesVeiled）は<b>別の問い</b>。混ぜないこと。 */
+function fesVeiled(key) {
+  const f = fesDef(key);
+  return beforeOpen(f.openAt);
+}
 function fesOpenText(f) {
   /* ★★ 2026-08-28 配信が終わったフェスは「終了」と出す（開催前とは別の文にする） */
   if (f && fesTimed(f) && fesToday() >= fesAddDays(f.since, FES_DAYS)) {
@@ -22546,7 +23048,7 @@ function fesOpenText(f) {
 /* ★ 2026-08-10 バナーのパスはページごとに変わる（MagiBurst は "../img/"、ポータルは "img/"）。
    定義には "../img/…" と書いてあるので、ここで IMGD に置き換えてから返す。 */
 function mbImgPath(p) { return String(p || "").replace(/^\.\.\/img\//, GIMGD); }
-function fesBannerOf(key) { const f = fesDef(key); return mbImgPath((fesLocked(key) && f.bannerSoon) || f.banner); }
+function fesBannerOf(key) { const f = fesDef(key); return mbImgPath((fesVeiled(key) && f.bannerSoon) || f.banner); }
 /* そのキャラが属するフェス（fesKey 未指定のキャラは v14 の Nocturne Bloom Fest 扱い） */
 const FESKEY_MAP = { luminous: "fes2", phantom: "fes3", aoka: "fes4", starlight: "fes5", starlight2: "fes6",
   /* ★★ 2026-08-27 極彩祭・極煌祭 */
@@ -22560,7 +23062,12 @@ const FESKEY_MAP = { luminous: "fes2", phantom: "fes3", aoka: "fes4", starlight:
      図鑑の「入手方法」に<b>まちがったガチャの名前</b>が出ていた。 */
   rising: "fes12",
   /* ★★ 2026-09-11 BUNNY GIRL FEST */
-  bunny: "fes13" };
+  bunny: "fes13",
+  /* ★★ 2026-09-17d <b>足しわすれの修正</b>: SOFT NIGHT FEST（softnight）がここに無く、
+     図鑑の「入手方法」が既定の Nocturne Bloom Fest になっていた。 */
+  softnight: "fes14",
+  /* ★★ 2026-09-17d 花宴祭 */
+  kaen: "fes15" };
 function fesKeyOf(id) { const c = CHARS[id]; return c && c.fes ? (FESKEY_MAP[c.fesKey] || "fes") : null; }
 function fesNameOf(id) { const k = fesKeyOf(id); return k ? fesDef(k).nm : ""; }
 const FES_ALL_CHARS = FES_KEYS.reduce((a, k) => a.concat(FESTS[k].chars), []);
@@ -23219,12 +23726,14 @@ function firstGachaMode() {
      ここを FES_KEYS の順（＝定義順）のままにすると、新しいフェスが下に沈む。
    ══════════════════════════════════════════════════════════════ */
 function gachaMenuList() {
-  const lux = [], senki = [], bunny = [], soft = [], rising = [], fes = [], luxOff = [], ended = [];
+  const lux = [], kaen = [], senki = [], bunny = [], soft = [], rising = [], fes = [], luxOff = [], ended = [];
   FES_KEYS.forEach((k) => {
     if (k === ARCHIVE_KEY) return;                       /* アーカイブは⑥（下で足す） */
     const f = fesDef(k);
     const row = { k, nm: f.nm, c: f.c, since: f.since || "",
       sub: fesLocked(k) ? fesOpenText(f)
+        /* ★★ 2026-09-17g 極◯祭は今回の残り日数 */
+        : f.monthly ? (f.noFesTicket ? "限定キャラクター・🎫ガチャ券のみ" : "限定キャラクター・🎫チケット優先") + "／" + fesMonthlyLeftText(f)
         : (fesTimed(f) ? "フェス限定SSR・🎫チケット優先／あと" + fesDaysLeft(k) + "日"
               /* ★★ 2026-09-13 無期限開催は「あと◯日」でなくそう書く */
               : (fesPerm(f) ? (f.noFesTicket ? "限定キャラクター・🎫ガチャ券のみ／無期限開催"
@@ -23232,7 +23741,9 @@ function gachaMenuList() {
                        : (f.noFesTicket ? "限定キャラクター・🎫ガチャ券のみ"
                                         : "限定キャラクター・🎫チケット優先"))),
       soon: fesLocked(k), ended: fesEnded(k) };
-    if (f.senki) senki.push(row);
+    /* ★★ 2026-09-17d 花宴祭は<b>開催中の極◯祭のすぐ下</b>（ご指定） */
+    if (f.kaen) kaen.push(row);
+    else if (f.senki) senki.push(row);
     /* ★★ 2026-09-11 BUNNY GIRL FEST は<b>戦姫祭のすぐ下</b>（ご指定）。
        期間つきのふつうのフェスガチャなので、終わったら ended へ落とすところは rising と同じ。 */
     else if (f.bunny) (fesEnded(k) ? ended : bunny).push(row);
@@ -23254,7 +23765,7 @@ function gachaMenuList() {
     soon: !archiveChars().length };
   /* ★★ 2026-09-13b <b>RISING STAR FEST は戦姫祭のすぐ下に固定</b>（ご指定）。
      並びは 極◯祭 → 戦姫祭 → RISING STAR → BUNNY GIRL → SOFT NIGHT → GRAND DEBUT → そのほか。 */
-  const list = lux.concat(senki, rising, bunny, soft, gachaMenuDebutRows(), fes,
+  const list = lux.concat(kaen, senki, rising, bunny, soft, gachaMenuDebutRows(), fes,
     [{ k: "premium", nm: PREMIUM_NM, sub: "ピックアップを1体えらべる常設ガチャ", c: "#ff9d2e" }],
     [arcRow], luxOff, ended);
   /* ★★ 2026-08-29 NEW マーク（ご指定）。まだ一度も開いていないガチャに付ける。 */
@@ -23444,13 +23955,14 @@ function paintGacha() {
     /* ★ 2026-08-07: 開催前のフェスは「シルエットのバナー＋中身は ? 」。
        バナーは描き直すたびに入れ直すので、開催時刻をまたいだら自動で本物に切り替わる。 */
     const locked = fesLocked(k);
+    const veiled = fesVeiled(k);   /* ★ 2026-09-17d ? で伏せるのは開催前だけ */
     const bn = $("#gFesBanner" + f.sfx);
     if (bn) { const src = fesBannerOf(k); if (!bn.getAttribute("src").endsWith(src)) bn.src = src; }
     const lk = $("#gFesLock" + f.sfx);
     if (lk) {
       lk.style.display = locked ? "block" : "none";
       lk.innerHTML = locked
-        ? `⏳ <b>${fesOpenText(f)}</b><br><small>開催までキャラクターは伏せられています。開催と同時に、なにもしなくても引けるようになります。</small>`
+        ? `⏳ <b>${fesOpenText(f)}</b><br><small>${veiled ? "開催までキャラクターは伏せられています。開催と同時に、なにもしなくても引けるようになります。" : "いまは開催期間外です。キャラクターの性能は見られます。期間になると、なにもしなくても引けるようになります。"}</small>`
         : "";
     }
     const gt = $("#gTicket" + f.sfx);
@@ -23459,7 +23971,7 @@ function paintGacha() {
         <div class="gtl"><b>フェスチケット</b>を所持中<br>回すときは<b>フェス券 → ガチャ券 → ジェム</b>の順に使われます</div></div>`;
     const fg = $("#gFesGrid" + f.sfx);
     if (fg) fg.innerHTML = f.chars.map((id) => {
-      if (locked) {
+      if (veiled) {
         return `<div class="gfescard veil" aria-label="開催前">
           <span class="fno">No.???</span>
           <span class="fr">?%</span>
@@ -23478,7 +23990,7 @@ function paintGacha() {
       </button>`;
     }).join("");
     const fp = $("#gfespick" + f.sfx);
-    if (fp) fp.innerHTML = locked
+    if (fp) fp.innerHTML = veiled
       ? `<b>${f.nm}</b><br><span style="color:#8b87a8">${fesOpenText(f)}。登場するキャラクターは開催までのお楽しみです。</span>`
       : `<b>${f.nm} 限定SSR（${f.chars.length}体）</b><br>
       ${f.chars.map((id) => `${elIcon(CHARS[id].el, 14)} <b style="color:${f.c}">${CHARS[id].nm}</b>（${CHARS[id].shot === "pierce" ? "貫通" : "反射"}・${CHARS[id].type}）`).join("／")}<br>
