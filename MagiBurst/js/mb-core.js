@@ -15,8 +15,8 @@
    <b>ふつうの &lt;script&gt;</b>（type="module" ではない）で読むこと。
    トップレベルの const/let はグローバルの字句環境に入るので、
    あとから読み込む MagiBurst 本体のスクリプトからそのまま見える。
-     MagiBurst : <script src="js/mb-core.js?v=120"></script>
-     gacha.html: <script src="MagiBurst/js/mb-core.js?v=120"></script>
+     MagiBurst : <script src="js/mb-core.js?v=121"></script>
+     gacha.html: <script src="MagiBurst/js/mb-core.js?v=121"></script>
 
    ── ホストが先に用意しておくもの ──
      window.MB_IMGD … 画像フォルダへの相対パス（MagiBurst は "../img/"、ポータルは "img/"）
@@ -20783,6 +20783,9 @@ const JUDGE_SUMMON = { every: 2, n: 2, hpMul: 0.34, max: 5 };
    同じセットの5面は<b>同じ値</b>（属性で難易度差をつけない・ご指定）。 */
 /* ★★ 2026-09-06 ご指定によりHPを上げた（ボスは +20%）。
    最終WAVEの実HPは 1段目 5.96億／2段目 8.04億（蓬莱の最奥 4.52億の 1.3〜1.8倍）。 */
+/* ★★ 2026-09-18 天界の審判の<b>ボスもザコも HP を全体的に上げる</b>（ご指定）。
+   表の数字は書きかえず、ここ1つの倍率で全15面・ボス／ザコ（呼び出しのザコはボスの HP から作るので連動）にかける。 */
+const JUDGE_HP_UP = 1.35;
 const JUDGE_BOSS_HP = [
   276000000, 276000000, 276000000, 276000000, 276000000,
   372000000, 372000000, 372000000, 372000000, 372000000,
@@ -20863,13 +20866,13 @@ function judgeStage(k) {
   const anti = JUDGE_ANTI[i];
   const sp = JUDGE_SPECIAL[i];
   const gsPair = JUDGE_GIMSP[i] || [];
-  const hpB = JUDGE_BOSS_HP[i];
+  const hpB = Math.round(JUDGE_BOSS_HP[i] * JUDGE_HP_UP);
   /* ★ 攻撃力は蓬莱の最奥より一段上から始める（蓬莱は 11800×1.035^i） */
   const atkB = Math.round(15600 * Math.pow(1.032, i) * judgeAtkEase(k));
   /* 雑魚は蓬莱と同じ考えかた（1手の実効ダメージ×手数）。奥ほど少しずつ固く。 */
   /* ★★ 2026-09-06 ザコも少し固く（ご指定）。1手の実効ダメージ×手数で決める考えかたは同じ。 */
   const MOB_HIT_DMG = 160000, MOB_HITS = 7, MOB_W13 = 1.45;
-  const mobHp = (m) => Math.round(MOB_HIT_DMG * MOB_HITS * m * (1 + i * 0.18));
+  const mobHp = (m) => Math.round(MOB_HIT_DMG * MOB_HITS * m * (1 + i * 0.18) * JUDGE_HP_UP);
   const mk = (mult, x, y, o) => Object.assign(
     { el, sp: "valga", hp: mobHp(mult), atk: atkB, cd: 2 + (x > .5 ? 1 : 0), r: 44, x, y }, o || {});
 

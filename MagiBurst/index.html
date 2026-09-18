@@ -22,7 +22,7 @@ if ("serviceWorker" in navigator) {
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
-<script src="../xeva-splash.js?v=12" data-app="MagiBurst" data-logo="../thumbs/MagiBurst.jpg"
+<script src="../xeva-splash.js?v=13" data-app="MagiBurst" data-logo="../thumbs/MagiBurst.jpg"
         data-note="⚠️ このゲームの対象年齢は 13歳以上 です"></script>
 <script src="../xeva.js?v=67"></script>
 <!-- ★★ 2026-09-05 言語切りかえ（日本語 ⇄ English）。辞書は本体のあとに読むこと。 -->
@@ -44,7 +44,7 @@ if ("serviceWorker" in navigator) {
 <!-- ★★ 2026-09-06b 今回足したもの（新キャラ14体・装備・クリティカルなど）の英語辞書 -->
 <script src="../xeva-i18n-n1.js?v=8"></script>
 <script src="../xeva-i18n-n2.js?v=3"></script>
-<script src="../xeva-loading.js?v=16" defer></script>
+<script src="../xeva-loading.js?v=17" defer></script>
 <script type="module" src="../xevarion-fb.js?v=33"></script>
 <script src="../xeva-presence.js?v=9" defer></script>
 <script type="module" src="../xeva-cloud.js?v=33"></script>
@@ -4029,7 +4029,7 @@ textarea.oninp.mbcode[readonly]{background:#f2f0fb;color:#3b3560}
 <link rel="stylesheet" href="css/mb-ui2.css?v=26">
 <!-- ★★ 2026-09-06 LOCAL PLAY（近距離ローカルマルチ）の画面 -->
 <link rel="stylesheet" href="css/localplay.css?v=7">
-<script src="js/mb-core.js?v=120"></script>
+<script src="js/mb-core.js?v=121"></script>
 <!-- ★★ 2026-09-06 装備（頭・腕・胸・足）。mb-core のあと・本体の前に読む -->
 <script src="js/mb-gear.js?v=7"></script>
 <script>
@@ -6135,6 +6135,10 @@ window.openNewChar = openNewChar; window.closeNewChar = closeNewChar;
 
 /* ══════════ お知らせ（アップデートのたびにここへ追記する） ══════════ */
 const NEWS = [
+  /* ★★ 2026-09-19 天界の審判の HP */
+  { date: "2026-09-19", title: "⚖ 天界の審判のボスとザコが固くなりました", body: [
+    "⚖ <b>天界の審判</b>の全15面で、<b>ボスとザコの HP を 1.35 倍</b>にしました（呼び出されるザコも同じだけ固くなります）。",
+  ] },
   /* ★★ 2026-09-17g 極◯祭の残り日数 */
   { date: "2026-09-17", title: "🎰 極◯祭に「今回はあと◯日」", body: [
     "🎰 <b>極彩祭・極華祭・極煌祭</b>は、開催中のあいだ<b>今回の開催があと何日か</b>をガチャ一覧と説明に表示します。",
