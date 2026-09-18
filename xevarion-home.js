@@ -36,7 +36,9 @@ const XH_OFFLINE_OK = {
   magimusic:       { name: "MagiMusic",      href: "MagiMusic/MagiMusic.html",   sw: "MagiMusic/sw.js" },
   /* MagiCounter は数字（data/meta.json）を全部キャッシュしてあるので判定はできる。
      ★ ポケモンの絵だけは PokeAPI なので、まだ見ていない子は絵が出ない（別の入れ物にためている）。 */
-  magicounter:     { name: "MagiCounter",    href: "MagiCounter/index.html",     sw: "MagiCounter/sw.js" }
+  magicounter:     { name: "MagiCounter",    href: "MagiCounter/index.html",     sw: "MagiCounter/sw.js" },
+  /* ★★ 2026-09-18 新作 MagiRail。端末の中で完結するシミュレーションなので通信は要らない。 */
+  magirail:        { name: "MagiRail",       href: "MagiRail/index.html",        sw: "MagiRail/sw.js" }
 };
 /* オフラインでも遊べるアプリの名前を「◯◯ ／ ◯◯」でつなぐ。
    ★★ 2026-09-13c <b>案内の文面を手で書かない</b>ためのもの。
@@ -88,6 +90,10 @@ const XH_APPS = [
     href:"MagiBocciaRush/index.html", img:"thumbs/MagiBocciaRush.jpg",
     desc:"本格ボッチャ × 引っぱりショット × キャラクター固有能力。<b>3人の編成を順番に</b>投げる戦略型スポーツゲーム。6能力・7つの型・特殊ショット・アルティメット・Tactical Chain・専用ボール・熟練度とストーリー。キャラクター能力モード／ルール準拠モード、CPU・チーム戦・ランク・オンライン（ルームコード）・チュートリアル",
   },
+  /* ★★ 2026-09-18 新作 MagiRail（鉄道経営シミュレーション）。ご指定で「その他」に置く。 */
+  { id:"magirail", name:"MagiRail", full:"MagiRail — Railway Balance", sub:"鉄道経営シム", cat:"game", tone:"blue",
+    href:"MagiRail/index.html", img:"thumbs/MagiRail.jpg",
+    desc:"都市の人口・施設・時間帯から生まれる鉄道需要を読み、<b>本数・編成両数・車両</b>を調整して利益と輸送効率の両立をめざす経営シミュレーション。積み残し・待ち時間・混雑・遅延・満足度・街の成長・イベント。4都市・5シナリオ。" },
   /* ★ 新しいアプリは <b>XH_APPS と XH_DEFAULT_ORDER の両方</b>に書くこと
        （片方だけだとアプリ一覧に一切出ない＝2026-09-09 に踏んだ罠）。 */
   { id:"magiranking", name:"Ranking", full:"MagiRanking", sub:"月間ランキング", cat:"social", tone:"gold",
@@ -189,6 +195,8 @@ const XH_DEFAULT_ORDER = [
   "magichainparty", "magidominiongrid", "magidiamond",
   "magicounter", "magitier", "xevynar", "magijackpot",
   /* 以降は「その他」の中に入る */
+  /* ★★ 2026-09-18 新作 MagiRail は「その他」の先頭（ご指定）。保存ずみの並びには末尾に足される（xhOrder）。 */
+  "magirail",
   "magiranking", "magilotto",
   "ordyxis", "magicraft", "magimanor", "magiportfolio",
   "magiarena", "magibattle", "magiempire", "magifocus", "magimusic",
@@ -396,6 +404,34 @@ const XH_EVENTS = [
    ══════════════════════════════════════════════════════════════ */
 const XH_UPDATE_MAX = 12;
 const XH_UPDATES = [
+  /* ★★ 2026-09-19c Boccia のレアリティ・戻るボタン */
+  { tag:"UPDATE", t1:"MagiBocciaRush のレアリティを統一", at:"2026-09-19",
+    t2:"SSR／SR の表示を MagiBurst と同じ判定に（ガチャの SSR が SR と出ていた件）。キャラ詳細の BACK ボタンを常に表示",
+    href:"MagiBocciaRush/index.html", img:"thumbs/MagiBocciaRush.jpg" },
+  /* ★★ 2026-09-19b Boccia の技を全キャラ別の組み合わせに */
+  { tag:"UPDATE", t1:"MagiBocciaRush の技が全キャラ別々に", at:"2026-09-19",
+    t2:"技を33種ふやし、特殊ショット2つ・アクティブ・パッシブの組み合わせが250体すべてちがうように。シンプルモードは少し止まりやすく",
+    href:"MagiBocciaRush/index.html", img:"thumbs/MagiBocciaRush.jpg" },
+  /* ★★ 2026-09-19 Boccia シンプルモード・名前と紐づけ／MagiRail 路線図／天界の審判 HP */
+  { tag:"UPDATE", t1:"MagiBocciaRush にシンプルモード", at:"2026-09-19",
+    t2:"キャラを編成せず全員同じ能力で遊べるモード。PARTY MATCH は名前の変更と XEVARION アカウントの紐づけ（順位に応じて XEVA）に対応",
+    href:"MagiBocciaRush/index.html", img:"thumbs/MagiBocciaRush.jpg" },
+  { tag:"UPDATE", t1:"MagiRail の路線図を拡大・移動", at:"2026-09-19",
+    t2:"＋−・2本指・ホイールで拡大、ドラッグで移動、⤢で大きく表示。倍速どおりに電車が動くように",
+    href:"MagiRail/index.html", img:"thumbs/MagiRail.jpg" },
+  { tag:"UPDATE", t1:"天界の審判が固くなりました", at:"2026-09-19",
+    t2:"全15面のボスとザコの HP を 1.35 倍に",
+    href:"MagiBurst/index.html", img:"thumbs/MagiBurst.jpg" },
+  /* ★★ 2026-09-18 新作 MagiRail／MagiBocciaRush PARTY MATCH ほか／下バー */
+  { tag:"NEW", t1:"新作 MagiRail", at:"2026-09-18",
+    t2:"数字を読んで運行を決める鉄道経営シミュレーション。時間帯ごとの本数・両数・車両で、積み残しと空席のバランスをとる。4都市・5シナリオ",
+    href:"MagiRail/index.html", img:"thumbs/MagiRail.jpg" },
+  { tag:"UPDATE", t1:"MagiBocciaRush に PARTY MATCH", at:"2026-09-18",
+    t2:"1台で最大6色・6人のボッチャ。投げる位置の ◀ ▶・引っぱりを縮めてキャンセル・投げた瞬間の演出・スキルごとの？補足・上部がカメラに重ならないように",
+    href:"MagiBocciaRush/index.html", img:"thumbs/MagiBocciaRush.jpg" },
+  { tag:"UPDATE", t1:"下バーの下の空白をなくしました", at:"2026-09-18",
+    t2:"iPhone のアプリ表示でホーム・起動画面・ロード画面の下に帯が残る件と、PC のアプリ表示で下バーが見えなかった件を修正",
+    href:"index.html", img:"thumbs/MagiBurst.jpg" },
   /* ★★ 2026-09-17g 果実の個数えらび／極◯祭の残り日数 */
   { tag:"UPDATE", t1:"極◯祭に「今回はあと◯日」", at:"2026-09-17",
     t2:"極彩祭・極華祭・極煌祭は開催中のあいだ、今回の開催の残り日数を表示。MagiBocciaRush の叡智の果実は個数をえらび、確認してから使えるように",
@@ -1602,7 +1638,7 @@ function xhMbReady() {
   if (typeof CHARS !== "undefined" && typeof PREMIUM_CHARS !== "undefined") return Promise.resolve(true);
   if (_xhMbLoading) return _xhMbLoading;
   _xhMbLoading = xhLoadScript("mb-boot.js?v=17")
-    .then(() => xhLoadScript("MagiBurst/js/mb-core.js?v=120"))
+    .then(() => xhLoadScript("MagiBurst/js/mb-core.js?v=121"))
     .then(() => true)
     .catch((e) => { _xhMbLoading = null; throw e; });
   return _xhMbLoading;

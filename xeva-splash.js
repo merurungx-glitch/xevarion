@@ -11,7 +11,7 @@
      ② アプリロゴ ＋ ロードバー ＋ "Loading <App> ..."
 
    使い方（<head> に、defer なしで置く）:
-     <script src="../xeva-splash.js?v=12"
+     <script src="../xeva-splash.js?v=13"
              data-app="MagiLex"
              data-logo="../thumbs/MagiLex.jpg"></script>
 
@@ -75,7 +75,8 @@
       try {
         var standalone = (window.matchMedia && matchMedia("(display-mode: standalone)").matches) ||
                          navigator.standalone;
-        if (!standalone || !(box > 200)) return 0;
+        /* ★★ 2026-09-18 PC のアプリ表示を取りちがえないよう iOS だけ */
+        if (!standalone || !(box > 200) || !(navigator.standalone === true || /iPhone|iPad|iPod/.test(navigator.userAgent || "") || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1))) return 0;
         var sMin = Math.min(screen.width, screen.height);
         var sMax = Math.max(screen.width, screen.height);
         var s = Math.round((window.innerWidth > window.innerHeight ? sMin : sMax) - box);

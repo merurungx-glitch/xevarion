@@ -1,12 +1,18 @@
 {
-  "version": "2026-09-17-8",
-  "date": "2026-09-17",
-  "title": "MagiBocciaRush 相手の残り球数の表示を修正",
+  "version": "2026-09-19-1",
+  "date": "2026-09-19",
+  "title": "MagiBocciaRush 技の組み合わせ・レアリティ統一・シンプルモード／MagiRail 路線図の拡大／天界の審判 HP",
   "notes": [
-    "MagiBocciaRush：試合中、相手（青）の残り球数の点が減らなかったのを修正"
+    "MagiBocciaRush：SSR／SR を MagiBurst と同じ判定に・キャラ詳細の BACK を常に表示",
+    "MagiBocciaRush：技を33種追加し、特殊ショット・アクティブ・パッシブの組み合わせを全250体で別々に",
+    "MagiBocciaRush：キャラを編成しない「シンプル」モード（少し止まりやすく）",
+    "MagiBocciaRush：PARTY MATCH で名前の変更と XEVARION アカウントの紐づけ（順位に応じて XEVA）",
+    "MagiBocciaRush：引っぱり中の逆向きの点線と輪を表示しないように",
+    "MagiRail：路線図を拡大・移動できるように／倍速どおりに電車が動くように",
+    "MagiBurst：天界の審判のボスとザコの HP を 1.35 倍に"
   ],
-  "bytes": 47692441,
-  "files": 546,
+  "bytes": 48319797,
+  "files": 556,
   "urls": [
     "index.html",
     "characters.html",
@@ -80,6 +86,7 @@
     "thumbs/MagiDominionGrid.jpg",
     "thumbs/MagiCounter.jpg",
     "thumbs/MagiBocciaRush.jpg",
+    "thumbs/MagiRail.jpg",
     "thumbs/MagiRanking.jpg",
     "thumbs/MagiCraft.jpg",
     "thumbs/MagiManor.jpg",
@@ -551,15 +558,70 @@
     "MagiBocciaRush/js/mbr-voice.js",
     "MagiBocciaRush/js/mbr-stage.js",
     "MagiBocciaRush/js/mbr-fx.js",
+    "MagiBocciaRush/js/mbr-help.js",
     "MagiBocciaRush/js/mbr-ui.js",
     "MagiBocciaRush/img/mbrhome_s.webp",
-    "MagiBocciaRush/js/mbr-online.js"
+    "MagiBocciaRush/js/mbr-online.js",
+    "MagiRail/index.html",
+    "MagiRail/css/rail.css",
+    "MagiRail/js/rail-core.js",
+    "MagiRail/js/rail-chart.js",
+    "MagiRail/js/rail-ui.js",
+    "MagiRail/img/title.jpg",
+    "MagiRail/img/icon192.png",
+    "MagiRail/manifest.webmanifest"
   ],
   "apps": [
-    "magibocciarush"
+    "magibocciarush",
+    "magiburst",
+    "magidiamond",
+    "magilex",
+    "magirail",
+    "tab:chars",
+    "tab:gacha",
+    "tab:home"
   ],
-  "changedFiles": 2,
+  "changedFiles": 11,
   "history": [
+    {
+      "version": "2026-09-18-1",
+      "date": "2026-09-18",
+      "title": "新作 MagiRail／MagiBocciaRush に PARTY MATCH／下バーの修正",
+      "notes": [
+        "新作 MagiRail — Railway Balance（鉄道経営シミュレーション・アプリ一覧の「その他」）",
+        "MagiBocciaRush：1台で最大6色の PARTY MATCH・投げる位置の ◀ ▶・引っぱりを縮めてキャンセル・投げた瞬間の演出・スキルごとの？補足・上部がカメラに重ならないように",
+        "iPhone のアプリ表示で下バー・起動画面・ロード画面の下に残る帯をなくしました",
+        "PC のアプリ表示で下バーが画面の外に出て押せなかった不具合を修正"
+      ],
+      "apps": [
+        "magibocciarush",
+        "magiburst",
+        "magichainparty",
+        "magicounter",
+        "magidiamond",
+        "magidominiongrid",
+        "magijackpot",
+        "magilex",
+        "magilotto",
+        "magirail",
+        "tab:chars",
+        "tab:community",
+        "tab:gacha",
+        "tab:home",
+        "xevynar"
+      ]
+    },
+    {
+      "version": "2026-09-17-8",
+      "date": "2026-09-17",
+      "title": "MagiBocciaRush 相手の残り球数の表示を修正",
+      "notes": [
+        "MagiBocciaRush：試合中、相手（青）の残り球数の点が減らなかったのを修正"
+      ],
+      "apps": [
+        "magibocciarush"
+      ]
+    },
     {
       "version": "2026-09-17-7",
       "date": "2026-09-17",
@@ -1042,71 +1104,6 @@
         "ロード中の案内役を新しい2人に入れかえました（これまでの絵はファイルごと削除）。立ち絵とお辞儀で足の位置がそろえてあります"
       ],
       "apps": [
-        "tab:home"
-      ]
-    },
-    {
-      "version": "2026-09-10-2",
-      "date": "2026-09-10",
-      "title": "XEVARION アップデート",
-      "notes": [
-        "ホームの下のバーを MagiCounter・Magi: Boccia Rush と同じ薄い作りに刷新。アプリ表示のときに箱ごと持ち上げていたのをやめ、バーの下に残っていた空間をなくしました",
-        "更新の画面をコンパクトに。「なにが新しくなるか」を先頭に置き、しくみの説明とよくある質問は「くわしく」にたたみました",
-        "更新の進み具合のバーが戻らないようにしました（あとから名乗り出るアプリのぶんで分母が増えていたのが原因）",
-        "更新のダウンロードを高速化。問い合わせを1本ずつから6本同時にしました（落とす量はこれまでと同じ）",
-        "Magi: Boccia Rush にペルソナ風のカットイン（スキル発動・キャラ選択）を追加",
-        "Magi: Boccia Rush のキャラ一覧に検索・型／レアのしぼりこみ・7つの能力での並びかえを追加",
-        "Magi: Boccia Rush で最新のキャラが出ないことがあるのを修正（?v= を無視して引き当てていたため）",
-        "Magi: Boccia Rush で矢印の反対向きに出ていた予測の点線を修正（画面の角度をそのまま渡していたため）",
-        "図鑑のキャラ詳細に MagiDiamond の右へ「🎯 Boccia」を追加。ボッチャの能力・アビリティ・スキルが見られます",
-        "MagiCounter に相手6体のカメラ読み取りを追加（色で候補を出し、1体ずつ確かめて確定します）",
-        "MagiCounter に選出した3体の「出す順番」を理由つきで追加",
-        "MagiCounter でランク外のポケモンを自分で登録できるようにしました",
-        "MagiCounter でタイプの札が枠からはみ出していたのを修正",
-        "MagiBurst の対応キャラで、クロススキルで持つアンチを札ではなく鎖のマークの色（桃色）で示すようにしました",
-        "MagiCounter がメガシンカに対応。編成の枠の M を押すとメガの姿で相性・選出・出す順番を計算します（1チーム1体）",
-        "ロード中の案内役を新しい2人に入れかえました（これまでの絵はファイルごと削除）。立ち絵とお辞儀で足の位置がそろえてあります"
-      ],
-      "apps": [
-        "magiburst",
-        "magicounter",
-        "tab:home"
-      ]
-    },
-    {
-      "version": "2026-09-10-1",
-      "date": "2026-09-10",
-      "title": "下のバーと更新画面の刷新 ／ Boccia Rush の演出と検索 ／ MagiCounter のカメラ読み取り",
-      "notes": [
-        "ホームの下のバーを MagiCounter・Magi: Boccia Rush と同じ薄い作りに刷新。アプリ表示のときに箱ごと持ち上げていたのをやめ、バーの下に残っていた空間をなくしました",
-        "更新の画面をコンパクトに。「なにが新しくなるか」を先頭に置き、しくみの説明とよくある質問は「くわしく」にたたみました",
-        "更新の進み具合のバーが戻らないようにしました（あとから名乗り出るアプリのぶんで分母が増えていたのが原因）",
-        "更新のダウンロードを高速化。問い合わせを1本ずつから6本同時にしました（落とす量はこれまでと同じ）",
-        "Magi: Boccia Rush にペルソナ風のカットイン（スキル発動・キャラ選択）を追加",
-        "Magi: Boccia Rush のキャラ一覧に検索・型／レアのしぼりこみ・7つの能力での並びかえを追加",
-        "Magi: Boccia Rush で最新のキャラが出ないことがあるのを修正（?v= を無視して引き当てていたため）",
-        "Magi: Boccia Rush で矢印の反対向きに出ていた予測の点線を修正（画面の角度をそのまま渡していたため）",
-        "図鑑のキャラ詳細に MagiDiamond の右へ「🎯 Boccia」を追加。ボッチャの能力・アビリティ・スキルが見られます",
-        "MagiCounter に相手6体のカメラ読み取りを追加（色で候補を出し、1体ずつ確かめて確定します）",
-        "MagiCounter に選出した3体の「出す順番」を理由つきで追加",
-        "MagiCounter でランク外のポケモンを自分で登録できるようにしました",
-        "MagiCounter でタイプの札が枠からはみ出していたのを修正",
-        "MagiBurst の対応キャラで、クロススキルで持つアンチを札ではなく鎖のマークの色（桃色）で示すようにしました",
-        "MagiCounter がメガシンカに対応。編成の枠の M を押すとメガの姿で相性・選出・出す順番を計算します（1チーム1体）",
-        "ロード中の案内役を新しい2人に入れかえました（これまでの絵はファイルごと削除）。立ち絵とお辞儀で足の位置がそろえてあります"
-      ],
-      "apps": [
-        "magiarcanarush",
-        "magibocciarush",
-        "magiburst",
-        "magichainparty",
-        "magicounter",
-        "magidiamond",
-        "magidominiongrid",
-        "magilex",
-        "tab:chars",
-        "tab:community",
-        "tab:gacha",
         "tab:home"
       ]
     }

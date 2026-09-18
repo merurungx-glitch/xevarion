@@ -7,7 +7,7 @@
    ・オフライン中の進行は localStorage に残り、オンライン復帰時に
      xeva-cloud.js がタイムスタンプ比較でクラウドへ上書き反映する
    ============================================================ */
-const VERSION = "xevarion-sw-v150";
+const VERSION = "xevarion-sw-v156";
 
 /* ホームを成立させる最小セット（重い画像は runtime キャッシュに任せる） */
 const CORE = [
@@ -22,13 +22,13 @@ const CORE = [
   "./xevion-os.js?v=13",
   "./xevion-os.css?v=15",
   "./magibattle-stats.js?v=14",
-  "./MagiBurst/js/mb-core.js?v=120",
+  "./MagiBurst/js/mb-core.js?v=121",
   /* ★ 2026-08-10 ガチャと図鑑で共通の土台・キャラ詳細・結果演出 */
   /* ★ 2026-08-12 ポータルのガチャ・図鑑も magiburst_v1 を同期するようになった */
   "./app-cloud.js?v=12",
   "./MagiBurst/magiburst-cloud.js?v=17",
   "./mb-boot.js?v=17",
-  "./mb-char-detail.js?v=31",
+  "./mb-char-detail.js?v=34",
   "./mb-char-detail.css?v=23",
   "./mb-gacha-reveal.css?v=11",
   "./community.html",
@@ -36,9 +36,9 @@ const CORE = [
   "./manifest.webmanifest",
   "./xeva-theme.css?v=9",
   "./xevarion.css?v=25",
-  "./xevarion-home.css?v=79",
+  "./xevarion-home.css?v=80",
   /* ★★ 2026-09-03 下バーを画面の下端に合わせる共通部品 */
-  "./xeva-safebottom.js?v=10",
+  "./xeva-safebottom.js?v=11",
   "./xeva-qr.js?v=9",
   /* ★★ 2026-09-13 更新中の全画面で流す PR 動画（字幕は JS が出す） */
   "./xeva-collection.js?v=7",
@@ -59,9 +59,9 @@ const CORE = [
   "./xeva-i18n-n2.js?v=3",
   "./xeva.js?v=67",
   "./xeva-fx.js?v=9",
-  "./xeva-loading.js?v=16",
-  "./xevarion.js?v=89",
-  "./xevarion-home.js?v=112",
+  "./xeva-loading.js?v=17",
+  "./xevarion.js?v=90",
+  "./xevarion-home.js?v=117",
   "./maintenance-gate.js?v=13",
   "./xeva-back.js?v=9",
   "./xeva-keys.js?v=25",
@@ -98,6 +98,7 @@ const CORE = [
   /* ★★ 2026-09-08 新作 MagiCounter。ここに無いとオフラインでアプリ一覧の絵が出ない。 */
   "./thumbs/MagiCounter.jpg",
   "./thumbs/MagiBocciaRush.jpg",
+  "./thumbs/MagiRail.jpg",
   "./thumbs/MagiRanking.jpg",
   "./thumbs/MagiCraft.jpg",
   "./thumbs/MagiManor.jpg",
@@ -118,9 +119,9 @@ const CORE = [
   "./MagiDiamond/img/icon192.webp?v=6",
   /* ★★ 2026-09-06 MagiDiamond の自前アイコン（絵文字をやめた） */
   "./MagiDiamond/js/md2-icons.js?v=6",
-  "./MagiDiamond/js/md2-data.js?v=12",
+  "./MagiDiamond/js/md2-data.js?v=13",
   /* ★★ 2026-09-10 図鑑のキャラ詳細で Magi: Boccia Rush の性能も出すので、ここでも持つ */
-  "./MagiBocciaRush/js/mbr-core.js?v=8",
+  "./MagiBocciaRush/js/mbr-core.js?v=12",
   "./MagiDiamond/js/md2-game.js?v=22",
   "./MagiDiamond/js/md2-online.js?v=10",
   "./MagiDiamond/img/logo.webp",

@@ -78,7 +78,8 @@
     try {
       var standalone = (window.matchMedia && matchMedia("(display-mode: standalone)").matches) ||
                        navigator.standalone;
-      if (!standalone) return 0;
+      /* ★★ 2026-09-18 PC のアプリ表示（タスクバーぶん短い）を取りちがえないよう iOS だけ */
+      if (!standalone || !(navigator.standalone === true || /iPhone|iPad|iPod/.test(navigator.userAgent || "") || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1))) return 0;
       var sMin = Math.min(screen.width, screen.height);
       var sMax = Math.max(screen.width, screen.height);
       var s = (window.innerWidth > window.innerHeight ? sMin : sMax) - box;

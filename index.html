@@ -19,7 +19,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Exo+2:ital,wght@0,300;0,400;0,600;0,700;1,300&family=Noto+Sans+JP:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="xeva-theme.css?v=9">
 <link rel="stylesheet" href="xevarion.css?v=25">
-<link rel="stylesheet" href="xevarion-home.css?v=79">
+<link rel="stylesheet" href="xevarion-home.css?v=80">
 <!-- ★★ 2026-08-22b Xevion OS の見た目（テーマ・文字の大きさ・動きを減らす）。
      xevarion-home.css の<b>あと</b>に読む＝上書きできるようにする。 -->
 <link rel="stylesheet" href="xevion-os.css?v=15">
@@ -60,14 +60,14 @@
 <script src="xevion-os.js?v=13"></script>
 <!-- ジェム⇄XEVA のレート（ドル円連動）。xevarion-home.js より先に読み込む -->
 <script src="xeva-fx.js?v=9" defer></script>
-<script src="xeva-loading.js?v=16" defer></script>
+<script src="xeva-loading.js?v=17" defer></script>
 <script type="module" src="xeva-sync.js?v=18"></script>
 <script type="module" src="xevarion-fb.js?v=33"></script>
 <script src="xeva-presence.js?v=9" defer></script>
 <script type="module" src="xeva-cloud.js?v=33"></script>
 <script src="xeva-qr.js?v=9" defer></script>
-<script src="xevarion.js?v=89" defer></script>
-<script src="xevarion-home.js?v=112" defer></script>
+<script src="xevarion.js?v=90" defer></script>
+<script src="xevarion-home.js?v=117" defer></script>
 </head>
 <body>
 <!-- ───── バックグラウンド音楽（Flagship Arrival。アクセス画面のタップで再生開始） ───── -->
@@ -1836,6 +1836,64 @@ body.music-on #beatFrame{opacity:1}
 
   <div class="nm-body" id="newsBody">
     <div class="nm-divider" id="newDivider" style="display:none;">NEW — 前回から更新</div>
+    <!-- 2026-09-19c Boccia のレアリティ・戻るボタン -->
+    <div class="nm-item" data-tag="update" data-date="2026-09-19">
+      <div class="nm-date">2026<br>09.19</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">🎯 MagiBocciaRush のレアリティを MagiBurst と統一</div>
+        <div class="nm-txt">
+          キャラの <b>SSR／SR</b> を MagiBurst と同じ判定にしました（ガチャで引ける SSR の多くが SR と表示されていました）。<br>
+          キャラ詳細の <b>← BACK</b> ボタンは、下までスクロールしても常に表示されるようにしました。
+        </div>
+      </div>
+    </div>
+    <!-- 2026-09-19b Boccia の技を全キャラ別の組み合わせに -->
+    <div class="nm-item" data-tag="update" data-date="2026-09-19">
+      <div class="nm-date">2026<br>09.19</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">🎯 MagiBocciaRush の技が全キャラ別々の組み合わせに</div>
+        <div class="nm-txt">
+          特殊ショット（DRAW・FOLLOW・ダブルバンク など8種）・アクティブ（10種）・パッシブ（15種）を追加し、
+          <b>特殊ショット2つ・アクティブ・パッシブの組み合わせが全250体でちがう</b>ようにしました。どの技も <b>？</b> でしくみ・使いどころが見られます。<br>
+          シンプルモードはボールが<b>少し止まりやすく</b>なりました。
+        </div>
+      </div>
+    </div>
+    <!-- 2026-09-19 Boccia シンプルモード・名前と紐づけ／MagiRail 路線図／天界の審判 HP -->
+    <div class="nm-item" data-tag="update" data-date="2026-09-19">
+      <div class="nm-date">2026<br>09.19</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">🎯 MagiBocciaRush にシンプルモード／🚆 MagiRail の路線図を拡大・移動／⚖ 天界の審判</div>
+        <div class="nm-txt">
+          🎯 <b>MagiBocciaRush</b>：モードに<b>シンプル</b>を追加（キャラを編成せず、全員が同じ能力・スキルなし）。
+          PARTY MATCH で<b>名前の変更</b>と <b>XEVARION アカウントの紐づけ</b>（MagiChainParty と同じ・順位に応じて XEVA）ができるようになりました。
+          引っぱっているあいだの逆向きの点線と輪は表示しないようにしました。<br><br>
+          🚆 <b>MagiRail</b>：路線図を<b>＋−・2本指・ホイールで拡大、ドラッグで移動</b>、⤢ で大きく表示。倍速を変えても電車が同じ速さで動いていた不具合を直しました。<br><br>
+          ⚖ <b>MagiBurst</b>：天界の審判のボスとザコの HP を <b>1.35 倍</b>にしました。
+        </div>
+      </div>
+    </div>
+    <!-- 2026-09-18 新作 MagiRail／MagiBocciaRush PARTY MATCH／下バー -->
+    <div class="nm-item" data-tag="new" data-date="2026-09-18">
+      <div class="nm-date">2026<br>09.18</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag new">NEW</span></div>
+        <div class="nm-title">🚆 新作 MagiRail／🎯 MagiBocciaRush に PARTY MATCH</div>
+        <div class="nm-txt">
+          🚆 <b>MagiRail — Railway Balance</b>（アプリ一覧の「その他」）。都市の人口・施設・時間帯から生まれる需要を読み、
+          <b>時間帯ごとの本数・編成両数・車両</b>を決めて、積み残しと空席・利益と満足度のバランスをとる鉄道経営シミュレーションです。
+          車両の共有と運休・混雑による遅延・イベント・街の成長・日次レポートの分析つき。4都市・5シナリオ。<br><br>
+          🎯 <b>MagiBocciaRush</b>：1台で<b>最大6色・6人</b>で遊べる <b>PARTY MATCH</b> を追加。
+          投げる位置を <b>◀ BOX ▶</b> で変えられる・引っぱった矢印を<b>縮めるとキャンセル</b>・投げた瞬間の演出を強化・
+          特殊ショット／アクティブ／パッシブ／ULT に <b>？</b>（押すと補足）・試合画面の上がカメラに重ならないように。<br><br>
+          📱 iPhone のアプリ表示で、ホーム・起動画面・ロード画面の<b>下バーの下に残っていた帯</b>をなくし、
+          PC のアプリ表示で<b>下バーが画面の外に出て押せなかった</b>不具合を直しました。
+        </div>
+      </div>
+    </div>
     <!-- 2026-09-17g 果実の個数えらび／極◯祭の残り日数 -->
     <div class="nm-item" data-tag="update" data-date="2026-09-17">
       <div class="nm-date">2026<br>09.17</div>

@@ -3409,9 +3409,22 @@ addEventListener("DOMContentLoaded", () => { if (_xevLang === "en") applyLang("e
      ⇒ 箱が画面よりどれだけ短いか（shortfall）を測り、env から<b>引いてから</b>余白にする。
      これは xeva-safebottom.js の --xv-safeb とまったく同じ計算（ポータルはあのファイルを
      読まないので、ここで同じことをする）。 */
+  /* ★★ 2026-09-18 ご報告「PCでホームの下バーが表示されず押せない」の真因。
+     PC にインストールしたアプリ表示も display-mode:standalone になる。そのとき
+     「画面の高さ − ウィンドウの高さ」（タスクバー・タイトルバーぶん、50〜120px）を
+     iPhone の「箱の不足分」と取りちがえ、下バーを<b>ウィンドウの外へ押し出していた</b>。
+     ⇒ 不足分を測るのは <b>iPhone / iPad だけ</b>にする。 */
+  function isIOS() {
+    try {
+      if (navigator.standalone === true) return true;          // iOS Safari だけが持つ
+      var ua = navigator.userAgent || "";
+      if (/iPhone|iPad|iPod/.test(ua)) return true;
+      return navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1;   // iPadOS
+    } catch (e) { return false; }
+  }
   function shortfall(box) {
     try {
-      if (!isStandaloneApp()) return 0;
+      if (!isStandaloneApp() || !isIOS()) return 0;
       var sMin = Math.min(screen.width, screen.height);
       var sMax = Math.max(screen.width, screen.height);
       var s = (window.innerWidth > window.innerHeight ? sMin : sMax) - box;
@@ -3552,8 +3565,22 @@ addEventListener("DOMContentLoaded", () => { if (_xevLang === "en") applyLang("e
          組んである板（#xhome / #xevaHome）がすべて本当の画面の下端まで届く。
          そのうえで余白（--xh-safeb）は env の実測値そのままでよい
          （同じぶんを2回引く心配がなくなる）＝ MagiBurst の #tabs と同じ位置に揃う。 */
-    var sfall = shortfall(box);
-    if (sfall > g) g = sfall;
+    /* ★★★ 2026-09-18 上の「箱を下へ伸ばす」は<b>実機では逆効果</b>だった（ご報告の画像で確定）。
+       iPhone のアプリ表示では、position:fixed の板は<b>短い箱の下端で描画ごと切られる</b>。
+       箱の外（下の 59px）に塗れるのは &lt;html&gt; の背景と<b>ふつうの文書の中身</b>だけ。
+         ・伸ばした下バー … タブの文字が箱の下端でぷっつり切れていた
+         ・起動画面／ロード画面 … 箱の下端で終わり、その下に html の背景の帯
+       ⇒ 不足分があるときは html に .xh-shim を付け、全画面の板（#xhome・#xevaHome・
+         #accLock・ロード画面・スプラッシュ）を <b>position:absolute</b>（＝文書の中の板）に
+         切りかえて、高さを「箱＋不足分」にする。文書の中身は箱の外でも描かれる。
+         （iOS の同じ不具合への対処として知られている方法。文書は不足分だけ伸びるので、
+           板が出ているあいだはスクロールを 0 に留める＝pinScroll） */
+    var sfall = Math.round(shortfall(box));
+    try {
+      root.style.setProperty("--xh-boxh", Math.round(box) + "px");
+      root.style.setProperty("--xh-shim", sfall + "px");
+      root.classList.toggle("xh-shim", sfall > 0);
+    } catch (e) {}
     var grow = g > 0 ? g : 0;
     if (root.style.getPropertyValue("--xh-fixgap") !== g + "px") {
       root.style.setProperty("--xh-fixgap", g + "px");
@@ -3595,6 +3622,17 @@ addEventListener("DOMContentLoaded", () => { if (_xevLang === "en") applyLang("e
   });
   window.addEventListener("focus", onSync);
   try { window.addEventListener("scroll", onSync, { passive: true }); } catch (e) { window.addEventListener("scroll", onSync); }
+  /* ★★ 2026-09-18 .xh-shim のあいだは文書が不足分だけ長くなる。全画面の板が出ているときに
+     ずれて見えないよう、文書のスクロールを 0 に留める（板の中のスクロールには関係しない）。 */
+  function pinScroll() {
+    var r = document.documentElement;
+    if (!r.classList.contains("xh-shim")) return;
+    if (!(window.scrollY || window.pageYOffset)) return;
+    if (document.querySelector("#xhome.on,#xevaHome.open,#xevaLoadVeil,#xevaSplash:not(.hide),#accLock.open")) {
+      try { window.scrollTo(0, 0); } catch (e) {}
+    }
+  }
+  try { window.addEventListener("scroll", pinScroll, { passive: true }); } catch (e) { window.addEventListener("scroll", pinScroll); }
   [0, 80, 250, 700, 1400, 2600].forEach(function (ms) { setTimeout(onSync, ms); });
   sync();
 })();

@@ -1536,3 +1536,26 @@ body.xh-dragging .xh-sheet-body{overflow:hidden}
 .xh-sheet-foot{flex-shrink:0;display:flex;gap:8px;padding:10px 16px calc(12px + env(safe-area-inset-bottom,0px));
   background:#fff;border-top:1.5px solid rgba(120,160,230,.2)}
 .xh-sheet-foot .xh-sbtn{margin:0;flex:1}
+
+/* ══════════════════════════════════════════════════════════════
+   ★★★ 2026-09-18 iPhone のアプリ表示で「下バーの下に空白」「起動画面・ロード画面の下に帯」
+   ------------------------------------------------------------
+   真因: position:fixed の板は<b>短い箱（実測 793）の下端で描画ごと切られる</b>。
+         箱の外（下の 59px）に描けるのは html の背景と<b>ふつうの文書の中身</b>だけ。
+         （2026-09-13b の「箱ごと下へ伸ばす」は、伸ばしたぶんが切られてタブの文字が消えていた）
+   直しかた: 不足分があるとき（html.xh-shim・xevarion.js が付ける）だけ、
+         全画面の板を <b>position:absolute</b> にして高さを「箱＋不足分」にする。
+         --xh-boxh … 箱の高さ ／ --xh-shim … 不足分（どちらも xevarion.js が実測）
+   ★ PC・ふつうのブラウザでは .xh-shim が付かないので、何も変わらない。
+   ══════════════════════════════════════════════════════════════ */
+html.xh-shim{height:calc(var(--xh-boxh,100vh) + var(--xh-shim,0px));overflow:visible}
+html.xh-shim body,html.xh-shim body.xh-mode{overflow:visible;min-height:100%}
+html.xh-shim #xhome,html.xh-shim #xevaHome,html.xh-shim #accLock,
+html.xh-shim #xevaLoadVeil,html.xh-shim #xevaSplash{
+  position:absolute!important;top:0!important;bottom:auto!important;
+  height:calc(var(--xh-boxh,100vh) + var(--xh-shim,0px))!important}
+/* はみ出し（::after の 420px・下バーの 240px）は文書を長くしてスクロールできてしまうので、
+   .xh-shim のあいだは板の中で切る（板そのものが本当の下端まで届いているので不要）。 */
+html.xh-shim #xhome,html.xh-shim #xevaHome,html.xh-shim #accLock,
+html.xh-shim #xevaLoadVeil,html.xh-shim #xevaSplash{overflow:hidden!important}
+html.xh-shim #xhome::after{display:none}

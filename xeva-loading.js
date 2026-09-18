@@ -18,7 +18,7 @@
        の<b>両方</b>を使う。①②は xeva-safebottom.js が持っているので、
        読まれていないページでは<b>自分で読みこむ</b>。
 
-   使い方: <script src="../xeva-loading.js?v=16" defer></script>
+   使い方: <script src="../xeva-loading.js?v=17" defer></script>
    ============================================================ */
 (function () {
   "use strict";
@@ -60,7 +60,7 @@
   function ensureSafeBottom() {
     if (window.__xvSafeBottom) return;
     var s = document.createElement("script");
-    s.src = baseUrl() + "xeva-safebottom.js?v=10";
+    s.src = baseUrl() + "xeva-safebottom.js?v=11";
     (document.head || document.documentElement).appendChild(s);
   }
 
@@ -72,7 +72,8 @@
     try {
       var standalone = (window.matchMedia && matchMedia("(display-mode: standalone)").matches) ||
                        navigator.standalone;
-      if (!standalone) return;
+      /* ★★ 2026-09-18 PC のアプリ表示を取りちがえないよう iOS だけ */
+      if (!standalone || !(navigator.standalone === true || /iPhone|iPad|iPod/.test(navigator.userAgent || "") || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1))) return;
       var host = document.body || document.documentElement;
       if (!host) return;
       var pr = document.createElement("div");
