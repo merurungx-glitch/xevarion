@@ -1,0 +1,234 @@
+/* MagiRail — 青と白・近未来・親しみやすい（画面案に合わせたカード型）。重要な数字は大きく。 */
+:root{
+  --bg:#eef4fc; --card:#ffffff; --ink:#1b2a44; --sub:#5b6b85; --line:#d9e4f3;
+  --blue:#1c5fc4; --blue2:#2a78d6; --sky:#e3efff; --pos:#0f8a5f; --neg:#d23b3a; --warn:#b86e00;
+  --safet:env(safe-area-inset-top,0px); --safeb:var(--xv-safeb,env(safe-area-inset-bottom,0px));
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:'Noto Sans JP',system-ui,sans-serif;font-size:14px;line-height:1.5;overscroll-behavior:none}
+button{font:inherit;color:inherit;cursor:pointer}
+[hidden]{display:none!important}
+.scr{display:none;min-height:100%}
+.scr.on{display:block}
+
+/* ══ ボタン ══ */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:6px;min-height:44px;padding:0 18px;border:1.5px solid var(--line);border-radius:12px;
+  background:#fff;font-weight:900;font-size:14px;text-decoration:none;color:var(--ink)}
+.btn.pri{background:linear-gradient(180deg,#3b8cf0,var(--blue));border-color:var(--blue);color:#fff;box-shadow:0 3px 0 #11458f}
+.btn.gh{background:transparent}
+.btn.sm{min-height:38px;font-size:12.5px;padding:0 12px}
+.btn.big{min-height:54px;font-size:18px;width:100%}
+.btn:disabled{opacity:.4;pointer-events:none}
+.btn:active{transform:translateY(1px)}
+.ib{width:40px;height:40px;border:none;border-radius:10px;background:rgba(255,255,255,.18);color:inherit;font-size:18px;font-weight:900;flex:none}
+.brow{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}
+.brow .btn{flex:1 1 auto}
+
+/* ══ タイトル ══ */
+#title{position:relative;overflow:hidden;background:#0f3f86}
+#title.on{display:flex;align-items:flex-end;justify-content:center}
+/* 画像そのものにロゴが入っているので、縦長の画面でも<b>切らずに</b>上に置く（下は同じ青でつなぐ） */
+.tbg{position:absolute;inset:0;background:url(../img/title.jpg) center top/min(100%,100vh) no-repeat,linear-gradient(180deg,#3f8fe8,#0f3f86 70%)}
+@media (min-aspect-ratio:1/1){.tbg{background-size:cover;background-position:center}}
+.tbg::after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,40,90,0) 45%,rgba(10,40,90,.6) 75%,rgba(10,40,90,.92))}
+.tin{position:relative;width:min(440px,100%);padding:24px 20px calc(var(--safeb) + 28px);text-align:center;color:#fff}
+.tlogo{font-family:'Exo 2',sans-serif;font-style:italic;font-weight:800;font-size:44px;line-height:1;text-shadow:0 3px 14px rgba(0,30,80,.5)}
+.tlogo .r{color:#bfe0ff}
+.vh-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+.tsub{font-family:'Exo 2',sans-serif;font-weight:700;letter-spacing:.3em;font-size:13px;margin-top:6px;opacity:.9}
+.ttag{font-weight:900;margin:12px 0 18px;font-size:14px}
+.tbtns{display:flex;flex-direction:column;gap:10px}
+.tbtns .btn:not(.pri){background:rgba(255,255,255,.92)}
+.row2{display:flex;gap:8px}.row2 .btn{flex:1}
+
+/* ══ 都市選択 ══ */
+.sbar{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:10px;padding:calc(var(--safet) + 8px) 12px 10px;background:var(--blue);color:#fff}
+.sbar b{font-size:16px}
+.swrap{padding:12px;display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));max-width:1100px;margin:0 auto;padding-bottom:calc(var(--safeb) + 20px)}
+.city{background:var(--card);border-radius:16px;padding:14px;box-shadow:0 2px 0 var(--line);display:flex;flex-direction:column;gap:8px}
+.ch{display:flex;justify-content:space-between;align-items:flex-start}
+.cn{font-family:'Exo 2',sans-serif;font-weight:800;font-size:20px;color:var(--blue)}
+.cs{font-size:11.5px;color:var(--sub);font-weight:700}
+.stars{color:#eda100;font-size:15px;letter-spacing:1px}
+.cg{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.cd{font-size:12.5px;color:var(--sub)}
+.goals{background:var(--sky);border-radius:10px;padding:8px 10px;font-size:12.5px}
+.goals b{display:block;font-size:11px;color:var(--blue);margin-bottom:2px}
+
+/* ══ ゲーム：上 ══ */
+#game.on{display:flex;flex-direction:column;height:100%}
+.hud{flex:none;background:linear-gradient(180deg,#2a78d6,var(--blue));color:#fff;padding:calc(var(--safet) + 6px) 8px 6px;box-shadow:0 2px 8px rgba(20,60,130,.25);z-index:4}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+.kpis .kv{background:rgba(255,255,255,.14);border-radius:10px;padding:4px 7px}
+.kpis .kv small{color:#d6e7ff}
+.kpis .kv b{font-size:15px}
+.kpis .kv b small{font-size:10px;margin-left:1px}
+.kpis .kv.pos b{color:#b6ffd9}.kpis .kv.neg b{color:#ffc9c4}
+.kpis .kv em{color:#d6e7ff}
+.st{color:#ffd66b;letter-spacing:-1px;font-size:13px}
+.timebar{display:flex;align-items:center;gap:6px;margin-top:6px}
+.clk{display:flex;align-items:baseline;gap:6px;flex:1;min-width:0;white-space:nowrap;overflow:hidden}
+.clk span{font-size:11.5px;font-weight:700;opacity:.9}
+.clk b{font-family:'Exo 2',sans-serif;font-size:21px;font-weight:800;letter-spacing:.02em}
+.clk .band{background:rgba(255,255,255,.2);border-radius:99px;padding:1px 8px}
+.spd{display:flex;gap:3px;flex:none}
+.spd button{min-width:30px;height:34px;border:none;border-radius:9px;background:rgba(255,255,255,.18);color:#fff;font-weight:900;font-size:12px;padding:0 6px}
+.spd button.on{background:#fff;color:var(--blue)}
+.spd .play{min-width:40px;background:#fff;color:var(--blue);font-size:15px}
+.spd .play.on{background:#ffd66b;color:#5a3a00}
+
+#view{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:10px 10px 16px;max-width:900px;width:100%;margin:0 auto}
+.bnav{flex:none;display:grid;grid-template-columns:repeat(5,1fr);background:#fff;border-top:1px solid var(--line);
+  padding:4px 4px calc(var(--safeb) + 4px);box-shadow:0 -2px 10px rgba(20,60,130,.08);z-index:4}
+.bnav button{border:none;background:transparent;display:flex;flex-direction:column;align-items:center;gap:1px;padding:5px 0;border-radius:12px;color:var(--sub);font-weight:900;font-size:11px;min-height:48px}
+.bnav button i{font-style:normal;font-size:19px;filter:grayscale(.6);line-height:1.1}
+.bnav button.on{background:var(--sky);color:var(--blue)}
+.bnav button.on i{filter:none}
+
+/* ══ カード・数字 ══ */
+.card{display:block;width:100%;text-align:left;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:12px;margin-bottom:10px;box-shadow:0 1px 0 var(--line)}
+.ct{font-weight:900;font-size:14px;margin-bottom:8px;display:flex;align-items:baseline;gap:6px;flex-wrap:wrap}
+.note{font-size:12px;color:var(--sub);margin-top:6px}
+.sec{display:flex;align-items:baseline;justify-content:space-between;margin:14px 2px 8px}
+.sec b{font-size:15px}.sec span{font-size:11.5px;color:var(--sub);font-weight:700}
+.kv{min-width:0}
+.kv small{display:block;font-size:10.5px;font-weight:700;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kv b{display:block;font-size:17px;font-weight:900;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kv b small{display:inline;font-size:11px;color:inherit;opacity:.75}
+.kv em{display:block;font-style:normal;font-size:10.5px;color:var(--sub)}
+.kv.big b{font-size:26px;font-family:'Exo 2','Noto Sans JP',sans-serif}
+.kv.pos b{color:var(--pos)}.kv.neg b{color:var(--neg)}
+.kv.warn b{color:var(--neg)}
+.kv.warn b::before{content:"▲";font-size:.6em;margin-right:3px;vertical-align:.2em}
+.kgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px 12px}
+.kgrid.s{grid-template-columns:repeat(auto-fill,minmax(110px,1fr))}
+.kgrid.s .kv b{font-size:14.5px}
+.lg4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px}
+.lg4 .kv b{font-size:15px}
+.bar{height:8px;border-radius:99px;background:#e6eef9;overflow:hidden;margin:8px 0}
+.bar i{display:block;height:100%;background:var(--blue2);border-radius:99px}
+.hint{background:var(--sky);border-color:#c8dcf7;font-size:13px}
+.cw{font-size:11px;font-weight:900;padding:0 6px;border-radius:99px;background:#eef2f8}
+.cw0,.cw1{color:var(--pos)}.cw2{color:var(--blue)}.cw3{color:var(--warn)}.cw4,.cw5{color:var(--neg)}
+
+/* 路線図 */
+.map{padding:6px}
+.msvg{display:block;width:100%;height:auto;background:linear-gradient(180deg,#f4f9ff,#e9f2fd);border-radius:10px;touch-action:manipulation}
+.snm{font-size:25px;font-weight:900;fill:#1b2a44;paint-order:stroke;stroke:#fff;stroke-width:5px;pointer-events:none}
+.lnm{font-family:'Exo 2',sans-serif;font-size:26px;font-weight:800;paint-order:stroke;stroke:#fff;stroke-width:5px;pointer-events:none}
+.mlg{font-size:11px;color:var(--sub);padding:4px 4px 0}
+.lcard{--lc:var(--blue);border-left:6px solid var(--lc);cursor:pointer}
+.lh{display:flex;align-items:center;gap:6px;margin-bottom:8px;flex-wrap:wrap}
+.lh b{font-size:15px}.lh span{font-size:11.5px;color:var(--sub);font-weight:700;margin-left:auto}
+.ld{display:inline-block;width:12px;height:12px;border-radius:50%;flex:none;vertical-align:-1px;margin-right:4px;border:2px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.12)}
+.flag{margin-top:8px;font-size:12px;font-weight:900;color:var(--neg)}
+.chips{display:flex;gap:6px;overflow-x:auto;padding:2px 0 8px;margin-bottom:4px;scrollbar-width:none}
+.chips::-webkit-scrollbar{display:none}
+.chips.wrap{flex-wrap:wrap;overflow:visible}
+.chips button{flex:none;border:1.5px solid var(--line);background:#fff;border-radius:99px;padding:5px 12px;font-weight:900;font-size:12.5px;display:flex;flex-direction:column;align-items:center;line-height:1.2}
+.chips button small{font-size:9.5px;color:var(--sub);font-weight:700}
+.chips button.on{background:var(--blue);border-color:var(--blue);color:#fff}
+.chips button.on small{color:#d6e7ff}
+.ev{background:#fff8e6;border-color:#f1d9a0}
+.evr{font-size:12.5px;padding:3px 0}.evr b{display:inline-block;min-width:52px;color:var(--warn);font-size:11px}
+.evr.now b{color:var(--neg)}
+
+/* 路線の詳細 */
+.back{display:flex;align-items:center;gap:8px;margin-bottom:4px}
+.back .ib{background:#fff;border:1.5px solid var(--line)}
+.ttl{font-size:19px;font-weight:900;display:flex;align-items:center}
+.plan{padding:4px 8px}
+.pr{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,1fr) minmax(0,1fr) minmax(0,.9fr);align-items:center;gap:6px;padding:7px 2px;border-bottom:1px solid var(--line)}
+.pr:last-child{border-bottom:none}
+.pr.ph{font-size:11px;font-weight:900;color:var(--sub)}
+.pr.on{background:var(--sky);border-radius:8px}
+.pr span:first-child{cursor:pointer}
+.pr span b{display:block;font-size:13px}.pr span small{font-size:10px;color:var(--sub)}
+.stp{display:flex;align-items:center;justify-content:space-between;background:#f3f7fd;border-radius:10px;padding:2px}
+.stp button{width:32px;height:34px;border:none;border-radius:8px;background:#fff;font-weight:900;font-size:17px;box-shadow:0 1px 0 var(--line)}
+.stp b{font-family:'Exo 2',sans-serif;font-size:17px;min-width:22px;text-align:center}
+.vb{width:100%;min-height:36px;border:1.5px solid var(--line);border-radius:10px;background:#fff;font-weight:900;font-size:10.5px;padding:0 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.vb.v-rapid{border-color:#eb6834;color:#b04716}.vb.v-premium{border-color:#4a3aa7;color:#4a3aa7}
+.ptab{display:grid;gap:4px;overflow-x:auto;font-size:12px}
+.ptab .hd{font-weight:900;font-size:11px;padding:4px 2px;white-space:nowrap}
+.ptab .bd b{display:block;font-size:12px}.ptab .bd small{font-size:9.5px;color:var(--sub)}
+.cell{border:1.5px solid var(--line);border-radius:8px;background:#fff;padding:4px 2px;font-weight:900;font-size:13px;display:flex;flex-direction:column;align-items:center}
+.cell small{font-size:9.5px;color:var(--sub);font-weight:700}
+
+/* 車両・駅 */
+.veh .vh{display:flex;align-items:center;gap:10px;margin-bottom:4px}
+.vic{width:44px;height:44px;border-radius:12px;background:var(--sky);display:grid;place-items:center;font-size:24px}
+.veh.v-rapid .vic{background:#fdeee6}.veh.v-premium .vic{background:#ecebf8}
+.vh b{display:block;font-size:15px}.vh small{font-size:11px;color:var(--sub)}
+.vn{margin-left:auto;font-family:'Exo 2',sans-serif;font-size:28px;font-weight:800;color:var(--blue)}
+.vn small{font-size:12px;color:var(--sub)}
+.srow{cursor:pointer}
+.sn{display:flex;align-items:center;gap:2px;margin-bottom:6px}.sn b{font-size:15px;margin-left:4px}
+
+/* 経営 */
+.fare{display:flex;align-items:center;justify-content:center;gap:16px}
+.fare button{width:56px;height:44px;border:1.5px solid var(--line);border-radius:12px;background:#fff;font-weight:900}
+.fare b{font-family:'Exo 2',sans-serif;font-size:30px;min-width:110px;text-align:center}
+.fin div{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px dashed var(--line);font-size:13.5px}
+.fin .tot{border-bottom:none;border-top:2px solid var(--ink);margin-top:4px;padding-top:8px;font-size:15px;font-weight:900}
+.pos{color:var(--pos)}.neg{color:var(--neg)}
+.bigsat{font-family:'Exo 2',sans-serif;font-size:28px;color:var(--blue)}
+.sat{display:grid;grid-template-columns:92px 1fr 34px;align-items:center;gap:8px;padding:4px 0}
+.sat span{font-size:12.5px;font-weight:900}.sat .bar{margin:0}
+.sat b{text-align:right;font-family:'Exo 2',sans-serif;font-size:16px}
+.sat em{grid-column:2/4;font-style:normal;font-size:11px;color:var(--sub);margin-top:-4px}
+.crisis{background:#fff0ef;border-color:#f3c3c0}
+.goal{display:flex;justify-content:space-between;gap:8px;padding:6px 0;border-bottom:1px dashed var(--line);font-size:12.5px}
+.goal:last-child{border-bottom:none}.goal b{white-space:nowrap}.goal.ok span{color:var(--pos);font-weight:900}
+.okb{background:var(--pos);color:#fff;border-radius:99px;font-size:11px;padding:1px 8px}
+
+/* グラフ */
+.chart canvas{display:block;width:100%;touch-action:pan-y}
+.lg{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:11.5px;font-weight:700;margin:-2px 0 6px}
+.lg span{display:flex;align-items:center;gap:5px}
+.lg i{display:inline-block;width:14px;height:3px;border-radius:2px}
+.lg i.b{height:10px;width:10px;border-radius:3px}
+.tip{position:fixed;z-index:60;pointer-events:none;background:#fff;border:1px solid var(--line);border-radius:10px;padding:7px 10px;font-size:12px;box-shadow:0 6px 18px rgba(20,40,80,.18);min-width:140px}
+.tip b{display:block;margin-bottom:3px}
+.tip div{display:flex;align-items:center;gap:6px}.tip div i{width:9px;height:9px;border-radius:3px;flex:none}
+.tip div span{margin-left:auto;font-weight:900;padding-left:10px}
+
+/* シート（レポート・確認） */
+.ov{position:fixed;inset:0;z-index:50;background:rgba(10,25,55,.45);display:none;align-items:flex-end;justify-content:center}
+.ov.on{display:flex}
+.sheet{position:relative;width:min(560px,100%);max-height:92%;overflow-y:auto;background:var(--bg);border-radius:20px 20px 0 0;padding:18px 14px calc(var(--safeb) + 18px);animation:shUp .22s ease-out}
+@media (min-width:700px){.ov{align-items:center}.sheet{border-radius:20px;max-height:88%}}
+@keyframes shUp{from{transform:translateY(30px);opacity:0}to{transform:none;opacity:1}}
+.sheet .x{position:absolute;right:10px;top:10px;width:36px;height:36px;border:none;border-radius:50%;background:#fff;font-weight:900}
+.sheet p{font-size:13.5px;margin:8px 0}
+.mlist{display:flex;flex-direction:column;gap:8px}
+.help ol,.help ul{padding-left:20px;font-size:13px}.help li{margin:4px 0}.help p{font-size:13.5px}
+.rep .rh{font-family:'Exo 2',sans-serif;font-weight:800;font-size:22px;color:var(--blue);margin-bottom:10px}
+.rep .rh span{font-size:14px;color:var(--sub);margin-left:6px}
+.rep .kgrid{background:#fff;border-radius:14px;padding:12px;border:1px solid var(--line)}
+.iss{background:#fff;border-radius:14px;padding:10px 12px;margin:10px 0;border:1px solid var(--line)}
+.iss b{display:block;font-family:'Exo 2',sans-serif;font-size:14px;color:var(--blue);margin-bottom:4px}
+.iss div{display:flex;gap:6px;font-size:12.5px;padding:4px 0;border-bottom:1px dashed var(--line)}
+.iss div:last-child{border-bottom:none}
+.iss i{font-style:normal;flex:none;width:18px;text-align:center}
+.iss .lv3{color:var(--neg);font-weight:700}.iss .lv2{color:var(--warn)}
+.rep .goals{background:#fff;border:1px solid var(--line);margin-bottom:12px}
+.rep > .btn{width:100%}
+.clear{background:linear-gradient(90deg,#ffe7a3,#fff3cf);border-radius:14px;padding:10px 12px;font-weight:900;font-size:17px;margin-bottom:10px}
+.clear small{display:block;font-size:12px;font-weight:700}
+.clear.bad{background:#ffe1df;color:var(--neg)}
+.toast{position:fixed;left:50%;bottom:calc(var(--safeb) + 80px);transform:translateX(-50%);z-index:70;background:rgba(20,35,65,.92);color:#fff;
+  padding:9px 16px;border-radius:99px;font-size:13px;font-weight:700;max-width:90vw;text-align:center}
+@media (min-width:760px){ .kpis .kv b{font-size:19px} .kgrid{grid-template-columns:repeat(auto-fill,minmax(150px,1fr))} }
+@media (max-width:400px){ .clk span:first-child{display:none} .spd button{padding:0 4px;font-size:11px} .clk b{font-size:19px} }
+
+/* ★★ 2026-09-18 路線図の拡大・移動 */
+.mwrap{position:relative}
+.msvg{touch-action:none;cursor:grab}
+.msvg:active{cursor:grabbing}
+.snm{font-size:calc(25px * var(--z,1))!important;stroke-width:calc(5px * var(--z,1))!important}
+.lnm{font-size:calc(26px * var(--z,1))!important;stroke-width:calc(5px * var(--z,1))!important}
+.mctl{position:absolute;right:6px;top:6px;display:flex;flex-direction:column;gap:4px}
+.mctl button{width:36px;height:36px;border:1.5px solid var(--line);border-radius:10px;background:rgba(255,255,255,.94);font-weight:900;font-size:17px;color:var(--blue);box-shadow:0 2px 6px rgba(20,60,130,.15)}
+.map.full .msvg{height:calc(100dvh - 250px);min-height:320px;object-fit:contain}

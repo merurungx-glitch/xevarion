@@ -1,62 +1,22 @@
 /* ============================================================
-   MagiLex Service Worker — オフライン対応
-   ・アプリ本体（HTML/JS/CSS/画像）を事前キャッシュ → 機内モードでも起動可
-   ・学習記録・XEVAは localStorage 保存なのでオフラインでもそのまま動き、
-     オンライン復帰後にポータル側へ自然に反映される
-   ・取得できたリソースは随時キャッシュ更新（stale-while-revalidate）
+   MagiRail Service Worker — オフライン対応（2026-09-18 新作）
+   ・1台で遊ぶ経営シミュレーション。キャッシュすれば完全にオフラインで動く
+   ・セーブ（magirail_v1）は localStorage
    ============================================================ */
-const VERSION = "magilex-sw-v100";
+const VERSION = "magirail-sw-v2";
 const CORE = [
-  /* ★ 2026-08-19 図・グラフのエンジンは XEVYNAR と共有。
-     ここに無いと、オフラインで「図で見る」が出ない。 */
-  "../XEVYNAR/xevynar-figs.js?v=17",
-  "./MagiLex.html",
-  "./magilex.css?v=45",
-  "./magilex.js?v=74",
-  "./magilex-data.js?v=10",
-  "./magilex-eigo.js?v=9",
-  "./magilex-rika.js?v=9",
-  "./magilex-butsuri.js?v=10",
-  "./magilex-chemb.js?v=10",
-  "./magilex-math3.js?v=9",
-  "./magilex-chemg.js?v=11",
-  "./magilex-suugaku.js?v=11",
-  "./magilex-intro.js?v=9",
-  "./magilex-mid.js?v=9",
-  "./magilex-chemd.js?v=9",
-  "./magilex-physb.js?v=9",
-  /* ★★ 2026-08-26 化学ε・物理γ（全範囲の標準演習。各20セット240問）。
-     ここに無いとオフラインでこの2科目だけ問題が出てこない。 */
-  "./magilex-cheme.js?v=11",
-  "./magilex-physg.js?v=10",
-  /* ★★ 2026-08-30 地理。ここに無いとオフラインで開けず、update.json にも載らない。 */
-  "./magilex-chiri.js?v=9",
-  "./mlhome_s.jpg",
-  /* ★★ 2026-08-26 Knowledge Point（KP）のアイコン。
-     ここに無いとオフラインで KP の絵が出ない。 */
-  "./kp.webp",
-  "./kp@2x.webp",
-  /* ★★ 2026-08-26 KP交換所のキャラの絵（交換所は一覧を必ず出すので、CORE に入れておく） */
-  "../img/t_Mizuki.webp",
-  "../img/t_Kanade.webp",
-  "../img/t_Homura.webp",
-  "../img/t_Yoizuki.webp",
-  "../img/t_Sumika.webp",
-  /* ★ 2026-08-24 スタミナの絵（ホームのプロフィールに出す⚡札） */
-  "../stamina.png",
-  "../thumbs/MagiLex.jpg",
-  "../brand/NGX.png",
-  "../brand/MagicalFuture.png",
-  "../brand/ISHIDA Production.png",
-  "../xeva.js?v=67",
-  "../xeva-loading.js?v=17",
+  "./index.html",
+  "./css/rail.css?v=2",
+  "./js/rail-core.js?v=2",
+  "./js/rail-chart.js?v=1",
+  "./js/rail-ui.js?v=2",
+  "./img/title.jpg",
+  "./img/icon192.png",
+  "./manifest.webmanifest",
   "../xeva-splash.js?v=13",
-  "../app-cloud.js?v=12",
-  "../xeva-keys.js?v=25",
-  "./magilex-cloud.js?v=15",
+  "../xeva-safebottom.js?v=11",
   "../maintenance-gate.js?v=13",
-  "../app-install-notice.js?v=9",
-  "../XEVA.png",
+  "../thumbs/MagiRail.jpg",
 ];
 
 /* ── 事前キャッシュの進捗をページへ通知する（更新ダウンロード画面用） ── */
@@ -68,30 +28,26 @@ async function xevPost(msg) {
 }
 async function xevPrecache(cache, list, scope) {
   let done = 0;
-  await xevPost({ type: "xev-precache", scope: scope, done: 0, total: list.length });
+  await xevPost({ type: "xev-precache", scope, done: 0, total: list.length });
   for (const u of list) {
-    try { await cache.add(u); }
-    catch (e) { try { await cache.add(u); } catch (e2) {} }
+    try { await cache.add(u); } catch (e) {}
     done++;
-    await xevPost({ type: "xev-precache", scope: scope, done: done, total: list.length });
+    await xevPost({ type: "xev-precache", scope, done, total: list.length });
   }
 }
 
 self.addEventListener("install", (e) => {
   e.waitUntil((async () => {
     const cache = await caches.open(VERSION);
-    await xevPrecache(cache, CORE, "magilex");
+    await xevPrecache(cache, CORE, "magirail");
     self.skipWaiting();
   })());
 });
 
 self.addEventListener("activate", (e) => {
   e.waitUntil((async () => {
-    /* ★ 自分のプレフィックスのキャッシュだけ消す。
-       以前は「VERSION 以外すべて」を消していたため、XEVARION ポータルや
-       他アプリ（MagiLex ⇄ MagiBurst）のオフラインキャッシュまで巻き添えで消えていた。 */
     const keys = await caches.keys();
-    await Promise.all(keys.filter((k) => k !== VERSION && k.startsWith("magilex-sw")).map((k) => caches.delete(k)));
+    await Promise.all(keys.filter((k) => k !== VERSION && k.startsWith("magirail-sw")).map((k) => caches.delete(k)));
     await self.clients.claim();
   })());
 });
@@ -100,8 +56,10 @@ self.addEventListener("fetch", (e) => {
   const req = e.request;
   if (req.method !== "GET") return;
   const url = new URL(req.url);
+  if (url.hostname.indexOf("firebase") >= 0 || url.hostname.indexOf("gstatic") >= 0 || url.hostname.indexOf("googleapis") >= 0) return;
+  if (url.origin !== self.location.origin) return;
 
-  // ページ遷移：ネット優先 → 失敗時はキャッシュ（オフライン起動）
+  /* ページ遷移: ネット優先 → 失敗時はキャッシュ（オフライン起動） */
   /* ★ 2026-08-20 通信設定（Wi-Fi／モバイルデータごとに切り替えられる）
      「このつなぎかたでは最新を取りに行かない」ときは、まずキャッシュを見て、
      あればそれを返す＝<b>ダウンロードずみのデータで動く</b>（通信量を使わない）。
@@ -117,21 +75,17 @@ self.addEventListener("fetch", (e) => {
         return res;
       } catch (err) {
         const cache = await caches.open(VERSION);
-        return (await cache.match(req)) || (await cache.match("./MagiLex.html"));
+        return (await cache.match(req)) || (await cache.match("./index.html"));
       }
     })());
     return;
   }
-
-  // アセット：キャッシュ優先＋裏で更新（同一オリジン & フォントCDN）
-  const cacheable = url.origin === self.location.origin ||
-    url.hostname === "fonts.googleapis.com" || url.hostname === "fonts.gstatic.com";
-  if (!cacheable) return;
+  /* アセット: キャッシュ優先＋裏で更新 */
   e.respondWith((async () => {
     const cache = await caches.open(VERSION);
     const cached = await cache.match(req);
     const fetching = fetch(req).then((res) => {
-      if (res && (res.ok || res.type === "opaque")) cache.put(req, res.clone());
+      if (res && res.ok) cache.put(req, res.clone());
       return res;
     }).catch(() => null);
     return cached || (await fetching) || new Response("", { status: 504 });
@@ -151,7 +105,7 @@ self.addEventListener("fetch", (e) => {
      cache:"reload"（＝ブラウザのHTTPキャッシュも無視）で取り直して入れ替える。
      つまり、何世代とばしていても1回で最新にそろう。
    ══════════════════════════════════════════════════════════ */
-const XEV_SCOPE = "magilex";
+const XEV_SCOPE = "magirail";
 async function xevRefreshPost(msg) {
   try {
     const cs = await self.clients.matchAll({ includeUncontrolled: true, type: "window" });

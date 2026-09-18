@@ -43,6 +43,11 @@
   const SIDE_C = {
     red: ["#ffb3bb", "#ff3b52", "#8a0a1f"],
     blue: ["#bfe3ff", "#2f8fff", "#0a3478"],
+    /* ★★ 2026-09-18 PARTY MATCH の4色 */
+    yellow: ["#fff3b0", "#ffd23d", "#8a6a00"],
+    green: ["#c4f7df", "#2fd18c", "#0a5e3c"],
+    purple: ["#e3d4ff", "#a26bff", "#40157e"],
+    orange: ["#ffd9b8", "#ff8a2a", "#7a3300"],
     none: ["#ffffff", "#e9ecf2", "#9aa3b5"],
   };
   function drawBall(ctx, X, Y, r, o) {
@@ -181,13 +186,15 @@
     if (L === "off") return;
     const big = L === "full";
     const p = toS(e.x, e.y);
-    const sideC = e.side === "blue" ? "#7cc4ff" : "#ff5a6e";
+    const sideC = e.side === "blue" ? "#7cc4ff" : e.side && B.SIDE_INFO && B.SIDE_INFO[e.side] && e.side !== "red" ? B.SIDE_INFO[e.side].lt : "#ff5a6e";
     switch (e.t) {
       case "hit": {
         const pw = Math.min(1, (e.v || 2) / 7);
         burst(p.X, p.Y, big ? 16 + pw * 22 : 8, "#fff3c4", 120 + pw * 220, 2.6);
         streak(p.X, p.Y, e.nx || 0, -(e.ny || 0), sideC, big ? 10 : 4);
         ring(p.X, p.Y, 4, 30 + pw * 40, "rgba(255,255,255,.9)", 0.35, 3);
+        /* ★ 2026-09-18 強い当たりは2重の衝撃波＋画面のフラッシュ */
+        if (big && pw > 0.35) { ring(p.X, p.Y, 8, 60 + pw * 70, sideC, 0.55, 5); flash(sideC, 0.18 + pw * 0.2); }
         if (pw > 0.45) { pop("IMPACT!", (e.power > 1.05 ? "POWER +" + Math.round((e.power - 1) * 100) + "%" : ""), sideC); shake(big ? 6 * pw : 3); }
         sfx("hit", pw);
         break;
@@ -228,6 +235,58 @@
       case "dead": burst(p.X, p.Y, 8, "#888", 90, 2); popLite("DEAD BALL", "#aaa"); break;
       case "ultready": sfx("ready", 1); break;
     }
+  }
+  /* ══ ★★ 2026-09-18 ショットの演出を少し豪華に（ご指定）══
+     どれも<b>見た目だけ</b>（盤面・物理には触らない）。設定の「演出の強さ」が off なら何もしない。 */
+  /* 投げた瞬間：足もとの衝撃リング・進む向きの光の筋・強さの文字。技を乗せたときはさらに一段 */
+  function launch(x, y, nx, ny, col, power, skill) {
+    const L = lv();
+    if (L === "off") return;
+    const big = L === "full";
+    const pw = Math.max(0, Math.min(1, power || 0));
+    ring(x, y, 6, 26 + pw * 34, col, 0.42, 4);
+    ring(x, y, 4, 16 + pw * 18, "rgba(255,255,255,.9)", 0.3, 2);
+    if (big) {
+      streak(x, y, nx, ny, col, 6 + Math.round(pw * 10));
+      burst(x, y, 8 + Math.round(pw * 14), "#ffffff", 90 + pw * 160, 2);
+    }
+    if (pw >= 0.85) { popLite("MAX POWER!", col); shake(big ? 4 : 2); flash(col, 0.22); sfx("launch", 1); }
+    else if (pw >= 0.6) { popLite("POWER " + Math.round(pw * 100) + "%", col); sfx("launch", 0.6); }
+    else sfx("launch", 0.25);
+    if (skill && big) { ring(x, y, 10, 80, "rgba(255,200,61,.95)", 0.6, 3); burst(x, y, 18, "#ffc83d", 200, 2.4); }
+  }
+  /* 転がっている球のうしろの火花（速さに比例して出る数を変える） */
+  let sparkAcc = 0;
+  function spark(x, y, col, spd) {
+    sparkAcc += Math.min(1.2, (spd - 2) / 4);
+    while (sparkAcc >= 1) {
+      sparkAcc -= 1;
+      const a = Math.random() * Math.PI * 2, v = 20 + Math.random() * 40;
+      add({ k: "dot", x: x + (Math.random() - 0.5) * 6, y: y + (Math.random() - 0.5) * 6, vx: Math.cos(a) * v, vy: Math.sin(a) * v,
+            life: 0, max: 0.25 + Math.random() * 0.25, c: Math.random() < 0.5 ? col : "#ffffff", s: 1.6 + Math.random() * 1.4 });
+    }
+  }
+  /* ジャックにぴったり寄ったとき：PERFECT / GREAT / NICE */
+  function nice(x, y, d, col, r) {
+    const L = lv();
+    if (L === "off") return;
+    const cm = Math.round(d * 100);
+    const t = d < 0.12 ? "PERFECT!" : d < 0.25 ? "GREAT!" : "NICE!";
+    for (let k = 0; k < (d < 0.12 ? 3 : 2); k++) ring(x, y, r, r * (3 + k * 1.6), k ? "rgba(255,255,255,.7)" : col, 0.5 + k * 0.15, 3 - k);
+    burst(x, y, d < 0.12 ? 26 : 14, "#ffe14d", 160, 2.4);
+    pop(t, cm + "cm", d < 0.12 ? "#ffc83d" : col, d < 0.12);
+    if (d < 0.12) { flash("#ffc83d", 0.25); shake(3); }
+    sfx("nice", d < 0.12 ? 1 : 0.5);
+  }
+  /* コートの箱だけを一瞬その色で光らせる */
+  function flash(col, a) {
+    if (!host || lv() !== "full") return;
+    const el = document.createElement("div");
+    el.className = "fxflash";
+    el.style.setProperty("--pc", col || "#fff");
+    el.style.setProperty("--pa", String(a == null ? 0.25 : a));
+    host.appendChild(el);
+    setTimeout(() => el.remove(), 420);
   }
   function drawParticles(ctx, dt) {
     for (let i = P.length - 1; i >= 0; i--) {
@@ -379,6 +438,8 @@
       case "special": tone(520, 0.16, "triangle", 0.07, 1.8); break;
       case "score": [523, 659, 784].forEach((f, i) => setTimeout(() => tone(f, 0.16, "triangle", 0.08), i * 90)); break;
       case "ui": tone(700, 0.04, "square", 0.03); break;
+      case "launch": noise(0.08 + p * 0.1, 0.05 + p * 0.1); tone(180 + p * 160, 0.16, "sawtooth", 0.04, 2.2); break;
+      case "nice": [784, 988, 1175, 1568].slice(0, p >= 1 ? 4 : 3).forEach((f, i) => setTimeout(() => tone(f, 0.14, "triangle", 0.08), i * 70)); break;
     }
   }
   function vib(ms) { try { if (B.load().vib !== false && navigator.vibrate) navigator.vibrate(ms); } catch (e) {} }
@@ -429,6 +490,8 @@
       ".fxpop .s{display:inline-block;margin-top:4px;font-family:'Anton','Orbitron',sans-serif;font-style:italic;font-size:clamp(18px,6vw,30px);",
       "  color:#000;background:var(--pc);padding:0 14px;transform:skewX(-10deg)}",
       "@keyframes fxP{0%{opacity:0;transform:scale(2.2)}18%{opacity:1;transform:scale(.94)}28%{transform:scale(1)}78%{opacity:1}100%{opacity:0;transform:translateY(-14px)}}",
+      ".fxflash{position:absolute;inset:0;z-index:4;pointer-events:none;background:radial-gradient(circle at 50% 70%,var(--pc),transparent 70%);opacity:0;animation:fxF .42s ease-out both}",
+      "@keyframes fxF{0%{opacity:var(--pa)}100%{opacity:0}}",
       ".fxlite{position:absolute;right:10px;top:46%;z-index:5;pointer-events:none;font-family:'Anton','Orbitron',sans-serif;font-style:italic;font-size:20px;",
       "  color:var(--pc);text-shadow:2px 2px 0 #000;animation:fxL .7s ease both}",
       "@keyframes fxL{0%{opacity:0;transform:translateX(30px)}20%{opacity:1;transform:none}80%{opacity:1}100%{opacity:0}}",
@@ -484,5 +547,6 @@
     document.head.appendChild(st);
   })();
 
-  window.MBRFX = { drawBall, ballThumb, imgOf, imgPath, onEvent, drawParticles, shakeOffset, shake, setHost, pop, popLite, cutIn, clearCut, sfx, vib, speak };
+  window.MBRFX = { drawBall, ballThumb, imgOf, imgPath, onEvent, drawParticles, shakeOffset, shake, setHost, pop, popLite, cutIn, clearCut, sfx, vib, speak,
+                   launch, spark, nice, flash };
 })();

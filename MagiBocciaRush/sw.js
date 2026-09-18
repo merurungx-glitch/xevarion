@@ -5,24 +5,25 @@
    ・キャラクターの絵は XEVARION の img/ にあるので、ここでは丸ごと持たない
      （ポータル側の SW が持っている。開いたぶんだけ実行時に控える）。
    ============================================================ */
-const VERSION = "boccia-sw-v16";
+const VERSION = "boccia-sw-v20";
 const RUNTIME = "boccia-rt-v1";
 const CORE = [
   "./index.html",
   "./manifest.webmanifest",
-  "./css/mbr.css?v=14",
+  "./css/mbr.css?v=17",
   "./js/mbr-voice.js?v=2",
-  "./js/mbr-core.js?v=8",
+  "./js/mbr-core.js?v=12",
   "./js/mbr-stage.js?v=4",
-  "./js/mbr-fx.js?v=4",
-  "./js/mbr-ui.js?v=11",
+  "./js/mbr-fx.js?v=5",
+  "./js/mbr-help.js?v=2",
+  "./js/mbr-ui.js?v=15",
   "../mb-newchars.js?v=28",
   "../mb-boot.js?v=17",
-  "../MagiBurst/js/mb-core.js?v=120",
+  "../MagiBurst/js/mb-core.js?v=121",
   "../xeva.js?v=67",
-  "../xeva-loading.js?v=16",
-  "../xeva-splash.js?v=12",
-  "../xeva-safebottom.js?v=10",
+  "../xeva-loading.js?v=17",
+  "../xeva-splash.js?v=13",
+  "../xeva-safebottom.js?v=11",
   "../xeva-back.js?v=9",
   "../maintenance-gate.js?v=13",
   "../thumbs/MagiBocciaRush.jpg",

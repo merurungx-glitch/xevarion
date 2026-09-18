@@ -26,12 +26,18 @@
   const en = () => lang() === "en";
   function L(o) { return typeof o === "string" ? o : (o && (en() ? o.en : o.ja)) || (o && o.ja) || ""; }
   const J = (ja, e) => (en() ? e : ja);
+  /* ★★ 2026-09-18 チームの色（PARTY MATCH で最大6色）。赤・青は前と同じ色。 */
+  const SI = (s) => (B.SIDE_INFO && B.SIDE_INFO[s]) || { en: String(s || "").toUpperCase(), ja: "", c: "#ff3b52", lt: "#ff8a97" };
+  const SC = (s) => SI(s).c, SL = (s) => SI(s).lt;
+  function rgbOf(hex) { const h = String(hex).replace("#", ""); return [0, 2, 4].map((i) => parseInt(h.slice(i, i + 2), 16)).join(","); }
+  const SA = (s, a) => "rgba(" + rgbOf(SC(s)) + "," + a + ")";
 
   /* ══════════ 状態 ══════════ */
   let ROSTER = [], OWN = new Set(), TRIAL = false;
   let cur = "home", prev = "home", detailId = "";
   let M = null, raf = 0, lastTs = 0;
   let aim = null, slot = 2, busy = false, thinking = false, hold = false;
+  let slotBy = {};             /* ★ 2026-09-18 色ごとに最後に選んだ投球ボックス */
   let sel = { special: "", active: false, ult: false };
   let lastGuide = null, pendingCfg = null, shownTurn = "";
   let trail = [];
@@ -243,6 +249,7 @@
       + tile("soon", "", "RANKED", J("ランクマッチ", "Ranked"), "soon", "♛", J("準備中", "SOON"))
       + tile("soon", "", "TEAM MATCH", J("チーム対戦", "Team match"), "soon", "👥", J("準備中", "SOON"))
       + tile("setup", "friend", "FRIEND MATCH", J("1台で友達と", "Same device"), "", "🤝")
+      + tile("setup", "party", "PARTY MATCH", J("1台で最大6色", "Up to 6 colours"), "", "🎉")
       + tile("go", "room", "PRIVATE ROOM", J("ルームコードでオンライン", "Online room code"), "", "🔑")
       + tile("setup", "practice", "PRACTICE", J("練習モード", "Free practice"), "wh", "◎")
       + "</div>"
@@ -294,7 +301,8 @@
       + md("go", "stages", "BOSS STAGE", J("ボスステージ", "Boss stages"), J("5ステージ×難易度3つ・初回クリアでジェム", "5 stages × 3 difficulties · gems on first clear"), "full stagemode", "maki")
       + md("soon", "", "RANKED MATCH", J("ランクマッチ", "Ranked"), J("準備中です", "Coming soon"), "soon", 1)
       + md("setup", "friend", "FRIEND MATCH", J("フレンド対戦", "Friend match"), J("1台で交代・全キャラから編成", "Pass the device, any character"), "", 2)
-      + md("soon", "", "TEAM MATCH", J("チーム対戦", "Team match"), J("準備中です", "Coming soon"), "soon", 3)
+      + md("setup", "party", "PARTY MATCH", J("パーティー対戦", "Party match"), J("1台で最大6色・6人で対戦", "Up to 6 colours on one device"), "party", 3)
+      + md("soon", "", "TEAM MATCH", J("チーム対戦", "Team match"), J("準備中です", "Coming soon"), "soon", 8)
       + md("go", "room", "PRIVATE ROOM", J("プライベートルーム", "Private room"), J("ルームコードでオンライン", "Online with a room code"), "", 4)
       + md("setup", "cpu", "CPU MATCH", J("CPU対戦", "CPU match"), "EASY 〜 MASTER", "", 5)
       + md("setup", "practice", "PRACTICE", J("練習モード", "Practice"), J("得点なしで自由に投げる", "Free throws, no score"), "", 6)
@@ -308,7 +316,7 @@
   const DIFF = [["easy", "EASY"], ["normal", "NORMAL"], ["hard", "HARD"], ["expert", "EXPERT"], ["master", "MASTER"]];
   const RANK_DIFF = { bronze: "normal", silver: "normal", gold: "hard", platinum: "hard", diamond: "expert", master: "master", grand: "master" };
   function kindName(k) {
-    return { quick: "QUICK MATCH", ranked: "RANKED MATCH", friend: "FRIEND MATCH", team: "TEAM MATCH", cpu: "CPU MATCH", practice: "PRACTICE", online: "ONLINE" }[k] || k;
+    return { quick: "QUICK MATCH", ranked: "RANKED MATCH", friend: "FRIEND MATCH", team: "TEAM MATCH", cpu: "CPU MATCH", practice: "PRACTICE", online: "ONLINE", party: "PARTY MATCH" }[k] || k;
   }
   function setup(kind) {
     const s = B.load();
@@ -331,10 +339,85 @@
     if (kind === "quick" && window.MBROnline && navigator.onLine) {
       pendingCfg.tryOnline = true;
     }
+    /* ★★ 2026-09-18 PARTY MATCH：1台で最大6色（ご指定）。前回の設定を覚えておく。 */
+    if (kind === "party") {
+      const all = B.buildRoster();
+      const pv = s.party || {};
+      pendingCfg.ends = pv.ends || 2;
+      pendingCfg.pn = pv.pn || 4;
+      pendingCfg.perColor = pv.perColor || 3;
+      pendingCfg.train = pv.train || "mine";
+      pendingCfg.rules = pv.rules || pendingCfg.rules;
+      pendingCfg.growth = pv.growth || pendingCfg.growth;
+      pendingCfg.party = B.PARTY_SIDES.map((sd, i) => {
+        const o = (pv.sides || [])[i] || {};
+        const base = o.lineup && o.lineup.length ? o.lineup : B.rivalLineup((Date.now() ^ Math.imul(i + 1, 0x9e3779b1)) >>> 0, LINEUP_N);
+        /* ★ 紐づけは「未確認」で復元 → 🔒 をタップして4桁パスワードを入れると有効（MagiChainParty と同じ） */
+        return { side: sd, name: String(o.name || (i + 1) + "P").slice(0, 8), cpu: !!o.cpu, lineup: fillLineup(base, all),
+                 link: o.link && o.link.uid ? Object.assign({}, o.link, { confirmed: false }) : null };
+      });
+    }
     drawSetup();
+  }
+  function saveParty() {
+    const p = pendingCfg; if (!p || p.kind !== "party") return;
+    const s = B.load();
+    s.party = { ends: p.ends, pn: p.pn, perColor: p.perColor, train: p.train, rules: p.rules, growth: p.growth,
+                sides: p.party.map((x) => ({ cpu: x.cpu, lineup: x.lineup, name: x.name,
+                  link: x.link && x.link.uid ? { uid: x.link.uid, name: x.link.name, charFile: x.link.charFile || "", charId: x.link.charId || "" } : null })) };
+    B.save();
+  }
+  function drawPartySetup() {
+    const p = pendingCfg;
+    const segBtns = (key, list) => '<div class="seg">' + list.map((d) => '<button class="' + (String(p[key]) === String(d[0]) ? "on" : "")
+      + '" data-a="cfg" data-v="' + key + ":" + d[0] + '">' + esc(d[1]) + "</button>").join("") + "</div>";
+    const act = p.party.slice(0, p.pn);
+    const anyCpu = act.some((x) => x.cpu);
+    let h = ttl("PARTY MATCH", J("1台で最大6色のボッチャ", "Up to 6 colours on one device"))
+      + '<div class="pn tight"><div class="note">' + J("iPad などの1台を<b>みんなで回して</b>遊ぶモードです。画面の上に<b>次に投げる色</b>が出ます。"
+        + "投げる順番は「まだ1球も置いていない色 → <b>ジャックからいちばん遠い色</b>」。エンドの終わりに、いちばん近い色が<b>2番目に近い色の最短</b>より近いボールの数だけ得点します。",
+        "Pass one device around. The <b>colour to throw next</b> is shown at the top. Order: colours with no ball yet, then the colour <b>farthest from the jack</b>. "
+        + "At the end, the closest colour scores one point per ball closer than the next colour's best.") + "</div></div>"
+      + '<div class="pn tight"><div class="note" style="margin-bottom:6px"><b>' + J("人数（色の数）", "Players (colours)") + "</b></div>" + segBtns("pn", [[3, "3"], [4, "4"], [5, "5"], [6, "6"]])
+      + '<div class="note" style="margin:10px 0 6px"><b>' + J("1色あたりのボール", "Balls per colour") + "</b></div>" + segBtns("perColor", [[2, "2"], [3, "3"], [4, "4"], [6, "6"]])
+      + '<div class="note" style="margin:10px 0 6px"><b>' + J("エンド数", "Ends") + "</b></div>" + segBtns("ends", [[1, "1"], [2, "2"], [4, "4"]])
+      + '<div class="note" style="margin:10px 0 6px"><b>' + J("モード", "Mode") + "</b></div>" + segBtns("rules", [["ability", J("キャラクター能力", "Ability")], ["rules", J("ルール準拠", "Rules")], ["simple", J("シンプル", "Simple")]]) + rulesNote(p.rules)
+      + '<div class="note" style="margin:10px 0 6px"><b>' + J("育成の反映", "Training bonus") + "</b></div>" + segBtns("growth", [["unify", J("性能統一", "Unified")], ["cap", J("+1まで", "Cap +1")], ["full", J("そのまま", "Full")]])
+      + '<div class="note" style="margin:10px 0 6px"><b>' + J("育成状況（全員共通）", "Training (everyone)") + "</b></div>" + segBtns("train", TRAIN_OPTS())
+      + (anyCpu ? '<div class="note" style="margin:10px 0 6px"><b>' + J("CPU の強さ", "CPU level") + "</b></div>" + segBtns("difficulty", DIFF) : "")
+      + "</div>";
+    const nShow = Math.min(LINEUP_N, p.perColor);
+    act.forEach((x, i) => {
+      const lu = x.lineup.map(charOf).filter(Boolean);
+      /* ★★ 2026-09-18 名前を変えられる・XEVARION アカウントを紐づけられる（MagiChainParty と同じ GameLink） */
+      const lk = x.link && x.link.uid ? x.link : null;
+      const lkBtn = x.cpu ? "" : !lk ? '<button class="plink" data-a="plink" data-v="' + i + '" title="' + J("XEVARION アカウントを紐づける", "Link a XEVARION account") + '">🔗</button>'
+        : lk.confirmed === false ? '<button class="plink pending" data-a="plink" data-v="' + i + '">🔒 ' + esc(lk.name) + J("（要確認）", " (confirm)") + "</button>"
+        : '<button class="plink on" data-a="plink" data-v="' + i + '" title="' + J("タップで解除", "Tap to unlink") + '">✓ ' + esc(lk.name) + "</button>";
+      h += '<div class="hd pside" style="--sc:' + SC(x.side) + '"><span class="pchip">' + esc(SI(x.side).en) + "</span>"
+        + '<input class="pname" data-i="' + i + '" maxlength="8" value="' + esc(x.name) + '" aria-label="' + J("名前", "Name") + '">'
+        + lkBtn
+        + '<span class="more" data-a="pcpu" data-v="' + i + '">' + (x.cpu ? "CPU" : J("人", "HUMAN")) + " ⇄</span>"
+        + (p.rules === "simple" ? "" : '<span class="more" style="margin-left:10px" data-a="preroll" data-v="' + i + '">↻</span>') + "</div>"
+        + (p.rules === "simple" ? "" : '<div class="lineup mini">' + [0, 1, 2, 3, 4, 5].slice(0, nShow).map((k) => slotHTML(lu[k], k, "ppick", i + ":" + k, lu[k] && trainAwOne(p.train, lu[k].id))).join("") + "</div>");
+    });
+    h += '<div class="note" style="margin-top:8px">' + (p.rules === "simple" ? "" : J("1色の中では<b>並べた順</b>にキャラが交代して投げます（ボールの数だけ使います）。キャラは全キャラから選べます。<br>",
+      "Within a colour, characters throw <b>in this order</b> (as many as there are balls). Any character can be used.<br>"))
+      + J("🔗 で XEVARION アカウントを紐づけると、順位に応じて XEVA（1位250〜5位50）がもらえます（4桁パスワードで本人確認）。",
+          "Link a XEVARION account with 🔗 to earn XEVA by placing (1st 250 … 5th 50; 4-digit PIN).") + "</div>"
+      + '<button class="btn pri" style="margin-top:14px" data-a="start">START</button>';
+    open(h);
+  }
+  /* ★★ 2026-09-18 モードの説明（3つ） */
+  function rulesNote(r) {
+    return '<div class="note" style="margin-top:6px">' + (r === "rules"
+      ? J("スキルなし・能力の効き 1/3（壁では反射します）。", "No skills, stats at 1/3 (rails still bounce).")
+      : r === "simple" ? J("<b>キャラクターを編成しない</b>モード。全員が同じ能力・スキルなしで、引っぱる向きと強さだけで勝負します。", "<b>No characters.</b> Everyone has identical stats and no skills — just aim and power.")
+      : J("特殊ショット・スキル・アルティメットあり（壁で反射）。", "Specials, skills and ultimates (rails bounce).")) + "</div>";
   }
   function drawSetup() {
     const p = pendingCfg;
+    if (p && p.kind === "party") { drawPartySetup(); return; }
     const segBtns = (key, list) => '<div class="seg">' + list.map((d) => '<button class="' + (String(p[key]) === String(d[0]) ? "on" : "")
       + '" data-a="cfg" data-v="' + key + ":" + d[0] + '">' + esc(d[1]) + "</button>").join("") + "</div>";
     const lu = myLineup().map(charOf).filter(Boolean);
@@ -359,10 +442,8 @@
     }
     h += '<div class="pn tight"><div class="note" style="margin-bottom:6px"><b>' + J("モード", "Mode") + "</b></div>"
       + (p.kind === "ranked" ? '<div class="en" style="font-size:18px">RULES MODE</div>'
-        : segBtns("rules", [["ability", J("キャラクター能力", "Ability")], ["rules", J("ルール準拠", "Rules")]]))
-      + '<div class="note" style="margin-top:6px">' + (p.rules === "rules"
-        ? J("スキルなし・能力の効き 1/3（壁では反射します）。", "No skills, stats at 1/3 (rails still bounce).")
-        : J("特殊ショット・スキル・アルティメットあり（壁で反射）。", "Specials, skills and ultimates (rails bounce).")) + "</div>";
+        : segBtns("rules", [["ability", J("キャラクター能力", "Ability")], ["rules", J("ルール準拠", "Rules")], ["simple", J("シンプル", "Simple")]]))
+      + rulesNote(p.rules);
     if (p.kind !== "ranked") {
       h += '<div class="note" style="margin:10px 0 6px;display:flex;align-items:center;gap:6px"><b>' + J("育成の反映", "Training bonus") + "</b>" + qBtn() + "</div>"
         + growthHelpHTML()
@@ -378,7 +459,9 @@
     }
     h += "</div>";
     const six = [0, 1, 2, 3, 4, 5];
-    if (p.kind === "friend") {
+    if (p.rules === "simple") {
+      h += '<div class="pn tight" style="margin-top:10px"><div class="note">' + J("シンプルモードでは<b>キャラクターを編成しません</b>。ボールは赤・青の色だけで、能力は全員同じです。", "Simple mode uses <b>no characters</b> — plain red and blue balls with identical stats.") + "</div></div>";
+    } else if (p.kind === "friend") {
       const rl = (p.redLineup || []).map(charOf).filter(Boolean);
       h += hd("RED", J("1Pの編成（タップで変更）", "Player 1 (tap to change)"))
         + '<div class="lineup mini">' + six.map((i) => slotHTML(rl[i], i, "fpick", "red:" + i, rl[i] && trainAwOne(p.trainRed, rl[i].id))).join("") + "</div>"
@@ -667,9 +750,10 @@
     const own = ownedC(c);
     const lu = myLineup();
     const nextXp = B.xpForLv(Math.min(B.LV_MAX, p.lv + 1)), curXp = B.xpForLv(p.lv);
-    return ''
+    /* ★★ 2026-09-19 戻るボタンは<b>常に見える</b>ように、絵の外の「上に貼りつく層」に置く（ご指定） */
+    return '<div class="dback">' + (inMatch ? '<button class="tb back" data-a="mteam">← TEAM</button>' : '<button class="tb back" data-a="back">← BACK</button>') + "</div>"
       + '<div class="dhero' + mxCls(c, own && !TRIAL ? awkOne(c.id) : 0) + '"><img class="bg" src="' + esc(img(c)) + '" alt=""><img class="fg" src="' + esc(imgFull(c)) + '" alt="" onerror="this.onerror=null;this.src=\'' + esc(img(c)) + '\'"><div class="sh"></div>'
-      + (inMatch ? '<button class="tb back" data-a="mteam">← TEAM</button>' : '<button class="tb back" data-a="back">← BACK</button>')
+
       + '<div class="info"><div class="rar">' + c.rarity + "</div>"
       + '<div class="nm">' + esc(c.nm) + "</div>"
       + '<div class="row">' + typeTag(c) + '<span class="tag">' + B.ELEM_JA[c.el] + (c.el2 ? "・" + B.ELEM_JA[c.el2] : "") + J("属性", "") + "</span>"
@@ -700,15 +784,16 @@
       + '<div class="note" style="margin-top:6px">' + B.STAT_KEYS.map((k) => "<b>" + B.STAT_NM[k].en + "</b> " + esc(L(B.STAT_NM[k].d))).join(" ／ ") + "</div></div>"
 
       + hd("SHOTS", J("ショットとスキル", "Shots & skills"), '<span class="more" data-a="rulesec" data-v="SKILLS">' + J("発動のルール ▸", "How skills work ▸") + "</span>")
-      + '<div class="sk"><div class="h"><span class="e">NORMAL SHOT</span><span class="j">' + J("通常ショット", "Normal shot") + "</span></div>"
+      + '<div class="note" style="margin:-2px 0 8px">' + J("特殊ショット2つ・アクティブ・パッシブの<b>組み合わせは全キャラでこの子だけ</b>です。各技の <b>？</b> で、しくみと使いどころが見られます。", "This combination of specials, active and passive is <b>unique to this character</b>. Tap <b>?</b> on each for details.") + "</div>"
+      + '<div class="sk"><div class="h"><span class="e">NORMAL SHOT</span><span class="j">' + J("通常ショット", "Normal shot") + "</span>" + qHelp("normal", "n", c.id, true) + "</div>"
       + '<div class="d">' + normalShotText(c) + "</div></div>"
       + kit.specials.map((x) => '<div class="sk" style="border-left-color:' + x.c + '"><div class="h"><span class="e">' + esc(x.nm) + '</span><span class="j">' + esc(J("特殊ショット " + x.sub, "Special shot")) + "</span>"
-        + '<span class="c tag">' + J("1エンド1回", "1/end") + (x.cost ? " ・ " + J("ゲージ", "gauge ") + x.cost : "") + "</span></div><div class=\"d\">" + x.d
+        + '<span class="c tag">' + J("1エンド1回", "1/end") + (x.cost ? " ・ " + J("ゲージ", "gauge ") + x.cost : "") + "</span>" + qHelp("sp", x.k, c.id, true) + "</div><div class=\"d\">" + x.d
         + "<br><small>" + J("投げる前に下のボタンで選ぶ。", "Select it below before throwing.") + (x.cost ? J("投げた瞬間にこのキャラのゲージから " + x.cost + " 引かれます。", " " + x.cost + " gauge is spent on release.") : "") + "</small></div></div>").join("")
-      + '<div class="sk act"><div class="h"><span class="e">' + esc(kit.active.nm) + '</span><span class="j">' + esc(J("アクティブ " + kit.active.sub, "Active skill")) + '</span><span class="c tag">' + J("1エンド1回", "1/end") + "</span></div><div class=\"d\">" + kit.active.d
+      + '<div class="sk act"><div class="h"><span class="e">' + esc(kit.active.nm) + '</span><span class="j">' + esc(J("アクティブ " + kit.active.sub, "Active skill")) + '</span><span class="c tag">' + J("1エンド1回", "1/end") + "</span>" + qHelp("act", c.active, c.id, true) + "</div><div class=\"d\">" + kit.active.d
       + "<br><small>" + J("特殊ショット・ULT と同じ1投に重ねて使えます。", "Stacks with a special shot and the ULT on the same throw.") + "</small></div></div>"
-      + '<div class="sk pas"><div class="h"><span class="e">' + esc(kit.passive.nm) + '</span><span class="j">' + esc(J("パッシブ " + kit.passive.sub, "Passive skill")) + '</span><span class="c tag">' + J("常に発動", "Always on") + "</span></div><div class=\"d\">" + kit.passive.d + "</div></div>"
-      + '<div class="sk ult"><div class="h"><span class="e">' + esc(kit.ult.nm) + '</span><span class="j">ULTIMATE ・ ' + esc(kit.ult.sub) + '</span><span class="c tag">' + J("ゲージ100・チームで1エンド1回", "Gauge 100 · once per end per team") + "</span></div>"
+      + '<div class="sk pas"><div class="h"><span class="e">' + esc(kit.passive.nm) + '</span><span class="j">' + esc(J("パッシブ " + kit.passive.sub, "Passive skill")) + '</span><span class="c tag">' + J("常に発動", "Always on") + "</span>" + qHelp("pas", c.passive, c.id, true) + "</div><div class=\"d\">" + kit.passive.d + "</div></div>"
+      + '<div class="sk ult"><div class="h"><span class="e">' + esc(kit.ult.nm) + '</span><span class="j">ULTIMATE ・ ' + esc(kit.ult.sub) + '</span><span class="c tag">' + J("ゲージ100・チームで1エンド1回", "Gauge 100 · once per end per team") + "</span>" + qHelp("ult", c.type, c.id, true) + "</div>"
       + '<div class="d">' + kit.ult.d + "<br><small>" + J("撃つとこのキャラのゲージは 0 に戻り、その1投ではゲージがたまりません。※ ルール準拠モード・ランクマッチでは、特殊ショット／スキル／アルティメットは使えません。", "Firing resets this character's gauge to 0 and that throw earns none. Specials, skills and ultimates are disabled in rules mode / ranked.") + "</small></div></div>"
 
       + hd("BALL", J("専用ボール（見た目だけ・性能は同じ）", "Signature ball (cosmetic)"))
@@ -828,14 +913,14 @@
   function matchStatusHTML(c) {
     if (!M) return "";
     let out = "";
-    ["red", "blue"].forEach((sd) => {
+    B.sidesOf(M).forEach((sd) => {
       const lu = B.lineupOf(M, sd);
       const i = lu.indexOf(c.id);
       if (i < 0) return;
       const kit = B.kitText(c, lang());
       const now = M.phase === "play" && M.turn === sd && B.charIdx(M, sd) === i;
       const who = B.playerOf(M, sd);
-      let h = '<div class="pn ' + (sd === "red" ? "red" : "blue") + '"><div class="note"><b>' + J("この試合", "THIS MATCH") + " ・ " + sd.toUpperCase() + (who ? " " + esc(who.name) : "") + " ・ " + J((i + 1) + "番手", "#" + (i + 1)) + "</b>"
+      let h = '<div class="pn ' + (sd === "red" ? "red" : "blue") + '" style="border-color:' + SC(sd) + '"><div class="note"><b>' + J("この試合", "THIS MATCH") + " ・ " + SI(sd).en + (who ? " " + esc(who.name) : "") + " ・ " + J((i + 1) + "番手", "#" + (i + 1)) + "</b>"
         + (now ? ' <span class="tag" style="background:var(--gold);color:#000">' + J("いま投げる番", "THROWING NOW") + "</span>" : "") + "</div>";
       if (M.md.skills) {
         const g = Math.round(M.gauge[sd][i] || 0);
@@ -859,7 +944,7 @@
     const sideHTML = (sd) => {
       const lu = B.lineupOf(M, sd);
       const who = B.playerOf(M, sd);
-      return hd(sd.toUpperCase(), (who ? who.name : "") + (sd === me && !M.cfg.local ? J("（あなた）", " (you)") : ""))
+      return hd(SI(sd).en, (who ? who.name : "") + (sd === me && !M.cfg.local && !B.isParty(M) ? J("（あなた）", " (you)") : ""))
         + '<div class="mteam">' + lu.map((id, i) => {
           const c = charOf(id);
           if (!c) return "";
@@ -874,7 +959,7 @@
     };
     open(ttl("TEAM", J("編成キャラの詳細", "Lineup details"))
       + '<div class="note" style="margin-bottom:2px">' + J("キャラを押すと、能力・スキル・ボールと<b>この試合の状態</b>（ゲージ・使用ずみ）をすべて確認できます。", "Tap a character to see stats, skills, ball and <b>its state in this match</b>.") + "</div>"
-      + sideHTML(me) + sideHTML(B.other(me))
+      + (B.isParty(M) ? B.sidesOf(M).map(sideHTML).join("") : sideHTML(me) + sideHTML(B.other(me)))
       + '<div class="brow"><button class="btn gh" data-a="rulesec" data-v="SKILLS">RULE BOOK</button><button class="btn" data-a="close">' + J("試合にもどる", "Back to match") + "</button></div>");
   }
   function animThumbs(box) {
@@ -1003,6 +1088,7 @@
     const s = B.load();
     const p = cfg || pendingCfg;
     if (!p) return;
+    if (p.kind === "party") { startParty(p); return; }
     if (p.difficulty && p.kind !== "ranked") { s.lastDiff = p.difficulty; B.save(); }
     const mine = myLineup();
     const rival = p.rival && p.rival.length ? p.rival : B.rivalLineup(Date.now() >>> 0, LINEUP_N);
@@ -1014,6 +1100,8 @@
       players.blue.push({ name: cpuBlue ? "CPU" + (n > 1 ? " " + (i + 1) : "") : (p.kind === "friend" ? "2P" : "BLUE " + (i + 1)), cpu: cpuBlue });
     }
     const lineup = { red: (p.redLineup && p.redLineup.length ? p.redLineup : mine).slice(0, LINEUP_N), blue: rival.slice(0, LINEUP_N) };
+    /* ★★ 2026-09-18 シンプルモードはキャラクターを編成しない */
+    if (p.rules === "simple" && !p.online) { lineup.red = []; lineup.blue = []; }
     /* 新しく始めたら、中断していた試合は消える */
     if (!p.resume && !p.online && s.suspend) { s.suspend = null; B.save(); }
     if (p.lineupOverride) { lineup.red = p.lineupOverride.red; lineup.blue = p.lineupOverride.blue; }
@@ -1035,8 +1123,8 @@
     M.practice = p.kind === "practice";
     online = p.online || null;
     if (M.cfg.rules === "rules") B.pushHint(M, "rulesmode");
-    B.pushHint(M, "order");
-    busy = false; thinking = false; hold = false; aim = null; slot = 2; lastGuide = null; shownTurn = ""; trail = [];
+    if (M.cfg.rules === "simple") B.pushHint(M, "simplemode"); else B.pushHint(M, "order");
+    busy = false; thinking = false; hold = false; aim = null; slot = 2; slotBy = {}; lastGuide = null; shownTurn = ""; trail = [];
     sel = { special: "", active: false, ult: false };
     predCache = null; predKey = "";
     if (!p.tutorial) tut = null;
@@ -1045,6 +1133,48 @@
     buildMatchDOM();
     startLoop();
     lineup.red.concat(lineup.blue).forEach((id) => FX.imgOf(charOf(id)));
+    setTimeout(startTurn, 250);
+  }
+
+  /* ★★ 2026-09-18 PARTY MATCH の開始（3〜6色） */
+  function startParty(p) {
+    const s = B.load();
+    if (p.difficulty) { s.lastDiff = p.difficulty; }
+    if (s.suspend) s.suspend = null;
+    B.save();
+    saveParty();
+    const act = p.party.slice(0, p.pn);
+    const sides = act.map((x) => x.side);
+    const players = {}, lineup = {}, levels = {}, awk = {};
+    let unconf = 0;
+    act.forEach((x) => {
+      const ok = !x.cpu && x.link && x.link.uid && x.link.confirmed !== false;
+      if (!x.cpu && x.link && x.link.uid && !ok) unconf++;
+      players[x.side] = [{ name: (x.name || "").trim() || SI(x.side).en, cpu: !!x.cpu, xvUid: ok ? x.link.uid : null, xvName: ok ? x.link.name : null }];
+      lineup[x.side] = p.rules === "simple" ? [] : x.lineup.slice(0, LINEUP_N);
+      levels[x.side] = trainLv(p.train, lineup[x.side]);
+      awk[x.side] = trainAw(p.train, lineup[x.side]);
+    });
+    M = B.newMatch({
+      kind: "party", mode: "party", sides, ends: p.ends || 2, perSide: p.perColor || 3, players, lineup, levels, awk,
+      rules: p.rules || "ability", growth: p.growth || "full", first: sides[0], difficulty: p.difficulty || "normal", guide: s.guide,
+      seed: (Date.now() ^ (Math.random() * 1e9)) >>> 0, local: true,
+    });
+    M.kind = "party";
+    M.practice = false;
+    online = null;
+    if (unconf) toast(J("🔒 パスワード未確認の紐づけ " + unconf + " 件は今回は無効です", "🔒 " + unconf + " unconfirmed link(s) are inactive this match"));
+    if (M.cfg.rules === "rules") B.pushHint(M, "rulesmode");
+    if (M.cfg.rules === "simple") B.pushHint(M, "simplemode"); else B.pushHint(M, "order");
+    busy = false; thinking = false; hold = false; aim = null; slotBy = {}; slot = B.defSlot(M, M.turn); lastGuide = null; shownTurn = ""; trail = [];
+    sel = { special: "", active: false, ult: false };
+    predCache = null; predKey = "";
+    tut = null;
+    close();
+    go("match");
+    buildMatchDOM();
+    startLoop();
+    Object.keys(lineup).forEach((k) => lineup[k].forEach((id) => FX.imgOf(charOf(id))));
     setTimeout(startTurn, 250);
   }
 
@@ -1207,13 +1337,18 @@
      ⑨ 試合画面
      ══════════════════════════════════════════════════════════════ */
   function buildMatchDOM() {
+    const party = M && B.isParty(M);
     $("#s-match").innerHTML = ''
-      + '<div class="mhead"><div class="msd red" id="mRed"><span class="sc" id="mScR">0</span><span class="nm" id="mNmR"></span></div>'
-      + '<button class="mend" data-a="pause" title="MENU"><span class="e">END ❚❚</span><span class="n" id="mEnd">1/4</span></button>'
-      + '<div class="msd blue" id="mBlue"><span class="nm" id="mNmB"></span><span class="sc" id="mScB">0</span></div></div>'
+      + (party
+        ? '<div class="phead"><div class="pscore" id="mParty"></div><button class="mend" data-a="pause" title="MENU"><span class="e">END ❚❚</span><span class="n" id="mEnd">1/4</span></button></div>'
+        : '<div class="mhead"><div class="msd red" id="mRed"><span class="sc" id="mScR">0</span><span class="nm" id="mNmR"></span></div>'
+        + '<button class="mend" data-a="pause" title="MENU"><span class="e">END ❚❚</span><span class="n" id="mEnd">1/4</span></button>'
+        + '<div class="msd blue" id="mBlue"><span class="nm" id="mNmB"></span><span class="sc" id="mScB">0</span></div></div>')
       + '<div class="order" id="mOrder"></div>'
       + '<div id="mStage"></div>'
       + '<div class="cwrap" id="cwrap"><canvas id="court"></canvas><div id="mGuide"></div><div class="aimhud" id="aimhud" hidden></div><div id="mTut"></div>'
+      /* ★★ 2026-09-18 投球ボックス（投げる位置）を ◀ ▶ で動かす（ご指定）。コートの箱を押しても動く。 */
+      + '<div class="mslot" id="mSlot" hidden><button data-a="slot" data-v="-1" aria-label="left">◀</button><span id="mSlotN"></span><button data-a="slot" data-v="1" aria-label="right">▶</button></div>'
       + '<span id="mNet" class="mnet"></span></div>'
       + '<div id="mCtrl"></div>';
     FX.setHost($("#cwrap"));
@@ -1244,21 +1379,32 @@
   }
   function updateHUD() {
     if (!M || cur !== "match") return;
-    $("#mScR").textContent = M.score.red;
-    $("#mScB").textContent = M.score.blue;
+    const party = B.isParty(M);
     $("#mEnd").textContent = M.stage ? L(window.MBRStage.DIFF[M.stage.diff]) : M.practice ? "—" : M.end + "/" + M.cfg.ends;
     const stg = $("#mStage");
     if (stg) stg.innerHTML = M.stage ? window.MBRStage.hudHTML(M) : "";
-    const pr = B.playerOf(M, "red"), pb = B.playerOf(M, "blue");
-    $("#mNmR").textContent = pr ? pr.name : "RED";
-    $("#mNmB").textContent = pb ? pb.name : "BLUE";
-    if (M.stage) {
-      $("#mScR").textContent = Math.max(0, M.left.red | 0);
-      $("#mScB").textContent = Math.max(0, Math.round(M.stage.hp / M.stage.maxHp * 100)) + "%";
-      $("#mNmB").textContent = L(M.stage.def.boss);
+    if (party) {
+      /* ★★ 2026-09-18 PARTY：色ごとの得点・残り球。いま投げる色は大きく */
+      const pe = $("#mParty");
+      if (pe) pe.innerHTML = B.sidesOf(M).map((sd) => {
+        const pl = B.playerOf(M, sd);
+        return '<div class="pc' + (M.turn === sd ? " turn" : "") + '" style="--sc:' + SC(sd) + '"><span class="sc">' + M.score[sd] + '</span><span class="nm">' + esc(pl ? pl.name : SI(sd).en)
+          + (pl && pl.cpu ? " CPU" : "") + '</span><span class="lf">' + "●".repeat(Math.max(0, M.left[sd])) + "</span></div>";
+      }).join("");
+    } else {
+      $("#mScR").textContent = M.score.red;
+      $("#mScB").textContent = M.score.blue;
+      const pr = B.playerOf(M, "red"), pb = B.playerOf(M, "blue");
+      $("#mNmR").textContent = pr ? pr.name : "RED";
+      $("#mNmB").textContent = pb ? pb.name : "BLUE";
+      if (M.stage) {
+        $("#mScR").textContent = Math.max(0, M.left.red | 0);
+        $("#mScB").textContent = Math.max(0, Math.round(M.stage.hp / M.stage.maxHp * 100)) + "%";
+        $("#mNmB").textContent = L(M.stage.def.boss);
+      }
+      $("#mRed").classList.toggle("turn", M.turn === "red");
+      $("#mBlue").classList.toggle("turn", M.turn === "blue");
     }
-    $("#mRed").classList.toggle("turn", M.turn === "red");
-    $("#mBlue").classList.toggle("turn", M.turn === "blue");
     /* 順番の帯：いまの担当＋次の3投 */
     const side = M.turn;
     const ch = M.phase === "jack" ? null : B.curCharOf(M, side);
@@ -1267,15 +1413,16 @@
     let nx = "";
     for (let k = 1; k <= 3; k++) {
       const c2 = B.nextCharOf(M, side, k);
-      if (c2) nx += '<div class="nx side-' + side + '" data-a="mchar" data-v="' + side + ":" + c2.id + '"><img src="' + esc(img(c2)) + '" alt=""><i>' + (k === 1 ? "NEXT" : "") + "</i></div>";
+      if (c2) nx += '<div class="nx side-' + side + '" style="box-shadow:inset 0 -3px 0 ' + SC(side) + '" data-a="mchar" data-v="' + side + ":" + c2.id + '"><img src="' + esc(img(c2)) + '" alt=""><i>' + (k === 1 ? "NEXT" : "") + "</i></div>";
     }
     const dots = (sd) => { let h = ""; for (let i = 0; i < M.cfg.perSide; i++) h += '<i class="' + (i < M.left[sd] ? "" : "off") + '"></i>'; return h; };
-    $("#mOrder").innerHTML = '<div class="cur" data-a="mchar" data-v="' + (ch ? side + ":" + ch.id : "") + '">' + (ch ? '<img src="' + esc(img(ch)) + '" alt="">' : '<div style="width:40px;height:40px;display:grid;place-items:center;background:#fff;color:#000;border-radius:50%;font-weight:900">J</div>')
-      + '<div class="t"><div class="l1">' + (M.phase === "jack" ? "JACK BALL" : esc(ch ? ch.nm : "—")) + "</div>"
-      + '<div class="l2" style="color:' + (ty ? ty.c : "#fff") + '">' + (M.phase === "jack" ? J("ジャックを投げる", "Throw the jack") : (ty ? ty.ja : "")) + " ・ "
-      + '<span style="color:' + (side === "red" ? "var(--r3)" : "var(--b2)") + '">' + side.toUpperCase() + (who ? " " + esc(who.name) : "") + "</span></div></div></div>"
-      + (M.phase === "jack" ? "" : '<span class="lbl">NEXT</span>' + nx)
-      + (M.stage ? "" : '<div class="bl"><span>' + dots("red") + '</span><span class="b">' + dots("blue") + "</span></div>")
+    $("#mOrder").innerHTML = '<div class="cur" data-a="mchar" data-v="' + (ch ? side + ":" + ch.id : "") + '">' + (ch ? '<img src="' + esc(img(ch)) + '" alt="">' : M.phase === "jack" ? '<div style="width:40px;height:40px;display:grid;place-items:center;background:#fff;color:#000;border-radius:50%;font-weight:900">J</div>'
+        : '<div style="width:40px;height:40px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff 0 12%,' + SC(side) + ' 13%,' + SC(side) + ' 60%,rgba(0,0,0,.5));box-shadow:0 0 0 2px #fff inset"></div>')
+      + '<div class="t"><div class="l1">' + (M.phase === "jack" ? "JACK BALL" : ch ? esc(ch.nm) : "BALL " + Math.min(M.cfg.perSide, M.cfg.perSide - M.left[side] + 1) + " / " + M.cfg.perSide) + "</div>"
+      + '<div class="l2" style="color:' + (ty ? ty.c : "#fff") + '">' + (M.phase === "jack" ? J("ジャックを投げる", "Throw the jack") : (ty ? ty.ja : "SIMPLE")) + " ・ "
+      + '<span style="color:' + SL(side) + '">' + SI(side).en + (who ? " " + esc(who.name) : "") + "</span></div></div></div>"
+      + (M.phase === "jack" || !nx ? "" : '<span class="lbl">NEXT</span>' + nx)
+      + (M.stage || party ? "" : '<div class="bl"><span>' + dots("red") + '</span><span class="b">' + dots("blue") + "</span></div>")
       + '<button class="pausebtn" data-a="pause" aria-label="MENU">❚❚</button>';
     /* 説明 */
     const g = B.takeHint(M);
@@ -1283,6 +1430,7 @@
     $("#mGuide").innerHTML = lastGuide ? '<div class="guide"><button class="gx" data-a="clearguide">✕</button>' + L(lastGuide) + "</div>" : "";
     /* 操作盤 */
     paintCtrl();
+    paintSlot();
     const net = $("#mNet");
     if (net) net.innerHTML = online ? '<span class="netst' + (online.ok === false ? " bad" : "") + '"><i></i>' + (online.ok === false ? "OFFLINE" : "ONLINE") + " ・ " + esc(online.code || "") + "</span>"
       + (online.absentNames && online.absentNames.length ? '<span class="netst bad"><i></i>⚠ ' + esc(online.absentNames.join("・")) + J(" 離脱中（試合は続きます）", " away (match continues)") + "</span>" : "") : "";
@@ -1295,6 +1443,7 @@
     if (M.phase === "jack" || !M.md.skills) {
       box.innerHTML = '<div class="pn tight" style="margin:6px 0 0"><div class="note">'
         + (M.phase === "jack" ? J("白いジャックボールを<b>Vライン（黄色の点線）より奥</b>へ。ボールを引っぱって、はなす。", "Throw the white jack <b>past the V line</b>. Pull the ball back and release.")
+          : M.cfg.rules === "simple" ? J("シンプルモード：キャラクターなし・全員が同じ能力。引っぱる長さと向きだけで勝負！", "Simple mode: no characters, identical stats — aim and power only.")
           : J("ルール準拠モード：特殊ショットとスキルは使えません。腕前で勝負！", "Rules mode: no specials or skills — pure skill."))
         + (isCpuTurn() && !busy ? "<br><b>" + J("相手が考えています…", "Opponent is thinking…") + "</b>" : "") + "</div></div>";
       return;
@@ -1308,8 +1457,9 @@
     const spBtn = (s) => {
       const can = B.canSpecial(M, side, s.k);
       const used = (M.spUsed[side][i][s.k] || 0) >= B.SPECIALS[s.k].uses;
-      return '<button class="skb' + (sel.special === s.k ? " on" : "") + '" data-a="sp" data-v="' + s.k + '"' + (dis || !can ? " disabled" : "") + ' style="' + (sel.special === s.k ? "" : "box-shadow:inset 0 -3px 0 " + s.c) + '">'
-        + '<span class="e">' + esc(s.nm) + '</span><span class="j">' + (used ? J("使用済み", "USED") : (s.cost ? "G" + s.cost + (en() ? "" : " ・ ") : "") + (en() ? (s.cost ? "" : "SPECIAL") : esc(s.sub))) + "</span></button>";
+      return '<div class="skw"><button class="skb' + (sel.special === s.k ? " on" : "") + '" data-a="sp" data-v="' + s.k + '"' + (dis || !can ? " disabled" : "") + ' style="' + (sel.special === s.k ? "" : "box-shadow:inset 0 -3px 0 " + s.c) + '">'
+        + '<span class="e">' + esc(s.nm) + '</span><span class="j">' + (used ? J("使用済み", "USED") : (s.cost ? "G" + s.cost + (en() ? "" : " ・ ") : "") + (en() ? (s.cost ? "" : "SPECIAL") : esc(s.sub))) + "</span></button>"
+        + qHelp("sp", s.k, ch.id) + "</div>";
     };
     const actUsed = M.actUsed[side][i];
     const ultReady = gv >= B.GAUGE_MAX && !M.ultUsed[side];
@@ -1317,14 +1467,68 @@
     if (desc) desc += ' <span class="rlink" data-a="mchar" data-v="' + side + ":" + ch.id + '">ⓘ ' + J("キャラ詳細", "Details") + "</span>";
     box.innerHTML = '<div class="gauge' + (gv >= 100 ? " full" : "") + '"><i style="width:' + gv + '%"></i><span>' + (M.ultUsed[side] ? "ULT USED" : "GAUGE " + gv) + "</span></div>"
       + '<div class="skbar">' + kit.specials.map(spBtn).join("")
-      + '<button class="skb' + (sel.active ? " on" : "") + '" data-a="act"' + (dis || actUsed ? " disabled" : "") + ' style="' + (sel.active ? "" : "box-shadow:inset 0 -3px 0 #2f8fff") + '">'
-      + '<span class="e">' + esc(kit.active.nm) + '</span><span class="j">' + (actUsed ? J("使用済み", "USED") : "ACTIVE") + "</span></button>"
-      + '<button class="skb ult' + (ultReady ? " ready" : "") + (sel.ult ? " on" : "") + '" data-a="ult"' + (dis || !ultReady ? " disabled" : "") + ">"
-      + '<span class="e">ULT</span><span class="j">' + (M.ultUsed[side] ? J("使用済み", "USED") : gv + "%") + "</span></button></div>"
+      + '<div class="skw"><button class="skb' + (sel.active ? " on" : "") + '" data-a="act"' + (dis || actUsed ? " disabled" : "") + ' style="' + (sel.active ? "" : "box-shadow:inset 0 -3px 0 #2f8fff") + '">'
+      + '<span class="e">' + esc(kit.active.nm) + '</span><span class="j">' + (actUsed ? J("使用済み", "USED") : "ACTIVE") + "</span></button>" + qHelp("act", ch.active, ch.id) + "</div>"
+      + '<div class="skw"><button class="skb ult' + (ultReady ? " ready" : "") + (sel.ult ? " on" : "") + '" data-a="ult"' + (dis || !ultReady ? " disabled" : "") + ">"
+      + '<span class="e">ULT</span><span class="j">' + (M.ultUsed[side] ? J("使用済み", "USED") : gv + "%") + "</span></button>" + qHelp("ult", ch.type, ch.id) + "</div></div>"
       + (desc ? '<div class="note" style="margin-top:5px;padding:5px 9px;background:#17171e">' + desc + "</div>"
         : '<div class="note" style="margin-top:4px;font-size:10.5px">' + (isCpuTurn() && !busy ? "<b>" + J("相手が考えています…", "Opponent is thinking…") + "</b>"
           : online && !isMyControl() && !busy ? "<b>" + J("相手の番です", "Opponent's turn") + "</b>"
-          : "PASSIVE: <b>" + esc(kit.passive.nm) + "</b> ─ " + kit.passive.d) + ' <span class="rlink" data-a="rulesec" data-v="SKILLS">ⓘ ' + J("発動のルール", "Skill rules") + "</span></div>");
+          : "PASSIVE: <b>" + esc(kit.passive.nm) + "</b> " + qHelp("pas", ch.passive, ch.id, true) + " ─ " + kit.passive.d) + ' <span class="rlink" data-a="rulesec" data-v="SKILLS">ⓘ ' + J("発動のルール", "Skill rules") + "</span></div>");
+  }
+  /* ★★ 2026-09-18 投球ボックスの ◀ BOX ▶（自分が投げる番だけ出す） */
+  function paintSlot() {
+    const el = $("#mSlot"); if (!el || !M) return;
+    const show = isMyControl() && !(aim && aim.dragging);
+    el.hidden = !show;
+    if (!show) return;
+    const n = $("#mSlotN"); if (n) n.textContent = "BOX " + (slot + 1);
+    el.style.setProperty("--sc", SC(M.turn));
+    if (cv && cv._h) el.style.bottom = Math.max(4, cv._h - sy(C.BOXD) + 6) + "px";
+  }
+  function setSlot(v) {
+    if (!M || !isMyControl()) return;
+    slot = clamp(v, 0, C.BOXES - 1);
+    slotBy[M.turn] = slot;
+    predKey = "";
+    FX.sfx("ui");
+    paintSlot();
+  }
+  /* ══ ★★ 2026-09-18 スキル・技の「？」→ 補足（ご指定）══
+     効果の数字は mbr-core の台帳、補足（しくみ・使いどころ・注意）は mbr-help.js。 */
+  function qHelp(kind, key, cid, inline) {
+    return '<button class="qh' + (inline ? " in" : "") + '" data-a="skhelp" data-v="' + kind + ":" + key + ":" + (cid || "") + '" aria-label="?">?</button>';
+  }
+  function openSkillHelp(v) {
+    const [kind, key, cid] = v.split(":");
+    const H = window.MBRHelp || {};
+    const c = cid ? charOf(cid) : null;
+    let nm = "", sub = "", eff = "", tags = [], hp = null, col = "#ff3b52";
+    if (kind === "sp" && B.SPECIALS[key]) {
+      const x = B.SPECIALS[key]; nm = x.en; sub = J("特殊ショット ・ " + x.ja, "Special shot"); eff = L(x.d); col = x.c; hp = (H.sp || {})[key];
+      tags = [J("1エンド1回", "Once per end"), x.cost ? J("ゲージ " + x.cost + " を使う", "Costs " + x.cost + " gauge") : J("ゲージを使わない", "No gauge"), J("投げる前にボタンで選ぶ", "Select before throwing")];
+    } else if (kind === "act" && B.ACTIVES[key]) {
+      const x = B.ACTIVES[key]; nm = x.en; sub = J("アクティブ ・ " + x.ja, "Active skill"); eff = L(x.d); col = "#2f8fff"; hp = (H.act || {})[key];
+      tags = [J("キャラごとに1エンド1回", "Once per end per character"), J("ゲージを使わない", "No gauge"), J("特殊ショット・ULT と重ねられる", "Stacks with specials / ULT")];
+    } else if (kind === "pas" && B.PASSIVES[key]) {
+      const x = B.PASSIVES[key]; nm = x.en; sub = J("パッシブ ・ " + x.ja, "Passive skill"); eff = L(x.d); col = "#2fd18c"; hp = (H.pas || {})[key];
+      tags = [J("常に発動（選ばなくてよい）", "Always on — no selection")];
+    } else if (kind === "ult" && B.ULTS[key]) {
+      const x = B.ULTS[key]; nm = c && c.ult && c.ult.nm ? c.ult.nm : x.en; sub = "ULTIMATE ・ " + x.en; eff = L(x.d); col = "#ffc83d"; hp = (H.ult || {})[key];
+      tags = [J("ゲージ 100 で使える", "Needs 100 gauge"), J("チームで1エンド1回", "Once per end per team"), J("撃つとゲージは 0", "Resets the gauge to 0")];
+    } else if (kind === "normal") {
+      nm = "NORMAL SHOT"; sub = J("通常ショット", "Normal shot"); eff = c ? normalShotText(c) : ""; hp = H.normal; col = "#fff";
+    }
+    if (!nm) return;
+    const row = (lbl, t) => t ? '<div class="hrow"><b>' + lbl + "</b><div>" + L(t) + "</div></div>" : "";
+    const body = ttl(nm, sub)
+      + (c ? '<div class="note" style="margin:-6px 0 8px">' + esc(c.nm) + " ・ " + B.TYPES[c.type].ja + " TYPE</div>" : "")
+      + '<div class="pn" style="border-left:4px solid ' + col + '"><div class="note" style="font-weight:900;margin-bottom:4px">' + J("効果", "Effect") + '</div><div class="note">' + eff + "</div>"
+      + (tags.length ? '<div class="mstat" style="margin-top:8px">' + tags.map((t) => '<span class="tag">' + esc(t) + "</span>").join("") + "</div>" : "") + "</div>"
+      + (hp ? '<div class="pn hsup">' + row(J("しくみ", "How it works"), hp.how) + row(J("使いどころ", "When to use"), hp.when) + row(J("注意", "Watch out"), hp.note) + "</div>" : "")
+      + '<div class="brow"><button class="btn gh" data-a="rulesec" data-v="' + (kind === "pas" ? "PASSIVE" : kind === "act" ? "ACTIVE" : kind === "ult" ? "ULT" : kind === "sp" ? "SPECIAL" : "THROW") + '">' + J("一覧で見る", "See all") + '</button>'
+      + '<button class="btn" data-a="' + (cur === "match" && M ? "close" : "close") + '">' + J("とじる", "Close") + "</button></div>";
+    open(body);
   }
   function paintTut() {
     const box = $("#mTut"); if (!box) return;
@@ -1394,8 +1598,15 @@
     ctx.beginPath(); ctx.moveTo(sx(0), sy(C.BOXD)); ctx.lineTo(sx(C.W), sy(C.BOXD)); ctx.stroke();
     for (let i = 1; i < C.BOXES; i++) { const x = sx(C.W * i / C.BOXES); ctx.beginPath(); ctx.moveTo(x, sy(0)); ctx.lineTo(x, sy(C.BOXD)); ctx.stroke(); }
     if (isMyControl()) {
-      ctx.fillStyle = M.turn === "red" ? "rgba(255,59,82,.18)" : "rgba(47,143,255,.2)";
+      ctx.fillStyle = SA(M.turn, 0.2);
       ctx.fillRect(sx(C.W * slot / C.BOXES), sy(C.BOXD), C.W / C.BOXES * PX, C.BOXD * PX);
+      /* ★ 2026-09-18 ほかの箱も押せることが分かるよう、番号を薄く出す */
+      ctx.font = "italic 11px Anton,Orbitron,sans-serif"; ctx.textAlign = "center";
+      for (let i = 0; i < C.BOXES; i++) {
+        ctx.fillStyle = i === slot ? "rgba(255,255,255,.85)" : "rgba(255,255,255,.28)";
+        ctx.fillText(String(i + 1), sx(C.W * (i + 0.5) / C.BOXES), sy(C.BOXD) + 13);
+      }
+      ctx.textAlign = "left";
     }
     /* V ライン */
     ctx.strokeStyle = "#ffc83d"; ctx.lineWidth = 2; ctx.setLineDash([9, 7]);
@@ -1416,7 +1627,7 @@
       const list = B.live(M).filter((b) => !b.jack).sort((a, b) => B.dist(a, j) - B.dist(b, j));
       if (list[0]) {
         ctx.setLineDash([4, 5]); ctx.lineWidth = 1.5;
-        ctx.strokeStyle = list[0].side === "red" ? "rgba(255,90,110,.9)" : "rgba(124,196,255,.9)";
+        ctx.strokeStyle = SL(list[0].side);
         ctx.beginPath(); ctx.moveTo(sx(j.x), sy(j.y)); ctx.lineTo(sx(list[0].x), sy(list[0].y)); ctx.stroke(); ctx.setLineDash([]);
         ctx.fillStyle = "#fff"; ctx.font = "italic 12px Anton,Orbitron,sans-serif";
         ctx.fillText(Math.round(B.dist(list[0], j) * 100) + "cm", (sx(j.x) + sx(list[0].x)) / 2 + 6, (sy(j.y) + sy(list[0].y)) / 2);
@@ -1426,9 +1637,12 @@
     if (M.cur && !M.cur.dead) {
       trail.push({ x: M.cur.x, y: M.cur.y });
       if (trail.length > 26) trail.shift();
+      /* ★★ 2026-09-18 速いあいだは、うしろに火花を散らす（演出の強化・盤面には影響しない） */
+      const spd = Math.sqrt(M.cur.vx * M.cur.vx + M.cur.vy * M.cur.vy);
+      if (spd > 2.2 && FXlevel() === "full") FX.spark(sx(M.cur.x), sy(M.cur.y), M.cur.jack ? "#ffffff" : SL(M.cur.side), spd);
     }
     if (trail.length > 1 && FXlevel() !== "off") {
-      const col = M.cur ? (M.cur.jack ? "255,255,255" : M.cur.side === "red" ? "255,70,95" : "90,170,255") : "255,255,255";
+      const col = M.cur ? (M.cur.jack ? "255,255,255" : rgbOf(SL(M.cur.side))) : "255,255,255";
       for (let i = 1; i < trail.length; i++) {
         ctx.strokeStyle = "rgba(" + col + "," + (i / trail.length * 0.55) + ")";
         ctx.lineWidth = r * 1.3 * (i / trail.length);
@@ -1455,15 +1669,21 @@
   function skinForSide(b) { return b.charId ? skinOf(b.charId) : "std"; }
   function FXlevel() { return B.load().fxLevel || "full"; }
 
+  /* ★★ 2026-09-18 引っぱりは MagiBurst と同じく<b>指を置いた点</b>からの長さで決める（ご指定）。
+     一度引いたあと、指を置いた点の近く（CANCEL_PX 以内）まで戻すと<b>キャンセル</b>の表示になり、
+     そこで離すと投げずに取り消せる。ボールの上から引きはじめたときは、いままでとまったく同じ操作感。 */
+  const CANCEL_PX = 26;
   function aimVec() {
     const sp = B.throwSpot(M, M.turn, slot);
     const X = sx(sp.x), Y = sy(sp.y);
-    const dx = aim.x - X, dy = aim.y - Y;
+    const ox = aim.sx != null ? aim.sx : X, oy = aim.sy != null ? aim.sy : Y;
+    const dx = aim.x - ox, dy = aim.y - oy;
     const len = Math.sqrt(dx * dx + dy * dy);
     const maxLen = Math.min(cv._w, cv._h) * 0.42;
     const p = clamp(len / maxLen, 0, 1);
     const sang = Math.atan2(-dy, -dx);
-    return { X, Y, p, sang, cang: toCourtAngle(sang) };
+    const cancel = len < CANCEL_PX;
+    return { X, Y, ox, oy, len, p, sang, cang: toCourtAngle(sang), cancel };
   }
   function drawAim(r, tsec) {
     const sp = B.throwSpot(M, M.turn, slot);
@@ -1483,10 +1703,26 @@
       return;
     }
     const v = aimVec();
-    const col = isJack ? "#ffffff" : (M.turn === "red" ? "#ff3b52" : "#2f8fff");
-    /* 引いた側の線（指まで） */
-    ctx.strokeStyle = "rgba(255,255,255,.35)"; ctx.lineWidth = 2; ctx.setLineDash([3, 4]);
-    ctx.beginPath(); ctx.moveTo(X, Y); ctx.lineTo(aim.x, aim.y); ctx.stroke(); ctx.setLineDash([]);
+    const col = isJack ? "#ffffff" : SC(M.turn);
+    /* ★★ 2026-09-18 キャンセルの輪（指を置いた点）。一度引いてから戻すと赤くなり「はなすとキャンセル」 */
+    /* ★★ 2026-09-18 指を置いた点の輪と、指までの点線は<b>出さない</b>（ご指定「逆向きの点線とマルを消して」）。
+       キャンセルの範囲に戻したときだけ、赤い輪と「はなすとキャンセル」を出す。 */
+    if (aim.armed && v.cancel) {
+      const on = true;
+      ctx.beginPath(); ctx.arc(v.ox, v.oy, CANCEL_PX, 0, Math.PI * 2);
+      ctx.fillStyle = on ? "rgba(255,59,82,.28)" : "rgba(255,255,255,.07)"; ctx.fill();
+      ctx.strokeStyle = on ? "#ff3b52" : "rgba(255,255,255,.35)"; ctx.lineWidth = on ? 2.5 : 1.2; ctx.setLineDash(on ? [] : [3, 4]); ctx.stroke(); ctx.setLineDash([]);
+      if (on) {
+        ctx.strokeStyle = "#fff"; ctx.lineWidth = 2.6;
+        ctx.beginPath(); ctx.moveTo(v.ox - 7, v.oy - 7); ctx.lineTo(v.ox + 7, v.oy + 7); ctx.moveTo(v.ox + 7, v.oy - 7); ctx.lineTo(v.ox - 7, v.oy + 7); ctx.stroke();
+        ctx.fillStyle = "#fff"; ctx.font = "900 11px 'Noto Sans JP',sans-serif"; ctx.textAlign = "center";
+        ctx.fillText(J("はなすとキャンセル", "RELEASE TO CANCEL"), v.ox, v.oy - CANCEL_PX - 8); ctx.textAlign = "left";
+      }
+    }
+    if (v.cancel) {
+      const hud0 = $("#aimhud"); if (hud0) hud0.hidden = true;
+      return;
+    }
     /* 矢印 */
     ctx.save(); ctx.translate(X, Y); ctx.rotate(v.sang);
     /* ★ 矢印は短め・チーム色。長い白い矢印だと、上に重ねる予測の点線が見えなくなる */
@@ -1606,30 +1842,42 @@
       const q = pos(e);
       const sp = B.throwSpot(M, M.turn, slot);
       const X = sx(sp.x), Y = sy(sp.y);
-      const near = Math.sqrt((q.x - X) * (q.x - X) + (q.y - Y) * (q.y - Y)) < 80;
-      if (!near && q.y > sy(C.BOXD) && q.y < sy(0) + 10) {
-        slot = clamp(Math.floor(ux(q.x) / (C.W / C.BOXES)), 0, C.BOXES - 1);
-        FX.sfx("ui");
-        return;
+      /* ★★ 2026-09-18 ほかの投球ボックスを押したら、そこへ移る（ご指定「投げる位置を変えたい」）。
+         前は「ボールから 80px 以内」を引っぱり扱いにしていたので、<b>となりの箱（約55px）を押しても動かなかった</b>。
+         いまは<b>ボールのすぐ上（半径 30px）</b>だけを引っぱりにし、それ以外で箱の列を押したら移る。 */
+      const onBall = Math.sqrt((q.x - X) * (q.x - X) + (q.y - Y) * (q.y - Y)) < 30;
+      const inBoxes = q.y > sy(C.BOXD) && q.y < sy(0) + 10 && q.x > sx(0) && q.x < sx(C.W);
+      if (!onBall && inBoxes) {
+        const ns = clamp(Math.floor(ux(q.x) / (C.W / C.BOXES)), 0, C.BOXES - 1);
+        if (ns !== slot) { setSlot(ns); return; }
       }
-      aim = { x: q.x, y: q.y, dragging: true };
+      aim = { x: q.x, y: q.y, sx: q.x, sy: q.y, dragging: true, armed: false };
       const gd = $("#mGuide"); if (gd) gd.hidden = true;
+      paintSlot();
     };
-    const move = (e) => { if (aim && aim.dragging) { e.preventDefault(); const q = pos(e); aim.x = q.x; aim.y = q.y; } };
+    const move = (e) => {
+      if (aim && aim.dragging) {
+        e.preventDefault(); const q = pos(e); aim.x = q.x; aim.y = q.y;
+        const dx = aim.x - aim.sx, dy = aim.y - aim.sy;
+        if (!aim.armed && dx * dx + dy * dy > (CANCEL_PX + 10) * (CANCEL_PX + 10)) aim.armed = true;
+      }
+    };
     const up = (e) => {
       if (!aim || !aim.dragging) { aim = null; return; }
       e.preventDefault();
       const v = aimVec();
+      const wasArmed = aim.armed;
       aim = null;
       const hud = $("#aimhud"); if (hud) hud.hidden = true;
       const gd = $("#mGuide"); if (gd) gd.hidden = false;
-      if (v.p < 0.06) return;
+      paintSlot();
+      if (v.cancel || v.p < 0.06) { if (wasArmed) { FX.popLite("CANCEL", "#ff8a97"); FX.sfx("ui"); } return; }
       localThrow(v.cang, v.p);
     };
     el.addEventListener("mousedown", down); el.addEventListener("touchstart", down, { passive: false });
     window.addEventListener("mousemove", move); el.addEventListener("touchmove", move, { passive: false });
     window.addEventListener("mouseup", up); el.addEventListener("touchend", up, { passive: false });
-    el.addEventListener("touchcancel", () => { aim = null; });
+    el.addEventListener("touchcancel", () => { aim = null; paintSlot(); });
   }
   function toCourtAngle(a) { return Math.atan2(-Math.sin(a), Math.cos(a)); }
 
@@ -1655,6 +1903,11 @@
     predKey = "";
     busy = true; trail = [];
     FX.sfx("throw"); FX.vib(12);
+    /* ★★ 2026-09-18 投げた瞬間の演出（ご指定「少し豪華に」）：足もとの衝撃リング・向きの光の筋・強さの表示 */
+    if (b && FXlevel() !== "off") {
+      const sp0 = Math.sqrt(b.vx * b.vx + b.vy * b.vy) || 1;
+      FX.launch(sx(b.x), sy(b.y), b.vx / sp0, -b.vy / sp0, b.jack ? "#ffffff" : SC(b.side), shot.power || 0, !!(b.use && (b.use.special || b.use.active || b.use.ult)));
+    }
     if (b.use && b.use.ult && ch) {
       hold = true;
       FX.sfx("ult");
@@ -1696,11 +1949,18 @@
     const key = side + ":" + M.end + ":" + M.idx[side] + ":" + M.phase;
     if (key === shownTurn) { maybeCpu(); return; }
     shownTurn = key;
+    /* ★ 2026-09-18 色ごとに最後に選んだ投球ボックスへ戻す（PARTY は色ごとの箱から） */
+    if (B.isParty(M) || slotBy[side] != null) slot = slotBy[side] != null ? slotBy[side] : B.defSlot(M, side);
+    paintSlot();                                   /* ★ 上の updateHUD より後で箱が変わるので、表示もここで直す */
+    if (B.isParty(M) && !isCpuTurn() && !M.replay) {
+      const p = B.playerOf(M, side);
+      toast(SI(side).en + " " + (p ? p.name : "") + J(" の番です ─ 端末をわたしてください", "'s turn — pass the device"));
+    }
     if (M.phase === "play" && !M.replay) {
       const ch = B.curCharOf(M, side);
       if (ch) {
         const vo = B.voiceOf(ch, "enter", M.idx[side]);
-        FX.cutIn(ch, "enter", "", "NEXT THROW ・ " + side.toUpperCase(), vo);
+        FX.cutIn(ch, "enter", "", "NEXT THROW ・ " + SI(side).en, vo);
       }
       if (M.cfg.players[side] && M.cfg.players[side].length > 1 && !isCpuTurn() && !online) {
         const p = B.playerOf(M, side);
@@ -1762,6 +2022,14 @@
       return;
     }
     if (res.chain >= 2) B.pushHint(M, "chain");
+    /* ★★ 2026-09-18 ジャックにぴったり寄ったら大きく褒める（演出だけ） */
+    try {
+      const lb = M.balls.filter((o) => !o.jack && !o.dead).slice(-1)[0], jk = B.jackOf(M);
+      if (lb && jk && !M.stage && FXlevel() !== "off") {
+        const d = B.dist(lb, jk);
+        if (d < 0.45) FX.nice(sx(lb.x), sy(lb.y), d, SC(lb.side), PX * B.ballR(M));
+      }
+    } catch (e) {}
     if (res.gain >= 14 && FXlevel() !== "off") FX.popLite("GAUGE +" + res.gain, "#ffc83d");
     if (M.balls.some((b) => b.dead && !b._noted)) { M.balls.forEach((b) => { if (b.dead) b._noted = 1; }); B.pushHint(M, "deadball"); }
     if (M.cur == null && M.balls.some((b) => (b.banks || 0) > 0)) B.pushHint(M, "bank");
@@ -1801,14 +2069,18 @@
     FX.sfx("score");
     const rows = res.rows || [];
     const maxd = rows.length ? Math.max(0.4, rows[rows.length - 1].d) : 1;
-    const last = M.end >= M.cfg.ends && M.score.red + (res.side === "red" ? res.pts : 0) !== M.score.blue + (res.side === "blue" ? res.pts : 0);
+    /* 最終エンドのあと、首位が1色だけなら RESULT（3色以上も同じ考えかた） */
+    const after = {}; B.sidesOf(M).forEach((sd) => { after[sd] = M.score[sd] + (res.side === sd ? res.pts : 0); });
+    const topS = Math.max.apply(null, B.sidesOf(M).map((sd) => after[sd]));
+    const last = M.end >= M.cfg.ends && B.sidesOf(M).filter((sd) => after[sd] === topS).length === 1;
     open(ttl("END " + M.end, J("エンドの得点", "End score"))
-      + '<div class="vic"><div class="w" style="font-size:54px;color:' + (res.side === "red" ? "var(--r2)" : res.side === "blue" ? "var(--b2)" : "#fff") + '">'
-      + (res.side ? "+" + res.pts + " " + res.side.toUpperCase() : "NO SCORE") + "</div></div>"
+      + '<div class="vic"><div class="w" style="font-size:54px;color:' + (res.side ? SL(res.side) : "#fff") + '">'
+      + (res.side ? "+" + res.pts + " " + SI(res.side).en : "NO SCORE") + "</div></div>"
+      + (B.isParty(M) ? '<div class="pscore big">' + B.sidesOf(M).map((sd) => '<div class="pc" style="--sc:' + SC(sd) + '"><span class="sc">' + after[sd] + '</span><span class="nm">' + esc(SI(sd).en) + "</span></div>").join("") + "</div>" : "")
       + '<div class="pn">' + rows.slice(0, 12).map((x) => {
           const c = charOf(x.b.charId);
-          return '<div class="sw" style="padding:5px 0"><span style="width:12px;height:12px;border-radius:50%;flex:none;background:' + (x.b.side === "red" ? "var(--r2)" : "var(--b)") + '"></span>'
-            + '<div class="k" style="font-size:11.5px">' + esc(c ? c.nm : "") + (x.b.guard ? " 🛡" : "") + '<div class="stats" style="display:block"><div class="bar"><i style="width:' + Math.round(clamp(x.d / maxd, 0.04, 1) * 100) + '%;background:' + (x.b.side === "red" ? "var(--r)" : "var(--b)") + '"></i></div></div></div>'
+          return '<div class="sw" style="padding:5px 0"><span style="width:12px;height:12px;border-radius:50%;flex:none;background:' + SL(x.b.side) + '"></span>'
+            + '<div class="k" style="font-size:11.5px">' + esc(c ? c.nm : "") + (x.b.guard ? " 🛡" : "") + '<div class="stats" style="display:block"><div class="bar"><i style="width:' + Math.round(clamp(x.d / maxd, 0.04, 1) * 100) + '%;background:' + SC(x.b.side) + '"></i></div></div></div>'
             + '<div class="en" style="font-size:15px">' + Math.round(x.d * 100) + "cm</div></div>";
         }).join("") + "</div>"
       + '<div class="pn tight"><div class="note">' + esc(B.scoreText(M, res, lang())) + "</div></div>"
@@ -1827,6 +2099,7 @@
 
   /* ── 結果・MVP ── */
   function showResult() {
+    if (M && B.isParty(M)) { showPartyResult(); return; }
     const s = B.load();
     const me = mySide();
     const win = M.score.red > M.score.blue ? "red" : M.score.blue > M.score.red ? "blue" : null;
@@ -1903,6 +2176,52 @@
       + (online ? "" : '<button class="btn" data-a="again">AGAIN</button>') + "</div>"
       + '<button class="btn pri" style="margin-top:8px" data-a="tohome">HOME</button>', true);
   }
+  /* ★★ 2026-09-18 PARTY MATCH の結果：順位表と MVP。1台の遊びなので熟練度・戦績には数えない。 */
+  function showPartyResult() {
+    const s = B.load();
+    const S = B.sidesOf(M).slice().sort((a, b) => M.score[b] - M.score[a]);
+    const top = M.score[S[0]];
+    const winners = S.filter((sd) => M.score[sd] === top);
+    let mvp = null, mvpS = -1, mvpSide = S[0];
+    B.sidesOf(M).forEach((sd) => {
+      const per = M.stats[sd].perChar;
+      Object.keys(per).forEach((id) => {
+        const x = per[id];
+        const sc = x.hits * 3 + x.jack * 3 + x.chain * 2 + x.banks + x.throws * 0.5 + (winners.indexOf(sd) >= 0 ? 2 : 0);
+        if (sc > mvpS) { mvpS = sc; mvp = id; mvpSide = sd; }
+      });
+    });
+    const mc = charOf(mvp);
+    s.replays.unshift({ at: Date.now(), kind: "party", score: Object.assign({}, M.score), log: M.log.slice(0, 400),
+      cfg: { seed: M.cfg.seed, ends: M.cfg.ends, lineup: M.cfg.lineup, rules: M.cfg.rules, growth: M.cfg.growth, levels: M.cfg.levels, awk: M.cfg.awk,
+             first: M.cfg.first, perSide: M.cfg.perSide, sides: M.cfg.sides, players: M.cfg.players },
+      best: 0 });
+    s.replays = s.replays.slice(0, 5);
+    B.save();
+    let rank = 0, prevS = null;
+    const rows = S.map((sd, i) => {
+      if (M.score[sd] !== prevS) { rank = i + 1; prevS = M.score[sd]; }
+      const pl = B.playerOf(M, sd), st = M.stats[sd];
+      return '<div class="prow" style="--sc:' + SC(sd) + '"><span class="rk">' + rank + '</span><span class="pchip">' + esc(SI(sd).en) + '</span><span class="nm">' + esc(pl ? pl.name : "")
+        + (pl && pl.cpu ? " CPU" : "") + (pl && pl.xvUid ? " 🔗" : "") + '</span><span class="note">' + J("最短 ", "Best ") + (st.best < 90 ? Math.round(st.best * 100) + "cm" : "—") + '</span><span class="sc">' + M.score[sd] + "</span></div>";
+    }).join("");
+    open(''
+      + '<div class="vic"><div class="w" style="color:' + SL(winners[0]) + '">' + (winners.length === 1 ? SI(winners[0]).en + " WIN" : "DRAW") + "</div></div>"
+      + '<div class="pn">' + rows + "</div>"
+      + (mc ? '<div class="mvp"><img src="' + esc(img(mc)) + '" alt=""><div><div class="e">MVP ・ ' + esc(SI(mvpSide).en) + '</div><div class="nm">' + esc(mc.nm) + "</div>"
+        + '<div class="why">' + mvpWhy(M.stats[mvpSide].perChar[mvp]) + "</div></div></div>" : "")
+      + '<div class="brow"><button class="btn" data-a="replay" data-v="0">▶ REPLAY</button><button class="btn" data-a="again">AGAIN</button></div>'
+      + '<button class="btn pri" style="margin-top:8px" data-a="tohome">HOME</button>', true);
+    FX.sfx("score");
+    /* ★★ 2026-09-18 紐づけた人へ順位の XEVA（MagiChainParty と同じ GameLink・1試合1回） */
+    if (!M.prized && window.GameLink && !M.replay) {
+      M.prized = true;
+      const top = S.map((sd) => { const pl = B.playerOf(M, sd); return { uid: pl && pl.xvUid, name: pl ? pl.name : SI(sd).en, game: "MagiBocciaRush" }; });
+      if (top.some((t) => t.uid)) GameLink.awardPrizes(top.slice(0, 5)).then((list) => {
+        (list || []).forEach((r, i) => setTimeout(() => toast("🏆 " + r.name + J(" に賞金 " + r.amount + " XEVA！（ポータルで受取）", " earns " + r.amount + " XEVA! (claim in the portal)")), 900 + i * 1300));
+      });
+    }
+  }
   function mvpWhy(x) {
     if (!x) return "";
     const t = [];
@@ -1920,8 +2239,10 @@
     if (!rep || !rep.cfg) { toast(J("このリプレイは古い形式のため再生できません。", "This replay uses an old format.")); return; }
     close();
     const c = rep.cfg;
+    const rs = Array.isArray(c.sides) && c.sides.length > 2 ? c.sides : null;
+    const rpl = {}; (rs || ["red", "blue"]).forEach((sd) => { rpl[sd] = [{ name: SI(sd).en }]; });
     M = B.newMatch({ kind: "replay", ends: c.ends, perSide: c.perSide || 6, seed: c.seed, lineup: c.lineup, rules: c.rules, growth: c.growth,
-      levels: c.levels, awk: c.awk, first: c.first, guide: "off", players: { red: [{ name: "RED" }], blue: [{ name: "BLUE" }] } });
+      levels: c.levels, awk: c.awk, first: c.first, guide: "off", players: rpl, sides: rs || undefined });
     M.kind = rep.kind;
     M.replay = { log: rep.log.slice(), i: 0 };
     online = null; tut = null;
@@ -2128,6 +2449,18 @@
       + "· You keep up to <b>3 balls</b> on court (oldest are cleared). Win before your <b>shots</b> run out.<br>"
       + "· Specials, actives, passives and ULTs work as in matches.<br>"
       + "· First clears on HARD / NORMAL / EASY give 💎 15 / 10 / 5 gems." }]);
+  /* ★★ 2026-09-18 PARTY MATCH のルール */
+  RULES.push(["PARTY", { ja: "パーティー対戦", en: "Party match" }, {
+    ja: "<b>1台で3〜6色</b>のボッチャ。色ごとに順番が来たら、その色の人が端末を受け取って投げます（CPU にもできます）。<br>"
+      + "・<b>投げる順番</b>：ジャックを投げた色から、まだ1球も置いていない色 → それ以降は<b>ジャックからいちばん遠い色</b>。<br>"
+      + "・<b>得点</b>：エンドの終わりに、いちばん近い色が<b>2番目に近い色の最短</b>より近いボールの数だけ得点。<br>"
+      + "・先攻（ジャックを投げる色）はエンドごとに次の色へ。最終エンドで首位が並んだらタイブレーク。<br>"
+      + "・ボールの数は1色2〜6球。コートが混むので、人数が多いときは少なめがおすすめです。",
+    en: "Boccia for <b>3–6 colours on one device</b>; pass it to whoever's colour is up (CPU seats allowed).<br>"
+      + "· <b>Order</b>: colours with no ball yet, then the colour <b>farthest from the jack</b>.<br>"
+      + "· <b>Scoring</b>: the closest colour scores one point per ball closer than the <b>next colour's best</b>.<br>"
+      + "· The jack passes to the next colour every end; a tied lead after the last end plays a tie-break.<br>"
+      + "· 2–6 balls per colour — fewer is better with many players." }]);
   function openRule(sec) {
     const i = Math.max(0, RULES.findIndex((r) => r[0] === sec));
     const r = RULES[i];
@@ -2190,7 +2523,7 @@
       const rt = detailReturn; detailReturn = "";
       const reopen = (t) => { openPicker(pickSlot, t); if (pickY != null) $("#ovc").scrollTop = pickY; };
       if (rt === "me") { go("team"); reopen("me"); return; }
-      if (rt === "fred" || rt === "fblue") { go("play"); drawSetup(); reopen(rt); return; }
+      if (rt === "fred" || rt === "fblue" || /^p:/.test(rt)) { go("play"); drawSetup(); reopen(rt); return; }
       if (rt === "draft") { go("room"); reopen("draft"); return; }
       const to = prev && prev !== "detail" ? prev : "chars";
       go(to);
@@ -2202,6 +2535,7 @@
       const i = v.indexOf(":"), k = v.slice(0, i); let val = v.slice(i + 1);
       if (val === "true" || val === "false") val = val === "true"; else if (/^\d+$/.test(val)) val = +val;
       pendingCfg[k] = val; FX.sfx("ui");
+      if (pendingCfg.kind === "party") saveParty();
       if (k === "trainRed" || k === "trainBlue") {
         const s = B.load();
         s.friendTrain = { red: pendingCfg.trainRed, blue: pendingCfg.trainBlue }; B.save();
@@ -2212,6 +2546,13 @@
     reroll: () => { if (!pendingCfg) return; pendingCfg.rival = B.rivalLineup((Math.random() * 1e9) >>> 0, LINEUP_N); drawSetup(); },
     soon: () => toast(J("このモードは準備中です。", "This mode is coming soon.")),
     fpick: (v) => { const [side, i] = v.split(":"); openPicker(+i, side === "red" ? "fred" : "fblue"); },
+    /* ★★ 2026-09-18 PARTY MATCH */
+    ppick: (v) => { const [pi, i] = v.split(":"); openPicker(+i, "p:" + pi); },
+    pcpu: (v) => { const x = pendingCfg && pendingCfg.party[+v]; if (!x) return; x.cpu = !x.cpu; saveParty(); FX.sfx("ui"); const y = $("#ovc").scrollTop; drawSetup(); $("#ovc").scrollTop = y; },
+    preroll: (v) => { const x = pendingCfg && pendingCfg.party[+v]; if (!x) return; x.lineup = B.rivalLineup((Math.random() * 1e9) >>> 0, LINEUP_N); saveParty(); FX.sfx("ui"); const y = $("#ovc").scrollTop; drawSetup(); $("#ovc").scrollTop = y; },
+    slot: (v) => setSlot(slot + (+v || 0)),
+    plink: (v) => openPartyLink(+v),
+    skhelp: (v) => openSkillHelp(v),
     pinfo: (v) => { detailReturn = pickTarget; pickY = $("#ovc").scrollTop; close(); go("detail", v); },
     resume: () => resumeSuspended(),
     discard: () => { const s = B.load(); s.suspend = null; B.save(); renderHome(); toast(J("中断した試合を破棄しました", "Discarded the suspended match")); },
@@ -2226,7 +2567,7 @@
     toteam: () => { close(); go("team"); },
     start: () => {
       const p = pendingCfg;
-      if (p && p.kind === "quick" && p.tryOnline && window.MBROnline && MBROnline.quick) {
+      if (p && p.kind === "quick" && p.tryOnline && p.rules !== "simple" && window.MBROnline && MBROnline.quick) {
         close();
         showMatching();
         MBROnline.quick(10000).then((ok) => {
@@ -2243,6 +2584,12 @@
       const s = B.load();
       const put = (lu) => { const at = lu.indexOf(v); if (at >= 0 && at !== i) lu[at] = lu[i]; lu[i] = v; return lu; };
       const c = charOf(v);
+      if (/^p:/.test(pickTarget)) {
+        const x = pendingCfg.party[+pickTarget.slice(2)];
+        if (x) { x.lineup = put(x.lineup.slice()); saveParty(); }
+        drawSetup();
+        return;
+      }
       if (pickTarget === "fred" || pickTarget === "fblue") {
         const key = pickTarget === "fred" ? "redLineup" : "rival";
         pendingCfg[key] = put(pendingCfg[key].slice());
@@ -2353,8 +2700,9 @@
      target … "me"（自分の編成＝所持キャラ）／ "fred"・"fblue"（1台で友達と＝全キャラ）／ "draft"（オンラインの編成） */
   let pickSlot = 0, pickTarget = "me", detailReturn = "";
   let draftLineup = [], draftCb = null;
-  function pickPool() { return (pickTarget === "fred" || pickTarget === "fblue") ? B.buildRoster() : ROSTER; }
+  function pickPool() { return (pickTarget === "fred" || pickTarget === "fblue" || /^p:/.test(pickTarget)) ? B.buildRoster() : ROSTER; }
   function pickLineup() {
+    if (/^p:/.test(pickTarget)) { const x = pendingCfg && pendingCfg.party[+pickTarget.slice(2)]; return x ? x.lineup : []; }
     if (pickTarget === "fred") return pendingCfg.redLineup || [];
     if (pickTarget === "fblue") return pendingCfg.rival || [];
     if (pickTarget === "draft") return draftLineup;
@@ -2366,7 +2714,8 @@
     const k = FS.pick.sort;
     pickN = list.length;
     if (!list.length) return emptyHTML();
-    const awOf = (id) => pickTarget === "fred" ? trainAwOne(pendingCfg && pendingCfg.trainRed, id)
+    const awOf = (id) => /^p:/.test(pickTarget) ? trainAwOne(pendingCfg && pendingCfg.train, id)
+      : pickTarget === "fred" ? trainAwOne(pendingCfg && pendingCfg.trainRed, id)
       : pickTarget === "fblue" ? trainAwOne(pendingCfg && pendingCfg.trainBlue, id) : awkOne(id);
     return list.map((c) => { const aw = awOf(c.id); return '<div class="cc' + mxCls(c, aw) + '" data-a="pickchar" data-v="' + c.id + '"><img src="' + esc(img(c)) + '" loading="lazy" alt="">'
       + '<span class="rr ' + c.rarity + '">' + c.rarity + "</span>" + awkTag(aw)
@@ -2377,10 +2726,11 @@
   }
   function openPicker(i, target) {
     pickSlot = i; pickTarget = target || "me";
-    const who = pickTarget === "fred" ? "1P " : pickTarget === "fblue" ? "2P " : "";
+    const px = /^p:/.test(pickTarget) && pendingCfg ? pendingCfg.party[+pickTarget.slice(2)] : null;
+    const who = px ? SI(px.side).en + " " : pickTarget === "fred" ? "1P " : pickTarget === "fblue" ? "2P " : "";
     open(ttl("SELECT", who + J((i + 1) + "番手をえらぶ", "Pick #" + (i + 1)))
       + '<div class="fsui" id="fsui_pick"></div>'
-      + '<div class="note" style="margin:2px 0 0">' + (pickTarget === "fred" || pickTarget === "fblue"
+      + '<div class="note" style="margin:2px 0 0">' + (pickTarget === "fred" || pickTarget === "fblue" || px
           ? J("1台で遊ぶときは<b>全キャラ</b>から選べます。右上の <b>i</b> で詳細。", "Any character can be used on one device. Tap <b>i</b> for details.")
           : J("所持しているキャラから選べます。右上の <b>i</b> で詳細。", "Pick from your characters. Tap <b>i</b> for details.")) + "</div>"
       + '<div class="fcount" id="pfn"></div>'
@@ -2426,7 +2776,7 @@
     busy = false; thinking = false; hold = false; aim = null; lastGuide = null; shownTurn = ""; trail = [];
     sel = { special: "", active: false, ult: false }; predKey = "";
     close(); go("match"); buildMatchDOM(); startLoop();
-    M.cfg.lineup.red.concat(M.cfg.lineup.blue).forEach((id) => FX.imgOf(charOf(id)));
+    B.sidesOf(M).forEach((sd) => (M.cfg.lineup[sd] || []).forEach((id) => FX.imgOf(charOf(id))));
     toast(J("中断した試合を再開しました", "Resumed your match"));
     setTimeout(() => { if (M && M.phase === "over") showResult(); else startTurn(); }, 250);
   }
@@ -2445,6 +2795,36 @@
   }
   function hideMatching() { $("#recon").hidden = true; }
 
+  /* ★★ 2026-09-18 PARTY の名前（入力するたびに保存） */
+  document.addEventListener("input", (e) => {
+    const el = e.target;
+    if (!el.classList || !el.classList.contains("pname") || !pendingCfg || !pendingCfg.party) return;
+    const x = pendingCfg.party[+el.dataset.i]; if (!x) return;
+    x.name = el.value.slice(0, 8);
+    saveParty();
+  });
+  /* ★★ 2026-09-18 PARTY のアカウント紐づけ（MagiChainParty の openSeatLink と同じ流れ） */
+  function openPartyLink(i) {
+    const x = pendingCfg && pendingCfg.party && pendingCfg.party[i]; if (!x) return;
+    const redraw = () => { const y = $("#ovc").scrollTop; drawSetup(); $("#ovc").scrollTop = y; };
+    if (!window.GameLink) { toast(J("紐づけ機能を準備中です…", "Linking is loading…")); return; }
+    if (navigator.onLine === false) { toast(J("オフライン中は紐づけできません", "Linking needs a connection")); return; }
+    if (x.link && x.link.uid && x.link.confirmed === false) {
+      GameLink.confirm(x.link).then((res) => {
+        if (res && res.remove) { x.link = null; saveParty(); redraw(); toast(J("紐づけを解除しました", "Unlinked")); return; }
+        if (res && res.uid) { x.link = { uid: res.uid, name: res.name, charFile: res.charFile || "", charId: res.charId || "", confirmed: true }; saveParty(); redraw(); toast("🔗 " + res.name + J(" の紐づけを確認しました", " confirmed")); }
+      });
+      return;
+    }
+    if (x.link && x.link.uid) { x.link = null; saveParty(); redraw(); toast(J("紐づけを解除しました", "Unlinked")); return; }
+    GameLink.link(x.name).then((res) => {
+      if (res && res.uid) {
+        x.link = { uid: res.uid, name: res.name, charFile: res.charFile || "", charId: res.charId || "", confirmed: true };
+        if (/^\dP$/.test(x.name || "")) x.name = String(res.name || x.name).slice(0, 8);
+        saveParty(); redraw(); toast("🔗 " + res.name + J(" を紐づけました", " linked"));
+      }
+    });
+  }
   document.addEventListener("click", (e) => {
     const el = e.target.closest("[data-a]");
     if (!el || !el.dataset.a) return;

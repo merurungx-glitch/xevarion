@@ -3063,7 +3063,7 @@ function loadScriptOnce(src) {
 function loadMbCore() {
   mbShim();
   if (mbChars() && mbCharIds()) return Promise.resolve();
-  return loadScriptOnce("../MagiBurst/js/mb-core.js?v=120");
+  return loadScriptOnce("../MagiBurst/js/mb-core.js?v=121");
 }
 /* ══ ★★ 2026-08-22 キャラ詳細は XEVARION と<b>同じ1本</b>（mb-char-detail.js）を読む ══
    自前で組み直すと、アビリティ・クロススキル・リンクの文面が必ず食いちがっていく。
@@ -3078,7 +3078,7 @@ async function loadMbDetail() {
   }
   /* MagiBattle の評価も出したいので、その計算だけ先に読む（無くても詳細は開く） */
   if (!window.MBStats) { try { await loadScriptOnce("../magibattle-stats.js?v=14"); } catch (e) {} }
-  if (typeof window.openDetX !== "function") await loadScriptOnce("../mb-char-detail.js?v=31");
+  if (typeof window.openDetX !== "function") await loadScriptOnce("../mb-char-detail.js?v=34");
   _mbDetailReady = true;
 }
 /* ══ ★ 2026-08-17f MagiBurst 表の中身をそろえ直す ══

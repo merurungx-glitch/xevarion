@@ -656,3 +656,63 @@ html{scrollbar-gutter:stable}
   font-size:11px;line-height:1;padding:0;cursor:pointer;flex:none}
 .ghelp{background:var(--k3);padding:9px 11px;margin:0 0 8px;border-left:3px solid var(--r)}
 .ghelp[hidden]{display:none}
+
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-09-18 追加（ご指定）
+   ══════════════════════════════════════════════════════════════ */
+/* 試合画面の上が iPhone のカメラ（ノッチ・Dynamic Island）に重なっていた → セーフエリアぶん下げる */
+#s-match.on{padding-top:calc(env(safe-area-inset-top,0px) + 6px)}
+
+/* スキルの ？（押すと補足）。ボタンが押せない状態（使用済み等）でも ？ は押せるよう、ボタンの外に置く */
+.skw{position:relative;flex:1;min-width:0;display:flex}
+.skw .skb{width:100%}
+.skw .qh{position:absolute;top:-6px;right:-3px;z-index:2;width:18px;height:18px;font-size:10px;background:#000;border-color:#fff}
+.qh.in{display:inline-grid;place-items:center;vertical-align:middle;width:18px;height:18px;font-size:10px;margin-left:4px}
+.sk .h .qh.in{margin-left:6px}
+.hsup .hrow{display:grid;grid-template-columns:78px 1fr;gap:8px;padding:6px 0;border-bottom:1px solid var(--k3);font-size:12px;line-height:1.55}
+.hsup .hrow:last-child{border-bottom:none}
+.hsup .hrow b{font-size:11px;color:var(--gold)}
+
+/* 投球ボックスの ◀ BOX ▶ */
+.mslot{position:absolute;right:8px;z-index:4;display:flex;align-items:center;gap:2px;background:rgba(0,0,0,.72);
+  box-shadow:inset 0 -2px 0 var(--sc,#fff);clip-path:polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%);padding:0 6px}
+.mslot[hidden]{display:none}
+.mslot button{border:none;background:transparent;color:#fff;font-size:15px;min-width:38px;min-height:34px;cursor:pointer}
+.mslot button:active{color:var(--sc,#fff)}
+.mslot span{font-family:var(--disp);font-style:italic;font-size:14px;min-width:50px;text-align:center}
+
+/* PARTY MATCH：上の得点（色ごと） */
+.phead{display:flex;align-items:stretch;gap:4px;margin-bottom:5px}
+.pscore{display:flex;gap:3px;flex:1;min-width:0}
+.pscore .pc{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:2px 2px 3px;
+  background:linear-gradient(180deg,var(--sc),rgba(0,0,0,.55));color:#fff;min-height:44px;opacity:.72;transform:skewX(var(--skew))}
+.pscore .pc.turn{opacity:1;box-shadow:inset 0 -4px 0 #fff;flex:1.35}
+.pscore .pc .sc{font-family:var(--disp);font-style:italic;font-size:22px;line-height:1;text-shadow:1px 1px 0 #000}
+.pscore .pc .nm{font-size:8.5px;font-weight:900;letter-spacing:.06em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.pscore .pc .lf{font-size:6px;letter-spacing:1px;line-height:1;opacity:.9;white-space:nowrap;overflow:hidden;max-width:100%}
+.pscore.big{margin:4px 0 10px}
+.pscore.big .pc{opacity:1;min-height:52px}
+.pscore.big .pc .sc{font-size:28px}
+.hd.pside::before{background:var(--sc)}
+.pchip{display:inline-block;background:var(--sc);color:#000;font-family:var(--disp);font-style:italic;font-size:13px;padding:0 9px;
+  clip-path:polygon(5px 0,100% 0,calc(100% - 5px) 100%,0 100%)}
+.prow{display:flex;align-items:center;gap:8px;padding:7px 2px;border-bottom:1px solid var(--k3)}
+.prow:last-child{border-bottom:none}
+.prow .rk{font-family:var(--disp);font-style:italic;font-size:22px;width:22px;text-align:center}
+.prow .nm{font-weight:900;font-size:12.5px;flex:1;min-width:0}
+.prow .sc{font-family:var(--disp);font-size:28px;color:var(--sc);min-width:30px;text-align:right}
+.mode.party{box-shadow:inset 0 -4px 0 #ffd23d}
+
+/* ★★ 2026-09-18 PARTY の名前入力とアカウント紐づけ */
+.hd.pside .pname{flex:1;min-width:0;max-width:130px;height:30px;border:1.5px solid var(--k4,#444);background:#111;color:#fff;
+  font:900 13px 'Noto Sans JP',sans-serif;padding:0 8px;font-style:normal}
+.hd.pside .pname:focus{outline:none;border-color:var(--sc)}
+.plink{flex:none;max-width:120px;height:30px;border:1.5px solid #666;background:transparent;color:#fff;font:900 11px 'Noto Sans JP',sans-serif;
+  padding:0 8px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer}
+.plink.on{background:linear-gradient(100deg,#13c08a,#2e8bff);border-color:transparent}
+.plink.pending{background:linear-gradient(100deg,#ffb020,#ff8c42);border-color:transparent}
+
+/* ★★ 2026-09-19 キャラ詳細の戻るボタンを常に表示（上のバーのすぐ下に貼りつく・高さ0の層） */
+.dback{position:sticky;top:calc(env(safe-area-inset-top,0px) + 62px);z-index:40;height:0}
+#ovc .dback{top:0}
+.dback .tb.back{position:absolute;left:-2px;top:10px;box-shadow:0 2px 10px rgba(0,0,0,.6)}

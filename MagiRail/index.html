@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<script src="../maintenance-gate.js?v=13"></script>
+<meta charset="UTF-8" />
+<script>(function(){try{var a=JSON.parse(localStorage.getItem('xeva_account_v1'));if(!a||!a.setupDone)location.replace('../index.html');}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<title>MagiRail — Railway Balance</title>
+<meta name="description" content="都市の人口・施設・時間帯から生まれる鉄道需要を読み、本数・編成・車両を調整して、利益と輸送効率の両立をめざす鉄道経営シミュレーション。" />
+<link rel="icon" href="../thumbs/MagiRail.jpg" type="image/jpeg" />
+<link rel="apple-touch-icon" href="../thumbs/MagiRail.jpg" />
+<meta name="theme-color" content="#1c5fc4" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&family=Exo+2:ital,wght@0,700;0,800;1,800&display=swap" rel="stylesheet">
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function () { navigator.serviceWorker.register("sw.js").catch(function () {}); });
+}
+</script>
+<script src="../xeva-safebottom.js?v=11"></script>
+<link rel="stylesheet" href="css/rail.css?v=2" />
+<script src="../xeva-splash.js?v=13" data-app="MagiRail" data-logo="../thumbs/MagiRail.jpg"></script>
+</head>
+<body>
+
+<!-- ═══════════ タイトル ═══════════ -->
+<section id="title" class="scr on">
+  <div class="tbg"></div>
+  <div class="tin">
+    <h1 class="vh-only">MagiRail</h1>
+    <div class="tsub">Railway Balance</div>
+    <div class="ttag">数字でつくる、最適な鉄道運行。</div>
+    <div class="tbtns">
+      <button class="btn pri big" data-a="newgame">はじめる</button>
+      <button class="btn" data-a="continue" id="btnCont" hidden>つづきから</button>
+      <div class="row2"><button class="btn gh" data-a="help">ヘルプ</button><a class="btn gh" href="../index.html">XEVARION へ</a></div>
+    </div>
+  </div>
+</section>
+
+<!-- ═══════════ 都市・シナリオ選択 ═══════════ -->
+<section id="select" class="scr">
+  <header class="sbar"><button class="ib" data-a="totitle" aria-label="戻る">←</button><b>都市を選択してください</b></header>
+  <div class="swrap" id="selList"></div>
+</section>
+
+<!-- ═══════════ ゲーム ═══════════ -->
+<section id="game" class="scr">
+  <header class="hud">
+    <div class="kpis" id="kpis"></div>
+    <div class="timebar">
+      <button class="ib" data-a="menu" aria-label="メニュー">☰</button>
+      <div class="clk"><span id="tDay">Day 1</span><b id="tClock">05:00</b><span id="tBand" class="band">早朝</span></div>
+      <div class="spd" id="spd"></div>
+    </div>
+  </header>
+  <main id="view"></main>
+  <nav class="bnav" id="bnav">
+    <button data-a="tab" data-v="run" class="on"><i>🚆</i><span>運行</span></button>
+    <button data-a="tab" data-v="veh"><i>🚃</i><span>車両</span></button>
+    <button data-a="tab" data-v="st"><i>🚉</i><span>駅</span></button>
+    <button data-a="tab" data-v="city"><i>🏙</i><span>都市</span></button>
+    <button data-a="tab" data-v="biz"><i>📊</i><span>経営</span></button>
+  </nav>
+</section>
+
+<!-- ═══════════ シート（日次レポート・確認・ヘルプ）═══════════ -->
+<div id="ov" class="ov"><div class="sheet" id="sheet"></div></div>
+<div id="tip" class="tip" hidden></div>
+<div id="toast" class="toast" hidden></div>
+
+<script src="js/rail-core.js?v=2"></script>
+<script src="js/rail-chart.js?v=1"></script>
+<script src="js/rail-ui.js?v=2"></script>
+</body>
+</html>
