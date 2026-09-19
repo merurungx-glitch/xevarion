@@ -3,18 +3,18 @@
    ・1台で遊ぶ経営シミュレーション。キャッシュすれば完全にオフラインで動く
    ・セーブ（magirail_v1）は localStorage
    ============================================================ */
-const VERSION = "magirail-sw-v2";
+const VERSION = "magirail-sw-v6";
 const CORE = [
   "./index.html",
-  "./css/rail.css?v=2",
+  "./css/rail.css?v=3",
   "./js/rail-core.js?v=2",
   "./js/rail-chart.js?v=1",
-  "./js/rail-ui.js?v=2",
+  "./js/rail-ui.js?v=3",
   "./img/title.jpg",
   "./img/icon192.png",
   "./manifest.webmanifest",
   "../xeva-splash.js?v=13",
-  "../xeva-safebottom.js?v=11",
+  "../xeva-safebottom.js?v=12",
   "../maintenance-gate.js?v=13",
   "../thumbs/MagiRail.jpg",
 ];

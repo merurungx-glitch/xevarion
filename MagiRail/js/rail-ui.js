@@ -24,6 +24,12 @@
 
   /* ══════════ 共通 ══════════ */
   function show(id) { document.querySelectorAll(".scr").forEach((s) => s.classList.toggle("on", s.id === id)); }
+  /* ★★★ 2026-09-19 html.xv-full（iPhone のアプリ表示）のあいだは文書が箱より少し長いので、
+     タイトル・ゲーム画面では文書のスクロールを 0 に留める（都市選択は長いのでそのまま） */
+  window.addEventListener("scroll", () => {
+    if (!document.documentElement.classList.contains("xv-full") || !window.scrollY) return;
+    if (document.querySelector("#title.on,#game.on")) window.scrollTo(0, 0);
+  }, { passive: true });
   function toast(t) { const el = $("#toast"); el.textContent = t; el.hidden = false; clearTimeout(toast._t); toast._t = setTimeout(() => { el.hidden = true; }, 2200); }
   function open(html) { $("#sheet").innerHTML = '<button class="x" data-a="close" aria-label="閉じる">✕</button>' + html; $("#ov").classList.add("on"); $("#sheet").scrollTop = 0; }
   function close() { $("#ov").classList.remove("on"); }

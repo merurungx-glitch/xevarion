@@ -6,7 +6,7 @@
    ・オフライン中の記録は localStorage に残り、オンライン復帰時に
      xeva-cloud.js がクラウドへ反映する。
    ============================================================ */
-const VERSION = "xevynar-sw-v45";
+const VERSION = "xevynar-sw-v49";
 const CORE = [
   "./",
   "./index.html",
@@ -27,9 +27,9 @@ const CORE = [
   "./xevynar-192.png",
   "./xevynar-512.png",
   "../maintenance-gate.js?v=13",
-  "../xeva.js?v=67",
+  "../xeva.js?v=70",
   "../xeva-splash.js?v=13",
-  "../xeva-loading.js?v=17",
+  "../xeva-loading.js?v=18",
   "../XEVA.png",
   "../gem.png",
   /* ★ MagiLex の問題データ。オフラインでも「苦手問題の出題」「問題の解説」を

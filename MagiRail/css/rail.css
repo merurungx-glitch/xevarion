@@ -6,6 +6,12 @@
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{height:100%}
+/* ★★★ 2026-09-19 iPhone のアプリ表示で「下バーの下に空白」。箱（100%）が画面より 59px 短く、
+   ページがそこで終わっていた。xeva-safebottom.js が付ける html.xv-full のあいだは
+   本当の画面の高さ（--xv-fullh・箱につられて動かない）にし、余白は env() そのままにする。 */
+html.xv-full{--safeb:env(safe-area-inset-bottom,0px)}
+html.xv-full,html.xv-full body{height:var(--xv-fullh,100%)}
+html.xv-full #xevaSplash{position:absolute!important;top:0!important;bottom:auto!important;height:var(--xv-fullh)!important;padding-bottom:0!important}
 body{background:var(--bg);color:var(--ink);font-family:'Noto Sans JP',system-ui,sans-serif;font-size:14px;line-height:1.5;overscroll-behavior:none}
 button{font:inherit;color:inherit;cursor:pointer}
 [hidden]{display:none!important}
