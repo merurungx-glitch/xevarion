@@ -7,7 +7,7 @@
    ・作りは MagiJackpot の SW と同じ（プレフィックスの付いたキャッシュだけ掃除する／
      xev-refresh で差分更新できる）。
    ============================================================ */
-const VERSION = "magilotto-sw-v26";
+const VERSION = "magilotto-sw-v29";
 const CORE = [
   "./",
   "./index.html",
@@ -38,7 +38,7 @@ const CORE = [
   "../img/t_Karem.webp",
   "../img/t_Chizuru.webp",
   "../maintenance-gate.js?v=13",
-  "../xeva.js?v=67",
+  "../xeva.js?v=70",
   "../xeva-fx.js?v=9",
   "../xeva-splash.js?v=13",
   "../xeva-back.js?v=9",
