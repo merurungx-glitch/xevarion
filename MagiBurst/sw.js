@@ -6,13 +6,13 @@
    ・オンライン対戦・XEVA換金はアプリ側でオフライン時に無効化している
    ・取得できたリソースは随時キャッシュ更新（stale-while-revalidate）
    ============================================================ */
-const VERSION = "magiburst-sw-v169";
+const VERSION = "magiburst-sw-v177";
 const CORE = [
   "./index.html",
   "./css/mb-ui2.css?v=26",
   "./css/localplay.css?v=7",
   "./js/localplay.js?v=8",
-  "./js/mb-core.js?v=121",
+  "./js/mb-core.js?v=127",
   /* ★★ 2026-09-13 クエスト作成（ステージエディター・MB613Create26）。
      遅延読みこみだが、オフラインでも開けるようにここには入れておく。 */
   "./js/mb-create.js?v=2",
@@ -39,10 +39,10 @@ const CORE = [
   "../xeva-i18n-p3.js?v=7",
   "../xeva-i18n-mb7.js?v=7",
   "../xeva-i18n-p4.js?v=7",
-  "../xeva-i18n-n1.js?v=8",
+  "../xeva-i18n-n1.js?v=11",
   "../xeva-i18n-n2.js?v=3",
-  "../xeva.js?v=67",
-  "../xeva-loading.js?v=17",
+  "../xeva.js?v=70",
+  "../xeva-loading.js?v=18",
   "../xeva-splash.js?v=13",
   "../app-cloud.js?v=12",
   "../xeva-keys.js?v=25",
@@ -128,6 +128,10 @@ const CORE = [
   "img/ss/RezeliaSS.webp",
   "img/ss/RanSS.webp",
   "img/ss/AkatsukiSS.webp",   /* ★★ 2026-09-17d 花宴祭 アカツキ（治癒の祈り）用 */
+  "img/ss/AyaneSS.webp",      /* ★★ 2026-09-19 花宴祭 アヤネ（治癒の祈り）用 */
+  "img/ss/ChihaSS.webp",      /* ★★ 2026-09-19 花宴祭 チハ（治癒の祈り）用 */
+  "img/ss/HimeriSS.webp",     /* ★★ 2026-09-19e 花宴祭 ヒメリ（治癒の祈り）用 */
+  "img/ss/HonokaSS.webp",     /* ★★ 2026-09-19e 花宴祭 ホノカ（治癒の祈り）用 */
   "img/ss/YajuSS.webp",   /* ★ 2026-08-08d クロススキル「お待たせ!」用 */
   "img/ss/KokonaAlphaSS.webp",   /* ★ 2026-08-11 ココナα（治癒の祈り）用 */
   /* ★ 2026-08-08 プレミアム新SSR「カエデ」「リノン」「ココロ」「アンジェ」 */
@@ -412,6 +416,13 @@ const CORE = [
   "../img/t_Amane.webp",
   /* ★★ 2026-09-17d 花宴祭 */
   "../img/t_Akatsuki.webp",
+  /* ★★ 2026-09-19 花宴祭 追加 */
+  "../img/t_Ayane.webp",
+  "../img/t_Chiha.webp",
+  "../img/t_Himeri.webp",
+  "../img/t_Honoka.webp",
+  "../img/t_Azusa.webp",
+  "../img/t_Kokoha.webp",
   /* ★★ 2026-09-06 同期の画面に出る案内役（立ち姿とお辞儀・2人ぶん）。
      ここに無いとオフラインのときだけ絵が出ない。 */
   "../img/ld_a_stand.webp",

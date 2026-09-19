@@ -15,8 +15,8 @@
    <b>ふつうの &lt;script&gt;</b>（type="module" ではない）で読むこと。
    トップレベルの const/let はグローバルの字句環境に入るので、
    あとから読み込む MagiBurst 本体のスクリプトからそのまま見える。
-     MagiBurst : <script src="js/mb-core.js?v=121"></script>
-     gacha.html: <script src="MagiBurst/js/mb-core.js?v=121"></script>
+     MagiBurst : <script src="js/mb-core.js?v=127"></script>
+     gacha.html: <script src="MagiBurst/js/mb-core.js?v=127"></script>
 
    ── ホストが先に用意しておくもの ──
      window.MB_IMGD … 画像フォルダへの相対パス（MagiBurst は "../img/"、ポータルは "img/"）
@@ -319,6 +319,8 @@ const AB_NM = {
      ・laserstopM    … 超レーザーストップM。レーザーを止めるうえ回復量も大きい。
      ・ailsokojikaraM… 状態異常底力M。<b>毒などの状態異常を受けているあいだ</b>だけ与ダメージ2倍。 */
   regenL: "リジェネL", fbturnboost: "FBターンブースト", bosskillerM: "ボスキラーM",
+  /* ★★ 2026-09-19e ボスキラーの最上位（花宴祭 ホノカ・ご指定） */
+  bosskillerEL: "ボスキラーEL",
   allresM: "全属性耐性M", leftkillerM: "レフトポジションキラーM",
   laserstopM: "超レーザーストップM", ailsokojikaraM: "状態異常底力M",
   /* ★ 2026-08-10 XEVAガチャ移行SSR（コトミ〜リノン）のクロススキル用の等級EL */
@@ -467,6 +469,7 @@ const RIGHTKILLER_L_MUL = 2.0;     // ライトポジションキラーL: 画面
 const REGENL_RATE = 0.15;          // リジェネL: 自ターン終了時の回復量（無印5%／M 10%）
 const FBTURNBOOST = 1;             // FBターンブースト: 自分の手番で敵を1体倒すごとに縮むFBターン
 const BOSSKILLER_M_MUL = 2.0;      // ボスキラーM: ボスへのダメージ倍率
+const BOSSKILLER_EL_MUL = 3.0;     // ★★ 2026-09-19e ボスキラーEL（等級EL）
 const ALLRES_M_CUT = 0.50;         // 全属性耐性M: 本人が受けるダメージのカット率（無印は30%）
 const LEFTKILLER_M_MUL = 2.0;      // レフトポジションキラーM: 画面左半分の敵へのダメージ倍率
 const LASERSTOP_HEAL  = 0.08;      // 超レーザーストップ: レーザーを止めた本人が起こすチームHP回復量
@@ -2367,6 +2370,7 @@ function abilDesc(a) {
     case "regenL": return "自分のターン終了時、チームHPを" + Math.round(REGENL_RATE * 100) + "%回復する（等級L）";
     case "fbturnboost": return "<b>自分のターンで敵を倒すたび</b>に、自分のフルバーストが<b>" + FBTURNBOOST + "ターン</b>縮む<br><small>※ 1回のショットで何体倒しても、そのぶんだけ縮みます</small>";
     case "bosskillerM": return "<b>ボス</b>へのダメージが<b>" + BOSSKILLER_M_MUL + "倍</b>（等級M）";
+    case "bosskillerEL": return "<b>ボス</b>へのダメージが<b>" + BOSSKILLER_EL_MUL + "倍</b>（等級EL）";
     case "allresM": return "<b>このキャラ自身が</b>すべての属性から受けるダメージを" + Math.round(ALLRES_M_CUT * 100) + "%カットする（等級M）<br><small>※ 軽減されるのは<b>このキャラが受けた攻撃だけ</b>です</small>";
     case "leftkillerM": return "画面の<b>左半分にいる敵</b>へのダメージが<b>" + LEFTKILLER_M_MUL + "倍</b>（等級M）";
     case "laserstopM": return "敵のレーザーが<b>このキャラに当たったとき</b>、その身で受け止めてビームを<b>そこで消し止め</b>、チームHPを<b>" + Math.round(LASERSTOPM_HEAL * 100) + "%</b>回復する（等級M）<br><small>※ レーザーそのものは撃たれます。<b>射線上でこのキャラより敵に近い味方</b>はふつうにダメージを受けます</small>";
@@ -2983,7 +2987,8 @@ function killerMul(ball, e, tags, forLink) {
   else if (hasAbil(ball.ch, "outkillerM") && atOuterEdge(e)) { m *= OUTKILLER_M_MUL; tag("OUT KILLER M"); }
   /* ★ 2026-08-08 プレミアム新SSR 4体ぶん */
   if (hasAbil(ball.ch, "leftkillerM") && e.x < W * 0.5) { m *= LEFTKILLER_M_MUL; tag("LEFT KILLER M"); }
-  if (hasAbil(ball.ch, "bosskillerM") && e.boss) { m *= BOSSKILLER_M_MUL; tag("BOSS KILLER M"); }
+  if (hasAbil(ball.ch, "bosskillerEL") && e.boss) { m *= BOSSKILLER_EL_MUL; tag("BOSS KILLER EL"); }
+  else if (hasAbil(ball.ch, "bosskillerM") && e.boss) { m *= BOSSKILLER_M_MUL; tag("BOSS KILLER M"); }
   /* 状態異常底力M: 毒などを受けているあいだだけ乗る。判定は ballAiling に一本化してある
      （＝毒も「状態異常」に含める。ここに条件を書き足さないこと）。 */
   if (hasAbil(ball.ch, "ailsokojikaraM") && ballAiling(ball)) { m *= AILSOKOJIKARA_M_MUL; tag("状態異常底力M"); }
@@ -4274,6 +4279,193 @@ const BLAN_R = 380;                // いちばん広がったときの半径
 const BLAN_TRIP = 18;              // 片道のフレーム
 const BLAN_TOTAL = BLAN_PER * (1 + BLAN_BACK);
 
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-09-19 花宴祭 追加2体 <b>アヤネ（水・貫通）</b>／<b>チハ（木・反射）</b>（ご指定）
+   ------------------------------------------------------------
+   ・2体とも<b>全属性有利＋全属性キラーEL</b>、<b>オムニアンチ＋治癒の祈り</b>、クロススキルなし、
+     キラー2つ（パワーオーラ・底力系も数える）、アビリティ10個、フルバーストは<b>乱打</b>。
+   ・アンチ2つは<b>天界の審判ごとの完全対応キャラ数を実測して</b>、アカツキと重ならない穴を埋める組にした：
+       アヤネ＝ブロック＋ウォード → 第一・第二・第九・第十・第十二・第十四（第十四は4体しかいなかった）
+       チハ  ＝ブロック＋ロックゾーン → 第一・第三・第五・第七・第八・第十二・第十三（第七は4体）
+     アカツキ（ロック＋減速壁）と3体あわせると、<b>第六（3つとも専用アンチ）以外の14面</b>を有利属性のまま埋める。
+   ・リンクは2本とも<b>新規・新しい挙動</b>。サブリンクは花宴祭の<b>ベニチョウチン・リターン</b>（アカツキと同じ）。
+   ★ 威力は index.html の FS_HIT と<b>同じ定数</b>を見ること（表記と動作をずらさない）。
+   ══════════════════════════════════════════════════════════════ */
+/* ── アヤネ FB「ヒョウカ・ヒャクレンザン」（乱打）── */
+const AYA_ATK = 3.40, AYA_SPD = 1.60;
+const AYA_BARRAGE_N = 80, AYA_BARRAGE_PER = 6.60, AYA_BARRAGE_STEP = 0.10;
+const AYA_FINALE = 372.0;          // 締めの絶対零度（敵全体）
+const AYA_HEAL = 0.20;             // チームHPの回復割合
+const AYA_DEFDOWN = 3;             // 敵全体の防御力ダウン（ターン）
+const AYA_DELAY = 1;               // 敵全体の行動ターンを遅らせる数（凍結）
+const AYA_TOTAL = AYA_BARRAGE_N * AYA_BARRAGE_PER
+  + AYA_BARRAGE_STEP * AYA_BARRAGE_N * (AYA_BARRAGE_N - 1) / 2 + AYA_FINALE;
+/* ── アヤネ リンク「ヒョウメン・カガミウツシ」──
+   ★ 新しいのは<b>盤面の4つの壁が氷の鏡になり、壁に映った「鏡像」からも斬撃が飛ぶ</b>こと。
+     1段目: 本物＋4つの壁に映った鏡像（計5つ）が、<b>それぞれいちばん近い敵</b>へ斬る。
+     2段目: 四隅（壁2枚ぶん映った鏡像）の4つが、同じくいちばん近い敵へ斬る。
+     斬撃は<b>本当に壁で跳ね返った道すじ</b>で描く（鏡像法）。
+     ★ <b>1体が受けとめられる斬撃は HYM_CAP 本まで</b>。あふれた斬撃は<b>次に近い敵</b>へ流れる
+       （＝敵が多いほど全員に行きわたる。ボス1体に9本が集まる強さにはしない：実測 単体×37／敵4体×117）。
+     ★ <b>HYM_SHATTER 本以上うけた敵は氷ごと砕ける</b>（もう一撃）。
+     ＝ 壁ぎわの敵ほど鏡像に近く、狙われやすい。 */
+const HYM_P1 = 8.00;               // 1段目（本物＋壁の鏡像）
+const HYM_P2 = 9.50;               // 2段目（四隅の鏡像）
+const HYM_FIN = 13.0;              // 砕ける（HYM_SHATTER 本以上うけた敵）
+const HYM_CAP = 3;                 // 1体が受けとめられる斬撃の本数
+const HYM_SHATTER = 2;
+const HYM_GAP = 12;
+
+/* ── チハ FB「シラハナ・センシュノウタ」（乱打）── */
+const CHIHA_ATK = 3.30, CHIHA_SPD = 1.60;
+const CHIHA_BARRAGE_N = 64, CHIHA_BARRAGE_PER = 8.00, CHIHA_BARRAGE_STEP = 0.14;
+const CHIHA_FINALE = 404.0;        // 締めの千首の歌（敵全体）
+const CHIHA_HEAL = 0.30;           // チームHPの回復割合
+const CHIHA_DEFDOWN = 3;           // 敵全体の防御力ダウン（ターン）
+const CHIHA_FB = 3;                // 味方全員のフルバーストを進める数
+const CHIHA_TOTAL = CHIHA_BARRAGE_N * CHIHA_BARRAGE_PER
+  + CHIHA_BARRAGE_STEP * CHIHA_BARRAGE_N * (CHIHA_BARRAGE_N - 1) / 2 + CHIHA_FINALE;
+/* ── チハ リンク「シラハナ・ツヅリウタ」──
+   ★ 新しいのは<b>敵が「すでに失ったHPの割合」で重くなる</b>こと（刈り取り）。
+     筆が 5・7・5・7・7（31音）の和歌を綴り、<b>1音ごとに敵全体</b>へ墨の一筆。
+     最後の結句で白い花が咲いて敵全体へもう一撃。
+     1打ごとに ×(1 + SRH_HARV × 失ったHPの割合) ——満タンの敵には ×1、瀕死の敵にはほぼ ×(1+SRH_HARV)。
+     ★ 実測（敵4体・十字）: 満タン ×104／残りHP20% ×116／瀕死 ×120（上限×120 を超えない）。 */
+const SRH_VERSES = [5, 7, 5, 7, 7];
+const SRH_N = 31;
+const SRH_PER = 0.60;              // 1音（敵全体）
+const SRH_FIN = 7.30;              // 結句の白花（敵全体）
+const SRH_HARV = 0.15;             // 失ったHPの割合にかける上乗せ
+const SRH_GAP = 3;                 // 1音の間隔（フレーム）
+const SRH_VGAP = 8;                // 句と句のあいだ
+
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-09-19e 花宴祭 追加2体 <b>ヒメリ（光・反射）</b>／<b>ホノカ（闇・貫通）</b>（ご指定）
+   ・「ヒマリ」「ホムラ」は既存キャラと同名なので改名（ご指定でヒメリ／ホノカ）。
+   ・全属性有利・オムニ＋治癒の祈り・クロスなし・キラー2つ・アビリティ10個・乱打FB。
+   ・アンチ：ヒメリ＝ウォード＋減速壁（⚖ 第九・十一・十二・十四・十五）／ホノカ＝ブロック＋ロック（第一・三・五・七・八・十二・十三）。
+     いちばん手薄だった 第七・十一・十四・十五（各5体）を埋める組み合わせ。
+   ・キラー：ヒメリ＝バイタルキラーEL＋底力EL／ホノカ＝ファーストキラーEL＋ボスキラーEL（新設）。
+   ══════════════════════════════════════════════════════════════ */
+/* ── ヒメリ FB「ベニスズ・センレンカ」（乱打）── */
+const HMR_ATK = 3.40, HMR_SPD = 1.60;
+const HMR_BARRAGE_N = 76, HMR_BARRAGE_PER = 7.00, HMR_BARRAGE_STEP = 0.11;
+const HMR_FINALE = 382.0;          // 締めの紅鈴（敵全体）
+const HMR_HEAL = 0.20;
+const HMR_DEFDOWN = 3;
+const HMR_BARRIER = 4000;          // 味方全員に張るバリア
+const HMR_TOTAL = HMR_BARRAGE_N * HMR_BARRAGE_PER
+  + HMR_BARRAGE_STEP * HMR_BARRAGE_N * (HMR_BARRAGE_N - 1) / 2 + HMR_FINALE;
+/* ── ヒメリ リンク「ベニイト・スズナリ」──
+   ★ 新しいのは<b>同じショットで先に発動したリンクの数だけ重くなる</b>こと（鈴の共鳴）。
+     紅い糸が全部の敵へ張られ、鈴が SZN_N 回鳴る（1回ごとに敵全体）→ 結びの鈴（敵全体）。
+     1打ごとに ×(1 + SZN_STEP × そのショットで先に出たリンクの数（最大 SZN_PRIOR_MAX）)。 */
+const SZN_N = 6;
+const SZN_PER = 3.20;              // 鈴1回（敵全体）
+const SZN_FIN = 5.80;              // 結びの鈴（敵全体）
+const SZN_STEP = 0.05;             // 先に出たリンク1つあたりの上乗せ
+const SZN_PRIOR_MAX = 4;
+const SZN_GAP = 6;
+
+/* ── ホノカ FB「シンカイ・ヒャクトモシ」（乱打）── */
+const HNK_ATK = 3.40, HNK_SPD = 1.60;
+const HNK_BARRAGE_N = 70, HNK_BARRAGE_PER = 7.60, HNK_BARRAGE_STEP = 0.13;
+const HNK_FINALE = 372.0;          // 締めの深海の灯（敵全体）
+const HNK_HEAL = 0.20;
+const HNK_DEFDOWN = 3;
+const HNK_TOTAL = HNK_BARRAGE_N * HNK_BARRAGE_PER
+  + HNK_BARRAGE_STEP * HNK_BARRAGE_N * (HNK_BARRAGE_N - 1) / 2 + HNK_FINALE;
+/* ── ホノカ リンク「ミナソコ・ヒカリクラゲ」──
+   ★ 新しいのは<b>敵の「攻撃までの残りターン」で刺す回数が変わる</b>こと。
+     それぞれの敵にクラゲが灯り、<b>攻撃まで遠い敵ほど何度も刺す</b>（残りターン数ぶん・最大 JLY_MAX 回）。
+     <b>次のターンに攻撃してくる敵</b>は刺す回数こそ少ないが、<b>しびれて行動が1ターン遅れる</b>。
+     最後に深海の灯が敵全体へ。 */
+/* ★ 実測（敵4体・十字・残りターン3）: ×112／残り4ターン ×125／残り1ターン ×86＋しびれ */
+const JLY_PER = 3.20;              // 1刺し
+const JLY_MAX = 4;                 // 1体に刺す最大回数
+const JLY_DEF = 3;                 // 残りターンが分からない敵は3回
+const JLY_FIN = 18.4;              // 締め（敵全体）
+const JLY_GAP = 5;
+
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-09-19e 極煌祭 <b>アズサ（水・反射）</b>（ご指定）
+   ・オムニ＋超アンチ減速壁（⚖ 第十一・十二・十五を有利属性で完全対応）。治癒の祈りなし。
+   ・キラー：天律族キラーEL＋パワーオーラEL。クロス「青薔薇のクロス」（自分と同じ水属性の味方が1体以上）。
+   ・FB は<b>史上最大</b>の乱打（合計 AZU_TOTAL）。ショットスキル「ブルーローズ・シュート」。
+   ・極煌祭のネクサス（luxblaze）を強化。
+   ══════════════════════════════════════════════════════════════ */
+const AZU_ATK = 3.60, AZU_SPD = 1.65;
+const AZU_BARRAGE_N = 90, AZU_BARRAGE_PER = 7.20, AZU_BARRAGE_STEP = 0.12;
+const AZU_FINALE = 420.0;          // 締めの青薔薇の大輪（敵全体）
+const AZU_DEFDOWN = 4;
+const AZU_TEAM_ATK = 1.35, AZU_TEAM_TURNS = 3;
+const AZU_TOTAL = AZU_BARRAGE_N * AZU_BARRAGE_PER
+  + AZU_BARRAGE_STEP * AZU_BARRAGE_N * (AZU_BARRAGE_N - 1) / 2 + AZU_FINALE;
+/* ── アズサ リンク「ブルーローズ・コンプリート」──
+   ★ 新しいのは<b>敵どうしを「全部の組み合わせ」で茨が結ぶ</b>こと（完全グラフ）。
+     味方 → 全部の敵へ1本ずつ（×ROSE_A）、さらに<b>敵と敵のすべての組</b>に茨が張られ、
+     1本ごとに<b>両端の2体</b>へ入る（×ROSE_P）。敵が n 体なら茨は n(n-1)/2 本。
+     最後に<b>いちばん多くの茨が集まった敵1体</b>（同数なら残りHPが多い敵）に青薔薇の冠（×ROSE_CROWN）。
+   ★ 実測（十字・攻撃力3000）: 敵4体 ×120（2026-09-13 の上限と同着＝最強）／敵1体 ×40（単体でもいちばん重い）。 */
+const ROSE_A = 8.00;
+const ROSE_P = 4.65;
+const ROSE_CROWN = 32.0;
+const ROSE_GAP = 10;
+/* ── アズサ ショットスキル「ブルーローズ・シュート」── */
+const SHOTSK_AZUSA_PER = 0.95;     // 進行方向の扇に青薔薇の花びら（貫通）
+const SHOTSK_AZUSA_LEN = 520;      //   その射程
+const SHOTSK_AZUSA_ANG = 0.45;     //   扇の半角（ラジアン）
+const SHOTSK_AZUSA_FB = 1;         //   自分のフルバーストが進むターン
+
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-09-19g 極彩祭 <b>ココハ（火・反射）</b>（ご指定・性能はユーザーと相談して決定）
+   ・全属性有利＋オムニアンチ＋アンチ断絶界 → ⚖ 第九・第十二・第十四（手薄な第十四を埋める）。治癒の祈りなし。
+   ・キラー：ボスキラーEL＋パワーオーラEL。クロス「椿雨のクロス」（同じ属性の味方が1体以上）。
+   ・FB は<b>史上最大</b>の乱打（合計 KKH_TOTAL・アズサ超え）。ショットスキル「ツバキアメ・シュート」。
+   ・極彩祭のネクサス（luxprism）を強化。
+   ══════════════════════════════════════════════════════════════ */
+const KKH_ATK = 3.60, KKH_SPD = 1.65;
+const KKH_BARRAGE_N = 96, KKH_BARRAGE_PER = 7.40, KKH_BARRAGE_STEP = 0.13;
+const KKH_FINALE = 380.0;          // 締めの椿の大輪（敵全体）
+const KKH_DEFDOWN = 4;
+const KKH_FB = 2;                  // 味方全員のフルバーストを進める数
+const KKH_TOTAL = KKH_BARRAGE_N * KKH_BARRAGE_PER
+  + KKH_BARRAGE_STEP * KKH_BARRAGE_N * (KKH_BARRAGE_N - 1) / 2 + KKH_FINALE;
+/* ── ココハ リンク「ツバキアメ・ウリョウ」──
+   ★ 新しいのは<b>盤面じゅうに紅い雨が降り、敵が「浴びた雨粒の数」で重くなる</b>こと。
+     雨粒は盤面の格子（AME_COLS×AME_ROWS）にほぼ均等に落ちる（毎回同じ並び）。
+     敵の足もと（半径＋AME_MARGIN）に落ちた1粒ごとに ×AME_PER。
+     ＝ <b>大きな敵（ボス）ほどたくさん浴びる</b>。AME_BLOOM 粒以上浴びた敵には椿が咲いてもう一撃（×AME_FIN）。
+   ★ 実測（十字・攻撃力3000）: 敵4体（半径60）×120＝上限と同着／単体 ×29／半径100のボス単体 ×48（単体最強）。 */
+const AME_COLS = 12, AME_ROWS = 15;
+const AME_MARGIN = 30;
+const AME_PER = 2.31;
+const AME_BLOOM = 6;
+const AME_FIN = 13.2;
+const AME_WAVES = 3;               // 雨は3回に分けて降る
+const AME_GAP = 10;
+/* ── ココハ ショットスキル「ツバキアメ・シュート」── */
+const SHOTSK_KOKOHA_PER = 0.90;    // 進む向きの帯に紅い雨（貫通）
+const SHOTSK_KOKOHA_LEN = 600;
+const SHOTSK_KOKOHA_W = 90;
+const SHOTSK_KOKOHA_FB = 1;
+SHOTSKILLS.tsubakiame = {
+  nm: "ツバキアメ・シュート", c: "#ff5d6e",
+  pow: "進む向きの帯（射程 " + SHOTSK_KOKOHA_LEN + "・幅 " + SHOTSK_KOKOHA_W + "）に紅い雨（貫通）／帯の中の敵に 攻撃力×" + SHOTSK_KOKOHA_PER
+    + " ＋ <b>当たった敵の攻撃を1ターン遅らせる</b> ＋ <b>自分のフルバーストが" + SHOTSK_KOKOHA_FB + "ターン進む</b>",
+  desc: "自分のターンで<b>撃つたび毎回</b>、進む向きへ紅い雨が帯になって降る。"
+    + "<br>帯の中の敵は削れるうえに<b>雨宿りで攻撃が1ターン遅れ</b>、あわせて<b>自分のフルバーストが" + SHOTSK_KOKOHA_FB + "ターン進む</b>。",
+};
+/* ★ SHOTSKILLS はこれより前で作られているので、あとから足す（TDZ よけ） */
+SHOTSKILLS.bluerose = {
+  nm: "ブルーローズ・シュート", c: "#5aa9ff",
+  pow: "進行方向の扇（射程 " + SHOTSK_AZUSA_LEN + "）へ青薔薇の花びら（貫通）／扇の中の敵に 攻撃力×" + SHOTSK_AZUSA_PER
+    + " ＋ <b>当たった敵の防御力を1ターン下げる</b> ＋ <b>自分のフルバーストが" + SHOTSK_AZUSA_FB + "ターン進む</b>",
+  desc: "自分のターンで<b>撃つたび毎回</b>、進む向きへ<b>扇形</b>に青薔薇の花びらが舞う。"
+    + "<br>線ではなく<b>扇</b>なので、ねらいが少しずれても前の敵にはまとめて入る。"
+    + "当たった敵は<b>防御力が1ターン下がり</b>、あわせて<b>自分のフルバーストが" + SHOTSK_AZUSA_FB + "ターン進む</b>。",
+};
+
 const KUMI_ATK = 3.30, KUMI_SPD = 1.60;
 const KUMI_BARRAGE_N = 70, KUMI_BARRAGE_PER = 7.20, KUMI_BARRAGE_STEP = 0.12;
 const KUMI_FINALE = 360.0;        // 締めの譜面発光（敵全体）
@@ -4415,7 +4607,7 @@ const SUBFS = {
     desc: "ふれた味方から、<b>紅い提灯の輪</b>が広がる。"
       + "<br>これまでに無いのは<b>いちばん外まで広がったあと、もう一度内側へ戻ってくる</b>こと——"
       + "同じ敵を<b>行きと帰りの2回</b>包み、<b>帰りのほうが重い</b>（×" + BLAN_BACK + "）。"
-      + "<br>花宴祭 アカツキのサブリンクです" },
+      + "<br>花宴祭（アカツキ・アヤネ・チハ）のサブリンクです" },
   /* ══ ★★ 2026-09-13 極華祭 クミコ＆レイナのサブリンク ══ */
   twinreed: { nm: "ダブルリード・エコー",
     pow: "金と緋の音帯が<b>十字に走る</b>（太さ " + DREED_W + "・1本 攻撃力×" + DREED_PER
@@ -4816,16 +5008,19 @@ const NEXUS = {
      ★ 極華（luxbloom）は今回の指定に入っていないので<b>そのまま</b>にしてある。 */
   luxprism: { nm: "極彩・プリズムネクサス", c: "#8affc4",
     /* ★★ 2026-09-01 ご指定により<b>さらに強化</b>（効果は4つに） */
-    desc: "<b>弱点</b>へのダメージが<b>50%</b>アップし、<b>リンクスキル・サブリンク</b>のダメージが<b>25%</b>アップ、"
-      + "さらに<b>味方全員の攻撃力</b>が<b>14%</b>アップ、<b>ボス</b>へのダメージが<b>15%</b>アップする"
-      + "<br><small>※ ピアース・ネクサス（弱点+8%）の約6倍に、ボンド・フォース・スレイヤーぶんを重ねた極彩祭だけの特別なネクサスです</small>",
-    weak: 1.50, link: 1.25, atk: 1.14, boss: 1.15 },
+    /* ★★ 2026-09-19g ココハ追加にあわせて<b>もう一段強化</b>（ご指定）：弱点+70%・リンク+40%・攻撃+22%・ボス+30% */
+    desc: "<b>弱点</b>へのダメージが<b>70%</b>アップし、<b>リンクスキル・サブリンク</b>のダメージが<b>40%</b>アップ、"
+      + "さらに<b>味方全員の攻撃力</b>が<b>22%</b>アップ、<b>ボス</b>へのダメージが<b>30%</b>アップする"
+      + "<br><small>※ ピアース・ネクサス（弱点+8%）の約9倍に、ボンド・フォース・スレイヤーぶんを重ねた極彩祭だけの特別なネクサスです</small>",
+    weak: 1.70, link: 1.40, atk: 1.22, boss: 1.30 },
   luxblaze: { nm: "極煌・ブレイズネクサス", c: "#ff5d47",
-    /* ★★ 2026-09-01 ご指定により<b>さらに強化</b>（効果は4つに） */
-    desc: "<b>ボス</b>へのダメージが<b>45%</b>アップし、<b>味方全員の攻撃力</b>が<b>18%</b>アップ、"
-      + "さらに<b>バトル開始時に味方全員へ1100のバリア</b>を張り、<b>弱点</b>へのダメージが<b>15%</b>アップする"
-      + "<br><small>※ スレイヤー・ネクサス（ボス+6%）の約7倍に、フォース・イージス・ピアースぶんを重ねた極煌祭だけの特別なネクサスです</small>",
-    boss: 1.45, atk: 1.18, barrier: 1100, weak: 1.15 },
+    /* ★★ 2026-09-01 ご指定により<b>さらに強化</b>（効果は4つに）
+       ★★ 2026-09-19e アズサ追加にあわせて<b>もう一段強化</b>（ご指定）：ボス+60%・攻撃+25%・バリア1600・弱点+25%・<b>リンク+30%</b> */
+    desc: "<b>ボス</b>へのダメージが<b>60%</b>アップし、<b>味方全員の攻撃力</b>が<b>25%</b>アップ、"
+      + "<b>リンクスキル・サブリンク</b>のダメージが<b>30%</b>アップ、"
+      + "さらに<b>バトル開始時に味方全員へ1600のバリア</b>を張り、<b>弱点</b>へのダメージが<b>25%</b>アップする"
+      + "<br><small>※ スレイヤー・ネクサス（ボス+6%）の10倍に、フォース・ボンド・イージス・ピアースぶんを重ねた極煌祭だけの特別なネクサスです</small>",
+    boss: 1.60, atk: 1.25, link: 1.30, barrier: 1600, weak: 1.25 },
   /* ★★ 2026-08-29 戦姫祭のネクサス。極◯祭と同じ「限定キャラクターのガチャ」なので、
      効き目もそこにそろえる（3つの効果を同時に持つ）。 */
   /* ★★ 2026-09-01 RISING STAR FEST のネクサス。
@@ -5643,6 +5838,28 @@ const CONNECT = {
     skills: [
       { k: "reinaSoko", nm: "底力EL", abil: "sokojikaraEL" },
       { k: "reinaBarrier", nm: "バリアEL", abil: "barrierEL" },
+    ],
+  },
+  /* ★★ 2026-09-19g 極彩祭 ココハ。条件は<b>自分と同じ属性</b>（異なる属性の条件は使わない・ご指定） */
+  kokoha: {
+    nm: "椿雨のクロス",
+    condTx: "<b>自分と同じ属性（IGNIS）の味方が1体以上</b>いること（自分をのぞく）",
+    cond: (ids, me) => cnxSelfIn(ids, me) && cnxCount(ids, me, (c, m) => c.el === m.el) >= 1,
+    skills: [
+      { k: "kokohaBarrier", nm: "バリアEL", abil: "barrierEL" },
+      { k: "kokohaDouble", nm: "リンク×2", abil: "fsdouble" },
+      { k: "kokohaDash", nm: "ダッシュL", abil: "dashL" },
+    ],
+  },
+  /* ★★ 2026-09-19e 極煌祭 アズサ。条件は<b>自分と同じ属性</b>（異なる属性の条件は使わない・ご指定） */
+  azusa: {
+    nm: "青薔薇のクロス",
+    condTx: "<b>自分と同じ属性（AQUA）の味方が1体以上</b>いること（自分をのぞく）",
+    cond: (ids, me) => cnxSelfIn(ids, me) && cnxCount(ids, me, (c, m) => c.el === m.el) >= 1,
+    skills: [
+      { k: "azusaBarrier", nm: "バリアEL", abil: "barrierEL" },
+      { k: "azusaRegen", nm: "リジェネL", abil: "regenL" },
+      { k: "azusaSpeed", nm: "スピードモード", abil: "speedmode" },
     ],
   },
   /* ══════════════════════════════════════════════════════════════
@@ -13504,6 +13721,244 @@ const CHARS = {
       + "<b>敵が固まっているほど同じ敵に枝が集まり</b>、" + AKB_BLOOM + "本以上とどいた敵は<b>満開</b>してもう一撃。"
       + "<br>枝分かれ先がいないとき（ボス1体など）は<b>同じ敵へ返り咲く</b>ので、単体にもしっかり届きます。",
   },
+  /* ══════════════════════════════════════════════════════════════
+     ★★ 2026-09-19 花宴祭 <b>アヤネ</b>（水・貫通・No.251）（ご指定）
+     ・全属性有利＋全属性キラーEL／オムニアンチ＋治癒の祈り／アンチはブロック＋ウォード（オムニのほか2つ）。
+       ⚖ 天界の審判 <b>第一・第二・第九・第十・第十二・第十四</b>を有利属性のまま完全対応。
+     ・キラーは<b>弱点キラーEL＋パワーオーラEL</b>の2つ（★★ 2026-09-19e 属性キラーをやめた・ご指定）。クロススキルなし。アビリティ10個。
+     ・治癒の祈りのカットインは<b>SS絵</b>（img/ss/AyaneSS.webp）。
+     ══════════════════════════════════════════════════════════════ */
+  ayane: {
+    id: "ayane", nm: "アヤネ", img: "Ayane.webp", th: "t_Ayane.webp",
+    el: "water", shot: "pierce", type: "氷華鏡刃型",
+    gacha: true, fes: true, fesKey: "kaen", lux: true,
+    nexus: "kaenbloom", star5: true,
+    hp: [1296, 8440], atk: [2318, 14700], spd: [364, 546],
+    abil: [{ t: "omni" }, { t: "ablock" }, { t: "award" },
+           { t: "weakkillerEL" }, { t: "auraEL" },
+           { t: "elemadv" }, { t: "pray" },
+           { t: "fsboostEL" }, { t: "fbtouch" }, { t: "speedmode" }],
+    subfs: "benilantern",
+    ssName: "ヒョウカ・ヒャクレンザン", ssTurns: 30, ssKind: "ayanek",
+    ssPow: "自強化（攻撃×" + AYA_ATK + "・スピード×" + AYA_SPD + "）＋ "
+      + "最初にふれた敵の上で止まって<b>氷華の乱打 " + AYA_BARRAGE_N + "連</b>"
+      + "（1発 攻撃力×" + AYA_BARRAGE_PER + "・撃つごとに +" + AYA_BARRAGE_STEP + "）"
+      + " ＋ <b>絶対零度</b>（敵全体・攻撃力×" + AYA_FINALE + "）"
+      + " ＋ <b>敵全体の行動を" + AYA_DELAY + "ターン凍結</b>"
+      + " ＋ <b>敵全体の防御力ダウン " + AYA_DEFDOWN + "ターン</b>"
+      + " ＋ <b>チームHPを" + Math.round(AYA_HEAL * 100) + "%回復</b>／"
+      + "合計 攻撃力×" + AYA_TOTAL.toFixed(1),
+    ssDesc: "雪の夜、氷の城で<b>一振りの刀</b>が抜かれる。"
+      + "<br><b>自強化（攻撃×" + AYA_ATK + "・スピード×" + AYA_SPD + "）</b>して、"
+      + "<b>最初にふれた敵の上でいったん止まり</b>、氷華の刃を<b>" + AYA_BARRAGE_N + "連</b>——"
+      + "斬るほど冷たく重くなる（×" + AYA_BARRAGE_PER + " → ×"
+      + (AYA_BARRAGE_PER + AYA_BARRAGE_STEP * (AYA_BARRAGE_N - 1)).toFixed(2) + "）。"
+      + "<br>斬り終わると盤面ごと<b>絶対零度</b>に凍りつき、敵全体へ 攻撃力×" + AYA_FINALE + "。"
+      + "<b>敵全体の行動を" + AYA_DELAY + "ターン遅らせ</b>、<b>防御力を" + AYA_DEFDOWN + "ターン</b>下げ、"
+      + "<b>チームHPを" + Math.round(AYA_HEAL * 100) + "%</b>戻します。"
+      + "<br>合計 攻撃力×" + AYA_TOTAL.toFixed(1) + "。",
+    fsName: "ヒョウメン・カガミウツシ", fsKind: "hyoumirror",
+    fsPow: "4つの壁が氷の鏡になる。<b>本物＋壁に映った鏡像4つ</b>が、それぞれ<b>いちばん近い敵</b>へ斬る（1段目 攻撃力×" + HYM_P1 + "）→ "
+      + "<b>四隅の鏡像4つ</b>が同じく斬る（2段目 ×" + HYM_P2 + "）／"
+      + "1体に届くのは<b>" + HYM_CAP + "本まで</b>（あふれた斬撃は次に近い敵へ）／"
+      + "<b>" + HYM_SHATTER + "本以上うけた敵は砕ける</b>（攻撃力×" + HYM_FIN + "）",
+    fsDesc: "ふれた味方のまわりで、盤面の<b>4つの壁が氷の鏡</b>に変わる。"
+      + "<br>これまでに無いのは<b>壁に映った「鏡像」からも斬撃が飛んでくる</b>こと——"
+      + "本物と、壁1枚ぶん映った4つ、さらに四隅（壁2枚ぶん）の4つ、<b>あわせて9本</b>の斬撃が、"
+      + "それぞれ<b>自分にいちばん近い敵</b>へ、<b>本当に壁で跳ね返った道すじ</b>で飛びます。"
+      + "<br><b>壁ぎわの敵ほど鏡像に近いので狙われやすく</b>、" + HYM_SHATTER + "本以上うけた敵は<b>氷ごと砕けて</b>もう一撃。"
+      + "<br>1体が受けとめられるのは<b>" + HYM_CAP + "本まで</b>——あふれた斬撃は<b>次に近い敵</b>へ流れるので、"
+      + "<b>敵が多いほど全員に行きわたります</b>。",
+  },
+  /* ══════════════════════════════════════════════════════════════
+     ★★ 2026-09-19 花宴祭 <b>チハ</b>（木・反射・No.252）（ご指定）
+     ・全属性有利＋全属性キラーEL／オムニアンチ＋治癒の祈り／アンチはブロック＋ロックゾーン（オムニのほか2つ）。
+       ⚖ 天界の審判 <b>第一・第三・第五・第七・第八・第十二・第十三</b>を有利属性のまま完全対応。
+     ・キラーは<b>フェイタルキラーL＋敵少底力EL</b>の2つ（★★ 2026-09-19e 属性キラーをやめた・ご指定）。クロススキルなし。アビリティ10個。
+     ・治癒の祈りのカットインは<b>SS絵</b>（img/ss/ChihaSS.webp）。
+     ══════════════════════════════════════════════════════════════ */
+  chiha: {
+    id: "chiha", nm: "チハ", img: "Chiha.webp", th: "t_Chiha.webp",
+    el: "wood", shot: "bounce", type: "白花綴歌型",
+    gacha: true, fes: true, fesKey: "kaen", lux: true,
+    nexus: "kaenbloom", star5: true,
+    hp: [1304, 8480], atk: [2298, 14580], spd: [368, 550],
+    abil: [{ t: "omni" }, { t: "ablock" }, { t: "antilock" },
+           { t: "fatalkillerL" }, { t: "fewfoeEL" },
+           { t: "elemadv" }, { t: "pray" },
+           { t: "fsboostEL" }, { t: "fsdouble" }, { t: "barrierEL" }],
+    subfs: "benilantern",
+    ssName: "シラハナ・センシュノウタ", ssTurns: 29, ssKind: "chihak",
+    ssPow: "自強化（攻撃×" + CHIHA_ATK + "・スピード×" + CHIHA_SPD + "）＋ "
+      + "最初にふれた敵の上で止まって<b>白花の乱打 " + CHIHA_BARRAGE_N + "連</b>"
+      + "（1発 攻撃力×" + CHIHA_BARRAGE_PER + "・撃つごとに +" + CHIHA_BARRAGE_STEP + "）"
+      + " ＋ <b>千首の歌</b>（敵全体・攻撃力×" + CHIHA_FINALE + "）"
+      + " ＋ <b>味方全員のフルバーストを" + CHIHA_FB + "進める</b>"
+      + " ＋ <b>敵全体の防御力ダウン " + CHIHA_DEFDOWN + "ターン</b>"
+      + " ＋ <b>チームHPを" + Math.round(CHIHA_HEAL * 100) + "%回復</b>／"
+      + "合計 攻撃力×" + CHIHA_TOTAL.toFixed(1),
+    ssDesc: "白い花の降る書斎で、<b>最後の一首</b>が書きあがる。"
+      + "<br><b>自強化（攻撃×" + CHIHA_ATK + "・スピード×" + CHIHA_SPD + "）</b>して、"
+      + "<b>最初にふれた敵の上でいったん止まり</b>、白花の筆を<b>" + CHIHA_BARRAGE_N + "連</b>——"
+      + "書くほど墨が濃く重くなる（×" + CHIHA_BARRAGE_PER + " → ×"
+      + (CHIHA_BARRAGE_PER + CHIHA_BARRAGE_STEP * (CHIHA_BARRAGE_N - 1)).toFixed(2) + "）。"
+      + "<br>書き終えると盤面いっぱいに<b>千首の歌札</b>が舞い、敵全体へ 攻撃力×" + CHIHA_FINALE + "。"
+      + "<b>味方全員のフルバーストを" + CHIHA_FB + "進め</b>、<b>敵全体の防御力を" + CHIHA_DEFDOWN + "ターン</b>下げ、"
+      + "<b>チームHPを" + Math.round(CHIHA_HEAL * 100) + "%</b>戻します。"
+      + "<br>合計 攻撃力×" + CHIHA_TOTAL.toFixed(1) + "。",
+    fsName: "シラハナ・ツヅリウタ", fsKind: "shirahana",
+    fsPow: "筆が 5・7・5・7・7（" + SRH_N + "音）の和歌を綴る。<b>1音ごとに敵全体</b>へ一筆（攻撃力×" + SRH_PER + "）"
+      + " ＋ 結句の白花（敵全体・攻撃力×" + SRH_FIN + "）／"
+      + "<b>敵が失ったHPの割合で重くなる</b>（満タン ×1 → 瀕死 ×" + (1 + SRH_HARV).toFixed(2) + "）",
+    fsDesc: "ふれた味方のまわりに、白い花と<b>和歌の一首</b>が綴られていく。"
+      + "<br>これまでに無いのは<b>敵が「すでに失ったHP」の割合で重くなる</b>こと——"
+      + "削れている敵ほど一筆が深く入り、<b>瀕死の敵には ×" + (1 + SRH_HARV).toFixed(2) + "</b>まで重くなります（刈り取り）。"
+      + "<br>5・7・5・7・7 の<b>" + SRH_N + "音</b>がそれぞれ敵全体へ入り、"
+      + "結句で白い花が咲いてもう一度 敵全体へ。<b>ボス戦の終盤ほど強い</b>リンクです。",
+  },
+  /* ══ ★★ 2026-09-19g 極彩祭 <b>ココハ</b>（火・反射・No.256）══ */
+  kokoha: {
+    id: "kokoha", nm: "ココハ", img: "Kokoha.webp", th: "t_Kokoha.webp",
+    el: "fire", shot: "bounce", type: "椿雨傘舞型",
+    gacha: true, fes: true, fesKey: "kokusai", lux: true,
+    nexus: "luxprism", star5: true,
+    connect: "kokoha",
+    shotskill: "tsubakiame",
+    hp: [1350, 8780], atk: [2396, 15260], spd: [372, 558],
+    /* 素7つ ＋ クロス3つ ＝ <b>アビリティ10個</b>。キラーは<b>ちょうど2つ</b>（ボスキラーEL・パワーオーラEL）。 */
+    abil: [{ t: "omni" }, { t: "award" },
+           { t: "bosskillerEL" }, { t: "auraEL" },
+           { t: "elemadv" }, { t: "fsboostEL" }, { t: "sscharge" }],
+    subfs: "benilantern",
+    ssName: "ツバキアメ・センカ", ssTurns: 32, ssKind: "kokohak",
+    ssPow: "自強化（攻撃×" + KKH_ATK + "・スピード×" + KKH_SPD + "）＋ "
+      + "最初にふれた敵の上で止まって<b>椿の乱打 " + KKH_BARRAGE_N + "連</b>"
+      + "（1発 攻撃力×" + KKH_BARRAGE_PER + "・撃つごとに +" + KKH_BARRAGE_STEP + "）"
+      + " ＋ <b>紅い雨の大輪</b>（敵全体・攻撃力×" + KKH_FINALE + "）"
+      + " ＋ <b>敵全体の防御力ダウン " + KKH_DEFDOWN + "ターン</b>"
+      + " ＋ <b>味方全員のフルバーストを" + KKH_FB + "進める</b>／合計 攻撃力×" + KKH_TOTAL.toFixed(1),
+    ssDesc: "紅い椿の咲く庭で、<b>透明な傘</b>がひらく。"
+      + "<br><b>自強化（攻撃×" + KKH_ATK + "・スピード×" + KKH_SPD + "）</b>して<b>最初にふれた敵の上で止まり</b>、"
+      + "椿の刃を<b>" + KKH_BARRAGE_N + "連</b>——降るほど重くなる（×" + KKH_BARRAGE_PER + " → ×"
+      + (KKH_BARRAGE_PER + KKH_BARRAGE_STEP * (KKH_BARRAGE_N - 1)).toFixed(2) + "）。"
+      + "<br>傘を閉じると盤面いっぱいに<b>紅い雨</b>が降りそそぎ、敵全体へ 攻撃力×" + KKH_FINALE + "。"
+      + "<b>敵全体の防御力を" + KKH_DEFDOWN + "ターン</b>下げ、<b>味方全員のフルバーストを" + KKH_FB + "進めます</b>。"
+      + "<br>合計 攻撃力×" + KKH_TOTAL.toFixed(1) + " ——<b>MagiBurst 史上最大のフルバースト</b>です"
+      + "（これまでの1位はアズサ ×" + AZU_TOTAL.toFixed(1) + "）。",
+    fsName: "ツバキアメ・ウリョウ", fsKind: "tsubakirain",
+    fsPow: "盤面じゅうに紅い雨が降る（" + AME_WAVES + "回・格子 " + AME_COLS + "×" + AME_ROWS + "）／"
+      + "<b>敵が浴びた雨粒1つにつき 攻撃力×" + AME_PER + "</b>（大きい敵ほど多く浴びる）＋ "
+      + "<b>" + AME_BLOOM + "粒以上浴びた敵に椿</b>（×" + AME_FIN + "）",
+    fsDesc: "ふれた味方が傘をひらくと、盤面じゅうに<b>紅い雨</b>が降りはじめる。"
+      + "<br>これまでに無いのは<b>敵が「浴びた雨粒の数」で重くなる</b>こと——"
+      + "雨は盤面にほぼ均等に降るので、<b>大きい敵（ボス）ほどたくさん浴びて重くなります</b>。"
+      + "<br>" + AME_BLOOM + "粒以上浴びた敵には<b>紅い椿</b>が咲いて、もう一撃入ります。",
+  },
+  /* ══ ★★ 2026-09-19e 花宴祭 <b>ヒメリ</b>（光・反射・No.253）══ */
+  himeri: {
+    id: "himeri", nm: "ヒメリ", img: "Himeri.webp", th: "t_Himeri.webp",
+    el: "light", shot: "bounce", type: "紅鈴宴舞型",
+    gacha: true, fes: true, fesKey: "kaen", lux: true,
+    nexus: "kaenbloom", star5: true,
+    hp: [1300, 8460], atk: [2312, 14660], spd: [366, 548],
+    abil: [{ t: "omni" }, { t: "award" }, { t: "superaslow" },
+           { t: "vitalEL" }, { t: "sokojikaraEL" },
+           { t: "elemadv" }, { t: "pray" },
+           { t: "fsboostEL" }, { t: "sscharge" }, { t: "barrierEL" }],
+    subfs: "benilantern",
+    ssName: "ベニスズ・センレンカ", ssTurns: 30, ssKind: "himerik",
+    ssPow: "自強化（攻撃×" + HMR_ATK + "・スピード×" + HMR_SPD + "）＋ "
+      + "最初にふれた敵の上で止まって<b>紅鈴の乱打 " + HMR_BARRAGE_N + "連</b>"
+      + "（1発 攻撃力×" + HMR_BARRAGE_PER + "・撃つごとに +" + HMR_BARRAGE_STEP + "）"
+      + " ＋ <b>千連の鈴</b>（敵全体・攻撃力×" + HMR_FINALE + "）"
+      + " ＋ <b>味方全員に " + HMR_BARRIER + " のバリア</b>"
+      + " ＋ <b>敵全体の防御力ダウン " + HMR_DEFDOWN + "ターン</b>"
+      + " ＋ <b>チームHPを" + Math.round(HMR_HEAL * 100) + "%回復</b>／合計 攻撃力×" + HMR_TOTAL.toFixed(1),
+    ssDesc: "紅い宮の夜、千の鈴がいっせいに鳴る。"
+      + "<br><b>自強化</b>して<b>最初にふれた敵の上で止まり</b>、紅鈴の乱打を<b>" + HMR_BARRAGE_N + "連</b>——"
+      + "鳴るほど重くなる（×" + HMR_BARRAGE_PER + " → ×" + (HMR_BARRAGE_PER + HMR_BARRAGE_STEP * (HMR_BARRAGE_N - 1)).toFixed(2) + "）。"
+      + "<br>締めの<b>千連の鈴</b>が敵全体へ 攻撃力×" + HMR_FINALE + "。<b>味方全員に" + HMR_BARRIER + "のバリア</b>を張り、"
+      + "<b>敵全体の防御力を" + HMR_DEFDOWN + "ターン</b>下げ、<b>チームHPを" + Math.round(HMR_HEAL * 100) + "%</b>戻します。"
+      + "<br>合計 攻撃力×" + HMR_TOTAL.toFixed(1) + "。",
+    fsName: "ベニイト・スズナリ", fsKind: "benisuzu",
+    fsPow: "紅い糸が全部の敵へ張られ、鈴が " + SZN_N + "回鳴る（1回ごとに敵全体・攻撃力×" + SZN_PER + "）＋ 結びの鈴（敵全体・×" + SZN_FIN + "）／"
+      + "<b>同じショットで先に発動したリンク1つにつき +" + Math.round(SZN_STEP * 100) + "%</b>（最大 +" + Math.round(SZN_STEP * SZN_PRIOR_MAX * 100) + "%）",
+    fsDesc: "ふれた味方から<b>紅い糸</b>が全部の敵へ伸び、糸の先の鈴が鳴りわたる。"
+      + "<br>これまでに無いのは<b>同じショットで先にほかのリンクが出ているほど、鈴が共鳴して重くなる</b>こと——"
+      + "たくさんの味方にふれる<b>連鎖のうしろ</b>で発動させるほど強くなります（1つにつき +" + Math.round(SZN_STEP * 100) + "%・最大 +" + Math.round(SZN_STEP * SZN_PRIOR_MAX * 100) + "%）。",
+  },
+  /* ══ ★★ 2026-09-19e 花宴祭 <b>ホノカ</b>（闇・貫通・No.254）══ */
+  honoka: {
+    id: "honoka", nm: "ホノカ", img: "Honoka.webp", th: "t_Honoka.webp",
+    el: "dark", shot: "pierce", type: "深海灯火型",
+    gacha: true, fes: true, fesKey: "kaen", lux: true,
+    nexus: "kaenbloom", star5: true,
+    hp: [1292, 8420], atk: [2324, 14720], spd: [362, 544],
+    abil: [{ t: "omni" }, { t: "ablock" }, { t: "antilock" },
+           { t: "firstkillerEL" }, { t: "bosskillerEL" },
+           { t: "elemadv" }, { t: "pray" },
+           { t: "fsboostEL" }, { t: "fbtouch" }, { t: "atkchargeM" }],
+    subfs: "benilantern",
+    ssName: "シンカイ・ヒャクトモシ", ssTurns: 30, ssKind: "honokak",
+    ssPow: "自強化（攻撃×" + HNK_ATK + "・スピード×" + HNK_SPD + "）＋ "
+      + "最初にふれた敵の上で止まって<b>深海の乱打 " + HNK_BARRAGE_N + "連</b>"
+      + "（1発 攻撃力×" + HNK_BARRAGE_PER + "・撃つごとに +" + HNK_BARRAGE_STEP + "）"
+      + " ＋ <b>百の灯</b>（敵全体・攻撃力×" + HNK_FINALE + "）"
+      + " ＋ <b>敵全体を毒状態</b> ＋ <b>敵全体の防御力ダウン " + HNK_DEFDOWN + "ターン</b>"
+      + " ＋ <b>チームHPを" + Math.round(HNK_HEAL * 100) + "%回復</b>／合計 攻撃力×" + HNK_TOTAL.toFixed(1),
+    ssDesc: "光の届かない海の底で、<b>百のクラゲ</b>がいっせいに灯る。"
+      + "<br><b>自強化</b>して<b>最初にふれた敵の上で止まり</b>、深海の乱打を<b>" + HNK_BARRAGE_N + "連</b>——"
+      + "刺すほど重くなる（×" + HNK_BARRAGE_PER + " → ×" + (HNK_BARRAGE_PER + HNK_BARRAGE_STEP * (HNK_BARRAGE_N - 1)).toFixed(2) + "）。"
+      + "<br>締めに<b>百の灯</b>が敵全体へ 攻撃力×" + HNK_FINALE + "。<b>敵全体を毒</b>にし、"
+      + "<b>防御力を" + HNK_DEFDOWN + "ターン</b>下げ、<b>チームHPを" + Math.round(HNK_HEAL * 100) + "%</b>戻します。"
+      + "<br>合計 攻撃力×" + HNK_TOTAL.toFixed(1) + "。",
+    fsName: "ミナソコ・ヒカリクラゲ", fsKind: "abyssjelly",
+    fsPow: "敵それぞれにクラゲが灯り、<b>攻撃までの残りターンの数だけ刺す</b>（1刺し 攻撃力×" + JLY_PER + "・最大" + JLY_MAX + "回）／"
+      + "<b>次のターンに攻撃してくる敵はしびれて行動が1ターン遅れる</b> ＋ 深海の灯（敵全体・×" + JLY_FIN + "）",
+    fsDesc: "ふれた味方のまわりの海が暗くなり、<b>敵それぞれにヒカリクラゲ</b>が灯る。"
+      + "<br>これまでに無いのは<b>敵の「攻撃までの残りターン」で刺す回数が変わる</b>こと——"
+      + "<b>まだ攻撃まで遠い敵ほど何度も刺し</b>（最大" + JLY_MAX + "回）、"
+      + "<b>次のターンに攻撃してくる敵はしびれさせて行動を1ターン遅らせます</b>。"
+      + "<br>削りたいときも、攻撃を止めたいときも、どちらにも効くリンクです。",
+  },
+  /* ══ ★★ 2026-09-19e 極煌祭 <b>アズサ</b>（水・反射・No.255）══ */
+  azusa: {
+    id: "azusa", nm: "アズサ", img: "Azusa.webp", th: "t_Azusa.webp",
+    el: "water", shot: "bounce", type: "青薔薇円舞型",
+    gacha: true, fes: true, fesKey: "kokukou", lux: true,
+    nexus: "luxblaze", star5: true,
+    connect: "azusa",
+    shotskill: "bluerose",
+    hp: [1340, 8720], atk: [2380, 15120], spd: [370, 556],
+    /* 素7つ ＋ クロス3つ ＝ <b>アビリティ10個</b>。キラーは<b>ちょうど2つ</b>（天律族キラーEL・パワーオーラEL）。 */
+    abil: [{ t: "omni" }, { t: "superaslow" },
+           { t: "judgekillerEL" }, { t: "auraEL" },
+           { t: "fsboostEL" }, { t: "fsdouble" }, { t: "sscharge" }],
+    subfs: "benilantern",
+    ssName: "アオバラ・ロンドフィナーレ", ssTurns: 32, ssKind: "azusak",
+    ssPow: "自強化（攻撃×" + AZU_ATK + "・スピード×" + AZU_SPD + "）＋ "
+      + "最初にふれた敵の上で止まって<b>青薔薇の乱打 " + AZU_BARRAGE_N + "連</b>"
+      + "（1発 攻撃力×" + AZU_BARRAGE_PER + "・撃つごとに +" + AZU_BARRAGE_STEP + "）"
+      + " ＋ <b>青薔薇の大輪</b>（敵全体・攻撃力×" + AZU_FINALE + "）"
+      + " ＋ <b>敵全体の防御力ダウン " + AZU_DEFDOWN + "ターン</b>"
+      + " ＋ <b>味方全員の攻撃力 ×" + AZU_TEAM_ATK + "（" + AZU_TEAM_TURNS + "ターン）</b>／"
+      + "合計 攻撃力×" + AZU_TOTAL.toFixed(1),
+    ssDesc: "青い薔薇のシャンデリアの下、<b>最後の円舞曲</b>が始まる。"
+      + "<br><b>自強化（攻撃×" + AZU_ATK + "・スピード×" + AZU_SPD + "）</b>して<b>最初にふれた敵の上で止まり</b>、"
+      + "青薔薇の刃を<b>" + AZU_BARRAGE_N + "連</b>——踊るほど重くなる（×" + AZU_BARRAGE_PER + " → ×"
+      + (AZU_BARRAGE_PER + AZU_BARRAGE_STEP * (AZU_BARRAGE_N - 1)).toFixed(2) + "）。"
+      + "<br>踊り終えると盤面いっぱいに<b>青薔薇の大輪</b>が咲き、敵全体へ 攻撃力×" + AZU_FINALE + "。"
+      + "<b>敵全体の防御力を" + AZU_DEFDOWN + "ターン</b>下げ、<b>味方全員の攻撃力を" + AZU_TEAM_TURNS + "ターン ×" + AZU_TEAM_ATK + "</b>にします。"
+      + "<br>合計 攻撃力×" + AZU_TOTAL.toFixed(1) + " ——<b>MagiBurst 史上最大のフルバースト</b>です"
+      + "（これまでの1位はアカツキ ×" + AKA_TOTAL.toFixed(1) + "）。",
+    fsName: "ブルーローズ・コンプリート", fsKind: "bluerosenet",
+    fsPow: "味方 → 全部の敵へ茨（1本 攻撃力×" + ROSE_A + "）＋ <b>敵と敵のすべての組</b>に茨（1本ごとに両端の2体へ ×" + ROSE_P + "）＋ "
+      + "<b>いちばん多く茨が集まった敵1体</b>（同数なら残りHPが多い敵）に青薔薇の冠（×" + ROSE_CROWN + "）",
+    fsDesc: "ふれた味方から青薔薇の茨が伸び、<b>敵と敵をすべての組み合わせで結ぶ</b>。"
+      + "<br>これまでに無いのは<b>敵が増えるほど茨の本数が「組み合わせの数」で増える</b>こと——"
+      + "敵3体なら3本、4体なら6本、5体なら10本。1本ごとに<b>両端の2体</b>へ入ります。"
+      + "<br>最後に、<b>いちばん多くの茨が集まった敵1体</b>（同じ本数ならHPが多く残っている敵）へ<b>重い青薔薇の冠</b>が咲くので、ボス1体にもしっかり届きます。",
+  },
   kumireina: {
     id: "kumireina", nm: "クミコ＆レイナ", img: "KumikoReina.webp", th: "t_KumikoReina.webp",
     el: "fire", el2: "light", shot: "pierce", type: "双奏協奏型",
@@ -14026,6 +14481,12 @@ const CHAR_IDS = [
   "kuon", "asahi", "sougetsu", "natsune", "amane",     /* No.245〜249 */
   /* ══ ★★ 2026-09-17d 花宴祭（No.250）══ */
   "akatsuki",                                          /* No.250 花宴祭 */                           /* No.213〜215 戦姫祭 第3弾 */
+  /* ══ ★★ 2026-09-19 花宴祭 追加2体（No.251〜252）══ */
+  "ayane", "chiha",                                    /* No.251〜252 花宴祭 */
+  /* ══ ★★ 2026-09-19e 花宴祭 追加2体・極煌祭（No.253〜255）══ */
+  "himeri", "honoka", "azusa",                         /* No.253〜255 */
+  /* ══ ★★ 2026-09-19g 極彩祭 ココハ（No.256）══ */
+  "kokoha",                                            /* No.256 */
 ];
 /* id → キャラクター番号（1始まり）。図鑑・詳細・ガチャ結果に「No.XX」として出す */
 const CHAR_NO = {};
@@ -14163,6 +14624,12 @@ const CHAR_TYPE = {
      ★ 検算: CHAR_IDS.filter(id => !CHAR_TYPE[id]) が空であること。 */
   /* ── ★★ 2026-09-17d 花宴祭 ── */
   akatsuki: "striker",  /* アカツキ：乱打FB＋全属性有利＋全属性キラーEL */
+  ayane:    "striker",  /* アヤネ：乱打FB＋全属性有利＋全属性キラーEL＋パワーオーラEL */
+  chiha:    "striker",  /* チハ：乱打FB＋全属性有利＋全属性キラーEL＋敵少底力EL */
+  himeri:   "striker",  /* ヒメリ：乱打FB＋全属性有利＋バイタルキラーEL＋底力EL */
+  honoka:   "striker",  /* ホノカ：乱打FB＋全属性有利＋ファーストキラーEL＋ボスキラーEL */
+  azusa:    "striker",  /* アズサ：史上最大の乱打FB＋天律族キラーEL＋パワーオーラEL */
+  kokoha:   "striker",  /* ココハ：史上最大の乱打FB＋全属性有利＋ボスキラーEL＋パワーオーラEL */
   /* ── ★★ 2026-09-17 RISING STAR FEST 第4弾 ── */
   kuon:     "cannon",   /* クオン：リンクブーストEL＋盤面の4辺から撃つリンク */
   asahi:    "striker",  /* アサヒ：ソウルスティールEL＋防御力ダウンの総攻撃 */
@@ -16504,6 +16971,74 @@ function drawFsGlyph(kind, c, g) {
           ctx.beginPath(); ctx.arc(x + Math.cos(a) * 1.5, y + Math.sin(a) * 1.5, 1.05, 0, Math.PI * 2); ctx.fill();
         }
       });
+      ctx.lineWidth = 2; break;
+    }
+    /* ══ ★★ 2026-09-19 花宴祭 アヤネ・チハ（リンク2本。サブリンクはベニチョウチンで共通）══ */
+    case "hyoumirror": {     /* ヒョウメン・カガミウツシ（氷の鏡の枠＋壁で折れる斬撃＋雪の結晶） */
+      ctx.lineWidth = 1.4; ctx.globalAlpha = .55;
+      ctx.strokeRect(-10.5, -10.5, 21, 21);                                              /* 鏡の枠（盤面の壁） */
+      ctx.globalAlpha = 1; ctx.lineWidth = 1.9;
+      ctx.beginPath(); ctx.moveTo(-7, 7); ctx.lineTo(10.5, -2); ctx.lineTo(-1, -10.5); ctx.stroke();   /* 壁で折れる斬撃 */
+      ctx.beginPath(); ctx.arc(10.5, -2, 1.8, 0, Math.PI * 2); ctx.fill();               /* 反射点 */
+      ctx.lineWidth = 1.2;
+      for (let k = 0; k < 3; k++) {                                                     /* 雪の結晶 */
+        const a = k * Math.PI / 3;
+        ctx.beginPath(); ctx.moveTo(-5 + Math.cos(a) * 3.6, 3 + Math.sin(a) * 3.6);
+        ctx.lineTo(-5 - Math.cos(a) * 3.6, 3 - Math.sin(a) * 3.6); ctx.stroke();
+      }
+      ctx.lineWidth = 2; break;
+    }
+    case "shirahana": {      /* シラハナ・ツヅリウタ（筆の一筆＋白い五弁の花） */
+      ctx.lineWidth = 2.6;
+      ctx.beginPath(); ctx.moveTo(-10, 8); ctx.quadraticCurveTo(-3, 1, -8, -4); ctx.quadraticCurveTo(-2, -9, 3, -10); ctx.stroke();
+      ctx.lineWidth = 1.2;
+      for (let k = 0; k < 5; k++) {
+        const a = k * Math.PI * 2 / 5 - Math.PI / 2;
+        ctx.beginPath(); ctx.arc(5 + Math.cos(a) * 3.4, 5 + Math.sin(a) * 3.4, 2.4, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.globalAlpha = .5; ctx.beginPath(); ctx.arc(5, 5, 1.5, 0, Math.PI * 2); ctx.fill(); ctx.globalAlpha = 1;
+      ctx.lineWidth = 2; break;
+    }
+    /* ══ ★★ 2026-09-19e 花宴祭 ヒメリ・ホノカ／極煌祭 アズサ ══ */
+    case "tsubakirain": {    /* ツバキアメ・ウリョウ（傘＋降る雨粒＋椿） */
+      ctx.lineWidth = 1.7;
+      ctx.beginPath(); ctx.arc(-1, -2, 9, Math.PI, 0); ctx.stroke();                     /* 傘 */
+      ctx.beginPath(); ctx.moveTo(-1, -2); ctx.lineTo(-1, 8); ctx.quadraticCurveTo(-1, 11, -4, 10); ctx.stroke();
+      ctx.lineWidth = 1.2;
+      [[-10, 2], [-6, 6], [7, 1], [10, 6]].forEach(([x, y]) => { ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x - 1.4, y + 3.6); ctx.stroke(); });
+      for (let k = 0; k < 5; k++) {                                                          /* 椿 */
+        const a = k * Math.PI * 2 / 5;
+        ctx.beginPath(); ctx.arc(7 + Math.cos(a) * 2.2, -8 + Math.sin(a) * 2.2, 1.6, 0, Math.PI * 2); ctx.fill();
+      }
+      ctx.lineWidth = 2; break;
+    }
+    case "benisuzu": {       /* ベニイト・スズナリ（鈴＋左右へ伸びる紅い糸） */
+      ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.moveTo(-11, -8); ctx.quadraticCurveTo(-4, -2, 0, -4); ctx.quadraticCurveTo(4, -2, 11, -8); ctx.stroke();
+      ctx.lineWidth = 1.8;
+      ctx.beginPath(); ctx.arc(0, 3, 6.4, Math.PI, 0); ctx.lineTo(7.4, 7.2); ctx.lineTo(-7.4, 7.2); ctx.closePath(); ctx.fill();
+      ctx.beginPath(); ctx.arc(0, 9.6, 1.9, 0, Math.PI * 2); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(0, -4); ctx.lineTo(0, -3.4); ctx.stroke();
+      ctx.lineWidth = 2; break;
+    }
+    case "abyssjelly": {     /* ミナソコ・ヒカリクラゲ（クラゲの傘と揺れる触手） */
+      ctx.lineWidth = 1.8;
+      ctx.beginPath(); ctx.arc(0, -2, 8, Math.PI, 0); ctx.closePath(); ctx.fill();
+      ctx.lineWidth = 1.3;
+      [-5.4, -1.8, 1.8, 5.4].forEach((x, k) => {
+        ctx.beginPath(); ctx.moveTo(x, -1.5);
+        ctx.quadraticCurveTo(x + (k % 2 ? 2.6 : -2.6), 4, x, 10.5); ctx.stroke();
+      });
+      ctx.lineWidth = 2; break;
+    }
+    case "bluerosenet": {    /* ブルーローズ・コンプリート（4点をすべて結ぶ茨＋中央の薔薇） */
+      const P = [[-9, -9], [9, -9], [9, 9], [-9, 9]];
+      ctx.lineWidth = 1.1;
+      for (let i = 0; i < 4; i++) for (let j = i + 1; j < 4; j++) {
+        ctx.beginPath(); ctx.moveTo(P[i][0], P[i][1]); ctx.lineTo(P[j][0], P[j][1]); ctx.stroke();
+      }
+      P.forEach(([x, y]) => { ctx.beginPath(); ctx.arc(x, y, 2.2, 0, Math.PI * 2); ctx.fill(); });
+      ctx.beginPath(); ctx.arc(0, 0, 4.4, 0, Math.PI * 2); ctx.fill();
       ctx.lineWidth = 2; break;
     }
     case "benilantern": {    /* ベニチョウチン・リターン（外へ広がって戻る輪と提灯） */
@@ -21588,7 +22123,11 @@ const SELTICKET_CHARS = [
   "mirelle", "scarlet", "koyuki", "amelia", "mio",
 ];
 /* まだ限界突破MAXでない子だけ（＝券を使う意味がある子だけ）を返す */
-function selTicketPool() { return SELTICKET_CHARS.filter((id) => CHARS[id] && !isMaxAwk(id)); }
+/* ★★ 2026-09-19i えらべる顔ぶれを<b>最新のキャラまで</b>に広げた（ご指定）。
+   凍結一覧（SELTICKET_CHARS）はやめ、<b>PREMIUM SELECT GACHA のSSR全員（PREMIUM_CHARS）</b>を見る。
+   ★ 定数 SELTICKET_CHARS は古い版の表示・保険のために残してある（中身はもう使わない）。 */
+function selTicketAll() { return PREMIUM_CHARS.filter((id) => CHARS[id] && !charSecret(id)); }
+function selTicketPool() { return selTicketAll().filter((id) => !isMaxAwk(id)); }
 
 /* ═════════════════════════════════════════════════════
    ★★ 2026-09-13 フェスセレクト券でえらべる顔ぶれ（ご指定）
@@ -22032,17 +22571,54 @@ function charImplDate(id) {
      無いときだけ<b>そのガチャの since</b>（＝ガチャが始まった日）で代用する。
      ★ f.newSince は使わない——あとから足した子の日付なので、
        それを古い子にも当てると<b>全員がまとめて NEW に戻ってしまう</b>。 */
-function charIsNewNow(id, f) {
+/* ══ ★★ 2026-09-19i NEW（＝ピックアップ確率が上がる）のきまり（ご指定）══
+   ① そのガチャで<b>いちばん最近に追加されたキャラ</b>（同じ日に足した子はまとめて）は、
+      <b>次の新キャラがそのガチャに出るまで</b>ずっと NEW。
+   ② それより前の子でも、<b>登場から NEW_CHAR_DAYS（10）日のあいだ</b>は NEW のまま。
+   ★ ①は f（ガチャ）に newChars の台帳があるときだけ（台帳の無いガチャ＝アーカイブ・古いフェスは①を使わない）。 */
+function charNewDate(id, f) {
   let d = charImplDate(id);
   if (!d) d = (f && f.since) || "";
+  return d;
+}
+/* ★★ 2026-09-19l 毎月まわる極◯祭（monthly: [開始日, 終了日]）は、<b>引けるようになった日</b>から10日を数える（ご指定）。
+   実装日がその月の開催期間の中ならその日、開催前ならその月の開始日、開催後なら翌月の開始日。 */
+function monthlyOpenFrom(f, ymd) {
+  const m = f && f.monthly;
+  if (!m || !ymd) return ymd;
+  const a = m[0] | 0, b = m[1] | 0;
+  const d = new Date(String(ymd) + "T00:00:00");
+  const day = d.getDate();
+  if (day >= a && day <= b) return ymd;
+  if (day < a) { d.setDate(a); return d.toLocaleDateString("sv-SE"); }
+  const n = new Date(d.getFullYear(), d.getMonth() + 1, a);
+  return n.toLocaleDateString("sv-SE");
+}
+/* NEW の10日を数えはじめる日（ふつうは実装日・極◯祭は引けるようになった日） */
+function charNewStart(id, f) { return monthlyOpenFrom(f, charNewDate(id, f)); }
+function gachaLatestDate(f) {
+  if (!f || !Array.isArray(f.chars) || !f.newChars || !f.newChars.length) return "";
+  let m = "";
+  f.chars.forEach((x) => { if (!CHARS[x]) return; const d = charNewDate(x, f); if (d > m) m = d; });
+  return m;
+}
+function charIsLatestIn(id, f) {
+  if (!f || !Array.isArray(f.chars) || f.chars.indexOf(id) < 0) return false;
+  const m = gachaLatestDate(f);
+  return !!m && charNewDate(id, f) === m;
+}
+function charIsNewNow(id, f) {
+  const d = charNewStart(id, f);
   if (!d) return false;
-  return fesToday() < fesAddDays(d, NEW_CHAR_DAYS);
+  if (fesToday() < fesAddDays(d, NEW_CHAR_DAYS)) return true;
+  return charIsLatestIn(id, f);
 }
 /* そのキャラが NEW でなくなるまであと何日か（0 なら終了ずみ） */
 function charNewDaysLeft(id, f) {
-  let d = charImplDate(id);
-  if (!d) d = (f && f.since) || "";
+  const d = charNewStart(id, f);
   if (!d) return 0;
+  /* ★★ 2026-09-19i いちばん新しい子は「次の新キャラが出るまで」＝日数では終わらない */
+  if (charIsLatestIn(id, f) && fesToday() >= fesAddDays(d, NEW_CHAR_DAYS)) return 999;
   const end = fesAddDays(d, NEW_CHAR_DAYS), t = fesToday();
   if (t >= end) return 0;
   return Math.ceil((new Date(end + "T00:00:00") - new Date(t + "T00:00:00")) / 86400000);
@@ -22318,13 +22894,22 @@ FESTS.fes7 = {
   /* ★★ 2026-08-28 極華祭が増えたので 上旬／中旬／下旬 の3本立てになった（ご指定） */
   monthly: [1, 10],
   noFesTicket: true,   /* ★★ 2026-08-29 フェス券は使えない（フェスガチャではないため） */
-  chars: ["hinano", "hanon"],
+  /* ★★ 2026-09-19g ココハ（火）を追加して3体に */
+  chars: ["hinano", "hanon", "kokoha"],
+  newChars: ["kokoha"],
+  newSince: "2026-09-19",
   itemTable: D_ITEM_TABLE,
-  lead: "極彩祭の限定SSR <b>2体</b>（各" + ratePct(PICK_LUX) + "）に加えて、<b>" + PREMIUM_NM
+  lead: "極彩祭の限定SSR <b>3体</b>（各" + ratePct(PICK_LUX) + "）に加えて、<b>" + PREMIUM_NM
     + "のSSRも排出</b>（SSR合計 " + ratePct(SSR_TOTAL) + "）",
-  sub: "極彩祭の限定SSR <b>2体</b>（各" + ratePct(PICK_LUX) + "）＋ <b>残りは " + PREMIUM_NM
+  sub: "極彩祭の限定SSR <b>3体</b>（各" + ratePct(PICK_LUX) + "）＋ <b>残りは " + PREMIUM_NM
     + " のSSRが等確率</b>。<b>毎月 1〜10日（上旬）</b>だけの開催です",
-  note: "<b>ヒナノ</b>（木・貫通）と<b>ハノン</b>（光・貫通）が登場する<b>毎月1〜10日（上旬）</b>のフェスです。"
+  note: "<b>★★ 2026-09-19 ココハ（火・反射）</b>を追加。フルバースト<b>ツバキアメ・センカ</b>は乱打"
+    + KKH_BARRAGE_N + "連＋紅い雨の大輪で合計 攻撃力×" + KKH_TOTAL.toFixed(1) + "——<b>MagiBurst 史上最大</b>。"
+    + "リンク<b>ツバキアメ・ウリョウ</b>は<b>敵が浴びた雨粒の数で重くなる</b>（大きい敵ほど多く浴びる）。"
+    + "ショットスキル<b>ツバキアメ・シュート</b>・クロス<b>椿雨のクロス</b>。"
+    + "全属性有利＋オムニアンチ＋アンチ断絶界で <b>⚖ 天界の審判 第九・第十二・第十四</b>を有利属性のまま完全対応。"
+    + "あわせて<b>極彩・プリズムネクサスを強化</b>（弱点+70%・リンク+40%・攻撃+22%・ボス+30%）。"
+    + "<br><br><b>ヒナノ</b>（木・貫通）と<b>ハノン</b>（光・貫通）が登場する<b>毎月1〜10日（上旬）</b>のフェスです。"
     + "<br>★★ <b>ハノン</b>のフルバースト<b>オーロラ・ブザービーター</b>は、"
     + "<b>バスケットボールのドリブル乱打 " + HANON_DRIBBLE_N + "連 ＋ ゴール " + HANON_HOOP_N
     + "本（敵全体）＋ ブザービーター（敵全体）</b>で、合計 攻撃力×"
@@ -22355,13 +22940,22 @@ FESTS.fes8 = {
   banner: "../img/bn_fes8_s.webp", c: "#ff9d2e", leadCls: "star",
   monthly: [21, 31],
   noFesTicket: true,   /* ★★ 2026-08-29 フェス券は使えない（フェスガチャではないため） */
-  /* ★★ 2026-08-29 レイナを追加して2体に */
-  chars: ["mutsumi", "reina"],
+  /* ★★ 2026-08-29 レイナを追加して2体に
+     ★★ 2026-09-19e アズサ（水）を追加して3体に */
+  chars: ["mutsumi", "reina", "azusa"],
+  newChars: ["azusa"],
+  newSince: "2026-09-19",
   itemTable: D_ITEM_TABLE,
-  lead: "極煌祭の限定SSR <b>2体</b>（各" + ratePct(PICK_LUX) + "）に加えて、<b>" + PREMIUM_NM + "のSSRも排出</b>（SSR合計 " + ratePct(SSR_TOTAL) + "）",
-  sub: "極煌祭の限定SSR <b>2体</b>（各" + ratePct(PICK_LUX) + "）＋ <b>残りは " + PREMIUM_NM + " のSSRが等確率</b>。"
+  lead: "極煌祭の限定SSR <b>3体</b>（各" + ratePct(PICK_LUX) + "）に加えて、<b>" + PREMIUM_NM + "のSSRも排出</b>（SSR合計 " + ratePct(SSR_TOTAL) + "）",
+  sub: "極煌祭の限定SSR <b>3体</b>（各" + ratePct(PICK_LUX) + "）＋ <b>残りは " + PREMIUM_NM + " のSSRが等確率</b>。"
     + "<b>毎月 21日〜末日（下旬）</b>だけの開催です",
-  note: "<b>ムツミ</b>（火・反射）と<b>レイナ</b>（闇・貫通）が登場する<b>毎月21日〜末日（下旬）</b>のフェスです。"
+  note: "<b>★★ 2026-09-19 アズサ（水・反射）</b>を追加。フルバースト<b>アオバラ・ロンドフィナーレ</b>は乱打"
+    + AZU_BARRAGE_N + "連＋青薔薇の大輪で合計 攻撃力×" + AZU_TOTAL.toFixed(1) + "——<b>MagiBurst 史上最大</b>。"
+    + "リンク<b>ブルーローズ・コンプリート</b>は<b>敵と敵をすべての組み合わせで茨が結ぶ</b>。"
+    + "ショットスキル<b>ブルーローズ・シュート</b>・クロス<b>青薔薇のクロス</b>。"
+    + "オムニアンチ＋超アンチ減速壁で <b>⚖ 天界の審判 第十一・第十二・第十五</b>を有利属性のまま完全対応。"
+    + "あわせて<b>極煌・ブレイズネクサスを強化</b>（ボス+60%・攻撃+25%・リンク+30%・バリア1600・弱点+25%）。"
+    + "<br><br><b>ムツミ</b>（火・反射）と<b>レイナ</b>（闇・貫通）が登場する<b>毎月21日〜末日（下旬）</b>のフェスです。"
     + "<br>★★ <b>レイナ</b>は<b>フルバースト ノワール・ヴァルキュリア</b>（乱打"
     + REINA_BARRAGE_N + "連＋大十字斬＝合計 攻撃力×"
     + (REINA_BARRAGE_N * REINA_BARRAGE_PER + REINA_CROSS_PER).toFixed(1)
@@ -22907,7 +23501,7 @@ FESTS.fes14 = {
 /* ══════════════════════════════════════════════════════════════
    ★★ 2026-09-17d 花宴祭（fes15）＝<b>無期限開催</b>の限定キャラクターのガチャ（ご指定）
    ------------------------------------------------------------
-   ・登場するのは<b>アカツキ（火・貫通）</b>1体。
+   ・登場するのは<b>アカツキ（火・貫通）</b>。★★ 2026-09-19 <b>アヤネ（水）・チハ（木）</b>を追加（計3体）。
    ・戦姫祭と同じく <b>luxGacha</b>（1体1.2%・🎫フェス券は使えない・アーカイブに入らない）。
    ・ガチャ一覧では<b>開催中の極◯祭のすぐ下</b>（ご指定）。その位置決めのために <b>kaen</b> の印を付ける。
    ══════════════════════════════════════════════════════════════ */
@@ -22916,20 +23510,35 @@ FESTS.fes15 = {
   banner: "../img/bn_fes15_s.webp", c: "#ff4d6d", leadCls: "star",
   luxGacha: true, noFesTicket: true, perm: true, kaen: true,
   since: "2026-09-17",
-  chars: ["akatsuki"],
-  newChars: ["akatsuki"],
-  newSince: "2026-09-17",
+  chars: ["akatsuki", "ayane", "chiha", "himeri", "honoka"],
+  newChars: ["himeri", "honoka"],
+  newSince: "2026-09-19",
   itemTable: D_ITEM_TABLE,
   get lead() {
-    return "花宴祭の限定SSR <b>アカツキ</b>（" + ratePct(pickRateOf("fes15", "akatsuki")) + "）に加えて、<b>"
+    return "花宴祭の限定SSR <b>アカツキ・アヤネ・チハ・ヒメリ・ホノカ</b>（各" + ratePct(pickRateOf("fes15", "akatsuki")) + "）に加えて、<b>"
       + PREMIUM_NM + "のSSRも排出</b>（SSR合計 " + ratePct(SSR_TOTAL) + "）";
   },
   get sub() {
-    return "花宴祭の限定SSR <b>1体</b>（" + ratePct(pickRateOf("fes15", "akatsuki")) + "）／<b>残りは "
+    return "花宴祭の限定SSR <b>5体</b>（各" + ratePct(pickRateOf("fes15", "akatsuki")) + "）／<b>残りは "
       + PREMIUM_NM + " のSSRが等確率</b>。<b>無期限開催</b>です（🎫フェス券は使えません）";
   },
   get note() {
-    return "<b>★★ 2026-09-17 花宴祭</b>：<b>アカツキ（火・貫通）</b>。"
+    return "<b>★★ 2026-09-19 花宴祭に追加</b>：<b>ヒメリ（光・反射）</b>と<b>ホノカ（闇・貫通）</b>。"
+      + "<br>★ ヒメリ：アンチは<b>ウォード＋減速壁</b>（⚖ 第九・第十一・第十二・第十四・第十五）。キラーは<b>バイタルキラーEL＋底力EL</b>。"
+      + "FB<b>ベニスズ・センレンカ</b>（乱打" + HMR_BARRAGE_N + "連・合計 ×" + HMR_TOTAL.toFixed(1) + "）。"
+      + "リンク<b>ベニイト・スズナリ</b>は<b>同じショットで先に出たリンクの数だけ重くなる</b>。"
+      + "<br>★ ホノカ：アンチは<b>ブロック＋ロックゾーン</b>（⚖ 第一・第三・第五・第七・第八・第十二・第十三）。キラーは<b>ファーストキラーEL＋ボスキラーEL</b>。"
+      + "FB<b>シンカイ・ヒャクトモシ</b>（乱打" + HNK_BARRAGE_N + "連・合計 ×" + HNK_TOTAL.toFixed(1) + "）。"
+      + "リンク<b>ミナソコ・ヒカリクラゲ</b>は<b>敵の攻撃までの残りターンで刺す回数が変わる</b>。"
+      + "<br><br><b>アヤネ（水・貫通）</b>と<b>チハ（木・反射）</b>。"
+      + "<br>★ 花宴祭の追加4体は<b>全属性有利</b>、<b>オムニアンチ＋治癒の祈り</b>、乱打のフルバースト、アビリティ10個（属性キラーは持たない）。"
+      + "<br>★ アヤネ：アンチは<b>ブロック＋ウォード</b>（⚖ 第一・第二・第九・第十・第十二・第十四）。キラーは<b>弱点キラーEL＋パワーオーラEL</b>。"
+      + "FB<b>ヒョウカ・ヒャクレンザン</b>（乱打" + AYA_BARRAGE_N + "連＋絶対零度・合計 ×" + AYA_TOTAL.toFixed(1) + "）。"
+      + "リンク<b>ヒョウメン・カガミウツシ</b>は<b>壁に映った鏡像からも斬撃が飛ぶ</b>。"
+      + "<br>★ チハ：アンチは<b>ブロック＋ロックゾーン</b>（⚖ 第一・第三・第五・第七・第八・第十二・第十三）。キラーは<b>フェイタルキラーL＋敵少底力EL</b>。"
+      + "FB<b>シラハナ・センシュノウタ</b>（乱打" + CHIHA_BARRAGE_N + "連＋千首の歌・合計 ×" + CHIHA_TOTAL.toFixed(1) + "）。"
+      + "リンク<b>シラハナ・ツヅリウタ</b>は<b>敵が失ったHPの割合で重くなる</b>。"
+      + "<br><br><b>★★ 2026-09-17 花宴祭</b>：<b>アカツキ（火・貫通）</b>。"
       + "<br>★ <b>全属性有利</b>と<b>全属性キラーEL</b>を持ち、<b>オムニアンチ＋治癒の祈り</b>、"
       + "アンチは<b>アンチロックゾーン＋超アンチ減速壁</b>の2つ。"
       + "<b>⚖ 天界の審判の第四・第五・第八・第十一・第十二・第十三・第十五</b>を<b>有利属性のまま</b>完全対応します。"
@@ -24826,6 +25435,9 @@ function luxEnsureCSS() {
     color:rgba(255,255,255,.82);background:rgba(255,255,255,.06)}
   .luxsel-cancel:active{transform:translateY(1px)}
   .luxsel-note{font-size:10px;font-weight:700;color:#8e88ad;margin-top:9px;line-height:1.75}
+  /* ★★ 2026-09-19h 決定ボタンと「まだ使用しない」は<b>下に固定</b>（下のほうのキャラをえらんでも常に見える・ご指定） */
+  .luxsel-foot{position:sticky;bottom:-18px;z-index:2;margin:0 -16px;padding:8px 16px calc(12px + env(safe-area-inset-bottom,0px));
+    background:linear-gradient(180deg,rgba(11,9,16,0),#0b0910 22%);}
 
   /* ── ASTRAL BURST（幕・背景） ── */
   .luxcur{position:fixed;inset:0;z-index:1300;background:#000;pointer-events:none;
@@ -24955,7 +25567,8 @@ function luxSaveSel(pool, from) {
 function luxOpenSelect(pool, onPick, opt) {
   luxEnsureCSS();
   opt = opt || {};
-  const list = (pool || []).filter((id) => CHARS[id]);
+  /* ★★ 2026-09-19h 並びは<b>新しいキャラから</b>（ご指定） */
+  const list = byCharNoDesc((pool || []).filter((id) => CHARS[id]));
   if (!list.length) { if (onPick) onPick(null); return; }
   const old = document.getElementById("luxSelOv"); if (old) old.remove();
   let sel = null;
@@ -24976,8 +25589,10 @@ function luxOpenSelect(pool, onPick, opt) {
     <div class="luxsel-sub">${opt.sub || ("このガチャで出る <b>SSR " + list.length + "体</b>から、<b>好きな1体</b>をえらんで手に入れられます。<br>"
       + "すでに持っているキャラをえらぶと<b>限界突破</b>が進みます。")}</div>
     <div class="luxsel-grid">${cells}</div>
+    <div class="luxsel-foot">
     <button class="luxsel-go" id="luxSelGo" disabled>キャラをえらんでください</button>
     ${opt.cancel ? `<button class="luxsel-cancel" id="luxSelNo">${opt.cancel}</button>` : ""}
+    </div>
     <div class="luxsel-note">${opt.note || "※ えらぶまで確定しません。閉じてしまっても、次にガチャ画面を開いたときにここへ戻ります。"}</div>
   </div>`;
   document.body.appendChild(ov);
