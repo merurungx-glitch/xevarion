@@ -955,6 +955,15 @@
     { id: "mb:amane", mbId: "amane", name:"アマネ", file: "../img/t_Amane.webp", since:"2026-09-17" },
     /* ★★ 2026-09-17d 花宴祭（No.250） */
     { id: "mb:akatsuki", mbId: "akatsuki", name:"アカツキ", file: "../img/t_Akatsuki.webp", since:"2026-09-17" },
+    /* ★★ 2026-09-19 花宴祭 追加（No.251〜252） */
+    { id: "mb:ayane", mbId: "ayane", name:"アヤネ", file: "../img/t_Ayane.webp", since:"2026-09-19" },
+    { id: "mb:chiha", mbId: "chiha", name:"チハ", file: "../img/t_Chiha.webp", since:"2026-09-19" },
+    /* ★★ 2026-09-19e 花宴祭 追加2体・極煌祭（No.253〜255） */
+    { id: "mb:himeri", mbId: "himeri", name:"ヒメリ", file: "../img/t_Himeri.webp", since:"2026-09-19" },
+    { id: "mb:honoka", mbId: "honoka", name:"ホノカ", file: "../img/t_Honoka.webp", since:"2026-09-19" },
+    { id: "mb:azusa", mbId: "azusa", name:"アズサ", file: "../img/t_Azusa.webp", since:"2026-09-19" },
+    /* ★★ 2026-09-19g 極彩祭（No.256） */
+    { id: "mb:kokoha", mbId: "kokoha", name:"ココハ", file: "../img/t_Kokoha.webp", since:"2026-09-19" },
   ];
   /* ★ 2026-08-10 初期SR 4体（ゼラ・アヤメ・レイラ・セリーヌ）は廃止しました。
      いまは<b>全キャラがアイコンに選べる</b>ので、starter という区別そのものが要らない。 */
@@ -1053,7 +1062,12 @@
   , "miya", "emika", "uta", "shiho", "kiduki"
   , "kuon", "asahi", "sougetsu", "natsune", "amane"
   /* ★★ 2026-09-17d 花宴祭 */
-  , "akatsuki"];
+  , "akatsuki"
+  /* ★★ 2026-09-19 花宴祭 追加 */
+  , "ayane", "chiha"
+  /* ★★ 2026-09-19e */
+  , "himeri", "honoka", "azusa"
+  , "kokoha"];
   MB_CHAR_MASTER.forEach(function (c) { c.mb = true; c.starter = MB_STARTERS.indexOf(c.mbId) >= 0; });
   MB_CHAR_MASTER.forEach(function (c) { c.star5 = MB_STAR5.indexOf(c.mbId) >= 0; });
   /* id は "mb:zera" のように接頭辞つき。XEVAガチャにも同じ名前のキャラ（シオンなど）が

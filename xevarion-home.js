@@ -217,8 +217,9 @@ const XH_ORDER_GEN_KEY = "xeva_home_order_gen";
      ＝ 新しいイベントを足すときは<b>この配列のどこに書いてもよい</b>。 */
 const XH_EVENTS = [
   /* ★★ 2026-09-17d 花宴祭（アカツキ）＝<b>無期限開催</b>。戦姫祭と同じく always/perm を付け、to は空。 */
-  { tag:"FES", t1:"花宴祭 に アカツキ",
-    t2:"無期限開催。MagiBurst 史上最大の乱打フルバースト・全属性有利＋全属性キラーEL・オムニアンチ＋治癒の祈り。天界の審判 7つを有利属性のまま完全対応",
+  /* ★★ 2026-09-19d アヤネ・チハを追加（3体に） */
+  { tag:"FES", t1:"花宴祭 に ヒメリ・ホノカ 追加",
+    t2:"無期限開催。アカツキ・アヤネ・チハ・ヒメリ・ホノカの5体——乱打フルバースト・全属性有利・オムニアンチ＋治癒の祈り。天界の審判 14面を有利属性のまま完全対応",
     always:true, perm:true, since:"2026-09-17", from:"2026-09-17", to:"",
     href:"gacha.html#fes15", img:"thumbs/MagiBurst.jpg" },
   /* ★★ 2026-09-13c GRAND DEBUT GACHA Ver.8.0（版ごと<b>20日間</b>へ統一・ご指定） */
@@ -306,10 +307,10 @@ const XH_EVENTS = [
   /* ★★ 2026-08-27 極彩祭（毎月1〜15日）・極煌祭（毎月16日〜末日）。
      ★ 毎月まるごと入れ替わるので、from / to は<b>広めに取っておく</b>
        （実際の開催判定は mb-core.js の monthly が行う）。 */
-  { tag:"FES", t1:"極彩祭", t2:"常時開催（毎月1〜10日）。限定SSR「ヒナノ」＋新登場「ハノン」——バスケの乱打110連で史上最大の火力",
+  { tag:"FES", t1:"極彩祭 に ココハ", t2:"常時開催（毎月1〜10日）。ヒナノ・ハノン＋新登場「ココハ」——椿雨の乱打で史上最大のフルバースト・ネクサス強化",
     monthly:[1,10], perm:true,
     from:"2026-08-27", to:"2027-12-31", img:"thumbs/MagiBurst.jpg", href:"gacha.html#fes7" },
-  { tag:"FES", t1:"極煌祭", t2:"常時開催（毎月21日〜末日）。限定SSR「ムツミ」＋新登場「レイナ」——史上最大火力のフルバースト",
+  { tag:"FES", t1:"極煌祭 に アズサ", t2:"常時開催（毎月21日〜末日）。ムツミ・レイナ＋新登場「アズサ」——史上最大のフルバースト・ネクサス強化",
     monthly:[21,31], perm:true,
     from:"2026-08-27", to:"2027-12-31", img:"thumbs/MagiBurst.jpg", href:"gacha.html#fes8" },
   /* ★★ 2026-08-26b GRAND DEBUT GACHA Ver.4.0。
@@ -404,6 +405,33 @@ const XH_EVENTS = [
    ══════════════════════════════════════════════════════════════ */
 const XH_UPDATE_MAX = 12;
 const XH_UPDATES = [
+  /* ★★ 2026-09-19g */
+  { tag:"NEW", t1:"極彩祭 に ココハ", at:"2026-09-19",
+    t2:"史上最大の乱打フルバースト・浴びた雨粒で重くなるリンク・ショットスキル・クロススキル・全属性有利。極彩・プリズムネクサスを強化",
+    href:"gacha.html#fes7", img:"thumbs/MagiBurst.jpg" },
+  { tag:"UPDATE", t1:"ガチャ一覧をさらに使いやすく", at:"2026-09-19",
+    t2:"NEW の印・詳細に説明と完凸でも出るキャラ・終わったガチャは非表示・セレクト券のボタン・名前の札が画面に合わせて動く・新キャラ紹介はガチャのタブでまとめて",
+    href:"gacha.html", img:"thumbs/MagiBurst.jpg" },
+  /* ★★ 2026-09-19e */
+  { tag:"NEW", t1:"花宴祭 に ヒメリ・ホノカ／極煌祭 に アズサ", at:"2026-09-19",
+    t2:"鈴が共鳴するリンク・攻撃までのターンで刺す回数が変わるリンク・敵を全組み合わせで結ぶリンク。アズサは史上最大のフルバースト",
+    href:"gacha.html", img:"thumbs/MagiBurst.jpg" },
+  { tag:"UPDATE", t1:"ガチャ画面を一覧から選ぶ形に", at:"2026-09-19",
+    t2:"ガチャを縦にスクロールして選び「このガチャを引く」でガチャの画面へ。詳細で説明を確認・5連は廃止・10連はSSR確定・★星煌印は150をこえても数える",
+    href:"gacha.html", img:"thumbs/MagiBurst.jpg" },
+  { tag:"UPDATE", t1:"MagiBocciaRush の PLAY を整理", at:"2026-09-19",
+    t2:"ホームは PLAY だけに・PLAY の BOSS STAGE にクリア数・各マッチの絵を固定・BOSS STAGE で押し出した球もボスにダメージ",
+    href:"MagiBocciaRush/index.html", img:"thumbs/MagiBocciaRush.jpg" },
+  /* ★★ 2026-09-19d 花宴祭 追加・全属性有利の属性変化・Boccia 同期とボスの入り口・ガチャタブ */
+  { tag:"NEW", t1:"花宴祭 に アヤネ・チハ", at:"2026-09-19",
+    t2:"乱打フルバースト・壁の鏡像から斬るリンク／削れた敵ほど重いリンク・全属性有利＋全属性キラーEL・オムニアンチ＋治癒の祈り。MagiBocciaRush でも最強クラス",
+    href:"gacha.html#fes15", img:"thumbs/MagiBurst.jpg" },
+  { tag:"UPDATE", t1:"全属性有利はバトル開始時に有利属性へ変化", at:"2026-09-19",
+    t2:"クエストのボスに有利な属性へ演出つきで変化し、リンクスキル・サブリンクの属性も有利属性に",
+    href:"MagiBurst/index.html", img:"thumbs/MagiBurst.jpg" },
+  { tag:"UPDATE", t1:"MagiBocciaRush の同期とボスの入り口", at:"2026-09-19",
+    t2:"キャラの熟練度・編成・BOSS STAGE の進み・戦績を端末間で正しく同期。ホームの QUICK MATCH の下に BOSS STAGE の入り口",
+    href:"MagiBocciaRush/index.html", img:"thumbs/MagiBocciaRush.jpg" },
   /* ★★ 2026-09-19c Boccia のレアリティ・戻るボタン */
   { tag:"UPDATE", t1:"MagiBocciaRush のレアリティを統一", at:"2026-09-19",
     t2:"SSR／SR の表示を MagiBurst と同じ判定に（ガチャの SSR が SR と出ていた件）。キャラ詳細の BACK ボタンを常に表示",
@@ -1638,7 +1666,7 @@ function xhMbReady() {
   if (typeof CHARS !== "undefined" && typeof PREMIUM_CHARS !== "undefined") return Promise.resolve(true);
   if (_xhMbLoading) return _xhMbLoading;
   _xhMbLoading = xhLoadScript("mb-boot.js?v=17")
-    .then(() => xhLoadScript("MagiBurst/js/mb-core.js?v=121"))
+    .then(() => xhLoadScript("MagiBurst/js/mb-core.js?v=127"))
     .then(() => true)
     .catch((e) => { _xhMbLoading = null; throw e; });
   return _xhMbLoading;
@@ -4246,13 +4274,24 @@ function xhNewestChar() {
 /* ★ 2026-08-24 回数を数えるのはやめた（条件の撤回）。
    呼び出し側（xhShow）をそのままにしておけるよう、名前だけ残してある。 */
 function xhGtabTick() {}
+/* ★★ 2026-09-19 ご指定：ガチャタブの絵は<b>花宴祭の限定キャラ アカツキで固定</b>。
+   （新しいキャラが増えても差しかわらない。xhNewestChar は他で使うので残す）
+   絵は正方形なので、丸く切らずに<b>角丸の正方形</b>で出す（.xh-tabchar.sq）。 */
+const XH_GACHA_TAB_CHAR = "akatsuki";
+function xhGachaTabChar() {
+  try {
+    const list = (window.XEVA && XEVA.MB_CHARS) || [];
+    return list.find((c) => c.mbId === XH_GACHA_TAB_CHAR) ||
+      { id: "mb:" + XH_GACHA_TAB_CHAR, mbId: XH_GACHA_TAB_CHAR, file: "../img/t_Akatsuki.webp" };
+  } catch (e) { return null; }
+}
 function xhPaintGachaTabIcon() {
   const btn = document.querySelector('.xh-bar .xh-ntab[data-tab="gacha"]');
   if (!btn) return;
   /* ★ Xevion OS の設定でオフにできる（既定はオン） */
   let allow = true;
   try { if (window.XOS && !XOS.get("newCharTab")) allow = false; } catch (e) {}
-  const c = allow ? xhNewestChar() : null;
+  const c = allow ? xhGachaTabChar() : null;
   const show = !!c;
   /* もとの SVG は消さずに、上に絵をかぶせる（設定をオフに戻したときに元へ戻せるように） */
   let img = btn.querySelector(".xh-tabchar");
@@ -4260,7 +4299,7 @@ function xhPaintGachaTabIcon() {
   const src = (window.XEVA && XEVA.charSrc) ? XEVA.charSrc(c.file, c.id, null, "s") : String(c.file || "").replace(/^\.\.\//, "");
   if (!img) {
     img = document.createElement("img");
-    img.className = "xh-tabchar";
+    img.className = "xh-tabchar sq";
     img.alt = "";
     btn.insertBefore(img, btn.firstChild);
   }

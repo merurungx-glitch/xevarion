@@ -19,11 +19,11 @@
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Exo+2:ital,wght@0,300;0,400;0,600;0,700;1,300&family=Noto+Sans+JP:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="xeva-theme.css?v=9">
 <link rel="stylesheet" href="xevarion.css?v=25">
-<link rel="stylesheet" href="xevarion-home.css?v=80">
+<link rel="stylesheet" href="xevarion-home.css?v=82">
 <!-- ★★ 2026-08-22b Xevion OS の見た目（テーマ・文字の大きさ・動きを減らす）。
      xevarion-home.css の<b>あと</b>に読む＝上書きできるようにする。 -->
 <link rel="stylesheet" href="xevion-os.css?v=15">
-<script src="xeva.js?v=67" defer></script>
+<script src="xeva.js?v=70" defer></script>
 <!-- ★★ 2026-09-05 コレクションを XEVARION 全体で1本にする共通部品。
      xeva.js の iconCharList() を使うので、必ず xeva.js の<b>あと</b>に置く。 -->
 <script src="xeva-collection.js?v=7" defer></script>
@@ -46,7 +46,7 @@
 <script src="xeva-i18n-mb7.js?v=7"></script>
 <script src="xeva-i18n-p4.js?v=7"></script>
 <!-- ★★ 2026-09-06b 今回足したもの（新キャラ14体・装備・スタメンなど）の英語辞書 -->
-<script src="xeva-i18n-n1.js?v=8"></script>
+<script src="xeva-i18n-n1.js?v=11"></script>
 <script src="xeva-i18n-n2.js?v=3"></script>
 <!-- ★ 2026-08-20 通信設定（Wi-Fi／モバイルデータごとに「最新を取りに行くか」を決める）。
      決めた内容はここから各アプリの Service Worker へ送られ、SW 側が動きを切り替える。 -->
@@ -54,20 +54,20 @@
 <!-- ★ 2026-08-18 新キャラ告知の台帳（MagiBurst と共通）。
      告知を<b>ポータルのログイン時</b>に一本化したので、ここでも読む。
      defer なので xevarion.js より先に実行される（書いた順番で走る）。 -->
-<script src="mb-newchars.js?v=28" defer></script>
+<script src="mb-newchars.js?v=31" defer></script>
 <!-- ★★ 2026-08-22b Xevion OS（XEVARION の UI をひとつの OS として扱う土台）。
      ほかの画面より<b>先に</b>読む（body のクラスを立てるので、あとから読むと一瞬ちらつく）。 -->
 <script src="xevion-os.js?v=13"></script>
 <!-- ジェム⇄XEVA のレート（ドル円連動）。xevarion-home.js より先に読み込む -->
 <script src="xeva-fx.js?v=9" defer></script>
-<script src="xeva-loading.js?v=17" defer></script>
+<script src="xeva-loading.js?v=18" defer></script>
 <script type="module" src="xeva-sync.js?v=18"></script>
 <script type="module" src="xevarion-fb.js?v=33"></script>
 <script src="xeva-presence.js?v=9" defer></script>
-<script type="module" src="xeva-cloud.js?v=33"></script>
+<script type="module" src="xeva-cloud.js?v=34"></script>
 <script src="xeva-qr.js?v=9" defer></script>
-<script src="xevarion.js?v=90" defer></script>
-<script src="xevarion-home.js?v=117" defer></script>
+<script src="xevarion.js?v=92" defer></script>
+<script src="xevarion-home.js?v=121" defer></script>
 </head>
 <body>
 <!-- ───── バックグラウンド音楽（Flagship Arrival。アクセス画面のタップで再生開始） ───── -->
@@ -1837,6 +1837,73 @@ body.music-on #beatFrame{opacity:1}
   <div class="nm-body" id="newsBody">
     <div class="nm-divider" id="newDivider" style="display:none;">NEW — 前回から更新</div>
     <!-- 2026-09-19c Boccia のレアリティ・戻るボタン -->
+    <!-- 2026-09-19g 極彩祭 ココハ／ガチャ一覧の改善 -->
+    <div class="nm-item" data-tag="new" data-date="2026-09-19">
+      <div class="nm-date">2026<br>09.19</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag new">NEW</span></div>
+        <div class="nm-title">🌺 極彩祭 に ココハ／🎰 ガチャ一覧の改善</div>
+        <div class="nm-txt">
+          <b>極彩祭</b>に<b>ココハ（火・反射）</b>を追加しました。フルバースト<b>ツバキアメ・センカ</b>は<b>MagiBurst 史上最大</b>、リンク<b>ツバキアメ・ウリョウ</b>は<b>敵が浴びた雨粒の数で重くなる</b>新しい挙動です。全属性有利・ショットスキル・クロススキルつきで、<b>極彩・プリズムネクサスも強化</b>しました。<br>
+          ガチャ一覧：注目キャラに <b>NEW</b> の印、「詳細」にキャラの下の説明と<b>完凸していても排出されるキャラ</b>を表示、開催の予定がないガチャは非表示、セレクト券を持っているガチャには<b>セレクト券を使うボタン</b>、名前の札はいつも表示してスクロールに合わせて動きます。
+          新キャラの紹介は<b>ガチャのタブを開いたときにまとめて</b>流れ、それぞれどのガチャで出るかも表示します（ガチャの画面を開いたときは流れません）。
+        </div>
+      </div>
+    </div>
+    <!-- 2026-09-19e 花宴祭 ヒメリ・ホノカ／極煌祭 アズサ／ガチャ一覧／Boccia PLAY -->
+    <div class="nm-item" data-tag="new" data-date="2026-09-19">
+      <div class="nm-date">2026<br>09.19</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag new">NEW</span></div>
+        <div class="nm-title">🌸 花宴祭 に ヒメリ・ホノカ／🌹 極煌祭 に アズサ</div>
+        <div class="nm-txt">
+          <b>花宴祭</b>に<b>ヒメリ（光・反射）</b>と<b>ホノカ（闇・貫通）</b>を追加しました（あわせて5体）。どちらも全属性有利・オムニアンチ＋治癒の祈り・乱打のフルバースト・アビリティ10個。
+          リンクは<b>同じショットで先に出たリンクの数だけ重くなる「ベニイト・スズナリ」</b>と、<b>敵の攻撃までの残りターンで刺す回数が変わる「ミナソコ・ヒカリクラゲ」</b>。<br>
+          <b>極煌祭</b>に<b>アズサ（水・反射）</b>。フルバースト<b>アオバラ・ロンドフィナーレ</b>は<b>MagiBurst 史上最大</b>、リンク<b>ブルーローズ・コンプリート</b>は<b>敵と敵をすべての組み合わせで茨が結ぶ</b>新しい挙動。ショットスキル・クロススキルつきで、<b>極煌・ブレイズネクサスも強化</b>しました。<br>
+          花宴祭の<b>アヤネ・チハ</b>は属性キラーをやめ、アヤネ＝弱点キラーEL、チハ＝フェイタルキラーL に。新アビリティ<b>ボスキラーEL</b>を追加しました。
+        </div>
+      </div>
+    </div>
+    <div class="nm-item" data-tag="update" data-date="2026-09-19">
+      <div class="nm-date">2026<br>09.19</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">🎰 ガチャ画面を一覧から選ぶ形に／🎯 MagiBocciaRush の PLAY を整理</div>
+        <div class="nm-txt">
+          ガチャは<b>縦にスクロールして選ぶ一覧</b>になりました。カードの<b>「このガチャを引く」</b>でガチャの画面へ進み、<b>提供割合・詳細（説明）</b>はカードから直接見られます。<b>5連は廃止</b>し、10連は<b>SSR確定</b>。ガチャの画面では見出しの下の<b>「‹ ガチャ一覧へ」</b>で一覧に戻れます。★星煌印は150をこえても数えつづけます。<br>
+          MagiBurst：バトル中のキャラ詳細に<b>全属性有利で変化した属性</b>を表示し、バトル画面下のキャラには装備を出さないようにしました。<br>
+          MagiBurst：負けたあとの「もう一度挑戦」でスタミナが足りないと進めなくなる不具合を直しました（結果の画面のまま案内を出します）。<br>
+          MagiBocciaRush：ホームは <b>PLAY だけ</b>にし、各マッチと BOSS STAGE は PLAY タブから選ぶ形に。PLAY の BOSS STAGE にクリア数、各ボタンのキャラを固定。BOSS STAGE では<b>押し出した球がボスに当たってもダメージ</b>が入ります。
+        </div>
+      </div>
+    </div>
+    <!-- 2026-09-19d 花宴祭 アヤネ・チハ／全属性有利の属性変化／Boccia 同期・ボスの入り口／ガチャタブ -->
+    <div class="nm-item" data-tag="new" data-date="2026-09-19">
+      <div class="nm-date">2026<br>09.19</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag new">NEW</span></div>
+        <div class="nm-title">🌸 花宴祭 に アヤネ（水）・チハ（木）が登場</div>
+        <div class="nm-txt">
+          無期限開催の<b>花宴祭</b>に、<b>アヤネ（水・貫通）</b>と<b>チハ（木・反射）</b>を追加しました（アカツキとあわせて3体）。<br>
+          2体とも<b>全属性有利＋全属性キラーEL</b>、<b>オムニアンチ＋治癒の祈り</b>、<b>乱打のフルバースト</b>、アビリティ10個。
+          リンクスキルは<b>壁に映った鏡像からも斬撃が飛ぶ「ヒョウメン・カガミウツシ」</b>と、<b>削れた敵ほど重くなる「シラハナ・ツヅリウタ」</b>——どちらも新しい挙動です。<br>
+          アヤネは⚖ 天界の審判 第一・第二・第九・第十・第十二・第十四、チハは第一・第三・第五・第七・第八・第十二・第十三を有利属性のまま完全対応します。
+          MagiBocciaRush でも専用のパッシブを持つ最強クラスの性能です。
+        </div>
+      </div>
+    </div>
+    <div class="nm-item" data-tag="update" data-date="2026-09-19">
+      <div class="nm-date">2026<br>09.19</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">🌈 全属性有利の属性変化／🎯 MagiBocciaRush の同期とボスの入り口</div>
+        <div class="nm-txt">
+          MagiBurst：<b>全属性有利</b>を持つキャラは、バトル開始時に<b>そのクエストのボスに有利な属性へ変化</b>します（演出つき）。リンクスキル・サブリンクの属性も有利属性になります。<br>
+          MagiBocciaRush：<b>キャラの熟練度・編成・BOSS STAGE の進み・戦績</b>が端末をまたいで正しく同期されるようにしました（別の端末で上げたレベルが消えることがありました）。ホームの <b>QUICK MATCH の下に BOSS STAGE</b> の入り口を追加しました。<br>
+          ホーム：下バーのガチャのアイコンを<b>アカツキ</b>の絵に固定し、正方形の絵に合わせた角丸の四角で表示します。
+        </div>
+      </div>
+    </div>
     <div class="nm-item" data-tag="update" data-date="2026-09-19">
       <div class="nm-date">2026<br>09.19</div>
       <div class="nm-content">

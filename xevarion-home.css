@@ -668,6 +668,10 @@ body.xh-off .xh-offline{display:flex}
   border:2.5px solid var(--yw-gold);box-shadow:0 2px 0 rgba(18,32,61,.45);
   animation:xhTabChar 2.4s ease-in-out infinite}
 @keyframes xhTabChar{0%,100%{transform:scale(1)}50%{transform:scale(1.09)}}
+/* ★★ 2026-09-19 アカツキ固定。絵が正方形なので<b>角丸の正方形</b>で、ほかのタブより少しだけ大きく（34px）。
+   ★ バーの高さは変えない：ふえた 4px は上の余白（padding-top 10px）へ食いこませる。 */
+.xh-ntab .xh-tabchar.sq{width:34px;height:34px;margin:-4px 0 0;border-radius:9px;border-width:2px;
+  object-fit:cover;object-position:50% 18%;animation:none}
 
 /* ★★ 2026-08-25b position:relative をここに置く。
    以前は .xh-ntab.xh-updot のときだけ relative になっていたので、
@@ -1548,12 +1552,19 @@ body.xh-dragging .xh-sheet-body{overflow:hidden}
          --xh-boxh … 箱の高さ ／ --xh-shim … 不足分（どちらも xevarion.js が実測）
    ★ PC・ふつうのブラウザでは .xh-shim が付かないので、何も変わらない。
    ══════════════════════════════════════════════════════════════ */
-html.xh-shim{height:calc(var(--xh-boxh,100vh) + var(--xh-shim,0px));overflow:visible}
+/* ★★★ 2026-09-19 高さは「箱＋不足分」ではなく<b>画面の高さ（--xh-fullh）</b>。
+   箱の長さは .xh-shim を付けたかどうかで iOS が変えてしまうので、箱から出すと
+   付ける→外す→付ける…と点滅していた（xevarion.js の fullHeight 参照）。 */
+html.xh-shim{height:var(--xh-fullh,100vh);overflow:visible}
 html.xh-shim body,html.xh-shim body.xh-mode{overflow:visible;min-height:100%}
 html.xh-shim #xhome,html.xh-shim #xevaHome,html.xh-shim #accLock,
 html.xh-shim #xevaLoadVeil,html.xh-shim #xevaSplash{
   position:absolute!important;top:0!important;bottom:auto!important;
-  height:calc(var(--xh-boxh,100vh) + var(--xh-shim,0px))!important}
+  height:var(--xh-fullh,100vh)!important}
+/* ロード画面・スプラッシュは「箱が短いぶん（--xv-under）」を余白に足して中身を持ち上げていた。
+   その値も箱につられて変わるので、板が本当の画面いっぱいのあいだは足さない（中身が上下しない）。 */
+html.xh-shim #xevaLoadVeil{padding-bottom:calc(env(safe-area-inset-bottom,0px) + 8px)!important}
+html.xh-shim #xevaSplash{padding-bottom:0!important}
 /* はみ出し（::after の 420px・下バーの 240px）は文書を長くしてスクロールできてしまうので、
    .xh-shim のあいだは板の中で切る（板そのものが本当の下端まで届いているので不要）。 */
 html.xh-shim #xhome,html.xh-shim #xevaHome,html.xh-shim #accLock,

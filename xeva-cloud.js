@@ -291,7 +291,56 @@ const CHAR_KEYS = new Set(["xeva_gacha_v1", "magiburst_v1"]);
    どちらも<b>増えるだけ</b>なので、両方を max で混ぜるだけで正しい残高になる。
    （残高を直に持っていると「新しい方が勝つ」で買った券が消える） */
 const COUNT_KEYS = new Set(["xeva_fessel_v1", "xeva_seal_v1"]);
-function hasMergeRule(k) { return WALLET_KEYS.has(k) || CHAR_KEYS.has(k) || COUNT_KEYS.has(k); }
+/* ★★ 2026-09-19 MagiBocciaRush（mbr_v1）も<b>混ぜる</b>（ご指定「キャラのレベルや編成も同期」）。
+   これまでは「新しい方が勝つ」だけだったので、別の端末で上げた熟練度（chars[id].xp）や
+   BOSS STAGE のクリアが、こちらで設定を1つ触っただけで消えていた。 */
+const MBR_KEYS = new Set(["mbr_v1"]);
+function hasMergeRule(k) { return WALLET_KEYS.has(k) || CHAR_KEYS.has(k) || COUNT_KEYS.has(k) || MBR_KEYS.has(k); }
+/* 勝った側（新しい方）を土台に、<b>増えるだけの数字</b>とキャラの熟練度・ステージの進みを取り合わせる。
+   ・戦績（wins/matches/throws…）… 大きい方（増えるだけ）
+   ・chars[id] … xp / games / wins は大きい方、ball（見た目）は勝った側
+   ・stages[id:diff] … clear は OR、tries は大きい方、best は小さい方（少ない投球でクリア）
+   ・編成（lineup）・設定・ランク（rp は下がることもある）… 勝った側（空なら負けた側）
+   ・replays / history … 両方を合わせて新しい順（件数は多い方にそろえる） */
+const MBR_MONO = ["wins", "matches", "cpuWins", "cpuMatches", "onWins", "onMatches", "teamWins", "teamMatches",
+  "rankWins", "rankMatches", "throws", "hits", "jackHits", "banks", "chains", "bestChain", "sumDist", "nDist"];
+function mergeMbr(winnerStr, loserStr) {
+  const W = jparse(winnerStr, null), Lo = jparse(loserStr, null);
+  if (!W || !Lo || typeof W !== "object" || typeof Lo !== "object") return null;
+  const num = (v) => Number(v) || 0;
+  MBR_MONO.forEach((k) => { if (k in W || k in Lo) W[k] = Math.max(num(W[k]), num(Lo[k])); });
+  W.chars = (W.chars && typeof W.chars === "object") ? W.chars : {};
+  Object.keys((Lo.chars && typeof Lo.chars === "object") ? Lo.chars : {}).forEach((id) => {
+    const lc = Lo.chars[id]; if (!lc || typeof lc !== "object") return;
+    const wc = W.chars[id];
+    if (!wc || typeof wc !== "object") { W.chars[id] = lc; return; }
+    ["xp", "games", "wins"].forEach((k) => { if (k in wc || k in lc) wc[k] = Math.max(num(wc[k]), num(lc[k])); });
+    if (!wc.ball && lc.ball) wc.ball = lc.ball;
+  });
+  if (Lo.stages && typeof Lo.stages === "object") {
+    W.stages = (W.stages && typeof W.stages === "object") ? W.stages : {};
+    Object.keys(Lo.stages).forEach((k) => {
+      const l = Lo.stages[k], w = W.stages[k];
+      if (!l || typeof l !== "object") return;
+      if (!w || typeof w !== "object") { W.stages[k] = l; return; }
+      w.clear = !!(w.clear || l.clear);
+      w.tries = Math.max(num(w.tries), num(l.tries));
+      const bs = [num(w.best), num(l.best)].filter((x) => x > 0);
+      w.best = bs.length ? Math.min.apply(null, bs) : 0;
+    });
+  }
+  if ((!Array.isArray(W.lineup) || !W.lineup.length) && Array.isArray(Lo.lineup) && Lo.lineup.length) W.lineup = Lo.lineup;
+  if (Lo.tutorial) W.tutorial = true;
+  ["replays", "history"].forEach((k) => {
+    const a = Array.isArray(W[k]) ? W[k] : [], b = Array.isArray(Lo[k]) ? Lo[k] : [];
+    if (!b.length) return;
+    const seen = new Set(), out = [];
+    a.concat(b).forEach((x) => { const key = JSON.stringify(x); if (seen.has(key)) return; seen.add(key); out.push(x); });
+    out.sort((p, q) => num(q && q.at) - num(p && p.at));
+    W[k] = out.slice(0, Math.max(a.length, b.length));
+  });
+  return JSON.stringify(W);
+}
 /* 項目ごとに e / u を max で取り、履歴は取り合わせる */
 function mergeCountMap(k, lv, rv) {
   const L = jparse(lv, null), R = jparse(rv, null);
@@ -427,7 +476,9 @@ function mergeStore(uid, remote, remoteT) {
             ? mergeWallet(k, lv, rv)
             : COUNT_KEYS.has(k)
               ? mergeCountMap(k, lv, rv)
-              : mergeCharsInto(k, remoteWins ? rv : lv, remoteWins ? lv : rv);
+              : MBR_KEYS.has(k)
+                ? mergeMbr(remoteWins ? rv : lv, remoteWins ? lv : rv)
+                : mergeCharsInto(k, remoteWins ? rv : lv, remoteWins ? lv : rv);
         }
         if (merged != null) {
           if (WALLET_KEYS.has(k)) newBase[k] = rv;      /* 土台は「クラウドに確かにある値」 */

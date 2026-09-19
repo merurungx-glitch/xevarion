@@ -598,6 +598,7 @@ function paintPullBar() {
       return `<button class="pbtn ${cls}" onclick="pull(10)"><span class="freetag">初回無料</span>`
         + `<b>${label}</b><small>無料</small></button>`;
     }
+    const ssrTag = n === 10 ? '<span class="ssrtag">SSR確定</span>' : "";
     const c = gachaCost(n, fes);
     const ok = !locked && DB.orbs >= c.gems;
     /* ★ 2026-08-10 ジェムは絵文字（💎）ではなく XEVARION 共通のアイコンで出す */
@@ -606,14 +607,15 @@ function paintPullBar() {
     if (c.fes) p.push(`<i class="pf">F</i>${c.fes}`);
     if (c.tickets) p.push(`<i class="pg">G</i>${c.tickets}`);
     if (c.gems || !p.length) p.push(`${gemIc}${c.gems}`);
-    return `<button class="pbtn ${cls}" ${ok ? "" : "disabled"} onclick="pull(${n})"><b>${label}</b><small>${p.join(" ＋ ")}</small></button>`;
+    return `<button class="pbtn ${cls}" ${ok ? "" : "disabled"} onclick="pull(${n})">${ssrTag}<b>${label}</b><small>${p.join(" ＋ ")}</small></button>`;
   };
   bar.innerHTML = locked
     ? `<div style="grid-column:1/-1;text-align:center;font-size:12px;font-weight:900;color:#6f82ad;padding:12px">⏳ ${
         dStandby ? DEBUT_NM + " はスタンバイ中です"
         : arcEmpty ? ARCHIVE_NM + " はまだ封入されたキャラクターがいません"
         : fesOpenText(fesDef(gMode))}</div>`
-    : btn(1, "", "1回") + btn(5, "", "5連") + btn(10, "p10", "10連 SSR確定");
+    /* ★★ 2026-09-19e 5連は廃止（ご指定）。10連には「SSR確定」の札 */
+    : btn(1, "", "1回") + btn(10, "p10", "10連");
 }
 /* いま何凸かの1行（ピックアップ一覧・提供割合で共通に使う）。
    awk は DB.chars[id].awk（0〜MAX_AWK）。持っていなければ「未所持」。 */
@@ -863,9 +865,12 @@ function openRatesX() {
     /* ★★ 2026-09-08 「あと何日で確率が下がるのか」を画面に書く */
     if (_hasNew && typeof fesNewDaysLeft === "function") {
       const _dl = fesNewDaysLeft(gMode);
-      if (_dl > 0) rows.push(rateNoteRow("※ <b>新キャラあつかいは実装から " + NEW_CHAR_DAYS
-        + "日間</b>です（あと<b>" + _dl + "日</b>）。過ぎるとその子も<b>各 "
-        + ratePct(PICK_OLD) + "</b>になります。"));
+      /* ★★ 2026-09-19i NEW のきまり：いちばん新しい子は次の新キャラが出るまで／それ以外は登場から10日 */
+      rows.push(rateNoteRow("※ <b>NEW（確率アップ）</b>は、このガチャに<b>いちばん最近追加されたキャラ</b>が"
+        + "<b>次の新キャラが出るまで</b>。それより前の子も<b>登場から " + NEW_CHAR_DAYS + "日間</b>は NEW のままです"
+        + ((fesDef(gMode) || {}).monthly ? "（このガチャは毎月の開催期間だけ引けるので、<b>引けるようになった日から</b>" + NEW_CHAR_DAYS + "日間）" : "")
+        + (_dl > 0 && _dl < 999 ? "（いちばん長い子であと<b>" + _dl + "日</b>）" : "")
+        + "。NEW でなくなった子は<b>各 " + ratePct(PICK_OLD) + "</b>になります。"));
     } else if (_wasNew) {
       rows.push(rateNoteRow("※ このガチャの限定SSRは<b>全員が実装から " + NEW_CHAR_DAYS
         + "日を過ぎている</b>ので、<b>各 " + ratePct(PICK_OLD) + "</b>です。"));
@@ -950,6 +955,28 @@ function paintFesSelTicket() {
     "</button>";
 }
 let _fselUsing = false;
+/* ══ ★★ 2026-09-19j えらべるキャラが<b>全員 完凸</b>のとき（ご指定：案1）══
+   セレクト券・フェスセレクト券・★星煌印の交換は、<b>💠結晶 CRYST_EXCHANGE（75）個</b>と交換する。
+   75個＝結晶の交換所でキャラ1体と換えられる数なので、券1枚ぶんの価値がそのまま残る。
+   （前は完凸キャラをえらばせて 💠5個 しか出ず、確定券が大きく損になっていた）
+   ★ 先に券を減らせたときだけ結晶を足す（減らせなかったら何もしない＝二重取りしない）。 */
+async function allMaxExchange(what, spend) {
+  const ok = await uiConfirm(
+    "えらべるキャラが<b>全員 完凸（限界突破MAX）</b>です。<br>"
+    + "<b>" + what + "</b> 1つを、<b>💠" + CRYST_NM + " " + CRYST_EXCHANGE + "個</b>"
+    + "（交換所でキャラ1体と交換できる数）に換えますか？",
+    { icon: "💠", title: "全員 完凸です", ok: "💠" + CRYST_EXCHANGE + "個と交換する", cancel: "まだ使用しない" });
+  if (!ok) return false;
+  let spent = false;
+  try { spent = spend() !== false; } catch (e) { spent = false; }
+  if (!spent) { paintAll(); return false; }
+  crystAdd(CRYST_EXCHANGE, what + "（全員完凸のため💠" + CRYST_NM + "に交換）");
+  try { luxFlash("black"); } catch (e) {}
+  try { if (window.SFX && SFX.win) SFX.win(); } catch (e) {}
+  paintAll();
+  try { uiAlert("<b>💠" + CRYST_NM + " " + CRYST_EXCHANGE + "個</b>を受け取りました。<br>XEVARION ホームの 🛒ショップの<b>結晶交換所</b>で、好きなキャラと交換できます。", { icon: "💠", title: "交換しました" }); } catch (e) {}
+  return true;
+}
 function useFesSelTicket() {
   if (_fselUsing) return;
   const key = gMode;
@@ -957,6 +984,11 @@ function useFesSelTicket() {
   if (fesSelTickets(key) <= 0) { paintFesSelTicket(); return; }
   const f = fesDef(key), pool = fesSelPool(key);
   if (!pool.length) { paintFesSelTicket(); return; }
+  /* ★★ 2026-09-19j 全員 完凸なら 💠75個と交換 */
+  if (!pool.some((id) => !isMaxAwk(id))) {
+    allMaxExchange(f.nm + " セレクト券", () => XEVA.fesSelect.spend(key, 1, f.nm + " セレクト券（結晶に交換）"));
+    return;
+  }
   _fselUsing = true;
   luxOpenSelect(pool, (id) => {
     _fselUsing = false;
@@ -991,7 +1023,7 @@ function paintSelTicket() {
     '<button class="selcard" onclick="useSelTicket()">' +
       '<span class="seli">★</span>' +
       '<span class="selt"><b>プレミアムセレクト券を使う</b>' +
-        "<small>" + PREMIUM_NM + " に<b>券が登場した時点で入っていたSSR</b>（" + SELTICKET_CHARS.length +
+        "<small>" + PREMIUM_NM + " の<b>SSR（最新のキャラまで）</b>（" + selTicketAll().length +
         "体）の中から、<b>好きな1体を確定で</b>受け取れます" +
         "（持っているキャラをえらぶと限界突破が進みます）</small></span>" +
       '<span class="seln">' + fmt(n) + "</span>" +
@@ -1005,9 +1037,12 @@ function useSelTicket() {
      ＝「券が登場する前までにプレミアムセレクトガチャに実装されていたキャラ」だけ。
      あとから増えたキャラは入らない＝中身は更新されない。
      ★ 全員が限界突破MAXの人は selTicketPool() が空になる。
-       <b>買った券が使えない</b>のはいちばん困るので、そのときは凍結一覧を丸ごと出す
-       （MAXのキャラをえらんでも grantChar がゴールドに換えてくれる）。 */
-  const pool = selTicketPool().length ? selTicketPool() : SELTICKET_CHARS.slice();
+       ★★ 2026-09-19j そのときは<b>💠結晶 75個と交換</b>する（ご指定：案1）。 */
+  if (!selTicketPool().length && selTicketAll().length) {
+    allMaxExchange("★プレミアムセレクト券", () => XEVA.selectTicket.spend(1, "プレミアムセレクト券（結晶に交換）"));
+    return;
+  }
+  const pool = selTicketPool();
   if (!pool.length) { paintSelTicket(); return; }
   _selUsing = true;
   luxOpenSelect(pool, (id) => {
@@ -1020,7 +1055,7 @@ function useSelTicket() {
   }, {
     cap: "PREMIUM SELECT TICKET",
     ttl: "★ プレミアムセレクト券",
-    sub: "券が登場した時点で <b>" + PREMIUM_NM + "</b> に入っていた <b>SSR " + pool.length + "体</b>から、"
+    sub: "<b>" + PREMIUM_NM + "</b> の <b>SSR " + pool.length + "体</b>（最新のキャラまで）から、"
        + "<b>好きな1体</b>をえらんで手に入れられます。<br>"
        + "すでに持っているキャラをえらぶと<b>限界突破</b>が進みます。",
     /* ★★ 2026-08-26 ご指定: えらぶ画面まで来てから<b>やめられる</b>ようにする。
@@ -1043,11 +1078,22 @@ window.addEventListener("xeva:selticket", () => { try { paintSelTicket(); } catc
    ★ えらぶ画面は BLACK SELECT と同じ luxOpenSelect を使いまわす
      （＝限界突破の進みかた・演出・所持の反映が必ずそろう）。
    ═════════════════════════════════════════════════════ */
+/* ★★ 2026-09-19j 天井の顔ぶれ（表示用）。全員 完凸で sealPool が空のときも、そのガチャの顔ぶれを返す
+   （帯を消すと印が使えなくなるため。使うと 💠75個との交換になる） */
+function sealShowPool(m) {
+  const p = (typeof sealPool === "function") ? sealPool(m) : [];
+  if (p.length) return p;
+  try {
+    if (isFesMode(m) && fesDef(m) && Array.isArray(fesDef(m).chars)) return fesDef(m).chars.filter((id) => CHARS[id]);
+    if (isDebutMode(m)) return debutVerOfMode(m) ? debutCharsOfMode(m) : [];
+    return [curPickup()];
+  } catch (e) { return []; }
+}
 function paintSealBar() {
   const box = $("#sealbar"); if (!box) return;
   if (typeof sealGet !== "function" || typeof sealKeyOfMode !== "function") { box.innerHTML = ""; return; }
   const key = sealKeyOfMode(gMode);
-  const pool = (typeof sealPool === "function") ? sealPool(gMode) : [];
+  const pool = sealShowPool(gMode);
   /* 交換できる相手がいないガチャ（スタンバイ中の GRAND DEBUT など）では出さない */
   if (!key || !pool.length) { box.innerHTML = ""; return; }
   const n = sealGet(gMode), need = SEAL_NEED;
@@ -1066,8 +1112,9 @@ function paintSealBar() {
         "</small>" +
         '<span class="sealtr"><i style="width:' + pct.toFixed(1) + '%"></i></span>' +
       "</span>" +
-      (rdy ? '<button class="sealgo" onclick="event.stopPropagation();useSeal()">交換する</button>'
-           : '<span class="sealn"><b>' + fmt(n) + "</b><span>／ " + need + "</span></span>") +
+      /* ★★ 2026-09-19e MAX（150）をこえても数は止めずに出す（ご指定）。交換すると150だけ減る */
+      '<span class="sealn"><b>' + fmt(n) + "</b><span>／ " + need + "</span></span>" +
+      (rdy ? '<button class="sealgo" onclick="event.stopPropagation();useSeal()">交換する</button>' : "") +
     "</div>";
 }
 let _sealUsing = false;
@@ -1077,8 +1124,24 @@ function useSeal() {
   if (!key) return;
   if (sealGet(mode) < SEAL_NEED) { paintSealBar(); return; }
   const pool = sealPool(mode);
-  if (!pool.length) { paintSealBar(); return; }
   const nm = gachaNmOfMode(mode);
+  /* ★★ 2026-09-19j ピックアップが全員 完凸だと sealPool が空になる（完凸は排出対象から外れるため）。
+     そのときも印が使えなくならないよう、そのガチャの顔ぶれを見て 💠75個と交換する。 */
+  if (!pool.length) {
+    let all = [];
+    try { all = (isFesMode(mode) && fesDef(mode) && Array.isArray(fesDef(mode).chars)) ? fesDef(mode).chars.filter((id) => CHARS[id])
+      : isDebutMode(mode) ? debutCharsOfMode(mode) : [curPickup()]; } catch (e) {}
+    if (all.length && all.every((id) => isMaxAwk(id))) {
+      allMaxExchange("★星煌印 " + SEAL_NEED + "個", () => XEVA.seal.spend(key, SEAL_NEED, nm + " 天井（結晶に交換）"));
+      return;
+    }
+    paintSealBar(); return;
+  }
+  /* ★★ 2026-09-19j 交換できるピックアップが全員 完凸なら 💠75個と交換 */
+  if (!pool.some((id) => !isMaxAwk(id))) {
+    allMaxExchange("★星煌印 " + SEAL_NEED + "個", () => XEVA.seal.spend(key, SEAL_NEED, nm + " 天井（結晶に交換）"));
+    return;
+  }
   _sealUsing = true;
   luxOpenSelect(pool, (id) => {
     _sealUsing = false;
@@ -1216,10 +1279,48 @@ function nciClose() {
   if (_nciT) { clearTimeout(_nciT); _nciT = 0; }
   ov.classList.remove("on");
   try { document.body.style.overflow = ""; } catch (e) {}
-  try { nciMarkSeen(_nciMode); } catch (e) {}
+  try { if (!_nciModeOf) nciMarkSeen(_nciMode); } catch (e) {}
   try { paintNciBar(); } catch (e) {}
 }
 window.nciClose = nciClose;
+/* ══ ★★ 2026-09-19g ガチャのタブを押したとき、<b>前回開いたとき以降に出た新キャラ</b>をまとめて紹介（ご指定）══
+   ・「前回」はこの画面の控え（NCI_ALL_KEY の at）。はじめての人は NEW の期間（charIsNewNow）のキャラ全員。
+   ・キャラごとに<b>どのガチャで出るか</b>を表示する（_nciModeOf）。 */
+const NCI_ALL_KEY = "mb_nci_all_v1";
+function nciAllCast() {
+  let seen = null;
+  try { seen = JSON.parse(localStorage.getItem(NCI_ALL_KEY) || "null"); } catch (e) {}
+  const list = (window.MB_NEW_CHARS || []).filter((n) => n && CHARS[n.id] && n.mode && !charSecret(n.id));
+  const out = [], modeOf = {};
+  /* はじめて（控えが無い）ときは、いちばん新しい追加日のキャラだけ（NEW の期間まるごとだと多すぎる） */
+  const latest = list.reduce((m, n) => (String(n.since || "") > m ? String(n.since || "") : m), "");
+  /* 2回目からは<b>前回紹介した日以降</b>に追加されたキャラだけ（同じ日に増えたぶんは見た控えで外す） */
+  let from = latest;
+  if (seen && seen.at) { const d = new Date(seen.at); from = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+  list.forEach((n) => {
+    if (String(n.since || "") < from) return;
+    let isNew = false; try { isNew = charIsNewNow(n.id, fesDef(n.mode)); } catch (e) {}
+    if (!isNew) return;
+    if (seen && Array.isArray(seen.ids) && seen.ids.indexOf(n.id) >= 0) return;
+    if (out.indexOf(n.id) < 0) { out.push(n.id); modeOf[n.id] = n.mode; }
+  });
+  return { ids: out, modeOf };
+}
+function nciAllMarkSeen(ids) {
+  let seen = null;
+  try { seen = JSON.parse(localStorage.getItem(NCI_ALL_KEY) || "null"); } catch (e) {}
+  const s = (seen && Array.isArray(seen.ids)) ? seen.ids : [];
+  ids.forEach((id) => { if (s.indexOf(id) < 0) s.push(id); });
+  try { localStorage.setItem(NCI_ALL_KEY, JSON.stringify({ ids: s.slice(-400), at: Date.now() })); } catch (e) {}
+}
+function nciOpenAll() {
+  const c = nciAllCast();
+  if (!c.ids.length) return false;
+  nciAllMarkSeen(c.ids);
+  nciOpen(gMode, c.ids, c.modeOf);
+  return true;
+}
+window.nciOpenAll = nciOpenAll;
 
 /* 1体ぶんを舞台に出す。★ 毎回 class を付け直さないとアニメが再生されない
    （同じ要素を使いまわしているので、いったん外して次のフレームで付ける）。 */
@@ -1250,7 +1351,10 @@ function nciShow(i) {
     + (0.28 + k * 0.07).toFixed(3) + 's">' + (ch === " " ? "" : nciEsc(ch)) + "</span>").join("");
 
   const no = (typeof charNoOf === "function") ? charNoOf(_nciIds[i]) : "";
-  $("#nciTy").textContent = (no ? no + " ・ " : "") + (c.type || "");
+  /* ★★ 2026-09-19g どのガチャで出るかも出す（まとめて流すときに分からなくならないように） */
+  const _gm = (_nciModeOf && _nciModeOf[_nciIds[i]]) || _nciMode;
+  let _gnm = ""; try { _gnm = gachaNmOfMode(_gm) || ""; } catch (e) {}
+  $("#nciTy").textContent = (no ? no + " ・ " : "") + (c.type || "") + (_gnm ? " ・ 🎰 " + _gnm + " で登場" : "");
 
   /* 技の帯。★ ある項目だけ出す（無いキャラで空の帯が残らないように） */
   const rows = nciRowsOf(c);
@@ -1363,13 +1467,15 @@ function nciNext() {
   nciShow(_nciAt);
 }
 
-function nciOpen(mode) {
+/* ★★ 2026-09-19g まとめて流すときの「そのキャラがどのガチャか」 */
+let _nciModeOf = null;
+function nciOpen(mode, idsIn, modeOf) {
   mode = mode || gMode;
   if (typeof gachaNewIds !== "function") return;
-  const ids = gachaNewIds(mode);
+  const ids = idsIn || gachaNewIds(mode);
   if (!ids.length) return;
   const ov = $("#nciOv"); if (!ov) return;
-  _nciIds = ids; _nciAt = 0; _nciMode = mode;
+  _nciIds = ids; _nciAt = 0; _nciMode = mode; _nciModeOf = modeOf || null;
   ov.classList.add("on");
   try { document.body.style.overflow = "hidden"; } catch (e) {}
   /* ★ タップで次へ。閉じるボタンと<b>スクロールできる帯の上</b>では拾わない
@@ -1387,7 +1493,9 @@ window.nciOpen = nciOpen;
 /* ガチャを開いたとき・切りかえたときに、まだ見ていない紹介を1回だけ自動で流す。
    ★ 描き終わってから開く（描画の途中で全画面をかぶせると、下の画面が組み上がらない）。 */
 let _nciAuto = 0;
-function nciMaybeAuto() {
+/* ★★ 2026-09-19g ガチャの画面を<b>初めて開いたときの自動再生はやめた</b>（ご指定）。帯（#ncibar）から手で見られる。 */
+function nciMaybeAuto() { return; }
+function nciMaybeAutoOld() {
   if (_nciAuto) { clearTimeout(_nciAuto); _nciAuto = 0; }
   const mode = gMode;
   _nciAuto = setTimeout(() => {
@@ -1398,7 +1506,259 @@ function nciMaybeAuto() {
   }, 620);
 }
 
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-09-19e ガチャの一覧（ご指定の画像の構造・横にスライドしてえらぶ）
+   ------------------------------------------------------------
+   ・1枚のカード＝「期間 ＋ 提供割合・詳細」「バナー」「注目キャラ（所持・凸）」「単発・10連」。
+   ・カードは横にスライド（scroll-snap）。上の名前の札を押してもそのガチャへ動く。
+   ・単発・10連を押すと<b>そのガチャの画面へ行って、その場で回す</b>（演出は今までどおり）。
+   ・それぞれのガチャの左上には一覧へ戻る BACK を常に出す（gachaBack）。
+   ★ 顔ぶれ・値段・無料・天井は<b>今までと同じ関数</b>（gachaMenuList / gachaCost / sealGet…）を見る。
+   ══════════════════════════════════════════════════════════════ */
+let glMode = true;       // いま一覧を見ているか
+let glIdx = 0;           // 一覧でいま中央にあるカード
+function glBanner(k) {
+  return isDebutMode(k) ? debutBannerOf() : k === "premium" ? "MagiBurst/img/bn_premium_s.webp" : fesBannerOf(k);
+}
+function glLocked(k) {
+  if (isDebutMode(k)) return !debutVerOfMode(k);
+  if (k === ARCHIVE_KEY) return !archiveChars().length;
+  return isFesMode(k) && fesLocked(k);
+}
+function glChars(k) {
+  /* ★★ 2026-09-19g PREMIUM SELECT と Festival Archive は<b>直近でそのガチャに追加された5体</b>（ご指定） */
+  if (k === "premium") return byCharNoDesc(PREMIUM_CHARS.filter((id) => CHARS[id])).slice(0, 5);
+  if (k === ARCHIVE_KEY) return byCharNoDesc(archiveChars().filter((id) => CHARS[id])).slice(0, 5);
+  if (isFesMode(k) && k !== ARCHIVE_KEY && fesDef(k) && Array.isArray(fesDef(k).chars)) return fesDef(k).chars.slice();
+  try { return pickIdsOfMode(k); } catch (e) { return []; }
+}
+function glCostBtn(k, n) {
+  const fes = isFesMode(k) && fesTicketOK(k);
+  const ssr = n === 10 ? '<span class="ssrtag">SSR確定</span>' : "";
+  const label = n === 1 ? "シングル" : "10連";
+  if (isDebutMode(k) && debutVerOfMode(k)) {
+    if (n === 1 && debutFreeLeft(k) > 0) return `<button class="pbtn" onclick="glPull('${k}',1)"><span class="freetag">1回無料</span><b>${label}</b><small>無料</small></button>`;
+    if (n === 10 && debutFree10Left(k) > 0) return `<button class="pbtn p10" onclick="glPull('${k}',10)"><span class="freetag">初回無料</span><b>${label}</b><small>無料</small></button>`;
+  }
+  const c = gachaCost(n, fes);
+  const ok = DB.orbs >= c.gems;
+  const p = [];
+  if (c.fes) p.push(`<i class="pf">F</i>${c.fes}`);
+  if (c.tickets) p.push(`<i class="pg">G</i>${c.tickets}`);
+  if (c.gems || !p.length) p.push(`<i class='icc ic-gem'></i>${c.gems}`);
+  return `<button class="pbtn ${n === 10 ? "p10" : ""}" ${ok ? "" : "disabled"} onclick="glPull('${k}',${n})">${ssr}<b>${label}</b><small>${p.join(" ＋ ")}</small></button>`;
+}
+/* ★★ 2026-09-19g そのガチャで使えるセレクト券を持っていれば、「このガチャを引く」の下に小さく出す（ご指定） */
+function glSelInfo(k) {
+  try {
+    if (k === "premium" && selTickets() > 0) return { n: selTickets(), nm: "★プレミアムセレクト券" };
+    if (typeof FESSEL_KEYS !== "undefined" && FESSEL_KEYS.indexOf(k) >= 0 && fesSelTickets(k) > 0) return { n: fesSelTickets(k), nm: "フェスセレクト券" };
+  } catch (e) {}
+  return null;
+}
+function glSelBtn(k) {
+  const s = glSelInfo(k); if (!s) return "";
+  return `<button class="gl-sel" onclick="glSel('${k}')">🎟 ${s.nm}を使う<small>所持 ${s.n}枚・好きな1体と交換</small></button>`;
+}
+function glSel(k) {
+  showDetail(k);
+  setTimeout(() => { try { if (k === "premium") useSelTicket(); else useFesSelTicket(); } catch (e) {} }, 80);
+}
+window.glSel = glSel;
+/* ★★ 2026-09-19g 開催の予定がもう無いガチャは一覧に出さない（ご指定）。
+   ・毎月まわってくる極◯祭（monthly）と無期限（perm）は残す。
+   ・終わったフェス（期間つき）・掲載の終わった GRAND DEBUT の古い版は隠す（Festival Archive で引ける）。 */
+function glVisible(m) {
+  const k = m.k;
+  try {
+    if (isDebutMode(k)) return k === "debut" || !!debutVerOfMode(k);
+    if (k === "premium" || k === ARCHIVE_KEY) return true;
+    if (isFesMode(k)) { const f = fesDef(k); if (f && (f.monthly || fesPerm(f))) return true; return !fesEnded(k); }
+  } catch (e) {}
+  return true;
+}
+function glList() { return gachaMenuList().filter(glVisible); }
+function glCard(m, i) {
+  const k = m.k, d = modeDef(k), locked = glLocked(k) || m.soon;
+  let seal = "";
+  try {
+    if (sealKeyOfMode(k) && sealShowPool(k).length) {
+      const n = sealGet(k);
+      seal = `<span class="gl-seal${n >= SEAL_NEED ? " rdy" : ""}" title="★星煌印（天井）"><img src="${SEAL_IMG}" alt="">${fmt(n)}/${SEAL_NEED}</span>`;
+    }
+  } catch (e) {}
+  const lab = isDebutMode(k) ? "DEBUT" : k === "premium" ? "PREMIUM" : k === ARCHIVE_KEY ? "ARCHIVE" : "FEST";
+  const chars = glChars(k).filter((id) => CHARS[id]);
+  const row = chars.map((id) => {
+    const sec = charSecret(id);
+    const dt = dupeText(id);
+    /* ★★ 2026-09-19g NEW のキャラには NEW の印（確率の NEW と同じ charIsNewNow） */
+    let nw = false; try { nw = !sec && charIsNewNow(id, fesDef(k)); } catch (e) {}
+    return `<button class="gl-ch${sec ? " sec" : ""}" ${sec ? "" : `onclick="openDetX('${id}')"`}>${nw ? '<i class="gl-new">NEW</i>' : ""}<img src="${CHARS[id].img}" alt="" loading="lazy">`
+      + `<span class="${dt.cls}">${sec ? "???" : dt.cls === "max" ? "完凸" : dt.cls === "have" ? (DB.chars[id].awk ? "+" + DB.chars[id].awk + "凸" : "所持") : "未所持"}</span></button>`;
+  }).join("");
+  return `<div class="gl-card" data-k="${k}" style="border-color:${m.c}55">
+    <div class="gl-hd"><span class="per">${nciEsc(m.nm)}<small>${nciEsc(nciPlain(d.sub || m.sub || ""))}</small></span>
+      ${seal}<button onclick="glRates('${k}')">提供割合</button><button onclick="glInfo('${k}')">詳細</button></div>
+    <div class="gl-ban"><img src="${glBanner(k)}" alt="${nciEsc(m.nm)}" loading="${i < 2 ? "eager" : "lazy"}">
+      <span class="lab">${lab}</span>${m.isNew ? '<span class="nw">NEW</span>' : ""}<span class="nm">${nciEsc(m.nm)}</span></div>
+    ${chars.length ? `<div class="gl-pk"><div class="cap">注目キャラ</div><div class="row">${row}</div></div>` : ""}
+    ${locked ? `<div class="gl-lock">⏳ ${nciEsc(nciPlain(d.sub || "準備中です"))}</div>`
+      /* ★★ 2026-09-19f 一覧では「このガチャを引く」1つだけ。押すとガチャの画面へ（そこで 1回・10連） */
+      : `<div class="gl-go"><button class="gl-draw" onclick="glOpen('${k}')">このガチャを引く<small>シングル・10連（SSR確定）</small></button>${glSelBtn(k)}</div>`}
+  </div>`;
+}
+function paintList() {
+  const box = $("#glist"); if (!box) return;
+  const list = glList();
+  if (glIdx >= list.length) glIdx = 0;
+  box.innerHTML = `<div class="gl-ttl"><b>注目ガチャ</b><span>下へスクロールしてえらぶ</span></div>`
+    + `<div class="gl-tabs">${list.map((m, i) => `<button class="gl-tab${i === glIdx ? " on" : ""}" onclick="glGo(${i})"><i style="background:${m.c}"></i>${nciEsc(m.nm)}${m.isNew ? "<em>NEW</em>" : ""}</button>`).join("")}</div>`
+    + `<div class="gl-rail" id="glRail">${list.map(glCard).join("")}</div>`;
+}
+function glMarkTabs() {
+  const tabs = document.querySelectorAll("#glist .gl-tab");
+  tabs.forEach((b, i) => b.classList.toggle("on", i === glIdx));
+  /* ★★ 2026-09-19g 札の列も、いま見ているガチャの札が見える位置へ横に動かす */
+  const bar = document.querySelector("#glist .gl-tabs"), on = tabs[glIdx];
+  if (bar && on) bar.scrollTo({ left: on.offsetLeft - (bar.clientWidth - on.offsetWidth) / 2, behavior: "smooth" });
+}
+/* ★★ 2026-09-19g 縦にスクロールしたら、画面の上のほうにあるカードの札を光らせる */
+let _glScrollT = 0;
+addEventListener("scroll", () => {
+  if (!glMode) return;
+  clearTimeout(_glScrollT);
+  _glScrollT = setTimeout(() => {
+    const cards = document.querySelectorAll("#glRail .gl-card"); if (!cards.length) return;
+    const tabs = document.querySelector("#glist .gl-tabs");
+    const top = (tabs ? tabs.getBoundingClientRect().bottom : 120) + 40;
+    let best = 0;
+    cards.forEach((c, i) => { if (c.getBoundingClientRect().top <= top) best = i; });
+    if (best !== glIdx) { glIdx = best; glMarkTabs(); }
+  }, 60);
+}, { passive: true });
+/* 名前の札を押す＝そのカードまで<b>縦に</b>スクロール */
+function glGo(i, instant) {
+  const rail = $("#glRail"); if (!rail) return;
+  const c = rail.querySelectorAll(".gl-card")[i]; if (!c) return;
+  glIdx = i; glMarkTabs();
+  if (instant) return;
+  const tabs = document.querySelector("#glist .gl-tabs");
+  const off = (tabs ? tabs.getBoundingClientRect().bottom : 120) + 6;
+  window.scrollTo({ top: window.scrollY + c.getBoundingClientRect().top - off, behavior: "smooth" });
+}
+/* ★★ 2026-09-19f 「詳細」＝ガチャの画面でキャラより下にある説明（#gnote）を、そのガチャぶん開く */
+function glInfo(k) {
+  const keep = gMode;
+  let html = "", pkText = "";
+  try {
+    gMode = k; paintPickup(); paintNote();
+    html = ($("#gnote") || {}).innerHTML || "";
+    /* ★★ 2026-09-19g ガチャの画面で<b>キャラ画像の下にある説明</b>も載せる（絵の並びは外して文だけ） */
+    const w = $("#pkwrap");
+    if (w) {
+      const cl = w.cloneNode(true);
+      cl.querySelectorAll(".fgrid,.pkrow,.fcard,button,img").forEach((x) => x.remove());
+      pkText = [...cl.querySelectorAll(".pknote,.pksub,.pkhd,div")].filter((x) => !x.children.length && x.textContent.trim())
+        .map((x) => x.innerHTML).filter((v, i, a) => a.indexOf(v) === i).map((t) => "<p>" + t + "</p>").join("");
+    }
+  } catch (e) {}
+  gMode = keep;
+  try { paintPickup(); paintNote(); } catch (e) {}
+  /* ★★ 2026-09-19k 詳細には<b>そのガチャの注目キャラ全員</b>を出す（ご指定）。
+     完凸で排出されなくなった子も外さず、「完凸・排出なし」と印を付けて並べる。
+     あわせて<b>ガチャの登場日</b>と<b>キャラごとの登場日</b>も書く。 */
+  let cast = [];
+  try {
+    if (k === "premium") cast = PREMIUM_CHARS.slice();
+    else if (k === ARCHIVE_KEY) cast = archiveChars();
+    else if (isDebutMode(k)) cast = debutVerOfMode(k) ? debutCharsOfMode(k) : [];
+    else if (isFesMode(k) && fesDef(k) && Array.isArray(fesDef(k).chars)) cast = fesDef(k).chars.slice();
+    cast = byCharNoDesc(cast.filter((id, i, a) => CHARS[id] && a.indexOf(id) === i));
+  } catch (e) {}
+  const f0 = isFesMode(k) ? fesDef(k) : null;
+  /* 登場日：新キャラ台帳（mb-newchars）→ キャラ台帳（xeva.js の MB_CHAR_MASTER の since）→ ガチャの since の順 */
+  const master = {};
+  try { ((window.XEVA && XEVA.MB_CHARS) || []).forEach((c) => { if (c && c.mbId && c.since) master[c.mbId] = String(c.since).slice(0, 10); }); } catch (e) {}
+  const dateOf = (id) => {
+    let d = "";
+    try {
+      d = charImplDate(id) || master[id] || "";
+      /* 元のフェスの開始日（Festival Archive のキャラなど） */
+      if (!d && typeof fesKeyOf === "function") { const fk = fesKeyOf(id); const ff = fk && FESTS[fk]; if (ff && ff.since) d = ff.since; }
+      if (!d && f0 && f0.since) d = f0.since;
+    } catch (e) {}
+    return d;
+  };
+  const fmtD = (d) => d ? d.replace(/^(\d+)-(\d+)-(\d+)$/, (m, y, mo, da) => y + "/" + (+mo) + "/" + (+da)) : "";
+  /* ガチャの登場日：since があればそれ／無ければ顔ぶれの中でいちばん早い登場日／GRAND DEBUT は版の公開日 */
+  let gStart = "";
+  try {
+    if (isDebutMode(k)) { const v = debutVerOfMode(k); gStart = v ? v.date : ""; }
+    else if (f0 && f0.since) gStart = f0.since;
+    else if (k !== "premium") gStart = cast.map(dateOf).filter(Boolean).sort()[0] || "";
+  } catch (e) {}
+  const startHTML = `<div class="gl-start">📅 ガチャの登場日：<b>${gStart ? fmtD(gStart) : (k === "premium" ? "常設（XEVARION 開始時から）" : "—")}</b></div>`;
+  const everHTML = cast.length
+    ? `<div class="gl-ever"><b>✦ 注目キャラ（${cast.length}体）</b><small>完凸して排出されなくなったキャラも表示しています（押すと性能）</small>`
+      + `<div class="gl-evergrid">${cast.map((id) => {
+          const sec = charSecret(id);
+          const out = !sec && isDropOut(id), cry = !sec && isMaxAwk(id) && isEverDrop(id);
+          let nw = false; try { nw = !sec && charIsNewNow(id, f0); } catch (e) {}
+          return `<button ${sec ? "" : `onclick="openDetX('${id}')"`} class="${out ? "out" : ""}"><img src="${CHARS[id].th}" alt="" loading="lazy">`
+            + `<span>${sec ? "???" : nciEsc(CHARS[id].nm)}</span><em>${sec ? "登場前" : fmtD(dateOf(id)) || "初期から"}</em>`
+            + (nw ? '<i class="nw">NEW</i>' : out ? "<i>完凸・排出なし</i>" : cry ? "<i>完凸→💠</i>" : "") + `</button>`;
+        }).join("")}</div></div>`
+    : "";
+  const d = modeDef(k);
+  $("#glInfoCard").innerHTML = `<div class="hd"><b>${nciEsc(d.nm)} の詳細</b><button onclick="glInfoClose()" aria-label="とじる">✕</button></div>`
+    + startHTML
+    + (pkText ? `<div class="note gl-pktx">${pkText}</div>` : "")
+    + `<div class="note">${html || "説明はありません"}</div>` + everHTML;
+  $("#glInfoOv").classList.add("on");
+  $("#glInfoCard").scrollTop = 0;
+}
+function glInfoClose() { $("#glInfoOv").classList.remove("on"); }
+window.glInfo = glInfo; window.glInfoClose = glInfoClose;
+/* 見出しの高さ（せまい画面では2段になる）を測って、一覧へ戻るボタンをその下に置く */
+function glMeasureHead() {
+  const g = document.querySelector(".gh");
+  if (g) document.documentElement.style.setProperty("--ghH", Math.round(g.getBoundingClientRect().height) + "px");
+}
+addEventListener("resize", glMeasureHead);
+function showList() {
+  glMode = true;
+  document.body.classList.add("glmode");
+  try { const i = glList().findIndex((m) => m.k === gMode); if (i >= 0) glIdx = i; } catch (e) {}
+  paintList();
+  glGo(glIdx, true);
+  /* 戻ってきたときは、いま見ていたガチャのカードの位置へ（先頭のときはいちばん上） */
+  window.scrollTo(0, 0);
+  if (glIdx > 0) { const c = document.querySelectorAll("#glRail .gl-card")[glIdx]; if (c) c.scrollIntoView({ block: "start" }); }
+}
+function showDetail(k) {
+  glMode = false;
+  document.body.classList.remove("glmode");
+  glMeasureHead();
+  if (k && k !== gMode) { pickMode(k); } else { paintAll(); window.scrollTo(0, 0); }
+}
+/* 左上の ← は<b>いつも XEVARION ホームへ</b>。ガチャ一覧へは見出しの下の「‹ ガチャ一覧へ」 */
+function gachaBack() { location.href = "index.html"; }
+function glOpen(k) { showDetail(k); try { nciMaybeAuto(); } catch (e) {} }
+/* 単発・10連：そのガチャの画面へ行って、その場で回す（ご指定） */
+function glPull(k, n) {
+  showDetail(k);
+  setTimeout(() => { try { pull(n); } catch (e) {} }, 60);
+}
+function glRates(k) {
+  if (k !== gMode) { gMode = k; try { markGachaSeen(k); } catch (e) {} }
+  openRatesX();
+}
+window.showList = showList; window.showDetail = showDetail; window.gachaBack = gachaBack;
+window.glOpen = glOpen; window.glPull = glPull; window.glRates = glRates; window.glGo = glGo;
+
 function paintAll() {
+  if (glMode && document.getElementById("glist")) { paintWal(); paintList(); }
   paintWal(); paintPicker(); paintHero(); paintPickup(); paintNote(); paintPullBar();
   paintNciBar();
   paintSelTicket();
@@ -1422,7 +1782,9 @@ window.addEventListener("xeva:cryst", () => { paintWal(); });
 /* ★★ 2026-08-29 最初に開いているガチャも「開いた」ものとして NEW を消す。
    ★ 塗ったあとに消すこと。先に消すと、いま見ているガチャの NEW が
      1回目の描画から出なくなる（気づかないうちに消えた、になる）。 */
-paintAll();
-try { if (markGachaSeen(gMode)) paintPicker(); } catch (e) {}
-/* ★★ 2026-09-13c まだ見ていない新キャラ紹介を1回だけ自動で流す（ご指定） */
-try { nciMaybeAuto(); } catch (e) {}
+/* ★★ 2026-09-19e ハッシュ（#fes15 など）で来たときはそのガチャの画面から、ふつうは<b>一覧</b>から */
+if (String(location.hash || "").replace("#", "")) { glMode = false; showDetail(gMode); }
+else { glMode = true; showList(); }
+try { if (!glMode && markGachaSeen(gMode)) paintPicker(); } catch (e) {}
+/* ★★ 2026-09-19g ガチャのタブで開いたとき（一覧）は、前回から増えた新キャラをすぐにまとめて紹介 */
+try { if (glMode) setTimeout(() => { try { nciOpenAll(); } catch (e) {} }, 350); } catch (e) {}

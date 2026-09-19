@@ -164,7 +164,7 @@ function mbrEnsure() {
   if (window.__mbrLoading) return window.__mbrLoading;
   window.__mbrLoading = new Promise((res) => {
     const s = document.createElement("script");
-    s.src = "MagiBocciaRush/js/mbr-core.js?v=12";
+    s.src = "MagiBocciaRush/js/mbr-core.js?v=15";
     s.onload = () => res(); s.onerror = () => res();
     document.head.appendChild(s);
   });

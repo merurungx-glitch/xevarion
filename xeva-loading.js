@@ -18,7 +18,7 @@
        の<b>両方</b>を使う。①②は xeva-safebottom.js が持っているので、
        読まれていないページでは<b>自分で読みこむ</b>。
 
-   使い方: <script src="../xeva-loading.js?v=17" defer></script>
+   使い方: <script src="../xeva-loading.js?v=18" defer></script>
    ============================================================ */
 (function () {
   "use strict";
@@ -60,7 +60,7 @@
   function ensureSafeBottom() {
     if (window.__xvSafeBottom) return;
     var s = document.createElement("script");
-    s.src = baseUrl() + "xeva-safebottom.js?v=11";
+    s.src = baseUrl() + "xeva-safebottom.js?v=12";
     (document.head || document.documentElement).appendChild(s);
   }
 

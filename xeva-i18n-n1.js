@@ -18,6 +18,9 @@
     "ヨイヅキ": "Yoiduki", "カヨ": "Kayo", "シノ": "Shino", "マアヤ": "Maaya", "アスカ": "Asuka", "クオン": "Kuon", "アサヒ": "Asahi", "ソウゲツ": "Sougetsu", "ナツネ": "Natsune", "アマネ": "Amane",
     /* ★★ 2026-09-17d 花宴祭 */
     "アカツキ": "Akatsuki",
+    /* ★★ 2026-09-19 花宴祭 追加 */
+    "アヤネ": "Ayane", "チハ": "Chiha",
+    "ヒメリ": "Himeri", "ホノカ": "Honoka", "アズサ": "Azusa", "ココハ": "Kokoha",
     "レナ": "Rena", "カオル": "Kaoru", "スバル": "Subaru", "カスミ": "Kasumi", "ツキノ": "Tsukino",
   };
 

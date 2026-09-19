@@ -29,7 +29,7 @@
 
   var root = document.documentElement;
   var boxProbe = null, envProbe = null;
-  var last = { b: -1, t: -1, h: -1, g: -99999, u: -1 };
+  var last = { b: -1, t: -1, h: -1, g: -99999, u: -1, f: -1 };
 
   function host() { return document.body || document.documentElement; }
 
@@ -135,6 +135,25 @@
       last.g = gap;
     }
     if (under !== last.u) { root.style.setProperty("--xv-under", under + "px"); last.u = under; }
+
+    /* ★★★ 2026-09-19 --xv-fullh と html.xv-full … iOS のアプリ表示で「本当の画面の高さ」。
+       --xv-under は箱から測るので、文書の長さを変えると iOS が箱を変え、値が 59⇄0 と
+       行ったり来たりする（ホームの点滅の真因と同じ）。ページの高さに使うのはこちら。
+       箱が画面と同じか少し短い（0〜200）あいだは付けたまま＝値も動かない。
+       使いかた: html.xv-full, html.xv-full body{height:var(--xv-fullh)} ＋余白は env() のまま。 */
+    var fullh = 0;
+    try {
+      var sa = (window.matchMedia && matchMedia("(display-mode: standalone)").matches) || navigator.standalone;
+      if (sa && (navigator.standalone === true || /iPhone|iPad|iPod/.test(navigator.userAgent || "") || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1))) {
+        var sh = window.innerWidth > window.innerHeight ? Math.min(screen.width, screen.height) : Math.max(screen.width, screen.height);
+        if (sh - box >= -1 && sh - box < 200) fullh = Math.round(sh);
+      }
+    } catch (e) { fullh = 0; }
+    if (fullh !== last.f) {
+      if (fullh > 0) root.style.setProperty("--xv-fullh", fullh + "px");
+      root.classList.toggle("xv-full", fullh > 0);
+      last.f = fullh;
+    }
   }
 
 

@@ -6,7 +6,7 @@
 <script>(function(){try{var a=JSON.parse(localStorage.getItem('xeva_account_v1'));if(!a||!a.setupDone)location.replace('index.html');}catch(e){}})();</script>
 <script type="module" src="xevarion-fb.js?v=33"></script>
 <script src="xeva-presence.js?v=9" defer></script>
-<script type="module" src="xeva-cloud.js?v=33"></script>
+<script type="module" src="xeva-cloud.js?v=34"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -22,7 +22,7 @@
 <link rel="stylesheet" href="mb-gacha-reveal.css?v=11">
 <!-- ★ 2026-08-10 キャラ詳細（性能画面）の見た目。図鑑（characters.html）と共通 -->
 <link rel="stylesheet" href="mb-char-detail.css?v=23">
-<script src="xeva.js?v=67"></script>
+<script src="xeva.js?v=70"></script>
 <!-- ★★ 2026-09-05 言語切りかえ（日本語 ⇄ English）。辞書は本体のあとに読むこと。 -->
 <script src="xeva-i18n.js?v=8"></script>
 <script src="xeva-i18n-dict.js?v=12"></script>
@@ -40,9 +40,9 @@
 <script src="xeva-i18n-mb7.js?v=7"></script>
 <script src="xeva-i18n-p4.js?v=7"></script>
 <!-- ★★ 2026-09-06b 今回足したもの（新キャラ14体・装備・スタメンなど）の英語辞書 -->
-<script src="xeva-i18n-n1.js?v=8"></script>
+<script src="xeva-i18n-n1.js?v=11"></script>
 <script src="xeva-i18n-n2.js?v=3"></script>
-<script src="xeva-loading.js?v=17" defer></script>
+<script src="xeva-loading.js?v=18" defer></script>
 <script src="magibattle-stats.js?v=14"></script>
 <script type="module" src="xeva-sync.js?v=18"></script>
 <style>
@@ -85,6 +85,105 @@ body::after{width:320px;height:320px;background:radial-gradient(circle,rgba(255,
   background:rgba(255,255,255,.88);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);
   border-bottom:1px solid var(--bdr);box-shadow:0 2px 14px rgba(90,130,210,.12)}
 .gh a.back{font-size:22px;color:var(--pur);padding:2px 8px;border-radius:8px}
+/* ★★ 2026-09-19e 戻るボタン（一覧＝← ／ それぞれのガチャ＝BACK） */
+.gh .back{font-family:inherit;border:none;background:none;cursor:pointer;font-size:22px;color:var(--pur);padding:2px 8px;border-radius:8px;flex:none}
+.gh .back.bk{font-family:'Orbitron',sans-serif;font-size:11px;font-weight:900;letter-spacing:.08em;color:#fff;padding:8px 12px;border-radius:99px;
+  background:linear-gradient(135deg,var(--pur),var(--pink));box-shadow:0 3px 10px rgba(123,92,240,.35)}
+/* ══ ★★ 2026-09-19e ガチャの一覧（スライドしてえらぶ）══ */
+body.glmode .body,body.glmode #pullbar{display:none}
+body:not(.glmode) #glist{display:none}
+#glist{position:relative;z-index:1;padding:12px 0 0}
+.gl-ttl{display:flex;align-items:center;gap:10px;margin:0 16px 10px}
+.gl-ttl b{font-size:17px;font-weight:900;background:linear-gradient(135deg,var(--pur),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.gl-ttl span{font-size:10.5px;font-weight:800;color:var(--txt2)}
+/* ★★ 2026-09-19f 横にスクロールする列には<b>見えるバー</b>を付ける（PC はマウスで横に動かせないため・ご指定） */
+.gl-tabs,.gl-pk .row{scrollbar-width:thin;scrollbar-color:#b9a6ff #ece7ff}
+.gl-tabs::-webkit-scrollbar,.gl-pk .row::-webkit-scrollbar{display:block;height:7px}
+.gl-tabs::-webkit-scrollbar-track,.gl-pk .row::-webkit-scrollbar-track{background:#ece7ff;border-radius:99px}
+.gl-tabs::-webkit-scrollbar-thumb,.gl-pk .row::-webkit-scrollbar-thumb{background:linear-gradient(90deg,var(--pur),var(--pink));border-radius:99px}
+/* ★★ 2026-09-19g 名前の札の列は<b>いつも見える</b>（見出しの下に貼りつく） */
+.gl-tabs{display:flex;gap:6px;overflow-x:auto;padding:8px 16px 8px;margin-bottom:6px;position:sticky;top:var(--ghH,64px);z-index:20;
+  background:rgba(245,249,255,.94);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:1px solid var(--bdr)}
+.gl-tab{flex:none;border:none;cursor:pointer;font-family:inherit;font-size:11px;font-weight:900;color:var(--txt2);
+  background:#fff;border:1.5px solid var(--bdr);border-radius:99px;padding:6px 12px;display:flex;align-items:center;gap:5px;white-space:nowrap}
+.gl-tab i{width:8px;height:8px;border-radius:50%;flex:none}
+.gl-tab.on{color:#fff;background:linear-gradient(135deg,var(--pur),var(--pink));border-color:transparent}
+.gl-tab em{font-style:normal;font-size:8px;font-weight:900;color:#fff;background:#ff4d6d;border-radius:99px;padding:1px 5px}
+/* ★★ 2026-09-19f 一覧は<b>縦にスクロール</b>（ご指定。前は横スライド） */
+.gl-rail{display:flex;flex-direction:column;gap:14px;padding:4px 16px 20px}
+.gl-card{scroll-margin-top:calc(env(safe-area-inset-top,0px) + 120px);background:var(--card);border-radius:22px;overflow:hidden;
+  border:2px solid var(--bdr);box-shadow:0 8px 26px rgba(90,130,210,.18);display:flex;flex-direction:column}
+.gl-hd{display:flex;align-items:center;gap:6px;padding:10px 12px 8px}
+.gl-hd .per{flex:1;min-width:0;font-size:11.5px;font-weight:900;color:var(--txt)}
+.gl-hd .per small{display:block;font-size:9.5px;font-weight:800;color:var(--txt2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gl-hd button{flex:none;border:none;cursor:pointer;font-family:inherit;font-size:10.5px;font-weight:900;color:var(--pur);
+  background:#f1ecff;border:1.5px solid rgba(123,92,240,.3);border-radius:10px;padding:6px 9px}
+.gl-seal{flex:none;display:flex;align-items:center;gap:3px;font-size:10px;font-weight:900;color:#8a5a00;
+  background:linear-gradient(180deg,#fff4c7,#ffd66b);border:1.5px solid #e8a400;border-radius:99px;padding:3px 8px 3px 4px}
+.gl-seal img{width:18px;height:18px}
+.gl-seal.rdy{color:#fff;background:linear-gradient(135deg,#ff9d2e,#e0405e);border-color:#e0405e;animation:glSeal 1.4s ease-in-out infinite}
+@keyframes glSeal{50%{transform:scale(1.08)}}
+.gl-ban{position:relative;background:#0d0a1e;cursor:pointer}
+.gl-ban img{width:100%;display:block}
+.gl-ban .lab{position:absolute;left:10px;top:10px;font-size:10px;font-weight:900;letter-spacing:.1em;background:rgba(255,255,255,.92);color:var(--pur);
+  border-radius:99px;padding:4px 11px;font-family:'Orbitron',sans-serif}
+.gl-ban .nw{position:absolute;right:10px;top:10px;font-size:10px;font-weight:900;color:#fff;background:#ff4d6d;border-radius:99px;padding:3px 9px}
+.gl-ban .nm{position:absolute;left:0;right:0;bottom:0;padding:18px 12px 8px;font-size:13px;font-weight:900;color:#fff;
+  background:linear-gradient(180deg,transparent,rgba(8,6,24,.82));text-shadow:0 1px 3px rgba(0,0,0,.6)}
+.gl-pk{padding:8px 10px 2px}
+.gl-pk .cap{font-size:10.5px;font-weight:900;color:var(--txt2);text-align:center;background:#f3f6ff;border-radius:8px;padding:4px;margin-bottom:7px}
+.gl-pk .row{display:flex;gap:7px;overflow-x:auto;padding-bottom:8px}
+.gl-ch{position:relative;flex:none;width:62px;border:none;background:none;padding:0;cursor:pointer;font-family:inherit}
+/* ★★ 2026-09-19h NEW の印は<b>絵の内側の左上</b>へ（外へはみ出すと横スクロールの列で上が切れて、絵のふちと重なっていた） */
+.gl-ch .gl-new{position:absolute;left:4px;top:4px;z-index:1;font-style:normal;font-size:8px;font-weight:900;line-height:1;color:#fff;
+  background:#ff4d6d;border-radius:5px;padding:2px 4px;box-shadow:0 1px 4px rgba(0,0,0,.35)}
+.gl-sel{display:block;width:78%;margin:8px auto 0;border:none;cursor:pointer;font-family:inherit;font-size:12px;font-weight:900;color:#5a3a00;
+  border-radius:12px;padding:8px 10px;background:linear-gradient(180deg,#fff4c7,#ffd66b);border:1.5px solid #e8a400}
+.gl-sel small{display:block;font-size:9.5px;font-weight:800;opacity:.85}
+.gl-pktx p{margin:0 0 6px}
+.gl-ever{margin-top:12px;padding:12px;border-radius:14px;background:#fff8e6;border:1.5px solid rgba(232,164,0,.4)}
+.gl-ever b{display:block;font-size:13px;font-weight:900;color:#8a5a00}
+.gl-ever small{display:block;font-size:10.5px;font-weight:700;color:var(--txt2);margin:2px 0 8px}
+.gl-evergrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(58px,1fr));gap:8px}
+.gl-evergrid button{position:relative;border:none;background:none;padding:0;cursor:pointer;font-family:inherit}
+.gl-evergrid img{width:100%;aspect-ratio:1;border-radius:10px;object-fit:cover;border:2px solid var(--gold2);display:block}
+.gl-evergrid span{display:block;font-size:9px;font-weight:900;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gl-evergrid i{position:absolute;left:3px;right:3px;top:3px;font-style:normal;font-size:7.5px;font-weight:900;line-height:1.2;color:#fff;background:rgba(40,30,10,.78);border-radius:5px;padding:1px 2px;text-align:center}
+.gl-evergrid i.nw{right:auto;background:#ff4d6d}
+.gl-evergrid em{display:block;font-style:normal;font-size:8.5px;font-weight:800;color:var(--txt2)}
+.gl-evergrid button.out img{filter:grayscale(.75) brightness(.9)}
+.gl-start{margin:2px 0 10px;padding:9px 12px;border-radius:12px;background:#f1ecff;font-size:12px;font-weight:800;color:var(--txt)}
+.gl-ch img{width:62px;height:62px;border-radius:12px;object-fit:cover;border:2px solid var(--gold2);display:block}
+.gl-ch span{display:block;margin-top:3px;font-size:9px;font-weight:900;border-radius:6px;padding:2px 0;color:#fff;background:#9aa6c4}
+.gl-ch span.have{background:var(--grn)}
+.gl-ch span.max{background:linear-gradient(135deg,#ffb020,#e8a400)}
+.gl-ch.sec img{filter:brightness(0) opacity(.55)}
+.gl-go{padding:6px 10px 12px}
+.gl-go .gl-draw{width:100%;border:none;cursor:pointer;font-family:inherit;font-size:15px;font-weight:900;color:#fff;letter-spacing:.04em;
+  border-radius:16px;padding:14px 10px;background:linear-gradient(135deg,#ff9d2e,#e0405e 60%,#c86bff);box-shadow:0 5px 16px rgba(224,64,94,.34)}
+.gl-go .gl-draw small{display:block;font-size:10px;font-weight:800;opacity:.9;margin-top:2px}
+/* ★★ 2026-09-19f 一覧の「詳細」＝ガチャの画面でキャラより下にある説明を開く */
+#glInfoOv{position:fixed;inset:0;z-index:960;display:none;align-items:flex-end;justify-content:center;background:rgba(20,24,52,.45)}
+#glInfoOv.on{display:flex}
+#glInfoCard{width:100%;max-width:680px;max-height:84vh;max-height:84dvh;overflow:auto;background:var(--card);border-radius:22px 22px 0 0;
+  padding:0 14px calc(env(safe-area-inset-bottom,0px) + 18px)}
+#glInfoCard .hd{position:sticky;top:0;z-index:1;display:flex;align-items:center;gap:8px;padding:14px 2px 10px;background:var(--card)}
+#glInfoCard .hd b{flex:1;font-size:14px;font-weight:900}
+#glInfoCard .hd button{border:none;cursor:pointer;width:34px;height:34px;border-radius:50%;font-size:16px;background:#f1ecff;color:var(--pur)}
+/* ★★ 2026-09-19f ガチャの画面の「一覧へ戻る」は、ホームへ戻る ← と重ならないよう<b>見出しの下</b>に置く */
+.glback{position:sticky;top:calc(var(--ghH,64px) + 8px);z-index:25;margin:0 0 10px;border:none;cursor:pointer;font-family:'Orbitron',sans-serif;
+  font-size:11px;font-weight:900;letter-spacing:.08em;color:#fff;padding:8px 14px;border-radius:99px;
+  background:linear-gradient(135deg,var(--pur),var(--pink));box-shadow:0 3px 10px rgba(123,92,240,.35)}
+/* ★★ 2026-09-19f ガチャの画面のいちばん上にあった「ガチャえらび」（一覧のなごり）は出さない */
+.body .gpick,.body #gmenu{display:none!important}
+.gl-go .pbtn{position:relative}
+.gl-lock{padding:10px 12px 14px;text-align:center;font-size:12px;font-weight:900;color:#6f82ad}
+.gl-dots{display:flex;justify-content:center;gap:5px;padding:0 0 6px}
+.gl-dots i{width:6px;height:6px;border-radius:99px;background:rgba(123,92,240,.25);transition:width .2s}
+.gl-dots i.on{width:18px;background:var(--pur)}
+/* 10連の「SSR確定」の札 */
+.pbtn .ssrtag{position:absolute;right:-4px;top:-9px;font-size:9px;font-weight:900;color:#5a3a00;letter-spacing:.02em;
+  background:linear-gradient(180deg,#fff2a8,#ffc93c);border:1.5px solid #e8a400;border-radius:99px;padding:2px 7px;box-shadow:0 2px 6px rgba(232,164,0,.35)}
 .gh h1{font-family:'Orbitron',sans-serif;font-size:14px;letter-spacing:1px;flex:1;
   background:linear-gradient(135deg,var(--pur),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 .gh h1 small{display:block;font-size:8px;letter-spacing:.22em;color:var(--txt2);-webkit-text-fill-color:var(--txt2)}
@@ -203,7 +302,7 @@ body::after{width:320px;height:320px;background:radial-gradient(circle,rgba(255,
 #pullbar{position:fixed;left:0;right:0;bottom:0;z-index:40;padding:9px 12px calc(env(safe-area-inset-bottom,0px) + 9px);
   background:linear-gradient(180deg,rgba(255,255,255,.86),#fff 42%);
   border-top:1.5px solid var(--bdr);box-shadow:0 -6px 22px rgba(90,130,210,.16);
-  display:grid;grid-template-columns:1fr 1fr 1.25fr;gap:7px;max-width:680px;margin:0 auto}
+  display:grid;grid-template-columns:1fr 1.25fr;gap:7px;max-width:680px;margin:0 auto}
 .pbtn{border:none;border-radius:14px;padding:11px 4px;cursor:pointer;font-family:inherit;
   display:flex;flex-direction:column;align-items:center;gap:2px;color:#fff;
   background:linear-gradient(135deg,#8e6bff,#b06bff);box-shadow:0 4px 14px rgba(142,107,255,.32)}
@@ -424,7 +523,8 @@ body::after{width:320px;height:320px;background:radial-gradient(circle,rgba(255,
 
 <div class="wrap">
   <div class="gh">
-    <a class="back" href="index.html">←</a>
+    <!-- ★★ 2026-09-19e 左上の戻るボタン。一覧ではホームへ、それぞれのガチャでは<b>一覧へ戻る BACK</b>（ご指定・常に表示） -->
+    <button class="back" id="gBack" onclick="gachaBack()">←</button>
     <h1>ガチャ<small>XEVARION GACHA</small></h1>
     <div class="wal">
       <span class="walc gem"><i class="icc ic-gem"></i><b id="walGem">0</b></span>
@@ -437,7 +537,11 @@ body::after{width:320px;height:320px;background:radial-gradient(circle,rgba(255,
     </div>
   </div>
 
+  <!-- ★★ 2026-09-19e ガチャの一覧（ご指定の画像の構造・横にスライドしてえらぶ）。中身は gacha-ui.js の paintList() -->
+  <div id="glist"></div>
+
   <div class="body">
+    <button class="glback" onclick="showList()">‹ ガチャ一覧へ</button>
     <button class="gpick" onclick="toggleMenu()">
       <span class="gpi" id="gpIcon">🎰</span>
       <span class="gpt"><b id="gpName">プレミアムセレクトガチャ</b><span id="gpSub">ピックアップを1体えらべる常設ガチャ</span></span>
@@ -765,6 +869,7 @@ body::after{width:320px;height:320px;background:radial-gradient(circle,rgba(255,
 </div>
 
 <div id="pullbar"></div>
+<div id="glInfoOv" onclick="if(event.target===this)glInfoClose()"><div id="glInfoCard"></div></div>
 
 <div id="resOv"><div id="resCard"></div></div>
 <div id="detOv" onclick="if(event.target===this)closeDetX()"><div id="detCard"></div></div>
@@ -800,15 +905,15 @@ body::after{width:320px;height:320px;background:radial-gradient(circle,rgba(255,
 <!-- ★★ 2026-09-08 新キャラの<b>実装日</b>の台帳。
      mb-core.js の charImplDate() がこれを見て「実装から10日以内か」を判定する。
      ★ mb-core.js より<b>前</b>に読むこと（defer にしない）。 -->
-<script src="mb-newchars.js?v=28"></script>
-<script src="MagiBurst/js/mb-core.js?v=121"></script>
+<script src="mb-newchars.js?v=31"></script>
+<script src="MagiBurst/js/mb-core.js?v=127"></script>
 <!-- ★ 2026-08-10 キャラ詳細（性能画面）。図鑑（characters.html）と同じものを使う -->
 <!-- ★★ 2026-08-22 ガチャの詳細だけ「このキャラの最大値」も並べる（ご指定）。
      図鑑（characters.html）はこの旗を立てないので、これまでどおり いまの値だけ。
      旗は mb-char-detail.js を読む<b>前</b>に立てること。 -->
 <script>window.MBDET_MAXSTATS = true;</script>
 <script src="mb-char-detail.js?v=34"></script>
-<script src="gacha-ui.js?v=49"></script>
+<script src="gacha-ui.js?v=56"></script>
     <!-- ★★ 2026-09-13c 新キャラ紹介アニメの舞台。中身は gacha-ui.js の nciOpen() が入れる。 -->
     <div class="nci" id="nciOv">
       <div class="nci-sky"><i class="s1"></i><i class="s2"></i><div class="nci-rays"></div></div>

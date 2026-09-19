@@ -7,7 +7,7 @@
    ・オフライン中の進行は localStorage に残り、オンライン復帰時に
      xeva-cloud.js がタイムスタンプ比較でクラウドへ上書き反映する
    ============================================================ */
-const VERSION = "xevarion-sw-v156";
+const VERSION = "xevarion-sw-v166";
 
 /* ホームを成立させる最小セット（重い画像は runtime キャッシュに任せる） */
 const CORE = [
@@ -17,12 +17,12 @@ const CORE = [
   "./characters.html",
   /* ★ 2026-08-10 ガチャは XEVARION に一本化。中身は MagiBurst の共有モジュールが持つ */
   "./gacha.html",
-  "./gacha-ui.js?v=49",
-  "./mb-newchars.js?v=28",
+  "./gacha-ui.js?v=56",
+  "./mb-newchars.js?v=31",
   "./xevion-os.js?v=13",
   "./xevion-os.css?v=15",
   "./magibattle-stats.js?v=14",
-  "./MagiBurst/js/mb-core.js?v=121",
+  "./MagiBurst/js/mb-core.js?v=127",
   /* ★ 2026-08-10 ガチャと図鑑で共通の土台・キャラ詳細・結果演出 */
   /* ★ 2026-08-12 ポータルのガチャ・図鑑も magiburst_v1 を同期するようになった */
   "./app-cloud.js?v=12",
@@ -36,9 +36,9 @@ const CORE = [
   "./manifest.webmanifest",
   "./xeva-theme.css?v=9",
   "./xevarion.css?v=25",
-  "./xevarion-home.css?v=80",
+  "./xevarion-home.css?v=82",
   /* ★★ 2026-09-03 下バーを画面の下端に合わせる共通部品 */
-  "./xeva-safebottom.js?v=11",
+  "./xeva-safebottom.js?v=12",
   "./xeva-qr.js?v=9",
   /* ★★ 2026-09-13 更新中の全画面で流す PR 動画（字幕は JS が出す） */
   "./xeva-collection.js?v=7",
@@ -55,13 +55,13 @@ const CORE = [
   "./xeva-i18n-p3.js?v=7",
   "./xeva-i18n-mb7.js?v=7",
   "./xeva-i18n-p4.js?v=7",
-  "./xeva-i18n-n1.js?v=8",
+  "./xeva-i18n-n1.js?v=11",
   "./xeva-i18n-n2.js?v=3",
-  "./xeva.js?v=67",
+  "./xeva.js?v=70",
   "./xeva-fx.js?v=9",
-  "./xeva-loading.js?v=17",
-  "./xevarion.js?v=90",
-  "./xevarion-home.js?v=117",
+  "./xeva-loading.js?v=18",
+  "./xevarion.js?v=92",
+  "./xevarion-home.js?v=121",
   "./maintenance-gate.js?v=13",
   "./xeva-back.js?v=9",
   "./xeva-keys.js?v=25",
@@ -121,7 +121,7 @@ const CORE = [
   "./MagiDiamond/js/md2-icons.js?v=6",
   "./MagiDiamond/js/md2-data.js?v=13",
   /* ★★ 2026-09-10 図鑑のキャラ詳細で Magi: Boccia Rush の性能も出すので、ここでも持つ */
-  "./MagiBocciaRush/js/mbr-core.js?v=12",
+  "./MagiBocciaRush/js/mbr-core.js?v=15",
   "./MagiDiamond/js/md2-game.js?v=22",
   "./MagiDiamond/js/md2-online.js?v=10",
   "./MagiDiamond/img/logo.webp",

@@ -3340,7 +3340,7 @@ addEventListener("DOMContentLoaded", () => { if (_xevLang === "en") applyLang("e
 (function () {
   const POOL = [
     "thumbs/MagiLink.jpg", "thumbs/MagiLex.jpg", "thumbs/MagiEmpire.jpg",
-    "thumbs/MagiCraft.jpg", "thumbs/MagiChainParty.jpg", "thumbs/MagiShareCore.jpg",
+    "thumbs/MagiCraft.jpg", "thumbs/MagiChainParty.jpg", "thumbs/MagiBurst.jpg",
     "thumbs/MagiPortfolio.jpg", "thumbs/MagiRanking.jpg", "thumbs/MagiBattle.jpg",
   ];
   const tiles = document.querySelectorAll(".hero-art .ha-tile:not(.main) img");
@@ -3430,6 +3430,24 @@ addEventListener("DOMContentLoaded", () => { if (_xevLang === "en") applyLang("e
       var s = (window.innerWidth > window.innerHeight ? sMin : sMax) - box;
       /* 0 < s < 200 のときだけ信じる（それ以上は測り損ない＝PC のウィンドウなど） */
       return (s > 0 && s < 200) ? s : 0;
+    } catch (e) { return 0; }
+  }
+  /* ★★★ 2026-09-19 ご報告「ホームと起動画面で下バーと空白が点滅して、画面も上下する」の真因。
+     09-18 の .xh-shim は「箱＋不足分」で高さを決め、不足分が 0 になると外していた。
+     ところが .xh-shim を付けると文書が不足分だけ長くなり、iOS はそれで<b>箱の長さを変える</b>
+     （スクロールできる文書だと箱が画面いっぱいになる）→ 不足分 0 → 外す → 文書が縮む →
+     箱がまた短い → 付ける … と<b>行ったり来たり</b>していた。
+     ⇒ 高さは箱から出さず<b>画面の高さそのもの</b>にし、iOS のアプリ表示で箱が画面と同じか
+       少し短い（0〜200）あいだは<b>ずっと付けたまま</b>にする。箱が 793 でも 852 でも
+       板の高さは 852 のまま動かない（＝点滅も上下もしない）。 */
+  function fullHeight(box) {
+    try {
+      if (!isStandaloneApp() || !isIOS() || !(box > 200)) return 0;
+      var sMin = Math.min(screen.width, screen.height);
+      var sMax = Math.max(screen.width, screen.height);
+      var sh = window.innerWidth > window.innerHeight ? sMin : sMax;
+      var s = sh - box;
+      return (s >= -1 && s < 200) ? sh : 0;
     } catch (e) { return 0; }
   }
   var probe = null;
@@ -3576,10 +3594,16 @@ addEventListener("DOMContentLoaded", () => { if (_xevLang === "en") applyLang("e
          （iOS の同じ不具合への対処として知られている方法。文書は不足分だけ伸びるので、
            板が出ているあいだはスクロールを 0 に留める＝pinScroll） */
     var sfall = Math.round(shortfall(box));
+    var fullh = Math.round(fullHeight(box));   // ★★★ 2026-09-19 箱に左右されない高さ（上の fullHeight）
     try {
       root.style.setProperty("--xh-boxh", Math.round(box) + "px");
       root.style.setProperty("--xh-shim", sfall + "px");
-      root.classList.toggle("xh-shim", sfall > 0);
+      if (fullh > 0) {
+        if (root.style.getPropertyValue("--xh-fullh") !== fullh + "px") root.style.setProperty("--xh-fullh", fullh + "px");
+        if (!root.classList.contains("xh-shim")) root.classList.add("xh-shim");
+      } else if (root.classList.contains("xh-shim")) {
+        root.classList.remove("xh-shim");
+      }
     } catch (e) {}
     var grow = g > 0 ? g : 0;
     if (root.style.getPropertyValue("--xh-fixgap") !== g + "px") {
