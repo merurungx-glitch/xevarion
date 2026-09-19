@@ -20,8 +20,8 @@ if ("serviceWorker" in navigator) {
   window.addEventListener("load", function () { navigator.serviceWorker.register("sw.js").catch(function () {}); });
 }
 </script>
-<script src="../xeva-safebottom.js?v=11"></script>
-<link rel="stylesheet" href="css/mbr.css?v=17" />
+<script src="../xeva-safebottom.js?v=12"></script>
+<link rel="stylesheet" href="css/mbr.css?v=20" />
 <script src="../xeva-splash.js?v=13" data-app="MagiBocciaRush" data-logo="../thumbs/MagiBocciaRush.jpg"></script>
 </head>
 <body>
@@ -68,14 +68,14 @@ if ("serviceWorker" in navigator) {
 <div id="recon" hidden></div>
 
 <!-- ★ アカウント同期（戦績・編成・熟練度は mbr_v1。xeva-keys.js に登録ずみ） -->
-<script type="module" src="../xeva-cloud.js?v=33"></script>
+<script type="module" src="../xeva-cloud.js?v=34"></script>
 <!-- ★★ 2026-09-17d 叡智の果実（magiburst_v1 の items.wisdom）をここでも使うので、MagiBurst のセーブ同期も読む。
      これが無いと、ここで使った果実がクラウドへ上がらず、別の端末で MagiBurst を開くと戻ってしまう。 -->
 <script type="module" src="../MagiBurst/magiburst-cloud.js?v=17"></script>
 <!-- ★ キャラクターとガチャは XEVARION（MagiBurst）と共通。
      mb-boot.js は MB_IMGD を "img/"（ポータル用）に決め打ちするので、
      そのあとで このアプリ用のパスに直してから mb-core.js を読む。 -->
-<script src="../xeva.js?v=67"></script>
+<script src="../xeva.js?v=70"></script>
 <!-- ★★ 2026-09-17d 英語版：キャラクター名・フルバースト名など MagiBurst 由来の日本語は、
      MagiBurst と同じ共通辞書で訳す（画面の文言は mbr-ui.js の J() で両方持っている）。 -->
 <script src="../xeva-i18n.js?v=8"></script>
@@ -87,19 +87,19 @@ if ("serviceWorker" in navigator) {
 <script src="../xeva-i18n-mb5.js?v=7"></script>
 <script src="../xeva-i18n-mb6.js?v=7"></script>
 <script src="../xeva-i18n-mb7.js?v=7"></script>
-<script src="../xeva-i18n-n1.js?v=8"></script>
+<script src="../xeva-i18n-n1.js?v=11"></script>
 <script src="../xeva-i18n-n2.js?v=3"></script>
-<script src="../xeva-loading.js?v=17" defer></script>
+<script src="../xeva-loading.js?v=18" defer></script>
 <script src="../mb-boot.js?v=17"></script>
 <script>window.MB_IMGD = "../img/"; window.MB_GIMGD = "../MagiBurst/img/";</script>
-<script src="../mb-newchars.js?v=28"></script>
-<script src="../MagiBurst/js/mb-core.js?v=121"></script>
+<script src="../mb-newchars.js?v=31"></script>
+<script src="../MagiBurst/js/mb-core.js?v=127"></script>
 <script src="js/mbr-voice.js?v=2"></script>
-<script src="js/mbr-core.js?v=12"></script>
-<script src="js/mbr-stage.js?v=4"></script>
+<script src="js/mbr-core.js?v=15"></script>
+<script src="js/mbr-stage.js?v=5"></script>
 <script src="js/mbr-fx.js?v=5"></script>
-<script src="js/mbr-help.js?v=2"></script>
-<script src="js/mbr-ui.js?v=15"></script>
+<script src="js/mbr-help.js?v=5"></script>
+<script src="js/mbr-ui.js?v=18"></script>
 <script type="module" src="js/mbr-online.js?v=4"></script>
 <!-- ★★ 2026-09-18 PARTY MATCH のアカウント紐づけ（MagiChainParty と同じ GameLink・XEVARIONFB を使う） -->
 <script type="module" src="../xevarion-fb.js?v=33"></script>

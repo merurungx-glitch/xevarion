@@ -102,6 +102,12 @@
     comeback: T(J("相手のほうがジャックに近いとき、1エンド1回だけブレが小さくなり予測も最後まで見えます。", "Once per end while behind: less scatter and a full preview."), J("負けている場面の逆転の1球。", "The comeback throw."), J("自分がリードしているときは発動しません。", "Doesn't trigger while you're ahead.")),
     longroll: T(J("1投で 6m 以上転がるとゲージが入ります。", "Gauge when the ball rolls 6m or more."), J("奥のジャック・壁を使った長い球。", "Deep jacks and long rail shots."), J("転がった距離の合計で判定します。", "Counts total distance rolled.")),
     sakurabloom: T(J("ブレが小さく、ボールが少し重く、当てるとゲージが入る——アカツキだけの特別なパッシブです。", "Less scatter, heavier balls, and gauge on hits — Akatsuki's unique passive."), J("どんな場面でも。", "Every throw."), J("常に効きます。", "Always on.")),
+    hyoukamirror: T(J("ブレが小さく、壁でよく跳ね、反射するたびゲージが入る——アヤネだけの特別なパッシブです。", "Less scatter, livelier rails, and gauge per bank — Ayane's unique passive."), J("壁を使った寄せ・はじき出し。", "Rail draws and rail knock-outs."), J("反射のゲージは1投で3回まで。", "Bank gauge counts up to 3 per throw.")),
+    shirahanaverse: T(J("ブレが小さく、ボールが少し重く、ジャックのそばで止まるとゲージが入り GUARD になる——チハだけの特別なパッシブです。", "Less scatter, heavier balls, and a gauge-plus-GUARD when stopping by the jack — Chiha's unique passive."), J("ジャックにぴたりと寄せて守る。", "Park tight on the jack and hold it."), J("止まった位置で判定します。", "Judged where the ball stops.")),
+    benisuzuring: T(J("ブレが小さく、ジャックのそばで止まると次の味方と自分のゲージが増える——ヒメリだけの特別なパッシブです。", "Less scatter; stopping near the jack charges the next teammate and yourself — Himeri's unique passive."), J("ULT を持つ味方の前に置く。", "Put her just before a ULT user."), J("増えるのは次の味方1人と自分。", "Only the next teammate and yourself.")),
+    abyssglow: T(J("ブレが小さく、当てたボールがすぐ止まり、当てるとゲージが入る——ホノカだけの特別なパッシブです。", "Less scatter, hit balls stop fast, and gauge on hits — Honoka's unique passive."), J("相手の球を狙った場所に止めたいとき。", "Knock a ball exactly where you want it to stay."), J("常に効きます。", "Always on.")),
+    bluerosewaltz: T(J("ブレが小さく、ボールが少し重く、壁でよく跳ねて、反射するたびゲージが入る——アズサだけの特別なパッシブです。", "Less scatter, heavier, livelier rails and gauge per bank — Azusa's unique passive."), J("壁を2回使う長いルート。", "Long two-rail routes."), J("反射のゲージは1投で3回まで。", "Bank gauge counts up to 3 per throw.")),
+    tsubakiumbrella: T(J("ブレが小さく、ボールが重く、ジャックのそばで止まるとゲージが入り GUARD になる——ココハだけの特別なパッシブです。", "Less scatter, heavy balls, and gauge plus GUARD when stopping near the jack — Kokoha's unique passive."), J("ジャックのまわりを傘のように守る。", "Guard the jack like an umbrella."), J("止まった位置で判定します。", "Judged where the ball stops.")),
   };
 
   const ULT = {

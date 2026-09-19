@@ -174,6 +174,15 @@
     paintTop();
   }
 
+  /* ★★ 2026-09-19 同期で保存データが差しかわったら、いまの画面を描き直す
+     （試合中・シートを開いているあいだは描き直さない＝操作を邪魔しない）。 */
+  window.addEventListener("mbr:reloaded", () => {
+    if (cur === "match") return;
+    const ov = $("#ov");
+    if (ov && ov.classList.contains("on")) return;
+    try { const y = window.scrollY; go(cur, detailId); window.scrollTo(0, y); } catch (e) {}
+  });
+
   /* ══════════ 共通の部品 ══════════ */
   function ttl(e, j) { return '<div class="ttl"><div class="e">' + esc(e) + '</div><div class="j">' + esc(j) + "</div></div>"; }
   function hd(e, j, more) { return '<div class="hd">' + esc(e) + (j ? "<small>" + esc(j) + "</small>" : "") + (more || "") + "</div>"; }
@@ -244,14 +253,8 @@
           + '<div class="note">' + esc(kindName(s.suspend.kind)) + " ・ " + new Date(s.suspend.at).toLocaleString() + "</div></div>"
           + '<button class="btn sm pri" data-a="resume">RESUME</button><button class="btn sm gh" data-a="discard">✕</button></div>' : "")
       + '<div class="tiles">'
-      + tile("go", "play", "PLAY", J("プレイ ─ 試合をえらぶ", "Choose a match"), "big", "▶")
-      + tile("setup", "quick", "QUICK MATCH", J("すぐに対戦", "Jump in"), "red", "⚡")
-      + tile("soon", "", "RANKED", J("ランクマッチ", "Ranked"), "soon", "♛", J("準備中", "SOON"))
-      + tile("soon", "", "TEAM MATCH", J("チーム対戦", "Team match"), "soon", "👥", J("準備中", "SOON"))
-      + tile("setup", "friend", "FRIEND MATCH", J("1台で友達と", "Same device"), "", "🤝")
-      + tile("setup", "party", "PARTY MATCH", J("1台で最大6色", "Up to 6 colours"), "", "🎉")
-      + tile("go", "room", "PRIVATE ROOM", J("ルームコードでオンライン", "Online room code"), "", "🔑")
-      + tile("setup", "practice", "PRACTICE", J("練習モード", "Free practice"), "wh", "◎")
+      /* ★★ 2026-09-19e ホームは <b>PLAY だけ</b>（ご指定）。それぞれのマッチ・BOSS STAGE は PLAY タブからえらぶ。 */
+      + tile("go", "play", "PLAY", J("プレイ ─ 試合・ボスステージをえらぶ", "Choose a match or boss stage"), "big", "▶")
       + "</div>"
       + hd("TEAM", J("編成（投げる順番・6体）", "Lineup order (6)"), '<span class="more" data-a="go" data-v="team">' + J("編成する ›", "Edit ›") + "</span>")
       + '<div class="lineup mini">' + [0, 1, 2, 3, 4, 5].map((i) => slotHTML(lu[i], i, "go", "team", lu[i] && awkOne(lu[i].id))).join("") + "</div>"
@@ -268,6 +271,41 @@
       + tile("gacha", "", "GACHA", J("XEVARION のガチャ", "XEVARION gacha"), "", "✦")
       + tile("settings", "", "SETTINGS", J("設定", "Settings"), "", "⚙")
       + "</div>";
+  }
+  /* ★★ 2026-09-19e BOSS STAGE のクリア数（PLAY タブの札） */
+  function bossClearCount() {
+    let got = 0, all = 0;
+    try {
+      const S = window.MBRStage;
+      if (S) {
+        all = S.STAGES.length * S.DIFF_KEYS.length;
+        const P = S.progress();
+        got = Object.keys(P).filter((k) => P[k] && P[k].clear).length;
+      }
+    } catch (e) {}
+    return { got, all };
+  }
+  function bossClearTag() {
+    const c = bossClearCount();
+    return c.all ? '<span class="bprog">CLEAR ' + c.got + " / " + c.all + "</span>" : "";
+  }
+  /* ★★ 2026-09-19 ホームの BOSS STAGE の入り口（クリア数つき）※ 2026-09-19e にホームからは外した（PLAY タブへ） */
+  function bossTile() {
+    let got = 0, all = 0;
+    try {
+      const S = window.MBRStage;
+      if (S) {
+        all = S.STAGES.length * S.DIFF_KEYS.length;
+        const P = S.progress();
+        got = Object.keys(P).filter((k) => P[k] && P[k].clear).length;
+      }
+    } catch (e) {}
+    const m = charOf("maki");
+    return '<button class="tile row bossgo" data-a="go" data-v="stages">'
+      + (m ? '<img class="tart" src="' + esc(img(m)) + '" alt="" loading="lazy">' : "")
+      + '<span class="e">BOSS STAGE</span><span class="j">' + J("ボスと戦う ─ 5ステージ×難易度3つ", "Fight the bosses · 5 stages × 3 levels") + "</span>"
+      + (all ? '<span class="bprog">CLEAR ' + got + " / " + all + "</span>" : "")
+      + '<span class="ic">☠</span></button>';
   }
   /* ★ aw（凸の数）を渡したときだけ凸を出す（CPU の編成には渡さない） */
   function slotHTML(c, i, a, v, aw) {
@@ -286,7 +324,11 @@
     /* ★★ 2026-09-17e <b>QUICK MATCH＝カナ・BOSS STAGE＝マキは固定</b>（ご指定）。それ以外は新しいキャラから順に。
        固定の2体は「新しいキャラ」の列からは外す（同じ子が2回並ばないように）。
        ★ i に文字列（キャラ id）を渡すと、その子を固定で出す。 */
-    const FIXED = ["kana", "maki"];
+    /* ★★ 2026-09-19e 全部のボタンのキャラを<b>固定</b>（ご指定）：
+       RANKED＝アヤネ／FRIEND＝チハ／PARTY＝ヒメリ／TEAM＝ホノカ／PRIVATE ROOM＝ミサキ／CPU＝アヤメ／PRACTICE＝ナルミ／TUTORIAL＝サヤ */
+    /* ★★ 2026-09-19f 並べかえ（ご指定）：RANKED＝ミサキ／FRIEND＝アヤメ／PARTY＝ナルミ／TEAM＝サヤ、
+       PRIVATE ROOM＝キョウカ／CPU＝ヒカリ／PRACTICE＝ナギサ／TUTORIAL＝エリカ */
+    const FIXED = ["kana", "maki", "misaki", "ayame", "narumi", "saya", "kyoka", "hikari", "nagisa", "erika"];
     const fresh = B.buildRoster().filter((c) => FIXED.indexOf(c.id) < 0).slice(-8).reverse();
     const im = (i) => {
       if (typeof i === "string") { const c = charOf(i); return c ? '<img src="' + esc(img(c)) + '" alt="" loading="lazy">' : ""; }
@@ -298,15 +340,16 @@
     $("#s-play").innerHTML = ttl("MATCH SELECT", J("プレイするモードを選択してください", "Choose a mode"))
       + '<div class="modes">'
       + md("setup", "quick", "QUICK MATCH", J("クイックマッチ", "Quick match"), J("オンラインで相手をさがす（いなければCPU）", "Online first, CPU if nobody is around"), "hot full", "kana")
-      + md("go", "stages", "BOSS STAGE", J("ボスステージ", "Boss stages"), J("5ステージ×難易度3つ・初回クリアでジェム", "5 stages × 3 difficulties · gems on first clear"), "full stagemode", "maki")
-      + md("soon", "", "RANKED MATCH", J("ランクマッチ", "Ranked"), J("準備中です", "Coming soon"), "soon", 1)
-      + md("setup", "friend", "FRIEND MATCH", J("フレンド対戦", "Friend match"), J("1台で交代・全キャラから編成", "Pass the device, any character"), "", 2)
-      + md("setup", "party", "PARTY MATCH", J("パーティー対戦", "Party match"), J("1台で最大6色・6人で対戦", "Up to 6 colours on one device"), "party", 3)
-      + md("soon", "", "TEAM MATCH", J("チーム対戦", "Team match"), J("準備中です", "Coming soon"), "soon", 8)
-      + md("go", "room", "PRIVATE ROOM", J("プライベートルーム", "Private room"), J("ルームコードでオンライン", "Online with a room code"), "", 4)
-      + md("setup", "cpu", "CPU MATCH", J("CPU対戦", "CPU match"), "EASY 〜 MASTER", "", 5)
-      + md("setup", "practice", "PRACTICE", J("練習モード", "Practice"), J("得点なしで自由に投げる", "Free throws, no score"), "", 6)
-      + md("tutorial", "", "TUTORIAL", J("チュートリアル", "Tutorial"), J("投げながら覚える7ステップ", "Learn by throwing"), "", 7)
+      /* ★★ 2026-09-19e BOSS STAGE にもホームと同じ <b>CLEAR ◯ / 15</b>（ご指定） */
+      + md("go", "stages", "BOSS STAGE", J("ボスステージ", "Boss stages"), J("5ステージ×難易度3つ・初回クリアでジェム", "5 stages × 3 difficulties · gems on first clear"), "full stagemode", "maki").replace("</button>", bossClearTag() + "</button>")
+      + md("soon", "", "RANKED MATCH", J("ランクマッチ", "Ranked"), J("準備中です", "Coming soon"), "soon", "misaki")
+      + md("setup", "friend", "FRIEND MATCH", J("フレンド対戦", "Friend match"), J("1台で交代・全キャラから編成", "Pass the device, any character"), "", "ayame")
+      + md("setup", "party", "PARTY MATCH", J("パーティー対戦", "Party match"), J("1台で最大6色・6人で対戦", "Up to 6 colours on one device"), "party", "narumi")
+      + md("soon", "", "TEAM MATCH", J("チーム対戦", "Team match"), J("準備中です", "Coming soon"), "soon", "saya")
+      + md("go", "room", "PRIVATE ROOM", J("プライベートルーム", "Private room"), J("ルームコードでオンライン", "Online with a room code"), "", "kyoka")
+      + md("setup", "cpu", "CPU MATCH", J("CPU対戦", "CPU match"), "EASY 〜 MASTER", "", "hikari")
+      + md("setup", "practice", "PRACTICE", J("練習モード", "Practice"), J("得点なしで自由に投げる", "Free throws, no score"), "", "nagisa")
+      + md("tutorial", "", "TUTORIAL", J("チュートリアル", "Tutorial"), J("投げながら覚える7ステップ", "Learn by throwing"), "", "erika")
       + "</div>"
       + '<div class="pn tight" style="margin-top:10px"><div class="note">'
       + J("<b>キャラクター能力モード</b>＝特殊ショット・スキル・アルティメットあり。<br><b>ルール準拠モード</b>＝スキルなし・能力の効き1/3で腕前勝負。どちらもコートの壁で反射します。",

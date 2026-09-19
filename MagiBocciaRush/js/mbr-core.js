@@ -242,6 +242,21 @@
     /* ★★ 2026-09-17d 花宴祭 アカツキだけのパッシブ */
     sakurabloom:  { en: "Sakura Bloom", ja: "サクラ・ブルーム",
       d: { ja: "ブレが常に <b>-25%</b>、ボールが少し重い（<b>×1.12</b>）、ボールやボスに当てるとゲージ <b>+6</b>。", en: "Always -25% scatter, slightly heavier balls (×1.12), +6 gauge when hitting a ball or boss." } },
+    /* ★★ 2026-09-19 花宴祭 アヤネ・チハだけのパッシブ */
+    hyoukamirror: { en: "Hyouka Mirror", ja: "ヒョウカ・ミラー",
+      d: { ja: "ブレが常に <b>-30%</b>、壁の反発 <b>×1.10</b>、壁で反射するたびゲージ <b>+6</b>（3回まで）。", en: "Always -30% scatter, rail rebound ×1.10, +6 gauge per bank (up to 3)." } },
+    shirahanaverse:{ en: "Shirahana Verse", ja: "シラハナ・ヴァース",
+      d: { ja: "ブレが常に <b>-20%</b>、ボールが少し重い（<b>×1.10</b>）。ジャックの <b>50cm 以内</b>で止まるとゲージ <b>+10</b> ＆ GUARD になる。", en: "Always -20% scatter, heavier balls (×1.10). Stopping within 50cm of the jack gives +10 gauge and a GUARD." } },
+    /* ★★ 2026-09-19e 花宴祭 ヒメリ・ホノカ／極煌祭 アズサだけのパッシブ */
+    benisuzuring: { en: "Benisuzu Ring", ja: "ベニスズ・リング",
+      d: { ja: "ブレが常に <b>-20%</b>。ジャックの <b>1m 以内</b>で止まると<b>次の味方</b>のゲージ <b>+12</b>、自分もゲージ <b>+6</b>。", en: "Always -20% scatter. Stopping within 1m of the jack gives the next teammate +12 gauge and yourself +6." } },
+    abyssglow:    { en: "Abyss Glow", ja: "アビス・グロウ",
+      d: { ja: "ブレが常に <b>-20%</b>。当てたボールは <b>SHOCK</b>（すぐ止まる）になり、当てるとゲージ <b>+5</b>。", en: "Always -20% scatter. Balls you hit become SHOCKed, and hitting gives +5 gauge." } },
+    bluerosewaltz:{ en: "Blue Rose Waltz", ja: "ブルーローズ・ワルツ",
+      d: { ja: "ブレが常に <b>-25%</b>、ボールが少し重い（<b>×1.08</b>）、壁の反発 <b>×1.15</b>、壁で反射するたびゲージ <b>+6</b>（3回まで）。", en: "Always -25% scatter, slightly heavier (×1.08), rail rebound ×1.15, +6 gauge per bank (up to 3)." } },
+    /* ★★ 2026-09-19g 極彩祭 ココハだけのパッシブ */
+    tsubakiumbrella:{ en: "Tsubaki Umbrella", ja: "ツバキ・アンブレラ",
+      d: { ja: "ブレが常に <b>-25%</b>、ボールが重い（<b>×1.15</b>）。ジャックの <b>1m 以内</b>で止まるとゲージ <b>+8</b> ＆ GUARD になる。", en: "Always -25% scatter, heavier balls (×1.15). Stopping within 1m of the jack gives +8 gauge and a GUARD." } },
   };
   /* ══ ★★ 2026-09-17d <b>MagiBocciaRush でも最強</b>にするキャラ（ご指定）══
      ふつうは「能力の合計はどのキャラも同じ（STAT_SUM）」だが、<b>ここに書いたキャラだけ例外</b>。
@@ -250,6 +265,28 @@
     akatsuki: { type: "power", grade: "UR",
       st: { power: 86, control: 82, friction: 74, bounce: 74, jack: 74, charge: 74 },
       specials: ["powerhit", "straight"], active: "steadyhand", passive: "sakurabloom" },
+    /* ★★ 2026-09-19 花宴祭 追加2体（ご指定「MagiBocciaRush でも最強」）。合計 470＝アカツキ（464）より上。
+       アヤネ＝ねらいと壁の技巧（technique）、チハ＝ジャックまわりの支配（jack）。3体とも役割が重ならない。 */
+    ayane: { type: "technique", grade: "UR",
+      st: { power: 76, control: 90, friction: 78, bounce: 80, jack: 74, charge: 72 },
+      specials: ["straight", "pinpoint"], active: "focusaim", passive: "hyoukamirror" },
+    chiha: { type: "jack", grade: "UR",
+      st: { power: 74, control: 84, friction: 80, bounce: 72, jack: 88, charge: 72 },
+      specials: ["jackpush", "jackkiss"], active: "jackresonance", passive: "shirahanaverse" },
+    /* ★★ 2026-09-19e 花宴祭 ヒメリ（support）・ホノカ（trick）は合計 470、極煌祭 アズサ（bounce）は<b>476＝いちばん上</b>。 */
+    himeri: { type: "support", grade: "UR",
+      st: { power: 76, control: 86, friction: 76, bounce: 74, jack: 78, charge: 80 },
+      specials: ["guard", "follow"], active: "rallycall", passive: "benisuzuring" },
+    honoka: { type: "trick", grade: "UR",
+      st: { power: 80, control: 84, friction: 76, bounce: 76, jack: 76, charge: 78 },
+      specials: ["curve", "split"], active: "shocktap", passive: "abyssglow" },
+    azusa: { type: "bounce", grade: "UR",
+      st: { power: 80, control: 86, friction: 76, bounce: 90, jack: 72, charge: 72 },
+      specials: ["bank", "doublebank"], active: "mirrorrail", passive: "bluerosewaltz" },
+    /* ★★ 2026-09-19g 極彩祭 ココハ（defense）＝合計 <b>478</b>・いちばん上（ご指定「最強」） */
+    kokoha: { type: "defense", grade: "UR",
+      st: { power: 84, control: 86, friction: 80, bounce: 76, jack: 78, charge: 74 },
+      specials: ["guard", "heavy"], active: "ironwall", passive: "tsubakiumbrella" },
   };
   Object.assign(PASSIVES, {
     steadybase: { en: "Steady Base", ja: "ステディ・ベース", d: { ja: "ブレ常に <b>-10%</b>・減速 +3%。", en: "Always -10% scatter and +3% braking." } },
@@ -1022,6 +1059,12 @@
     if (pas === "anchor") o.mass *= 1.15;
     if (pas === "cover") o.cover = 1;
     if (pas === "sakurabloom") { o.spread *= 0.75; o.mass *= 1.12; }
+    if (pas === "hyoukamirror") { o.spread *= 0.70; o.wallMul *= 1.10; }
+    if (pas === "shirahanaverse") { o.spread *= 0.80; o.mass *= 1.10; o.bulwark = 1; }
+    if (pas === "benisuzuring") o.spread *= 0.80;
+    if (pas === "abyssglow") { o.spread *= 0.80; o.shock = 1; }
+    if (pas === "bluerosewaltz") { o.spread *= 0.75; o.mass *= 1.08; o.wallMul *= 1.15; }
+    if (pas === "tsubakiumbrella") { o.spread *= 0.75; o.mass *= 1.15; o.umbrella = 1; }
     if (pas === "steadybase") { o.spread *= 0.9; o.fric *= 1.03; }
     if (pas === "sprinter") o.vmax *= 1.05;
     if (pas === "grip") o.fric *= 1.08;
@@ -1161,14 +1204,21 @@
       const walls = kinds.filter((k) => k === "wall").length;
       const hits = kinds.filter((k) => k === "hit").length;
       const jacks = kinds.filter((k) => k === "jack").length;
-      gain += Math.min(3, walls) * (4 + (ch.passive === "reboundcharge" ? 7 : 0) + (mod.bankSp ? 4 : 0)) * (mod.bankUlt ? 2 : 1);
+      gain += Math.min(3, walls) * (4 + (ch.passive === "reboundcharge" ? 7 : 0) + (ch.passive === "hyoukamirror" || ch.passive === "bluerosewaltz" ? 6 : 0) + (mod.bankSp ? 4 : 0)) * (mod.bankUlt ? 2 : 1);
       gain += Math.min(2, hits) * 8;
       if (jacks) gain += 6 + (ch.passive === "jacksense" ? 10 : 0) + (mod.resonance ? 20 : 0);
       if (chain >= 2) gain += Math.min(18, (chain - 1) * 6);
       const jk = jackOf(M);
       if (jk && !b.dead) {
         const d = dist(b, jk);
-        if (d < 0.5) gain += 6 + (ch.passive === "jackgravity" ? 8 : 0);
+        if (d < 0.5) gain += 6 + (ch.passive === "jackgravity" ? 8 : 0) + (ch.passive === "shirahanaverse" ? 10 : 0);
+        if (ch.passive === "tsubakiumbrella" && d < 1.0) gain += 8;
+        if (ch.passive === "benisuzuring" && d < 1.0) {
+          const L = lineupOf(M, side).length || 1;
+          const ni = (i + 1) % L;
+          M.gauge[side][ni] = Math.min(GAUGE_MAX, M.gauge[side][ni] + 12);
+          gain += 6;
+        }
         if (ch.passive === "teamlink" && d < 1.0) {
           const L = lineupOf(M, side).length || 1;
           const ni = (i + 1) % L;
@@ -1178,6 +1228,7 @@
       if (ch.passive === "morale" && M.left[side] === M.cfg.perSide - 1) gain += 10;
       if (ch.passive === "longroll" && b.roll >= 6) gain += 8;
       if (ch.passive === "sakurabloom" && (hits || b.bossHits)) gain += 6;
+      if (ch.passive === "abyssglow" && (hits || b.bossHits)) gain += 5;
       if (ch.passive === "hunter") gain += Math.min(2, hits) * 5;
       if (ch.passive === "chainmaster" && chain >= 2) gain += 6;
       gain += b.gainBonus || 0;
@@ -1190,6 +1241,8 @@
     }
     /* GUARD */
     if (!b.dead && mod.bulwark && !mod.guardAfter) { const jk = jackOf(M); if (jk && dist(b, jk) < 0.5) { b.guard = 1; b.mass = Math.max(b.mass, GUARD_MASS); fx(M, { t: "guard", x: b.x, y: b.y }); } }
+    /* ★★ 2026-09-19g ツバキ・アンブレラ（ココハ）：ジャックの 1m 以内で止まれば GUARD */
+    if (!b.dead && mod.umbrella && !b.guard) { const jk = jackOf(M); if (jk && dist(b, jk) < 1.0) { b.guard = 1; b.mass = Math.max(b.mass, GUARD_MASS); fx(M, { t: "guard", x: b.x, y: b.y }); } }
     if (!b.dead && mod.guardAfter) { b.guard = 1; b.mass = Math.max(b.mass, mod.guardMass || GUARD_MASS); fx(M, { t: "guard", x: b.x, y: b.y }); }
     if (mod.fortress) live(M).forEach((o) => { if (o.side === side && !o.jack) { o.guard = 1; o.mass = Math.max(o.mass || 1, GUARD_MASS); fx(M, { t: "guard", x: o.x, y: o.y }); } });
     if (mod.jackDom) {
@@ -1638,6 +1691,22 @@
     return SAVE;
   }
   function save() { try { localStorage.setItem(KEY, JSON.stringify(load())); } catch (e) {} }
+  /* ★★ 2026-09-19 同期の取りこみ（xeva-cloud の pullNow・別タブ）で mbr_v1 が差しかわったら、
+     手元の写し（SAVE）を捨てて読み直す。
+     ★ これが無かったので、別の端末で上げた熟練度・編成を取りこんでも<b>画面は古い写しのまま</b>で、
+       次に save() した瞬間に<b>古い写しでクラウドまで上書き</b>していた（同期されない真因）。 */
+  function reload() {
+    let cur = null;
+    try { cur = localStorage.getItem(KEY); } catch (e) {}
+    if (SAVE && cur === JSON.stringify(SAVE)) return false;     /* 変わっていない */
+    SAVE = null; load();
+    try { window.dispatchEvent(new CustomEvent("mbr:reloaded")); } catch (e) {}
+    return true;
+  }
+  try {
+    window.addEventListener("xeva:synced", () => { reload(); });
+    window.addEventListener("storage", (e) => { if (e && e.key === KEY) reload(); });
+  } catch (e) {}
   function charProg(id) {
     const s = load();
     const p = s.chars[id] || { xp: 0, ball: "std", games: 0, wins: 0 };
@@ -1683,7 +1752,8 @@
 
   /* ══════════ 公開 ══════════ */
   window.MBR = {
-    VERSION: 4, REV: "2026-09-17c",
+    VERSION: 4, REV: "2026-09-19",
+    reload,
     COURT, BALL_R_REAL, BALL_R_PLAY, FRICTION_A, V_MAX, V_MIN, DT, GAUGE_MAX, CHAIN_MAX, STAT_SUM,
     TYPES, TYPE_KEYS, STAT_KEYS, STAT_NM, SPECIALS, ACTIVES, PASSIVES, ULTS, MODES, ELEM_C, ELEM_JA,
     BALL_SKINS, LV_MAX,

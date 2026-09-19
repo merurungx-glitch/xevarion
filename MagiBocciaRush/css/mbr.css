@@ -149,6 +149,14 @@ body.inmatch{padding-bottom:0}
 .tile.big{grid-column:1/-1;min-height:112px;background:linear-gradient(100deg,var(--rd),var(--r) 55%,#ff5a6e)}
 .tile.big .e{font-size:46px}
 .tile.red{background:linear-gradient(135deg,#4a0c19,#1a080d)}
+/* ★★ 2026-09-19 横いっぱいのタイル（QUICK MATCH と BOSS STAGE を上下にまっすぐ並べる） */
+.tile.row{grid-column:1/-1;min-height:78px}
+.tile.bossgo{background:linear-gradient(115deg,#2a0636 0%,#140318 55%,#08030c 100%);box-shadow:inset 0 0 0 2px rgba(190,90,255,.45)}
+.tile.bossgo .tart{position:absolute;right:0;top:0;height:100%;width:46%;object-fit:cover;object-position:50% 22%;opacity:.55;
+  -webkit-mask-image:linear-gradient(90deg,transparent,#000 60%);mask-image:linear-gradient(90deg,transparent,#000 60%);pointer-events:none}
+.tile.bossgo .ic{z-index:1;opacity:.5}
+.tile.bossgo .bprog{position:relative;z-index:1;display:inline-block;margin-top:6px;padding:2px 8px;font:italic 12px Anton,sans-serif;letter-spacing:.06em;
+  color:#1a0620;background:#d9a6ff;clip-path:polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%)}
 .tile.wh{background:#fff;color:var(--k0)}
 .tile.wh .j{color:#444}
 .tile:active{transform:scale(.98)}
@@ -716,3 +724,16 @@ html{scrollbar-gutter:stable}
 .dback{position:sticky;top:calc(env(safe-area-inset-top,0px) + 62px);z-index:40;height:0}
 #ovc .dback{top:0}
 .dback .tb.back{position:absolute;left:-2px;top:10px;box-shadow:0 2px 10px rgba(0,0,0,.6)}
+
+/* ★★ 2026-09-19e PLAY タブの BOSS STAGE にもクリア数の札 */
+.mode .bprog{position:relative;z-index:2;display:inline-block;margin-top:6px;padding:2px 8px;font:italic 12px Anton,sans-serif;letter-spacing:.06em;
+  color:#1a0620;background:#d9a6ff;clip-path:polygon(6px 0,100% 0,calc(100% - 6px) 100%,0 100%)}
+
+/* ★★ 2026-09-19f 右のスクロールバーを画面のデザイン（赤・黒・白の斜め）にそろえる（ご指定） */
+html{scrollbar-width:thin;scrollbar-color:#e8173a #111}
+::-webkit-scrollbar{width:10px;height:8px}
+::-webkit-scrollbar-track{background:#0d0d0f;border-left:1px solid rgba(255,255,255,.08)}
+::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#ff5a6e,#e8173a 55%,#8a0b20);border:2px solid #0d0d0f;border-radius:0;
+  clip-path:polygon(0 4px,100% 0,100% calc(100% - 4px),0 100%)}
+::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,#fff,#ff5a6e)}
+::-webkit-scrollbar-corner{background:#0d0d0f}

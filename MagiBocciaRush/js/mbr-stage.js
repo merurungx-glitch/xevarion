@@ -109,11 +109,18 @@
   /* ══════════ ダメージ ══════════
      base = (DMG_BASE ＋ DMG_SPEED × 当たった速さ) × そのボールの押し出し倍率（POWER の能力・POWER HIT・ULT が乗る）
           × 型の対応 × 角度 × 属性相性（×1.15 まで）× そのときの状態（装甲・露出・結界…）  */
+  /* ★★ 2026-09-19e <b>押し出した球</b>（いま投げた球ではない、コートに置いてあった球）がボスに当たったとき。
+     前は「当たった速さ 0.6m/s 以上」の決まりを投げた球と同じにしていたので、押された球はほとんど届かず
+     ダメージにならなかった（ご報告）。押された球は <b>0.3m/s から</b>数え、<b>PUSH ×1.2</b> を乗せる。 */
+  function isPushed(M, b) { return !!(M.cur && b !== M.cur && b.chainOf !== M.cur.id && !b.jack); }
+  const PUSH_MIN_V = 0.3, PUSH_MUL = 1.2;
+  function minHitV(M, b) { return isPushed(M, b) ? PUSH_MIN_V : 0.6; }
   function damage(S, M, b, ob, res, stateMul) {
-    if (M.isSim || res.speed < 0.6 || b.jack) return 0;
+    if (M.isSim || res.speed < minHitV(M, b) || b.jack) return 0;
     const ch = charOfBall(b);
     const ty = ch ? ch.type : "";
     let m = (DMG_BASE + DMG_SPEED * res.speed) * clamp(b.hitMul || 1, 0.7, 1.8) * (stateMul == null ? 1 : stateMul);
+    if (isPushed(M, b)) m *= PUSH_MUL;
     const k = ob.kind;
     if (ty === "power") m *= (k === "armor" || k === "crystal" || k === "ice" || k === "part") ? 1.35 : k === "weak" ? 0.9 : 1;
     if (ty === "technique") m *= k === "weak" ? 1.35 : k === "armor" ? 0.85 : 1;
@@ -1013,10 +1020,11 @@
           if (S.def.collideExtra) S.def.collideExtra(S, M, b, ob);
           const key = ob.id;
           b._cd = b._cd || {};
-          if (res.speed < 0.6 || (b._cd[key] || -9) > (M.envT || 0)) continue;
+          if (res.speed < minHitV(M, b) || (b._cd[key] || -9) > (M.envT || 0)) continue;
           b._cd[key] = (M.envT || 0) + 0.25;
           if (!M.isSim) {
             M.fx.push({ t: "tap", x: b.x, y: b.y, v: res.speed });
+            if (isPushed(M, b) && (ob.kind === "core" || ob.kind === "weak")) pop(M, T("PUSH HIT!", "PUSH HIT!"), T("押し出した球がボスに命中（×" + PUSH_MUL + "）", "A pushed ball hit the boss (×" + PUSH_MUL + ")"), "#ffd257");
             S.def.onHit(S, M, b, ob, res);
           }
         }
