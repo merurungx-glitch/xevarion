@@ -1,38 +1,39 @@
 # MagiScope 自動取得の設定（鍵なし・サーバーなし）
 
-カラオケ（DAM）・FANZA同人・国内アニメ（Annict）の実ランキングは、`collect.py` が
+カラオケ（DAM）・国内アニメ（Annict）・FANZA同人 のランキングは、`collect.py` が
 **各サイトの公開ページを読んで**集め、XEVARION の GitHub リポジトリの **`magiscope-data` ブランチ**に JSON で置きます。
 アプリはそこ（raw.githubusercontent.com）を読むだけです。**API キー・トークン・Firebase の鍵は一切使いません。**
 （アニメの「総合・新作・今季…」は AniList をアプリが直接読むので、設定しなくても動きます）
 
-| 取得するもの | どこから | どこで動かす |
-|---|---|---|
-| カラオケ | カラオケ DAM のランキングページ（＋ジャケット＝iTunes、ソロ/グループ＝MusicBrainz） | GitHub（自動） |
-| 国内アニメ | Annict の季節ページ・作品ページ（視聴者数） | GitHub（自動） |
-| FANZA同人 | FANZA同人のコミックランキングページ・作品ページ | **この PC**（FANZA は日本からしか見られないため） |
-
-## 1. GitHub で自動取得を動かす（カラオケ・国内アニメ）
-1. XEVARION と一緒に **`.github/workflows/magiscope.yml`** を GitHub（merurungx-glitch/xevarion）に上げる。
-   ★ `.github` は名前が「.」で始まるフォルダなので、アップロードのときに漏れやすいので注意。
-2. GitHub のリポジトリ → **Actions** タブ →（初めてなら「I understand…」で有効にする）→
-   「MagiScope collector」→ **Run workflow**。緑になれば完了。以降は1時間ごとに自動で動きます。
-   使うのは GitHub が自動で用意する権限だけです（設定する鍵はありません）。
-
-## 2. この PC で FANZA同人を取る
-1. `register-task.bat` をダブルクリック。1時間ごとに `run-pc.bat` が動くように Windows に登録し、最初の1回をその場で動かします。
+## いちばん簡単な方法：この PC で全部取る（おすすめ）
+1. `register-task.bat` をダブルクリック。
 2. 最初の1回だけ、Git が **GitHub のログイン画面**を出します（ふだんのログインで OK。鍵は作りません）。
-3. やめるときは `unregister-task.bat`。
-- PC が起動しているあいだだけ更新されます（止まっていても、最後に取ったランキングはアプリに出つづけます）。
-- 必要なもの：Python と Git（どちらもこの PC に入っています）。
+3. そのまま最初の取得が走ります（数分）。終わったら閉じて大丈夫です。
+
+これで次のように動きます。
+- **1時間ごと**に自動で取得 → GitHub に置く（画面には何も出ません）。
+- **PC を切って、また起動したときも動き続けます**（登録は残ります）。
+  電源が入っていなかったあいだの分は、**起動後に1回だけ追いかけて**実行します（それ以上はさかのぼりません）。
+- ノートパソコンのバッテリー動作中でも動きます。
+- やめるときは `unregister-task.bat`。
+
+※ FANZA は日本からしか見られないので、**FANZA を取れるのはこの方法だけ**です。
+
+## 補助：GitHub でも自動取得する（任意・PC を使わない日の保険）
+`.github/workflows/magiscope.yml` を GitHub に上げると、1時間ごとに GitHub 側でもカラオケ・アニメを取ります
+（FANZA は海外からは取れないので PC のぶんがそのまま残ります）。
+★ `.github` は「.」で始まるフォルダのため、**ブラウザのドラッグ＆ドロップでは無視されます**。
+　GitHub の「Add file → Create new file」で、ファイル名に `.github/workflows/magiscope.yml` と入力して中身を貼ってください。
+上げたら Actions タブ →「MagiScope collector」→「Run workflow」で1回動かします。
 
 ## 確認
 - MagiScope の「設定 → データソース」に「◯分前に更新」と出れば動いています。
 - 取得の記録は `magiscope-data` ブランチの `meta.json` の `log` に残ります。
+- 手で動かすとき：`run-pc.bat`（全部）／`run-pc.bat --only fanza`（FANZA だけ）
 
 ## メモ
 - 前回順位は「前の日までの最後の記録」、順位推移は日ごとの記録です。動かしはじめた日から少しずつたまります。
 - ジャケット（iTunes）・視聴者数（Annict）・FANZA の作品ページ（ジャンル・配信日）は、1回あたりの件数を絞って少しずつ補います。
   最初の数時間は画像やジャンルが無い作品があります。
-- `magiscope-data` ブランチは毎回1つのコミットにまとめて上書きするので、リポジトリは大きくなりません。
+- `magiscope-data` ブランチは毎回上書きするので、リポジトリは大きくなりません。
 - 各サイトのページのつくりが変わると取れなくなることがあります。そのときは `meta.json` の `log` に「取得失敗」と出ます。
-- 手で試すとき：`python collect.py --out 出力フォルダ --only karaoke,anime,fanza`
