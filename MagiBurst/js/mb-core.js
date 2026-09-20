@@ -15,8 +15,8 @@
    <b>ふつうの &lt;script&gt;</b>（type="module" ではない）で読むこと。
    トップレベルの const/let はグローバルの字句環境に入るので、
    あとから読み込む MagiBurst 本体のスクリプトからそのまま見える。
-     MagiBurst : <script src="js/mb-core.js?v=127"></script>
-     gacha.html: <script src="MagiBurst/js/mb-core.js?v=127"></script>
+     MagiBurst : <script src="js/mb-core.js?v=128"></script>
+     gacha.html: <script src="MagiBurst/js/mb-core.js?v=128"></script>
 
    ── ホストが先に用意しておくもの ──
      window.MB_IMGD … 画像フォルダへの相対パス（MagiBurst は "../img/"、ポータルは "img/"）
@@ -505,10 +505,18 @@ function summerOn() {
   const d = new Date().toLocaleDateString("sv-SE");
   return d >= SUMMER_FROM && d <= SUMMER_TO;
 }
+/* ★★ 2026-09-21 クエストクリアでもらえるジェムを全体的に減らした（ご指定）。
+   ★ ここ1か所に掛けること。配る場所（victory / showMonthlyCarry）と
+     表示する場所（クエストカード / 一覧のバッジ）はどれも firstOrbOf() を通るので、
+     この定数を変えるだけで「もらえる数」と「書いてある数」がいつもそろう。
+   ★ 0個にはしない（初クリアの手ごたえが消えるため最低1個）。 */
+const QUEST_ORB_CUT = 0.5;
 /* ステージの「初クリアでもらえるジェム」。キャンペーン中は2倍 */
 function firstOrbOf(st) {
   const base = (st && st.orb) || 0;
-  return base ? base * (summerOn() ? SUMMER_ORB_MUL : 1) : 0;
+  if (!base) return 0;
+  const cut = Math.max(1, Math.round(base * QUEST_ORB_CUT));
+  return cut * (summerOn() ? SUMMER_ORB_MUL : 1);
 }
 /* ══ ★ 2026-08-10 ハイクロススティンガー（ナツキのリンク）══
    左右へ展開したあと、近くの敵へ弧を描いて折り返す貫通弾2本。
