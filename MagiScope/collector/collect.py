@@ -15,7 +15,7 @@ API キーもサーバーも使わず、各サイトの公開ページを読ん�
   ★ FANZA は日本からしか見られない → PC で動かす（run-pc.bat / register-task.bat）
 
 使いかた
-  python collect.py --out <フォルダ> [--only karaoke,anime,fanza,dlsite]
+  python collect.py --out <フォルダ> [--only karaoke,music,anime,fanza,dlsite,danime,fbooks,fvideo]
 """
 import json, os, re, sys, time, html, unicodedata, datetime, urllib.request, urllib.parse, http.cookiejar
 
@@ -35,6 +35,14 @@ def arg(name, default=None):
 
 OUT = arg("--out", "magiscope-data")
 ONLY = set(x for x in (arg("--only", "") or "").split(",") if x)
+# ★★ 2026-09-21c ご指定「圏外のデータをもっと」。
+#    ランキングの外の作品は、一覧ページの2ページ目から先を読んで index にためる。
+#    （ランキングそのものは1ページ目だけ。順位は付けない）
+FZ_PAGES = int(arg("--fz-pages", "12"))         # FANZA同人 コミック
+FZ_ANIME_PAGES = int(arg("--fz-anime-pages", "12"))
+DL_PAGES = int(arg("--dl-pages", "10"))         # DLsite 同人マンガ
+INDEX_MAX = int(arg("--index-max", "20000"))    # 1カテゴリーにためる上限
+MONO_PAGES = int(arg("--mono-pages", "5"))      # FANZA 通販ランキング（1ページ20件・最大5＝100位）
 def budget(name, dflt):
     return int(os.environ.get("MS_" + name + "_BUDGET", str(dflt)))
 
@@ -136,6 +144,78 @@ def num(s):
     return int(str(s).replace(",", "")) if s else 0
 
 
+# ══════════ iTunes（ジャケット・発売日・ジャンル。鍵はいらない） ══════════
+ITUNES_TRY = 3          # 見つからなかった曲を何回までさがし直すか
+IT = "https://itunes.apple.com"
+
+
+def it_view(x):
+    """iTunes の1件を、MagiScope が使う形にする"""
+    return {"img": str(x.get("artworkUrl100", "")).replace("100x100bb", "600x600bb"),
+            "rel": str(x.get("releaseDate", ""))[:10], "g": x.get("primaryGenreName", ""),
+            "url": x.get("trackViewUrl", ""), "al": x.get("collectionName", ""),
+            "aid": str(x.get("artistId", "")), "tid": str(x.get("trackId", ""))}
+
+
+# ★★ さがした結果は1か所にためる。カラオケの曲と音楽ランキングの曲はかなり重なるので、
+#    ここを共有すると、同じ曲を2回 iTunes に聞かずにすむ（＝ジャケットが早くそろう）。
+#    ためるのは「絵の在りか」だけで、ランキングそのものは混ぜない。
+_IT_CACHE = None
+
+
+def it_cache():
+    global _IT_CACHE
+    if _IT_CACHE is None:
+        _IT_CACHE = rd("cache/itunes-lookup.json", {})
+    return _IT_CACHE
+
+
+def it_cache_save():
+    if _IT_CACHE is not None:
+        wr("cache/itunes-lookup.json", _IT_CACHE)
+
+
+def itunes_song(title, artist):
+    """曲名＋アーティストでジャケットをさがす。
+       ★ 見つからない原因はたいてい「曲名に（）の但し書きが付いている」ことなので、
+         ①曲名＋アーティスト ②曲名だけ ③()を外した曲名＋アーティスト の3通りで試す。
+       返り値 … 見つかった:辞書 ／ 見つからない:{} ／ 叩きすぎ:None"""
+    nt, na = norm(strip_paren(title)), norm(strip_paren(artist))
+    ck = nt + "|" + na
+    cache = it_cache()
+    if ck in cache:
+        return cache[ck] or {}
+    tries = [strip_paren(title) + " " + strip_paren(artist), title + " " + artist, strip_paren(title)]
+    for q in tries:
+        try:
+            j = jget(IT + "/search?country=JP&lang=ja_jp&entity=song&limit=12&term=" + urllib.parse.quote(q))
+        except Exception as e:
+            if "403" in str(e) or "429" in str(e):
+                return None
+            log("iTunes 失敗", q[:30], e)
+            return {}
+        res = j.get("results", [])
+        best = next((x for x in res if norm(x.get("trackName")).startswith(nt) and na[:4] and na[:4] in norm(x.get("artistName"))), None) \
+            or next((x for x in res if nt and nt in norm(x.get("trackName")) and na[:4] and na[:4] in norm(x.get("artistName"))), None) \
+            or next((x for x in res if norm(x.get("trackName")).startswith(nt)), None)
+        if best:
+            cache[ck] = it_view(best)
+            return cache[ck]
+        time.sleep(3.2)
+    return {}
+
+
+def itunes_artist_songs(artist_id, limit=60):
+    """そのアーティストの曲をまとめて取る（ランキング圏外の曲を出すため）"""
+    try:
+        j = jget(IT + "/lookup?country=JP&lang=ja_jp&id=%s&entity=song&limit=%d" % (artist_id, limit))
+    except Exception as e:
+        if "403" in str(e) or "429" in str(e):
+            return None
+        return []
+    return [x for x in j.get("results", []) if x.get("wrapperType") == "track" and x.get("kind") == "song"]
+
+
 # ══════════ カラオケ（DAM） ══════════
 DAM = "https://www.clubdam.com"
 DAM_PAGES = {
@@ -196,50 +276,57 @@ def karaoke():
             if it["rn"] not in order:
                 order.append(it["rn"])
             songs.setdefault(it["rn"], {}).update(t=it["t"], a=it["a"], ac=it["ac"])
-    b = budget("ITUNES", 60)
+    b = budget("ITUNES", 110)
     for rn in order:
         if b <= 0:
             break
-        s = songs[rn]
-        if "img" in s or s.get("noart"):
+        so = songs[rn]
+        if so.get("img") or so.get("noart", 0) >= ITUNES_TRY:
             continue
         b -= 1
-        try:
-            j = jget("https://itunes.apple.com/search?country=JP&lang=ja_jp&entity=song&limit=8&term=" + urllib.parse.quote(strip_paren(s["t"]) + " " + strip_paren(s["a"])))
-            nt, na = norm(strip_paren(s["t"])), norm(strip_paren(s["a"]))
-            res = j.get("results", [])
-            best = next((x for x in res if norm(x.get("trackName")).startswith(nt) and na[:4] in norm(x.get("artistName"))), None) \
-                or next((x for x in res if norm(x.get("trackName")).startswith(nt)), None)
-            if best:
-                s.update(img=str(best.get("artworkUrl100", "")).replace("100x100bb", "600x600bb"), rel=str(best.get("releaseDate", ""))[:10],
-                         g=best.get("primaryGenreName", ""), url=best.get("trackViewUrl", ""), al=best.get("collectionName", ""))
-            else:
-                s["noart"] = 1
-        except Exception as e:
-            log("iTunes 失敗", rn, e)
-            if "403" in str(e) or "429" in str(e):
-                break
+        got = itunes_song(so["t"], so["a"])
+        if got is None:
+            break                                   # 403/429＝叩きすぎ。次回に回す
+        if got:
+            so.update({k: v for k, v in got.items() if k in ("img", "rel", "g", "url", "al")})
+            so["itArtist"] = got.get("aid", "")
+            so.pop("noart", None)
+        else:
+            so["noart"] = so.get("noart", 0) + 1     # ★ 一度で決めつけない（次の回にもう一度さがす）
         time.sleep(3.2)
+    # ★★ MusicBrainz（ソロ／グループ・男女）は混んでいると 503 を返す。
+    #    これは壊れているのではなく「いまは順番待ち」なので、失敗あつかいにしない。
+    #    3回だけ間をあけて試し、それでもだめなら何も言わずに次の回へ回す。
     b = budget("MB", 40)
+    mb_busy = 0
     for rn in order:
-        if b <= 0:
+        if b <= 0 or mb_busy:
             break
         ac = songs[rn].get("ac")
         if not ac or ac in artists:
             continue
         b -= 1
-        try:
-            name = re.split(r"[×x&＆,、]| feat\.| with ", strip_paren(songs[rn]["a"]), flags=re.I)[0].strip()
-            j = jget("https://musicbrainz.org/ws/2/artist/?fmt=json&limit=5&query=" + urllib.parse.quote('artist:"%s"' % name),
-                     headers={"User-Agent": "MagiScope/1.0 (XEVARION entertainment ranking)", "Accept": "application/json"})
-            cand = sorted([x for x in j.get("artists", []) if (x.get("score") or 0) >= 90], key=lambda x: x.get("country") != "JP")
-            a = cand[0] if cand else None
-            artists[ac] = {"type": a.get("type", ""), "gender": a.get("gender", "")} if a else {"none": 1}
-        except Exception as e:
-            log("MusicBrainz 失敗", ac, e)
-            if "503" in str(e):
+        name = re.split(r"[×x&＆,、]| feat\.| with ", strip_paren(songs[rn]["a"]), flags=re.I)[0].strip()
+        for attempt in range(3):
+            try:
+                j = jget("https://musicbrainz.org/ws/2/artist/?fmt=json&limit=5&query=" + urllib.parse.quote('artist:"%s"' % name),
+                         headers={"User-Agent": "MagiScope/1.0 (XEVARION entertainment ranking)", "Accept": "application/json"})
+                cand = sorted([x for x in j.get("artists", []) if (x.get("score") or 0) >= 90], key=lambda x: x.get("country") != "JP")
+                a = cand[0] if cand else None
+                artists[ac] = {"type": a.get("type", ""), "gender": a.get("gender", "")} if a else {"none": 1}
                 break
-        time.sleep(1.1)
+            except Exception as e:
+                if "503" in str(e) or "429" in str(e):
+                    if attempt == 2:
+                        mb_busy = 1                  # きょうは混んでいる。次の回にまわす
+                        break
+                    time.sleep(3.0 * (attempt + 1))
+                    continue
+                artists[ac] = {"none": 1}            # 名前が見つからないだけ。もう聞かない
+                break
+        time.sleep(1.3)
+    if mb_busy:
+        log("MusicBrainz は混んでいたので次回に回します")
     wr("cache/karaoke-songs.json", songs)
     wr("cache/karaoke-artists.json", artists)
 
@@ -259,6 +346,7 @@ def karaoke():
 
 # ══════════ FANZA同人（公開ページ） ══════════
 FZ = "https://www.dmm.co.jp/dc/doujin/-/ranking-all/=/submedia=comic/"
+FZ_COMIC_LIST = "https://www.dmm.co.jp/dc/doujin/-/list/=/media=comic/sort=ranking/"
 FZ_LISTS = {
     "overall": "sort=popular/term=h24/",
     "rising": "sort=popular/term=per_hour/",
@@ -325,10 +413,136 @@ def parse_fz_detail(src):
             reviews.append(t)
         if len(reviews) >= 3:
             break
+    # ★★ 2026-09-21d ご指定「同人アニメ系は原作があれば表示」。
+    #    FANZA の作品ページには「原作」という欄があることもあれば、
+    #    二次創作のもとになった作品が「題材」に書いてあることもある。両方を拾う。
+    #    「オリジナル」は原作ではないので、原作としては出さない。
+    theme = text(info.get("題材", ""))
+    origin = text(info.get("原作", "")) or text(info.get("原作者", ""))
+    if not origin and theme and "オリジナル" not in theme:
+        origin = theme
     return {"releaseDate": text(info.get("配信開始日", ""))[:10].replace("/", "-"), "author": text(info.get("作者", "")) or text(info.get("作家", "")),
-            "authorId": au.group(1) if au else "", "kind": text(info.get("作品形式", "")), "volume": text(info.get("ページ数", "")),
-            "theme": text(info.get("題材", "")), "genres": genres, "series": text(series) if sid else "", "seriesId": sid.group(1) if sid else "",
+            "authorId": au.group(1) if au else "", "kind": text(info.get("作品形式", "")), "volume": text(info.get("ページ数", "")) or text(info.get("動画本数", "")),
+            "theme": theme, "origin": origin, "voice": text(info.get("声優", "")), "scenario": text(info.get("シナリオ", "")),
+            "genres": genres, "series": text(series) if sid else "", "seriesId": sid.group(1) if sid else "",
             "samples": samples[:8], "reviews": reviews}
+
+
+# ★★ 2026-09-21c 同人アニメは FANZA から取る（ご指定）。
+#    FANZA同人の「ランキング」には動画の区分が無いので、
+#    <b>キーワード「動画」(id=156004) の一覧を sort= で並べ替えたもの</b>をランキングとして使う。
+#    1ページ120件・115ページあるので、圏外の作品もたくさん取れる。
+FZ_LIST_URL = "https://www.dmm.co.jp/dc/doujin/-/list/=/article=keyword/id=156004/"
+FZ_ANIME_SORTS = {
+    "overall":  "ranking",        # 人気順（＝ふだんのランキング）
+    "rising":   "popular",        # 注目
+    "new":      "date",           # 新着
+    "popular":  "sales",          # 売れている順
+    "alltime":  "total_sales",    # 累計
+    "rating":   "review_rank",    # 評価
+    "week":     "bookmark_desc",  # お気に入りが多い順
+}
+
+
+def parse_fz_list(src):
+    """FANZA同人の一覧ページ（productList）の1件ずつ"""
+    out = []
+    for b in re.split(r'<li class="productList__item"', src)[1:]:
+        cid = re.search(r"/detail/=/cid=([\w]+)/", b)
+        if not cid:
+            continue
+        ttl = re.search(r'tileListTtl__txt">\s*<a[^>]*>([\s\S]*?)</a>', b)
+        au = re.search(r'tileListTtl__txt--author">\s*<a href="[^"]*article=maker/id=(\d+)/"[^>]*>([\s\S]*?)</a>', b)
+        img = re.search(r'<img src="(https://doujin-assets[^"]+?)"', b)
+        kind = re.search(r'c_icon_genre">([^<]{1,8})<', b)
+        sales = re.search(r"販売数：([\d,]+)", b)
+        rate = re.search(r"listRate__ico--rate(\d+)", b)
+        votes = re.search(r"\((\d[\d,]*)件\)", b)
+        price = re.findall(r"<strong>([\d,]+)円</strong>", b)
+        out.append({"id": cid.group(1), "title": text(ttl.group(1)) if ttl else cid.group(1),
+                    "circle": text(au.group(2)) if au else "", "circleId": au.group(1) if au else "",
+                    "image": img.group(1) if img else None,
+                    "kind": text(kind.group(1)) if kind else "動画",
+                    "sales": num(sales.group(1)) if sales else None,
+                    "rating": (int(rate.group(1)) / 10) if rate else None,
+                    "votes": num(votes.group(1)) if votes else 0,
+                    "price": price[0] if price else "",
+                    "url": "https://www.dmm.co.jp/dc/doujin/-/detail/=/cid=%s/" % cid.group(1)})
+    return out
+
+
+def danime():
+    """同人アニメ（FANZA同人の動画）。ランキング＋圏外ぶんの一覧。"""
+    index = {x["id"]: x for x in rd("index/danime.json", []) if isinstance(x, dict)}
+    detail = rd("cache/danime-detail.json", {})
+    ok = False
+    for key, sort in FZ_ANIME_SORTS.items():
+        try:
+            url = FZ_LIST_URL + "sort=%s/" % sort
+            # ★ キーワード「動画」の一覧には、ボイスコミックやゲームも少し混ざる。
+            #   ここで「動画」だけに絞る（同人アニメのランキングなので）。
+            items = [v for v in parse_fz_list(fz_get(url)) if v.get("kind") == "動画"]
+            for i, v in enumerate(items):
+                v["rank"] = i + 1
+            if not items:
+                continue
+            for i, v in enumerate(items):
+                v["rank"] = i + 1
+                index[v["id"]] = dict(index.get(v["id"], {}), **v)
+            record("danime_" + key, [v["id"] for v in items], items, {"source": url})
+            log("同人アニメ", key, len(items))
+            ok = True
+        except Exception as e:
+            log("同人アニメ 取得失敗", key, e)
+        time.sleep(1.2)
+    if not ok:
+        return False
+    # ★ 圏外ぶん：2ページ目から先は一覧に入れるだけ（順位は付けない）
+    for pg in range(2, FZ_ANIME_PAGES + 1):
+        try:
+            for v in parse_fz_list(fz_get(FZ_LIST_URL + "sort=ranking/page=%d/" % pg)):
+                if v.get("kind") != "動画":
+                    continue
+                v.pop("rank", None)
+                index[v["id"]] = dict(index.get(v["id"], {}), **v)
+        except Exception as e:
+            log("同人アニメ 圏外の取得失敗", pg, e)
+            break
+        time.sleep(1.2)
+    # 作品ページ：ジャンル・配信日・サンプル（少しずつ）
+    b = budget("FZ_DETAIL", 40)
+    for cid in list(index.keys())[::-1]:
+        if b <= 0:
+            break
+        if cid in detail or (index[cid].get("genres") and index[cid].get("releaseDate")):
+            continue
+        b -= 1
+        try:
+            detail[cid] = parse_fz_detail(fz_get(index[cid]["url"]))
+        except Exception as e:
+            log("同人アニメ 作品ページ失敗", cid, e)
+            break
+        time.sleep(1.5)
+    wr("cache/danime-detail.json", detail)
+    for cid, d in detail.items():
+        if cid in index:
+            for k2, val in d.items():
+                if val and not index[cid].get(k2):
+                    index[cid][k2] = val
+    wr("index/danime.json", list(index.values())[-INDEX_MAX:])
+    for key in FZ_ANIME_SORTS:
+        f = "lists/danime_" + key + ".json"
+        L = rd(f, None)
+        if not L:
+            continue
+        for e in L.get("entries", []):
+            v = index.get(e["id"])
+            if v:
+                for k2 in ("genres", "releaseDate", "author", "authorId", "series", "seriesId", "volume", "theme", "origin", "voice", "scenario", "samples", "reviews"):
+                    if v.get(k2) and not e.get(k2):
+                        e[k2] = v[k2]
+        wr(f, L)
+    return True
 
 
 def fanza():
@@ -337,7 +551,7 @@ def fanza():
     for k, path in FZ_LISTS.items():
         items = []
         try:
-            for page in range(1, 6):
+            for page in range(1, FZ_PAGES + 1):
                 items += parse_fz_rank(fz_get(FZ + path + ("" if page == 1 else "page=%d/" % page)))
                 time.sleep(1.2)
             lists[k] = items
@@ -385,15 +599,111 @@ def fanza():
             ids.append(v["id"])
             new.append(dict(v, rank=len(ids)))
     record("fanza_new", ids, new, {"source": FZ + FZ_LISTS["overall"]})
-    wr("index/fanza.json", list(index.values())[-3000:])
+    # ★ 圏外ぶん：コミックの一覧ページを読んで index にためる（順位は付けない）
+    for pg in range(1, FZ_PAGES + 1):
+        try:
+            for v in parse_fz_list(fz_get(FZ_COMIC_LIST + ("" if pg == 1 else "page=%d/" % pg))):
+                v.pop("rank", None)
+                if v["id"] not in index:
+                    index[v["id"]] = v
+        except Exception as e:
+            log("FANZA 圏外の取得失敗", pg, e)
+            break
+        time.sleep(1.2)
+    wr("index/fanza.json", list(index.values())[-INDEX_MAX:])
     return True
+
+
+# ══════════ FANZA 本・アニメ（通販のランキングページ） ══════════
+# ★★ 2026-09-21d ご指定「FANZAブックス」「FANZA動画の中のアニメ」。
+#    電子書籍の FANZAブックス（book.dmm.co.jp）と 動画配信（video.dmm.co.jp）は
+#    <b>中身を JavaScript で描くつくり</b>に変わっていて、公開ページを読んでも作品が1件も入っていない。
+#    そこで、同じ FANZA の中で<b>サーバー側が HTML を返してくれる通販のランキング</b>を使う。
+#    　・本   … /mono/book/-/ranking/（コミック／エロ本）
+#    　・アニメ … /mono/anime/-/ranking/
+#    どちらも 1ページ20件 × 5ページ＝100位まで、日間／週間／月間がある。
+MONO = "https://www.dmm.co.jp"
+MONO_SETS = {
+    # key: (floor, ランキングの種類, 一覧のキー → mode)
+    "fbooks": {"floor": "book", "nm": "FANZA 本", "modes": {"": "comic", "adult": "adult"}},
+    "fvideo": {"floor": "anime", "nm": "FANZA アニメ", "modes": {"": ""}},
+}
+MONO_TERMS = {"overall": "monthly", "week": "week", "rising": "daily"}
+
+
+def parse_mono(src, floor):
+    out = []
+    for b in re.split(r'<span class="rank">', src)[1:]:
+        rk = re.match(r"(\d+)", b)
+        cid = re.search(r"/detail/=/cid=([\w]+)/", b)
+        if not cid:
+            continue
+        img = re.search(r'<img src="(https://pics\.dmm\.co\.jp/[^"]+)" alt="([^"]*)"', b)
+        mk = re.search(r'article=maker/id=(\d+)/">([\s\S]*?)</a>', b)
+        date = re.search(r"(\d{4})/(\d{2})/(\d{2})", b)
+        price = re.search(r"([\d,]+)円", b)
+        out.append({"id": cid.group(1), "rank": int(rk.group(1)) if rk else len(out) + 1,
+                    "title": html.unescape(img.group(2)) if img else cid.group(1),
+                    "image": img.group(1).replace("pt.jpg", "pl.jpg") if img else None,
+                    "circle": text(mk.group(2)) if mk else "", "circleId": mk.group(1) if mk else "",
+                    "releaseDate": ("%s-%s-%s" % date.groups()) if date else "",
+                    "price": price.group(1) if price else "",
+                    "kind": "アニメ" if floor == "anime" else "本",
+                    "url": MONO + "/mono/%s/-/detail/=/cid=%s/" % (floor, cid.group(1))})
+    return out
+
+
+def mono_one(cat):
+    conf = MONO_SETS[cat]
+    floor, nm = conf["floor"], conf["nm"]
+    index = {x["id"]: x for x in rd("index/%s.json" % cat, []) if isinstance(x, dict)}
+    ok = False
+    for key, term in MONO_TERMS.items():
+        for mkey, mode in conf["modes"].items():
+            items, base = [], MONO + "/mono/%s/-/ranking/=/" % floor + ("mode=%s/" % mode if mode else "")
+            try:
+                for pg in ["", "rank=21_40/", "rank=41_60/", "rank=61_80/", "rank=81_100/"][:MONO_PAGES]:
+                    items += parse_mono(fz_get(base + pg + "term=%s/" % term), floor)
+                    time.sleep(1.2)
+            except Exception as e:
+                log(nm + " 取得失敗", key, e)
+                continue
+            if not items:
+                continue
+            for i, v in enumerate(items):
+                v["rank"] = i + 1
+                index[v["id"]] = dict(index.get(v["id"], {}), **v)
+            lk = cat + "_" + key + (("-" + mkey) if mkey else "")
+            record(lk, [v["id"] for v in items], items, {"source": base + "term=%s/" % term})
+            log(nm, lk, len(items))
+            ok = True
+    if ok:
+        wr("index/%s.json" % cat, list(index.values())[-INDEX_MAX:])
+    return ok
+
+
+def fbooks():
+    return mono_one("fbooks")
+
+
+def fvideo():
+    return mono_one("fvideo")
 
 
 # ══════════ DLsite 同人（マンガ） ══════════
 DL = "https://www.dlsite.com/maniax"
 DL_RANK = {"overall": "day", "week": "week", "month": "month", "year": "year", "alltime": "total"}   # ?sub=MNG でマンガだけの順位になる
 DL_SEARCH = {"popular": "dl_d", "new": "release_d", "rating": "rate_d", "rising": "trend"}
-DL_SEARCH_URL = DL + "/fsr/=/work_category%5B0%5D/doujin/work_type_category%5B0%5D/comic/order%5B0%5D/{o}/per_page/100"
+DL_SEARCH_URL = DL + "/fsr/=/work_category%5B0%5D/doujin/work_type_category%5B0%5D/{w}/order%5B0%5D/{o}/per_page/100"
+# ★★ 2026-09-21 DLsite は「マンガ」と「同人アニメ（動画）」の2つを取る（ご指定）。
+#    どちらも同じ作りなので、ここの表を変えるだけで増やせる。
+#      sub  … ランキングページの ?sub=（MNG＝マンガ／MOV＝動画）
+#      work … 検索ページの work_type_category（comic／movie）
+#      kind … 画面に出す「作品の種類」
+DL_SUBS = {
+    "dlsite": {"sub": "MNG", "work": "comic", "kind": "マンガ"},
+}
+# ※ 同人アニメは 2026-09-21c から FANZA のほうで取る（ご指定）。DLsite は同人マンガだけ。
 
 
 def dl_get(url):
@@ -428,18 +738,19 @@ def dl_fields(b, pid):
             "circleId": maker.group(1) if maker else "", "image": ("https:" + img.group(0)) if img else None,
             "rating": (int(star.group(1)) / 10) if star else None, "votes": num(votes.group(1)) if votes else 0,
             "sales": num(dl.group(1)) if dl else None, "price": price.group(1) if price else "",
-            "releaseDate": ("%s-%s-%s" % date.groups()) if date else "", "kind": {"MNG": "マンガ", "ICG": "CG集", "SOU": "ボイス"}.get(kind.group(1) if kind else "", "マンガ"),
+            "releaseDate": ("%s-%s-%s" % date.groups()) if date else "",
+            "kind": {"MNG": "マンガ", "ICG": "CG集", "SOU": "ボイス", "MOV": "同人アニメ", "ACN": "ゲーム"}.get(kind.group(1) if kind else "", ""),
             "genres": genres[:12], "samples": samples[:8], "url": DL + "/work/=/product_id/%s.html" % pid}
 
 
-def parse_dl_rank(src):
+def parse_dl_rank(src, want="MNG"):
     out = []
     for b in re.split(r'<tr class="[^"]*">', src)[1:]:
         m = re.search(r"product_id/(RJ\d+)\.html", b)
         if not m:
             continue
         kind = re.search(r"work_category type_(\w+)", b)
-        if not kind or kind.group(1) != "MNG":     # マンガ以外（ゲーム・ボイス）は入れない
+        if not kind or kind.group(1) != want:     # ほしい種類いがい（ゲーム・ボイス）は入れない
             continue
         out.append(dl_fields(b, m.group(1)))
     return out
@@ -477,38 +788,54 @@ def parse_dl_detail(src):
             "author": au.group(1) if au else "", "volume": (pages.group(1) + "ページ") if pages else "", "reviews": reviews}
 
 
-def dlsite():
-    index = {x["id"]: x for x in rd("index/dlsite.json", []) if isinstance(x, dict)}
-    detail = rd("cache/dlsite-detail.json", {})
+def dlsite(cat="dlsite"):
+    """cat … "dlsite"（マンガ）か "danime"（同人アニメ）。作りは同じで、見にいく種類だけ変える。"""
+    conf = DL_SUBS[cat]
+    index = {x["id"]: x for x in rd("index/%s.json" % cat, []) if isinstance(x, dict)}
+    detail = rd("cache/%s-detail.json" % cat, {})
+    nm = "DLsite" if cat == "dlsite" else "同人アニメ"
     ok = False
     for k, term in DL_RANK.items():
         try:
-            items = parse_dl_rank(dl_get(DL + "/ranking/%s?category=doujin&sub=MNG" % term))
+            url = DL + "/ranking/%s?category=doujin&sub=%s" % (term, conf["sub"])
+            items = parse_dl_rank(dl_get(url), conf["sub"])
             if not items:
                 continue
             for i, v in enumerate(items):
                 v["rank"] = i + 1
                 index[v["id"]] = v
-            record("dlsite_" + k, [v["id"] for v in items], items, {"source": DL + "/ranking/%s?category=doujin&sub=MNG" % term})
-            log("DLsite", k, len(items))
+            record(cat + "_" + k, [v["id"] for v in items], items, {"source": url})
+            log(nm, k, len(items))
             ok = True
         except Exception as e:
-            log("DLsite 取得失敗", k, e)
+            log(nm + " 取得失敗", k, e)
         time.sleep(1.2)
     for k, order in DL_SEARCH.items():
         try:
-            url = DL_SEARCH_URL.format(o=order)
+            url = DL_SEARCH_URL.format(w=conf["work"], o=order)
             items = parse_dl_search(dl_get(url))
             if not items:
                 continue
             for i, v in enumerate(items):
                 v["rank"] = i + 1
                 index[v["id"]] = v
-            record("dlsite_" + k, [v["id"] for v in items], items, {"source": url})
-            log("DLsite", k, len(items))
+            record(cat + "_" + k, [v["id"] for v in items], items, {"source": url})
+            log(nm, k, len(items))
             ok = True
         except Exception as e:
-            log("DLsite 取得失敗", k, e)
+            log(nm + " 取得失敗", k, e)
+        time.sleep(1.2)
+    # ★ 圏外ぶん：検索ページの2ページ目から先を index にためる（順位は付けない）
+    for pg in range(2, DL_PAGES + 1):
+        try:
+            url = DL_SEARCH_URL.format(w=conf["work"], o="trend") + "/page/%d" % pg
+            for v in parse_dl_search(dl_get(url)):
+                v.pop("rank", None)
+                if v["id"] not in index:
+                    index[v["id"]] = v
+        except Exception as e:
+            log(nm + " 圏外の取得失敗", pg, e)
+            break
         time.sleep(1.2)
     # 作品ページ：ジャンル・配信日・作者（一覧に無いぶんを少しずつ）
     b = budget("DL_DETAIL", 60)
@@ -521,9 +848,9 @@ def dlsite():
         try:
             detail[pid] = parse_dl_detail(dl_get(DL + "/work/=/product_id/%s.html" % pid))
         except Exception as e:
-            log("DLsite 作品ページ失敗", pid, e)
+            log(nm + " 作品ページ失敗", pid, e)
         time.sleep(1.2)
-    wr("cache/dlsite-detail.json", detail)
+    wr("cache/%s-detail.json" % cat, detail)
     for pid, d in detail.items():
         if pid in index:
             v = index[pid]
@@ -531,10 +858,10 @@ def dlsite():
                 if val and not v.get(k2):
                     v[k2] = val
     if ok:
-        wr("index/dlsite.json", list(index.values())[-3000:])
+        wr("index/%s.json" % cat, list(index.values())[-INDEX_MAX:])
         # 一覧にも作品ページの情報を反映する
         for k in list(DL_RANK) + list(DL_SEARCH):
-            f = "lists/dlsite_" + k + ".json"
+            f = "lists/%s_%s.json" % (cat, k)
             L = rd(f, None)
             if not L:
                 continue
@@ -546,6 +873,126 @@ def dlsite():
                             e[k2] = v[k2]
             wr(f, L)
     return ok
+
+
+# ══════════ 音楽（Billboard JAPAN の公開ページ。鍵はいらない） ══════════
+# ★★ 2026-09-21 ご指定の「カラオケではなく“視聴されている曲”のランキング」。
+#    Billboard JAPAN は ストリーミング・ダウンロード・動画再生 などを公開している。
+BB = "https://www.billboard-japan.com"
+BB_LISTS = {
+    "stream":   ("stsongs",  "ストリーミング（聴かれている曲）"),
+    "overall":  ("hot100",   "総合（Billboard JAPAN Hot 100）"),
+    "download": ("dlsongs",  "ダウンロード"),
+    "video":    ("ugc",      "動画再生"),
+    "anime":    ("anime",    "アニメ"),
+    "niconico": ("niconico", "ニコニコ"),
+    "sales":    ("sales",    "CD売上"),
+}
+BB_ROW = re.compile(r'<tr class="rank\d+"[^>]*>([\s\S]*?)</tr>')
+
+
+def parse_bb(src):
+    out = []
+    for m in BB_ROW.finditer(src):
+        b = m.group(1)
+        ti = re.search(r'class="musuc_title">([\s\S]*?)</p>', b)
+        if not ti:
+            continue
+        rk = re.search(r'class="rank_td[^"]*">\s*<span>(\d+)</span>\s*<span class="cont">([^<]*)</span>', b)
+        ar = re.search(r'class="artist_name">(?:<a href="/artists/detail/(\d+)">)?([\s\S]*?)(?:</a>)?</p>', b)
+        im = re.search(r'<img src="([^"]+)"', b)
+        gd = re.search(r"/goods/detail/(\d+)", b)
+        pt = re.search(r'class="num">([\d,]+)</p>', b)
+        img = im.group(1) if im else ""
+        if "noimage" in img:
+            img = ""
+        title = text(ti.group(1))
+        artist = text(ar.group(2)) if ar else ""
+        out.append({"id": ("bb" + gd.group(1)) if gd else ("bx" + re.sub(r"\W+", "", norm(title + artist))[:24]),
+                    "title": title, "artist": artist, "aid": (ar.group(1) if ar and ar.group(1) else ""),
+                    "image": (BB + img) if img.startswith("/") else (img or None),
+                    "point": num(pt.group(1)) if pt else None,
+                    "url": (BB + "/goods/detail/" + gd.group(1)) if gd else BB + "/charts/",
+                    "rank": int(rk.group(1)) if rk else len(out) + 1})
+    return out
+
+
+def music():
+    songs = rd("cache/music-songs.json", {})
+    seen = rd("cache/music-artists.json", {})
+    lists, ok = {}, False
+    for key, (code, label) in BB_LISTS.items():
+        try:
+            items = parse_bb(http_get(BB + "/charts/detail?a=" + code))
+            if not items:
+                continue
+            lists[key] = items
+            for v in items:
+                songs.setdefault(v["id"], {}).update({k: v[k] for k in ("title", "artist", "aid", "image", "url") if v.get(k)})
+            log("Billboard", key, len(items))
+            ok = True
+        except Exception as e:
+            log("Billboard 取得失敗", key, e)
+        time.sleep(1.2)
+    if not ok:
+        return False
+    # ジャケットと発売日・ジャンルを iTunes で足す（Billboard に絵が無い曲がある）
+    b = budget("BB_ITUNES", 60)
+    for sid, so in songs.items():
+        if b <= 0:
+            break
+        if so.get("image") and so.get("rel"):
+            continue
+        if so.get("noart", 0) >= ITUNES_TRY:
+            continue
+        b -= 1
+        got = itunes_song(so.get("title", ""), so.get("artist", ""))
+        if got is None:
+            break
+        if got:
+            if not so.get("image"):
+                so["image"] = got["img"]
+            so.update({k: got[k] for k in ("rel", "g", "url", "al", "aid2", "tid") if k in got})
+            so["itArtist"] = got.get("aid", "")
+            so.pop("noart", None)
+        else:
+            so["noart"] = so.get("noart", 0) + 1
+        time.sleep(3.2)
+    # ★ ご指定：ランキングに出ているアーティストの曲は、圏外のものもぜんぶ出す
+    b = budget("BB_ARTIST", 12)
+    for sid, so in list(songs.items()):
+        if b <= 0:
+            break
+        aid = so.get("itArtist")
+        if not aid or aid in seen:
+            continue
+        b -= 1
+        seen[aid] = 1
+        got = itunes_artist_songs(aid)
+        if got is None:
+            break
+        for x in got:
+            k = "it" + str(x.get("trackId"))
+            if k in songs:
+                continue
+            v = it_view(x)
+            songs[k] = {"title": x.get("trackName", ""), "artist": x.get("artistName", ""), "image": v["img"],
+                        "rel": v["rel"], "g": v["g"], "url": v["url"], "al": v["al"], "itArtist": aid, "off": 1}
+        time.sleep(3.2)
+    wr("cache/music-songs.json", songs)
+    wr("cache/music-artists.json", seen)
+
+    def view(sid):
+        so = songs.get(sid, {})
+        return {"id": sid, "title": so.get("title", ""), "artist": so.get("artist", ""), "image": so.get("image") or None,
+                "releaseDate": so.get("rel", ""), "genre": so.get("g", ""), "album": so.get("al", ""),
+                "appleUrl": so.get("url", ""), "offchart": bool(so.get("off"))}
+    for k, items in lists.items():
+        ids = [v["id"] for v in items]
+        record("music_" + k, ids, [dict(view(i), rank=n + 1, point=items[n].get("point")) for n, i in enumerate(ids)],
+               {"source": BB + "/charts/detail?a=" + BB_LISTS[k][0], "note": BB_LISTS[k][1]})
+    wr("index/music.json", [view(i) for i in songs])
+    return True
 
 
 # ══════════ アニメ（Annict ＋ Filmarks ＋ AniList） ══════════
@@ -655,6 +1102,59 @@ def fm_reviews(url):
         return out
     except Exception:
         return []
+
+
+# ★★ 2026-09-21c ご指定「略称も詳細で教えてほしい」。
+#    しょぼいカレンダー（cal.syoboi.jp）の公開DBには <ShortTitle>（＝略称）と
+#    <TitleYomi>（＝よみ）が入っている。鍵はいらず、**全作品を1リクエストで**取れる（約1.3MB・8000件）。
+#    1回の取得につき1回だけ読んで、題名を突き合わせる。
+SYOBO_URL = "https://cal.syoboi.jp/db.php?Command=TitleLookup&TID=*&Fields=TID,Title,ShortTitle,TitleYomi"
+
+
+def title_key(t):
+    """題名の突き合わせ用に、記号・空白・季（2期など）を落とす"""
+    t = re.sub(r"[\s　]+", "", str(t or ""))
+    t = re.sub(r"[「」『』【】〔〕（）()\[\]~〜～\-－―ー・,、.。!！?？:：;；'\"’”]", "", t)
+    t = re.sub(r"(第?\s*[0-9０-９IVX]+\s*(期|シーズン|クール|部)|Season[0-9]+|[0-9]+(st|nd|rd|th)Season)$", "", t, flags=re.I)
+    t = re.sub(r"[ⅠⅡⅢⅣⅤ]+$", "", t)
+    return t.lower()
+
+
+def syobocal():
+    """{題名キー: {"short": 略称, "yomi": よみ}} を返す（取れなければ空）"""
+    try:
+        src = http_get(SYOBO_URL, timeout=120)
+    except Exception as e:
+        log("しょぼいカレンダー 取得失敗", e)
+        return {}
+    out = {}
+    for b in re.findall(r"<TitleItem id=\"\d+\">([\s\S]*?)</TitleItem>", src):
+        def f(k):
+            m = re.search(r"<%s>([\s\S]*?)</%s>" % (k, k), b)
+            return html.unescape(m.group(1)).strip() if m else ""
+        t, sh, ym = f("Title"), f("ShortTitle"), f("TitleYomi")
+        if not t:
+            continue
+        v = {"short": sh, "yomi": ym}
+        for k in (title_key(t), title_key(sh)):
+            if k and k not in out:
+                out[k] = v
+    log("しょぼいカレンダー", len(out), "件")
+    return out
+
+
+def syobo_of(sc, title):
+    """題名から略称・よみをさがす（そのまま → 季を落として → いちばん長い前方一致）"""
+    if not sc or not title:
+        return {}
+    k = title_key(title)
+    if k in sc:
+        return sc[k]
+    best, bl = None, 0
+    for k2, v in sc.items():
+        if len(k2) >= 4 and len(k2) > bl and k.startswith(k2):
+            best, bl = v, len(k2)
+    return best or {}
 
 
 def season_slug(y, i):
@@ -823,7 +1323,32 @@ def anime():
             ok = True
     except Exception as e:
         log("Filmarks trend 失敗", e)
-    wr("index/anime.json", list(index.values())[-2500:])
+    # ★★ 略称・よみ（しょぼいカレンダー）を全作品に付ける。取れなければ何も変わらない。
+    sc = syobocal()
+    if sc:
+        for v in index.values():
+            got = syobo_of(sc, v.get("title"))
+            if got.get("short") and got["short"] != v.get("title"):
+                v["short"] = got["short"]
+            if got.get("yomi"):
+                v["yomi"] = got["yomi"]
+    wr("index/anime.json", list(index.values())[-INDEX_MAX:])
+    # 一覧のほうにも略称を写す（詳細を開かなくても検索に効くように）
+    for f in sorted(os.listdir(os.path.join(OUT, "lists"))) if os.path.isdir(os.path.join(OUT, "lists")) else []:
+        if not f.startswith("anime_"):
+            continue
+        L = rd("lists/" + f, None)
+        if not L:
+            continue
+        ch = False
+        for e in L.get("entries", []):
+            v = index.get(e["id"])
+            if v and v.get("short") and not e.get("short"):
+                e["short"] = v["short"]; ch = True
+            if v and v.get("yomi") and not e.get("yomi"):
+                e["yomi"] = v["yomi"]; ch = True
+        if ch:
+            wr("lists/" + f, L)
     return ok
 
 
@@ -832,7 +1357,9 @@ def main():
     os.makedirs(OUT, exist_ok=True)
     meta = rd("meta.json", {})
     res = {}
-    for name, fn in (("karaoke", karaoke), ("anime", anime), ("dlsite", dlsite), ("fanza", fanza)):
+    for name, fn in (("karaoke", karaoke), ("music", music), ("anime", anime),
+                     ("dlsite", dlsite), ("danime", danime), ("fanza", fanza),
+                     ("fbooks", fbooks), ("fvideo", fvideo)):
         if ONLY and name not in ONLY:
             continue
         try:
@@ -844,6 +1371,7 @@ def main():
             meta[name + "At"] = NOW_MS
     meta["at"] = NOW_MS
     meta["log"] = ((meta.get("log") or []) + LOG)[-80:]
+    it_cache_save()
     wr("state.json", STATE)
     wr("meta.json", meta)
     log("完了", res)

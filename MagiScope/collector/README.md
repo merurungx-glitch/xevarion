@@ -1,6 +1,7 @@
 # MagiScope 自動取得の設定（鍵なし・サーバーなし）
 
-カラオケ（DAM）・国内アニメ（Annict）・FANZA同人 のランキングは、`collect.py` が
+カラオケ（DAM）・音楽（Billboard JAPAN）・アニメ（Annict／Filmarks／AniList）・FANZA同人・DLsite同人・同人アニメ（FANZA同人 動画）
+のランキングは、`collect.py` が
 **各サイトの公開ページを読んで**集め、XEVARION の GitHub リポジトリの **`magiscope-data` ブランチ**に JSON で置きます。
 アプリはそこ（raw.githubusercontent.com）を読むだけです。**API キー・トークン・Firebase の鍵は一切使いません。**
 （アニメの「総合・新作・今季…」は AniList をアプリが直接読むので、設定しなくても動きます）
@@ -19,21 +20,42 @@
 
 ※ FANZA は日本からしか見られないので、**FANZA を取れるのはこの方法だけ**です。
 
-## 補助：GitHub でも自動取得する（任意・PC を使わない日の保険）
-`.github/workflows/magiscope.yml` を GitHub に上げると、1時間ごとに GitHub 側でもカラオケ・アニメを取ります
-（FANZA は海外からは取れないので PC のぶんがそのまま残ります）。
-★ `.github` は「.」で始まるフォルダのため、**ブラウザのドラッグ＆ドロップでは無視されます**。
-　GitHub の「Add file → Create new file」で、ファイル名に `.github/workflows/magiscope.yml` と入力して中身を貼ってください。
-上げたら Actions タブ →「MagiScope collector」→「Run workflow」で1回動かします。
+## GitHub Actions は使いません（2026-09-21 にやめました）
+`.github/workflows` は「.」で始まるフォルダのため、ブラウザのドラッグ＆ドロップでは GitHub に上がらず、
+結局いちども動いていませんでした。いまは**この PC のタスクが全部を取ります**（FANZA は日本からしか取れないので、どのみちこの方法が要ります）。
 
 ## 確認
 - MagiScope の「設定 → データソース」に「◯分前に更新」と出れば動いています。
 - 取得の記録は `magiscope-data` ブランチの `meta.json` の `log` に残ります。
 - 手で動かすとき：`run-pc.bat`（全部）／`run-pc.bat --only fanza`（FANZA だけ）
+- 取れるもの（`--only` に書ける名前）
+  | 名前 | 中身 | 出どころ |
+  |---|---|---|
+  | `karaoke` | カラオケ 10種類のランキング | DAM |
+  | `music` | 視聴（ストリーミング）・総合・動画再生・ダウンロード・アニメ・ニコニコ・CD売上 | Billboard JAPAN |
+  | `anime` | **Annict**（国内の視聴者数）・**Filmarks**（国内の評価）・**AniList**（海外のトレンド）の3つを別々に | Annict / Filmarks / AniList |
+  | `fanza` | FANZA同人 コミック | FANZA |
+  | `dlsite` | DLsite 同人マンガ | DLsite |
+  | `danime` | FANZA同人 アニメ（動画） | FANZA |
+  | `fbooks` | FANZA 本（コミック・エロ本） | FANZA 通販ランキング |
+  | `fvideo` | FANZA アニメ（商業） | FANZA 通販ランキング |
 
 ## メモ
 - 前回順位は「前の日までの最後の記録」、順位推移は日ごとの記録です。動かしはじめた日から少しずつたまります。
-- ジャケット（iTunes）・視聴者数（Annict）・FANZA の作品ページ（ジャンル・配信日）は、1回あたりの件数を絞って少しずつ補います。
-  最初の数時間は画像やジャンルが無い作品があります。
+- ジャケット（iTunes）・視聴者数（Annict）・作品ページ（ジャンル・配信日）は、1回あたりの件数を絞って少しずつ補います。
+  最初の数時間は画像やジャンルが無い作品・曲があります（**1時間ごとに少しずつ埋まります**）。
+  iTunes でさがした結果は `cache/itunes-lookup.json` にためて、カラオケと音楽で使い回します。
+- MusicBrainz（ソロ／グループ・男女）は混んでいると 503 を返します。**これは不具合ではなく順番待ち**なので、
+  3回だけ試してから次の回にまわします。ログに「MusicBrainz は混んでいたので次回に回します」と出るだけで、ほかの取得には影響しません。
+- **ランキング圏外の作品も集めます**。一覧ページの2ページ目から先を読んで、順位を付けずに index にためます。
+  取る量は引数で変えられます（多くするほど1回の取得が長くなります）。
+  `--fz-pages 6`（FANZA コミック）／`--fz-anime-pages 6`（同人アニメ）／`--dl-pages 5`（DLsite）／`--index-max 12000`（1カテゴリーにためる上限）
+- アニメの**略称・よみ**は、しょぼいカレンダー（cal.syoboi.jp）の公開DBを**1回のリクエストで全作品ぶん**取って突き合わせています。
+- ★ **FANZAブックス（book.dmm.co.jp）と FANZA動画（video.dmm.co.jp）は、中身を JavaScript で描くつくり**に変わっていて、
+  公開ページを読んでも作品が1件も入っていません（＝鍵なしでは取れません）。
+  そのため「ブックス」「アニメ」は、同じ FANZA の中で**サーバーが HTML を返す通販のランキング**
+  （`/mono/book/-/ranking/`・`/mono/anime/-/ranking/`）から取っています。作品のならびは同じものです。
+- ★ FANZA が公開している「原作」の情報は**種別まで**（オリジナル／ゲーム系／アニメ系／パロディ・その他）で、
+  もとになった作品の名前そのものは載っていません。出せるのはこの種別までです。
 - `magiscope-data` ブランチは毎回上書きするので、リポジトリは大きくなりません。
 - 各サイトのページのつくりが変わると取れなくなることがあります。そのときは `meta.json` の `log` に「取得失敗」と出ます。

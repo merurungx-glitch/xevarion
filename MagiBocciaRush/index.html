@@ -68,10 +68,10 @@ if ("serviceWorker" in navigator) {
 <div id="recon" hidden></div>
 
 <!-- ★ アカウント同期（戦績・編成・熟練度は mbr_v1。xeva-keys.js に登録ずみ） -->
-<script type="module" src="../xeva-cloud.js?v=34"></script>
+<script type="module" src="../xeva-cloud.js?v=35"></script>
 <!-- ★★ 2026-09-17d 叡智の果実（magiburst_v1 の items.wisdom）をここでも使うので、MagiBurst のセーブ同期も読む。
      これが無いと、ここで使った果実がクラウドへ上がらず、別の端末で MagiBurst を開くと戻ってしまう。 -->
-<script type="module" src="../MagiBurst/magiburst-cloud.js?v=17"></script>
+<script type="module" src="../MagiBurst/magiburst-cloud.js?v=18"></script>
 <!-- ★ キャラクターとガチャは XEVARION（MagiBurst）と共通。
      mb-boot.js は MB_IMGD を "img/"（ポータル用）に決め打ちするので、
      そのあとで このアプリ用のパスに直してから mb-core.js を読む。 -->
@@ -93,7 +93,7 @@ if ("serviceWorker" in navigator) {
 <script src="../mb-boot.js?v=17"></script>
 <script>window.MB_IMGD = "../img/"; window.MB_GIMGD = "../MagiBurst/img/";</script>
 <script src="../mb-newchars.js?v=31"></script>
-<script src="../MagiBurst/js/mb-core.js?v=127"></script>
+<script src="../MagiBurst/js/mb-core.js?v=128"></script>
 <script src="js/mbr-voice.js?v=2"></script>
 <script src="js/mbr-core.js?v=15"></script>
 <script src="js/mbr-stage.js?v=5"></script>

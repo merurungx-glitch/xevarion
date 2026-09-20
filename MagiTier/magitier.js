@@ -790,6 +790,9 @@ function renderSwitches() {
 }
 function renderEditor() {
   if (!cur) { go("home"); return; }
+  /* ★★ 2026-09-20e アニメの絵は縦長（ポスター）が多く、正方形に切ると顔が切れる。
+     アニメ Tier表のときだけカードを 3:4 にする（ご指定）。 */
+  document.body.classList.toggle("tall-cards", cur.id === AN_TABLE_ID);
   renderTierList(); renderTable($("#tt"), false); renderPool(); renderSel(); renderSwitches();
   applyCardSize(); fitEditTools(); syncSaveBtn();
   /* スマホでは左右のパネルを畳んでおく（3カラムを縮小せず、必要なときだけシートで開く） */
@@ -2978,7 +2981,12 @@ function help() {
    ・プールには<b>全キャラ</b>を並べておく（キャラが増えたら自動で足りないぶんだけ入る）。
    ・公開すると Firebase の magitier/mbtier に「キャラidの並び」だけを書く。
      画像そのものは送らない（MagiBurst 側が自分のキャラ絵で描くので要らない）。 */
-function mbCodeOK() { return mbUnlocked || lsGet(MB_CODE_KEY, "") === MB_ACCESS_CODE; }
+/* ★★ 2026-09-20 <b>アプリを開き直したら、もう一度コードを聞く</b>（ご指定）。
+   これまでは一度通ったコードを localStorage に残していたので、次に開いたときも素通りだった。
+   通ったかどうかは<b>このページの中だけ</b>（mbUnlocked）で覚え、端末には残さない。
+   前の版で端末に残したコードはここで消す。 */
+try { localStorage.removeItem(MB_CODE_KEY); } catch (e) {}
+function mbCodeOK() { return mbUnlocked; }
 /* ★ 2026-08-16 起動時に必ず1枚だけ用意しておく（常時表示のため）。
    ここではキャラ絵のプールは作らない。プールを作るには mb-core.js（大きい）が要り、
    毎回の起動で読むと重いので、実際に開いたとき（buildMbTable）に足す。 */
@@ -3014,7 +3022,7 @@ function mbCodeDlg() {
 function mbCheck() {
   const v = ($("#mbCode").value || "").trim();
   if (v !== MB_ACCESS_CODE) { toast("コードがちがいます"); return; }
-  mbUnlocked = true; lsSet(MB_CODE_KEY, v); dlgClose(); buildMbTable();
+  mbUnlocked = true; dlgClose(); buildMbTable();
 }
 /* mb-core.js を必要になったときだけ読む（766KB あるので、いつも読むと重い） */
 /* ★ mb-core.js は const で CHARS / CHAR_IDS を宣言している。
@@ -3063,7 +3071,7 @@ function loadScriptOnce(src) {
 function loadMbCore() {
   mbShim();
   if (mbChars() && mbCharIds()) return Promise.resolve();
-  return loadScriptOnce("../MagiBurst/js/mb-core.js?v=127");
+  return loadScriptOnce("../MagiBurst/js/mb-core.js?v=128");
 }
 /* ══ ★★ 2026-08-22 キャラ詳細は XEVARION と<b>同じ1本</b>（mb-char-detail.js）を読む ══
    自前で組み直すと、アビリティ・クロススキル・リンクの文面が必ず食いちがっていく。
@@ -3346,7 +3354,7 @@ function anCodeDlg() {
 function anCheck() {
   const v = ($("#anCode").value || "").trim();
   if (v !== MB_ACCESS_CODE) { toast("コードがちがいます"); return; }
-  mbUnlocked = true; lsSet(MB_CODE_KEY, v); dlgClose(); openAnEdit();
+  mbUnlocked = true; dlgClose(); openAnEdit();
 }
 /* ── 検索：AniList（GraphQL）→ 0件なら Jikan（MyAnimeList）──
    ★ どちらも鍵なし・CORS で読める公開 API。
@@ -3385,12 +3393,18 @@ async function anFetchJikan(q) {
 function anSearchDlg() {
   dlgOpen(`<h2>📺 アニメを検索して追加</h2>
     <p class="dsub">作品名の一部を入れると、<b>その文字が入るアニメ</b>を画像つきで一覧にします。押すとプールに入ります。</p>
-    <div class="row" style="gap:6px"><input class="inp" id="anQ" placeholder="例：ぼっち、進撃、Frieren" value="${esc(anQuery)}"
-      onkeydown="if(event.key==='Enter'&&!event.isComposing)MT.anSearch()"><button class="btn pri" onclick="MT.anSearch()">検索</button></div>
+    <div class="row" style="gap:6px"><span class="anqwrap"><input class="inp" id="anQ" placeholder="例：ぼっち、進撃、Frieren" value="${esc(anQuery)}"
+      oninput="MT.anQPaint()" onkeydown="if(event.key==='Enter'&&!event.isComposing)MT.anSearch()"><button class="anqx" id="anQx" type="button" aria-label="入力を消す" onclick="MT.anClearQ()"${anQuery ? "" : " hidden"}>✕</button></span><button class="btn pri" onclick="MT.anSearch()">検索</button></div>
     <div id="anRes" class="anres"><div class="muted" style="padding:10px">検索するとここに並びます</div></div>
     <div class="foot"><button class="btn" onclick="MT.anAddAll()">表示中をすべて追加</button><button class="btn pri" onclick="MT.closeDlg()">とじる</button></div>`);
   setTimeout(() => { const e = $("#anQ"); if (e) e.focus(); }, 60);
   if (anResults.length) anPaintRes();
+}
+/* ★★ 2026-09-20 検索欄の ✕（ご指定）。文字があるときだけ出し、押すと空にしてすぐ打ち直せるようにする */
+function anQPaint() { const e = $("#anQ"), x = $("#anQx"); if (x) x.hidden = !(e && e.value); }
+function anClearQ() {
+  const e = $("#anQ"); if (!e) return;
+  e.value = ""; anQuery = ""; anQPaint(); e.focus();
 }
 async function anSearch() {
   const q = (($("#anQ") || {}).value || "").trim();
@@ -3632,7 +3646,7 @@ window.MT = {
   mbDedupe,
   openMbViewer, mvChar, mvCloseChar,
   /* ★★ 2026-09-17 アニメ Tier表 */
-  openAnViewer, openAnEdit, anCheck, anSearchDlg, anSearch, anAdd, anAddAll, anPublish,
+  openAnViewer, openAnEdit, anCheck, anSearchDlg, anSearch, anQPaint, anClearQ, anAdd, anAddAll, anPublish,
   toastMsg: (m) => toast(m),
 };
 boot();

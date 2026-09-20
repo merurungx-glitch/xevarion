@@ -688,3 +688,18 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.7}
 .anitem .b{font-size:10px;font-weight:900;color:#2b64d8}
 .anitem.have{opacity:.55}
 .anitem.have .b{color:#12a07a}
+
+/* ★★ 2026-09-20 アニメ検索の ✕ */
+.anqwrap{position:relative;flex:1;min-width:0;display:flex}
+.anqwrap .inp{flex:1;min-width:0;padding-right:40px}
+.anqx{position:absolute;right:6px;top:50%;transform:translateY(-50%);width:28px;height:28px;border:none;border-radius:50%;background:rgba(127,127,127,.22);color:inherit;font-size:13px;font-weight:900;line-height:28px;padding:0;cursor:pointer}
+.anqx[hidden]{display:none}
+
+/* ★★ 2026-09-20e アニメ Tier表は縦長（3:4）のカードにする（正方形だと絵が切れる） */
+body.tall-cards .icard img{height:calc(var(--icard-t,84px) * .89)}
+body.tall-cards .pool .icard img{height:calc(var(--icard,84px) * .89)}
+body.tall-cards .icard.full img{height:calc(var(--icard-t,84px) * 1.27)}
+body.tall-cards .pool .icard.full img{height:calc(var(--icard,84px) * 1.27)}
+@media (max-width:640px){body.tall-cards .icard img{width:52px;height:69px}body.tall-cards .icard.full img{height:92px}}
+/* 検索結果は絵の全体を見せる（切らない） */
+.anitem img{object-fit:contain;background:rgba(120,140,200,.12)}

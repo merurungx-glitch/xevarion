@@ -66,35 +66,77 @@
     anime: {
       id: "anime", en: "ANIME", ja: "アニメ", unit: "作品", noun: "作品", title: "アニメランキング", mainPeriod: "day",
       source: "AniList", sourceUrl: "https://anilist.co",
+      /* ★★ 2026-09-21c ご指定：アニメは「国内 Annict」「海外 AniList」「国内 Filmarks」の
+         <b>3つをボタンで分けて、まったく別のもの</b>として扱う。
+         ・どの出どころかは types の src で決める。画面は src でタブを出し分ける。
+         ・数えかたが違うので、順位も前回比も混ぜない（同じ作品でも別々の順位になる）。 */
+      sources: [
+        { id: "annict",   label: "Annict",   ja: "国内・視聴者数", note: "国内のアニメ視聴記録サービス Annict。「見た・見ている」と登録した人の数の順です。", url: "https://annict.com" },
+        { id: "filmarks", label: "Filmarks", ja: "国内・評価",     note: "国内の映画・アニメのレビューサービス Filmarks。国内のユーザーが付けた点数です。", url: "https://filmarks.com" },
+        { id: "anilist",  label: "AniList",  ja: "海外・トレンド", note: "海外のアニメデータベース AniList。世界中の利用者の動き（トレンド・登録数）の順です。", url: "https://anilist.co" },
+      ],
       types: [
-        { id: "overall", label: "総合",   periods: ["day", "week", "month", "season", "year", "all"] },
-        { id: "jp",      label: "国内",   periods: ["season", "prevseason", "year", "all"], def: "season", note: "国内の視聴者数（Annict）" },
-        { id: "fm",      label: "話題",   period: "day", note: "いま話題のアニメ（Filmarks・国内の評価つき）" },
-        { id: "new",     label: "新作",   periods: ["day", "week", "month"], note: "放送・配信開始から120日以内" },
-        { id: "season",  label: "今季",   periods: ["day", "week", "month", "season"], def: "day" },
-        { id: "year",    label: "年間",   period: "year" },
-        { id: "alltime", label: "歴代",   period: "all" },
-        { id: "rising",  label: "急上昇", periods: ["day", "week"] },
-        { id: "popular", label: "人気",   period: "season", note: "放送中の作品の人気順" },
-        { id: "rating",  label: "評価",   period: "all", note: "評価の高い順（1万人以上が登録した作品）" },
+        /* ── 国内：Annict（視聴者数） ── */
+        { id: "jp",      src: "annict",   label: "視聴者数", periods: ["season", "prevseason", "year", "all"], def: "season", note: "国内で「見た・見ている」と登録した人の数（Annict）" },
+        /* ── 国内：Filmarks（評価） ── */
+        { id: "fm",      src: "filmarks", label: "話題",     period: "day", note: "いま話題のアニメ（Filmarks）" },
+        { id: "fmrate",  src: "filmarks", label: "評価",     period: "all", note: "国内の評価が高い順（Filmarks・10件以上）" },
+        /* ── 海外：AniList（トレンド） ── */
+        { id: "overall", src: "anilist",  label: "トレンド", periods: ["day", "week", "month", "season", "year", "all"], note: "海外の視聴者の動き（AniList トレンド）" },
+        { id: "rising",  src: "anilist",  label: "急上昇",   periods: ["day", "week"] },
+        { id: "new",     src: "anilist",  label: "新作",     periods: ["day", "week", "month"], note: "放送・配信開始から120日以内" },
+        { id: "season",  src: "anilist",  label: "今季",     periods: ["day", "week", "month", "season"], def: "day" },
+        { id: "year",    src: "anilist",  label: "年間",     period: "year" },
+        { id: "alltime", src: "anilist",  label: "歴代",     period: "all" },
+        { id: "popular", src: "anilist",  label: "人気",     period: "season", note: "放送中の作品の人気順（AniList の登録数）" },
+        { id: "rating",  src: "anilist",  label: "点数",     period: "all", note: "AniList の平均点が高い順（1万人以上が登録した作品）" },
       ],
       compare: [
-        { id: "week", label: "今週 vs 先週", period: "week", def: true },
-        { id: "day",  label: "今日 vs 昨日", period: "day" },
-        { id: "jp",   label: "国内 今季 vs 前回", period: "season", type: "jp" },
+        { id: "jp",   label: "国内 今季 vs 前回", period: "season", type: "jp", def: true },
+        { id: "week", label: "海外 今週 vs 先週", period: "week" },
+        { id: "day",  label: "海外 今日 vs 昨日", period: "day" },
       ],
     },
     fanza: {
-      id: "fanza", en: "FANZA", ja: "FANZA同人", unit: "作品", noun: "作品", title: "FANZA同人ランキング", mainPeriod: "day", adult: true,
-      source: "FANZA同人", sourceUrl: "https://www.dmm.co.jp/dc/doujin/-/ranking-all/",
+      id: "fanza", en: "FANZA", ja: "FANZA", unit: "作品", noun: "作品", title: "FANZAランキング", mainPeriod: "day", adult: true,
+      source: "FANZA", sourceUrl: "https://www.dmm.co.jp/dc/doujin/-/ranking-all/",
+      /* ★★ 2026-09-21d ご指定：FANZA の中を<b>4つのボタン</b>に分ける（アニメの3分割と同じ作り）。
+         ・key … 自動取得が書き出すファイルの名前の頭（lists/<key>_<lk>.json と index/<key>.json）
+         ・lk  … その種類のファイル名のうしろ
+         ★ 4つはまったく別のランキングなので、順位も前回比も混ぜない。 */
+      keys: ["fanza", "danime", "fbooks", "fvideo"],
+      sources: [
+        { id: "doujin", key: "fanza",  label: "同人 本",   ja: "コミック",   note: "FANZA同人のコミック（本）のランキングです。個人・サークルが出している作品です。", url: "https://www.dmm.co.jp/dc/doujin/-/ranking-all/=/submedia=comic/sort=popular/term=h24/" },
+        { id: "danime", key: "danime", label: "同人 アニメ", ja: "動画",     note: "FANZA同人の動画（同人アニメ）のランキングです。個人・サークルが作った映像作品です。", url: "https://www.dmm.co.jp/dc/doujin/-/list/=/article=keyword/id=156004/sort=ranking/" },
+        { id: "books",  key: "fbooks", label: "ブックス", ja: "本・コミック", note: "FANZA の本（コミック・エロ本）のランキングです。出版社から出ている商業作品です。", url: "https://www.dmm.co.jp/mono/book/-/ranking/" },
+        { id: "video",  key: "fvideo", label: "アニメ",   ja: "商業アニメ", note: "FANZA のアニメ（商業のアダルトアニメ）のランキングです。", url: "https://www.dmm.co.jp/mono/anime/-/ranking/" },
+      ],
       types: [
-        { id: "overall", label: "総合",   period: "day", note: "FANZA同人 コミック 24時間ランキング" },
-        { id: "new",     label: "新刊",   period: "month", note: "24時間・週間ランキングのうち配信30日以内" },
-        { id: "popular", label: "人気",   period: "week", note: "販売数順（週間）" },
-        { id: "rising",  label: "急上昇", period: "day", note: "1時間ランキング" },
-        { id: "week",    label: "今週",   period: "week", note: "週間ランキング" },
-        { id: "month",   label: "今月",   period: "month", note: "月間ランキング" },
-        { id: "alltime", label: "歴代",   period: "all", note: "累計ランキング（FANZA に年間ランキングは無いため累計）" },
+        /* ── 同人 本（コミック） ── */
+        { id: "overall", src: "doujin", key: "fanza", lk: "overall", label: "総合",   period: "day", note: "FANZA同人 コミック 24時間ランキング" },
+        { id: "new",     src: "doujin", key: "fanza", lk: "new",     label: "新刊",   period: "month", note: "24時間・週間ランキングのうち配信30日以内" },
+        { id: "popular", src: "doujin", key: "fanza", lk: "popular", label: "人気",   period: "week", note: "販売数順（週間）" },
+        { id: "rising",  src: "doujin", key: "fanza", lk: "rising",  label: "急上昇", period: "day", note: "1時間ランキング" },
+        { id: "week",    src: "doujin", key: "fanza", lk: "week",    label: "今週",   period: "week", note: "週間ランキング" },
+        { id: "month",   src: "doujin", key: "fanza", lk: "month",   label: "今月",   period: "month", note: "月間ランキング" },
+        { id: "alltime", src: "doujin", key: "fanza", lk: "alltime", label: "歴代",   period: "all", note: "累計ランキング（FANZA に年間ランキングは無いため累計）" },
+        /* ── 同人 アニメ（動画） ── */
+        { id: "a_overall", src: "danime", key: "danime", lk: "overall", label: "総合", period: "day", note: "FANZA同人 動画の人気順" },
+        { id: "a_rising",  src: "danime", key: "danime", lk: "rising",  label: "注目", period: "day", note: "いま注目されている作品" },
+        { id: "a_new",     src: "danime", key: "danime", lk: "new",     label: "新着", period: "month", note: "新しく出た作品" },
+        { id: "a_popular", src: "danime", key: "danime", lk: "popular", label: "人気", period: "all", note: "売れている順" },
+        { id: "a_alltime", src: "danime", key: "danime", lk: "alltime", label: "歴代", period: "all", note: "累計の販売数順" },
+        { id: "a_rating",  src: "danime", key: "danime", lk: "rating",  label: "評価", period: "all", note: "評価の高い順" },
+        { id: "a_week",    src: "danime", key: "danime", lk: "week",    label: "お気に入り", period: "week", note: "お気に入り登録が多い順" },
+        /* ── ブックス（商業の本） ── */
+        { id: "b_overall", src: "books", key: "fbooks", lk: "overall",       label: "月間コミック", period: "month", note: "FANZA 本（コミック）月間ランキング" },
+        { id: "b_week",    src: "books", key: "fbooks", lk: "week",          label: "週間コミック", period: "week",  note: "FANZA 本（コミック）週間ランキング" },
+        { id: "b_rising",  src: "books", key: "fbooks", lk: "rising",        label: "日間コミック", period: "day",   note: "FANZA 本（コミック）日間ランキング" },
+        { id: "b_adult",   src: "books", key: "fbooks", lk: "overall-adult", label: "エロ本",       period: "month", note: "FANZA 本（エロ本）月間ランキング" },
+        /* ── アニメ（商業） ── */
+        { id: "v_overall", src: "video", key: "fvideo", lk: "overall", label: "月間", period: "month", note: "FANZA アニメ 月間ランキング" },
+        { id: "v_week",    src: "video", key: "fvideo", lk: "week",    label: "週間", period: "week",  note: "FANZA アニメ 週間ランキング" },
+        { id: "v_rising",  src: "video", key: "fvideo", lk: "rising",  label: "日間", period: "day",   note: "FANZA アニメ 日間ランキング" },
       ],
       compare: [
         { id: "month", label: "今月 vs 先月", period: "month", days: 30, def: true },
@@ -123,6 +165,25 @@
         { id: "month", label: "今月 vs 先月", period: "month", days: 30 },
       ],
     },
+    /* ★★ 2026-09-21 音楽（ご指定の「視聴されている曲」）。カラオケ＝歌われた回数、
+       こちら＝聴かれた回数で、出どころも数えかたも別なので<b>別のカテゴリー</b>にした。 */
+    music: {
+      id: "music", en: "MUSIC", ja: "音楽", unit: "曲", noun: "曲", title: "音楽ランキング", mainPeriod: "week",
+      source: "Billboard JAPAN", sourceUrl: "https://www.billboard-japan.com/charts/",
+      types: [
+        { id: "stream",   label: "視聴",         period: "week", note: "ストリーミングで聴かれた回数（Billboard JAPAN）" },
+        { id: "overall",  label: "総合",         period: "week", note: "Billboard JAPAN Hot 100" },
+        { id: "video",    label: "動画再生",     period: "week", note: "動画サイトでの再生数" },
+        { id: "download", label: "ダウンロード", period: "week", note: "有料ダウンロード数" },
+        { id: "anime",    label: "アニメ",       period: "week", note: "アニメの曲だけの順位" },
+        { id: "niconico", label: "ニコニコ",     period: "week", note: "ニコニコ動画での再生数" },
+        { id: "sales",    label: "CD売上",       period: "week", note: "CD の売上枚数" },
+      ],
+      compare: [
+        { id: "week", label: "今週 vs 先週", period: "week", days: 7, def: true },
+        { id: "last", label: "いま vs 前回の記録", period: "week", back: 1 },
+      ],
+    },
     karaoke: {
       id: "karaoke", en: "KARAOKE", ja: "カラオケ", unit: "曲", noun: "曲", title: "カラオケランキング", mainPeriod: "week",
       source: "カラオケ DAM", sourceUrl: "https://www.clubdam.com/ranking/",
@@ -144,13 +205,15 @@
       ],
     },
   };
-  const CAT_IDS = ["anime", "fanza", "dlsite", "karaoke"];
+  /* ★★ 2026-09-21d 同人アニメは FANZA の中のボタンになったので、独立のカテゴリーはやめた。 */
+  const CAT_IDS = ["anime", "fanza", "dlsite", "karaoke", "music"];
   /* 並べ替え（ランキング順のほかに選べるもの）。MagiBurst の並べ替えと同じ考えかた。 */
   const SORTS = {
     anime: [["rank", "ランキング順"], ["watchers", "視聴者数順"], ["fm", "国内評価順"], ["new", "新しい順"], ["title", "名前順"]],
     fanza: [["rank", "ランキング順"], ["rating", "評価順"], ["sales", "販売数順"], ["new", "新しい順"], ["price", "安い順"], ["title", "名前順"]],
     dlsite: [["rank", "ランキング順"], ["rating", "評価順"], ["sales", "販売数順"], ["new", "新しい順"], ["price", "安い順"], ["title", "名前順"]],
     karaoke: [["rank", "ランキング順"], ["new", "新しい順"], ["old", "古い順"], ["title", "曲名順"], ["artist", "アーティスト順"]],
+    music: [["rank", "ランキング順"], ["new", "新しい順"], ["old", "古い順"], ["title", "曲名順"], ["artist", "アーティスト順"]],
   };
   function sortEntries(cat, entries, sort) {
     if (!sort || sort === "rank") return entries;
@@ -183,14 +246,17 @@
      1行 = rank / previousRank / rankChange / isNew / prevKnown / title / image / genre / period / category / rankingType / item
      prevKnown=false は「前回の記録がまだ無い」（NEW と区別する） */
   function baseRow(cat, raw, ctx) {
-    const rank = raw.rank | 0;
+    /* ★ rank が null のときは「圏外」。0 にしてしまうと 0位 と書いてしまうので、
+       null のまま通して画面側で「圏外」と出す。 */
+    const rank = raw.rank == null ? null : raw.rank | 0;
     const known = raw.prevKnown !== false;
     const prev = raw.previousRank == null ? null : raw.previousRank | 0;
     return {
       category: cat, rankingType: ctx.type, period: ctx.period, rank,
       previousRank: prev, prevKnown: known,
-      rankChange: prev == null ? null : prev - rank,
-      isNew: known && prev == null,
+      rankChange: prev == null || rank == null ? null : prev - rank,
+      isNew: known && prev == null && rank != null,
+      offchart: rank == null,
       title: raw.item.title, image: raw.item.image || null, genre: raw.item.genre || "", score: raw.score || 0, item: raw.item,
     };
   }
@@ -199,8 +265,10 @@
     FanzaRanking: (raw, ctx) => baseRow("fanza", raw, ctx),
     DlsiteRanking: (raw, ctx) => baseRow("dlsite", raw, ctx),
     KaraokeRanking: (raw, ctx) => baseRow("karaoke", raw, ctx),
+    MusicRanking: (raw, ctx) => baseRow("music", raw, ctx),
   };
-  const MODEL_OF = { anime: Models.AnimeRanking, fanza: Models.FanzaRanking, dlsite: Models.DlsiteRanking, karaoke: Models.KaraokeRanking };
+  const MODEL_OF = { anime: Models.AnimeRanking, fanza: Models.FanzaRanking, dlsite: Models.DlsiteRanking,
+    karaoke: Models.KaraokeRanking, music: Models.MusicRanking };
 
   /* ══════════ 通信とキャッシュ ══════════
      ・同じ問い合わせは一定時間メモリから返す
@@ -271,7 +339,7 @@
   }
 
   /* ══════════ ANIME（AniList） ══════════ */
-  const AL_FIELDS = "id title{native romaji english} coverImage{extraLarge large color} bannerImage genres season seasonYear format status episodes averageScore popularity favourites trending siteUrl startDate{year month day} studios(isMain:true){nodes{name}}";
+  const AL_FIELDS = "id title{native romaji english} synonyms coverImage{extraLarge large color} bannerImage genres season seasonYear format status episodes averageScore popularity favourites trending siteUrl startDate{year month day} studios(isMain:true){nodes{name}}";
   const AL_LIST = `query($page:Int,$sort:[MediaSort],$season:MediaSeason,$year:Int,$status:MediaStatus,$minPop:Int,$genres:[String],$formats:[MediaFormat],$startAfter:FuzzyDateInt,$search:String){Page(page:$page,perPage:50){pageInfo{hasNextPage}media(type:ANIME,countryOfOrigin:"JP",isAdult:false,sort:$sort,season:$season,seasonYear:$year,status:$status,popularity_greater:$minPop,genre_in:$genres,format_in:$formats,startDate_greater:$startAfter,search:$search){${AL_FIELDS} trends(sort:DATE_DESC,perPage:25){nodes{date trending}}}}}`;
   const AL_ONE = `query($id:Int){Media(id:$id,type:ANIME){${AL_FIELDS} description(asHtml:false) trends(sort:DATE_DESC,perPage:25){nodes{date trending}} relations{edges{relationType node{${AL_FIELDS} type}}} recommendations(sort:RATING_DESC,perPage:12){nodes{mediaRecommendation{${AL_FIELDS} type}}}}}`;
   async function anilist(query, vars) {
@@ -288,6 +356,9 @@
     const title = (m.title && (m.title.native || m.title.romaji || m.title.english)) || "";
     return {
       id: String(m.id), category: "anime", title, sub: m.title && m.title.romaji !== title ? m.title.romaji : "",
+      /* ★ AniList の synonyms には「ReZero」のような短い呼びかたも入っている。
+         日本語と短いアルファベットだけを残して「別名」として出す（長い外国語の題名は落とす）。 */
+      synonyms: (m.synonyms || []).filter((x) => (/[ぁ-んァ-ヶ一-龠]/.test(x) ? x.length <= 24 : /^[A-Za-z0-9 :!?.'\-]{2,18}$/.test(x))).slice(0, 6),
       image: (m.coverImage && (m.coverImage.extraLarge || m.coverImage.large)) || null, banner: m.bannerImage || null, color: m.coverImage && m.coverImage.color,
       genres: genres.length ? genres : ["その他"], genre: genres[0] || "その他", genresEn: m.genres || [],
       format: FORMAT_JA[m.format] || m.format || "", formatEn: m.format, year: m.seasonYear || sd.year || null,
@@ -414,6 +485,17 @@
       return { category: "anime", type: "fm", period: "day", total: entries.length, entries, rangeLabel: "いま話題のアニメ（Filmarks・国内の評価）",
         updatedAt: j.at, stale: j._stale, prevLabel: known ? String(j.prevD).replace(/-/g, "/") + " の記録" : "", source: "Filmarks", sourceUrl: "https://filmarks.com/list-anime/trend" };
     }
+    /* Filmarks の「評価が高い順」。自動取得がためた作品の中から、点が付いているものを並べる。 */
+    async fmRate(f, sort) {
+      const rows = ((await fb("index/anime", 1800e3)) || []).map(jpView).filter((x) => Number(x.fmScore) > 0);
+      rows.forEach((x) => { this._jp[x.id] = x; });
+      const list = rows.filter((x) => this.jpPasses(x, f)).sort((a, b) => Number(b.fmScore) - Number(a.fmScore));
+      const ctx = { type: "fmrate", period: "all" };
+      let entries = list.map((x, i) => MODEL_OF.anime({ rank: i + 1, previousRank: null, prevKnown: false, item: x }, ctx));
+      entries = sortEntries("anime", entries, sort);
+      return { category: "anime", type: "fmrate", period: "all", total: entries.length, entries,
+        rangeLabel: "国内の評価が高い順（Filmarks）", updatedAt: MS.T, prevLabel: "", source: "Filmarks", sourceUrl: "https://filmarks.com" };
+    }
     jpPasses(it, f) {
       if (!f) return true;
       const g = (f && f.genres) || [], fm = (f && f.formats) || [];
@@ -452,6 +534,7 @@
       const period = type.period || q.period || defaultPeriod("anime", type.id);
       if (type.id === "jp") return this.jpList(period, q.filters, q.sort);
       if (type.id === "fm") return this.fmList(q.filters, q.sort);
+      if (type.id === "fmrate") return this.fmRate(q.filters, q.sort);
       const o = await this.ordered(type.id, period, q.filters);
       const pr = {}; (o.prev || []).forEach((id, i) => { pr[id] = i + 1; });
       const ctx = { type: type.id, period };
@@ -537,7 +620,8 @@
       /* 自動取得の一覧（国内）からも探す。順位が無いもの（圏外）も出す（ご指定） */
       const ix = (await fb("index/anime", 1800e3).catch(() => [])) || [];
       const k = kanaNorm(q);
-      const local = ix.filter((x) => kanaNorm([x.title, x.studio, x.director].concat((x.cast || []).map((c) => c.n), (x.staff || []).map((c) => c.n), x.genres || []).join(" ")).indexOf(k) >= 0)
+      /* ★ 略称・よみでも見つかるように（「リゼロ」「むしょくてんせい」など） */
+      const local = ix.filter((x) => kanaNorm([x.title, x.short, x.yomi, x.studio, x.director].concat((x.cast || []).map((c) => c.n), (x.staff || []).map((c) => c.n), x.genres || []).join(" ")).indexOf(k) >= 0)
         .map((x) => jpView(x)).filter((it) => this.jpPasses(it, f));
       const res = await this.page({ search: q, sort: ["SEARCH_MATCH"] }, 1).catch(() => ({ media: [] }));
       this.remember(res.media);
@@ -608,13 +692,15 @@
     }
   }
 
-  const JP_FIELDS = ["studio", "director", "cast", "staff", "fmScore", "fmUrl", "synopsis", "reviews", "banner", "seasonLabel"];
+  const JP_FIELDS = ["studio", "director", "cast", "staff", "fmScore", "fmUrl", "synopsis", "reviews", "banner", "seasonLabel", "short", "yomi"];
   function jpView(x) {
     const genres = (x.genres && x.genres.length) ? x.genres : ["その他"];
     const title = x.title || "";
     return { id: String(x.id), category: "anime", title, image: x.image || null, banner: x.banner || null, genres, genre: genres[0],
       studio: x.studio || "", director: x.director || "", cast: x.cast || [], staff: x.staff || [], fmScore: x.fmScore || null, fmUrl: x.fmUrl || "",
       synopsis: x.synopsis || "", reviews: x.reviews || [],
+      /* ★★ 2026-09-21c 略称・よみ（しょぼいカレンダーから自動取得が付ける） */
+      short: x.short || "", yomi: x.yomi || "",
       format: FORMAT_JA[x.format] || x.media || "", formatEn: x.format || "", seasonLabel: x.seasonText || "", airing: x.status === "RELEASING",
       watchers: x.watchers || 0, annictUrl: x.annictUrl, official: x.official || "", episodes: x.episodes || null,
       url: x.anilist ? "https://anilist.co/anime/" + x.id : x.annictUrl, jpOnly: !x.anilist, releaseDate: x.startedOn || "",
@@ -644,6 +730,26 @@
 
   /* ══════════ 同人（FANZA / DLsite・自動取得 → GitHub のデータ） ══════════
      2つは<b>別のカテゴリー</b>だが、作りは同じなので1つのクラスを使い回す（prefix がちがうだけ）。 */
+  /* ★★ 2026-09-21 ご指定：ランキングに入っていない作品・曲（＝圏外）も一覧に出す。
+     ・ランキングぶんを先に、そのうしろに圏外を付ける（順位は null ＝画面では「圏外」）
+     ・並べ替えを選んでいるときは、圏外もその順に並べる（選んでいなければ新しい順）
+     ・絞り込みは圏外にも同じように効く
+     ★ 一覧そのものを作り直すのではなく「うしろに足す」だけにすること。
+       ランキングの順位を圏外のせいでずらしてしまうと、前回との比較が狂う。 */
+  async function withOffChart(src, cat, entries, q, ctx) {
+    if (q && q.offchart === false) return entries;
+    let ix;
+    try { ix = await src.index(); } catch (e) { return entries; }
+    if (!ix || !ix.length) return entries;
+    const have = {};
+    entries.forEach((e) => { have[e.item.id] = 1; });
+    let rest = ix.filter((it) => !have[it.id] && src.passes(it, q && q.filters));
+    if (!rest.length) return entries;
+    let tail = rest.map((it) => MODEL_OF[cat]({ rank: null, previousRank: null, prevKnown: false, item: it }, ctx));
+    tail = sortEntries(cat, tail, (q && q.sort && q.sort !== "rank") ? q.sort : "new");
+    return entries.concat(tail);
+  }
+
   function doujinItem(cat, x) {
     const it = Object.assign({}, x, { category: cat, id: String(x.id || x.cid), genres: x.genres || [],
       image: x.image || x.thumb || null, isNew: daysAgo(x.releaseDate) <= 30 });
@@ -654,8 +760,36 @@
     return it;
   }
   class DoujinSource {
-    constructor(cat) { this.cat = cat; this.label = cat === "fanza" ? "FANZA同人（ランキングページ・自動取得）" : "DLsite 同人（ランキングページ・自動取得）"; }
-    index() { return fb("index/" + this.cat, 1800e3).then((rows) => (rows || []).filter(Boolean).map((r) => doujinItem(this.cat, r))); }
+    constructor(cat) {
+      this.cat = cat;
+      this.label = { fanza: "FANZA（ランキングページ・自動取得）", dlsite: "DLsite 同人（ランキングページ・自動取得）" }[cat] || cat;
+      /* ★★ 2026-09-21d このカテゴリーが持つ「出どころ」ごとのファイル名。
+         FANZA は4つ（fanza／danime／fbooks／fvideo）、DLsite は1つ。
+         curKey ＝ いま見ている出どころ。検索・絞り込み・関連はこれを見る。 */
+      this.keys = (CATS[cat] && CATS[cat].keys) || [cat];
+      this.curKey = this.keys[0];
+      this._where = {};      /* 作品の id → どの出どころのものか */
+    }
+    keyOf(t) { return (t && t.key) || this.curKey; }
+    index(key) {
+      const k = key || this.curKey;
+      return fb("index/" + k, 1800e3).then((rows) => {
+        const out = (rows || []).filter(Boolean).map((r) => doujinItem(this.cat, r));
+        out.forEach((x) => { this._where[x.id] = k; });
+        return out;
+      });
+    }
+    /* その作品がどの出どころのものかを覚えておく（詳細・関連で使う） */
+    async whereOf(id) {
+      if (this._where[id]) return this._where[id];
+      for (const k of this.keys) {
+        try {
+          const ix = await this.index(k);
+          if (ix.some((x) => x.id === id)) return k;
+        } catch (e) {}
+      }
+      return this.curKey;
+    }
     passes(it, f) {
       if (!f) return true;
       const has = (a, fn) => !a || !a.length || a.some(fn);
@@ -672,12 +806,18 @@
       if (f.author && kanaNorm((it.author || "") + (it.circle || "")).indexOf(kanaNorm(f.author)) < 0) return false;
       if (f.circle && kanaNorm(it.circle || "").indexOf(kanaNorm(f.circle)) < 0) return false;
       if (f.series && kanaNorm(it.series || "").indexOf(kanaNorm(f.series)) < 0) return false;
+      if (f.origin && kanaNorm(it.origin || it.theme || "").indexOf(kanaNorm(f.origin)) < 0) return false;
       if (f.minRate && !(Number(it.rating) >= Number(f.minRate))) return false;
+      /* ★ 2026-09-21 販売数でも絞り込めるように（ご指定）。販売数が出ていない作品は外す。 */
+      if (f.minSales && !(Number(it.sales) >= Number(f.minSales))) return false;
+      if (f.maxPrice && !(Number(String(it.price).replace(/,/g, "")) <= Number(f.maxPrice))) return false;
       return true;
     }
     async list(q) {
       const type = typeOf(this.cat, q.type);
-      const j = await fb("lists/" + this.cat + "_" + type.id, 600e3);
+      const key = this.keyOf(type);
+      this.curKey = key;
+      const j = await fb("lists/" + key + "_" + (type.lk || type.id), 600e3);
       const known = !!j.prevD;
       let rows = (j.entries || []).map((x) => ({ item: doujinItem(this.cat, x), previousRank: x.prev || null }));
       const all = rows.length;
@@ -689,37 +829,55 @@
       let entries = rows.map((r, i) => MODEL_OF[this.cat]({ rank: i + 1, previousRank: !known ? null : rerank ? pr.get(r) || null : r.previousRank,
         prevKnown: known, item: r.item }, ctx));
       entries = sortEntries(this.cat, entries, q.sort);
-      return { category: this.cat, type: type.id, period: type.period, total: entries.length, entries, rangeLabel: type.note, updatedAt: j.at, stale: j._stale,
-        prevLabel: known ? String(j.prevD).replace(/-/g, "/") + " の記録" : "", source: CATS[this.cat].source, sourceUrl: j.source || CATS[this.cat].sourceUrl };
+      const ranked = entries.length;
+      entries = await withOffChart(this, this.cat, entries, q, ctx);
+      const sc = (CATS[this.cat].sources || []).find((x) => x.id === type.src);
+      return { category: this.cat, type: type.id, period: type.period, total: entries.length, ranked, entries, rangeLabel: type.note, updatedAt: j.at, stale: j._stale,
+        prevLabel: known ? String(j.prevD).replace(/-/g, "/") + " の記録" : "", source: sc ? CATS[this.cat].ja + " " + sc.label : CATS[this.cat].source,
+        sourceUrl: j.source || (sc && sc.url) || CATS[this.cat].sourceUrl };
     }
     async item(id) {
-      try { return doujinItem(this.cat, await fb("items/" + this.cat + "/" + id, 900e3)); } catch (e) { if (e.code === "nodata") return null; throw e; }
+      const k = await this.whereOf(id);
+      try { return doujinItem(this.cat, await fb("items/" + k + "/" + id, 900e3)); } catch (e) { if (e.code === "nodata") return null; throw e; }
+    }
+    /* その出どころの「いちばん基本の種類」（順位推移・比較のもとにする） */
+    mainType(key) {
+      return CATS[this.cat].types.find((t) => (t.key || this.keys[0]) === (key || this.curKey)) || CATS[this.cat].types[0];
     }
     async rankInfo(id) {
-      const L = await this.list({ type: "overall" });
+      const k = await this.whereOf(id);
+      const mt = this.mainType(k);
+      const L = await this.list({ type: mt.id, offchart: false });
       const e = L.entries.find((x) => x.item.id === id);
-      const h = await fbHistory(this.cat + "_overall", id, 365, "");
+      const h = await fbHistory(k + "_" + (mt.lk || mt.id), id, 365, "");
       const all = h.points.map((p) => p.rank).filter(Boolean); if (e) all.push(e.rank);
+      const sc = (CATS[this.cat].sources || []).find((x) => x.key === k);
       return { rank: e ? e.rank : null, previousRank: e ? e.previousRank : null, prevKnown: e ? e.prevKnown : false, best: all.length ? Math.min.apply(null, all) : null,
-        label: CATS[this.cat].source + " 総合（マンガ）の順位" };
+        label: CATS[this.cat].ja + (sc ? " " + sc.label : "") + " " + mt.label + "の順位" };
     }
-    history(id, range) { return fbHistory(this.cat + "_overall", id, { "1w": 7, "1m": 31, "3m": 92, "1y": 365 }[range] || 31, "自動取得が記録した総合順位（記録が始まった日から）"); }
+    async history(id, range) {
+      const k = await this.whereOf(id);
+      const mt = this.mainType(k);
+      return fbHistory(k + "_" + (mt.lk || mt.id), id, { "1w": 7, "1m": 31, "3m": 92, "1y": 365 }[range] || 31, "自動取得が記録した順位（記録が始まった日から）");
+    }
     async search(q, f) {
       const k = kanaNorm(q);
-      const [ix, L] = await Promise.all([this.index(), this.list({ type: "overall" }).catch(() => ({ entries: [] }))]);
+      const [ix, L] = await Promise.all([this.index(), this.list({ type: this.mainType().id, offchart: false }).catch(() => ({ entries: [] }))]);
       const rk = {}; L.entries.forEach((e) => { rk[e.item.id] = e.rank; });
-      return ix.filter((it) => (!k || kanaNorm([it.title, it.circle, it.author, it.series].concat(it.genres || []).join(" ")).indexOf(k) >= 0) && this.passes(it, f))
+      return ix.filter((it) => (!k || kanaNorm([it.title, it.circle, it.author, it.series, it.origin].concat(it.genres || []).join(" ")).indexOf(k) >= 0) && this.passes(it, f))
         .map((it) => ({ item: it, rank: rk[it.id] || null })).sort((a, b) => (a.rank || 9999) - (b.rank || 9999)).slice(0, 300);
     }
     async trends() {
-      const L = await this.list({ type: "rising" });
+      const rt = CATS[this.cat].types.find((t) => (t.key || this.keys[0]) === this.curKey && /rising/.test(t.id)) || this.mainType();
+      const L = await this.list({ type: rt.id, offchart: false });
       const list = L.entries.slice(0, 30).map((e, i) => ({ item: e.item, heat: Math.max(8, 100 - i * 3), rank: null,
         text: e.item.sales ? "販売数 " + Number(e.item.sales).toLocaleString("ja-JP") : e.item.rating ? "★" + e.item.rating : "" }));
       return { list, genres: genreHeat(list), lead: CATS[this.cat].source + " の急上昇" };
     }
     async related(id) {
       const it = await this.item(id);
-      const [ix, L] = await Promise.all([this.index(), this.list({ type: "overall" }).catch(() => ({ entries: [] }))]);
+      const k = await this.whereOf(id);
+      const [ix, L] = await Promise.all([this.index(k), this.list({ type: this.mainType(k).id, offchart: false }).catch(() => ({ entries: [] }))]);
       const rk = {}; L.entries.forEach((e) => { rk[e.item.id] = e.rank; });
       const p = it ? ix.filter((x) => x.id !== id && ((it.seriesId && x.seriesId === it.seriesId) || (it.circleId && x.circleId === it.circleId) || (it.circle && x.circle === it.circle))) : [];
       /* よく似た作品＝ジャンルの重なりが多い順（この作品を見ている人がよく見るもの） */
@@ -730,8 +888,9 @@
       return { primary: p.slice(0, 12).map(v), secondary: s.slice(0, 12).map(v) };
     }
     async compare(pair) {
-      const cur = await this.list({ type: "overall" });
-      const pv = await fbPrevIds(this.cat + "_overall", pair.days || 0);
+      const mt = this.mainType();
+      const cur = await this.list({ type: mt.id, offchart: false });
+      const pv = await fbPrevIds(this.curKey + "_" + (mt.lk || mt.id), pair.days || 0);
       if (!pv) return { cur, prevTop: [], available: false, curLabel: "いま", prevLabel: pair.days ? pair.days + "日前" : "前回" };
       const pr = {}; pv.ids.forEach((id, i) => { pr[id] = i + 1; });
       cur.entries.forEach((e) => { e.previousRank = pr[e.item.id] || null; e.prevKnown = true; e.rankChange = e.previousRank ? e.previousRank - e.rank : null; e.isNew = !e.previousRank; });
@@ -744,15 +903,21 @@
       const m = {}, circles = {};
       ix.forEach((x) => { (x.genres || []).forEach((g) => { m[g] = (m[g] || 0) + 1; }); if (x.circle) circles[x.circle] = (circles[x.circle] || 0) + 1; });
       const skip = /^(コミック|CG|ボイス|ゲーム|動画|音楽|アニメ|その他|ツール|写真|男性向け|女性向け|成人向け|専売|独占|新作|準新作|旧作)$/;
+      const sales = ix.map((x) => Number(x.sales) || 0).filter(Boolean).sort((a, b) => b - a);
       return { genres: Object.keys(m).filter((g) => !skip.test(g)).sort((a, b) => m[b] - m[a]).slice(0, 120),
         circles: Object.keys(circles).sort((a, b) => circles[b] - circles[a]).slice(0, 60),
-        kinds: this.cat === "fanza" ? ["コミック", "CG集", "ボイス"] : ["マンガ", "CG集"] };
+        maxSales: sales[0] || 0, medSales: sales[Math.floor(sales.length / 2)] || 0,
+        kinds: this.cat === "fanza" ? ["コミック", "動画", "本", "アニメ"] : ["マンガ", "CG集"] };
     }
     /* 人（サークル・作者）でまとめる */
     async byPerson(kind, name) {
       const ix = await this.index();
       const k = kanaNorm(name);
-      return ix.filter((x) => kanaNorm(kind === "circle" ? x.circle : x.author) === k).map((x) => ({ item: x, rank: null }));
+      const pick = (x) => kind === "circle" ? x.circle : kind === "series" ? x.series : kind === "origin" ? (x.origin || x.theme) : x.author;
+      const L = await this.list({ type: "overall", offchart: false }).catch(() => ({ entries: [] }));
+      const rk = {}; L.entries.forEach((e) => { rk[e.item.id] = e.rank; });
+      return ix.filter((x) => kanaNorm(pick(x) || "") === k).map((x) => ({ item: x, rank: rk[x.id] || null }))
+        .sort((a, b) => (a.rank || 9999) - (b.rank || 9999));
     }
   }
   const FanzaSource = DoujinSource;
@@ -816,8 +981,10 @@
       const ctx = { type: type.id, period };
       let entries = filtered.map((r, i) => MODEL_OF.karaoke({ rank: i + 1, previousRank: known ? (rerank ? (pr.get(r) || null) : r.previousRank) : null, prevKnown: known, item: r.item }, ctx));
       entries = sortEntries("karaoke", entries, q.sort);
+      const ranked = entries.length;
+      entries = await withOffChart(this, "karaoke", entries, q, ctx);
       const lname = LIST_GENRE[list] || LIST_NAME[list] || "総合";
-      return { category: "karaoke", type: type.id, period, total: entries.length, entries, list, term,
+      return { category: "karaoke", type: type.id, period, total: entries.length, ranked, entries, list, term,
         rangeLabel: "DAM " + lname + "・" + { daily: "デイリー", weekly: "週間", monthly: "月間", year: "年間" }[term] + (type.note ? "（" + type.note + "）" : ""),
         updatedAt: j.at, stale: j._stale, prevLabel: known ? String(j.prevD).replace(/-/g, "/") + " の記録" : "", source: "カラオケ DAM", sourceUrl: j.source || DAM + "/ranking/" };
     }
@@ -929,7 +1096,123 @@
   function fnv(str) { let h = 0x811c9dc5; for (let i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 0x01000193); } return h >>> 0; }
 
   /* ══════════ リポジトリ（画面が呼ぶのはここだけ） ══════════ */
-  const sources = { anime: new AniListSource(), fanza: new DoujinSource("fanza"), dlsite: new DoujinSource("dlsite"), karaoke: new DamSource() };
+  /* ══════════ MUSIC（Billboard JAPAN → 自動取得 → GitHub のデータ） ══════════
+     ★★ 2026-09-21 ご指定の「視聴されている曲」のランキング。
+        カラオケ（歌われた回数）とは数えかたも出どころも別なので、DamSource とは分けてある。
+        アーティストの曲は、ランキング圏外のぶんも index/music.json に入っている。 */
+  const BB = "https://www.billboard-japan.com";
+  function musicItem(x) {
+    const it = Object.assign({}, x, { category: "music", id: String(x.id) });
+    it.year = x.releaseDate ? +String(x.releaseDate).slice(0, 4) : null;
+    it.genre = x.genre || "";
+    it.isNewSong = !!x.releaseDate && daysAgo(x.releaseDate) <= 180;
+    it.url = x.appleUrl || x.url || BB + "/charts/";
+    return it;
+  }
+  class BillboardSource {
+    constructor() { this.cat = "music"; this.label = "Billboard JAPAN（チャートのページ・自動取得）"; }
+    index() { return fb("index/music", 1800e3).then((rows) => (rows || []).filter(Boolean).map(musicItem)); }
+    passes(it, f) {
+      if (!f) return true;
+      if (f.artist && kanaNorm(it.artist || "").indexOf(kanaNorm(f.artist)) < 0) return false;
+      if (f.genres && f.genres.length && f.genres.indexOf(it.genre) < 0) return false;
+      if (f.yearFrom && (!it.year || it.year < f.yearFrom)) return false;
+      if (f.yearTo && (!it.year || it.year > f.yearTo)) return false;
+      if (f.tags && f.tags.length && !f.tags.some((x) => x === "new" ? it.isNewSong : x === "chart" ? !it.offchart : true)) return false;
+      return true;
+    }
+    async list(q) {
+      const type = typeOf("music", q.type);
+      const j = await fb("lists/music_" + type.id, 600e3);
+      const known = !!j.prevD;
+      let rows = (j.entries || []).map((x) => ({ item: musicItem(x), previousRank: x.prev || null }));
+      const all = rows.length;
+      rows = rows.filter((r) => this.passes(r.item, q.filters));
+      const rerank = rows.length !== all;
+      const pr = new Map();
+      if (rerank) rows.filter((r) => r.previousRank).sort((a, b) => a.previousRank - b.previousRank).forEach((r, i) => pr.set(r, i + 1));
+      const ctx = { type: type.id, period: type.period };
+      let entries = rows.map((r, i) => MODEL_OF.music({ rank: i + 1, previousRank: !known ? null : rerank ? pr.get(r) || null : r.previousRank,
+        prevKnown: known, item: r.item }, ctx));
+      entries = sortEntries("music", entries, q.sort);
+      const ranked = entries.length;
+      entries = await withOffChart(this, "music", entries, q, ctx);
+      return { category: "music", type: type.id, period: type.period, total: entries.length, ranked, entries,
+        rangeLabel: j.note || type.note, updatedAt: j.at, stale: j._stale,
+        prevLabel: known ? String(j.prevD).replace(/-/g, "/") + " の記録" : "", source: "Billboard JAPAN", sourceUrl: j.source || BB + "/charts/" };
+    }
+    async item(id) {
+      try { return musicItem(await fb("items/music/" + id, 900e3)); } catch (e) { if (e.code === "nodata") return null; throw e; }
+    }
+    async rankInfo(id) {
+      const L = await this.list({ type: "stream", offchart: false });
+      const e = L.entries.find((x) => x.item.id === id);
+      const h = await fbHistory("music_stream", id, 365, "");
+      const all = h.points.map((p) => p.rank).filter(Boolean); if (e) all.push(e.rank);
+      return { rank: e ? e.rank : null, previousRank: e ? e.previousRank : null, prevKnown: e ? e.prevKnown : false,
+        best: all.length ? Math.min.apply(null, all) : null, label: "Billboard JAPAN 視聴（ストリーミング）の順位" };
+    }
+    history(id, range) { return fbHistory("music_stream", id, { "1w": 7, "1m": 31, "3m": 92, "1y": 365 }[range] || 31, "Billboard JAPAN 視聴ランキングの順位"); }
+    async search(q, f) {
+      const k = kanaNorm(q);
+      const [ix, L] = await Promise.all([this.index(), this.list({ type: "stream", offchart: false }).catch(() => ({ entries: [] }))]);
+      const rk = {}; L.entries.forEach((e) => { rk[e.item.id] = e.rank; });
+      return ix.filter((it) => (!k || kanaNorm(it.title + " " + it.artist + " " + (it.genre || "")).indexOf(k) >= 0) && this.passes(it, f))
+        .map((it) => ({ item: it, rank: rk[it.id] || null })).sort((a, b) => (a.rank || 9999) - (b.rank || 9999)).slice(0, 300);
+    }
+    async byPerson(kind, name) {
+      const ix = await this.index();
+      const k = kanaNorm(name);
+      const L = await this.list({ type: "stream", offchart: false }).catch(() => ({ entries: [] }));
+      const rk = {}; L.entries.forEach((e) => { rk[e.item.id] = e.rank; });
+      return ix.filter((x) => kanaNorm(x.artist || "") === k).map((x) => ({ item: x, rank: rk[x.id] || null }))
+        .sort((a, b) => (a.rank || 9999) - (b.rank || 9999));
+    }
+    async artists() {
+      const ix = await this.index();
+      const m = {};
+      ix.forEach((x) => { if (x.artist) m[x.artist] = (m[x.artist] || 0) + 1; });
+      return Object.keys(m).sort((a, b) => m[b] - m[a]);
+    }
+    async facets() {
+      const ix = await this.index().catch(() => []);
+      const m = {};
+      ix.forEach((x) => { if (x.genre) m[x.genre] = (m[x.genre] || 0) + 1; });
+      return { genres: Object.keys(m).sort((a, b) => m[b] - m[a]).slice(0, 40) };
+    }
+    async trends() {
+      const L = await this.list({ type: "stream", offchart: false });
+      const list = L.entries.slice(0, 30).map((e, i) => ({ item: e.item, heat: Math.max(8, 100 - i * 3), rank: e.rank,
+        text: e.prevKnown ? (e.previousRank ? "前回 " + e.previousRank + "位" : "初登場") : "" }));
+      const gh = {};
+      list.forEach((x) => { const g = x.item.genre || "その他"; gh[g] = (gh[g] || 0) + x.heat; });
+      return { list, genres: Object.keys(gh).map((g) => ({ g, v: gh[g] })).sort((a, b) => b.v - a.v).slice(0, 8),
+        lead: "Billboard JAPAN の視聴（ストリーミング）ランキング＝いちばん聴かれている曲" };
+    }
+    async related(id) {
+      const it = await this.item(id);
+      const [ix, L] = await Promise.all([this.index(), this.list({ type: "stream", offchart: false }).catch(() => ({ entries: [] }))]);
+      const rk = {}; L.entries.forEach((e) => { rk[e.item.id] = e.rank; });
+      const k = it ? kanaNorm(it.artist || "") : "";
+      const p = it ? ix.filter((x) => x.id !== id && k && kanaNorm(x.artist || "") === k).map((x) => ({ item: x, rank: rk[x.id] || null })) : [];
+      const sec = it ? L.entries.filter((e) => e.item.id !== id && it.genre && e.item.genre === it.genre && !p.some((y) => y.item.id === e.item.id))
+        .slice(0, 12).map((e) => ({ item: e.item, rank: e.rank })) : [];
+      return { primary: p.slice(0, 12), secondary: sec };
+    }
+    async compare(pair) {
+      const cur = await this.list({ type: "stream", offchart: false });
+      const pv = await fbPrevIds("music_stream", pair.days || 0);
+      if (!pv) return { cur, prevTop: [], available: false, curLabel: "いま", prevLabel: pair.days ? pair.days + "日前" : "前回" };
+      const pr = {}; pv.ids.forEach((id, i) => { pr[id] = i + 1; });
+      cur.entries.forEach((e) => { e.previousRank = pr[e.item.id] || null; e.prevKnown = true; e.rankChange = e.previousRank ? e.previousRank - e.rank : null; e.isNew = !e.previousRank; });
+      const ix = await this.index();
+      const byId = {}; ix.forEach((x) => { byId[x.id] = x; }); cur.entries.forEach((e) => { byId[e.item.id] = e.item; });
+      return { cur, prevTop: pv.ids.slice(0, 10).map((id) => byId[id] || musicItem({ id, title: id })), available: true, curLabel: "いま", prevLabel: pv.d.replace(/-/g, "/") };
+    }
+  }
+
+  const sources = { anime: new AniListSource(), fanza: new DoujinSource("fanza"), dlsite: new DoujinSource("dlsite"),
+    karaoke: new DamSource(), music: new BillboardSource() };
   const src = (cat) => { const s = sources[cat]; if (!s) throw new Error("unknown category " + cat); return s; };
   const repo = {
     use(cat, source) { if (CATS[cat]) sources[cat] = source; },
@@ -955,7 +1238,7 @@
         let sc = 0;
         (x.genres || []).forEach((g) => { sc += want[g] || 0; });
         const names = cat === "anime" ? [x.studio, x.director].concat((x.cast || []).map((c) => c.n))
-          : cat === "karaoke" ? [x.artist] : [x.circle, x.author];
+          : (cat === "karaoke" || cat === "music") ? [x.artist] : [x.circle, x.author];
         names.filter(Boolean).forEach((n) => { if (peo.indexOf(kanaNorm(n)) >= 0) sc += 14; });
         sc += Math.min(6, (Number(x.watchers) || 0) / 2000) + (Number(x.fmScore) || 0) + (Number(x.rating) || 0);
         return { item: x, sc };
@@ -974,8 +1257,10 @@
   };
 
   Object.assign(MS, {
-    CATS, CAT_IDS, PERIODS, Models, repo, AniListSource, DoujinSource, DamSource, SORTS,
+    CATS, CAT_IDS, PERIODS, Models, repo, AniListSource, DoujinSource, DamSource, BillboardSource, SORTS,
     typeOf, periodsOfType, defaultPeriod, fmtDate, fmtMD, agoLabel, T, daysAgo,
+    /* 人・ジャンル・検索の一覧（{item, rank} の並び）も、ランキングと同じ並べ替えを使う */
+    sortRows: (cat, rows, sort) => sortEntries(cat, rows, sort),
     CUR_SEASON: CUR, CUR_SEASON_LABEL: CUR.y + "年" + SEASON_NM[SEASON_EN[CUR.s]] + "アニメ",
     ANIME_GENRES, ANIME_FORMATS, KARA_GENRES, KARA_LISTS, kanaNorm, fnv,
   });

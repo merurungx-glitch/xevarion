@@ -19,6 +19,11 @@
   --up:#0f8a3c; --down:#e2231a; --flat:#8a8375;
   --anime:#e2231a; --anime2:#8f1410; --fanza:#d81b7a; --fanza2:#8a0f4b; --dlsite:#1558d6; --dlsite2:#0b3488;
   --karaoke:#ef7d00; --karaoke2:#a34f00; --acc:var(--red); --acc2:#8f1410;
+  --danime:#7a2fd0; --danime2:#4a1487; --music:#0a8f6e; --music2:#05604a;
+  /* ★★ 2026-09-21 下バーは --ink をそのまま使うと、ダークモードで板まで明るくなり
+     文字（#cfc8b6）がほとんど読めなくなっていた（ご指定「下バーが見づらい」）。
+     明暗にかかわらず<b>いつも濃い板に明るい文字</b>、選んでいるところは<b>黄色に墨</b>に固定する。 */
+  --barbg:#12100c; --bartxt:#e9e3d2; --barink:#12100c;
   --safet:env(safe-area-inset-top,0px); --safeb:var(--xv-safeb,env(safe-area-inset-bottom,0px));
   --cut:10px;
   color-scheme:light;
@@ -29,6 +34,8 @@
   --up:#4fd37a; --down:#ff6a5f; --flat:#a49c8c;
   --anime:#ff4a3d; --anime2:#a31a12; --fanza:#ff4f9d; --fanza2:#9c1257; --dlsite:#5b93ff; --dlsite2:#1a49a8;
   --karaoke:#ffa02a; --karaoke2:#a85b00;
+  --danime:#b07bff; --danime2:#5a1ea8; --music:#28d3a7; --music2:#067057;
+  --barbg:#0b0a07; --bartxt:#efe9d8; --barink:#12100c;
   color-scheme:dark;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -68,12 +75,13 @@ svg.i{width:22px;height:22px;flex:none;fill:none;stroke:currentColor;stroke-widt
 #view.anim{animation:vin .2s ease-out}
 @keyframes vin{from{opacity:.001;transform:translateY(8px)}to{opacity:1;transform:none}}
 
-.bnav{flex:none;display:grid;grid-template-columns:repeat(5,1fr);padding:6px 6px calc(var(--safeb) + 6px);background:var(--ink);z-index:6;
-  clip-path:polygon(0 10px,14px 0,100% 0,100% 100%,0 100%)}
-.bnav button{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 0 4px;color:#cfc8b6;font-size:10.5px;font-weight:800;min-height:50px;
-  clip-path:polygon(6px 0,100% 0,100% calc(100% - 6px),calc(100% - 6px) 100%,0 100%,0 6px)}
-.bnav button.on{color:var(--ink);background:var(--yellow)}
-.bnav button.on svg{stroke:var(--ink)}
+.bnav{flex:none;display:grid;grid-template-columns:repeat(5,1fr);padding:6px 6px calc(var(--safeb) + 6px);background:var(--barbg);z-index:6;
+  border-top:2px solid var(--barbg);clip-path:polygon(0 10px,14px 0,100% 0,100% 100%,0 100%)}
+.bnav button{display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 0 5px;color:var(--bartxt);font-size:11px;font-weight:800;min-height:52px;
+  letter-spacing:.02em;clip-path:polygon(6px 0,100% 0,100% calc(100% - 6px),calc(100% - 6px) 100%,0 100%,0 6px)}
+.bnav button svg{stroke:var(--bartxt);width:21px;height:21px}
+.bnav button.on{color:var(--barink);background:var(--yellow)}
+.bnav button.on svg{stroke:var(--barink)}
 
 /* ══ 部品 ══ */
 .glass{background:var(--card);border:2px solid var(--ink);
@@ -93,6 +101,8 @@ svg.i{width:22px;height:22px;flex:none;fill:none;stroke:currentColor;stroke-widt
 [data-c="fanza"]{--c:var(--fanza);--c2:var(--fanza2)}
 [data-c="dlsite"]{--c:var(--dlsite);--c2:var(--dlsite2)}
 [data-c="karaoke"]{--c:var(--karaoke);--c2:var(--karaoke2)}
+[data-c="danime"]{--c:var(--danime);--c2:var(--danime2)}
+[data-c="music"]{--c:var(--music);--c2:var(--music2)}
 .chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:3px 12px 6px;margin:0 -12px;align-items:center}
 .chips::-webkit-scrollbar{display:none}
 .chips > svg.i{flex:none;opacity:.6}
@@ -150,13 +160,33 @@ svg.i{width:22px;height:22px;flex:none;fill:none;stroke:currentColor;stroke-widt
 .pcard{flex:none;width:116px;scroll-snap-align:start;text-align:left;position:relative}
 .pcard .art{width:116px;overflow:hidden;position:relative;border:2px solid var(--ink);background:var(--card);aspect-ratio:3/4}
 .pcard .art img{display:block;width:100%;height:100%;object-fit:cover}
-.pcard[data-c="karaoke"] .art{aspect-ratio:1/1}
+.pcard[data-c="karaoke"] .art,.pcard[data-c="music"] .art{aspect-ratio:1/1}
+/* ★★ 2026-09-21 ご指定：FANZA・DLsite・同人アニメの絵はもとが横長なので、枠も横長にする
+   （縦長の枠に入れていたため、上下が切れるか大きな余白ができていた）。 */
+.pcard[data-c="fanza"] .art,.pcard[data-c="dlsite"] .art,.pcard[data-c="danime"] .art{aspect-ratio:4/3}
 .pcard .rk{position:absolute;left:0;top:0;min-width:28px;height:26px;display:grid;place-items:center;font-size:15px;color:var(--ink);background:var(--yellow);padding:0 6px;
   clip-path:polygon(0 0,100% 0,calc(100% - 8px) 100%,0 100%)}
 .pcard .rk.r2{background:#ddd7c6} .pcard .rk.r3{background:#e3a765}
 .pcard .t{font-size:12px;font-weight:800;margin-top:6px;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 .pcard .s{font-size:10.5px;color:var(--sub);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .pcard .mv{position:absolute;right:0;top:0}
+/* ★★ 2026-09-21c 閲覧履歴の札。名前が長いと絵の幅をはみ出して読みにくかったので、
+   札の幅を絵にそろえ、名前は2行で止めて<b>どの札も同じ高さ</b>にする（ご指定）。 */
+.pcard.hp{width:84px}
+.pcard.hp .art{width:84px}
+.pcard.hp .t{font-size:11px;line-height:1.3;height:2.6em;-webkit-line-clamp:2;word-break:break-all}
+.hcard{position:relative;flex:none;width:84px}
+/* ★★ アニメの出どころ（Annict／Filmarks／AniList）を選ぶボタン。
+   3つはまったく別のランキングなので、種類の札より目立たせる。 */
+.srcseg{display:grid;grid-template-columns:repeat(var(--n,3),1fr);gap:6px;margin:2px 0 8px}
+.srcseg a{display:flex;flex-direction:column;align-items:center;gap:1px;padding:8px 4px;background:var(--card);
+  border:2px solid var(--ink);color:var(--ink);text-align:center;
+  clip-path:polygon(7px 0,100% 0,100% calc(100% - 7px),calc(100% - 7px) 100%,0 100%,0 7px)}
+.srcseg a b{font-family:'Exo 2',sans-serif;font-style:italic;font-size:13px;font-weight:800;letter-spacing:.02em}
+.srcseg a small{font-size:10px;font-weight:800;color:var(--sub)}
+.srcseg a.on{background:var(--c,var(--red));color:#fff;border-color:var(--ink)}
+.srcseg a.on small{color:rgba(255,255,255,.88)}
+.srcnote{line-height:1.7}
 .homesec{padding:12px 12px 4px;margin-top:14px;background:var(--card);border:2px solid var(--ink);border-left:8px solid var(--c);
   clip-path:polygon(0 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%)}
 .homesec .sec{margin:0 0 8px}
@@ -179,7 +209,8 @@ svg.i{width:22px;height:22px;flex:none;fill:none;stroke:currentColor;stroke-widt
   clip-path:polygon(12px 0,100% 0,100% calc(100% - 12px),calc(100% - 12px) 100%,0 100%,0 12px)}
 .big.r1{background:linear-gradient(100deg,var(--yellow) 0 32%,var(--card) 32.2%)}
 .big .art{width:96px;flex:none;overflow:hidden;border:2px solid var(--ink);align-self:center;background:var(--paper);aspect-ratio:3/4}
-.big[data-c="karaoke"] .art{aspect-ratio:1/1;width:104px}
+.big[data-c="karaoke"] .art,.big[data-c="music"] .art{aspect-ratio:1/1;width:104px}
+.big[data-c="fanza"] .art,.big[data-c="dlsite"] .art,.big[data-c="danime"] .art{aspect-ratio:4/3;width:120px}
 .big .art img{width:100%;height:100%;object-fit:cover;display:block}
 .big .bd{flex:1;min-width:0;display:flex;flex-direction:column;gap:4px;justify-content:center}
 .big .medal{display:flex;align-items:center;gap:8px}
@@ -193,7 +224,11 @@ svg.i{width:22px;height:22px;flex:none;fill:none;stroke:currentColor;stroke-widt
 .row .rk{width:40px;flex:none;text-align:center;display:flex;flex-direction:column;align-items:center;gap:3px}
 .row .rk .n{font-size:21px;line-height:1}
 .row .art{width:48px;flex:none;overflow:hidden;border:2px solid var(--ink);background:var(--paper);aspect-ratio:3/4}
-.row[data-c="karaoke"] .art{aspect-ratio:1/1;width:52px}
+.row[data-c="karaoke"] .art,.row[data-c="music"] .art{aspect-ratio:1/1;width:52px}
+.row[data-c="fanza"] .art,.row[data-c="dlsite"] .art,.row[data-c="danime"] .art{aspect-ratio:4/3;width:64px}
+/* 圏外の行は少し控えめに（ランキングの行とひと目で見分けられるように） */
+.row.off .rk{color:var(--faint)}
+.row.off .art{opacity:.94}
 .row .art img{width:100%;height:100%;object-fit:cover;display:block}
 .row .bd{flex:1;min-width:0}
 .row .t{font-size:13.5px;font-weight:800;line-height:1.35;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
@@ -243,7 +278,8 @@ svg.i{width:22px;height:22px;flex:none;fill:none;stroke:currentColor;stroke-widt
 .dhero .cover{width:120px;flex:none;overflow:hidden;border:2px solid var(--yellow);box-shadow:5px 5px 0 rgba(0,0,0,.5);aspect-ratio:3/4}
 .dhero[data-c="anime"] .cover{aspect-ratio:auto;width:128px}
 .dhero[data-c="anime"] .cover img{height:auto;object-fit:contain}
-.dhero[data-c="karaoke"] .cover{aspect-ratio:1/1;width:132px}
+.dhero[data-c="karaoke"] .cover,.dhero[data-c="music"] .cover{aspect-ratio:1/1;width:132px}
+.dhero[data-c="fanza"] .cover,.dhero[data-c="dlsite"] .cover,.dhero[data-c="danime"] .cover{aspect-ratio:4/3;width:150px}
 .dhero .cover img{display:block;width:100%;height:100%;object-fit:cover}
 .dhero .tt{flex:1;min-width:0;color:#fff}
 .dhero .tt h1{font-size:19px;font-weight:900;font-style:italic;line-height:1.3;text-shadow:2px 2px 0 rgba(0,0,0,.6)}
@@ -279,11 +315,40 @@ svg.chart .lbl{fill:var(--ink);font-weight:900;font-size:11px}
 .miniart::-webkit-scrollbar{display:none}
 .samples .samp{flex:none;width:150px;border:2px solid var(--ink);background:var(--card);padding:0;display:block}
 .samples .samp img{width:100%;height:auto;display:block}
+/* サンプルを1枚ずつ見る（矢印でめくる） */
+.sampview{position:relative;background:var(--paper);border:2px solid var(--ink);display:grid;place-items:center;min-height:160px}
+.sampview img{display:block;width:100%;height:auto;max-height:64vh;object-fit:contain}
+.sarrow{position:absolute;top:50%;transform:translateY(-50%);width:42px;height:56px;display:grid;place-items:center;
+  font-size:30px;font-weight:900;line-height:1;color:var(--barink);background:var(--yellow);border:2px solid var(--ink)}
+.sarrow.l{left:-2px} .sarrow.r{right:-2px}
+.sarrow:active{background:var(--red);color:#fff}
+.sdots{display:flex;gap:6px;justify-content:center;flex-wrap:wrap;margin-top:10px}
+.sdot{width:12px;height:12px;background:var(--card);border:2px solid var(--ink)}
+.sdot.on{background:var(--yellow)}
+/* レビューの星 */
+.rvstar{display:block;font-size:13px;letter-spacing:2px;color:var(--yellow);text-shadow:0 0 1px var(--ink);margin-bottom:2px}
+.rvstar .off{color:var(--line)}
+.rvby{display:inline-block;font-size:11px;color:var(--faint);margin-bottom:2px}
+/* 表（グラフの下）の中で押せる言葉 */
+.ilink{color:var(--c,var(--red));font-weight:800;text-decoration:underline;text-underline-offset:2px}
+/* 履歴・検索履歴を1件ずつ消す */
+.hcard{position:relative;flex:none}
+.hx{position:absolute;right:2px;top:2px;width:22px;height:22px;display:grid;place-items:center;font-size:12px;font-weight:900;
+  color:#fff;background:var(--red);border:2px solid var(--ink);z-index:2}
+.hx.sm{position:static;width:20px;height:20px;font-size:11px}
+.qchip{display:inline-flex;align-items:center;gap:2px}
 .revbox{padding:12px 14px;margin-bottom:12px}
 .rev{font-size:12.5px;line-height:1.8;padding:8px 0;border-bottom:2px solid var(--line)}
+.rev p{margin:0}
 .rev:last-child{border-bottom:none}
 
 /* ══ 検索 ══ */
+/* ★★ 2026-09-21 ご指定「バツが二つ出る」＝ ブラウザが type="search" に付ける消しボタンと、
+   こちらで置いている ✕ が重なっていた。ブラウザのほうを消す。 */
+input[type="search"]::-webkit-search-cancel-button,
+input[type="search"]::-webkit-search-decoration,
+input[type="search"]::-webkit-search-results-button{-webkit-appearance:none;appearance:none;display:none}
+input[type="search"]{appearance:none}
 .sbox{display:flex;align-items:center;gap:8px;height:50px;padding:0 8px 0 14px;background:var(--paper2);border:2px solid var(--ink);margin-bottom:10px;
   clip-path:polygon(9px 0,100% 0,100% calc(100% - 9px),calc(100% - 9px) 100%,0 100%,0 9px)}
 .sbox input{flex:1;min-width:0;background:none;border:none;outline:none;font-size:15px;height:100%;color:var(--ink)}
@@ -359,6 +424,8 @@ svg.slope line.s{stroke-width:2.5}
 .hist::-webkit-scrollbar{display:none}
 .prefcat{margin-bottom:12px}
 .prefcat h3{font-size:13px;font-weight:900;margin:0 2px 8px;display:flex;gap:8px;align-items:center}
+/* ★ 好みのジャンルを何件えらんでいるか（押した手ごたえ） */
+.prefcat h3 .prefn{margin-left:auto;font-size:11px;font-weight:800;color:var(--sub)}
 
 /* ══ シート・確認・トースト ══ */
 .ov{position:fixed;inset:0;z-index:50;background:rgba(18,16,12,.6);display:none;align-items:flex-end;justify-content:center}

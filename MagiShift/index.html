@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<script src="../maintenance-gate.js?v=13"></script>
+<meta charset="UTF-8" />
+<script>(function(){try{var a=JSON.parse(localStorage.getItem('xeva_account_v1'));if(!a||!a.setupDone)location.replace('../index.html');}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<title>MagiShift</title>
+<meta name="description" content="つなげて、動かして、勝ちをつかめ。1台のiPadを2〜6人で囲む、駒を動かせるマルバツ対戦ボードゲーム。" />
+<link rel="icon" href="../thumbs/MagiShift.jpg" type="image/jpeg" />
+<link rel="apple-touch-icon" href="../thumbs/MagiShift.jpg" />
+<meta name="theme-color" content="#f6f8fd" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&family=Baloo+2:wght@700;800&display=swap" rel="stylesheet">
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function () { navigator.serviceWorker.register("sw.js").catch(function () {}); });
+}
+</script>
+<script src="../xeva-safebottom.js?v=12"></script>
+<link rel="stylesheet" href="css/shift.css?v=3" />
+<script src="../xeva-splash.js?v=13" data-app="MagiShift" data-logo="../thumbs/MagiShift.jpg"></script>
+</head>
+<body>
+
+<!-- ① タイトル -->
+<section id="title" class="scr on">
+  <h1 class="logo">Magi<i>Shift</i></h1>
+  <p class="tagline">つなげて、動かして、勝ちをつかめ。</p>
+  <div class="marks">
+    <svg class="pc" viewBox="0 0 24 24" style="--pc:#e5484d"><circle class="bg" cx="12" cy="12" r="10.4"/><g class="mk"><circle cx="12" cy="12" r="6.4"/></g></svg>
+    <svg class="pc" viewBox="0 0 24 24" style="--pc:#2a77e8"><circle class="bg" cx="12" cy="12" r="10.4"/><g class="mk"><path d="M7.5 7.5l9 9M16.5 7.5l-9 9"/></g></svg>
+    <svg class="pc" viewBox="0 0 24 24" style="--pc:#12a05c"><circle class="bg" cx="12" cy="12" r="10.4"/><g class="mk"><path d="M12 6l6 11H6z"/></g></svg>
+    <svg class="pc" viewBox="0 0 24 24" style="--pc:#eab308"><circle class="bg" cx="12" cy="12" r="10.4"/><g class="mk"><rect x="6.6" y="6.6" width="10.8" height="10.8" rx="1.6"/></g></svg>
+    <svg class="pc" viewBox="0 0 24 24" style="--pc:#8b5cf6"><circle class="bg" cx="12" cy="12" r="10.4"/><g class="mk"><path d="M12 5.6l2 4.3 4.7.6-3.4 3.3.8 4.6L12 16.2 7.9 18.4l.8-4.6-3.4-3.3 4.7-.6z"/></g></svg>
+    <svg class="pc" viewBox="0 0 24 24" style="--pc:#f97316"><circle class="bg" cx="12" cy="12" r="10.4"/><g class="mk"><path d="M12 5.4l5.6 3.3v6.6L12 18.6l-5.6-3.3V8.7z"/></g></svg>
+  </div>
+  <div class="tbtns">
+    <button class="btn pri" data-a="start">▶ ゲームをはじめる</button>
+    <button class="btn" data-a="cont" id="btnCont" hidden>つづきから</button>
+    <div class="tsmall">
+      <button class="btn sm" data-a="rules">📖 ルール説明</button>
+      <button class="btn sm" data-a="stats">🏆 戦績を見る</button>
+      <button class="btn sm" data-a="settings">⚙ 設定</button>
+      <a class="btn sm" href="../index.html">XEVARION へ</a>
+    </div>
+  </div>
+</section>
+
+<!-- ② 人数えらび -->
+<section id="count" class="scr">
+  <h2 class="h2">プレイヤー人数を選択してください</h2>
+  <div id="counts"></div>
+  <div class="foot"><button class="btn" data-a="title">戻る</button><button class="btn sm" data-a="settings">⚙ 盤面の設定</button></div>
+</section>
+
+<!-- ③ プレイヤー登録 -->
+<section id="setup" class="scr">
+  <h2 class="h2">プレイヤーを登録してください</h2>
+  <p class="note" style="text-align:center;margin:-10px 0 4px">XEVARION アカウントを使ってプレイヤーを追加します（そのままでも遊べます）。</p>
+  <p class="note" style="text-align:center;margin-bottom:14px" id="setupSub"></p>
+  <div id="plist"></div>
+  <div class="foot"><button class="btn" data-a="count">戻る</button><button class="btn" data-a="noacc">アカウントを使わずに遊ぶ</button><button class="btn pri" data-a="begin">ゲーム開始</button></div>
+  <p class="note" style="text-align:center;margin-top:10px">※ <b>アカウントの紐づけは要りません</b>。そのまま「ゲーム開始」を押せば遊べます。<br>アカウントのパスワードはゲームの中に保存しません。</p>
+</section>
+
+<!-- ④ 対戦 -->
+<section id="game" class="scr">
+  <div class="ghead">
+    <span class="ttl">MagiShift</span>
+    <span class="meta" id="gmeta"></span>
+    <button class="btn sm" data-a="gmenu" aria-label="メニュー">☰</button>
+  </div>
+  <div class="glayout">
+    <div id="gplayers"></div>
+    <div class="bwrap">
+      <div id="board"></div>
+      <div id="turnbar"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ⑤ 勝利 -->
+<section id="win" class="scr"><div id="winbox"></div></section>
+
+<!-- ⑥ 結果 -->
+<section id="result" class="scr">
+  <h2 class="h2">試合結果</h2>
+  <div id="resultList"></div>
+  <div id="resultMeta"></div>
+  <div class="foot"><button class="btn pri" data-a="again">もう一度遊ぶ</button><button class="btn" data-a="menu">メニューへ</button></div>
+</section>
+
+<!-- 設定 -->
+<section id="settings" class="scr">
+  <h2 class="h2">設定</h2>
+  <div class="card"><h3>盤面サイズ</h3><div class="chips" id="setSize"></div></div>
+  <div class="card"><h3>勝利条件（いくつ並べるか）</h3><div class="chips" id="setWin"></div></div>
+  <div class="card"><h3>1人が置ける駒の数</h3><div class="chips" id="setPieces"></div></div>
+  <div class="card">
+    <div class="srow" style="border-top:none"><b>効果音</b><label class="sw"><input type="checkbox" id="setSe"><span></span></label></div>
+    <div class="srow"><b>BGM</b><label class="sw"><input type="checkbox" id="setBgm"><span></span></label></div>
+  </div>
+  <div class="foot"><button class="btn" data-a="title">戻る</button><button class="btn sm" data-a="setreset">初期設定に戻す</button></div>
+</section>
+
+<!-- ルール -->
+<section id="rules" class="scr">
+  <h2 class="h2">ルール説明</h2>
+  <div class="card rules">
+    <ul>
+      <li>自分の番になったら、<b>空いているマスに駒を置く</b>か、<b>自分の駒を動かす</b>かのどちらかをします。</li>
+      <li>駒は<b>たて・よこ・ななめに2マスまで</b>動かせます（ほかの駒は飛びこえられません）。</li>
+      <li>自分の駒が<b>たて・よこ・ななめに決められた数だけ並んだら勝ち</b>です。</li>
+      <li>置くだけでは勝てないとき、<b>すでに置いた駒を動かして</b>別の場所に並びを作れます。ここがこのゲームのいちばんの特徴です。</li>
+      <li>人数によって盤面の広さと並べる数が変わります（2人＝5×5で4つ、6人＝9×9で5つ）。設定で変えられます。</li>
+      <li>ほかの人の駒は選べません。動かせないマスは反応しません。</li>
+    </ul>
+  </div>
+  <div class="foot"><button class="btn" data-a="title">戻る</button></div>
+</section>
+
+<!-- 戦績 -->
+<section id="stats" class="scr">
+  <h2 class="h2">戦績</h2>
+  <div id="statList"></div>
+  <div class="foot"><button class="btn" data-a="title">戻る</button></div>
+</section>
+
+<div id="ov" class="ov"><div class="sheet" id="sheet"></div></div>
+<div id="toast" class="toast" hidden></div>
+
+<script type="module" src="../xevarion-fb.js?v=33"></script>
+<script src="../xeva.js?v=70"></script>
+<script src="../xeva-loading.js?v=18" defer></script>
+<script src="../game-link.js?v=12"></script>
+<script src="js/shift-core.js?v=2"></script>
+<script src="js/shift-account.js?v=1"></script>
+<script src="js/shift-ui.js?v=3"></script>
+<script src="../xeva-back.js?v=9" data-mode="hook"></script>
+</body>
+</html>

@@ -1,56 +1,31 @@
 /* ============================================================
-   MagiBocciaRush Service Worker — オフライン対応
-   ・CPU戦・練習・チュートリアル・ルールブックは<b>完全にオフライン</b>で動く。
-   ・オンライン（部屋番号）は当然ネットが要る。Firebase はキャッシュしない。
-   ・キャラクターの絵は XEVARION の img/ にあるので、ここでは丸ごと持たない
-     （ポータル側の SW が持っている。開いたぶんだけ実行時に控える）。
+   MagiShift Service Worker — オフライン対応（2026-09-21 新作）
+   ・1台で遊ぶボードゲーム。キャッシュすれば完全にオフラインで動く
+   ・アカウントの紐づけと賞金だけ通信が要る（遊ぶこと自体はオフラインでできる）
    ============================================================ */
-const VERSION = "boccia-sw-v29";
-const RUNTIME = "boccia-rt-v1";
+const VERSION = "magishift-sw-v3";
 const CORE = [
   "./index.html",
+  "./css/shift.css?v=3",
+  "./js/shift-core.js?v=2",
+  "./js/shift-account.js?v=1",
+  "./js/shift-ui.js?v=3",
+  "./img/icon192.png",
   "./manifest.webmanifest",
-  "./css/mbr.css?v=20",
-  "./js/mbr-voice.js?v=2",
-  "./js/mbr-core.js?v=15",
-  "./js/mbr-stage.js?v=5",
-  "./js/mbr-fx.js?v=5",
-  "./js/mbr-help.js?v=5",
-  "./js/mbr-ui.js?v=18",
-  "../mb-newchars.js?v=31",
-  "../mb-boot.js?v=17",
-  "../MagiBurst/js/mb-core.js?v=128",
-  "../xeva.js?v=70",
-  "../xeva-loading.js?v=18",
   "../xeva-splash.js?v=13",
   "../xeva-safebottom.js?v=12",
+  "../xeva-loading.js?v=18",
   "../xeva-back.js?v=9",
   "../maintenance-gate.js?v=13",
-  "../thumbs/MagiBocciaRush.jpg",
-  "./img/mbrhome_s.webp",   /* ★★ 2026-09-17e 開始画面のキービジュアル */
-  /* ★★ 2026-09-17d オフライン対応の穴うめ（ご指定）：
-     ・オンライン対戦とアカウント同期のモジュール（読めないと console が赤くなるだけで遊べるが、そろえておく）
-     ・英語版の辞書（オフラインで英語にしたとき、キャラ名が日本語に戻らないように） */
-  "./js/mbr-online.js?v=4",
-  "../xeva-cloud.js?v=35",
-  "../MagiBurst/magiburst-cloud.js?v=18",
-  "../app-cloud.js?v=12",
-  "../xeva-keys.js?v=26",
-  "../xeva-i18n.js?v=8",
-  "../xeva-i18n-dict.js?v=12",
-  "../xeva-i18n-mb1.js?v=7",
-  "../xeva-i18n-mb2.js?v=7",
-  "../xeva-i18n-mb3.js?v=8",
-  "../xeva-i18n-mb4.js?v=9",
-  "../xeva-i18n-mb5.js?v=7",
-  "../xeva-i18n-mb6.js?v=7",
-  "../xeva-i18n-mb7.js?v=7",
-  "../xeva-i18n-n1.js?v=11",
-  "../xeva-i18n-n2.js?v=3",
+  "../xeva.js?v=70",
+  "../game-link.js?v=12",
+  "../xevarion-fb.js?v=33",
+  "../img/ld_b_stand.webp?v=5",
+  "../img/ld_b_bow.webp?v=5",
+  "../thumbs/MagiShift.jpg",
 ];
-/* チュートリアルの音声（ずんだもん）。Range で取りに来るので CORE とは別の入れ物に置き、下の fetch で切り出して返す */
-const VOICE_FILES = [0, 1, 2, 3, 4, 5, 6, 7, 8].map((i) => "./voice/3/tut-" + i + ".m4a");
 
+/* ── 事前キャッシュの進捗をページへ通知する（更新ダウンロード画面用） ── */
 async function xevPost(msg) {
   try {
     const cs = await self.clients.matchAll({ includeUncontrolled: true, type: "window" });
@@ -70,8 +45,7 @@ async function xevPrecache(cache, list, scope) {
 self.addEventListener("install", (e) => {
   e.waitUntil((async () => {
     const cache = await caches.open(VERSION);
-    await xevPrecache(cache, CORE, "magibocciarush");
-    try { const rt = await caches.open(RUNTIME); await Promise.all(VOICE_FILES.map((u) => rt.add(u).catch(() => {}))); } catch (e) {}
+    await xevPrecache(cache, CORE, "magishift");
     self.skipWaiting();
   })());
 });
@@ -79,8 +53,7 @@ self.addEventListener("install", (e) => {
 self.addEventListener("activate", (e) => {
   e.waitUntil((async () => {
     const keys = await caches.keys();
-    /* ★ RUNTIME（キャラの絵）は消さない。消すと開くたびに取り直しになる。 */
-    await Promise.all(keys.filter((k) => k !== VERSION && k.startsWith("boccia-sw")).map((k) => caches.delete(k)));
+    await Promise.all(keys.filter((k) => k !== VERSION && k.startsWith("magishift-sw")).map((k) => caches.delete(k)));
     await self.clients.claim();
   })());
 });
@@ -89,88 +62,42 @@ self.addEventListener("fetch", (e) => {
   const req = e.request;
   if (req.method !== "GET") return;
   const url = new URL(req.url);
+  if (url.hostname.indexOf("firebase") >= 0 || url.hostname.indexOf("gstatic") >= 0 || url.hostname.indexOf("googleapis") >= 0) return;
   if (url.origin !== self.location.origin) return;
-  if (url.hostname.indexOf("firebase") >= 0 || url.hostname.indexOf("googleapis") >= 0) return;
 
-  /* ★★ 2026-09-17d チュートリアルの音声（voice/*.m4a）もオフラインで鳴らす。
-     Safari は Range（206）で取りに来るので、キャッシュの丸ごとの音声から<b>その範囲だけ切り出して 206 で返す</b>。
-     （前は SW を通さなかったので、オフラインでは鳴らなかった） */
-  if (/\/voice\/.+\.m4a$/i.test(url.pathname)) {
-    e.respondWith((async () => {
-      const rt = await caches.open(RUNTIME);
-      const key = new URL(url.pathname, self.location.origin).href;
-      let res = await rt.match(key, { ignoreSearch: true });
-      if (!res) {
-        try {
-          const r = await fetch(key);
-          if (r && r.status === 200) { await rt.put(key, r.clone()); res = r; } else return r;
-        } catch (err) { return new Response("", { status: 504 }); }
-      }
-      const range = req.headers.get("range");
-      if (!range) return res;
-      const buf = await res.clone().arrayBuffer();
-      const size = buf.byteLength;
-      const m = /bytes=(\d*)-(\d*)/.exec(range) || [];
-      const start = m[1] ? +m[1] : 0;
-      const end = Math.min(m[2] ? +m[2] : size - 1, size - 1);
-      return new Response(buf.slice(start, end + 1), { status: 206, headers: {
-        "Content-Type": "audio/mp4", "Content-Range": "bytes " + start + "-" + end + "/" + size,
-        "Content-Length": String(end - start + 1), "Accept-Ranges": "bytes" } });
-    })());
-    return;
-  }
+  /* ページ遷移: ネット優先 → 失敗時はキャッシュ（オフライン起動） */
+  /* ★ 2026-08-20 通信設定（Wi-Fi／モバイルデータごとに切り替えられる）
+     「このつなぎかたでは最新を取りに行かない」ときは、まずキャッシュを見て、
+     あればそれを返す＝<b>ダウンロードずみのデータで動く</b>（通信量を使わない）。
+     設定はページ（xeva-netmode.js）から postMessage で届く。 */
+  if (xevNetLatest() === false) { e.respondWith(xevCacheFirst(req)); return; }
 
-  /* キャラクターの絵は「一度見たら控える」（XEVARION の img/） */
-  if (/\/img\/.+\.(webp|png|jpg)$/i.test(url.pathname)) {
+  if (req.mode === "navigate") {
     e.respondWith((async () => {
-      const c = await caches.open(RUNTIME);
-      const hit = await c.match(req);
-      if (hit) return hit;
       try {
-        const r = await fetch(req);
-        if (r && r.ok) c.put(req, r.clone());
-        return r;
-      } catch (err) { return new Response("", { status: 504 }); }
+        const res = await fetch(req);
+        const cache = await caches.open(VERSION);
+        cache.put(req, res.clone());
+        return res;
+      } catch (err) {
+        const cache = await caches.open(VERSION);
+        return (await cache.match(req)) || (await cache.match("./index.html"));
+      }
     })());
     return;
   }
-
-  /* ══ ★★ 2026-09-10 「最新のキャラが反映されないことがある」の直し ══
-     ------------------------------------------------------------
-     前は caches.match(req, { <b>ignoreSearch: true</b> }) だった。
-     これは <b>?v= を無視して</b>キャッシュを引き当てるので、
-     ・index.html の ?v= を上げても
-     ・mb-core.js（キャラの台帳）に新しい子を足しても
-     <b>古いほうが返り続ける</b>。SW の VERSION を上げるまで直らなかった。
-     ★ いまは
-       ① <b>?v= まで見て</b>引き当てる（＝?v= を上げれば必ず取り直す）
-       ② 当たったときも<b>裏で取り直してキャッシュを新しくする</b>
-          （stale-while-revalidate。次に開いたときは必ず最新）
-       ③ 通信できないときだけ、最後の手として ?v= 違いを許して探す
-     ------------------------------------------------------------ */
+  /* アセット: キャッシュ優先＋裏で更新 */
   e.respondWith((async () => {
     const cache = await caches.open(VERSION);
-    const hit = await cache.match(req);
-    const net = fetch(req).then((r) => {
-      if (r && r.ok && r.type === "basic") { try { cache.put(req, r.clone()); } catch (x) {} }
-      return r;
+    const cached = await cache.match(req);
+    const fetching = fetch(req).then((res) => {
+      if (res && res.ok) cache.put(req, res.clone());
+      return res;
     }).catch(() => null);
-    if (hit) {
-      /* 出すのはキャッシュ（速い）。取り直しは裏で終わらせる。 */
-      try { e.waitUntil(net); } catch (x) {}
-      return hit;
-    }
-    const r = await net;
-    if (r) return r;
-    const loose = await caches.match(req, { ignoreSearch: true });
-    if (loose) return loose;
-    if (req.mode === "navigate") {
-      const idx = await caches.match("./index.html", { ignoreSearch: true });
-      if (idx) return idx;
-    }
-    return new Response("", { status: 504 });
+    return cached || (await fetching) || new Response("", { status: 504 });
   })());
 });
+
 
 /* ══════════════════════════════════════════════════════════
    まとめて最新化（xev-refresh）
@@ -184,7 +111,7 @@ self.addEventListener("fetch", (e) => {
      cache:"reload"（＝ブラウザのHTTPキャッシュも無視）で取り直して入れ替える。
      つまり、何世代とばしていても1回で最新にそろう。
    ══════════════════════════════════════════════════════════ */
-const XEV_SCOPE = "magibocciarush";
+const XEV_SCOPE = "magishift";
 async function xevRefreshPost(msg) {
   try {
     const cs = await self.clients.matchAll({ includeUncontrolled: true, type: "window" });
@@ -284,3 +211,48 @@ self.addEventListener("message", (e) => {
   if (!m || m.type !== "xev-refresh") return;
   e.waitUntil(xevRefreshAll());
 });
+
+/* ══════════════════════════════════════════════════════════
+   ★ 2026-08-20 通信設定（xeva-netmode.js から postMessage で届く）
+   ------------------------------------------------------------
+   ・latest:false … このつなぎかたでは通信せず、キャッシュにあるものを返す
+   ・SW は止まると変数を忘れるので、<b>専用のキャッシュ</b>に書いておいて
+     起動のたびに読み直す。このキャッシュ（xev-netpref）は
+     activate の掃除で消してはいけない（VERSION の接頭辞と別名にしてある）。
+   ・読み終わるまでの一瞬は null＝「これまでどおり最新を取りに行く」で動く。
+     ここを false 側に倒すと、設定していない人まで古いデータになってしまう。
+   ══════════════════════════════════════════════════════════ */
+const XEV_NETPREF_CACHE = "xev-netpref";
+const XEV_NETPREF_URL = "./__xev_netpref";
+let _xevNetLatest = null;                     // null＝まだ読んでいない
+function xevNetLatest() { return _xevNetLatest; }
+(async function xevReadNetPref() {
+  try {
+    const c = await caches.open(XEV_NETPREF_CACHE);
+    const r = await c.match(XEV_NETPREF_URL);
+    _xevNetLatest = r ? ((await r.json()).latest !== false) : true;
+  } catch (e) { _xevNetLatest = true; }
+})();
+self.addEventListener("message", (e) => {
+  const m = e.data;
+  if (!m || m.type !== "xev-netmode") return;
+  _xevNetLatest = m.latest !== false;
+  e.waitUntil((async () => {
+    try {
+      const c = await caches.open(XEV_NETPREF_CACHE);
+      await c.put(XEV_NETPREF_URL, new Response(JSON.stringify({ latest: _xevNetLatest }),
+        { headers: { "Content-Type": "application/json" } }));
+    } catch (err) {}
+  })());
+});
+/* キャッシュ優先で返す。無ければ通信し、それも失敗したらページだけはホームに逃がす。 */
+async function xevCacheFirst(req) {
+  const hit = await caches.match(req, { ignoreSearch: true });
+  if (hit) return hit;
+  try { return await fetch(req); } catch (e) {}
+  if (req.mode === "navigate") {
+    const home = await caches.match("./index.html", { ignoreSearch: true });
+    if (home) return home;
+  }
+  return new Response("", { status: 504 });
+}
