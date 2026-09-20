@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<script src="../maintenance-gate.js?v=13"></script>
+<meta charset="UTF-8" />
+<script>(function(){try{var a=JSON.parse(localStorage.getItem('xeva_account_v1'));if(!a||!a.setupDone)location.replace('../index.html');}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<title>MagiScope</title>
+<meta name="description" content="アニメ・FANZA・カラオケのランキング・新作・トレンドを、カテゴリーごとに独立して確認できるエンタメランキング・コンテンツ探索アプリ。" />
+<link rel="icon" href="../thumbs/MagiScope.jpg" type="image/jpeg" />
+<link rel="apple-touch-icon" href="../thumbs/MagiScope.jpg" />
+<meta name="theme-color" content="#060a1a" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&family=Exo+2:ital,wght@0,700;0,800;1,800&display=swap" rel="stylesheet">
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function () { navigator.serviceWorker.register("sw.js").catch(function () {}); });
+}
+/* 最初の描画より前にテーマを当てる（明るい表示の人が一瞬暗い画面を見ないように） */
+try { var _s = JSON.parse(localStorage.getItem("magiscope_v1") || "{}"); if (_s.set && _s.set.theme === "light") document.documentElement.dataset.theme = "light"; } catch (e) {}
+</script>
+<script src="../xeva-safebottom.js?v=12"></script>
+<link rel="stylesheet" href="css/scope.css?v=3" />
+<script src="../xeva-splash.js?v=13" data-app="MagiScope" data-logo="../thumbs/MagiScope.jpg"></script>
+</head>
+<body>
+<div id="app">
+  <header id="top"></header>
+  <main id="view"></main>
+  <nav class="bnav" id="bnav" aria-label="メインメニュー">
+    <button data-tab="home"><svg class="i" viewBox="0 0 24 24"><path d="M3 11l9-7 9 7"/><path d="M5 10v10h14V10"/><path d="M10 20v-6h4v6"/></svg><span>ホーム</span></button>
+    <button data-tab="rank"><svg class="i" viewBox="0 0 24 24"><path d="M3 8l4 4 5-7 5 7 4-4-2 11H5z"/><path d="M6 19h12"/></svg><span>ランキング</span></button>
+    <button data-tab="search"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M20 20l-4-4"/></svg><span>検索</span></button>
+    <button data-tab="fav"><svg class="i" viewBox="0 0 24 24"><path d="M12 20s-7-4.5-9-9a5 5 0 0 1 9-3 5 5 0 0 1 9 3c-2 4.5-9 9-9 9z"/></svg><span>お気に入り</span></button>
+    <button data-tab="me"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/></svg><span>マイページ</span></button>
+  </nav>
+</div>
+<div id="ov" class="ov"><div class="sheet" id="sheet"></div></div>
+<div id="toast" class="toast" hidden></div>
+
+<!-- ★ アカウント同期（お気に入り・閲覧履歴・好みのジャンル・設定は magiscope_v1。xeva-keys.js に登録ずみ） -->
+<script type="module" src="../xeva-cloud.js?v=35"></script>
+<script src="../xeva.js?v=70"></script>
+<script src="../xeva-loading.js?v=18" defer></script>
+<script src="js/scope-config.js?v=3"></script>
+<script src="js/scope-data.js?v=4"></script>
+<script src="js/scope-art.js?v=2"></script>
+<script src="js/scope-ui.js?v=4"></script>
+<script src="../xeva-back.js?v=9" data-mode="hook"></script>
+</body>
+</html>
