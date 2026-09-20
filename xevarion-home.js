@@ -38,7 +38,12 @@ const XH_OFFLINE_OK = {
      ★ ポケモンの絵だけは PokeAPI なので、まだ見ていない子は絵が出ない（別の入れ物にためている）。 */
   magicounter:     { name: "MagiCounter",    href: "MagiCounter/index.html",     sw: "MagiCounter/sw.js" },
   /* ★★ 2026-09-18 新作 MagiRail。端末の中で完結するシミュレーションなので通信は要らない。 */
-  magirail:        { name: "MagiRail",       href: "MagiRail/index.html",        sw: "MagiRail/sw.js" }
+  magirail:        { name: "MagiRail",       href: "MagiRail/index.html",        sw: "MagiRail/sw.js" },
+  /* ★★ 2026-09-20 新作 MagiScope。ランキングは実データ（AniList と、自動取得が書く Firebase）。最後に取ったぶんを端末に控えてあるのでオフラインでも前回の順位が見られる。 */
+  magiscope:       { name: "MagiScope",      href: "MagiScope/index.html",       sw: "MagiScope/sw.js" },
+  /* ★★ 2026-09-21 新作 MagiShift。1台で遊ぶボードゲームなので通信は要らない
+     （アカウントの紐づけと賞金だけ通信を使う）。 */
+  magishift:       { name: "MagiShift",      href: "MagiShift/index.html",       sw: "MagiShift/sw.js" }
 };
 /* オフラインでも遊べるアプリの名前を「◯◯ ／ ◯◯」でつなぐ。
    ★★ 2026-09-13c <b>案内の文面を手で書かない</b>ためのもの。
@@ -94,6 +99,14 @@ const XH_APPS = [
   { id:"magirail", name:"MagiRail", full:"MagiRail — Railway Balance", sub:"鉄道経営シム", cat:"game", tone:"blue",
     href:"MagiRail/index.html", img:"thumbs/MagiRail.jpg",
     desc:"都市の人口・施設・時間帯から生まれる鉄道需要を読み、<b>本数・編成両数・車両</b>を調整して利益と輸送効率の両立をめざす経営シミュレーション。積み残し・待ち時間・混雑・遅延・満足度・街の成長・イベント。4都市・5シナリオ。" },
+  /* ★★ 2026-09-20 新作 MagiScope（エンタメランキング）。ご指定で「その他」の MagiRail の右。 */
+  /* ★★ 2026-09-21 新作 MagiShift（対戦ボードゲーム）。ご指定で MagiScope の右。 */
+  { id:"magishift", name:"MagiShift", full:"MagiShift", sub:"対戦ボードゲーム", cat:"game", tone:"blue",
+    href:"MagiShift/index.html", img:"thumbs/MagiShift.jpg",
+    desc:"1台の iPad を2〜6人で囲む、マルバツを発展させた対戦ボードゲーム。<b>置いた駒をあとから動かせる</b>のが特徴で、盤面はいつも変わり最後まで逆転があります。人数で盤面と勝利条件が変わり（5×5〜9×9・4〜5つ並べ）、XEVARION アカウントと紐づけて名前と戦績を残せます。" },
+  { id:"magiscope", name:"MagiScope", full:"MagiScope", sub:"エンタメランキング", cat:"info", tone:"blue",
+    href:"MagiScope/index.html", img:"thumbs/MagiScope.jpg",
+    desc:"アニメ（国内の視聴者数＝Annict・トレンド＝AniList）・FANZA同人・カラオケ（DAM）の<b>実際のランキング</b>を、本物の表紙・ジャケットつきで1時間ごとに自動更新。<b>3カテゴリーは完全に別々のランキング</b>で、種類・期間・絞り込み・詳細もカテゴリーごと。順位推移・同じカテゴリー内の比較・カテゴリー別のお気に入りとトレンド。" },
   /* ★ 新しいアプリは <b>XH_APPS と XH_DEFAULT_ORDER の両方</b>に書くこと
        （片方だけだとアプリ一覧に一切出ない＝2026-09-09 に踏んだ罠）。 */
   { id:"magiranking", name:"Ranking", full:"MagiRanking", sub:"月間ランキング", cat:"social", tone:"gold",
@@ -195,18 +208,30 @@ const XH_DEFAULT_ORDER = [
   "magichainparty", "magidominiongrid", "magidiamond",
   "magicounter", "magitier", "xevynar", "magijackpot",
   /* 以降は「その他」の中に入る */
-  /* ★★ 2026-09-18 新作 MagiRail は「その他」の先頭（ご指定）。保存ずみの並びには末尾に足される（xhOrder）。 */
+  /* ★★ 2026-09-21c 並びのご指定：
+       ・もとの MagiRail の場所（12番目）＝ <b>MagiLotto</b>
+       ・もとの MagiRanking の場所（15番目）＝ <b>MagiRail</b>
+       ・<b>MagiRanking は「その他」へ</b>
+     ホームに出るのは先頭から XH_HOME_SLOTS（15）個まで。 */
+  "magilotto",
+  "magiscope",
+  "magishift",
   "magirail",
-  "magiranking", "magilotto",
+  /* ここから下は「その他」の中に入る */
+  "magiranking",
   "ordyxis", "magicraft", "magimanor", "magiportfolio",
   "magiarena", "magibattle", "magiempire", "magifocus", "magimusic",
   "ngx", "ishida", "magicalfuture",
 ];
-const XH_HOME_SLOTS = 11;
+/* ★★ 2026-09-21 ホームに出すアプリを1列（4つ）増やして 15 個に（ご指定）。
+   ホームの棚は4列なので、11＋「その他」＝3列だったのが 15＋「その他」＝4列になる。 */
+const XH_HOME_SLOTS = 15;
 const XH_ORDER_KEY = "xeva_home_order_v2";
 /* 並び順の世代。上げると保存済みの並びを一度だけ既定に戻す
    （アプリの入れ替えを、既にホームを触った人にも確実に反映させるため） */
-const XH_ORDER_GEN = "9-0917f";   /* ★★ 2026-09-17e Arcana Rush 廃止・MagiTier をホームへ（保存ずみの並びも一度だけ既定へ） */   /* ★★ 2026-09-09 11枠の入れかえと、抹けていた新作2本を既存の並びにも効かせる */
+/* ★★ 2026-09-21c 並びを変えたので世代を上げる（保存ずみの並びを一度だけ既定に戻す）。
+   これを上げないと、ホームを並びかえたことがある人には新しい並びが出ない。 */
+const XH_ORDER_GEN = "10-0921c";   /* ★★ 2026-09-17e Arcana Rush 廃止・MagiTier をホームへ（保存ずみの並びも一度だけ既定へ） */   /* ★★ 2026-09-09 11枠の入れかえと、抹けていた新作2本を既存の並びにも効かせる */
 const XH_ORDER_GEN_KEY = "xeva_home_order_gen";
 
 /* 期間限定イベント（from/to は YYYY-MM-DD。期間内のものだけ表示）
@@ -405,6 +430,44 @@ const XH_EVENTS = [
    ══════════════════════════════════════════════════════════════ */
 const XH_UPDATE_MAX = 12;
 const XH_UPDATES = [
+  /* ★★ 2026-09-21d FANZA を4つのボタンに／原作／好みのジャンル／ボタンで最初の状態へ */
+  { tag:"UPDATE", t1:"FANZA を4つのボタンに分割", at:"2026-09-21",
+    t2:"同人 本／同人 アニメ／ブックス／アニメ をそれぞれ別のランキングとして表示します／原作（オリジナル・ゲーム系・パロディ）を詳細に追加／好みのジャンルは押した件数と知らせが出ます／下のボタンで開きなおすと最初の状態に戻ります／圏外の作品をさらに多く収集",
+    href:"MagiScope/index.html", img:"thumbs/MagiScope.jpg" },
+  /* ★★ 2026-09-21c アニメを3つの出どころに／同人アニメは FANZA／略称／ホームの並び */
+  { tag:"UPDATE", t1:"アニメを Annict／Filmarks／AniList に分割", at:"2026-09-21",
+    t2:"国内の視聴者数（Annict）・国内の評価（Filmarks）・海外のトレンド（AniList）をボタンで切り替え、まったく別のランキングとして表示します／アニメの略称・よみ・別名を詳細に追加（略称でも検索できます）／同人アニメは FANZA から取得／圏外の作品をもっと多く収集",
+    href:"MagiScope/index.html", img:"thumbs/MagiScope.jpg" },
+  { tag:"UPDATE", t1:"ホームのアプリの並びを変更", at:"2026-09-21",
+    t2:"MagiRail のあった場所に Magi Lotto、いちばん後ろに MagiRail、Ranking は「その他」へ移しました",
+    href:"index.html", img:"thumbs/MagiLotto.jpg" },
+  /* ★★ 2026-09-21b MagiScope 音楽・同人アニメ／MagiShift 駒数／ホームのアプリを1列追加 */
+  { tag:"UPDATE", t1:"MagiScope に「音楽」と「同人アニメ」", at:"2026-09-21",
+    t2:"Billboard JAPANの視聴ランキングを追加／同人アニメ（DLsite動画）を追加／FANZA・DLsiteは圏外の作品も一覧に／販売数と価格で絞り込み／サンプルを矢印でめくる／お気に入りも検索・並べ替え／履歴はボタンで表示・1件ずつ削除／18禁はまとめて非表示にできます",
+    href:"MagiScope/index.html", img:"thumbs/MagiScope.jpg" },
+  { tag:"UPDATE", t1:"MagiShift に駒数の上限とセーブ", at:"2026-09-21",
+    t2:"1人が置ける駒は2〜4人＝6個・5〜6人＝7個。使いきったら動かすだけになります／セーブして中断→つづきから／アカウントを紐づけなくても遊べます",
+    href:"MagiShift/index.html", img:"thumbs/MagiShift.jpg" },
+  { tag:"UPDATE", t1:"ホームのアプリを1列増やしました", at:"2026-09-21",
+    t2:"ホームに出るアプリが11個から15個になりました／MagiBurst はクエスト初クリアのジェムを見直しました",
+    href:"index.html", img:"thumbs/MagiBurst.jpg" },
+  /* ★★ 2026-09-21 新作 MagiShift／MagiScope 大幅強化 */
+  { tag:"NEW", t1:"新作 MagiShift", at:"2026-09-21",
+    t2:"1台のiPadを2〜6人で囲む対戦ボードゲーム。置いた駒をあとから動かせるマルバツ。XEVARIONアカウント連携・戦績・賞金XEVA",
+    href:"MagiShift/index.html", img:"thumbs/MagiShift.jpg" },
+  { tag:"UPDATE", t1:"MagiScope に DLsite・国内の評価・声優", at:"2026-09-21",
+    t2:"DLsite同人を別カテゴリーで追加／Filmarksの国内評価・あらすじ・レビュー／声優・監督・制作会社・サークルから関連作品へ／サンプル画像・おすすめ・ペルソナ風UI",
+    href:"MagiScope/index.html", img:"thumbs/MagiScope.jpg" },
+  /* ★★ 2026-09-20 新作 MagiScope／ミッション・メールの同期／MagiTier */
+  { tag:"NEW", t1:"新作 MagiScope", at:"2026-09-20",
+    t2:"アニメ（国内＝Annict・トレンド＝AniList）・FANZA同人・カラオケ（DAM）の実際のランキングを本物の画像つきで。1時間ごとに自動更新・アニメ詳細の画像を修正",
+    href:"MagiScope/index.html", img:"thumbs/MagiScope.jpg" },
+  { tag:"UPDATE", t1:"ミッション・メールの受け取りを同期", at:"2026-09-20",
+    t2:"別の端末で受け取ったミッション・メールが未受取に戻ることがある不具合を修正",
+    href:"index.html", img:"thumbs/Xevarion.png" },
+  { tag:"UPDATE", t1:"MagiTier のアクセスコードと検索", at:"2026-09-20",
+    t2:"MagiBurst・アニメの Tier 表は開き直すたびにアクセスコードを確認。アニメ検索に入力を消す ✕",
+    href:"MagiTier/MagiTier.html", img:"thumbs/MagiTier.jpg" },
   /* ★★ 2026-09-19g */
   { tag:"NEW", t1:"極彩祭 に ココハ", at:"2026-09-19",
     t2:"史上最大の乱打フルバースト・浴びた雨粒で重くなるリンク・ショットスキル・クロススキル・全属性有利。極彩・プリズムネクサスを強化",
@@ -1666,7 +1729,7 @@ function xhMbReady() {
   if (typeof CHARS !== "undefined" && typeof PREMIUM_CHARS !== "undefined") return Promise.resolve(true);
   if (_xhMbLoading) return _xhMbLoading;
   _xhMbLoading = xhLoadScript("mb-boot.js?v=17")
-    .then(() => xhLoadScript("MagiBurst/js/mb-core.js?v=127"))
+    .then(() => xhLoadScript("MagiBurst/js/mb-core.js?v=128"))
     .then(() => true)
     .catch((e) => { _xhMbLoading = null; throw e; });
   return _xhMbLoading;
@@ -2213,7 +2276,13 @@ function xhOrder() {
   try { saved = JSON.parse(localStorage.getItem(XH_ORDER_KEY) || "[]"); } catch (e) {}
   if (!Array.isArray(saved)) saved = [];
   const known = saved.filter((id) => xhApp(id));
-  XH_DEFAULT_ORDER.forEach((id) => { if (known.indexOf(id) < 0) known.push(id); });   // 後から増えたアプリを末尾に
+  /* 後から増えたアプリ：既定の並びで<b>すぐ前にあるアプリの後ろ</b>へ入れる（無ければ末尾）。
+     ★★ 2026-09-20 MagiScope を「MagiRail の右」に出すため（これまでは末尾に足していた）。 */
+  XH_DEFAULT_ORDER.forEach((id, i) => {
+    if (known.indexOf(id) >= 0) return;
+    const prev = i > 0 ? known.indexOf(XH_DEFAULT_ORDER[i - 1]) : -1;
+    if (prev >= 0) known.splice(prev + 1, 0, id); else known.push(id);
+  });
   return known;
 }
 function xhSaveOrder(order) {

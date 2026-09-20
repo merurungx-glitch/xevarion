@@ -941,6 +941,14 @@ function showXevaToast(amount, label) {
 }
 
 addEventListener("xeva:change", () => { renderXevaBalance(); renderXevaMissions(); });
+/* ★★ 2026-09-20 別の端末で受け取ったミッション・メールがクラウドから降りてきたら描き直す
+   （これまでは XEVA の残高しか描き直しておらず、受取済みの印とバッジが古いままだった） */
+addEventListener("xeva:synced", () => {
+  try { if (window.XEVA) window.XEVA.reload(); } catch (e) {}
+  try { renderXevaBalance(); renderXevaMissions(); } catch (e) {}
+  try { updateMailBadge(); } catch (e) {}
+  try { const md = document.getElementById("mailModal"); if (md && md.classList.contains("open")) renderMailList(); } catch (e) {}
+});
 addEventListener("focus", () => { if (window.XEVA) { window.XEVA.reload(); renderXevaBalance(); renderXevaMissions(); } });
 
 /* ============================================================
@@ -2403,17 +2411,22 @@ function seedMails() {
        ticket → gticket に直したときに実際にこれで取りちがえた）。
        受取済みのものは触らない（あとから中身を変えて配り直しになってしまうため）。 */
     if (!cur.claimed) {
+      const before = JSON.stringify(cur);
       Object.keys(m).forEach((k) => { cur[k] = m[k]; });
       /* 旧版で入っていて新版に無いキーは消す（ticket → gticket の付け替えなど） */
       ["amount", "gem", "mb", "charId", "charFull"].forEach((k) => {
         if (!(k in m) && k in cur) delete cur[k];
       });
-      changed = true;
+      if (JSON.stringify(cur) !== before) changed = true;
     }
   });
   /* 新しい日付が上に来るように並べ替える（unshift だけだと配布順の逆になる） */
+  const order0 = data.items.map((m) => m.id).join("|");
   data.items.sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")));
-  saveMails(data);
+  /* ★★ 2026-09-20 <b>変わったときだけ書く</b>。毎回書いていたので、開くたびに
+     「この端末のメールがいちばん新しい」ことになり、別の端末で受け取った印を
+     同期より先に上書きしていた（受け取りが同期されない真因の1つ）。 */
+  if (changed || order0 !== data.items.map((m) => m.id).join("|")) saveMails(data);
 }
 
 function updateMailBadge() {

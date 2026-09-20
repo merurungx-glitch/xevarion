@@ -24,7 +24,7 @@
      以前はここに直接書いてあり、MagiBurst / MagiLex の一覧は別ファイルにあったため、
      新機能を足すたびに「同期リストへの入れ忘れ」が起きていた
      （ジェムショップの購入履歴 xeva_shop_v1 が同期されていなかったのがその例）。 */
-import { PORTAL_SYNC_KEYS, wipeAccountData, wipeAccountDataFull } from "./xeva-keys.js?v=25";
+import { PORTAL_SYNC_KEYS, wipeAccountData, wipeAccountDataFull } from "./xeva-keys.js?v=26";
 
 const SYNC_KEYS = PORTAL_SYNC_KEYS;
 const SYNC_SET = new Set(SYNC_KEYS);
@@ -295,7 +295,66 @@ const COUNT_KEYS = new Set(["xeva_fessel_v1", "xeva_seal_v1"]);
    これまでは「新しい方が勝つ」だけだったので、別の端末で上げた熟練度（chars[id].xp）や
    BOSS STAGE のクリアが、こちらで設定を1つ触っただけで消えていた。 */
 const MBR_KEYS = new Set(["mbr_v1"]);
-function hasMergeRule(k) { return WALLET_KEYS.has(k) || CHAR_KEYS.has(k) || COUNT_KEYS.has(k) || MBR_KEYS.has(k); }
+/* ══ ★★ 2026-09-20 「ミッションやメールの受け取りが同期されないことがある」の直し ══
+   受け取り済みの印は<b>一度付いたら消えない</b>ものなので、勝ち負けではなく<b>和</b>で混ぜる。
+   これまでは「新しい方が勝つ」だけだったので、
+     ・端末Aでメールを受け取る → 端末Bを開くと、同期より先に seedMails が
+       メール（受け取っていない版）を書き直して<b>Bのほうが新しくなる</b>
+       → Bの「未受取」がクラウドまで上書きし、Aで受け取ったメールが未受取に戻る
+   が起きていた（受け取り直すと XEVA が二重に入る）。
+   ・CLAIM_KEYS … { id: 受け取った時刻 } の平らな台帳（限定ミッション・コレクション・誕生日）
+   ・MAIL_KEYS  … メール（items を id で合わせ、claimed は OR）と引換券（done は和・q から済みを除く）
+   ★ 財布（xeva_wallet_v1）の中のミッション（missions / missionClaims / loginMilestones）は
+     mergeWallet の中で同じく和を取る。 */
+const CLAIM_KEYS = new Set(["xeva_limited_v1", "xeva_collection_v1", "xeva_bday_v1"]);
+const MAIL_KEYS = new Set(["xeva_mail_v1", "xeva_mbgift_v1"]);
+function hasMergeRule(k) { return WALLET_KEYS.has(k) || CHAR_KEYS.has(k) || COUNT_KEYS.has(k) || MBR_KEYS.has(k)
+  || CLAIM_KEYS.has(k) || MAIL_KEYS.has(k); }
+/* { id: 印 } を和で混ぜる（片方にしか無い印も残す。両方にあれば早いほうの時刻） */
+function unionMarks(a, b) {
+  const out = {};
+  [b, a].forEach((src) => {
+    if (!src || typeof src !== "object" || Array.isArray(src)) return;
+    Object.keys(src).forEach((id) => {
+      const v = src[id];
+      if (!v) { if (!(id in out)) out[id] = v; return; }
+      const cur = out[id];
+      if (!cur) { out[id] = v; return; }
+      if (typeof cur === "number" && typeof v === "number") out[id] = Math.min(cur, v);
+    });
+  });
+  return out;
+}
+function mergeClaimMap(winnerStr, loserStr) {
+  const W = jparse(winnerStr, null), Lo = jparse(loserStr, null);
+  if (!W || !Lo || typeof W !== "object" || typeof Lo !== "object" || Array.isArray(W) || Array.isArray(Lo)) return null;
+  return JSON.stringify(unionMarks(W, Lo));
+}
+function mergeMail(k, winnerStr, loserStr) {
+  const W = jparse(winnerStr, null), Lo = jparse(loserStr, null);
+  if (!W || !Lo || typeof W !== "object" || typeof Lo !== "object") return null;
+  if (k === "xeva_mbgift_v1") {
+    const done = unionMarks(W.done, Lo.done);
+    const seen = {}, q = [];
+    [].concat(Array.isArray(W.q) ? W.q : [], Array.isArray(Lo.q) ? Lo.q : []).forEach((x) => {
+      if (!x || !x.id || done[x.id] || seen[x.id]) return;
+      seen[x.id] = 1; q.push(x);
+    });
+    return JSON.stringify(Object.assign({}, Lo, W, { q: q, done: done }));
+  }
+  /* xeva_mail_v1 … { items:[{ id, claimed, … }] } */
+  const wi = Array.isArray(W.items) ? W.items : [], li = Array.isArray(Lo.items) ? Lo.items : [];
+  const byId = {}, out = [];
+  wi.forEach((m) => { if (m && m.id && !byId[m.id]) { byId[m.id] = Object.assign({}, m); out.push(byId[m.id]); } });
+  li.forEach((m) => {
+    if (!m || !m.id) return;
+    const cur = byId[m.id];
+    if (!cur) { byId[m.id] = Object.assign({}, m); out.push(byId[m.id]); return; }
+    if (m.claimed) cur.claimed = true;          /* どちらかで受け取っていれば受取済み */
+  });
+  out.sort((a, b) => String(b.date || "").localeCompare(String(a.date || "")));
+  return JSON.stringify(Object.assign({}, Lo, W, { items: out }));
+}
 /* 勝った側（新しい方）を土台に、<b>増えるだけの数字</b>とキャラの熟練度・ステージの進みを取り合わせる。
    ・戦績（wins/matches/throws…）… 大きい方（増えるだけ）
    ・chars[id] … xp / games / wins は大きい方、ball（見た目）は勝った側
@@ -392,6 +451,16 @@ function mergeWallet(k, lv, rv) {
   if ("used" in L || "used" in R) out.used = three("used", "u");
   if ("spent" in L || "spent" in R) out.spent = three("spent", "s");
   out.mig = Object.assign({}, R.mig || {}, L.mig || {});   /* 移行ずみの印は消さない（二重付与よけ） */
+  /* ★★ 2026-09-20 ミッションの「達成」「受取済み」とログイン日数の報酬は<b>和</b>で混ぜる。
+     これまでは手前の端末（L）の中身で丸ごと上書きしていたので、
+     別の端末で受け取ったミッションが、こちらを開いたとたん「未受取」に戻っていた。 */
+  ["missions", "missionClaims", "loginMilestones"].forEach((f) => {
+    if (L[f] || R[f]) out[f] = unionMarks(L[f], R[f]);
+  });
+  if ("totalLoginDays" in L || "totalLoginDays" in R)
+    out.totalLoginDays = Math.max(Number(L.totalLoginDays) || 0, Number(R.totalLoginDays) || 0);
+  if (L.lastLoginDate || R.lastLoginDate)
+    out.lastLoginDate = String(L.lastLoginDate || "") > String(R.lastLoginDate || "") ? L.lastLoginDate : R.lastLoginDate;
   out.history = mergeHistory(L.history, R.history);
   out.at = Math.max(Number(L.at) || 0, Number(R.at) || 0);
   return JSON.stringify(out);
@@ -478,7 +547,11 @@ function mergeStore(uid, remote, remoteT) {
               ? mergeCountMap(k, lv, rv)
               : MBR_KEYS.has(k)
                 ? mergeMbr(remoteWins ? rv : lv, remoteWins ? lv : rv)
-                : mergeCharsInto(k, remoteWins ? rv : lv, remoteWins ? lv : rv);
+                : CLAIM_KEYS.has(k)
+                  ? mergeClaimMap(remoteWins ? rv : lv, remoteWins ? lv : rv)
+                  : MAIL_KEYS.has(k)
+                    ? mergeMail(k, remoteWins ? rv : lv, remoteWins ? lv : rv)
+                    : mergeCharsInto(k, remoteWins ? rv : lv, remoteWins ? lv : rv);
         }
         if (merged != null) {
           if (WALLET_KEYS.has(k)) newBase[k] = rv;      /* 土台は「クラウドに確かにある値」 */

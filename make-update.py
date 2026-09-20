@@ -25,7 +25,11 @@ SWS = ["sw.js", "MagiLex/sw.js", "MagiBurst/sw.js", "MagiChainParty/sw.js", "XEV
        # ★★ 2026-09-08 新作 Magi: Boccia Rush
        "MagiBocciaRush/sw.js",
        # ★★ 2026-09-18 新作 MagiRail（鉄道経営シミュレーション）
-       "MagiRail/sw.js"]
+       "MagiRail/sw.js",
+       # ★★ 2026-09-20 新作 MagiScope（エンタメランキング）
+       "MagiScope/sw.js",
+       # ★★ 2026-09-21 新作 MagiShift（対戦ボードゲーム）
+       "MagiShift/sw.js"]
 
 
 # ══════════════════════════════════════════════════════════════

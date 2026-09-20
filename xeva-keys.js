@@ -130,6 +130,8 @@ export const PORTAL_SYNC_KEYS = [
   /* ★★ 2026-09-08 Magi: Boccia Rush。ランク・RP・戦績・使うキャラ・設定。
      ★ キャラとガチャは magiburst_v1 に入っているので、ここには入れない。 */
   "mbr_v1",
+  /* ★★ 2026-09-20 MagiScope。お気に入り（カテゴリー別）・閲覧履歴・好みのジャンル・設定・絞り込み。 */
+  "magiscope_v1",
   /* ★★ 2026-09-17f MagiQuest は廃止（magiquest_v1 は同期しない。端末に残ったぶんはホームが消す） */
 ];
 

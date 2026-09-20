@@ -7,7 +7,7 @@
    ・オフライン中の進行は localStorage に残り、オンライン復帰時に
      xeva-cloud.js がタイムスタンプ比較でクラウドへ上書き反映する
    ============================================================ */
-const VERSION = "xevarion-sw-v166";
+const VERSION = "xevarion-sw-v175";
 
 /* ホームを成立させる最小セット（重い画像は runtime キャッシュに任せる） */
 const CORE = [
@@ -22,11 +22,11 @@ const CORE = [
   "./xevion-os.js?v=13",
   "./xevion-os.css?v=15",
   "./magibattle-stats.js?v=14",
-  "./MagiBurst/js/mb-core.js?v=127",
+  "./MagiBurst/js/mb-core.js?v=128",
   /* ★ 2026-08-10 ガチャと図鑑で共通の土台・キャラ詳細・結果演出 */
   /* ★ 2026-08-12 ポータルのガチャ・図鑑も magiburst_v1 を同期するようになった */
   "./app-cloud.js?v=12",
-  "./MagiBurst/magiburst-cloud.js?v=17",
+  "./MagiBurst/magiburst-cloud.js?v=18",
   "./mb-boot.js?v=17",
   "./mb-char-detail.js?v=34",
   "./mb-char-detail.css?v=23",
@@ -60,11 +60,11 @@ const CORE = [
   "./xeva.js?v=70",
   "./xeva-fx.js?v=9",
   "./xeva-loading.js?v=18",
-  "./xevarion.js?v=92",
-  "./xevarion-home.js?v=121",
+  "./xevarion.js?v=93",
+  "./xevarion-home.js?v=131",
   "./maintenance-gate.js?v=13",
   "./xeva-back.js?v=9",
-  "./xeva-keys.js?v=25",
+  "./xeva-keys.js?v=26",
   /* ★ 2026-08-20 通信設定（Wi-Fi／モバイルデータごとの動き）。
      この SW へ設定を送る側なので、オフラインでも読めるようにここに入れておく。 */
   "./xeva-netmode.js?v=10",
@@ -99,6 +99,8 @@ const CORE = [
   "./thumbs/MagiCounter.jpg",
   "./thumbs/MagiBocciaRush.jpg",
   "./thumbs/MagiRail.jpg",
+  "./thumbs/MagiScope.jpg",
+  "./thumbs/MagiShift.jpg",
   "./thumbs/MagiRanking.jpg",
   "./thumbs/MagiCraft.jpg",
   "./thumbs/MagiManor.jpg",
