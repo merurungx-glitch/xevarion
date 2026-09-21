@@ -21,7 +21,7 @@ if ("serviceWorker" in navigator) {
 }
 </script>
 <script src="../xeva-safebottom.js?v=12"></script>
-<link rel="stylesheet" href="css/shift.css?v=3" />
+<link rel="stylesheet" href="css/shift.css?v=4" />
 <script src="../xeva-splash.js?v=13" data-app="MagiShift" data-logo="../thumbs/MagiShift.jpg"></script>
 </head>
 <body>
@@ -60,11 +60,11 @@ if ("serviceWorker" in navigator) {
 <!-- ③ プレイヤー登録 -->
 <section id="setup" class="scr">
   <h2 class="h2">プレイヤーを登録してください</h2>
-  <p class="note" style="text-align:center;margin:-10px 0 4px">XEVARION アカウントを使ってプレイヤーを追加します（そのままでも遊べます）。</p>
+  <p class="note" style="text-align:center;margin:-10px 0 4px">名前はそのまま打って変えられます（6文字まで）。🔗 で XEVARION アカウントを紐づけると、名前と戦績が残り賞金を受け取れます（紐づけなくても遊べます）。</p>
   <p class="note" style="text-align:center;margin-bottom:14px" id="setupSub"></p>
   <div id="plist"></div>
-  <div class="foot"><button class="btn" data-a="count">戻る</button><button class="btn" data-a="noacc">アカウントを使わずに遊ぶ</button><button class="btn pri" data-a="begin">ゲーム開始</button></div>
-  <p class="note" style="text-align:center;margin-top:10px">※ <b>アカウントの紐づけは要りません</b>。そのまま「ゲーム開始」を押せば遊べます。<br>アカウントのパスワードはゲームの中に保存しません。</p>
+  <div class="foot"><button class="btn" data-a="count">戻る</button><button class="btn pri" data-a="begin">ゲーム開始</button></div>
+  <p class="note" style="text-align:center;margin-top:10px">※ 前回紐づけた席は <b>🔒（要確認）</b>で戻ります。押して4桁パスワードを入れると有効になります。<br>アカウントのパスワードはゲームの中に保存しません。</p>
 </section>
 
 <!-- ④ 対戦 -->
@@ -139,7 +139,7 @@ if ("serviceWorker" in navigator) {
 <script src="../game-link.js?v=12"></script>
 <script src="js/shift-core.js?v=2"></script>
 <script src="js/shift-account.js?v=1"></script>
-<script src="js/shift-ui.js?v=3"></script>
+<script src="js/shift-ui.js?v=5"></script>
 <script src="../xeva-back.js?v=9" data-mode="hook"></script>
 </body>
 </html>

@@ -1,15 +1,12 @@
 {
-  "version": "2026-09-20-6",
-  "date": "2026-09-20",
-  "title": "FANZA を4つに分割／アニメを3つの出どころに／新作 MagiShift",
+  "version": "2026-09-21-6",
+  "date": "2026-09-21",
+  "title": "MagiScope 好みのジャンル・絞り込みの✕",
   "notes": [
-    "🔖 MagiScope の FANZA を 同人 本／同人 アニメ／ブックス／アニメ の4つのボタンに分けました",
-    "📺 アニメは Annict（国内）・Filmarks（国内の評価）・AniList（海外）の3つに分かれています",
-    "🎬 原作・略称・よみ・声優を詳細に表示。好みのジャンルは押すと件数が出ます",
-    "🎲 新作 MagiShift（2〜6人の対戦ボードゲーム）",
-    "🏠 ホームのアプリを15個に増やし、並びを変えました"
+    "⭐ 好みのジャンルの項目を増やし、カテゴリーのボタンを押してから一覧で選ぶ形にしました",
+    "✕ 絞り込みの画面は右上の✕で閉じるようにしました"
   ],
-  "bytes": 50101154,
+  "bytes": 50181990,
   "files": 585,
   "urls": [
     "index.html",
@@ -599,14 +596,98 @@
     "xevarion-fb.js"
   ],
   "apps": [
-    "magishift",
-    "magiscope",
-    "magiburst",
-    "magitier",
-    "tab:home"
+    "magiscope"
   ],
-  "changedFiles": 6,
+  "changedFiles": 4,
   "history": [
+    {
+      "version": "2026-09-21-5",
+      "date": "2026-09-21",
+      "title": "MagiScope おすすめ・ホームの18禁・履歴の絵",
+      "notes": [
+        "✨ おすすめを、お気に入り・閲覧履歴・好みのジャンル・検索・見た人が見る作品などから推測し、理由も出すようにしました",
+        "🔞 ホームのタブでだけ 18禁を隠せるようにしました",
+        "🖼️ 閲覧履歴・トレンドなどの FANZA・DLsite の絵を大きくしました"
+      ],
+      "apps": [
+        "magiscope"
+      ]
+    },
+    {
+      "version": "2026-09-21-4",
+      "date": "2026-09-21",
+      "title": "MagiScope サンプルの位置",
+      "notes": [
+        "🖼️ サンプル画像をお気に入り登録ボタンの上に出すようにしました"
+      ],
+      "apps": [
+        "magiscope"
+      ]
+    },
+    {
+      "version": "2026-09-21-3",
+      "date": "2026-09-21",
+      "title": "MagiScope の使い心地を改善",
+      "notes": [
+        "🔧 並べ替え・絞り込みは同じものを押すと解除・閉じるは右上の✕",
+        "🔍 ジャンル・作者・検索は全作品で表示・全作品のランキング順を修正",
+        "🖼️ 横長の絵を大きく・左端にくっつくのとサンプルの上下を修正・順位推移グラフを廃止"
+      ],
+      "apps": [
+        "magiscope",
+        "tab:home"
+      ]
+    },
+    {
+      "version": "2026-09-21-2",
+      "date": "2026-09-21",
+      "title": "MagiScope 新作・セール情報／MagiShift の登録",
+      "notes": [
+        "🆕 MagiScope に新作タブ（アニメは今季・来季）とセール情報タブ",
+        "👥 この作品を見た人が見ている作品・レビューを最大10〜12件",
+        "↕️ 並べ替え・絞り込みはボタンから縦の一覧で",
+        "🎲 MagiShift の登録を MagiChainParty と同じに"
+      ],
+      "apps": [
+        "magiscope",
+        "magishift",
+        "tab:home"
+      ]
+    },
+    {
+      "version": "2026-09-21-1",
+      "date": "2026-09-21",
+      "title": "MagiScope 全作品・セール・値下がり／スマホ修正／同期",
+      "notes": [
+        "🏷️ MagiScope に全作品・セール・値下がりのタブを追加しました",
+        "📊 ランキングの絞り込みはランキング内だけ・並べ替えは逆順も",
+        "📱 スマホで画面が横にずれるのを直しました",
+        "👤 アイコンは XEVARION のもの・お気に入りと履歴は端末どうしで足しあわせて同期"
+      ],
+      "apps": [
+        "magiscope",
+        "tab:home"
+      ]
+    },
+    {
+      "version": "2026-09-20-6",
+      "date": "2026-09-20",
+      "title": "FANZA を4つに分割／アニメを3つの出どころに／新作 MagiShift",
+      "notes": [
+        "🔖 MagiScope の FANZA を 同人 本／同人 アニメ／ブックス／アニメ の4つのボタンに分けました",
+        "📺 アニメは Annict（国内）・Filmarks（国内の評価）・AniList（海外）の3つに分かれています",
+        "🎬 原作・略称・よみ・声優を詳細に表示。好みのジャンルは押すと件数が出ます",
+        "🎲 新作 MagiShift（2〜6人の対戦ボードゲーム）",
+        "🏠 ホームのアプリを15個に増やし、並びを変えました"
+      ],
+      "apps": [
+        "magishift",
+        "magiscope",
+        "magiburst",
+        "magitier",
+        "tab:home"
+      ]
+    },
     {
       "version": "2026-09-20-5",
       "date": "2026-09-20",
@@ -861,111 +942,6 @@
         "tab:gacha",
         "tab:home",
         "xevynar"
-      ]
-    },
-    {
-      "version": "2026-09-19-2",
-      "date": "2026-09-19",
-      "title": "ホーム・起動画面の点滅と下の空白を修正",
-      "notes": [
-        "iPhoneのアプリ表示で、ホームと起動画面の下バー・空白が点滅して画面が上下する不具合を修正",
-        "ホーム・起動画面・MagiRail で下バーの下に空白が残る不具合を修正"
-      ],
-      "apps": [
-        "magibocciarush",
-        "magiburst",
-        "magichainparty",
-        "magicounter",
-        "magidiamond",
-        "magidominiongrid",
-        "magilex",
-        "magirail",
-        "tab:chars",
-        "tab:community",
-        "tab:gacha",
-        "tab:home"
-      ]
-    },
-    {
-      "version": "2026-09-19-1",
-      "date": "2026-09-19",
-      "title": "MagiBocciaRush 技の組み合わせ・レアリティ統一・シンプルモード／MagiRail 路線図の拡大／天界の審判 HP",
-      "notes": [
-        "MagiBocciaRush：SSR／SR を MagiBurst と同じ判定に・キャラ詳細の BACK を常に表示",
-        "MagiBocciaRush：技を33種追加し、特殊ショット・アクティブ・パッシブの組み合わせを全250体で別々に",
-        "MagiBocciaRush：キャラを編成しない「シンプル」モード（少し止まりやすく）",
-        "MagiBocciaRush：PARTY MATCH で名前の変更と XEVARION アカウントの紐づけ（順位に応じて XEVA）",
-        "MagiBocciaRush：引っぱり中の逆向きの点線と輪を表示しないように",
-        "MagiRail：路線図を拡大・移動できるように／倍速どおりに電車が動くように",
-        "MagiBurst：天界の審判のボスとザコの HP を 1.35 倍に"
-      ],
-      "apps": [
-        "magibocciarush",
-        "magiburst",
-        "magidiamond",
-        "magilex",
-        "magirail",
-        "tab:chars",
-        "tab:gacha",
-        "tab:home"
-      ]
-    },
-    {
-      "version": "2026-09-18-1",
-      "date": "2026-09-18",
-      "title": "新作 MagiRail／MagiBocciaRush に PARTY MATCH／下バーの修正",
-      "notes": [
-        "新作 MagiRail — Railway Balance（鉄道経営シミュレーション・アプリ一覧の「その他」）",
-        "MagiBocciaRush：1台で最大6色の PARTY MATCH・投げる位置の ◀ ▶・引っぱりを縮めてキャンセル・投げた瞬間の演出・スキルごとの？補足・上部がカメラに重ならないように",
-        "iPhone のアプリ表示で下バー・起動画面・ロード画面の下に残る帯をなくしました",
-        "PC のアプリ表示で下バーが画面の外に出て押せなかった不具合を修正"
-      ],
-      "apps": [
-        "magibocciarush",
-        "magiburst",
-        "magichainparty",
-        "magicounter",
-        "magidiamond",
-        "magidominiongrid",
-        "magijackpot",
-        "magilex",
-        "magilotto",
-        "magirail",
-        "tab:chars",
-        "tab:community",
-        "tab:gacha",
-        "tab:home",
-        "xevynar"
-      ]
-    },
-    {
-      "version": "2026-09-17-8",
-      "date": "2026-09-17",
-      "title": "MagiBocciaRush 相手の残り球数の表示を修正",
-      "notes": [
-        "MagiBocciaRush：試合中、相手（青）の残り球数の点が減らなかったのを修正"
-      ],
-      "apps": [
-        "magibocciarush"
-      ]
-    },
-    {
-      "version": "2026-09-17-7",
-      "date": "2026-09-17",
-      "title": "果実の個数えらび／極◯祭の残り日数",
-      "notes": [
-        "MagiBocciaRush：叡智の果実は個数をえらび、確認してから使える",
-        "MagiBocciaRush：PLAY の絵の明るさを元にもどした（大きさはそのまま）",
-        "極彩祭・極華祭・極煌祭に今回の開催の残り日数"
-      ],
-      "apps": [
-        "magibocciarush",
-        "magiburst",
-        "magidiamond",
-        "magilex",
-        "tab:chars",
-        "tab:gacha",
-        "tab:home"
       ]
     }
   ]

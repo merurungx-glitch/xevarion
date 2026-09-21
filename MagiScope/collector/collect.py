@@ -24,6 +24,7 @@ JST = datetime.timezone(datetime.timedelta(hours=9))
 NOW = datetime.datetime.now(JST)
 TODAY = NOW.strftime("%Y-%m-%d")
 NOW_MS = int(time.time() * 1000)
+T0 = time.time()
 HIST_DAYS = 400
 LOG = []
 
@@ -38,7 +39,8 @@ ONLY = set(x for x in (arg("--only", "") or "").split(",") if x)
 # ★★ 2026-09-21c ご指定「圏外のデータをもっと」。
 #    ランキングの外の作品は、一覧ページの2ページ目から先を読んで index にためる。
 #    （ランキングそのものは1ページ目だけ。順位は付けない）
-FZ_PAGES = int(arg("--fz-pages", "12"))         # FANZA同人 コミック
+FZ_PAGES = int(arg("--fz-pages", "25"))         # FANZA同人 コミック（圏外ぶんの一覧ページ・1ページ120件）
+FZ_RANK_PAGES = int(arg("--fz-rank-pages", "20"))  # ★ FANZA同人のランキングは20ページ（約380位）まである
 FZ_ANIME_PAGES = int(arg("--fz-anime-pages", "12"))
 DL_PAGES = int(arg("--dl-pages", "10"))         # DLsite 同人マンガ
 INDEX_MAX = int(arg("--index-max", "20000"))    # 1カテゴリーにためる上限
@@ -125,6 +127,23 @@ def record(key, ids, entries, extra=None):
     if extra:
         out.update(extra)
     wr("lists/" + fname(key) + ".json", out)
+
+
+def price_of(block, after=None):
+    """★★ 2026-09-21e 値段は「いまの値段（安いほう）」「元の値段（高いほう）」「何％引き」の3つに分ける。
+       FANZA は「15%OFF サークル設定価格 880円 748円 880円」のように両方が並ぶので、
+       前は最後の 880円（＝元の値段）を拾っていた。安いほうが本当の値段。"""
+    if after:
+        i = block.find(after)
+        block = block[i:i + 5000] if i >= 0 else ""   # ★ 空白がとても多いので広めに（1件ぶんの中だけ）
+    t = re.sub(r"<[^>]+>", " ", block)
+    ps = [int(x.replace(",", "")) for x in re.findall(r"([\d,]{2,})\s*円", t) if x.replace(",", "").isdigit()]
+    off = re.search(r"(\d{1,2})\s*%\s*OFF", t, re.I)
+    if not ps:
+        return {"price": "", "listPrice": None, "off": int(off.group(1)) if off else 0}
+    cur, hi = min(ps), max(ps)
+    o = int(off.group(1)) if off else (round((hi - cur) * 100 / hi) if hi > cur else 0)
+    return {"price": "{:,}".format(cur), "priceN": cur, "listPrice": hi if hi > cur else None, "off": o}
 
 
 def norm(s):
@@ -378,12 +397,12 @@ def parse_fz_rank(src):
         rc = re.search(r'rank-review">[\s\S]*?\((\d[\d,]*)件\)', b)
         sales = re.search(r"販売数\s*:\s*([\d,]+)", b)
         fav = re.search(r"お気に入り登録数：([\d,]+)", b)
-        pc = re.search(r'rank-priceContent">([\s\S]*?)</div>', b)
-        price = re.findall(r"([\d,]+)円", text(pc.group(1))) if pc else []
+        pr = price_of(b, "rank-priceContent")
         items.append({"id": cid.group(1), "title": text(name.group(1)), "circle": text(circle.group(1)) if circle else "", "circleId": mk.group(1) if mk else "",
                       "image": img.group(1) if img else None, "rating": (float(rv.group(1)) or None) if rv else None, "votes": num(rc.group(1)) if rc else 0,
                       "sales": num(sales.group(1)) if sales else None, "favs": num(fav.group(1)) if fav else None,
-                      "price": price[-1] if price else "", "isNew": 'class="rank-new"' in b,
+                      "price": pr["price"], "priceN": pr.get("priceN"), "listPrice": pr["listPrice"], "off": pr["off"],
+                      "isNew": 'class="rank-new"' in b,
                       "url": "https://www.dmm.co.jp/dc/doujin/-/detail/=/cid=%s/" % cid.group(1)})
     return items
 
@@ -405,14 +424,23 @@ def parse_fz_detail(src):
     for u in re.findall(r'(https://doujin-assets\.dmm\.co\.jp/[^"\']+?jp-\d+\.jpg)', src):
         if u not in samples:
             samples.append(u)
-    # レビュー（本文だけ・3件まで）
-    reviews = []
-    for m in re.finditer(r'class="[^"]*review[^"]*Text[^"]*"[^>]*>([\s\S]{10,600}?)</', src, re.I):
-        t = text(m.group(1))
-        if len(t) > 10 and t not in reviews:
-            reviews.append(t)
-        if len(reviews) >= 3:
-            break
+    # ★★ 2026-09-21f レビュー：作品ページにそのまま10件入っている（dcd-review__unit）。
+    #    星（dcd-review-rating-50＝★5）・見出し・本文・書いた人・日付をとる。前の正規表現は1件も当たっていなかった。
+    reviews, reviewers = [], []
+    for b in re.split(r'<li class="dcd-review__unit"', src)[1:11]:
+        st = re.search(r"dcd-review-rating-(\d+)", b)
+        tt = re.search(r'dcd-review__unit__title">([\s\S]*?)</span>', b)
+        cms = re.findall(r'<div class="dcd-review__unit__comment(?! fn-dcd-review__unit__caution)[^"]*">([\s\S]*?)</div>', b)
+        by = re.search(r'reviewer/list/(\w+)">([\s\S]*?)<span>', b)
+        dt = re.search(r'postdate">-?(\d{4}-\d{2}-\d{2})', b)
+        body = text(" ".join(cms))
+        if not body and not tt:
+            continue
+        reviews.append({"star": int(st.group(1)) / 10 if st else None, "title": text(tt.group(1)) if tt else "",
+                        "t": body[:600], "by": text(by.group(2)) if by else "", "date": dt.group(1) if dt else "",
+                        "spoiler": "dcd-review__unit__spoiler" in b})
+        if by and by.group(1) not in reviewers:
+            reviewers.append(by.group(1))
     # ★★ 2026-09-21d ご指定「同人アニメ系は原作があれば表示」。
     #    FANZA の作品ページには「原作」という欄があることもあれば、
     #    二次創作のもとになった作品が「題材」に書いてあることもある。両方を拾う。
@@ -425,7 +453,7 @@ def parse_fz_detail(src):
             "authorId": au.group(1) if au else "", "kind": text(info.get("作品形式", "")), "volume": text(info.get("ページ数", "")) or text(info.get("動画本数", "")),
             "theme": theme, "origin": origin, "voice": text(info.get("声優", "")), "scenario": text(info.get("シナリオ", "")),
             "genres": genres, "series": text(series) if sid else "", "seriesId": sid.group(1) if sid else "",
-            "samples": samples[:8], "reviews": reviews}
+            "samples": samples[:8], "reviews": reviews, "reviewers": reviewers[:10], "dv": 2}
 
 
 # ★★ 2026-09-21c 同人アニメは FANZA から取る（ご指定）。
@@ -458,7 +486,7 @@ def parse_fz_list(src):
         sales = re.search(r"販売数：([\d,]+)", b)
         rate = re.search(r"listRate__ico--rate(\d+)", b)
         votes = re.search(r"\((\d[\d,]*)件\)", b)
-        price = re.findall(r"<strong>([\d,]+)円</strong>", b)
+        pr = price_of(b, "productTable-price")
         out.append({"id": cid.group(1), "title": text(ttl.group(1)) if ttl else cid.group(1),
                     "circle": text(au.group(2)) if au else "", "circleId": au.group(1) if au else "",
                     "image": img.group(1) if img else None,
@@ -466,7 +494,7 @@ def parse_fz_list(src):
                     "sales": num(sales.group(1)) if sales else None,
                     "rating": (int(rate.group(1)) / 10) if rate else None,
                     "votes": num(votes.group(1)) if votes else 0,
-                    "price": price[0] if price else "",
+                    "price": pr["price"], "priceN": pr.get("priceN"), "listPrice": pr["listPrice"], "off": pr["off"],
                     "url": "https://www.dmm.co.jp/dc/doujin/-/detail/=/cid=%s/" % cid.group(1)})
     return out
 
@@ -509,20 +537,25 @@ def danime():
             log("同人アニメ 圏外の取得失敗", pg, e)
             break
         time.sleep(1.2)
-    # 作品ページ：ジャンル・配信日・サンプル（少しずつ）
-    b = budget("FZ_DETAIL", 40)
-    for cid in list(index.keys())[::-1]:
-        if b <= 0:
+    # ★★ 2026-09-21e 作品ページ：ジャンル・配信日・サンプル・原作。
+    #    ご指定「動画でジャンルが出ていないものがある」＝1回40件しか読んでいなかった。
+    #    ランキングに入っている作品を先に、1回150件まで読む（3回つづけて失敗したらやめる）。
+    b, miss = budget("FZ_DETAIL", 150), 0
+    ranked = [v["id"] for v in index.values() if v.get("rank")]
+    order = ranked + [k for k in list(index.keys())[::-1] if k not in set(ranked)]
+    for cid in order:
+        if b <= 0 or miss >= 3:
             break
-        if cid in detail or (index[cid].get("genres") and index[cid].get("releaseDate")):
+        if cid in detail and detail[cid].get("genres") and detail[cid].get("dv") == 2:
             continue
         b -= 1
         try:
             detail[cid] = parse_fz_detail(fz_get(index[cid]["url"]))
+            miss = 0
         except Exception as e:
             log("同人アニメ 作品ページ失敗", cid, e)
-            break
-        time.sleep(1.5)
+            miss += 1
+        time.sleep(1.3)
     wr("cache/danime-detail.json", detail)
     for cid, d in detail.items():
         if cid in index:
@@ -551,9 +584,14 @@ def fanza():
     for k, path in FZ_LISTS.items():
         items = []
         try:
-            for page in range(1, FZ_PAGES + 1):
-                items += parse_fz_rank(fz_get(FZ + path + ("" if page == 1 else "page=%d/" % page)))
-                time.sleep(1.2)
+            seen_ids = set()
+            for page in range(1, FZ_RANK_PAGES + 1):
+                got = [x for x in parse_fz_rank(fz_get(FZ + path + ("" if page == 1 else "page=%d/" % page))) if x["id"] not in seen_ids]
+                if not got:
+                    break                      # その先のページは無い
+                seen_ids.update(x["id"] for x in got)
+                items += got
+                time.sleep(1.0)
             lists[k] = items
             log("FANZA", k, len(items))
         except Exception as e:
@@ -562,7 +600,7 @@ def fanza():
                 return False
     if not lists:
         return False
-    b = budget("FZ_DETAIL", 80)
+    b = budget("FZ_DETAIL", 180)
     seen = []
     for k in ["overall", "week", "rising", "month", "popular", "alltime"]:
         for it in lists.get(k, []):
@@ -571,7 +609,7 @@ def fanza():
     for cid in seen:
         if b <= 0:
             break
-        if cid in detail and detail[cid].get("samples") is not None:
+        if cid in detail and detail[cid].get("dv") == 2:
             continue
         b -= 1
         try:
@@ -614,6 +652,155 @@ def fanza():
     return True
 
 
+# ══════════ この作品を見た人が見る作品 ══════════
+# ★★ 2026-09-21f ご指定「この作品を見たユーザーが見る作品」。
+#    FANZA … 作品ページのレビューを書いた人の「レビュー一覧」（review.dmm.co.jp・公開）を読み、
+#            その人たちがほかに見た作品を数えて多い順（＝この作品を見た人がよく見る作品）
+#    DLsite … 公式の「この作品を買った人はこんな作品も買っています」（load/recommend viewsales2）
+REVIEWER_DAYS = 7
+
+
+def fz_also(key):
+    """key … fanza / danime。作品ページのレビューを書いた人から「ほかに見た作品」を集める"""
+    detail = rd("cache/%s-detail.json" % key, {})
+    rv = rd("cache/fz-reviewers.json", {})
+    index = {x["id"]: x for x in rd("index/%s.json" % key, []) if isinstance(x, dict)}
+    order = sorted([k for k in index if detail.get(k, {}).get("reviewers")], key=lambda k: index[k].get("rank") or 9999)
+    b, miss = budget("REVIEWER", 60), 0
+    old = int(time.time()) - REVIEWER_DAYS * 86400
+    for cid in order:
+        for rid in detail[cid]["reviewers"][:4]:
+            if b <= 0 or miss >= 3:
+                break
+            if rid in rv and rv[rid].get("at", 0) > old:
+                continue
+            b -= 1
+            try:
+                src = http_get("https://review.dmm.co.jp/review-front/reviewer/list/" + rid, headers={"Cookie": "age_check_done=1"})
+                rv[rid] = {"at": int(time.time()), "cids": list(dict.fromkeys(re.findall(r"cid=([a-z0-9_]+)", src)))[:60]}
+                miss = 0
+            except Exception as e:
+                miss += 1
+                log("レビューした人の一覧 失敗", rid, e)
+            time.sleep(1.0)
+    wr("cache/fz-reviewers.json", rv)
+    n = 0
+    for cid, v in index.items():
+        cnt = {}
+        for rid in detail.get(cid, {}).get("reviewers", []):
+            for c2 in rv.get(rid, {}).get("cids", []):
+                if c2 != cid:
+                    cnt[c2] = cnt.get(c2, 0) + 1
+        if cnt:
+            v["also"] = [k for k, _ in sorted(cnt.items(), key=lambda x: -x[1])][:16]
+            n += 1
+    wr("index/%s.json" % key, list(index.values()))
+    log("見た人が見る作品", key, n, "作品")
+
+
+def dl_also():
+    index = {x["id"]: x for x in rd("index/dlsite.json", []) if isinstance(x, dict)}
+    cache = rd("cache/dl-also.json", {})
+    old = int(time.time()) - REVIEWER_DAYS * 86400
+    order = sorted(index, key=lambda k: index[k].get("rank") or 9999)
+    b, miss = budget("DL_ALSO", 80), 0
+    for pid in order:
+        if b <= 0 or miss >= 3:
+            break
+        if pid in cache and cache[pid].get("at", 0) > old:
+            continue
+        b -= 1
+        try:
+            src = http_get(DL + "/load/recommend/v2/=/type/viewsales2/product_id/%s.html" % pid,
+                           headers={"Cookie": "adultchecked=1; recommend_device_id=1000000000.1789990000", "X-Requested-With": "XMLHttpRequest", "Referer": DL + "/"})
+            items = []
+            for m in re.finditer(r'data-product_id="(RJ\d+)"data-work_name="([^"]*)"data-maker_id="(\w*)"data-work_type="(\w*)"[^>]*?data-price="(\d*)"(?:data-official_price="(\d*)")?', src):
+                if m.group(1) == pid or any(x["id"] == m.group(1) for x in items):
+                    continue
+                items.append({"id": m.group(1), "title": html.unescape(m.group(2)), "circleId": m.group(3), "type": m.group(4),
+                              "priceN": int(m.group(5)) if m.group(5) else None, "listPrice": int(m.group(6)) if m.group(6) and m.group(6) != m.group(5) else None})
+            for it in items:
+                im = re.search(r"//img\.dlsite\.jp/[^'\"]*?%s_img_main[^'\"]*?\.(?:jpg|webp)" % it["id"], src)
+                if im:
+                    it["image"] = "https:" + im.group(0)
+            cache[pid] = {"at": int(time.time()), "items": items[:16]}
+            miss = 0
+        except Exception as e:
+            miss += 1
+            log("DLsite 見た人が見る作品 失敗", pid, e)
+        time.sleep(1.0)
+    wr("cache/dl-also.json", cache)
+    added = 0
+    for pid, c in cache.items():
+        if pid in index:
+            index[pid]["also"] = [x["id"] for x in c.get("items", [])]
+        for x in c.get("items", []):
+            if x.get("type") == "MNG" and x["id"] not in index:     # ★ マンガなら圏外の作品として一覧にも足す
+                index[x["id"]] = {"id": x["id"], "title": x["title"], "image": x.get("image"), "circleId": x.get("circleId", ""),
+                                  "price": "{:,}".format(x["priceN"]) if x.get("priceN") else "", "priceN": x.get("priceN"),
+                                  "listPrice": x.get("listPrice"), "kind": "マンガ",
+                                  "url": DL + "/work/=/product_id/%s.html" % x["id"]}
+                added += 1
+    wr("index/dlsite.json", list(index.values())[-INDEX_MAX:])
+    log("見た人が見る作品 DLsite", len(cache), "作品・圏外に", added, "件追加")
+
+
+# ══════════ セール情報（開催中のキャンペーン） ══════════
+# ★★ 2026-09-21f ご指定「セールが行われている情報を表示するタブ」。
+#    FANZA同人 … トップページ・ランキングに出ている「キャンペーン」の一覧ページを読む
+#                （名前・終わる日・対象作品）。対象作品は同人本／同人アニメの一覧にも足す。
+#    DLsite   … キャンペーンの名前は JavaScript で描くので読めない。割引中の作品を割引率ごとにまとめる。
+def campaigns():
+    out = []
+    ids = []
+    for u in ["https://www.dmm.co.jp/dc/doujin/", FZ + FZ_LISTS["overall"], "https://www.dmm.co.jp/dc/doujin/-/list/=/section=mens/sort=ranking/"]:
+        try:
+            for cid in re.findall(r"article=campaign/id=(\d+)/", fz_get(u)):
+                if cid not in ids:
+                    ids.append(cid)
+        except Exception as e:
+            log("キャンペーン一覧 失敗", e)
+        time.sleep(1.0)
+    add = {"fanza": {}, "danime": {}}
+    for cid in ids[:20]:
+        url = "https://www.dmm.co.jp/dc/doujin/-/list/=/article=campaign/id=%s/" % cid
+        try:
+            src = fz_get(url + "sort=ranking/")
+            h1 = re.search(r"<h1[^>]*>([\s\S]{0,160}?)</h1>", src)
+            title = re.sub(r"^同人,\s*|の作品一覧$", "", text(h1.group(1))) if h1 else "キャンペーン"
+            ends = re.findall(r'data-js-discount-campaign-period="([^"]+)"', src)
+            end = max(set(ends), key=ends.count)[:10] if ends else ""
+            # 対象の数は「15,956 タイトル」のように書かれている（いちばん大きい数）
+            tn = [num(x) for x in re.findall(r"([\d,]+)\s*タイトル", re.sub(r"<[^>]+>", " ", src))]
+            items = parse_fz_list(src)
+            for v in items:
+                k = "danime" if v.get("kind") == "動画" else "fanza" if v.get("kind") in ("コミック", "CG", "CG集") else None
+                if k:
+                    add[k][v["id"]] = v
+            out.append({"src": "fanza", "id": "fz" + cid, "title": title, "url": url, "end": end,
+                        "count": max(tn) if tn else len(items),
+                        "items": [{k2: v.get(k2) for k2 in ("id", "title", "image", "price", "listPrice", "off", "circle", "kind", "rating", "sales")} for v in items[:40]]})
+        except Exception as e:
+            log("キャンペーン 失敗", cid, e)
+        time.sleep(1.2)
+    for k, m in add.items():
+        ix = {x["id"]: x for x in rd("index/%s.json" % k, []) if isinstance(x, dict)}
+        for i2, v in m.items():
+            v.pop("rank", None)
+            ix[i2] = dict(ix.get(i2, {}), **{a: b for a, b in v.items() if b not in (None, "")})
+        wr("index/%s.json" % k, list(ix.values())[-INDEX_MAX:])
+    # DLsite：割引率ごと
+    dl = [x for x in rd("index/dlsite.json", []) if isinstance(x, dict) and (x.get("off") or 0) > 0]
+    for lo, hi, nm in [(70, 100, "70%OFF 以上"), (50, 69, "50〜69%OFF"), (30, 49, "30〜49%OFF"), (1, 29, "30%OFF 未満")]:
+        g = sorted([x for x in dl if lo <= x["off"] <= hi], key=lambda x: -(x.get("sales") or 0))
+        if g:
+            out.append({"src": "dlsite", "id": "dl%d" % lo, "title": "DLsite 同人マンガ " + nm, "url": DL + "/works/discount", "end": "",
+                        "count": len(g), "items": [{k2: v.get(k2) for k2 in ("id", "title", "image", "price", "listPrice", "off", "circle", "kind", "rating", "sales")} for v in g[:40]]})
+    wr("campaigns.json", {"at": NOW_MS, "list": out})
+    log("セール情報", len(out), "件")
+    return bool(out)
+
+
 # ══════════ FANZA 本・アニメ（通販のランキングページ） ══════════
 # ★★ 2026-09-21d ご指定「FANZAブックス」「FANZA動画の中のアニメ」。
 #    電子書籍の FANZAブックス（book.dmm.co.jp）と 動画配信（video.dmm.co.jp）は
@@ -639,7 +826,8 @@ def parse_mono(src, floor):
         if not cid:
             continue
         img = re.search(r'<img src="(https://pics\.dmm\.co\.jp/[^"]+)" alt="([^"]*)"', b)
-        mk = re.search(r'article=maker/id=(\d+)/">([\s\S]*?)</a>', b)
+        mk = re.search(r'article=(?:maker|label)/id=(\d+)/">([\s\S]*?)</a>', b)
+        au = re.search(r'作家(?:&nbsp;|\s)*：(?:&nbsp;|\s)*(?:<a[^>]*>)?([^<]{1,30})', b)
         date = re.search(r"(\d{4})/(\d{2})/(\d{2})", b)
         price = re.search(r"([\d,]+)円", b)
         out.append({"id": cid.group(1), "rank": int(rk.group(1)) if rk else len(out) + 1,
@@ -647,10 +835,24 @@ def parse_mono(src, floor):
                     "image": img.group(1).replace("pt.jpg", "pl.jpg") if img else None,
                     "circle": text(mk.group(2)) if mk else "", "circleId": mk.group(1) if mk else "",
                     "releaseDate": ("%s-%s-%s" % date.groups()) if date else "",
-                    "price": price.group(1) if price else "",
+                    "price": price.group(1) if price else "", "priceN": int(price.group(1).replace(",", "")) if price else None,
+                    "author": text(au.group(1)) if au else "",
                     "kind": "アニメ" if floor == "anime" else "本",
                     "url": MONO + "/mono/%s/-/detail/=/cid=%s/" % (floor, cid.group(1))})
     return out
+
+
+def parse_mono_detail(src):
+    """通販の作品ページ：ジャンル・シリーズ・作家（ジャンルが無いと絞り込めないので）"""
+    genres = []
+    for m in re.finditer(r'article=keyword/id=\d+/"[^>]*>([^<]{1,24})</a>', src):
+        g = text(m.group(1))
+        if g and g not in genres:
+            genres.append(g)
+    se = re.search(r'article=series/id=(\d+)/"[^>]*>([^<]{1,40})</a>', src)
+    au = re.search(r'article=author/id=\d+/"[^>]*>([^<]{1,30})</a>', src)
+    return {"genres": genres[:14], "series": text(se.group(2)) if se else "", "seriesId": se.group(1) if se else "",
+            "author": text(au.group(1)) if au else ""}
 
 
 def mono_one(cat):
@@ -678,6 +880,27 @@ def mono_one(cat):
             log(nm, lk, len(items))
             ok = True
     if ok:
+        detail = rd("cache/%s-detail.json" % cat, {})
+        b, miss = budget("MONO_DETAIL", 80), 0
+        for cid, v in index.items():
+            if b <= 0 or miss >= 3:
+                break
+            if cid in detail:
+                continue
+            b -= 1
+            try:
+                detail[cid] = parse_mono_detail(fz_get(v["url"]))
+                miss = 0
+            except Exception as e:
+                log(nm + " 作品ページ失敗", cid, e)
+                miss += 1
+            time.sleep(1.3)
+        wr("cache/%s-detail.json" % cat, detail)
+        for cid, d in detail.items():
+            if cid in index:
+                for k2, val in d.items():
+                    if val and not index[cid].get(k2):
+                        index[cid][k2] = val
         wr("index/%s.json" % cat, list(index.values())[-INDEX_MAX:])
     return ok
 
@@ -718,6 +941,10 @@ def dl_fields(b, pid):
     votes = re.search(r"star_rating star_\d+\"[^>]*>\((\d[\d,]*)\)", b)
     dl = re.search(r"_dl_count_%s\">([\d,]+)" % pid, b) or re.search(r'dl_count[^>]*>[^<]*?([\d,]+)\s*<', b)
     price = re.search(r'work_price[^>]*>([\d,]+)', b)
+    offm = re.search(r"(\d{1,2})\s*%\s*OFF", re.sub(r"<[^>]+>", " ", b), re.I)
+    pn = int(price.group(1).replace(",", "")) if price else None
+    offv = int(offm.group(1)) if offm else 0
+    lp = int(round(pn / (1 - offv / 100.0) / 10.0) * 10) if (pn and 0 < offv < 100) else None
     date = re.search(r"(\d{4})年(\d{2})月(\d{2})日", b)
     kind = re.search(r"work_category type_(\w+)", b)
     genres = []
@@ -738,6 +965,7 @@ def dl_fields(b, pid):
             "circleId": maker.group(1) if maker else "", "image": ("https:" + img.group(0)) if img else None,
             "rating": (int(star.group(1)) / 10) if star else None, "votes": num(votes.group(1)) if votes else 0,
             "sales": num(dl.group(1)) if dl else None, "price": price.group(1) if price else "",
+            "priceN": pn, "listPrice": lp, "off": offv,
             "releaseDate": ("%s-%s-%s" % date.groups()) if date else "",
             "kind": {"MNG": "マンガ", "ICG": "CG集", "SOU": "ボイス", "MOV": "同人アニメ", "ACN": "ゲーム"}.get(kind.group(1) if kind else "", ""),
             "genres": genres[:12], "samples": samples[:8], "url": DL + "/work/=/product_id/%s.html" % pid}
@@ -838,7 +1066,7 @@ def dlsite(cat="dlsite"):
             break
         time.sleep(1.2)
     # 作品ページ：ジャンル・配信日・作者（一覧に無いぶんを少しずつ）
-    b = budget("DL_DETAIL", 60)
+    b = budget("DL_DETAIL", 150)
     for pid in list(index.keys())[::-1]:
         if b <= 0:
             break
@@ -1090,18 +1318,23 @@ def fm_search(title):
 
 
 def fm_reviews(url):
-    try:
-        src = http_get(url)
-        out = []
+    """★★ 2026-09-21f ご指定「レビューをもっと」。1ページ3〜4件なので3ページぶん（12件まで）読む。"""
+    out = []
+    for pg in (1, 2, 3):
+        try:
+            src = http_get(url + ("" if pg == 1 else "?page=%d" % pg))
+        except Exception:
+            break
+        got = 0
         for m in re.finditer(r'p-mark-review__contents">([\s\S]{10,700}?)</p>', src):
             t = text(m.group(1))
             if t and t not in out:
                 out.append(t)
-            if len(out) >= 4:
-                break
-        return out
-    except Exception:
-        return []
+                got += 1
+        if not got or len(out) >= 12:
+            break
+        time.sleep(0.8)
+    return out[:12]
 
 
 # ★★ 2026-09-21c ご指定「略称も詳細で教えてほしい」。
@@ -1261,13 +1494,14 @@ def anime():
     for aid in uniq:
         if b <= 0:
             break
-        if aid in fmc:
+        if aid in fmc and (fmc[aid].get("none") or fmc[aid].get("rv") == 2):
             continue
         b -= 1
         try:
             hit = fm_search(titles[aid]["title"])
             if hit:
                 hit["reviews"] = fm_reviews(hit["url"]) if hit.get("url") else []
+                hit["rv"] = 2
                 fmc[aid] = hit
             else:
                 fmc[aid] = {"none": 1}
@@ -1291,7 +1525,7 @@ def anime():
                 "genres": [GENRE_JA.get(g, g) for g in (m.get("genres") or [])], "format": m.get("format") or "", "status": m.get("status") or "",
                 "anilist": bool(m.get("id")), "director": dd.get("director", ""), "studio": dd.get("studio", "") or (fm.get("studios") or [""])[0],
                 "cast": dd.get("cast", [])[:12], "staff": dd.get("staff", [])[:12],
-                "fmScore": fm.get("score"), "fmUrl": fm.get("url", ""), "synopsis": fm.get("synopsis", ""), "reviews": (fm.get("reviews") or [])[:4]}
+                "fmScore": fm.get("score"), "fmUrl": fm.get("url", ""), "synopsis": fm.get("synopsis", ""), "reviews": (fm.get("reviews") or [])[:12]}
     index = {x["id"]: x for x in rd("index/anime.json", []) if isinstance(x, dict)}
     for k, works in lists.items():
         ents, ids = [], []
@@ -1352,6 +1586,55 @@ def anime():
     return ok
 
 
+# ══════════ 値段の記録（値下がり・セール） ══════════
+# ★★ 2026-09-21e ご指定「過去の価格とくらべて安くなっているもの」「セール作品」。
+#    取るたびに作品ごとの値段を cache/price-hist.json にためておき、index の各作品に
+#       low（これまでの最安）・high（これまでの最高）・was（直前の、いまと違う値段）
+#       dropAt（値下がりした日）・since（記録を始めた日）
+#    を書き足す。アプリはこれを見て「値下がり」「セール」の画面を作る。
+PRICE_KEYS = ["fanza", "danime", "fbooks", "fvideo", "dlsite"]
+
+
+def price_pass():
+    hist = rd("cache/price-hist.json", {})
+    day = NOW.strftime("%Y-%m-%d")
+    n_drop = 0
+    for key in PRICE_KEYS:
+        rows = rd("index/%s.json" % key, None)
+        if not rows:
+            continue
+        H = hist.setdefault(key, {})
+        for v in rows:
+            p = v.get("priceN")
+            if p is None and v.get("price"):
+                try:
+                    p = int(str(v["price"]).replace(",", ""))
+                except Exception:
+                    p = None
+            if not p:
+                continue
+            h = H.setdefault(v["id"], [])
+            if not h or h[-1][1] != p:
+                h.append([day, p])            # 値段が変わったときだけ1行ふやす
+            if len(h) > 40:
+                del h[:len(h) - 40]
+            # ★ 過去の値段は「実際に売られていた値段」の記録だけで見る。
+            #   元の値段（listPrice）を混ぜると、セール中の作品がぜんぶ「値下がり」に入ってしまう。
+            ps = [x[1] for x in h]
+            v["low"], v["high"], v["since"] = min(ps), max(ps), h[0][0]
+            prev = [x for x in h[:-1] if x[1] != p]
+            if prev:
+                v["was"] = prev[-1][1]
+                if p < prev[-1][1]:
+                    v["dropAt"] = h[-1][0]
+                    n_drop += 1
+            else:
+                v.pop("was", None); v.pop("dropAt", None)
+        wr("index/%s.json" % key, rows)
+    wr("cache/price-hist.json", hist)
+    log("値段の記録", "値下がり", n_drop, "件")
+
+
 # ══════════ 本体 ══════════
 def main():
     os.makedirs(OUT, exist_ok=True)
@@ -1369,8 +1652,33 @@ def main():
             res[name] = False
         if res[name]:
             meta[name + "At"] = NOW_MS
-    meta["at"] = NOW_MS
+    for nm2, fn2 in (("also-fanza", lambda: fz_also("fanza")), ("also-danime", lambda: fz_also("danime")), ("also-dlsite", dl_also), ("campaign", campaigns)):
+        if ONLY and not ({"fanza", "danime", "dlsite", "campaign"} & ONLY):
+            break
+        if nm2 == "also-fanza" and ONLY and "fanza" not in ONLY:
+            continue
+        if nm2 == "also-danime" and ONLY and "danime" not in ONLY:
+            continue
+        if nm2 == "also-dlsite" and ONLY and "dlsite" not in ONLY:
+            continue
+        try:
+            r2 = fn2()
+            if nm2 == "campaign" and r2:
+                meta["campaignAt"] = NOW_MS
+        except Exception as e:
+            log(nm2, "失敗", e)
+    try:
+        price_pass()
+    except Exception as e:
+        log("値段の記録 失敗", e)
+    meta["at"] = int(time.time() * 1000)      # ★ 取り終わった時刻（「最後に取れたのは◯分前」に使う）
+    meta["startAt"] = NOW_MS
     meta["log"] = ((meta.get("log") or []) + LOG)[-80:]
+    # ★★ 2026-09-21e 「いつ動いたか」がアプリで分かるように、実行ごとの記録を残す（最新24回）
+    runs = meta.get("runs") or []
+    runs.append({"at": NOW_MS, "sec": int(time.time() - T0), "ok": [k for k, v in res.items() if v],
+                 "ng": [k for k, v in res.items() if not v], "host": os.environ.get("COMPUTERNAME", "")})
+    meta["runs"] = runs[-24:]
     it_cache_save()
     wr("state.json", STATE)
     wr("meta.json", meta)

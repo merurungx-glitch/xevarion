@@ -113,11 +113,38 @@
   }
 
   /* ══ ③ プレイヤー登録（XEVARION と紐づけ） ══ */
+  /* ══ ★★ 2026-09-21f プレイヤー登録・名前変更は MagiChainParty と同じしくみ（ご指定） ══
+     ・席ごとに<b>名前をその場で打って変えられる</b>（6文字まで）
+     ・🔗 で XEVARION アカウントを紐づけ（賞金を受け取る人だけ。紐づけなくても遊べる）
+     ・紐づけた席をもう一度押すと解除
+     ・前回の名前と紐づけは覚えておき、次に開いたとき紐づけは<b>「要確認」</b>で戻す
+       → 押して4桁パスワードを入れると有効になる（別の人が勝手に使えないように）
+     ★ パスワードはここでは保存しない（GameLink が確かめるのに使うだけ）。 */
+  const SETUP_KEY = "magishift_setup_v1";
+  const DEF_NAMES = ["あか", "あお", "みどり", "きいろ", "むらさき", "だいだい"];
+  function saveSetup() {
+    try {
+      localStorage.setItem(SETUP_KEY, JSON.stringify({ v: 1, n: setup.n, players: (setup.all || []).map((p) => ({
+        name: p.name, link: (p.link && p.link.uid) ? { uid: p.link.uid, name: p.link.name, charFile: p.link.charFile || "", charId: p.link.charId || "" } : null,
+      })) }));
+    } catch (e) {}
+  }
+  function loadSetup() {
+    const all = DEF_NAMES.map((nm) => ({ name: nm, link: null }));
+    try {
+      const d = JSON.parse(localStorage.getItem(SETUP_KEY) || "null");
+      if (d && Array.isArray(d.players)) d.players.slice(0, 6).forEach((sp, i) => {
+        if (sp && sp.name) all[i].name = String(sp.name).slice(0, 6);
+        /* ★ 紐づけは「未確認」で戻す。押して4桁パスワードを入れると有効 */
+        if (sp && sp.link && sp.link.uid) all[i].link = { uid: sp.link.uid, name: sp.link.name, charFile: sp.link.charFile || "", charId: sp.link.charId || "", confirmed: false };
+      });
+    } catch (e) {}
+    return all;
+  }
   function startSetup(n) {
     setup.n = n;
-    setup.players = Array.from({ length: n }, (_, i) => ({ name: "Player " + (i + 1), uid: "", charFile: "" }));
-    const me = G.Account.portalAccount();
-    if (me) setup.players[0] = Object.assign({}, me);      /* 1人目はこの端末の人を初期値に */
+    if (!setup.all) setup.all = loadSetup();
+    setup.players = setup.all.slice(0, n);
     renderSetup();
   }
   function renderSetup() {
@@ -126,26 +153,51 @@
       " ／ " + (opt.win || r.win) + "つ並べて勝ち ／ 1人 " + (opt.pieces || r.pieces) + "個まで";
     $("#plist").innerHTML = setup.players.map((p, i) => {
       const c = G.COLORS[i];
-      return '<div class="prow" style="--c:' + c.color + '">' + pieceSVG(c) +
-        '<span class="pinfo">' + avatarHTML(p) + '<span class="pn"><b>Player ' + (i + 1) + "</b><small>" + esc(p.name) + "</small></span></span>" +
-        '<button class="btn sm" data-a="link" data-i="' + i + '">' + (p.uid ? "変更" : "XEVARIONで選択") + "</button>" +
-        (p.uid ? '<button class="btn sm ghost" data-a="unlink" data-i="' + i + '">外す</button>' : "") + "</div>";
+      const linked = p.link && p.link.uid, ok = linked && p.link.confirmed !== false;
+      const btn = !linked ? '<button class="gl-link-btn" data-a="seatlink" data-i="' + i + '" title="XEVARIONアカウントを紐づけて賞金を受け取る">🔗</button>'
+        : ok ? '<button class="gl-link-btn on" data-a="seatlink" data-i="' + i + '" title="タップで紐づけを解除">✓ ' + esc(p.link.name) + "</button>"
+        : '<button class="gl-link-btn pending" data-a="seatlink" data-i="' + i + '" title="前回の紐づけ — タップして4桁パスワードで確認">🔒 ' + esc(p.link.name) + "（要確認）</button>";
+      return '<div class="prow" data-i="' + i + '" style="--c:' + c.color + '">' + pieceSVG(c) +
+        '<input class="pname-in" maxlength="6" value="' + esc(p.name) + '" aria-label="Player ' + (i + 1) + ' の名前">' + btn + "</div>";
     }).join("");
     show("setup");
   }
-  async function linkPlayer(i) {
-    const acc = await G.Account.pick(setup.players[i]);
-    if (!acc) return;
-    if (acc.remove) { setup.players[i] = { name: "Player " + (i + 1), uid: "", charFile: "" }; renderSetup(); return; }
-    if (setup.players.some((p, j) => j !== i && p.uid === acc.uid)) { toast("そのアカウントはもう使われています"); return; }
-    setup.players[i] = acc;
-    renderSetup();
-    toast("🔗 " + acc.name + " を登録しました");
+  function seatLink(i) {
+    const p = setup.players[i];
+    if (!window.GameLink) { toast("紐づけ機能を準備中です…"); return; }
+    if (navigator.onLine === false) { toast("オフライン中は紐づけできません"); return; }
+    if (p.link && p.link.uid && p.link.confirmed === false) {
+      GameLink.confirm(p.link).then((res) => {
+        if (res && res.remove) { p.link = null; renderSetup(); saveSetup(); toast("紐づけを解除しました"); return; }
+        if (res && res.uid) {
+          p.link = { uid: res.uid, name: res.name, charFile: res.charFile || "", charId: res.charId || "", confirmed: true };
+          renderSetup(); saveSetup(); toast("🔗 " + res.name + " の紐づけを確認しました");
+        }
+      });
+      return;
+    }
+    if (p.link && p.link.uid) { p.link = null; renderSetup(); saveSetup(); toast("紐づけを解除しました"); return; }
+    GameLink.link(p.name).then((res) => {
+      if (!res || !res.uid) return;
+      if (setup.players.some((q, j) => j !== i && q.link && q.link.uid === res.uid)) { toast("そのアカウントはもう使われています"); return; }
+      p.link = { uid: res.uid, name: res.name, charFile: res.charFile || "", charId: res.charId || "", confirmed: true };
+      renderSetup(); saveSetup(); toast("🔗 " + res.name + " を紐づけました");
+    });
   }
+  document.addEventListener("input", (e) => {
+    if (!e.target.matches || !e.target.matches(".pname-in")) return;
+    const i = +e.target.closest(".prow").dataset.i;
+    setup.players[i].name = e.target.value.slice(0, 6);
+    saveSetup();
+  });
 
   /* ══ ④ 対戦 ══ */
   function begin() {
-    S = G.newGame(setup.players.map((p) => ({ uid: p.uid || "", name: p.name, charFile: p.charFile || "", charId: p.charId || "" })),
+    /* 名前が空の席は色の名前にする。紐づけは「確認ずみ」のものだけ使う（未確認は賞金の対象にしない） */
+    S = G.newGame(setup.players.map((p, i) => {
+      const lk = p.link && p.link.uid && p.link.confirmed !== false ? p.link : null;
+      return { uid: lk ? lk.uid : "", name: (String(p.name || "").trim() || DEF_NAMES[i]), charFile: lk ? lk.charFile : "", charId: lk ? lk.charId : "", acct: lk ? lk.name : "" };
+    }),
       { size: opt.size || 0, win: opt.win || 0, pieces: opt.pieces || 0 });
     G.save(S);
     renderGame(true);
@@ -309,14 +361,19 @@
   /* ══ 操作 ══ */
   const ACT = {
     start: () => renderCount(),
-    count: (b) => { setup.n = +b.dataset.n; startSetup(setup.n); },
-    link: (b) => linkPlayer(+b.dataset.i),
-    unlink: (b) => { const i = +b.dataset.i; setup.players[i] = { name: "Player " + (i + 1), uid: "", charFile: "" }; renderSetup(); },
+    /* ★ 登録画面の「戻る」も data-a="count"（人数を持たない）→ 人数えらびへ戻す。前はここで止まっていた */
+    count: (b) => { if (!b.dataset.n) { renderCount(); return; } setup.n = +b.dataset.n; startSetup(setup.n); },
+    seatlink: (b) => seatLink(+b.dataset.i),
     begin: () => begin(),
     cont: () => resume(),
     cell: (b) => onCell(+b.dataset.x, +b.dataset.y),
     cancel: () => { S.sel = null; renderGame(); },
-    again: () => { setup.players = S.players.map((p) => ({ name: p.name, uid: p.uid, charFile: p.charFile, charId: p.charId })); setup.n = S.players.length; begin(); },
+    again: () => {
+      /* 同じ顔ぶれでもう一度。紐づけは確認ずみのまま引き継ぐ */
+      setup.n = S.players.length;
+      setup.players = S.players.map((p) => ({ name: p.name, link: p.uid ? { uid: p.uid, name: p.acct || p.name, charFile: p.charFile || "", charId: p.charId || "", confirmed: true } : null }));
+      begin();
+    },
     result: () => resultScreen(),
     menu: () => { G.clear(); renderTitle(); },
     settings: () => renderSettings(),
@@ -328,11 +385,7 @@
     setpieces: (b) => { opt.pieces = +b.dataset.v; saveOpt(); renderSettings(); },
     /* ★★ 2026-09-21 ご指定：アカウントを紐づけなくても遊べる。
        もともと紐づけなしでも「ゲーム開始」は押せるが、分かりにくいので入口を用意した。 */
-    noacc: () => {
-      setup.players = setup.players.map((p, i) => ({ name: "Player " + (i + 1), uid: "", charFile: "" }));
-      renderSetup();
-      toast("アカウントを使わずに始めます");
-    },
+
     setreset: () => { opt = { size: 0, win: 0, pieces: 0, se: true, bgm: false }; saveOpt(); bgmStop(); renderSettings(); toast("初期設定に戻しました"); },
     gmenu: () => {
       $("#ov").classList.add("on");

@@ -209,29 +209,48 @@
   const CAT_IDS = ["anime", "fanza", "dlsite", "karaoke", "music"];
   /* 並べ替え（ランキング順のほかに選べるもの）。MagiBurst の並べ替えと同じ考えかた。 */
   const SORTS = {
-    anime: [["rank", "ランキング順"], ["watchers", "視聴者数順"], ["fm", "国内評価順"], ["new", "新しい順"], ["title", "名前順"]],
-    fanza: [["rank", "ランキング順"], ["rating", "評価順"], ["sales", "販売数順"], ["new", "新しい順"], ["price", "安い順"], ["title", "名前順"]],
-    dlsite: [["rank", "ランキング順"], ["rating", "評価順"], ["sales", "販売数順"], ["new", "新しい順"], ["price", "安い順"], ["title", "名前順"]],
+    anime: [["rank", "ランキング順"], ["watchers", "視聴者数順"], ["fm", "国内評価順"], ["rating", "AniList点数順"], ["popular", "人気順"], ["new", "新しい順"], ["title", "名前順"]],
+    fanza: [["rank", "ランキング順"], ["rating", "評価順"], ["sales", "販売数順"], ["new", "新しい順"], ["price", "安い順"], ["off", "割引率順"], ["title", "名前順"], ["circle", "サークル順"]],
+    dlsite: [["rank", "ランキング順"], ["rating", "評価順"], ["sales", "販売数順"], ["new", "新しい順"], ["price", "安い順"], ["off", "割引率順"], ["title", "名前順"], ["circle", "サークル順"]],
     karaoke: [["rank", "ランキング順"], ["new", "新しい順"], ["old", "古い順"], ["title", "曲名順"], ["artist", "アーティスト順"]],
     music: [["rank", "ランキング順"], ["new", "新しい順"], ["old", "古い順"], ["title", "曲名順"], ["artist", "アーティスト順"]],
   };
-  function sortEntries(cat, entries, sort) {
-    if (!sort || sort === "rank") return entries;
-    const v = (e) => e.item || e;
-    const n = (x) => Number(x) || 0;
-    const d = (x) => (x && x.releaseDate ? x.releaseDate : "");
-    const cmp = {
-      watchers: (a, b) => n(v(b).watchers) - n(v(a).watchers),
-      fm: (a, b) => n(v(b).fmScore) - n(v(a).fmScore),
-      rating: (a, b) => n(v(b).rating) - n(v(a).rating) || n(v(b).votes) - n(v(a).votes),
-      sales: (a, b) => n(v(b).sales) - n(v(a).sales),
-      price: (a, b) => (n(String(v(a).price).replace(/,/g, "")) || 99999) - (n(String(v(b).price).replace(/,/g, "")) || 99999),
-      new: (a, b) => (d(v(b)) > d(v(a)) ? 1 : d(v(b)) < d(v(a)) ? -1 : 0),
-      old: (a, b) => (d(v(a)) > d(v(b)) ? 1 : d(v(a)) < d(v(b)) ? -1 : 0),
-      title: (a, b) => String(v(a).title).localeCompare(String(v(b).title), "ja"),
-      artist: (a, b) => String(v(a).artist || "").localeCompare(String(v(b).artist || ""), "ja"),
-    }[sort];
-    return cmp ? entries.slice().sort(cmp) : entries;
+  /* ★★ 2026-09-21e 並べ替えを作り直した（ご指定「並び替えできないボタンがある」「逆順も」）。
+     ・どの並べ替えも「値を取り出す関数」と「ふつうの向き（大きい順か小さい順か）」の組で書く
+     ・rev=true で逆順（MagiBurst と同じ）。ランキング順の逆＝下位から
+     ・値が無い作品（販売数が出ていない など）は、向きにかかわらず<b>いちばん最後</b>
+       → 前は値が無い作品がまざって「押しても変わらない」ように見えていた */
+  const SORT_KEYS = {
+    rank:     [(e) => (e.rank == null ? null : e.rank), 1],
+    watchers: [(e, v) => num0(v.watchers), -1],
+    fm:       [(e, v) => num0(v.fmScore), -1],
+    rating:   [(e, v) => num0(v.rating) != null ? num0(v.rating) * 100000 + (num0(v.votes) || 0) : null, -1],
+    sales:    [(e, v) => num0(v.sales), -1],
+    price:    [(e, v) => num0(String(v.price == null ? "" : v.price).replace(/,/g, "")), 1],
+    off:      [(e, v) => (num0(v.off) || null), -1],
+    drop:     [(e, v) => (v.was && num0(String(v.price).replace(/,/g, "")) != null ? v.was - num0(String(v.price).replace(/,/g, "")) : null), -1],
+    new:      [(e, v) => (v.releaseDate || null), -1],
+    old:      [(e, v) => (v.releaseDate || null), 1],
+    title:    [(e, v) => String(v.title || "") || null, 1],
+    artist:   [(e, v) => String(v.artist || v.circle || "") || null, 1],
+    circle:   [(e, v) => String(v.circle || v.author || "") || null, 1],
+    popular:  [(e, v) => num0(v.popularity || v.favs || v.watchers), -1],
+  };
+  function num0(x) { if (x == null || x === "") return null; const n = Number(x); return isFinite(n) ? n : null; }
+  function sortEntries(cat, entries, sort, rev) {
+    if (!sort || (sort === "rank" && !rev)) return entries;
+    const def = SORT_KEYS[sort];
+    if (!def) return rev ? entries.slice().reverse() : entries;
+    const [key, dir0] = def;
+    const dir = rev ? -dir0 : dir0;
+    const rows = entries.map((e, i) => ({ e, i, k: key(e, e.item || e) }));
+    rows.sort((a, b) => {
+      const an = a.k == null, bn = b.k == null;
+      if (an || bn) return an && bn ? a.i - b.i : an ? 1 : -1;
+      if (typeof a.k === "string") return dir * a.k.localeCompare(b.k, "ja") || a.i - b.i;
+      return dir * (a.k - b.k) || a.i - b.i;
+    });
+    return rows.map((r) => r.e);
   }
   const typeOf = (cat, id) => CATS[cat].types.find((t) => t.id === id) || CATS[cat].types[0];
   const periodsOfType = (cat, typeId) => { const t = typeOf(cat, typeId); return t.period ? [t.period] : t.periods; };
@@ -481,7 +500,7 @@
       rows.forEach((r) => { this._jp[r.item.id] = r.item; });
       const ctx = { type: "fm", period: "day" };
       let entries = rows.map((r, i) => MODEL_OF.anime({ rank: i + 1, previousRank: known ? r.prev : null, prevKnown: known, item: r.item }, ctx));
-      entries = sortEntries("anime", entries, sort);
+      entries = sortEntries("anime", entries, sort, this._rev);
       return { category: "anime", type: "fm", period: "day", total: entries.length, entries, rangeLabel: "いま話題のアニメ（Filmarks・国内の評価）",
         updatedAt: j.at, stale: j._stale, prevLabel: known ? String(j.prevD).replace(/-/g, "/") + " の記録" : "", source: "Filmarks", sourceUrl: "https://filmarks.com/list-anime/trend" };
     }
@@ -492,7 +511,7 @@
       const list = rows.filter((x) => this.jpPasses(x, f)).sort((a, b) => Number(b.fmScore) - Number(a.fmScore));
       const ctx = { type: "fmrate", period: "all" };
       let entries = list.map((x, i) => MODEL_OF.anime({ rank: i + 1, previousRank: null, prevKnown: false, item: x }, ctx));
-      entries = sortEntries("anime", entries, sort);
+      entries = sortEntries("anime", entries, sort, this._rev);
       return { category: "anime", type: "fmrate", period: "all", total: entries.length, entries,
         rangeLabel: "国内の評価が高い順（Filmarks）", updatedAt: MS.T, prevLabel: "", source: "Filmarks", sourceUrl: "https://filmarks.com" };
     }
@@ -524,7 +543,7 @@
       if (rerank) filtered.filter((r) => r.prev).sort((a, b) => a.prev - b.prev).forEach((r, i) => pr.set(r, i + 1));
       const ctx = { type: "jp", period };
       let entries = filtered.map((r, i) => MODEL_OF.anime({ rank: i + 1, previousRank: known ? (rerank ? pr.get(r) || null : r.prev) : null, prevKnown: known, item: r.item }, ctx));
-      entries = sortEntries("anime", entries, sort);
+      entries = sortEntries("anime", entries, sort, this._rev);
       const lab = { season: MS.CUR_SEASON_LABEL, prevseason: "前季のアニメ", year: CUR.y + "年のアニメ", all: "全期間" }[period] || "";
       return { category: "anime", type: "jp", period, total: entries.length, entries, rangeLabel: "国内の視聴者数（Annict）・" + lab, updatedAt: j.at, stale: j._stale,
         prevLabel: known ? String(j.prevD).replace(/-/g, "/") + " の記録" : "", source: "Annict", sourceUrl: "https://annict.com" };
@@ -532,13 +551,15 @@
     async list(q) {
       const type = typeOf("anime", q.type);
       const period = type.period || q.period || defaultPeriod("anime", type.id);
+      this._rev = !!q.rev;
       if (type.id === "jp") return this.jpList(period, q.filters, q.sort);
       if (type.id === "fm") return this.fmList(q.filters, q.sort);
       if (type.id === "fmrate") return this.fmRate(q.filters, q.sort);
       const o = await this.ordered(type.id, period, q.filters);
       const pr = {}; (o.prev || []).forEach((id, i) => { pr[id] = i + 1; });
       const ctx = { type: type.id, period };
-      const entries = o.cur.map((id, i) => MODEL_OF.anime({ rank: i + 1, previousRank: o.prevKnown ? (pr[id] || null) : null, prevKnown: o.prevKnown, score: o.score[id], item: animeView(this._byId[id]) }, ctx));
+      let entries = o.cur.map((id, i) => MODEL_OF.anime({ rank: i + 1, previousRank: o.prevKnown ? (pr[id] || null) : null, prevKnown: o.prevKnown, score: o.score[id], item: animeView(this._byId[id]) }, ctx));
+      entries = sortEntries("anime", entries, q.sort, q.rev);
       const lab = { day: "今日のトレンド順（AniList）", week: "直近7日のトレンド合計", month: "直近25日のトレンド合計", season: MS.CUR_SEASON_LABEL + "の人気順", year: CUR.y + "年の作品の人気順", all: "全期間の人気順" }[period];
       return { category: "anime", type: type.id, period, total: entries.length, entries, rangeLabel: type.note || lab, updatedAt: o.at, stale: o.stale,
         prevLabel: o.prevKnown ? (period === "day" ? "昨日" : period === "week" ? "先週" : "前回の記録") : "", source: "AniList" };
@@ -737,7 +758,9 @@
      ★ 一覧そのものを作り直すのではなく「うしろに足す」だけにすること。
        ランキングの順位を圏外のせいでずらしてしまうと、前回との比較が狂う。 */
   async function withOffChart(src, cat, entries, q, ctx) {
-    if (q && q.offchart === false) return entries;
+    /* ★★ 2026-09-21e ご指定：ランキングの画面は<b>ランキング内の作品だけ</b>を出す。
+       圏外もふくめた一覧は「全作品」タブ（repo.all）で出すので、ここは頼まれたときだけ動く。 */
+    if (!q || q.offchart !== true) return entries;
     let ix;
     try { ix = await src.index(); } catch (e) { return entries; }
     if (!ix || !ix.length) return entries;
@@ -828,7 +851,7 @@
       const ctx = { type: type.id, period: type.period };
       let entries = rows.map((r, i) => MODEL_OF[this.cat]({ rank: i + 1, previousRank: !known ? null : rerank ? pr.get(r) || null : r.previousRank,
         prevKnown: known, item: r.item }, ctx));
-      entries = sortEntries(this.cat, entries, q.sort);
+      entries = sortEntries(this.cat, entries, q.sort, q.rev);
       const ranked = entries.length;
       entries = await withOffChart(this, this.cat, entries, q, ctx);
       const sc = (CATS[this.cat].sources || []).find((x) => x.id === type.src);
@@ -885,7 +908,20 @@
         .map((x) => ({ x, n: (x.genres || []).filter((g) => (it.genres || []).indexOf(g) >= 0).length }))
         .filter((o) => o.n >= 2).sort((a, b) => b.n - a.n || (rk[a.x.id] || 9999) - (rk[b.x.id] || 9999)).map((o) => o.x) : [];
       const v = (x) => ({ item: x, rank: rk[x.id] || null });
-      return { primary: p.slice(0, 12).map(v), secondary: s.slice(0, 12).map(v) };
+      /* ★★ 2026-09-21f この作品を見た人が見る作品（ご指定）。
+         FANZA＝この作品のレビューを書いた人たちが、ほかに見た作品（多い順）
+         DLsite＝公式の「この作品を買った人はこんな作品も買っています」 */
+      let also = [];
+      if (it && (it.also || []).length) {
+        const byId = {};
+        for (const kk of this.keys) {
+          try { (await this.index(kk)).forEach((x) => { if (!byId[x.id]) byId[x.id] = x; }); } catch (e) {}
+        }
+        also = it.also.map((i2) => byId[i2]).filter(Boolean).slice(0, 16).map(v);
+      }
+      const alsoLabel = this.cat === "dlsite" ? "この作品を買った人はこんな作品も買っています" : "この作品を見た人がよく見ている作品";
+      const alsoNote = this.cat === "dlsite" ? "DLsite の「この作品を買った人は…」より" : "この作品のレビューを書いた人が、ほかに見た作品を多い順に";
+      return { primary: p.slice(0, 12).map(v), secondary: s.slice(0, 12).map(v), also, alsoLabel, alsoNote };
     }
     async compare(pair) {
       const mt = this.mainType();
@@ -939,6 +975,26 @@
     it.damUrl = DAM + "/karaokesearch/songleaf.html?requestNo=" + it.id;
     return it;
   }
+  /* ★★ 2026-09-21f カラオケ・音楽には「この曲を聴いた人が聴く曲」の公開データが無い。
+     いちばん近いものとして、<b>同じランキングにいっしょに並んでいる回数</b>が多い曲を出す
+     （アニソン・ボカロなどジャンル別の表どうしで重なるほど、同じ人たちに歌われ・聴かれている）。 */
+  async function coOccur(keys, id, toItem) {
+    const cnt = {}, best = {};
+    for (const k of keys) {
+      let j; try { j = await fb("lists/" + k, 600e3); } catch (e) { continue; }
+      const es = j.entries || [];
+      const me = es.findIndex((x) => String(x.id || x.rn) === String(id));
+      if (me < 0) continue;
+      es.forEach((x, i) => {
+        const xid = String(x.id || x.rn);
+        if (xid === String(id)) return;
+        const w = 1 / (1 + Math.abs(i - me) / 10);           /* 順位が近いほど重く */
+        cnt[xid] = (cnt[xid] || 0) + w;
+        if (!best[xid]) best[xid] = x;
+      });
+    }
+    return Object.keys(cnt).sort((a, b) => cnt[b] - cnt[a]).slice(0, 16).map((xid) => ({ item: toItem(best[xid]), rank: null }));
+  }
   const TERM = { day: "daily", week: "weekly", month: "monthly", year: "year" };
   class DamSource {
     constructor() { this.cat = "karaoke"; this.label = "カラオケ DAM（ランキングページ・自動取得）"; }
@@ -980,7 +1036,7 @@
       if (rerank) filtered.filter((r) => r.previousRank).sort((a, b) => a.previousRank - b.previousRank).forEach((r, i) => pr.set(r, i + 1));
       const ctx = { type: type.id, period };
       let entries = filtered.map((r, i) => MODEL_OF.karaoke({ rank: i + 1, previousRank: known ? (rerank ? (pr.get(r) || null) : r.previousRank) : null, prevKnown: known, item: r.item }, ctx));
-      entries = sortEntries("karaoke", entries, q.sort);
+      entries = sortEntries("karaoke", entries, q.sort, q.rev);
       const ranked = entries.length;
       entries = await withOffChart(this, "karaoke", entries, q, ctx);
       const lname = LIST_GENRE[list] || LIST_NAME[list] || "総合";
@@ -1040,7 +1096,10 @@
       const rk = {}; L.entries.forEach((e) => { rk[e.item.id] = e.rank; });
       const p = it && it.ac ? ix.filter((x) => x.id !== id && x.ac === it.ac).map((x) => ({ item: x, rank: rk[x.id] || null })) : [];
       const sec = L.entries.filter((e) => e.item.id !== id && it && it.genre && e.item.itunesGenre === it.genre && !p.some((x) => x.item.id === e.item.id)).slice(0, 12).map((e) => ({ item: e.item, rank: e.rank }));
-      return { primary: p.slice(0, 12), secondary: sec };
+      const also = await coOccur(["karaoke_total-weekly", "karaoke_total-monthly", "karaoke_total-daily", "karaoke_burst-weekly", "karaoke_anison-weekly", "karaoke_vocaloid-weekly",
+        "karaoke_foreign-weekly", "karaoke_enka-weekly", "karaoke_vtuber-weekly", "karaoke_duet-weekly", "karaoke_year-year"], id, (x) => karaItem(x)).catch(() => []);
+      return { primary: p.slice(0, 12), secondary: sec, also: also.filter((x) => !p.some((y) => y.item.id === x.item.id)),
+        alsoLabel: "この曲といっしょに歌われている曲", alsoNote: "DAM のジャンル別ランキングで、同じ表に近い順位で並んでいる曲" };
     }
     async compare(pair) {
       const cur = await this.list({ type: "overall", period: pair.period });
@@ -1134,7 +1193,7 @@
       const ctx = { type: type.id, period: type.period };
       let entries = rows.map((r, i) => MODEL_OF.music({ rank: i + 1, previousRank: !known ? null : rerank ? pr.get(r) || null : r.previousRank,
         prevKnown: known, item: r.item }, ctx));
-      entries = sortEntries("music", entries, q.sort);
+      entries = sortEntries("music", entries, q.sort, q.rev);
       const ranked = entries.length;
       entries = await withOffChart(this, "music", entries, q, ctx);
       return { category: "music", type: type.id, period: type.period, total: entries.length, ranked, entries,
@@ -1197,7 +1256,9 @@
       const p = it ? ix.filter((x) => x.id !== id && k && kanaNorm(x.artist || "") === k).map((x) => ({ item: x, rank: rk[x.id] || null })) : [];
       const sec = it ? L.entries.filter((e) => e.item.id !== id && it.genre && e.item.genre === it.genre && !p.some((y) => y.item.id === e.item.id))
         .slice(0, 12).map((e) => ({ item: e.item, rank: e.rank })) : [];
-      return { primary: p.slice(0, 12), secondary: sec };
+      const also = await coOccur(["music_stream", "music_overall", "music_video", "music_download", "music_anime", "music_niconico", "music_sales"], id, (x) => musicItem(x)).catch(() => []);
+      return { primary: p.slice(0, 12), secondary: sec, also: also.filter((x) => !p.some((y) => y.item.id === x.item.id)),
+        alsoLabel: "この曲といっしょに聴かれている曲", alsoNote: "Billboard JAPAN の各チャートで、同じ表に近い順位で並んでいる曲" };
     }
     async compare(pair) {
       const cur = await this.list({ type: "stream", offchart: false });
@@ -1226,6 +1287,111 @@
     byPerson: (cat, kind, name) => (src(cat).byPerson ? src(cat).byPerson(kind, name) : Promise.resolve([])),
     artists: (cat) => (src(cat).artists ? src(cat).artists() : Promise.resolve([])),
     sorts: (cat) => (SORTS[cat] || SORTS.anime).slice(),
+    /* ★★ 2026-09-21f 新作（ご指定）。
+       アニメ＝AniList の今季・来季（来季は放送前の作品）／音楽＝発売から90日以内
+       カラオケ＝発売から180日以内の曲／FANZA・DLsite＝配信から30日以内（出どころごと） */
+    async newItems(cat, srcKey, q) {
+      q = q || {};
+      const S0 = src(cat);
+      let rows;
+      if (cat === "anime") {
+        const nxt = CUR.s === 3 ? { y: CUR.y + 1, s: 0 } : { y: CUR.y, s: CUR.s + 1 };
+        const t = q.when === "next" ? nxt : CUR;
+        const res = await S0.page({ season: SEASON_EN[t.s], year: t.y, sort: ["POPULARITY_DESC"] }, 2);
+        S0.remember(res.media);
+        rows = res.media.map(animeView).filter(Boolean);
+        const jp = ((await fb("index/anime", 1800e3).catch(() => [])) || []).map(jpView);
+        const k = (x) => kanaNorm(x.title || "").slice(0, 8);
+        const seen = {}; rows.forEach((x) => { seen[k(x)] = 1; });
+        if (q.when !== "next") jp.filter((x) => /今季|放送中/.test(x.seasonLabel || "") && !seen[k(x)]).forEach((x) => rows.push(x));
+        rows = rows.filter((it) => S0.jpPasses(it, q.filters));
+      } else {
+        const ix = cat === "karaoke" || cat === "music" ? await S0.index() : await (S0.keys ? S0.index(srcKey || S0.keys[0]) : S0.index());
+        const lim = cat === "music" ? 90 : cat === "karaoke" ? 180 : 30;
+        rows = ix.filter((it) => it.releaseDate && daysAgo(it.releaseDate) <= lim && daysAgo(it.releaseDate) >= -60 && (!S0.passes || S0.passes(it, q.filters)));
+      }
+      const k2 = kanaNorm(q.q || "");
+      if (k2) rows = rows.filter((it) => kanaNorm([it.title, it.circle, it.author, it.artist, it.studio].concat(it.genres || []).join(" ")).indexOf(k2) >= 0);
+      let entries = rows.map((it) => MODEL_OF[cat]({ rank: null, previousRank: null, prevKnown: false, item: it }, { type: "new", period: "all" }));
+      entries = sortEntries(cat, entries, q.sort && q.sort !== "rank" ? q.sort : (cat === "anime" ? null : "new"), q.rev);
+      return { total: entries.length, entries,
+        label: cat === "anime" ? (q.when === "next" ? "来季（" + (CUR.s === 3 ? CUR.y + 1 : CUR.y) + "年" + SEASON_NM[SEASON_EN[(CUR.s + 1) % 4]] + "）の放送予定" : MS.CUR_SEASON_LABEL + "の作品")
+          : cat === "music" ? "発売から90日以内の曲" : cat === "karaoke" ? "発売から180日以内の曲" : "配信から30日以内の作品" };
+    },
+    /* ★★ 2026-09-21f セール情報（開催中のキャンペーン）。自動取得の campaigns.json を読む */
+    async campaigns() {
+      const j = await fb("campaigns", 600e3);
+      const today = ymd(D0);
+      const list = (j.list || []).filter((c) => !c.end || c.end >= today);   /* 終わったキャンペーンは出さない */
+      return { at: j.at, list };
+    },
+    /* ★★ 2026-09-21e 全作品（圏外もふくむ）。出どころ（FANZA の4つ）ごと。
+       ランキングに入っている作品には順位も付ける。 */
+    async all(cat, srcKey, q) {
+      q = q || {};
+      const S0 = src(cat);
+      let ix;
+      if (cat === "anime") ix = ((await fb("index/anime", 1800e3).catch(() => [])) || []).map(jpView);
+      else ix = await (S0.keys ? S0.index(srcKey || S0.keys[0]) : S0.index());
+      const pass = S0.passes ? (it) => S0.passes(it, q.filters) : S0.jpPasses ? (it) => S0.jpPasses(it, q.filters) : () => true;
+      const k = kanaNorm(q.q || "");
+      const hit = (it) => !k || kanaNorm([it.title, it.short, it.yomi, it.circle, it.author, it.artist, it.series, it.origin, it.studio]
+        .concat(it.genres || []).join(" ")).indexOf(k) >= 0;
+      let rows = ix.filter((it) => hit(it) && pass(it));
+      const rk = {};
+      try {
+        const mt = S0.mainType ? S0.mainType(srcKey || (S0.keys && S0.keys[0])) : null;
+        const L0 = await S0.list(mt ? { type: mt.id } : cat === "karaoke" ? { type: "weekly" } : cat === "music" ? { type: "stream" } : { type: "jp", period: "season" });
+        L0.entries.forEach((e) => { rk[e.item.id] = e.rank; });
+      } catch (e) {}
+      let entries = rows.map((it) => MODEL_OF[cat]({ rank: rk[it.id] || null, previousRank: null, prevKnown: false, item: it }, { type: "all", period: "all" }));
+      /* ★★ 2026-09-21g 「ランキング順」はランキングの順位どおり（1位から）、そのあとにランキング外を新しい順。
+         sortEntries は rank を「そのまま」と扱うので、ここで並べる（前は新しい順になっていた）。 */
+      if (!q.sort || q.sort === "rank") {
+        entries = sortEntries(cat, entries, "new");
+        const ranked = entries.filter((e) => e.rank).sort((a, b) => a.rank - b.rank), rest = entries.filter((e) => !e.rank);
+        entries = ranked.concat(rest);
+        if (q.rev) entries = ranked.slice().reverse().concat(rest);
+      } else entries = sortEntries(cat, entries, q.sort, q.rev);
+      return { category: cat, total: entries.length, all: ix.length, entries };
+    },
+    /* ★★ 2026-09-21e セール・値下がり。値段が取れている出どころ（FANZA の4つ・DLsite）をまとめて見る。
+       mode="sale" … いま割引中（off>0 か、元の値段より安い）
+       mode="drop" … これまでに記録した値段より下がった（was>いま・過去最安 など） */
+    async deals(mode, q) {
+      q = q || {};
+      const want = q.keys && q.keys.length ? q.keys : ["fanza", "danime", "fbooks", "fvideo", "dlsite"];
+      const catOf = (k) => (k === "dlsite" ? "dlsite" : "fanza");
+      const out = [];
+      for (const k of want) {
+        const S0 = src(catOf(k));
+        let ix = [];
+        try { ix = await (S0.keys ? S0.index(k) : S0.index()); } catch (e) { continue; }
+        ix.forEach((it) => {
+          const p = num0(String(it.price == null ? "" : it.price).replace(/,/g, ""));
+          if (p == null) return;
+          const on = mode === "sale" ? (Number(it.off) > 0 || (it.listPrice && p < it.listPrice))
+            : mode === "cheap" ? (Number(it.off) > 0 || (it.listPrice && p < it.listPrice) || (it.was && p < it.was))
+            : (it.was && p < it.was) || (it.high && p < it.high);      /* 値下がり＝記録してきた値段より下がった */
+          if (!on) return;
+          if (S0.passes && !S0.passes(it, q.filters)) return;
+          it.srcKey = k;
+          out.push(it);
+        });
+      }
+      const k = kanaNorm(q.q || "");
+      let rows = k ? out.filter((it) => kanaNorm([it.title, it.circle, it.author].concat(it.genres || []).join(" ")).indexOf(k) >= 0) : out;
+      if (q.minOff) rows = rows.filter((it) => Number(it.off) >= Number(q.minOff));
+      if (q.maxPrice) rows = rows.filter((it) => num0(String(it.price).replace(/,/g, "")) <= Number(q.maxPrice));
+      let entries = rows.map((it) => MODEL_OF[it.category]({ rank: null, previousRank: null, prevKnown: false, item: it }, { type: mode, period: "all" }));
+      /* 「今安いおすすめ」の並び：割引率 × 評価 × 売れ行き */
+      if (!q.sort || q.sort === "rec") {
+        const sc = (e) => { const v = e.item; return (Number(v.off) || 0) * 1.0 + (Number(v.rating) || 3) * 8 + Math.log10((Number(v.sales) || 1) + 1) * 10 + (v.dropAt ? 15 : 0); };
+        entries.sort((a, b) => sc(b) - sc(a));
+        if (q.rev) entries.reverse();
+      } else entries = sortEntries("fanza", entries, q.sort, q.rev);
+      return { total: entries.length, entries };
+    },
     /* おすすめ：よく見ているジャンル・人から選ぶ（閲覧・お気に入り・検索の記録をもとに） */
     async recommend(cat, seed, exclude) {
       const want = {};
@@ -1245,6 +1411,61 @@
       }).filter((o) => o.sc > 3).sort((a, b) => b.sc - a.sc).slice(0, 20);
       return scored.map((o) => ({ item: o.item, rank: null }));
     },
+    /* ★★ 2026-09-21i ご指定「おすすめは複数の項目・履歴・お気に入りから推測」。
+       前は「この画面で表示した作品」しか材料にならず、開き直すとお気に入りも履歴もほぼ空だった。
+       いまは次の手がかりを全部足して点をつける（一覧＝index から作品の中身を引き直す）：
+         ・お気に入り（重み3）・閲覧履歴（重み2→古いほど軽く）
+         ・その作品のジャンル／作者・サークル・アーティスト・制作会社・監督・声優／シリーズ・原作
+         ・その作品を「見た人がよく見る作品」（also）… いちばん強い手がかり
+         ・好みのジャンル（マイページ）・最近の検索の言葉
+       点がいちばん大きかった理由を「〜だから」として返す。 */
+    async recommendFrom(cat, P) {
+      const S0 = src(cat);
+      let ix;
+      if (cat === "anime") ix = ((await fb("index/anime", 1800e3).catch(() => [])) || []).map(jpView);
+      else if (S0.keys) { ix = []; for (const k of S0.keys) { try { ix = ix.concat(await S0.index(k)); } catch (e) {} } }
+      else ix = await S0.index().catch(() => []);
+      const byId = {}; ix.forEach((x) => { if (!byId[x.id]) byId[x.id] = x; });
+      const peopleOf = (x) => (cat === "anime" ? [x.studio, x.director].concat((x.cast || []).slice(0, 6).map((c) => c.n))
+        : (cat === "karaoke" || cat === "music") ? [x.artist] : [x.circle, x.author, x.series, x.origin]).filter(Boolean);
+      const G = {}, Pp = {}, A = {}, why = {};
+      const seen = {};
+      (P.seeds || []).forEach((sd) => {
+        seen[sd.id] = 1;
+        const x = byId[sd.id] || sd.it; if (!x) return;
+        (x.genres || []).forEach((g) => { G[g] = (G[g] || 0) + sd.w; });
+        peopleOf(x).forEach((n) => { const k = kanaNorm(n); Pp[k] = (Pp[k] || 0) + sd.w; why["p:" + k] = n; });
+        (x.also || []).forEach((a2, i) => { A[a2] = (A[a2] || 0) + sd.w * (1 - i / 20); if (!why["a:" + a2]) why["a:" + a2] = x.title; });
+      });
+      (P.prefs || []).forEach((g) => { G[g] = (G[g] || 0) + 4; });
+      const Q = (P.queries || []).map(kanaNorm).filter((q) => q.length >= 2);
+      const out = [];
+      ix.forEach((x) => {
+        if (seen[x.id]) return;
+        const parts = [];
+        let gs = 0, bestG = "";
+        (x.genres || []).forEach((g) => { const v = G[g] || 0; gs += v; if (v > (G[bestG] || 0)) bestG = g; });
+        if (gs) parts.push([gs * 1.0, bestG ? ((P.prefs || []).indexOf(bestG) >= 0 ? "好きなジャンル「" : "よく見るジャンル「") + bestG + "」" : ""]);
+        let ps = 0, bestP = "";
+        peopleOf(x).forEach((n) => { const k = kanaNorm(n); const v = Pp[k] || 0; if (v) { ps += v * 6; if (!bestP) bestP = why["p:" + k]; } });
+        if (ps) parts.push([ps, "よく見る「" + bestP + "」"]);
+        if (A[x.id]) parts.push([A[x.id] * 9, "「" + String(why["a:" + x.id] || "").slice(0, 16) + "」を見た人がよく見る"]);
+        if (Q.length) {
+          const hay = kanaNorm([x.title, x.short].concat(x.genres || [], peopleOf(x)).join(" "));
+          const hit = Q.find((q) => hay.indexOf(q) >= 0);
+          if (hit) parts.push([8, "検索した「" + (P.queries.find((q) => kanaNorm(q) === hit) || hit) + "」"]);
+        }
+        if (!parts.length) return;
+        const sc = parts.reduce((a, p) => a + p[0], 0) + Math.min(4, (Number(x.watchers) || 0) / 3000) + (Number(x.fmScore) || 0) * 0.6 + (Number(x.rating) || 0) * 0.6 + Math.log10((Number(x.sales) || 0) + 1) * 0.6;
+        parts.sort((a, b) => b[0] - a[0]);
+        out.push({ item: x, rank: null, sc, why: parts[0][1], n: parts.length });
+      });
+      out.sort((a, b) => b.sc - a.sc);
+      /* 同じ作者ばかりにならないよう、同じ理由は4件まで */
+      const cnt = {}, res = [];
+      for (const o of out) { cnt[o.why] = (cnt[o.why] || 0) + 1; if (cnt[o.why] <= 4) res.push(o); if (res.length >= 20) break; }
+      return res;
+    },
     trends: (cat) => src(cat).trends(),
     related: (cat, id) => src(cat).related(id),
     compare: (cat, pair, typeId) => src(cat).compare(pair, typeId),
@@ -1260,8 +1481,9 @@
     CATS, CAT_IDS, PERIODS, Models, repo, AniListSource, DoujinSource, DamSource, BillboardSource, SORTS,
     typeOf, periodsOfType, defaultPeriod, fmtDate, fmtMD, agoLabel, T, daysAgo,
     /* 人・ジャンル・検索の一覧（{item, rank} の並び）も、ランキングと同じ並べ替えを使う */
-    sortRows: (cat, rows, sort) => sortEntries(cat, rows, sort),
+    sortRows: (cat, rows, sort, rev) => sortEntries(cat, rows, sort, rev),
     CUR_SEASON: CUR, CUR_SEASON_LABEL: CUR.y + "年" + SEASON_NM[SEASON_EN[CUR.s]] + "アニメ",
     ANIME_GENRES, ANIME_FORMATS, KARA_GENRES, KARA_LISTS, kanaNorm, fnv,
+    GENRE_JA_LIST: Object.keys(GENRE_JA).map((k) => GENRE_JA[k]),   /* 好みのジャンルの候補に使う */
   });
 })();

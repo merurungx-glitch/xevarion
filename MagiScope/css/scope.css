@@ -75,11 +75,12 @@ svg.i{width:22px;height:22px;flex:none;fill:none;stroke:currentColor;stroke-widt
 #view.anim{animation:vin .2s ease-out}
 @keyframes vin{from{opacity:.001;transform:translateY(8px)}to{opacity:1;transform:none}}
 
-.bnav{flex:none;display:grid;grid-template-columns:repeat(5,1fr);padding:6px 6px calc(var(--safeb) + 6px);background:var(--barbg);z-index:6;
+.bnav{flex:none;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));padding:6px 6px calc(var(--safeb) + 6px);background:var(--barbg);z-index:6;
   border-top:2px solid var(--barbg);clip-path:polygon(0 10px,14px 0,100% 0,100% 100%,0 100%)}
-.bnav button{display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 0 5px;color:var(--bartxt);font-size:11px;font-weight:800;min-height:52px;
+.bnav button{display:flex;flex-direction:column;align-items:center;gap:3px;padding:7px 0 5px;color:var(--bartxt);font-size:9.5px;font-weight:800;min-height:52px;min-width:0;white-space:nowrap;overflow:hidden;letter-spacing:-.03em;
   letter-spacing:.02em;clip-path:polygon(6px 0,100% 0,100% calc(100% - 6px),calc(100% - 6px) 100%,0 100%,0 6px)}
-.bnav button svg{stroke:var(--bartxt);width:21px;height:21px}
+.bnav button svg{stroke:var(--bartxt);width:20px;height:20px;flex:none}
+.bnav button span{max-width:100%;overflow:hidden;text-overflow:clip}
 .bnav button.on{color:var(--barink);background:var(--yellow)}
 .bnav button.on svg{stroke:var(--barink)}
 
@@ -464,3 +465,152 @@ svg.slope line.s{stroke-width:2.5}
 }
 /* 絵の縦横が枠と大きくちがうときは、切らずに全体を出す（MS.imgFit が付ける） */
 img.fitc{object-fit:contain!important;background:var(--paper)}
+
+/* ══════════ ★★ 2026-09-21e 追加 ══════════ */
+/* 並べ替えの「逆順」札 */
+.chip.rev{font-weight:900}
+/* マイページのアイコン（XEVARION の絵） */
+.prof .av.pic{background:var(--paper2);padding:0}
+.prof small{display:block;font-size:11px;color:#cfc8b6;margin-top:3px}
+/* 値段 */
+.yen{font-weight:900;color:var(--ink)}
+.offtag,.droptag,.lowtag{display:inline-block;font-size:10px;font-weight:900;padding:1px 5px;margin-left:2px;border:1.5px solid var(--ink);line-height:1.4}
+.offtag{background:var(--red);color:#fff}
+.droptag{background:var(--yellow);color:var(--ink)}
+.lowtag{background:var(--ink);color:var(--yellow)}
+/* 取得の状態 */
+.homeRun{display:flex;align-items:center;gap:8px;margin:10px 0 0;padding:9px 12px;background:var(--card);border:2px solid var(--ink);font-size:12px;font-weight:700}
+.homeRun .dot,.runbox .dot{width:10px;height:10px;border-radius:50%;background:#1ea55a;flex:none;box-shadow:0 0 0 3px rgba(30,165,90,.22)}
+.homeRun.bad .dot,.runbox.bad .dot{background:var(--red);box-shadow:0 0 0 3px rgba(226,35,26,.22)}
+.homeRun span:nth-child(2){flex:1;min-width:0}
+.homeRun svg{flex:none}
+.runbox{padding:10px 8px}
+.runbox .rb1{display:flex;align-items:center;gap:8px;font-size:14px}
+.runbox p{font-size:12px;margin:6px 0 0;line-height:1.7}
+.runbox .warn{color:var(--red)}
+.runbox .runs{margin-top:8px;border-top:1px solid var(--line)}
+.runbox .run{display:grid;grid-template-columns:1fr auto auto;gap:10px;font-size:11.5px;padding:5px 2px;border-bottom:1px solid var(--line)}
+.runbox .okk{color:#1e8a4a;font-style:normal;font-weight:800}
+.runbox .ng{color:var(--red);font-style:normal;font-weight:800}
+
+/* ══════════ ★★ 2026-09-21e スマホで画面の外にはみ出していた（ご指定） ══════════
+   ・長い題名・札の列・6列の数字が画面幅を押し広げ、画面ぜんたいが横にずれて「変に動いて」いた
+   ・横に長いものは<b>その中だけ</b>横にすべらせ、画面ぜんたいは絶対に横へ動かさない */
+html,body{max-width:100%;overflow-x:hidden}
+#app,#view{max-width:100vw;overflow-x:hidden}
+#view *{min-width:0}
+.row,.big,.pcard,.catrow,.fgroup,.glass,.reshd,.sec,.prof,.runbox,.homeRun{max-width:100%}
+.row .t,.big .t,.pcard .t,.catrow b,.reshd span,.ttl span{overflow-wrap:anywhere;word-break:break-word}
+.ttl{min-width:0;overflow:hidden}
+.ttl span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis;display:block}
+.chips{flex-wrap:nowrap;overflow-x:auto;overscroll-behavior-x:contain;-webkit-overflow-scrolling:touch}
+.chips.wrap{flex-wrap:wrap;overflow-x:visible}
+.chip{flex:none}
+.srcseg a{min-width:0}
+.srcseg a b,.srcseg a small{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.seg{overflow-x:auto}
+.cnt3{grid-template-columns:repeat(auto-fit,minmax(58px,1fr))!important}
+.cnt3 .stat small{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hscroll,.miniart,.hist{overscroll-behavior-x:contain}
+.info{grid-template-columns:auto minmax(0,1fr)}
+.info dd{overflow-wrap:anywhere}
+/* セール・値下がりの行：左は割引率 */
+.row .rk.offrk .n{font-size:18px;color:var(--red);line-height:1}
+.row .rk.offrk .n small{font-size:10px}
+
+/* ══════════ ★★ 2026-09-21f ══════════ */
+/* 下のタブは8つ */
+.bnav{grid-template-columns:repeat(8,minmax(0,1fr))}
+.bnav button{font-size:8.6px;letter-spacing:-.06em;padding-left:0;padding-right:0}
+.bnav button svg{width:19px;height:19px}
+/* 並び替え・絞り込みのボタン（押すと縦の一覧） */
+.toolbar{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:2px 0 8px}
+.toolbar .tb{display:flex;align-items:center;gap:8px;min-width:0;padding:8px 10px;background:var(--card);border:2px solid var(--ink);text-align:left;
+  clip-path:polygon(6px 0,100% 0,100% calc(100% - 6px),calc(100% - 6px) 100%,0 100%,0 6px)}
+.toolbar .tb.on{background:var(--yellow)}
+.toolbar .tb span{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.25}
+.toolbar .tb small{font-size:10px;font-weight:800;color:var(--sub)}
+.toolbar .tb b{font-size:12.5px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.toolbar .tb svg{flex:none;width:16px;height:16px}
+.picklist{display:flex;flex-direction:column;border:2px solid var(--ink);background:var(--card)}
+.picklist .pk{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:12px 14px;border-bottom:1px solid var(--line);font-size:14px;font-weight:800;text-align:left;min-height:46px}
+.picklist .pk:last-child{border-bottom:none}
+.picklist .pk.on{background:var(--yellow);color:var(--barink)}
+.picklist .pk svg{width:18px;height:18px;flex:none}
+.pkh{font-size:12px;font-weight:900;margin:12px 2px 6px;color:var(--sub)}
+#sheet{max-height:80vh;overflow-y:auto}
+/* 全作品・新作：左の順位の列なし */
+.row.norank{gap:12px}
+.tag.rk{background:var(--yellow);color:var(--barink);border:1.5px solid var(--ink)}
+/* レビュー */
+.rvtt{display:block;font-size:13px;font-weight:900;margin:2px 0}
+.rev .rvby{display:block;font-size:10.5px;color:var(--faint);margin-top:3px;font-weight:700}
+.spoil summary{font-size:11.5px;color:var(--sub);cursor:pointer;padding:4px 0}
+.revmore{border-top:1px solid var(--line)}
+/* セール情報 */
+.camp{display:block;padding:12px 12px 10px;margin-bottom:10px;border-left:8px solid var(--c)}
+.camp .ch{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.camp .left{margin-left:auto;font-size:11px;font-weight:900;color:var(--sub)}
+.camp .left.soon{color:var(--red)}
+.camp b{display:block;font-size:15px;font-weight:900;line-height:1.35}
+.camp .cthumbs{display:flex;gap:6px;margin-top:8px;overflow:hidden}
+.camp .cthumbs .art{width:64px;flex:none;aspect-ratio:4/3;overflow:hidden;border:2px solid var(--ink);background:var(--paper)}
+.camp .cthumbs img{width:100%;height:100%;object-fit:cover;display:block}
+
+/* ══════════ ★★ 2026-09-21g ══════════ */
+/* シートは右上の✕で閉じる（選択肢と離して押しまちがいを防ぐ） */
+#sheet{position:relative;padding-top:22px}
+#sheet > h2{padding-right:48px}
+.shx{position:absolute;top:10px;right:10px;width:38px;height:38px;display:grid;place-items:center;font-size:18px;font-weight:900;
+  color:var(--barink);background:var(--card);border:2px solid var(--ink);z-index:2}
+.shx:active{background:var(--yellow)}
+/* サンプル：枠の高さを決めて、絵の大きさで中心が上下しないようにする */
+.sampview{height:min(60vh,480px);min-height:0;overflow:hidden}
+.sampview img{width:100%;height:100%;max-height:none;object-fit:contain}
+.sarrow{top:50%}
+/* 同人・本などの横長の絵を大きく */
+.row[data-c="fanza"] .art,.row[data-c="dlsite"] .art{width:96px}
+.big[data-c="fanza"] .art,.big[data-c="dlsite"] .art{width:150px}
+.pcard[data-c="fanza"],.pcard[data-c="dlsite"]{width:150px}
+.pcard[data-c="fanza"] .art,.pcard[data-c="dlsite"] .art{width:150px}
+.dhero[data-c="fanza"] .cover,.dhero[data-c="dlsite"] .cover{width:min(220px,48vw)}
+.hist .pcard.hp,.hist .pcard.hp .art{width:84px}
+/* 左の順位の列が無い行は、絵が枠の端にくっつかないように */
+.row.norank{padding-left:6px;padding-right:6px}
+.row .art{margin-left:0}
+/* ランキングの入口（カテゴリーをえらぶ画面）：スマホで横にはみ出さない */
+.catrows,.catrow{max-width:100%;min-width:0}
+.catrow .hd{min-width:0}
+.catrow .hd small{display:block;white-space:normal;overflow-wrap:anywhere}
+.catrow .chips{flex-wrap:wrap;overflow-x:visible}
+/* 下のタブの文字は画面の幅に合わせて小さく（320px の端末でも5文字が切れない） */
+.bnav button{font-size:min(8.6px,2.4vw)}
+/* ★★ 2026-09-21g 作品の絵が画面の左端にくっつく真因：横すべりの列は「カードの左端を枠の端にそろえる」
+   スナップが効いていて、左の余白（padding 12px）ぶんが消えていた → スナップの位置にも余白を持たせる */
+.hscroll,.miniart,.hist{scroll-padding-inline:12px}
+
+/* ══════════ ★★ 2026-09-21i ══════════ */
+/* 閲覧履歴・トレンド・セール情報：FANZA・DLsite の横長の絵を大きく（見づらかった） */
+/* 札の幅は hcard で決める（中の文字の長さで広がらないように） */
+.hist .pcard.hp[data-c="fanza"],.hist .pcard.hp[data-c="fanza"] .art,.hist .pcard.hp[data-c="dlsite"],.hist .pcard.hp[data-c="dlsite"] .art{width:148px}
+.hist .pcard.hp[data-c="fanza"] .art,.hist .pcard.hp[data-c="dlsite"] .art{aspect-ratio:4/3}
+.camp .cthumbs .art{width:104px}
+.pcard .s{white-space:normal;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+/* ホームの「18禁を表示」 */
+.homeAdult{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:10px 0 0;padding:8px 12px;background:var(--card);border:2px solid var(--ink);font-size:12.5px;font-weight:800}
+.homeAdult > span:first-child{display:flex;align-items:center;gap:6px}
+.homeAdult svg{width:16px;height:16px}
+/* 閲覧履歴の札：幅はカテゴリーで固定（横長の絵は広め）。中の札は枠いっぱい */
+.hist .hcard{width:84px;flex:none}
+.hist .hcard.wide{width:148px}
+.hist .hcard .pcard.hp,.hist .hcard .pcard.hp .art{width:100%}
+.hist .hcard.wide .pcard.hp .art{aspect-ratio:4/3}
+/* ★★ 2026-09-21j 好みのジャンル：カテゴリーごとのボタン（押すと一覧） */
+.prefbtn{display:flex;align-items:center;gap:10px;width:100%;margin-bottom:8px;padding:10px 12px;background:var(--card);border:2px solid var(--ink);text-align:left;
+  clip-path:polygon(6px 0,100% 0,100% calc(100% - 6px),calc(100% - 6px) 100%,0 100%,0 6px)}
+.prefbtn .pb{flex:1;min-width:0;display:flex;flex-direction:column}
+.prefbtn .pb b{font-size:13px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.prefbtn .pb small{font-size:10.5px;color:var(--sub);font-weight:700}
+.prefbtn svg{flex:none;width:16px;height:16px}
+/* 絞り込み画面の右上の✕ */
+.hx2{margin-left:auto;font-size:18px;font-weight:900}

@@ -308,8 +308,59 @@ const MBR_KEYS = new Set(["mbr_v1"]);
      mergeWallet の中で同じく和を取る。 */
 const CLAIM_KEYS = new Set(["xeva_limited_v1", "xeva_collection_v1", "xeva_bday_v1"]);
 const MAIL_KEYS = new Set(["xeva_mail_v1", "xeva_mbgift_v1"]);
+/* ★★ 2026-09-21e MagiScope（ご指定「すべての情報が同じアカウントで同期されるように」）。
+   前は「新しく書いたほうが丸ごと勝つ」だったので、スマホでお気に入りに入れた直後に
+   PC で何か押すと、スマホのお気に入りが消えていた。
+   → お気に入り・閲覧履歴・好みのジャンル・検索履歴は<b>両方を足す</b>。
+     外したお気に入り（favDel）・消した履歴（histDel / histClr）は、その時刻より古いものを生き返らせない。
+     設定・並べ替え・絞り込みは、新しいほう（勝ったほう）のまま。 */
+const SCOPE_KEYS = new Set(["magiscope_v1"]);
+function mergeScope(winnerStr, loserStr) {
+  let W, L;
+  try { W = JSON.parse(winnerStr); L = JSON.parse(loserStr); } catch (e) { return null; }
+  if (!W || !L || typeof W !== "object" || typeof L !== "object") return null;
+  const out = Object.assign({}, W);
+  const tmax = (a, b) => Math.max(Number(a) || 0, Number(b) || 0);
+  /* 外した記録（あと勝ち） */
+  const favDel = Object.assign({}, L.favDel || {});
+  Object.keys(W.favDel || {}).forEach((k) => { favDel[k] = tmax(favDel[k], W.favDel[k]); });
+  out.favDel = favDel;
+  const histDel = Object.assign({}, L.histDel || {});
+  Object.keys(W.histDel || {}).forEach((k) => { histDel[k] = tmax(histDel[k], W.histDel[k]); });
+  out.histDel = histDel;
+  out.histClr = tmax(W.histClr, L.histClr);
+  /* お気に入り：カテゴリーごとに和。同じ作品は新しく登録したほう。外した時刻より古い登録は落とす */
+  out.fav = {};
+  const cats = {};
+  Object.keys(W.fav || {}).forEach((c) => { cats[c] = 1; });
+  Object.keys(L.fav || {}).forEach((c) => { cats[c] = 1; });
+  Object.keys(cats).forEach((c) => {
+    const a = (W.fav || {})[c] || {}, b = (L.fav || {})[c] || {}, m = {};
+    [b, a].forEach((src) => Object.keys(src).forEach((id) => {
+      const v = src[id]; if (!v || typeof v !== "object") return;
+      if (!m[id] || (Number(v.t) || 0) >= (Number(m[id].t) || 0)) m[id] = v;
+    }));
+    Object.keys(m).forEach((id) => { if ((favDel[c + ":" + id] || 0) > (Number(m[id].t) || 0)) delete m[id]; });
+    out.fav[c] = m;
+  });
+  /* 閲覧履歴：和（同じ作品は新しいほう）・新しい順に60件 */
+  const hm = {};
+  [].concat(L.hist || [], W.hist || []).forEach((h) => {
+    if (!h || !h.c || !h.id) return;
+    const k = h.c + ":" + h.id;
+    if ((Number(h.t) || 0) <= out.histClr || (histDel[k] || 0) >= (Number(h.t) || 0)) return;
+    if (!hm[k] || (Number(h.t) || 0) > (Number(hm[k].t) || 0)) hm[k] = h;
+  });
+  out.hist = Object.keys(hm).map((k) => hm[k]).sort((p, q) => (Number(q.t) || 0) - (Number(p.t) || 0)).slice(0, 60);
+  /* 好みのジャンル・最近の検索・設定・並べ替え・絞り込みは、新しいほう（W）のまま。
+     （和にすると、外したジャンルが別の端末から生き返ってしまう） */
+  out.age = !!(W.age || L.age);
+  out.views = tmax(W.views, L.views);
+  const r = JSON.stringify(out);
+  return r;
+}
 function hasMergeRule(k) { return WALLET_KEYS.has(k) || CHAR_KEYS.has(k) || COUNT_KEYS.has(k) || MBR_KEYS.has(k)
-  || CLAIM_KEYS.has(k) || MAIL_KEYS.has(k); }
+  || CLAIM_KEYS.has(k) || MAIL_KEYS.has(k) || SCOPE_KEYS.has(k); }
 /* { id: 印 } を和で混ぜる（片方にしか無い印も残す。両方にあれば早いほうの時刻） */
 function unionMarks(a, b) {
   const out = {};
@@ -551,7 +602,9 @@ function mergeStore(uid, remote, remoteT) {
                   ? mergeClaimMap(remoteWins ? rv : lv, remoteWins ? lv : rv)
                   : MAIL_KEYS.has(k)
                     ? mergeMail(k, remoteWins ? rv : lv, remoteWins ? lv : rv)
-                    : mergeCharsInto(k, remoteWins ? rv : lv, remoteWins ? lv : rv);
+                    : SCOPE_KEYS.has(k)
+                      ? mergeScope(remoteWins ? rv : lv, remoteWins ? lv : rv)
+                      : mergeCharsInto(k, remoteWins ? rv : lv, remoteWins ? lv : rv);
         }
         if (merged != null) {
           if (WALLET_KEYS.has(k)) newBase[k] = rv;      /* 土台は「クラウドに確かにある値」 */

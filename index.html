@@ -64,10 +64,10 @@
 <script type="module" src="xeva-sync.js?v=18"></script>
 <script type="module" src="xevarion-fb.js?v=33"></script>
 <script src="xeva-presence.js?v=9" defer></script>
-<script type="module" src="xeva-cloud.js?v=35"></script>
+<script type="module" src="xeva-cloud.js?v=36"></script>
 <script src="xeva-qr.js?v=9" defer></script>
 <script src="xevarion.js?v=93" defer></script>
-<script src="xevarion-home.js?v=131" defer></script>
+<script src="xevarion-home.js?v=134" defer></script>
 </head>
 <body>
 <!-- ───── バックグラウンド音楽（Flagship Arrival。アクセス画面のタップで再生開始） ───── -->
@@ -1836,6 +1836,60 @@ body.music-on #beatFrame{opacity:1}
 
   <div class="nm-body" id="newsBody">
     <div class="nm-divider" id="newDivider" style="display:none;">NEW — 前回から更新</div>
+    <!-- 2026-09-21g MagiScope 操作の仕上げ -->
+    <div class="nm-item" data-tag="new" data-date="2026-09-21">
+      <div class="nm-date">2026<br>09.21</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag new">UPDATE</span></div>
+        <div class="nm-title">🔧 MagiScope の使い心地を改善しました</div>
+        <div class="nm-txt">
+          ・並べ替え・絞り込みは、<b>同じものをもう一度押すと解除</b>されます。閉じるのは<b>右上の✕</b>にしました。<br>
+          ・ジャンル・作者・サークル・声優などを押したときや、検索したときは<b>「全作品」</b>のタブで出します。<br>
+          ・全作品の「ランキング順」を、ランキングの順位どおりに直しました。<br>
+          ・作品の絵が画面の左端にくっつくことがあったのを直し、FANZA・DLsite の横長の絵を大きくしました。<br>
+          ・サンプル画像をめくっても、絵や矢印の位置が上下しないようにしました。<br>
+          ・成人向け作品の上の部分に出すジャンルは3つにしました（ぜんぶは下の表にあります）。順位推移のグラフはなくしました。<br>
+          ・ランキングのカテゴリーをえらぶ画面が、小さいスマホで画面からはみ出していたのを直しました。
+        </div>
+      </div>
+    </div>
+    <!-- 2026-09-21f MagiScope 新作・セール情報のタブ／見た人が見る作品／レビュー／MagiShift の登録 -->
+    <div class="nm-item" data-tag="new" data-date="2026-09-21">
+      <div class="nm-date">2026<br>09.21</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag new">NEW</span></div>
+        <div class="nm-title">🆕 MagiScope に「新作」「セール情報」のタブ・見た人が見る作品</div>
+        <div class="nm-txt">
+          🆕 <b>新作</b>タブ：アニメは<b>今季・来季</b>、音楽は新作、FANZA・DLsite・カラオケは新しく出た作品を出します。<br>
+          📣 <b>セール情報</b>タブ：いま開かれている FANZA のキャンペーン（名前・終わる日・対象作品）と、DLsite の割引中の作品を割引率ごとにまとめて出します。
+          「値下がり」のタブはなくしました。<br><br>
+          👥 作品の詳細に<b>この作品を見た人が見ている作品</b>を出します（FANZA＝レビューを書いた人がほかに見た作品・DLsite＝公式の「この作品を買った人は…」・アニメ＝AniList）。
+          カラオケ・音楽は、同じランキングにいっしょに並ぶ曲を出します。<br>
+          💬 <b>レビュー</b>は FANZA で最大10件（星・見出しつき）、Filmarks で最大12件まで出すようにしました。<br><br>
+          ↕️ 並べ替え・絞り込みは<b>ボタンを押すと縦の一覧が開く</b>形にして、画面の外にはみ出さないようにしました。
+          FANZA 同人本のランキングは約400位まで出します。全作品の左の「圏外」の列はなくしました。<br><br>
+          🎲 <b>MagiShift</b>：プレイヤーの登録・名前の変更を MagiChainParty と同じしくみにしました（名前はその場で打ちかえ・🔗で紐づけ・前回の紐づけは🔒で確認）。
+        </div>
+      </div>
+    </div>
+    <!-- 2026-09-21e MagiScope 全作品・セール・値下がりのタブ／スマホ／同期 -->
+    <div class="nm-item" data-tag="new" data-date="2026-09-21">
+      <div class="nm-date">2026<br>09.21</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag new">NEW</span></div>
+        <div class="nm-title">🏷️ MagiScope に「全作品」「セール」「値下がり」のタブ</div>
+        <div class="nm-txt">
+          🏷️ 下のタブに<b>全作品</b>（ランキングの外もふくめてたくさんの条件で探せる一覧）・<b>セール</b>（割引中の作品を並べ替え・絞り込み）・
+          <b>値下がり</b>（記録してきた値段より安くなった作品と、今安いおすすめ）を足しました。検索は全作品の上と、上の虫めがねからできます。<br><br>
+          📊 <b>ランキング</b>は、絞り込んでも<b>ランキングに入っている作品だけ</b>を出すようにしました。
+          並べ替えはどのボタンでも効くようにし、MagiBurst のように<b>逆順</b>もえらべます。<br><br>
+          📱 スマホで作品名などが画面の外にはみ出して、画面が横にずれていたのを直しました。色は通常（明るい）表示だけにしています。<br><br>
+          👤 マイページのアイコンは <b>XEVARION で選んでいるもの</b>を出し、レベルの表示はやめました。
+          お気に入り・閲覧履歴は、ほかの端末と<b>足しあわせて同期</b>するようにしました（片方の端末の記録が消えなくなります）。<br><br>
+          ⏱️ ホームとマイページ → 設定に、<b>データを最後に取った時刻と、最近の実行の記録</b>を出すようにしました。
+        </div>
+      </div>
+    </div>
     <!-- 2026-09-21d FANZA を4つのボタンに／原作／好みのジャンル／ボタンで最初の状態へ -->
     <div class="nm-item" data-tag="new" data-date="2026-09-21">
       <div class="nm-date">2026<br>09.21</div>
