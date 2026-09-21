@@ -3,14 +3,14 @@
    ・ランキングは実データ（AniList・中継サーバー）。最後に取ったぶんは localStorage に控えるのでオフラインでも前回の順位を出せる
    ・保存（magiscope_v1）は localStorage。XEVARION のアカウントで同期する
    ============================================================ */
-const VERSION = "magiscope-sw-v16";
+const VERSION = "magiscope-sw-v17";
 const CORE = [
   "./index.html",
   "./css/scope.css?v=17",
   "./js/scope-config.js?v=3",
-  "./js/scope-data.js?v=16",
+  "./js/scope-data.js?v=17",
   "./js/scope-art.js?v=2",
-  "./js/scope-ui.js?v=24",
+  "./js/scope-ui.js?v=25",
   "./img/emblem.png",
   "./img/icon192.png",
   "./manifest.webmanifest",

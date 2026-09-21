@@ -65,8 +65,40 @@ Write-Host "  ・毎日 00:05 から 1時間ごと／サインインしたとき
 Write-Host "  ・切っていた分は、次に起動したとき1回だけ追いかけます"
 Write-Host ""
 Write-Host "いまから1回目を動かします（数分〜十数分かかります。初回だけ GitHub のログイン画面が出ます）…" -ForegroundColor Cyan
-& cmd /c ('"' + (Join-Path $here "run-pc.bat") + '"')
 $log = Join-Path $env:LOCALAPPDATA "MagiScope\last-run.log"
+# 2026-09-21k: 前は結果をログにだけ書いていたので、数十分のあいだ画面が止まって見えた。
+# 裏で動かし、ログに増えた行をこの画面にそのまま流す（窓を閉じても取得は続く）。
+$busy = Get-CimInstance Win32_Process -Filter "Name like 'python%'" -ErrorAction SilentlyContinue |
+  Where-Object { $_.CommandLine -match "collect\.py" }
+if ($busy) {
+  Write-Host "（すでに取得が動いています。その様子を表示します）" -ForegroundColor Yellow
+  $proc = Get-Process -Id ($busy | Select-Object -First 1).ProcessId -ErrorAction SilentlyContinue
+} else {
+  $proc = Start-Process -FilePath "cmd.exe" -ArgumentList ('/c "' + (Join-Path $here "run-pc.bat") + '"') -WindowStyle Hidden -PassThru
+  Start-Sleep -Seconds 2
+}
+Write-Host "※ この窓は閉じてもかまいません（取得は裏で続きます。あとで check-task.bat で確認できます）" -ForegroundColor Cyan
+Write-Host "※ 初めてのときは GitHub のログイン画面が出ることがあります。ほかの窓のうしろに隠れていないか見てください" -ForegroundColor Cyan
+Write-Host ""
+$t0 = Get-Date; $shown = 0; $lastLine = Get-Date
+while ($true) {
+  $alive = $proc -and -not $proc.HasExited
+  if (Test-Path $log) {
+    $all = @(Get-Content $log -Encoding UTF8 -ErrorAction SilentlyContinue)
+    if ($all.Count -lt $shown) { $shown = 0 }
+    for ($i = $shown; $i -lt $all.Count; $i++) {
+      $m = [int]((Get-Date) - $t0).TotalMinutes
+      Write-Host ("  [{0,3}分] {1}" -f $m, $all[$i]); $lastLine = Get-Date
+    }
+    $shown = $all.Count
+  }
+  if (-not $alive) { break }
+  if (((Get-Date) - $lastLine).TotalSeconds -ge 60) {
+    Write-Host ("  …取得中（" + [int]((Get-Date) - $t0).TotalMinutes + "分経過・1件ずつ間をあけて読むので時間がかかります）") -ForegroundColor DarkGray
+    $lastLine = Get-Date
+  }
+  Start-Sleep -Seconds 3
+}
 if (Test-Path $log) {
   $tail = Get-Content $log -Tail 3 -Encoding UTF8
   Write-Host ""

@@ -1363,11 +1363,13 @@
       const want = q.keys && q.keys.length ? q.keys : ["fanza", "danime", "fbooks", "fvideo", "dlsite"];
       const catOf = (k) => (k === "dlsite" ? "dlsite" : "fanza");
       const out = [];
+      let seenPrice = false;
       for (const k of want) {
         const S0 = src(catOf(k));
         let ix = [];
         try { ix = await (S0.keys ? S0.index(k) : S0.index()); } catch (e) { continue; }
         ix.forEach((it) => {
+          if (it.listPrice != null || it.off != null || it.low != null) seenPrice = true;
           const p = num0(String(it.price == null ? "" : it.price).replace(/,/g, ""));
           if (p == null) return;
           const on = mode === "sale" ? (Number(it.off) > 0 || (it.listPrice && p < it.listPrice))
@@ -1390,7 +1392,8 @@
         entries.sort((a, b) => sc(b) - sc(a));
         if (q.rev) entries.reverse();
       } else entries = sortEntries("fanza", entries, q.sort, q.rev);
-      return { total: entries.length, entries };
+      /* ★ 値段の中身（元の値段・割引率）がまだ取れていない＝古い取得のデータだけ */
+      return { total: entries.length, entries, noPrice: !seenPrice };
     },
     /* おすすめ：よく見ているジャンル・人から選ぶ（閲覧・お気に入り・検索の記録をもとに） */
     async recommend(cat, seed, exclude) {

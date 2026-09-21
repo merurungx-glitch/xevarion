@@ -1,12 +1,13 @@
 {
-  "version": "2026-09-21-6",
-  "date": "2026-09-21",
-  "title": "MagiScope 好みのジャンル・絞り込みの✕",
+  "version": "2026-09-22-1",
+  "date": "2026-09-22",
+  "title": "MagiScope のセールが出ない不具合を修正",
   "notes": [
-    "⭐ 好みのジャンルの項目を増やし、カテゴリーのボタンを押してから一覧で選ぶ形にしました",
-    "✕ 絞り込みの画面は右上の✕で閉じるようにしました"
+    "自動取得をセール情報から順に少しずつ届けるように",
+    "値段がまだ取れていないときは画面でお知らせ",
+    "register-task.bat に取得の進みぐあいを表示"
   ],
-  "bytes": 50181990,
+  "bytes": 50183740,
   "files": 585,
   "urls": [
     "index.html",
@@ -598,8 +599,20 @@
   "apps": [
     "magiscope"
   ],
-  "changedFiles": 4,
+  "changedFiles": 1,
   "history": [
+    {
+      "version": "2026-09-21-6",
+      "date": "2026-09-21",
+      "title": "MagiScope 好みのジャンル・絞り込みの✕",
+      "notes": [
+        "⭐ 好みのジャンルの項目を増やし、カテゴリーのボタンを押してから一覧で選ぶ形にしました",
+        "✕ 絞り込みの画面は右上の✕で閉じるようにしました"
+      ],
+      "apps": [
+        "magiscope"
+      ]
+    },
     {
       "version": "2026-09-21-5",
       "date": "2026-09-21",
@@ -897,34 +910,6 @@
         "ガチャをスライドで選ぶ一覧に・5連廃止・10連にSSR確定・左上にBACK・★星煌印は150超も表示",
         "MagiBurst：バトル中の詳細に変化後の属性・下のキャラの装備表示を削除",
         "MagiBocciaRush：ホームはPLAYだけ・PLAYにクリア数と固定キャラ・押し出した球もボスにダメージ"
-      ],
-      "apps": [
-        "magibocciarush",
-        "magiburst",
-        "magichainparty",
-        "magicounter",
-        "magidiamond",
-        "magidominiongrid",
-        "magijackpot",
-        "magilex",
-        "magilotto",
-        "magimusic",
-        "tab:chars",
-        "tab:community",
-        "tab:gacha",
-        "tab:home",
-        "xevynar"
-      ]
-    },
-    {
-      "version": "2026-09-19-3",
-      "date": "2026-09-19",
-      "title": "花宴祭にアヤネ・チハ／全属性有利の属性変化",
-      "notes": [
-        "花宴祭にアヤネ（水）・チハ（木）を追加（乱打FB・新リンク2種・全属性有利＋全属性キラーEL・オムニアンチ＋治癒の祈り）",
-        "全属性有利のキャラはバトル開始時にボスへ有利な属性へ変化（リンク・サブリンクも）",
-        "MagiBocciaRush：熟練度・編成・BOSS STAGE の進み・戦績の同期を修正／ホームに BOSS STAGE の入り口",
-        "ホーム下バーのガチャのアイコンをアカツキの角丸の四角に"
       ],
       "apps": [
         "magibocciarush",

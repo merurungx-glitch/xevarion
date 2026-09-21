@@ -67,7 +67,7 @@
 <script type="module" src="xeva-cloud.js?v=36"></script>
 <script src="xeva-qr.js?v=9" defer></script>
 <script src="xevarion.js?v=93" defer></script>
-<script src="xevarion-home.js?v=134" defer></script>
+<script src="xevarion-home.js?v=135" defer></script>
 </head>
 <body>
 <!-- ───── バックグラウンド音楽（Flagship Arrival。アクセス画面のタップで再生開始） ───── -->
@@ -1836,6 +1836,19 @@ body.music-on #beatFrame{opacity:1}
 
   <div class="nm-body" id="newsBody">
     <div class="nm-divider" id="newDivider" style="display:none;">NEW — 前回から更新</div>
+    <!-- 2026-09-21k MagiScope セールの自動取得 -->
+    <div class="nm-item" data-tag="new" data-date="2026-09-21">
+      <div class="nm-date">2026<br>09.21</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">FIX</span></div>
+        <div class="nm-title">🛠 MagiScope のセールが出ない不具合を修正</div>
+        <div class="nm-txt">
+          ・PC の自動取得が長く、最後まで終わらないとデータが届かなかったため、<b>セール情報から順に少しずつ届ける</b>ようにしました。<br>
+          ・値段がまだ取れていないときは、そのことを画面に表示します。<br>
+          ・register-task.bat の画面に、取得の進みぐあいが表示されるようになりました（閉じても取得は続きます）。
+        </div>
+      </div>
+    </div>
     <!-- 2026-09-21g MagiScope 操作の仕上げ -->
     <div class="nm-item" data-tag="new" data-date="2026-09-21">
       <div class="nm-date">2026<br>09.21</div>

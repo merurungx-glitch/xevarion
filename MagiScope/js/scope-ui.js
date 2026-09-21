@@ -1242,7 +1242,7 @@
       }
       body += '<div class="reshd"><span>' + nf(L.total) + "作品</span></div>";
       body += L.entries.length ? '<div class="list" id="rlist"></div><button class="loadmore" id="more" hidden>もっと見る</button>'
-        : '<div class="empty">' + ic("tag") + "<br>" + (mode === "sale" ? "いまセール中の作品はありません" : "まだ値下がりした作品は見つかっていません。<br><small>値段の記録がたまると出てきます（1時間ごとに記録）。</small>") + "</div>";
+        : '<div class="empty">' + ic("tag") + "<br>" + (L.noPrice ? "セールの値段（元の値段・割引率）がまだ取れていません。<br><small>PC の自動取得が次に終わると表示されます（1時間ごと）。</small>" : mode === "sale" ? "いまセール中の作品はありません" : "まだ値下がりした作品は見つかっていません。<br><small>値段の記録がたまると出てきます（1時間ごとに記録）。</small>") + "</div>";
       return { head: head({ title }), body,
         after() { startPager(L.entries, dealRow, $("#rlist")); fillArt(L.entries.slice(0, 40).concat(cheap).map((e) => e.item)); liveInput("dealq", (v) => { st.q = v; save(); render(); }); } };
     };

@@ -1661,6 +1661,8 @@ def main():
             continue
         if nm2 == "also-dlsite" and ONLY and "dlsite" not in ONLY:
             continue
+        if nm2 == "campaign" and ONLY and "campaign" not in ONLY:
+            continue
         try:
             r2 = fn2()
             if nm2 == "campaign" and r2:
