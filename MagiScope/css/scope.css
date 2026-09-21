@@ -614,3 +614,74 @@ html,body{max-width:100%;overflow-x:hidden}
 .prefbtn svg{flex:none;width:16px;height:16px}
 /* 絞り込み画面の右上の✕ */
 .hx2{margin-left:auto;font-size:18px;font-weight:900}
+
+/* ══════════ ★★ 2026-09-22 ══════════ */
+/* 映画の色 */
+:root{--movie:#c77700;--movie2:#7a4600}
+[data-c="movie"]{--c:var(--movie);--c2:var(--movie2)}
+/* 下のタブは9つ（話題・おすすめを足し、セール情報はセールの中へ） */
+.bnav{grid-template-columns:repeat(9,minmax(0,1fr));padding-left:3px;padding-right:3px}
+.bnav button{font-size:min(8.4px,2.35vw);letter-spacing:-.08em}
+.bnav button svg{width:18px;height:18px}
+/* ★ ご指定「検索時に拡大しないように」。iPhone は 16px より小さい入力欄を押すと画面を拡大するので、入力欄はすべて 16px */
+input,select,textarea,.sbox input,.inp{font-size:16px}
+/* セールのタブの中の切りかえ（セール作品／セール情報） */
+.saleseg{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:0 0 10px}
+.saleseg a{display:grid;grid-template-columns:auto 1fr;grid-template-rows:auto auto;column-gap:8px;align-items:center;padding:9px 10px;background:var(--card);border:2px solid var(--ink);min-width:0}
+.saleseg a svg.i{grid-row:1/3;width:20px;height:20px}
+.saleseg a b{font-size:13.5px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.saleseg a small{font-size:10.5px;color:var(--sub);font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.saleseg a.on{background:var(--ink);color:var(--paper);box-shadow:3px 3px 0 var(--red)}
+.saleseg a.on small{color:rgba(255,255,255,.8)}
+.saleseg a.on svg.i{stroke:var(--yellow)}
+/* 特別版（ご褒美版など）の札・おすすめの理由 */
+.tag.sp{background:#ff4f9d;color:#fff}
+.pv.why{display:flex;align-items:center;gap:4px;color:var(--red);font-weight:800}
+.pv.why svg.i{width:13px;height:13px;flex:none}
+/* オフラインのお知らせ */
+.offbar{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:6px;margin:-4px 0 8px;padding:7px 10px;background:var(--ink);color:var(--paper);font-size:12px;font-weight:800}
+.offbar svg.i{width:15px;height:15px;stroke:var(--yellow)}
+/* カテゴリーが6つになったので、せまい画面ではアイコンを外して名前を読めるように */
+@media (max-width:460px){.seg[style*="--n:6"] button svg.i,.seg[style*="--n:7"] button svg.i{display:none}.seg[style*="--n:6"] button,.seg[style*="--n:7"] button{font-size:9.6px;letter-spacing:-.02em}}
+.langrow{display:flex;gap:8px;padding:8px}
+.langrow .chip{flex:1;justify-content:center;height:40px;font-size:14px}
+
+/* ══════════ ★★ 2026-09-22b ══════════ */
+/* 下のタブは8つ（話題をやめた） */
+.bnav{grid-template-columns:repeat(8,minmax(0,1fr))}
+.bnav button{font-size:min(8.8px,2.45vw)}
+/* ★ ご指定「新刊・放送中・点数の札がつぶれる」：札は縮ませず、縮むのは後ろの文字だけ */
+.tag{flex:none}
+.row .s > span:not(.tag){min-width:0;overflow:hidden;text-overflow:ellipsis}
+.big .medal{flex-wrap:wrap;row-gap:4px}
+.big .medal .tag,.big .medal .mv{flex:none}
+/* あらすじ（お気に入りボタンの上） */
+.synbox{padding:12px 14px;margin:0 0 12px}
+.synbox h3{display:flex;align-items:center;gap:6px;font-size:13px;font-weight:900;margin-bottom:6px;color:var(--c,var(--ink))}
+.synbox h3 svg.i{width:15px;height:15px}
+.synbox p{font-size:14px;line-height:1.9;color:var(--ink);white-space:pre-line}
+.synbox p.clamp{display:-webkit-box;-webkit-line-clamp:6;-webkit-box-orient:vertical;overflow:hidden}
+.synmore{margin-top:6px;font-size:12.5px;font-weight:900;color:var(--c,var(--red));text-decoration:underline}
+/* アニメの出どころは5つ。せまい画面では2段に */
+@media (max-width:460px){.srcseg[style*="--n:5"]{grid-template-columns:repeat(3,minmax(0,1fr))}}
+
+/* ══════════ ★★ 2026-09-22c ══════════ */
+/* サンプルの拡大：画面の実際の高さ（dvh）に合わせる（iPhone のバーで下が切れていた） */
+#sheet{max-height:88vh;max-height:88dvh}
+.sampview{height:min(56vh,480px);height:min(56dvh,480px)}
+/* おすすめ：あなたへ／特集をボタンで切りかえ（横に流れる） */
+.featbar{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;margin:0 -12px 10px;padding:2px 12px 4px;scroll-padding-inline:12px}
+.featbar::-webkit-scrollbar{display:none}
+.featbar .fb{flex:none;display:inline-flex;align-items:center;gap:5px;height:36px;padding:0 12px;border:2px solid var(--ink);background:var(--card);font-size:12.5px;font-weight:900;white-space:nowrap}
+.featbar .fb svg.i{width:14px;height:14px}
+.featbar .fb.on{background:var(--c,var(--red));color:#fff;box-shadow:3px 3px 0 var(--ink)}
+.featbar .fb.on svg.i{stroke:#fff}
+
+/* ══════════ ★★ 2026-09-22d ══════════ */
+/* おすすめ特集のボタン：横に流すと画面の外に出ていた → 折り返して全部見える */
+.featbar{flex-wrap:wrap;overflow:visible;margin:0 0 10px;padding:2px 0 4px}
+.featbar .fb{height:auto;min-height:34px;padding:6px 10px;white-space:normal;line-height:1.3;text-align:left}
+/* マイページのお気に入りの数：6つを1列に詰めてつぶれていた → 3つずつ2段 */
+.cnt3.favcnt{grid-template-columns:repeat(3,minmax(0,1fr))!important}
+.cnt3.favcnt .stat small{overflow:visible}
+.cnt3.favcnt .stat .cp{max-width:100%}

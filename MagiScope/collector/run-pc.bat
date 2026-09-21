@@ -19,6 +19,7 @@ git -C "%WORK%" reset -q --hard FETCH_HEAD >> "%LOG%" 2>&1
 set PYTHONIOENCODING=utf-8
 set FAILED=0
 call :stage "campaign,dlsite" %*
+call :stage "movie,special" %*
 call :stage "fanza" %*
 call :stage "danime,fbooks,fvideo" %*
 call :stage "karaoke,music,anime" %*

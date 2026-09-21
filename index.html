@@ -67,7 +67,7 @@
 <script type="module" src="xeva-cloud.js?v=36"></script>
 <script src="xeva-qr.js?v=9" defer></script>
 <script src="xevarion.js?v=93" defer></script>
-<script src="xevarion-home.js?v=135" defer></script>
+<script src="xevarion-home.js?v=139" defer></script>
 </head>
 <body>
 <!-- ───── バックグラウンド音楽（Flagship Arrival。アクセス画面のタップで再生開始） ───── -->
@@ -1836,6 +1836,63 @@ body.music-on #beatFrame{opacity:1}
 
   <div class="nm-body" id="newsBody">
     <div class="nm-divider" id="newDivider" style="display:none;">NEW — 前回から更新</div>
+    <!-- 2026-09-22d MagiScope スマホの表示 -->
+    <div class="nm-item" data-tag="new" data-date="2026-09-22">
+      <div class="nm-date">2026<br>09.22</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">FIX</span></div>
+        <div class="nm-title">🛠 MagiScope スマホの表示を修正</div>
+        <div class="nm-txt">・おすすめ特集のボタンが画面の外に出ないよう、折り返して全部表示するようにしました。<br>・マイページのお気に入りの件数を3つずつ2段にして見やすくしました。</div>
+      </div>
+    </div>
+    <!-- 2026-09-22c MagiScope サンプル・おすすめ特集の切りかえ・Filmarks ランキング廃止・歴代興収の枠 -->
+    <div class="nm-item" data-tag="new" data-date="2026-09-22">
+      <div class="nm-date">2026<br>09.22</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">FIX</span></div>
+        <div class="nm-title">🛠 MagiScope のサンプル・おすすめ特集を改善</div>
+        <div class="nm-txt">
+          ・サンプル画像が途中で途切れる不具合を修正（作品ページにあるぶんを全部・画面の高さに合わせて表示）。<br>
+          ・おすすめ特集は下に並べず、上のボタンで「あなたへ」と特集を切りかえるように。<br>
+          ・画像が違うことが多かった Filmarks のランキングをなくしました。<br>
+          ・映画の歴代の興行収入は「歴代」の枠に分けました。
+        </div>
+      </div>
+    </div>
+    <!-- 2026-09-22b MagiScope DMM TV・歴代興収・おすすめ特集 -->
+    <div class="nm-item" data-tag="new" data-date="2026-09-22">
+      <div class="nm-date">2026<br>09.22</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">📺 MagiScope にDMM TV のアニメランキングと歴代興収</div>
+        <div class="nm-txt">
+          ・アニメのランキングに <b>DMM TV</b>（日間・週間・月間）を追加。<br>
+          ・特別版（ご褒美版など）は <b>DMM TV のアニメだけ</b>にして、範囲を広げて表示数を増やしました。全作品にも「DMM TV」「特別版」のボタン。<br>
+          ・映画の興行収入に<b>歴代ランキング</b>（億円・歴代ベスト100）を追加。<br>
+          ・おすすめのタブに<b>おすすめ特集</b>。FANZA の本とアニメはボタンで切りかえ。ホームのおすすめはおすすめのタブへ。<br>
+          ・あらすじはお気に入りボタンの上に大きく。ジャンルは作品の絵のとなりに出さないように。<br>
+          ・スマホで「新刊」「放送中」「★」の札がつぶれる不具合、絞り込みを開くとランキングのタブが光る不具合を修正。話題のタブはなくしました（マイページから開けます）。
+        </div>
+      </div>
+    </div>
+    <!-- 2026-09-22 MagiScope 映画・特別版アニメ・話題/おすすめタブ・英語版／MagiShift 順番の抽選 -->
+    <div class="nm-item" data-tag="new" data-date="2026-09-22">
+      <div class="nm-date">2026<br>09.22</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">🎬 MagiScope に映画ランキングと特別版アニメ特集</div>
+        <div class="nm-txt">
+          ・<b>映画</b>のカテゴリーを追加（国内の週末ランキングがメイン・国内の興行収入・全米）。上映時間・監督・出演・公開館数も。<br>
+          ・アニメに<b>「特別版」</b>（ご褒美版・湯気なし・解放版など／dアニメストア・DMM TV）の特集を追加。<br>
+          ・新しいタブ<b>「話題」「おすすめ」</b>。FANZA のおすすめは本とアニメに分けて出します。<br>
+          ・<b>セール</b>のタブに「セール作品」「セール情報」をまとめ、全作品と同じ種別分け・絞り込みに。<br>
+          ・話数・1話の長さ・ページ数・収録時間・曲の長さなども表示。Filmarks の絵のずれを修正。<br>
+          ・<b>オフライン</b>でも最後に取ったデータで見られるように。<b>英語版</b>に対応（設定の「言語」）。検索で画面が拡大しないように。<br>
+          ・ホームの 18禁 の切りかえはマイページの設定へ。ランキング比較はなくしました。<br>
+          ・<b>MagiShift</b>：順番を抽選で決めるように。名前は上に順番どおり並べ、「Player」表記をなくしました。オフラインでも遊べます。
+        </div>
+      </div>
+    </div>
     <!-- 2026-09-21k MagiScope セールの自動取得 -->
     <div class="nm-item" data-tag="new" data-date="2026-09-21">
       <div class="nm-date">2026<br>09.21</div>

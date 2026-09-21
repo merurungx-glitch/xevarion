@@ -3,14 +3,14 @@
    ・ランキングは実データ（AniList・中継サーバー）。最後に取ったぶんは localStorage に控えるのでオフラインでも前回の順位を出せる
    ・保存（magiscope_v1）は localStorage。XEVARION のアカウントで同期する
    ============================================================ */
-const VERSION = "magiscope-sw-v17";
+const VERSION = "magiscope-sw-v21";
 const CORE = [
   "./index.html",
-  "./css/scope.css?v=17",
+  "./css/scope.css?v=21",
   "./js/scope-config.js?v=3",
-  "./js/scope-data.js?v=17",
-  "./js/scope-art.js?v=2",
-  "./js/scope-ui.js?v=25",
+  "./js/scope-data.js?v=20",
+  "./js/scope-art.js?v=3",
+  "./js/scope-ui.js?v=29",
   "./img/emblem.png",
   "./img/icon192.png",
   "./manifest.webmanifest",
@@ -20,6 +20,10 @@ const CORE = [
   "../xeva-back.js?v=9",
   "../maintenance-gate.js?v=13",
   "../xeva.js?v=70",
+  /* ★★ 2026-09-22 英語版（オフラインでも切りかえられるように） */
+  "../xeva-i18n.js?v=8",
+  "../xeva-i18n-dict.js?v=12",
+  "../xeva-i18n-ms1.js?v=3",
   /* xeva-cloud.js はモジュールなので、そこから読む xeva-keys.js も要る */
   "../xeva-cloud.js?v=36",
   "../xeva-keys.js?v=26",
@@ -66,6 +70,12 @@ self.addEventListener("fetch", (e) => {
   if (req.method !== "GET") return;
   const url = new URL(req.url);
   if (url.hostname.indexOf("firebase") >= 0 || url.hostname.indexOf("gstatic") >= 0 || url.hostname.indexOf("googleapis") >= 0) return;
+  /* ★★ 2026-09-22 オフライン対応（ご指定）。
+     ・ランキングのデータ（GitHub の magiscope-data）… ネット優先 → つながらなければ最後に取ったもの
+     ・作品の絵（外のサイト）… 一度見た絵はキャッシュから（新しい絵は取りに行って控える）
+     どちらもアプリの入れ物とは別（magiscope-data / magiscope-img）にしてあるので、版を上げても消えない。 */
+  if (url.hostname === "raw.githubusercontent.com" && url.pathname.indexOf("/magiscope-data/") >= 0) { e.respondWith(msDataNetFirst(req)); return; }
+  if (url.origin !== self.location.origin && req.destination === "image") { e.respondWith(msImgCacheFirst(req)); return; }
   if (url.origin !== self.location.origin) return;
 
   /* ページ遷移: ネット優先 → 失敗時はキャッシュ（オフライン起動） */
@@ -258,4 +268,36 @@ async function xevCacheFirst(req) {
     if (home) return home;
   }
   return new Response("", { status: 504 });
+}
+
+const MS_DATA_CACHE = "magiscope-data", MS_IMG_CACHE = "magiscope-img", MS_IMG_MAX = 900;
+async function msDataNetFirst(req) {
+  const cache = await caches.open(MS_DATA_CACHE);
+  const key = req.url.split("?")[0];
+  try {
+    const res = await fetch(req);
+    if (res && res.ok) cache.put(key, res.clone());
+    return res;
+  } catch (err) {
+    const hit = await cache.match(key);
+    if (hit) return hit;
+    throw err;
+  }
+}
+let msImgPut = 0;
+async function msImgCacheFirst(req) {
+  const cache = await caches.open(MS_IMG_CACHE);
+  const hit = await cache.match(req.url);
+  if (hit) return hit;
+  try {
+    const res = await fetch(req);
+    if (res && (res.ok || res.type === "opaque")) {
+      cache.put(req.url, res.clone());
+      /* たまりすぎないように、古いものから消す */
+      if (++msImgPut % 60 === 0) cache.keys().then((ks) => { for (let i = 0; i < ks.length - MS_IMG_MAX; i++) cache.delete(ks[i]); });
+    }
+    return res;
+  } catch (err) {
+    return new Response("", { status: 504 });
+  }
 }

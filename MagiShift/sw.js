@@ -3,13 +3,13 @@
    ・1台で遊ぶボードゲーム。キャッシュすれば完全にオフラインで動く
    ・アカウントの紐づけと賞金だけ通信が要る（遊ぶこと自体はオフラインでできる）
    ============================================================ */
-const VERSION = "magishift-sw-v5";
+const VERSION = "magishift-sw-v6";
 const CORE = [
   "./index.html",
-  "./css/shift.css?v=4",
-  "./js/shift-core.js?v=2",
+  "./css/shift.css?v=5",
+  "./js/shift-core.js?v=3",
   "./js/shift-account.js?v=1",
-  "./js/shift-ui.js?v=5",
+  "./js/shift-ui.js?v=6",
   "./img/icon192.png",
   "./manifest.webmanifest",
   "../xeva-splash.js?v=13",

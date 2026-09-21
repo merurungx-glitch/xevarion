@@ -164,7 +164,7 @@
     const key = it.category + ":" + it.id + (wide ? ":w" : "");
     let v = cache.get(key);
     if (!v) {
-      const svg = it.category === "anime" ? anime(it, wide) : it.category === "fanza" ? fanza(it) : karaoke(it);
+      const svg = (it.category === "anime" || it.category === "movie") ? anime(it, wide) : it.category === "fanza" ? fanza(it) : karaoke(it);
       v = "data:image/svg+xml;charset=utf-8," + encodeURIComponent(svg);
       if (cache.size > 900) cache.clear();
       cache.set(key, v);

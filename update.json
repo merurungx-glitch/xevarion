@@ -1,14 +1,13 @@
 {
-  "version": "2026-09-22-1",
+  "version": "2026-09-22-5",
   "date": "2026-09-22",
-  "title": "MagiScope のセールが出ない不具合を修正",
+  "title": "MagiScope スマホの表示を修正",
   "notes": [
-    "自動取得をセール情報から順に少しずつ届けるように",
-    "値段がまだ取れていないときは画面でお知らせ",
-    "register-task.bat に取得の進みぐあいを表示"
+    "おすすめ特集のボタンが画面外に出ないように",
+    "マイページのお気に入り件数を見やすく"
   ],
-  "bytes": 50183740,
-  "files": 585,
+  "bytes": 50278467,
+  "files": 586,
   "urls": [
     "index.html",
     "characters.html",
@@ -587,6 +586,7 @@
     "MagiScope/img/emblem.png",
     "MagiScope/img/icon192.png",
     "MagiScope/manifest.webmanifest",
+    "xeva-i18n-ms1.js",
     "MagiShift/index.html",
     "MagiShift/css/shift.css",
     "MagiShift/js/shift-core.js",
@@ -599,8 +599,69 @@
   "apps": [
     "magiscope"
   ],
-  "changedFiles": 1,
+  "changedFiles": 5,
   "history": [
+    {
+      "version": "2026-09-22-4",
+      "date": "2026-09-22",
+      "title": "MagiScope のサンプル・おすすめ特集を改善",
+      "notes": [
+        "サンプル画像の途切れを修正",
+        "おすすめ特集はボタンで切りかえ",
+        "Filmarks のランキングを廃止",
+        "映画の歴代興収は別の枠に"
+      ],
+      "apps": [
+        "magiscope"
+      ]
+    },
+    {
+      "version": "2026-09-22-3",
+      "date": "2026-09-22",
+      "title": "MagiScope に DMM TV・歴代興収・おすすめ特集",
+      "notes": [
+        "アニメのランキングに DMM TV（日間・週間・月間）",
+        "特別版は DMM TV のアニメだけ・数を増やし全作品にもボタン",
+        "映画に歴代の興行収入ランキング",
+        "おすすめ特集／FANZA の本とアニメをボタンで切りかえ／ホームのおすすめは廃止",
+        "あらすじを見やすく・ジャンルは上に出さない",
+        "札のつぶれ・絞り込みでタブが光る不具合を修正／話題タブは廃止"
+      ],
+      "apps": [
+        "magiscope"
+      ]
+    },
+    {
+      "version": "2026-09-22-2",
+      "date": "2026-09-22",
+      "title": "MagiScope に映画・特別版アニメ・話題/おすすめ／MagiShift 順番の抽選",
+      "notes": [
+        "MagiScope：映画ランキング（国内がメイン・国内の興行収入・全米）",
+        "MagiScope：ご褒美版などの特別版アニメ特集（dアニメストア・DMM TV）",
+        "MagiScope：話題・おすすめタブ／FANZA のおすすめは本とアニメで別",
+        "MagiScope：セール作品とセール情報を1つのタブに・全作品と同じ絞り込み",
+        "MagiScope：話数・長さ・ページ数などを表示／Filmarks の絵を修正",
+        "MagiScope：オフライン・英語版に対応／検索で拡大しない",
+        "MagiShift：順番を抽選／名前を上に順番どおり／Player 表記なし／オフライン"
+      ],
+      "apps": [
+        "magiscope",
+        "magishift"
+      ]
+    },
+    {
+      "version": "2026-09-22-1",
+      "date": "2026-09-22",
+      "title": "MagiScope のセールが出ない不具合を修正",
+      "notes": [
+        "自動取得をセール情報から順に少しずつ届けるように",
+        "値段がまだ取れていないときは画面でお知らせ",
+        "register-task.bat に取得の進みぐあいを表示"
+      ],
+      "apps": [
+        "magiscope"
+      ]
+    },
     {
       "version": "2026-09-21-6",
       "date": "2026-09-21",
@@ -837,96 +898,6 @@
         "tab:chars",
         "tab:gacha",
         "tab:home"
-      ]
-    },
-    {
-      "version": "2026-09-19-7",
-      "date": "2026-09-19",
-      "title": "ガチャのセレクト券とNEWの印",
-      "notes": [
-        "セレクト券：決定と「まだ使用しない」を下に固定・キャラは新しい順",
-        "ガチャ一覧：注目キャラの NEW の印が重なっていたのを修正"
-      ],
-      "apps": [
-        "magibocciarush",
-        "magiburst",
-        "magidiamond",
-        "magilex",
-        "tab:chars",
-        "tab:gacha",
-        "tab:home"
-      ]
-    },
-    {
-      "version": "2026-09-19-6",
-      "date": "2026-09-19",
-      "title": "極彩祭にココハ／ガチャ一覧の改善",
-      "notes": [
-        "極彩祭にココハ（火・史上最大のFB・雨粒で重くなるリンク）／極彩ネクサス強化",
-        "ガチャ一覧：NEWの印・詳細に説明と完凸でも出るキャラ・終了ガチャ非表示・セレクト券ボタン・名前の札が追従・新キャラ紹介はタブでまとめて",
-        "MagiBurst：全属性有利で変化したときの詳細は属性の表記だけに"
-      ],
-      "apps": [
-        "magibocciarush",
-        "magiburst",
-        "magichainparty",
-        "magicounter",
-        "magidiamond",
-        "magidominiongrid",
-        "magijackpot",
-        "magilex",
-        "magilotto",
-        "magimusic",
-        "tab:chars",
-        "tab:community",
-        "tab:gacha",
-        "tab:home",
-        "xevynar"
-      ]
-    },
-    {
-      "version": "2026-09-19-5",
-      "date": "2026-09-19",
-      "title": "ガチャ一覧を縦スクロールに／もう一度挑戦のスタミナ",
-      "notes": [
-        "ガチャ一覧は縦スクロール・「このガチャを引く」・詳細で説明・注目キャラにスクロールバー・一覧へ戻るボタンを見出しの下へ・上のガチャえらびを削除",
-        "MagiBurst：負けたあとの再挑戦でスタミナ不足だと進めない不具合を修正",
-        "MagiBocciaRush：スクロールバーのデザイン・PLAY の各ボタンのキャラを変更"
-      ],
-      "apps": [
-        "magibocciarush",
-        "magiburst",
-        "tab:gacha",
-        "tab:home"
-      ]
-    },
-    {
-      "version": "2026-09-19-4",
-      "date": "2026-09-19",
-      "title": "花宴祭にヒメリ・ホノカ／極煌祭にアズサ／ガチャ一覧",
-      "notes": [
-        "花宴祭にヒメリ（光）・ホノカ（闇）、極煌祭にアズサ（水・史上最大のFB）を追加／極煌ネクサス強化",
-        "アヤネ・チハのキラーを属性キラー以外に／ボスキラーEL を新設",
-        "ガチャをスライドで選ぶ一覧に・5連廃止・10連にSSR確定・左上にBACK・★星煌印は150超も表示",
-        "MagiBurst：バトル中の詳細に変化後の属性・下のキャラの装備表示を削除",
-        "MagiBocciaRush：ホームはPLAYだけ・PLAYにクリア数と固定キャラ・押し出した球もボスにダメージ"
-      ],
-      "apps": [
-        "magibocciarush",
-        "magiburst",
-        "magichainparty",
-        "magicounter",
-        "magidiamond",
-        "magidominiongrid",
-        "magijackpot",
-        "magilex",
-        "magilotto",
-        "magimusic",
-        "tab:chars",
-        "tab:community",
-        "tab:gacha",
-        "tab:home",
-        "xevynar"
       ]
     }
   ]

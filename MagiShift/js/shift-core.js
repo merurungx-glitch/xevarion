@@ -47,6 +47,14 @@
 
   /* ══ 新しい試合をつくる ══
      players … [{ uid, name, charFile }]（XEVARION の紐づけは shift-account.js が用意する） */
+  /* ★★ 2026-09-22 ご指定「順番を抽選でランダムに」。
+     席（色・印・盤面の番号＝slot）はそのまま、<b>手番の順だけ</b>を order に持つ。
+     order[0] の人から始めて、order の並びで回る。 */
+  function shuffleOrder(n) {
+    const o = Array.from({ length: n }, (_, i) => i);
+    for (let i = n - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); const t = o[i]; o[i] = o[j]; o[j] = t; }
+    return o;
+  }
   function newGame(players, opt) {
     const n = players.length;
     const base = RULES[n] || RULES[4];
@@ -57,6 +65,7 @@
       players: players.map((p, i) => Object.assign({ slot: i, wins: 0 }, COLORS[i], p)),
       cells: new Array(size * size).fill(-1),      /* -1 ＝ 空き。それ以外は置いた人の番号 */
       turn: 0, phase: "play", winner: null, line: null, moves: 0, startedAt: Date.now(), log: [],
+      order: (opt && opt.order && opt.order.length === n) ? opt.order.slice() : Array.from({ length: n }, (_, i) => i), opos: 0,
       sel: null,                                    /* 動かすために選んでいる駒 { x, y } */
     };
   }
@@ -119,11 +128,17 @@
     return { winner: S.winner, line };
   }
 
+  /* 手番の順（前のセーブには order が無いので、そのときは席の順） */
+  const orderOf = (S) => (S.order && S.order.length === S.players.length ? S.order : S.players.map((p, i) => i));
+  function startTurn(S) { const o = orderOf(S); S.opos = 0; S.turn = o[0]; }
   function nextTurn(S) {
     S.sel = null;
     S.moves++;
     if (S.phase !== "play") return;
-    S.turn = (S.turn + 1) % S.players.length;
+    const o = orderOf(S);
+    const at = o.indexOf(S.turn);
+    S.opos = (at + 1) % o.length;
+    S.turn = o[S.opos];
   }
 
   /* ══ 手番の操作（画面はこの3つだけ呼ぶ） ══ */
@@ -186,7 +201,7 @@
   function clear() { try { localStorage.removeItem(KEY); } catch (e) {} }
 
   Object.assign(MS, {
-    RULES, COLORS, newGame, place, move, pass, movesOf, canPlace, canPick, canMove,
+    RULES, COLORS, newGame, place, move, pass, movesOf, canPlace, canPick, canMove, shuffleOrder, orderOf, startTurn,
     at, inBoard, cur, countOf, leftOf, outOfPieces, checkWin, stuck, standings, save, load, clear, KEY,
   });
 })();

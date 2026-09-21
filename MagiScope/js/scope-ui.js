@@ -66,6 +66,9 @@
     link: '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
     reload: '<path d="M20 11a8 8 0 1 0-2.3 5.7"/><path d="M20 4v7h-7"/>',
     plug: '<path d="M9 7V3M15 7V3"/><path d="M6 7h12v4a6 6 0 0 1-12 0z"/><path d="M12 17v4"/>',
+    movie: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 9h18M3 15h18M7 5v4M12 5v4M17 5v4M7 15v4M12 15v4M17 15v4"/>',
+    globe: '<circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/>',
+    wifi: '<path d="M2 9a15 15 0 0 1 20 0M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0"/><circle cx="12" cy="19" r="1"/>',
   };
   const ic = (n) => '<svg class="i" viewBox="0 0 24 24" aria-hidden="true">' + (ICON[n] || "") + "</svg>";
 
@@ -97,6 +100,8 @@
     /* ★★ 2026-09-21e 新しく持つようにしたもの（読み直しで落とさないこと。落とすと同期で外したお気に入りが生き返る） */
     d.rev = s.rev || {}; d.favRev = !!s.favRev; d.allQ = s.allQ || ""; d.deal = s.deal || {};
     d.newSort = s.newSort || {}; d.newRev = s.newRev || {}; d.newQ = s.newQ || ""; d.fa = s.fa || {};
+    /* ★★ 2026-09-22 セールの絞り込み（全作品と同じ項目）・おすすめタブで見ていたカテゴリー */
+    d.fs = s.fs || {}; d.recCat = s.recCat || "";
     d.favDel = s.favDel || {}; d.histDel = s.histDel || {}; d.histClr = Number(s.histClr) || 0;
     d.favQ = s.favQ || ""; d.favSort = s.favSort || "added"; d.favWhen = s.favWhen || "";
     ["prefs", "recentQ"].forEach((k) => { d[k] = Object.assign(d[k], s[k] || {}); });
@@ -218,14 +223,25 @@
     return '<span class="mv flat">→</span>';
   }
   const prevText = (e) => !e.prevKnown ? "前回 —（記録待ち）" : e.previousRank ? "前回 " + e.previousRank + "位" : "前回 圏外";
+  /* ★★ 2026-09-22 ご指定「長さや話数構成やページ数なども」。一覧の小さい字にも短く入れる */
+  function lenText(it) {
+    if (!it) return "";
+    if (it.category === "anime") return [it.episodes ? it.episodes + "話" : "", it.duration ? "1話" + it.duration : ""].filter(Boolean).join("・");
+    if (it.category === "movie") return it.length || "";
+    if (it.category === "karaoke" || it.category === "music") return it.length || "";
+    return [it.volume, it.length].filter(Boolean).join("・");
+  }
   function subText(it) {
     if (!it || !it.category) return "";
-    if (it.category === "anime") return [(it.genres || []).slice(0, 2).join("・"), it.seasonLabel || it.seasonText, it.studio, it.format].filter(Boolean).join(" · ");
-    if (isAdultCat(it.category)) return [it.circle, it.author, it.releaseDate && MS.fmtDate(it.releaseDate)].filter(Boolean).join(" · ");
-    return [it.artist, it.genre, it.album].filter(Boolean).join(" · ");
+    if (it.category === "anime") return [it.special ? it.service + "・" + it.tag : "", (it.genres || []).filter((g) => g !== "特別版").slice(0, 2).join("・"), it.seasonLabel || it.seasonText, it.studio, it.format, lenText(it)].filter(Boolean).join(" · ");
+    if (it.category === "movie") return [it.market === "us" && it.en ? it.en : "", it.dist, it.releaseDate && MS.fmtDate(it.releaseDate) + " 公開", lenText(it)].filter(Boolean).join(" · ");
+    if (isAdultCat(it.category)) return [it.circle, it.author, it.releaseDate && MS.fmtDate(it.releaseDate), lenText(it)].filter(Boolean).join(" · ");
+    return [it.artist, it.genre, it.album, lenText(it)].filter(Boolean).join(" · ");
   }
   const subOf = (it) => esc(subText(it));
   function tagsOf(it) {
+    if (it.category === "movie") return (it.isNew ? '<span class="tag air">新作</span>' : "") + (it.rating ? '<span class="tag std">★' + (+it.rating).toFixed(1) + "</span>" : "");
+    if (it.category === "anime" && it.special) return '<span class="tag sp">' + esc(it.tag || "特別版") + "</span>";
     if (it.category === "karaoke" || it.category === "music") return (it.isNewSong ? '<span class="tag song">新曲</span>' : "") + (it.isStandard ? '<span class="tag std">定番</span>' : "");
     if (isAdultCat(it.category)) return (it.isNew ? '<span class="tag book">' + (it.kind === "動画" || it.kind === "アニメ" ? "新作" : "新刊") + "</span>" : "") + (it.rating ? '<span class="tag std">★' + it.rating + "</span>" : "");
     return (it.airing ? '<span class="tag air">放送中</span>' : "") + (it.fmScore ? '<span class="tag std">★' + it.fmScore + "</span>" : "");
@@ -240,7 +256,15 @@
     if (e.rankingType === "rating" && it.rating) return "★" + it.rating.toFixed(1);
     if (e.rankingType === "popular" && isAdultCat(it.category) && it.rating) return "★" + (+it.rating).toFixed(2) + "（" + nf(it.votes) + "件）";
     if (e.rankingType === "popular" && it.category === "anime") return nf(it.popularity) + "人が登録";
-    if (e.rankingType === "jp") return "視聴者 " + nf(it.watchers) + "人";
+    if (e.rankingType === "jp" && it.category === "anime") return "視聴者 " + nf(it.watchers) + "人";
+    if (it.category === "anime" && /^(dm_|sp_)/.test(e.rankingType || "") && it.dmmRating) return "DMM TV ★" + (+it.dmmRating).toFixed(2) + (it.dmmVotes ? "（" + nf(it.dmmVotes) + "件）" : "");
+    /* 映画：興収（米ドル）・公開館数・上映週 */
+    if (it.category === "movie") {
+      if (e.rankingType === "boyear" && it.yearGross) return "年間の興収 " + it.yearGross;
+      if (e.rankingType === "boall" && it.allGross) return "歴代 " + it.allGross + (it.releaseDate ? "・" + String(it.releaseDate).slice(0, 4) + "年" : "");
+      if ((e.rankingType === "bo" || e.rankingType === "us") && it.weekendGross) return "週末 " + it.weekendGross + (it.totalGross ? "・累計 " + it.totalGross : "");
+      return [it.screens ? it.screens + "館" : "", it.weeks ? it.weeks + "週目" : ""].filter(Boolean).join("・");
+    }
     if (it.category === "music" && e.point) return nf(e.point) + " ポイント";
     return "";
   }
@@ -389,7 +413,11 @@
     if (stack.length > 60) stack.shift();
     render(isBack);
   });
-  const TAB_OF = { "": "home", rank: "rank", filter: "rank", search: "all", all: "all", new: "new", sale: "sale", camp: "camp", drop: "sale", fav: "fav", me: "me", settings: "me", history: "me", compare: "rank", trend: "home", notice: "home", person: "rank", genre: "rank" };
+  /* ★★ 2026-09-22 タブ：「話題」「おすすめ」を新設・「セール情報」はセールのタブの中へ */
+  /* ★★ 2026-09-22b ご指定「絞り込みを開くとランキングタブが光る」。
+     絞り込み（filter）・人・ジャンル・話題は、<b>開いた元のタブの光をそのまま</b>にする（ここに書かない＝変えない）。
+     話題のタブはやめた（画面はマイページから開ける）。 */
+  const TAB_OF = { "": "home", rank: "rank", search: "all", all: "all", new: "new", sale: "sale", camp: "sale", drop: "sale", fav: "fav", me: "me", settings: "me", history: "me", compare: "rank", rec: "rec", notice: "home" };
   /* ★★ 2026-09-21d ご指定「それぞれのボタンで開きなおしたときは、最初に開く状態に戻す」。
      絞り込み・並べ替え・検索の言葉は<b>そのときだけのもの</b>なので、下のボタンを押したら消す。
      お気に入り・好みのジャンル・設定は消さない（あとに残したいもの）。 */
@@ -400,7 +428,7 @@
     } else if (tab === "all") {
       S.allQ = ""; S.sort = {}; S.rev = {}; S.fa = {};
     } else if (tab === "sale") {
-      S.deal = {};
+      S.deal = {}; S.fs = {};
     } else if (tab === "new") {
       S.newSort = {}; S.newRev = {}; S.newQ = "";
     } else if (tab === "fav") {
@@ -451,7 +479,8 @@
     }
     if (seq !== renderSeq) return;
     $("#top").innerHTML = out.head;
-    view.innerHTML = out.body;
+    /* ★★ 2026-09-22 オフライン対応（ご指定）。つながっていないときは、最後に取ったデータで動いていることを上に出す */
+    view.innerHTML = (navigator.onLine === false ? '<div class="offbar">' + ic("wifi") + "オフラインです。最後に取ったデータを表示しています</div>" : "") + out.body;
     view.classList.remove("anim"); void view.offsetWidth; if (!isBack && !early) view.classList.add("anim");
     view.scrollTop = isBack && scrolls[h] != null ? scrolls[h] : 0;
     if (out.after) try { out.after(); } catch (e) { console.error(e); }
@@ -488,16 +517,15 @@
     let body = '<div class="hero"><h1>好きなエンタメを、<br>もっと見つけよう。</h1><p>' + d.getFullYear() + "." + String(d.getMonth() + 1).padStart(2, "0") + "." + String(d.getDate()).padStart(2, "0") + " · " + cs.length + "つのランキングは別々の出典から取得</p></div>";
     body += '<div class="catcards">' + cs.map((c) =>
       '<a class="catcard" data-c="' + c + '" href="#/rank/' + c + (c === "anime" ? "?type=jp" : "") + '"><span class="ic">' + ic(c) + '</span><span class="en">' + CATS[c].en + '</span><span class="ja">' + esc(CATS[c].ja) + '</span><span class="n">' + esc(CATS[c].source) + "</span></a>").join("") + "</div>";
-    if (adultOn()) body += '<label class="homeAdult"><span>' + ic("shield") + "ホームに 18禁（FANZA・DLsite）を表示</span>" +
-      '<span class="tg"><input type="checkbox" data-a="set" data-k="homeAdult"' + (homeAdult ? " checked" : "") + "><span></span></span></label>";
+    /* ★★ 2026-09-22 ご指定：ホームの 18禁 の切りかえはマイページの設定画面だけに置く */
     body += '<a class="homeRun" id="homeRun" href="#/settings"><span class="dot"></span><span id="homeRunT">データの取得状況を確認しています…</span>' + ic("chev") + "</a>";
-    body += '<div class="quick"><button data-go="#/trend">' + ic("fire") + "トレンド</button><button data-go=\"#/compare\">" + ic("compare") + "比較</button><button data-go=\"#/fav\">" + ic("heart") + "お気に入り</button></div>";
+    body += '<div class="quick"><button data-go="#/rec">' + ic("spark") + "おすすめ</button><button data-go=\"#/fav\">" + ic("heart") + "お気に入り</button></div>";
     cs.forEach((c) => {
-      body += '<section class="homesec" data-c="' + c + '"><div class="sec"><h2 id="homeh-' + c + '">' + catPill(c) + ({ karaoke: "今週のランキング", anime: "国内 今季の視聴者数ランキング", music: "いちばん聴かれている曲" }[c] || "注目ランキング") + "</h2>" +
+      body += '<section class="homesec" data-c="' + c + '"><div class="sec"><h2 id="homeh-' + c + '">' + catPill(c) + ({ karaoke: "今週のランキング", anime: "国内 今季の視聴者数ランキング", music: "いちばん聴かれている曲", movie: "国内 週末の映画ランキング" }[c] || "注目ランキング") + "</h2>" +
         '<a class="more" href="#/rank/' + c + '">すべて見る' + ic("chev") + '</a></div><div class="hscroll" id="home-' + c + '">' + Array.from({ length: 4 }, () => '<div class="pcard"><div class="art skel" style="height:150px;margin:0"></div></div>').join("") + "</div></section>";
     });
-    body += '<div id="homeRec"></div><div id="homePref"></div>';
-    body += '<p class="note" style="margin:18px 4px 4px">出典：アニメ＝Annict（国内の視聴者数）・AniList（トレンド）／FANZA同人＝FANZA同人ランキング／カラオケ＝カラオケ DAM（ジャケット・発売日は iTunes）。</p>';
+    body += '<div id="homePref"></div>';
+    body += '<p class="note" style="margin:18px 4px 4px">出典：アニメ＝Annict（国内の視聴者数）・AniList（トレンド）／映画＝映画.com・Box Office Mojo／FANZA同人＝FANZA同人ランキング／カラオケ＝カラオケ DAM（ジャケット・発売日は iTunes）。</p>';
     return { head: head({ logo: true }), body, after() { homeFill(cs); homeRun(); } };
   };
   async function homeRun() {
@@ -528,25 +556,7 @@
           : '<div class="note" style="padding:4px 2px 12px">読み込めませんでした（' + esc(err.message) + "）</div>";
       }
     }));
-    /* おすすめ（ふだん見ているもの・お気に入り・検索から） */
-    try {
-      const box2 = $("#homeRec");
-      if (box2) {
-        let h2 = "";
-        for (const c of cs) {
-          if (isAdultCat(c) && !S.age) continue;
-          const prof = recProfile(c);
-          if (!prof.seeds.length && !prof.prefs.length && !prof.queries.length) continue;
-          const rec = await R.recommendFrom(c, prof).catch(() => []);
-          if (!rec.length) continue;
-          h2 += '<div class="muted" style="margin:8px 2px 6px;display:flex;gap:6px;align-items:center">' + catPill(c) + "お気に入り " + Object.keys(S.fav[c] || {}).length +
-            "件・履歴 " + S.hist.filter((h) => h.c === c).length + "件などから" + '</div><div class="hscroll">' +
-            rec.slice(0, 12).map((x) => posterCard({ item: x.item, rank: null, caption: x.why }, true)).join("") + "</div>";
-          fillArt(rec.map((x) => x.item));
-        }
-        if (h2 && seq === renderSeq && $("#homeRec")) $("#homeRec").innerHTML = '<div class="sec"><h2>' + ic("spark") + "あなたへのおすすめ</h2></div>" + h2;
-      }
-    } catch (e) {}
+    /* ★★ 2026-09-22b ご指定：ホームのおすすめ作品はやめた（おすすめのタブで見る） */
     /* 好みのジャンル（カテゴリーごとに分けて出す）… アニメは AniList のジャンル、カラオケは DAM のジャンル別ランキング */
     const box = $("#homePref"); if (!box || seq !== renderSeq) return;
     let h = "";
@@ -571,6 +581,12 @@
     Object.keys(S.fav[cat] || {}).forEach((id) => seeds.push({ id, w: 3, it: ITEMS[cat + ":" + id] }));
     S.hist.filter((h) => h.c === cat).slice(0, 40).forEach((h, i) => { if (!seeds.some((x) => x.id === h.id)) seeds.push({ id: h.id, w: 2 * Math.max(0.3, 1 - i / 40), it: ITEMS[cat + ":" + h.id] }); });
     return { seeds, prefs: S.prefs[cat] || [], queries: (S.recentQ[cat] || []).slice(0, 8) };
+  }
+  /* ★★ 2026-09-22 ご指定「FANZA のおすすめ表示を本とアニメで分けて」。
+     FANZA は 同人 本＋ブックス（＝本）と、同人 アニメ＋アニメ（＝アニメ）の2つに分けて出す。 */
+  function recGroups(c) {
+    if (c === "fanza") return [{ id: "book", label: "本", ja: "同人 本・ブックス", keys: ["fanza", "fbooks"] }, { id: "anime", label: "アニメ", ja: "同人 アニメ・アニメ", keys: ["danime", "fvideo"] }];
+    return [{ id: "", label: "", keys: null }];
   }
   function recSeed(cat) {
     const gs = {}, ps = {}, seen = [];
@@ -656,7 +672,7 @@
     const sc = o.sort != null ? o.sort : sortOf(c);
     const rv = o.rev != null ? o.rev : revOf(c);
     const sl = (sorts.find((x) => x[0] === sc) || sorts[0] || ["", ""])[1];
-    const FF = o.t === "all" ? fOf(c, "all") : (S.f[c] || {});
+    const FF = o.t ? fOf(c, o.t) : (S.f[c] || {});
     const fn = o.fcount != null ? o.fcount : filterCount(c, FF);
     let h = '<div class="toolbar">' +
       '<button class="tb" data-a="sortSheet" data-scope="' + esc(o.scope || "c:" + c) + '">' + ic("sort") + '<span><small>並び替え</small><b>' + esc(sl) + (rv ? "（逆順）" : "") + "</b></span>" + ic("chev") + "</button>" +
@@ -703,7 +719,7 @@
     if (key !== "rev" && key !== "clear" && v !== "" && String(curOf()) === String(v)) v = key === "sort" ? DEF[kind] : "";
     if (kind === "c") { if (key === "sort") S.sort[a] = v; else { S.rev = S.rev || {}; S.rev[a] = !!v; } }
     else if (kind === "fav") { if (key === "sort") S.favSort = v; else if (key === "rev") S.favRev = !!v; else if (key === "when") S.favWhen = v; }
-    else if (kind === "deal") { S.deal = S.deal || {}; const st = S.deal[a] = S.deal[a] || {}; if (key === "clear") { st.src = ""; st.minOff = ""; st.maxPrice = ""; } else st[key] = key === "rev" ? !!v : v; }
+    else if (kind === "deal") { S.deal = S.deal || {}; const st = S.deal[a] = S.deal[a] || {}; if (key === "clear") { st.src = ""; st.minOff = ""; st.maxPrice = ""; S.fs = {}; } else st[key] = key === "rev" ? !!v : v; }
     else if (kind === "new") { if (key === "sort") { S.newSort = S.newSort || {}; S.newSort[a] = v; } else { S.newRev = S.newRev || {}; S.newRev[a] = !!v; } }
     save(); closeSheet(); render();
   }
@@ -748,8 +764,8 @@
     const srcNm = C.sources ? (C.sources.find((x) => x.id === t.src) || {}).label : "";
     const title = catName(c) + (srcNm ? "（" + srcNm + "）" : t.id === C.types[0].id ? "" : t.label) + "ランキング";
     const fcount = filterCount(c, F);
-    const actions = '<a class="ib" href="#/compare/' + c + '" aria-label="比較">' + ic("compare") + "</a>" +
-      '<a class="ib" href="#/filter/' + c + '" aria-label="絞り込み">' + ic("filter") + (fcount ? '<span class="bd">' + fcount + "</span>" : "") + "</a>";
+    /* ★★ 2026-09-22 ご指定「ランキング比較のグラフは要りません」→ 比較のボタンを出さない */
+    const actions = '<a class="ib" href="#/filter/' + c + '" aria-label="絞り込み">' + ic("filter") + (fcount ? '<span class="bd">' + fcount + "</span>" : "") + "</a>";
     const qs = (o) => "#/rank/" + c + "?type=" + (o.type || t.id) + (o.period ? "&period=" + o.period : "");
     let top = segCats(c, (cc) => "#/rank/" + cc);
     top += srcBar(c, t, q);
@@ -799,8 +815,13 @@
   const KTAG_NM = { new: "新曲", standard: "定番曲", anime: "アニメ関連", game: "ゲーム関連" };
   /* ★★ 2026-09-21g ランキングの絞り込み（S.f）と、全作品の絞り込み（S.fa）は別に持つ。
      ジャンル・作者・声優などで探すのは「全作品」の役目（ご指定）。t="all" なら全作品のほう。 */
-  const CONTENT_KEYS = ["genres", "genreAnd", "author", "circle", "series", "origin", "studio", "director", "cast", "artist"];
-  const fOf = (c, t) => { if (t === "all") { S.fa = S.fa || {}; return (S.fa[c] = S.fa[c] || {}); } return (S.f[c] = S.f[c] || {}); };
+  const CONTENT_KEYS = ["genres", "genreAnd", "author", "circle", "series", "origin", "studio", "director", "cast", "artist", "dist"];
+  /* t="all" 全作品／t="sale" セール（★★ 2026-09-22 全作品と同じ項目で絞り込めるように）／それ以外＝ランキング */
+  const fOf = (c, t) => {
+    if (t === "all") { S.fa = S.fa || {}; return (S.fa[c] = S.fa[c] || {}); }
+    if (t === "sale") { S.fs = S.fs || {}; return (S.fs[c] = S.fs[c] || {}); }
+    return (S.f[c] = S.f[c] || {});
+  };
   function filterChips(c, F, t) {
     const out = [];
     const add = (k, label) => out.push('<button class="chip sm on" data-c="' + c + '" data-t="' + (t || "") + '" data-a="fdel" data-k="' + esc(k) + '">' + esc(label) + '<span class="x">✕</span></button>');
@@ -825,6 +846,9 @@
     if (F.series) add("series", "シリーズ：" + F.series);
     if (F.origin) add("origin", "原作：" + F.origin);
     if (F.artist) add("artist", "アーティスト：" + F.artist);
+    if (F.dist) add("dist", "配給：" + F.dist);
+    (F.country || []).forEach((v) => add("country:" + v, v === "日本" ? "日本の映画" : "海外の映画"));
+    if (F.minOff) add("minOff", F.minOff + "%OFF 以上");
     if (F.yearFrom || F.yearTo) add("year", "発売 " + (F.yearFrom || "") + "〜" + (F.yearTo || ""));
     return out.join("");
   }
@@ -836,7 +860,7 @@
     const c = path[1];
     if (!CATS[c]) return SCREENS.rank(["rank"], {});
     const gate = fanzaGate(c); if (gate) return gate;
-    draftT = q && q.t === "all" ? "all" : "";
+    draftT = q && (q.t === "all" || q.t === "sale") ? q.t : "";
     draft = JSON.parse(JSON.stringify(fOf(c, draftT)));
     const fc = await R.facets(c);
     const group = (title, k, opts, sub, single) => '<div class="glass fgroup" data-c="' + c + '"><h3>' + title + (sub ? "<small>" + sub + "</small>" : "") + '</h3><div class="chips wrap">' +
@@ -855,7 +879,6 @@
       body += text("制作会社", "studio", "制作会社名を入力");
       body += text("監督", "director", "監督名を入力");
       body += text("声優", "cast", "声優名を入力");
-      body += group("国内の評価（Filmarks）", "minRate", [["3.5", "★3.5 以上"], ["4", "★4.0 以上"], ["4.5", "★4.5 以上"]], "", true);
       if (fc.studios && fc.studios.length) body += group("よく出る制作会社", "studio", fc.studios.slice(0, 24), "押すと絞り込みます", true);
       if (fc.casts && fc.casts.length) body += group("よく出る声優", "cast", fc.casts.slice(0, 24), "押すと絞り込みます", true);
     } else if (isAdultCat(c)) {
@@ -875,7 +898,17 @@
       body += group("価格", "maxPrice", [["330", "330円まで"], ["550", "550円まで"], ["1100", "1,100円まで"], ["2200", "2,200円まで"]], "", true);
       body += group("新着 / 既刊", "fresh", [["new", "新着（30日以内）"], ["old", "既刊"]]);
       body += text("原作・題材", "origin", "もとになった作品の名前");
+      if (draftT === "sale") body += group("割引率", "minOff", [["10", "10%OFF 以上"], ["30", "30%OFF 以上"], ["50", "50%OFF 以上"], ["70", "70%OFF 以上"]], "セールだけの項目", true);
       if (fc.circles && fc.circles.length) body += group("よく出るサークル", "circle", fc.circles.slice(0, 30), "押すと絞り込みます", true);
+    } else if (c === "movie") {
+      if (fc.genres.length) body += group("ジャンル", "genres", fc.genres, "複数えらべます");
+      body += group("日本 / 海外", "country", [["日本", "日本の映画"], ["海外", "海外の映画"]]);
+      body += group("公開時期", "when", [["week", "今週"], ["month", "今月"], ["year", "今年"], ["past", "去年まで"]]);
+      body += text("監督", "director", "監督の名前を入力");
+      body += text("出演", "cast", "出演者の名前を入力");
+      body += text("配給", "dist", "配給会社の名前を入力");
+      body += group("評価", "minRate", [["3.5", "★3.5 以上"], ["4", "★4.0 以上"]], "映画.com", true);
+      if (fc.dists && fc.dists.length) body += group("よく出る配給", "dist", fc.dists.slice(0, 20), "押すと絞り込みます", true);
     } else if (c === "music") {
       if (fc.genres.length) body += group("ジャンル", "genres", fc.genres, "配信での分類");
       body += text("アーティスト", "artist", "アーティスト名を入力");
@@ -892,7 +925,7 @@
       body += group("ソロ / グループ", "unit", ["ソロ", "グループ"]);
     }
     body += '<div class="sticky" data-c="' + c + '"><button class="btn" data-a="freset">リセット</button><button class="btn pri" data-a="fapply" data-c="' + c + '" id="fapply">この条件で絞り込む</button></div>';
-    return { head: head({ title: catName(c) + "絞り込み", pill: c, fb: (draftT === "all" ? "#/all/" : "#/rank/") + c, close: true }), body, after() { fPreview(c); } };
+    return { head: head({ title: catName(c) + (draftT === "sale" ? "セールの" : "") + "絞り込み", pill: c, fb: (draftT === "all" ? "#/all/" : draftT === "sale" ? "#/sale/" : "#/rank/") + c, close: true }), body, after() { fPreview(c); } };
   };
   let fpT = 0;
   function fPreview(c) {
@@ -923,14 +956,16 @@
     S.views = (S.views | 0) + 1; save();
     /* ★ 2026-09-21g 順位推移のグラフはやめた（ご指定）ので、推移は読まない */
     const [ri, rel] = await Promise.all([R.rankInfo(c, id).catch(() => ({})), R.related(c, id).catch(() => ({ primary: [], secondary: [] }))]);
-    const pt = c === "anime" ? "キービジュアル" : isAdultCat(c) ? "表紙" : "ジャケット";
+    const pt = c === "anime" ? "キービジュアル" : c === "movie" ? "ポスター" : isAdultCat(c) ? "表紙" : "ジャケット";
     let body = '<div class="dhero" data-c="' + c + '"><div class="bgart">' + img(it, c === "anime") + '</div><div class="in"><div class="cover" aria-label="' + pt + '">' + img(it) + '</div><div class="tt">' +
       "<h1>" + esc(it.title) + "</h1>" +
       (isAdultCat(c) ? '<div class="by">' + esc(it.author || it.circle) + "</div>"
         : (c === "karaoke" || c === "music") ? '<div class="by">' + esc(it.artist) + "</div>"
+        : c === "movie" ? (it.en && it.en !== it.title ? '<div class="by">' + esc(it.en) + "</div>" : it.director ? '<div class="by">監督 ' + esc(it.director) + "</div>" : "")
         : (it.short && it.short !== it.title) ? '<div class="by">略称 <b>' + esc(it.short) + "</b></div>"
         : it.sub ? '<div class="by">' + esc(it.sub) + "</div>" : "") +
-      '<div class="gs">' + catPill(c) + (it.genres || [it.genre]).filter(Boolean).slice(0, isAdultCat(c) ? 3 : 8).map((g) => '<a class="gchip" href="#/genre/' + c + "/" + encodeURIComponent(g) + '">' + esc(g) + "</a>").join("") + tagsOf(it) + "</div></div></div></div>";
+      /* ★★ 2026-09-22b ご指定：ジャンルは上（絵のとなり）には出さない。下の表にある */
+      '<div class="gs">' + catPill(c) + tagsOf(it) + "</div></div></div></div>";
     body += '<div class="stats3" data-c="' + c + '"><div class="stat glass cur"><small>現在の順位</small><b class="num">' + (ri.rank || "–") + "<i>位</i></b></div>" +
       '<div class="stat glass"><small>過去最高</small><b class="num">' + (ri.best || "–") + "<i>位</i></b></div>" +
       '<div class="stat glass"><small>前回</small><b class="num">' + (ri.prevKnown === false ? "–" : ri.previousRank || (ri.rank ? "圏外" : "–")) + (ri.previousRank ? "<i>位</i>" : "") + "</b></div></div>";
@@ -939,14 +974,16 @@
     if ((it.samples || []).length) {
       /* ★★ 2026-09-21 ご指定：1枚出したあと、矢印で次の絵へめくれるようにした。
          どの絵から開いても順番が分かるよう、開いた絵の番号（data-i）も渡す。 */
-      SAMPLES = it.samples.slice(0, 12);
+      SAMPLES = it.samples.slice(0, 30);
       body += '<div class="sec"><h2>' + ic("image") + "サンプル<small>" + SAMPLES.length + "枚</small></h2></div><div class=\"miniart samples\">" +
         SAMPLES.map((u, i) => '<button class="samp" data-a="samp" data-i="' + i + '"><img src="' + esc(u) + '" alt="サンプル' + (i + 1) + '" loading="lazy" referrerpolicy="no-referrer"></button>').join("") + "</div>";
     }
+    /* ★★ 2026-09-22b ご指定「あらすじはお気に入りボタンの上に・見やすく」 */
+    const syn = it.synopsis || (/[ぁ-んァ-ヶ一-龠]/.test(it.description || "") ? it.description : "");
+    if (syn) body += '<div class="synbox glass" data-c="' + c + '"><h3>' + ic("quote") + "あらすじ</h3><p" + (syn.length > 140 ? ' class="clamp"' : "") + ">" + esc(syn) + "</p>" +
+      (syn.length > 140 ? '<button class="synmore" data-a="synmore">続きを読む</button>' : "") + "</div>";
     body += '<button class="btn full favbtn' + (isFav(c, id) ? " on" : "") + '" data-a="fav" data-c="' + c + '" data-id="' + esc(id) + '">' + ic("heart") + (isFav(c, id) ? "お気に入り登録済み" : "お気に入り登録") + "</button>";
     body += '<dl class="glass info">' + infoRows(it).map((r) => "<dt>" + r[0] + "</dt><dd>" + r[1] + "</dd>").join("") + "</dl>";
-    /* あらすじ（国内・日本語） */
-    if (it.synopsis) body += '<p class="muted" style="margin:-4px 4px 12px;line-height:1.8">' + esc(it.synopsis) + "</p>";
     /* 人（押すとその人の作品一覧へ） */
     const people = [];
     if (c === "anime") {
@@ -956,6 +993,10 @@
       (it.staff || []).filter((x) => /脚本|シリーズ構成|音楽|キャラクターデザイン|原作/.test(x.r)).slice(0, 6).forEach((x) => people.push(personChip(c, "cast", x.n, x.r + " " + x.n)));
     } else if (c === "karaoke" || c === "music") {
       if (it.artist) people.push(personChip(c, "artist", it.artist, it.artist));
+    } else if (c === "movie") {
+      if (it.director) people.push(personChip(c, "director", it.director.split("・")[0], "監督 " + it.director));
+      (it.cast || []).slice(0, 10).forEach((x) => people.push(personChip(c, "cast", x.n, x.n)));
+      if (it.dist) people.push(personChip(c, "dist", it.dist, "配給 " + it.dist));
     } else {
       if (it.circle) people.push(personChip(c, "circle", it.circle, "サークル " + it.circle));
       if (it.author) people.push(personChip(c, "author", it.author, "作者 " + it.author));
@@ -981,7 +1022,7 @@
         rv.slice(0, 4).map(one).join("") +
         (rv.length > 4 ? '<div class="revmore" hidden>' + rv.slice(4, 12).map(one).join("") + '</div><button class="btn full" data-a="revmore">残り ' + (Math.min(12, rv.length) - 4) + " 件を見る</button>" : "") + "</div>";
     }
-    const relT = c === "anime" ? ["関連作品（シリーズ）", "この作品を見ている人が見ている作品"] : isAdultCat(c) ? ["同じシリーズ・サークルの作品", "よく似た作品（ジャンルが近い）"] : ["同じアーティストの楽曲", "関連楽曲（同じジャンル）"];
+    const relT = c === "anime" ? ["関連作品（シリーズ）", "この作品を見ている人が見ている作品"] : c === "movie" ? ["同じ監督・出演者の映画", "同じジャンルでいま上映中の映画"] : isAdultCat(c) ? ["同じシリーズ・サークルの作品", "よく似た作品（ジャンルが近い）"] : ["同じアーティストの楽曲", "関連楽曲（同じジャンル）"];
     /* ★★ 2026-09-21f ご指定「この作品を見たユーザーが見る作品」。どこから来た数字かを小さく書く。 */
     if (rel.also && rel.also.length) {
       body += '<div class="sec"><h2>' + ic("person") + esc(rel.alsoLabel || "この作品を見た人が見ている作品") + "</h2></div>" +
@@ -995,22 +1036,24 @@
     const links = [];
     /* ★ 2026-09-21 ボタンの名前は「そのカテゴリーの出どころ」から作る。
        直書きにしていたせいで DLsite の作品に FANZA と出ていた（ご指定の不具合）。 */
-    const siteNm = { anime: "AniList", fanza: "FANZAで見る", dlsite: "DLsiteで見る", karaoke: "DAM", music: "Billboard JAPAN" }[c] || CATS[c].source;
+    const siteNm = it.special || /tv\.dmm\.com/.test(it.link || "") ? "DMM TVで見る" : { anime: "AniList", fanza: "FANZAで見る", dlsite: "DLsiteで見る", karaoke: "DAM", music: "Billboard JAPAN", movie: /eiga\.com/.test(it.url || "") ? "映画.com" : "Box Office Mojo" }[c] || CATS[c].source;
+    if (it.boUrl && it.boUrl !== it.url) links.push('<a class="btn" style="flex:1" href="' + esc(it.boUrl) + '" target="_blank" rel="noopener">' + ic("link") + "Box Office Mojo</a>");
+    if (it.fmUrl && c === "anime") links.push('<a class="btn" style="flex:1" href="' + esc(it.fmUrl) + '" target="_blank" rel="noopener">' + ic("link") + "Filmarks</a>");
     if (it.url && !(c === "anime" && it.jpOnly)) links.push('<a class="btn" style="flex:1" href="' + esc(it.url) + '" target="_blank" rel="noopener">' + ic("link") + siteNm + "</a>");
     if (it.annictUrl) links.push('<a class="btn" style="flex:1" href="' + esc(it.annictUrl) + '" target="_blank" rel="noopener">' + ic("link") + "Annict</a>");
     if (it.official) links.push('<a class="btn" style="flex:1" href="' + esc(it.official) + '" target="_blank" rel="noopener">' + ic("link") + "公式</a>");
     if (it.damUrl) links.push('<a class="btn" style="flex:1" href="' + esc(it.damUrl) + '" target="_blank" rel="noopener">' + ic("link") + "DAM</a>");
     if (it.appleUrl) links.push('<a class="btn" style="flex:1" href="' + esc(it.appleUrl) + '" target="_blank" rel="noopener">' + ic("link") + "Apple Music</a>");
     if (links.length) body += '<div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">' + links.join("") + "</div>";
-    body += '<div style="display:flex;gap:8px;margin-top:8px"><a class="btn" style="flex:1" href="#/compare/' + c + '">' + ic("compare") + "ランキング比較</a></div>";
-    return { head: head({ title: (c === "karaoke" || c === "music") ? "楽曲詳細" : isAdultCat(c) ? catName(c) + "詳細" : "アニメ詳細", pill: c, fb: "#/rank/" + c }), body,
+    return { head: head({ title: detailTitle(c), pill: c, fb: "#/rank/" + c }), body,
       after() { $("#view").dataset.cur = c + "/" + id; fillArt([it].concat((rel.primary || []).concat(rel.secondary || [], rel.also || []).map((x) => x.item))); } };
   };
   SCREENS.item.loading = function (path) {
     const c = path[1];
     if (!CATS[c] || fanzaGate(c)) return null;
-    return { head: head({ title: (c === "karaoke" || c === "music") ? "楽曲詳細" : isAdultCat(c) ? catName(c) + "詳細" : "アニメ詳細", pill: c, fb: "#/rank/" + c }), body: '<div class="skel" style="height:220px"></div>' + skel(4) };
+    return { head: head({ title: detailTitle(c), pill: c, fb: "#/rank/" + c }), body: '<div class="skel" style="height:220px"></div>' + skel(4) };
   };
+  const detailTitle = (c) => (c === "karaoke" || c === "music") ? "楽曲詳細" : c === "movie" ? "映画詳細" : isAdultCat(c) ? catName(c) + "詳細" : "アニメ詳細";
   /* サンプルを1枚ずつ出す。左右の矢印でめくれる（端まで行ったら反対の端へ回る）。 */
   function paintSamp() {
     if (!SAMPLES.length) return;
@@ -1042,14 +1085,17 @@
       if (it.yomi) r.push(["よみ", esc(it.yomi)]);
       if ((it.synonyms || []).length) r.push(["別名", esc(it.synonyms.join("／"))]);
       if (it.sub) r.push(["ローマ字", esc(it.sub)]);
-      r.push(["ジャンル", lnkGenres(c, it.genres)], ["放送時期", esc(it.seasonLabel) + (it.airing ? "（放送中）" : "")], ["作品形式", esc(it.format)]);
-      if (it.episodes) r.push(["話数", it.episodes + "話"]);
+      if (it.special) r.push(["特別版", "<b>" + esc(it.tag) + "</b>" + '<span class="muted">（' + esc(it.service) + " で配信）</span>"]);
+      r.push(["ジャンル", lnkGenres(c, (it.genres || []).filter((g) => g !== "特別版"))], ["放送時期", esc(it.seasonLabel || "") + (it.airing ? "（放送中）" : "")], ["作品形式", esc(it.format)]);
+      /* ★★ 2026-09-22 ご指定「話数構成も」 */
+      if (it.episodes || it.duration) r.push(["話数・長さ", [it.episodes ? "全" + it.episodes + "話" : "", it.duration ? "1話 " + esc(it.duration) : ""].filter(Boolean).join("／")]);
       if (it.studio) r.push(["制作会社", lnkPerson(c, "studio", it.studio)]);
       if (it.director) r.push(["監督", lnkPerson(c, "director", it.director)]);
       if (it.fmScore) r.push(["国内の評価", "★" + it.fmScore + '<span class="muted">（Filmarks）</span>']);
       if (it.watchers) r.push(["国内の視聴者", nf(it.watchers) + '人<span class="muted">（Annict）</span>']);
       if ((it.cast || []).length) r.push(["声優", it.cast.slice(0, 8).map((x) => lnkPerson(c, "cast", x.n)).join("・")]);
       if (it.rating) r.push(["評価", "★" + it.rating.toFixed(1) + '<span class="muted">（AniList・' + nf(it.popularity) + "人が登録）</span>"]);
+      if (it.dmmRating) r.push(["DMM TV の評価", "★" + (+it.dmmRating).toFixed(2) + (it.dmmVotes ? '<span class="muted">（' + nf(it.dmmVotes) + "件）</span>" : "")]);
       const jp = it.jp || {};
       const jr = [jp.season ? "今季 " + jp.season + "位" : "", jp.year ? "今年 " + jp.year + "位" : "", jp.all ? "歴代 " + jp.all + "位" : ""].filter(Boolean);
       if (jr.length) r.push(["国内の順位", esc(jr.join("・"))]);
@@ -1070,27 +1116,52 @@
       if (it.voice) r.push(["声優", esc(it.voice)]);
       if (it.scenario) r.push(["シナリオ", esc(it.scenario)]);
       if (it.series) r.push(["シリーズ", lnkPerson(c, "series", it.series)]);
-      if (it.volume) r.push(["ページ数など", esc(it.volume)]);
+      /* ★★ 2026-09-22 ご指定「長さやページ数も」。本＝ページ数、動画＝本数・収録時間、どちらもファイル容量 */
+      if (it.volume) r.push([/ページ/.test(it.volume) ? "ページ数" : /本/.test(it.volume) ? "動画の本数" : "ページ数・本数", esc(it.volume)]);
+      if (it.length) r.push(["収録時間", esc(it.length)]);
+      if (it.size) r.push(["ファイル容量", esc(it.size)]);
+      if (it.illust) r.push(["イラスト", esc(it.illust)]);
       if (it.rating) r.push(["評価", "★" + (+it.rating).toFixed(2) + '<span class="muted">（' + nf(it.votes) + "件）</span>"]);
       if (it.sales) r.push(["販売数", nf(it.sales)]);
       if (it.favs) r.push(["お気に入り登録", nf(it.favs) + "人"]);
+    } else if (c === "movie") {
+      /* ★★ 2026-09-22 映画（ご指定）。上映時間などの長さも出す */
+      if (it.en && it.en !== it.title) r.push(["原題・英題", esc(it.en)]);
+      if (it.releaseDate) r.push(["公開日", esc(MS.fmtDate(it.releaseDate))]);
+      if (it.length) r.push(["上映時間", esc(it.length)]);
+      if ((it.genres || []).length) r.push(["ジャンル", lnkGenres(c, it.genres)]);
+      if (it.year || it.country) r.push(["製作", esc([it.year ? it.year + "年" : "", it.country].filter(Boolean).join("・"))]);
+      if (it.certif) r.push(["区分", esc(it.certif)]);
+      if (it.dist) r.push(["配給", lnkPerson(c, "dist", it.dist)]);
+      if (it.director) r.push(["監督", esc(it.director)]);
+      if (it.origin) r.push(["原作", esc(it.origin)]);
+      if ((it.cast || []).length) r.push(["出演", it.cast.slice(0, 8).map((x) => lnkPerson(c, "cast", x.n)).join("・")]);
+      if (it.rating) r.push(["評価", "★" + (+it.rating).toFixed(1) + (it.votes ? '<span class="muted">（' + nf(it.votes) + "件・映画.com）</span>" : "")]);
+      if (it.weekendGross) r.push(["週末の興収", esc(it.weekendGross) + '<span class="muted">（' + (it.market === "us" ? "全米" : "国内・米ドル換算") + "）</span>"]);
+      if (it.totalGross && it.totalGross !== "-") r.push(["累計の興収", esc(it.totalGross)]);
+      if (it.yearGross) r.push(["今年の興収", esc(it.yearGross) + '<span class="muted">（国内・米ドル換算）</span>']);
+      if (it.allGross) r.push(["歴代の興収", "<b>" + esc(it.allGross) + '</b><span class="muted">（国内・興行通信社調べ）</span>']);
+      if (it.screens) r.push(["公開館数", nf(it.screens) + "館"]);
+      if (it.weeks) r.push(["上映週", it.weeks + "週目"]);
     } else {
       r.push(["アーティスト", lnkPerson(c, "artist", it.artist)]);
       const g = it.itunesGenre || it.genre;
       if (g) r.push(["ジャンル", lnkGenres(c, [g])]);
       if (it.releaseDate) r.push(["発売日", esc(MS.fmtDate(it.releaseDate))]);
       if (it.album) r.push(["収録", esc(it.album)]);
+      if (it.length) r.push(["曲の長さ", esc(it.length)]);
       if (it.unit || it.vocal) r.push(["ボーカル", esc([it.vocal, it.unit].filter(Boolean).join("・"))]);
       if (c === "karaoke") r.push(["DAM 曲番号", esc(it.rn || it.id)]);
       if (c === "music" && it.offchart) r.push(["ランキング", "いまは圏外（アーティストの曲として収録）"]);
     }
-    return r;
+    /* ★ 中身の無い行（特別版の作品のジャンルなど）は出さない */
+    return r.filter((x) => x[1] != null && String(x[1]).replace(/<[^>]+>/g, "").trim() !== "");
   }
 
   /* 人（アーティスト・サークル・作者・制作会社・監督・声優）の作品一覧 */
-  const KIND_NM = { artist: "アーティスト", circle: "サークル", author: "作者", studio: "制作会社", director: "監督", cast: "出演・スタッフ", series: "シリーズ", origin: "原作・題材" };
+  const KIND_NM = { artist: "アーティスト", circle: "サークル", author: "作者", studio: "制作会社", director: "監督", cast: "出演・スタッフ", series: "シリーズ", origin: "原作・題材", dist: "配給" };
   /* ★★ 2026-09-21g 人（作者・サークル・声優・監督…）やジャンルを押したら、全作品でその条件を絞り込んで出す（ご指定） */
-  const PERSON_KEY = { artist: "artist", circle: "circle", author: "author", studio: "studio", director: "director", cast: "cast", series: "series", origin: "origin" };
+  const PERSON_KEY = { artist: "artist", circle: "circle", author: "author", studio: "studio", director: "director", cast: "cast", series: "series", origin: "origin", dist: "dist" };
   function toAll(c, F, qtext) {
     S.fa = S.fa || {}; S.fa[c] = F || {};
     if (qtext != null) S.allQ = qtext;
@@ -1162,9 +1233,16 @@
     const gate = fanzaGate(c); if (gate) return gate;
     S.lastCat = c;
     const C = CATS[c];
-    const srcId = C.sources ? (C.sources.find((x) => x.id === q.src) || C.sources[0]).id : "";
-    const srcKey = C.sources ? (C.sources.find((x) => x.id === srcId) || {}).key : "";
+    /* ★★ 2026-09-22b ご指定：アニメの全作品にも「特別版」のボタン（DMM TV のアニメも見られる） */
+    const ASRC = [{ id: "", key: "", label: "すべて", ja: "国内・海外" }, { id: "dmm", key: "dmm", label: "DMM TV", ja: "配信中" }, { id: "special", key: "special", label: "特別版", ja: "ご褒美版など" }];
+    const SS = c === "anime" ? ASRC : C.sources;
+    const srcId = SS ? (SS.find((x) => x.id === (q.src || "")) || SS[0]).id : "";
+    const srcKey = SS ? (SS.find((x) => x.id === srcId) || {}).key : "";
     let body = segCats(c, (cc) => "#/all/" + cc);
+    if (c === "anime") {
+      body += '<div class="srcseg" data-c="anime" style="--n:3">' + ASRC.map((x) =>
+        '<a class="' + (x.id === srcId ? "on" : "") + '" href="#/all/anime' + (x.id ? "?src=" + x.id : "") + '"><b>' + esc(x.label) + "</b><small>" + esc(x.ja) + "</small></a>").join("") + "</div>";
+    }
     if (C.sources && c !== "anime") {
       body += '<div class="srcseg" data-c="' + c + '" style="--n:' + C.sources.length + '">' + C.sources.map((x) =>
         '<a class="' + (x.id === srcId ? "on" : "") + '" href="#/all/' + c + "?src=" + x.id + '"><b>' + esc(x.label) + "</b><small>" + esc(x.ja) + "</small></a>").join("") + "</div>";
@@ -1197,7 +1275,7 @@
     return '<div class="row norank" data-c="' + it.category + '">' +
       '<a class="art" href="' + itemHref(it) + '">' + img(it) + "</a>" +
       '<a class="bd" href="' + itemHref(it) + '"><div class="t">' + esc(it.title) + '</div><div class="s">' + (e.rank ? '<span class="tag rk">' + e.rank + "位</span>" : "") + tagsOf(it) + "<span>" + subOf(it) + "</span></div>" +
-      (m ? '<div class="pv">' + m + "</div>" : "") + "</a>" + favBtn(it) + "</div>";
+      (e.why ? '<div class="pv why">' + ic("spark") + esc(e.why) + "</div>" : m ? '<div class="pv">' + m + "</div>" : "") + "</a>" + favBtn(it) + "</div>";
   }
   /* 値段の書きかた（元の値段・割引・過去最安） */
   function priceText(it) {
@@ -1214,6 +1292,43 @@
   /* ── セール／値下がり（同じ作りで、何を出すかだけ違う） ── */
   const DEAL_SRC = [["", "すべて"], ["fanza", "FANZA 同人 本"], ["danime", "FANZA 同人 アニメ"], ["fbooks", "FANZA ブックス"], ["fvideo", "FANZA アニメ"], ["dlsite", "DLsite 同人"]];
   const DEAL_SORT = [["rec", "おすすめ"], ["off", "割引率"], ["drop", "値下がり幅"], ["price", "安い順"], ["rating", "評価"], ["sales", "売れている"], ["new", "新しい"]];
+  /* ★★ 2026-09-22 ご指定「セールのタブにセール情報とセール作品をまとめて」「絞り込みと種別分けは全作品と同じに」。
+     ・上の切りかえで「セール作品」「セール情報」。どちらも前の画面の働きはそのまま残す
+     ・セール作品は カテゴリー（FANZA・DLsite）→ 出どころ（FANZA は4つ）の順に分け、
+       絞り込みは全作品と同じ画面（#/filter/<cat>?t=sale）＋割引率 */
+  const SALE_CATS = ["fanza", "dlsite"];
+  function saleTop(view, c, srcId) {
+    return '<div class="saleseg"><a class="' + (view !== "info" ? "on" : "") + '" href="#/sale' + (c ? "/" + c : "") + '">' + ic("tag") + "<b>セール作品</b><small>いま割引中の作品</small></a>" +
+      '<a class="' + (view === "info" ? "on" : "") + '" href="#/sale?v=info">' + ic("bell") + "<b>セール情報</b><small>開催中のキャンペーン</small></a></div>";
+  }
+  SCREENS.sale = async function (path, q) {
+    if (q.v === "info") return campScreen([], true);
+    if (!adultOn()) return { head: head({ title: "セール" }), body: saleTop("items") + '<div class="empty">' + ic("shield") + "<br>18禁のカテゴリーを隠しているため、セールは表示しません。<br><br><button class=\"btn pri\" data-a=\"showAdult\">表示する</button></div>" };
+    const cs = SALE_CATS.filter((x) => catOn(x));
+    if (!cs.length) return { head: head({ title: "セール" }), body: saleTop("items") + '<div class="empty">FANZA・DLsite を設定で隠しています</div>' };
+    const c = cs.indexOf(path[1]) >= 0 ? path[1] : cs[0];
+    if (!S.age) { const g = fanzaGate(c); if (g) return g; }
+    const C = CATS[c];
+    const srcId = C.sources ? (C.sources.find((x) => x.id === q.src) || C.sources[0]).id : "";
+    const srcKey = C.sources ? (C.sources.find((x) => x.id === srcId) || {}).key : c;
+    const st = (S.deal = S.deal || {}).sale = S.deal.sale || {};
+    const F = fOf(c, "sale");
+    let body = saleTop("items", c);
+    body += '<div class="seg" style="--n:' + cs.length + '">' + cs.map((x) => '<button data-c="' + x + '" data-go="#/sale/' + x + '" class="' + (x === c ? "on" : "") + '">' + ic(x) + CATS[x].en + "</button>").join("") + "</div>";
+    if (C.sources) body += '<div class="srcseg" data-c="' + c + '" style="--n:' + C.sources.length + '">' + C.sources.map((x) =>
+      '<a class="' + (x.id === srcId ? "on" : "") + '" href="#/sale/' + c + "?src=" + x.id + '"><b>' + esc(x.label) + "</b><small>" + esc(x.ja) + "</small></a>").join("") + "</div>";
+    body += searchBox("dealq", st.q, "題名・サークル・ジャンルで探す", "dealqclear");
+    body += toolBar(c, { scope: "deal:sale", sorts: DEAL_SORT, sort: st.sort || "rec", rev: !!st.rev, t: "sale" });
+    let L;
+    try { L = await R.deals("sale", { keys: [srcKey], q: st.q || "", minOff: F.minOff || 0, maxPrice: F.maxPrice || 0, filters: F, sort: st.sort || "rec", rev: !!st.rev }); }
+    catch (e) { return { head: head({ title: "セール" }), body: body + errCard(c, e) }; }
+    body += '<div class="reshd">' + catPill(c) + "<span>" + esc(C.sources ? (C.sources.find((x) => x.id === srcId) || {}).label : C.ja) + "・割引中 " + nf(L.total) + "作品</span></div>";
+    body += L.entries.length ? '<div class="list" id="rlist"></div><button class="loadmore" id="more" hidden>もっと見る</button>'
+      : '<div class="empty">' + ic("tag") + "<br>" + (L.noPrice ? "セールの値段（元の値段・割引率）がまだ取れていません。<br><small>PC の自動取得が次に終わると表示されます（1時間ごと）。</small>" : filterCount(c, F) || st.q ? "この条件に合うセール中の作品はありません" : "いまセール中の作品はありません") + "</div>";
+    return { head: head({ title: "セール" }), body,
+      after() { startPager(L.entries, dealRow, $("#rlist")); fillArt(L.entries.slice(0, 40).map((e) => e.item)); liveInput("dealq", (v) => { st.q = v; save(); render(); }); } };
+  };
+  SCREENS.sale.loading = (path, q) => ({ head: head({ title: "セール" }), body: saleTop(q.v === "info" ? "info" : "items") + skel(6) });
   function dealScreen(mode) {
     return async function () {
       const title = mode === "sale" ? "セール" : "値下がり";
@@ -1248,10 +1363,8 @@
     };
   }
   const stripTags = (h) => String(h || "").replace(/<[^>]+>/g, "");
-  SCREENS.sale = dealScreen("sale");
   /* ★★ 2026-09-21f 値下がりのタブはやめた（ご指定）。古いリンクはセールへ */
   SCREENS.drop = async () => { go("#/sale"); return { head: head({ title: "セール" }), body: "" }; };
-  SCREENS.sale.loading = () => ({ head: head({ title: "セール" }), body: skel(8) });
 
   /* ══ ★★ 2026-09-21f 新作タブ（ご指定）══
      アニメ＝今季・来季／音楽＝新作（発売90日以内）／カラオケ＝新曲／FANZA・DLsite＝新作（配信30日以内・出どころごと） */
@@ -1287,7 +1400,12 @@
 
   /* ══ ★★ 2026-09-21f セール情報タブ（ご指定「セールが行われている情報」）══
      FANZA同人のキャンペーン（名前・終わる日・対象作品）と、DLsite の割引中の作品（割引率ごと）。 */
+  /* セール情報：#/camp（古いリンク）はセールのタブの「セール情報」へ。#/camp/<id> はキャンペーンの中身 */
   SCREENS.camp = async function (path) {
+    if (!path[1]) { location.replace("#/sale?v=info"); return { head: head({ title: "セール" }), body: skel(4) }; }
+    return campScreen(path, false);
+  };
+  async function campScreen(path, inSale) {
     if (!adultOn()) return { head: head({ title: "セール情報" }), body: '<div class="empty">' + ic("shield") + "<br>18禁のカテゴリーを隠しているため表示しません。<br><br><button class=\"btn pri\" data-a=\"showAdult\">表示する</button></div>" };
     if (!S.age) { const g = fanzaGate("fanza"); if (g) return g; }
     let J;
@@ -1295,19 +1413,19 @@
     const id = path[1];
     if (id) {
       const cp = J.list.find((x) => x.id === id);
-      if (!cp) return { head: head({ title: "セール情報", fb: "#/camp" }), body: '<div class="empty">このセールは終わりました</div>' };
+      if (!cp) return { head: head({ title: "セール情報", fb: "#/sale?v=info" }), body: '<div class="empty">このセールは終わりました</div>' };
       const rows = cp.items.map((x) => ({ item: Object.assign({ category: cp.src === "dlsite" ? "dlsite" : "fanza", genres: [] }, x), rank: null }));
       let body = campCard(cp, true);
       body += '<div class="list" id="rlist"></div>';
       body += '<a class="btn full" style="margin-top:12px" href="' + esc(cp.url) + '" target="_blank" rel="noopener">' + ic("link") + (cp.src === "dlsite" ? "DLsite" : "FANZA") + "で対象作品をすべて見る（" + nf(cp.count) + "件）</a>";
-      return { head: head({ title: cp.title, fb: "#/camp" }), body, after() { startPager(rows, dealRow, $("#rlist")); fillArt(rows.map((r) => r.item)); } };
+      return { head: head({ title: cp.title, fb: "#/sale?v=info" }), body, after() { startPager(rows, dealRow, $("#rlist")); fillArt(rows.map((r) => r.item)); } };
     }
-    let body = '<p class="note" style="margin:0 4px 8px">いま開かれているセール・キャンペーンです。押すと対象の作品が見られます。' +
+    let body = (inSale ? saleTop("info") : "") + '<p class="note" style="margin:0 4px 8px">いま開かれているセール・キャンペーンです。押すと対象の作品が見られます。' +
       (J.at ? "（" + esc(MS.agoLabel(J.at)) + "に確認）" : "") + "</p>";
     body += J.list.length ? J.list.map((cp) => campCard(cp)).join("") : '<div class="empty">' + ic("tag") + "<br>いま開かれているセールは見つかりませんでした</div>";
     body += '<p class="note" style="margin:14px 4px 0">※ DLsite はキャンペーンの名前を公開ページに出していないため、割引中の作品を割引率ごとにまとめています。</p>';
-    return { head: head({ title: "セール情報" }), body, after() { fillArt(J.list.reduce((a, c) => a.concat(c.items.slice(0, 4).map((x) => Object.assign({ category: c.src === "dlsite" ? "dlsite" : "fanza" }, x))), [])); } };
-  };
+    return { head: head({ title: inSale ? "セール" : "セール情報" }), body, after() { fillArt(J.list.reduce((a, c) => a.concat(c.items.slice(0, 4).map((x) => Object.assign({ category: c.src === "dlsite" ? "dlsite" : "fanza" }, x))), [])); } };
+  }
   SCREENS.camp.loading = () => ({ head: head({ title: "セール情報" }), body: skel(6) });
   function campCard(cp, big) {
     const left = cp.end ? Math.ceil((new Date(cp.end + "T23:59:59") - Date.now()) / 864e5) : null;
@@ -1415,7 +1533,9 @@
   SCREENS.history.loading = (path) => ({ head: head({ title: "ランキング推移", fb: "#/me" }), body: segCats(CATS[path[1]] ? path[1] : visCats()[0], (cc) => "#/history/" + cc) + '<div class="skel" style="height:260px"></div>' });
 
   /* 25. ランキング比較（同じカテゴリーの中だけ） */
-  SCREENS.compare = async function (path, q) {
+  /* ★★ 2026-09-22 比較の画面はやめた（ご指定）。古いリンクはランキングへ */
+  SCREENS.compare = async function (path) { location.replace("#/rank" + (CATS[path[1]] ? "/" + path[1] : "")); return { head: head({ title: "ランキング" }), body: skel(4) }; };
+  SCREENS.compareOld = async function (path, q) {
     const cs = visCats();
     const c = cs.indexOf(path[1]) >= 0 ? path[1] : cs[0];
     const gate = fanzaGate(c); if (gate) return gate;
@@ -1552,13 +1672,15 @@
     }
   }
 
-  /* 27. トレンド（カテゴリー別） */
+  /* 27. 話題の作品（★★ 2026-09-22 下のタブにした・ご指定「話題の作品のタブ」） */
   SCREENS.trend = async function (path, q) {
     const cs = visCats();
     const c = cs.indexOf(q.cat) >= 0 ? q.cat : cs[0];
     const gate = fanzaGate(c); if (gate) return gate;
     const T = await R.trends(c);
-    const lead = { anime: ["アニメトレンド", "今話題になっているアニメ"], fanza: ["FANZA同人トレンド", "現在注目されている本"], karaoke: ["カラオケトレンド", "いま歌われている人気曲・急上昇曲"] }[c];
+    /* ★ 前は anime・fanza・karaoke しか書いていなかったので、DLsite・音楽を開くと止まっていた */
+    const lead = { anime: ["アニメの話題", "いま話題になっているアニメ"], fanza: ["FANZA の話題", "いま注目されている作品"], dlsite: ["DLsite の話題", "いま伸びている作品"],
+      karaoke: ["カラオケの話題", "いま歌われている人気曲・急上昇曲"], music: ["音楽の話題", "いま聴かれている曲"], movie: ["映画の話題", "いま映画館で伸びている映画"] }[c] || [catName(c) + "の話題", ""];
     let body = segCats(c, (cc) => "#/trend?cat=" + cc);
     body += '<div class="lead glass" data-c="' + c + '"><b>' + ic("fire") + " " + lead[0] + "</b><small>" + lead[1] + "（" + esc(T.lead || "") + "）</small></div>";
     if (T.genres.length) body += '<div class="sec"><h2>話題のジャンル</h2></div><div class="cloud glass" data-c="' + c + '">' + T.genres.map((g, i) => '<span style="font-size:' + (15 - Math.min(i, 5)) + 'px">#' + esc(g.g) + "</span>").join("") + "</div>";
@@ -1569,9 +1691,95 @@
         esc([x.text, subText(x.item), x.rank ? "総合 " + x.rank + "位" : ""].filter(Boolean).join(" · ")) + '</span><span class="heat"><i style="width:' + x.heat + '%"></i></span></span>' +
         (x.spark ? '<svg class="spark" viewBox="0 0 64 26"><path d="' + sparkPath(x.spark) + '"/></svg>' : "") + "</a>";
     }).join("") + "</div>";
-    return { head: head({ title: "トレンド", fb: "#/" }), body, after() { fillArt(T.list.map((x) => x.item)); } };
+    return { head: head({ title: "話題の作品" }), body, after() { fillArt(T.list.map((x) => x.item)); } };
   };
-  SCREENS.trend.loading = (path, q) => ({ head: head({ title: "トレンド", fb: "#/" }), body: segCats(visCats().indexOf(q.cat) >= 0 ? q.cat : visCats()[0], (cc) => "#/trend?cat=" + cc) + skel(8) });
+  SCREENS.trend.loading = (path, q) => ({ head: head({ title: "話題の作品" }), body: segCats(visCats().indexOf(q.cat) >= 0 ? q.cat : visCats()[0], (cc) => "#/trend?cat=" + cc) + skel(8) });
+
+  /* ══ ★★ 2026-09-22 おすすめ作品のタブ（ご指定）══
+     お気に入り・閲覧履歴・好みのジャンル・検索の言葉から選ぶ（ホームの「あなたへのおすすめ」と同じ計算）。
+     まだ手がかりが無いカテゴリーは、そのカテゴリーの人気作品を出して「♡ を押すと合わせていきます」と案内する。
+     FANZA は「本」「アニメ」に分けて出す（ご指定）。 */
+  SCREENS.rec = async function (path, q) {
+    const cs = visCats();
+    const c = cs.indexOf(q.cat) >= 0 ? q.cat : cs.indexOf(S.recCat) >= 0 ? S.recCat : cs[0];
+    const gate = fanzaGate(c); if (gate) return gate;
+    S.recCat = c;
+    const prof = recProfile(c);
+    const nF = Object.keys(S.fav[c] || {}).length, nH = S.hist.filter((h) => h.c === c).length;
+    let body = segCats(c, (cc) => "#/rec?cat=" + cc);
+    /* ★★ 2026-09-22c ご指定：おすすめ特集は下に付けず、ボタンで切りかえる（「あなたへ」＋特集ごと） */
+    const FE = recFeatureList(c, (recGroups(c).find((x) => x.id === q.g) || recGroups(c)[0]));
+    const fsel = FE.find((x) => x.id === q.f) || null;
+    const recHref = (f) => "#/rec?cat=" + c + (q.g ? "&g=" + q.g : "") + (f ? "&f=" + f : "");
+    const featBar = '<div class="featbar">' + '<a class="fb' + (!fsel ? " on" : "") + '" href="' + recHref("") + '">' + ic("heart") + "あなたへ</a>" +
+      FE.map((x) => '<a class="fb' + (fsel === x ? " on" : "") + '" href="' + recHref(x.id) + '">' + esc(x.title) + "</a>").join("") + "</div>";
+    body += '<div class="lead glass" data-c="' + c + '"><b>' + ic("spark") + " " + esc(catName(c)) + "のおすすめ</b><small>お気に入り " + nF + "件・閲覧履歴 " + nH + "件・好みのジャンル " + (S.prefs[c] || []).length + "件・検索 " + (S.recentQ[c] || []).length + "件から選んでいます</small></div>";
+    const rows = [];
+    const empty = !prof.seeds.length && !prof.prefs.length && !prof.queries.length;
+    /* ★★ 2026-09-22b ご指定：FANZA の「本」「アニメ」はボタンで切りかえる（前は2つを縦に並べていた） */
+    const GS = recGroups(c);
+    const gsel = GS.find((x) => x.id === q.g) || GS[0];
+    if (GS.length > 1) body += '<div class="srcseg" data-c="' + c + '" style="--n:' + GS.length + '">' + GS.map((x) =>
+      '<a class="' + (x === gsel ? "on" : "") + '" href="#/rec?cat=' + c + "&g=" + x.id + (q.f ? "&f=" + q.f : "") + '"><b>' + esc(x.label) + "</b><small>" + esc(x.ja) + "</small></a>").join("") + "</div>";
+    body += featBar;
+    if (fsel) {
+      /* 特集を1つ選んだとき：その特集の作品を一覧で出す */
+      const es = (await fsel.fn()).slice(0, 40);
+      body += '<p class="note" style="margin:0 4px 8px">' + esc(fsel.note || "") + "</p>";
+      body += es.length ? '<div class="list" id="rlistF"></div>' : '<div class="empty">' + ic("spark") + "<br>この特集はデータがそろってから出ます</div>";
+      return { head: head({ title: "おすすめ作品" }), body,
+        after() { const box = $("#rlistF"); if (box) box.innerHTML = es.map((e) => allRow({ item: e.item, rank: e.rank || null, why: stripTags(priceText(e.item)) || metricOf(e) || "" })).join(""); fillArt(es.map((e) => e.item)); } };
+    }
+    for (const g of [gsel]) {
+      let rec = empty ? [] : await R.recommendFrom(c, prof, g.keys).catch(() => []);
+      let fallback = false;
+      if (!rec.length) {
+        /* 手がかりがまだ無い → いまの人気（ランキングの上から） */
+        fallback = true;
+        const t = g.keys ? CATS[c].types.find((x) => x.key === g.keys[0]) : null;
+        const L = await R.list(c, t ? { type: t.id } : c === "anime" ? { type: "jp", period: "season" } : { type: c === "music" ? "stream" : c === "karaoke" ? "weekly" : "overall", period: CATS[c].mainPeriod }).catch(() => ({ entries: [] }));
+        rec = L.entries.slice(0, 20).map((e) => ({ item: e.item, why: "いまの人気 " + e.rank + "位" }));
+      }
+      body += '<div class="sec"><h2>' + ic("heart") + "あなたへのおすすめ" + (g.label ? "（" + esc(g.label) + "）" : "") + "</h2></div>";
+      if (fallback) body += '<p class="note" style="margin:0 4px 8px">まだ手がかりがありません。いまの人気作品を出しています。気になる作品を開いたり ♡ を押したりすると、あなた向けに変わっていきます。</p>';
+      const id = "rlist" + rows.length;
+      rows.push({ id, rec });
+      body += '<div class="list" id="' + id + '"></div>';
+    }
+    return { head: head({ title: "おすすめ作品" }), body,
+      after() {
+        rows.forEach((r) => { const box = $("#" + r.id); if (box) box.innerHTML = r.rec.slice(0, 20).map((x) => allRow({ item: x.item, rank: null, why: x.why })).join(""); fillArt(r.rec.map((x) => x.item)); });
+      } };
+  };
+  /* おすすめ特集の一覧（ボタンの名前・説明・中身の取りかた） */
+  function recFeatureList(c, g) {
+    const L = (p) => p.then((x) => (x.entries || x || [])).catch(() => []);
+    const k0 = g && g.keys ? g.keys[0] : "";
+    const tType = (key) => (CATS[c].types.find((t) => t.key === key) || {}).id;
+    const mk = (id, title, note, fn) => ({ id, title, note, fn });
+    return ({
+      anime: [mk("sp", "DMM TV の特別版", "ご褒美版・解放版・湯けむり版など、DMM TV で見られる特別なバージョンのアニメ", () => L(R.list("anime", { type: "sp_dmm" }))),
+        mk("dm", "DMM TV で人気", "DMM TV のアニメ 週間ランキング", () => L(R.list("anime", { type: "dm_weekly" }))),
+        mk("jp", "今季いちばん見られている", "国内で今季いちばん見られているアニメ（Annict の視聴者数）", () => L(R.list("anime", { type: "jp", period: "season" }))),
+        mk("new", "来季の注目作", "次のクールに放送が始まるアニメ", () => L(R.newItems("anime", "", { when: "next" })))],
+      movie: [mk("new", "いま公開中の新作", "公開から30日以内の映画", () => L(R.newItems("movie", "movie", {}))),
+        mk("all", "歴代の興行収入トップ", "国内の歴代興行収入ベスト100（億円）", () => L(R.list("movie", { type: "boall" }))),
+        mk("us", "全米で話題", "アメリカの週末の興行収入ランキング", () => L(R.list("movie", { type: "us" })))],
+      fanza: [mk("sale", "セール中の人気作品", "いま割引されている作品を、割引率・評価・売れ行きで並べました", () => L(R.deals("sale", { keys: g && g.keys ? g.keys : [], sort: "rec" }))),
+        mk("new", "新作", "配信から30日以内の作品", () => L(R.newItems("fanza", k0, {}))),
+        mk("rate", "評価が高い作品", "評価の高い作品", () => L(R.list("fanza", { type: g && g.id === "anime" ? "a_rating" : tType(k0), sort: "rating" })))],
+      dlsite: [mk("sale", "セール中の人気作品", "いま割引されている作品", () => L(R.deals("sale", { keys: ["dlsite"], sort: "rec" }))),
+        mk("new", "新作", "配信から30日以内の作品", () => L(R.newItems("dlsite", "dlsite", {}))),
+        mk("rate", "評価が高い作品", "評価の高い作品", () => L(R.list("dlsite", { type: "rating" })))],
+      karaoke: [mk("rise", "いま伸びている曲", "カラオケで急上昇している曲", () => L(R.list("karaoke", { type: "rising", period: "week" }))),
+        mk("new", "新曲", "発売から180日以内の曲", () => L(R.list("karaoke", { type: "new", period: "week" }))),
+        mk("anison", "アニソン", "カラオケで歌われているアニメの曲", () => L(R.list("karaoke", { type: "weekly", filters: { list: "anison" } })))],
+      music: [mk("anime", "アニメの曲", "Billboard JAPAN のアニメチャート", () => L(R.list("music", { type: "anime" }))),
+        mk("dl", "ダウンロードで人気", "有料ダウンロード数のチャート", () => L(R.list("music", { type: "download" }))),
+        mk("video", "動画でよく再生", "動画サイトでの再生数のチャート", () => L(R.list("music", { type: "video" })))],
+    })[c] || [];
+  }
+  SCREENS.rec.loading = (path, q) => ({ head: head({ title: "おすすめ作品" }), body: segCats(visCats().indexOf(q.cat) >= 0 ? q.cat : visCats()[0], (cc) => "#/rec?cat=" + cc) + skel(8) });
 
   /* 28. 通知（カテゴリーの札つき・絞りこみ可） */
   let noticeMemo = null;
@@ -1586,11 +1794,11 @@
         const L = await R.list(c, { type: c === "karaoke" ? "daily" : c === "music" ? "stream" : "overall", period: CATS[c].mainPeriod, offchart: false });
         const top = L.entries[0];
         if (top && S.set.notif.trend) out.push({ id: "top:" + c + ":" + day + ":" + top.item.id, c, it: top.item, t: "「" + top.item.title + "」が" + nm + (c === "karaoke" ? "デイリー" : c === "music" ? "視聴" : "総合") + "ランキングで1位" + (top.prevKnown && top.previousRank === 1 ? "をキープ" : top.prevKnown ? "に（前回 " + (top.previousRank ? top.previousRank + "位" : "圏外") + "）" : "") });
-        if (S.set.notif.fresh && c !== "music") {
+        if (S.set.notif.fresh && c !== "music" && c !== "movie") {
           const N = await R.list(c, { type: "new", period: c === "karaoke" ? "day" : c === "anime" ? "day" : undefined });
           N.entries.slice(0, 2).forEach((e) => out.push({ id: "new:" + c + ":" + day + ":" + e.item.id, c, it: e.item, t: (c === "anime" ? "新作" : isAdultCat(c) ? "新刊" : "新曲") + "「" + e.item.title + "」が" + (c === "anime" ? "新作" : isAdultCat(c) ? "新刊" : "新曲") + "ランキング " + e.rank + "位" + (e.isNew ? "に初登場" : "") }));
         }
-        if (S.set.notif.trend && c !== "music") {
+        if (S.set.notif.trend && c !== "music" && c !== "movie") {
           const Rr = await R.list(c, { type: "rising", period: "day" });
           Rr.entries.slice(0, 1).forEach((e) => out.push({ id: "rise:" + c + ":" + day + ":" + e.item.id, c, it: e.item, t: "「" + e.item.title + "」が急上昇中（" + nm + "急上昇ランキング1位）" }));
         }
@@ -1644,7 +1852,7 @@
     const avHtml = avSrc ? '<img src="' + esc(avSrc) + '" alt="" onerror="this.onerror=null;this.src=\'../chars/' + esc(acc.charFile || "") + '\'">' : esc(name.slice(0, 1));
     let body = '<div class="prof glass"><span class="av' + (avSrc ? " pic" : "") + '">' + avHtml + '</span><span style="flex:1;min-width:0"><b>' + esc(name) +
       '</b><small class="muted">XEVARION アカウントで同期しています</small></span></div>';
-    body += '<div class="cnt3" style="grid-template-columns:repeat(' + cs.length + ',1fr)">' + cs.map((c) => '<a class="stat glass" data-c="' + c + '" href="#/fav?cat=' + c + '"><small>' + catPill(c) + '</small><b class="num" style="color:var(--c)">' + Object.keys(S.fav[c] || {}).length + "<i>件</i></b></a>").join("") + "</div>";
+    body += '<div class="cnt3 favcnt">' + cs.map((c) => '<a class="stat glass" data-c="' + c + '" href="#/fav?cat=' + c + '"><small>' + catPill(c) + '</small><b class="num" style="color:var(--c)">' + Object.keys(S.fav[c] || {}).length + "<i>件</i></b></a>").join("") + "</div>";
     /* ★★ 2026-09-21 ご指定：履歴はボタンを押してから出し、1件ずつ消せるようにした。 */
     const hist = S.hist.filter((h) => cs.indexOf(h.c) >= 0 && (!isAdultCat(h.c) || S.age));
     body += '<div class="sec"><h2>' + ic("clock") + "閲覧履歴<small>" + hist.length + "件</small></h2>" +
@@ -1682,8 +1890,8 @@
     }
     body += '<div class="glass menu">' +
       menuLink("#/fav", "heart", "お気に入り", "カテゴリー別に保存した作品") +
-      menuLink("#/compare", "compare", "ランキング比較", "同じカテゴリーの中で比べる") +
-      menuLink("#/trend", "fire", "トレンド", "カテゴリー別の話題") +
+      menuLink("#/trend", "fire", "話題の作品", "カテゴリー別の話題（前の「話題」タブ）") +
+      menuLink("#/rec", "spark", "おすすめ作品", "お気に入り・履歴から") +
       menuLink("#/notice", "bell", "通知", "") +
       menuLink("#/settings", "gear", "設定", "通知・表示・データソース") +
       '<a href="../index.html"><span class="ico">' + ic("exit") + '</span><span class="lb">XEVARION へもどる</span><span class="rt">' + ic("chev") + "</span></a></div>";
@@ -1699,6 +1907,12 @@
       toggle("notif.fav", "お気に入りの順位変動", "3位以上動いたとき", nfv.fav, "heart") +
       toggle("notif.fresh", "新作・新刊・新曲", "各ランキングの上位", nfv.fresh, "spark") +
       toggle("notif.trend", "トレンド・1位", "急上昇と1位", nfv.trend, "fire") + "</div>";
+    /* ★★ 2026-09-22 ご指定「英語版対応」。XEVARION 全体と同じ設定（xeva_lang_v1）を切りかえる */
+    const lang = window.XevaI18n ? XevaI18n.get() : "ja";
+    body += '<div class="glass menu"><h4>言語 / Language</h4><div class="langrow">' +
+      '<button class="chip' + (lang === "ja" ? " on" : "") + '" data-a="lang" data-v="ja">日本語</button>' +
+      '<button class="chip' + (lang === "en" ? " on" : "") + '" data-a="lang" data-v="en">English</button></div>' +
+      '<p class="note" style="padding:0 8px 8px">画面の文字を切りかえます。作品名・サークル名などはサイトの表記のままです。</p></div>';
     body += '<div class="glass menu"><h4>表示設定</h4>' +
       toggle("big3", "上位3件を大きく表示", "ランキングの1〜3位", S.set.big3, "crown") +
       toggle("music", "音楽 カテゴリーを表示", "Billboard JAPAN の視聴ランキング", S.set.music !== false, "eye") + "</div>";
@@ -1721,6 +1935,8 @@
       srcRow("anime", "Filmarks（国内の評価・レビュー）", "stFm", "…") +
       srcRow("karaoke", "カラオケ DAM ランキングページ", "stKa", "…") +
       srcRow("music", "Billboard JAPAN（視聴・総合）", "stBb", "…") +
+      srcRow("movie", "映画.com・Box Office Mojo（映画）", "stMv", "…") +
+      srcRow("anime", "dアニメストア・DMM TV（特別版）", "stSp", "…") +
       '<p class="note" style="padding:8px">どのランキングも、1時間ごとの自動取得が各サイトの<b>公開ページ</b>から集めたものです（API キーも登録も使いません）。手順は MagiScope/collector/README.md。</p></div>';
     body += '<div class="glass menu"><h4>データの管理</h4>' +
       '<button data-a="cacheClear"><span class="ico">' + ic("reload") + '</span><span class="lb">最新のランキングを取り直す<small>端末に控えたランキングを消します</small></span></button>' +
@@ -1753,11 +1969,11 @@
     const st = await R.status();
     const rb = $("#runBox"); if (rb) rb.innerHTML = runBox(st);
     const set = (id, t) => { const el = $("#" + id); if (el) el.textContent = t; };
-    if (!st.ok) { const t = st.code === "nodata" ? "まだ動いていません" : "読めません"; ["stAn", "stFz", "stKa", "stDl", "stDa", "stFb", "stFm", "stBb"].forEach((i) => set(i, t)); return; }
+    if (!st.ok) { const t = st.code === "nodata" ? "まだ動いていません" : "読めません"; ["stAn", "stFz", "stKa", "stDl", "stDa", "stFb", "stFm", "stBb", "stMv", "stSp"].forEach((i) => set(i, t)); return; }
     const at = (x) => (x ? MS.agoLabel(x) + "に更新" : "まだ取得していません");
     set("stAn", at(st.animeAt)); set("stFz", at(st.fanzaAt)); set("stKa", at(st.karaokeAt));
     set("stDl", at(st.dlsiteAt)); set("stDa", at(st.danimeAt)); set("stFb", at(st.fbooksAt || st.fvideoAt));
-    set("stFm", at(st.animeAt)); set("stBb", at(st.musicAt));
+    set("stFm", at(st.animeAt)); set("stBb", at(st.musicAt)); set("stMv", at(st.movieAt)); set("stSp", at(st.specialAt));
   }
 
   /* ══════════ 操作（data-a ひとつで受ける） ══════════ */
@@ -1787,6 +2003,7 @@
       toast((i >= 0 ? "「" + v + "」を外しました" : "「" + v + "」を好みに入れました") + "（" + a.length + "件）");
     },
     prefClear: (b) => { S.prefs[b.dataset.c] = []; save(); sheet(prefSheetHtml(b.dataset.c)); },
+    synmore: (b) => { const p = b.previousElementSibling; if (p) p.classList.remove("clamp"); b.remove(); },
     revmore: (b) => { const m = b.previousElementSibling; if (m) m.hidden = false; b.remove(); },
     sortrev: (b) => { S.rev = S.rev || {}; S.rev[b.dataset.c] = !S.rev[b.dataset.c]; save(); render(); },
     fflag: (b) => { draft[b.dataset.k] = b.dataset.v || ""; $$('[data-a="fflag"][data-k="' + b.dataset.k + '"]').forEach((x) => x.classList.toggle("on", x === b)); fPreview(curCat()); },
@@ -1794,7 +2011,7 @@
     samp: (b) => { sampAt = Number(b.dataset.i) || 0; paintSamp(); },
     sampMove: (b) => { if (!SAMPLES.length) return; sampAt = (sampAt + Number(b.dataset.v) + SAMPLES.length) % SAMPLES.length; paintSamp(); },
     fclear: (b) => {
-      if (b.dataset.t === "all") { S.fa = S.fa || {}; S.fa[b.dataset.c] = {}; save(); render(); return; }
+      if (b.dataset.t === "all" || b.dataset.t === "sale") { const F = fOf(b.dataset.c, b.dataset.t); Object.keys(F).forEach((k) => delete F[k]); save(); render(); return; }
       const keepList = b.dataset.c === "karaoke" ? { list: S.f.karaoke.list || "" } : {}; S.f[b.dataset.c] = keepList; save(); render();
     },
     fdel: (b) => {
@@ -1827,6 +2044,12 @@
       /* ★★ 2026-09-21g ご指定：ジャンル・作者などで絞り込んだら「全作品」で出す。
          ランキングのほうには、ジャンル・作者以外の条件（評価・販売数・時期など）だけ残す。 */
       const content = Object.keys(clean).filter((k) => CONTENT_KEYS.indexOf(k) >= 0);
+      if (draftT === "sale") {
+        S.fs = S.fs || {}; S.fs[c] = clean; save();
+        toast(filterCount(c, clean) ? "セールを絞り込みました" : "条件をクリアしました");
+        go("#/sale/" + c);
+        return;
+      }
       if (draftT === "all" || content.length) {
         S.fa = S.fa || {}; S.fa[c] = clean;
         if (draftT !== "all") { const rest = {}; Object.keys(clean).forEach((k) => { if (CONTENT_KEYS.indexOf(k) < 0) rest[k] = clean[k]; }); S.f[c] = rest; }
@@ -1882,7 +2105,7 @@
     favrev: () => { S.favRev = !S.favRev; save(); render(); },
     allqclear: () => { S.allQ = ""; save(); render(); },
     newqclear: () => { S.newQ = ""; save(); render(); },
-    dealqclear: () => { const m = parse(location.hash).path[0]; if (S.deal && S.deal[m]) S.deal[m].q = ""; save(); render(); },
+    dealqclear: () => { if (S.deal && S.deal.sale) S.deal.sale.q = ""; save(); render(); },
     dealset: (b) => {
       const m = b.dataset.m, k = b.dataset.k, v = b.dataset.v;
       S.deal = S.deal || {}; const st = S.deal[m] = S.deal[m] || {};
@@ -1896,6 +2119,7 @@
       "・カラオケ・FANZA・国内アニメは1時間ごとの自動取得で更新されます。前回順位＝前の日までの記録、推移＝日ごとの記録です。記録が無いあいだは「—」と表示されます。<br>" +
       "・お気に入り・履歴・設定は XEVARION のアカウントで同期されます。</p><div class=\"btns\"><button class=\"btn pri\" data-a=\"closeSheet\">とじる</button></div>"),
     closeSheet: () => closeSheet(),
+    lang: (b) => { if (window.XevaI18n) XevaI18n.set(b.dataset.v); else { try { localStorage.setItem("xeva_lang_v1", b.dataset.v); } catch (e) {} } render(true); },
   };
   function curCat() { return parse(location.hash).path[1]; }
   function trimRead() { const ks = Object.keys(S.read); if (ks.length > 400) ks.slice(0, ks.length - 400).forEach((k) => delete S.read[k]); }
@@ -1908,7 +2132,7 @@
     const n = e.target.closest("[data-nid]");
     if (n) { S.read[n.dataset.nid] = 1; trimRead(); save(); }
     const tab = e.target.closest(".bnav button");
-    if (tab) { resetTab(tab.dataset.tab); const to = { home: "#/", rank: "#/rank", new: "#/new", all: "#/all", sale: "#/sale", camp: "#/camp", fav: "#/fav", me: "#/me" }[tab.dataset.tab]; if (to) go(to); }
+    if (tab) { resetTab(tab.dataset.tab); const to = { home: "#/", rank: "#/rank", new: "#/new", rec: "#/rec", all: "#/all", sale: "#/sale", fav: "#/fav", me: "#/me" }[tab.dataset.tab]; if (to) go(to); }
   });
   document.addEventListener("input", (e) => {
     const t = e.target;
@@ -1936,6 +2160,9 @@
     if (p0 !== "filter" && p0 !== "settings") render(true);
   }
   window.addEventListener("xeva:synced", reloadFromStore);
+  /* つながった・切れたら描き直す（オフラインのお知らせを出し入れする） */
+  window.addEventListener("online", () => { R.clearCache(); render(true); });
+  window.addEventListener("offline", () => render(true));
   window.addEventListener("storage", (e) => { if (e.key === KEY) reloadFromStore(); });
 
   /* ★★ 2026-09-20e PC はマウスの縦ホイールしか無いので、横に並ぶ列はホイールで横に流す（ご指定） */

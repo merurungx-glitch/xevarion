@@ -12,12 +12,14 @@ API キーもサーバーも使わず、各サイトの公開ページを読ん�
              ＋ Filmarks（国内の評価・あらすじ・レビュー・話題のアニメ）＋ AniList（表紙・トレンドの記録）
   FANZA    … FANZA同人 コミックのランキングと作品ページ（ジャンル・作者・サンプル・レビュー）
   DLsite   … DLsite 同人 マンガのランキングと一覧（ジャンル・サークル・サンプル・評価）
+  映画     … 映画.com の国内・全米ランキング（作品ページ）＋ Box Office Mojo（国内の興行収入）
+  特集     … DMM TV の「ご褒美版」などの特別版アニメ＋DMM TV のアニメランキング（公開データ）
   ★ FANZA は日本からしか見られない → PC で動かす（run-pc.bat / register-task.bat）
 
 使いかた
-  python collect.py --out <フォルダ> [--only karaoke,music,anime,fanza,dlsite,danime,fbooks,fvideo]
+  python collect.py --out <フォルダ> [--only karaoke,music,anime,fanza,dlsite,danime,fbooks,fvideo,movie,special]
 """
-import json, os, re, sys, time, html, unicodedata, datetime, urllib.request, urllib.parse, http.cookiejar
+import json, os, re, sys, time, html, unicodedata, datetime, urllib.request, urllib.parse, http.cookiejar, zlib
 
 UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0 Safari/537.36"
 JST = datetime.timezone(datetime.timedelta(hours=9))
@@ -173,7 +175,47 @@ def it_view(x):
     return {"img": str(x.get("artworkUrl100", "")).replace("100x100bb", "600x600bb"),
             "rel": str(x.get("releaseDate", ""))[:10], "g": x.get("primaryGenreName", ""),
             "url": x.get("trackViewUrl", ""), "al": x.get("collectionName", ""),
-            "aid": str(x.get("artistId", "")), "tid": str(x.get("trackId", ""))}
+            "aid": str(x.get("artistId", "")), "tid": str(x.get("trackId", "")), "ms": x.get("trackTimeMillis") or 0}
+
+
+def mmss(ms):
+    """ミリ秒 → 「3:45」"""
+    try:
+        sec = int(round(int(ms) / 1000))
+    except Exception:
+        return ""
+    return "%d:%02d" % (sec // 60, sec % 60) if sec > 0 else ""
+
+
+def it_lengths(songs, budget_name, dflt):
+    """★★ 2026-09-22 ご指定「長さも記載」。曲の長さが無い曲を、iTunes の lookup でまとめて埋める（1回で150曲）。
+       trackId は控え（tid）か、Apple Music のリンク（…?i=数字）から取る。"""
+    need = {}
+    for k, so in songs.items():
+        if so.get("ms"):
+            continue
+        tid = so.get("tid") or ""
+        if not tid:
+            m = re.search(r"[?&]i=(\d+)", so.get("url") or "")
+            tid = m.group(1) if m else ""
+        if tid:
+            need[tid] = k
+    ids = list(need)
+    b = budget(budget_name, dflt)
+    for i in range(0, len(ids), 150):
+        if b <= 0:
+            break
+        b -= 1
+        try:
+            j = jget(IT + "/lookup?country=JP&id=" + ",".join(ids[i:i + 150]))
+        except Exception as e:
+            log("iTunes 長さ 失敗", e)
+            break
+        for x in j.get("results", []):
+            k = need.get(str(x.get("trackId")))
+            if k and x.get("trackTimeMillis"):
+                songs[k]["ms"] = x["trackTimeMillis"]
+        time.sleep(3.2)
 
 
 # ★★ さがした結果は1か所にためる。カラオケの曲と音楽ランキングの曲はかなり重なるので、
@@ -307,7 +349,7 @@ def karaoke():
         if got is None:
             break                                   # 403/429＝叩きすぎ。次回に回す
         if got:
-            so.update({k: v for k, v in got.items() if k in ("img", "rel", "g", "url", "al")})
+            so.update({k: v for k, v in got.items() if k in ("img", "rel", "g", "url", "al", "tid", "ms")})
             so["itArtist"] = got.get("aid", "")
             so.pop("noart", None)
         else:
@@ -346,6 +388,7 @@ def karaoke():
         time.sleep(1.3)
     if mb_busy:
         log("MusicBrainz は混んでいたので次回に回します")
+    it_lengths(songs, "KARA_LEN", 3)
     wr("cache/karaoke-songs.json", songs)
     wr("cache/karaoke-artists.json", artists)
 
@@ -354,6 +397,7 @@ def karaoke():
         ar = artists.get(s.get("ac", ""), {})
         return {"id": rn, "title": s.get("t", ""), "artist": s.get("a", ""), "ac": s.get("ac", ""), "image": s.get("img") or None,
                 "releaseDate": s.get("rel", ""), "genre": s.get("g", ""), "album": s.get("al", ""), "appleUrl": s.get("url", ""),
+                "length": mmss(s.get("ms")),
                 "unit": {"Group": "グループ", "Person": "ソロ"}.get(ar.get("type"), ""),
                 "vocal": {"male": "男性", "female": "女性"}.get(ar.get("gender"), "")}
     for k, items in lists.items():
@@ -451,9 +495,11 @@ def parse_fz_detail(src):
         origin = theme
     return {"releaseDate": text(info.get("配信開始日", ""))[:10].replace("/", "-"), "author": text(info.get("作者", "")) or text(info.get("作家", "")),
             "authorId": au.group(1) if au else "", "kind": text(info.get("作品形式", "")), "volume": text(info.get("ページ数", "")) or text(info.get("動画本数", "")),
+            "size": text(info.get("ファイル容量", "")), "illust": text(info.get("イラスト", "")),
+            "length": text(info.get("収録時間", "")) or text(info.get("再生時間", "")),
             "theme": theme, "origin": origin, "voice": text(info.get("声優", "")), "scenario": text(info.get("シナリオ", "")),
             "genres": genres, "series": text(series) if sid else "", "seriesId": sid.group(1) if sid else "",
-            "samples": samples[:8], "reviews": reviews, "reviewers": reviewers[:10], "dv": 2}
+            "samples": samples[:30], "reviews": reviews, "reviewers": reviewers[:10], "dv": 3}
 
 
 # ★★ 2026-09-21c 同人アニメは FANZA から取る（ご指定）。
@@ -546,7 +592,7 @@ def danime():
     for cid in order:
         if b <= 0 or miss >= 3:
             break
-        if cid in detail and detail[cid].get("genres") and detail[cid].get("dv") == 2:
+        if cid in detail and detail[cid].get("genres") and detail[cid].get("dv") == 3:
             continue
         b -= 1
         try:
@@ -571,7 +617,7 @@ def danime():
         for e in L.get("entries", []):
             v = index.get(e["id"])
             if v:
-                for k2 in ("genres", "releaseDate", "author", "authorId", "series", "seriesId", "volume", "theme", "origin", "voice", "scenario", "samples", "reviews"):
+                for k2 in ("genres", "releaseDate", "author", "authorId", "series", "seriesId", "volume", "theme", "origin", "voice", "scenario", "samples", "reviews", "size", "illust", "length"):
                     if v.get(k2) and not e.get(k2):
                         e[k2] = v[k2]
         wr(f, L)
@@ -609,7 +655,7 @@ def fanza():
     for cid in seen:
         if b <= 0:
             break
-        if cid in detail and detail[cid].get("dv") == 2:
+        if cid in detail and detail[cid].get("dv") == 3:
             continue
         b -= 1
         try:
@@ -851,8 +897,13 @@ def parse_mono_detail(src):
             genres.append(g)
     se = re.search(r'article=series/id=(\d+)/"[^>]*>([^<]{1,40})</a>', src)
     au = re.search(r'article=author/id=\d+/"[^>]*>([^<]{1,30})</a>', src)
+    # ★★ 2026-09-22 ご指定「長さ・ページ数も」。アニメは「収録時間：20分」、本は「ページ数」
+    flat = text(re.sub(r"<script[\s\S]*?</script>|<style[\s\S]*?</style>", " ", src))
+    ln = re.search(r"収録時間[：:]\s*(\d+\s*分)", flat)
+    pg = re.search(r"(?:ページ数|頁数)[：:]\s*(\d+)", flat)
     return {"genres": genres[:14], "series": text(se.group(2)) if se else "", "seriesId": se.group(1) if se else "",
-            "author": text(au.group(1)) if au else ""}
+            "author": text(au.group(1)) if au else "", "length": ln.group(1).replace(" ", "") if ln else "",
+            "volume": (pg.group(1) + "ページ") if pg else "", "lv": 2}
 
 
 def mono_one(cat):
@@ -885,7 +936,7 @@ def mono_one(cat):
         for cid, v in index.items():
             if b <= 0 or miss >= 3:
                 break
-            if cid in detail:
+            if cid in detail and detail[cid].get("lv") == 2:
                 continue
             b -= 1
             try:
@@ -968,7 +1019,7 @@ def dl_fields(b, pid):
             "priceN": pn, "listPrice": lp, "off": offv,
             "releaseDate": ("%s-%s-%s" % date.groups()) if date else "",
             "kind": {"MNG": "マンガ", "ICG": "CG集", "SOU": "ボイス", "MOV": "同人アニメ", "ACN": "ゲーム"}.get(kind.group(1) if kind else "", ""),
-            "genres": genres[:12], "samples": samples[:8], "url": DL + "/work/=/product_id/%s.html" % pid}
+            "genres": genres[:12], "samples": samples[:30], "url": DL + "/work/=/product_id/%s.html" % pid}
 
 
 def parse_dl_rank(src, want="MNG"):
@@ -1005,6 +1056,7 @@ def parse_dl_detail(src):
     date = re.search(r"販売日\s*(\d{4})年(\d{2})月(\d{2})日", flat)
     au = re.search(r"(?:作者|作家|シナリオ)\s*([^\s/]{1,20})", flat)
     pages = re.search(r"ページ数[／/]?[^\d]{0,12}([\d,]+)\s*ページ", flat)
+    size = re.search(r"ファイル容量\s*(?:総計)?\s*([\d.,]+\s*[KMGT]B)", flat)
     reviews = []
     for m in re.finditer(r'class="[^"]*(?:review_text|user_review_text|review-text)[^"]*"[^>]*>([\s\S]{10,600}?)</', src):
         t = text(m.group(1))
@@ -1013,7 +1065,8 @@ def parse_dl_detail(src):
         if len(reviews) >= 3:
             break
     return {"genres": genres[:14], "releaseDate": ("%s-%s-%s" % date.groups()) if date else "",
-            "author": au.group(1) if au else "", "volume": (pages.group(1) + "ページ") if pages else "", "reviews": reviews}
+            "author": au.group(1) if au else "", "volume": (pages.group(1) + "ページ") if pages else "", "reviews": reviews,
+            "size": size.group(1).replace(" ", "") if size else ""}
 
 
 def dlsite(cat="dlsite"):
@@ -1096,7 +1149,7 @@ def dlsite(cat="dlsite"):
             for e in L.get("entries", []):
                 v = index.get(e["id"])
                 if v:
-                    for k2 in ("genres", "releaseDate", "author", "authorId", "volume", "reviews"):
+                    for k2 in ("genres", "releaseDate", "author", "authorId", "volume", "reviews", "size"):
                         if v.get(k2) and not e.get(k2):
                             e[k2] = v[k2]
             wr(f, L)
@@ -1180,7 +1233,7 @@ def music():
         if got:
             if not so.get("image"):
                 so["image"] = got["img"]
-            so.update({k: got[k] for k in ("rel", "g", "url", "al", "aid2", "tid") if k in got})
+            so.update({k: got[k] for k in ("rel", "g", "url", "al", "aid2", "tid", "ms") if k in got})
             so["itArtist"] = got.get("aid", "")
             so.pop("noart", None)
         else:
@@ -1205,8 +1258,9 @@ def music():
                 continue
             v = it_view(x)
             songs[k] = {"title": x.get("trackName", ""), "artist": x.get("artistName", ""), "image": v["img"],
-                        "rel": v["rel"], "g": v["g"], "url": v["url"], "al": v["al"], "itArtist": aid, "off": 1}
+                        "rel": v["rel"], "g": v["g"], "url": v["url"], "al": v["al"], "itArtist": aid, "off": 1, "tid": v["tid"], "ms": v["ms"]}
         time.sleep(3.2)
+    it_lengths(songs, "MUSIC_LEN", 3)
     wr("cache/music-songs.json", songs)
     wr("cache/music-artists.json", seen)
 
@@ -1214,7 +1268,7 @@ def music():
         so = songs.get(sid, {})
         return {"id": sid, "title": so.get("title", ""), "artist": so.get("artist", ""), "image": so.get("image") or None,
                 "releaseDate": so.get("rel", ""), "genre": so.get("g", ""), "album": so.get("al", ""),
-                "appleUrl": so.get("url", ""), "offchart": bool(so.get("off"))}
+                "appleUrl": so.get("url", ""), "offchart": bool(so.get("off")), "length": mmss(so.get("ms"))}
     for k, items in lists.items():
         ids = [v["id"] for v in items]
         record("music_" + k, ids, [dict(view(i), rank=n + 1, point=items[n].get("point")) for n, i in enumerate(ids)],
@@ -1290,23 +1344,27 @@ def annict_detail(aid):
 
 
 def parse_fm_cassettes(src):
+    """★★ 2026-09-22 ご指定「Filmarks の作品の画像が違うものが多い」。
+       前は題名の位置から<b>前後4000文字</b>を見て最初の絵・点数を拾っていたので、
+       <b>1つ前の作品のポスター</b>や配信サービスのロゴを拾っていた（点数・リンクも同じようにずれていた）。
+       1作品＝ <div class="js-cassette" …> ～ 次の js-cassette の手前、の中だけを見る。
+       ポスターは p-content-cassette__jacket の中の絵だけ。"""
     out = []
-    for b in re.split(r'<div class="p-content-cassette__', src):
+    for b in re.split(r'<div class="js-cassette"', src)[1:]:
         t = re.search(r'p-content-cassette__title">([\s\S]*?)</h3>', b)
         if not t:
             continue
-        seg = b
-        idx = src.find(b)
-        seg = src[max(0, idx - 4000): idx + 4000]
-        url = re.search(r'href="(/animes/\d+/\d+)"', seg)
-        score = re.search(r'c-rating__score">([\d.]+)<', seg)
-        date = re.search(r'公開日：</h4><span>([^<]+)</span>', seg)
-        comp = re.findall(r'href="/list-anime/company/(\d+)">([^<]+)</a>', seg)
-        syn = re.search(r'p-content-cassette__synopsis-desc-text">([\s\S]*?)</p>', seg)
-        img = re.search(r'<img[^>]+src="(https://[^"]+?\.(?:jpg|png))"', seg)
-        out.append({"title": text(t.group(1)), "url": (FM + url.group(1)) if url else "", "score": float(score.group(1)) if score else None,
+        url = re.search(r"onClickDetailLink\(\$event, &#39;(/animes/\d+/\d+)&#39;\)", b) or re.search(r'href="(/animes/\d+/\d+)"', b)
+        score = re.search(r'c-rating__score">([\d.]+)<', b)
+        date = re.search(r'公開日：</h4>\s*<span>([^<]+)</span>', b)
+        dur = re.search(r'(?:再生時間|上映時間)：</h4>\s*<span>([^<]+)</span>', b)
+        comp = re.findall(r'href="/list-anime/company/(\d+)">([^<]+)</a>', b)
+        syn = re.search(r'p-content-cassette__synopsis-desc-text">([\s\S]*?)</p>', b)
+        jk = re.search(r'p-content-cassette__jacket[\s\S]*?<img[^>]+src="(https://[^"]+?\.(?:jpg|jpeg|png|webp))"', b)
+        img = jk.group(1) if jk and "noimage" not in jk.group(1) else None
+        out.append({"title": text(t.group(1)), "url": (FM + url.group(1)) if url else "", "score": float(score.group(1)) if score and float(score.group(1)) > 0 else None,
                     "date": text(date.group(1)) if date else "", "studios": [text(c[1]) for c in comp], "studioIds": [c[0] for c in comp],
-                    "synopsis": text(syn.group(1))[:300] if syn else "", "image": img.group(1) if img else None})
+                    "synopsis": text(syn.group(1))[:300] if syn else "", "image": img, "duration": text(dur.group(1)) if dur else ""})
     return out
 
 
@@ -1488,20 +1546,35 @@ def anime():
             if "混雑" in str(e):
                 break
         time.sleep(2.1)
+    # ★★ 2026-09-22 ご指定「話数構成も」。結びつけずみの作品の話数と1話の長さを、50件ずつまとめて聞く
+    need = [aid for aid, m in amap.items() if m.get("id") and "ep" not in m]
+    for i in range(0, min(len(need), 150), 50):
+        grp = need[i:i + 50]
+        try:
+            d = anilist('query($ids:[Int]){Page(perPage:50){media(id_in:$ids,type:ANIME){id episodes duration}}}', {"ids": [int(amap[a]["id"]) for a in grp]})
+            got = {str(m["id"]): m for m in d["Page"]["media"]}
+            for a in grp:
+                m = got.get(str(amap[a]["id"])) or {}
+                amap[a]["ep"] = m.get("episodes")
+                amap[a]["dur"] = m.get("duration")
+        except Exception as e:
+            log("AniList 話数 失敗", e)
+            break
+        time.sleep(2.1)
     wr("cache/anime-map.json", amap)
     # Filmarks（国内の評価・あらすじ・レビュー）
     b = budget("FM", 25)
     for aid in uniq:
         if b <= 0:
             break
-        if aid in fmc and (fmc[aid].get("none") or fmc[aid].get("rv") == 2):
+        if aid in fmc and (fmc[aid].get("none") or fmc[aid].get("rv") == 3):
             continue
         b -= 1
         try:
             hit = fm_search(titles[aid]["title"])
             if hit:
                 hit["reviews"] = fm_reviews(hit["url"]) if hit.get("url") else []
-                hit["rv"] = 2
+                hit["rv"] = 3
                 fmc[aid] = hit
             else:
                 fmc[aid] = {"none": 1}
@@ -1525,8 +1598,9 @@ def anime():
                 "genres": [GENRE_JA.get(g, g) for g in (m.get("genres") or [])], "format": m.get("format") or "", "status": m.get("status") or "",
                 "anilist": bool(m.get("id")), "director": dd.get("director", ""), "studio": dd.get("studio", "") or (fm.get("studios") or [""])[0],
                 "cast": dd.get("cast", [])[:12], "staff": dd.get("staff", [])[:12],
-                "fmScore": fm.get("score"), "fmUrl": fm.get("url", ""), "synopsis": fm.get("synopsis", ""), "reviews": (fm.get("reviews") or [])[:12]}
-    index = {x["id"]: x for x in rd("index/anime.json", []) if isinstance(x, dict)}
+                "fmScore": fm.get("score"), "fmUrl": fm.get("url", ""), "synopsis": fm.get("synopsis", ""), "reviews": (fm.get("reviews") or [])[:12],
+                "episodes": m.get("ep"), "duration": ("%d分" % m["dur"]) if m.get("dur") else fm.get("duration", "")}
+    index = {x["id"]: x for x in rd("index/anime.json", []) if isinstance(x, dict) and not str(x.get("id", "")).startswith("fm")}
     for k, works in lists.items():
         ents, ids = [], []
         for w in works:
@@ -1540,7 +1614,7 @@ def anime():
         ok = True
     # Filmarks の「今話題のアニメ」（国内の評価つき）
     try:
-        cs = parse_fm_cassettes(http_get(FM + "/list-anime/trend"))
+        cs = []   # ★★ 2026-09-22c Filmarks のランキングはやめた（ご指定）。あらすじ・レビューは作品ごとの検索でだけ使う
         ents, ids = [], []
         for c in cs[:60]:
             wid = "fm" + re.sub(r"\D", "_", c["url"].replace(FM + "/animes/", "")) if c["url"] else "fm" + str(len(ids))
@@ -1549,7 +1623,7 @@ def anime():
             ids.append(wid)
             ents.append({"id": wid, "rank": len(ids), "title": c["title"], "image": c["image"], "fmScore": c["score"], "fmUrl": c["url"],
                          "synopsis": c["synopsis"], "studio": (c["studios"] or [""])[0], "genres": [], "seasonText": c["date"][:7].replace("-", "/"),
-                         "releaseDate": c["date"], "media": "", "watchers": 0, "anilist": False})
+                         "releaseDate": c["date"], "media": "", "watchers": 0, "anilist": False, "duration": c.get("duration", "")})
             index[wid] = ents[-1]
         if ents:
             record("anime_fm-trend", ids, ents, {"source": FM + "/list-anime/trend"})
@@ -1583,6 +1657,442 @@ def anime():
                 e["yomi"] = v["yomi"]; ch = True
         if ch:
             wr("lists/" + f, L)
+    return ok
+
+
+# ══════════ 映画（ご指定「映画の興行収入ランキング・メインは国内」） ══════════
+# ★★ 2026-09-22
+#   国内 … 映画.com の「国内映画ランキング」（週末の観客動員＝興行通信社調べ。先週の順位・公開館数・上映週つき）
+#   国内の興行収入 … Box Office Mojo の日本の週末・年間（金額は米ドル換算で公開されている）
+#   全米 … 映画.com の「全米映画ランキング」（週末の興収・累計の興収つき）
+#   作品の中身（上映時間・監督・出演・あらすじ・評価）は映画.com の作品ページの構造化データから。
+EIGA = "https://eiga.com"
+MOJO = "https://www.boxofficemojo.com"
+MOJO_DIST = {"Toho": "東宝", "Shochiku": "松竹", "Toei": "東映", "Warner": "ワーナー", "Sony": "ソニー", "Disney": "ディズニー",
+             "Universal": "ユニバーサル", "Aniplex": "アニプレックス", "Kadokawa": "KADOKAWA", "Gaga": "ギャガ", "Happinet": "ハピネット",
+             "Avex": "エイベックス", "Towa": "東和", "Paramount": "パラマウント", "Bitters": "ビターズ", "Pony": "ポニー", "Nikkatsu": "日活",
+             "Klockworx": "クロックワークス", "Showgate": "ショウゲート", "Kino": "キノ", "Asmik": "アスミック", "Shout": "ショウゲート",
+             "Bandai": "バンダイ", "Kinoshita": "木下", "Tohokushinsha": "東北新社", "Twin": "ツイン", "K2": "K2", "Culture": "カルチュア"}
+
+
+def parse_eiga_rank(src, us=False):
+    out = []
+    for m in re.finditer(r'<th abbr="(\d+)位">([\s\S]*?)</tr>', src):
+        rank, b = int(m.group(1)), m.group(2)
+        mid = re.search(r'href="/movie/(\d+)/"', b)
+        if not mid:
+            continue
+        lw = re.search(r'last-week (\w+)">([^<]*)<', b)
+        img = re.search(r'<img[^>]+src="(https://media\.eiga\.com/[^"]+)"', b)
+        tt = re.search(r'<h2 class="title">\s*<a[^>]*>([\s\S]*?)</a>', b)
+        raw = tt.group(1) if tt else ""
+        en, ja = "", text(raw)
+        if us and "<br" in raw:
+            en = text(raw.split("<br")[0])
+            j2 = re.search(r"「([\s\S]+)」", text(raw))
+            ja = j2.group(1) if j2 else en
+        dist = re.search(r"配給：([^<]+)</p>", b)
+        dist_us = re.search(r"</h2>\s*<p>([\s\S]*?)</p>", b) if us else None
+        inc = re.findall(r'<span class="income">([\d,]+)</span>', b)
+        # ★ 同じ映画が国内と全米の両方に出るので、全米は別の id にする（混ぜると配給や題名が上書きされる）
+        out.append({"id": ("eu" if us else "e") + mid.group(1), "eid": mid.group(1), "title": ja, "en": en, "image": img.group(1).replace("/160.jpg", ".jpg") if img else None,
+                    "lw": None if (not lw or lw.group(1) == "new" or not lw.group(2).strip().isdigit()) else int(lw.group(2)),
+                    "isNew": bool(lw and lw.group(1) == "new"),
+                    "dist": text(dist.group(1)) if dist else (text(dist_us.group(1)) if dist_us else ""),
+                    "screens": num(re.search(r'class="screen">([\d,]+)<', b).group(1)) if re.search(r'class="screen">([\d,]+)<', b) else None,
+                    "weeks": num(re.search(r'class="weeks">(\d+)<', b).group(1)) if re.search(r'class="weeks">(\d+)<', b) else None,
+                    "weekendGross": ("$" + inc[0]) if us and len(inc) > 0 else "", "totalGross": ("$" + inc[1]) if us and len(inc) > 1 else "",
+                    "market": "us" if us else "jp", "url": EIGA + "/movie/" + mid.group(1) + "/", "rank": rank})
+    return out
+
+
+def parse_eiga_detail(src):
+    """作品ページの構造化データ（JSON-LD）と「2026年製作／145分／G／日本」の行"""
+    d = {"dv": 1}
+    for m in re.finditer(r'<script type="application/ld\+json">([\s\S]*?)</script>', src):
+        try:
+            j = json.loads(m.group(1))
+        except Exception:
+            continue
+        for o in (j if isinstance(j, list) else [j]):
+            if not isinstance(o, dict) or o.get("@type") != "Movie":
+                continue
+            d["director"] = "・".join(p.get("name", "") for p in (o.get("director") or [])[:3] if isinstance(p, dict))
+            d["cast"] = [{"n": p.get("name", "")} for p in (o.get("actor") or [])[:12] if isinstance(p, dict)]
+            d["origin"] = "・".join(p.get("name", "") for p in (o.get("author") or [])[:2] if isinstance(p, dict))
+            d["synopsis"] = str(o.get("description") or "")[:400]
+            d["releaseDate"] = str(o.get("datePublished") or "")[:10]
+            g = o.get("genre")
+            d["genres"] = [x for x in (g if isinstance(g, list) else [g] if g else []) if x and x.strip("-－ ")][:6]
+            ar = o.get("aggregateRating") or {}
+            if ar.get("ratingValue"):
+                d["rating"] = float(ar["ratingValue"])
+                d["votes"] = num(str(ar.get("ratingCount") or ar.get("reviewCount") or 0))
+            if o.get("image") and not d.get("image"):
+                d["image"] = o["image"] if isinstance(o["image"], str) else (o["image"] or {}).get("url")
+    line = re.search(r'<p class="data">\s*([\s\S]*?)</p>', src)
+    if line:
+        t = text(line.group(1).replace("<br/>", "／").replace("<br>", "／"))
+        mm = re.search(r"(\d{4})年製作／(\d+)分(?:／([^／]+))?／([^／]+)", t)
+        if mm:
+            d["year"], d["length"] = int(mm.group(1)), mm.group(2) + "分"
+            d["certif"], d["country"] = (mm.group(3) or "").strip(), mm.group(4).strip()
+        ds = re.search(r"配給：([^／]+)", t)
+        if ds:
+            d["dist"] = ds.group(1).strip()
+    if not d.get("genres"):
+        d["genres"] = [text(x) for x in re.findall(r'href="/search/[^"]*genre[^"]*"[^>]*>([^<]{1,16})</a>', src)][:6]
+    return d
+
+
+def mojo_table(src):
+    """Box Office Mojo の表 → [{列名: 値, "_rl": release id}]"""
+    rows = re.findall(r"<tr>([\s\S]*?)</tr>", src)
+    if not rows:
+        return []
+    head = [text(c) for c in re.findall(r"<th[^>]*>([\s\S]*?)</th>", rows[0])]
+    out = []
+    for r in rows[1:]:
+        cells = [text(c) for c in re.findall(r"<td[^>]*>([\s\S]*?)</td>", r)]
+        if len(cells) < 3:
+            continue
+        o = dict(zip(head, cells))
+        rl = re.search(r'href="/release/(rl\d+)/', r)
+        o["_rl"] = rl.group(1) if rl else ""
+        out.append(o)
+    return out
+
+
+def dist_ok(en, ja):
+    en, ja = str(en or ""), str(ja or "")
+    return any(k.lower() in en.lower() and v in ja for k, v in MOJO_DIST.items())
+
+
+def movie():
+    ok = False
+    index = {x["id"]: x for x in rd("index/movie.json", []) if isinstance(x, dict)}
+    det = rd("cache/movie-detail.json", {})
+    lists = {}
+    for key, path, us in (("jp-weekend", "/ranking/jp/", False), ("us-weekend", "/ranking/us/", True)):
+        try:
+            lists[key] = parse_eiga_rank(http_get(EIGA + path), us)
+            log("映画", key, len(lists[key]))
+        except Exception as e:
+            log("映画 取得失敗", key, e)
+        time.sleep(1.2)
+    # 作品ページ（上映時間・監督・出演・あらすじ・評価）… 一度読んだら 14日は読み直さない
+    b = budget("MOVIE_DETAIL", 40)
+    for key in ("jp-weekend", "us-weekend"):
+        for v in lists.get(key, []):
+            if b <= 0:
+                break
+            d0 = det.get(v["id"]) or {}
+            if d0.get("d") and d0["d"] >= (NOW - datetime.timedelta(days=14)).strftime("%Y-%m-%d"):
+                continue
+            b -= 1
+            try:
+                d1 = parse_eiga_detail(http_get(v["url"]))
+                d1["d"] = TODAY
+                det[v["id"]] = d1
+            except Exception as e:
+                log("映画 作品ページ失敗", v["id"], e)
+            time.sleep(1.2)
+    wr("cache/movie-detail.json", det)
+
+    def full(v):
+        d = dict(det.get(v["id"]) or {})
+        d.pop("d", None)
+        x = dict(index.get(v["id"], {}), **{k: val for k, val in d.items() if val})
+        x.update({k: val for k, val in v.items() if val is not None and val != ""})
+        if not x.get("image") and d.get("image"):
+            x["image"] = d["image"]
+        return x
+    for key, items in lists.items():
+        ents = [full(v) for v in items]
+        for e in ents:
+            index[e["id"]] = e
+        if ents:
+            record("movie_" + key, [e["id"] for e in ents], ents, {"source": EIGA + ("/ranking/jp/" if key.startswith("jp") else "/ranking/us/")})
+            ok = True
+    # 国内の興行収入（Box Office Mojo）… 映画.com の作品と「上映週・配給」で結びつける
+    jp = lists.get("jp-weekend", [])
+    try:
+        by = http_get(MOJO + "/weekend/by-year/%d/?area=JP" % NOW.year)
+        wk = re.search(r'href="(/weekend/\d{4}W\d+/\?area=JP)', by)
+        rows = mojo_table(http_get(MOJO + wk.group(1))) if wk else []
+        time.sleep(1.2)
+        ents = []
+        for o in rows:
+            wks = num(re.sub(r"\D", "", o.get("Weeks", "")) or 0)
+            cand = [v for v in jp if v.get("weeks") and abs(v["weeks"] - wks) <= 1 and dist_ok(o.get("Distributor"), v.get("dist"))]
+            v = cand[0] if len(cand) >= 1 else None
+            base = full(v) if v else {"id": "bo" + o["_rl"], "title": o.get("Release", ""), "en": o.get("Release", ""), "market": "jp", "dist": o.get("Distributor", ""),
+                                       "url": MOJO + "/release/" + o["_rl"] + "/"}
+            e = dict(base, weekendGross=o.get("Gross", ""), totalGross=o.get("Total Gross", ""), weeks=wks or base.get("weeks"), boUrl=MOJO + "/release/" + o["_rl"] + "/")
+            # ★ 先週の順位は Box Office Mojo の表のもの（映画.com の順位とは数えかたが違う）
+            lwv = re.sub(r"\D", "", o.get("LW", ""))
+            e["lw"] = int(lwv) if lwv else None
+            if any(x["id"] == e["id"] for x in ents):
+                continue
+            ents.append(e)
+            index[e["id"]] = dict(index.get(e["id"], {}), **e)
+        if ents:
+            record("movie_bo-weekend", [e["id"] for e in ents], ents, {"source": MOJO + wk.group(1), "note": "金額は米ドル換算（Box Office Mojo）"})
+            log("映画 国内興収 週末", len(ents))
+            ok = True
+    except Exception as e:
+        log("映画 国内興収 失敗", e)
+    try:
+        rows = mojo_table(http_get(MOJO + "/year/%d/?area=JP" % NOW.year))
+        time.sleep(1.2)
+        # 公開日（"Jul 18"）＋配給で、これまでに取った映画.com の作品と結びつける
+        mon = {m: i + 1 for i, m in enumerate("Jan Feb Mar Apr May Jun Jul Aug Sep Oct Nov Dec".split())}
+        ents = []
+        for o in rows[:100]:
+            rd_ = re.match(r"([A-Z][a-z]{2})\s+(\d+)", o.get("Release Date", ""))
+            date = "%d-%02d-%02d" % (NOW.year, mon.get(rd_.group(1), 1), int(rd_.group(2))) if rd_ else ""
+            v = next((x for x in index.values() if x.get("market") == "jp" and x.get("releaseDate") == date and dist_ok(o.get("Distributor"), x.get("dist"))), None) if date else None
+            base = dict(v) if v else {"id": "bo" + o["_rl"], "title": o.get("Release", ""), "en": o.get("Release", ""), "market": "jp", "dist": o.get("Distributor", ""),
+                                       "url": MOJO + "/release/" + o["_rl"] + "/", "releaseDate": date}
+            rt = re.match(r"(\d+)\s*hr\s*(\d+)?", o.get("Running Time", ""))
+            # ★ 年間の表は「Gross」と「Total Gross」の2列。更新が遅れている列があるので、大きいほうを使う
+            gs = [x for x in (o.get("Gross", ""), o.get("Total Gross", "")) if re.search(r"\d", x or "")]
+            e = dict(base, yearGross=max(gs, key=lambda x: int(re.sub(r"\D", "", x))) if gs else "", boUrl=MOJO + "/release/" + o["_rl"] + "/")
+            e.pop("lw", None)          # 年間の表に「先週」は無い
+            if rt and not e.get("length"):
+                e["length"] = "%d分" % (int(rt.group(1)) * 60 + int(rt.group(2) or 0))
+            if o.get("Genre") and not e.get("genres"):
+                e["genres"] = [o["Genre"]]
+            if any(x["id"] == e["id"] for x in ents):
+                continue
+            ents.append(e)
+            index[e["id"]] = dict(index.get(e["id"], {}), **e)
+        if ents:
+            record("movie_bo-year", [e["id"] for e in ents], ents, {"source": MOJO + "/year/%d/?area=JP" % NOW.year, "note": "今年公開・国内の興行収入（米ドル換算・Box Office Mojo）"})
+            log("映画 国内興収 年間", len(ents))
+            ok = True
+    except Exception as e:
+        log("映画 国内興収 年間 失敗", e)
+    # ★★ 2026-09-22b ご指定「映画の興行収入は歴代ランキングも」。
+    #   興行通信社の「歴代興収ベスト100」（億円・日本語の題名・配給・公開日・邦画の印）。
+    #   ポスターと上映時間などは、映画.com の検索で作品を見つけて作品ページから（1回20本まで・見つけたら覚える）。
+    try:
+        src = http_get("https://www.kogyotsushin.com/archives/alltime/")
+        emap = rd("cache/movie-eiga-map.json", {})
+        b = budget("MOVIE_ALLTIME", 20)
+        ents = []
+        for m in re.finditer(r'<tr[^>]*>\s*<th scope="row">(\d+)</th>\s*<td class="t[^"]*">([\s\S]*?)</td>\s*<td>([\s\S]*?)</td>\s*<td>([\d.,]+)</td>\s*<td>([\d/]+)</td>\s*<td>([\s\S]*?)</td>', src):
+            rank, title, dist, oku, date, jp = int(m.group(1)), text(m.group(2)), text(m.group(3)), m.group(4), m.group(5).replace("/", "-"), "*" in m.group(6)
+            key = norm(title) + "|" + date[:4]
+            eid = emap.get(key)
+            if eid is None and b > 0:
+                b -= 1
+                try:
+                    res = http_get(EIGA + "/search/" + urllib.parse.quote(title) + "/")
+                    cands = [(mm.group(1), norm(text(mm.group(2)))) for mm in re.finditer(r'href="/movie/(\d+)/"[^>]*>([\s\S]{0,200}?)</a>', res)]
+                    nt = norm(title)
+                    hit = next((c for c in cands if c[1] == nt), None) or next((c for c in cands if c[1] == nt + "（" + date[:4] + "）" or c[1] == nt + "(" + date[:4] + ")"), None)
+                    eid = hit[0] if hit else ""
+                    emap[key] = eid
+                    if eid and ("e" + eid) not in det:
+                        time.sleep(1.2)
+                        d1 = parse_eiga_detail(http_get(EIGA + "/movie/" + eid + "/"))
+                        d1["d"] = TODAY
+                        det["e" + eid] = d1
+                except Exception as e:
+                    log("映画 歴代 検索失敗", title, e)
+                time.sleep(1.2)
+            base = full({"id": "e" + eid}) if eid else {}
+            e = dict(base, id=("e" + eid) if eid else "at" + str(zlib.crc32(key.encode("utf-8"))), title=title, dist=dist, allGross=oku + "億円",
+                     releaseDate=date, country=base.get("country") or ("日本" if jp else "海外"), market="jp", rank=rank,
+                     url=(EIGA + "/movie/" + eid + "/") if eid else "https://www.kogyotsushin.com/archives/alltime/")
+            if eid and not e.get("image"):
+                e["image"] = (det.get("e" + eid) or {}).get("image")
+            e.pop("lw", None)
+            ents.append(e)
+            index[e["id"]] = dict(index.get(e["id"], {}), **e)
+        wr("cache/movie-eiga-map.json", emap)
+        wr("cache/movie-detail.json", det)
+        if ents:
+            record("movie_bo-all", [e["id"] for e in ents], ents, {"source": "https://www.kogyotsushin.com/archives/alltime/", "note": "歴代の国内興行収入（億円・興行通信社調べ）"})
+            log("映画 歴代興収", len(ents))
+            ok = True
+    except Exception as e:
+        log("映画 歴代興収 失敗", e)
+    wr("index/movie.json", list(index.values())[-INDEX_MAX:])
+    return ok
+
+
+# ══════════ ご褒美版などの特別版アニメ（dアニメストア・DMM TV） ══════════
+# ★★ 2026-09-22 ご指定「ご褒美バージョンなどがあるアニメの DMM TV や dアニメストアなどの特集ページ」。
+#   dアニメストア … サイトの検索が読む公開 JSON（rest/WS000105）。鍵はいらない。
+#   DMM TV      … サイトが読む公開の GraphQL（searchVideos）。鍵はいらない。
+#   どちらも「ご褒美・解放・謎の光なし…」を検索して、題名に特別版の印がある作品だけを残す。
+#   ★ DMM TV の「オリエア版」は<b>放送と同じ版</b>（＝特別版ではない）なので入れない。
+SP_WORDS = ["ご褒美", "解放版", "謎の光", "湯気", "無修正", "限界突破", "完全版", "ディレクターズカット"]
+# ★ 「ご褒美版」のような<b>サービス（お色気）版</b>の印。DMM TV はアニメ以外（実写の完全版・ノーカットの舞台など）が
+#   たくさん混ざるので、この印だけにする。dアニメストアはアニメだけの店なので「完全版・ディレクターズカット」も入れる。
+SP_FAN = re.compile(r"ご褒美|解放版|Hネルギー|謎の光|光なし|湯気|限界突破|解禁版|無修正\s*(?:Ver|版|オリジナル)|[＜《（(【]無修正", re.I)
+SP_MARK = re.compile(SP_FAN.pattern + r"|完全版|ディレクターズ", re.I)
+SP_LABEL = [("ご褒美", "ご褒美版"), ("解放", "解放版"), ("解禁", "解禁版"), ("謎の光", "謎の光なし"), ("光なし", "謎の光なし"), ("湯気", "湯気なし"),
+            ("無修正", "無修正版"), ("ディレクターズ", "ディレクターズカット"), ("限界突破", "限界突破版"), ("Hネルギー", "解放版"), ("規制解除", "規制解除版"),
+            ("完全版", "完全版")]
+
+
+def sp_label(t):
+    return next((lb for k, lb in SP_LABEL if k.lower() in t.lower()), "特別版")
+# （SP_LABEL に無いものは、かっこの中の言葉＝「かくしてない版」などをそのまま札にする）
+
+
+def dmm_gql(query, variables):
+    body = json.dumps({"query": query, "variables": variables}).encode("utf-8")
+    req = urllib.request.Request("https://api.tv.dmm.com/graphql", data=body,
+                                 headers={"Content-Type": "application/json", "Origin": "https://tv.dmm.com", "Referer": "https://tv.dmm.com/", "User-Agent": UA})
+    return json.loads(urllib.request.urlopen(req, timeout=40).read().decode("utf-8"))
+
+
+# ★★ 2026-09-22b ご指定「特別版は DMM TV だけ」「範囲を広げて表示数を増やして」「アニメのランキングに DMM TV も」。
+#   DMM TV は categories:["15"]（＝アニメ）で検索を<b>アニメだけ</b>に絞れる。実写が混ざらないので、
+#   「【◯◯版】《◯◯Ver.》」のような<b>かっこ付きの版</b>を広く拾い、放送と同じ版・吹替・リマスターなどだけ外す。
+#   作品の中身（話数・評価・声優・監督・ジャンル・あらすじ）は video(id) で1本ずつ（覚えておく）。
+DMM_VIDEO = """id titleName seasonName packageImage description startPublicAt genres{ name } categories{ id name }
+  casts{ castName actorName } staffs{ roleName staffName }
+  ... on VideoSeason { keyVisualImage episodes(first:1){ total } reviewSummary{ averagePoint reviewerCount } }"""
+SP_BRACKET = re.compile(r"[【《＜〈\[(（]([^】》＞〉\])）]{1,20}?(?:版|[Vv]er\.?|バージョン))[】》＞〉\])）]")
+SP_SKIP = re.compile(r"オンエア|放送|吹替|字幕|TV|リマスター|HD|劇場|総集|編集|カット版|日本語|英語|先行|短縮|前編|後編|特別編|ダイジェスト|配信|3D|4K|ノーカット|OVA|リミックス|インターネット|CENSORED|かくしてる|全面規制|規制版|修正版|web|WEB", re.I)
+
+
+def dmm_title(t, s):
+    """★ シーズン名が「第4期」「【◯◯版】」だけのことがあるので、作品名とつなげる"""
+    t, s = (t or "").strip(), (s or "").strip()
+    if not s:
+        return t
+    if not t or t in s:
+        return s
+    # 頭の4文字が同じ＝シーズン名だけで作品名がわかる（「無職転生Ⅲ …」など）
+    k = min(4, len(t))
+    if s[:k] == t[:k]:
+        return s
+    return t + " " + s
+
+
+def dmm_view(v):
+    """DMM TV の作品 → アニメの作品の形"""
+    st = v.get("staffs") or []
+    rv = v.get("reviewSummary") or {}
+    return {"title": dmm_title(v.get("titleName"), v.get("seasonName")), "image": v.get("packageImage"), "banner": v.get("keyVisualImage"),
+            "genres": [g["name"] for g in (v.get("genres") or []) if g.get("name") and "DMM" not in g["name"]][:6],
+            "cast": [{"n": c.get("actorName", ""), "c": c.get("castName", "")} for c in (v.get("casts") or [])[:12] if c.get("actorName")],
+            "director": next((x["staffName"] for x in st if "監督" in (x.get("roleName") or "")), ""),
+            "studio": next((x["staffName"] for x in st if "制作" in (x.get("roleName") or "") and "製作" not in (x.get("roleName") or "")), ""),
+            "staff": [{"r": x.get("roleName", ""), "n": x.get("staffName", "")} for x in st[:12]],
+            "synopsis": str(v.get("description") or "")[:400], "releaseDate": str(v.get("startPublicAt") or "")[:10],
+            "episodes": ((v.get("episodes") or {}).get("total")) or None,
+            "dmmRating": round(rv["averagePoint"], 2) if rv.get("averagePoint") else None, "dmmVotes": rv.get("reviewerCount"),
+            "link": "https://tv.dmm.com/vod/detail/?season=" + str(v.get("id")), "service": "DMM TV"}
+
+
+def dmmtv():
+    """DMM TV のアニメランキング（日間・週間・月間）"""
+    index = {x["id"]: x for x in rd("index/animedmm.json", []) if isinstance(x, dict)}
+    ok = False
+    q = 'query($t:VideoRankingTerm!){ videoRankings(device:BROWSER, term:$t, first:100, category:"15"){ edges{ node{ rank video{ %s } } } } }' % DMM_VIDEO
+    for key, term in (("dmm-daily", "DAILY"), ("dmm-weekly", "WEEKLY"), ("dmm-monthly", "MONTHLY")):
+        try:
+            j = dmm_gql(q, {"t": term})
+            ents, ids = [], []
+            for e in (((j.get("data") or {}).get("videoRankings") or {}).get("edges") or []):
+                v = (e.get("node") or {}).get("video") or {}
+                if not v.get("id"):
+                    continue
+                x = dict(dmm_view(v), id="dm" + v["id"], rank=len(ids) + 1)
+                if x["id"] in ids:
+                    continue
+                ids.append(x["id"])
+                ents.append(x)
+                index[x["id"]] = dict(index.get(x["id"], {}), **x)
+            if ents:
+                record("anime_" + key, ids, ents, {"source": "https://tv.dmm.com/vod/ranking/"})
+                log("DMM TV ランキング", key, len(ents))
+                ok = True
+        except Exception as e:
+            log("DMM TV ランキング失敗", key, e)
+        time.sleep(1.2)
+    wr("index/animedmm.json", list(index.values())[-INDEX_MAX:])
+    return ok
+
+
+def special():
+    index = {x["id"]: x for x in rd("index/animesp.json", []) if isinstance(x, dict) and x.get("service") == "DMM TV"}
+    ok = False
+    # ★★ 2026-09-22b dアニメストアはやめた（ご指定「特別版は DMM TV だけ」）
+    # DMM TV（アニメだけ）
+    dm = {}
+    q = 'query($k:String!,$a:String){ searchVideos(keyword:$k, first:100, after:$a, device:BROWSER, categories:["15"]){ edges{ node{ id seasonName titleName packageImage packageLargeImage keyVisualImage description startDeliveryAt } } pageInfo{ hasNextPage endCursor } } }'
+    for w in ["版", "Ver", "ver", "ご褒美", "解放", "謎の光", "湯気", "湯けむり", "無修正", "限界突破", "規制解除", "完全版", "ディレクターズ", "解禁", "特別版", "かくしてない"]:
+        after = None
+        for page in range(3 if w in ("版", "Ver") else 1):
+            try:
+                j = dmm_gql(q, {"k": w, "a": after})
+                sv = (j.get("data") or {}).get("searchVideos") or {}
+                for e in (sv.get("edges") or []):
+                    n = e.get("node") or {}
+                    t = dmm_title(n.get("titleName"), n.get("seasonName"))
+                    pic = n.get("packageLargeImage") or n.get("packageImage") or ""
+                    tn = unicodedata.normalize("NFKC", t)       # ﾃﾞｼﾞﾀﾙﾘﾏｽﾀｰ のような半角カナもそろえて見る
+                    if SP_SKIP.search(tn) and not SP_FAN.search(tn):
+                        continue
+                    br = SP_BRACKET.search(tn)
+                    fan = SP_FAN.search(t) or re.search(r"完全版|ディレクターズ|規制解除|限界突破|解禁", t)
+                    if n.get("id") in dm or "オリエア" in t or "VR" in t or "/digital/" in pic:
+                        continue
+                    if not fan and not (br and not SP_SKIP.search(br.group(1))):
+                        continue
+                    dm[n["id"]] = {"id": "spdm" + n["id"], "vid": n["id"], "title": t, "image": pic or n.get("keyVisualImage"), "banner": n.get("keyVisualImage"),
+                                   "link": "https://tv.dmm.com/vod/detail/?season=" + n["id"], "service": "DMM TV", "special": True,
+                                   "tag": sp_label(t) if fan else (br.group(1) if br else "特別版"),
+                                   "synopsis": str(n.get("description") or "")[:300], "releaseDate": str(n.get("startDeliveryAt") or "")[:10]}
+                pi = sv.get("pageInfo") or {}
+                if not pi.get("hasNextPage"):
+                    break
+                after = pi.get("endCursor")
+            except Exception as e:
+                log("DMM TV 検索失敗", w, e)
+                break
+            time.sleep(1.2)
+    # 中身（話数・評価・声優など）… 1回60本まで・一度読んだら覚える
+    vd = rd("cache/dmm-video.json", {})
+    b = budget("DMM_VIDEO", 60)
+    for k, x in dm.items():
+        if k in vd or b <= 0:
+            continue
+        b -= 1
+        try:
+            j = dmm_gql('query($id:ID!){ video(id:$id){ %s } }' % DMM_VIDEO, {"id": k})
+            vd[k] = dmm_view((j.get("data") or {}).get("video") or {})
+        except Exception as e:
+            log("DMM TV 作品失敗", k, e)
+            vd[k] = {}
+        time.sleep(1.0)
+    wr("cache/dmm-video.json", vd)
+    for k, x in dm.items():
+        d = vd.get(k) or {}
+        for kk, vv in d.items():
+            if vv and not x.get(kk) and kk not in ("title", "service"):
+                x[kk] = vv
+    ents = sorted(dm.values(), key=lambda v: v.get("releaseDate") or "", reverse=True)
+    for i, e in enumerate(ents):
+        e["rank"] = i + 1
+        index[e["id"]] = dict(index.get(e["id"], {}), **e)
+    if ents:
+        record("anime_sp-dmm", [e["id"] for e in ents], ents, {"source": "https://tv.dmm.com/vod/"})
+        log("特集 DMM TV", len(ents))
+        ok = True
+    wr("index/animesp.json", list(index.values()))
+    try:
+        ok = dmmtv() or ok
+    except Exception as e:
+        log("DMM TV ランキング失敗", e)
     return ok
 
 
@@ -1642,7 +2152,7 @@ def main():
     res = {}
     for name, fn in (("karaoke", karaoke), ("music", music), ("anime", anime),
                      ("dlsite", dlsite), ("danime", danime), ("fanza", fanza),
-                     ("fbooks", fbooks), ("fvideo", fvideo)):
+                     ("fbooks", fbooks), ("fvideo", fvideo), ("movie", movie), ("special", special)):
         if ONLY and name not in ONLY:
             continue
         try:

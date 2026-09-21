@@ -430,6 +430,25 @@ const XH_EVENTS = [
    ══════════════════════════════════════════════════════════════ */
 const XH_UPDATE_MAX = 12;
 const XH_UPDATES = [
+  /* ★★ 2026-09-22d MagiScope スマホの表示 */
+  { tag:"FIX", t1:"MagiScope スマホの表示を修正", at:"2026-09-22",
+    t2:"おすすめ特集のボタンが画面外に出ないように／マイページのお気に入り件数を見やすく",
+    href:"MagiScope/index.html", img:"thumbs/MagiScope.jpg" },
+  /* ★★ 2026-09-22c MagiScope サンプル・おすすめ特集の切りかえ */
+  { tag:"FIX", t1:"MagiScope のサンプル・おすすめ特集", at:"2026-09-22",
+    t2:"サンプル画像の途切れを修正／おすすめ特集はボタンで切りかえ／Filmarks のランキングを廃止／映画の歴代興収は別の枠に",
+    href:"MagiScope/index.html", img:"thumbs/MagiScope.jpg" },
+  /* ★★ 2026-09-22b MagiScope DMM TV・歴代興収・おすすめ特集 */
+  { tag:"UPDATE", t1:"MagiScope にDMM TV・歴代興収", at:"2026-09-22",
+    t2:"アニメに DMM TV のランキング／特別版は DMM TV だけで数を増やし全作品にもボタン／映画に歴代の興行収入／おすすめ特集・FANZA は本とアニメを切りかえ／あらすじを見やすく／札のつぶれ・タブの光りかたを修正",
+    href:"MagiScope/index.html", img:"thumbs/MagiScope.jpg" },
+  /* ★★ 2026-09-22 MagiScope 映画・特別版アニメ・話題/おすすめ・英語版／MagiShift 順番の抽選 */
+  { tag:"UPDATE", t1:"MagiScope に映画・特別版アニメ", at:"2026-09-22",
+    t2:"映画ランキング（国内がメイン・興行収入・全米）／ご褒美版などの特別版アニメ特集／話題・おすすめタブ／セール作品とセール情報を1つのタブに／話数・長さ・ページ数を表示／オフライン・英語版に対応",
+    href:"MagiScope/index.html", img:"thumbs/MagiScope.jpg" },
+  { tag:"UPDATE", t1:"MagiShift 順番を抽選で", at:"2026-09-22",
+    t2:"順番を抽選で決めるように／名前は上に手番の順で並べる／Player 表記をなくした／オフラインでも遊べる",
+    href:"MagiShift/index.html", img:"thumbs/MagiShift.jpg" },
   /* ★★ 2026-09-21k MagiScope セールの自動取得 */
   { tag:"FIX", t1:"MagiScope のセールが出ない不具合を修正", at:"2026-09-21",
     t2:"自動取得をセール情報から順に少しずつ届けるように／値段が未取得のときは表示でお知らせ／登録コマンドに進みぐあいを表示",

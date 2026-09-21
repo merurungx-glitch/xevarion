@@ -158,7 +158,7 @@
         : ok ? '<button class="gl-link-btn on" data-a="seatlink" data-i="' + i + '" title="タップで紐づけを解除">✓ ' + esc(p.link.name) + "</button>"
         : '<button class="gl-link-btn pending" data-a="seatlink" data-i="' + i + '" title="前回の紐づけ — タップして4桁パスワードで確認">🔒 ' + esc(p.link.name) + "（要確認）</button>";
       return '<div class="prow" data-i="' + i + '" style="--c:' + c.color + '">' + pieceSVG(c) +
-        '<input class="pname-in" maxlength="6" value="' + esc(p.name) + '" aria-label="Player ' + (i + 1) + ' の名前">' + btn + "</div>";
+        '<input class="pname-in" maxlength="6" value="' + esc(p.name) + '" aria-label="' + esc(c.name) + 'の席の名前">' + btn + "</div>";
     }).join("");
     show("setup");
   }
@@ -199,6 +199,35 @@
       return { uid: lk ? lk.uid : "", name: (String(p.name || "").trim() || DEF_NAMES[i]), charFile: lk ? lk.charFile : "", charId: lk ? lk.charId : "", acct: lk ? lk.name : "" };
     }),
       { size: opt.size || 0, win: opt.win || 0, pieces: opt.pieces || 0 });
+    drawOrder();
+  }
+  /* ══ ★★ 2026-09-22 ご指定「順番を抽選でランダムに」（MagiChainParty と同じ見せかた）══
+     サイコロ（2人ならコイン）を回して、1番から順に発表する。
+     「もう一度きめる」で引き直せる。決まったらその順番で対戦を始める。 */
+  let orderTimer = 0;
+  function drawOrder() {
+    const n = S.players.length;
+    $("#orderTitle").textContent = n === 2 ? "コイントス中…" : "順番を抽選中…";
+    $("#orderDice").textContent = n === 2 ? "🪙" : "🎲";
+    $("#orderDice").classList.add("spin");
+    $("#orderList").innerHTML = "";
+    $("#orderBtns").hidden = true;
+    show("order");
+    clearTimeout(orderTimer);
+    orderTimer = setTimeout(() => {
+      S.order = G.shuffleOrder(n);
+      G.startTurn(S);
+      $("#orderDice").classList.remove("spin");
+      $("#orderTitle").textContent = "順番が決まりました！";
+      $("#orderList").innerHTML = S.order.map((slot, k) => {
+        const p = S.players[slot];
+        return '<div class="oitem" style="--c:' + p.color + ";animation-delay:" + (k * 0.12) + 's"><span class="ork">' + (k + 1) + "</span>" + pieceSVG(p) + '<b class="onm">' + esc(p.name) + "</b>" +
+          (k === 0 ? '<span class="ofirst">先攻</span>' : "") + "</div>";
+      }).join("");
+      setTimeout(() => { $("#orderBtns").hidden = false; }, n * 120 + 250);
+    }, 1200);
+  }
+  function startGame() {
     G.save(S);
     renderGame(true);
     show("game");
@@ -213,13 +242,16 @@
   function renderGame(full) {
     if (!S) return;
     $("#gmeta").textContent = S.players.length + "人 / " + S.size + "×" + S.size + " / " + S.win + "つ並べて勝ち";
-    $("#gplayers").innerHTML = S.players.map((p) => {
+    /* ★★ 2026-09-22 ご指定：縦の画面が多いので、MagiChainParty のように名前は<b>上に・手番の順に</b>並べる。
+       「Player ◯」の表記はやめて、名前だけにする（左上の数字＝手番の順） */
+    $("#gplayers").dataset.n = S.players.length;
+    $("#gplayers").innerHTML = G.orderOf(S).map((slot, k) => {
+      const p = S.players[slot];
       const on = p.slot === S.turn && S.phase === "play";
-      return '<div class="pcard' + (on ? " on" : "") + '" style="--c:' + p.color + '">' + pieceSVG(p) +
-        '<span class="pn"><b>Player ' + (p.slot + 1) + "</b><small>" + esc(p.name) + "</small></span>" +
-        (on ? '<span class="youturn">あなたのターン</span>' : "") +
-        '<span class="cnt2' + (G.outOfPieces(S, p.slot) ? " out" : "") + '">' + G.countOf(S, p.slot) +
-        (S.maxPieces ? "/" + S.maxPieces : "") + "個</span></div>";
+      return '<div class="pcard' + (on ? " on" : "") + '" style="--c:' + p.color + '"><span class="ord">' + (k + 1) + "</span>" + pieceSVG(p) +
+        '<span class="pn"><b>' + esc(p.name) + "</b>" +
+        '<small class="cnt2' + (G.outOfPieces(S, p.slot) ? " out" : "") + '">' + G.countOf(S, p.slot) + (S.maxPieces ? "/" + S.maxPieces : "") + "個</small></span>" +
+"</div>";
     }).join("");
     if (full) buildBoard();
     paintBoard();
@@ -251,7 +283,7 @@
     const p = G.cur(S);
     const t = $("#turnbar");
     if (S.phase !== "play") { t.innerHTML = ""; return; }
-    t.innerHTML = '<span class="tp" style="--c:' + p.color + '">' + pieceSVG(p) + "<b>Player " + (p.slot + 1) + "</b><small>" + esc(p.name) + "</small></span>" +
+    t.innerHTML = '<span class="tp" style="--c:' + p.color + '">' + pieceSVG(p) + "<b>" + esc(p.name) + "</b><small>の番</small></span>" +
       '<span class="thint">' + (S.sel ? "移動先の光っているマスを押してください"
         : G.outOfPieces(S, p.slot) ? "駒を使いきりました。<b>自分の駒を押して動かします</b>"
         : "空いているマスを押すと<b>置く</b>／自分の駒を押すと<b>動かす</b>" +
@@ -314,7 +346,7 @@
     const w = S.players[S.winner];
     $("#winbox").innerHTML = '<div class="crown">👑</div><div class="winttl">WIN!</div>' +
       '<div class="winp" style="--c:' + w.color + '">' + avatarHTML(w) + pieceSVG(w) + "</div>" +
-      "<h2>Player " + (w.slot + 1) + "（" + esc(w.name) + "）</h2><p>" + (w.uid ? "" : "") + "おめでとうございます！</p>" +
+      "<h2>" + esc(w.name) + " の勝ち！</h2><p>おめでとうございます！</p>" +
       '<div class="wbtns"><button class="btn pri" data-a="again">もう一度遊ぶ</button><button class="btn" data-a="result">結果を見る</button></div>';
     show("win");
     /* 結果を XEVARION へ（紐づけた人には順位に応じた XEVA） */
@@ -329,7 +361,7 @@
     const sec = Math.max(1, Math.round(((S.endedAt || Date.now()) - S.startedAt) / 1000));
     $("#resultList").innerHTML = st.map((p) => '<div class="rrow' + (p.rank === 1 ? " top" : "") + '" style="--c:' + p.color + '">' +
       '<span class="rk">' + p.rank + "位</span>" + pieceSVG(p) + avatarHTML(p) +
-      '<span class="pn"><b>Player ' + (p.slot + 1) + "</b><small>" + esc(p.name) + "</small></span>" +
+      '<span class="pn"><b>' + esc(p.name) + "</b>" + (p.acct && p.acct !== p.name ? "<small>" + esc(p.acct) + "</small>" : "") + "</span>" +
       '<span class="rw">' + (p.rank === 1 ? "勝ち" : "—") + "</span><span class=\"rl\">最長 " + p.line + "</span></div>").join("");
     $("#resultMeta").innerHTML = "<div><small>対戦人数</small><b>" + S.players.length + "人</b></div>" +
       "<div><small>盤面サイズ</small><b>" + S.size + "×" + S.size + "</b></div>" +
@@ -410,6 +442,9 @@
         '<div class="wbtns"><button class="btn" data-a="gmenu">もどる</button><button class="btn ghost" data-a="menu">やめる（セーブを消す）</button></div>';
     },
     closeSheet: () => $("#ov").classList.remove("on"),
+    orderGo: () => startGame(),
+    orderRedo: () => drawOrder(),
+    orderBack: () => { clearTimeout(orderTimer); renderSetup(); },
   };
   document.addEventListener("click", (e) => {
     const b = e.target.closest("[data-a]");
