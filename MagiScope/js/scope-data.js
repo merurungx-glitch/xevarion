@@ -76,7 +76,7 @@
         /* ★★ 2026-09-22b ご指定「アニメのランキングに DMM TV も」。DMM TV（アニメ）の日間・週間・月間ランキング */
         { id: "dmm",      label: "DMM TV",   ja: "国内・配信",     note: "動画配信サービス DMM TV のアニメランキングです（DMM TV の公開データ）。", url: "https://tv.dmm.com/vod/" },
         /* ★★ 2026-09-22 ご指定「ご褒美バージョンなどがあるアニメの特集」→ 22b「特別版は DMM TV だけ」 */
-        { id: "special",  label: "特別版",   ja: "DMM TV",        note: "「ご褒美版」「解放版」「湯けむり版」「無修正版」「完全版」など、DMM TV で見られる特別なバージョンのアニメの特集です（アニメだけ）。", url: "https://tv.dmm.com/vod/" },
+        { id: "special",  label: "特別版",   ja: "DMM TV",        note: "DMM TV で配信している R15 以上のアニメの特集です（「ご褒美版」「解放版」「湯けむり版」「無修正版」なども含みます・アニメだけ）。", url: "https://tv.dmm.com/vod/" },
       ],
       types: [
         /* ── 国内：Annict（視聴者数） ── */
@@ -96,7 +96,7 @@
         { id: "dm_weekly",  src: "dmm", lk: "dmm-weekly",  label: "週間", period: "week",  note: "DMM TV アニメ 週間ランキング" },
         { id: "dm_monthly", src: "dmm", lk: "dmm-monthly", label: "月間", period: "month", note: "DMM TV アニメ 月間ランキング" },
         /* ── 特別版（ご褒美版など・DMM TV だけ）── */
-        { id: "sp_dmm",    src: "special", lk: "sp-dmm",    label: "特別版", period: "all", note: "DMM TV の特別版アニメ（配信の新しい順）" },
+        { id: "sp_dmm",    src: "special", lk: "sp-dmm",    label: "特別版（R15+）", period: "all", note: "DMM TV の R15 以上のアニメ（配信の新しい順）" },
       ],
       compare: [
         { id: "jp",   label: "国内 今季 vs 前回", period: "season", type: "jp", def: true },

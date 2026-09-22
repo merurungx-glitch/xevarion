@@ -96,7 +96,8 @@
     drainM:["ドレインM","敵にふれるたびにチームHPを10%回復（等級M）"],
     soul:["ソウルスティール","敵を倒すたびにチームHPを10%回復"],
     soulM:["ソウルスティールM","敵を倒すたびにチームHPを15%回復（等級M）"],
-    pray:["治癒の祈り","ボスマップ開始時、30%でチームHPを全回復"],
+    pray:["治癒の祈り","ボスマップ開始時、30%でチームHPを全回復（持つ子が複数なら左から順に抽選）"],
+    godpray:["神癒の祈り","治癒の祈りの上位互換。ボスマップ開始時、40%でチームHPを全回復"],
     protection:["プロテクション","敵の1ヒットが一定以下(900)なら被ダメージを1にする（チーム全体）"],
     allres:["全属性耐性","すべての属性からの被ダメージを25%カット（チーム全体）"],
     mirage:["ミラージュ","敵の攻撃を20%の確率で回避する（チーム全体）"],
@@ -175,7 +176,7 @@
   }
   /* アビリティの役割分け。編成を「なぜその4体か」で説明するために使う。 */
   const ABIL_ROLE = {
-    heal: ["regen", "regenM", "drain", "drainM", "soul", "soulM", "pray", "laserstop", "boundheal"],
+    heal: ["regen", "regenM", "drain", "drainM", "soul", "soulM", "pray", "godpray", "laserstop", "boundheal"],
     guard: ["barrier", "barrierM", "protection", "allres", "mirage", "pimmune"],
     power: ["aura", "auraM", "sokojikara", "overheat", "dash", "dashM", "dashL", "allkiller",
             "vital", "vitalM", "vitalL", "vitalEL", "fatalkiller", "fatalkillerM",

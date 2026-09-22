@@ -586,7 +586,7 @@ def danime():
     # ★★ 2026-09-21e 作品ページ：ジャンル・配信日・サンプル・原作。
     #    ご指定「動画でジャンルが出ていないものがある」＝1回40件しか読んでいなかった。
     #    ランキングに入っている作品を先に、1回150件まで読む（3回つづけて失敗したらやめる）。
-    b, miss = budget("FZ_DETAIL", 150), 0
+    b, miss = budget("FZ_DETAIL", 250), 0
     ranked = [v["id"] for v in index.values() if v.get("rank")]
     order = ranked + [k for k in list(index.keys())[::-1] if k not in set(ranked)]
     for cid in order:
@@ -1056,6 +1056,21 @@ def parse_dl_detail(src):
     date = re.search(r"販売日\s*(\d{4})年(\d{2})月(\d{2})日", flat)
     au = re.search(r"(?:作者|作家|シナリオ)\s*([^\s/]{1,20})", flat)
     pages = re.search(r"ページ数[／/]?[^\d]{0,12}([\d,]+)\s*ページ", flat)
+    pg_txt = (pages.group(1) + "ページ") if pages else ""
+    if not pg_txt and not re.search(r"作品形式\s*(?:動画|アニメ|ボイス|音声|ゲーム)", flat):
+        # ★★ 2026-09-23 ご指定「同人誌はページ数も」（動画・音声・ゲームの作品では数えない）。DLsite は表にページ数が無く、説明文に
+        #   「本編84ページ」「合計41ページ」「フルカラー91P」のように書いてある作品が多い。
+        #   サイト共通の案内（「8～32ページの漫画」）を拾わないよう、範囲（～）の右側は数えない。
+        best = None
+        for mm in re.finditer(r"(本編|本文|合計|総|全|計|漫画)?[^\d～〜~\-]{0,6}?(?<![\d～〜~\-])(\d{1,4})\s*(?:ページ|[PpＰ](?![A-Za-z])|枚)", flat):
+            n = int(mm.group(2))
+            if not (4 <= n <= 2000):
+                continue
+            k = (1 if mm.group(1) else 0, n)
+            if best is None or k > best:
+                best = k
+        if best:
+            pg_txt = "%dページ" % best[1]
     size = re.search(r"ファイル容量\s*(?:総計)?\s*([\d.,]+\s*[KMGT]B)", flat)
     reviews = []
     for m in re.finditer(r'class="[^"]*(?:review_text|user_review_text|review-text)[^"]*"[^>]*>([\s\S]{10,600}?)</', src):
@@ -1065,8 +1080,8 @@ def parse_dl_detail(src):
         if len(reviews) >= 3:
             break
     return {"genres": genres[:14], "releaseDate": ("%s-%s-%s" % date.groups()) if date else "",
-            "author": au.group(1) if au else "", "volume": (pages.group(1) + "ページ") if pages else "", "reviews": reviews,
-            "size": size.group(1).replace(" ", "") if size else ""}
+            "author": au.group(1) if au else "", "volume": pg_txt, "reviews": reviews,
+            "size": size.group(1).replace(" ", "") if size else "", "dv": 2}
 
 
 def dlsite(cat="dlsite"):
@@ -1119,11 +1134,14 @@ def dlsite(cat="dlsite"):
             break
         time.sleep(1.2)
     # 作品ページ：ジャンル・配信日・作者（一覧に無いぶんを少しずつ）
-    b = budget("DL_DETAIL", 150)
-    for pid in list(index.keys())[::-1]:
+    # ★★ 2026-09-23 ページ数を取るため、<b>一覧でジャンルが分かっていても</b>作品ページを読む（dv=2 で1回だけ）。
+    #   前は「ジャンルと販売日があれば読まない」だったので、DLsite はほとんどページ数が無かった（2727本中40本）。
+    b = budget("DL_DETAIL", 250)
+    ranked = [k for k, v in index.items() if v.get("rank")]
+    for pid in ranked + [k for k in list(index.keys())[::-1] if k not in set(ranked)]:
         if b <= 0:
             break
-        if pid in detail or (index[pid].get("genres") and index[pid].get("releaseDate")):
+        if (detail.get(pid) or {}).get("dv") == 2:
             continue
         b -= 1
         try:
@@ -1957,7 +1975,7 @@ def dmm_gql(query, variables):
 #   作品の中身（話数・評価・声優・監督・ジャンル・あらすじ）は video(id) で1本ずつ（覚えておく）。
 DMM_VIDEO = """id titleName seasonName packageImage description startPublicAt genres{ name } categories{ id name }
   casts{ castName actorName } staffs{ roleName staffName }
-  ... on VideoSeason { keyVisualImage episodes(first:1){ total } reviewSummary{ averagePoint reviewerCount } }"""
+  ... on VideoSeason { keyVisualImage episodes(first:1){ total edges{ node{ playInfo{ duration } } } } reviewSummary{ averagePoint reviewerCount } }"""
 SP_BRACKET = re.compile(r"[【《＜〈\[(（]([^】》＞〉\])）]{1,20}?(?:版|[Vv]er\.?|バージョン))[】》＞〉\])）]")
 SP_SKIP = re.compile(r"オンエア|放送|吹替|字幕|TV|リマスター|HD|劇場|総集|編集|カット版|日本語|英語|先行|短縮|前編|後編|特別編|ダイジェスト|配信|3D|4K|ノーカット|OVA|リミックス|インターネット|CENSORED|かくしてる|全面規制|規制版|修正版|web|WEB", re.I)
 
@@ -1980,6 +1998,12 @@ def dmm_view(v):
     """DMM TV の作品 → アニメの作品の形"""
     st = v.get("staffs") or []
     rv = v.get("reviewSummary") or {}
+    # ★★ 2026-09-23 ご指定「アニメは各話の長さも」。1話めの長さ（秒）を分にする
+    sec = 0
+    try:
+        sec = int((((((v.get("episodes") or {}).get("edges") or [{}])[0].get("node") or {}).get("playInfo") or {}).get("duration") or 0))
+    except Exception:
+        sec = 0
     return {"title": dmm_title(v.get("titleName"), v.get("seasonName")), "image": v.get("packageImage"), "banner": v.get("keyVisualImage"),
             "genres": [g["name"] for g in (v.get("genres") or []) if g.get("name") and "DMM" not in g["name"]][:6],
             "cast": [{"n": c.get("actorName", ""), "c": c.get("castName", "")} for c in (v.get("casts") or [])[:12] if c.get("actorName")],
@@ -1989,6 +2013,7 @@ def dmm_view(v):
             "synopsis": str(v.get("description") or "")[:400], "releaseDate": str(v.get("startPublicAt") or "")[:10],
             "episodes": ((v.get("episodes") or {}).get("total")) or None,
             "dmmRating": round(rv["averagePoint"], 2) if rv.get("averagePoint") else None, "dmmVotes": rv.get("reviewerCount"),
+            "duration": ("%d分" % round(sec / 60)) if sec >= 60 else "", "dv": 2,
             "link": "https://tv.dmm.com/vod/detail/?season=" + str(v.get("id")), "service": "DMM TV"}
 
 
@@ -2022,49 +2047,63 @@ def dmmtv():
     return ok
 
 
+# ★★ 2026-09-23 ご指定「特別版は <b>R15 以上</b>の作品を表示」「表示数が少なく、関係のないものが出ている」。
+#   DMM TV の作品には <b>rating</b>（NR / G / PG12 / R15 …）がある（searchVideos の node で読める）。
+#   キーワード "" で<b>アニメ全部（約6,900本）</b>を並べられるが、1つの並びでは約5,000本（50ページ）までしか
+#   めくれないので、<b>並べ方を4通り</b>（既定・NEW・RANK・SALES）変えて全体をおおう。
+#   そのうち rating が R15 以上の作品だけを「特別版（R15+）」として残す。題名の印（ご褒美 Ver. など）で札を付ける。
+SP_RATINGS = {"R15", "R15+", "R18", "R18+", "R-15", "R-18"}
+
+
 def special():
-    index = {x["id"]: x for x in rd("index/animesp.json", []) if isinstance(x, dict) and x.get("service") == "DMM TV"}
+    # ★ 前回までの「印の付いた題名」だけの一覧は捨てて、毎回 R15+ で作り直す（関係のない作品を残さない）
+    index = {}
     ok = False
-    # ★★ 2026-09-22b dアニメストアはやめた（ご指定「特別版は DMM TV だけ」）
-    # DMM TV（アニメだけ）
     dm = {}
-    q = 'query($k:String!,$a:String){ searchVideos(keyword:$k, first:100, after:$a, device:BROWSER, categories:["15"]){ edges{ node{ id seasonName titleName packageImage packageLargeImage keyVisualImage description startDeliveryAt } } pageInfo{ hasNextPage endCursor } } }'
-    for w in ["版", "Ver", "ver", "ご褒美", "解放", "謎の光", "湯気", "湯けむり", "無修正", "限界突破", "規制解除", "完全版", "ディレクターズ", "解禁", "特別版", "かくしてない"]:
+    q = 'query($a:String){ searchVideos(keyword:"", first:100, after:$a, device:BROWSER, categories:["15"]%s){ edges{ node{ id seasonName titleName packageImage packageLargeImage keyVisualImage description startDeliveryAt rating } } pageInfo{ hasNextPage endCursor } } }'
+    seen = set()
+    for sort in ("", ", sort:NEW", ", sort:RANK", ", sort:SALES"):
         after = None
-        for page in range(3 if w in ("版", "Ver") else 1):
+        for page in range(52):
             try:
-                j = dmm_gql(q, {"k": w, "a": after})
+                j = dmm_gql(q % sort, {"a": after})
                 sv = (j.get("data") or {}).get("searchVideos") or {}
+                if not sv:
+                    break
                 for e in (sv.get("edges") or []):
                     n = e.get("node") or {}
+                    nid = n.get("id")
+                    if not nid or nid in seen:
+                        continue
+                    seen.add(nid)
+                    if str(n.get("rating") or "").upper() not in SP_RATINGS:
+                        continue
                     t = dmm_title(n.get("titleName"), n.get("seasonName"))
                     pic = n.get("packageLargeImage") or n.get("packageImage") or ""
-                    tn = unicodedata.normalize("NFKC", t)       # ﾃﾞｼﾞﾀﾙﾘﾏｽﾀｰ のような半角カナもそろえて見る
-                    if SP_SKIP.search(tn) and not SP_FAN.search(tn):
+                    if "/digital/" in pic:      # 成人向け VR の絵
                         continue
+                    tn = unicodedata.normalize("NFKC", t)
                     br = SP_BRACKET.search(tn)
                     fan = SP_FAN.search(t) or re.search(r"完全版|ディレクターズ|規制解除|限界突破|解禁", t)
-                    if n.get("id") in dm or "オリエア" in t or "VR" in t or "/digital/" in pic:
-                        continue
-                    if not fan and not (br and not SP_SKIP.search(br.group(1))):
-                        continue
-                    dm[n["id"]] = {"id": "spdm" + n["id"], "vid": n["id"], "title": t, "image": pic or n.get("keyVisualImage"), "banner": n.get("keyVisualImage"),
-                                   "link": "https://tv.dmm.com/vod/detail/?season=" + n["id"], "service": "DMM TV", "special": True,
-                                   "tag": sp_label(t) if fan else (br.group(1) if br else "特別版"),
-                                   "synopsis": str(n.get("description") or "")[:300], "releaseDate": str(n.get("startDeliveryAt") or "")[:10]}
+                    tag = sp_label(t) if fan else (br.group(1) if br and not SP_SKIP.search(br.group(1)) else "R15+")
+                    dm[nid] = {"id": "spdm" + nid, "vid": nid, "title": t, "image": pic or n.get("keyVisualImage"), "banner": n.get("keyVisualImage"),
+                               "link": "https://tv.dmm.com/vod/detail/?season=" + nid, "service": "DMM TV", "special": True,
+                               "rating": str(n.get("rating") or ""), "tag": tag,
+                               "synopsis": str(n.get("description") or "")[:300], "releaseDate": str(n.get("startDeliveryAt") or "")[:10]}
                 pi = sv.get("pageInfo") or {}
                 if not pi.get("hasNextPage"):
                     break
                 after = pi.get("endCursor")
             except Exception as e:
-                log("DMM TV 検索失敗", w, e)
+                log("DMM TV R15 一覧の失敗", sort or "既定", page, e)
                 break
-            time.sleep(1.2)
+            time.sleep(0.8)
+    log("DMM TV R15+", len(dm), "本（全 " + str(len(seen)) + " 本から）")
     # 中身（話数・評価・声優など）… 1回60本まで・一度読んだら覚える
     vd = rd("cache/dmm-video.json", {})
-    b = budget("DMM_VIDEO", 60)
+    b = budget("DMM_VIDEO", 90)
     for k, x in dm.items():
-        if k in vd or b <= 0:
+        if (k in vd and (vd[k] or {}).get("dv") == 2) or b <= 0:   # ★★ 2026-09-23 長さの無い古い控えは読み直す
             continue
         b -= 1
         try:

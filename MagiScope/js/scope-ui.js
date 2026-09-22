@@ -33,6 +33,8 @@
     user: '<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
     bell: '<path d="M6 16v-5a6 6 0 0 1 12 0v5l2 2H4z"/><path d="M10 21h4"/>',
     back: '<path d="M15 5l-7 7 7 7"/>',
+    share: '<circle cx="18" cy="5.5" r="2.6"/><circle cx="6" cy="12" r="2.6"/><circle cx="18" cy="18.5" r="2.6"/><path d="M8.3 10.8l7.4-4M8.3 13.2l7.4 4"/>',
+    copy: '<rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/>',
     chev: '<path d="M9 5l7 7-7 7"/>',
     filter: '<path d="M4 5h16l-6 8v6l-4-2v-4z"/>',
     x: '<path d="M6 6l12 12M18 6L6 18"/>',
@@ -195,6 +197,27 @@
   applyTheme();
 
   /* ══════════ 小物 ══════════ */
+  /* ★★ 2026-09-23 いま開いている作品のリンク（共有シートで使う） */
+  let SHARE = { title: "", links: [] };
+  function shareSheetHtml() {
+    return "<h2>" + ic("share") + " リンクを共有<small>" + esc(SHARE.title) + "</small></h2>" +
+      '<p class="note" style="margin:0 2px 10px">サイトを開かなくても、そのページの URL をそのまま送ったりコピーしたりできます。</p>' +
+      SHARE.links.map((l, i) => '<div class="glass" style="padding:10px 12px;margin-bottom:8px">' +
+        '<div style="font-weight:900;font-size:13px">' + esc(l.nm) + "</div>" +
+        '<div style="font-size:11px;color:var(--faint);word-break:break-all;margin:3px 0 8px">' + esc(l.u) + "</div>" +
+        '<div style="display:flex;gap:8px">' +
+          '<button class="btn pri" style="flex:1" data-a="shareOne" data-i="' + i + '">' + ic("share") + "共有する</button>" +
+          '<button class="btn" style="flex:1" data-a="copyOne" data-i="' + i + '">' + ic("copy") + "コピー</button>" +
+        "</div></div>").join("");
+  }
+  async function copyText(t) {
+    try { await navigator.clipboard.writeText(t); return true; } catch (e) {}
+    try {
+      const ta = document.createElement("textarea"); ta.value = t; ta.setAttribute("readonly", "");
+      ta.style.cssText = "position:fixed;left:-9999px;top:0"; document.body.appendChild(ta); ta.select();
+      const ok = document.execCommand("copy"); ta.remove(); return ok;
+    } catch (e) { return false; }
+  }
   function toast(t) { const el = $("#toast"); el.textContent = t; el.hidden = false; clearTimeout(toast._t); toast._t = setTimeout(() => { el.hidden = true; }, 2200); }
   /* ★★ 2026-09-21g ご指定：閉じるのは右上の✕だけにして、選ぶボタンと離す（押しまちがい防止） */
   function sheet(html) { $("#sheet").innerHTML = '<button class="shx" data-a="closeSheet" aria-label="とじる">✕</button>' + html; $("#ov").classList.add("on"); }
@@ -393,6 +416,30 @@
   /* ══════════ ルーター ══════════ */
   const stack = [];
   const scrolls = {};
+  /* ★★ 2026-09-23 ご指定「作品詳細から戻るを押したら、詳細を押す前の画面に戻す」。
+     前は ① 縦の位置を<b>一覧を描き足す前</b>に戻していた（一覧は 50件ずつ描き足すので、まだ短くて上へ丸められていた）
+         ② 50件より下を見ていたときは、戻っても<b>最初の50件しか描かれていなかった</b>
+         ③ 横に流れる列（おすすめ・特集など）の位置は覚えていなかった
+     → 画面ごとに「何件まで描いたか（pagerShown）」と「横の列の位置（hscrolls）」も覚え、
+       戻ったときは<b>一覧を描き足してから</b>縦と横の位置を戻す。 */
+  const pagerShown = {};
+  const hscrolls = {};
+  const HS_SEL = ".hscroll,.miniart,.hist,.featbar,.chips,.seg";
+  function saveHScroll(h) {
+    try { hscrolls[h] = $$("#view " + HS_SEL.split(",").join(",#view ")).map((el) => el.scrollLeft); } catch (e) {}
+  }
+  function restoreScroll(h) {
+    const view = $("#view");
+    const y = scrolls[h], xs = hscrolls[h] || [];
+    const apply = () => {
+      if (y != null) view.scrollTop = y;
+      try { $$("#view " + HS_SEL.split(",").join(",#view ")).forEach((el, i) => { if (xs[i]) el.scrollLeft = xs[i]; }); } catch (e) {}
+    };
+    apply();
+    requestAnimationFrame(apply);
+    setTimeout(apply, 120);
+    setTimeout(apply, 400);
+  }
   let curHash = "", renderSeq = 0;
   function parse(h) {
     h = (h || "").replace(/^#/, "") || "/";
@@ -407,7 +454,7 @@
   window.addEventListener("hashchange", () => {
     const h = location.hash || "#/";
     const view = $("#view");
-    if (curHash) scrolls[curHash] = view.scrollTop;
+    if (curHash) { scrolls[curHash] = view.scrollTop; saveHScroll(curHash); }
     let isBack = false;
     if (stack.length > 1 && stack[stack.length - 2] === h) { stack.pop(); isBack = true; } else stack.push(h);
     if (stack.length > 60) stack.shift();
@@ -483,7 +530,11 @@
     view.innerHTML = (navigator.onLine === false ? '<div class="offbar">' + ic("wifi") + "オフラインです。最後に取ったデータを表示しています</div>" : "") + out.body;
     view.classList.remove("anim"); void view.offsetWidth; if (!isBack && !early) view.classList.add("anim");
     view.scrollTop = isBack && scrolls[h] != null ? scrolls[h] : 0;
+    _backRender = !!isBack;
     if (out.after) try { out.after(); } catch (e) { console.error(e); }
+    _backRender = false;
+    if (isBack) restoreScroll(h);
+    else { delete pagerShown[h]; }
     paintBell();
   }
 
@@ -784,17 +835,22 @@
     return MS.PERIODS[p].label;
   }
   /* 一度に全部は描かない：50件ずつ（見えてきたら次の50件） */
+  let _backRender = false;
   function startPager(entries, draw, box) {
     if (!box) return;
     let shown = 0;
     const more = $("#more");
+    const myHash = curHash;
     const step = () => {
       const next = entries.slice(shown, shown + 50);
       box.insertAdjacentHTML("beforeend", next.map(draw).join(""));
       shown += next.length;
+      pagerShown[myHash] = shown;   /* ★★ 2026-09-23 どこまで描いたかを覚える（戻ったときに同じだけ描く） */
       if (more) { more.hidden = shown >= entries.length; more.textContent = "もっと見る（残り " + nf(entries.length - shown) + "）"; }
     };
+    const want = _backRender ? (pagerShown[myHash] || 0) : 0;
     step();
+    while (shown < want && shown < entries.length) step();
     if (!more) return;
     more.onclick = step;
     if ("IntersectionObserver" in window) {
@@ -1044,6 +1100,14 @@
     if (it.official) links.push('<a class="btn" style="flex:1" href="' + esc(it.official) + '" target="_blank" rel="noopener">' + ic("link") + "公式</a>");
     if (it.damUrl) links.push('<a class="btn" style="flex:1" href="' + esc(it.damUrl) + '" target="_blank" rel="noopener">' + ic("link") + "DAM</a>");
     if (it.appleUrl) links.push('<a class="btn" style="flex:1" href="' + esc(it.appleUrl) + '" target="_blank" rel="noopener">' + ic("link") + "Apple Music</a>");
+    /* ★★ 2026-09-23 ご指定「作品の本サイトへ行かなくても、リンクの URL をアプリから共有できるように」。
+       ボタンから<b>そのサイトのリンクの一覧</b>を出し、1つずつ「共有」（端末の共有シート）か「コピー」できる。 */
+    SHARE = { title: it.title || "", links: [] };
+    [[it.url && !(c === "anime" && it.jpOnly) ? it.url : "", siteNm], [it.link && it.link !== it.url ? it.link : "", "配信ページ"],
+     [it.boUrl && it.boUrl !== it.url ? it.boUrl : "", "Box Office Mojo"], [c === "anime" ? it.fmUrl : "", "Filmarks"],
+     [it.annictUrl, "Annict"], [it.official, "公式サイト"], [it.damUrl, "DAM"], [it.appleUrl, "Apple Music"]]
+      .forEach((x) => { if (x[0] && /^https?:/.test(x[0]) && !SHARE.links.some((y) => y.u === x[0])) SHARE.links.push({ u: x[0], nm: x[1] }); });
+    if (SHARE.links.length) links.push('<button class="btn" style="flex:1" data-a="shareLinks">' + ic("share") + "リンクを共有</button>");
     if (links.length) body += '<div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">' + links.join("") + "</div>";
     return { head: head({ title: detailTitle(c), pill: c, fb: "#/rank/" + c }), body,
       after() { $("#view").dataset.cur = c + "/" + id; fillArt([it].concat((rel.primary || []).concat(rel.secondary || [], rel.also || []).map((x) => x.item))); } };
@@ -1085,7 +1149,7 @@
       if (it.yomi) r.push(["よみ", esc(it.yomi)]);
       if ((it.synonyms || []).length) r.push(["別名", esc(it.synonyms.join("／"))]);
       if (it.sub) r.push(["ローマ字", esc(it.sub)]);
-      if (it.special) r.push(["特別版", "<b>" + esc(it.tag) + "</b>" + '<span class="muted">（' + esc(it.service) + " で配信）</span>"]);
+      if (it.special) r.push(["特別版", "<b>" + esc(it.tag) + "</b>" + (it.rating ? '<span class="tag sp" style="margin-left:6px">' + esc(it.rating) + "</span>" : "") + '<span class="muted">（' + esc(it.service) + " で配信）</span>"]);
       r.push(["ジャンル", lnkGenres(c, (it.genres || []).filter((g) => g !== "特別版"))], ["放送時期", esc(it.seasonLabel || "") + (it.airing ? "（放送中）" : "")], ["作品形式", esc(it.format)]);
       /* ★★ 2026-09-22 ご指定「話数構成も」 */
       if (it.episodes || it.duration) r.push(["話数・長さ", [it.episodes ? "全" + it.episodes + "話" : "", it.duration ? "1話 " + esc(it.duration) : ""].filter(Boolean).join("／")]);
@@ -1234,7 +1298,7 @@
     S.lastCat = c;
     const C = CATS[c];
     /* ★★ 2026-09-22b ご指定：アニメの全作品にも「特別版」のボタン（DMM TV のアニメも見られる） */
-    const ASRC = [{ id: "", key: "", label: "すべて", ja: "国内・海外" }, { id: "dmm", key: "dmm", label: "DMM TV", ja: "配信中" }, { id: "special", key: "special", label: "特別版", ja: "ご褒美版など" }];
+    const ASRC = [{ id: "", key: "", label: "すべて", ja: "国内・海外" }, { id: "dmm", key: "dmm", label: "DMM TV", ja: "配信中" }, { id: "special", key: "special", label: "特別版", ja: "R15以上" }];
     const SS = c === "anime" ? ASRC : C.sources;
     const srcId = SS ? (SS.find((x) => x.id === (q.src || "")) || SS[0]).id : "";
     const srcKey = SS ? (SS.find((x) => x.id === srcId) || {}).key : "";
@@ -1758,7 +1822,7 @@
     const tType = (key) => (CATS[c].types.find((t) => t.key === key) || {}).id;
     const mk = (id, title, note, fn) => ({ id, title, note, fn });
     return ({
-      anime: [mk("sp", "DMM TV の特別版", "ご褒美版・解放版・湯けむり版など、DMM TV で見られる特別なバージョンのアニメ", () => L(R.list("anime", { type: "sp_dmm" }))),
+      anime: [mk("sp", "DMM TV の特別版（R15+）", "DMM TV で配信中の R15 以上のアニメ。ご褒美版・解放版・湯けむり版なども", () => L(R.list("anime", { type: "sp_dmm" }))),
         mk("dm", "DMM TV で人気", "DMM TV のアニメ 週間ランキング", () => L(R.list("anime", { type: "dm_weekly" }))),
         mk("jp", "今季いちばん見られている", "国内で今季いちばん見られているアニメ（Annict の視聴者数）", () => L(R.list("anime", { type: "jp", period: "season" }))),
         mk("new", "来季の注目作", "次のクールに放送が始まるアニメ", () => L(R.newItems("anime", "", { when: "next" })))],
@@ -1979,6 +2043,19 @@
   /* ══════════ 操作（data-a ひとつで受ける） ══════════ */
   const ACT = {
     back: (b) => back(b.dataset.fb),
+    shareLinks: () => sheet(shareSheetHtml()),
+    shareOne: async (b) => {
+      const l = SHARE.links[+b.dataset.i]; if (!l) return;
+      if (navigator.share) {
+        try { await navigator.share({ title: SHARE.title, text: SHARE.title + "（" + l.nm + "）", url: l.u }); return; }
+        catch (e) { if (e && e.name === "AbortError") return; }
+      }
+      toast((await copyText(l.u)) ? "共有できないので URL をコピーしました" : "コピーできませんでした");
+    },
+    copyOne: async (b) => {
+      const l = SHARE.links[+b.dataset.i]; if (!l) return;
+      toast((await copyText(l.u)) ? "URL をコピーしました" : "コピーできませんでした");
+    },
     retry: () => { R.clearCache(); render(); },
     fav: (b) => toggleFav(b.dataset.c, b.dataset.id),
     ageOK: () => { S.age = true; save(); render(); },
