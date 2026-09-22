@@ -963,12 +963,12 @@ window.lexKpDetail = async function(id){
   try{
     if(!document.getElementById("mbDetCss")){
       const l = document.createElement("link");
-      l.id = "mbDetCss"; l.rel = "stylesheet"; l.href = "../mb-char-detail.css?v=23";
+      l.id = "mbDetCss"; l.rel = "stylesheet"; l.href = "../mb-char-detail.css?v=24";
       document.head.appendChild(l);
     }
     if(typeof window.DB === "undefined") await _loadScript("../mb-boot.js?v=17");
-    if(typeof window.CHARS === "undefined") await _loadScript("../MagiBurst/js/mb-core.js?v=128");
-    if(typeof window.openDetX !== "function") await _loadScript("../mb-char-detail.js?v=34");
+    if(typeof window.CHARS === "undefined") await _loadScript("../MagiBurst/js/mb-core.js?v=129");
+    if(typeof window.openDetX !== "function") await _loadScript("../mb-char-detail.js?v=35");
     _kpDetReady = true;
     _kpOpen(id);
   }catch(e){
