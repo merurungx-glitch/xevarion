@@ -19,11 +19,11 @@
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Exo+2:ital,wght@0,300;0,400;0,600;0,700;1,300&family=Noto+Sans+JP:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="xeva-theme.css?v=9">
 <link rel="stylesheet" href="xevarion.css?v=25">
-<link rel="stylesheet" href="xevarion-home.css?v=82">
+<link rel="stylesheet" href="xevarion-home.css?v=83">
 <!-- ★★ 2026-08-22b Xevion OS の見た目（テーマ・文字の大きさ・動きを減らす）。
      xevarion-home.css の<b>あと</b>に読む＝上書きできるようにする。 -->
 <link rel="stylesheet" href="xevion-os.css?v=15">
-<script src="xeva.js?v=70" defer></script>
+<script src="xeva.js?v=71" defer></script>
 <!-- ★★ 2026-09-05 コレクションを XEVARION 全体で1本にする共通部品。
      xeva.js の iconCharList() を使うので、必ず xeva.js の<b>あと</b>に置く。 -->
 <script src="xeva-collection.js?v=7" defer></script>
@@ -46,7 +46,7 @@
 <script src="xeva-i18n-mb7.js?v=7"></script>
 <script src="xeva-i18n-p4.js?v=7"></script>
 <!-- ★★ 2026-09-06b 今回足したもの（新キャラ14体・装備・スタメンなど）の英語辞書 -->
-<script src="xeva-i18n-n1.js?v=11"></script>
+<script src="xeva-i18n-n1.js?v=12"></script>
 <script src="xeva-i18n-n2.js?v=3"></script>
 <!-- ★ 2026-08-20 通信設定（Wi-Fi／モバイルデータごとに「最新を取りに行くか」を決める）。
      決めた内容はここから各アプリの Service Worker へ送られ、SW 側が動きを切り替える。 -->
@@ -54,7 +54,7 @@
 <!-- ★ 2026-08-18 新キャラ告知の台帳（MagiBurst と共通）。
      告知を<b>ポータルのログイン時</b>に一本化したので、ここでも読む。
      defer なので xevarion.js より先に実行される（書いた順番で走る）。 -->
-<script src="mb-newchars.js?v=31" defer></script>
+<script src="mb-newchars.js?v=32" defer></script>
 <!-- ★★ 2026-08-22b Xevion OS（XEVARION の UI をひとつの OS として扱う土台）。
      ほかの画面より<b>先に</b>読む（body のクラスを立てるので、あとから読むと一瞬ちらつく）。 -->
 <script src="xevion-os.js?v=13"></script>
@@ -64,10 +64,10 @@
 <script type="module" src="xeva-sync.js?v=18"></script>
 <script type="module" src="xevarion-fb.js?v=33"></script>
 <script src="xeva-presence.js?v=9" defer></script>
-<script type="module" src="xeva-cloud.js?v=36"></script>
+<script type="module" src="xeva-cloud.js?v=37"></script>
 <script src="xeva-qr.js?v=9" defer></script>
-<script src="xevarion.js?v=93" defer></script>
-<script src="xevarion-home.js?v=139" defer></script>
+<script src="xevarion.js?v=94" defer></script>
+<script src="xevarion-home.js?v=140" defer></script>
 </head>
 <body>
 <!-- ───── バックグラウンド音楽（Flagship Arrival。アクセス画面のタップで再生開始） ───── -->
@@ -439,6 +439,16 @@ body.music-on #beatFrame{opacity:1}
         <div class="xh-evdots" id="xhEvDots"></div>
       </section>
 
+      <!-- アプリ
+           ★★ 2026-09-23 ご指定で<b>開催中のイベントのすぐ下</b>へ移しました（前はいちばん下）。 -->
+      <section class="xh-sec">
+        <div class="xh-sechead">
+          <div class="t"><span class="dot app"></span>アプリ</div>
+          <button class="more" onclick="xhOpenAllApps()">すべて見る</button>
+        </div>
+        <div class="xh-grid" id="xhAppGrid" style="margin-top:10px"></div>
+      </section>
+
       <!-- ★★ 2026-09-17 ピックアップキャラクター。
            ★ 2回目のご指定で「イベント・アップデート情報と同じコンパクトなカルーセル」に作り直した。
            中身は xevarion-home.js の xhRenderPickup()。顔ぶれは mb-newchars.js。 -->
@@ -466,14 +476,6 @@ body.music-on #beatFrame{opacity:1}
         <div class="xh-evdots" id="xhUpDots"></div>
       </section>
 
-      <!-- アプリ -->
-      <section class="xh-sec">
-        <div class="xh-sechead">
-          <div class="t"><span class="dot app"></span>アプリ</div>
-          <button class="more" onclick="xhOpenAllApps()">すべて見る</button>
-        </div>
-        <div class="xh-grid" id="xhAppGrid" style="margin-top:10px"></div>
-      </section>
 
     </div>
 
@@ -825,6 +827,12 @@ body.music-on #beatFrame{opacity:1}
       <button class="xh-row" onclick="xhOpenSort()">
         <span class="rl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4.4v15M7 4.4 4.2 7.6M7 4.4l2.8 3.2"/><path d="M17 19.6v-15M17 19.6l2.8-3.2M17 19.6l-2.8-3.2"/></svg>
           <span><span class="rt">アプリの並び替え・アイコン</span><span class="rs">並ぶ順番と、アイコンのキャラ画像を自由に変更</span></span></span>
+        <span class="rv">›</span>
+      </button>
+      <!-- ★★ 2026-09-23 XEVARION そのもののアプリアイコンをキャラ画像に（ご指定） -->
+      <button class="xh-row" onclick="xhOpenPortalIcon()">
+        <span class="rl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.6" y="3.6" width="16.8" height="16.8" rx="4.6"/><circle cx="9.4" cy="9.6" r="1.9"/><path d="M20 15.6l-4.6-4.4-8.2 8.6"/></svg>
+          <span><span class="rt">XEVARION のアプリアイコン</span><span class="rs">持っているキャラの画像を XEVARION のアイコンに</span></span></span>
         <span class="rv">›</span>
       </button>
       <button class="xh-row" onclick="xhOpenAllApps()">
@@ -1836,6 +1844,33 @@ body.music-on #beatFrame{opacity:1}
 
   <div class="nm-body" id="newsBody">
     <div class="nm-divider" id="newDivider" style="display:none;">NEW — 前回から更新</div>
+    <!-- 2026-09-23 MagiBattle 2.0 -->
+    <div class="nm-item" data-tag="new" data-date="2026-09-23">
+      <div class="nm-date">2026<br>09.23</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag launch">NEW</span></div>
+        <div class="nm-title">⚔ MagiBattle を全面リニューアル</div>
+        <div class="nm-txt">・<b>XEVARION の全キャラ</b>が MagiBattle に参戦。所持と<b>凸は MagiBurst・XEVA ガチャと共通</b>、MagiBurst で育てたレベルも反映されます。<br>・リアルタイムバトルに作り直し：<b>バーストⅠ→Ⅱ→Ⅲ</b>をつなぐと <b>FULL BURST</b>、ボスのチャージ攻撃は<b>コアを削って BREAK</b>、敵をタップで照準。オートでもスキル・バーストを自動で使います。<br>・画面を NIKKE 風のデザインに。編成とキャラ一覧は別のタブに分けました。<br>・<b>装備</b>（頭・腕・胸・足・オーバーロード）を導入。MagiBurst の装備はそのまま引きつげます。<br>・新モード<b>迎撃戦</b>。報酬はジェム（XEVARION 共通）。セーブは端末をまたいで同期します。</div>
+      </div>
+    </div>
+    <!-- 2026-09-23 CRYSTAL ACADEMY FEST・MagiBurst -->
+    <div class="nm-item" data-tag="new" data-date="2026-09-23">
+      <div class="nm-date">2026<br>09.23</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag launch">NEW</span></div>
+        <div class="nm-title">💎 CRYSTAL ACADEMY FEST 開幕／MagiBurst の編成が5体に</div>
+        <div class="nm-txt">・限定SSR <b>クレハ・ミコト・メイ・ヒカル・ミヅキ</b>（20日間）。治癒の祈りの上位互換<b>神癒の祈り</b>、新しい<b>結晶のフルバースト</b>、新リンク5本。MagiBattle でも最強クラスです。<br>・MagiBurst のバトルは<b>5体編成</b>に。治癒の祈りは編成の左から順に抽選します。<br>・下のバーのガチャのキャラをクレハに変更しました。</div>
+      </div>
+    </div>
+    <!-- 2026-09-23 ポータル・MagiScope -->
+    <div class="nm-item" data-tag="new" data-date="2026-09-23">
+      <div class="nm-date">2026<br>09.23</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">FIX</span></div>
+        <div class="nm-title">🛠 同期のロードのくり返しを修正・ホームの並び</div>
+        <div class="nm-txt">・スマホでアプリを開いたとき、同期のロード画面が終わっては始まるのをくり返す不具合を直しました。<br>・ホームの<b>アプリを開催中のイベントのすぐ下</b>に。MagiRail と MagiBattle の場所を入れかえました。<br>・設定の「XEVARION のアプリアイコン」で、<b>持っているキャラの画像</b>をアイコンにできます（ホーム画面に置き直すと反映）。<br>・図鑑・ガチャの新キャラ紹介に <b>MagiBattle の性能</b>の面を追加。<br>・MagiScope：特別版は <b>R15 以上</b>の作品に／詳細から戻ると元の位置へ／同人誌のページ数・アニメの1話の長さ／<b>リンクの共有</b>ボタン。</div>
+      </div>
+    </div>
     <!-- 2026-09-22d MagiScope スマホの表示 -->
     <div class="nm-item" data-tag="new" data-date="2026-09-22">
       <div class="nm-date">2026<br>09.22</div>

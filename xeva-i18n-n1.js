@@ -21,6 +21,9 @@
     /* ★★ 2026-09-19 花宴祭 追加 */
     "アヤネ": "Ayane", "チハ": "Chiha",
     "ヒメリ": "Himeri", "ホノカ": "Honoka", "アズサ": "Azusa", "ココハ": "Kokoha",
+    /* ★★ 2026-09-23 CRYSTAL ACADEMY FEST */
+    "クレハ": "Kureha", "ミコト": "Mikoto", "メイ": "Mei", "ヒカル": "Hikaru", "ミヅキ": "Miduki",
+    "神癒の祈り": "Divine Prayer", "CRYSTAL ACADEMY FEST": "CRYSTAL ACADEMY FEST",
     "レナ": "Rena", "カオル": "Kaoru", "スバル": "Subaru", "カスミ": "Kasumi", "ツキノ": "Tsukino",
   };
 

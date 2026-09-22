@@ -964,6 +964,12 @@
     { id: "mb:azusa", mbId: "azusa", name:"アズサ", file: "../img/t_Azusa.webp", since:"2026-09-19" },
     /* ★★ 2026-09-19g 極彩祭（No.256） */
     { id: "mb:kokoha", mbId: "kokoha", name:"ココハ", file: "../img/t_Kokoha.webp", since:"2026-09-19" },
+    /* ★★ 2026-09-23 CRYSTAL ACADEMY FEST（No.257〜261） */
+    { id: "mb:kureha", mbId: "kureha", name:"クレハ", file: "../img/t_Kureha.webp", since:"2026-09-23" },
+    { id: "mb:mikoto", mbId: "mikoto", name:"ミコト", file: "../img/t_Mikoto.webp", since:"2026-09-23" },
+    { id: "mb:mei", mbId: "mei", name:"メイ", file: "../img/t_Mei.webp", since:"2026-09-23" },
+    { id: "mb:hikaru", mbId: "hikaru", name:"ヒカル", file: "../img/t_Hikaru.webp", since:"2026-09-23" },
+    { id: "mb:miduki", mbId: "miduki", name:"ミヅキ", file: "../img/t_Miduki.webp", since:"2026-09-23" },
   ];
   /* ★ 2026-08-10 初期SR 4体（ゼラ・アヤメ・レイラ・セリーヌ）は廃止しました。
      いまは<b>全キャラがアイコンに選べる</b>ので、starter という区別そのものが要らない。 */
@@ -1067,7 +1073,9 @@
   , "ayane", "chiha"
   /* ★★ 2026-09-19e */
   , "himeri", "honoka", "azusa"
-  , "kokoha"];
+  , "kokoha"
+  /* ★★ 2026-09-23 CRYSTAL ACADEMY FEST */
+  , "kureha", "mikoto", "mei", "hikaru", "miduki"];
   MB_CHAR_MASTER.forEach(function (c) { c.mb = true; c.starter = MB_STARTERS.indexOf(c.mbId) >= 0; });
   MB_CHAR_MASTER.forEach(function (c) { c.star5 = MB_STAR5.indexOf(c.mbId) >= 0; });
   /* id は "mb:zera" のように接頭辞つき。XEVAガチャにも同じ名前のキャラ（シオンなど）が

@@ -6,7 +6,7 @@
 <script>(function(){try{var a=JSON.parse(localStorage.getItem('xeva_account_v1'));if(!a||!a.setupDone)location.replace('index.html');}catch(e){}})();</script>
 <script type="module" src="xevarion-fb.js?v=33"></script>
 <script src="xeva-presence.js?v=9" defer></script>
-<script type="module" src="xeva-cloud.js?v=36"></script>
+<script type="module" src="xeva-cloud.js?v=37"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -21,8 +21,8 @@
 <!-- ★ 2026-08-10 ガチャ結果の演出（1枚ずつ公開・昇格演出）の見た目。MagiBurst と共通 -->
 <link rel="stylesheet" href="mb-gacha-reveal.css?v=11">
 <!-- ★ 2026-08-10 キャラ詳細（性能画面）の見た目。図鑑（characters.html）と共通 -->
-<link rel="stylesheet" href="mb-char-detail.css?v=23">
-<script src="xeva.js?v=70"></script>
+<link rel="stylesheet" href="mb-char-detail.css?v=24">
+<script src="xeva.js?v=71"></script>
 <!-- ★★ 2026-09-05 言語切りかえ（日本語 ⇄ English）。辞書は本体のあとに読むこと。 -->
 <script src="xeva-i18n.js?v=8"></script>
 <script src="xeva-i18n-dict.js?v=12"></script>
@@ -40,10 +40,10 @@
 <script src="xeva-i18n-mb7.js?v=7"></script>
 <script src="xeva-i18n-p4.js?v=7"></script>
 <!-- ★★ 2026-09-06b 今回足したもの（新キャラ14体・装備・スタメンなど）の英語辞書 -->
-<script src="xeva-i18n-n1.js?v=11"></script>
+<script src="xeva-i18n-n1.js?v=12"></script>
 <script src="xeva-i18n-n2.js?v=3"></script>
 <script src="xeva-loading.js?v=18" defer></script>
-<script src="magibattle-stats.js?v=14"></script>
+<script src="magibattle-stats.js?v=15"></script>
 <script type="module" src="xeva-sync.js?v=18"></script>
 <style>
 /* ══════════════════════════════════════════════════════════════
@@ -792,6 +792,12 @@ body:not(.glmode) #glist{display:none}
       .nci .nci-pg button.on{background:linear-gradient(135deg,#2b64d8,#5aa8ff);color:#fff}
       .nci .nci-pane{width:100%;max-width:560px;min-width:0;flex:none;box-sizing:border-box}
       .nci .nci-pane.boccia{display:none}
+      /* ★★ 2026-09-23 MagiBattle の面（見た目は Boccia の面と同じ白い板） */
+      .nci .nci-pane.mbt{display:none}
+      .nci.pg-battle .nci-pane.burst{display:none}
+      .nci.pg-battle .nci-pane.mbt{display:block;background:rgba(255,255,255,.95);border-radius:16px;padding:10px 12px;margin-top:10px;color:#1c2436;
+        box-shadow:0 10px 26px rgba(20,40,90,.18);text-align:left}
+      .nci .nci-pane.mbt.go{animation:nciSlide .45s cubic-bezier(.2,.85,.3,1) both;transform:translateX(14px);opacity:0}
       .nci.pg-boccia .nci-pane.burst{display:none}
       .nci.pg-boccia .nci-pane.boccia{display:block;background:rgba(255,255,255,.95);border-radius:16px;padding:10px 12px;margin-top:10px;
         box-shadow:0 8px 22px rgba(40,80,170,.18)}
@@ -905,15 +911,15 @@ body:not(.glmode) #glist{display:none}
 <!-- ★★ 2026-09-08 新キャラの<b>実装日</b>の台帳。
      mb-core.js の charImplDate() がこれを見て「実装から10日以内か」を判定する。
      ★ mb-core.js より<b>前</b>に読むこと（defer にしない）。 -->
-<script src="mb-newchars.js?v=31"></script>
-<script src="MagiBurst/js/mb-core.js?v=128"></script>
+<script src="mb-newchars.js?v=32"></script>
+<script src="MagiBurst/js/mb-core.js?v=129"></script>
 <!-- ★ 2026-08-10 キャラ詳細（性能画面）。図鑑（characters.html）と同じものを使う -->
 <!-- ★★ 2026-08-22 ガチャの詳細だけ「このキャラの最大値」も並べる（ご指定）。
      図鑑（characters.html）はこの旗を立てないので、これまでどおり いまの値だけ。
      旗は mb-char-detail.js を読む<b>前</b>に立てること。 -->
 <script>window.MBDET_MAXSTATS = true;</script>
-<script src="mb-char-detail.js?v=34"></script>
-<script src="gacha-ui.js?v=56"></script>
+<script src="mb-char-detail.js?v=35"></script>
+<script src="gacha-ui.js?v=57"></script>
     <!-- ★★ 2026-09-13c 新キャラ紹介アニメの舞台。中身は gacha-ui.js の nciOpen() が入れる。 -->
     <div class="nci" id="nciOv">
       <div class="nci-sky"><i class="s1"></i><i class="s2"></i><div class="nci-rays"></div></div>
@@ -936,12 +942,15 @@ body:not(.glmode) #glist{display:none}
         <!-- ★★ 2026-09-17b 面の切りかえ（MagiBurst → MagiBocciaRush は時間で自動。押しても切りかえられる） -->
         <div class="nci-pg" id="nciPg">
           <button data-pg="burst" class="on" onclick="nciGoPage('burst',event)">⚔ MagiBurst</button>
-          <button data-pg="boccia" onclick="nciGoPage('boccia',event)">🎯 MagiBocciaRush</button>
+          <!-- ★★ 2026-09-23 MagiBattle の面（MagiBurst と Boccia のあいだ・ご指定） -->
+          <button data-pg="battle" onclick="nciGoPage('battle',event)">⚡ MagiBattle</button>
+          <button data-pg="boccia" onclick="nciGoPage('boccia',event)">🎯 Boccia</button>
         </div>
         <div class="nci-pane burst">
           <div class="nci-rows" id="nciSk"></div>
           <div class="nci-x2" id="nciBurstX"></div>
         </div>
+        <div class="nci-pane mbt" id="nciBattle"></div>
         <div class="nci-pane boccia" id="nciBoccia"></div>
       </div>
       <div class="nci-foot">

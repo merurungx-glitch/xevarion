@@ -1509,6 +1509,8 @@ body.xh-dragging .xh-sheet-body{overflow:hidden}
 .xh-iconprev .xh-sq{width:62px;max-width:none;flex:none}
 .xh-iconprev .pvt b{display:block;font-size:14px;font-weight:900;color:var(--xh-ink)}
 .xh-iconprev .pvt small{display:block;font-size:11px;font-weight:800;color:var(--xh-sub);margin-top:2px}
+/* ★★ 2026-09-23 XEVARION のアイコン：ホーム画面に置き直す案内 */
+.xh-iconprev .pvt small.pvn{color:#c2410c;font-size:10px;line-height:1.45}
 .xh-iconq{width:100%;box-sizing:border-box;padding:11px 14px;border-radius:14px;border:1.5px solid rgba(120,160,230,.35);
   font-size:15px;font-family:inherit;background:#fff;color:var(--xh-ink);outline:none}
 .xh-cpick.lock img{filter:grayscale(.85) brightness(.9)}

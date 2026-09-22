@@ -169,7 +169,7 @@ addEventListener("load", () => {
    xeva.js の MISSIONS にミッションを足したら必ずここにも足すこと。 */
 const MISSION_META = {
   magiburst_play:      { href: "MagiBurst/index.html",             icon: "thumbs/MagiBurst.jpg",      cta: "プレイ" },
-  magibattle_win:      { href: "MagiBattle/index.html",            icon: "thumbs/MagiBattle.jpg",     cta: "プレイ" },
+  magibattle_win:      { href: "MagiBattle/index.html",            icon: "thumbs/MagiBattle.jpg?v=2",     cta: "プレイ" },
   magichainparty_play: { href: "MagiChainParty/index.html",        icon: "thumbs/MagiChainParty.jpg", cta: "プレイ" },
   magiempire_play:     { href: "MagiEmpire/MagiEmpire.html",       icon: "thumbs/MagiEmpire.jpg",     cta: "プレイ" },
   magiarena_play:      { href: "MagiArena/MagiArena.html",         icon: "thumbs/MagiArena.jpg",      cta: "プレイ" },
@@ -3354,7 +3354,7 @@ addEventListener("DOMContentLoaded", () => { if (_xevLang === "en") applyLang("e
   const POOL = [
     "thumbs/MagiLink.jpg", "thumbs/MagiLex.jpg", "thumbs/MagiEmpire.jpg",
     "thumbs/MagiCraft.jpg", "thumbs/MagiChainParty.jpg", "thumbs/MagiBurst.jpg",
-    "thumbs/MagiPortfolio.jpg", "thumbs/MagiRanking.jpg", "thumbs/MagiBattle.jpg",
+    "thumbs/MagiPortfolio.jpg", "thumbs/MagiRanking.jpg", "thumbs/MagiBattle.jpg?v=2",
   ];
   const tiles = document.querySelectorAll(".hero-art .ha-tile:not(.main) img");
   if (!tiles.length) return;

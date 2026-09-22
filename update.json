@@ -1,13 +1,17 @@
 {
-  "version": "2026-09-22-5",
-  "date": "2026-09-22",
-  "title": "MagiScope スマホの表示を修正",
+  "version": "2026-09-23-1",
+  "date": "2026-09-23",
+  "title": "MagiBattle 全面リニューアル／CRYSTAL ACADEMY FEST",
   "notes": [
-    "おすすめ特集のボタンが画面外に出ないように",
-    "マイページのお気に入り件数を見やすく"
+    "MagiBattle：XEVARION の全キャラが参戦・バーストⅠ→Ⅱ→Ⅲの FULL BURST・装備・迎撃戦・凸は共通・同期に対応・NIKKE 風の画面",
+    "CRYSTAL ACADEMY FEST：クレハ・ミコト・メイ・ヒカル・ミヅキ（神癒の祈り・結晶のフルバースト・新リンク5本）",
+    "MagiBurst：編成が5体に／治癒の祈りは左から順に抽選／編成の固定表示の重なりを修正／装備は MagiBattle へ移設",
+    "XEVARION：同期のロードがくり返す不具合を修正／アプリをイベントの下に／XEVARION のアイコンをキャラ画像に／MagiRail と MagiBattle の位置を入れかえ／ガチャのアイコンをクレハに",
+    "図鑑・新キャラ紹介に MagiBattle の性能の面",
+    "MagiScope：特別版は R15 以上／戻ると元の画面へ／ページ数・1話の長さ／リンクの共有"
   ],
-  "bytes": 50278467,
-  "files": 586,
+  "bytes": 51353501,
+  "files": 597,
   "urls": [
     "index.html",
     "characters.html",
@@ -221,6 +225,11 @@
     "MagiBurst/img/ss/ChihaSS.webp",
     "MagiBurst/img/ss/HimeriSS.webp",
     "MagiBurst/img/ss/HonokaSS.webp",
+    "MagiBurst/img/ss/KurehaSS.webp",
+    "MagiBurst/img/ss/MikotoSS.webp",
+    "MagiBurst/img/ss/MeiSS.webp",
+    "MagiBurst/img/ss/HikaruSS.webp",
+    "MagiBurst/img/ss/MidukiSS.webp",
     "MagiBurst/img/ss/YajuSS.webp",
     "MagiBurst/img/ss/KokonaAlphaSS.webp",
     "img/Kaede.webp",
@@ -339,6 +348,7 @@
     "MagiBurst/img/bn_fes12_s.webp",
     "MagiBurst/img/bn_fes13_s.webp",
     "MagiBurst/img/bn_fes15_s.webp",
+    "MagiBurst/img/bn_fes16_s.webp",
     "MagiBurst/img/bn_fes14_s.webp",
     "img/t_Suzune.webp",
     "img/t_Minamo.webp",
@@ -447,6 +457,11 @@
     "img/t_Honoka.webp",
     "img/t_Azusa.webp",
     "img/t_Kokoha.webp",
+    "img/t_Kureha.webp",
+    "img/t_Mikoto.webp",
+    "img/t_Mei.webp",
+    "img/t_Hikaru.webp",
+    "img/t_Miduki.webp",
     "MagiBurst/img/eq_head.webp",
     "MagiBurst/img/eq_arm.webp",
     "MagiBurst/img/eq_body.webp",
@@ -597,10 +612,39 @@
     "xevarion-fb.js"
   ],
   "apps": [
-    "magiscope"
+    "magibocciarush",
+    "magiburst",
+    "magichainparty",
+    "magicounter",
+    "magidiamond",
+    "magidominiongrid",
+    "magijackpot",
+    "magilex",
+    "magilotto",
+    "magimusic",
+    "magiscope",
+    "magishift",
+    "tab:chars",
+    "tab:community",
+    "tab:gacha",
+    "tab:home",
+    "xevynar",
+    "magibattle"
   ],
-  "changedFiles": 5,
+  "changedFiles": 48,
   "history": [
+    {
+      "version": "2026-09-22-5",
+      "date": "2026-09-22",
+      "title": "MagiScope スマホの表示を修正",
+      "notes": [
+        "おすすめ特集のボタンが画面外に出ないように",
+        "マイページのお気に入り件数を見やすく"
+      ],
+      "apps": [
+        "magiscope"
+      ]
+    },
     {
       "version": "2026-09-22-4",
       "date": "2026-09-22",
@@ -880,24 +924,6 @@
       ],
       "apps": [
         "tab:gacha"
-      ]
-    },
-    {
-      "version": "2026-09-19-8",
-      "date": "2026-09-19",
-      "title": "セレクト券とNEWのきまり",
-      "notes": [
-        "プレミアムセレクト券は最新のキャラまで選べるように",
-        "NEW（確率アップ）はそのガチャでいちばん最近追加されたキャラが次の新キャラまで・それ以前の子も登場から10日間"
-      ],
-      "apps": [
-        "magibocciarush",
-        "magiburst",
-        "magidiamond",
-        "magilex",
-        "tab:chars",
-        "tab:gacha",
-        "tab:home"
       ]
     }
   ]

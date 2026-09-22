@@ -17,6 +17,17 @@
      こちらに足したら<b>あちらにも since 付きで1行</b>足すこと（無いとポータルに絵が出ない）。
    ══════════════════════════════════════════════════════════════ */
 window.MB_NEW_CHARS = [
+  /* ── ★★ 2026-09-23 CRYSTAL ACADEMY FEST（天界の審判 第四・第六・第七・第十三・第十五）── */
+  { id: "kureha", since: "2026-09-23", where: "CRYSTAL ACADEMY FEST", mode: "fes16",
+    catch: "結晶が燃えるくらい、全力でいくよ！", color: "#ff6a3d" },
+  { id: "mikoto", since: "2026-09-23", where: "CRYSTAL ACADEMY FEST", mode: "fes16",
+    catch: "水鏡に映るのは、あなたの勝ち筋。", color: "#3fb6ff" },
+  { id: "mei", since: "2026-09-23", where: "CRYSTAL ACADEMY FEST", mode: "fes16",
+    catch: "使うたびに、ちゃんと育つから。", color: "#3fd47a" },
+  { id: "hikaru", since: "2026-09-23", where: "CRYSTAL ACADEMY FEST", mode: "fes16",
+    catch: "迷ったら、わたしの灯りを見て。", color: "#ffd257" },
+  { id: "miduki", since: "2026-09-23", where: "CRYSTAL ACADEMY FEST", mode: "fes16",
+    catch: "次の瞬間、ぜんぶ砕けるの。", color: "#9a6bff" },
   /* ── ★★ 2026-09-19g 極彩祭 ココハ ── */
   { id: "kokoha", since: "2026-09-19", where: "極彩祭（毎月1〜10日）", mode: "fes7",
     catch: "雨があがるまで、ここにいてくれる？", color: "#e0203a" },

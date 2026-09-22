@@ -130,13 +130,28 @@ function mtEnsureCSS() {
      （次に別のキャラを開いたら、また MagiBurst から始まる）。 */
 /* ★★ 2026-09-10 3つめ "boccia"（MagiBocciaRush）を足した（ご指定）。 */
 let detGame = "burst";
-const DET_GAMES = ["burst", "diamond", "boccia"];
+/* ★★ 2026-09-23 "battle"（MagiBattle）を <b>MagiBurst と MagiDiamond のあいだ</b>に足した（ご指定） */
+const DET_GAMES = ["burst", "battle", "diamond", "boccia"];
+/* このファイルの置き場（MagiTier など1つ下の階層から読まれても、兄弟のファイルを正しく読むため） */
+const MBD_BASE = (function () { try { return String(document.currentScript.src).replace(/mb-char-detail\.js.*$/, ""); } catch (e) { return ""; } })();
 window.setDetGame = function (g) {
   detGame = DET_GAMES.indexOf(g) >= 0 ? g : "burst";
   if (detCurId) openDetX(detCurId, true);
 };
 let detCurId = null;
 
+/* ★★ 2026-09-23 MagiBattle の性能（magibattle-stats.js v2）。古い版しか無ければ読みなおす。 */
+function mbtEnsure() {
+  if (window.MBStats && MBStats.VERSION >= 2) return Promise.resolve();
+  if (window.__mbtLoading) return window.__mbtLoading;
+  window.__mbtLoading = new Promise((res) => {
+    const s = document.createElement("script");
+    s.src = MBD_BASE + "magibattle-stats.js?v=15";
+    s.onload = () => res(); s.onerror = () => res();
+    document.head.appendChild(s);
+  });
+  return window.__mbtLoading;
+}
 /* MagiDiamond の性能。MD2DATA が読めていないときは、その場で読みこむ。 */
 function mdEnsure() {
   if (window.MD2DATA) return Promise.resolve();
@@ -250,6 +265,9 @@ function openDetX(id, keepGame) {
   if (!keepGame) detGame = "burst";       /* ★ 開いたときは必ず MagiBurst（ご指定） */
   /* ★ MD2DATA がまだ無いときだけ読みこんで、読めたら1回だけ開き直す。
      「あるとき」も呼ぶと Promise.resolve → openDetX → … と<b>無限に回る</b>。 */
+  if (detGame === "battle" && !(window.MBStats && MBStats.VERSION >= 2)) {
+    mbtEnsure().then(() => { if (detCurId === id && detGame === "battle" && window.MBStats && MBStats.VERSION >= 2) openDetX(id, true); });
+  }
   if (detGame === "diamond" && !window.MD2DATA) {
     mdEnsure().then(() => { if (detCurId === id && detGame === "diamond") openDetX(id, true); });
   }
@@ -296,8 +314,10 @@ function openDetX(id, keepGame) {
     </div>
     <div class="dbody">
       ${/* ★★ 2026-09-06 どのゲームの性能を見るか（ご指定・はじめは MagiBurst） */""}
-      <div class="dgseg g3">
+      <div class="dgseg g4">
         <button class="${detGame === "burst" ? "on" : ""}" onclick="setDetGame('burst')">⚔ MagiBurst</button>
+        ${/* ★★ 2026-09-23 ご指定により <b>MagiBurst と MagiDiamond のあいだ</b> */""}
+        <button class="${detGame === "battle" ? "on" : ""}" onclick="setDetGame('battle')">⚡ MagiBattle</button>
         <button class="${detGame === "diamond" ? "on" : ""}" onclick="setDetGame('diamond')">⚾ MagiDiamond</button>
         ${/* ★★ 2026-09-10 ご指定により <b>MagiDiamond の右</b>に足す */""}
         <button class="${detGame === "boccia" ? "on" : ""}" onclick="setDetGame('boccia')">🎯 Boccia</button>
@@ -419,8 +439,8 @@ function openDetX(id, keepGame) {
         <div class="t">評価（MagiTier）</div>
         <div class="ddesc">読み込んでいます…</div></div>
 
-        ${magiBattleHTML(id)}
       </div>
+      ${detGame === "battle" ? magiBattleHTML(id) : ""}
       ${detGame === "diamond" ? magiDiamondHTML(id) : ""}
       ${detGame === "boccia" ? magiBocciaHTML(id) : ""}
       ${/* ★ 2026-08-26 ページ側が足したい行（図鑑の「アイコンに設定」など）。
@@ -437,41 +457,29 @@ window.openDetX = openDetX;
 function closeDetX() { $("#detOv").classList.remove("on"); }
 window.closeDetX = closeDetX;
 
-/* ══ MagiBattle の評価 ══
-   ★ MagiBattle のキャラは XEVA ガチャのマスタ（XEVA.CHARS）でできている。
-     MagiBurst 生まれのキャラはそこに居ないので、<b>MagiBattle の性能そのものが無い</b>。
-     無いものを計算して出すと嘘になるので、その場合は「性能なし」とはっきり書く。
-   ★ ガチャ統合で移ってきたキャラ（コトミ〜リノン・ミオン〜アリサなど）は
-     XEVA.CHARS にも居るので、これまでどおり MagiBattle の性能が出る。
-     ただし id が食いちがう2体だけ、ここで読み替える。 */
-const MB_XEVA_ID = { rinonx: "rinon", shiona: "shion" };
-function xevaCharOf(id) {
-  const key = MB_XEVA_ID[id] || id;
-  const list = (window.XEVA && window.XEVA.CHARS) || [];
-  return list.find((x) => x.id === key) || null;
-}
+/* ══ ★★ 2026-09-23 MagiBattle の評価（全面刷新）══
+   MagiBattle 2.0 は<b>XEVARION の全キャラ</b>が出られる（性能の素は mb-core.js の CHARS）。
+   中身は magibattle-stats.js の detailHTML ＝ MagiBattle のキャラ詳細とまったく同じもの。
+   ・ガチャの詳細（MBDET_MAXSTATS）は Lv.80・完凸の値
+   ・図鑑は<b>いまの自分の値</b>（MagiBattle の育成 Lv と MagiBurst の Lv の高いほう・共通の凸）。未所持は Lv.1 */
 function magiBattleHTML(id) {
-  const xc = xevaCharOf(id);
-  if (!xc || !window.MBStats) {
+  if (!(window.MBStats && MBStats.VERSION >= 2 && MBStats.unit(id))) {
     return `<div class="dsec mbb"><div class="t">評価（MagiBattle）</div>
-      <div class="mbnone">このキャラには <b>MagiBattle 用の性能がありません</b>。<br>
-      MagiBattle に出られるのは <b>XEVA ガチャから引き継いだキャラ</b>だけで、
-      MagiBurst で生まれたキャラ（および今後の新キャラ）には MagiBattle の性能を用意していません。</div></div>`;
+      <div class="mbnone">読みこんでいます…</div></div>`;
   }
-  const el = MBStats.ELEM[MBStats.elemOf(xc)];
-  const role = MBStats.ROLES[MBStats.roleOf(xc)];
-  const s40 = MBStats.statsAt(xc, 40, 4);
-  const kit = MBStats.kitOf(xc);
-  return `<div class="dsec mbb"><div class="t">評価（MagiBattle）<span class="turn" style="background:${role.c}">${role.nm}</span></div>
-    <div class="dchips">
-      <span class="dchip" style="color:${el.c};border-color:${el.c}66">${el.nm}属性</span>
-      <span class="dchip">戦力 ${MBStats.powerOf(s40).toLocaleString()}</span>
-      <span class="dchip">HP ${s40.hp.toLocaleString()}</span>
-      <span class="dchip">攻撃 ${s40.atk.toLocaleString()}</span>
-    </div>
-    <div class="ddesc"><b>${role.nm}</b>：${role.d}。Lv.40・限界突破MAX での値です。
-      スキル${kit.skills.length}種／必殺技${kit.bursts.length}種。</div>
-    ${MBStats.statsHTML ? MBStats.statsHTML(xc) : ""}
-    <div class="ddesc" style="margin-top:6px;font-size:10px">※ MagiBattle と MagiBurst は<b>別の性能</b>です（属性・役割も別々に決まります）。</div>
+  try { MBStats.ensureCSS(); } catch (e) {}
+  let lv = MBStats.MAX_LV, awk = MBStats.MAX_AWK, gear = null, cap = "Lv.80・完凸";
+  if (!window.MBDET_MAXSTATS) {
+    const sh = MBStats.sharedOf(id);
+    if (sh.own) {
+      let xp = 0; try { xp = ((JSON.parse(localStorage.getItem("magibattle_v1") || "null") || {}).xp || {})[id] || 0; } catch (e) {}
+      const own = Math.min(MBStats.MAX_LV, 1 + Math.floor(Math.sqrt(xp / 12)));
+      lv = Math.max(own, Math.min(MBStats.MAX_LV, Math.round((sh.mbLv || 0) * MBStats.MAX_LV / 70)));
+      awk = sh.awk; cap = "いまの自分の値";
+    } else { lv = 1; awk = 0; cap = "未所持（Lv.1）"; }
+  }
+  return `<div class="dsec mbb"><div class="t">評価（MagiBattle）<span class="turn" style="background:${MBStats.CLASSES[MBStats.unit(id).cls].c}">${MBStats.CLASSES[MBStats.unit(id).cls].nm}</span></div>
+    ${MBStats.detailHTML(id, { lv, awk, gear })}
+    <div class="ddesc" style="margin-top:6px;font-size:10px">※ ${cap}。MagiBattle の凸は <b>MagiBurst・XEVA ガチャと共通</b>、レベルは MagiBattle の育成と MagiBurst のレベルの高いほうです。</div>
   </div>`;
 }

@@ -65,6 +65,19 @@ const _rawSet = localStorage.setItem.bind(localStorage);
 const _rawRemove = localStorage.removeItem.bind(localStorage);
 
 function lsGet(k) { try { return localStorage.getItem(k); } catch (e) { return null; } }
+/* ★★ 2026-09-23 中身が同じ JSON か（キーの並びだけ違うものを「変わった」と数えない）。
+   混ぜた結果の文字列が<b>キーの順番だけ</b>ちがうと changed になり、同期のたびに
+   読み直し（reload）が起きていた——スマホでロードが終わっては始まるのをくり返す原因のひとつ。 */
+function _canonJSON(v) {
+  if (Array.isArray(v)) return "[" + v.map(_canonJSON).join(",") + "]";
+  if (v && typeof v === "object") return "{" + Object.keys(v).sort().map((k) => JSON.stringify(k) + ":" + _canonJSON(v[k])).join(",") + "}";
+  return JSON.stringify(v);
+}
+function sameJSON(a, b) {
+  if (a === b) return true;
+  if (a == null || b == null) return false;
+  try { return _canonJSON(JSON.parse(a)) === _canonJSON(JSON.parse(b)); } catch (e) { return false; }
+}
 function jparse(s, d) { try { return s == null ? d : JSON.parse(s); } catch (e) { return d; } }
 
 /* ── per-key メタ（最終ローカル書込時刻） ── */
@@ -295,6 +308,9 @@ const COUNT_KEYS = new Set(["xeva_fessel_v1", "xeva_seal_v1"]);
    これまでは「新しい方が勝つ」だけだったので、別の端末で上げた熟練度（chars[id].xp）や
    BOSS STAGE のクリアが、こちらで設定を1つ触っただけで消えていた。 */
 const MBR_KEYS = new Set(["mbr_v1"]);
+/* ★★ 2026-09-23 MagiBattle 2.0 のセーブ。経験値・塔の到達は大きいほう、装備は和、
+   素材・編成・設定は新しい側（勝った側）のまま。 */
+const BATTLE_KEYS = new Set(["magibattle_v1"]);
 /* ══ ★★ 2026-09-20 「ミッションやメールの受け取りが同期されないことがある」の直し ══
    受け取り済みの印は<b>一度付いたら消えない</b>ものなので、勝ち負けではなく<b>和</b>で混ぜる。
    これまでは「新しい方が勝つ」だけだったので、
@@ -359,7 +375,7 @@ function mergeScope(winnerStr, loserStr) {
   const r = JSON.stringify(out);
   return r;
 }
-function hasMergeRule(k) { return WALLET_KEYS.has(k) || CHAR_KEYS.has(k) || COUNT_KEYS.has(k) || MBR_KEYS.has(k)
+function hasMergeRule(k) { return WALLET_KEYS.has(k) || CHAR_KEYS.has(k) || COUNT_KEYS.has(k) || MBR_KEYS.has(k) || BATTLE_KEYS.has(k)
   || CLAIM_KEYS.has(k) || MAIL_KEYS.has(k) || SCOPE_KEYS.has(k); }
 /* { id: 印 } を和で混ぜる（片方にしか無い印も残す。両方にあれば早いほうの時刻） */
 function unionMarks(a, b) {
@@ -449,6 +465,26 @@ function mergeMbr(winnerStr, loserStr) {
     out.sort((p, q) => num(q && q.at) - num(p && p.at));
     W[k] = out.slice(0, Math.max(a.length, b.length));
   });
+  return JSON.stringify(W);
+}
+/* ★★ 2026-09-23 MagiBattle（magibattle_v1）を混ぜる */
+function mergeBattle(winnerStr, loserStr) {
+  const W = jparse(winnerStr, null), Lo = jparse(loserStr, null);
+  if (!W || !Lo || typeof W !== "object" || typeof Lo !== "object") return null;
+  const num = (v) => Number(v) || 0;
+  W.xp = (W.xp && typeof W.xp === "object") ? W.xp : {};
+  Object.keys(Lo.xp || {}).forEach((id) => { W.xp[id] = Math.max(num(W.xp[id]), num(Lo.xp[id])); });
+  W.gear = (W.gear && typeof W.gear === "object" && !Array.isArray(W.gear)) ? W.gear : {};
+  const lg = (Lo.gear && typeof Lo.gear === "object" && !Array.isArray(Lo.gear)) ? Lo.gear : {};
+  Object.keys(lg).forEach((gid) => {
+    const a = W.gear[gid], b = lg[gid];
+    if (!a) W.gear[gid] = b; else if (b && num(b.lv) > num(a.lv)) a.lv = b.lv;
+  });
+  W.tower = Object.assign({ best: 0 }, W.tower || {});
+  W.tower.best = Math.max(num(W.tower.best), num(Lo.tower && Lo.tower.best));
+  W.totalWins = Math.max(num(W.totalWins), num(Lo.totalWins));
+  if (Lo.saBest && (!W.saBest || (Lo.saBest.ym === W.saBest.ym && num(Lo.saBest.score) > num(W.saBest.score)) || String(Lo.saBest.ym) > String(W.saBest.ym))) W.saBest = Lo.saBest;
+  if (Lo.migMB) W.migMB = 1;
   return JSON.stringify(W);
 }
 /* 項目ごとに e / u を max で取り、履歴は取り合わせる */
@@ -596,6 +632,8 @@ function mergeStore(uid, remote, remoteT) {
             ? mergeWallet(k, lv, rv)
             : COUNT_KEYS.has(k)
               ? mergeCountMap(k, lv, rv)
+              : BATTLE_KEYS.has(k)
+                ? mergeBattle(remoteWins ? rv : lv, remoteWins ? lv : rv)
               : MBR_KEYS.has(k)
                 ? mergeMbr(remoteWins ? rv : lv, remoteWins ? lv : rv)
                 : CLAIM_KEYS.has(k)
@@ -608,7 +646,7 @@ function mergeStore(uid, remote, remoteT) {
         }
         if (merged != null) {
           if (WALLET_KEYS.has(k)) newBase[k] = rv;      /* 土台は「クラウドに確かにある値」 */
-          if (merged !== lv) { _rawSet(k, merged); changed = true; }
+          if (merged !== lv) { _rawSet(k, merged); if (!sameJSON(merged, lv)) changed = true; }
           if (remoteWins) bak[k] = { v: lv, t: lT };    /* 念のため負けた側も退避しておく */
           meta[k] = nowMs(); dirty.delete(k);
           pushKv[k] = { v: merged, t: meta[k] };
@@ -616,7 +654,7 @@ function mergeStore(uid, remote, remoteT) {
         }
         if (remoteWins) {
           if (lv != null) bak[k] = { v: lv, t: lT };
-          _rawSet(k, rv); meta[k] = rT || nowMs(); changed = true;
+          _rawSet(k, rv); meta[k] = rT || nowMs(); if (!sameJSON(rv, lv)) changed = true;
           dirty.delete(k);                                              // 古いローカル値の push 予約を破棄
         } else {
           if (!lT) meta[k] = nowMs();
@@ -773,6 +811,14 @@ function startPushCapture() {
 
 /* クラウド⇄ローカルのマージ（毎ページ読込で実行）。ローカルが変わったら1回だけ reload */
 const RELOAD_FLAG = "xeva_pullrld";
+/* ★★ 2026-09-23 <b>読み直しの履歴</b>（このタブで自動 reload した時刻の一覧）。
+   前は「4秒以内に2回目は読み直さない」だけだったので、
+   スマホのように <b>読み直し＋同期に4秒以上かかる</b>端末では保険が切れ、
+   同期 → 読み直し → 同期 → 読み直し…と<b>ロード画面が終わっては始まる</b>のをくり返していた（ご報告）。
+   → 自動の読み直しは <b>RELOAD_WIN（90秒）に1回まで</b>。2回目以降は読み直さず、
+     xeva:synced（上で出している）で画面に描き直してもらう。 */
+const RELOAD_HIST = "xeva_pullrld_hist";
+const RELOAD_WIN = 90000;
 async function syncDown(uid, forceReload) {
   let remote = {}, remoteT = {};
   try { const full = await FB.pullStoreFull(uid); remote = full.kv || {}; remoteT = full.t || {}; } catch (e) {}
@@ -785,7 +831,14 @@ async function syncDown(uid, forceReload) {
   if (changed || forceReload) {
     // reload ループ保険（マージは冪等なので通常2回目は changed=false になる）
     const last = Number(sessionStorage.getItem(RELOAD_FLAG) || 0);
-    if (Date.now() - last > 4000) {
+    let hist = [];
+    try { hist = JSON.parse(sessionStorage.getItem(RELOAD_HIST) || "[]"); } catch (e) {}
+    if (!Array.isArray(hist)) hist = [];
+    const nowT = Date.now();
+    hist = hist.filter((t) => nowT - t < RELOAD_WIN);
+    if (forceReload || (!hist.length && nowT - last > 4000)) {
+      hist.push(nowT);
+      try { sessionStorage.setItem(RELOAD_HIST, JSON.stringify(hist)); } catch (e) {}
       try { sessionStorage.setItem(RELOAD_FLAG, String(Date.now())); } catch (e) {}
       /* ★ 未送信の変更を送り切ってから reload する。
          旧実装は dirty を残したまま reload していたため、

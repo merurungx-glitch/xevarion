@@ -1381,6 +1381,8 @@ function nciShow(i) {
   if (bx) bx.innerHTML = nciBurstHTML(_nciIds[i]);
   const bc = $("#nciBoccia");
   if (bc) bc.innerHTML = nciBocciaHTML(_nciIds[i]);
+  const mb = $("#nciBattle");
+  if (mb) mb.innerHTML = nciBattleHTML(_nciIds[i]);
   nciPage("burst");
 
   const dots = $("#nciDots");
@@ -1400,17 +1402,22 @@ function nciPage(pg) {
   _nciPg = pg;
   const ov = $("#nciOv"); if (!ov) return;
   ov.classList.toggle("pg-boccia", pg === "boccia");
+  ov.classList.toggle("pg-battle", pg === "battle");
   document.querySelectorAll("#nciPg button").forEach((b) => b.classList.toggle("on", b.dataset.pg === pg));
   try { const p = ov.querySelector(".nci-panel"); if (p) p.scrollTop = 0; } catch (e) {}
-  if (pg === "boccia") {
-    const bc = $("#nciBoccia");
+  if (pg === "boccia" || pg === "battle") {
+    const bc = $(pg === "boccia" ? "#nciBoccia" : "#nciBattle");
     if (bc) { bc.classList.remove("go"); void bc.offsetWidth; bc.classList.add("go"); }
   }
 }
 /* 時間がたったとき・余白をタップしたとき：MagiBurst の面なら Boccia の面へ、Boccia の面なら次のキャラへ */
 function nciAdvance() {
   if (_nciT) { clearTimeout(_nciT); _nciT = 0; }
+  /* ★★ 2026-09-23 MagiBurst → MagiBattle → MagiBocciaRush → 次のキャラ */
   if (_nciPg === "burst") {
+    nciPage("battle");
+    _nciT = setTimeout(nciAdvance, NCI_BOCCIA_MS);
+  } else if (_nciPg === "battle") {
     nciPage("boccia");
     _nciT = setTimeout(nciAdvance, NCI_BOCCIA_MS);
   } else {
@@ -1437,6 +1444,18 @@ function nciBurstHTML(id) {
     + '<span><i>攻撃力</i><b>' + num(st.atk) + "</b></span>"
     + '<span><i>スピード</i><b>' + nciEsc(typeof spdKmh === "function" ? spdKmh(st.spd) : num(st.spd)) + "</b></span></div>" : "")
     + '<div class="nd-chips">' + abil + "</div>";
+}
+/* ★★ 2026-09-23 MagiBattle の面（ガチャなので Lv.80・完凸の値）。性能は magibattle-stats.js の1本 */
+function nciBattleHTML(id) {
+  if (!(window.MBStats && MBStats.VERSION >= 2)) {
+    if (typeof mbtEnsure === "function") mbtEnsure().then(() => {
+      if (window.MBStats && MBStats.VERSION >= 2 && _nciIds[_nciAt] === id) { const el = $("#nciBattle"); if (el) el.innerHTML = nciBattleHTML(id); }
+    });
+    return '<div class="nd-note">MagiBattle の性能を読みこんでいます…</div>';
+  }
+  if (!MBStats.unit(id)) return '<div class="nd-note">このキャラの MagiBattle の性能はまだありません。</div>';
+  try { MBStats.ensureCSS(); } catch (e) {}
+  return MBStats.detailHTML(id, { lv: MBStats.MAX_LV, awk: MBStats.MAX_AWK, compact: true });
 }
 function nciBocciaHTML(id) {
   if (!(window.MBR && MBR.VERSION >= 4)) {

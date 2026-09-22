@@ -66,9 +66,10 @@ const XH_CATS = [
 
 /* name = ホームの短い表示名 / full = 正式名 / sub = 一言 / desc = 一覧での説明 */
 const XH_APPS = [
-  { id:"magibattle", name:"MagiBattle", sub:"戦略バトル", cat:"game", tone:"red",
-    href:"MagiBattle/index.html", img:"thumbs/MagiBattle.jpg",
-    desc:"ガチャで集めたキャラを育てて戦うキャラバトルRPG。回転ダイアル編成×手動バースト×5属性、無限の塔・スコアアタックも。" },
+  /* ★★ 2026-09-23 MagiBattle 2.0（全面刷新）。アイコンも新しい絵（?v=2 で古い控えを使わない） */
+  { id:"magibattle", name:"MagiBattle", sub:"バースト連携バトル", cat:"game", tone:"red",
+    href:"MagiBattle/index.html", img:"thumbs/MagiBattle.jpg?v=2",
+    desc:"XEVARION の全キャラで戦うリアルタイムバトルRPG。バーストⅠ→Ⅱ→Ⅲでつなぐ FULL BURST、装備・迎撃戦・無限の塔・スコアアタック。" },
   { id:"magilex", name:"MagiLex", sub:"魔導書・知識", cat:"learn", tone:"blue",
     href:"MagiLex/MagiLex.html", img:"thumbs/MagiLex.jpg",
     desc:"魔法の書から問題が飛び出す学習アプリ。難関大英単語（発音つき）・物理・化学・古文をクイズ×単語帳で。オフライン学習OK。" },
@@ -213,14 +214,16 @@ const XH_DEFAULT_ORDER = [
        ・もとの MagiRanking の場所（15番目）＝ <b>MagiRail</b>
        ・<b>MagiRanking は「その他」へ</b>
      ホームに出るのは先頭から XH_HOME_SLOTS（15）個まで。 */
+  /* ★★ 2026-09-23 <b>MagiRail と MagiBattle の位置を入れかえ</b>（ご指定）。
+       MagiBattle がホームの15番目へ、MagiRail は「その他」のもとの MagiBattle の位置へ。 */
   "magilotto",
   "magiscope",
   "magishift",
-  "magirail",
+  "magibattle",
   /* ここから下は「その他」の中に入る */
   "magiranking",
   "ordyxis", "magicraft", "magimanor", "magiportfolio",
-  "magiarena", "magibattle", "magiempire", "magifocus", "magimusic",
+  "magiarena", "magirail", "magiempire", "magifocus", "magimusic",
   "ngx", "ishida", "magicalfuture",
 ];
 /* ★★ 2026-09-21 ホームに出すアプリを1列（4つ）増やして 15 個に（ご指定）。
@@ -231,7 +234,7 @@ const XH_ORDER_KEY = "xeva_home_order_v2";
    （アプリの入れ替えを、既にホームを触った人にも確実に反映させるため） */
 /* ★★ 2026-09-21c 並びを変えたので世代を上げる（保存ずみの並びを一度だけ既定に戻す）。
    これを上げないと、ホームを並びかえたことがある人には新しい並びが出ない。 */
-const XH_ORDER_GEN = "10-0921c";   /* ★★ 2026-09-17e Arcana Rush 廃止・MagiTier をホームへ（保存ずみの並びも一度だけ既定へ） */   /* ★★ 2026-09-09 11枠の入れかえと、抹けていた新作2本を既存の並びにも効かせる */
+const XH_ORDER_GEN = "11-0923";   /* ★★ 2026-09-23 MagiRail と MagiBattle の入れかえ */ /* 前: "10-0921c" */   /* ★★ 2026-09-17e Arcana Rush 廃止・MagiTier をホームへ（保存ずみの並びも一度だけ既定へ） */   /* ★★ 2026-09-09 11枠の入れかえと、抹けていた新作2本を既存の並びにも効かせる */
 const XH_ORDER_GEN_KEY = "xeva_home_order_gen";
 
 /* 期間限定イベント（from/to は YYYY-MM-DD。期間内のものだけ表示）
@@ -257,6 +260,11 @@ const XH_EVENTS = [
     t2:"MagiBurst 史上最大のフルバースト（乱打70連）と史上最強のリンク。全属性有利・ショットスキル付き。極華・ブルームネクサスも強化",
     always:true, perm:true, monthly:[11, 20], since:"2026-09-13", from:"2026-09-13", to:"2027-12-31",
     href:"gacha.html#fes9", img:"thumbs/MagiBurst.jpg" },
+  /* ★★ 2026-09-23 CRYSTAL ACADEMY FEST（20日間の期間限定） */
+  { tag:"FES", t1:"CRYSTAL ACADEMY FEST",
+    t2:"20日間の期間限定。クレハ・ミコト・メイ・ヒカル・ミヅキ が参戦！ 神癒の祈り・結晶のフルバースト・新リンク5本。MagiBattle でも最強クラス",
+    since:"2026-09-23", from:"2026-09-23", to:"2026-10-13",
+    href:"gacha.html#fes16", img:"thumbs/MagiBurst.jpg" },
   /* ★★ 2026-09-13c SOFT NIGHT FEST は<b>期限あり（20日間）</b>に戻した（ご指定）。
      ★ always/perm を<b>外す</b>こと——付けたままだとカレンダーにずっと出つづける。 */
   { tag:"SOFT FES", t1:"SOFT NIGHT FEST",
@@ -430,6 +438,18 @@ const XH_EVENTS = [
    ══════════════════════════════════════════════════════════════ */
 const XH_UPDATE_MAX = 12;
 const XH_UPDATES = [
+  /* ★★ 2026-09-23 MagiBattle 2.0 */
+  { tag:"UPDATE", t1:"MagiBattle を全面リニューアル", at:"2026-09-23",
+    t2:"XEVARION の全キャラが参戦／バーストⅠ→Ⅱ→Ⅲの FULL BURST／装備（MagiBurst から引きつぎ）／迎撃戦／凸・所持は共通／同期に対応",
+    href:"MagiBattle/index.html", img:"thumbs/MagiBattle.jpg?v=2" },
+  /* ★★ 2026-09-23 CRYSTAL ACADEMY FEST・MagiBurst 5体編成 */
+  { tag:"UPDATE", t1:"MagiBurst 編成が5体に・新フェス", at:"2026-09-23",
+    t2:"CRYSTAL ACADEMY FEST（5体）／神癒の祈り／治癒の祈りは左から順に抽選／編成の重なりを修正",
+    href:"gacha.html#fes16", img:"thumbs/MagiBurst.jpg" },
+  /* ★★ 2026-09-23 ポータル・MagiScope */
+  { tag:"FIX", t1:"同期のロードがくり返す不具合を修正", at:"2026-09-23",
+    t2:"スマホでロード画面が終わっては始まるのを直した／アプリをイベントのすぐ下に／XEVARION のアイコンをキャラ画像に／MagiScope は R15 以上の特別版・戻る位置・ページ数・リンク共有",
+    href:"index.html", img:"thumbs/MagiScope.jpg" },
   /* ★★ 2026-09-22d MagiScope スマホの表示 */
   { tag:"FIX", t1:"MagiScope スマホの表示を修正", at:"2026-09-22",
     t2:"おすすめ特集のボタンが画面外に出ないように／マイページのお気に入り件数を見やすく",
@@ -1767,7 +1787,7 @@ function xhMbReady() {
   if (typeof CHARS !== "undefined" && typeof PREMIUM_CHARS !== "undefined") return Promise.resolve(true);
   if (_xhMbLoading) return _xhMbLoading;
   _xhMbLoading = xhLoadScript("mb-boot.js?v=17")
-    .then(() => xhLoadScript("MagiBurst/js/mb-core.js?v=128"))
+    .then(() => xhLoadScript("MagiBurst/js/mb-core.js?v=129"))
     .then(() => true)
     .catch((e) => { _xhMbLoading = null; throw e; });
   return _xhMbLoading;
@@ -2571,6 +2591,82 @@ window.addEventListener("storage", (e) => { if (e.key === XH_APPICON_KEY) _xhIco
 window.addEventListener("xeva:synced", () => { _xhIconCache = null; try { xhRenderShelf(); } catch (e) {} });
 
 let _xhIconApp = "", _xhIconQ = "";
+/* ══ ★★ 2026-09-23 <b>XEVARION そのもののアプリアイコン</b>もキャラ画像に（ご指定）══
+   ・同じシート（xhIconSheet）を使い、アプリid の代わりに "__portal" で保存する
+     （保存先は xeva_home_appicon_v1＝もとから同期されるキー。xeva-keys.js は触らない）。
+   ・画面の上では <b>apple-touch-icon・favicon・manifest の icons</b> を差しかえる。
+     ★ すでにホーム画面に置いてあるアイコンは OS が覚えているので、
+       <b>いったん削除して「ホーム画面に追加」し直す</b>と新しい絵になる（シートにそう書く）。 */
+const XH_PORTAL_ICON_ID = "__portal";
+const XH_PORTAL_APP = { id: XH_PORTAL_ICON_ID, name: "XEVARION", full: "XEVARION（このアプリ）", img: "icons/xev-192.png" };
+function xhIconTarget() { return _xhIconApp === XH_PORTAL_ICON_ID ? XH_PORTAL_APP : xhApp(_xhIconApp); }
+function xhOpenPortalIcon() {
+  _xhIconApp = XH_PORTAL_ICON_ID; _xhIconQ = "";
+  const t = xhEl("xhIconTitle"); if (t) t.textContent = "XEVARION のアプリアイコン";
+  const q = xhEl("xhIconQ"); if (q) q.value = "";
+  xhPaintAppIcon();
+  xhOpenSheet("xhIconSheet");
+}
+window.xhOpenPortalIcon = xhOpenPortalIcon;
+let _xhPortalIconUrl = "";
+function xhSetLink(rel, href, type) {
+  let l = document.querySelector('link[rel="' + rel + '"]');
+  if (!l) { l = document.createElement("link"); l.rel = rel; document.head.appendChild(l); }
+  if (type) l.type = type;
+  l.href = href;
+}
+function xhApplyPortalIcon() {
+  const cid = xhAppIconOf(XH_PORTAL_ICON_ID);
+  if (!cid) {
+    if (!_xhPortalIconUrl) return;
+    _xhPortalIconUrl = "";
+    xhSetLink("apple-touch-icon", "icons/xev-192.png");
+    xhSetLink("icon", "Xevarion.png", "image/png");
+    xhSetLink("manifest", "manifest.webmanifest");
+    return;
+  }
+  const c = xhIconChars().find((x) => x.id === cid);
+  if (!c) return;
+  const small = xhCharS(c.file, c.id);
+  const big = small.replace(/\/t_([^\/]+)$/, "/$1");
+  const im = new Image();
+  im.crossOrigin = "anonymous";
+  let triedSmall = false;
+  im.onerror = () => { if (!triedSmall) { triedSmall = true; im.src = small; } };
+  im.onload = () => {
+    try {
+      const N = 512, cv = document.createElement("canvas");
+      cv.width = cv.height = N;
+      const g = cv.getContext("2d");
+      g.fillStyle = "#070b1e"; g.fillRect(0, 0, N, N);
+      const s0 = Math.min(im.naturalWidth, im.naturalHeight);
+      g.drawImage(im, (im.naturalWidth - s0) / 2, (im.naturalHeight - s0) / 2, s0, s0, 0, 0, N, N);
+      /* 下に細い帯と名前（XEVARION のアイコンだと分かるように） */
+      const gr = g.createLinearGradient(0, N * 0.74, 0, N);
+      gr.addColorStop(0, "rgba(7,11,30,0)"); gr.addColorStop(1, "rgba(7,11,30,.82)");
+      g.fillStyle = gr; g.fillRect(0, N * 0.7, N, N * 0.3);
+      g.fillStyle = "#ffd257"; g.font = "900 44px Orbitron, sans-serif"; g.textAlign = "center";
+      g.fillText("XEVARION", N / 2, N - 34);
+      const url = cv.toDataURL("image/png");
+      _xhPortalIconUrl = url;
+      xhSetLink("apple-touch-icon", url);
+      xhSetLink("icon", url, "image/png");
+      fetch("manifest.webmanifest", { cache: "no-store" }).then((r) => r.json()).then((j) => {
+        const abs = (u) => { try { return new URL(u, location.href).href; } catch (e) { return u; } };
+        j.start_url = abs(j.start_url || "index.html");
+        j.scope = abs(j.scope || "./");
+        j.icons = [{ src: url, sizes: "512x512", type: "image/png", purpose: "any" }];
+        (j.shortcuts || []).forEach((sc) => { sc.url = abs(sc.url); (sc.icons || []).forEach((ic) => { ic.src = abs(ic.src); }); });
+        const b = new Blob([JSON.stringify(j)], { type: "application/manifest+json" });
+        xhSetLink("manifest", URL.createObjectURL(b));
+      }).catch(() => {});
+    } catch (e) {}
+  };
+  im.src = big;
+}
+window.xhApplyPortalIcon = xhApplyPortalIcon;
+window.addEventListener("xeva:synced", () => { setTimeout(() => { try { xhApplyPortalIcon(); } catch (e) {} }, 300); });
+setTimeout(() => { try { xhApplyPortalIcon(); } catch (e) {} }, 1200);
 function xhOpenAppIcon(appId) {
   const a = xhApp(appId); if (!a) return;
   _xhIconApp = appId; _xhIconQ = "";
@@ -2584,11 +2680,13 @@ function xhIconSearch(v) { _xhIconQ = String(v || "").trim().toLowerCase(); xhPa
 window.xhIconSearch = xhIconSearch;
 function xhPaintAppIcon() {
   const g = xhEl("xhIconGrid"); if (!g) return;
-  const a = xhApp(_xhIconApp); if (!a) return;
+  const a = xhIconTarget(); if (!a) return;
   const cur = xhAppIconOf(a.id);
   const pv = xhEl("xhIconPrev");
   if (pv) pv.innerHTML = '<span class="xh-sq"><img src="' + xhEscape(xhAppIconSrc(a)) + '" alt=""></span>'
-    + '<span class="pvt"><b>' + xhEscape(xhFullName(a)) + '</b><small>' + (cur ? "キャラ画像を使用中" : "元のアイコン") + "</small></span>";
+    + '<span class="pvt"><b>' + xhEscape(xhFullName(a)) + '</b><small>' + (cur ? "キャラ画像を使用中" : "元のアイコン") + "</small>"
+    + (a.id === XH_PORTAL_ICON_ID ? '<small class="pvn">ホーム画面のアイコンは、いったん削除して「ホーム画面に追加」し直すと変わります</small>' : "")
+    + "</span>";
   let list = xhIconChars();
   if (_xhIconQ) list = list.filter((c) => String(c.name).toLowerCase().indexOf(_xhIconQ) >= 0);
   /* 持っている子を先に、同じなら新しい子（No. の大きい MagiBurst の子）を先に */
@@ -2605,7 +2703,7 @@ function xhPaintAppIcon() {
     + '<span class="cn">' + xhEscape(c.name) + "</span></button>").join("");
 }
 function xhSetAppIcon(cid) {
-  const a = xhApp(_xhIconApp); if (!a) return;
+  const a = xhIconTarget(); if (!a) return;
   const m = Object.assign({}, xhAppIconMap());
   if (cid) {
     const c = xhIconChars().find((x) => x.id === cid);
@@ -2620,6 +2718,7 @@ function xhSetAppIcon(cid) {
   xhPaintAppIcon();
   try { xhPaintSort(); } catch (e) {}
   xhRenderShelf();
+  if (a.id === XH_PORTAL_ICON_ID) { try { xhApplyPortalIcon(); } catch (e) {} }
   xhToast(cid ? "アイコンを変更しました" : "元のアイコンに戻しました");
 }
 window.xhSetAppIcon = xhSetAppIcon;
@@ -4384,12 +4483,13 @@ function xhGtabTick() {}
 /* ★★ 2026-09-19 ご指定：ガチャタブの絵は<b>花宴祭の限定キャラ アカツキで固定</b>。
    （新しいキャラが増えても差しかわらない。xhNewestChar は他で使うので残す）
    絵は正方形なので、丸く切らずに<b>角丸の正方形</b>で出す（.xh-tabchar.sq）。 */
-const XH_GACHA_TAB_CHAR = "akatsuki";
+/* ★★ 2026-09-23 ご指定で <b>CRYSTAL ACADEMY FEST のクレハ</b>に変更 */
+const XH_GACHA_TAB_CHAR = "kureha";
 function xhGachaTabChar() {
   try {
     const list = (window.XEVA && XEVA.MB_CHARS) || [];
     return list.find((c) => c.mbId === XH_GACHA_TAB_CHAR) ||
-      { id: "mb:" + XH_GACHA_TAB_CHAR, mbId: XH_GACHA_TAB_CHAR, file: "../img/t_Akatsuki.webp" };
+      { id: "mb:" + XH_GACHA_TAB_CHAR, mbId: XH_GACHA_TAB_CHAR, file: "../img/t_Kureha.webp" };
   } catch (e) { return null; }
 }
 function xhPaintGachaTabIcon() {
