@@ -24,7 +24,7 @@ if ("serviceWorker" in navigator) {
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
 <script src="../xeva-splash.js?v=13" data-app="MagiBurst" data-logo="../thumbs/MagiBurst.jpg"
         data-note="⚠️ このゲームの対象年齢は 13歳以上 です"></script>
-<script src="../xeva.js?v=70"></script>
+<script src="../xeva.js?v=71"></script>
 <!-- ★★ 2026-09-05 言語切りかえ（日本語 ⇄ English）。辞書は本体のあとに読むこと。 -->
 <script src="../xeva-i18n.js?v=8"></script>
 <script src="../xeva-i18n-dict.js?v=12"></script>
@@ -42,12 +42,12 @@ if ("serviceWorker" in navigator) {
 <script src="../xeva-i18n-mb7.js?v=7"></script>
 <script src="../xeva-i18n-p4.js?v=7"></script>
 <!-- ★★ 2026-09-06b 今回足したもの（新キャラ14体・装備・クリティカルなど）の英語辞書 -->
-<script src="../xeva-i18n-n1.js?v=11"></script>
+<script src="../xeva-i18n-n1.js?v=12"></script>
 <script src="../xeva-i18n-n2.js?v=3"></script>
 <script src="../xeva-loading.js?v=18" defer></script>
 <script type="module" src="../xevarion-fb.js?v=33"></script>
 <script src="../xeva-presence.js?v=9" defer></script>
-<script type="module" src="../xeva-cloud.js?v=35"></script>
+<script type="module" src="../xeva-cloud.js?v=37"></script>
 <script type="module" src="js/online.js?v=16"></script>
 <!-- ★★ 2026-09-01 ローカル通信マルチ（オフラインでも近くの人と遊べる）。
      BurstOnline と同じ名前・同じ戻り値でそろえてあるので、画面側は NET() で切り替えるだけ。 -->
@@ -1745,7 +1745,9 @@ body.in-battle #top,body.in-battle #tabs{display:none}
      一覧をどれだけスクロールしても、4体はいつも見えている。
    ・入れ替え／詳細／育成／並べ替え／はずす は、各カードの「⋯」からメニューで開く。
    ══════════════════════════════════════════════════════════════ */
-.pedstick{position:sticky;top:calc(env(safe-area-inset-top,0px) + 57px);z-index:40;
+/* ★★ 2026-09-23 上のバー（#top）の高さは新UIで 69px ある（57px の決め打ちだと 12px 重なって見づらかった）。
+   --mbTopH は JS が #top の下端を測って入れる */
+.pedstick{position:sticky;top:var(--mbTopH,calc(env(safe-area-inset-top,0px) + 57px));z-index:40;
   margin:0 -14px 10px;padding:8px 14px 7px;background:var(--bg);
   border-bottom:1.5px solid var(--line);box-shadow:0 10px 20px -8px rgba(142,107,255,.25)}
 .pedbar{display:flex;align-items:center;gap:8px;margin-top:6px}
@@ -1756,7 +1758,7 @@ body.in-battle #top,body.in-battle #tabs{display:none}
    真因：grid のマスは<b>min-width:auto</b>が初期値なので、
    中の「折り返さない名前」の幅が<b>列の最低幅</b>になり、1fr を押しのけていた。
    ★ min-width:0 を付けると 1fr が効いて<b>4体とも同じ幅</b>になる（名前は…で省略）。 */
-.slots{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.slots{display:grid;grid-template-columns:repeat(5,1fr);gap:5px}
 .slots > *{min-width:0}
 .slot{border-radius:18px;border:2px solid var(--line);background:var(--card);position:relative;cursor:pointer;
   padding:7px 8px 8px;display:flex;flex-direction:column;gap:6px;box-shadow:0 4px 14px rgba(142,107,255,.08)}
@@ -3183,10 +3185,11 @@ body.in-battle #top,body.in-battle #tabs{display:none}
 /* ── 下部パーティ ──
    v7.5: キャラの状態マーク（.pstat）は廃止し、状態はすべてヘッダーの「!」ボタン（#bstatb）に集約。
         空いた縦幅ぶんキャラ画像を大きく表示する（62px → 76px）。 */
-#pparty{display:flex;gap:10px;justify-content:center}
-.pmem{position:relative;width:76px;cursor:pointer;background:none;border:none;padding:0}
+/* ★★ 2026-09-23 5体編成：スマホの幅に5枚が収まるよう、1枚の幅を画面から決める */
+#pparty{display:flex;gap:6px;justify-content:center;padding:0 6px}
+.pmem{position:relative;width:min(76px,calc((100vw - 44px) / 5));cursor:pointer;background:none;border:none;padding:0}
 /* 手番リング(.pturn)を外側に出すぶん、少し余白を持たせる */
-.pmem .pfr{position:relative;width:76px;height:76px;border-radius:18px;overflow:hidden;border:2px solid #fff;box-shadow:0 5px 14px rgba(142,107,255,.2)}
+.pmem .pfr{position:relative;width:100%;height:auto;aspect-ratio:1/1;border-radius:18px;overflow:hidden;border:2px solid #fff;box-shadow:0 5px 14px rgba(142,107,255,.2)}
 .pmem img{width:100%;height:100%;object-fit:cover}
 .pmem .ssring{position:absolute;inset:-3px;border-radius:21px;pointer-events:none}
 .pmem.ssok .ssring{box-shadow:0 0 0 2.5px var(--org),0 0 18px rgba(255,157,46,.8);animation:ssPls 1s ease-in-out infinite}
@@ -3991,7 +3994,7 @@ textarea.oninp.mbcode[readonly]{background:#f2f0fb;color:#3b3560}
     月が変わってから<b>最初にアプリを開いたときに一括で</b>受け取れるよ。<br>
     ※ <b>第26の間から先</b>と、<b>幽冥の庭園・EX降臨・超特急</b>は毎月クリアし直しになる。</div></div>
   <div class="hrow"><div class="hn">10</div><div><b>超特急 MAXSPEED</b><br>号車が進むほど敵とギミックが強くなるエンドレス高難易度。何号車まで行けるか挑戦しよう。中断してもそこまでの報酬がもらえる！到達号車は <b>MagiRanking の「超特急」ランキング</b>に自動で記録される。</div></div>
-  <div class="hrow"><div class="hn">11</div><div><b>マルチプレイ（部屋番号・最大4人）</b><br>クエスト画面の「🌐 マルチプレイ」から、<b>4桁の部屋番号</b>でつながって黄昏の王城に協力プレイ！チームは<b>いつでも合計4体</b>で、<b>2人＝ホスト2体＋ゲスト2体／3人＝ホスト2体＋ゲスト1体ずつ／4人＝1体ずつ</b>を持ちよる。自分のボールの番のときだけ引っぱれるよ。<br>★ <b>時間切れで自動的に接続解除される仕組みは廃止</b>しました。回線が乱れてもバトルは止まらず、戻ってくればそのまま続きから遊べます（抜けた人の手番はホストが代わりに撃てます）。バトルを終わらせられるのは<b>ホストが自分で中断したとき</b>だけです。</div></div>
+  <div class="hrow"><div class="hn">11</div><div><b>マルチプレイ（部屋番号・最大4人）</b><br>クエスト画面の「🌐 マルチプレイ」から、<b>4桁の部屋番号</b>でつながって黄昏の王城に協力プレイ！チームは<b>いつでも合計5体</b>で、<b>2人＝ホスト3体＋ゲスト2体／3人＝2体・2体・1体／4人＝ホスト2体＋ゲスト1体ずつ</b>を持ちよる。自分のボールの番のときだけ引っぱれるよ。<br>★ <b>時間切れで自動的に接続解除される仕組みは廃止</b>しました。回線が乱れてもバトルは止まらず、戻ってくればそのまま続きから遊べます（抜けた人の手番はホストが代わりに撃てます）。バトルを終わらせられるのは<b>ホストが自分で中断したとき</b>だけです。</div></div>
   <div class="hrow"><div class="hn">14</div><div><b>❖ 魂の紋章と「魂気」</b><br>
     紋章は<b>属性ごとに1つ</b>あり、その属性のキャラ<b>1体</b>に付けられる（チーム最大5つ）。
     1つの紋章には<b>効果を2つまで</b>刻める（1つ <i class='icc ic-soul'></i><b>20,000 魂気</b>）。
@@ -4004,7 +4007,7 @@ textarea.oninp.mbcode[readonly]{background:#f2f0fb;color:#3b3560}
     <b>育成タブ</b>で<b>属性ごとに5体まで</b>「貸し出すキャラ」を登録すると、XEVARION のフレンドが
     <b>あなたの育成状況（レベル・限界突破・ルーン・紋章）ごと</b>そのキャラを借りられる。<br>
     自分も<b>編成タブの「🤝 助っ人」</b>からフレンドのキャラを<b>1体だけ</b>編成に入れられる
-    （選んだ枠のキャラと入れ替わる。チームはいつも4体）。<br>
+    （選んだ枠のキャラと入れ替わる。チームはいつも5体）。<br>
     <b>貸しているあいだも自分でそのキャラをふつうに使える</b>（コピーが渡るだけ）。
     <b>⚠ マルチプレイでは助っ人を使えない</b>（持ちよる体数の取り決めが崩れるため）。</div></div>
   <div class="hrow"><div class="hn">16</div><div><b>⏳ FB遅延攻撃</b><br>
@@ -4022,16 +4025,16 @@ textarea.oninp.mbcode[readonly]{background:#f2f0fb;color:#3b3560}
 </div></div>
 
 <script>window.MB_IMGD = "../img/"; window.MB_GIMGD = "img/";</script>
-<script src="../mb-newchars.js?v=31"></script>
+<script src="../mb-newchars.js?v=32"></script>
 <!-- ★★ 2026-09-06 新UI（スタイリッシュ）。
      body.mb-ui2 の中だけにかかるので、旧UIに戻すのは class を外すだけ。
      ★ 本文の <style> より<b>あと</b>に置くこと（あとに来たほうが勝つ）。 -->
 <link rel="stylesheet" href="css/mb-ui2.css?v=26">
 <!-- ★★ 2026-09-06 LOCAL PLAY（近距離ローカルマルチ）の画面 -->
 <link rel="stylesheet" href="css/localplay.css?v=7">
-<script src="js/mb-core.js?v=128"></script>
+<script src="js/mb-core.js?v=129"></script>
 <!-- ★★ 2026-09-06 装備（頭・腕・胸・足）。mb-core のあと・本体の前に読む -->
-<script src="js/mb-gear.js?v=7"></script>
+<script src="js/mb-gear.js?v=8"></script>
 <script>
 "use strict";
 /* ══════════ アカウントガード ══════════ */
@@ -4265,7 +4268,9 @@ if (DB.owner && ACC && ACC.xvUid && DB.owner !== ACC.xvUid) DB = freshDB();
 if (!DB.chars) DB.chars = {};
 STARTER_IDS.forEach((id) => { if (!DB.chars[id]) DB.chars[id] = { lv: 1, awk: 0, exp: 0 }; });
 Object.keys(DB.chars).forEach((id) => { if (!CHARS[id]) delete DB.chars[id]; else if (DB.chars[id].exp == null) DB.chars[id].exp = 0; });
-if (!Array.isArray(DB.party) || DB.party.length !== 4) DB.party = STARTER_IDS.slice();   // 初期キャラ4体（未所持キャラをfallbackにしない）
+/* ★★ 2026-09-23 編成は<b>5体</b>（TEAM_N）。4体の古いセーブは下の DB.parties の移行で5体目を足す */
+const TEAM_N = 5;
+if (!Array.isArray(DB.party) || !DB.party.length) DB.party = STARTER_IDS.slice();   // 初期キャラ4体（未所持キャラをfallbackにしない）
 DB.party = DB.party.map((id) => (DB.chars[id] ? id : STARTER_IDS[0]));
 /* ★ v10: 複数パーティー。DB.party は「いま選んでいるパーティー」の実体で、
    DB.parties[DB.partyIdx] と常に同じ中身を指す（旧セーブからの移行もここで行う）。
@@ -4274,15 +4279,30 @@ DB.party = DB.party.map((id) => (DB.chars[id] ? id : STARTER_IDS[0]));
    ★ 2026-08-08: 10 → 15。クエストの系統（王城／迷宮／庭園／超特急／マルチ）ごとに
      アンチギミックを組み替えた編成を置いておくと、10個ではすぐ埋まるため。 */
 const PARTY_MAX = 15;
-if (!Array.isArray(DB.parties) || !DB.parties.length) DB.parties = [DB.party.slice()];
+/* ★★ 2026-09-23 形をそろえる処理を関数にした。クラウドから降りてきた古いセーブ（4体）を
+   reloadDbFromStore で読み直したときにも、ここを通して<b>5体</b>にする。 */
+function normalizeParties() {
+if (!Array.isArray(DB.parties) || !DB.parties.length) DB.parties = [(DB.party || STARTER_IDS).slice()];
 DB.parties = DB.parties.slice(0, PARTY_MAX).map((p) => {
-  const a = (Array.isArray(p) ? p : []).slice(0, 4).map((id) => (DB.chars[id] ? id : STARTER_IDS[0]));
-  while (a.length < 4) a.push(STARTER_IDS[0]);
+  const a = (Array.isArray(p) ? p : []).slice(0, TEAM_N).map((id) => (DB.chars[id] ? id : STARTER_IDS[0]));
+  /* ★★ 2026-09-23 4体 → 5体。足りない枠は<b>まだ入っていない所持キャラの中でいちばん強い子</b>で埋める
+     （同じキャラを2体並べない。所持が足りないときだけ初期キャラで埋める） */
+  while (a.length < TEAM_N) {
+    let best = null, bv = -1;
+    Object.keys(DB.chars).forEach((id) => {
+      if (!CHARS[id] || a.indexOf(id) >= 0) return;
+      let v = 0; try { const st = statsOf(id, DB.chars[id].lv || 1, DB.chars[id].awk || 0); v = st.hp + st.atk * 2; } catch (e) {}
+      if (v > bv) { bv = v; best = id; }
+    });
+    a.push(best || STARTER_IDS[0]);
+  }
   return a;
 });
 if (!Array.isArray(DB.partyNames)) DB.partyNames = [];
 if (typeof DB.partyIdx !== "number" || DB.partyIdx < 0 || DB.partyIdx >= DB.parties.length) DB.partyIdx = 0;
 DB.party = DB.parties[DB.partyIdx];
+}
+normalizeParties();
 function partyName(i) { return DB.partyNames[i] || ("パーティー " + (i + 1)); }
 /* パーティーを切り替える（DB.party の参照を差し替える） */
 function setPartyIdx(i) {
@@ -4290,7 +4310,7 @@ function setPartyIdx(i) {
   DB.partyIdx = i; DB.party = DB.parties[i]; save();
 }
 function partyHpOf(arr) { let hp = 0; (arr || []).forEach((id) => { if (CHARS[id] && DB.chars[id]) hp += charStats(id).hp; }); return hp; }
-function partyReady(arr) { return Array.isArray(arr) && arr.length === 4 && arr.every((id) => CHARS[id] && DB.chars[id]); }
+function partyReady(arr) { return Array.isArray(arr) && arr.length === TEAM_N && arr.every((id) => CHARS[id] && DB.chars[id]); }
 if (!DB.clears) DB.clears = {}; if (!DB.first) DB.first = {}; if (!DB.dailyOrb) DB.dailyOrb = {};
 if (!DB.express) DB.express = { best: 0 };
 if (!DB.fruits) DB.fruits = {}; if (!DB.equip) DB.equip = {};
@@ -4734,6 +4754,7 @@ function reloadDbFromStore() {
        アクセサ経由で巻き戻してしまうので、ここでは絶対に触らない。 */
     Object.keys(raw).forEach((k) => { if (k !== "orbs" && k !== "fesTicket" && k !== "gTicket") DB[k] = raw[k]; });
     if (Array.isArray(DB.parties) && DB.parties[DB.partyIdx]) DB.party = DB.parties[DB.partyIdx];
+    try { normalizeParties(); } catch (e) {}   /* ★★ 2026-09-23 4体のセーブ → 5体 */
     /* ★ クラウドから降りてきたセーブが先月のものだった場合に備えて、必ず月リセットを通す */
     if (typeof applyMonthlyReset === "function") applyMonthlyReset();
     /* 引き継ぎぶんの WAVE踏破も、読み直したセーブに対してもう一度そろえる */
@@ -5099,7 +5120,8 @@ function waveRewardBaseAt(series, n) {
      入手経路をガチャ1本にすれば、持っている果実はすべてどちらでも使える。
      ★ ここ（クエストの踏破報酬）とアークのごほうびに果実を戻さないこと。代わりはジェム。 */
   if (series === "judge") {
-    const eq = { gearDrop: 1 };
+    /* ★★ 2026-09-23 装備の廃止にあわせて gearDrop を外した（節目の中身はそのまま） */
+    const eq = {};
     if (n === 10) return Object.assign(eq, { orbs: 30, nm: "<i class='icc ic-gem'></i>ジェム ×30" });
     if (n === 20) return Object.assign(eq, { item: "hero", n: 1, nm: "🎖️ 英傑の証 ×1" });
     if (n === 30) return Object.assign(eq, { orbs: 40, nm: "<i class='icc ic-gem'></i>ジェム ×40" });
@@ -6135,6 +6157,18 @@ window.openNewChar = openNewChar; window.closeNewChar = closeNewChar;
 
 /* ══════════ お知らせ（アップデートのたびにここへ追記する） ══════════ */
 const NEWS = [
+  /* ★★ 2026-09-23 CRYSTAL ACADEMY FEST／5体編成／神癒の祈り／装備の廃止 */
+  { date: "2026-09-23", title: "💎 CRYSTAL ACADEMY FEST 開幕／⚔ 編成が5体に", body: [
+    "💎 <b>CRYSTAL ACADEMY FEST</b> を開幕しました（20日間）。限定SSR <b>クレハ（火）・ミコト（水）・メイ（木）・ヒカル（光）・ミヅキ（闇）</b>の5体。",
+    "⚖ 5体とも<b>天界の審判</b>を有利属性のまま完全対応——クレハ＝第十三／ミコト＝第六／メイ＝第七／ヒカル＝第十五／ミヅキ＝第四（最適性キャラがいちばん少なかった5つ）。",
+    "🔮 新アビリティ<b>神癒の祈り</b>（治癒の祈りの上位互換・" + Math.round(GODPRAY_CHANCE * 100) + "%）。アビリティは10個（全属性有利・天律族キラーEL・リンクブーストEL ほか）。",
+    "💥 フルバーストは新しい<b>結晶FB</b>——盤面に結晶が育ち、<b>近くに育った結晶が多い敵ほど砕けの締めが重い</b>（合計 最大 攻撃力×" + KRH_TOTAL.toFixed(0) + " ほど）。",
+    "🔗 リンクは5本とも新しい挙動：<b>クリムゾン・ジオード</b>（壁で跳ねた回数だけ結晶が生える）／<b>スイキョウ・リンネ</b>（敵の重心から輪）／<b>エメラルド・グロウス</b>（使うたびに育つ）／<b>ルミナス・ライトハウス</b>（灯台の光が2周）／<b>ミッドナイト・クォーツ</b>（次の手番のはじめに爆ぜる）。共通サブリンクは<b>プリズム・リフラクション</b>。",
+    "⚔ <b>バトルの編成が4体 → 5体</b>になりました。今までの編成には、持っているキャラでいちばん強い子が5体目に入っています。マルチは合計5体（2人なら3体＋2体）。",
+    "🙏 <b>治癒の祈り</b>を持つ子が何体いても、<b>編成の左から順に</b>それぞれの確率で抽選するようになりました（だれかが当たるか全員はずれるまで）。演出は当たった子のSS絵です。",
+    "🛡 <b>装備のシステムは MagiBattle へ移しました</b>。持っていた装備は MagiBattle で<b>そのまま引きつげます</b>（効果はオーバーロードとして残ります）。",
+    "🧩 編成画面で下へスクロールしたとき、上に固定される編成が見出しに重なっていたのを直しました。",
+  ] },
   { date: "2026-09-19", title: "🌺 極彩祭 に ココハ（史上最大のフルバースト）", body: [
     "🌺 <b>極彩祭</b>に<b>ココハ（火・反射）</b>。フルバースト<b>ツバキアメ・センカ</b>は合計 攻撃力×" + KKH_TOTAL.toFixed(1) + " で<b>MagiBurst 史上最大</b>。",
     "🔗 リンク<b>ツバキアメ・ウリョウ</b>は<b>敵が浴びた雨粒の数で重くなる</b>（大きい敵ほど多く浴びる）。ショットスキル・クロススキルつき。<b>極彩・プリズムネクサスを強化</b>。",
@@ -9503,7 +9537,7 @@ function renderLobby() {
     /* ★★ 2026-09-06 ここは「キャラクター一覧」から<b>所持アイテム一覧</b>に置きかえました（ご指定）。
        キャラの一覧は<b>下のバーの Character タブ</b>に同じ入口があって二重だったので、
        まだどこにも入口が無かった「装備・ルーン・アイテムの持ち物」を置いています。 */
-    { nm: "Items", sub: "装備・ルーン・アイテム", ic: ICO.gift, go: "openItemList()" },
+    { nm: "Items", sub: "ルーン・アイテム", ic: ICO.gift, go: "openItemList()" },
     /* ★ 2026-08-16c ここは「キャラTier表」にした。
        パーティ編成は<b>下のバーにも同じ入口</b>があって二重だったので、
        まだどこにも入口が無かったキャラTier表に置きかえている。 */
@@ -11207,7 +11241,7 @@ function newsUnread() { const d = $("#newsDot"); return !!(d && d.style.display 
 
 /* ══════════ 編成 ══════════ */
 let selSlot = 0;
-const CIRCLED = ["①", "②", "③", "④"];
+const CIRCLED = ["①", "②", "③", "④", "⑤"];
 /* パーティータブ（最大5つ・切り替え／追加／複製／削除） */
 /* ══════════ パーティーの切り替え（v13.3: 横スライド＋矢印） ══════════
    パーティーは「横に並べて」おき、◀▶ の矢印か、指で左右にスワイプして切り替える。
@@ -11449,7 +11483,7 @@ function renderTeam() {
   if (head) {
     const ready = DB.party.filter((id) => DB.chars[id]).length;
     head.innerHTML = `<b class="pedn">${partyName(DB.partyIdx)}</b>
-      <i class="pedr ${ready === 4 ? "ok" : "ng"}">${ready}/4</i>
+      <i class="pedr ${ready === TEAM_N ? "ok" : "ng"}">${ready}/${TEAM_N}</i>
       <button class="pedren" onclick="renameParty(${DB.partyIdx})">${TICO.rename} 名前</button>`;
   }
   /* 選択中スロット（4体そろっているときは選んだ枠だけ入れ替え、空きがあればそこを優先） */
@@ -11802,7 +11836,7 @@ function openTeamTools() {
     <h3>🛠 編成ツール</h3>
     <div class="gimsub">${partyName(DB.partyIdx)}</div>
     <div class="ptlist">
-      ${row("a", TICO.auto, "おまかせ編成", "所持キャラの中から強い4体を自動でえらびます", "teamTool('auto')")}
+      ${row("a", TICO.auto, "おまかせ編成", "所持キャラの中から強い5体を自動でえらびます", "teamTool('auto')")}
       ${row("b", TICO.bulk, "一括変更", "4体まとめて別のキャラに置きかえます", "teamTool('bulk')")}
       ${row("c", TICO.clear, "全部はずす", "4枠をすべて空にします", "teamTool('clear')")}
       ${HELPER_OFF ? "" : row("d", TICO.helper, "助っ人", h ? "いま <b>" + _dlgEsc(h.name || "フレンド") + "</b> の <b>" + (CHARS[h.id] ? CHARS[h.id].nm : "") + "</b> を借りています" : "フレンドのキャラを1体だけ " + CIRCLED[HELPER_SLOT] + " の枠に入れられます", "teamTool('helper')")}
@@ -11894,7 +11928,7 @@ function pickChar(id) {
   if (cur >= 0) { const t = DB.party[selSlot]; DB.party[selSlot] = id; DB.party[cur] = t; }   // 別スロットにいる→入れ替え
   else DB.party[selSlot] = id;                                                                // ロスターから→そのスロットへ
   /* 次のスロットへ自動で進める（続けてタップするだけで4体そろう） */
-  selSlot = (selSlot + 1) % 4;
+  selSlot = (selSlot + 1) % TEAM_N;
   markPartyDirty();
   /* ★ 2026-08-07: 一覧をタップして編成するたびに、一覧が描き直されて先頭へ飛んでいた。
      続けて何体も選ぶ操作なので、見ていた位置のままにする。 */
@@ -11935,13 +11969,13 @@ window.goTrainFor = goTrainFor;
 /* おまかせ編成: 所持キャラから戦力の高い4体を自動で並べる */
 function autoParty() {
   const owned = CHAR_IDS.filter((id) => DB.chars[id]);
-  if (owned.length < 4) { toastTrain && toastTrain("キャラが4体そろっていません"); return; }
+  if (owned.length < TEAM_N) { toastTrain && toastTrain("キャラが" + TEAM_N + "体そろっていません"); return; }
   const ranked = owned.slice().sort((a, b) => {
     const sa = charStats(a), sb = charStats(b);
     return (sb.hp + sb.atk * 2) - (sa.hp + sa.atk * 2);
   });
   /* ★ 複数パーティー対応: 参照を置き換えず、いま選んでいるパーティーの中身を書き換える */
-  ranked.slice(0, 4).forEach((id, i) => { DB.party[i] = id; });
+  ranked.slice(0, TEAM_N).forEach((id, i) => { DB.party[i] = id; });
   DB.parties[DB.partyIdx] = DB.party;
   markPartyDirty();
   save(); SFX.win(); selSlot = 0; renderTeam();
@@ -11950,17 +11984,17 @@ window.autoParty = autoParty;
 /* ★ v12.4: 編成の一括操作 ── 4体まとめて外す／まとめて入れ替える */
 async function clearParty() {
   if (!DB.party.some((id) => CHARS[id])) return;
-  if (!await uiConfirm(`<b>${partyName(DB.partyIdx)}</b> の4体を<b>すべてはずします</b>。<br>キャラがいなくなるだけで、育てた内容はそのまま残ります。`,
+  if (!await uiConfirm(`<b>${partyName(DB.partyIdx)}</b> の${TEAM_N}体を<b>すべてはずします</b>。<br>キャラがいなくなるだけで、育てた内容はそのまま残ります。`,
     { icon: "🗑", title: "編成を全部はずす", ok: "全部はずす" })) return;
-  for (let i = 0; i < 4; i++) DB.party[i] = null;
+  for (let i = 0; i < TEAM_N; i++) DB.party[i] = null;
   DB.parties[DB.partyIdx] = DB.party;
   markPartyDirty();
   selSlot = 0; save(); SFX.pick(); renderTeam();
 }
 async function replaceParty() {
-  if (!await uiConfirm(`<b>${partyName(DB.partyIdx)}</b> をいったん<b>全部はずして</b>、<b>スロット①から順に選び直します</b>。<br>下のキャラを4回タップすれば新しい編成のできあがりです。`,
+  if (!await uiConfirm(`<b>${partyName(DB.partyIdx)}</b> をいったん<b>全部はずして</b>、<b>スロット①から順に選び直します</b>。<br>下のキャラを${TEAM_N}回タップすれば新しい編成のできあがりです。`,
     { icon: "⇄", title: "編成を一括変更", ok: "選び直す" })) return;
-  for (let i = 0; i < 4; i++) DB.party[i] = null;
+  for (let i = 0; i < TEAM_N; i++) DB.party[i] = null;
   DB.parties[DB.partyIdx] = DB.party;
   markPartyDirty();
   selSlot = 0; save(); SFX.pick(); renderTeam();
@@ -12097,7 +12131,7 @@ function autoPartyForStage(stageId, includeOmni) {
   if (!stage) return null;
   const keys = counterKeysOf(stage);
   const owned = CHAR_IDS.filter((id) => DB.chars[id]);
-  if (owned.length < 4) return null;
+  if (owned.length < TEAM_N) return null;
   const isOmni = (id) => hasAbil(CHARS[id], "omni");
   /* 専用アビリティ（オムニ以外）で対策できるか */
   const canDed = (id, k) => COUNTER_ABIL[k].need.some((a) => hasAbil(CHARS[id], a));
@@ -12171,7 +12205,7 @@ function autoPartyForStage(stageId, includeOmni) {
   const need = new Set(keys);
   const picked = [];
   const rest = owned.slice();
-  while (picked.length < 4 && rest.length) {
+  while (picked.length < TEAM_N && rest.length) {
     let best = null, bv = -1;
     rest.forEach((id) => {
       let cover = 0;
@@ -12186,7 +12220,7 @@ function autoPartyForStage(stageId, includeOmni) {
   }
   /* 4体に満たなければ戦力順で補充 */
   rest.sort((a, b) => power(b) - power(a));
-  while (picked.length < 4 && rest.length) picked.push(rest.shift());
+  while (picked.length < TEAM_N && rest.length) picked.push(rest.shift());
   const usedOmni = picked.some((id) => isOmni(id));
   /* ★ 2026-08-19 「なぜこの子か」を出せるように、実績の内訳も返す */
   const why = {};
@@ -12215,7 +12249,7 @@ async function autoPartyFor(stageId) {
     await Promise.race([fetchSharedParties(stageId), new Promise((r) => setTimeout(r, 900))]);
   } catch (e) {}
   const test = autoPartyForStage(stageId, autoIncludeOmni);
-  if (!test) { uiAlert("所持キャラが4体そろっていません。", { icon: "🛡", title: "自動編成できません" }); return; }
+  if (!test) { uiAlert("所持キャラが" + TEAM_N + "体そろっていません。", { icon: "🛡", title: "自動編成できません" }); return; }
   autoStageId = stageId;
   paintAutoParty();
   $("#apOv").classList.add("on");
@@ -12350,7 +12384,7 @@ function teamGoHTML() {
     </div>
     ${locked
       ? `<div class="tgd2">${st.judge ? judgeLockText(st.room) : gardenLockText(st.room)}<br>編成だけ準備しておけます。</div>`
-      : `<button class="tgbtn" ${ok ? "" : "disabled"} onclick="teamGoNow()">${ok ? "⚔ このパーティーで出発する" : "4体そろえてください"}</button>`}
+      : `<button class="tgbtn" ${ok ? "" : "disabled"} onclick="teamGoNow()">${ok ? "⚔ このパーティーで出発する" : TEAM_N + "体そろえてください"}</button>`}
     <button class="tgx" onclick="setTeamGoStage(null);renderTeam()">✕ 出撃をやめる</button>
   </div>`;
 }
@@ -12886,7 +12920,7 @@ function renderTrain() {
       `<div class="cfilter" id="trainFilter"></div><div class="tlist" id="tlist">${lvHTML}</div>`)}
     ${sec("item", ICO.gift, "特別アイテムを使う", "叡智の果実・英傑の証・超越の書", itemHTML)}
     ${sec("eq", ICO.rune, "ルーンの装備", "味方1体につき2つ・英傑の証を使うと3つ（購入は Shop タブ）", eqHTML)}
-    ${sec("gear", ICO.gim, "装備の装着", "頭・腕・胸・足を1つずつ（⚖ 天界の審判を 5WAVE 踏破するごとに1つ）", gearHTML)}
+    ${GEAR_ON ? sec("gear", ICO.gim, "装備の装着", "頭・腕・胸・足を1つずつ（⚖ 天界の審判を 5WAVE 踏破するごとに1つ）", gearHTML) : ""}
     ${sec("emblem", ICO.emblem, "魂の紋章", "属性ごとに1つ・効果は2つまで（魂気で刻む）", emblemSectionHTML())}
     ${HELPER_OFF ? "" : sec("lend", ICO.lend, "助っ人の設定", "フレンドに貸し出すキャラを属性ごとに" + LEND_PER_EL + "体まで", lendSectionHTML())}`;
   if (trainOpen === "lv") paintFilterUI("train", $("#trainFilter"));
@@ -13402,6 +13436,9 @@ const FS_SHORT = {
   tsubakirain: "ツバキアメ",
   goldspiral: "ゴルスパイラル", voidparity: "パリティ",
   mrstair: "ムーンステア", nbloom: "ナイブルーム",
+  /* ★★ 2026-09-23 CRYSTAL ACADEMY FEST の新リンク5本＋共通サブリンク */
+  crimsongeode: "ジオード", suikyourinne: "スイキョウ", emeraldgrowth: "グロウス",
+  lighthouse: "ライトハウス", midquartz: "クォーツ", prismrefract: "プリズム",
   ember: "エンバー残像", shadowrev: "シャドリバース",
   raincascade: "レインカスケ", moonphase: "ムーンフェイズ",
   higanlily: "マンジュシャゲ", higanpetal: "ペタルバースト",
@@ -13698,7 +13735,7 @@ const ABIL_GROUPS = {
      <b>あとの定義だけが残って前が消える</b>ので、こちらは書かない。 */
   speedmode: ["speedmode"],
   destroyboost: ["destroyboost", "destroyboostM"],
-  pray: ["pray"],
+  pray: ["pray", "godpray"],
   laserstop: ["laserstop", "laserstopM"],
   lightning: ["lightning", "lightningEL"],
   cumulonimbus: ["cumulonimbus", "cumulonimbusEL"],
@@ -13803,11 +13840,18 @@ const FS_TYPE = {
   goldspiral: "ring",       /* 等比で広がる渦＝リング系 */
   voidparity: "all",        /* 敵全体を偶奇に分けて同時に */
   mrstair: "laser",         /* 画面を横に架かる帯＝薙ぎ払い系 */
+  /* ★★ 2026-09-23 CRYSTAL ACADEMY FEST */
+  crimsongeode: "all",      /* 壁の結晶から全部の敵へ */
+  suikyourinne: "ring",     /* 重心から広がる輪 */
+  emeraldgrowth: "follow",  /* 全部の敵へのびる蔓 */
+  lighthouse: "laser",      /* まわる光の帯 */
+  midquartz: "all",         /* 全部の敵に埋めて時間差で爆ぜる */
   nbloom: "follow",         /* 敵から敵へ咲き移る */
   ember: "follow",          /* 走った跡に残像を落としていく */
   shadowrev: "all",         /* 敵全体の影を叩いて返す */
   raincascade: "ring",      /* 広がる輪＝リング系 */
   moonphase: "ring",        /* 月の満ち欠けの輪（サブリンク） */
+  prismrefract: "laser",    /* ★★ 2026-09-23 5色の光線（サブリンク） */
   higanpetal: "ring",       /* 外ほど重い3重の輪（サブリンク） */
   sanctapetal: "wide",      /* 味方4体を結んだ陣が燃える */
   voidglass: "all",         /* 砂が落ちるたび敵全体へ */
@@ -13995,6 +14039,12 @@ const FS_TAGS = {
   goldspiral:      ["wide", "multi"],
   voidparity:      ["wide", "multi", "pierce"],
   mrstair:         ["wide", "long", "multi", "pierce"],
+  /* ★★ 2026-09-23 CRYSTAL ACADEMY FEST */
+  crimsongeode:    ["wide", "multi", "long"],
+  suikyourinne:    ["wide", "multi"],
+  emeraldgrowth:   ["homing", "multi", "long"],
+  lighthouse:      ["pierce", "long", "multi", "wide"],
+  midquartz:       ["wide", "multi"],
   nbloom:          ["homing", "multi", "wide"],
   ember:           ["homing", "multi", "wide"],
   shadowrev:       ["wide", "multi"],
@@ -14144,6 +14194,7 @@ const SUBFS_TAGS = {
   higanpetal: ["wide", "multi"],
   /* ★★ 2026-09-13 ムーンフェイズ・リング（SOFT NIGHT FEST 共通）／ダブルリード・エコー（クミコ＆レイナ） */
   moonphase: ["wide", "multi"],
+  prismrefract: ["pierce", "long", "multi"],   /* ★★ 2026-09-23 */
   twinreed: ["wide", "multi", "long", "pierce"],
   benilantern: ["wide", "multi"],
   /* ★★ 2026-09-13 デビュー・ファンレター（GRAND DEBUT Ver.8.0 共通） */
@@ -14366,6 +14417,12 @@ const SS_TAGS = {
   kana: ["self", "barrage", "all"],
   maki: ["self", "barrage", "all", "debuff"],
   annaalpha: ["all", "debuff"],
+  /* ★★ 2026-09-23 CRYSTAL ACADEMY FEST の結晶FB（締めだけ違う） */
+  kurehak: ["self", "all", "debuff"],
+  mikotok: ["self", "all", "heal"],
+  meik: ["self", "all", "fbcut"],
+  hikaruk: ["self", "all", "status"],
+  midukik: ["self", "all", "status"],
   asuhaalpha: ["all", "debuff"],
   ranalpha: ["all"],
   sayakaalpha: ["all", "bump"],
@@ -15130,9 +15187,9 @@ function srcKindColor(c) {
         </div>
         ${/* ★★ 2026-09-06b 装備（頭・腕・胸・足）。ルーンのとなりに並べる。
               ★ 同じ効果を2つ以上持っているときは「Σ 合計」の札も出る。 */""}
-        <div class="bdsec gr"><span class="bdst">🛡 装備</span>
+        ${GEAR_ON ? `<div class="bdsec gr"><span class="bdst">🛡 装備</span>
           <div class="bdchips">${typeof gearChipsHTML === "function" ? gearChipsHTML(ball ? (ball.gear || []) : id) : '<span class="bdnone">なし</span>'}</div>
-        </div>
+        </div>` : ""}
         <div class="bdsec em"><span class="bdst">❖ 魂の紋章</span>
           <div class="bdchips">${emFx.length ? emFx.map((k) => {
             const f = EMBLEM_FX[k]; if (!f) return "";
@@ -15405,7 +15462,7 @@ function openDet(id, from) {
       })() : ""}
       ${/* ★★ 2026-09-06b 図鑑・編成から見たときにも「装備」が分かるようにする。
             ルーンのすぐ下に並べ、同じ効果を２つ以上持っているときは「Σ 合計」も出る。 */""}
-      ${own ? (() => {
+      ${own && GEAR_ON ? (() => {
         const gl = (typeof gearListOf === "function") ? gearListOf(id) : [];
         const body = gl.length
           ? `<div class="gchips">${gearChipsHTML(id)}</div>`
@@ -15729,7 +15786,7 @@ function onPickChar(id) {
   const cur = ON.charIds || [];
   const at = cur.indexOf(id);
   if (at >= 0) cur.splice(at, 1);
-  else { cur.push(id); if (cur.length > 2) cur.shift(); }
+  else { cur.push(id); if (cur.length > 3) cur.shift(); }
   ON.charIds = cur;
   ON.msg = "";
   renderOnline();
@@ -16132,7 +16189,7 @@ function onEditPick(id) {
   const cur = ON.editCharIds || [];
   const at = cur.indexOf(id);
   if (at >= 0) cur.splice(at, 1);
-  else { cur.push(id); if (cur.length > 2) cur.shift(); }
+  else { cur.push(id); if (cur.length > 3) cur.shift(); }
   ON.editCharIds = cur; ON.msg = "";
   renderOnline();
 }
@@ -16344,7 +16401,7 @@ function renderOnline() {
   const sel = ON.charIds || [];
   const charPicker = `
     <div class="onlabel">つかうキャラクター（最大2体）</div>
-    <div class="onhint">チームは<b>いつでも合計4体</b>。<b>2人</b>=ホスト2体＋ゲスト2体／<b>3人</b>=ホスト2体＋ゲスト1体ずつ／<b>4人</b>=1体ずつ。<br>2体えらんでおけば、人数に応じて自動で使い分けます（1体しか使わないときは<b>1番目</b>のキャラ）。</div>
+    <div class="onhint">チームは<b>いつでも合計5体</b>。<b>2人</b>=ホスト3体＋ゲスト2体／<b>3人</b>=2体・2体・1体／<b>4人</b>=ホスト2体＋ゲスト1体ずつ。<br>3体までえらんでおけば、人数に応じて自動で使い分けます（1体しか使わないときは<b>1番目</b>のキャラ）。</div>
     <div class="cfilter onfilter" id="onFilter"></div>
     <div class="onchars" id="onCharGrid">${onCharGridHTML()}</div>`;
   if (!inRoom) {
@@ -16358,7 +16415,7 @@ function renderOnline() {
     const step2 = ON.step === "chars";
     const head = `
       <h3>🌐 マルチプレイ</h3>
-      <div class="onsub">部屋番号でつながって、最大4人で協力バトル！チーム4体を持ちよって、順番にショットします。<b>ホストは手番の順番を入れ替えられます。</b></div>
+      <div class="onsub">部屋番号でつながって、最大4人で協力バトル！チーム5体を持ちよって、順番にショットします。<b>ホストは手番の順番を入れ替えられます。</b></div>
       <div class="onsteps">
         <span class="onstep ${step2 ? "" : "on"}">① ${ON.mode === "create" ? "クエスト"
           : ON.mode === "local"
@@ -16574,7 +16631,7 @@ function renderOnline() {
           : '<span class="optk ng">条件×</span>') : ""}
       </div>`;
     }).join("")}</div>
-    <div class="onhint">この人数だと <b>${counts.join(" + ")} = 4体</b> で出撃します。</div>
+    <div class="onhint">この人数だと <b>${counts.join(" + ")} = ${TEAM_N}体</b> で出撃します。</div>
     ${isTenkyuStage(room.meta.stage) ? `<div class="onhint" style="color:${tenkyuNgPlayers(room).length ? "#c22c4e" : "#0e8a5c"}">
       🏯 <b>蓬莱の後半6階層</b>は<b>参加者全員</b>が挑戦条件（<b>前半9階層で通算${HOURAI_BACK_NEED}WAVE 到達</b>）を満たしている必要があります。
       ${tenkyuNgPlayers(room).length
@@ -16624,7 +16681,7 @@ function partyHasFruit(f) {
 }
 function buildBattle(stage, waves, expressMode) {
   const members = DB.party.filter((id) => CHARS[id]);
-  if (members.length !== 4) { uiAlert("編成が<b>4体</b>そろっていません。<br>編成タブでメンバーをそろえてください。", { icon: "🛡", title: "出撃できません" }); return null; }
+  if (members.length !== TEAM_N) { uiAlert("編成が<b>" + TEAM_N + "体</b>そろっていません。<br>編成タブでメンバーをそろえてください。", { icon: "🛡", title: "出撃できません" }); return null; }
   /* ★ 2026-08-05 助っ人: 借りたキャラが編成の1枠を置きかえる（ソロのみ）。
      buildBattle はソロ専用の入口なので、ここで見るだけでマルチには入らない
      （マルチは buildOnlineBattle 側で slots から組み立てる）。 */
@@ -16659,7 +16716,7 @@ function buildBattle(stage, waves, expressMode) {
       /* 助っ人の目じるしと、借りてきた紋章（ballEmblemFx がここを最優先で見る） */
       lent: useH ? { name: helper.name || "", uid: helper.uid || "" } : null,
       lentEmblem: useH ? (helper.emblem || []).filter((k) => EMBLEM_FX[k]) : undefined,
-      x: W * (0.2 + 0.2 * i), y: H * 0.82, vx: 0, vy: 0, r: BALL_R,
+      x: W * (0.5 + (i - (TEAM_N - 1) / 2) * 0.18), y: H * 0.82, vx: 0, vy: 0, r: BALL_R,
       moving: false, sc: fruits.indexOf("haste") >= 0 ? Math.min(4, st.ssTurns) : 0,   // 時短のルーン: 本人だけフルバースト4短縮スタート
       overlap: new Set(), frIds: new Set(),
       msStock: 0, barrier: hasAbil(c, "barrierEL") ? BARRIER_EL : hasAbil(c, "barrierL") ? BARRIER_L : hasAbil(c, "barrierM") ? BARRIER_M : hasAbil(c, "barrier") ? BARRIER_BASE : 0, warpCd: 0, swordMul: 1, waveActs: 0, bubbly: 0, bubblyOwn: 0, selfBuff: null, cnxBuff: null, shotMode: null, photonHold: 0,
@@ -16708,19 +16765,20 @@ function baseBattle(stage, balls, maxhp, expressMode) {
    全員が「同じ seed」「同じショット列」から同じシミュレーションを再生する（決定論同期）。 */
 /* 人数ごとのボール配分（チームは常に4体）
    2人 = ホスト2体 ＋ ゲスト2体 ／ 3人 = ホスト2体 ＋ ゲスト1体ずつ ／ 4人 = 1体ずつ */
+/* ★★ 2026-09-23 チームは<b>5体</b>（TEAM_N）。1人＝5／2人＝3＋2／3人＝2＋2＋1／4人＝2＋1＋1＋1 */
 function ballCounts(n) {
-  if (n <= 1) return [4];
-  if (n === 2) return [2, 2];
-  if (n === 3) return [2, 1, 1];
-  return [1, 1, 1, 1];
+  if (n <= 1) return [TEAM_N];
+  if (n === 2) return [3, 2];
+  if (n === 3) return [2, 2, 1];
+  return [2, 1, 1, 1];
 }
 /* プレイヤーが持ちよったキャラ（旧フォーマットにも対応。足りなければ1番目を再利用） */
 function playerChars(p) {
-  let cs = Array.isArray(p.chars) && p.chars.length ? p.chars.slice(0, 2) : null;
+  let cs = Array.isArray(p.chars) && p.chars.length ? p.chars.slice(0, 3) : null;
   if (!cs) cs = [{ id: p.charId, lv: p.lv, awk: p.awk, fruit: p.fruit }];
   cs = cs.filter((c) => c && CHARS[c.id]);
   if (!cs.length) cs = [{ id: STARTER_IDS[0], lv: 1, awk: 0, fruit: "" }];
-  while (cs.length < 2) cs.push(cs[0]);   // 1体しか選んでいない人が2体ぶん出す場合は同じキャラをもう1体
+  while (cs.length < 3) cs.push(cs[0]);   // 1体しか選んでいない人が2体ぶん出す場合は同じキャラをもう1体
   return cs;
 }
 /* ══════════ 手番スロット（4体ぶんの並び） ══════════
@@ -16775,7 +16833,7 @@ function buildOnlineBattle(stage, seed, players, myUid, metaSlots) {
          手元の DB.emblem を見てしまうと、自分の紋章が他人のキャラにも乗って
          端末ごとにダメージが食い違い、盤面がズレる。 */
       lentEmblem: (Array.isArray(src.emblem) ? src.emblem : []).filter((k) => EMBLEM_FX[k]),
-      x: W * (0.2 + 0.2 * i), y: H * 0.82, vx: 0, vy: 0, r: BALL_R,
+      x: W * (0.5 + (i - (TEAM_N - 1) / 2) * 0.18), y: H * 0.82, vx: 0, vy: 0, r: BALL_R,
       moving: false, sc: fruits.indexOf("haste") >= 0 ? Math.min(4, st.ssTurns) : 0,
       overlap: new Set(), frIds: new Set(),
       msStock: 0, barrier: hasAbil(c, "barrierEL") ? BARRIER_EL : hasAbil(c, "barrierL") ? BARRIER_L : hasAbil(c, "barrierM") ? BARRIER_M : hasAbil(c, "barrier") ? BARRIER_BASE : 0, warpCd: 0, swordMul: 1, waveActs: 0, bubbly: 0, bubblyOwn: 0, selfBuff: null, cnxBuff: null, shotMode: null, photonHold: 0,
@@ -17009,7 +17067,7 @@ function startBattle(stageId) {
       return `<button class="psrow ${i === DB.partyIdx ? "cur" : ""} ${ok ? "" : "ng"}" ${ok ? `onclick="chooseParty(${i},'${stage.id}')"` : "disabled"}>
         <div class="psnm">${partyName(i)}</div>
         <div class="psmem">${p.map((id) => (CHARS[id] && DB.chars[id]) ? `<img src="${CHARS[id].th}" alt="${CHARS[id].nm}">` : '<span class="psx">—</span>').join("")}</div>
-        <div class="pshp">${ok ? "総HP " + fmt(partyHpOf(p)) : "4体そろっていません"}</div>
+        <div class="pshp">${ok ? "総HP " + fmt(partyHpOf(p)) : TEAM_N + "体そろっていません"}</div>
       </button>`;
     }).join("")}</div>
     <button class="psedit" onclick="editTeamFor('${stage.id}')">🛠 編成を見直す（このクエストへ戻らずに出発できます）</button>`;
@@ -17049,7 +17107,7 @@ async function resumeBattle(stageId) {
   /* 中断したときのパーティーへ戻す（消えているキャラがいたら今のパーティーのまま） */
   if (typeof rs.pidx === "number" && DB.parties[rs.pidx] && partyReady(DB.parties[rs.pidx])) setPartyIdx(rs.pidx);
   if (Array.isArray(rs.party) && partyReady(rs.party)) { DB.parties[DB.partyIdx] = rs.party.slice(); DB.party = DB.parties[DB.partyIdx]; save(); }
-  if (!partyReady(DB.party)) { uiAlert("編成が<b>4体</b>そろっていません。<br>編成タブでメンバーをそろえてください。", { icon: "🛡", title: "再開できません" }); return; }
+  if (!partyReady(DB.party)) { uiAlert("編成が<b>" + TEAM_N + "体</b>そろっていません。<br>編成タブでメンバーをそろえてください。", { icon: "🛡", title: "再開できません" }); return; }
   $("#psOv").classList.remove("on");
   pendingStageId = null;
   renderTeam();
@@ -17844,16 +17902,25 @@ function tryConnectBossBuff() {
 function tryPray() {
   if (!B || !B.balls) return;
   if (!B.enemies.some((e) => e.boss && e.hp > 0)) return;   // ボス戦のマップだけ
-  const pr = B.balls.find((b) => hasAbil(b.ch, "pray"));
+  /* ★★ 2026-09-23 <b>祈りを持つ全員で独立に抽選</b>（ご指定）。
+     編成の<b>左から順に</b>その子の確率（治癒の祈り 30%／神癒の祈り 40%）で1回ずつ引き、
+     当たった子が出たところで止める。全員はずれたら何も起きない。
+     演出は<b>当たった子の SS 絵</b>で出す。 */
+  let pr = null;
+  for (const b of B.balls) {
+    const ch = prayChanceOf(b.ch);
+    if (!ch) continue;
+    if (brnd() < ch) { pr = b; break; }
+  }
   if (!pr) return;
-  if (brnd() >= PRAY_CHANCE) return;
-  playAbilCutin(pr.ch, "ABILITY", "治癒の祈り", "#2fbf71", SS_ART[pr.ch.id], "#8affc4");   // フルバーストとは別の演出・文字
+  const prNm = hasAbil(pr.ch, "godpray") ? "神癒の祈り" : "治癒の祈り";
+  playAbilCutin(pr.ch, "ABILITY", prNm, "#2fbf71", SS_ART[pr.ch.id], "#8affc4");   // フルバーストとは別の演出・文字
   SFX.heal();
   B.hp = B.maxhp; paintHp();
   B.effects.push({ type: "healring", x: W / 2, y: H * 0.5, t: 0, dur: 40, c: "#7dffb0" });
   B.effects.push({ type: "flashfx", t: 0, dur: 12 });
-  B.pops.push({ x: W / 2, y: H * 0.45, t: 0, txt: "治癒の祈り — HP全回復!!", c: "#7dffb0", small: 0 });
-  showBmsg("✨ 治癒の祈り発動！ HP全回復", "#7dffb0", 1600);
+  B.pops.push({ x: W / 2, y: H * 0.45, t: 0, txt: prNm + "（" + pr.ch.nm + "）— HP全回復!!", c: "#7dffb0", small: 0 });
+  showBmsg("✨ " + pr.ch.nm + "の" + prNm + "発動！ HP全回復", "#7dffb0", 1600);
 }
 /* 超特急のブロック・透明パネル（4号車から登場、号車ごとにパターン交代） */
 function expressTerrain(car) {
@@ -18749,6 +18816,20 @@ const FS_HIT = {
     nm: "偶数番目へ貫通の刃 " + PAR_N + "回（奇数番目は爆発 攻撃力×" + PAR_B + "）",
     extra: PAR_N * PAR_B + PAR_FIN * PAR_BAL,
     nm2: "奇数側＋締め（つりあっていれば 攻撃力×" + (PAR_FIN * PAR_BAL).toFixed(1) + "）" },
+  /* ★★ 2026-09-23 CRYSTAL ACADEMY FEST（per・n は「敵1体あたり」） */
+  crimsongeode: { per: GEO_PER, n: GEO_N0 + GEO_WALL_MAX,
+    nm: "壁の結晶から結晶片（結晶は " + GEO_N0 + "＋ふれてきた味方の壁の回数・最大" + (GEO_N0 + GEO_WALL_MAX) + "個）",
+    per2: GEO_FIN, n2: 1, nm2: "全部の結晶が砕ける締め（敵全体）" },
+  suikyourinne: { per: RIN_PER * (1 + RIN_NEAR), n: RIN_N,
+    nm: "重心から広がる輪（重心にいちばん近いとき ×" + (1 + RIN_NEAR).toFixed(2) + " の値）",
+    per2: RIN_FIN * (1 + RIN_NEAR), n2: 1, nm2: "水鏡が割れる締め" },
+  emeraldgrowth: { per: GRW_PER, n: GRW_N,
+    nm: "翠の蔓（そのバトルで使うたびに +" + Math.round(GRW_STEP * 100) + "%・最大 +" + Math.round(GRW_STEP * GRW_MAX * 100) + "%）",
+    per2: GRW_FIN, n2: 1, nm2: "結晶の花の締め" },
+  lighthouse: { per: LH_PER1, n: 1, nm: "灯台の光 1周め",
+    per2: LH_PER2, n2: 1, nm2: "2周め（太い光）＋ 最後に照らした敵へ ×" + LH_LAST },
+  midquartz: { per: MQ_NOW, n: 1, nm: "闇の結晶を埋めこむ（いま）",
+    per2: MQ_BOOM, n2: 1, nm2: "次の手番のはじめに爆ぜる（倒れていたら近くの敵へ ×" + MQ_JUMP + "）" },
   mrstair: { per: MRSTAIR_PER, n: 4,
     nm: "敵の高さに架かる月光の帯（敵全体・段をのぼるごとに +" + MRSTAIR_STEP + "）",
     extra: MRSTAIR_STEP * 6 + MRSTAIR_LAST,
@@ -19106,6 +19187,9 @@ const SUB_HIT = {
   /* ★★ 2026-09-17d 花宴祭 アカツキのサブリンク（行き＋帰り） */
   benilantern: { per: BLAN_PER, n: 1, extra: BLAN_PER * BLAN_BACK },
   /* ★★ 2026-09-13 ムーンフェイズ・リング（SOFT NIGHT FEST の共通サブリンク） */
+  /* ★★ 2026-09-23 プリズム・リフラクション（CRYSTAL ACADEMY FEST の共通サブリンク）。
+     ★ 実ダメージ（firePrismRefract）と必ずそろえること。 */
+  prismrefract: { per: PRF_PER, n: PRF_N - 1, extra: PRF_PER * PRF_ADV },
   moonphase: { per: MPHASE_PER, n: MPHASE_N,
     extra: MPHASE_STEP * (MPHASE_N * (MPHASE_N - 1) / 2) },
   /* ★★ 2026-09-11 ヒガン・ペタルバースト（カグラのサブリンク） */
@@ -19663,6 +19747,9 @@ function playCutin(c) {
    絵は MagiBurst-SS-Archive から必要なぶんだけ img/ss/ へ戻してある
    （SS絵を出す演出を持つキャラが増えたら、絵を1枚足してここに1行足すこと）。 */
 const SS_ART = {
+  /* ★★ 2026-09-23 CRYSTAL ACADEMY FEST（神癒の祈りのカットイン） */
+  kureha: "img/ss/KurehaSS.webp", mikoto: "img/ss/MikotoSS.webp", mei: "img/ss/MeiSS.webp",
+  hikaru: "img/ss/HikaruSS.webp", miduki: "img/ss/MidukiSS.webp",
   yaju: "img/ss/YajuSS.webp",     /* ★ 2026-08-08d クロススキル「お待たせ!」用 */
   /* ★ 2026-08-12 蒼夏祭の治癒の祈り持ち（マユ・チヅル） */
   mayu: "img/ss/MayuSS.webp",
@@ -19925,6 +20012,8 @@ function launchShot(ball, ux, uy, power) {
   ball._acDone = 0;                                  /* ★ 2026-08-17b 攻撃力チャージ: このショットで配ったか */
   ball._lhHits = 0;                                  /* ★★ 2026-09-11 ラッキー・ハートカウント: このショットで敵にふれた数 */
   B._linkNo = 0;                                     /* ★★ 2026-09-19e ベニイト・スズナリ: このショットで出たリンクの数 */
+  /* ★★ 2026-09-23 ミッドナイト・クォーツ（ミヅキ）: 前の手番で埋めた結晶は、だれかが撃った瞬間に爆ぜる */
+  if (B.mqMarks && B.mqMarks.length) detonateMidnightQuartz();
   ball._ssx = ball.x; ball._ssy = ball.y;            // フィオナFB: このショットのスタート地点
   /* ★ v14 キュムロニンバス: 予約したターンの「次のショット」は、前のショットで走った距離ぶん強くなる */
   if (hasCumulo(ball.ch) && (ball._cumuloBoost || 1) > 1.01) {
@@ -20892,6 +20981,9 @@ function applyNewSS(ball) {
      ・コトリα … HPの<b>割合</b>が低い敵ほど雨粒が重くなる（トドメ役）
      ★ fxctl は自分から寿命で終わるので、手番が止まることはない。
      ══════════════════════════════════════════════════════════════ */
+  } else if (CRY_SPEC[k]) {
+    /* ★★ 2026-09-23 CRYSTAL ACADEMY FEST の結晶FB（クレハ・ミコト・メイ・ヒカル・ミヅキ） */
+    fxCrystalFB(ball, CRY_SPEC[k]);
   } else if (k === "annaalpha") {
     /* ① アンナα「ノクターン・ヴェール」 */
     const _aANA = ball.st.atk * atkMulOf(ball), _cANA = ball.ch;
@@ -31345,6 +31437,204 @@ function fireFriendMain(owner, atk, mover, kindOverride) {
     /* ══════════════════════════════════════════════════════════════
        ★★ 2026-09-13 SOFT NIGHT FEST の新リンク5本（挙動も新しいもの・ご指定）
        ══════════════════════════════════════════════════════════════ */
+    /* ══════════════════════════════════════════════════════════════
+       ★★ 2026-09-23 CRYSTAL ACADEMY FEST の新リンク5本（挙動も新しいもの・ご指定）
+       ★ どれも fxctl で進め、寿命（dur）で自分から終わる（手番を止めない）。
+       ══════════════════════════════════════════════════════════════ */
+    case "crimsongeode": {
+      /* ① クレハ「クリムゾン・ジオード」
+         ★ 新しいのは<b>ふれてきた味方（mover）がこのショットで壁に当たった回数</b>だけ、
+           盤面の4辺に紅い結晶が生えること。結晶1つにつき<b>全部の敵へ</b>結晶片。最後に全部が砕ける。 */
+      const col = ELEM[owner.ch.el].c, ch = owner.ch;
+      const wh = Math.min(GEO_WALL_MAX, (mover && mover._wallHits) | 0);
+      const n = GEO_N0 + wh;
+      const per = 2 * (W + H);
+      const pts = [];
+      for (let i = 0; i < n; i++) {
+        let d = (((i + 0.5) / n) * per + per * 0.06) % per;   /* 上の辺から時計回りに等間隔 */
+        let x, y;
+        if (d < W) { x = d; y = 24; }
+        else if ((d -= W) < H) { x = W - 24; y = d; }
+        else if ((d -= H) < W) { x = W - d; y = H - 24; }
+        else { d -= W; x = 24; y = H - d; }
+        pts.push([x, y]);
+      }
+      B.pops.push({ x: owner.x, y: owner.y - owner.r - 26, t: 0,
+        txt: "CRIMSON GEODE!!（壁 " + wh + "回 → 結晶 " + n + "個）", c: col, small: 0 });
+      B.effects.push({ type: "fxctl", t: 0, dur: GEO_GAP * (n + 4) + 34, k: 0, done: 0,
+        tick(fx) {
+          while (fx.k < n && fx.t >= fx.k * GEO_GAP) {
+            const pt = pts[fx.k]; fx.k++;
+            B.effects.push({ type: "crystalfx", x: pt[0], y: pt[1], t: 0, dur: GEO_GAP * (n - fx.k + 3) + 18, s: 26, c: col, c2: "#ffd6b0" });
+            aliveEnemies().forEach((o) => {
+              B.effects.push({ type: "linefx", x: pt[0], y: pt[1], x2: o.x, y2: o.y, t: 0, dur: 12, w: 6, c: "#ffb07a" });
+              dealDamage(o, atk * GEO_PER * elemMultOf(ch, o.el), col, false);
+              spawnSparks(o.x, o.y, "#ffd6b0", 3);
+            });
+            B.shake = Math.max(B.shake, 5); SFX.hit();
+          }
+          if (!fx.done && fx.t >= n * GEO_GAP + 12) {
+            fx.done = 1;
+            pts.forEach((pt) => B.effects.push({ type: "crystalfx", x: pt[0], y: pt[1], t: 0, dur: 22, s: 26, c: col, c2: "#ffd6b0", shatter: 1 }));
+            aliveEnemies().forEach((o) => {
+              dealDamage(o, atk * GEO_FIN * elemMultOf(ch, o.el), "#ffffff", true);
+              B.effects.push({ type: "boom", x: o.x, y: o.y, t: 0, dur: 28, r: o.r * 3, c: col });
+              spawnSparks(o.x, o.y, "#ffffff", 14);
+            });
+            B.pops.push({ x: W / 2, y: H * 0.42, t: 0, txt: "GEODE BREAK!!（×" + GEO_FIN + "）", c: "#ffd6b0", small: 0 });
+            B.shake = Math.max(B.shake, 20); SFX.crit();
+          }
+        } });
+      break;
+    }
+    case "suikyourinne": {
+      /* ② ミコト「スイキョウ・リンネ」
+         ★ 新しいのは<b>敵みんなの重心</b>に水鏡があらわれ、そこから輪が広がること。
+           重心に近い敵ほど重い（×1 → ×(1+RIN_NEAR)）。1体だけなら重心＝その敵なので最大。 */
+      const col = ELEM[owner.ch.el].c, ch = owner.ch;
+      const es0 = aliveEnemies();
+      if (!es0.length) break;
+      let cx = 0, cy = 0;
+      es0.forEach((o) => { cx += o.x; cy += o.y; });
+      cx /= es0.length; cy /= es0.length;
+      const near = (o) => 1 + RIN_NEAR * Math.max(0, 1 - Math.hypot(o.x - cx, o.y - cy) / RIN_D);
+      B.pops.push({ x: owner.x, y: owner.y - owner.r - 26, t: 0, txt: "SUIKYOU RINNE!!（重心の水鏡）", c: col, small: 0 });
+      B.effects.push({ type: "linefx", x: owner.x, y: owner.y, x2: cx, y2: cy, t: 0, dur: 16, w: 5, c: "#d8f6ff" });
+      B.effects.push({ type: "crystalfx", x: cx, y: cy, t: 0, dur: RIN_GAP * (RIN_N + 3) + 24, s: 40, c: col, c2: "#e8fbff" });
+      B.effects.push({ type: "fxctl", t: 0, dur: RIN_GAP * (RIN_N + 3) + 28, k: 0, done: 0,
+        tick(fx) {
+          while (fx.k < RIN_N && fx.t >= fx.k * RIN_GAP) {
+            const i = fx.k; fx.k++;
+            B.effects.push({ type: "ring", x: cx, y: cy, t: 0, dur: 24, r: 110 + i * 95, c: i % 2 ? "#e8fbff" : col });
+            aliveEnemies().forEach((o) => {
+              dealDamage(o, atk * RIN_PER * near(o) * elemMultOf(ch, o.el), col, false);
+              spawnSparks(o.x, o.y, "#d8f6ff", 3);
+            });
+            B.shake = Math.max(B.shake, 5); SFX.hit();
+          }
+          if (!fx.done && fx.t >= RIN_N * RIN_GAP + 14) {
+            fx.done = 1;
+            B.effects.push({ type: "crystalfx", x: cx, y: cy, t: 0, dur: 24, s: 40, c: col, c2: "#e8fbff", shatter: 1 });
+            B.effects.push({ type: "ring", x: cx, y: cy, t: 0, dur: 30, r: RIN_D, c: "#ffffff" });
+            aliveEnemies().forEach((o) => {
+              const m = near(o);
+              dealDamage(o, atk * RIN_FIN * m * elemMultOf(ch, o.el), "#ffffff", true);
+              B.effects.push({ type: "personahit", x: o.x, y: o.y, t: 0, dur: 22, c: "#e8fbff", txt: "×" + m.toFixed(2), big: 0 });
+              spawnSparks(o.x, o.y, "#ffffff", 12);
+            });
+            B.pops.push({ x: W / 2, y: H * 0.42, t: 0, txt: "MIRROR BREAK!!（×" + RIN_FIN + "）", c: "#e8fbff", small: 0 });
+            B.shake = Math.max(B.shake, 18); SFX.crit();
+          }
+        } });
+      break;
+    }
+    case "emeraldgrowth": {
+      /* ③ メイ「エメラルド・グロウス」
+         ★ 新しいのは<b>そのバトルで使うたびに育つ</b>こと（持ち主ごとに回数を B.meiGrow に控える）。 */
+      const col = ELEM[owner.ch.el].c, ch = owner.ch;
+      B.meiGrow = B.meiGrow || {};
+      const used = B.meiGrow[owner.i] | 0;
+      const gm = 1 + GRW_STEP * Math.min(used, GRW_MAX);
+      B.meiGrow[owner.i] = used + 1;
+      B.pops.push({ x: owner.x, y: owner.y - owner.r - 26, t: 0,
+        txt: "EMERALD GROWTH!!（" + (used + 1) + "回め・育ち ×" + gm.toFixed(2) + "）", c: col, small: 0 });
+      B.effects.push({ type: "fxctl", t: 0, dur: GRW_GAP * (GRW_N + 3) + 30, k: 0, done: 0,
+        tick(fx) {
+          while (fx.k < GRW_N && fx.t >= fx.k * GRW_GAP) {
+            const i = fx.k; fx.k++;
+            aliveEnemies().forEach((o, j) => {
+              const bend = (i - (GRW_N - 1) / 2) * 26;
+              const mx = (owner.x + o.x) / 2 + bend, my = (owner.y + o.y) / 2 - bend * 0.6;
+              B.effects.push({ type: "linefx", x: owner.x, y: owner.y, x2: mx, y2: my, t: 0, dur: 14, w: 5, c: i % 2 ? "#c8ffd0" : col });
+              B.effects.push({ type: "linefx", x: mx, y: my, x2: o.x, y2: o.y, t: 0, dur: 14, w: 5, c: i % 2 ? "#c8ffd0" : col });
+              dealDamage(o, atk * GRW_PER * gm * elemMultOf(ch, o.el), col, false);
+              spawnSparks(o.x, o.y, "#c8ffd0", 3);
+            });
+            B.shake = Math.max(B.shake, 5); SFX.hit();
+          }
+          if (!fx.done && fx.t >= GRW_N * GRW_GAP + 12) {
+            fx.done = 1;
+            aliveEnemies().forEach((o) => {
+              B.effects.push({ type: "crystalfx", x: o.x, y: o.y - o.r * 0.5, t: 0, dur: 26, s: 30 + 2 * Math.min(used, GRW_MAX), c: col, c2: "#eaffe4" });
+              dealDamage(o, atk * GRW_FIN * gm * elemMultOf(ch, o.el), "#eaffe4", true);
+              B.effects.push({ type: "boom", x: o.x, y: o.y, t: 0, dur: 26, r: o.r * 2.8, c: col });
+              spawnSparks(o.x, o.y, "#ffffff", 12);
+            });
+            B.pops.push({ x: W / 2, y: H * 0.42, t: 0, txt: "EMERALD BLOOM!!（×" + (GRW_FIN * gm).toFixed(2) + "）", c: "#eaffe4", small: 0 });
+            B.shake = Math.max(B.shake, 16); SFX.crit();
+          }
+        } });
+      break;
+    }
+    case "lighthouse": {
+      /* ④ ヒカル「ルミナス・ライトハウス」
+         ★ 新しいのは<b>灯台の光がぐるりと2周まわり、光が通った順に敵を照らす</b>こと。
+           角度は「真上」から時計回り。2周めは太く重く、<b>最後に照らした敵</b>にだけ光柱の締め。 */
+      const col = ELEM[owner.ch.el].c, ch = owner.ch;
+      const ox = owner.x, oy = owner.y;
+      const es0 = aliveEnemies().slice();
+      if (!es0.length) break;
+      const TAU = Math.PI * 2;
+      const angOf = (o) => { let a = Math.atan2(o.y - oy, o.x - ox) + Math.PI / 2; a %= TAU; if (a < 0) a += TAU; return a; };
+      const order = es0.map((o) => ({ id: o.id, a: angOf(o) })).sort((p, q) => p.a - q.a);
+      const lastId = order[order.length - 1].id;
+      B.pops.push({ x: ox, y: oy - owner.r - 26, t: 0, txt: "LUMINOUS LIGHTHOUSE!!（2周）", c: col, small: 0 });
+      B.effects.push({ type: "crystalfx", x: ox, y: oy, t: 0, dur: LH_FRAMES * 2 + 20, s: 30, c: col, c2: "#ffffff" });
+      B.effects.push({ type: "fxctl", t: 0, dur: LH_FRAMES * 2 + 34, done: 0, hit: [new Set(), new Set()],
+        tick(fx) {
+          const rev = Math.floor(fx.t / LH_FRAMES);
+          if (rev < 2) {
+            const a = ((fx.t % LH_FRAMES) + 1) / LH_FRAMES * TAU;
+            const th = a - Math.PI / 2;
+            B.effects.push({ type: "linefx", x: ox, y: oy, x2: ox + Math.cos(th) * 1500, y2: oy + Math.sin(th) * 1500,
+              t: 0, dur: 5, w: rev ? LH_W2 : LH_W1, c: rev ? "#fff7d0" : col });
+            order.forEach((q) => {
+              if (fx.hit[rev].has(q.id) || q.a > a) return;
+              fx.hit[rev].add(q.id);
+              const o = B.enemies.find((e) => e.id === q.id && e.hp > 0);
+              if (!o) return;
+              dealDamage(o, atk * (rev ? LH_PER2 : LH_PER1) * elemMultOf(ch, o.el), rev ? "#ffffff" : col, !!rev);
+              spawnSparks(o.x, o.y, "#fff7d0", rev ? 10 : 5);
+              if (rev) B.effects.push({ type: "personahit", x: o.x, y: o.y, t: 0, dur: 18, c: "#fff7d0", txt: "LIT", big: 0 });
+            });
+            if (fx.t % 6 === 0) SFX.hit();
+          } else if (!fx.done) {
+            fx.done = 1;
+            let o = B.enemies.find((e) => e.id === lastId && e.hp > 0);
+            if (!o) { const al = aliveEnemies(); o = al[al.length - 1]; }
+            if (o) {
+              B.effects.push({ type: "pillar", x: o.x, y: o.y, t: 0, dur: 30, c: "#fff7d0" });
+              dealDamage(o, atk * LH_LAST * elemMultOf(ch, o.el), "#ffffff", true);
+              B.effects.push({ type: "personahit", x: o.x, y: o.y, t: 0, dur: 24, c: "#ffffff", txt: "LAST LIGHT", big: 1 });
+              spawnSparks(o.x, o.y, "#ffffff", 20);
+              B.pops.push({ x: W / 2, y: H * 0.42, t: 0, txt: "LAST LIGHT!!（×" + LH_LAST + "）", c: "#fff7d0", small: 0 });
+              B.shake = Math.max(B.shake, 20); SFX.crit();
+            }
+          }
+        } });
+      break;
+    }
+    case "midquartz": {
+      /* ⑤ ミヅキ「ミッドナイト・クォーツ」
+         ★ 新しいのは<b>次の手番のはじめに爆ぜる</b>（時間差）こと。
+           いまは小さく刺して B.mqMarks に「どの敵に・だれの・いくつ」を控え、
+           launchShot の頭で detonateMidnightQuartz() が爆ぜさせる。
+           ★ 敵は<b>参照ではなく id と位置</b>で控える（オンラインの同期で敵の実体が差しかわっても迷わない）。 */
+      const col = ELEM[owner.ch.el].c, ch = owner.ch;
+      B.mqMarks = B.mqMarks || [];
+      B.pops.push({ x: owner.x, y: owner.y - owner.r - 26, t: 0, txt: "MIDNIGHT QUARTZ!!（次の手番で爆ぜる）", c: "#d6b8ff", small: 0 });
+      aliveEnemies().forEach((o) => {
+        B.effects.push({ type: "linefx", x: owner.x, y: owner.y, x2: o.x, y2: o.y, t: 0, dur: 12, w: 4, c: "#b58cff" });
+        dealDamage(o, atk * MQ_NOW * elemMultOf(ch, o.el), col, false);
+        B.effects.push({ type: "crystalfx", x: o.x, y: o.y - o.r * 0.25, t: 0, dur: 40, s: 24, c: "#9a6bff", c2: "#2a1850" });
+        const m = B.mqMarks.find((q) => q.eid === o.id && q.oi === owner.i);
+        if (m) m.n = Math.min(MQ_STACK, m.n + 1);
+        else B.mqMarks.push({ eid: o.id, x: o.x, y: o.y, oi: owner.i, atk: atk, n: 1 });
+      });
+      B.shake = Math.max(B.shake, 6); SFX.hit();
+      break;
+    }
+
     case "mrstair": {
       /* ① アンナα「ムーンライズ・ステアーズ」
          ★ 新しいのは<b>「画面のどこにいるか（高さ）」が順番と威力を決める</b>こと。
@@ -34250,6 +34540,171 @@ function fireMoonPhase(owner, atk) {
 }
 
 /* ══════════════════════════════════════════════════════════════
+   ★★ 2026-09-23 プリズム・リフラクション（CRYSTAL ACADEMY FEST の共通サブリンク）
+   ふれた味方の前にプリズムが生まれ、敵ごとに<b>5色（火・水・木・光・闇）</b>の光線が走る。
+   <b>その敵に有利な色の光線だけ ×PRF_ADV</b>。5色そろっているので、どの敵にも必ず1本は有利が通る。
+   ★ 威力は SUB_HIT.prismrefract と必ずそろえること。
+   ══════════════════════════════════════════════════════════════ */
+const PRF_ELS = ["fire", "water", "wood", "light", "dark"];
+function firePrismRefract(owner, atk) {
+  const ch = owner.ch, cx = owner.x, cy = owner.y - owner.r * 0.4;
+  B.effects.push({ type: "crystalfx", x: cx, y: cy, t: 0, dur: PRF_GAP * (PRF_N + 2) + 16, s: 20, c: "#bff2ff", c2: "#ffffff" });
+  B.effects.push({ type: "fxctl", t: 0, dur: PRF_GAP * (PRF_N + 2) + 18, k: 0,
+    tick(fx) {
+      while (fx.k < PRF_N && fx.t >= fx.k * PRF_GAP) {
+        const el = PRF_ELS[fx.k]; fx.k++;
+        const c = ELEM[el].c;
+        aliveEnemies().forEach((o) => {
+          const adv = elemMult(el, o.el) > 1;
+          const off = (fx.k - 3) * 7;
+          B.effects.push({ type: "linefx", x: cx, y: cy, x2: o.x + off, y2: o.y - off * 0.5, t: 0, dur: 12, w: adv ? 9 : 4, c });
+          dealDamage(o, atk * PRF_PER * (adv ? PRF_ADV : 1) * elemMultOf(ch, o.el), c, adv);
+          if (adv) spawnSparks(o.x, o.y, c, 6);
+        });
+      }
+    } });
+}
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-09-23 ミッドナイト・クォーツ（ミヅキのリンク）の<b>爆ぜる側</b>
+   launchShot の頭（だれかが撃った瞬間）で呼ぶ。埋めた敵が倒れていたら、
+   控えておいた位置から<b>いちばん近い敵</b>へ移って ×MQ_JUMP で爆ぜる。
+   ★ 爆ぜるダメージにも持ち主のキラーが乗るよう、withDmgSrc で持ち主を立てる。
+   ══════════════════════════════════════════════════════════════ */
+function detonateMidnightQuartz() {
+  const marks = (B && B.mqMarks) || [];
+  if (!marks.length) return;
+  B.mqMarks = [];
+  let total = 0;
+  marks.forEach((m) => { total += m.n; });
+  B.pops.push({ x: W / 2, y: H * 0.36, t: 0, txt: "MIDNIGHT BURST!!（結晶 " + total + "）", c: "#d6b8ff", small: 0 });
+  B.effects.push({ type: "skydim", t: 0, dur: 30, a: 0.4, c: "#0a0418" });
+  marks.forEach((m) => {
+    const owner = B.balls[m.oi]; if (!owner) return;
+    let e = B.enemies.find((o) => o.id === m.eid && o.hp > 0 && !o.hidden);
+    let jump = false;
+    if (!e) {
+      let bd = 1e9;
+      aliveEnemies().forEach((o) => { const d = Math.hypot(o.x - m.x, o.y - m.y); if (d < bd) { bd = d; e = o; } });
+      jump = true;
+    }
+    if (!e) return;
+    const pw = MQ_BOOM * m.n * (jump ? MQ_JUMP : 1);
+    withDmgSrc(owner, () => { dealDamage(e, m.atk * pw * elemMultOf(owner.ch, e.el), "#d6b8ff", true); });
+    B.effects.push({ type: "crystalfx", x: e.x, y: e.y, t: 0, dur: 24, s: 34, c: "#9a6bff", c2: "#2a1850", shatter: 1 });
+    B.effects.push({ type: "boom", x: e.x, y: e.y, t: 0, dur: 30, r: e.r * 3.2, c: "#9a6bff" });
+    if (jump) B.effects.push({ type: "personahit", x: e.x, y: e.y, t: 0, dur: 22, c: "#e8d8ff", txt: "JUMP ×" + MQ_JUMP, big: 0 });
+    spawnSparks(e.x, e.y, "#e8d8ff", 16);
+  });
+  B.shake = Math.max(B.shake, 22); SFX.crit();
+}
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-09-23 CRYSTAL ACADEMY FEST の<b>結晶FB</b>（5体共通の骨組み・締めだけ違う）
+   ・盤面に CRY_N 個の結晶が順に育つ（偶数番目＝盤面の黄金角の渦／奇数番目＝敵のそば・順番に）。
+   ・育つたびに、その結晶の半径 CRY_R（＋敵の半径）に入った敵へ ×CRY_TICK（1体 CRY_CAP 回まで）。
+   ・全部育ったら<b>いっせいに砕け</b>、敵ごとに ×(CRY_BASE ＋ CRY_PER × 近くの結晶の数)。
+   ・最後にキャラ固有の締め（spec.fin）。
+   ★ 位置は乱数を使わない（オンラインで全員の盤面が同じになるように）。
+   ══════════════════════════════════════════════════════════════ */
+const CRY_SPEC = {
+  kurehak: { nm: "CRIMSON CRYSTALLIA", c: "#ff6a3d", c2: "#ffd6b0", dim: "#1a0602", fin: KRH_FIN, fx: "defdown" },
+  mikotok: { nm: "AQUA CRYSTALLIA", c: "#3fb6ff", c2: "#e8fbff", dim: "#020c1a", fin: MKT_FIN, fx: "heal" },
+  meik:    { nm: "EMERALD CRYSTALLIA", c: "#3fd47a", c2: "#eaffe4", dim: "#021a0a", fin: MEI_FIN, fx: "fb" },
+  hikaruk: { nm: "LUMINOUS CRYSTALLIA", c: "#ffd257", c2: "#fffbe6", dim: "#1a1402", fin: HKR_FIN, fx: "delay" },
+  midukik: { nm: "MIDNIGHT CRYSTALLIA", c: "#9a6bff", c2: "#e8d8ff", dim: "#07021a", fin: MDK_FIN, fx: "poison" },
+};
+function fxCrystalFB(ball, spec) {
+  ball.selfBuff = { atk: CRY_ATK, spd: CRY_SPD, left: 3 };
+  const _a = ball.st.atk * atkMulOf(ball), _c = ball.ch;
+  const es0 = aliveEnemies().slice();
+  const cx = W / 2, cy = H * 0.40, half = Math.ceil(CRY_N / 2);
+  const pts = [];
+  for (let i = 0; i < CRY_N; i++) {
+    const j = i >> 1;
+    if (i % 2 === 0 || !es0.length) {
+      const r = 70 + 300 * Math.sqrt((j + 0.5) / half), a = j * 2.39996 + 0.4;
+      pts.push([clamp(cx + Math.cos(a) * r, 34, W - 34), clamp(cy + Math.sin(a) * r * 1.15, 44, H - 70)]);
+    } else {
+      const o = es0[j % es0.length], a = i * 1.7 + j;
+      pts.push([clamp(o.x + Math.cos(a) * (o.r + 46), 34, W - 34), clamp(o.y + Math.sin(a) * (o.r + 46), 44, H - 70)]);
+    }
+  }
+  B.pops.push({ x: ball.x, y: ball.y - ball.r - 24, t: 0, txt: spec.nm + "!!（結晶 " + CRY_N + "）", c: spec.c2, small: 0 });
+  B.effects.push({ type: "skydim", t: 0, dur: CRY_GAP * CRY_N + 90, a: 0.5, c: spec.dim });
+  B.effects.push({ type: "personacrit", x: ball.x, y: ball.y, t: 0, dur: 32, c: spec.c });
+  B.effects.push({ type: "flashfx", t: 0, dur: 10 });
+  const cnt = {};
+  const tShatter = CRY_N * CRY_GAP + 16, tFin = tShatter + 22;
+  B.effects.push({ type: "fxctl", t: 0, dur: tFin + 40, k: 0, done: 0, done2: 0,
+    tick(fx) {
+      while (fx.k < CRY_N && fx.t >= fx.k * CRY_GAP) {
+        const pt = pts[fx.k]; fx.k++;
+        B.effects.push({ type: "crystalfx", x: pt[0], y: pt[1], t: 0, dur: tShatter - fx.t + 4, s: 34, c: spec.c, c2: spec.c2 });
+        B.effects.push({ type: "ring", x: pt[0], y: pt[1], t: 0, dur: 16, r: CRY_R, c: spec.c });
+        withDmgSrc(ball, () => {
+          aliveEnemies().forEach((o) => {
+            if (Math.hypot(o.x - pt[0], o.y - pt[1]) > CRY_R + o.r) return;
+            if ((cnt[o.id] | 0) >= CRY_CAP) return;
+            cnt[o.id] = (cnt[o.id] | 0) + 1;
+            B.effects.push({ type: "linefx", x: pt[0], y: pt[1], x2: o.x, y2: o.y, t: 0, dur: 10, w: 4, c: spec.c2 });
+            dealDamage(o, _a * CRY_TICK * elemMultOf(_c, o.el), spec.c, false);
+          });
+        });
+        B.shake = Math.max(B.shake, 6); SFX.hit();
+      }
+      if (!fx.done && fx.t >= tShatter) {
+        fx.done = 1;
+        pts.forEach((pt) => B.effects.push({ type: "crystalfx", x: pt[0], y: pt[1], t: 0, dur: 26, s: 34, c: spec.c, c2: spec.c2, shatter: 1 }));
+        B.effects.push({ type: "flashfx", t: 0, dur: 16 });
+        withDmgSrc(ball, () => {
+          aliveEnemies().forEach((o) => {
+            const n = Math.max(1, Math.min(CRY_CAP, cnt[o.id] | 0));
+            dealDamage(o, _a * (CRY_BASE + CRY_PER * n) * elemMultOf(_c, o.el), spec.c2, true);
+            B.effects.push({ type: "boom", x: o.x, y: o.y, t: 0, dur: 32, r: o.r * 3.4, c: spec.c });
+            B.effects.push({ type: "personahit", x: o.x, y: o.y, t: 0, dur: 26, c: spec.c2, txt: "CRYSTAL ×" + n, big: 1 });
+            spawnSparks(o.x, o.y, "#ffffff", 22);
+          });
+        });
+        B.pops.push({ x: W / 2, y: H * 0.40, t: 0, txt: "CRYSTAL BREAK!!", c: spec.c2, small: 0 });
+        B.shake = Math.max(B.shake, 30); B.freeze = Math.max(B.freeze, 8); SFX.crit();
+      }
+      if (!fx.done2 && fx.t >= tFin) {
+        fx.done2 = 1;
+        for (let q = 0; q < 10; q++) {
+          const a = q * Math.PI / 5;
+          B.effects.push({ type: "linefx", x: W / 2, y: H * 0.45, x2: W / 2 + Math.cos(a) * W, y2: H * 0.45 + Math.sin(a) * W, t: -q, dur: 36, w: 10, c: q % 2 ? spec.c2 : spec.c });
+        }
+        B.effects.push({ type: "skydim", t: 0, dur: 40, a: 0.65, c: spec.dim });
+        B.effects.push({ type: "flashfx", t: 0, dur: 20 });
+        withDmgSrc(ball, () => {
+          aliveEnemies().forEach((o) => {
+            dealDamage(o, _a * spec.fin * elemMultOf(_c, o.el), spec.c2, true);
+            if (spec.fx === "defdown") o.defdown = { left: Math.max(KRH_DEFDOWN, (o.defdown && o.defdown.left) || 0) };
+            if (spec.fx === "delay" && o.hp > 0) delayEnemyTurn(o, HKR_DELAY);
+            if (spec.fx === "poison" && o.hp > 0) applyPoison(o);
+            B.effects.push({ type: "boom", x: o.x, y: o.y, t: 0, dur: 38, r: o.r * 4.2, c: spec.c });
+            spawnSparks(o.x, o.y, spec.c2, 26);
+          });
+        });
+        let extra = "";
+        if (spec.fx === "heal") {
+          const heal = Math.round(B.maxhp * MKT_HEAL);
+          B.hp = Math.min(B.maxhp, B.hp + heal); paintHp();
+          B.balls.forEach((b) => { b.barrier = (b.barrier || 0) + MKT_BARRIER; });
+          B.effects.push({ type: "healring", x: W / 2, y: H * 0.5, t: 0, dur: 40, c: "#7dffe0" });
+          extra = "・TEAM HEAL +" + fmt(heal) + "・バリア " + MKT_BARRIER;
+        } else if (spec.fx === "fb") {
+          B.balls.forEach((b) => { b.sc = Math.min(fbMax(b.st), (b.sc || 0) + MEI_FB); });
+          try { paintParty(); } catch (err) {}
+          extra = "・味方全員のFB +" + MEI_FB;
+        } else if (spec.fx === "defdown") extra = "・防御力ダウン " + KRH_DEFDOWN + "T";
+        else if (spec.fx === "delay") extra = "・敵の攻撃 +" + HKR_DELAY + "T";
+        else if (spec.fx === "poison") extra = "・敵全体 毒";
+        B.pops.push({ x: W / 2, y: H * 0.34, t: 0, txt: spec.nm + " FINALE!!（×" + spec.fin + extra + "）", c: spec.c2, small: 0 });
+        B.shake = Math.max(B.shake, 40); B.freeze = Math.max(B.freeze, 12); SFX.crit();
+      }
+    } });
+}
+/* ══════════════════════════════════════════════════════════════
    ★★ 2026-09-13 ダブルリード・エコー（極華祭 クミコ＆レイナのサブリンク）
    金（ユーフォニアム）と緋（トランペット）の音帯が十字に走り、交点で和音になる。
    ★ 威力は SUB_HIT.twinreed と必ずそろえること。
@@ -34384,6 +34839,13 @@ function fireSubFriend(owner, mover, atk) {
     /* ★★ 2026-09-13 ダブルリード・エコー（極華祭 クミコ＆レイナ）。
        ★ ここに分岐が無いと「持っているのに発動しないサブリンク」になる。 */
     fireTwinReed(owner, atk);
+    return;
+  }
+  if (kind === "prismrefract") {
+    /* ★★ 2026-09-23 プリズム・リフラクション（CRYSTAL ACADEMY FEST 5体の共通サブリンク）。
+       ★ ここに分岐が無いと「持っているのに発動しないサブリンク」になる。
+       ★ 威力は SUB_HIT.prismrefract と必ずそろえること。 */
+    firePrismRefract(owner, atk);
     return;
   }
   if (kind === "moonphase") {
@@ -36686,9 +37148,9 @@ async function shareClearParty(stageId, rec) {
     at: Date.now(),
     turns: rec.turns | 0,
     hp: rec.hp | 0, mh: rec.mh | 0, sec: rec.sec | 0,
-    ids: rec.members.map((m) => String(m.id || "")).filter(Boolean).slice(0, 4),
-    lv: rec.members.map((m) => m.lv | 0).slice(0, 4),
-    awk: rec.members.map((m) => m.awk | 0).slice(0, 4),
+    ids: rec.members.map((m) => String(m.id || "")).filter(Boolean).slice(0, TEAM_N),
+    lv: rec.members.map((m) => m.lv | 0).slice(0, TEAM_N),
+    awk: rec.members.map((m) => m.awk | 0).slice(0, TEAM_N),
     /* ★★ 2026-08-29 <b>使ったルーンと魂の紋章</b>も送る（ご指定）。
        同じキャラでも付けているルーンで手ざわりが変わるので、
        「どの4体で抜けたか」と同じくらい参考になる。
@@ -36696,8 +37158,8 @@ async function shareClearParty(stageId, rec) {
          Firebase は<b>空の配列を null として捨てる</b>ので、
          二重配列にすると「ルーンなしの人が1人いるだけで並びがずれる」。
        ★ 画像はこれまでどおり送らない（id だけ）。 */
-    fr: rec.members.slice(0, 4).map((m) => (m.fruits || []).filter(Boolean).join(",")),
-    em: rec.members.slice(0, 4).map((m) => (m.em || []).filter(Boolean).join(",")),
+    fr: rec.members.slice(0, TEAM_N).map((m) => (m.fruits || []).filter(Boolean).join(",")),
+    em: rec.members.slice(0, TEAM_N).map((m) => (m.em || []).filter(Boolean).join(",")),
   };
   if (body.ids.length !== 4) return;
   try {
@@ -36790,7 +37252,7 @@ function clearPartyUsableIds(rec) {
   /* マルチは自分が出したキャラを優先し、足りなければ他の人のキャラのうち所持しているものを足す */
   rec.members.filter((m) => m.me).forEach((m) => { if (DB.chars[m.id] && out.indexOf(m.id) < 0) out.push(m.id); });
   rec.members.filter((m) => !m.me).forEach((m) => { if (DB.chars[m.id] && out.indexOf(m.id) < 0) out.push(m.id); });
-  return out.slice(0, 4);
+  return out.slice(0, TEAM_N);
 }
 let lastClearStageId = null;
 function openLastClear(stageId) {
@@ -37007,8 +37469,8 @@ window.applySharedFixed = async (i) => {
     + `<div style="font-weight:900;color:#ffd257;line-height:1.7">${nm || "（入れかえはありません）"}</div>`,
     { icon: "🔁", title: "入れかえて挑戦する", ok: "この編成にする" })) return;
   const p = DB.party.slice();
-  fx.ids.forEach((id, k) => { if (k < 4 && id) p[k] = id; });
-  DB.party = p.slice(0, 4);
+  fx.ids.forEach((id, k) => { if (k < TEAM_N && id) p[k] = id; });
+  DB.party = p.slice(0, TEAM_N);
   DB.parties[DB.partyIdx] = DB.party;
   markPartyDirty();
   selSlot = 0; save(); SFX.win();
@@ -37025,8 +37487,8 @@ window.applySharedParty = async (i) => {
   const ids = r.ids.filter((id) => DB.chars[id]);
   if (!ids.length) return;
   const p = DB.party.slice();
-  ids.forEach((id, k) => { if (k < 4) p[k] = id; });
-  DB.party = p.slice(0, 4);
+  ids.forEach((id, k) => { if (k < TEAM_N) p[k] = id; });
+  DB.party = p.slice(0, TEAM_N);
   save();
   closeLastClear();
   goTab("vteam");
@@ -41223,6 +41685,46 @@ function drawEffect(fx) {
     ctx.beginPath(); ctx.arc(fx.x, fx.y, fx.r, 0, Math.PI * 2); ctx.fillStyle = hexA("#ffd257", 0.3); ctx.fill();
     ctx.strokeStyle = hexA("#ffe9a8", pulse); ctx.lineWidth = 2.5; ctx.stroke();
     ctx.font = "900 13px Orbitron"; ctx.textAlign = "center"; ctx.textBaseline = "middle"; ctx.fillStyle = "#fff7dd"; ctx.fillText("FB", fx.x, fx.y + 1); ctx.textAlign = "start"; ctx.textBaseline = "alphabetic";
+  } else if (fx.type === "crystalfx") {
+    /* ★★ 2026-09-23 CRYSTAL ACADEMY FEST の結晶（育つ → きらめく → 砕ける）。
+       fx.s＝大きさ・c＝色・c2＝芯の色・shatter＝砕ける演出。 */
+    const cs = fx.s || 30, cc = fx.c || "#9fe8ff", cc2 = fx.c2 || "#ffffff";
+    ctx.save(); ctx.translate(fx.x, fx.y);
+    if (fx.shatter) {
+      for (let k = 0; k < 8; k++) {
+        const a = k * Math.PI / 4 + 0.3, d = cs * (0.4 + p * 2.6);
+        ctx.save(); ctx.translate(Math.cos(a) * d, Math.sin(a) * d); ctx.rotate(a + p * 4);
+        ctx.globalAlpha = Math.max(0, 1 - p);
+        ctx.beginPath(); ctx.moveTo(0, -cs * 0.34); ctx.lineTo(cs * 0.14, 0); ctx.lineTo(0, cs * 0.34); ctx.lineTo(-cs * 0.14, 0); ctx.closePath();
+        ctx.fillStyle = k % 2 ? cc2 : cc; ctx.fill(); ctx.restore();
+      }
+      ctx.globalAlpha = Math.max(0, 1 - p);
+      ctx.beginPath(); ctx.arc(0, 0, cs * (0.6 + p * 1.8), 0, Math.PI * 2);
+      ctx.strokeStyle = hexA(cc2, 0.9 * (1 - p)); ctx.lineWidth = 4 * (1 - p) + 1; ctx.stroke();
+    } else {
+      const g = Math.min(1, Math.max(0, fx.t) / 8);
+      const fade = p > 0.85 ? Math.max(0, (1 - p) / 0.15) : 1;
+      const tw = 0.75 + 0.25 * Math.sin((B.tick + fx.x) * 0.25);
+      const hh = cs * g, ww = cs * 0.46 * g;
+      ctx.globalAlpha = fade;
+      const rg = ctx.createRadialGradient(0, 0, 0, 0, 0, cs * 1.4);
+      rg.addColorStop(0, hexA(cc, 0.45 * tw)); rg.addColorStop(1, hexA(cc, 0));
+      ctx.fillStyle = rg; ctx.beginPath(); ctx.arc(0, 0, cs * 1.4, 0, Math.PI * 2); ctx.fill();
+      if (hh > 0.5) {
+        ctx.beginPath();
+        ctx.moveTo(0, -hh); ctx.lineTo(ww, -hh * 0.45); ctx.lineTo(ww, hh * 0.45); ctx.lineTo(0, hh); ctx.lineTo(-ww, hh * 0.45); ctx.lineTo(-ww, -hh * 0.45); ctx.closePath();
+        const lg = ctx.createLinearGradient(-ww, -hh, ww, hh);
+        lg.addColorStop(0, hexA(cc2, 0.95)); lg.addColorStop(0.5, hexA(cc, 0.85)); lg.addColorStop(1, hexA(cc, 0.55));
+        ctx.fillStyle = lg; ctx.fill();
+        ctx.strokeStyle = "rgba(255,255,255,.9)"; ctx.lineWidth = 1.6; ctx.stroke();
+        ctx.beginPath(); ctx.moveTo(0, -hh); ctx.lineTo(0, hh);
+        ctx.moveTo(-ww, -hh * 0.45); ctx.lineTo(0, -hh * 0.1); ctx.lineTo(ww, -hh * 0.45);
+        ctx.strokeStyle = "rgba(255,255,255,.45)"; ctx.lineWidth = 1; ctx.stroke();
+        ctx.globalAlpha = fade * tw; ctx.fillStyle = "#ffffff";
+        ctx.beginPath(); ctx.arc(-ww * 0.35, -hh * 0.5, 2.2, 0, Math.PI * 2); ctx.fill();
+      }
+    }
+    ctx.restore(); ctx.globalAlpha = 1;
   } else if (fx.type === "pillar") {
     /* ディバインピラー／ミズキ演出: 頭上から落ちる光の柱 */
     const w = 46 * (1 - p * 0.4), a = p < 0.25 ? p / 0.25 : (1 - p) / 0.75;
@@ -41617,5 +42119,19 @@ window.addEventListener("xeva:change", () => { paintWallet(); });
 </script>
 <!-- XEVARION へもどる導線（同期を送り切ってから移動する） -->
 <script src="../xeva-back.js?v=9" data-mode="hook"></script>
+<script>
+/* ★★ 2026-09-23 編成の固定表示（.pedstick）を上のバーのすぐ下に貼る。#top の下端を測って --mbTopH へ */
+(function () {
+  function fit() {
+    var t = document.getElementById("top"); if (!t) return;
+    var r = t.getBoundingClientRect();
+    if (r.height > 0) document.documentElement.style.setProperty("--mbTopH", Math.round(r.bottom) + "px");
+  }
+  window.addEventListener("resize", fit); window.addEventListener("orientationchange", fit);
+  document.addEventListener("DOMContentLoaded", fit); window.addEventListener("load", fit);
+  try { new ResizeObserver(fit).observe(document.getElementById("top")); } catch (e) {}
+  setTimeout(fit, 600); setTimeout(fit, 2000);
+})();
+</script>
 </body>
 </html>

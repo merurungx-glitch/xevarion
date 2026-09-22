@@ -15,8 +15,8 @@
    <b>ふつうの &lt;script&gt;</b>（type="module" ではない）で読むこと。
    トップレベルの const/let はグローバルの字句環境に入るので、
    あとから読み込む MagiBurst 本体のスクリプトからそのまま見える。
-     MagiBurst : <script src="js/mb-core.js?v=128"></script>
-     gacha.html: <script src="MagiBurst/js/mb-core.js?v=128"></script>
+     MagiBurst : <script src="js/mb-core.js?v=129"></script>
+     gacha.html: <script src="MagiBurst/js/mb-core.js?v=129"></script>
 
    ── ホストが先に用意しておくもの ──
      window.MB_IMGD … 画像フォルダへの相対パス（MagiBurst は "../img/"、ポータルは "img/"）
@@ -227,11 +227,18 @@ const GRAV_FRICTION = 0.075;
 const SLOWWALL_MUL = 0.42;   // ふれた瞬間にスピードをこの倍率にする
 const SLOWWALL_FRICTION = 0.045;  // さらに、そのターンのあいだ摩擦をこのぶん強くする
 const PRAY_CHANCE = 0.30;    // 治癒の祈り: ボス戦のマップ開始時に30%でHP全回復
+const GODPRAY_CHANCE = 0.40; // ★★ 2026-09-23 神癒の祈り（治癒の祈りの上位互換）: 40%
+/* 祈りの確率（持っていなければ 0）。神癒の祈りを持っていればそちらを使う */
+function prayChanceOf(c) {
+  if (!c || typeof hasAbil !== "function") return 0;
+  if (hasAbil(c, "godpray")) return GODPRAY_CHANCE;
+  return hasAbil(c, "pray") ? PRAY_CHANCE : 0;
+}
 const AB_NM = {
   adw: "アンチダメージウォール", aw: "アンチワープ", ms: "マインスイーパー",
   ssboost: "FBブースト", regen: "リジェネ", barrier: "バリア", aura: "パワーオーラ",
   vital: "バイタルキラー", omni: "オムニアンチ", allkiller: "全属性キラー", drain: "ドレイン",
-  fsboost: "リンクブースト", allres: "全属性耐性", pray: "治癒の祈り", superaw: "超アンチワープ",
+  fsboost: "リンクブースト", allres: "全属性耐性", pray: "治癒の祈り", godpray: "神癒の祈り", superaw: "超アンチワープ",
   ablock: "アンチブロック", soul: "ソウルスティール", weakkiller: "弱点キラー",
   poisonkiller: "毒キラー", firstkiller: "ファーストキラー",
   poisonkillerM: "毒キラーM", firstkillerM: "ファーストキラーM",   /* 等級M＝倍率2倍 */
@@ -2231,7 +2238,8 @@ function abilDesc(a) {
        実装（memberCut）はずっと本人ぶんだけだったのに、説明文が（チーム全体）のままで
        「1体入れればチーム全員が軽減される」と読めていたので、表記をそろえた。 */
     case "allres": return "<b>このキャラ自身が</b>すべての属性から受けるダメージを" + Math.round(ALLRES_CUT * 100) + "%カットする<br><small>※ 軽減されるのは<b>このキャラが受けた攻撃だけ</b>です（チーム全体の被ダメージは減りません）</small>";
-    case "pray": return "ボスが出てくるマップの開始時、" + Math.round(PRAY_CHANCE * 100) + "%の確率でチームHPを全回復する";
+    case "godpray": return "ボスが出てくるマップの開始時、" + Math.round(GODPRAY_CHANCE * 100) + "%の確率でチームHPを全回復する（<b>治癒の祈りの上位互換</b>）。祈りを持つ味方が複数いるときは<b>編成の左から順に</b>それぞれの確率で抽選し、だれかが当たるか全員はずれるまで続ける";
+    case "pray": return "ボスが出てくるマップの開始時、" + Math.round(PRAY_CHANCE * 100) + "%の確率でチームHPを全回復する。祈りを持つ味方が複数いるときは<b>編成の左から順に</b>それぞれの確率で抽選し、だれかが当たるか全員はずれるまで続ける";
     case "superaw": return "ワープを無効化し、さらに画面上のワープ1つにつき攻撃・スピードが" + Math.round(SUPERAW_PER * 100) + "%アップする";
     case "ablock": return "ブロックをすり抜ける（反射しない）";
     case "soul": return "敵を倒すたびにチームHPを" + Math.round(SOUL_RATE * 100) + "%回復する";
@@ -4426,6 +4434,75 @@ const SHOTSK_AZUSA_ANG = 0.45;     //   扇の半角（ラジアン）
 const SHOTSK_AZUSA_FB = 1;         //   自分のフルバーストが進むターン
 
 /* ══════════════════════════════════════════════════════════════
+   ★★ 2026-09-23 CRYSTAL ACADEMY FEST（fes16）5体（No.257〜261）
+   ------------------------------------------------------------
+   ・性能はユーザーと相談して決定。
+   ・<b>オムニアンチ・クロススキルは持たない</b>。治癒の祈りの上位互換<b>神癒の祈り</b>（40%）を持つ。
+   ・アビリティ10＝アンチ3＋キラー2（天律族キラーEL＋1つずつ違うキラー）＋神癒の祈り
+     ＋全属性有利＋リンクブーストEL＋固有2（5体で組み合わせが1つもかぶらない）。
+   ・担当（有利属性のまま完全対応）は<b>最適性キャラがいちばん少なかった審判</b>：
+       クレハ（火）→ ⚖第十三（木 {ダメージウォール・地雷・ロックゾーン}）
+       ミコト（水）→ ⚖第六  （火 {減速壁・ブロック・断絶界}）
+       メイ（木）  → ⚖第七  （水 {重力バリア・ブロック・ロックゾーン}）
+       ヒカル（光）→ ⚖第十五（闇 {ダメージウォール・ワープ・減速壁}）
+       ミヅキ（闇）→ ⚖第四  （光 {重力バリア・減速壁・ロックゾーン}）
+   ・FB は5体とも新しい<b>結晶FB</b>（fxCrystalFB）。盤面に結晶が育ち、
+     <b>敵ごとに「近くに育った結晶の数」だけ砕けの締めが重くなる</b>。締めの効果だけキャラごとに違う。
+   ・リンクは5本とも新しい挙動、サブリンクは<b>プリズム・リフラクション</b>で統一（ご指定）。
+   ══════════════════════════════════════════════════════════════ */
+/* ── 結晶FB（5体共通の骨組み）── */
+const CRY_ATK = 3.40, CRY_SPD = 1.60;   // 自強化
+const CRY_N = 16;                        // 盤面に育つ結晶の数（半分は盤面の渦、半分は敵のそば）
+const CRY_R = 190;                       // 結晶が敵を「囲む」半径（＋敵の半径）
+const CRY_GAP = 5;                       // 結晶が1つ育つ間隔（フレーム）
+const CRY_TICK = 18.0;                   // 結晶が育つたび、囲んだ敵へ
+const CRY_CAP = 8;                       // 1体が数える結晶の上限
+const CRY_BASE = 360.0;                  // 砕けの締め（敵ごと）
+const CRY_PER = 62.0;                    // 近くの結晶1つにつきの上乗せ
+const CRY_CORE = CRY_TICK * CRY_CAP + CRY_BASE + CRY_PER * CRY_CAP;   // 1体あたりの最大（キャラ固有の締めの前まで）
+/* ── 締め（キャラごと）── */
+const KRH_FIN = 300.0, KRH_DEFDOWN = 4;                 // クレハ：紅晶の業火＋防御力ダウン
+const MKT_FIN = 250.0, MKT_HEAL = 0.35, MKT_BARRIER = 3600;   // ミコト：水晶の泉＋回復＋バリア
+const MEI_FIN = 260.0, MEI_FB = 2;                      // メイ：翠晶の芽吹き＋味方全員のFBを進める
+const HKR_FIN = 280.0, HKR_DELAY = 1;                   // ヒカル：光晶の審判＋敵全体の攻撃を遅らせる
+const MDK_FIN = 290.0;                                  // ミヅキ：闇晶の月蝕＋敵全体を毒
+const KRH_TOTAL = CRY_CORE + KRH_FIN;
+const MKT_TOTAL = CRY_CORE + MKT_FIN;
+const MEI_TOTAL = CRY_CORE + MEI_FIN;
+const HKR_TOTAL = CRY_CORE + HKR_FIN;
+const MDK_TOTAL = CRY_CORE + MDK_FIN;
+/* ── 共通サブリンク「プリズム・リフラクション」──
+   ★ 新しいのは<b>5色（火・水・木・光・闇）に分かれた光線</b>が敵ごとに届き、
+     <b>その敵に有利な色の光線だけが ×PRF_ADV</b> になること（どの属性の敵にも必ず1本は有利が通る）。 */
+const PRF_N = 5, PRF_PER = 2.40, PRF_ADV = 1.80, PRF_GAP = 4;
+const PRF_TOTAL4 = 4 * (PRF_PER * (PRF_N - 1) + PRF_PER * PRF_ADV);
+/* ── クレハ「クリムゾン・ジオード」──
+   ★ 新しいのは<b>ふれてきた味方がこのショットで壁に当たった回数</b>だけ、盤面の壁に紅い結晶が生えること。
+     結晶は4辺に等間隔で並び、1つずつ<b>全部の敵へ</b>火の結晶片を撃ちこむ。最後に全部が砕けて締め。 */
+const GEO_N0 = 3, GEO_WALL_MAX = 5, GEO_PER = 2.60, GEO_FIN = 9.20, GEO_GAP = 6;
+const GEO_TOTAL4 = 4 * ((GEO_N0 + GEO_WALL_MAX) * GEO_PER + GEO_FIN);
+/* ── ミコト「スイキョウ・リンネ」──
+   ★ 新しいのは<b>敵みんなの「重心」</b>に水鏡があらわれ、そこから輪が広がること。
+     <b>重心に近い敵ほど重い</b>（固まっている敵・1体だけの敵に強い）。 */
+const RIN_N = 5, RIN_PER = 2.40, RIN_FIN = 7.20, RIN_NEAR = 0.90, RIN_D = 520, RIN_GAP = 7;
+const RIN_TOTAL1 = (RIN_N * RIN_PER + RIN_FIN) * (1 + RIN_NEAR);
+/* ── メイ「エメラルド・グロウス」──
+   ★ 新しいのは<b>そのバトルで使うたびに育つ</b>こと（1回ごとに +GRW_STEP・最大 GRW_MAX 回ぶん）。 */
+const GRW_N = 4, GRW_PER = 2.60, GRW_FIN = 7.10, GRW_STEP = 0.10, GRW_MAX = 8, GRW_GAP = 6;
+const GRW_TOTAL4 = 4 * (GRW_N * GRW_PER + GRW_FIN);
+/* ── ヒカル「ルミナス・ライトハウス」──
+   ★ 新しいのは<b>灯台の光がぐるりと2周まわり、光が通った順に敵を照らす</b>こと。
+     2周めは太く重く、<b>最後に照らされた敵</b>にだけ締めの光柱。 */
+const LH_FRAMES = 36, LH_PER1 = 11.0, LH_PER2 = 16.0, LH_LAST = 12.0, LH_W1 = 30, LH_W2 = 56;
+const LH_TOTAL4 = 4 * (LH_PER1 + LH_PER2) + LH_LAST;
+/* ── ミヅキ「ミッドナイト・クォーツ」──
+   ★ 新しいのは<b>次の手番のはじめに爆ぜる</b>こと（時間差）。
+     いまは小さく刺して結晶を埋めこみ、<b>次にだれかが撃った瞬間</b>に全部が爆ぜる。
+     埋めた敵が先に倒れたら、<b>いちばん近い敵へ移って</b> ×MQ_JUMP で爆ぜる。 */
+const MQ_NOW = 6.0, MQ_BOOM = 23.5, MQ_JUMP = 1.30, MQ_STACK = 3;
+const MQ_TOTAL4 = 4 * (MQ_NOW + MQ_BOOM);
+
+/* ══════════════════════════════════════════════════════════════
    ★★ 2026-09-19g 極彩祭 <b>ココハ（火・反射）</b>（ご指定・性能はユーザーと相談して決定）
    ・全属性有利＋オムニアンチ＋アンチ断絶界 → ⚖ 第九・第十二・第十四（手薄な第十四を埋める）。治癒の祈りなし。
    ・キラー：ボスキラーEL＋パワーオーラEL。クロス「椿雨のクロス」（同じ属性の味方が1体以上）。
@@ -4624,6 +4701,14 @@ const SUBFS = {
     desc: "ふれた味方から、<b>金（ユーフォニアム）と緋（トランペット）の音帯</b>が十字に走る。"
       + "<br>2本が交わったところで<b>和音</b>になり、もう一度 敵全体へ響きます。"
       + "<br>短いぶん<b>撃つたびに必ず全員へ届く</b>ので、雑魚処理にも取りこぼしがありません" },
+  /* ══ ★★ 2026-09-23 CRYSTAL ACADEMY FEST 5体の<b>共通</b>サブリンク（ご指定: 統一する）══ */
+  prismrefract: { nm: "プリズム・リフラクション",
+    pow: "ふれた味方の結晶から<b>5色の光線</b>（火・水・木・光・闇）が敵ごとに走る（1本 攻撃力×" + PRF_PER
+      + "）／<b>その敵に有利な色の光線は ×" + PRF_ADV + "</b>／敵4体のとき 合計 攻撃力×" + PRF_TOTAL4.toFixed(1),
+    desc: "ふれた味方の前に<b>小さなプリズム</b>が生まれ、光を<b>5つの属性の色</b>に分ける。"
+      + "<br>これまでに無いのは<b>敵ごとに「有利な色の光線」だけが重くなる</b>こと——"
+      + "5色そろっているので、<b>どの属性の敵にも必ず1本は有利が通ります</b>（×" + PRF_ADV + "）。"
+      + "<br>CRYSTAL ACADEMY FEST（クレハ・ミコト・メイ・ヒカル・ミヅキ）の共通サブリンクです" },
   /* ══ ★★ 2026-09-13 SOFT NIGHT FEST 5体の<b>共通</b>サブリンク（ご指定: 統一する）══ */
   moonphase: { nm: "ムーンフェイズ・リング",
     pow: "月の満ち欠けのように輪が<b>細くなりながら</b>外へ広がる（" + MPHASE_N + "重・半径 "
@@ -5082,6 +5167,14 @@ const NEXUS = {
       + "<b>各WAVEの開始時にチームHPを8%回復</b>する"
       + "<br><small>※ 花宴祭だけの特別なネクサスです</small>",
     link: 1.50, atk: 1.20, boss: 1.15, waveHeal: 0.08 },
+  /* ══ ★★ 2026-09-23 CRYSTAL ACADEMY FEST のネクサス ══
+     上澄みのガチャキャラなので、リンク・攻撃・スピード・回復の4つをそろえた（花宴祭のひとつ下）。 */
+  crystalacad: { nm: "晶学・プリズムネクサス", c: "#7fe0ff",
+    desc: "<b>リンクスキル・サブリンク</b>のダメージが<b>45%</b>アップし、"
+      + "<b>味方全員の攻撃力</b>が<b>18%</b>アップ、さらに<b>味方全員のスピード</b>が<b>10%</b>アップ、"
+      + "<b>各WAVEの開始時にチームHPを6%回復</b>する"
+      + "<br><small>※ CRYSTAL ACADEMY FEST だけの特別なネクサスです</small>",
+    link: 1.45, atk: 1.18, spd: 1.10, waveHeal: 0.06 },
 };
 /* ネクサススキルのカテゴリ（絞り込み用）。 */
 const NEXUS_CAT = {
@@ -5098,6 +5191,8 @@ const NEXUS_CAT = {
   softnight: "atk",
   /* ★★ 2026-09-17d 花宴祭のネクサス（火力枠） */
   kaenbloom: "atk",
+  /* ★★ 2026-09-23 CRYSTAL ACADEMY FEST のネクサス（火力枠） */
+  crystalacad: "atk",
   gale: "tempo", ignition: "tempo", tempo: "tempo",
   bond: "support", scout: "support", charge: "support", demolish: "support",
   fortune: "reward", wisdom: "reward",
@@ -13862,6 +13957,167 @@ const CHARS = {
       + "雨は盤面にほぼ均等に降るので、<b>大きい敵（ボス）ほどたくさん浴びて重くなります</b>。"
       + "<br>" + AME_BLOOM + "粒以上浴びた敵には<b>紅い椿</b>が咲いて、もう一撃入ります。",
   },
+  /* ══ ★★ 2026-09-23 CRYSTAL ACADEMY FEST（No.257〜261）══ */
+  kureha: {
+    /* 火・貫通。紅晶地脈型。★ 検算: charAntiKeys("kureha") ⊇ counterKeysOf(JUDGE_STAGES[12]) かつ elemMultOf > 1。 */
+    id: "kureha", nm: "クレハ", img: "Kureha.webp", th: "t_Kureha.webp",
+    el: "fire", shot: "pierce", type: "紅晶地脈型",
+    gacha: true, fes: true, fesKey: "crystal", lux: true,
+    nexus: "crystalacad", star5: true,
+    hp: [1300, 8620], atk: [2360, 14920], spd: [364, 548],
+    abil: [{ t: "superadw" }, { t: "supermsEL" }, { t: "antilock" },
+           { t: "judgekillerEL" }, { t: "auraEL" },
+           { t: "godpray" }, { t: "elemadv" }, { t: "fsboostEL" },
+           { t: "atkchargeM" }, { t: "fsdouble" }],
+    subfs: "prismrefract",
+    ssName: "クリムゾン・クリスタリア", ssTurns: 27, ssKind: "kurehak",
+    ssPow: "自強化（攻撃×" + CRY_ATK + "・スピード×" + CRY_SPD + "）＋ 盤面に<b>結晶が " + CRY_N + "個育つ</b>（育つたび囲んだ敵へ 攻撃力×" + CRY_TICK + "・1体" + CRY_CAP + "回まで）"
+      + " ＋ <b>結晶が砕ける締め</b>（敵ごとに 攻撃力×" + CRY_BASE + " ＋ 近くの結晶1つにつき +" + CRY_PER + "・最大" + CRY_CAP + "つ）"
+      + " ＋ <b>紅晶の業火</b>（敵全体・攻撃力×" + KRH_FIN + "）＋ <b>敵全体の防御力ダウン " + KRH_DEFDOWN + "ターン</b>／合計 攻撃力×" + KRH_TOTAL.toFixed(1),
+    ssDesc: "盤面いっぱいに<b>結晶</b>が育っていく——半分は盤面の渦に、半分は敵のすぐそばに。"
+      + "<br>育つたびに囲んだ敵を削り、最後に<b>全部が同時に砕ける</b>。"
+      + "<b>近くに育った結晶が多い敵ほど、砕けの締めが重い</b>（最大" + CRY_CAP + "つぶん）。"
+      + "<br>大きな敵（ボス）ほど結晶に囲まれやすいので、<b>ボス戦でいちばん重くなる</b>フルバーストです。"
+      + "<br>クレハの締めは<b>紅晶の業火</b>——敵全体を焼き（攻撃力×" + KRH_FIN + "）、<b>防御力を" + KRH_DEFDOWN + "ターン</b>下げます。"
+      + "<br>アンチは<b>超アンチダメージウォール＋超マインスイーパーEL＋アンチロックゾーン</b>——"
+      + "この3つで<b>⚖第十三の審判</b>を<b>有利属性のまま</b>完全対応できる。",
+    fsName: "クリムゾン・ジオード", fsKind: "crimsongeode",
+    fsPow: "ふれてきた味方が<b>このショットで壁に当たった回数</b>だけ、盤面の壁に紅い結晶が生える（" + GEO_N0 + "＋壁の回数・最大" + (GEO_N0 + GEO_WALL_MAX) + "個）／"
+      + "結晶1つにつき<b>全部の敵へ</b>結晶片（攻撃力×" + GEO_PER + "）＋ 全部が砕ける締め（敵全体・攻撃力×" + GEO_FIN + "）／"
+      + "敵4体・結晶最大のとき 合計 攻撃力×" + GEO_TOTAL4.toFixed(1),
+    fsDesc: "ふれた味方のまわりではなく、<b>盤面の4辺の壁</b>に紅い結晶が生える。"
+      + "<br>これまでに無いのは<b>ふれてきた味方が壁で跳ねた回数</b>で結晶の数が決まること——"
+      + "壁を使って長く走ったショットほど結晶が増え、<b>1つ1つが全部の敵へ</b>結晶片を撃ちこむ。"
+      + "<br>最後に全部の結晶が砕けて、敵全体へもう一撃。",
+  },
+  mikoto: {
+    /* 水・反射。水鏡輪廻型。★ 検算: charAntiKeys("mikoto") ⊇ counterKeysOf(JUDGE_STAGES[5]) かつ elemMultOf > 1。 */
+    id: "mikoto", nm: "ミコト", img: "Mikoto.webp", th: "t_Mikoto.webp",
+    el: "water", shot: "bounce", type: "水鏡輪廻型",
+    gacha: true, fes: true, fesKey: "crystal", lux: true,
+    nexus: "crystalacad", star5: true,
+    hp: [1340, 8840], atk: [2320, 14720], spd: [360, 542],
+    abil: [{ t: "superaslow" }, { t: "ablock" }, { t: "award" },
+           { t: "judgekillerEL" }, { t: "sokojikaraEL" },
+           { t: "godpray" }, { t: "elemadv" }, { t: "fsboostEL" },
+           { t: "barrierEL" }, { t: "speedmode" }],
+    subfs: "prismrefract",
+    ssName: "アクア・クリスタリア", ssTurns: 27, ssKind: "mikotok",
+    ssPow: "自強化（攻撃×" + CRY_ATK + "・スピード×" + CRY_SPD + "）＋ 盤面に<b>結晶が " + CRY_N + "個育つ</b>（育つたび囲んだ敵へ 攻撃力×" + CRY_TICK + "・1体" + CRY_CAP + "回まで）"
+      + " ＋ <b>結晶が砕ける締め</b>（敵ごとに 攻撃力×" + CRY_BASE + " ＋ 近くの結晶1つにつき +" + CRY_PER + "・最大" + CRY_CAP + "つ）"
+      + " ＋ <b>水晶の泉</b>（敵全体・攻撃力×" + MKT_FIN + "）＋ <b>チームHPを" + Math.round(MKT_HEAL * 100) + "%回復</b>"
+      + " ＋ <b>味方全員に " + MKT_BARRIER + " のバリア</b>／合計 攻撃力×" + MKT_TOTAL.toFixed(1),
+    ssDesc: "盤面いっぱいに<b>結晶</b>が育っていく——半分は盤面の渦に、半分は敵のすぐそばに。"
+      + "<br>育つたびに囲んだ敵を削り、最後に<b>全部が同時に砕ける</b>。"
+      + "<b>近くに育った結晶が多い敵ほど、砕けの締めが重い</b>（最大" + CRY_CAP + "つぶん）。"
+      + "<br>大きな敵（ボス）ほど結晶に囲まれやすいので、<b>ボス戦でいちばん重くなる</b>フルバーストです。"
+      + "<br>ミコトの締めは<b>水晶の泉</b>——敵全体へ 攻撃力×" + MKT_FIN + "、<b>チームHPを" + Math.round(MKT_HEAL * 100) + "%</b>戻し、"
+      + "<b>味方全員に" + MKT_BARRIER + "のバリア</b>を張ります。"
+      + "<br>アンチは<b>超アンチ減速壁＋アンチブロック＋アンチ断絶界</b>——"
+      + "この3つで<b>⚖第六の審判</b>を<b>有利属性のまま</b>完全対応できる。",
+    fsName: "スイキョウ・リンネ", fsKind: "suikyourinne",
+    fsPow: "<b>敵みんなの重心</b>に水鏡があらわれ、輪が " + RIN_N + "重に広がる（1重 攻撃力×" + RIN_PER + "・敵全体）＋ 水鏡が割れる締め（敵全体・攻撃力×" + RIN_FIN + "）／"
+      + "<b>重心に近い敵ほど重い</b>（最大 ×" + (1 + RIN_NEAR).toFixed(2) + "）／単体のとき 合計 攻撃力×" + RIN_TOTAL1.toFixed(1),
+    fsDesc: "敵のいる場所の<b>ちょうど真ん中（重心）</b>に、静かな水鏡があらわれる。"
+      + "<br>これまでに無いのは<b>「敵みんなの真ん中」から撃つ</b>こと——"
+      + "固まっている敵ほど、そして<b>1体だけの敵（ボス）ほど</b>重心に近いので重くなります（最大 ×" + (1 + RIN_NEAR).toFixed(2) + "）。"
+      + "<br>味方がどこにいても威力が変わらない、<b>置き場所を選ばないリンク</b>です。",
+  },
+  mei: {
+    /* 木・反射。翠晶萌芽型。★ 検算: charAntiKeys("mei") ⊇ counterKeysOf(JUDGE_STAGES[6]) かつ elemMultOf > 1。 */
+    id: "mei", nm: "メイ", img: "Mei.webp", th: "t_Mei.webp",
+    el: "wood", shot: "bounce", type: "翠晶萌芽型",
+    gacha: true, fes: true, fesKey: "crystal", lux: true,
+    nexus: "crystalacad", star5: true,
+    hp: [1320, 8740], atk: [2340, 14800], spd: [362, 546],
+    abil: [{ t: "sgrav" }, { t: "ablock" }, { t: "antilock" },
+           { t: "judgekillerEL" }, { t: "vitalEL" },
+           { t: "godpray" }, { t: "elemadv" }, { t: "fsboostEL" },
+           { t: "fbtouch" }, { t: "dashL" }],
+    subfs: "prismrefract",
+    ssName: "エメラルド・クリスタリア", ssTurns: 26, ssKind: "meik",
+    ssPow: "自強化（攻撃×" + CRY_ATK + "・スピード×" + CRY_SPD + "）＋ 盤面に<b>結晶が " + CRY_N + "個育つ</b>（育つたび囲んだ敵へ 攻撃力×" + CRY_TICK + "・1体" + CRY_CAP + "回まで）"
+      + " ＋ <b>結晶が砕ける締め</b>（敵ごとに 攻撃力×" + CRY_BASE + " ＋ 近くの結晶1つにつき +" + CRY_PER + "・最大" + CRY_CAP + "つ）"
+      + " ＋ <b>翠晶の芽吹き</b>（敵全体・攻撃力×" + MEI_FIN + "）＋ <b>味方全員のフルバーストを" + MEI_FB + "進める</b>／合計 攻撃力×" + MEI_TOTAL.toFixed(1),
+    ssDesc: "盤面いっぱいに<b>結晶</b>が育っていく——半分は盤面の渦に、半分は敵のすぐそばに。"
+      + "<br>育つたびに囲んだ敵を削り、最後に<b>全部が同時に砕ける</b>。"
+      + "<b>近くに育った結晶が多い敵ほど、砕けの締めが重い</b>（最大" + CRY_CAP + "つぶん）。"
+      + "<br>大きな敵（ボス）ほど結晶に囲まれやすいので、<b>ボス戦でいちばん重くなる</b>フルバーストです。"
+      + "<br>メイの締めは<b>翠晶の芽吹き</b>——敵全体へ 攻撃力×" + MEI_FIN + "、<b>味方全員のフルバーストを" + MEI_FB + "ターン</b>進めます。"
+      + "<br>アンチは<b>超アンチ重力バリア＋アンチブロック＋アンチロックゾーン</b>——"
+      + "この3つで<b>⚖第七の審判</b>を<b>有利属性のまま</b>完全対応できる。",
+    fsName: "エメラルド・グロウス", fsKind: "emeraldgrowth",
+    fsPow: "翠の蔓が全部の敵へ " + GRW_N + "回のびる（1回 攻撃力×" + GRW_PER + "）＋ 結晶の花が咲く締め（敵全体・攻撃力×" + GRW_FIN + "）／"
+      + "<b>そのバトルで使うたびに育つ</b>（1回ごとに +" + Math.round(GRW_STEP * 100) + "%・最大 +" + Math.round(GRW_STEP * GRW_MAX * 100) + "%）／"
+      + "敵4体のとき 合計 攻撃力×" + GRW_TOTAL4.toFixed(1) + " → 育ちきると ×" + (GRW_TOTAL4 * (1 + GRW_STEP * GRW_MAX)).toFixed(1),
+    fsDesc: "ふれた味方の足もとから、翠の結晶をつけた<b>蔓</b>が全部の敵へのびる。"
+      + "<br>これまでに無いのは<b>そのバトルで使うたびに育つ</b>こと——"
+      + "1回ごとに +" + Math.round(GRW_STEP * 100) + "%ずつ重くなり、" + GRW_MAX + "回使うと <b>+" + Math.round(GRW_STEP * GRW_MAX * 100) + "%</b>。"
+      + "<br>長いクエストの<b>終盤ほど頼りになる</b>リンクです。",
+  },
+  hikaru: {
+    /* 光・貫通。光晶灯台型。★ 検算: charAntiKeys("hikaru") ⊇ counterKeysOf(JUDGE_STAGES[14]) かつ elemMultOf > 1。 */
+    id: "hikaru", nm: "ヒカル", img: "Hikaru.webp", th: "t_Hikaru.webp",
+    el: "light", shot: "pierce", type: "光晶灯台型",
+    gacha: true, fes: true, fesKey: "crystal", lux: true,
+    nexus: "crystalacad", star5: true,
+    hp: [1296, 8600], atk: [2372, 14980], spd: [366, 552],
+    abil: [{ t: "superadw" }, { t: "superaw" }, { t: "superaslow" },
+           { t: "judgekillerEL" }, { t: "bosskillerEL" },
+           { t: "godpray" }, { t: "elemadv" }, { t: "fsboostEL" },
+           { t: "sscharge" }, { t: "fsdouble" }],
+    subfs: "prismrefract",
+    ssName: "ルミナス・クリスタリア", ssTurns: 28, ssKind: "hikaruk",
+    ssPow: "自強化（攻撃×" + CRY_ATK + "・スピード×" + CRY_SPD + "）＋ 盤面に<b>結晶が " + CRY_N + "個育つ</b>（育つたび囲んだ敵へ 攻撃力×" + CRY_TICK + "・1体" + CRY_CAP + "回まで）"
+      + " ＋ <b>結晶が砕ける締め</b>（敵ごとに 攻撃力×" + CRY_BASE + " ＋ 近くの結晶1つにつき +" + CRY_PER + "・最大" + CRY_CAP + "つ）"
+      + " ＋ <b>光晶の審判</b>（敵全体・攻撃力×" + HKR_FIN + "）＋ <b>敵全体の攻撃を" + HKR_DELAY + "ターン遅らせる</b>／合計 攻撃力×" + HKR_TOTAL.toFixed(1),
+    ssDesc: "盤面いっぱいに<b>結晶</b>が育っていく——半分は盤面の渦に、半分は敵のすぐそばに。"
+      + "<br>育つたびに囲んだ敵を削り、最後に<b>全部が同時に砕ける</b>。"
+      + "<b>近くに育った結晶が多い敵ほど、砕けの締めが重い</b>（最大" + CRY_CAP + "つぶん）。"
+      + "<br>大きな敵（ボス）ほど結晶に囲まれやすいので、<b>ボス戦でいちばん重くなる</b>フルバーストです。"
+      + "<br>ヒカルの締めは<b>光晶の審判</b>——敵全体へ 攻撃力×" + HKR_FIN + "、<b>敵全体の攻撃を" + HKR_DELAY + "ターン</b>遅らせます。"
+      + "<br>アンチは<b>超アンチダメージウォール＋超アンチワープ＋超アンチ減速壁</b>——"
+      + "この3つで<b>⚖第十五の審判</b>を<b>有利属性のまま</b>完全対応できる。",
+    fsName: "ルミナス・ライトハウス", fsKind: "lighthouse",
+    fsPow: "ふれた味方が<b>灯台</b>になり、光が<b>2周</b>まわる（1周め 攻撃力×" + LH_PER1 + "・2周め ×" + LH_PER2 + "／光が通った順に敵を照らす）＋ "
+      + "<b>最後に照らされた敵</b>へ光柱（攻撃力×" + LH_LAST + "）／敵4体のとき 合計 攻撃力×" + LH_TOTAL4.toFixed(1),
+    fsDesc: "ふれた味方が<b>灯台</b>になり、まっすぐな光が<b>ぐるりと2周</b>まわる。"
+      + "<br>これまでに無いのは<b>光が通った順番</b>で敵を照らすこと——盤面のどこにいても1周に1回は必ず当たり、"
+      + "<b>2周めは太く重く</b>なります。"
+      + "<br>そして<b>いちばん最後に照らされた敵</b>にだけ、光柱の締めが落ちます。",
+  },
+  miduki: {
+    /* 闇・貫通。夜晶時限型。★ 検算: charAntiKeys("miduki") ⊇ counterKeysOf(JUDGE_STAGES[3]) かつ elemMultOf > 1。 */
+    id: "miduki", nm: "ミヅキ", img: "Miduki.webp", th: "t_Miduki.webp",
+    el: "dark", shot: "pierce", type: "夜晶時限型",
+    gacha: true, fes: true, fesKey: "crystal", lux: true,
+    nexus: "crystalacad", star5: true,
+    hp: [1310, 8660], atk: [2366, 14950], spd: [365, 550],
+    abil: [{ t: "sgrav" }, { t: "superaslow" }, { t: "antilock" },
+           { t: "judgekillerEL" }, { t: "firstkillerEL" },
+           { t: "godpray" }, { t: "elemadv" }, { t: "fsboostEL" },
+           { t: "atkchargeM" }, { t: "barrierEL" }],
+    subfs: "prismrefract",
+    ssName: "ミッドナイト・クリスタリア", ssTurns: 27, ssKind: "midukik",
+    ssPow: "自強化（攻撃×" + CRY_ATK + "・スピード×" + CRY_SPD + "）＋ 盤面に<b>結晶が " + CRY_N + "個育つ</b>（育つたび囲んだ敵へ 攻撃力×" + CRY_TICK + "・1体" + CRY_CAP + "回まで）"
+      + " ＋ <b>結晶が砕ける締め</b>（敵ごとに 攻撃力×" + CRY_BASE + " ＋ 近くの結晶1つにつき +" + CRY_PER + "・最大" + CRY_CAP + "つ）"
+      + " ＋ <b>闇晶の月蝕</b>（敵全体・攻撃力×" + MDK_FIN + "）＋ <b>敵全体を毒状態</b>／合計 攻撃力×" + MDK_TOTAL.toFixed(1),
+    ssDesc: "盤面いっぱいに<b>結晶</b>が育っていく——半分は盤面の渦に、半分は敵のすぐそばに。"
+      + "<br>育つたびに囲んだ敵を削り、最後に<b>全部が同時に砕ける</b>。"
+      + "<b>近くに育った結晶が多い敵ほど、砕けの締めが重い</b>（最大" + CRY_CAP + "つぶん）。"
+      + "<br>大きな敵（ボス）ほど結晶に囲まれやすいので、<b>ボス戦でいちばん重くなる</b>フルバーストです。"
+      + "<br>ミヅキの締めは<b>闇晶の月蝕</b>——敵全体へ 攻撃力×" + MDK_FIN + "、<b>敵全体を毒</b>にします。"
+      + "<br>アンチは<b>超アンチ重力バリア＋超アンチ減速壁＋アンチロックゾーン</b>——"
+      + "この3つで<b>⚖第四の審判</b>を<b>有利属性のまま</b>完全対応できる。",
+    fsName: "ミッドナイト・クォーツ", fsKind: "midquartz",
+    fsPow: "全部の敵に<b>闇の結晶を埋めこむ</b>（いま 攻撃力×" + MQ_NOW + "）→ <b>次にだれかが撃った瞬間に爆ぜる</b>（攻撃力×" + MQ_BOOM + "）／"
+      + "埋めた敵が先に倒れたら<b>いちばん近い敵へ移って ×" + MQ_JUMP + "</b>／同じ手番で重ねると最大" + MQ_STACK + "つぶん／"
+      + "敵4体のとき 合計 攻撃力×" + MQ_TOTAL4.toFixed(1),
+    fsDesc: "ふれた味方から、全部の敵へ<b>小さな闇の結晶</b>が突き刺さる。"
+      + "<br>これまでに無いのは<b>その場では爆ぜず、次の手番のはじめに爆ぜる</b>こと（時間差）——"
+      + "次にだれかが撃った瞬間、埋めた結晶がいっせいに砕けて大きく入ります。"
+      + "<br>先に倒した敵の結晶は<b>いちばん近い敵へ移って</b>、さらに重く爆ぜます（×" + MQ_JUMP + "）。",
+  },
   /* ══ ★★ 2026-09-19e 花宴祭 <b>ヒメリ</b>（光・反射・No.253）══ */
   himeri: {
     id: "himeri", nm: "ヒメリ", img: "Himeri.webp", th: "t_Himeri.webp",
@@ -14495,6 +14751,8 @@ const CHAR_IDS = [
   "himeri", "honoka", "azusa",                         /* No.253〜255 */
   /* ══ ★★ 2026-09-19g 極彩祭 ココハ（No.256）══ */
   "kokoha",                                            /* No.256 */
+  /* ══ ★★ 2026-09-23 CRYSTAL ACADEMY FEST（No.257〜261）══ */
+  "kureha", "mikoto", "mei", "hikaru", "miduki",       /* No.257〜261 */
 ];
 /* id → キャラクター番号（1始まり）。図鑑・詳細・ガチャ結果に「No.XX」として出す */
 const CHAR_NO = {};
@@ -14638,6 +14896,12 @@ const CHAR_TYPE = {
   honoka:   "striker",  /* ホノカ：乱打FB＋全属性有利＋ファーストキラーEL＋ボスキラーEL */
   azusa:    "striker",  /* アズサ：史上最大の乱打FB＋天律族キラーEL＋パワーオーラEL */
   kokoha:   "striker",  /* ココハ：史上最大の乱打FB＋全属性有利＋ボスキラーEL＋パワーオーラEL */
+  /* ── ★★ 2026-09-23 CRYSTAL ACADEMY FEST（結晶FB＋全属性有利＋神癒の祈り）── */
+  kureha:   "striker",  /* クレハ：結晶FB＋天律族キラーEL＋パワーオーラEL＋壁で増える結晶のリンク */
+  mikoto:   "support",  /* ミコト：結晶FB（回復＋バリア）＋天律族キラーEL＋底力EL */
+  mei:      "cannon",   /* メイ：結晶FB（味方のFBを進める）＋使うほど育つリンク */
+  hikaru:   "striker",  /* ヒカル：結晶FB＋天律族キラーEL＋ボスキラーEL＋灯台のリンク */
+  miduki:   "cannon",   /* ミヅキ：結晶FB（毒）＋時間差で爆ぜるリンク */
   /* ── ★★ 2026-09-17 RISING STAR FEST 第4弾 ── */
   kuon:     "cannon",   /* クオン：リンクブーストEL＋盤面の4辺から撃つリンク */
   asahi:    "striker",  /* アサヒ：ソウルスティールEL＋防御力ダウンの総攻撃 */
@@ -17223,6 +17487,76 @@ function drawFsGlyph(kind, c, g) {
       ctx.lineWidth = 2; break;
     }
 
+    /* ══ ★★ 2026-09-23 CRYSTAL ACADEMY FEST の新リンク5本＋共通サブリンク1本 ══
+       ★ ここに case が無い fsKind は<b>アイコンが真っ黒</b>になる。
+         サブリンク（prismrefract）は SUB_GLYPH_FALLBACK に入れてあるので、絵はここ1つでよい。 */
+    case "crimsongeode": {   /* クリムゾン・ジオード（壁＝四角の枠に生える結晶と、内へ飛ぶ結晶片） */
+      ctx.lineWidth = 1.2; ctx.globalAlpha = .55;
+      ctx.strokeRect(-10, -10, 20, 20);
+      ctx.globalAlpha = 1; ctx.lineWidth = 1.5;
+      [[-10, -3], [3, -10], [10, 4], [-4, 10]].forEach(([x, y]) => {
+        ctx.beginPath(); ctx.moveTo(x, y - 3.2); ctx.lineTo(x + 2.2, y); ctx.lineTo(x, y + 3.2); ctx.lineTo(x - 2.2, y); ctx.closePath(); ctx.fill();
+      });
+      ctx.lineWidth = 1.3;
+      [[-7, -3, -1.5, -0.5], [3, -7, 0.5, -1.5], [7, 4, 1.5, 0.8], [-4, 7, -0.6, 1.6]].forEach(([x, y, x2, y2]) => {
+        ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(x2, y2); ctx.stroke();
+      });
+      ctx.beginPath(); ctx.arc(0, 0, 1.8, 0, Math.PI * 2); ctx.fill();
+      ctx.lineWidth = 2; break;
+    }
+    case "suikyourinne": {   /* スイキョウ・リンネ（敵3つの真ん中＝重心に水鏡、そこから輪） */
+      const e3 = [[-7.6, -6.0], [7.8, -4.4], [0.4, 8.2]];
+      ctx.lineWidth = 1.0; ctx.globalAlpha = .5;
+      e3.forEach(([x, y]) => { ctx.beginPath(); ctx.moveTo(x, y); ctx.lineTo(0.2, -0.7); ctx.stroke(); });
+      ctx.globalAlpha = 1; ctx.lineWidth = 1.4;
+      e3.forEach(([x, y]) => { ctx.beginPath(); ctx.arc(x, y, 2.0, 0, Math.PI * 2); ctx.stroke(); });
+      [3.2, 6.2].forEach((r, i) => { ctx.globalAlpha = i ? .5 : .9; ctx.beginPath(); ctx.ellipse(0.2, -0.7, r, r * 0.8, 0, 0, Math.PI * 2); ctx.stroke(); });
+      ctx.globalAlpha = 1;
+      ctx.beginPath(); ctx.moveTo(0.2, -2.6); ctx.lineTo(1.4, -0.7); ctx.lineTo(0.2, 1.2); ctx.lineTo(-1.0, -0.7); ctx.closePath(); ctx.fill();
+      ctx.lineWidth = 2; break;
+    }
+    case "emeraldgrowth": {  /* エメラルド・グロウス（育つ芽と、のびていく3本の棒＝使うほど育つ） */
+      ctx.lineWidth = 1.6;
+      ctx.beginPath(); ctx.moveTo(-3, 10); ctx.quadraticCurveTo(-4, 2, 0, -3); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-1.6, 3); ctx.quadraticCurveTo(-8, 1, -8.4, -4); ctx.quadraticCurveTo(-3.6, -2.2, -1.6, 3); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(0, -3); ctx.lineTo(1.8, -6.6); ctx.lineTo(0, -10); ctx.lineTo(-1.8, -6.6); ctx.closePath(); ctx.fill();
+      ctx.lineWidth = 2.2; ctx.lineCap = "butt";
+      [[4.4, 3.2], [7.0, 6.2], [9.6, 9.6]].forEach(([x, h]) => {
+        ctx.beginPath(); ctx.moveTo(x, 10); ctx.lineTo(x, 10 - h); ctx.stroke();
+      });
+      ctx.lineCap = "round"; ctx.lineWidth = 2; break;
+    }
+    case "lighthouse": {     /* ルミナス・ライトハウス（中心の灯と、まわる光の扇・回転の矢印） */
+      ctx.globalAlpha = .45;
+      ctx.beginPath(); ctx.moveTo(0, 0); ctx.arc(0, 0, 10.4, -Math.PI * 0.62, -Math.PI * 0.38); ctx.closePath(); ctx.fill();
+      ctx.globalAlpha = 1; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.arc(0, 0, 7.6, -Math.PI * 0.2, Math.PI * 0.95); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-8.8, 1.2); ctx.lineTo(-7.4, 4.0); ctx.lineTo(-4.6, 2.6); ctx.stroke();
+      ctx.beginPath(); ctx.arc(0, 0, 2.6, 0, Math.PI * 2); ctx.fill();
+      ctx.lineWidth = 2; break;
+    }
+    case "midquartz": {      /* ミッドナイト・クォーツ（ひし形の結晶と、時間差を表す時計の針） */
+      ctx.lineWidth = 1.6;
+      ctx.beginPath(); ctx.moveTo(-3.2, -9.4); ctx.lineTo(1.6, -4.6); ctx.lineTo(-3.2, 0.2); ctx.lineTo(-8.0, -4.6); ctx.closePath(); ctx.stroke();
+      ctx.beginPath(); ctx.moveTo(-3.2, -9.4); ctx.lineTo(-3.2, 0.2); ctx.stroke();
+      ctx.lineWidth = 1.4;
+      ctx.beginPath(); ctx.arc(4.4, 4.4, 5.2, 0, Math.PI * 2); ctx.stroke();
+      ctx.lineWidth = 1.6;
+      ctx.beginPath(); ctx.moveTo(4.4, 4.4); ctx.lineTo(4.4, 1.2); ctx.moveTo(4.4, 4.4); ctx.lineTo(6.8, 5.6); ctx.stroke();
+      ctx.lineWidth = 2; break;
+    }
+    case "prismrefract": {   /* プリズム・リフラクション（三角のプリズムから5本に分かれる光） */
+      ctx.lineWidth = 1.6;
+      ctx.beginPath(); ctx.moveTo(-6.6, 5.4); ctx.lineTo(-1.4, -6.0); ctx.lineTo(3.8, 5.4); ctx.closePath(); ctx.stroke();
+      ctx.lineWidth = 1.2;
+      ctx.beginPath(); ctx.moveTo(-10.4, -1.0); ctx.lineTo(-3.8, -0.6); ctx.stroke();
+      [-0.62, -0.31, 0, 0.31, 0.62].forEach((a, i) => {
+        ctx.globalAlpha = 0.5 + i * 0.1;
+        ctx.beginPath(); ctx.moveTo(1.4, -0.2); ctx.lineTo(1.4 + Math.cos(a) * 9.2, -0.2 + Math.sin(a) * 9.2); ctx.stroke();
+      });
+      ctx.globalAlpha = 1; ctx.lineWidth = 2; break;
+    }
+
     case "higanlily": {      /* マンジュシャゲ・ヒャッカ（咲くほど線が増える） */
       const fp = [[0, -9.0], [8.2, -4.2], [8.2, 4.2], [0, 9.0], [-8.2, 4.2], [-8.2, -4.2]];
       ctx.lineWidth = 1.05; ctx.globalAlpha = .70;
@@ -17881,6 +18215,8 @@ const SUB_GLYPH_FALLBACK = new Set([
   "moonphase", "twinreed",
   /* ★★ 2026-09-17d 花宴祭 アカツキのサブリンク */
   "benilantern",
+  /* ★★ 2026-09-23 CRYSTAL ACADEMY FEST の共通サブリンク */
+  "prismrefract",
   /* ★★ 2026-09-13 GRAND DEBUT Ver.8.0 の共通サブリンク */
   "fanletter",
   "wallcircuit",     /* ウォールサーキットリング（カホのサブリンク。これが無くて絵が真っ白だった） */
@@ -23559,6 +23895,54 @@ FESTS.fes15 = {
       + "<br>★ " + fesPeriodText("fes15") + "。";
   },
 };
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-09-23 CRYSTAL ACADEMY FEST（fes16）
+   ・ふつうの<b>期限つきフェスガチャ</b>（SOFT NIGHT FEST と同じ作り）。1体 1.8%・🎫フェス券が使える。
+     since ＋ FES_DAYS（20日）で配信終了し、そのあと Festival Archive GACHA へ封入される。
+   ・ガチャ一覧では<b>花宴祭のすぐ下</b>（いちばん新しいフェスなので上のほうに）。<b>crystal</b> の印で位置を決める。
+   ══════════════════════════════════════════════════════════════ */
+FESTS.fes16 = {
+  key: "fes16", sfx: "16", nm: "CRYSTAL ACADEMY FEST", tab: "Crystal<br>Academy Fest",
+  banner: "../img/bn_fes16_s.webp", c: "#5fd4ff", leadCls: "star",
+  crystal: true,
+  since: "2026-09-23",
+  pickEach: PICK_FES,
+  chars: ["kureha", "mikoto", "mei", "hikaru", "miduki"],
+  newChars: ["kureha", "mikoto", "mei", "hikaru", "miduki"],
+  newSince: "2026-09-23",
+  itemTable: D_ITEM_TABLE,
+  get lead() {
+    const rn = ratePct(pickRateOf("fes16", this.chars[0]));
+    return "CRYSTAL ACADEMY FEST の<b>新5体</b>（各" + rn + "）に加えて、<b>" + PREMIUM_NM + "のSSRも排出</b>（SSR合計 " + ratePct(SSR_TOTAL) + "）";
+  },
+  get sub() {
+    const rn = ratePct(pickRateOf("fes16", this.chars[0]));
+    return "CRYSTAL ACADEMY FEST の限定SSR <b>5体</b>（各" + rn + "）／<b>残りは " + PREMIUM_NM + " のSSRが等確率</b>"
+      + "。" + fesPeriodText("fes16") + "（🎫フェスチケットが使えます）";
+  },
+  get note() {
+    return "<b>★★ 2026-09-23 CRYSTAL ACADEMY FEST</b>：<b>クレハ（火）・ミコト（水）・メイ（木）・ヒカル（光）・ミヅキ（闇）</b>の5体。"
+      + "<br>★ 排出は<b>1体あたり " + ratePct(pickRateOf("fes16", "kureha")) + "</b>。"
+      + "<br>★ このフェスは " + fesPeriodText("fes16") + "。"
+      + fesArchiveText("fes16") + "、この5体は <b>" + ARCHIVE_NM + "</b> にも封入されます。"
+      + "<br>5体とも<b>⚖ 天界の審判</b>を有利属性のまま完全対応します——"
+      + "<b>クレハ＝第十三／ミコト＝第六／メイ＝第七／ヒカル＝第十五／ミヅキ＝第四の審判</b>"
+      + "（いま最適性のキャラがいちばん少ない5つです）。"
+      + "<br>★ オムニアンチ・クロススキルは<b>持たず</b>、治癒の祈りの上位互換<b>神癒の祈り</b>（" + Math.round(GODPRAY_CHANCE * 100) + "%）を持ちます。"
+      + "アビリティは<b>10個</b>（アンチ3・キラー2・神癒の祈り・全属性有利・リンクブーストEL・固有2）。"
+      + "<br>★ フルバーストは5体とも新しい<b>結晶FB</b>——盤面に結晶が育ち、<b>近くに育った結晶が多い敵ほど</b>砕けの締めが重くなります。"
+      + "<br>★ リンクスキルは5本とも<b>新しい挙動</b>です——"
+      + "<b>クリムゾン・ジオード</b>（壁で跳ねた回数だけ結晶が生える）／"
+      + "<b>スイキョウ・リンネ</b>（敵の重心から輪が広がる）／"
+      + "<b>エメラルド・グロウス</b>（使うたびに育つ）／"
+      + "<b>ルミナス・ライトハウス</b>（灯台の光が2周まわる）／"
+      + "<b>ミッドナイト・クォーツ</b>（次の手番のはじめに爆ぜる）。"
+      + "<br>★ 共通サブリンクは<b>プリズム・リフラクション</b>（5色の光線・有利な色だけ重い）。"
+      + "<br>★ 5体とも<b>ネクサスは晶学・プリズムネクサス</b>"
+      + "（リンク +45% ／ 攻撃力 +18% ／ スピード +10% ／ 各WAVE開始時にチームHP +6%）。";
+  },
+};
+
 
 /* ══════════════════════════════════════════════════════════════
    ★★ 2026-08-28 Festival Archive GACHA（archive）
@@ -23687,7 +24071,9 @@ const FESKEY_MAP = { luminous: "fes2", phantom: "fes3", aoka: "fes4", starlight:
      図鑑の「入手方法」が既定の Nocturne Bloom Fest になっていた。 */
   softnight: "fes14",
   /* ★★ 2026-09-17d 花宴祭 */
-  kaen: "fes15" };
+  kaen: "fes15",
+  /* ★★ 2026-09-23 CRYSTAL ACADEMY FEST */
+  crystal: "fes16" };
 function fesKeyOf(id) { const c = CHARS[id]; return c && c.fes ? (FESKEY_MAP[c.fesKey] || "fes") : null; }
 function fesNameOf(id) { const k = fesKeyOf(id); return k ? fesDef(k).nm : ""; }
 const FES_ALL_CHARS = FES_KEYS.reduce((a, k) => a.concat(FESTS[k].chars), []);
@@ -24346,7 +24732,7 @@ function firstGachaMode() {
      ここを FES_KEYS の順（＝定義順）のままにすると、新しいフェスが下に沈む。
    ══════════════════════════════════════════════════════════════ */
 function gachaMenuList() {
-  const lux = [], kaen = [], senki = [], bunny = [], soft = [], rising = [], fes = [], luxOff = [], ended = [];
+  const lux = [], kaen = [], crystal = [], senki = [], bunny = [], soft = [], rising = [], fes = [], luxOff = [], ended = [];
   FES_KEYS.forEach((k) => {
     if (k === ARCHIVE_KEY) return;                       /* アーカイブは⑥（下で足す） */
     const f = fesDef(k);
@@ -24363,6 +24749,8 @@ function gachaMenuList() {
       soon: fesLocked(k), ended: fesEnded(k) };
     /* ★★ 2026-09-17d 花宴祭は<b>開催中の極◯祭のすぐ下</b>（ご指定） */
     if (f.kaen) kaen.push(row);
+    /* ★★ 2026-09-23 CRYSTAL ACADEMY FEST は<b>花宴祭のすぐ下</b>（終わったら ended へ） */
+    else if (f.crystal) (fesEnded(k) ? ended : crystal).push(row);
     else if (f.senki) senki.push(row);
     /* ★★ 2026-09-11 BUNNY GIRL FEST は<b>戦姫祭のすぐ下</b>（ご指定）。
        期間つきのふつうのフェスガチャなので、終わったら ended へ落とすところは rising と同じ。 */
@@ -24385,7 +24773,7 @@ function gachaMenuList() {
     soon: !archiveChars().length };
   /* ★★ 2026-09-13b <b>RISING STAR FEST は戦姫祭のすぐ下に固定</b>（ご指定）。
      並びは 極◯祭 → 戦姫祭 → RISING STAR → BUNNY GIRL → SOFT NIGHT → GRAND DEBUT → そのほか。 */
-  const list = lux.concat(kaen, senki, rising, bunny, soft, gachaMenuDebutRows(), fes,
+  const list = lux.concat(kaen, crystal, senki, rising, bunny, soft, gachaMenuDebutRows(), fes,
     [{ k: "premium", nm: PREMIUM_NM, sub: "ピックアップを1体えらべる常設ガチャ", c: "#ff9d2e" }],
     [arcRow], luxOff, ended);
   /* ★★ 2026-08-29 NEW マーク（ご指定）。まだ一度も開いていないガチャに付ける。 */

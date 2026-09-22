@@ -31,6 +31,12 @@
        def          … damageMember()         （着けた本人が受けるぶん）
    ══════════════════════════════════════════════════════════════ */
 
+/* ══ ★★ 2026-09-23 <b>MagiBurst の装備システムは廃止</b>（ご指定：装備は MagiBattle へ移した）══
+   ・GEAR_ON=false のあいだ、効き目（gearPct / gearPctOfChar / ballGear）は全部 0、
+     着けている装備も空として扱う。画面の入口（育成・所持アイテム・詳細）も出さない。
+   ・持っていた装備のデータ（DB.gear / DB.gearOn）は<b>消さずに残す</b>——
+     MagiBattle が「MagiBurst から引きつぐ」ときにそのまま読むため。 */
+const GEAR_ON = false;
 /* ── 部位 ── */
 const GEAR_PARTS = ["head", "arm", "body", "leg"];
 const GEAR_PART = {
@@ -552,11 +558,11 @@ function paintItemList() {
   card.innerHTML = `
     <button class="ovx" onclick="closeItemList()" aria-label="とじる" title="とじる">✕</button>
     <h3>🎒 所持アイテム一覧</h3>
-    <div class="ilhint">いま持っている<b>装備・ルーン・アイテム</b>を、種類と個数でまとめて確認できます。</div>
+    <div class="ilhint">いま持っている<b>${GEAR_ON ? "装備・" : ""}ルーン・アイテム</b>を、種類と個数でまとめて確認できます。</div>
     <div class="ilchips top">
-      ${chip("kind", "all", "すべて")}${chip("kind", "gear", "🛡 装備")}${chip("kind", "rune", "🔮 ルーン")}${chip("kind", "item", "🎁 アイテム")}
+      ${chip("kind", "all", "すべて")}${GEAR_ON ? chip("kind", "gear", "🛡 装備") : ""}${chip("kind", "rune", "🔮 ルーン")}${chip("kind", "item", "🎁 アイテム")}
     </div>
-    ${sect("gear", "🛡 装備（頭・腕・胸・足）", gearHTML)}
+    ${GEAR_ON ? sect("gear", "🛡 装備（頭・腕・胸・足）", gearHTML) : ""}
     ${sect("rune", "🔮 ルーン", runeHTML)}
     ${sect("item", "🎁 特別アイテム", itemHTML)}`;
 }
@@ -634,3 +640,22 @@ function gearBadgeBallHTML(ball, px) {
     + `</span>`;
 }
 window.gearBadgeBallHTML = gearBadgeBallHTML;
+
+/* ★★ 2026-09-23 装備の廃止（GEAR_ON=false）。効き目と着用の問い合わせを全部「無し」にする。
+   ★ 関数の宣言を上書きするだけなので、呼び出し側（盤面・詳細・マルチの持ちより）は触らなくてよい。 */
+if (!GEAR_ON) {
+  gearPct = function () { return 0; };
+  ballGear = function () { return 0; };
+  gearPctOfChar = function () { return 0; };
+  gearOf = function () { return {}; };
+  gearListOf = function () { return []; };
+  gearSnapshot = function () { return []; };
+  gearGrant = function () { return null; };
+  gearSumOf = function () { return {}; };
+  statsGeared = function (id) { return (typeof charStats === "function") ? charStats(id) : null; };
+  gearChipsHTML = function () { return '<span class="bdnone">なし</span>'; };
+  gearBadgeHTML = function () { return ""; };
+  gearBadgeBallHTML = function () { return ""; };
+  window.statsGeared = statsGeared; window.gearChipsHTML = gearChipsHTML; window.gearSumOf = gearSumOf;
+  window.gearBadgeBallHTML = gearBadgeBallHTML;
+}

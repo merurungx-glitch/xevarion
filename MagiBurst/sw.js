@@ -6,13 +6,13 @@
    ・オンライン対戦・XEVA換金はアプリ側でオフライン時に無効化している
    ・取得できたリソースは随時キャッシュ更新（stale-while-revalidate）
    ============================================================ */
-const VERSION = "magiburst-sw-v179";
+const VERSION = "magiburst-sw-v180";
 const CORE = [
   "./index.html",
   "./css/mb-ui2.css?v=26",
   "./css/localplay.css?v=7",
   "./js/localplay.js?v=8",
-  "./js/mb-core.js?v=128",
+  "./js/mb-core.js?v=129",
   /* ★★ 2026-09-13 クエスト作成（ステージエディター・MB613Create26）。
      遅延読みこみだが、オフラインでも開けるようにここには入れておく。 */
   "./js/mb-create.js?v=2",
@@ -20,7 +20,7 @@ const CORE = [
   "./js/mb-create-test.js?v=2",
   "./css/mb-create.css?v=2",   /* ★ 2026-08-10 キャラ・ガチャの共有モジュール（XEVARION のガチャと共通） */
   /* ★★ 2026-09-06 装備（頭・腕・胸・足）。ここに載せないとオフラインで丸ごと動かない。 */
-  "./js/mb-gear.js?v=7",
+  "./js/mb-gear.js?v=8",
   /* ★★ 2026-09-01 ローカル通信マルチ。<b>オフラインで使うもの</b>なので、
      ここに載せておかないと「オフラインのときだけ動かない」ことになる。 */
   "./js/local.js?v=12",
@@ -39,9 +39,9 @@ const CORE = [
   "../xeva-i18n-p3.js?v=7",
   "../xeva-i18n-mb7.js?v=7",
   "../xeva-i18n-p4.js?v=7",
-  "../xeva-i18n-n1.js?v=11",
+  "../xeva-i18n-n1.js?v=12",
   "../xeva-i18n-n2.js?v=3",
-  "../xeva.js?v=70",
+  "../xeva.js?v=71",
   "../xeva-loading.js?v=18",
   "../xeva-splash.js?v=13",
   "../app-cloud.js?v=12",
@@ -132,6 +132,12 @@ const CORE = [
   "img/ss/ChihaSS.webp",      /* ★★ 2026-09-19 花宴祭 チハ（治癒の祈り）用 */
   "img/ss/HimeriSS.webp",     /* ★★ 2026-09-19e 花宴祭 ヒメリ（治癒の祈り）用 */
   "img/ss/HonokaSS.webp",     /* ★★ 2026-09-19e 花宴祭 ホノカ（治癒の祈り）用 */
+  /* ★★ 2026-09-23 CRYSTAL ACADEMY FEST（神癒の祈り）用 */
+  "img/ss/KurehaSS.webp",
+  "img/ss/MikotoSS.webp",
+  "img/ss/MeiSS.webp",
+  "img/ss/HikaruSS.webp",
+  "img/ss/MidukiSS.webp",
   "img/ss/YajuSS.webp",   /* ★ 2026-08-08d クロススキル「お待たせ!」用 */
   "img/ss/KokonaAlphaSS.webp",   /* ★ 2026-08-11 ココナα（治癒の祈り）用 */
   /* ★ 2026-08-08 プレミアム新SSR「カエデ」「リノン」「ココロ」「アンジェ」 */
@@ -279,6 +285,7 @@ const CORE = [
   "img/bn_fes12_s.webp",   /* ★★ 2026-09-01 RISING STAR FEST のバナー */
   "img/bn_fes13_s.webp",
   "img/bn_fes15_s.webp",   /* ★★ 2026-09-17d 花宴祭のバナー */
+  "img/bn_fes16_s.webp",   /* ★★ 2026-09-23 CRYSTAL ACADEMY FEST のバナー */
   "img/bn_fes14_s.webp",   /* ★★ 2026-09-13 SOFT NIGHT FEST のバナー */   /* ★★ 2026-09-11 BUNNY GIRL FEST のバナー */
   "../img/t_Suzune.webp",
   "../img/t_Minamo.webp",
@@ -423,6 +430,12 @@ const CORE = [
   "../img/t_Honoka.webp",
   "../img/t_Azusa.webp",
   "../img/t_Kokoha.webp",
+  /* ★★ 2026-09-23 CRYSTAL ACADEMY FEST */
+  "../img/t_Kureha.webp",
+  "../img/t_Mikoto.webp",
+  "../img/t_Mei.webp",
+  "../img/t_Hikaru.webp",
+  "../img/t_Miduki.webp",
   /* ★★ 2026-09-06 同期の画面に出る案内役（立ち姿とお辞儀・2人ぶん）。
      ここに無いとオフラインのときだけ絵が出ない。 */
   "../img/ld_a_stand.webp",
