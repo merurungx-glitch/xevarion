@@ -1,17 +1,15 @@
 {
-  "version": "2026-09-23-1",
-  "date": "2026-09-23",
-  "title": "MagiBattle 全面リニューアル／CRYSTAL ACADEMY FEST",
+  "version": "2026-09-25-8",
+  "date": "2026-09-25",
+  "title": "新パートナー 花菜・莉沙／開催中のガチャをバナーに",
   "notes": [
-    "MagiBattle：XEVARION の全キャラが参戦・バーストⅠ→Ⅱ→Ⅲの FULL BURST・装備・迎撃戦・凸は共通・同期に対応・NIKKE 風の画面",
-    "CRYSTAL ACADEMY FEST：クレハ・ミコト・メイ・ヒカル・ミヅキ（神癒の祈り・結晶のフルバースト・新リンク5本）",
-    "MagiBurst：編成が5体に／治癒の祈りは左から順に抽選／編成の固定表示の重なりを修正／装備は MagiBattle へ移設",
-    "XEVARION：同期のロードがくり返す不具合を修正／アプリをイベントの下に／XEVARION のアイコンをキャラ画像に／MagiRail と MagiBattle の位置を入れかえ／ガチャのアイコンをクレハに",
-    "図鑑・新キャラ紹介に MagiBattle の性能の面",
-    "MagiScope：特別版は R15 以上／戻ると元の画面へ／ページ数・1話の長さ／リンクの共有"
+    "新パートナー 花菜・莉沙（1人 30,000 XEVA で開放）・笙古・瞳も追加",
+    "ホーム左上に開催中のガチャ全部のバナーを順番に表示",
+    "全員の表情を表情案から作り直し（口のずれ・目の輪郭の切れ・前髪の線の残りを修正）",
+    "胸の判定を修正・パートナーはβ版・起動時にキャラが出ないことがあったのを修正"
   ],
-  "bytes": 51353501,
-  "files": 597,
+  "bytes": 54958575,
+  "files": 640,
   "urls": [
     "index.html",
     "characters.html",
@@ -57,6 +55,49 @@
     "xeva-loading.js",
     "xevarion.js",
     "xevarion-home.js",
+    "gacha-live.js",
+    "home-mate.js",
+    "home-mate.css",
+    "home-mate/shoko/shoko.json",
+    "home-mate/shoko/shoko.webp",
+    "home-mate/shoko/shoko_label.webp",
+    "home-mate/shoko/shoko_face.webp",
+    "home-mate/shoko/bg.webp",
+    "home-mate/hitomi/hitomi.json",
+    "home-mate/hitomi/hitomi.webp",
+    "home-mate/hitomi/hitomi_label.webp",
+    "home-mate/hitomi/hitomi_face.webp",
+    "home-mate/hitomi/bg.webp",
+    "home-mate/hana/hana.json",
+    "home-mate/hana/hana.webp",
+    "home-mate/hana/hana_label.webp",
+    "home-mate/hana/hana_face.webp",
+    "home-mate/hana/bg.webp",
+    "home-mate/lisa/lisa.json",
+    "home-mate/lisa/lisa.webp",
+    "home-mate/lisa/lisa_label.webp",
+    "home-mate/lisa/lisa_face.webp",
+    "home-mate/lisa/bg.webp",
+    "home-mate/maika/maika.json",
+    "home-mate/maika/maika.webp",
+    "home-mate/maika/maika_label.webp",
+    "home-mate/maika/maika_face.webp",
+    "home-mate/maika/bg.webp",
+    "home-mate/iori/iori.json",
+    "home-mate/iori/iori.webp",
+    "home-mate/iori/iori_label.webp",
+    "home-mate/iori/iori_face.webp",
+    "home-mate/iori/bg.webp",
+    "home-mate/kiara/kiara.json",
+    "home-mate/kiara/kiara.webp",
+    "home-mate/kiara/kiara_label.webp",
+    "home-mate/kiara/kiara_face.webp",
+    "home-mate/kiara/bg.webp",
+    "home-mate/emiri/emiri.json",
+    "home-mate/emiri/emiri.webp",
+    "home-mate/emiri/emiri_label.webp",
+    "home-mate/emiri/emiri_face.webp",
+    "home-mate/emiri/bg.webp",
     "maintenance-gate.js",
     "xeva-back.js",
     "xeva-keys.js",
@@ -612,27 +653,125 @@
     "xevarion-fb.js"
   ],
   "apps": [
-    "magibocciarush",
-    "magiburst",
-    "magichainparty",
-    "magicounter",
-    "magidiamond",
-    "magidominiongrid",
-    "magijackpot",
-    "magilex",
-    "magilotto",
-    "magimusic",
-    "magiscope",
-    "magishift",
-    "tab:chars",
-    "tab:community",
-    "tab:gacha",
-    "tab:home",
-    "xevynar",
-    "magibattle"
+    "tab:home"
   ],
-  "changedFiles": 48,
+  "changedFiles": 11,
   "history": [
+    {
+      "version": "2026-09-24-6",
+      "date": "2026-09-24",
+      "title": "パートナーがしゃべるように（ボイス対応）",
+      "notes": [
+        "全セリフに声（VOICEVOX）・声に合わせて口が動く・選択画面でオン／オフ",
+        "まばたきと目の動きを自然に・新しいタッチの反応",
+        "パートナーの開放は1人 30,000 XEVA に（最初の1人は無料）"
+      ],
+      "apps": [
+        "tab:home"
+      ]
+    },
+    {
+      "version": "2026-09-24-5",
+      "date": "2026-09-24",
+      "title": "パートナーの表情を改善",
+      "notes": [
+        "目を閉じたとき・話すときの目と口の色と形を、キャラごとの絵に合わせて作り直し",
+        "ロビーのボタン名を「イベント」「更新情報」に変更・左端へ"
+      ],
+      "apps": [
+        "tab:home"
+      ]
+    },
+    {
+      "version": "2026-09-24-4",
+      "date": "2026-09-24",
+      "title": "パートナーに映美里／パートナーは XEVA で開放",
+      "notes": [
+        "パートナーに映美里を追加・樹愛羅の絵を新しく",
+        "パートナーは最初の1人が無料、2人目から1人 15,000 XEVA",
+        "パートナーとロビーのアプリを端末をまたいで同期",
+        "メニューに全アプリ・目を閉じたときの色・胸の反応を改善"
+      ],
+      "apps": [
+        "magibocciarush",
+        "magiburst",
+        "magichainparty",
+        "magicounter",
+        "magidiamond",
+        "magijackpot",
+        "magilex",
+        "magilotto",
+        "magimusic",
+        "magiscope",
+        "tab:chars",
+        "tab:community",
+        "tab:gacha",
+        "tab:home",
+        "xevynar",
+        "magiarena",
+        "magibattle",
+        "magicraft",
+        "magiempire",
+        "magifocus",
+        "magilink",
+        "magimanor",
+        "magiportfolio",
+        "magiranking",
+        "magitier"
+      ]
+    },
+    {
+      "version": "2026-09-24-3",
+      "date": "2026-09-24",
+      "title": "ホームがロビーに／パートナー3人（舞香・衣織・樹愛羅）",
+      "notes": [
+        "ホームをパートナーが真ん中に立つロビーに（下にアプリ5つ・設定で入れかえ）",
+        "パートナーに衣織・樹愛羅を追加（設定から選べる・キャラごとに背景）",
+        "イベント・アップデートはボタンから一覧で／最近のガチャのバナー",
+        "MagiBattle のレベル・装備を独立（所持と凸は共通のまま）",
+        "MagiScope と MagiChainParty の位置を入れかえ"
+      ],
+      "apps": [
+        "tab:home",
+        "tab:gacha",
+        "tab:chars",
+        "magibattle",
+        "magilex"
+      ]
+    },
+    {
+      "version": "2026-09-23-1",
+      "date": "2026-09-23",
+      "title": "MagiBattle 全面リニューアル／CRYSTAL ACADEMY FEST",
+      "notes": [
+        "MagiBattle：XEVARION の全キャラが参戦・バーストⅠ→Ⅱ→Ⅲの FULL BURST・装備・迎撃戦・凸は共通・同期に対応・NIKKE 風の画面",
+        "CRYSTAL ACADEMY FEST：クレハ・ミコト・メイ・ヒカル・ミヅキ（神癒の祈り・結晶のフルバースト・新リンク5本）",
+        "MagiBurst：編成が5体に／治癒の祈りは左から順に抽選／編成の固定表示の重なりを修正／装備は MagiBattle へ移設",
+        "XEVARION：同期のロードがくり返す不具合を修正／アプリをイベントの下に／XEVARION のアイコンをキャラ画像に／MagiRail と MagiBattle の位置を入れかえ／ガチャのアイコンをクレハに",
+        "図鑑・新キャラ紹介に MagiBattle の性能の面",
+        "MagiScope：特別版は R15 以上／戻ると元の画面へ／ページ数・1話の長さ／リンクの共有"
+      ],
+      "apps": [
+        "magibocciarush",
+        "magiburst",
+        "magichainparty",
+        "magicounter",
+        "magidiamond",
+        "magidominiongrid",
+        "magijackpot",
+        "magilex",
+        "magilotto",
+        "magimusic",
+        "magiscope",
+        "magishift",
+        "tab:chars",
+        "tab:community",
+        "tab:gacha",
+        "tab:home",
+        "xevynar",
+        "magibattle"
+      ]
+    },
     {
       "version": "2026-09-22-5",
       "date": "2026-09-22",
@@ -832,98 +971,6 @@
       "apps": [
         "magiscope",
         "tab:home"
-      ]
-    },
-    {
-      "version": "2026-09-20-3",
-      "date": "2026-09-20",
-      "title": "MagiScope 国内アニメ・自動更新",
-      "notes": [
-        "MagiScope：アニメに国内ランキング（Annict の視聴者数）を追加",
-        "カラオケ・FANZA同人・国内アニメは1時間ごとに自動取得（中継サーバー不要）"
-      ],
-      "apps": [
-        "magiscope",
-        "tab:home"
-      ]
-    },
-    {
-      "version": "2026-09-20-2",
-      "date": "2026-09-20",
-      "title": "MagiScope を実データに",
-      "notes": [
-        "MagiScope：アニメ（AniList）・FANZA同人（DMM）・カラオケ（DAM）の実際のランキングをリアルタイムに",
-        "本物の表紙・キービジュアル・ジャケットを表示"
-      ],
-      "apps": [
-        "magiscope",
-        "tab:home"
-      ]
-    },
-    {
-      "version": "2026-09-20-1",
-      "date": "2026-09-20",
-      "title": "新作 MagiScope／ミッション・メールの同期",
-      "notes": [
-        "新作 MagiScope（アニメ・FANZA・カラオケのランキング／その他の MagiRail の右）",
-        "別の端末で受け取ったミッション・メールが未受取に戻ることがある不具合を修正",
-        "MagiTier：Tier 表は開き直すたびにアクセスコードを確認・アニメ検索に ✕"
-      ],
-      "apps": [
-        "magibocciarush",
-        "magiburst",
-        "magichainparty",
-        "magicounter",
-        "magidiamond",
-        "magijackpot",
-        "magilex",
-        "magilotto",
-        "magimusic",
-        "magiscope",
-        "tab:chars",
-        "tab:community",
-        "tab:gacha",
-        "tab:home",
-        "xevynar"
-      ]
-    },
-    {
-      "version": "2026-09-19-11",
-      "date": "2026-09-19",
-      "title": "極◯祭のNEWの期間",
-      "notes": [
-        "極彩祭・極華祭・極煌祭のNEW（確率アップ）の10日間は、ガチャが引けるようになった日から数える"
-      ],
-      "apps": [
-        "magibocciarush",
-        "magiburst",
-        "magidiamond",
-        "magilex",
-        "tab:chars",
-        "tab:gacha",
-        "tab:home"
-      ]
-    },
-    {
-      "version": "2026-09-19-10",
-      "date": "2026-09-19",
-      "title": "ガチャの詳細に注目キャラ全員と登場日",
-      "notes": [
-        "ガチャの詳細：注目キャラを完凸で排出されない子も含めて全員表示・ガチャの登場日とキャラごとの登場日を表示"
-      ],
-      "apps": [
-        "tab:gacha"
-      ]
-    },
-    {
-      "version": "2026-09-19-9",
-      "date": "2026-09-19",
-      "title": "全員完凸のときのセレクト券・天井",
-      "notes": [
-        "セレクト券・フェスセレクト券・★星煌印で、えらべるキャラが全員完凸なら💠結晶75個と交換"
-      ],
-      "apps": [
-        "tab:gacha"
       ]
     }
   ]

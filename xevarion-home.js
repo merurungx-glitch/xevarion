@@ -205,8 +205,9 @@ const XH_DEFAULT_ORDER = [
      もとの MagiJackpot の位置（ホーム10番目）に MagiTier。 */
   /* ★★ 2026-09-17f <b>MagiQuest を廃止</b>（ご指定）。後ろのアプリを1つずつ前へつめ、
      もとの XEVYNAR の位置（ホーム11番目）に MagiJackpot。 */
+  /* ★★ 2026-09-24d <b>MagiChainParty と MagiScope の位置を入れかえ</b>（ご指定）。 */
   "magilex", "magilink", "magiburst", "magibocciarush",
-  "magichainparty", "magidominiongrid", "magidiamond",
+  "magiscope", "magidominiongrid", "magidiamond",
   "magicounter", "magitier", "xevynar", "magijackpot",
   /* 以降は「その他」の中に入る */
   /* ★★ 2026-09-21c 並びのご指定：
@@ -217,7 +218,7 @@ const XH_DEFAULT_ORDER = [
   /* ★★ 2026-09-23 <b>MagiRail と MagiBattle の位置を入れかえ</b>（ご指定）。
        MagiBattle がホームの15番目へ、MagiRail は「その他」のもとの MagiBattle の位置へ。 */
   "magilotto",
-  "magiscope",
+  "magichainparty",
   "magishift",
   "magibattle",
   /* ここから下は「その他」の中に入る */
@@ -234,7 +235,7 @@ const XH_ORDER_KEY = "xeva_home_order_v2";
    （アプリの入れ替えを、既にホームを触った人にも確実に反映させるため） */
 /* ★★ 2026-09-21c 並びを変えたので世代を上げる（保存ずみの並びを一度だけ既定に戻す）。
    これを上げないと、ホームを並びかえたことがある人には新しい並びが出ない。 */
-const XH_ORDER_GEN = "11-0923";   /* ★★ 2026-09-23 MagiRail と MagiBattle の入れかえ */ /* 前: "10-0921c" */   /* ★★ 2026-09-17e Arcana Rush 廃止・MagiTier をホームへ（保存ずみの並びも一度だけ既定へ） */   /* ★★ 2026-09-09 11枠の入れかえと、抹けていた新作2本を既存の並びにも効かせる */
+const XH_ORDER_GEN = "12-0924";   /* ★★ 2026-09-24d MagiChainParty と MagiScope の入れかえ */ /* 前: "11-0923" */   /* ★★ 2026-09-23 MagiRail と MagiBattle の入れかえ */ /* 前: "10-0921c" */   /* ★★ 2026-09-17e Arcana Rush 廃止・MagiTier をホームへ（保存ずみの並びも一度だけ既定へ） */   /* ★★ 2026-09-09 11枠の入れかえと、抹けていた新作2本を既存の並びにも効かせる */
 const XH_ORDER_GEN_KEY = "xeva_home_order_gen";
 
 /* 期間限定イベント（from/to は YYYY-MM-DD。期間内のものだけ表示）
@@ -438,6 +439,25 @@ const XH_EVENTS = [
    ══════════════════════════════════════════════════════════════ */
 const XH_UPDATE_MAX = 12;
 const XH_UPDATES = [
+  /* ★★ 2026-09-25f 花菜・莉沙・開催中のガチャのバナー */
+  { tag:"UPDATE", t1:"パートナーに花菜・莉沙／開催中のガチャをバナーに", at:"2026-09-25",
+    t2:"新パートナー 花菜・莉沙を追加（1人 30,000 XEVA で開放）／ホーム左上に開催中のガチャ全部のバナーを順番に表示／目の線の残りを修正／起動時にキャラが出ないことがあったのを修正",
+    href:"index.html", img:"home-mate/hana/bg.webp?v=11" },
+  /* ★★ 2026-09-25 笙古・瞳・表情の作り直し・ランダム表示 */
+  { tag:"UPDATE", t1:"パートナーに笙古・瞳／表情を一新", at:"2026-09-25",
+    t2:"新パートナー 笙古・瞳を追加（最初は笙古、ほかは 1人 30,000 XEVA で開放）／全員の表情を新しい絵に（目の大きさ・角度を立ち絵に合わせた）／セリフを大幅に増やし、表情・掛け合い・アプリの状態・ほかのパートナーと連携／開くたびにランダムで表示する設定／起動時にキャラが出ないことがあったのを修正／ボイスは終了",
+    href:"index.html", img:"home-mate/shoko/bg.webp?v=8" },
+  /* ★★ 2026-09-24e 映美里・パートナーの開放・同期 */
+  { tag:"UPDATE", t1:"パートナーに映美里・開放と同期", at:"2026-09-24",
+    t2:"映美里を追加／樹愛羅の絵を新しく／最初の1人は無料・2人目から 15,000 XEVA／パートナーとロビーのアプリを同期／メニューに全アプリ",
+    href:"index.html", img:"home-mate/emiri/bg.webp?v=4" },
+  /* ★★ 2026-09-24d ロビー・パートナー・MagiBattle の育成 */
+  { tag:"UPDATE", t1:"ホームがロビーに・パートナー3人", at:"2026-09-24",
+    t2:"舞香・衣織・樹愛羅から選べるパートナーが真ん中に立つロビー／下にアプリ5つ（設定で入れかえ）／最近のガチャのバナー／イベント・アップデートは一覧で／MagiScope と ChainParty の位置を入れかえ",
+    href:"index.html", img:"home-mate/kiara/bg.webp?v=3" },
+  { tag:"UPDATE", t1:"MagiBattle の育成を独立", at:"2026-09-24",
+    t2:"レベル・装備は MagiBattle だけで育てるように（MagiBurst のレベルは使わない）。所持と凸はガチャと共通のまま",
+    href:"MagiBattle/index.html", img:"thumbs/MagiBattle.jpg?v=2" },
   /* ★★ 2026-09-23 MagiBattle 2.0 */
   { tag:"UPDATE", t1:"MagiBattle を全面リニューアル", at:"2026-09-23",
     t2:"XEVARION の全キャラが参戦／バーストⅠ→Ⅱ→Ⅲの FULL BURST／装備（MagiBurst から引きつぎ）／迎撃戦／凸・所持は共通／同期に対応",
@@ -1516,15 +1536,34 @@ window.addEventListener("xevafx:change", () => {
   xhRenderShopBadge();
 });
 
+/* ★★ 2026-09-25 ショップの印は<b>一度開いて確認したら消す</b>（ご指定）。
+   いま買えるパックの顔ぶれ（id と期間）を「見た」として覚え、新しいパック・新しい週になったらまた出す。 */
+const XH_SHOP_SEEN_KEY = "xeva_shop_seen_v1";
+function xhShopSig() {
+  const d = xhShopData();
+  return xhPacksNow().filter((p) => xhPackLeft(p, d) > 0).map((p) => p.id + "@" + xhPackPeriod(p)).sort().join(",");
+}
+function xhShopUnseen() {
+  let seen = ""; try { seen = localStorage.getItem(XH_SHOP_SEEN_KEY) || ""; } catch (e) {}
+  const have = seen ? seen.split(",") : [];
+  const now = xhShopSig();
+  return now ? now.split(",").filter((k) => have.indexOf(k) < 0).length : 0;
+}
+function xhShopMarkSeen() {
+  try { localStorage.setItem(XH_SHOP_SEEN_KEY, xhShopSig()); } catch (e) {}
+  xhRenderShopBadge();
+}
+window.xhShopMarkSeen = xhShopMarkSeen;
+
 function xhRenderShopBadge() {
   /* ★★ 2026-09-05 ショップは上のバーへ移したので、印もそちら（#xhShopBdg2）に付ける。 */
-  const n = xhPacksLeft();
+  const n = xhShopUnseen();
   const b2 = xhEl("xhShopBdg2");
   if (b2) { b2.textContent = n ? n : ""; b2.classList.toggle("show", n > 0); }
   const b = xhEl("xhShopBdg");
   if (b) { b.textContent = n ? n : ""; b.classList.toggle("show", n > 0); }
   const s = xhEl("xhShopSub");
-  if (s) s.textContent = n ? "毎週リセットのパック" : "今週のパックは買い切りました";
+  if (s) s.textContent = xhPacksLeft() ? "毎週リセットのパック" : "今週のパックは買い切りました";
 }
 
 /* ── 変換所 ── */
@@ -1692,7 +1731,7 @@ window.xhDoExchange = xhDoExchange;
 /* ══ ★★ 2026-09-05 ショップ（一覧）══
    上のバーの「ショップ」から開く。売り場は3つ。
    ★ 結晶交換所は<b>パックストアの中ではなく、ここに独立した枠</b>として置く（ご指定）。 */
-function xhOpenShopHub() { xhPaintShopHub(); xhOpenSheet("xhShopHubSheet"); }
+function xhOpenShopHub() { xhPaintShopHub(); xhOpenSheet("xhShopHubSheet"); xhShopMarkSeen(); }
 window.xhOpenShopHub = xhOpenShopHub;
 
 function xhPaintShopHub() {
@@ -1724,7 +1763,7 @@ function xhPaintShopHub() {
 }
 
 /* ── パックストア（1回限りのパック） ── */
-function xhOpenShop() { xhPaintShop(); xhOpenSheet("xhShopSheet"); }
+function xhOpenShop() { xhPaintShop(); xhOpenSheet("xhShopSheet"); xhShopMarkSeen(); }
 window.xhOpenShop = xhOpenShop;
 
 /* ══════════════════════════════════════════════════════════════
@@ -2356,11 +2395,10 @@ function xhAppTile(a) {
 }
 function xhRenderShelf() {
   const grid = xhEl("xhAppGrid"); if (!grid) return;
-  const ids = xhOrder().slice(0, XH_HOME_SLOTS);
-  grid.innerHTML = ids.map((id) => xhAppTile(xhApp(id))).join("") +
-    '<button class="xh-app" data-app="more" data-tone="gold" onclick="xhOpenAppGrid()">' +
-      '<span class="xh-sq"><span class="glyph">•••</span></span>' +
-      '<span class="nm">その他</span><span class="sb">' + (XH_APPS.length - XH_HOME_SLOTS) + '個</span></button>';
+  /* ★★ 2026-09-24e ホームはロビーになり、この棚は「メニュー」の中。<b>全アプリを常に並べる</b>（ご指定）。
+     「その他」のタイルは出さない。並び順は xhOrder（並びかえ・入れかえを反映）。 */
+  const ids = xhOrder().filter((id) => xhApp(id));
+  grid.innerHTML = ids.map((id) => xhAppTile(xhApp(id))).join("");
   xhApplyOfflineLocks();
   try { xhPaintMarks(); } catch (e) {}
 }
@@ -3127,6 +3165,8 @@ function xhGo(tab) {
   try { if (window.XOS) XOS.haptic(); } catch (e) {}
   if (tab === "home") {
     try { xhMarkClear("tab:home"); } catch (e) {}
+    /* ★★ 2026-09-24 ホームはロビーになった。下バーの「ホーム」は引き出しシートを閉じてロビーへ戻る */
+    if (typeof window.xlCloseDrawer === "function" && document.body.classList.contains("xl-drawer-open")) { window.xlCloseDrawer(); return; }
     const s = xhEl("xhScroll"); if (s) s.scrollTo({ top: 0, behavior: "smooth" });
     return;
   }

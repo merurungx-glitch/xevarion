@@ -23,6 +23,8 @@
 <!-- ★★ 2026-08-22b Xevion OS の見た目（テーマ・文字の大きさ・動きを減らす）。
      xevarion-home.css の<b>あと</b>に読む＝上書きできるようにする。 -->
 <link rel="stylesheet" href="xevion-os.css?v=15">
+<!-- ★★ 2026-09-24 ホームの「動くキャラ」（舞香）。中身は home-mate.js。 -->
+<link rel="stylesheet" href="home-mate.css?v=13">
 <script src="xeva.js?v=71" defer></script>
 <!-- ★★ 2026-09-05 コレクションを XEVARION 全体で1本にする共通部品。
      xeva.js の iconCharList() を使うので、必ず xeva.js の<b>あと</b>に置く。 -->
@@ -55,6 +57,8 @@
      告知を<b>ポータルのログイン時</b>に一本化したので、ここでも読む。
      defer なので xevarion.js より先に実行される（書いた順番で走る）。 -->
 <script src="mb-newchars.js?v=32" defer></script>
+<!-- ★★ 2026-09-25 ガチャの台帳（開催期間とバナー。make-gacha-live.py が mb-core.js から自動で作る）。ホーム左上のバナー用 -->
+<script src="gacha-live.js?v=1" defer></script>
 <!-- ★★ 2026-08-22b Xevion OS（XEVARION の UI をひとつの OS として扱う土台）。
      ほかの画面より<b>先に</b>読む（body のクラスを立てるので、あとから読むと一瞬ちらつく）。 -->
 <script src="xevion-os.js?v=13"></script>
@@ -64,10 +68,11 @@
 <script type="module" src="xeva-sync.js?v=18"></script>
 <script type="module" src="xevarion-fb.js?v=33"></script>
 <script src="xeva-presence.js?v=9" defer></script>
-<script type="module" src="xeva-cloud.js?v=37"></script>
+<script type="module" src="xeva-cloud.js?v=38"></script>
 <script src="xeva-qr.js?v=9" defer></script>
-<script src="xevarion.js?v=94" defer></script>
-<script src="xevarion-home.js?v=140" defer></script>
+<script src="xevarion.js?v=95" defer></script>
+<script src="xevarion-home.js?v=147" defer></script>
+<script src="home-mate.js?v=13" defer></script>
 </head>
 <body>
 <!-- ───── バックグラウンド音楽（Flagship Arrival。アクセス画面のタップで再生開始） ───── -->
@@ -327,6 +332,9 @@ body.music-on #beatFrame{opacity:1}
   </div>
 
   <div id="xhCol">
+    <!-- ★★ 2026-09-24 ロビー（NIKKE 風）。パートナーが画面の真ん中に立つ舞台。
+         背景画像＋動くキャラ（home-mate.js・WebGL）。ヘッダー・ボタン・下バーはこの上に重なる。 -->
+    <div class="xh-stage" id="xhMate"></div>
 
     <!-- ───── ヘッダー ───── -->
     <header class="xh-top">
@@ -371,9 +379,10 @@ body.music-on #beatFrame{opacity:1}
            スクロールの中に入れると、下まで読んでいるあいだ見えなくなる。 -->
     <button class="xh-autochip" id="xhAutoChip" aria-live="polite"></button>
 
-    <!-- ───── スクロール領域 ───── -->
-    <div class="xh-scroll" id="xhScroll">
-
+    <!-- ★★ 2026-09-24 ロビーの操作盤（NIKKE 風：キャラの周りにボタン）。
+         ふだんはキャラ＋ここだけ。今までの欄（イベント・アプリ・ピックアップ・アップデート）は
+         下から引き出すシート（#xhScroll.xh-drawer）へ移した。中身は home-mate.js の xlInit()。 -->
+    <div class="xh-lobby" id="xhLobby">
       <!-- ★★ 2026-09-13c 文面は xevarion-home.js が台帳（XH_OFFLINE_OK）から入れ直す。
            ここに書いてあるのは JS が動く前に一瞬だけ出る初期表示。 -->
       <div class="xh-offline" id="xhOfflineBar">📴 オフライン中 — オフライン対応アプリと 🎰 ガチャは遊べます</div>
@@ -422,6 +431,30 @@ body.music-on #beatFrame{opacity:1}
         </div>
         </div>
       </section>
+
+      <div class="xl-left">
+        <!-- ★★ 2026-09-24c 左上はガチャのバナー（新キャラが入った直近のガチャ5つを順に）。絵は切らずに全体を出す -->
+        <button class="xl-ban" id="xlBan" aria-label="ガチャ">
+          <img class="xl-ban-img" id="xlBanImg" alt=""><span class="xl-ban-dots" id="xlBanDots"></span>
+        </button>
+        <button class="xl-ic" onclick="HomeMate.openInfo('ev')"><span class="i"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.8c.6 3.2 2.4 4.6 4.6 5.8 2.4 1.3 3.8 3.6 3.8 6.2a8.4 8.4 0 0 1-16.8 0c0-2.3 1-4.1 2.6-5.5.2 1.8 1 2.9 2.2 3.4-.4-3.9 1.2-7.3 3.6-9.9Z" fill="#ff6a3d" stroke="#12203d" stroke-width="1.7" stroke-linejoin="round"/></svg></span><span class="l">イベント</span></button>
+        <button class="xl-ic" onclick="HomeMate.openInfo('up')"><span class="i"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.4 2.8h3.2v7.6h3.9L12 17.2 6.5 10.4h3.9Z" fill="#3f8ce8" stroke="#12203d" stroke-width="1.6" stroke-linejoin="round"/><rect x="4.6" y="18.4" width="14.8" height="3" rx="1.5" fill="#12203d"/></svg></span><span class="l">更新情報</span></button>
+      </div>
+      <div class="xl-right">
+        <button class="xl-ic dia" onclick="HomeMate.openPicker()"><span class="i"><b>♥</b><em class="hm-beta">β</em></span><span class="l">パートナー</span></button>
+        <button class="xl-ic dia" onclick="HomeMate.cycleView()"><span class="i"><b>⤢</b></span><span class="l" id="xlViewLb">表示</span></button>
+      </div>
+      <!-- ★★ 2026-09-24c 下は<b>アプリ5つを1行</b>（設定 → ロビーのアプリ で入れかえ） -->
+      <div class="xl-apps" id="xlApps"></div>
+      <button class="xl-handle" id="xlHandle" onclick="xlOpenDrawer()" aria-label="メニューを開く"><span></span>メニュー</button>
+    </div>
+
+    <!-- ───── 引き出しシート（もとのスクロール領域） ─────
+         ★★ 2026-09-24 ロビー化に合わせて「下から引き出すシート」にした。id は xhScroll のまま
+         （xevarion-home.js が中身を描くので名前を変えない）。 -->
+    <div class="xh-scroll xh-drawer" id="xhScroll">
+      <div class="xl-dhead" id="xlDHead"><span class="grab"></span><span class="dt">メニュー</span>
+        <button class="dx" onclick="xlCloseDrawer()" aria-label="閉じる"><b>✕</b><span>閉じる</span></button></div>
 
       <!-- ★★ 2026-09-06 ホームの「ショップ」の欄は<b>丸ごと廃止</b>しました（ご指定）。
            売り場は上のバーの「ショップ」に完全に移っています。
@@ -813,6 +846,19 @@ body.music-on #beatFrame{opacity:1}
         <span class="rl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><rect x="3.4" y="3.4" width="17.2" height="17.2" rx="4"/><circle cx="9" cy="9.4" r="1.8"/><path d="M4.2 18 9 13.6l3.2 2.8 3-2.4 4.6 4"/></svg>
           <span><span class="rt">お気に入りキャラ</span><span class="rs">最大5体・図鑑やプロフィールに表示</span></span></span>
         <span class="rv" id="xhSetShowN">0体</span>
+      </button>
+
+      <!-- ★★ 2026-09-24c ロビーの下に並べるアプリ（5つ） -->
+      <button class="xh-row" onclick="xhCloseSheet('xhSetSheet');HomeMate.openAppPicker()">
+        <span class="rl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><rect x="3" y="8" width="4.4" height="8" rx="1.4"/><rect x="9.8" y="8" width="4.4" height="8" rx="1.4"/><rect x="16.6" y="8" width="4.4" height="8" rx="1.4"/></svg>
+          <span><span class="rt">ロビーのアプリ</span><span class="rs" id="xhSetLobbySub">ホームの下に並べる5つを選ぶ</span></span></span>
+        <span class="rv">›</span>
+      </button>
+      <!-- ★★ 2026-09-24 ホームのパートナー（ロビーに立つキャラ）を選ぶ -->
+      <button class="xh-row" onclick="xhCloseSheet('xhSetSheet');HomeMate.openPicker()">
+        <span class="rl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M12 20.4S3.6 15.3 3.6 9.2A4.4 4.4 0 0 1 12 7.1a4.4 4.4 0 0 1 8.4 2.1c0 6.1-8.4 11.2-8.4 11.2Z"/></svg>
+          <span><span class="rt">ホームのパートナー<em class="hm-beta in">β版</em></span><span class="rs" id="xhSetMateSub">ロビーに立つキャラを選ぶ</span></span></span>
+        <span class="rv">›</span>
       </button>
 
       <div class="xh-sec-label">システム</div>
@@ -1844,6 +1890,69 @@ body.music-on #beatFrame{opacity:1}
 
   <div class="nm-body" id="newsBody">
     <div class="nm-divider" id="newDivider" style="display:none;">NEW — 前回から更新</div>
+    <!-- 2026-09-25f 花菜・莉沙・開催中のガチャのバナー -->
+    <div class="nm-item" data-tag="new" data-date="2026-09-25">
+      <div class="nm-date">2026<br>09.25</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag launch">NEW</span></div>
+        <div class="nm-title">🌙 新パートナー 花菜・莉沙／開催中のガチャを全部バナーに</div>
+        <div class="nm-txt">・新しいパートナー <b>花菜（ハナ）</b>と<b>莉沙（リサ）</b>が登場しました（1人 30,000 XEVA で開放）。<br>・ホーム左上のバナーに、<b>いま開催中のガチャ全部</b>が順番に出るようになりました。<br>・目を動かしたときに、まぶたやまつ毛の線が前髪のそばに残って見えることがあったのを直しました。<br>・表情が変わったときに口の一部が欠けたり、目のはしが切れたりしていたのを直しました。<br>・胸の判定を直しました（こちらから見て左の胸の外側・胸の下側が別の場所の判定になることがありました）。<br>・ホームのパートナーは<b>β版</b>です（パートナーのボタンと選択画面に β のマークを付けました）。<br>・起動したときにキャラが表示されないことがあったのを直しました。</div>
+      </div>
+    </div>
+    <!-- 2026-09-25 笙古・瞳・表情・ランダム表示 -->
+    <div class="nm-item" data-tag="new" data-date="2026-09-25">
+      <div class="nm-date">2026<br>09.25</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag launch">NEW</span></div>
+        <div class="nm-title">🏠 新パートナー 笙古・瞳／表情を一新／ランダム表示</div>
+        <div class="nm-txt">・新しいパートナー <b>笙古（ショウコ）</b>と<b>瞳（ヒトミ）</b>が登場しました。<br>・ホームのパートナーは<b>最初は笙古</b>になり、ほかのパートナーは <b>1人 30,000 XEVA</b> で開放できます（開放ずみのパートナーはそのまま使えます）。<br>・全員の表情（笑顔・照れ・眠そう・悪戯っぽい笑み など）とまばたきを新しい絵で作り直しました。目は片目ずつ立ち絵の大きさ・角度に合わせ、輪郭や前髪がずれないようにしています。<br>・セリフを大幅に増やしました。セリフごとに表情が変わり、続けて話す掛け合い、同じところを続けて触ったときの反応、スタミナ満タン・ミッションの受け取り忘れ・新しいガチャ・連続ログインなどに合わせた話、開放ずみのパートナーどうしの話も入りました。<br>・瞳は鼻と腰のあいだが画面の真ん中に来るようにしました。<br>・表情ごとの口の位置を立ち絵の口に合わせました。<br>・ロビーのイベント・更新情報・パートナー・表示のボタンを少し小さくしました。<br>・ショップの印は、一度開いてパックなどを確認すると消えるようにしました（新しいパックが並ぶとまた付きます）。<br>・パートナー選択画面の「<b>ランダムに表示</b>」をオンにすると、アプリを開くたびに開放ずみのパートナーから1人が出てきます。<br>・樹愛羅の背景を新しくしました。<br>・パンツのあたりを触ったときの反応範囲を下のほうまで広げました。<br>・ロビーのアプリのアイコンを少し大きくしました。<br>・起動したときにキャラが表示されないことがあったのを修正しました。<br>・パートナーのボイスは終了しました。</div>
+      </div>
+    </div>
+    <!-- 2026-09-24g パートナーのボイス -->
+    <div class="nm-item" data-tag="new" data-date="2026-09-24">
+      <div class="nm-date">2026<br>09.24</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag launch">NEW</span></div>
+        <div class="nm-title">🎙 パートナーがしゃべるように（ボイス対応）</div>
+        <div class="nm-txt">・舞香・衣織・樹愛羅・映美里の<b>全セリフに声</b>が付きました。声に合わせて口が動きます。ボイスは<b>パートナー選択画面</b>でオン・オフできます。<br>・新しいタッチの反応を追加しました。<br>・まばたきと目の動きを自然にしました。<br>・パートナーの開放は <b>1人 30,000 XEVA</b> になりました（最初の1人は無料）。<br>・ボイス：VOICEVOX:冥鳴ひまり／VOICEVOX:春日部つむぎ／VOICEVOX:九州そら／VOICEVOX:四国めたん</div>
+      </div>
+    </div>
+    <!-- 2026-09-24e 映美里・パートナーの開放・同期 -->
+    <div class="nm-item" data-tag="new" data-date="2026-09-24">
+      <div class="nm-date">2026<br>09.24</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag launch">NEW</span></div>
+        <div class="nm-title">💜 パートナーに映美里（エミリ）／パートナーは XEVA で開放</div>
+        <div class="nm-txt">・パートナーに<b>映美里</b>が加わりました。樹愛羅は新しい絵になりました。<br>・パートナーは<b>最初の1人が無料</b>、2人目からは<b>1人 15,000 XEVA</b> で開放します（これまで選んでいたキャラは開放ずみのまま）。<br>・選んだパートナーとロビーのアプリは<b>端末をまたいで同期</b>されます。<br>・メニューに<b>全アプリ</b>が並ぶようになりました。目を閉じたときの色、胸の下側をさわったときの反応、揺れ方を改善しました。</div>
+      </div>
+    </div>
+    <!-- 2026-09-24d ロビーの仕上げ・樹愛羅・MagiBattle の育成を独立 -->
+    <div class="nm-item" data-tag="new" data-date="2026-09-24">
+      <div class="nm-date">2026<br>09.24</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag launch">NEW</span></div>
+        <div class="nm-title">🧡 パートナーに樹愛羅（キアラ）／ロビーを使いやすく</div>
+        <div class="nm-txt">・パートナーに<b>樹愛羅</b>が加わりました（設定 → ホームのパートナー）。<br>・ロビーの下は<b>アプリ5つ</b>に。並べるアプリは<b>設定 → ロビーのアプリ</b>で選べます。左上は<b>最近のガチャのバナー</b>が順に出ます（押すとそのガチャへ）。<br>・「開催中のイベント」「アップデート情報」は押すと<b>一覧</b>で見られます。<br>・セリフの吹き出しはお腹のあたりに。キャラの腕・首・目元のゆがみを直しました。<br>・MagiScope と MagiChainParty の位置を入れかえました。<br>・<b>MagiBattle のレベル・装備は MagiBattle だけで育てる</b>ようにしました（MagiBurst のレベルは使いません）。所持と凸は今までどおり共通です。</div>
+      </div>
+    </div>
+    <!-- 2026-09-24b ホームのロビー化・衣織 -->
+    <div class="nm-item" data-tag="new" data-date="2026-09-24">
+      <div class="nm-date">2026<br>09.24</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag launch">NEW</span></div>
+        <div class="nm-title">🌅 ホームが「ロビー」に／パートナーに衣織（イオリ）が登場</div>
+        <div class="nm-txt">・ホームを<b>パートナーが真ん中に立つロビー</b>にしました。まわりのボタンからショップ・アプリ・MagiBurst へすぐ行けます。<br>・今までの<b>イベント・アプリ・ピックアップ・アップデート</b>は、下の「メニュー」を押す（上へはらう）と出てくるシートに入っています。下バーの「ホーム」で閉じます。<br>・パートナーに<b>衣織</b>が加わりました。<b>設定 → ホームのパートナー</b>（またはロビー右の♥）で選べます。キャラごとに背景も変わります。<br>・セリフは<b>顔のとなりの吹き出し</b>に出るようになりました。腕をタップしたときの動きも自然にしました。</div>
+      </div>
+    </div>
+    <!-- 2026-09-24 ホームのパートナー（舞香） -->
+    <div class="nm-item" data-tag="new" data-date="2026-09-24">
+      <div class="nm-date">2026<br>09.24</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag launch">NEW</span></div>
+        <div class="nm-title">💗 ホームにパートナー「舞香（マイカ）」が登場</div>
+        <div class="nm-txt">・プロフィールの下に<b>パートナー</b>の欄ができました。舞香が呼吸・まばたきをし、髪・服・体がゆれ、<b>指の動きを目で追います</b>。<br>・頭・体・腕・足をタップすると、表情とセリフで反応します。時間帯であいさつも変わります。<br>・右下の🔍で<b>全身／アップ</b>を切りかえ。見出しを押すと欄を畳めます（畳むと動きも止まります）。</div>
+      </div>
+    </div>
     <!-- 2026-09-23 MagiBattle 2.0 -->
     <div class="nm-item" data-tag="new" data-date="2026-09-23">
       <div class="nm-date">2026<br>09.23</div>

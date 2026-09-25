@@ -85,6 +85,8 @@ export const PORTAL_SYNC_KEYS = [
   "xeva_home_order_v2",     // ホームのアプリ並び順（端末をまたいで同じ並びにする）
   "xeva_home_order_gen",
   "xeva_home_appicon_v1",   // ★ 2026-09-17 アプリのアイコンをキャラ画像に（アプリid → キャラid）
+  "xeva_mate_v1",           // ★★ 2026-09-24e ホームのパートナー（選択中・開放ずみ・表示の大きさ）
+  "xeva_lobby_apps_v1",     // ★★ 2026-09-24e ロビーの下に並べるアプリ5つ
   "xeva_ai_timers_v2",      // Magi AI Assistant の学習タイマー
 
   /* ══ 各ゲームのセーブ ══

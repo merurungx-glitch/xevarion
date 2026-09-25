@@ -474,12 +474,12 @@ function magiBattleHTML(id) {
     if (sh.own) {
       let xp = 0; try { xp = ((JSON.parse(localStorage.getItem("magibattle_v1") || "null") || {}).xp || {})[id] || 0; } catch (e) {}
       const own = Math.min(MBStats.MAX_LV, 1 + Math.floor(Math.sqrt(xp / 12)));
-      lv = Math.max(own, Math.min(MBStats.MAX_LV, Math.round((sh.mbLv || 0) * MBStats.MAX_LV / 70)));
+      lv = own;   /* ★★ 2026-09-24d MagiBattle の育成は独立（MagiBurst のレベルは見ない） */
       awk = sh.awk; cap = "いまの自分の値";
     } else { lv = 1; awk = 0; cap = "未所持（Lv.1）"; }
   }
   return `<div class="dsec mbb"><div class="t">評価（MagiBattle）<span class="turn" style="background:${MBStats.CLASSES[MBStats.unit(id).cls].c}">${MBStats.CLASSES[MBStats.unit(id).cls].nm}</span></div>
     ${MBStats.detailHTML(id, { lv, awk, gear })}
-    <div class="ddesc" style="margin-top:6px;font-size:10px">※ ${cap}。MagiBattle の凸は <b>MagiBurst・XEVA ガチャと共通</b>、レベルは MagiBattle の育成と MagiBurst のレベルの高いほうです。</div>
+    <div class="ddesc" style="margin-top:6px;font-size:10px">※ ${cap}。MagiBattle の凸は <b>MagiBurst・XEVA ガチャと共通</b>、レベルは MagiBattle で育てた分だけです（MagiBurst とは別）。</div>
   </div>`;
 }

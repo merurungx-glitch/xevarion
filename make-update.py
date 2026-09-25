@@ -55,7 +55,7 @@ FOLDER_APP = {
 # ★★ 2026-09-09 アプリではない<b>共通の置き場</b>。
 #   ここを見逃すと apps に "img" や "thumbs" が入り、
 #   どのタイルにも当たらない印が<b>消せないまま残る</b>。
-SHARED_DIRS = {"img", "thumbs", "brand", "icons"}
+SHARED_DIRS = {"img", "thumbs", "brand", "icons", "home-mate"}   # ★ 2026-09-24 home-mate＝ホームの動くキャラ
 # ルート直下のファイルは「どのタブの話か」に振り分ける（tab: を付けて区別する）
 ROOT_TAB = {
     "gacha.html": "tab:gacha", "gacha-ui.js": "tab:gacha",
@@ -108,6 +108,13 @@ def resolve(sw_path, url):
 
 
 def main():
+    # ★★ 2026-09-25 ホームのガチャのバナー用の台帳（gacha-live.js）を mb-core.js から作り直す（変わっていれば ?v= も上げる）
+    try:
+        import importlib.util
+        sp = importlib.util.spec_from_file_location("mgl", os.path.join(BASE, "make-gacha-live.py"))
+        mgl = importlib.util.module_from_spec(sp); sp.loader.exec_module(mgl); mgl.main()
+    except Exception as e:
+        print("!! make-gacha-live.py failed:", e)
     total, files, missing = 0, 0, []
     seen = set()
     urls = []          # パッケージに入っているファイル（サイト直下からの相対パス）

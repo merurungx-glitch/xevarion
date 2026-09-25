@@ -7,7 +7,7 @@
    ・オフライン中の進行は localStorage に残り、オンライン復帰時に
      xeva-cloud.js がタイムスタンプ比較でクラウドへ上書き反映する
    ============================================================ */
-const VERSION = "xevarion-sw-v184";
+const VERSION = "xevarion-sw-v198";
 
 /* ホームを成立させる最小セット（重い画像は runtime キャッシュに任せる） */
 const CORE = [
@@ -26,9 +26,9 @@ const CORE = [
   /* ★ 2026-08-10 ガチャと図鑑で共通の土台・キャラ詳細・結果演出 */
   /* ★ 2026-08-12 ポータルのガチャ・図鑑も magiburst_v1 を同期するようになった */
   "./app-cloud.js?v=12",
-  "./MagiBurst/magiburst-cloud.js?v=18",
+  "./MagiBurst/magiburst-cloud.js?v=19",
   "./mb-boot.js?v=17",
-  "./mb-char-detail.js?v=35",
+  "./mb-char-detail.js?v=36",
   "./mb-char-detail.css?v=24",
   "./mb-gacha-reveal.css?v=11",
   "./community.html",
@@ -60,11 +60,55 @@ const CORE = [
   "./xeva.js?v=71",
   "./xeva-fx.js?v=9",
   "./xeva-loading.js?v=18",
-  "./xevarion.js?v=94",
-  "./xevarion-home.js?v=140",
+  "./xevarion.js?v=95",
+  "./xevarion-home.js?v=147",
+  /* ★★ 2026-09-24 ホームのロビーとパートナー。素材は home-mate/<id>/（?v= は home-mate.js の HM_VER）・笙古／瞳／舞香／衣織／樹愛羅／映美里（09-25 ボイス廃止・表情は webp） */
+  "./gacha-live.js?v=1",
+  "./home-mate.js?v=13",
+  "./home-mate.css?v=13",
+  "./home-mate/shoko/shoko.json?v=13",
+  "./home-mate/shoko/shoko.webp?v=13",
+  "./home-mate/shoko/shoko_label.webp?v=13",
+  "./home-mate/shoko/shoko_face.webp?v=13",
+  "./home-mate/shoko/bg.webp?v=13",
+  "./home-mate/hitomi/hitomi.json?v=13",
+  "./home-mate/hitomi/hitomi.webp?v=13",
+  "./home-mate/hitomi/hitomi_label.webp?v=13",
+  "./home-mate/hitomi/hitomi_face.webp?v=13",
+  "./home-mate/hitomi/bg.webp?v=13",
+  "./home-mate/hana/hana.json?v=13",
+  "./home-mate/hana/hana.webp?v=13",
+  "./home-mate/hana/hana_label.webp?v=13",
+  "./home-mate/hana/hana_face.webp?v=13",
+  "./home-mate/hana/bg.webp?v=13",
+  "./home-mate/lisa/lisa.json?v=13",
+  "./home-mate/lisa/lisa.webp?v=13",
+  "./home-mate/lisa/lisa_label.webp?v=13",
+  "./home-mate/lisa/lisa_face.webp?v=13",
+  "./home-mate/lisa/bg.webp?v=13",
+  "./home-mate/maika/maika.json?v=13",
+  "./home-mate/maika/maika.webp?v=13",
+  "./home-mate/maika/maika_label.webp?v=13",
+  "./home-mate/maika/maika_face.webp?v=13",
+  "./home-mate/maika/bg.webp?v=13",
+  "./home-mate/iori/iori.json?v=13",
+  "./home-mate/iori/iori.webp?v=13",
+  "./home-mate/iori/iori_label.webp?v=13",
+  "./home-mate/iori/iori_face.webp?v=13",
+  "./home-mate/iori/bg.webp?v=13",
+  "./home-mate/kiara/kiara.json?v=13",
+  "./home-mate/kiara/kiara.webp?v=13",
+  "./home-mate/kiara/kiara_label.webp?v=13",
+  "./home-mate/kiara/kiara_face.webp?v=13",
+  "./home-mate/kiara/bg.webp?v=13",
+  "./home-mate/emiri/emiri.json?v=13",
+  "./home-mate/emiri/emiri.webp?v=13",
+  "./home-mate/emiri/emiri_label.webp?v=13",
+  "./home-mate/emiri/emiri_face.webp?v=13",
+  "./home-mate/emiri/bg.webp?v=13",
   "./maintenance-gate.js?v=13",
   "./xeva-back.js?v=9",
-  "./xeva-keys.js?v=26",
+  "./xeva-keys.js?v=27",
   /* ★ 2026-08-20 通信設定（Wi-Fi／モバイルデータごとの動き）。
      この SW へ設定を送る側なので、オフラインでも読めるようにここに入れておく。 */
   "./xeva-netmode.js?v=10",
