@@ -3086,7 +3086,7 @@ async function loadMbDetail() {
   }
   /* MagiBattle の評価も出したいので、その計算だけ先に読む（無くても詳細は開く） */
   if (!window.MBStats) { try { await loadScriptOnce("../magibattle-stats.js?v=15"); } catch (e) {} }
-  if (typeof window.openDetX !== "function") await loadScriptOnce("../mb-char-detail.js?v=35");
+  if (typeof window.openDetX !== "function") await loadScriptOnce("../mb-char-detail.js?v=36");
   _mbDetailReady = true;
 }
 /* ══ ★ 2026-08-17f MagiBurst 表の中身をそろえ直す ══
