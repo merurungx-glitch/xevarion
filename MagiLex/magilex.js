@@ -968,7 +968,7 @@ window.lexKpDetail = async function(id){
     }
     if(typeof window.DB === "undefined") await _loadScript("../mb-boot.js?v=17");
     if(typeof window.CHARS === "undefined") await _loadScript("../MagiBurst/js/mb-core.js?v=129");
-    if(typeof window.openDetX !== "function") await _loadScript("../mb-char-detail.js?v=35");
+    if(typeof window.openDetX !== "function") await _loadScript("../mb-char-detail.js?v=36");
     _kpDetReady = true;
     _kpOpen(id);
   }catch(e){
