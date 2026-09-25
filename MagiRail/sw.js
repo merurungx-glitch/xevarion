@@ -3,7 +3,7 @@
    ・1台で遊ぶ経営シミュレーション。キャッシュすれば完全にオフラインで動く
    ・セーブ（magirail_v1）は localStorage
    ============================================================ */
-const VERSION = "magirail-sw-v6";
+const VERSION = "magirail-sw-v7";
 const CORE = [
   "./index.html",
   "./css/rail.css?v=3",
