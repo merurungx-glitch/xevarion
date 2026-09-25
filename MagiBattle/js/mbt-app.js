@@ -3,8 +3,9 @@
    ------------------------------------------------------------
    ・キャラは <b>XEVARION の全キャラ</b>（mb-core.js の CHARS・No. 順）。性能は ../magibattle-stats.js。
    ・所持と<b>凸は共通</b>：MagiBurst（magiburst_v1）と XEVA ガチャ（xeva_gacha_v1）を読むだけで、ここでは書かない。
-   ・レベルは MagiBattle の経験値と、<b>MagiBurst で育てたレベル</b>の高いほう（育てた子はここでも強い）。
-   ・<b>装備</b>は MagiBattle の持ちもの（MagiBurst から移設。持っていた装備は1回だけ引きつぐ）。
+   ・★★ 2026-09-24d <b>育成は MagiBattle だけで独立</b>（ご指定）。レベルは MagiBattle の経験値だけで決まり、
+     MagiBurst のレベルは見ない。所持と凸はガチャの結果なので共通のまま。
+   ・<b>装備</b>は MagiBattle の持ちもの（2026-09-24d から MagiBurst の装備の引きつぎもしない。引きついだ分はそのまま残す）。
    ・通貨の表示は XEVARION 共通の<b>ジェム</b>（gem.png・XEVA.gem）。報酬も共通ウォレットへ。
    ・セーブ（magibattle_v1）は xeva-cloud が同期する。<b>同期で書きかわったら読み直す</b>
      （前はメモリの写しで上書きしていたので、別の端末の進みが消えていた）。
@@ -75,10 +76,10 @@
       DB.ver = 2;
       if (st) DB._migNote = "旧装備を強化石 " + st + " 個に交換しました";
     }
-    /* ★ MagiBurst の装備（廃止）を1回だけ引きつぐ。1つ＝オーバーロード1つを持つ T7 の装備。 */
+    /* ★ MagiBurst の装備を引きつぐ処理は 2026-09-24d で止めた（育成は独立）。印だけ付けて何もしない。 */
     if (!DB.migMB) {
       DB.migMB = 1;
-      try {
+      if (false) try {
         const mb = JSON.parse(localStorage.getItem("magiburst_v1") || "null") || {};
         const g = mb.gear || {}, on = mb.gearOn || {};
         let n = 0;
@@ -124,7 +125,7 @@
   function lvFromXp(xp) { return Math.min(M().MAX_LV, 1 + Math.floor(Math.sqrt((xp || 0) / XP_K))); }
   function xpForLv(lv) { return (lv - 1) * (lv - 1) * XP_K; }
   function ownLv(id) { return lvFromXp(DB.xp[id] || 0); }
-  function lvOf(id) { const s = shared(id); return Math.max(ownLv(id), Math.min(M().MAX_LV, Math.round((s.mbLv || 0) * M().MAX_LV / 70))); }
+  function lvOf(id) { return ownLv(id); }   /* ★★ 2026-09-24d MagiBurst のレベルは使わない（育成は独立） */
   function owned(id) { return shared(id).own; }
   function awkOf(id) { return shared(id).awk; }
   function gearList(id) { const o = DB.gearOn[id] || {}; return M().GEAR_PARTS.map((p) => DB.gear[o[p]]).filter(Boolean); }
@@ -322,7 +323,7 @@
   let cElem = "all", cOwn = "own", cSort = "power", cCls = "all", cQ = "";
   function viewChars() {
     return '<div class="pnl"><div class="pnl-h"><b>キャラクター</b><span class="r" id="cCount"></span></div>'
-      + '<div class="note">XEVARION の<b>全キャラ</b>が MagiBattle に出られます。所持と<b>凸は MagiBurst・XEVA ガチャと共通</b>、レベルは MagiBattle で育てた分と MagiBurst のレベルの高いほうです。</div>'
+      + '<div class="note">XEVARION の<b>全キャラ</b>が MagiBattle に出られます。所持と<b>凸は MagiBurst・XEVA ガチャと共通</b>です。<b>レベル・装備は MagiBattle だけで育てます</b>（MagiBurst とは別）。</div>'
       + '<div class="chips" id="cEl" style="margin-top:10px">' + elemChips(cElem) + "</div>"
       + '<div class="tools"><div class="chips" id="cOw">' + [["own", "所持"], ["all", "すべて"], ["no", "未所持"]].map((x) => '<button class="chip' + (cOwn === x[0] ? " on" : "") + '" data-o="' + x[0] + '">' + x[1] + "</button>").join("") + "</div>"
       + '<select class="selbtn" id="cCls"><option value="all">全クラス</option><option value="attacker">火力型</option><option value="defender">防御型</option><option value="supporter">支援型</option><option value="b1">バーストⅠ</option><option value="b2">バーストⅡ</option><option value="b3">バーストⅢ</option></select>'
@@ -357,7 +358,7 @@
   /* ══════════════ キャラ詳細 ══════════════ */
   function openDetail(id) {
     const p = M().unit(id), own = owned(id), aw = own ? awkOf(id) : 0, lv = own ? lvOf(id) : 1;
-    const xp = DB.xp[id] || 0, olv = ownLv(id), mbl = shared(id).mbLv;
+    const xp = DB.xp[id] || 0, olv = ownLv(id);
     const nextXp = xpForLv(Math.min(M().MAX_LV, olv + 1)), curXp = xpForLv(olv);
     const pr = olv >= M().MAX_LV ? 100 : Math.max(0, Math.min(100, (xp - curXp) / Math.max(1, nextXp - curXp) * 100));
     const gear = DB.gearOn[id] || {};
@@ -368,9 +369,9 @@
     }).join("");
     openSheet('<div class="dhero"><img src="' + esc(p.img) + '" alt=""><div class="nmb"><b>' + esc(p.nm) + "</b><span>" + (own ? "Lv." + lv + (aw ? "・" + (aw >= 4 ? "完凸" : aw + "凸") : "") : "未所持") + "</span></div>"
       + '<div class="rar ' + (p.rar === "SSR" ? "ssr" : "") + '">' + p.rar + "</div></div>"
-      + (own ? '<div class="lvrow"><div class="lvl"><div class="lvb">Lv.' + lv + '</div><small>育成 Lv.' + olv + (mbl ? "・MagiBurst Lv." + mbl : "") + "</small></div>"
+      + (own ? '<div class="lvrow"><div class="lvl"><div class="lvb">Lv.' + lv + '</div><small>育成 Lv.' + olv + "</small></div>"
         + '<div style="flex:1;min-width:0"><div class="xpbar"><i style="width:' + pr.toFixed(0) + '%"></i></div>'
-        + '<div class="note" style="margin-top:3px">結晶 1個＝500EXP（所持 ' + nf(DB.mats.crystal) + "）" + (mbl && lv > olv ? "<br>いまは MagiBurst のレベルが使われています" : "") + "</div></div>"
+        + '<div class="note" style="margin-top:3px">結晶 1個＝500EXP（所持 ' + nf(DB.mats.crystal) + "）</div></div>"
         + '<div class="lvbt"><button class="btn gold" id="dUp1" ' + (DB.mats.crystal > 0 && olv < M().MAX_LV ? "" : "disabled") + '>＋1</button><button class="btn gold" id="dUpM" ' + (DB.mats.crystal > 0 && olv < M().MAX_LV ? "" : "disabled") + ">×10</button></div></div>" : "")
       + (own ? '<div class="pnl-h" style="margin-top:6px"><b style="font-size:15px">装備</b><span class="r"><button class="chip" id="dAutoG">おまかせ装備</button></span></div><div class="gslots">' + gslots + "</div>" : "")
       + '<div class="pnl" style="margin-top:12px">' + M().detailHTML(id, { lv, awk: aw, gear: M().gearSum(gearList(id)) }) + "</div>"
@@ -704,7 +705,7 @@
       + "<b>④ 照準</b>：敵をタップするとその敵を集中攻撃。<br>"
       + "<b>⑤ チャージ攻撃</b>：ボスの「⚠ CHARGE」の赤いコアを5秒以内に削ると <b>BREAK</b>（3秒気絶）。削れないと全体に大ダメージ。<br>"
       + "<b>⑥ 属性</b>：火→木→水→火、光⇄闇 で有利なら ×1.3。<br>"
-      + "<b>⑦ 育成</b>：経験の結晶でレベル（最大80）、装備（頭・腕・胸・足）と強化石で強化。凸は MagiBurst・XEVA ガチャと共通。<br>"
+      + "<b>⑦ 育成</b>：経験の結晶でレベル（最大80）、装備（頭・腕・胸・足）と強化石で強化。凸は MagiBurst・XEVA ガチャと共通（レベル・装備は MagiBattle だけの育成）。<br>"
       + "<b>⑧ シナジー</b>：同じフェス（学園・宴など）のキャラを2体で攻撃+5%、3体で+10%、5体で+20%。"
       + "</div>");
   }

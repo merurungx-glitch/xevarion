@@ -5,7 +5,7 @@
    ・キャラクターの絵は XEVARION の img/ にあるので、ここでは丸ごと持たない
      （ポータル側の SW が持っている。開いたぶんだけ実行時に控える）。
    ============================================================ */
-const VERSION = "boccia-sw-v31";
+const VERSION = "boccia-sw-v32";
 const RUNTIME = "boccia-rt-v1";
 const CORE = [
   "./index.html",
@@ -32,10 +32,10 @@ const CORE = [
      ・オンライン対戦とアカウント同期のモジュール（読めないと console が赤くなるだけで遊べるが、そろえておく）
      ・英語版の辞書（オフラインで英語にしたとき、キャラ名が日本語に戻らないように） */
   "./js/mbr-online.js?v=4",
-  "../xeva-cloud.js?v=37",
-  "../MagiBurst/magiburst-cloud.js?v=18",
+  "../xeva-cloud.js?v=38",
+  "../MagiBurst/magiburst-cloud.js?v=19",
   "../app-cloud.js?v=12",
-  "../xeva-keys.js?v=26",
+  "../xeva-keys.js?v=27",
   "../xeva-i18n.js?v=8",
   "../xeva-i18n-dict.js?v=12",
   "../xeva-i18n-mb1.js?v=7",
