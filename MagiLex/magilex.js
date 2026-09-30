@@ -873,7 +873,7 @@ function renderKpShop(){
   }).join("");
   const canT = bal >= KP_TICKET_COST;
   $("#scr-kpshop").innerHTML = `
-    <div class="back-row"><button class="back-btn" onclick="lexBack()">←</button><h2>💠 KP交換所</h2></div>
+    <div class="back-row stick"><button class="back-btn" onclick="lexBack()">←</button><h2>💠 KP交換所</h2></div>
     <div class="kp-bal">
       <img src="kp.webp" alt="KP" onerror="this.style.display='none'">
       <div><b>${bal}</b> KP<small>これまでの合計 ${P.kpTotal|0} KP</small></div>
@@ -1997,7 +1997,7 @@ function renderDetail(){
   if(!counts.includes(quizCount) && counts.length) quizCount=counts[counts.length-1];
   const unlearnedNow=unlearnedCount(c);   // 「未習得のみ」フラッシュカードの残り枚数
   $("#scr-detail").innerHTML=`
-    <div class="back-row"><button class="back-btn" onclick="lexBack()">←</button><h2>${subjIcon(c,"big")} ${esc(c.name)}</h2></div>
+    <div class="back-row stick"><button class="back-btn" onclick="lexBack()">←</button><h2>${subjIcon(c,"big")} ${esc(c.name)}</h2></div>
     <div class="set-card"><div style="font-weight:800;font-size:.86rem;margin-bottom:10px">習得メーター</div>${meterHTML(c)}
       <div class="vol-note">${uiIconSVG('trophy')} 完全習得で <b>＋${rw(masterReward(c)).toLocaleString()} XEVA</b>${volumeMult(c.total)>1?`（${c.total}問のボリュームボーナス <b>×${volumeMult(c.total)}</b>）`:""}${campaignActive()?"（夏キャン2倍込み）":""}</div>
       <div class="reset-row">
@@ -2172,7 +2172,7 @@ function renderMixSetup(){
   const short = Math.max(0, MIX_FIXED_N - pool);
   const n = MIX_FIXED_N;
   $("#scr-mixsetup").innerHTML = `
-    <div class="back-row"><button class="back-btn" onclick="lexBack()">←</button><h2>${uiIconSVG('mix')} ミックス問題</h2></div>
+    <div class="back-row stick"><button class="back-btn" onclick="lexBack()">←</button><h2>${uiIconSVG('mix')} ミックス問題</h2></div>
     <div class="set-card">
       <div style="font-weight:800;font-size:.86rem;margin-bottom:6px">出題する科目・範囲をえらぶ</div>
       <p class="mix-note">チェックを入れた範囲だけから<b>20問</b>出題します。<b>未習得の問題が優先</b>されるのはこれまでどおりです。</p>
@@ -2802,7 +2802,7 @@ window.lexShowList=()=>{
          まで見られます。分からない言葉は、その場でやさしい例題までさかのぼれます。</div>`
     : "";
   $("#scr-wordlist").innerHTML=`
-    <div class="back-row"><button class="back-btn" onclick="lexBack()">←</button><h2>${c.type==="word"?"📋":"📖"} ${esc(c.name)}</h2></div>
+    <div class="back-row stick"><button class="back-btn" onclick="lexBack()">←</button><h2>${c.type==="word"?"📋":"📖"} ${esc(c.name)}</h2></div>
     ${deepHead}
     <div class="list">${rows}</div>`;
   show({name:"wordlist",tab:"library"});

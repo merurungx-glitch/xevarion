@@ -838,6 +838,13 @@ body.in-quiz .memo-open{bottom:calc(20px + env(safe-area-inset-bottom,0px))}
      セーフエリアぶん高さが変わるので、決め打ちにせず実測値（--tbh）を使う。 */
 .quiz-head{position:sticky;top:var(--tbh,64px);z-index:15;background:var(--bg);
   padding-top:10px;padding-bottom:8px;margin-bottom:2px}
+/* ★ 2026-09-29 問題の束（セット）を開いた画面・「問題と答えの一覧」などの「←」（一覧へもどる）も
+   スクロールしても左上に残す（ご指定）。問題ヘッダーと同じく、ヘッダーのすぐ下（--tbh）に貼り付ける。
+   ★ 「←」のある行だけ（ライブラリ・学習データなど一番上の画面の見出しは今まで通り流れる）。 */
+.back-row:has(> .back-btn){position:sticky;top:var(--tbh,64px);z-index:15;background:var(--bg);
+  margin:0 -4px;padding:10px 8px 8px;box-shadow:0 8px 12px -10px rgba(60,52,110,.25)}
+.back-row.stick{position:sticky;top:var(--tbh,64px);z-index:15;background:var(--bg);
+  margin:0 -4px;padding:10px 8px 8px;box-shadow:0 8px 12px -10px rgba(60,52,110,.25)}
 
 .memo-sheet{position:fixed;left:0;right:0;bottom:0;z-index:9000;height:72svh;
   background:var(--panel);border-top:1.5px solid var(--line);

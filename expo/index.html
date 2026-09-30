@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<meta name="theme-color" content="#0a1024">
+<title>XEVARION PARK</title>
+<link rel="icon" href="../brand-xevarion-orb.png">
+<link rel="stylesheet" href="expo.css?v=6">
+</head>
+<body>
+<div id="vidFrame"></div>
+<canvas id="cv"></canvas>
+<div id="sponsor"><em>このショーは</em><small>ショー</small><b>提供</b><img src="img/ngx_logo.webp" alt="NGX"><i>でお送りしました</i></div>
+<div id="bubbles"></div>
+
+<!-- 読みこみ（★ 2026-09-28d パークのロゴ） -->
+<div id="loading">
+  <img class="logo" src="img/park_logo.webp" alt="XEVARION PARK — Connect Everything. Expand the Future.">
+  <small id="loadT">パークを準備しています…</small>
+  <div class="bar"><i id="barIn"></i></div>
+</div>
+
+<!-- ★★ 2026-09-29 XEVARION PARK 風のアイコン（ロゴの青・水色・紫のグラデーションと星のきらめき） -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="xpg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8af0ff"/><stop offset=".5" stop-color="#4a8cff"/><stop offset="1" stop-color="#c07aff"/></linearGradient>
+    <linearGradient id="xpgs" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff29a"/><stop offset="1" stop-color="#ffa03a"/></linearGradient>
+    <linearGradient id="xpgd" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffc36a"/><stop offset="1" stop-color="#ff5f9a"/></linearGradient>
+    <mask id="xpMoon"><rect width="24" height="24" fill="#fff"/><circle cx="16.2" cy="8.2" r="6.6" fill="#000"/></mask>
+  </defs>
+  <symbol id="i-home" viewBox="0 0 24 24"><path d="M3.5 11 12 4l8.5 7M6 9.5V20h12V9.5" fill="none" stroke="url(#xpg)" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/><path d="M10 20v-5h4v5" fill="none" stroke="url(#xpg)" stroke-width="1.9"/></symbol>
+  <symbol id="i-map" viewBox="0 0 24 24"><path d="M3 6.6 8.8 4.5l6.4 2.1L21 4.5v13l-5.8 2.1-6.4-2.1L3 19.6z" fill="none" stroke="url(#xpg)" stroke-width="2" stroke-linejoin="round"/><path d="M8.8 4.5v13M15.2 6.6v13" stroke="url(#xpg)" stroke-width="1.5" opacity=".7"/><path d="M12 14.2s-2.9-2.6-2.9-4.8a2.9 2.9 0 0 1 5.8 0c0 2.2-2.9 4.8-2.9 4.8z" fill="#ff5f9a" stroke="#fff" stroke-width="1.1"/><circle cx="12" cy="9.4" r="1" fill="#fff"/></symbol>
+  <symbol id="i-sky" viewBox="0 0 24 24"><circle cx="11" cy="13" r="4.6" fill="none" stroke="url(#xpg)" stroke-width="2"/><ellipse cx="11" cy="13" rx="9.3" ry="3.3" transform="rotate(-24 11 13)" fill="none" stroke="url(#xpg)" stroke-width="1.8"/><path d="M19 1.8c.3 1.7 1 2.4 2.7 2.7-1.7.3-2.4 1-2.7 2.7-.3-1.7-1-2.4-2.7-2.7 1.7-.3 2.4-1 2.7-2.7z" fill="#fff"/></symbol>
+  <symbol id="i-bag" viewBox="0 0 24 24"><path d="M5.8 9.6a6.2 6.2 0 0 1 12.4 0V19a2 2 0 0 1-2 2H7.8a2 2 0 0 1-2-2z" fill="none" stroke="url(#xpg)" stroke-width="2"/><path d="M9 6.2V4.8A1.8 1.8 0 0 1 10.8 3h2.4A1.8 1.8 0 0 1 15 4.8v1.4" fill="none" stroke="url(#xpg)" stroke-width="1.8"/><path d="M12 10.8c.35 1.7.9 2.25 2.6 2.6-1.7.35-2.25.9-2.6 2.6-.35-1.7-.9-2.25-2.6-2.6 1.7-.35 2.25-.9 2.6-2.6z" fill="#fff"/></symbol>
+  <symbol id="i-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4.6" fill="url(#xpgs)"/><path d="M12 2.4v2.7M12 18.9v2.7M2.4 12h2.7M18.9 12h2.7M5.2 5.2l1.9 1.9M16.9 16.9l1.9 1.9M5.2 18.8l1.9-1.9M16.9 7.1l1.9-1.9" stroke="url(#xpgs)" stroke-width="2.1" stroke-linecap="round"/></symbol>
+  <symbol id="i-dusk" viewBox="0 0 24 24"><path d="M6.3 16.2a5.7 5.7 0 0 1 11.4 0z" fill="url(#xpgd)"/><path d="M2.5 16.6h19M5.5 20.2h13" stroke="url(#xpgd)" stroke-width="2" stroke-linecap="round"/><path d="M12 4.6v2.6M5.2 8.2l1.7 1.7M18.8 8.2l-1.7 1.7" stroke="url(#xpgd)" stroke-width="1.9" stroke-linecap="round"/></symbol>
+  <symbol id="i-moon" viewBox="0 0 24 24"><circle cx="11" cy="13" r="8.2" fill="url(#xpg)" mask="url(#xpMoon)"/><path d="M19.2 2.6c.3 1.5.85 2.05 2.35 2.35-1.5.3-2.05.85-2.35 2.35-.3-1.5-.85-2.05-2.35-2.35 1.5-.3 2.05-.85 2.35-2.35z" fill="#fff"/></symbol>
+  <symbol id="i-run" viewBox="0 0 24 24"><path d="M14 2.4 6.8 13.2h5.1L10.4 21.6l7.8-11.8h-5.2z" fill="url(#xpg)" stroke="#fff" stroke-width=".9" stroke-linejoin="round"/><path d="M2.4 8.8h3.2M1.6 12.8h3.2M2.8 16.8h3.2" stroke="url(#xpg)" stroke-width="1.9" stroke-linecap="round"/></symbol>
+  <symbol id="i-music" viewBox="0 0 24 24"><path d="M9 17.6V6.2l10.2-2.6v11.6" fill="none" stroke="url(#xpg)" stroke-width="2" stroke-linejoin="round"/><path d="M9 9.4 19.2 6.8" stroke="url(#xpg)" stroke-width="2"/><ellipse cx="6.7" cy="17.7" rx="2.7" ry="2.2" fill="url(#xpg)"/><ellipse cx="16.9" cy="15.2" rx="2.7" ry="2.2" fill="url(#xpg)"/></symbol>
+  <symbol id="i-eye" viewBox="0 0 24 24"><path d="M2 12s3.6-6.5 10-6.5S22 12 22 12s-3.6 6.5-10 6.5S2 12 2 12z" fill="none" stroke="url(#xpg)" stroke-width="2" stroke-linejoin="round"/><circle cx="12" cy="12" r="3.4" fill="url(#xpg)"/><circle cx="13.1" cy="10.9" r="1" fill="#fff"/></symbol>
+  <symbol id="i-gear" viewBox="0 0 24 24"><path d="M12 8.2a3.8 3.8 0 1 0 0 7.6 3.8 3.8 0 0 0 0-7.6z" fill="none" stroke="url(#xpg)" stroke-width="2"/><path d="M12 2.6l1.6 2.3 2.7-.7.7 2.7 2.6 1.1-.9 2.6 1.9 2-1.9 2 .9 2.6-2.6 1.1-.7 2.7-2.7-.7L12 21.4l-1.6-2.3-2.7.7-.7-2.7-2.6-1.1.9-2.6-1.9-2 1.9-2-.9-2.6 2.6-1.1.7-2.7 2.7.7z" fill="none" stroke="url(#xpg)" stroke-width="1.6" stroke-linejoin="round"/></symbol>
+  <symbol id="i-hover" viewBox="0 0 24 24"><path d="M2.8 13.6c0-2 1.6-3.6 3.6-3.6h6.5l3.3-3.1h3.4l-1.9 3.4c1.7.4 2.9 1.8 2.9 3.3 0 1.1-.9 2-2 2H4.8c-1.1 0-2-.9-2-2z" fill="none" stroke="url(#xpg)" stroke-width="2" stroke-linejoin="round"/><path d="M6 19.2h4.2M13.8 19.2H18" stroke="#8af0ff" stroke-width="2.1" stroke-linecap="round"/><circle cx="8" cy="12.7" r="1.2" fill="#fff"/></symbol>
+</svg>
+
+<!-- 画面の UI -->
+<div id="hud">
+  <button id="exitBtn" class="pill"><svg class="ic"><use href="#i-home"/></svg><span>ホーム</span></button>
+  <img id="hudLogo" src="img/park_wordmark.webp" alt="XEVARION PARK">
+  <div id="zone">XEVARION PARK</div>
+  <canvas id="mini" width="300" height="240"></canvas>
+  <div class="rbtns">
+    <button id="mapBtn" class="rb" title="地図・ワープ（M）"><svg class="ic"><use href="#i-map"/></svg><small>地図</small></button>
+    <button id="skyBtn" class="rb" title="上空から見る（V）"><svg class="ic"><use href="#i-sky"/></svg><small>上空</small></button>
+    <button id="bagBtn" class="rb" title="思い出バッグ・スタンプラリー"><svg class="ic"><use href="#i-bag"/></svg><small>バッグ</small></button>
+    <button id="timeBtn" class="rb" title="昼・夕方・夜（T）"><svg class="ic"><use href="#i-sun"/></svg><small>昼</small></button>
+    <button id="runBtn" class="rb" title="ダッシュ（W を2回）"><svg class="ic"><use href="#i-run"/></svg><small>ダッシュ</small></button>
+    <button id="musicBtn" class="rb" title="パークの音楽"><svg class="ic"><use href="#i-music"/></svg><small>音楽</small></button>
+    <button id="hoverBtn" class="rb" title="XEVA HOVER（C）"><svg class="ic"><use href="#i-hover"/></svg><small>ホバー</small></button>
+    <button id="fpBtn" class="rb" title="一人称視点（F）"><svg class="ic"><use href="#i-eye"/></svg><small>一人称</small></button>
+    <button id="setBtn" class="rb" title="設定（O）"><svg class="ic"><use href="#i-gear"/></svg><small>設定</small></button>
+  </div>
+  <div id="nowPlay"></div>
+  <button id="actBtn"></button>
+  <div id="hintE">E</div>
+  <div id="joy"><i id="knob"></i></div>
+</div>
+<!-- 上空から見る -->
+<div id="skyUI">
+  <img src="img/park_logo.webp" alt="XEVARION PARK">
+  <p>ドラッグで回す・ホイール（2本指）で近づく・WASD で動かす</p>
+  <button id="skyBack" class="pill2">もどる</button>
+</div>
+<!-- 動画（YouTube の公式プレーヤー） -->
+<div id="vid">
+  <div class="vbar">
+    <b>🎬 大画面で動画を見る</b>
+    <input id="vidUrl" type="text" inputmode="url" placeholder="YouTube の動画のURL（または動画ID）を貼る">
+    <button id="vidPlay">再生</button>
+    <button id="vidClose">閉じる</button>
+    <div class="bpm"><span>ライトのテンポ</span><button id="bpmTap">♪ タップ</button><b id="bpmV">128 BPM</b><button id="bpmDn">−</button><button id="bpmUp">＋</button><button id="vidFree">🚶 歩いて見る</button></div>
+    <div id="vidList"></div>
+    <small>YouTube の公式の埋め込みプレーヤーで再生します（埋め込みが許可された動画だけ）。見た動画はこの端末に保存されます。</small>
+  </div>
+</div>
+<div id="toast"></div>
+<div id="notice"></div>
+
+<!-- スライド・メニューを読む -->
+<div id="slides" class="ov">
+  <div class="card wide">
+    <div class="hd"><b id="slT"></b><button class="x" aria-label="閉じる">✕</button></div>
+    <div id="slList"></div>
+  </div>
+</div>
+<div id="fade"><b id="fadeT"></b></div>
+
+<script src="three.min.js?v=160"></script>
+<script src="../gacha-live.js?v=1"></script>
+<script src="expo-data.js?v=8"></script>
+<script src="tex.js?v=2"></script>
+<script src="vrm.js?v=3"></script>
+<script src="world.js?v=6"></script>
+<script src="park.js?v=4"></script>
+<script src="park_style.js?v=2"></script>
+<script src="park_interiors.js?v=3"></script>
+<script src="park_areas.js?v=4"></script>
+<script src="park_areas2.js?v=4"></script>
+<script src="park_harbor.js?v=3"></script>
+<script src="park_dome.js?v=3"></script>
+<script src="park_night2.js?v=3"></script>
+<script src="park_new.js?v=2"></script>
+<script src="park_sports.js?v=3"></script>
+<script src="park_more.js?v=2"></script>
+<script src="park_life.js?v=1"></script>
+<script src="park_scope.js?v=2"></script>
+<script src="park_adult.js?v=1"></script>
+<script src="park_roads.js?v=2"></script>
+<script src="gfx.js?v=2"></script>
+<script src="fx.js?v=3"></script>
+<script src="people.js?v=2"></script>
+<script src="games.js?v=3"></script>
+<script src="park_kart.js?v=1"></script>
+<script src="audio/park_music.js?v=2"></script>
+<script src="park_rides.js?v=3"></script>
+<script src="park_transit.js?v=3"></script>
+<script src="park_shows.js?v=3"></script>
+<script src="park_ui.js?v=3"></script>
+<script src="park_rooms.js?v=2"></script>
+<script src="main.js?v=6"></script>
+</body>
+</html>
