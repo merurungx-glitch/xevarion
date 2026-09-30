@@ -225,6 +225,105 @@
         }
       }
     },
+    /* ★★ 2026-09-28 新しいパートナー（大人・ご指定）。杏奈＝青い長髪・シャツを羽織った黄色の水着／沙夏＝金髪ショート・フリルの水着 */
+    anna: {
+      dir: "home-mate/anna/", name: "杏奈", ruby: "アンナ", color: "#2f78b8",
+      intro: "落ち着いた大人のお姉さん。面倒見がよくて、ちょっぴりいたずら好き。",
+      lines: {
+        intro: ["{proud}杏奈よ。今日からあなたのパートナー。|{smile}……ふふ、よろしくね。いっぱい甘えていいのよ？"],
+        back: ["{half}あら、やっと来た。……待ちくたびれて、日焼けしちゃうところだったわ。", "{shy}おかえりなさい。……ちょっとだけ、会いたかった。"],
+        morning: ["{sleepy}おはよう……。朝の海風って、まだ少し冷たいわね。", "{smile}おはよう！今日もいい天気。シャツ一枚で十分ね。",
+                  "{proud}朝ごはんはちゃんと食べた？お姉さんとの約束よ。", "{closed}ん〜、朝の光、気持ちいい……。"],
+        day: ["{smile}こんにちは。ちょうどあなたのこと考えてたの。", "{proud}お昼は日差しが強いわ。日焼け止め、塗ってあげましょうか？",
+              "{closed}波の音を聞いてると、眠くなっちゃうわね。", "{smile}ビーチで冷たいドリンクでも飲みましょ。"],
+        evening: ["{smile}おかえりなさい。今日もよくがんばったわね。", "{proud}夕焼けの海、いっしょに見ていかない？",
+                  "{closed}今日のごほうび。……いい子いい子。", "{shy}夕方の風で髪がほどけちゃいそう。……直してくれる？"],
+        night: ["{proud}夜ふかしさんね。……少しだけなら、付き合ってあげる。", "{sleepy}ふぁ……わたしもそろそろ眠いわ。",
+                "{smile}夜の海も静かでいいでしょう？星がよく見えるの。", "{shy}おやすみの前に、会いに来てくれてうれしい。"],
+        idle: ["{smile}ねえ、今日は何して遊ぶ？", "{proud}ガチャを引くなら、お姉さんが隣で見ててあげる。", "{closed}このシャツ、あなたが似合うって言ってくれたから着てるのよ。",
+               "{half}……じっと見て。何か言いたいことでもあるの？", "{proud}無理はだめよ。疲れたら、ここで休んでいきなさい。", "{smile}ミッション、残ってたら手伝うわね。",
+               "{closed}髪、長いと潮風でからまっちゃうの。……とかしてくれる？", "{shy}……ふふ、そんなに見つめられると照れちゃう。", "{proud}ピアス、新しくしたの。気づいた？",
+               "{smile}あなたといると、時間があっという間ね。", "{half}……こら、よそ見しないの。", "{sleepy}ビーチチェアでお昼寝したい気分……。"],
+        chain: ["{proud}ねえ、目を閉じて。|{half}……ほんとに閉じたの？|{smile}ふふ、素直ね。なにもしないわよ。", "{smile}今日ね、貝がらを拾ったの。|{closed}耳に当てると、波の音がするのよ。|{shy}……あなたにあげる。",
+                "{proud}お姉さんクイズ。|{smile}わたしの好きなものは？|{shy}……正解は、あ、な、た。なんてね。", "{half}最近、忙しそうね。|{proud}ちゃんと寝てる？|{closed}……がんばり屋さん、えらいえらい。"],
+        friends: ["{@sana}{smile}沙夏ちゃん、クールに見えて甘えん坊なの。わたしにはすぐ抱きついてくるのよ。", "{@kiara}{proud}樹愛羅ちゃんとは、お姉さんどうしで話が合うの。",
+                  "{@hitomi}{smile}瞳ちゃんと浜辺でビーチバレーしたの。元気いっぱいでついていけないわ。", "{@emiri}{half}映美里さんとはよくお茶するの。……二人であなたの話ばかりしてるって、ないしょよ？"],
+        head: ["{closed}あら、なでてくれるの？……ふふ、いい子ね。", "{smile}髪、さらさらでしょう？毎日お手入れしてるの。", "{shy}お姉さんがなでられる側なんて……ちょっと照れるわね。",
+               "{closed}ん……あなたの手、あったかい。", "{proud}お団子、くずさないでね？"],
+        chest: ["{shy}きゃっ……！こら、どこ触ってるの。", "{half}……もう。そういうのは、もう少し仲良くなってからよ。", "{shy}っ……！お、お姉さんをからかわないの。",
+                "{half}……いい度胸ね。あとでお説教よ？", "{shy}水着、ずれちゃうでしょう……！"],
+        arm: ["{smile}手をつなぎたいの？……しかたないわね、ほら。", "{proud}このブレスレット、お気に入りなの。", "{closed}ハイタッチ？いえーい。",
+              "{shy}袖、ひっぱらないで……シャツが脱げちゃう。", "{smile}つかまえた。もう逃がさないわよ。"],
+        legs: ["{shy}きゃっ、足はくすぐったいの……！", "{proud}砂浜ははだしが気持ちいいのよ。", "{half}脚ばかり見てない？……気づいてるわよ。",
+               "{smile}ペディキュア、海の色にしてみたの。", "{shy}……そんなに見られると恥ずかしいわ。"],
+        waist: ["{proud}このフリル、かわいいでしょう？", "{shy}おなか、あんまり見ないで……。", "{half}……くすぐらないの。笑っちゃうでしょう。",
+                "{smile}シャツの下、日焼けしてないか心配なの。"],
+        pants: ["{shy}っ……！そ、そこはだめ……。", "{half}もう……水着の中まで見ようとしないで。", "{shy}ひゃっ……！ひ、ひもがゆるんだらどうするの！",
+                "{half}……悪い子ね。おしおきが必要かしら？", "{shy}……シャツ、押さえてるんだから……っ。"],
+        again: { head: ["{closed}まだなでるの？……気がすむまでどうぞ。", "{smile}ふふ、なでるのが好きなのね。"],
+                 touch: ["{half}……二回目は、許さないわよ？", "{shy}も、もう……お姉さんでも照れるってば……。", "{half}……本当に、いけない子。"],
+                 other: ["{smile}ふふ、くすぐったいわ。", "{proud}かまってほしいの？しかたないわね。"] },
+        many: ["{shy}そ、そんなに触られたら……お姉さんの余裕がなくなっちゃう……。", "{half}……はい、そこまで。落ちついて。", "{shy}わかったから。ぎゅってしてあげるから、ね？"],
+        pick: ["{shy}わたしを選んでくれたの？……うれしい。|{proud}これからよろしくね。", "{smile}任せて。あなたのこと、しっかり見ててあげる。"],
+        app: {
+          stamina: ["{proud}スタミナ満タンよ。遊びに行くなら今ね。"],
+          claim: ["{half}ミッションの報酬、置きっぱなしよ？もらえるものはもらっておきなさい。"],
+          mission: ["{proud}ミッション、あと{n}個ね。お姉さんも応援してるわ。"],
+          gacha: ["{smile}新しいガチャが来てるわよ。いい出会いがあるといいわね。"],
+          streak: ["{closed}{n}日つづけて来てくれてるのね。……えらいえらい。"],
+          event: ["{proud}いまイベントが{n}件開いてるわ。左の『イベント』から見られるわよ。"]
+        }
+      }
+    },
+    sana: {
+      dir: "home-mate/sana/", name: "沙夏", ruby: "サナ", color: "#e0b43a",
+      intro: "クールで照れ屋。言葉は少なめだけど、本当は甘えたがり。",
+      lines: {
+        intro: ["{half}……沙夏。今日から、あなたのパートナー。|{shy}……よろしく。"],
+        back: ["{half}……遅い。|{shy}……べつに、待ってたわけじゃ、ない。", "{shy}……おかえり。さみしかった、とかは言わない。"],
+        morning: ["{sleepy}……おはよ。まだ眠い……。", "{half}朝から元気だね、あなたは。……ちょっとうらやましい。",
+                  "{shy}……おはよう。今日も来てくれて、ありがと。", "{sleepy}ふぁ……プールの水、冷たそう……。"],
+        day: ["{half}……こんにちは。プール、入る？", "{proud}日差し強い。……日焼け止め、塗って。背中、届かないから。",
+              "{shy}……となり、座っていいよ。", "{smile}冷たいアイス、半分こする？"],
+        evening: ["{shy}……おかえり。今日もおつかれ。", "{half}夕方のプール、人が少なくて好き。",
+                  "{proud}今日、ちゃんとがんばってたの、知ってる。", "{closed}……夕焼け、きれい。いっしょに見れて、よかった。"],
+        night: ["{half}……まだ起きてる。悪い人。", "{sleepy}……ねむい。でも、もうちょっとだけ。",
+                "{shy}夜って、なんか素直になれる……気がする。", "{proud}夜ふかしは、わたしとだけにして。"],
+        idle: ["{half}……なに？", "{proud}ガチャ、引くの？……当たるといいね。", "{shy}……見すぎ。",
+               "{half}……べつに、話しかけてほしいわけじゃ、ない。", "{proud}無理しないで。倒れたら困る。……わたしが。", "{smile}ミッション、残ってる？……手伝う。",
+               "{shy}このフリル、かわいいって言われた。……あなたに。", "{closed}水の音、落ちつく……。", "{half}髪、濡れるとまとまらないの。",
+               "{shy}……ほんとは、もっと話したい。", "{proud}泳ぎは得意。……見てて。", "{sleepy}……プールサイドで、お昼寝したい。"],
+        chain: ["{half}……ねえ。|{shy}……なんでもない。|{smile}……うそ。呼んでみただけ。", "{proud}今日、25メートル泳げた。|{half}……息つぎなしで。|{shy}……ほめて。",
+                "{shy}……あのね。|{half}あなたが来る時間、なんとなく覚えちゃった。|{closed}……だから、ちょっと前から待ってる。", "{half}アイス、買ってきた。|{shy}……ふたつ。|{smile}ひとつは、あなたの。"],
+        friends: ["{@anna}{shy}杏奈さんには、つい甘えちゃう。……ないしょ。", "{@hitomi}{half}瞳さん、会うたびにぎゅってしてくる。……いやじゃ、ない。",
+                  "{@shoko}{smile}笙古さんとは、静かにいられるから楽。", "{@iori}{half}衣織さん、元気すぎる。……ちょっとだけ、見習う。"],
+        head: ["{shy}……なでるの？……いいけど。", "{closed}……ん。もうちょっと。", "{half}髪、くしゃくしゃになる。……けど、いい。",
+               "{shy}……子どもあつかい、しないで。……でも、うれしい。", "{closed}あなたの手、好き。"],
+        chest: ["{shy}……っ！？ど、どこ触ってるの……。", "{half}……えっち。", "{shy}フ、フリルずれる……っ。",
+                "{half}……次やったら、プールに沈める。", "{shy}……顔、あつい……。"],
+        arm: ["{shy}……手、つなぐ？……ちょっとだけなら。", "{half}腕、日焼けした？……ちょっと赤い。", "{smile}……ハイタッチ。",
+              "{shy}……そのまま、離さないで。", "{proud}腕相撲、負けないよ。"],
+        legs: ["{shy}ひゃっ……足はだめ。くすぐったい。", "{half}……脚ばっかり見てる。", "{proud}はだしでプールサイド歩くの、好き。",
+               "{shy}……そんなに見ないで。", "{half}ペディキュア、気づいた？……気づかなくていい。"],
+        waist: ["{shy}……おなか、見ないで。", "{half}ひも、ほどけやすいから気をつけて。", "{closed}……くすぐったい。やめて。",
+                "{proud}くびれ、ちょっと自信ある。"],
+        pants: ["{shy}っ……！そ、そこは……だめ……っ。", "{half}……ひも、ほどけたら責任とって。", "{shy}ひゃっ……！み、見えてない……よね……？",
+                "{half}……最低。……でも、きらいにはならない。", "{shy}……っ、押さえてるから……さわらないで……。"],
+        again: { head: ["{closed}……まだ？……いいよ、ずっとでも。", "{shy}……なでなで、好き。……いまの、忘れて。"],
+                 touch: ["{half}……二回目はだめ。ほんとに。", "{shy}も、もう……顔見れない……。", "{half}……ほんとに、沈めるよ。"],
+                 other: ["{shy}……くすぐったい。", "{half}……かまってほしいの？……しかたない。"] },
+        many: ["{shy}そ、そんなにさわられたら……こまる……。", "{half}……ストップ。", "{shy}……わかった。いっしょにいるから、落ちついて。"],
+        pick: ["{shy}……わたしで、いいの？|{smile}……うん。よろしく。", "{half}……選んでくれて、ありがと。|{shy}……大事にする。"],
+        app: {
+          stamina: ["{half}スタミナ、満タン。……遊ばないの？"],
+          claim: ["{proud}ミッションの報酬、残ってる。……もらってきて。"],
+          mission: ["{half}ミッション、あと{n}個。……いっしょにやる？"],
+          gacha: ["{smile}新しいガチャ、来てる。……いい子、来るといいね。"],
+          streak: ["{shy}{n}日つづけて来てくれてる。……数えてた。"],
+          event: ["{proud}イベント、{n}件やってる。左の『イベント』から。"]
+        }
+      }
+    },
     maika: {
       dir: "home-mate/maika/", name: "舞香", ruby: "マイカ", color: "#7cc4ff",
       intro: "おだやかで少し照れ屋。ていねいな言葉で話す。",
@@ -427,7 +526,7 @@
   const HM_FREE = "shoko";     /* ★★ 2026-09-25 最初から使えるのは笙古だけ（ほかは全員 開放）。前に無料で選んだ子はそのまま */
   const HM_KEY = "xeva_mate_v1";
   const HM_LAST = "xeva_mate_last";   /* ランダム表示で前に出た子（端末ごと・同期しない） */
-  const HM_VER = 13;            /* 素材の ?v=（sw.js の CORE と合わせる） */
+  const HM_VER = 17;            /* 素材の ?v=（sw.js の CORE と合わせる） */
   const RM = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
   const VIEWS = [["normal", "表示：標準"], ["up", "表示：アップ"], ["full", "表示：全身"]];
 
@@ -480,6 +579,7 @@
     this.t = Math.random() * 10; this.seed = Math.random() * 100;
     this.hair = spring(); this.cloth = spring(); this.bust = spring(); this.body = spring(); this.jolt = spring(); this.hop = spring();
     this.swing = spring();     /* x = 腕の振り（度）  y = 肩のすくめ（px） */
+    this.pelvis = spring();    /* ★ 2026-09-28 腰まわり（お尻・股・太もものつけ根）の揺れ */
     this.pose = { tilt: 0, head: [0, 0], lean: 0, gaze: [0, 0] };
     this.look = [0, 0]; this.expr = "neutral"; this.exprUntil = 0;
     this.view = store().view || "normal"; this.frame = null;
@@ -545,7 +645,15 @@
     w.face = r.faceRadius > 0 ? Math.pow(Math.max(0, 1 - Math.hypot(x - r.face[0], y - r.face[1]) / r.faceRadius), 1.5) * (1 - hairL * 0.8) : 0;
     w.torso = smooth(r.waistY, r.shoulderY, y);
     w.shoulder = smooth(r.shoulderY + 90, r.shoulderY - 10, y) * (1 - above);
-    w.bust = r.bustAmount * (blob(x, y, r.bustL, r.bustRadius) + blob(x, y, r.bustR, r.bustRadius)) * Math.min(1, body) * (1 - hairL * 0.8) * (1 - arm * 0.8);
+    /* ★★ 2026-09-28d 沙夏の下乳が動かなかった（ご指定）：重みの円が胸の上半分（フリルのあたり）だけだった。
+       bustBelow のある子は、中心より下を縦に bustBelow 倍した楕円・なだらかな落ち方にして、下乳まで動かす */
+    const bb = (c) => {
+      if (!c || !(r.bustRadius > 0)) return 0;
+      if (!r.bustBelow || y <= c[1]) return blob(x, y, c, r.bustRadius);
+      const R = r.bustRadius, dx = (x - c[0]) / R, dy = (y - c[1]) / (R * (r.bustBelow + 0.2)), q = dx * dx + dy * dy;   /* 重みはさわる範囲より少し下まで（下乳のふちも動く） */
+      return q >= 1 ? 0 : (1 - q) * (1 - q * 0.45);
+    };
+    w.bust = r.bustAmount * (bb(r.bustL) + bb(r.bustR)) * Math.min(1, body) * (1 - hairL * 0.8) * (1 - arm * 0.8);
     const fall = smooth(r.hairStart != null ? r.hairStart : r.neck[1] - 40, r.neck[1] + r.hairFall, y);   /* 短い髪は hairStart で早めに揺らす */
     w.hair = Math.min(1, hairL * 1.2) * fall * (1 + Math.min(1, Math.max(0, (y - r.neck[1] - r.hairFall) / 260)) * 0.5);
     /* 袖（腕の上の布）は揺らさない：腕と布が別々に動くと腕がゆがんで見える */
@@ -553,6 +661,13 @@
     w.iris = Math.max(blob(x, y, r.irisL, r.irisRadius * 1.5), blob(x, y, r.irisR, r.irisRadius * 1.5));
     w.hip = smooth(r.pivot[1], r.waistY, y);
     w.legs = smooth(r.hemY, r.kneeY, y);
+    /* ★★ 2026-09-28 腰まわり（お尻・股・太もものつけ根）。パンツの枠を中心にした楕円で、なだらかに */
+    if (r.pants) {
+      const [px0, py0, px1, py1] = r.pants, pcx = (px0 + px1) / 2, pcy = (py0 + py1) / 2;
+      const rx = (px1 - px0) * 1.05 + 30, ry = (py1 - py0) * 1.35 + 40;
+      const q = ((x - pcx) / rx) ** 2 + ((y - pcy) / ry) ** 2;
+      w.pelvis = q < 1 ? (1 - q) * (1 - q) * (1 - Math.min(1, arm * 1.4)) * (1 - hairL * 0.7) : 0;
+    } else w.pelvis = 0;
     return w;
   };
 
@@ -595,8 +710,8 @@
       }
       nb[k] = list;
     }
-    const KEYS = ["head", "face", "torso", "shoulder", "arm", "bust", "hair", "cloth", "iris", "hip", "legs"];
-    const PASSES = { hair: 6, cloth: 8, arm: 4, head: 5, face: 4, bust: 8, iris: 1 };
+    const KEYS = ["head", "face", "torso", "shoulder", "arm", "bust", "hair", "cloth", "iris", "hip", "legs", "pelvis"];
+    const PASSES = { hair: 6, cloth: 8, arm: 4, head: 5, face: 4, bust: 8, iris: 1, pelvis: 8 };
     for (const key of KEYS) {
       const passes = PASSES[key] || 2;
       let cur = new Float32Array(n), nxt = new Float32Array(n);
@@ -644,6 +759,7 @@
     qx += this.cloth.x * w.cloth; qy += this.cloth.y * 0.5 * w.cloth;
     qx += this.bust.x * 0.35 * w.bust; qy += this.bust.y * w.bust;
     qx += o.hipX * w.hip;
+    qx += this.pelvis.x * w.pelvis; qy += this.pelvis.y * w.pelvis;
     if (o.lean) {
       const la = o.lean * Math.PI / 180, dx = qx - r.pivot[0], dy = qy - r.pivot[1], cs = Math.cos(la), sn = Math.sin(la);
       qx = r.pivot[0] + dx * cs - dy * sn; qy = r.pivot[1] + dx * sn + dy * cs;
@@ -662,20 +778,23 @@
     P.gaze[0] += (gt[0] - P.gaze[0]) * kg; P.gaze[1] += (gt[1] - P.gaze[1]) * kg;
 
     const breath = (1 - Math.cos(t * 2 * Math.PI / 4.2)) * 0.5;
+    /* ★★ 2026-09-28 動きを大きく（ご指定）：呼吸・頭の揺れ・腰の揺れ・体の傾きを約1.5倍。話しているあいだは頭が小さくうなずく */
+    const talk = this.typingOn ? Math.sin(t * 11) * 0.9 : 0;
     const o = {
-      breath: breath * 3.4 * amp,
-      tilt: (0.7 * Math.sin(t * 0.55 + this.seed) + 0.25 * Math.sin(t * 1.27)) * amp + P.tilt - P.gaze[0] * 1.2,
-      headX: P.gaze[0] * 1.2, headY: P.head[1] + P.gaze[1] * 1.0,
-      turn: P.gaze[0] * 0.9, gx: P.gaze[0], gy: P.gaze[1],
-      armAng: 0.5 * Math.sin(t * 0.8 + 1) * amp,                 /* 振る腕だけ、ゆっくり振れる（度） */
-      hipX: (4.5 * Math.sin(t * 0.33 + this.seed) + 1.5 * Math.sin(t * 0.91)) * amp,
-      lean: (0.25 * Math.sin(t * 0.41 + this.seed)) * amp + P.lean
+      breath: breath * 4.8 * amp,
+      /* ★ 2026-09-28b マウスへの顔の追従は控えめに（ご指定）：頭は約半分、目は8割 */
+      tilt: (1.05 * Math.sin(t * 0.55 + this.seed) + 0.4 * Math.sin(t * 1.27)) * amp + P.tilt - P.gaze[0] * 0.6,
+      headX: P.gaze[0] * 0.6, headY: P.head[1] + P.gaze[1] * 0.5 + talk,
+      turn: P.gaze[0] * 0.45, gx: P.gaze[0] * 0.8, gy: P.gaze[1] * 0.8,
+      armAng: 0.9 * Math.sin(t * 0.8 + 1) * amp,                 /* 振る腕だけ、ゆっくり振れる（度） */
+      hipX: (3.8 * Math.sin(t * 0.33 + this.seed) + 1.1 * Math.sin(t * 0.91)) * amp,      /* ★ 2026-09-28b/d 太もも・お尻・股の揺れを抑える（ご指定） */
+      lean: (0.4 * Math.sin(t * 0.41 + this.seed)) * amp + P.lean
     };
     this.o = o;
-    stepSpring(this.body, 0, 0, 80, 11, dt, 18);
-    stepSpring(this.jolt, 0, 0, 60, 8, dt, 5);        /* 首の傾き（度）。大きいと首が折れて見える */
-    stepSpring(this.hop, 0, 0, 55, 7, dt, 16);
-    stepSpring(this.swing, 0, 0, 38, 5.5, dt, 4);      /* 腕の振り（度）。手先は肩から遠いので数度でも大きく動く */
+    stepSpring(this.body, 0, 0, 80, 10, dt, 24);
+    stepSpring(this.jolt, 0, 0, 60, 7.5, dt, 6.5);    /* 首の傾き（度）。大きいと首が折れて見える */
+    stepSpring(this.hop, 0, 0, 55, 6.5, dt, 22);
+    stepSpring(this.swing, 0, 0, 38, 5, dt, 5.5);      /* 腕の振り（度）。手先は肩から遠いので数度でも大きく動く */
     if (!this.refW) this.refW = this.weigh(r.neck[0], r.neck[1]);
     const ref = this.deform(r.neck[0], r.neck[1], this.refW, o);
     if (!this.prev) { this.prev = ref; this.prev2 = ref; }
@@ -686,7 +805,12 @@
     stepSpring(this.hair, -ax * 0.6 + wind * 9, -ay * 0.4, 14, 3.2, dt, 15);
     stepSpring(this.cloth, -ax * 0.5 + wind * 6, -ay * 0.3, 32, 5.5, dt, 8);
     const boost = now < (this.bustBoostUntil || 0);                   /* 胸をさわった直後は大きく・長めに揺れる */
-    stepSpring(this.bust, -ax * 0.3, -ay * 0.8 + (breath - 0.5) * 45, boost ? 70 : 62, boost ? 2.6 : 4.6, dt, boost ? 18 : 8);
+    stepSpring(this.bust, -ax * 0.42, -ay * 1.05 + (breath - 0.5) * 70, boost ? 70 : 60, boost ? 2.3 : 4.0, dt, boost ? 24 : 11);
+    /* 腰まわり：体の動きに少し遅れて揺れる＋ゆっくりした重心移動（左右・わずかに上下） */
+    const pb = now < (this.pelvisBoostUntil || 0);
+    const sway = Math.sin(t * 0.33 + this.seed - 0.9) * 2.4 * amp;
+    /* ★★ 2026-09-28d 股のあたりが動きすぎ（ご指定）→ 力・上限を約半分に、止まりやすく（減衰を強く） */
+    stepSpring(this.pelvis, -ax * 0.11 + sway * 6, -ay * 0.2 + Math.sin(t * 0.66 + this.seed) * 3.2 * amp, pb ? 60 : 54, pb ? 4.4 : 6.2, dt, pb ? 5.5 : 3.2);
 
     const face = E[0];
     let blink = false;
@@ -895,7 +1019,52 @@
 
   /* ══════════════ しぐさ・セリフ ══════════════ */
   /* ★★ 2026-09-25h キャラごとの表情の置きかえ（exprMap）。表情案の絵が性格に合わないとき（映美里の「笑顔」は口を大きく開けて笑う絵→しっとりした年上なので「自信ありげ」に） */
-  Mate.prototype.setExpr = function (e, ms) { const mp = this.def.exprMap; if (mp && mp[e]) e = mp[e]; this.expr = e; this.exprUntil = performance.now() + (ms || 2600); };
+  Mate.prototype.setExpr = function (e, ms) {
+    const mp = this.def.exprMap; if (mp && mp[e]) e = mp[e];
+    /* ★★ 2026-09-28 その子に無い表情（舞香・衣織・樹愛羅・映美里の「悪戯っぽい笑み」は消した・杏奈と沙夏はもともと無い）は近い表情へ */
+    const ex = this.rig && this.rig.exprs;
+    if (ex && e !== "neutral" && ex.indexOf(e) < 0) e = ({ tease: "proud", sleepy: "half", half: "proud", shy: "closed" })[e] || "neutral";
+    this.expr = e; this.exprUntil = performance.now() + (ms || 2600);
+  };
+  /* ★★ 2026-09-28 セリフと表情・しぐさを連動（ご指定）：表情ごとのしぐさ＋「！」でぴょん・「？」で首かしげ・「……」でうつむく */
+  Mate.prototype.gesture = function (ex, text) {
+    const sg = Math.random() < 0.5 ? -1 : 1, T = String(text || "");
+    switch (ex) {
+      case "smile": this.hop.vy += 70; this.jolt.vx += 7 * sg; this.pelvis.vx += 13 * sg; break;
+      case "closed": this.hop.vy += 55; this.jolt.vx += 10 * sg; this.bust.vy -= 60; break;
+      case "shy": this.body.vx += 38 * sg; this.jolt.vx -= 9 * sg; this.pelvis.vx -= 22 * sg; this.pelvisBoostUntil = performance.now() + 900; break;
+      case "tease": this.body.vx += 26 * sg; this.jolt.vx += 12 * sg; this.pelvis.vx += 20 * sg; break;
+      case "sleepy": this.jolt.vx -= 7; this.body.vy += 18; break;
+      case "proud": this.body.vy -= 30; this.hop.vy += 30; this.bust.vy -= 70; break;
+      case "half": this.jolt.vx -= 11 * sg; break;
+    }
+    if (/[！!]/.test(T)) { this.hop.vy += 55; this.bust.vy -= 60; }
+    if (/[？?]$/.test(T)) this.jolt.vx += 12 * sg;
+    if (/^……/.test(T)) this.body.vy += 14;
+  };
+
+  /* ★★ 2026-09-28b パートナーを変えて出てきたときの登場（ご指定）：キャラごとの特別な動き＋きらきら
+     ★★ 2026-09-28d 回転したり斜め（傾いて）に出てきたりしない（ご指定）：体はまっすぐのまま、上下に動く・ふわっと大きくなるだけ。
+     頭の傾き（jolt）・体の横ずれ（body.vx）も登場では使わない */
+  const ENTRY = { shoko: "wave", hitomi: "jump", hana: "bloom", lisa: "wave", anna: "bloom", sana: "bow", maika: "bow", iori: "jump", kiara: "jump", emiri: "bloom" };
+  Mate.prototype.entrance = function () {
+    if (this.dead || !this.canvas || RM) return;
+    const kind = ENTRY[this.id] || "jump", cv = this.canvas, r = this.rig;
+    try { const [fx] = this.toScreen(r.face[0], r.face[1]); const [, by] = this.toScreen(r.pivot[0], r.pivot[1]); cv.style.transformOrigin = fx + "px " + by + "px"; } catch (e) {}
+    cv.classList.remove("hm-in-jump", "hm-in-wave", "hm-in-bloom", "hm-in-bow"); void cv.offsetWidth;
+    cv.classList.add("hm-in-" + kind);
+    setTimeout(() => cv.classList.remove("hm-in-" + kind), 1700);
+    /* きらきら（キャラの色） */
+    const sp = document.createElement("div"); sp.className = "hm-spark"; sp.style.setProperty("--c", this.def.color || "#ffd36b");
+    try { const [fx, fy] = this.toScreen(r.face[0], r.face[1]); sp.style.left = fx + "px"; sp.style.top = (fy + 120) + "px"; } catch (e) {}
+    for (let i = 0; i < 14; i++) { const d = document.createElement("i"); d.style.setProperty("--a", (i / 14 * 360) + "deg"); d.style.setProperty("--d", (90 + (i % 3) * 40) + "px"); d.style.animationDelay = (i % 4) * 0.05 + "s"; sp.appendChild(d); }
+    this.layer.appendChild(sp); setTimeout(() => sp.remove(), 1800);
+    const at = (ms, f) => setTimeout(() => { if (!this.dead) f(); }, ms);
+    if (kind === "jump") { this.setExpr("smile", 2400); at(260, () => { this.hop.vy += 180; this.bust.vy -= 130; }); at(760, () => { this.hop.vy += 110; this.bust.vy -= 80; }); }
+    else if (kind === "wave") { this.setExpr("smile", 2600); [420, 680, 940, 1200].forEach((ms, i) => at(ms, () => { this.swing.vx += (i % 2 ? -1 : 1) * 14; })); at(200, () => { this.hop.vy += 60; }); }
+    else if (kind === "bloom") { this.setExpr("proud", 2600); at(380, () => { this.hair.vy -= 60; this.cloth.vy -= 40; this.hop.vy += 80; }); at(900, () => { this.bust.vy -= 90; }); }
+    else { this.setExpr("shy", 2600); at(300, () => { this.body.vy += 60; }); at(1000, () => { this.hop.vy += 60; }); }
+  };
 
   Mate.prototype.react = function (region) {
     const now = performance.now();
@@ -912,14 +1081,15 @@
     if (this.taps.length >= 5) { this.taps = []; this.body.vx += 40; this.jolt.vx -= 16; return this.line(L.many, "shy", 3200); }
     switch (region) {
       case "head": this.jolt.vx += 16; this.hop.vy += 30; return ln(L.head, one(["closed", "smile", "proud"]));
-      case "chest": this.bustBoostUntil = now + 1800; this.bust.vy -= 230 * (this.rig.bustAmount || 1); this.bust.vx += (Math.random() - 0.5) * 60;
+      case "chest": this.bustBoostUntil = now + 1900; this.bust.vy -= 290 * (this.rig.bustAmount || 1); this.bust.vx += (Math.random() - 0.5) * 80;
         this.body.vx += (Math.random() - 0.5) * 70; this.body.vy -= 30; this.jolt.vx += 10;
         return ln(L.chest, "shy", 3000);
       /* 腕：肩を支点に少し振って、肩をすくめる（腕を平行移動させない＝形がゆがまない） */
       case "arm": this.swing.vx += (Math.random() < 0.5 ? -1 : 1) * 14; this.body.vy -= 40; this.hop.vy += 30; this.jolt.vx += 8; return ln(L.arm, "smile");
-      case "legs": this.hop.vy += 120; return ln(L.legs, "shy", 2400);
+      case "legs": this.hop.vy += 130; this.pelvisBoostUntil = now + 1200; this.pelvis.vx += (Math.random() < 0.5 ? -1 : 1) * 32; return ln(L.legs, "shy", 2400);
       /* パンツ：びくっと跳ねて、腰を引いて照れる */
-      case "pants": this.hop.vy += 150; this.body.vx += (Math.random() < 0.5 ? -1 : 1) * 60; this.body.vy += 30; this.jolt.vx -= 12;
+      case "pants": this.hop.vy += 170; this.body.vx += (Math.random() < 0.5 ? -1 : 1) * 70; this.body.vy += 30; this.jolt.vx -= 12;
+        this.pelvisBoostUntil = now + 1600; this.pelvis.vx += (Math.random() < 0.5 ? -1 : 1) * 50; this.pelvis.vy -= 28;
         this.cloth.vx += (Math.random() < 0.5 ? -1 : 1) * 110; this.bustBoostUntil = now + 1200; this.bust.vy -= 120 * (this.rig.bustAmount || 1);
         return ln(L.pants || L.waist, "shy", 3200);
       default: this.cloth.vx += (Math.random() < 0.5 ? -1 : 1) * 90; this.body.vx += 25; return ln(L.waist, "shy");
@@ -962,6 +1132,7 @@
     const ex = p.expr || this.chainDef;
     const more = this.chain.length > 0;
     if (ex) this.setExpr(ex, Math.max(this.chainMs || 2600, 1800 + p.text.length * 70));
+    this.gesture(this.expr, p.text);
     this.say(p.text);
     if (more) {                                                        /* 読み終わるころに続きを出す（吹き出しは消さない） */
       clearTimeout(this.hideT);
@@ -984,7 +1155,8 @@
     b.classList.add("on");
     this.placeBubble();
     let i = 0;
-    this.typing = setInterval(() => { i++; span.textContent = text.slice(0, i); if (i >= text.length) clearInterval(this.typing); }, 38);
+    this.typingOn = true;
+    this.typing = setInterval(() => { i++; span.textContent = text.slice(0, i); if (i >= text.length) { clearInterval(this.typing); this.typingOn = false; } }, 38);
     const quick = this.quick; this.quick = false;
     this.hideT = setTimeout(() => b.classList.remove("on"), quick ? 2200 + text.length * 40 : 4200 + text.length * 60);
     this.idleAt = performance.now() + 22000 + Math.random() * 12000;
@@ -1099,7 +1271,8 @@
     requestAnimationFrame(() => this.layer.classList.add("in"));
     setTimeout(() => { if (!this.dead) this.layer.classList.add("in"); }, 700);     /* 裏で読みこんだときも必ず出す */
     this.kick();
-    if (picked !== "quiet") setTimeout(() => { if (!this.dead) this.greet(picked); }, picked ? 450 : 900);
+    if (picked === true) setTimeout(() => this.entrance(), 160);
+    if (picked !== "quiet") setTimeout(() => { if (!this.dead) this.greet(picked); }, picked ? 700 : 900);
     this.ready = true;
     return true;
   };
@@ -1221,7 +1394,7 @@
         '<div class="hm-pk-rand"><span><b>ランダムに表示</b><small>アプリを開くたびに、開放ずみのパートナーから1人が出てきます</small></span>' +
         '<button class="hm-vsw" aria-label="ランダム表示のオン・オフ"></button></div><div class="hm-pk-list"></div>' +
         '<p class="hm-pk-note">選んだキャラがホームのロビーに立ちます。タップすると表情とセリフで反応します。<br>★ パートナーは<b>β版</b>です。動きや表情はこれからも調整していきます。</p>' +
-        '<div class="hm-pk-confirm"><div class="box"><p class="q"></p><div class="row"><button class="no">やめる</button><button class="yes">開放する</button></div></div></div></div>';
+        '</div><div class="hm-pk-confirm"><div class="box"><p class="q"></p><div class="row"><button class="no">やめる</button><button class="yes">開放する</button></div></div></div>';
       document.body.appendChild(sh);
       sh.addEventListener("click", (e) => { if (e.target === sh || e.target.closest(".hm-pk-x")) sh.classList.remove("on"); });
     }

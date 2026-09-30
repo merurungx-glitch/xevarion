@@ -24,7 +24,7 @@
      xevarion-home.css の<b>あと</b>に読む＝上書きできるようにする。 -->
 <link rel="stylesheet" href="xevion-os.css?v=15">
 <!-- ★★ 2026-09-24 ホームの「動くキャラ」（舞香）。中身は home-mate.js。 -->
-<link rel="stylesheet" href="home-mate.css?v=13">
+<link rel="stylesheet" href="home-mate.css?v=17">
 <script src="xeva.js?v=71" defer></script>
 <!-- ★★ 2026-09-05 コレクションを XEVARION 全体で1本にする共通部品。
      xeva.js の iconCharList() を使うので、必ず xeva.js の<b>あと</b>に置く。 -->
@@ -71,8 +71,8 @@
 <script type="module" src="xeva-cloud.js?v=38"></script>
 <script src="xeva-qr.js?v=9" defer></script>
 <script src="xevarion.js?v=95" defer></script>
-<script src="xevarion-home.js?v=147" defer></script>
-<script src="home-mate.js?v=13" defer></script>
+<script src="xevarion-home.js?v=151" defer></script>
+<script src="home-mate.js?v=17" defer></script>
 </head>
 <body>
 <!-- ───── バックグラウンド音楽（Flagship Arrival。アクセス画面のタップで再生開始） ───── -->
@@ -444,6 +444,11 @@ body.music-on #beatFrame{opacity:1}
         <button class="xl-ic dia" onclick="HomeMate.openPicker()"><span class="i"><b>♥</b><em class="hm-beta">β</em></span><span class="l">パートナー</span></button>
         <button class="xl-ic dia" onclick="HomeMate.cycleView()"><span class="i"><b>⤢</b></span><span class="l" id="xlViewLb">表示</span></button>
       </div>
+      <!-- ★★ 2026-09-28 3D 会場（XEVARION WORLD CONFERENCE）への特設の入口（ご指定） -->
+      <a class="xl-expo" href="expo/index.html" aria-label="3Dパーク XEVARION PARK へ（β版）">
+        <span class="orb"><img src="brand-xevarion-orb.png" alt=""></span>
+        <span class="tx"><b>XEVARION PARK</b><small>3Dパークへ入る</small></span><em>NEW</em><i class="hm-beta in" title="β版">β版</i>
+      </a>
       <!-- ★★ 2026-09-24c 下は<b>アプリ5つを1行</b>（設定 → ロビーのアプリ で入れかえ） -->
       <div class="xl-apps" id="xlApps"></div>
       <button class="xl-handle" id="xlHandle" onclick="xlOpenDrawer()" aria-label="メニューを開く"><span></span>メニュー</button>
@@ -1890,6 +1895,42 @@ body.music-on #beatFrame{opacity:1}
 
   <div class="nm-body" id="newsBody">
     <div class="nm-divider" id="newDivider" style="display:none;">NEW — 前回から更新</div>
+    <!-- 2026-09-30 XEVARION PARK 大型アップデート2（道・新エリア・NGX 本社・建物の各階・スカイグランプリ） -->
+    <!-- 2026-09-30b XEVARION PARK 更新（道の総点検・昼夜の自動切り替え・乗り場ワープ・大人のギャラリー） -->
+    <div class="nm-item" data-tag="new" data-date="2026-09-30">
+      <div class="nm-date">2026<br>09.30</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag new">UPDATE</span></div>
+        <div class="nm-title">🎡 XEVARION PARK 更新：道のつながりを総点検・昼夜の自動切り替え・乗り場ワープ</div>
+        <div class="nm-txt">・<b>道を総点検</b>：道の幅まで含めて建物・柵・壁に重ならないように自動の道を引き直しました（せまい所は幅を調整）。駅・アトラクション・建物の入口から道へのつなぎ方、学びの街・港・歌舞伎町・モーターシティまわりの道も直し、中が空洞の建物に木が生えていたのも直しました。<br>・スタジアム・ドーム・野球場の<b>客席の端</b>（入口のすき間）を横から見ると下が消えていたのを直しました。<br>・<b>NGX 本社の各階</b>で部屋が箱だけに見えることがあったのを直しました。建物のない所にあった入口も整理しました。<br>・<b>パレードスタジオ</b>を劇場の入口のような見た目に作り直しました（赤い塔・ネオンのアーチ・案内板）。<br>・<b>昼夜が時間で自動にくり返す</b>ようになりました（昼 7分 → 夕方 1分半 → 夜 5分）。☀️ ボタン・T キーでも変えられます。NIGHT ZONE もほかのエリアと同じ昼夜に。<br>・<b>乗り場</b>：コースターの乗り場を「入口の門 → 階段 → ホーム」のわかりやすい形にし、道から歩いて行けるようにしました。地図の「🎢 乗り場」タブから、スカイグランプリ・コースターなど 17 の乗り場へワープできます。<br>・ホバーで柵や壁をすり抜けないように。ライブ映像・シアターの動画を流している間は、パークの音楽・お知らせ・吹き出し・字幕を出さないようにしました。<br>・夜桜キャッスルホテルの<b>6階に「大人のギャラリー」</b>（18歳以上の方だけ・入る前に年齢の確認があります）：MagiScope のランキングの作品の紹介とサンプル画像を展示しています。</div>
+      </div>
+    </div>
+    <div class="nm-item" data-tag="new" data-date="2026-09-30">
+      <div class="nm-date">2026<br>09.30</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag new">UPDATE</span></div>
+        <div class="nm-title">🎡 XEVARION PARK 大型アップデート：NGX CITY・妖怪ワンダーランド・スカイグランプリ・建物の各階</div>
+        <div class="nm-txt">・<b>道を全面的に作り直し</b>：途切れ・行き止まり・ずれ・建物へのめり込みをなくし、門・広場・アトラクション・建物の入口の前まで道がつながるようにしました。道ぞいとエリアのさかいに<b>豪華な柵</b>、となりのエリアが見えないように<b>生け垣と木の列</b>を置きました。<br>・<b>新しいエリア</b>：NGX CITY（ガラス屋根の大モール「NGX ギャラリア」と超高層ビル6本・空中の連絡橋）、妖怪ワンダーランド（メリーゴーラウンド・ゆのみカップ・スカイスイング・妖怪船・バンパーカー・ドラゴンコースター・妖怪屋敷）、妖魔温泉街（旅館・大浴場・足湯・湯けむり）、スカイガーデン（高さ64mの空中庭園）、NGX 本社、アプリの通り（アプリごとの建物）、妖怪商店街、フューチャーハイツ、妖怪神社の森、国立競技場ふうのスタジアム、ボールパーク、湖の港町 XEVARION HARBOR、巨大ライブ会場 XEVARION DOME、妖魔歌舞伎町、夜桜遊郭。<br>・<b>NGX 本社タワー</b>（高さ390m）：1階ロビーのエレベーターで各階（ショップ・フードホール・ミュージアム・開発フロア・研究ラボ・データセンター・会議室・役員フロア・スカイラウンジ）へ。展望フロア（310m）へは外がわを上る<b>ガラスのエレベーター</b>で。<br>・パークの<b>ほとんどの建物に入口</b>ができ、中に入れます（ロビー・お店・食堂・オフィス・ホテルの客室など）。高いビルは階をえらべ、屋上へはガラスのエレベーター（高さと速さを表示）。XEVARION TOWER・スカイガーデンも同じです。<br>・カートレースが<b>「妖怪スカイグランプリ」</b>に：パークの上空の立体交差のコース（バンクのついたカーブ・上り下り・ジャンプ台・加速板）、ドリフトのミニターボ、7種類のアイテム、CPU 7台と対戦（むずかしさを選べます）。<br>・遊郭の東に<b>「夜桜キャッスルホテル」</b>：MagiScope のデータで、アニメ・映画・カラオケの作品を見て探せるギャラリー（家族向けの作品だけ）。<br>・<b>パレード</b>は噴水公園の西の「パレードスタジオ」から出発し、大通りをゲートの前まで往復する長いルートに。パレード・水上パレードの最後の山車・船に「提供 NGX」。夜は湖の水上パレード「CHASE THE LIGHT」。<br>・<b>モノレール</b>はホームからだけ乗れるように。駅を作り直し、日本語と英語の案内放送（切りかえ可）。路面電車も乗れます。<br>・建物や街灯の<b>目が見ている人の方を向いて動き</b>、まばたきします。来場者どうしがエリアの話題で<b>吹き出しで会話</b>。各エリアの入口に<b>掲示板</b>（今日のイベント・地図）。<br>・XEVARION HALL の基調講演ホールで<b>新キャラクターの紹介</b>、ロビーの左に<b>アップデート情報のブース</b>。ゲートの近くでは曲「XEVARION GATE」。音楽は毎回オフから始まります。<br>・直したこと：スタジアム・野球場の客席の裏が透けていた・路面電車のレールが見えにくい所・ホールのホログラムにカメラが入ると画面が青くなる・ライブ中に上のボタンで映像が隠れる・提灯が浮いている所・水の中に人がいる・門や道のずれ など。</div>
+      </div>
+    </div>
+    <!-- 2026-09-29 XEVARION PARK 大型アップデート（建物の中・乗り物・音楽とショー・地図） -->
+    <div class="nm-item" data-tag="new" data-date="2026-09-29">
+      <div class="nm-date">2026<br>09.29</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag new">UPDATE</span></div>
+        <div class="nm-title">🎡 XEVARION PARK 大型アップデート：建物の中に入れる・乗り物・音楽とショー</div>
+        <div class="nm-txt">・パークの<b>約190の建物に入れる</b>ようになりました。食堂・カフェ・お店・ゲームセンター・カプセルトイ・博物館・IMAX シアター・劇場・教室・図書館・実験室・カラオケ・体育館・スパ・お化け屋敷・脱出ゲーム・撮影スタジオ・ホテル・プラネタリウム・クイズドームなど、それぞれに<b>できること</b>（注文・買い物・ミニゲーム・上映・学ぶ・歌う・休む・記念写真…）があります。<br>・右上の🎒で<b>思い出バッグとスタンプラリー</b>（買ったもの・カプセルトイ・22種類の施設スタンプ・行ったエリア・ミニゲームの記録）。<br>・<b>パークの音楽</b>：パーク内はメインテーマ、昼のパレードは DAYTIME PARADE THEME、夜の噴水ショーは XEVARION NIGHT。曲に合わせて光と演出が動きます。ライブ会場では YouTube の動画を大画面に映せます。<br>・<b>乗り物</b>：コースター3種・フリーフォール・急流すべり・観覧車・ピープルムーバー・路面電車・スライダー・流れるプール・サンセットクルーズ。パークじゅうを走れる <b>XEVA HOVER</b>（🛵）。<br>・妖魔横丁風の街並みと未来の建物、水・草・木・建物の映りこみ、歩き・走りのフォーム、見上げるカメラを改良。<br>・<b>地図を見やすく作り直し</b>（番号の丸・大きな文字・拡大縮小・押してワープ）。上空から見ているときは場所の札を押すとそこへ飛べます。右上のボタンとスクロールバーをパークのデザインに。<br>・門・道・川・壁のずれや貫通、入れない所の線と物のずれを直しました。<br>・MagiLex：問題の束を開いた画面の「←」（一覧へもどる）が、スクロールしても左上に残るようになりました。</div>
+      </div>
+    </div>
+    <!-- 2026-09-28 3D会場 WORLD CONFERENCE・杏奈・沙夏・表情と動き -->
+    <div class="nm-item" data-tag="new" data-date="2026-09-28">
+      <div class="nm-date">2026<br>09.28</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag launch">NEW</span></div>
+        <div class="nm-title">🎡 3Dテーマパーク「XEVARION PARK」オープン／新パートナー 杏奈・沙夏</div>
+        <div class="nm-txt">・ホームの「<b>XEVARION PARK</b>」ボタン（β版）から、海に囲まれた<b>3Dのテーマパーク</b>を自由に歩いて回れるようになりました。<br>・中央の<b>大噴水（CENTRAL FOUNTAIN PARK）</b>から、GATE・GREEN WALK・MARKET・TOWER・METROPOLIS・SPACE PORT・LAB・AQUA・BEACH・ADVENTURE・ENTERTAINMENT・LEARNING CITY・GAME WORLD・RESORT・NIGHT ZONE・PUZZLE CITY・MEDIA CITY など各エリアが放射状に広がります。モノレールや花火、タワーの展望台もあります。<br>・北の <b>XEVARION HALL</b> では基調講演・講演トラック・展示ホールがあり、展示ホールのブースから各アプリを開けます。<br>・CPU のキャラと <b>サッカー（SOCCER STADIUM）</b>・<b>ボッチャ（BOCCIA ARENA）</b>・<b>カートレース（MOTOR CITY）</b>で遊べます。<br>・ベンチ・客席・カフェのいす・ソファに<b>すわれます</b>。地図（M）からどのエリアへもワープできます。<br>・歩くのは VRoid で作ったキャラです。パークの人たちも VRoid のキャラ（色違い）になりました。歩き方をなめらかにし、かかとからの着地や腰・肩の動きも付けました。<br>・パソコンは W をすばやく2回でダッシュ。スマホは左下のスティックで移動（大きく倒すとダッシュ）・右側をドラッグで見回せます。<br>・新しいパートナー <b>杏奈（アンナ）</b>と<b>沙夏（サナ）</b>が登場しました（1人 30,000 XEVA で開放）。<br>・パートナーを変えて表示したとき、キャラごとの特別な登場の動きをするようになりました。<br>・舞香・衣織・樹愛羅・映美里の「悪戯っぽい笑み」の表情をなくし、目の上の線の残り・口の位置と大きさのずれを直しました。セリフに合わせて表情としぐさが変わります。<br>・沙夏の胸の下側を触ったときも胸の反応になるようにしました。太もも・お尻・腰まわりの揺れとマウスへの顔の追従は控えめにしました。<br>・パートナー選択画面で、開放の確認が画面の中央に出るようにしました。</div>
+      </div>
+    </div>
     <!-- 2026-09-25f 花菜・莉沙・開催中のガチャのバナー -->
     <div class="nm-item" data-tag="new" data-date="2026-09-25">
       <div class="nm-date">2026<br>09.25</div>

@@ -1,15 +1,18 @@
 {
-  "version": "2026-09-25-8",
-  "date": "2026-09-25",
-  "title": "新パートナー 花菜・莉沙／開催中のガチャをバナーに",
+  "version": "2026-09-30-2",
+  "date": "2026-09-30",
+  "title": "XEVARION PARK 更新：道の総点検・昼夜の自動切り替え・乗り場ワープ",
   "notes": [
-    "新パートナー 花菜・莉沙（1人 30,000 XEVA で開放）・笙古・瞳も追加",
-    "ホーム左上に開催中のガチャ全部のバナーを順番に表示",
-    "全員の表情を表情案から作り直し（口のずれ・目の輪郭の切れ・前髪の線の残りを修正）",
-    "胸の判定を修正・パートナーはβ版・起動時にキャラが出ないことがあったのを修正"
+    "道の幅まで建物・柵・壁に重ならないよう自動の道を引き直し（入口・駅・アトラクションまでつなぐ）",
+    "客席の端が横から消えていたのを修正（ドーム・競技場・野球場）／NGX本社の各階の表示を修正",
+    "パレードスタジオを作り直し・中の木を撤去／パズル城の堀に橋",
+    "昼夜が時間で自動にくり返す（NIGHT ZONE も同じ昼夜）",
+    "コースターの乗り場を門→階段→ホームに・地図の「乗り場」タブからワープ",
+    "ホバーのすり抜けを修正・動画の間はパークの音と字幕を止める",
+    "夜桜キャッスルホテル6階に大人のギャラリー（18歳以上・年齢確認）"
   ],
-  "bytes": 54958575,
-  "files": 640,
+  "bytes": 61814788,
+  "files": 690,
   "urls": [
     "index.html",
     "characters.html",
@@ -78,6 +81,56 @@
     "home-mate/lisa/lisa_label.webp",
     "home-mate/lisa/lisa_face.webp",
     "home-mate/lisa/bg.webp",
+    "home-mate/anna/anna.json",
+    "home-mate/anna/anna.webp",
+    "home-mate/anna/anna_label.webp",
+    "home-mate/anna/anna_face.webp",
+    "home-mate/anna/bg.webp",
+    "home-mate/sana/sana.json",
+    "home-mate/sana/sana.webp",
+    "home-mate/sana/sana_label.webp",
+    "home-mate/sana/sana_face.webp",
+    "home-mate/sana/bg.webp",
+    "expo/index.html",
+    "expo/expo.css",
+    "expo/three.min.js",
+    "expo/expo-data.js",
+    "expo/tex.js",
+    "expo/vrm.js",
+    "expo/world.js",
+    "expo/park.js",
+    "expo/park_style.js",
+    "expo/park_interiors.js",
+    "expo/park_areas.js",
+    "expo/park_areas2.js",
+    "expo/park_harbor.js",
+    "expo/park_dome.js",
+    "expo/park_night2.js",
+    "expo/park_new.js",
+    "expo/park_sports.js",
+    "expo/park_more.js",
+    "expo/park_life.js",
+    "expo/park_scope.js",
+    "expo/park_adult.js",
+    "expo/park_roads.js",
+    "expo/gfx.js",
+    "expo/fx.js",
+    "expo/people.js",
+    "expo/games.js",
+    "expo/park_kart.js",
+    "expo/audio/park_music.js",
+    "expo/park_rides.js",
+    "expo/park_transit.js",
+    "expo/park_shows.js",
+    "expo/park_ui.js",
+    "expo/park_rooms.js",
+    "expo/main.js",
+    "expo/chara/chara01.glb",
+    "expo/img/park_logo.webp",
+    "expo/img/park_wordmark.webp",
+    "expo/img/park_emblem.webp",
+    "expo/img/ngx_logo.webp",
+    "expo/img/ngx_mark.webp",
     "home-mate/maika/maika.json",
     "home-mate/maika/maika.webp",
     "home-mate/maika/maika_label.webp",
@@ -655,8 +708,95 @@
   "apps": [
     "tab:home"
   ],
-  "changedFiles": 11,
+  "changedFiles": 23,
   "history": [
+    {
+      "version": "2026-09-30-1",
+      "date": "2026-09-30",
+      "title": "XEVARION PARK 大型アップデート2：NGX CITY・妖怪ワンダーランド・スカイグランプリ・建物の各階",
+      "notes": [
+        "道を全面的に作り直し（途切れ・行き止まり・ずれをなくし、入口やアトラクションの前までつなぐ）・道ぞいとエリアのさかいに豪華な柵・となりが見えない生け垣",
+        "新エリア：NGX CITY（大モールと超高層ビル）・妖怪ワンダーランド（回る乗り物とコースター）・妖魔温泉街・スカイガーデンほか",
+        "NGX 本社タワー 390m：エレベーターで各階へ・展望フロア 310m はガラスのエレベーター",
+        "ほとんどの建物に入れるように・高いビルは階をえらべて屋上へ",
+        "カートレースが上空の立体交差コース「妖怪スカイグランプリ」に（ドリフト・アイテム・CPU と対戦）",
+        "夜桜キャッスルホテル：MagiScope の作品を探せるギャラリー",
+        "パレードはパレードスタジオから出発する長いルートに・最後の車と船に「提供 NGX」",
+        "動く目・来場者の会話の吹き出し・掲示板・客席の裏やレールの表示などを修正"
+      ],
+      "apps": [
+        "tab:home"
+      ]
+    },
+    {
+      "version": "2026-09-29-1",
+      "date": "2026-09-29",
+      "title": "XEVARION PARK 大型アップデート：建物の中・乗り物・音楽とショー",
+      "notes": [
+        "パークの約190の建物に入れるように（食堂・お店・ゲームセンター・映画館・教室・カラオケ・スパ・お化け屋敷・プラネタリウムなど、それぞれにできること）",
+        "思い出バッグとスタンプラリー（買ったもの・カプセルトイ・施設スタンプ・行ったエリア・ミニゲームの記録）",
+        "パークの音楽（メインテーマ・デイタイムパレード・XEVARION NIGHT）と曲に合わせた光の演出・動画を映せるライブ会場",
+        "コースター・フリーフォール・急流すべり・観覧車・ピープルムーバー・路面電車・スライダー・流れるプール・クルーズ・XEVA HOVER",
+        "妖魔横丁風の街並みと未来の建物・水や草や木や建物の映りこみ・歩き/走りのフォーム・見上げるカメラ",
+        "見やすい地図（番号・大きな文字・拡大縮小・押してワープ）と上空から飛べる場所の札・右上のボタンとスクロールバーをパークのデザインに",
+        "門・道・川・壁のずれや貫通、入れない所の線と物のずれを修正",
+        "MagiLex：問題の束の画面の「←」がスクロールしても左上に残るように"
+      ],
+      "apps": [
+        "magilex",
+        "tab:home"
+      ]
+    },
+    {
+      "version": "2026-09-28-3",
+      "date": "2026-09-28",
+      "title": "3Dテーマパーク XEVARION PARK オープン／新パートナー 杏奈・沙夏",
+      "notes": [
+        "ホームの「XEVARION PARK」ボタン（β版）から、海に囲まれた3Dテーマパークへ",
+        "大噴水を中心に GATE・MARKET・TOWER・METROPOLIS・SPACE PORT・AQUA・BEACH・ADVENTURE・GAME WORLD・RESORT・NIGHT ZONE など各エリア",
+        "XEVARION HALL（基調講演・講演トラック・展示ホールから各アプリへ）",
+        "CPU とサッカー（SOCCER STADIUM）・ボッチャ（BOCCIA ARENA）・カートレース（MOTOR CITY）",
+        "ベンチ・客席にすわれる／W を2回でダッシュ・スマホのスティック操作／地図からワープ",
+        "歩くのは VRoid のキャラ、パークの人たちも VRoid のキャラ（色違い）・歩き方をなめらかに",
+        "新パートナー 杏奈・沙夏（背景つき）／パートナーを変えると特別な登場",
+        "表情の目の線・口の位置を修正／セリフに合わせた表情・しぐさ／沙夏の胸の下側の反応・揺れと顔の追従を控えめに"
+      ],
+      "apps": [
+        "tab:home"
+      ]
+    },
+    {
+      "version": "2026-09-28-2",
+      "date": "2026-09-28",
+      "title": "3D会場 WORLD CONFERENCE／テーマパーク・ミニゲーム／新パートナー 杏奈・沙夏",
+      "notes": [
+        "ホームの「WORLD CONFERENCE」ボタン（β版）から歩いて回れる3D会場へ（基調講演・講演トラック・展示ホールから各アプリへ）",
+        "大噴水のセントラルパーク・観覧車のワンダーランド・スポーツパーク・サーキットのテーマパーク",
+        "CPU のキャラとサッカー（3対3）・ボッチャ・カートレース（3周）",
+        "ベンチ・客席・カフェのいす・ソファにすわれる／W を2回でダッシュ・スマホのスティック操作",
+        "会場を歩くのは VRoid のキャラ、スタッフや登壇者は会場オリジナルのキャラ",
+        "新パートナー 杏奈・沙夏（背景つき）／パートナーを変えると特別な登場",
+        "表情の目の線・口の位置を修正（悪戯っぽい笑みは廃止）／セリフに合わせた表情・しぐさ",
+        "沙夏の胸の下側の反応・マウスへの顔の追従を控えめに・開放の確認を中央に"
+      ],
+      "apps": [
+        "tab:home"
+      ]
+    },
+    {
+      "version": "2026-09-25-8",
+      "date": "2026-09-25",
+      "title": "新パートナー 花菜・莉沙／開催中のガチャをバナーに",
+      "notes": [
+        "新パートナー 花菜・莉沙（1人 30,000 XEVA で開放）・笙古・瞳も追加",
+        "ホーム左上に開催中のガチャ全部のバナーを順番に表示",
+        "全員の表情を表情案から作り直し（口のずれ・目の輪郭の切れ・前髪の線の残りを修正）",
+        "胸の判定を修正・パートナーはβ版・起動時にキャラが出ないことがあったのを修正"
+      ],
+      "apps": [
+        "tab:home"
+      ]
+    },
     {
       "version": "2026-09-24-6",
       "date": "2026-09-24",
@@ -908,68 +1048,6 @@
       "apps": [
         "magiscope",
         "magishift",
-        "tab:home"
-      ]
-    },
-    {
-      "version": "2026-09-21-1",
-      "date": "2026-09-21",
-      "title": "MagiScope 全作品・セール・値下がり／スマホ修正／同期",
-      "notes": [
-        "🏷️ MagiScope に全作品・セール・値下がりのタブを追加しました",
-        "📊 ランキングの絞り込みはランキング内だけ・並べ替えは逆順も",
-        "📱 スマホで画面が横にずれるのを直しました",
-        "👤 アイコンは XEVARION のもの・お気に入りと履歴は端末どうしで足しあわせて同期"
-      ],
-      "apps": [
-        "magiscope",
-        "tab:home"
-      ]
-    },
-    {
-      "version": "2026-09-20-6",
-      "date": "2026-09-20",
-      "title": "FANZA を4つに分割／アニメを3つの出どころに／新作 MagiShift",
-      "notes": [
-        "🔖 MagiScope の FANZA を 同人 本／同人 アニメ／ブックス／アニメ の4つのボタンに分けました",
-        "📺 アニメは Annict（国内）・Filmarks（国内の評価）・AniList（海外）の3つに分かれています",
-        "🎬 原作・略称・よみ・声優を詳細に表示。好みのジャンルは押すと件数が出ます",
-        "🎲 新作 MagiShift（2〜6人の対戦ボードゲーム）",
-        "🏠 ホームのアプリを15個に増やし、並びを変えました"
-      ],
-      "apps": [
-        "magishift",
-        "magiscope",
-        "magiburst",
-        "magitier",
-        "tab:home"
-      ]
-    },
-    {
-      "version": "2026-09-20-5",
-      "date": "2026-09-20",
-      "title": "MagiScope スクロールバー／MagiTier 縦長カード",
-      "notes": [
-        "MagiScope：スクロールバーのデザイン・PCで横スクロール・画像を切らずに表示",
-        "MagiScope：自動取得をPCだけで全部できるように（カラオケ・国内アニメも）",
-        "MagiTier：アニメTier表のカードを縦長に"
-      ],
-      "apps": [
-        "magiscope",
-        "magitier",
-        "tab:home"
-      ]
-    },
-    {
-      "version": "2026-09-20-4",
-      "date": "2026-09-20",
-      "title": "MagiScope 鍵なしで自動取得",
-      "notes": [
-        "MagiScope：FANZA同人・カラオケ・国内アニメを各サイトの公開ページから取得（API キー不要）",
-        "アニメ詳細のキービジュアルが途切れる不具合を修正"
-      ],
-      "apps": [
-        "magiscope",
         "tab:home"
       ]
     }

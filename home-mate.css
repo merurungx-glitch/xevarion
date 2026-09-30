@@ -170,7 +170,7 @@ body.xl-drawer-open .xh-lobby{pointer-events:none}
   background:linear-gradient(180deg,#2c4a80,#152742);border:2px solid var(--yw-line,#12203d)}
 .hm-pk-item .lock.free{background:linear-gradient(180deg,#ff9b5a,#ff4d7a)}
 .hm-pk-card{position:relative}
-.hm-pk-confirm{position:absolute;inset:0;display:none;align-items:center;justify-content:center;padding:18px;border-radius:inherit;background:rgba(10,22,48,.55)}
+.hm-pk-confirm{position:fixed;inset:0;z-index:5;display:none;align-items:center;justify-content:center;padding:18px;background:rgba(10,22,48,.55)}   /* ★ 2026-09-28 画面の真ん中に（下のキャラを押しても上に出て押しづらかった） */
 .hm-pk-confirm.on{display:flex}
 .hm-pk-confirm .box{width:100%;max-width:330px;padding:16px 14px 12px;border-radius:20px;background:#fff;border:3px solid var(--yw-line,#12203d);
   box-shadow:0 4px 0 rgba(18,32,61,.3);text-align:center}
@@ -200,3 +200,39 @@ body.xl-drawer-open .xh-lobby{pointer-events:none}
   font-size:10px;font-weight:900;line-height:13px;text-align:center;color:#fff;background:linear-gradient(180deg,#ff8a3d,#e8442f);
   border:1.5px solid var(--yw-line,#12203d);box-shadow:0 1px 0 rgba(0,0,0,.25)}
 .hm-beta.in{position:static;display:inline-block;margin-left:6px;height:auto;padding:1px 7px;font-size:10px;line-height:1.4;vertical-align:2px}
+
+/* ── ★★ 2026-09-28 3D 会場への特設の入口（下のアプリの列のすぐ上・右寄せ） ── */
+.xl-expo{position:absolute;right:10px;bottom:calc(30px + min(62px,16.4vw) + 40px);display:flex;align-items:center;gap:7px;padding:5px 12px 5px 5px;
+  border-radius:99px;text-decoration:none;color:#fff;border:2.5px solid var(--yw-line,#12203d);
+  background:linear-gradient(120deg,#1b2d6b,#4a2fa0 55%,#1b6b9a);box-shadow:0 0 0 1.5px rgba(160,220,255,.6) inset,0 4px 14px rgba(40,80,200,.45);
+  overflow:hidden;isolation:isolate}
+.xl-expo::before{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.35) 50%,transparent 70%);
+  transform:translateX(-120%);animation:xlShine 3.2s ease-in-out infinite}
+@keyframes xlShine{0%,55%{transform:translateX(-120%)}85%,100%{transform:translateX(120%)}}
+.xl-expo .orb{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.14)}
+.xl-expo .orb img{width:30px;animation:xlOrb 6s linear infinite}
+@keyframes xlOrb{to{transform:rotate(360deg)}}
+.xl-expo .tx{display:flex;flex-direction:column;line-height:1.15}
+.xl-expo .tx b{font-size:11px;font-weight:900;letter-spacing:.06em;text-shadow:0 0 8px #7fd8ff}
+.xl-expo .tx small{font-size:10px;font-weight:800;opacity:.9}
+.xl-expo em{font-style:normal;font-size:9px;font-weight:900;padding:2px 6px;border-radius:99px;background:#ff5f8f;color:#fff;border:1.5px solid #12203d}
+.xl-expo:active{translate:0 2px}
+
+/* ★ 2026-09-28b 3D会場のボタンにも β 版の札 */
+.xl-expo .hm-beta.in{margin-left:0;font-size:9px;padding:1px 6px}   /* 札はボタンの中（ボタンは overflow:hidden で外に出すと切れた） */
+/* ★★ 2026-09-28b パートナーを変えたときの登場（キャラごとの特別な動き）＋きらきら */
+.hm-cv.hm-in-jump{animation:hmInJump 1.3s cubic-bezier(.3,1.4,.5,1) both}
+.hm-cv.hm-in-wave{animation:hmInRise 1.0s cubic-bezier(.2,1.1,.4,1) both}
+.hm-cv.hm-in-bloom{animation:hmInBloom 1.1s cubic-bezier(.25,1.2,.45,1) both}
+.hm-cv.hm-in-bow{animation:hmInBow 1.5s ease-in-out both}
+/* ★★ 2026-09-28d 登場は回転・傾き・横すべりなし（ご指定）：まっすぐ上下と、足もとを中心に大きさだけ */
+@keyframes hmInJump{0%{transform:translateY(60px) scale(.94);opacity:.2}30%{transform:translateY(-26px) scale(1.02);opacity:1}52%{transform:translateY(0) scale(1)}68%{transform:translateY(-12px)}84%,100%{transform:none}}
+@keyframes hmInRise{0%{transform:translateY(34px);opacity:0}55%{transform:translateY(-6px);opacity:1}100%{transform:none}}
+@keyframes hmInBloom{0%{transform:scale(.9);opacity:0}45%{transform:scale(1.025);opacity:1}100%{transform:none}}
+@keyframes hmInBow{0%{transform:translateY(24px);opacity:0}25%{transform:none;opacity:1}45%{transform:translateY(7px)}70%{transform:translateY(7px)}100%{transform:none}}
+.hm-spark{position:absolute;width:0;height:0;pointer-events:none;z-index:2}
+.hm-spark i{position:absolute;left:-5px;top:-5px;width:10px;height:10px;border-radius:50%;background:radial-gradient(circle,#fff 0 30%,var(--c) 60%,transparent 72%);
+  animation:hmSpark 1.2s ease-out both;opacity:0}
+.hm-spark i:nth-child(3n){width:14px;height:14px;left:-7px;top:-7px;background:conic-gradient(from 45deg,transparent 0 10%,#fff 12% 13%,transparent 15% 35%,#fff 37% 38%,transparent 40% 60%,#fff 62% 63%,transparent 65% 85%,#fff 87% 88%,transparent 90%)}
+@keyframes hmSpark{0%{opacity:0;transform:rotate(var(--a)) translateY(0) scale(.4)}20%{opacity:1}100%{opacity:0;transform:rotate(var(--a)) translateY(calc(-1 * var(--d))) scale(1.1)}}
+@media (prefers-reduced-motion: reduce){.hm-cv[class*="hm-in-"]{animation:none}.hm-spark{display:none}}

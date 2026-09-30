@@ -55,7 +55,7 @@ FOLDER_APP = {
 # ★★ 2026-09-09 アプリではない<b>共通の置き場</b>。
 #   ここを見逃すと apps に "img" や "thumbs" が入り、
 #   どのタイルにも当たらない印が<b>消せないまま残る</b>。
-SHARED_DIRS = {"img", "thumbs", "brand", "icons", "home-mate"}   # ★ 2026-09-24 home-mate＝ホームの動くキャラ
+SHARED_DIRS = {"img", "thumbs", "brand", "icons", "home-mate", "expo"}   # ★ 2026-09-24 home-mate＝ホームの動くキャラ・09-28 expo＝3D 会場
 # ルート直下のファイルは「どのタブの話か」に振り分ける（tab: を付けて区別する）
 ROOT_TAB = {
     "gacha.html": "tab:gacha", "gacha-ui.js": "tab:gacha",
@@ -115,6 +115,13 @@ def main():
         mgl = importlib.util.module_from_spec(sp); sp.loader.exec_module(mgl); mgl.main()
     except Exception as e:
         print("!! make-gacha-live.py failed:", e)
+    # ★★ 2026-09-28 3D 会場の中身（expo/expo-data.js）も台帳から作り直す（変われば ?v= も上げる）
+    try:
+        import importlib.util
+        sp = importlib.util.spec_from_file_location("med", os.path.join(BASE, "make-expo-data.py"))
+        med = importlib.util.module_from_spec(sp); sp.loader.exec_module(med); med.main()
+    except Exception as e:
+        print("!! make-expo-data.py failed:", e)
     total, files, missing = 0, 0, []
     seen = set()
     urls = []          # パッケージに入っているファイル（サイト直下からの相対パス）
