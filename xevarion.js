@@ -2281,6 +2281,12 @@ function grantMbGift(srcId, mb) {
 }
 
 const INITIAL_MAILS = [
+  /* ── ★★ 2026-10-02 XEVARION PARK 大型アップデート記念（🎫ガチャチケット30枚・ご指定）──
+     ★ mb:{gticket:30} ＝<b>ガチャチケット</b>（全ガチャ共通）。フェスチケット（mb:{ticket}）ではない。
+     ★ 受け取った瞬間に XEVARION 共通ウォレット（XEVA.ticket）へ入る（grantMbGift）。 */
+  { id:"mail_park_ticket_261002", icon:"🎫", title:"XEVARION PARK 大型アップデート記念 配布（🎫ガチャチケット30枚）", date:"2026-10-02",
+    body:"いつも XEVARION をご利用いただきありがとうございます。\n\nXEVARION PARK の大型アップデート（マギバーストランド・マギボッチャラッシュランドのゲームと展示・3Dで引ける XEVA ガチャパレス・駅の新しいデザインとエレベーター など）を記念して、全ユーザーに ガチャチケット30枚 をお贈りします。\n\n・ガチャチケットは PREMIUM SELECT GACHA・各フェス・GRAND DEBUT など、すべてのガチャで使えます。\n・XEVARION PARK の「XEVA ガチャパレス」でも、そのまま使って3Dで引けます。\n\nこれからも XEVARION をよろしくお願いいたします。",
+    mb:{ gticket:30 } },
   /* ── ★★ 2026-09-13 新ガチャ実装記念（🎫ガチャチケット20枚）──
      ★ mb:{gticket:20} ＝<b>ガチャチケット</b>（全ガチャ共通）。
        mb:{ticket:N} は<b>フェスチケット</b>（フェス専用）なので取りちがえないこと。

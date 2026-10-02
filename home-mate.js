@@ -529,10 +529,21 @@
   const HM_VER = 17;            /* 素材の ?v=（sw.js の CORE と合わせる） */
   const RM = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches;
   const VIEWS = [["normal", "表示：標準"], ["up", "表示：アップ"], ["full", "表示：全身"]];
+  const VIEW_HIDE = "表示：なし";     /* ★★ 2026-09-30 パートナーを表示しないモード（xeva_mate_v1.hide・同期する） */
 
   function store() { try { return JSON.parse(localStorage.getItem(HM_KEY) || "{}") || {}; } catch (e) { return {}; } }
-  function save(st) { try { localStorage.setItem(HM_KEY, JSON.stringify(st)); } catch (e) {} }
+  function save(st) { try { delete st.seen; localStorage.setItem(HM_KEY, JSON.stringify(st)); } catch (e) {} }
+  /* ★★ 2026-10-01 「パートナーの購入や設定が同期されない」の直し：
+     あいさつの記録（最後に会った時刻・初めて会った時刻）は<b>端末ごと</b>の xeva_mate_seen_v1 に置く。
+     前は同期するキー（xeva_mate_v1）にホームを開くたび書いていたので、開いただけの端末の古い中身が「いちばん新しい」になり、
+     ほかの端末で開放したパートナーや選んだ設定をクラウドごと上書きしていた。xeva_mate_v1 に書くのは、開放・選ぶ・設定を変えたときだけ。 */
+  const HM_SEEN = "xeva_mate_seen_v1";
+  function seenGet() { try { return JSON.parse(localStorage.getItem(HM_SEEN) || "{}") || {}; } catch (e) { return {}; } }
+  function seenSave(s) { try { localStorage.setItem(HM_SEEN, JSON.stringify(s)); } catch (e) {} }
   const asset = (m, f) => m.dir + f + "?v=" + HM_VER;
+  function hiddenOn() { return !!store().hide; }
+  function viewLabel() { if (hiddenOn()) return VIEW_HIDE; const cur = store().view || "normal", v = VIEWS.find((x) => x[0] === cur); return v ? v[1] : "表示"; }
+  function paintViewLabel() { const lb = document.getElementById("xlViewLb"); if (lb) lb.textContent = viewLabel(); }
 
   /* ── 表情：顔の絵・首の傾き・頭の上下・体の傾き・視線の上下 ──
      ★★★ 2026-09-25 顔の絵は<b>いただいた表情案</b>（半目・閉じた目・笑顔・照れ・悪戯っぽい笑み・眠そう・自信ありげ）から作った
@@ -1194,14 +1205,15 @@
   };
 
   Mate.prototype.greet = function (picked) {
-    const st = store(), L = this.def.lines;
-    st.met = st.met || {}; st.seen = st.seen || {};
-    const last = st.seen[this.id] || st.met[this.id] || 0;
-    st.seen[this.id] = Date.now(); save(st);
+    const st = store(), sn = seenGet(), L = this.def.lines;
+    sn.met = sn.met || {}; sn.seen = sn.seen || {};
+    const met = sn.met[this.id] || (st.met && st.met[this.id]) || 0;          /* 前に同期キーへ書いていたぶんも見る */
+    const last = sn.seen[this.id] || (st.seen && st.seen[this.id]) || met || 0;
+    sn.seen[this.id] = Date.now(); if (met && !sn.met[this.id]) sn.met[this.id] = met; seenSave(sn);
     /* あいさつのあと、少ししたらアプリの話題をひとつ（スタミナ満タン・報酬の受け取り忘れ など） */
     this.appNext = true;
     if (picked) { this.line(L.pick, "smile", 3000); }
-    else if (!st.met[this.id]) { st.met[this.id] = Date.now(); save(st); this.line(L.intro, "smile", 3000); }
+    else if (!met) { sn.met[this.id] = Date.now(); seenSave(sn); this.line(L.intro, "smile", 3000); }
     else if (L.back && Date.now() - last > 3 * 864e5) this.line(L.back, "shy", 3000);      /* 3日以上ぶり */
     else {
       const h = new Date().getHours();
@@ -1277,6 +1289,28 @@
     return true;
   };
 
+  /* ══════════════ ★★ 2026-09-30 パートナーを表示しないモード（ご指定「ホームでパートナーを表示しないモード」） ══════════════
+     部屋の背景だけを出す（キャラ・吹き出し・タップの反応・WebGL は作らない＝軽い）。
+     Mate と同じ呼ばれ方（mount / layout / greet / destroy）をするので、ほかの所はそのまま動く。 */
+  function Backdrop(stage, id) { this.stage = stage; this.id = id; this.def = HM_MATES[id]; this.backdrop = true; this.view = store().view || "normal"; }
+  Backdrop.prototype.mount = function () {
+    const layer = document.createElement("div");
+    layer.className = "hm-layer hm-empty"; layer.dataset.mate = this.id;
+    layer.innerHTML = '<div class="hm-bg" style="background-image:url(' + asset(this.def, "bg.webp") + ')"></div>';
+    this.stage.appendChild(layer); this.layer = layer;
+    requestAnimationFrame(() => layer.classList.add("in"));
+    setTimeout(() => { if (!this.dead) layer.classList.add("in"); }, 700);
+    return true;
+  };
+  Backdrop.prototype.layout = function () {};
+  Backdrop.prototype.greet = function () {};
+  Backdrop.prototype.shouldRun = function () { return false; };
+  Backdrop.prototype.kick = function () {};
+  Backdrop.prototype.destroy = function () {
+    this.dead = true;
+    const L = this.layer; if (L) { L.classList.remove("in"); L.classList.add("out"); setTimeout(() => L.remove(), 450); }
+  };
+
   /* WebGL が使えない・素材が読めないときは、動かない1枚絵を出す（何も出ないよりよい） */
   Mate.prototype.still = function () {
     const m = this.def;
@@ -1343,9 +1377,8 @@
     const st = store();
     let own = Array.isArray(st.own) ? st.own.slice() : (HM_MATES[st.partner] ? [st.partner] : []);
     if (own.indexOf(HM_FREE) < 0) own.unshift(HM_FREE);
-    own = own.filter((id, i) => HM_MATES[id] && own.indexOf(id) === i);
-    if (!Array.isArray(st.own) || st.own.length !== own.length) { st.own = own; save(st); }
-    return own;
+    /* ★★ 2026-10-01 ここでは書かない（起動するだけで同期キーが新しくなり、ほかの端末の開放を消していた） */
+    return own.filter((id, i) => HM_MATES[id] && own.indexOf(id) === i);
   }
   function xevaBal() { try { return window.XEVA ? XEVA.getBalance() : 0; } catch (e) { return 0; } }
   function nf(n) { return (n | 0).toLocaleString("ja-JP"); }
@@ -1380,6 +1413,7 @@
 
   function mateSub() {
     const id = api.current(), m = HM_MATES[id];
+    if (hiddenOn()) return "表示しない（部屋だけ）・開放 " + owned().length + "/" + Object.keys(HM_MATES).length;
     return randomOn() ? "ランダム表示（いまは " + m.name + "）・開放 " + owned().length + "/" + Object.keys(HM_MATES).length
                       : m.name + "（" + m.ruby + "）・開放 " + owned().length + "/" + Object.keys(HM_MATES).length;
   }
@@ -1389,11 +1423,13 @@
     if (!sh) {
       sh = document.createElement("div");
       sh.id = "hmPicker"; sh.className = "hm-picker";
-      sh.innerHTML = '<div class="hm-pk-card"><div class="hm-pk-head"><b>ホームのパートナー<em class="hm-beta in">β版</em></b>' +
+      sh.innerHTML = '<div class="hm-pk-card"><div class="hm-pk-head"><b>ホームのパートナー</b>' +
         '<button class="hm-pk-x" aria-label="閉じる">✕</button></div><div class="hm-pk-info"></div>' +
-        '<div class="hm-pk-rand"><span><b>ランダムに表示</b><small>アプリを開くたびに、開放ずみのパートナーから1人が出てきます</small></span>' +
+        '<div class="hm-pk-rand hm-pk-hide"><span><b>パートナーを表示しない</b><small>ホームのロビーにキャラを出さず、部屋の背景だけにします（ロビーの「表示」ボタンでも切りかえられます）</small></span>' +
+        '<button class="hm-vsw" aria-label="パートナーを表示しないモードのオン・オフ"></button></div>' +
+        '<div class="hm-pk-rand hm-pk-rnd"><span><b>ランダムに表示</b><small>アプリを開くたびに、開放ずみのパートナーから1人が出てきます</small></span>' +
         '<button class="hm-vsw" aria-label="ランダム表示のオン・オフ"></button></div><div class="hm-pk-list"></div>' +
-        '<p class="hm-pk-note">選んだキャラがホームのロビーに立ちます。タップすると表情とセリフで反応します。<br>★ パートナーは<b>β版</b>です。動きや表情はこれからも調整していきます。</p>' +
+        '<p class="hm-pk-note">選んだキャラがホームのロビーに立ちます。タップすると表情とセリフで反応します。</p>' +
         '</div><div class="hm-pk-confirm"><div class="box"><p class="q"></p><div class="row"><button class="no">やめる</button><button class="yes">開放する</button></div></div></div>';
       document.body.appendChild(sh);
       sh.addEventListener("click", (e) => { if (e.target === sh || e.target.closest(".hm-pk-x")) sh.classList.remove("on"); });
@@ -1414,13 +1450,16 @@
       /* ★ 2026-09-24g 写真の枠の真ん中に<b>鼻のあたり</b>が来るように置く（目印の face は顔の中心＝鼻の少し上） */
       sh.querySelectorAll(".hm-pk-item .ph img").forEach((im) => centerNose(im, im.dataset.id));
       sw.classList.toggle("on", randomOn());
+      swH.classList.toggle("on", hiddenOn());
+      sh.querySelector(".hm-pk-card").classList.toggle("hm-pk-hidden", hiddenOn());
     };
-    const sw = sh.querySelector(".hm-pk-rand .hm-vsw");
+    const sw = sh.querySelector(".hm-pk-rnd .hm-vsw"), swH = sh.querySelector(".hm-pk-hide .hm-vsw");
     sw.onclick = () => {
       const st = store(); st.random = !st.random; save(st);
       if (st.random) sessionPick = api.get() ? api.get().id : null;     /* 今の子はそのまま。次に開いたときから入れかわる */
       paint(); api.refreshSub();
     };
+    swH.onclick = () => { api.setHidden(!hiddenOn()); paint(); };
     const cf = sh.querySelector(".hm-pk-confirm");
     const choose = (id) => {
       const own = owned();
@@ -1489,8 +1528,7 @@
     paintBanners();
     renderLobbyApps();
     window.addEventListener("storage", (e) => { if (e.key === LOBBY_APPS_KEY) renderLobbyApps(); });
-    const lb = document.getElementById("xlViewLb");
-    if (lb) { const cur = store().view || "normal"; const v = VIEWS.find((x) => x[0] === cur); lb.textContent = v ? v[1] : "表示"; }
+    paintViewLabel();
   }
 
   /* ══════════════ 左上：開催中のガチャのバナー（全部を順番に） ══════════════
@@ -1682,18 +1720,28 @@
     /* picked … 選択画面で選んだ（あいさつ＋保存）／"quiet" … 作り直し（あいさつしない）／false … 起動・同期 */
     setPartner(id, picked) {
       if (!HM_MATES[id]) return;
-      if (picked === true) { const st = store(); st.partner = id; save(st); sessionPick = id; }
+      /* ★★ 2026-09-30 選択画面でパートナーを選んだら「表示しない」は解除（選んだ子がすぐ出る） */
+      if (picked === true) { const st = store(); st.partner = id; if (st.hide) st.hide = false; save(st); sessionPick = id; }
       const stage = document.getElementById("xhMate");
       if (stage) {
-        if (live && live.id === id && !live.dead && picked !== "quiet") { if (picked === true) live.greet(true); }
+        if (hiddenOn()) {
+          if (!(live && live.backdrop && live.id === id && !live.dead)) { if (live) live.destroy(); live = new Backdrop(stage, id); live.mount(); }
+        } else if (live && live.id === id && !live.dead && !live.backdrop && picked !== "quiet") { if (picked === true) live.greet(true); }
         else {
           if (live) live.destroy();
           live = new Mate(stage, id);
           live.mount(picked);
         }
       }
-      api.refreshSub();
+      api.refreshSub(); paintViewLabel();
     },
+    /* ★★ 2026-09-30 パートナーを表示しない（true）／表示する（false） */
+    setHidden(on) {
+      const st = store(); st.hide = !!on; save(st);
+      api.setPartner(api.current(), on ? false : "quiet");
+      if (!on && live && !live.backdrop) setTimeout(() => { if (live && !live.dead && !live.backdrop) live.greet(false); }, 700);
+    },
+    hidden: hiddenOn,
     /* ★★ 2026-09-25 WebGL が消された・描けなくなったときに作り直す（1分に4回まで） */
     revive(m) {
       if (!m || m !== live || m.dead) return;
@@ -1703,10 +1751,14 @@
       api._rv.push(now);
       setTimeout(() => { if (m === live && !m.dead) { m.dead = true; api.setPartner(m.id, "quiet"); } }, 250);
     },
+    /* 標準 → アップ → 全身 → なし（パートナーを表示しない）→ 標準 … */
     cycleView() {
-      const st = store(); const i = VIEWS.findIndex((v) => v[0] === (st.view || "normal"));
+      const st = store();
+      if (st.hide) { st.view = "normal"; save(st); api.setHidden(false); return; }
+      const i = VIEWS.findIndex((v) => v[0] === (st.view || "normal"));
+      if (i === VIEWS.length - 1) { api.setHidden(true); return; }
       const nx = VIEWS[(i + 1) % VIEWS.length]; st.view = nx[0]; save(st);
-      const lb = document.getElementById("xlViewLb"); if (lb) lb.textContent = nx[1];
+      paintViewLabel();
       if (live) { live.view = nx[0]; live.layout(); }
     },
     openPicker,
@@ -1737,11 +1789,11 @@
     try {
       renderLobbyApps();
       const id = api.current();
-      if (!live || live.id !== id) api.setPartner(id, false);
+      if (!live || live.id !== id || !!live.backdrop !== hiddenOn()) api.setPartner(id, false);          /* ★★ 2026-09-30 表示しないモードが別の端末で変わったときも */
       else api.refreshSub();
       const v = store().view || "normal";
       if (live && live.view !== v) { live.view = v; live.layout(); }
-      const lb = document.getElementById("xlViewLb"), vv = VIEWS.find((x) => x[0] === v); if (lb && vv) lb.textContent = vv[1];
+      paintViewLabel();
     } catch (e) {}
   };
   window.addEventListener("xeva:synced", resync);

@@ -25,7 +25,7 @@
 <link rel="stylesheet" href="xevion-os.css?v=15">
 <!-- ★★ 2026-09-24 ホームの「動くキャラ」（舞香）。中身は home-mate.js。 -->
 <link rel="stylesheet" href="home-mate.css?v=17">
-<script src="xeva.js?v=71" defer></script>
+<script src="xeva.js?v=72" defer></script>
 <!-- ★★ 2026-09-05 コレクションを XEVARION 全体で1本にする共通部品。
      xeva.js の iconCharList() を使うので、必ず xeva.js の<b>あと</b>に置く。 -->
 <script src="xeva-collection.js?v=7" defer></script>
@@ -68,11 +68,11 @@
 <script type="module" src="xeva-sync.js?v=18"></script>
 <script type="module" src="xevarion-fb.js?v=33"></script>
 <script src="xeva-presence.js?v=9" defer></script>
-<script type="module" src="xeva-cloud.js?v=38"></script>
+<script type="module" src="xeva-cloud.js?v=39"></script>
 <script src="xeva-qr.js?v=9" defer></script>
-<script src="xevarion.js?v=95" defer></script>
-<script src="xevarion-home.js?v=151" defer></script>
-<script src="home-mate.js?v=17" defer></script>
+<script src="xevarion.js?v=96" defer></script>
+<script src="xevarion-home.js?v=152" defer></script>
+<script src="home-mate.js?v=18" defer></script>
 </head>
 <body>
 <!-- ───── バックグラウンド音楽（Flagship Arrival。アクセス画面のタップで再生開始） ───── -->
@@ -441,7 +441,7 @@ body.music-on #beatFrame{opacity:1}
         <button class="xl-ic" onclick="HomeMate.openInfo('up')"><span class="i"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.4 2.8h3.2v7.6h3.9L12 17.2 6.5 10.4h3.9Z" fill="#3f8ce8" stroke="#12203d" stroke-width="1.6" stroke-linejoin="round"/><rect x="4.6" y="18.4" width="14.8" height="3" rx="1.5" fill="#12203d"/></svg></span><span class="l">更新情報</span></button>
       </div>
       <div class="xl-right">
-        <button class="xl-ic dia" onclick="HomeMate.openPicker()"><span class="i"><b>♥</b><em class="hm-beta">β</em></span><span class="l">パートナー</span></button>
+        <button class="xl-ic dia" onclick="HomeMate.openPicker()"><span class="i"><b>♥</b></span><span class="l">パートナー</span></button>
         <button class="xl-ic dia" onclick="HomeMate.cycleView()"><span class="i"><b>⤢</b></span><span class="l" id="xlViewLb">表示</span></button>
       </div>
       <!-- ★★ 2026-09-28 3D 会場（XEVARION WORLD CONFERENCE）への特設の入口（ご指定） -->
@@ -862,7 +862,7 @@ body.music-on #beatFrame{opacity:1}
       <!-- ★★ 2026-09-24 ホームのパートナー（ロビーに立つキャラ）を選ぶ -->
       <button class="xh-row" onclick="xhCloseSheet('xhSetSheet');HomeMate.openPicker()">
         <span class="rl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><path d="M12 20.4S3.6 15.3 3.6 9.2A4.4 4.4 0 0 1 12 7.1a4.4 4.4 0 0 1 8.4 2.1c0 6.1-8.4 11.2-8.4 11.2Z"/></svg>
-          <span><span class="rt">ホームのパートナー<em class="hm-beta in">β版</em></span><span class="rs" id="xhSetMateSub">ロビーに立つキャラを選ぶ</span></span></span>
+          <span><span class="rt">ホームのパートナー</span><span class="rs" id="xhSetMateSub">ロビーに立つキャラを選ぶ</span></span></span>
         <span class="rv">›</span>
       </button>
 

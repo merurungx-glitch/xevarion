@@ -2039,6 +2039,24 @@
     }, true);
   } catch (e) {}
 
+  /* ★★ 2026-10-02 極彩祭・極煌祭・極華祭のキャラの四角い絵を、パートナーのように少しだけ動かす（ご指定）。
+     本体は xeva-alive.js（WebGL）。この xeva.js と同じ場所から、画面の読み込みが終わってから読む
+     （各画面の HTML は書きかえなくてよい）。止めたいときは localStorage "xeva_alive" = "off"。 */
+  try {
+    var aliveSrc = document.currentScript && document.currentScript.src;
+    if (aliveSrc && !window.__xevaAliveReq) {
+      window.__xevaAliveReq = 1;
+      var aliveGo = function () {
+        var s = document.createElement("script");
+        s.src = new URL("xeva-alive.js?v=2", aliveSrc).href;
+        s.async = true;
+        (document.head || document.documentElement).appendChild(s);
+      };
+      if (document.readyState === "complete") setTimeout(aliveGo, 200);
+      else window.addEventListener("load", function () { setTimeout(aliveGo, 200); });
+    }
+  } catch (e) {}
+
   window.XEVA = XEVA;
   /* ★ 2026-08-24 レベル・スタミナはどの画面からも使うので、短い名前でも出しておく */
   window.XStatus = status;

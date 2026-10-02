@@ -7,7 +7,7 @@
    ・オフライン中の進行は localStorage に残り、オンライン復帰時に
      xeva-cloud.js がタイムスタンプ比較でクラウドへ上書き反映する
    ============================================================ */
-const VERSION = "xevarion-sw-v212";
+const VERSION = "xevarion-sw-v213";
 
 /* ホームを成立させる最小セット（重い画像は runtime キャッシュに任せる） */
 const CORE = [
@@ -26,9 +26,9 @@ const CORE = [
   /* ★ 2026-08-10 ガチャと図鑑で共通の土台・キャラ詳細・結果演出 */
   /* ★ 2026-08-12 ポータルのガチャ・図鑑も magiburst_v1 を同期するようになった */
   "./app-cloud.js?v=12",
-  "./MagiBurst/magiburst-cloud.js?v=19",
+  "./MagiBurst/magiburst-cloud.js?v=20",
   "./mb-boot.js?v=17",
-  "./mb-char-detail.js?v=36",
+  "./mb-char-detail.js?v=37",
   "./mb-char-detail.css?v=24",
   "./mb-gacha-reveal.css?v=11",
   "./community.html",
@@ -57,14 +57,15 @@ const CORE = [
   "./xeva-i18n-p4.js?v=7",
   "./xeva-i18n-n1.js?v=12",
   "./xeva-i18n-n2.js?v=3",
-  "./xeva.js?v=71",
+  "./xeva.js?v=72",
+  "./xeva-alive.js?v=2",
   "./xeva-fx.js?v=9",
   "./xeva-loading.js?v=18",
-  "./xevarion.js?v=95",
-  "./xevarion-home.js?v=151",
+  "./xevarion.js?v=96",
+  "./xevarion-home.js?v=152",
   /* ★★ 2026-09-24 ホームのロビーとパートナー。素材は home-mate/<id>/（?v= は home-mate.js の HM_VER）・笙古／瞳／舞香／衣織／樹愛羅／映美里（09-25 ボイス廃止・表情は webp） */
   "./gacha-live.js?v=1",
-  "./home-mate.js?v=17",
+  "./home-mate.js?v=18",
   "./home-mate.css?v=17",
   "./home-mate/shoko/shoko.json?v=17",
   "./home-mate/shoko/shoko.webp?v=17",
@@ -98,39 +99,51 @@ const CORE = [
   "./home-mate/sana/bg.webp?v=17",
   /* ★★ 2026-09-28 3D 会場（XEVARION WORLD CONFERENCE）。expo-data.js は make-expo-data.py が作る */
   "./expo/index.html",
-  "./expo/expo.css?v=6",
+  "./expo/expo.css?v=7",
   "./expo/three.min.js?v=160",
   "./expo/expo-data.js?v=8",
   "./expo/tex.js?v=2",
   "./expo/vrm.js?v=3",
-  "./expo/world.js?v=6",
-  "./expo/park.js?v=4",
+  "./expo/world.js?v=7",
+  "./expo/park.js?v=5",
   "./expo/park_style.js?v=2",
-  "./expo/park_interiors.js?v=3",
-  "./expo/park_areas.js?v=4",
-  "./expo/park_areas2.js?v=4",
-  "./expo/park_harbor.js?v=3",
-  "./expo/park_dome.js?v=3",
+  "./expo/park_interiors.js?v=4",
+  "./expo/park_areas.js?v=5",
+  "./expo/park_areas2.js?v=5",
+  "./expo/park_harbor.js?v=4",
+  "./expo/park_dome.js?v=4",
   "./expo/park_night2.js?v=3",
   "./expo/park_new.js?v=2",
   "./expo/park_sports.js?v=3",
-  "./expo/park_more.js?v=2",
-  "./expo/park_life.js?v=1",
+  "./expo/park_more.js?v=3",
+  "./expo/park_life.js?v=2",
   "./expo/park_scope.js?v=2",
   "./expo/park_adult.js?v=1",
-  "./expo/park_roads.js?v=2",
-  "./expo/gfx.js?v=2",
-  "./expo/fx.js?v=3",
-  "./expo/people.js?v=2",
-  "./expo/games.js?v=3",
+  "./expo/park_roads.js?v=3",
+  "./expo/gfx.js?v=3",
+  "./expo/fx.js?v=4",
+  "./expo/people.js?v=3",
+  "./expo/games.js?v=4",
+  "./expo/games_burst.js?v=1",
+  "./expo/park_gacha3d.js?v=1",
   "./expo/park_kart.js?v=1",
   "./expo/audio/park_music.js?v=2",
-  "./expo/park_rides.js?v=3",
-  "./expo/park_transit.js?v=3",
-  "./expo/park_shows.js?v=3",
-  "./expo/park_ui.js?v=3",
-  "./expo/park_rooms.js?v=2",
-  "./expo/main.js?v=6",
+  "./expo/park_rides.js?v=4",
+  "./expo/park_transit.js?v=4",
+  "./expo/park_shows.js?v=4",
+  "./expo/park_ui.js?v=4",
+  "./expo/park_rooms.js?v=3",
+  "./expo/park_layout.js?v=1",
+  "./expo/park_plan.js?v=2",
+  "./expo/park_net.js?v=2",
+  "./expo/park_corp.js?v=2",
+  "./expo/park_fun.js?v=2",
+  "./expo/park_outer.js?v=2",
+  "./expo/park_metro.js?v=2",
+  "./expo/park_infill.js?v=2",
+  "./expo/park_fantasy.js?v=1",
+  "./expo/park_spec.js?v=3",
+  "./expo/main.js?v=8",
   "./expo/chara/chara01.glb?v=1",
   "./expo/img/park_logo.webp",
   "./expo/img/park_wordmark.webp",
@@ -161,7 +174,12 @@ const CORE = [
   "./home-mate/emiri/bg.webp?v=17",
   "./maintenance-gate.js?v=13",
   "./xeva-back.js?v=9",
-  "./xeva-keys.js?v=27",
+  "./xeva-keys.js?v=28",
+  /* ★★ 2026-10-01 同期のモジュールも入れる（前は実行時キャッシュだけ＝更新直後のオフラインで読めなかった） */
+  "./xeva-cloud.js?v=39",
+  "./xevarion-fb.js?v=33",
+  "./xeva-sync.js?v=18",
+  "./xeva-presence.js?v=9",
   /* ★ 2026-08-20 通信設定（Wi-Fi／モバイルデータごとの動き）。
      この SW へ設定を送る側なので、オフラインでも読めるようにここに入れておく。 */
   "./xeva-netmode.js?v=10",
@@ -220,7 +238,7 @@ const CORE = [
   "./MagiDiamond/js/md2-icons.js?v=6",
   "./MagiDiamond/js/md2-data.js?v=13",
   /* ★★ 2026-09-10 図鑑のキャラ詳細で Magi: Boccia Rush の性能も出すので、ここでも持つ */
-  "./MagiBocciaRush/js/mbr-core.js?v=15",
+  "./MagiBocciaRush/js/mbr-core.js?v=16",
   "./MagiDiamond/js/md2-game.js?v=22",
   "./MagiDiamond/js/md2-online.js?v=10",
   "./MagiDiamond/img/logo.webp",
@@ -346,6 +364,88 @@ async function xevImgFirst(req) {
   if (loose) return loose;
   return new Response("", { status: 504 });
 }
+/* ★★ 2026-10-01 ポータルから読む MagiBurst などの部品（素通しだったもの）。
+   ふだんは通信（これまでと同じ）→ 取れなければ<b>どの置き場からでも</b>返す（各アプリの SW が入れたものも使える）。
+   「このつなぎかたでは最新を取りに行かない」設定のときは、先に置き場を見る。 */
+async function xevPassCache(req) {
+  const fromCache = async () => (await caches.match(req, { ignoreSearch: false })) || (await caches.match(req, { ignoreSearch: true }));
+  if (xevNetLatest() === false) { const hit = await fromCache(); if (hit) return hit; }
+  try {
+    const res = await fetch(req);
+    if (res && (res.ok || res.status === 304)) return res;
+    const hit = await fromCache(); return hit || res;
+  } catch (err) {
+    const hit = await fromCache();
+    if (hit) return hit;
+    return new Response("", { status: 504 });
+  }
+}
+/* ★★ 2026-10-01 XEVARION PARK（expo/）のキャラのモデル（.glb・計 約21MB）。
+   これまでは版ごとのキャッシュ（VERSION）に入っていたので、<b>更新のたびに消えて</b>、
+   更新直後にオフラインでパークを開くと「キャラクターを読みこめませんでした」になっていた。
+   → 版に縛られない置き場（xev-park-v1）に置く。?v= 付きなので、置き場にあれば通信しない。
+   ★ 音楽（mp3）は &lt;audio&gt; が範囲指定（Range）で読むので、ここでは扱わない（これまでどおり）。 */
+const XEV_PARK = "xev-park-v1";
+const XEV_PARK_RE = /\/expo\/.*\.(glb|vrm)$/i;
+async function xevParkFirst(req) {
+  const cache = await caches.open(XEV_PARK);
+  const hit = await cache.match(req, { ignoreSearch: false });
+  if (hit) return hit;
+  try {
+    const res = await fetch(req);
+    if (res && res.status === 200 && (res.type === "basic" || res.type === "default")) cache.put(req, res.clone()).catch(() => {});
+    return res;
+  } catch (err) {
+    const loose = await caches.match(req, { ignoreSearch: true });
+    if (loose) return loose;
+    return new Response("", { status: 504 });
+  }
+}
+/* ★★ 2026-10-01 オフラインでもキャラの絵が出るように、<b>全キャラの小さい絵（img/t_*.webp・1枚 約35KB）</b>を XEV_IMG にためる。
+   名前の一覧はキャラの台帳（mb-core.js・mb-newchars.js・gacha-live.js）から拾うので、キャラが増えても書き足さなくてよい。
+   すでにあるものは取らない（2回目からは通信しない）。大きい絵が無いときは、xevImgFirst がこの小さい絵で代わりに出す。
+   park:true のときは XEVARION PARK のキャラのモデル（約21MB）も入れる（オフライン用のダウンロードのときだけ）。 */
+let xevWarming = null;
+async function xevWarm(opt) {
+  if (xevWarming) return xevWarming;
+  xevWarming = (async () => {
+    const urls = [];
+    if (!opt || opt.imgs !== false) {
+      const names = new Set();
+      for (const u of CORE.filter((x) => /mb-core\.js|mb-newchars\.js|gacha-live\.js/.test(x))) {
+        try {
+          const r = (await caches.match(u)) || (await fetch(u));
+          const txt = r ? await r.clone().text() : "";
+          (txt.match(/\bt_[A-Za-z0-9_\-]+\.webp/g) || []).forEach((n) => names.add(n));
+        } catch (err) {}
+      }
+      names.forEach((n) => urls.push([XEV_IMG, new URL("./img/" + n, self.location.href).href]));
+    }
+    if (opt && opt.park) {
+      ["sample_A", "sample_C", "sample_M", "sample_O", "sample_P", "chara01"].forEach((n) => urls.push([XEV_PARK, new URL("./expo/chara/" + n + ".glb?v=1", self.location.href).href]));
+    }
+    let i = 0, done = 0, got = 0;
+    const worker = async () => {
+      while (i < urls.length) {
+        const [cn, u] = urls[i++];
+        try {
+          const cache = await caches.open(cn);
+          if (!(await cache.match(u))) { const r = await fetch(u); if (r && r.status === 200) { await cache.put(u, r); got++; } }
+        } catch (err) {}
+        done++;
+        if (done % 20 === 0 || done === urls.length) await xevPost({ type: "xev-warm", done, total: urls.length, got });
+      }
+    };
+    await Promise.all([worker(), worker(), worker(), worker()]);
+    return { total: urls.length, got };
+  })();
+  try { return await xevWarming; } finally { xevWarming = null; }
+}
+self.addEventListener("message", (e) => {
+  const m = e.data;
+  if (!m || m.type !== "xev-warm") return;
+  e.waitUntil(xevWarm({ imgs: m.imgs !== false, park: !!m.park }));
+});
 /* 大きい絵 → 同じ名前のサムネイル（t_ 付き）のURL。作れなければ null */
 function xevThumbURL(href) {
   try {
@@ -369,10 +469,21 @@ self.addEventListener("fetch", (e) => {
   // 別オリジン（Firebase / Google Fonts など）はそのまま
   if (url.origin !== self.location.origin) return;
   // 3アプリ配下は各アプリのSWに任せる
-  if (PASS_THROUGH.test(url.pathname)) return;
+  /* ★★ 2026-10-01 ただし<b>ポータルの画面（ホーム・ガチャ・図鑑）から読む部品と絵</b>はここで返す（ご報告「オフライン時キャラ画像が表示されない」）。
+     SW は「読みに行く先」ではなく「読んでいる画面」の SW が受け持つので、ここで素通しにすると
+     ガチャのバナー（MagiBurst/img/）や mb-core.js が<b>オフラインでは必ず失敗</b>していた（CORE に入れてあっても使われない）。
+     画面そのものの移動（navigate）だけは、これまでどおり各アプリの SW に任せる。 */
+  if (PASS_THROUGH.test(url.pathname)) {
+    if (req.mode === "navigate") return;
+    if (xevIsImg(url)) { e.respondWith(xevImgFirst(req)); return; }
+    e.respondWith(xevPassCache(req));
+    return;
+  }
 
   /* ★★ 2026-09-01 画像は<b>版に縛られない置き場</b>へ（更新しても消えない） */
   if (xevIsImg(url)) { e.respondWith(xevImgFirst(req)); return; }
+  /* ★★ 2026-10-01 XEVARION PARK のキャラのモデルも、版に縛られない置き場へ（オフラインでもパークに入れる） */
+  if (XEV_PARK_RE.test(url.pathname)) { e.respondWith(xevParkFirst(req)); return; }
 
   // ナビゲーション：ネット優先 → 失敗したらキャッシュ → 最後にホーム
   /* ★ 2026-08-20 通信設定（Wi-Fi／モバイルデータごとに切り替えられる）

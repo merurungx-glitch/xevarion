@@ -439,6 +439,10 @@ const XH_EVENTS = [
    ══════════════════════════════════════════════════════════════ */
 const XH_UPDATE_MAX = 12;
 const XH_UPDATES = [
+  /* ★★ 2026-10-02 XEVARION PARK ファンタジーの世界・3D ガチャ・ボスバトル／MagiBocciaRush の演出／ガチャチケット30枚 */
+  { tag:"UPDATE", t1:"XEVARION PARK がファンタジーの世界に／3D で引けるガチャ・3D ボスバトル", at:"2026-10-02",
+    t2:"町なみを王道 RPG のようなファンタジーに（石だたみ・うろこ屋根・木組みの家・鉄のランタン・木の看板・石の門）／XEVA GACHA PALACE の大きなガチャマシンで本物のガチャを 3D で引ける／マギバーストランドのボスコロシアムで 3D ボスバトル・ミュージアム・英雄の丘・フェス／マギボッチャラッシュランドはラッシュルールのボッチャ・名誉の殿堂・フェス／駅をエリアごとのデザインと規模に・エレベーターの演出／MagiBocciaRush にアディショナルマッチとペルソナ風の演出・同じ編成どうしの対戦／極彩祭・極煌祭・極華祭のキャラの絵が少し動く／記念に🎫ガチャチケット30枚（メールで受け取り）",
+    href:"expo/index.html", img:"expo/img/park_emblem.webp" },
   /* ★★ 2026-09-29 XEVARION PARK 大型アップデート */
   { tag:"UPDATE", t1:"XEVARION PARK 大型アップデート（建物の中・乗り物・音楽とショー）", at:"2026-09-29",
     t2:"約190の建物に入れる（食堂・お店・ゲームセンター・映画館・教室・カラオケ・スパ・お化け屋敷・プラネタリウム…それぞれにできること）／思い出バッグとスタンプラリー／パークの音楽とパレード・夜のショーの演出／コースター・観覧車・ホバーなどの乗り物／見やすい地図と上空から飛べる場所の札",
@@ -1306,9 +1310,42 @@ async function xhBuyStamina() {
   xhToast("⚡ スタミナ <b>+" + v.gemGain + "</b> 回復しました");
 }
 window.xhBuyStamina = xhBuyStamina;
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-09-30 札の数字が入りきらないときは K・M・B の略記（ご指定「ガチャでの表示のように」）
+   ・まず桁つきの数（223,318）を入れ、札からはみ出すときだけ 44.0K／123K／1.2M に置きかえる。
+     ＝ 画面が広くて入るときは今までどおり全部の桁が見える。
+   ・札の幅が変わったとき（画面の回転・ホームが表に出た）も ResizeObserver で入れ直す。
+   ・ほんとうの数は title（長押し・マウスを重ねる）で見られる。
+   ══════════════════════════════════════════════════════════════ */
+function xhShortNum(n) {
+  n = Math.max(0, Math.round(Number(n) || 0));
+  if (n < 1000) return String(n);
+  const U = [[1e12, "T"], [1e9, "B"], [1e6, "M"], [1e3, "K"]];
+  for (let i = 0; i < U.length; i++) {
+    const [d, u] = U[i], v = n / d;
+    if (v < 1) continue;
+    let s = v.toFixed(1); if (Number(s) >= 100) s = v.toFixed(0);          /* 99,999 → 100K（100.0K にしない） */
+    if (Number(s) >= 1000 && i > 0) { const [d2, u2] = U[i - 1]; return (n / d2).toFixed(1) + u2; }   /* 999,999 → 1000K ではなく 1.0M */
+    return s + u;
+  }
+  return String(n);
+}
+window.xhShortNum = xhShortNum;
+var _xhFitRO = ("ResizeObserver" in window) ? new ResizeObserver((ents) => ents.forEach((e) => { const el = e.target; if (el._xhN != null) xhFitNum(el, el._xhN); })) : null;
+function xhFitNum(el, n) {
+  if (!el) return;
+  n = Math.max(0, Math.round(Number(n) || 0));
+  el._xhN = n;
+  if (_xhFitRO && !el._xhRO) { el._xhRO = 1; try { _xhFitRO.observe(el); } catch (e) {} }
+  const full = n.toLocaleString();
+  if (el.textContent !== full) el.textContent = full;
+  el.title = full;
+  if (el.clientWidth > 0 && el.scrollWidth > el.clientWidth + 0.5) { const s = xhShortNum(n); if (el.textContent !== s) el.textContent = s; }
+}
+window.xhFitNum = xhFitNum;
 function xhRenderXeva() {
   const v = xhEl("xhXeva");
-  if (v && window.XEVA) v.textContent = window.XEVA.getBalance().toLocaleString();
+  if (v && window.XEVA) xhFitNum(v, window.XEVA.getBalance());
   xhRenderGem();
 }
 
@@ -1323,7 +1360,7 @@ function xhGemBal() {
 function xhRenderGem() {
   const v = xhEl("xhGem"); if (!v) return;
   const n = xhGemBal();
-  v.textContent = n.toLocaleString();
+  xhFitNum(v, n);          /* ★★ 2026-09-30 入りきらないときは K・M の略記 */
   if (_xhGemShown != null && _xhGemShown !== n) {
     const pill = v.closest(".xh-pill");
     if (pill) { pill.classList.remove("bump"); void pill.offsetWidth; pill.classList.add("bump"); }
@@ -2948,10 +2985,11 @@ function xhApplyOfflineLocks() {
   /* ★★ 2026-09-13c 画面上の帯も<b>台帳から</b>書く（手書きだと追加したときに古いままになる）。 */
   const ob = xhEl("xhOfflineBar");
   if (ob) ob.innerHTML = "📴 オフライン中 — " + xhEscape(xhOfflineOkNames(6)) +
-    " と 🎰 ガチャは遊べます";
+    " と 🎰 ガチャ・🎡 XEVARION PARK は遊べます";
   if (xhEl("xhAppsSheet") && xhEl("xhAppsSheet").classList.contains("on")) xhPaintAppList();
 }
 function xhOpenApp(id, href) {
+  if (String(href || "").indexOf("expo/") === 0) { xhOpenPark(href); return; }          /* ★★ 2026-10-01 XEVARION PARK はオフラインでも開ける（推奨環境を見てから） */
   /* ★★ 2026-08-22b 更新の印は「そのアプリに入ったら消す」（ご指定）。
      ★ 実際に開けたときだけ消すこと。オフラインで開けなかったときに消すと、
        次に開いたときには印が無く「更新に気づけない」が起きる。 */
@@ -2964,6 +3002,77 @@ function xhOpenApp(id, href) {
   location.href = href;
 }
 window.xhOpenApp = xhOpenApp;
+
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-10-01 XEVARION PARK を開く前に、推奨環境（パソコン・スマホ）と注意を出す（ご指定「推奨スペックの表示は PARK を開く前に」）
+   ------------------------------------------------------------
+   ・判定と表は expo/park_spec.js（PARK と同じもの）を読みこんで使う。オフラインでも出せるよう sw.js の CORE に入れてある。
+   ・「PARK に入る」で入る。推奨より低いときは「画質を『低』で入る」も出す（PARK の画質の設定 xeva_park_quality を書く）。
+   ・見たことは sessionStorage（xeva_park_spec_ok）に残す＝PARK の中ではもう出さない（重いときの fps の知らせだけ）。
+   ══════════════════════════════════════════════════════════════ */
+const XH_PARK_SPEC_JS = "expo/park_spec.js?v=3";
+function xhParkSpecLoad() {
+  return new Promise((res) => {
+    if (window.XSpec && window.XSpec.pre) { res(window.XSpec); return; }
+    const s = document.createElement("script"); s.src = XH_PARK_SPEC_JS;
+    s.onload = () => res(window.XSpec || null); s.onerror = () => res(null);
+    document.head.appendChild(s);
+  });
+}
+function xhParkSpecStyle() {
+  if (document.getElementById("xhPSpecCss")) return;
+  const st = document.createElement("style"); st.id = "xhPSpecCss";
+  st.textContent = ".xh-pspec{position:fixed;inset:0;z-index:1700;display:none;align-items:center;justify-content:center;padding:14px;background:rgba(18,32,60,.5);backdrop-filter:blur(7px);-webkit-backdrop-filter:blur(7px)}" +
+    ".xh-pspec.on{display:flex;animation:xhFade .18s ease}" +
+    ".xh-pspec-card{width:100%;max-width:560px;max-height:min(86vh,760px);display:flex;flex-direction:column;background:var(--xh-card,#fff);border-radius:24px;border:1.5px solid rgba(255,255,255,.95);box-shadow:0 22px 60px rgba(40,70,130,.3);overflow:hidden}" +
+    ".xh-pspec-hd{display:flex;align-items:center;gap:10px;padding:14px 18px;background:linear-gradient(90deg,#3a2a8a,#6a4aff 60%,#ff6ab0);color:#fff;font-weight:900;font-size:15px}" +
+    ".xh-pspec-hd i{font-style:normal;font-size:22px}" +
+    ".xh-pspec-b{overflow:auto;padding:12px 16px 4px;font-size:12.5px;font-weight:700;color:var(--xh-sub,#4a5a84);line-height:1.7;text-align:left}" +
+    ".xh-pspec-b .pnote{margin:4px 0 8px}.xh-pspec-b .pnote b{color:var(--xh-ink,#1b2350)}.xh-pspec-b .sub{display:block;margin:10px 0 6px;font-weight:900;color:var(--xh-ink,#1b2350)}" +
+    ".xh-pspec-b .pspec{width:100%;border-collapse:separate;border-spacing:0;margin:2px 0 6px;font-size:12px;border-radius:12px;overflow:hidden;box-shadow:inset 0 0 0 1.5px #d6e0ff}" +
+    ".xh-pspec-b .pspec th{width:6.6em;text-align:left;padding:6px 8px;background:#eef3ff;color:#2a4ad8;font-weight:900;vertical-align:top;white-space:nowrap}" +
+    ".xh-pspec-b .pspec td{padding:6px 8px;font-weight:700;line-height:1.5;color:var(--xh-ink,#1b2350);background:#fff;word-break:break-word}" +
+    ".xh-pspec-b .pspec tr+tr th,.xh-pspec-b .pspec tr+tr td{border-top:1px solid #e3e9ff}" +
+    ".xh-pspec-b .pwhy{margin:4px 0 8px 1.2em;padding:0;font-size:12px;font-weight:800;line-height:1.65}" +
+    ".xh-pspec-btns{display:flex;flex-direction:column;gap:8px;padding:12px 16px 16px;border-top:1px solid rgba(120,160,230,.18)}";
+  document.head.appendChild(st);
+}
+async function xhOpenPark(href) {
+  href = href || "expo/index.html";
+  const go = () => { try { sessionStorage.setItem("xeva_park_spec_ok", String(Date.now())); } catch (e) {} location.href = href; };
+  const S = await xhParkSpecLoad();
+  if (!S || !S.pre) { go(); return; }
+  let P = null; try { P = S.pre(); } catch (e) { P = null; }
+  if (!P) { go(); return; }
+  xhParkSpecStyle();
+  let ov = xhEl("xhParkSpec");
+  if (!ov) { ov = document.createElement("div"); ov.id = "xhParkSpec"; ov.className = "xh-pspec"; document.body.appendChild(ov); }
+  const low = P.level === "low" || P.level === "soft" || P.level === "mid" || P.mobile;
+  ov.innerHTML = '<div class="xh-pspec-card"><div class="xh-pspec-hd"><i>' + (P.level === "soft" ? "⛔" : P.level === "ok" ? "💻" : "⚠️") + "</i>XEVARION PARK　推奨環境と注意</div>" +
+    '<div class="xh-pspec-b">' + P.html + "</div>" +
+    '<div class="xh-pspec-btns">' +
+      '<button class="xh-sbtn" data-v="go">▶ XEVARION PARK に入る</button>' +
+      (low ? '<button class="xh-sbtn ghost" data-v="low">⚡ 画質を「低」にして入る</button>' : "") +
+      '<button class="xh-sbtn ghost" data-v="no">やめる</button>' +
+    "</div></div>";
+  const close = () => { ov.classList.remove("on"); ov.onclick = null; };
+  ov.querySelectorAll("[data-v]").forEach((b) => { b.onclick = () => {
+    const v = b.dataset.v;
+    if (v === "no") { close(); return; }
+    if (v === "low") { try { localStorage.setItem("xeva_park_quality", "low"); localStorage.setItem("xeva_park_quality_auto", "1"); } catch (e) {} }
+    close(); go();
+  }; });
+  ov.onclick = (e) => { if (e.target === ov) close(); };
+  try { xhSyncViewportH(); } catch (e) {}
+  ov.classList.add("on");
+}
+window.xhOpenPark = xhOpenPark;
+/* ロビーの「XEVARION PARK」ボタン（index.html の a.xl-expo）・アップデート情報の PARK のカード */
+document.addEventListener("click", (e) => {
+  const a = e.target && e.target.closest ? e.target.closest('a[href^="expo/"]') : null;
+  if (!a) return;
+  e.preventDefault(); xhOpenPark(a.getAttribute("href"));
+}, true);
 
 /* ══════════════════════════════════════════════════════════════
    ★★ 2026-08-22b Xevion OS の設定シート
@@ -3178,8 +3287,9 @@ function xhGo(tab) {
     const s = xhEl("xhScroll"); if (s) s.scrollTo({ top: 0, behavior: "smooth" });
     return;
   }
-  if (!xhOnline() && (tab === "gacha" || tab === "community")) {
-    xhToast("📴 オフライン中は " + (tab === "gacha" ? "ガチャ" : "コミュニティ") + " を開けません", 2800);
+  /* ★★ 2026-10-01 ガチャはオフラインでも開ける（ご指定）。前はタブの見た目だけ開けて、押すとここで止めていた。閉じるのは「みんな」だけ */
+  if (!xhOnline() && tab === "community") {
+    xhToast("📴 オフライン中は コミュニティ を開けません", 2800);
     return;
   }
   /* ★★ 2026-08-22b タブの更新の印も、そのタブに入った時点で消す */
@@ -3997,8 +4107,39 @@ async function xhRegisterAppSWs() {
     catch (e) { /* 個別に失敗しても他を続ける */ }
   }
   xhWarmChars();
+  if (!xhWarmOffline(true)) { try { localStorage.setItem(XH_WARM_REQ, "park"); } catch (e) {} }   /* ★★ 2026-10-01 キャラの絵・パーク */
   return true;
 }
+
+/* ★★ 2026-10-01 オフラインでもキャラの絵と XEVARION PARK が出るように、SW に「ためておいて」と頼む（ご報告「オフライン時キャラ画像が表示されない」）。
+   ・全キャラの小さい絵（img/t_*.webp・1枚 約35KB・まだ無いものだけ）を、版に縛られない置き場へ。大きい絵が無いときはこれで代わりに出る。
+   ・park … XEVARION PARK のキャラのモデル（約21MB）も入れる（オフライン用のダウンロード・更新のとき）。
+   ★ まとめて落とすものなので、ふだんは「自動ダウンロード」を許した回線のときだけ。
+     ほかは<b>更新・オフライン用のダウンロード</b>（確認してから落とす操作）のときに一緒にやる。
+     更新のあとは SW が入れかわるので、印（xeva_warm_req_v1）を残して<b>次に開いたとき</b>新しい SW に頼む。 */
+const XH_WARM_REQ = "xeva_warm_req_v1", XH_WARM_AT = "xeva_warm_at_v1";
+function xhWarmOffline(park) {
+  try {
+    if (!("serviceWorker" in navigator) || !xhOnline()) return false;
+    const sw = navigator.serviceWorker.controller;
+    if (!sw) return false;
+    sw.postMessage({ type: "xev-warm", imgs: true, park: !!park });
+    localStorage.setItem(XH_WARM_AT, String(Date.now()));
+    return true;
+  } catch (e) { return false; }
+}
+function xhWarmOnBoot() {
+  setTimeout(() => {
+    try {
+      if (!xhOnline()) return;
+      const req = localStorage.getItem(XH_WARM_REQ);
+      if (req) { if (xhWarmOffline(req === "park")) localStorage.removeItem(XH_WARM_REQ); return; }
+      const last = Number(localStorage.getItem(XH_WARM_AT)) || 0;
+      if (Date.now() - last > 20 * 3600e3 && window.XHNet && XHNet.allowDownload()) xhWarmOffline(true);
+    } catch (e) {}
+  }, 9000);
+}
+if (document.readyState === "complete") xhWarmOnBoot(); else addEventListener("load", xhWarmOnBoot);
 
 /* アイコンに使うキャラ画像だけ SW キャッシュに温める（chars/ 原寸は100MB超あるので入れない） */
 async function xhWarmChars() {
@@ -5227,6 +5368,8 @@ async function xhUpdStart(keepVer) {
   xhDlStep(4, keepVer ? "④ 完了しました" : "④ 最新版に切り替えます");
   /* ★ 再ダウンロードでは版を書き換えない（見送り中の更新の案内を消さないため） */
   if (!keepVer) { try { localStorage.setItem(XH_PKG_KEY, (_xhUpd && _xhUpd.version) || ""); } catch (e) {} }
+  /* ★★ 2026-10-01 オフライン用のキャラの絵・パークは、読み込み直したあとの新しい SW に頼む */
+  try { localStorage.setItem(XH_WARM_REQ, "park"); } catch (e) {}
   setTimeout(() => { try { location.reload(); } catch (e) {} }, keepVer ? 1400 : 700);
 }
 window.xhUpdStart = xhUpdStart;

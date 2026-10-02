@@ -24,7 +24,7 @@
      以前はここに直接書いてあり、MagiBurst / MagiLex の一覧は別ファイルにあったため、
      新機能を足すたびに「同期リストへの入れ忘れ」が起きていた
      （ジェムショップの購入履歴 xeva_shop_v1 が同期されていなかったのがその例）。 */
-import { PORTAL_SYNC_KEYS, wipeAccountData, wipeAccountDataFull } from "./xeva-keys.js?v=27";
+import { PORTAL_SYNC_KEYS, wipeAccountData, wipeAccountDataFull } from "./xeva-keys.js?v=28";
 
 const SYNC_KEYS = PORTAL_SYNC_KEYS;
 const SYNC_SET = new Set(SYNC_KEYS);
@@ -375,8 +375,28 @@ function mergeScope(winnerStr, loserStr) {
   const r = JSON.stringify(out);
   return r;
 }
+/* ★★ 2026-10-01 ホームのパートナー（xeva_mate_v1）も<b>混ぜる</b>（ご指定「パートナーの購入や設定が同期されていません」）。
+   これまでは「新しい方が勝つ」だけだったうえ、ホームを開くたびにあいさつの記録（seen）を書いていたので、
+   別の端末でホームを開いただけで、その端末の古い中身が「いちばん新しい」になり、
+   ほかの端末で<b>XEVA を払って開放したパートナー</b>や選んだ設定をクラウドごと上書きしていた。
+   → 開放ずみ（own）は<b>和</b>（一度買ったら消えない）。初めて会った記録（met）も和。
+     選んでいる子・表示の大きさ・表示しない・ランダムは、新しいほう（勝ったほう）のまま。
+     あいさつの記録は端末ごとのキー（xeva_mate_seen_v1）へ移したので、ここでは落とす。 */
+const MATE_KEYS = new Set(["xeva_mate_v1"]);
+function mergeMate(winnerStr, loserStr) {
+  const W = jparse(winnerStr, null), Lo = jparse(loserStr, null);
+  if (!W || !Lo || typeof W !== "object" || typeof Lo !== "object" || Array.isArray(W) || Array.isArray(Lo)) return null;
+  const ownOf = (s) => Array.isArray(s.own) ? s.own : (typeof s.partner === "string" ? [s.partner] : []);
+  const own = [];
+  ownOf(W).concat(ownOf(Lo)).forEach((id) => { if (typeof id === "string" && id && own.indexOf(id) < 0) own.push(id); });
+  const out = Object.assign({}, W);
+  if (own.length) out.own = own;
+  if (W.met || Lo.met) out.met = unionMarks(W.met || {}, Lo.met || {});
+  delete out.seen;
+  return JSON.stringify(out);
+}
 function hasMergeRule(k) { return WALLET_KEYS.has(k) || CHAR_KEYS.has(k) || COUNT_KEYS.has(k) || MBR_KEYS.has(k) || BATTLE_KEYS.has(k)
-  || CLAIM_KEYS.has(k) || MAIL_KEYS.has(k) || SCOPE_KEYS.has(k); }
+  || CLAIM_KEYS.has(k) || MAIL_KEYS.has(k) || SCOPE_KEYS.has(k) || MATE_KEYS.has(k); }
 /* { id: 印 } を和で混ぜる（片方にしか無い印も残す。両方にあれば早いほうの時刻） */
 function unionMarks(a, b) {
   const out = {};
@@ -642,7 +662,9 @@ function mergeStore(uid, remote, remoteT) {
                     ? mergeMail(k, remoteWins ? rv : lv, remoteWins ? lv : rv)
                     : SCOPE_KEYS.has(k)
                       ? mergeScope(remoteWins ? rv : lv, remoteWins ? lv : rv)
-                      : mergeCharsInto(k, remoteWins ? rv : lv, remoteWins ? lv : rv);
+                      : MATE_KEYS.has(k)
+                        ? mergeMate(remoteWins ? rv : lv, remoteWins ? lv : rv)
+                        : mergeCharsInto(k, remoteWins ? rv : lv, remoteWins ? lv : rv);
         }
         if (merged != null) {
           if (WALLET_KEYS.has(k)) newBase[k] = rv;      /* 土台は「クラウドに確かにある値」 */
@@ -726,7 +748,9 @@ const URGENT_KEYS = new Set(["xeva_wallet_v1", "xeva_gem_v1", "xeva_gticket_v1",
   /* ★ 2026-08-30 💠結晶。ガチャで増えて、そのままショップの交換所で使うので同じ理由。 */
   "xeva_cryst_v1",
   /* ★★ 2026-09-13 フェスセレクト券。買ってそのままガチャ画面で使うので同じ理由。 */
-  "xeva_fessel_v1", "xeva_seal_v1"]);
+  "xeva_fessel_v1", "xeva_seal_v1",
+  /* ★★ 2026-10-01 ホームのパートナー（開放は XEVA を払うので、財布と同じくすぐ送る） */
+  "xeva_mate_v1"]);
 
 function schedulePush(urgent) {
   if (urgent) { if (pushTimer) { clearTimeout(pushTimer); pushTimer = null; } flushPush(); return; }
