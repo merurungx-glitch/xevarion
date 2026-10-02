@@ -333,6 +333,109 @@
       d: { ja: "この1投が CURVE＋SPLIT になり、当てたボールを SHOCK にする。コンボの上限 +1。", en: "CURVE + SPLIT, hits cause SHOCK, and the combo cap rises by 1." } },
   };
 
+  /* ══════════════════════════════════════════════════════════════
+     ★★ 2026-10-01 性能をふやした（ご指定「性能をより増やして、組み合わせがそれぞれ異なるように」）
+     ① 特殊ショット・アクティブ・パッシブを 6・6・8 ふやした（型ごとの候補が 8〜9 に）
+     ② <b>サブタイプ</b>：どの子にも「2つめの型」がある（メインの型は変えない）。能力の配分と、技の候補の幅が広がる
+     ③ <b>トレイト</b>（4つめの性能）：小さな個性。試合の最初・最終エンド・延長戦などで効く
+     ④ <b>編成シナジー</b>：編成した6人の「型」「属性」の組み合わせで、チーム全体に小さな効果
+        ＝ 同じキャラでも、組み合わせ（編成）でチームの性格が変わる
+     ★ どれも上限つきで小さく（操作の腕・判断が主役なのは同じ）。ルール準拠・シンプルモードでは効かない（スキルなし）。
+     ══════════════════════════════════════════════════════════════ */
+  Object.assign(SPECIALS, {
+    fade:     { en: "FADE", ja: "フェード", c: "#ce93d8", uses: 1, cost: 0,
+      d: { ja: "投げてから <b>0.9秒</b>、コートの<b>外がわ</b>（壁の方）へ曲がる。", en: "Bends <b>away</b> from the centre for 0.9s." } },
+    magnet:   { en: "JACK MAGNET", ja: "ジャックマグネット", c: "#ffe082", uses: 1, cost: 10,
+      d: { ja: "ジャックの <b>1m 以内</b>に入ると減速 <b>×1.9</b>（ぴたりと止まる）。ゲージ10を使う。", en: "Brakes ×1.9 inside 1m of the jack. Costs 10." } },
+    rocket:   { en: "ROCKET", ja: "ロケット", c: "#ff7043", uses: 1, cost: 10,
+      d: { ja: "最大の強さ <b>+16%</b>・押し出し ×1.12。そのかわりブレ +40%。ゲージ10を使う。", en: "+16% max power, ×1.12 push, but scatter +40%. Costs 10." } },
+    feather:  { en: "FEATHER", ja: "フェザー", c: "#b2ebf2", uses: 1, cost: 0,
+      d: { ja: "ボールが軽く（<b>×0.8</b>）よく転がる（減速 -12%）。当たりは弱い（×0.9）。", en: "Light ball (×0.8), rolls farther (-12% braking), softer contact (×0.9)." } },
+    sweeper:  { en: "SWEEPER", ja: "スイーパー", c: "#a1887f", uses: 1, cost: 10,
+      d: { ja: "相手ボールへの押し出し <b>×1.2</b>、ジャックへは ×0.6（ジャックを動かさずに払う）。ゲージ10を使う。", en: "×1.2 push on opposing balls, ×0.6 on the jack. Costs 10." } },
+    ricochet: { en: "RICOCHET", ja: "リコシェ", c: "#ffcc80", uses: 1, cost: 15,
+      d: { ja: "壁の反発 <b>×1.2</b>、反射のあと <b>0.8秒</b> 減速 -25%（勢いを残して奥へ）。ゲージ15を使う。", en: "Rail rebound ×1.2 and -25% braking for 0.8s after a bank. Costs 15." } },
+  });
+  Object.assign(ACTIVES, {
+    lockon:     { en: "Lock On", ja: "ロック・オン", d: { ja: "この1投、ブレ <b>-80%</b>。そのかわり最大の強さ -8%。", en: "This throw: scatter -80%, max power -8%." } },
+    afterimage: { en: "Afterimage", ja: "アフターイメージ", d: { ja: "この1投が SPLIT になり、外がわへ少し曲がる（FADE 0.6秒）。", en: "This throw SPLITs and fades outward (0.6s)." } },
+    magnetic:   { en: "Magnetic", ja: "マグネティック", d: { ja: "この1投、ジャックの <b>1.2m 以内</b>で減速 ×1.8。", en: "This throw brakes ×1.8 within 1.2m of the jack." } },
+    titanstep:  { en: "Titan Step", ja: "タイタン・ステップ", d: { ja: "この1投のボールが重く（<b>×1.5</b>）、押し出し ×1.10・減速 +8%。", en: "This throw: mass ×1.5, push ×1.10, +8% braking." } },
+    turbo:      { en: "Turbo", ja: "ターボ", d: { ja: "この1投、最大の強さ <b>+18%</b>。そのかわりブレ +25%。", en: "This throw: +18% max power, scatter +25%." } },
+    mirrorstep: { en: "Mirror Step", ja: "ミラー・ステップ", d: { ja: "この1投、壁の反発 <b>×1.3</b>・予測 +40%（壁の向こうまで見える）。", en: "This throw: rail rebound ×1.3 and +40% preview." } },
+  });
+  Object.assign(PASSIVES, {
+    jackmagnet:  { en: "Jack Magnet", ja: "ジャック・マグネット", d: { ja: "いつでも、ジャックの <b>70cm 以内</b>で減速 ×1.35。", en: "Always brakes ×1.35 within 70cm of the jack." } },
+    wallmaster:  { en: "Wall Master", ja: "ウォール・マスター", d: { ja: "壁の反発が常に <b>×1.06</b>・予測 +10%。", en: "Rail rebound always ×1.06 and +10% preview." } },
+    heavyhitter: { en: "Heavy Hitter", ja: "ヘビー・ヒッター", d: { ja: "押し出し <b>×1.05</b>・ボールが少し重い（×1.04）。", en: "Push ×1.05 and slightly heavier balls (×1.04)." } },
+    featherfoot: { en: "Feather Foot", ja: "フェザー・フット", d: { ja: "減速が常に <b>-5%</b>・予測 +10%。", en: "Always -5% braking and +10% preview." } },
+    underdog:    { en: "Underdog", ja: "アンダードッグ", d: { ja: "<b>2点以上</b>負けているとき、ブレ -25%・最大の強さ +4%。", en: "While 2+ points behind: -25% scatter and +4% max power." } },
+    frontrunner: { en: "Front Runner", ja: "フロント・ランナー", d: { ja: "勝っているとき、減速 +5%・ボールが重い（×1.05）＝リードを守る。", en: "While ahead: +5% braking and heavier balls (×1.05)." } },
+    sniper:      { en: "Sniper", ja: "スナイパー", d: { ja: "ブレが常に <b>-12%</b>。最大の強さ -3%。", en: "Always -12% scatter, -3% max power." } },
+    powerhouse:  { en: "Powerhouse", ja: "パワーハウス", d: { ja: "最大の強さが常に <b>+4%</b>。ブレ +8%。", en: "Always +4% max power, +8% scatter." } },
+  });
+  /* 型ごとの候補に足す（先頭＝看板は変えない） */
+  const ADD_SP = { power: ["rocket", "sweeper"], technique: ["fade", "magnet"], bounce: ["ricochet", "fade"], jack: ["magnet", "feather"], defense: ["sweeper", "feather"], support: ["magnet", "ricochet"], trick: ["fade", "rocket"] };
+  const ADD_AC = { power: ["titanstep", "turbo"], technique: ["lockon", "mirrorstep"], bounce: ["mirrorstep", "turbo"], jack: ["magnetic", "lockon"], defense: ["titanstep", "magnetic"], support: ["lockon", "magnetic"], trick: ["afterimage", "turbo"] };
+  const ADD_PA = { power: ["heavyhitter", "powerhouse"], technique: ["sniper", "featherfoot"], bounce: ["wallmaster", "featherfoot"], jack: ["jackmagnet", "sniper"], defense: ["frontrunner", "heavyhitter"], support: ["underdog", "wallmaster"], trick: ["underdog", "powerhouse"] };
+  Object.keys(ADD_SP).forEach((t) => { SPECIAL_POOL[t] = SPECIAL_POOL[t].concat(ADD_SP[t]); ACTIVE_POOL[t] = ACTIVE_POOL[t].concat(ADD_AC[t]); PASSIVE_POOL[t] = PASSIVE_POOL[t].concat(ADD_PA[t]); });
+
+  /* ── ③ トレイト（4つめの性能・小さな個性） ── */
+  const TRAITS = {
+    firststrike: { en: "First Strike", ja: "先制", d: { ja: "試合で<b>最初の1投</b>、ブレ -30%。", en: "Your first throw of the match: -30% scatter." } },
+    clutch:      { en: "Clutch", ja: "勝負強さ", d: { ja: "<b>最終エンド</b>と延長戦で、ブレ -15%。", en: "Final end and additional matches: -15% scatter." } },
+    ironnerve:   { en: "Iron Nerve", ja: "鋼の心", d: { ja: "<b>ADDITIONAL MATCH</b>（延長戦）で、ブレ -30%・止まる位置まで予測。", en: "Additional matches: -30% scatter and a full preview." } },
+    sunrise:     { en: "Sunrise", ja: "朝日", d: { ja: "試合の開始時、ゲージ <b>+10</b>。", en: "+10 gauge at the start of the match." } },
+    twilight:    { en: "Twilight", ja: "夕暮れ", d: { ja: "<b>最終エンド</b>の開始時、ゲージ <b>+12</b>。", en: "+12 gauge at the start of the final end." } },
+    railrunner:  { en: "Rail Runner", ja: "レールランナー", d: { ja: "壁の反発 <b>×1.04</b>。", en: "Rail rebound ×1.04." } },
+    glider:      { en: "Glider", ja: "すべり上手", d: { ja: "減速 <b>-4%</b>。", en: "-4% braking." } },
+    gripper:     { en: "Gripper", ja: "ふんばり", d: { ja: "減速 <b>+4%</b>（止めやすい）。", en: "+4% braking." } },
+    sharp:       { en: "Sharp Eye", ja: "するどい目", d: { ja: "ブレ <b>-8%</b>。", en: "-8% scatter." } },
+    booster:     { en: "Booster", ja: "ブースター", d: { ja: "最大の強さ <b>+3%</b>。", en: "+3% max power." } },
+    brawler:     { en: "Brawler", ja: "けんか上手", d: { ja: "相手への押し出し <b>×1.04</b>。", en: "Push ×1.04." } },
+    jackwhisper: { en: "Jack Whisper", ja: "ジャックのささやき", d: { ja: "ジャックへの押し出し <b>×1.06</b>。", en: "Jack push ×1.06." } },
+    stout:       { en: "Stout", ja: "どっしり", d: { ja: "ボールが重い（<b>×1.05</b>）。", en: "Ball mass ×1.05." } },
+    scout:       { en: "Scout", ja: "見通し", d: { ja: "予測 <b>+15%</b>。", en: "+15% preview." } },
+    saver:       { en: "Gauge Saver", ja: "ゲージ節約", d: { ja: "特殊ショットのゲージ消費 <b>-5</b>。", en: "Specials cost 5 less gauge." } },
+    encore:      { en: "Encore", ja: "アンコール", d: { ja: "アルティメットのあと、<b>次の味方</b>のゲージ +15。", en: "After your ULT, the next teammate gets +15 gauge." } },
+    lucky7:      { en: "Lucky Seven", ja: "ラッキー7", d: { ja: "チームの<b>7投目</b>はブレゼロ。", en: "Your team's 7th throw has zero scatter." } },
+    cheer:       { en: "Cheer", ja: "かけ声", d: { ja: "エンドで自分のチームの<b>最初の1球</b>を投げるとゲージ +6。", en: "+6 gauge when throwing your team's first ball of an end." } },
+    calmmind:    { en: "Calm Mind", ja: "平常心", d: { ja: "相手のほうがジャックに近いとき、ブレ <b>-10%</b>。", en: "-10% scatter while behind on the board." } },
+    longshot:    { en: "Long Shot", ja: "遠投", d: { ja: "ジャックが <b>8m 以上</b>奥にあるとき、最大の強さ +5%。", en: "+5% max power when the jack is 8m+ deep." } },
+  };
+  const TRAIT_KEYS = Object.keys(TRAITS);
+  /* 特別なキャラ（SPECIAL_KIT）のトレイト */
+  const KIT_TRAIT = { akatsuki: "clutch", ayane: "sharp", chiha: "jackwhisper", himeri: "encore", honoka: "lucky7", azusa: "railrunner", kokoha: "ironnerve" };
+
+  /* ── ④ 編成シナジー（編成の「型」「属性」の組み合わせ） ── */
+  const SYNERGIES = [
+    { id: "break",   en: "BREAK FORMATION", ja: "ブレイク隊", test: (t) => t.power >= 2, d: { ja: "POWER 2人以上：相手への押し出し ×1.06。", en: "2+ POWER: push ×1.06." }, fx: (o) => { o.hitMul *= 1.06; } },
+    { id: "sniper",  en: "SNIPER LINE", ja: "精密射撃隊", test: (t) => t.technique >= 2, d: { ja: "TECHNIQUE 2人以上：ブレ -10%。", en: "2+ TECHNIQUE: -10% scatter." }, fx: (o) => { o.spread *= 0.9; } },
+    { id: "rico",    en: "RICOCHET ART", ja: "反射の芸術", test: (t) => t.bounce >= 2, d: { ja: "BOUNCE 2人以上：壁の反発 ×1.06。", en: "2+ BOUNCE: rail rebound ×1.06." }, fx: (o) => { o.wallMul *= 1.06; } },
+    { id: "jackm",   en: "JACK MASTERS", ja: "ジャック支配", test: (t) => t.jack >= 2, d: { ja: "JACK 2人以上：ジャックへの押し出し ×1.08。", en: "2+ JACK: jack push ×1.08." }, fx: (o) => { o.jackMul *= 1.08; } },
+    { id: "fort",    en: "FORTRESS LINE", ja: "鉄壁の陣", test: (t) => t.defense >= 2, d: { ja: "DEFENSE 2人以上：ボールの重さ ×1.06。", en: "2+ DEFENSE: ball mass ×1.06." }, fx: (o) => { o.mass *= 1.06; } },
+    { id: "cheer",   en: "CHEER SQUAD", ja: "応援団", test: (t) => t.support >= 2, d: { ja: "SUPPORT 2人以上：たまるゲージ ×1.10。", en: "2+ SUPPORT: ×1.10 gauge." }, fx: (o) => { o.charge *= 1.10; } },
+    { id: "illus",   en: "ILLUSION CIRCUS", ja: "幻惑サーカス", test: (t) => t.trick >= 2, d: { ja: "TRICK 2人以上：予測 +12%・コンボの上限 +1。", en: "2+ TRICK: +12% preview and combo cap +1." }, fx: (o) => { o.preview = Math.min(1, o.preview + 0.12); o.chainCap += 1; } },
+    { id: "balance", en: "ALL-ROUNDERS", ja: "オールラウンダー", test: (t) => t.kinds >= 5, d: { ja: "型が 5種類以上：ブレ -5%・ゲージ ×1.05。", en: "5+ different types: -5% scatter, ×1.05 gauge." }, fx: (o) => { o.spread *= 0.95; o.charge *= 1.05; } },
+    { id: "pb",      en: "PRECISION BREAK", ja: "狙い撃ち", test: (t) => t.power >= 1 && t.technique >= 1, d: { ja: "POWER＋TECHNIQUE：最大の強さ +2%・ブレ -4%。", en: "POWER + TECHNIQUE: +2% power, -4% scatter." }, fx: (o) => { o.vmax *= 1.02; o.spread *= 0.96; } },
+    { id: "jd",      en: "JACK FORTRESS", ja: "ジャックの砦", test: (t) => t.jack >= 1 && t.defense >= 1, d: { ja: "JACK＋DEFENSE：ボールの重さ ×1.03・ジャックへの押し出し ×1.03。", en: "JACK + DEFENSE: mass ×1.03, jack push ×1.03." }, fx: (o) => { o.mass *= 1.03; o.jackMul *= 1.03; } },
+    { id: "bt",      en: "WILD ANGLES", ja: "変幻の角度", test: (t) => t.bounce >= 1 && t.trick >= 1, d: { ja: "BOUNCE＋TRICK：壁の反発 ×1.03・予測 +6%。", en: "BOUNCE + TRICK: rail ×1.03, +6% preview." }, fx: (o) => { o.wallMul *= 1.03; o.preview = Math.min(1, o.preview + 0.06); } },
+    { id: "el_fire", en: "BLAZE RESONANCE", ja: "炎の共鳴", test: (t) => t.el.fire >= 3, d: { ja: "火属性 3人以上：最大の強さ +4%。", en: "3+ fire: +4% max power." }, fx: (o) => { o.vmax *= 1.04; } },
+    { id: "el_water", en: "TIDE RESONANCE", ja: "水の共鳴", test: (t) => t.el.water >= 3, d: { ja: "水属性 3人以上：減速 -4%（よく転がる）。", en: "3+ water: -4% braking." }, fx: (o) => { o.fric *= 0.96; } },
+    { id: "el_wood", en: "GROVE RESONANCE", ja: "木の共鳴", test: (t) => t.el.wood >= 3, d: { ja: "木属性 3人以上：減速 +5%（止めやすい）。", en: "3+ wood: +5% braking." }, fx: (o) => { o.fric *= 1.05; } },
+    { id: "el_light", en: "LUX RESONANCE", ja: "光の共鳴", test: (t) => t.el.light >= 3, d: { ja: "光属性 3人以上：予測 +15%。", en: "3+ light: +15% preview." }, fx: (o) => { o.preview = Math.min(1, o.preview + 0.15); } },
+    { id: "el_dark", en: "ABYSS RESONANCE", ja: "闇の共鳴", test: (t) => t.el.dark >= 3, d: { ja: "闇属性 3人以上：相手への押し出し ×1.05。", en: "3+ dark: push ×1.05." }, fx: (o) => { o.hitMul *= 1.05; } },
+    { id: "rainbow", en: "PRISM RESONANCE", ja: "虹の共鳴", test: (t) => t.elKinds >= 5, d: { ja: "5属性ぜんぶ：ブレ -6%・ゲージ ×1.08。", en: "All 5 elements: -6% scatter, ×1.08 gauge." }, fx: (o) => { o.spread *= 0.94; o.charge *= 1.08; } },
+  ];
+  /* 編成からシナジーを数える（6人まで・同じキャラが2人いても1人として数える） */
+  function synergiesOf(ids) {
+    const t = { kinds: 0, el: { fire: 0, water: 0, wood: 0, light: 0, dark: 0 }, elKinds: 0 }; TYPE_KEYS.forEach((k) => { t[k] = 0; });
+    const seen = {};
+    (ids || []).forEach((id) => { if (seen[id]) return; seen[id] = 1; const c = charOf(id); if (!c) return; t[c.type]++; if (t.el[c.el] != null) t.el[c.el]++; });
+    TYPE_KEYS.forEach((k) => { if (t[k]) t.kinds++; }); Object.keys(t.el).forEach((k) => { if (t.el[k]) t.elKinds++; });
+    return SYNERGIES.filter((s) => s.test(t));
+  }
+
   /* ══════════ ⑤ キャラクターの組み立て ══════════ */
   function srcChars() {
     /* ★★ mb-core.js は <b>const</b> で CHARS を宣言しているので window.CHARS では取れない。 */
@@ -402,6 +505,9 @@
         charge: 62 + (18 - ssT) * 0.6 + jig("charge"),
       };
       st[T.main] += 18; st[T.sub] += 8; st[T.weak] -= 18;
+      /* ★★ 2026-10-01 サブタイプ（2つめの型）：その型の得意を少し足し、苦手を少し引く＝同じ型でも配分がちがう */
+      const sub = subTypeOf(ty, h), TS = TYPES[sub];
+      st[TS.main] += 7; st[TS.weak] -= 5;
       /* ★ 合計を STAT_SUM にそろえる（配分だけが個性）。3回まわすと帯の端の丸めも吸収できる。 */
       for (let pass = 0; pass < 3; pass++) {
         let sum = 0; STAT_KEYS.forEach((k) => { sum += st[k]; });
@@ -426,7 +532,7 @@
         star5: s5Of(id, c), rarity: s5Of(id, c) ? "SSR" : "SR",
         /* ★ ボールの見た目の格（性能には一切関係しない） */
         grade: lux ? "UR" : (s5Of(id, c) ? "SSR" : "SR"),
-        type: ty, st, specials, active, passive,
+        type: ty, sub, st, specials, active, passive, trait: TRAIT_KEYS[(h >>> 3) % TRAIT_KEYS.length],
         ult: { nm: c.ssName || ULTS[ty].en, kind: ty },
         h,
       };
@@ -435,6 +541,7 @@
         r.type = SK.type; r.st = Object.assign({}, SK.st); r.specials = SK.specials.slice();
         r.active = SK.active; r.passive = SK.passive; r.grade = SK.grade || r.grade;
         r.ult = { nm: c.ssName || ULTS[SK.type].en, kind: SK.type };
+        r.sub = subTypeOf(SK.type, h); r.trait = KIT_TRAIT[id] || r.trait;
         r.special = true;
       }
       out.push(r);
@@ -453,31 +560,46 @@
      ・同じ型の中で「アクティブ」「パッシブ」の使われかたも均すため、使用回数の少ない候補から優先する。
      ・新しいキャラは図鑑の<b>後ろ</b>に並ぶので、既存のキャラの組み合わせは変わらない。
      ・SPECIAL_KIT（アカツキ）は専用なので先に「使用ずみ」にしておく。 */
+  /* ★★ 2026-10-01 サブタイプ：メインの型いがいの6つから、id の指紋で1つ（キャラが増えても既存の子は変わらない） */
+  function subTypeOf(ty, h) { const c = TYPE_KEYS.filter((k) => k !== ty); return c[(h >>> 17) % c.length]; }
+  /* 候補（メインの型＋サブタイプの型。重なりは1つに） */
+  const uniq = (a) => a.filter((x, i) => a.indexOf(x) === i);
+  function poolsOf(ty, sub) {
+    const SP = SPECIAL_POOL[ty];
+    return { head: SP[0], sp: uniq(SP.slice(1).concat(SPECIAL_POOL[sub] || []).filter((k) => k !== SP[0])), ap: uniq(ACTIVE_POOL[ty].concat(ACTIVE_POOL[sub] || [])), pp: uniq(PASSIVE_POOL[ty].concat(PASSIVE_POOL[sub] || [])) };
+  }
+  const gcd = (a, b) => (b ? gcd(b, a % b) : a);
   function assignKits(list) {
-    const used = {}, cntA = {}, cntP = {}, cntS = {};
+    const used = {}, cntA = {}, cntP = {}, cntS = {}, cntT = {};
     const key = (c) => c.type + "|" + c.specials.join("+") + "|" + c.active + "|" + c.passive;
-    list.forEach((c) => { if (c.special) used[key(c)] = 1; });
+    list.forEach((c) => { if (c.special) { used[key(c)] = 1; cntT[c.trait] = (cntT[c.trait] || 0) + 1; } });
     list.forEach((c) => {
       if (c.special) return;
-      const ty = c.type, SP = SPECIAL_POOL[ty], AP = ACTIVE_POOL[ty], PP = PASSIVE_POOL[ty];
-      const nS = SP.length - 1, nA = AP.length, nP = PP.length, N = nS * nA * nP;
+      const ty = c.type, PL = poolsOf(ty, c.sub || ty);
+      const nS = PL.sp.length, nA = PL.ap.length, nP = PL.pp.length, N = nS * nA * nP;
       const start = c.h % N;
+      let stp = 7; while (gcd(stp, N) !== 1) stp += 2;          /* N と互いに素＝全部をまわる */
       let best = null, bestScore = 1e9;
       for (let k = 0; k < N; k++) {
-        const x = (start + k * 7) % N;              /* 7 は N（180）と互いに素＝全部をまわる */
+        const x = (start + k * stp) % N;
         const s = x % nS, a = Math.floor(x / nS) % nA, p = Math.floor(x / (nS * nA)) % nP;
-        const cand = { type: ty, specials: [SP[0], SP[1 + s]], active: AP[a], passive: PP[p] };
+        const cand = { type: ty, specials: [PL.head, PL.sp[s]], active: PL.ap[a], passive: PL.pp[p] };
         if (used[key(cand)]) continue;
-        const score = (cntA[ty + AP[a]] || 0) + (cntP[ty + PP[p]] || 0) + (cntS[ty + SP[1 + s]] || 0) * 0.5;
+        const score = (cntA[ty + cand.active] || 0) + (cntP[ty + cand.passive] || 0) + (cntS[ty + cand.specials[1]] || 0) * 0.5;
         if (score < bestScore) { bestScore = score; best = cand; }
         if (bestScore === 0) break;
       }
-      if (!best) return;                            /* 候補を使い切った（型に180体超）ときは仮の組み合わせのまま */
-      c.specials = best.specials; c.active = best.active; c.passive = best.passive;
-      used[key(best)] = 1;
-      cntA[ty + best.active] = (cntA[ty + best.active] || 0) + 1;
-      cntP[ty + best.passive] = (cntP[ty + best.passive] || 0) + 1;
-      cntS[ty + best.specials[1]] = (cntS[ty + best.specials[1]] || 0) + 1;
+      if (best) {
+        c.specials = best.specials; c.active = best.active; c.passive = best.passive;
+        used[key(best)] = 1;
+        cntA[ty + best.active] = (cntA[ty + best.active] || 0) + 1;
+        cntP[ty + best.passive] = (cntP[ty + best.passive] || 0) + 1;
+        cntS[ty + best.specials[1]] = (cntS[ty + best.specials[1]] || 0) + 1;
+      }
+      /* トレイト：使われた回数の少ないものから（出発点は指紋） */
+      let bt = c.trait, bc = 1e9; const t0 = (c.h >>> 3) % TRAIT_KEYS.length;
+      for (let k = 0; k < TRAIT_KEYS.length; k++) { const t = TRAIT_KEYS[(t0 + k) % TRAIT_KEYS.length], n = cntT[t] || 0; if (n < bc) { bc = n; bt = t; } }
+      c.trait = bt; cntT[bt] = (cntT[bt] || 0) + 1;
     });
   }
   function charOf(id) {
@@ -674,6 +796,7 @@
     }, cfg || {});
     const MD = MODES[c.rules] || MODES.ability;
     c.walls = MD.walls; c.competition = c.rules === "rules";
+    c.baseEnds = c.baseEnds || c.ends;          /* ★★ 2026-10-01 決められたエンド数（延長戦 ADDITIONAL MATCH で ends は増える） */
     const SS = Array.isArray(c.sides) && c.sides.length >= 2 ? c.sides : SIDES;
     ["players", "lineup", "levels", "awk"].forEach((k) => {
       c[k] = c[k] || {};
@@ -710,6 +833,10 @@
         M.carry[s].push({});
       }
     });
+    /* ★★ 2026-10-01 編成シナジー（試合のはじめに決まる）・トレイト「朝日」・延長戦の印 */
+    M.addl = 0; M.addlNow = false;
+    M.syn = mapSides(SS, (s) => MD.skills ? synergiesOf(c.lineup[s] || []) : []);
+    if (MD.skills) SS.forEach((s) => (c.lineup[s] || []).forEach((id, k) => { const ch = charOf(id); if (ch && ch.trait === "sunrise" && M.gauge[s][k] != null) M.gauge[s][k] = Math.min(GAUGE_MAX, M.gauge[s][k] + 10); }));
     pushHint(M, "jackfirst");
     return M;
   }
@@ -772,6 +899,7 @@
   function step(M) {
     const bs = live(M);
     let moving = false;
+    const jkM = jackOf(M);          /* ★★ 2026-10-01 マグネットの判定に使う（1ステップに1回） */
     M.t += DT;
     /* ★★ 2026-09-17d BOSS STAGE：ステージの床・風・障害物は M.env（mbr-stage.js）が差し込む。
        ふつうの試合では M.env が無いので、ここから下の動きは今までとまったく同じ。 */
@@ -790,6 +918,8 @@
       if (b.soft && v < 1.2) a *= 1.7;
       if (b.railT > 0) { a *= 0.75; b.railT -= DT; }
       if (b.afterRail && b.softRail) a *= 1.15;
+      /* ★★ 2026-10-01 JACK MAGNET など：ジャックの近くでよく止まる（四則演算だけ＝オンラインでも同じ値） */
+      if (b.magnet && jkM && !b.jack) { const mx = b.x - jkM.x, my = b.y - jkM.y; if (mx * mx + my * my < b.magnet * b.magnet) a *= (b.magnetK || 1.5); }
       const nv = v - a * DT > 0 ? v - a * DT : 0;
       const k = nv / v;
       b.vx *= k; b.vy *= k;
@@ -798,7 +928,7 @@
         b.curveT -= DT;
         const px = -b.vy / nv, py = b.vx / nv;          /* 左向きの垂直 */
         const dirToC = (COURT.W / 2 - b.x) * px;         /* 中央が左なら + */
-        const s = dirToC >= 0 ? 1 : -1;
+        const s = (dirToC >= 0 ? 1 : -1) * (b.curveDir || 1);          /* ★★ 2026-10-01 FADE は外がわへ（curveDir = -1） */
         let vx2 = b.vx + px * s * CURVE_A * DT, vy2 = b.vy + py * s * CURVE_A * DT;
         const m = sqrt(vx2 * vx2 + vy2 * vy2);
         if (m > 0) { b.vx = vx2 / m * nv; b.vy = vy2 / m * nv; }
@@ -967,8 +1097,12 @@
     if (!M.md.skills || M.phase !== "play") return false;
     const ch = curCharOf(M, side); if (!ch || ch.specials.indexOf(k) < 0) return false;
     const i = charIdx(M, side), sp = SPECIALS[k];
-    return (M.spUsed[side][i][k] || 0) < sp.uses && M.gauge[side][i] >= sp.cost;
+    return (M.spUsed[side][i][k] || 0) < sp.uses && M.gauge[side][i] >= spCost(ch, k);
   }
+  /* ★★ 2026-10-01 特殊ショットのゲージ消費（トレイト「ゲージ節約」で -5） */
+  function spCost(ch, k) { const c = (SPECIALS[k] && SPECIALS[k].cost) || 0; return ch && ch.trait === "saver" ? Math.max(0, c - 5) : c; }
+  /* そのエンドで1チームが持つ球の数（延長戦は少ない） */
+  function leftStart(M) { return M.addlNow ? Math.min(ADDL_BALLS, M.cfg.perSide) : M.cfg.perSide; }
   function canActive(M, side) {
     if (!M.md.skills || M.phase !== "play") return false;
     const ch = curCharOf(M, side); if (!ch) return false;
@@ -983,6 +1117,8 @@
     const cs = closestSide(M);
     return !!cs && cs !== side;
   }
+  /* ★★ 2026-10-01 得点の差（自分 − いちばん点の多い相手） */
+  function scoreDiff(M, side) { let top = -1e9; sidesOf(M).forEach((s) => { if (s !== side && M.score[s] > top) top = M.score[s]; }); return M.score[side] - (top < -1e8 ? 0 : top); }
   /* その1投の物理パラメータを組み立てる（予測と本番で同じ関数を使う） */
   function shotMods(M, side, ch, opt) {
     opt = opt || {};
@@ -1075,13 +1211,57 @@
     if (pas === "bulwark") { o.mass *= 1.08; o.bulwark = 1; }
     if (pas === "quickcharge") o.charge *= 1.15;
     if (pas === "lastword" && M.phase === "play" && M.left[side] === 1) { o.spread *= 0.5; o.fullPreview = true; }
-    if (pas === "opener" && M.phase === "play" && M.left[side] === M.cfg.perSide) { o.spread *= 0.7; o.fullPreview = true; }
+    if (pas === "opener" && M.phase === "play" && M.left[side] === leftStart(M)) { o.spread *= 0.7; o.fullPreview = true; }
     if (pas === "chainmaster") o.chainCap = o.chainCap + 1;
     if (pas === "railsense") o.preview = Math.min(1, o.preview + 0.2);
     if (pas === "calm" && M.phase === "play" && isBehind(M, side)) o.spread *= 0.8;
     if (pas === "comeback" && M.phase === "play" && isBehind(M, side) && !M.combackUsed[side][i]) {
       o.spread *= 0.5; o.fullPreview = true; o.comeback = 1;
     }
+    /* ★★ 2026-10-01 ふやした技・トレイト・編成シナジー */
+    if (sp === "fade") { o.curve = 0.9; o.curveDir = -1; }
+    if (sp === "magnet") { o.magnet = 1.0; o.magnetK = 1.9; }
+    if (sp === "rocket") { o.vmax *= 1.16; o.hitMul *= 1.12; o.spread *= 1.4; }
+    if (sp === "feather") { o.mass *= 0.8; o.fric *= 0.88; o.hitMul *= 0.9; }
+    if (sp === "sweeper") { o.hitMul *= 1.2; o.jackMul *= 0.6; }
+    if (sp === "ricochet") { o.wallMul *= 1.2; o.crimson = 1; }
+    if (act === "lockon") { o.spread *= 0.2; o.vmax *= 0.92; }
+    if (act === "afterimage") { o.split = 1; o.curve = Math.max(o.curve, 0.6); o.curveDir = -1; }
+    if (act === "magnetic") { o.magnet = Math.max(o.magnet || 0, 1.2); o.magnetK = Math.max(o.magnetK || 1, 1.8); }
+    if (act === "titanstep") { o.mass *= 1.5; o.hitMul *= 1.10; o.fric *= 1.08; }
+    if (act === "turbo") { o.vmax *= 1.18; o.spread *= 1.25; }
+    if (act === "mirrorstep") { o.wallMul *= 1.3; o.preview = Math.min(1, o.preview + 0.4); }
+    const diff = sk ? scoreDiff(M, side) : 0;
+    if (pas === "jackmagnet" && !(o.magnet >= 0.7 && o.magnetK >= 1.35)) { o.magnet = Math.max(o.magnet || 0, 0.7); o.magnetK = Math.max(o.magnetK || 1, 1.35); }
+    if (pas === "wallmaster") { o.wallMul *= 1.06; o.preview = Math.min(1, o.preview + 0.1); }
+    if (pas === "heavyhitter") { o.hitMul *= 1.05; o.mass *= 1.04; }
+    if (pas === "featherfoot") { o.fric *= 0.95; o.preview = Math.min(1, o.preview + 0.1); }
+    if (pas === "underdog" && diff <= -2) { o.spread *= 0.75; o.vmax *= 1.04; }
+    if (pas === "frontrunner" && diff > 0) { o.fric *= 1.05; o.mass *= 1.05; }
+    if (pas === "sniper") { o.spread *= 0.88; o.vmax *= 0.97; }
+    if (pas === "powerhouse") { o.vmax *= 1.04; o.spread *= 1.08; }
+    /* トレイト（4つめの性能） */
+    const tr = sk ? ch.trait || "" : "";
+    if (tr) {
+      const fin = M.end >= (M.cfg.baseEnds || M.cfg.ends);
+      if (tr === "firststrike" && M.stats[side].throws === 0 && M.phase === "play") o.spread *= 0.7;
+      if (tr === "clutch" && fin) o.spread *= 0.85;
+      if (tr === "ironnerve" && M.addlNow) { o.spread *= 0.7; o.fullPreview = true; }
+      if (tr === "railrunner") o.wallMul *= 1.04;
+      if (tr === "glider") o.fric *= 0.96;
+      if (tr === "gripper") o.fric *= 1.04;
+      if (tr === "sharp") o.spread *= 0.92;
+      if (tr === "booster") o.vmax *= 1.03;
+      if (tr === "brawler") o.hitMul *= 1.04;
+      if (tr === "jackwhisper") o.jackMul *= 1.06;
+      if (tr === "stout") o.mass *= 1.05;
+      if (tr === "scout") o.preview = Math.min(1, o.preview + 0.15);
+      if (tr === "lucky7" && M.stats[side].throws === 6) o.spread = 0;
+      if (tr === "calmmind" && M.phase === "play" && isBehind(M, side)) o.spread *= 0.9;
+      if (tr === "longshot") { const jk = jackOf(M); if (jk && jk.y >= 8) o.vmax *= 1.05; }
+    }
+    /* 編成シナジー（チーム全体・試合のはじめに決まる） */
+    if (sk && M.syn && M.syn[side]) M.syn[side].forEach((s) => s.fx(o));
     /* アルティメット */
     if (ult === "power") { o.vmax *= 1.18; o.hitMul *= 1.35; o.nova = 1; }
     if (ult === "technique") { o.spread = 0; o.fullPreview = true; o.zeroLine = 1; }
@@ -1144,6 +1324,7 @@
       guardBreak: mod.guardBreak, breaker: mod.breaker, crimson: mod.crimson, infRail: mod.infRail,
       nova: mod.nova, cover: mod.cover, momentum: mod.momentum, softRail: mod.softRail,
       chainCap: mod.chainCap, draw: mod.draw || 0, follow: mod.follow || 0, gainBonus: mod.gainPlus || 0,
+      magnet: mod.magnet || 0, magnetK: mod.magnetK || 1, curveDir: mod.curveDir || 1,          /* ★★ 2026-10-01 */
       dead: 0, banks: 0, roll: 0, guard: 0, events: [],
       charId: ch ? ch.id : "", ci: i,
       by: opt.playerIdx == null ? 0 : opt.playerIdx,
@@ -1156,11 +1337,13 @@
                  slot: opt.slot == null ? null : opt.slot,
                  special: use.special || "", active: !!use.active, ult: !!use.ult });
     if (!isJack) {
+      /* ★★ 2026-10-01 トレイト「かけ声」：エンドで自分のチームの最初の1球 → ゲージ +6 */
+      if (M.md.skills && ch && ch.trait === "cheer" && M.left[side] === leftStart(M)) M.gauge[side][i] = Math.min(GAUGE_MAX, M.gauge[side][i] + 6);
       M.left[side]--;
       M.stats[side].throws++;
       if (use.special) {
         M.spUsed[side][i][use.special] = (M.spUsed[side][i][use.special] || 0) + 1;
-        M.gauge[side][i] = Math.max(0, M.gauge[side][i] - SPECIALS[use.special].cost);
+        M.gauge[side][i] = Math.max(0, M.gauge[side][i] - spCost(ch, use.special));
         M.stats[side].specials++;
       }
       if (use.active) {
@@ -1180,6 +1363,8 @@
         M.ultUsed[side] = true;
         M.gauge[side][i] = 0;
         M.stats[side].ults++;
+        /* ★★ 2026-10-01 トレイト「アンコール」：次の味方のゲージ +15 */
+        if (ch && ch.trait === "encore") { const n = M.gauge[side].length, j = (i + 1) % n; M.gauge[side][j] = Math.min(GAUGE_MAX, M.gauge[side][j] + 15); }
       }
       if (mod.comeback) M.combackUsed[side][i] = true;
     }
@@ -1225,7 +1410,7 @@
           M.gauge[side][ni] = Math.min(GAUGE_MAX, M.gauge[side][ni] + 8);
         }
       }
-      if (ch.passive === "morale" && M.left[side] === M.cfg.perSide - 1) gain += 10;
+      if (ch.passive === "morale" && M.left[side] === leftStart(M) - 1) gain += 10;
       if (ch.passive === "longroll" && b.roll >= 6) gain += 8;
       if (ch.passive === "sakurabloom" && (hits || b.bossHits)) gain += 6;
       if (ch.passive === "abyssglow" && (hits || b.bossHits)) gain += 5;
@@ -1362,7 +1547,7 @@
   function closeEnd(M) {
     const res = scoreEnd(M);
     if (res.side) M.score[res.side] += res.pts;
-    M.endScores.push({ end: M.end, side: res.side, pts: res.pts });
+    M.endScores.push({ end: M.end, side: res.side, pts: res.pts, addl: !!M.addlNow });
     const j = jackOf(M);
     if (j) {
       live(M).forEach((b) => {
@@ -1373,18 +1558,23 @@
       });
     }
     const SS = sidesOf(M);
-    if (M.end >= M.cfg.ends) {
-      /* 同点（3色以上なら「首位が2色以上」）はタイブレーク */
+    const reg = M.cfg.baseEnds || M.cfg.ends;
+    let addlNext = false;
+    if (M.end >= reg) {
+      /* ★★ 2026-10-01 同点（3色以上なら「首位が2色以上」）は <b>ADDITIONAL MATCH</b>（延長戦・ご指定）。
+         ジャックはコートの中央の「×」に置かれ、各チーム ADDL_BALLS 球だけ。勝ったチームの勝ち（また同点ならもう一度）。 */
       const top = Math.max.apply(null, SS.map((s) => M.score[s]));
-      if (SS.filter((s) => M.score[s] === top).length > 1) { M.cfg.ends++; pushHint(M, "tiebreak"); }
-      else { M.phase = "over"; return res; }
+      if (SS.filter((s) => M.score[s] === top).length > 1) { M.addl = (M.addl || 0) + 1; M.cfg.ends = M.end + 1; addlNext = true; pushHint(M, "additional"); }
+      else { M.phase = "over"; M.addlNow = false; return res; }
     }
     M.end++;
     M.first = isParty(M) ? nextSideOf(M, M.first) : other(M.first);
     M.balls = [];
-    M.left = mapSides(SS, () => M.cfg.perSide);
+    M.addlNow = addlNext;
+    M.left = mapSides(SS, () => leftStart(M));
     M.turn = M.first;
     M.phase = "jack";
+    if (addlNext) { placeJackCross(M); M.phase = "play"; }
     M.idx = mapSides(SS, () => 0);
     M.ultUsed = mapSides(SS, () => false);
     M.jackLock = mapSides(SS, () => false);
@@ -1395,8 +1585,21 @@
       M.combackUsed[s] = M.combackUsed[s].map(() => false);
       /* ★ ゲージはエンドをまたいで持ちこす（たまるのに時間がかかる＝ご指定） */
     });
+    /* ★★ 2026-10-01 トレイト「夕暮れ」：最終エンドの開始時ゲージ +12 */
+    if (M.md.skills && M.end === reg) SS.forEach((s) => lineupOf(M, s).forEach((id, k) => { const c = charOf(id); if (c && c.trait === "twilight" && M.gauge[s][k] != null) M.gauge[s][k] = Math.min(GAUGE_MAX, M.gauge[s][k] + 12); }));
     pushHint(M, "endstart");
     return res;
+  }
+  /* ★★ 2026-10-01 ADDITIONAL MATCH：ジャックをコートの中央の「×」に置く（投げない） */
+  const ADDL_BALLS = 3;
+  function placeJackCross(M) {
+    M.shotNo++;
+    const x = COURT.W / 2, y = COURT.CROSS;
+    const b = { id: "b" + M.shotNo, side: null, jack: true, x, y, x0: x, y0: y, vx: 0, vy: 0, fric: M.md.fricK || 1, mass: 1, baseMass: 1,
+      wallMul: 1, hitMul: 1, jackMul: 1, curveT: 0, dead: 0, banks: 0, roll: 0, guard: 0, events: [], charId: "", ci: 0, by: 0, mods: {}, use: {} };
+    M.balls.push(b);
+    fx(M, { t: "addl", x, y });
+    return b;
   }
   /* 盤面の指紋（オンラインの相互検証） */
   function boardHash(M) {
@@ -1435,6 +1638,8 @@
       en: "New end — the <b>starting side swaps</b>. Gauges carry over." },
     tiebreak: { level: 1, ja: "同点のため<b>タイブレークのエンド</b>を行います。",
       en: "Scores are level — playing a <b>tie-break end</b>." },
+    additional: { level: 0, ja: "同点！ <b>ADDITIONAL MATCH</b>（延長戦）。ジャックはコートの中央の <b>×</b> に置かれ、各チーム <b>3球</b>で勝負。このエンドで勝ったチームの勝ち（また同点ならもう一度）。",
+      en: "Level! <b>ADDITIONAL MATCH</b>: the jack sits on the centre <b>cross</b> and each side throws <b>3 balls</b>. Win this end to win the match (level again? play another)." },
     order: { level: 2, ja: "投げるたびに<b>編成の順番</b>でキャラが交代します。守り→崩し→仕上げ、のように順番も作戦です。",
       en: "Characters rotate in <b>lineup order</b> each throw — the order itself is tactics." },
     special: { level: 2, ja: "下の<b>特殊ショット</b>を選んでから投げると、そのキャラの技が乗ります（1エンド1回）。",
@@ -1494,7 +1699,7 @@
       balls: M.balls.map((b) => { const o = Object.assign({}, b); o.events = []; return o; }),
       left: Object.assign({}, M.left), turn: M.turn, phase: M.phase, first: M.first,
       log: [], hints: [], shownHints: {}, endScores: [],
-      stats: mapSides(sidesOf(M), blankStat), idx: Object.assign({}, M.idx),
+      stats: cp(M.stats), idx: Object.assign({}, M.idx), syn: M.syn, addl: M.addl, addlNow: M.addlNow,          /* ★★ 2026-10-01 シナジー・延長戦・トレイト（試合の投球数）も予測に効かせる */
       gauge: cp(M.gauge), spUsed: cp(M.spUsed), actUsed: cp(M.actUsed), ultUsed: Object.assign({}, M.ultUsed),
       combackUsed: cp(M.combackUsed), team: cp(M.team), carry: cp(M.carry),
       jackLock: Object.assign({}, M.jackLock), cur: null, fx: null, shotNo: M.shotNo,
@@ -1653,6 +1858,9 @@
       active: { k: c.active, nm: ACTIVES[c.active].en, sub: ACTIVES[c.active].ja, d: L(ACTIVES[c.active].d, lang) },
       passive: { k: c.passive, nm: PASSIVES[c.passive].en, sub: PASSIVES[c.passive].ja, d: L(PASSIVES[c.passive].d, lang) },
       ult: { nm: c.ult.nm, sub: ULTS[c.type].en, d: L(ULTS[c.type].d, lang) },
+      /* ★★ 2026-10-01 サブタイプ・トレイト */
+      subType: c.sub ? TYPES[c.sub] : null,
+      trait: c.trait && TRAITS[c.trait] ? { k: c.trait, nm: TRAITS[c.trait].en, sub: TRAITS[c.trait].ja, d: L(TRAITS[c.trait].d, lang) } : null,
       strong: en ? STAT_NM[TYPES[c.type].main].en : STAT_NM[TYPES[c.type].main].ja,
       weak: en ? STAT_NM[TYPES[c.type].weak].en : STAT_NM[TYPES[c.type].weak].ja,
     };
@@ -1752,14 +1960,14 @@
 
   /* ══════════ 公開 ══════════ */
   window.MBR = {
-    VERSION: 4, REV: "2026-09-19",
+    VERSION: 5, REV: "2026-10-01",
     reload,
     COURT, BALL_R_REAL, BALL_R_PLAY, FRICTION_A, V_MAX, V_MIN, DT, GAUGE_MAX, CHAIN_MAX, STAT_SUM,
     TYPES, TYPE_KEYS, STAT_KEYS, STAT_NM, SPECIALS, ACTIVES, PASSIVES, ULTS, MODES, ELEM_C, ELEM_JA,
     BALL_SKINS, LV_MAX,
     /* ★ 旧版（v3）の名前を読んでいた画面のために残す */
     SKILLS: ACTIVES, ABILS: PASSIVES,
-    SPECIAL_POOL, ACTIVE_POOL, PASSIVE_POOL,
+    SPECIAL_POOL, ACTIVE_POOL, PASSIVE_POOL, TRAITS, TRAIT_KEYS, SYNERGIES, synergiesOf, ADDL_BALLS, spCost,          /* ★★ 2026-10-01 */
     buildRoster, charOf, kitText, voiceOf, voiceClip, voiceCredit, voiceCredits, tutClip, storyOf, addCharLevels, statSumOf, SPECIAL_KIT, skinsOf, titleOf, lvOfXp, xpForLv, lvBonus, awkBonus, AWK_MAX,
     mkRand, fnv,
     newMatch, step, settle, live, jackOf, ballR, throwBall, finishShot, throwSpot, shotMods, dirOf,

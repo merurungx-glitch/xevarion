@@ -234,6 +234,8 @@
       }
       case "dead": burst(p.X, p.Y, 8, "#888", 90, 2); popLite("DEAD BALL", "#aaa"); break;
       case "ultready": sfx("ready", 1); break;
+      /* ★★ 2026-10-01 アディショナルマッチ：中央の「×」にジャックが置かれた */
+      case "addl": ring(p.X, p.Y, 6, 46, "rgba(255,176,0,.95)", 0.8, 4); if (big) ring(p.X, p.Y, 4, 28, "rgba(255,255,255,.9)", 0.5, 2); break;
     }
   }
   /* ══ ★★ 2026-09-18 ショットの演出を少し豪華に（ご指定）══
@@ -377,7 +379,9 @@
         el.innerHTML = '<div class="sp-band"></div><div class="sp-img"><img src="' + esc(th) + '" alt=""></div>'
           + '<div class="sp-tx"><div class="e">' + esc(title) + '</div><div class="j">' + esc(sub || "") + "</div></div>";
       } else {
-        el.innerHTML = '<div class="u-bg"></div><div class="u-dots"></div><div class="u-slash"></div>'
+        /* ★★ 2026-10-01 星形の光と「目の帯」（ペルソナ風）を追加 */
+        el.innerHTML = '<div class="u-bg"></div><div class="u-star"></div><div class="u-dots"></div><div class="u-slash"></div>'
+          + '<div class="u-eyes"><img src="' + esc(im) + '" alt="" onerror="this.onerror=null;this.src=\'' + esc(th) + '\'"></div>'
           + '<div class="u-img"><img src="' + esc(im) + '" alt="" onerror="this.onerror=null;this.src=\'' + esc(th) + '\'"></div>'
           + '<div class="u-tx"><div class="k">ULTIMATE SKILL</div><div class="n">' + esc(title) + "</div>"
           + '<div class="s">' + esc(sub || "") + "</div>" + (voice ? '<div class="v">「' + esc(voice) + "」</div>" : "") + "</div>"
@@ -389,6 +393,75 @@
       cutResolve = res;
       const ms = kind === "ult" ? (L === "short" ? 850 : 1650) : kind === "special" ? (L === "short" ? 520 : 900) : 1150;
       cutT = setTimeout(clearCut, ms);
+    });
+  }
+
+  /* ══════════════════════════════════════════════════════════════
+     ★★ 2026-10-01 ペルソナ風の大きな演出（ご指定「演出をより豪華でペルソナ風に」）
+     ・赤×黒×白・斜めの帯・白い星形の爆発・網点・切り抜き文字（1文字ずつ箱と向きを変える）
+     ・kind：start（VS）／ end（エンド開始）／ addl（ADDITIONAL MATCH）／ win・lose・draw（結果）／ turn（端末をわたして）
+     ・タップで飛ばせる。設定の「演出」が OFF なら出さない・SHORT なら短く。盤面の計算にはかかわらない
+     ══════════════════════════════════════════════════════════════ */
+  let banT = 0, banRes = null;
+  function clearBanner() { const o = document.getElementById("mbrBan"); if (o) o.remove(); clearTimeout(banT); if (banRes) { const r = banRes; banRes = null; r(); } }
+  /* 切り抜き文字：文字ごとに箱・色・向き・大きさを変える（同じ文字列ならいつも同じ形） */
+  function p5(text, big) {
+    let h = 0, i = 0;
+    /* 単語の途中で折り返さない（単語ごとにまとめる）。いちばん長い単語が画面に入る大きさにする */
+    const words = String(text).split(/\s+/).filter(Boolean);
+    const longest = Math.max(1, ...words.map((w) => Array.from(w).length));
+    const fs = "min(" + (big ? "15vw,120px" : "9.5vw,74px") + "," + (86 / (longest * 0.7)).toFixed(2) + "vw)";
+    const html = words.map((w) => '<span class="p5w">' + Array.from(w).map((ch) => {
+      h = (h * 31 + ch.charCodeAt(0) + i * 7) >>> 0;
+      const k = h % 4, rot = ((h >>> 3) % 15) - 7, sc = 0.88 + ((h >>> 6) % 9) / 22, dy = ((h >>> 9) % 7) - 3;
+      const s = '<i class="p5c k' + k + '" style="--r:' + rot + "deg;--s:" + sc.toFixed(2) + ";--y:" + dy + "px;--d:" + (i * 0.035).toFixed(3) + 's">' + esc(ch) + "</i>";
+      i++;
+      return s;
+    }).join("") + "</span>").join("");
+    return '<div class="p5t' + (big ? " big" : "") + '" style="--fs:' + fs + '">' + html + "</div>";
+  }
+  function banner(kind, o) {
+    o = o || {};
+    return new Promise((res) => {
+      const L = lv();
+      clearBanner();
+      if (L === "off") { res(); return; }
+      const el = document.createElement("div");
+      el.id = "mbrBan";
+      el.className = "b-" + kind + (L === "short" ? " short" : "");
+      const col = o.col || { lose: "#3a5bff", addl: "#ffb000", draw: "#b45cff" }[kind] || "#ff1f3d";
+      el.style.setProperty("--bc", col);
+      /* 背景の中心はテーマ色を暗くした色（青の勝ちなら青い背景） */
+      const m = /^#([0-9a-f]{6})$/i.exec(col);
+      if (m) { const n = parseInt(m[1], 16); el.style.setProperty("--bd", "rgb(" + [n >> 16, (n >> 8) & 255, n & 255].map((v) => Math.round(v * 0.34)).join(",") + ")"); }
+      const star = '<div class="b-star"></div><div class="b-star s2"></div>';
+      const bg = '<div class="b-bg"></div><div class="b-stripe"></div><div class="b-dots"></div>' + star
+        + '<div class="b-shard s1"></div><div class="b-shard s2"></div><div class="b-shard s3"></div><div class="b-shard s4"></div>';
+      const port = (c, i, side) => c ? '<div class="pt" style="--i:' + i + '"><img src="' + esc(imgPath(c, true)) + '" alt="" onerror="this.onerror=null;this.src=\'' + esc(imgPath(c, false)) + '\'"><b>' + esc(c.nm) + "</b></div>" : "";
+      let body = "";
+      if (kind === "start") {
+        const R = (o.red || []).slice(0, 3), Bl = (o.blue || []).slice(0, 3);
+        body = '<div class="vs-l">' + R.map((c, i) => port(c, i, "red")).join("") + '<div class="tm">' + esc(o.redName || "RED") + "</div></div>"
+          + '<div class="vs-r">' + Bl.map((c, i) => port(c, i, "blue")).join("") + '<div class="tm">' + esc(o.blueName || "BLUE") + "</div></div>"
+          + '<div class="vs-c">' + p5("VS", true) + '<div class="sub">' + esc(o.sub || "BOCCIA RUSH — MATCH START") + "</div></div>";
+      } else if (kind === "turn") {
+        body = '<div class="b-mid">' + p5(o.title || "YOUR TURN") + '<div class="sub">' + esc(o.sub || "") + "</div></div>";
+      } else {
+        const T = kind === "addl" ? "ADDITIONAL MATCH" + (o.n > 1 ? " " + o.n : "") : kind === "end" ? (o.title || "END") : kind === "win" ? (o.title || "VICTORY") : kind === "lose" ? (o.title || "DEFEAT") : kind === "draw" ? "DRAW" : (o.title || "");
+        body = (o.char ? '<div class="b-char"><img src="' + esc(imgPath(o.char, true)) + '" alt="" onerror="this.onerror=null;this.src=\'' + esc(imgPath(o.char, false)) + '\'"></div>' : "")
+          + '<div class="b-mid">' + (o.kicker ? '<div class="kick">' + esc(o.kicker) + "</div>" : "") + p5(T, kind !== "end") + (o.sub ? '<div class="sub">' + esc(o.sub) + "</div>" : "") + "</div>";
+      }
+      el.innerHTML = bg + body + '<div class="b-skip">TAP TO SKIP</div>';
+      el.addEventListener("click", clearBanner);
+      el.addEventListener("touchstart", (ev) => { ev.preventDefault(); clearBanner(); }, { passive: false });
+      document.body.appendChild(el);
+      banRes = res;
+      const ms = { start: 2300, addl: 2400, end: 1100, win: 2200, lose: 1900, draw: 1900, turn: 1150 }[kind] || 1500;
+      banT = setTimeout(clearBanner, L === "short" ? Math.round(ms * 0.55) : ms);
+      try {
+        sfx(kind === "lose" ? "sad" : kind === "win" ? "fanfare" : kind === "turn" || kind === "end" ? "special" : "ban", 1);
+        if (kind === "start" || kind === "addl" || kind === "win") vib([20, 40, 30]);
+      } catch (e) {}
     });
   }
 
@@ -440,6 +513,10 @@
       case "ui": tone(700, 0.04, "square", 0.03); break;
       case "launch": noise(0.08 + p * 0.1, 0.05 + p * 0.1); tone(180 + p * 160, 0.16, "sawtooth", 0.04, 2.2); break;
       case "nice": [784, 988, 1175, 1568].slice(0, p >= 1 ? 4 : 3).forEach((f, i) => setTimeout(() => tone(f, 0.14, "triangle", 0.08), i * 70)); break;
+      /* ★★ 2026-10-01 ペルソナ風の演出用（斬る音＋和音／ファンファーレ／負け） */
+      case "ban": noise(0.16, 0.12); tone(240, 0.2, "sawtooth", 0.05, 3.2); setTimeout(() => [523, 784, 1047].forEach((f, i) => setTimeout(() => tone(f, 0.16, "square", 0.04), i * 55)), 150); break;
+      case "fanfare": [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => tone(f, i === 3 ? 0.55 : 0.14, "triangle", 0.08), i * 110)); break;
+      case "sad": [392, 330, 262].forEach((f, i) => setTimeout(() => tone(f, 0.28, "sine", 0.07), i * 170)); break;
     }
   }
   function vib(ms) { try { if (B.load().vib !== false && navigator.vibrate) navigator.vibrate(ms); } catch (e) {} }
@@ -543,10 +620,78 @@
       "@keyframes uS{0%{transform:skewY(-12deg) translateX(-110%)}18%{transform:skewY(-12deg)}84%{opacity:1}100%{opacity:0;transform:skewY(-12deg) translateX(40%)}}",
       "@keyframes uI{0%{opacity:0;transform:translateX(-30%) scale(1.15)}20%{opacity:1;transform:none}84%{opacity:1}100%{opacity:0;transform:translateX(6%)}}",
       "@keyframes uT{0%{opacity:0;transform:translateX(40%)}24%{opacity:1;transform:none}84%{opacity:1}100%{opacity:0}}",
+      /* ★★ 2026-10-01 ペルソナ風の大きな演出（banner） */
+      "#mbrBan{position:fixed;inset:0;z-index:160;overflow:hidden;cursor:pointer;font-family:'Noto Sans JP',sans-serif;--bc:#ff1f3d}",
+      "#mbrBan .b-bg{position:absolute;inset:0;background:radial-gradient(120% 90% at 50% 50%,var(--bd,#5a0010) 0%,#090006 62%,#000 100%);animation:bnF 2.4s ease both}",
+      "#mbrBan .b-stripe{position:absolute;inset:-30%;background:repeating-linear-gradient(-24deg,rgba(255,255,255,.07) 0 18px,transparent 18px 46px,rgba(0,0,0,.5) 46px 60px,transparent 60px 92px);animation:bnS 2.4s linear both}",
+      "#mbrBan .b-dots{position:absolute;inset:-20%;opacity:.28;background-image:radial-gradient(var(--bc) 1.6px,transparent 2.1px);background-size:13px 13px;transform:rotate(-14deg);animation:bnF 2.4s ease both}",
+      "#mbrBan .b-star{position:absolute;left:50%;top:50%;width:150vmax;height:150vmax;margin:-75vmax 0 0 -75vmax;background:#fff;opacity:.95;",
+      "  clip-path:polygon(50% 0,53% 44%,72% 6%,56% 46%,92% 18%,58% 48%,100% 44%,58% 51%,96% 70%,56% 53%,78% 96%,53% 56%,50% 100%,47% 56%,24% 95%,44% 53%,4% 72%,42% 51%,0 47%,42% 48%,8% 20%,44% 46%,26% 4%,47% 44%);",
+      "  animation:bnStar 2.4s cubic-bezier(.2,.9,.3,1) both}",
+      "#mbrBan .b-star.s2{background:var(--bc);transform:scale(.62) rotate(14deg);animation-name:bnStar2;opacity:.98}",
+      "#mbrBan .b-shard{position:absolute;height:14vh;left:-30%;right:-30%;transform:skewY(-16deg);animation:bnSh 2.4s cubic-bezier(.2,.9,.3,1) both}",
+      "#mbrBan .b-shard.s1{top:6%;background:#000;border-bottom:4px solid #fff}",
+      "#mbrBan .b-shard.s2{top:78%;background:var(--bc);height:9vh;animation-delay:.06s}",
+      "#mbrBan .b-shard.s3{top:16%;height:3vh;background:#fff;animation-delay:.1s;opacity:.9}",
+      "#mbrBan .b-shard.s4{top:70%;height:2.4vh;background:#000;animation-delay:.14s}",
+      ".p5t{display:flex;flex-wrap:wrap;justify-content:center;align-items:center;gap:6px .28em;line-height:1;transform:rotate(-6deg);font-size:var(--fs,clamp(30px,9.5vw,74px))}",
+      ".p5t .p5w{display:inline-flex;align-items:center;gap:1px;white-space:nowrap}",
+      ".p5t .p5c{display:inline-block;font-style:normal;font-family:'Anton','Noto Sans JP',sans-serif;font-weight:900;font-size:1em;padding:.04em .1em;",
+      "  transform:translateY(var(--y)) rotate(var(--r)) scale(var(--s));animation:bnL .5s cubic-bezier(.2,1.5,.4,1) both;animation-delay:calc(.12s + var(--d))}",
+      ".p5t .k0{background:#000;color:#fff;box-shadow:3px 3px 0 var(--bc,#ff1f3d)}",
+      ".p5t .k1{background:#fff;color:#000}",
+      ".p5t .k2{background:var(--bc,#ff1f3d);color:#fff;text-shadow:2px 2px 0 #000}",
+      ".p5t .k3{background:transparent;color:#fff;-webkit-text-stroke:2px #000;text-shadow:4px 4px 0 var(--bc,#ff1f3d)}",
+      "#mbrBan .b-mid{position:absolute;left:4%;right:4%;top:50%;transform:translateY(-55%);text-align:center;z-index:3}",
+      "#mbrBan .kick{display:inline-block;font-family:'Anton','Orbitron',sans-serif;font-style:italic;font-size:15px;color:#000;background:#fff;padding:2px 16px;transform:skewX(-14deg) rotate(-6deg);margin-bottom:10px;animation:bnSub .4s .05s both}",
+      "#mbrBan .sub{display:inline-block;margin-top:16px;font-weight:900;font-size:clamp(12px,3.6vw,17px);color:#fff;background:#000;padding:6px 18px;transform:skewX(-12deg) rotate(-6deg);",
+      "  box-shadow:4px 4px 0 var(--bc);animation:bnSub .6s .45s cubic-bezier(.2,.9,.3,1) both}",
+      "#mbrBan .b-char{position:absolute;right:-6%;bottom:0;width:min(58vw,420px);height:62vh;z-index:2;animation:bnCh 2.4s cubic-bezier(.2,.9,.3,1) both;",
+      "  clip-path:polygon(18% 0,100% 0,100% 100%,0 100%)}",
+      "#mbrBan .b-char img{width:100%;height:100%;object-fit:cover;object-position:50% 14%}",
+      "#mbrBan .vs-l,#mbrBan .vs-r{position:absolute;top:0;bottom:0;width:58%;display:flex;flex-direction:column;justify-content:center;gap:6px;z-index:2}",
+      "#mbrBan .vs-l{left:0;padding-left:3%;animation:bnVL 2.3s cubic-bezier(.2,.9,.3,1) both}",
+      "#mbrBan .vs-r{right:0;align-items:flex-end;padding-right:3%;animation:bnVR 2.3s cubic-bezier(.2,.9,.3,1) both}",
+      "#mbrBan .pt{position:relative;width:min(44vw,300px);height:12vh;overflow:hidden;background:#000;transform:skewY(-10deg);clip-path:polygon(4% 0,100% 0,96% 100%,0 100%);",
+      "  animation:bnPt .5s cubic-bezier(.2,1.2,.4,1) both;animation-delay:calc(.15s + var(--i) * .08s)}",
+      "#mbrBan .vs-l .pt{border-bottom:5px solid #ff1f3d}#mbrBan .vs-r .pt{border-bottom:5px solid #2f8fff}",
+      "#mbrBan .pt img{position:absolute;left:0;top:-40%;width:100%;height:auto;min-height:180%;object-fit:cover;object-position:50% 16%;transform:skewY(10deg)}",
+      "#mbrBan .pt b{position:absolute;left:8%;bottom:4px;font-size:12px;font-weight:900;color:#fff;background:rgba(0,0,0,.7);padding:1px 8px;transform:skewY(10deg)}",
+      "#mbrBan .tm{font-family:'Anton','Noto Sans JP',sans-serif;font-weight:900;font-style:italic;font-size:clamp(20px,6vw,40px);color:#fff;text-shadow:3px 3px 0 #000,-1px -1px 0 #000;margin-top:4px;transform:skewY(-10deg);max-width:90%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
+      "#mbrBan .vs-r .pt b{left:auto;right:8%}",
+      "#mbrBan .vs-l .tm{color:#ff6a7c}#mbrBan .vs-r .tm{color:#7cc4ff}",
+      "#mbrBan .vs-c{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);z-index:3;text-align:center;width:max-content}",
+      "#mbrBan .b-skip{position:absolute;right:14px;bottom:calc(env(safe-area-inset-bottom,0px) + 12px);font-family:'Anton','Orbitron',sans-serif;font-style:italic;font-size:12px;color:rgba(255,255,255,.7);letter-spacing:.2em;z-index:4}",
+      "#mbrBan.b-turn .b-bg,#mbrBan.b-end .b-bg{background:rgba(0,0,0,.55)}",
+      "#mbrBan.b-turn .b-star,#mbrBan.b-end .b-star,#mbrBan.b-turn .b-stripe,#mbrBan.b-end .b-stripe,#mbrBan.b-turn .b-dots,#mbrBan.b-end .b-dots{display:none}",
+      "#mbrBan.b-turn .b-bg,#mbrBan.b-end .b-bg,#mbrBan.b-turn .b-shard,#mbrBan.b-end .b-shard{animation-duration:1.15s}",
+      "#mbrBan.b-lose{--bc:#3a5bff}#mbrBan.b-lose .b-star{background:#c8d4ff}",
+      "#mbrBan.b-addl{--bc:#ffb000}#mbrBan.b-draw{--bc:#b45cff}",
+      "#mbrBan.short .b-bg,#mbrBan.short .b-stripe,#mbrBan.short .b-dots,#mbrBan.short .b-star,#mbrBan.short .b-shard,#mbrBan.short .vs-l,#mbrBan.short .vs-r,#mbrBan.short .b-char{animation-duration:1.25s}",
+      "@keyframes bnF{0%{opacity:0}10%{opacity:1}86%{opacity:1}100%{opacity:0}}",
+      "@keyframes bnS{0%{opacity:0;transform:translateX(-12%)}10%{opacity:1}86%{opacity:1}100%{opacity:0;transform:translateX(8%)}}",
+      "@keyframes bnStar{0%{transform:scale(0) rotate(-40deg)}16%{transform:scale(1.04) rotate(4deg)}22%{transform:scale(1) rotate(0)}84%{opacity:.95;transform:scale(1.03) rotate(3deg)}100%{opacity:0;transform:scale(1.4) rotate(10deg)}}",
+      "@keyframes bnStar2{0%{transform:scale(0) rotate(60deg)}18%{transform:scale(.66) rotate(10deg)}24%{transform:scale(.62) rotate(14deg)}84%{opacity:.98}100%{opacity:0;transform:scale(.9) rotate(30deg)}}",
+      "@keyframes bnSh{0%{transform:skewY(-16deg) translateX(-110%)}16%{transform:skewY(-16deg) translateX(0)}86%{opacity:1}100%{opacity:0;transform:skewY(-16deg) translateX(40%)}}",
+      "@keyframes bnL{0%{opacity:0;transform:translateY(var(--y)) rotate(calc(var(--r) - 40deg)) scale(2.4)}100%{opacity:1;transform:translateY(var(--y)) rotate(var(--r)) scale(var(--s))}}",
+      "@keyframes bnSub{0%{opacity:0;transform:skewX(-12deg) rotate(-6deg) translateX(60%)}100%{opacity:1;transform:skewX(-12deg) rotate(-6deg)}}",
+      "@keyframes bnCh{0%{opacity:0;transform:translateX(40%)}20%{opacity:1;transform:none}86%{opacity:1}100%{opacity:0}}",
+      "@keyframes bnVL{0%{transform:translateX(-110%)}16%{transform:none}86%{opacity:1;transform:none}100%{opacity:0;transform:translateX(-20%)}}",
+      "@keyframes bnVR{0%{transform:translateX(110%)}16%{transform:none}86%{opacity:1;transform:none}100%{opacity:0;transform:translateX(20%)}}",
+      "@keyframes bnPt{0%{opacity:0;transform:skewY(-10deg) scaleX(.2)}100%{opacity:1;transform:skewY(-10deg)}}",
+      /* ★★ 2026-10-01 ULT のカットインに「目の帯」と星形の光（ペルソナ風） */
+      "#mbrCut.k-ult .u-star{position:absolute;left:30%;top:50%;width:120vmax;height:120vmax;margin:-60vmax 0 0 -60vmax;background:var(--tc);opacity:.35;",
+      "  clip-path:polygon(50% 0,54% 42%,80% 10%,57% 47%,100% 42%,58% 53%,86% 86%,53% 57%,50% 100%,46% 57%,14% 88%,42% 53%,0 46%,43% 47%,20% 12%,46% 42%);animation:bnStar 1.65s cubic-bezier(.2,.9,.3,1) both}",
+      "#mbrCut.k-ult .u-eyes{position:absolute;left:-10%;right:-10%;top:3%;height:12vh;overflow:hidden;transform:skewY(-6deg);border-top:4px solid #fff;border-bottom:4px solid var(--tc);background:#000;",
+      "  animation:uEy 1.65s cubic-bezier(.2,.9,.3,1) both}",
+      "#mbrCut.k-ult .u-eyes{z-index:2}",
+      "#mbrCut.k-ult .u-eyes img{position:absolute;left:0;top:50%;width:100%;height:auto;transform:translateY(-30%) skewY(6deg)}",
+      "@keyframes uEy{0%{transform:skewY(-6deg) translateX(100%)}16%{transform:skewY(-6deg)}84%{opacity:1}100%{opacity:0;transform:skewY(-6deg) translateX(-30%)}}",
+      "#mbrCut.short .u-star,#mbrCut.short .u-eyes{animation-duration:.85s}",
     ].join("\n");
     document.head.appendChild(st);
   })();
 
   window.MBRFX = { drawBall, ballThumb, imgOf, imgPath, onEvent, drawParticles, shakeOffset, shake, setHost, pop, popLite, cutIn, clearCut, sfx, vib, speak,
-                   launch, spark, nice, flash };
+                   launch, spark, nice, flash, banner, clearBanner, p5 };
 })();

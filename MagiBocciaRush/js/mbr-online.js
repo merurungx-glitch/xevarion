@@ -60,6 +60,8 @@ const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&":
 const CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 function gen6() { let s = ""; for (let i = 0; i < 6; i++) s += CODE_CHARS[Math.floor(Math.random() * CODE_CHARS.length)]; return s; }
 const P = (code) => "brrooms/" + code;
+/* ★★ 2026-10-01 ルールの版（mbr-core.js の VERSION と同じ）。ちがう版の部屋・待ち行列とは組まない */
+const RV = 5;
 const pad = (n) => String(n).padStart(4, "0");
 const MAX_PLAYERS = 6;
 
@@ -131,7 +133,7 @@ async function create() {
   const code = gen6();
   try {
     await set(ref(d, P(code)), {
-      host: u.uid, seed: (Date.now() ^ (Math.random() * 1e9)) >>> 0, ends: 4, rules: "ability",
+      host: u.uid, seed: (Date.now() ^ (Math.random() * 1e9)) >>> 0, ends: 4, rules: "ability", rv: RV,
       started: false, at: Date.now(),
       players: { [u.uid]: { name: u.name, side: "red", seat: 0, lineup: lineup(), online: true, at: Date.now() } },
     });
@@ -155,6 +157,8 @@ async function join(code) {
     const mine = ps[u.uid];
     if (!mine && Object.keys(ps).length >= MAX_PLAYERS) return say("その部屋はいっぱいです。", "That room is full.");
     if (!mine && (r.started || r.phase === "draft")) return say("その部屋の試合はもう始まっています。", "That match has already started.");
+    /* ★★ 2026-10-01 ルールの版（性能・延長戦）がちがう端末どうしは、同じ盤面を計算できないので入れない */
+    if ((r.rv || 4) !== RV) return say("相手のアプリの版がちがいます。どちらもホームから最新に更新してください。", "Your app versions differ. Please update both to the latest version.");
     const reds = Object.values(ps).filter((p) => p.side === "red").length;
     const blues = Object.values(ps).filter((p) => p.side === "blue").length;
     const side = mine ? mine.side : (reds <= blues ? (reds === blues ? "blue" : "red") : "blue");
@@ -513,7 +517,7 @@ async function quick(timeoutMs) {
     /* ① 先に並んでいる人がいれば取る */
     const snap = await get(qRef);
     const list = [];
-    snap.forEach((c) => { const v = c.val(); if (c.key !== u.uid && v && !v.taken && Date.now() - (v.at || 0) < 30000) list.push(c.key); });
+    snap.forEach((c) => { const v = c.val(); if (c.key !== u.uid && v && !v.taken && (v.rv || 4) === RV && Date.now() - (v.at || 0) < 30000) list.push(c.key); });
     for (const k of list) {
       let won = false;
       await runTransaction(ref(d, "brqueue/" + k), (v) => {
@@ -534,7 +538,7 @@ async function quick(timeoutMs) {
     await create();
     if (!cur) return false;
     const code = cur.code;
-    await set(ref(d, "brqueue/" + u.uid), { code, at: Date.now(), name: u.name });
+    await set(ref(d, "brqueue/" + u.uid), { code, at: Date.now(), name: u.name, rv: RV });
     onDisconnect(ref(d, "brqueue/" + u.uid)).remove();
     const t0 = Date.now();
     while (Date.now() - t0 < (timeoutMs || 10000)) {

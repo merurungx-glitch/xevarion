@@ -737,3 +737,19 @@ html{scrollbar-width:thin;scrollbar-color:#e8173a #111}
   clip-path:polygon(0 4px,100% 0,100% calc(100% - 4px),0 100%)}
 ::-webkit-scrollbar-thumb:hover{background:linear-gradient(180deg,#fff,#ff5a6e)}
 ::-webkit-scrollbar-corner{background:#0d0d0f}
+
+/* ★★ 2026-10-01 編成シナジー（組み合わせで小さなチーム効果）とトレイト */
+.syn{display:flex;flex-direction:column;gap:5px}
+.sy{position:relative;display:grid;grid-template-columns:auto 1fr;gap:1px 9px;align-items:baseline;padding:7px 10px 7px 13px;background:var(--k2);border-left:4px solid #555;opacity:.62}
+.sy.on{opacity:1;border-left-color:var(--gold);background:linear-gradient(90deg,rgba(255,200,61,.16),var(--k2) 70%)}
+.sy.on::after{content:"ON";position:absolute;right:8px;top:6px;font-family:var(--disp);font-style:italic;font-size:11px;color:#000;background:var(--gold);padding:0 6px;transform:skewX(-12deg)}
+.sy b{font-family:var(--disp);font-style:italic;font-size:14px;line-height:1.1;color:var(--w)}
+.sy span{font-size:11px;font-weight:900;color:var(--w2)}
+.sy small{grid-column:1 / -1;font-size:11px;line-height:1.45;color:var(--sub)}
+.sy.on small{color:var(--w2)}
+.synall{margin-top:8px}
+.synall summary{cursor:pointer;font-size:12px;font-weight:900;color:var(--w2);padding:6px 0;list-style:none}
+.synall summary::before{content:"▶ ";color:var(--r)}
+.synall[open] summary::before{content:"▼ "}
+.synall .sy{margin-top:5px}
+.sk.trt .h .e{color:#ffd86a}

@@ -46,6 +46,7 @@
   let online = null;           /* { me, side, host, code, ok } */
   let endPending = false;      /* エンドの得点を見せている間（オンラインの投球はこの間待たせる） */
   let pendingStage = null, stageAnim = false, stageFx = [];   /* ★ 2026-09-17d BOSS STAGE */
+  let banSide = null;          /* ★★ 2026-10-01 1台で2人：さっき投げた色（変わったら「端末をわたして」の帯） */
 
   /* ══════════ キャラ ══════════ */
   function ownedIds() {
@@ -430,6 +431,8 @@
       + (anyCpu ? '<div class="note" style="margin:10px 0 6px"><b>' + J("CPU の強さ", "CPU level") + "</b></div>" + segBtns("difficulty", DIFF) : "")
       + "</div>";
     const nShow = Math.min(LINEUP_N, p.perColor);
+    /* ★★ 2026-10-01 全色を同じ編成に（同じキャラ・同じ順番でも遊べる） */
+    if (p.rules !== "simple") h += '<div style="text-align:right;margin:8px 0 -2px"><span class="more" data-a="pcopyall">' + J("全色を1色目と同じ編成にする", "Copy colour 1 to all") + "</span></div>";
     act.forEach((x, i) => {
       const lu = x.lineup.map(charOf).filter(Boolean);
       /* ★★ 2026-09-18 名前を変えられる・XEVARION アカウントを紐づけられる（MagiChainParty と同じ GameLink） */
@@ -508,7 +511,7 @@
       const rl = (p.redLineup || []).map(charOf).filter(Boolean);
       h += hd("RED", J("1Pの編成（タップで変更）", "Player 1 (tap to change)"))
         + '<div class="lineup mini">' + six.map((i) => slotHTML(rl[i], i, "fpick", "red:" + i, rl[i] && trainAwOne(p.trainRed, rl[i].id))).join("") + "</div>"
-        + hd("BLUE", J("2Pの編成（タップで変更）", "Player 2 (tap to change)"), '<span class="more" data-a="reroll">' + J("おまかせ ↻", "Random ↻") + "</span>")
+        + hd("BLUE", J("2Pの編成（タップで変更）", "Player 2 (tap to change)"), '<span class="more" data-a="samelu">' + J("1Pと同じ（同じ順番）", "Same as 1P") + "</span>　<span class=\"more\" data-a=\"swaplu\">" + J("1P⇄2P", "Swap") + "</span>　<span class=\"more\" data-a=\"reroll\">" + J("おまかせ ↻", "Random ↻") + "</span>")
         + '<div class="lineup mini">' + six.map((i) => slotHTML(rv[i], i, "fpick", "blue:" + i, rv[i] && trainAwOne(p.trainBlue, rv[i].id))).join("") + "</div>";
     } else {
       h += hd("RED", J("あなたの編成", "Your lineup"), '<span class="more" data-a="toteam">' + J("編成する ›", "Edit ›") + "</span>")
@@ -536,6 +539,7 @@
       + '<div class="note" style="margin:6px 0 2px">' + J("枠をタップすると、<b>検索・絞り込み・キャラ詳細</b>つきで選べます。", "Tap a slot to pick with <b>search, filters and details</b>.") + "</div>"
       + '<div class="swaps">' + [0, 1, 2, 3, 4].map((i) => '<button class="btn sm gh" data-a="swapslot" data-v="' + i + '">' + (i + 1) + "⇄" + (i + 2) + "</button>").join("") + "</div>"
       + '<button class="btn sm" style="width:100%;margin-top:6px" data-a="autoteam">' + J("おすすめ編成", "Auto build") + "</button>"
+      + synergyHTML(lu)
       + hd("BALANCE", J("チームの平均", "Team average"))
       + '<div class="pn">' + radar(sum) + "</div>"
       + hd("ORDER TIPS", J("順番のコツ", "Order tips"))
@@ -545,6 +549,17 @@
           const c = cs[i];
           return (i + 1) + J("投目 ", ". ") + "<b>" + esc(c ? c.nm : "—") + "</b>" + (c ? "（" + B.TYPES[c.type].ja + "）" : "");
         }).join("<br>") + "</div></div>";
+  }
+  /* ★★ 2026-10-01 編成シナジー（型・属性の組み合わせでチーム全体に小さな効果）＝ご指定「組み合わせがそれぞれ異なるように」 */
+  function synergyHTML(ids) {
+    if (!B.synergiesOf) return "";
+    const on = B.synergiesOf(ids || []), onId = {}; on.forEach((s) => { onId[s.id] = 1; });
+    return hd("SYNERGY", J("編成シナジー（" + on.length + "）", "Synergies (" + on.length + ")"))
+      + '<div class="pn tight"><div class="syn">' + (on.length ? on.map((s) => '<div class="sy on"><b>' + esc(s.en) + "</b><span>" + esc(L(s)) + "</span><small>" + L(s.d) + "</small></div>").join("")
+        : '<div class="note">' + J("まだ発動していません。下の一覧の組み合わせで、チーム全体に小さな効果がつきます。", "None yet — combine types/elements below for small team-wide boosts.") + "</div>")
+      + '<details class="synall"><summary>' + J("シナジーの一覧（" + B.SYNERGIES.length + "）", "All synergies (" + B.SYNERGIES.length + ")") + "</summary>"
+      + B.SYNERGIES.map((s) => '<div class="sy' + (onId[s.id] ? " on" : "") + '"><b>' + esc(s.en) + "</b><span>" + esc(L(s)) + "</span><small>" + L(s.d) + "</small></div>").join("") + "</details>"
+      + '<div class="note" style="margin-top:6px">' + J("※ キャラクター能力モードだけで効きます（ルール準拠・シンプル・ランクマッチでは効きません）。", "※ Ability mode only (not in Rules, Simple or Ranked).") + "</div></div></div>";
   }
   function teamTips(cs) {
     const t = [];
@@ -820,6 +835,7 @@
       + '<div class="pn">' + radar(c.st, ty.c) + statRows(c.st, ty.main, ty.weak)
       + '<div class="note" style="margin-top:8px"><b style="color:' + ty.c + '">' + ty.ja + " TYPE</b> ─ " + L(ty.d) + "<br>"
       + J("得意：", "Strong: ") + "<b>" + esc(kit.strong) + "</b>　" + J("苦手：", "Weak: ") + "<b>" + esc(kit.weak) + "</b>"
+      + (kit.subType ? "<br>" + J("サブタイプ：", "Sub-type: ") + "<b style=\"color:" + kit.subType.c + "\">" + kit.subType.ja + "</b>" + J("（2つめの得意。技の候補と能力の配分に効く）", " (a second specialty that shapes skills and stats)") : "")
       + "<br>" + (c.special
         ? J("<b>花宴祭の特別なキャラ</b>：能力の合計は <b>" + B.statSumOf(c) + "</b>（ふつうは " + B.STAT_SUM + "）。専用パッシブ「サクラ・ブルーム」を持つ、MagiBocciaRush で最強の性能です。",
             "<b>Special festival character</b>: stat total <b>" + B.statSumOf(c) + "</b> (normally " + B.STAT_SUM + ") with the unique passive Sakura Bloom — the strongest kit in MagiBocciaRush.")
@@ -838,6 +854,9 @@
       + '<div class="sk pas"><div class="h"><span class="e">' + esc(kit.passive.nm) + '</span><span class="j">' + esc(J("パッシブ " + kit.passive.sub, "Passive skill")) + '</span><span class="c tag">' + J("常に発動", "Always on") + "</span>" + qHelp("pas", c.passive, c.id, true) + "</div><div class=\"d\">" + kit.passive.d + "</div></div>"
       + '<div class="sk ult"><div class="h"><span class="e">' + esc(kit.ult.nm) + '</span><span class="j">ULTIMATE ・ ' + esc(kit.ult.sub) + '</span><span class="c tag">' + J("ゲージ100・チームで1エンド1回", "Gauge 100 · once per end per team") + "</span>" + qHelp("ult", c.type, c.id, true) + "</div>"
       + '<div class="d">' + kit.ult.d + "<br><small>" + J("撃つとこのキャラのゲージは 0 に戻り、その1投ではゲージがたまりません。※ ルール準拠モード・ランクマッチでは、特殊ショット／スキル／アルティメットは使えません。", "Firing resets this character's gauge to 0 and that throw earns none. Specials, skills and ultimates are disabled in rules mode / ranked.") + "</small></div></div>"
+
+      /* ★★ 2026-10-01 トレイト（4つめの性能） */
+      + (kit.trait ? '<div class="sk trt" style="border-left-color:#ffd86a"><div class="h"><span class="e">' + esc(kit.trait.nm) + '</span><span class="j">' + esc(J("トレイト " + kit.trait.sub, "Trait")) + '</span><span class="c tag">' + J("小さな個性", "Small edge") + '</span></div><div class="d">' + kit.trait.d + '</div></div>' : "")
 
       + hd("BALL", J("専用ボール（見た目だけ・性能は同じ）", "Signature ball (cosmetic)"))
       + '<div class="balls" id="dballs"></div>'
@@ -1176,7 +1195,52 @@
     buildMatchDOM();
     startLoop();
     lineup.red.concat(lineup.blue).forEach((id) => FX.imgOf(charOf(id)));
-    setTimeout(startTurn, 250);
+    banSide = null;
+    setTimeout(() => matchIntro(startTurn), 250);
+  }
+
+  /* ══ ★★ 2026-10-01 ペルソナ風の大きな演出（ご指定「演出をより豪華でペルソナ風に」）══
+     試合開始の VS・結果の VICTORY / DEFEAT・1台で2人のときの手番の帯。見た目だけで、盤面には触らない。
+     リプレイ・チュートリアル・練習では出さない。設定の「演出」が OFF なら FX.banner がすぐ終わる */
+  function matchIntro(next) {
+    const MM = M;
+    const done = () => { if (M && M === MM && cur === "match") next(); };
+    if (!M || M.replay || tut || M.practice || !FX.banner) { done(); return; }
+    if (B.isParty(M)) {
+      FX.banner("title", { title: "PARTY MATCH", kicker: "BOCCIA RUSH", sub: B.sidesOf(M).map((sd) => SI(sd).en).join(" × ") + " ・ " + (M.cfg.baseEnds || M.cfg.ends) + " ENDS" }).then(done);
+      return;
+    }
+    const nm = (sd) => { const ps = M.cfg.players[sd] || []; return ps.length > 1 ? sd.toUpperCase() + " TEAM" : (ps[0] && ps[0].name) || sd.toUpperCase(); };
+    const lu = (sd) => (M.cfg.lineup[sd] || []).map(charOf).filter(Boolean);
+    FX.banner("start", { red: lu("red"), blue: lu("blue"), redName: nm("red"), blueName: nm("blue"),
+      sub: "MATCH START ・ " + (M.cfg.baseEnds || M.cfg.ends) + " ENDS" + (M.cfg.rules === "simple" ? " ・ SIMPLE" : M.cfg.rules === "rules" ? " ・ OFFICIAL RULES" : "") }).then(done);
+  }
+  /* いちばん働いたキャラ（演出の顔に使う。MVP と同じ数えかた） */
+  function bestCharOf(sd) {
+    const per = (M.stats[sd] && M.stats[sd].perChar) || {};
+    let best = null, bs = -1;
+    Object.keys(per).forEach((id) => { const x = per[id]; const sc = x.hits * 3 + x.jack * 3 + x.chain * 2 + x.banks + x.throws * 0.5; if (sc > bs) { bs = sc; best = id; } });
+    return charOf(best) || charOf((M.cfg.lineup[sd] || [])[0]) || null;
+  }
+  /* 結果の前の大きな帯（1試合に1回だけ）。出したら true（終わったら next を呼ぶ） */
+  function resultBanner(next) {
+    if (!M || M._ban || M.replay || tut || !FX.banner) return false;
+    M._ban = true;
+    const MM = M;
+    const done = () => { if (M && M === MM && cur === "match") next(); };
+    const S = B.sidesOf(M);
+    const top = Math.max.apply(null, S.map((sd) => M.score[sd]));
+    const winners = S.filter((sd) => M.score[sd] === top);
+    const sc = S.map((sd) => M.score[sd]).join(" - ");
+    const ex = M.addl ? " ・ ADDITIONAL MATCH" : "";
+    if (winners.length !== 1) { FX.banner("draw", { sub: sc + ex }).then(done); return true; }
+    const w = winners[0];
+    const loc = B.isParty(M) || (!online && !S.some((sd) => (M.cfg.players[sd] || []).some((p) => p.cpu)));
+    if (loc) { FX.banner("win", { title: SI(w).en + " WIN", kicker: "WINNER", sub: sc + ex, char: bestCharOf(w), col: SC(w) }).then(done); return true; }
+    const me = mySide();
+    if (w === me) FX.banner("win", { title: "VICTORY", kicker: "YOU WIN", sub: sc + ex, char: bestCharOf(me) }).then(done);
+    else FX.banner("lose", { title: "DEFEAT", kicker: "YOU LOSE", sub: sc + ex, char: bestCharOf(w) }).then(done);
+    return true;
   }
 
   /* ★★ 2026-09-18 PARTY MATCH の開始（3〜6色） */
@@ -1218,7 +1282,8 @@
     buildMatchDOM();
     startLoop();
     Object.keys(lineup).forEach((k) => lineup[k].forEach((id) => FX.imgOf(charOf(id))));
-    setTimeout(startTurn, 250);
+    banSide = null;
+    setTimeout(() => matchIntro(startTurn), 250);
   }
 
   /* ══════════════════════════════════════════════════════════════
@@ -1423,7 +1488,7 @@
   function updateHUD() {
     if (!M || cur !== "match") return;
     const party = B.isParty(M);
-    $("#mEnd").textContent = M.stage ? L(window.MBRStage.DIFF[M.stage.diff]) : M.practice ? "—" : M.end + "/" + M.cfg.ends;
+    $("#mEnd").textContent = M.stage ? L(window.MBRStage.DIFF[M.stage.diff]) : M.practice ? "—" : M.addlNow ? "EX" + (M.addl > 1 ? M.addl : "") : M.end + "/" + (M.cfg.baseEnds || M.cfg.ends);          /* ★★ 2026-10-01 延長戦は EX */
     const stg = $("#mStage");
     if (stg) stg.innerHTML = M.stage ? window.MBRStage.hudHTML(M) : "";
     if (party) {
@@ -1969,6 +2034,7 @@
   function remoteShot(s) {
     if (!M || !online) return false;
     if (busy || thinking || hold || endPending) return false;   /* まだ前の球が転がっている／得点表示中 → 呼び出し側が待つ */
+    if (document.getElementById("mbrBan")) return false;         /* ★★ 2026-10-01 大きな演出の間も待つ（見えないところで投げられないように） */
     if (s.side !== M.turn) return true;               /* 順番でない投球は捨てる（処理済みあつかい） */
     applyThrow({ side: s.side, jack: !!s.jack, dx: s.dx, dy: s.dy, power: s.power, slot: s.slot,
                  special: s.special || "", active: !!s.active, ult: !!s.ult, noJitter: true });
@@ -1995,23 +2061,35 @@
     /* ★ 2026-09-18 色ごとに最後に選んだ投球ボックスへ戻す（PARTY は色ごとの箱から） */
     if (B.isParty(M) || slotBy[side] != null) slot = slotBy[side] != null ? slotBy[side] : B.defSlot(M, side);
     paintSlot();                                   /* ★ 上の updateHUD より後で箱が変わるので、表示もここで直す */
-    if (B.isParty(M) && !isCpuTurn() && !M.replay) {
+    /* ★★ 2026-10-01 1台で2人（FRIEND／PARTY）：投げる色が変わったら、ペルソナ風の「○○ TURN」の帯 → タップで始める */
+    const pass = !M.replay && !online && !tut && !isCpuTurn() && (M.kind === "friend" || B.isParty(M)) && banSide && banSide !== side && !!FX.banner;
+    banSide = side;
+    if (B.isParty(M) && !isCpuTurn() && !M.replay && !pass) {
       const p = B.playerOf(M, side);
       toast(SI(side).en + " " + (p ? p.name : "") + J(" の番です ─ 端末をわたしてください", "'s turn — pass the device"));
     }
-    if (M.phase === "play" && !M.replay) {
-      const ch = B.curCharOf(M, side);
-      if (ch) {
-        const vo = B.voiceOf(ch, "enter", M.idx[side]);
-        FX.cutIn(ch, "enter", "", "NEXT THROW ・ " + SI(side).en, vo);
+    const rest = () => {
+      if (!M || cur !== "match" || M.phase === "over") return;
+      if (M.phase === "play" && !M.replay) {
+        const ch = B.curCharOf(M, side);
+        if (ch) {
+          const vo = B.voiceOf(ch, "enter", M.idx[side]);
+          FX.cutIn(ch, "enter", "", "NEXT THROW ・ " + SI(side).en, vo);
+        }
+        if (M.cfg.players[side] && M.cfg.players[side].length > 1 && !isCpuTurn() && !online) {
+          const p = B.playerOf(M, side);
+          toast((p ? p.name : side.toUpperCase()) + J(" の番です ─ 端末をわたしてください", "'s turn — pass the device"));
+        }
+        if (B.canUlt(M, side) && !isCpuTurn()) B.pushHint(M, "ultready");
       }
-      if (M.cfg.players[side] && M.cfg.players[side].length > 1 && !isCpuTurn() && !online) {
-        const p = B.playerOf(M, side);
-        toast((p ? p.name : side.toUpperCase()) + J(" の番です ─ 端末をわたしてください", "'s turn — pass the device"));
-      }
-      if (B.canUlt(M, side) && !isCpuTurn()) B.pushHint(M, "ultready");
+      maybeCpu();
+    };
+    if (pass) {
+      const p = B.playerOf(M, side);
+      FX.banner("turn", { title: SI(side).en + " TURN", sub: (p && p.name ? p.name + " ・ " : "") + J("端末をわたしてください", "pass the device"), col: SC(side) }).then(rest);
+      return;
     }
-    maybeCpu();
+    rest();
   }
   function maybeCpu() {
     if (!M || M.replay || tut || M.phase === "over" || !isCpuTurn() || busy || thinking) return;
@@ -2115,8 +2193,10 @@
     /* 最終エンドのあと、首位が1色だけなら RESULT（3色以上も同じ考えかた） */
     const after = {}; B.sidesOf(M).forEach((sd) => { after[sd] = M.score[sd] + (res.side === sd ? res.pts : 0); });
     const topS = Math.max.apply(null, B.sidesOf(M).map((sd) => after[sd]));
-    const last = M.end >= M.cfg.ends && B.sidesOf(M).filter((sd) => after[sd] === topS).length === 1;
-    open(ttl("END " + M.end, J("エンドの得点", "End score"))
+    const reg = M.cfg.baseEnds || M.cfg.ends, tieTop = B.sidesOf(M).filter((sd) => after[sd] === topS).length > 1;
+    const last = M.end >= reg && !tieTop;
+    const toAddl = M.end >= reg && tieTop;          /* ★★ 2026-10-01 同点 → ADDITIONAL MATCH */
+    open(ttl(M.addlNow ? "ADDITIONAL MATCH" + (M.addl > 1 ? " " + M.addl : "") : "END " + M.end, J("エンドの得点", "End score"))
       + '<div class="vic"><div class="w" style="font-size:54px;color:' + (res.side ? SL(res.side) : "#fff") + '">'
       + (res.side ? "+" + res.pts + " " + SI(res.side).en : "NO SCORE") + "</div></div>"
       + (B.isParty(M) ? '<div class="pscore big">' + B.sidesOf(M).map((sd) => '<div class="pc" style="--sc:' + SC(sd) + '"><span class="sc">' + after[sd] + '</span><span class="nm">' + esc(SI(sd).en) + "</span></div>").join("") + "</div>" : "")
@@ -2127,7 +2207,8 @@
             + '<div class="en" style="font-size:15px">' + Math.round(x.d * 100) + "cm</div></div>";
         }).join("") + "</div>"
       + '<div class="pn tight"><div class="note">' + esc(B.scoreText(M, res, lang())) + "</div></div>"
-      + '<button class="btn pri" data-a="nextend">' + (last ? "RESULT" : "NEXT END") + "</button>", true);
+      + (toAddl ? '<div class="pn tight"><div class="note">' + J("同点！ <b>ADDITIONAL MATCH</b>（延長戦）：ジャックはコートの中央の <b>×</b> に置かれ、各チーム <b>" + B.ADDL_BALLS + "球</b>。このエンドで勝ったチームの勝ちです。", "Level! <b>ADDITIONAL MATCH</b>: the jack sits on the centre <b>cross</b>, " + B.ADDL_BALLS + " balls each — win this end to win.") + "</div></div>" : "")
+      + '<button class="btn pri" data-a="nextend">' + (last ? "RESULT" : toAddl ? "ADDITIONAL MATCH ▶" : "NEXT END") + "</button>", true);
   }
   function nextEnd() {
     if (!endPending || !M) return;          /* ★ 二度押し・閉じたシートの残りから呼ばれても1回だけ */
@@ -2137,11 +2218,19 @@
     if (M.phase === "over") { showResult(); return; }
     lastGuide = null; shownTurn = "";
     updateHUD();
+    /* ★★ 2026-10-01 同点 → ADDITIONAL MATCH の豪華なカットイン（ペルソナ風）。そのあと手番へ */
+    const MM = M;
+    const go2 = () => { if (M && M === MM && M.phase !== "over" && cur === "match") startTurn(); };
+    if (M.addlNow && FX.banner && !M.replay) { FX.banner("addl", { kicker: "LEVEL SCORE!", sub: J("ジャックは中央の ×・各チーム " + B.ADDL_BALLS + " 球・勝ったチームの勝ち", "Jack on the cross · " + B.ADDL_BALLS + " balls each · winner takes the match"), n: M.addl }).then(go2); return; }
+    /* ★★ 2026-10-01 次のエンドの短い帯（ペルソナ風） */
+    if (FX.banner && !M.replay && !tut && !M.practice) { FX.banner("end", { title: "END " + M.end, kicker: "NEXT END", sub: M.end + " / " + (M.cfg.baseEnds || M.cfg.ends) }).then(go2); return; }
     startTurn();
   }
 
   /* ── 結果・MVP ── */
   function showResult() {
+    /* ★★ 2026-10-01 結果の前に VICTORY / DEFEAT の大きな帯（1回だけ。終わったらここへ戻る） */
+    if (resultBanner(showResult)) return;
     if (M && B.isParty(M)) { showPartyResult(); return; }
     const s = B.load();
     const me = mySide();
@@ -2189,7 +2278,7 @@
       xpRows.push({ id, gain, lvup });
     });
     s.replays.unshift({ at: Date.now(), kind: M.kind, score: Object.assign({}, M.score), log: M.log.slice(0, 260),
-      cfg: { seed: M.cfg.seed, ends: M.cfg.ends, lineup: M.cfg.lineup, rules: M.cfg.rules, growth: M.cfg.growth, levels: M.cfg.levels, awk: M.cfg.awk, first: M.cfg.first, perSide: M.cfg.perSide },
+      cfg: { seed: M.cfg.seed, ends: M.cfg.baseEnds || M.cfg.ends, lineup: M.cfg.lineup, rules: M.cfg.rules, growth: M.cfg.growth, levels: M.cfg.levels, awk: M.cfg.awk, first: M.cfg.first, perSide: M.cfg.perSide },
       best: st.bestChain });
     s.replays = s.replays.slice(0, 5);
     B.save();
@@ -2236,7 +2325,7 @@
     });
     const mc = charOf(mvp);
     s.replays.unshift({ at: Date.now(), kind: "party", score: Object.assign({}, M.score), log: M.log.slice(0, 400),
-      cfg: { seed: M.cfg.seed, ends: M.cfg.ends, lineup: M.cfg.lineup, rules: M.cfg.rules, growth: M.cfg.growth, levels: M.cfg.levels, awk: M.cfg.awk,
+      cfg: { seed: M.cfg.seed, ends: M.cfg.baseEnds || M.cfg.ends, lineup: M.cfg.lineup, rules: M.cfg.rules, growth: M.cfg.growth, levels: M.cfg.levels, awk: M.cfg.awk,
              first: M.cfg.first, perSide: M.cfg.perSide, sides: M.cfg.sides, players: M.cfg.players },
       best: 0 });
     s.replays = s.replays.slice(0, 5);
@@ -2587,6 +2676,11 @@
     },
     growhelp: () => { growHelpOpen = !growHelpOpen; $$(".ghelp").forEach((el) => { el.hidden = !growHelpOpen; }); },
     reroll: () => { if (!pendingCfg) return; pendingCfg.rival = B.rivalLineup((Math.random() * 1e9) >>> 0, LINEUP_N); drawSetup(); },
+    /* ★★ 2026-10-01 1台で2人：2P を 1P と<b>同じキャラ・同じ順番</b>に（ご指定）／1P と 2P を入れかえる */
+    samelu: () => { if (!pendingCfg || !pendingCfg.redLineup) return; const s = B.load(); pendingCfg.rival = pendingCfg.redLineup.slice(); pendingCfg.trainBlue = pendingCfg.trainRed; s.friendBlue = pendingCfg.rival; s.friendTrain = { red: pendingCfg.trainRed, blue: pendingCfg.trainBlue }; B.save(); const y = $("#ovc").scrollTop; drawSetup(); $("#ovc").scrollTop = y; FX.sfx("ui"); toast(J("2P を 1P と同じ編成（同じ順番）にしました", "Player 2 now mirrors Player 1")); },
+    swaplu: () => { if (!pendingCfg || !pendingCfg.redLineup) return; const s = B.load(); const a = pendingCfg.redLineup; pendingCfg.redLineup = pendingCfg.rival; pendingCfg.rival = a; const t = pendingCfg.trainRed; pendingCfg.trainRed = pendingCfg.trainBlue; pendingCfg.trainBlue = t; s.friendRed = pendingCfg.redLineup; s.friendBlue = pendingCfg.rival; s.friendTrain = { red: pendingCfg.trainRed, blue: pendingCfg.trainBlue }; B.save(); const y = $("#ovc").scrollTop; drawSetup(); $("#ovc").scrollTop = y; FX.sfx("ui"); },
+    /* PARTY：1色目の編成を全色に（同じキャラ・同じ順番） */
+    pcopyall: () => { if (!pendingCfg || !pendingCfg.party || !pendingCfg.party[0]) return; const lu = pendingCfg.party[0].lineup.slice(); pendingCfg.party.forEach((x, i) => { if (i) x.lineup = lu.slice(); }); saveParty(); const y = $("#ovc").scrollTop; drawSetup(); $("#ovc").scrollTop = y; FX.sfx("ui"); toast(J("全色を1色目と同じ編成にしました", "Every colour now uses colour 1's lineup")); },
     soon: () => toast(J("このモードは準備中です。", "This mode is coming soon.")),
     fpick: (v) => { const [side, i] = v.split(":"); openPicker(+i, side === "red" ? "fred" : "fblue"); },
     /* ★★ 2026-09-18 PARTY MATCH */
@@ -2602,7 +2696,7 @@
     suspend: () => {
       if (!M || online || M.replay || tut || M.practice || M.phase === "over") return;
       const s = B.load();
-      s.suspend = { at: Date.now(), kind: M.kind, cfg: JSON.parse(JSON.stringify(M.cfg)), log: M.log.slice() };
+      s.suspend = { at: Date.now(), kind: M.kind, cfg: JSON.parse(JSON.stringify(M.cfg)), log: M.log.slice(), rv: B.VERSION };          /* ★★ 2026-10-01 ルールの版（ちがう版の中断は再開しない） */
       B.save();
       close(); endMatch(); go("home");
       toast(J("試合を中断しました。ホームの RESUME から続きを遊べます", "Match suspended — resume it from HOME"));
@@ -2810,6 +2904,7 @@
     const s = B.load();
     const sp = s.suspend;
     if (!sp || !sp.cfg) return;
+    if ((sp.rv || 4) !== B.VERSION) { s.suspend = null; B.save(); toast(J("前の版で中断した試合は、ルールが変わったので再開できません", "That match was suspended under older rules and cannot be resumed")); renderHome(); return; }
     s.suspend = null; B.save();
     online = null; tut = null;
     M = B.newMatch(Object.assign({}, sp.cfg, { guide: s.guide }));
@@ -2828,6 +2923,7 @@
     M = null; busy = false; thinking = false; hold = false; tut = null; online = null;
     cancelAnimationFrame(raf); raf = 0;
     FX.clearCut();
+    if (FX.clearBanner) FX.clearBanner();          /* ★★ 2026-10-01 */
     document.body.classList.remove("inmatch");
   }
   function showMatching() {
