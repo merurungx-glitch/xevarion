@@ -90,7 +90,7 @@
     g.fillStyle = "#ffd86a"; g.font = "900 46px 'M PLUS Rounded 1c',sans-serif"; g.textAlign = "left"; g.fillText("XEVARION PARK 掲示板", 28, 60);
     g.fillStyle = "#fff"; g.font = "800 24px sans-serif"; g.textAlign = "right"; g.fillText("今日のイベント・島の地図", 996, 58); g.textAlign = "left";
     /* 地図（左） */
-    const mx = 24, my = 108, mw = 500, mh = 630, x0 = -900, z0 = -700, S = Math.min(mw / 1800, mh / 1760);
+    const mx = 24, my = 108, mw = 500, mh = 630, B = XP.BOUNDS, S = Math.min(mw / B.w, mh / B.h), x0 = B.x0 - (mw / S - B.w) / 2, z0 = B.z0 - (mh / S - B.h) / 2;          /* ★★ 2026-10-01 島の範囲 */
     g.fillStyle = "#9ad0f0"; g.fillRect(mx, my, mw, mh);
     g.fillStyle = "#8ac070"; g.beginPath(); for (let i = 0; i <= 96; i++) { const a = i / 96 * TAU, [px, pz] = XP.islandPt(a, 1); const X2 = mx + (px - x0) * S, Y2 = my + (pz - z0) * S; if (i) g.lineTo(X2, Y2); else g.moveTo(X2, Y2); } g.fill();
     g.strokeStyle = "rgba(240,200,120,.95)"; g.lineCap = "round"; (w.walkPaths || []).forEach((p) => { if (p.w < 6) return; g.lineWidth = Math.max(1.2, p.w * S); g.beginPath(); p.pts.forEach(([x, z], i) => { const X2 = mx + (x - x0) * S, Y2 = my + (z - z0) * S; if (i) g.lineTo(X2, Y2); else g.moveTo(X2, Y2); }); g.stroke(); });

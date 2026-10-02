@@ -245,8 +245,10 @@
     w.sign("SPLASH CASTLE", { bg: "#ff5f8f", color: "#fff", px: 512 }, 9, 1.6, x, 8, z + 6.1, 0);
     w.interact(x, z + 9, 4, "スプラッシュスライダー（お城のてっぺんから）をすべる", () => ({ rideId: "slide" }), "🌊");
   };
-  /* 流れるプール・サンセットクルーズ（線を作って登録するだけ） */
-  P.buildRideExtras = function () {
+  /* 流れるプール・サンセットクルーズ（線を作って登録するだけ）
+     ★★ 2026-09-30c 2つに分けた：流れるプールは AQUA といっしょに動く・クルーズは海岸ぞい（動かない）＝park_layout.js */
+  P.buildRideExtras = function () { this.buildLazyRiver(); this.buildCruise(); };
+  P.buildLazyRiver = function () {
     const w = this;
     { const cx = -512, cz = 595, pts = []; for (let i = 0; i < 96; i++) { const a = i / 96 * TAU; pts.push(new T.Vector3(cx + Math.cos(a) * 92, 0.1, cz + Math.sin(a) * 88)); }
       const F = frames(new T.CatmullRomCurve3(pts, true), true, false, 600);
@@ -254,6 +256,9 @@
       rideReg(w, { id: "river", name: "流れるプール", kind: "float", F, boat: ring, s: 0, v: 2.2, busy: false });
       w.interact(cx, cz + 96, 5, "流れるプールで浮き輪にのる（いつでも E でおりる）", () => ({ rideId: "river" }), "🛟");     /* ★ 乗り場は外の岸（前は水路の当たりの中で、近づけなかった） */
       w.detail(() => { w.box("woodLight", cx, 0, cz + 94.6, 5, 0.25, 2.6); for (let k = 0; k < 4; k++) w.geo(["pPink", "pYellow", "pBlue", "pGreen"][k], new T.TorusGeometry(0.55, 0.22, 8, 14).rotateX(Math.PI / 2), cx - 1.8 + k * 1.2, 0.5, cz + 95.4); }); }
+  };
+  P.buildCruise = function () {
+    const w = this;
     { const pts = []; for (let i = 0; i <= 48; i++) { const a = 1.9 + i / 48 * 0.8; pts.push(new T.Vector3(...[XP.islandPt(a, 1.14)].map(([x, z]) => [x, -0.35, z])[0])); }
       for (let i = 0; i <= 24; i++) { const a = 2.7 - i / 24 * 0.8; pts.push(new T.Vector3(...[XP.islandPt(a, 1.24)].map(([x, z]) => [x, -0.35, z])[0])); }
       const F = frames(new T.CatmullRomCurve3(pts, true, "centripetal"), true, false, 800);
@@ -287,6 +292,8 @@
     /* 毎フレーム：カメラとキャラの置き場所を決める。終わったら "end" を返す */
     update(dt, ctx, skip) {
       const C = this.cur; if (!C) return null; const R = C.R, cam = ctx.camera, av = ctx.player.av; C.t += dt;
+      /* ★★ 2026-09-30c エリアを新しい配置へ動かした分（park_layout.js）。線路・車両はエリアのグループの中の座標なので、カメラと自分の位置にだけ足す */
+      const ox = R.off ? R.off[0] : 0, oz = R.off ? R.off[1] : 0;
       let eye = new T.Vector3(), look = new T.Vector3(), up = new T.Vector3(0, 1, 0), seat = null, info = "";
       if (R.kind === "coaster") {
         const F = R.F, S = sample(F, C.s, _S), slope = S.t.y;
@@ -307,7 +314,7 @@
         else if (C.phase === 1) { y += dt * (skip ? 14 : 4.2); if (y >= R.H - 8) { y = R.H - 8; C.phase = 2; C.t2 = 0; } }
         else if (C.phase === 2) { C.t2 += dt; if (C.t2 > 3.2) { C.phase = 3; C.v = 0; } info = C.t2 < 3.2 ? "…" + Math.max(1, Math.ceil(3.2 - C.t2)) : ""; }
         else if (C.phase === 3) { if (y > R.H * 0.35) C.v += G * dt; else C.v = Math.max(0, C.v - G * 2.6 * dt); y -= C.v * dt; if (y <= 3.05 || (C.v < 0.2 && y < R.H * 0.35)) { y = 3; C.phase = 4; C.t3 = 0; } info = Math.round(C.v * 3.6) + " km/h"; }
-        else { C.t3 += dt; if (C.t3 > 1.2) return this.end(ctx, "フリーフォール — おつかれさまでした！"); }
+        else { C.t3 += dt; if (C.t3 > 1.2) return this.end(ctx, (R.name || "フリーフォール") + " — おつかれさまでした！"); }
         C.y = y; R.ring.position.y = y; R.ring.rotation.y += dt * 0.15;
         const a = R.ring.rotation.y + Math.PI / 2, ex = R.x + Math.cos(a) * 5.6, ez = R.z + Math.sin(a) * 5.6;
         eye.set(ex, y + 0.5, ez); look.set(ex + Math.cos(a) * 10, y + (C.phase === 3 ? -6 : -1.5), ez + Math.sin(a) * 10);
@@ -317,15 +324,15 @@
         const a = C.gi / R.NG * TAU + R.rot, gx = R.x + Math.cos(a) * R.R, gy = R.H + Math.sin(a) * R.R - 2;
         eye.set(gx, gy + 0.6, R.z - 1.2); const yaw = -0.55 + Math.sin(C.t * 0.2) * 0.5; look.set(gx - Math.sin(yaw) * 20 - 6, gy - 4, R.z - Math.cos(yaw) * 20);
         seat = { p: new T.Vector3(gx, gy - 0.9, R.z), yaw: Math.PI };
-        info = "高さ " + Math.round(gy) + " m"; if (R.rot - C.rot0 >= TAU - 0.05 || (skip && C.t > 2)) return this.end(ctx, "スターホイール — 夜景はいかがでしたか？");
+        info = "高さ " + Math.round(gy) + " m"; if (R.rot - C.rot0 >= TAU - 0.05 || (skip && C.t > 2)) return this.end(ctx, (R.name || "スターホイール") + " — 景色はいかがでしたか？");
       } else if (R.kind === "loop") {
         const lead = R.cars[0]; sample(R.F, R.s, _S);
-        eye.copy(lead.position).addScaledVector(_S.t, 3.2).add(new T.Vector3(0, 0.6, 0)); look.copy(eye).addScaledVector(_S.t, 12).add(new T.Vector3(0, -2, 0));
-        info = "高架をぐるりと1周（E でおりる）"; if (C.t > R.F.L / R.v || skip) { C.exit = [lead.position.x + 4, lead.position.z + 4, 0]; return this.end(ctx, "ピープルムーバーをおりました"); }
+        eye.copy(lead.position).addScaledVector(_S.t, R.eyeY ? 0.6 : 3.2).add(new T.Vector3(0, R.eyeY || 0.6, 0)); look.copy(eye).addScaledVector(_S.t, 12).add(new T.Vector3(0, -2, 0));
+        info = R.info || "高架をぐるりと1周（E でおりる）"; if (C.t > R.F.L / R.v || skip) { C.exit = [lead.position.x + 4 + ox, lead.position.z + 4 + oz, 0]; return this.end(ctx, (R.name || "ピープルムーバー") + "をおりました"); }
       } else if (R.kind === "shuttle") {
         C.from += (C.to - C.from) * 0 + (C.to > C.from ? 1 : -1) * dt / ((R.zb - R.za) / 5); const f = Math.max(0, Math.min(1, C.from)); R.f = f; R.obj.position.set(R.x, 0, R.za + f * (R.zb - R.za));
         const dir = C.to > 0.5 ? 1 : -1; eye.set(R.x, 2.9, R.obj.position.z + dir * 3.6); look.set(R.x, 2.4, R.obj.position.z + dir * 20);
-        info = "路面電車"; if ((dir > 0 && f >= 1) || (dir < 0 && f <= 0) || skip) { C.exit = [R.x + (R.x < 0 ? -3 : 3), R.obj.position.z, dir > 0 ? 0 : Math.PI]; return this.end(ctx, "路面電車をおりました"); }
+        info = "路面電車"; if ((dir > 0 && f >= 1) || (dir < 0 && f <= 0) || skip) { C.exit = [R.x + (R.x < 0 ? -3 : 3) + ox, R.obj.position.z + oz, dir > 0 ? 0 : Math.PI]; return this.end(ctx, "路面電車をおりました"); }
       } else if (R.kind === "flat") {
         /* ★★ 2026-09-30 回る乗り物（メリーゴーラウンド・カップ・スイング・妖怪船・バンパーカー）：乗り物が決めた席の位置から見る */
         const Q = R.pose(C.t, _S2);
@@ -344,11 +351,12 @@
         info = R.kind === "float" ? R.name + "（E でおりる）" : Math.round(C.v * 3.6) + " km/h";
         const endS = R.kind === "slide" ? F.L - 0.5 : F.L;
         if ((R.F.closed ? C.s >= F.L + 1 : C.s >= endS) || (skip && R.kind === "float")) {
-          if (R.kind === "slide") { const e = F.pos[F.n]; C.exit = [e.x + 5, e.z + 5, 0]; }
-          if (R.kind === "flow") C.exit = [R.F.pos[0].x + 4, R.F.pos[0].z, 0];
+          if (R.kind === "slide") { const e = F.pos[F.n]; C.exit = [e.x + 5 + ox, e.z + 5 + oz, 0]; }
+          if (R.kind === "flow") C.exit = [R.F.pos[0].x + 4 + ox, R.F.pos[0].z + oz, 0];
           return this.end(ctx, R.kind === "slide" ? "ザブーン！ スライダー おつかれさまでした" : R.name + " をおりました");
         }
       }
+      if (ox || oz) { eye.x += ox; eye.z += oz; look.x += ox; look.z += oz; if (seat) { seat.p.x += ox; seat.p.z += oz; } }
       /* カメラ（前の席の目線は少しゆれる） */
       cam.up.copy(up); cam.position.lerp(eye, Math.min(1, dt * (this.view === 0 ? 20 : 5))); cam.lookAt(look);
       if (av) {

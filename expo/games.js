@@ -230,7 +230,10 @@
 
   /* ══════════════ ボッチャ ══════════════ */
   function Boccia(ctx) {
-    Base.call(this, ctx, "boccia", "🔴 ボッチャ（あなた＝赤 vs リコ＝青）");
+    /* ★★ 2026-10-02 MAGI BOCCIA RUSH LAND のコートは「ラッシュ」ルール：3 投ごとに RUSH SHOT（光る玉＝ほかの玉を強くはじく） */
+    const RUSH = !!(ctx.world.boccia && ctx.world.boccia.rush);
+    Base.call(this, ctx, "boccia", RUSH ? "🔴 MAGI BOCCIA RUSH（あなた＝赤 vs リコ＝青）" : "🔴 ボッチャ（あなた＝赤 vs リコ＝青）");
+    this.rush = RUSH; this.nThrow = { r: 0, b: 0 };
     const C = this.C = ctx.world.boccia;
     this.x0 = C.cx - C.L / 2; this.x1 = C.cx + C.L / 2; this.z0 = C.cz - C.Wd / 2; this.z1 = C.cz + C.Wd / 2; this.line = C.cx - 3.75;
     this.balls = []; this.left = { r: 6, b: 6 }; this.phase = "jack"; this.turn = "r"; this.aim = 0; this.pow = 0; this.charging = false; this.wait = 0;
@@ -253,7 +256,8 @@
   Boccia.prototype.throwBall = function (who, ang, pw) {
     const [tx, tz] = this.throwAt[who], v = 1.2 + pw * 4.3;   /* いちばん強くて 14m ほど（コートは投げる所から 10m） */
     const kind = this.phase === "jack" ? "j" : who;
-    this.addBall(kind, tx + 0.5, tz, Math.cos(ang) * v, Math.sin(ang) * v);
+    const nb = this.addBall(kind, tx + 0.5, tz, Math.cos(ang) * v, Math.sin(ang) * v);
+    if (this.rush && kind !== "j" && ++this.nThrow[who] % 3 === 0) { nb.rush = true; nb.m.material.emissive = new T.Color(who === "r" ? 0xff3a3a : 0x3a6aff); nb.m.material.emissiveIntensity = 0.9; nb.m.scale.setScalar(1.12); msg('<b class="big">RUSH SHOT!!</b><p>' + (who === "r" ? "あなた" : "リコ") + "の光る玉は、ほかの玉を強くはじく！</p>", 1200); }
     if (kind !== "j") this.left[who]--;
     this.wait = 0.5;
     if (who === "r") this.ctx.player.av.play && this.ctx.player.av.play("throw", 0.55); else { this.rikoAct = 0; }
@@ -291,7 +295,7 @@
       if (d < 0.27 && d > 1e-5) {
         const nx = dx / d, nz = dz / d, ov = 0.27 - d; a.x -= nx * ov / 2; a.z -= nz * ov / 2; b.x += nx * ov / 2; b.z += nz * ov / 2;
         const rv = (b.vx - a.vx) * nx + (b.vz - a.vz) * nz;
-        if (rv < 0) { const k = -(1 + 0.85) * rv / 2; a.vx -= k * nx; a.vz -= k * nz; b.vx += k * nx; b.vz += k * nz; }
+        if (rv < 0) { const ma = a.rush ? 2.6 : 1, mb = b.rush ? 2.6 : 1, k = -(1 + 0.85) * rv / (1 / ma + 1 / mb); a.vx -= k / ma * nx; a.vz -= k / ma * nz; b.vx += k / mb * nx; b.vz += k / mb * nz; }
       }
     }
     bs.forEach((b) => { b.m.position.set(b.x, 0.135, b.z); b.m.rotation.x += b.vz * dt / 0.135; b.m.rotation.z -= b.vx * dt / 0.135; });
@@ -487,5 +491,5 @@
     if (kind === "kart") return window.XKartGP ? new XKartGP(ctx) : new Kart(ctx);          /* ★★ 2026-09-30 妖怪スカイグランプリ（park_kart.js） */
     return null;
   }
-  window.XGames = { start };
+  window.XGames = { start, Base, ui, msg, confetti, endPanel };          /* ★★ 2026-10-02 ほかのファイルのゲーム（games_burst.js・park_gacha3d.js）からも土台を使う */
 })();

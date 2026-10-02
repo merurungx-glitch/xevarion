@@ -272,6 +272,20 @@
         w.geo(lg, new T.PlaneGeometry(9, 3.3).rotateY(Math.PI / 2).translate(0.28, 3.7, 0)); w.geo(lg, new T.PlaneGeometry(9, 3.3).rotateY(-Math.PI / 2).translate(-0.28, 3.7, 0));
         w.sign("提供　NGX", { bg: "#0a1450", color: "#fff", glow: "#ffd86a", border: "#ffd86a", px: 512 }, 5, 0.9, 0.3, 6.7, 0, Math.PI / 2); w.sign("提供　NGX", { bg: "#0a1450", color: "#fff", glow: "#ffd86a", border: "#ffd86a", px: 512 }, 5, 0.9, -0.3, 6.7, 0, -Math.PI / 2);
         w.geo("showB", new T.BoxGeometry(0.62, 0.12, 10.5).translate(0, 6.1, 0)); })); }
+    /* 14・15 提供 MagicalFuture／ISHIDA Production（列のいちばん後ろの船）★★ 2026-10-01 ご指定 */
+    if (w.keyedLogo) {
+      const mf = w.keyedLogo(w, "mfFull", "../brand/MagicalFuture.png", [215, 140, 590, 385]), ip = w.keyedLogo(w, "ipFull", "../brand/ISHIDA Production.png", [185, 68, 655, 545]);
+      const board = (lg, lw, lh, title, bg, gl) => {
+        w.geo("white2", new T.BoxGeometry(0.5, 4.6, 10).translate(0, 3.7, 0)); w.geo("goldOrn", new T.BoxGeometry(0.6, 0.24, 10.4).translate(0, 6.1, 0)); w.geo("goldOrn", new T.BoxGeometry(0.6, 0.24, 10.4).translate(0, 1.4, 0));
+        w.geo(lg, new T.PlaneGeometry(lw, lh).rotateY(Math.PI / 2).translate(0.28, 3.75, 0)); w.geo(lg, new T.PlaneGeometry(lw, lh).rotateY(-Math.PI / 2).translate(-0.28, 3.75, 0));
+        [1, -1].forEach((s) => w.sign(title, { bg, color: "#fff", glow: gl, border: gl, px: 1024 }, 6.6, 0.9, s * 0.3, 6.9, 0, s * Math.PI / 2));
+      };
+      B.push(mk(() => { hull(16, "pWhite"); board(mf, 6.6, 4.3, "提供　MagicalFuture", "#0a2a5a", "#7fd8ff");
+        w.geo("showA", new T.TorusGeometry(1.6, 0.1, 6, 36).translate(0, 8.6, 0)); w.geo("glassDome", new T.SphereGeometry(0.75, 16, 12).translate(0, 8.6, 0)); w.geo("white2", new T.CylinderGeometry(0.08, 0.08, 1.8, 6).translate(0, 7.3, 0)); }));
+      B.push(mk(() => { hull(16, "pBlack"); board(ip, 5.4, 4.5, "提供　ISHIDA Production", "#3a0a12", "#ff6a7a");
+        [-1, 1].forEach((s) => { w.geo("darkMetal", new T.CylinderGeometry(1.0, 1.0, 0.26, 20).rotateZ(Math.PI / 2).translate(0, 7.4, s * 2.8)); w.geo("goldOrn", new T.CylinderGeometry(0.24, 0.24, 0.32, 10).rotateZ(Math.PI / 2).translate(0, 7.4, s * 2.8)); });
+        w.geo("pBlack", new T.BoxGeometry(0.4, 1.4, 2.4).translate(0, 7.5, 0)); }));
+    }
     /* 船の光の輪（水にうつる光）*/
     const glowTex = (() => { const c = X.cv(128, 128), g = c.getContext("2d"), gr = g.createRadialGradient(64, 64, 0, 64, 64, 62); gr.addColorStop(0, "rgba(255,255,255,.9)"); gr.addColorStop(0.4, "rgba(255,255,255,.35)"); gr.addColorStop(1, "rgba(255,255,255,0)"); g.fillStyle = gr; g.fillRect(0, 0, 128, 128); return X.tex(c); })();
     const halos = B.map(() => { const m = new T.Mesh(new T.PlaneGeometry(26, 26).rotateX(-Math.PI / 2), new T.MeshBasicMaterial({ map: glowTex, color: 0xff4fb0, transparent: true, opacity: 0.0, blending: T.AdditiveBlending, depthWrite: false, toneMapped: false, fog: false })); m.visible = false; m.layers.set(3); w.scene.add(m); return m; });
@@ -323,7 +337,7 @@
     stepPts(F, dt) { let alive = false; for (let i = 0; i < F.P2.length; i++) { const p = F.P2[i]; if (p.life <= 0) { F.fp[i * 3 + 1] = -999; continue; } alive = true; p.life -= dt; p.vy -= p.g * dt; const d = Math.exp(-1.5 * dt); p.vx *= d; p.vy *= d; p.vz *= d; p.x += p.vx * dt; p.y += p.vy * dt; p.z += p.vz * dt; F.fp[i * 3] = p.x; F.fp[i * 3 + 1] = p.y; F.fp[i * 3 + 2] = p.z; const f = Math.min(1, p.life) * 2.6; F.fc[i * 3] = p.c[0] * f; F.fc[i * 3 + 1] = p.c[1] * f; F.fc[i * 3 + 2] = p.c[2] * f; } F.pts.geometry.attributes.position.needsUpdate = true; F.pts.geometry.attributes.color.needsUpdate = true; return alive; },
     update(dt, t, ctx) {
       const S = ctx.world.harborShow; if (!S) return 0;
-      const pl = ctx.player, dist = Math.hypot(pl.x - HC.x, pl.z - HC.z);
+      const pl = ctx.player, ho = S.off || [0, 0], dist = Math.hypot(pl.x - ho[0] - HC.x, pl.z - ho[1] - HC.z);          /* ★★ 2026-09-30c 港のエリアを動かした分 */
       if (!this.on) {
         this.idle(ctx);
         if (ctx.night) { this.cool -= dt; if (this.cool < 25 && !this.warned && dist < 900) { this.warned = true; ctx.notice("🚢 まもなく水上パレード「CHASE THE LIGHT」！ — XEVARION HARBOR", "harbor"); } if (this.cool <= 0 && dist < 700) { this.warned = false; this.start(ctx); } }

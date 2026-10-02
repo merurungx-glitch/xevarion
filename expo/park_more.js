@@ -276,8 +276,8 @@
     const def = { name: "SKY GARDEN", x: CX, z: CZ, fx: CX, fz: CZ + 44, fyaw: 0, lift: { x: CX, z: CZ + R1 + 2.2, ax: 0, az: 1, y0: 0.3, topF: 16 },
       floors: [{ label: "16F", name: "空中庭園（64m）", deck: { x: CX, z: CZ, y: RY + 0.5, rIn: R0 + 0.8, rOut: R1 - 0.8, exitR: R0 + 3, name: "SKY GARDEN 空中庭園（64m）" } }] };
     def.floors[0].deck.exitR = 0; def.floors[0].deck.exitX = CX; def.floors[0].deck.exitZ = CZ + (R0 + R1) / 2; def.floors[0].deck.exitR = 2.8;
-    w.box("chromeB", CX, 0, CZ + R1 + 1.2, 3.2, 3.2, 0.4); w.sign("SKY GARDEN ▲ ガラスのエレベーター", { bg: "#0a3a3a", color: "#fff", glow: "#7fe8ff", px: 1024 }, 6, 0.8, CX, 3.8, CZ + R1 + 1.45, 0);
-    w.interact(CX, CZ + R1 + 3, 3, "空中庭園（高さ 64m）へ（ガラスのエレベーター）", () => ({ roomFloors: def }), "🌿");
+    if (w.liftShaft) w.liftShaft(def.lift, RY + 0.5, { bridges: [[RY + 0.5, 1.4]], door: true, label: "SKY GARDEN ▲ 空中庭園 64m" });          /* ★★ 2026-09-30d 見えるエレベーター */
+    w.interact(CX, CZ + R1 + 5.2, 3, "空中庭園（高さ 64m）へ（ガラスのエレベーター）", () => ({ roomFloors: def }), "🌿");
     w.plazaCrowd(CX, CZ, 22, 0.8);
     w.areaGate(CX, CZ + 54, 0, "sky", "big");
     w.forestOpen.push([CX, CZ, 60]);

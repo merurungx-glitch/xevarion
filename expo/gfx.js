@@ -35,10 +35,10 @@
 
   /* ══════════════ 画質 ══════════════ */
   const LEVELS = {
-    ultra: { mirror: 0.5, mirrorEvery: 1, probe: 256, probeEvery: 2, grassN: 15000, grassF: 12000, petals: 1500, shadow: 4096, shadowR: 44, rays: 1, pr: 1.0 },
-    high: { mirror: 0.38, mirrorEvery: 1, probe: 128, probeEvery: 3, grassN: 11000, grassF: 7000, petals: 1000, shadow: 2048, shadowR: 36, rays: 1, pr: 1.0 },
-    medium: { mirror: 0, mirrorEvery: 1, probe: 0, probeEvery: 4, grassN: 6000, grassF: 0, petals: 600, shadow: 2048, shadowR: 30, rays: 1, pr: 0.9 },
-    low: { mirror: 0, mirrorEvery: 1, probe: 0, probeEvery: 4, grassN: 0, grassF: 0, petals: 250, shadow: 1024, shadowR: 22, rays: 0, pr: 0.8 }
+    ultra: { mirror: 0.5, mirrorEvery: 1, probe: 256, probeEvery: 2, grassN: 15000, grassF: 12000, grassM: 14000, petals: 1500, shadow: 4096, shadowR: 44, rays: 1, pr: 1.0 },
+    high: { mirror: 0.38, mirrorEvery: 1, probe: 128, probeEvery: 3, grassN: 11000, grassF: 7000, grassM: 9000, petals: 1000, shadow: 2048, shadowR: 36, rays: 1, pr: 1.0 },
+    medium: { mirror: 0, mirrorEvery: 1, probe: 0, probeEvery: 4, grassN: 6000, grassF: 2500, grassM: 3500, petals: 600, shadow: 2048, shadowR: 30, rays: 1, pr: 0.9 },
+    low: { mirror: 0, mirrorEvery: 1, probe: 0, probeEvery: 4, grassN: 0, grassF: 0, grassM: 0, petals: 250, shadow: 1024, shadowR: 22, rays: 0, pr: 0.8 }
   };
   const ORDER = ["low", "medium", "high", "ultra"];
   function detectLevel(renderer) {
@@ -51,6 +51,8 @@
     } catch (e) { return "high"; }
   }
 
+  /* 草のマスクの範囲（島全体・★★ 2026-09-30c 北へ広げた島）。マスクの絵と草のシェーダーの両方がこれを使う */
+  const GB = { x0: XPark.BOUNDS.x0, z0: XPark.BOUNDS.z0, w: XPark.BOUNDS.w, h: XPark.BOUNDS.h };          /* ★★ 2026-10-01 島の範囲（park.js の BOUNDS） */
   /* ══════════════ 草（カメラのまわりの本物の葉） ══════════════ */
   function bladeGeo(nBlades, widthK, L) {
     const pos = [], hh = [], rnd = [], idx = [], nor = [];
@@ -78,18 +80,18 @@
     for (let i = 0; i < maxN; i++) { off[i * 3] = Math.random() * S; off[i * 3 + 1] = Math.random() * S; off[i * 3 + 2] = Math.random() * Math.PI * 2; rn[i * 4] = Math.random(); rn[i * 4 + 1] = Math.random(); rn[i * 4 + 2] = Math.random(); rn[i * 4 + 3] = Math.random(); }
     g.setAttribute("aOff", new T.InstancedBufferAttribute(off, 3)); g.setAttribute("aRnd", new T.InstancedBufferAttribute(rn, 4));
     g.instanceCount = maxN; g.boundingSphere = new T.Sphere(new T.Vector3(), 1e7);
-    this.U = { uCam: { value: new T.Vector3() }, uPlayer: { value: new T.Vector3(0, -99, 0) }, uS: { value: S }, uFar: { value: far }, uMask: { value: null }, uMaskB: { value: new T.Vector4(-900, -700, 1800, 1760) }, uTrans: { value: 1 }, uNightG: { value: 0 }, uCut: { value: tag === "far" ? 10.5 : 0 } };
+    this.U = { uCam: { value: new T.Vector3() }, uPlayer: { value: new T.Vector3(0, -99, 0) }, uS: { value: S }, uFar: { value: far }, uMask: { value: null }, uMaskB: { value: new T.Vector4(GB.x0, GB.z0, GB.w, GB.h) },          /* ★★ 2026-09-30c マスクの絵と同じ範囲（GB）＝前は別々に書いてあり、ずれると道の上に草が生えた */ uTrans: { value: 1 }, uNightG: { value: 0 }, uCut: { value: tag === "far" ? 10.5 : tag === "mid" ? 33 : 0 }, uEdge: { value: tag === "far" ? 0.5 : tag === "mid" ? 0.62 : 0.3 } };
     const U = this.U, AOU = XPark.AOU;
     const m = new T.MeshLambertMaterial({ color: 0xffffff, side: T.DoubleSide });
     m.onBeforeCompile = (sh) => {
       Object.assign(sh.uniforms, U, { uTime: XPark.TIME, uShTex: AOU.uShTex, uGrassTex: AOU.uGrassTex, uAOmin: AOU.uAOmin, uAOsize: AOU.uAOsize });
-      sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nattribute vec3 aOff; attribute vec4 aRnd; attribute float aH, aB; uniform vec3 uCam, uPlayer; uniform float uS, uFar, uTime, uCut; uniform sampler2D uMask; uniform vec4 uMaskB; varying float vH, vR, vFl; varying vec3 vGW;")
+      sh.vertexShader = sh.vertexShader.replace("#include <common>", "#include <common>\nattribute vec3 aOff; attribute vec4 aRnd; attribute float aH, aB; uniform vec3 uCam, uPlayer; uniform float uS, uFar, uTime, uCut, uEdge; uniform sampler2D uMask; uniform vec4 uMaskB; varying float vH, vR, vFl; varying vec3 vGW;")
         .replace("#include <begin_vertex>", [
           "vec3 transformed;",
           "{ vec2 base = aOff.xy + uS * floor((uCam.xz - aOff.xy) / uS + 0.5);",
           "  vec4 mk = texture2D(uMask, (base - uMaskB.xy) / uMaskB.zw);",
           "  float d = length(base - uCam.xz), fade = 1.0 - smoothstep(uFar * 0.6, uFar, d);",
-          "  float keep = step(aRnd.z, (mk.r - 0.3) * 1.5) * fade * step(uCut, d);",
+          "  float keep = step(aRnd.z, (mk.r - uEdge) / (1.0 - uEdge) * 1.05) * fade * step(uCut, d);",          /* ★★ 2026-10-01 遠くの太い株は、ふち（道・穴）から離れた所だけ */
           "  float h = (0.11 + 0.2 * aRnd.x * aRnd.x + 0.06 * step(0.94, aRnd.y)) * (0.6 + 0.65 * mk.g) * keep;",
           "  vec3 p = position; p.y *= h; p.xz *= 1.0 + 1.2 * smoothstep(6.0, uFar, d);",
           "  float c = cos(aOff.z), s = sin(aOff.z); p.xz = vec2(c * p.x - s * p.z, s * p.x + c * p.z);",
@@ -104,10 +106,11 @@
         .replace("#include <color_fragment>", [
           "#include <color_fragment>",
           "{ vec2 q = (vGW.xz - uAOmin) / uAOsize; vec3 tint = texture2D(uGrassTex, q).rgb * 1.25; float shd = mix(0.55, 1.0, texture2D(uShTex, q).r);",
-          "  vec3 gb = vec3(0.2, 0.46, 0.08), gt = mix(vec3(0.56, 0.84, 0.22), vec3(0.74, 0.86, 0.3), vR);",
-          "  vec3 gc = mix(gb, gt, smoothstep(0.0, 1.0, vH)) * (0.85 + 0.3 * vR) * tint;",
+          /* ★★ 2026-09-30d 根もとを明るく（前は根もとが暗く、芝生の上に黒いひっかき傷のように見えた） */
+          "  vec3 gb = vec3(0.3, 0.58, 0.13), gt = mix(vec3(0.6, 0.87, 0.26), vec3(0.78, 0.9, 0.34), vR);",
+          "  vec3 gc = mix(gb, gt, smoothstep(0.0, 1.0, vH)) * (0.9 + 0.2 * vR) * tint;",
           "  if (vFl > 0.5 && vH > 0.8) gc = mix(vec3(1.0, 0.95, 0.9), mix(vec3(1.0, 0.55, 0.75), vec3(1.0, 0.85, 0.3), step(0.5, vR)), step(0.33, vR));",
-          "  diffuseColor.rgb = gc * mix(0.78, 1.0, vH) * shd; }"
+          "  diffuseColor.rgb = gc * mix(0.88, 1.0, vH) * mix(0.7, 1.0, shd); }"
         ].join("\n"))
         .replace("#include <opaque_fragment>", "{ vec3 V = normalize(vGW - cameraPosition); float back = pow(max(dot(V, vec3(0.3905, 0.8015, 0.5138)), 0.0), 3.0); outgoingLight += diffuseColor.rgb * back * vH * 0.9 * uTrans; }\n#include <opaque_fragment>");
     };
@@ -121,7 +124,7 @@
   Grass.prototype.setCount = function (n) { this.geo.instanceCount = Math.max(0, Math.min(this.max, n | 0)); this.mesh.visible = n > 0; };
   /* 草の生える所のマスク：島の中の芝生（道・広場・建物・水・砂・競技場は除く）。R＝濃さ・G＝背の高さ */
   function grassMask(w) {
-    const N = 2048, B = { x0: -900, z0: -700, w: 1800, h: 1760 }, c = XTex.cv(N, N), g = c.getContext("2d");
+    const N = 2048, B = GB, c = XTex.cv(N, N), g = c.getContext("2d");
     const P = (x, z) => [(x - B.x0) / B.w * N, (z - B.z0) / B.h * N], S = N / B.w;
     g.fillStyle = "#000"; g.fillRect(0, 0, N, N);
     g.fillStyle = "rgb(255,190,0)"; g.beginPath(); for (let i = 0; i <= 360; i++) { const [x, z] = XPark.islandPt(i / 360 * Math.PI * 2, 0.97); const [a, b] = P(x, z); if (i) g.lineTo(a, b); else g.moveTo(a, b); } g.fill();
@@ -145,6 +148,14 @@
     ["sports", "beach", "soccer", "boccia"].forEach((id) => { const A = XPark.A[id]; if (!A) return; const [a, b] = P(A.x0, A.z0), [c2, d] = P(A.x1, A.z1); g.fillStyle = id === "sports" ? "rgba(0,0,0,.75)" : "#000"; g.fillRect(a, b, c2 - a, d - b); g.fillStyle = "#000"; });
     if (w.circuit) { g.lineWidth = (w.circuit.W + 14) * S; g.beginPath(); w.circuit.pts.forEach((p, i) => { const [a, b] = P(p.x, p.z); if (i) g.lineTo(a, b); else g.moveTo(a, b); }); g.closePath(); g.stroke(); }
     (w.noGrass || []).forEach((q) => { const [a, b] = P(q[0], q[1]), [c2, d] = P(q[2], q[3]); g.fillRect(a, b, c2 - a, d - b); });
+    /* ★★ 2026-10-02 床の模様（丸い広場・楕円の広場・地面の床）はぜんぶ、少し大きめに型抜き（ご指定「地下鉄の入り口や床の模様に草が重なる」）。
+       前は「舗装」の四角（丸い広場は内がわの 0.8〜0.9 倍の四角）だけだったので、丸の外がわに草が生えていた */
+    g.fillStyle = "#000";
+    (w.groundShapes || []).forEach((s) => {
+      if (s.c) { const [a, b] = P(s.c[0], s.c[1]); g.beginPath(); g.arc(a, b, (s.c[2] + 1.0) * S, 0, 7); g.fill(); }
+      else if (s.e) { const [a, b] = P(s.e[0], s.e[1]); g.beginPath(); g.ellipse(a, b, (s.e[2] + 1.0) * S, (s.e[3] + 1.0) * S, 0, 0, 7); g.fill(); }
+      else if (s.r) { const [a, b] = P(s.r[0] - 0.9, s.r[1] - 0.9), [c2, d] = P(s.r[2] + 0.9, s.r[3] + 0.9); g.fillRect(a, b, c2 - a, d - b); }
+    });
     (w.noGrassPoly || []).forEach((poly) => { g.beginPath(); poly.forEach(([x, z], i) => { const [a, b] = P(x, z); if (i) g.lineTo(a, b); else g.moveTo(a, b); }); g.closePath(); g.fill(); });
     const c2 = XTex.cv(N, N), g2 = c2.getContext("2d"); g2.filter = "blur(1px)"; g2.drawImage(c, 0, 0);
     const t = new T.CanvasTexture(c2); t.flipY = false; t.colorSpace = T.NoColorSpace; t.minFilter = T.LinearFilter; t.generateMipmaps = false; t.needsUpdate = true;
@@ -264,7 +275,9 @@
         this.mask = grassMask(w);
         this.grassN = new Grass(w, LEVELS.ultra.grassN, 26, 12.5, 7, 1, "near", 3);
         this.grassF = new Grass(w, LEVELS.ultra.grassF, 80, 40, 3, 2.2, "far", 2);
-        [this.grassN, this.grassF].forEach((gr) => { gr.U.uMask.value = this.mask; });
+        /* ★★ 2026-10-01 遠くの草（40〜115m・まばらで太い株）＝ご指定「草が遠いところで表示されていない」 */
+        this.grassM = new Grass(w, LEVELS.ultra.grassM, 210, 115, 3, 3.6, "mid", 2);
+        [this.grassN, this.grassF, this.grassM].forEach((gr) => { gr.U.uMask.value = this.mask; });
       }
       this.petals = new Petals(o.scene, LEVELS.ultra.petals);
       this.mirror = new Mirror(r);
@@ -274,6 +287,7 @@
       const L = LEVELS[level] || LEVELS.high, o = this.o; this.level = level; this.L = L;
       if (this.grassN) this.grassN.setCount(L.grassN);
       if (this.grassF) this.grassF.setCount(L.grassF);
+      if (this.grassM) this.grassM.setCount(L.grassM || 0);
       if (this.petals) this.petals.U.uAmt.value = L.petals / this.petals.max;
       this.mirror.scale = L.mirror || 0.4; this.resize();
       if (!L.mirror) XPark.REFL.uRefl.value = 0;
@@ -302,10 +316,10 @@
     before(scene, camera, t, player, sky, show) {
       const L = this.L, o = this.o;
       const low = camera.position.y < 90;
-      [this.grassN, this.grassF].forEach((gr) => { if (!gr) return; gr.mesh.visible = low && gr.geo.instanceCount > 0; gr.U.uCam.value.copy(camera.position); if (player) gr.U.uPlayer.value.set(player.x, 0, player.z); });
+      [this.grassN, this.grassF, this.grassM].forEach((gr) => { if (!gr) return; gr.mesh.visible = low && gr.geo.instanceCount > 0; gr.U.uCam.value.copy(camera.position); if (player) gr.U.uPlayer.value.set(player.x, 0, player.z); });
       if (this.petals) { this.petals.pts.visible = low && L.petals > 0; this.petals.U.uCam.value.copy(camera.position); this.petals.U.uScale.value = o.renderer.getDrawingBufferSize(new T.Vector2()).y * 0.5; }
       const night = window.XFX ? XFX.cur.night : 0; if (this.petals) this.petals.U.uNight.value = night > 0.5 ? 1 : 0;
-      if (this.grassN) { const tr = window.XFX ? (1 - XFX.cur.night * 0.85) : 1; this.grassN.U.uTrans.value = tr; if (this.grassF) this.grassF.U.uTrans.value = tr; }
+      if (this.grassN) { const tr = window.XFX ? (1 - XFX.cur.night * 0.85) : 1; this.grassN.U.uTrans.value = tr; if (this.grassF) this.grassF.U.uTrans.value = tr; if (this.grassM) this.grassM.U.uTrans.value = tr; }
       /* 鏡：水が見えそうなときだけ */
       if (L.mirror && show !== false && this.waterVisible(camera)) { this.mirror.frame++; if (this.mirror.frame % L.mirrorEvery === 0) this.mirror.render(scene, camera, sky, XPark.REFL); }
       else XPark.REFL.uRefl.value = 0;

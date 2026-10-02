@@ -18,13 +18,37 @@
 
   /* ══════════════ 島の形 ══════════════ */
   const ISL = { cx: 0, cz: 190, rx: 840, rz: 800, n: 3 };
+  /* ★★ 2026-09-30c 島を北へ広げる（ご指定「新たに PARK を拡張して企業エリアや遊園地などの新エリアを作成」）
+     北向きの大きなゆるいふくらみ（NB＝[大きさ, 中心の角度, 半分の幅]）。東のリゾート・南西のビーチの海岸はそのまま。
+     ★ 海のシェーダー（SEA_FS の isl）も同じ式にすること */
+  const NB = [0.5, -Math.PI / 2, 1.4];
   function bump(a, c, w) { const d = Math.abs((((a - c + Math.PI) % TAU) + TAU) % TAU - Math.PI); return d < w ? 0.5 + 0.5 * Math.cos(d / w * Math.PI) : 0; }
-  function islScale(a) {
+  function islScale0(a) {
     return 1 + 0.028 * Math.sin(3 * a + 0.7) + 0.02 * Math.sin(5 * a + 2.1) + 0.01 * Math.sin(11 * a + 0.3)
       + 0.07 * bump(a, Math.PI / 2, 0.22) - 0.07 * bump(a, 2.2, 0.3) - 0.05 * bump(a, -0.08, 0.09);
   }
+  /* ★★ 2026-10-01 島をモノレールの外へ広げる（ご指定「モノレールの外側にも新エリアを開発」「超巨大な PARK」）
+     台地のようなふくらみ（EXP＝[大きさ, 中心の角度, 平らな所の半分の幅, なだらかに消える幅]）を4つ：
+       西（MAGIBURST LAND）・南東（MAGI BOCCIA RUSH LAND）・北東（XEVA GACHA PALACE）・北西（OUTER WOODS）。
+     ビーチ（南西）・リゾート（東）・ゲート（南）・港とドーム（北）の海岸はそのまま（入り江として残る）。
+     ★ モノレールは広げる前の海岸（islandPtM）にそって走る＝その外側が新しい土地。
+     ★ 海のシェーダー（SEA_FS の isl）も同じ式（EXP を文字にして入れる） */
+  const EXP = [[0.46, Math.PI + 0.12, 0.32, 0.22], [0.58, 0.86, 0.26, 0.24], [0.5, -0.74, 0.2, 0.2], [0.26, -2.3, 0.2, 0.22]];
+  function plat(a, c, f, d) { const x = Math.abs((((a - c + Math.PI) % TAU) + TAU) % TAU - Math.PI); return x <= f ? 1 : x < f + d ? 0.5 + 0.5 * Math.cos((x - f) / d * Math.PI) : 0; }
+  function expand(a) { let s = 0; for (const e of EXP) s += e[0] * plat(a, e[1], e[2], e[3]); return s; }
+  function islScaleM(a) { return islScale0(a) + NB[0] * bump(a, NB[1], NB[2]); }
+  function islScale(a) { return islScaleM(a) + expand(a); }
   function edgeR(a) { const c = Math.abs(Math.cos(a)), s = Math.abs(Math.sin(a)); return Math.pow(Math.pow(c, ISL.n) + Math.pow(s, ISL.n), -1 / ISL.n) * islScale(a); }
   function islandPt(a, k) { const r = edgeR(a) * (k || 1); return [ISL.cx + Math.cos(a) * r * ISL.rx, ISL.cz + Math.sin(a) * r * ISL.rz]; }
+  /* 広げる前の海岸（2026-09-30c の島）＝モノレールの線・「モノレールの外か内か」 */
+  function edgeRM(a) { const c = Math.abs(Math.cos(a)), s = Math.abs(Math.sin(a)); return Math.pow(Math.pow(c, ISL.n) + Math.pow(s, ISL.n), -1 / ISL.n) * islScaleM(a); }
+  function islandPtM(a, k) { const r = edgeRM(a) * (k || 1); return [ISL.cx + Math.cos(a) * r * ISL.rx, ISL.cz + Math.sin(a) * r * ISL.rz]; }
+  /* その点が、広げる前の海岸の何倍の所か（1 より大きい＝広げた土地） */
+  function outerK(x, z) { const u = (x - ISL.cx) / ISL.rx, v = (z - ISL.cz) / ISL.rz, a = Math.atan2(v, u); return Math.hypot(u, v) / edgeRM(a); }
+  /* 島の全体の範囲（影・草・地図・森の焼きこみに使う）＝前は数字を何か所にも直書きしていた */
+  const BOUNDS = (function () { let x0 = 1e9, z0 = 1e9, x1 = -1e9, z1 = -1e9; for (let i = 0; i < 1440; i++) { const [x, z] = islandPt(i / 1440 * TAU, 1); x0 = Math.min(x0, x); x1 = Math.max(x1, x); z0 = Math.min(z0, z); z1 = Math.max(z1, z); } x0 = Math.floor((x0 - 40) / 10) * 10; z0 = Math.floor((z0 - 40) / 10) * 10; x1 = Math.ceil((x1 + 40) / 10) * 10; z1 = Math.ceil((z1 + 40) / 10) * 10; return { x0, z0, x1, z1, w: x1 - x0, h: z1 - z0 }; })();
+  /* 広げる前の海岸（海岸にそって作ったエリア＝リゾートなどは、この線にそって作る：中身の位置がずれないように） */
+  function islandPt0(a, k) { const c = Math.abs(Math.cos(a)), s = Math.abs(Math.sin(a)), r = Math.pow(Math.pow(c, ISL.n) + Math.pow(s, ISL.n), -1 / ISL.n) * islScale0(a) * (k || 1); return [ISL.cx + Math.cos(a) * r * ISL.rx, ISL.cz + Math.sin(a) * r * ISL.rz]; }
   function coastDist(x, z) { const u = (x - ISL.cx) / ISL.rx, v = (z - ISL.cz) / ISL.rz, a = Math.atan2(v, u); return (edgeR(a) - Math.hypot(u, v)) * (ISL.rx + ISL.rz) / 2; }
   P.insideIsland = function (x, z, m) { return coastDist(x, z) > (m || 0); };
   P.coastDist = coastDist;
@@ -459,7 +483,7 @@
     const add = (M, x0, z0, x1, z1, it) => { for (let gx = Math.floor(x0 / GS); gx <= Math.floor(x1 / GS); gx++) for (let gz = Math.floor(z0 / GS); gz <= Math.floor(z1 / GS); gz++) { const k = gx * 4096 + gz; let a = M.get(k); if (!a) M.set(k, a = []); a.push(it); } };
     w.roads.forEach((r) => add(RG, Math.min(r[0], r[2]) - r[4], Math.min(r[1], r[3]) - r[4], Math.max(r[0], r[2]) + r[4], Math.max(r[1], r[3]) + r[4], r));
     w.casters.forEach((c) => { if (c.h < 2 || c.gate) return; let x0 = 1e9, z0 = 1e9, x1 = -1e9, z1 = -1e9; for (const [x, z] of c.pts) { if (x < x0) x0 = x; if (x > x1) x1 = x; if (z < z0) z0 = z; if (z > z1) z1 = z; } add(CG, x0, z0, x1, z1, c); });
-    w.colliders.forEach((c) => add(KG, c.x0, c.z0, c.x1, c.z1, c));
+    w.colliders.forEach((c) => { if (c.yb !== undefined && c.yb < -0.5) return; add(KG, c.x0, c.z0, c.x1, c.z1, c); });          /* ★★ 2026-09-30d 地下（地下鉄）の当たりは地上の置き場所さがしに入れない */
     const segD = (x, z, r) => { const dx = r[2] - r[0], dz = r[3] - r[1], l2 = dx * dx + dz * dz; let t = l2 ? ((x - r[0]) * dx + (z - r[1]) * dz) / l2 : 0; t = Math.max(0, Math.min(1, t)); return Math.hypot(x - (r[0] + dx * t), z - (r[1] + dz * t)); };
     const inPoly = (x, z, pts) => { let c = false; for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) { const [xi, zi] = pts[i], [xj, zj] = pts[j]; if ((zi > z) !== (zj > z) && x < (xj - xi) * (z - zi) / (zj - zi) + xi) c = !c; } return c; };
     const colIn = (c, x, z, pad) => {
@@ -496,15 +520,15 @@
   P.trash = function (x, z) { this.detail(() => { this.geo("darkMetal", new T.CylinderGeometry(0.3, 0.28, 0.9, 8), x, 0.45, z); this.geo("pGreen", new T.CylinderGeometry(0.32, 0.32, 0.12, 8), x, 0.95, z); }); };
   P.planterBox = function (x, z, w, d, flowers) { this.box("stoneW", x, 0, z, w, 0.5, d, { collide: true }); this.box("soilDark", x, 0.5, z, w - 0.3, 0.02, d - 0.3); this.bushRow(x, z, w - 0.6, d - 0.6, flowers); };
   /* 花（インスタンスの花のかたまり）・植えこみ */
-  P.flowers = function (x, z, w, d, ry, n, palette) {
+  P.flowers = function (x, z, w, d, ry, n, palette, y) {          /* y＝花の根もとの高さ（花だんの土の上） */
     const r = X.rnd(((x * 31 + z * 17) >>> 0) || 5), c = Math.cos(ry || 0), s = Math.sin(ry || 0), pal = palette || FLOWER_PAL[Math.floor(r() * FLOWER_PAL.length)];
     const cnt = n || Math.floor(w * d * 2.6);
-    for (let i = 0; i < cnt; i++) { const a = (r() - 0.5) * w, b = (r() - 0.5) * d; const band = Math.floor((a / w + 0.5) * pal.length * 0.999); this.trees.push(["flower", x + a * c + b * s, z - a * s + b * c, 0.85 + r() * 0.35, pal[(band + (r() < 0.15 ? 1 : 0)) % pal.length]]); }
+    for (let i = 0; i < cnt; i++) { const a = (r() - 0.5) * w, b = (r() - 0.5) * d; const band = Math.floor((a / w + 0.5) * pal.length * 0.999); this.trees.push(["flower", x + a * c + b * s, z - a * s + b * c, 0.85 + r() * 0.35, pal[(band + (r() < 0.15 ? 1 : 0)) % pal.length], y || 0]); }
   };
   P.flowerBed = function (x, z, wd, dp, ry, seed, palette) {
     this.box("stoneW", x, 0, z, wd, 0.32, dp, { ry, collide: true });
     this.box("soilDark", x, 0.32, z, wd - 0.3, 0.03, dp - 0.3, { ry });
-    this.flowers(x, z, wd - 0.5, dp - 0.5, ry, null, palette);
+    this.flowers(x, z, wd - 0.5, dp - 0.5, ry, null, palette, 0.35);          /* ★★ 2026-09-30d 花は土の上に（前は石の箱の中に埋まって、土だけに見えた） */
   };
   P.bushRow = function (x, z, w, d, flowers) {
     const r = X.rnd(((x * 7 + z * 13) >>> 0) || 9), n = Math.max(1, Math.round(Math.max(w, d) / 1.6));
@@ -519,9 +543,10 @@
   const FLOWER_PAL = [[0xff4f6a, 0xffd23a, 0xffffff], [0xff8ac8, 0xa87aff, 0xffffff], [0xff8a2a, 0xffd23a, 0xff4f6a], [0x5ab8ff, 0xffffff, 0xa87aff], [0xff4f6a, 0xff8ac8, 0xffd0e0], [0xffd23a, 0xff8a2a, 0xffffff]];
 
   /* 区域の入口のアーチ（番号・名前） */
-  P.areaGate = function (x, z, ry, area, style) {
+  P.areaGate = function (x, z, ry, area, style, spanIn) {
     const W = this, a = typeof area === "string" ? A[area] : area, c = Math.cos(ry), s = Math.sin(ry);
-    const col = a.c || "#3a78e8", span = style === "big" ? 20 : 15, hh = style === "big" ? 11 : 8.5;
+    /* ★★ 2026-09-30c 門の幅は道より広く（park_net.js の placeGates が道の幅から決める：前は柱が道の上に立っていた） */
+    const col = a.c || "#3a78e8", span = spanIn || (style === "big" ? 20 : 15), hh = Math.max(style === "big" ? 11 : 8.5, span * 0.5);
     (W.gates = W.gates || []).push({ x, z, ry, id: a.id, span });          /* ★ 2026-09-29d 門の台帳（道が通っているか確かめる） */
     [-1, 1].forEach((k) => {
       const px = x + k * span / 2 * c, pz = z - k * span / 2 * s;
@@ -662,7 +687,9 @@
     if (!w._wg || w._wgN !== (w.waterMeshes || []).length) {
       const G = new Set(), key = (ix, iz) => (ix + 2048) * 8192 + (iz + 2048);
       (w.waterMeshes || []).forEach((m) => {
-        const g = m.geometry, P0 = g.attributes.position, idx = g.index ? g.index.array : null, n = idx ? idx.length : P0.count, ox = m.position.x, oz = m.position.z;
+        /* ★★ 2026-09-30c 水面はエリアのグループの中にあることがある（エリアを動かした分も足す） */
+        m.updateWorldMatrix(true, false);
+        const g = m.geometry, P0 = g.attributes.position, idx = g.index ? g.index.array : null, n = idx ? idx.length : P0.count, ox = m.matrixWorld.elements[12], oz = m.matrixWorld.elements[14];
         for (let t = 0; t < n; t += 3) {
           const a = idx ? idx[t] : t, b = idx ? idx[t + 1] : t + 1, c = idx ? idx[t + 2] : t + 2;
           const ax = P0.getX(a) + ox, az = P0.getZ(a) + oz, bx = P0.getX(b) + ox, bz = P0.getZ(b) + oz, cx = P0.getX(c) + ox, cz = P0.getZ(c) + oz;
@@ -791,12 +818,13 @@
           const [cx, cz, dx, dz, rw] = r; if (rw < 3) continue;
           const d1x = bx - ax, d1z = bz - az, d2x = dx - cx, d2z = dz - cz, den = d1x * d2z - d1z * d2x; if (Math.abs(den) < 1e-6) continue;
           const t = ((cx - ax) * d2z - (cz - az) * d2x) / den, u = ((cx - ax) * d1z - (cz - az) * d1x) / den;
-          if (t >= 0 && t <= 1 && u >= 0 && u <= 1) { const px = ax + d1x * t, pz = az + d1z * t; if (!cross.some((c) => Math.hypot(c.x - px, c.z - pz) < rw * 0.8 + 4)) cross.push({ x: px, z: pz, w: rw, ang: Math.atan2(d2x, d2z), i }); }
+          if (t >= 0 && t <= 1 && u >= 0 && u <= 1) { const px = ax + d1x * t, pz = az + d1z * t; if (!cross.some((c) => Math.hypot(c.x - px, c.z - pz) < rw * 0.8 + 4)) { const ang = Math.atan2(d2x, d2z), sn = Math.max(0.35, Math.abs(Math.sin(ang - Math.atan2(d1x, d1z)))); cross.push({ x: px, z: pz, w: rw, ang, i, sn }); } }
         }
       }
-      cross.forEach((c) => W.bridge(c.x, c.z, c.ang, rv.w + 5, Math.min(c.w, 24), rv.w));
+      /* ★★ 2026-09-30d ななめに渡る橋：川の幅は道にそって 1/sin だけ長くなる（前は川の当たりが大通りのはしにかかっていた） */
+      cross.forEach((c) => W.bridge(c.x, c.z, c.ang, rv.w / c.sn + 5, Math.min(c.w, 24), rv.w / c.sn));
       /* ★ 2026-09-29 川の当たりは「川の中心線にそった太い線」（前は点ごとの四角ですき間だらけ・岸とずれていた）。橋の所はあける */
-      W.colPolyline(sp, rv.w / 2 + 0.3, (x, z) => cross.some((c) => Math.hypot(c.x - x, c.z - z) < Math.min(c.w, 24) / 2 + 1.5) || (W.riverGaps || []).some((g) => Math.hypot(g.x - x, g.z - z) < g.r + 1.5));    });
+      W.colPolyline(sp, rv.w / 2 + 0.3, (x, z) => cross.some((c) => Math.hypot(c.x - x, c.z - z) < Math.min(c.w, 24) / 2 / c.sn + rv.w / 2 + 1.5) || (W.riverGaps || []).some((g) => Math.hypot(g.x - x, g.z - z) < g.r + 1.5));    });
   };
   P.bridge = function (x, z, ang, len, wd, riverW) {
     const W = this, c = Math.cos(ang), s = Math.sin(ang);
@@ -816,7 +844,8 @@
   const SEA_FS = [
     "uniform float t, uNight; uniform vec3 sun; uniform vec3 fogColor; uniform vec4 uIsl; uniform vec2 uFog; uniform sampler2D tRefl; uniform mat4 uTexMat; uniform float uRefl; varying vec3 wp;",
     "float bmp(float a, float c, float w){ float d = abs(mod(a - c + 3.14159265, 6.2831853) - 3.14159265); return d < w ? 0.5 + 0.5 * cos(d / w * 3.14159265) : 0.0; }",
-    "float isl(float a){ return 1.0 + 0.028 * sin(3.0 * a + 0.7) + 0.02 * sin(5.0 * a + 2.1) + 0.01 * sin(11.0 * a + 0.3) + 0.07 * bmp(a, 1.5707963, 0.22) - 0.07 * bmp(a, 2.2, 0.3) - 0.05 * bmp(a, -0.08, 0.09); }",
+    "float plt(float a, float c, float f, float w){ float d = abs(mod(a - c + 3.14159265, 6.2831853) - 3.14159265); return d <= f ? 1.0 : (d < f + w ? 0.5 + 0.5 * cos((d - f) / w * 3.14159265) : 0.0); }",
+    "float isl(float a){ return 1.0 + 0.028 * sin(3.0 * a + 0.7) + 0.02 * sin(5.0 * a + 2.1) + 0.01 * sin(11.0 * a + 0.3) + 0.07 * bmp(a, 1.5707963, 0.22) - 0.07 * bmp(a, 2.2, 0.3) - 0.05 * bmp(a, -0.08, 0.09) + " + NB[0].toFixed(4) + " * bmp(a, " + NB[1].toFixed(7) + ", " + NB[2].toFixed(4) + ")" + EXP.map((e) => " + " + e[0].toFixed(4) + " * plt(a, " + e[1].toFixed(7) + ", " + e[2].toFixed(4) + ", " + e[3].toFixed(4) + ")").join("") + "; }",
     "void main(){",
     "  vec2 u = vec2((wp.x - uIsl.x) / uIsl.z, (wp.z - uIsl.y) / uIsl.w); float a = atan(u.y, u.x);",
     "  float er = pow(pow(abs(cos(a)), 3.0) + pow(abs(sin(a)), 3.0), -1.0 / 3.0) * isl(a);",
@@ -1069,7 +1098,7 @@
   /* ══════════════ 影と接地の暗さ（焼き込み） ══════════════ */
   const AOU = {
     uAOTex: { value: null }, uShTex: { value: null }, uGrassTex: { value: null },
-    uAOmin: { value: new T.Vector2(-900, -700) }, uAOsize: { value: new T.Vector2(1800, 1760) },
+    uAOmin: { value: new T.Vector2(BOUNDS.x0, BOUNDS.z0) }, uAOsize: { value: new T.Vector2(BOUNDS.w, BOUNDS.h) },          /* ★★ 2026-10-01 島の範囲（BOUNDS・モノレールの外へ広げた島） */
     uSunSh: { value: 1 }, uTime: TIME
   };
   (function () { const d = new T.DataTexture(new Uint8Array([255, 255, 255, 255]), 1, 1); d.needsUpdate = true; AOU.uAOTex.value = AOU.uShTex.value = AOU.uGrassTex.value = d; })();
@@ -1084,7 +1113,7 @@
         .replace("#include <begin_vertex>", "#include <begin_vertex>" + (sway ? "\n{ vec4 ip = vec4(0.0, 0.0, 0.0, 1.0);\n#ifdef USE_INSTANCING\n ip = instanceMatrix * ip;\n#endif\n float sw = " + sway.toFixed(2) + " * max(0.0, position.y - 1.5) * 0.012; transformed.x += sin(uTime * 1.3 + ip.x * 0.13 + ip.z * 0.07) * sw; transformed.z += cos(uTime * 1.1 + ip.z * 0.11) * sw * 0.7; }" : ""))
         .replace("#include <worldpos_vertex>", "#include <worldpos_vertex>\n{ vec4 aw = vec4(transformed, 1.0);\n#ifdef USE_INSTANCING\n aw = instanceMatrix * aw;\n#endif\n vAOw = (modelMatrix * aw).xyz; }");
       sh.fragmentShader = sh.fragmentShader.replace("#include <common>", "#include <common>\nvarying vec3 vAOw; uniform sampler2D uAOTex, uShTex, uGrassTex; uniform vec2 uAOmin, uAOsize; uniform float uSunSh;")
-        .replace("#include <map_fragment>", "#include <map_fragment>\n{ vec2 q = (vAOw.xz - uAOmin) / uAOsize; float ao = mix(0.5, 1.0, texture2D(uAOTex, q).r); float shd = mix(0.52, 1.0, texture2D(uShTex, q).r);\n ao = mix(ao, 1.0, clamp(vAOw.y / 3.2, 0.0, 1.0));\n shd = mix(1.0, shd, uSunSh * (1.0 - clamp((vAOw.y - 0.15) / 0.9, 0.0, 1.0)));\n diffuseColor.rgb *= ao * shd;" + (grass ? "\n { float fd = smoothstep(60.0, 420.0, length(vAOw.xz - cameraPosition.xz)); diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.13, 0.45, 0.055), fd); }\n diffuseColor.rgb *= texture2D(uGrassTex, q).rgb * 1.28;" : "") + " }");
+        .replace("#include <map_fragment>", "#include <map_fragment>\n{ vec2 q = (vAOw.xz - uAOmin) / uAOsize; float ao = mix(0.5, 1.0, texture2D(uAOTex, q).r); float shd = mix(0.52, 1.0, texture2D(uShTex, q).r);\n ao = mix(ao, 1.0, clamp(vAOw.y / 3.2, 0.0, 1.0));\n shd = mix(1.0, shd, uSunSh * (1.0 - clamp((vAOw.y - 0.15) / 0.9, 0.0, 1.0)));\n diffuseColor.rgb *= ao * shd;" + (grass ? "\n { float fd = smoothstep(140.0, 900.0, length(vAOw.xz - cameraPosition.xz)) * 0.6; diffuseColor.rgb = mix(diffuseColor.rgb, vec3(0.13, 0.45, 0.055), fd); }\n diffuseColor.rgb *= texture2D(uGrassTex, q).rgb * 1.28;" : "") + " }");
     };
     mat.customProgramCacheKey = () => "ao" + (grass ? "g" : "") + (sway ? "s" + sway : "") + (fol ? "f" : "");
   }
@@ -1167,7 +1196,7 @@
     };
     const rr = X.rnd(97), noise = (x, z) => Math.sin(x * 0.011 + 1.3) * Math.sin(z * 0.013 + 0.4) + 0.5 * Math.sin(x * 0.031 - z * 0.027) + 0.25 * Math.sin(x * 0.07 + z * 0.05);
     const step = MOBILE ? 8 : 5.6;
-    for (let x = -900; x <= 900; x += step) for (let z = -700; z <= 1060; z += step) {
+    for (let x = BOUNDS.x0 + 20; x <= BOUNDS.x1 - 20; x += step) for (let z = BOUNDS.z0 + 20; z <= BOUNDS.z1 - 20; z += step) {          /* ★★ 2026-10-01 島の範囲（BOUNDS） */
       const px = x + (rr() - 0.5) * step * 0.9, pz = z + (rr() - 0.5) * step * 0.9, nz = noise(px, pz), cd = w.coastDist(px, pz);
       const dens = 0.72 + nz * 0.28 + (cd < 90 ? 0.2 : 0);
       const ar = inAreaOf(px, pz); if (ar === "no") continue;
@@ -1196,7 +1225,7 @@
         const cg = D.geo[L]; if (!cg) { lod.push(null); continue; }
         const im = new T.InstancedMesh(cg, kind === "flower" ? mats.flower : crownMat(D.sway, L === 0 && D.cards), arr.length);
         arr.forEach(([t, gi], i) => {
-          const s = t[3]; e.set(0, (t[1] * 13.1 + t[2] * 7.3) % TAU, 0); q.setFromEuler(e); v.set(t[1], 0, t[2]); sc.set(s, s * (kind === "flower" || kind === "bush" ? 1 : 0.92 + ((gi * 7) % 5) * 0.04), s);
+          const s = t[3]; e.set(0, (t[1] * 13.1 + t[2] * 7.3) % TAU, 0); q.setFromEuler(e); v.set(t[1], t[5] || 0, t[2]); sc.set(s, s * (kind === "flower" || kind === "bush" ? 1 : 0.92 + ((gi * 7) % 5) * 0.04), s);
           m4.compose(v, q, sc); im.setMatrixAt(i, m4);
           if (t[4] != null) col.setHex(t[4]); else if (D.tint) D.tint(gi, col, t[0]); else col.setRGB(1, 1, 1);
           im.setColorAt(i, col);
@@ -1281,5 +1310,5 @@
   };
   P.areaName = function (x, z) { let best = null; for (const a of AREAS) if (x >= a.x0 && x <= a.x1 && z >= a.z0 && z <= a.z1) { if (!best || (a.x1 - a.x0) * (a.z1 - a.z0) < (best.x1 - best.x0) * (best.z1 - best.z0)) best = a; } return best; };
 
-  window.XPark = { ISL, AREAS, A, islandPt, edgeR, coastDist, SUN, SHX, SHZ, M, smoothPts, ribbon, FLOWER_PAL, MOBILE, TIME, AOU, REFL };
+  window.XPark = { ISL, AREAS, A, islandPt, islandPt0, islandPtM, edgeR, edgeRM, outerK, coastDist, BOUNDS, EXP, SUN, SHX, SHZ, M, smoothPts, ribbon, FLOWER_PAL, MOBILE, TIME, AOU, REFL };
 })();

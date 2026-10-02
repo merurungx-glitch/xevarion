@@ -23,6 +23,8 @@
   const esc = (s) => String(s == null ? "" : s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
   const LINES = [];
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+  /* ★★ 2026-09-30d 音はすべて「音楽」のスイッチにしたがう（ご指定「音楽がオフの場合は放送などを含むすべての音をオフ」） */
+  const soundOn = () => !!(window.XShows && XShows.AU && XShows.AU.on);
 
   /* ══════════════ 一定の間隔の線 ══════════════ */
   function mkPath(pts, closed, ds) {
@@ -243,11 +245,11 @@
   function makeProbe(w) {
     const GS = 20, grid = new Map(), add = (x0, z0, x1, z1, it) => { for (let gx = Math.floor(x0 / GS); gx <= Math.floor(x1 / GS); gx++) for (let gz = Math.floor(z0 / GS); gz <= Math.floor(z1 / GS); gz++) { const k = gx + "," + gz; if (!grid.has(k)) grid.set(k, []); grid.get(k).push(it); } };
     w.casters.forEach((c) => { let x0 = 1e9, z0 = 1e9, x1 = -1e9, z1 = -1e9; c.pts.forEach(([x, z]) => { x0 = Math.min(x0, x); x1 = Math.max(x1, x); z0 = Math.min(z0, z); z1 = Math.max(z1, z); }); add(x0, z0, x1, z1, { k: "cast", c }); });
-    w.colliders.forEach((c) => add(c.x0, c.z0, c.x1, c.z1, { k: "col", c }));
+    w.colliders.forEach((c) => { if (c.yb !== undefined && c.yb < -0.5) return; add(c.x0, c.z0, c.x1, c.z1, { k: "col", c }); });          /* ★★ 2026-09-30d 地下（地下鉄）の当たり・部屋は地上の場所さがしに入れない */
     w.roads.forEach((r) => add(Math.min(r[0], r[2]) - r[4] / 2, Math.min(r[1], r[3]) - r[4] / 2, Math.max(r[0], r[2]) + r[4] / 2, Math.max(r[1], r[3]) + r[4] / 2, { k: "road", r }));
     (w.rivers || []).forEach((rv) => { for (let i = 0; i < rv.pts.length - 1; i++) { const r = [rv.pts[i][0], rv.pts[i][1], rv.pts[i + 1][0], rv.pts[i + 1][1], rv.w + 2]; add(Math.min(r[0], r[2]) - r[4], Math.min(r[1], r[3]) - r[4], Math.max(r[0], r[2]) + r[4], Math.max(r[1], r[3]) + r[4], { k: "water", r }); } });
     if (w.circuit) { const p = w.circuit.pts; for (let i = 0; i < p.length; i++) { const a = p[i], b = p[(i + 1) % p.length], r = [a.x, a.z, b.x, b.z, 28]; add(Math.min(a.x, b.x) - 14, Math.min(a.z, b.z) - 14, Math.max(a.x, b.x) + 14, Math.max(a.z, b.z) + 14, { k: "circ", r }); } }
-    (w.interiors || []).forEach((q) => { const R = q.round ? q.r : Math.hypot(q.hw, q.hd); add(q.x - R, q.z - R, q.x + R, q.z + R, { k: "room", q }); });
+    (w.interiors || []).forEach((q) => { if ((q.y0 || 0) < -1 || (q.yMax != null && q.yMax < 0)) return; const R = q.round ? q.r : Math.hypot(q.hw, q.hd); add(q.x - R, q.z - R, q.x + R, q.z + R, { k: "room", q }); });
     const inPoly = (x, z, pts) => { let c = false; for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) { const [xi, zi] = pts[i], [xj, zj] = pts[j]; if ((zi > z) !== (zj > z) && x < (xj - xi) * (z - zi) / (zj - zi) + xi) c = !c; } return c; };
     const segD = (x, z, r) => { const [x0, z0, x1, z1] = r, dx = x1 - x0, dz = z1 - z0, l2 = dx * dx + dz * dz; let t = l2 ? ((x - x0) * dx + (z - z0) * dz) / l2 : 0; t = clamp(t, 0, 1); return Math.hypot(x - (x0 + dx * t), z - (z0 + dz * t)); };
     const polys = (w.noGrassPoly || []).slice();
@@ -272,36 +274,42 @@
   /* ══════════════ モノレール ══════════════ */
   /* 英語の放送の読み（"DOME / MOTOR CITY" → "Dome, Motor City"） */
   const enSay = (en) => String(en).toLowerCase().split(" / ").map((p) => p.replace(/\b[a-z]/g, (c) => c.toUpperCase())).join(", ");
+  /* ★★ 2026-09-30d 線の種類の呼び名（放送）：地下鉄（park_metro.js）は L.annJa / L.annEn */
+  const kindJa = (L) => L.annJa || (L.id === "mono" ? "モノレール" : "路面電車");
+  const kindEn = (L) => L.annEn || (L.id === "mono" ? "Monorail" : "Streetcar");
   const TRANSFER = { M01: ["路面電車は、お乗り換えです。", "Please change here for the XEVARION Streetcar."], T01: ["モノレールは、お乗り換えです。", "Please change here for the XEVARION Monorail."] };
   const MONO_Y = 14.2;                      /* 車両の床（＝ホームの高さ） */
+  /* ★★ 2026-09-30c 駅は「近くの場所（x, z）」で決める（島を北へ広げたので、線の長さの割合では場所がずれる）＝park_plan.js の新しい配置に合わせた */
   const MONO_ST = [
-    ["M01", "ゲート駅", "GATE", 0.245, "入口・チケット・マーケット"],
-    ["M02", "ビーチ駅", "BEACH", 0.335, "砂浜・桟橋・海の家"],
-    ["M03", "アクア駅", "AQUA", 0.43, "プール・スライダー"],
-    ["M04", "スペースポート駅", "SPACE PORT", 0.515, "ロケット・コズミックコースター"],
-    ["M05", "アドベンチャー駅", "ADVENTURE", 0.608, "マウンテンコースター・ジャングル"],
-    ["M06", "ドーム駅", "DOME / MOTOR CITY", 0.753, "巨大ライブ会場・サーキット"],
-    ["M07", "ハーバー駅", "HARBOR", 0.806, "湖の港町・水上パレード"],
-    ["M08", "NGX本社・スタジアム駅", "NGX HQ / STADIUM", 0.882, "NGX 本社・サッカースタジアム"],
-    ["M09", "リゾート駅", "RESORT", 0.948, "ホテル・スパ・ヴィラ"],
-    ["M10", "ナイトゾーン駅", "NIGHT ZONE", 0.046, "ネオン街・お化け屋敷"],
-    ["M11", "妖魔歌舞伎町駅", "KABUKI / YUKAKU", 0.092, "看板のビル街・夜桜遊郭"],
-    ["M12", "スポーツシティ駅", "SPORTS CITY", 0.172, "競技場・ボッチャ"]
+    ["M01", "ゲート駅", "GATE", [0, 990], "入口・チケット・マーケット"],
+    ["M02", "ビーチ駅", "BEACH", [-470, 880], "砂浜・桟橋・海の家"],
+    ["M03", "アクア駅", "AQUA / WONDERLAND", [-770, 560], "プール・スライダー・妖怪ワンダーランド・マギバーストランド（南口）"],
+    /* ★★ 2026-10-01 モノレールの外の新しい土地の駅（外がわの出口から MAGIBURST LAND・MAGI BOCCIA RUSH LAND・XEVA GACHA PALACE へ） */
+    ["M04", "マギバーストランド駅", "MAGIBURST LAND / SPACE PORT", [-800, 180], "マギバーストランド（外がわ）・ロケット・コズミックコースター"],
+    ["M05", "スタジアム駅", "STADIUM / SHRINE / TWILIGHT CASTLE", [-800, -230], "サッカースタジアム・妖怪神社・黄昏の王城（外がわ）"],
+    ["M06", "アドベンチャー駅", "ADVENTURE", [-690, -640], "マウンテンコースター・ジャングル"],
+    ["M07", "ドーム駅", "DOME / MOTOR CITY", [-200, -1010], "巨大ライブ会場・サーキット"],
+    ["M08", "ハーバー駅", "HARBOR", [260, -970], "湖の港町・水上パレード"],
+    ["M09", "ガチャパレス駅", "XEVA GACHA PALACE / FUNLAND", [700, -660], "XEVA ガチャパレス（外がわ）・遊園地・NGX CITY"],
+    ["M10", "リゾート駅", "RESORT", [855, 40], "ホテル・スパ・ヴィラ"],
+    ["M11", "妖魔歌舞伎町駅", "NIGHT / KABUKI", [835, 480], "ネオン街・看板のビル街・夜桜遊郭"],
+    ["M12", "ボッチャラッシュ駅", "MAGI BOCCIA RUSH LAND / SPORTS CITY", [590, 840], "マギボッチャラッシュランド（外がわ）・競技場・ボッチャ"]
   ];
   P.buildMonorail = function () {
     const w = this;
     /* ── 線：島のふちにそって（ハーバーの山・歌舞伎町の南は少し海側へ） ── */
     const bump = (a, c, wd) => { const d = Math.abs((((a - c + Math.PI) % TAU) + TAU) % TAU - Math.PI); return d < wd ? 0.5 + 0.5 * Math.cos(d / wd * Math.PI) : 0; };
     const base = [];
-    for (let i = 0; i < 480; i++) { const a = i / 480 * TAU, K = 0.955 + 0.022 * bump(a, 0.68, 0.36) + 0.02 * bump(a, -1.33, 0.16); const [x, z] = XP.islandPt(a, K); base.push(new T.Vector3(x, MONO_Y, z)); }
+    /* ★★ 2026-10-01 線は広げる前の海岸にそって（islandPtM）＝島を外へ広げたので、その外側が新しい土地 */
+    for (let i = 0; i < 480; i++) { const a = i / 480 * TAU, K = 0.955 + 0.022 * bump(a, 0.68, 0.36) + 0.02 * bump(a, -1.33, 0.16); const [x, z] = XP.islandPtM(a, K); base.push(new T.Vector3(x, MONO_Y, z)); }
     const cr = new T.CatmullRomCurve3(base, true, "centripetal"), A0 = mkPath(cr.getPoints(16000), true, 1);
     /* ── 駅の場所：目安の位置のまわりで、足もと（改札ホール・階段）があいている所・向き（島の内側／海側）をえらぶ ── */
     const probe = makeProbe(w), picks = [];
     const d0 = { x: 0, z: 0 }, p0 = { x: 0, y: 0, z: 0 };
     MONO_ST.forEach((def) => {
-      let best = null;
-      for (let du = -0.014; du <= 0.0141; du += 0.002) for (const side of [1, -1]) {
-        const s = (((def[3] + du) % 1 + 1) % 1) * A0.L; pAt(A0, s, p0); pDir(A0, s, d0);
+      let best = null; const f0 = Array.isArray(def[3]) ? nearestS(A0, def[3][0], def[3][1]) / A0.L : def[3];
+      for (let du = -0.012; du <= 0.0121; du += 0.002) for (const side of [1, -1]) {
+        const s = (((f0 + du) % 1 + 1) % 1) * A0.L; pAt(A0, s, p0); pDir(A0, s, d0);
         const rx = -d0.z, rz = d0.x, inlR = rx * (XP.ISL.cx - p0.x) + rz * (XP.ISL.cz - p0.z) > 0, right = (side > 0) === inlR, nx = right ? rx : -rx, nz = right ? rz : -rz;
         let sc = Math.abs(du) * 500 + (side > 0 ? 0 : 5);
         for (let a = -34; a <= 34; a += 3) for (let b = -4; b <= 23; b += 2.5) {
@@ -383,6 +391,7 @@
     const rx = -d.z, rz = d.x, nx = st.right ? rx : -rx, nz = st.right ? rz : -rz;
     st.doorX = st.right ? -1 : 1;
     const S = SF(w, p.x, p.z, d.x, d.z, nx, nz), LA = 64, col = L.color;
+    if (XT.stationTheme) XT.stationTheme(w, S, st, L);          /* ★★ 2026-10-02 駅のデザイン・規模をエリアごとに（park_fantasy.js） */
     const title = st.no + "  " + st.name, sub = st.en + " STATION";
     /* ── ホーム（高さ 14.2m）──
        b: 1.8〜8.7 ホーム ／ 9.45 屋根の柱 ／ 10〜15 階段とエスカレーター（a −10〜22）／ 22〜32 階段の上の広場 ／
@@ -476,12 +485,12 @@
       /* 改札（すき間を通る）＋ガラスの柵 */
       const gb = 15.3;
       for (let i = 0; i < 7; i++) { const a = -30.4 + i * 2.0; S.box("chromeB", a, gb, 0, 0.36, 1.7, 1.05); S.box("neonCyan", a, gb + 0.86, 0.9, 0.38, 0.06, 0.12); S.box("neonGreen", a, gb - 0.86, 0.9, 0.38, 0.06, 0.12); S.col(a, gb, 0.42, 1.7, -5, 3); }
-      S.box("glassClear", (-17.2 + a1) / 2, gb, 0, a1 - 17.2 - 0.4, 0.05, 1.1); S.col((-17.2 + a1 - 0.4) / 2, gb, a1 - 17.2 - 0.4, 0.3, -5, 3);
+      S.box("glassClear", (-17.2 + a1 - 0.4) / 2, gb, 0, a1 + 17.2 - 0.4, 0.05, 1.1); S.col((-17.2 + a1 - 0.4) / 2, gb, a1 + 17.2 - 0.4, 0.3, -5, 3);          /* ★★ 2026-09-30d 長さの符号のまちがいを直した（前は −27.6m＝南北・東西にそろった駅では見えない柵が改札のレーンを6本ふさぎ、ほかの駅では柵に当たりがなかった） */
       S.sign("自動改札  ICカード OK", { bg: "#0a2a4a", color: "#7fe8ff", px: 512 }, 4.8, 0.5, -24.4, 3.6, gb + 0.05, S.faceN);
       S.sign("つぎの電車  " + L.dir + "  まもなく", { bg: "#050810", color: "#ffb030", glow: "#ffb030", px: 512 }, 5.6, 0.7, -24.4, 4.4, gb + 0.06, S.faceN);
       /* 券売機・路線図・ベンチ */
-      for (let i = 0; i < 3; i++) { const a = -30.8 + 0.2, b = 17.2 + i * 1.3; S.box("gSilver", a, b, 0, 0.8, 1.1, 1.8); S.box("neonBlue", a + 0.41, b, 1.0, 0.02, 0.8, 0.5); }
-      S.col(-30.6, 18.5, 1.0, 4.0, -5, 3);
+      for (let i = 0; i < 3; i++) { const a = -30.8 + 0.2, b = 18.2 + i * 1.3; S.box("gSilver", a, b, 0, 0.8, 1.1, 1.8); S.box("neonBlue", a + 0.41, b, 1.0, 0.02, 0.8, 0.5); }
+      S.col(-30.6, 19.5, 1.0, 4.0, -5, 3);          /* ★★ 2026-09-30d 券売機を 1m 入口がわへ（いちばん端の改札のレーンをふさがない） */
       boardWithMap(w, S, L, st, -21, 2.9, b0 + 0.2, false, 4.4);
       S.box("woodLight", -13.8, 19.6, 0.42, 3.2, 0.5, 0.08); S.box("darkMetal", -13.8, 19.6, 0, 3.0, 0.4, 0.42);
       (w.interiors = w.interiors || []).push({ x: S.at(ac, (b0 + 0.3 + b1) / 2)[0], z: S.at(ac, (b0 + 0.3 + b1) / 2)[1], c: Math.cos(S.ry), s: Math.sin(S.ry), hw: (b1 - b0 - 0.3) / 2, hd: la / 2, hi: hh - 0.1, yMax: 6, name: st.name + " 改札", type: "station", round: false });
@@ -491,6 +500,30 @@
       w.disk ? w.disk(ex, ez, 7, "walkCream", 0.02) : null;
       linkRoad(w, ex, ez, nx, nz);
       w.forestOpen.push([S.at(0, 10)[0], S.at(0, 10)[1], 44]);
+      /* ★★ 2026-10-01 線路の外がわ（モノレールの外に広げた土地）からも乗れるように（ご指定「モノレールの外側の開発をして乗り口も対応」）
+         ホームのはしの先（a=±40）で線路の下をくぐる屋根つきの歩道 → 外がわの入口の広場・駅名の看板・大きな駅の塔。外がわが海なら作らない */
+      { const probe2 = makeProbe(w), I2 = w.spotIndex();
+        const why = [], okSide = (a) => { for (let b = -30; b <= b1 + 6; b += 3) { const [x, z] = S.at(a, b); if (!w.insideIsland(x, z, b < -4 ? 12 : 4)) { why.push(a + ":island@" + b); return false; } if (w.isWater(x, z)) { why.push(a + ":water@" + b); return false; } if (I2.bld(x, z, 1)) { why.push(a + ":bld@" + b); return false; } const q = probe2(x, z, 1.5); if (q.room || q.circ) { why.push(a + ":room@" + b); return false; } } return true; };
+        const ea = [-41, 41, -50, 50, -59, 59].find((a) => okSide(a)); st._outerWhy = why.join(" ");
+        if (ea !== undefined) {
+          const [ox, oz] = S.at(ea, -24);
+          w.route([S.at(-21, b1 + 6), S.at(ea, b1 + 6), S.at(ea, -18)], 6, "walkCream", { raw: true, lamps: "yoma", lampEvery: 14, trees: false, benches: false, bushes: false });
+          w.disk(ox, oz, 9, "walkY", 0.03); w.disk(ox, oz, 9.6, "stoneW", 0.028, 9);
+          /* 屋根（線路の下・ガラスと白い柱） */
+          for (let b = -8; b <= 20; b += 7) { S.geo("white2", new T.CylinderGeometry(0.12, 0.12, 3.6, 8), ea - 3.4, 1.8, b); S.geo("white2", new T.CylinderGeometry(0.12, 0.12, 3.6, 8), ea + 3.4, 1.8, b); }
+          S.box("glassDome", ea, 6, 3.6, 7.4, 30, 0.12); S.box(col === "#1a8ad8" ? "pBlue" : "pRed", ea, 6, 3.72, 7.6, 30.2, 0.1);
+          /* 外がわの入口：駅名の門（遠くからも見える）・案内 */
+          const fo = S.faceIn, fx2 = Math.sin(fo), fz2 = Math.cos(fo);
+          [-1, 1].forEach((k) => { const [px, pz] = S.at(ea + k * 6.6, -24); w.geo("white2", new T.BoxGeometry(1.2, 9, 1.2), px, 4.5, pz, S.ry, "L"); w.colCircle(px, pz, 0.8); });
+          { const [px, pz] = S.at(ea, -24); w.geo(col === "#1a8ad8" ? "pBlue" : "pRed", new T.BoxGeometry(14.4, 1.6, 0.6), px, 8.6, pz, S.ry + Math.PI / 2, "L");
+            w.sign("🚝 " + st.no + "  " + st.name + "  のりば", { grad: [col, "#1a2a6a"], color: "#fff", glow: "#7fe8ff", px: 1024, both: true }, 10.6, 1.25, px - fx2 * 0.32, 8.6, pz - fz2 * 0.32, fo + Math.PI);
+            w.sign("XEVARION MONORAIL  ↑ 線路の下をくぐって改札へ", { bg: "#0a2a4a", color: "#fff", px: 1024, both: true }, 9.6, 0.6, px - fx2 * 0.32, 7.3, pz - fz2 * 0.32, fo + Math.PI); }
+          st.outer = [ox, oz]; st.outer2 = S.at(ea, -40); st.outerA = ea;
+          (w.doors = w.doors || []).push([ox, oz]);
+          w.places.push(["🚝 " + st.no + " " + st.name + "（外がわの入口）", ox, oz, fo]);
+          w.forestOpen.push([ox, oz, 22]);
+        }
+      }
       /* 大きな看板の塔（遠くからも駅とわかる） */
       const [tx, tz] = S.at(-34.5, 23); w.geo("white2", new T.BoxGeometry(1.4, 12, 1.4), tx, 6, tz, S.ry, "L"); w.geo(col === "#1a8ad8" ? "pBlue" : "pRed", new T.BoxGeometry(1.46, 3.2, 1.46), tx, 10.2, tz, S.ry, "L"); w.colCircle(tx, tz, 0.9);
       [S.faceN, S.faceIn, S.faceF, S.faceB].forEach((f) => { const ox = Math.sin(f) * 0.75, oz = Math.cos(f) * 0.75; w.sign("🚝 " + st.no, { bg: col, color: "#fff", px: 256 }, 1.3, 0.9, tx + ox, 10.2, tz + oz, f); });
@@ -503,11 +536,14 @@
     [-20, -2, 10].forEach((a) => { S.box("darkMetal", a, 7.7, H, 2.6, 0.5, 0.42); S.box("woodLight", a, 7.7, H + 0.42, 2.8, 0.55, 0.07); S.box("woodLight", a, 8.0, H + 0.49, 2.8, 0.07, 0.5); });
     [[-29, "gTeal"], [-27.6, "rOrange"]].forEach(([a, key]) => { S.box(key || "gTeal", a, 7.9, H, 1.1, 0.8, 1.85); S.box("neonWhite", a, 7.48, H + 1.0, 0.8, 0.02, 0.6); });
     S.col(-28.3, 7.9, 2.6, 0.9, 11, 99);
-    for (let i = 0; i < 3; i++) { const a = -14 + i * 14; const it = w.interact(...S.at(a, 4.2), 5.5, "モノレールに乗る（行き先をえらぶ）", () => ({ transit: { line: L.id, stop: st.k, mode: "platform" } }), "🚝"); it.y = H; }
+    /* ★★ 2026-09-30d ホームのはしからはしまで、どこでも「乗る」（前は まん中の 40m だけ） */
+    for (let a = -28; a <= 28.01; a += 8) { const it = w.interact(...S.at(a, 4.6), 4.9, "モノレールに乗る（行き先をえらぶ）", () => ({ transit: { line: L.id, stop: st.k, mode: "platform" } }), "🚝"); it.y = H; }
+    st.plat = { px: S.px, pz: S.pz, fx: S.fx, fz: S.fz, nx: S.nx, nz: S.nz, a0: -LA / 2, a1: LA / 2, b0: 1.8, b1: 8.7, y: H };
     const [ax, az] = S.at(L.car.doorZ[1] + (L.nCars - 1) * L.pitch / 2, 3.4);
     st.alight = { x: ax, z: az, y: H, yaw: S.faceF };            /* おりたら進む向き（階段・出口のある前）を向く＝カメラが車両に重ならない */
     st.board = S.at((L.nCars - 1) * L.pitch / 2 + L.car.doorZ[1], 3.2);
     st.wait = { x: S.at(0, 5.5)[0], z: S.at(0, 5.5)[1], y: H, yaw: S.faceIn };
+    if (XT.stationDecor) XT.stationDecor(w, S, st, L);          /* ★★ 2026-10-02 駅の飾り（塔・屋根・旗・時計台など。park_fantasy.js） */
   }
   /* 道の点の検索（駅の入口 → いちばん近い道） */
   function probe2(w) { return w._trProbe || (w._trProbe = makeProbe(w)); }
@@ -535,7 +571,7 @@
     ["T02", "マーケット広場", "MARKET SQUARE", [15, 688], "時計の噴水・屋台"],
     ["T03", "グリーンウォーク", "GREEN WALK", [15, 470], "花の小道・メディアシティ"],
     ["T04", "噴水公園 東", "FOUNTAIN EAST", [100 * Math.cos(0.349), 290 + 100 * Math.sin(0.349)], "ゲームワールド"],
-    ["T05", "XEVARION HALL 前", "HALL", [0, 190], "ホール・会議場"],
+    ["T05", "XEVARION HALL 前", "HALL", [42, 199], "ホール・会議場"],          /* ★★ 2026-09-30d 待合の壁が まん中の大通り（ホールへの道）をふさいでいたので、少し東へ */
     ["T06", "噴水公園 西", "FOUNTAIN WEST", [100 * Math.cos(2.793), 290 + 100 * Math.sin(2.793)], "メトロポリス・タワー"],
     ["T07", "マーケット北", "MARKET NORTH", [-15, 545], "ラボ・アクア方面"],
     ["T08", "マーケット南", "MARKET SOUTH", [-15, 765], "まんぷく横丁"]
@@ -561,11 +597,15 @@
     w.tramLine = L;
     /* ── 線路：石だたみ（公園の中は芝生）の軌道・2本のレール ── */
     const inPark = (s) => { pAt(A, s, _a); return Math.hypot(_a.x, _a.z - 290) < 112 && _a.z < 400; };
-    for (let s = 0; s < A.L; s += 60) { const s1 = Math.min(A.L, s + 60); w.batch.add("plazaGray", w.m.plazaGray, sweep(A, s, s1, 1, [[-1.3, 0.052, 1.3, 0.052, 0, 1]], true), new T.Matrix4(), false); w.batch.add("stoneW", w.m.stoneW, sweep(A, s, s1, 1, [[-1.45, 0.058, -1.3, 0.058, 0, 1], [1.3, 0.058, 1.45, 0.058, 0, 1]], true), new T.Matrix4(), false); }
+    /* ★★ 2026-10-01 遠くでレールと軌道が道の面にうもれて見えなかった（深さの精度：数cm の差は 80m 先で負ける）→ 軌道とレールは手前に描く材質（polygonOffset）・遠くからも見える（"L"） */
+    const po = (k, f) => { const nk = k + "_tram"; if (!w.m[nk]) { const m = w.m[k].clone(); m.userData = {}; m.vertexColors = false; m.polygonOffset = true; m.polygonOffsetFactor = f || -2; m.polygonOffsetUnits = (f || -2) * 3; w.m[nk] = m; } return nk; };
+    const bedK = po("plazaGray", -1), edgeK = po("stoneW", -1), railK = po("chromeB", -3), rail2K = po("darkMetal", -3);
+    if (!w.m.tramLed) w.m.tramLed = new T.MeshBasicMaterial({ color: 0x4ff0ff, toneMapped: false, polygonOffset: true, polygonOffsetFactor: -4, polygonOffsetUnits: -12 });
+    for (let s = 0; s < A.L; s += 60) { const s1 = Math.min(A.L, s + 60); w.batch.add(bedK, w.m[bedK], sweep(A, s, s1, 1, [[-1.3, 0.052, 1.3, 0.052, 0, 1]], true), new T.Matrix4(), "L"); w.batch.add(edgeK, w.m[edgeK], sweep(A, s, s1, 1, [[-1.45, 0.058, -1.3, 0.058, 0, 1], [1.3, 0.058, 1.45, 0.058, 0, 1]], true), new T.Matrix4(), "L"); }
     /* ★ 2026-09-30 レールが見えない所があった（公園の中は芝生の軌道で、細いレールが芝にまぎれていた）→ どこでも石の軌道・太く光るレール・まくら木 */
     { const q = { x: 0, y: 0, z: 0 }, e = { x: 0, z: 0 }; w.detail(() => { for (let s = 0; s < A.L; s += 1.4) { pAt(A, s, q); pDir(A, s, e); w.box("woodDark2", q.x, 0.05, q.z, 2.0, 0.035, 0.24, { ry: Math.atan2(e.x, e.z) + Math.PI / 2 }); } }); }
-    sweepChunks(w, "chromeB", A, [[-0.8, 0.095, -0.66, 0.095, 0, 1], [0.66, 0.095, 0.8, 0.095, 0, 1], [-0.8, 0.055, -0.8, 0.095, -1, 0], [0.8, 0.095, 0.8, 0.055, 1, 0]], { step: 1, yAbs: true, chunk: 60, detail: false });
-    sweepChunks(w, "darkMetal", A, [[-0.66, 0.08, -0.58, 0.08, 0, 1], [0.58, 0.08, 0.66, 0.08, 0, 1]], { step: 1, yAbs: true, chunk: 60, detail: false });
+    sweepChunks(w, railK, A, [[-0.8, 0.095, -0.66, 0.095, 0, 1], [0.66, 0.095, 0.8, 0.095, 0, 1], [-0.8, 0.055, -0.8, 0.095, -1, 0], [0.8, 0.095, 0.8, 0.055, 1, 0]], { step: 1, yAbs: true, chunk: 60, detail: "L" });
+    sweepChunks(w, rail2K, A, [[-0.66, 0.08, -0.58, 0.08, 0, 1], [0.58, 0.08, 0.66, 0.08, 0, 1]], { step: 1, yAbs: true, chunk: 60, detail: "L" });
     /* 線路の上には木・街灯・ベンチを置かない（見えない「道」として登録） */
     for (let s = 0; s < A.L; s += 4) { pAt(A, s, _a); pAt(A, s + 4, _b); w.roads.push([_a.x, _a.z, _b.x, _b.z, 3.4]); }
     /* 芝生の上の草は生やさない（軌道にそって）・木も植えない */
@@ -573,7 +613,7 @@
       for (let i = 0; i < polyL.length - 1; i += 20) { const j = Math.min(polyL.length - 1, i + 21); (w.noGrassPoly = w.noGrassPoly || []).push(polyL.slice(i, j + 1).concat(polyR.slice(i, j + 1).reverse())); }
       const kp = []; for (let s = 0; s < A.L; s += 2) { pAt(A, s, _a); kp.push([_a.x, _a.z, 0]); } (w.treeKeepOut = w.treeKeepOut || []).push({ pts: kp, r: 3.4 }); }
     /* ── 架線はなし（★ 2026-09-29d 未来の路面電車：レールのあいだの光る線から電気をとる＝パレードの山車が線にふれない）── */
-    sweepChunks(w, "neonCyan", A, [[-0.07, 0.066, 0.07, 0.066, 0, 1]], { step: 1, yAbs: true, chunk: 60, detail: false });
+    sweepChunks(w, "tramLed", A, [[-0.07, 0.066, 0.07, 0.066, 0, 1]], { step: 1, yAbs: true, chunk: 60, detail: "L" });
     L.stops = TRAM_ST.map((def, k) => { const s = nearestS(A, def[3][0], def[3][1]); return { k, no: def[0], name: def[1], en: def[2], hint: def[4], sC: s, s: (s + (3 - 1) * 8.0 / 2) % A.L, right: true }; });
     L.pause = () => !!(window.XShows && XShows.PARADE && XShows.PARADE.on);          /* パレード中は止まる（山車と同じ道） */
     /* ── 停留所 ── */
@@ -618,9 +658,10 @@
   /* ══════════════ 路線図を描く（板・乗る前の画面） ══════════════ */
   function drawRouteMap(g, W, H, L, o) {
     o = o || {};
+    if (L.drawMap) return L.drawMap(g, W, H, o);          /* ★★ 2026-09-30d 地下鉄は路線図（すべての線）を自分で描く（park_metro.js） */
     const A = L.A, pts = []; for (let s = 0; s < A.L; s += A.L / 400) { pAt(A, s, _a); pts.push([_a.x, _a.z]); }
     let x0 = 1e9, z0 = 1e9, x1 = -1e9, z1 = -1e9;
-    if (L.id === "mono") { x0 = -1240; x1 = 1240; z0 = -720; z1 = 1100; }
+    if (L.id === "mono") { x0 = -1240; x1 = 1240; z0 = -1100; z1 = 1100; }          /* ★★ 2026-09-30c 北へ広げた島 */
     else { pts.forEach(([x, z]) => { x0 = Math.min(x0, x); x1 = Math.max(x1, x); z0 = Math.min(z0, z); z1 = Math.max(z1, z); }); x0 -= 150; x1 += 150; z0 -= 40; z1 += 70; }
     const head = o.board ? 78 : 0, pad = 24, sc = Math.min((W - pad * 2) / (x1 - x0), (H - head - pad * 2) / (z1 - z0));
     const ox = (W - (x1 - x0) * sc) / 2, oz = head + (H - head - (z1 - z0) * sc) / 2;
@@ -690,6 +731,7 @@
       this.openStop(L, r.stop, r.mode);
     },
     openStop(L, k, mode) {
+      if (L.openStop) return L.openStop(k, mode);          /* ★★ 2026-09-30d 地下鉄：駅をえらぶと、向き（どちらのホームの電車か）を自動で決める（park_metro.js） */
       const ui = window.XParkUI, st = L.stops[k];
       if (this.wait) this.cancelWait(true);
       const b = ui.panel(L.icon, L.jp + "　" + st.no + " " + st.name, "transit");
@@ -713,7 +755,16 @@
     board(L, k, j, mode) {
       const C = this.ctx, st = L.stops[k];
       if (L.pause && L.pause()) { C.toast("🎉 パレード中のため、路面電車は運転を見合わせています（パレードのあと再開します）"); return; }
-      if (mode === "hall" && st.wait) C.teleport(st.wait.x, st.wait.z, st.wait.y, st.wait.yaw, "エレベーターでホームへ");
+      if (mode === "hall" && st.wait) {
+        /* ★★ 2026-10-02 改札ホールから乗るときもエレベーターの演出（とびらが閉まっている間にホームへ）→ そのあと電車を呼ぶ */
+        if (window.XParkUI && XParkUI.elevator && !this._evBoard) {
+          this._evBoard = true;
+          XParkUI.elevator({ floors: ["1F", "2F", "3F"], from: "1F", to: "3F", title: st.no + " " + st.name + "  ホーム（3階）へ", dur: 1500 }, () => { C.teleport(st.wait.x, st.wait.z, st.wait.y, st.wait.yaw, "エレベーターでホームへ"); });
+          setTimeout(() => { this._evBoard = false; this.board(L, k, j, "platform"); }, 2300);
+          return;
+        }
+        C.teleport(st.wait.x, st.wait.z, st.wait.y, st.wait.yaw, "エレベーターでホームへ");
+      }
       /* いちばん近くを走っている電車（なければ手前に呼ぶ）。ほかの電車はじゃまにならない所へ */
       let tr = null, bd = 1e9;
       L.trains.forEach((t) => { if (t.rider) return; const dd = fwd(L.A, t.s, st.s); const atSt = t.st === "dwell" && dd < 0.5; if (atSt) { tr = t; bd = 0; } else if (dd < bd && dd < L.lead + 1 && t.st === "run") { bd = dd; tr = t; } });
@@ -729,22 +780,31 @@
     getOffNext() { const R = this.cur; if (!R || R.phase !== "ride") return; const n = R.tr.st === "dwell" ? (R.tr.next + 1) % R.L.stops.length : R.tr.next; R.dest = n; this.ctx.toast("🚪 つぎの " + R.L.stops[n].name + " でおります"); },
     skip() { const R = this.cur; if (!R) return; R.fast = !R.fast; this.ctx.toast(R.fast ? "⏩ 早送り中（もう一度で ふつうの速さ）" : "▶ ふつうの速さ"); },
     toggleView() { const R = this.cur; if (!R) return; R.view = R.view ? 0 : 1; R.yaw = 0; R.pitch = R.view ? 0.28 : 0; this.ctx.toast(R.view ? "🎥 外から見る（ドラッグで回す）" : "🎥 車内（いちばん前の席）から見る"); },
-    look(dx, dy) { const R = this.cur; if (!R) return; R.yaw -= dx * 0.005; R.pitch = clamp(R.pitch - dy * 0.004, R.view ? -0.2 : -0.75, R.view ? 1.2 : 0.6); if (!R.view) { while (R.yaw > Math.PI) R.yaw -= TAU; while (R.yaw < -Math.PI) R.yaw += TAU; } },
+    look(dx, dy) { const R = this.cur; if (!R) return; R.yaw -= dx * 0.005; R.pitch = clamp(R.pitch - dy * 0.004, R.view ? -0.2 : -0.75, R.view ? 1.2 : 0.6); if (!R.view) { while (R.yaw > Math.PI) R.yaw -= TAU; while (R.yaw < -Math.PI) R.yaw += TAU; } else if (R.L.metro) { R.yaw = clamp(R.yaw, -0.3, 0.3); R.pitch = clamp(R.pitch, -0.1, 0.25); } },
     lookRate(dt, ix, iy) { if (!this.cur || (!ix && !iy)) return; this.look(ix * dt * 420, iy * dt * 300); },
     /* エレベーター（かごに乗って上下・5秒） */
     lift(L, k, dir) {
       const st = L.stops[k], lf = st.lift, C = this.ctx; if (!lf || this.lifting) return;
       const up = dir === "up";
+      /* ★★ 2026-10-02 エレベーターの演出（とびら・階数計）：とびらが閉まっている間に、かごごと上（下）の階へ */
+      if (window.XParkUI && XParkUI.elevator) {
+        this.lifting = { st, lf, up, t: 0, dur: 99, cine: true };
+        XParkUI.elevator({ floors: ["1F", "2F", "3F"], from: up ? "1F" : "3F", to: up ? "3F" : "1F", title: st.no + " " + st.name + "  " + (up ? "ホーム（3階）へ" : "改札階（1階）へ"), dur: 1600 }, () => {
+          const tp = up ? lf.up : lf.down; C.player.x = tp[0]; C.player.z = tp[1]; C.player.y = up ? lf.top : 0; C.player.yaw = up ? lf.faceUp : lf.faceDown; C.cam.yaw = C.player.yaw + Math.PI;
+          lf.cab.position.y = (up ? lf.top : 0) + 0.02; this.lifting = null;
+        });
+        return;
+      }
       C.player.x = lf.x; C.player.z = lf.z; C.player.y = up ? 0 : lf.top; C.player.yaw = up ? lf.faceUp : lf.faceDown;
       this.lifting = { st, lf, up, t: 0, dur: 5 };
       C.toast("🛗 エレベーター：" + (up ? "ホームへ上がります" : "改札階へおります"));
     },
-    showHud(on, mode) { const h = this.hud; if (!h) return; h.classList.toggle("on", !!on); h.dataset.mode = mode || ""; if (!on) return; const L = (this.cur || this.wait).L; h.style.setProperty("--c", L.color); h.querySelector(".trIc").textContent = L.icon; h.querySelector(".trLine").textContent = L.jp + "　" + L.dir; this._hudT = 0; },
+    showHud(on, mode) { const h = this.hud; if (!h) return; h.classList.toggle("on", !!on); h.dataset.mode = mode || ""; if (!on) return; const L = (this.cur || this.wait).L; h.style.setProperty("--c", L.color); h.querySelector(".trIc").textContent = L.icon; h.querySelector(".trLine").textContent = L.jp.indexOf(String(L.dir || "").slice(0, 3)) >= 0 && L.metro ? L.jp.replace(/（[内外]回り）$/, "") + "　" + L.dir : L.jp + "　" + L.dir; this._hudT = 0; },
     onStop(L, tr, k) {
       const W = this.wait;
       if (W && W.tr === tr && k === W.k) { tr.hold = true; return; }
       const R = this.cur; if (!R || R.tr !== tr) return;
-      if (k === R.dest) { tr.hold = true; R.phase = "alight"; R.t = 0; this.ctx.toast("🚉 " + L.stops[k].name + " です。おりましょう"); this.chime(); this.announce(L.stops[k].name + "、" + L.stops[k].name + "です。ご乗車、ありがとうございました。", enSay(L.stops[k].en) + ". Thank you for riding the XEVARION " + (L.id === "mono" ? "Monorail" : "Streetcar") + "."); return; }
+      if (k === R.dest) { tr.hold = true; R.phase = "alight"; R.t = 0; this.ctx.toast("🚉 " + L.stops[k].name + " です。おりましょう"); this.chime(); this.announce(L.stops[k].name + "、" + L.stops[k].name + "です。ご乗車、ありがとうございました。", enSay(L.stops[k].en) + ". Thank you for riding the XEVARION " + kindEn(L) + "."); return; }
       tr.dw = R.fast ? 2.4 : 4.5; this.ctx.toast("🚉 " + L.stops[k].no + " " + L.stops[k].name + "　（つぎは " + L.stops[(k + 1) % L.stops.length].name + "）"); this.chime();
     },
     /* ★ 2026-09-29d 車内放送：日本語のあとに英語（JR 東日本ふう）。字幕も出す */
@@ -753,22 +813,22 @@
     voice(lang) { const S = window.speechSynthesis; if (!S) return null; const vs = S.getVoices() || []; const pref = lang === "ja-JP" ? [/Nanami|Haruka|Kyoko|Google 日本語|O-ren|Ayumi/i] : [/Jenny|Aria|Samantha|Google US English|Google UK English Female|Zira|Libby/i]; for (const re of pref) { const v = vs.find((q) => re.test(q.name) && q.lang && q.lang.replace("_", "-").startsWith(lang.slice(0, 2))); if (v) return v; } return vs.find((q) => q.lang && q.lang.replace("_", "-").startsWith(lang)) || vs.find((q) => q.lang && q.lang.startsWith(lang.slice(0, 2))) || null; },
     announce(ja, en) {
       const h = this.hud; if (h) { const el = h.querySelector(".trAnn"); el.innerHTML = "📢 " + esc(ja) + '<i>' + esc(en) + "</i>"; el.classList.add("on"); clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove("on"), 9000); }
-      const S = window.speechSynthesis; if (!S || !this.annOn) return;
+      const S = window.speechSynthesis; if (!S || !this.annOn || !soundOn()) return;          /* ★★ 2026-09-30d 音楽がオフのときは放送も鳴らさない（字幕だけ） */
       try { S.cancel(); [["ja-JP", ja, 1.05], ["en-US", en, 0.95]].forEach(([lang, text, rate]) => { if (!text) return; const u = new SpeechSynthesisUtterance(text); u.lang = lang; const v = this.voice(lang); if (v) u.voice = v; u.rate = rate; u.pitch = 1.04; u.volume = 0.95; S.speak(u); }); } catch (e) {}
     },
     annNext(R, welcome) {
-      const L = R.L, st = L.stops[R.tr.next], nm = L.id === "mono" ? "モノレール" : "路面電車";
+      const L = R.L, st = L.stops[R.tr.next], nm = kindJa(L);
       const ja = (welcome ? "本日も、XEVARION " + nm + "をご利用いただきまして、ありがとうございます。この電車は、" + L.dir + "です。" : "") + "次は、" + st.name + "、" + st.name + "です。";
-      const en = (welcome ? "Welcome to the XEVARION " + (L.id === "mono" ? "Monorail" : "Streetcar") + ". " : "") + "The next station is " + enSay(st.en) + ", " + st.no + ".";
+      const en = (welcome ? "Welcome to the XEVARION " + kindEn(L) + ". " + (L.dirEn ? "This train is bound for " + L.dirEn + ". " : "") : "") + "The next station is " + enSay(st.en) + ", " + st.no + ".";
       this.announce(ja, en);
     },
     annSoon(R) {
-      const L = R.L, st = L.stops[R.tr.next], side = st.doorX === -1 ? ["右側", "right"] : ["左側", "left"], tf = TRANSFER[st.no];
+      const L = R.L, st = L.stops[R.tr.next], side = st.doorX === -1 ? ["右側", "right"] : ["左側", "left"], tf = (st.xfer && st.xfer.length ? st.xfer : null) || TRANSFER[st.no];
       const ja = "まもなく、" + st.name + "です。お出口は、" + side[0] + "です。" + (tf ? tf[0] : "") + (R.tr.next === R.dest ? "お忘れ物のないよう、ご注意ください。" : "");
       const en = "We will soon make a brief stop at " + enSay(st.en) + ". The doors on the " + side[1] + " side will open." + (tf ? " " + tf[1] : "");
       this.announce(ja, en);
     },
-    chime() { try { const ac = this._ac || (this._ac = new (window.AudioContext || window.webkitAudioContext)()); if (ac.state === "suspended") return; const t0 = ac.currentTime; [[659, 0], [523, 0.32]].forEach(([f, d]) => { const o = ac.createOscillator(), g = ac.createGain(); o.type = "sine"; o.frequency.value = f; g.gain.setValueAtTime(0, t0 + d); g.gain.linearRampToValueAtTime(0.12, t0 + d + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t0 + d + 0.9); o.connect(g).connect(ac.destination); o.start(t0 + d); o.stop(t0 + d + 1); }); } catch (e) {} },
+    chime() { if (!soundOn()) return; try { const ac = this._ac || (this._ac = new (window.AudioContext || window.webkitAudioContext)()); if (ac.state === "suspended") return; const t0 = ac.currentTime; [[659, 0], [523, 0.32]].forEach(([f, d]) => { const o = ac.createOscillator(), g = ac.createGain(); o.type = "sine"; o.frequency.value = f; g.gain.setValueAtTime(0, t0 + d); g.gain.linearRampToValueAtTime(0.12, t0 + d + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t0 + d + 0.9); o.connect(g).connect(ac.destination); o.start(t0 + d); o.stop(t0 + d + 1); }); } catch (e) {} },
     /* 毎フレーム：電車を動かす（カメラより先） */
     update(dt) {
       const R = this.cur, C = this.ctx;
@@ -777,9 +837,13 @@
       /* 待っている：電車が着いてドアが開いたら乗る。遠くへ歩いたらやめる */
       const W = this.wait;
       if (W) {
+        /* ★★ 2026-09-30d ホームのどこにいても乗れる（前は「いちばん前のドア」からの距離で調べていて、ホームのうしろの方にいると
+           乗るのをやめたことになっていた＝ご指定「前のほうでないと乗れない」）。ホームの範囲（st.plat）で調べる */
         W.t += dt; const st = W.L.stops[W.k], d = Math.hypot(C.player.x - (st.alight ? st.alight.x : 0), C.player.z - (st.alight ? st.alight.z : 0));
-        if (d > 40 && W.t > 1) { this.cancelWait(); }
-        else if (W.tr.st === "dwell" && fwd(W.L.A, W.tr.s, st.s) < 0.5 && W.tr.door > 0.9 && !(Math.abs(C.player.y - st.alight.y) < 1.6 && d < 36)) {
+        const onPlat = st.plat ? inPlat(st.plat, C.player) : (Math.abs(C.player.y - st.alight.y) < 1.6 && d < 36);
+        const far = st.plat ? platDist(st.plat, C.player) > 45 : d > 40;
+        if (far && W.t > 1) { this.cancelWait(); }
+        else if (W.tr.st === "dwell" && fwd(W.L.A, W.tr.s, st.s) < 0.5 && W.tr.door > 0.9 && !onPlat) {
           /* ホームの上にいない（階段・改札へ行った）：少し待って、もどらなければ発車 */
           W.away = (W.away || 0) + dt; if (W.away > 12) { this.ctx.toast("🚉 ホームにいなかったので、電車は発車しました"); this.cancelWait(true); }
         }
@@ -792,7 +856,7 @@
       }
       /* エレベーター */
       const LF = this.lifting;
-      if (LF) {
+      if (LF && !LF.cine) {
         LF.t += dt; const k = smooth(LF.t / LF.dur), y = LF.up ? k * LF.lf.top : (1 - k) * LF.lf.top;
         C.player.x = LF.lf.x; C.player.z = LF.lf.z; C.player.y = y; LF.lf.cab.position.y = y + 0.02;
         if (LF.t >= LF.dur) { const tp = LF.up ? LF.lf.up : LF.lf.down; C.player.x = tp[0]; C.player.z = tp[1]; C.player.y = LF.up ? LF.lf.top : 0; C.player.yaw = LF.up ? LF.lf.faceUp : LF.lf.faceDown; C.cam.yaw = C.player.yaw + Math.PI; this.lifting = null; C.toast(LF.up ? "ホームに着きました（" + LF.st.name + "）" : "改札階に着きました"); }
@@ -805,7 +869,7 @@
         if (R.phase === "board") { R.t += dt; if (R.t > 1.1) { R.phase = "ride"; R.tr.hold = false; R.tr.dw = 1.6; } }
         if (R.phase === "ride" && R.tr.st === "run") {
           if (R.annN !== R.tr.next) { R.annN = R.tr.next; R.annS = false; this.annNext(R, !R.welcomed); R.welcomed = true; }
-          const dN = fwd(R.L.A, R.tr.s, R.L.stops[R.tr.next].s); if (!R.annS && dN < (R.L.id === "mono" ? 230 : 60) && dN > 5) { R.annS = true; this.annSoon(R); }
+          const dN = fwd(R.L.A, R.tr.s, R.L.stops[R.tr.next].s); if (!R.annS && dN < (R.L.annDist || (R.L.id === "mono" ? 230 : 60)) && dN > 5) { R.annS = true; this.annSoon(R); }
         }
         if (R.phase === "alight") { R.t += dt; if (R.t > 1.2) this.finish(); }
       }
@@ -837,9 +901,11 @@
         /* 車内：席の位置は車両といっしょ（同じフレームで決めた位置）＝ゆれない。向きは車両の向き＋見回し */
         this._e.set(R.pitch, hd + Math.PI + R.yaw, 0, "YXZ"); camera.position.copy(seat); camera.quaternion.setFromEuler(this._e); R._op = null; fovTo(70);
       } else {
-        const cx = (c0.position.x + cl.position.x) / 2, cz = (c0.position.z + cl.position.z) / 2, cy = c0.position.y + 1.4, dist = L.id === "mono" ? 34 : 22, an = hd + Math.PI + R.yaw;
+        const cx = (c0.position.x + cl.position.x) / 2, cz = (c0.position.z + cl.position.z) / 2, cy = c0.position.y + 1.4, dist = L.viewDist || (L.id === "mono" ? 34 : 22), an = hd + Math.PI + R.yaw;
         const tgt = this._v2.set(cx + Math.sin(an) * Math.cos(R.pitch) * dist, cy + Math.sin(R.pitch) * dist + 2, cz + Math.cos(an) * Math.cos(R.pitch) * dist);
-        const g2 = this.ctx.world.heightAt(tgt.x, tgt.z) + 1.2; if (tgt.y < g2) tgt.y = g2;
+        /* ★★ 2026-09-30d 地下鉄はトンネルの中（地面の高さではなく、トンネルの床と天井のあいだ） */
+        if (L.metro) tgt.y = clamp(tgt.y, L.floorY + 0.6, L.floorY + 3.4);
+        else { const g2 = this.ctx.world.heightAt(tgt.x, tgt.z) + 1.2; if (tgt.y < g2) tgt.y = g2; }
         if (!R._op) R._op = tgt.clone(); else R._op.lerp(tgt, Math.min(1, dt * 6));
         camera.position.copy(R._op); camera.lookAt(cx, cy, cz); fovTo(60);
       }
@@ -861,7 +927,7 @@
       h.querySelector(".trNext").textContent = (dwell ? "ただいま " + stN.name : "つぎは " + stN.no + " " + stN.name) + "　｜　行き先：" + L.stops[R.dest].name;
       const kmh = Math.round(tr.v * 3.6 * (R.fast ? 6 : 1));
       h.querySelector(".trEta").textContent = dwell ? "停車中" : (R.fast ? "⏩ " : "") + kmh + " km/h";
-      this.strip(L, R.from, R.dest, dwell ? n : (n - 1 + L.stops.length) % L.stops.length, dwell ? 1 : 1 - d / Math.max(1, fwd(L.A, L.stops[(n - 1 + L.stops.length) % L.stops.length].s, stN.s)));
+      this.strip(L, R.from, R.dest, dwell ? n : (n - 1 + L.stops.length) % L.stops.length, dwell ? 0 : 1 - d / Math.max(1, fwd(L.A, L.stops[(n - 1 + L.stops.length) % L.stops.length].s, stN.s)));
     },
     strip(L, from, dest, at, frac) {
       const el = this.hud.querySelector(".trStrip"), n = L.stops.length, seq = []; let i = from; seq.push(i); while (i !== dest && seq.length < n) { i = (i + 1) % n; seq.push(i); }
@@ -873,6 +939,12 @@
   };
   /* 駅の中の位置（a＝線にそって前・b＝駅の側へ横）→ 世界の x, z（確かめる用） */
   XT.stAt = (L, st, a, b) => { const p = pAt(L.A, st.sC, { x: 0, y: 0, z: 0 }), d = pDir(L.A, st.sC, { x: 0, z: 0 }), rx = -d.z, rz = d.x, s = st.right ? 1 : -1; return [p.x + d.x * a + rx * s * b, p.z + d.z * a + rz * s * b, Math.atan2(rx * s, rz * s)]; };
+  /* ホームの範囲（駅の座標：a＝線にそって・b＝横）。plat＝{ px, pz, fx, fz, nx, nz, a0, a1, b0, b1, y } */
+  function platAB(pl, p) { const dx = p.x - pl.px, dz = p.z - pl.pz; return [dx * pl.fx + dz * pl.fz, dx * pl.nx + dz * pl.nz]; }
+  function inPlat(pl, p) { const [a, b] = platAB(pl, p); return a > pl.a0 - 0.8 && a < pl.a1 + 0.8 && b > pl.b0 - 0.8 && b < pl.b1 + 0.8 && Math.abs((p.y || 0) - pl.y) < 1.8; }
+  function platDist(pl, p) { const [a, b] = platAB(pl, p), da = Math.max(0, pl.a0 - a, a - pl.a1), db = Math.max(0, pl.b0 - b, b - pl.b1); return Math.hypot(da, db, Math.abs((p.y || 0) - pl.y) * 2); }
   function nextStopAfter(L, s) { let best = 0, bd = 1e18; L.stops.forEach((st, k) => { const d = fwd(L.A, s, st.s); if (d > 0.5 && d < bd) { bd = d; best = k; } }); return best; }
   XT.drawRouteMap = drawRouteMap;
+  /* ★★ 2026-09-30d 部品を地下鉄（park_metro.js）からも使う */
+  XT.lib = { mkPath, pAt, pDir, nearestS, fwd, sgnD, sweep, sweepChunks, BOXF, SF, carModel, setDoors, mkLine, mkTrains, stepTrain, placeTrain, travelTime, drawRouteMap, boardWithMap, mapMat, makeProbe, linkRoad, smooth, clamp, HX, withY, enSay, platAB, inPlat, platDist, nextStopAfter, esc, LINES, soundOn };
 })();

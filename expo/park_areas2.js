@@ -320,11 +320,11 @@
     for (let i = 0; i < 10; i++) { const x = 575 + (i % 5) * 26, z = 175 + Math.floor(i / 5) * 30; w.bld(x, z, 16, 12, 6, { key: "sWhite", roof: "hip", roofKey: "rRed", rh: 3.5, inside: { type: "room", name: "ヴィラ " + (i + 1), h: 4.5 } }); w.pool(x + 10, z, 5, 8, 0, "pool"); }
     w.dome(760, 200, 14, "glassDome", "gold"); w.bld(730, 200, 26, 18, 8, { key: "hMint", roof: "flat", roofKey: "rGreen", sign: { text: "OCEAN SPA", bg: "#2a8a7a", w: 10, h: 1.4, y: 6 }, inside: { type: "spa", name: "オーシャンスパ", h: 5 } });
     { const x = 600, z = -85; for (let i = -3; i <= 3; i++) { w.hedge(x + i * 9, z - 20, 7, 1, 1.1); w.hedge(x + i * 9, z + 20, 7, 1, 1.1); } for (let i = -2; i <= 2; i++) { w.hedge(x - 30, z + i * 8, 1, 6, 1.1); w.hedge(x + 30, z + i * 8, 1, 6, 1.1); } w.pond(x, z, 7, "fountain"); for (let i = 0; i < 8; i++) { const a = i / 8 * TAU; w.flowerBed(x + Math.cos(a) * 14, z + Math.sin(a) * 12, 5, 2, -a, i + 400); w.plant("poplar", x + Math.cos(a) * 24, z + Math.sin(a) * 16, 1.0); } }
-    const terr = []; for (let i = 0; i <= 30; i++) { const a = -0.34 + i / 30 * 0.62; terr.push(XP.islandPt(a, 0.93)); }
+    const terr = []; for (let i = 0; i <= 30; i++) { const a = -0.34 + i / 30 * 0.62; terr.push(XP.islandPt0(a, 0.93)); }
     w.route(terr, 7, "woodDeck", { lamps: "globe", lampEvery: 24, benches: 30, bushes: false });
     /* マリーナ（入り江の桟橋・ヨット）・灯台 */
-    { const [mx, mz] = XP.islandPt(-0.08, 0.99); for (let k = 0; k < 3; k++) { const z = mz - 20 + k * 20; w.geo("woodDeck", new T.BoxGeometry(46, 0.3, 3), mx + 18, 0.4, z); for (let j = 0; j < 4; j++) { const yacht = new T.Group(); const h = new T.Mesh(new T.BoxGeometry(3, 1.4, 10), w.m.white2); h.position.y = 0.4; yacht.add(h); const c2 = new T.Mesh(new T.BoxGeometry(2.4, 1.2, 4), w.m.windowDark); c2.position.set(0, 1.5, -1); yacht.add(c2); const mast = new T.Mesh(new T.CylinderGeometry(0.06, 0.06, 11, 4), w.m.white2); mast.position.set(0, 6, 1); yacht.add(mast); yacht.position.set(mx + 6 + j * 11, -0.4, z + 6); yacht.rotation.y = Math.PI / 2; w.scene.add(yacht); w.loose(yacht, 380); } }
-      const [lx, lz] = XP.islandPt(0.05, 1.0); w.geo("white2", new T.CylinderGeometry(2.2, 3.4, 22, 16), lx, 11, lz); for (let i = 0; i < 4; i++) w.geo("pRed", new T.CylinderGeometry(2.3 + (3 - i) * 0.25, 2.4 + (3 - i) * 0.25, 2.4, 16), lx, 3 + i * 5, lz); w.geo("glassDome", new T.CylinderGeometry(2, 2, 3, 12), lx, 23.5, lz); w.geo("pRed", new T.ConeGeometry(2.6, 2.4, 12), lx, 26.2, lz); w.geo("lampGlow", new T.SphereGeometry(1.1, 10, 8), lx, 23.5, lz); w.colCircle(lx, lz, 3.5); w.casterCircle(lx, lz, 3, 24); }
+    { const [mx, mz] = XP.islandPt0(-0.08, 0.99); for (let k = 0; k < 3; k++) { const z = mz - 20 + k * 20; w.geo("woodDeck", new T.BoxGeometry(46, 0.3, 3), mx + 18, 0.4, z); for (let j = 0; j < 4; j++) { const yacht = new T.Group(); const h = new T.Mesh(new T.BoxGeometry(3, 1.4, 10), w.m.white2); h.position.y = 0.4; yacht.add(h); const c2 = new T.Mesh(new T.BoxGeometry(2.4, 1.2, 4), w.m.windowDark); c2.position.set(0, 1.5, -1); yacht.add(c2); const mast = new T.Mesh(new T.CylinderGeometry(0.06, 0.06, 11, 4), w.m.white2); mast.position.set(0, 6, 1); yacht.add(mast); yacht.position.set(mx + 6 + j * 11, -0.4, z + 6); yacht.rotation.y = Math.PI / 2; w.scene.add(yacht); w.loose(yacht, 380); } }
+      const [lx, lz] = XP.islandPt0(0.05, 1.0); w.geo("white2", new T.CylinderGeometry(2.2, 3.4, 22, 16), lx, 11, lz); for (let i = 0; i < 4; i++) w.geo("pRed", new T.CylinderGeometry(2.3 + (3 - i) * 0.25, 2.4 + (3 - i) * 0.25, 2.4, 16), lx, 3 + i * 5, lz); w.geo("glassDome", new T.CylinderGeometry(2, 2, 3, 12), lx, 23.5, lz); w.geo("pRed", new T.ConeGeometry(2.6, 2.4, 12), lx, 26.2, lz); w.geo("lampGlow", new T.SphereGeometry(1.1, 10, 8), lx, 23.5, lz); w.colCircle(lx, lz, 3.5); w.casterCircle(lx, lz, 3, 24); }
     for (let i = 0; i < 30; i++) { const x = 560 + (i % 6) * 40 + ((i * 7) % 9), z = -140 + Math.floor(i / 6) * 90 + ((i * 13) % 11); if (Math.hypot(x - 762, z - 40) < 58 || Math.abs(Math.hypot(x - 600, z - 40) - 105) < 24 || !w.insideIsland(x, z, 12)) continue; w.palm(x, z, 1.2); }
     w.areaGate(548, 40, -Math.PI / 2, "resort", "big");
     w.plazaCrowd(740, 40, 60, 0.9); w.plazaCrowd(600, 40, 40, 0.8);
@@ -618,61 +618,80 @@
   P.buildPark = function () {
     const w = this;
     w.forestOpen = w.forestOpen || [];
-    /* ★★ 2026-09-29d 街灯・ベンチは最後に置く（全部の道と建物がそろってから、重なる所をよける） */
-    const PQ = []; w.lamp = (x, z, kind) => PQ.push([0, x, z, kind]); w.yomaLamp = (x, z, ry) => PQ.push([2, x, z, ry]); w.bench = (x, z, ry) => PQ.push([1, x, z, ry]);
-    const GQ = []; w.areaGate = (x, z, ry, area, style) => GQ.push([x, z, ry, area, style]);          /* ★★ 2026-09-29d 門も道がそろってから */
+    /* ★★ 2026-09-29d 街灯・ベンチは最後に置く（全部の道と建物がそろってから、重なる所をよける）
+       ★★ 2026-09-30c 予約の一覧は w._PQ / w._GQ（エリアを動かすとき一緒にずらす＝park_layout.js） */
+    const PQ = w._PQ = []; w.lamp = (x, z, kind) => PQ.push([0, x, z, kind]); w.yomaLamp = (x, z, ry) => PQ.push([2, x, z, ry]); w.bench = (x, z, ry) => PQ.push([1, x, z, ry]);
+    const GQ = w._GQ = []; w.areaGate = (x, z, ry, area, style) => GQ.push([x, z, ry, area, style]);          /* ★★ 2026-09-29d 門も道がそろってから */
     w.building = true;              /* ★★ 2026-09-30 park_rooms.js：建物に入口を付ける（建物がそろってから置く） */
     w._deferCurbs = true;           /* ★★ 2026-09-30b 縁石は道がそろってから（交わる所で切る） */
-    w.buildHallExterior();
-    w.buildCentral();
-    w.buildGate();
-    w.buildGreenWalk();
-    w.buildMetropolis();
-    w.buildSpacePort();
-    w.buildLab();
-    w.buildAqua();
-    w.buildBeach();
-    w.buildAdventure();
-    w.buildEntertainment();
-    w.buildLearning();
-    w.buildGameWorld();
-    w.buildStadium(450, -298);
-    w.buildMotor();
-    w.buildHarbor();                /* ★★ 2026-09-29b park_harbor.js：湖の港町と夜の水上パレード */
-    w.buildResort();
-    w.buildNightZone();
-    w.buildKabuki();                /* ★★ 2026-09-29b park_night2.js：妖魔歌舞伎町 */
-    w.buildYukaku();                /* ★★ 2026-09-29b park_night2.js：夜桜遊郭 */
-    w.buildPuzzle();
-    w.buildMedia();
-    w.buildBoccia();
-    w.buildSports();
-    w.buildNGX();                   /* ★★ 2026-09-29d park_new.js：NGX 本社（北東） */
-    w.buildAppStreet();             /* ★★ 2026-09-29d park_new.js：アプリの建物の通り（ゲートの東） */
-    w.buildYokaiStreet();           /* ★★ 2026-09-29d park_new.js：妖怪商店街（ゲートの西） */
-    w.buildFutureHeights();         /* ★★ 2026-09-29d park_new.js：東の高層ビル街 */
-    w.buildShrine();                /* ★★ 2026-09-29d park_new.js：妖怪神社の森（西） */
-    w.buildBallpark();              /* ★★ 2026-09-29d park_sports.js：野球場（南西） */
-    w.buildNGXCity();               /* ★★ 2026-09-30 park_more.js：NGX CITY（大モール・超高層） */
-    w.buildWonderland();            /* ★★ 2026-09-30 park_more.js：妖怪ワンダーランド（回る乗り物） */
-    w.buildOnsen();                 /* ★★ 2026-09-30 park_more.js：妖魔温泉街 */
-    w.buildSkyGarden();             /* ★★ 2026-09-30 park_more.js：スカイガーデン */
-    w.buildCastleHotel();           /* ★★ 2026-09-30 park_scope.js：夜桜キャッスルホテル（MagiScope ギャラリー・遊郭の東） */
+    /* ★★ 2026-09-30c エリアごとに取りこむ（park_layout.js）→ 新しい配置（park_plan.js の XPark.PLAN）へ平行移動 */
+    const C = (ids, f) => w.cap(ids, f);
+    C("hall", () => w.buildHallExterior());
+    C("fountain", () => w.buildCentral());
+    C("gate", () => w.buildGate());
+    C(["green", "marketW", "marketE"], () => w.buildGreenWalk());
+    C(["metro", "tower"], () => w.buildMetropolis());
+    C("space", () => w.buildSpacePort());
+    C("lab", () => w.buildLab());
+    C("aqua", () => { w.buildAqua(); if (w.buildLazyRiver) w.buildLazyRiver(); });
+    C("beach", () => { w.buildBeach(); if (w.buildCruise) w.buildCruise(); });
+    C("adv", () => w.buildAdventure());
+    C("ent", () => w.buildEntertainment());
+    C("learn", () => w.buildLearning());
+    C("game", () => w.buildGameWorld());
+    C("soccer", () => w.buildStadium(450, -298));
+    C(["motor", "dome"], () => w.buildMotor());
+    C("harbor", () => w.buildHarbor());                /* ★★ 2026-09-29b park_harbor.js：湖の港町と夜の水上パレード */
+    C("resort", () => w.buildResort());
+    C("night", () => w.buildNightZone());
+    C("kabuki", () => w.buildKabuki());                /* ★★ 2026-09-29b park_night2.js：妖魔歌舞伎町 */
+    C("yukaku", () => w.buildYukaku());                /* ★★ 2026-09-29b park_night2.js：夜桜遊郭 */
+    C("puzzle", () => w.buildPuzzle());
+    C("media", () => w.buildMedia());
+    C("boccia", () => w.buildBoccia());
+    C("sports", () => w.buildSports());
+    if (!((XPark.PLAN || {}).skip || {}).ngx) C("ngx", () => w.buildNGX());          /* ★★ 2026-09-29d park_new.js：NGX 本社（★★ 2026-09-30c 作り直した park_corp.js の buildNGXHQ を使う） */
+    C("apps", () => w.buildAppStreet());               /* ★★ 2026-09-29d park_new.js：アプリの建物の通り */
+    C("yokai", () => w.buildYokaiStreet());            /* ★★ 2026-09-29d park_new.js：妖怪商店街 */
+    C("heights", () => w.buildFutureHeights());        /* ★★ 2026-09-29d park_new.js：高層ビル街 */
+    C("shrine", () => w.buildShrine());                /* ★★ 2026-09-29d park_new.js：妖怪神社の森 */
+    C("ballpark", () => w.buildBallpark());            /* ★★ 2026-09-29d park_sports.js：野球場 */
+    C("ngxcity", () => w.buildNGXCity());              /* ★★ 2026-09-30 park_more.js：NGX CITY（大モール・超高層） */
+    C("wonder", () => w.buildWonderland());            /* ★★ 2026-09-30 park_more.js：妖怪ワンダーランド（回る乗り物） */
+    C("onsen", () => w.buildOnsen());                  /* ★★ 2026-09-30 park_more.js：妖魔温泉街 */
+    C("sky", () => w.buildSkyGarden());                /* ★★ 2026-09-30 park_more.js：スカイガーデン */
+    C("yukaku", () => w.buildCastleHotel());           /* ★★ 2026-09-30 park_scope.js：夜桜キャッスルホテル（遊郭のとなり＝いっしょに動く） */
+    /* ★★ 2026-09-30c 新しいエリア（新しい配置の場所に直接つくる：park_corp.js / park_fun.js） */
+    if (w.buildNGXHQ) C("ngx", () => w.buildNGXHQ());
+    if (w.buildMFCampus) C("mf", () => w.buildMFCampus());
+    if (w.buildIshida) C("ishida", () => w.buildIshida());
+    if (w.buildFunland) C("fun", () => w.buildFunland());
+    /* ★★ 2026-10-01 モノレールの外の新しい土地（park_outer.js）：MAGIBURST LAND・MAGI BOCCIA RUSH LAND・XEVA GACHA PALACE */
+    if (w.buildMagiBurstLand) C("mburst", () => w.buildMagiBurstLand());
+    if (w.buildBocciaRushLand) C("mbr", () => w.buildBocciaRushLand());
+    if (w.buildGachaPalace) C("gacha", () => w.buildGachaPalace());
+    const PLAN = XPark.PLAN || {};
+    w.relocate(PLAN.move || {});                  /* ★★ 2026-09-30c 新しい配置へ（park_layout.js） */
+    w.refitAreas();                               /* エリアの範囲を中身に合わせる（park_net.js） */
+    w.buildNetwork(PLAN.roads || []);             /* ★★ 2026-09-30c エリアをつなぐ道（前の buildPaths・自動の道 planRoads は使わない） */
     w.buildTram();                  /* ★★ 2026-09-29c park_transit.js：路面電車（ゲート ⇄ マーケット ⇄ 噴水公園 ⇄ HALL の1周） */
-    w.buildPaths();
     w.buildMonorail();              /* ★★ 2026-09-29c park_transit.js：道を引いたあと（駅は道・建物をさけて置く） */
-    w.buildRideExtras();            /* park_rides.js：流れるプール・サンセットクルーズ */
+    if (w.buildMetro) w.buildMetro();          /* ★★ 2026-09-30d park_metro.js：地下鉄 ゆめ環状線（地上の出入口は道・建物をさけて置く） */
+    if (w.linkOuterStations) w.linkOuterStations();          /* ★★ 2026-10-01 モノレールの駅の外がわの入口 → 新しい土地へ道（park_outer.js） */
+    if (!w.buildLazyRiver) w.buildRideExtras();            /* park_rides.js：流れるプール・サンセットクルーズ */
     w.buildParade();                /* park_shows.js：昼のパレード */
     w.buildNightShow();             /* park_shows.js：夜の噴水ショー */
     (w.afterBuild || []).forEach((f) => f());          /* ★ 2026-09-29d ほかのエリアができたあとで置く物（ホールの大屋根の柱など） */
+    if (w.infill) w.infill(GQ);                  /* ★★ 2026-09-30d すき間をうめる（道ぞいのお店・木のかたまり）＝ park_infill.js。入口を付ける前に */
     w.placeDoors(); w.building = false;
-    delete w.areaGate; w.fixGates(GQ);          /* ★★ 2026-09-30b 門を先に置く（道にそろえる）→ 門の前後も自動の道でつなぐ */
-    w.planRoads((w.gates || []).map((g) => [g.x, g.z, g.ry, g.id, g.span > 16 ? "big" : ""]));          /* ★★ 2026-09-30 park_roads.js：門・広場・通りの端をつなぐ道を自動で敷く（行き止まりもつなぐ） */
+    delete w.areaGate; w.placeGates(GQ);          /* ★★ 2026-09-30c 門は道の上に（park_net.js） */
+    w.linkDoors();                                /* ★★ 2026-09-30c 入口・乗り場の前まで道を（park_net.js） */
+    if (w.closeGaps) w.closeGaps();               /* ★★ 2026-10-02 道の行き止まり・つながっていそうでつながっていない所をつなぐ（park_net.js） */
+    if (w.buildSignposts) w.buildSignposts();          /* ★★ 2026-10-01 大きな交差点の道しるべ（いちばん近い駅・大きな土地への向きと距離・park_outer.js） */
     w.buildCurbs();
-    w.buildFences();
+    if (w.buildFences2) w.buildFences2();
     delete w.lamp; delete w.yomaLamp; delete w.bench; w._eyesLate = true; w.placeProps(PQ);
-    w.roadFences();                 /* ★ 2026-09-30 park_roads.js：道ぞいの低い柵 */
-    w.buildBerms();                 /* ★ 2026-09-30 park_roads.js：エリアのさかいの生け垣・木（となりが見えない） */
+    if (w.buildBorders) w.buildBorders();         /* ★★ 2026-09-30c エリアのさかいの植えこみ（道・入口はふさがない） */
     w.buildBoards();                /* ★★ 2026-09-30 park_life.js：掲示板（イベントの時間・地図） */
     w.buildEyes(); w._eyesLate = false;          /* ★★ 2026-09-30 park_life.js：動く目（見ている人の方を向く・まばたき） */
     w.animFlags();

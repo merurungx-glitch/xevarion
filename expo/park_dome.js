@@ -87,10 +87,10 @@
     for (let i = 0; i < 24; i++) { const a = i / 24 * TAU + 0.13; if (rakeGaps.some(([g, h]) => Math.abs(angDiff(a, g)) < h + 0.02)) continue; for (let r = 0; r < ROWS; r++) { const rr = S0 + (r + 0.5) * STEP, y = 0.8 + r * RISE + 0.02; w.geo("lineW", new T.BoxGeometry(1.2, 0.02, STEP * 0.9).rotateY(-a + Math.PI / 2), cx + Math.cos(a) * rr, y, cz + Math.sin(a) * rr); } }
     /* 座席（インスタンス）＋すわれる所 */
     let seatsIM = null;
-    if (!MOBILE) {
+    {          /* ★★ 2026-09-30d スマホでも座席を出す（前はスマホでは座席がなく、段だけ＝「うまく読み込めていない」ように見えた）。スマホは1つおき */
       const seatG = XWorld.mergeGeos([new T.BoxGeometry(0.48, 0.08, 0.42).translate(0, 0.42, 0), new T.BoxGeometry(0.48, 0.5, 0.06).translate(0, 0.66, -0.2)]);
       const pos = [];
-      for (let r = 0; r < ROWS; r++) { const rr = S0 + (r + 0.55) * STEP, y = 0.8 + r * RISE, n = Math.floor(TAU * rr / 0.62); for (let k = 0; k < n; k++) { const a = k / n * TAU; if (rakeGaps.some(([g, h]) => Math.abs(angDiff(a, g)) < h + 0.02)) continue; if (Array.from({ length: 24 }, (_, i) => i / 24 * TAU + 0.13).some((q) => Math.abs(angDiff(a, q)) < 0.6 / rr * 1.4)) continue; pos.push([a, rr, y]); } }
+      for (let r = 0; r < ROWS; r++) { const rr = S0 + (r + 0.55) * STEP, y = 0.8 + r * RISE, n = Math.floor(TAU * rr / (MOBILE ? 1.24 : 0.62)); for (let k = 0; k < n; k++) { const a = k / n * TAU; if (rakeGaps.some(([g, h]) => Math.abs(angDiff(a, g)) < h + 0.02)) continue; if (Array.from({ length: 24 }, (_, i) => i / 24 * TAU + 0.13).some((q) => Math.abs(angDiff(a, q)) < 0.6 / rr * 1.4)) continue; pos.push([a, rr, y]); } }
       seatsIM = new T.InstancedMesh(seatG, w.m.seatsRed, pos.length); const m4 = new T.Matrix4(), q = new T.Quaternion(), e = new T.Euler(), c = new T.Color();
       const FX0 = 0, FZ0 = -30;          /* ★ 2026-09-29d 向く先＝ステージ寄りの点（ドームの中心から北へ 30m） */
       pos.forEach(([a, rr, y], i) => { e.set(0, Math.atan2(FX0 - Math.cos(a) * rr, FZ0 - Math.sin(a) * rr), 0); q.setFromEuler(e); m4.compose(new T.Vector3(Math.cos(a) * rr, y, Math.sin(a) * rr), q, new T.Vector3(1, 1, 1)); seatsIM.setMatrixAt(i, m4); c.setHex(((i >> 5) + Math.floor(y)) % 5 === 0 ? 0xf2f2f2 : (Math.floor(y / 6) % 2 ? 0x2a4ad8 : 0xd83a4a)); seatsIM.setColorAt(i, c); });

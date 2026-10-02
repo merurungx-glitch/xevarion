@@ -448,3 +448,134 @@ body.mobile #trHud .trBtns button kbd{display:none}
 .pupd .pu2{display:flex;gap:10px;align-items:flex-start}
 .pupd .pu2 img{width:88px;height:auto;border-radius:10px;flex:0 0 auto;box-shadow:0 3px 10px rgba(10,20,80,.2)}
 .pupd button{margin-top:6px;padding:6px 14px;border-radius:99px;border:0;background:var(--xbtn);color:#fff;font-weight:900;font-size:12px}
+
+/* ══════════════ 推奨環境（park_spec.js）・マウスで見回す（ポインターロック） ══════════════ */
+.pspec{width:100%;border-collapse:separate;border-spacing:0;margin:2px 0 10px;font-size:12.5px;border-radius:12px;overflow:hidden;box-shadow:inset 0 0 0 2px #d6e0ff}
+.pspec th{width:7.2em;text-align:left;padding:7px 9px;background:#eef3ff;color:#2a4ad8;font-weight:900;vertical-align:top;white-space:nowrap}
+.pspec td{padding:7px 9px;font-weight:700;line-height:1.55;color:var(--xink,#1b2350);background:#fff;word-break:break-word}
+.pspec tr+tr th,.pspec tr+tr td{border-top:1px solid #e3e9ff}
+.pwhy{margin:4px 0 10px 1.2em;padding:0;font-size:12.5px;font-weight:800;line-height:1.7}
+.pui.spec .pbody{max-height:min(70vh,640px)}
+#xhair{position:fixed;left:50%;top:50%;width:22px;height:22px;translate:-50% -50%;z-index:12;pointer-events:none;display:none}
+#xhair::before,#xhair::after{content:"";position:absolute;left:50%;top:50%;translate:-50% -50%;background:#fff;border-radius:2px;box-shadow:0 0 0 1.5px rgba(10,20,60,.55)}
+#xhair::before{width:16px;height:2.5px}#xhair::after{width:2.5px;height:16px}
+body.plock #xhair{display:block}
+#plockHint{position:fixed;left:50%;bottom:calc(92px + env(safe-area-inset-bottom));translate:-50% 0;z-index:12;padding:7px 14px;border-radius:99px;background:rgba(8,14,44,.72);color:#fff;font-weight:800;font-size:12.5px;pointer-events:none;opacity:0;transition:opacity .4s}
+#plockHint.on{opacity:1}
+/* ══════════════ 本物のガチャ（XEVA GACHA PALACE・park_ui.js の realGachaUI） ══════════════ */
+#pgacha{position:fixed;inset:0;z-index:60;display:none;align-items:center;justify-content:center;background:rgba(8,6,24,.55);backdrop-filter:blur(3px);padding:12px}
+#pgacha.on{display:flex}
+#pgacha .pgcard{width:min(1100px,100%);height:min(860px,100%);display:flex;flex-direction:column;border-radius:20px;overflow:hidden;background:#fff;box-shadow:0 20px 60px rgba(0,0,30,.55),0 0 0 3px #ffd86a}
+#pgacha .pghd{display:flex;align-items:center;gap:12px;padding:8px 12px;background:linear-gradient(90deg,#3a1a00,#6a2a8a);color:#fff;font-weight:900}
+#pgacha .pghd b{font-size:15px;letter-spacing:.06em}
+#pgacha .pgbal{margin-left:auto;padding:4px 12px;border-radius:99px;background:rgba(255,216,106,.18);color:#ffd86a;font-size:13px}
+#pgacha .x{border:0;border-radius:99px;padding:7px 14px;background:#fff;color:#3a1a00;font-weight:900;cursor:pointer}
+#pgacha iframe{flex:1;width:100%;border:0;background:#d9ecff}
+/* ★★ 2026-10-01 いちばん近い駅（モノレール・地下鉄）の向きと距離（ご指定「駅の場所がわかりづらい」） */
+#stHint{position:absolute;left:50%;top:calc(54px + env(safe-area-inset-top));translate:-50% 0;display:flex;gap:6px;pointer-events:auto;z-index:2}
+#stHint:empty{display:none}
+#stHint button{display:flex;align-items:center;gap:5px;padding:4px 10px;border-radius:99px;border:0;background:rgba(10,18,40,.6);color:#fff;font-weight:800;font-size:12px;cursor:pointer;white-space:nowrap;box-shadow:inset 0 0 0 1.5px var(--c,#1a8ad8)}
+#stHint button b{font-size:14px;color:var(--c,#7fe8ff);display:inline-block;width:14px;text-align:center}
+#stHint button small{opacity:.8;font-weight:700}
+@media (max-width:520px){#stHint{top:calc(88px + env(safe-area-inset-top))}#stHint button{font-size:10.5px;padding:3px 8px}}
+body.ingame #stHint,body.photo #stHint{display:none}
+
+/* ★★ 2026-10-02 駅のエレベーターの演出（真ちゅうと木のとびら・半円の階数計） */
+#evOv{position:fixed;inset:0;z-index:260;pointer-events:none;display:none}
+#evOv.on{display:block;pointer-events:auto}
+#evOv .evIn{position:absolute;inset:0;overflow:hidden}
+#evOv .evL,#evOv .evR{position:absolute;top:0;bottom:0;width:50.6%;transition:transform .6s cubic-bezier(.62,0,.32,1);
+  background:linear-gradient(90deg,#4a2c14 0,#6e4422 6%,#8a5a2e 20%,#6a4020 46%,#7e5228 70%,#5a3618 100%);box-shadow:inset 0 0 60px rgba(0,0,0,.45)}
+#evOv .evL{left:0;transform:translateX(-102%);border-right:4px solid #d8aa4a}
+#evOv .evR{right:0;transform:translateX(102%);border-left:4px solid #d8aa4a}
+#evOv .evL i,#evOv .evR i{position:absolute;top:14%;bottom:14%;left:14%;right:14%;border:4px solid #d8aa4a;border-radius:8px;
+  box-shadow:inset 0 0 0 10px rgba(0,0,0,.18),inset 0 0 0 14px rgba(216,170,74,.55)}
+#evOv .evL i::after,#evOv .evR i::after{content:"";position:absolute;left:50%;top:50%;width:64px;height:64px;margin:-32px;border-radius:50%;
+  background:radial-gradient(circle,#fff2c0 0,#e8c060 40%,#9a6a20 72%,transparent 74%)}
+#evOv.closed .evL,#evOv.closed .evR{transform:none}
+#evOv.moving .evIn{animation:evShake .16s linear infinite}
+@keyframes evShake{0%,100%{transform:translate(0,0)}25%{transform:translate(.6px,-.8px)}50%{transform:translate(-.6px,.6px)}75%{transform:translate(.4px,.8px)}}
+#evOv .evTop{position:absolute;left:50%;top:9%;transform:translate(-50%,-40px);opacity:0;transition:opacity .4s ease .25s,transform .5s ease .25s;text-align:center}
+#evOv.closed .evTop{opacity:1;transform:translate(-50%,0)}
+#evOv .evDial{position:relative;width:min(56vw,300px);aspect-ratio:200/112;margin:0 auto;padding:6px 10px 0;border-radius:150px 150px 14px 14px;
+  background:radial-gradient(ellipse at 50% 100%,#fff6dc 0,#efd9a8 55%,#cfa95e 100%);border:5px solid #8a5a1e;box-shadow:0 8px 30px rgba(0,0,0,.45),inset 0 -6px 0 rgba(0,0,0,.12)}
+#evOv .evDial svg{width:100%;height:100%;display:block}
+#evOv .evDial text{font:900 13px 'Yu Mincho','Hiragino Mincho ProN',serif;fill:#3a2408}
+#evOv .evDial text.to{fill:#b8262a}
+#evOv .evNeedle{transform-origin:100px 100px;transform-box:view-box}
+#evOv .evN{position:absolute;left:50%;bottom:4px;transform:translateX(-50%);min-width:54px;padding:2px 10px;border-radius:8px;background:#1a0e04;color:#ffb84a;
+  font:900 18px ui-monospace,Menlo,Consolas,monospace;letter-spacing:.06em;box-shadow:0 0 12px rgba(255,170,60,.45) inset}
+#evOv .evTt{display:inline-block;margin-top:10px;padding:5px 16px;border-radius:999px;background:rgba(26,14,4,.82);color:#ffeec2;border:2px solid #d8aa4a;
+  font:900 14px 'Yu Mincho','Hiragino Mincho ProN',serif;letter-spacing:.08em}
+
+/* ★★ 2026-10-02 3D で引く XEVA ガチャ */
+#gHud.g3hide{display:none!important}
+#g3d{position:fixed;inset:0;z-index:30;pointer-events:none;display:none;font-family:'M PLUS Rounded 1c','Hiragino Sans',sans-serif}
+#g3d.on{display:block}
+#g3d .g3top{position:absolute;left:50%;top:calc(14px + env(safe-area-inset-top));translate:-50% 0;display:flex;align-items:center;gap:10px;padding:8px 14px 8px 8px;border-radius:16px;
+  background:linear-gradient(180deg,rgba(40,20,4,.9),rgba(20,10,2,.9));border:2px solid #d8aa4a;box-shadow:0 8px 24px rgba(0,0,0,.4);pointer-events:auto;max-width:min(94vw,640px)}
+#g3d .g3bn{height:46px;border-radius:8px;box-shadow:0 0 0 2px rgba(255,220,140,.5)}
+#g3d .g3t{display:flex;flex-direction:column;gap:2px;min-width:0}
+#g3d .g3nm{color:#ffe7a8;font-size:16px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#g3d .g3bal{color:#fff;font-size:13px;font-weight:800}
+#g3d .g3btns{position:absolute;left:50%;bottom:calc(22px + env(safe-area-inset-bottom));translate:-50% 0;display:none;gap:10px;flex-wrap:wrap;justify-content:center;pointer-events:auto;width:min(94vw,640px)}
+#g3d .g3btns.on{display:flex}
+#g3d button{font:inherit;cursor:pointer;border:0}
+#g3d .g3btns button{padding:12px 18px;border-radius:14px;background:rgba(20,12,4,.88);color:#fff;font-weight:900;border:2px solid rgba(255,220,140,.6)}
+#g3d .g3btns .g3p{position:relative;display:flex;flex-direction:column;align-items:center;min-width:132px;background:linear-gradient(180deg,#ffcf5a,#e09a1a);color:#3a2000;border-color:#fff3c0;box-shadow:0 6px 0 #9a5a08,0 10px 24px rgba(0,0,0,.35)}
+#g3d .g3btns .g3p b{font-size:18px}
+#g3d .g3btns .g3p small{font-size:12px;font-weight:800}
+#g3d .g3btns .g3p i{position:absolute;top:-10px;right:-8px;background:#e8284a;color:#fff;font-style:normal;font-size:11px;font-weight:900;padding:2px 8px;border-radius:999px;border:2px solid #fff}
+#g3d .g3btns .g3p10{background:linear-gradient(180deg,#ff8ad8,#b84aff);color:#fff;box-shadow:0 6px 0 #6a1a9a,0 10px 24px rgba(0,0,0,.35)}
+#g3d .g3btns .g3p:disabled{filter:grayscale(.8) brightness(.8);cursor:default}
+#g3d .g3skip{position:absolute;right:16px;bottom:calc(22px + env(safe-area-inset-bottom));display:none;padding:10px 16px;border-radius:999px;background:rgba(10,6,2,.8);color:#ffe7a8;font-weight:900;border:2px solid #d8aa4a!important;pointer-events:auto;z-index:3}
+#g3d .g3skip.on{display:block}
+#g3d .g3tap{position:absolute;inset:0;display:none;pointer-events:auto;cursor:pointer;font-size:0}
+#g3d .g3tap.on{display:block}
+#g3d .g3tap::after{content:"タップ（E）で次へ";position:absolute;left:50%;bottom:calc(80px + env(safe-area-inset-bottom));translate:-50% 0;color:#fff;font-weight:900;font-size:14px;text-shadow:0 2px 6px #000;animation:g3blink 1.2s ease-in-out infinite}
+@keyframes g3blink{50%{opacity:.35}}
+#g3d .g3msg{position:absolute;left:50%;top:9%;translate:-50% 0;display:none;pointer-events:none;z-index:2}
+#g3d .g3msg.on{display:block;animation:g3pop .6s cubic-bezier(.2,1.6,.4,1) both}
+#g3d .g3msg b{font-family:'Anton','M PLUS Rounded 1c',sans-serif;font-style:italic;font-size:clamp(48px,12vw,110px);letter-spacing:.04em}
+#g3d .g3msg b.ssr{background:linear-gradient(90deg,#ff5a6e,#ffd84a,#5ae08a,#4aa8ff,#c06aff);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 4px 0 #fff) drop-shadow(0 8px 18px rgba(0,0,0,.5))}
+#g3d .g3msg b.sr{color:#ffd84a;text-shadow:0 4px 0 #7a4a00,0 10px 20px rgba(0,0,0,.5)}
+@keyframes g3pop{0%{opacity:0;transform:scale(2.4) rotate(-8deg)}100%{opacity:1;transform:none}}
+#g3d .g3card{position:absolute;left:50%;top:57%;translate:-50% -50%;display:none;width:min(78vw,340px);border-radius:20px;overflow:hidden;background:#140c20;border:4px solid #c8c8d0;box-shadow:0 20px 60px rgba(0,0,0,.6);pointer-events:auto;z-index:2;cursor:pointer}
+#g3d .g3card.on{display:block;animation:g3card .55s cubic-bezier(.2,1.3,.4,1) both}
+@keyframes g3card{0%{opacity:0;transform:scale(.2) rotateY(90deg)}100%{opacity:1;transform:none}}
+#g3d .g3card.r-ssr{border-color:transparent;background:linear-gradient(#140c20,#140c20) padding-box,linear-gradient(135deg,#ff5a6e,#ffd84a,#5ae08a,#4aa8ff,#c06aff) border-box;box-shadow:0 0 40px rgba(255,200,255,.7),0 20px 60px rgba(0,0,0,.6)}
+#g3d .g3card.r-sr{border-color:#ffd84a;box-shadow:0 0 30px rgba(255,216,74,.55),0 20px 60px rgba(0,0,0,.6)}
+#g3d .g3cimg{aspect-ratio:1;background:#000}
+#g3d .g3cimg img{width:100%;height:100%;object-fit:cover;display:block}
+#g3d .g3cicon{aspect-ratio:1.6;display:grid;place-items:center;font-size:72px;background:radial-gradient(circle,#fff 0,var(--c,#9ad8ff) 60%,#1a1430 100%)}
+#g3d .g3cinfo{padding:10px 14px 14px;display:flex;flex-direction:column;gap:2px;color:#fff}
+#g3d .g3cinfo i{font-style:normal;font-weight:900;font-size:13px;color:#ffd84a}
+#g3d .g3card.r-ssr .g3cinfo i{color:#ff9ad8}
+#g3d .g3cinfo b{font-size:22px;font-weight:900}
+#g3d .g3cinfo span{font-size:13px;font-weight:800;color:#bfe6ff}
+#g3d .g3sum,#g3d .g3pick,#g3d .g3dlg{position:absolute;inset:0;display:none;place-items:center;background:rgba(6,3,12,.62);pointer-events:auto;z-index:5}
+#g3d .g3sum.on,#g3d .g3pick.on,#g3d .g3dlg.on{display:grid}
+#g3d .g3sbox,#g3d .g3pbox,#g3d .g3dbox{width:min(94vw,620px);max-height:86vh;overflow:auto;padding:16px;border-radius:18px;background:linear-gradient(180deg,#2a1a06,#160c02);border:3px solid #d8aa4a;color:#fff;box-shadow:0 20px 60px rgba(0,0,0,.6)}
+#g3d .g3sbox>b,#g3d .g3pbox>b,#g3d .g3dbox>b{display:block;font-size:17px;font-weight:900;color:#ffe7a8;margin-bottom:10px}
+#g3d .g3sg{display:grid;grid-template-columns:repeat(auto-fill,minmax(104px,1fr));gap:8px}
+#g3d .g3si{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px;border-radius:12px;background:rgba(255,255,255,.07);border:2px solid rgba(255,255,255,.18);text-align:center}
+#g3d .g3si.r-ssr{border-color:#ff9ad8;box-shadow:0 0 12px rgba(255,154,216,.6)}
+#g3d .g3si.r-sr{border-color:#ffd84a}
+#g3d .g3si img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:8px}
+#g3d .g3si .ic{width:100%;aspect-ratio:1;display:grid;place-items:center;font-size:34px;border-radius:8px;background:radial-gradient(circle,#fff 0,var(--c,#9ad8ff) 70%)}
+#g3d .g3si i{font-style:normal;font-weight:900;font-size:11px;color:#ffd84a}
+#g3d .g3si.r-ssr i{color:#ff9ad8}
+#g3d .g3si b{font-size:12px;font-weight:900;line-height:1.25}
+#g3d .g3si small{font-size:10.5px;color:#bfe6ff;font-weight:800}
+#g3d .g3sb,#g3d .g3dbt{display:flex;gap:10px;justify-content:center;margin-top:14px;flex-wrap:wrap}
+#g3d .g3sb button,#g3d .g3dbt button,#g3d .g3px{padding:11px 18px;border-radius:12px;background:rgba(255,255,255,.12);color:#fff;font-weight:900;border:2px solid rgba(255,255,255,.3)}
+#g3d .g3sb .ok,#g3d .g3dbt .ok{background:linear-gradient(180deg,#ffcf5a,#e09a1a);color:#3a2000;border-color:#fff3c0}
+#g3d .g3pl{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px}
+#g3d .g3pl button{display:flex;flex-direction:column;gap:4px;padding:6px;border-radius:12px;background:rgba(255,255,255,.08);color:#fff;font-weight:900;border:2px solid rgba(255,220,140,.4);text-align:left}
+#g3d .g3pl img{width:100%;border-radius:8px}
+#g3d .g3dic{font-size:34px;text-align:center}
+#g3d .g3dtx{font-size:14px;line-height:1.7;font-weight:700}
+#g3d.fl-rainbow::before,#g3d.fl-gold::before{content:"";position:absolute;inset:0;pointer-events:none;animation:g3fl 1.1s ease-out both}
+#g3d.fl-rainbow::before{background:radial-gradient(circle at 50% 55%,rgba(255,255,255,.95),rgba(255,140,220,.55) 30%,rgba(120,200,255,.35) 55%,transparent 75%)}
+#g3d.fl-gold::before{background:radial-gradient(circle at 50% 55%,rgba(255,250,220,.95),rgba(255,210,90,.5) 35%,transparent 70%)}
+@keyframes g3fl{0%{opacity:0}15%{opacity:1}100%{opacity:0}}

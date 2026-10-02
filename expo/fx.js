@@ -21,9 +21,9 @@
     "float fbm(vec2 p){ float v = 0.0, a = 0.5; for (int i = 0; i < 6; i++){ v += a * noise(p); p = p * 2.03 + vec2(1.7, 9.2); a *= 0.5; } return v; }",
     "void main(){",
     "  vec3 d = normalize(vd); float h = d.y;",
-    "  vec3 zen = vec3(0.10, 0.34, 0.82) * uDay + vec3(0.16, 0.18, 0.42) * uDusk + vec3(0.006, 0.012, 0.04) * uNight;",
-    "  vec3 mid = vec3(0.30, 0.58, 0.95) * uDay + vec3(0.62, 0.36, 0.48) * uDusk + vec3(0.02, 0.035, 0.09) * uNight;",
-    "  vec3 hor = vec3(0.74, 0.87, 0.99) * uDay + vec3(1.05, 0.56, 0.34) * uDusk + vec3(0.06, 0.09, 0.2) * uNight;",
+    "  vec3 zen = vec3(0.06, 0.32, 0.90) * uDay + vec3(0.16, 0.18, 0.42) * uDusk + vec3(0.006, 0.012, 0.04) * uNight;",
+    "  vec3 mid = vec3(0.26, 0.60, 1.0) * uDay + vec3(0.62, 0.36, 0.48) * uDusk + vec3(0.02, 0.035, 0.09) * uNight;",
+    "  vec3 hor = vec3(0.72, 0.88, 1.0) * uDay + vec3(1.05, 0.56, 0.34) * uDusk + vec3(0.06, 0.09, 0.2) * uNight;",
     "  float t = clamp(h, 0.0, 1.0);",
     "  vec3 c = mix(hor, mid, smoothstep(0.0, 0.25, t)); c = mix(c, zen, smoothstep(0.2, 0.95, t));",
     "  c = mix(c, hor * 0.92, smoothstep(0.0, -0.2, h));",
@@ -122,7 +122,7 @@
 
   /* ══════════════ 昼・夕方・夜 ══════════════ */
   const MODES = {
-    day: { day: 1, dusk: 0, night: 0, sunC: 0xfff1dc, sun: 2.5, hemiS: 0xe6f1ff, hemiG: 0x86976c, hemi: 0.5, fill: 0.25, exp: 0.82, fog: 0xcfe2fb, fogN: 260, fogF: 2200, emi: 0, lampPool: 0, bloom: 0.3, thr: 5.0, grade: [1.0, 1.0, 1.02] },
+    day: { day: 1, dusk: 0, night: 0, sunC: 0xfff0d6, sun: 2.55, hemiS: 0xe2f0ff, hemiG: 0x8aa070, hemi: 0.52, fill: 0.26, exp: 0.86, fog: 0xc6e0ff, fogN: 260, fogF: 2200, emi: 0, lampPool: 0, bloom: 0.3, thr: 5.0, grade: [1.02, 1.0, 0.98] },
     dusk: { day: 0.1, dusk: 0.9, night: 0, sunC: 0xffa060, sun: 1.6, hemiS: 0xffc8a6, hemiG: 0x5a4a50, hemi: 0.4, fill: 0.2, exp: 0.95, fog: 0xf0b48c, fogN: 200, fogF: 1800, emi: 0.55, lampPool: 0.45, bloom: 0.6, thr: 2.6, grade: [1.04, 0.98, 0.94] },
     night: { day: 0, dusk: 0, night: 1, sunC: 0xa8b8e8, sun: 0.32, hemiS: 0x243052, hemiG: 0x0a0a12, hemi: 0.24, fill: 0.08, exp: 1.05, fog: 0x0a1330, fogN: 140, fogF: 1600, emi: 1, lampPool: 1, bloom: 0.9, thr: 1.1, grade: [0.98, 0.98, 1.03] }
   };

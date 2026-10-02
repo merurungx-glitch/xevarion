@@ -78,7 +78,10 @@
     neon: { face: 0.88, hemi: 0.42, sun: 0.12, exp: 1.0, spot: 0, cafe: 0, room: 0.75, roomC: 0xe0a8ff, fog: [0x140a24, 30, 130], sky: 0xd8c8ff, gnd: 0x6a4a8a },
     cinema: { face: 0.8, hemi: 0.26, sun: 0.06, exp: 0.95, spot: 0, cafe: 0, room: 0.45, roomC: 0xffd8b0, fog: [0x0a0616, 30, 150], sky: 0xb0a0c8, gnd: 0x4a2a38 },
     dark: { face: 0.72, hemi: 0.14, sun: 0.04, exp: 0.95, spot: 0, cafe: 0, room: 0.2, roomC: 0x8a9aff, fog: [0x05040a, 12, 70], sky: 0x6a6a8a, gnd: 0x201828 },
-    planet: { face: 0.7, hemi: 0.12, sun: 0.02, exp: 1.0, spot: 0, cafe: 0, room: 0.1, roomC: 0x8ab0ff, fog: [0x02030a, 60, 240], sky: 0x3a4a8a, gnd: 0x101830 }
+    planet: { face: 0.7, hemi: 0.12, sun: 0.02, exp: 1.0, spot: 0, cafe: 0, room: 0.1, roomC: 0x8ab0ff, fog: [0x02030a, 60, 240], sky: 0x3a4a8a, gnd: 0x101830 },
+    /* ★★ 2026-09-30d 地下鉄（park_metro.js）：駅は明るい白・トンネルは暗い（日の光は届かない） */
+    metro: { face: 0.95, hemi: 1.05, sun: 0.0, exp: 1.0, spot: 0, cafe: 0, room: 1.0, roomC: 0xf2f6ff, fog: [0x1a1e2a, 70, 420], sky: 0xf4f8ff, gnd: 0xd8dce6 },
+    tunnel: { face: 0.8, hemi: 0.5, sun: 0.0, exp: 1.0, spot: 0, cafe: 0, room: 0, fog: [0x06070b, 40, 300], sky: 0xc8d4ff, gnd: 0x505460 }
   };
   (["lobby", "cafe", "store", "corridor", "expo"]).forEach((k) => { LIGHTS[k].sky = 0xfff8f0; LIGHTS[k].gnd = 0xe8e2da; });
   (["keynote", "track", "live"]).forEach((k) => { LIGHTS[k].sky = 0x9a9ab8; LIGHTS[k].gnd = 0x2a2440; });
@@ -172,7 +175,7 @@
     for (const c of crowd) {
       let d = Math.hypot(player.x - c.x, player.z - c.z);
       if (!c.fixed && !c.partnerOf && d > 40 && !sky.on) { if (c.lead ? pickStand(c, false) : c.kind === "stand" ? pickStand(c, false) : pickWalk(c, false)) { if (c.lead) placePartner(c); d = Math.hypot(player.x - c.x, player.z - c.z); } }
-      c.av.root.visible = d < (MOBILE ? 26 : 31) && !sky.on && !(riding && riding.L.id === "mono");
+      c.av.root.visible = d < (MOBILE ? 26 : 31) && !sky.on && !(riding && (riding.L.id === "mono" || riding.L.metro)) && !(player.y < -4);
       if (!c.av.root.visible) continue;
       c.skip = (c.skip + 1) % (d < 25 ? 1 : d < 40 ? 2 : 3);
       let vel = 0;
@@ -238,13 +241,50 @@
   });
   const joy = { id: null, x0: 0, y0: 0, dx: 0, dy: 0 }, look = { id: null, x: 0, y: 0 }, pinch = { d: 0 };
   const touches = {};
+  /* 見回す（ドラッグとポインターロックで共通） */
+  function lookBy(dx, dy) {
+    if (sky.on) { sky.yaw -= dx * 0.005; sky.pitch = Math.max(0.18, Math.min(1.45, sky.pitch + dy * 0.004)); }
+    else if (riding) XTransit.look(dx * SENS.v, dy * SENS.v);
+    else if ((!theater || theater.free) && !riding) { const k = SENS.v; cam.yaw -= dx * 0.0055 * k; cam.pitch = cam.fp ? Math.max(-1.35, Math.min(1.35, cam.pitch + dy * 0.004 * k)) : Math.max(-0.95, Math.min(1.3, cam.pitch + dy * 0.004 * k)); }
+  }
+  /* ★★ 2026-10-01 マイクラのように、カーソルを消してマウスを動かすだけで見回す（ポインターロック・パソコンだけ）
+     ・画面をクリックすると始まる（そのクリックは「話しかける」に使わない）。Esc でカーソルがもどる。
+     ・ロック中のクリックは画面の真ん中（＋の印）を選ぶ。画面（お店・地図など）を開くと自動でカーソルがもどる。 */
+  const PL = { on: !MOBILE && !!canvas.requestPointerLock, t: 0 };
+  try { if (localStorage.getItem("xeva_park_plock") === "0") PL.on = false; } catch (e) {}
+  const plocked = () => document.pointerLockElement === canvas;
+  const plockBlocked = () => !running || XParkUI.busy() || !!document.querySelector(".ov.on") || sky.on || !!game || (theater && !theater.free) || !!photoCam;
+  function plockReq() {
+    if (!PL.on || PL.fail >= 3 || plocked() || plockBlocked() || performance.now() - PL.t < 1300) return false;
+    try { const p = canvas.requestPointerLock({ unadjustedMovement: true }); if (p && p.catch) p.catch(() => { try { const q = canvas.requestPointerLock(); if (q && q.catch) q.catch(() => {}); } catch (er) {} }); } catch (er) { try { canvas.requestPointerLock(); } catch (er2) {} }
+    return true;
+  }
+  function setPlock(v) {
+    PL.on = !!v; try { localStorage.setItem("xeva_park_plock", v ? "1" : "0"); } catch (e) {}
+    if (!v && plocked()) document.exitPointerLock();
+    toast(v ? "画面をクリックすると、マウスを動かすだけで見回せます（Esc でカーソル）" : "ドラッグで見回すようにしました");
+  }
+  document.addEventListener("pointerlockchange", () => {
+    const on = plocked(); document.body.classList.toggle("plock", on);
+    if (!on) { PL.t = performance.now(); look.id = null; }
+    const h = $("plockHint"); if (h) { h.textContent = on ? "マウスで見回す・クリックで真ん中を選ぶ・Esc でカーソルを出す" : ""; h.classList.toggle("on", on); clearTimeout(PL.ht); if (on) PL.ht = setTimeout(() => h.classList.remove("on"), 3500); }
+  });
+  document.addEventListener("pointerlockerror", () => { PL.t = performance.now(); PL.fail = (PL.fail || 0) + 1; if (PL.fail === 3) toast("このブラウザではマウスの固定が使えないようです（ドラッグで見回せます）"); });
+  document.addEventListener("mousemove", (e) => {
+    if (!plocked()) return;
+    const dx = e.movementX || 0, dy = e.movementY || 0;
+    if (Math.abs(dx) > 300 || Math.abs(dy) > 300) return;          /* まれに来る大きな飛び（ブラウザの不具合）を捨てる */
+    lookBy(dx, dy);
+  });
   canvas.addEventListener("pointerdown", (e) => {
+    if (e.pointerType === "mouse" && plocked()) { if (e.button === 0 && !game && !sky.on) clickPick(innerWidth / 2, innerHeight / 2); return; }
+    const lockClick = e.pointerType === "mouse" && e.button === 0 && plockReq();
     try { canvas.setPointerCapture(e.pointerId); } catch (er) {}
     touches[e.pointerId] = { x: e.clientX, y: e.clientY };
     if (e.pointerType === "touch" && e.clientX < innerWidth * 0.45 && joy.id == null && !sky.on) {
       joy.id = e.pointerId; joy.x0 = e.clientX; joy.y0 = e.clientY; joy.dx = joy.dy = 0;
       $("joy").style.cssText = "display:block;left:" + (e.clientX - 60) + "px;top:" + (e.clientY - 60) + "px"; $("knob").style.transform = "translate(0,0)";
-    } else if (look.id == null) { look.id = e.pointerId; look.x = e.clientX; look.y = e.clientY; look.moved = 0; }
+    } else if (look.id == null) { look.id = e.pointerId; look.x = e.clientX; look.y = e.clientY; look.moved = 0; look.lockClick = lockClick; }
   });
   canvas.addEventListener("pointermove", (e) => {
     if (touches[e.pointerId]) { touches[e.pointerId].x = e.clientX; touches[e.pointerId].y = e.clientY; }
@@ -259,15 +299,13 @@
       joy.dx = dx / 55; joy.dy = dy / 55; $("knob").style.transform = "translate(" + dx + "px," + dy + "px)";
     } else if (e.pointerId === look.id) {
       const dx = e.clientX - look.x, dy = e.clientY - look.y; look.x = e.clientX; look.y = e.clientY; look.moved += Math.abs(dx) + Math.abs(dy);
-      if (sky.on) { sky.yaw -= dx * 0.005; sky.pitch = Math.max(0.18, Math.min(1.45, sky.pitch + dy * 0.004)); }
-      else if (riding) XTransit.look(dx * SENS.v, dy * SENS.v);
-      else if ((!theater || theater.free) && !riding) { const k = SENS.v; cam.yaw -= dx * 0.0055 * k; cam.pitch = cam.fp ? Math.max(-1.35, Math.min(1.35, cam.pitch + dy * 0.004 * k)) : Math.max(-0.95, Math.min(1.3, cam.pitch + dy * 0.004 * k)); }
+      if (!plocked()) lookBy(dx, dy);
     }
   });
   const endPtr = (e) => {
     delete touches[e.pointerId]; if (Object.keys(touches).length < 2) pinch.d = 0;
     if (e.pointerId === joy.id) { joy.id = null; joy.dx = joy.dy = 0; $("joy").style.display = "none"; }
-    if (e.pointerId === look.id) { if (look.moved < 8 && !game && !sky.on) clickPick(e.clientX, e.clientY); look.id = null; }
+    if (e.pointerId === look.id) { if (look.moved < 8 && !game && !sky.on && !look.lockClick) clickPick(e.clientX, e.clientY); look.id = null; }
   };
   canvas.addEventListener("pointerup", endPtr); canvas.addEventListener("pointercancel", endPtr);
   canvas.addEventListener("wheel", (e) => { if (sky.on) sky.dist = Math.max(260, Math.min(3200, sky.dist * (1 + Math.sign(e.deltaY) * 0.1))); else cam.dist = Math.max(1.6, Math.min(12, cam.dist * (1 + Math.sign(e.deltaY) * 0.1))); e.preventDefault(); }, { passive: false });
@@ -325,6 +363,7 @@
     if (!r) return;
     if (window.XRooms && XRooms.handle(r)) { if (player.sit) standUp(); return; }          /* ★★ 2026-09-30 建物の中・階・展望エレベーター（park_rooms.js） */
     if (XParkUI.handle(r, world.interiorAt ? world.interiorAt(player.x, player.z, player.y) : null)) return;
+    if (r.metro) { if (player.sit) standUp(); if (XTransit.metroAct) XTransit.metroAct(r.metro); return; }          /* ★★ 2026-09-30d 地下鉄のエレベーター・券売機・窓口（park_metro.js） */
     if (r.open) return openApp(r.open, r.app);
     if (r.slides) return openSlides(r.slides);
     if (r.menu) return openMenu();
@@ -381,12 +420,12 @@
     person: (spec) => XPeople.make(spec, { shadow: !MOBILE }) };
 
   /* ══════════════ 上空から見る（★ 2026-09-28d） ══════════════ */
-  const sky = { on: false, yaw: 0, pitch: 0.62, dist: 1900, target: new T.Vector3(0, 0, 200), k: 1 };
+  const sky = { on: false, yaw: 0, pitch: 0.62, dist: 1900, target: new T.Vector3(0, 0, 60), k: 1 };
   function toggleSky() {
     if (game || theater || riding) return;
     sky.on = !sky.on; sky.k = 0;
     document.body.classList.toggle("skyview", sky.on);
-    if (sky.on) { sky.yaw = 0; sky.pitch = 0.62; sky.dist = MOBILE ? 2300 : 1900; sky.target.set(0, 0, 200); world.viewR = 1e5; world.viewD = MOBILE ? 300 : 900; if (world.crowdNear) world.crowdNear.value = 0; closeOverlays(); toast("上空から見ています（もどるは右上のボタン・Esc）"); }
+    if (sky.on) { sky.yaw = 0; sky.pitch = 0.62; sky.dist = MOBILE ? 2600 : 2150; sky.target.set(0, 0, 60); world.viewR = 1e5; world.viewD = MOBILE ? 300 : 900; if (world.crowdNear) world.crowdNear.value = 0; closeOverlays(); toast("上空から見ています（もどるは右上のボタン・Esc）"); }
     else { world.viewR = VIEWR * AQ.r; world.viewD = VIEWD; if (world.crowdNear) world.crowdNear.value = 30; }
   }
   $("skyBtn").onclick = toggleSky; $("skyBack").onclick = toggleSky;
@@ -394,9 +433,10 @@
   /* ══════════════ 昼・夕方・夜（★ 2026-09-28d） ══════════════ */
   const TIME_ICON = { day: "☀️", dusk: "🌇", night: "🌙" }, TIME_NAME = { day: "昼", dusk: "夕方", night: "夜" };
   function setTimeIcon(m) { $("timeBtn").innerHTML = '<svg class="ic"><use href="#i-' + ({ day: "sun", dusk: "dusk", night: "moon" }[m] || "sun") + '"/></svg><small>' + (TIME_NAME[m] || "昼") + '</small>'; showKeyBadges(); }
-  /* ★★ 2026-09-30b 昼夜は時間で自動にくり返す（昼 7 分 → 夕方 1 分半 → 夜 5 分 → 昼 …・ご指定）。☀️ ボタン・T で変えると、そこから数えなおす */
-  const TIME_LEN = { day: 420, dusk: 90, night: 300 };
-  let timeLeft = TIME_LEN[XFX.mode] || 420;
+  /* ★★ 2026-09-30b 昼夜は時間で自動にくり返す。☀️ ボタン・T で変えると、そこから数えなおす
+     ★★ 2026-09-30d 周期を長く（ご指定「昼夜の周期を少し長く」）：昼 10 分 → 夕方 2 分半 → 夜 7 分 → 昼 …（1 周 19 分半・前は 13 分半） */
+  const TIME_LEN = { day: 600, dusk: 150, night: 420 };
+  let timeLeft = TIME_LEN[XFX.mode] || 600;
   function tickTime(dt) {
     if (game || theater) return;
     timeLeft -= dt; if (timeLeft > 0) return;
@@ -449,13 +489,15 @@
     const L = vidList().filter((v) => v.id !== id); L.unshift({ id, title: id }); vidSave(L); renderVidList();
     if (ytPlayer) { try { ytPlayer.destroy(); } catch (e) {} ytPlayer = null; }
     $("vidFrame").innerHTML = '<div id="ytp"></div>'; $("vidFrame").style.display = "block"; theater.shown = true; theater.playing = false;
-    const plain = () => { $("vidFrame").innerHTML = '<iframe src="https://www.youtube-nocookie.com/embed/' + id + '?autoplay=1&playsinline=1&rel=0&modestbranding=1&cc_load_policy=0&iv_load_policy=3" title="YouTube" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>'; if (theater) theater.playing = true; };
+    const snd = XShows.AU.on;          /* ★★ 2026-09-30d 音がオフのときは消音で再生（♪ でオンにすると音が出る） */
+    if (!snd) toast("🔇 音はオフです（右上の ♪ でオンにすると動画の音も出ます）");
+    const plain = () => { $("vidFrame").innerHTML = '<iframe src="https://www.youtube-nocookie.com/embed/' + id + '?autoplay=1&playsinline=1&rel=0&modestbranding=1&cc_load_policy=0&iv_load_policy=3&mute=' + (snd ? 0 : 1) + '" title="YouTube" allow="autoplay; encrypted-media; picture-in-picture; fullscreen" allowfullscreen referrerpolicy="strict-origin-when-cross-origin"></iframe>'; if (theater) theater.playing = true; };
     loadYT().then(() => {
       if (!theater) return;
       ytPlayer = new YT.Player("ytp", { width: 1280, height: 720, videoId: id, host: "https://www.youtube-nocookie.com",
-        playerVars: { autoplay: 1, playsinline: 1, rel: 0, modestbranding: 1, cc_load_policy: 0, iv_load_policy: 3 },
+        playerVars: { autoplay: 1, playsinline: 1, rel: 0, modestbranding: 1, cc_load_policy: 0, iv_load_policy: 3, mute: snd ? 0 : 1 },
         /* ★★ 2026-09-30b 字幕（自動字幕）を出さない：読みこみ・再生のたびに字幕の部品を外す */
-        events: { onReady: (e) => noCC(e.target), onStateChange: (e) => { if (theater) theater.playing = e.data === 1 || e.data === 3; if (e.data === 1) { XShows.Arena.clock = 0; noCC(e.target); } }, onError: () => toast("この動画は埋め込みで再生できないかもしれません") } });
+        events: { onReady: (e) => { noCC(e.target); try { if (XShows.AU.on) e.target.unMute(); else e.target.mute(); } catch (er) {} }, onStateChange: (e) => { if (theater) theater.playing = e.data === 1 || e.data === 3; if (e.data === 1) { XShows.Arena.clock = 0; noCC(e.target); } }, onError: () => toast("この動画は埋め込みで再生できないかもしれません") } });
     }).catch(plain);
     const scr = theater.sp.scr; scr.draw = (g, W, H) => { g.fillStyle = "#000"; g.fillRect(0, 0, W, H); g.fillStyle = "#fff"; g.font = "900 60px sans-serif"; g.textAlign = "center"; g.fillText("▶ NOW PLAYING", W / 2, H / 2); g.textAlign = "left"; };
     /* ★ 2026-09-29d 画面は「窓」（色も透明度も 0 を書く）→ うしろの動画が見える。画面より前の人・キャラ・光は動画の上に描かれる（前は動画が一番上にかぶさって人をかくしていた） */
@@ -579,10 +621,14 @@
   $("hoverBtn").onclick = () => { if (!game && !theater && !riding && !XRides.RIDE.cur && !sky.on) toggleHover(); };
   $("exitBtn").onclick = () => { saveState({ x: player.x, z: player.z, yaw: player.yaw }); location.href = ROOT + "index.html"; };
   /* ★ 2026-09-29b 音楽：起動したときはオフ。オンにすると「曲が流れます」とお知らせしてから鳴らす */
+  /* ★★ 2026-09-30d 音楽のスイッチ＝すべての音のスイッチ（ご指定「音楽がオフの場合は放送などを含むすべての音をオフ」）：
+     オフにすると車内放送（読み上げ）・チャイムも止め、動画も消音。オンにすると動画の音ももどす */
   function setMusic(on) {
     const AU = XShows.AU; AU.setOn(on); $("musicBtn").classList.toggle("off", !on);
-    if (on) { const k = AU.now() || AU.parkKey(); showNotice("♪ 音楽をオンにしました — 「" + AU.NAMES[k] + "」が流れます", "music"); }
-    else toast("パークの音楽：オフ");
+    if (!on) { try { if (window.speechSynthesis) speechSynthesis.cancel(); } catch (e) {} }
+    try { if (ytPlayer) { if (on) ytPlayer.unMute(); else ytPlayer.mute(); } } catch (e) {}
+    if (on) { const k = AU.now() || AU.parkKey(); showNotice("♪ 音をオンにしました — 「" + AU.NAMES[k] + "」が流れます（放送・動画の音も出ます）", "music"); }
+    else toast("🔇 音：オフ（音楽・放送・動画の音）");
     nowPlaying(true);
   }
   function nowPlaying(force) {
@@ -595,12 +641,6 @@
   /* ★ 2026-09-29d ワールドを開くたびに音楽はオフから（戻るボタンでページがそのまま復元されたときも） */
   addEventListener("pageshow", (e) => { if (e.persisted && XShows.AU.on) { XShows.AU.setOn(false); $("musicBtn").classList.add("off"); nowPlaying(true); } });
   addEventListener("pagehide", () => { if (XShows.AU.on) XShows.AU.setOn(false); });
-  /* ★ 2026-09-29d ショーのあとに「提供 NGX」 */
-  function showSponsor(kind) {
-    const el = $("sponsor"); if (!el) return;
-    el.querySelector("small").textContent = { parade: "デイタイムパレード", night: "XEVARION NIGHT", harbor: "水上パレード" }[kind] || "ショー";
-    el.classList.remove("on"); void el.offsetWidth; el.classList.add("on"); clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove("on"), 6500);
-  }
   $("musicBtn").classList.toggle("off", !XShows.AU.on);
   $("runBtn").onclick = () => runKey("run");
   function toggleRun() { player.runLock = !player.runLock; $("runBtn").classList.toggle("on", player.runLock); toast(player.runLock ? "ダッシュ：オン" : "ダッシュ：オフ"); };
@@ -608,7 +648,7 @@
 
   /* 地図（島の形・エリア・道・サーキット・モノレール） */
   /* 地図の下絵（島・道・エリア・川）は1回だけ描いておく（毎フレーム道を全部描くと重い） */
-  let mapBase = null; const MB = { x0: -900, z0: -680, x1: 900, z1: 1060, S: 2048 };
+  let mapBase = null; const MB = { x0: XPark.BOUNDS.x0, z0: XPark.BOUNDS.z0, x1: XPark.BOUNDS.x1, z1: XPark.BOUNDS.z1, S: 2048 };          /* ★★ 2026-10-01 島の範囲（park.js の BOUNDS） */
   function baseMap() {
     if (mapBase) return mapBase;
     const c = document.createElement("canvas"); c.width = c.height = MB.S; const g = c.getContext("2d"), s = MB.S / Math.max(MB.x1 - MB.x0, MB.z1 - MB.z0);
@@ -623,7 +663,10 @@
     if (world.circuit) { g.strokeStyle = "#3a3d45"; g.lineWidth = 14 * s; g.beginPath(); world.circuit.pts.forEach((p, i) => { const [a, b] = P(p.x, p.z); if (i) g.lineTo(a, b); else g.moveTo(a, b); }); g.closePath(); g.stroke(); }
     (world.rivers || []).forEach((rv) => { g.strokeStyle = "#3ac0e8"; g.lineWidth = Math.max(2, rv.w * s); g.beginPath(); rv.pts.forEach(([x, z], i) => { const [a, b] = P(x, z); if (i) g.lineTo(a, b); else g.moveTo(a, b); }); g.stroke(); });
     /* ★★ 2026-09-29c モノレール（青）・路面電車（赤）の線と駅 */
-    (window.XTransit ? XTransit.lines : []).forEach((Ln) => { const A = Ln.A, q = { x: 0, y: 0, z: 0 }, at = (sv) => { const k = (((sv % A.L) + A.L) % A.L) / A.ds, i = Math.min(A.n - 1, Math.floor(k)), f = k - i; q.x = A.P[i * 3] + (A.P[i * 3 + 3] - A.P[i * 3]) * f; q.z = A.P[i * 3 + 2] + (A.P[i * 3 + 5] - A.P[i * 3 + 2]) * f; return q; };
+    /* ★★ 2026-09-30d 地下鉄（点線＝地下・駅は四角） */
+    if (window.XMetro && XMetro.built) { const M = XMetro; g.lineCap = "round"; g.lineJoin = "round"; g.setLineDash([10 * s * 2.2, 6 * s * 2.2]); g.strokeStyle = M.LINE.color; g.lineWidth = Math.max(2.5, 4.5 * s * 2.2); g.beginPath(); M.mapPts.forEach(([x, z], i) => { const [a, b] = P(x, z); if (i) g.lineTo(a, b); else g.moveTo(a, b); }); g.closePath(); g.stroke(); g.setLineDash([]);
+      M.stations.forEach((S) => { const [a, b] = P(S.cx, S.cz), r = Math.max(3, 5.5 * s * 2.2); g.fillStyle = "#fff"; g.strokeStyle = M.LINE.color; g.lineWidth = Math.max(1.5, r * 0.45); g.fillRect(a - r, b - r, r * 2, r * 2); g.strokeRect(a - r, b - r, r * 2, r * 2); const [ka, kb] = P(S.tx, S.tz); g.fillStyle = M.LINE.color; g.beginPath(); g.arc(ka, kb, Math.max(2, r * 0.55), 0, 7); g.fill(); }); }
+    (window.XTransit ? XTransit.lines : []).forEach((Ln) => { if (Ln.metro) return; const A = Ln.A, q = { x: 0, y: 0, z: 0 }, at = (sv) => { const k = (((sv % A.L) + A.L) % A.L) / A.ds, i = Math.min(A.n - 1, Math.floor(k)), f = k - i; q.x = A.P[i * 3] + (A.P[i * 3 + 3] - A.P[i * 3]) * f; q.z = A.P[i * 3 + 2] + (A.P[i * 3 + 5] - A.P[i * 3 + 2]) * f; return q; };
       g.lineCap = "round"; g.lineJoin = "round"; g.strokeStyle = Ln.color; g.lineWidth = Math.max(2.5, (Ln.id === "mono" ? 5 : 3.5) * s * 2.2); g.beginPath(); for (let sv = 0; sv <= A.L; sv += 6) { const p = at(sv), [a, b] = P(p.x, p.z); if (sv) g.lineTo(a, b); else g.moveTo(a, b); } g.closePath(); g.stroke();
       g.strokeStyle = "#fff"; g.lineWidth = Math.max(1, g.lineWidth * 0.3); g.stroke();
       Ln.stops.forEach((st) => { const p = at(st.sC), [a, b] = P(p.x, p.z), r = Math.max(3, 6 * s * 2.2); g.fillStyle = "#fff"; g.strokeStyle = Ln.color; g.lineWidth = Math.max(1.5, r * 0.4); g.beginPath(); g.arc(a, b, r, 0, 7); g.fill(); g.stroke(); }); });
@@ -631,7 +674,7 @@
   }
   function drawMap(c, big) {
     const g = c.getContext("2d"), W = c.width, H = c.height;
-    const x0 = big ? -900 : player.x - 110, x1 = big ? 900 : player.x + 110, z0 = big ? -680 : player.z - 88, z1 = big ? 1060 : player.z + 88, s = Math.min(W / (x1 - x0), H / (z1 - z0));
+    const x0 = big ? MB.x0 : player.x - 110, x1 = big ? MB.x1 : player.x + 110, z0 = big ? MB.z0 : player.z - 88, z1 = big ? MB.z1 : player.z + 88, s = Math.min(W / (x1 - x0), H / (z1 - z0));
     const P = (x, z) => [(x - x0) * s + (W - (x1 - x0) * s) / 2, (z - z0) * s + (H - (z1 - z0) * s) / 2];
     g.clearRect(0, 0, W, H); g.fillStyle = "#1e78b4"; g.fillRect(0, 0, W, H);
     { const bm = baseMap(), bs = MB.S / Math.max(MB.x1 - MB.x0, MB.z1 - MB.z0), [dx0, dz0] = P(MB.x0, MB.z0); g.imageSmoothingEnabled = true; g.drawImage(bm, dx0, dz0, MB.S / bs * s, MB.S / bs * s); }
@@ -676,6 +719,7 @@
       reset: () => { Object.assign(KEYS, KEY_DEF); saveKeys(); },
       sens: () => SENS.v, setSens: (v) => { SENS.v = v; try { localStorage.setItem("xeva_park_sens", String(v)); } catch (e) {} },
       fp: () => !!cam.fp, setFP: (v) => toggleFP(v),
+      plock: () => PL.on, setPlock: (v) => setPlock(v),
       vol: () => XShows.AU.master, setVol: (v) => XShows.AU.setVolume(v), music: () => XShows.AU.on, setMusicOn: (v) => setMusic(v),
       quality: () => ({ level: XGFX.user || XGFX.level, auto: XGFX.auto, levels: XGFX.ORDER }), setQuality: (lv, auto) => XGFX.setUser(lv, auto)
     });
@@ -744,11 +788,13 @@
   const camPos = new T.Vector3(), tmp = new T.Vector3(), camLook = new T.Vector3();
   function step(now) {
     requestAnimationFrame(step);
+    if (document.body.classList.contains("gachaOpen") && (step.sk = ((step.sk || 0) + 1) % 8)) { last = now; return; }          /* ★★ 2026-10-01 本物のガチャの画面を重ねている間は、パークはほとんど描かない（軽く） */
     const dt = Math.max(0, Math.min(0.05, (now - last) / 1000)); last = now; tAll += dt;
     const fxc = XFX.update(dt, tAll);
     autoQuality(dt);
     world.nightShow = fxc.night + fxc.dusk * 0.5;
     if (!running || !player.av) { world.update(dt, tAll, camera); XGFX.before(scene, camera, tAll, null, XFX.sky, !sky.on); XFX.render(scene, camera); return; }
+    if (plocked() && (PL.chk = (PL.chk || 0) + dt) > 0.2) { PL.chk = 0; if (plockBlocked()) document.exitPointerLock(); }
     /* 入力（W の前後・A/D の左右・スティック） */
     let ix = 0, iz = 0;
     if (keys.KeyW || keys.ArrowUp) iz -= 1; if (keys.KeyS || keys.ArrowDown) iz += 1;
@@ -761,7 +807,7 @@
     const ownsMove = (game && game.ownsMove) || sky.on || (theater && !theater.free) || riding || XTransit.busy() || XRides.RIDE.cur || XRides.HOVER.on || XRooms.busy();
     if (XRides.HOVER.on) { rideCtx.t = tAll; XRides.HOVER.update(dt, sky.on ? { ix: 0, iz: 0, boost: false } : { ix, iz, boost: player.run || player.dash || player.runLock || (joy.id != null && Math.hypot(ix, iz) > 0.95) }, rideCtx); }
     let realV = 0;
-    if (sky.on && (ix || iz)) { const sp = sky.dist * 0.55 * dt, fx = -Math.sin(sky.yaw), fz = -Math.cos(sky.yaw), rx = Math.cos(sky.yaw), rz = -Math.sin(sky.yaw); sky.target.x = Math.max(-900, Math.min(900, sky.target.x + (fx * -iz + rx * ix) * sp)); sky.target.z = Math.max(-700, Math.min(1100, sky.target.z + (fz * -iz + rz * ix) * sp)); }
+    if (sky.on && (ix || iz)) { const sp = sky.dist * 0.55 * dt, fx = -Math.sin(sky.yaw), fz = -Math.cos(sky.yaw), rx = Math.cos(sky.yaw), rz = -Math.sin(sky.yaw); sky.target.x = Math.max(XPark.BOUNDS.x0 + 20, Math.min(XPark.BOUNDS.x1 - 20, sky.target.x + (fx * -iz + rx * ix) * sp)); sky.target.z = Math.max(XPark.BOUNDS.z0 + 20, Math.min(XPark.BOUNDS.z1 - 20, sky.target.z + (fz * -iz + rz * ix) * sp)); }
     if (!ownsMove) {
       const mag = Math.min(1, Math.hypot(ix, iz));
       if (player.sit && mag > 0.3) standUp();
@@ -830,11 +876,13 @@
     }
 
     /* 場所ごとの明るさ（外は昼・夕・夜の今の値）。NIGHT ZONE の中は夜 */
-    const zn = player.deck ? { name: player.deck.name || "展望フロア", light: "deck", x0: 0, z0: 0, x1: 0, z1: 0 } : world.zoneAt(player.x, player.z);
+    /* ★★ 2026-09-30d 地下（地下鉄の駅・トンネル）：地上のエリアではなく駅の名前と明るさ */
+    const ug = !sky.on && player.y < -1.5 && player.y > -100 && world.metroZoneAt ? world.metroZoneAt(player.x, player.z, player.y, riding) : null;
+    const zn = player.deck ? { name: player.deck.name || "展望フロア", light: "deck", x0: 0, z0: 0, x1: 0, z1: 0 } : ug || world.zoneAt(player.x, player.z);
     XFX.force(null);     /* ★ 2026-09-29b 昼夜はどのエリアも同じ（ご指定：NIGHT も他のエリアに連動） */
     LIGHTS.outdoor.hemi = fxc.hemi; LIGHTS.outdoor.sun = fxc.sun; LIGHTS.outdoor.exp = fxc.exp; LIGHTS.outdoor.fog = [fxc.fog, sky.on ? 2600 : fxc.fogN, sky.on ? 9000 : fxc.fogF];
     LIGHTS.arena.hemi = fxc.hemi + 0.1; LIGHTS.arena.sun = fxc.sun * 0.7; LIGHTS.arena.exp = fxc.exp; LIGHTS.arena.fog = [fxc.fog, 120, 900];
-    const tl = sky.on || riding || XRooms.busy() || player.deck ? LIGHTS.outdoor : (LIGHTS[(zn && zn.light) || "outdoor"] || LIGHTS.outdoor);     /* 上空から見ているときは外の明るさ（建物の中の暗さを島じゅうに当てない） */
+    const tl = ug ? (LIGHTS[ug.light] || LIGHTS.metro) : sky.on || riding || XRooms.busy() || player.deck ? LIGHTS.outdoor : (LIGHTS[(zn && zn.light) || "outdoor"] || LIGHTS.outdoor);     /* 上空から見ているときは外の明るさ（建物の中の暗さを島じゅうに当てない） */
     const k = Math.min(1, dt * 2.2);
     curLight.hemi += (tl.hemi - curLight.hemi) * k; curLight.sun += (tl.sun - curLight.sun) * k; curLight.exp += (tl.exp - curLight.exp) * k;
     curLight.spot += (tl.spot - curLight.spot) * k; curLight.cafe += (tl.cafe - curLight.cafe) * k;
@@ -853,6 +901,7 @@
     const znName = zn && !/^\d/.test(zn.name) && zn.light !== "outdoor" ? zn.name : ar ? ar.n + " " + ar.name : zn ? zn.name : "XEVARION PARK";
     if (ar) XParkUI.area(ar);
     if (znName !== zoneName) { zoneName = znName; $("zone").textContent = znName; $("zone").classList.remove("pop"); void $("zone").offsetWidth; $("zone").classList.add("pop"); }
+    stationHint(dt);
 
     world.update(dt, tAll, camera);
     tickTime(dt);
@@ -871,14 +920,14 @@
     if (!sky.on) drawMap($("mini"), false);
     placeBubbles();
     XGFX.before(scene, camera, tAll, player, XFX.sky, !sky.on);
-    if (XGFX.petals && curLight.room > 0.05) XGFX.petals.pts.visible = false;
+    if (XGFX.petals && (curLight.room > 0.05 || camera.position.y < -1)) XGFX.petals.pts.visible = false;          /* ★★ 2026-09-30d 地下（地下鉄）でも花びら・ほたるは舞わない */
     XFX.render(scene, camera);
     if (snapCb && (!photoCam || photoCam.t > 0.6)) { const cb = snapCb; snapCb = null; let url = null; try { url = renderer.domElement.toDataURL("image/jpeg", 0.92); } catch (e) {} cb(url); }
     XParkUI.skyTags(sky.on && sky.k >= 1, camera);
     nowPlaying();
     placeVideo();
     if (window.XAdult) XAdult.update(camera);          /* ★★ 2026-09-30b 大人のギャラリーの額（画面の窓のうしろの画像） */
-    if (tAll - (step.saved || 0) > 3 && !game && !riding && !XRooms.inRoom() && !player.deck) { step.saved = tAll; saveState({ x: player.x, z: player.z, yaw: player.yaw }); }
+    if (tAll - (step.saved || 0) > 3 && !game && !riding && !XRooms.inRoom() && !player.deck && player.y > -1.5) { step.saved = tAll; saveState({ x: player.x, z: player.z, yaw: player.yaw }); }
   }
   /* ★★ 2026-09-29 下から見上げる（ご指定「キャラを下から見られず、床も変になる」）
      前はカメラが地面の下にもぐって、床が消えたり裏が見えたりしていた。
@@ -887,7 +936,7 @@
   /* ショーに渡す今の様子 */
   let _sc = null;
   function showCtx(zn) {
-    const c = _sc || (_sc = { world, renderer, player, camera, notice: (t, kind) => showNotice(t, kind), sponsor: (kind) => showSponsor(kind) });
+    const c = _sc || (_sc = { world, renderer, player, camera, notice: (t, kind) => showNotice(t, kind) });   /* ★★ 2026-10-01 ショーのあとの「提供」は画面に出さない（列の最後の車・船に書いてある・ご指定） */
     c.theater = theater; c.zone = zn || world.zoneAt(player.x, player.z); c.day = XFX.mode === "day" && !(c.zone && c.zone.night); c.night = XFX.mode === "night";
     c.inNightZone = !!(c.zone && c.zone.night); c.sky = sky.on; c.riding = !!riding;
     return c;
@@ -932,7 +981,7 @@
     /* ★★ 2026-09-29 建物の中：カメラは部屋の中（壁・天井の手前）にとどめる */
     const IQ = world.interiorAt ? world.interiorAt(player.x, player.z, player.y) : null;
     if (IQ) { const kk = world.camInside(IQ, cam.target, camPos); if (kk < 1) camPos.lerpVectors(cam.target, camPos, Math.max(0.04, kk)); }
-    const minY = Math.max((player.y < -100 ? player.y : player.deck ? player.deck.y : world.heightAt(camPos.x, camPos.z)) + 0.35, player.y + (player.sit ? 0.75 : 0.95));
+    const minY = Math.max((player.y < -1.5 ? player.y : player.deck ? player.deck.y : world.heightAt(camPos.x, camPos.z)) + 0.35, player.y + (player.sit ? 0.75 : 0.95));          /* ★★ 2026-09-30d 地下（地下鉄）でも地面の上にカメラを上げない */
     if (camPos.y < minY) camPos.y = minY;
     camera.position.lerp(camPos, e);
     if (IQ) { const kk = world.camInside(IQ, cam.target, camera.position); if (kk < 1) camera.position.lerpVectors(cam.target, camera.position, Math.max(0.04, kk)); }
@@ -1017,6 +1066,30 @@
     });
   }
 
+  /* ══════════════ いちばん近い駅（★★ 2026-10-01 ご指定「地下鉄やモノレールのアクセスを改善」「駅の場所がわかりづらい」） ══════════════
+     画面の上（エリア名の下）に、いちばん近いモノレールの駅・地下鉄の出入口の「向き（矢印）と距離」。押すと、その駅の前へ移動できる。 */
+  const SH = { t: 0, list: null, key: "" };
+  function stationList() {
+    if (SH.list) return SH.list;
+    const out = [], p = { x: 0, y: 0, z: 0 };
+    const mono = world.monorail; if (mono && window.XTransit) mono.stops.forEach((st) => { const P2 = XTransit.lib && XTransit.lib.pAt ? XTransit.lib.pAt(mono.A, st.sC, p) : null; out.push({ kind: "mono", icon: "🚝", c: "#1a8ad8", no: st.no, name: st.name, x: P2 ? P2.x : 0, z: P2 ? P2.z : 0, go: st.lift ? st.lift.down : null, alt: st.outer || null }); });
+    if (window.XMetro) XMetro.kiosks.forEach((k) => { const S = XMetro.stations[k.si]; if (S) out.push({ kind: "metro", icon: "🚇", c: "#ff3d8b", no: S.no, name: S.name, x: k.x, z: k.z, go: S.evStreet || [k.x, k.z] }); });
+    return (SH.list = out.filter((q) => q.x || q.z));
+  }
+  function stationHint(dt) {
+    SH.t -= dt; if (SH.t > 0) return; SH.t = 0.5;
+    const el = $("stHint"); if (!el) return;
+    if (!running || sky.on || riding || game || player.y < -2 || XTransit.busy() || XParkUI.busy()) { if (el.innerHTML) { el.innerHTML = ""; SH.key = ""; } return; }
+    const L = stationList(), fx = -Math.sin(cam.yaw), fz = -Math.cos(cam.yaw), rx = Math.cos(cam.yaw), rz = -Math.sin(cam.yaw);
+    const best = {}; L.forEach((q) => { const d = Math.hypot(q.x - player.x, q.z - player.z); if (!best[q.kind] || d < best[q.kind].d) best[q.kind] = { q, d }; });
+    const AR = ["↑", "↗", "→", "↘", "↓", "↙", "←", "↖"];
+    const html = ["mono", "metro"].filter((k) => best[k] && best[k].d < 1400).map((k) => { const { q, d } = best[k], tx = q.x - player.x, tz = q.z - player.z, rel = Math.atan2(tx * rx + tz * rz, tx * fx + tz * fz), ai = ((Math.round(rel / (Math.PI / 4)) % 8) + 8) % 8;
+      return '<button data-k="' + k + '" style="--c:' + q.c + '" title="押すと駅の前へ移動">' + q.icon + " " + q.no + " " + q.name + " <small>" + (d < 1000 ? Math.round(d / 10) * 10 + "m" : (d / 1000).toFixed(1) + "km") + "</small><b>" + (d < 25 ? "●" : AR[ai]) + "</b></button>"; }).join("");
+    if (html === SH.key) return; SH.key = html; el.innerHTML = html;
+    el.querySelectorAll("button").forEach((b) => b.onclick = () => { const k = b.dataset.k, q = best[k] && best[k].q; if (!q) return; const g = q.alt && Math.hypot(q.alt[0] - player.x, q.alt[1] - player.z) < Math.hypot((q.go ? q.go[0] : q.x) - player.x, (q.go ? q.go[1] : q.z) - player.z) ? q.alt : q.go || [q.x, q.z];
+      if (XRides.HOVER.on) toggleHover(); if (player.sit) standUp(); player.deck = null; player.x = g[0]; player.z = g[1]; player.y = 0; cam.yaw = player.yaw + Math.PI; if (player.av) player.av.resetSpring(); for (const c of crowd) if (!c.fixed) c.x = 1e5; toast(q.icon + " " + q.no + " " + q.name + "駅 の前へ移動しました"); });
+  }
+
   /* ══════════════ はじまり ══════════════ */
   world.screens.forEach((s) => { s.draw0 = s.draw; });
   function start() {
@@ -1024,6 +1097,9 @@
     $("hud").classList.add("on");
     setTimeout(() => showNotice("🎵 音楽はオフです。右上の ♪（" + keyName(KEYS.music) + " キー）でオンにすると、パークの曲が流れます", "info"), 3200);
     toast("XEVARION PARK へようこそ！ " + (MOBILE ? "左をドラッグで歩く・右をドラッグで見回す・🛰 で空から見る" : "WASD で歩く・W 2回でダッシュ・E で話す／すわる・M 地図・V 空から・T 昼夜"));
+    /* ★★ 2026-10-01 推奨環境（パソコン・スマホ）と注意は、PARK を開く前（ホームのボタン）に出す（ご指定）。ホームを通らずに開いたときだけ、ここで出す。重いときは fps で知らせる */
+    if (window.XSpec) setTimeout(() => { let seen = false; try { seen = Date.now() - Number(sessionStorage.getItem("xeva_park_spec_ok") || 0) < 8 * 3600e3; } catch (e) {} const sc = { renderer, toast: (t) => toast(t), setQuality: (lv) => XGFX.setUser(lv, false) }; if (seen) XSpec.watch(sc); else if (!XParkUI.busy()) { XSpec.warn(sc); try { sessionStorage.setItem("xeva_park_spec_ok", String(Date.now())); } catch (e) {} } }, 900);
+    if (PL.on) setTimeout(() => showNotice("🖱️ 画面をクリックすると、カーソルが消えてマウスを動かすだけで見回せます（Esc でカーソルがもどる・設定で切りかえ）", "info"), 9000);
   }
   const mgr = T.DefaultLoadingManager;
   mgr.onProgress = (u, a, b) => { $("barIn").style.width = Math.round(a / Math.max(1, b) * 60) + "%"; };
@@ -1045,4 +1121,6 @@
   setTimeout(ready, 6000);
   requestAnimationFrame(step);
   window.EXPO = { world, player, npcs: () => npcs, camera, renderer, scene, cam, game: () => game, startGame, exitGame, toggleSky, sky, FX: XFX, crowd, openApp: (h, a) => openApp(h, a) };
+  /* ★★ 2026-09-30c 開発用の配置図（URL に ?debug を付けたときだけ） */
+  if (/[?&]debug\b/.test(location.search)) { const sc = document.createElement("script"); sc.src = "park_debug.js?v=" + Date.now(); document.head.appendChild(sc); }
 })();

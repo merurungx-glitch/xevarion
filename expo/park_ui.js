@@ -67,8 +67,8 @@
     const ov = $("pui"); ov.className = "ov pui on " + (cls || ""); ov.querySelector(".pic").textContent = icon; ov.querySelector(".pti").textContent = title;
     const b = ov.querySelector(".pbody"); b.innerHTML = ""; b.scrollTop = 0; return b;
   }
-  function close() { stopAll(); $("pui").classList.remove("on"); }
-  const busy = () => $("pui").classList.contains("on") || document.body.classList.contains("photo");
+  function close() { stopAll(); $("pui").classList.remove("on"); if ($("pgacha") && $("pgacha").classList.contains("on")) closeGacha(); }
+  const busy = () => $("pui").classList.contains("on") || document.body.classList.contains("photo") || !!($("pgacha") && $("pgacha").classList.contains("on")) || evOn;          /* ★★ 2026-10-01 本物のガチャの画面も */
   function loop(f) { let last = performance.now(); const tick = (now) => { const dt = Math.min(0.05, (now - last) / 1000); last = now; if (f(dt, now / 1000) !== false) rafId = requestAnimationFrame(tick); }; rafId = requestAnimationFrame(tick); }
   function mkCanvas(parent, w, h) {
     const c = document.createElement("canvas"), k = Math.min(2, devicePixelRatio || 1); c.width = Math.round(w * k); c.height = Math.round(h * k); c.className = "pcv"; c.style.aspectRatio = w + " / " + h; c.style.maxWidth = w + "px";
@@ -270,12 +270,15 @@
   }
   const EXI = [[/港|灯台|島/, "⚓"], [/設計図|大門/, "📐"], [/エリア|24/, "🗺️"], [/年表|未来/, "🕰️"], [/ドット|ロボット$|XR/, "🤖"], [/コントローラー|ゲーム/, "🎮"], [/プリズム|光/, "🌈"], [/磁石/, "🧲"], [/DNA/, "🧬"], [/宇宙|月|火星|ステーション/, "🪐"],
     [/EV|クルマ|レース|自動運転/, "🚗"], [/屏風|さくら/, "🌸"], [/ガラス/, "💧"], [/落書き|絵/, "🎨"], [/エンジン/, "🚀"], [/歩く|手伝い|AI/, "🦾"]];
+  const GIMG = {};
   function galleryUI(name, list, type) {
     const b = panel("🖼️", name, "gallery"); list = list && list.length ? list : [["展示", "すてきな作品"]]; let i = 0;
     const cv = mkCanvas(b, 480, 300), cap = document.createElement("div"); cap.className = "pcap"; b.appendChild(cap);
-    const show = () => { const [t, d] = list[i]; const g = cv.g; artOf(g, 480, 300, t); const e = (EXI.find(([re]) => re.test(t)) || [])[1]; if (e) { g.fillStyle = "rgba(0,0,0,.25)"; g.beginPath(); g.arc(240, 150, 70, 0, 7); g.fill(); g.font = "80px sans-serif"; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(e, 240, 152); g.textBaseline = "alphabetic"; }
+    const show = () => { const [t, d, src] = list[i]; const g = cv.g; artOf(g, 480, 300, t); const e = (EXI.find(([re]) => re.test(t)) || [])[1]; if (e) { g.fillStyle = "rgba(0,0,0,.25)"; g.beginPath(); g.arc(240, 150, 70, 0, 7); g.fill(); g.font = "80px sans-serif"; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(e, 240, 152); g.textBaseline = "alphabetic"; }
       g.fillStyle = "rgba(0,0,0,.45)"; g.fillRect(0, 262, 480, 38); g.fillStyle = "#fff"; g.font = "800 15px sans-serif"; g.textAlign = "left"; g.fillText("No." + (i + 1) + "　" + t, 14, 287);
-      cap.innerHTML = "<b>" + esc(t) + "</b><p>" + esc(d) + "</p><small>" + (i + 1) + " / " + list.length + "</small>"; };
+      cap.innerHTML = "<b>" + esc(t) + "</b><p>" + esc(d) + "</p><small>" + (i + 1) + " / " + list.length + "</small>";
+      /* ★★ 2026-10-02 展示に本物の絵（3つ目＝絵のアドレス）：キャラクター・ボスの絵を大きく */
+      if (src) { const im = GIMG[src] || (GIMG[src] = new Image()); if (!im.src) im.src = src; const draw = () => { if (list[i][2] !== src) return; g.fillStyle = "#120a1e"; g.fillRect(0, 0, 480, 262); const s = Math.min(480 / im.naturalWidth, 262 / im.naturalHeight), w2 = im.naturalWidth * s, h2 = im.naturalHeight * s; g.drawImage(im, (480 - w2) / 2, (262 - h2) / 2, w2, h2); g.fillStyle = "rgba(0,0,0,.45)"; g.fillRect(0, 262, 480, 38); g.fillStyle = "#fff"; g.font = "800 15px sans-serif"; g.textAlign = "left"; g.fillText("No." + (i + 1) + "　" + t, 14, 287); }; if (im.complete && im.naturalWidth) draw(); else im.addEventListener("load", draw, { once: true }); } };
     btns(b, [["◀ まえ", () => { i = (i + list.length - 1) % list.length; show(); }], ["つぎ ▶", () => { i = (i + 1) % list.length; show(); if (i === list.length - 1) stamp(type === "showroom" ? "showroom" : "gallery"); }, "go"]]);
     show(); if (list.length === 1) stamp(type === "showroom" ? "showroom" : "gallery");
   }
@@ -529,11 +532,11 @@
 
   /* ══════════════ 地図（見やすく：番号の丸・大きな文字・押してワープ） ══════════════ */
   const AJP = { gate: "ゲート", metro: "メトロポリス", tower: "タワー", marketW: "マーケット", lab: "ラボ", space: "宇宙港", adv: "アドベンチャー", game: "ゲームワールド", learn: "学びの街", ent: "エンタメ地区", fountain: "中央噴水公園",
-    sports: "スポーツワールド", boccia: "ボッチャアリーナ", soccer: "サッカースタジアム", motor: "モーターシティ", aqua: "アクア", beach: "ビーチ", green: "グリーンウォーク", resort: "リゾート", night: "ナイトゾーン", puzzle: "パズルシティ", media: "メディアシティ", harbor: "ハーバー（湖の港町）", dome: "XEVARION ドーム", kabuki: "妖魔歌舞伎町", yukaku: "夜桜遊郭", ngx: "NGX 本社", apps: "アプリの通り", yokai: "妖怪商店街", heights: "フューチャーハイツ", shrine: "妖怪神社の森", ballpark: "XEVARION ボールパーク", ngxcity: "NGX シティ", wonder: "妖怪ワンダーランド", onsen: "妖魔温泉街", sky: "スカイガーデン" };
-  const AICON = { gate: "🎫", metro: "🏙️", tower: "🗼", marketW: "🏮", lab: "🧪", space: "🚀", adv: "🎢", game: "🕹️", learn: "📚", ent: "🎭", fountain: "⛲", sports: "🏅", boccia: "🎯", soccer: "⚽", motor: "🏎️", aqua: "🌊", beach: "🏖️", green: "🌳", resort: "🏨", night: "🌙", puzzle: "🧩", media: "🎬", harbor: "🛳️", dome: "🏟️", kabuki: "🏮", yukaku: "🌸", ngx: "🏢", apps: "📱", yokai: "🏮", heights: "🌆", shrine: "⛩️", ballpark: "⚾", ngxcity: "🏙️", wonder: "🎠", onsen: "♨️", sky: "🌿" };
+    sports: "スポーツワールド", boccia: "ボッチャアリーナ", soccer: "サッカースタジアム", motor: "モーターシティ", aqua: "アクア", beach: "ビーチ", green: "グリーンウォーク", resort: "リゾート", night: "ナイトゾーン", puzzle: "パズルシティ", media: "メディアシティ", harbor: "ハーバー（湖の港町）", dome: "XEVARION ドーム", kabuki: "妖魔歌舞伎町", yukaku: "夜桜遊郭", ngx: "NGX 本社", apps: "アプリの通り", yokai: "妖怪商店街", heights: "フューチャーハイツ", shrine: "妖怪神社の森", ballpark: "XEVARION ボールパーク", ngxcity: "NGX シティ", wonder: "妖怪ワンダーランド", onsen: "妖魔温泉街", sky: "スカイガーデン", mf: "マジカルフューチャー", ishida: "ISHIDA スタジオ", fun: "ファンランド（遊園地）", mburst: "マギバーストランド", mbr: "マギボッチャラッシュランド", gacha: "XEVA ガチャパレス" };
+  const AICON = { gate: "🎫", metro: "🏙️", tower: "🗼", marketW: "🏮", lab: "🧪", space: "🚀", adv: "🎢", game: "🕹️", learn: "📚", ent: "🎭", fountain: "⛲", sports: "🏅", boccia: "🎯", soccer: "⚽", motor: "🏎️", aqua: "🌊", beach: "🏖️", green: "🌳", resort: "🏨", night: "🌙", puzzle: "🧩", media: "🎬", harbor: "🛳️", dome: "🏟️", kabuki: "🏮", yukaku: "🌸", ngx: "🏢", apps: "📱", yokai: "🏮", heights: "🌆", shrine: "⛩️", ballpark: "⚾", ngxcity: "🏙️", wonder: "🎠", onsen: "♨️", sky: "🌿", mf: "🔮", ishida: "🎬", fun: "🎡", mburst: "⚔️", mbr: "🔴", gacha: "🎰", mburst: "⚔️", mbr: "🔴", gacha: "🎰" };
   const AHI = { gate: "チケット・おみやげ・大門", metro: "展望タワー・ショッピング", tower: "地上125mの展望台", marketW: "妖魔横丁の食べ歩き・お店", lab: "研究センター・ロボット工場", space: "宇宙港ターミナル・ロケット", adv: "コースター・急流すべり・フリーフォール",
     game: "ゲームアリーナ・ガチャランド", learn: "アカデミー・図書館・プラネタリウム", ent: "劇場・ライブ・シネマ", fountain: "噴水のショー・パレード", sports: "スポーツホール・体育館", boccia: "ボッチャの試合", soccer: "サッカーの試合",
-    motor: "カートレース・EV ショールーム", aqua: "プール・スライダー・カフェ", beach: "桟橋の夕日・海の家", green: "花の小道", resort: "ホテル・スパ・ヴィラ", night: "ネオン街・お化け屋敷・カラオケ", puzzle: "迷路・なぞときの家", media: "IMAX シアター・撮影スタジオ", harbor: "大きな湖・蒸気船・夜の水上パレード", dome: "巨大ライブ会場（東京ドームくらい）", kabuki: "看板のビル街・化け猫のタワー・横丁", yukaku: "茶屋・芝居小屋・夜桜・五重の大楼", ngx: "250m の本社タワー・展望フロア・会議棟", apps: "アプリごとの建物・入るとアプリへ", yokai: "アーケードの商店街・駄菓子・銭湯", heights: "90〜150m の高層ビル街", shrine: "千本鳥居・五重塔・おみくじ", ballpark: "野球場（MagiDiamond）", ngxcity: "ガラス屋根の大モール・超高層ビル 6 本", wonder: "メリーゴーラウンド・カップ・スイング・妖怪船・コースター", onsen: "旅館・大浴場・足湯・湯けむり", sky: "ねじれた塔と高さ 64m の空中庭園" };
+    motor: "カートレース・EV ショールーム", aqua: "プール・スライダー・カフェ", beach: "桟橋の夕日・海の家", green: "花の小道", resort: "ホテル・スパ・ヴィラ", night: "ネオン街・お化け屋敷・カラオケ", puzzle: "迷路・なぞときの家", media: "IMAX シアター・撮影スタジオ", harbor: "大きな湖・蒸気船・夜の水上パレード", dome: "巨大ライブ会場（東京ドームくらい）", kabuki: "看板のビル街・化け猫のタワー・横丁", yukaku: "茶屋・芝居小屋・夜桜・五重の大楼", ngx: "390m の本社タワー・グランドロビー・展望フロア 310m", apps: "アプリごとの建物・入るとアプリへ", yokai: "アーケードの商店街・駄菓子・銭湯", heights: "90〜150m の高層ビル街", shrine: "千本鳥居・五重塔・おみくじ", ballpark: "野球場（MagiDiamond）", ngxcity: "ガラス屋根の大モール・超高層ビル 6 本", wonder: "メリーゴーラウンド・カップ・スイング・妖怪船・コースター", onsen: "旅館・大浴場・足湯・湯けむり", sky: "ねじれた塔と高さ 64m の空中庭園", mf: "つながる広場・ねじれた本社タワー・ORDYXIS カフェ・MeruHub", ishida: "撮影所の給水塔・撮影ステージ・試写室・昭和の商店街セット", fun: "ジェットコースター・観覧車・フリーフォール・妖怪やしき・屋台", mburst: "黄昏の王城・ボスコロシアム・ギルドホール・魔導研究所・天空庭園・召喚ゲート", mbr: "巨大アリーナ（コートで CPU と勝負）・ラッシュ通り・練習コート・紅い月の塔", gacha: "本物のガチャ（XEVA）・巨大ガチャマシン・金の宮殿" };
   function placeOf(a) { const pl = (C.world.places || []).find((p) => String(p[0]).trim().startsWith(a.n + " ")); return pl || [a.name, a.cx, a.cz, 0]; }
   function warpArea(a) { const p = placeOf(a); C.warp(p[1], p[2], p[3], a.n + " " + (AJP[a.id] || a.name)); }
   const MAP = { sel: null, cx: 0, cz: 190, s: 0, drag: null };
@@ -557,7 +560,7 @@
     b.querySelector(".pmlist").innerHTML = "";
     let W = 0, H = 0, k = 1;
     const fit = () => { const r = view.getBoundingClientRect(); W = Math.max(200, r.width); H = Math.max(200, r.height); k = Math.min(2, devicePixelRatio || 1); cvs.width = W * k; cvs.height = H * k; cvs.style.width = W + "px"; cvs.style.height = H + "px"; if (!MAP.fitted) { MAP.fitted = true; whole(); } };
-    const whole = () => { MAP.s = Math.min(W / 1860, (H - 70) / 1790); MAP.cx = 0; MAP.cz = 190 + 35 / MAP.s; };
+    const whole = () => { MAP.s = Math.min(W / 1860, (H - 70) / 2140); MAP.cx = 0; MAP.cz = 10 + 35 / MAP.s; };          /* ★★ 2026-09-30c 北へ広げた島 */
     const P = (x, z) => [(x - MAP.cx) * MAP.s + W / 2, (z - MAP.cz) * MAP.s + H / 2];
     const Q = (px, py) => [(px - W / 2) / MAP.s + MAP.cx, (py - H / 2) / MAP.s + MAP.cz];
     const select = (a, center) => { MAP.sel = a; if (center) { MAP.cx = a.cx; MAP.cz = a.cz; MAP.s = Math.max(MAP.s, Math.min(W, H) / 700); }
@@ -575,11 +578,11 @@
         g.fillStyle = "#fff"; g.font = "900 " + (sel ? 15 : 13) + "px sans-serif"; g.textAlign = "center"; g.textBaseline = "middle"; g.fillText(a.n, px, py + 0.5); g.textBaseline = "alphabetic";
         const lab = AJP[a.id] || a.name; g.font = "900 " + (big ? 14 : 12) + "px sans-serif"; g.lineWidth = 4; g.strokeStyle = "rgba(6,16,48,.85)"; g.strokeText(lab, px, py + r + 15); g.fillText(lab, px, py + r + 15); });
       /* ★★ 2026-09-29c モノレール・路面電車の駅の名前（近づいたとき） */
-      if (MAP.s > 0.9 && window.XTransit) XTransit.lines.forEach((Ln) => Ln.stops.forEach((st) => { const i = Math.round(st.sC / Ln.A.ds), [px, py] = P(Ln.A.P[i * 3], Ln.A.P[i * 3 + 2]); g.font = "900 11px sans-serif"; g.textAlign = "left"; g.textBaseline = "middle"; g.lineWidth = 3.5; g.strokeStyle = "rgba(255,255,255,.95)"; const t = Ln.icon + " " + st.name; g.strokeText(t, px + 9, py); g.fillStyle = Ln.color; g.fillText(t, px + 9, py); }));
+      if (MAP.s > 0.9 && window.XTransit) XTransit.lines.forEach((Ln) => Ln.noMapLabel || Ln.stops.forEach((st) => { const i = Math.round(st.sC / Ln.A.ds), [px, py] = P(Ln.A.P[i * 3], Ln.A.P[i * 3 + 2]); g.font = "900 11px sans-serif"; g.textAlign = "left"; g.textBaseline = "middle"; g.lineWidth = 3.5; g.strokeStyle = "rgba(255,255,255,.95)"; const t = Ln.icon + " " + st.name; g.strokeText(t, px + 9, py); g.fillStyle = Ln.color; g.fillText(t, px + 9, py); }));
       const pl = C.player, [qx, qy] = P(pl.x, pl.z); g.save(); g.translate(qx, qy); g.rotate(-pl.yaw + Math.PI); g.fillStyle = "#ff4f8f"; g.strokeStyle = "#fff"; g.lineWidth = 2.5; g.beginPath(); g.moveTo(0, -13); g.lineTo(9, 10); g.lineTo(0, 5); g.lineTo(-9, 10); g.closePath(); g.fill(); g.stroke(); g.restore();
       g.font = "900 12px sans-serif"; g.textAlign = "center"; g.lineWidth = 4; g.strokeStyle = "#fff"; g.strokeText("いまここ", qx, qy - 18); g.fillStyle = "#e8286a"; g.fillText("いまここ", qx, qy - 18);
     }
-    const zoom = (f, px, py) => { const [wx, wz] = Q(px == null ? W / 2 : px, py == null ? H / 2 : py); MAP.s = Math.max(Math.min(W / 1840, H / 1780) * 0.8, Math.min(3, MAP.s * f)); const [nx, nz] = Q(px == null ? W / 2 : px, py == null ? H / 2 : py); MAP.cx += wx - nx; MAP.cz += wz - nz; draw(); };
+    const zoom = (f, px, py) => { const [wx, wz] = Q(px == null ? W / 2 : px, py == null ? H / 2 : py); MAP.s = Math.max(Math.min(W / 1840, H / 2120) * 0.8, Math.min(3, MAP.s * f)); const [nx, nz] = Q(px == null ? W / 2 : px, py == null ? H / 2 : py); MAP.cx += wx - nx; MAP.cz += wz - nz; draw(); };
     b.querySelectorAll(".pmz button").forEach((x) => x.onclick = () => { const z = +x.dataset.z; if (z === 0) { MAP.cx = C.player.x; MAP.cz = C.player.z; MAP.s = Math.max(MAP.s, Math.min(W, H) / 600); draw(); } else if (z === 2) { whole(); draw(); } else zoom(z > 0 ? 1.4 : 1 / 1.4); });
     setList("a");
     const ptr = {}; let pinch = 0, moved = 0;
@@ -622,13 +625,16 @@
         '</div><div class="pbtns"><button class="reset">はじめの割り当てにもどす</button></div>' +
         '<h3>🎵 音楽</h3><label class="row"><input type="checkbox" class="mus"' + (S.music() ? " checked" : "") + '> パークの音楽を鳴らす</label><label class="row">音量 <input type="range" class="vol" min="0" max="1" step="0.05" value="' + S.vol() + '"></label>' +
         '<h3>🎥 視点</h3><label class="row"><input type="checkbox" class="fp"' + (S.fp() ? " checked" : "") + '> 一人称視点（目の高さから見る）</label><label class="row">見回す速さ <input type="range" class="sens" min="0.4" max="2.2" step="0.1" value="' + S.sens() + '"></label>' +
-        '<h3>✨ 画質</h3><label class="row">画質 <select class="ql">' + q.levels.map((l) => '<option value="' + l + '"' + (l === q.level ? " selected" : "") + ">" + ({ ultra: "最高", high: "高", medium: "中", low: "低" }[l] || l) + "</option>").join("") + '</select></label><label class="row"><input type="checkbox" class="qa"' + (q.auto ? " checked" : "") + "> 重いときは自動で下げる</label>";
+        (S.plock && !C.MOBILE ? '<label class="row"><input type="checkbox" class="plk"' + (S.plock() ? " checked" : "") + '> マウスを動かすだけで見回す（カーソルを消す・画面をクリックで開始／Esc で解除）</label>' : "") +
+        '<h3>✨ 画質</h3><label class="row">画質 <select class="ql">' + q.levels.map((l) => '<option value="' + l + '"' + (l === q.level ? " selected" : "") + ">" + ({ ultra: "最高", high: "高", medium: "中", low: "低" }[l] || l) + "</option>").join("") + '</select></label><label class="row"><input type="checkbox" class="qa"' + (q.auto ? " checked" : "") + "> 重いときは自動で下げる</label>" +
+        (window.XSpec ? '<h3>💻 推奨環境と、この' + (C.MOBILE ? "スマホ" : "パソコン") + '</h3><div class="plobby">' + XSpec.html(C.renderer) + "</div>" : "");
       b.querySelectorAll(".pkeys button").forEach((x) => x.onclick = () => { wait = wait === x.dataset.a ? null : x.dataset.a; draw(); });
       b.querySelector(".reset").onclick = () => { S.reset(); wait = null; draw(); toast("キーの割り当てをはじめにもどしました"); };
       b.querySelector(".mus").onchange = (e) => S.setMusicOn(e.target.checked);
       b.querySelector(".vol").oninput = (e) => S.setVol(+e.target.value);
       b.querySelector(".fp").onchange = (e) => S.setFP(e.target.checked);
       b.querySelector(".sens").oninput = (e) => S.setSens(+e.target.value);
+      const plk = b.querySelector(".plk"); if (plk) plk.onchange = (e) => S.setPlock(e.target.checked);
       b.querySelector(".ql").onchange = (e) => S.setQuality(e.target.value, b.querySelector(".qa").checked);
       b.querySelector(".qa").onchange = (e) => S.setQuality(b.querySelector(".ql").value, e.target.checked);
     };
@@ -652,9 +658,42 @@
     b.innerHTML = html || '<p class="pnote c">まだありません</p>';
     b.querySelectorAll("button[data-i]").forEach((x) => x.onclick = () => { const u = ups[+x.dataset.i]; if (u && u.href && C.openApp) { close(); C.openApp(u.href, u); } });
   }
+  /* ══════════════ 本物のガチャ（XEVA GACHA PALACE のガチャ台・park_outer.js） ══════════════
+     ★★ 2026-10-01 ご指定「実際の XEVA を用いてできるリアルなガチャ施設」：ホームと同じガチャの画面（gacha.html）を、
+     パークの上に重ねて開く（同じ端末の XEVA・💎・🎫 をそのまま使い、結果はいつもどおり同期される）。
+     ・ガチャの画面の「←」（ホームへ）で、パークにもどる（重ねた画面を閉じる）。
+     ・スマホは重いので、ガチャの画面へ移動（もどるとパークの同じ場所から）。 */
+  function gachaBal() { try { const o = JSON.parse(localStorage.getItem("xeva_wallet_v1") || "null"); return o && typeof o.balance === "number" ? o.balance : null; } catch (e) { return null; } }
+  function closeGacha() {
+    const ov = $("pgacha"); if (!ov) return; ov.classList.remove("on"); document.body.classList.remove("gachaOpen");
+    const fr = ov.querySelector("iframe"); if (fr) { fr.onload = null; fr.src = "about:blank"; }
+    const b = gachaBal(); if (b != null) toast("XEVA GACHA PALACE からもどりました（XEVA：" + b.toLocaleString("ja-JP") + "）");
+  }
+  function realGachaUI(o) {
+    const href = "gacha.html" + (o && o.key ? "#" + o.key : "");
+    if (C.MOBILE || !C.openApp) { if (C.openApp) C.openApp(href, { name: "ガチャ" }); return; }
+    let ov = $("pgacha");
+    if (!ov) {
+      ov = document.createElement("div"); ov.id = "pgacha"; ov.className = "ov pgacha";
+      ov.innerHTML = '<div class="pgcard"><div class="pghd"><b>🎰 XEVA GACHA PALACE</b><span class="pgbal"></span><button class="x" aria-label="パークにもどる">✕ パークにもどる</button></div><iframe title="ガチャ" allow="autoplay; fullscreen"></iframe></div>';
+      document.body.appendChild(ov); ov.querySelector(".x").onclick = closeGacha;
+    }
+    const fr = ov.querySelector("iframe"), bal = ov.querySelector(".pgbal");
+    const paintBal = () => { const b = gachaBal(); bal.textContent = b == null ? "" : "XEVA " + b.toLocaleString("ja-JP"); };
+    fr.onload = () => {
+      let p = ""; try { p = fr.contentWindow.location.pathname; } catch (e) {}
+      if (p && !/gacha\.html$/.test(p) && !/about:blank/.test(fr.src)) { closeGacha(); if (/index\.html$|\/$/.test(p)) toast("ガチャを閉じました（アカウントがまだのときは、ホームで作ってください）"); }
+      paintBal();
+    };
+    fr.src = "../" + href;
+    ov.classList.add("on"); document.body.classList.add("gachaOpen"); paintBal();
+    clearInterval(ov._t); ov._t = setInterval(() => { if (!ov.classList.contains("on")) { clearInterval(ov._t); return; } paintBal(); }, 2000);
+    stamp("gacha");
+  }
   function handle(r, q) {
     if (!r) return false;
     const type = q && q.type ? q.type : null;
+    if (r.realGacha) { realGachaUI(r.realGacha); return true; }
     if (r.updates) { updatesUI(); return true; }
     if (r.shop) { shopUI(r.shop, type); return true; }
     if (r.arcade) { arcadeUI(r.arcade.name); return true; }
@@ -685,5 +724,51 @@
   }
   let lastArea = null;
   function area(a) { if (!a) return; const id = a.id === "marketE" ? "marketW" : a.id; if (id === lastArea) return; lastArea = id; if (!SV.ar[id]) { SV.ar[id] = Date.now(); save(); const n = XPark.AREAS.filter((q) => q.id !== "marketE" && SV.ar[q.id]).length; if (n > 1) pop(AICON[id] || "📍", (AJP[id] || a.name) + " にはじめて来ました", "エリア " + n + " / " + (XPark.AREAS.length - 1)); } }
-  window.XParkUI = { init, handle, close, busy, key: (e) => { if (keyFn) keyFn(e); }, map: mapUI, bag: bagUI, settings: settingsUI, skyTags, area, stamp, SV, panel, btns, mkCanvas, AJP, AICON, AHI };
+  /* ══════════════ ★★ 2026-10-02 駅のエレベーターの演出（ご指定「駅のエレベーターの演出も作成してください」） ══════════════
+     真ちゅうと木のとびらが左右から閉まる → 上の半円の階数計（針）が目的の階へ回る・かすかなゆれと「ウーン」 →
+     「ポーン」でとびらが開く（その間に移動する＝mid）。o = { floors:["B2","B1","1F"…], from, to, title }。2.8 秒ほど */
+  let evT = [], evOn = false;
+  function evSound(kind) {
+    try {
+      if (!(window.XShows && XShows.AU && XShows.AU.on)) return;
+      const ac = evSound.ac || (evSound.ac = new (window.AudioContext || window.webkitAudioContext)()); if (ac.state === "suspended") ac.resume();
+      const t0 = ac.currentTime, out = ac.createGain(); out.gain.value = 0.16; out.connect(ac.destination);
+      const tone = (f, a, d, type) => { const o = ac.createOscillator(), g = ac.createGain(); o.type = type || "sine"; o.frequency.value = f; g.gain.setValueAtTime(0, t0 + a); g.gain.linearRampToValueAtTime(1, t0 + a + 0.02); g.gain.exponentialRampToValueAtTime(0.001, t0 + a + d); o.connect(g); g.connect(out); o.start(t0 + a); o.stop(t0 + a + d + 0.05); };
+      if (kind === "ding") { tone(1318, 0, 1.2); tone(1046, 0.42, 1.4); }
+      else if (kind === "hum") { const o = ac.createOscillator(), g = ac.createGain(); o.type = "sawtooth"; o.frequency.value = 62; g.gain.setValueAtTime(0, t0); g.gain.linearRampToValueAtTime(0.18, t0 + 0.3); g.gain.linearRampToValueAtTime(0.0001, t0 + 1.6); const f = ac.createBiquadFilter(); f.type = "lowpass"; f.frequency.value = 220; o.connect(f); f.connect(g); g.connect(out); o.start(t0); o.stop(t0 + 1.7); }
+      else if (kind === "door") { const n = ac.createBufferSource(), b = ac.createBuffer(1, ac.sampleRate * 0.5, ac.sampleRate), d = b.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / d.length, 2) * 0.35; n.buffer = b; const f = ac.createBiquadFilter(); f.type = "bandpass"; f.frequency.value = 900; n.connect(f); f.connect(out); n.start(t0); }
+    } catch (e) {}
+  }
+  function elevator(o, mid) {
+    o = o || {};
+    evT.forEach(clearTimeout); evT = [];
+    let ov = $("evOv");
+    if (!ov) {
+      ov = document.createElement("div"); ov.id = "evOv";
+      ov.innerHTML = '<div class="evIn"><div class="evL"><i></i></div><div class="evR"><i></i></div><div class="evTop"><div class="evDial"><svg viewBox="0 0 200 110"></svg><b class="evN"></b></div><div class="evTt"></div></div></div>';
+      document.body.appendChild(ov);
+    }
+    const F = o.floors && o.floors.length ? o.floors : ["1F", "2F"], fi = Math.max(0, F.indexOf(o.from)), ti = Math.max(0, F.indexOf(o.to)), n = F.length;
+    const ang = (i) => n < 2 ? 0 : -70 + i / (n - 1) * 140;
+    const svg = ov.querySelector("svg");
+    svg.innerHTML = '<path d="M14 100 A86 86 0 0 1 186 100" fill="none" stroke="#7a5418" stroke-width="10"/><path d="M14 100 A86 86 0 0 1 186 100" fill="none" stroke="#f2cf6a" stroke-width="4"/>'
+      + F.map((f, i) => { const a = (ang(i) - 90) * Math.PI / 180, x = 100 + Math.cos(a) * 70, y = 100 + Math.sin(a) * 70, x2 = 100 + Math.cos(a) * 84, y2 = 100 + Math.sin(a) * 84, x3 = 100 + Math.cos(a) * 88, y3 = 100 + Math.sin(a) * 88;
+          return '<line x1="' + x3.toFixed(1) + '" y1="' + y3.toFixed(1) + '" x2="' + x2.toFixed(1) + '" y2="' + y2.toFixed(1) + '" stroke="#3a2408" stroke-width="3"/><text x="' + x.toFixed(1) + '" y="' + (y + 5).toFixed(1) + '" text-anchor="middle" class="' + (i === ti ? "to" : "") + '">' + f + "</text>"; }).join("")
+      + '<g class="evNeedle" style="transform:rotate(' + ang(fi) + 'deg)"><path d="M100 100 L97 38 L100 26 L103 38 Z" fill="#b8262a"/><circle cx="100" cy="100" r="8" fill="#f2cf6a" stroke="#7a5418" stroke-width="3"/></g>';
+    ov.querySelector(".evN").textContent = F[fi];
+    ov.querySelector(".evTt").textContent = o.title || "エレベーター";
+    ov.classList.remove("closed", "moving"); ov.classList.add("on"); evOn = true;
+    requestAnimationFrame(() => requestAnimationFrame(() => { ov.classList.add("closed"); evSound("door"); }));
+    const dur = o.dur || 1500;
+    evT.push(setTimeout(() => {
+      try { if (mid) mid(); } catch (e) {}
+      ov.classList.add("moving"); evSound("hum");
+      const nd = ov.querySelector(".evNeedle"); nd.style.transition = "transform " + (dur / 1000).toFixed(2) + "s cubic-bezier(.5,0,.4,1)"; nd.style.transform = "rotate(" + ang(ti) + "deg)";
+      const steps = Math.abs(ti - fi); for (let k = 1; k <= steps; k++) evT.push(setTimeout(() => { ov.querySelector(".evN").textContent = F[fi + Math.sign(ti - fi) * k]; }, dur * k / (steps + 0.4)));
+    }, 650));
+    evT.push(setTimeout(() => { ov.classList.remove("moving"); ov.querySelector(".evN").textContent = F[ti]; evSound("ding"); }, 650 + dur));
+    evT.push(setTimeout(() => { ov.classList.remove("closed"); evSound("door"); }, 650 + dur + 420));
+    evT.push(setTimeout(() => { ov.classList.remove("on"); evOn = false; const nd = ov.querySelector(".evNeedle"); if (nd) nd.style.transition = ""; }, 650 + dur + 1150));
+  }
+  window.XParkUI = { init, handle, close, busy, key: (e) => { if (keyFn) keyFn(e); }, map: mapUI, bag: bagUI, settings: settingsUI, skyTags, area, stamp, SV, panel, btns, mkCanvas, AJP, AICON, AHI, elevator, get evOn() { return evOn; } };
 })();

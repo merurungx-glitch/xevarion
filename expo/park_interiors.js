@@ -218,7 +218,8 @@
       (W.heightExtra = W.heightExtra || []).push({ tstep: 1, cx: C.x, cz: C.z, ang: C.ry, hw: iw / 2, b0, bA, bS, rise, top, nD, dD });
       const seatG = XWorld.mergeGeos([new T.BoxGeometry(0.56, 0.1, 0.5).translate(0, 0.45, 0), new T.BoxGeometry(0.56, 0.62, 0.08).translate(0, 0.78, 0.25), new T.BoxGeometry(0.06, 0.25, 0.5).translate(0.3, 0.6, 0), new T.BoxGeometry(0.06, 0.25, 0.5).translate(-0.3, 0.6, 0)]);
       const pos = []; for (let r = 0; r < rows; r++) { const zz = b0 + (r + 0.5) * 1.25, yy = r * rise; for (let a = -iw / 2 + 1.0; a <= iw / 2 - 1.0; a += 0.66) { if (Math.abs(a) < 1.7) continue; pos.push([a, yy, zz]); } }
-      const q = new T.Quaternion().setFromEuler(new T.Euler(0, C.ry + Math.PI, 0)), inst = new T.InstancedMesh(seatG, W.m.seatsRed || W.m.seat, pos.length), m4 = new T.Matrix4();
+      /* ★★ 2026-09-30d 席の向き：背もたれ（形の +z）は入口の方＝スクリーンを向いてすわる（前は π 回っていて、背もたれがスクリーン側＝ご指定「席の背の向きが違う」） */
+      const q = new T.Quaternion().setFromEuler(new T.Euler(0, C.ry, 0)), inst = new T.InstancedMesh(seatG, W.m.seatsRed || W.m.seat, pos.length), m4 = new T.Matrix4();
       pos.forEach(([a, yy, zz], i) => { const [px, pz] = C.L(a, zz); m4.compose(new T.Vector3(px - C.x, yy, pz - C.z), q, new T.Vector3(1, 1, 1)); inst.setMatrixAt(i, m4); if (i % 3 === 0 || Math.abs(a) < 2.5) C.seat(a, zz, Math.PI, 0.5 + yy); });
       inst.position.set(C.x, 0, C.z); inst.receiveShadow = true; inst.computeBoundingSphere(); W.scene.add(inst); W.loose(inst, Math.max(120, iw * 3));
       for (let r = 0; r < rows; r++) { const zz = b0 + (r + 0.5) * 1.25, half = iw / 2 - 1.9; C.col(-(1.9 + half / 2), zz, half, 0.55); C.col(1.9 + half / 2, zz, half, 0.55); }

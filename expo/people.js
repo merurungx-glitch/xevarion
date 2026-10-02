@@ -35,10 +35,15 @@
     sakura: { name: "サクラ", role: "噴水広場のパフォーマー", base: "O", tint: { hair: H(-1.6, 1.2, 1.3), cloth: H(0, 1, 1, "#ff8ac8") } }
   };
   const loaded = {};
+  /* ★★ 2026-10-01 読めなかったモデルがあっても止まらない（オフラインでまだ来場者のモデルを持っていないとき、
+     前は「キャラクターを読みこめませんでした」でパークが始まらなかった）。読めたモデルで代わりに作る。
+     1つも読めなければ、自分のキャラのモデル（chara01.glb・オフライン用に持っている）を色違いで使う。 */
   function preload(onProgress) {
     const keys = Object.keys(BASES); let n = 0;
-    return Promise.all(keys.map((k) => XVRM.loadAsset(BASES[k].url).then((a) => { loaded[k] = a; n++; if (onProgress) onProgress(n, keys.length); })));
+    return Promise.all(keys.map((k) => XVRM.loadAsset(BASES[k].url).then((a) => { loaded[k] = a; }, (e) => { console.warn("来場者のモデルを読めませんでした", k, e); }).then(() => { n++; if (onProgress) onProgress(n, keys.length); })))
+      .then(() => { if (!Object.keys(loaded).length) return XVRM.loadAsset("chara/chara01.glb?v=1").then((a) => { loaded.A = a; }, () => {}); });
   }
+  const assetOf = (k) => loaded[k] || loaded.A || loaded[Object.keys(loaded)[0]];
   function Person(v, spec) {
     this.v = v; this.root = v.root; this.spec = spec;
     this.name = spec.name || "来場者"; this.sp = { h: v.height, role: spec.role || "" };
@@ -58,7 +63,7 @@
   function make(spec, opt) {
     opt = opt || {};
     if (typeof spec === "string") spec = Object.assign({ id: spec }, CAST[spec]);
-    const b = BASES[spec.base] || BASES.A, a = loaded[spec.base] || loaded.A;
+    const b = BASES[spec.base] || BASES.A, a = assetOf(spec.base);
     const v = XVRM.instantiate(a, { tint: spec.tint, outline: !!opt.outline, bust: !!b.bust, shadow: opt.shadow !== false, scale: spec.scale });
     v.resetSpring();
     return new Person(v, spec);

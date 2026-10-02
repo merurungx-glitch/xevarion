@@ -219,7 +219,7 @@
     /* ⑤ 入口・アトラクションの前まで道を（ご指定「それぞれのアトラクションまでの道を設置」）：
        入れる建物の入口・乗り物/遊びの受付の前に道も広場もなければ、いちばん近い道へ小道をつなぐ。
        ★★ 2026-09-30b 入口の点は道の始まりに「足す」（前は最初の点を入口に置きかえ、入口から遠い点まで一直線＝建物を横切った） */
-    const inRoom = (x, z) => (w.interiors || []).some((q) => { if (q.round) return Math.hypot(x - q.x, z - q.z) < q.r + 0.5; const dx = x - q.x, dz = z - q.z, a = dx * q.c - dz * q.s, b = dx * q.s + dz * q.c; return Math.abs(a) < q.hw + 0.3 && Math.abs(b) < q.hd + 0.3; });
+    const inRoom = (x, z) => (w.interiors || []).some((q) => { if ((q.y0 || 0) < -1) return false; if (q.round) return Math.hypot(x - q.x, z - q.z) < q.r + 0.5; const dx = x - q.x, dz = z - q.z, a = dx * q.c - dz * q.s, b = dx * q.s + dz * q.c; return Math.abs(a) < q.hw + 0.3 && Math.abs(b) < q.hd + 0.3; });
     const targets = (w.doors || []).map(([x, z, k]) => [x, z, k === "ride" ? 6 : 5, k]).concat((w.inter || []).filter((it) => !it.y && !inRoom(it.x, it.z) && !I.bld(it.x, it.z, 0)).map((it) => [it.x, it.z, 4]));
     const roadNear = (x, z, r) => { const rr = Math.ceil(r / CS); const ix = Math.floor((x - X0) / CS), iz = Math.floor((z - Z0) / CS); for (let dz = -rr; dz <= rr; dz++) for (let dx = -rr; dx <= rr; dx++) { const jx = ix + dx, jz = iz + dz; if (jx < 0 || jz < 0 || jx >= NX || jz >= NZ) continue; if (C[jz * NX + jx] <= ROAD + 1e-6 && dx * dx + dz * dz <= rr * rr) return true; } return false; };
     st.door = 0;

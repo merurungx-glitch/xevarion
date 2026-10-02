@@ -112,7 +112,8 @@
   const PAL = [[0xff4fb0, 0x4ff0ff], [0xa86aff, 0xffd84a], [0xffffff, 0x88aaff], [0xff3a4a, 0x3a8aff], [0x4fff9a, 0xff4fb0], [0xffa03a, 0xff4fb0]];
   const Arena = {
     st: {}, bpm: 128, tap: [], tapT0: 0, clock: 0, pat: 0, lastBar: -1, demo: false, cA: new T.Color(), cB: new T.Color(), cC: new T.Color(), videoPal: null, lastEv: 0,
-    mode(ctx) { const A = ctx.world.liveArena; if (!A) return "off"; const p = ctx.player, inside = A.inside ? A.inside(p) : (p.x > A.x0 && p.x < A.x1 && p.z > A.z0 && p.z < A.z1); if (ctx.theater && ctx.theater.key === "arena" && ctx.theater.playing) return "video"; if (inside || this.demo) return "demo"; return Math.hypot(p.x - A.cx, p.z - A.cz) < (A.R ? A.R + 170 : 140) ? "near" : "off"; },
+    mode(ctx) { const A = ctx.world.liveArena; if (!A) return "off"; const p = A.off ? { x: ctx.player.x - A.off[0], z: ctx.player.z - A.off[1], y: ctx.player.y } : ctx.player,          /* ★★ 2026-09-30c 会場のエリアを動かした分（park_layout.js）：自分の位置を会場の座標へ */
+      inside = A.inside ? A.inside(p) : (p.x > A.x0 && p.x < A.x1 && p.z > A.z0 && p.z < A.z1); if (ctx.theater && ctx.theater.key === "arena" && ctx.theater.playing) return "video"; if (inside || this.demo) return "demo"; return Math.hypot(p.x - A.cx, p.z - A.cz) < (A.R ? A.R + 170 : 140) ? "near" : "off"; },
     tapBeat() { const now = performance.now() / 1000; this.tap = this.tap.filter((t) => now - t < 3).concat([now]); if (this.tap.length >= 3) { const d = []; for (let i = 1; i < this.tap.length; i++) d.push(this.tap[i] - this.tap[i - 1]); const m = d.reduce((a, b) => a + b, 0) / d.length; if (m > 0.25 && m < 1.5) this.bpm = Math.round(60 / m); } this.clock = 0; return this.bpm; },
     /* 動画のサムネイルから色をとる（main.js が呼ぶ）：あざやかな色を3つ */
     setVideoColors(cols) { this.videoPal = cols && cols.length >= 2 ? cols : null; },
@@ -122,7 +123,7 @@
       const A = ctx.world.liveArena; if (!A) return;
       const md = this.mode(ctx); this.md = md;
       const vis = md !== "off"; A.beams.forEach((b) => { b.piv.visible = vis; }); A.lasers.forEach((l) => { l.piv.visible = vis; }); (A.spots || []).forEach((l) => { l.piv.visible = vis; });
-      const dA = ctx.camera ? Math.hypot(ctx.camera.position.x - A.cx, ctx.camera.position.z - A.cz) : 0, nearA = vis || dA < 240;          /* ★ 2026-09-29d 近づいたら先に出しておく */
+      const aox = A.off ? A.off[0] : 0, aoz = A.off ? A.off[1] : 0, dA = ctx.camera ? Math.hypot(ctx.camera.position.x - aox - A.cx, ctx.camera.position.z - aoz - A.cz) : 0, nearA = vis || dA < 240;          /* ★ 2026-09-29d 近づいたら先に出しておく */
       A.crowd.visible = A.pens.visible = nearA; if (A.seats) A.seats.visible = nearA; if (A.led) A.led.visible = vis;
       if (A.wash) A.wash.visible = false;
       const fa = A.flames ? this.stepPts(A.flames, dt) : false, ca = A.conf ? this.stepPts(A.conf, dt) : false; if (A.flames) A.flames.pts.visible = vis && fa; if (A.conf) A.conf.pts.visible = vis && ca;
@@ -153,7 +154,7 @@
       A.U.uBeat.value = s.beat + s.beatPh; A.U.uJump.value = lv >= 2 ? 1 : 0.4; A.U.uWave.value = lv >= 3 ? 1 : 0; A.U.uPen.value.copy(s.bar % 16 < 8 ? this.cA : this.cB);
       /* 屋根の光・ゲートの光（外からも見える） */
       const m = ctx.world.m; if (m.domeA) { m.domeA.color.copy(this.cA).multiplyScalar(0.7 + 0.8 * s.pulse); m.domeB.color.copy(this.cB).multiplyScalar(0.6 + 0.6 * (s.bass || 0.5)); m.domeC.color.copy(this.cC).multiplyScalar(0.8 + 0.6 * s.pulse); }
-      const inside = A.inside ? A.inside(ctx.player) : false;
+      const inside = A.inside ? A.inside({ x: ctx.player.x - aox, z: ctx.player.z - aoz }) : false;
       this.flash(inside && lv >= 3 && s.inBar === 0 ? s.pulse * 0.1 : 0);
       /* 炎（強い音・盛り上がりの小節の頭）・紙吹雪（盛り上がりの入り） */
       if (A.flames && A.flameAt) {
@@ -255,6 +256,25 @@
         w.geo(lg, new T.PlaneGeometry(7.6, 2.8).rotateY(Math.PI / 2).translate(0.28, 3.9, 0)); w.geo(lg, new T.PlaneGeometry(7.6, 2.8).rotateY(-Math.PI / 2).translate(-0.28, 3.9, 0));
         w.sign("提供　NGX", { bg: "#0a1450", color: "#fff", glow: "#ffd86a", border: "#ffd86a", px: 512 }, 4.6, 0.85, 0.3, 6.9, 0, Math.PI / 2); w.sign("提供　NGX", { bg: "#0a1450", color: "#fff", glow: "#ffd86a", border: "#ffd86a", px: 512 }, 4.6, 0.85, -0.3, 6.9, 0, -Math.PI / 2);
         w.sign("SPONSORED BY NGX", { bg: "#0a1450", color: "#ffd86a", px: 512, both: true }, 4.8, 0.7, 0, 1.2, 5.12, 0); })); }
+    /* 8・9 提供 MagicalFuture／ISHIDA Production（列のいちばん後ろ）★★ 2026-10-01 ご指定「列の後ろの提供で MagicalFuture と ISHIDA Production も増やして」 */
+    const names = ["XEVARION CRYSTAL", "SAKURA PAGODA", "SWEETS PARTY", "MUSIC STAGE", "SPACE TRIP", "FUWA-FUWA FRIENDS", "SPONSORED BY NGX"];
+    if (w.keyedLogo) {
+      const mf = w.keyedLogo(w, "mfFull", "../brand/MagicalFuture.png", [215, 140, 590, 385]), ip = w.keyedLogo(w, "ipFull", "../brand/ISHIDA Production.png", [185, 68, 655, 545]);
+      const board = (lg, lw, lh, title, bg, gl) => {
+        w.geo("white2", new T.BoxGeometry(0.5, 4.8, 8.4).translate(0, 3.9, 0)); w.geo("goldOrn", new T.BoxGeometry(0.6, 0.24, 8.8).translate(0, 6.4, 0)); w.geo("goldOrn", new T.BoxGeometry(0.6, 0.24, 8.8).translate(0, 1.5, 0));
+        w.geo(lg, new T.PlaneGeometry(lw, lh).rotateY(Math.PI / 2).translate(0.28, 3.95, 0)); w.geo(lg, new T.PlaneGeometry(lw, lh).rotateY(-Math.PI / 2).translate(-0.28, 3.95, 0));
+        [1, -1].forEach((s) => w.sign(title, { bg, color: "#fff", glow: gl, border: gl, px: 1024 }, 6.4, 0.85, s * 0.3, 7.1, 0, s * Math.PI / 2));
+      };
+      floats.push(mk(() => { base("pWhite", "neonCyan", 10); board(mf, 6.4, 4.2, "提供　MagicalFuture", "#0a2a5a", "#7fd8ff");
+        w.geo("neonCyan", new T.TorusGeometry(1.5, 0.1, 6, 36).translate(0, 9.0, 0)); w.geo("neonBlue", new T.TorusGeometry(1.15, 0.08, 6, 36).rotateY(Math.PI / 2).translate(0, 9.0, 0)); w.geo("glassDome", new T.SphereGeometry(0.7, 16, 12).translate(0, 9.0, 0)); w.geo("white2", new T.CylinderGeometry(0.08, 0.08, 1.6, 6).translate(0, 7.7, 0));
+        w.sign("SPONSORED BY MagicalFuture", { bg: "#0a2a5a", color: "#bff0ff", px: 1024, both: true }, 4.8, 0.62, 0, 1.2, 5.12, 0); }));
+      floats.push(mk(() => { base("pBlack", "neonPink", 10); board(ip, 5.4, 4.5, "提供　ISHIDA Production", "#3a0a12", "#ff6a7a");
+        /* 上にカチンコとフィルムのリール（映画の会社） */
+        w.geo("pBlack", new T.BoxGeometry(0.4, 1.5, 2.6).translate(0, 7.6, 0)); for (let i = 0; i < 5; i++) w.geo(i % 2 ? "pBlack" : "white2", new T.BoxGeometry(0.42, 0.34, 0.52).translate(0, 8.55, -1.04 + i * 0.52).applyMatrix4(new T.Matrix4().makeRotationX(-0.18)));
+        [-1, 1].forEach((s) => { w.geo("darkMetal", new T.CylinderGeometry(0.9, 0.9, 0.24, 20).rotateZ(Math.PI / 2).translate(0, 7.3, s * 2.6)); w.geo("goldOrn", new T.CylinderGeometry(0.22, 0.22, 0.3, 10).rotateZ(Math.PI / 2).translate(0, 7.3, s * 2.6)); });
+        w.sign("SPONSORED BY ISHIDA Production", { bg: "#3a0a12", color: "#ffd0d6", px: 1024, both: true }, 4.8, 0.62, 0, 1.2, 5.12, 0); }));
+      names.push("SPONSORED BY MagicalFuture", "SPONSORED BY ISHIDA Production");
+    }
     floats.forEach((g) => { g.traverse((o) => { o.layers.set(3); }); g.visible = false; w.scene.add(g); });
     /* 踊る人（小さな人の群れ・インスタンス） */
     const N = 48, dg = XWorld.mergeGeos([new T.BoxGeometry(0.4, 0.85, 0.26).translate(0, 0.43, 0), new T.BoxGeometry(0.46, 0.64, 0.3).translate(0, 1.18, 0), new T.SphereGeometry(0.16, 8, 6).translate(0, 1.68, 0), new T.BoxGeometry(1.3, 0.1, 0.1).translate(0, 1.42, 0)]);
@@ -268,7 +288,7 @@
     for (let i = 0; i < CN; i++) { cp[i * 3 + 1] = -99; const c = new T.Color(dcols[i % dcols.length]); ccol[i * 3] = c.r; ccol[i * 3 + 1] = c.g; ccol[i * 3 + 2] = c.b; }
     cg.setAttribute("position", new T.BufferAttribute(cp, 3)); cg.setAttribute("color", new T.BufferAttribute(ccol, 3));
     const conf = new T.Points(cg, new T.PointsMaterial({ size: 0.22, vertexColors: true, transparent: true, depthWrite: false })); conf.frustumCulled = false; conf.visible = false; conf.layers.set(3); w.scene.add(conf);
-    w.parade = { curve, L, floats, dancers, DU, conf, cp, cv, cl, ci: 0, names: ["XEVARION CRYSTAL", "SAKURA PAGODA", "SWEETS PARTY", "MUSIC STAGE", "SPACE TRIP", "FUWA-FUWA FRIENDS", "SPONSORED BY NGX"] };
+    w.parade = { curve, L, floats, dancers, DU, conf, cp, cv, cl, ci: 0, names };
     /* パレードを始める看板（マーケットの広場・噴水の南） */
     [[-24, 608], [0, 402], [STUDIO.x + STUDIO.w / 2 + 6, STUDIO.z - 12]].forEach(([x, z]) => { w.sign("DAYTIME PARADE  昼のパレード", { bg: "#ff4fb0", color: "#fff", border: "#ffd84a", px: 1024, both: true }, 5.4, 0.9, x, 3.2, z, 0); w.detail(() => w.geo("woodDark2", new T.BoxGeometry(0.16, 2.8, 0.16), x, 1.4, z)); w.interact(x, z + 1.5, 3.2, "昼のパレードを始める", () => ({ parade: true }), "🎉"); });
   };

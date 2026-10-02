@@ -11,6 +11,8 @@
 
   P.areaZone = function (id) { const a = A[id]; this.zone(a.n + " " + a.name, a.x0, a.z0, a.x1, a.z1, "outdoor"); };
   P.disk = function (x, z, r, key, y, r0) {
+    /* ★★ 2026-10-02 床の模様（丸い広場・交差点の輪など）は草を生やさない所として全部おぼえる（gfx.js の草の型抜き）＝ご指定「床の模様に草が重なる」 */
+    if (!/^(lawn|water|pool|grass|sand)/.test(key) && (y || 0) < 0.4) (this.groundShapes = this.groundShapes || []).push({ c: [x, z, r] });
     if (!r0 && r > 6) (this.paved = this.paved || []).push([x - r * 0.9, z - r * 0.9, x + r * 0.9, z + r * 0.9]);
     const g = r0 ? new T.RingGeometry(r0, r, 96, 1) : new T.CircleGeometry(r, 96); g.rotateX(-Math.PI / 2);
     const uv = g.attributes.uv, p = g.attributes.position; for (let i = 0; i < uv.count; i++) uv.setXY(i, p.getX(i) / 4, p.getZ(i) / 4);
@@ -18,6 +20,7 @@
   };
   P.rect = function (key, x0, z0, x1, z1, y) { this.floor(key, x0, z0, x1, z1, y || 0.014); if (!/^lawn/.test(key)) (this.paved = this.paved || []).push([Math.min(x0, x1), Math.min(z0, z1), Math.max(x0, x1), Math.max(z0, z1)]); };
   P.ellipsePlaza = function (x, z, rx, rz, key, y) {
+    if (!/^(lawn|water|pool|grass|sand)/.test(key) && (y || 0) < 0.4) (this.groundShapes = this.groundShapes || []).push({ e: [x, z, rx, rz] });          /* ★★ 2026-10-02 */
     if (!/^lawn/.test(key)) (this.paved = this.paved || []).push([x - rx * 0.8, z - rz * 0.8, x + rx * 0.8, z + rz * 0.8]);
     const sh = new T.Shape(); for (let i = 0; i <= 96; i++) { const a = i / 96 * TAU; const px = Math.cos(a) * rx, pz = Math.sin(a) * rz; if (i) sh.lineTo(px, -pz); else sh.moveTo(px, -pz); }
     const g = new T.ShapeGeometry(sh, 1); g.rotateX(-Math.PI / 2); const uv = g.attributes.uv, p = g.attributes.position; for (let i = 0; i < uv.count; i++) uv.setXY(i, p.getX(i) / 4, p.getZ(i) / 4);
@@ -465,6 +468,7 @@
     /* ★★ 2026-09-30 ガラスのエレベーターで外がわを上る（展望台 125m・スカイデッキ 172m） */
     const TWD = { name: "XEVARION TOWER", x, z, fx: x + 19, fz: z, fyaw: -Math.PI / 2, lift: { x: x + 18.8, z: z + 3, ax: 1, az: 0, y0: 0.3, topF: 52 },
       floors: [{ label: "30F", name: "展望台（125m）", deck: { x, z, y: 122, rIn: 6.4, rOut: 12.4, exitR: 7.4, name: "XEVARION TOWER 展望台（125m）" } }, { label: "41F", name: "スカイデッキ（172m）", deck: { x, z, y: 170, rIn: 1.2, rOut: 6.4, exitR: 2.6, name: "XEVARION TOWER スカイデッキ（172m）" } }] };
+    if (w.liftShaft) w.liftShaft(TWD.lift, 172, { bridges: [[122.3, 4.9], [170.3, 10.8]], door: true, label: "展望エレベーター 125m / 172m" });          /* ★★ 2026-09-30d 見えるエレベーター（ガラスの筒・入口・展望台への渡り廊下） */
     w.interact(x + 18, z, 4, "タワーの展望台へ（ガラスのエレベーター）", () => ({ roomFloors: TWD }), "🗼");
   };
   /* 高架の新交通（四角い周回・電車が走る） */

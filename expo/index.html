@@ -6,12 +6,12 @@
 <meta name="theme-color" content="#0a1024">
 <title>XEVARION PARK</title>
 <link rel="icon" href="../brand-xevarion-orb.png">
-<link rel="stylesheet" href="expo.css?v=6">
+<link rel="stylesheet" href="expo.css?v=7">
 </head>
 <body>
 <div id="vidFrame"></div>
 <canvas id="cv"></canvas>
-<div id="sponsor"><em>このショーは</em><small>ショー</small><b>提供</b><img src="img/ngx_logo.webp" alt="NGX"><i>でお送りしました</i></div>
+
 <div id="bubbles"></div>
 
 <!-- 読みこみ（★ 2026-09-28d パークのロゴ） -->
@@ -44,10 +44,12 @@
 </svg>
 
 <!-- 画面の UI -->
+<div id="xhair"></div><div id="plockHint"></div>
 <div id="hud">
   <button id="exitBtn" class="pill"><svg class="ic"><use href="#i-home"/></svg><span>ホーム</span></button>
   <img id="hudLogo" src="img/park_wordmark.webp" alt="XEVARION PARK">
   <div id="zone">XEVARION PARK</div>
+  <div id="stHint" aria-live="off"></div>
   <canvas id="mini" width="300" height="240"></canvas>
   <div class="rbtns">
     <button id="mapBtn" class="rb" title="地図・ワープ（M）"><svg class="ic"><use href="#i-map"/></svg><small>地図</small></button>
@@ -100,33 +102,45 @@
 <script src="expo-data.js?v=8"></script>
 <script src="tex.js?v=2"></script>
 <script src="vrm.js?v=3"></script>
-<script src="world.js?v=6"></script>
-<script src="park.js?v=4"></script>
+<script src="world.js?v=7"></script>
+<script src="park.js?v=5"></script>
 <script src="park_style.js?v=2"></script>
-<script src="park_interiors.js?v=3"></script>
-<script src="park_areas.js?v=4"></script>
-<script src="park_areas2.js?v=4"></script>
-<script src="park_harbor.js?v=3"></script>
-<script src="park_dome.js?v=3"></script>
+<script src="park_interiors.js?v=4"></script>
+<script src="park_areas.js?v=5"></script>
+<script src="park_areas2.js?v=5"></script>
+<script src="park_harbor.js?v=4"></script>
+<script src="park_dome.js?v=4"></script>
 <script src="park_night2.js?v=3"></script>
 <script src="park_new.js?v=2"></script>
 <script src="park_sports.js?v=3"></script>
-<script src="park_more.js?v=2"></script>
-<script src="park_life.js?v=1"></script>
+<script src="park_more.js?v=3"></script>
+<script src="park_life.js?v=2"></script>
 <script src="park_scope.js?v=2"></script>
 <script src="park_adult.js?v=1"></script>
-<script src="park_roads.js?v=2"></script>
-<script src="gfx.js?v=2"></script>
-<script src="fx.js?v=3"></script>
-<script src="people.js?v=2"></script>
-<script src="games.js?v=3"></script>
+<script src="park_roads.js?v=3"></script>
+<script src="gfx.js?v=3"></script>
+<script src="fx.js?v=4"></script>
+<script src="people.js?v=3"></script>
+<script src="games.js?v=4"></script>
+<script src="games_burst.js?v=1"></script>
+<script src="park_gacha3d.js?v=1"></script>
 <script src="park_kart.js?v=1"></script>
 <script src="audio/park_music.js?v=2"></script>
-<script src="park_rides.js?v=3"></script>
-<script src="park_transit.js?v=3"></script>
-<script src="park_shows.js?v=3"></script>
-<script src="park_ui.js?v=3"></script>
-<script src="park_rooms.js?v=2"></script>
-<script src="main.js?v=6"></script>
+<script src="park_rides.js?v=4"></script>
+<script src="park_transit.js?v=4"></script>
+<script src="park_shows.js?v=4"></script>
+<script src="park_ui.js?v=4"></script>
+<script src="park_rooms.js?v=3"></script>
+<script src="park_layout.js?v=1"></script>
+<script src="park_plan.js?v=2"></script>
+<script src="park_net.js?v=2"></script>
+<script src="park_corp.js?v=2"></script>
+<script src="park_fun.js?v=2"></script>
+<script src="park_outer.js?v=2"></script>
+<script src="park_metro.js?v=2"></script>
+<script src="park_infill.js?v=2"></script>
+<script src="park_fantasy.js?v=1"></script>
+<script src="park_spec.js?v=3"></script>
+<script src="main.js?v=8"></script>
 </body>
 </html>

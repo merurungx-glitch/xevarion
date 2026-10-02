@@ -416,7 +416,9 @@
       if (typeof name === "string" && name.length <= 18) w.sign(name, { bg: "#0a1430", color: "#fff", border: "#ffd86a", px: 512 }, Math.min(bw, bd, 4.6), 0.5, dx + nx * 0.02, 3.2, dz + nz * 0.02, dry, { detail: true });
       const seed = Math.abs(Math.floor(x * 13.7 + z * 7.9));
       let lift = null, roof = null;
-      if (roofInfo && roofInfo.y >= 24) { const [lx, lz] = L(na * (half + 1.9) + (na ? 0 : bw / 2 - 2.2), nb * (half + 1.9) + (nb ? 0 : bd / 2 - 2.2)); lift = { x: lx, z: lz, ax: nx, az: nz, y0: 0.2, top: roofInfo.y, topF: Math.round(roofInfo.y / 4.2) }; roof = roofInfo; }
+      if (roofInfo && roofInfo.y >= 24) { const [lx, lz] = L(na * (half + 1.9) + (na ? 0 : bw / 2 - 2.2), nb * (half + 1.9) + (nb ? 0 : bd / 2 - 2.2)); lift = { x: lx, z: lz, ax: nx, az: nz, y0: 0.2, top: roofInfo.y, topF: Math.round(roofInfo.y / 4.2) }; roof = roofInfo;
+        /* ★★ 2026-09-30d 屋上へのエレベーターを見えるように（ガラスの筒・入口・屋上への渡り廊下）＝ご指定「エレベーターの入り口が変」 */
+        if (w.liftShaft && !I.road(lx, lz, 1.9) && !I.col(lx, lz, 1.8) && !I.water(lx, lz)) w.liftShaft(lift, roofInfo.y, { bridges: [[roofInfo.y, 2.0]], door: true, label: "エレベーター（屋上へ）" }); }
       const def = defFor(w, String(name), x, z, h, seed, fx, fz, dry + Math.PI, lift, roof);
       def.x = x; def.z = z;
       w.interact(fx, fz, 2.3, "中に入る：" + String(name).slice(0, 16), () => ({ room: def }), "🚪");

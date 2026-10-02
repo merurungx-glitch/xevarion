@@ -17,7 +17,9 @@
   const ROOT = "../";
 
   /* ══════════════ まとめ描き（静的な箱・板） ══════════════ */
-  function Batch() { this.parts = {}; }
+  /* ★★ 2026-09-30c 形は「足した順の一覧」で持ち、場所ごとのまとめは build のときに決める
+     （エリアを新しい配置へ動かす＝park_layout.js が、足したあとで形を平行移動できるように） */
+  function Batch() { this.items = []; }
   /* ★ 2026-09-28c 場所（150m 四方）ごとに分けてまとめる（パークが広いので、遠い所は描かない・見えない所は省ける） */
   const CELL = 250;
   /* ★ 2026-09-28d 色だけの材質（mat.userData.vc）は、色を頂点に焼いて1つの材質にまとめる（描く回数が大きく減る）。
@@ -30,17 +32,21 @@
       for (let i = 0; i < n; i++) { col[i * 3] = vc.color.r; col[i * 3 + 1] = vc.color.g; col[i * 3 + 2] = vc.color.b; }
       g.setAttribute("color", new T.BufferAttribute(col, 3)); key = vc.fam; mat = vc.mat;
     }
-    if (!g.boundingSphere) g.computeBoundingSphere();
-    const c = g.boundingSphere.center, L = detail === "L", big = g.boundingSphere.radius > CELL;
-    const cs = L ? CELL * 3 : CELL, cell = big ? "all" : (L ? "L" : "") + Math.floor(c.x / cs) + "_" + Math.floor(c.z / cs);
-    const k = key + "|" + cell + (detail === true ? "|d" : "");
-    let p = this.parts[k]; if (!p) p = this.parts[k] = { mat, geos: [], key, cell, detail: detail === true, landmark: L };
-    p.geos.push(g);
+    this.items.push({ key, mat, g, detail });
   };
   Batch.prototype.build = function (scene, opt) {
-    const out = [];
-    for (const k in this.parts) {
-      const p = this.parts[k];
+    const out = [], parts = {};
+    for (const it of this.items) {
+      const g = it.g; g.computeBoundingSphere();
+      const c = g.boundingSphere.center, L = it.detail === "L", big = g.boundingSphere.radius > CELL;
+      const cs = L ? CELL * 3 : CELL, cell = big ? "all" : (L ? "L" : "") + Math.floor(c.x / cs) + "_" + Math.floor(c.z / cs);
+      const k = it.key + "|" + cell + (it.detail === true ? "|d" : "");
+      let p = parts[k]; if (!p) p = parts[k] = { mat: it.mat, geos: [], key: it.key, cell, detail: it.detail === true, landmark: L };
+      p.geos.push(g);
+    }
+    this.items = [];
+    for (const k in parts) {
+      const p = parts[k];
       const merged = mergeGeos(p.geos);
       const mesh = new T.Mesh(merged, p.mat);
       mesh.receiveShadow = true; mesh.castShadow = p.detail || !!(opt && opt.cast && opt.cast[p.key]);
@@ -224,6 +230,8 @@
     const g = new T.PlaneGeometry(x1 - x0, z1 - z0); g.rotateX(-Math.PI / 2);
     const uv = g.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * (x1 - x0) / 4, uv.getY(i) * (z1 - z0) / 4);
     this.batch.add(key, this.m[key], g, new T.Matrix4().makeTranslation((x0 + x1) / 2, y || 0, (z0 + z1) / 2));
+    /* ★★ 2026-10-02 地面の高さの床（模様・広場）は草を生やさない所としておぼえる（gfx.js の草の型抜き） */
+    if ((y || 0) < 0.4 && (y || 0) > -0.5 && !/^(lawn|water|pool|grass|sand|sea)/.test(key)) (this.groundShapes = this.groundShapes || []).push({ r: [Math.min(x0, x1), Math.min(z0, z1), Math.max(x0, x1), Math.max(z0, z1)] });
   };
   World.prototype.zone = function (name, x0, z0, x1, z1, light) { this.zones.push({ name, x0, z0, x1, z1, light: light || "indoor" }); };
 
@@ -1168,7 +1176,7 @@
     for (let it = 0; it < 3; it++) for (const c of near) {
       if (p.x + r < c.x0 || p.x - r > c.x1 || p.z + r < c.z0 || p.z - r > c.z1) continue;
       if (c.ya !== undefined && (py < c.ya || py > c.yb)) continue;         /* ★★ 2026-09-29c 高さの範囲つき（ホームの手すり・地上の柱） */
-      if (py < -100 && c.ya === undefined) continue;                          /* ★★ 2026-09-30 建物の中の部屋（地下）では地上の当たりは効かない */
+      if (py < -4 && c.ya === undefined) continue;                            /* ★★ 2026-09-30 建物の中の部屋（地下）では地上の当たりは効かない（★★ 2026-09-30d 地下鉄の駅・通路＝地下 4m より下も） */
       if (c.fence && p.overFence) continue;                                   /* ★★ 2026-09-29d ホバーは柵を越えられる */
       if (c.t) { if (pushShape(c, p, r)) hit++; continue; }
       const cx = Math.max(c.x0, Math.min(p.x, c.x1)), cz = Math.max(c.z0, Math.min(p.z, c.z1));
@@ -1234,7 +1242,7 @@
   function inPoly(P, x, z) { let inside = false; for (let i = 0, j = P.length - 1; i < P.length; j = i++) { const xi = P[i][0], zi = P[i][1], xj = P[j][0], zj = P[j][1]; if (((zi > z) !== (zj > z)) && (x < (xj - xi) * (z - zi) / (zj - zi) + xi)) inside = !inside; } return inside; }
   /* (x,y,z) が建物の中なら true。tx,tz（キャラの位置）がその建物の中なら、その建物は数えない（建物の中を歩いているとき） */
   World.prototype.camBlock = function (x, y, z, tx, tz) {
-    if (y < -100) return false;
+    if (y < -1.2) return false;          /* ★★ 2026-09-30d 地下（地下鉄）は地上の建物で止めない（部屋の中の決まり＝interiors で止める） */
     if (!this._cg) this.camGrid();
     const a = this._cg.get(Math.floor(x / this._cgS) + "," + Math.floor(z / this._cgS));
     if (a) for (const it of a) {
@@ -1263,7 +1271,7 @@
       for (const m of this.cellMeshes) { const c = m.geometry.boundingSphere.center; const d = Math.hypot(c.x - cx, c.z - cz) - m.geometry.boundingSphere.radius; m.visible = d < (m.userData.detail ? RD : m.userData.landmark ? R * 3 : R); }
       if (this.updateVeg) this.updateVeg(cx, cz, R);
       if (this.farObjs) for (const f of this.farObjs) f.o.visible = Math.hypot(f.x - cx, f.z - cz) < f.r;
-      if (this.looseList) { const k = hi > 200 ? 4 : 1; for (const L of this.looseList) { const p = L.o.position; L.o.visible = Math.abs(p.x - cx) < L.r * k && Math.abs(p.z - cz) < L.r * k; } }
+      if (this.looseList) { const k = hi > 200 ? 4 : 1; for (const L of this.looseList) { const p = L.o.position, px = p.x + (L.ox || 0), pz = p.z + (L.oz || 0); L.o.visible = Math.abs(px - cx) < L.r * k && Math.abs(pz - cz) < L.r * k; } }          /* ★★ 2026-09-30c ox/oz＝エリアを動かした分（park_layout.js） */
     }
     for (const s of this.screens) {
       if (s.mesh && !s.mesh.visible) continue;             /* 見えていない画面は描きなおさない */
