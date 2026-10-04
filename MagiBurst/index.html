@@ -24,7 +24,7 @@ if ("serviceWorker" in navigator) {
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
 <script src="../xeva-splash.js?v=13" data-app="MagiBurst" data-logo="../thumbs/MagiBurst.jpg"
         data-note="⚠️ このゲームの対象年齢は 13歳以上 です"></script>
-<script src="../xeva.js?v=72"></script>
+<script src="../xeva.js?v=73"></script>
 <!-- ★★ 2026-09-05 言語切りかえ（日本語 ⇄ English）。辞書は本体のあとに読むこと。 -->
 <script src="../xeva-i18n.js?v=8"></script>
 <script src="../xeva-i18n-dict.js?v=12"></script>
@@ -42,12 +42,12 @@ if ("serviceWorker" in navigator) {
 <script src="../xeva-i18n-mb7.js?v=7"></script>
 <script src="../xeva-i18n-p4.js?v=7"></script>
 <!-- ★★ 2026-09-06b 今回足したもの（新キャラ14体・装備・クリティカルなど）の英語辞書 -->
-<script src="../xeva-i18n-n1.js?v=12"></script>
+<script src="../xeva-i18n-n1.js?v=13"></script>
 <script src="../xeva-i18n-n2.js?v=3"></script>
 <script src="../xeva-loading.js?v=18" defer></script>
 <script type="module" src="../xevarion-fb.js?v=33"></script>
 <script src="../xeva-presence.js?v=9" defer></script>
-<script type="module" src="../xeva-cloud.js?v=39"></script>
+<script type="module" src="../xeva-cloud.js?v=40"></script>
 <script type="module" src="js/online.js?v=16"></script>
 <!-- ★★ 2026-09-01 ローカル通信マルチ（オフラインでも近くの人と遊べる）。
      BurstOnline と同じ名前・同じ戻り値でそろえてあるので、画面側は NET() で切り替えるだけ。 -->
@@ -4025,14 +4025,14 @@ textarea.oninp.mbcode[readonly]{background:#f2f0fb;color:#3b3560}
 </div></div>
 
 <script>window.MB_IMGD = "../img/"; window.MB_GIMGD = "img/";</script>
-<script src="../mb-newchars.js?v=32"></script>
+<script src="../mb-newchars.js?v=33"></script>
 <!-- ★★ 2026-09-06 新UI（スタイリッシュ）。
      body.mb-ui2 の中だけにかかるので、旧UIに戻すのは class を外すだけ。
      ★ 本文の <style> より<b>あと</b>に置くこと（あとに来たほうが勝つ）。 -->
 <link rel="stylesheet" href="css/mb-ui2.css?v=26">
 <!-- ★★ 2026-09-06 LOCAL PLAY（近距離ローカルマルチ）の画面 -->
 <link rel="stylesheet" href="css/localplay.css?v=7">
-<script src="js/mb-core.js?v=129"></script>
+<script src="js/mb-core.js?v=130"></script>
 <!-- ★★ 2026-09-06 装備（頭・腕・胸・足）。mb-core のあと・本体の前に読む -->
 <script src="js/mb-gear.js?v=8"></script>
 <script>
@@ -5951,7 +5951,7 @@ function openCounters(stageId) {
     const sec = charSecret(id);
     return `<button class="ccch ${inP ? "inp" : ""} ${own ? "" : "noown"} ${isStar5(id) ? "s5g" : ""}" onclick="openDet('${id}','counter')" title="${sec ? "登場前のキャラクター" : c.nm + " の性能を見る"}">
       <img class="${sec ? "silh" : ""}" src="${c.th}" alt=""><span>${charNmOf(id)}</span>
-      ${isStar5(id) ? '<i class="ccs5" title="' + (c.fes ? "SSR フェス限定" : c.quest ? "SSR クエスト限定（ガチャからは出ません）" : c.gacha ? "SSR ガチャ限定" : "SSR") + '">SSR</i>' : ""}
+      ${isStar5(id) ? '<i class="ccs5" title="' + rarLabel(id) + (c.fes ? " フェス限定" : c.quest ? " クエスト限定（ガチャからは出ません）" : c.gacha ? " ガチャ限定" : "") + '">' + rarLabel(id) + '</i>' : ""}
       ${elBdg}
       <span class="ccmk">
         ${/* ★★ 2026-08-26c 撃種（貫通／反射）をここに出す（ご指定）。
@@ -6124,7 +6124,7 @@ function openNewChar(all) {
         <div class="nccatch">${n.catch || ""}</div>
         <div class="ncnm">${elIcon(c.el, 22)} ${c.nm}<span class="ncno">${charNoText(n.id)}</span></div>
         <div class="ncchips">
-          <span class="ncchip">SSR</span>
+          <span class="ncchip">${rarLabel(n.id)}</span>
           <span class="ncchip">${elemNameOf(c)}属性</span>
           <span class="ncchip">${shotSVG(c.shot, 12)}${c.shot === "pierce" ? "貫通" : "反射"}</span>
           <span class="ncchip">${c.type}</span>
@@ -6157,6 +6157,16 @@ window.openNewChar = openNewChar; window.closeNewChar = closeNewChar;
 
 /* ══════════ お知らせ（アップデートのたびにここへ追記する） ══════════ */
 const NEWS = [
+  /* ★★ 2026-10-05 極彩祭に タキナ（水） */
+  { date: "2026-10-05", title: "🌊 極彩祭 に タキナ（史上最大のフルバースト）", body: [
+    "🌊 <b>極彩祭</b>（毎月1〜10日）に限定UR <b>タキナ（水）</b>が参戦しました。",
+    "💥 フルバースト「キキョウ・スイテンカ」は<b>史上最大</b>——蒼い雫の乱打" + TKN_BARRAGE_N + "連と蒼い桔梗の大輪（合計 攻撃力×" + Math.round(TKN_TOTAL) + "）。<b>防御力ダウン</b>のうえ、<b>味方全員のフルバーストを" + TKN_FB + "ターン進めます</b>。",
+    "🛡 アンチは<b>オムニアンチ＋超アンチ減速壁</b>。<b>全属性有利</b>・<b>治癒の祈り</b>（SS絵）。キラーは<b>全属性キラーEL・ボスキラーEL・パワーオーラEL</b>（パワーオーラ・底力に数えます）。",
+    "✨ クロススキル「蒼桔梗のクロス」（水属性の味方1体以上）→ 新アビリティ<b>ドレインEL</b>（敵に当たるたびチームHPを" + Math.round(DRAINEL_RATE * 100) + "%回復）・<b>全属性耐性M</b>・<b>リンク×2</b>。",
+    "🔗 リンクは既存で最強の<b>ブルーローズ・コンプリート</b>、サブリンクは<b>ゴールデン・リバウンド</b>。ショットスキル<b>キキョウ・リップル</b>は撃つたびに毎回 水紋・桔梗の雫・FB前進の3つが出ます。",
+    "🌈 極彩祭のネクサス（極彩・プリズムネクサス）をさらに強化しました。",
+    "🗝️ 新作 <b>MagiAbyss</b>（ドットアクションRPG）でも、極彩祭・極煌祭・極華祭のキャラが遊べます（所持と凸は共通）。",
+  ] },
   /* ★★ 2026-09-23 CRYSTAL ACADEMY FEST／5体編成／神癒の祈り／装備の廃止 */
   { date: "2026-09-23", title: "💎 CRYSTAL ACADEMY FEST 開幕／⚔ 編成が5体に", body: [
     "💎 <b>CRYSTAL ACADEMY FEST</b> を開幕しました（20日間）。限定SSR <b>クレハ（火）・ミコト（水）・メイ（木）・ヒカル（光）・ミヅキ（闇）</b>の5体。",
@@ -13715,7 +13725,7 @@ const ABIL_GROUPS = {
   ssboost: ["ssboost", "sscharge"],
   fbshort: ["fbshort", "fbtouch", "fbaccel", "linkcharge"],
   regen: ["regen", "regenM", "regenL"],
-  drain: ["drain", "drainM"],
+  drain: ["drain", "drainM", "drainEL"],   /* ★★ 2026-10-03 等級EL */
   soul: ["soul", "soulM", "soulEL"],   /* ★ 2026-08-08c 等級EL */
   barrier: ["barrier", "barrierM", "barrierL", "barrierEL"],
   aura: ["aura", "auraM", "auraEL", "waveboost"],
@@ -14295,6 +14305,8 @@ const SS_TAGS = {
   honokak: ["self", "barrage", "all", "heal", "debuff", "status"],
   azusak: ["self", "barrage", "all", "debuff", "buff"],
   kokohak: ["self", "barrage", "all", "debuff", "fbcut"],
+  /* ★★ 2026-10-03 タキナ（史上最大の乱打＋蒼い桔梗の大輪＝防御力ダウン＋味方全員のFBを進める） */
+  takinak: ["self", "barrage", "all", "debuff", "fbcut"],
   reia:   ["self", "all", "knock", "heal", "ally"],
   miori:  ["self", "barrage", "all", "debuff", "delay"],
   annamd: ["self", "all", "ally", "barrier", "fbcut"],
@@ -14586,7 +14598,7 @@ function searchText(c, mode) {
         parts.push("クロススキル", "クロス");
         (cx.skills || []).forEach((s) => {
           parts.push(s.nm);
-          if (s.abil) parts.push(abilName({ t: s.abil }));
+          if (s.abil) parts.push(abilName({ t: s.abil, el: s.el }));   /* ★ 2026-10-05 属性つき（エレナの IGNIS キラーEL）で落ちていた */
         });
       }
     }
@@ -15372,7 +15384,7 @@ function openDet(id, from) {
       ${inBattle ? "" : `<button class="dapt2" style="top:${canFav(id) ? 104 : 58}px" onclick="toggleFitQuests('${id}')"
         aria-label="適性クエスト" title="このキャラが刺さるクエストを見る">🎯</button>`}
       <div class="dover">
-        <div class="drank"><span style="color:#bfb6e6">${charNoText(id)}</span>　${isStar5(id) ? "SSR" : "SR"}${st.awk >= MAX_AWK ? '　<span style="color:#ffd257">👑 限界突破MAX</span>' : st.awk ? "　覚醒+" + st.awk : ""}</div>
+        <div class="drank"><span style="color:#bfb6e6">${charNoText(id)}</span>　${rarLabel(id)}${st.awk >= MAX_AWK ? '　<span style="color:#ffd257">👑 限界突破MAX</span>' : st.awk ? "　覚醒+" + st.awk : ""}</div>
         <div class="dnm">${elIcon(c.el, 24)} ${own ? c.nm : c.nm + "（未加入）"}</div>
         ${own ? `<div class="dlv">Lv.${st.lv} / ${lvCap}${lvCap > MAX_LV ? " 超越" : ""}</div>` : ""}
       </div>
@@ -19768,6 +19780,8 @@ const SS_ART = {
   /* ★★ 2026-09-19e 花宴祭 ヒメリ・ホノカ（治癒の祈り持ち） */
   himeri: "img/ss/HimeriSS.webp",
   honoka: "img/ss/HonokaSS.webp",
+  /* ★★ 2026-10-03 極彩祭 タキナ（治癒の祈り持ち） */
+  takina: "img/ss/TakinaSS.webp",
 };
 /* アビリティ発動カットイン（文字・色・演出はフルバーストと別物にする）
    art … SS絵のパス。渡すと正方形アイコンではなく縦長イラストで見せる（.sscut） */
@@ -22469,6 +22483,38 @@ function fireShotSkill(ball, ux, uy) {
   const atk = ball.st.atk * atkMulOf(ball);
   /* ══ ★★ 2026-09-08 戦姫祭 第3弾（レイア・ミオリ・アンナ(メイド)）══
      ★ ここは<b>撃ち出しの瞬間</b>に走るので、エフェクトは短い寿命で自分から終わるものだけ。 */
+  if (k === "kikyoripple") {
+    /* ★★ 2026-10-03 タキナ「キキョウ・リップル」：撃つたび<b>3つの技</b>がいっぺんに出る。
+       ① 水紋（自分のまわり 半径 SHOTSK_TAKINA_R）② 桔梗の雫（いちばん近い敵から SHOTSK_TAKINA_DROP 体・防御力ダウン1ターン）
+       ③ 自分のフルバーストが SHOTSK_TAKINA_FB ターン進む。★ 撃ち出しの瞬間なので短命エフェクトのみ。 */
+    let hitR = 0, hitD = 0;
+    for (let q = 0; q < 3; q++) B.effects.push({ type: "ring", x: ball.x, y: ball.y, t: -q * 3, dur: 18, r: SHOTSK_TAKINA_R * (0.55 + q * 0.225), c: q % 2 ? "#e0f2ff" : "#7fb8ff" });
+    withDmgSrc(ball, () => {
+      const list = aliveEnemies();
+      list.forEach((e2) => {
+        if (Math.hypot(e2.x - ball.x, e2.y - ball.y) > SHOTSK_TAKINA_R + e2.r) return;
+        hitR++;
+        dealDamage(e2, atk * SHOTSK_TAKINA_PER * elemMultOf(ball.ch, e2.el), "#7fb8ff", true);
+        B.effects.push({ type: "ring", x: e2.x, y: e2.y, t: 0, dur: 14, r: e2.r * 1.6, c: "#bfe8ff" });
+      });
+      list.slice().sort((a, b) => Math.hypot(a.x - ball.x, a.y - ball.y) - Math.hypot(b.x - ball.x, b.y - ball.y))
+        .slice(0, SHOTSK_TAKINA_DROP).forEach((e2, q) => {
+          if (!e2 || e2.hp <= 0) return;
+          hitD++;
+          B.effects.push({ type: "boltlink", x: ball.x, y: ball.y, tx: e2.x, ty: e2.y, t: -q * 2, dur: 12, c: "#a9a4ff" });
+          dealDamage(e2, atk * SHOTSK_TAKINA_DROP_PER * elemMultOf(ball.ch, e2.el), "#a9a4ff", true);
+          e2.defdown = { left: Math.max(1, (e2.defdown && e2.defdown.left) || 0) };
+          B.effects.push({ type: "ring", x: e2.x, y: e2.y, t: -q * 2, dur: 16, r: e2.r * 1.9, c: "#6f6cff" });
+        });
+    });
+    const _k3 = ball.sc | 0;
+    ball.sc = Math.min(_k3 + SHOTSK_TAKINA_FB, fbMax(ball.st));
+    B.pops.push({ x: ball.x, y: ball.y - ball.r - 30, t: 0,
+      txt: "キキョウ・リップル" + (hitR ? "（水紋 " + hitR + "体）" : "") + (hitD ? "（雫 " + hitD + "体・防御ダウン）" : "")
+        + (ball.sc > _k3 ? "（FB +" + (ball.sc - _k3) + "）" : ""),
+      c: "#7fb8ff", small: 1 });
+    return;
+  }
   if (k === "tsubakiame") {
     /* ★★ 2026-09-19g ココハ「ツバキアメ・シュート」：進む向きの帯に紅い雨（貫通）。
        当たった敵は攻撃が1ターン遅れ、自分のフルバーストが1ターン進む。短命エフェクトのみ。 */
@@ -25293,11 +25339,12 @@ function hitEnemy(ball, e, col) {
     }
   }
   /* ドレイン：敵にふれるたびにチームHPを回復（モーションつき） */
-  if (hasAbil(ball.ch, "drain") || hasAbil(ball.ch, "drainM")) {
-    const dm = hasAbil(ball.ch, "drainM");
-    const heal = Math.round(B.maxhp * (dm ? DRAINM_RATE : DRAIN_RATE));
+  /* ★★ 2026-10-03 等級EL（タキナのクロス）。いちばん上の等級だけを使う（重ねない） */
+  if (hasAbil(ball.ch, "drain") || hasAbil(ball.ch, "drainM") || hasAbil(ball.ch, "drainEL")) {
+    const de = hasAbil(ball.ch, "drainEL"), dm = !de && hasAbil(ball.ch, "drainM");
+    const heal = Math.round(B.maxhp * (de ? DRAINEL_RATE : dm ? DRAINM_RATE : DRAIN_RATE));
     B.hp = clamp(B.hp + heal, 0, B.maxhp); paintHp();
-    B.pops.push({ x: ball.x, y: ball.y - ball.r - 20, t: 0, txt: (dm ? "ドレインM +" : "ドレイン +") + fmt(heal), c: "#7dffb0", small: 1 });
+    B.pops.push({ x: ball.x, y: ball.y - ball.r - 20, t: 0, txt: (de ? "ドレインEL +" : dm ? "ドレインM +" : "ドレイン +") + fmt(heal), c: "#7dffb0", small: 1 });
     B.effects.push({ type: "drainfx", x: e.x, y: e.y, tx: ball.x, ty: ball.y, t: 0, dur: 22, c: "#7dffb0" });
     SFX.heal();
   }
@@ -25626,6 +25673,66 @@ function hitEnemy(ball, e, col) {
         B.pops.push({ x: W / 2, y: H * 0.38, t: 0,
           txt: "SENKA!!（×" + KKH_FINALE + "・防御力ダウン " + KKH_DEFDOWN + "T・味方全員 FB +" + KKH_FB + "）", c: "#ffe0e4", small: 0 });
         B.shake = Math.max(B.shake, 48); B.freeze = Math.max(B.freeze, 14);
+        SFX.crit();
+      } });
+  }
+  /* ══ ★★ 2026-10-03 KIKYOU SUITENKA（極彩祭 タキナ・乱打）＝ MagiBurst 史上最大（合計 ×TKN_TOTAL）══ */
+  if (B.ssArmed === ball.i && ball.ch.ssKind === "takinak" && !B.ssFirstDone) {
+    B.ssFirstDone = true;
+    barrageHalt(ball);
+    ball.selfBuff = { atk: TKN_ATK, spd: TKN_SPD, left: 3 };
+    fxBarrage(ball, e, TKN_BARRAGE_N, TKN_BARRAGE_PER, "#7fd8ff", TKN_BARRAGE_STEP);
+    luxBurst(e.x, e.y, "#3d7bff");
+    B.effects.push({ type: "skydim", t: 0, dur: TKN_BARRAGE_N * 2 + 90, a: 0.55, c: "#020a1a" });
+    B.pops.push({ x: e.x, y: e.y - e.r - 60, t: 0, txt: "KIKYOU SUITENKA!!（" + TKN_BARRAGE_N + "連）", c: "#e0f2ff", small: 0 });
+    const _abT = ball.st.atk * atkMulOf(ball), _cbT = ball.ch;
+    const _finT = TKN_BARRAGE_N * 2 + 16;
+    B.effects.push({ type: "fxctl", t: 0, dur: _finT + 90, done: 0, drop: 0,
+      tick(fx) {
+        /* ★ 乱打のあいだ、盤面のあちこちに雫が落ちて水紋がひろがる（進むほど細かく） */
+        if (fx.t < _finT && fx.t % (fx.t > _finT * 0.6 ? 3 : 5) === 0) {
+          fx.drop++;
+          const x = vrnd(0, W), y = vrnd(0, H);
+          B.effects.push({ type: "linefx", x: x, y: y - 46, x2: x, y2: y, t: 0, dur: 10, w: 2.5, c: "#bfe8ff" });
+          B.effects.push({ type: "ring", x: x, y: y, t: -4, dur: 18, r: 26, c: fx.drop % 3 ? "#7fd8ff" : "#ffffff" });
+        }
+        if (fx.done || fx.t < _finT) return;
+        fx.done = 1;
+        B.effects.push({ type: "skydim", t: 0, dur: 60, a: 0.78, c: "#020a1a" });
+        B.effects.push({ type: "flashfx", t: 0, dur: 24 });
+        B.effects.push({ type: "personacrit", x: e.x, y: e.y, t: 0, dur: 40, c: "#3d7bff" });
+        /* 蒼い桔梗の大輪：盤面いっぱいの五弁の花・何重もの水の輪・下から噴きあがる水柱 */
+        for (let q = 0; q < 20; q++) {
+          const x = W * (0.1 + (q % 5) * 0.2), y = H * (0.12 + Math.floor(q / 5) * 0.22);
+          for (let k = 0; k < 5; k++) {
+            const a = -Math.PI / 2 + k * Math.PI * 2 / 5;
+            B.effects.push({ type: "ring", x: x + Math.cos(a) * 18, y: y + Math.sin(a) * 18, t: -q, dur: 26, r: 18, c: k % 2 ? "#e0f2ff" : "#6f6cff" });
+          }
+          B.effects.push({ type: "ring", x: x, y: y, t: -q, dur: 26, r: 7, c: "#ffffff" });
+        }
+        for (let q = 0; q < 12; q++) B.effects.push({ type: "ring", x: W / 2, y: H / 2, t: -q * 3, dur: 44, r: 90 + q * 100, c: q % 2 ? "#e0f2ff" : "#3d7bff" });
+        for (let q = 0; q < 16; q++) {
+          const x = W * (q + 0.5) / 16;
+          B.effects.push({ type: "linefx", x: x, y: H + 40, x2: x, y2: -40, t: -(q % 4), dur: 30, w: 4, c: q % 2 ? "#7fd8ff" : "#ffffff" });
+        }
+        withDmgSrc(ball, () => {
+          aliveEnemies().forEach((o) => {
+            dealDamage(o, _abT * TKN_FINALE * elemMultOf(_cbT, o.el), "#e0f2ff", true);
+            o.defdown = { left: Math.max(TKN_DEFDOWN, (o.defdown && o.defdown.left) || 0) };
+            B.effects.push({ type: "boom", x: o.x, y: o.y, t: 0, dur: 40, r: o.r * 4.6, c: "#3d7bff" });
+            B.effects.push({ type: "personahit", x: o.x, y: o.y, t: 0, dur: 32, c: "#e0f2ff", txt: "SUITENKA", big: 1 });
+            spawnSparks(o.x, o.y, "#ffffff", 34);
+          });
+        });
+        /* 味方全員のフルバーストを進める */
+        (B.balls || []).forEach((b2) => {
+          if (!b2) return;
+          b2.sc = Math.min((b2.sc | 0) + TKN_FB, fbMax(b2.st));
+          B.effects.push({ type: "ring", x: b2.x, y: b2.y, t: 0, dur: 20, r: b2.r * 2.6, c: "#7fb8ff" });
+        });
+        B.pops.push({ x: W / 2, y: H * 0.38, t: 0,
+          txt: "SUITENKA!!（×" + TKN_FINALE + "・防御力ダウン " + TKN_DEFDOWN + "T・味方全員 FB +" + TKN_FB + "）", c: "#e0f2ff", small: 0 });
+        B.shake = Math.max(B.shake, 50); B.freeze = Math.max(B.freeze, 14);
         SFX.crit();
       } });
   }

@@ -15,8 +15,8 @@
    <b>ふつうの &lt;script&gt;</b>（type="module" ではない）で読むこと。
    トップレベルの const/let はグローバルの字句環境に入るので、
    あとから読み込む MagiBurst 本体のスクリプトからそのまま見える。
-     MagiBurst : <script src="js/mb-core.js?v=129"></script>
-     gacha.html: <script src="MagiBurst/js/mb-core.js?v=129"></script>
+     MagiBurst : <script src="js/mb-core.js?v=130"></script>
+     gacha.html: <script src="MagiBurst/js/mb-core.js?v=130"></script>
 
    ── ホストが先に用意しておくもの ──
      window.MB_IMGD … 画像フォルダへの相対パス（MagiBurst は "../img/"、ポータルは "img/"）
@@ -256,6 +256,8 @@ const AB_NM = {
   wallboostL: "ウォールブーストL", overheat: "オーバーヒート",
   /* v10: 幽冥の庭園（ヘカーティア）／プレミアム（レゼリア）用 */
   upkillerM: "アップポジションキラーM", drainM: "ドレインM",
+  /* ★★ 2026-10-03 タキナのクロス用（ドレインの等級EL） */
+  drainEL: "ドレインEL",
   /* v11.3: エルシア用 */
   fsdouble: "リンク×2", counterkiller: "カウンターキラー",
   /* v12: カリナ／ネフィア用 */
@@ -2021,6 +2023,7 @@ const ELSIA_HP_COST = 0.40;    // エルシアFB: 消費する残りチームHP�
 const ELSIA_DMG_RATE = 6.0;    // エルシアFB: 消費HP × この値 が最初にふれた敵へのダメージ
 const UPKILLER_MUL = 2.0;     // アップポジションキラーM: 画面上半分の敵へのダメージ倍率
 const DRAINM_RATE = 0.10;     // ドレインM: 敵ヒット1回につきチームHPの回復量
+const DRAINEL_RATE = 0.15;    // ★★ 2026-10-03 ドレインEL（タキナのクロス）: 敵ヒット1回につきチームHPの回復量
 const SOULM_RATE = 0.15;      // ソウルスティールM: 敵撃破ごとの回復
 const OVERHEAT_COST = 0.03;   // オーバーヒート: 毎ターンのHP消費
 const OVERHEAT_MUL = 1.75;    // オーバーヒート: 自強化倍率
@@ -2205,6 +2208,8 @@ function abilName(a) {
   /* ★★ 2026-09-06 ご指定。属性の呼び名を IGNIS / AQUA / … にしたので、
      「AQUA属性キラー」は<b>属性が二重</b>になっていた（AQUA がすでに属性名）。
      <b>「AQUAキラー」</b>に短くする。★ ここが全画面の表示元。 */
+  /* ★ 2026-10-05 属性の無い呼び出しでも落ちないように（検索の文字列づくりで落ちていた） */
+  if (/^(killer|elemres)/.test(a.t) && !ELEM[a.el]) return AB_NM[a.t] || a.t;
   if (a.t === "killer") return ELEM[a.el].nm + "キラー";
   if (a.t === "killerM") return ELEM[a.el].nm + "キラーM";
   if (a.t === "killerL") return ELEM[a.el].nm + "キラーL";   /* ★ 2026-08-11 等級L＝×2.5 */
@@ -2299,6 +2304,7 @@ function abilDesc(a) {
     case "counterkiller": return "<b>最後に攻撃してきた敵</b>へのダメージが" + COUNTER_KILLER_MUL + "倍になる";
     case "upkillerM": return "画面の<b>上半分にいる敵</b>へのダメージが<b>" + UPKILLER_MUL + "倍</b>（等級M）";
     case "drainM": return "敵にふれるたびにチームHPを" + Math.round(DRAINM_RATE * 100) + "%回復する（等級M）";
+    case "drainEL": return "敵にふれるたびにチームHPを<b>" + Math.round(DRAINEL_RATE * 100) + "%</b>回復する（等級EL・ドレインの最上位）";
     case "overheat": return "自分のターン終了時にチームHPを" + Math.round(OVERHEAT_COST * 100) + "%消費する代わりに、常に自強化（攻撃<b>×" + OVERHEAT_MUL + "</b>）する";
     case "barrierM": return "一定量（<b>" + fmt(BARRIER_M) + "</b>）のダメージを代わりに受け止める（等級M）";
     case "barrierL": return "一定量（<b>" + fmt(BARRIER_L) + "</b>）のダメージを代わりに受け止める（等級L）";
@@ -4427,6 +4433,15 @@ const ROSE_A = 8.00;
 const ROSE_P = 4.65;
 const ROSE_CROWN = 32.0;
 const ROSE_GAP = 10;
+/* ★★ 2026-10-03 同じリンクを<b>タキナ</b>も持つ（ご指定「既存のリンクスキルで最強のもの」）。
+   同じ名前のリンクは効果も説明も同じにするので、文面はここ1か所で持つ。 */
+const ROSE_FS_NM = "ブルーローズ・コンプリート";
+const ROSE_FS_POW = "味方 → 全部の敵へ茨（1本 攻撃力×" + ROSE_A + "）＋ <b>敵と敵のすべての組</b>に茨（1本ごとに両端の2体へ ×" + ROSE_P + "）＋ "
+  + "<b>いちばん多く茨が集まった敵1体</b>（同数なら残りHPが多い敵）に青薔薇の冠（×" + ROSE_CROWN + "）";
+const ROSE_FS_DESC = "ふれた味方から青薔薇の茨が伸び、<b>敵と敵をすべての組み合わせで結ぶ</b>。"
+  + "<br>これまでに無いのは<b>敵が増えるほど茨の本数が「組み合わせの数」で増える</b>こと——"
+  + "敵3体なら3本、4体なら6本、5体なら10本。1本ごとに<b>両端の2体</b>へ入ります。"
+  + "<br>最後に、<b>いちばん多くの茨が集まった敵1体</b>（同じ本数ならHPが多く残っている敵）へ<b>重い青薔薇の冠</b>が咲くので、ボス1体にもしっかり届きます。";
 /* ── アズサ ショットスキル「ブルーローズ・シュート」── */
 const SHOTSK_AZUSA_PER = 0.95;     // 進行方向の扇に青薔薇の花びら（貫通）
 const SHOTSK_AZUSA_LEN = 520;      //   その射程
@@ -4549,6 +4564,47 @@ SHOTSKILLS.bluerose = {
   desc: "自分のターンで<b>撃つたび毎回</b>、進む向きへ<b>扇形</b>に青薔薇の花びらが舞う。"
     + "<br>線ではなく<b>扇</b>なので、ねらいが少しずれても前の敵にはまとめて入る。"
     + "当たった敵は<b>防御力が1ターン下がり</b>、あわせて<b>自分のフルバーストが" + SHOTSK_AZUSA_FB + "ターン進む</b>。",
+};
+
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-10-03 極彩祭 <b>タキナ（水・貫通）</b>（ご指定・性能はユーザーと相談して決定）
+   ・全属性有利＋オムニアンチ＋<b>超アンチ減速壁</b> → ⚖ 第十一・第十二・第十五／🏯 第二重・蓬莱天宮・蓬莱神天
+     （どれも最適性キャラが少なかった面）を有利属性のまま完全対応。治癒の祈り（SS絵）あり。
+   ・キラーは<b>3つ</b>：全属性キラーEL＋ボスキラーEL＋パワーオーラEL。
+   ・クロス「蒼桔梗のクロス」（自分と同じ水属性の味方1体以上）→ <b>ドレインEL（新設）</b>・全属性耐性M・リンク×2。
+   ・アビリティは素8つ＋クロス3つ＝<b>11個</b>（MagiBurst 最多）。
+   ・FB は<b>史上最大</b>の乱打（合計 TKN_TOTAL・ココハ ×1683.2 超え）＋ 防御力ダウン＋<b>味方全員のFBを進める</b>。
+   ・リンクは<b>既存で最強</b>のブルーローズ・コンプリート（実測 十字4体 ×119.8／単体 ×40＝アズサと同じ技）。
+     サブリンクは<b>サブで最強</b>のゴールデン・リバウンド（ハノンと同じ技）。
+   ・ショットスキル「キキョウ・リップル」＝撃つたび毎回 <b>3つの効果</b>（水紋・桔梗の雫・FB前進）。
+   ・極彩祭のネクサス（luxprism）をさらに強化。
+   ══════════════════════════════════════════════════════════════ */
+const TKN_ATK = 3.70, TKN_SPD = 1.70;
+const TKN_BARRAGE_N = 100, TKN_BARRAGE_PER = 7.60, TKN_BARRAGE_STEP = 0.14;
+const TKN_FINALE = 450.0;          // 締めの蒼い桔梗の大輪（敵全体）
+const TKN_DEFDOWN = 5;
+const TKN_FB = 2;                  // 味方全員のフルバーストを進める数
+const TKN_TOTAL = TKN_BARRAGE_N * TKN_BARRAGE_PER
+  + TKN_BARRAGE_STEP * TKN_BARRAGE_N * (TKN_BARRAGE_N - 1) / 2 + TKN_FINALE;
+/* ── タキナ ショットスキル「キキョウ・リップル」──
+   撃った瞬間に<b>3つの効果</b>が順に出る（短命エフェクトだけ）：
+     ① 水紋 … 自分のまわり 半径 R の敵に 攻撃力×PER
+     ② 桔梗の雫 … <b>いちばん近い敵から DROP 体</b>へ雫が飛ぶ（1滴 ×DROP_PER・防御力ダウン1ターン）
+     ③ 自分のフルバーストが FB ターン進む */
+const SHOTSK_TAKINA_R = 300;
+const SHOTSK_TAKINA_PER = 0.95;
+const SHOTSK_TAKINA_DROP = 3;
+const SHOTSK_TAKINA_DROP_PER = 0.85;
+const SHOTSK_TAKINA_FB = 1;
+SHOTSKILLS.kikyoripple = {
+  nm: "キキョウ・リップル", c: "#7fb8ff",
+  pow: "① <b>水紋</b>：自分のまわり 半径 " + SHOTSK_TAKINA_R + " の敵に 攻撃力×" + SHOTSK_TAKINA_PER
+    + " ／ ② <b>桔梗の雫</b>：いちばん近い敵から" + SHOTSK_TAKINA_DROP + "体へ 攻撃力×" + SHOTSK_TAKINA_DROP_PER
+    + "（当たった敵の防御力を1ターン下げる）／ ③ <b>自分のフルバーストが" + SHOTSK_TAKINA_FB + "ターン進む</b>",
+  desc: "自分のターンで<b>撃つたび毎回</b>、<b>3つの技</b>がいっぺんに出る。"
+    + "<br>足もとに<b>水紋</b>が広がって近くの敵を削り、<b>桔梗の雫</b>がいちばん近い敵から" + SHOTSK_TAKINA_DROP + "体へ飛んで"
+    + "<b>防御力を1ターン下げ</b>、あわせて<b>自分のフルバーストが" + SHOTSK_TAKINA_FB + "ターン進む</b>。"
+    + "<br>近い敵にも遠い敵にも、撃つ向きを選ばず<b>毎ターン必ず</b>入ります。",
 };
 
 const KUMI_ATK = 3.30, KUMI_SPD = 1.60;
@@ -5102,10 +5158,12 @@ const NEXUS = {
   luxprism: { nm: "極彩・プリズムネクサス", c: "#8affc4",
     /* ★★ 2026-09-01 ご指定により<b>さらに強化</b>（効果は4つに） */
     /* ★★ 2026-09-19g ココハ追加にあわせて<b>もう一段強化</b>（ご指定）：弱点+70%・リンク+40%・攻撃+22%・ボス+30% */
-    desc: "<b>弱点</b>へのダメージが<b>70%</b>アップし、<b>リンクスキル・サブリンク</b>のダメージが<b>40%</b>アップ、"
-      + "さらに<b>味方全員の攻撃力</b>が<b>22%</b>アップ、<b>ボス</b>へのダメージが<b>30%</b>アップする"
-      + "<br><small>※ ピアース・ネクサス（弱点+8%）の約9倍に、ボンド・フォース・スレイヤーぶんを重ねた極彩祭だけの特別なネクサスです</small>",
-    weak: 1.70, link: 1.40, atk: 1.22, boss: 1.30 },
+    /* ★★ 2026-10-03 タキナ追加にあわせて<b>さらに強化</b>（ご指定）：弱点+80%・リンク+50%・攻撃+25%・ボス+40%＋<b>各WAVE開始時にチームHP+5%</b>（効果は5つに） */
+    desc: "<b>弱点</b>へのダメージが<b>80%</b>アップし、<b>リンクスキル・サブリンク</b>のダメージが<b>50%</b>アップ、"
+      + "さらに<b>味方全員の攻撃力</b>が<b>25%</b>アップ、<b>ボス</b>へのダメージが<b>40%</b>アップ、"
+      + "<b>各WAVEの開始時にチームHPを5%回復</b>する"
+      + "<br><small>※ ピアース・ネクサス（弱点+8%）の10倍に、ボンド・フォース・スレイヤー・マーシーぶんを重ねた極彩祭だけの特別なネクサスです</small>",
+    weak: 1.80, link: 1.50, atk: 1.25, boss: 1.40, waveHeal: 0.05 },
   luxblaze: { nm: "極煌・ブレイズネクサス", c: "#ff5d47",
     /* ★★ 2026-09-01 ご指定により<b>さらに強化</b>（効果は4つに）
        ★★ 2026-09-19e アズサ追加にあわせて<b>もう一段強化</b>（ご指定）：ボス+60%・攻撃+25%・バリア1600・弱点+25%・<b>リンク+30%</b> */
@@ -5952,6 +6010,18 @@ const CONNECT = {
       { k: "kokohaBarrier", nm: "バリアEL", abil: "barrierEL" },
       { k: "kokohaDouble", nm: "リンク×2", abil: "fsdouble" },
       { k: "kokohaDash", nm: "ダッシュL", abil: "dashL" },
+    ],
+  },
+  /* ★★ 2026-10-03 極彩祭 タキナ。条件は<b>自分と同じ属性</b>（異なる属性の条件は使わない・ご指定）。
+     スキル3つはユーザーのご指定（ドレインEL＝新設・全属性耐性M・リンク×2）。 */
+  takina: {
+    nm: "蒼桔梗のクロス",
+    condTx: "<b>自分と同じ属性（AQUA）の味方が1体以上</b>いること（自分をのぞく）",
+    cond: (ids, me) => cnxSelfIn(ids, me) && cnxCount(ids, me, (c, m) => c.el === m.el) >= 1,
+    skills: [
+      { k: "takinaDrain", nm: "ドレインEL", abil: "drainEL" },
+      { k: "takinaRes", nm: "全属性耐性M", abil: "allresM" },
+      { k: "takinaDouble", nm: "リンク×2", abil: "fsdouble" },
     ],
   },
   /* ★★ 2026-09-19e 極煌祭 アズサ。条件は<b>自分と同じ属性</b>（異なる属性の条件は使わない・ご指定） */
@@ -14215,13 +14285,9 @@ const CHARS = {
       + "<b>敵全体の防御力を" + AZU_DEFDOWN + "ターン</b>下げ、<b>味方全員の攻撃力を" + AZU_TEAM_TURNS + "ターン ×" + AZU_TEAM_ATK + "</b>にします。"
       + "<br>合計 攻撃力×" + AZU_TOTAL.toFixed(1) + " ——<b>MagiBurst 史上最大のフルバースト</b>です"
       + "（これまでの1位はアカツキ ×" + AKA_TOTAL.toFixed(1) + "）。",
-    fsName: "ブルーローズ・コンプリート", fsKind: "bluerosenet",
-    fsPow: "味方 → 全部の敵へ茨（1本 攻撃力×" + ROSE_A + "）＋ <b>敵と敵のすべての組</b>に茨（1本ごとに両端の2体へ ×" + ROSE_P + "）＋ "
-      + "<b>いちばん多く茨が集まった敵1体</b>（同数なら残りHPが多い敵）に青薔薇の冠（×" + ROSE_CROWN + "）",
-    fsDesc: "ふれた味方から青薔薇の茨が伸び、<b>敵と敵をすべての組み合わせで結ぶ</b>。"
-      + "<br>これまでに無いのは<b>敵が増えるほど茨の本数が「組み合わせの数」で増える</b>こと——"
-      + "敵3体なら3本、4体なら6本、5体なら10本。1本ごとに<b>両端の2体</b>へ入ります。"
-      + "<br>最後に、<b>いちばん多くの茨が集まった敵1体</b>（同じ本数ならHPが多く残っている敵）へ<b>重い青薔薇の冠</b>が咲くので、ボス1体にもしっかり届きます。",
+    fsName: ROSE_FS_NM, fsKind: "bluerosenet",
+    fsPow: ROSE_FS_POW,
+    fsDesc: ROSE_FS_DESC,
   },
   kumireina: {
     id: "kumireina", nm: "クミコ＆レイナ", img: "KumikoReina.webp", th: "t_KumikoReina.webp",
@@ -14524,6 +14590,42 @@ const CHARS = {
       + (RAIN_PER + RAIN_STEP * (RAIN_GENS - 1)).toFixed(1) + "）、"
       + RAIN_GENS + "世代で静かに終わります。",
   },
+  /* ══ ★★ 2026-10-03 極彩祭 <b>タキナ</b>（水・貫通・No.262）══
+     ★ 検算: charAntiKeys("takina") ⊇ counterKeysOf(JUDGE_STAGES[10]) / [11] / [14]（全属性有利なので elemMultOf > 1）。
+     ★ 治癒の祈りのカットインは<b>SS絵</b>（img/ss/TakinaSS.webp・index.html の SS_ART）。 */
+  takina: {
+    id: "takina", nm: "タキナ", img: "Takina.webp", th: "t_Takina.webp",
+    el: "water", shot: "pierce", type: "蒼桔梗結髪型",
+    gacha: true, fes: true, fesKey: "kokusai", lux: true,
+    nexus: "luxprism", star5: true,
+    connect: "takina",
+    shotskill: "kikyoripple",
+    hp: [1380, 8960], atk: [2440, 15560], spd: [378, 566],
+    /* 素8つ ＋ クロス3つ ＝ <b>アビリティ11個</b>（MagiBurst 最多）。
+       キラーは<b>ちょうど3つ</b>（全属性キラーEL・ボスキラーEL・パワーオーラEL）＝クロスにはキラーを入れない。 */
+    abil: [{ t: "omni" }, { t: "superaslow" },
+           { t: "allkillerEL" }, { t: "bosskillerEL" }, { t: "auraEL" },
+           { t: "elemadv" }, { t: "pray" }, { t: "fsboostEL" }],
+    subfs: "goldenrebound",
+    ssName: "キキョウ・スイテンカ", ssTurns: 32, ssKind: "takinak",
+    ssPow: "自強化（攻撃×" + TKN_ATK + "・スピード×" + TKN_SPD + "）＋ "
+      + "最初にふれた敵の上で止まって<b>蒼い雫の乱打 " + TKN_BARRAGE_N + "連</b>"
+      + "（1発 攻撃力×" + TKN_BARRAGE_PER + "・撃つごとに +" + TKN_BARRAGE_STEP + "）"
+      + " ＋ <b>蒼い桔梗の大輪</b>（敵全体・攻撃力×" + TKN_FINALE + "）"
+      + " ＋ <b>敵全体の防御力ダウン " + TKN_DEFDOWN + "ターン</b>"
+      + " ＋ <b>味方全員のフルバーストを" + TKN_FB + "進める</b>／合計 攻撃力×" + TKN_TOTAL.toFixed(1),
+    ssDesc: "夏の朝のプールサイドで、黒い髪を<b>きゅっと結いあげる</b>。"
+      + "<br><b>自強化（攻撃×" + TKN_ATK + "・スピード×" + TKN_SPD + "）</b>して<b>最初にふれた敵の上で止まり</b>、"
+      + "蒼い雫の刃を<b>" + TKN_BARRAGE_N + "連</b>——撃つほど水圧が増して重くなる（×" + TKN_BARRAGE_PER + " → ×"
+      + (TKN_BARRAGE_PER + TKN_BARRAGE_STEP * (TKN_BARRAGE_N - 1)).toFixed(2) + "）。"
+      + "<br>撃ち終えると水面から<b>蒼い桔梗の大輪</b>が咲きあがり、敵全体へ 攻撃力×" + TKN_FINALE + "。"
+      + "<b>敵全体の防御力を" + TKN_DEFDOWN + "ターン</b>下げ、<b>味方全員のフルバーストを" + TKN_FB + "進めます</b>。"
+      + "<br>合計 攻撃力×" + TKN_TOTAL.toFixed(1) + " ——<b>MagiBurst 史上最大のフルバースト</b>です"
+      + "（これまでの1位はココハ ×" + KKH_TOTAL.toFixed(1) + "）。",
+    fsName: ROSE_FS_NM, fsKind: "bluerosenet",
+    fsPow: ROSE_FS_POW,
+    fsDesc: ROSE_FS_DESC,
+  },
 };
 /* エルシアのフルバースト説明は定数を使うのでここで組み立てる */
 CHARS.elsia.ssPow = "自強化（攻撃×1.6・スピード×1.2）＋ <b>残りチームHPの" + Math.round(ELSIA_HP_COST * 100) + "%を消費</b>し、"
@@ -14753,6 +14855,8 @@ const CHAR_IDS = [
   "kokoha",                                            /* No.256 */
   /* ══ ★★ 2026-09-23 CRYSTAL ACADEMY FEST（No.257〜261）══ */
   "kureha", "mikoto", "mei", "hikaru", "miduki",       /* No.257〜261 */
+  /* ══ ★★ 2026-10-03 極彩祭 タキナ（No.262）══ */
+  "takina",                                            /* No.262 */
 ];
 /* id → キャラクター番号（1始まり）。図鑑・詳細・ガチャ結果に「No.XX」として出す */
 const CHAR_NO = {};
@@ -14799,6 +14903,11 @@ function isStar5(id) {
   const c = CHARS[id]; if (!c) return false;
   return !!(c.gacha || c.fes || c.star5);
 }
+/* ★★ 2026-10-05 レアリティの<b>表記だけ</b>を変えるキャラ（ご指定：タキナは「UR」と書く）。
+   中身は SSR のまま——確率・凸・結晶・ミッション・並べ替え・演出の判定はすべて isStar5（SSR）で行う。
+   表示する所だけ rarLabel(id) を使うこと（SR のキャラは "SR"、SSR は "SSR"、ここに書いた子だけ別の名前）。 */
+const RAR_LABEL = { takina: "UR" };
+function rarLabel(id) { return RAR_LABEL[id] || (isStar5(id) ? "SSR" : "SR"); }
 /* 限界突破MAXの金演出クラス。SRは「金の縁取りだけ」で発光させない（v14） */
 /* ★ 2026-08-12 限界突破MAXの見た目は<b>SSRだけ</b>にした。
    SRは金の縁取りだけ残していたが、それも演出のうちなので付けない
@@ -14896,6 +15005,7 @@ const CHAR_TYPE = {
   honoka:   "striker",  /* ホノカ：乱打FB＋全属性有利＋ファーストキラーEL＋ボスキラーEL */
   azusa:    "striker",  /* アズサ：史上最大の乱打FB＋天律族キラーEL＋パワーオーラEL */
   kokoha:   "striker",  /* ココハ：史上最大の乱打FB＋全属性有利＋ボスキラーEL＋パワーオーラEL */
+  takina:   "striker",  /* タキナ：史上最大の乱打FB＋全属性有利＋全属性キラーEL＋ボスキラーEL＋パワーオーラEL */
   /* ── ★★ 2026-09-23 CRYSTAL ACADEMY FEST（結晶FB＋全属性有利＋神癒の祈り）── */
   kureha:   "striker",  /* クレハ：結晶FB＋天律族キラーEL＋パワーオーラEL＋壁で増える結晶のリンク */
   mikoto:   "support",  /* ミコト：結晶FB（回復＋バリア）＋天律族キラーEL＋底力EL */
@@ -23238,16 +23348,41 @@ FESTS.fes7 = {
   /* ★★ 2026-08-28 極華祭が増えたので 上旬／中旬／下旬 の3本立てになった（ご指定） */
   monthly: [1, 10],
   noFesTicket: true,   /* ★★ 2026-08-29 フェス券は使えない（フェスガチャではないため） */
-  /* ★★ 2026-09-19g ココハ（火）を追加して3体に */
-  chars: ["hinano", "hanon", "kokoha"],
-  newChars: ["kokoha"],
-  newSince: "2026-09-19",
+  /* ★★ 2026-09-19g ココハ（火）を追加して3体に
+     ★★ 2026-10-03 タキナ（水）を追加して4体に */
+  chars: ["hinano", "hanon", "kokoha", "takina"],
+  newChars: ["takina"],
+  newSince: "2026-10-03",
   itemTable: D_ITEM_TABLE,
-  lead: "極彩祭の限定SSR <b>3体</b>（各" + ratePct(PICK_LUX) + "）に加えて、<b>" + PREMIUM_NM
-    + "のSSRも排出</b>（SSR合計 " + ratePct(SSR_TOTAL) + "）",
-  sub: "極彩祭の限定SSR <b>3体</b>（各" + ratePct(PICK_LUX) + "）＋ <b>残りは " + PREMIUM_NM
-    + " のSSRが等確率</b>。<b>毎月 1〜10日（上旬）</b>だけの開催です",
-  note: "<b>★★ 2026-09-19 ココハ（火・反射）</b>を追加。フルバースト<b>ツバキアメ・センカ</b>は乱打"
+  /* ★★ 2026-10-03 表紙の確率は<b>表と同じ関数（pickRateOf）</b>から作る（極華祭と同じ形）。
+     前は「限定SSR 3体（各1.2%）」と固定の文で、NEW でない子の実際の確率（各0.4%）とずれていた。 */
+  get lead() {
+    const nw = fesNewIds("fes7").length, od = this.chars.length - nw;
+    return "極彩祭の"
+      + (nw ? "<b>新" + nw + "体</b>（各" + ratePct(pickRateOf("fes7", fesNewIds("fes7")[0])) + "）"
+            + (od ? " ＋ " : "") : "")
+      + (od ? "限定" + od + "体（各" + ratePct(PICK_OLD) + "）" : "")
+      + "に加えて、<b>" + PREMIUM_NM + "のSSRも排出</b>（SSR合計 " + ratePct(SSR_TOTAL) + "）";
+  },
+  get sub() {
+    const nw = fesNewIds("fes7").length, od = this.chars.length - nw;
+    return "極彩祭の限定SSR <b>" + this.chars.length + "体</b>——"
+      + (nw ? "<b>新" + nw + "体は各" + ratePct(pickRateOf("fes7", fesNewIds("fes7")[0])) + "</b>"
+            + (od ? "、のこり" + od + "体は各" + ratePct(PICK_OLD) : "")
+            : "<b>全" + od + "体</b>が各" + ratePct(PICK_OLD))
+      + "／<b>残りは " + PREMIUM_NM + " のSSRが等確率</b>。"
+      + "<b>毎月 1〜10日（上旬）</b>だけの開催です";
+  },
+  note: "<b>★★ 2026-10-03 タキナ（水・貫通）</b>を追加。フルバースト<b>キキョウ・スイテンカ</b>は乱打"
+    + TKN_BARRAGE_N + "連＋蒼い桔梗の大輪で合計 攻撃力×" + TKN_TOTAL.toFixed(1) + "——<b>MagiBurst 史上最大</b>。"
+    + "リンクは<b>既存でいちばん強い</b><b>ブルーローズ・コンプリート</b>、サブリンクは<b>ゴールデン・リバウンド</b>。"
+    + "ショットスキル<b>キキョウ・リップル</b>は<b>撃つたび3つの技</b>（水紋・桔梗の雫・FB前進）。"
+    + "クロス<b>蒼桔梗のクロス</b>で<b>ドレインEL（新登場）・全属性耐性M・リンク×2</b>。"
+    + "キラーは<b>全属性キラーEL・ボスキラーEL・パワーオーラEL</b>の3つ、さらに<b>治癒の祈り</b>。"
+    + "全属性有利＋オムニアンチ＋超アンチ減速壁で <b>⚖ 天界の審判 第十一・第十二・第十五</b>と"
+    + "<b>🏯 第二重・蓬莱天宮・蓬莱神天</b>を有利属性のまま完全対応。"
+    + "あわせて<b>極彩・プリズムネクサスをさらに強化</b>（弱点+80%・リンク+50%・攻撃+25%・ボス+40%・各WAVEでチームHP+5%）。"
+    + "<br><br><b>★★ 2026-09-19 ココハ（火・反射）</b>を追加。フルバースト<b>ツバキアメ・センカ</b>は乱打"
     + KKH_BARRAGE_N + "連＋紅い雨の大輪で合計 攻撃力×" + KKH_TOTAL.toFixed(1) + "——<b>MagiBurst 史上最大</b>。"
     + "リンク<b>ツバキアメ・ウリョウ</b>は<b>敵が浴びた雨粒の数で重くなる</b>（大きい敵ほど多く浴びる）。"
     + "ショットスキル<b>ツバキアメ・シュート</b>・クロス<b>椿雨のクロス</b>。"
@@ -23290,9 +23425,25 @@ FESTS.fes8 = {
   newChars: ["azusa"],
   newSince: "2026-09-19",
   itemTable: D_ITEM_TABLE,
-  lead: "極煌祭の限定SSR <b>3体</b>（各" + ratePct(PICK_LUX) + "）に加えて、<b>" + PREMIUM_NM + "のSSRも排出</b>（SSR合計 " + ratePct(SSR_TOTAL) + "）",
-  sub: "極煌祭の限定SSR <b>3体</b>（各" + ratePct(PICK_LUX) + "）＋ <b>残りは " + PREMIUM_NM + " のSSRが等確率</b>。"
-    + "<b>毎月 21日〜末日（下旬）</b>だけの開催です",
+  /* ★★ 2026-10-03 表紙の確率は<b>表と同じ関数（pickRateOf）</b>から作る（極華祭と同じ形）。
+     前は「限定SSR 3体（各1.2%）」と固定の文で、NEW でない子の実際の確率（各0.4%）とずれていた。 */
+  get lead() {
+    const nw = fesNewIds("fes8").length, od = this.chars.length - nw;
+    return "極煌祭の"
+      + (nw ? "<b>新" + nw + "体</b>（各" + ratePct(pickRateOf("fes8", fesNewIds("fes8")[0])) + "）"
+            + (od ? " ＋ " : "") : "")
+      + (od ? "限定" + od + "体（各" + ratePct(PICK_OLD) + "）" : "")
+      + "に加えて、<b>" + PREMIUM_NM + "のSSRも排出</b>（SSR合計 " + ratePct(SSR_TOTAL) + "）";
+  },
+  get sub() {
+    const nw = fesNewIds("fes8").length, od = this.chars.length - nw;
+    return "極煌祭の限定SSR <b>" + this.chars.length + "体</b>——"
+      + (nw ? "<b>新" + nw + "体は各" + ratePct(pickRateOf("fes8", fesNewIds("fes8")[0])) + "</b>"
+            + (od ? "、のこり" + od + "体は各" + ratePct(PICK_OLD) : "")
+            : "<b>全" + od + "体</b>が各" + ratePct(PICK_OLD))
+      + "／<b>残りは " + PREMIUM_NM + " のSSRが等確率</b>。"
+      + "<b>毎月 21日〜末日（下旬）</b>だけの開催です";
+  },
   note: "<b>★★ 2026-09-19 アズサ（水・反射）</b>を追加。フルバースト<b>アオバラ・ロンドフィナーレ</b>は乱打"
     + AZU_BARRAGE_N + "連＋青薔薇の大輪で合計 攻撃力×" + AZU_TOTAL.toFixed(1) + "——<b>MagiBurst 史上最大</b>。"
     + "リンク<b>ブルーローズ・コンプリート</b>は<b>敵と敵をすべての組み合わせで茨が結ぶ</b>。"
@@ -25296,9 +25447,9 @@ function gachaCellHTML(r, i, willRankUp) {
     /* ★ v14: SR（初期キャラ）の限界突破MAXは金の縁取りだけ（発光なし＝s4mx） */
     const s5 = isStar5(r.id);
     return `<div class="gm chr veiled ${s5 ? "s5" : ""} ${full && s5 ? "mx" : ""} ${r.sure ? "sure" : ""}">
-      ${cov(s5 && !willRankUp ? "SSR" : "SR", s5 && !willRankUp ? "s5" : "s4")}
+      ${cov(s5 && !willRankUp ? rarLabel(r.id) : "SR", s5 && !willRankUp ? "s5" : "s4").replace('class="gcov', 'data-rar="' + rarLabel(r.id) + '" class="gcov')}
       ${r.sure ? '<span class="gsure">SSR 確定</span>' : ""}
-      <img src="${c.th}" alt="${c.nm}"><div class="gn"><b class="gnm">${charNoText(r.id)} ${s5 ? "SSR" : "SR"} ${c.nm}</b><i class="gst">${r.max ? crystIcon(14) + "結晶+" + (r.cryst || CRYST_SSR) : r.fullAwk ? "👑限界突破MAX!!" : r.awk ? "覚醒+" + r.awk : "NEW!"}</i></div></div>`;
+      <img src="${c.th}" alt="${c.nm}"><div class="gn"><b class="gnm">${charNoText(r.id)} ${rarLabel(r.id)} ${c.nm}</b><i class="gst">${r.max ? crystIcon(14) + "結晶+" + (r.cryst || CRYST_SSR) : r.fullAwk ? "👑限界突破MAX!!" : r.awk ? "覚醒+" + r.awk : "NEW!"}</i></div></div>`;
   }
   /* ★★ 2026-08-22b BLACK SELECT（豪華な黒のプレート）。
      開けると「そのガチャで出るSSR全員」から好きな1体をえらべる。 */
@@ -25451,7 +25602,7 @@ function _revOpenIdx(i) {
        見た目の主役は lux-up（虹＋回転）のままで、up は .gcup の文字を出すために足す。
        ★ _revOpen() が開けるときに up を外すので、残留アニメの心配はない。 */
     el.classList.add("lux-up", "up", "s5");
-    const st = el.querySelector(".gcst"); if (st) st.textContent = "SSR";
+    const st = el.querySelector(".gcst"); if (st) st.textContent = el.dataset.rar || "SSR";   /* ★ 表記だけ UR の子（タキナ）は UR に昇格 */
     const cell = _rev.cells[i];
     if (cell) {
       cell.classList.add("lux-upcell");

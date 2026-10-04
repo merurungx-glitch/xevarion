@@ -6,13 +6,13 @@
    ・オンライン対戦・XEVA換金はアプリ側でオフライン時に無効化している
    ・取得できたリソースは随時キャッシュ更新（stale-while-revalidate）
    ============================================================ */
-const VERSION = "magiburst-sw-v182";
+const VERSION = "magiburst-sw-v183";
 const CORE = [
   "./index.html",
   "./css/mb-ui2.css?v=26",
   "./css/localplay.css?v=7",
   "./js/localplay.js?v=8",
-  "./js/mb-core.js?v=129",
+  "./js/mb-core.js?v=130",
   /* ★★ 2026-09-13 クエスト作成（ステージエディター・MB613Create26）。
      遅延読みこみだが、オフラインでも開けるようにここには入れておく。 */
   "./js/mb-create.js?v=2",
@@ -39,14 +39,14 @@ const CORE = [
   "../xeva-i18n-p3.js?v=7",
   "../xeva-i18n-mb7.js?v=7",
   "../xeva-i18n-p4.js?v=7",
-  "../xeva-i18n-n1.js?v=12",
+  "../xeva-i18n-n1.js?v=13",
   "../xeva-i18n-n2.js?v=3",
-  "../xeva.js?v=72",
-  "../xeva-alive.js?v=2",
+  "../xeva.js?v=73",
+  "../xeva-alive.js?v=3",
   "../xeva-loading.js?v=18",
   "../xeva-splash.js?v=13",
   "../app-cloud.js?v=12",
-  "../xeva-keys.js?v=28",
+  "../xeva-keys.js?v=29",
   "./magiburst-cloud.js?v=20",
   "../maintenance-gate.js?v=13",
   "../app-install-notice.js?v=9",
@@ -139,6 +139,7 @@ const CORE = [
   "img/ss/MeiSS.webp",
   "img/ss/HikaruSS.webp",
   "img/ss/MidukiSS.webp",
+  "img/ss/TakinaSS.webp",     /* ★★ 2026-10-03 極彩祭 タキナ（治癒の祈り）用 */
   "img/ss/YajuSS.webp",   /* ★ 2026-08-08d クロススキル「お待たせ!」用 */
   "img/ss/KokonaAlphaSS.webp",   /* ★ 2026-08-11 ココナα（治癒の祈り）用 */
   /* ★ 2026-08-08 プレミアム新SSR「カエデ」「リノン」「ココロ」「アンジェ」 */
@@ -437,6 +438,8 @@ const CORE = [
   "../img/t_Mei.webp",
   "../img/t_Hikaru.webp",
   "../img/t_Miduki.webp",
+  /* ★★ 2026-10-03 極彩祭 タキナ */
+  "../img/t_Takina.webp",
   /* ★★ 2026-09-06 同期の画面に出る案内役（立ち姿とお辞儀・2人ぶん）。
      ここに無いとオフラインのときだけ絵が出ない。 */
   "../img/ld_a_stand.webp",
