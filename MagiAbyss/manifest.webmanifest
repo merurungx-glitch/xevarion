@@ -1,0 +1,15 @@
+{
+  "name": "MagiAbyss",
+  "short_name": "MagiAbyss",
+  "description": "広大なアビスを探索し、大量の敵をなぎ払い、星脈共鳴で自分だけのビルドを作る見下ろし型ドットアクションRPG。",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#0a0716",
+  "theme_color": "#0a0716",
+  "lang": "ja",
+  "icons": [
+    { "src": "../thumbs/MagiAbyss.jpg", "sizes": "512x512", "type": "image/jpeg", "purpose": "any" }
+  ]
+}

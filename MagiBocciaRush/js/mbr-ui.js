@@ -781,7 +781,7 @@
     const k = FS.chars.sort;
     const aw = own && !TRIAL ? awkOne(c.id) : 0;
     return '<div class="cc' + (own ? "" : " lock") + mxCls(c, aw) + '" data-a="detail" data-v="' + c.id + '"><img src="' + esc(img(c)) + '" alt="" loading="lazy">'
-      + '<span class="rr ' + c.rarity + '">' + c.rarity + "</span>" + awkTag(aw)
+      + '<span class="rr ' + c.rarity + (c.rarNm && c.rarNm !== c.rarity ? " " + c.rarNm : "") + '">' + (c.rarNm || c.rarity) + "</span>" + awkTag(aw)
       + (own ? '<span class="lv">Lv.' + p.lv + "</span>" : '<span class="lv no">' + J("未所持", "NOT OWNED") + "</span>")
       + (lu.indexOf(c.id) >= 0 ? '<span class="inl">' + (lu.indexOf(c.id) + 1) + "</span>" : "")
       + (B.STAT_KEYS.indexOf(k) >= 0 ? '<span class="num">' + c.st[k] + "</span>" : "")
@@ -812,7 +812,7 @@
     return '<div class="dback">' + (inMatch ? '<button class="tb back" data-a="mteam">← TEAM</button>' : '<button class="tb back" data-a="back">← BACK</button>') + "</div>"
       + '<div class="dhero' + mxCls(c, own && !TRIAL ? awkOne(c.id) : 0) + '"><img class="bg" src="' + esc(img(c)) + '" alt=""><img class="fg" src="' + esc(imgFull(c)) + '" alt="" onerror="this.onerror=null;this.src=\'' + esc(img(c)) + '\'"><div class="sh"></div>'
 
-      + '<div class="info"><div class="rar">' + c.rarity + "</div>"
+      + '<div class="info"><div class="rar">' + (c.rarNm || c.rarity) + "</div>"
       + '<div class="nm">' + esc(c.nm) + "</div>"
       + '<div class="row">' + typeTag(c) + '<span class="tag">' + B.ELEM_JA[c.el] + (c.el2 ? "・" + B.ELEM_JA[c.el2] : "") + J("属性", "") + "</span>"
       + '<span class="tag">' + B.titleOf(p.lv) + "</span>" + (own ? "" : '<span class="tag" style="background:#555">' + J("未所持", "Not owned") + "</span>")
@@ -2855,7 +2855,7 @@
       : pickTarget === "fred" ? trainAwOne(pendingCfg && pendingCfg.trainRed, id)
       : pickTarget === "fblue" ? trainAwOne(pendingCfg && pendingCfg.trainBlue, id) : awkOne(id);
     return list.map((c) => { const aw = awOf(c.id); return '<div class="cc' + mxCls(c, aw) + '" data-a="pickchar" data-v="' + c.id + '"><img src="' + esc(img(c)) + '" loading="lazy" alt="">'
-      + '<span class="rr ' + c.rarity + '">' + c.rarity + "</span>" + awkTag(aw)
+      + '<span class="rr ' + c.rarity + (c.rarNm && c.rarNm !== c.rarity ? " " + c.rarNm : "") + '">' + (c.rarNm || c.rarity) + "</span>" + awkTag(aw)
       + (lu.indexOf(c.id) >= 0 ? '<span class="inl">' + (lu.indexOf(c.id) + 1) + "</span>" : "")
       + (B.STAT_KEYS.indexOf(k) >= 0 ? '<span class="num">' + c.st[k] + "</span>" : "")
       + '<button class="pinfo" data-a="pinfo" data-v="' + c.id + '" aria-label="' + J("詳細", "Details") + '">i</button>'

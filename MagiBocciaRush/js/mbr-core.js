@@ -257,6 +257,9 @@
     /* ★★ 2026-09-19g 極彩祭 ココハだけのパッシブ */
     tsubakiumbrella:{ en: "Tsubaki Umbrella", ja: "ツバキ・アンブレラ",
       d: { ja: "ブレが常に <b>-25%</b>、ボールが重い（<b>×1.15</b>）。ジャックの <b>1m 以内</b>で止まるとゲージ <b>+8</b> ＆ GUARD になる。", en: "Always -25% scatter, heavier balls (×1.15). Stopping within 1m of the jack gives +8 gauge and a GUARD." } },
+    /* ★★ 2026-10-03 極彩祭 タキナだけのパッシブ（MagiBurst のショットスキルとは別の名前にする＝同名は同効果のきまり） */
+    kikyouminamo:{ en: "Kikyou Minamo", ja: "キキョウ・ミナモ",
+      d: { ja: "ブレが常に <b>-30%</b>、ボールが少し重い（<b>×1.10</b>）、壁の反発 <b>×1.10</b>。ジャックの <b>1m 以内</b>で止まると自分のゲージ <b>+8</b>、<b>次の味方</b>のゲージも <b>+8</b>。", en: "Always -30% scatter, slightly heavier (×1.10), rail rebound ×1.10. Stopping within 1m of the jack gives +8 gauge to you and +8 to the next teammate." } },
   };
   /* ══ ★★ 2026-09-17d <b>MagiBocciaRush でも最強</b>にするキャラ（ご指定）══
      ふつうは「能力の合計はどのキャラも同じ（STAT_SUM）」だが、<b>ここに書いたキャラだけ例外</b>。
@@ -287,6 +290,11 @@
     kokoha: { type: "defense", grade: "UR",
       st: { power: 84, control: 86, friction: 80, bounce: 76, jack: 78, charge: 74 },
       specials: ["guard", "heavy"], active: "ironwall", passive: "tsubakiumbrella" },
+    /* ★★ 2026-10-03 極彩祭 タキナ（technique）＝合計 <b>486</b>・いちばん上（ご指定「MagiBocciaRush でも最強」）。
+       ねらいの正確さ（CONTROL 94）と、止める力・壁・ゲージの回しをぜんぶ持つ。 */
+    takina: { type: "technique", grade: "UR",
+      st: { power: 82, control: 94, friction: 82, bounce: 80, jack: 76, charge: 72 },
+      specials: ["pinpoint", "softstop"], active: "tacticalread", passive: "kikyouminamo" },
   };
   Object.assign(PASSIVES, {
     steadybase: { en: "Steady Base", ja: "ステディ・ベース", d: { ja: "ブレ常に <b>-10%</b>・減速 +3%。", en: "Always -10% scatter and +3% braking." } },
@@ -405,7 +413,10 @@
   };
   const TRAIT_KEYS = Object.keys(TRAITS);
   /* 特別なキャラ（SPECIAL_KIT）のトレイト */
-  const KIT_TRAIT = { akatsuki: "clutch", ayane: "sharp", chiha: "jackwhisper", himeri: "encore", honoka: "lucky7", azusa: "railrunner", kokoha: "ironnerve" };
+  const KIT_TRAIT = { akatsuki: "clutch", ayane: "sharp", chiha: "jackwhisper", himeri: "encore", honoka: "lucky7", azusa: "railrunner", kokoha: "ironnerve", takina: "sharp" };
+  /* ★★ 2026-10-03 これより後に足した SPECIAL_KIT のトレイトは、assignKits で<b>図鑑の順の自分の番</b>に数える。
+     最初にまとめて数えると、使用回数の少ないトレイトを選ぶ式がずれて<b>既存キャラ全員のトレイトが変わってしまう</b>ため。 */
+  const KIT_TRAIT_INLINE = { takina: 1 };
 
   /* ── ④ 編成シナジー（編成の「型」「属性」の組み合わせ） ── */
   const SYNERGIES = [
@@ -530,6 +541,8 @@
         /* ★★ 2026-09-19 レアリティは MagiBurst と<b>同じ判定</b>（isStar5＝ガチャ・フェス出身 or star5）。
            前は c.star5 だけを見ていたので、ガチャの SSR の多くが SR と表示されていた。 */
         star5: s5Of(id, c), rarity: s5Of(id, c) ? "SSR" : "SR",
+        /* ★ 2026-10-05 表示するレアリティの文字（タキナだけ UR。絞り込み・並べ替えは rarity のまま） */
+        rarNm: s5Of(id, c) && typeof rarLabel === "function" ? rarLabel(id) : (s5Of(id, c) ? "SSR" : "SR"),
         /* ★ ボールの見た目の格（性能には一切関係しない） */
         grade: lux ? "UR" : (s5Of(id, c) ? "SSR" : "SR"),
         type: ty, sub, st, specials, active, passive, trait: TRAIT_KEYS[(h >>> 3) % TRAIT_KEYS.length],
@@ -572,9 +585,9 @@
   function assignKits(list) {
     const used = {}, cntA = {}, cntP = {}, cntS = {}, cntT = {};
     const key = (c) => c.type + "|" + c.specials.join("+") + "|" + c.active + "|" + c.passive;
-    list.forEach((c) => { if (c.special) { used[key(c)] = 1; cntT[c.trait] = (cntT[c.trait] || 0) + 1; } });
+    list.forEach((c) => { if (c.special) { used[key(c)] = 1; if (!KIT_TRAIT_INLINE[c.id]) cntT[c.trait] = (cntT[c.trait] || 0) + 1; } });
     list.forEach((c) => {
-      if (c.special) return;
+      if (c.special) { if (KIT_TRAIT_INLINE[c.id]) cntT[c.trait] = (cntT[c.trait] || 0) + 1; return; }
       const ty = c.type, PL = poolsOf(ty, c.sub || ty);
       const nS = PL.sp.length, nA = PL.ap.length, nP = PL.pp.length, N = nS * nA * nP;
       const start = c.h % N;
@@ -1201,6 +1214,7 @@
     if (pas === "abyssglow") { o.spread *= 0.80; o.shock = 1; }
     if (pas === "bluerosewaltz") { o.spread *= 0.75; o.mass *= 1.08; o.wallMul *= 1.15; }
     if (pas === "tsubakiumbrella") { o.spread *= 0.75; o.mass *= 1.15; o.umbrella = 1; }
+    if (pas === "kikyouminamo") { o.spread *= 0.70; o.mass *= 1.10; o.wallMul *= 1.10; }
     if (pas === "steadybase") { o.spread *= 0.9; o.fric *= 1.03; }
     if (pas === "sprinter") o.vmax *= 1.05;
     if (pas === "grip") o.fric *= 1.08;
@@ -1398,6 +1412,12 @@
         const d = dist(b, jk);
         if (d < 0.5) gain += 6 + (ch.passive === "jackgravity" ? 8 : 0) + (ch.passive === "shirahanaverse" ? 10 : 0);
         if (ch.passive === "tsubakiumbrella" && d < 1.0) gain += 8;
+        if (ch.passive === "kikyouminamo" && d < 1.0) {
+          const L = lineupOf(M, side).length || 1;
+          const ni = (i + 1) % L;
+          if (ni !== i) M.gauge[side][ni] = Math.min(GAUGE_MAX, M.gauge[side][ni] + 8);
+          gain += 8;
+        }
         if (ch.passive === "benisuzuring" && d < 1.0) {
           const L = lineupOf(M, side).length || 1;
           const ni = (i + 1) % L;

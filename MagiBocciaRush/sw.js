@@ -5,23 +5,23 @@
    ・キャラクターの絵は XEVARION の img/ にあるので、ここでは丸ごと持たない
      （ポータル側の SW が持っている。開いたぶんだけ実行時に控える）。
    ============================================================ */
-const VERSION = "boccia-sw-v33";
+const VERSION = "boccia-sw-v34";
 const RUNTIME = "boccia-rt-v1";
 const CORE = [
   "./index.html",
   "./manifest.webmanifest",
   "./css/mbr.css?v=21",
   "./js/mbr-voice.js?v=2",
-  "./js/mbr-core.js?v=16",
+  "./js/mbr-core.js?v=17",
   "./js/mbr-stage.js?v=5",
   "./js/mbr-fx.js?v=6",
-  "./js/mbr-help.js?v=5",
+  "./js/mbr-help.js?v=6",
   "./js/mbr-ui.js?v=19",
-  "../mb-newchars.js?v=32",
+  "../mb-newchars.js?v=33",
   "../mb-boot.js?v=17",
-  "../MagiBurst/js/mb-core.js?v=129",
-  "../xeva.js?v=72",
-  "../xeva-alive.js?v=2",
+  "../MagiBurst/js/mb-core.js?v=130",
+  "../xeva.js?v=73",
+  "../xeva-alive.js?v=3",
   "../xeva-loading.js?v=18",
   "../xeva-splash.js?v=13",
   "../xeva-safebottom.js?v=12",
@@ -33,10 +33,10 @@ const CORE = [
      ・オンライン対戦とアカウント同期のモジュール（読めないと console が赤くなるだけで遊べるが、そろえておく）
      ・英語版の辞書（オフラインで英語にしたとき、キャラ名が日本語に戻らないように） */
   "./js/mbr-online.js?v=5",
-  "../xeva-cloud.js?v=39",
+  "../xeva-cloud.js?v=40",
   "../MagiBurst/magiburst-cloud.js?v=20",
   "../app-cloud.js?v=12",
-  "../xeva-keys.js?v=28",
+  "../xeva-keys.js?v=29",
   "../xeva-i18n.js?v=8",
   "../xeva-i18n-dict.js?v=12",
   "../xeva-i18n-mb1.js?v=7",
@@ -46,7 +46,7 @@ const CORE = [
   "../xeva-i18n-mb5.js?v=7",
   "../xeva-i18n-mb6.js?v=7",
   "../xeva-i18n-mb7.js?v=7",
-  "../xeva-i18n-n1.js?v=12",
+  "../xeva-i18n-n1.js?v=13",
   "../xeva-i18n-n2.js?v=3",
 ];
 /* チュートリアルの音声（ずんだもん）。Range で取りに来るので CORE とは別の入れ物に置き、下の fetch で切り出して返す */

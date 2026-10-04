@@ -1,0 +1,809 @@
+/* ============================================================
+   MagiAbyss — ma-pixel.js
+   ドット絵の土台（★ 画像ファイルを使わず、ここで全部描く）
+   ------------------------------------------------------------
+   ・キャラクター … 文字の方眼（ASCII）でパーツを重ねて 24×30 のドット絵を作る。
+                    パレットを差しかえるだけで別のキャラになる。輪郭線は自動。
+                    待機2コマ・歩き4コマ・攻撃1コマ・被弾（白）を同じ絵から作る。
+   ・敵・ボス・小物 … ベクターで小さく描いてから「ドット化」（不透明度のしきい値＋
+                    パレットへの減色＋輪郭線）する pixelize()。
+   ・数字のフォント … 3×5 の自前ビットマップ（ダメージ表示）。
+   ・正式なドット絵に差しかえるときは、MA.Art.charSprite(id) が返す
+     { frames } を画像から作ったものに置きかえるだけでよい（描画側は frames しか見ない）。
+   ============================================================ */
+(function () {
+  "use strict";
+  const MA = (window.MA = window.MA || {});
+
+  /* ── 色のヘルパー ── */
+  function hex(c) {
+    if (!c) return [0, 0, 0];
+    if (Array.isArray(c)) return c;
+    let s = String(c).replace("#", "");
+    if (s.length === 3) s = s.split("").map((x) => x + x).join("");
+    const n = parseInt(s, 16);
+    return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+  }
+  function toHex(r, g, b) {
+    const f = (v) => ("0" + Math.max(0, Math.min(255, Math.round(v))).toString(16)).slice(-2);
+    return "#" + f(r) + f(g) + f(b);
+  }
+  function shade(c, k) { const [r, g, b] = hex(c); return toHex(r * k, g * k, b * k); }
+  function mix(a, b, t) { const A = hex(a), B = hex(b); return toHex(A[0] + (B[0] - A[0]) * t, A[1] + (B[1] - A[1]) * t, A[2] + (B[2] - A[2]) * t); }
+  function rgba(c, a) { const [r, g, b] = hex(c); return "rgba(" + r + "," + g + "," + b + "," + a + ")"; }
+
+  function mkCanvas(w, h) {
+    const c = document.createElement("canvas");
+    c.width = w; c.height = h;
+    return c;
+  }
+  /* ピクセル配列 { w, h, d: Uint8ClampedArray } */
+  function mkBuf(w, h) { return { w, h, d: new Uint8ClampedArray(w * h * 4) }; }
+  function bufToCanvas(b) {
+    const c = mkCanvas(b.w, b.h);
+    const g = c.getContext("2d");
+    const id = g.createImageData(b.w, b.h);
+    id.data.set(b.d);
+    g.putImageData(id, 0, 0);
+    return c;
+  }
+  function setPx(b, x, y, col, a) {
+    if (x < 0 || y < 0 || x >= b.w || y >= b.h) return;
+    const i = (y * b.w + x) * 4;
+    b.d[i] = col[0]; b.d[i + 1] = col[1]; b.d[i + 2] = col[2]; b.d[i + 3] = a == null ? 255 : a;
+  }
+  function alphaAt(b, x, y) { if (x < 0 || y < 0 || x >= b.w || y >= b.h) return 0; return b.d[(y * b.w + x) * 4 + 3]; }
+  function cloneBuf(b) { return { w: b.w, h: b.h, d: new Uint8ClampedArray(b.d) }; }
+
+  /* ── 文字の方眼を描く ──
+     layer = { x, y, rows: ["..HHH..", ...] }。'.' と ' ' は透明。
+     pal の文字に無い文字は無視する。 */
+  function drawLayer(b, layer, pal) {
+    if (!layer) return;
+    const ox = layer.x | 0, oy = layer.y | 0;
+    const rows = layer.rows || [];
+    for (let j = 0; j < rows.length; j++) {
+      const r = rows[j];
+      for (let i = 0; i < r.length; i++) {
+        const ch = r[i];
+        if (ch === "." || ch === " ") continue;
+        const c = pal[ch];
+        if (!c) continue;
+        const col = hex(String(c).slice(0, 7));
+        const al = String(c).length === 9 ? parseInt(String(c).slice(7, 9), 16) : (ch === "~" ? 150 : 255);
+        setPx(b, ox + i, oy + j, col, al);
+      }
+    }
+  }
+  /* 輪郭線：不透明の画素に4方向で接する透明の画素を塗る */
+  function outlineBuf(b, color, alphaMin) {
+    const col = hex(color), out = cloneBuf(b), am = alphaMin || 1;
+    for (let y = 0; y < b.h; y++) for (let x = 0; x < b.w; x++) {
+      if (alphaAt(b, x, y) >= am) continue;
+      if (alphaAt(b, x - 1, y) >= am || alphaAt(b, x + 1, y) >= am || alphaAt(b, x, y - 1) >= am || alphaAt(b, x, y + 1) >= am) setPx(out, x, y, col, 255);
+    }
+    return out;
+  }
+  /* 範囲を動かした新しい配列を返す（cond(x,y) が true の画素だけ dx,dy ずらす） */
+  function shiftWhere(b, cond, dx, dy) {
+    const out = mkBuf(b.w, b.h);
+    /* まず動かさない画素 */
+    for (let y = 0; y < b.h; y++) for (let x = 0; x < b.w; x++) {
+      if (cond(x, y)) continue;
+      const i = (y * b.w + x) * 4;
+      if (b.d[i + 3]) out.d.set(b.d.subarray(i, i + 4), i);
+    }
+    /* 動かす画素（上書き） */
+    for (let y = 0; y < b.h; y++) for (let x = 0; x < b.w; x++) {
+      if (!cond(x, y)) continue;
+      const i = (y * b.w + x) * 4;
+      if (!b.d[i + 3]) continue;
+      const nx = x + dx, ny = y + dy;
+      if (nx < 0 || ny < 0 || nx >= b.w || ny >= b.h) continue;
+      out.d.set(b.d.subarray(i, i + 4), (ny * b.w + nx) * 4);
+    }
+    return out;
+  }
+  function whiteOf(b, col) {
+    const out = cloneBuf(b), c = hex(col || "#ffffff");
+    for (let i = 0; i < out.d.length; i += 4) if (out.d[i + 3]) { out.d[i] = c[0]; out.d[i + 1] = c[1]; out.d[i + 2] = c[2]; }
+    return out;
+  }
+
+  /* ══════════════════════════════════════════════════════════════
+     数字のビットマップフォント（3×5）
+     ══════════════════════════════════════════════════════════════ */
+  const GLYPH = {
+    "0": ["111", "101", "101", "101", "111"], "1": ["010", "110", "010", "010", "111"],
+    "2": ["111", "001", "111", "100", "111"], "3": ["111", "001", "111", "001", "111"],
+    "4": ["101", "101", "111", "001", "001"], "5": ["111", "100", "111", "001", "111"],
+    "6": ["111", "100", "111", "101", "111"], "7": ["111", "001", "010", "010", "010"],
+    "8": ["111", "101", "111", "101", "111"], "9": ["111", "101", "111", "001", "111"],
+    ".": ["0", "0", "0", "0", "1"], "+": ["000", "010", "111", "010", "000"], "-": ["000", "000", "111", "000", "000"],
+    "K": ["101", "110", "100", "110", "101"], "M": ["10001", "11011", "10101", "10001", "10001"],
+    "!": ["1", "1", "1", "0", "1"], "x": ["000", "101", "010", "101", "000"], "/": ["001", "001", "010", "100", "100"],
+    " ": ["0", "0", "0", "0", "0"], "%": ["101", "001", "010", "100", "101"],
+  };
+  const fontCache = {};
+  /* 文字列を色つきで1枚の canvas に（輪郭つき）。s は拡大率 */
+  function textSprite(str, color, s, outline) {
+    const key = str + "|" + color + "|" + s + "|" + outline;
+    if (fontCache[key]) return fontCache[key];
+    s = s || 1;
+    let w = 0;
+    for (const ch of str) { const g = GLYPH[ch] || GLYPH[" "]; w += g[0].length + 1; }
+    w = Math.max(1, w - 1);
+    const b = mkBuf(w + 2, 7), col = hex(color);
+    let x = 1;
+    for (const ch of str) {
+      const g = GLYPH[ch] || GLYPH[" "];
+      for (let j = 0; j < 5; j++) for (let i = 0; i < g[j].length; i++) if (g[j][i] === "1") setPx(b, x + i, 1 + j, col);
+      x += g[0].length + 1;
+    }
+    const o = outline === false ? b : outlineBuf(b, outline || "#120a18");
+    let c = bufToCanvas(o);
+    if (s > 1) {
+      const c2 = mkCanvas(c.width * s, c.height * s), g2 = c2.getContext("2d");
+      g2.imageSmoothingEnabled = false; g2.drawImage(c, 0, 0, c2.width, c2.height); c = c2;
+    }
+    if (Object.keys(fontCache).length > 600) for (const k in fontCache) delete fontCache[k];
+    fontCache[key] = c;
+    return c;
+  }
+  function shortNum(n) {
+    n = Math.round(n);
+    if (n >= 1e6) return (n / 1e6).toFixed(n >= 1e7 ? 0 : 1) + "M";
+    if (n >= 1e4) return (n / 1e3).toFixed(n >= 1e5 ? 0 : 1) + "K";
+    return String(n);
+  }
+
+  /* ══════════════════════════════════════════════════════════════
+     ベクターで描いてドット化（敵・ボス・小物・アイコン）
+     draw(g, w, h) で普通に描く → 不透明度しきい値 → パレットへ減色 → 輪郭
+     ══════════════════════════════════════════════════════════════ */
+  function pixelize(w, h, draw, opt) {
+    opt = opt || {};
+    const c = mkCanvas(w, h), g = c.getContext("2d");
+    g.imageSmoothingEnabled = false;
+    draw(g, w, h);
+    const id = g.getImageData(0, 0, w, h);
+    const b = { w, h, d: id.data };
+    const thr = opt.thr == null ? 110 : opt.thr;
+    const pal = (opt.pal || []).map(hex);
+    for (let i = 0; i < b.d.length; i += 4) {
+      const a = b.d[i + 3];
+      if (a < thr) { b.d[i + 3] = 0; continue; }
+      let r = b.d[i], gg = b.d[i + 1], bb = b.d[i + 2];
+      /* 半透明の縁は、塗った色そのもの（アルファで割り戻す）に近づける */
+      if (a < 255) { const k = 255 / a; r = Math.min(255, r * k); gg = Math.min(255, gg * k); bb = Math.min(255, bb * k); }
+      if (pal.length) {
+        let best = 0, bd = 1e9;
+        for (let p = 0; p < pal.length; p++) {
+          const dr = pal[p][0] - r, dg = pal[p][1] - gg, db = pal[p][2] - bb;
+          const dd = dr * dr * 0.3 + dg * dg * 0.59 + db * db * 0.11;
+          if (dd < bd) { bd = dd; best = p; }
+        }
+        r = pal[best][0]; gg = pal[best][1]; bb = pal[best][2];
+      }
+      b.d[i] = r; b.d[i + 1] = gg; b.d[i + 2] = bb; b.d[i + 3] = 255;
+    }
+    const o = opt.outline === false ? b : outlineBuf(b, opt.outline || "#120a18");
+    return { buf: o, canvas: bufToCanvas(o) };
+  }
+  /* buf から「ちょっとずらした」アニメのコマを作る */
+  function framesFrom(buf, list) { return list.map((f) => bufToCanvas(f(buf))); }
+
+  /* ══════════════════════════════════════════════════════════════
+     キャラクター（24×30）
+     ------------------------------------------------------------
+     パーツの順：backHair → body → face → frontHair → acc → prop
+     文字：S 肌・s 肌の影・E 瞳・W 白・B ほほ・M 口
+           H 髪・h 髪の影・L 髪のつや
+           A 服・a 服の影・C 服2・c 服2の影・P 下・p 下の影・O 靴・o 靴の影
+           D 飾り・d 飾りの影・G 金属・g 金属の影・X/x/Y 持ち物
+     ══════════════════════════════════════════════════════════════ */
+  const CW = 24, CH = 30;
+  const BASE_PAL = { S: "#f8d8c4", s: "#e2a891", W: "#ffffff", B: "#f49aaa", M: "#c4566a", K: "#14111c" };
+
+  /* 顔（全員共通）。x7〜16・y6〜13 */
+  const FACE = { x: 7, y: 6, rows: [
+    "SSSSSSSSSS",
+    "SSSSSSSSSS",
+    "SKKSSSSKKS",
+    "SEWSSSSEWS",
+    "SEESSSSEES",
+    "SBSSMMSSBS",
+    ".SSSSSSSS.",
+    "...ssss...",
+  ] };
+  /* 目を閉じた顔（まばたき用：目の3行を線にする） */
+  const FACE_BLINK = { x: 7, y: 8, rows: [
+    "SSSSSSSSSS",
+    "SKKSSSSKKS",
+    "SSSSSSSSSS",
+  ] };
+
+  /* ── 髪の型 ── */
+  /* 前髪（頭の上＋前髪）。ぱっつん寄り。x5〜18 */
+  function frontStraight(sideTo, opt) {
+    opt = opt || {};
+    const rows = [
+      "....HHHHHH....",
+      "..HHHHHHHHHH..",
+      ".HHHHHHHHHHHH.",
+      "HHHHLLLHHHHHHH",
+      "HHHLLHHHHHHHHH",
+      "HHHHHHHHHHHHHH",
+      opt.part ? "HHhHHHHhhHHHhH" : "HHhHHHhhHHHhHH",
+      "HH...h..h...HH",
+    ];
+    for (let y = 9; y <= sideTo; y++) rows.push(y >= sideTo - 1 ? "h............h" : "Hh..........hH");
+    return { x: 5, y: 1, rows };
+  }
+  /* 横に流した前髪（片側が長い） */
+  function frontSwept(sideTo) {
+    const rows = [
+      "....HHHHHH....",
+      "..HHHHHHHHHH..",
+      ".HHHHHHHHHHHH.",
+      "HHHLLLHHHHHHHH",
+      "HHLLHHHHHHHHHH",
+      "HHHHHHHHHHHHHH",
+      "HHHHHHHHhhHhHH",
+      "HHHHh..h....HH",
+      "HHh.........HH",
+    ];
+    for (let y = 10; y <= sideTo; y++) rows.push(y >= sideTo - 1 ? "h............h" : "Hh..........hH");
+    return { x: 5, y: 1, rows };
+  }
+  /* 長い髪の後ろ（体のうしろに落ちる） */
+  function backLong(bottom, wavy) {
+    const rows = [
+      "....hhhhhhhh....",
+      "..hhhhhhhhhhhh..",
+      ".hhhhhhhhhhhhhh.",
+    ];
+    for (let y = 5; y <= bottom; y++) {
+      if (y <= 13) rows.push("hhhhhhhhhhhhhhhh");
+      else if (y < bottom - 1) rows.push(wavy && (y % 3 === 0) ? ".hhh........hhh." : "hhhh........hhhh");
+      else if (y === bottom - 1) rows.push(wavy ? "hhh..........hhh" : ".hhh........hhh.");
+      else rows.push(wavy ? ".h............h." : "..hh........hh..");
+    }
+    return { x: 4, y: 2, rows };
+  }
+  /* ボブ（あごの下まで） */
+  function backBob() {
+    return { x: 4, y: 2, rows: [
+      "....hhhhhhhh....",
+      "..hhhhhhhhhhhh..",
+      ".hhhhhhhhhhhhhh.",
+      "hhhhhhhhhhhhhhhh",
+      "hhhhhhhhhhhhhhhh",
+      "hhhhhhhhhhhhhhhh",
+      "hhhhhhhhhhhhhhhh",
+      "hhhhhhhhhhhhhhhh",
+      "hhhhhhhhhhhhhhhh",
+      "hhhhhhhhhhhhhhhh",
+      ".hhhhhhhhhhhhhh.",
+      ".hhh........hhh.",
+      "..hh........hh..",
+    ] };
+  }
+  function frontBob(wavyEnds) {
+    return { x: 4, y: 1, rows: [
+      ".....HHHHHH.....",
+      "...HHHHHHHHHH...",
+      "..HHHHHHHHHHHH..",
+      ".HHHHLLLHHHHHHH.",
+      ".HHHLLHHHHHHHHH.",
+      "HHHHHHHHHHHHHHHH",
+      "HHHhHHHhhHHHhHHH",
+      "HHH...h..h...HHH",
+      "HHh..........hHH",
+      "HH............HH",
+      "HH............HH",
+      wavyEnds ? "hHh..........hHh" : "Hh............hH",
+      wavyEnds ? ".h............h." : "h..............h",
+    ] };
+  }
+
+  /* ── 服の型（x6〜17・y14〜28） ── */
+  function outfitTank(bottom, gloves) {
+    const arm = gloves ? "C" : "S", arm2 = gloves ? "c" : "s";
+    const rows = [
+      ".SSaSSSSaSS.",
+      arm + "SAAAAAAAAS" + arm,
+      arm + ".AAAAAAAA." + arm,
+      arm2 + ".AaAAAAaA." + arm2,
+      arm + ".AAAAAAAA." + arm,
+      arm + ".AAAAAAAA." + arm,
+    ];
+    return { x: 6, y: 14, rows: rows.concat(bottom) };
+  }
+  const BOTTOM_SHORTS = [
+    "..PPPPPPPP..",
+    "..PPPppPPP..",
+    "..PPP..PPP..",
+    "...SS..SS...",
+    "...SS..SS...",
+    "...ss..ss...",
+    "..OOO..OOO..",
+    "..ooo..ooo..",
+  ];
+  const BOTTOM_SKIRT = [
+    "..PPPPPPPP..",
+    ".PPPPPPPPPP.",
+    ".PpPPpPPpPP.",
+    "...SS..SS...",
+    "...SS..SS...",
+    "...ss..ss...",
+    "..OOO..OOO..",
+    "..ooo..ooo..",
+  ];
+  const BOTTOM_PANTS = [
+    "..PPPPPPPP..",
+    "..PPPPPPPP..",
+    "..PPpP.PPP..",
+    "..PPP..PPP..",
+    "..PPp..PPp..",
+    "..PPP..PPP..",
+    "..OOO..OOO..",
+    "..ooo..ooo..",
+  ];
+  const BOTTOM_BOOTS_SKIRT = [
+    "..PPPPPPPP..",
+    ".PPPPPPPPPP.",
+    ".PpPPpPPpPP.",
+    "...SS..SS...",
+    "...OO..OO...",
+    "...OO..OO...",
+    "..OOO..OOO..",
+    "..ooo..ooo..",
+  ];
+
+  /* ══════════════════════════════════════════════════════════════
+     キャラごとの定義（MagiBurst の id と同じ）
+     ══════════════════════════════════════════════════════════════ */
+  const CHAR_ART = {
+    /* ── タキナ（水）：長い黒髪をポニーテールに結う・タンクトップ・蒼い銃 ── */
+    takina: {
+      pal: { H: "#1d1c29", h: "#100f18", L: "#4a5280", E: "#9b6bff", A: "#eaf3fc", a: "#b6cbe4", C: "#262833", c: "#15161c",
+             P: "#2b3552", p: "#1c2338", O: "#eef3f9", o: "#9fb0c6", D: "#3a3c4c", X: "#d8ecff", x: "#4f8fe0", Y: "#2b3552", K: "#120f1c" },
+      legY: 23,
+      layers: [
+        backLong(24),
+        /* ポニーテール（頭のうしろ右上から右へ流れる） */
+        { x: 15, y: 0, rows: [
+          "..hhhh.",
+          ".hHHHHh",
+          "hHHLHHh",
+          ".hhDDhh.",
+          "...hHHh",
+          "...hHHHh",
+          "....hHHh",
+          "....hHHh",
+          ".....hHh",
+          ".....hHh",
+          ".....hhh",
+          "......hh",
+          "......hh",
+        ] },
+        outfitTank(BOTTOM_SHORTS),
+        /* タンクトップの脇から見える黒いインナー */
+        { x: 8, y: 15, rows: ["C......C", "C......C"] },
+        "FACE",
+        frontStraight(14),
+        /* 結んでいる髪どめ（頭の右上） */
+        { x: 16, y: 2, rows: ["DD"] },
+        /* 右手の蒼い銃 */
+        { x: 17, y: 18, rows: ["xXXXX", "xxXx.", ".Yx..", ".Y..."] },
+      ],
+    },
+    /* ── ヒナノ（風）：ウェーブの黒髪・デニムジャケット・白いトップス・カーゴパンツ・アイス ── */
+    hinano: {
+      pal: { H: "#26222e", h: "#141118", L: "#5a5470", E: "#d3953e", A: "#7aaee2", a: "#4d7cb8", C: "#f5f5f5", c: "#d2d2da",
+             P: "#6c7a4b", p: "#4d5a34", O: "#f2f2f2", o: "#a8a8b8", D: "#e8c25a", G: "#f2d27a", X: "#9fe6ff", x: "#57c2e8", Y: "#f3e3c3", K: "#120f18" },
+      legY: 23,
+      layers: [
+        backLong(25, true),
+        { x: 6, y: 14, rows: [
+          "AASCCCCCCSAA",
+          "AaCCCCCCCCaA",
+          "Aa.CCCCCC.aA",
+          "AA.cCCCCc.AA",
+          "Aa.SSSSSS.aA",
+          "SA.PPPPPP.AS",
+        ].concat(BOTTOM_PANTS.slice(1)) },
+        "FACE",
+        frontSwept(14),
+        /* ヘアピン（左） */
+        { x: 6, y: 5, rows: ["DD", ".D"] },
+        /* 右手のアイス */
+        { x: 17, y: 16, rows: [".XX", "XxX", "XxX", ".Y.", ".Y."] },
+      ],
+    },
+    /* ── ハノン（光）：茶色のボブ・白いブラウス・紺のリボン・紺のスカート・バスケットボール ── */
+    hanon: {
+      pal: { H: "#714a30", h: "#4c2e1c", L: "#a87a52", E: "#b06a2c", A: "#f6f1ea", a: "#d6ccc0", C: "#f6f1ea", c: "#d6ccc0",
+             D: "#27306e", d: "#171d48", P: "#2d3462", p: "#1d2244", O: "#3b2a24", o: "#22180f", X: "#f08a34", x: "#b8561c", Y: "#4a2410", K: "#150f12" },
+      legY: 23,
+      layers: [
+        backBob(),
+        { x: 6, y: 14, rows: [
+          ".AAADdDAAA..",
+          "SAAAAADAAAAS",
+          "S.AAAAAAAA.S",
+          "s.AaAAAAaA.s",
+          "S.AAAAAAAA.S",
+          "S.AAAAAAAA.S",
+        ].concat(BOTTOM_SKIRT) },
+        "FACE",
+        frontBob(false),
+        /* 左手のバスケットボール */
+        { x: 1, y: 17, rows: [".XXX.", "XxXYX", "XYYYX", "XXYxX", ".XXX."] },
+      ],
+    },
+    /* ── ココハ（炎）：長い黒髪に紅い椿・赤い振袖・透明な傘 ── */
+    kokoha: {
+      pal: { H: "#1e1b24", h: "#0f0d13", L: "#4d4660", E: "#ff7aa6", A: "#d8283e", a: "#a3162b", C: "#fbeef0", c: "#e7c9cf",
+             D: "#ff3550", d: "#b51632", G: "#ffd36a", P: "#d8283e", p: "#a3162b", O: "#f6f0e8", o: "#c9bfb2",
+             X: "#d8f3ffaa", x: "#8cc6e4", Y: "#6b5a4c", K: "#140c12" },
+      legY: 27, robe: true,
+      layers: [
+        backLong(24),
+        { x: 5, y: 14, rows: [
+          "..AAACCAAA...",
+          ".AAAAACAAAAA.",
+          "AAAaAACAAaAAA",
+          "AAA.AAAAA.AAA",
+          "AaA.AAcAA.AaA",
+          ".AA.GGGGG.AA.",
+          "..S.AAAAA.S..",
+          "....AAcAA....",
+          "...AAAAAAA...",
+          "...AaAAAaA...",
+          "...AAACAAA...",
+          "...aAAAAAa...",
+          "....OO.OO....",
+          "....oo.oo....",
+        ] },
+        /* 振袖の白い模様 */
+        { x: 6, y: 16, rows: ["C.......C", "......C..", ".C.......", "....C...C"] },
+        "FACE",
+        frontStraight(15, { part: 1 }),
+        /* 椿の髪かざり（左右） */
+        { x: 4, y: 3, rows: [".D.", "DdD", ".D."] },
+        { x: 17, y: 5, rows: [".D.", "DdD", ".D."] },
+        /* 透明な傘（頭の上にさしかける・すけて見える） */
+        { x: 8, y: 0, rows: [
+          "....xxxxxx....",
+          "..xxXXXxXXXxx.",
+          ".xXXXXXxXXXXXx",
+          "xXXXXXXxXXXXXXx",
+          "xxXxxXxxxXxxXxx",
+        ] },
+        { x: 15, y: 0, rows: ["Y"] },
+        { x: 17, y: 5, rows: ["Y", "Y", "Y", "Y", "Y", "Y", "Y", "Y", "Y", "Y", "Y", "Y", "Y", "YY"] },
+      ],
+    },
+    /* ── ムツミ（炎）：黒〜紅のボブ・赤い瞳・ベージュのニットワンピ・黒いジャケット ── */
+    mutsumi: {
+      pal: { H: "#2b1a20", h: "#170c10", L: "#7a2b38", E: "#ff3048", A: "#c4b8ac", a: "#958a7e", C: "#23202a", c: "#141218",
+             P: "#c4b8ac", p: "#958a7e", O: "#1d1a22", o: "#0e0c11", X: "#ff6a3c", x: "#ffc65a", K: "#150b0f" },
+      legY: 24,
+      layers: [
+        backBob(),
+        { x: 5, y: 14, rows: [
+          "..CAAAAAAC...",
+          ".CCAAAAAACC..",
+          ".CC.AAAAA.CC.",
+          ".Cc.AaAaA.cC.",
+          ".CC.AAAAA.CC.",
+          "..S.AAAAA.S..",
+          "....AaAAA....",
+          "....AAAAA....",
+          "....aAAAa....",
+          "....SS.SS....",
+          "....SS.SS....",
+          "....ss.ss....",
+          "...OOO.OOO...",
+          "...ooo.ooo...",
+        ] },
+        "FACE",
+        frontBob(true),
+        /* 左手の炎（ミラージュ） */
+        { x: 1, y: 17, rows: [".x.", "xXx", "XXX", ".X."] },
+      ],
+    },
+    /* ── レイナ（影）：アッシュの長い髪にお団子2つ・青い瞳・黒いタートルネック・銀の十字架 ── */
+    reina: {
+      pal: { H: "#bba48c", h: "#8d7762", L: "#e6d4bc", E: "#4c8dff", A: "#27242f", a: "#16141b", C: "#27242f", c: "#16141b",
+             G: "#e9eaf2", g: "#9fa2b4", P: "#3b2f56", p: "#271f3b", O: "#1b1822", o: "#0d0c11", X: "#a86bff", x: "#5d2bd0", K: "#15111a" },
+      legY: 23,
+      layers: [
+        backLong(25),
+        /* お団子（左右） */
+        { x: 3, y: 0, rows: [".hHh", "hHLHh", "hHHHh", ".hhh"] },
+        { x: 16, y: 0, rows: ["hHh.", "hHLHh", "hHHHh", ".hhh."] },
+        outfitTank(BOTTOM_SKIRT),
+        /* タートルネック（腕も黒い長袖） */
+        { x: 6, y: 13, rows: [
+          "....AAAA....",
+          ".AAAAAAAAAA.",
+          "AAAAAAAAAAAA",
+          "A.AAAAAAAA.A",
+          "a.AaAAAAaA.a",
+          "A.AAAGAAAA.A",
+          "A.AAGGGAAA.A",
+          "S.AAAGAAAA.S",
+        ] },
+        "FACE",
+        frontStraight(15),
+        /* 左手の影の球 */
+        { x: 1, y: 18, rows: [".x.", "xXx", ".x."] },
+      ],
+    },
+    /* ── アズサ（水）：金髪のロングに青い薔薇・金の瞳・青いゴシックドレス・細身の剣 ── */
+    azusa: {
+      pal: { H: "#f2d374", h: "#c79e3e", L: "#fff4bf", E: "#f0b030", A: "#2f53c4", a: "#1d3488", C: "#15131c", c: "#0b0a10",
+             D: "#3a63ea", d: "#1c3aa0", G: "#e3e8f2", g: "#9aa3b8", P: "#2f53c4", p: "#1d3488", O: "#15131c", o: "#0b0a10",
+             X: "#e9f1fb", x: "#9fb2cc", Y: "#d9b45a", K: "#14101e" },
+      legY: 27, robe: true,
+      layers: [
+        backLong(25),
+        { x: 5, y: 14, rows: [
+          ".AAACCCCAAA..",
+          "AAAAACCAAAAA.",
+          "AAa.AAAAA.aAA",
+          ".AA.AaAaA.AA.",
+          ".CC.AAAAA.CC.",
+          "..S.CCCCC.S..",
+          "....AAAAA....",
+          "...AAAAAAA...",
+          "...AaAAAaA...",
+          "..AAAAAAAAA..",
+          "..AaAAAAAaA..",
+          "..CCCCCCCCC..",
+          "....OO.OO....",
+          "....oo.oo....",
+        ] },
+        "FACE",
+        frontSwept(15),
+        /* 青い薔薇（左）と銀の髪かざり（右） */
+        { x: 3, y: 1, rows: [".DD.", "DdDD", "DDdD", ".DD."] },
+        { x: 16, y: 4, rows: ["GG", "Gg"] },
+        /* 右手のレイピア（ななめ下へ） */
+        { x: 17, y: 19, rows: ["YY....", ".X....", "..X...", "...X..", "....X.", ".....x"] },
+      ],
+    },
+    /* ── カグラ（炎）：長い黒髪・赤い瞳・白いタンク・黒いサスペンダー・黒い長手袋・刀 ── */
+    kagura: {
+      pal: { H: "#1b181e", h: "#0d0b0f", L: "#4a4250", E: "#ff3a46", A: "#f3f3f3", a: "#cfcfd8", C: "#1e1c24", c: "#0e0d12",
+             P: "#1f1d26", p: "#111017", O: "#1e1c24", o: "#0e0d12", X: "#dde3ec", x: "#8c95a6", D: "#e02a3c", Y: "#2a1418", K: "#120d10" },
+      legY: 23,
+      layers: [
+        backLong(25),
+        /* 背中にななめに背負った刀（柄は右肩の上・切っ先は左下） */
+        { x: 3, y: 9, rows: [
+          "................Y.",
+          "...............YY.",
+          "..............D...",
+          ".............X....",
+          "............X.....",
+          "...........X......",
+          "..........X.......",
+          ".........X........",
+          "........X.........",
+          ".......X..........",
+          "......X...........",
+          ".....X............",
+          "....X.............",
+          "...X..............",
+          "..x...............",
+          ".x................",
+        ] },
+        outfitTank(BOTTOM_BOOTS_SKIRT, true),
+        /* サスペンダー */
+        { x: 9, y: 14, rows: ["C....C", "C....C", "C....C", "C....C", "C....C"] },
+        "FACE",
+        frontStraight(15),
+      ],
+    },
+    /* ── コトリ（水）：紺の長い髪に頭のお団子・紫の瞳・白いタンク・黒いショートパンツ・バスケットボール ── */
+    kotori: {
+      pal: { H: "#262b4e", h: "#13162c", L: "#55609c", E: "#a17cff", A: "#f3f5f9", a: "#c9d0de", C: "#f3f5f9", c: "#c9d0de",
+             P: "#1d1c24", p: "#0f0e13", O: "#f2f2f6", o: "#a3a3b5", X: "#ef7c2e", x: "#b04c14", Y: "#4a2410", K: "#110f1c" },
+      legY: 23,
+      layers: [
+        backLong(24, true),
+        /* 頭のお団子 */
+        { x: 9, y: 0, rows: ["..hh..", ".hHHh.", "hHLHHh"] },
+        outfitTank(BOTTOM_SHORTS),
+        "FACE",
+        frontStraight(14),
+        /* 右手のバスケットボール */
+        { x: 17, y: 17, rows: [".XXX.", "XxXYX", "XYYYX", "XXYxX", ".XXX."] },
+      ],
+    },
+  };
+  /* ── クミコ＆レイナ（炎＆光）：ふたりで1キャラ。セーラー服・ユーフォニアムとトランペット ── */
+  const DUO_UNIFORM = (inst) => [
+    { x: 6, y: 13, rows: [
+      "..CCDDCC....",
+      ".CCAADAAACC.",
+      "SAAAAAAAAAAS",
+      "S.AAAAAAAA.S",
+      "s.AaAAAAaA.s",
+      "S.AAAAAAAA.S",
+      "S.AAAAAAAA.S",
+    ].concat(BOTTOM_SKIRT) },
+  ];
+  CHAR_ART.kumireina = {
+    duo: true,
+    /* 奥（右）がレイナ：黒い長い髪・紫の瞳 */
+    back: {
+      pal: { H: "#1c1a26", h: "#0e0d14", L: "#4a4a6a", E: "#a77cff", A: "#f3f5fa", a: "#c8d0e0", C: "#2a4a8c", c: "#1a3060",
+             D: "#e8507c", P: "#2c3a66", p: "#1c2648", O: "#3a2a24", o: "#20160f", G: "#ffd36a", g: "#c99a2e", K: "#120f1a" },
+      legY: 23,
+      layers: [backLong(25)].concat(DUO_UNIFORM(), ["FACE", frontStraight(15),
+        /* トランペット */
+        { x: 16, y: 16, rows: ["GGGgg.", "..GGGg", "....gG"] }]),
+    },
+    /* 手前（左）がクミコ：茶色のくせっ毛ボブ・茶色の瞳 */
+    front: {
+      pal: { H: "#a76a40", h: "#74442a", L: "#d39a68", E: "#9b5a2a", A: "#f3f5fa", a: "#c8d0e0", C: "#2a4a8c", c: "#1a3060",
+             D: "#e8507c", P: "#2c3a66", p: "#1c2648", O: "#3a2a24", o: "#20160f", G: "#ffd36a", g: "#c99a2e", K: "#150f10" },
+      legY: 23,
+      layers: [backBob()].concat(DUO_UNIFORM(), ["FACE", frontBob(true),
+        /* ユーフォニアム（金色） */
+        { x: 0, y: 15, rows: ["..GGG.", ".GgggG", "GGGGGG", "GgGGgG", ".GGGG.", "..gg.."] }]),
+    },
+  };
+
+  /* ── 1体ぶんの方眼 → 画素 ── */
+  function composeChar(def) {
+    const pal = Object.assign({}, BASE_PAL, def.pal);
+    const b = mkBuf(CW, CH);
+    def.layers.forEach((L) => {
+      if (L === "FACE") drawLayer(b, FACE, pal);
+      else drawLayer(b, L, pal);
+    });
+    return { buf: b, pal };
+  }
+  function composeBlink(def) {
+    const pal = Object.assign({}, BASE_PAL, def.pal);
+    const b = mkBuf(CW, CH);
+    def.layers.forEach((L) => {
+      if (L === "FACE") { drawLayer(b, FACE, pal); drawLayer(b, FACE_BLINK, pal); }
+      else drawLayer(b, L, pal);
+    });
+    return { buf: b, pal };
+  }
+  /* 待機・歩き・攻撃・被弾のコマを作る */
+  function animFrames(base, blink, def, outline) {
+    const legY = def.legY || 23;
+    const W = base.w;
+    const ol = (b) => outlineBuf(b, outline);
+    const up = (b, extra) => shiftWhere(b, (x, y) => y < legY && !(extra && extra(x, y)), 0, -1);
+    let walk;
+    if (def.robe) {
+      /* 長い裾：上下にはずむ＋裾が左右にゆれる */
+      walk = [
+        base,
+        shiftWhere(up(base), (x, y) => y >= legY - 3, 1, 0),
+        base,
+        shiftWhere(up(base), (x, y) => y >= legY - 3, -1, 0),
+      ];
+    } else {
+      const mid = W / 2;
+      walk = [
+        base,
+        shiftWhere(up(base), (x, y) => y >= legY && x < mid, 0, -1),
+        base,
+        shiftWhere(up(base), (x, y) => y >= legY && x >= mid, 0, -1),
+      ];
+    }
+    const idle = [base, shiftWhere(base, (x, y) => y < legY - 2, 0, 1), blink];
+    const atk = shiftWhere(base, (x, y) => y < 14, 1, 0);
+    const out = {
+      idle: idle.map((b) => bufToCanvas(ol(b))),
+      walk: walk.map((b) => bufToCanvas(ol(b))),
+      atk: bufToCanvas(ol(atk)),
+      hurt: bufToCanvas(whiteOf(ol(base))),
+    };
+    out.w = W; out.h = base.h;
+    return out;
+  }
+  const spriteCache = {};
+  function charSprite(id) {
+    if (spriteCache[id]) return spriteCache[id];
+    const def = CHAR_ART[id] || genericArt(id);
+    let res;
+    if (def.duo) {
+      /* ふたり：レイナ（奥・右）を先に描いて、クミコ（手前・左）を重ねる。横幅 32 */
+      const W = 32;
+      const mk = (blinkIt) => {
+        const bk = (blinkIt ? composeBlink : composeChar)(def.back).buf;
+        const fr = (blinkIt ? composeBlink : composeChar)(def.front).buf;
+        const b = mkBuf(W, CH);
+        const put = (src, ox, oy) => { for (let y = 0; y < src.h; y++) for (let x = 0; x < src.w; x++) { const i = (y * src.w + x) * 4; if (!src.d[i + 3]) continue; const nx = x + ox, ny = y + oy; if (nx < 0 || nx >= W || ny < 0 || ny >= CH) continue; b.d.set(src.d.subarray(i, i + 4), (ny * W + nx) * 4); } };
+        put(outlineBuf(bk, def.back.pal.K), 8, -1);
+        put(fr, 0, 0);
+        return b;
+      };
+      const base = mk(false), blink = mk(true);
+      res = animFrames(base, blink, { legY: 23 }, def.front.pal.K);
+    } else {
+      const c = composeChar(def), bl = composeBlink(def);
+      res = animFrames(c.buf, bl.buf, def, def.pal.K || "#14111c");
+    }
+    spriteCache[id] = res;
+    return res;
+  }
+  /* 定義の無いキャラ（あとから極◯祭に増えた子）は、属性色で組み立てる */
+  const EL_COL = { fire: "#e0402e", water: "#3a8ee8", wood: "#3fbf6e", light: "#e8c040", dark: "#8a5ce0" };
+  function genericArt(id) {
+    let el = "water";
+    try { if (typeof CHARS !== "undefined" && CHARS[id]) el = CHARS[id].el; } catch (e) {}
+    const c = EL_COL[el] || "#3a8ee8";
+    return {
+      pal: { H: shade(c, 0.55), h: shade(c, 0.35), L: shade(c, 0.85), E: c, A: "#f2f2f6", a: "#c8c8d6", C: shade(c, 0.6), c: shade(c, 0.4),
+             P: shade(c, 0.45), p: shade(c, 0.3), O: "#2a2830", o: "#141218", K: "#120f18" },
+      legY: 23,
+      layers: [backLong(24), outfitTank(BOTTOM_SKIRT), "FACE", frontStraight(14)],
+    };
+  }
+
+  /* ══════════════════════════════════════════════════════════════
+     イラストからドットの顔アイコンを作る（HUD・一覧用）
+     切り抜き位置は 0〜1 の割合（t_◯◯.webp の正方形に対して）
+     ══════════════════════════════════════════════════════════════ */
+  const FACE_BOX = {
+    takina: [0.19, 0.15, 0.40], hinano: [0.30, 0.10, 0.36], hanon: [0.32, 0.09, 0.39], kokoha: [0.29, 0.13, 0.37],
+    mutsumi: [0.35, 0.06, 0.33], reina: [0.28, 0.13, 0.38], azusa: [0.30, 0.07, 0.37], kumireina: [0.18, 0.05, 0.58],
+    kagura: [0.23, 0.08, 0.37], kotori: [0.33, 0.12, 0.35],
+  };
+  const portraitCache = {};
+  function portrait(id, file, size, cb) {
+    size = size || 40;
+    const key = id + "|" + size;
+    if (portraitCache[key]) { cb && cb(portraitCache[key]); return portraitCache[key]; }
+    const img = new Image();
+    img.onload = () => {
+      try {
+        const bx = FACE_BOX[id] || [0.25, 0.08, 0.5];
+        const sw = img.naturalWidth, sh = img.naturalHeight;
+        const c = mkCanvas(size, size), g = c.getContext("2d");
+        g.imageSmoothingEnabled = true; g.imageSmoothingQuality = "high";
+        g.drawImage(img, bx[0] * sw, bx[1] * sh, bx[2] * sw, bx[2] * sh, 0, 0, size, size);
+        /* 色数を落としてドットらしく（各チャンネルを 6 段に） */
+        const id2 = g.getImageData(0, 0, size, size), d = id2.data;
+        const q = (v) => Math.round(v / 51) * 51;
+        for (let i = 0; i < d.length; i += 4) { d[i] = q(d[i] * 1.04); d[i + 1] = q(d[i + 1] * 1.02); d[i + 2] = q(d[i + 2]); d[i + 3] = 255; }
+        g.putImageData(id2, 0, 0);
+        const url = c.toDataURL();
+        portraitCache[key] = url;
+        cb && cb(url);
+      } catch (e) { cb && cb(file); }
+    };
+    img.onerror = () => cb && cb(file);
+    img.src = file;
+    return null;
+  }
+
+  /* 定義から作る（ギルドの NPC など。key でキャッシュ） */
+  function spriteFromDef(key, def) {
+    if (spriteCache[key]) return spriteCache[key];
+    const c = composeChar(def), bl = composeBlink(def);
+    const res = animFrames(c.buf, bl.buf, def, def.pal.K || "#14111c");
+    spriteCache[key] = res;
+    return res;
+  }
+  const PARTS = { FACE, frontStraight, frontSwept, backLong, backBob, frontBob, outfitTank, BOTTOM_SHORTS, BOTTOM_SKIRT, BOTTOM_PANTS, BOTTOM_BOOTS_SKIRT };
+
+  MA.Pix = {
+    hex, toHex, shade, mix, rgba, mkCanvas, mkBuf, bufToCanvas, setPx, outlineBuf, shiftWhere, whiteOf,
+    drawLayer, pixelize, framesFrom, textSprite, shortNum, charSprite, portrait, CHAR_ART, FACE_BOX, CW, CH,
+    spriteFromDef, PARTS,
+  };
+})();

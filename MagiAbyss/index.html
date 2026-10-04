@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<script src="../maintenance-gate.js?v=13"></script>
+<meta charset="UTF-8" />
+<script>(function(){try{var a=JSON.parse(localStorage.getItem('xeva_account_v1'));if(!a||!a.setupDone)location.replace('../index.html');}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<title>MagiAbyss — 見下ろし型ドットアクションRPG</title>
+<meta name="description" content="広大なアビス（魔力迷宮）を探索し、大量の敵をなぎ払い、武器・魔法・装備の星脈共鳴で自分だけのビルドを作る見下ろし型ドットアクションRPG。キャラクターは XEVARION の極彩祭・極煌祭・極華祭と共通。" />
+<link rel="icon" href="../thumbs/MagiAbyss.jpg" type="image/jpeg" />
+<link rel="apple-touch-icon" href="../thumbs/MagiAbyss.jpg" />
+<meta name="theme-color" content="#0a0716" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
+<!-- ══════════════════════════════════════════════════════════════
+     ★★ 2026-10-03 新作 MagiAbyss（ご指定）
+     ・見下ろし型のドットアクションRPG。冒険者ギルド《アストラ》を拠点に、6つのアビスと深淵踏破に挑む。
+     ・キャラは XEVARION の極彩祭・極煌祭・極華祭の10体だけ（所持・凸は共通／レベル等はこのアプリだけ）。
+     ・ドット絵・効果音・BGM はすべてコードで作る（ma-pixel / ma-art / ma-audio）。オフラインで遊べる（sw.js）。
+     ・セーブ magiabyss_v1 は xeva-cloud（xeva-keys.js の PORTAL_SYNC_KEYS）で同期する。
+     ══════════════════════════════════════════════════════════════ -->
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function () { navigator.serviceWorker.register("sw.js").catch(function () {}); });
+}
+</script>
+<script src="../xeva-safebottom.js?v=12"></script>
+<link rel="stylesheet" href="css/ma.css?v=1" />
+<script src="../xeva-splash.js?v=13" data-app="MagiAbyss" data-logo="../thumbs/MagiAbyss.jpg"></script>
+</head>
+<body data-scr="title">
+
+<!-- ゲームの画面（探索）とギルドの画面 -->
+<canvas id="gc"></canvas>
+<canvas id="hub"></canvas>
+
+<!-- ═══════════════ タイトル ═══════════════ -->
+<section class="scr on" id="title"></section>
+
+<!-- ═══════════════ ギルド（名札・上のバー）═══════════════ -->
+<section class="scr" id="guild">
+  <div class="g-top" id="gTop"></div>
+  <div class="g-labels" id="gLabels"></div>
+  <div class="g-sel" id="gSel"></div>
+  <div class="g-hint" id="gHint" hidden></div>
+  <div class="g-help">移動：WASD／方向キー・スティック　調べる：F／タップ　施設の名札を押しても開けます</div>
+</section>
+
+<!-- ═══════════════ 探索中の HUD ═══════════════ -->
+<section class="scr" id="run"><div id="hud"></div></section>
+
+<!-- ═══════════════ 結果 ═══════════════ -->
+<section class="scr" id="result"></section>
+
+<!-- スマホの操作（スティック・ボタン）-->
+<div id="touch"></div>
+<!-- 演出（必殺技のカットイン・共鳴・ボス）・お知らせ・枠 -->
+<div id="fx"></div>
+<div id="toasts"></div>
+<div id="modals"></div>
+
+<noscript><p style="color:#fff;padding:20px">MagiAbyss を遊ぶには JavaScript を有効にしてください。</p></noscript>
+
+<!-- ★ キャラクターの元データ（名前・属性・絵）は XEVARION（MagiBurst）と共通。
+     mb-boot.js は MB_IMGD を "img/"（ポータル用）に決め打ちするので、読んだあとで直す。 -->
+<script type="module" src="../xevarion-fb.js?v=33"></script>
+<script type="module" src="../xeva-cloud.js?v=40"></script>
+<!-- 所持・凸の最新を MagiBurst のクラウドから取ってくる（このアプリからは書きこまない） -->
+<script type="module" src="../MagiBurst/magiburst-cloud.js?v=20"></script>
+<script src="../xeva.js?v=73"></script>
+<script src="../xeva-loading.js?v=18" defer></script>
+<script src="../xeva-presence.js?v=9" defer></script>
+<script src="../mb-boot.js?v=17"></script>
+<script>window.MB_IMGD = "../img/"; window.MB_GIMGD = "../MagiBurst/img/";</script>
+<script src="../MagiBurst/js/mb-core.js?v=130"></script>
+<script src="js/ma-data.js?v=1"></script>
+<script src="js/ma-pixel.js?v=1"></script>
+<script src="js/ma-art.js?v=1"></script>
+<script src="js/ma-map.js?v=1"></script>
+<script src="js/ma-save.js?v=1"></script>
+<script src="js/ma-stats.js?v=1"></script>
+<script src="js/ma-audio.js?v=1"></script>
+<script src="js/ma-input.js?v=1"></script>
+<script src="js/ma-engine.js?v=1"></script>
+<script src="js/ma-ai.js?v=1"></script>
+<script src="js/ma-weapons.js?v=1"></script>
+<script src="js/ma-cards.js?v=1"></script>
+<script src="js/ma-boss.js?v=1"></script>
+<script src="js/ma-prog.js?v=1"></script>
+<script src="js/ma-render.js?v=1"></script>
+<script src="js/ma-ui.js?v=1"></script>
+<script src="js/ma-guild.js?v=1"></script>
+<script src="js/ma-main.js?v=1"></script>
+<script src="../xeva-back.js?v=9" data-mode="hook"></script>
+</body>
+</html>

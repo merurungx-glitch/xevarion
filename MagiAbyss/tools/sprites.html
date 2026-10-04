@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<title>MagiAbyss sprite viewer (dev)</title>
+<style>
+  body { background: #1a1626; color: #ddd; font: 12px monospace; margin: 8px; }
+  .row { display: flex; gap: 10px; align-items: flex-end; margin: 6px 0; flex-wrap: wrap; }
+  canvas { image-rendering: pixelated; background: #2c2840; }
+  .lbl { width: 70px; }
+</style>
+</head>
+<body>
+<div id="out"></div>
+<script src="../js/ma-pixel.js"></script>
+<script src="../js/ma-art.js"></script>
+<script>
+  const P = MA.Pix, out = document.getElementById("out");
+  const S = +(new URLSearchParams(location.search).get("s") || 5);
+  const ids = ["takina", "hinano", "hanon", "kokoha", "mutsumi", "reina", "azusa", "kumireina", "kagura", "kotori"];
+  function big(c, s) { const k = document.createElement("canvas"); k.width = c.width * s; k.height = c.height * s; const g = k.getContext("2d"); g.imageSmoothingEnabled = false; g.drawImage(c, 0, 0, k.width, k.height); return k; }
+  const mode = new URLSearchParams(location.search).get("m") || "chars";
+  if (mode === "chars") {
+    ids.forEach((id) => {
+      const sp = P.charSprite(id);
+      const row = document.createElement("div"); row.className = "row";
+      const l = document.createElement("div"); l.className = "lbl"; l.textContent = id; row.appendChild(l);
+      sp.idle.concat(sp.walk, [sp.atk, sp.hurt]).forEach((c) => row.appendChild(big(c, S)));
+      out.appendChild(row);
+    });
+  } else if (mode === "grid") {
+    const fr = new URLSearchParams(location.search).get("f") || "idle0";
+    const c = document.createElement("canvas"); c.width = 4 * 34 * S; c.height = 3 * 31 * S;
+    const g = c.getContext("2d"); g.imageSmoothingEnabled = false; g.fillStyle = "#4a4466"; g.fillRect(0, 0, c.width, c.height);
+    ids.forEach((id, i) => {
+      const sp = P.charSprite(id);
+      const f = fr === "atk" ? sp.atk : fr.startsWith("walk") ? sp.walk[+fr.slice(4)] : sp.idle[+fr.slice(4) || 0];
+      g.drawImage(f, (i % 4) * 34 * S + 2 * S, Math.floor(i / 4) * 31 * S, f.width * S, f.height * S);
+    });
+    out.appendChild(c);
+  } else if (window.MA.Art && MA.Art.devSheet) {
+    MA.Art.devSheet(mode, out, S, big);
+  }
+</script>
+</body>
+</html>

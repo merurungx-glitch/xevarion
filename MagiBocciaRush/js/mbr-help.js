@@ -108,6 +108,16 @@
     abyssglow: T(J("ブレが小さく、当てたボールがすぐ止まり、当てるとゲージが入る——ホノカだけの特別なパッシブです。", "Less scatter, hit balls stop fast, and gauge on hits — Honoka's unique passive."), J("相手の球を狙った場所に止めたいとき。", "Knock a ball exactly where you want it to stay."), J("常に効きます。", "Always on.")),
     bluerosewaltz: T(J("ブレが小さく、ボールが少し重く、壁でよく跳ねて、反射するたびゲージが入る——アズサだけの特別なパッシブです。", "Less scatter, heavier, livelier rails and gauge per bank — Azusa's unique passive."), J("壁を2回使う長いルート。", "Long two-rail routes."), J("反射のゲージは1投で3回まで。", "Bank gauge counts up to 3 per throw.")),
     tsubakiumbrella: T(J("ブレが小さく、ボールが重く、ジャックのそばで止まるとゲージが入り GUARD になる——ココハだけの特別なパッシブです。", "Less scatter, heavy balls, and gauge plus GUARD when stopping near the jack — Kokoha's unique passive."), J("ジャックのまわりを傘のように守る。", "Guard the jack like an umbrella."), J("止まった位置で判定します。", "Judged where the ball stops.")),
+    /* ★★ 2026-10-03 2026-10-02 に足したパッシブ8つの補足（抜けていた） */
+    heavyhitter: T(J("相手を押し出す力が少し強く、ボールも少し重くなります。", "Slightly stronger pushes and slightly heavier balls."), J("相手の球をはじき出す1投。", "Knocking out opposing balls."), J("いつでも効きます。", "Always on.")),
+    featherfoot: T(J("ボールがよく転がり（減速 -5%）、予測も少し長く見えます。", "Balls roll farther (-5% braking) with a slightly longer preview."), J("奥のジャックへの寄せ。", "Draws to a deep jack."), J("いつでも効きます。", "Always on.")),
+    wallmaster: T(J("壁の反発が少し強く、予測も少し長く見えます。", "Livelier rails and a slightly longer preview."), J("壁を使った寄せ・はじき出し。", "Rail draws and rail knock-outs."), J("いつでも効きます。", "Always on.")),
+    frontrunner: T(J("勝っているあいだ、止まりやすく、ボールも重くなります。リードを守るためのパッシブです。", "While ahead your balls brake more and get heavier — built to protect a lead."), J("リードしている場面の守りの1投。", "Defensive throws while leading."), J("負けている・同点のときは効きません。", "No effect while level or behind.")),
+    powerhouse: T(J("最大の強さが上がるかわりに、ブレも少し大きくなります。", "More max power, at the cost of a little extra scatter."), J("強く当ててはじき出す1投。", "Hard knock-out shots."), J("ねらいが細かい寄せには不向き。", "Not ideal for fine draws.")),
+    sniper: T(J("ブレがいつも小さくなるかわりに、最大の強さが少し下がります。", "Always less scatter, slightly lower max power."), J("ジャックへのぴったりの寄せ。", "Precise draws to the jack."), J("強い押し出しには不向き。", "Not for heavy pushes.")),
+    underdog: T(J("2点以上負けているあいだ、ブレが小さくなり、最大の強さも少し上がります。", "While 2+ points behind: less scatter and a bit more power."), J("追いかける展開の逆転の1球。", "Comeback throws when chasing."), J("1点差・同点・勝っているときは効きません。", "No effect when within 1 point or ahead.")),
+    jackmagnet: T(J("ジャックの 70cm 以内に入るとよく止まります。", "Brakes strongly within 70cm of the jack."), J("ジャックのすぐそばに置く1投。", "Placing right next to the jack."), J("いつでも効きます（自分のボールだけ）。", "Always on (your balls only).")),
+    kikyouminamo: T(J("ブレがとても小さく、ボールが少し重く、壁でよく跳ねる。ジャックのそばで止まると自分と次の味方のゲージが入る——タキナだけの特別なパッシブです。", "Very little scatter, slightly heavier balls and livelier rails; stopping near the jack charges you and the next teammate — Takina's unique passive."), J("ジャックへの寄せ・壁を使った寄せのどちらでも。", "Both straight draws and rail draws to the jack."), J("止まった位置で判定します。", "Judged where the ball stops.")),
   };
 
   const ULT = {

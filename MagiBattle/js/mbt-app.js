@@ -316,7 +316,7 @@
     return '<div class="cc' + (own ? "" : " lock") + (inParty ? " inparty" : "") + (aw >= 4 && p.rar === "SSR" ? " mx" : "") + '" data-id="' + id + '" style="--cc:' + M().CLASSES[p.cls].c + '55">'
       + '<div class="ph"><img src="' + esc(p.th || p.img) + '" alt="" loading="lazy"><span class="lv">Lv.' + lv + '</span><span class="bu">' + (p.tier.k === "crystal" ? "Ⅰ~Ⅲ" : "B" + M().BURST_NM[p.burst]) + "</span>" + BT().elIcon(p.el) + "</div>"
       + '<div class="nm">' + esc(p.nm) + "</div>"
-      + '<div class="ft"><span><i class="cls" style="--clc:' + M().CLASSES[p.cls].c + '"></i>' + p.rar + (aw ? ' <b class="aw">' + "★".repeat(aw) + "</b>" : "") + '</span><span class="pw">' + nf(st.power) + "</span></div></div>";
+      + '<div class="ft"><span><i class="cls" style="--clc:' + M().CLASSES[p.cls].c + '"></i>' + (p.rarNm || p.rar) + (aw ? ' <b class="aw">' + "★".repeat(aw) + "</b>" : "") + '</span><span class="pw">' + nf(st.power) + "</span></div></div>";
   }
 
   /* ══════════════ キャラ一覧（編成とは別のタブ） ══════════════ */
@@ -368,7 +368,7 @@
         + (g ? '<div class="gt">T' + g.t + (g.lv ? "+" + g.lv : "") + '</div><div class="gsub">' + (g.subs || []).map((x) => M().GEAR_FX[x.e].short).join("・") + "</div>" : '<div class="gsub">なし</div>') + "</div>";
     }).join("");
     openSheet('<div class="dhero"><img src="' + esc(p.img) + '" alt=""><div class="nmb"><b>' + esc(p.nm) + "</b><span>" + (own ? "Lv." + lv + (aw ? "・" + (aw >= 4 ? "完凸" : aw + "凸") : "") : "未所持") + "</span></div>"
-      + '<div class="rar ' + (p.rar === "SSR" ? "ssr" : "") + '">' + p.rar + "</div></div>"
+      + '<div class="rar ' + (p.rar === "SSR" ? "ssr" : "") + '">' + (p.rarNm || p.rar) + "</div></div>"
       + (own ? '<div class="lvrow"><div class="lvl"><div class="lvb">Lv.' + lv + '</div><small>育成 Lv.' + olv + "</small></div>"
         + '<div style="flex:1;min-width:0"><div class="xpbar"><i style="width:' + pr.toFixed(0) + '%"></i></div>'
         + '<div class="note" style="margin-top:3px">結晶 1個＝500EXP（所持 ' + nf(DB.mats.crystal) + "）</div></div>"
