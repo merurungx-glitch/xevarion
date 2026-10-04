@@ -83,7 +83,8 @@
     const abs = (p) => { try { return new URL(p, base).href; } catch (e) { return p; } };
     if (r.type === "char") {
       const C = E("CHARS") || {}, c = C[r.id] || { nm: r.id, th: "", img: "" }, s5 = !!(w.isStar5 && w.isStar5(r.id));
-      return { kind: "char", rar: s5 ? "SSR" : "SR", nm: c.nm, img: abs(c.img || c.th), th: abs(c.th || c.img), note: r.max ? "💠結晶 +" + (r.cryst || 5) : r.fullAwk ? "👑 限界突破MAX!!" : r.awk ? "限界突破 +" + r.awk : "NEW!", sure: !!r.sure };
+      /* rl … 表示するレアリティの文字（タキナだけ UR・判定は rar のまま） */
+      return { kind: "char", rar: s5 ? "SSR" : "SR", rl: s5 && w.rarLabel ? w.rarLabel(r.id) : (s5 ? "SSR" : "SR"), nm: c.nm, img: abs(c.img || c.th), th: abs(c.th || c.img), note: r.max ? "💠結晶 +" + (r.cryst || 5) : r.fullAwk ? "👑 限界突破MAX!!" : r.awk ? "限界突破 +" + r.awk : "NEW!", sure: !!r.sure };
     }
     if (r.type === "item") { const I = E("ITEMS") || {}, it = I[r.item] || { nm: r.item, icon: "◆", c: "#9ad8ff" }; return { kind: "item", rar: "ITEM", nm: it.nm + (r.n > 1 ? " ×" + r.n : ""), icon: it.icon || "◆", col: it.c || "#9ad8ff" }; }
     if (r.type === "ticket") return { kind: "item", rar: "ITEM", nm: "フェスチケット" + (r.n > 1 ? " ×" + r.n : ""), icon: "🎫", col: "#ffb020" };
@@ -275,11 +276,11 @@
     const d = this.q[i], U = ui();
     this.sound(d.rar === "SSR" ? "ssr" : d.kind === "char" ? "gold" : "open");
     if (d.rar === "SSR") this.flash("rainbow"); else if (d.kind === "char") this.flash("gold");
-    U.msg.innerHTML = d.rar === "SSR" ? "<b class='ssr'>SSR!!</b>" : d.kind === "char" ? "<b class='sr'>SR</b>" : "";
+    U.msg.innerHTML = d.rar === "SSR" ? "<b class='ssr'>" + (d.rl || "SSR") + "!!</b>" : d.kind === "char" ? "<b class='sr'>SR</b>" : "";
     U.msg.classList.toggle("on", d.kind === "char");
     U.card.className = "g3card on r-" + d.rar.toLowerCase();
     U.card.innerHTML = d.kind === "char"
-      ? '<div class="g3cimg"><img src="' + esc(d.img) + '" alt="" onerror="this.onerror=null;this.src=\'' + esc(d.th) + '\'"></div><div class="g3cinfo"><i>' + d.rar + (d.sure ? "　確定枠" : "") + '</i><b>' + esc(d.nm) + '</b><span>' + esc(d.note) + "</span></div>"
+      ? '<div class="g3cimg"><img src="' + esc(d.img) + '" alt="" onerror="this.onerror=null;this.src=\'' + esc(d.th) + '\'"></div><div class="g3cinfo"><i>' + (d.rl || d.rar) + (d.sure ? "　確定枠" : "") + '</i><b>' + esc(d.nm) + '</b><span>' + esc(d.note) + "</span></div>"
       : '<div class="g3cicon" style="--c:' + esc(d.col) + '">' + esc(d.icon) + '</div><div class="g3cinfo"><i>ITEM</i><b>' + esc(d.nm) + "</b></div>";
     U.tap.classList.add("on");
     this.state = "show";
