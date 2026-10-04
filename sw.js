@@ -7,7 +7,7 @@
    ・オフライン中の進行は localStorage に残り、オンライン復帰時に
      xeva-cloud.js がタイムスタンプ比較でクラウドへ上書き反映する
    ============================================================ */
-const VERSION = "xevarion-sw-v213";
+const VERSION = "xevarion-sw-v215";
 
 /* ホームを成立させる最小セット（重い画像は runtime キャッシュに任せる） */
 const CORE = [
@@ -18,11 +18,11 @@ const CORE = [
   /* ★ 2026-08-10 ガチャは XEVARION に一本化。中身は MagiBurst の共有モジュールが持つ */
   "./gacha.html",
   "./gacha-ui.js?v=57",
-  "./mb-newchars.js?v=32",
+  "./mb-newchars.js?v=33",
   "./xevion-os.js?v=13",
   "./xevion-os.css?v=15",
   "./magibattle-stats.js?v=15",
-  "./MagiBurst/js/mb-core.js?v=129",
+  "./MagiBurst/js/mb-core.js?v=130",
   /* ★ 2026-08-10 ガチャと図鑑で共通の土台・キャラ詳細・結果演出 */
   /* ★ 2026-08-12 ポータルのガチャ・図鑑も magiburst_v1 を同期するようになった */
   "./app-cloud.js?v=12",
@@ -55,14 +55,14 @@ const CORE = [
   "./xeva-i18n-p3.js?v=7",
   "./xeva-i18n-mb7.js?v=7",
   "./xeva-i18n-p4.js?v=7",
-  "./xeva-i18n-n1.js?v=12",
+  "./xeva-i18n-n1.js?v=13",
   "./xeva-i18n-n2.js?v=3",
-  "./xeva.js?v=72",
-  "./xeva-alive.js?v=2",
+  "./xeva.js?v=73",
+  "./xeva-alive.js?v=3",
   "./xeva-fx.js?v=9",
   "./xeva-loading.js?v=18",
   "./xevarion.js?v=96",
-  "./xevarion-home.js?v=152",
+  "./xevarion-home.js?v=153",
   /* ★★ 2026-09-24 ホームのロビーとパートナー。素材は home-mate/<id>/（?v= は home-mate.js の HM_VER）・笙古／瞳／舞香／衣織／樹愛羅／映美里（09-25 ボイス廃止・表情は webp） */
   "./gacha-live.js?v=1",
   "./home-mate.js?v=18",
@@ -101,7 +101,7 @@ const CORE = [
   "./expo/index.html",
   "./expo/expo.css?v=7",
   "./expo/three.min.js?v=160",
-  "./expo/expo-data.js?v=8",
+  "./expo/expo-data.js?v=9",
   "./expo/tex.js?v=2",
   "./expo/vrm.js?v=3",
   "./expo/world.js?v=7",
@@ -174,9 +174,9 @@ const CORE = [
   "./home-mate/emiri/bg.webp?v=17",
   "./maintenance-gate.js?v=13",
   "./xeva-back.js?v=9",
-  "./xeva-keys.js?v=28",
+  "./xeva-keys.js?v=29",
   /* ★★ 2026-10-01 同期のモジュールも入れる（前は実行時キャッシュだけ＝更新直後のオフラインで読めなかった） */
-  "./xeva-cloud.js?v=39",
+  "./xeva-cloud.js?v=40",
   "./xevarion-fb.js?v=33",
   "./xeva-sync.js?v=18",
   "./xeva-presence.js?v=9",
@@ -216,6 +216,7 @@ const CORE = [
   "./thumbs/MagiRail.jpg",
   "./thumbs/MagiScope.jpg",
   "./thumbs/MagiShift.jpg",
+  "./thumbs/MagiAbyss.jpg",   // ★★ 2026-10-05 新作 MagiAbyss
   "./thumbs/MagiRanking.jpg",
   "./thumbs/MagiCraft.jpg",
   "./thumbs/MagiManor.jpg",
@@ -238,7 +239,7 @@ const CORE = [
   "./MagiDiamond/js/md2-icons.js?v=6",
   "./MagiDiamond/js/md2-data.js?v=13",
   /* ★★ 2026-09-10 図鑑のキャラ詳細で Magi: Boccia Rush の性能も出すので、ここでも持つ */
-  "./MagiBocciaRush/js/mbr-core.js?v=16",
+  "./MagiBocciaRush/js/mbr-core.js?v=17",
   "./MagiDiamond/js/md2-game.js?v=22",
   "./MagiDiamond/js/md2-online.js?v=10",
   "./MagiDiamond/img/logo.webp",

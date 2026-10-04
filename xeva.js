@@ -970,6 +970,9 @@
     { id: "mb:mei", mbId: "mei", name:"メイ", file: "../img/t_Mei.webp", since:"2026-09-23" },
     { id: "mb:hikaru", mbId: "hikaru", name:"ヒカル", file: "../img/t_Hikaru.webp", since:"2026-09-23" },
     { id: "mb:miduki", mbId: "miduki", name:"ミヅキ", file: "../img/t_Miduki.webp", since:"2026-09-23" },
+    /* ★★ 2026-10-03 極彩祭（No.262） */
+    /* ★ 2026-10-05 rarLabel … レアリティの<b>表記だけ</b> UR（中身は SSR＝MB_STAR5 のまま） */
+    { id: "mb:takina", mbId: "takina", name:"タキナ", file: "../img/t_Takina.webp", since:"2026-10-03", rarLabel: "UR" },
   ];
   /* ★ 2026-08-10 初期SR 4体（ゼラ・アヤメ・レイラ・セリーヌ）は廃止しました。
      いまは<b>全キャラがアイコンに選べる</b>ので、starter という区別そのものが要らない。 */
@@ -1075,7 +1078,9 @@
   , "himeri", "honoka", "azusa"
   , "kokoha"
   /* ★★ 2026-09-23 CRYSTAL ACADEMY FEST */
-  , "kureha", "mikoto", "mei", "hikaru", "miduki"];
+  , "kureha", "mikoto", "mei", "hikaru", "miduki"
+  /* ★★ 2026-10-03 極彩祭 */
+  , "takina"];
   MB_CHAR_MASTER.forEach(function (c) { c.mb = true; c.starter = MB_STARTERS.indexOf(c.mbId) >= 0; });
   MB_CHAR_MASTER.forEach(function (c) { c.star5 = MB_STAR5.indexOf(c.mbId) >= 0; });
   /* id は "mb:zera" のように接頭辞つき。XEVAガチャにも同じ名前のキャラ（シオンなど）が
@@ -1146,7 +1151,7 @@
     });
     MB_CHAR_MASTER.forEach(function (c, i) {
       out.push({ id: c.id, name: c.name, file: c.file, mb: true,
-                 star5: !!c.star5, no: i + 1, own: !!mb[c.mbId] });
+                 star5: !!c.star5, rarLabel: c.rarLabel || "", no: i + 1, own: !!mb[c.mbId] });
     });
     return out;
   }
@@ -2048,7 +2053,7 @@
       window.__xevaAliveReq = 1;
       var aliveGo = function () {
         var s = document.createElement("script");
-        s.src = new URL("xeva-alive.js?v=2", aliveSrc).href;
+        s.src = new URL("xeva-alive.js?v=3", aliveSrc).href;
         s.async = true;
         (document.head || document.documentElement).appendChild(s);
       };

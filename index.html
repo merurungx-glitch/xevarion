@@ -25,7 +25,7 @@
 <link rel="stylesheet" href="xevion-os.css?v=15">
 <!-- ★★ 2026-09-24 ホームの「動くキャラ」（舞香）。中身は home-mate.js。 -->
 <link rel="stylesheet" href="home-mate.css?v=17">
-<script src="xeva.js?v=72" defer></script>
+<script src="xeva.js?v=73" defer></script>
 <!-- ★★ 2026-09-05 コレクションを XEVARION 全体で1本にする共通部品。
      xeva.js の iconCharList() を使うので、必ず xeva.js の<b>あと</b>に置く。 -->
 <script src="xeva-collection.js?v=7" defer></script>
@@ -48,7 +48,7 @@
 <script src="xeva-i18n-mb7.js?v=7"></script>
 <script src="xeva-i18n-p4.js?v=7"></script>
 <!-- ★★ 2026-09-06b 今回足したもの（新キャラ14体・装備・スタメンなど）の英語辞書 -->
-<script src="xeva-i18n-n1.js?v=12"></script>
+<script src="xeva-i18n-n1.js?v=13"></script>
 <script src="xeva-i18n-n2.js?v=3"></script>
 <!-- ★ 2026-08-20 通信設定（Wi-Fi／モバイルデータごとに「最新を取りに行くか」を決める）。
      決めた内容はここから各アプリの Service Worker へ送られ、SW 側が動きを切り替える。 -->
@@ -56,7 +56,7 @@
 <!-- ★ 2026-08-18 新キャラ告知の台帳（MagiBurst と共通）。
      告知を<b>ポータルのログイン時</b>に一本化したので、ここでも読む。
      defer なので xevarion.js より先に実行される（書いた順番で走る）。 -->
-<script src="mb-newchars.js?v=32" defer></script>
+<script src="mb-newchars.js?v=33" defer></script>
 <!-- ★★ 2026-09-25 ガチャの台帳（開催期間とバナー。make-gacha-live.py が mb-core.js から自動で作る）。ホーム左上のバナー用 -->
 <script src="gacha-live.js?v=1" defer></script>
 <!-- ★★ 2026-08-22b Xevion OS（XEVARION の UI をひとつの OS として扱う土台）。
@@ -68,10 +68,10 @@
 <script type="module" src="xeva-sync.js?v=18"></script>
 <script type="module" src="xevarion-fb.js?v=33"></script>
 <script src="xeva-presence.js?v=9" defer></script>
-<script type="module" src="xeva-cloud.js?v=39"></script>
+<script type="module" src="xeva-cloud.js?v=40"></script>
 <script src="xeva-qr.js?v=9" defer></script>
 <script src="xevarion.js?v=96" defer></script>
-<script src="xevarion-home.js?v=152" defer></script>
+<script src="xevarion-home.js?v=153" defer></script>
 <script src="home-mate.js?v=18" defer></script>
 </head>
 <body>
@@ -1895,6 +1895,15 @@ body.music-on #beatFrame{opacity:1}
 
   <div class="nm-body" id="newsBody">
     <div class="nm-divider" id="newDivider" style="display:none;">NEW — 前回から更新</div>
+    <!-- 2026-10-05 新作 MagiAbyss／極彩祭に タキナ -->
+    <div class="nm-item" data-tag="new" data-date="2026-10-05">
+      <div class="nm-date">2026<br>10.05</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag new">NEW</span></div>
+        <div class="nm-title">🗝️ 新作 MagiAbyss（見下ろし型ドットアクションRPG）／極彩祭に タキナ</div>
+        <div class="nm-txt">・<b>MagiAbyss</b>（アプリ一覧・MagiBattle の右）：冒険者ギルド《アストラ》を拠点に、広大なアビス（魔力迷宮）を探索して大量の敵をなぎ払うドットアクションRPGです。8方向の移動・回避（無敵時間つき）・通常攻撃・固有スキル・星脈解放・必殺技。敵を倒して出る経験値の結晶を集めると<b>レベルアップのカード</b>から3枚えらび、6種の武器（魔導剣・星弓・魔導書・双短剣・大鎌・魔導杖）と魔法・能力を育てます。武器・魔法・装備・属性の組み合わせで<b>星脈共鳴</b>が発動します。<br>・迷宮は6つ（翠緑の古代樹・蒼晶の氷窟・紅蓮の熔岩城・忘却の魔導書庫・深淵の奈落・星天の神殿）。毎回ちがう地形で、中ボス・宝物庫・回復の泉・魔法陣の試練・古代祭壇・封印区域・隠し部屋を回って<b>星脈の鍵を3つ</b>集めると最深部のボスの扉が開きます。ボスはHPに応じて4つの段階で攻撃が変わり、すべて床の予告から避けられます。ギミックをこわすと BREAK（6秒間 ダメージ2倍）。<br>・キャラクターは<b>極彩祭・極煌祭・極華祭の10体</b>のドット絵版。所持と凸は XEVARION と共通、レベル・スキルツリー・装備（6部位 N〜UR）・素材は MagiAbyss だけで育てます。鍛冶屋の強化・作成・分解、魔導具店、拠点施設の強化、図鑑・実績・ミッション、エンドコンテンツ「深淵踏破」も。<br>・PC はキーボードとマウス（WASD・クリック・Q/E/R・Space・Tab・Esc）、スマホは画面のスティックとボタンで遊べます。探索の途中は自動で控えるので、閉じても次に開いたときに再開できます。<b>オフラインでも遊べます</b>。<br>・<b>極彩祭に「タキナ」（水）</b>が参戦：MagiBurst 史上最大のフルバースト・治癒の祈り・オムニアンチ＋超アンチ減速壁・全属性有利・全属性キラーEL／ボスキラーEL／パワーオーラEL、クロススキル（ドレインEL・全属性耐性M・リンク×2）、撃つたびに出るショットスキル。MagiBocciaRush・MagiAbyss でも最強です。</div>
+      </div>
+    </div>
     <!-- 2026-09-30 XEVARION PARK 大型アップデート2（道・新エリア・NGX 本社・建物の各階・スカイグランプリ） -->
     <!-- 2026-09-30b XEVARION PARK 更新（道の総点検・昼夜の自動切り替え・乗り場ワープ・大人のギャラリー） -->
     <div class="nm-item" data-tag="new" data-date="2026-09-30">

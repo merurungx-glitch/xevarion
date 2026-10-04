@@ -120,7 +120,7 @@
       var lv = Math.max(0, Math.min(4, dup[c.id] || 0));
       return '<div class="xvc-card' + (c.star5 ? " ssr" : "") + '">' +
         '<img src="' + esc(src) + '" alt="' + esc(c.name) + '" loading="lazy">' +
-        '<span class="xvc-rar ' + (c.star5 ? "SSR" : "SR") + '">' + (c.star5 ? "SSR" : "SR") + "</span>" +
+        '<span class="xvc-rar ' + (c.star5 ? "SSR" : "SR") + '">' + (c.rarLabel || (c.star5 ? "SSR" : "SR")) + "</span>" +   /* ★ 表記だけ UR の子（タキナ） */
         (lv > 0 ? '<span class="xvc-dupe">+' + lv + "凸</span>" : "") +
         (c.mb ? '<span class="xvc-mb">MB</span>' : "") +
         '<span class="xvc-nm">' + esc(c.name) + "</span></div>";

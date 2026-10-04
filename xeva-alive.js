@@ -6,7 +6,7 @@
       → 絵をゆがめる動き（WebGL で頭・胸・髪・目を別々に動かす）はやめて、
         <b>絵の形はそのまま</b>で、呼吸のようにゆっくり少しだけ大きく・上下する動きにした（ゆがみは出ない）。
         さわる（タップ・クリック）と小さくぴょんと弾む。
-   ・対象は 9 体だけ：極彩祭（ヒナノ・ハノン・ココハ）／極煌祭（ムツミ・レイナ・アズサ）／極華祭（クミコ＆レイナ・カグラ・コトリ）。
+   ・対象は 10 体だけ：極彩祭（ヒナノ・ハノン・ココハ・タキナ）／極煌祭（ムツミ・レイナ・アズサ）／極華祭（クミコ＆レイナ・カグラ・コトリ）。
      img/t_<名前>.webp（サムネイル）と img/<名前>.webp（原寸）のどちらにも効く。ほかのキャラは今までどおり動かない。
    ・しくみ：その <img> に class "xa-live" を付けるだけ（CSS の scale / translate。もとの transform・ホバーの動きとは別に重なる）。
      すでに別の動き（出てくる演出など）が付いている絵には付けない。いつも 1 枚ずつ少し時間をずらす（そろって動かない）。
@@ -17,7 +17,8 @@
   "use strict";
   if (window.XevaAlive) return;
 
-  var NAMES = ["Hinano", "Hanon", "Kokoha", "Mutsumi", "Reina", "Azusa", "KumikoReina", "Kagura", "Kotori"];
+  /* ★★ 2026-10-03 極彩祭にタキナ（Takina）を追加 */
+  var NAMES = ["Hinano", "Hanon", "Kokoha", "Takina", "Mutsumi", "Reina", "Azusa", "KumikoReina", "Kagura", "Kotori"];
   /* 「…/t_Reina.webp」「…/Reina.webp」は対象。「…/KumikoReina.webp」は KumikoReina として。KotoriAlpha は対象外 */
   var RE = new RegExp("(?:^|/)(?:t_)?(" + NAMES.join("|") + ")\\.webp(?:[?#]|$)");
 

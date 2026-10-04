@@ -134,6 +134,11 @@ export const PORTAL_SYNC_KEYS = [
   "mbr_v1",
   /* ★★ 2026-09-20 MagiScope。お気に入り（カテゴリー別）・閲覧履歴・好みのジャンル・設定・絞り込み。 */
   "magiscope_v1",
+  /* ★★ 2026-10-05 新作 MagiAbyss。キャラのレベル・スキルツリー・装備・素材・迷宮の記録・図鑑・設定。
+     ★ 所持と凸は magiburst_v1 / xeva_gacha_v1 を読むだけなので、ここには入れない。
+     ★ 探索の途中の控え（magiabyss_run_v1）とバックアップ（_bak / _broken）は端末だけ（同期しない）。
+     混ぜ方は xeva-cloud.js の mergeAbyss（経験値・クリア・図鑑・実績は減らさない）。 */
+  "magiabyss_v1",
   /* ★★ 2026-09-17f MagiQuest は廃止（magiquest_v1 は同期しない。端末に残ったぶんはホームが消す） */
 ];
 

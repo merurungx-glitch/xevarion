@@ -23,12 +23,21 @@
     "ヒメリ": "Himeri", "ホノカ": "Honoka", "アズサ": "Azusa", "ココハ": "Kokoha",
     /* ★★ 2026-09-23 CRYSTAL ACADEMY FEST */
     "クレハ": "Kureha", "ミコト": "Mikoto", "メイ": "Mei", "ヒカル": "Hikaru", "ミヅキ": "Miduki",
+    /* ★★ 2026-10-03 極彩祭 */
+    "タキナ": "Takina",
     "神癒の祈り": "Divine Prayer", "CRYSTAL ACADEMY FEST": "CRYSTAL ACADEMY FEST",
     "レナ": "Rena", "カオル": "Kaoru", "スバル": "Subaru", "カスミ": "Kasumi", "ツキノ": "Tsukino",
   };
 
   /* ── 新しいリンクスキル・サブリンク・フルバースト・ショットスキル ── */
   var SKILLS = {
+    /* ★★ 2026-10-03 極彩祭 タキナ */
+    "キキョウ・スイテンカ": "Kikyou Suitenka",
+    "キキョウ・リップル": "Kikyou Ripple",
+    "蒼桔梗のクロス": "Azure Bellflower Cross",
+    "蒼桔梗結髪型": "Azure Bellflower Ponytail",
+    "ドレインEL": "Drain EL",
+    "ブルーローズ・コンプリート": "Blue Rose Complete",
     /* ★★ 2026-09-17d 花宴祭 アカツキ */
     "ハナウタゲ・センボンザクラ": "Hana-Utage Senbonzakura",
     "チヨザクラ・ブランチ": "Chiyozakura Branch",

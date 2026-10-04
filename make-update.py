@@ -29,7 +29,9 @@ SWS = ["sw.js", "MagiLex/sw.js", "MagiBurst/sw.js", "MagiChainParty/sw.js", "XEV
        # ★★ 2026-09-20 新作 MagiScope（エンタメランキング）
        "MagiScope/sw.js",
        # ★★ 2026-09-21 新作 MagiShift（対戦ボードゲーム）
-       "MagiShift/sw.js"]
+       "MagiShift/sw.js",
+       # ★★ 2026-10-05 新作 MagiAbyss（見下ろし型ドットアクションRPG）
+       "MagiAbyss/sw.js"]
 
 
 # ══════════════════════════════════════════════════════════════

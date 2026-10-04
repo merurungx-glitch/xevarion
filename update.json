@@ -1,19 +1,16 @@
 {
-  "version": "2026-10-02-1",
-  "date": "2026-10-02",
-  "title": "XEVARION PARK がファンタジーの世界に／3D ガチャ・3D ボスバトル／MagiBocciaRush の新演出",
+  "version": "2026-10-05-1",
+  "date": "2026-10-05",
+  "title": "新作 MagiAbyss／極彩祭にタキナ",
   "notes": [
-    "🏰 パークの町なみを王道 RPG のようなファンタジーに（石だたみ・うろこ屋根・木組みの家・鉄のランタン・木の看板・石の塔の門・青い空）",
-    "🎰 XEVA GACHA PALACE の大きなガチャマシンで本物のガチャを 3D で引ける（ハンドル・カプセル・虹の SSR 演出）",
-    "⚔️ マギバーストランド：ボスコロシアムで 3D ボスバトル・ミュージアム・英雄の丘・フェス・大きなお店をぎっしり",
-    "🔴 マギボッチャラッシュランド：ラッシュルールのボッチャ（RUSH SHOT）・名誉の殿堂・フェス・応援席",
-    "🚝 駅をエリアごとのデザインと規模に（時計台・塔・門）・地下鉄の出入口にあずまや・エレベーターの演出（とびらと階数計）",
-    "🛤 道の行き止まりをつなぎ直し・地下鉄の入口や床の模様に草が重なるのを修正・乗車中の位置の点と内回り外回りの表示を修正",
-    "🎯 MagiBocciaRush：同点はアディショナルマッチ・ペルソナ風の大きな演出・1台で同じ編成どうしも対戦・性能と組み合わせを追加",
-    "✨ 極彩祭・極煌祭・極華祭のキャラの絵が少し動く／🎫ガチャチケット30枚をメールで配布／Magi は「マギ」と表記"
+    "新作 MagiAbyss（見下ろし型ドットアクションRPG）：冒険者ギルドから6つの迷宮へ・6種の武器と魔法の星脈共鳴ビルド・中ボスと最深部のボス・エンドコンテンツ「深淵踏破」・オフライン対応",
+    "MagiAbyss のキャラは極彩祭・極煌祭・極華祭の10体（所持と凸は XEVARION と共通、レベル・スキルツリー・装備はアプリ内）",
+    "極彩祭に限定SSR タキナ（水）：史上最大のフルバースト・治癒の祈り・オムニアンチ＋超アンチ減速壁・全属性有利・クロススキル",
+    "タキナは MagiBocciaRush・MagiAbyss でも最強",
+    "MagiBurst：アビリティ検索で止まることがあった不具合を修正"
   ],
-  "bytes": 62290000,
-  "files": 703,
+  "bytes": 67114169,
+  "files": 742,
   "urls": [
     "index.html",
     "characters.html",
@@ -55,6 +52,7 @@
     "xeva-i18n-n1.js",
     "xeva-i18n-n2.js",
     "xeva.js",
+    "xeva-alive.js",
     "xeva-fx.js",
     "xeva-loading.js",
     "xevarion.js",
@@ -118,6 +116,8 @@
     "expo/fx.js",
     "expo/people.js",
     "expo/games.js",
+    "expo/games_burst.js",
+    "expo/park_gacha3d.js",
     "expo/park_kart.js",
     "expo/audio/park_music.js",
     "expo/park_rides.js",
@@ -125,7 +125,6 @@
     "expo/park_shows.js",
     "expo/park_ui.js",
     "expo/park_rooms.js",
-    "expo/main.js",
     "expo/park_layout.js",
     "expo/park_plan.js",
     "expo/park_net.js",
@@ -136,9 +135,7 @@
     "expo/park_infill.js",
     "expo/park_fantasy.js",
     "expo/park_spec.js",
-    "expo/games_burst.js",
-    "expo/park_gacha3d.js",
-    "xeva-alive.js",
+    "expo/main.js",
     "expo/chara/chara01.glb",
     "expo/img/park_logo.webp",
     "expo/img/park_wordmark.webp",
@@ -168,6 +165,10 @@
     "maintenance-gate.js",
     "xeva-back.js",
     "xeva-keys.js",
+    "xeva-cloud.js",
+    "xevarion-fb.js",
+    "xeva-sync.js",
+    "xeva-presence.js",
     "xeva-netmode.js",
     "game-link.js",
     "Xevarion.png",
@@ -196,6 +197,7 @@
     "thumbs/MagiRail.jpg",
     "thumbs/MagiScope.jpg",
     "thumbs/MagiShift.jpg",
+    "thumbs/MagiAbyss.jpg",
     "thumbs/MagiRanking.jpg",
     "thumbs/MagiCraft.jpg",
     "thumbs/MagiManor.jpg",
@@ -338,6 +340,7 @@
     "MagiBurst/img/ss/MeiSS.webp",
     "MagiBurst/img/ss/HikaruSS.webp",
     "MagiBurst/img/ss/MidukiSS.webp",
+    "MagiBurst/img/ss/TakinaSS.webp",
     "MagiBurst/img/ss/YajuSS.webp",
     "MagiBurst/img/ss/KokonaAlphaSS.webp",
     "img/Kaede.webp",
@@ -570,6 +573,7 @@
     "img/t_Mei.webp",
     "img/t_Hikaru.webp",
     "img/t_Miduki.webp",
+    "img/t_Takina.webp",
     "MagiBurst/img/eq_head.webp",
     "MagiBurst/img/eq_arm.webp",
     "MagiBurst/img/eq_body.webp",
@@ -681,7 +685,6 @@
     "MagiCounter/js/mc-ui.js",
     "MagiCounter/js/mc-scan.js",
     "MagiCounter/data/meta.json",
-    "xeva-cloud.js",
     "MagiBocciaRush/index.html",
     "MagiBocciaRush/manifest.webmanifest",
     "MagiBocciaRush/css/mbr.css",
@@ -717,15 +720,83 @@
     "MagiShift/js/shift-ui.js",
     "MagiShift/img/icon192.png",
     "MagiShift/manifest.webmanifest",
-    "xevarion-fb.js"
+    "MagiAbyss/index.html",
+    "MagiAbyss/manifest.webmanifest",
+    "MagiAbyss/css/ma.css",
+    "MagiAbyss/js/ma-data.js",
+    "MagiAbyss/js/ma-pixel.js",
+    "MagiAbyss/js/ma-art.js",
+    "MagiAbyss/js/ma-map.js",
+    "MagiAbyss/js/ma-save.js",
+    "MagiAbyss/js/ma-stats.js",
+    "MagiAbyss/js/ma-audio.js",
+    "MagiAbyss/js/ma-input.js",
+    "MagiAbyss/js/ma-engine.js",
+    "MagiAbyss/js/ma-ai.js",
+    "MagiAbyss/js/ma-weapons.js",
+    "MagiAbyss/js/ma-cards.js",
+    "MagiAbyss/js/ma-boss.js",
+    "MagiAbyss/js/ma-prog.js",
+    "MagiAbyss/js/ma-render.js",
+    "MagiAbyss/js/ma-ui.js",
+    "MagiAbyss/js/ma-guild.js",
+    "MagiAbyss/js/ma-main.js",
+    "MagiAbyss/img/title.webp",
+    "MagiAbyss/img/title_blur.webp",
+    "MagiAbyss/img/icon_s.webp",
+    "img/Takina.webp",
+    "img/Hinano.webp",
+    "img/Hanon.webp",
+    "img/Kokoha.webp",
+    "img/Mutsumi.webp",
+    "img/Reina.webp",
+    "img/Azusa.webp",
+    "img/KumikoReina.webp",
+    "img/Kagura.webp",
+    "img/Kotori.webp"
   ],
   "apps": [
+    "magiabyss",
     "magibocciarush",
     "magiburst",
-    "tab:home"
+    "magichainparty",
+    "magicounter",
+    "magidiamond",
+    "magidominiongrid",
+    "magijackpot",
+    "magilex",
+    "magilotto",
+    "magimusic",
+    "magiscope",
+    "magishift",
+    "tab:chars",
+    "tab:community",
+    "tab:gacha",
+    "tab:home",
+    "xevynar"
   ],
-  "changedFiles": 64,
+  "changedFiles": 114,
   "history": [
+    {
+      "version": "2026-10-02-1",
+      "date": "2026-10-02",
+      "title": "XEVARION PARK がファンタジーの世界に／3D ガチャ・3D ボスバトル／MagiBocciaRush の新演出",
+      "notes": [
+        "🏰 パークの町なみを王道 RPG のようなファンタジーに（石だたみ・うろこ屋根・木組みの家・鉄のランタン・木の看板・石の塔の門・青い空）",
+        "🎰 XEVA GACHA PALACE の大きなガチャマシンで本物のガチャを 3D で引ける（ハンドル・カプセル・虹の SSR 演出）",
+        "⚔️ マギバーストランド：ボスコロシアムで 3D ボスバトル・ミュージアム・英雄の丘・フェス・大きなお店をぎっしり",
+        "🔴 マギボッチャラッシュランド：ラッシュルールのボッチャ（RUSH SHOT）・名誉の殿堂・フェス・応援席",
+        "🚝 駅をエリアごとのデザインと規模に（時計台・塔・門）・地下鉄の出入口にあずまや・エレベーターの演出（とびらと階数計）",
+        "🛤 道の行き止まりをつなぎ直し・地下鉄の入口や床の模様に草が重なるのを修正・乗車中の位置の点と内回り外回りの表示を修正",
+        "🎯 MagiBocciaRush：同点はアディショナルマッチ・ペルソナ風の大きな演出・1台で同じ編成どうしも対戦・性能と組み合わせを追加",
+        "✨ 極彩祭・極煌祭・極華祭のキャラの絵が少し動く／🎫ガチャチケット30枚をメールで配布／Magi は「マギ」と表記"
+      ],
+      "apps": [
+        "magibocciarush",
+        "magiburst",
+        "tab:home"
+      ]
+    },
     {
       "version": "2026-09-30-2",
       "date": "2026-09-30",
@@ -1052,36 +1123,6 @@
       ],
       "apps": [
         "magiscope"
-      ]
-    },
-    {
-      "version": "2026-09-21-3",
-      "date": "2026-09-21",
-      "title": "MagiScope の使い心地を改善",
-      "notes": [
-        "🔧 並べ替え・絞り込みは同じものを押すと解除・閉じるは右上の✕",
-        "🔍 ジャンル・作者・検索は全作品で表示・全作品のランキング順を修正",
-        "🖼️ 横長の絵を大きく・左端にくっつくのとサンプルの上下を修正・順位推移グラフを廃止"
-      ],
-      "apps": [
-        "magiscope",
-        "tab:home"
-      ]
-    },
-    {
-      "version": "2026-09-21-2",
-      "date": "2026-09-21",
-      "title": "MagiScope 新作・セール情報／MagiShift の登録",
-      "notes": [
-        "🆕 MagiScope に新作タブ（アニメは今季・来季）とセール情報タブ",
-        "👥 この作品を見た人が見ている作品・レビューを最大10〜12件",
-        "↕️ 並べ替え・絞り込みはボタンから縦の一覧で",
-        "🎲 MagiShift の登録を MagiChainParty と同じに"
-      ],
-      "apps": [
-        "magiscope",
-        "magishift",
-        "tab:home"
       ]
     }
   ]

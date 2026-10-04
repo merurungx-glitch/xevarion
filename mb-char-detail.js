@@ -179,7 +179,7 @@ function mbrEnsure() {
   if (window.__mbrLoading) return window.__mbrLoading;
   window.__mbrLoading = new Promise((res) => {
     const s = document.createElement("script");
-    s.src = "MagiBocciaRush/js/mbr-core.js?v=16";
+    s.src = "MagiBocciaRush/js/mbr-core.js?v=17";
     s.onload = () => res(); s.onerror = () => res();
     document.head.appendChild(s);
   });
@@ -310,7 +310,7 @@ function openDetX(id, keepGame) {
       <img src="${c.img}" alt="${c.nm}">
       ${/* ★★ 2026-08-22b レアリティは<b>SSR / SR</b> で統一（ご指定）。
             ★の本数はもう使っていない（クエストの難易度表示の★とまぎらわしいため）。 */""}
-      <div class="dnm"><b>${c.nm}</b><span>${charNoText(id)}　<em class="drar ${s5 ? "ssr" : "sr"}">${s5 ? "SSR" : "SR"}</em>${awk ? (awk >= MAX_AWK ? "　👑完凸" : "　覚醒+" + awk) : ""}</span></div>
+      <div class="dnm"><b>${c.nm}</b><span>${charNoText(id)}　<em class="drar ${s5 ? "ssr" : "sr"}">${typeof rarLabel === "function" ? rarLabel(id) : (s5 ? "SSR" : "SR")}</em>${awk ? (awk >= MAX_AWK ? "　👑完凸" : "　覚醒+" + awk) : ""}</span></div>
     </div>
     <div class="dbody">
       ${/* ★★ 2026-09-06 どのゲームの性能を見るか（ご指定・はじめは MagiBurst） */""}

@@ -43,7 +43,10 @@ const XH_OFFLINE_OK = {
   magiscope:       { name: "MagiScope",      href: "MagiScope/index.html",       sw: "MagiScope/sw.js" },
   /* ★★ 2026-09-21 新作 MagiShift。1台で遊ぶボードゲームなので通信は要らない
      （アカウントの紐づけと賞金だけ通信を使う）。 */
-  magishift:       { name: "MagiShift",      href: "MagiShift/index.html",       sw: "MagiShift/sw.js" }
+  magishift:       { name: "MagiShift",      href: "MagiShift/index.html",       sw: "MagiShift/sw.js" },
+  /* ★★ 2026-10-05 新作 MagiAbyss。ドット絵・音・迷宮はすべて端末の中で作るので通信は要らない
+     （キャラの絵は一度見たら控える。よく使う10体ぶんは最初から控えてある）。 */
+  magiabyss:       { name: "MagiAbyss",      href: "MagiAbyss/index.html",       sw: "MagiAbyss/sw.js" }
 };
 /* オフラインでも遊べるアプリの名前を「◯◯ ／ ◯◯」でつなぐ。
    ★★ 2026-09-13c <b>案内の文面を手で書かない</b>ためのもの。
@@ -105,6 +108,10 @@ const XH_APPS = [
   { id:"magishift", name:"MagiShift", full:"MagiShift", sub:"対戦ボードゲーム", cat:"game", tone:"blue",
     href:"MagiShift/index.html", img:"thumbs/MagiShift.jpg",
     desc:"1台の iPad を2〜6人で囲む、マルバツを発展させた対戦ボードゲーム。<b>置いた駒をあとから動かせる</b>のが特徴で、盤面はいつも変わり最後まで逆転があります。人数で盤面と勝利条件が変わり（5×5〜9×9・4〜5つ並べ）、XEVARION アカウントと紐づけて名前と戦績を残せます。" },
+  /* ★★ 2026-10-05 新作 MagiAbyss（見下ろし型ドットアクションRPG）。キャラは極彩祭・極煌祭・極華祭の10体（所持と凸は共通）。 */
+  { id:"magiabyss", name:"MagiAbyss", full:"MagiAbyss", sub:"ドットアクションRPG", cat:"game", tone:"violet",
+    href:"MagiAbyss/index.html", img:"thumbs/MagiAbyss.jpg",
+    desc:"広大なアビス（魔力迷宮）を探索し、大量の敵をなぎ払う見下ろし型ドットアクションRPG。6種の武器と魔法・装備を組み合わせる<b>星脈共鳴</b>で自分だけのビルドを作り、鍵を集めて最深部のボスへ。6つの迷宮・中ボス・祭壇・隠し部屋・エンドコンテンツ「深淵踏破」。キャラクターは極彩祭・極煌祭・極華祭の10体（所持と凸は XEVARION と共通）。オフラインで遊べます。" },
   { id:"magiscope", name:"MagiScope", full:"MagiScope", sub:"エンタメランキング", cat:"info", tone:"blue",
     href:"MagiScope/index.html", img:"thumbs/MagiScope.jpg",
     desc:"アニメ（国内の視聴者数＝Annict・トレンド＝AniList）・FANZA同人・カラオケ（DAM）の<b>実際のランキング</b>を、本物の表紙・ジャケットつきで1時間ごとに自動更新。<b>3カテゴリーは完全に別々のランキング</b>で、種類・期間・絞り込み・詳細もカテゴリーごと。順位推移・同じカテゴリー内の比較・カテゴリー別のお気に入りとトレンド。" },
@@ -221,6 +228,8 @@ const XH_DEFAULT_ORDER = [
   "magichainparty",
   "magishift",
   "magibattle",
+  /* ★★ 2026-10-05 新作 MagiAbyss は MagiBattle のすぐ後ろ（並びを変えた人にも、MagiBattle の右に入る＝xhOrder） */
+  "magiabyss",
   /* ここから下は「その他」の中に入る */
   "magiranking",
   "ordyxis", "magicraft", "magimanor", "magiportfolio",
@@ -341,7 +350,8 @@ const XH_EVENTS = [
   /* ★★ 2026-08-27 極彩祭（毎月1〜15日）・極煌祭（毎月16日〜末日）。
      ★ 毎月まるごと入れ替わるので、from / to は<b>広めに取っておく</b>
        （実際の開催判定は mb-core.js の monthly が行う）。 */
-  { tag:"FES", t1:"極彩祭 に ココハ", t2:"常時開催（毎月1〜10日）。ヒナノ・ハノン＋新登場「ココハ」——椿雨の乱打で史上最大のフルバースト・ネクサス強化",
+  /* ★★ 2026-10-05 極彩祭に タキナ（水）。 */
+  { tag:"FES", t1:"極彩祭 に タキナ", t2:"常時開催（毎月1〜10日）。ヒナノ・ハノン・ココハ＋新登場「タキナ」——史上最大のフルバースト・オムニアンチ＋超アンチ減速壁・全属性有利・治癒の祈り。MagiAbyss でも最強",
     monthly:[1,10], perm:true,
     from:"2026-08-27", to:"2027-12-31", img:"thumbs/MagiBurst.jpg", href:"gacha.html#fes7" },
   { tag:"FES", t1:"極煌祭 に アズサ", t2:"常時開催（毎月21日〜末日）。ムツミ・レイナ＋新登場「アズサ」——史上最大のフルバースト・ネクサス強化",
@@ -439,6 +449,13 @@ const XH_EVENTS = [
    ══════════════════════════════════════════════════════════════ */
 const XH_UPDATE_MAX = 12;
 const XH_UPDATES = [
+  /* ★★ 2026-10-05 新作 MagiAbyss／極彩祭に タキナ */
+  { tag:"NEW", t1:"新作 MagiAbyss", at:"2026-10-05",
+    t2:"見下ろし型ドットアクションRPG。冒険者ギルドから6つの迷宮へ／8方向移動・回避・スキル・必殺技／6種の武器と魔法・星脈共鳴のビルド／鍵を集めて最深部のボスへ／深淵踏破／キャラは極彩祭・極煌祭・極華祭の10体（所持と凸は共通・レベルと装備はこのアプリだけ）／オフライン対応",
+    href:"MagiAbyss/index.html", img:"thumbs/MagiAbyss.jpg" },
+  { tag:"NEW", t1:"極彩祭 に タキナ", at:"2026-10-05",
+    t2:"史上最大のフルバースト・治癒の祈り・オムニアンチ＋超アンチ減速壁・全属性有利・全属性キラーEL/ボスキラーEL/パワーオーラEL・クロススキル（ドレインEL・全属性耐性M・リンク×2）・撃つたびのショットスキル。MagiBocciaRush・MagiAbyss でも最強",
+    href:"gacha.html#fes7", img:"thumbs/MagiBurst.jpg" },
   /* ★★ 2026-10-02 XEVARION PARK ファンタジーの世界・3D ガチャ・ボスバトル／MagiBocciaRush の演出／ガチャチケット30枚 */
   { tag:"UPDATE", t1:"XEVARION PARK がファンタジーの世界に／3D で引けるガチャ・3D ボスバトル", at:"2026-10-02",
     t2:"町なみを王道 RPG のようなファンタジーに（石だたみ・うろこ屋根・木組みの家・鉄のランタン・木の看板・石の門）／XEVA GACHA PALACE の大きなガチャマシンで本物のガチャを 3D で引ける／マギバーストランドのボスコロシアムで 3D ボスバトル・ミュージアム・英雄の丘・フェス／マギボッチャラッシュランドはラッシュルールのボッチャ・名誉の殿堂・フェス／駅をエリアごとのデザインと規模に・エレベーターの演出／MagiBocciaRush にアディショナルマッチとペルソナ風の演出・同じ編成どうしの対戦／極彩祭・極煌祭・極華祭のキャラの絵が少し動く／記念に🎫ガチャチケット30枚（メールで受け取り）",
@@ -1871,7 +1888,7 @@ function xhMbReady() {
   if (typeof CHARS !== "undefined" && typeof PREMIUM_CHARS !== "undefined") return Promise.resolve(true);
   if (_xhMbLoading) return _xhMbLoading;
   _xhMbLoading = xhLoadScript("mb-boot.js?v=17")
-    .then(() => xhLoadScript("MagiBurst/js/mb-core.js?v=129"))
+    .then(() => xhLoadScript("MagiBurst/js/mb-core.js?v=130"))
     .then(() => true)
     .catch((e) => { _xhMbLoading = null; throw e; });
   return _xhMbLoading;
