@@ -17,8 +17,14 @@
      こちらに足したら<b>あちらにも since 付きで1行</b>足すこと（無いとポータルに絵が出ない）。
    ══════════════════════════════════════════════════════════════ */
 window.MB_NEW_CHARS = [
-  /* ── ★★ 2026-10-03 極彩祭 タキナ（天界の審判 第十一・第十二・第十五／蓬莱 第二重・天宮・神天）── */
-  { id: "takina", since: "2026-10-03", where: "極彩祭（毎月1〜10日）", mode: "fes7",
+  /* ── ★★ 2026-10-07 Sapphire Breeze（新レアリティ UR）ヒバナ・フキ ── */
+  { id: "fuki", since: "2026-10-07", where: "Sapphire Breeze（無期限開催）", mode: "fes17",
+    catch: "宵の桜は、まだ散らせない。", color: "#7a5cff" },
+  { id: "hibana", since: "2026-10-07", where: "Sapphire Breeze（無期限開催）", mode: "fes17",
+    catch: "忘れないで。——ちゃんと、守るから。", color: "#3dbf7a" },
+  /* ── ★★ 2026-10-03 極彩祭 タキナ（天界の審判 第十一・第十二・第十五／蓬莱 第二重・天宮・神天）
+     ★★ 2026-10-07 Sapphire Breeze へ移った（ご指定） ── */
+  { id: "takina", since: "2026-10-03", where: "Sapphire Breeze（無期限開催）", mode: "fes17",
     catch: "髪、結んだから。——ここからは本気。", color: "#3d7bff" },
   /* ── ★★ 2026-09-23 CRYSTAL ACADEMY FEST（天界の審判 第四・第六・第七・第十三・第十五）── */
   { id: "kureha", since: "2026-09-23", where: "CRYSTAL ACADEMY FEST", mode: "fes16",

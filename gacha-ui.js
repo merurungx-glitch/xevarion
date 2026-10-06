@@ -116,7 +116,9 @@ function modeDef(k) {
   /* ★★ 2026-08-29 極彩祭・極華祭・極煌祭・戦姫祭は<b>🎫フェス券が使えない</b>ので、
      ここの1行にもそう書く（gachaMenuList の sub とそろえること）。 */
   return { nm: f.nm, ic: "✦", c: f.c, soon: fesLocked(k),
-    sub: fesLocked(k) ? fesOpenText(f)
+    sub: (fesLocked(k) ? fesOpenText(f)
+      /* ★★ 2026-10-07 Sapphire Breeze は「新レアリティ UR」 */
+      : f.sapphire ? "新レアリティ UR・🎫チケット優先／無期限開催"
       /* ★★ 2026-09-17g 極◯祭は今回の残り日数（gachaMenuList とそろえる） */
       : f.monthly ? (f.noFesTicket ? "限定キャラクター・🎫ガチャ券のみ" : "限定キャラクター・🎫チケット優先") + "／" + fesMonthlyLeftText(f)
       : (fesTimed(f) ? "フェス限定SSR・🎫チケット優先／あと" + fesDaysLeft(k) + "日"
@@ -124,7 +126,9 @@ function modeDef(k) {
         : (fesPerm(f) ? (f.noFesTicket ? "限定キャラクター・🎫ガチャ券のみ／無期限開催"
                                        : "フェス限定SSR・🎫チケット優先／無期限開催")
         : (f.noFesTicket ? "限定キャラクター・🎫ガチャ券のみ"
-                         : "限定キャラクター・🎫チケット優先"))) };
+                         : "限定キャラクター・🎫チケット優先"))))
+      /* ★★ 2026-10-06c 初回10連無料（Sapphire Breeze） */
+      + ((typeof fesFree10Left === "function" && fesFree10Left(k) > 0) ? "／🎁 初回10連無料" : "") };
 }
 
 function paintPicker() {
@@ -296,7 +300,7 @@ function paintPickup() {
         <span class="fn">${c.nm}</span></button>`;
     }).join("");
     w.innerHTML = `<div class="pkbox" style="border-color:${f.c}55">
-      <div class="pkhd" style="color:${f.c}"><span>✦ ${f.nm} 限定SSR（${f.chars.length}体）</span>
+      <div class="pkhd" style="color:${f.c}"><span>✦ ${f.nm} ${f.sapphire ? "限定UR" : "限定SSR"}（${f.chars.length}体）</span>
         <span style="color:var(--txt2);font-weight:800">タップで性能</span></div>
       <div class="fgrid">${cards}</div>
       <div class="pksub" style="margin-top:9px">${f.lead}。<br>${f.note}
@@ -532,7 +536,7 @@ function paintNote() {
   } else {
     const f = fesDef(gMode);
     $("#gnote").innerHTML = `${f.sub}<br>
-      <b>限定SSR ${(f.newChars && f.newChars.length)
+      <b>${f.sapphire ? "限定UR" : "限定SSR"} ${(f.newChars && f.newChars.length && !f.flatPick)
         ? "新キャラ 各" + ratePct(pickRateOfMode(gMode)) + "／それ以外 各" + ratePct(PICK_OLD)
         : "各" + ratePct(pickRateOfMode(gMode))}</b>（${f.chars.length}体・合計 ${ratePct(pickTotalOfMode(gMode))}）
       ／ <b>${PREMIUM_NM} のSSR 合計${ratePct(fillTotalOfMode(gMode))}</b>
@@ -546,6 +550,9 @@ function paintNote() {
         : (fesPerm(f) ? "⏳ このフェスは <b>無期限開催</b>です（配信終了はありません）。<br>" : "")}
       ${f.monthly && fesMonthlyLeft(f) ? "⏳ <b>" + fesMonthlyLeftText(f) + "</b>。<br>" : ""}
       ${tktLine}<br>
+      ${f.free10 ? ((typeof fesFree10Left === "function" && fesFree10Left(gMode) > 0)
+        ? "🎁 <b>このガチャの初回10連は無料です</b>（下の「10連」ボタンが無料になります。🎫チケットも<i class='icc ic-gem'></i>ジェムも減らず、最後の1枠の確定もそのまま付きます）。<br>"
+        : "🎁 初回10連の無料は<b>アカウントで1回</b>です（使いました）。<br>") : ""}
       <b>10連は最後の1枠がSSR確定</b>（このフェスの限定SSR＋${PREMIUM_NM} のSSRから等確率）。`;
   }
 }
@@ -579,7 +586,9 @@ function paintPullBar() {
   /* ★★ 2026-08-26b 版ごとに<b>初回の10連が無料</b>（ご指定）。
      見せかたは 1日1回の無料単発と<b>そろえる</b>——ボタンはふつうのまま、右上に札を出すだけ。
      ★ 札の文だけ変える（「初回無料」）。日付では戻らないので「1回無料」とは書かない。 */
-  const free10On = isDebutMode(gMode) && !dStandby && debutFree10Left(gMode) > 0;
+  const free10On = (isDebutMode(gMode) && !dStandby && debutFree10Left(gMode) > 0)
+    /* ★★ 2026-10-06c フェスでも初回10連無料（Sapphire Breeze） */
+    || (isFesMode(gMode) && (typeof fesFree10Left === "function" && fesFree10Left(gMode) > 0));
   /* ★★ 2026-08-26 ご指定により、無料の単発は<b>ふつうのボタンと同じ見た目</b>に戻し、
      そのボタンの<b>右上に「1回無料」の札</b>を出すだけにした。
      （2026-08-25b の「全幅で光る大きなボタン」は、下の 5連・10連 が押しづらく、
@@ -809,9 +818,10 @@ function openRatesX() {
        10日を過ぎたら newChars に残っていても全員 PICK_OLD になるので、
        見出しも「各 0.4%」に切りかえる（表と実物がズレないように）。 */
     const _newIds = (typeof fesNewIds === "function") ? fesNewIds(gMode) : (f.newChars || []);
-    const _hasNew = !!_newIds.length;
-    const _wasNew = !!(f.newChars && f.newChars.length);
-    rows.push(rateHeadRow("✨ " + (gMode === ARCHIVE_KEY ? "ピックアップ" : "フェス限定SSR")
+    /* ★★ 2026-10-07 flatPick（Sapphire Breeze）は NEW でも確率が変わらない＝「新キャラ／それ以外」と書かない */
+    const _hasNew = !!_newIds.length && !f.flatPick;
+    const _wasNew = !!(f.newChars && f.newChars.length) && !f.flatPick;
+    rows.push(rateHeadRow("✨ " + (gMode === ARCHIVE_KEY ? "ピックアップ" : (f.sapphire ? "限定UR" : "フェス限定SSR"))
       + (_hasNew ? "（新キャラ 各 " + ratePct(pickRateOfMode(gMode)) + " ／ それ以外 各 " + ratePct(PICK_OLD) + "）"
                  : _wasNew ? "（各 " + ratePct(PICK_OLD) + "）"
                  : "（各 " + ratePct(pickRateOfMode(gMode)) + "）"),
@@ -819,7 +829,7 @@ function openRatesX() {
     /* ★ 2026-08-11 並びは番号の新しい順 */
     byCharNoDesc(pickIdsOfMode(gMode)).forEach((id) => rows.push(rateCharRow(id, pickRateOf(gMode, id),
       gMode === ARCHIVE_KEY ? "<b style='color:#e0405e'>PICKUP</b>"
-        : (_newIds.indexOf(id) >= 0 ? "<b style='color:#e0405e'>NEW</b> フェス限定SSR" : "フェス限定SSR"))));
+        : (_newIds.indexOf(id) >= 0 ? "<b style='color:#e0405e'>NEW</b> " + (f.sapphire ? "限定UR" : "フェス限定SSR") : (f.sapphire ? "限定UR" : "フェス限定SSR")))));
     if (gMode === ARCHIVE_KEY) {
       const rest = byCharNoDesc(archivePool().filter((id) => pickIdsOfMode(gMode).indexOf(id) < 0));
       if (rest.length) {
@@ -843,12 +853,12 @@ function openRatesX() {
     const sure = byCharNoDesc(guaranteedPoolOfMode(gMode));
     rows.push(rateHeadRow("🎯 10連のSSR確定枠（最後の1枠・" + sure.length + "体から等確率）", "", f.c));
     rows.push(rateNoteRow("※ <b>限界突破MAX（👑）のキャラは10連の確定枠には出ません</b>（そのガチャで出るSSRが全員 限界突破MAX のときだけ、その全員から等確率で出ます）。"));
-    sure.forEach((id) => rows.push(rateCharRow(id, sure.length ? 1 / sure.length : 0, CHARS[id].fes ? "フェス限定SSR" : PREMIUM_NM)));
+    sure.forEach((id) => rows.push(rateCharRow(id, sure.length ? 1 / sure.length : 0, CHARS[id].fes ? (CHARS[id].fesKey === "sapphire" ? "限定UR" : "フェス限定SSR") : PREMIUM_NM)));
     rows.push(rateNoteRow(gMode === ARCHIVE_KEY
       ? "※ <b>属性ごとに1体ずつ（計5体）</b>をピックアップにえらべます（各 " + ratePct(PICK_ARCHIVE) + "）。"
         + "<b>SSRの合計はどのガチャも " + ratePct(SSR_TOTAL) + "</b>で、差の <b>"
         + ratePct(fillTotalOfMode(gMode)) + "</b> は " + PREMIUM_NM + " のSSRが等確率で受け取ります。"
-      : "※ <b>限定SSRは" + (_hasNew
+      : "※ <b>" + (f.sapphire ? "限定URは" : "限定SSRは") + (_hasNew
           ? "新キャラが1体あたり " + ratePct(pickRateOfMode(gMode)) + "、それ以外は1体あたり " + ratePct(PICK_OLD)
           : _wasNew ? "1体あたり " + ratePct(PICK_OLD)
           : "1体あたり " + ratePct(pickRateOfMode(gMode))) + "</b>（合計 "
@@ -1555,6 +1565,8 @@ function glCostBtn(k, n) {
   const fes = isFesMode(k) && fesTicketOK(k);
   const ssr = n === 10 ? '<span class="ssrtag">SSR確定</span>' : "";
   const label = n === 1 ? "シングル" : "10連";
+  /* ★★ 2026-10-06c フェスの初回10連無料（Sapphire Breeze） */
+  if (n === 10 && isFesMode(k) && (typeof fesFree10Left === "function" && fesFree10Left(k) > 0)) return `<button class="pbtn p10" onclick="glPull('${k}',10)"><span class="freetag">初回無料</span><b>${label}</b><small>無料</small></button>`;
   if (isDebutMode(k) && debutVerOfMode(k)) {
     if (n === 1 && debutFreeLeft(k) > 0) return `<button class="pbtn" onclick="glPull('${k}',1)"><span class="freetag">1回無料</span><b>${label}</b><small>無料</small></button>`;
     if (n === 10 && debutFree10Left(k) > 0) return `<button class="pbtn p10" onclick="glPull('${k}',10)"><span class="freetag">初回無料</span><b>${label}</b><small>無料</small></button>`;
@@ -1745,10 +1757,14 @@ function glMeasureHead() {
   if (g) document.documentElement.style.setProperty("--ghH", Math.round(g.getBoundingClientRect().height) + "px");
 }
 addEventListener("resize", glMeasureHead);
-function showList() {
+/* ★★ 2026-10-07 ご指定「ガチャを開いたときは一番上に」：開いた直後（top===true）は一覧の<b>先頭</b>から。
+   前は開いた瞬間も「いま選ばれているガチャ」（＝開催中の極◯祭）のカードまで下がっていた。
+   ガチャの画面から「‹ ガチャ一覧へ」で戻ったときだけ、見ていたガチャのカードの位置へ戻す（いままでどおり）。 */
+function showList(top) {
   glMode = true;
   document.body.classList.add("glmode");
-  try { const i = glList().findIndex((m) => m.k === gMode); if (i >= 0) glIdx = i; } catch (e) {}
+  if (top === true) glIdx = 0;
+  else { try { const i = glList().findIndex((m) => m.k === gMode); if (i >= 0) glIdx = i; } catch (e) {} }
   paintList();
   glGo(glIdx, true);
   /* 戻ってきたときは、いま見ていたガチャのカードの位置へ（先頭のときはいちばん上） */
@@ -1802,8 +1818,10 @@ window.addEventListener("xeva:cryst", () => { paintWal(); });
    ★ 塗ったあとに消すこと。先に消すと、いま見ているガチャの NEW が
      1回目の描画から出なくなる（気づかないうちに消えた、になる）。 */
 /* ★★ 2026-09-19e ハッシュ（#fes15 など）で来たときはそのガチャの画面から、ふつうは<b>一覧</b>から */
+/* ★★ 2026-10-07 ブラウザが前のスクロール位置を戻さないように（開いたら必ずいちばん上） */
+try { if ("scrollRestoration" in history) history.scrollRestoration = "manual"; } catch (e) {}
 if (String(location.hash || "").replace("#", "")) { glMode = false; showDetail(gMode); }
-else { glMode = true; showList(); }
+else { glMode = true; showList(true); }
 try { if (!glMode && markGachaSeen(gMode)) paintPicker(); } catch (e) {}
 /* ★★ 2026-09-19g ガチャのタブで開いたとき（一覧）は、前回から増えた新キャラをすぐにまとめて紹介 */
 try { if (glMode) setTimeout(() => { try { nciOpenAll(); } catch (e) {} }, 350); } catch (e) {}

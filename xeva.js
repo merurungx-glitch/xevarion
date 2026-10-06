@@ -76,6 +76,8 @@
     magilotto_buy:       { reward: 200, title: "Magi Lotto でくじを1枚買ってみよう",      app: "MagiLotto" },
     /* ── 学ぶ ── */
     magilex_play:        { reward: 200, title: "MagiLex で問題にチャレンジしよう",        app: "MagiLex" },
+    /* ★★ 2026-10-06 新作 MagiChemLex（達成は mcl-core.js の answer() から） */
+    magichemlex_play:    { reward: 200, title: "MagiChemLex で化学の問題を解いてみよう",  app: "MagiChemLex" },
     magifocus_study:     { reward: 200, title: "MagiFocus で集中セッションを完了しよう",  app: "MagiFocus" },
     xevynar_ask:         { reward: 150, title: "XEVYNAR に質問してみよう",                app: "XEVYNAR" },
     /* ── つながる・情報 ── */
@@ -128,6 +130,8 @@
     /* 月間XEVA獲得ランキング（MagiRanking）用: 全コンテンツの獲得をローカルに積み、
        xeva-cloud.js がオンライン時にクラウド(monthly)へ送信する。
        MagiRanking の順位賞金は二重加算を避けるため集計対象外。 */
+    /* ★★ 2026-10-06 イベントミッション「MagiLex 系統で XEVA を◯獲得」 */
+    if (amount > 0 && /^(MagiLex|MagiChemLex)/.test(reason || "")) { try { if (EVT) EVT.bump("lexXeva", amount); } catch (e) {} }
     if (amount > 0 && !(opts && opts.noRank) && !/MagiRanking.*賞金/.test(reason || "")) {
       try {
         var pend = Number(localStorage.getItem("xeva_earn_pending_v1") || 0) + amount;
@@ -973,6 +977,9 @@
     /* ★★ 2026-10-03 極彩祭（No.262） */
     /* ★ 2026-10-05 rarLabel … レアリティの<b>表記だけ</b> UR（中身は SSR＝MB_STAR5 のまま） */
     { id: "mb:takina", mbId: "takina", name:"タキナ", file: "../img/t_Takina.webp", since:"2026-10-03", rarLabel: "UR" },
+    /* ★★ 2026-10-07 Sapphire Breeze（No.263・264・UR） */
+    { id: "mb:hibana", mbId: "hibana", name:"ヒバナ", file: "../img/t_Hibana.webp", since:"2026-10-07", rarLabel: "UR" },
+    { id: "mb:fuki", mbId: "fuki", name:"フキ", file: "../img/t_Fuki.webp", since:"2026-10-07", rarLabel: "UR" },
   ];
   /* ★ 2026-08-10 初期SR 4体（ゼラ・アヤメ・レイラ・セリーヌ）は廃止しました。
      いまは<b>全キャラがアイコンに選べる</b>ので、starter という区別そのものが要らない。 */
@@ -1080,7 +1087,9 @@
   /* ★★ 2026-09-23 CRYSTAL ACADEMY FEST */
   , "kureha", "mikoto", "mei", "hikaru", "miduki"
   /* ★★ 2026-10-03 極彩祭 */
-  , "takina"];
+  , "takina"
+  /* ★★ 2026-10-07 Sapphire Breeze（UR） */
+  , "hibana", "fuki"];
   MB_CHAR_MASTER.forEach(function (c) { c.mb = true; c.starter = MB_STARTERS.indexOf(c.mbId) >= 0; });
   MB_CHAR_MASTER.forEach(function (c) { c.star5 = MB_STAR5.indexOf(c.mbId) >= 0; });
   /* id は "mb:zera" のように接頭辞つき。XEVAガチャにも同じ名前のキャラ（シオンなど）が
@@ -1706,6 +1715,102 @@
   if (document.body) applyCharImg();
   else document.addEventListener("DOMContentLoaded", applyCharImg);
 
+  /* ══════════════════════════════════════════════════════════════
+     ★★ 2026-10-06 XEVARION 共通イベント（いまは「Violet Breeze」〜10/31・ご指定）
+     ------------------------------------------------------------
+     ・期間中は MagiLex 系統（MagiLex・MagiChemLex）の獲得 XEVA が2倍（各アプリが lexMult() を見る）
+     ・イベントミッション（7つ）をクリアすると 🎫ガチャチケットが最大20枚
+     ・パートナーの購入1人ぶんが 20%オフ（partnerPrice / usePartnerCoupon）
+     ・ショップのお得なパックは xevarion-home.js の XH_PACKS（from/to でこの期間だけ並ぶ）
+     ・進みは xeva_event_v1 に { [イベントid]: { c:{数}, d:{種類:{日付:1}}, cl:{ミッション:時刻}, at } }。
+       同期は xeva-cloud.js の mergeEvent（数は大きいほう・日付と受け取りは和）。
+     ★ ガチャチケットは ticket.migrateOnce("ev:<id>:<ミッション>") で配る＝アカウントで1回だけ
+       （別の端末で受け取ったぶんは、ここで受け取りずみに直す）。
+     ★ アプリ側で数を足すとき：XEVA.event.bump("lexAns", 1) ／ 日付：XEVA.event.day("login")
+     ══════════════════════════════════════════════════════════════ */
+  var EV_KEY = "xeva_event_v1";
+  var EVENT_DEFS = {
+    violet: {
+      id: "violet", nm: "Violet Breeze", from: "2026-10-06", to: "2026-10-31", c: "#8a6cff", c2: "#5ab8ff",
+      banner: "events/violet_breeze_s.webp", art: "events/violet_breeze.webp",
+      lexMult: 2, partnerOff: 0.2,
+      catch: "すみれ色の風が吹く、XEVARION の秋。学んで・集めて・ひと休み。",
+      missions: [
+        { id: "login3", ic: "📅", title: "イベント期間中に 3日 ログインする", day: "login", n: 3, tk: 2, href: "index.html" },
+        { id: "lexXeva", ic: "📚", title: "MagiLex 系統で XEVA を 3,000 獲得する（2倍込み）", key: "lexXeva", n: 3000, tk: 3, href: "MagiLex/MagiLex.html" },
+        { id: "lexAns", ic: "✏️", title: "MagiLex で問題に 50問 答える", key: "lexAns", n: 50, tk: 3, href: "MagiLex/MagiLex.html" },
+        { id: "chemOk", ic: "⚗️", title: "MagiChemLex で 20問 正解する", key: "chemOk", n: 20, tk: 3, href: "MagiChemLex/index.html" },
+        { id: "chemSet", ic: "📝", title: "MagiChemLex の「本番セット」を 1回 やりとげる", key: "chemSet", n: 1, tk: 3, href: "MagiChemLex/index.html" },
+        { id: "gacha10", ic: "🎰", title: "ガチャを 10回 引く", key: "gacha", n: 10, tk: 2, href: "gacha.html" },
+        { id: "all", ic: "💜", title: "ほかのイベントミッションを すべて 達成する", all: true, n: 6, tk: 4, href: "" },
+      ],
+    },
+  };
+  function evToday() { var d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+  function evLoad() {
+    try { var r = localStorage.getItem(EV_KEY); if (r) { var s = JSON.parse(r); if (s && typeof s === "object" && !Array.isArray(s)) return s; } } catch (e) {}
+    return {};
+  }
+  function evSave(s) { try { localStorage.setItem(EV_KEY, JSON.stringify(s)); } catch (e) {} try { window.dispatchEvent(new CustomEvent("xeva:event")); } catch (e) {} }
+  function evActive(id) { var E = EVENT_DEFS[id]; if (!E) return false; var t = evToday(); return t >= E.from && t <= E.to; }
+  function evActiveList() { return Object.keys(EVENT_DEFS).filter(evActive); }
+  function evRec(s, id) { var r = s[id] = s[id] || {}; r.c = r.c || {}; r.d = r.d || {}; r.cl = r.cl || {}; return r; }
+  var EVT = {
+    KEY: EV_KEY, DEFS: EVENT_DEFS,
+    def: function (id) { return EVENT_DEFS[id] || null; },
+    active: evActive,
+    /* いま開催中のイベント（無ければ null） */
+    cur: function () { var l = evActiveList(); return l.length ? EVENT_DEFS[l[0]] : null; },
+    /* MagiLex 系統の XEVA の倍率（開催中のイベントのいちばん大きい倍率・無ければ 1） */
+    lexMult: function () { var m = 1; evActiveList().forEach(function (id) { m = Math.max(m, EVENT_DEFS[id].lexMult || 1); }); return m; },
+    /* 数を足す（開催中のイベントすべて） */
+    bump: function (key, n) {
+      var l = evActiveList(); if (!l.length) return;
+      n = Number(n) || 0; if (!n) return;
+      var s = evLoad();
+      l.forEach(function (id) { var r = evRec(s, id); r.c[key] = (Number(r.c[key]) || 0) + n; r.at = Date.now(); });
+      evSave(s);
+    },
+    /* その日に印を付ける（ログイン日など） */
+    day: function (key) {
+      var l = evActiveList(); if (!l.length) return;
+      var s = evLoad(), t = evToday(), ch = false;
+      l.forEach(function (id) { var r = evRec(s, id); r.d[key] = r.d[key] || {}; if (!r.d[key][t]) { r.d[key][t] = 1; r.at = Date.now(); ch = true; } });
+      if (ch) evSave(s);
+    },
+    /* ミッションの進み { v, n, done, claimed } */
+    prog: function (id, mid) {
+      var E = EVENT_DEFS[id]; if (!E) return null;
+      var m = E.missions.filter(function (x) { return x.id === mid; })[0]; if (!m) return null;
+      var r = evRec(evLoad(), id), v = 0;
+      if (m.all) v = E.missions.filter(function (x) { return !x.all && EVT.prog(id, x.id).done; }).length;
+      else if (m.day) v = Object.keys(r.d[m.day] || {}).length;
+      else v = Number(r.c[m.key]) || 0;
+      var claimed = !!r.cl[mid] || !!(ticket.isMigrated && ticket.isMigrated("ev:" + id + ":" + mid));
+      return { v: Math.min(v, m.n), n: m.n, done: v >= m.n, claimed: claimed, m: m };
+    },
+    list: function (id) { var E = EVENT_DEFS[id]; return E ? E.missions.map(function (m) { return EVT.prog(id, m.id); }) : []; },
+    /* 受け取りを待っている数（バッジ用） */
+    pending: function (id) { return EVT.list(id).filter(function (p) { return p.done && !p.claimed; }).length; },
+    /* 受け取る → 🎫ガチャチケット（アカウントで1回だけ）。戻り値＝今回ふえた枚数 */
+    claim: function (id, mid) {
+      var p = EVT.prog(id, mid); if (!p || !p.done) return 0;
+      var s = evLoad(), r = evRec(s, id);
+      if (r.cl[mid]) return 0;
+      var got = ticket.migrateOnce("ev:" + id + ":" + mid, p.m.tk, EVENT_DEFS[id].nm + " イベントミッション：" + p.m.title);
+      r.cl[mid] = Date.now(); r.at = Date.now(); evSave(s);
+      return got ? p.m.tk : 0;
+    },
+    /* パートナーの購入1人ぶん 20%オフ（イベント中・1回だけ） */
+    partnerOff: function () {
+      var l = evActiveList(); var s = evLoad();
+      for (var i = 0; i < l.length; i++) { var E = EVENT_DEFS[l[i]]; if (E.partnerOff && !evRec(s, E.id).cl.partner) return { id: E.id, off: E.partnerOff, nm: E.nm }; }
+      return null;
+    },
+    partnerPrice: function (base) { var o = EVT.partnerOff(); return o ? Math.round(base * (1 - o.off) / 10) * 10 : base; },
+    usePartnerCoupon: function () { var o = EVT.partnerOff(); if (!o) return false; var s = evLoad(); evRec(s, o.id).cl.partner = Date.now(); evRec(s, o.id).at = Date.now(); evSave(s); return true; },
+  };
+
   /* ── 公開API ── */
   var XEVA = {
     KEY: KEY,
@@ -1741,6 +1846,8 @@
     charNamePlate: plateOf,
     LOGIN_BONUS: LOGIN_BONUS,
     MISSIONS: MISSIONS,
+    /* ★★ 2026-10-06 共通イベント（Violet Breeze） */
+    event: EVT,
     CHARS: CHAR_MASTER,
     charThumbFile: thumbFile,
     /* ★ 2026-08-05 MagiBurst のキャラ（アカウントアイコン用。画像は MagiBurst/img を直接参照） */
@@ -2053,7 +2160,7 @@
       window.__xevaAliveReq = 1;
       var aliveGo = function () {
         var s = document.createElement("script");
-        s.src = new URL("xeva-alive.js?v=3", aliveSrc).href;
+        s.src = new URL("xeva-alive.js?v=4", aliveSrc).href;
         s.async = true;
         (document.head || document.documentElement).appendChild(s);
       };
@@ -2063,6 +2170,8 @@
   } catch (e) {}
 
   window.XEVA = XEVA;
+  /* ★★ 2026-10-06 イベント期間中に XEVARION（どのアプリでも）を開いた日を数える */
+  try { EVT.day("login"); } catch (e) {}
   /* ★ 2026-08-24 レベル・スタミナはどの画面からも使うので、短い名前でも出しておく */
   window.XStatus = status;
 

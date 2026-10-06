@@ -46,7 +46,9 @@ const XH_OFFLINE_OK = {
   magishift:       { name: "MagiShift",      href: "MagiShift/index.html",       sw: "MagiShift/sw.js" },
   /* ★★ 2026-10-05 新作 MagiAbyss。ドット絵・音・迷宮はすべて端末の中で作るので通信は要らない
      （キャラの絵は一度見たら控える。よく使う10体ぶんは最初から控えてある）。 */
-  magiabyss:       { name: "MagiAbyss",      href: "MagiAbyss/index.html",       sw: "MagiAbyss/sw.js" }
+  magiabyss:       { name: "MagiAbyss",      href: "MagiAbyss/index.html",       sw: "MagiAbyss/sw.js" },
+  /* ★★ 2026-10-06 新作 MagiChemLex。問題・解説・図はすべて端末の中にあるので通信は要らない（記録の同期だけ通信を使う）。 */
+  magichemlex:     { name: "MagiChemLex",    href: "MagiChemLex/index.html",     sw: "MagiChemLex/sw.js" }
 };
 /* オフラインでも遊べるアプリの名前を「◯◯ ／ ◯◯」でつなぐ。
    ★★ 2026-09-13c <b>案内の文面を手で書かない</b>ためのもの。
@@ -76,6 +78,10 @@ const XH_APPS = [
   { id:"magilex", name:"MagiLex", sub:"魔導書・知識", cat:"learn", tone:"blue",
     href:"MagiLex/MagiLex.html", img:"thumbs/MagiLex.jpg",
     desc:"魔法の書から問題が飛び出す学習アプリ。難関大英単語（発音つき）・物理・化学・古文をクイズ×単語帳で。オフライン学習OK。" },
+  /* ★★ 2026-10-06 新作 MagiChemLex（MagiLex の派生・難関化学の問題集）。ご指定でホームの MagiCounter の左。 */
+  { id:"magichemlex", name:"MagiChemLex", full:"MagiChemLex", sub:"難関化学の問題集", cat:"learn", tone:"blue", newUntil:"2026-10-27",
+    href:"MagiChemLex/index.html", img:"thumbs/MagiChemLex.jpg",
+    desc:"難関大の化学を、<b>入試問題の改題</b>（入試1回ぶんの全小問）と<b>関連問題</b>で鍛える学習アプリ。おすすめ出題・間隔反復の復習・時間を計る本番セット・ヒントと図つきの解説・関連問題・関数電卓・学習カレンダー。獲得 XEVA は MagiLex 系統のイベントで2倍。オフラインOK。" },
   { id:"magiburst", name:"MagiBurst", sub:"爽快アクション", cat:"game", tone:"violet",
     href:"MagiBurst/index.html", img:"thumbs/MagiBurst.jpg",
     desc:"引っぱって、はなして、ぶっとばせ！最大4人マルチの引っぱりハンティング。オフラインでもソロクエストが遊べます。" },
@@ -109,7 +115,8 @@ const XH_APPS = [
     href:"MagiShift/index.html", img:"thumbs/MagiShift.jpg",
     desc:"1台の iPad を2〜6人で囲む、マルバツを発展させた対戦ボードゲーム。<b>置いた駒をあとから動かせる</b>のが特徴で、盤面はいつも変わり最後まで逆転があります。人数で盤面と勝利条件が変わり（5×5〜9×9・4〜5つ並べ）、XEVARION アカウントと紐づけて名前と戦績を残せます。" },
   /* ★★ 2026-10-05 新作 MagiAbyss（見下ろし型ドットアクションRPG）。キャラは極彩祭・極煌祭・極華祭の10体（所持と凸は共通）。 */
-  { id:"magiabyss", name:"MagiAbyss", full:"MagiAbyss", sub:"ドットアクションRPG", cat:"game", tone:"violet",
+  /* ★ newUntil … この日まで、ロビーとメニューのアイコンに「NEW」の印（home-mate.js の isNewApp・xhAppTile） */
+  { id:"magiabyss", name:"MagiAbyss", full:"MagiAbyss", sub:"ドットアクションRPG", cat:"game", tone:"violet", newUntil:"2026-10-26",
     href:"MagiAbyss/index.html", img:"thumbs/MagiAbyss.jpg",
     desc:"広大なアビス（魔力迷宮）を探索し、大量の敵をなぎ払う見下ろし型ドットアクションRPG。6種の武器と魔法・装備を組み合わせる<b>星脈共鳴</b>で自分だけのビルドを作り、鍵を集めて最深部のボスへ。6つの迷宮・中ボス・祭壇・隠し部屋・エンドコンテンツ「深淵踏破」。キャラクターは極彩祭・極煌祭・極華祭の10体（所持と凸は XEVARION と共通）。オフラインで遊べます。" },
   { id:"magiscope", name:"MagiScope", full:"MagiScope", sub:"エンタメランキング", cat:"info", tone:"blue",
@@ -213,9 +220,10 @@ const XH_DEFAULT_ORDER = [
   /* ★★ 2026-09-17f <b>MagiQuest を廃止</b>（ご指定）。後ろのアプリを1つずつ前へつめ、
      もとの XEVYNAR の位置（ホーム11番目）に MagiJackpot。 */
   /* ★★ 2026-09-24d <b>MagiChainParty と MagiScope の位置を入れかえ</b>（ご指定）。 */
+  /* ★★ 2026-10-06 <b>MagiTier は「その他」へ</b>、新作 <b>MagiChemLex を MagiCounter の左</b>に（ご指定）。 */
   "magilex", "magilink", "magiburst", "magibocciarush",
   "magiscope", "magidominiongrid", "magidiamond",
-  "magicounter", "magitier", "xevynar", "magijackpot",
+  "magichemlex", "magicounter", "xevynar", "magijackpot",
   /* 以降は「その他」の中に入る */
   /* ★★ 2026-09-21c 並びのご指定：
        ・もとの MagiRail の場所（12番目）＝ <b>MagiLotto</b>
@@ -230,6 +238,8 @@ const XH_DEFAULT_ORDER = [
   "magibattle",
   /* ★★ 2026-10-05 新作 MagiAbyss は MagiBattle のすぐ後ろ（並びを変えた人にも、MagiBattle の右に入る＝xhOrder） */
   "magiabyss",
+  /* ★★ 2026-10-06 MagiTier はホームから「その他」へ（MagiAbyss のすぐ後ろ） */
+  "magitier",
   /* ここから下は「その他」の中に入る */
   "magiranking",
   "ordyxis", "magicraft", "magimanor", "magiportfolio",
@@ -244,7 +254,7 @@ const XH_ORDER_KEY = "xeva_home_order_v2";
    （アプリの入れ替えを、既にホームを触った人にも確実に反映させるため） */
 /* ★★ 2026-09-21c 並びを変えたので世代を上げる（保存ずみの並びを一度だけ既定に戻す）。
    これを上げないと、ホームを並びかえたことがある人には新しい並びが出ない。 */
-const XH_ORDER_GEN = "12-0924";   /* ★★ 2026-09-24d MagiChainParty と MagiScope の入れかえ */ /* 前: "11-0923" */   /* ★★ 2026-09-23 MagiRail と MagiBattle の入れかえ */ /* 前: "10-0921c" */   /* ★★ 2026-09-17e Arcana Rush 廃止・MagiTier をホームへ（保存ずみの並びも一度だけ既定へ） */   /* ★★ 2026-09-09 11枠の入れかえと、抹けていた新作2本を既存の並びにも効かせる */
+const XH_ORDER_GEN = "13-1006";   /* ★★ 2026-10-06 MagiChemLex を MagiCounter の左・MagiTier を「その他」へ */ /* 前: "12-0924" */   /* ★★ 2026-09-24d MagiChainParty と MagiScope の入れかえ */ /* 前: "11-0923" */   /* ★★ 2026-09-23 MagiRail と MagiBattle の入れかえ */ /* 前: "10-0921c" */   /* ★★ 2026-09-17e Arcana Rush 廃止・MagiTier をホームへ（保存ずみの並びも一度だけ既定へ） */   /* ★★ 2026-09-09 11枠の入れかえと、抹けていた新作2本を既存の並びにも効かせる */
 const XH_ORDER_GEN_KEY = "xeva_home_order_gen";
 
 /* 期間限定イベント（from/to は YYYY-MM-DD。期間内のものだけ表示）
@@ -254,6 +264,11 @@ const XH_ORDER_GEN_KEY = "xeva_home_order_gen";
      ずっと後ろ、という状態を防ぐため。
      ＝ 新しいイベントを足すときは<b>この配列のどこに書いてもよい</b>。 */
 const XH_EVENTS = [
+  /* ★★ 2026-10-07 Sapphire Breeze（新レアリティ UR・<b>無期限開催</b>）。ガチャ一覧では極彩祭の上に固定 */
+  { tag:"UR", t1:"Sapphire Breeze（新レアリティ UR）",
+    t2:"無期限開催。ヒバナ・フキ・タキナの UR 3体（各1.0%）——初回10連無料・🎫フェス券OK。フキは史上最大のフルバースト、3体とも全属性有利・オムニアンチ・治癒の祈り・最強のリンク",
+    always:true, perm:true, since:"2026-10-07", from:"2026-10-07", to:"",
+    href:"gacha.html#fes17", img:"thumbs/MagiBurst.jpg" },
   /* ★★ 2026-09-17d 花宴祭（アカツキ）＝<b>無期限開催</b>。戦姫祭と同じく always/perm を付け、to は空。 */
   /* ★★ 2026-09-19d アヤネ・チハを追加（3体に） */
   { tag:"FES", t1:"花宴祭 に ヒメリ・ホノカ 追加",
@@ -351,7 +366,8 @@ const XH_EVENTS = [
      ★ 毎月まるごと入れ替わるので、from / to は<b>広めに取っておく</b>
        （実際の開催判定は mb-core.js の monthly が行う）。 */
   /* ★★ 2026-10-05 極彩祭に タキナ（水）。 */
-  { tag:"FES", t1:"極彩祭 に タキナ", t2:"常時開催（毎月1〜10日）。ヒナノ・ハノン・ココハ＋新登場「タキナ」——史上最大のフルバースト・オムニアンチ＋超アンチ減速壁・全属性有利・治癒の祈り。MagiAbyss でも最強",
+  /* ★★ 2026-10-07 タキナは Sapphire Breeze へ移った（ご指定） */
+  { tag:"FES", t1:"極彩祭", t2:"常時開催（毎月1〜10日）。ヒナノ・ハノン・ココハ（タキナは新しい Sapphire Breeze へ移りました）",
     monthly:[1,10], perm:true,
     from:"2026-08-27", to:"2027-12-31", img:"thumbs/MagiBurst.jpg", href:"gacha.html#fes7" },
   { tag:"FES", t1:"極煌祭 に アズサ", t2:"常時開催（毎月21日〜末日）。ムツミ・レイナ＋新登場「アズサ」——史上最大のフルバースト・ネクサス強化",
@@ -424,12 +440,19 @@ const XH_EVENTS = [
   { tag:"FES", t1:"Nocturne Bloom Fest", t2:"MagiBurst で夜の限定SSR 5体が排出中！", from:"2026-01-01", to:"2026-08-31",
     href:"MagiBurst/index.html", img:"thumbs/MagiBurst.jpg" },
   /* ★★ 2026-08-29b MagiLex の新コンテンツ予告は<b>アップデート情報へ移しました</b>（ご指定）。 */
-  { tag:"CAMPAIGN", t1:"夏の学習キャンペーン", t2:"MagiLex の獲得XEVA ×2！（10/31まで延長）", from:"2026-06-01", to:"2026-10-31",
+  /* ★★ 2026-10-06 夏の学習キャンペーンは<b>終了</b>（ご指定）。Violet Breeze（10/6〜10/31）が MagiLex 系統の XEVA ×2 を引きつぐ。
+     行は残す（消すとカレンダーの過去の日付からも消えるため）。 */
+  { tag:"CAMPAIGN", t1:"夏の学習キャンペーン", t2:"MagiLex の獲得XEVA ×2！（終了しました）", from:"2026-06-01", to:"2026-10-05",
     href:"MagiLex/MagiLex.html", img:"thumbs/MagiLex.jpg" },
   /* 常設（期間表示なし）: to を空にすると「開催期間」の行を出さない */
   { tag:"RANKING", t1:"月間XEVAランキング", t2:"今月の順位で最大 1,000 XEVA", from:"2026-01-01", to:"",
     always:true, perm:true, href:"MagiRanking/index.html", img:"thumbs/MagiRanking.jpg" }
 ];
+
+/* ★★ 2026-10-06 XEVARION 共通イベント「Violet Breeze」（〜10/31・ご指定）。
+   中身（ミッション・割引・倍率）は xeva.js の XEVA.event。押すとイベントのページ（xeva-event-ui.js）。 */
+XH_EVENTS.unshift({ tag:"EVENT", t1:"Violet Breeze", t2:"MagiLex 系統の XEVA ×2・イベントミッションで🎫最大20枚・パートナー1人20%OFF・お得なパック",
+  since:"2026-10-06", from:"2026-10-06", to:"2026-10-31", href:"index.html#event", img:"thumbs/VioletBreeze.jpg" });
 
 /* ══════════════════════════════════════════════════════════════
    ★★ 2026-08-29b アップデート情報（ご指定）
@@ -449,6 +472,35 @@ const XH_EVENTS = [
    ══════════════════════════════════════════════════════════════ */
 const XH_UPDATE_MAX = 12;
 const XH_UPDATES = [
+  /* ★★ 2026-10-07 新レアリティ UR「Sapphire Breeze」／MagiChemLex 大型アップデート／天井100・パートナー値下げ・Boccia・MagiLex */
+  { tag:"NEW", t1:"新レアリティ UR「Sapphire Breeze」", at:"2026-10-07",
+    t2:"無期限。ヒバナ（木）・フキ（闇）・タキナ（水）の UR 3体が各1.0%／はじめての10連は無料・🎫フェス券OK／フキは史上最大のフルバースト／ガチャ一覧のいちばん上",
+    href:"gacha.html#fes17", img:"thumbs/MagiBurst.jpg" },
+  { tag:"UPDATE", t1:"天井 100個・パートナー 20,000 XEVA", at:"2026-10-07",
+    t2:"ガチャの天井（★星煌印）を150個→100個に／パートナーの開放を30,000→20,000 XEVAに値下げし、開放ずみの人数ぶん差額を返金／UR の絵を SSR と同じ大きさで大きく・顔の方から流して見せるように／ガチャは一覧のいちばん上から",
+    href:"gacha.html", img:"thumbs/MagiBurst.jpg" },
+  { tag:"UPDATE", t1:"MagiChemLex 大型アップデート", at:"2026-10-07",
+    t2:"本番セット2と関連問題で全330問／「セット」タブ（改題は小問ごとに細かく・一覧から解く・確認テスト）／シャッフル出題・選択肢もランダム・未習得だけ／問題中のメモ／XEVA を約3.5倍／iPhone の下のすき間を修正・スクロールバーをデザイン",
+    href:"MagiChemLex/index.html", img:"thumbs/MagiChemLex.jpg" },
+  { tag:"UPDATE", t1:"MagiBocciaRush・MagiLex・ホーム", at:"2026-10-07",
+    t2:"Boccia：場外のジャックは中央のクロスへ・VS は左右に縦6人ずつ・アドバイスは初回だけ・ボールの縁は凸で／MagiLex：ビンゴの反映もれを修正（お詫びに🎫フェス券40枚）／ホーム：下バーのガチャはタキナ・PARK は左・イベントのバナーは右下",
+    href:"MagiBocciaRush/index.html", img:"thumbs/MagiBocciaRush.jpg" },
+  /* ★★ 2026-10-06 Violet Breeze／新作 MagiChemLex／MagiAbyss・MagiBocciaRush の大型アップデート／タキナ UR */
+  { tag:"NEW", t1:"共通イベント「Violet Breeze」", at:"2026-10-06",
+    t2:"10/31 まで。MagiLex・MagiChemLex の XEVA がすべて2倍／イベントミッションで🎫ガチャチケット最大20枚／パートナー1人ぶん20%OFF／ショップに限定のお得なパック（夏の学習キャンペーンは終了）",
+    href:"index.html#event", img:"thumbs/VioletBreeze.jpg" },
+  { tag:"NEW", t1:"新作 MagiChemLex", at:"2026-10-06",
+    t2:"難関化学の問題集。入試問題の改題と関連問題（156問）／おすすめ出題・間隔反復の復習・本番セット・ヒントと図つきの解説・関数電卓・公式カード・学習カレンダー／ホームは MagiCounter の左（MagiTier は「その他」へ）",
+    href:"MagiChemLex/index.html", img:"thumbs/MagiChemLex.jpg" },
+  { tag:"UPDATE", t1:"MagiAbyss 大型アップデート", at:"2026-10-06",
+    t2:"拠点の広場・迷宮えらびの地図・探索中の画面を一新／スマホは横画面＋スティックとボタン・PC はキー設定／キャラ一覧と性能をアイコンでわかりやすく／ハードモード・クリア時間のミッション（ジェム）／XEVARION と共通の5属性／遊び方のアニメ説明／ミニマップを押すと拡大",
+    href:"MagiAbyss/index.html", img:"thumbs/MagiAbyss.jpg" },
+  { tag:"UPDATE", t1:"MagiBocciaRush の画面と演出を一新", at:"2026-10-06",
+    t2:"少し明るいデザインと動きのある演出／ショットの矢印を大きく／ショットの予測の点線を出さない設定",
+    href:"MagiBocciaRush/index.html", img:"thumbs/MagiBocciaRush.jpg" },
+  { tag:"UPDATE", t1:"タキナ は UR に／キャラ詳細は横長の絵", at:"2026-10-06",
+    t2:"タキナのレアリティ表記を UR に。キャラ詳細など大きく出る絵は横長の新しい絵（アイコン・ボールの絵はそのまま）",
+    href:"characters.html", img:"thumbs/MagiBurst.jpg" },
   /* ★★ 2026-10-05 新作 MagiAbyss／極彩祭に タキナ */
   { tag:"NEW", t1:"新作 MagiAbyss", at:"2026-10-05",
     t2:"見下ろし型ドットアクションRPG。冒険者ギルドから6つの迷宮へ／8方向移動・回避・スキル・必殺技／6種の武器と魔法・星脈共鳴のビルド／鍵を集めて最深部のボスへ／深淵踏破／キャラは極彩祭・極煌祭・極華祭の10体（所持と凸は共通・レベルと装備はこのアプリだけ）／オフライン対応",
@@ -1483,6 +1535,17 @@ const XH_PACKS = [
     to:"2026-08-31", cycle:"term", max:2, desc:"🎫20枚＋💎50。10連（SSR確定）を2回ぶん、たっぷり回せる。" },
   { id:"pk_lsf_legend",  ic:"🏝", nm:"サマーフェス レジェンドパック", pay:200, gem:120, ticket:60, c:"#ffb020",
     to:"2026-08-31", cycle:"term", max:2, desc:"フェス期間中いちばんお得。カグヤα・ミオンαを本気で狙うならこれ。" },
+  /* ── 💜 Violet Breeze 限定パック（★★ 2026-10-06 ご指定「ショップにお得なパック」）──
+     イベントの期間（10/6〜10/31）だけ並ぶ。各2回まで。🎫は<b>ガチャチケット</b>（どのガチャでも使える）。 */
+  { id:"pk_vb_starter", ic:"💜", nm:"Violet Breeze スターターパック", pay:15, gem:6, gticket:6, c:"#8a6cff",
+    from:"2026-10-06", to:"2026-10-31", cycle:"term", max:2,
+    desc:"🎫6枚＋💎6。イベントのはじめの一歩に。" },
+  { id:"pk_vb_value",   ic:"🔮", nm:"Violet Breeze バリューパック",   pay:75, gem:55, gticket:22, c:"#6d5ae6",
+    from:"2026-10-06", to:"2026-10-31", cycle:"term", max:2,
+    desc:"🎫22枚＋💎55。10連を2回以上たっぷり回せる、いちばん人気。" },
+  { id:"pk_vb_select",  ic:"🌌", nm:"Violet Breeze セレクトパック",   pay:260, gem:160, gticket:32, select:1, c:"#5ab8ff",
+    from:"2026-10-06", to:"2026-10-31", cycle:"term", max:2,
+    desc:"PREMIUM SELECT GACHA のSSRから<b>好きな1体を確定で</b>。💎160 と 🎫ガチャチケット32枚つき。" },
   /* ── 常設（毎週リセット・週1回）── */
   { id:"pk_beginner", ic:"✨", nm:"ビギナーパック",   pay:5,   gem:8,   c:"#3fd9b0", cycle:"week", max:1,
     desc:"はじめての一歩に。まずはここから。" },
@@ -1888,7 +1951,7 @@ function xhMbReady() {
   if (typeof CHARS !== "undefined" && typeof PREMIUM_CHARS !== "undefined") return Promise.resolve(true);
   if (_xhMbLoading) return _xhMbLoading;
   _xhMbLoading = xhLoadScript("mb-boot.js?v=17")
-    .then(() => xhLoadScript("MagiBurst/js/mb-core.js?v=130"))
+    .then(() => xhLoadScript("MagiBurst/js/mb-core.js?v=134"))
     .then(() => true)
     .catch((e) => { _xhMbLoading = null; throw e; });
   return _xhMbLoading;
@@ -2448,10 +2511,17 @@ function xhSaveOrder(order) {
   try { localStorage.setItem(XH_ORDER_KEY, JSON.stringify(order)); } catch (e) {}
 }
 
+/* ★★ 2026-10-05 NEW の印（XH_APPS の newUntil の日まで） */
+function xhIsNewApp(a) {
+  if (!a || !a.newUntil) return false;
+  const d = new Date(), t = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+  return t <= a.newUntil;
+}
 function xhAppTile(a) {
   return '<button class="xh-app" data-app="' + a.id + '" data-tone="' + a.tone + '" ' +
          'onclick="xhOpenApp(\'' + a.id + "','" + a.href + "')\">" +
          '<span class="xh-sq"><img src="' + xhEscape(xhAppIconSrc(a)) + '" alt="" loading="lazy"></span>' +
+         (xhIsNewApp(a) ? '<em class="xh-newb">NEW</em>' : "") +
          '<span class="nm">' + xhEscape(a.name) + "</span>" +
          '<span class="sb">' + xhEscape(a.sub) + "</span></button>";
 }
@@ -4645,8 +4715,18 @@ function xhDebutFree10Left() {
   } catch (e) { return false; }
 }
 window.xhDebutFree10Left = xhDebutFree10Left;
+/* ★★ 2026-10-06c フェスの初回10連無料（Sapphire Breeze＝fes17）。mb-core の fesFree10Left と<b>同じ判定</b>（magiburst_v1.fesFree10） */
+const XH_FES_FREE10 = ["fes17"];
+function xhFesFree10Left() {
+  try {
+    const d = JSON.parse(localStorage.getItem("magiburst_v1") || "{}");
+    const f = (d.fesFree10 && typeof d.fesFree10 === "object") ? d.fesFree10 : {};
+    return XH_FES_FREE10.some((k) => !f[k]);
+  } catch (e) { return false; }
+}
+window.xhFesFree10Left = xhFesFree10Left;
 /* 下バーの印は「単発・10連の<b>どちらか</b>が無料なら出す」 */
-function xhDebutAnyFree() { return xhDebutFreeLeft() || xhDebutFree10Left(); }
+function xhDebutAnyFree() { return xhDebutFreeLeft() || xhDebutFree10Left() || xhFesFree10Left(); }
 window.xhDebutAnyFree = xhDebutAnyFree;
 function xhPaintGachaFree() {
   const btn = document.querySelector('.xh-bar .xh-ntab[data-tab="gacha"]');
@@ -4690,12 +4770,13 @@ function xhGtabTick() {}
    （新しいキャラが増えても差しかわらない。xhNewestChar は他で使うので残す）
    絵は正方形なので、丸く切らずに<b>角丸の正方形</b>で出す（.xh-tabchar.sq）。 */
 /* ★★ 2026-09-23 ご指定で <b>CRYSTAL ACADEMY FEST のクレハ</b>に変更 */
-const XH_GACHA_TAB_CHAR = "kureha";
+/* ★★ 2026-10-07 ご指定で <b>Sapphire Breeze（UR）のタキナ</b>に変更して固定（絵は正方形のアイコン＝t_Takina） */
+const XH_GACHA_TAB_CHAR = "takina";
 function xhGachaTabChar() {
   try {
     const list = (window.XEVA && XEVA.MB_CHARS) || [];
     return list.find((c) => c.mbId === XH_GACHA_TAB_CHAR) ||
-      { id: "mb:" + XH_GACHA_TAB_CHAR, mbId: XH_GACHA_TAB_CHAR, file: "../img/t_Kureha.webp" };
+      { id: "mb:" + XH_GACHA_TAB_CHAR, mbId: XH_GACHA_TAB_CHAR, file: "../img/t_Takina.webp" };
   } catch (e) { return null; }
 }
 function xhPaintGachaTabIcon() {
@@ -5912,7 +5993,8 @@ function xhAiPickApps(raw) {
   if (/rpg|冒険|物語|すとーりー|story|育成/.test(q)) want.push("magibattle", "magicraft", "magiburst");
   if (/かじの|casino|すろっと|slot|ぽーかー|poker|るーれっと|roulette|びんご|bingo|ばから|かーど|とらんぷ|ちっぷ|かけ|ばくち|じゃっくぽっと/.test(q))
     want.push("magijackpot");
-  if (/勉強|学習|べんきょう|覚え|暗記|試験|受験|宿題/.test(q)) want.push("xevynar", "magilex", "magifocus");
+  if (/勉強|学習|べんきょう|覚え|暗記|試験|受験|宿題/.test(q)) want.push("xevynar", "magilex", "magichemlex", "magifocus");
+  if (/化学|かがく|ばけがく|chem|入試|過去問|かこもん/.test(q)) want.push("magichemlex", "magilex");
   if (/ai|えーあい|相談|そうだん|質問|しつもん|プラン|計画|管理|タイマー/.test(q)) want.push("xevynar", "magifocus");
   if (/株|投資|相場|銘柄|資産/.test(q)) want.push("magiportfolio");
   if (/音楽|bgm|曲|おんがく/.test(q)) want.push("magimusic");
@@ -5934,6 +6016,7 @@ function xhAiPickApps(raw) {
 const XH_APP_ALIAS = {
   xevynar: ["ぜびなー", "ぜヴぃなー", "xevynar", "えーあい", "あい", "ai", "あしすたんと", "そうだん", "相談"],
   magilex: ["まじれっくす", "れっくす", "lex", "単語帳", "たんごちょう"],
+  magichemlex: ["まじけむれっくす", "けむれっくす", "chemlex", "化学", "かがく", "難関化学", "なんかんかがく"],
   magiburst: ["まじばーすと", "ばーすと", "burst", "ひっぱり", "引っぱり"],
   magibattle: ["まじばとる", "ばとる", "battle"],
   magichainparty: ["ちぇいんぱーてぃ", "ちぇいん", "chainparty", "れんさ", "連鎖"],

@@ -24,7 +24,7 @@
      以前はここに直接書いてあり、MagiBurst / MagiLex の一覧は別ファイルにあったため、
      新機能を足すたびに「同期リストへの入れ忘れ」が起きていた
      （ジェムショップの購入履歴 xeva_shop_v1 が同期されていなかったのがその例）。 */
-import { PORTAL_SYNC_KEYS, wipeAccountData, wipeAccountDataFull } from "./xeva-keys.js?v=29";
+import { PORTAL_SYNC_KEYS, wipeAccountData, wipeAccountDataFull } from "./xeva-keys.js?v=31";
 
 const SYNC_KEYS = PORTAL_SYNC_KEYS;
 const SYNC_SET = new Set(SYNC_KEYS);
@@ -416,10 +416,18 @@ function mergeAbyss(winnerStr, loserStr) {
   if (obj(Lo.dun)) Object.keys(Lo.dun).forEach((id) => {
     const l = Lo.dun[id], w = W.dun[id]; if (!obj(l)) return;
     if (!obj(w)) { W.dun[id] = l; return; }
-    ["clears", "runs", "mutBest"].forEach((k) => { w[k] = Math.max(num(w[k]), num(l[k])); });
-    const bs = [num(w.best), num(l.best)].filter((x) => x > 0); w.best = bs.length ? Math.min.apply(null, bs) : 0;
-    const by = Array.isArray(w.by) ? w.by.slice() : []; (Array.isArray(l.by) ? l.by : []).forEach((c) => { if (by.indexOf(c) < 0) by.push(c); }); w.by = by;
+    const mergeRec = (w2, l2) => {
+      ["clears", "runs", "mutBest"].forEach((k) => { w2[k] = Math.max(num(w2[k]), num(l2[k])); });
+      const bs = [num(w2.best), num(l2.best)].filter((x) => x > 0); w2.best = bs.length ? Math.min.apply(null, bs) : 0;
+      const by = Array.isArray(w2.by) ? w2.by.slice() : []; (Array.isArray(l2.by) ? l2.by : []).forEach((c) => { if (by.indexOf(c) < 0) by.push(c); }); w2.by = by;
+    };
+    mergeRec(w, l);
+    /* ★★ 2026-10-05 ハードの記録（dun[id].hard）も同じ混ぜ方 */
+    if (obj(l.hard)) { if (!obj(w.hard)) w.hard = l.hard; else mergeRec(w.hard, l.hard); }
   });
+  /* ★★ 2026-10-05 クリア時間のミッション：達成（tmis）・ジェムの受け取り（tmisClaim）は和 */
+  W.tmis = unionMarks(W.tmis || {}, Lo.tmis || {});
+  W.tmisClaim = unionMarks(W.tmisClaim || {}, Lo.tmisClaim || {});
   W.abyss = obj(W.abyss) ? W.abyss : {};
   if (obj(Lo.abyss)) { if (num(Lo.abyss.best) > num(W.abyss.best)) { W.abyss.best = Lo.abyss.best; W.abyss.bestChar = Lo.abyss.bestChar; } W.abyss.runs = Math.max(num(W.abyss.runs), num(Lo.abyss.runs)); }
   W.codex = obj(W.codex) ? W.codex : {};
@@ -430,8 +438,60 @@ function mergeAbyss(winnerStr, loserStr) {
   W.stats = maxMap(W.stats, Lo.stats);
   return JSON.stringify(W);
 }
+/* ★★ 2026-10-06 XEVARION 共通イベント（xeva_event_v1）を混ぜる。
+   { [イベントid]: { c:{数}, d:{種類:{日付:1}}, cl:{ミッション:時刻}, at } }
+   ・数（c）… 大きいほう（それぞれの端末で数えたぶんは、片方の端末の値に含まれていない可能性があるが、
+     足すと同じ同期を2回したときに二重になるので、<b>減らさない</b>ことだけを守る）
+   ・日付（d）・受け取り（cl：パートナー割引の使用 partner も含む）… 和 */
+const EVENT_KEYS = new Set(["xeva_event_v1"]);
+function mergeEvent(winnerStr, loserStr) {
+  const W = jparse(winnerStr, null), Lo = jparse(loserStr, null);
+  const obj = (v) => !!v && typeof v === "object" && !Array.isArray(v);
+  if (!obj(W) || !obj(Lo)) return null;
+  Object.keys(Lo).forEach((id) => {
+    const l = Lo[id]; if (!obj(l)) return;
+    const w = obj(W[id]) ? W[id] : (W[id] = {});
+    w.c = obj(w.c) ? w.c : {};
+    if (obj(l.c)) Object.keys(l.c).forEach((k) => { w.c[k] = Math.max(Number(w.c[k]) || 0, Number(l.c[k]) || 0); });
+    w.d = obj(w.d) ? w.d : {};
+    if (obj(l.d)) Object.keys(l.d).forEach((k) => { w.d[k] = unionMarks(w.d[k] || {}, l.d[k] || {}); });
+    w.cl = unionMarks(w.cl || {}, l.cl || {});
+    w.at = Math.max(Number(w.at) || 0, Number(l.at) || 0);
+  });
+  return JSON.stringify(W);
+}
+/* ★★ 2026-10-06 新作 MagiChemLex（magichemlex_v1）を混ぜる。勝った側（新しいほう）を土台に：
+   ・問題ごとの記録 q[id] … 解いた回数（n）の多いほうを丸ごと（復習の予定もその記録のもの）
+   ・本番セットの記録 runs … 和（id で重ねない・新しい順に60件まで）
+   ・連続日数の記録 days … 和（日付ごとの解いた数は大きいほう）
+   ・ブックマーク bm … 和（外したものは勝った側の dm［外した時刻］が新しければ外れたまま）
+   ・メモ memo … 書いた時刻の新しいほう
+   ・設定・選んでいる絞り込み … 勝った側のまま */
+const CHEM_KEYS = new Set(["magichemlex_v1"]);
+function mergeChem(winnerStr, loserStr) {
+  const W = jparse(winnerStr, null), Lo = jparse(loserStr, null);
+  const obj = (v) => !!v && typeof v === "object" && !Array.isArray(v);
+  if (!obj(W) || !obj(Lo)) return null;
+  const num = (v) => Number(v) || 0;
+  W.q = obj(W.q) ? W.q : {};
+  if (obj(Lo.q)) Object.keys(Lo.q).forEach((id) => { const l = Lo.q[id], w = W.q[id]; if (!obj(l)) return; if (!obj(w) || num(l.n) > num(w.n) || (num(l.n) === num(w.n) && num(l.at) > num(w.at))) W.q[id] = l; });
+  const runs = Array.isArray(W.runs) ? W.runs.slice() : [];
+  const seen = {}; runs.forEach((r) => { if (r && r.id) seen[r.id] = 1; });
+  (Array.isArray(Lo.runs) ? Lo.runs : []).forEach((r) => { if (r && r.id && !seen[r.id]) { seen[r.id] = 1; runs.push(r); } });
+  runs.sort((a, b) => num(b && b.at) - num(a && a.at)); W.runs = runs.slice(0, 60);
+  W.days = obj(W.days) ? W.days : {};
+  if (obj(Lo.days)) Object.keys(Lo.days).forEach((d) => { W.days[d] = Math.max(num(W.days[d]), num(Lo.days[d])); });
+  W.bm = obj(W.bm) ? W.bm : {}; const dm = obj(W.dm) ? W.dm : {};
+  if (obj(Lo.bm)) Object.keys(Lo.bm).forEach((id) => { if (W.bm[id]) return; if (num(dm[id]) > num(Lo.bm[id])) return; W.bm[id] = Lo.bm[id]; });
+  W.memo = obj(W.memo) ? W.memo : {};
+  if (obj(Lo.memo)) Object.keys(Lo.memo).forEach((id) => { const l = Lo.memo[id], w = W.memo[id]; if (!obj(l)) return; if (!obj(w) || num(l.at) > num(w.at)) W.memo[id] = l; });
+  W.rw = unionMarks(W.rw || {}, Lo.rw || {});
+  W.xp = Math.max(num(W.xp), num(Lo.xp));
+  if (obj(Lo.best)) { W.best = obj(W.best) ? W.best : {}; Object.keys(Lo.best).forEach((k) => { W.best[k] = Math.max(num(W.best[k]), num(Lo.best[k])); }); }
+  return JSON.stringify(W);
+}
 function hasMergeRule(k) { return WALLET_KEYS.has(k) || CHAR_KEYS.has(k) || COUNT_KEYS.has(k) || MBR_KEYS.has(k) || BATTLE_KEYS.has(k)
-  || CLAIM_KEYS.has(k) || MAIL_KEYS.has(k) || SCOPE_KEYS.has(k) || MATE_KEYS.has(k) || ABYSS_KEYS.has(k); }
+  || CLAIM_KEYS.has(k) || MAIL_KEYS.has(k) || SCOPE_KEYS.has(k) || MATE_KEYS.has(k) || ABYSS_KEYS.has(k) || EVENT_KEYS.has(k) || CHEM_KEYS.has(k); }
 /* { id: 印 } を和で混ぜる（片方にしか無い印も残す。両方にあれば早いほうの時刻） */
 function unionMarks(a, b) {
   const out = {};
@@ -701,7 +761,11 @@ function mergeStore(uid, remote, remoteT) {
                         ? mergeMate(remoteWins ? rv : lv, remoteWins ? lv : rv)
                         : ABYSS_KEYS.has(k)
                           ? mergeAbyss(remoteWins ? rv : lv, remoteWins ? lv : rv)
-                          : mergeCharsInto(k, remoteWins ? rv : lv, remoteWins ? lv : rv);
+                          : EVENT_KEYS.has(k)
+                            ? mergeEvent(remoteWins ? rv : lv, remoteWins ? lv : rv)
+                            : CHEM_KEYS.has(k)
+                              ? mergeChem(remoteWins ? rv : lv, remoteWins ? lv : rv)
+                              : mergeCharsInto(k, remoteWins ? rv : lv, remoteWins ? lv : rv);
         }
         if (merged != null) {
           if (WALLET_KEYS.has(k)) newBase[k] = rv;      /* 土台は「クラウドに確かにある値」 */

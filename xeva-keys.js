@@ -139,6 +139,15 @@ export const PORTAL_SYNC_KEYS = [
      ★ 探索の途中の控え（magiabyss_run_v1）とバックアップ（_bak / _broken）は端末だけ（同期しない）。
      混ぜ方は xeva-cloud.js の mergeAbyss（経験値・クリア・図鑑・実績は減らさない）。 */
   "magiabyss_v1",
+  /* ★★ 2026-10-06 XEVARION 共通イベント（Violet Breeze など）の進み。ミッションの数・ログイン日・受け取り・パートナー割引の使用。
+     混ぜ方は xeva-cloud.js の mergeEvent（数は大きいほう・日付と受け取りは和）。
+     ★ 🎫の受け取りそのものは xeva_gticket_v1 の migrateOnce の印で守っている（二重に配らない）。 */
+  "xeva_event_v1",
+  /* ★★ 2026-10-06 新作 MagiChemLex（難関化学の学習）。問題ごとの記録・復習の予定・ブックマーク・メモ・本番セットの記録・設定。
+     混ぜ方は xeva-cloud.js の mergeChem（回数は大きいほう・ブックマークとメモは新しいほう・本番の記録は和）。 */
+  "magichemlex_v1",
+  /* ★★ 2026-10-06c MagiChemLex のメモ（手書きの線・文字・「次の問題で消す」）。新しいほうが勝つ（混ぜない） */
+  "magichemlex_pad_v1",
   /* ★★ 2026-09-17f MagiQuest は廃止（magiquest_v1 は同期しない。端末に残ったぶんはホームが消す） */
 ];
 

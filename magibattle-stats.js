@@ -180,7 +180,7 @@
     const fx = abil.map((a) => Object.assign({ t: a.t, el: a.el }, abilFx(a)));
     const star5 = !!(c.gacha || c.fes || c.star5);
     const p = {
-      id, nm: c.nm, img: c.img, th: c.th, el: c.el, el2: c.el2 || null,
+      id, nm: c.nm, img: c.img, th: c.th, wide: c.wide || null, el: c.el, el2: c.el2 || null,
       rar: star5 ? "SSR" : "SR", cls, burst, weapon: w, s2, tier,
       /* ★ 2026-10-05 表示するレアリティの文字（タキナだけ UR。判定は rar のまま） */
       rarNm: star5 && typeof rarLabel === "function" ? rarLabel(id) : (star5 ? "SSR" : "SR"),

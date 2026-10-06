@@ -85,7 +85,13 @@ body.xl-drawer-open .hm-over{visibility:hidden}
 .xl-apps{position:absolute;left:8px;right:8px;bottom:30px;display:grid;grid-template-columns:repeat(5,1fr);gap:5px;
   padding:7px 5px 6px;border-radius:18px;background:rgba(10,22,48,.42);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
   box-shadow:0 0 0 1.5px rgba(255,255,255,.22) inset}
-.xl-app{display:flex;flex-direction:column;align-items:center;gap:3px;min-width:0;padding:0;background:none;border:0;cursor:pointer;color:#fff}
+.xl-app{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;min-width:0;padding:0;background:none;border:0;cursor:pointer;color:#fff}
+/* ★★ 2026-10-05 NEW の印（XH_APPS の newUntil まで）。アイコンの右上に少しはみ出して付ける */
+.xl-new{position:absolute;top:-5px;right:calc(50% - min(31px,8.2vw) - 6px);z-index:2;padding:1px 5px;border-radius:7px;font-style:normal;font-size:9px;font-weight:900;letter-spacing:.04em;
+  color:#fff;background:linear-gradient(180deg,#ff5a7a,#e0204a);border:1.5px solid #12203d;box-shadow:0 2px 0 rgba(18,32,61,.35);animation:xlNewPop 1.6s ease-in-out infinite}
+@keyframes xlNewPop{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
+.hm-ap{position:relative}
+.hm-ap .xl-new{top:-4px;right:2px}
 .xl-app .ic{width:min(62px,16.4vw);aspect-ratio:1;border-radius:16px;   /* ★ 2026-09-25 少し大きく（52→62） */overflow:hidden;border:2.5px solid var(--yw-line,#12203d);
   box-shadow:0 0 0 1.5px rgba(255,255,255,.55) inset,0 3px 0 rgba(0,0,0,.3);background:#fff}
 .xl-app .ic img{width:100%;height:100%;object-fit:cover;display:block}
@@ -205,11 +211,14 @@ body.xl-drawer-open .xh-lobby{pointer-events:none}
 .hm-beta.in{position:static;display:inline-block;margin-left:6px;height:auto;padding:1px 7px;font-size:10px;line-height:1.4;vertical-align:2px}
 
 /* ── ★★ 2026-09-28 3D 会場への特設の入口（下のアプリの列のすぐ上・右寄せ） ── */
-.xl-expo{position:absolute;right:10px;bottom:calc(30px + min(62px,16.4vw) + 40px);display:flex;align-items:center;gap:7px;padding:5px 12px 5px 5px;
+/* ★★ 2026-10-06b ご指定で<b>左へ</b>移した（右はイベントのバナー）。NEW は外し、β版の札は右上の角に。
+   光の帯は .xl-shine の中だけで動かす（ボタン本体を overflow:hidden にすると角の札が切れる）。 */
+.xl-expo{position:absolute;left:12px;bottom:calc(30px + 2 * min(62px,16.4vw) + 74px);   /* ★★ 2026-10-05 アプリが2行になったぶん上へ */display:flex;align-items:center;gap:7px;padding:5px 14px 5px 5px;
   border-radius:99px;text-decoration:none;color:#fff;border:2.5px solid var(--yw-line,#12203d);
   background:linear-gradient(120deg,#1b2d6b,#4a2fa0 55%,#1b6b9a);box-shadow:0 0 0 1.5px rgba(160,220,255,.6) inset,0 4px 14px rgba(40,80,200,.45);
-  overflow:hidden;isolation:isolate}
-.xl-expo::before{content:"";position:absolute;inset:0;z-index:-1;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.35) 50%,transparent 70%);
+  isolation:isolate}
+.xl-expo .xl-shine{position:absolute;inset:0;border-radius:inherit;overflow:hidden;z-index:-1;pointer-events:none}
+.xl-expo .xl-shine::before{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.35) 50%,transparent 70%);
   transform:translateX(-120%);animation:xlShine 3.2s ease-in-out infinite}
 @keyframes xlShine{0%,55%{transform:translateX(-120%)}85%,100%{transform:translateX(120%)}}
 .xl-expo .orb{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.14)}
@@ -221,8 +230,8 @@ body.xl-drawer-open .xh-lobby{pointer-events:none}
 .xl-expo em{font-style:normal;font-size:9px;font-weight:900;padding:2px 6px;border-radius:99px;background:#ff5f8f;color:#fff;border:1.5px solid #12203d}
 .xl-expo:active{translate:0 2px}
 
-/* ★ 2026-09-28b 3D会場のボタンにも β 版の札 */
-.xl-expo .hm-beta.in{margin-left:0;font-size:9px;padding:1px 6px}   /* 札はボタンの中（ボタンは overflow:hidden で外に出すと切れた） */
+/* ★ 2026-09-28b 3D会場のボタンにも β 版の札 → ★★ 2026-10-06b ボタンの右上の角に（ご指定） */
+.xl-expo .xl-beta{position:absolute;right:-9px;top:-10px;height:auto;padding:1px 7px;font-size:9.5px;line-height:1.45;z-index:2}
 /* ★★ 2026-09-28b パートナーを変えたときの登場（キャラごとの特別な動き）＋きらきら */
 .hm-cv.hm-in-jump{animation:hmInJump 1.3s cubic-bezier(.3,1.4,.5,1) both}
 .hm-cv.hm-in-wave{animation:hmInRise 1.0s cubic-bezier(.2,1.1,.4,1) both}
@@ -239,3 +248,31 @@ body.xl-drawer-open .xh-lobby{pointer-events:none}
 .hm-spark i:nth-child(3n){width:14px;height:14px;left:-7px;top:-7px;background:conic-gradient(from 45deg,transparent 0 10%,#fff 12% 13%,transparent 15% 35%,#fff 37% 38%,transparent 40% 60%,#fff 62% 63%,transparent 65% 85%,#fff 87% 88%,transparent 90%)}
 @keyframes hmSpark{0%{opacity:0;transform:rotate(var(--a)) translateY(0) scale(.4)}20%{opacity:1}100%{opacity:0;transform:rotate(var(--a)) translateY(calc(-1 * var(--d))) scale(1.1)}}
 @media (prefers-reduced-motion: reduce){.hm-cv[class*="hm-in-"]{animation:none}.hm-spark{display:none}}
+
+/* ★★ 2026-10-06 イベントの札は紫に光る・受け取れる数の赤丸
+   ★★ 2026-10-06b PC で左上のバナーを大きくしたのは<b>元に戻した</b>（ご指定）。 */
+.xl-ban.ev { box-shadow: 0 0 0 1.5px #c9b6ff inset, 0 0 16px rgba(138,108,255,.6), 0 3px 0 rgba(18,32,61,.3); animation: xlEvGlow 2.4s ease-in-out infinite; }
+@keyframes xlEvGlow { 50% { box-shadow: 0 0 0 1.5px #fff inset, 0 0 24px rgba(138,108,255,.85), 0 3px 0 rgba(18,32,61,.3); } }
+.xl-ban[data-pend]:not([data-pend=""])::after { content: attr(data-pend); position: absolute; right: 4px; top: 4px; min-width: 17px; height: 17px; padding: 0 4px; border-radius: 99px;
+  background: #ff3b52; color: #fff; font-size: 10px; font-weight: 900; display: grid; place-items: center; box-shadow: 0 0 0 2px #fff; z-index: 2; }
+/* ★★ 2026-10-06b 開催中のイベントのバナー（もと XEVARION PARK のボタンの場所＝右下・アプリの列の上） */
+/* ★★ 2026-10-06c 少しだけ小さく（ご指定・196 → 170px）。EVENT の札は絵より前（z-index）——絵の .evb-im が後ろの要素なので上に重なっていた */
+.xl-evb{position:absolute;right:10px;bottom:calc(30px + 2 * min(62px,16.4vw) + 66px);width:min(37vw,170px);padding:0;border-radius:16px;overflow:visible;cursor:pointer;
+  border:2.5px solid var(--yw-line,#12203d);background:#2a1466;box-shadow:0 0 0 1.5px #c9b6ff inset,0 6px 18px rgba(110,80,230,.5);animation:xlEvGlow 2.4s ease-in-out infinite;color:#fff;text-align:left}
+.xl-evb[hidden]{display:none}
+.xl-evb .evb-im{display:block;position:relative;border-radius:13px 13px 0 0;overflow:hidden;aspect-ratio:900/483}
+.xl-evb .evb-im img{width:100%;height:100%;object-fit:cover;display:block;transform-origin:60% 40%;animation:xlEvKen 9s ease-in-out infinite alternate}
+@keyframes xlEvKen{to{transform:scale(1.08)}}
+.xl-evb .evb-im::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.4) 50%,transparent 70%);transform:translateX(-120%);animation:xlShine 3.6s ease-in-out infinite}
+.xl-evb .evb-bar{display:flex;align-items:center;gap:6px;padding:4px 8px 5px;border-radius:0 0 13px 13px;background:linear-gradient(100deg,#5a3ad8,#8a6cff 60%,#ff5fa2)}
+.xl-evb .evb-bar b{flex:1;min-width:0;font-size:10.5px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.xl-evb .evb-bar small{font-size:9.5px;font-weight:900;padding:1px 6px;border-radius:99px;background:rgba(255,255,255,.22);white-space:nowrap}
+.xl-evb .evb-tag{position:absolute;z-index:3;left:-8px;top:-10px;padding:1px 8px;border-radius:99px;font-size:9.5px;font-weight:900;letter-spacing:.06em;background:linear-gradient(100deg,#ff5fa2,#8a6cff);border:1.5px solid #12203d;box-shadow:0 2px 6px rgba(0,0,0,.25)}
+.xl-evb[data-pend]:not([data-pend=""])::after{content:attr(data-pend);position:absolute;right:-7px;top:-8px;min-width:19px;height:19px;padding:0 4px;border-radius:99px;
+  background:#ff3b52;color:#fff;font-size:11px;font-weight:900;display:grid;place-items:center;box-shadow:0 0 0 2px #fff;z-index:2}
+.xl-evb:active{translate:0 2px}
+/* パートナーの20%OFF */
+.hm-pk-ev { margin: 0 0 7px; padding: 7px 10px; border-radius: 10px; background: linear-gradient(100deg, #5a3ad8, #8a6cff 60%, #5ab8ff); color: #fff; font-size: 12px; line-height: 1.5; box-shadow: 0 4px 14px rgba(110,80,230,.3); }
+.hm-pk-ev b { color: #fff; }
+.hm-pk-item .lock s, .hm-pk-info s, .hm-pk-confirm s { opacity: .55; margin-right: 2px; }
+.hm-pk-confirm .q small.ev { color: #8a6cff; font-weight: 800; }

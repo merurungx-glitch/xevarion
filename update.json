@@ -1,16 +1,18 @@
 {
-  "version": "2026-10-05-1",
-  "date": "2026-10-05",
-  "title": "新作 MagiAbyss／極彩祭にタキナ",
+  "version": "2026-10-07-2",
+  "date": "2026-10-07",
+  "title": "新レアリティ UR「Sapphire Breeze」／MagiChemLex 大型アップデート／天井100",
   "notes": [
-    "新作 MagiAbyss（見下ろし型ドットアクションRPG）：冒険者ギルドから6つの迷宮へ・6種の武器と魔法の星脈共鳴ビルド・中ボスと最深部のボス・エンドコンテンツ「深淵踏破」・オフライン対応",
-    "MagiAbyss のキャラは極彩祭・極煌祭・極華祭の10体（所持と凸は XEVARION と共通、レベル・スキルツリー・装備はアプリ内）",
-    "極彩祭に限定SSR タキナ（水）：史上最大のフルバースト・治癒の祈り・オムニアンチ＋超アンチ減速壁・全属性有利・クロススキル",
-    "タキナは MagiBocciaRush・MagiAbyss でも最強",
-    "MagiBurst：アビリティ検索で止まることがあった不具合を修正"
+    "新ガチャ「Sapphire Breeze」（無期限・ガチャ一覧のいちばん上）：新レアリティ UR のヒバナ（木）・フキ（闇）と、極彩祭から移ったタキナ（水）が各1.0%／はじめての10連は無料・🎫フェスチケットも使える／フキのフルバーストは MagiBurst 史上最大／3体とも MagiBocciaRush・MagiAbyss・MagiBattle でも最強クラス",
+    "ガチャの天井（★星煌印）を150個→100個に／パートナーの開放を30,000→20,000 XEVA に値下げし、開放ずみの人数ぶんの差額を返金（ホームを開くと自動で受け取り）",
+    "UR の絵：キャラ詳細で SSR と同じ大きさの枠に横長の絵を大きく、顔のある側からゆっくり流して見せる（虹色の枠・UR の札）／タキナの横長の絵を新しく",
+    "ホーム・ガチャ：ガチャを開いたときは一覧のいちばん上から／下バーのガチャのアイコンをタキナに／左上のバナーを元の大きさに・XEVARION PARK のボタンは左・右下にイベント（Violet Breeze）のバナー／イベント画面にカウントダウン・ごほうびの道・ログインスタンプ",
+    "MagiChemLex：本番セット2と関連問題で全330問／「セット」タブ（改題は小問ごとに2〜3セットへ細かく分けた・一覧から解く・確認テスト）／出題も選択肢の並びもランダムに・未習得だけのモード／問題中のメモ／XEVA を約3.5倍／iPhone で下バーの下にすき間が出ないように・確認テストの文字のはみ出しを修正・スクロールバーをアプリの色にデザイン",
+    "MagiBocciaRush：試合開始の VS は左右に縦6人ずつ／奥・手前の壁に当たって場外に出たジャックは中央のクロスへ（クロスはコートの真ん中）／アドバイスは初めての試合だけ・BOX と矢印の表示をなくした・ボールの縁は凸の状況で（完凸で虹）",
+    "MagiLex：ビンゴカードの取得状況が反映されないことがあった不具合を修正（お詫びに🎫フェスチケット40枚をメールでお届け）"
   ],
-  "bytes": 67114169,
-  "files": 742,
+  "bytes": 70631515,
+  "files": 770,
   "urls": [
     "index.html",
     "characters.html",
@@ -59,6 +61,7 @@
     "xevarion-home.js",
     "gacha-live.js",
     "home-mate.js",
+    "xeva-event-ui.js",
     "home-mate.css",
     "home-mate/shoko/shoko.json",
     "home-mate/shoko/shoko.webp",
@@ -198,6 +201,10 @@
     "thumbs/MagiScope.jpg",
     "thumbs/MagiShift.jpg",
     "thumbs/MagiAbyss.jpg",
+    "thumbs/MagiChemLex.jpg",
+    "thumbs/VioletBreeze.jpg",
+    "events/violet_breeze.webp",
+    "events/violet_breeze_s.webp",
     "thumbs/MagiRanking.jpg",
     "thumbs/MagiCraft.jpg",
     "thumbs/MagiManor.jpg",
@@ -341,6 +348,8 @@
     "MagiBurst/img/ss/HikaruSS.webp",
     "MagiBurst/img/ss/MidukiSS.webp",
     "MagiBurst/img/ss/TakinaSS.webp",
+    "MagiBurst/img/ss/HibanaSS.webp",
+    "MagiBurst/img/ss/FukiSS.webp",
     "MagiBurst/img/ss/YajuSS.webp",
     "MagiBurst/img/ss/KokonaAlphaSS.webp",
     "img/Kaede.webp",
@@ -460,6 +469,7 @@
     "MagiBurst/img/bn_fes13_s.webp",
     "MagiBurst/img/bn_fes15_s.webp",
     "MagiBurst/img/bn_fes16_s.webp",
+    "MagiBurst/img/bn_fes17_s.webp",
     "MagiBurst/img/bn_fes14_s.webp",
     "img/t_Suzune.webp",
     "img/t_Minamo.webp",
@@ -574,6 +584,11 @@
     "img/t_Hikaru.webp",
     "img/t_Miduki.webp",
     "img/t_Takina.webp",
+    "img/Takina_w3.webp",
+    "img/t_Hibana.webp",
+    "img/Hibana_w.webp",
+    "img/t_Fuki.webp",
+    "img/Fuki_w.webp",
     "MagiBurst/img/eq_head.webp",
     "MagiBurst/img/eq_arm.webp",
     "MagiBurst/img/eq_body.webp",
@@ -739,12 +754,17 @@
     "MagiAbyss/js/ma-prog.js",
     "MagiAbyss/js/ma-render.js",
     "MagiAbyss/js/ma-ui.js",
+    "MagiAbyss/js/ma-town.js",
     "MagiAbyss/js/ma-guild.js",
+    "MagiAbyss/js/ma-stages.js",
+    "MagiAbyss/js/ma-howto.js",
     "MagiAbyss/js/ma-main.js",
     "MagiAbyss/img/title.webp",
     "MagiAbyss/img/title_blur.webp",
     "MagiAbyss/img/icon_s.webp",
     "img/Takina.webp",
+    "img/Hibana.webp",
+    "img/Fuki.webp",
     "img/Hinano.webp",
     "img/Hanon.webp",
     "img/Kokoha.webp",
@@ -753,13 +773,25 @@
     "img/Azusa.webp",
     "img/KumikoReina.webp",
     "img/Kagura.webp",
-    "img/Kotori.webp"
+    "img/Kotori.webp",
+    "MagiChemLex/index.html",
+    "MagiChemLex/manifest.webmanifest",
+    "MagiChemLex/css/mcl.css",
+    "MagiChemLex/js/mcl-data.js",
+    "MagiChemLex/js/mcl-data2.js",
+    "MagiChemLex/js/mcl-core.js",
+    "MagiChemLex/js/mcl-fig.js",
+    "MagiChemLex/js/mcl-ui.js",
+    "MagiChemLex/img/icon_192.png",
+    "MagiChemLex/img/apple-touch-icon.png"
   ],
   "apps": [
     "magiabyss",
+    "magibattle",
     "magibocciarush",
     "magiburst",
     "magichainparty",
+    "magichemlex",
     "magicounter",
     "magidiamond",
     "magidominiongrid",
@@ -775,8 +807,76 @@
     "tab:home",
     "xevynar"
   ],
-  "changedFiles": 114,
+  "changedFiles": 73,
   "history": [
+    {
+      "version": "2026-10-06-1",
+      "date": "2026-10-06",
+      "title": "共通イベント Violet Breeze／新作 MagiChemLex／MagiAbyss 大型アップデート",
+      "notes": [
+        "XEVARION 共通イベント「Violet Breeze」（〜10/31）：MagiLex・MagiChemLex の XEVA がすべて2倍・イベントミッションで🎫ガチャチケット最大20枚・パートナー1人ぶん20%OFF・ショップに限定パック（夏の学習キャンペーンは終了）",
+        "新作 MagiChemLex（難関化学の問題集・156問）：おすすめ出題・間隔反復の復習・本番セット・ヒントと図つきの解説・関連問題・関数電卓・公式カード／ホームは MagiCounter の左、MagiTier は「その他」へ",
+        "MagiAbyss 大型アップデート：広場・迷宮の地図・探索画面を一新／スマホは横画面＋スティックとボタン、PC はキー設定／ハードモード・クリア時間のミッション・5属性の有利不利・遊び方の説明",
+        "MagiBocciaRush：画面と演出を一新・ショットの矢印を大きく・予測の点線を出さない設定",
+        "タキナは UR 表記に。キャラ詳細などの大きな絵は横長の新しい絵に",
+        "ホーム：PC で左上のバナーを大きく・イベントのバナーをガチャの前に",
+        "MagiBurst：敵があらわれる瞬間に画面がちらつくことがあった不具合を修正"
+      ],
+      "apps": [
+        "magiabyss",
+        "magibattle",
+        "magibocciarush",
+        "magiburst",
+        "magichainparty",
+        "magichemlex",
+        "magicounter",
+        "magidiamond",
+        "magidominiongrid",
+        "magijackpot",
+        "magilex",
+        "magilotto",
+        "magimusic",
+        "magiscope",
+        "magishift",
+        "tab:chars",
+        "tab:community",
+        "tab:gacha",
+        "tab:home",
+        "xevynar"
+      ]
+    },
+    {
+      "version": "2026-10-05-1",
+      "date": "2026-10-05",
+      "title": "新作 MagiAbyss／極彩祭にタキナ",
+      "notes": [
+        "新作 MagiAbyss（見下ろし型ドットアクションRPG）：冒険者ギルドから6つの迷宮へ・6種の武器と魔法の星脈共鳴ビルド・中ボスと最深部のボス・エンドコンテンツ「深淵踏破」・オフライン対応",
+        "MagiAbyss のキャラは極彩祭・極煌祭・極華祭の10体（所持と凸は XEVARION と共通、レベル・スキルツリー・装備はアプリ内）",
+        "極彩祭に限定UR タキナ（水）：史上最大のフルバースト・治癒の祈り・オムニアンチ＋超アンチ減速壁・全属性有利・クロススキル",
+        "タキナは MagiBocciaRush・MagiAbyss でも最強",
+        "MagiBurst：アビリティ検索で止まることがあった不具合を修正"
+      ],
+      "apps": [
+        "magiabyss",
+        "magibocciarush",
+        "magiburst",
+        "magichainparty",
+        "magicounter",
+        "magidiamond",
+        "magidominiongrid",
+        "magijackpot",
+        "magilex",
+        "magilotto",
+        "magimusic",
+        "magiscope",
+        "magishift",
+        "tab:chars",
+        "tab:community",
+        "tab:gacha",
+        "tab:home",
+        "xevynar"
+      ]
+    },
     {
       "version": "2026-10-02-1",
       "date": "2026-10-02",
@@ -1084,42 +1184,6 @@
         "自動取得をセール情報から順に少しずつ届けるように",
         "値段がまだ取れていないときは画面でお知らせ",
         "register-task.bat に取得の進みぐあいを表示"
-      ],
-      "apps": [
-        "magiscope"
-      ]
-    },
-    {
-      "version": "2026-09-21-6",
-      "date": "2026-09-21",
-      "title": "MagiScope 好みのジャンル・絞り込みの✕",
-      "notes": [
-        "⭐ 好みのジャンルの項目を増やし、カテゴリーのボタンを押してから一覧で選ぶ形にしました",
-        "✕ 絞り込みの画面は右上の✕で閉じるようにしました"
-      ],
-      "apps": [
-        "magiscope"
-      ]
-    },
-    {
-      "version": "2026-09-21-5",
-      "date": "2026-09-21",
-      "title": "MagiScope おすすめ・ホームの18禁・履歴の絵",
-      "notes": [
-        "✨ おすすめを、お気に入り・閲覧履歴・好みのジャンル・検索・見た人が見る作品などから推測し、理由も出すようにしました",
-        "🔞 ホームのタブでだけ 18禁を隠せるようにしました",
-        "🖼️ 閲覧履歴・トレンドなどの FANZA・DLsite の絵を大きくしました"
-      ],
-      "apps": [
-        "magiscope"
-      ]
-    },
-    {
-      "version": "2026-09-21-4",
-      "date": "2026-09-21",
-      "title": "MagiScope サンプルの位置",
-      "notes": [
-        "🖼️ サンプル画像をお気に入り登録ボタンの上に出すようにしました"
       ],
       "apps": [
         "magiscope"

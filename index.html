@@ -19,16 +19,16 @@
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Exo+2:ital,wght@0,300;0,400;0,600;0,700;1,300&family=Noto+Sans+JP:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="xeva-theme.css?v=9">
 <link rel="stylesheet" href="xevarion.css?v=25">
-<link rel="stylesheet" href="xevarion-home.css?v=83">
+<link rel="stylesheet" href="xevarion-home.css?v=84">
 <!-- ★★ 2026-08-22b Xevion OS の見た目（テーマ・文字の大きさ・動きを減らす）。
      xevarion-home.css の<b>あと</b>に読む＝上書きできるようにする。 -->
 <link rel="stylesheet" href="xevion-os.css?v=15">
 <!-- ★★ 2026-09-24 ホームの「動くキャラ」（舞香）。中身は home-mate.js。 -->
-<link rel="stylesheet" href="home-mate.css?v=17">
-<script src="xeva.js?v=73" defer></script>
+<link rel="stylesheet" href="home-mate.css?v=19">
+<script src="xeva.js?v=75" defer></script>
 <!-- ★★ 2026-09-05 コレクションを XEVARION 全体で1本にする共通部品。
      xeva.js の iconCharList() を使うので、必ず xeva.js の<b>あと</b>に置く。 -->
-<script src="xeva-collection.js?v=7" defer></script>
+<script src="xeva-collection.js?v=8" defer></script>
 <!-- ★★ 2026-09-05 言語切りかえ（日本語 ⇄ English）。
      画面の中身はあとから JS が作るので、辞書を当てるのは MutationObserver。
      ★ 辞書（xeva-i18n-dict.js）は本体のあとに読むこと。 -->
@@ -48,7 +48,7 @@
 <script src="xeva-i18n-mb7.js?v=7"></script>
 <script src="xeva-i18n-p4.js?v=7"></script>
 <!-- ★★ 2026-09-06b 今回足したもの（新キャラ14体・装備・スタメンなど）の英語辞書 -->
-<script src="xeva-i18n-n1.js?v=13"></script>
+<script src="xeva-i18n-n1.js?v=14"></script>
 <script src="xeva-i18n-n2.js?v=3"></script>
 <!-- ★ 2026-08-20 通信設定（Wi-Fi／モバイルデータごとに「最新を取りに行くか」を決める）。
      決めた内容はここから各アプリの Service Worker へ送られ、SW 側が動きを切り替える。 -->
@@ -56,9 +56,9 @@
 <!-- ★ 2026-08-18 新キャラ告知の台帳（MagiBurst と共通）。
      告知を<b>ポータルのログイン時</b>に一本化したので、ここでも読む。
      defer なので xevarion.js より先に実行される（書いた順番で走る）。 -->
-<script src="mb-newchars.js?v=33" defer></script>
+<script src="mb-newchars.js?v=34" defer></script>
 <!-- ★★ 2026-09-25 ガチャの台帳（開催期間とバナー。make-gacha-live.py が mb-core.js から自動で作る）。ホーム左上のバナー用 -->
-<script src="gacha-live.js?v=1" defer></script>
+<script src="gacha-live.js?v=5" defer></script>
 <!-- ★★ 2026-08-22b Xevion OS（XEVARION の UI をひとつの OS として扱う土台）。
      ほかの画面より<b>先に</b>読む（body のクラスを立てるので、あとから読むと一瞬ちらつく）。 -->
 <script src="xevion-os.js?v=13"></script>
@@ -68,11 +68,13 @@
 <script type="module" src="xeva-sync.js?v=18"></script>
 <script type="module" src="xevarion-fb.js?v=33"></script>
 <script src="xeva-presence.js?v=9" defer></script>
-<script type="module" src="xeva-cloud.js?v=40"></script>
+<script type="module" src="xeva-cloud.js?v=42"></script>
 <script src="xeva-qr.js?v=9" defer></script>
-<script src="xevarion.js?v=96" defer></script>
-<script src="xevarion-home.js?v=153" defer></script>
-<script src="home-mate.js?v=18" defer></script>
+<script src="xevarion.js?v=98" defer></script>
+<script src="xevarion-home.js?v=157" defer></script>
+<script src="home-mate.js?v=20" defer></script>
+<!-- ★★ 2026-10-06 XEVARION 共通イベント（Violet Breeze）のページ。中身は xeva.js の XEVA.event -->
+<script src="xeva-event-ui.js?v=2" defer></script>
 </head>
 <body>
 <!-- ───── バックグラウンド音楽（Flagship Arrival。アクセス画面のタップで再生開始） ───── -->
@@ -445,10 +447,14 @@ body.music-on #beatFrame{opacity:1}
         <button class="xl-ic dia" onclick="HomeMate.cycleView()"><span class="i"><b>⤢</b></span><span class="l" id="xlViewLb">表示</span></button>
       </div>
       <!-- ★★ 2026-09-28 3D 会場（XEVARION WORLD CONFERENCE）への特設の入口（ご指定） -->
+      <!-- ★★ 2026-10-06b ご指定：左へ移す・NEW を外す・β版の札は右上の角 -->
       <a class="xl-expo" href="expo/index.html" aria-label="3Dパーク XEVARION PARK へ（β版）">
+        <span class="xl-shine" aria-hidden="true"></span>
         <span class="orb"><img src="brand-xevarion-orb.png" alt=""></span>
-        <span class="tx"><b>XEVARION PARK</b><small>3Dパークへ入る</small></span><em>NEW</em><i class="hm-beta in" title="β版">β版</i>
+        <span class="tx"><b>XEVARION PARK</b><small>3Dパークへ入る</small></span><i class="hm-beta xl-beta" title="β版">β版</i>
       </a>
+      <!-- ★★ 2026-10-06b 開催中の XEVARION イベントのバナーとボタン（もと PARK の場所・中身は home-mate.js の paintEventBtn） -->
+      <button class="xl-evb" id="xlEvb" hidden aria-label="開催中のイベント"></button>
       <!-- ★★ 2026-09-24c 下は<b>アプリ5つを1行</b>（設定 → ロビーのアプリ で入れかえ） -->
       <div class="xl-apps" id="xlApps"></div>
       <button class="xl-handle" id="xlHandle" onclick="xlOpenDrawer()" aria-label="メニューを開く"><span></span>メニュー</button>
@@ -1895,6 +1901,24 @@ body.music-on #beatFrame{opacity:1}
 
   <div class="nm-body" id="newsBody">
     <div class="nm-divider" id="newDivider" style="display:none;">NEW — 前回から更新</div>
+    <!-- 2026-10-07 新レアリティ UR「Sapphire Breeze」／MagiChemLex 大型アップデート／ホーム・ガチャ・パートナー・Boccia・MagiLex -->
+    <div class="nm-item" data-tag="new" data-date="2026-10-07">
+      <div class="nm-date">2026<br>10.07</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag new">NEW</span></div>
+        <div class="nm-title">💎 新レアリティ UR 登場「Sapphire Breeze」／MagiChemLex 大型アップデート／天井100・パートナー値下げ</div>
+        <div class="nm-txt">・<b>Sapphire Breeze</b>（無期限・ガチャ一覧のいちばん上）：新レアリティ <b>UR</b> の <b>ヒバナ（木）</b>・<b>フキ（闇）</b>と、極彩祭から移った <b>タキナ（水）</b>が各 <b>1.0%</b> で登場。<b>はじめての10連は無料</b>・🎫フェスチケットも使えます。フキのフルバーストは MagiBurst 史上最大。3体とも MagiBocciaRush・MagiAbyss・MagiBattle でも最強クラスです。<br>・ガチャの天井（★星煌印）を <b>150個 → 100個</b> に下げました（すでに100個以上ある人はすぐ交換できます）。<br>・パートナーの開放を <b>30,000 → 20,000 XEVA</b> に値下げしました。これまでに開放したパートナー1人につき<b>差額 10,000 XEVA を返金</b>します（Violet Breeze の20%OFFで開放した1人は 8,000 XEVA）。ホームを開くと自動で受け取れます。<br>・UR の絵：キャラ詳細で <b>SSR と同じ大きさの枠</b>に横長の絵を大きく出し、<b>顔のある側から</b>ゆっくり流して見せるようにしました（「全体」で絵の全体）。虹色の枠と UR の札つき。タキナの横長の絵も新しくしました。<br>・ガチャを開いたときは、一覧の<b>いちばん上</b>（いちばん新しいガチャ）から表示するようにしました。<br>・ホーム：下のバーのガチャのアイコンを<b>タキナ</b>に。左上のバナーを元の大きさに戻し、<b>XEVARION PARK</b> のボタンを左へ（β版の札は右上）。右下に開催中のイベント（Violet Breeze）のバナーを置きました。イベントの画面はカウントダウン・ごほうびの道・ログインスタンプつきで期間限定らしくしました。<br>・<b>MagiChemLex</b>：本番セット2（大問3つ）と関連問題を追加して<b>全330問</b>に。新しい「<b>セット</b>」タブ（改題は大問を<b>小問ごとに2〜3セット</b>へ分け、単元ごとの関連問題とあわせて一覧で見て解ける・<b>確認テスト</b>）、出題はシャッフル・<b>選択肢の並びも毎回ランダム</b>、<b>未習得だけ</b>のモード、関連問題の「次に出題」はもう一度押すと取り消し、問題中の<b>メモ</b>（手書き・文字・電卓・公式。紙を動かす・拡大・高さの調整）、ボタンを整理してアイコンを新しくし、もらえる <b>XEVA を約3.5倍</b>にしました。iPhone で<b>下のバーの下にすき間</b>が出ないようにし、確認テストの説明が画面の外へはみ出すことがあったのも直しました。スクロールバーもアプリの色（青→紫）にデザインしました。<br>・<b>MagiBocciaRush</b>：ジャックが奥・手前の壁に当たって場外に出たら<b>中央のクロスに戻す</b>ように。クロスをコートの真ん中へ。試合開始の VS は<b>左右に縦6人ずつ</b>並べて全員を表示。上のアドバイスは初めての試合だけ。BOX と矢印の表示をなくしました。ボールの縁は MagiBurst の凸で決まります（完凸で虹）。<br>・<b>MagiLex</b>：ビンゴカードの取得状況が反映されないことがあった不具合を直しました。お詫びに <b>🎫フェスチケット40枚</b>をメールでお届けしています。</div>
+      </div>
+    </div>
+    <!-- 2026-10-06 Violet Breeze／新作 MagiChemLex／MagiAbyss・MagiBocciaRush 大型アップデート／タキナ UR -->
+    <div class="nm-item" data-tag="new" data-date="2026-10-06">
+      <div class="nm-date">2026<br>10.06</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag new">NEW</span></div>
+        <div class="nm-title">💜 共通イベント「Violet Breeze」開催／新作 MagiChemLex／MagiAbyss・MagiBocciaRush 大型アップデート</div>
+        <div class="nm-txt">・<b>Violet Breeze</b>（10/6〜10/31・XEVARION 共通イベント）：期間中は <b>MagiLex・MagiChemLex で手に入る XEVA がすべて2倍</b>。新しいイベントミッション（7つ）をクリアすると <b>🎫ガチャチケットが最大20枚</b>。ホームのパートナーを<b>1人ぶん 20%OFF</b>で開放できます（イベント中1回）。ショップに Violet Breeze 限定のお得なパック（スターター・バリュー・セレクト）が並びます。ホーム左上のバナー（ガチャより前）から開けます。夏の学習キャンペーンは終了しました。<br>・<b>新作 MagiChemLex</b>（ホーム・MagiCounter の左）：難関大の化学を、入試問題の改題と関連問題（全156問）で鍛える学習アプリです。復習と新しい問題を自動で混ぜる「おすすめ」、忘れかけたころに出す間隔反復の復習、時間を計る本番セット、ヒントと図つきの解説・関連問題、関数電卓・定数表・公式カード、学習カレンダーとバッジ。オフラインでも使えます。<b>MagiTier</b> はアプリ一覧の「その他」へ移りました。<br>・<b>MagiAbyss 大型アップデート</b>：拠点の広場・迷宮えらびの地図・探索中の画面を作り直しました。スマホは横画面で、スティックとボタン（大きさ・濃さを設定で変えられます）、PC はキーの割り当てを変えられます。キャラ一覧と性能はスキルのアイコンでわかりやすく。<b>ハードモード</b>、<b>クリア時間のミッション</b>（ジェム）、XEVARION と共通の5属性の有利・不利、遊び方のアニメつき説明、ミニマップを押すと拡大。攻撃は向いている方向に出ます（設定で変更可）。<br>・<b>MagiBocciaRush</b>：画面と演出を一新（少し明るいデザイン・動きのある表示）。ショットの矢印を大きくし、ショットの予測の点線を出さない設定を追加しました。<br>・<b>タキナ</b>のレアリティ表記を <b>UR</b> に。キャラ詳細など大きく出る絵は横長の新しい絵になりました（アイコン・ボールの絵はそのまま）。<br>・PC ではホーム左上のバナーを大きくしました。<br>・MagiBurst：一部の敵があらわれる瞬間に、画面が一瞬ちらつくことがあった不具合を直しました。</div>
+      </div>
+    </div>
     <!-- 2026-10-05 新作 MagiAbyss／極彩祭に タキナ -->
     <div class="nm-item" data-tag="new" data-date="2026-10-05">
       <div class="nm-date">2026<br>10.05</div>

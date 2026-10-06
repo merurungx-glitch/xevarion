@@ -31,7 +31,9 @@ SWS = ["sw.js", "MagiLex/sw.js", "MagiBurst/sw.js", "MagiChainParty/sw.js", "XEV
        # ★★ 2026-09-21 新作 MagiShift（対戦ボードゲーム）
        "MagiShift/sw.js",
        # ★★ 2026-10-05 新作 MagiAbyss（見下ろし型ドットアクションRPG）
-       "MagiAbyss/sw.js"]
+       "MagiAbyss/sw.js",
+       # ★★ 2026-10-06 新作 MagiChemLex（難関化学の問題集）
+       "MagiChemLex/sw.js"]
 
 
 # ══════════════════════════════════════════════════════════════
@@ -57,7 +59,7 @@ FOLDER_APP = {
 # ★★ 2026-09-09 アプリではない<b>共通の置き場</b>。
 #   ここを見逃すと apps に "img" や "thumbs" が入り、
 #   どのタイルにも当たらない印が<b>消せないまま残る</b>。
-SHARED_DIRS = {"img", "thumbs", "brand", "icons", "home-mate", "expo"}   # ★ 2026-09-24 home-mate＝ホームの動くキャラ・09-28 expo＝3D 会場
+SHARED_DIRS = {"img", "thumbs", "brand", "icons", "home-mate", "expo", "events"}   # ★ 2026-09-24 home-mate＝ホームの動くキャラ・09-28 expo＝3D 会場・10-06 events＝共通イベントの絵
 # ルート直下のファイルは「どのタブの話か」に振り分ける（tab: を付けて区別する）
 ROOT_TAB = {
     "gacha.html": "tab:gacha", "gacha-ui.js": "tab:gacha",

@@ -146,7 +146,7 @@ function mbtEnsure() {
   if (window.__mbtLoading) return window.__mbtLoading;
   window.__mbtLoading = new Promise((res) => {
     const s = document.createElement("script");
-    s.src = MBD_BASE + "magibattle-stats.js?v=15";
+    s.src = MBD_BASE + "magibattle-stats.js?v=16";
     s.onload = () => res(); s.onerror = () => res();
     document.head.appendChild(s);
   });
@@ -158,7 +158,7 @@ function mdEnsure() {
   if (window.__mdLoading) return window.__mdLoading;
   window.__mdLoading = new Promise((res) => {
     const s = document.createElement("script");
-    s.src = "MagiDiamond/js/md2-data.js?v=13";
+    s.src = "MagiDiamond/js/md2-data.js?v=17";
     s.onload = () => res(); s.onerror = () => res();
     document.head.appendChild(s);
   }).then(() => {
@@ -179,7 +179,7 @@ function mbrEnsure() {
   if (window.__mbrLoading) return window.__mbrLoading;
   window.__mbrLoading = new Promise((res) => {
     const s = document.createElement("script");
-    s.src = "MagiBocciaRush/js/mbr-core.js?v=17";
+    s.src = "MagiBocciaRush/js/mbr-core.js?v=19";
     s.onload = () => res(); s.onerror = () => res();
     document.head.appendChild(s);
   });
@@ -306,8 +306,8 @@ function openDetX(id, keepGame) {
           下へスクロールすると絵ごと画面の外へ流れて<b>閉じるボタンが見えなくなっていた</b>。
           float:right ＋ position:sticky にして、どこまでスクロールしても右上に残るようにする。 */""}
     <button class="dx" onclick="closeDetX()" aria-label="とじる" title="とじる">✕</button>
-    <div class="dhero">
-      <img src="${c.img}" alt="${c.nm}">
+    <div class="dhero${c.wide ? " wide urx" : ""}">
+      <img src="${c.wide || c.img}" alt="${c.nm}"${c.wide ? ' class="urx-pan"' : ""}>${c.wide && typeof urDecor === "function" ? urDecor() : ""}
       ${/* ★★ 2026-08-22b レアリティは<b>SSR / SR</b> で統一（ご指定）。
             ★の本数はもう使っていない（クエストの難易度表示の★とまぎらわしいため）。 */""}
       <div class="dnm"><b>${c.nm}</b><span>${charNoText(id)}　<em class="drar ${s5 ? "ssr" : "sr"}">${typeof rarLabel === "function" ? rarLabel(id) : (s5 ? "SSR" : "SR")}</em>${awk ? (awk >= MAX_AWK ? "　👑完凸" : "　覚醒+" + awk) : ""}</span></div>

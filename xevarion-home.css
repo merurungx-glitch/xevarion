@@ -536,7 +536,10 @@ body.xh-off .xh-offline{display:flex}
   background:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M20 40c0-11 9-20 20-20s20 9 20 20-9 20-20 20c-7.4 0-13.4-6-13.4-13.4S32.6 33 40 33s11 4.9 11 11' fill='none' stroke='%232f7fe0' stroke-opacity='.11' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 10px top 8px/52px,var(--yw-cream)}
 /* シート内のグリッドはカード背景を外す（シート自体が地を持っているので二重にしない） */
 .xh-grid.sheet{background:none;box-shadow:none;border:none;padding:0;margin-bottom:6px}
-.xh-app{display:flex;flex-direction:column;align-items:center;gap:5px;padding:0;border:none;
+/* ★★ 2026-10-05 NEW の印（xhIsNewApp） */
+.xh-newb{position:absolute;top:-6px;right:calc(50% - 29px - 8px);z-index:3;padding:1px 6px;border-radius:7px;font-style:normal;font-size:9.5px;font-weight:900;letter-spacing:.04em;
+  color:#fff;background:linear-gradient(180deg,#ff5a7a,#e0204a);border:1.5px solid #12203d;box-shadow:0 2px 0 rgba(18,32,61,.35)}
+.xh-app{position:relative;display:flex;flex-direction:column;align-items:center;gap:5px;padding:0;border:none;
   background:none;cursor:pointer;min-width:0;text-decoration:none;color:inherit;
   font-family:'Noto Sans JP',sans-serif}
 .xh-sq{position:relative;width:100%;max-width:58px;aspect-ratio:1;border-radius:17px;overflow:hidden;

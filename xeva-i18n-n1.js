@@ -25,12 +25,21 @@
     "クレハ": "Kureha", "ミコト": "Mikoto", "メイ": "Mei", "ヒカル": "Hikaru", "ミヅキ": "Miduki",
     /* ★★ 2026-10-03 極彩祭 */
     "タキナ": "Takina",
+    /* ★★ 2026-10-07 Sapphire Breeze */
+    "ヒバナ": "Hibana", "フキ": "Fuki", "Sapphire Breeze": "Sapphire Breeze",
     "神癒の祈り": "Divine Prayer", "CRYSTAL ACADEMY FEST": "CRYSTAL ACADEMY FEST",
     "レナ": "Rena", "カオル": "Kaoru", "スバル": "Subaru", "カスミ": "Kasumi", "ツキノ": "Tsukino",
   };
 
   /* ── 新しいリンクスキル・サブリンク・フルバースト・ショットスキル ── */
   var SKILLS = {
+    /* ★★ 2026-10-07 Sapphire Breeze ヒバナ・フキ */
+    "ワスレナ・ハナカガリ": "Wasurena Hanakagari", "ワスレナ・スパーク": "Wasurena Spark",
+    "勿忘草のクロス": "Forget-me-not Cross", "勿忘草結紐型": "Forget-me-not Ribbon",
+    "ヨイヤミ・オボロザクラ": "Yoiyami Oborozakura", "ヨイヤミ・ペタル": "Yoiyami Petal",
+    "宵桜のクロス": "Dusk Sakura Cross", "宵桜制服型": "Dusk Sakura Uniform",
+    "蒼玉・サファイアネクサス": "Sapphire Nexus",
+    "UR Sapphire Breeze 限定": "UR — Sapphire Breeze only",
     /* ★★ 2026-10-03 極彩祭 タキナ */
     "キキョウ・スイテンカ": "Kikyou Suitenka",
     "キキョウ・リップル": "Kikyou Ripple",
@@ -152,7 +161,7 @@
     "FB遅延": "FB delay", "毒": "Poison",
 
     /* ══ MagiBurst：入手区分 ══ */
-    "SSR 極限定": "SSR — Kiwami fest only", "SSR EX降臨": "SSR — EX Raid drop",
+    "SSR 極限定": "SSR — Kiwami fest only", "UR 極限定": "UR — Kiwami fest only", "UR フェス限定": "UR — fest only", "SSR EX降臨": "SSR — EX Raid drop",
     "極限定": "Kiwami only", "フェス限定": "Fest only",
     "ガチャ限定": "Gacha only", "EX": "EX", "配布": "Gift", "報酬": "Reward",
 

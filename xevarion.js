@@ -179,6 +179,7 @@ const MISSION_META = {
   magijackpot_play:    { href: "MagiJackpot/index.html",           icon: "thumbs/MagiJackpot.jpg",    cta: "プレイ" },
   magilotto_buy:       { href: "MagiLotto/index.html",             icon: "thumbs/MagiLotto.jpg",      cta: "買ってみる" },
   magilex_play:        { href: "MagiLex/MagiLex.html",             icon: "thumbs/MagiLex.jpg",        cta: "学ぶ" },
+  magichemlex_play:    { href: "MagiChemLex/index.html",           icon: "thumbs/MagiChemLex.jpg",    cta: "学ぶ" },
   magifocus_study:     { href: "MagiFocus/index.html",             icon: "thumbs/MagiFocus.jpg",      cta: "はじめる" },
   xevynar_ask:         { href: "XEVYNAR/index.html",               icon: "thumbs/XEVYNAR.jpg",        cta: "きいてみる" },
   magilink_register:   { href: "MagiLink/MagiLink.html",           icon: "thumbs/MagiLink.jpg",       cta: "登録へ" },
@@ -2281,6 +2282,12 @@ function grantMbGift(srcId, mb) {
 }
 
 const INITIAL_MAILS = [
+  /* ── ★★ 2026-10-07 MagiLex ビンゴの不具合のお詫び（🎫フェスチケット40枚・ご指定）──
+     ★ mb:{ticket:40} ＝<b>フェスチケット</b>（フェス専用）。ガチャチケット（mb:{gticket}）ではない。
+     ★ 受け取った瞬間に XEVARION 共通ウォレット（XEVA.fesTicket）へ入る（grantMbGift）。 */
+  { id:"mail_lexbingo_apology_261007", icon:"🙇", title:"MagiLex ビンゴの不具合のお詫び（🎫フェスチケット40枚）", date:"2026-10-07",
+    body:"いつも XEVARION をご利用いただきありがとうございます。\n\nMagiLex のミッションビンゴで、ほかの端末で開けたマスや受け取ったラインが反映されないことがありました。ご不便をおかけして申し訳ありません。\n\n・同期で新しい記録が届いたときに、MagiLex の画面の記録を読み直すようにしました。\n・端末ごとに開けたビンゴのマス・受け取り・月の記録が、どちらの端末のぶんも残るようにしました。\n\nお詫びとして、全ユーザーに フェスチケット40枚 をお贈りします。新しい Sapphire Breeze ガチャでも使えます。",
+    mb:{ ticket:40 } },
   /* ── ★★ 2026-10-02 XEVARION PARK 大型アップデート記念（🎫ガチャチケット30枚・ご指定）──
      ★ mb:{gticket:30} ＝<b>ガチャチケット</b>（全ガチャ共通）。フェスチケット（mb:{ticket}）ではない。
      ★ 受け取った瞬間に XEVARION 共通ウォレット（XEVA.ticket）へ入る（grantMbGift）。 */

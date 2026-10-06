@@ -522,7 +522,8 @@
       }
     }
   };
-  const HM_COST = 30000;       /* ★★ 2026-09-24g パートナーの開放：1人 30,000 XEVA（ご指定・前は 15,000） */
+  const HM_COST = 20000;       /* ★★ 2026-09-24g パートナーの開放：1人 30,000 XEVA（ご指定・前は 15,000）→ ★★ 2026-10-06c 20,000 XEVA（ご指定） */
+  const HM_OLD_COST = 30000;   /* 値下げ前の値段（差額の返金に使う） */
   const HM_FREE = "shoko";     /* ★★ 2026-09-25 最初から使えるのは笙古だけ（ほかは全員 開放）。前に無料で選んだ子はそのまま */
   const HM_KEY = "xeva_mate_v1";
   const HM_LAST = "xeva_mate_last";   /* ランダム表示で前に出た子（端末ごと・同期しない） */
@@ -1381,6 +1382,30 @@
     return own.filter((id, i) => HM_MATES[id] && own.indexOf(id) === i);
   }
   function xevaBal() { try { return window.XEVA ? XEVA.getBalance() : 0; } catch (e) { return 0; } }
+  /* ══ ★★ 2026-10-06c パートナーの値下げ（30,000 → 20,000 XEVA）の差額返金（ご指定）══
+     値下げ前に開放した子 1人につき 10,000 XEVA を<b>アカウントで1回だけ</b>返す。
+     Violet Breeze の20%OFF（24,000）で買った1人は、いまなら 16,000 なので差は 8,000。
+     ・最初から使える笙古（HM_FREE）と、値下げ後に開放した子（st.paid に払った額がある）は対象外。
+     ・印は 💎ウォレットの mig（アカウントで同期）＝別の端末でもう一度返さない。
+     ・同期の前（own がまだ空）の端末で印だけ付かないよう、対象が0人なら何もしない。 */
+  const HM_REFUND_TAG = "mate-price-20000";
+  function refundOldPrice() {
+    try {
+      if (!window.XEVA || !XEVA.gem || !XEVA.gem.isMigrated || XEVA.gem.isMigrated(HM_REFUND_TAG)) return;
+      const st = store(), paid = st.paid || {};
+      const ids = owned().filter((id) => id !== HM_FREE && !Object.prototype.hasOwnProperty.call(paid, id));
+      if (!ids.length) return;
+      let amt = ids.length * (HM_OLD_COST - HM_COST);
+      let ev = {}; try { ev = JSON.parse(localStorage.getItem("xeva_event_v1") || "{}") || {}; } catch (e) {}
+      const usedCoupon = Object.keys(ev).some((k) => ev[k] && ev[k].cl && ev[k].cl.partner);
+      const newCoupon = Object.keys(paid).some((k) => paid[k] < HM_COST);
+      if (usedCoupon && !newCoupon) amt -= (HM_OLD_COST - HM_COST) - Math.round((HM_OLD_COST - HM_COST) * 0.8);   /* 24,000→16,000 の 8,000 にそろえる */
+      if (amt <= 0) return;
+      if (!XEVA.gem.migrateOnce(HM_REFUND_TAG, 0, "パートナー値下げの差額返金（印）")) return;
+      XEVA.add(amt, "パートナー値下げ（30,000→20,000 XEVA）の差額返金：" + ids.length + "人", { noRank: true });
+      setTimeout(() => { try { if (typeof xhToast === "function") xhToast("💜 パートナーの値下げにともない、差額 " + nf(amt) + " XEVA を返金しました（" + ids.length + "人ぶん）", 6000); } catch (e) {} }, 1200);
+    } catch (e) {}
+  }
   function nf(n) { return (n | 0).toLocaleString("ja-JP"); }
 
   /* ══════════════ ランダム表示（アプリを開くたびに、開放ずみの中から1人） ══════════════
@@ -1434,14 +1459,19 @@
       document.body.appendChild(sh);
       sh.addEventListener("click", (e) => { if (e.target === sh || e.target.closest(".hm-pk-x")) sh.classList.remove("on"); });
     }
+    /* ★★ 2026-10-06 イベント（Violet Breeze）中は<b>1人ぶん 20%オフ</b>（ご指定）。値段は XEVA.event.partnerPrice が決める */
+    const price = () => { try { if (window.XEVA && XEVA.event) return XEVA.event.partnerPrice(HM_COST); } catch (e) {} return HM_COST; };
+    const offEv = () => { try { return window.XEVA && XEVA.event ? XEVA.event.partnerOff() : null; } catch (e) { return null; } };
+    const priceTag = () => price() < HM_COST ? '<s>' + nf(HM_COST) + '</s> ' + nf(price()) : nf(HM_COST);
     const paint = () => {
-      const cur = api.current(), own = owned(), bal = xevaBal();
-      sh.querySelector(".hm-pk-info").innerHTML = '<b>' + HM_MATES[HM_FREE].name + '</b>は最初から選べます。ほかのパートナーは 1人 <b>' + nf(HM_COST) + ' XEVA</b> で開放できます。<br>' +
+      const cur = api.current(), own = owned(), bal = xevaBal(), ev = offEv();
+      sh.querySelector(".hm-pk-info").innerHTML = (ev ? '<div class="hm-pk-ev">💜 <b>' + ev.nm + '</b> 開催中：パートナー<b>1人ぶん ' + Math.round(ev.off * 100) + '%OFF</b>（' + nf(HM_COST) + ' → <b>' + nf(price()) + '</b> XEVA）</div>' : "") +
+        '<b>' + HM_MATES[HM_FREE].name + '</b>は最初から選べます。ほかのパートナーは 1人 <b>' + priceTag() + ' XEVA</b> で開放できます。<br>' +
         '開放ずみ <b>' + own.length + ' / ' + Object.keys(HM_MATES).length + '</b>人　・　所持 <b>' + nf(bal) + ' XEVA</b>';
       sh.querySelector(".hm-pk-list").innerHTML = Object.keys(HM_MATES).map((id) => {
         const m = HM_MATES[id], has = own.indexOf(id) >= 0, isCur = id === cur && has;
         const tag = isCur ? '<span class="now">' + (randomOn() ? "表示中" : "選択中") + '</span>'
-          : has ? "" : '<span class="lock">🔒 ' + nf(HM_COST) + ' XEVA</span>';
+          : has ? "" : '<span class="lock">🔒 ' + priceTag() + ' XEVA</span>';
         return '<button class="hm-pk-item' + (isCur ? " on" : "") + (has ? "" : " locked") + '" data-id="' + id + '" style="--c:' + m.color + '">' +
           '<span class="ph" style="background-image:url(' + asset(m, "bg.webp") + ')"><img data-id="' + id + '" src="' + asset(m, id + ".webp") + '" alt="" loading="lazy"></span>' +
           '<span class="nm">' + m.name + '<small>' + m.ruby + '</small></span><span class="ds">' + m.intro + "</span>" + tag + "</button>";
@@ -1464,16 +1494,20 @@
     const choose = (id) => {
       const own = owned();
       if (own.indexOf(id) >= 0) { api.setPartner(id, true); sh.classList.remove("on"); return; }
-      const m = HM_MATES[id], bal = xevaBal();
-      cf.querySelector(".q").innerHTML = "<b>" + m.name + "（" + m.ruby + "）</b>を<br><b>" + nf(HM_COST) + " XEVA</b> で開放しますか？<br><small>所持 " + nf(bal) + " XEVA" +
-        (bal < HM_COST ? "　—　<span class=\"ng\">あと " + nf(HM_COST - bal) + " XEVA 足りません</span>" : "　→　のこり " + nf(bal - HM_COST) + " XEVA") + "</small>";
+      const m = HM_MATES[id], bal = xevaBal(), cost = price(), ev = offEv();
+      cf.querySelector(".q").innerHTML = "<b>" + m.name + "（" + m.ruby + "）</b>を<br><b>" + priceTag() + " XEVA</b> で開放しますか？" + (ev && cost < HM_COST ? "<br><small class=\"ev\">💜 " + ev.nm + " の20%OFF を使います（イベント中1回だけ）</small>" : "") + "<br><small>所持 " + nf(bal) + " XEVA" +
+        (bal < cost ? "　—　<span class=\"ng\">あと " + nf(cost - bal) + " XEVA 足りません</span>" : "　→　のこり " + nf(bal - cost) + " XEVA") + "</small>";
       const yes = cf.querySelector(".yes");
-      yes.disabled = bal < HM_COST;
+      yes.disabled = bal < cost;
       yes.onclick = () => {
         let ok = false;
-        try { ok = !!(window.XEVA && XEVA.spend(HM_COST, "パートナー開放：" + m.name)); } catch (e) {}
+        try { ok = !!(window.XEVA && XEVA.spend(cost, "パートナー開放：" + m.name + (cost < HM_COST ? "（" + (ev ? ev.nm : "イベント") + " 20%OFF）" : ""))); } catch (e) {}
         if (!ok) { cf.classList.remove("on"); paint(); return; }
-        const st = store(); st.own = owned().concat([id]); save(st);
+        if (cost < HM_COST) { try { XEVA.event.usePartnerCoupon(); } catch (e) {} }
+        const st = store(); st.own = owned().concat([id]);
+        /* ★★ 2026-10-06c 値下げ後に払った額を控える（＝差額返金の対象外の目印） */
+        st.paid = Object.assign({}, st.paid || {}, { [id]: cost });
+        save(st);
         cf.classList.remove("on");
         api.setPartner(id, true); sh.classList.remove("on");
       };
@@ -1526,6 +1560,12 @@
     swipe(document.getElementById("xlHandle"), () => xlOpenDrawer(), null);   /* 「メニュー」を上へはらうと開く */
     document.addEventListener("keydown", (e) => { if (e.key === "Escape") xlCloseDrawer(); });
     paintBanners();
+    paintEventBtn();
+    /* ★★ 2026-10-06c 値下げの差額返金（同期のあとにも見る＝ほかの端末で開放した子も数える） */
+    setTimeout(refundOldPrice, 2500);
+    window.addEventListener("xeva:synced", () => setTimeout(refundOldPrice, 400));
+    window.addEventListener("xeva:event", paintEventBtn);
+    window.addEventListener("xeva:synced", paintEventBtn);
     renderLobbyApps();
     window.addEventListener("storage", (e) => { if (e.key === LOBBY_APPS_KEY) renderLobbyApps(); });
     paintViewLabel();
@@ -1560,11 +1600,30 @@
     const ai = out.findIndex((g) => g.key === "archive"); if (ai >= 0) out.push(out.splice(ai, 1)[0]);
     return out;
   }
+  /* ★★ 2026-10-06b 右下（もと XEVARION PARK のボタンの場所）：開催中のイベントのバナー（ご指定）。押すとイベントのページ */
+  function paintEventBtn() {
+    const b = document.getElementById("xlEvb"); if (!b) return;
+    let E = null; try { E = window.XEVA && XEVA.event && XEVA.event.cur(); } catch (e) {}
+    if (!E) { b.hidden = true; return; }
+    const end = new Date(E.to + "T23:59:59"), left = Math.max(0, Math.ceil((end - new Date()) / 86400000));
+    let pend = 0; try { pend = XEVA.event.pending(E.id); } catch (e) {}
+    b.hidden = false;
+    b.dataset.pend = pend ? String(pend) : "";
+    b.innerHTML = '<span class="evb-tag">EVENT</span><span class="evb-im"><img src="' + E.banner + '" alt=""></span><span class="evb-bar"><b>イベント開催中</b><small>のこり' + left + '日</small></span>';
+    b.onclick = () => { try { if (window.XOS) XOS.haptic(); } catch (e) {} if (window.XEVAEventUI) XEVAEventUI.open(E.id); else location.hash = "event"; };
+  }
+  function liveEvents() {
+    try {
+      if (!window.XEVA || !XEVA.event) return [];
+      return Object.keys(XEVA.event.DEFS).filter((id) => XEVA.event.active(id)).map((id) => { const E = XEVA.event.DEFS[id]; return { key: "ev_" + id, ev: id, banner: E.banner, nm: E.nm, t: "9999" }; });
+    } catch (e) { return []; }
+  }
   let banI = 0, banTimer = 0;
   function paintBanners() {
     const btn = document.getElementById("xlBan"), img = document.getElementById("xlBanImg"), dots = document.getElementById("xlBanDots");
     if (!btn || !img) return;
-    const gs = liveGachas();
+    /* ★★ 2026-10-06 開催中の XEVARION イベント（Violet Breeze など）の札を<b>ガチャの前</b>に（ご指定） */
+    const gs = liveEvents().concat(liveGachas());
     if (!gs.length) { btn.style.display = "none"; return; }
     btn.style.display = "";
     const show = () => {
@@ -1573,7 +1632,10 @@
       img.onload = () => img.classList.add("on");
       img.src = g.banner;
       img.alt = g.nm || "";
-      btn.onclick = () => { try { if (window.XOS) XOS.haptic(); } catch (e) {} location.href = "gacha.html#" + g.key; };
+      btn.onclick = () => { try { if (window.XOS) XOS.haptic(); } catch (e) {} if (g.ev) { if (window.XEVAEventUI) XEVAEventUI.open(g.ev); else location.hash = "event"; return; } location.href = "gacha.html#" + g.key; };
+      btn.classList.toggle("ev", !!g.ev);
+      const pend = (() => { try { return g.ev && window.XEVA && XEVA.event ? XEVA.event.pending(g.ev) : 0; } catch (e) { return 0; } })();
+      btn.dataset.pend = pend ? String(pend) : "";
       /* 点はガチャが多いと並びきらないので、8個までは点・それより多いと「3/12」 */
       if (dots) dots.innerHTML = gs.length <= 8 ? gs.map((_, j) => '<i class="' + (j === banI % gs.length ? "on" : "") + '"></i>').join("")
                                                 : '<b class="n">' + (banI % gs.length + 1) + "/" + gs.length + "</b>";
@@ -1631,8 +1693,32 @@
     requestAnimationFrame(() => sh.classList.add("on"));
   }
 
-  /* ══════════════ 下：ロビーのアプリ（5つ・設定で入れかえ） ══════════════ */
+  /* ══════════════ 下：ロビーのアプリ（2行×5つ・設定で入れかえ） ══════════════
+     ★★ 2026-10-05 下に1行ふやして <b>2行（10個）</b>に（ご指定）。2行目の既定は
+       MagiCounter・MagiAbyss・MagiShift・MagiChainParty・MagiTier。
+     ★★ 2026-10-06 → MagiChemLex・MagiCounter・MagiAbyss・MagiShift・MagiChainParty（下の LOBBY_ROW2_DEF）。
+     ★ 保存は今までと同じキー（並べた順の id の配列）。5つしか保存していない人は、2行目に既定の5つを出す。 */
   const LOBBY_APPS_KEY = "xeva_lobby_apps_v1";
+  const LOBBY_PER_ROW = 5, LOBBY_MAX = 10;
+  /* ★★ 2026-10-06 2行目を MagiChemLex・MagiCounter・MagiAbyss・MagiShift・MagiChainParty に（ご指定：MagiTier は「その他」へ・MagiChemLex は MagiCounter の左）。
+     ★ 前の既定の2行目（下の OLD）をそのまま保存している人は、一度だけ新しい既定に直す（自分で並べた人はそのまま）。 */
+  const LOBBY_ROW2_DEF = ["magichemlex", "magicounter", "magiabyss", "magishift", "magichainparty"];
+  const LOBBY_ROW2_OLD = ["magicounter", "magiabyss", "magishift", "magichainparty", "magitier"];
+  try {
+    if (localStorage.getItem("xeva_lobby_gen") !== "1006") {
+      const sv = JSON.parse(localStorage.getItem(LOBBY_APPS_KEY) || "null");
+      if (Array.isArray(sv) && sv.length > LOBBY_PER_ROW && sv.slice(LOBBY_PER_ROW).join(",") === LOBBY_ROW2_OLD.join(",")) {
+        localStorage.setItem(LOBBY_APPS_KEY, JSON.stringify(sv.slice(0, LOBBY_PER_ROW).concat(LOBBY_ROW2_DEF.filter((id) => sv.slice(0, LOBBY_PER_ROW).indexOf(id) < 0))));
+      }
+      localStorage.setItem("xeva_lobby_gen", "1006");
+    }
+  } catch (e) {}
+  /* NEW の印（XH_APPS の newUntil の日まで） */
+  function isNewApp(a) {
+    if (!a || !a.newUntil) return false;
+    const d = new Date(), t = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
+    return t <= a.newUntil;
+  }
   function appList() {
     try {
       const retired = typeof XH_RETIRED !== "undefined" ? XH_RETIRED : {};
@@ -1648,15 +1734,19 @@
       let def = null;
       try { if (typeof xhOrder === "function") def = xhOrder(); } catch (e) {}
       if (!Array.isArray(def) || !def.length) def = typeof XH_DEFAULT_ORDER !== "undefined" ? XH_DEFAULT_ORDER : all.map((a) => a.id);
-      ids = def.filter((id) => byId[id]).slice(0, 5);
+      ids = def.filter((id) => byId[id] && LOBBY_ROW2_DEF.indexOf(id) < 0).slice(0, LOBBY_PER_ROW);
     }
-    return ids.filter((id) => byId[id]).slice(0, 5).map((id) => byId[id]);
+    ids = ids.filter((id) => byId[id]);
+    /* 2行目を保存していない（今までの5つだけ）→ 既定の2行目をつなぐ（1行目と同じアプリは飛ばす） */
+    if (ids.length <= LOBBY_PER_ROW) ids = ids.concat(LOBBY_ROW2_DEF.filter((id) => byId[id] && ids.indexOf(id) < 0));
+    return ids.slice(0, LOBBY_MAX).map((id) => byId[id]);
   }
   function iconOf(a) { try { if (typeof xhAppIconSrc === "function") return xhAppIconSrc(a); } catch (e) {} return a.img; }
   function renderLobbyApps() {
     const box = document.getElementById("xlApps"); if (!box) return;
     const apps = lobbyApps();
-    box.innerHTML = apps.map((a) => '<button class="xl-app" data-id="' + a.id + '"><span class="ic"><img src="' + iconOf(a) + '" alt="" loading="lazy"></span><span class="nm">' + a.name + "</span></button>").join("");
+    box.innerHTML = apps.map((a) => '<button class="xl-app" data-id="' + a.id + '"><span class="ic"><img src="' + iconOf(a) + '" alt="" loading="lazy"></span>' + (isNewApp(a) ? '<em class="xl-new">NEW</em>' : "") + '<span class="nm">' + a.name + "</span></button>").join("");
+    box.classList.toggle("two", apps.length > LOBBY_PER_ROW);
     box.querySelectorAll(".xl-app").forEach((b) => b.addEventListener("click", () => {
       const a = apps.find((x) => x.id === b.dataset.id); if (!a) return;
       if (typeof xhOpenApp === "function") xhOpenApp(a.id, a.href); else location.href = a.href;
@@ -1668,10 +1758,10 @@
     if (!sh) {
       sh = document.createElement("div");
       sh.id = "hmAppPicker"; sh.className = "hm-picker";
-      sh.innerHTML = '<div class="hm-pk-card"><div class="hm-pk-head"><b>ロビーのアプリ（5つまで）</b>' +
+      sh.innerHTML = '<div class="hm-pk-card"><div class="hm-pk-head"><b>ロビーのアプリ（2行・10個まで）</b>' +
         '<button class="hm-pk-x" aria-label="閉じる">✕</button></div><div class="hm-ap-list"></div>' +
         '<div class="hm-ap-act"><button class="hm-ap-reset">はじめの並びに戻す</button><button class="hm-ap-save">保存する</button></div>' +
-        '<p class="hm-pk-note">押した順に左から並びます。もう一度押すと外れます。</p></div>';
+        '<p class="hm-pk-note">押した順に、上の行の左から並びます（6つ目からは下の行）。もう一度押すと外れます。</p></div>';
       document.body.appendChild(sh);
       sh.addEventListener("click", (e) => { if (e.target === sh || e.target.closest(".hm-pk-x")) sh.classList.remove("on"); });
     }
@@ -1680,12 +1770,12 @@
       sh.querySelector(".hm-ap-list").innerHTML = appList().map((a) => {
         const i = sel.indexOf(a.id);
         return '<button class="hm-ap' + (i >= 0 ? " on" : "") + '" data-id="' + a.id + '"><span class="ic"><img src="' + iconOf(a) + '" alt="" loading="lazy">' +
-          (i >= 0 ? "<b>" + (i + 1) + "</b>" : "") + '</span><span class="nm">' + a.name + "</span></button>";
+          (i >= 0 ? "<b>" + (i + 1) + "</b>" : "") + '</span>' + (isNewApp(a) ? '<em class="xl-new">NEW</em>' : "") + '<span class="nm">' + a.name + "</span></button>";
       }).join("");
       sh.querySelectorAll(".hm-ap").forEach((b) => b.addEventListener("click", () => {
         const id = b.dataset.id, i = sel.indexOf(id);
         if (i >= 0) sel.splice(i, 1);
-        else if (sel.length < 5) sel.push(id);
+        else if (sel.length < LOBBY_MAX) sel.push(id);
         else { b.classList.add("full"); setTimeout(() => b.classList.remove("full"), 300); return; }
         paint();
       }));
@@ -1764,7 +1854,8 @@
     openPicker,
     openAppPicker,
     openInfo,
-    liveGachas
+    liveGachas,
+    refreshBanners() { try { paintBanners(); paintEventBtn(); } catch (e) {} }
   };
   window.HomeMate = api;
   const boot = () => {
