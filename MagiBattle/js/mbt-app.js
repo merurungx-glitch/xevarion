@@ -367,7 +367,7 @@
       return '<div class="gs' + (g ? " on" : "") + '" data-p="' + pt + '" style="--gc:' + (g ? TIER_C[g.t] : "#fff") + '"><div class="gi">' + gearIcon(pt, g ? g.t : 0) + '</div><div class="gp">' + M().GEAR_PART[pt].nm + "</div>"
         + (g ? '<div class="gt">T' + g.t + (g.lv ? "+" + g.lv : "") + '</div><div class="gsub">' + (g.subs || []).map((x) => M().GEAR_FX[x.e].short).join("・") + "</div>" : '<div class="gsub">なし</div>') + "</div>";
     }).join("");
-    openSheet('<div class="dhero"><img src="' + esc(p.img) + '" alt=""><div class="nmb"><b>' + esc(p.nm) + "</b><span>" + (own ? "Lv." + lv + (aw ? "・" + (aw >= 4 ? "完凸" : aw + "凸") : "") : "未所持") + "</span></div>"
+    openSheet('<div class="dhero' + (p.wide ? " wide urx" : "") + '"><img src="' + esc(p.wide || p.img) + '" alt=""' + (p.wide ? ' class="urx-pan"' : "") + ">" + (p.wide && typeof urDecor === "function" ? urDecor() : "") + '<div class="nmb"><b>' + esc(p.nm) + "</b><span>" + (own ? "Lv." + lv + (aw ? "・" + (aw >= 4 ? "完凸" : aw + "凸") : "") : "未所持") + "</span></div>"
       + '<div class="rar ' + (p.rar === "SSR" ? "ssr" : "") + '">' + (p.rarNm || p.rar) + "</div></div>"
       + (own ? '<div class="lvrow"><div class="lvl"><div class="lvb">Lv.' + lv + '</div><small>育成 Lv.' + olv + "</small></div>"
         + '<div style="flex:1;min-width:0"><div class="xpbar"><i style="width:' + pr.toFixed(0) + '%"></i></div>'

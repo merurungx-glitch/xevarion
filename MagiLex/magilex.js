@@ -33,11 +33,16 @@ function volumeBadge(total){
   const m = volumeMult(total);
   return m > 1 ? `<span class="vol-badge">${total>=100?"100問以上":"50問以上"} XEVA×${m}</span>` : "";
 }
-// ── 🌻 夏の学習キャンペーン：期間中は MagiLex で得られる XEVA がすべて2倍 ──
-/* ★ 2026-08-20 ご指定により XEVA2倍を <b>10/31 まで延長</b>（8/31 → 10/31）。
-   ★ ポータル側のお知らせ（xevarion-home.js の CAMPAIGN イベント）にも同じ日付が書いてあるので、<b>かならず両方</b>直すこと。片方だけだと 9/1 に案内だけ消える。 */
-const CAMPAIGN = { name:"夏の学習キャンペーン", mult:2, from:"2026-07-01", to:"2026-10-31" };
-function campaignActive(){ const t=new Date().toISOString().slice(0,10); return t>=CAMPAIGN.from && t<=CAMPAIGN.to; }
+// ── 💜 XEVARION 共通イベント「Violet Breeze」：期間中は MagiLex 系統で得られる XEVA がすべて2倍 ──
+/* ★★ 2026-10-06 夏の学習キャンペーン（7/1〜）は<b>終了</b>し、Violet Breeze（10/6〜10/31）に引きついだ（ご指定）。
+   ★ イベントの日付・倍率の台帳は xeva.js の XEVA.event（EVENT_DEFS）。ここはそれを見る（読めないときだけ下の日付）。
+   ★ 日付はローカル（日本時間）で比べる。前は toISOString（UTC）だったので 0〜9時は前の日あつかいだった。 */
+const CAMPAIGN = { name:"Violet Breeze", mult:2, from:"2026-10-06", to:"2026-10-31" };
+function campaignActive(){
+  try{ if(window.XEVA && XEVA.event) return XEVA.event.lexMult() > 1; }catch(e){}
+  const d=new Date(), t=d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+  return t>=CAMPAIGN.from && t<=CAMPAIGN.to;
+}
 function rw(n){ return campaignActive() ? n*CAMPAIGN.mult : n; }   // 表示・付与共通の実効報酬
 const N_OPTS = 5;   // クイズの選択肢数（答え＋最大4誤答＝4〜5択）＋「わからない」
 // 正誤・解説表示後に自動で次へ進む設定（設定画面でオンオフ・秒数を変更可）
@@ -244,7 +249,7 @@ function getAcc(){ return window.XEVA ? (window.XEVA.account.get()||{}) : {}; }
 function bal(){ return window.XEVA ? window.XEVA.getBalance() : 0; }
 function earn(n, msg, gold){
   const amt = rw(n);   // 🌻 キャンペーン中は2倍で付与
-  if(amt>0 && window.XEVA) window.XEVA.add(amt, "MagiLex "+(msg||"学習")+(campaignActive()&&n>0?"（夏キャン2倍）":""));
+  if(amt>0 && window.XEVA) window.XEVA.add(amt, "MagiLex "+(msg||"学習")+(campaignActive()&&n>0?"（Violet Breeze 2倍）":""));
   renderTop();
   if(msg) toast((amt>0?"＋"+amt+" XEVA"+(campaignActive()&&n>0?" 2倍!":"")+"｜":"")+msg, gold);
 }
@@ -591,6 +596,79 @@ function migrateRenamedSids(){
   if(moved) save();
 }
 function loadLocal(){ try{ const r=localStorage.getItem(LS_KEY); if(r){ P=Object.assign(freshProgress(), JSON.parse(r)); } }catch(e){} try{ migrateRenamedSids(); }catch(e){} }
+/* ══ ★★ 2026-10-06c 端末をまたいだ合流（ご指定「ビンゴカードの取得状況が反映されないことがある」）══
+   セーブ（magilex_v2）は「新しいほうが丸ごと勝つ」同期なので、ほかの端末で開けたビンゴのマス・受け取ったライン・
+   月の数え表・ログインの記録・日ごとの記録が、あとから保存した端末の写しに負けて消えることがあった。
+   勝った側（winStr）を土台に、負けた側（loseStr）にしか無いぶんを足し戻す（増えるいっぽうの記録だけ）。
+   magilex-cloud.js の rescue と、下の appcloud:restored の両方から使う。変える所が無ければ null。 */
+window.lexMergeProg = function(winStr, loseStr){
+  let W, Lo;
+  try{ W = JSON.parse(winStr); Lo = JSON.parse(loseStr); }catch(e){ return null; }
+  if(!W || !Lo || typeof W !== "object" || typeof Lo !== "object") return null;
+  let ch = false;
+  /* ビンゴ：同じ月のカードなら、開いたマス・受け取ったライン・コンプリートを合わせる（受け取りも合わせる＝二重に受け取らない） */
+  const wb = W.bingo, lb = Lo.bingo;
+  if(lb && lb.m){
+    if(!wb || !wb.m || lb.m > wb.m){ W.bingo = lb; ch = true; }
+    else if(wb.m === lb.m && Array.isArray(wb.cells) && Array.isArray(lb.cells) && wb.cells.join() === lb.cells.join()){
+      ["open", "lines"].forEach((f) => {
+        const a = wb[f] = wb[f] || {}, b = lb[f] || {};
+        Object.keys(b).forEach((k) => { if(b[k] && !a[k]){ a[k] = b[k]; ch = true; } });
+      });
+      if(lb.all && !wb.all){ wb.all = lb.all; ch = true; }
+    }
+  }
+  /* 月の数え表（科目べつの解答数・全問正解の回数）は大きいほう */
+  if(Lo.bmc && typeof Lo.bmc === "object"){
+    W.bmc = (W.bmc && typeof W.bmc === "object") ? W.bmc : {};
+    Object.keys(Lo.bmc).forEach((m) => {
+      const a = W.bmc[m] = W.bmc[m] || {}, b = Lo.bmc[m] || {};
+      Object.keys(b).forEach((k) => { if((b[k] || 0) > (a[k] || 0)){ a[k] = b[k]; ch = true; } });
+    });
+  }
+  /* 日ごとの記録（解いた・正解・XEVA…）は項目ごとに大きいほう */
+  if(Lo.days && typeof Lo.days === "object"){
+    W.days = (W.days && typeof W.days === "object") ? W.days : {};
+    Object.keys(Lo.days).forEach((d) => {
+      const a = W.days[d] = W.days[d] || {}, b = Lo.days[d] || {};
+      Object.keys(b).forEach((k) => { if(typeof b[k] === "number" && b[k] > (a[k] || 0)){ a[k] = b[k]; ch = true; } });
+    });
+  }
+  /* ログイン：最後に開いた日が新しいほう（同じ日なら連続日数の大きいほう）。通算・最長は大きいほう */
+  if(Lo.login && Lo.login.last){
+    const a = W.login = W.login || { last:"", streak:0, total:0, best:0 }, b = Lo.login;
+    if(b.last > (a.last || "") || (b.last === a.last && (b.streak || 0) > (a.streak || 0))){ a.last = b.last; a.streak = b.streak || 0; ch = true; }
+    if((b.total || 0) > (a.total || 0)){ a.total = b.total; ch = true; }
+    if((b.best || 0) > (a.best || 0)){ a.best = b.best; ch = true; }
+  }
+  /* 確認テストのごほうびを受け取った記録（ほかの端末で受け取ったぶん） */
+  if(Lo.confirmDone && typeof Lo.confirmDone === "object"){
+    W.confirmDone = (W.confirmDone && typeof W.confirmDone === "object") ? W.confirmDone : {};
+    Object.keys(Lo.confirmDone).forEach((k) => { if(Lo.confirmDone[k] && !W.confirmDone[k]){ W.confirmDone[k] = Lo.confirmDone[k]; ch = true; } });
+  }
+  return ch ? JSON.stringify(W) : null;
+};
+/* ★★ 2026-10-06c クラウドから新しいセーブが届いたら（appcloud:restored）手元の P を読み直す。
+   これまでは起動時に1回読むだけだったので、届いたあとも古い P のまま次の save() でクラウドを上書きし、
+   ほかの端末で開けたビンゴのマスや受け取りが消えることがあった（MagiBocciaRush の SAVE の写しと同じ型）。
+   問題を解いている途中だけは手元を土台に、ビンゴ・数え表・ログイン・日ごとの記録だけを足し戻す。 */
+window.addEventListener("appcloud:restored", (e) => {
+  try{
+    if(!e || !e.detail || e.detail.app !== "magilex") return;
+    const raw = localStorage.getItem(LS_KEY); if(!raw) return;
+    const cur = (Array.isArray(nav) && nav[nav.length - 1]) || { name:"home" };
+    if(cur.name === "quiz"){
+      const fixed = window.lexMergeProg(JSON.stringify(P), raw);
+      if(fixed){ P = Object.assign(freshProgress(), JSON.parse(fixed)); save(); }
+    }else{
+      loadLocal();
+      try{ render(cur.name, cur.arg); }catch(e2){}
+    }
+    try{ mlBingoSync(); }catch(e2){}
+    try{ renderTop(); }catch(e2){}
+    if(document.getElementById("mlBingoOv")){ try{ lexBingoOpen(); }catch(e2){} }
+  }catch(err){}
+});
 function save(){ P.updatedAt=Date.now(); try{ localStorage.setItem(LS_KEY, JSON.stringify(P)); }catch(e){} }
 
 // ============================================================
@@ -782,8 +860,8 @@ function renderHome(){
     <div class="camp-bn" onclick="showLexHowto(true)">
       <span class="cb-sun">${uiIconSVG('sun')}</span>
       <div class="cb-bd">
-        <b>夏の学習キャンペーン開催中！</b>
-        <p>期間中（〜${CAMPAIGN.to.slice(5).replace("-","/")}）は獲得XEVAが<span class="cb-x2">すべて×2</span>！</p>
+        <b>Violet Breeze 開催中！</b>
+        <p>期間中（〜${CAMPAIGN.to.slice(5).replace("-","/")}）は獲得XEVAが<span class="cb-x2">すべて×2</span>！ イベントミッションで🎫最大20枚</p>
       </div>
     </div>` : "";
   /* ★★ 2026-08-26 KP のバナー。押すと KP交換所へ。
@@ -963,12 +1041,12 @@ window.lexKpDetail = async function(id){
   try{
     if(!document.getElementById("mbDetCss")){
       const l = document.createElement("link");
-      l.id = "mbDetCss"; l.rel = "stylesheet"; l.href = "../mb-char-detail.css?v=24";
+      l.id = "mbDetCss"; l.rel = "stylesheet"; l.href = "../mb-char-detail.css?v=26";
       document.head.appendChild(l);
     }
     if(typeof window.DB === "undefined") await _loadScript("../mb-boot.js?v=17");
-    if(typeof window.CHARS === "undefined") await _loadScript("../MagiBurst/js/mb-core.js?v=130");
-    if(typeof window.openDetX !== "function") await _loadScript("../mb-char-detail.js?v=37");
+    if(typeof window.CHARS === "undefined") await _loadScript("../MagiBurst/js/mb-core.js?v=134");
+    if(typeof window.openDetX !== "function") await _loadScript("../mb-char-detail.js?v=41");
     _kpDetReady = true;
     _kpOpen(id);
   }catch(e){
@@ -1999,7 +2077,7 @@ function renderDetail(){
   $("#scr-detail").innerHTML=`
     <div class="back-row stick"><button class="back-btn" onclick="lexBack()">←</button><h2>${subjIcon(c,"big")} ${esc(c.name)}</h2></div>
     <div class="set-card"><div style="font-weight:800;font-size:.86rem;margin-bottom:10px">習得メーター</div>${meterHTML(c)}
-      <div class="vol-note">${uiIconSVG('trophy')} 完全習得で <b>＋${rw(masterReward(c)).toLocaleString()} XEVA</b>${volumeMult(c.total)>1?`（${c.total}問のボリュームボーナス <b>×${volumeMult(c.total)}</b>）`:""}${campaignActive()?"（夏キャン2倍込み）":""}</div>
+      <div class="vol-note">${uiIconSVG('trophy')} 完全習得で <b>＋${rw(masterReward(c)).toLocaleString()} XEVA</b>${volumeMult(c.total)>1?`（${c.total}問のボリュームボーナス <b>×${volumeMult(c.total)}</b>）`:""}${campaignActive()?"（Violet Breeze 2倍込み）":""}</div>
       <div class="reset-row">
         <div class="reset-tx">${uiIconSVG('redo')} <b>リセットして もう一度</b>
           <p>習得状況をまっさらに戻します。もう一度 完全習得すれば <b>XEVAを再度もらえます</b>${resetCountOf(c)?`　<span class="reset-n">いま ${resetCountOf(c)+1} 周目</span>`:""}</p>
@@ -2411,6 +2489,8 @@ function scheduleAutoNext(correct){
 }
 function recordAnswer(it, correct){
   P.totals.answered++; if(correct){ P.totals.correct++; quiz.ok++; }
+  /* ★★ 2026-10-06 イベントミッション「MagiLex で問題に50問答える」（Violet Breeze） */
+  try{ if(window.XEVA && XEVA.event) XEVA.event.bump("lexAns", 1); }catch(e){}
   /* その日ぶんも数えておく（カレンダーで日ごとに見られるように） */
   try{ const d=dayLog(); d.a++; if(correct) d.c++; }catch(e){}
   /* ★★ 2026-08-22 ビンゴの「数学を50問とく」などのために、科目べつにも数える。
@@ -2528,7 +2608,7 @@ function finishQuiz(){
   let demoted=0;
   if(!P.missionDone){ P.missionDone=true; save(); if(window.XEVA){ const r=window.XEVA.completeMission("magilex_play");
     if(r>0){ let tot=r;
-      if(campaignActive()){ window.XEVA.add(r, "MagiLex ミッション 夏キャン2倍ボーナス"); tot=r*2; }   // 🌻 ミッションも2倍
+      if(campaignActive()){ window.XEVA.add(r, "MagiLex ミッション Violet Breeze 2倍ボーナス"); tot=r*2; }   // 🌻 ミッションも2倍
       toast("🎉 ミッション達成！＋"+tot+" XEVA"+(campaignActive()?" 2倍!":""),true); } } }
   let rwd=0, rmsg="";
   if(quiz.src==="mix"){ P.mixHist=P.mixHist||[]; P.mixHist.unshift({date:todayStr(),ok,tot:n,pct}); if(P.mixHist.length>30) P.mixHist.length=30; save();
@@ -2637,7 +2717,7 @@ function finishQuiz(){
       <div class="big">${grade}</div>
       <div class="score">${ok} / ${n} 正解（${pct}%）</div>
       ${confHTML}
-      ${rwd>0?`<div class="rwd"><img src="../XEVA.png" alt="">＋${rw(rwd)} XEVA${campaignActive()?' <span style="font-size:.7em;color:#e0157a;font-weight:800">🌻夏キャン2倍!</span>':''}</div>`:""}
+      ${rwd>0?`<div class="rwd"><img src="../XEVA.png" alt="">＋${rw(rwd)} XEVA${campaignActive()?' <span style="font-size:.7em;color:#e0157a;font-weight:800">💜Violet Breeze 2倍!</span>':''}</div>`:""}
       ${demoted?`<div class="demote">📖 不合格だったので、まちがえた <b>${demoted}</b> 問を<b>習得中</b>にもどしました。<br>覚え直して完全習得にすると、また確認テストを受けられます。</div>`:""}
       ${missHTML}
       <div class="acts">
@@ -2678,7 +2758,7 @@ function confirmTestCardHTML(c){
       <div class="ct-t">🎓 確認テスト ${got?'<span class="ct-ok">受取済み</span>':`<span class="ct-go">＋${rw(confirmReward(c)).toLocaleString()} XEVA</span>`}</div>
       <p class="ct-p">
         <b>全${c.total}問</b>をまとめて出題します。<b>全問正解</b>で <b>＋${rw(confirmReward(c)).toLocaleString()} XEVA</b>
-        ${volumeMult(c.total)>1?`（${c.total}問のボリュームボーナス <b>×${volumeMult(c.total)}</b>）`:""}${campaignActive()?"（夏キャン2倍込み）":""}。
+        ${volumeMult(c.total)>1?`（${c.total}問のボリュームボーナス <b>×${volumeMult(c.total)}</b>）`:""}${campaignActive()?"（Violet Breeze 2倍込み）":""}。
         ${got?"この周では受け取り済みです（リセットするともう一度もらえます）。":""}
         <b>1問でもまちがえると報酬はなく、まちがえた問題は「習得中」にもどります</b>（覚え直して完全習得にすると、また受けられます）。
       </p>
@@ -3017,7 +3097,7 @@ window.lexReset=async ()=>{
 function howtoSlides(){
   const camp=campaignActive();
   const rewHTML=(base)=> camp
-    ? `<span class="lh-old">+${base}</span> <span class="lh-arrow">➜</span> <b class="lh-new">+${base*CAMPAIGN.mult} XEVA</b> <span class="lh-x2bdg">🌻×2</span>`
+    ? `<span class="lh-old">+${base}</span> <span class="lh-arrow">➜</span> <b class="lh-new">+${base*CAMPAIGN.mult} XEVA</b> <span class="lh-x2bdg">💜×2</span>`
     : `+${base} XEVA`;
   const slides=[
     { ic:"📝", color:"#6b5bd2", title:"登録ボーナス",       sub:"MagiLex に初めて入ると",              rew:rewHTML(REWARD.reg) },
@@ -3032,7 +3112,7 @@ function howtoSlides(){
   slides.push({ ic:"💠", color:"#3c4bb0", title:"Knowledge Point（KP）",
     sub:`完全習得 +${KP_MASTER} ／ 確認テスト合格 +${KP_CONFIRM}。${KP_CHAR_COST}KPでキャラ・${KP_TICKET_COST}KPで🎫`,
     rew:'<b class="lh-new">KP交換所へ</b>' });
-  if(camp) slides.push({ ic:"🌻", color:"#ff8a3d", title:"夏の学習キャンペーン", sub:`期間中（〜${CAMPAIGN.to.slice(5).replace("-","/")}）は上の報酬が`, rew:'<b class="lh-new">すべて ×2 !</b>' });
+  if(camp) slides.push({ ic:"💜", color:"#8a6cff", title:"Violet Breeze（〜10/31）", sub:`期間中（〜${CAMPAIGN.to.slice(5).replace("-","/")}）は上の報酬が`, rew:'<b class="lh-new">すべて ×2 !</b>' });
   slides.push({ ic:"🎰", color:"#6b5bd2", title:"貯めて使おう", sub:"集めた XEVA は XEVARION の", rew:"ガチャで！" });
   return slides;
 }
@@ -3042,7 +3122,7 @@ function buildHowto(){
   if($("#lexHowto")) return;
   const ov=document.createElement("div"); ov.id="lexHowto"; ov.className="lh-ov";
   ov.innerHTML=`<div class="lh-card">
-    <div class="lh-badge">✨ XEVA の入手方法${campaignActive()?'<span class="lh-badge-x2">🌻2倍中</span>':""}</div>
+    <div class="lh-badge">✨ XEVA の入手方法${campaignActive()?'<span class="lh-badge-x2">💜2倍中</span>':""}</div>
     <div class="lh-stage" id="lhStage"></div>
     <div class="lh-dots" id="lhDots"></div>
     <div class="lh-foot"><button class="lh-skip" onclick="closeLexHowto()">スキップ</button><button class="lh-next" id="lhNext" onclick="lexHowtoNext()">次へ →</button></div>

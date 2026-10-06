@@ -1,7 +1,7 @@
 /* MagiLex の学習・習得状況をアカウントに紐づけてクラウド保存（magilex-cb250） */
 import { initAppCloud } from "../app-cloud.js?v=12";
 /* ★ 同期するキーの一覧は ../xeva-keys.js の台帳が正（ログアウト時に消す一覧と共通）。 */
-import { APP_SYNC_KEYS } from "../xeva-keys.js?v=29";
+import { APP_SYNC_KEYS } from "../xeva-keys.js?v=31";
 
 /* ★★ 2026-08-19 返ってくる窓口を window に置く。
    XEVYNAR へ移る前に <b>その場で書き切る</b>（flush）ために、magilex.js から呼ぶ。
@@ -21,4 +21,7 @@ window.MagiLexCloud = initAppCloud({
   },
   /* 学習記録・習得状況・設定。XEVA ウォレットは含めない（あちらは xevarion-account） */
   keys: APP_SYNC_KEYS.magilex,
+  /* ★★ 2026-10-06c 負けた側にしか無いビンゴの取得・数え表・ログイン・日ごとの記録を足し戻す（ご指定「ビンゴの取得状況が反映されないことがある」）。
+     中身は magilex.js の lexMergeProg（画面の P を読み直すときと同じ合わせ方）。 */
+  rescue: (k, win, lose) => (k === "magilex_v2" && typeof window.lexMergeProg === "function") ? window.lexMergeProg(win, lose) : null,
 });
