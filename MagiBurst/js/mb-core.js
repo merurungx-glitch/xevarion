@@ -15,8 +15,8 @@
    <b>ふつうの &lt;script&gt;</b>（type="module" ではない）で読むこと。
    トップレベルの const/let はグローバルの字句環境に入るので、
    あとから読み込む MagiBurst 本体のスクリプトからそのまま見える。
-     MagiBurst : <script src="js/mb-core.js?v=130"></script>
-     gacha.html: <script src="MagiBurst/js/mb-core.js?v=130"></script>
+     MagiBurst : <script src="js/mb-core.js?v=134"></script>
+     gacha.html: <script src="MagiBurst/js/mb-core.js?v=134"></script>
 
    ── ホストが先に用意しておくもの ──
      window.MB_IMGD … 画像フォルダへの相対パス（MagiBurst は "../img/"、ポータルは "img/"）
@@ -4607,6 +4607,65 @@ SHOTSKILLS.kikyoripple = {
     + "<br>近い敵にも遠い敵にも、撃つ向きを選ばず<b>毎ターン必ず</b>入ります。",
 };
 
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-10-07 Sapphire Breeze（fes17）の UR <b>ヒバナ（木・反射）</b>・<b>フキ（闇・貫通）</b>
+   （ご指定・性能はユーザーと相談して決定。どちらも「タキナと同等の最強」）
+   ・共通：全属性有利＋オムニアンチ＋もう1つのアンチ・治癒の祈り（SS絵）・キラーちょうど3つ（パワーオーラ・底力も1つと数える）・
+     クロス（条件は<b>自分と同じ属性</b>の味方1体以上だけ）・リンク＝既存で最強のブルーローズ・コンプリート・
+     サブ＝ゴールデン・リバウンド・ネクサス＝蒼玉・サファイアネクサス（新設・極彩の上位）・撃つたび3つの技が出るショットスキル。
+   ・ヒバナ：アンチブロック／全属性キラーEL＋ボスキラーEL＋底力EL／クロス バリアEL・リジェネL・リンク×2／
+     FB「ワスレナ・ハナカガリ」＝乱打＋勿忘草の大輪＋防御力ダウン＋<b>チームHP回復＋味方全員バリア</b>（史上2位）。
+   ・フキ：アンチ断絶界／全属性キラーEL＋ボスキラーEL＋パワーオーラEL／クロス ドレインEL・FBターンチャージ・リンク×2／
+     FB「ヨイヤミ・オボロザクラ」＝乱打＋朧桜の帳＋防御力ダウン＋<b>敵全体の行動遅延</b>（<b>史上最大</b>）。
+   ══════════════════════════════════════════════════════════════ */
+const HBN_ATK = 3.75, HBN_SPD = 1.70;
+const HBN_BARRAGE_N = 104, HBN_BARRAGE_PER = 7.60, HBN_BARRAGE_STEP = 0.14;
+const HBN_FINALE = 520.0;          // 締めの勿忘草の大輪（敵全体）
+const HBN_DEFDOWN = 5;
+const HBN_HEAL = 0.30;             // チームHPの回復割合
+const HBN_BARRIER = 5000;          // 味方全員に張るバリア
+const HBN_TOTAL = HBN_BARRAGE_N * HBN_BARRAGE_PER
+  + HBN_BARRAGE_STEP * HBN_BARRAGE_N * (HBN_BARRAGE_N - 1) / 2 + HBN_FINALE;
+const FUK_ATK = 3.80, FUK_SPD = 1.72;
+const FUK_BARRAGE_N = 110, FUK_BARRAGE_PER = 7.80, FUK_BARRAGE_STEP = 0.15;
+const FUK_FINALE = 480.0;          // 締めの朧桜の帳（敵全体）
+const FUK_DEFDOWN = 5;
+const FUK_DELAY = 2;               // 敵全体の攻撃を遅らせるターン
+const FUK_TOTAL = FUK_BARRAGE_N * FUK_BARRAGE_PER
+  + FUK_BARRAGE_STEP * FUK_BARRAGE_N * (FUK_BARRAGE_N - 1) / 2 + FUK_FINALE;
+/* ── ヒバナ ショットスキル「ワスレナ・スパーク」：撃つたび<b>3つの技</b>（短命エフェクトだけ）
+     ① 勿忘草の火花 … 自分のまわり 半径 R の敵に 攻撃力×PER
+     ② 癒しの花粉 … チームHPを HEAL 回復
+     ③ 自分のフルバーストが FB ターン進む */
+const SHOTSK_HIBANA_R = 300;
+const SHOTSK_HIBANA_PER = 1.00;
+const SHOTSK_HIBANA_HEAL = 0.03;
+const SHOTSK_HIBANA_FB = 1;
+SHOTSKILLS.wasurespark = {
+  nm: "ワスレナ・スパーク", c: "#8fe3a8",
+  pow: "① <b>勿忘草の火花</b>：自分のまわり 半径 " + SHOTSK_HIBANA_R + " の敵に 攻撃力×" + SHOTSK_HIBANA_PER.toFixed(2)
+    + " ／ ② <b>癒しの花粉</b>：チームHPを" + Math.round(SHOTSK_HIBANA_HEAL * 100) + "%回復 ／ ③ <b>自分のフルバーストが" + SHOTSK_HIBANA_FB + "ターン進む</b>",
+  desc: "自分のターンで<b>撃つたび毎回</b>、<b>3つの技</b>がいっぺんに出る。"
+    + "<br>足もとで<b>勿忘草の火花</b>がはじけて近くの敵を削り、<b>癒しの花粉</b>でチームHPが" + Math.round(SHOTSK_HIBANA_HEAL * 100) + "%もどり、"
+    + "あわせて<b>自分のフルバーストが" + SHOTSK_HIBANA_FB + "ターン進む</b>。",
+};
+/* ── フキ ショットスキル「ヨイヤミ・ペタル」：撃つたび<b>3つの技</b>（短命エフェクトだけ）
+     ① 宵闇の花びら … 進む向きの扇（射程 LEN・半角 ANG）の敵に 攻撃力×PER（貫通）
+     ② 朧の足止め … 当たった敵の攻撃を1ターン遅らせる
+     ③ 自分のフルバーストが FB ターン進む */
+const SHOTSK_FUKI_LEN = 480;
+const SHOTSK_FUKI_ANG = 0.50;
+const SHOTSK_FUKI_PER = 1.05;
+const SHOTSK_FUKI_FB = 1;
+SHOTSKILLS.yoiyamipetal = {
+  nm: "ヨイヤミ・ペタル", c: "#9a8cff",
+  pow: "① <b>宵闇の花びら</b>：進行方向の扇（射程 " + SHOTSK_FUKI_LEN + "）の敵に 攻撃力×" + SHOTSK_FUKI_PER.toFixed(2) + "（貫通）"
+    + " ／ ② <b>朧の足止め</b>：当たった敵の攻撃を1ターン遅らせる ／ ③ <b>自分のフルバーストが" + SHOTSK_FUKI_FB + "ターン進む</b>",
+  desc: "自分のターンで<b>撃つたび毎回</b>、<b>3つの技</b>がいっぺんに出る。"
+    + "<br>進む向きへ<b>扇形</b>に宵闇の花びらが舞い、当たった敵は<b>攻撃が1ターン遅れ</b>、"
+    + "あわせて<b>自分のフルバーストが" + SHOTSK_FUKI_FB + "ターン進む</b>。",
+};
+
 const KUMI_ATK = 3.30, KUMI_SPD = 1.60;
 const KUMI_BARRAGE_N = 70, KUMI_BARRAGE_PER = 7.20, KUMI_BARRAGE_STEP = 0.12;
 const KUMI_FINALE = 360.0;        // 締めの譜面発光（敵全体）
@@ -5102,7 +5161,7 @@ const SUBFS = {
       + GREB_N + "回はね返る。"
       + "<br>はねるたびに<b>敵全体</b>へ入り、しかも<b>はねるほど重くなる</b>"
       + "（×" + GREB_PER + " → ×" + (GREB_PER + GREB_STEP * (GREB_N - 1)).toFixed(2) + "）。"
-      + "<br>ハノンだけが持つサブリンクです" },
+      + "<br>ハノン・タキナ・ヒバナ・フキが持つサブリンクです" },
 };
 
 /* ══════════ ネクサススキル（v13.1） ══════════
@@ -5164,6 +5223,15 @@ const NEXUS = {
       + "<b>各WAVEの開始時にチームHPを5%回復</b>する"
       + "<br><small>※ ピアース・ネクサス（弱点+8%）の10倍に、ボンド・フォース・スレイヤー・マーシーぶんを重ねた極彩祭だけの特別なネクサスです</small>",
     weak: 1.80, link: 1.50, atk: 1.25, boss: 1.40, waveHeal: 0.05 },
+  /* ══ ★★ 2026-10-07 Sapphire Breeze（新レアリティ UR）のネクサス（ご指定「ネクサススキルを強化」）══
+     極彩・プリズムネクサス（弱点+80%・リンク+50%・攻撃+25%・ボス+40%・回復5%）の<b>すべてを上回り</b>、バリアも足した6つの効果。
+     タキナ・ヒバナ・フキの3体が持つ（タキナは極彩祭から移ったのでネクサスもこちらへ）。 */
+  sapphire: { nm: "蒼玉・サファイアネクサス", c: "#3d8bff",
+    desc: "<b>弱点</b>へのダメージが<b>90%</b>アップし、<b>リンクスキル・サブリンク</b>のダメージが<b>60%</b>アップ、"
+      + "さらに<b>味方全員の攻撃力</b>が<b>30%</b>アップ、<b>ボス</b>へのダメージが<b>50%</b>アップ、"
+      + "<b>各WAVEの開始時にチームHPを8%回復</b>し、<b>バトル開始時に味方全員へ2000のバリア</b>を張る"
+      + "<br><small>※ 新レアリティ UR だけの特別なネクサスです（極彩・プリズムネクサスの上位）</small>",
+    weak: 1.90, link: 1.60, atk: 1.30, boss: 1.50, waveHeal: 0.08, barrier: 2000 },
   luxblaze: { nm: "極煌・ブレイズネクサス", c: "#ff5d47",
     /* ★★ 2026-09-01 ご指定により<b>さらに強化</b>（効果は4つに）
        ★★ 2026-09-19e アズサ追加にあわせて<b>もう一段強化</b>（ご指定）：ボス+60%・攻撃+25%・バリア1600・弱点+25%・<b>リンク+30%</b> */
@@ -5240,7 +5308,7 @@ const NEXUS_CAT = {
   vigor: "def", mercy: "def", aegis: "def", guard: "def",
   /* ★★ 2026-08-27 極彩祭・極煌祭のネクサス（どちらも火力枠）
      ★★ 2026-08-28 極華祭（luxbloom）も火力枠に足す */
-  luxprism: "atk", luxblaze: "atk", luxbloom: "atk",
+  luxprism: "atk", luxblaze: "atk", luxbloom: "atk", sapphire: "atk",
   /* ★★ 2026-08-29 戦姫祭のネクサス（火力枠） */
   senkivalor: "atk", risingstar: "atk",
   /* ★★ 2026-09-11 BUNNY GIRL FEST のネクサス（火力枠） */
@@ -6022,6 +6090,28 @@ const CONNECT = {
       { k: "takinaDrain", nm: "ドレインEL", abil: "drainEL" },
       { k: "takinaRes", nm: "全属性耐性M", abil: "allresM" },
       { k: "takinaDouble", nm: "リンク×2", abil: "fsdouble" },
+    ],
+  },
+  /* ★★ 2026-10-07 Sapphire Breeze ヒバナ・フキ。条件は<b>自分と同じ属性</b>だけ（異なる属性の条件は使わない・ご指定）。
+     スキルはユーザーと相談して決定（ヒバナ＝守り／フキ＝吸収＋FB）。どちらもリンク×2 で最強リンクが2回出る。 */
+  hibana: {
+    nm: "勿忘草のクロス",
+    condTx: "<b>自分と同じ属性（SYLVA）の味方が1体以上</b>いること（自分をのぞく）",
+    cond: (ids, me) => cnxSelfIn(ids, me) && cnxCount(ids, me, (c, m) => c.el === m.el) >= 1,
+    skills: [
+      { k: "hibanaBarrier", nm: "バリアEL", abil: "barrierEL" },
+      { k: "hibanaRegen", nm: "リジェネL", abil: "regenL" },
+      { k: "hibanaDouble", nm: "リンク×2", abil: "fsdouble" },
+    ],
+  },
+  fuki: {
+    nm: "宵桜のクロス",
+    condTx: "<b>自分と同じ属性（UMBRA）の味方が1体以上</b>いること（自分をのぞく）",
+    cond: (ids, me) => cnxSelfIn(ids, me) && cnxCount(ids, me, (c, m) => c.el === m.el) >= 1,
+    skills: [
+      { k: "fukiDrain", nm: "ドレインEL", abil: "drainEL" },
+      { k: "fukiCharge", nm: "FBターンチャージ", abil: "sscharge" },
+      { k: "fukiDouble", nm: "リンク×2", abil: "fsdouble" },
     ],
   },
   /* ★★ 2026-09-19e 極煌祭 アズサ。条件は<b>自分と同じ属性</b>（異なる属性の条件は使わない・ご指定） */
@@ -14595,12 +14685,20 @@ const CHARS = {
      ★ 治癒の祈りのカットインは<b>SS絵</b>（img/ss/TakinaSS.webp・index.html の SS_ART）。 */
   takina: {
     id: "takina", nm: "タキナ", img: "Takina.webp", th: "t_Takina.webp",
+    /* ★★ 2026-10-06 UR は<b>横長の絵</b>も持つ（ご指定）。キャラ詳細など「大きく見せる所」だけ横長、アイコン（th）・ボールの絵はいままでどおり
+       ★★ 2026-10-06b 絵をリニューアル（ご指定）。古い絵が端末に控えられているので<b>名前を変えた</b>（Takina_w → Takina_w2）
+       ★★ 2026-10-06c もう一度リニューアル（ご指定）→ Takina_w3 */
+    wide: "Takina_w3.webp",
     el: "water", shot: "pierce", type: "蒼桔梗結髪型",
-    gacha: true, fes: true, fesKey: "kokusai", lux: true,
-    nexus: "luxprism", star5: true,
+    /* ★★ 2026-10-07 極彩祭から <b>Sapphire Breeze（fes17）</b>へ移った（ご指定）。ネクサスも UR 専用の蒼玉・サファイアネクサスへ */
+    gacha: true, fes: true, fesKey: "sapphire", lux: true,
+    nexus: "sapphire", star5: true,
     connect: "takina",
     shotskill: "kikyoripple",
-    hp: [1380, 8960], atk: [2440, 15560], spd: [378, 566],
+    /* ★★ 2026-10-05 レアリティを <b>UR</b> に（ご指定）。性能も「SSR の一段上」へ：
+       もとの値（SSR 最上位＝hp [1380, 8960] / atk [2440, 15560] / spd [378, 566]）から HP・攻撃 ×1.25、スピード ×1.06。
+       ★ ほかのアプリ（Boccia・MagiDiamond は固定の範囲でならす／MagiBattle はこの値をそのまま使う）にもそのまま効く。 */
+    hp: [1725, 11200], atk: [3050, 19450], spd: [401, 600],
     /* 素8つ ＋ クロス3つ ＝ <b>アビリティ11個</b>（MagiBurst 最多）。
        キラーは<b>ちょうど3つ</b>（全属性キラーEL・ボスキラーEL・パワーオーラEL）＝クロスにはキラーを入れない。 */
     abil: [{ t: "omni" }, { t: "superaslow" },
@@ -14622,6 +14720,77 @@ const CHARS = {
       + "<b>敵全体の防御力を" + TKN_DEFDOWN + "ターン</b>下げ、<b>味方全員のフルバーストを" + TKN_FB + "進めます</b>。"
       + "<br>合計 攻撃力×" + TKN_TOTAL.toFixed(1) + " ——<b>MagiBurst 史上最大のフルバースト</b>です"
       + "（これまでの1位はココハ ×" + KKH_TOTAL.toFixed(1) + "）。",
+    fsName: ROSE_FS_NM, fsKind: "bluerosenet",
+    fsPow: ROSE_FS_POW,
+    fsDesc: ROSE_FS_DESC,
+  },
+  /* ══ ★★ 2026-10-07 Sapphire Breeze <b>ヒバナ</b>（木・反射・No.263・UR）══
+     ★ 検算: charAntiKeys("hibana") ⊇ counterKeysOf(JUDGE_STAGES[0])（⚖第一）／庭園 第1・3・14・18ノ園（全属性有利なので elemMultOf > 1）。
+     ★ 治癒の祈りのカットインは SS絵（img/ss/HibanaSS.webp・index.html の SS_ART）。UR なので横長の絵（wide）も持つ。 */
+  hibana: {
+    id: "hibana", nm: "ヒバナ", img: "Hibana.webp", th: "t_Hibana.webp", wide: "Hibana_w.webp",
+    el: "wood", shot: "reflect", type: "勿忘草結紐型",
+    gacha: true, fes: true, fesKey: "sapphire", lux: true,
+    nexus: "sapphire", star5: true,
+    connect: "hibana",
+    shotskill: "wasurespark",
+    /* UR（タキナと同等）：守りに寄せて HP を少し厚く */
+    hp: [1800, 11700], atk: [3000, 19100], spd: [401, 600],
+    /* 素8つ ＋ クロス3つ ＝ 11個。キラーはちょうど3つ（全属性キラーEL・ボスキラーEL・底力EL）＝クロスにキラーは入れない */
+    abil: [{ t: "omni" }, { t: "ablock" },
+           { t: "allkillerEL" }, { t: "bosskillerEL" }, { t: "sokojikaraEL" },
+           { t: "elemadv" }, { t: "pray" }, { t: "fsboostEL" }],
+    subfs: "goldenrebound",
+    ssName: "ワスレナ・ハナカガリ", ssTurns: 32, ssKind: "hibanak",
+    ssPow: "自強化（攻撃×" + HBN_ATK + "・スピード×" + HBN_SPD + "）＋ "
+      + "最初にふれた敵の上で止まって<b>勿忘草の火花の乱打 " + HBN_BARRAGE_N + "連</b>"
+      + "（1発 攻撃力×" + HBN_BARRAGE_PER + "・撃つごとに +" + HBN_BARRAGE_STEP + "）"
+      + " ＋ <b>勿忘草の大輪</b>（敵全体・攻撃力×" + HBN_FINALE + "）"
+      + " ＋ <b>敵全体の防御力ダウン " + HBN_DEFDOWN + "ターン</b>"
+      + " ＋ <b>チームHPを" + Math.round(HBN_HEAL * 100) + "%回復</b> ＋ <b>味方全員に" + HBN_BARRIER.toLocaleString() + "のバリア</b>／合計 攻撃力×" + HBN_TOTAL.toFixed(1),
+    ssDesc: "青い花の庭で、リボンを<b>きゅっと結びなおす</b>。"
+      + "<br><b>自強化（攻撃×" + HBN_ATK + "・スピード×" + HBN_SPD + "）</b>して<b>最初にふれた敵の上で止まり</b>、"
+      + "勿忘草の火花を<b>" + HBN_BARRAGE_N + "連</b>——咲くほど花がふえて重くなる（×" + HBN_BARRAGE_PER + " → ×"
+      + (HBN_BARRAGE_PER + HBN_BARRAGE_STEP * (HBN_BARRAGE_N - 1)).toFixed(2) + "）。"
+      + "<br>撃ち終えると盤面いっぱいに<b>勿忘草の大輪</b>がひらき、敵全体へ 攻撃力×" + HBN_FINALE + "。"
+      + "<b>敵全体の防御力を" + HBN_DEFDOWN + "ターン</b>下げ、<b>チームHPを" + Math.round(HBN_HEAL * 100) + "%回復</b>して、<b>味方全員に" + HBN_BARRIER.toLocaleString() + "のバリア</b>を張ります。"
+      + "<br>合計 攻撃力×" + HBN_TOTAL.toFixed(1) + " ——タキナ（×" + TKN_TOTAL.toFixed(1) + "）をこえる<b>史上最大級のフルバースト</b>です。",
+    fsName: ROSE_FS_NM, fsKind: "bluerosenet",
+    fsPow: ROSE_FS_POW,
+    fsDesc: ROSE_FS_DESC,
+  },
+  /* ══ ★★ 2026-10-07 Sapphire Breeze <b>フキ</b>（闇・貫通・No.264・UR）══
+     ★ 検算: charAntiKeys("fuki") ⊇ counterKeysOf(JUDGE_STAGES[8]) / [13]（⚖第九・第十四）／蓬莱 第三〜五・第七・月宮／庭園 第7ノ園。
+     ★ 治癒の祈りのカットインは SS絵（img/ss/FukiSS.webp）。FB は<b>MagiBurst 史上最大</b>（FUK_TOTAL）。 */
+  fuki: {
+    id: "fuki", nm: "フキ", img: "Fuki.webp", th: "t_Fuki.webp", wide: "Fuki_w.webp",
+    el: "dark", shot: "pierce", type: "宵桜制服型",
+    gacha: true, fes: true, fesKey: "sapphire", lux: true,
+    nexus: "sapphire", star5: true,
+    connect: "fuki",
+    shotskill: "yoiyamipetal",
+    /* UR（タキナと同等）：攻めに寄せて攻撃を少し厚く */
+    hp: [1680, 10900], atk: [3100, 19800], spd: [405, 606],
+    /* 素8つ ＋ クロス3つ ＝ 11個。キラーはちょうど3つ（全属性キラーEL・ボスキラーEL・パワーオーラEL） */
+    abil: [{ t: "omni" }, { t: "award" },
+           { t: "allkillerEL" }, { t: "bosskillerEL" }, { t: "auraEL" },
+           { t: "elemadv" }, { t: "pray" }, { t: "fsboostEL" }],
+    subfs: "goldenrebound",
+    ssName: "ヨイヤミ・オボロザクラ", ssTurns: 32, ssKind: "fukik",
+    ssPow: "自強化（攻撃×" + FUK_ATK + "・スピード×" + FUK_SPD + "）＋ "
+      + "最初にふれた敵の上で止まって<b>宵闇の花びらの乱打 " + FUK_BARRAGE_N + "連</b>"
+      + "（1発 攻撃力×" + FUK_BARRAGE_PER + "・撃つごとに +" + FUK_BARRAGE_STEP + "）"
+      + " ＋ <b>朧桜の帳</b>（敵全体・攻撃力×" + FUK_FINALE + "）"
+      + " ＋ <b>敵全体の防御力ダウン " + FUK_DEFDOWN + "ターン</b>"
+      + " ＋ <b>敵全体の攻撃を" + FUK_DELAY + "ターン遅らせる</b>／合計 攻撃力×" + FUK_TOTAL.toFixed(1),
+    ssDesc: "夕方の教室で、窓から<b>夜桜の花びら</b>が吹きこむ。"
+      + "<br><b>自強化（攻撃×" + FUK_ATK + "・スピード×" + FUK_SPD + "）</b>して<b>最初にふれた敵の上で止まり</b>、"
+      + "宵闇の花びらを<b>" + FUK_BARRAGE_N + "連</b>——舞うほど闇が深くなって重くなる（×" + FUK_BARRAGE_PER + " → ×"
+      + (FUK_BARRAGE_PER + FUK_BARRAGE_STEP * (FUK_BARRAGE_N - 1)).toFixed(2) + "）。"
+      + "<br>撃ち終えると盤面に<b>朧桜の帳</b>がおり、敵全体へ 攻撃力×" + FUK_FINALE + "。"
+      + "<b>敵全体の防御力を" + FUK_DEFDOWN + "ターン</b>下げ、<b>敵全体の攻撃を" + FUK_DELAY + "ターン遅らせます</b>。"
+      + "<br>合計 攻撃力×" + FUK_TOTAL.toFixed(1) + " ——<b>MagiBurst 史上最大のフルバースト</b>です"
+      + "（これまでの1位はタキナ ×" + TKN_TOTAL.toFixed(1) + "）。",
     fsName: ROSE_FS_NM, fsKind: "bluerosenet",
     fsPow: ROSE_FS_POW,
     fsDesc: ROSE_FS_DESC,
@@ -14857,6 +15026,9 @@ const CHAR_IDS = [
   "kureha", "mikoto", "mei", "hikaru", "miduki",       /* No.257〜261 */
   /* ══ ★★ 2026-10-03 極彩祭 タキナ（No.262）══ */
   "takina",                                            /* No.262 */
+  /* ★★ 2026-10-07 Sapphire Breeze（UR） */
+  "hibana",                                            /* No.263 */
+  "fuki",                                              /* No.264 */
 ];
 /* id → キャラクター番号（1始まり）。図鑑・詳細・ガチャ結果に「No.XX」として出す */
 const CHAR_NO = {};
@@ -14906,7 +15078,7 @@ function isStar5(id) {
 /* ★★ 2026-10-05 レアリティの<b>表記だけ</b>を変えるキャラ（ご指定：タキナは「UR」と書く）。
    中身は SSR のまま——確率・凸・結晶・ミッション・並べ替え・演出の判定はすべて isStar5（SSR）で行う。
    表示する所だけ rarLabel(id) を使うこと（SR のキャラは "SR"、SSR は "SSR"、ここに書いた子だけ別の名前）。 */
-const RAR_LABEL = { takina: "UR" };
+const RAR_LABEL = { takina: "UR", hibana: "UR", fuki: "UR" };   /* ★★ 2026-10-07 Sapphire Breeze の3体は UR */
 function rarLabel(id) { return RAR_LABEL[id] || (isStar5(id) ? "SSR" : "SR"); }
 /* 限界突破MAXの金演出クラス。SRは「金の縁取りだけ」で発光させない（v14） */
 /* ★ 2026-08-12 限界突破MAXの見た目は<b>SSRだけ</b>にした。
@@ -14929,7 +15101,73 @@ const GIMGD = (typeof window !== "undefined" && window.MB_GIMGD) ? window.MB_GIM
 CHARS.kaguya.aa = "KaguyaAA.webp"; CHARS.ema.aa = "EmaAA.webp"; CHARS.cheryl.aa = "CherylAA.webp";
 CHARS.mion.aa = "MionAA.webp"; CHARS.kokona.aa = "KokonaAA.webp"; CHARS.mao.aa = "MaoAA.webp";
 /* 新4体はバナー画像を作っていないので、上部バナーは共通プレミアムバナーを使う（aa未設定でOK） */
-Object.values(CHARS).forEach((c) => { ["img", "th", "aa"].forEach((k) => { if (c[k] && !c[k].startsWith(IMGD)) c[k] = IMGD + c[k]; }); });
+Object.values(CHARS).forEach((c) => { ["img", "th", "aa", "wide"].forEach((k) => { if (c[k] && !c[k].startsWith(IMGD)) c[k] = IMGD + c[k]; }); });
+/* ★★ 2026-10-06 横長の絵（UR）。無いキャラは null（＝いままでの正方形の絵を使う） */
+function wideArt(id) { const c = CHARS[id]; return c && c.wide ? c.wide : null; }
+/* ★★ 2026-10-07 ご指定「UR の横長の絵は顔の方からスライドして表示」
+   wideFace = [x, y] … 横長の絵の中の<b>顔の中心</b>（0〜1）。流しはじめ（と止まっている絵）を顔のある側にする。
+   x が 0.5 より右 → 右端から左へ流す／それ以外 → 左端から右へ（下の urCss が絵のファイル名ごとに向きを決める）。
+   ★ 新しい UR（wide）を足したら、ここに1行足すこと（無いときは左から流れる）。 */
+Object.entries({ takina: [0.26, 0.35], hibana: [0.69, 0.45], fuki: [0.20, 0.41] })
+  .forEach(([id, f]) => { if (CHARS[id]) CHARS[id].wideFace = f; });
+/* ★★ 2026-10-06b UR の絵の見せ方（どのアプリのキャラ詳細でも共通・ご指定「UR の絵が SSR より小さい」）
+   ・枠は SSR と同じ大きさ（高さ）にして、横長の絵を<b>大きく</b>出し、ゆっくり左右に流して全体を見せる（.urx-pan）。
+   ・「全体」を押すと、流すのをやめて絵の全体を出す（.urx.full）。
+   ・UR の飾り：虹色に回る枠・UR の札・きらめき（urDecor() が返す HTML を枠の中に入れる）。
+   使い方：枠に class="urx"、絵に class="urx-pan" を付け、枠の中に urDecor() を入れる。CSS はここで1回だけ差しこむ。 */
+function urDecor() {
+  return '<span class="urx-ring" aria-hidden="true"></span><span class="urx-badge" aria-label="UR">UR</span>' +
+    '<span class="urx-sp" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></span>' +
+    '<button type="button" class="urx-tg" aria-label="絵の全体を見る">⤢ 全体</button>';
+}
+(function urCss() {
+  try {
+    if (typeof document === "undefined" || document.getElementById("urxCss")) return;
+    const st = document.createElement("style"); st.id = "urxCss";
+    st.textContent = `
+.urx{position:relative;overflow:hidden;isolation:isolate}
+.urx .urx-pan{object-fit:cover!important;object-position:0% 32%;animation:urxPan 16s ease-in-out infinite alternate}
+@keyframes urxPan{0%,14%{object-position:0% 32%}92%,100%{object-position:100% 32%}}
+@keyframes urxPanR{0%,14%{object-position:100% 32%}92%,100%{object-position:0% 32%}}
+.urx.full .urx-pan{object-fit:contain!important;animation:none;object-position:50% 50%!important;background:radial-gradient(120% 90% at 50% 40%,#3b2a7a,#0d0a1e)}
+.urx-ring{position:absolute;inset:0;z-index:4;pointer-events:none;border-radius:inherit;padding:3px;
+  background:conic-gradient(from 0deg,#ff5fa2,#ffd257,#7dffb0,#5fd0ff,#a35cff,#ff5fa2);
+  -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;mask-composite:exclude;
+  filter:drop-shadow(0 0 6px rgba(255,255,255,.6));animation:urxHue 6s linear infinite}
+@keyframes urxHue{to{filter:drop-shadow(0 0 6px rgba(255,255,255,.6)) hue-rotate(360deg)}}
+.urx-badge{position:absolute;left:10px;top:10px;z-index:5;padding:2px 10px 3px;border-radius:8px;font:900 15px/1.2 'Orbitron',system-ui,sans-serif;letter-spacing:.1em;color:#fff;
+  background:linear-gradient(115deg,#ff5fa2,#ffd257 30%,#7dffb0 50%,#5fd0ff 70%,#a35cff);background-size:220% 100%;animation:urxBadge 3.2s linear infinite;
+  box-shadow:0 0 0 1.5px rgba(255,255,255,.85),0 4px 14px rgba(160,100,255,.55);text-shadow:0 1px 3px rgba(40,10,80,.7)}
+@keyframes urxBadge{to{background-position:220% 0}}
+.urx-sp{position:absolute;inset:0;z-index:3;pointer-events:none}
+.urx-sp i{position:absolute;width:12px;height:12px;background:radial-gradient(circle,#fff 0 18%,rgba(255,255,255,.9) 22%,transparent 60%);
+  clip-path:polygon(50% 0,60% 40%,100% 50%,60% 60%,50% 100%,40% 60%,0 50%,40% 40%);animation:urxTw 2.6s ease-in-out infinite;opacity:0}
+.urx-sp i:nth-child(1){left:12%;top:22%;animation-delay:0s}.urx-sp i:nth-child(2){left:78%;top:16%;animation-delay:.5s;width:16px;height:16px}
+.urx-sp i:nth-child(3){left:64%;top:62%;animation-delay:1s}.urx-sp i:nth-child(4){left:26%;top:70%;animation-delay:1.5s;width:9px;height:9px}
+.urx-sp i:nth-child(5){left:90%;top:48%;animation-delay:2s}.urx-sp i:nth-child(6){left:46%;top:12%;animation-delay:.9s;width:14px;height:14px}
+@keyframes urxTw{0%,100%{opacity:0;transform:scale(.4) rotate(0)}45%{opacity:1;transform:scale(1) rotate(45deg)}}
+.urx-tg{position:absolute;left:10px;top:44px;z-index:6;border:1.5px solid rgba(255,255,255,.7);border-radius:99px;padding:3px 10px;font:800 11px/1.4 system-ui,sans-serif;color:#fff;
+  background:rgba(20,10,50,.55);cursor:pointer;backdrop-filter:blur(4px)}
+.urx.full .urx-tg{background:rgba(255,95,162,.75)}
+@media (prefers-reduced-motion: reduce){.urx .urx-pan{animation:none;object-position:0% 32%}.urx-ring,.urx-badge,.urx-sp i{animation:none}}
+`;
+    /* ★★ 2026-10-07 顔が右にある絵は右端から流す（顔の方から見せる）。[src*="ファイル名"] で絵ごとに決める
+       ＝キャラ詳細・新キャラ紹介・MagiBattle・MagiBocciaRush など、どの画面の描き方も触らずに効く。
+       「全体」（.urx.full）のときは流さないので :not(.full) */
+    const faceR = Object.values(CHARS).filter((c) => c && c.wide && c.wideFace && c.wideFace[0] > 0.5)
+      .map((c) => '.urx:not(.full) .urx-pan[src*="' + String(c.wide).split("/").pop() + '"]');
+    if (faceR.length) st.textContent += faceR.join(",") + "{animation-name:urxPanR;object-position:100% 32%}\n"
+      + "@media (prefers-reduced-motion: reduce){" + faceR.join(",") + "{animation:none;object-position:100% 32%}}\n";
+    (document.head || document.documentElement).appendChild(st);
+    /* 「全体」ボタン：どの画面でも同じ（押した枠だけ切りかえ） */
+    document.addEventListener("click", (e) => {
+      const b = e.target && e.target.closest ? e.target.closest(".urx-tg") : null; if (!b) return;
+      e.preventDefault(); e.stopPropagation();
+      const box = b.closest(".urx"); if (!box) return;
+      const on = box.classList.toggle("full"); b.textContent = on ? "↺ もどす" : "⤢ 全体";
+    }, true);
+  } catch (e) {}
+})();
 /* v6.6: 全キャラのHPを一律で少し底上げ（長く戦えるように） */
 const HP_MUL = 1.15;
 Object.values(CHARS).forEach((c) => { c.hp = [Math.round(c.hp[0] * HP_MUL), Math.round(c.hp[1] * HP_MUL)]; });
@@ -15006,6 +15244,9 @@ const CHAR_TYPE = {
   azusa:    "striker",  /* アズサ：史上最大の乱打FB＋天律族キラーEL＋パワーオーラEL */
   kokoha:   "striker",  /* ココハ：史上最大の乱打FB＋全属性有利＋ボスキラーEL＋パワーオーラEL */
   takina:   "striker",  /* タキナ：史上最大の乱打FB＋全属性有利＋全属性キラーEL＋ボスキラーEL＋パワーオーラEL */
+  /* ── ★★ 2026-10-07 Sapphire Breeze（UR）── */
+  hibana:   "striker",  /* ヒバナ：史上2位の乱打FB（回復・バリア）＋全属性有利＋全属性キラーEL＋ボスキラーEL＋底力EL */
+  fuki:     "striker",  /* フキ：史上最大の乱打FB（行動遅延）＋全属性有利＋全属性キラーEL＋ボスキラーEL＋パワーオーラEL */
   /* ── ★★ 2026-09-23 CRYSTAL ACADEMY FEST（結晶FB＋全属性有利＋神癒の祈り）── */
   kureha:   "striker",  /* クレハ：結晶FB＋天律族キラーEL＋パワーオーラEL＋壁で増える結晶のリンク */
   mikoto:   "support",  /* ミコト：結晶FB（回復＋バリア）＋天律族キラーEL＋底力EL */
@@ -22447,7 +22688,7 @@ function charSourceList(id) {
   Object.keys(FESTS).forEach((k) => {
     const f = FESTS[k];
     if (!f || f.archive || (f.chars || []).indexOf(id) < 0) return;
-    let s = "🎪 <b>" + fesLabel(f) + "</b> の限定SSR";
+    let s = "🎪 <b>" + fesLabel(f) + "</b> の限定" + rarLabel(id);   /* ★★ 2026-10-06b UR の子は「限定UR」 */
     try { if (fesEnded(k)) s += "（配信は終了しました）"; } catch (e) {}
     out.push(s);
   });
@@ -22879,6 +23120,20 @@ function debutFree10Use(m) {
   if (!v) return;
   debutFree10Map()[v.ver] = true; save();
 }
+/* ══ ★★ 2026-10-06c フェスガチャでも「初回10連無料」（FESTS[k].free10 の付いたガチャだけ・ご指定 Sapphire Breeze）══
+   ・DB.fesFree10 = { fes17: true }（使ったら true・日付では戻らない）。payGacha を通さない＝🎫も💎も減らない。最後の1枠の確定もそのまま。
+   ★ ポータル（xevarion-home.js の xhFesFree10Left）に<b>同じ判定の写し</b>がある。 */
+function fesFree10Map() {
+  if (!DB.fesFree10 || typeof DB.fesFree10 !== "object") DB.fesFree10 = {};
+  return DB.fesFree10;
+}
+function fesFree10Left(key) {
+  const f = FESTS[key];
+  if (!f || !f.free10) return 0;
+  try { if (fesLocked(key)) return 0; } catch (e) {}
+  return fesFree10Map()[key] ? 0 : 1;
+}
+function fesFree10Use(key) { fesFree10Map()[key] = true; save(); }
 /* ★ ポータル（下バーの「無料」の印）が使う: どれか1本でも無料が残っているか
    （単発・10連の<b>どちらか</b>が残っていれば印を出す） */
 function debutAnyFree() {
@@ -23058,6 +23313,7 @@ function gachaLatestDate(f) {
 }
 function charIsLatestIn(id, f) {
   if (!f || !Array.isArray(f.chars) || f.chars.indexOf(id) < 0) return false;
+  if (f.noLatestNew) return false;   /* ★★ 2026-10-07 極彩祭（タキナを外したあと） */
   const m = gachaLatestDate(f);
   return !!m && charNewDate(id, f) === m;
 }
@@ -23349,10 +23605,13 @@ FESTS.fes7 = {
   monthly: [1, 10],
   noFesTicket: true,   /* ★★ 2026-08-29 フェス券は使えない（フェスガチャではないため） */
   /* ★★ 2026-09-19g ココハ（火）を追加して3体に
-     ★★ 2026-10-03 タキナ（水）を追加して4体に */
-  chars: ["hinano", "hanon", "kokoha", "takina"],
-  newChars: ["takina"],
-  newSince: "2026-10-03",
+     ★★ 2026-10-03 タキナ（水）を追加して4体に
+     ★★ 2026-10-07 タキナは <b>Sapphire Breeze（fes17）</b>へ移った（ご指定）→ 3体に戻る。
+       ★ noLatestNew：外したことで「いちばん新しい子」がココハに戻り、もう一度 NEW になるのを防ぐ（確率も 0.4% のまま） */
+  chars: ["hinano", "hanon", "kokoha"],
+  newChars: ["kokoha"],
+  newSince: "2026-09-19",
+  noLatestNew: true,
   itemTable: D_ITEM_TABLE,
   /* ★★ 2026-10-03 表紙の確率は<b>表と同じ関数（pickRateOf）</b>から作る（極華祭と同じ形）。
      前は「限定SSR 3体（各1.2%）」と固定の文で、NEW でない子の実際の確率（各0.4%）とずれていた。 */
@@ -23373,7 +23632,8 @@ FESTS.fes7 = {
       + "／<b>残りは " + PREMIUM_NM + " のSSRが等確率</b>。"
       + "<b>毎月 1〜10日（上旬）</b>だけの開催です";
   },
-  note: "<b>★★ 2026-10-03 タキナ（水・貫通）</b>を追加。フルバースト<b>キキョウ・スイテンカ</b>は乱打"
+  note: "<b>★★ 2026-10-07 タキナは新しいガチャ <b>Sapphire Breeze</b> へ移りました</b>（極彩祭からは出ません）。"
+    + "<br><br><b>★★ 2026-10-03 タキナ（水・貫通）</b>を追加。フルバースト<b>キキョウ・スイテンカ</b>は乱打"
     + TKN_BARRAGE_N + "連＋蒼い桔梗の大輪で合計 攻撃力×" + TKN_TOTAL.toFixed(1) + "——<b>MagiBurst 史上最大</b>。"
     + "リンクは<b>既存でいちばん強い</b><b>ブルーローズ・コンプリート</b>、サブリンクは<b>ゴールデン・リバウンド</b>。"
     + "ショットスキル<b>キキョウ・リップル</b>は<b>撃つたび3つの技</b>（水紋・桔梗の雫・FB前進）。"
@@ -24096,6 +24356,47 @@ FESTS.fes16 = {
 
 
 /* ══════════════════════════════════════════════════════════════
+   ★★ 2026-10-07 <b>Sapphire Breeze</b>（fes17・ご指定）
+   ・新レアリティ <b>UR</b> の3体（タキナ（水）・ヒバナ（木）・フキ（闇））。<b>1体 1.0%</b>（pickEach・flatPick＝NEW が終わっても下げない）。
+   ・<b>無期限開催</b>（perm）・<b>🎫フェス券が使える</b>（noFesTicket を書かない）・<b>初回10連無料</b>（free10・アカウントで1回）。
+   ・ガチャ一覧では<b>極彩祭の上に固定</b>（sapphire の印・gachaMenuList）。perm なので Festival Archive には入らない。
+   ・3体とも MagiAbyss でも使える（MagiAbyss の ma-data.js）。
+   ══════════════════════════════════════════════════════════════ */
+FESTS.fes17 = {
+  key: "fes17", sfx: "17", nm: "Sapphire Breeze", tab: "Sapphire<br>Breeze",
+  /* ★★ 2026-10-07 バナーを差しかえ（ご指定）。画像は版に縛られない置き場（xev-img）に残るので ?v= で取りかえる */
+  banner: "../img/bn_fes17_s.webp?v=2", c: "#3d8bff", leadCls: "star",
+  perm: true, sapphire: true, free10: true, flatPick: true,
+  since: "2026-10-07",
+  pickEach: 0.010,
+  chars: ["hibana", "fuki", "takina"],
+  newChars: ["hibana", "fuki"],
+  newSince: "2026-10-07",
+  itemTable: D_ITEM_TABLE,
+  get lead() {
+    return "新レアリティ <b>UR</b> の<b>ヒバナ・フキ・タキナ</b>（各" + ratePct(pickRateOf("fes17", "hibana")) + "）に加えて、<b>"
+      + PREMIUM_NM + "のSSRも排出</b>（SSR以上 合計 " + ratePct(SSR_TOTAL) + "）";
+  },
+  get sub() {
+    return "UR <b>3体</b>（各" + ratePct(pickRateOf("fes17", "hibana")) + "）／<b>残りは " + PREMIUM_NM + " のSSRが等確率</b>。"
+      + "<b>無期限開催</b>・🎫フェスチケットが使えます" + (fesFree10Left("fes17") > 0 ? "・<b>🎁 初回10連無料</b>" : "");
+  },
+  get note() {
+    return "<b>★★ 2026-10-07 新レアリティ UR 登場「Sapphire Breeze」</b>"
+      + "<br>★ 新しく<b>ヒバナ（木・反射）</b>と<b>フキ（闇・貫通）</b>、さらに極彩祭から<b>タキナ（水・貫通）</b>が移ってきました。3体とも<b>UR</b>で、排出は<b>1体 " + ratePct(pickRateOf("fes17", "hibana")) + "</b>です。"
+      + "<br>★ <b>無期限開催</b>・<b>🎫フェスチケットが使えます</b>・<b>はじめての10連は無料</b>（アカウントで1回・最後の1枠のSSR以上確定つき）。"
+      + "<br>★ 3体とも<b>全属性有利＋オムニアンチ＋治癒の祈り</b>、キラー3つ、クロススキル、ショットスキル（撃つたび3つの技）、"
+      + "リンクは既存で最強の<b>ブルーローズ・コンプリート</b>、ネクサスは新しい<b>蒼玉・サファイアネクサス</b>（弱点+90%・リンク+60%・攻撃+30%・ボス+50%・各WAVEでチームHP+8%・開始時バリア2000）。"
+      + "<br>■ <b>フキ</b>：FB<b>ヨイヤミ・オボロザクラ</b>（乱打" + FUK_BARRAGE_N + "連＋朧桜の帳・合計 ×" + FUK_TOTAL.toFixed(1) + "）＝<b>MagiBurst 史上最大</b>。"
+      + "防御力ダウン＋<b>敵全体の攻撃を" + FUK_DELAY + "ターン遅らせる</b>。アンチは<b>オムニ＋断絶界</b>（⚖ 第九・第十四／🏯 第三〜五・第七・月宮／庭園 第7ノ園）。"
+      + "キラーは<b>全属性キラーEL・ボスキラーEL・パワーオーラEL</b>。クロス<b>宵桜のクロス</b>＝ドレインEL・FBターンチャージ・リンク×2。"
+      + "<br>■ <b>ヒバナ</b>：FB<b>ワスレナ・ハナカガリ</b>（乱打" + HBN_BARRAGE_N + "連＋勿忘草の大輪・合計 ×" + HBN_TOTAL.toFixed(1) + "）。"
+      + "防御力ダウン＋<b>チームHP" + Math.round(HBN_HEAL * 100) + "%回復＋味方全員バリア" + HBN_BARRIER.toLocaleString() + "</b>。アンチは<b>オムニ＋ブロック</b>（⚖ 第一／庭園 第1・3・14・18ノ園）。"
+      + "キラーは<b>全属性キラーEL・ボスキラーEL・底力EL</b>。クロス<b>勿忘草のクロス</b>＝バリアEL・リジェネL・リンク×2。"
+      + "<br>■ <b>タキナ</b>：FB<b>キキョウ・スイテンカ</b>（合計 ×" + TKN_TOTAL.toFixed(1) + "）。アンチは<b>オムニ＋超アンチ減速壁</b>。";
+  },
+};
+/* ══════════════════════════════════════════════════════════════
    ★★ 2026-08-28 Festival Archive GACHA（archive）
    ・<b>20日を過ぎたフェスガチャの限定キャラ</b>だけが封入される（ご指定）。
    ・そのなかから<b>属性ごとに1体ずつ・計5体</b>をピックアップして引く。
@@ -24224,7 +24525,9 @@ const FESKEY_MAP = { luminous: "fes2", phantom: "fes3", aoka: "fes4", starlight:
   /* ★★ 2026-09-17d 花宴祭 */
   kaen: "fes15",
   /* ★★ 2026-09-23 CRYSTAL ACADEMY FEST */
-  crystal: "fes16" };
+  crystal: "fes16",
+  /* ★★ 2026-10-07 Sapphire Breeze（UR） */
+  sapphire: "fes17" };
 function fesKeyOf(id) { const c = CHARS[id]; return c && c.fes ? (FESKEY_MAP[c.fesKey] || "fes") : null; }
 function fesNameOf(id) { const k = fesKeyOf(id); return k ? fesDef(k).nm : ""; }
 const FES_ALL_CHARS = FES_KEYS.reduce((a, k) => a.concat(FESTS[k].chars), []);
@@ -24455,6 +24758,8 @@ function rawPickRateOf(m, id) {
      ★ ここを外すと、アーカイブのキャラが全員 PICK_OLD に落ちて
        SSR合計が 12% を大きく下まる（プレミアムに寄りすぎる）。 */
   if (!f || !f.newChars || !f.newChars.length) return base;
+  /* ★★ 2026-10-07 flatPick（Sapphire Breeze）＝ NEW が終わっても<b>全員ずっと同じ確率</b>（ご指定「UR は 1.0%」） */
+  if (f.flatPick) return base;
   /* ★★ 2026-09-13b <b>NEW かどうかだけ</b>で決める（ご指定）。
      newChars に載っているかは見ない＝あとから別のキャラが追加されても、
      その子自身の<b>登場から NEW_CHAR_DAYS 日</b>のあいだはピックアップ確率のまま。 */
@@ -24883,7 +25188,7 @@ function firstGachaMode() {
      ここを FES_KEYS の順（＝定義順）のままにすると、新しいフェスが下に沈む。
    ══════════════════════════════════════════════════════════════ */
 function gachaMenuList() {
-  const lux = [], kaen = [], crystal = [], senki = [], bunny = [], soft = [], rising = [], fes = [], luxOff = [], ended = [];
+  const sapph = [], lux = [], kaen = [], crystal = [], senki = [], bunny = [], soft = [], rising = [], fes = [], luxOff = [], ended = [];
   FES_KEYS.forEach((k) => {
     if (k === ARCHIVE_KEY) return;                       /* アーカイブは⑥（下で足す） */
     const f = fesDef(k);
@@ -24898,8 +25203,14 @@ function gachaMenuList() {
                        : (f.noFesTicket ? "限定キャラクター・🎫ガチャ券のみ"
                                         : "限定キャラクター・🎫チケット優先"))),
       soon: fesLocked(k), ended: fesEnded(k) };
+    /* ★★ 2026-10-07 Sapphire Breeze は「新レアリティ UR」と書く（フェス限定SSR ではない） */
+    if (f.sapphire && !row.soon) row.sub = "新レアリティ UR・🎫チケット優先／無期限開催";
+    /* ★★ 2026-10-06c 初回10連無料が残っていれば一覧の1行にも書く */
+    if (fesFree10Left(k) > 0) row.sub += "／🎁 初回10連無料";
+    /* ★★ 2026-10-07 Sapphire Breeze は<b>極彩祭の上に固定</b>（ご指定） */
+    if (f.sapphire) sapph.push(row);
     /* ★★ 2026-09-17d 花宴祭は<b>開催中の極◯祭のすぐ下</b>（ご指定） */
-    if (f.kaen) kaen.push(row);
+    else if (f.kaen) kaen.push(row);
     /* ★★ 2026-09-23 CRYSTAL ACADEMY FEST は<b>花宴祭のすぐ下</b>（終わったら ended へ） */
     else if (f.crystal) (fesEnded(k) ? ended : crystal).push(row);
     else if (f.senki) senki.push(row);
@@ -24924,7 +25235,7 @@ function gachaMenuList() {
     soon: !archiveChars().length };
   /* ★★ 2026-09-13b <b>RISING STAR FEST は戦姫祭のすぐ下に固定</b>（ご指定）。
      並びは 極◯祭 → 戦姫祭 → RISING STAR → BUNNY GIRL → SOFT NIGHT → GRAND DEBUT → そのほか。 */
-  const list = lux.concat(kaen, crystal, senki, rising, bunny, soft, gachaMenuDebutRows(), fes,
+  const list = sapph.concat(lux, kaen, crystal, senki, rising, bunny, soft, gachaMenuDebutRows(), fes,
     [{ k: "premium", nm: PREMIUM_NM, sub: "ピックアップを1体えらべる常設ガチャ", c: "#ff9d2e" }],
     [arcRow], luxOff, ended);
   /* ★★ 2026-08-29 NEW マーク（ご指定）。まだ一度も開いていないガチャに付ける。 */
@@ -25287,6 +25598,7 @@ function gachaCost(n, fes) {
    ------------------------------------------------------------
    ・ガチャ<b>1連ごとに 1つ</b>たまる（10連なら 10個）。
    ・<b>150個</b>で、そのガチャの<b>ピックアップキャラ</b>から好きな1体と交換できる。
+     ★★ 2026-10-06c ご指定で <b>100個</b> に下げた（すでに100個以上ためている人はすぐ交換できる）。
    ★ 印は<b>ガチャごとに別勘定</b>（fes14 / debut:8.0 / premium …）。
      1本にまとめると、フェスでためた印で GRAND DEBUT のキャラが取れてしまう。
    ★ 置き場所は XEVARION 共通ウォレット（XEVA.seal ＝ xeva_seal_v1）。
@@ -25295,7 +25607,7 @@ function gachaCost(n, fes) {
    ★ 交換できる顔ぶれは <b>pickIdsOfMode() 1本</b>から作る（＝提供割合の
      ピックアップ欄とまったく同じ）。別に一覧を書くと必ずずれる。
    ══════════════════════════════════════════════════════════════ */
-const SEAL_NEED = 150;            // 交換に必要な★星煌印
+const SEAL_NEED = 100;            // 交換に必要な★星煌印（★★ 2026-10-06c 150 → 100・ご指定）
 const SEAL_IMG  = "img/seal.webp";
 /* ガチャ（mode）→ 印の勘定キー。
    ★ GRAND DEBUT は<b>版ごと</b>に分ける（"debut" のままだと版が変わった瞬間に
@@ -25363,6 +25675,8 @@ function payGacha(n, fes) {
   if (c.fes > 0) DB.fesTicket = fesTickets() - c.fes;
   if (c.tickets > 0) DB.gTicket = gachaTickets() - c.tickets;
   if (c.gems > 0) DB.orbs -= c.gems;
+  /* ★★ 2026-10-06 イベントミッション「ガチャを10回引く」（Violet Breeze） */
+  try { if (window.XEVA && XEVA.event) XEVA.event.bump("gacha", n); } catch (e) {}
   return c;
 }
 /* 支払いの内訳を「（フェス券3枚 ＋ ガチャ券2枚 ＋ ジェム25）」の形にする
@@ -25384,11 +25698,15 @@ function doFesGacha(n, key) {
   n = n === 10 ? 10 : n === 5 ? 5 : 1;
   /* ★★ 2026-08-29 フェス券を使ってよいかは fesTicketOK 1本で決める
      （極彩祭・極華祭・極煌祭・戦姫祭は使えない）。 */
-  const pay = payGacha(n, fesTicketOK(key));   /* フェス券 → ガチャ券 → ジェム の順 */
+  /* ★★ 2026-10-06c 初回10連無料（free10 のフェスだけ）。🎫も💎も減らない */
+  const free10 = n === 10 && fesFree10Left(key) > 0;
+  const pay = free10 ? { fes: 0, tickets: 0, gems: 0, free: true, free10: true }
+    : payGacha(n, fesTicketOK(key));   /* フェス券 → ガチャ券 → ジェム の順 */
   if (!pay) return;
+  if (free10) { fesFree10Use(key); try { if (window.XEVA && XEVA.event) XEVA.event.bump("gacha", n); } catch (e) {} }
   DB.pulls = (DB.pulls || 0) + n; missionTick("pull", n);   /* ★ 2026-08-05 ミッション（ガチャを引く） */
   sealAdd(key, n);                        /* ★★ 2026-09-13c 天井の★星煌印（1連＝1つ） */
-  const payTx0 = gachaPayText(pay);
+  const payTx0 = pay.free10 ? "（🎁 初回10連無料）" : gachaPayText(pay);
   const nm0 = fesDef(key).nm;
   /* ★★ 2026-08-22b 特別演出（10連のみ・超低確率） */
   const lux = luxRoll(n);

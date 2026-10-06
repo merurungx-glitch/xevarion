@@ -6,13 +6,13 @@
    ・オンライン対戦・XEVA換金はアプリ側でオフライン時に無効化している
    ・取得できたリソースは随時キャッシュ更新（stale-while-revalidate）
    ============================================================ */
-const VERSION = "magiburst-sw-v183";
+const VERSION = "magiburst-sw-v187";
 const CORE = [
   "./index.html",
   "./css/mb-ui2.css?v=26",
   "./css/localplay.css?v=7",
   "./js/localplay.js?v=8",
-  "./js/mb-core.js?v=130",
+  "./js/mb-core.js?v=134",
   /* ★★ 2026-09-13 クエスト作成（ステージエディター・MB613Create26）。
      遅延読みこみだが、オフラインでも開けるようにここには入れておく。 */
   "./js/mb-create.js?v=2",
@@ -39,15 +39,15 @@ const CORE = [
   "../xeva-i18n-p3.js?v=7",
   "../xeva-i18n-mb7.js?v=7",
   "../xeva-i18n-p4.js?v=7",
-  "../xeva-i18n-n1.js?v=13",
+  "../xeva-i18n-n1.js?v=14",
   "../xeva-i18n-n2.js?v=3",
-  "../xeva.js?v=73",
-  "../xeva-alive.js?v=3",
+  "../xeva.js?v=75",
+  "../xeva-alive.js?v=4",
   "../xeva-loading.js?v=18",
   "../xeva-splash.js?v=13",
   "../app-cloud.js?v=12",
-  "../xeva-keys.js?v=29",
-  "./magiburst-cloud.js?v=20",
+  "../xeva-keys.js?v=31",
+  "./magiburst-cloud.js?v=22",
   "../maintenance-gate.js?v=13",
   "../app-install-notice.js?v=9",
   "../XEVA.png",
@@ -140,6 +140,8 @@ const CORE = [
   "img/ss/HikaruSS.webp",
   "img/ss/MidukiSS.webp",
   "img/ss/TakinaSS.webp",     /* ★★ 2026-10-03 極彩祭 タキナ（治癒の祈り）用 */
+  "img/ss/HibanaSS.webp",     /* ★★ 2026-10-07 Sapphire Breeze ヒバナ（治癒の祈り）用 */
+  "img/ss/FukiSS.webp",       /* ★★ 2026-10-07 Sapphire Breeze フキ（治癒の祈り）用 */
   "img/ss/YajuSS.webp",   /* ★ 2026-08-08d クロススキル「お待たせ!」用 */
   "img/ss/KokonaAlphaSS.webp",   /* ★ 2026-08-11 ココナα（治癒の祈り）用 */
   /* ★ 2026-08-08 プレミアム新SSR「カエデ」「リノン」「ココロ」「アンジェ」 */
@@ -288,6 +290,7 @@ const CORE = [
   "img/bn_fes13_s.webp",
   "img/bn_fes15_s.webp",   /* ★★ 2026-09-17d 花宴祭のバナー */
   "img/bn_fes16_s.webp",   /* ★★ 2026-09-23 CRYSTAL ACADEMY FEST のバナー */
+  "img/bn_fes17_s.webp?v=2",   /* ★★ 2026-10-07 Sapphire Breeze のバナー（同日に差しかえ → ?v=2） */
   "img/bn_fes14_s.webp",   /* ★★ 2026-09-13 SOFT NIGHT FEST のバナー */   /* ★★ 2026-09-11 BUNNY GIRL FEST のバナー */
   "../img/t_Suzune.webp",
   "../img/t_Minamo.webp",
@@ -440,6 +443,11 @@ const CORE = [
   "../img/t_Miduki.webp",
   /* ★★ 2026-10-03 極彩祭 タキナ */
   "../img/t_Takina.webp",
+  /* ★★ 2026-10-06 UR のキャラ詳細は横長の絵（wide）。ここに無いとオフラインで詳細の絵が出ない */
+  "../img/Takina_w3.webp",
+  /* ★★ 2026-10-07 Sapphire Breeze ヒバナ・フキ（UR の横長の絵も） */
+  "../img/t_Hibana.webp", "../img/Hibana_w.webp",
+  "../img/t_Fuki.webp", "../img/Fuki_w.webp",
   /* ★★ 2026-09-06 同期の画面に出る案内役（立ち姿とお辞儀・2人ぶん）。
      ここに無いとオフラインのときだけ絵が出ない。 */
   "../img/ld_a_stand.webp",
