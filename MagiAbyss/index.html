@@ -18,7 +18,7 @@
 <!-- ══════════════════════════════════════════════════════════════
      ★★ 2026-10-03 新作 MagiAbyss（ご指定）
      ・見下ろし型のドットアクションRPG。冒険者ギルド《アストラ》を拠点に、6つのアビスと深淵踏破に挑む。
-     ・キャラは XEVARION の極彩祭・極煌祭・極華祭の10体だけ（所持・凸は共通／レベル等はこのアプリだけ）。
+     ・キャラは XEVARION の Sapphire Breeze・極彩祭・極煌祭・極華祭の12体だけ（所持・凸は共通／レベル等はこのアプリだけ）。
      ・ドット絵・効果音・BGM はすべてコードで作る（ma-pixel / ma-art / ma-audio）。オフラインで遊べる（sw.js）。
      ・セーブ magiabyss_v1 は xeva-cloud（xeva-keys.js の PORTAL_SYNC_KEYS）で同期する。
      ══════════════════════════════════════════════════════════════ -->
@@ -28,7 +28,7 @@ if ("serviceWorker" in navigator) {
 }
 </script>
 <script src="../xeva-safebottom.js?v=12"></script>
-<link rel="stylesheet" href="css/ma.css?v=1" />
+<link rel="stylesheet" href="css/ma.css?v=3" />
 <script src="../xeva-splash.js?v=13" data-app="MagiAbyss" data-logo="../thumbs/MagiAbyss.jpg"></script>
 </head>
 <body data-scr="title">
@@ -46,7 +46,7 @@ if ("serviceWorker" in navigator) {
   <div class="g-labels" id="gLabels"></div>
   <div class="g-sel" id="gSel"></div>
   <div class="g-hint" id="gHint" hidden></div>
-  <div class="g-help">移動：WASD／方向キー・スティック　調べる：F／タップ　施設の名札を押しても開けます</div>
+  <div class="g-help">移動：WASD／方向キー・スティック　調べる：F　施設の名札を押しても開けます</div>
 </section>
 
 <!-- ═══════════════ 探索中の HUD ═══════════════ -->
@@ -67,33 +67,36 @@ if ("serviceWorker" in navigator) {
 <!-- ★ キャラクターの元データ（名前・属性・絵）は XEVARION（MagiBurst）と共通。
      mb-boot.js は MB_IMGD を "img/"（ポータル用）に決め打ちするので、読んだあとで直す。 -->
 <script type="module" src="../xevarion-fb.js?v=33"></script>
-<script type="module" src="../xeva-cloud.js?v=40"></script>
+<script type="module" src="../xeva-cloud.js?v=42"></script>
 <!-- 所持・凸の最新を MagiBurst のクラウドから取ってくる（このアプリからは書きこまない） -->
-<script type="module" src="../MagiBurst/magiburst-cloud.js?v=20"></script>
-<script src="../xeva.js?v=73"></script>
+<script type="module" src="../MagiBurst/magiburst-cloud.js?v=22"></script>
+<script src="../xeva.js?v=75"></script>
 <script src="../xeva-loading.js?v=18" defer></script>
 <script src="../xeva-presence.js?v=9" defer></script>
 <script src="../mb-boot.js?v=17"></script>
 <script>window.MB_IMGD = "../img/"; window.MB_GIMGD = "../MagiBurst/img/";</script>
-<script src="../MagiBurst/js/mb-core.js?v=130"></script>
-<script src="js/ma-data.js?v=1"></script>
-<script src="js/ma-pixel.js?v=1"></script>
-<script src="js/ma-art.js?v=1"></script>
+<script src="../MagiBurst/js/mb-core.js?v=134"></script>
+<script src="js/ma-data.js?v=3"></script>
+<script src="js/ma-pixel.js?v=3"></script>
+<script src="js/ma-art.js?v=3"></script>
 <script src="js/ma-map.js?v=1"></script>
-<script src="js/ma-save.js?v=1"></script>
-<script src="js/ma-stats.js?v=1"></script>
+<script src="js/ma-save.js?v=2"></script>
+<script src="js/ma-stats.js?v=2"></script>
 <script src="js/ma-audio.js?v=1"></script>
-<script src="js/ma-input.js?v=1"></script>
-<script src="js/ma-engine.js?v=1"></script>
+<script src="js/ma-input.js?v=2"></script>
+<script src="js/ma-engine.js?v=3"></script>
 <script src="js/ma-ai.js?v=1"></script>
-<script src="js/ma-weapons.js?v=1"></script>
-<script src="js/ma-cards.js?v=1"></script>
+<script src="js/ma-weapons.js?v=3"></script>
+<script src="js/ma-cards.js?v=2"></script>
 <script src="js/ma-boss.js?v=1"></script>
-<script src="js/ma-prog.js?v=1"></script>
-<script src="js/ma-render.js?v=1"></script>
-<script src="js/ma-ui.js?v=1"></script>
-<script src="js/ma-guild.js?v=1"></script>
-<script src="js/ma-main.js?v=1"></script>
+<script src="js/ma-prog.js?v=2"></script>
+<script src="js/ma-render.js?v=2"></script>
+<script src="js/ma-ui.js?v=3"></script>
+<script src="js/ma-town.js?v=1"></script>
+<script src="js/ma-guild.js?v=3"></script>
+<script src="js/ma-stages.js?v=1"></script>
+<script src="js/ma-howto.js?v=2"></script>
+<script src="js/ma-main.js?v=2"></script>
 <script src="../xeva-back.js?v=9" data-mode="hook"></script>
 </body>
 </html>

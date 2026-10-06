@@ -117,6 +117,8 @@
     sniper: T(J("ブレがいつも小さくなるかわりに、最大の強さが少し下がります。", "Always less scatter, slightly lower max power."), J("ジャックへのぴったりの寄せ。", "Precise draws to the jack."), J("強い押し出しには不向き。", "Not for heavy pushes.")),
     underdog: T(J("2点以上負けているあいだ、ブレが小さくなり、最大の強さも少し上がります。", "While 2+ points behind: less scatter and a bit more power."), J("追いかける展開の逆転の1球。", "Comeback throws when chasing."), J("1点差・同点・勝っているときは効きません。", "No effect when within 1 point or ahead.")),
     jackmagnet: T(J("ジャックの 70cm 以内に入るとよく止まります。", "Brakes strongly within 70cm of the jack."), J("ジャックのすぐそばに置く1投。", "Placing right next to the jack."), J("いつでも効きます（自分のボールだけ）。", "Always on (your balls only).")),
+    wasurenaguard: T(J("ブレがとても小さく、ボールが重い。ジャックのそばで止まると GUARD になり、自分と次の味方のゲージが入る——ヒバナだけの特別なパッシブです。", "Very little scatter and heavy balls; stopping near the jack makes a GUARD and charges you and the next teammate — Hibana's unique passive."), J("ジャックのそばに置いて守る1投。", "Placing and guarding right next to the jack."), J("止まった位置で判定します。", "Judged where the ball stops.")),
+    yoiyamiveil: T(J("ブレがとても小さく、ボールが少し重い。当てたボールはすぐ止まり、当てるたびにゲージが入る——フキだけの特別なパッシブです。", "Very little scatter, slightly heavier; balls you hit stop fast and each hit charges the gauge — Fuki's unique passive."), J("相手の球に当てて、その場で止める1投。", "Hitting an opposing ball and freezing it in place."), J("ゲージは1投で2回まで。", "Up to 2 gauge bonuses per throw.")),
     kikyouminamo: T(J("ブレがとても小さく、ボールが少し重く、壁でよく跳ねる。ジャックのそばで止まると自分と次の味方のゲージが入る——タキナだけの特別なパッシブです。", "Very little scatter, slightly heavier balls and livelier rails; stopping near the jack charges you and the next teammate — Takina's unique passive."), J("ジャックへの寄せ・壁を使った寄せのどちらでも。", "Both straight draws and rail draws to the jack."), J("止まった位置で判定します。", "Judged where the ball stops.")),
   };
 

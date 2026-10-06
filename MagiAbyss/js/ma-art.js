@@ -434,7 +434,16 @@
   ICON.wisdom = () => (g) => { rect(g, 2, 3, 12, 11, "#3a6a9a"); rect(g, 3, 4, 10, 9, "#e8f0ff"); line(g, 8, 4, 8, 13, 1, "#3a6a9a"); px(g, 5, 7, "#ffcc3a"); px(g, 11, 7, "#ffcc3a"); };
   ICON.regen = () => (g) => { circ(g, 8, 9, 5.5, "#4fe39a"); rect(g, 7, 5, 2, 8, "#ffffff"); rect(g, 4, 8, 8, 2, "#ffffff"); };
   ICON.arcana = () => (g) => { poly(g, [[8, 0], [10, 6], [16, 8], [10, 10], [8, 16], [6, 10], [0, 8], [6, 6]], "#c27bff"); circ(g, 8, 8, 2, "#ffffff"); };
-  ICON.affinity = () => (g) => { ["#ff6a3d", "#3fa9ff", "#4fe39a", "#ffd84a", "#fff1a6", "#a874ff"].forEach((c, i) => { const a = i / 6 * TAU; circ(g, 8 + Math.cos(a) * 5, 8 + Math.sin(a) * 5, 2.2, c); }); };
+  ICON.affinity = () => (g) => { ["#ff5d47", "#2fbf71", "#38a6ff", "#f0b429", "#a86bff"].forEach((c, i) => { const a = -Math.PI / 2 + i / 5 * TAU; circ(g, 8 + Math.cos(a) * 5, 8 + Math.sin(a) * 5, 2.3, c); }); };
+  /* ★★ 2026-10-05 属性（XEVARION と同じ5つ：火・木・水・光・闇） */
+  ICON.el_fire = () => (g) => { poly(g, [[8, 1], [12, 7], [13, 11], [8, 15], [3, 11], [4, 7], [6, 9]], "#ff5d47"); poly(g, [[8, 8], [10, 11], [8, 14], [6, 11]], "#ffd0a0"); };
+  ICON.el_wood = () => (g) => { poly(g, [[8, 1], [14, 7], [8, 15], [2, 7]], "#2fbf71"); line(g, 8, 4, 8, 14, 1, "#c8ffe2"); line(g, 8, 8, 11, 6, 1, "#c8ffe2"); line(g, 8, 11, 5, 9, 1, "#c8ffe2"); };
+  ICON.el_water = () => (g) => { poly(g, [[8, 1], [13, 9], [12, 13], [8, 15], [4, 13], [3, 9]], "#38a6ff"); line(g, 6, 10, 7, 13, 1.2, "#c4e8ff"); };
+  ICON.el_light = () => (g) => { poly(g, [[8, 0], [10, 6], [16, 8], [10, 10], [8, 16], [6, 10], [0, 8], [6, 6]], "#f0b429"); circ(g, 8, 8, 2.2, "#fff5c0"); };
+  ICON.el_dark = () => (g) => { circ(g, 8, 8, 6.5, "#a86bff"); circ(g, 10.5, 6.5, 5, "#120a18"); px(g, 4, 9, "#e2d0ff"); };
+  /* 技（E）のアイコン */
+  ICON.meteor = () => (g) => { line(g, 2, 2, 9, 9, 2.4, "#ffb03a"); line(g, 4, 1, 10, 7, 1, "#fff0a0"); circ(g, 11, 11, 4, "#ff6a2a"); circ(g, 11, 11, 2, "#ffe86a"); };
+  ICON.flash = () => (g) => { poly(g, [[1, 9], [10, 2], [8, 7], [15, 7], [6, 14], [8, 9]], "#bfe8ff"); poly(g, [[4, 9], [9, 5], [8, 8], [12, 8], [7, 12], [8, 9]], "#ffffff"); };
   ICON.magnet = () => (g) => { g.strokeStyle = "#ff4a4a"; g.lineWidth = 3; g.beginPath(); g.arc(8, 7, 4.5, Math.PI, 0); g.stroke(); rect(g, 2, 7, 3, 5, "#ff4a4a"); rect(g, 11, 7, 3, 5, "#ff4a4a"); rect(g, 2, 11, 3, 3, "#ffffff"); rect(g, 11, 11, 3, 3, "#ffffff"); };
   ICON.cooldown = () => (g) => { poly(g, [[3, 1], [13, 1], [8, 8]], "#ffe08a"); poly(g, [[3, 15], [13, 15], [8, 8]], "#c8985a"); rect(g, 2, 0, 12, 1, "#8a6a40"); rect(g, 2, 15, 12, 1, "#8a6a40"); };
   ICON.dashup = () => (g) => { poly(g, [[1, 9], [8, 2], [15, 9], [8, 6]], "#e8f4ff"); poly(g, [[3, 14], [8, 9], [13, 14], [8, 12]], "#9ad8ff"); };
@@ -481,6 +490,45 @@
   ICON.attack = () => (g) => { line(g, 2, 14, 13, 3, 2.4, "#ffffff"); poly(g, [[13, 3], [10, 3], [13, 6]], "#ffffff"); line(g, 3, 9, 7, 13, 2, "#c8a040"); };
   ICON.lock = () => (g) => { g.strokeStyle = "#c8c8d8"; g.lineWidth = 2; g.beginPath(); g.arc(8, 6, 3.4, Math.PI, 0); g.stroke(); rect(g, 3, 6, 10, 9, "#c8a040"); rect(g, 7, 9, 2, 3, "#3a2a1a"); };
   ICON.info = () => (g) => { circ(g, 8, 8, 7, "#5ab8ff"); rect(g, 7, 7, 2, 6, "#ffffff"); rect(g, 7, 3, 2, 2, "#ffffff"); };
+  /* ★★ 2026-10-05 キャラごとのスキル（Q）のアイコン（ご指定「技などの具体的なアイコン」） */
+  const ring = (g, x, y, r, w, c, a0, a1) => { g.strokeStyle = c; g.lineWidth = w; g.beginPath(); g.arc(x, y, r, a0 == null ? 0 : a0, a1 == null ? TAU : a1); g.stroke(); };
+  const eRing = (g, x, y, rx, ry, w, c) => { g.strokeStyle = c; g.lineWidth = w; g.beginPath(); g.ellipse(x, y, rx, ry, 0, 0, TAU); g.stroke(); };
+  ICON.sk_ripple = () => (g) => { eRing(g, 8, 11, 7, 3.4, 1.2, "#38a6ff"); eRing(g, 8, 11, 4, 1.8, 1.2, "#7fd0ff"); poly(g, [[8, 1], [11, 6], [10.5, 8], [8, 9.5], [5.5, 8], [5, 6]], "#9ad8ff"); px(g, 7, 5, "#ffffff"); };
+  ICON.sk_prism = () => (g) => { line(g, 1, 6, 6, 9, 1.4, "#ffffff"); poly(g, [[8, 2], [13, 12], [3, 12]], "#c8f8ff"); poly(g, [[8, 5], [11, 11], [5, 11]], "#8ae0d0"); line(g, 11, 8, 16, 5, 1.2, "#ff5d47"); line(g, 11.5, 9, 16, 8, 1.2, "#f0b429"); line(g, 12, 10, 16, 11, 1.2, "#2fbf71"); line(g, 12, 11, 16, 14, 1.2, "#38a6ff"); };
+  ICON.sk_hoop = () => (g) => { rect(g, 2, 1, 12, 6, "#e8f0ff"); rect(g, 6, 3, 4, 3, "#ff6a3a"); eRing(g, 8, 8, 4, 1.2, 1.3, "#ff6a3a"); line(g, 5, 9, 6.5, 12, 0.8, "#ffffff"); line(g, 11, 9, 9.5, 12, 0.8, "#ffffff"); circ(g, 12, 13, 2.6, "#ff8a3a"); line(g, 9.6, 13, 14.4, 13, 0.6, "#5a2a10"); };
+  ICON.sk_umbrella = () => (g) => { poly(g, [[1, 8], [3, 4], [8, 2], [13, 4], [15, 8], [12, 7], [10.5, 8.5], [8, 7], [5.5, 8.5], [4, 7]], "#e8203a"); poly(g, [[8, 2], [10, 7], [8, 7], [6, 7]], "#ff8a9a"); line(g, 8, 7, 8, 14, 1.2, "#c8985a"); line(g, 8, 14, 6.5, 15, 1.2, "#c8985a"); [[3, 11], [13, 11], [11, 14], [4, 15]].forEach(([x, y]) => line(g, x, y, x - 0.6, y + 1.6, 0.9, "#ff6a8a")); };
+  ICON.sk_mirage = () => (g) => { [0, 1].forEach((k) => { const o = k * 3, c = k ? "#ffb03a" : "rgba(255,120,60,.45)"; for (let i = 0; i < 3; i++) line(g, 3 + i * 3 + o - 3, 3, 1 + i * 3 + o - 3 + 4, 14, 1.3, c); }); circ(g, 13, 4, 1.4, "#fff0a0"); };
+  ICON.sk_clone = () => (g) => { circ(g, 5, 5, 2.6, "#5a3a8a"); poly(g, [[1.5, 15], [2.5, 8], [7.5, 8], [8.5, 15]], "#5a3a8a"); circ(g, 10.5, 5, 2.8, "#a86bff"); poly(g, [[6.5, 15], [7.5, 8], [13.5, 8], [14.5, 15]], "#a86bff"); px(g, 11, 5, "#ffffff"); };
+  ICON.sk_rose = () => (g) => { line(g, 8, 9, 7, 15, 1.2, "#2f8a4a"); poly(g, [[7, 12], [4, 11], [6, 13.5]], "#2fbf71"); circ(g, 8, 6, 5, "#2a5ad0"); circ(g, 8, 6, 3.4, "#4a8aff"); ring(g, 8, 6, 2, 1, "#1a3a9a", 0.5, 5); circ(g, 8.4, 5.6, 0.9, "#c4e8ff"); };
+  ICON.sk_fanfare = () => (g) => { poly(g, [[1, 9], [6, 8], [10, 5], [10, 13], [6, 10], [1, 10]], "#ffd84a"); rect(g, 3, 10, 2, 3, "#c89a20"); rect(g, 10, 5, 1, 8, "#fff0a0"); rect(g, 13, 1, 1, 5, "#ffffff"); circ(g, 12.4, 6, 1.4, "#ffffff"); rect(g, 14, 7, 1, 4, "#ff8fd0"); circ(g, 13.4, 11, 1.3, "#ff8fd0"); };
+  ICON.sk_wave = () => (g) => { ring(g, 3, 8, 9, 2.6, "#ff3a4a", -1.0, 1.0); ring(g, 1, 8, 9, 1.2, "#ffd0c0", -0.8, 0.8); line(g, 0, 8, 6, 8, 1, "#ff8a6a"); };
+  /* ★★ 2026-10-07 ヒバナ（勿忘草の花とバリア）・フキ（朧月と夜桜）のスキル／通常攻撃のアイコン */
+  ICON.sk_forget = () => (g) => { ring(g, 8, 8, 6.6, 1.2, "#7fe8a8"); for (let k = 0; k < 5; k++) { const a = -Math.PI / 2 + k * TAU / 5; circ(g, 8 + Math.cos(a) * 3.2, 8 + Math.sin(a) * 3.2, 2.2, k % 2 ? "#8ab8ff" : "#5a8eff"); } circ(g, 8, 8, 1.6, "#fff3a0"); px(g, 7, 7, "#ffffff"); };
+  ICON.sk_veil = () => (g) => { circ(g, 6, 6, 4.6, "#f0e8ff"); circ(g, 8, 5, 4.2, "#2a1f4a"); [[11, 9], [13, 12], [9, 13], [12, 4]].forEach(([x, y], i) => { poly(g, [[x, y - 1.6], [x + 1.4, y], [x, y + 1.6], [x - 1.4, y]], i % 2 ? "#ffc4dc" : "#b9a8ff"); }); line(g, 2, 14, 14, 14, 1, "rgba(185,168,255,.7)"); };
+  ICON.at_spark = () => (g) => { [[4, 11], [8, 6], [12, 10], [7, 12], [11, 4]].forEach(([x, y], i) => { line(g, x - 1.6, y, x + 1.6, y, 1, i % 2 ? "#7fe8a8" : "#6fa8ff"); line(g, x, y - 1.6, x, y + 1.6, 1, i % 2 ? "#7fe8a8" : "#6fa8ff"); px(g, x, y, "#ffffff"); }); };
+  ICON.at_yoipetal = () => (g) => { [[3, 12, "#b9a8ff"], [7, 8, "#ffc4dc"], [11, 4, "#b9a8ff"], [12, 11, "#ffc4dc"]].forEach(([x, y, c]) => { poly(g, [[x, y - 2.4], [x + 2, y], [x, y + 2.4], [x - 2, y]], c); }); line(g, 1, 15, 15, 1, 0.8, "rgba(255,255,255,.5)"); };
+  ICON.sk_wall = () => (g) => { rect(g, 9, 1, 4, 14, "#38a6ff"); rect(g, 10, 1, 1, 14, "#c4e8ff"); poly(g, [[2, 4], [7, 3], [8, 8], [7, 13], [2, 12]], "#9ab0d0"); poly(g, [[3, 5], [6, 4.5], [6.8, 8], [6, 11.5], [3, 11]], "#d8e4f8"); };
+  /* 通常攻撃の型のアイコン */
+  ICON.at_gun = () => (g) => { rect(g, 2, 5, 11, 3, "#3a3c4c"); rect(g, 12, 5, 3, 2, "#2a2c38"); poly(g, [[3, 8], [7, 8], [6, 14], [2, 14]], "#262833"); rect(g, 7, 8, 2, 2, "#4f8fe0"); rect(g, 3, 5, 9, 1, "#d8ecff"); px(g, 15, 5, "#7fd0ff"); };
+  ICON.at_fan = () => (g) => { [-0.5, 0, 0.5].forEach((a) => { const c = Math.cos(a - Math.PI / 4), s = Math.sin(a - Math.PI / 4); line(g, 3, 13, 3 + c * 12, 13 + s * 12, 1.8, "#4fe39a"); line(g, 3, 13, 3 + c * 12, 13 + s * 12, 0.7, "#e0fff0"); }); };
+  ICON.at_ball = () => (g) => { circ(g, 8, 8, 6.5, "#ff8a3a"); line(g, 1.5, 8, 14.5, 8, 0.8, "#5a2a10"); line(g, 8, 1.5, 8, 14.5, 0.8, "#5a2a10"); ring(g, 2, 8, 6.5, 0.8, "#5a2a10", -0.9, 0.9); ring(g, 14, 8, 6.5, 0.8, "#5a2a10", Math.PI - 0.9, Math.PI + 0.9); px(g, 5, 4, "#ffd0a0"); };
+  ICON.at_petal = () => (g) => { [[5, 6, "#e8203a"], [11, 5, "#ff5a6a"], [8, 11, "#ff8a9a"]].forEach(([x, y, c]) => { poly(g, [[x, y - 3], [x + 3, y], [x, y + 3], [x - 3, y]], c); }); circ(g, 8, 7.5, 1.4, "#ffe86a"); };
+  ICON.at_claw = () => (g) => { for (let i = 0; i < 3; i++) { line(g, 3 + i * 4, 2, 1 + i * 4, 14, 1.8, "#ff6a2a"); line(g, 3 + i * 4, 2, 1 + i * 4, 14, 0.6, "#ffe0a0"); } };
+  ICON.at_orb = () => (g) => { line(g, 1, 14, 7, 9, 1.6, "rgba(168,107,255,.55)"); line(g, 3, 15, 8, 11, 1, "rgba(168,107,255,.4)"); circ(g, 10, 6, 4.6, "#5a2a9a"); circ(g, 10, 6, 2.8, "#a86bff"); circ(g, 9, 5, 1, "#ffffff"); };
+  ICON.at_wave = () => (g) => { for (let i = 0; i < 3; i++) ring(g, 1, 8, 4 + i * 4, 1.3, i === 1 ? "#ffd84a" : "#ff8fd0", -0.8, 0.8); circ(g, 2, 8, 1.6, "#ffffff"); };
+  ICON.at_rapier = () => (g) => { line(g, 3, 13, 15, 1, 1, "#d8ecff"); ring(g, 4.5, 11.5, 2.4, 1.2, "#ffd84a", 0, TAU); line(g, 1, 15, 4, 12, 1.6, "#3a2a6a"); px(g, 15, 1, "#ffffff"); };
+  ICON.at_crescent = () => (g) => { ring(g, 6, 8, 7, 3, "#ff3a4a", -1.3, 1.3); ring(g, 6, 8, 7, 1, "#ffe0d0", -1.1, 1.1); };
+  ICON.ultc = (c) => (g) => { poly(g, [[8, 0], [10, 6], [16, 6], [11, 10], [13, 16], [8, 12], [3, 16], [5, 10], [0, 6], [6, 6]], c || "#ff6aa8"); poly(g, [[8, 3], [9.2, 7], [12.5, 7], [9.8, 9.4], [10.8, 13], [8, 10.6], [5.2, 13], [6.2, 9.4], [3.5, 7], [6.8, 7]], P.mix(c || "#ff6aa8", "#ffffff", 0.55)); circ(g, 8, 8.4, 1.4, "#ffffff"); };
+  /* 能力のアイコン（キャラ詳細の表） */
+  ICON.st_hp = () => (g) => { circ(g, 5, 6, 3.6, "#ff5a7a"); circ(g, 11, 6, 3.6, "#ff5a7a"); poly(g, [[1.6, 7], [14.4, 7], [8, 14.5]], "#ff5a7a"); px(g, 4, 4, "#ffffff"); };
+  ICON.st_atk = () => (g) => { line(g, 3, 13, 13, 3, 2.2, "#e8eef8"); line(g, 3, 13, 13, 3, 0.8, "#ffffff"); line(g, 2, 10, 6, 14, 2, "#c8a040"); line(g, 1, 15, 3, 13, 2, "#6a4a2a"); };
+  ICON.st_def = () => (g) => { poly(g, [[8, 1], [14, 3], [13, 10], [8, 15], [3, 10], [2, 3]], "#5a8ad0"); poly(g, [[8, 3], [12, 4.5], [11, 9.5], [8, 13], [5, 9.5], [4, 4.5]], "#a8c8f0"); };
+  ICON.st_spd = () => (g) => { poly(g, [[3, 3], [8, 3], [8, 9], [14, 10], [14, 14], [3, 14]], "#4fe39a"); rect(g, 3, 13, 11, 2, "#1f6a4a"); line(g, 0, 6, 2, 6, 1, "#c8ffe2"); line(g, 0, 9, 2, 9, 1, "#c8ffe2"); };
+  ICON.st_time = () => (g) => { circ(g, 8, 8, 7, "#e8e0d0"); circ(g, 8, 8, 5.6, "#2a2240"); line(g, 8, 8, 8, 4, 1.4, "#ffd84a"); line(g, 8, 8, 11, 9.5, 1.4, "#ffffff"); px(g, 8, 2, "#ffffff"); };
+  ICON.gem = () => (g) => { poly(g, [[4, 2], [12, 2], [15, 6], [8, 15], [1, 6]], "#5ad8ff"); poly(g, [[4, 2], [8, 6], [12, 2]], "#c8f4ff"); poly(g, [[1, 6], [8, 6], [8, 15]], "#3aa8e8"); line(g, 1, 6, 15, 6, 0.8, "#e8fbff"); };
+  ICON.hard = () => (g) => { poly(g, [[8, 1], [15, 14], [1, 14]], "#ff3a4a"); rect(g, 7, 5, 2, 5, "#ffffff"); rect(g, 7, 11, 2, 2, "#ffffff"); };
+  ICON.normal = () => (g) => { circ(g, 8, 8, 7, "#4fe39a"); line(g, 4, 8, 7, 11, 2, "#ffffff"); line(g, 7, 11, 12, 5, 2, "#ffffff"); };
+  ICON.check = () => (g) => { line(g, 2, 8, 6, 12, 2.4, "#4fe39a"); line(g, 6, 12, 14, 3, 2.4, "#4fe39a"); };
   const iconCache = {};
   function icon(name, col, size) {
     const k = name + "|" + (col || "") + "|" + (size || 16);

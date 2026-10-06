@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<script src="../maintenance-gate.js?v=13"></script>
+<meta charset="UTF-8" />
+<script>(function(){try{var a=JSON.parse(localStorage.getItem('xeva_account_v1'));if(!a||!a.setupDone)location.replace('../index.html');}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<title>MagiChemLex — 難関化学の問題集</title>
+<meta name="description" content="難関大の化学を、本試験の改題と関連問題で鍛える学習アプリ。おすすめ出題・間隔反復の復習・本番セット・ヒントと図つきの解説・関数電卓。XEVARION の MagiLex 系統。" />
+<link rel="icon" href="../thumbs/MagiChemLex.jpg" type="image/jpeg" />
+<link rel="apple-touch-icon" href="img/apple-touch-icon.png" />
+<meta name="theme-color" content="#f2f5ff" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800;900&display=swap" rel="stylesheet">
+<!-- ══════════════════════════════════════════════════════════════
+     ★★ 2026-10-06 新作 MagiChemLex（ご指定：MagiLex の派生・難関化学に特化・UI と機能は1から）
+     ・はじめの問題は、難関大の入試問題（化学1回ぶん）の全小問の改題＋関連問題（js/mcl-data.js）。
+       ★ ご指定：大学名・年度などの固有名詞は出さない。
+     ・記録 magichemlex_v1 は xeva-cloud（xeva-keys.js の PORTAL_SYNC_KEYS）で同期。混ぜ方は mergeChem。
+     ・獲得 XEVA は Violet Breeze などのイベント中 XEVA.event.lexMult() 倍（MagiLex 系統）。
+     ・オフラインで使える（sw.js）。
+     ══════════════════════════════════════════════════════════════ -->
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function () { navigator.serviceWorker.register("sw.js").catch(function () {}); });
+}
+</script>
+<script src="../xeva-safebottom.js?v=12"></script>
+<link rel="stylesheet" href="css/mcl.css?v=4" />
+<script src="../xeva-splash.js?v=13" data-app="MagiChemLex" data-logo="../thumbs/MagiChemLex.jpg"></script>
+</head>
+<body>
+<div id="app">
+  <header class="hd">
+    <a class="hd-back" href="../index.html" aria-label="XEVARION へもどる"><svg class="di" viewBox="0 0 24 24" aria-hidden="true"><path class="f" d="M15 18l-6-6 6-6"/></svg>XEVARION</a>
+    <div class="hd-brand"><img src="img/icon_192.png" alt=""><b>MagiChemLex</b></div>
+    <span class="hd-ev" id="hdEv" hidden></span>
+    <span class="hd-xeva" title="所持 XEVA"><img src="../XEVA.png" alt="XEVA"><span id="hdXevaV">0</span></span>
+    <button class="hd-gear" data-a="settings" aria-label="設定"><svg class="di" viewBox="0 0 24 24" aria-hidden="true"><circle class="b" cx="12" cy="12" r="7"/><circle class="f" cx="12" cy="12" r="3"/><path class="f" d="M12 2.8v2.6M12 18.6v2.6M4.6 4.6l1.9 1.9M17.5 17.5l1.9 1.9M2.8 12h2.6M18.6 12h2.6M4.6 19.4l1.9-1.9M17.5 6.5l1.9-1.9"/></svg></button>
+  </header>
+  <main class="main" id="main"></main>
+  <nav class="tabbar" id="tabbar" aria-label="メニュー">
+    <button data-a="tab" data-tab="home"><svg class="di" viewBox="0 0 24 24" aria-hidden="true"><path class="b" d="M4.5 11.4 12 5.3l7.5 6.1V20h-15z"/><path class="f" d="M3 11.2 12 4l9 7.2"/><path class="f" d="M5.2 10v10h13.6V10"/><path class="f" d="M10 20v-5.2h4V20"/></svg>ホーム</button>
+    <button data-a="tab" data-tab="sets"><svg class="di" viewBox="0 0 24 24" aria-hidden="true"><rect class="b" x="6" y="3.5" width="14" height="13" rx="2.2"/><path class="f" d="M8 3h10.5A2.5 2.5 0 0 1 21 5.5V14"/><rect class="f" x="3" y="6.5" width="15" height="14" rx="2.4"/><path class="f" d="M6.5 11h8M6.5 14.5h5.5"/></svg>セット</button>
+    <button data-a="tab" data-tab="lib"><svg class="di" viewBox="0 0 24 24" aria-hidden="true"><path class="b" d="M5.2 4.6A1.6 1.6 0 0 1 6.8 3H19v14H7a1.8 1.8 0 0 0-1.8 1.8z"/><path class="f" d="M5 19.2V5a2 2 0 0 1 2-2h12v14H7a2 2 0 0 0-2 2.2z"/><path class="f" d="M7 21h12v-4"/><path class="f" d="M9 7.5h6.5M9 11h4.5"/></svg>問題</button>
+    <button data-a="tab" data-tab="review"><svg class="di" viewBox="0 0 24 24" aria-hidden="true"><circle class="b" cx="12" cy="12" r="7.6"/><path class="f" d="M19.4 13.3A7.6 7.6 0 0 1 6 17.4"/><path class="f" d="M4.6 10.7A7.6 7.6 0 0 1 18 6.6"/><path class="f" d="M18.4 3v3.9h-3.9M5.6 21v-3.9h3.9"/></svg>復習</button>
+    <button data-a="tab" data-tab="stats"><svg class="di" viewBox="0 0 24 24" aria-hidden="true"><rect class="b" x="4.5" y="11" width="4" height="9" rx="1.2"/><rect class="b" x="10" y="5" width="4" height="15" rx="1.2"/><rect class="b" x="15.5" y="13" width="4" height="7" rx="1.2"/><path class="f" d="M3 21h18"/><rect class="f" x="4.5" y="11" width="4" height="9" rx="1.2"/><rect class="f" x="10" y="5" width="4" height="15" rx="1.2"/><rect class="f" x="15.5" y="13" width="4" height="7" rx="1.2"/></svg>記録</button>
+    <button data-a="tab" data-tab="tools"><svg class="di" viewBox="0 0 24 24" aria-hidden="true"><path class="b" d="M6.2 20.6h11.6a1.5 1.5 0 0 0 1.3-2.3L15.4 12H8.6l-3.7 6.3a1.5 1.5 0 0 0 1.3 2.3z"/><path class="f" d="M9 3h6M10 3v6.6l-5.4 9A2 2 0 0 0 6.3 21.6h11.4a2 2 0 0 0 1.7-3l-5.4-9V3"/><circle class="a" cx="10.6" cy="16.4" r="1.1"/><circle class="a" cx="13.9" cy="18.2" r=".8"/></svg>ツール</button>
+  </nav>
+</div>
+<!-- 演習・本番セット（全画面） -->
+<div class="play" id="play" hidden></div>
+<!-- 下から出るシート・お知らせ・紙ふぶき -->
+<div class="sheet" id="sheet"></div>
+<div id="toasts"></div>
+<div id="fx"></div>
+<noscript><p style="padding:20px">MagiChemLex を使うには JavaScript を有効にしてください。</p></noscript>
+
+<script type="module" src="../xevarion-fb.js?v=33"></script>
+<script type="module" src="../xeva-cloud.js?v=42"></script>
+<script src="../xeva.js?v=75"></script>
+<script src="../xeva-loading.js?v=18" defer></script>
+<script src="../xeva-presence.js?v=9" defer></script>
+<script src="js/mcl-data.js?v=3"></script>
+<!-- ★★ 2026-10-06b 本番セット2（改題61問＋関連問題113問）。最後に MCL_DATA.finalize() -->
+<script src="js/mcl-data2.js?v=3"></script>
+<script src="js/mcl-core.js?v=3"></script>
+<script src="js/mcl-fig.js?v=2"></script>
+<script src="js/mcl-ui.js?v=3"></script>
+<script src="../xeva-back.js?v=9" data-mode="hook"></script>
+</body>
+</html>

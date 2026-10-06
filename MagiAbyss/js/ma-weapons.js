@@ -18,11 +18,11 @@
   const ec2 = (el) => (D().ELEM[el] || D().ELEM.water).c2;
 
   /* ── 共通の部品 ── */
-  function atkOf(mul) { const P = G().P; return P.st.atk * mul; }
+  function atkOf(mul) { const P = G().P; return P.st.atk * mul * (P._stanceMul || 1); }
   function magOf(mul) { const P = G().P; return P.st.atk * mul * P.st.mag; }
   function skillOf(mul) { const P = G().P; return P.st.atk * mul * P.st.mag * (1 + (P.st.skill || 0)); }
   function ultOf(mul) { const P = G().P; return P.st.atk * mul * P.st.mag * (1 + (P.st.ult || 0)); }
-  function cdOf(cd) { const P = G().P; return cd / (P.st.aspd * (P.buffs.haste ? 1 + P.buffs.haste.v : 1) * (P.buffs.fanfare ? 1 + P.buffs.fanfare.a : 1) * (P.buffs.afterdash ? 1 + P.buffs.afterdash.v : 1)); }
+  function cdOf(cd) { const P = G().P; return cd / (P.st.aspd * (P.buffs.haste ? 1 + P.buffs.haste.v : 1) * (P.buffs.fanfare ? 1 + P.buffs.fanfare.a : 1) * (P.buffs.afterdash ? 1 + P.buffs.afterdash.v : 1) * (P.buffs.dance ? 1 + P.buffs.dance.v : 1)); }
   function mcdOf(cd) { const P = G().P; return cd * (1 - P.st.cdr); }
   function aim() { return G().P.aimA; }
   function slashArc(x, y, a, r, arc, dmg, el, opt) {
@@ -146,6 +146,29 @@
       shoot({ x: P.x, y: P.y - 4, a, speed: A0.speed, dmg: atkOf(A0.mul), el, pierce: A0.pierce || 1, life: A0.range / A0.speed, r: 5, kind: "ball", col: "#ef7c2e", src: "atk", kb: A0.kb });
       A().sfx("shot");
     },
+    /* ★★ 2026-10-07 ヒバナ：勿忘草の火花を扇状に（ゆるく追尾・青と若葉の色） */
+    spark(P, A0) {
+      const a = aim(), el = P.C.el, n = A0.n + P.st.fan;
+      for (let i = 0; i < n; i++) {
+        const aa = a + (i - (n - 1) / 2) * (A0.arc / Math.max(1, n - 1));
+        shoot({ x: P.x, y: P.y - 5, a: aa, speed: A0.speed * (0.9 + Math.random() * 0.2), dmg: atkOf(A0.mul) * P.st.mag, el, pierce: A0.pierce || 0, life: A0.range / A0.speed, r: 3, kind: "petal", col: i % 2 ? "#6fa8ff" : "#7fe8a8", src: "atk", homing: A0.homing || 0 });
+      }
+      A().sfx("shot");
+    },
+    /* ★★ 2026-10-07 フキ：宵闇の花びら（貫通）。every 回ごとに花吹雪 */
+    petalfan(P, A0) {
+      const a = aim(), el = P.C.el;
+      P.atkN++;
+      const many = P.atkN % A0.every === 0;
+      const n = (many ? A0.burst : A0.n) + P.st.spread;
+      const arc = many ? 1.0 : 0.32;
+      for (let i = 0; i < n; i++) {
+        const aa = a + (n > 1 ? (i - (n - 1) / 2) * (arc / (n - 1)) : 0);
+        shoot({ x: P.x, y: P.y - 4, a: aa, speed: A0.speed, dmg: atkOf(A0.mul), el, pierce: A0.pierce + P.st.pierce, life: A0.range / A0.speed, r: 3, kind: "petal", col: i % 3 ? "#b9a8ff" : "#ffc4dc", src: "atk" });
+      }
+      if (many) E().pop(P.x, P.y - 24, "花吹雪", "#ffc4dc");
+      A().sfx("slash");
+    },
   };
 
   /* ══════════════════════════════════════════════════════════════
@@ -188,9 +211,10 @@
       for (let i = 0; i < n; i++) {
         const o = E().pbullet({ x: P.x, y: P.y, vx: 0, vy: 0, dmg: magOf(evo ? evo.mul : L.mul), el, pierce: 999, life, r: 5, kind: "orbit", col: ec(el), src: "weapon", rehit: 0.45, ghost: true, ang: i / n * TAU, rad: L.r * P.st.area,
           update: (b, dt) => { b.ang += dt * 3.4; b.x = G().P.x + Math.cos(b.ang) * b.rad; b.y = G().P.y - 4 + Math.sin(b.ang) * b.rad * 0.8; b.vx = 0; b.vy = 0; } });
-        if (w.evo === "evo_hinano") o.onHit = (b, e) => { e.paintT = 5; e.paintEl = "thunder"; };
+        if (w.evo === "evo_hinano") o.onHit = (b, e) => { e.paintT = 5; e.paintEl = "water"; };
         if (w.evo === "evo_kokoha") o.onHit = (b, e) => { if (Math.random() < 0.12) E().zone({ x: e.x, y: e.y, r: 26, dur: 2, dmg: magOf(0.4), el: "fire", burn: 1, quiet: 1 }); };
         if (w.evo === "evo_kotori") o.onHit = (b, e) => { G().P.shield = Math.min(G().P.st.hp * 0.5, G().P.shield + 2); };
+        if (w.evo === "evo_hibana") o.onHit = (b, e) => { E().heal(G().P.st.hp * 0.004, true); };
         if (w.evo === "evo_kumireina") o.onHit = (b, e) => { G().P.buffs.haste = { t: 1.5, v: 0.2 }; };
         if (w.evo === "evo_tome") o.onHit = (b, e) => { if (Math.random() < 0.08) { circleHit(b.x, b.y, 28, magOf(1.0), el, { src: "weapon" }); E().fx({ type: "ring", x: b.x, y: b.y, t: 0, dur: 0.3, r: 28, col: ec(el) }); } };
         w.orbs.push(o);
@@ -204,8 +228,9 @@
         const aa = a + (Math.random() - 0.5) * 0.4;
         lineHit(P.x, P.y - 3, aa, L.len, 8, atkOf(evo ? evo.mul : L.mul), el, { src: "weapon" });
         E().fx({ type: "thrust", x: P.x, y: P.y - 3, a: aa, len: L.len, t: 0, dur: 0.1, col: "#e8faff", col2: ec(el) });
-        if (evo && w.evo === "evo_dagger") G().queue.push({ at: G().t + 0.15, f: () => lineHit(P.x, P.y - 3, aa, L.len * 1.2, 10, atkOf(evo.mul * 0.5), "shadow", { src: "weapon" }) });
+        if (evo && w.evo === "evo_dagger") G().queue.push({ at: G().t + 0.15, f: () => lineHit(P.x, P.y - 3, aa, L.len * 1.2, 10, atkOf(evo.mul * 0.5), "dark", { src: "weapon" }) });
         if (w.evo === "evo_azusa") shoot({ x: P.x, y: P.y - 3, a: aa, speed: 160, dmg: atkOf(0.6), el: "water", pierce: 3, life: 0.6, r: 4, kind: "petal", col: "#5a8cff", src: "weapon" });
+        if (w.evo === "evo_fuki") { const pb = shoot({ x: P.x, y: P.y - 3, a: aa, speed: 170, dmg: atkOf(0.65), el: "dark", pierce: 3, life: 0.6, r: 4, kind: "petal", col: "#ffc4dc", src: "weapon" }); pb.onHit = (bb, e) => { e.defDownT = Math.max(e.defDownT || 0, 2); }; }
       } });
       A().sfx("slash");
     },
@@ -217,7 +242,7 @@
         A().sfx("slash");
       } });
       if (evo && w.evo === "evo_scythe") E().zone({ x: P.x, y: P.y, r: 46, dur: 1.6, dmg: atkOf(0.35), el, pull: 1, quiet: 1, col: ec(el) });
-      if (w.evo === "evo_reina") G().queue.push({ at: G().t + 0.45, f: () => { [0, Math.PI / 2].forEach((a) => { lineHit(P.x - Math.cos(a) * 80, P.y - Math.sin(a) * 80, a, 160, 14, atkOf(2.4), "shadow", { src: "weapon" }); E().fx({ type: "beam", x: P.x - Math.cos(a) * 80, y: P.y - Math.sin(a) * 80, a, len: 160, w: 10, t: 0, dur: 0.3, col: "#a874ff" }); }); } });
+      if (w.evo === "evo_reina") G().queue.push({ at: G().t + 0.45, f: () => { [0, Math.PI / 2].forEach((a) => { lineHit(P.x - Math.cos(a) * 80, P.y - Math.sin(a) * 80, a, 160, 14, atkOf(2.4), "dark", { src: "weapon" }); E().fx({ type: "beam", x: P.x - Math.cos(a) * 80, y: P.y - Math.sin(a) * 80, a, len: 160, w: 10, t: 0, dur: 0.3, col: "#a874ff" }); }); } });
       if (w.evo === "evo_kagura") E().enemiesIn(P.x, P.y, L.r * P.st.area).slice(0, 3).forEach((e) => G().queue.push({ at: G().t + 0.4, f: () => { if (!e.dead) { circleHit(e.x, e.y, 26, atkOf(2.0), "fire", { src: "weapon", burn: 1 }); E().fx({ type: "bloom", x: e.x, y: e.y, t: 0, dur: 0.4, r: 26, col: "#ff3a46" }); } } }));
     },
     staff(P, w, L, evo) {
@@ -251,13 +276,13 @@
       E().fx({ type: "ring", x, y, t: 0, dur: 0.4, r: L.r * P.st.area, col: "#9ae0ff" });
     },
     gale(P, m, L) {
-      for (let i = 0; i < L.n; i++) { const a = i / L.n * TAU + G().t; shoot({ x: P.x, y: P.y - 4, a, speed: 200, dmg: magOf(L.mul), el: "wind", pierce: 3, life: 0.8, r: 4, kind: "blade", col: "#4fe39a", src: "magic", spin: 1, rehit: 0.2 }); }
+      for (let i = 0; i < L.n; i++) { const a = i / L.n * TAU + G().t; shoot({ x: P.x, y: P.y - 4, a, speed: 200, dmg: magOf(L.mul), el: "wood", pierce: 3, life: 0.8, r: 4, kind: "blade", col: "#2fbf71", src: "magic", spin: 1, rehit: 0.2 }); }
       A().sfx("slash");
     },
     thunder(P, m, L) {
       E().nearestN(P.x, P.y, 220, L.n).forEach((t) => {
-        E().damageEnemy(t, magOf(L.mul), { el: "thunder", src: "magic", noChain: 1 });
-        E().chainFrom(t, L.chain, magOf(L.mul * 0.5), "thunder");
+        E().damageEnemy(t, magOf(L.mul), { el: "light", src: "magic", noChain: 1 });
+        E().chainFrom(t, L.chain, magOf(L.mul * 0.5), "light");
         E().fx({ type: "lightning", x: t.x, y: t.y, t: 0, dur: 0.25, col: "#ffd84a" });
       });
       A().sfx("zap");
@@ -276,7 +301,7 @@
     shadowbind(P, m, L) {
       E().nearestN(P.x, P.y, 200, L.n).forEach((t, i) => G().queue.push({ at: G().t + i * 0.06, f: () => {
         if (t.dead) return;
-        E().damageEnemy(t, magOf(L.mul), { el: "shadow", src: "magic", stun: 0.3 });
+        E().damageEnemy(t, magOf(L.mul), { el: "dark", src: "magic", stun: 0.3 });
         E().heal(magOf(L.mul) * 0.02, true);
         E().fx({ type: "spikes", x: t.x, y: t.y, t: 0, dur: 0.4, col: "#a874ff" });
       } }));
@@ -294,9 +319,14 @@
     /* 通常攻撃（自動 or 押しているあいだ） */
     P.atkT -= dt;
     const want = S.set.autoAtk || P.atkHeld;
+    /* ★★ 2026-10-05 敵が前にいなくても<b>いつも</b>出す（ご指定）。向きは input() の「ねらい」 */
     if (want && P.atkT <= 0) {
-      const near = E().nearest(P.x, P.y, 300);
-      if (near || P.atkHeld) { (NORMAL[A0.kind] || NORMAL.shot)(P, A0); P.atkT = cdOf(A0.cd); P.atkAnim = 0.12; }
+      /* 紅蓮の構え（技E）：次の何回かの通常攻撃が強くなる */
+      P._stanceMul = (P.stance && P.stance.n > 0) ? P.stance.mul : 0;
+      (NORMAL[A0.kind] || NORMAL.shot)(P, A0);
+      if (P._stanceMul) { P.stance.n--; E().fx({ type: "ring", x: P.x, y: P.y - 6, t: 0, dur: 0.25, r: 16, col: "#ff6a3d" }); }
+      P._stanceMul = 0;
+      P.atkT = cdOf(A0.cd); P.atkAnim = 0.12;
     }
     if (P.atkAnim > 0) P.atkAnim -= dt;
     /* 武器 */
@@ -339,8 +369,8 @@
       if (c.cd <= 0) {
         const t = E().nearest(c.x, c.y, 200); if (!t) return;
         const a = Math.atan2(t.y - c.y, t.x - c.x);
-        const b = shoot({ x: c.x, y: c.y - 6, a, speed: 150, dmg: atkOf(P.C.atk.mul * c.mul) * P.st.mag, el: "shadow", pierce: 0, life: 1.6, r: 4, kind: "orb", col: "#a874ff", src: "summon", homing: 3 });
-        b.onHit = (bb, e) => E().chainFrom(e, 1, bb.dmg * 0.5, "shadow");
+        const b = shoot({ x: c.x, y: c.y - 6, a, speed: 150, dmg: atkOf(P.C.atk.mul * c.mul) * P.st.mag, el: "dark", pierce: 0, life: 1.6, r: 4, kind: "orb", col: "#a86bff", src: "summon", homing: 3 });
+        b.onHit = (bb, e) => E().chainFrom(e, 1, bb.dmg * 0.5, "dark");
         c.cd = 0.7;
       }
     });
@@ -359,7 +389,7 @@
       n.cd -= dt;
       if (n.cd <= 0) {
         const t = E().nearest(n.x, n.y, 170); if (!t) return;
-        const el = P.C.el2 && i % 2 ? P.C.el2 : (P.C.el === "water" ? "wind" : P.C.el);
+        const el = P.C.el2 && i % 2 ? P.C.el2 : (P.C.el === "water" ? "wood" : P.C.el);
         shoot({ x: n.x, y: n.y, a: Math.atan2(t.y - n.y, t.x - n.x), speed: 190, dmg: atkOf(0.7) * P.st.mag, el, pierce: 0, life: 1.2, r: 3, kind: "note", col: ec(el), src: "summon", homing: 4 });
         n.cd = 1.0;
       }
@@ -385,7 +415,7 @@
     },
     paint(P, K) {
       const r = K.r * P.st.area;
-      E().enemiesIn(P.x, P.y, r).forEach((e) => { e.paintT = K.t; e.paintEl = "thunder"; e.vulT = K.t; e.vulK = K.vul; E().damageEnemy(e, skillOf(K.mul), { el: "wind", src: "skill" }); });
+      E().enemiesIn(P.x, P.y, r).forEach((e) => { e.paintT = K.t; e.paintEl = "water"; e.vulT = K.t; e.vulK = K.vul; E().damageEnemy(e, skillOf(K.mul), { el: "wood", src: "skill" }); });
       E().fx({ type: "prism", x: P.x, y: P.y, t: 0, dur: 0.5, r, col: "#4fe39a" });
     },
     dunk(P, K) {
@@ -424,6 +454,26 @@
       const a = aim();
       shoot({ x: P.x, y: P.y - 4, a, speed: K.speed, dmg: skillOf(K.mul), el: "fire", pierce: 99, life: K.range / K.speed, r: 12, kind: "crescentShot", col: "#ff3a46", src: "skill", kb: 10 });
     },
+    /* ★★ 2026-10-07 ヒバナ：まわりに勿忘草を咲かせる＋回復＋バリア＋必殺技ゲージ */
+    bloomguard(P, K) {
+      const r = K.r * P.st.area;
+      circleHit(P.x, P.y, r, skillOf(K.mul), "wood", { src: "skill" });
+      for (let i = 0; i < 3; i++) E().fx({ type: "ring", x: P.x, y: P.y, t: -i * 0.06, dur: 0.45, r: r * (0.5 + i * 0.25), col: i % 2 ? "#6fa8ff" : "#7fe8a8" });
+      E().fx({ type: "bloom", x: P.x, y: P.y, t: 0, dur: 0.5, r: r * 0.6, col: "#6fa8ff" });
+      E().heal(P.st.hp * K.heal);
+      P.shield = Math.max(P.shield, Math.round(P.st.hp * K.shield * (1 + (P.st.skill || 0))));
+      P.ultG = Math.min(100, P.ultG + 8);
+    },
+    /* ★★ 2026-10-07 フキ：敵がいちばん集まっている所に朧の帳（しびれ） */
+    oboro(P, K) {
+      const c = crowdPoint(P, 220), r = K.r * P.st.area;
+      E().telegraph({ shape: "circle", x: c.x, y: c.y, r, dur: 0.3, col: "#b9a8ff", onFire: (o) => {
+        circleHit(o.x, o.y, o.r, skillOf(K.mul), "dark", { src: "skill", stun: K.stun });
+        E().fx({ type: "bloom", x: o.x, y: o.y, t: 0, dur: 0.55, r: o.r, col: "#7a5cff" });
+        E().fx({ type: "ring", x: o.x, y: o.y, t: 0, dur: 0.5, r: o.r, col: "#ffc4dc" });
+        A().sfx("boom"); G().shake = 4;
+      } });
+    },
     wall(P, K) {
       if (K.mul) circleHit(P.x, P.y, (K.r || 64) * P.st.area, skillOf(K.mul), "water", { src: "skill", kb: 16 });
       P.shield = Math.max(P.shield, Math.round(P.st.hp * K.shield * (1 + (P.st.skill || 0))));
@@ -442,22 +492,100 @@
     E().pop(P.x, P.y - 26, K.nm, ec(P.C.el));
     A().sfx("skill");
   }
-  /* ══ 星脈解放（E・共通）：キャラの属性の大きな衝撃 ══ */
+  /* ══════════════════════════════════════════════════════════════
+     技（E）：キャラごとに1つ（data の ARTS・CHAR_KIT）。★（グレード）と凸で威力が変わる
+     ★★ 2026-10-05 共通だった「星脈解放」を、キャラごとに組み合わせが違う技にした（ご指定）
+     ══════════════════════════════════════════════════════════════ */
+  function artK() { const P = G().P; return (D().GRADE_MUL[(P.C.art && P.C.art.g) || 3] || 1) * (1 + (P.st.art || 0)); }
+  function artDef() { const P = G().P; return D().ARTS[(P.C.art && P.C.art.k) || "starnova"] || D().ARTS.starnova; }
+  /* 敵がいちばん集まっている所（いなければ前方） */
+  function crowdPoint(P, range) {
+    const list = G().E.filter((e) => !e.dead && !e.isGim && E().dist2(e.x, e.y, P.x, P.y) < range * range);
+    if (!list.length) return { x: P.x + Math.cos(aim()) * 60, y: P.y + Math.sin(aim()) * 60 };
+    let best = list[0], bn = 0;
+    list.slice(0, 24).forEach((e) => { const n = E().enemiesIn(e.x, e.y, 34).length; if (n > bn) { bn = n; best = e; } });
+    return { x: best.x, y: best.y };
+  }
+  const ARTF = {
+    nova(P, A, k) {
+      const el = P.C.el, r = A.r * P.st.area;
+      E().enemiesIn(P.x, P.y, r).forEach((e) => E().damageEnemy(e, skillOf(A.mul * k), { el, src: "art", kb: 18, kx: e.x - P.x, ky: e.y - P.y }));
+      for (let i = 0; i < 3; i++) E().fx({ type: "ring", x: P.x, y: P.y, t: -i * 0.07, dur: 0.45, r: r * (0.5 + i * 0.25), col: i % 2 ? ec2(el) : ec(el) });
+      G().shake = 6; A_().sfx("boom");
+    },
+    meteor(P, A, k) {
+      const el = P.C.el;
+      let list = E().nearestN(P.x, P.y, 240, A.n);
+      for (let i = 0; i < A.n; i++) G().queue.push({ at: G().t + i * 0.09, f: () => {
+        const t = list[i % Math.max(1, list.length)];
+        const x = t && !t.dead ? t.x : P.x + Math.cos(aim()) * (40 + i * 10), y = t && !t.dead ? t.y : P.y + Math.sin(aim()) * (40 + i * 10);
+        E().telegraph({ shape: "circle", x, y, r: A.r, dur: 0.32, col: ec(el), onFire: (o) => { circleHit(o.x, o.y, o.r, skillOf(A.mul * k), el, { src: "art" }); E().fx({ type: "meteor", x: o.x, y: o.y, t: 0, dur: 0.35, col: ec(el) }); A_().sfx("boom"); } });
+      } });
+    },
+    dashcut(P, A, k) {
+      const a = aim(), sx = P.x, sy = P.y;
+      E().moveCircle(P, Math.cos(a) * A.dist, Math.sin(a) * A.dist, true);
+      lineHit(sx, sy, a, Math.hypot(P.x - sx, P.y - sy) + 8, 26, skillOf(A.mul * k), P.C.el, { src: "art", kb: 10 });
+      E().fx({ type: "afterimage", x: sx, y: sy, x2: P.x, y2: P.y, t: 0, dur: 0.35, col: ec(P.C.el) });
+      P.iT = Math.max(P.iT, 0.45);
+      onDash();   /* ダッシュあつかい（タキナの「結髪の集中」・アズサの「円舞の余韻」がのる） */
+      A_().sfx("dash");
+    },
+    aegis(P, A, k) {
+      P.shield = Math.max(P.shield, Math.round(P.st.hp * A.shield * k));
+      circleHit(P.x, P.y, A.r * P.st.area, skillOf(A.mul * k), P.C.el, { src: "art", kb: 22 });
+      E().fx({ type: "ring", x: P.x, y: P.y, t: 0, dur: 0.5, r: A.r * P.st.area, col: "#7fd0ff" });
+      E().fx({ type: "shock", x: P.x, y: P.y, t: 0, dur: 0.4, r: 26, col: "#bfe8ff" });
+      A_().sfx("heal");
+    },
+    heal(P, A, k) {
+      E().heal(P.st.hp * A.heal * k);
+      P.buffs.artRegen = { t: A.t, v: A.regen * k };
+      E().fx({ type: "ring", x: P.x, y: P.y, t: 0, dur: 0.6, r: 40, col: "#7dffb0" });
+      A_().sfx("heal");
+    },
+    whirl(P, A, k) {
+      E().zone({ x: P.x, y: P.y, r: A.r * P.st.area, dur: A.t, dmg: skillOf(A.mul * k), el: P.C.el, tick: 0.25, follow: 1, quiet: 1, col: ec(P.C.el), kind: "whirl", src: "art" });
+      A_().sfx("slash");
+    },
+    haste(P, A, k) {
+      P.buffs.haste = { t: A.t, v: Math.max((P.buffs.haste && P.buffs.haste.v) || 0, A.aspd * k) };
+      P.buffs.gale = { t: A.t, v: A.spd * k, re: 0 };
+      E().fx({ type: "ring", x: P.x, y: P.y, t: 0, dur: 0.5, r: 30, col: "#ffe86a" });
+      A_().sfx("skill");
+    },
+    freeze(P, A, k) {
+      const r = A.r * P.st.area;
+      E().enemiesIn(P.x, P.y, r).forEach((e) => E().damageEnemy(e, skillOf(A.mul * k), { el: "water", src: "art", stun: A.t, slow: 0.5 }));
+      E().fx({ type: "ring", x: P.x, y: P.y, t: 0, dur: 0.5, r, col: "#bfe8ff" });
+      for (let i = 0; i < 6; i++) { const a = i / 6 * TAU; E().fx({ type: "icicle", x: P.x + Math.cos(a) * r * 0.6, y: P.y + Math.sin(a) * r * 0.6, t: 0, dur: 0.5 }); }
+      A_().sfx("skill");
+    },
+    blast(P, A, k) {
+      const c = crowdPoint(P, 220), r = A.r * P.st.area;
+      E().telegraph({ shape: "circle", x: c.x, y: c.y, r, dur: 0.35, col: "#ff6a2a", onFire: (o) => { circleHit(o.x, o.y, o.r, skillOf(A.mul * k), "fire", { src: "art", burn: 1, kb: 16 }); E().fx({ type: "boom", x: o.x, y: o.y, t: 0, dur: 0.5, r: o.r, col: "#ff6a2a" }); G().shake = 7; A_().sfx("boom"); } });
+    },
+    gate(P, A, k) {
+      const c = crowdPoint(P, 200);
+      E().zone({ x: c.x, y: c.y, r: A.r * P.st.area, dur: A.t, dmg: skillOf(A.mul * k), el: "dark", tick: 0.3, pull: 1, quiet: 1, col: "#a86bff", kind: "gate", src: "art" });
+      E().fx({ type: "ring", x: c.x, y: c.y, t: 0, dur: 0.5, r: A.r, col: "#a86bff" });
+      A_().sfx("skill");
+    },
+    stance(P, A, k) {
+      P.stance = { n: A.n, mul: A.mul * k };
+      E().fx({ type: "firering", x: P.x, y: P.y, t: 0, dur: 0.4, r: 22, col: "#ff6a3d" });
+      A_().sfx("skill");
+    },
+  };
+  function A_() { return A(); }
   function burst() {
     const P = G().P;
     if (!P.alive || P.burstCd > 0) return;
-    if (P.mp < 40) { E().pop(P.x, P.y - 24, "MPが足りない", "#9ab0ff"); A().sfx("error"); return; }
-    P.mp -= 40; P.burstCd = 4 * (1 - P.st.cdr);
-    const el = P.C.el, r = 110 * P.st.area;
-    E().enemiesIn(P.x, P.y, r).forEach((e) => {
-      E().damageEnemy(e, skillOf(3.0), { el, src: "skill", kb: 18, kx: e.x - P.x, ky: e.y - P.y, burn: el === "fire", slow: el === "water" ? 0.4 : 0, stun: el === "thunder" ? 0.6 : 0 });
-    });
-    if (el === "light") E().heal(P.st.hp * 0.08);
-    if (el === "wind") P.buffs.gale = { t: 3, v: 0.3, re: 0 };
-    for (let i = 0; i < 3; i++) E().fx({ type: "ring", x: P.x, y: P.y, t: -i * 0.07, dur: 0.45, r: r * (0.5 + i * 0.25), col: i % 2 ? ec2(el) : ec(el) });
-    G().shake = 6;
-    E().pop(P.x, P.y - 26, "星脈解放", ec(el));
-    A().sfx("boom");
+    const Ad = artDef();
+    if (P.mp < Ad.mp) { E().pop(P.x, P.y - 24, "MPが足りない", "#9ab0ff"); A().sfx("error"); return; }
+    P.mp -= Ad.mp; P.burstCd = Ad.cd * (1 - P.st.cdr);
+    (ARTF[Ad.kind] || ARTF.nova)(P, Ad, artK());
+    E().pop(P.x, P.y - 26, Ad.nm, ec(P.C.el));
   }
 
   /* ══════════════════════════════════════════════════════════════
@@ -480,9 +608,43 @@
         A().sfx("boom");
       } });
     },
+    /* ★★ 2026-10-07 ヒバナ：勿忘草の火花を連射 → 画面全体へ勿忘草の大輪＋防御ダウン＋回復＋バリア */
+    hanakagari(P, U) {
+      for (let i = 0; i < U.n; i++) G().queue.push({ at: G().t + i * 0.018, f: () => {
+        const t = E().strongest(P.x, P.y, 300) || E().nearest(P.x, P.y, 300); if (!t) return;
+        const a = Math.atan2(t.y - P.y, t.x - P.x) + (Math.random() - 0.5) * 0.3;
+        shoot({ x: P.x, y: P.y - 6, a, speed: 400, dmg: ultOf(U.mul), el: "wood", pierce: 1, life: 0.9, r: 3, kind: "petal", col: i % 3 ? "#6fa8ff" : "#7fe8a8", src: "ult", homing: 6, tgt: t });
+        if (i % 4 === 0) A().sfx("shot");
+      } });
+      G().queue.push({ at: G().t + U.n * 0.018 + 0.25, f: () => {
+        const cx = G().cam.x, cy = G().cam.y;
+        G().E.forEach((e) => { if (!e.dead && Math.abs(e.x - cx) < G().vw / 2 + 20 && Math.abs(e.y - cy) < G().vh / 2 + 20) { E().damageEnemy(e, ultOf(U.fin), { el: "wood", src: "ult" }); e.defDownT = 6; } });
+        E().fx({ type: "bellflower", x: cx, y: cy, t: 0, dur: 1.1, col: "#3dbf7a" });
+        E().heal(G().P.st.hp * U.heal);
+        G().P.shield = Math.max(G().P.shield, Math.round(G().P.st.hp * U.shield));
+        G().flash = 0.8; G().flashCol = "#d8ffe6"; G().shake = 10;
+        A().sfx("boom");
+      } });
+    },
+    /* ★★ 2026-10-07 フキ：宵闇の花びらを連射 → 画面全体へ朧桜の帳＋防御ダウン＋しびれ */
+    oborozakura(P, U) {
+      for (let i = 0; i < U.n; i++) G().queue.push({ at: G().t + i * 0.017, f: () => {
+        const t = E().strongest(P.x, P.y, 300) || E().nearest(P.x, P.y, 300); if (!t) return;
+        const a = Math.atan2(t.y - P.y, t.x - P.x) + (Math.random() - 0.5) * 0.3;
+        shoot({ x: P.x, y: P.y - 6, a, speed: 420, dmg: ultOf(U.mul), el: "dark", pierce: 1, life: 0.9, r: 3, kind: "petal", col: i % 3 ? "#b9a8ff" : "#ffc4dc", src: "ult", homing: 6, tgt: t });
+        if (i % 4 === 0) A().sfx("slash");
+      } });
+      G().queue.push({ at: G().t + U.n * 0.017 + 0.25, f: () => {
+        const cx = G().cam.x, cy = G().cam.y;
+        G().E.forEach((e) => { if (!e.dead && Math.abs(e.x - cx) < G().vw / 2 + 20 && Math.abs(e.y - cy) < G().vh / 2 + 20) { E().damageEnemy(e, ultOf(U.fin), { el: "dark", src: "ult", stun: U.stun }); e.defDownT = 6; } });
+        E().fx({ type: "bellflower", x: cx, y: cy, t: 0, dur: 1.1, col: "#7a5cff" });
+        G().flash = 0.8; G().flashCol = "#e6dcff"; G().shake = 11;
+        A().sfx("boom");
+      } });
+    },
     tempest(P, U) {
-      for (let i = 0; i < U.n; i++) G().queue.push({ at: G().t + i * 0.04, f: () => { const a = i * 0.55; shoot({ x: P.x, y: P.y - 4, a, speed: 200, dmg: ultOf(U.mul), el: "wind", pierce: 6, life: 1.4, r: 5, kind: "blade", col: "#4fe39a", src: "ult", spin: 1, curve: 1.2 }); } });
-      G().E.forEach((e) => { if (!e.dead && E().dist2(e.x, e.y, P.x, P.y) < 260 * 260) { e.paintT = 8; e.paintEl = "thunder"; } });
+      for (let i = 0; i < U.n; i++) G().queue.push({ at: G().t + i * 0.04, f: () => { const a = i * 0.55; shoot({ x: P.x, y: P.y - 4, a, speed: 200, dmg: ultOf(U.mul), el: "wood", pierce: 6, life: 1.4, r: 5, kind: "blade", col: "#2fbf71", src: "ult", spin: 1, curve: 1.2 }); } });
+      G().E.forEach((e) => { if (!e.dead && E().dist2(e.x, e.y, P.x, P.y) < 260 * 260) { e.paintT = 8; e.paintEl = "water"; } });
       E().fx({ type: "prism", x: P.x, y: P.y, t: 0, dur: 1.0, r: 200, col: "#4fe39a" });
     },
     buzzer(P, U) {
@@ -505,7 +667,7 @@
     },
     cross(P, U) {
       const cx = G().cam.x, cy = G().cam.y;
-      [Math.PI / 4, -Math.PI / 4].forEach((a) => { lineHit(cx - Math.cos(a) * 260, cy - Math.sin(a) * 260, a, 520, 40, ultOf(U.mul), "shadow", { src: "ult" }); E().fx({ type: "beam", x: cx - Math.cos(a) * 260, y: cy - Math.sin(a) * 260, a, len: 520, w: 30, t: 0, dur: 0.6, col: "#a874ff" }); });
+      [Math.PI / 4, -Math.PI / 4].forEach((a) => { lineHit(cx - Math.cos(a) * 260, cy - Math.sin(a) * 260, a, 520, 40, ultOf(U.mul), "dark", { src: "ult" }); E().fx({ type: "beam", x: cx - Math.cos(a) * 260, y: cy - Math.sin(a) * 260, a, len: 520, w: 30, t: 0, dur: 0.6, col: "#a874ff" }); });
       P.clones.push({ x: P.x - 20, y: P.y, t: 8, cd: 0, mul: 0.7 }, { x: P.x + 20, y: P.y, t: 8, cd: 0.3, mul: 0.7 });
       G().flash = 0.5; G().flashCol = "#d0b0ff"; G().shake = 10;
     },
@@ -637,11 +799,11 @@
     const P = G().P;
     P.resFx.forEach((f) => {
       if (f.t === "nova") { f.cdT -= dt; if (f.cdT <= 0) { f.cdT = f.cd; const r = f.r * P.st.area; circleHit(P.x, P.y, r, P.st.atk * f.mul, f.el, { src: "res", kb: f.pull ? 0 : 8 }); if (f.pull) E().zone({ x: P.x, y: P.y, r, dur: 1.2, dmg: P.st.atk * 0.2, el: f.el, pull: 1, quiet: 1, col: ec(f.el) }); E().fx({ type: "ring", x: P.x, y: P.y, t: 0, dur: 0.4, r, col: ec(f.el) }); } }
-      if (f.t === "rain") { f.cdT -= dt; if (f.cdT <= 0) { f.cdT = f.cd; E().nearestN(P.x, P.y, 230, f.n).forEach((e) => { E().telegraph({ shape: "circle", x: e.x, y: e.y, r: 18, dur: 0.25, col: ec(f.el), onFire: (o) => { circleHit(o.x, o.y, o.r, P.st.atk * f.mul, f.el, { src: "res" }); E().fx({ type: f.el === "thunder" ? "lightning" : "pillar", x: o.x, y: o.y, t: 0, dur: 0.3, r: 18, col: ec(f.el) }); } }); }); } }
+      if (f.t === "rain") { f.cdT -= dt; if (f.cdT <= 0) { f.cdT = f.cd; E().nearestN(P.x, P.y, 230, f.n).forEach((e) => { E().telegraph({ shape: "circle", x: e.x, y: e.y, r: 18, dur: 0.25, col: ec(f.el), onFire: (o) => { circleHit(o.x, o.y, o.r, P.st.atk * f.mul, f.el, { src: "res" }); E().fx({ type: f.el === "light" ? "lightning" : "pillar", x: o.x, y: o.y, t: 0, dur: 0.3, r: 18, col: ec(f.el) }); } }); }); } }
       if (f.t === "aura") { f.cdT -= dt; if (f.cdT <= 0) { f.cdT = 0.5; E().enemiesIn(P.x, P.y, f.r).forEach((e) => E().damageEnemy(e, P.st.atk * f.mul, { el: f.el, src: "res", slow: f.slow || 0, noFx: 1, noGauge: 1 })); } }
       if (f.t === "trail" && (P.dashTrail || f.always)) { f.cdT -= dt; if (f.cdT <= 0) { f.cdT = f.always ? 0.35 : 0.05; if (f.always && !P.moving) return; E().zone({ x: P.x, y: P.y, r: 14, dur: 1.6, dmg: P.st.atk * f.mul * 0.4, el: f.el, tick: 0.3, quiet: 1, col: ec(f.el), kind: "trail" }); } }
     });
   }
 
-  MA.W = { update, skill, burst, ult, onDash, onDashEnd, onHit, onKill, refreshTags, NORMAL, WFIRE, MFIRE, SKILL, ULT, slashArc, circleHit, lineHit, shoot, screenHit, atkOf, magOf };
+  MA.W = { update, skill, burst, art: burst, artDef, artK, ARTF, ult, onDash, onDashEnd, onHit, onKill, refreshTags, NORMAL, WFIRE, MFIRE, SKILL, ULT, slashArc, circleHit, lineHit, shoot, screenHit, atkOf, magOf };
 })();

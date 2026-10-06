@@ -70,6 +70,8 @@
   const charOf = (id) => B.charOf(id);
   const img = (c) => (c ? FX.imgPath(c) : "");
   const imgFull = (c) => (c ? FX.imgPath(c, true) : "");
+  /* ★★ 2026-10-06 UR の横長の絵（キャラ詳細だけ。ボールの絵・アイコンはそのまま） */
+  const imgWide = (c) => (c && c.wide ? (/^(https?:|\.\.\/|img\/)/.test(c.wide) ? c.wide : "../img/" + c.wide) : "");
   /* ★★ 2026-09-17b 1エンドに6球投げるので、<b>編成は6体</b>（ご指定）。1人1球ずつ順番に投げる。 */
   const LINEUP_N = 6;
   function fillLineup(L0, pool) {
@@ -152,11 +154,23 @@
       + "</div>";
   }
   const qBtn = () => '<button class="qh" data-a="growhelp" aria-label="?">?</button>';
-  function skinOf(id) {
-    const p = B.charProg(id), c = charOf(id);
+  /* ★★ 2026-10-06c ボールの縁は<b>凸（MagiBurst の限界突破）で決まる</b>（ご指定「虹などの縁は凸状況と同じに」）。
+     0凸＝スタンダード（白）／1凸＝エンブレム／2〜3凸＝レディアント（金）／完凸＝プリズム（虹）。
+     SR は凸があってもエンブレムまで（MagiBurst の完凸の演出が SSR 以上だけなのと同じ）。
+     熟練度で解放して自分でえらぶ方式（chars[id].ball）はやめた。試合中は<b>その試合の凸</b>（cfg.awk）を見る＝相手の球も相手の凸で光る。 */
+  function skinByAwk(c, aw) {
     if (!c) return "std";
-    const sk = B.skinsOf(c, p.lv).find((x) => x.k === p.ball);
-    return sk && sk.open ? sk.k : "std";
+    aw = aw | 0;
+    if (!c.star5) return aw > 0 ? "emblem" : "std";
+    return aw >= B.AWK_MAX ? "prism" : aw >= 2 ? "radiant" : aw >= 1 ? "emblem" : "std";
+  }
+  function skinOf(id, side) {
+    const c = charOf(id);
+    if (!c) return "std";
+    let aw = 0;
+    if (M && side && M.cfg && M.cfg.awk && M.cfg.awk[side]) aw = M.cfg.awk[side][id] || 0;
+    else if (!side) aw = TRIAL ? 0 : awkOne(id);
+    return skinByAwk(c, aw);
   }
 
   /* ══════════ 画面のきりかえ ══════════ */
@@ -810,7 +824,7 @@
     const nextXp = B.xpForLv(Math.min(B.LV_MAX, p.lv + 1)), curXp = B.xpForLv(p.lv);
     /* ★★ 2026-09-19 戻るボタンは<b>常に見える</b>ように、絵の外の「上に貼りつく層」に置く（ご指定） */
     return '<div class="dback">' + (inMatch ? '<button class="tb back" data-a="mteam">← TEAM</button>' : '<button class="tb back" data-a="back">← BACK</button>') + "</div>"
-      + '<div class="dhero' + mxCls(c, own && !TRIAL ? awkOne(c.id) : 0) + '"><img class="bg" src="' + esc(img(c)) + '" alt=""><img class="fg" src="' + esc(imgFull(c)) + '" alt="" onerror="this.onerror=null;this.src=\'' + esc(img(c)) + '\'"><div class="sh"></div>'
+      + '<div class="dhero' + (imgWide(c) ? " wide urx" : "") + mxCls(c, own && !TRIAL ? awkOne(c.id) : 0) + '"><img class="bg" src="' + esc(img(c)) + '" alt=""><img class="fg' + (imgWide(c) ? " urx-pan" : "") + '" src="' + esc(imgWide(c) || imgFull(c)) + '" alt="" onerror="this.onerror=null;this.src=\'' + esc(img(c)) + '\'"><div class="sh"></div>' + (imgWide(c) && typeof urDecor === "function" ? urDecor() : "")
 
       + '<div class="info"><div class="rar">' + (c.rarNm || c.rarity) + "</div>"
       + '<div class="nm">' + esc(c.nm) + "</div>"
@@ -858,7 +872,7 @@
       /* ★★ 2026-10-01 トレイト（4つめの性能） */
       + (kit.trait ? '<div class="sk trt" style="border-left-color:#ffd86a"><div class="h"><span class="e">' + esc(kit.trait.nm) + '</span><span class="j">' + esc(J("トレイト " + kit.trait.sub, "Trait")) + '</span><span class="c tag">' + J("小さな個性", "Small edge") + '</span></div><div class="d">' + kit.trait.d + '</div></div>' : "")
 
-      + hd("BALL", J("専用ボール（見た目だけ・性能は同じ）", "Signature ball (cosmetic)"))
+      + hd("BALL", J("専用ボール（縁は MagiBurst の凸で変わる・見た目だけ）", "Signature ball (rim follows awakening · cosmetic)"))
       + '<div class="balls" id="dballs"></div>'
 
       + (inMatch ? '<button class="btn" style="margin-top:10px" data-a="close">' + J("試合にもどる", "Back to match") + "</button>"
@@ -953,19 +967,22 @@
     renderDetail();
     window.scrollTo(0, y);
   }
+  /* ★★ 2026-10-06c 縁は凸で決まる（skinByAwk）。ここは「どの凸でどの縁か」の見本で、押してえらぶものではない */
   function fillBalls(box, c, interactive) {
     if (!box) return;
-    const p = B.charProg(c.id);
-    B.skinsOf(c, p.lv).forEach((sk) => {
-      const b = document.createElement("button");
-      const on = (p.ball || "std") === sk.k && sk.open;
-      b.className = "bsk" + (on ? " on" : "") + (sk.open ? "" : " lock");
-      b.dataset.a = sk.open && interactive ? "ball" : "";
-      b.dataset.v = c.id + ":" + sk.k;
-      b.appendChild(FX.ballThumb(c, sk.k, "red", 58));
+    const now = skinOf(c.id);
+    const rows = c.star5
+      ? [["std", J("0凸", "+0")], ["emblem", J("1凸", "+1")], ["radiant", J("2〜3凸", "+2–3")], ["prism", J("完凸", "MAX")]]
+      : [["std", J("0凸", "+0")], ["emblem", J("1凸〜", "+1 or more")]];
+    rows.forEach(([k, lb]) => {
+      const sk = B.skinsOf(c, 1).find((x) => x.k === k) || { k, ja: k, en: k };
+      const b = document.createElement("div");
+      const on = now === k;
+      b.className = "bsk" + (on ? " on" : "");
+      b.appendChild(FX.ballThumb(c, k, "red", 58));
       const n = document.createElement("div"); n.className = "n"; n.textContent = en() ? sk.en : sk.ja;
       const g = document.createElement("div"); g.className = "g";
-      g.textContent = sk.open ? (on ? J("使用中", "IN USE") : J("解放ずみ", "UNLOCKED")) : (!sk.gradeOk ? J("極祭キャラ専用", "Festival only") : "🔒 Lv." + sk.need);
+      g.textContent = on ? J("いまの縁", "NOW") + "・" + lb : lb;
       b.appendChild(n); b.appendChild(g);
       box.appendChild(b);
     });
@@ -1178,7 +1195,7 @@
       awk: p.kind === "friend" ? { red: trainAw(p.trainRed, lineup.red), blue: trainAw(p.trainBlue, lineup.blue) }
         : { red: awksOf(lineup.red), blue: {} },
       rules: p.rules || "ability", growth: p.growth || "full",
-      first: p.first || "red", difficulty: p.difficulty || "normal", guide: s.guide,
+      first: p.first || "red", difficulty: p.difficulty || "normal", guide: guideFor(s),
       seed: p.seed != null ? p.seed : ((Date.now() ^ (Math.random() * 1e9)) >>> 0),
     });
     M.kind = p.kind;
@@ -1264,7 +1281,7 @@
     });
     M = B.newMatch({
       kind: "party", mode: "party", sides, ends: p.ends || 2, perSide: p.perColor || 3, players, lineup, levels, awk,
-      rules: p.rules || "ability", growth: p.growth || "full", first: sides[0], difficulty: p.difficulty || "normal", guide: s.guide,
+      rules: p.rules || "ability", growth: p.growth || "full", first: sides[0], difficulty: p.difficulty || "normal", guide: guideFor(s),
       seed: (Date.now() ^ (Math.random() * 1e9)) >>> 0, local: true,
     });
     M.kind = "party";
@@ -1362,7 +1379,7 @@
       lineup: { red: mine, blue: [] },
       levels: { red: levelsOf(mine), blue: {} },
       awk: { red: awksOf(mine), blue: {} },
-      rules: "ability", growth: s.growth || "full", first: "red", difficulty: "normal", guide: s.guide,
+      rules: "ability", growth: s.growth || "full", first: "red", difficulty: "normal", guide: guideFor(s),
       seed: ((Date.now() ^ (Math.random() * 1e9)) >>> 0),
     });
     M.kind = "stage"; M.practice = false;
@@ -1452,6 +1469,7 @@
         : '<div class="mhead"><div class="msd red" id="mRed"><span class="sc" id="mScR">0</span><span class="nm" id="mNmR"></span></div>'
         + '<button class="mend" data-a="pause" title="MENU"><span class="e">END ❚❚</span><span class="n" id="mEnd">1/4</span></button>'
         + '<div class="msd blue" id="mBlue"><span class="nm" id="mNmB"></span><span class="sc" id="mScB">0</span></div></div>')
+      + '<div class="mlead" id="mLead"></div>'
       + '<div class="order" id="mOrder"></div>'
       + '<div id="mStage"></div>'
       + '<div class="cwrap" id="cwrap"><canvas id="court"></canvas><div id="mGuide"></div><div class="aimhud" id="aimhud" hidden></div><div id="mTut"></div>'
@@ -1485,8 +1503,26 @@
     }
     return !isCpuTurn();
   }
+  /* ★★ 2026-10-06 いまのリード（いまエンドが終わったら何点か）をいつも見せる（ご指定「分かりやすく」） */
+  let lastLeadSide = "", lastLeadPts = 0;
+  function paintLead() {
+    const el = $("#mLead"); if (!el || !M) return;
+    const off = M.stage || M.practice || M.phase !== "play" || !B.jackOf(M);
+    const st = off ? null : B.scoreEnd(M);
+    const key = st && st.side ? st.side + ":" + st.pts : off ? "off" : "none";
+    if (el._k === key) return;
+    el._k = key;
+    if (off) { el.className = "mlead"; el.innerHTML = ""; return; }
+    el.className = "mlead on" + (st.side ? "" : " none");
+    el.style.setProperty("--sc", st.side ? SC(st.side) : "#8b8b98");
+    el.innerHTML = st.side
+      ? '<span class="lk en">NOW LEADING</span><b class="en">' + esc(SI(st.side).en) + '</b><em class="en">+' + st.pts + "</em><small>" + J("このままエンドが終わると " + st.pts + " 点", "if the end ended now: " + st.pts + " pt") + "</small>"
+      : '<span class="lk en">NO SCORE</span><small>' + J("まだジャックに近いボールがありません", "No ball near the jack yet") + "</small>";
+    el.classList.remove("pop"); void el.offsetWidth; el.classList.add("pop");
+  }
   function updateHUD() {
     if (!M || cur !== "match") return;
+    paintLead();
     const party = B.isParty(M);
     $("#mEnd").textContent = M.stage ? L(window.MBRStage.DIFF[M.stage.diff]) : M.practice ? "—" : M.addlNow ? "EX" + (M.addl > 1 ? M.addl : "") : M.end + "/" + (M.cfg.baseEnds || M.cfg.ends);          /* ★★ 2026-10-01 延長戦は EX */
     const stg = $("#mStage");
@@ -1500,8 +1536,8 @@
           + (pl && pl.cpu ? " CPU" : "") + '</span><span class="lf">' + "●".repeat(Math.max(0, M.left[sd])) + "</span></div>";
       }).join("");
     } else {
-      $("#mScR").textContent = M.score.red;
-      $("#mScB").textContent = M.score.blue;
+      /* ★★ 2026-10-06 得点が増えたら数字をはねさせる（演出） */
+      [["#mScR", M.score.red], ["#mScB", M.score.blue]].forEach(([q, v]) => { const el = $(q); if (!el) return; const was = el.textContent; el.textContent = v; if (was !== "" && String(v) !== was && !M.stage) { el.classList.remove("bump"); void el.offsetWidth; el.classList.add("bump"); } });
       const pr = B.playerOf(M, "red"), pb = B.playerOf(M, "blue");
       $("#mNmR").textContent = pr ? pr.name : "RED";
       $("#mNmB").textContent = pb ? pb.name : "BLUE";
@@ -1587,7 +1623,8 @@
   /* ★★ 2026-09-18 投球ボックスの ◀ BOX ▶（自分が投げる番だけ出す） */
   function paintSlot() {
     const el = $("#mSlot"); if (!el || !M) return;
-    const show = isMyControl() && !(aim && aim.dragging);
+    /* ★★ 2026-10-06c BOX はコートの箱を押して直接えらべるので、「◀ BOX n ▶」の表示はやめた（ご指定）。キーボードの ←→ はそのまま */
+    const show = false;
     el.hidden = !show;
     if (!show) return;
     const n = $("#mSlotN"); if (n) n.textContent = "BOX " + (slot + 1);
@@ -1763,7 +1800,7 @@
     B.live(M).forEach((b) => {
       const c = b.jack ? null : charOf(b.charId);
       FX.drawBall(ctx, sx(b.x), sy(b.y), r, {
-        side: b.side, jack: b.jack, char: c, skin: c ? (b.side === mySide() || !online ? skinForSide(b) : "std") : "",
+        side: b.side, jack: b.jack, char: c, skin: c ? skinForSide(b) : "",
         rot: (b.roll || 0) / Math.max(0.05, B.ballR(M)) * (b.vx >= 0 ? 1 : -1), guard: b.guard, shock: b.shockT > 0, t: tsec,
       });
     });
@@ -1774,7 +1811,7 @@
     ctx.restore();
   }
   function mySide() { return online ? online.side : "red"; }
-  function skinForSide(b) { return b.charId ? skinOf(b.charId) : "std"; }
+  function skinForSide(b) { return b.charId ? skinOf(b.charId, b.side) : "std"; }
   function FXlevel() { return B.load().fxLevel || "full"; }
 
   /* ★★ 2026-09-18 引っぱりは MagiBurst と同じく<b>指を置いた点</b>からの長さで決める（ご指定）。
@@ -1798,7 +1835,7 @@
     const X = sx(sp.x), Y = sy(sp.y);
     const isJack = M.phase === "jack";
     const ch = isJack ? null : B.curCharOf(M, M.turn);
-    FX.drawBall(ctx, X, Y, r, { side: M.turn, jack: isJack, char: ch, skin: ch ? skinOf(ch.id) : "", t: tsec });
+    FX.drawBall(ctx, X, Y, r, { side: M.turn, jack: isJack, char: ch, skin: ch ? skinOf(ch.id, M.turn) : "", t: tsec });
     /* 押せる場所の目印（脈打つ輪） */
     ctx.strokeStyle = "rgba(255,255,255," + (0.35 + Math.sin(tsec * 4) * 0.25) + ")";
     ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(X, Y, r * 1.6 + Math.sin(tsec * 4) * 2, 0, Math.PI * 2); ctx.stroke();
@@ -1831,16 +1868,39 @@
       const hud0 = $("#aimhud"); if (hud0) hud0.hidden = true;
       return;
     }
-    /* 矢印 */
+    /* 矢印
+       ★★ 2026-10-06 大きく（ご指定）。ふちは黒→白の二重（ペルソナ風）・中は半透明なので、上に重ねる予測の点線は見える。
+       強さ 85% 以上は金色に光る。中に強さの目盛り（›››）を入れる。 */
     ctx.save(); ctx.translate(X, Y); ctx.rotate(v.sang);
-    /* ★ 矢印は短め・チーム色。長い白い矢印だと、上に重ねる予測の点線が見えなくなる */
-    const L2 = 26 + v.p * 58;
-    ctx.globalAlpha = 0.9;
-    ctx.fillStyle = col;
-    ctx.beginPath(); ctx.moveTo(r + 2, -4 - v.p * 3); ctx.lineTo(L2, -2); ctx.lineTo(L2, -11); ctx.lineTo(L2 + 18, 0); ctx.lineTo(L2, 11); ctx.lineTo(L2, 2); ctx.lineTo(r + 2, 4 + v.p * 3); ctx.closePath(); ctx.fill();
-    ctx.globalAlpha = 1; ctx.strokeStyle = "#fff"; ctx.lineWidth = 1.5; ctx.stroke();
+    const maxP = v.p >= 0.85;
+    const L2 = r + 30 + v.p * 112, hw = 6 + v.p * 4, headL = 28 + v.p * 10, headW = 18 + v.p * 7;
+    const tip = maxP ? "#ffd84a" : col;
+    const grd = ctx.createLinearGradient(r, 0, L2 + headL, 0);
+    grd.addColorStop(0, "rgba(255,255,255,.18)"); grd.addColorStop(0.55, col); grd.addColorStop(1, tip);
+    ctx.beginPath();
+    ctx.moveTo(r + 3, -hw * 0.55); ctx.lineTo(L2, -hw); ctx.lineTo(L2 - 4, -headW); ctx.lineTo(L2 + headL, 0); ctx.lineTo(L2 - 4, headW); ctx.lineTo(L2, hw); ctx.lineTo(r + 3, hw * 0.55); ctx.closePath();
+    if (maxP) { ctx.shadowColor = "#ffd84a"; ctx.shadowBlur = 16; }
+    ctx.globalAlpha = 0.62; ctx.fillStyle = grd; ctx.fill();
+    ctx.shadowBlur = 0; ctx.globalAlpha = 1;
+    ctx.lineJoin = "round"; ctx.strokeStyle = "#000"; ctx.lineWidth = 5; ctx.stroke();
+    ctx.strokeStyle = "#fff"; ctx.lineWidth = 2.2; ctx.stroke();
+    /* 強さの目盛り */
+    const nTick = Math.max(1, Math.round(v.p * 6));
+    ctx.strokeStyle = "rgba(255,255,255,.9)"; ctx.lineWidth = 2.4; ctx.lineCap = "round";
+    for (let k = 0; k < nTick; k++) { const tx = r + 16 + k * ((L2 - r - 20) / 6); ctx.beginPath(); ctx.moveTo(tx - 4, -hw * 0.5); ctx.lineTo(tx + 1, 0); ctx.lineTo(tx - 4, hw * 0.5); ctx.stroke(); }
     ctx.restore();
-    /* 予測 */
+    /* 強さの数字（矢印の先） */
+    { const ex = X + Math.cos(v.sang) * (L2 + headL + 16), ey = Y + Math.sin(v.sang) * (L2 + headL + 16);
+      ctx.font = "italic 900 15px Anton,Orbitron,sans-serif"; ctx.textAlign = "center"; ctx.textBaseline = "middle";
+      ctx.lineWidth = 4; ctx.strokeStyle = "#000"; ctx.strokeText(Math.round(v.p * 100) + "%", ex, ey);
+      ctx.fillStyle = maxP ? "#ffd84a" : "#fff"; ctx.fillText(Math.round(v.p * 100) + "%", ex, ey);
+      ctx.textAlign = "left"; ctx.textBaseline = "alphabetic"; }
+    /* 予測
+       ★★ 2026-10-06 設定「ショットの点線」が OFF のときは出さない（ご指定：1台で交代しながら遊ぶときなどに。どのモードでも共通） */
+    if (B.load().predLine === false) {
+      if (hud) { hud.hidden = false; const deg0 = Math.round(Math.atan2(Math.cos(v.cang), Math.sin(v.cang)) * 180 / Math.PI); hud.innerHTML = '<div><small>POWER</small><b>' + Math.round(v.p * 100) + '%</b></div><div><small>ANGLE</small><b>' + deg0 + '°</b></div><div style="background:rgba(60,60,70,.85)"><small>' + J("点線", "LINE") + "</small><b>OFF</b></div>"; }
+      return;
+    }
     const mods = isJack ? { preview: 0.6 } : B.shotMods(M, M.turn, ch, sel);
     let vis = mods.preview;
     const assist = B.load().aimAssist || "normal";
@@ -2135,6 +2195,7 @@
         return;
       }
       M.phase = "play";
+      lastLeadSide = ""; lastLeadPts = 0;
       B.pushHint(M, "firstcolor");
       M.turn = M.first;
       if (tut) tutEvent("jack");
@@ -2152,6 +2213,18 @@
       }
     } catch (e) {}
     if (res.gain >= 14 && FXlevel() !== "off") FX.popLite("GAUGE +" + res.gain, "#ffc83d");
+    /* ★★ 2026-10-06 リードが変わった瞬間を大きく（TAKE THE LEAD／REVERSAL／LEAD UP） */
+    try {
+      if (!M.stage && !M.practice && !tut && M.phase === "play" && FXlevel() !== "off" && FX.lead) {
+        const st = B.scoreEnd(M), lb = M.balls.filter((o) => !o.jack && !o.dead).slice(-1)[0];
+        const nowS = st.side || "", prevS = lastLeadSide, prevP = lastLeadPts;
+        lastLeadSide = nowS; lastLeadPts = st.pts || 0;
+        if (lb && nowS && nowS === lb.side) {
+          if (nowS !== prevS) setTimeout(() => FX.lead(nowS, st.pts, prevS ? "reversal" : "take", SC(nowS), SI(nowS).en), 380);
+          else if (st.pts > prevP) setTimeout(() => FX.lead(nowS, st.pts, "more", SC(nowS), SI(nowS).en), 380);
+        }
+      }
+    } catch (e) {}
     if (M.balls.some((b) => b.dead && !b._noted)) { M.balls.forEach((b) => { if (b.dead) b._noted = 1; }); B.pushHint(M, "deadball"); }
     if (M.cur == null && M.balls.some((b) => (b.banks || 0) > 0)) B.pushHint(M, "bank");
     if (tut) { tutEvent("settled", res); return; }
@@ -2415,6 +2488,12 @@
     { e: "SPECIAL SHOT", tx: { ja: "下の<b>特殊ショット</b>（左の2つ）をどちらか押してから投げましょう。キャラごとに技がちがいます。", en: "Tap a <b>special shot</b> below (left two buttons), then throw." } },
     { e: "ULTIMATE", tx: { ja: "ゲージを満タンにしました！ <b>ULT</b> を押してから投げると<b>アルティメット</b>が発動します。", en: "Gauge filled! Tap <b>ULT</b> then throw to fire your <b>ultimate</b>." } },
   ];
+  /* ★★ 2026-10-06c 上のアドバイス（#mGuide）は<b>はじめての試合だけ</b>（ご指定）。
+     1試合でも終えたら（s.matches ≥ 1）OFF にする。設定で手で選び直した人（s.guideSet）はその値のまま。 */
+  function guideFor(s) {
+    if (!s.guideSet && (s.matches || 0) >= 1 && s.guide !== "off") { s.guide = "off"; B.save(); }
+    return s.guide;
+  }
   function startTutorial() {
     tut = { step: 0 };
     const s = B.load();
@@ -2514,13 +2593,13 @@
   }
   const RULES = [
     ["BASIC", { ja: "基本", en: "Basics" }, { ja: "赤と青の2チームで、白い<b>ジャックボール</b>に自分のボールを近づけ合います。1エンドに片側<b>6球</b>。数エンドの合計点で勝敗を決めます。", en: "Red and blue compete to get closer to the white <b>jack</b>. Six balls per side per end; total points decide the match." }],
-    ["COURT", { ja: "コート", en: "Court" }, { ja: "長さ12.5m・幅6m。手前に投球ボックスが6つ。<b>Vライン</b>（3m）はジャックが越えなければならない線、<b>クロス</b>（5m）は中央の印です。<br>コートのふちは<b>壁（赤く光る）</b>で、どのモードでもバンクショットが使えます。", en: "12.5m × 6m with six throwing boxes. The jack must pass the <b>V line</b> (3m); the <b>cross</b> marks 5m. The edge is a glowing <b>rail</b> for bank shots in every mode." }],
+    ["COURT", { ja: "コート", en: "Court" }, { ja: "長さ12.5m・幅6m。手前に投球ボックスが6つ。<b>Vライン</b>（3m）はジャックが越えなければならない線、<b>クロス</b>（6.25m）はコートの真ん中の印です。<br>コートのふちは<b>壁（赤く光る）</b>で、どのモードでもバンクショットが使えます。<br>ジャックが<b>奥・手前の壁</b>に当たると場外あつかいで、止まったあと<b>クロスに戻ります</b>（横の壁は跳ね返るだけ）。", en: "12.5m × 6m with six throwing boxes. The jack must pass the <b>V line</b> (3m); the <b>cross</b> marks the centre (6.25m). The edge is a glowing <b>rail</b> for bank shots in every mode.<br>If the jack hits the <b>end rails</b> it is out and goes back on the <b>cross</b> once everything stops (side rails just bounce)." }],
     ["THROW", { ja: "投げかた", en: "Throwing" }, { ja: "コートの手前で<b>ボールを引っぱって、はなす</b>と、<b>引いた向きの反対</b>へ飛びます。引く長さが強さです。<br>"
         + "・点線は<b>軌道の予測</b>。どこまで見えるかは設定の「軌道予測」とキャラの <b>CONTROL</b> で変わります（「止まる位置まで見える」効果のときは最後まで）。<br>"
         + "・投げた瞬間に、CONTROL が低いほど大きい<b>ブレ</b>（向きのばらつき）が入ります。<br>"
         + "・特殊ショット／アクティブ／ULT は<b>投げる前</b>に下のボタンで選びます。もう一度押すと取り消し。",
         en: "<b>Pull the ball back and release</b> — it flies the opposite way; pull length = power.<br>· The dotted line is the <b>preview</b>; its length depends on the Aim assist setting and <b>CONTROL</b>.<br>· On release a random <b>scatter</b> is added — smaller with higher CONTROL.<br>· Choose specials / active / ULT with the buttons <b>before</b> throwing; tap again to cancel." }],
-    ["BALL", { ja: "ボール", en: "Balls" }, { ja: "外周の色がチーム（赤・青）、中のエンブレムがキャラクター。専用ボールの見た目（スタンダード〜プリズム）は熟練度で解放され、<b>性能とは無関係</b>です。GUARD 状態は紫の六角形で表示されます。", en: "Outer colour = team; emblem = character. Ball skins unlock with mastery and are <b>cosmetic only</b>. GUARD shows as a purple hexagon." }],
+    ["BALL", { ja: "ボール", en: "Balls" }, { ja: "外周の色がチーム（赤・青）、中のエンブレムがキャラクター。ボールの縁（スタンダード〜プリズム）は<b>MagiBurst の凸</b>で変わり（完凸で虹）、<b>性能とは無関係</b>です。GUARD 状態は紫の六角形で表示されます。", en: "Outer colour = team; emblem = character. The rim follows the character's <b>awakening</b> (rainbow at MAX) and is <b>cosmetic only</b>. GUARD shows as a purple hexagon." }],
     ["JACK", { ja: "ジャック", en: "Jack" }, { ja: "先攻がジャックを投げ、Vラインを越えなければ投げ直し。ジャックに当ててずらすのも立派な作戦で、JACK 型が得意です。", en: "The starting side throws the jack; if it doesn't pass the V line, rethrow. Moving the jack is a valid tactic — JACK types excel." }],
     ["TURN", { ja: "投げる順番", en: "Turn order" }, { ja: "ジャックを投げた側が最初の1球。以後は<b>ジャックから遠いほう</b>が投げます。投げるたびに<b>編成の順番</b>でキャラが交代します（6球＝6人が1球ずつ）。<br>試合中は上の帯（いまの担当・NEXT）を押すと、そのキャラの詳細を見られます。", en: "The jack thrower goes first; afterwards the side <b>farther from the jack</b> throws. Characters rotate in <b>lineup order</b> (6 balls = 6 characters, one each).<br>During a match, tap the order bar to see that character's details." }],
     ["SCORE", { ja: "得点", en: "Scoring" }, { ja: "エンド終了時、いちばん近いチームが<b>相手の最短より近いボールの数</b>だけ得点。同点なら<b>タイブレーク</b>のエンドを追加します。", en: "The closest side scores one point per ball closer than the opponent's nearest. A tie adds a <b>tie-break end</b>." }],
@@ -2617,6 +2696,8 @@
   }
   function openSettings() {
     const s = B.load();
+    guideFor(s);
+    if (s.predLine === undefined) s.predLine = true;
     const seg = (key, list) => '<div class="seg">' + list.map((d) => '<button class="' + (String(s[key]) === String(d[0]) ? "on" : "") + '" data-a="set" data-v="' + key + ":" + d[0] + '">' + esc(d[1]) + "</button>").join("") + "</div>";
     const sw = (key, k, sub) => '<div class="sw"><div class="k">' + esc(k) + "<small>" + esc(sub) + "</small></div>"
       + '<button class="btn sm ' + (s[key] ? "pri" : "gh") + '" data-a="set" data-v="' + key + ":" + (!s[key]) + '">' + (s[key] ? "ON" : "OFF") + "</button></div>";
@@ -2628,7 +2709,10 @@
       + '<div class="note" style="margin-top:3px">' + J("SHORT は短く、OFF はカットインや文字演出を出しません（オンラインでも盤面には影響しません）。", "SHORT shortens, OFF hides cut-ins and text (never affects the board).") + "</div>"
       + '<div class="note" style="margin:10px 0 0"><b>' + J("軌道予測", "Aim assist") + "</b></div>"
       + seg("aimAssist", [["beginner", J("初心者", "Beginner")], ["normal", J("ふつう", "Normal")], ["expert", J("上級者", "Expert")]])
-      + '<div class="note" style="margin-top:3px">' + J("初心者は止まる位置まで、上級者は短い線だけ。キャラの CONTROL でも見える長さが変わります。", "Beginner shows the stop point; expert shows a short line only. CONTROL also affects it.") + "</div></div>"
+      + '<div class="note" style="margin-top:3px">' + J("初心者は止まる位置まで、上級者は短い線だけ。キャラの CONTROL でも見える長さが変わります。", "Beginner shows the stop point; expert shows a short line only. CONTROL also affects it.") + "</div>"
+      + '<div class="note" style="margin:10px 0 0"><b>' + J("ショットの点線（軌道予測）", "Shot prediction line") + "</b></div>"
+      + seg("predLine", [[true, J("表示する", "Show")], [false, J("表示しない", "Hide")]])
+      + '<div class="note" style="margin-top:3px">' + J("1台で交代しながら遊ぶときなどに、ねらいを相手に見せないようにできます。どのモードでも共通です（矢印と強さ・角度は出ます）。", "Hide the line when players share one device. Applies to every mode (arrow, power and angle are still shown).") + "</div></div>"
       + '<div class="pn">'
       + sw("sound", J("効果音", "Sound"), J("衝突・壁・ジャックの音", "Hits, rails, jack"))
       + sw("voice", J("チュートリアルの音声", "Tutorial voice"), J("ずんだもん（VOICEVOX）がチュートリアルを読み上げます", "Zundamon (VOICEVOX) narrates the tutorial"))
@@ -2768,6 +2852,7 @@
       + '<button class="btn" data-a="close">' + J("再開", "Resume") + "</button>"
       + (M && !online && !M.replay && !tut && !M.practice && !M.stage ? '<button class="btn wh" style="margin-top:8px" data-a="suspend">' + J("中断する（あとで続きから）", "Suspend (resume later)") + "</button>" : "")
       + '<button class="btn wh" style="margin-top:8px" data-a="mteam">' + J("TEAM ・ 編成キャラの詳細", "TEAM · lineup details") + "</button>"
+      + '<button class="btn gh" style="margin-top:8px" data-a="predtog">' + (B.load().predLine === false ? J("ショットの点線：表示しない（押すと表示）", "Shot line: HIDDEN (tap to show)") : J("ショットの点線：表示する（押すと非表示）", "Shot line: SHOWN (tap to hide)")) + "</button>"
       + '<button class="btn gh" style="margin-top:8px" data-a="rule">RULE BOOK</button>'
       + '<button class="btn gh" style="margin-top:8px" data-a="settings">SETTINGS</button>'
       + '<button class="btn pri" style="margin-top:14px" data-a="quit">' + J("試合をやめる", "Leave match") + "</button>"),
@@ -2809,11 +2894,12 @@
     fspick: (v) => { const i = v.indexOf("|"); const sc = v.slice(0, i), k = v.slice(i + 1); const ks = FS[sc].keys; const at = ks.indexOf(k); if (at >= 0) ks.splice(at, 1); else ks.push(k); fsRefresh(sc); FX.sfx("ui"); },
     fsreset: (v) => { FS[v].keys = []; fsRefresh(v); },
     settings: () => openSettings(),
+    predtog: () => { const s = B.load(); s.predLine = s.predLine === false; B.save(); FX.sfx("ui"); ACT.pause(); },
     set: (v) => {
       const i = v.indexOf(":"), k = v.slice(0, i); let val = v.slice(i + 1);
       if (val === "true" || val === "false") val = val === "true";
       const s = B.load(); s[k] = val; B.save();
-      if (k === "guide" && M) M.cfg.guide = val;
+      if (k === "guide") { s.guideSet = 1; B.save(); if (M) M.cfg.guide = val; }
       FX.sfx("ui"); openSettings();
     },
     lang: () => { try { localStorage.setItem("xeva_lang_v1", en() ? "ja" : "en"); } catch (e) {} document.documentElement.lang = lang(); close(); paintNav(); go(cur === "match" ? "home" : cur); },
@@ -2907,7 +2993,7 @@
     if ((sp.rv || 4) !== B.VERSION) { s.suspend = null; B.save(); toast(J("前の版で中断した試合は、ルールが変わったので再開できません", "That match was suspended under older rules and cannot be resumed")); renderHome(); return; }
     s.suspend = null; B.save();
     online = null; tut = null;
-    M = B.newMatch(Object.assign({}, sp.cfg, { guide: s.guide }));
+    M = B.newMatch(Object.assign({}, sp.cfg, { guide: guideFor(s) }));
     M.kind = sp.kind;
     rebuildFromLog(M, sp.log || []);
     M.hints = []; M.fx = [];                          /* たどり直しで積もった説明・演出は出さない */

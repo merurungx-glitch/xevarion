@@ -35,7 +35,9 @@
   "use strict";
 
   /* ══════════ ① コートと物理の定数 ══════════ */
-  const COURT = { W: 6.0, L: 12.5, VLINE: 3.0, CROSS: 5.0, BOXD: 2.5, BOXES: 6 };
+  /* ★★ 2026-10-06b クロス（中央の印）を 5.0m → 6.25m（コートのちょうど真ん中）へ（ご指定「フィールドの中央を少し上に」）。
+     延長戦のジャックと、場外に出たジャックの戻り先（jackHome）はここ。 */
+  const COURT = { W: 6.0, L: 12.5, VLINE: 3.0, CROSS: 6.25, BOXD: 2.5, BOXES: 6 };
   const BALL_R_REAL = 0.043;
   /* ★★ 2026-09-17 0.135 → 0.23。スマホの縦画面でコートを描くと 1m ≒ 43px しかなく、
      0.135m では<b>直径12pxの粒</b>になって、キャラのエンブレムも見えなかった。
@@ -260,6 +262,11 @@
     /* ★★ 2026-10-03 極彩祭 タキナだけのパッシブ（MagiBurst のショットスキルとは別の名前にする＝同名は同効果のきまり） */
     kikyouminamo:{ en: "Kikyou Minamo", ja: "キキョウ・ミナモ",
       d: { ja: "ブレが常に <b>-30%</b>、ボールが少し重い（<b>×1.10</b>）、壁の反発 <b>×1.10</b>。ジャックの <b>1m 以内</b>で止まると自分のゲージ <b>+8</b>、<b>次の味方</b>のゲージも <b>+8</b>。", en: "Always -30% scatter, slightly heavier (×1.10), rail rebound ×1.10. Stopping within 1m of the jack gives +8 gauge to you and +8 to the next teammate." } },
+    /* ★★ 2026-10-07 Sapphire Breeze ヒバナ・フキだけのパッシブ（MagiBurst のショットスキルとは別の名前＝同名は同効果のきまり） */
+    wasurenaguard:{ en: "Wasurena Guard", ja: "ワスレナ・ガード",
+      d: { ja: "ブレが常に <b>-30%</b>、ボールが重い（<b>×1.12</b>）。ジャックの <b>1m 以内</b>で止まると <b>GUARD</b> になり、自分のゲージ <b>+8</b>、<b>次の味方</b>のゲージも <b>+8</b>。", en: "Always -30% scatter, heavier balls (×1.12). Stopping within 1m of the jack gives a GUARD, +8 gauge to you and +8 to the next teammate." } },
+    yoiyamiveil:{ en: "Yoiyami Veil", ja: "ヨイヤミ・ヴェール",
+      d: { ja: "ブレが常に <b>-30%</b>、ボールが少し重い（<b>×1.10</b>）。当てたボールは <b>SHOCK</b>（すぐ止まる）になり、当てるとゲージ <b>+6</b>（2回まで）。", en: "Always -30% scatter, slightly heavier (×1.10). Balls you hit become SHOCKed, and each hit gives +6 gauge (up to 2)." } },
   };
   /* ══ ★★ 2026-09-17d <b>MagiBocciaRush でも最強</b>にするキャラ（ご指定）══
      ふつうは「能力の合計はどのキャラも同じ（STAT_SUM）」だが、<b>ここに書いたキャラだけ例外</b>。
@@ -295,6 +302,14 @@
     takina: { type: "technique", grade: "UR",
       st: { power: 82, control: 94, friction: 82, bounce: 80, jack: 76, charge: 72 },
       specials: ["pinpoint", "softstop"], active: "tacticalread", passive: "kikyouminamo" },
+    /* ★★ 2026-10-07 Sapphire Breeze ヒバナ（defense）・フキ（trick）＝どちらも合計 <b>486</b>＝タキナと同じいちばん上（ご指定「タキナと同等」）。
+       ヒバナ＝ジャックのそばを守って味方につなぐ／フキ＝当てて止める・崩す。タキナ（ねらいの技巧）と役割が重ならない。 */
+    hibana: { type: "defense", grade: "UR",
+      st: { power: 84, control: 90, friction: 84, bounce: 78, jack: 80, charge: 70 },
+      specials: ["guard", "softstop"], active: "rallycall", passive: "wasurenaguard" },
+    fuki: { type: "trick", grade: "UR",
+      st: { power: 88, control: 92, friction: 80, bounce: 78, jack: 76, charge: 72 },
+      specials: ["split", "pinpoint"], active: "shocktap", passive: "yoiyamiveil" },
   };
   Object.assign(PASSIVES, {
     steadybase: { en: "Steady Base", ja: "ステディ・ベース", d: { ja: "ブレ常に <b>-10%</b>・減速 +3%。", en: "Always -10% scatter and +3% braking." } },
@@ -413,10 +428,10 @@
   };
   const TRAIT_KEYS = Object.keys(TRAITS);
   /* 特別なキャラ（SPECIAL_KIT）のトレイト */
-  const KIT_TRAIT = { akatsuki: "clutch", ayane: "sharp", chiha: "jackwhisper", himeri: "encore", honoka: "lucky7", azusa: "railrunner", kokoha: "ironnerve", takina: "sharp" };
+  const KIT_TRAIT = { akatsuki: "clutch", ayane: "sharp", chiha: "jackwhisper", himeri: "encore", honoka: "lucky7", azusa: "railrunner", kokoha: "ironnerve", takina: "sharp", hibana: "ironnerve", fuki: "clutch" };
   /* ★★ 2026-10-03 これより後に足した SPECIAL_KIT のトレイトは、assignKits で<b>図鑑の順の自分の番</b>に数える。
      最初にまとめて数えると、使用回数の少ないトレイトを選ぶ式がずれて<b>既存キャラ全員のトレイトが変わってしまう</b>ため。 */
-  const KIT_TRAIT_INLINE = { takina: 1 };
+  const KIT_TRAIT_INLINE = { takina: 1, hibana: 1, fuki: 1 };
 
   /* ── ④ 編成シナジー（編成の「型」「属性」の組み合わせ） ── */
   const SYNERGIES = [
@@ -537,7 +552,7 @@
       const passive = PASSIVE_POOL[ty][(h >>> 9) % PASSIVE_POOL[ty].length];
       const lux = !!c.shotskill;   /* 極彩祭・極煌祭・極華祭の子（ショットスキル持ち） */
       const r = {
-        id, nm: c.nm, th: c.th || "", img: c.img || "", el: c.el || "fire", el2: c.el2 || "",
+        id, nm: c.nm, th: c.th || "", img: c.img || "", wide: c.wide || "", el: c.el || "fire", el2: c.el2 || "",
         /* ★★ 2026-09-19 レアリティは MagiBurst と<b>同じ判定</b>（isStar5＝ガチャ・フェス出身 or star5）。
            前は c.star5 だけを見ていたので、ガチャの SSR の多くが SR と表示されていた。 */
         star5: s5Of(id, c), rarity: s5Of(id, c) ? "SSR" : "SR",
@@ -1047,7 +1062,7 @@
       const b = bs[i];
       const lo = r, hiX = COURT.W - r, hiY = COURT.L - r;
       if (M.cfg.walls) {
-        let hit = false, wx = b.x, wy = b.y;
+        let hit = false, yw = false, wx = b.x, wy = b.y;
         const rest = () => {
           let e = WALL_REST * (b.wallMul || 1);
           if (b.infRail > 0) { e = 0.95; b.infRail--; }
@@ -1055,8 +1070,11 @@
         };
         if (b.x < lo) { b.x = lo; b.vx = (b.vx < 0 ? -b.vx : b.vx) * rest(); hit = true; wx = 0; }
         else if (b.x > hiX) { b.x = hiX; b.vx = -(b.vx < 0 ? -b.vx : b.vx) * rest(); hit = true; wx = COURT.W; }
-        if (b.y < lo) { b.y = lo; b.vy = (b.vy < 0 ? -b.vy : b.vy) * rest(); hit = true; wy = 0; }
-        else if (b.y > hiY) { b.y = hiY; b.vy = -(b.vy < 0 ? -b.vy : b.vy) * rest(); hit = true; wy = COURT.L; }
+        if (b.y < lo) { b.y = lo; b.vy = (b.vy < 0 ? -b.vy : b.vy) * rest(); hit = true; yw = true; wy = 0; }
+        else if (b.y > hiY) { b.y = hiY; b.vy = -(b.vy < 0 ? -b.vy : b.vy) * rest(); hit = true; yw = true; wy = COURT.L; }
+        /* ★★ 2026-10-06b ジャックが<b>奥・手前の壁</b>に当たった＝本物のボッチャなら場外。止まったら中央のクロスへ戻す（jackHome・ご指定）。
+           横の壁はいままでどおり跳ね返るだけ（画面の中に見えている）。BOSS STAGE はジャックの置き場所を別に決めているので対象外。 */
+        if (yw && b.jack && !M.stage) b.railOut = 1;
         if (hit) {
           b.banks = (b.banks || 0) + 1;
           b.afterRail = 1;
@@ -1215,6 +1233,8 @@
     if (pas === "bluerosewaltz") { o.spread *= 0.75; o.mass *= 1.08; o.wallMul *= 1.15; }
     if (pas === "tsubakiumbrella") { o.spread *= 0.75; o.mass *= 1.15; o.umbrella = 1; }
     if (pas === "kikyouminamo") { o.spread *= 0.70; o.mass *= 1.10; o.wallMul *= 1.10; }
+    if (pas === "wasurenaguard") { o.spread *= 0.70; o.mass *= 1.12; o.umbrella = 1; }
+    if (pas === "yoiyamiveil") { o.spread *= 0.70; o.mass *= 1.10; o.shock = 1; }
     if (pas === "steadybase") { o.spread *= 0.9; o.fric *= 1.03; }
     if (pas === "sprinter") o.vmax *= 1.05;
     if (pas === "grip") o.fric *= 1.08;
@@ -1390,6 +1410,7 @@
     M.cur = null;
     /* ★ 端末ごとの誤差の芽を摘む（止まった位置を丸める） */
     M.balls.forEach((o) => { o.x = q5(o.x); o.y = q5(o.y); o.vx = 0; o.vy = 0; o.shockT = 0; o.railT = 0; o.chainOf = ""; });
+    jackHome(M);
     if (!b || b.jack) return { chain: 0, gain: 0 };
     const side = b.side, i = b.ci;
     const ch = charOf(b.charId);
@@ -1412,7 +1433,7 @@
         const d = dist(b, jk);
         if (d < 0.5) gain += 6 + (ch.passive === "jackgravity" ? 8 : 0) + (ch.passive === "shirahanaverse" ? 10 : 0);
         if (ch.passive === "tsubakiumbrella" && d < 1.0) gain += 8;
-        if (ch.passive === "kikyouminamo" && d < 1.0) {
+        if ((ch.passive === "kikyouminamo" || ch.passive === "wasurenaguard") && d < 1.0) {
           const L = lineupOf(M, side).length || 1;
           const ni = (i + 1) % L;
           if (ni !== i) M.gauge[side][ni] = Math.min(GAUGE_MAX, M.gauge[side][ni] + 8);
@@ -1434,6 +1455,7 @@
       if (ch.passive === "longroll" && b.roll >= 6) gain += 8;
       if (ch.passive === "sakurabloom" && (hits || b.bossHits)) gain += 6;
       if (ch.passive === "abyssglow" && (hits || b.bossHits)) gain += 5;
+      if (ch.passive === "yoiyamiveil") gain += Math.min(2, hits + (b.bossHits ? 1 : 0)) * 6;
       if (ch.passive === "hunter") gain += Math.min(2, hits) * 5;
       if (ch.passive === "chainmaster" && chain >= 2) gain += 6;
       gain += b.gainBonus || 0;
@@ -1610,6 +1632,27 @@
     pushHint(M, "endstart");
     return res;
   }
+  /* ★★ 2026-10-06b 場外に出たジャック（奥・手前の壁に当たった）を中央のクロスに戻す（ご指定）。
+     本物のボッチャと同じく、クロスがボールでふさがっていたら<b>手前（投げる側）へ少しずつずらした空き</b>に置く。
+     finishShot の中で呼ぶ＝オンラインの両端末・CPU の読み（cloneM）・リプレイで同じ結果になる。 */
+  function jackHome(M) {
+    if (M.stage) return null;
+    const j = M.balls.find((o) => o.jack && !o.dead);
+    if (!j || !j.railOut) return null;
+    j.railOut = 0;
+    const r = ballR(M), x = COURT.W / 2, gap = 2 * r + 0.02;
+    const free = (yy) => M.balls.every((o) => o === j || o.dead || (o.x - x) * (o.x - x) + (o.y - yy) * (o.y - yy) >= gap * gap);
+    let y = COURT.CROSS;
+    for (let k = 1; k <= 120 && !free(y); k++) {
+      const down = COURT.CROSS - 0.05 * k, up = COURT.CROSS + 0.05 * (k - Math.floor((COURT.CROSS - COURT.VLINE - r) / 0.05));
+      y = q5(down >= COURT.VLINE + r ? down : Math.min(COURT.L - r, up));
+    }
+    const from = { x: j.x, y: j.y };
+    j.x = x; j.y = y; j.vx = 0; j.vy = 0; j.x0 = x; j.y0 = y;
+    fx(M, { t: "jackhome", x, y, fx: from.x, fy: from.y });
+    pushHint(M, "jackhome", true);
+    return from;
+  }
   /* ★★ 2026-10-01 ADDITIONAL MATCH：ジャックをコートの中央の「×」に置く（投げない） */
   const ADDL_BALLS = 3;
   function placeJackCross(M) {
@@ -1652,6 +1695,8 @@
       en: "Your balls <b>guard the jack</b>. A GUARD makes it even harder to break." },
     scoring: { level: 1, ja: "エンドの終わりに、<b>ジャックにいちばん近いチーム</b>が、相手の最短より近いボールの数だけ得点します。",
       en: "The side <b>closest to the jack</b> scores one point per ball closer than the opponent's nearest." },
+    jackhome: { level: 1, ja: "ジャックが<b>奥（または手前）の壁</b>に当たって場外に出たので、中央の<b>クロス（×）</b>に戻しました。",
+      en: "The jack hit the <b>end rail</b> and went out — it's been put back on the centre <b>cross</b>." },
     deadball: { level: 2, ja: "コートの外に出たボールは<b>デッドボール</b>になり、取り除かれます。",
       en: "A ball that leaves the court is <b>dead</b> and is removed." },
     endstart: { level: 2, ja: "新しいエンドです。<b>先攻が入れかわります</b>。スキルゲージは持ちこしです。",
@@ -1980,7 +2025,7 @@
 
   /* ══════════ 公開 ══════════ */
   window.MBR = {
-    VERSION: 5, REV: "2026-10-01",
+    VERSION: 6, REV: "2026-10-06",   /* ★★ 2026-10-06b 6：ジャックの場外→クロス・クロス 6.25m（ちがう版とはオンラインで組まない） */
     reload,
     COURT, BALL_R_REAL, BALL_R_PLAY, FRICTION_A, V_MAX, V_MIN, DT, GAUGE_MAX, CHAIN_MAX, STAT_SUM,
     TYPES, TYPE_KEYS, STAT_KEYS, STAT_NM, SPECIALS, ACTIVES, PASSIVES, ULTS, MODES, ELEM_C, ELEM_JA,
@@ -1992,7 +2037,7 @@
     mkRand, fnv,
     newMatch, step, settle, live, jackOf, ballR, throwBall, finishShot, throwSpot, shotMods, dirOf,
     lineupOf, charIdx, curCharOf, nextCharOf, playerOf, canSpecial, canActive, canUlt,
-    dist, closestSide, jackValid, nextTurn, scoreEnd, scoreText, closeEnd, boardHash, chainCount,
+    dist, closestSide, jackValid, jackHome, nextTurn, scoreEnd, scoreText, closeEnd, boardHash, chainCount,
     pushHint, takeHint, HINTS, _evt: evt,
     cpuPick, cpuJack, predict, evalBoard, other, rivalLineup, cloneM,
     SIDES, PARTY_SIDES, SIDE_INFO, sidesOf, isParty, nextSideOf, defSlot, sideName,

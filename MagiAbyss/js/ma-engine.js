@@ -78,7 +78,10 @@
       dir: { t: 0, spawnT: 1, eliteT: 70, ambush: {} },
       corruption: 0, darkT: 0, timeStopT: 0, vision: 1,
       runId: Date.now(),
+      /* ★★ 2026-10-05 難易度（ノーマル／ハード）。深淵はノーマル扱い */
+      diff: cfg.mode === "abyss" ? "normal" : (cfg.diff === "hard" ? "hard" : "normal"),
     });
+    G.modeDef = D().MODES[G.diff] || D().MODES.normal;
     G.rnd = M().mkRng(G.seed);
     /* 変異（探索）／特殊ルール（深淵） */
     G.mutList.forEach((k) => { const m = D().MUTATIONS[k]; if (m) G.muts[k] = m; });
@@ -179,6 +182,18 @@
     st.elDmg = {}; D().ELEM_KEYS.forEach((el) => { st.elDmg[el] = 1 + pm("seal_" + el); });
     st.pierce = 0; st.spread = 0; st.fan = 0; st.bounces = 0; st.petals = 0; st.heat = 0; st.chain = 0; st.thorns = 0; st.multishot = 0; st.burnSlash = 0;
     st.vision = 1 + (b.vision || 0);
+    st.art = b.art || 0;
+    /* ★★ 2026-10-05 特性（キャラごとの2つ目のパッシブ・★で効き目が変わる） */
+    const TD = P.C.trait && D().TRAITS[P.C.trait.k];
+    if (TD) {
+      const gk = D().GRADE_MUL[P.C.trait.g || 3] || 1;
+      const T = P.traitK = Object.assign({}, TD);
+      ["eva", "spd", "crit", "critDmg", "burn", "vsBurn", "per", "max", "dmg", "drain", "aspd", "summon", "def", "hp", "k"].forEach((k2) => { if (typeof T[k2] === "number") T[k2] = T[k2] * gk; });
+      if (T.kind === "insight" || T.kind === "dance") st.eva += T.eva;
+      if (T.kind === "galefoot") { st.spd *= 1 + T.spd; st.dashMax += T.dash; }
+      if (T.kind === "dusk") { st.elDmg.dark = (st.elDmg.dark || 1) * (1 + T.dmg); st.drain += T.drain; }
+      if (T.kind === "ironwall") { st.def += T.def; st.hp = Math.round(st.hp * (1 + T.hp)); }
+    } else P.traitK = null;
     /* 共鳴の能力 */
     P.resFx.forEach((fx) => {
       if (fx.t !== "stat") return;
@@ -277,18 +292,24 @@
     if (I.consume("burst")) MA.W.burst();
     if (I.consume("ult")) MA.W.ult();
     if (I.consume("interact")) interact();
-    /* ねらう向き */
-    const mode = S.set.aim;
+    /* ねらう向き
+       ★★ 2026-10-05 標準は「向いている方向」（PC もスマホも同じ・ご提案どおり統一）。
+         facing … 歩いている向き（止まっているあいだは最後に向いた向き）
+         auto   … 近い敵を自動でねらう（いなければ向いている方向）
+         mouse  … マウスの方向（PC。マウスが無ければ向いている方向） */
+    const mode = S.set.aim || "facing";
     let ax = 0, ay = 0, ok = false;
-    if ((mode === "mouse" || (mode === "auto" && I.hasMouse && !I.touch)) && I.hasMouse) {
+    if (Math.hypot(I.mx, I.my) > 0.2) P.faceA = Math.atan2(I.my, I.mx);
+    if (P.faceA == null) P.faceA = P.face < 0 ? Math.PI : 0;
+    if (mode === "mouse" && I.hasMouse && !I.touch) {
       const wx = G.cam.x - G.vw / 2 + I.aimSX * G.vw, wy = G.cam.y - G.vh / 2 + I.aimSY * G.vh;
       ax = wx - P.x; ay = wy - P.y; ok = true;
     }
-    if (!ok && mode !== "move") {
+    if (!ok && mode === "auto") {
       const t = nearest(P.x, P.y, 260);
       if (t) { ax = t.x - P.x; ay = t.y - P.y; ok = true; }
     }
-    if (!ok) { ax = I.mx || P.face; ay = I.my || 0; if (!I.mx && !I.my) { ax = Math.cos(P.aimA); ay = Math.sin(P.aimA); } }
+    if (!ok) { ax = Math.cos(P.faceA); ay = Math.sin(P.faceA); }
     P.aimA = Math.atan2(ay, ax);
     P.atkHeld = I.held.has("attack") || I.consume("attackTap");
   }
@@ -340,6 +361,8 @@
     }
     if (P.moving) { P.walkT += dt; if (Math.abs(I.mx) > 0.1) P.face = I.mx > 0 ? 1 : -1; }
     else if (Math.abs(Math.cos(P.aimA)) > 0.2) P.face = Math.cos(P.aimA) > 0 ? 1 : -1;
+    /* ★★ 2026-10-05 横に走るときは横向きの絵（ご指定）。ななめでも横の成分が大きければ横向き */
+    P.side = P.moving && Math.abs(I.mx) > Math.abs(I.my) * 0.8;
     if (P.iT > 0) P.iT -= dt;
     if (P.hurtT > 0) P.hurtT -= dt;
     /* 回復・MP */
@@ -347,6 +370,11 @@
     P.mp = Math.min(st.mmp, P.mp + st.mpRegen * dt);
     if (P.skillCd > 0) P.skillCd -= dt;
     if (P.burstCd > 0) P.burstCd -= dt;
+    if (P.buffs.artRegen) heal(st.hp * P.buffs.artRegen.v * dt, true);
+    /* ★★ 2026-10-07 ヒバナ「勿忘草の加護」：毎秒 最大HPの1%を回復 */
+    if (P.C.passive.kind === "wasurena" && P.hp > 0) heal(st.hp * P.C.passive.regen * dt, true);
+    /* 特性「闘志」：まわりの敵の数（0.25秒ごとに数える） */
+    if (P.traitK && P.traitK.kind === "fervor") { G.fervT = (G.fervT || 0) - dt; if (G.fervT <= 0) { G.fervT = 0.25; P.fervorN = enemiesIn(P.x, P.y, P.traitK.r).length; } }
     /* 戦闘中（近くに敵がいる）は必殺技ゲージが時間でもたまる（単体のボス戦でも撃てるように） */
     if (P.ultG < 100) { G.ultNearT = (G.ultNearT || 0) - dt; if (G.ultNearT <= 0) { G.ultNearT = 0.25; G.ultNear = !!nearest(P.x, P.y, 260); } if (G.ultNear) P.ultG = Math.min(100, P.ultG + 0.7 * dt * (1 + (st.ultCharge || 0))); }
     Object.keys(P.buffs).forEach((b) => { const x = P.buffs[b]; x.t -= dt; if (x.t <= 0) { delete P.buffs[b]; if (x.re) recompute(); } });
@@ -404,9 +432,20 @@
     const P = G.P;
     if (!P.alive || P.iT > 0 || P.dashT > 0) return false;
     let d = dmg * P.st.dmgIn * (60 / (60 + Math.max(0, P.st.def) * 4));
+    /* ★★ 2026-10-05 属性の相性（敵 → キャラ）：有利な敵からは ×1.2・不利な敵からは ×0.85 */
+    const sEl = src && (src.el || (src.src && src.src.el));
+    if (sEl) { const r = D().elemRel(sEl, P.C.el); if (r === "adv") d *= 1.2; else if (r === "dis") d *= 0.85; }
+    /* 特性「不屈」 */
+    if (P.traitK && P.traitK.kind === "undaunted" && P.hp < P.st.hp * P.traitK.under) d *= 1 - P.traitK.k;
     /* 前衛の守り：近接で戦うキャラ（ムツミ・カグラ・アズサ）は被ダメージ −15%（敵のそばに立つぶん） */
     if (P.C.type === "melee" || P.C.sub === "melee") d *= 0.85;
-    if (Math.random() * 100 < P.st.eva * 0.5) { pop(P.x, P.y - 22, "MISS", "#c8c8d8"); P.iT = 0.2; return false; }
+    if (Math.random() * 100 < P.st.eva * 0.5) {
+      pop(P.x, P.y - 22, "MISS", "#c8c8d8"); P.iT = 0.2;
+      /* 特性「見切り」：よけたあと必ず会心／「舞踏」：よけたあと攻撃速度アップ */
+      if (P.traitK && P.traitK.kind === "insight") P.focus = Math.max(P.focus || 0, P.traitK.crits);
+      if (P.traitK && P.traitK.kind === "dance") P.buffs.dance = { t: P.traitK.t, v: P.traitK.aspd };
+      return false;
+    }
     if (P.shield > 0) {
       const a = Math.min(P.shield, d); P.shield -= a; d -= a;
       if (P.st.thorns && src && src.hp != null) damageEnemy(src, a * P.st.thorns, { el: "water", noCrit: 1 });
@@ -449,28 +488,40 @@
     const P = G.P, st = P.st;
     const el = opt.el || P.C.el;
     let d = amount * st.dmgOut;
-    /* 属性の相性（塗りかえ中は風に有利な属性） */
+    /* 属性の相性（XEVARION と同じ：有利 ×1.25・不利 ×0.75）。塗りかえ中（ヒナノ）は水になる */
     const defEl = e.paintT > 0 ? e.paintEl : e.el;
-    d *= D().elemMul(el, defEl);
-    if (P.C.el2 && el === P.C.el) d *= Math.max(1, D().elemMul(P.C.el2, defEl));
+    let em = D().elemMul(el, defEl);
+    if (P.C.el2 && el === P.C.el) em = Math.max(em, D().elemMul(P.C.el2, defEl));
+    d *= em;
     d *= st.elDmg[el] || 1;
-    if (el === "light" && defEl === "shadow") d *= 1.15;
+    /* 有利・不利はその敵に初めて当てたときだけ文字で知らせる */
+    if (!opt.fromChain && !opt.noFx && !e.relShown && defEl && em !== 1) { e.relShown = 1; pop(e.x, e.y - e.r - 12, em > 1 ? "有利！" : "不利…", em > 1 ? "#ffd84a" : "#9a9ab0"); }
+    /* 特性 */
+    const TK = P.traitK;
+    if (TK) {
+      if (TK.kind === "kindle" && e.burnT > 0) d *= 1 + TK.vsBurn;
+      if (TK.kind === "fervor" && P.fervorN) d *= 1 + Math.min(TK.max, TK.per * P.fervorN);
+      if (TK.kind === "concert" && opt.src === "summon") d *= 1 + TK.summon;
+    }
     /* 受けるダメージが増える状態 */
     if (e.vulT > 0) d *= 1 + e.vulK;
     if (e.defDownT > 0) d *= 1.25;
     if (e.breakT > 0) d *= 2;
     if (P.buffs.fanfare) d *= 1 + P.buffs.fanfare.v;
-    if (P.C.passive.kind === "backwater") { const lost = 1 - P.hp / st.hp; d *= 1 + Math.min(P.C.passive.max + (st.passive ? 0.1 : 0), lost * P.C.passive.per); }
+    if (P.C.passive.kind === "backwater" || P.C.passive.kind === "wasurena") { const lost = 1 - P.hp / st.hp; d *= 1 + Math.min(P.C.passive.max + (st.passive ? 0.1 : 0), lost * P.C.passive.per); }   /* ★★ 2026-10-07 ヒバナ「勿忘草の加護」も同じ式 */
     /* 守り（防御型・ボスの装甲）：光は無視する */
     if (e.guardOn && el !== "light") d *= 1 - e.guardK;
     if (e.boss && e.armor) d *= e.armor;
     /* 会心 */
     let crit = false;
     if (!opt.noCrit) {
-      let cr = st.crit;
+      let cr = st.crit, cd = st.critDmg;
+      if (TK && TK.kind === "clutch" && P.hp < st.hp * 0.5) { cr += TK.crit; cd += TK.critDmg; }
       if (P.focus > 0 && opt.src === "atk") { cr = 100; }
       crit = opt.crit || Math.random() * 100 < cr;
-      if (crit) d *= st.critDmg;
+      if (crit) d *= cd;
+      /* ★★ 2026-10-07 フキ「宵闇の残影」：会心で防御ダウン＋必殺技ゲージ+1 */
+      if (crit && P.C.passive.kind === "yoiyami") { e.defDownT = Math.max(e.defDownT || 0, P.C.passive.t + (st.passive ? 1 : 0)); P.ultG = Math.min(100, P.ultG + 1); }
     }
     if (opt.src === "atk" && P.focus > 0) P.focus--;
     d = Math.max(1, d);
@@ -491,11 +542,12 @@
     /* 属性の追加効果（星脈の調律で強くなる） */
     const aff = st.elem;
     if (!opt.fromChain) {
-      if (el === "fire" && (opt.burn || Math.random() < 0.3 * aff)) { e.burnT = 3; e.burnDps = Math.max(e.burnDps || 0, d * 0.18 * aff); }
+      /* 火＝燃焼／水＝減速／木＝連撃（もう一度）／光＝連鎖／闇＝吸収・追撃 */
+      if (el === "fire" && (opt.burn || Math.random() < 0.3 * aff)) { e.burnT = 3; e.burnDps = Math.max(e.burnDps || 0, d * 0.18 * aff * (TK && TK.kind === "kindle" ? 1 + TK.burn : 1)); }
       if (el === "water" && (opt.slow || Math.random() < 0.5)) { e.slowT = 1.6; e.slowK = Math.min(0.7, 0.3 * aff + (opt.slow || 0)); }
-      if (el === "wind" && Math.random() < 0.18 * aff) G.queue.push({ at: G.t + 0.12, f: () => damageEnemy(e, d * 0.5, { el, fromChain: 1, noCrit: 1, col: "#4fe39a" }) });
-      if (el === "thunder" && !opt.noChain && Math.random() < 0.2 * aff) chainFrom(e, 2, d * 0.5, "thunder");
-      if (el === "shadow") { heal(d * 0.015 * aff, true); if (Math.random() < 0.15 * aff) G.queue.push({ at: G.t + 0.3, f: () => damageEnemy(e, d * 0.4, { el, fromChain: 1, noCrit: 1 }) }); }
+      if (el === "wood" && Math.random() < 0.18 * aff) G.queue.push({ at: G.t + 0.12, f: () => damageEnemy(e, d * 0.5, { el, fromChain: 1, noCrit: 1, col: "#7fe8a8" }) });
+      if (el === "light" && !opt.noChain && Math.random() < 0.2 * aff) chainFrom(e, 2, d * 0.5, "light");
+      if (el === "dark") { heal(d * 0.015 * aff, true); if (Math.random() < 0.15 * aff) G.queue.push({ at: G.t + 0.3, f: () => damageEnemy(e, d * 0.4, { el, fromChain: 1, noCrit: 1 }) }); }
     }
     if (opt.stun) e.stunT = Math.max(e.stunT || 0, opt.stun);
     /* 共鳴の連鎖（chain 型） */
@@ -517,7 +569,7 @@
       fx({ type: "bolt", x: cur.x, y: cur.y, x2: nx.x, y2: nx.y, t: 0, dur: 0.18, col: D().ELEM[el].c });
       const c = cur; cur = nx;
       damageEnemy(nx, dmg, { el, fromChain: 1, noCrit: 1 });
-      if (el === "thunder") MA.Audio.sfx("zap");
+      if (el === "light") MA.Audio.sfx("zap");
       void c;
     }
   }
@@ -542,7 +594,7 @@
     if (!e.summoned || Math.random() < 0.4) {
       const exp = (e.d.exp || 1) * (e.elite ? 1 : 1);
       dropGem(e.x, e.y, exp);
-      if (Math.random() < 0.08 + (e.elite ? 0.9 : 0)) drop(e.x + 6, e.y, "coin", Math.round((3 + G.goldMul * 2) * (e.elite ? 6 : 1)));
+      if (Math.random() < 0.08 + (e.elite ? 0.9 : 0)) drop(e.x + 6, e.y, "coin", Math.round((3 + G.goldMul * 2) * (e.elite ? 6 : 1) * ((G.modeDef && G.modeDef.gold) || 1)));
       if (!(G.rule && G.rule.noHeal) && Math.random() < (e.elite ? 0.6 : 0.012)) drop(e.x - 6, e.y, "heal", 0.2);
       if (Math.random() < (e.elite ? 1 : 0.02)) drop(e.x, e.y + 6, "mat", 1);
       if (Math.random() < 0.0025) drop(e.x, e.y - 6, "magnet", 1);
@@ -571,8 +623,9 @@
     /* ★ ウォームアップ：はじめは敵が少し弱く（0.55倍）、約2分で本来の強さに。
          探索 Lv1 のうちに上位の迷宮の待ち伏せに囲まれて、開始10〜40秒で倒れていた（早回しの実測）。深淵の2階からは無し */
     const warm = G.mode === "abyss" && G.floor > 1 ? 1 : Math.min(1, 0.55 + G.t / 240);
-    let hp = G.levelMul * warm * (1 + 0.06 * min) * (G.muts.bounty ? G.muts.bounty.hp : 1);
-    let atk = G.levelMul * warm * (1 + 0.035 * min);
+    const MD = G.modeDef || { hp: 1, atk: 1 };
+    let hp = G.levelMul * warm * (1 + 0.06 * min) * (G.muts.bounty ? G.muts.bounty.hp : 1) * MD.hp;
+    let atk = G.levelMul * warm * (1 + 0.035 * min) * MD.atk;
     if (G.mode === "dungeon" && G.t > 30 * 60 && !G.bossDone) { hp *= 1.5; atk *= 1.4; }
     return { hp, atk };
   }
@@ -1048,7 +1101,7 @@
       if (pos) for (let i = 0; i < pack; i++) spawnEnemy(k, pos.x + (G.rnd() - 0.5) * 24, pos.y + (G.rnd() - 0.5) * 24);
     }
     /* エリート */
-    G.dir.eliteT -= dt * (G.muts.elites ? G.muts.elites.elite : 1) * ((G.rule && G.rule.elite) || 1);
+    G.dir.eliteT -= dt * (G.muts.elites ? G.muts.elites.elite : 1) * ((G.rule && G.rule.elite) || 1) * ((G.modeDef && G.modeDef.elite) || 1);
     if (G.dir.eliteT <= 0) {
       G.dir.eliteT = 85 - Math.min(40, min * 2);
       const pos = spawnPos();
@@ -1248,7 +1301,7 @@
   function snapshot() {
     const P = G.P;
     return {
-      v: 1, at: Date.now(), mode: G.mode, dun: G.dun && G.dun.id, cid: G.cid, seed: G.seed, floor: G.floor, muts: G.mutList, trial: G.cfg.trial || null,
+      v: 1, at: Date.now(), mode: G.mode, dun: G.dun && G.dun.id, cid: G.cid, seed: G.seed, floor: G.floor, muts: G.mutList, trial: G.cfg.trial || null, diff: G.diff,
       t: G.t, keys: G.keys, sealKey: G.sealKey, bossOpen: G.bossOpen, midDone: !!G.midDone,
       stats: G.stats,
       P: { lv: P.lv, exp: P.exp, hp: P.hp, mp: P.mp, weapons: P.weapons.map((w) => ({ k: w.k, lv: w.lv, el: w.el, evo: w.evo || null })), magics: P.magics.map((m) => ({ k: m.k, lv: m.lv })), passives: P.passives, passiveMul: P.passiveMul || {}, ultG: P.ultG, rerolls: P.rerolls, banish: P.banish, potion: P.potion, elixir: P.elixir, revUsed: !!P.revUsed, altarAtk: P.altarAtk || 0, altarDef: P.altarDef || 0, x: P.x, y: P.y },
@@ -1285,9 +1338,12 @@
     ["lv", "exp", "ultG", "rerolls", "banish", "potion", "elixir", "altarAtk", "altarDef"].forEach((k) => { if (p[k] != null) P[k] = p[k]; });
     P.need = MA.Stats.expNeed(P.lv);
     P.revUsed = !!p.revUsed;
-    P.weapons = (p.weapons || []).map((w) => ({ k: w.k, lv: w.lv, el: w.el, evo: w.evo, t: 0.5 }));
-    P.magics = (p.magics || []).map((m) => ({ k: m.k, lv: m.lv, t: 1 }));
-    P.passives = p.passives || {}; P.passiveMul = p.passiveMul || {};
+    /* ★★ 2026-10-05 前の属性名（風・雷・影）で控えた探索も再開できるように読みかえる */
+    const elFix = (e) => ({ wind: "wood", thunder: "light", shadow: "dark" }[e] || (D().ELEM[e] ? e : "water"));
+    P.weapons = (p.weapons || []).filter((w) => D().WEAPONS[w.k]).map((w) => ({ k: w.k, lv: w.lv, el: elFix(w.el), evo: w.evo && D().EVOS[w.evo] ? w.evo : null, t: 0.5 }));
+    P.magics = (p.magics || []).filter((m) => D().MAGICS[m.k]).map((m) => ({ k: m.k, lv: m.lv, t: 1 }));
+    P.passives = {}; Object.keys(p.passives || {}).forEach((k) => { const k2 = /^seal_/.test(k) ? "seal_" + elFix(k.slice(5)) : k; if (D().STATS[k2]) P.passives[k2] = (P.passives[k2] || 0) + p.passives[k]; });
+    P.passiveMul = p.passiveMul || {};
     MA.W.refreshTags(); recompute();
     P.hp = Math.min(P.st.hp, p.hp || P.st.hp); P.mp = p.mp || P.st.mmp;
     if (p.x) { P.x = p.x; P.y = p.y; }

@@ -6,8 +6,9 @@
    ★ コートのまわりだけは落ち着いた色にして、ボールの位置を最優先で読めるようにする。
    ══════════════════════════════════════════════════════════════ */
 :root{
-  --k0:#07070a; --k1:#0e0e13; --k2:#17171e; --k3:#22222b; --k4:#2e2e39;
-  --w:#f4f4f6; --w2:#c9c9d2; --sub:#8b8b98;
+  /* ★★ 2026-10-06 暗めのまま少しだけ明るく（ご指定）。黒を「すみ色＋ほんのり赤紫」に */
+  --k0:#141119; --k1:#1b1722; --k2:#25202e; --k3:#312a3b; --k4:#3e3649;
+  --w:#f6f4f8; --w2:#d3cfdb; --sub:#9a95a6;
   --r:#e8173a; --r2:#ff3b52; --r3:#ff8190; --rd:#7a0b1e;
   --b:#2f8fff; --b2:#7cc4ff;
   --gold:#ffc83d; --ok:#35d49a;
@@ -19,6 +20,9 @@
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 [hidden]{display:none!important}
 html{background:var(--k0)}
+/* ★★ 2026-10-06 地の模様が少しずつ流れる（ペルソナ風の動き） */
+@keyframes bgDrift{to{background-position:240px 0,180px 0,0 0,0 0,0 0}}
+@keyframes dotDrift{to{transform:rotate(-12deg) translate(16px,8px)}}
 body{margin:0;color:var(--w);overflow-x:hidden;
   font-family:'Noto Sans JP','Hiragino Kaku Gothic ProN',system-ui,-apple-system,sans-serif;
   font-size:14px;line-height:1.55;background:var(--k0);
@@ -28,9 +32,11 @@ body::before{content:"";position:fixed;inset:0;pointer-events:none;z-index:0;
   background:
     linear-gradient(115deg,transparent 0 58%,rgba(232,23,58,.16) 58% 64%,transparent 64%),
     linear-gradient(115deg,transparent 0 70%,rgba(232,23,58,.08) 70% 72%,transparent 72%),
-    radial-gradient(110% 60% at 100% 0%,rgba(232,23,58,.22),transparent 60%),
-    linear-gradient(180deg,#0b0b10,#07070a 60%)}
-body::after{content:"";position:fixed;inset:-20%;pointer-events:none;z-index:0;opacity:.09;
+    radial-gradient(110% 60% at 100% 0%,rgba(232,23,58,.26),transparent 60%),
+    radial-gradient(90% 50% at 0% 100%,rgba(120,60,200,.16),transparent 62%),
+    linear-gradient(180deg,#1d1824,#141119 60%);
+  background-size:200% 100%,200% 100%,100% 100%,100% 100%,100% 100%;animation:bgDrift 26s linear infinite alternate}
+body::after{content:"";position:fixed;inset:-20%;pointer-events:none;z-index:0;opacity:.11;animation:dotDrift 9s linear infinite alternate;
   background-image:radial-gradient(#fff 1px,transparent 1.3px);background-size:8px 8px;
   transform:rotate(-12deg);
   -webkit-mask-image:linear-gradient(200deg,#000 0%,transparent 45%);mask-image:linear-gradient(200deg,#000 0%,transparent 45%)}
@@ -42,7 +48,7 @@ a{color:var(--r3);text-decoration:none}
 /* ══ 上のバー ══ */
 #top{position:sticky;top:0;z-index:60;display:flex;align-items:center;gap:8px;
   padding:calc(env(safe-area-inset-top,0px) + 7px) 11px 8px;
-  background:linear-gradient(180deg,rgba(7,7,10,.97),rgba(7,7,10,.8));
+  background:linear-gradient(180deg,rgba(24,19,30,.97),rgba(24,19,30,.82));
   backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-bottom:2px solid var(--r)}
 #top .lg{display:flex;align-items:center;gap:8px;flex:1;min-width:0}
 #top .lg .mk{font-family:var(--disp);font-style:italic;font-size:23px;line-height:.9;color:#fff;
@@ -113,7 +119,7 @@ a{color:var(--r3);text-decoration:none}
 /* ══ 下のナビ ══ */
 #nav{position:fixed;left:0;right:0;bottom:0;z-index:70;display:flex;
   height:calc(var(--navh) + env(safe-area-inset-bottom,0px));padding-bottom:env(safe-area-inset-bottom,0px);
-  background:linear-gradient(180deg,#121218,#07070a);border-top:2px solid var(--r)}
+  background:linear-gradient(180deg,#221c2a,#141119);border-top:2px solid var(--r)}
 #nav button{flex:1;border:none;background:none;color:var(--sub);display:flex;flex-direction:column;align-items:center;
   justify-content:center;gap:2px;font-size:9.5px;font-weight:900;letter-spacing:.06em;cursor:pointer;position:relative}
 #nav button svg{width:22px;height:22px}
@@ -282,7 +288,7 @@ body.inmatch{padding-bottom:0}
 /* ★★ 2026-09-17h 「.order .bl span.b i」（青）のほうが詳細度が高く、<b>相手（青）の使った球が灰色にならず減って見えなかった</b>。
    off を span.b にも書いて、青の列でも必ず灰色にする。 */
 .order .bl i.off,.order .bl span.b i.off{background:var(--k4)}
-.cwrap{position:relative;background:#0a0d14;overflow:hidden}
+.cwrap{position:relative;background:#121726;overflow:hidden;box-shadow:0 0 0 2px rgba(255,255,255,.08),0 8px 24px rgba(0,0,0,.45)}
 #court{display:block;touch-action:none;width:100%}
 .guide{position:absolute;left:8px;right:8px;top:8px;z-index:4;padding:8px 30px 8px 12px;background:rgba(255,255,255,.95);color:var(--k0);
   font-size:11.5px;font-weight:700;line-height:1.55;clip-path:polygon(0 0,100% 0,calc(100% - 10px) 100%,0 100%);
@@ -478,6 +484,12 @@ button.mend{border:none;cursor:pointer;font:inherit}
 .dhero{height:360px}
 .dhero img.bg{object-fit:cover;filter:blur(18px) brightness(.55);transform:scale(1.2)}
 .dhero img.fg{object-fit:contain;object-position:50% 0}
+/* ★★ 2026-10-06 UR の横長の絵：横いっぱいに見せる（上下はぼかした絵） */
+.dhero.wide img.fg{object-fit:contain;object-position:50% 22%}
+/* ★★ 2026-10-06b UR：横長の絵は SSR と同じ枠いっぱいに出してゆっくり流す（.urx は mb-core）。左上は「もどる」なので UR の札と「全体」は右へ */
+.dhero.urx .urx-badge{left:auto;right:10px}
+.dhero.urx .urx-tg{left:auto;right:10px}
+.dhero.urx .info{z-index:5}
 /* 試合中の中断ボタン */
 .order .pausebtn{flex:none;width:40px;height:40px;border:none;background:#fff;color:#000;font-weight:900;font-size:13px;cursor:pointer;
   clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%)}
@@ -753,3 +765,65 @@ html{scrollbar-width:thin;scrollbar-color:#e8173a #111}
 .synall[open] summary::before{content:"▼ "}
 .synall .sy{margin-top:5px}
 .sk.trt .h .e{color:#ffd86a}
+
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-10-06 より豪華で動きのあるペルソナ風に（ご指定）
+   ・ボタンは押すと白く光ってはね、主ボタンには光の筋が走る
+   ・見出しの英字は1文字ずつはずむ・赤い切り欠きが点滅
+   ・試合：いまの番の得点板が脈打つ・得点が入ると数字がはねる・「いまのリード」の帯
+   ══════════════════════════════════════════════════════════════ */
+.btn{transition:transform .1s cubic-bezier(.2,1.6,.4,1),filter .12s,box-shadow .12s}
+.btn:hover{filter:brightness(1.12);transform:translateY(-1px) skewX(-2deg)}
+.btn:active{transform:scale(.95) skewX(-4deg);filter:brightness(1.35)}
+.btn.pri{position:relative;overflow:hidden;box-shadow:0 6px 18px rgba(232,23,58,.35)}
+.btn.pri::after{content:"";position:absolute;top:0;bottom:0;left:-40%;width:28%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.55),transparent);transform:skewX(-20deg);animation:btnShine 2.8s ease-in-out infinite}
+@keyframes btnShine{0%,60%{left:-40%}100%{left:130%}}
+.seg button{transition:transform .1s,background .15s}
+.seg button:active{transform:scale(.94)}
+.seg button.on{box-shadow:inset 0 -3px 0 rgba(0,0,0,.25),0 0 0 2px #fff;animation:segOn .3s cubic-bezier(.2,1.6,.4,1)}
+@keyframes segOn{0%{transform:scale(.88)}100%{transform:none}}
+.ttl .e{animation:ttlIn .45s cubic-bezier(.2,1.4,.4,1) both;transform-origin:left bottom}
+@keyframes ttlIn{0%{opacity:0;transform:translateX(-24px) skewX(-18deg) scale(1.15)}100%{opacity:1;transform:none}}
+.ttl .j{animation:ttlJ .5s .1s both}
+@keyframes ttlJ{0%{opacity:0;transform:translateX(18px)}100%{opacity:1;transform:none}}
+.hd::before{animation:hdBlink 2.4s steps(2) infinite}
+@keyframes hdBlink{50%{background:#fff}}
+.pn{transition:transform .15s}
+.pn.red{box-shadow:0 0 0 1px rgba(255,59,82,.25),0 10px 26px rgba(232,23,58,.18)}
+/* 下のナビ：いまのタブの赤い線がのびる */
+#nav button.on::before{animation:navOn .3s cubic-bezier(.2,1.4,.4,1)}
+@keyframes navOn{0%{transform:skewX(var(--skew)) scaleX(0)}100%{transform:skewX(var(--skew)) scaleX(1)}}
+#nav button.play .pl{animation:plPulse 2s ease-in-out infinite}
+@keyframes plPulse{50%{box-shadow:0 0 0 3px rgba(255,255,255,.5),0 0 18px var(--r)}}
+/* 試合：得点板 */
+.msd{position:relative;overflow:hidden}
+.msd::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(-28deg,rgba(255,255,255,.08) 0 6px,transparent 6px 14px);opacity:0;transition:opacity .2s;pointer-events:none}
+.msd.turn::after{opacity:1;animation:stripeRun 1.2s linear infinite}
+@keyframes stripeRun{to{background-position:28px 0}}
+.msd.turn{box-shadow:inset 0 -4px 0 #fff,0 0 16px rgba(255,255,255,.18);animation:turnPulse 1.4s ease-in-out infinite}
+@keyframes turnPulse{50%{filter:brightness(1.18)}}
+.msd .sc{display:inline-block;transition:transform .2s}
+.msd .sc.bump{animation:scBump .7s cubic-bezier(.2,1.6,.4,1)}
+@keyframes scBump{0%{transform:scale(2.2) rotate(-12deg);color:#ffd84a;text-shadow:0 0 18px #ffd84a}60%{transform:scale(.92)}100%{transform:none}}
+.mend{animation:none}
+/* いまのリードの帯 */
+.mlead{display:none;align-items:center;gap:8px;margin:0 0 5px;padding:3px 12px 3px 10px;min-height:26px;
+  background:linear-gradient(100deg,#000 0 48%,var(--sc) 48% 100%);clip-path:polygon(8px 0,100% 0,calc(100% - 8px) 100%,0 100%);
+  box-shadow:inset 0 -2px 0 rgba(255,255,255,.25)}
+.mlead.on{display:flex}
+.mlead.none{background:linear-gradient(100deg,#000,#2a2533)}
+.mlead .lk{font-size:11px;color:#ffd84a;letter-spacing:.08em;white-space:nowrap}
+.mlead b{font-size:17px;line-height:1;color:#fff;text-shadow:2px 2px 0 #000}
+.mlead em{font-style:italic;font-size:22px;line-height:1;color:#fff;background:#000;padding:0 8px;transform:skewX(-12deg);box-shadow:3px 3px 0 rgba(0,0,0,.35)}
+.mlead small{margin-left:auto;font-size:10px;font-weight:900;color:#fff;text-shadow:1px 1px 0 #000;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mlead.pop{animation:leadPop .5s cubic-bezier(.2,1.5,.4,1)}
+@keyframes leadPop{0%{transform:translateX(-30px) skewX(-14deg);opacity:0}100%{transform:none;opacity:1}}
+/* いま投げるキャラの札：ふちが光る */
+.order .cur{position:relative}
+.order .cur::after{content:"";position:absolute;inset:0;pointer-events:none;box-shadow:inset 0 0 0 2px rgba(255,255,255,.55);animation:curGlow 1.6s ease-in-out infinite}
+@keyframes curGlow{50%{box-shadow:inset 0 0 0 2px #fff,0 0 12px rgba(255,255,255,.35)}}
+/* 照準の数字 */
+.aimhud div{background:rgba(10,8,14,.75);box-shadow:inset 0 -2px 0 var(--r)}
+@media (prefers-reduced-motion:reduce){
+  body::before,body::after,.btn.pri::after,.msd.turn,.msd.turn::after,.order .cur::after,#nav button.play .pl{animation:none!important}
+}

@@ -1,47 +1,26 @@
 /* ============================================================
-   MagiAbyss Service Worker — オフライン対応
-   ・ゲームはすべて端末の中で動く（ドット絵・音もコードで作る）ので、CORE をそろえれば完全にオフラインで遊べる。
-   ・キャラクターの絵（XEVARION の img/）は「一度見たら控える」。よく使う10体ぶんは CORE に入れてある。
-   ・フォント（Google Fonts）も一度読めたら控える（オフラインでもドットの文字になる）。
-   ・Firebase（同期）はキャッシュしない。
+   MagiChemLex Service Worker — オフライン対応
+   ・問題・解説・図はすべて JS の中にあるので、CORE をそろえれば完全にオフラインで使える。
+   ・フォント（Google Fonts）は一度読めたら控える。Firebase（同期）はキャッシュしない。
    ============================================================ */
-const VERSION = "magiabyss-sw-v5";
-const RUNTIME = "magiabyss-rt-v1";
+const VERSION = "magichemlex-sw-v4";
+const RUNTIME = "magichemlex-rt-v1";
 const CORE = [
   "./index.html",
   "./manifest.webmanifest",
-  "./css/ma.css?v=3",
-  "./js/ma-data.js?v=3",
-  "./js/ma-pixel.js?v=3",
-  "./js/ma-art.js?v=3",
-  "./js/ma-map.js?v=1",
-  "./js/ma-save.js?v=2",
-  "./js/ma-stats.js?v=2",
-  "./js/ma-audio.js?v=1",
-  "./js/ma-input.js?v=2",
-  "./js/ma-engine.js?v=3",
-  "./js/ma-ai.js?v=1",
-  "./js/ma-weapons.js?v=3",
-  "./js/ma-cards.js?v=2",
-  "./js/ma-boss.js?v=1",
-  "./js/ma-prog.js?v=2",
-  "./js/ma-render.js?v=2",
-  "./js/ma-ui.js?v=3",
-  "./js/ma-town.js?v=1",
-  "./js/ma-guild.js?v=3",
-  "./js/ma-stages.js?v=1",
-  "./js/ma-howto.js?v=2",
-  "./js/ma-main.js?v=2",
-  "./img/title.webp",
-  "./img/title_blur.webp",
-  "./img/icon_s.webp",
-  "../thumbs/MagiAbyss.jpg",
-  "../gem.png",
+  "./css/mcl.css?v=4",
+  "./js/mcl-data.js?v=3",
+  "./js/mcl-data2.js?v=3",
+  "./js/mcl-core.js?v=3",
+  "./js/mcl-fig.js?v=2",
+  "./js/mcl-ui.js?v=3",
+  "./img/icon_192.png",
+  "./img/apple-touch-icon.png",
+  "../thumbs/MagiChemLex.jpg",
+  "../XEVA.png",
+  "../events/violet_breeze_s.webp",
   /* XEVARION の共通部品 */
-  "../mb-boot.js?v=17",
-  "../MagiBurst/js/mb-core.js?v=134",
   "../xeva.js?v=75",
-  "../xeva-alive.js?v=4",
   "../xeva-loading.js?v=18",
   "../xeva-splash.js?v=13",
   "../xeva-safebottom.js?v=12",
@@ -49,23 +28,9 @@ const CORE = [
   "../xeva-presence.js?v=9",
   "../maintenance-gate.js?v=13",
   "../xeva-cloud.js?v=42",
-  "../MagiBurst/magiburst-cloud.js?v=22",
   "../app-cloud.js?v=12",
   "../xeva-keys.js?v=31",
   "../xevarion-fb.js?v=33",
-  /* 遊べる10体（極彩祭・極煌祭・極華祭）の絵 */
-  "../img/Takina.webp", "../img/t_Takina.webp",
-  /* ★★ 2026-10-07 Sapphire Breeze ヒバナ・フキ */
-  "../img/Hibana.webp", "../img/t_Hibana.webp", "../img/Fuki.webp", "../img/t_Fuki.webp",
-  "../img/Hinano.webp", "../img/t_Hinano.webp",
-  "../img/Hanon.webp", "../img/t_Hanon.webp",
-  "../img/Kokoha.webp", "../img/t_Kokoha.webp",
-  "../img/Mutsumi.webp", "../img/t_Mutsumi.webp",
-  "../img/Reina.webp", "../img/t_Reina.webp",
-  "../img/Azusa.webp", "../img/t_Azusa.webp",
-  "../img/KumikoReina.webp", "../img/t_KumikoReina.webp",
-  "../img/Kagura.webp", "../img/t_Kagura.webp",
-  "../img/Kotori.webp", "../img/t_Kotori.webp",
 ];
 
 async function xevPost(msg) {
@@ -87,7 +52,7 @@ async function xevPrecache(cache, list, scope) {
 self.addEventListener("install", (e) => {
   e.waitUntil((async () => {
     const cache = await caches.open(VERSION);
-    await xevPrecache(cache, CORE, "magiabyss");
+    await xevPrecache(cache, CORE, "magichemlex");
     self.skipWaiting();
   })());
 });
@@ -95,8 +60,8 @@ self.addEventListener("install", (e) => {
 self.addEventListener("activate", (e) => {
   e.waitUntil((async () => {
     const keys = await caches.keys();
-    /* ★ RUNTIME（キャラの絵・フォント）は消さない */
-    await Promise.all(keys.filter((k) => k !== VERSION && k.startsWith("magiabyss-sw")).map((k) => caches.delete(k)));
+    /* ★ RUNTIME（フォント）は消さない */
+    await Promise.all(keys.filter((k) => k !== VERSION && k.startsWith("magichemlex-sw")).map((k) => caches.delete(k)));
     await self.clients.claim();
   })());
 });
@@ -118,19 +83,6 @@ self.addEventListener("fetch", (e) => {
   }
   if (url.origin !== self.location.origin) return;
   if (url.hostname.indexOf("firebase") >= 0) return;
-  /* キャラクターの絵は「一度見たら控える」（XEVARION の img/） */
-  if (/\/img\/.+\.(webp|png|jpg)$/i.test(url.pathname) && url.pathname.indexOf("/MagiAbyss/") < 0) {
-    e.respondWith((async () => {
-      const core = await caches.match(req);
-      if (core) return core;
-      const c = await caches.open(RUNTIME);
-      const hit = await c.match(req);
-      if (hit) return hit;
-      try { const r = await fetch(req); if (r && r.ok) c.put(req, r.clone()); return r; }
-      catch (err) { return new Response("", { status: 504 }); }
-    })());
-    return;
-  }
   /* それ以外：?v= まで見て引き当て、裏で取り直す（stale-while-revalidate）。
      通信できないときだけ ?v= 違いを許して探す。 */
   e.respondWith((async () => {
@@ -155,7 +107,7 @@ self.addEventListener("fetch", (e) => {
 
 /* ══ まとめて最新化（xev-refresh：ホームの更新画面から呼ばれる）══
    CORE ＋ いまキャッシュにある URL を、ETag / Last-Modified の条件つきで取り直す（差分だけ落とす・同時6本）。 */
-const XEV_SCOPE = "magiabyss";
+const XEV_SCOPE = "magichemlex";
 async function xevRefreshAll() {
   const cache = await caches.open(VERSION);
   const urls = [], seen = new Set();

@@ -52,10 +52,14 @@
       regen: 0, drain: 0, cdr: 0, exp: 0, magnet: 0, mp: 0, dash: 0, vision: 0, summon: 0, reveal: 0,
       skill: 0, ult: 0, ultCharge: 0, passive: 0, shieldStart: 0,
     };
-    /* 凸 */
+    /* レアリティ（UR は全能力 ×1.15） */
+    const RK = (D().RANK || {})[C.rank || "SSR"];
+    if (RK && RK.mul !== 1) { st.hp *= RK.mul; st.atk *= RK.mul; st.def *= RK.mul; }
+    /* 凸（★★ 2026-10-05 必殺技・技（E）の威力も上がる） */
     const A = D().AWK[awk] || D().AWK[0];
     if (A.all) { st.hp *= 1 + A.all; st.atk *= 1 + A.all; st.def *= 1 + A.all; }
     st.cdr += A.cdr || 0;
+    st.ult += A.ult || 0; st.art = A.art || 0;
     st.awk = awk; st.awkReroll = A.reroll || 0; st.ultStart = A.ultStart || 0;
     /* スキルツリー */
     const T = treeFx(tree);

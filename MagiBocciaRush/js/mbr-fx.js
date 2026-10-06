@@ -236,6 +236,8 @@
       case "ultready": sfx("ready", 1); break;
       /* ★★ 2026-10-01 アディショナルマッチ：中央の「×」にジャックが置かれた */
       case "addl": ring(p.X, p.Y, 6, 46, "rgba(255,176,0,.95)", 0.8, 4); if (big) ring(p.X, p.Y, 4, 28, "rgba(255,255,255,.9)", 0.5, 2); break;
+      /* ★★ 2026-10-06b ジャックが場外（奥・手前の壁）→ 中央のクロスに戻った */
+      case "jackhome": ring(p.X, p.Y, 6, 40, "rgba(255,255,255,.95)", 0.7, 4); if (big) { ring(p.X, p.Y, 4, 64, "rgba(255,200,61,.85)", 0.9, 3); burst(p.X, p.Y, 14, "#ffffff", 140, 2.2); } popLite("JACK OUT → CROSS", "#ffffff"); sfx("guard", 0.5); break;
     }
   }
   /* ══ ★★ 2026-09-18 ショットの演出を少し豪華に（ご指定）══
@@ -333,10 +335,29 @@
     const el = document.createElement("div");
     el.className = "fxpop" + (huge ? " huge" : "") + (L === "short" ? " short" : "");
     el.style.setProperty("--pc", col || "#ff3b52");
-    el.innerHTML = '<div class="t">' + esc(title) + "</div>" + (sub ? '<div class="s">' + esc(sub) + "</div>" : "");
+    el.style.setProperty("--bc", col || "#ff3b52");
+    /* ★★ 2026-10-06 切り抜き文字＋うしろに星形の光と網点（ご指定「より豪華で動きがあるペルソナ風」） */
+    el.innerHTML = (L === "full" ? '<div class="fxstar"></div><div class="fxstar s2"></div>' : "") + '<div class="fxp5">' + p5(title, false) + "</div>" + (sub ? '<div class="s">' + esc(sub) + "</div>" : "");
     host.appendChild(el);
     clearTimeout(popT);
     popT = setTimeout(() => el.remove(), L === "short" ? 650 : 1050);
+  }
+  /* ★★ 2026-10-06 リードが変わった瞬間（だれが何点リードか）を大きく。kind：take（リードを奪った）／ reversal（逆転）／ more（リードを広げた） */
+  function lead(side, pts, kind, col, nm) {
+    const L = lv();
+    if (L === "off" || !host) return;
+    const old = host.querySelector(".fxlead"); if (old) old.remove();
+    const el = document.createElement("div");
+    el.className = "fxlead k-" + kind + (L === "short" ? " short" : "");
+    el.style.setProperty("--pc", col || "#ff3b52");
+    el.style.setProperty("--bc", col || "#ff3b52");
+    const T = kind === "reversal" ? "REVERSAL!" : kind === "more" ? "LEAD UP!" : "TAKE THE LEAD!";
+    const J = lang() === "en";
+    el.innerHTML = '<div class="lb"></div><div class="lb2"></div><div class="lt">' + p5(T, false) + '</div><div class="ls"><b>' + esc(nm) + "</b>" + (J ? " LEADS +" : " が ") + pts + (J ? "" : " 点リード") + "</div>";
+    host.appendChild(el);
+    setTimeout(() => el.remove(), L === "short" ? 900 : 1500);
+    sfx(kind === "reversal" ? "chain" : "special", kind === "reversal" ? 3 : 1);
+    if (kind === "reversal") { flash(col, 0.3); shake(5); }
   }
   function popLite(title, col) {
     const L = lv();
@@ -440,9 +461,12 @@
       const port = (c, i, side) => c ? '<div class="pt" style="--i:' + i + '"><img src="' + esc(imgPath(c, true)) + '" alt="" onerror="this.onerror=null;this.src=\'' + esc(imgPath(c, false)) + '\'"><b>' + esc(c.nm) + "</b></div>" : "";
       let body = "";
       if (kind === "start") {
-        const R = (o.red || []).slice(0, 3), Bl = (o.blue || []).slice(0, 3);
-        body = '<div class="vs-l">' + R.map((c, i) => port(c, i, "red")).join("") + '<div class="tm">' + esc(o.redName || "RED") + "</div></div>"
-          + '<div class="vs-r">' + Bl.map((c, i) => port(c, i, "blue")).join("") + '<div class="tm">' + esc(o.blueName || "BLUE") + "</div></div>"
+        /* ★★ 2026-10-06c 編成は6体ずつなので<b>6体とも</b>出す（3体で切れていた・ご指定）。
+           ★★ 2026-10-07 ご指定「縦に6人ずつ並べる」→ 2列をやめ、左右それぞれ<b>縦1列</b>に（4体以上は .n6 で1人ぶんを低く） */
+        const R = (o.red || []).slice(0, 6), Bl = (o.blue || []).slice(0, 6);
+        const many = R.length > 3 || Bl.length > 3 ? " n6" : "";
+        body = '<div class="vs-l' + many + '"><div class="pts">' + R.map((c, i) => port(c, i, "red")).join("") + '</div><div class="tm">' + esc(o.redName || "RED") + "</div></div>"
+          + '<div class="vs-r' + many + '"><div class="pts">' + Bl.map((c, i) => port(c, i, "blue")).join("") + '</div><div class="tm">' + esc(o.blueName || "BLUE") + "</div></div>"
           + '<div class="vs-c">' + p5("VS", true) + '<div class="sub">' + esc(o.sub || "BOCCIA RUSH — MATCH START") + "</div></div>";
       } else if (kind === "turn") {
         body = '<div class="b-mid">' + p5(o.title || "YOUR TURN") + '<div class="sub">' + esc(o.sub || "") + "</div></div>";
@@ -572,6 +596,30 @@
       ".fxlite{position:absolute;right:10px;top:46%;z-index:5;pointer-events:none;font-family:'Anton','Orbitron',sans-serif;font-style:italic;font-size:20px;",
       "  color:var(--pc);text-shadow:2px 2px 0 #000;animation:fxL .7s ease both}",
       "@keyframes fxL{0%{opacity:0;transform:translateX(30px)}20%{opacity:1;transform:none}80%{opacity:1}100%{opacity:0}}",
+      /* ★★ 2026-10-06 大きい文字：切り抜き文字＋星形の光 */
+      ".fxpop .fxp5{position:relative;z-index:2;display:flex;justify-content:center}",
+      ".fxpop .fxp5 .p5t{--fs:clamp(26px,8.6vw,54px)}.fxpop.huge .fxp5 .p5t{--fs:clamp(30px,10vw,64px)}",
+      ".fxpop .s{position:relative;z-index:2}",
+      ".fxpop .fxstar{position:absolute;left:50%;top:44%;width:min(78vw,420px);aspect-ratio:1;margin:0;transform:translate(-50%,-50%);background:#fff;opacity:.9;z-index:1;",
+      "  clip-path:polygon(50% 0,55% 38%,78% 12%,60% 44%,98% 34%,62% 52%,92% 78%,56% 60%,50% 100%,44% 60%,10% 80%,40% 52%,2% 36%,40% 44%,22% 10%,45% 38%);",
+      "  animation:fxSt 1.05s cubic-bezier(.2,1.2,.4,1) both}",
+      ".fxpop .fxstar.s2{background:var(--pc);width:min(56vw,300px);opacity:.95;animation-name:fxSt2}",
+      ".fxpop.short .fxstar{animation-duration:.65s}",
+      "@keyframes fxSt{0%{transform:translate(-50%,-50%) scale(0) rotate(-30deg)}20%{transform:translate(-50%,-50%) scale(1.06) rotate(4deg)}30%{transform:translate(-50%,-50%) scale(1) rotate(0)}75%{opacity:.9}100%{opacity:0;transform:translate(-50%,-50%) scale(1.25) rotate(10deg)}}",
+      "@keyframes fxSt2{0%{transform:translate(-50%,-50%) scale(0) rotate(40deg)}22%{transform:translate(-50%,-50%) scale(1.04) rotate(8deg)}32%{transform:translate(-50%,-50%) scale(1) rotate(12deg)}75%{opacity:.95}100%{opacity:0;transform:translate(-50%,-50%) scale(1.15) rotate(24deg)}}",
+      /* ★★ 2026-10-06 リードの帯（TAKE THE LEAD / REVERSAL） */
+      ".fxlead{position:absolute;left:0;right:0;top:5%;z-index:6;pointer-events:none;text-align:center;animation:fxLd 1.5s cubic-bezier(.2,.9,.3,1) both}",
+      ".fxlead.short{animation-duration:.9s}",
+      ".fxlead .lb{position:absolute;left:-12%;right:-12%;top:8%;height:76%;background:#000;transform:skewY(-8deg);border-top:4px solid #fff;border-bottom:5px solid var(--pc);animation:fxLb 1.5s cubic-bezier(.2,.9,.3,1) both}",
+      ".fxlead .lb2{position:absolute;left:-12%;right:-12%;top:78%;height:9%;background:var(--pc);transform:skewY(-8deg);animation:fxLb 1.5s .05s cubic-bezier(.2,.9,.3,1) both}",
+      ".fxlead.short .lb,.fxlead.short .lb2{animation-duration:.9s}",
+      ".fxlead .lt{position:relative;z-index:2;display:flex;justify-content:center;padding-top:10px}",
+      ".fxlead .lt .p5t{--fs:clamp(24px,7.4vw,48px)}",
+      ".fxlead .ls{position:relative;z-index:2;display:inline-block;margin:6px 0 10px;padding:2px 16px;font-weight:900;font-size:clamp(13px,3.8vw,18px);color:#000;background:#fff;transform:skewX(-12deg) rotate(-4deg);box-shadow:4px 4px 0 var(--pc)}",
+      ".fxlead .ls b{color:var(--pc);-webkit-text-stroke:.6px #000}",
+      ".fxlead.k-reversal .lb{background:repeating-linear-gradient(-30deg,#000 0 14px,#16000a 14px 22px)}",
+      "@keyframes fxLd{0%{opacity:0}8%{opacity:1}82%{opacity:1}100%{opacity:0}}",
+      "@keyframes fxLb{0%{transform:skewY(-8deg) translateX(-110%)}16%{transform:skewY(-8deg) translateX(0)}82%{transform:skewY(-8deg) translateX(0)}100%{transform:skewY(-8deg) translateX(40%)}}",
       /* 登場 */
       "#mbrCut{position:fixed;inset:0;z-index:150;pointer-events:none;overflow:hidden;font-family:'Noto Sans JP',sans-serif}",
       "#mbrCut.k-enter .en-b{position:absolute;left:0;top:calc(env(safe-area-inset-top,0px) + 118px);display:flex;align-items:center;gap:9px;",
@@ -655,6 +703,15 @@
       "#mbrBan .pt{position:relative;width:min(44vw,300px);height:12vh;overflow:hidden;background:#000;transform:skewY(-10deg);clip-path:polygon(4% 0,100% 0,96% 100%,0 100%);",
       "  animation:bnPt .5s cubic-bezier(.2,1.2,.4,1) both;animation-delay:calc(.15s + var(--i) * .08s)}",
       "#mbrBan .vs-l .pt{border-bottom:5px solid #ff1f3d}#mbrBan .vs-r .pt{border-bottom:5px solid #2f8fff}",
+      "#mbrBan .pts{display:flex;flex-direction:column;gap:6px}#mbrBan .vs-r .pts{align-items:flex-end}",
+      /* ★★ 2026-10-07 6人は縦1列（ご指定）。高さは画面の高さから決める＝横画面のスマホでも6人が入る。
+         幅は高さの約3倍まで（細長くしすぎると顔が切れて髪しか見えない）。
+         絵は正方形なので幅＝絵の高さ。margin-top の % は<b>幅</b>が基準＝どの大きさでも顔のあたりが帯に入る
+         （帯は skewY(-10deg) で右が上がるので、右上が空かないよう 18% 上へずらす。高さは幅の0.7倍まで＝左下も空かない） */
+      "#mbrBan .n6 .pts{gap:min(.8vh,6px)}",
+      "#mbrBan .n6 .pt{width:min(40vw,244px,34vh);height:min(10.6vh,94px,26vw)}#mbrBan .n6 .pt b{font-size:11px;padding:1px 6px;bottom:3px}",
+      "#mbrBan .n6 .pt img{top:0;margin-top:-18%;height:auto;min-height:0;object-fit:fill}",
+      "#mbrBan .n6 .tm{margin-top:2px;font-size:clamp(18px,5.4vw,36px)}",
       "#mbrBan .pt img{position:absolute;left:0;top:-40%;width:100%;height:auto;min-height:180%;object-fit:cover;object-position:50% 16%;transform:skewY(10deg)}",
       "#mbrBan .pt b{position:absolute;left:8%;bottom:4px;font-size:12px;font-weight:900;color:#fff;background:rgba(0,0,0,.7);padding:1px 8px;transform:skewY(10deg)}",
       "#mbrBan .tm{font-family:'Anton','Noto Sans JP',sans-serif;font-weight:900;font-style:italic;font-size:clamp(20px,6vw,40px);color:#fff;text-shadow:3px 3px 0 #000,-1px -1px 0 #000;margin-top:4px;transform:skewY(-10deg);max-width:90%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}",
@@ -692,6 +749,6 @@
     document.head.appendChild(st);
   })();
 
-  window.MBRFX = { drawBall, ballThumb, imgOf, imgPath, onEvent, drawParticles, shakeOffset, shake, setHost, pop, popLite, cutIn, clearCut, sfx, vib, speak,
+  window.MBRFX = { drawBall, ballThumb, imgOf, imgPath, onEvent, drawParticles, shakeOffset, shake, setHost, pop, popLite, lead, cutIn, clearCut, sfx, vib, speak,
                    launch, spark, nice, flash, banner, clearBanner, p5 };
 })();

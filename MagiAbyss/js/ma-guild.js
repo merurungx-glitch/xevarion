@@ -20,90 +20,25 @@
   const $ = (s, r) => (r || document).querySelector(s);
 
   /* ══════════════════════════════════════════════════════════════
-     ギルドの部屋
+     拠点（町の広場）
+     ★★ 2026-10-05 屋内のギルドから「屋外の町の広場」に作り直し（ご指定：ギルド案1 の配置）。
+       地面・建物・置物・動物の絵は ma-town.js。ここは歩く・近くの施設・名札・NPC。
      ══════════════════════════════════════════════════════════════ */
-  const GW = 26, GH = 18, TS = 16;
-  /* 施設：x,y,w,h（当たり・タイル）／spot（話しかける場所）／open（開く画面） */
-  const FAC = [
-    { id: "board", nm: "依頼掲示板", sub: "迷宮をえらぶ", x: 3, y: 1, w: 4, h: 2, spot: [5, 4], open: "dungeons", c: "#ffd84a", ic: "scroll" },
-    { id: "recept", nm: "受付", sub: "ストーリー・施設強化", x: 10, y: 3, w: 6, h: 1, spot: [13, 5], open: "reception", c: "#ff8fd0", ic: "person", npc: "laura" },
-    { id: "shop", nm: "魔導具店", sub: "装備・道具を買う", x: 19, y: 3, w: 4, h: 1, spot: [21, 5], open: "shop", c: "#7fd0ff", ic: "shop", npc: "shopkeep" },
-    { id: "lib", nm: "資料室", sub: "図鑑", x: 23, y: 6, w: 2, h: 4, spot: [21, 8], open: "codex", c: "#e8d080", ic: "book" },
-    { id: "notice", nm: "協会掲示", sub: "実績・ミッション", x: 16, y: 1, w: 2, h: 2, spot: [17, 4], open: "missions", c: "#4fe39a", ic: "mission" },
-    { id: "smith", nm: "鍛冶屋", sub: "強化・作成・分解", x: 20, y: 12, w: 4, h: 2, spot: [19, 15], open: "smith", c: "#ff8a3d", ic: "hammer", npc: "smith" },
-    { id: "tavern", nm: "酒場", sub: "キャラクター編成", x: 1, y: 11, w: 5, h: 1, spot: [4, 13], open: "chars", c: "#ff6a5a", ic: "person", npc: "barkeep" },
-    { id: "info", nm: "冒険者情報", sub: "キャラ育成・スキルツリー", x: 1, y: 5, w: 3, h: 2, spot: [5, 7], open: "train", c: "#c27bff", ic: "tree" },
-    { id: "storage", nm: "倉庫", sub: "装備管理・アイテム", x: 14, y: 14, w: 3, h: 2, spot: [15, 13], open: "storage", c: "#9ab0ff", ic: "chest" },
-    { id: "gate", nm: "深淵の門", sub: "深淵踏破（エンドコンテンツ）", x: 9, y: 15, w: 3, h: 2, spot: [10, 14], open: "abyss", c: "#a874ff", ic: "abyss" },
-  ];
-  const TABLES = [[8, 9], [12, 10], [8, 12]];
+  const TS = 16;
+  const FAC = MA.Town.FAC;
   let hub = null, hctx = null, bg = null, gmap = null;
-  const GS = { x: 13 * TS, y: 8 * TS, vx: 0, vy: 0, r: 5, face: 1, walkT: 0, moving: false, near: null, t: 0, npcs: [], running: false, cam: { x: 0, y: 0 } };
+  const GS = { x: 23 * TS, y: 20 * TS, vx: 0, vy: 0, r: 5, face: 1, walkT: 0, moving: false, side: false, near: null, t: 0, npcs: [], running: false, cam: { x: 0, y: 0 } };
 
-  function buildGuildMap() {
-    const tiles = new Uint8Array(GW * GH).fill(1);
-    for (let x = 0; x < GW; x++) { tiles[x] = 0; tiles[GW + x] = 0; tiles[(GH - 1) * GW + x] = 0; }
-    for (let y = 0; y < GH; y++) { tiles[y * GW] = 0; tiles[y * GW + GW - 1] = 0; }
-    FAC.forEach((f) => { for (let y = f.y; y < f.y + f.h; y++) for (let x = f.x; x < f.x + f.w; x++) if (y >= 0 && y < GH && x >= 0 && x < GW) tiles[y * GW + x] = 2; });
-    TABLES.forEach(([x, y]) => { tiles[y * GW + x] = 2; tiles[y * GW + x + 1] = 2; });
-    return { W: GW, H: GH, tiles, roomAt: new Int16Array(GW * GH).fill(-1) };
-  }
-  function drawBg() {
-    const c = MA.Pix.mkCanvas(GW * TS, GH * TS), g = c.getContext("2d");
-    g.imageSmoothingEnabled = false;
-    const T = MA.Art.tiles("guild");
-    for (let y = 0; y < GH; y++) for (let x = 0; x < GW; x++) {
-      const t = gmap.tiles[y * GW + x];
-      if (t === 0) { const below = y + 1 < GH ? gmap.tiles[(y + 1) * GW + x] : 0; g.drawImage(below === 0 ? T.top : T.face, x * TS, y * TS); }
-      else g.drawImage(T.floor[(x * 7 + y * 13) % 4], x * TS, y * TS);
-    }
-    /* じゅうたん */
-    g.fillStyle = "#7a2a3a"; g.fillRect(9 * TS, 6 * TS, 8 * TS, 6 * TS); g.fillStyle = "#a8423e"; g.fillRect(9 * TS + 4, 6 * TS + 4, 8 * TS - 8, 6 * TS - 8);
-    g.strokeStyle = "#e0b040"; g.strokeRect(9 * TS + 7.5, 6 * TS + 7.5, 8 * TS - 15, 6 * TS - 15);
-    for (let i = 0; i < 6; i++) { g.fillStyle = "#e0b040"; g.fillRect(9 * TS + 16 + i * 18, 9 * TS - 1, 4, 2); }
-    /* 施設の家具 */
-    const R = (x, y, w, h, c) => { g.fillStyle = c; g.fillRect(x, y, w, h); };
-    /* 依頼掲示板（壁） */
-    R(3 * TS, 1 * TS + 2, 4 * TS, 2 * TS - 2, "#6a4a2a"); R(3 * TS + 3, 1 * TS + 5, 4 * TS - 6, 2 * TS - 9, "#c8a060");
-    for (let i = 0; i < 7; i++) R(3 * TS + 6 + (i % 4) * 14, 1 * TS + 8 + Math.floor(i / 4) * 10, 10, 8, ["#f0e2b8", "#e8d8a8", "#fff4d0"][i % 3]);
-    R(3 * TS + 8, 1 * TS + 9, 2, 2, "#ff4a4a"); R(3 * TS + 36, 1 * TS + 19, 2, 2, "#ff4a4a");
-    /* 受付カウンター */
-    R(10 * TS, 3 * TS, 6 * TS, TS, "#7a4a2a"); R(10 * TS, 3 * TS, 6 * TS, 4, "#a8743f"); R(10 * TS, 3 * TS + 14, 6 * TS, 2, "#4a2a14");
-    R(11 * TS, 3 * TS - 6, 8, 6, "#e8e0d0"); R(14 * TS + 4, 3 * TS - 8, 6, 8, "#4a8a4a"); R(14 * TS + 5, 3 * TS - 12, 4, 5, "#7fd060");
-    /* 魔導具店 */
-    R(19 * TS, 3 * TS, 4 * TS, TS, "#3a4a7a"); R(19 * TS, 3 * TS, 4 * TS, 4, "#5a6aa0");
-    for (let i = 0; i < 5; i++) { R(19 * TS + 4 + i * 12, 3 * TS - 6, 6, 6, ["#ff6a8a", "#7fd0ff", "#ffd84a", "#4fe39a", "#c27bff"][i]); }
-    R(19 * TS, 1 * TS + 4, 4 * TS, 12, "#3a2a1a"); for (let i = 0; i < 8; i++) R(19 * TS + 3 + i * 8, 1 * TS + 6, 5, 8, ["#9ab0ff", "#ff8fd0", "#ffe86a", "#7fd0ff"][i % 4]);
-    /* 資料室の本棚（右の壁） */
-    for (let k = 0; k < 2; k++) { R(23 * TS + k * TS, 6 * TS, TS, 4 * TS, "#5a3a22"); for (let r = 0; r < 6; r++) for (let i = 0; i < 4; i++) R(23 * TS + k * TS + 2 + i * 3, 6 * TS + 3 + r * 10, 2, 7, ["#a0402a", "#3a6a9a", "#4a8a4a", "#c8985a", "#7a4aa0"][(i + r + k) % 5]); }
-    /* 協会掲示（壁の掲示板） */
-    R(16 * TS, 1 * TS + 2, 2 * TS, 2 * TS - 2, "#2a5a3a"); R(16 * TS + 3, 1 * TS + 5, 2 * TS - 6, 2 * TS - 9, "#3a7a4a");
-    R(16 * TS + 6, 1 * TS + 8, 8, 10, "#f0e2b8"); R(16 * TS + 17, 1 * TS + 10, 9, 8, "#ffe86a");
-    /* 鍛冶屋（炉と金床） */
-    R(20 * TS, 12 * TS, 2 * TS, 2 * TS, "#5a5068"); R(20 * TS + 4, 12 * TS + 10, 2 * TS - 8, 14, "#2a1a14");
-    R(22 * TS + 2, 13 * TS + 2, 2 * TS - 4, 10, "#6a6a7a"); R(22 * TS + 6, 13 * TS - 2, 2 * TS - 12, 6, "#8a8a9a");
-    /* 酒場のカウンター */
-    R(1 * TS, 11 * TS, 5 * TS, TS, "#6a3a1a"); R(1 * TS, 11 * TS, 5 * TS, 4, "#9a5a2a");
-    R(1 * TS, 9 * TS, 5 * TS, 12, "#3a2210"); for (let i = 0; i < 9; i++) R(1 * TS + 4 + i * 8, 9 * TS + 2, 4, 9, ["#7a2a2a", "#c8985a", "#4a8a4a", "#e8e0d0"][i % 4]);
-    /* 冒険者情報の机 */
-    R(1 * TS, 5 * TS, 3 * TS, 2 * TS, "#7a4a2a"); R(1 * TS + 4, 5 * TS + 4, 14, 10, "#f0e2b8"); R(2 * TS + 8, 5 * TS + 6, 10, 8, "#3a6a9a");
-    /* 倉庫（宝箱とたる） */
-    R(14 * TS, 14 * TS, 3 * TS, 2 * TS, "#3a2a1a");
-    [[14, 14], [15, 14], [16, 15]].forEach(([x, y], i) => { R(x * TS + 2, y * TS + 3, 12, 11, i === 1 ? "#3a5ab0" : "#a0682a"); R(x * TS + 2, y * TS + 7, 12, 1, "#e0b040"); });
-    /* テーブル */
-    TABLES.forEach(([x, y]) => { g.fillStyle = "#6a3a1a"; g.beginPath(); g.ellipse(x * TS + 16, y * TS + 8, 15, 8, 0, 0, TAU); g.fill(); g.fillStyle = "#9a5a2a"; g.beginPath(); g.ellipse(x * TS + 16, y * TS + 6, 13, 6, 0, 0, TAU); g.fill(); R(x * TS + 10, y * TS + 2, 4, 5, "#e8e0d0"); R(x * TS + 19, y * TS + 3, 4, 4, "#c8985a"); });
-    /* 深淵の門（下の壁） */
-    R(9 * TS, 15 * TS, 3 * TS, 2 * TS, "#2a1a3a"); g.fillStyle = "#4a2a7a"; g.beginPath(); g.ellipse(10.5 * TS, 16 * TS, 18, 16, 0, Math.PI, 0); g.fill();
-    /* 窓（上の壁） */
-    [[8, 0], [18, 0]].forEach(([x, y]) => { R(x * TS + 3, y * TS + 6, 10, 12, "#ffe8a0"); R(x * TS + 7, y * TS + 6, 2, 12, "#8a6a40"); R(x * TS + 3, y * TS + 11, 10, 2, "#8a6a40"); });
-    return c;
-  }
-  /* ギルドの人たち（XEVARION のキャラではない） */
+  /* 町の人たち（XEVARION のキャラではない） */
+  const SIDE_ROBE = (hair) => ({ hair: hair === "bob" ? "bob" : "long", len: 23, top: "gothic", arm: "A", bottom: "robe" });
+  const SIDE_TANK = (hair) => ({ hair: hair === "bob" ? "bob" : "long", len: 22, top: "tank", arm: "S", bottom: "pants" });
   const NPCDEF = {
     laura: { nm: "ギルドマスター ラウラ", pal: { H: "#5a3a8a", h: "#3a2260", L: "#8a6ac0", E: "#ffcc3a", A: "#2a2440", a: "#1a1630", C: "#e0b040", c: "#a07a20", P: "#2a2440", p: "#1a1630", O: "#2a2030", o: "#141018", K: "#120e1a" }, hair: "long", outfit: "robe" },
     shopkeep: { nm: "魔導具店のミント", pal: { H: "#4fbf9a", h: "#2f8a6a", L: "#8fe8c8", E: "#3a6aff", A: "#f2f2f6", a: "#c8c8d6", C: "#3a4a7a", c: "#2a3460", P: "#3a4a7a", p: "#2a3460", O: "#5a3a2a", o: "#3a2418", K: "#0e1a14" }, hair: "bob", outfit: "tank" },
     smith: { nm: "鍛冶屋のガルド", pal: { H: "#8a3a1a", h: "#5a2410", L: "#c86a3a", E: "#3a2a1a", A: "#6a5a4a", a: "#4a3e32", C: "#3a2a1a", c: "#2a1e12", P: "#3a3a4a", p: "#2a2a36", O: "#2a1e12", o: "#140e08", S: "#d8a07a", s: "#b07a58", K: "#140c08" }, hair: "bob", outfit: "tank" },
     barkeep: { nm: "酒場のローザ", pal: { H: "#c83a4a", h: "#8a2230", L: "#f07080", E: "#3a8a3a", A: "#f2f2f6", a: "#c8c8d6", C: "#2a2a30", c: "#16161a", P: "#2a2a30", p: "#16161a", O: "#2a2a30", o: "#16161a", K: "#160a0e" }, hair: "long", outfit: "tank" },
+    teller: { nm: "占い師のシエル", pal: { H: "#d8d0f0", h: "#a89cc8", L: "#ffffff", E: "#c070ff", A: "#5a2a90", a: "#3a1a60", C: "#ffd84a", c: "#c8a030", P: "#5a2a90", p: "#3a1a60", O: "#2a1a3a", o: "#140a20", K: "#140a1e" }, hair: "long", outfit: "robe" },
+    bard: { nm: "吟遊詩人のリュート", pal: { H: "#c88a3a", h: "#8a5a20", L: "#f0c070", E: "#2a8a5a", A: "#2a8a5a", a: "#1a6040", C: "#e0b040", c: "#a07a20", P: "#5a4a3a", p: "#3a2e24", O: "#3a2a1a", o: "#1e140a", K: "#120e08" }, hair: "bob", outfit: "tank" },
     adv1: { nm: "冒険者", pal: { H: "#d8b040", h: "#a07a20", L: "#ffe08a", E: "#3a6aff", A: "#5a7a3a", a: "#3e5a28", C: "#8a5a2a", c: "#5a3a1a", P: "#5a4a3a", p: "#3a2e24", O: "#3a2a1a", o: "#1e140a", K: "#120e08" }, hair: "bob", outfit: "tank" },
     adv2: { nm: "冒険者", pal: { H: "#2a3a6a", h: "#1a2448", L: "#5a6aa0", E: "#ff8a3a", A: "#8a2a3a", a: "#5a1a26", C: "#e0b040", c: "#a07a20", P: "#2a2a36", p: "#1a1a24", O: "#2a1e12", o: "#140e08", K: "#0e0e18" }, hair: "long", outfit: "tank" },
     adv3: { nm: "冒険者", pal: { H: "#e8e8f0", h: "#b0b0c0", L: "#ffffff", E: "#c070ff", A: "#3a2a5a", a: "#261a40", C: "#9a90b0", c: "#6a6080", P: "#3a2a5a", p: "#261a40", O: "#2a2030", o: "#141018", K: "#120e1a" }, hair: "long", outfit: "robe" },
@@ -111,59 +46,68 @@
   function npcSprite(k) {
     const n = NPCDEF[k], PA = MA.Pix.PARTS;
     const layers = [n.hair === "bob" ? PA.backBob() : PA.backLong(24), n.outfit === "robe" ? { x: 6, y: 14, rows: ["..AACCAA....", ".AAAACAAAAA.", "AAAAACAAAAAA", "A.AAAAAAAA.A", "a.AaAAAAaA.a", "S.AAAAAAAA.S", "..AAAAAAAA..", "..AaAAAAaA..", "..AAAAAAAA..", "..aAAAAAAa..", "...OO..OO...", "...oo..oo..."] } : PA.outfitTank(PA.BOTTOM_PANTS), "FACE", n.hair === "bob" ? PA.frontBob(false) : PA.frontStraight(14)];
-    return MA.Pix.spriteFromDef("npc_" + k, { pal: n.pal, legY: n.outfit === "robe" ? 27 : 23, robe: n.outfit === "robe", layers });
+    return MA.Pix.spriteFromDef("npc_" + k, { pal: n.pal, legY: n.outfit === "robe" ? 27 : 23, robe: n.outfit === "robe", layers, side: n.outfit === "robe" ? SIDE_ROBE(n.hair) : SIDE_TANK(n.hair) });
   }
   function initNpcs() {
     GS.npcs = [
-      { k: "laura", x: 13 * TS, y: 2 * TS + 14, still: 1 },
-      { k: "shopkeep", x: 21 * TS, y: 2 * TS + 14, still: 1 },
-      { k: "smith", x: 22 * TS, y: 11 * TS + 14, still: 1 },
-      { k: "barkeep", x: 3 * TS, y: 10 * TS + 14, still: 1 },
-      { k: "adv1", x: 9 * TS, y: 11 * TS, home: [9 * TS, 11 * TS] },
-      { k: "adv2", x: 13 * TS, y: 12 * TS, home: [13 * TS, 12 * TS] },
-      { k: "adv3", x: 19 * TS, y: 7 * TS, home: [19 * TS, 7 * TS] },
+      { k: "laura", x: 41.2 * TS, y: 19.8 * TS, still: 1 },
+      { k: "shopkeep", x: 18.2 * TS, y: 7.6 * TS, still: 1 },
+      { k: "smith", x: 8.7 * TS, y: 8.0 * TS, still: 1 },
+      { k: "barkeep", x: 32.0 * TS, y: 8.8 * TS, still: 1 },
+      { k: "teller", x: 6.2 * TS, y: 12.6 * TS, still: 1 },
+      { k: "bard", x: 15.0 * TS, y: 28.4 * TS, still: 1, play: 1 },
+      { k: "adv1", x: 20 * TS, y: 18 * TS, home: [20 * TS, 18 * TS] },
+      { k: "adv2", x: 28 * TS, y: 16 * TS, home: [28 * TS, 16 * TS] },
+      { k: "adv3", x: 31 * TS, y: 21 * TS, home: [31 * TS, 21 * TS] },
     ];
     GS.npcs.forEach((n) => { n.t = Math.random() * 5; n.face = 1; n.tx = n.x; n.ty = n.y; n.walkT = 0; });
   }
 
-  /* ══ ギルドの開始・ループ ══ */
+  /* ══ 拠点の開始・ループ ══ */
   function enter() {
     MA.E.stop();
     UI().closeModal(true);
+    if (MA.Stages) MA.Stages.hide();
     UI().scr("guild");
-    if (!gmap) { gmap = buildGuildMap(); initNpcs(); }
-    bg = drawBg();
+    if (!gmap) { gmap = MA.Town.buildMap(); initNpcs(); }
+    bg = MA.Town.drawBg();
     hub = $("#hub"); hctx = hub.getContext("2d");
     resizeHub();
     MA.Input.enabled = true;
     MA.Input.clearAll();
-    $("#touch").innerHTML = '<div class="t-zone" id="tZone"><div class="t-base" id="tBase"><div class="t-knob" id="tKnob"></div></div></div><div class="t-btns"><button class="tb big" data-act="interact">' + ic("info") + "</button></div>";
-    MA.Input.bindTouch($("#tZone"), $("#tBase"), $("#tKnob"));
+    $("#touch").innerHTML = '<div class="t-home" id="tHome"><i></i><span>移動</span></div><div class="t-base" id="tBase"><div class="t-knob" id="tKnob"></div></div>' +
+      '<div class="t-btns"><button class="tb s-big a-interact" data-act="interact" id="tb_interact"><span class="tb-ring"></span><span class="tb-ic">' + ic("info") + '</span><em class="tb-n"></em><span class="tb-l">調べる</span></button></div>';
+    MA.Input.bindTouch();
     MA.Input.bindButtons($("#touch"));
-    GS.x = 13 * TS; GS.y = 8 * TS;
+    GS.x = MA.Town.start[0] * TS; GS.y = MA.Town.start[1] * TS; GS.near = null;
     renderTop();
     buildLabels();
     MA.Audio.bgm("guild");
     if (!GS.running) { GS.running = true; GS.last = performance.now(); requestAnimationFrame(loopHub); }
-    /* はじめてのとき：序章 */
+    /* はじめてのとき：序章 → 遊び方 */
     if (!S().codex.story.prologue) setTimeout(() => playStory("prologue"), 300);
     else {
       /* ★ 結果画面をすぐ閉じても、クリアした迷宮の章を取りこぼさない */
       const pend = D().STORY.find((st) => st.at && S().dun[st.at] && S().dun[st.at].clears > 0 && !S().codex.story[st.id]);
       if (pend) setTimeout(() => { if (!UI().topModal()) playStory(pend.id); }, 300);
+      else if (!S().tutorial) setTimeout(() => { if (!UI().topModal() && MA.Howto) MA.Howto.open(0, true); }, 300);
       else checkResume();
     }
     MA.Prog.checkAll();
+    /* 冒険の地図の絵は重い（0.5秒ほど）ので、広場にいるあいだの空き時間に描いておく */
+    if (MA.Stages && !GS.mapPre) { GS.mapPre = 1; const pre = () => { try { MA.Stages.paint(); } catch (e) {} }; if (window.requestIdleCallback) requestIdleCallback(pre, { timeout: 5000 }); else setTimeout(pre, 2500); }
   }
   function leave() { GS.running = false; }
   function resizeHub() {
     if (!hub) return;
-    const w = window.innerWidth, h = window.innerHeight;
-    let scale = Math.min(w / (GW * TS), (h - 0) / (GH * TS));
-    if (scale > 1.5) scale = Math.floor(scale * 2) / 2;
-    scale = Math.max(1, Math.min(scale, Math.min(w, h) / 200));
-    /* ★ スマホの縦画面：部屋全体を等倍で入れると人が小さく、上下も大きく空く → 2倍前後に拡大してカメラで追う */
-    if (h > w * 1.2) scale = Math.max(scale, Math.min(2, Math.round(w / 190 * 2) / 2));
+    const v = MA.vp ? MA.vp() : { w: window.innerWidth, h: window.innerHeight };
+    const w = v.w, h = v.h;
+    const phone = MA.isPhone && MA.isPhone();
+    let scale = h / (phone ? 230 : 420);
+    if (scale >= 2) scale = Math.floor(scale * 2) / 2;
+    scale = Math.max(1, scale);
+    /* 町より広く見えないように（まわりに何もない帯を出さない） */
+    scale = Math.max(scale, Math.ceil(w / MA.Town.PW * 4) / 4, Math.ceil(h / MA.Town.PH * 4) / 4);
     GS.scale = scale;
     hub.width = Math.ceil(w / scale); hub.height = Math.ceil(h / scale);
     hub.style.width = w + "px"; hub.style.height = h + "px";
@@ -184,72 +128,82 @@
     const I = MA.Input;
     const modalOpen = !!UI().topModal();
     let mx = modalOpen ? 0 : I.mx, my = modalOpen ? 0 : I.my;
-    const sp = 82;
+    const sp = 86;
     GS.vx += (mx * sp - GS.vx) * Math.min(1, dt * 14); GS.vy += (my * sp - GS.vy) * Math.min(1, dt * 14);
     const o = { x: GS.x, y: GS.y, r: 5 };
     o.x += GS.vx * dt; let p = MA.Map.collideCircle(gmap, o.x, o.y, o.r); o.x += p[0]; o.y += p[1];
     o.y += GS.vy * dt; p = MA.Map.collideCircle(gmap, o.x, o.y, o.r); o.x += p[0]; o.y += p[1];
     GS.x = o.x; GS.y = o.y;
     GS.moving = Math.hypot(mx, my) > 0.1; if (GS.moving) { GS.walkT += dt; if (Math.abs(mx) > 0.1) GS.face = mx > 0 ? 1 : -1; }
+    GS.side = GS.moving && Math.abs(mx) > Math.abs(my) * 0.8;
     /* 近くの施設 */
     let near = null, nd = 1e9;
-    FAC.forEach((f) => { const dx = GS.x - (f.spot[0] * TS + 8), dy = GS.y - (f.spot[1] * TS + 8), d = dx * dx + dy * dy; if (d < 26 * 26 && d < nd) { nd = d; near = f; } });
-    if (near !== GS.near) { GS.near = near; const hint = $("#gHint"); if (hint) { hint.hidden = !near; if (near) hint.innerHTML = ic(near.ic, near.c) + "<b>" + esc(near.nm) + "</b><span>" + esc(near.sub) + '</span><kbd>F</kbd>'; } }
+    FAC.forEach((f) => { const dx = GS.x - f.spot[0] * TS, dy = GS.y - f.spot[1] * TS, d = dx * dx + dy * dy; if (d < 30 * 30 && d < nd) { nd = d; near = f; } });
+    if (near !== GS.near) {
+      GS.near = near;
+      const hint = $("#gHint");
+      if (hint) { hint.hidden = !near; if (near) hint.innerHTML = ic(near.ic, near.c) + "<b>" + esc(near.nm) + "</b><span>" + esc(near.sub) + '</span><button class="btn sm gold" data-a="fac" data-v="' + near.open + '">開く</button>' + (isTouchUI() ? "" : '<kbd class="kk">' + esc(MA.Input.keyLabel("interact")) + "</kbd>"); }
+      const tb = $("#tb_interact"); if (tb) tb.classList.toggle("ready", !!near);
+    }
     if (!modalOpen && (I.consume("interact") || I.consume("attack")) && near) openFac(near.open);
     if (!modalOpen && I.consume("menu")) openPanel("settings");
-    I.pressed.delete("map"); I.pressed.delete("dash"); I.pressed.delete("skill"); I.pressed.delete("burst"); I.pressed.delete("ult");
+    if (!modalOpen && I.consume("map")) openFac("stages");
+    I.pressed.delete("dash"); I.pressed.delete("skill"); I.pressed.delete("burst"); I.pressed.delete("ult");
     /* NPC：ときどき近くを歩く */
     GS.npcs.forEach((n) => {
       n.t -= dt;
-      if (n.still) { n.face = GS.x > n.x ? 1 : -1; return; }
-      if (n.t <= 0) { n.t = 2 + Math.random() * 4; n.tx = n.home[0] + (Math.random() - 0.5) * 60; n.ty = n.home[1] + (Math.random() - 0.5) * 40; }
+      if (n.still) { n.face = GS.x > n.x ? 1 : -1; n.moving = false; return; }
+      if (n.t <= 0) { n.t = 2 + Math.random() * 4; n.tx = n.home[0] + (Math.random() - 0.5) * 80; n.ty = n.home[1] + (Math.random() - 0.5) * 50; }
       const dx = n.tx - n.x, dy = n.ty - n.y, d = Math.hypot(dx, dy);
-      if (d > 2) { const q = { x: n.x + dx / d * 30 * dt, y: n.y + dy / d * 30 * dt }; const pp = MA.Map.collideCircle(gmap, q.x, q.y, 5); n.x = q.x + pp[0]; n.y = q.y + pp[1]; n.walkT += dt; n.moving = true; n.face = dx > 0 ? 1 : -1; } else n.moving = false;
+      if (d > 2) { const q = { x: n.x + dx / d * 30 * dt, y: n.y + dy / d * 30 * dt }; const pp = MA.Map.collideCircle(gmap, q.x, q.y, 5); n.x = q.x + pp[0]; n.y = q.y + pp[1]; n.walkT += dt; n.moving = true; n.face = dx > 0 ? 1 : -1; n.side = Math.abs(dx) > Math.abs(dy) * 0.8; } else n.moving = false;
     });
+    MA.Town.updateAnimals(dt);
     /* カメラ */
-    const vw = hub.width, vh = hub.height, mw = GW * TS, mh = GH * TS;
+    const vw = hub.width, vh = hub.height, mw = MA.Town.PW, mh = MA.Town.PH;
     GS.cam.x = mw > vw ? Math.max(vw / 2, Math.min(mw - vw / 2, GS.x)) : mw / 2;
-    GS.cam.y = mh > vh ? Math.max(vh / 2, Math.min(mh - vh / 2, GS.y)) : mh / 2;
+    GS.cam.y = mh > vh ? Math.max(vh / 2, Math.min(mh - vh / 2, GS.y - 10)) : mh / 2;
   }
+  function isTouchUI() { return document.body.classList.contains("touchdev"); }
   function drawHub() {
     const g = hctx, vw = hub.width, vh = hub.height;
     g.setTransform(1, 0, 0, 1, 0, 0); g.globalAlpha = 1;   /* ★ 前のコマの変形が残らないように */
     const cx = Math.round(GS.cam.x - vw / 2), cy = Math.round(GS.cam.y - vh / 2);
-    g.fillStyle = "#120a08"; g.fillRect(0, 0, vw, vh);
+    g.fillStyle = "#3a6a2a"; g.fillRect(0, 0, vw, vh);
     g.drawImage(bg, -cx, -cy);
-    /* 動くもの：炉の火・ろうそく・深淵の門 */
-    const t = GS.t;
-    const fire = (x, y, s) => { for (let i = 0; i < 4; i++) { g.fillStyle = ["#ff6a2a", "#ffb03a", "#ffe86a", "#ff8a3a"][i]; const h = (6 + Math.sin(t * 9 + i * 1.7) * 2) * s; g.fillRect(Math.round(x + (i - 1.5) * 3 * s - cx), Math.round(y - h - cy), Math.ceil(2 * s), Math.ceil(h)); } };
-    fire(21 * TS, 13 * TS + 8, 1.2);
-    [[2, 2], [24, 2], [2, 16], [24, 16], [8, 4], [18, 4]].forEach(([x, y], i) => { g.fillStyle = "#e8e0d0"; g.fillRect(x * TS + 7 - cx, y * TS + 4 - cy, 2, 5); g.fillStyle = i % 2 ? "#ffe86a" : "#ffb03a"; g.fillRect(x * TS + 7 - cx, y * TS + 1 - cy + Math.round(Math.sin(t * 7 + i)), 2, 3); });
-    const gateOpen = !!(S().dun.d3 && S().dun.d3.clears);
-    g.globalAlpha = gateOpen ? 0.6 + 0.3 * Math.sin(t * 3) : 0.25;
-    g.fillStyle = "#a874ff"; g.beginPath(); g.ellipse(10.5 * TS - cx, 16 * TS - cy, 14, 13, 0, Math.PI, 0); g.fill();
-    g.fillStyle = "#ffffff"; g.beginPath(); g.ellipse(10.5 * TS - cx, 16 * TS - cy - 4, 5 + Math.sin(t * 4) * 2, 4, 0, 0, TAU); g.fill();
-    g.globalAlpha = 1;
-    /* 人物（y の順） */
-    const list = GS.npcs.map((n) => ({ y: n.y, n })).concat([{ y: GS.y, me: 1 }]);
+    /* y の順：置物・動物・人 */
+    const list = [];
+    MA.Town.collectProps(list);
+    GS.npcs.forEach((n) => list.push({ y: n.y, n }));
+    list.push({ y: GS.y, me: 1 });
     list.sort((a, b) => a.y - b.y);
     list.forEach((it) => {
       if (it.me) { drawWalker(g, MA.Pix.charSprite(S().sel), GS, cx, cy); return; }
-      drawWalker(g, npcSprite(it.n.k), it.n, cx, cy);
+      if (it.n) { drawWalker(g, npcSprite(it.n.k), it.n, cx, cy); return; }
+      MA.Town.drawProp(g, it, cx, cy, GS.t);
     });
-    /* 明かり（あたたかいふち） */
-    const gr = g.createRadialGradient(vw / 2, vh / 2, Math.min(vw, vh) * 0.3, vw / 2, vh / 2, Math.max(vw, vh) * 0.75);
-    gr.addColorStop(0, "rgba(255,200,120,0)"); gr.addColorStop(1, "rgba(20,8,4,.55)");
+    MA.Town.drawAnim(g, cx, cy, GS.t);
+    /* 近くの施設の足もとに光の輪 */
+    if (GS.near) { const f = GS.near; g.globalAlpha = 0.45 + 0.25 * Math.sin(GS.t * 6); g.strokeStyle = f.c; g.lineWidth = 1; g.beginPath(); g.ellipse(Math.round(f.spot[0] * TS - cx), Math.round(f.spot[1] * TS - cy), 12, 5, 0, 0, Math.PI * 2); g.stroke(); g.globalAlpha = 1; }
+    /* やわらかいふち（昼の光） */
+    const gr = g.createRadialGradient(vw / 2, vh / 2, Math.min(vw, vh) * 0.45, vw / 2, vh / 2, Math.max(vw, vh) * 0.8);
+    gr.addColorStop(0, "rgba(255,240,200,0)"); gr.addColorStop(1, "rgba(30,20,10,.28)");
     g.fillStyle = gr; g.fillRect(0, 0, vw, vh);
     /* 名札の位置 */
     placeLabels(cx, cy);
   }
   function drawWalker(g, sp, o, cx, cy) {
     let f;
-    if (o.moving) f = sp.walk[Math.floor(o.walkT * 9) % 4];
+    if (o.moving && o.side && sp.side) f = sp.side[Math.floor(o.walkT * 10) % 4];
+    else if (o.moving) f = sp.walk[Math.floor(o.walkT * 9) % 4];
+    else if (o.play) f = sp.idle[Math.floor(GS.t * 3) % 2];
     else { const it = Math.floor(GS.t * 2 + (o.x % 3)) % 2; f = sp.idle[((GS.t + o.x * 0.01) % 3.4) > 3.25 ? 2 : it]; }
     const x = Math.round(o.x - cx), y = Math.round(o.y - cy);
-    g.fillStyle = "rgba(0,0,0,.3)"; g.beginPath(); g.ellipse(x, y + 2, 7, 3, 0, 0, TAU); g.fill();
+    g.fillStyle = "rgba(0,0,0,.28)"; g.beginPath(); g.ellipse(x, y + 2, 7, 3, 0, 0, Math.PI * 2); g.fill();
     if (!f) return;
     if (o.face < 0) { g.save(); try { g.translate(x, 0); g.scale(-1, 1); g.drawImage(f, -Math.floor(f.width / 2), y - f.height + 4); } finally { g.restore(); } }
     else g.drawImage(f, x - Math.floor(f.width / 2), y - f.height + 4);
+    /* 吟遊詩人の音符 */
+    if (o.play) { const k = (GS.t * 0.8) % 1; g.globalAlpha = 1 - k; g.fillStyle = "#ffd84a"; g.fillRect(x + 6 + Math.sin(k * 6) * 3, y - 30 - k * 14, 2, 4); g.fillRect(x + 6 + Math.sin(k * 6) * 3 - 2, y - 27 - k * 14, 3, 2); g.globalAlpha = 1; }
   }
   /* 施設の名札（押せる） */
   function buildLabels() {
@@ -267,28 +221,36 @@
     const sc = GS.scale || 1;
     document.querySelectorAll(".glab").forEach((b) => {
       const f = b._f; if (!f) return;
-      const x = (f.x + f.w / 2) * TS - cx, y = f.y * TS - cy - 4;
+      const x = f.lab[0] * TS - cx, y = f.lab[1] * TS - cy;
       b.style.transform = "translate(" + Math.round(x * sc) + "px," + Math.round(y * sc) + "px) translate(-50%,-100%)";
       b.classList.toggle("near", GS.near === f);
     });
   }
+  /* 上のバー・左下の「出発するキャラ」 */
   function renderTop() {
     const s = S();
+    const kk = (a) => isTouchUI() ? "" : '<kbd class="kk">' + esc(MA.Input.keyLabel(a)) + "</kbd>";
     $("#gTop").innerHTML = '<div class="g-logo"><img src="img/icon_s.webp" alt=""><b>Magi<i>Abyss</i></b></div>' +
-      '<div class="g-cur">' + ic("gold") + "<b>" + fmt(s.gold) + "</b></div>" +
-      '<div class="g-cur">' + ic("mat", D().MATS.stone.c) + "<b>" + fmt(s.mats.stone || 0) + "</b></div>" +
-      '<div class="g-cur">' + ic("crystal") + "<b>" + fmt(s.mats.crystal || 0) + "</b></div>" +
-      '<button class="g-btn" data-a="panel" data-v="items" title="アイテム">' + ic("chest") + "</button>" +
+      '<div class="g-curs"><span class="g-cur" title="ゴールド">' + ic("gold") + "<b>" + fmt(s.gold) + '</b></span><span class="g-cur" title="魔石">' + ic("mat", D().MATS.stone.c) + "<b>" + fmt(s.mats.stone || 0) + '</b></span><span class="g-cur" title="星脈結晶">' + ic("crystal") + "<b>" + fmt(s.mats.crystal || 0) + "</b></span></div>" +
+      '<div class="g-tbs"><button class="g-tb gold" data-a="fac" data-v="stages">' + ic("map") + "<span>クエスト</span>" + kk("map") + '</button>' +
+      '<button class="g-tb" data-a="fac" data-v="chars">' + ic("person") + "<span>キャラ</span></button>" +
+      '<button class="g-tb" data-a="fac" data-v="missions">' + ic("mission") + "<span>ミッション</span></button>" +
+      '<button class="g-tb" data-a="howto">' + ic("info") + "<span>遊び方</span></button></div>" +
       '<button class="g-btn" data-a="panel" data-v="settings" title="設定">' + ic("gear") + "</button>" +
       '<button class="g-btn" data-a="toTitle" title="タイトルへ">' + ic("back") + "</button>";
     const sel = s.sel, C = D().CHARS[sel];
-    $("#gSel").innerHTML = '<img src="../img/t_' + UI().imgName(sel) + '.webp" alt=""><div><small>出発するキャラ</small><b>' + esc(C.nm) + "</b><span>Lv." + MA.Save.lvOf(sel) + "・" + D().CTYPE[C.type].nm + (MA.Save.owned(sel) ? "" : "・おためし") + '</span></div><button class="btn sm" data-a="fac" data-v="chars">変更</button>';
+    const anyOwned = D().CHAR_ORDER.some((id) => MA.Save.owned(id));
+    if (!anyOwned) {
+      $("#gSel").innerHTML = '<div class="g-noown">' + ic("lock") + '<div><b>遊べるキャラがいません</b><small>XEVARION の <em class="f1">極彩祭</em><em class="f2">極煌祭</em><em class="f3">極華祭</em> のキャラを手に入れると遊べます</small></div><a class="btn sm gold" href="../gacha.html">ガチャへ</a></div>';
+      return;
+    }
+    $("#gSel").innerHTML = '<img src="../img/t_' + UI().imgName(sel) + '.webp" alt=""><div><small>出発するキャラ</small><b>' + esc(C.nm) + ' <em class="cc-rar r-' + C.rank + '">' + C.rank + "</em></b><span>" + ic("el_" + C.el) + "Lv." + MA.Save.lvOf(sel) + "・" + D().CTYPE[C.type].nm + '</span></div><button class="btn sm" data-a="fac" data-v="chars">変更</button>';
   }
 
   /* ══════════════════════════════════════════════════════════════
      パネル（施設の画面）
      ══════════════════════════════════════════════════════════════ */
-  function openFac(id) { MA.Audio.sfx("click"); openPanel(id); }
+  function openFac(id) { MA.Audio.sfx("click"); if (id === "stages") { MA.Stages.open(); return; } openPanel(id); }
   function openPanel(id, arg) {
     const f = PANELS[id]; if (!f) return;
     const r = f(arg);
@@ -310,86 +272,38 @@
   function head(icon, title, sub, col) { return '<div class="pn-h">' + ic(icon, col) + "<div><b>" + esc(title) + "</b>" + (sub ? "<small>" + sub + "</small>" : "") + "</div></div>"; }
   const PANELS = {};
 
-  /* ── 依頼掲示板：迷宮えらび ── */
-  let selDun = "d1";
+  /* ── 依頼掲示板 → 冒険の地図（ma-stages.js）── */
   function dunOpen(d) { return !d.unlock || (S().dun[d.unlock] && S().dun[d.unlock].clears > 0); }
-  PANELS.dungeons = () => {
-    const s = S();
-    const nodes = [[14, 74], [30, 52], [48, 70], [62, 40], [80, 62], [88, 22]];
-    const map = '<div class="wmap"><div class="wm-bg"></div><svg class="wm-path" viewBox="0 0 100 100" preserveAspectRatio="none"><polyline points="' + nodes.map((p) => p.join(",")).join(" ") + '" /></svg>' +
-      D().DUNGEONS.map((d, i) => {
-        const open = dunOpen(d), dr = s.dun[d.id] || {};
-        return '<button class="wm-node' + (selDun === d.id ? " sel" : "") + (open ? "" : " lock") + (dr.clears ? " clr" : "") + '" style="left:' + nodes[i][0] + "%;top:" + nodes[i][1] + "%;--c:" + d.c + '" data-a="selDun" data-v="' + d.id + '">' + ic(open ? (dr.clears ? "flag" : "star") : "lock", d.c) + "<span>" + d.no + "</span></button>";
-      }).join("") + "</div>";
-    const d = D().DUN[selDun], open = dunOpen(d), dr = s.dun[d.id] || {};
-    const B = D().BOSSES[d.boss];
-    const power = MA.Stats.power(MA.Stats.compute(s.sel));
-    const det = '<div class="dun-det" style="--c:' + d.c + '">' +
-      '<div class="dd-art" id="ddArt"></div>' +
-      '<div class="dd-h"><small>第' + d.no + "迷宮・" + esc(d.en) + "</small><b>" + esc(d.nm) + '</b><span class="stars">' + "★".repeat(d.stars) + "<i>" + "★".repeat(6 - d.stars) + "</i></span>" + "<em>" + esc(d.diff) + "</em></div>" +
-      '<p class="dd-d">' + esc(d.d) + "</p>" +
-      '<div class="dd-grid"><div><small>推奨レベル</small><b>Lv.' + d.rec.lv + '</b></div><div><small>推奨戦力</small><b class="' + (power >= d.rec.power ? "ok" : "ng") + '">' + fmt(d.rec.power) + '</b><i>あなた ' + fmt(power) + '</i></div><div><small>クリア</small><b>' + (dr.clears ? dr.clears + "回" : "まだ") + "</b></div><div><small>ベスト</small><b>" + (dr.best ? fmtT(dr.best) : "—") + "</b></div></div>" +
-      '<div class="dd-sec">出現する敵</div><div class="dd-en" id="ddEn"></div>' +
-      '<div class="dd-sec">ボス</div><div class="dd-boss"><canvas id="ddBoss" width="64" height="64"></canvas><div><b>' + esc(B.nm) + "</b><small>" + esc(B.gim.nm) + "：" + esc(B.gim.d) + "</small></div></div>" +
-      '<div class="dd-sec">手に入る素材</div><div class="dd-mats">' + d.mats.map((k) => '<span>' + ic("mat", D().MATS[k].c) + esc(D().MATS[k].nm) + "</span>").join("") + '<span>' + ic("crystal") + "星脈結晶（ボス）</span></div>" +
-      '<div class="dd-sec">特殊ルール</div><ul class="dd-rules">' + d.rules.map((r) => "<li>" + esc(r) + "</li>").join("") + "</ul>" +
-      (open ? '<button class="btn gold big" data-a="prep" data-v="' + d.id + '">' + ic("door") + "探索準備へ</button>" : '<div class="locked">' + ic("lock") + "「" + esc(D().DUN[d.unlock].nm) + "」をクリアすると解放されます</div>") +
-      "</div>";
-    return { html: head("scroll", "依頼掲示板", "迷宮をえらんでください", "#ffd84a") + '<div class="dun-wrap">' + map + det + "</div>", after: (m) => paintDun(m, d) };
-  };
-  function paintDun(m, d) {
-    /* 迷宮の絵（床のタイルと置物で小さな景色を描く） */
-    const art = $("#ddArt", m); if (!art) return;
-    const c = MA.Pix.mkCanvas(160, 64), g = c.getContext("2d"); g.imageSmoothingEnabled = false;
-    const T = MA.Art.tiles(d.biome), B = MA.Art.BIOME[d.biome];
-    g.fillStyle = B.bg; g.fillRect(0, 0, 160, 64);
-    for (let y = 0; y < 4; y++) for (let x = 0; x < 10; x++) g.drawImage(y === 0 ? T.face : T.floor[(x + y) % 4], x * 16, y * 16);
-    const dk = { forest: "tree", ice: "crystal", lava: "rock", library: "shelf", abyss: "void", sky: "starpillar" }[d.biome];
-    [[20, 62], [140, 62], [100, 40]].forEach(([x, y], i) => { const f = MA.Art.deco(dk, i).frames[0]; g.drawImage(f, x - f.width / 2, y - f.height); });
-    d.enemies.slice(0, 3).forEach((k, i) => { const e = D().ENEMIES[k]; const f = MA.Art.sprite(e.art, e.col).frames[0]; g.drawImage(f, 46 + i * 24, 54 - f.height); });
-    c.className = "pxc"; art.innerHTML = ""; art.appendChild(c);
-    const en = $("#ddEn", m);
-    en.innerHTML = "";
-    d.enemies.concat([d.elite]).forEach((k) => {
-      const e = D().ENEMIES[k]; const seen = S().codex.en[k];
-      const w = document.createElement("div"); w.className = "en-chip";
-      const f = MA.Art.sprite(e.art, e.col).frames[0];
-      const cc = MA.Pix.mkCanvas(f.width, f.height); cc.getContext("2d").drawImage(f, 0, 0); cc.className = "pxc";
-      if (!seen) cc.style.filter = "brightness(0)";
-      w.appendChild(cc);
-      const sp = document.createElement("span"); sp.textContent = seen ? e.nm : "？？？"; w.appendChild(sp);
-      const ai = document.createElement("i"); ai.textContent = { chase: "追跡", charge: "突進", ranged: "遠距離", summon: "召喚", guard: "防御", hex: "妨害", elite: "エリート", swarm: "群体" }[e.ai]; w.appendChild(ai);
-      en.appendChild(w);
-    });
-    const bc = $("#ddBoss", m); const bf = MA.Art.sprite(D().BOSSES[d.boss].art).frames[0];
-    const bg2 = bc.getContext("2d"); bg2.imageSmoothingEnabled = false; const k = Math.min(64 / bf.width, 64 / bf.height);
-    bg2.clearRect(0, 0, 64, 64); bg2.drawImage(bf, (64 - bf.width * k) / 2, (64 - bf.height * k) / 2, bf.width * k, bf.height * k);
-    if (!S().codex.boss[d.boss]) bc.style.filter = "brightness(0.15)";
-  }
 
-  /* ── 探索準備 ── */
-  let prepMuts = [];
+  /* ── 探索準備 ──
+     ★★ 2026-10-05 ノーマル／ハード（地図で選んだ難易度）・未所持のキャラでは出発できない（ご指定） */
+  let prepMuts = [], prepDiff = "normal";
   PANELS.prep = (dunId) => {
     const s = S(), d = D().DUN[dunId];
     const cid = s.sel, C = D().CHARS[cid], own = MA.Save.owned(cid);
-    const st = MA.Stats.compute(cid, own ? {} : { lv: 10, awk: 0, tree: {}, gear: [] });
+    const st = MA.Stats.compute(cid);
     const pw = MA.Stats.power(st);
     const dr = s.dun[dunId] || {};
+    const hard = prepDiff === "hard";
+    const MD = D().MODES[prepDiff];
+    const recLv = d.rec.lv + (MD.recAdd || 0), recPw = Math.round(d.rec.power * (hard ? 1.9 : 1));
     const mutOpen = dr.clears > 0;
     const gear = MA.Stats.gearOf(cid, s);
     const slots = D().SLOT_KEYS.map((sl) => { const g = own ? gear.find((x) => D().GEAR[x.id].slot === sl) : null; return '<div class="slot' + (g ? "" : " empty") + '" style="--rc:' + (g ? D().RAR[g.rar].c : "#555") + '">' + ic(D().SLOTS[sl].ic, g ? D().RAR[g.rar].c : "#666") + "<small>" + (g ? esc(D().GEAR[g.id].nm) + (g.lv ? " +" + g.lv : "") : D().SLOTS[sl].nm + "（なし）") + "</small></div>"; }).join("");
     const rewardK = 1 + prepMuts.reduce((a, k) => a + D().MUTATIONS[k].reward, 0);
-    const html = head("door", "探索準備", esc(d.nm) + "・推奨 Lv." + d.rec.lv + "／戦力 " + fmt(d.rec.power), d.c) +
-      '<div class="prep">' +
-      '<div class="pr-char"><img src="../img/t_' + UI().imgName(cid) + '.webp" alt=""><canvas id="prSprite" width="48" height="60"></canvas><div><b>' + esc(C.nm) + "</b><small>" + esc(C.title) + "・" + D().CTYPE[C.type].nm + "</small><span>Lv." + st.lv + (own ? "" : "（おためし：Lv10固定・経験値なし）") + '　戦力 <b class="' + (pw >= d.rec.power ? "ok" : "ng") + '">' + fmt(pw) + '</b></span><button class="btn sm" data-a="fac" data-v="chars">キャラを変える</button></div></div>' +
-      '<div class="pr-sec">装備</div><div class="slots">' + slots + '</div>' + (own ? '<button class="btn sm ghost" data-a="panel" data-v="storage">装備を変更</button>' : "") +
+    const html = head("door", "探索準備" + (hard ? "（ハード）" : ""), esc(d.nm) + "・推奨 Lv." + recLv + "／戦力 " + fmt(recPw), hard ? "#ff5a6a" : d.c) +
+      '<div class="prep' + (hard ? " hard" : "") + '">' +
+      (hard ? '<div class="pr-hard">' + ic("hard") + "<b>ハード</b><span>" + esc(MD.d) + "</span></div>" : "") +
+      '<div class="pr-char"><img src="../img/t_' + UI().imgName(cid) + '.webp" alt=""><canvas id="prSprite" width="48" height="60"></canvas><div><b>' + esc(C.nm) + ' <em class="cc-rar r-' + C.rank + '">' + C.rank + "</em></b><small>" + ic("el_" + C.el) + D().ELEM[C.el].nm + "・" + esc(C.title) + "・" + D().CTYPE[C.type].nm + "</small><span>Lv." + st.lv + '　戦力 <b class="' + (pw >= recPw ? "ok" : "ng") + '">' + fmt(pw) + '</b></span><button class="btn sm" data-a="fac" data-v="chars">キャラを変える</button></div></div>' +
+      '<div class="pr-sec">装備</div><div class="slots">' + slots + '</div><button class="btn sm ghost" data-a="panel" data-v="storage">装備を変更</button>' +
       '<div class="pr-sec">ダンジョン変異 ' + (mutOpen ? "<small>（報酬 ×" + rewardK.toFixed(2) + "）</small>" : "<small>（この迷宮を1回クリアすると選べます）</small>") + '</div><div class="muts">' +
       Object.keys(D().MUTATIONS).map((k) => { const M = D().MUTATIONS[k]; const on = prepMuts.indexOf(k) >= 0; return '<button class="mut' + (on ? " on" : "") + '" data-a="togMut" data-v="' + k + '" data-d="' + dunId + '"' + (mutOpen ? "" : " disabled") + "><b>" + esc(M.nm) + "</b><small>" + esc(M.d) + (M.reward ? "・報酬+" + Math.round(M.reward * 100) + "%" : "") + "</small></button>"; }).join("") +
       '</div><div class="pr-sec">持ちこみ</div><div class="carry">' +
       [["potion", "回復薬"], ["elixir", "エリクサー"], ["reroll", "運命のダイス（引き直し）"], ["banish", "忘却の砂（とばす）"]].map(([k, n]) => '<span>' + ic(k === "reroll" ? "dice" : k === "banish" ? "sand" : k) + esc(n) + " <b>×" + Math.min(k === "elixir" ? 1 : 3, s.items[k] || 0) + "</b></span>").join("") +
       '<button class="btn sm ghost" data-a="panel" data-v="shop">店で買う</button></div>' +
-      '<p class="hint">探索は1回 15〜35分ほど。鍵を3つ集めるとボスの扉が開きます。途中で閉じても次に開いたときに再開できます。</p>' +
-      '<button class="btn gold big" data-a="go" data-v="' + dunId + '">' + ic("door") + "出発する</button></div>";
+      '<p class="hint">探索は1回 10〜30分ほど。鍵を3つ集めるとボスの扉が開きます。早くクリアするとクリア時間のミッションでジェムがもらえます。途中で閉じても次に開いたときに再開できます。</p>' +
+      (own ? '<button class="btn gold big' + (hard ? " hardgo" : "") + '" data-a="go" data-v="' + dunId + '">' + ic("door") + (hard ? "ハードで" : "") + "出発する</button>"
+        : '<div class="locked">' + ic("lock") + "このキャラは持っていないので出発できません。「キャラを変える」から選んでください</div>") + "</div>";
     return { html, after: (m) => { m._arg = dunId; drawSpritePreview($("#prSprite", m), cid); } };
   };
   function drawSpritePreview(c, cid, mode) {
@@ -401,64 +315,109 @@
       if (!c.isConnected) return;
       t += 1 / 60;
       g.clearRect(0, 0, c.width, c.height);
-      const ph = mode === "demo" ? Math.floor(t / 1.6) % 3 : 0;
-      const f = ph === 1 ? sp.walk[Math.floor(t * 9) % 4] : ph === 2 ? (Math.floor(t * 6) % 2 ? sp.atk : sp.idle[0]) : sp.idle[(t % 3.2) > 3.05 ? 2 : Math.floor(t * 2) % 2];
+      /* demo … 待機 → 正面に歩く → 横に走る → 攻撃 をくり返す */
+      const ph = mode === "demo" ? Math.floor(t / 1.6) % 4 : 0;
+      let f, flip = false;
+      if (ph === 1) f = sp.walk[Math.floor(t * 9) % 4];
+      else if (ph === 2 && sp.side) { f = sp.side[Math.floor(t * 10) % 4]; flip = Math.floor(t / 1.6 / 4) % 2 === 1; }
+      else if (ph === 3) f = Math.floor(t * 6) % 2 ? sp.atk : sp.idle[0];
+      else f = sp.idle[(t % 3.2) > 3.05 ? 2 : Math.floor(t * 2) % 2];
       const k = Math.floor(Math.min(c.width / sp.w, c.height / sp.h));
-      g.drawImage(f, Math.round((c.width - f.width * k) / 2), Math.round(c.height - f.height * k), f.width * k, f.height * k);
+      const x = Math.round((c.width - f.width * k) / 2), y = Math.round(c.height - f.height * k);
+      if (flip) { g.save(); g.translate(c.width, 0); g.scale(-1, 1); g.drawImage(f, x, y, f.width * k, f.height * k); g.restore(); }
+      else g.drawImage(f, x, y, f.width * k, f.height * k);
       requestAnimationFrame(loop);
     };
     loop();
   }
 
-  /* ── キャラクター一覧（酒場）── */
+  /* ── キャラクター一覧（酒場）──
+     ★★ 2026-10-05 未所持のキャラは選べない（ご指定）。使えるのは XEVARION の
+       極彩祭・極煌祭・極華祭のキャラだと、ひと目でわかるように表記する（ご指定）。 */
+  /* ★★ 2026-10-07 Sapphire Breeze（UR）も使える（ご指定） */
+  const FES_CLS = { "極彩祭": "f1", "極煌祭": "f2", "極華祭": "f3", "Sapphire Breeze": "f4" };
+  function fesBadge(C) { return '<em class="fes ' + (FES_CLS[C.fes] || "") + '">' + esc(C.fes) + "</em>"; }
+  function fesInfo() {
+    return '<div class="fes-info">' + ic("star", "#ffd84a") + '<div><b>MagiAbyss で使えるキャラ</b><small>XEVARION のガチャ <em class="fes f4">Sapphire Breeze</em><em class="fes f1">極彩祭</em><em class="fes f2">極煌祭</em><em class="fes f3">極華祭</em> で手に入るキャラ（' + D().CHAR_ORDER.length + "人）。持っているキャラだけで遊べます。凸は XEVARION と共通・レベルはこのアプリだけ。</small></div>" +
+      '<a class="btn sm gold" href="../gacha.html">ガチャへ</a></div>';
+  }
   let charFilter = "all";
   PANELS.chars = () => {
     const s = S();
-    const list = D().CHAR_ORDER.filter((id) => charFilter === "all" || (charFilter === "own" ? MA.Save.owned(id) : D().CHARS[id].type === charFilter));
-    const html = head("person", "キャラクター編成（酒場）", "所持と凸は XEVARION と共通・レベルはこのアプリだけ", "#ff6a5a") +
-      '<div class="tabs">' + [["all", "すべて"], ["own", "所持"]].concat(Object.keys(D().CTYPE).map((k) => [k, D().CTYPE[k].nm])).map(([k, n]) => '<button class="tab' + (charFilter === k ? " on" : "") + '" data-a="charFilter" data-v="' + k + '">' + esc(n) + "</button>").join("") + "</div>" +
+    const ownN = D().CHAR_ORDER.filter((id) => MA.Save.owned(id)).length;
+    const list = D().CHAR_ORDER.filter((id) => {
+      const C = D().CHARS[id];
+      if (charFilter === "all") return true;
+      if (charFilter === "own") return MA.Save.owned(id);
+      if (/^fes:/.test(charFilter)) return C.fes === charFilter.slice(4);
+      return C.el === charFilter;
+    });
+    const tabs = [["all", "すべて"], ["own", "所持（" + ownN + "）"], ["fes:Sapphire Breeze", "Sapphire"], ["fes:極彩祭", "極彩祭"], ["fes:極煌祭", "極煌祭"], ["fes:極華祭", "極華祭"]].concat(D().ELEM_KEYS.map((k) => [k, D().ELEM[k].nm]));
+    const html = head("person", "キャラクター一覧（酒場）", "押すとくわしい性能。持っているキャラだけ出発できます", "#ff6a5a") + fesInfo() +
+      '<div class="tabs">' + tabs.map(([k, n]) => '<button class="tab' + (charFilter === k ? " on" : "") + '" data-a="charFilter" data-v="' + k + '">' + (D().ELEM[k] ? ic("el_" + k) : "") + esc(n) + "</button>").join("") + "</div>" +
       '<div class="cgrid">' + list.map((id) => {
         const C = D().CHARS[id], own = MA.Save.owned(id), awk = MA.Save.awkOf(id), lv = MA.Save.lvOf(id);
         const st = MA.Stats.compute(id);
+        const Ad = D().ARTS[C.art.k], Tr = D().TRAITS[C.trait.k];
         return '<button class="cc' + (s.sel === id ? " sel" : "") + (own ? "" : " lock") + '" data-a="charDet" data-v="' + id + '" style="--c:' + D().ELEM[C.el].c + '">' +
           '<img src="../img/t_' + UI().imgName(id) + '.webp" alt="" loading="lazy">' +
           '<span class="cc-rar r-' + C.rank + '">' + C.rank + "</span>" + (awk ? '<span class="cc-awk">' + "◆".repeat(awk) + "</span>" : "") +
-          '<div class="cc-b"><b>' + esc(C.nm) + '</b><small><i class="el" style="--c:' + D().ELEM[C.el].c + '">' + D().ELEM[C.el].nm + (C.el2 ? "＆" + D().ELEM[C.el2].nm : "") + "</i>" + D().CTYPE[C.type].nm + "</small>" +
-          '<span class="cc-st">HP ' + st.hp + "・攻 " + st.atk + "・防 " + st.def + "・速 " + Math.round(st.spd) + "</span>" +
-          "<em>" + (own ? "Lv." + lv : "未所持（おためし可）") + "</em></div></button>";
-      }).join("") + "</div>" +
-      '<p class="hint">未所持のキャラは XEVARION のガチャ（極彩祭・極煌祭・極華祭）で手に入ります。「おためし」なら Lv10 で遊べます（経験値は入りません）。</p>';
+          '<span class="cc-el">' + ic("el_" + C.el) + (C.el2 ? ic("el_" + C.el2) : "") + "</span>" +
+          (own ? (s.sel === id ? '<span class="cc-now">出発中</span>' : "") : '<span class="cc-lock">' + ic("lock") + "未所持</span>") +
+          '<div class="cc-b"><b>' + esc(C.nm) + "</b>" + fesBadge(C) + "<small>" + D().CTYPE[C.type].nm + "</small>" +
+          '<span class="cc-kit">' + ic(UI().kitIc(C, "skill")) + ic(Ad.ic) + ic("ultc", D().ELEM[C.el].c) + ic(Tr.ic) + "</span>" +
+          '<span class="cc-st">' + ic("st_hp") + st.hp + " " + ic("st_atk") + st.atk + " " + ic("st_def") + st.def + "</span>" +
+          "<em>" + (own ? "Lv." + lv + "・戦力 " + fmt(MA.Stats.power(st)) : "XEVARION のガチャで入手") + "</em></div></button>";
+      }).join("") + "</div>";
     return { html };
   };
-  /* ── キャラ詳細 ── */
+  /* ── キャラ詳細 ──
+     ★★ 2026-10-05 性能をアイコンで見やすく（ご指定）。技の組み合わせ（スキル・技・必殺技・特性・パッシブ）を
+       それぞれの具体的なアイコン＋★（グレード）で。凸の効果・属性の相性も表にする。 */
+  const STAT_IC = { hp: "st_hp", atk: "st_atk", def: "st_def", spd: "st_spd", aspd: "haste", crit: "crit", critDmg: "power", mag: "arcana", eva: "dashup" };
+  function stars(gr) { return '<span class="kgr">' + "★".repeat(gr) + "<i>" + "★".repeat(5 - gr) + "</i></span>"; }
   PANELS.charDet = (id) => {
     const s = S(), C = D().CHARS[id], own = MA.Save.owned(id), awk = MA.Save.awkOf(id), lv = MA.Save.lvOf(id);
     const st = MA.Stats.compute(id);
     const rec = s.chars[id] || { xp: 0 };
     const nx = MA.Save.xpFor(lv + 1), cur = MA.Save.xpFor(lv);
     const xpPct = lv >= D().CHAR_MAX_LV ? 100 : Math.round((rec.xp - cur) / (nx - cur) * 100);
-    const row = (k, v) => "<div><small>" + k + "</small><b>" + v + "</b></div>";
-    const biasTxt = Object.keys(C.bias).map((k) => D().CAT[k]).join("・");
-    const evo = D().EVOS[C.evo.to];
-    const html = '<div class="cdet" style="--c:' + D().ELEM[C.el].c + '">' +
-      '<div class="cd-top"><div class="cd-art"><img src="../img/' + UI().imgName(id) + '.webp" alt=""><canvas id="cdSprite" width="96" height="120"></canvas></div>' +
-      '<div class="cd-info"><small>' + esc(C.fes) + "・" + esc(C.title) + '</small><b class="cd-nm">' + esc(C.nm) + ' <span class="cc-rar r-' + C.rank + '">' + C.rank + "</span></b>" +
-      '<div class="cd-tags"><i class="el" style="--c:' + D().ELEM[C.el].c + '">' + D().ELEM[C.el].nm + (C.el2 ? "＆" + D().ELEM[C.el2].nm : "") + '属性</i><i style="--c:' + D().CTYPE[C.type].c + '">' + D().CTYPE[C.type].nm + "</i>" + (C.sub ? '<i style="--c:' + D().CTYPE[C.sub].c + '">' + D().CTYPE[C.sub].nm + "</i>" : "") + "</div>" +
-      '<div class="cd-lv">' + (own ? "Lv." + lv + ' <span class="xpbar"><i style="width:' + xpPct + '%"></i></span> <small>凸 ' + awk + "/4（XEVARION と共通）</small>" : "未所持（おためしは Lv10）") + "</div>" +
-      '<div class="cd-pow">戦力 <b>' + fmt(MA.Stats.power(st)) + "</b></div>" +
-      '<div class="row">' + (own || true ? '<button class="btn gold" data-a="selChar" data-v="' + id + '">' + (s.sel === id ? "出発キャラに選択中" : own ? "このキャラで出発" : "おためしで選ぶ") + "</button>" : "") +
-      (own ? '<button class="btn" data-a="panel" data-v="tree" data-x="' + id + '">' + ic("tree") + 'スキルツリー</button><button class="btn" data-a="panel" data-v="storage" data-x="' + id + '">' + ic("armor") + "装備</button>" : "") + "</div></div></div>" +
-      '<div class="cd-stats">' + row("HP", st.hp) + row("攻撃力", st.atk) + row("防御力", st.def) + row("移動速度", Math.round(st.spd)) + row("攻撃速度", "×" + st.aspd.toFixed(2)) + row("会心率", st.crit + "%") + row("会心ダメージ", "×" + st.critDmg.toFixed(2)) + row("魔法威力", "×" + st.mag.toFixed(2)) + row("回避性能", st.eva) + row("属性適性", D().ELEM[C.el].nm + (C.el2 ? "・" + D().ELEM[C.el2].nm : "")) + "</div>" +
-      '<div class="cd-sk"><div><span class="sk-k">通常攻撃</span><b>' + esc(C.atk.nm) + "</b><small>" + esc(C.atk.d) + "</small></div>" +
-      '<div><span class="sk-k q">固有スキル Q</span><b>' + esc(C.skill.nm) + "</b><small>" + esc(C.skill.d) + "（再使用 " + C.skill.cd + "秒・MP " + C.skill.mp + "）</small></div>" +
-      '<div><span class="sk-k r">必殺技 R</span><b>' + esc(C.ult.nm) + "</b><small>" + esc(C.ult.d) + "（必殺技ゲージ100%で発動）</small></div>" +
-      '<div><span class="sk-k p">パッシブ</span><b>' + esc(C.passive.nm) + "</b><small>" + esc(C.passive.d) + "</small></div>" +
-      '<div><span class="sk-k e">専用進化</span><b>' + esc(evo.nm) + "</b><small>" + esc(D().ELEM[C.evo.el].nm + "の" + D().WEAPONS[C.evo.weapon].nm) + " を Lv7 にすると進化：" + esc(evo.d) + "</small></div></div>" +
-      '<div class="cd-gw"><div><span class="ok">得意</span>' + esc(C.good) + '</div><div><span class="ng">苦手</span>' + esc(C.weak) + '</div><div><span>成長補正</span>' + esc(biasTxt) + " の能力がレベルアップで出やすい</div></div>" +
-      '<div class="cd-awk"><b>凸の効果</b>' + D().AWK.slice(1).map((a, i) => '<span class="' + (awk > i ? "on" : "") + '">' + (i + 1) + "凸：" + esc(a.d) + "</span>").join("") + "</div>" +
+    const elC = D().ELEM[C.el].c;
+    const Ad = D().ARTS[C.art.k], Tr = D().TRAITS[C.trait.k];
+    const gm = (g) => D().GRADE_MUL[g] || 1;
+    const stat = (k, nm, v, max) => '<div class="cs"><span>' + ic(STAT_IC[k]) + "</span><small>" + nm + "</small><b>" + v + '</b><i style="--w:' + Math.min(100, Math.round(max)) + '%"></i></div>';
+    const kit = (cls, icn, col, lab, nm, d, extra) => '<div class="kit ' + cls + '"><span class="kit-ic">' + ic(icn, col) + '</span><div><small>' + lab + "</small><b>" + esc(nm) + "</b>" + (extra || "") + "<p>" + d + "</p></div></div>";
+    /* 属性の相性（このキャラの攻撃 → 敵の属性） */
+    const rel = D().ELEM_KEYS.map((e) => { const r = D().elemRel(C.el, e); return '<span class="er ' + r + '">' + ic("el_" + e) + D().ELEM[e].nm + "<b>" + (r === "adv" ? "×1.25" : r === "dis" ? "×0.75" : "×1") + "</b></span>"; }).join("");
+    const html = '<div class="cdet" style="--c:' + elC + '">' +
+      (function () { const w = typeof wideArt === "function" ? wideArt(id) : null; return '<div class="cd-top' + (w ? " wide" : "") + '"><div class="cd-art"><img src="' + (w || "../img/" + UI().imgName(id) + ".webp") + '" alt=""><canvas id="cdSprite" width="96" height="120"></canvas></div>'; })() +
+      '<div class="cd-info">' + fesBadge(C) + '<small class="cd-ttl">' + esc(C.title) + '</small><b class="cd-nm">' + esc(C.nm) + ' <span class="cc-rar r-' + C.rank + '">' + C.rank + "</span></b>" +
+      '<div class="cd-tags"><i class="el" style="--c:' + elC + '">' + ic("el_" + C.el) + D().ELEM[C.el].nm + (C.el2 ? "＆" + D().ELEM[C.el2].nm : "") + '属性</i><i style="--c:' + D().CTYPE[C.type].c + '">' + D().CTYPE[C.type].nm + "</i>" + (C.sub ? '<i style="--c:' + D().CTYPE[C.sub].c + '">' + D().CTYPE[C.sub].nm + "</i>" : "") + "</div>" +
+      '<div class="cd-lv">' + (own ? "Lv." + lv + ' <span class="xpbar"><i style="width:' + xpPct + '%"></i></span> <small>凸 ' + awk + "/4（XEVARION と共通）</small>" : '<span class="ng">' + ic("lock") + "未所持（XEVARION の" + esc(C.fes) + "で手に入ります）</span>") + "</div>" +
+      '<div class="cd-pow">戦力 <b>' + fmt(MA.Stats.power(st)) + "</b>" + (C.rank === "UR" ? '<small class="ur">UR：全能力 ×' + D().RANK.UR.mul + "</small>" : "") + "</div>" +
+      '<div class="row">' + (own ? '<button class="btn gold" data-a="selChar" data-v="' + id + '"' + (s.sel === id ? " disabled" : "") + ">" + (s.sel === id ? "出発キャラに選択中" : "このキャラで出発") + "</button>" +
+        '<button class="btn" data-a="panel" data-v="tree" data-x="' + id + '">' + ic("tree") + 'スキルツリー</button><button class="btn" data-a="panel" data-v="storage" data-x="' + id + '">' + ic("armor") + "装備</button>"
+        : '<a class="btn gold" href="../gacha.html">' + ic("star") + "XEVARION のガチャへ</a>") + "</div></div></div>" +
+      '<div class="cd-sec">能力（Lv.' + st.lv + "）</div>" +
+      '<div class="cd-stats">' + stat("hp", "HP", st.hp, st.hp / 40) + stat("atk", "攻撃力", st.atk, st.atk / 3) + stat("def", "防御力", st.def, st.def * 3) + stat("spd", "移動速度", Math.round(st.spd), st.spd / 1.2) +
+        stat("aspd", "攻撃速度", "×" + st.aspd.toFixed(2), st.aspd * 60) + stat("crit", "会心率", st.crit + "%", st.crit * 2.5) + stat("critDmg", "会心ダメージ", "×" + st.critDmg.toFixed(2), st.critDmg * 40) + stat("mag", "魔法威力", "×" + st.mag.toFixed(2), st.mag * 55) + stat("eva", "回避", st.eva, st.eva * 3) + "</div>" +
+      '<div class="cd-sec">技の組み合わせ<small>★ が多いほど強い（5段階）</small></div><div class="kits">' +
+      kit("atk", UI().kitIc(C, "atk"), elC, "通常攻撃（いつも出る）", C.atk.nm, esc(C.atk.d)) +
+      kit("sk", UI().kitIc(C, "skill"), null, "スキル" + (own ? " ［" + MA.Input.keyLabel("skill") + "］" : ""), C.skill.nm, esc(C.skill.d), '<span class="kch">' + ic("st_time") + C.skill.cd + "秒 " + ic("burst") + "MP " + C.skill.mp + "</span>") +
+      kit("art", Ad.ic, null, "技" + (own ? " ［" + MA.Input.keyLabel("burst") + "］" : ""), Ad.nm, esc(Ad.d(gm(C.art.g) * (1 + (st.art || 0)))), stars(C.art.g) + '<span class="kch">' + ic("st_time") + Ad.cd + "秒 " + ic("burst") + "MP " + Ad.mp + "</span>") +
+      kit("ult", "ultc", elC, "必殺技" + (own ? " ［" + MA.Input.keyLabel("ult") + "］" : ""), C.ult.nm, esc(C.ult.d), '<span class="kch">' + ic("ult") + "ゲージ100%（敵を倒す・ダメージを与える・戦闘中の時間でたまる）</span>") +
+      kit("tr", Tr.ic, null, "特性（いつも効く）", Tr.nm, esc(Tr.d(gm(C.trait.g)))) +
+      kit("ps", UI().kitIc(C, "passive"), null, "パッシブ", C.passive.nm, esc(C.passive.d)) +
+      kit("evo", "star", "#ff6aa8", "専用進化", D().EVOS[C.evo.to].nm, esc(D().ELEM[C.evo.el].nm + "の" + D().WEAPONS[C.evo.weapon].nm + " を Lv7 にすると進化：" + D().EVOS[C.evo.to].d)) +
+      "</div>" +
+      '<div class="cd-sec">属性の相性<small>' + esc(C.nm) + "の攻撃が、その属性の敵に与えるダメージ</small></div><div class=\"cd-rel\">" + rel + "</div>" +
+      '<div class="cd-gw"><div><span class="ok">得意</span>' + esc(C.good) + '</div><div><span class="ng">苦手</span>' + esc(C.weak) + '</div><div><span>成長</span>' + esc(Object.keys(C.bias).map((k) => D().CAT[k]).join("・")) + " がレベルアップの候補に出やすい</div></div>" +
+      '<div class="cd-sec">凸の効果<small>XEVARION のガチャで同じキャラを引くと凸（最大4）</small></div><div class="cd-awk">' +
+      D().AWK.slice(1).map((a, i) => '<span class="' + (awk > i ? "on" : "") + '">' + ic(awk > i ? "check" : "star", awk > i ? null : "#5a4a8a") + "<b>" + (i + 1) + "凸</b>" + esc(a.d) + "</span>").join("") + "</div>" +
       "</div>";
     return { html, after: (m) => { m._arg = id; drawSpritePreview($("#cdSprite", m), id, "demo"); } };
   };
+
   /* ── 冒険者情報：育成（キャラをえらんでスキルツリー）── */
   PANELS.train = () => {
     const html = head("tree", "冒険者情報", "キャラクターの育成・スキルツリー", "#c27bff") +
@@ -622,9 +581,20 @@
   let misTab = "mis";
   PANELS.missions = () => {
     const s = S(); MA.Save.rollMissions();
-    const tabs = '<div class="tabs"><button class="tab' + (misTab === "mis" ? " on" : "") + '" data-a="misTab" data-v="mis">ミッション</button><button class="tab' + (misTab === "ach" ? " on" : "") + '" data-a="misTab" data-v="ach">実績</button></div>';
+    const tabs = '<div class="tabs">' + [["mis", "ミッション"], ["time", "クリア時間（ジェム）"], ["ach", "実績"]].map(([k, n]) => '<button class="tab' + (misTab === k ? " on" : "") + '" data-a="misTab" data-v="' + k + '">' + n + "</button>").join("") + "</div>";
     let body = "";
-    if (misTab === "mis") {
+    if (misTab === "time") {
+      /* ★★ 2026-10-05 クリア時間のミッション（迷宮×ノーマル／ハード×3段）。達成したらここでも受け取れる */
+      let left = 0;
+      body = '<p class="hint">迷宮を決まった時間より早くクリアすると、XEVARION のジェムがもらえます（クリアしたときに自動で受け取り。受け取れなかった分はここから）。</p>' +
+        D().DUNGEONS.map((d) => ["normal", "hard"].map((df) => {
+          const tl = MA.Prog.timeList(d.id, df);
+          const rec = df === "hard" ? ((s.dun[d.id] || {}).hard || {}) : (s.dun[d.id] || {});
+          return '<div class="tm-dun' + (df === "hard" ? " hard" : "") + '"><div class="tm-h" style="--c:' + d.c + '"><b>第' + d.no + "迷宮 " + esc(d.nm) + "</b><em>" + D().MODES[df].nm + "</em><small>ベスト " + (rec.best ? fmtT(rec.best) : "—") + "</small></div>" +
+            tl.map((m) => { if (m.done && !m.claimed) left++; return '<div class="sd-tm' + (m.done ? " ok" : "") + '">' + ic("st_time") + "<b>" + m.min + '分以内</b><span class="g">' + ic("gem") + m.gem + "</span>" + (m.done ? (m.claimed ? '<em class="got">受取ずみ</em>' : '<button class="btn sm gold" data-a="claimTime" data-v="' + m.key + '">受け取る</button>') : '<em class="no">未達成</em>') + "</div>"; }).join("") + "</div>";
+        }).join("")).join("");
+      if (left) body = '<div class="pr-sec">受け取れるジェムがあります（' + left + "件）</div>" + body;
+    } else if (misTab === "mis") {
       const row = (m, prog, done, kind) => { const v = Math.min(m.n, prog[m.key] || 0); const ok = v >= m.n; return '<div class="mis' + (done ? " done" : ok ? " ok" : "") + '"><div><b>' + esc(m.nm) + "</b><small>報酬：" + esc(MA.Prog.rwText(m.rw)) + '</small><span class="mbar"><i style="width:' + (v / m.n * 100) + '%"></i><em>' + fmt(v) + "/" + fmt(m.n) + "</em></span></div>" + (done ? "<span class='gi-who'>受取ずみ</span>" : '<button class="btn sm gold" data-a="claimMis" data-v="' + kind + ":" + m.id + '"' + (ok ? "" : " disabled") + ">受け取る</button>") + "</div>"; };
       body = '<div class="pr-sec">毎日（' + esc(s.mis.day) + "）</div>" + D().MISSIONS.daily.map((m) => row(m, s.mis.d, s.mis.dc[m.id], "d")).join("") +
         '<div class="pr-sec">毎週（' + esc(s.mis.week) + "）</div>" + D().MISSIONS.weekly.map((m) => row(m, s.mis.w, s.mis.wc[m.id], "w")).join("");
@@ -658,28 +628,58 @@
       return '<div class="gi">' + ic({ smith: "hammer", shop: "shop", tavern: "person", train: "attack", chapel: "revive", archive: "book" }[k]) + '<div class="gi-b"><b>' + esc(F.nm) + ' <span class="cnt">Lv' + lv + "/" + F.max + "</span></b><small>いま：" + esc(F.d(lv)) + (max ? "" : "<br>次：" + esc(F.d(lv + 1))) + "</small>" + (c ? '<small class="cost">' + costHTML(c) + "</small>" : "") + "</div>" + (max ? "<span class='gi-who'>最大</span>" : '<button class="btn sm gold" data-a="facUp" data-v="' + k + '"' + (MA.Save.hasCost(c) ? "" : " disabled") + ">強化</button>") + "</div>";
     }).join("");
     const story = D().STORY.map((st) => '<div class="mis' + (s.codex.story[st.id] ? "" : " no") + '">' + ic("book") + "<div><b>" + (s.codex.story[st.id] ? esc(st.nm) : "？？？") + "</b><small>" + (st.at ? esc(D().DUN[st.at].nm) + "のあと" : "はじまり") + "</small></div>" + (s.codex.story[st.id] ? '<button class="btn sm" data-a="story" data-v="' + st.id + '">読む</button>' : "") + "</div>").join("");
-    const howto = '<ul class="howto"><li><b>移動</b>：WASD／方向キー（スマホは左下のスティック）</li><li><b>攻撃</b>：自動（設定で手動に変更可）。マウスの方向・近い敵・移動方向へ</li><li><b>Q</b> 固有スキル／<b>E</b> 星脈解放（MP40）／<b>R</b> 必殺技（ゲージ100%）</li><li><b>Space</b> 回避（無敵）／<b>Tab</b> 地図／<b>Esc</b> メニュー／<b>F</b> 調べる</li><li>敵を倒すと経験値の結晶。レベルアップで能力を1つ選ぶ（引き直し・とばすもできる）</li><li>武器 Lv7 ＋ 条件の能力 Lv2 で<b>進化</b>。キャラごとの<b>専用進化</b>もある</li><li>武器・魔法・装備・キャラの組み合わせで<b>星脈共鳴</b>が発動する（図鑑で条件を確認）</li><li>鍵を3つ集めるとボスの扉が開く（中ボス・試練の魔法陣・宝物庫・祭壇・時間制限区域）</li><li>ボスのまわりのギミックを全部こわす（踏む）と <b>BREAK</b>：6秒止まってダメージ2倍</li></ul>';
+    const K = (a) => esc(MA.Input.keyLabel(a));
+    const howto = '<div class="row"><button class="btn gold" data-a="howto">' + ic("info") + '遊び方の映像を見る</button></div><ul class="howto"><li><b>移動</b>：' + K("up") + K("left") + K("down") + K("right") + '／方向キー（スマホは画面の左半分をさわるとスティック）</li><li><b>通常攻撃</b>：自動で、向いている方向へいつも出る（設定で「近い敵をねらう」「マウスの方向」にもできる）</li><li><b>' + K("skill") + '</b> スキル／<b>' + K("burst") + '</b> 技（キャラごとにちがう・MP）／<b>' + K("ult") + '</b> 必殺技（ゲージ100%）</li><li><b>' + K("dash") + '</b> 回避（無敵）／<b>' + K("map") + '</b> 地図／<b>' + K("menu") + '</b> メニュー／<b>' + K("interact") + '</b> 調べる（キーは設定で変えられる）</li><li><b>属性</b>：火→木→水→火・光⇄闇 が有利（×1.25）、逆は不利（×0.75）</li><li>敵を倒すと経験値の結晶。レベルアップで能力を1つ選ぶ（引き直し・とばすもできる）</li><li>武器 Lv7 ＋ 条件の能力 Lv2 で<b>進化</b>。キャラごとの<b>専用進化</b>もある</li><li>武器・魔法・装備・キャラの組み合わせで<b>星脈共鳴</b>が発動する（図鑑で条件を確認）</li><li>鍵を3つ集めるとボスの扉が開く（中ボス・試練の魔法陣・宝物庫・祭壇・時間制限区域）</li><li>ボスのまわりのギミックを全部こわす（踏む）と <b>BREAK</b>：6秒止まってダメージ2倍</li></ul>';
     return { html: head("person", "受付", "ギルドマスター ラウラ「おかえりなさい。今日はどうする？」", "#ff8fd0") +
       '<div class="pr-sec">拠点施設の強化</div><div class="glist">' + fac + '</div><div class="pr-sec">ストーリー</div>' + story + '<div class="pr-sec">遊び方</div>' + howto };
   };
 
-  /* ── 設定 ── */
+  /* ── 設定 ──
+     ★★ 2026-10-05 キーボードの割り当て・スマホのボタン（大きさ・濃さ・左右・割り当て）を変えられる（ご指定）。
+       攻撃の向きの標準は「向いている方向」（PC もスマホも同じ） */
+  let setTab = "play", keyWait = null;
+  const TOUCH_SLOT_NM = { big: "いちばん大きい丸", d: "① 左", a: "② 左上", b: "③ 上", c: "④ 右上" };
+  const TOUCH_ACT_NM = { attack: "通常攻撃", skill: "スキル", burst: "技", ult: "必殺技", dash: "回避", interact: "調べる", map: "地図", none: "なし（出さない）" };
   PANELS.settings = () => {
     const st = S().set;
     const seg = (k, opts) => '<div class="seg">' + opts.map(([v, n]) => '<button class="' + (String(st[k]) === String(v) ? "on" : "") + '" data-a="setv" data-v="' + k + '" data-x="' + v + '">' + esc(n) + "</button>").join("") + "</div>";
-    const html = head("gear", "設定", "", "#c8c8d8") + '<div class="sets">' +
-      '<label>BGM の音量<input type="range" min="0" max="1" step="0.05" value="' + st.bgm + '" data-in="bgm"></label>' +
-      '<label>効果音の音量<input type="range" min="0" max="1" step="0.05" value="' + st.se + '" data-in="se"></label>' +
-      "<div><span>攻撃の方向</span>" + seg("aim", [["auto", "自動（マウス／近い敵）"], ["mouse", "マウス照準"], ["move", "移動方向"]]) + "</div>" +
-      "<div><span>通常攻撃</span>" + seg("autoAtk", [[true, "自動で撃つ"], [false, "押しているあいだ"]]) + "</div>" +
-      "<div><span>ダメージの数字</span>" + seg("dmgNum", [[true, "出す"], [false, "出さない"]]) + "</div>" +
-      "<div><span>画面のゆれ</span>" + seg("shake", [[true, "あり"], [false, "なし"]]) + "</div>" +
-      "<div><span>敵の最大数（重いときは少なく）</span>" + seg("maxEnemies", [[30, "30"], [45, "45"], [60, "60"], [80, "80"]]) + "</div>" +
-      "<div><span>画面の大きさ</span>" + seg("zoom", [["near", "大きく"], ["auto", "ふつう"], ["far", "広く"]]) + "</div>" +
-      "<div><span>スマホのスティック</span>" + seg("stickSide", [["left", "左"], ["right", "右"]]) + "</div>" +
-      "<div><span>振動</span>" + seg("vib", [[true, "あり"], [false, "なし"]]) + "</div>" +
-      "<div><span>FPS 表示</span>" + seg("fps", [[false, "なし"], [true, "あり"]]) + "</div>" +
-      '</div><div class="row c"><button class="btn" data-a="panel" data-v="data">' + ic("save") + "セーブデータ管理</button></div>";
+    const tabs = '<div class="tabs">' + [["play", "あそび"], ["keys", "キーボード"], ["touch", "スマホのボタン"], ["sound", "音・表示"]].map(([k, n]) => '<button class="tab' + (setTab === k ? " on" : "") + '" data-a="setTab" data-v="' + k + '">' + n + "</button>").join("") + "</div>";
+    let body = "";
+    if (setTab === "play") {
+      body = "<div><span>攻撃の向き</span>" + seg("aim", [["facing", "向いている方向（標準）"], ["auto", "近い敵を自動でねらう"], ["mouse", "マウスの方向（PC）"]]) + '<small class="sub">通常攻撃は敵がいなくても いつも出ます。標準は PC もスマホも「向いている方向」です。</small></div>' +
+        "<div><span>通常攻撃</span>" + seg("autoAtk", [[true, "自動で撃つ"], [false, "押しているあいだ"]]) + "</div>" +
+        "<div><span>敵の最大数（重いときは少なく）</span>" + seg("maxEnemies", [[30, "30"], [45, "45"], [60, "60"], [80, "80"]]) + "</div>" +
+        "<div><span>画面の大きさ</span>" + seg("zoom", [["near", "大きく"], ["auto", "ふつう"], ["far", "広く"]]) + "</div>" +
+        "<div><span>遊び方</span><div class=\"row\"><button class=\"btn sm\" data-a=\"howto\">" + ic("info") + "遊び方の映像を見る</button></div></div>";
+    } else if (setTab === "keys") {
+      const k = MA.Input.keysNow();
+      body = '<p class="hint">ボタンを押してから、割り当てたいキーを押してください（ほかの行動に使っているキーは入れかわります）。</p><div class="keys">' +
+        MA.Input.ACTIONS.map(([a, nm]) => '<div class="key-row"><b>' + esc(nm) + "</b>" + [0, 1].map((i) => {
+          const wait = keyWait && keyWait[0] === a && keyWait[1] === i;
+          return '<button class="key-b' + (wait ? " wait" : "") + (k[a][i] ? "" : " none") + '" data-a="keyCap" data-v="' + a + '" data-x="' + i + '">' + (wait ? "キーを押す…" : k[a][i] ? esc(MA.Input.codeLabel(k[a][i])) : "—") + "</button>";
+        }).join("") + "</div>").join("") + '</div><div class="row c"><button class="btn sm ghost" data-a="keyReset">' + ic("back") + "初期設定にもどす</button></div>" +
+        '<p class="hint">マウス：左クリックでも通常攻撃（押しているあいだ）。攻撃の向きを「マウスの方向」にすると、マウスの方へ撃ちます。</p>';
+    } else if (setTab === "touch") {
+      const t = st.touch || {};
+      const tm = MA.Input.touchMap();
+      const segT = (k, opts) => '<div class="seg">' + opts.map(([v, n]) => '<button class="' + (String(t[k] == null ? (k === "alpha" ? 0.9 : 1) : t[k]) === String(v) ? "on" : "") + '" data-a="setTouch" data-v="' + k + '" data-x="' + v + '">' + esc(n) + "</button>").join("") + "</div>";
+      body = "<div><span>ボタンの大きさ</span>" + segT("size", [[0.85, "小さめ"], [1, "ふつう"], [1.15, "大きめ"], [1.3, "特大"]]) + "</div>" +
+        "<div><span>ボタンの濃さ</span>" + segT("alpha", [[0.55, "うすい"], [0.75, "ややうすい"], [0.9, "ふつう"], [1, "こい"]]) + "</div>" +
+        "<div><span>スティックの位置</span>" + seg("stickSide", [["left", "左（ボタンは右）"], ["right", "右（ボタンは左）"]]) + "</div>" +
+        "<div><span>ボタンの割り当て</span><div class=\"tmap\">" +
+        '<div class="tm-prev">' + MA.Input.TOUCH_SLOTS.map((s) => '<i class="tp s-' + s + (tm[s] === "none" ? " off" : "") + '"><b>' + esc((TOUCH_ACT_NM[tm[s]] || "").replace("（出さない）", "")) + "</b></i>").join("") + "</div>" +
+        '<div class="tm-sel">' + MA.Input.TOUCH_SLOTS.map((s) => '<label><span>' + TOUCH_SLOT_NM[s] + '</span><select data-in="tmap" data-slot="' + s + '">' + MA.Input.TOUCH_ACTS.map((a) => '<option value="' + a + '"' + (tm[s] === a ? " selected" : "") + ">" + TOUCH_ACT_NM[a] + "</option>").join("") + "</select></label>").join("") + "</div></div>" +
+        '<div class="row"><button class="btn sm ghost" data-a="touchReset">' + ic("back") + "初期設定にもどす</button></div></div>" +
+        '<p class="hint">移動は、画面の左半分（ボタンのないところ）をさわるとスティックが出ます。スマホでは横画面で遊びます。</p>';
+    } else {
+      body = '<label>BGM の音量<input type="range" min="0" max="1" step="0.05" value="' + st.bgm + '" data-in="bgm"></label>' +
+        '<label>効果音の音量<input type="range" min="0" max="1" step="0.05" value="' + st.se + '" data-in="se"></label>' +
+        "<div><span>ダメージの数字</span>" + seg("dmgNum", [[true, "出す"], [false, "出さない"]]) + "</div>" +
+        "<div><span>画面のゆれ</span>" + seg("shake", [[true, "あり"], [false, "なし"]]) + "</div>" +
+        "<div><span>振動</span>" + seg("vib", [[true, "あり"], [false, "なし"]]) + "</div>" +
+        "<div><span>FPS 表示</span>" + seg("fps", [[false, "なし"], [true, "あり"]]) + "</div>";
+    }
+    const html = head("gear", "設定", "", "#c8c8d8") + tabs + '<div class="sets">' + body + '</div><div class="row c"><button class="btn" data-a="panel" data-v="data">' + ic("save") + "セーブデータ管理</button></div>";
     return { html, wide: false };
   };
   /* ── セーブデータ管理 ── */
@@ -719,15 +719,18 @@
   /* ══ 探索を始める ══ */
   function startRun(cfg) {
     const s = S();
+    /* ★★ 2026-10-05 持っていないキャラでは出発できない（ご指定）。前に始めた探索の再開だけは続けられる */
+    if (!MA.Save.owned(cfg.cid) && !cfg.resume) { UI().toast("このキャラは持っていません（XEVARION のガチャで手に入ります）", "#ff5a6a"); openPanel("chars"); return; }
     leave();
     UI().closeModal(true);
+    if (MA.Stages) MA.Stages.hide();
     UI().scr("run");
     MA.Input.enabled = true;
     MA.Input.clearAll();
     MA.Save.save();
     const trial = !MA.Save.owned(cfg.cid);
     MA.Render.init($("#gc"));
-    MA.E.start({ mode: cfg.mode, dun: cfg.dun, cid: cfg.cid, muts: cfg.muts || [], trial, resume: cfg.resume, seed: cfg.seed, floor: cfg.floor });
+    MA.E.start({ mode: cfg.mode, dun: cfg.dun, cid: cfg.cid, muts: cfg.muts || [], trial, resume: cfg.resume, seed: cfg.seed, floor: cfg.floor, diff: cfg.diff || (cfg.resume && cfg.resume.diff) || "normal" });
     MA.UI.buildHud();
     void s;
   }
@@ -740,11 +743,12 @@
     MA.Input.enabled = false;
     const s = S();
     $("#title").innerHTML = '<div class="tt-bg"></div><div class="tt-art"></div><div class="tt-shade"></div>' +
+      '<div class="tt-chars">' + ic("star", "#ffd84a") + '使えるキャラ：XEVARION の<b class="f4">Sapphire Breeze</b><b class="f1">極彩祭</b><b class="f2">極煌祭</b><b class="f3">極華祭</b></div>' +
       '<div class="tt-in">' +
       '<div class="tt-tap" id="ttTap">TAP TO START</div>' +
       '<div class="tt-menu" id="ttMenu" hidden>' +
-      '<button class="sign" data-a="ttStart">' + (s.stats.runs ? "冒険をつづける" : "冒険をはじめる") + '</button><button class="sign" data-a="panel" data-v="settings">設定</button><button class="sign" data-a="panel" data-v="data">データ管理</button><a class="sign" href="../index.html">XEVARION へ戻る</a></div></div>' +
-      '<div class="tt-ver">MagiAbyss Ver.1.0　' + (MA.Save.note ? '<b class="warn">' + esc(MA.Save.note) + "</b>" : "") + "</div>";
+      '<button class="sign main" data-a="ttStart">' + (s.stats.runs ? "冒険をつづける" : "冒険をはじめる") + '</button><button class="sign" data-a="howto">遊び方</button><button class="sign" data-a="panel" data-v="settings">設定</button><button class="sign" data-a="panel" data-v="data">データ管理</button><a class="sign" href="../index.html">XEVARION へ戻る</a></div></div>' +
+      '<div class="tt-ver">MagiAbyss Ver.1.1　' + (MA.Save.note ? '<b class="warn">' + esc(MA.Save.note) + "</b>" : "") + "</div>";
     const go = () => { MA.Audio.unlock(); MA.Audio.setVol(s.set.bgm, s.set.se); MA.Audio.bgm("title"); $("#ttTap").hidden = true; $("#ttMenu").hidden = false; $("#title").removeEventListener("pointerdown", go); };
     $("#title").addEventListener("pointerdown", go);
     window.addEventListener("keydown", function k(e) { if (document.body.dataset.scr === "title" && (e.key === "Enter" || e.key === " ")) { go(); window.removeEventListener("keydown", k); } });
@@ -752,18 +756,18 @@
 
   /* ══ ボタン（data-a）の受け口 ══ */
   const A = MA.UI.ACT;
-  A.fac = (el) => openPanel(el.dataset.v);
+  A.fac = (el) => openFac(el.dataset.v);
   A.panel = (el) => openPanel(el.dataset.v, el.dataset.x);
   A.ttStart = () => { enter(); };
   A.toTitle = () => { leave(); title(); };
-  A.selDun = (el) => { selDun = el.dataset.v; refreshTop(); };
-  A.prep = (el) => { prepMuts = []; openPanel("prep", el.dataset.v); };
+  A.prep = (el) => { prepMuts = []; prepDiff = el.dataset.x === "hard" ? "hard" : "normal"; openPanel("prep", el.dataset.v); };
+  A.howto = () => { if (MA.Howto) MA.Howto.open(0); };
   A.togMut = (el) => { const k = el.dataset.v; const i = prepMuts.indexOf(k); if (i >= 0) prepMuts.splice(i, 1); else prepMuts.push(k); refreshTop(); };
-  A.go = (el) => { startRun({ mode: "dungeon", dun: el.dataset.v, cid: S().sel, muts: prepMuts.slice() }); };
+  A.go = (el) => { startRun({ mode: "dungeon", dun: el.dataset.v, cid: S().sel, muts: prepMuts.slice(), diff: prepDiff }); };
   A.goAbyss = () => { startRun({ mode: "abyss", cid: S().sel }); };
   A.charFilter = (el) => { charFilter = el.dataset.v; refreshTop(); };
   A.charDet = (el) => openPanel("charDet", el.dataset.v);
-  A.selChar = (el) => { S().sel = el.dataset.v; MA.Save.saveSoon(); MA.Audio.sfx("key"); UI().toast(D().CHARS[el.dataset.v].nm + " を出発キャラにしました", "#ffd84a"); refreshTop(); renderTop(); };
+  A.selChar = (el) => { if (!MA.Save.owned(el.dataset.v)) { UI().toast("持っていないキャラは選べません", "#ff5a6a"); return; } S().sel = el.dataset.v; MA.Save.saveSoon(); MA.Audio.sfx("key"); UI().toast(D().CHARS[el.dataset.v].nm + " を出発キャラにしました", "#ffd84a"); refreshTop(); renderTop(); };
   A.treeOf = (el) => openPanel("tree", el.dataset.v);
   A.learn = (el) => { const id = el.dataset.c, n = D().TREE.find((x) => x.id === el.dataset.v); const sp = MA.Save.spOf(id); if (!n || sp.left < n.cost) return; MA.Save.charRec(id).tree[n.id] = 1; MA.Save.save(); MA.Audio.sfx("levelup"); refreshTop(); };
   A.treeReset = (el) => { const id = el.dataset.v; UI().ask("スキルツリーをふりなおしますか？（500G）", () => { if (!MA.Save.payCost({ gold: 500 })) { UI().toast("ゴールドが足りません", "#ff5a6a"); return; } MA.Save.charRec(id).tree = {}; MA.Save.save(); refreshTop(); }); };
@@ -788,7 +792,24 @@
   A.storySkip = () => { UI().closeModal(); checkResume(); };
   A.resumeRun = (el) => { const m = el.closest(".mdl"); const run = m._run; UI().closeModal(); startRun({ mode: run.mode, dun: run.dun, cid: run.cid, muts: run.muts, seed: run.seed, floor: run.floor, resume: run }); };
   A.resumeGiveUp = (el) => { const m = el.closest(".mdl"); const run = m._run; UI().closeModal(); const out = MA.Prog.settleAbandoned(run); UI().toast("中断した探索を受け取りました：" + fmt(out.gold) + "G" + Object.keys(out.mats).map((k) => "・" + D().MATS[k].nm + "×" + out.mats[k]).join(""), "#8affc4"); renderTop(); };
-  A.setv = (el) => { const k = el.dataset.v; let v = el.dataset.x; if (v === "true") v = true; else if (v === "false") v = false; else if (!isNaN(+v) && v !== "") v = +v; S().set[k] = v; MA.Save.saveSoon(); if (k === "zoom") { MA.Render.resize(); resizeHub(); } if (k === "stickSide") document.body.classList.toggle("stick-right", v === "right"); refreshTop(); };
+  A.setv = (el) => { const k = el.dataset.v; let v = el.dataset.x; if (v === "true") v = true; else if (v === "false") v = false; else if (!isNaN(+v) && v !== "") v = +v; S().set[k] = v; MA.Save.saveSoon(); if (k === "zoom") { MA.Render.resize(); resizeHub(); } if (k === "stickSide") MA.applyDeviceClasses(); refreshTop(); };
+  A.setTab = (el) => { setTab = el.dataset.v; keyWait = null; MA.Input.capture = null; refreshTop(); };
+  /* キーの割り当て：押したキーをその枠へ（ほかで使っていたら入れかえ） */
+  A.keyCap = (el) => {
+    const a = el.dataset.v, i = +el.dataset.x;
+    keyWait = [a, i]; refreshTop();
+    MA.Input.capture = (code) => {
+      keyWait = null;
+      const k = MA.Input.keysNow();
+      Object.keys(k).forEach((b) => { k[b] = k[b].map((c) => (c === code ? null : c)); });
+      k[a][i] = code;
+      S().set.keys = k; MA.Save.saveSoon(); MA.Input.rebuildKeys();
+      MA.Audio.sfx("key"); refreshTop();
+    };
+  };
+  A.keyReset = () => { S().set.keys = null; keyWait = null; MA.Input.capture = null; MA.Save.saveSoon(); MA.Input.rebuildKeys(); refreshTop(); UI().toast("キーの割り当てを初期設定にもどしました", "#5ab8ff"); };
+  A.setTouch = (el) => { const t = S().set.touch = S().set.touch || {}; t[el.dataset.v] = +el.dataset.x; MA.Save.saveSoon(); MA.applyDeviceClasses(); refreshTop(); };
+  A.touchReset = () => { S().set.touch = { size: 1, alpha: 0.9, pos: null, map: null }; MA.Save.saveSoon(); MA.applyDeviceClasses(); refreshTop(); };
   A.dataSave = () => { UI().toast(MA.Save.save() ? "保存しました" : "保存できませんでした", "#5ab8ff"); };
   A.dataExport = () => { const t = $("#dataTxt"); t.hidden = false; $("#dataIO").hidden = false; t.value = MA.Save.exportText(); t.select(); };
   A.dataImport = () => { const t = $("#dataTxt"); t.hidden = false; $("#dataIO").hidden = false; t.value = ""; t.placeholder = "書き出したデータをここに貼りつけて「この内容を読み込む」"; t.focus(); };
@@ -806,7 +827,8 @@
     const k = e.target.dataset && e.target.dataset.in;
     if (k === "file") { const f = e.target.files[0]; if (!f) return; const rd = new FileReader(); rd.onload = () => { $("#dataTxt").value = rd.result; UI().toast("ファイルを読みました。「この内容を読み込む」で反映します", "#5ab8ff"); }; rd.readAsText(f); }
     if (e.target.dataset && e.target.dataset.a === "storChar") { storChar = e.target.value; refreshTop(); }
+    if (k === "tmap") { const t = S().set.touch = S().set.touch || {}; const m = Object.assign({}, MA.Input.touchMap()); m[e.target.dataset.slot] = e.target.value; t.map = m; MA.Save.saveSoon(); refreshTop(); }
   });
 
-  MA.Guild = { enter, leave, title, startRun, playStory, openPanel, renderTop, FAC, checkResume, GS, npcSprite };
+  MA.Guild = { enter, leave, title, startRun, playStory, openPanel, openFac, renderTop, refreshTop, resizeHub, FAC, checkResume, GS, npcSprite };
 })();

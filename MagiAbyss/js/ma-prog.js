@@ -11,6 +11,39 @@
   const D = () => MA.D;
   const G = () => MA.G;
   const FIRST_GEMS = { d1: 10, d2: 12, d3: 15, d4: 18, d5: 22, d6: 30 };
+  /* ★★ 2026-10-05 ハードの初回クリアは 1.5倍 */
+  const FIRST_GEMS_HARD = { d1: 15, d2: 18, d3: 22, d4: 27, d5: 33, d6: 45 };
+
+  /* ══ クリア時間のミッション（data の TIME_MIS）══
+     key は "d1:normal:0"（迷宮:難易度:段）。達成は S.tmis、ジェムの受け取りは S.tmisClaim。
+     ★ ジェムは gemOnce（アカウントで1回だけ・同期しても二重にならない）。受け取れなかったときは
+       協会掲示の「タイム」から受け取れる（claimTime）。 */
+  function timeKey(dun, diff, i) { return dun + ":" + diff + ":" + i; }
+  /* ★ ミッションができる前のクリアも、ベストタイムが条件を満たしていれば達成あつかい（受け取れる） */
+  function bestOf(dun, diff) { const r = MA.Save.S.dun[dun] || {}; const x = diff === "hard" ? (r.hard || {}) : r; return x.clears > 0 ? (x.best || 0) : 0; }
+  function timeList(dun, diff) {
+    const S = MA.Save.S, T = (D().TIME_MIS[dun] || {})[diff] || [];
+    const best = bestOf(dun, diff);
+    return T.map(([min, gem], i) => {
+      const key = timeKey(dun, diff, i);
+      const done = !!(S.tmis && S.tmis[key]) || (best > 0 && best <= min * 60);
+      return { key, i, min, gem, done, claimed: !!(S.tmisClaim && S.tmisClaim[key]), at: S.tmis && S.tmis[key] };
+    });
+  }
+  function claimTime(key) {
+    const S = MA.Save.S;
+    if (S.tmisClaim && S.tmisClaim[key]) return 0;
+    const [dun, diff, i] = key.split(":");
+    const row = ((D().TIME_MIS[dun] || {})[diff] || [])[+i]; if (!row) return 0;
+    if (!(S.tmis && S.tmis[key])) { const best = bestOf(dun, diff); if (!(best > 0 && best <= row[0] * 60)) return 0; S.tmis = S.tmis || {}; S.tmis[key] = Date.now(); }
+    const d = D().DUN[dun];
+    const n = MA.Save.gemOnce("time:" + key, row[1], "MagiAbyss タイムミッション（" + (d ? d.nm : dun) + "・" + D().MODES[diff].nm + "・" + row[0] + "分以内）");
+    S.tmisClaim = S.tmisClaim || {};
+    /* gemOnce が 0 でも「もう受け取ってある」（別の端末）なら受け取りずみにする */
+    if (n > 0 || (window.XEVA && XEVA.gem && XEVA.gem.isMigrated && XEVA.gem.isMigrated("magiabyss:time:" + key))) S.tmisClaim[key] = Date.now();
+    MA.Save.saveSoon();
+    return n;
+  }
 
   function unlock(id) {
     const S = MA.Save.S;
@@ -49,12 +82,14 @@
       gold: 0, mats: {}, gear: [], xp: 0, lvBefore: 0, lvAfter: 0, firstClear: false, gems: 0, newRecord: false, floor: g.floor, story: null, res: st.res.slice(), evo: st.evo.slice(), keep, trial: !!g.cfg.trial };
     /* クリアボーナス */
     let gold = st.gold;
-    if (result === "clear") gold += Math.round(200 + (g.dun ? g.dun.no : 1) * 180 * g.rewardMul);
+    const MD = g.modeDef || D().MODES.normal;
+    sum.diff = g.diff || "normal";
+    if (result === "clear") gold += Math.round((200 + (g.dun ? g.dun.no : 1) * 180) * g.rewardMul * MD.gold);
     if (isAbyss) gold += Math.round((g.floor - 1) * 60);
     sum.gold = Math.round(gold * keep);
     MA.Save.addMat("gold", sum.gold);
-    Object.keys(st.mats).forEach((k) => { const n = Math.round(st.mats[k] * keep); if (n > 0) { sum.mats[k] = n; MA.Save.addMat(k, n); } });
-    if (result === "clear") { const k = g.dun.mats[0]; const n = Math.round((6 + g.dun.no * 2) * g.rewardMul); sum.mats[k] = (sum.mats[k] || 0) + n; MA.Save.addMat(k, n); if (g.stats.bosses) { sum.mats.crystal = (sum.mats.crystal || 0) + g.dun.no; MA.Save.addMat("crystal", g.dun.no); } }
+    Object.keys(st.mats).forEach((k) => { const n = Math.round(st.mats[k] * keep * MD.mat); if (n > 0) { sum.mats[k] = n; MA.Save.addMat(k, n); } });
+    if (result === "clear") { const k = g.dun.mats[0]; const n = Math.round((6 + g.dun.no * 2) * g.rewardMul * MD.mat); sum.mats[k] = (sum.mats[k] || 0) + n; MA.Save.addMat(k, n); if (g.stats.bosses) { const cr = g.dun.no * (sum.diff === "hard" ? 2 : 1); sum.mats.crystal = (sum.mats.crystal || 0) + cr; MA.Save.addMat("crystal", cr); } }
     if (isAbyss && g.floor > 1) { const n = Math.floor((g.floor - 1) / 2); if (n) { sum.mats.abyss = (sum.mats.abyss || 0) + n; MA.Save.addMat("abyss", n); } const cr = Math.floor((g.floor - 1) / 10); if (cr) { sum.mats.crystal = (sum.mats.crystal || 0) + cr; MA.Save.addMat("crystal", cr); } }
     /* 装備（倒れても持ち帰れる） */
     st.gear.forEach((x) => { MA.Save.newGear(x.id, x.rar); sum.gear.push(x); });
@@ -72,22 +107,36 @@
     S.stats.kills += st.kills; S.stats.runs++; S.stats.playSec += Math.round(g.t); S.stats.levels += st.levels;
     MA.Save.misAdd("kills", st.kills); MA.Save.misAdd("levels", st.levels);
     if (!isAbyss) {
-      const dr = S.dun[g.dun.id] = S.dun[g.dun.id] || { clears: 0, best: 0, runs: 0, by: [], mutBest: 0 };
+      const dr0 = S.dun[g.dun.id] = S.dun[g.dun.id] || { clears: 0, best: 0, runs: 0, by: [], mutBest: 0 };
+      /* ★★ 2026-10-05 ハードの記録は dun[id].hard に別に持つ */
+      const hard = sum.diff === "hard";
+      const dr = hard ? (dr0.hard = dr0.hard || { clears: 0, best: 0, runs: 0, by: [] }) : dr0;
       dr.runs++;
+      sum.timeMis = [];
       if (result === "clear") {
         sum.firstClear = !dr.clears;
         dr.clears++; S.stats.clears++;
         if (!dr.best || g.t < dr.best) { dr.best = Math.round(g.t); sum.newRecord = true; }
-        if (dr.by.indexOf(g.cid) < 0) dr.by.push(g.cid);
-        dr.mutBest = Math.max(dr.mutBest || 0, g.mutList.length);
+        dr.by = dr.by || []; if (dr.by.indexOf(g.cid) < 0) dr.by.push(g.cid);
+        if (!hard) dr.mutBest = Math.max(dr.mutBest || 0, g.mutList.length);
         MA.Save.misAdd("clears", 1);
         if (g.mutList.length >= 3) unlock("mut3");
         unlock("clear_" + g.dun.id);
         if (sum.firstClear) {
-          sum.gems = MA.Save.gemOnce("clear:" + g.dun.id, FIRST_GEMS[g.dun.id] || 10, "MagiAbyss 初回クリア（" + g.dun.nm + "）");
+          sum.gems = hard ? MA.Save.gemOnce("clearHard:" + g.dun.id, FIRST_GEMS_HARD[g.dun.id] || 15, "MagiAbyss ハード初回クリア（" + g.dun.nm + "）")
+                          : MA.Save.gemOnce("clear:" + g.dun.id, FIRST_GEMS[g.dun.id] || 10, "MagiAbyss 初回クリア（" + g.dun.nm + "）");
           const ch = D().STORY.find((x) => x.at === g.dun.id);
-          if (ch && !S.codex.story[ch.id]) { sum.story = ch.id; }
+          if (!hard && ch && !S.codex.story[ch.id]) { sum.story = ch.id; }
         }
+        /* クリア時間のミッション：達成した段のジェムをその場で配る */
+        S.tmis = S.tmis || {}; S.tmisClaim = S.tmisClaim || {};
+        timeList(g.dun.id, sum.diff).forEach((m) => {
+          if (g.t > m.min * 60) return;
+          if (!S.tmis[m.key]) S.tmis[m.key] = Date.now();
+          const n = m.claimed ? 0 : claimTime(m.key);
+          sum.timeMis.push({ min: m.min, gem: m.gem, got: n, already: m.claimed });
+          sum.gems += n;
+        });
       }
     } else {
       S.abyss.runs++;
@@ -115,5 +164,5 @@
     MA.Save.clearRun(); MA.Save.save();
     return out;
   }
-  MA.Prog = { unlock, checkAll, settle, settleAbandoned, rwText, FIRST_GEMS };
+  MA.Prog = { unlock, checkAll, settle, settleAbandoned, rwText, FIRST_GEMS, FIRST_GEMS_HARD, timeList, timeKey, claimTime };
 })();

@@ -9,25 +9,33 @@
   const MA = (window.MA = window.MA || {});
 
   /* ══ 属性 ══
-     有利：水→炎→風→雷→水 ／ 光⇄影（たがいに有利） */
+     ★★ 2026-10-05 XEVARION（MagiBurst）と<b>同じ5属性・同じ相性</b>にそろえた（ご指定）。
+       火 IGNIS → 木 VERDE → 水 AQUA → 火（有利 ×1.25・不利 ×0.75）／ 光 LUMEN ⇄ 闇 UMBRA（たがいに有利）。
+       前の「風・雷・影」は 風→木・雷→光・影→闇 に読みかえた。 */
   const ELEM = {
-    fire:    { nm: "炎", en: "FIRE",    c: "#ff6a3d", c2: "#ffd0a0", fx: "爆発・継続ダメージ（燃焼）" },
-    water:   { nm: "水", en: "WATER",   c: "#3fa9ff", c2: "#c4e8ff", fx: "減速・範囲制御" },
-    wind:    { nm: "風", en: "WIND",    c: "#4fe39a", c2: "#c8ffe2", fx: "連撃・移動補助" },
-    thunder: { nm: "雷", en: "THUNDER", c: "#ffd84a", c2: "#fff5c0", fx: "連鎖攻撃・瞬間火力" },
-    light:   { nm: "光", en: "LIGHT",   c: "#fff1a6", c2: "#ffffff", fx: "浄化・貫通" },
-    shadow:  { nm: "影", en: "SHADOW",  c: "#a874ff", c2: "#e2d0ff", fx: "吸収・追撃" },
+    fire:  { nm: "火", en: "IGNIS", c: "#ff5d47", c2: "#ffd0a0", fx: "燃焼（しばらく燃えつづける）" },
+    wood:  { nm: "木", en: "VERDE", c: "#2fbf71", c2: "#c8ffe2", fx: "連撃（もう一度当たる）" },
+    water: { nm: "水", en: "AQUA",  c: "#38a6ff", c2: "#c4e8ff", fx: "減速（動きが遅くなる）" },
+    light: { nm: "光", en: "LUMEN", c: "#f0b429", c2: "#fff5c0", fx: "連鎖（近くの敵へつながる）・守りを無視" },
+    dark:  { nm: "闇", en: "UMBRA", c: "#a86bff", c2: "#e2d0ff", fx: "吸収（HPを吸う）・追撃" },
   };
   const ELEM_KEYS = Object.keys(ELEM);
-  const ADV = { water: ["fire"], fire: ["wind"], wind: ["thunder"], thunder: ["water"], light: ["shadow"], shadow: ["light"] };
+  const BEATS = { fire: "wood", wood: "water", water: "fire" };
+  const ADV = { fire: ["wood"], wood: ["water"], water: ["fire"], light: ["dark"], dark: ["light"] };
+  const EL_UP = 1.25, EL_DOWN = 0.75;
+  /* 攻撃の属性 → 相手の属性 の倍率（有利 1.25／不利 0.75／同等 1） */
   function elemMul(atk, def) {
     if (!atk || !def) return 1;
-    if ((ADV[atk] || []).indexOf(def) >= 0) return 1.3;
-    if ((ADV[def] || []).indexOf(atk) >= 0 && !(atk === "light" || atk === "shadow")) return 0.8;
+    if ((ADV[atk] || []).indexOf(def) >= 0) return EL_UP;
+    if ((ADV[def] || []).indexOf(atk) >= 0 && !(atk === "light" || atk === "dark")) return EL_DOWN;
     return 1;
   }
-  /* MagiBurst の属性 → MagiAbyss の属性 */
-  const MB_EL = { fire: "fire", water: "water", wood: "wind", light: "light", dark: "shadow" };
+  /* "adv"（有利）／"dis"（不利）／"even"（同等） */
+  function elemRel(atk, def) { const m = elemMul(atk, def); return m > 1 ? "adv" : m < 1 ? "dis" : "even"; }
+  /* その属性に有利な属性（例：水の敵 → 木） */
+  function elemWeakTo(def) { return ELEM_KEYS.filter((a) => elemMul(a, def) > 1); }
+  /* MagiBurst の属性 → MagiAbyss の属性（同じ名前になった） */
+  const MB_EL = { fire: "fire", water: "water", wood: "wood", light: "light", dark: "dark" };
 
   /* ══ 戦闘タイプ ══ */
   const CTYPE = {
@@ -46,7 +54,8 @@
   };
 
   /* ══════════════════════════════════════════════════════════════
-     キャラクター（極彩祭・極煌祭・極華祭の10体）
+     キャラクター（極彩祭・極煌祭・極華祭＋Sapphire Breeze の12体）
+     ★★ 2026-10-07 Sapphire Breeze（UR）のヒバナ・フキを追加・タキナは Sapphire Breeze へ移った（ご指定「このガチャのキャラも MagiAbyss で使える」）
      ・所持と凸は XEVARION と共通。レベル・スキルツリー・装備はこのアプリだけ。
      ・base … Lv1 の値。レベル1つごとに grow 倍ずつ伸びる（専用の成長補正）。
      ・atk … 通常攻撃の型（エンジンは kind だけを見る）
@@ -57,7 +66,7 @@
      ══════════════════════════════════════════════════════════════ */
   const CHARS = {
     takina: {
-      nm: "タキナ", fes: "極彩祭", el: "water", type: "ranged", sub: "mobile", rank: "UR",
+      nm: "タキナ", fes: "Sapphire Breeze", el: "water", type: "ranged", sub: "mobile", rank: "UR",
       title: "蒼銃の結髪",
       base: { hp: 132, atk: 15, def: 5, spd: 80, aspd: 1.18, crit: 15, critDmg: 1.8, mag: 1.15, eva: 14 },
       grow: { hp: 1.045, atk: 1.05, def: 1.04 },
@@ -73,20 +82,57 @@
       evo: { weapon: "bow", el: "water", to: "evo_takina", nm: "蒼穹・キキョウ天穿" },
       good: "遠くからの連射・ボスの単体火力・回避しながらの戦闘", weak: "（目立った苦手はない）接近戦の範囲攻撃はやや控えめ",
     },
+    /* ★★ 2026-10-07 Sapphire Breeze ヒバナ（木）：「タキナと同等の最強」（ご指定）。
+       タキナ＝遠くからの単体火力／ヒバナ＝回復とバリアで倒れない・まわりをまとめて削る、と役割を分けた。 */
+    hibana: {
+      nm: "ヒバナ", fes: "Sapphire Breeze", el: "wood", type: "magic", sub: "tank", rank: "UR",
+      title: "勿忘草の結び手",
+      base: { hp: 142, atk: 14, def: 6, spd: 78, aspd: 1.12, crit: 13, critDmg: 1.75, mag: 1.25, eva: 13 },
+      grow: { hp: 1.045, atk: 1.05, def: 1.04 },
+      atk: { kind: "spark", nm: "勿忘草の火花", cd: 0.42, mul: 0.66, speed: 240, range: 200, n: 5, arc: 0.7, homing: 3, pierce: 1,
+        d: "勿忘草の火花を5つ、扇状に放つ（ゆるく追尾・1体貫通）" },
+      skill: { kind: "bloomguard", nm: "ワスレナ・ブルーム", cd: 8, mp: 18, mul: 3.0, r: 96, heal: 0.12, shield: 0.25,
+        d: "まわりに勿忘草の花を咲かせる（半径96・攻撃力×3.0）＋HPを12%回復＋最大HPの25%のバリア＋必殺技ゲージ+8" },
+      ult: { kind: "hanakagari", nm: "ワスレナ・ハナカガリ", gauge: 100, n: 104, mul: 0.92, fin: 14.5, heal: 0.3, shield: 0.4,
+        d: "いちばん強い敵へ勿忘草の火花を104連射し、最後に画面全体へ勿忘草の大輪（攻撃力×14.5・防御ダウン）＋HPを30%回復＋最大HPの40%のバリア" },
+      passive: { kind: "wasurena", nm: "勿忘草の加護", per: 0.5, max: 0.4, regen: 0.01,
+        d: "失ったHPの割合に応じて与えるダメージが増える（最大+40%）。毎秒 最大HPの1%を回復" },
+      bias: { magic: 1.5, heal: 1.4, hp: 1.3, elem: 1.2 },
+      evo: { weapon: "tome", el: "wood", to: "evo_hibana", nm: "勿忘草・ハナカガリの書" },
+      good: "回復とバリアで倒れにくい・まわりの敵をまとめて削る", weak: "（目立った苦手はない）一撃の速さはタキナより控えめ",
+    },
+    /* ★★ 2026-10-07 Sapphire Breeze フキ（闇）：会心の連射と、敵をまとめて止める「朧」。 */
+    fuki: {
+      nm: "フキ", fes: "Sapphire Breeze", el: "dark", type: "ranged", sub: "magic", rank: "UR",
+      title: "宵桜の帳",
+      base: { hp: 128, atk: 16, def: 4, spd: 82, aspd: 1.2, crit: 16, critDmg: 1.85, mag: 1.2, eva: 15 },
+      grow: { hp: 1.045, atk: 1.05, def: 1.04 },
+      atk: { kind: "petalfan", nm: "宵闇の花びら", cd: 0.32, mul: 1.0, speed: 300, range: 220, pierce: 2, n: 3, every: 5, burst: 7,
+        d: "宵闇の花びらを3枚、扇状に放つ（2体まで貫通）。5回ごとに7枚の花吹雪" },
+      skill: { kind: "oboro", nm: "朧の帳", cd: 9, mp: 20, mul: 3.4, r: 92, stun: 1.6,
+        d: "敵がいちばん集まっている所に朧の帳をおろす（半径92・攻撃力×3.4）＋1.6秒しびれさせる（動きを止める）" },
+      ult: { kind: "oborozakura", nm: "ヨイヤミ・オボロザクラ", gauge: 100, n: 110, mul: 0.98, fin: 15.5, stun: 2.5,
+        d: "いちばん強い敵へ宵闇の花びらを110連射し、最後に画面全体へ朧桜の帳（攻撃力×15.5・防御ダウン）＋2.5秒しびれさせる" },
+      passive: { kind: "yoiyami", nm: "宵闇の残影", t: 2,
+        d: "会心の一撃を当てた敵は2秒 防御ダウン。会心のたびに必殺技ゲージ+1" },
+      bias: { crit: 1.6, aspd: 1.4, elem: 1.3, weapon: 1.2 },
+      evo: { weapon: "dagger", el: "dark", to: "evo_fuki", nm: "宵桜・オボロの短刀" },
+      good: "会心の連射・敵をまとめて止める・ボスの単体火力", weak: "（目立った苦手はない）守りはやや控えめ",
+    },
     hinano: {
-      nm: "ヒナノ", fes: "極彩祭", el: "wind", type: "mobile", sub: "magic", rank: "SSR",
+      nm: "ヒナノ", fes: "極彩祭", el: "wood", type: "mobile", sub: "magic", rank: "SSR",
       title: "翠光のプリズム",
       base: { hp: 104, atk: 12, def: 3, spd: 88, aspd: 1.1, crit: 10, critDmg: 1.6, mag: 1.2, eva: 18 },
       grow: { hp: 1.035, atk: 1.045, def: 1.03 },
       atk: { kind: "fan", nm: "プリズム・ブレード", cd: 0.55, mul: 0.82, speed: 260, range: 150, n: 3, arc: 0.5, pierce: 1,
         d: "翠の刃を3方向へ扇状に放つ（1体貫通）" },
       skill: { kind: "paint", nm: "プリズム・ブルーム", cd: 10, mp: 20, mul: 2.4, r: 104, t: 6, vul: 0.25,
-        d: "まわりの敵の属性を塗りかえて風が有利な属性にし、6秒間うけるダメージ+25%" },
+        d: "まわりの敵の属性を塗りかえて木が有利な水属性にし、6秒間うけるダメージ+25%" },
       ult: { kind: "tempest", nm: "プリズム・テンペスト", gauge: 100, n: 36, mul: 1.6,
         d: "翠の刃が渦を巻いて36本ひろがり、画面の敵をすべて塗りかえる" },
       passive: { kind: "galestep", nm: "翠風", stack: 0.04, max: 5, t: 4, d: "敵を倒すたび移動速度+4%（最大5つ・4秒）" },
       bias: { spd: 1.8, elem: 1.4, magic: 1.3 },
-      evo: { weapon: "tome", el: "wind", to: "evo_hinano", nm: "プリズム・テンペスト・グリモア" },
+      evo: { weapon: "tome", el: "wood", to: "evo_hinano", nm: "プリズム・テンペスト・グリモア" },
       good: "走りまわりながらの攻撃・敵の属性を有利に変える", weak: "耐久力・一撃の重さ",
     },
     hanon: {
@@ -138,7 +184,7 @@
       good: "敵の大群への近接戦闘", weak: "遠距離攻撃への対応",
     },
     reina: {
-      nm: "レイナ", fes: "極煌祭", el: "shadow", type: "magic", sub: "summon", rank: "SSR",
+      nm: "レイナ", fes: "極煌祭", el: "dark", type: "magic", sub: "summon", rank: "SSR",
       title: "宵闇のヴァルキュリア",
       base: { hp: 100, atk: 13, def: 3, spd: 74, aspd: 1.0, crit: 12, critDmg: 1.75, mag: 1.3, eva: 11 },
       grow: { hp: 1.033, atk: 1.048, def: 1.03 },
@@ -148,7 +194,7 @@
       ult: { kind: "cross", nm: "ノワール・ヴァルキュリア", gauge: 100, mul: 13, d: "画面いっぱいの大十字斬（攻撃力×13）＋分身2体" },
       passive: { kind: "chainkill", nm: "連鎖の影", t: 2, d: "敵を倒すと2秒間、攻撃が近くの敵へもう1回つながる" },
       bias: { magic: 1.5, crit: 1.3, special: 1.3 },
-      evo: { weapon: "scythe", el: "shadow", to: "evo_reina", nm: "ノワール・ヴァルキュリア・サイズ" },
+      evo: { weapon: "scythe", el: "dark", to: "evo_reina", nm: "ノワール・ヴァルキュリア・サイズ" },
       good: "敵の集団への連続攻撃", weak: "防御力とHP",
     },
     azusa: {
@@ -217,7 +263,96 @@
       good: "長時間の探索と安定した戦闘", weak: "移動速度と攻撃速度",
     },
   };
-  const CHAR_ORDER = ["takina", "hinano", "hanon", "kokoha", "mutsumi", "reina", "azusa", "kumireina", "kagura", "kotori"];
+  const CHAR_ORDER = ["takina", "hibana", "fuki", "hinano", "hanon", "kokoha", "mutsumi", "reina", "azusa", "kumireina", "kagura", "kotori"];
+  /* 組み合わせを CHARS に流しこむ（下の CHAR_KIT が本体） */
+  function applyKits() {
+    Object.keys(CHAR_KIT).forEach((id) => {
+      const C = CHARS[id], K = CHAR_KIT[id]; if (!C) return;
+      C.rank = K.rank;
+      C.art = { k: K.art[0], g: K.art[1] };
+      C.trait = { k: K.trait[0], g: K.trait[1] };
+    });
+  }
+
+  /* ══════════════════════════════════════════════════════════════
+     ★★ 2026-10-05 キャラの「技の組み合わせ」（ご指定：キャラごとに組み合わせが異なり、
+        今後も強さの優劣を付けやすいように）
+     ------------------------------------------------------------
+     1人の技は 6つ：通常攻撃・スキル（Q）・必殺技（R）・パッシブ … キャラ固有
+                    技（E）・特性 … 下の共通リストから1つずつ＋★（グレード 1〜5）
+     ★ 強さを調整するときは CHAR_KIT の ★ を上げ下げするか、別の技に差しかえるだけでよい
+       （★ごとの倍率は GRADE_MUL。技の数字そのものは ARTS / TRAITS に1か所だけ）。
+     ★ レアリティ（UR / SSR）は RANK で全能力に倍率。
+     ══════════════════════════════════════════════════════════════ */
+  const GRADE_MUL = [0, 0.7, 0.85, 1.0, 1.15, 1.3];
+  const RANK = {
+    UR:  { nm: "UR",  mul: 1.15, c: "#ff6aa8", d: "全能力 ×1.15（SSR の一段上）" },
+    SSR: { nm: "SSR", mul: 1.0,  c: "#ffcc3a", d: "" },
+  };
+  /* 技（E）。mp と cd は★で変わらない。威力・効き目（mul / shield / heal / aspd …）が★で伸びる */
+  const ARTS = {
+    starnova:  { nm: "星脈解放", ic: "burst", mp: 35, cd: 5, kind: "nova", mul: 3.2, r: 110,
+      d: (k) => "まわりへ大きな衝撃（半径110・攻撃力×" + f1(3.2 * k) + "・ふっとばし）" },
+    meteor:    { nm: "流星群", ic: "meteor", mp: 35, cd: 7, kind: "meteor", mul: 2.2, n: 8, r: 26,
+      d: (k) => "近くの敵へ流星を8つ落とす（1つ 攻撃力×" + f1(2.2 * k) + "）" },
+    flashcut:  { nm: "閃光の踏みこみ", ic: "flash", mp: 30, cd: 5, kind: "dashcut", mul: 3.6, dist: 110,
+      d: (k) => "前へ一気に踏みこみ、通った敵を斬る（攻撃力×" + f1(3.6 * k) + "・その間は無敵）" },
+    aegis:     { nm: "守護の結界", ic: "guard", mp: 35, cd: 10, kind: "aegis", shield: 0.35, mul: 1.8, r: 80,
+      d: (k) => "最大HPの" + Math.round(35 * k) + "%のバリア＋まわりをふっとばす（攻撃力×" + f1(1.8 * k) + "）" },
+    healing:   { nm: "癒しの光", ic: "regen", mp: 40, cd: 12, kind: "heal", heal: 0.25, regen: 0.02, t: 5,
+      d: (k) => "HPを" + Math.round(25 * k) + "%回復し、5秒間 毎秒" + f1(2 * k) + "%回復" },
+    whirl:     { nm: "旋風", ic: "gale", mp: 30, cd: 6, kind: "whirl", mul: 0.7, r: 70, t: 2,
+      d: (k) => "2秒間まわりに竜巻（半径70・0.25秒ごとに攻撃力×" + f1(0.7 * k) + "）" },
+    haste:     { nm: "時の加速", ic: "haste", mp: 30, cd: 12, kind: "haste", aspd: 0.5, spd: 0.2, t: 6,
+      d: (k) => "6秒間 攻撃速度+" + Math.round(50 * k) + "%・移動速度+" + Math.round(20 * k) + "%" },
+    frostlock: { nm: "氷結の陣", ic: "frost", mp: 35, cd: 9, kind: "freeze", mul: 2.0, r: 120, t: 1.5,
+      d: (k) => "まわりの敵を1.5秒こおらせる（半径120・攻撃力×" + f1(2.0 * k) + "）" },
+    blast:     { nm: "爆炎", ic: "fireball", mp: 35, cd: 7, kind: "blast", mul: 4.2, r: 64,
+      d: (k) => "敵の多い所で大爆発（半径64・攻撃力×" + f1(4.2 * k) + "・燃焼）" },
+    gate:      { nm: "闇の門", ic: "abyss", mp: 35, cd: 9, kind: "gate", mul: 0.8, r: 90, t: 3,
+      d: (k) => "敵を吸いこむ闇の渦（3秒・半径90・0.3秒ごとに攻撃力×" + f1(0.8 * k) + "）" },
+    stance:    { nm: "紅蓮の構え", ic: "power", mp: 25, cd: 8, kind: "stance", n: 4, mul: 2.2,
+      d: (k) => "次の通常攻撃4回が 威力×" + f1(2.2 * k) + "・ふっとばし" },
+  };
+  /* 特性（いつも効く2つ目のパッシブ） */
+  const TRAITS = {
+    insight:   { nm: "見切り", ic: "crit", kind: "insight", eva: 10, crits: 3,
+      d: (k) => "回避率 +" + Math.round(10 * k) + "%。よけたあとの3発は必ず会心" },
+    galefoot:  { nm: "疾風の足", ic: "swift", kind: "galefoot", spd: 0.12, dash: 1,
+      d: (k) => "移動速度 +" + Math.round(12 * k) + "%・ダッシュの回数 +1" },
+    clutch:    { nm: "勝負強さ", ic: "power", kind: "clutch", crit: 15, critDmg: 0.3,
+      d: (k) => "HPが50%以下のとき 会心率 +" + Math.round(15 * k) + "%・会心ダメージ +" + Math.round(30 * k) + "%" },
+    kindle:    { nm: "延焼の才", ic: "fireball", kind: "kindle", burn: 0.4, vsBurn: 0.1,
+      d: (k) => "燃焼のダメージ +" + Math.round(40 * k) + "%・燃えている敵へのダメージ +" + Math.round(10 * k) + "%" },
+    fervor:    { nm: "闘志", ic: "power", kind: "fervor", per: 0.02, max: 0.2, r: 80,
+      d: (k) => "まわりの敵1体ごとに攻撃力 +" + f1(2 * k) + "%（最大+" + Math.round(20 * k) + "%）" },
+    dusk:      { nm: "宵闇", ic: "shadowbind", kind: "dusk", dmg: 0.15, drain: 0.02,
+      d: (k) => "闇属性のダメージ +" + Math.round(15 * k) + "%・与えたダメージの" + f1(2 * k) + "%を吸収" },
+    dance:     { nm: "舞踏", ic: "dashup", kind: "dance", eva: 8, aspd: 0.25, t: 2,
+      d: (k) => "回避率 +" + Math.round(8 * k) + "%・よけたあと2秒 攻撃速度 +" + Math.round(25 * k) + "%" },
+    concert:   { nm: "協奏", ic: "music", kind: "concert", summon: 0.4,
+      d: (k) => "分身・幻影・音符・精霊の威力 +" + Math.round(40 * k) + "%" },
+    ironwall:  { nm: "鉄壁", ic: "guard", kind: "ironwall", def: 4, hp: 0.1,
+      d: (k) => "防御 +" + f1(4 * k) + "・最大HP +" + Math.round(10 * k) + "%" },
+    undaunted: { nm: "不屈", ic: "vital", kind: "undaunted", k: 0.3, under: 0.3,
+      d: (k) => "HPが30%以下のとき 受けるダメージ -" + Math.round(30 * k) + "%" },
+  };
+  function f1(v) { return (Math.round(v * 10) / 10).toString(); }
+  /* キャラごとの組み合わせ（技E と 特性）＋レアリティ。★を変えるだけで強さを調整できる */
+  const CHAR_KIT = {
+    takina:    { rank: "UR",  art: ["flashcut", 5],  trait: ["insight", 5] },
+    hibana:    { rank: "UR",  art: ["aegis", 5],     trait: ["undaunted", 5] },
+    fuki:      { rank: "UR",  art: ["gate", 5],      trait: ["dusk", 5] },
+    hinano:    { rank: "SSR", art: ["whirl", 4],     trait: ["galefoot", 3] },
+    hanon:     { rank: "SSR", art: ["meteor", 4],    trait: ["clutch", 3] },
+    kokoha:    { rank: "SSR", art: ["blast", 4],     trait: ["kindle", 4] },
+    mutsumi:   { rank: "SSR", art: ["haste", 3],     trait: ["fervor", 4] },
+    reina:     { rank: "SSR", art: ["gate", 4],      trait: ["dusk", 4] },
+    azusa:     { rank: "SSR", art: ["frostlock", 4], trait: ["dance", 3] },
+    kumireina: { rank: "SSR", art: ["healing", 4],   trait: ["concert", 4] },
+    kagura:    { rank: "SSR", art: ["stance", 4],    trait: ["undaunted", 3] },
+    kotori:    { rank: "SSR", art: ["aegis", 5],     trait: ["ironwall", 4] },
+  };
 
   /* ══════════════════════════════════════════════════════════════
      探索中に手に入る武器（6種）＋進化
@@ -269,6 +404,8 @@
     evo_staff:  { nm: "星脈の神杖", base: "staff", need: "wisdom", mul: 2.2, kind: "w_staff", d: "魔弾が当たると爆ぜて、近くの敵へ連鎖する" },
     /* キャラ専用の進化（CHARS[].evo の条件：その武器が Lv7 ＋ その属性） */
     evo_takina:    { nm: "蒼穹・キキョウ天穿", base: "bow", char: "takina", mul: 3.2, kind: "w_bow", d: "蒼い矢が桔梗の形に5本ひろがり、刺さった敵の防御を下げる（タキナ専用）" },
+    evo_hibana:    { nm: "勿忘草・ハナカガリの書", base: "tome", char: "hibana", mul: 2.3, kind: "w_tome", d: "回る弾が当たるたびにHPが少し回復する（ヒバナ専用）" },
+    evo_fuki:      { nm: "宵桜・オボロの短刀", base: "dagger", char: "fuki", mul: 1.55, kind: "w_dagger", d: "突きが宵闇の花びらになって舞い、当たった敵の防御を下げる（フキ専用）" },
     evo_hinano:    { nm: "プリズム・テンペスト・グリモア", base: "tome", char: "hinano", mul: 2.2, kind: "w_tome", d: "回る弾が当たった敵の属性を塗りかえる（ヒナノ専用）" },
     evo_hanon:     { nm: "オーロラ・アリウープ", base: "staff", char: "hanon", mul: 2.8, kind: "w_staff", d: "魔弾が光のゴールになって跳ねまわる（ハノン専用）" },
     evo_kokoha:    { nm: "椿雨・紅蓮傘", base: "tome", char: "kokoha", mul: 2.2, kind: "w_tome", d: "回る弾のあとに紅い雨が降る（ココハ専用）" },
@@ -286,13 +423,13 @@
       lv: [{ mul: 2.0, cd: 2.4, r: 26, n: 1 }, { mul: 2.3, cd: 2.3, r: 28, n: 1 }, { mul: 2.3, cd: 2.2, r: 30, n: 2 }, { mul: 2.7, cd: 2.1, r: 32, n: 2 }, { mul: 3.1, cd: 2.0, r: 36, n: 3 }] },
     frost: { nm: "氷結陣", el: "water", kind: "m_frost", d: "足もとに冷気の陣。敵を遅くして削る",
       lv: [{ mul: 0.35, cd: 6, r: 50, t: 3 }, { mul: 0.4, cd: 5.8, r: 56, t: 3.4 }, { mul: 0.45, cd: 5.6, r: 62, t: 3.8 }, { mul: 0.5, cd: 5.4, r: 68, t: 4.2 }, { mul: 0.6, cd: 5.0, r: 76, t: 4.8 }] },
-    gale: { nm: "疾風刃", el: "wind", kind: "m_gale", d: "四方へ風の刃。1体に何度も当たる",
+    gale: { nm: "翠風刃", el: "wood", kind: "m_gale", d: "四方へ翠の風の刃。1体に何度も当たる",
       lv: [{ mul: 0.7, cd: 2.2, n: 4 }, { mul: 0.8, cd: 2.1, n: 5 }, { mul: 0.8, cd: 2.0, n: 6 }, { mul: 0.95, cd: 1.9, n: 7 }, { mul: 1.1, cd: 1.8, n: 8 }] },
-    thunder: { nm: "落雷", el: "thunder", kind: "m_thunder", d: "敵に雷が落ち、近くへ連鎖する",
+    thunder: { nm: "光雷", el: "light", kind: "m_thunder", d: "敵に光の雷が落ち、近くへ連鎖する",
       lv: [{ mul: 2.2, cd: 2.0, n: 1, chain: 2 }, { mul: 2.5, cd: 1.9, n: 1, chain: 3 }, { mul: 2.5, cd: 1.8, n: 2, chain: 3 }, { mul: 2.9, cd: 1.7, n: 2, chain: 4 }, { mul: 3.3, cd: 1.6, n: 3, chain: 4 }] },
     holy: { nm: "聖光柱", el: "light", kind: "m_holy", d: "敵の多い場所に光の柱。貫通して浄化する",
       lv: [{ mul: 2.6, cd: 3.4, r: 22, n: 1 }, { mul: 3.0, cd: 3.2, r: 24, n: 1 }, { mul: 3.0, cd: 3.0, r: 26, n: 2 }, { mul: 3.5, cd: 2.8, r: 28, n: 2 }, { mul: 4.0, cd: 2.6, r: 32, n: 3 }] },
-    shadowbind: { nm: "影縫い", el: "shadow", kind: "m_shadow", d: "敵の足もとから影の棘。少しHPを吸う",
+    shadowbind: { nm: "闇縫い", el: "dark", kind: "m_shadow", d: "敵の足もとから闇の棘。少しHPを吸う",
       lv: [{ mul: 1.5, cd: 2.8, n: 3 }, { mul: 1.7, cd: 2.7, n: 4 }, { mul: 1.7, cd: 2.6, n: 5 }, { mul: 2.0, cd: 2.5, n: 6 }, { mul: 2.3, cd: 2.4, n: 8 }] },
   };
   const MAGIC_KEYS = Object.keys(MAGICS);
@@ -343,23 +480,23 @@
      ★ 新しい組み合わせは、ここに1つ足すだけで増える。
      ══════════════════════════════════════════════════════════════ */
   const RESONANCES = [
-    { id: "rekkuu", nm: "烈風火輪", c: "#ff8a3d", req: [["weapon:tome:fire"], ["equip:charm:windcharm", "seal:wind"]],
+    { id: "rekkuu", nm: "烈風火輪", c: "#ff8a3d", req: [["weapon:tome:fire"], ["equip:charm:windcharm", "seal:wood"]],
       d: "炎の輪が風に乗って回り続け、ふれた敵を燃やす", fx: [{ t: "orbit", n: 3, r: 58, mul: 1.1, el: "fire", spin: 3.2 }, { t: "stat", spd: 0.08 }] },
-    { id: "seirai", nm: "星雷連鎖", c: "#ffe44a", req: [["weapon:staff:thunder"], ["equip:ring:starring", "seal:thunder"]],
-      d: "魔弾が当たるたび、星の雷がさらに3体へつながる", fx: [{ t: "chain", chance: 0.5, n: 3, mul: 0.9, el: "thunder" }, { t: "rain", cd: 2.2, n: 2, mul: 2.4, el: "thunder" }] },
-    { id: "shinei", nm: "深影乱舞", c: "#a874ff", req: [["weapon:dagger:shadow"], ["equip:charm:soulcharm", "magic:shadowbind"]],
-      d: "ダッシュの軌跡に影の刃が残り、与えたダメージでHPを吸う", fx: [{ t: "trail", mul: 1.4, el: "shadow" }, { t: "stat", drain: 0.04, aspd: 0.12 }] },
+    { id: "seirai", nm: "星雷連鎖", c: "#ffe44a", req: [["weapon:staff:light"], ["equip:ring:starring", "seal:light"]],
+      d: "魔弾が当たるたび、星の雷がさらに3体へつながる", fx: [{ t: "chain", chance: 0.5, n: 3, mul: 0.9, el: "light" }, { t: "rain", cd: 2.2, n: 2, mul: 2.4, el: "light" }] },
+    { id: "shinei", nm: "深影乱舞", c: "#a874ff", req: [["weapon:dagger:dark"], ["equip:charm:soulcharm", "magic:shadowbind"]],
+      d: "ダッシュの軌跡に影の刃が残り、与えたダメージでHPを吸う", fx: [{ t: "trail", mul: 1.4, el: "dark" }, { t: "stat", drain: 0.04, aspd: 0.12 }] },
     { id: "souhyou", nm: "蒼氷円環", c: "#6fd0ff", req: [["weapon:tome:water", "weapon:scythe:water"], ["magic:frost", "seal:water"]],
       d: "まわりに凍える環。中の敵は遅くなり、凍りつく", fx: [{ t: "aura", r: 64, mul: 0.35, el: "water", slow: 0.45 }] },
     { id: "seikou", nm: "聖光の矢雨", c: "#fff4b0", req: [["weapon:bow:light", "weapon:bow"], ["magic:holy"]],
       d: "光の矢が空から降りそそぐ", fx: [{ t: "rain", cd: 1.4, n: 4, mul: 1.6, el: "light" }] },
     { id: "guren", nm: "紅蓮剣舞", c: "#ff5a3c", req: [["weapon:sword:fire", "weapon:sword"], ["magic:fireball", "seal:fire"]],
       d: "斬撃のあとに炎の波が走る", fx: [{ t: "nova", cd: 2.6, r: 70, mul: 1.8, el: "fire" }, { t: "stat", atk: 0.08 }] },
-    { id: "jinrai", nm: "迅雷双刃", c: "#ffd84a", req: [["weapon:dagger:thunder", "weapon:dagger"], ["seal:thunder", "equip:boots:galeboots"]],
-      d: "突きが雷をまとい、攻撃速度が上がる", fx: [{ t: "chain", chance: 0.3, n: 2, mul: 0.8, el: "thunder" }, { t: "stat", aspd: 0.18 }] },
-    { id: "meisen", nm: "冥鎌の渦", c: "#8c6bff", req: [["weapon:scythe:shadow", "weapon:scythe"], ["stat:vital", "seal:shadow"]],
-      d: "鎌の回転が渦を残し、敵を吸い寄せて削る", fx: [{ t: "nova", cd: 3.0, r: 90, mul: 1.5, el: "shadow", pull: 1 }] },
-    { id: "shippuu", nm: "疾風の矢", c: "#4fe39a", req: [["weapon:bow:wind", "weapon:bow"], ["equip:boots:galeboots", "seal:wind"]],
+    { id: "jinrai", nm: "迅雷双刃", c: "#ffd84a", req: [["weapon:dagger:light", "weapon:dagger"], ["seal:light", "equip:boots:galeboots"]],
+      d: "突きが雷をまとい、攻撃速度が上がる", fx: [{ t: "chain", chance: 0.3, n: 2, mul: 0.8, el: "light" }, { t: "stat", aspd: 0.18 }] },
+    { id: "meisen", nm: "冥鎌の渦", c: "#8c6bff", req: [["weapon:scythe:dark", "weapon:scythe"], ["stat:vital", "seal:dark"]],
+      d: "鎌の回転が渦を残し、敵を吸い寄せて削る", fx: [{ t: "nova", cd: 3.0, r: 90, mul: 1.5, el: "dark", pull: 1 }] },
+    { id: "shippuu", nm: "疾風の矢", c: "#4fe39a", req: [["weapon:bow:wood", "weapon:bow"], ["equip:boots:galeboots", "seal:wood"]],
       d: "走るほど矢が増える（移動中、矢+2）", fx: [{ t: "stat", spd: 0.12, multishot: 2 }] },
     { id: "soutenjou", nm: "霜天の杖", c: "#9ae0ff", req: [["weapon:staff:water", "weapon:staff"], ["magic:frost"]],
       d: "魔弾が冷気で敵を凍らせ、凍った敵は砕けて大きく入る", fx: [{ t: "chain", chance: 0.35, n: 1, mul: 1.6, el: "water", slow: 0.6 }] },
@@ -367,20 +504,20 @@
       d: "回る光の輪がふれた敵を浄化し、自分のHPを少しずつ戻す", fx: [{ t: "orbit", n: 2, r: 46, mul: 1.0, el: "light", spin: -2.4 }, { t: "stat", regen: 1.0 }] },
     { id: "yougan", nm: "熔岩の大鎌", c: "#ff7a2a", req: [["weapon:scythe:fire"], ["seal:fire", "magic:fireball"]],
       d: "回転のあとに溶岩が残り、踏んだ敵を焼く", fx: [{ t: "trail", mul: 1.2, el: "fire", always: 1 }, { t: "stat", atk: 0.1 }] },
-    { id: "raimei", nm: "雷鳴剣", c: "#ffe066", req: [["weapon:sword:thunder"], ["magic:thunder", "seal:thunder"]],
-      d: "斬るたびに雷が落ちる", fx: [{ t: "rain", cd: 1.0, n: 1, mul: 2.6, el: "thunder" }] },
-    { id: "kagenui", nm: "影縫いの星弓", c: "#b48cff", req: [["weapon:bow:shadow", "weapon:bow"], ["magic:shadowbind"]],
-      d: "矢が当たった敵を影で縫いとめ（止める）、少しHPを吸う", fx: [{ t: "chain", chance: 0.25, n: 1, mul: 1.2, el: "shadow", stun: 0.8 }, { t: "stat", drain: 0.02 }] },
+    { id: "raimei", nm: "雷鳴剣", c: "#ffe066", req: [["weapon:sword:light"], ["magic:light", "seal:light"]],
+      d: "斬るたびに雷が落ちる", fx: [{ t: "rain", cd: 1.0, n: 1, mul: 2.6, el: "light" }] },
+    { id: "kagenui", nm: "影縫いの星弓", c: "#b48cff", req: [["weapon:bow:dark", "weapon:bow"], ["magic:shadowbind"]],
+      d: "矢が当たった敵を影で縫いとめ（止める）、少しHPを吸う", fx: [{ t: "chain", chance: 0.25, n: 1, mul: 1.2, el: "dark", stun: 0.8 }, { t: "stat", drain: 0.02 }] },
     { id: "sanmi", nm: "三位一体", c: "#ffffff", req: [["count:weapon:3"]],
       d: "武器を3種類そろえると、攻撃力と攻撃速度が上がる", fx: [{ t: "stat", atk: 0.12, aspd: 0.08 }] },
-    { id: "rokuzoku", nm: "六属の星脈", c: "#ff9ad8", req: [["count:el:6"]],
-      d: "6つの属性がそろうと、すべての属性効果が強くなり、星が降る", fx: [{ t: "stat", elem: 0.5, atk: 0.15 }, { t: "rain", cd: 1.8, n: 3, mul: 2.0, el: "light" }] },
+    { id: "rokuzoku", nm: "五属の星脈", c: "#ff9ad8", req: [["count:el:5"]],
+      d: "5つの属性（火・木・水・光・闇）がそろうと、すべての属性効果が強くなり、星が降る", fx: [{ t: "stat", elem: 0.5, atk: 0.15 }, { t: "rain", cd: 1.8, n: 3, mul: 2.0, el: "light" }] },
     { id: "hoshigari", nm: "星喰らいの魔導", c: "#7fd0ff", req: [["count:magic:3"]],
       d: "魔法を3つ覚えると、魔法の再使用が速くなる", fx: [{ t: "stat", cdr: 0.15, mag: 0.15 }] },
     /* キャラの共鳴 */
     { id: "aojuu", nm: "蒼銃の極意", c: "#5ab8ff", req: [["char:takina"], ["weapon:bow", "weapon:staff", "seal:water"]],
       d: "タキナの弾が1体多く貫通し、拡散が5方向になる", fx: [{ t: "stat", pierce: 1, spread: 2, crit: 5 }] },
-    { id: "prism", nm: "プリズムの風", c: "#4fe39a", req: [["char:hinano"], ["seal:wind", "magic:gale"]],
+    { id: "prism", nm: "プリズムの風", c: "#4fe39a", req: [["char:hinano"], ["seal:wood", "magic:gale"]],
       d: "ヒナノの刃が5方向になる", fx: [{ t: "stat", fan: 2, spd: 0.06 }] },
     { id: "goldenhoop", nm: "ゴールデン・フープ", c: "#ffe08a", req: [["char:hanon"], ["seal:light", "magic:holy"]],
       d: "ハノンのボールの跳ねる回数+2", fx: [{ t: "stat", bounces: 2 }] },
@@ -388,7 +525,7 @@
       d: "ココハの花びらが7枚になり、燃焼が強くなる", fx: [{ t: "stat", petals: 2, elem: 0.3 }] },
     { id: "kagerou", nm: "陽炎の剣舞", c: "#ff7a5a", req: [["char:mutsumi"], ["weapon:sword", "seal:fire"]],
       d: "ムツミの熱の上限+5", fx: [{ t: "stat", heat: 5, atk: 0.06 }] },
-    { id: "kuroyuri", nm: "宵闇の連鎖", c: "#a874ff", req: [["char:reina"], ["seal:shadow", "magic:shadowbind"]],
+    { id: "kuroyuri", nm: "宵闇の連鎖", c: "#a874ff", req: [["char:reina"], ["seal:dark", "magic:shadowbind"]],
       d: "レイナの魔弾のつながる回数+2", fx: [{ t: "stat", chain: 2 }] },
     { id: "bararondo", nm: "薔薇の輪舞", c: "#5a8cff", req: [["char:azusa"], ["weapon:dagger", "seal:water"]],
       d: "アズサのダッシュのあと、まわりに青薔薇が咲く", fx: [{ t: "trail", mul: 1.3, el: "water" }, { t: "stat", aspd: 0.08 }] },
@@ -407,11 +544,11 @@
      ══════════════════════════════════════════════════════════════ */
   const ENEMIES = {
     /* 第一迷宮 翠緑の古代樹 */
-    slime:      { nm: "スライム", art: "slime", ai: "chase", hp: 14, atk: 5, spd: 34, r: 7, el: "wind", exp: 1, col: "#5fd86a" },
-    treant:     { nm: "樹木の魔物", art: "treant", ai: "guard", hp: 70, atk: 9, spd: 18, r: 10, el: "wind", exp: 4, col: "#6a8a3a", guard: 0.5, root: 1 },
-    goblin:     { nm: "森の小鬼", art: "goblin", ai: "charge", hp: 24, atk: 8, spd: 44, r: 7, el: "wind", exp: 2, col: "#8ac24a" },
-    goblinArcher:{ nm: "小鬼の弓兵", art: "goblinArcher", ai: "ranged", hp: 18, atk: 7, spd: 36, r: 7, el: "wind", exp: 2, col: "#a0c060", shot: { speed: 130, cd: 2.6, n: 1 } },
-    mossKing:   { nm: "苔むす巨人", art: "mossGiant", ai: "elite", hp: 420, atk: 14, spd: 24, r: 14, el: "wind", exp: 30, col: "#4f7a30", elite: 1 },
+    slime:      { nm: "スライム", art: "slime", ai: "chase", hp: 14, atk: 5, spd: 34, r: 7, el: "wood", exp: 1, col: "#5fd86a" },
+    treant:     { nm: "樹木の魔物", art: "treant", ai: "guard", hp: 70, atk: 9, spd: 18, r: 10, el: "wood", exp: 4, col: "#6a8a3a", guard: 0.5, root: 1 },
+    goblin:     { nm: "森の小鬼", art: "goblin", ai: "charge", hp: 24, atk: 8, spd: 44, r: 7, el: "wood", exp: 2, col: "#8ac24a" },
+    goblinArcher:{ nm: "小鬼の弓兵", art: "goblinArcher", ai: "ranged", hp: 18, atk: 7, spd: 36, r: 7, el: "wood", exp: 2, col: "#a0c060", shot: { speed: 130, cd: 2.6, n: 1 } },
+    mossKing:   { nm: "苔むす巨人", art: "mossGiant", ai: "elite", hp: 420, atk: 14, spd: 24, r: 14, el: "wood", exp: 30, col: "#4f7a30", elite: 1 },
     /* 第二迷宮 蒼晶の氷窟 */
     iceWolf:    { nm: "氷狼", art: "wolf", ai: "charge", hp: 30, atk: 10, spd: 58, r: 8, el: "water", exp: 2, col: "#cfe6ff", pack: 3 },
     golem:      { nm: "結晶ゴーレム", art: "golem", ai: "guard", hp: 110, atk: 14, spd: 16, r: 12, el: "water", exp: 5, col: "#7fc8ff", guard: 0.55, slam: 1 },
@@ -425,27 +562,27 @@
     ember:      { nm: "火の粉", art: "ember", ai: "swarm", hp: 8, atk: 6, spd: 70, r: 5, el: "fire", exp: 0.5, col: "#ffd86a" },
     flameKnight:{ nm: "炎獄騎兵", art: "knight", ai: "elite", hp: 680, atk: 22, spd: 40, r: 13, el: "fire", exp: 36, col: "#ff4a2a", elite: 1 },
     /* 第四迷宮 忘却の魔導書庫 */
-    puppet:     { nm: "魔導人形", art: "puppet", ai: "chase", hp: 52, atk: 13, spd: 40, r: 8, el: "thunder", exp: 3, col: "#c8b48a" },
-    illusionist:{ nm: "幻影術師", art: "mage", ai: "hex", hp: 46, atk: 14, spd: 32, r: 8, el: "light", exp: 4, col: "#d0a0ff", shot: { speed: 120, cd: 3.0, n: 5, spread: 0.6 }, blink: 1 },
-    flyingTome: { nm: "飛翔魔書", art: "tome", ai: "ranged", hp: 30, atk: 11, spd: 46, r: 7, el: "thunder", exp: 2, col: "#a07a4a", shot: { speed: 140, cd: 2.2, n: 1 } },
+    puppet:     { nm: "魔導人形", art: "puppet", ai: "chase", hp: 52, atk: 13, spd: 40, r: 8, el: "dark", exp: 3, col: "#c8b48a" },
+    illusionist:{ nm: "幻影術師", art: "mage", ai: "hex", hp: 46, atk: 14, spd: 32, r: 8, el: "dark", exp: 4, col: "#d0a0ff", shot: { speed: 120, cd: 3.0, n: 5, spread: 0.6 }, blink: 1 },
+    flyingTome: { nm: "飛翔魔書", art: "tome", ai: "ranged", hp: 30, atk: 11, spd: 46, r: 7, el: "light", exp: 2, col: "#a07a4a", shot: { speed: 140, cd: 2.2, n: 1 } },
     bookKeeper: { nm: "禁書の番人", art: "bookGolem", ai: "elite", hp: 820, atk: 24, spd: 30, r: 14, el: "light", exp: 40, col: "#e8d080", elite: 1 },
     /* 第五迷宮 深淵の奈落 */
-    abyssKnight:{ nm: "深淵の騎士", art: "knight", ai: "guard", hp: 150, atk: 22, spd: 34, r: 10, el: "shadow", exp: 6, col: "#3a2a5a", guard: 0.6, lunge: 1 },
-    shadowSwarm:{ nm: "影の群体", art: "shade", ai: "swarm", hp: 16, atk: 9, spd: 66, r: 5, el: "shadow", exp: 0.8, col: "#6a4a9a", pack: 6 },
-    voidEye:    { nm: "虚ろの眼", art: "eye", ai: "hex", hp: 60, atk: 16, spd: 26, r: 9, el: "shadow", exp: 4, col: "#a874ff", beam: 1, dark: 1 },
-    abyssSlime: { nm: "奈落のスライム", art: "slime", ai: "chase", hp: 40, atk: 14, spd: 40, r: 8, el: "shadow", exp: 2, col: "#7a3ad0" },
-    executioner:{ nm: "奈落の処刑人", art: "reaper", ai: "elite", hp: 1100, atk: 30, spd: 38, r: 14, el: "shadow", exp: 46, col: "#2a1a40", elite: 1 },
+    abyssKnight:{ nm: "深淵の騎士", art: "knight", ai: "guard", hp: 150, atk: 22, spd: 34, r: 10, el: "dark", exp: 6, col: "#3a2a5a", guard: 0.6, lunge: 1 },
+    shadowSwarm:{ nm: "影の群体", art: "shade", ai: "swarm", hp: 16, atk: 9, spd: 66, r: 5, el: "dark", exp: 0.8, col: "#6a4a9a", pack: 6 },
+    voidEye:    { nm: "虚ろの眼", art: "eye", ai: "hex", hp: 60, atk: 16, spd: 26, r: 9, el: "dark", exp: 4, col: "#a874ff", beam: 1, dark: 1 },
+    abyssSlime: { nm: "奈落のスライム", art: "slime", ai: "chase", hp: 40, atk: 14, spd: 40, r: 8, el: "dark", exp: 2, col: "#7a3ad0" },
+    executioner:{ nm: "奈落の処刑人", art: "reaper", ai: "elite", hp: 1100, atk: 30, spd: 38, r: 14, el: "dark", exp: 46, col: "#2a1a40", elite: 1 },
     /* 第六迷宮 星天の神殿 */
     starSpirit: { nm: "星霊", art: "star", ai: "ranged", hp: 54, atk: 18, spd: 56, r: 7, el: "light", exp: 4, col: "#fff4b0", shot: { speed: 150, cd: 2.0, n: 4, ring: 1 } },
     guardian:   { nm: "古代守護者", art: "guardian", ai: "guard", hp: 220, atk: 26, spd: 22, r: 12, el: "light", exp: 7, col: "#d8d0ff", guard: 0.6, laser: 1 },
-    stardust:   { nm: "星屑", art: "dust", ai: "swarm", hp: 20, atk: 12, spd: 72, r: 5, el: "thunder", exp: 1, col: "#ffe86a", pack: 5 },
-    starKnight: { nm: "星座の騎士", art: "knight", ai: "elite", hp: 1500, atk: 34, spd: 44, r: 14, el: "thunder", exp: 52, col: "#ffe86a", elite: 1 },
+    stardust:   { nm: "星屑", art: "dust", ai: "swarm", hp: 20, atk: 12, spd: 72, r: 5, el: "light", exp: 1, col: "#ffe86a", pack: 5 },
+    starKnight: { nm: "星座の騎士", art: "knight", ai: "elite", hp: 1500, atk: 34, spd: 44, r: 14, el: "light", exp: 52, col: "#ffe86a", elite: 1 },
   };
 
   /* ══ ボス（フェーズ：100〜70％ 通常／70〜40％ 範囲・突進／40〜15％ 強化・地形変化／15％以下 最終）══
      gim … 隙を作るギミック（アリーナに置く物。全部こわすと BREAK＝5秒止まって被ダメージ2倍） */
   const BOSSES = {
-    treeGuardian: { nm: "古樹の守護者", art: "bTree", hp: 2600, atk: 13, spd: 22, r: 26, el: "wind", col: "#5a8a3a",
+    treeGuardian: { nm: "古樹の守護者", art: "bTree", hp: 2600, atk: 13, spd: 22, r: 26, el: "wood", col: "#5a8a3a",
       gim: { kind: "vine", nm: "蔦の封印", n: 4, hp: 60, d: "守護者に力を送る蔦の封印。4つすべて断ち切ると守護者が崩れて動けなくなる" },
       pats: ["roots", "leafSpiral", "summon", "charge", "rootRing", "leafStorm"], lines: ["……森を荒らすのは、だれだ。", "古き樹は、まだ眠らぬ。", "星脈よ……わが根に力を……！"] },
     iceQueen: { nm: "氷晶の女王", art: "bQueen", hp: 4200, atk: 22, spd: 30, r: 22, el: "water", col: "#9ad8ff",
@@ -457,10 +594,10 @@
     librarian: { nm: "禁書の司書", art: "bLibrarian", hp: 8600, atk: 36, spd: 34, r: 22, el: "light", col: "#e8d080",
       gim: { kind: "rune", nm: "封印の頁", n: 4, hp: 80, d: "床に浮かぶ封印の頁。4枚すべて踏むと司書の魔法が封じられる" },
       pats: ["tomeBarrage", "teleport", "pageStorm", "puppets", "laserGrid", "spiral"], lines: ["静かに。ここは書庫ですよ。", "その頁は、まだ読ませません。", "禁書よ、ひらけ——！"] },
-    executionerBoss: { nm: "奈落の執行者", art: "bExecutioner", hp: 11500, atk: 44, spd: 40, r: 24, el: "shadow", col: "#4a2a7a",
+    executionerBoss: { nm: "奈落の執行者", art: "bExecutioner", hp: 11500, atk: 44, spd: 40, r: 24, el: "dark", col: "#4a2a7a",
       gim: { kind: "brazier", nm: "光の燭台", n: 4, hp: 100, d: "闇をはらう燭台。4つ灯すと執行者の影が消え、動きが止まる" },
       pats: ["sweep", "darkZones", "clones", "lunge", "darkness", "scytheStorm"], lines: ["……裁きの時だ。", "奈落に、光は届かぬ。", "すべてを、無に。"] },
-    dragon: { nm: "星脈の原初竜", art: "bDragon", hp: 16000, atk: 52, spd: 34, r: 34, el: "thunder", col: "#ffe86a",
+    dragon: { nm: "星脈の原初竜", art: "bDragon", hp: 16000, atk: 52, spd: 34, r: 34, el: "light", col: "#ffe86a",
       gim: { kind: "pillar", nm: "星の柱", n: 3, hp: 140, d: "竜の星脈をつなぐ柱。3本すべて倒すと竜が地に落ちる" },
       pats: ["breath", "meteor", "gravity", "timestop", "starRain", "supernova"], lines: ["……小さき者よ。星脈に何を望む。", "我は星脈そのもの。", "ならば——星ごと、受けとめてみよ！"] },
   };
@@ -473,7 +610,7 @@
      ══════════════════════════════════════════════════════════════ */
   const DUNGEONS = [
     { id: "d1", no: 1, nm: "翠緑の古代樹", en: "VERDANT ANCIENT TREE", diff: "初級", stars: 1, lvMul: 0.85, gold: 1.0, rec: { lv: 1, power: 300 },
-      biome: "forest", el: "wind", c: "#4fe39a",
+      biome: "forest", el: "wood", c: "#4fe39a",
       d: "古代遺跡を飲みこんだ巨大な樹の迷宮。自然の魔力が満ちている。",
       enemies: ["slime", "goblin", "goblinArcher", "treant"], elite: "mossKing", mid: "mossKing", boss: "treeGuardian",
       mats: ["sap", "stone"], gim: ["vine", "poison"], rules: ["蔦の封印（部屋をふさぐ蔦。こわすと通れる）", "毒沼（踏むと毒）"],
@@ -497,7 +634,7 @@
       mats: ["page", "stone"], gim: ["warp", "rune"], rules: ["転移門（入ると対になる門へ）", "魔法床（光ると敵が強くなる・踏むと痛い）"],
       unlock: "d3" },
     { id: "d5", no: 5, nm: "深淵の奈落", en: "ABYSSAL DEPTHS", diff: "上級", stars: 5, lvMul: 2.8, gold: 7.6, rec: { lv: 30, power: 3200 },
-      biome: "abyss", el: "shadow", c: "#a874ff",
+      biome: "abyss", el: "dark", c: "#a874ff",
       d: "闇に包まれた異界。視界は狭く、魔力の汚染が体をむしばむ。",
       enemies: ["abyssSlime", "shadowSwarm", "voidEye", "abyssKnight"], elite: "executioner", mid: "executioner", boss: "executionerBoss",
       mats: ["abyss", "stone"], gim: ["dark", "taint"], rules: ["視界制限（明かりの範囲しか見えない）", "魔力汚染（紫の床にいると汚染がたまる）"],
@@ -538,42 +675,42 @@
   const GEAR_RAR = { N: 1.0, R: 1.3, SR: 1.7, SSR: 2.2, UR: 3.0 };
   const GEAR = {
     /* 武器 */
-    flameSword:  { slot: "weapon", nm: "炎の魔導剣", el: "fire", runWeapon: "sword", st: { atk: 4 }, d: "探索を「炎の魔導剣」Lv1で始める" },
-    thunderSword:{ slot: "weapon", nm: "雷の魔導剣", el: "thunder", runWeapon: "sword", st: { atk: 4 }, d: "探索を「雷の魔導剣」Lv1で始める" },
+    flameSword:  { slot: "weapon", nm: "火の魔導剣", el: "fire", runWeapon: "sword", st: { atk: 4 }, d: "探索を「火の魔導剣」Lv1で始める" },
+    thunderSword:{ slot: "weapon", nm: "雷光の魔導剣", el: "light", runWeapon: "sword", st: { atk: 4 }, d: "探索を「雷光の魔導剣」Lv1で始める" },
     starBow:     { slot: "weapon", nm: "光の星弓", el: "light", runWeapon: "bow", st: { atk: 3, crit: 2 }, d: "探索を「光の星弓」Lv1で始める" },
-    galeBow:     { slot: "weapon", nm: "風の星弓", el: "wind", runWeapon: "bow", st: { atk: 3, spd: 2 }, d: "探索を「風の星弓」Lv1で始める" },
+    galeBow:     { slot: "weapon", nm: "翠風の星弓", el: "wood", runWeapon: "bow", st: { atk: 3, spd: 2 }, d: "探索を「翠風の星弓」Lv1で始める" },
     aquaBow:     { slot: "weapon", nm: "水の星弓", el: "water", runWeapon: "bow", st: { atk: 3, crit: 2 }, d: "探索を「水の星弓」Lv1で始める" },
-    fireTome:    { slot: "weapon", nm: "炎の魔導書", el: "fire", runWeapon: "tome", st: { atk: 2, mag: 0.04 }, d: "探索を「炎の魔導書」Lv1で始める" },
+    fireTome:    { slot: "weapon", nm: "火の魔導書", el: "fire", runWeapon: "tome", st: { atk: 2, mag: 0.04 }, d: "探索を「火の魔導書」Lv1で始める" },
     aquaTome:    { slot: "weapon", nm: "水の魔導書", el: "water", runWeapon: "tome", st: { atk: 2, mag: 0.04 }, d: "探索を「水の魔導書」Lv1で始める" },
     lightTome:   { slot: "weapon", nm: "光の魔導書", el: "light", runWeapon: "tome", st: { atk: 2, mag: 0.04 }, d: "探索を「光の魔導書」Lv1で始める" },
-    shadowDagger:{ slot: "weapon", nm: "影の双短剣", el: "shadow", runWeapon: "dagger", st: { atk: 3, aspd: 0.03 }, d: "探索を「影の双短剣」Lv1で始める" },
+    shadowDagger:{ slot: "weapon", nm: "闇の双短剣", el: "dark", runWeapon: "dagger", st: { atk: 3, aspd: 0.03 }, d: "探索を「闇の双短剣」Lv1で始める" },
     aquaDagger:  { slot: "weapon", nm: "水の双短剣", el: "water", runWeapon: "dagger", st: { atk: 3, aspd: 0.03 }, d: "探索を「水の双短剣」Lv1で始める" },
-    shadowScythe:{ slot: "weapon", nm: "影の大鎌", el: "shadow", runWeapon: "scythe", st: { atk: 5 }, d: "探索を「影の大鎌」Lv1で始める" },
-    fireScythe:  { slot: "weapon", nm: "炎の大鎌", el: "fire", runWeapon: "scythe", st: { atk: 5 }, d: "探索を「炎の大鎌」Lv1で始める" },
-    thunderStaff:{ slot: "weapon", nm: "雷の魔導杖", el: "thunder", runWeapon: "staff", st: { atk: 2, mag: 0.05 }, d: "探索を「雷の魔導杖」Lv1で始める" },
+    shadowScythe:{ slot: "weapon", nm: "闇の大鎌", el: "dark", runWeapon: "scythe", st: { atk: 5 }, d: "探索を「闇の大鎌」Lv1で始める" },
+    fireScythe:  { slot: "weapon", nm: "火の大鎌", el: "fire", runWeapon: "scythe", st: { atk: 5 }, d: "探索を「火の大鎌」Lv1で始める" },
+    thunderStaff:{ slot: "weapon", nm: "翠樹の魔導杖", el: "wood", runWeapon: "staff", st: { atk: 2, mag: 0.05 }, d: "探索を「翠樹の魔導杖」Lv1で始める" },
     lightStaff:  { slot: "weapon", nm: "光の魔導杖", el: "light", runWeapon: "staff", st: { atk: 2, mag: 0.05 }, d: "探索を「光の魔導杖」Lv1で始める" },
     /* 防具 */
     travelCoat:  { slot: "armor", nm: "旅人の外套", st: { hp: 12, def: 1 }, d: "軽くて丈夫な外套" },
     frostPlate:  { slot: "armor", nm: "氷結の胸当て", el: "water", st: { hp: 16, def: 2 }, d: "冷気をまとう胸当て" },
-    lavaMail:    { slot: "armor", nm: "熔岩の鎧", el: "fire", st: { hp: 22, def: 3, spd: -2 }, d: "重いが硬い鎧" },
+    lavaMail:    { slot: "armor", nm: "熔岩の鎧", el: "fire", st: { hp: 22, def: 3, spd: -2 }, d: "重いが硬い鎧（火）" },
     starRobe:    { slot: "armor", nm: "星織りのローブ", el: "light", st: { hp: 10, mag: 0.06 }, d: "星の糸で織られたローブ" },
-    abyssCloak:  { slot: "armor", nm: "深淵の外套", el: "shadow", st: { hp: 12, eva: 3 }, d: "影に溶けこむ外套" },
+    abyssCloak:  { slot: "armor", nm: "深淵の外套", el: "dark", st: { hp: 12, eva: 3 }, d: "影に溶けこむ外套" },
     /* 指輪 */
     powerRing:   { slot: "ring", nm: "力の指輪", st: { atk: 3 }, d: "攻撃力が上がる" },
     starring:    { slot: "ring", nm: "星の指輪", tag: "starring", el: "light", st: { crit: 3 }, d: "星脈の光を宿す指輪（星雷連鎖の鍵）" },
-    thunderRing: { slot: "ring", nm: "雷鳴の指輪", el: "thunder", st: { atk: 2, aspd: 0.03 }, d: "雷の力を宿す" },
+    thunderRing: { slot: "ring", nm: "雷光の指輪", el: "light", st: { atk: 2, aspd: 0.03 }, d: "光の雷の力を宿す" },
     haloring:    { slot: "ring", nm: "光輪の指輪", tag: "haloring", el: "light", st: { hp: 6, regen: 0.2 }, d: "癒やしの光輪（光輪の書の鍵）" },
     critRing:    { slot: "ring", nm: "鷹の指輪", st: { crit: 4, critDmg: 0.05 }, d: "会心が出やすくなる" },
     /* 護符 */
-    windcharm:   { slot: "charm", nm: "風の護符", tag: "windcharm", el: "wind", st: { spd: 3 }, d: "風の加護（烈風火輪の鍵）" },
-    soulcharm:   { slot: "charm", nm: "吸魂の護符", tag: "soulcharm", el: "shadow", st: { drain: 0.01 }, d: "与えたダメージでHPを吸う（深影乱舞の鍵）" },
-    fireCharm:   { slot: "charm", nm: "炎の護符", el: "fire", st: { atk: 2 }, d: "炎の加護" },
+    windcharm:   { slot: "charm", nm: "翠風の護符", tag: "windcharm", el: "wood", st: { spd: 3 }, d: "木の加護（烈風火輪の鍵）" },
+    soulcharm:   { slot: "charm", nm: "吸魂の護符", tag: "soulcharm", el: "dark", st: { drain: 0.01 }, d: "与えたダメージでHPを吸う（深影乱舞の鍵）" },
+    fireCharm:   { slot: "charm", nm: "火の護符", el: "fire", st: { atk: 2 }, d: "火の加護" },
     waterCharm:  { slot: "charm", nm: "水の護符", el: "water", st: { hp: 8 }, d: "水の加護" },
     lightCharm:  { slot: "charm", nm: "光の護符", el: "light", st: { regen: 0.2 }, d: "光の加護" },
-    thunderCharm:{ slot: "charm", nm: "雷の護符", el: "thunder", st: { aspd: 0.03 }, d: "雷の加護" },
+    thunderCharm:{ slot: "charm", nm: "雷光の護符", el: "light", st: { aspd: 0.03 }, d: "光の雷の加護" },
     guardCharm:  { slot: "charm", nm: "守りの護符", st: { def: 2 }, d: "被ダメージを減らす" },
     /* 靴 */
-    galeboots:   { slot: "boots", nm: "疾風の靴", tag: "galeboots", el: "wind", st: { spd: 5 }, d: "風のように速く走れる（迅雷双刃・疾風の矢の鍵）" },
+    galeboots:   { slot: "boots", nm: "疾風の靴", tag: "galeboots", el: "wood", st: { spd: 5 }, d: "風のように速く走れる（迅雷双刃・疾風の矢の鍵）" },
     jumpBoots:   { slot: "boots", nm: "跳躍の靴", st: { spd: 2, dash: 1 }, d: "ダッシュの回数+1" },
     ironBoots:   { slot: "boots", nm: "鉄の靴", st: { def: 2, hp: 6 }, d: "重いが丈夫" },
     starBoots:   { slot: "boots", nm: "星歩きの靴", el: "light", st: { spd: 3, eva: 2 }, d: "星の上を歩くように軽い" },
@@ -582,7 +719,7 @@
     hourglass:   { slot: "tool", nm: "時の砂時計", st: { cdr: 0.04 }, d: "スキルと魔法の再使用が速くなる" },
     sageStone:   { slot: "tool", nm: "賢者の石", st: { exp: 0.06 }, d: "経験値が増える" },
     compass:     { slot: "tool", nm: "星脈の羅針盤", st: { magnet: 0.15, reveal: 1 }, d: "拾う範囲が広がり、ミニマップに宝箱が出る" },
-    spiritBell:  { slot: "tool", nm: "精霊の鈴", el: "wind", st: { summon: 1 }, d: "小さな精霊がついてきて攻撃する" },
+    spiritBell:  { slot: "tool", nm: "精霊の鈴", el: "wood", st: { summon: 1 }, d: "小さな精霊がついてきて攻撃する" },
     lantern:     { slot: "tool", nm: "魔導ランタン", el: "light", st: { vision: 0.5 }, d: "暗い場所で見える範囲が広がる" },
   };
   const GEAR_KEYS = Object.keys(GEAR);
@@ -624,14 +761,34 @@
   ];
   const TREE_BR = { atk: { nm: "攻撃", c: "#ff6a5a" }, def: { nm: "守り", c: "#5ab8ff" }, uniq: { nm: "固有", c: "#ffcc3a" } };
   const CHAR_MAX_LV = 60;
-  /* 凸（XEVARION と共通・0〜4）の効果 */
+  /* 凸（XEVARION と共通・0〜4）の効果
+     ★★ 2026-10-05 恩恵を少し大きく（ご指定）。必殺技・技（E）の威力も上がる */
   const AWK = [
     { d: "—" },
-    { d: "全能力 +6%", all: 0.06 },
-    { d: "全能力 +12%・スキルの再使用 -8%", all: 0.12, cdr: 0.08 },
-    { d: "全能力 +18%・探索開始時に「引き直し」+1", all: 0.18, cdr: 0.08, reroll: 1 },
-    { d: "全能力 +25%・必殺技ゲージ +25%でスタート（完凸）", all: 0.25, cdr: 0.08, reroll: 1, ultStart: 25 },
+    { d: "全能力 +8%・必殺技の威力 +5%", all: 0.08, ult: 0.05 },
+    { d: "全能力 +16%・必殺技の威力 +10%・スキルと技の再使用 -8%", all: 0.16, ult: 0.10, cdr: 0.08 },
+    { d: "全能力 +24%・必殺技の威力 +15%・技（E）の威力 +15%・探索開始時に「引き直し」+1", all: 0.24, ult: 0.15, art: 0.15, cdr: 0.08, reroll: 1 },
+    { d: "全能力 +32%・必殺技の威力 +20%・技（E）の威力 +20%・必殺技ゲージ 30%でスタート（完凸）", all: 0.32, ult: 0.20, art: 0.20, cdr: 0.10, reroll: 1, ultStart: 30 },
   ];
+
+  /* ══ 難易度（ノーマル／ハード）★★ 2026-10-05 ご指定。ハードはその迷宮のノーマルをクリアすると開く ══ */
+  const MODES = {
+    normal: { id: "normal", nm: "ノーマル", hp: 1, atk: 1, elite: 1, gold: 1, mat: 1, gearUp: 0, recAdd: 0, c: "#7dffb0",
+      d: "ふつうの難しさ" },
+    hard:   { id: "hard", nm: "ハード", hp: 1.75, atk: 1.45, elite: 1.6, gold: 1.8, mat: 1.8, gearUp: 1, recAdd: 10, c: "#ff5a6a",
+      d: "敵の体力 ×1.75・攻撃 ×1.45・エリートが多い。報酬（ゴールド・素材）×1.8・装備のレア度が上がりやすい" },
+  };
+
+  /* ══ クリア時間のミッション（迷宮×難易度ごとに3段・ジェム）★★ 2026-10-05 ご指定 ══
+     min … この分数以内にクリア ／ gem … XEVARION のジェム（受け取りは1回だけ・アカウントで共通） */
+  const TIME_MIS = {
+    d1: { normal: [[20, 3], [14, 5], [10, 8]],  hard: [[22, 5], [16, 8], [12, 12]] },
+    d2: { normal: [[20, 4], [14, 6], [10, 10]], hard: [[22, 6], [16, 10], [12, 14]] },
+    d3: { normal: [[22, 5], [15, 8], [11, 12]], hard: [[24, 8], [17, 12], [13, 18]] },
+    d4: { normal: [[22, 6], [15, 10], [11, 14]], hard: [[24, 10], [17, 15], [13, 20]] },
+    d5: { normal: [[24, 8], [16, 12], [12, 16]], hard: [[26, 12], [18, 18], [14, 24]] },
+    d6: { normal: [[24, 10], [16, 15], [12, 20]], hard: [[26, 15], [18, 22], [14, 30]] },
+  };
 
   /* ══ ダンジョン変異（探索開始時に選ぶ。報酬が増える）══ */
   const MUTATIONS = {
@@ -769,8 +926,10 @@
     { id: "l8", nm: "原初竜", d: "星脈が最初に形をとったもの。それが竜の姿だったのは、人が竜を最も強いものと信じたからだ。" },
   ];
 
+  applyKits();
   MA.D = {
-    ELEM, ELEM_KEYS, ADV, elemMul, MB_EL, CTYPE, CAT, CHARS, CHAR_ORDER, WEAPONS, WEAPON_KEYS, WEAPON_MAX, EVOS,
+    ELEM, ELEM_KEYS, ADV, BEATS, EL_UP, EL_DOWN, elemMul, elemRel, elemWeakTo, MB_EL, CTYPE, CAT, CHARS, CHAR_ORDER, WEAPONS, WEAPON_KEYS, WEAPON_MAX, EVOS,
+    GRADE_MUL, RANK, ARTS, TRAITS, CHAR_KIT, MODES, TIME_MIS,
     MAGICS, MAGIC_KEYS, MAGIC_MAX, STATS, STAT_KEYS, RAR, RAR_KEYS, RESONANCES, ENEMIES, BOSSES, DUNGEONS, DUN, MATS,
     SLOTS, SLOT_KEYS, GEAR, GEAR_KEYS, GEAR_RAR, SHOP_ITEMS, FACILITIES, TREE, TREE_BR, CHAR_MAX_LV, AWK, MUTATIONS,
     ABYSS_RULES, EVENTS, ACH, MISSIONS, STORY, LORE,

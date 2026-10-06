@@ -16,7 +16,7 @@
     /* その探索で最初に候補に出たときの属性を覚えておく（キャラの属性が出やすい） */
     const g = G();
     g.wEl = g.wEl || {};
-    if (!g.wEl[k]) { const P = g.P; g.wEl[k] = g.rnd() < 0.35 ? P.C.el : D().ELEM_KEYS[Math.floor(g.rnd() * 6)]; }
+    if (!g.wEl[k]) { const P = g.P; g.wEl[k] = g.rnd() < 0.35 ? P.C.el : D().ELEM_KEYS[Math.floor(g.rnd() * D().ELEM_KEYS.length)]; }
     return g.wEl[k];
   }
   function rollRar(luck) {
@@ -150,7 +150,7 @@
   function gearRar(tier) {
     const g = G();
     const no = g.mode === "abyss" ? Math.min(5, Math.floor(g.floor / 6)) : g.dun.no - 1;
-    const t = GEAR_TABLE[Math.max(0, Math.min(5, no + (tier >= 3 ? 1 : 0)))].slice();
+    const t = GEAR_TABLE[Math.max(0, Math.min(5, no + (tier >= 3 ? 1 : 0) + ((g.modeDef && g.modeDef.gearUp) || 0)))].slice();
     if (tier >= 3) { t[0] = 0; t[1] = Math.round(t[1] * 0.4); }
     const luck = g.P.st.luck || 0;
     t[3] *= 1 + luck * 2; t[4] *= 1 + luck * 3;

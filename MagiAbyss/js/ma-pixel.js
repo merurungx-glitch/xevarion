@@ -399,6 +399,64 @@
         { x: 17, y: 18, rows: ["xXXXX", "xxXx.", ".Yx..", ".Y..."] },
       ],
     },
+    /* ── ★★ 2026-10-07 ヒバナ（木）：茶色の長い髪を青いリボンで右に結ぶ・水色のワンピース・青い花のイヤリング・勿忘草の花束 ── */
+    hibana: {
+      pal: { H: "#6a4a36", h: "#432c1f", L: "#9c7458", E: "#b48a52", A: "#d6e7ff", a: "#a9c4ea", C: "#f4f8ff", c: "#cfdcf0",
+             D: "#3f7fe6", d: "#2a5bb8", P: "#b9d3fb", p: "#8fb0e4", O: "#f4f8ff", o: "#b6c3d8", X: "#6fa8ff", x: "#3d7be0", Y: "#3dbf7a", K: "#15111a" },
+      legY: 23,
+      layers: [
+        backLong(24),
+        /* 右に結んだ髪（根もとに青いリボン） */
+        { x: 15, y: 1, rows: [
+          "..hhh.",
+          ".hHHHh",
+          "hHHLHh",
+          ".DdDhh",
+          "..hHHh",
+          "..hHHHh",
+          "...hHHh",
+          "...hHHh",
+          "....hHh",
+          "....hhh",
+        ] },
+        { x: 6, y: 14, rows: [
+          ".AAACDCAAA..",
+          "SAAAACAAAAAS",
+          "S.AAAAAAAA.S",
+          "s.AaAAAAaA.s",
+          "S.AAAAAAAA.S",
+          "S.AAAAAAAA.S",
+        ].concat(BOTTOM_SKIRT) },
+        "FACE",
+        frontStraight(14),
+        /* 青い花のイヤリング */
+        { x: 6, y: 11, rows: ["X"] },
+        { x: 17, y: 11, rows: ["X"] },
+        /* 左手の勿忘草の花束 */
+        { x: 1, y: 16, rows: [".X.X.", "XxXxX", ".XYX.", "..Y..", "..Y.."] },
+      ],
+    },
+    /* ── ★★ 2026-10-07 フキ（闇）：長い黒髪・白いシャツ・紺のリボン・紺のスカート・夜桜の枝 ── */
+    fuki: {
+      pal: { H: "#22263a", h: "#121421", L: "#4c5577", E: "#7fa8e8", A: "#f5f7fc", a: "#cdd5e6", C: "#f5f7fc", c: "#cdd5e6",
+             D: "#26357a", d: "#18225a", P: "#2c3a72", p: "#1c264e", O: "#262a3a", o: "#141824", X: "#ffc4dc", x: "#ff8fb8", Y: "#4a3a3a", K: "#120f18" },
+      legY: 23,
+      layers: [
+        backLong(25),
+        { x: 6, y: 14, rows: [
+          ".AAADdDAAA..",
+          "SAAAAADAAAAS",
+          "S.AAAAAAAA.S",
+          "s.AaAAAAaA.s",
+          "S.AAAAAAAA.S",
+          "S.AAAAAAAA.S",
+        ].concat(BOTTOM_SKIRT) },
+        "FACE",
+        frontStraight(14),
+        /* 右手の夜桜の枝 */
+        { x: 17, y: 14, rows: ["X.X..", ".XxX.", "..Y.X", "...Yx", "....Y"] },
+      ],
+    },
     /* ── ヒナノ（風）：ウェーブの黒髪・デニムジャケット・白いトップス・カーゴパンツ・アイス ── */
     hinano: {
       pal: { H: "#26222e", h: "#141118", L: "#5a5470", E: "#d3953e", A: "#7aaee2", a: "#4d7cb8", C: "#f5f5f5", c: "#d2d2da",
@@ -714,6 +772,178 @@
     out.w = W; out.h = base.h;
     return out;
   }
+  /* ══════════════════════════════════════════════════════════════
+     ★★ 2026-10-05 横向きに走る絵（ご指定「横に走る時のデザイン」）
+     ------------------------------------------------------------
+     正面の絵を左右反転するだけだと、横へ走っても正面を向いたまま滑って見える。
+     横顔（目は1つ・鼻先・耳は髪の下）＋走る脚（4コマ：前に踏む・すれちがう・後ろに蹴る・すれちがう）
+     ＋腕の振り＋走るとなびく髪 を、キャラの色（pal）と下の SIDE の型から組み立てる。右向きで作り、左は反転。
+     hair … long（長い）・bob・pony（ポニーテール）／len … 後ろ髪の下端／wavy … ゆるいウェーブ
+     top … 上の服の型／arm … 腕の色の文字（S＝素肌）／bottom … shorts・pants・skirt・bootsSkirt・robe・dress
+     prop … 手に持つ物／acc … 髪かざり など
+     ══════════════════════════════════════════════════════════════ */
+  const SIDE = {
+    takina:  { hair: "pony", len: 22, top: "tank", arm: "S", bottom: "shorts", prop: "gun", inner: "C" },
+    hibana:  { hair: "long", len: 24, top: "blouse", arm: "A", bottom: "skirt", prop: "orb", ribbon: 1 },
+    fuki:    { hair: "long", len: 25, top: "uniform", arm: "A", bottom: "skirt", prop: "flame" },
+    hinano:  { hair: "long", len: 24, wavy: 1, top: "jacket", arm: "A", bottom: "pants", prop: "ice", acc: "pin" },
+    hanon:   { hair: "bob", top: "blouse", arm: "A", bottom: "skirt", prop: "ball", ribbon: 1 },
+    kokoha:  { hair: "long", len: 23, top: "kimono", arm: "A", bottom: "robe", prop: "umbrella", acc: "camellia" },
+    mutsumi: { hair: "bob", wavy: 1, top: "knitjacket", arm: "C", bottom: "dress", prop: "flame" },
+    reina:   { hair: "long", len: 24, top: "turtle", arm: "A", bottom: "skirt", prop: "orb", acc: "buns" },
+    azusa:   { hair: "long", len: 24, top: "gothic", arm: "A", bottom: "robe", prop: "rapier", acc: "rose" },
+    kagura:  { hair: "long", len: 24, top: "tank", arm: "C", bottom: "bootsSkirt", prop: "katana", susp: 1 },
+    kotori:  { hair: "long", len: 23, wavy: 1, top: "tank", arm: "S", bottom: "shorts", prop: "ball", acc: "topbun" },
+    duoBack: { hair: "long", len: 24, top: "uniform", arm: "A", bottom: "skirt", prop: "trumpet" },
+    duoFront:{ hair: "bob", wavy: 1, top: "uniform", arm: "A", bottom: "skirt", prop: "euph" },
+    generic: { hair: "long", len: 23, top: "tank", arm: "S", bottom: "skirt" },
+  };
+  function sideBuf(pal0, sd, ph, legY0) {
+    const pal = Object.assign({}, BASE_PAL, pal0);
+    const b = mkBuf(CW, CH);
+    const put = (x, y, ch) => { x = Math.round(x); y = Math.round(y); if (x < 0 || y < 0 || x >= CW || y >= CH) return; const c = pal[ch]; if (!c) return; const s = String(c); setPx(b, x, y, hex(s.slice(0, 7)), s.length === 9 ? parseInt(s.slice(7, 9), 16) : 255); };
+    const box = (x0, y0, x1, y1, ch) => { for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) put(x, y, ch); };
+    const seg = (x0, y0, x1, y1, ch, w) => { const n = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0), 1); for (let i = 0; i <= n; i++) { const x = x0 + (x1 - x0) * i / n, y = y0 + (y1 - y0) * i / n; put(x, y, ch); if (w > 1) put(x + 1, y, ch); } };
+    const dy = ph % 2 === 1 ? -1 : 0;          // すれちがう瞬間は体が1つ上がる
+    const run = true;
+    const legY = legY0 || 23;
+    const robe = sd.bottom === "robe";
+    /* 腕・脚の振り（0：右脚が前／2：左脚が前） */
+    const sw = [1, 0, -1, 0][ph];
+    const flow = (y) => run ? Math.floor(Math.max(0, y - 6) / 5) : 0;   // 走ると髪がうしろへ流れる
+    /* ── 1. いちばん奥：後ろ髪・背中の刀・奥の腕と脚 ── */
+    if (sd.hair === "long") {
+      const L = sd.len || 23;
+      for (let y = 4; y <= L; y++) {
+        const f = flow(y) + (sd.wavy && y % 4 === 0 ? 1 : 0);
+        const x0 = 6 - f, x1 = (y < 13 ? 11 : 9) - f;
+        for (let x = x0; x <= x1; x++) put(x, y + dy, y === L ? "h" : (x === x0 ? "h" : "h"));
+        if (y > 12 && y < L - 1) put(x0 + 1, y + dy, "H");
+      }
+    } else if (sd.hair === "bob") {
+      for (let y = 4; y <= 13; y++) { const f = y > 10 ? 1 : 0; for (let x = 6 - f; x <= 11; x++) put(x, y + dy, "h"); }
+      if (sd.wavy) { put(5, 12 + dy, "h"); put(5, 13 + dy, "h"); }
+    } else if (sd.hair === "pony") {
+      /* 結び目（頭のうしろ上）から長い尾が後ろへ流れる */
+      const pts = [[7, 3], [6, 4], [5, 5], [4, 6], [3, 7], [3, 8], [2, 9], [2, 10], [1, 11], [1, 12], [1, 13], [0, 14], [0, 15], [1, 16], [1, 17]];
+      pts.forEach(([x, y], i) => { const k = ph % 2 ? (i > 8 ? 1 : 0) : 0; put(x + k, y + dy, "H"); put(x + 1 + k, y + dy, i < 12 ? "H" : "h"); if (i < 10) put(x + 2 + k, y + dy, "h"); });
+      put(4, 6 + dy, "L"); put(3, 8 + dy, "L");
+      for (let y = 4; y <= 12; y++) for (let x = 7; x <= 10; x++) put(x, y + dy, "h");
+    }
+    if (sd.acc === "buns") { box(6, 1 + dy, 9, 3 + dy, "H"); put(7, 1 + dy, "L"); put(6, 1 + dy, "h"); put(9, 3 + dy, "h"); }
+    if (sd.acc === "topbun") { box(10, 0 + dy, 13, 1 + dy, "H"); put(11, 0 + dy, "L"); }
+    if (sd.prop === "katana") { seg(9, 11 + dy, 3, 25 + dy, "X", 1); put(10, 10 + dy, "Y"); put(11, 9 + dy, "Y"); put(9, 12 + dy, "D"); put(3, 26 + dy, "x"); }
+    /* 奥の脚（暗い色） */
+    const shoe = (x, y, ch, ch2) => { put(x - 1, y, ch); put(x, y, ch); put(x + 1, y, ch); put(x + 2, y, ch); put(x - 1, y + 1, ch2); put(x, y + 1, ch2); put(x + 1, y + 1, ch2); put(x + 2, y + 1, ch2); };
+    const legCol = sd.bottom === "pants" ? "p" : "s";
+    const leg = (hx, sgn, back) => {
+      /* sgn：1＝前へ踏む／-1＝後ろへ蹴る／0＝すれちがい（back なら持ち上げる） */
+      const c = back ? legCol : (sd.bottom === "pants" ? "P" : "S");
+      const lowerC = sd.bottom === "bootsSkirt" ? (back ? "o" : "O") : c;
+      let fx, fy;
+      if (sgn > 0) { fx = hx + 3; fy = 27; }
+      else if (sgn < 0) { fx = hx - 3; fy = 27; }
+      else if (back) { fx = hx - 2; fy = 25; }
+      else { fx = hx; fy = 27; }
+      const kx = (hx + fx) / 2 + (sgn === 0 && back ? 1 : 0), ky = (legY + dy + fy) / 2;
+      if (!robe) { seg(hx, legY + 1 + dy, kx, ky, c, 2); seg(kx, ky, fx, fy, lowerC, 2); }
+      shoe(fx, fy + 1, back ? "o" : "O", back ? "o" : "o");
+    };
+    leg(11, -sw, true);
+    /* 奥の腕（体のうしろ・暗い色） */
+    const armC = sd.arm || "S", armBack = armC === "S" ? "s" : armC === "A" ? "a" : armC === "C" ? "c" : armC;
+    const arm = (sx, sy, sgn, back) => {
+      const hx = sx + sgn * 3, hy = sy + 6;
+      seg(sx, sy, (sx + hx) / 2, sy + 3, back ? armBack : armC, 2);
+      seg((sx + hx) / 2, sy + 3, hx, hy, back ? armBack : armC, 2);
+      put(hx, hy + 1, back ? "s" : "S"); put(hx + 1, hy + 1, back ? "s" : "S");
+      return [hx, hy + 1];
+    };
+    arm(11, 15 + dy, -sw, true);
+    /* ── 2. 体（胴・腰・スカート） ── */
+    const T = sd.top;
+    const torso = (ch, sh) => { for (let y = 14; y <= legY - 1; y++) { for (let x = 9; x <= 14; x++) put(x, y + dy, ch); put(9, y + dy, sh); } };
+    if (T === "tank") { torso("A", "a"); put(9, 14 + dy, "S"); put(10, 14 + dy, "S"); put(13, 14 + dy, "S"); if (sd.inner) { put(14, 15 + dy, sd.inner); put(14, 16 + dy, sd.inner); } }
+    else if (T === "jacket") { torso("C", "c"); for (let y = 14; y <= legY - 1; y++) { put(9, y + dy, "a"); put(10, y + dy, "A"); put(11, y + dy, "A"); put(12, y + dy, y % 3 ? "A" : "a"); } }
+    else if (T === "blouse") { torso("A", "a"); if (sd.ribbon) { put(14, 14 + dy, "D"); put(15, 15 + dy, "D"); put(14, 15 + dy, "d"); put(15, 16 + dy, "d"); } }
+    else if (T === "kimono") { torso("A", "a"); put(13, 14 + dy, "C"); put(14, 15 + dy, "C"); box(9, 19 + dy, 14, 20 + dy, "G"); put(11, 16 + dy, "C"); }
+    else if (T === "knitjacket") { torso("A", "a"); for (let y = 14; y <= legY - 2; y++) { put(9, y + dy, "c"); put(10, y + dy, "C"); put(11, y + dy, "C"); } }
+    else if (T === "turtle") { torso("A", "a"); put(11, 13 + dy, "A"); put(12, 13 + dy, "A"); put(14, 17 + dy, "G"); put(14, 18 + dy, "G"); put(13, 17 + dy, "g"); put(14, 19 + dy, "G"); }
+    else if (T === "gothic") { torso("A", "a"); box(9, 18 + dy, 14, 18 + dy, "C"); put(13, 14 + dy, "C"); put(14, 14 + dy, "C"); }
+    else if (T === "uniform") { torso("A", "a"); box(9, 14 + dy, 11, 15 + dy, "C"); put(14, 15 + dy, "D"); put(15, 16 + dy, "D"); put(14, 16 + dy, "D"); }
+    else torso("A", "a");
+    if (sd.susp) { for (let y = 14; y <= legY - 1; y++) put(12, y + dy, "C"); }
+    put(11, 13 + dy, T === "turtle" ? "A" : "S"); put(12, 13 + dy, T === "turtle" ? "A" : "s");
+    /* 手前の脚 */
+    leg(12, sw, false);
+    /* 腰から下 */
+    const B = sd.bottom;
+    if (B === "shorts") { box(9, legY + dy, 14, legY + 2 + dy, "P"); put(9, legY + 2 + dy, "p"); put(12, legY + 1 + dy, "p"); }
+    else if (B === "pants") { box(9, legY + dy, 14, legY + 1 + dy, "P"); }
+    else if (B === "skirt" || B === "bootsSkirt") {
+      for (let y = 0; y < 4; y++) { const x0 = 9 - Math.floor(y / 2) - (y === 3 ? 1 : 0), x1 = 14 + Math.floor(y / 2); for (let x = x0; x <= x1; x++) put(x, legY - 1 + y + dy, (x + y) % 4 === 0 ? "p" : "P"); }
+    } else if (B === "dress") {
+      for (let y = 0; y < 4; y++) { const x0 = 9 - Math.floor(y / 2), x1 = 14 + Math.floor(y / 2); for (let x = x0; x <= x1; x++) put(x, legY - 1 + y + dy, y === 3 ? "a" : "A"); }
+    } else if (robe) {
+      const hem = legY0 >= 27 ? 27 : 26;
+      for (let y = 20; y <= hem; y++) { const k = Math.floor((y - 20) / 2); const x0 = 9 - k - (y > 24 ? 1 : 0), x1 = 14 + k; for (let x = x0; x <= x1; x++) put(x, y + dy, y === hem ? (sd.top === "gothic" ? "C" : "a") : ((x === x0) ? "a" : "A")); }
+      if (sd.top === "kimono") { put(12, 23 + dy, "C"); put(10, 25 + dy, "C"); put(14, 24 + dy, "C"); }
+    }
+    /* ── 3. 頭（横顔） ── */
+    const hy = dy;
+    for (let y = 3; y <= 13; y++) for (let x = 7; x <= 17; x++) { if ((x - 12) * (x - 12) + (y - 8.4) * (y - 8.4) <= 25.5) put(x, y + hy, "S"); }
+    put(18, 10 + hy, "S");                      // 鼻先
+    put(17, 12 + hy, "M"); put(16, 13 + hy, "s"); put(15, 13 + hy, "s");
+    put(15, 8 + hy, "K"); put(16, 8 + hy, "K");  // まつげ
+    put(15, 9 + hy, "E"); put(16, 9 + hy, "W"); put(15, 10 + hy, "E"); put(16, 10 + hy, "E");
+    put(16, 11 + hy, "B");
+    /* 前髪・頭のてっぺん・耳を隠す横の髪 */
+    const capRows = { 2: [9, 14], 3: [8, 16], 4: [7, 17], 5: [7, 17], 6: [7, 17] };
+    Object.keys(capRows).forEach((yy) => { const [x0, x1] = capRows[yy]; for (let x = x0; x <= x1; x++) put(x, +yy + hy, "H"); });
+    put(10, 3 + hy, "L"); put(11, 3 + hy, "L"); put(12, 4 + hy, "L"); put(13, 4 + hy, "L");
+    put(17, 7 + hy, "H"); put(14, 7 + hy, "h"); put(17, 8 + hy, "h");   // 前髪の毛先
+    for (let y = 7; y <= 12; y++) { put(7, y + hy, "H"); put(8, y + hy, "H"); put(9, y + hy, "H"); put(10, y + hy, y < 11 ? "H" : "h"); if (y < 11) put(11, y + hy, "h"); }
+    if (sd.hair === "bob") { put(11, 11 + hy, "H"); put(11, 12 + hy, "h"); }
+    /* 髪かざり */
+    if (sd.acc === "pin") { put(14, 4 + hy, "D"); put(15, 4 + hy, "D"); }
+    if (sd.acc === "camellia") { put(8, 3 + hy, "D"); put(9, 4 + hy, "D"); put(7, 4 + hy, "D"); put(8, 4 + hy, "d"); put(8, 5 + hy, "D"); }
+    if (sd.acc === "rose") { box(7, 2 + hy, 9, 4 + hy, "D"); put(8, 3 + hy, "d"); }
+    if (sd.prop === "takina" || sd.hair === "pony") { put(7, 3 + hy, "D"); put(7, 4 + hy, "D"); }
+    /* ── 4. 手前の腕と持ち物 ── */
+    const [hx, hy2] = arm(12, 15 + dy, sw, false);
+    const P = sd.prop;
+    if (P === "gun") { box(hx + 1, hy2 - 1, hx + 4, hy2 - 1, "X"); put(hx + 1, hy2, "x"); put(hx + 2, hy2, "x"); put(hx + 5, hy2 - 1, "x"); }
+    else if (P === "ice") { put(hx + 1, hy2 - 2, "X"); put(hx + 2, hy2 - 2, "X"); put(hx + 1, hy2 - 3, "X"); put(hx + 2, hy2 - 3, "x"); put(hx + 1, hy2 - 1, "Y"); put(hx + 2, hy2 - 1, "Y"); }
+    else if (P === "ball") { const bx = hx + 1, by = hy2 - 2; [".XX.", "XYXX", "XXYx", ".xx."].forEach((r, j) => { for (let i = 0; i < 4; i++) if (r[i] !== ".") put(bx + i, by + j, r[i]); }); }
+    else if (P === "flame") { put(hx + 1, hy2 - 1, "X"); put(hx + 1, hy2 - 2, "x"); put(hx + 2, hy2 - 1, "X"); put(hx + 2, hy2 - 3, "X"); put(hx + 1, hy2, "X"); }
+    else if (P === "orb") { put(hx + 1, hy2 - 1, "X"); put(hx + 2, hy2 - 1, "x"); put(hx + 1, hy2 - 2, "x"); put(hx + 2, hy2, "X"); }
+    else if (P === "rapier") { put(hx + 1, hy2, "Y"); put(hx + 1, hy2 - 1, "Y"); seg(hx + 2, hy2, hx + 7, hy2 + 3, "X", 1); }
+    else if (P === "umbrella") {
+      /* すけた傘を頭の上に（柄は手前の手へ） */
+      for (let x = 5; x <= 19; x++) { const t = Math.abs(x - 12); const top = t > 6 ? 3 : t > 4 ? 2 : t > 2 ? 1 : 0; for (let y = top; y <= 3; y++) put(x, y + dy - 1, y === 3 ? "x" : "X"); }
+      seg(12, 2 + dy, hx + 1, hy2 - 1, "Y", 1);
+    }
+    else if (P === "trumpet") { box(16, 11 + hy, 20, 11 + hy, "G"); put(21, 10 + hy, "G"); put(21, 11 + hy, "G"); put(21, 12 + hy, "G"); put(17, 12 + hy, "g"); }
+    else if (P === "euph") { box(13, 16 + dy, 16, 19 + dy, "G"); put(16, 15 + dy, "G"); put(17, 14 + dy, "G"); put(14, 17 + dy, "g"); put(15, 18 + dy, "g"); }
+    return b;
+  }
+  /* 4コマ（＋輪郭）。duo は奥のレイナを先に描いて手前のクミコを重ねる（横幅 32） */
+  function sideFrames(id, def) {
+    const ol = (bb, k) => bufToCanvas(outlineBuf(bb, k || "#14111c"));
+    if (def.duo) {
+      const W = 32;
+      return [0, 1, 2, 3].map((ph) => {
+        const bk = outlineBuf(sideBuf(def.back.pal, SIDE.duoBack, (ph + 2) % 4, 23), def.back.pal.K);
+        const fr = sideBuf(def.front.pal, SIDE.duoFront, ph, 23);
+        const b = mkBuf(W, CH);
+        const put2 = (src, ox, oy) => { for (let y = 0; y < src.h; y++) for (let x = 0; x < src.w; x++) { const i = (y * src.w + x) * 4; if (!src.d[i + 3]) continue; const nx = x + ox, ny = y + oy; if (nx < 0 || nx >= W || ny < 0 || ny >= CH) continue; b.d.set(src.d.subarray(i, i + 4), (ny * W + nx) * 4); } };
+        put2(bk, 1, -1); put2(fr, 8, 0);
+        return ol(b, def.front.pal.K);
+      });
+    }
+    const sd = SIDE[id] || SIDE.generic;
+    return [0, 1, 2, 3].map((ph) => ol(sideBuf(def.pal, sd, ph, def.legY || 23), def.pal.K));
+  }
   const spriteCache = {};
   function charSprite(id) {
     if (spriteCache[id]) return spriteCache[id];
@@ -737,6 +967,8 @@
       const c = composeChar(def), bl = composeBlink(def);
       res = animFrames(c.buf, bl.buf, def, def.pal.K || "#14111c");
     }
+    /* 横向きに走る4コマ（右向き） */
+    try { res.side = sideFrames(CHAR_ART[id] ? id : "generic", def); } catch (e) { res.side = null; }
     spriteCache[id] = res;
     return res;
   }
@@ -758,10 +990,11 @@
      イラストからドットの顔アイコンを作る（HUD・一覧用）
      切り抜き位置は 0〜1 の割合（t_◯◯.webp の正方形に対して）
      ══════════════════════════════════════════════════════════════ */
+  /* ★★ 2026-10-05 顔がずれていた子（ココハ・タキナ）を直した（t_◯◯.webp を見て合わせた） */
   const FACE_BOX = {
-    takina: [0.19, 0.15, 0.40], hinano: [0.30, 0.10, 0.36], hanon: [0.32, 0.09, 0.39], kokoha: [0.29, 0.13, 0.37],
-    mutsumi: [0.35, 0.06, 0.33], reina: [0.28, 0.13, 0.38], azusa: [0.30, 0.07, 0.37], kumireina: [0.18, 0.05, 0.58],
-    kagura: [0.23, 0.08, 0.37], kotori: [0.33, 0.12, 0.35],
+    takina: [0.20, 0.16, 0.36], hibana: [0.34, 0.20, 0.40], fuki: [0.22, 0.18, 0.42], hinano: [0.31, 0.10, 0.35], hanon: [0.32, 0.08, 0.38], kokoha: [0.35, 0.15, 0.33],
+    mutsumi: [0.34, 0.05, 0.33], reina: [0.28, 0.12, 0.38], azusa: [0.30, 0.06, 0.37], kumireina: [0.19, 0.06, 0.56],
+    kagura: [0.23, 0.08, 0.37], kotori: [0.34, 0.12, 0.34],
   };
   const portraitCache = {};
   function portrait(id, file, size, cb) {
@@ -776,12 +1009,8 @@
         const c = mkCanvas(size, size), g = c.getContext("2d");
         g.imageSmoothingEnabled = true; g.imageSmoothingQuality = "high";
         g.drawImage(img, bx[0] * sw, bx[1] * sh, bx[2] * sw, bx[2] * sh, 0, 0, size, size);
-        /* 色数を落としてドットらしく（各チャンネルを 6 段に） */
-        const id2 = g.getImageData(0, 0, size, size), d = id2.data;
-        const q = (v) => Math.round(v / 51) * 51;
-        for (let i = 0; i < d.length; i += 4) { d[i] = q(d[i] * 1.04); d[i + 1] = q(d[i + 1] * 1.02); d[i + 2] = q(d[i + 2]); d[i + 3] = 255; }
-        g.putImageData(id2, 0, 0);
-        const url = c.toDataURL();
+        /* ★★ 2026-10-05 色を 6 段に落としていたせいで、肌や髪の色が変（ご指摘）→ 元の色のまま */
+        const url = c.toDataURL("image/png");
         portraitCache[key] = url;
         cb && cb(url);
       } catch (e) { cb && cb(file); }
@@ -796,6 +1025,8 @@
     if (spriteCache[key]) return spriteCache[key];
     const c = composeChar(def), bl = composeBlink(def);
     const res = animFrames(c.buf, bl.buf, def, def.pal.K || "#14111c");
+    /* 横向き（NPC も side の型があれば） */
+    if (def.side) { try { res.side = [0, 1, 2, 3].map((ph) => bufToCanvas(outlineBuf(sideBuf(def.pal, def.side, ph, def.legY || 23), def.pal.K || "#14111c"))); } catch (e) { res.side = null; } }
     spriteCache[key] = res;
     return res;
   }
@@ -803,7 +1034,7 @@
 
   MA.Pix = {
     hex, toHex, shade, mix, rgba, mkCanvas, mkBuf, bufToCanvas, setPx, outlineBuf, shiftWhere, whiteOf,
-    drawLayer, pixelize, framesFrom, textSprite, shortNum, charSprite, portrait, CHAR_ART, FACE_BOX, CW, CH,
+    drawLayer, pixelize, framesFrom, textSprite, shortNum, charSprite, portrait, CHAR_ART, FACE_BOX, CW, CH, SIDE,
     spriteFromDef, PARTS,
   };
 })();

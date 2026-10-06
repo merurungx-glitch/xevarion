@@ -36,7 +36,11 @@
       ach: {}, mis: { day: "", d: {}, dc: {}, week: "", w: {}, wc: {} },
       fac: { smith: 0, shop: 0, tavern: 0, train: 0, chapel: 0, archive: 0 },
       shop: { day: "", stock: [] },
-      set: { bgm: 0.55, se: 0.8, aim: "auto", autoAtk: true, dmgNum: true, shake: true, maxEnemies: 60, zoom: "auto", stickSide: "left", vib: true, fps: false, quality: "high", hints: true },
+      /* ★★ 2026-10-05 aim の標準は「向いている方向」（facing）。keys … キーボードの割り当て（null＝標準）。
+         touch … スマホのボタン（大きさ・濃さ・位置・割り当て） */
+      set: { bgm: 0.55, se: 0.8, aim: "facing", aimV2: 1, autoAtk: true, dmgNum: true, shake: true, maxEnemies: 60, zoom: "auto", stickSide: "left", vib: true, fps: false, quality: "high", hints: true,
+        keys: null, touch: { size: 1, alpha: 0.9, pos: null, map: null } },
+      tmis: {}, tmisClaim: {}, tutorial: 0,
       stats: { kills: 0, runs: 0, clears: 0, playSec: 0, goldTotal: 0, bosses: 0, floors: 0, resonances: 0, levels: 0 },
       last: null, firstGems: {}, tut: { guild: 0, battle: 0 },
     };
@@ -46,12 +50,15 @@
     const f = fresh();
     if (!s || typeof s !== "object" || Array.isArray(s)) return null;
     const out = Object.assign({}, f, s);
-    ["mats", "items", "chars", "gear", "eq", "dun", "codex", "ach", "mis", "fac", "shop", "set", "stats", "firstGems", "tut", "abyss"].forEach((k) => {
+    ["mats", "items", "chars", "gear", "eq", "dun", "codex", "ach", "mis", "fac", "shop", "set", "stats", "firstGems", "tut", "abyss", "tmis", "tmisClaim"].forEach((k) => {
       if (!out[k] || typeof out[k] !== "object" || Array.isArray(out[k])) out[k] = JSON.parse(JSON.stringify(f[k]));
       else out[k] = Object.assign(JSON.parse(JSON.stringify(f[k])), out[k]);
     });
     ["en", "boss", "wp", "mg", "gear", "res", "lore", "story"].forEach((k) => { if (!out.codex[k] || typeof out.codex[k] !== "object") out.codex[k] = {}; });
     if (!Array.isArray(out.abyss.record)) out.abyss.record = [];
+    /* ★★ 2026-10-05 ねらいの標準を「向いている方向」へ（前の「自動」の人も一度だけ切りかえる） */
+    if (!(s.set && s.set.aimV2)) { if (out.set.aim === "auto" || !out.set.aim) out.set.aim = "facing"; out.set.aimV2 = 1; }
+    if (!out.set.touch || typeof out.set.touch !== "object") out.set.touch = { size: 1, alpha: 0.9, pos: null, map: null };
     if (!Array.isArray(out.shop.stock)) out.shop.stock = [];
     out.gold = Math.max(0, Math.floor(Number(out.gold) || 0));
     Object.keys(out.mats).forEach((k) => { out.mats[k] = Math.max(0, Math.floor(Number(out.mats[k]) || 0)); });

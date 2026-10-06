@@ -15,19 +15,22 @@
   let cv = null, ctx = null;
   let chunks = {}, chunkDirty = true;
 
+  let bound = false;
   function init(canvas) {
     cv = canvas; ctx = cv.getContext("2d", { alpha: false });
     resize();
-    window.addEventListener("resize", resize);
-    window.addEventListener("orientationchange", () => setTimeout(resize, 200));
+    /* ★ 探索を始めるたびに呼ばれるので、受け口は1回だけ */
+    if (!bound) { bound = true; window.addEventListener("resize", resize); window.addEventListener("orientationchange", () => setTimeout(resize, 200)); }
   }
   function resize() {
     if (!cv) return;
-    const w = window.innerWidth, h = window.innerHeight;
+    /* ★★ 2026-10-05 iPhone のアプリ表示では本当の画面の高さ（MA.vp）。スマホの横画面は少し寄る */
+    const v = MA.vp ? MA.vp() : { w: window.innerWidth, h: window.innerHeight };
+    const w = v.w, h = v.h;
     const S = MA.Save && MA.Save.S;
     const z = (S && S.set.zoom) || "auto";
     const port = h > w;
-    const target = (z === "near" ? 0.8 : z === "far" ? 1.22 : 1) * (port ? 240 : 300);
+    const target = (z === "near" ? 0.8 : z === "far" ? 1.22 : 1) * (port ? 240 : (MA.isPhone && MA.isPhone() ? 250 : 300));
     let scale = Math.min(w, h) / target;
     if (scale >= 2) scale = Math.floor(scale * 2) / 2;
     scale = Math.max(1, scale);
@@ -237,6 +240,7 @@
     let f;
     if (P.hurtT > 0 && Math.floor(P.hurtT * 30) % 2 === 0) f = sp.hurt;
     else if (P.atkAnim > 0) f = sp.atk;
+    else if (P.moving && P.side && sp.side) f = sp.side[Math.floor(P.walkT * 10) % 4];
     else if (P.moving) f = sp.walk[Math.floor(P.walkT * 9) % 4];
     else { const it = Math.floor(g.t * 2) % 2; f = sp.idle[(g.t % 3.2) > 3.05 ? 2 : it]; }
     const x = Math.round(P.x - camX), y = Math.round(P.y - camY);

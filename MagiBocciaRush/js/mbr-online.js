@@ -61,7 +61,7 @@ const CODE_CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 function gen6() { let s = ""; for (let i = 0; i < 6; i++) s += CODE_CHARS[Math.floor(Math.random() * CODE_CHARS.length)]; return s; }
 const P = (code) => "brrooms/" + code;
 /* ★★ 2026-10-01 ルールの版（mbr-core.js の VERSION と同じ）。ちがう版の部屋・待ち行列とは組まない */
-const RV = 5;
+const RV = 6;   /* ★★ 2026-10-06b ジャックの場外→クロス */
 const pad = (n) => String(n).padStart(4, "0");
 const MAX_PLAYERS = 6;
 
