@@ -15,8 +15,8 @@
    <b>ふつうの &lt;script&gt;</b>（type="module" ではない）で読むこと。
    トップレベルの const/let はグローバルの字句環境に入るので、
    あとから読み込む MagiBurst 本体のスクリプトからそのまま見える。
-     MagiBurst : <script src="js/mb-core.js?v=134"></script>
-     gacha.html: <script src="MagiBurst/js/mb-core.js?v=134"></script>
+     MagiBurst : <script src="js/mb-core.js?v=135"></script>
+     gacha.html: <script src="MagiBurst/js/mb-core.js?v=135"></script>
 
    ── ホストが先に用意しておくもの ──
      window.MB_IMGD … 画像フォルダへの相対パス（MagiBurst は "../img/"、ポータルは "img/"）
@@ -154,13 +154,28 @@ function elemMult(a, d) {
      この関数に置きかえる。こうすると el2 を持たないキャラの動きは1つも変わらない。
    ★ el2 を新しく足すときは、ここに書くだけでよい（判定はこの1本しかない）。
    ══════════════════════════════════════════════════════════════ */
+/* ══ ★★ 2026-10-09 <b>3属性有利</b>（ご指定・全属性有利から変更）══
+   「自分の属性」と「自分が苦手な属性」をのぞいた<b>3つ</b>に有利：
+     火 → 木・光・闇 ／ 水 → 火・光・闇 ／ 木 → 水・光・闇 ／ 光・闇 → 火・水・木（光⇔闇はもともと有利）。
+   ★ 有利属性へ変化したボール（elShifted）は<b>もとの属性（elFrom）</b>で数える＝変化しても有利の範囲は変わらない。
+   ★ 二属性（el2）は両方の3つを合わせる。 */
+const ELEM_WEAK_OF = { fire: "water", water: "wood", wood: "fire", light: "dark", dark: "light" };
+const TRI_ELS = ["fire", "water", "wood", "light", "dark"];
+function triAdvEls(el) { return el ? TRI_ELS.filter((x) => x !== el && x !== ELEM_WEAK_OF[el]) : []; }
+function elemAdvCovers(c, d) {
+  if (!c || !d) return false;
+  const a = c.elFrom || c.el, b = c.elShifted ? c.elFrom2 : c.el2;
+  return triAdvEls(a).indexOf(d) >= 0 || (!!b && triAdvEls(b).indexOf(d) >= 0);
+}
 function elemMultOf(c, d) {
   const m1 = elemMult(c && c.el, d);
   let m = (!c || !c.el2) ? m1 : Math.max(m1, elemMult(c.el2, d));
   /* ══ ★★ 2026-09-11 <b>全属性有利</b>（アビリティ elemadv・サヤ）══
-     el2 と同じくここ1か所だけで効かせる。どの属性の相手でも<b>有利の倍率</b>になる。
+     el2 と同じくここ1か所だけで効かせる。
+     ★★ 2026-10-09 ご指定により<b>全キャラ「3属性有利」へ変更</b>（ability id は elemadv のまま）：
+       <b>自分と同じ属性・自分が苦手な属性をのぞく3つ</b>の相手にだけ有利の倍率になる（elemAdvCovers）。
      ★ 判定を増やさないこと（直殴り・リンク・適性判定は全部この関数を通っている）。 */
-  if (c && typeof hasAbil === "function" && hasAbil(c, "elemadv")) {
+  if (c && typeof hasAbil === "function" && hasAbil(c, "elemadv") && elemAdvCovers(c, d)) {
     m = Math.max(m, (typeof elemUpMul === "function") ? elemUpMul() : 1.25);
   }
   /* ★★ 2026-09-06 装備の<b>有利コードダメージ増加</b>。
@@ -396,8 +411,9 @@ const AB_NM = {
   atkchargeM: "攻撃力チャージM", defkillerM: "防御ダウンキラーM",
   /* ══ ★★ 2026-09-11 BUNNY GIRL FEST サヤ用 ══
      ・elemadv … <b>全属性有利</b>。どの属性の敵に対しても「属性有利」になる。
-       判定は elemMultOf の1か所だけ（＝乗せ忘れが原理的に起きない）。 */
-  elemadv: "全属性有利",
+       判定は elemMultOf の1か所だけ（＝乗せ忘れが原理的に起きない）。
+     ★★ 2026-10-09 ご指定で<b>3属性有利</b>へ（自分と苦手属性をのぞく3つ・elemAdvCovers）。id はそのまま。 */
+  elemadv: "3属性有利",
 };
 /* ══ ★ 2026-08-16b 上の新アビリティの数値 ══ */
 const KILLER_EL_MUL = 3.0;        // 属性キラーEL
@@ -2234,9 +2250,11 @@ function abilDesc(a) {
       + "<br><small>※ ブロック・ロックゾーン・減速壁など、ほかのギミックには効きません</small>";
     case "allkiller": return "すべての属性の敵へのダメージが1.5倍";
     /* ★★ 2026-09-11 全属性有利（サヤ）。属性キラーとはちがい<b>属性相性そのもの</b>を書きかえる */
-    case "elemadv": return "<b>すべての属性の敵に対して属性有利</b>になる（ダメージ ×"
+    /* ★★ 2026-10-09 3属性有利（ご指定で全属性有利から変更） */
+    case "elemadv": return "<b>自分と同じ属性・自分が苦手な属性をのぞく3つの属性</b>の敵に対して属性有利になる（ダメージ ×"
       + ((typeof elemUpMul === "function" ? elemUpMul() : 1.25)).toFixed(2)
-      + "）<br><small>※ 不利属性でも 0.75 倍にならず、必ず有利の倍率になります</small>";
+      + "）<br><small>※ 火→木・光・闇／水→火・光・闇／木→水・光・闇／光・闇→火・水・木（光⇔闇はもともと有利）。"
+      + "バトル開始時、ボスがこの3つに入るときは<b>そのボスに有利な属性へ変化</b>します</small>";
     case "drain": return "敵にふれるたびにチームHPを" + Math.round(DRAIN_RATE * 100) + "%回復する";
     case "fsboost": return "自分のリンクスキル・サブリンクの威力が" + FSBOOST_MUL + "倍になる";
     /* ★ 2026-08-07: 耐性・プロテクションは「攻撃を受けたキャラ本人」だけに効く。
@@ -4579,9 +4597,11 @@ SHOTSKILLS.bluerose = {
    ・ショットスキル「キキョウ・リップル」＝撃つたび毎回 <b>3つの効果</b>（水紋・桔梗の雫・FB前進）。
    ・極彩祭のネクサス（luxprism）をさらに強化。
    ══════════════════════════════════════════════════════════════ */
-const TKN_ATK = 3.70, TKN_SPD = 1.70;
-const TKN_BARRAGE_N = 100, TKN_BARRAGE_PER = 7.60, TKN_BARRAGE_STEP = 0.14;
-const TKN_FINALE = 450.0;          // 締めの蒼い桔梗の大輪（敵全体）
+/* ★★ 2026-10-09 ご指定「UR はどの子も同じくらいの強さ」→ UR の FB はすべて <b>110連・×7.8（+0.15）・締め ×545・自強化 ×3.80／×1.72</b>
+   ＝合計 ×2302.3 にそろえた（Pumpkin Night の PN_FB_STD と同じ数字。ミウ・マイだけ少し上）。 */
+const TKN_ATK = 3.80, TKN_SPD = 1.72;
+const TKN_BARRAGE_N = 110, TKN_BARRAGE_PER = 7.80, TKN_BARRAGE_STEP = 0.15;
+const TKN_FINALE = 545.0;          // 締めの蒼い桔梗の大輪（敵全体）
 const TKN_DEFDOWN = 5;
 const TKN_FB = 2;                  // 味方全員のフルバーストを進める数
 const TKN_TOTAL = TKN_BARRAGE_N * TKN_BARRAGE_PER
@@ -4618,9 +4638,9 @@ SHOTSKILLS.kikyoripple = {
    ・フキ：アンチ断絶界／全属性キラーEL＋ボスキラーEL＋パワーオーラEL／クロス ドレインEL・FBターンチャージ・リンク×2／
      FB「ヨイヤミ・オボロザクラ」＝乱打＋朧桜の帳＋防御力ダウン＋<b>敵全体の行動遅延</b>（<b>史上最大</b>）。
    ══════════════════════════════════════════════════════════════ */
-const HBN_ATK = 3.75, HBN_SPD = 1.70;
-const HBN_BARRAGE_N = 104, HBN_BARRAGE_PER = 7.60, HBN_BARRAGE_STEP = 0.14;
-const HBN_FINALE = 520.0;          // 締めの勿忘草の大輪（敵全体）
+const HBN_ATK = 3.80, HBN_SPD = 1.72;     /* ★★ 2026-10-09 UR 同等化（タキナと同じ数字） */
+const HBN_BARRAGE_N = 110, HBN_BARRAGE_PER = 7.80, HBN_BARRAGE_STEP = 0.15;
+const HBN_FINALE = 545.0;          // 締めの勿忘草の大輪（敵全体）
 const HBN_DEFDOWN = 5;
 const HBN_HEAL = 0.30;             // チームHPの回復割合
 const HBN_BARRIER = 5000;          // 味方全員に張るバリア
@@ -4628,7 +4648,7 @@ const HBN_TOTAL = HBN_BARRAGE_N * HBN_BARRAGE_PER
   + HBN_BARRAGE_STEP * HBN_BARRAGE_N * (HBN_BARRAGE_N - 1) / 2 + HBN_FINALE;
 const FUK_ATK = 3.80, FUK_SPD = 1.72;
 const FUK_BARRAGE_N = 110, FUK_BARRAGE_PER = 7.80, FUK_BARRAGE_STEP = 0.15;
-const FUK_FINALE = 480.0;          // 締めの朧桜の帳（敵全体）
+const FUK_FINALE = 545.0;          // 締めの朧桜の帳（敵全体）★★ 2026-10-09 UR 同等化（480→545）
 const FUK_DEFDOWN = 5;
 const FUK_DELAY = 2;               // 敵全体の攻撃を遅らせるターン
 const FUK_TOTAL = FUK_BARRAGE_N * FUK_BARRAGE_PER
@@ -4665,6 +4685,143 @@ SHOTSKILLS.yoiyamipetal = {
     + "<br>進む向きへ<b>扇形</b>に宵闇の花びらが舞い、当たった敵は<b>攻撃が1ターン遅れ</b>、"
     + "あわせて<b>自分のフルバーストが" + SHOTSK_FUKI_FB + "ターン進む</b>。",
 };
+
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-10-09 <b>Pumpkin Night</b>（fes18）の UR 10体（ご指定・性能はユーザーと相談して決定）
+   ・火 アヤノ／サキ・水 ユカ／ナツミ・木 ミウ／マイ・光 チナツ／ユウミ・闇 リナ／カオリ（No.265〜274）。
+   ・共通：治癒の祈り（SS絵）・<b>アンチ4つ</b>（オムニなし。天界の審判・蓬莱・庭園で最適性キャラが少ない面を実測して割りふった）・
+     <b>クロススキルなし</b>・キラー3つ（全属性キラーEL＋ボスキラーEL＋パワーオーラEL か 底力EL）・<b>3属性有利</b>・リンクブーストEL・リンク×2。
+     リンク＝既存で最強のブルーローズ・コンプリート／サブ＝ゴールデン・リバウンド／ネクサス＝<b>南瓜・パンプキンナイトネクサス</b>（新設・強化）。
+     撃つたび<b>3つの技</b>が出るショットスキル（10本とも別の技）。
+   ・<b>UR はどの子も同じくらい</b>（ご指定）：FB は UR 標準（PN_FB_STD）。<b>ミウ・マイだけ少し上</b>（弱点キラーEL を足してキラー4つ・ステータス +4%・FB +8%）。
+   ★ FB の中身は PN_FB（数字と名前）＋ index.html の fxPumpkinFB（演出）の1本。ショットスキルは PN_SHOT ＋ firePnShot の1本。
+   ══════════════════════════════════════════════════════════════ */
+const PN_FB_STD = { n: 110, per: 7.80, step: 0.15, fin: 545.0, def: 5, atk: 3.80, spd: 1.72 };
+const PN_FB_STRONG = { n: 116, per: 8.00, step: 0.16, fin: 490.0, def: 5, atk: 3.95, spd: 1.76 };
+/* 締めの追加効果：atkUp=[倍率,ターン]（味方全員）／heal（チームHP割合）／barrier（味方全員）／delay（敵全体の攻撃を遅らせる）／
+   fbAll（味方全員のFBを進める）／poison（敵全体の毒ターン）／sigil（敵全体に追加弱点のターン）／atkDown=[倍率,ターン]（敵全体） */
+const PN_FB = {
+  ayanok:    { id: "ayano",    nm: "スカーレット・ウィッチナイト", en: "SCARLET WITCH NIGHT", bar: "緋のランタン", fin: "緋の大魔法陣", finEn: "SCARLET CIRCLE",
+    c: "#ff5a3c", c2: "#ffd0a0", sky: "#1a0505", motif: "lantern", atkUp: [1.30, 3],
+    fl: "月夜の古城で、緋色の魔女帽をひるがえす。" },
+  sakik:     { id: "saki",     nm: "キャンディ・ジャックランタン", en: "CANDY JACK-O'-LANTERN", bar: "飴玉", fin: "大ジャック・オ・ランタン", finEn: "JACK-O'-LANTERN",
+    c: "#ff8a1f", c2: "#ffe0a8", sky: "#1a0a02", motif: "candy", heal: 0.25, barrier: 4000,
+    fl: "オレンジの帽子をかたむけて、ぺろりと飴をなめる。" },
+  yukak:     { id: "yuka",     nm: "スターリィ・キャットウィッチ", en: "STARRY CAT WITCH", bar: "星屑の爪", fin: "流星の魔法円", finEn: "METEOR CIRCLE",
+    c: "#5ab8ff", c2: "#e8f6ff", sky: "#030a1a", motif: "star", delay: 2,
+    fl: "星降る夜、猫耳の魔女が杖をひとふり。" },
+  natsumik:  { id: "natsumi",  nm: "ブラックキャット・ミッドナイト", en: "BLACK CAT MIDNIGHT", bar: "黒猫の影", fin: "満月の水鏡", finEn: "FULL MOON MIRROR",
+    c: "#3d7bff", c2: "#ffe9a8", sky: "#02050f", motif: "moon", fbAll: 2,
+    fl: "満月の下、黒猫の少女がしっぽを揺らす。" },
+  miuk:      { id: "miu",      nm: "パンプキン・パレード", en: "PUMPKIN PARADE", bar: "カボチャ", fin: "収穫祭の大南瓜", finEn: "HARVEST PUMPKIN",
+    c: "#ff9a1f", c2: "#c8ff9a", sky: "#0c1404", motif: "pumpkin", strong: 1, poison: 4, sigil: 3, fbAll: 1,
+    fl: "南瓜の頭巾をかぶって、収穫祭の行列がはじまる。" },
+  maik:      { id: "mai",      nm: "フォーチュン・クローバー", en: "FORTUNE CLOVER", bar: "四つ葉", fin: "幸運の大結界", finEn: "LUCKY BARRIER",
+    c: "#3dd17a", c2: "#fff2a8", sky: "#03140a", motif: "clover", strong: 1, heal: 0.30, atkUp: [1.25, 3], sigil: 3,
+    fl: "四つ葉の髪飾りが、そっと幸運を呼びよせる。" },
+  chinatsuk: { id: "chinatsu", nm: "キャンドルライト・ヴェール", en: "CANDLELIGHT VEIL", bar: "燭台の火", fin: "千の燭台", finEn: "THOUSAND CANDLES",
+    c: "#ffd257", c2: "#fff6d8", sky: "#140e02", motif: "candle", barrier: 5000, atkDown: [0.70, 3],
+    fl: "燭台の灯りが、レースの影を長く伸ばす。" },
+  yuumik:    { id: "yuumi",    nm: "トリック・オア・ランタン", en: "TRICK OR LANTERN", bar: "ランタン", fin: "トリック・オア・トリート", finEn: "TRICK OR TREAT",
+    c: "#ffb347", c2: "#fff0c8", sky: "#140a02", motif: "lantern", sigil: 3, fbAll: 1,
+    fl: "赤いマフラーをなびかせて、ランタンを高くかかげる。" },
+  rinak:     { id: "rina",     nm: "マミー・ラビリンス", en: "MUMMY LABYRINTH", bar: "包帯", fin: "封印の大包帯", finEn: "SEALING WRAP",
+    c: "#b58cff", c2: "#f4ecff", sky: "#0a0414", motif: "bandage", atkDown: [0.60, 4], delay: 1,
+    fl: "ほどけた包帯が、夜の迷宮をつくりだす。" },
+  kaorik:    { id: "kaori",    nm: "ゴースト・ウィッチパーティー", en: "GHOST WITCH PARTY", bar: "幽霊", fin: "百鬼の夜会", finEn: "PHANTOM BALL",
+    c: "#c06bff", c2: "#ffd8f0", sky: "#0e0418", motif: "ghost", poison: 4, heal: 0.20,
+    fl: "オレンジの魔女帽の上で、幽霊たちがくすくす笑う。" },
+};
+function pnFbNum(k) { const s = PN_FB[k]; return s && s.strong ? PN_FB_STRONG : PN_FB_STD; }
+function pnFbTotal(k) { const p = pnFbNum(k); return p.n * p.per + p.step * p.n * (p.n - 1) / 2 + p.fin; }
+/* 締めの追加効果を文にする（防御力ダウンはどの子も） */
+function pnFbExtras(k) {
+  const s = PN_FB[k], p = pnFbNum(k), t = ["敵全体の防御力ダウン " + p.def + "ターン"];
+  if (s.atkUp) t.push("味方全員の攻撃力アップ ×" + s.atkUp[0] + "（" + s.atkUp[1] + "ターン）");
+  if (s.heal) t.push("チームHPを" + Math.round(s.heal * 100) + "%回復");
+  if (s.barrier) t.push("味方全員に" + s.barrier.toLocaleString() + "のバリア");
+  if (s.delay) t.push("敵全体の攻撃を" + s.delay + "ターン遅らせる");
+  if (s.fbAll) t.push("味方全員のフルバーストを" + s.fbAll + "進める");
+  if (s.poison) t.push("敵全体を毒にする（" + s.poison + "ターン）");
+  if (s.sigil) t.push("敵全体に追加の弱点を刻む（" + s.sigil + "ターン）");
+  if (s.atkDown) t.push("敵全体の攻撃力ダウン ×" + s.atkDown[0] + "（" + s.atkDown[1] + "ターン）");
+  return t;
+}
+function pnFbPow(k) {
+  const s = PN_FB[k], p = pnFbNum(k);
+  return "自強化（攻撃×" + p.atk + "・スピード×" + p.spd + "）＋ "
+    + "最初にふれた敵の上で止まって<b>" + s.bar + "の乱打 " + p.n + "連</b>（1発 攻撃力×" + p.per + "・撃つごとに +" + p.step + "）"
+    + " ＋ <b>" + s.fin + "</b>（敵全体・攻撃力×" + p.fin + "）"
+    + pnFbExtras(k).map((x) => " ＋ <b>" + x + "</b>").join("") + "／合計 攻撃力×" + pnFbTotal(k).toFixed(1);
+}
+function pnFbDesc(k) {
+  const s = PN_FB[k], p = pnFbNum(k);
+  return s.fl
+    + "<br><b>自強化（攻撃×" + p.atk + "・スピード×" + p.spd + "）</b>して<b>最初にふれた敵の上で止まり</b>、"
+    + s.bar + "を<b>" + p.n + "連</b>——撃つほど重くなる（×" + p.per + " → ×" + (p.per + p.step * (p.n - 1)).toFixed(2) + "）。"
+    + "<br>撃ち終えると<b>" + s.fin + "</b>がひらき、敵全体へ 攻撃力×" + p.fin + "。"
+    + pnFbExtras(k).map((x) => "<b>" + x + "</b>").join("、") + "。"
+    + "<br>合計 攻撃力×" + pnFbTotal(k).toFixed(1) + " ——"
+    + (s.strong ? "<b>UR の中でもいちばん重いフルバースト</b>です。" : "<b>UR の最上位クラス</b>のフルバーストです（UR はどの子もこの水準にそろえてあります）。");
+}
+/* ── ショットスキル（撃つたび3つの技）。shape：ring（自分のまわり）／fan（進む向きの扇）／all（敵全体）／near（近い敵から n体）／line（進む向きの帯）
+   fx：defdown／heal／delaytop（いちばんHPが高い敵）／barrierself／poison／sigiltop（いちばんHPが高い敵）／barrierall／atkdown／delay／drainheal */
+const PN_SHOT_FB = 1;
+const PN_SHOT = {
+  scarletcandle:  { id: "ayano",    nm: "スカーレット・キャンドル", c: "#ff5a3c", c2: "#ffd0a0", t1: "緋の火の粉", t2: "焦げあと",
+    shape: "ring", r: 300, per: 1.00, fx: "defdown" },
+  lollipopsplash: { id: "saki",     nm: "ロリポップ・スプラッシュ", c: "#ff8a1f", c2: "#ffe0a8", t1: "飴玉のしぶき", t2: "あまい香り",
+    shape: "fan", len: 480, ang: 0.50, per: 1.05, fx: "heal", heal: 0.03 },
+  milkywaybell:   { id: "yuka",     nm: "ミルキーウェイ・ベル", c: "#5ab8ff", c2: "#e8f6ff", t1: "星屑の鈴", t2: "星の眠り",
+    shape: "all", per: 0.90, fx: "delaytop" },
+  catspaw:        { id: "natsumi",  nm: "キャッツ・ポウ", c: "#3d7bff", c2: "#ffe9a8", t1: "肉球パンチ", t2: "しなやかな毛並み",
+    shape: "near", n: 3, per: 0.95, fx: "barrierself", bar: 1500 },
+  pumpkinbomb:    { id: "miu",      nm: "パンプキン・ボム", c: "#ff9a1f", c2: "#c8ff9a", t1: "カボチャ爆弾", t2: "かぼちゃの種",
+    shape: "ring", r: 320, per: 1.05, fx: "poison", turns: 2 },
+  luckyclover:    { id: "mai",      nm: "ラッキー・クローバー", c: "#3dd17a", c2: "#fff2a8", t1: "四つ葉の舞", t2: "幸運のしるし",
+    shape: "all", per: 0.95, fx: "sigiltop", turns: 2 },
+  candleray:      { id: "chinatsu", nm: "キャンドル・レイ", c: "#ffd257", c2: "#fff6d8", t1: "燭光の帯", t2: "灯火の加護",
+    shape: "line", len: 600, w: 90, per: 1.05, fx: "barrierall", bar: 800 },
+  lanternshot:    { id: "yuumi",    nm: "ジャック・ランタン・ショット", c: "#ffb347", c2: "#fff0c8", t1: "ジャック・ランタン", t2: "おどかし",
+    shape: "near", n: 3, per: 0.95, fx: "atkdown", mul: 0.80 },
+  bandagebind:    { id: "rina",     nm: "バンデージ・バインド", c: "#b58cff", c2: "#f4ecff", t1: "包帯の帯", t2: "ぐるぐる巻き",
+    shape: "line", len: 600, w: 80, per: 1.05, fx: "delay" },
+  ghostparade:    { id: "kaori",    nm: "ゴースト・パレード", c: "#c06bff", c2: "#ffd8f0", t1: "小さな幽霊たち", t2: "いたずらの吸い取り",
+    shape: "all", per: 0.90, fx: "drainheal", each: 0.008, max: 0.04 },
+};
+function pnShotWhere(s) {
+  if (s.shape === "ring") return "自分のまわり 半径 " + s.r + " の敵に";
+  if (s.shape === "fan") return "進行方向の扇（射程 " + s.len + "）の敵に（貫通）";
+  if (s.shape === "all") return "<b>敵全体</b>に（距離に関係なく当たる）";
+  if (s.shape === "near") return "いちばん近い敵から" + s.n + "体へ";
+  return "進む向きの帯（射程 " + s.len + "・太さ " + s.w + "）の敵に（貫通）";
+}
+function pnShotFx(s) {
+  switch (s.fx) {
+    case "defdown": return "当たった敵の防御力を1ターン下げる";
+    case "heal": return "チームHPを" + Math.round(s.heal * 100) + "%回復";
+    case "delaytop": return "いちばんHPが高い敵の攻撃を1ターン遅らせる";
+    case "barrierself": return "自分に" + s.bar.toLocaleString() + "のバリア";
+    case "poison": return "当たった敵を毒にする（" + s.turns + "ターン）";
+    case "sigiltop": return "いちばんHPが高い敵に追加の弱点を刻む（" + s.turns + "ターン）";
+    case "barrierall": return "味方全員に" + s.bar.toLocaleString() + "のバリア";
+    case "atkdown": return "当たった敵の攻撃力ダウン ×" + s.mul + "（1ターン）";
+    case "delay": return "当たった敵の攻撃を1ターン遅らせる";
+    case "drainheal": return "当たった敵1体につきチームHPを" + (s.each * 100).toFixed(1) + "%回復（最大" + Math.round(s.max * 100) + "%）";
+  }
+  return "";
+}
+Object.keys(PN_SHOT).forEach((k) => {
+  const s = PN_SHOT[k];
+  SHOTSKILLS[k] = {
+    nm: s.nm, c: s.c,
+    pow: "① <b>" + s.t1 + "</b>：" + pnShotWhere(s) + " 攻撃力×" + s.per.toFixed(2)
+      + " ／ ② <b>" + s.t2 + "</b>：" + pnShotFx(s) + " ／ ③ <b>自分のフルバーストが" + PN_SHOT_FB + "ターン進む</b>",
+    desc: "自分のターンで<b>撃つたび毎回</b>、<b>3つの技</b>がいっぺんに出る。"
+      + "<br>" + s.t1 + "が" + pnShotWhere(s).replace(/<\/?b>/g, "") + "入り（攻撃力×" + s.per.toFixed(2) + "）、"
+      + "<b>" + pnShotFx(s) + "</b>、あわせて<b>自分のフルバーストが" + PN_SHOT_FB + "ターン進む</b>。",
+  };
+});
 
 const KUMI_ATK = 3.30, KUMI_SPD = 1.60;
 const KUMI_BARRAGE_N = 70, KUMI_BARRAGE_PER = 7.20, KUMI_BARRAGE_STEP = 0.12;
@@ -5161,7 +5318,7 @@ const SUBFS = {
       + GREB_N + "回はね返る。"
       + "<br>はねるたびに<b>敵全体</b>へ入り、しかも<b>はねるほど重くなる</b>"
       + "（×" + GREB_PER + " → ×" + (GREB_PER + GREB_STEP * (GREB_N - 1)).toFixed(2) + "）。"
-      + "<br>ハノン・タキナ・ヒバナ・フキが持つサブリンクです" },
+      + "<br>ハノン・タキナ・ヒバナ・フキと Pumpkin Night の10体が持つサブリンクです" },
 };
 
 /* ══════════ ネクサススキル（v13.1） ══════════
@@ -5226,12 +5383,22 @@ const NEXUS = {
   /* ══ ★★ 2026-10-07 Sapphire Breeze（新レアリティ UR）のネクサス（ご指定「ネクサススキルを強化」）══
      極彩・プリズムネクサス（弱点+80%・リンク+50%・攻撃+25%・ボス+40%・回復5%）の<b>すべてを上回り</b>、バリアも足した6つの効果。
      タキナ・ヒバナ・フキの3体が持つ（タキナは極彩祭から移ったのでネクサスもこちらへ）。 */
+  /* ★★ 2026-10-09 ご指定「UR はどの子も同じくらい」→ Pumpkin Night の南瓜ネクサス（強化）と同じ強さへ引き上げ
+     （弱点+100%・リンク+70%・攻撃+35%・ボス+55%・回復9%・バリア2400）。6つめの効果だけ南瓜とちがう（こちらはバリア）。 */
   sapphire: { nm: "蒼玉・サファイアネクサス", c: "#3d8bff",
-    desc: "<b>弱点</b>へのダメージが<b>90%</b>アップし、<b>リンクスキル・サブリンク</b>のダメージが<b>60%</b>アップ、"
-      + "さらに<b>味方全員の攻撃力</b>が<b>30%</b>アップ、<b>ボス</b>へのダメージが<b>50%</b>アップ、"
-      + "<b>各WAVEの開始時にチームHPを8%回復</b>し、<b>バトル開始時に味方全員へ2000のバリア</b>を張る"
+    desc: "<b>弱点</b>へのダメージが<b>100%</b>アップし、<b>リンクスキル・サブリンク</b>のダメージが<b>70%</b>アップ、"
+      + "さらに<b>味方全員の攻撃力</b>が<b>35%</b>アップ、<b>ボス</b>へのダメージが<b>55%</b>アップ、"
+      + "<b>各WAVEの開始時にチームHPを9%回復</b>し、<b>バトル開始時に味方全員へ2400のバリア</b>を張る"
       + "<br><small>※ 新レアリティ UR だけの特別なネクサスです（極彩・プリズムネクサスの上位）</small>",
-    weak: 1.90, link: 1.60, atk: 1.30, boss: 1.50, waveHeal: 0.08, barrier: 2000 },
+    weak: 2.00, link: 1.70, atk: 1.35, boss: 1.55, waveHeal: 0.09, barrier: 2400 },
+  /* ══ ★★ 2026-10-09 Pumpkin Night（UR）のネクサス（ご指定「ネクサススキルを強化」）══
+     弱点+100%・リンク+70%・攻撃+35%・ボス+55%・回復9%＋<b>バトル開始時に味方全員のFBを2短縮</b>（6つの効果）。 */
+  pumpkin: { nm: "南瓜・パンプキンナイトネクサス", c: "#ff8a1f",
+    desc: "<b>弱点</b>へのダメージが<b>100%</b>アップし、<b>リンクスキル・サブリンク</b>のダメージが<b>70%</b>アップ、"
+      + "さらに<b>味方全員の攻撃力</b>が<b>35%</b>アップ、<b>ボス</b>へのダメージが<b>55%</b>アップ、"
+      + "<b>各WAVEの開始時にチームHPを9%回復</b>し、<b>バトル開始時に味方全員のフルバーストターンを2短縮</b>する"
+      + "<br><small>※ 新レアリティ UR・Pumpkin Night だけの特別なネクサスです（蒼玉・サファイアネクサスと同じ強さ）</small>",
+    weak: 2.00, link: 1.70, atk: 1.35, boss: 1.55, waveHeal: 0.09, fb: 2 },
   luxblaze: { nm: "極煌・ブレイズネクサス", c: "#ff5d47",
     /* ★★ 2026-09-01 ご指定により<b>さらに強化</b>（効果は4つに）
        ★★ 2026-09-19e アズサ追加にあわせて<b>もう一段強化</b>（ご指定）：ボス+60%・攻撃+25%・バリア1600・弱点+25%・<b>リンク+30%</b> */
@@ -5308,7 +5475,7 @@ const NEXUS_CAT = {
   vigor: "def", mercy: "def", aegis: "def", guard: "def",
   /* ★★ 2026-08-27 極彩祭・極煌祭のネクサス（どちらも火力枠）
      ★★ 2026-08-28 極華祭（luxbloom）も火力枠に足す */
-  luxprism: "atk", luxblaze: "atk", luxbloom: "atk", sapphire: "atk",
+  luxprism: "atk", luxblaze: "atk", luxbloom: "atk", sapphire: "atk", pumpkin: "atk",
   /* ★★ 2026-08-29 戦姫祭のネクサス（火力枠） */
   senkivalor: "atk", risingstar: "atk",
   /* ★★ 2026-09-11 BUNNY GIRL FEST のネクサス（火力枠） */
@@ -14718,8 +14885,8 @@ const CHARS = {
       + (TKN_BARRAGE_PER + TKN_BARRAGE_STEP * (TKN_BARRAGE_N - 1)).toFixed(2) + "）。"
       + "<br>撃ち終えると水面から<b>蒼い桔梗の大輪</b>が咲きあがり、敵全体へ 攻撃力×" + TKN_FINALE + "。"
       + "<b>敵全体の防御力を" + TKN_DEFDOWN + "ターン</b>下げ、<b>味方全員のフルバーストを" + TKN_FB + "進めます</b>。"
-      + "<br>合計 攻撃力×" + TKN_TOTAL.toFixed(1) + " ——<b>MagiBurst 史上最大のフルバースト</b>です"
-      + "（これまでの1位はココハ ×" + KKH_TOTAL.toFixed(1) + "）。",
+      + "<br>合計 攻撃力×" + TKN_TOTAL.toFixed(1) + " ——<b>UR の最上位クラス</b>のフルバーストです"
+      + "（UR はどの子もこの水準にそろえてあります）。",
     fsName: ROSE_FS_NM, fsKind: "bluerosenet",
     fsPow: ROSE_FS_POW,
     fsDesc: ROSE_FS_DESC,
@@ -14754,7 +14921,7 @@ const CHARS = {
       + (HBN_BARRAGE_PER + HBN_BARRAGE_STEP * (HBN_BARRAGE_N - 1)).toFixed(2) + "）。"
       + "<br>撃ち終えると盤面いっぱいに<b>勿忘草の大輪</b>がひらき、敵全体へ 攻撃力×" + HBN_FINALE + "。"
       + "<b>敵全体の防御力を" + HBN_DEFDOWN + "ターン</b>下げ、<b>チームHPを" + Math.round(HBN_HEAL * 100) + "%回復</b>して、<b>味方全員に" + HBN_BARRIER.toLocaleString() + "のバリア</b>を張ります。"
-      + "<br>合計 攻撃力×" + HBN_TOTAL.toFixed(1) + " ——タキナ（×" + TKN_TOTAL.toFixed(1) + "）をこえる<b>史上最大級のフルバースト</b>です。",
+      + "<br>合計 攻撃力×" + HBN_TOTAL.toFixed(1) + " ——<b>UR の最上位クラス</b>のフルバーストです（UR はどの子もこの水準にそろえてあります）。",
     fsName: ROSE_FS_NM, fsKind: "bluerosenet",
     fsPow: ROSE_FS_POW,
     fsDesc: ROSE_FS_DESC,
@@ -14789,13 +14956,68 @@ const CHARS = {
       + (FUK_BARRAGE_PER + FUK_BARRAGE_STEP * (FUK_BARRAGE_N - 1)).toFixed(2) + "）。"
       + "<br>撃ち終えると盤面に<b>朧桜の帳</b>がおり、敵全体へ 攻撃力×" + FUK_FINALE + "。"
       + "<b>敵全体の防御力を" + FUK_DEFDOWN + "ターン</b>下げ、<b>敵全体の攻撃を" + FUK_DELAY + "ターン遅らせます</b>。"
-      + "<br>合計 攻撃力×" + FUK_TOTAL.toFixed(1) + " ——<b>MagiBurst 史上最大のフルバースト</b>です"
-      + "（これまでの1位はタキナ ×" + TKN_TOTAL.toFixed(1) + "）。",
+      + "<br>合計 攻撃力×" + FUK_TOTAL.toFixed(1) + " ——<b>UR の最上位クラス</b>のフルバーストです"
+      + "（UR はどの子もこの水準にそろえてあります）。",
     fsName: ROSE_FS_NM, fsKind: "bluerosenet",
     fsPow: ROSE_FS_POW,
     fsDesc: ROSE_FS_DESC,
   },
 };
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-10-09 Pumpkin Night（fes18）の UR 10体（No.265〜274）
+   ★ アンチ4つは「天界の審判・蓬莱の九重・幽冥の庭園で最適性（完全対応＋属性有利）のキャラが少ない面」から
+     10体が重ならないよう実測で割りふった（ご指定）。DW・ワープ・減速壁・地雷は「超」つきの上位版。
+   ★ 検算：charAntiKeys(id) ⊇ counterKeysOf(担当の面) かつ elemMultOf(CHARS[id], ボスの属性) > 1。
+   ★ 治癒の祈りのカットインは SS絵（img/ss/XxxSS.webp・index.html の SS_ART）。UR なので横長の絵（wide）も持つ。
+   ══════════════════════════════════════════════════════════════ */
+const PN_IDS = ["ayano", "saki", "yuka", "natsumi", "miu", "mai", "chinatsu", "yuumi", "rina", "kaori"];
+const PN_CHAR_DEF = {
+  ayano:    { nm: "アヤノ", f: "Ayano", el: "fire", shot: "bounce", type: "緋帽子魔女型", ss: "ayanok", sk: "scarletcandle",
+    hp: [1720, 11150], atk: [3080, 19650], spd: [402, 602], anti: ["superadw", "ablock", "antilock", "award"], k3: "auraEL" },
+  saki:     { nm: "サキ", f: "Saki", el: "fire", shot: "pierce", type: "飴色魔女帽型", ss: "sakik", sk: "lollipopsplash",
+    hp: [1760, 11450], atk: [3020, 19300], spd: [400, 598], anti: ["superadw", "sgrav", "antilock", "award"], k3: "sokojikaraEL" },
+  yuka:     { nm: "ユカ", f: "Yuka", el: "water", shot: "bounce", type: "星猫魔女型", ss: "yukak", sk: "milkywaybell",
+    hp: [1700, 11050], atk: [3090, 19700], spd: [404, 604], anti: ["sgrav", "supermsEL", "superaslow", "award"], k3: "auraEL" },
+  natsumi:  { nm: "ナツミ", f: "Natsumi", el: "water", shot: "pierce", type: "黒猫夜会型", ss: "natsumik", sk: "catspaw",
+    hp: [1730, 11250], atk: [3060, 19500], spd: [403, 603], anti: ["sgrav", "superaw", "superaslow", "antilock"], k3: "sokojikaraEL" },
+  miu:      { nm: "ミウ", f: "Miu", el: "wood", shot: "pierce", type: "南瓜頭巾型", ss: "miuk", sk: "pumpkinbomb", strong: 1,
+    hp: [1800, 11700], atk: [3170, 20250], spd: [410, 612], anti: ["superaw", "supermsEL", "ablock", "award"], k3: "auraEL" },
+  mai:      { nm: "マイ", f: "Mai", el: "wood", shot: "bounce", type: "四つ葉魔女型", ss: "maik", sk: "luckyclover", strong: 1,
+    hp: [1830, 11900], atk: [3140, 20050], spd: [408, 610], anti: ["supermsEL", "superaslow", "antilock", "award"], k3: "sokojikaraEL" },
+  chinatsu: { nm: "チナツ", f: "Chinatsu", el: "light", shot: "bounce", type: "燭光レース型", ss: "chinatsuk", sk: "candleray",
+    hp: [1780, 11600], atk: [3010, 19250], spd: [400, 598], anti: ["superaw", "supermsEL", "superaslow", "antilock"], k3: "auraEL" },
+  yuumi:    { nm: "ユウミ", f: "Yuumi", el: "light", shot: "pierce", type: "南瓜灯ストール型", ss: "yuumik", sk: "lanternshot",
+    hp: [1710, 11100], atk: [3080, 19650], spd: [404, 604], anti: ["superadw", "superaslow", "ablock", "antilock"], k3: "sokojikaraEL" },
+  rina:     { nm: "リナ", f: "Rina", el: "dark", shot: "pierce", type: "包帯夜想型", ss: "rinak", sk: "bandagebind",
+    hp: [1750, 11400], atk: [3050, 19450], spd: [401, 600], anti: ["supermsEL", "superaslow", "ablock", "award"], k3: "auraEL" },
+  kaori:    { nm: "カオリ", f: "Kaori", el: "dark", shot: "bounce", type: "幽霊帽魔女型", ss: "kaorik", sk: "ghostparade",
+    hp: [1700, 11050], atk: [3100, 19750], spd: [403, 603], anti: ["superaslow", "ablock", "antilock", "award"], k3: "sokojikaraEL" },
+};
+PN_IDS.forEach((id) => {
+  const d = PN_CHAR_DEF[id];
+  /* アビリティ：アンチ4つ＋キラー3つ（ミウ・マイは弱点キラーEL を足して4つ）＋3属性有利・治癒の祈り・リンクブーストEL・リンク×2 */
+  const ab = d.anti.concat(["allkillerEL", "bosskillerEL", d.k3], d.strong ? ["weakkillerEL"] : [], ["elemadv", "pray", "fsboostEL", "fsdouble"]);
+  CHARS[id] = {
+    id, nm: d.nm, img: d.f + ".webp", th: "t_" + d.f + ".webp", wide: d.f + "_w.webp", ss: d.f + "SS.webp",
+    el: d.el, shot: d.shot, type: d.type,
+    gacha: true, fes: true, fesKey: "pumpkin", lux: true, nexus: "pumpkin", star5: true,
+    shotskill: d.sk,
+    hp: d.hp, atk: d.atk, spd: d.spd,
+    abil: ab.map((t) => ({ t })),
+    subfs: "goldenrebound",
+    ssName: PN_FB[d.ss].nm, ssTurns: 32, ssKind: d.ss,
+    ssPow: pnFbPow(d.ss), ssDesc: pnFbDesc(d.ss),
+    fsName: ROSE_FS_NM, fsKind: "bluerosenet", fsPow: ROSE_FS_POW, fsDesc: ROSE_FS_DESC,
+  };
+});
+/* ★★ 2026-10-09 UR の縦長の SS 絵（ガチャ演出・MagiAbyss のカットイン・治癒の祈り）。ファイルは MagiBurst/img/ss/ */
+CHARS.takina.ss = "TakinaSS.webp"; CHARS.hibana.ss = "HibanaSS.webp"; CHARS.fuki.ss = "FukiSS.webp";
+function ssArtOf(id) { const c = CHARS[id]; return c && c.ss ? GIMGD + "ss/" + c.ss : null; }
+/* ★★ 2026-10-09 <b>MagiAbyss で使えるキャラ</b>の台帳（ここ1本）。MagiAbyss の ma-data.js（CHAR_ORDER）・
+   ガチャ一覧の「MagiAbyss 対応」の絞り込み・キャラ詳細の MagiAbyss の面が同じこれを見る。
+   ★ 新しく MagiAbyss で使えるキャラを足すときは、ここと ma-data.js の CHARS（性能）の2か所。 */
+const ABYSS_CHAR_IDS = PN_IDS.concat(["takina", "hibana", "fuki", "hinano", "hanon", "kokoha", "mutsumi", "reina", "azusa", "kumireina", "kagura", "kotori"]);
+function isAbyssChar(id) { return ABYSS_CHAR_IDS.indexOf(id) >= 0; }
 /* エルシアのフルバースト説明は定数を使うのでここで組み立てる */
 CHARS.elsia.ssPow = "自強化（攻撃×1.6・スピード×1.2）＋ <b>残りチームHPの" + Math.round(ELSIA_HP_COST * 100) + "%を消費</b>し、"
   + "<b>最初にふれた敵へ「消費したHP × " + ELSIA_DMG_RATE + "」の大ダメージ</b>";
@@ -15029,6 +15251,9 @@ const CHAR_IDS = [
   /* ★★ 2026-10-07 Sapphire Breeze（UR） */
   "hibana",                                            /* No.263 */
   "fuki",                                              /* No.264 */
+  /* ★★ 2026-10-09 Pumpkin Night（UR） */
+  "ayano", "saki", "yuka", "natsumi", "miu",           /* No.265〜269 */
+  "mai", "chinatsu", "yuumi", "rina", "kaori",         /* No.270〜274 */
 ];
 /* id → キャラクター番号（1始まり）。図鑑・詳細・ガチャ結果に「No.XX」として出す */
 const CHAR_NO = {};
@@ -15079,6 +15304,8 @@ function isStar5(id) {
    中身は SSR のまま——確率・凸・結晶・ミッション・並べ替え・演出の判定はすべて isStar5（SSR）で行う。
    表示する所だけ rarLabel(id) を使うこと（SR のキャラは "SR"、SSR は "SSR"、ここに書いた子だけ別の名前）。 */
 const RAR_LABEL = { takina: "UR", hibana: "UR", fuki: "UR" };   /* ★★ 2026-10-07 Sapphire Breeze の3体は UR */
+/* ★★ 2026-10-09 Pumpkin Night の10体も UR */
+PN_IDS.forEach((id) => { RAR_LABEL[id] = "UR"; });
 function rarLabel(id) { return RAR_LABEL[id] || (isStar5(id) ? "SSR" : "SR"); }
 /* 限界突破MAXの金演出クラス。SRは「金の縁取りだけ」で発光させない（v14） */
 /* ★ 2026-08-12 限界突破MAXの見た目は<b>SSRだけ</b>にした。
@@ -15108,7 +15335,10 @@ function wideArt(id) { const c = CHARS[id]; return c && c.wide ? c.wide : null; 
    wideFace = [x, y] … 横長の絵の中の<b>顔の中心</b>（0〜1）。流しはじめ（と止まっている絵）を顔のある側にする。
    x が 0.5 より右 → 右端から左へ流す／それ以外 → 左端から右へ（下の urCss が絵のファイル名ごとに向きを決める）。
    ★ 新しい UR（wide）を足したら、ここに1行足すこと（無いときは左から流れる）。 */
-Object.entries({ takina: [0.26, 0.35], hibana: [0.69, 0.45], fuki: [0.20, 0.41] })
+Object.entries({ takina: [0.26, 0.35], hibana: [0.69, 0.45], fuki: [0.20, 0.41],
+  /* ★★ 2026-10-09 Pumpkin Night */
+  ayano: [0.75, 0.38], saki: [0.73, 0.35], yuka: [0.30, 0.48], natsumi: [0.30, 0.36], miu: [0.35, 0.38],
+  mai: [0.65, 0.36], chinatsu: [0.32, 0.41], yuumi: [0.35, 0.44], rina: [0.35, 0.38], kaori: [0.28, 0.38] })
   .forEach(([id, f]) => { if (CHARS[id]) CHARS[id].wideFace = f; });
 /* ★★ 2026-10-06b UR の絵の見せ方（どのアプリのキャラ詳細でも共通・ご指定「UR の絵が SSR より小さい」）
    ・枠は SSR と同じ大きさ（高さ）にして、横長の絵を<b>大きく</b>出し、ゆっくり左右に流して全体を見せる（.urx-pan）。
@@ -15247,6 +15477,17 @@ const CHAR_TYPE = {
   /* ── ★★ 2026-10-07 Sapphire Breeze（UR）── */
   hibana:   "striker",  /* ヒバナ：史上2位の乱打FB（回復・バリア）＋全属性有利＋全属性キラーEL＋ボスキラーEL＋底力EL */
   fuki:     "striker",  /* フキ：史上最大の乱打FB（行動遅延）＋全属性有利＋全属性キラーEL＋ボスキラーEL＋パワーオーラEL */
+  /* ── ★★ 2026-10-09 Pumpkin Night（UR）── */
+  ayano:    "striker",  /* アヤノ：乱打FB（味方全員の攻撃力アップ）＋3属性有利＋全属性キラーEL＋ボスキラーEL＋パワーオーラEL */
+  saki:     "support",  /* サキ：乱打FB（回復＋味方全員バリア） */
+  yuka:     "trick",    /* ユカ：乱打FB（敵全体の行動遅延） */
+  natsumi:  "cannon",   /* ナツミ：乱打FB（味方全員のFBを進める） */
+  miu:      "striker",  /* ミウ：UR 最上位の乱打FB（毒＋追加弱点＋FB）＋キラー4つ */
+  mai:      "support",  /* マイ：UR 最上位の乱打FB（回復＋攻撃力アップ＋追加弱点）＋キラー4つ */
+  chinatsu: "support",  /* チナツ：乱打FB（味方全員バリア＋敵の攻撃力ダウン） */
+  yuumi:    "cannon",   /* ユウミ：乱打FB（追加弱点＋FB） */
+  rina:     "trick",    /* リナ：乱打FB（敵の攻撃力ダウン＋行動遅延） */
+  kaori:    "striker",  /* カオリ：乱打FB（毒＋回復） */
   /* ── ★★ 2026-09-23 CRYSTAL ACADEMY FEST（結晶FB＋全属性有利＋神癒の祈り）── */
   kureha:   "striker",  /* クレハ：結晶FB＋天律族キラーEL＋パワーオーラEL＋壁で増える結晶のリンク */
   mikoto:   "support",  /* ミコト：結晶FB（回復＋バリア）＋天律族キラーEL＋底力EL */
@@ -23205,12 +23446,16 @@ const DEBUT_ITEM_TABLE = [
    ・10連の最後の確定枠は これまでどおり「そのガチャで出るSSR全部から等確率」。
    ★ ここは<b>数字だけ</b>。抽選そのものは gachaRollOnce() 1本にまとめてある。
    ══════════════════════════════════════════════════════════════ */
-const SSR_TOTAL    = 0.12;      // すべてのガチャで共通
-const PICK_DEBUT   = 0.020;     // GRAND DEBUT GACHA のピックアップ1体ぶん
-const PICK_PREMIUM = 0.050;     // PREMIUM SELECT GACHA のピックアップ
-const PICK_FES     = 0.018;     // 各フェスガチャの限定SSR 1体ぶん
-const PICK_ARCHIVE = 0.012;     // Festival Archive GACHA の1体ぶん
-const PICK_LUX     = 0.012;     // 極彩祭・極華祭・極煌祭の1体ぶん
+/* ══ ★★ 2026-10-09 <b>どのガチャも SSR以上の確率を 1.5倍</b>（ご指定「ガチャの確率を全てで1.5倍」）══
+   SSR以上の合計 12% → <b>18%</b>。ピックアップ・限定1体ぶんの確率もそれぞれ 1.5倍（下の数字はもう掛けたあと）。
+   ふえたぶんは<b>育成アイテム枠</b>から減る（SR の枠はそのまま）。画面の「1.5倍」の表示は RATE_BOOST を見る。 */
+const RATE_BOOST   = 1.5;
+const SSR_TOTAL    = 0.18;      // すべてのガチャで共通（12% × 1.5）
+const PICK_DEBUT   = 0.030;     // GRAND DEBUT GACHA のピックアップ1体ぶん（2.0% × 1.5）
+const PICK_PREMIUM = 0.075;     // PREMIUM SELECT GACHA のピックアップ（5.0% × 1.5）
+const PICK_FES     = 0.027;     // 各フェスガチャの限定SSR 1体ぶん（1.8% × 1.5）
+const PICK_ARCHIVE = 0.018;     // Festival Archive GACHA の1体ぶん（1.2% × 1.5）
+const PICK_LUX     = 0.018;     // 極彩祭・極華祭・極煌祭の1体ぶん（1.2% × 1.5）
 /* ══ ★★ 2026-09-06 <b>古い限定キャラは各 0.2%</b>（ご指定）══════════════
    キャラが増えて「1体あたりの確率 × 人数」が SSR 合計（12%）を超えるようになった。
    そこで <b>そのガチャの新キャラ（FESTS[k].newChars）だけ今までどおりの確率</b>にし、
@@ -23218,7 +23463,7 @@ const PICK_LUX     = 0.012;     // 極彩祭・極華祭・極煌祭の1体ぶ�
    <b>プレミアムセレクトガチャのSSRが等確率</b>で受け取る、という形にした。
    ★ 10連の<b>確定枠</b>はこれまでどおり<b>そのガチャの限定キャラの等確率</b>
      （完凸の子だけ外す）。確定枠は pickIdsOfMode を見るので、ここを変えても影響しない。 */
-const PICK_OLD     = 0.004;     // 新キャラ以外の限定キャラ 1体ぶん（★ 2026-09-08 0.2%→0.4%）
+const PICK_OLD     = 0.006;     // 新キャラ以外の限定キャラ 1体ぶん（★ 2026-09-08 0.2%→0.4%／★★ 2026-10-09 ×1.5 で 0.6%）
 /* ★★ 2026-09-13b <b>NEW は「登場からの日数」だけで決める</b>（ご指定）。
    ★★ 2026-09-13d その日数を <b>15日 → 10日</b> に変更（ご指定）。
    ------------------------------------------------------------
@@ -23639,14 +23884,14 @@ FESTS.fes7 = {
     + "ショットスキル<b>キキョウ・リップル</b>は<b>撃つたび3つの技</b>（水紋・桔梗の雫・FB前進）。"
     + "クロス<b>蒼桔梗のクロス</b>で<b>ドレインEL（新登場）・全属性耐性M・リンク×2</b>。"
     + "キラーは<b>全属性キラーEL・ボスキラーEL・パワーオーラEL</b>の3つ、さらに<b>治癒の祈り</b>。"
-    + "全属性有利＋オムニアンチ＋超アンチ減速壁で <b>⚖ 天界の審判 第十一・第十二・第十五</b>と"
-    + "<b>🏯 第二重・蓬莱天宮・蓬莱神天</b>を有利属性のまま完全対応。"
+    + "3属性有利＋オムニアンチ＋超アンチ減速壁で <b>⚖ 天界の審判 第十一・第十五</b>と"
+    + "<b>🏯 蓬莱天宮・蓬莱神天</b>を有利属性のまま完全対応（★★ 2026-10-09 全属性有利→3属性有利に変わったので第十二・第二重は外れました）。"
     + "あわせて<b>極彩・プリズムネクサスをさらに強化</b>（弱点+80%・リンク+50%・攻撃+25%・ボス+40%・各WAVEでチームHP+5%）。"
     + "<br><br><b>★★ 2026-09-19 ココハ（火・反射）</b>を追加。フルバースト<b>ツバキアメ・センカ</b>は乱打"
     + KKH_BARRAGE_N + "連＋紅い雨の大輪で合計 攻撃力×" + KKH_TOTAL.toFixed(1) + "——<b>MagiBurst 史上最大</b>。"
     + "リンク<b>ツバキアメ・ウリョウ</b>は<b>敵が浴びた雨粒の数で重くなる</b>（大きい敵ほど多く浴びる）。"
     + "ショットスキル<b>ツバキアメ・シュート</b>・クロス<b>椿雨のクロス</b>。"
-    + "全属性有利＋オムニアンチ＋アンチ断絶界で <b>⚖ 天界の審判 第九・第十二・第十四</b>を有利属性のまま完全対応。"
+    + "3属性有利＋オムニアンチ＋アンチ断絶界で <b>⚖ 天界の審判 第九・第十四</b>を有利属性のまま完全対応（★★ 2026-10-09 3属性有利になって第十二は外れました）。"
     + "あわせて<b>極彩・プリズムネクサスを強化</b>（弱点+70%・リンク+40%・攻撃+22%・ボス+30%）。"
     + "<br><br><b>ヒナノ</b>（木・貫通）と<b>ハノン</b>（光・貫通）が登場する<b>毎月1〜10日（上旬）</b>のフェスです。"
     + "<br>★★ <b>ハノン</b>のフルバースト<b>オーロラ・ブザービーター</b>は、"
@@ -23974,8 +24219,9 @@ FESTS.fes12 = {
   banner: "../img/bn_fes12_s.webp", c: "#38a6ff", leadCls: "star",
   rising: true,
   /* ★★ 2026-09-13 <b>無期限開催</b>（ご指定「戦姫祭と同じように無期限開催」）。
-     🎫フェス券はこれまでどおり使える（noFesTicket は付けない）。 */
-  perm: true,
+     🎫フェス券はこれまでどおり使える（noFesTicket は付けない）。
+     ★★ 2026-10-09 ご指定で<b>10月31日まで</b>に変更（perm を外して until）。終わったら Festival Archive へ封入される。 */
+  until: "2026-10-31",
   since: "2026-09-01",
   /* ★★ 2026-09-03 限定が8体になったので、1体あたり <b>1.2%</b>（戦姫祭と同じ）。
      8×1.2＝9.6% ＋ プレミアム 2.4% で、SSR 合計はこれまでどおり 12%。 */
@@ -24004,7 +24250,7 @@ FESTS.fes12 = {
            : "<b>全" + od + "体</b>が実装から" + NEW_CHAR_DAYS + "日を過ぎているので")
       + "<b>各" + ratePct(PICK_OLD) + "</b>／<b>残りは "
       + PREMIUM_NM + " のSSRが等確率</b>。キャラ以外の中身は <b>Starlight Academy Fest 2 と同じ</b>で、"
-      + "<b>🎫フェスチケットが使えます</b>。<b>無期限開催</b>です";
+      + "<b>🎫フェスチケットが使えます</b>。" + fesPeriodText("fes12") + "の開催です";
   },
   note: "<b>★★ 2026-09-17 第4弾</b>：<b>クオン（光）・アサヒ（闇）・ソウゲツ（水）・ナツネ（木）・アマネ（火）</b>。"
     + "<br>この5体は<b>⚖ 天界の審判の第十一〜第十五</b>を有利属性のまま完全対応します——"
@@ -24149,9 +24395,9 @@ FESTS.fes13 = {
     + "<br>担当は <b>ミサキ・ナギサ＝第一／サヤ・ナルミ＝第二／ナツメ＝第三／"
     + "アヤメ・エリカ＝第四／モモカ＝第五／ルリ・ヒヨリ＝第六／ハヅキ＝第七／"
     + "キョウカ・アオイ＆クロハ＝第九／ヒカリ・ミユキ＝第十</b>。"
-    + "<br>★ <b>サヤ</b>は MagiBurst で初めて<b>全属性有利</b>を持ちます——"
-    + "<b>どの属性の敵に対しても有利の倍率</b>で殴れるので、"
-    + "属性を気にせずどのクエストにも連れて行けます。"
+    + "<br>★ <b>サヤ</b>は MagiBurst で初めて<b>全属性有利</b>を持ったキャラです——"
+    + "★★ 2026-10-09 から全キャラ<b>3属性有利</b>（自分と同じ属性・自分が苦手な属性をのぞく3つに有利）に変わりました"
+    + "（サヤは光なので<b>火・水・木</b>に有利、闇へはもともと有利）。"
     + "<br>★ <b>アオイ＆クロハ</b>は<b>水と闇の二属性</b>"
     + "（セイラ＆カナヅキ・アンナ＆ランに続く3体目）。"
     + "<br>★ アビリティは17体とも<b>8つ</b>（アンチ3／キラー2／そのほか3）。"
@@ -24279,24 +24525,24 @@ FESTS.fes15 = {
   },
   get note() {
     return "<b>★★ 2026-09-19 花宴祭に追加</b>：<b>ヒメリ（光・反射）</b>と<b>ホノカ（闇・貫通）</b>。"
-      + "<br>★ ヒメリ：アンチは<b>ウォード＋減速壁</b>（⚖ 第九・第十一・第十二・第十四・第十五）。キラーは<b>バイタルキラーEL＋底力EL</b>。"
+      + "<br>★ ヒメリ：アンチは<b>ウォード＋減速壁</b>（⚖ 第十一・第十二・第十五）。キラーは<b>バイタルキラーEL＋底力EL</b>。"
       + "FB<b>ベニスズ・センレンカ</b>（乱打" + HMR_BARRAGE_N + "連・合計 ×" + HMR_TOTAL.toFixed(1) + "）。"
       + "リンク<b>ベニイト・スズナリ</b>は<b>同じショットで先に出たリンクの数だけ重くなる</b>。"
-      + "<br>★ ホノカ：アンチは<b>ブロック＋ロックゾーン</b>（⚖ 第一・第三・第五・第七・第八・第十二・第十三）。キラーは<b>ファーストキラーEL＋ボスキラーEL</b>。"
+      + "<br>★ ホノカ：アンチは<b>ブロック＋ロックゾーン</b>（⚖ 第一・第三・第七・第八・第十二・第十三）。キラーは<b>ファーストキラーEL＋ボスキラーEL</b>。"
       + "FB<b>シンカイ・ヒャクトモシ</b>（乱打" + HNK_BARRAGE_N + "連・合計 ×" + HNK_TOTAL.toFixed(1) + "）。"
       + "リンク<b>ミナソコ・ヒカリクラゲ</b>は<b>敵の攻撃までの残りターンで刺す回数が変わる</b>。"
       + "<br><br><b>アヤネ（水・貫通）</b>と<b>チハ（木・反射）</b>。"
-      + "<br>★ 花宴祭の追加4体は<b>全属性有利</b>、<b>オムニアンチ＋治癒の祈り</b>、乱打のフルバースト、アビリティ10個（属性キラーは持たない）。"
-      + "<br>★ アヤネ：アンチは<b>ブロック＋ウォード</b>（⚖ 第一・第二・第九・第十・第十二・第十四）。キラーは<b>弱点キラーEL＋パワーオーラEL</b>。"
+      + "<br>★ 花宴祭の追加4体は<b>3属性有利</b>（★★ 2026-10-09 全属性有利から変更）、<b>オムニアンチ＋治癒の祈り</b>、乱打のフルバースト、アビリティ10個（属性キラーは持たない）。"
+      + "<br>★ アヤネ：アンチは<b>ブロック＋ウォード</b>（⚖ 第一・第九・第十・第十四）。キラーは<b>弱点キラーEL＋パワーオーラEL</b>。"
       + "FB<b>ヒョウカ・ヒャクレンザン</b>（乱打" + AYA_BARRAGE_N + "連＋絶対零度・合計 ×" + AYA_TOTAL.toFixed(1) + "）。"
       + "リンク<b>ヒョウメン・カガミウツシ</b>は<b>壁に映った鏡像からも斬撃が飛ぶ</b>。"
-      + "<br>★ チハ：アンチは<b>ブロック＋ロックゾーン</b>（⚖ 第一・第三・第五・第七・第八・第十二・第十三）。キラーは<b>フェイタルキラーL＋敵少底力EL</b>。"
+      + "<br>★ チハ：アンチは<b>ブロック＋ロックゾーン</b>（⚖ 第五・第七・第十二）。キラーは<b>フェイタルキラーL＋敵少底力EL</b>。"
       + "FB<b>シラハナ・センシュノウタ</b>（乱打" + CHIHA_BARRAGE_N + "連＋千首の歌・合計 ×" + CHIHA_TOTAL.toFixed(1) + "）。"
       + "リンク<b>シラハナ・ツヅリウタ</b>は<b>敵が失ったHPの割合で重くなる</b>。"
       + "<br><br><b>★★ 2026-09-17 花宴祭</b>：<b>アカツキ（火・貫通）</b>。"
-      + "<br>★ <b>全属性有利</b>と<b>全属性キラーEL</b>を持ち、<b>オムニアンチ＋治癒の祈り</b>、"
+      + "<br>★ <b>3属性有利</b>（★★ 2026-10-09 全属性有利から変更）と<b>全属性キラーEL</b>を持ち、<b>オムニアンチ＋治癒の祈り</b>、"
       + "アンチは<b>アンチロックゾーン＋超アンチ減速壁</b>の2つ。"
-      + "<b>⚖ 天界の審判の第四・第五・第八・第十一・第十二・第十三・第十五</b>を<b>有利属性のまま</b>完全対応します。"
+      + "<b>⚖ 天界の審判の第四・第五・第八・第十三・第十五</b>を<b>有利属性のまま</b>完全対応します。"
       + "<br>★ キラーは<b>全属性キラーEL＋天律族キラーEL</b>、アビリティは<b>10個</b>（クロススキルは持ちません）。"
       + "<br>★ フルバースト<b>ハナウタゲ・センボンザクラ</b>は乱打" + AKA_BARRAGE_N + "連＋千本桜——"
       + "合計 攻撃力×" + AKA_TOTAL.toFixed(1) + " で<b>MagiBurst 史上最大</b>。"
@@ -24340,7 +24586,7 @@ FESTS.fes16 = {
       + "<b>クレハ＝第十三／ミコト＝第六／メイ＝第七／ヒカル＝第十五／ミヅキ＝第四の審判</b>"
       + "（いま最適性のキャラがいちばん少ない5つです）。"
       + "<br>★ オムニアンチ・クロススキルは<b>持たず</b>、治癒の祈りの上位互換<b>神癒の祈り</b>（" + Math.round(GODPRAY_CHANCE * 100) + "%）を持ちます。"
-      + "アビリティは<b>10個</b>（アンチ3・キラー2・神癒の祈り・全属性有利・リンクブーストEL・固有2）。"
+      + "アビリティは<b>10個</b>（アンチ3・キラー2・神癒の祈り・3属性有利・リンクブーストEL・固有2）。"
       + "<br>★ フルバーストは5体とも新しい<b>結晶FB</b>——盤面に結晶が育ち、<b>近くに育った結晶が多い敵ほど</b>砕けの締めが重くなります。"
       + "<br>★ リンクスキルは5本とも<b>新しい挙動</b>です——"
       + "<b>クリムゾン・ジオード</b>（壁で跳ねた回数だけ結晶が生える）／"
@@ -24368,7 +24614,7 @@ FESTS.fes17 = {
   banner: "../img/bn_fes17_s.webp?v=2", c: "#3d8bff", leadCls: "star",
   perm: true, sapphire: true, free10: true, flatPick: true,
   since: "2026-10-07",
-  pickEach: 0.010,
+  pickEach: 0.010 * RATE_BOOST,   /* ★★ 2026-10-09 1.0% × 1.5 ＝ 1.5% */
   chars: ["hibana", "fuki", "takina"],
   newChars: ["hibana", "fuki"],
   newSince: "2026-10-07",
@@ -24385,15 +24631,60 @@ FESTS.fes17 = {
     return "<b>★★ 2026-10-07 新レアリティ UR 登場「Sapphire Breeze」</b>"
       + "<br>★ 新しく<b>ヒバナ（木・反射）</b>と<b>フキ（闇・貫通）</b>、さらに極彩祭から<b>タキナ（水・貫通）</b>が移ってきました。3体とも<b>UR</b>で、排出は<b>1体 " + ratePct(pickRateOf("fes17", "hibana")) + "</b>です。"
       + "<br>★ <b>無期限開催</b>・<b>🎫フェスチケットが使えます</b>・<b>はじめての10連は無料</b>（アカウントで1回・最後の1枠のSSR以上確定つき）。"
-      + "<br>★ 3体とも<b>全属性有利＋オムニアンチ＋治癒の祈り</b>、キラー3つ、クロススキル、ショットスキル（撃つたび3つの技）、"
-      + "リンクは既存で最強の<b>ブルーローズ・コンプリート</b>、ネクサスは新しい<b>蒼玉・サファイアネクサス</b>（弱点+90%・リンク+60%・攻撃+30%・ボス+50%・各WAVEでチームHP+8%・開始時バリア2000）。"
-      + "<br>■ <b>フキ</b>：FB<b>ヨイヤミ・オボロザクラ</b>（乱打" + FUK_BARRAGE_N + "連＋朧桜の帳・合計 ×" + FUK_TOTAL.toFixed(1) + "）＝<b>MagiBurst 史上最大</b>。"
-      + "防御力ダウン＋<b>敵全体の攻撃を" + FUK_DELAY + "ターン遅らせる</b>。アンチは<b>オムニ＋断絶界</b>（⚖ 第九・第十四／🏯 第三〜五・第七・月宮／庭園 第7ノ園）。"
+      + "<br>★ 3体とも<b>3属性有利＋オムニアンチ＋治癒の祈り</b>、キラー3つ、クロススキル、ショットスキル（撃つたび3つの技）、"
+      + "リンクは既存で最強の<b>ブルーローズ・コンプリート</b>、ネクサスは<b>蒼玉・サファイアネクサス</b>（弱点+100%・リンク+70%・攻撃+35%・ボス+55%・各WAVEでチームHP+9%・開始時バリア2400）。"
+      + "<br>★★ 2026-10-09 UR は<b>どの子も同じくらいの強さ</b>にそろえました（フルバースト合計 ×" + TKN_TOTAL.toFixed(1) + "・ネクサス強化・全属性有利→3属性有利）。"
+      + "<br>■ <b>フキ</b>：FB<b>ヨイヤミ・オボロザクラ</b>（乱打" + FUK_BARRAGE_N + "連＋朧桜の帳・合計 ×" + FUK_TOTAL.toFixed(1) + "）。"
+      + "防御力ダウン＋<b>敵全体の攻撃を" + FUK_DELAY + "ターン遅らせる</b>。アンチは<b>オムニ＋断絶界</b>（⚖ 第九・第十四／🏯 第三・第四・第七・月宮／庭園 第7ノ園）。"
       + "キラーは<b>全属性キラーEL・ボスキラーEL・パワーオーラEL</b>。クロス<b>宵桜のクロス</b>＝ドレインEL・FBターンチャージ・リンク×2。"
       + "<br>■ <b>ヒバナ</b>：FB<b>ワスレナ・ハナカガリ</b>（乱打" + HBN_BARRAGE_N + "連＋勿忘草の大輪・合計 ×" + HBN_TOTAL.toFixed(1) + "）。"
-      + "防御力ダウン＋<b>チームHP" + Math.round(HBN_HEAL * 100) + "%回復＋味方全員バリア" + HBN_BARRIER.toLocaleString() + "</b>。アンチは<b>オムニ＋ブロック</b>（⚖ 第一／庭園 第1・3・14・18ノ園）。"
+      + "防御力ダウン＋<b>チームHP" + Math.round(HBN_HEAL * 100) + "%回復＋味方全員バリア" + HBN_BARRIER.toLocaleString() + "</b>。アンチは<b>オムニ＋ブロック</b>（庭園 第1・3・18ノ園）。"
       + "キラーは<b>全属性キラーEL・ボスキラーEL・底力EL</b>。クロス<b>勿忘草のクロス</b>＝バリアEL・リジェネL・リンク×2。"
       + "<br>■ <b>タキナ</b>：FB<b>キキョウ・スイテンカ</b>（合計 ×" + TKN_TOTAL.toFixed(1) + "）。アンチは<b>オムニ＋超アンチ減速壁</b>。";
+  },
+};
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-10-09 <b>Pumpkin Night</b>（fes18・ご指定）
+   ・UR 10体（アヤノ・サキ・ユカ・ナツミ・ミウ・マイ・チナツ・ユウミ・リナ・カオリ）。<b>1体 1.5%</b>（pickEach・flatPick）。
+   ・<b>11月30日まで</b>（until）・<b>🎫フェス券が使える</b>・<b>初回10連無料</b>（free10）。
+   ・ガチャ一覧では<b>Sapphire Breeze の上に固定</b>（pumpkin の印・gachaMenuList）。
+   ・10体とも MagiAbyss でも使える（ABYSS_CHAR_IDS）。
+   ══════════════════════════════════════════════════════════════ */
+FESTS.fes18 = {
+  key: "fes18", sfx: "18", nm: "Pumpkin Night", tab: "Pumpkin<br>Night",
+  banner: "../img/bn_fes18_s.webp", c: "#ff8a1f", leadCls: "star",
+  pumpkin: true, free10: true, flatPick: true,
+  since: "2026-10-09", until: "2026-11-30",
+  pickEach: 0.010 * RATE_BOOST,   /* 1.5%（ご指定） */
+  chars: PN_IDS.slice(),
+  newChars: PN_IDS.slice(),
+  newSince: "2026-10-09",
+  itemTable: D_ITEM_TABLE,
+  get lead() {
+    return "新レアリティ <b>UR 10体</b>（各" + ratePct(pickRateOf("fes18", "ayano")) + "）に加えて、<b>"
+      + PREMIUM_NM + "のSSRも排出</b>（SSR以上 合計 " + ratePct(SSR_TOTAL) + "）";
+  },
+  get sub() {
+    return "UR <b>10体</b>（各" + ratePct(pickRateOf("fes18", "ayano")) + "）／<b>残りは " + PREMIUM_NM + " のSSRが等確率</b>。"
+      + fesPeriodText("fes18") + "・🎫フェスチケットが使えます" + (fesFree10Left("fes18") > 0 ? "・<b>🎁 初回10連無料</b>" : "");
+  },
+  get note() {
+    const fx = (id) => { const k = CHARS[id].ssKind; return "FB<b>" + PN_FB[k].nm + "</b>（×" + pnFbTotal(k).toFixed(1) + "）"; };
+    const sh = (id) => "ショット<b>" + SHOTSKILLS[CHARS[id].shotskill].nm + "</b>";
+    return "<b>★★ 2026-10-09 ハロウィンの UR ガチャ「Pumpkin Night」</b>"
+      + "<br>★ <b>アヤノ（火）・サキ（火）・ユカ（水）・ナツミ（水）・ミウ（木）・マイ（木）・チナツ（光）・ユウミ（光）・リナ（闇）・カオリ（闇）</b>の10体。"
+      + "10体とも<b>UR</b>で、排出は<b>1体 " + ratePct(pickRateOf("fes18", "ayano")) + "</b>です。"
+      + "<br>★ " + fesPeriodText("fes18") + "・<b>🎫フェスチケットが使えます</b>・<b>はじめての10連は無料</b>（アカウントで1回・最後の1枠のSSR以上確定つき）。"
+      + "<br>★ 10体とも<b>治癒の祈り・アンチ4つ（オムニなし）・3属性有利・キラー3つ</b>（全属性キラーEL・ボスキラーEL・パワーオーラEL か 底力EL）・"
+      + "リンクブーストEL・<b>リンク×2</b>。クロススキルは持ちません。"
+      + "リンクは既存で最強の<b>ブルーローズ・コンプリート</b>、サブは<b>ゴールデン・リバウンド</b>、"
+      + "ネクサスは新しい<b>南瓜・パンプキンナイトネクサス</b>（弱点+100%・リンク+70%・攻撃+35%・ボス+55%・各WAVEでチームHP+9%・開始時に味方全員のFB−2）。"
+      + "<br>★ 撃つたび<b>3つの技</b>が出るショットスキルは<b>10本とも別の技</b>です。"
+      + "<br>★ アンチ4つは、⚖ 天界の審判・🏯 蓬莱の九重・幽冥の庭園で<b>最適性のキャラが少ない面</b>から埋まるように割りふってあります。"
+      + "<br>★ <b>ミウ・マイは少しだけ強い</b>（弱点キラーEL を足してキラー4つ・ステータスとフルバーストが一段上）。"
+      + PN_IDS.map((id) => "<br>■ <b>" + CHARS[id].nm + "</b>（" + ELEM[CHARS[id].el].nm + "・" + (CHARS[id].shot === "pierce" ? "貫通" : "反射") + "）："
+        + fx(id) + "／" + sh(id) + "／アンチ " + CHARS[id].abil.slice(0, 4).map((a) => AB_NM[a.t] || a.t).join("・")).join("")
+      + "<br>★ 10体とも <b>MagiBocciaRush・MagiAbyss</b> でも UR の最上位クラスの性能です。";
   },
 };
 /* ══════════════════════════════════════════════════════════════
@@ -24527,7 +24818,9 @@ const FESKEY_MAP = { luminous: "fes2", phantom: "fes3", aoka: "fes4", starlight:
   /* ★★ 2026-09-23 CRYSTAL ACADEMY FEST */
   crystal: "fes16",
   /* ★★ 2026-10-07 Sapphire Breeze（UR） */
-  sapphire: "fes17" };
+  sapphire: "fes17",
+  /* ★★ 2026-10-09 Pumpkin Night（UR） */
+  pumpkin: "fes18" };
 function fesKeyOf(id) { const c = CHARS[id]; return c && c.fes ? (FESKEY_MAP[c.fesKey] || "fes") : null; }
 function fesNameOf(id) { const k = fesKeyOf(id); return k ? fesDef(k).nm : ""; }
 const FES_ALL_CHARS = FES_KEYS.reduce((a, k) => a.concat(FESTS[k].chars), []);
@@ -24682,7 +24975,7 @@ function syncCrossChars() {
 }
 
 /* SSRの合計排出は常に10%。ピックアップ5% ＋ 残りのSSRで5%を等分する（キャラが増えても総排出率は変わらない） */
-const PICK_RATE = 0.05;
+const PICK_RATE = 0.075;   /* ★★ 2026-10-09 ×1.5（クロスガチャのピックアップ） */
 /* 限界突破MAX（覚醒MAX）か */
 function isMaxAwk(id) { return DB.chars[id] && (DB.chars[id].awk || 0) >= MAX_AWK; }
 /* ══════════════════════════════════════════════════════════════
@@ -25188,7 +25481,7 @@ function firstGachaMode() {
      ここを FES_KEYS の順（＝定義順）のままにすると、新しいフェスが下に沈む。
    ══════════════════════════════════════════════════════════════ */
 function gachaMenuList() {
-  const sapph = [], lux = [], kaen = [], crystal = [], senki = [], bunny = [], soft = [], rising = [], fes = [], luxOff = [], ended = [];
+  const pump = [], sapph = [], lux = [], kaen = [], crystal = [], senki = [], bunny = [], soft = [], rising = [], fes = [], luxOff = [], ended = [];
   FES_KEYS.forEach((k) => {
     if (k === ARCHIVE_KEY) return;                       /* アーカイブは⑥（下で足す） */
     const f = fesDef(k);
@@ -25205,10 +25498,14 @@ function gachaMenuList() {
       soon: fesLocked(k), ended: fesEnded(k) };
     /* ★★ 2026-10-07 Sapphire Breeze は「新レアリティ UR」と書く（フェス限定SSR ではない） */
     if (f.sapphire && !row.soon) row.sub = "新レアリティ UR・🎫チケット優先／無期限開催";
+    /* ★★ 2026-10-09 Pumpkin Night（UR・期間つき） */
+    if (f.pumpkin && !row.soon) row.sub = "新レアリティ UR・🎫チケット優先／あと" + fesDaysLeft(k) + "日";
     /* ★★ 2026-10-06c 初回10連無料が残っていれば一覧の1行にも書く */
     if (fesFree10Left(k) > 0) row.sub += "／🎁 初回10連無料";
     /* ★★ 2026-10-07 Sapphire Breeze は<b>極彩祭の上に固定</b>（ご指定） */
-    if (f.sapphire) sapph.push(row);
+    /* ★★ 2026-10-09 Pumpkin Night は<b>Sapphire Breeze の上に固定</b>（ご指定）。終わったら ended へ */
+    if (f.pumpkin) (fesEnded(k) ? ended : pump).push(row);
+    else if (f.sapphire) sapph.push(row);
     /* ★★ 2026-09-17d 花宴祭は<b>開催中の極◯祭のすぐ下</b>（ご指定） */
     else if (f.kaen) kaen.push(row);
     /* ★★ 2026-09-23 CRYSTAL ACADEMY FEST は<b>花宴祭のすぐ下</b>（終わったら ended へ） */
@@ -25235,7 +25532,7 @@ function gachaMenuList() {
     soon: !archiveChars().length };
   /* ★★ 2026-09-13b <b>RISING STAR FEST は戦姫祭のすぐ下に固定</b>（ご指定）。
      並びは 極◯祭 → 戦姫祭 → RISING STAR → BUNNY GIRL → SOFT NIGHT → GRAND DEBUT → そのほか。 */
-  const list = sapph.concat(lux, kaen, crystal, senki, rising, bunny, soft, gachaMenuDebutRows(), fes,
+  const list = pump.concat(sapph, lux, kaen, crystal, senki, rising, bunny, soft, gachaMenuDebutRows(), fes,
     [{ k: "premium", nm: PREMIUM_NM, sub: "ピックアップを1体えらべる常設ガチャ", c: "#ff9d2e" }],
     [arcRow], luxOff, ended);
   /* ★★ 2026-08-29 NEW マーク（ご指定）。まだ一度も開いていないガチャに付ける。 */
@@ -26531,6 +26828,14 @@ function luxAstralIntro(done) {
   }, 3300);
 }
 function revealGacha(results, title, gmode) {
+  /* ★★ 2026-10-09 ガチャの演出を1から作り直した（ご指定）：xeva-summon.js（XevaSummon）があればそちらで見せる。
+     召喚陣と確定演出 → 1体ずつ公開（UR は縦長の SS 絵）→ まとめ。保存・財布の描き直しはこれまでどおりここで先に。 */
+  if (typeof window !== "undefined" && window.XevaSummon && typeof window.XevaSummon.play === "function") {
+    try { saveNow(); paintWallet(); paintGacha(); } catch (e) {}
+    try { SFX.gacha(); } catch (e) {}
+    window.XevaSummon.play(results || [], title || "", gmode || "");
+    return;
+  }
   _revClear();
   _rev = { phase: "done", go: null, startOne: null, order: [], opened: null, covs: [], cells: [], sureIdx: -1,
            /* ★★ 2026-08-26 ranking を書き忘れていた。

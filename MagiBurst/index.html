@@ -24,7 +24,7 @@ if ("serviceWorker" in navigator) {
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
 <script src="../xeva-splash.js?v=13" data-app="MagiBurst" data-logo="../thumbs/MagiBurst.jpg"
         data-note="⚠️ このゲームの対象年齢は 13歳以上 です"></script>
-<script src="../xeva.js?v=75"></script>
+<script src="../xeva.js?v=76"></script>
 <!-- ★★ 2026-09-05 言語切りかえ（日本語 ⇄ English）。辞書は本体のあとに読むこと。 -->
 <script src="../xeva-i18n.js?v=8"></script>
 <script src="../xeva-i18n-dict.js?v=12"></script>
@@ -42,7 +42,7 @@ if ("serviceWorker" in navigator) {
 <script src="../xeva-i18n-mb7.js?v=7"></script>
 <script src="../xeva-i18n-p4.js?v=7"></script>
 <!-- ★★ 2026-09-06b 今回足したもの（新キャラ14体・装備・クリティカルなど）の英語辞書 -->
-<script src="../xeva-i18n-n1.js?v=14"></script>
+<script src="../xeva-i18n-n1.js?v=15"></script>
 <script src="../xeva-i18n-n2.js?v=3"></script>
 <script src="../xeva-loading.js?v=18" defer></script>
 <script type="module" src="../xevarion-fb.js?v=33"></script>
@@ -4028,14 +4028,14 @@ textarea.oninp.mbcode[readonly]{background:#f2f0fb;color:#3b3560}
 </div></div>
 
 <script>window.MB_IMGD = "../img/"; window.MB_GIMGD = "img/";</script>
-<script src="../mb-newchars.js?v=34"></script>
+<script src="../mb-newchars.js?v=35"></script>
 <!-- ★★ 2026-09-06 新UI（スタイリッシュ）。
      body.mb-ui2 の中だけにかかるので、旧UIに戻すのは class を外すだけ。
      ★ 本文の <style> より<b>あと</b>に置くこと（あとに来たほうが勝つ）。 -->
 <link rel="stylesheet" href="css/mb-ui2.css?v=26">
 <!-- ★★ 2026-09-06 LOCAL PLAY（近距離ローカルマルチ）の画面 -->
 <link rel="stylesheet" href="css/localplay.css?v=7">
-<script src="js/mb-core.js?v=134"></script>
+<script src="js/mb-core.js?v=135"></script>
 <!-- ★★ 2026-09-06 装備（頭・腕・胸・足）。mb-core のあと・本体の前に読む -->
 <script src="js/mb-gear.js?v=8"></script>
 <script>
@@ -6160,6 +6160,18 @@ window.openNewChar = openNewChar; window.closeNewChar = closeNewChar;
 
 /* ══════════ お知らせ（アップデートのたびにここへ追記する） ══════════ */
 const NEWS = [
+  /* ★★ 2026-10-09 Pumpkin Night（UR 10体）／3属性有利／ガチャ確率1.5倍／RISING STAR FEST は 10/31 まで */
+  { date: "2026-10-09", title: "🎃 UR ガチャ「Pumpkin Night」開催！（11/30まで）／ガチャの確率が1.5倍", body: [
+    "🎃 新しいガチャ <b>Pumpkin Night</b> を開催しました（<b>11月30日まで</b>・ガチャ一覧のいちばん上）。<b>UR</b> の <b>アヤノ・サキ（火）／ユカ・ナツミ（水）／ミウ・マイ（木）／チナツ・ユウミ（光）／リナ・カオリ（闇）</b>の10体が、各 <b>1.5%</b> で登場します。",
+    "🎁 <b>はじめての10連は無料</b>（最後の1枠の確定つき）。🎫フェスチケットも使えます。",
+    "✨ 10体とも 治癒の祈り・アンチ4つ（オムニなし）・3属性有利・キラー3つ・リンク×2・撃つたび3つの技が出るショットスキル（10本とも別の技）。リンクは既存で最強の「ブルーローズ・コンプリート」、ネクサスは新しい「南瓜・パンプキンナイトネクサス」。ミウ・マイは少しだけ強めです。",
+    "📈 <b>どのガチャも SSR以上の確率が1.5倍</b>になりました（SSR以上の合計 12% → <b>18%</b>・ピックアップや限定キャラの1体ごとの確率も1.5倍）。",
+    "🔺 <b>全属性有利</b>は、全キャラ <b>3属性有利</b>（自分と同じ属性・自分が苦手な属性をのぞく3つに有利）に変わりました。バトル開始時の属性変化も、ボスがその3つに入るときだけ起きます。",
+    "⚖ UR（タキナ・ヒバナ・フキ＋Pumpkin Night）は<b>どの子も同じくらいの強さ</b>にそろえました（フルバースト合計 ×" + TKN_TOTAL.toFixed(1) + "・蒼玉ネクサスも強化）。",
+    "📅 <b>RISING STAR FEST</b> は <b>10月31日まで</b>の開催になりました（終わったあとは Festival Archive GACHA で引けます）。セレクトパックの販売も10/31までで、持っているセレクト券は終わったあとも使えます。",
+    "🎬 <b>ガチャの演出を一新</b>：10連も1体ずつめくり、確定演出（流れ星・二重の魔法陣・ピックアップのシルエット・金から虹へ割れるランクアップ・南瓜のランタン）つき。UR は縦長の絵で大きく登場します。",
+    "🗡 ガチャ一覧に「MagiAbyss 対応」の絞り込み。キャラ詳細の MagiDiamond の欄は <b>MagiAbyss</b> の性能に入れかえました。",
+  ] },
   /* ★★ 2026-10-07 新レアリティ UR・Sapphire Breeze（ヒバナ・フキ・タキナ） */
   { date: "2026-10-07", title: "💎 新レアリティ UR 登場！「Sapphire Breeze」（ヒバナ・フキ・タキナ）", body: [
     "💎 新しいガチャ <b>Sapphire Breeze</b> を開催しました（<b>無期限</b>・ガチャ一覧のいちばん上）。新レアリティ <b>UR</b> の <b>ヒバナ（木・反射）</b>・<b>フキ（闇・貫通）</b>、そして極彩祭から移った <b>タキナ（水・貫通）</b>の3体が、各 <b>1.0%</b> で登場します。",
@@ -14330,6 +14342,17 @@ const SS_TAGS = {
   /* ★★ 2026-10-07 Sapphire Breeze ヒバナ（乱打＋勿忘草の大輪＝防御力ダウン＋回復＋味方全員バリア）／フキ（乱打＋朧桜の帳＝防御力ダウン＋行動遅延） */
   hibanak: ["self", "barrage", "all", "debuff", "heal", "barrier"],
   fukik: ["self", "barrage", "all", "debuff", "delay"],
+  /* ★★ 2026-10-09 Pumpkin Night（乱打＋締め＋防御力ダウン＋それぞれの追加効果） */
+  ayanok: ["self", "barrage", "all", "debuff", "buff"],
+  sakik: ["self", "barrage", "all", "debuff", "heal", "barrier"],
+  yukak: ["self", "barrage", "all", "debuff", "delay"],
+  natsumik: ["self", "barrage", "all", "debuff", "fbcut"],
+  miuk: ["self", "barrage", "all", "debuff", "status", "weak", "fbcut"],
+  maik: ["self", "barrage", "all", "debuff", "heal", "buff", "weak"],
+  chinatsuk: ["self", "barrage", "all", "debuff", "barrier"],
+  yuumik: ["self", "barrage", "all", "debuff", "weak", "fbcut"],
+  rinak: ["self", "barrage", "all", "debuff", "delay"],
+  kaorik: ["self", "barrage", "all", "debuff", "status", "heal"],
   reia:   ["self", "all", "knock", "heal", "ally"],
   miori:  ["self", "barrage", "all", "debuff", "delay"],
   annamd: ["self", "all", "ally", "barrier", "fbcut"],
@@ -18215,8 +18238,11 @@ function applyElemAdvShift(stage, balls) {
   const out = [];
   const to = elemAdvTargetOf(stage);
   if (!to || !Array.isArray(balls)) return out;
+  const be = qFilterBossEl(stage);   /* ★★ 2026-10-09 3属性有利：ボスの属性 */
   balls.forEach((b, i) => {
     if (!b || !b.ch || !hasAbil(b.ch, "elemadv")) return;
+    /* ★★ 2026-10-09 ご指定で<b>3属性有利</b>へ。ボスが「自分と苦手属性をのぞく3つ」に入るときだけ変化する */
+    if (typeof elemAdvCovers === "function" && !elemAdvCovers(b.ch, be)) return;
     const c = b.ch;
     if (c.el === to && !c.el2) return;           /* すでに有利属性 */
     b.ch = Object.assign({}, c, { el: to, el2: null, elFrom: c.el, elFrom2: c.el2 || null, elShifted: true });
@@ -18299,11 +18325,11 @@ function playElemAdvShift(list) {
     ov.style.setProperty("--est", T.c);
     ov.innerHTML =
       `<div class="es-bg"></div><div class="es-flash"></div><div class="es-prism"></div><div class="es-band"></div><div class="es-ring"></div>` +
-      `<div class="es-tt"><small>ALL-ELEMENT ADVANTAGE</small>ELEMENT SHIFT!!</div>` +
+      `<div class="es-tt"><small>TRI-ELEMENT ADVANTAGE</small>ELEMENT SHIFT!!</div>` +
       `<div class="es-av"><img src="${c.img || ""}" alt=""></div>` +
       `<div class="es-els"><div class="es-el f"><b>${elIconsOf({ el: it.from, el2: it.from2 }, 26)}</b>${fromNm}</div>` +
       `<div class="es-arw">➤</div><div class="es-el t"><b>${elIcon(it.to, 28)}</b>${T.nm}</div></div>` +
-      `<div class="es-sub">${escHtmlSafe(c.nm || "")} — 全属性有利で <span style="color:${T.c}">${T.nm}（${T.jp}）</span> に変化！<br>リンク・サブリンクも有利属性に</div>`;
+      `<div class="es-sub">${escHtmlSafe(c.nm || "")} — 3属性有利で <span style="color:${T.c}">${T.nm}（${T.jp}）</span> に変化！<br>リンク・サブリンクも有利属性に</div>`;
     ov.classList.remove("on"); void ov.offsetWidth; ov.classList.add("on");
     /* 盤面の上でも、そのボールに光の柱と五色の輪 */
     if (ball) {
@@ -19811,6 +19837,10 @@ const SS_ART = {
   /* ★★ 2026-10-07 Sapphire Breeze ヒバナ・フキ（治癒の祈り持ち） */
   hibana: "img/ss/HibanaSS.webp",
   fuki: "img/ss/FukiSS.webp",
+  /* ★★ 2026-10-09 Pumpkin Night の10体（治癒の祈り持ち） */
+  ayano: "img/ss/AyanoSS.webp", saki: "img/ss/SakiSS.webp", yuka: "img/ss/YukaSS.webp", natsumi: "img/ss/NatsumiSS.webp",
+  miu: "img/ss/MiuSS.webp", mai: "img/ss/MaiSS.webp", chinatsu: "img/ss/ChinatsuSS.webp", yuumi: "img/ss/YuumiSS.webp",
+  rina: "img/ss/RinaSS.webp", kaori: "img/ss/KaoriSS.webp",
 };
 /* アビリティ発動カットイン（文字・色・演出はフルバーストと別物にする）
    art … SS絵のパス。渡すと正方形アイコンではなく縦長イラストで見せる（.sscut） */
@@ -22505,11 +22535,83 @@ function roxyBossTarget() {
      「止まってから」ではないので、エフェクトは<b>短い寿命で自分から終わる</b>ものだけにする
      （長く残す型にすると手番が進まなくなる）。
    ══════════════════════════════════════════════════════════════ */
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-10-09 Pumpkin Night のショットスキル（PN_SHOT の1本）
+   ① 形（ring／fan／all／near／line）の敵へ ×per ② 追加の技（fx）③ 自分のFB +PN_SHOT_FB。
+   ★ 撃ち出しの瞬間に走るので、エフェクトは<b>短い寿命で自分から終わるもの</b>だけ（手番を止めない）。
+   ══════════════════════════════════════════════════════════════ */
+function firePnShot(ball, ux, uy, S, atk) {
+  const sp = Math.hypot(ux, uy) || 1, dx = ux / sp, dy = uy / sp, a0 = Math.atan2(dy, dx);
+  const list = aliveEnemies();
+  let tg = [];
+  if (S.shape === "ring") {
+    for (let q = 0; q < 3; q++) B.effects.push({ type: "ring", x: ball.x, y: ball.y, t: -q * 3, dur: 18, r: S.r * (0.55 + q * 0.225), c: q % 2 ? S.c2 : S.c });
+    tg = list.filter((e2) => Math.hypot(e2.x - ball.x, e2.y - ball.y) <= S.r + e2.r);
+  } else if (S.shape === "fan") {
+    for (let q = -3; q <= 3; q++) {
+      const a = a0 + q * S.ang / 3;
+      B.effects.push({ type: "linefx", x: ball.x, y: ball.y, x2: ball.x + Math.cos(a) * S.len, y2: ball.y + Math.sin(a) * S.len, t: -Math.abs(q), dur: 16, w: 5, c: q % 2 ? S.c2 : S.c });
+    }
+    tg = list.filter((e2) => {
+      const vx = e2.x - ball.x, vy = e2.y - ball.y, d = Math.hypot(vx, vy);
+      if (d > S.len + e2.r) return false;
+      let da = Math.abs(Math.atan2(vy, vx) - a0); if (da > Math.PI) da = Math.PI * 2 - da;
+      return da <= S.ang + Math.atan2(e2.r, Math.max(1, d));
+    });
+  } else if (S.shape === "line") {
+    for (let q = 0; q < 9; q++) {
+      const s = (q + 0.5) / 9 * S.len, px = ball.x + dx * s, py = ball.y + dy * s;
+      B.effects.push({ type: "ring", x: px, y: py, t: -q, dur: 14, r: S.w * 0.45, c: q % 2 ? S.c2 : S.c });
+    }
+    B.effects.push({ type: "linefx", x: ball.x, y: ball.y, x2: ball.x + dx * S.len, y2: ball.y + dy * S.len, t: 0, dur: 16, w: S.w * 0.35, c: S.c });
+    tg = list.filter((e2) => segHitsCircle(ball.x, ball.y, dx, dy, S.len, e2.x, e2.y, e2.r + S.w / 2));
+  } else if (S.shape === "near") {
+    tg = list.slice().sort((a, b) => Math.hypot(a.x - ball.x, a.y - ball.y) - Math.hypot(b.x - ball.x, b.y - ball.y)).slice(0, S.n);
+    tg.forEach((e2, q) => B.effects.push({ type: "boltlink", x: ball.x, y: ball.y, tx: e2.x, ty: e2.y, t: -q * 2, dur: 12, c: S.c }));
+  } else {
+    tg = list.slice();
+    tg.forEach((e2, q) => B.effects.push({ type: "linefx", x: e2.x + 10, y: e2.y - 70, x2: e2.x, y2: e2.y, t: -(q % 4), dur: 12, w: 4, c: q % 2 ? S.c2 : S.c }));
+  }
+  let hit = 0;
+  withDmgSrc(ball, () => {
+    tg.forEach((e2) => {
+      if (!e2 || e2.hp <= 0) return;
+      hit++;
+      dealDamage(e2, atk * S.per * elemMultOf(ball.ch, e2.el), S.c, true);
+      B.effects.push({ type: "ring", x: e2.x, y: e2.y, t: 0, dur: 14, r: e2.r * 1.7, c: S.c2 });
+      spawnSparks(e2.x, e2.y, S.c2, 6);
+      if (S.fx === "defdown") e2.defdown = { left: Math.max(1, (e2.defdown && e2.defdown.left) || 0) };
+      else if (S.fx === "poison") e2.poison = { left: Math.max(S.turns, (e2.poison && e2.poison.left) || 0) };
+      else if (S.fx === "atkdown") e2.atkdown = { left: Math.max(1, (e2.atkdown && e2.atkdown.left) || 0), mul: Math.min(S.mul, (e2.atkdown && e2.atkdown.mul) || 1) };
+      else if (S.fx === "delay") { try { delayEnemyTurn(e2, 1); } catch (err) {} }
+    });
+  });
+  /* ② のうち「いちばんHPが高い敵」に効くもの */
+  const top = list.filter((e2) => e2.hp > 0).sort((a, b) => b.hp - a.hp)[0];
+  let note = "";
+  if (S.fx === "delaytop" && top) { try { delayEnemyTurn(top, 1); note = "（" + (top.boss ? "ボス" : "最大HPの敵") + "の攻撃 +1ターン）"; } catch (err) {} }
+  if (S.fx === "sigiltop" && top) { try { markSigil(top, S.turns); note = "（追加弱点）"; } catch (err) {} }
+  if (S.fx === "heal" || (S.fx === "drainheal" && hit)) {
+    try {
+      const rate = S.fx === "heal" ? S.heal : Math.min(S.max, S.each * hit);
+      const h0 = B.hp; B.hp = Math.min(B.maxhp, B.hp + Math.round(B.maxhp * rate));
+      if (B.hp > h0) { paintHp(); note = "（HP +" + fmt(B.hp - h0) + "）"; }
+    } catch (err) {}
+  }
+  if (S.fx === "barrierself") { ball.barrier = Math.max(ball.barrier || 0, S.bar); note = "（バリア " + fmt(S.bar) + "）"; }
+  if (S.fx === "barrierall") { (B.balls || []).forEach((b2) => { if (b2) b2.barrier = Math.max(b2.barrier || 0, S.bar); }); note = "（味方全員バリア " + fmt(S.bar) + "）"; }
+  const _k = ball.sc | 0;
+  ball.sc = Math.min(_k + PN_SHOT_FB, fbMax(ball.st));
+  B.pops.push({ x: ball.x, y: ball.y - ball.r - 30, t: 0,
+    txt: S.nm + (hit ? "（" + hit + "体）" : "") + note + (ball.sc > _k ? "（FB +" + (ball.sc - _k) + "）" : ""), c: S.c, small: 1 });
+}
 function fireShotSkill(ball, ux, uy) {
   const k = ball && ball.ch && ball.ch.shotskill;
   if (!k || !B) return;
   const col = ELEM[ball.ch.el].c, el = ball.ch.el;
   const atk = ball.st.atk * atkMulOf(ball);
+  /* ★★ 2026-10-09 Pumpkin Night の10本（撃つたび3つの技）。数字と名前は mb-core の PN_SHOT */
+  if (typeof PN_SHOT !== "undefined" && PN_SHOT[k]) { firePnShot(ball, ux, uy, PN_SHOT[k], atk); return; }
   /* ══ ★★ 2026-09-08 戦姫祭 第3弾（レイア・ミオリ・アンナ(メイド)）══
      ★ ここは<b>撃ち出しの瞬間</b>に走るので、エフェクトは短い寿命で自分から終わるものだけ。 */
   if (k === "kikyoripple") {
@@ -25947,6 +26049,10 @@ function hitEnemy(ball, e, col) {
         SFX.crit();
       } });
   }
+  /* ══ ★★ 2026-10-09 Pumpkin Night の UR 10体（PN_FB の1本・fxPumpkinFB）══ */
+  if (B.ssArmed === ball.i && typeof PN_FB !== "undefined" && PN_FB[ball.ch.ssKind] && !B.ssFirstDone) {
+    fxPumpkinFB(ball, e, ball.ch.ssKind);
+  }
   /* ══ ★★ 2026-09-19e BENISUZU SENRENKA（花宴祭 ヒメリ・乱打）══ */
   if (B.ssArmed === ball.i && ball.ch.ssKind === "himerik" && !B.ssFirstDone) {
     B.ssFirstDone = true;
@@ -27013,6 +27119,91 @@ function fxBarrage(ball, e, n, per, col, step) {
         } });
     }
   });
+}
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-10-09 Pumpkin Night のフルバースト（PN_FB の1本）
+   自強化 → 最初にふれた敵の上で止まって乱打（撃つごとに重く）→ 締め（敵全体）＋防御力ダウン＋それぞれの追加効果。
+   ★ 数字は mb-core の PN_FB／pnFbNum（説明文と同じ数字を読む＝表記と動作がずれない）。
+   ★ 盤面に浮かぶ飾り（🎃🦇👻…）は pnglyph（drawEffect）。寿命つきで自分から消える。
+   ══════════════════════════════════════════════════════════════ */
+const PN_MOTIF = {
+  lantern: ["🎃", "🏮", "✨"], candy: ["🍭", "🍬", "🎃"], star: ["⭐", "🌟", "🐈"], moon: ["🌕", "🐈‍⬛", "✨"],
+  pumpkin: ["🎃", "🍂", "🍁"], clover: ["🍀", "☘️", "✨"], candle: ["🕯️", "✨", "🌟"], bandage: ["🦇", "🕸️", "🌙"],
+  ghost: ["👻", "🦇", "🎃"],
+};
+function pnGlyph(x, y, S, q, big) {
+  const g = (PN_MOTIF[S.motif] || PN_MOTIF.lantern)[q % 3];
+  B.effects.push({ type: "pnglyph", g, x, y, t: 0, dur: big ? 46 : 30, sz: big ? 76 : 40 + (q % 3) * 8,
+    vy: big ? -0.4 : -1.1, rot: (q % 5 - 2) * 0.12, spin: (q % 2 ? 0.5 : -0.5) });
+}
+function fxPumpkinFB(ball, e, k) {
+  const S = PN_FB[k], P = pnFbNum(k);
+  B.ssFirstDone = true;
+  barrageHalt(ball);
+  ball.selfBuff = { atk: P.atk, spd: P.spd, left: 3 };
+  fxBarrage(ball, e, P.n, P.per, S.c2, P.step);
+  luxBurst(e.x, e.y, S.c);
+  B.effects.push({ type: "skydim", t: 0, dur: P.n * 2 + 90, a: 0.6, c: S.sky });
+  B.pops.push({ x: e.x, y: e.y - e.r - 60, t: 0, txt: S.en + "!!（" + P.n + "連）", c: S.c2, small: 0 });
+  const ab = ball.st.atk * atkMulOf(ball), cb = ball.ch;
+  const fin = P.n * 2 + 16;
+  B.effects.push({ type: "fxctl", t: 0, dur: fin + 90, done: 0, q: 0,
+    tick(fx) {
+      /* 乱打のあいだ、盤面のあちこちにハロウィンの飾りが浮かぶ（進むほど多く） */
+      if (fx.t < fin && fx.t % (fx.t > fin * 0.6 ? 4 : 7) === 0) {
+        fx.q++;
+        const x = vrnd(W * 0.06, W * 0.94), y = vrnd(H * 0.1, H * 0.92);
+        pnGlyph(x, y, S, fx.q, false);
+        B.effects.push({ type: "ring", x, y, t: 0, dur: 16, r: 18, c: fx.q % 2 ? S.c : S.c2 });
+      }
+      if (fx.done || fx.t < fin) return;
+      fx.done = 1;
+      B.effects.push({ type: "skydim", t: 0, dur: 64, a: 0.8, c: S.sky });
+      B.effects.push({ type: "flashfx", t: 0, dur: 24 });
+      B.effects.push({ type: "personacrit", x: e.x, y: e.y, t: 0, dur: 42, c: S.c });
+      /* 締め：何重もの輪・下から立ちのぼる光・盤面いっぱいの飾り */
+      for (let q = 0; q < 12; q++) B.effects.push({ type: "ring", x: W / 2, y: H / 2, t: -q * 3, dur: 46, r: 90 + q * 100, c: q % 2 ? S.c2 : S.c });
+      for (let q = 0; q < 16; q++) {
+        const x = W * (q + 0.5) / 16;
+        B.effects.push({ type: "linefx", x, y: H + 40, x2: x + (q % 2 ? 16 : -16), y2: -40, t: -(q % 4), dur: 30, w: 4, c: q % 2 ? S.c : "#ffffff" });
+      }
+      for (let q = 0; q < 14; q++) pnGlyph(W * (0.08 + (q % 7) * 0.14), H * (q < 7 ? 0.28 : 0.68), S, q, true);
+      withDmgSrc(ball, () => {
+        aliveEnemies().forEach((o) => {
+          dealDamage(o, ab * P.fin * elemMultOf(cb, o.el), S.c2, true);
+          o.defdown = { left: Math.max(P.def, (o.defdown && o.defdown.left) || 0) };
+          if (S.delay) { try { delayEnemyTurn(o, S.delay); } catch (err) {} }
+          if (S.poison) o.poison = { left: Math.max(S.poison, (o.poison && o.poison.left) || 0) };
+          if (S.atkDown) o.atkdown = { left: Math.max(S.atkDown[1], (o.atkdown && o.atkdown.left) || 0), mul: Math.min(S.atkDown[0], (o.atkdown && o.atkdown.mul) || 1) };
+          if (S.sigil) { try { markSigil(o, S.sigil); } catch (err) {} }
+          B.effects.push({ type: "boom", x: o.x, y: o.y, t: 0, dur: 40, r: o.r * 4.6, c: S.c });
+          B.effects.push({ type: "personahit", x: o.x, y: o.y, t: 0, dur: 32, c: S.c2, txt: S.finEn, big: 1 });
+          spawnSparks(o.x, o.y, "#ffffff", 34);
+        });
+      });
+      const notes = [];
+      if (S.heal) {
+        try { const heal = Math.round(B.maxhp * S.heal); B.hp = Math.min(B.maxhp, B.hp + heal); paintHp(); notes.push("HP +" + Math.round(S.heal * 100) + "%"); } catch (err) {}
+      }
+      (B.balls || []).forEach((b2) => {
+        if (!b2) return;
+        if (S.barrier) b2.barrier = Math.max(b2.barrier || 0, S.barrier);
+        if (S.atkUp) { const cur = b2.selfBuff || {}; b2.selfBuff = { atk: Math.max(cur.atk || 1, S.atkUp[0]), spd: Math.max(cur.spd || 1, 1), left: Math.max(cur.left | 0, S.atkUp[1]) }; }
+        if (S.fbAll) b2.sc = Math.min((b2.sc | 0) + S.fbAll, fbMax(b2.st));
+        if (S.barrier || S.atkUp || S.fbAll) B.effects.push({ type: "ring", x: b2.x, y: b2.y, t: 0, dur: 20, r: b2.r * 2.6, c: S.c2 });
+      });
+      if (S.barrier) notes.push("味方全員バリア " + fmt(S.barrier));
+      if (S.atkUp) notes.push("味方全員 攻撃×" + S.atkUp[0]);
+      if (S.fbAll) notes.push("味方全員 FB +" + S.fbAll);
+      if (S.delay) notes.push("敵全体の攻撃 +" + S.delay + "ターン");
+      if (S.poison) notes.push("毒 " + S.poison + "T");
+      if (S.sigil) notes.push("追加弱点");
+      if (S.atkDown) notes.push("敵の攻撃×" + S.atkDown[0]);
+      B.pops.push({ x: W / 2, y: H * 0.38, t: 0,
+        txt: S.finEn + "!!（×" + P.fin + "・防御力ダウン " + P.def + "T" + (notes.length ? "・" + notes.join("・") : "") + "）", c: S.c2, small: 0 });
+      B.shake = Math.max(B.shake, 52); B.freeze = Math.max(B.freeze, 15);
+      SFX.crit();
+    } });
 }
 /* 乱打フルバーストの停止: 乱打の持ち主が味方にふれた瞬間、まだ発生していない乱打をすべて打ち切る */
 function stopBarrage(ball) {
@@ -40569,6 +40760,16 @@ function drawEffect(fx) {
       }
       ctx.lineCap = "butt"; ctx.restore();
     }
+  } else if (fx.type === "pnglyph") {
+    /* ★★ 2026-10-09 Pumpkin Night のフルバーストで浮かぶ飾り（🎃🦇👻…）。ふわっと出て、上へ流れながら消える */
+    const k = p, s = (fx.sz || 40) * (0.55 + 0.6 * Math.min(1, k * 3));
+    ctx.globalAlpha = Math.max(0, 1 - k * k);
+    ctx.translate(fx.x, fx.y + (fx.vy || 0) * fx.t);
+    ctx.rotate((fx.rot || 0) + k * (fx.spin || 0));
+    ctx.font = Math.round(s) + "px 'Segoe UI Emoji','Apple Color Emoji','Noto Color Emoji',sans-serif";
+    ctx.textAlign = "center"; ctx.textBaseline = "middle";
+    ctx.fillText(fx.g, 0, 0);
+    ctx.globalAlpha = 1;
   } else if (fx.type === "ring") {
     /* ★ v14: リングを二重にして見やすく（内側に白のコアリング、外側に属性色） */
     /* ★★ 2026-09-08 半径が<b>マイナス</b>になることがあり、arc() が例外を投げて
