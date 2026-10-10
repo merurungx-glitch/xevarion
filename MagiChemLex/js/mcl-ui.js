@@ -234,7 +234,7 @@
     const rec = M.build("rec", { n: 10 }); UI.recIds = rec;
     const nDue = rec.filter((id) => due.indexOf(id) >= 0).length;
     let msg, mood = "smile";
-    if (!tt.n) { msg = "はじめまして、ケミィだよ！<br>まずは <b>おすすめ10問</b> からいってみよう！"; mood = "wow"; }
+    if (!tt.n) { msg = "はじめまして、" + esc(F.navName()) + "だよ！<br>まずは <b>おすすめ10問</b> からいってみよう！"; mood = "wow"; }
     else if (due.length) { msg = "今日の復習が <b>" + due.length + "問</b> あるよ。<br>忘れる前にサクッと！"; mood = "think"; }
     else if (tc >= goal) { msg = "今日の目標クリア！<br>えらすぎる…！🎉"; mood = "happy"; }
     else { msg = "今日はあと <b>" + (goal - tc) + "問</b> で目標達成！"; }
@@ -247,7 +247,8 @@
     return '<section class="hero">' +
       '<div class="hero-t"><p class="hello">' + greet() + "！</p><h1>難関化学を、<br>毎日すこしずつ。</h1>" +
       '<div class="lvl"><span class="lv-b">Lv.' + lv.lv + "</span><b>" + lv.title + '</b></div><div class="xpbar"><i style="width:' + (lv.cur / lv.need * 100).toFixed(1) + '%"></i></div><small class="xp-t">次のレベルまで ' + (lv.need - lv.cur) + " XP</small></div>" +
-      '<div class="hero-m">' + F.mascot(mood) + '<div class="bubble">' + msg + "</div></div></section>" +
+      /* ★★ 2026-10-09 ナビ（マスコット）をタップ → ナビえらび。下に小さく「ナビをかえる」 */
+      '<div class="hero-m"><button class="hero-nv" data-a="navPick" aria-label="ナビゲーターをかえる">' + F.mascot(mood) + '</button><div class="bubble">' + msg + '</div><button class="nv-chg" data-a="navPick">' + ic("spark") + "ナビをかえる</button></div></section>" +
       '<section class="today">' +
       '<div class="td">' + ringW(Math.min(1, tc / goal), 58, 7, "<b>" + tc + "</b><small>/" + goal + "</small>", "goal") + "<span>今日の目標</span></div>" +
       '<div class="td"><div class="td-big fl' + (stc ? " on" : "") + '">' + ic("flame") + "<b>" + stc + "</b></div><span>連続日数</span></div>" +
@@ -814,12 +815,27 @@
       '<div class="st-r"><b>1日の目標</b>' + seg("goal", [[5, "5問"], [10, "10問"], [20, "20問"], [30, "30問"]]) + "</div>" +
       '<div class="st-r"><b>表示テーマ</b>' + seg("theme", [["auto", "自動"], ["light", "ライト"], ["dark", "ダーク"]]) + "</div>" +
       '<div class="st-r"><b>文字の大きさ</b>' + seg("fs", [["m", "標準"], ["l", "大きめ"]]) + "</div>" +
+      /* ★★ 2026-10-09 ナビゲーター（ケミィ ⇄ 持っている UR キャラ） */
+      '<div class="st-r"><b>ナビゲーター</b><button class="nv-cur" data-a="navPick">' + F.mascot("smile") + "<span><b>" + esc(F.navName()) + "</b><small>" + (F.navCur() ? "UR キャラ" : "はじめからいる丸底フラスコ") + "</small></span>" + ic("chevR") + "</button>" +
+      '<small class="muted">XEVARION で持っている UR キャラを、ホーム・復習・答え合わせ・結果のナビにできます。</small></div>' +
       tg("relAuto", "まちがえたら類題を出す", "同じ考え方の関連問題を、すぐあとに1問はさみます") +
       tg("timer", "1問ごとの時間を表示") +
       tg("sound", "効果音") +
       (navigator.vibrate ? tg("vib", "振動（まちがえたとき）") : "") +
       '<div class="st-r"><b>データ</b><button class="btn danger" data-a="reset">学習の記録をリセット</button><small class="muted">XEVA・受け取ったごほうびはそのまま。問題の記録・復習の予定・ブックマークが消えます。</small></div>' +
       '<p class="sh-note">MagiChemLex v2（2026-10-06）</p>');
+  }
+  /* ══ ★★ 2026-10-09 ナビゲーターをえらぶ（ケミィ＋XEVARION の UR キャラ。持っていないキャラは鍵つきで見せる）══ */
+  const NV_LOCK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 11V8a5 5 0 0 1 10 0v3" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/><rect x="5" y="11" width="14" height="10" rx="3" fill="currentColor"/></svg>';
+  function openNavPicker() {
+    const L = F.navList(), now = F.navCur(), nOwn = L.filter((c) => c.own).length;
+    const cell = (c) => '<button class="nv-c' + (now && now.id === c.id ? " on" : "") + (c.own ? "" : " lock") + '" data-a="navSet" data-v="' + c.id + '"' + (c.own ? "" : ' data-lock="1"') + ">" +
+      '<span class="nv-ph"><img src="' + c.img + '" alt="" loading="lazy" decoding="async">' + (c.own ? "" : '<i class="nv-lk">' + NV_LOCK + "</i>") + "</span><b>" + esc(c.nm) + "</b><small>" + (c.own ? "UR" : "未所持") + "</small></button>";
+    sheet('<h2 class="sh-t">' + ic("spark") + " ナビゲーター</h2>" +
+      '<p class="nv-lead">ホーム・復習・答え合わせ・結果で話しかけてくれるナビをえらべます。<br>XEVARION で持っている <b>UR キャラ</b>（' + nOwn + " / " + L.length + "人）から選べます。</p>" +
+      '<div class="nv-grid"><button class="nv-c' + (now ? "" : " on") + '" data-a="navSet" data-v=""><span class="nv-ph chemy">' + F.mascot("smile", { chemy: 1 }) + "</span><b>ケミィ</b><small>はじめから</small></button>" +
+      L.map(cell).join("") + "</div>" +
+      (nOwn ? "" : '<p class="nv-note">UR キャラは XEVARION のガチャで手に入ります。手に入れると、ここで選べるようになります。</p>'));
   }
   function openWelcome() {
     const goal = Number(M.get().set.goal) || 10;
@@ -1164,6 +1180,16 @@
   const ACT = {
     tab: (el) => { closeSheet(); go(el.dataset.tab); },
     settings: () => openSettings(),
+    /* ★★ 2026-10-09 ナビゲーター */
+    navPick: () => openNavPicker(),
+    navSet: (el) => {
+      if (el.dataset.lock) { toast("まだ持っていないキャラです。XEVARION のガチャで手に入れると、ナビにできます"); return; }
+      const v = el.dataset.v || "";
+      M.setSetting("nav", v);
+      closeSheet();
+      toast(esc(F.navName()) + " がナビになりました");
+      if (!P) go(TAB, true);
+    },
     set: (el) => {
       const k = el.dataset.k, raw = el.dataset.v, v = /^-?\d+$/.test(raw) ? Number(raw) : raw;
       M.setSetting(k, v); applySettings(); openSettings(); if (!P) go(TAB, true);

@@ -743,6 +743,40 @@ table.sum small { color: var(--mute); }
 .mascot .mk-sw { fill: #7fd6ff; stroke: #3aa6e0; stroke-width: 1; }
 .mascot .mk-q { fill: #ff8a1f; font: 900 18px var(--font); }
 :root[data-theme="dark"] .mascot .mk-gl { fill: rgba(235, 240, 255, .95); }
+/* ══ ★★ 2026-10-09 ナビゲーター（UR キャラの丸い顔）。大きさは .mascot と同じ指定（場面ごと）に従う ══ */
+.mascot.nav { position: relative; }
+.mascot.nav .nv-ring { position: absolute; left: 4%; right: 4%; top: 8%; aspect-ratio: 1; border-radius: 50%; padding: 3px;
+  background: conic-gradient(from 200deg, #ff5f9e, #ffb23f, #ffe36b, #5fe0a8, #5fc4ff, #a678ff, #ff5f9e); box-shadow: 0 4px 12px rgba(40, 20, 90, .3); }
+.mascot.nav .nv-ring img { display: block; width: 100%; height: 100%; border-radius: 50%; object-fit: cover; object-position: 50% 18%; background: #fff; border: 2px solid #fff; box-sizing: border-box; }
+.mascot.nav .nv-ur { position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); padding: 1px 7px; border-radius: 99px; font: 900 .56rem/1.4 var(--font); letter-spacing: .06em; color: #fff;
+  background: linear-gradient(90deg, #ff5f9e, #a678ff); box-shadow: 0 2px 6px rgba(80, 30, 120, .35); }
+.mascot.nav .nv-fx { position: absolute; left: -22%; top: -20%; width: 144%; height: 140%; overflow: visible; pointer-events: none; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .35)); }
+.mascot.nav.sad .nv-ring img { filter: saturate(.65) brightness(.96); }
+.fb .mascot.nav .nv-ur { display: none; }
+.hero-nv { display: block; padding: 0; border: 0; background: none; cursor: pointer; border-radius: 50%; }
+.nv-chg { display: inline-flex; align-items: center; gap: 3px; margin-top: 6px; padding: 3px 9px; border-radius: 99px; font-size: .62rem; font-weight: 900; color: #fff;
+  background: rgba(255, 255, 255, .22); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .45); white-space: nowrap; }
+.nv-chg .di { width: 12px; height: 12px; }
+.nv-cur { display: flex; align-items: center; gap: 12px; width: 100%; padding: 8px 12px; border-radius: 16px; background: var(--card3); text-align: left; }
+.nv-cur .mascot { width: 46px; height: 48px; flex: 0 0 auto; }
+.nv-cur > span { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.nv-cur > span small { font-size: .72rem; color: var(--sub); font-weight: 700; }
+.nv-lead { font-size: .8rem; color: var(--sub); line-height: 1.6; margin: 0 0 10px; }
+.nv-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(86px, 1fr)); gap: 10px; }
+.nv-c { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 10px 4px 8px; border-radius: 16px; background: var(--card3); text-align: center; transition: transform .15s; }
+.nv-c:active { transform: scale(.96); }
+.nv-c.on { background: var(--card); box-shadow: 0 0 0 2.5px var(--pri), var(--sh); }
+.nv-c > b { font-size: .8rem; }
+.nv-c > small { font-size: .62rem; color: var(--sub); font-weight: 800; }
+.nv-ph { position: relative; width: 62px; height: 62px; border-radius: 50%; padding: 2px; background: conic-gradient(from 200deg, #ff5f9e, #ffb23f, #ffe36b, #5fe0a8, #5fc4ff, #a678ff, #ff5f9e); }
+.nv-ph img { display: block; width: 100%; height: 100%; border-radius: 50%; object-fit: cover; object-position: 50% 18%; background: #fff; border: 2px solid #fff; box-sizing: border-box; }
+.nv-ph.chemy { background: none; padding: 0; display: grid; place-items: center; }
+.nv-ph.chemy .mascot { width: 54px; height: 57px; }
+.nv-c.lock .nv-ph img { filter: grayscale(1) brightness(.75); }
+.nv-c.lock > b { color: var(--mute); }
+.nv-lk { position: absolute; inset: 0; display: grid; place-items: center; color: #fff; }
+.nv-lk svg { width: 22px; height: 22px; filter: drop-shadow(0 1px 3px rgba(0, 0, 0, .5)); }
+.nv-note { margin: 12px 0 0; font-size: .74rem; color: var(--sub); line-height: 1.6; }
 
 /* ══ 起動前 ══ */
 html:not(.ready) .main { opacity: 0; }

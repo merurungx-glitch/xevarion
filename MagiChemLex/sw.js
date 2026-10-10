@@ -3,24 +3,24 @@
    ・問題・解説・図はすべて JS の中にあるので、CORE をそろえれば完全にオフラインで使える。
    ・フォント（Google Fonts）は一度読めたら控える。Firebase（同期）はキャッシュしない。
    ============================================================ */
-const VERSION = "magichemlex-sw-v4";
+const VERSION = "magichemlex-sw-v5";
 const RUNTIME = "magichemlex-rt-v1";
 const CORE = [
   "./index.html",
   "./manifest.webmanifest",
-  "./css/mcl.css?v=4",
+  "./css/mcl.css?v=5",
   "./js/mcl-data.js?v=3",
   "./js/mcl-data2.js?v=3",
   "./js/mcl-core.js?v=3",
-  "./js/mcl-fig.js?v=2",
-  "./js/mcl-ui.js?v=3",
+  "./js/mcl-fig.js?v=3",
+  "./js/mcl-ui.js?v=4",
   "./img/icon_192.png",
   "./img/apple-touch-icon.png",
   "../thumbs/MagiChemLex.jpg",
   "../XEVA.png",
   "../events/violet_breeze_s.webp",
   /* XEVARION の共通部品 */
-  "../xeva.js?v=75",
+  "../xeva.js?v=76",
   "../xeva-loading.js?v=18",
   "../xeva-splash.js?v=13",
   "../xeva-safebottom.js?v=12",

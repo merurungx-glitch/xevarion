@@ -2,6 +2,7 @@
    MagiChemLex — mcl-fig.js（図・マスコット）
    ・問題の図（fig）と解説の図（sfig）を SVG で描く。色は CSS（.fig の中のクラス）で決める＝ダークでも読める。
    ・マスコット「ケミィ」（丸底フラスコ）：mood = smile / happy / sad / think / wow
+   ・★★ 2026-10-09 ナビゲーター：設定でケミィを XEVARION の UR キャラ（持っているキャラだけ）にかえられる
    ============================================================ */
 (function () {
   "use strict";
@@ -216,8 +217,27 @@
     return "";
   }
 
-  /* ── マスコット「ケミィ」── */
-  function mascot(mood) {
+  /* ══ ★★ 2026-10-09 ナビゲーター（マスコット）を XEVARION の UR キャラにかえられる（ご指定）══
+     設定 set.nav … "" ＝ケミィ（はじめから）／"miu" など＝UR キャラ（XEVA.MB_CHARS の rarLabel "UR"）。
+     ★ 使えるのは<b>持っている</b> UR だけ（XEVA.mbOwnedSet＝MagiBurst のセーブ）。持っていなければケミィにもどる。
+     ★ 顔は ../img/t_*.webp（ガチャ・キャラ一覧と同じ正方形の絵）を丸く切りぬく。気持ち（mood）の飾りはケミィと同じもの。 */
+  function navList() {
+    let all = [], own = {};
+    try { all = ((window.XEVA && XEVA.MB_CHARS) || []).filter((c) => c.rarLabel === "UR"); } catch (e) { all = []; }
+    try { own = (window.XEVA && XEVA.mbOwnedSet) ? XEVA.mbOwnedSet() : {}; } catch (e) { own = {}; }
+    return all.map((c) => ({ id: c.mbId, nm: c.name, img: c.file, own: !!own[c.mbId] }));
+  }
+  function navCur() {
+    let id = "";
+    try { id = (window.MCL && MCL.get().set.nav) || ""; } catch (e) { id = ""; }
+    if (!id) return null;
+    const c = navList().find((x) => x.id === id);
+    return c && c.own ? c : null;
+  }
+  function navName() { const c = navCur(); return c ? c.nm : "ケミィ"; }
+
+  /* ── マスコット「ケミィ」（opt.chemy＝ナビがだれでもケミィを描く：ナビえらびの一覧用）── */
+  function mascot(mood, opt) {
     const id = "mcm" + (++uid);
     mood = mood || "smile";
     let eyes, mouth, extra = "";
@@ -241,6 +261,12 @@
       eyes = '<circle cx="31" cy="56" r="3.4"/><circle cx="49" cy="56" r="3.4"/><circle cx="32.2" cy="54.8" r="1.1" fill="#fff"/><circle cx="50.2" cy="54.8" r="1.1" fill="#fff"/>';
       mouth = '<path d="M35 63q5 5 10 0" class="mk-l"/>';
     }
+    /* ★★ 2026-10-09 ナビが UR キャラなら、丸い顔の絵＋同じ飾り（星・汗・？） */
+    const nv = opt && opt.chemy ? null : navCur();
+    if (nv) {
+      return '<span class="mascot nav ' + mood + '" aria-hidden="true"><span class="nv-ring"><img src="' + nv.img + '" alt="" loading="lazy" decoding="async"></span>' +
+        '<b class="nv-ur">UR</b>' + (extra ? '<svg class="nv-fx" viewBox="0 0 80 84">' + extra + "</svg>" : "") + "</span>";
+    }
     return '<svg class="mascot ' + mood + '" viewBox="0 0 80 84" aria-hidden="true"><defs>' +
       '<linearGradient id="' + id + 'g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5fd0ff"/><stop offset="1" stop-color="#7b5cff"/></linearGradient>' +
       '<clipPath id="' + id + 'c"><circle cx="40" cy="58" r="23"/></clipPath></defs>' +
@@ -253,5 +279,5 @@
       extra + "</svg>";
   }
 
-  window.MCLFig = { make, mascot };
+  window.MCLFig = { make, mascot, navList, navCur, navName };
 })();
