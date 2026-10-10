@@ -190,7 +190,8 @@
     const M = S();
     let em = M.elemMult(u.el, e.el);
     if (u.el2) em = Math.max(em, M.elemMult(u.el2, e.el));
-    if (u.fx.elemadv) em = Math.max(em, M.ADV);
+    /* ★★ 2026-10-09 3属性有利（自分と同じ属性・苦手な属性をのぞく3つだけ） */
+    if (u.fx.elemadv && (!M.triAdv || M.triAdv(u.el, u.el2, e.el))) em = Math.max(em, M.ADV);
     let m = atkOf(st, u) * mul * em;
     if (em > 1) m *= 1 + (u.gs.elemdmg || 0);
     const crit = st.rnd() < u.crit + (o.crit || 0);

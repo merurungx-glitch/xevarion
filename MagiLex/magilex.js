@@ -1041,12 +1041,12 @@ window.lexKpDetail = async function(id){
   try{
     if(!document.getElementById("mbDetCss")){
       const l = document.createElement("link");
-      l.id = "mbDetCss"; l.rel = "stylesheet"; l.href = "../mb-char-detail.css?v=26";
+      l.id = "mbDetCss"; l.rel = "stylesheet"; l.href = "../mb-char-detail.css?v=27";
       document.head.appendChild(l);
     }
     if(typeof window.DB === "undefined") await _loadScript("../mb-boot.js?v=17");
-    if(typeof window.CHARS === "undefined") await _loadScript("../MagiBurst/js/mb-core.js?v=134");
-    if(typeof window.openDetX !== "function") await _loadScript("../mb-char-detail.js?v=41");
+    if(typeof window.CHARS === "undefined") await _loadScript("../MagiBurst/js/mb-core.js?v=135");
+    if(typeof window.openDetX !== "function") await _loadScript("../mb-char-detail.js?v=42");
     _kpDetReady = true;
     _kpOpen(id);
   }catch(e){
