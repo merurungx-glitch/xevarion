@@ -27,12 +27,31 @@
     "タキナ": "Takina",
     /* ★★ 2026-10-07 Sapphire Breeze */
     "ヒバナ": "Hibana", "フキ": "Fuki", "Sapphire Breeze": "Sapphire Breeze",
+    /* ★★ 2026-10-09 Pumpkin Night */
+    "アヤノ": "Ayano", "サキ": "Saki", "ユカ": "Yuka", "ナツミ": "Natsumi", "ミウ": "Miu",
+    "マイ": "Mai", "チナツ": "Chinatsu", "ユウミ": "Yuumi", "リナ": "Rina", "カオリ": "Kaori",
+    "Pumpkin Night": "Pumpkin Night", "3属性有利": "Tri-Element Advantage",
     "神癒の祈り": "Divine Prayer", "CRYSTAL ACADEMY FEST": "CRYSTAL ACADEMY FEST",
     "レナ": "Rena", "カオル": "Kaoru", "スバル": "Subaru", "カスミ": "Kasumi", "ツキノ": "Tsukino",
   };
 
   /* ── 新しいリンクスキル・サブリンク・フルバースト・ショットスキル ── */
   var SKILLS = {
+    /* ★★ 2026-10-09 Pumpkin Night の10体 */
+    "スカーレット・ウィッチナイト": "Scarlet Witch Night", "キャンディ・ジャックランタン": "Candy Jack-o'-Lantern",
+    "スターリィ・キャットウィッチ": "Starry Cat Witch", "ブラックキャット・ミッドナイト": "Black Cat Midnight",
+    "パンプキン・パレード": "Pumpkin Parade", "フォーチュン・クローバー": "Fortune Clover",
+    "キャンドルライト・ヴェール": "Candlelight Veil", "トリック・オア・ランタン": "Trick or Lantern",
+    "マミー・ラビリンス": "Mummy Labyrinth", "ゴースト・ウィッチパーティー": "Ghost Witch Party",
+    "スカーレット・キャンドル": "Scarlet Candle", "ロリポップ・スプラッシュ": "Lollipop Splash",
+    "ミルキーウェイ・ベル": "Milky Way Bell", "キャッツ・ポウ": "Cat's Paw", "パンプキン・ボム": "Pumpkin Bomb",
+    "ラッキー・クローバー": "Lucky Clover", "キャンドル・レイ": "Candle Ray", "ジャック・ランタン・ショット": "Jack-o'-Lantern Shot",
+    "バンデージ・バインド": "Bandage Bind", "ゴースト・パレード": "Ghost Parade",
+    "南瓜・パンプキンナイトネクサス": "Pumpkin Night Nexus",
+    "緋帽子魔女型": "Scarlet Witch", "飴色魔女帽型": "Candy Witch", "星猫魔女型": "Starry Cat Witch", "黒猫夜会型": "Black Cat Soiree",
+    "南瓜頭巾型": "Pumpkin Hood", "四つ葉魔女型": "Clover Witch", "燭光レース型": "Candlelight Lace", "南瓜灯ストール型": "Lantern Stole",
+    "包帯夜想型": "Bandage Nocturne", "幽霊帽魔女型": "Ghost-hat Witch",
+    "Pumpkin Night（11月30日まで）": "Pumpkin Night (until Nov 30)",
     /* ★★ 2026-10-07 Sapphire Breeze ヒバナ・フキ */
     "ワスレナ・ハナカガリ": "Wasurena Hanakagari", "ワスレナ・スパーク": "Wasurena Spark",
     "勿忘草のクロス": "Forget-me-not Cross", "勿忘草結紐型": "Forget-me-not Ribbon",

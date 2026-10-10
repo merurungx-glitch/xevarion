@@ -399,6 +399,219 @@
         { x: 17, y: 18, rows: ["xXXXX", "xxXx.", ".Yx..", ".Y..."] },
       ],
     },
+    /* ══ ★★ 2026-10-09 Pumpkin Night（UR）10体 ══
+       帽子（魔女帽）は前髪のあとに重ねる（頭のてっぺんを隠し、前髪のすそは見える）。 */
+    /* ── アヤノ（火）：ピンクの髪・紺と赤の魔女帽・紺のドレス・赤いケープ・ランタン ── */
+    ayano: {
+      pal: { H: "#f2b3c4", h: "#c9849a", L: "#ffe0ea", E: "#5aa8ff", A: "#22306e", a: "#141c48", C: "#c8283c", c: "#8a1828",
+             D: "#1d2a6a", d: "#101640", G: "#d8283e", P: "#22306e", p: "#141c48", O: "#2a1a20", o: "#160c10", X: "#ffb347", x: "#e06a1a", Y: "#3a2a24", K: "#140c14" },
+      legY: 23,
+      layers: [
+        backLong(22),
+        outfitTank(BOTTOM_SKIRT),
+        { x: 4, y: 14, rows: ["CC............CC", "CC............CC", "Cc............cC", "Cc............cC", "CC............CC", "Cc............cC", "CC............CC", "cc............cc"] },
+        { x: 10, y: 15, rows: ["..GG..", ".GWWG.", "..GG.."] },
+        "FACE",
+        frontStraight(13),
+        { x: 3, y: 0, rows: [
+          "..........dD......",
+          "........DDDd......",
+          "......DDDDDDd.....",
+          "....dDDDDDDDDd....",
+          "..ddGGGGGGGGGGdd..",
+          "dDDDDDDDDDDDDDDDDd",
+        ] },
+        /* 左手の南瓜のランタン */
+        { x: 1, y: 17, rows: [".Y.", "XXX", "XxX", "XXX"] },
+      ],
+    },
+    /* ── サキ（火）：茶色の長い髪・黒とオレンジの魔女帽・黒いコルセット・クリームのレース・ぐるぐる飴 ── */
+    saki: {
+      pal: { H: "#6b4a32", h: "#43291b", L: "#9c7458", E: "#e0902a", A: "#2a2026", a: "#18121a", C: "#f4e8d8", c: "#d4c4ac",
+             D: "#1e1a22", d: "#0e0c12", G: "#ff8a1f", P: "#2a2026", p: "#18121a", O: "#2a1a14", o: "#140c08", X: "#ff8a1f", x: "#ffd257", Y: "#f4f4f4", K: "#140c10" },
+      legY: 23,
+      layers: [
+        backLong(24, true),
+        outfitTank(BOTTOM_SKIRT),
+        { x: 7, y: 14, rows: ["CCCCCCCCCC", "..C....C..", "..........", "..........", "..........", "CcCcCcCcCc"] },
+        "FACE",
+        frontSwept(14),
+        { x: 3, y: 0, rows: [
+          ".........Dd.......",
+          ".......DDDDd......",
+          "......DDDDDDd.....",
+          "....dDDDDDDDDd....",
+          "..ddGGGGGGGGGGdd..",
+          "dDDDDDDDDDDDDDDDDd",
+        ] },
+        /* 右手のぐるぐる飴 */
+        { x: 17, y: 12, rows: [".XX.", "XxXX", "XXxX", ".XX.", "..Y.", "..Y.", "..Y."] },
+      ],
+    },
+    /* ── ユカ（水）：黒い髪・猫耳・水色の魔女帽・白とピンクのフリル・星の杖 ── */
+    yuka: {
+      pal: { H: "#1e2030", h: "#0e0f18", L: "#5a6a9a", E: "#8fd0ff", A: "#f4f6ff", a: "#c8d0e8", C: "#ffb8d8", c: "#e88ab0",
+             D: "#bfe6ff", d: "#7cb8e8", G: "#ff9ac2", P: "#ffc8e0", p: "#e89ab8", O: "#f4f6ff", o: "#b8c0d8", X: "#ffe9a8", x: "#ffd257", Y: "#d8dcf0", K: "#10101c" },
+      legY: 23,
+      layers: [
+        backLong(24),
+        outfitTank(BOTTOM_SKIRT),
+        { x: 7, y: 14, rows: ["..CC..CC..", ".C..CC..C.", "....DD...."] },
+        "FACE",
+        frontStraight(14),
+        { x: 3, y: 0, rows: [
+          "..........dD......",
+          "........DDDd......",
+          "......DDDDDDd.....",
+          "....dDDDDDDDDd....",
+          "..ddGGGGGGGGGGdd..",
+          "dDDDDDDDDDDDDDDDDd",
+        ] },
+        /* 帽子から出た猫耳 */
+        { x: 4, y: 2, rows: ["H.", "HH"] },
+        { x: 18, y: 2, rows: [".H", "HH"] },
+        /* 右手の星の杖 */
+        { x: 18, y: 12, rows: [".X.", "XxX", ".X.", ".Y.", ".Y.", ".Y."] },
+      ],
+    },
+    /* ── ナツミ（水）：長い黒髪・黒猫の耳としっぽ・黒いドレス・灰色のファー ── */
+    natsumi: {
+      pal: { H: "#16161e", h: "#0a0a10", L: "#3e3e58", E: "#5aa8ff", A: "#1a1a22", a: "#0e0e14", C: "#4a4a5a", c: "#2e2e3a",
+             D: "#ff9ab0", d: "#c86a80", P: "#1a1a22", p: "#0e0e14", O: "#1a1a22", o: "#0a0a10", W: "#ffffff", K: "#0c0c14" },
+      legY: 23,
+      layers: [
+        /* しっぽ（体のうしろ） */
+        { x: 18, y: 16, rows: ["..hh", "...h", "...h", "..hh", ".hh."] },
+        backLong(25),
+        outfitTank(BOTTOM_SKIRT, true),
+        { x: 6, y: 14, rows: ["CCCCCCCCCCCC"] },
+        "FACE",
+        frontStraight(15),
+        /* 猫耳 */
+        { x: 5, y: 0, rows: ["H...", "HH..", "HDH."] },
+        { x: 15, y: 0, rows: ["...H", "..HH", ".HDH"] },
+        /* 白いリボン（右） */
+        { x: 17, y: 4, rows: ["WW", "W."] },
+      ],
+    },
+    /* ── ミウ（木）：緑のボブ・深緑のボンネット・オレンジのリボン・南瓜 ── */
+    miu: {
+      pal: { H: "#5a7a2a", h: "#3a5418", L: "#8aa84a", E: "#ff8a3a", A: "#1f4a2a", a: "#12301a", C: "#ff8a1f", c: "#c85a10",
+             D: "#1f5a32", d: "#123a20", G: "#ff8a1f", P: "#1f4a2a", p: "#12301a", O: "#2a1a14", o: "#140c08", X: "#ff8a1f", x: "#c85a10", Y: "#3a7a2a", K: "#0e140c" },
+      legY: 23,
+      layers: [
+        backBob(),
+        { x: 3, y: 0, rows: [
+          "....DDDDDDDDDD....",
+          "..DDDDDDDDDDDDDD..",
+          ".DDdDDDDDDDDDDdDD.",
+          "DDd............dDD",
+          "DD..............DD",
+          "Dd..............dD",
+          "D................D",
+          "D................D",
+          "d................d",
+        ] },
+        outfitTank(BOTTOM_SKIRT),
+        { x: 9, y: 14, rows: ["GGGGGG", "..GG..", ".G..G."] },
+        "FACE",
+        frontBob(true),
+        /* ボンネットの南瓜の飾り */
+        { x: 4, y: 1, rows: [".Y.", "XXX", "XxX"] },
+        /* 左手の南瓜 */
+        { x: 0, y: 17, rows: [".YY..", "XXXX.", "XxXXX", "XXXxX", ".XXX."] },
+      ],
+    },
+    /* ── マイ（木）：黒緑の長い髪・四つ葉の髪かざり・黒いレースのドレス・オレンジのリボン・南瓜の飴 ── */
+    mai: {
+      pal: { H: "#1e2a22", h: "#0e1610", L: "#4a6a52", E: "#c8b040", A: "#1a1a1a", a: "#0c0c0c", C: "#ff8a1f", c: "#c85a10",
+             D: "#3dd17a", d: "#1f8a44", P: "#1a1a1a", p: "#0c0c0c", O: "#1a1a1a", o: "#0a0a0a", X: "#ff8a1f", x: "#c85a10", Y: "#e8e0d0", K: "#0c100c" },
+      legY: 23,
+      layers: [
+        backLong(25, true),
+        outfitTank(BOTTOM_SKIRT),
+        { x: 7, y: 15, rows: ["C........C", ".C......C.", "..........", "CcCcCcCcCc"] },
+        "FACE",
+        frontSwept(15),
+        /* 四つ葉の髪かざり（左右） */
+        { x: 4, y: 2, rows: [".D.", "DdD", ".D."] },
+        { x: 17, y: 4, rows: [".D.", "DdD", ".D."] },
+        /* 左手の南瓜の飴 */
+        { x: 1, y: 13, rows: [".XX.", "XxXX", "XXXX", ".XX.", "..Y.", "..Y."] },
+      ],
+    },
+    /* ── チナツ（光）：くせのある金茶の髪・黒いレース・金の網・燭台 ── */
+    chinatsu: {
+      pal: { H: "#9a8a3a", h: "#6a5a1e", L: "#d8c870", E: "#6ad0d8", A: "#1a1418", a: "#0c080c", C: "#c89a3a", c: "#8a6a20",
+             G: "#c89a3a", g: "#8a6a20", P: "#1a1418", p: "#0c080c", O: "#1a1418", o: "#0a060a", X: "#ffd257", x: "#ff8a1f", Y: "#f4ecd8", K: "#100c0c" },
+      legY: 23,
+      layers: [
+        backBob(),
+        outfitTank(BOTTOM_SKIRT, true),
+        { x: 8, y: 15, rows: ["G.G.G.G.", ".g.g.g.g", "G.G.G.G."] },
+        "FACE",
+        frontBob(true),
+        /* 右手の燭台 */
+        { x: 18, y: 12, rows: [".x", ".X", "YY", "YY", "YY", "YY", "GG"] },
+      ],
+    },
+    /* ── ユウミ（光）：銀のすじの入った黒い髪・赤いマフラー・ベージュのコート・南瓜 ── */
+    yuumi: {
+      pal: { H: "#1a1c24", h: "#0c0d12", L: "#c8ccd8", E: "#7aa8e8", A: "#ece4d4", a: "#c4b8a4", C: "#22303a", c: "#121a22",
+             D: "#c8283c", d: "#8a1828", P: "#3a2a4a", p: "#24182e", O: "#2a2026", o: "#140e12", X: "#ff8a1f", x: "#c85a10", Y: "#3a7a2a", K: "#0c0c12" },
+      legY: 23,
+      layers: [
+        backLong(24),
+        outfitTank(BOTTOM_SKIRT, true),
+        { x: 9, y: 15, rows: ["CCCCCC", "CCCCCC", "CcCCcC"] },
+        { x: 7, y: 13, rows: ["DDDDDDDDDD", ".DdDDDDdD.", "....Dd...."] },
+        "FACE",
+        frontStraight(14),
+        /* 銀のすじ（左の前髪） */
+        { x: 6, y: 8, rows: ["L", "L", "L", "L", "L", "L"] },
+        /* 左手の南瓜 */
+        { x: 0, y: 18, rows: [".YY..", "XXXX.", "XxXXX", "XXXxX", ".XXX."] },
+      ],
+    },
+    /* ── リナ（闇）：紫のボブ・頭と体の包帯・赤い瞳 ── */
+    rina: {
+      pal: { H: "#3a2a5a", h: "#1e1434", L: "#6a5a9a", E: "#ff3a3a", A: "#f0ece4", a: "#c8c0b0", C: "#f0ece4", c: "#c8c0b0",
+             P: "#f0ece4", p: "#c8c0b0", O: "#d8d0c0", o: "#a89c88", D: "#ff8a1f", K: "#120c18" },
+      legY: 23,
+      layers: [
+        backBob(),
+        outfitTank(BOTTOM_SHORTS),
+        { x: 7, y: 15, rows: ["a.a.a.a.a.", "..........", ".a.a.a.a.a"] },
+        "FACE",
+        frontBob(false),
+        /* 頭の包帯と花かざり */
+        { x: 4, y: 3, rows: ["CCCCCCCCCCCCCCCC", "cC.cCC.cC.CCc.Cc"] },
+        { x: 15, y: 2, rows: [".D.", "DDD", ".D."] },
+      ],
+    },
+    /* ── カオリ（闇）：紫の長い髪・オレンジの魔女帽・オレンジと黒の服・おばけ ── */
+    kaori: {
+      pal: { H: "#6a3a8a", h: "#42205a", L: "#a07ac8", E: "#ff6a5a", A: "#ff8a1f", a: "#c85a10", C: "#1e1428", c: "#100a16",
+             D: "#ff8a1f", d: "#c85a10", G: "#2a1a3a", P: "#2a1a3a", p: "#180e22", O: "#2a1a3a", o: "#140a1c", X: "#f4f4ff", x: "#c8c8e8", Y: "#2a1a3a", K: "#140a1c" },
+      legY: 23,
+      layers: [
+        backLong(25),
+        outfitTank(BOTTOM_SKIRT),
+        { x: 9, y: 16, rows: ["CCCCCC", "CCCCCC", "CcCCcC"] },
+        "FACE",
+        frontStraight(15),
+        { x: 3, y: 0, rows: [
+          ".........Dd.......",
+          ".......DDDDd......",
+          "......DDDDDDd.....",
+          "....dDDDDDDDDd....",
+          "..ddGGGGGGGGGGdd..",
+          "dDDDDDDDDDDDDDDDDd",
+        ] },
+        /* 左のおばけ */
+        { x: 0, y: 12, rows: [".XXX.", "XXXXX", "XKXKX", "XXXXX", "XxXxX"] },
+      ],
+    },
     /* ── ★★ 2026-10-07 ヒバナ（木）：茶色の長い髪を青いリボンで右に結ぶ・水色のワンピース・青い花のイヤリング・勿忘草の花束 ── */
     hibana: {
       pal: { H: "#6a4a36", h: "#432c1f", L: "#9c7458", E: "#b48a52", A: "#d6e7ff", a: "#a9c4ea", C: "#f4f8ff", c: "#cfdcf0",
@@ -796,6 +1009,17 @@
     kotori:  { hair: "long", len: 23, wavy: 1, top: "tank", arm: "S", bottom: "shorts", prop: "ball", acc: "topbun" },
     duoBack: { hair: "long", len: 24, top: "uniform", arm: "A", bottom: "skirt", prop: "trumpet" },
     duoFront:{ hair: "bob", wavy: 1, top: "uniform", arm: "A", bottom: "skirt", prop: "euph" },
+    /* ★★ 2026-10-09 Pumpkin Night（acc：witch／witchcat／cat／bonnet／clover／bandage・prop：lantern／candy／wand／pumpkin／candle／ghost・top：scarf） */
+    ayano:   { hair: "long", len: 22, top: "blouse", arm: "A", bottom: "skirt", prop: "lantern", acc: "witch" },
+    saki:    { hair: "long", len: 24, wavy: 1, top: "gothic", arm: "A", bottom: "skirt", prop: "candy", acc: "witch" },
+    yuka:    { hair: "long", len: 23, top: "blouse", arm: "A", bottom: "skirt", prop: "wand", acc: "witchcat" },
+    natsumi: { hair: "long", len: 25, top: "tank", arm: "C", bottom: "skirt", acc: "cat", tail: 1 },
+    miu:     { hair: "bob", top: "uniform", arm: "A", bottom: "skirt", prop: "pumpkin", acc: "bonnet" },
+    mai:     { hair: "long", len: 24, wavy: 1, top: "gothic", arm: "A", bottom: "skirt", prop: "candy", acc: "clover" },
+    chinatsu:{ hair: "bob", wavy: 1, top: "gothic", arm: "C", bottom: "skirt", prop: "candle" },
+    yuumi:   { hair: "long", len: 23, top: "scarf", arm: "C", bottom: "skirt", prop: "pumpkin" },
+    rina:    { hair: "bob", top: "tank", arm: "A", bottom: "shorts", acc: "bandage" },
+    kaori:   { hair: "long", len: 25, top: "blouse", arm: "A", bottom: "skirt", prop: "ghost", acc: "witch" },
     generic: { hair: "long", len: 23, top: "tank", arm: "S", bottom: "skirt" },
   };
   function sideBuf(pal0, sd, ph, legY0) {
@@ -833,6 +1057,8 @@
     if (sd.acc === "buns") { box(6, 1 + dy, 9, 3 + dy, "H"); put(7, 1 + dy, "L"); put(6, 1 + dy, "h"); put(9, 3 + dy, "h"); }
     if (sd.acc === "topbun") { box(10, 0 + dy, 13, 1 + dy, "H"); put(11, 0 + dy, "L"); }
     if (sd.prop === "katana") { seg(9, 11 + dy, 3, 25 + dy, "X", 1); put(10, 10 + dy, "Y"); put(11, 9 + dy, "Y"); put(9, 12 + dy, "D"); put(3, 26 + dy, "x"); }
+    /* ★★ 2026-10-09 黒猫のしっぽ（ナツミ） */
+    if (sd.tail) { seg(8, 20 + dy, 4, 17 + dy, "H", 1); seg(4, 17 + dy, 3, 12 + dy, "H", 1); put(3, 11 + dy, "h"); }
     /* 奥の脚（暗い色） */
     const shoe = (x, y, ch, ch2) => { put(x - 1, y, ch); put(x, y, ch); put(x + 1, y, ch); put(x + 2, y, ch); put(x - 1, y + 1, ch2); put(x, y + 1, ch2); put(x + 1, y + 1, ch2); put(x + 2, y + 1, ch2); };
     const legCol = sd.bottom === "pants" ? "p" : "s";
@@ -871,6 +1097,7 @@
     else if (T === "turtle") { torso("A", "a"); put(11, 13 + dy, "A"); put(12, 13 + dy, "A"); put(14, 17 + dy, "G"); put(14, 18 + dy, "G"); put(13, 17 + dy, "g"); put(14, 19 + dy, "G"); }
     else if (T === "gothic") { torso("A", "a"); box(9, 18 + dy, 14, 18 + dy, "C"); put(13, 14 + dy, "C"); put(14, 14 + dy, "C"); }
     else if (T === "uniform") { torso("A", "a"); box(9, 14 + dy, 11, 15 + dy, "C"); put(14, 15 + dy, "D"); put(15, 16 + dy, "D"); put(14, 16 + dy, "D"); }
+    else if (T === "scarf") { torso("A", "a"); box(9, 13 + dy, 15, 14 + dy, "D"); put(15, 15 + dy, "D"); put(15, 16 + dy, "d"); put(16, 15 + dy, "d"); }   /* ★★ 2026-10-09 ユウミ */
     else torso("A", "a");
     if (sd.susp) { for (let y = 14; y <= legY - 1; y++) put(12, y + dy, "C"); }
     put(11, 13 + dy, T === "turtle" ? "A" : "S"); put(12, 13 + dy, T === "turtle" ? "A" : "s");
@@ -908,6 +1135,18 @@
     if (sd.acc === "pin") { put(14, 4 + hy, "D"); put(15, 4 + hy, "D"); }
     if (sd.acc === "camellia") { put(8, 3 + hy, "D"); put(9, 4 + hy, "D"); put(7, 4 + hy, "D"); put(8, 4 + hy, "d"); put(8, 5 + hy, "D"); }
     if (sd.acc === "rose") { box(7, 2 + hy, 9, 4 + hy, "D"); put(8, 3 + hy, "d"); }
+    /* ★★ 2026-10-09 Pumpkin Night：魔女帽・猫耳・ボンネット・四つ葉・包帯 */
+    if (sd.acc === "witch" || sd.acc === "witchcat") {
+      for (let x = 4; x <= 19; x++) put(x, 3 + hy, (x === 4 || x === 19) ? "d" : "D");
+      for (let x = 8; x <= 15; x++) put(x, 2 + hy, "G");
+      for (let x = 9; x <= 14; x++) put(x, 1 + hy, "D");
+      for (let x = 8; x <= 11; x++) put(x, 0 + hy, x === 8 ? "d" : "D");
+      if (sd.acc === "witchcat") { put(16, 1 + hy, "H"); put(16, 2 + hy, "H"); put(17, 2 + hy, "H"); }
+    }
+    if (sd.acc === "cat") { put(9, 1 + hy, "H"); put(9, 2 + hy, "H"); put(10, 2 + hy, "D"); put(14, 1 + hy, "H"); put(14, 2 + hy, "H"); put(13, 2 + hy, "D"); }
+    if (sd.acc === "bonnet") { for (let y = 2; y <= 10; y++) for (let x = 6; x <= 10; x++) put(x, y + hy, (x === 6 || y === 2) ? "d" : "D"); for (let x = 7; x <= 15; x++) put(x, 2 + hy, "D"); put(12, 13 + hy, "G"); put(13, 14 + hy, "G"); }
+    if (sd.acc === "clover") { put(8, 3 + hy, "D"); put(9, 3 + hy, "D"); put(8, 4 + hy, "D"); put(9, 4 + hy, "d"); }
+    if (sd.acc === "bandage") { for (let x = 7; x <= 17; x++) { put(x, 4 + hy, "C"); if (x % 3 === 0) put(x, 5 + hy, "c"); } }
     if (sd.prop === "takina" || sd.hair === "pony") { put(7, 3 + hy, "D"); put(7, 4 + hy, "D"); }
     /* ── 4. 手前の腕と持ち物 ── */
     const [hx, hy2] = arm(12, 15 + dy, sw, false);
@@ -923,6 +1162,13 @@
       for (let x = 5; x <= 19; x++) { const t = Math.abs(x - 12); const top = t > 6 ? 3 : t > 4 ? 2 : t > 2 ? 1 : 0; for (let y = top; y <= 3; y++) put(x, y + dy - 1, y === 3 ? "x" : "X"); }
       seg(12, 2 + dy, hx + 1, hy2 - 1, "Y", 1);
     }
+    /* ★★ 2026-10-09 Pumpkin Night の小物 */
+    else if (P === "lantern") { put(hx + 1, hy2 - 3, "Y"); box(hx, hy2 - 2, hx + 2, hy2, "X"); put(hx + 1, hy2 - 1, "x"); }
+    else if (P === "candy") { seg(hx + 1, hy2, hx + 1, hy2 - 3, "Y", 1); box(hx, hy2 - 6, hx + 2, hy2 - 4, "X"); put(hx + 1, hy2 - 5, "x"); }
+    else if (P === "wand") { seg(hx + 1, hy2, hx + 4, hy2 - 4, "Y", 1); put(hx + 5, hy2 - 5, "X"); put(hx + 4, hy2 - 5, "x"); put(hx + 5, hy2 - 6, "x"); put(hx + 6, hy2 - 5, "x"); put(hx + 5, hy2 - 4, "x"); }
+    else if (P === "pumpkin") { box(hx, hy2 - 2, hx + 3, hy2 + 1, "X"); put(hx + 1, hy2 - 3, "Y"); put(hx + 1, hy2 - 1, "x"); put(hx + 2, hy2 - 1, "x"); }
+    else if (P === "candle") { box(hx + 1, hy2 - 3, hx + 2, hy2, "Y"); put(hx + 1, hy2 - 4, "X"); put(hx + 1, hy2 - 5, "x"); }
+    else if (P === "ghost") { box(hx + 1, hy2 - 5, hx + 4, hy2 - 2, "X"); put(hx + 2, hy2 - 4, "K"); put(hx + 4, hy2 - 4, "K"); put(hx + 1, hy2 - 1, "X"); put(hx + 3, hy2 - 1, "X"); }
     else if (P === "trumpet") { box(16, 11 + hy, 20, 11 + hy, "G"); put(21, 10 + hy, "G"); put(21, 11 + hy, "G"); put(21, 12 + hy, "G"); put(17, 12 + hy, "g"); }
     else if (P === "euph") { box(13, 16 + dy, 16, 19 + dy, "G"); put(16, 15 + dy, "G"); put(17, 14 + dy, "G"); put(14, 17 + dy, "g"); put(15, 18 + dy, "g"); }
     return b;
@@ -995,6 +1241,9 @@
     takina: [0.20, 0.16, 0.36], hibana: [0.34, 0.20, 0.40], fuki: [0.22, 0.18, 0.42], hinano: [0.31, 0.10, 0.35], hanon: [0.32, 0.08, 0.38], kokoha: [0.35, 0.15, 0.33],
     mutsumi: [0.34, 0.05, 0.33], reina: [0.28, 0.12, 0.38], azusa: [0.30, 0.06, 0.37], kumireina: [0.19, 0.06, 0.56],
     kagura: [0.23, 0.08, 0.37], kotori: [0.34, 0.12, 0.34],
+    /* ★★ 2026-10-09 Pumpkin Night */
+    ayano: [0.36, 0.30, 0.32], saki: [0.38, 0.28, 0.32], yuka: [0.34, 0.28, 0.34], natsumi: [0.36, 0.18, 0.33], miu: [0.42, 0.24, 0.34],
+    mai: [0.46, 0.26, 0.34], chinatsu: [0.40, 0.25, 0.33], yuumi: [0.36, 0.20, 0.34], rina: [0.42, 0.22, 0.34], kaori: [0.36, 0.28, 0.34],
   };
   const portraitCache = {};
   function portrait(id, file, size, cb) {

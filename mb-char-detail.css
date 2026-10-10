@@ -225,3 +225,7 @@
 .mdrow.bc .k{width:78px;font-size:10.5px}
 .mdrow.bc .b{background:rgba(47,143,255,.14)}
 .mdrow.bc .b i{background:linear-gradient(90deg,#2f8fff,#7cd4ff)}
+/* ★★ 2026-10-09 MagiAbyss の能力バー（Lv.1 → Lv.60 の2つの数字が入るので、数字の欄を広く・紫） */
+.mdrow.ab .v{width:92px;white-space:nowrap;font-size:11px}
+.mdrow.ab .b{background:rgba(122,60,200,.14)}
+.mdrow.ab .b i{background:linear-gradient(90deg,#7a3cc8,#ff8a1f)}

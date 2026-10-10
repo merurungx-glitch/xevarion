@@ -25,7 +25,7 @@
 <link rel="stylesheet" href="xevion-os.css?v=15">
 <!-- ★★ 2026-09-24 ホームの「動くキャラ」（舞香）。中身は home-mate.js。 -->
 <link rel="stylesheet" href="home-mate.css?v=19">
-<script src="xeva.js?v=75" defer></script>
+<script src="xeva.js?v=76" defer></script>
 <!-- ★★ 2026-09-05 コレクションを XEVARION 全体で1本にする共通部品。
      xeva.js の iconCharList() を使うので、必ず xeva.js の<b>あと</b>に置く。 -->
 <script src="xeva-collection.js?v=8" defer></script>
@@ -48,7 +48,7 @@
 <script src="xeva-i18n-mb7.js?v=7"></script>
 <script src="xeva-i18n-p4.js?v=7"></script>
 <!-- ★★ 2026-09-06b 今回足したもの（新キャラ14体・装備・スタメンなど）の英語辞書 -->
-<script src="xeva-i18n-n1.js?v=14"></script>
+<script src="xeva-i18n-n1.js?v=15"></script>
 <script src="xeva-i18n-n2.js?v=3"></script>
 <!-- ★ 2026-08-20 通信設定（Wi-Fi／モバイルデータごとに「最新を取りに行くか」を決める）。
      決めた内容はここから各アプリの Service Worker へ送られ、SW 側が動きを切り替える。 -->
@@ -56,9 +56,9 @@
 <!-- ★ 2026-08-18 新キャラ告知の台帳（MagiBurst と共通）。
      告知を<b>ポータルのログイン時</b>に一本化したので、ここでも読む。
      defer なので xevarion.js より先に実行される（書いた順番で走る）。 -->
-<script src="mb-newchars.js?v=34" defer></script>
+<script src="mb-newchars.js?v=35" defer></script>
 <!-- ★★ 2026-09-25 ガチャの台帳（開催期間とバナー。make-gacha-live.py が mb-core.js から自動で作る）。ホーム左上のバナー用 -->
-<script src="gacha-live.js?v=5" defer></script>
+<script src="gacha-live.js?v=6" defer></script>
 <!-- ★★ 2026-08-22b Xevion OS（XEVARION の UI をひとつの OS として扱う土台）。
      ほかの画面より<b>先に</b>読む（body のクラスを立てるので、あとから読むと一瞬ちらつく）。 -->
 <script src="xevion-os.js?v=13"></script>
@@ -71,7 +71,7 @@
 <script type="module" src="xeva-cloud.js?v=42"></script>
 <script src="xeva-qr.js?v=9" defer></script>
 <script src="xevarion.js?v=98" defer></script>
-<script src="xevarion-home.js?v=157" defer></script>
+<script src="xevarion-home.js?v=158" defer></script>
 <script src="home-mate.js?v=20" defer></script>
 <!-- ★★ 2026-10-06 XEVARION 共通イベント（Violet Breeze）のページ。中身は xeva.js の XEVA.event -->
 <script src="xeva-event-ui.js?v=2" defer></script>
@@ -1901,6 +1901,15 @@ body.music-on #beatFrame{opacity:1}
 
   <div class="nm-body" id="newsBody">
     <div class="nm-divider" id="newDivider" style="display:none;">NEW — 前回から更新</div>
+    <!-- 2026-10-09 Pumpkin Night（UR 10体）／ガチャ確率1.5倍・演出の作り直し／3属性有利／MagiAbyss／MagiChemLex のナビ -->
+    <div class="nm-item" data-tag="new" data-date="2026-10-09">
+      <div class="nm-date">2026<br>10.09</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag new">NEW</span></div>
+        <div class="nm-title">🎃 UR 10体「Pumpkin Night」／ガチャの確率1.5倍・演出を一新／3属性有利</div>
+        <div class="nm-txt">・<b>Pumpkin Night</b>（<b>11月30日まで</b>・ガチャ一覧のいちばん上）：<b>UR</b> の <b>アヤノ・サキ（火）／ユカ・ナツミ（水）／ミウ・マイ（木）／チナツ・ユウミ（光）／リナ・カオリ（闇）</b>が各 <b>1.5%</b> で登場。<b>はじめての10連は無料</b>・🎫フェスチケットも使えます。全員が<b>治癒の祈り</b>（SS絵）・アンチ4つ・キラー・<b>3属性有利</b>・撃つたびに技が出るショットスキル・既存で最強のリンク「ブルーローズ・コンプリート」を持ち、ネクサスは新しい「南瓜・パンプキンナイトネクサス」。MagiBocciaRush・<b>MagiAbyss</b> でも使えて、どれも最強クラスです（ミウ・マイは少し上）。<br>・<b>ガチャの確率をすべて1.5倍</b>にしました（SSR 以上 12% → <b>18%</b>）。一覧・ガチャの画面・提供割合に大きく出しています。<br>・<b>ガチャの演出を1から作り直しました</b>：光の柱と召喚陣から1体ずつ登場し、<b>10連も1体ずつ</b>めくります。いくつかの<b>確定演出</b>（流れ星・二重の魔法陣・ピックアップのシルエット・金から虹へ割れるランクアップ・南瓜のランタン）、<b>UR は縦長の絵</b>で大きく登場。最後に10体まとめて見られます。<br>・ガチャ一覧に「<b>MagiAbyss 対応</b>」の絞り込み（MagiAbyss で使えるキャラが出るガチャだけ）。新キャラ紹介のアニメに MagiAbyss の性能、キャラ詳細の MagiDiamond の欄を <b>MagiAbyss</b> に入れかえました。<br>・<b>RISING STAR FEST は 10月31日まで</b>になりました（セレクトパックの販売も10/31まで。持っているセレクト券は終わったあとも使えます）。<br>・<b>MagiBurst</b>：「全属性有利」を全キャラ<b>「3属性有利」</b>（自分と同じ属性・自分が苦手な属性をのぞく3つに有利）に変更。UR 13体の強さをそろえ、ネクサスを強化しました。<br>・<b>MagiAbyss</b>：ホーム右上の設定・戻るなどの<b>ボタンが反応しなかった不具合</b>を直しました。必殺技のカットインを豪華にし（UR は縦長の絵）、技の邪魔にならない位置へ。UR の火力もそろえました。<br>・<b>MagiChemLex</b>：ナビの<b>ケミィを、持っている UR キャラに</b>かえられるようになりました（ホームのナビをタップ／設定の「ナビゲーター」）。</div>
+      </div>
+    </div>
     <!-- 2026-10-07 新レアリティ UR「Sapphire Breeze」／MagiChemLex 大型アップデート／ホーム・ガチャ・パートナー・Boccia・MagiLex -->
     <div class="nm-item" data-tag="new" data-date="2026-10-07">
       <div class="nm-date">2026<br>10.07</div>

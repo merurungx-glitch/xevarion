@@ -30,6 +30,12 @@
   };
   const BEATS = { fire: "wood", wood: "water", water: "fire" };
   const ADV = 1.30, DIS = 0.80;
+  /* ★★ 2026-10-09 <b>3属性有利</b>（MagiBurst と同じ・ご指定）：自分と同じ属性・自分が苦手な属性をのぞく3つに有利 */
+  const WEAK_OF = { fire: "water", water: "wood", wood: "fire", light: "dark", dark: "light" };
+  function triAdv(el, el2, d) {
+    const ok = (a) => !!a && !!d && d !== a && d !== WEAK_OF[a];
+    return ok(el) || ok(el2);
+  }
   function elemMult(a, d) {
     if (!a || !d) return 1;
     if ((a === "light" && d === "dark") || (a === "dark" && d === "light")) return ADV;
@@ -124,7 +130,7 @@
     burstcd: (v) => "バーストの再使用時間 -" + Math.round(v * 100) + "%",
     gauge: (v) => "バーストゲージのたまり +" + Math.round(v * 100) + "%",
     haste: (v) => "攻撃の速さ +" + Math.round(v * 100) + "%",
-    elemadv: () => "<b>どの属性の敵にも有利</b>（×" + ADV + "）",
+    elemadv: () => "<b>3属性有利</b>：自分と同じ属性・自分が苦手な属性をのぞく3つの敵に有利（×" + ADV + "）",
     guard: (v) => "受けるダメージ -" + Math.round(v * 100) + "%",
     anti: (v) => "ボスの大技（チャージ攻撃）のダメージ -" + Math.round(v * 100) + "%",
     crit: (v) => "会心率 +" + Math.round(v * 100) + "%",
@@ -391,7 +397,7 @@
   window.MBStats = {
     VERSION, MAX_LV, MAX_AWK, ELEMS, ELEM, CLASSES, WEAPONS, BURST_NM, BURST_CD, S2_PAT,
     GEAR_PARTS, GEAR_PART, GEAR_FX, GEAR_FX_IDS, GEAR_FX_DESC, FX_TEXT, ADV, DIS,
-    ready: core, hashN, elemMult, unit, statsAt, powerOf, gearSum, gearIsHigh, sharedOf, defMul, lvCurve,
+    ready: core, hashN, elemMult, triAdv, unit, statsAt, powerOf, gearSum, gearIsHigh, sharedOf, defMul, lvCurve,
     s2Text, burstText, detailHTML, ensureCSS, esc,
     roster() { try { return CHAR_IDS.filter((id) => CHARS[id]); } catch (e) { return []; } },
     /* ★ 旧 API（characters.html の古い XEVA キャラの詳細が呼ぶ）。XEVA の id を MagiBurst の id に読みかえて出す */

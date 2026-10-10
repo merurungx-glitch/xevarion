@@ -980,6 +980,17 @@
     /* ★★ 2026-10-07 Sapphire Breeze（No.263・264・UR） */
     { id: "mb:hibana", mbId: "hibana", name:"ヒバナ", file: "../img/t_Hibana.webp", since:"2026-10-07", rarLabel: "UR" },
     { id: "mb:fuki", mbId: "fuki", name:"フキ", file: "../img/t_Fuki.webp", since:"2026-10-07", rarLabel: "UR" },
+    /* ★★ 2026-10-09 Pumpkin Night（No.265〜274・UR） */
+    { id: "mb:ayano", mbId: "ayano", name:"アヤノ", file: "../img/t_Ayano.webp", since:"2026-10-09", rarLabel: "UR" },
+    { id: "mb:saki", mbId: "saki", name:"サキ", file: "../img/t_Saki.webp", since:"2026-10-09", rarLabel: "UR" },
+    { id: "mb:yuka", mbId: "yuka", name:"ユカ", file: "../img/t_Yuka.webp", since:"2026-10-09", rarLabel: "UR" },
+    { id: "mb:natsumi", mbId: "natsumi", name:"ナツミ", file: "../img/t_Natsumi.webp", since:"2026-10-09", rarLabel: "UR" },
+    { id: "mb:miu", mbId: "miu", name:"ミウ", file: "../img/t_Miu.webp", since:"2026-10-09", rarLabel: "UR" },
+    { id: "mb:mai", mbId: "mai", name:"マイ", file: "../img/t_Mai.webp", since:"2026-10-09", rarLabel: "UR" },
+    { id: "mb:chinatsu", mbId: "chinatsu", name:"チナツ", file: "../img/t_Chinatsu.webp", since:"2026-10-09", rarLabel: "UR" },
+    { id: "mb:yuumi", mbId: "yuumi", name:"ユウミ", file: "../img/t_Yuumi.webp", since:"2026-10-09", rarLabel: "UR" },
+    { id: "mb:rina", mbId: "rina", name:"リナ", file: "../img/t_Rina.webp", since:"2026-10-09", rarLabel: "UR" },
+    { id: "mb:kaori", mbId: "kaori", name:"カオリ", file: "../img/t_Kaori.webp", since:"2026-10-09", rarLabel: "UR" },
   ];
   /* ★ 2026-08-10 初期SR 4体（ゼラ・アヤメ・レイラ・セリーヌ）は廃止しました。
      いまは<b>全キャラがアイコンに選べる</b>ので、starter という区別そのものが要らない。 */
@@ -1089,7 +1100,9 @@
   /* ★★ 2026-10-03 極彩祭 */
   , "takina"
   /* ★★ 2026-10-07 Sapphire Breeze（UR） */
-  , "hibana", "fuki"];
+  , "hibana", "fuki"
+  /* ★★ 2026-10-09 Pumpkin Night（UR） */
+  , "ayano", "saki", "yuka", "natsumi", "miu", "mai", "chinatsu", "yuumi", "rina", "kaori"];
   MB_CHAR_MASTER.forEach(function (c) { c.mb = true; c.starter = MB_STARTERS.indexOf(c.mbId) >= 0; });
   MB_CHAR_MASTER.forEach(function (c) { c.star5 = MB_STAR5.indexOf(c.mbId) >= 0; });
   /* id は "mb:zera" のように接頭辞つき。XEVAガチャにも同じ名前のキャラ（シオンなど）が
@@ -2160,7 +2173,7 @@
       window.__xevaAliveReq = 1;
       var aliveGo = function () {
         var s = document.createElement("script");
-        s.src = new URL("xeva-alive.js?v=4", aliveSrc).href;
+        s.src = new URL("xeva-alive.js?v=5", aliveSrc).href;
         s.async = true;
         (document.head || document.documentElement).appendChild(s);
       };

@@ -220,10 +220,10 @@
     },
     {
       t: "使えるキャラ",
-      d: () => "MagiAbyss で使えるのは、XEVARION のガチャ <b>Sapphire Breeze・極彩祭・極煌祭・極華祭</b> で手に入るキャラ（" + D().CHAR_ORDER.length + "人）です。<b>持っているキャラだけ</b>で遊べます。<br>キャラごとに<b>スキル・技・必殺技・特性</b>の組み合わせがちがいます（酒場でくわしく見られます）。凸は XEVARION と共通です。",
+      d: () => "MagiAbyss で使えるのは、XEVARION のガチャ <b>Pumpkin Night・Sapphire Breeze・極彩祭・極煌祭・極華祭</b> で手に入るキャラ（" + D().CHAR_ORDER.length + "人）です。<b>持っているキャラだけ</b>で遊べます。<br>キャラごとに<b>スキル・技・必殺技・特性</b>の組み合わせがちがいます（酒場でくわしく見られます）。凸は XEVARION と共通です。",
       draw(t) {
         R(0, 0, VW, VH, "#1a1030");
-        [["Sapphire", "#6fa8ff"], ["極彩祭", "#ff8fd0"], ["極煌祭", "#ffd84a"], ["極華祭", "#7fd0ff"]].forEach(([n, c], i) => { R(14 + i * 72, 14, 64, 18, c); T(n, 46 + i * 72, 23, "#1a0a20", 10); });
+        [["Pumpkin", "#ff9a4a"], ["Sapphire", "#6fa8ff"], ["極彩祭", "#ff8fd0"], ["極煌祭", "#ffd84a"], ["極華祭", "#7fd0ff"]].forEach(([n, c], i) => { R(10 + i * 61, 14, 56, 18, c); T(n, 38 + i * 61, 23, "#1a0a20", 9); });
         const ids = D().CHAR_ORDER;
         ids.forEach((id, i) => {
           const sp = MA.Pix.charSprite(id);

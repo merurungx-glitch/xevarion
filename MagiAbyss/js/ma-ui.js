@@ -77,10 +77,11 @@
   /* 技・スキルのアイコン（キャラ詳細・遊び方でも使う） */
   const SKILL_IC = { ripple: "sk_ripple", paint: "sk_prism", dunk: "sk_hoop", rainzone: "sk_umbrella", mirage: "sk_mirage", clone: "sk_clone", waltz: "sk_rose", fanfare: "sk_fanfare", slashwave: "sk_wave", wall: "sk_wall", bloomguard: "sk_forget", oboro: "sk_veil" };
   const ATK_IC = { shot: "at_gun", fan: "at_fan", bounce: "at_ball", petal: "at_petal", slash: "at_claw", orb: "at_orb", thrust: "at_rapier", wave: "at_wave", bigslash: "at_crescent", ball: "at_ball", spark: "at_spark", petalfan: "at_yoipetal" };
-  const PASS_IC = { focus: "crit", galestep: "swift", rebound: "at_ball", spreadburn: "fireball", heat: "power", chainkill: "shadowbind", afterdash: "dashup", duo: "music", backwater: "vital", guardian: "guard", wasurena: "regen", yoiyami: "crit" };
+  const PASS_IC = { focus: "crit", galestep: "swift", rebound: "at_ball", spreadburn: "fireball", heat: "power", chainkill: "shadowbind", afterdash: "dashup", duo: "music", backwater: "vital", guardian: "guard", wasurena: "regen", yoiyami: "crit", pndrain: "pn_ghost" };
   function kitIc(C, part) {
-    if (part === "atk") return ATK_IC[C.atk.kind] || "attack";
-    if (part === "skill") return SKILL_IC[C.skill.kind] || "arcana";
+    /* ★★ 2026-10-09 Pumpkin Night は技ごとに ic を持つ（共通の型なので kind では決めない） */
+    if (part === "atk") return C.atk.ic || ATK_IC[C.atk.kind] || "attack";
+    if (part === "skill") return C.skill.ic || SKILL_IC[C.skill.kind] || "arcana";
     if (part === "art") { const A = D().ARTS[C.art && C.art.k]; return (A && A.ic) || "burst"; }
     if (part === "trait") { const T = D().TRAITS[C.trait && C.trait.k]; return (T && T.ic) || "star"; }
     if (part === "passive") return PASS_IC[C.passive.kind] || "star";
@@ -148,7 +149,8 @@
   function imgName(id) {
     /* ★ mb-core は img に "../img/" を前置きすることがあるので、ファイル名だけを取り出す */
     try { if (typeof CHARS !== "undefined" && CHARS[id]) return String(CHARS[id].img).replace(/^.*\//, "").replace(/\.webp$/, ""); } catch (e) {}
-    return { takina: "Takina", hibana: "Hibana", fuki: "Fuki", hinano: "Hinano", hanon: "Hanon", kokoha: "Kokoha", mutsumi: "Mutsumi", reina: "Reina", azusa: "Azusa", kumireina: "KumikoReina", kagura: "Kagura", kotori: "Kotori" }[id] || "Takina";
+    return { takina: "Takina", hibana: "Hibana", fuki: "Fuki", hinano: "Hinano", hanon: "Hanon", kokoha: "Kokoha", mutsumi: "Mutsumi", reina: "Reina", azusa: "Azusa", kumireina: "KumikoReina", kagura: "Kagura", kotori: "Kotori",
+      ayano: "Ayano", saki: "Saki", yuka: "Yuka", natsumi: "Natsumi", miu: "Miu", mai: "Mai", chinatsu: "Chinatsu", yuumi: "Yuumi", rina: "Rina", kaori: "Kaori" }[id] || "Takina";
   }
   /* 武器・魔法・能力のアイコン列（左）。武器と魔法は大きく Lv つき */
   function hudSlots() {
@@ -390,15 +392,31 @@
     setTimeout(() => el.classList.add("out"), 2600);
     setTimeout(() => el.remove(), 3100);
   }
-  /* 必殺技のカットイン（キャラの絵） */
+  /* 必殺技のカットイン（キャラの絵）
+     ★★ 2026-10-09 作り直し（ご指定「UR は縦長の SS の絵」「より豪華に」「カットインに重なって技が見えない」）
+       ・前は帯を<b>画面のまん中に横いっぱい</b>出していたので、まん中にいる自分と技の大半を隠していた。
+         → 絵は画面の<b>左はしのななめの額</b>に縦長で出し、まん中はあけたまま（まわりだけ少し暗くする）。
+       ・UR は縦長の SS 絵（mb-core の ssArtOf）、SSR は正方形の絵の上のほう。
+       ・出ているのは 1.25 秒だけ（入り 0.22 秒・抜け 0.25 秒）。押しても止まらない（#fx は pointer-events:none）。 */
   let lastCut = null;
   function cutCheck() {
     const g = G();
     if (g.ultCut && g.ultCut !== lastCut) {
       lastCut = g.ultCut;
+      const id = g.ultCut.cid, C = D().CHARS[id] || {};
+      const EL = D().ELEM[C.el] || D().ELEM.water;
+      const ur = C.rank === "UR";
+      let ss = null;
+      try { ss = (ur && typeof ssArtOf === "function") ? ssArtOf(id) : null; } catch (e) { ss = null; }
       const el = document.createElement("div");
-      el.className = "cutin";
-      el.innerHTML = '<div class="ci-band"><img src="../img/' + imgName(g.ultCut.cid) + '.webp" alt=""><div class="ci-t"><small>ULTIMATE</small><b>' + esc(g.ultCut.nm) + "</b></div></div>";
+      el.className = "cutin2" + (ur ? " ur" : "") + (ss ? " tall" : "");
+      el.style.setProperty("--cc", EL.c); el.style.setProperty("--cc2", EL.c2 || "#ffffff");
+      const sp = Array.from({ length: 12 }, (_, i) => '<i style="--d:' + (i * 0.06).toFixed(2) + "s;--x:" + (6 + (i * 37) % 86) + "%;--y:" + (4 + (i * 53) % 90) + '%"></i>').join("");
+      el.innerHTML = '<div class="ci2-vig"></div><div class="ci2-lines"></div><div class="ci2-flash"></div>' +
+        '<div class="ci2-panel"><div class="ci2-art"><img src="' + (ss || "../img/" + imgName(id) + ".webp") + '" alt=""' +
+        (ss ? ' onerror="this.onerror=null;this.src=\'../img/' + imgName(id) + '.webp\';this.closest(\'.cutin2\').classList.remove(\'tall\')"' : "") + '></div>' +
+        '<i class="ci2-shine"></i><div class="ci2-sp">' + sp + "</div>" + (ur ? '<span class="ci2-ur">UR</span>' : "") + "</div>" +
+        '<div class="ci2-t"><small>ULTIMATE</small><b>' + esc(g.ultCut.nm) + "</b><span>" + esc(C.nm || "") + "</span></div>";
       $("#fx").appendChild(el);
       setTimeout(() => el.remove(), 1300);
     }

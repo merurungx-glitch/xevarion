@@ -131,7 +131,8 @@ function mtEnsureCSS() {
 /* ★★ 2026-09-10 3つめ "boccia"（MagiBocciaRush）を足した（ご指定）。 */
 let detGame = "burst";
 /* ★★ 2026-09-23 "battle"（MagiBattle）を <b>MagiBurst と MagiDiamond のあいだ</b>に足した（ご指定） */
-const DET_GAMES = ["burst", "battle", "diamond", "boccia"];
+/* ★★ 2026-10-09 MagiDiamond の面を <b>MagiAbyss</b> に差しかえた（ご指定）。並びは MagiBurst → MagiBattle → MagiAbyss → Boccia */
+const DET_GAMES = ["burst", "battle", "abyss", "boccia"];
 /* このファイルの置き場（MagiTier など1つ下の階層から読まれても、兄弟のファイルを正しく読むため） */
 const MBD_BASE = (function () { try { return String(document.currentScript.src).replace(/mb-char-detail\.js.*$/, ""); } catch (e) { return ""; } })();
 window.setDetGame = function (g) {
@@ -146,11 +147,66 @@ function mbtEnsure() {
   if (window.__mbtLoading) return window.__mbtLoading;
   window.__mbtLoading = new Promise((res) => {
     const s = document.createElement("script");
-    s.src = MBD_BASE + "magibattle-stats.js?v=16";
+    s.src = MBD_BASE + "magibattle-stats.js?v=17";
     s.onload = () => res(); s.onerror = () => res();
     document.head.appendChild(s);
   });
   return window.__mbtLoading;
+}
+/* ══ ★★ 2026-10-09 MagiAbyss の性能（MagiAbyss/js/ma-data.js ＋ ma-stats.js を読む＝ゲーム内とまったく同じ数字）══
+   ★ ma-data.js は window.MA.D を作るだけで画面には触らない。使えるキャラの台帳は mb-core の ABYSS_CHAR_IDS。 */
+function maEnsure() {
+  if (window.MA && window.MA.D && window.MA.Stats) return Promise.resolve();
+  if (window.__maLoading) return window.__maLoading;
+  const load = (src) => new Promise((res) => { const s = document.createElement("script"); s.src = src; s.onload = () => res(); s.onerror = () => res(); document.head.appendChild(s); });
+  window.__maLoading = load(MBD_BASE + "MagiAbyss/js/ma-data.js?v=4").then(() => load(MBD_BASE + "MagiAbyss/js/ma-stats.js?v=2"));
+  return window.__maLoading;
+}
+window.maEnsure = maEnsure;
+function magiAbyssHTML(id) {
+  const usable = typeof isAbyssChar === "function" && isAbyssChar(id);
+  if (!usable) {
+    return `<div class="dsec mbb"><div class="t">評価（MagiAbyss）</div>
+      <div class="mbnone">このキャラは <b>MagiAbyss では使えません</b>。<br>MagiAbyss で使えるのは、XEVARION のガチャ <b>Pumpkin Night・Sapphire Breeze・極彩祭・極煌祭・極華祭</b> のキャラ（${typeof ABYSS_CHAR_IDS !== "undefined" ? ABYSS_CHAR_IDS.length : ""}人）です。</div></div>`;
+  }
+  if (!(window.MA && MA.D && MA.Stats) || !MA.D.CHARS[id]) {
+    return `<div class="dsec mbb"><div class="t">評価（MagiAbyss）</div>
+      <div class="mbnone">読みこんでいます…</div></div>`;
+  }
+  const D = MA.D, C = D.CHARS[id], S0 = { chars: {}, eq: {}, gear: {} };
+  const own = !!DB.chars[id], awk = own ? Math.min(4, DB.chars[id].awk || 0) : 0;
+  let s1 = null, sM = null;
+  try { s1 = MA.Stats.compute(id, { lv: 1, awk: 0, S: S0, tree: {}, gear: [] }); sM = MA.Stats.compute(id, { lv: D.CHAR_MAX_LV, awk: 4, S: S0, tree: {}, gear: [] }); } catch (e) {}
+  const A = D.ARTS[C.art && C.art.k] || {}, T = D.TRAITS[C.trait && C.trait.k] || {};
+  const gk = (g) => (D.GRADE_MUL || [])[g || 3] || 1;
+  const ty = D.CTYPE[C.type] || {}, sub = D.CTYPE[C.sub] || {};
+  const EV = C.evo ? D.EVOS[C.evo.to] : null, W = C.evo ? D.WEAPONS[C.evo.weapon] : null;
+  /* ★ バーは Lv.60・完凸の値。上限は全キャラでいちばん高い値（HP コトリ 4227・攻撃 カグラ 447・防御 コトリ 142）に合わせた */
+  const bar = (k, nm, v1, vM, max) => `<div class="mdrow ab"><span class="k">${nm}</span>
+      <span class="b"><i style="width:${Math.max(4, Math.min(100, Math.round(vM / max * 100)))}%"></i></span><span class="v">${v1} → ${vM}</span></div>`;
+  const row = (tag, col, nm, d) => `<div class="ddesc" style="margin-top:7px;padding-left:8px;border-left:3px solid ${col}"><b>${nm}</b> <small style="opacity:.75">${tag}</small><br>${d}</div>`;
+  return `<div class="dsec mbb"><div class="t">評価（MagiAbyss）<span class="turn">${C.rank}</span></div>
+    <div class="dchips">
+      <span class="dchip" style="color:${ty.c || "#7b5cf0"};border-color:${(ty.c || "#7b5cf0")}66">${ty.nm || ""}</span>
+      ${sub.nm ? `<span class="dchip">サブ ${sub.nm}</span>` : ""}
+      <span class="dchip">${C.title || ""}</span>
+      ${own ? `<span class="dchip">あなたの凸 ${awk}</span>` : ""}
+    </div>
+    <div class="ddesc" style="margin:6px 0 2px">得意：${C.good || ""}<br>苦手：${C.weak || ""}</div>
+    ${s1 && sM ? `<div class="ddesc" style="margin:8px 0 4px"><b>能力</b>（Lv.1 → Lv.${D.CHAR_MAX_LV}・完凸。装備・スキルツリーなし）</div>
+      ${bar("hp", "HP", s1.hp, sM.hp, 4300)}${bar("atk", "攻撃", s1.atk, sM.atk, 460)}${bar("def", "防御", s1.def, sM.def, 145)}
+      ${bar("crit", "会心率", s1.crit, sM.crit, 30)}
+      <div class="dchips" style="margin-top:6px"><span class="dchip">移動 ${s1.spd}</span><span class="dchip">攻撃速度 ×${(+s1.aspd).toFixed(2)}</span><span class="dchip">魔法 ×${(+s1.mag).toFixed(2)}</span><span class="dchip">戦力 ${MA.Stats.power(s1).toLocaleString()} → ${MA.Stats.power(sM).toLocaleString()}</span></div>` : ""}
+    ${row("通常攻撃", "#8b93a8", C.atk.nm, C.atk.d)}
+    ${row("スキル（Q）・MP " + C.skill.mp + "・" + C.skill.cd + "秒", "#2f8fff", C.skill.nm, C.skill.d)}
+    ${row("技（E）★" + ((C.art && C.art.g) || 3), "#a35cff", A.nm || "", typeof A.d === "function" ? A.d(gk(C.art && C.art.g)) : (A.d || ""))}
+    ${row("必殺技（R）", "#e39a10", C.ult.nm, C.ult.d)}
+    ${row("パッシブ", "#35d49a", C.passive.nm, C.passive.d)}
+    ${row("特性 ★" + ((C.trait && C.trait.g) || 3), "#ff6aa8", T.nm || "", typeof T.d === "function" ? T.d(gk(C.trait && C.trait.g)) : (T.d || ""))}
+    ${EV ? row("専用の進化", "#ffc83d", EV.nm, EV.d + `<br><small>条件：${(D.ELEM[C.evo.el] || {}).nm || ""}属性の${W ? W.nm : ""}を Lv.7 にする</small>`) : ""}
+    <div class="ddesc" style="margin-top:8px;font-size:10px">
+      ※ MagiAbyss のレベル・スキルツリー・装備は<b>MagiAbyss の中だけ</b>で育てます。<b>凸（限界突破）は XEVARION と共通</b>です。</div>
+  </div>`;
 }
 /* MagiDiamond の性能。MD2DATA が読めていないときは、その場で読みこむ。 */
 function mdEnsure() {
@@ -158,7 +214,7 @@ function mdEnsure() {
   if (window.__mdLoading) return window.__mdLoading;
   window.__mdLoading = new Promise((res) => {
     const s = document.createElement("script");
-    s.src = "MagiDiamond/js/md2-data.js?v=17";
+    s.src = "MagiDiamond/js/md2-data.js?v=18";
     s.onload = () => res(); s.onerror = () => res();
     document.head.appendChild(s);
   }).then(() => {
@@ -179,7 +235,7 @@ function mbrEnsure() {
   if (window.__mbrLoading) return window.__mbrLoading;
   window.__mbrLoading = new Promise((res) => {
     const s = document.createElement("script");
-    s.src = "MagiBocciaRush/js/mbr-core.js?v=19";
+    s.src = "MagiBocciaRush/js/mbr-core.js?v=20";
     s.onload = () => res(); s.onerror = () => res();
     document.head.appendChild(s);
   });
@@ -271,6 +327,10 @@ function openDetX(id, keepGame) {
   if (detGame === "diamond" && !window.MD2DATA) {
     mdEnsure().then(() => { if (detCurId === id && detGame === "diamond") openDetX(id, true); });
   }
+  /* ★★ 2026-10-09 MagiAbyss（無いときだけ読みこんで、読めたら1回だけ開き直す＝無限に回らない） */
+  if (detGame === "abyss" && !(window.MA && MA.D && MA.Stats) && typeof isAbyssChar === "function" && isAbyssChar(id)) {
+    maEnsure().then(() => { if (detCurId === id && detGame === "abyss" && window.MA && MA.D && MA.Stats) openDetX(id, true); });
+  }
   /* ★★ 2026-09-10 同じ考えかたで MagiBocciaRush も。
      「あるとき」も呼ぶと Promise.resolve → openDetX → … と<b>無限に回る</b>ので、
      <b>無いときだけ</b>読みこんで、読めたら1回だけ開き直す。 */
@@ -318,7 +378,7 @@ function openDetX(id, keepGame) {
         <button class="${detGame === "burst" ? "on" : ""}" onclick="setDetGame('burst')">⚔ MagiBurst</button>
         ${/* ★★ 2026-09-23 ご指定により <b>MagiBurst と MagiDiamond のあいだ</b> */""}
         <button class="${detGame === "battle" ? "on" : ""}" onclick="setDetGame('battle')">⚡ MagiBattle</button>
-        <button class="${detGame === "diamond" ? "on" : ""}" onclick="setDetGame('diamond')">⚾ MagiDiamond</button>
+        <button class="${detGame === "abyss" ? "on" : ""}" onclick="setDetGame('abyss')">🗡 MagiAbyss</button>
         ${/* ★★ 2026-09-10 ご指定により <b>MagiDiamond の右</b>に足す */""}
         <button class="${detGame === "boccia" ? "on" : ""}" onclick="setDetGame('boccia')">🎯 Boccia</button>
       </div>
@@ -441,7 +501,7 @@ function openDetX(id, keepGame) {
 
       </div>
       ${detGame === "battle" ? magiBattleHTML(id) : ""}
-      ${detGame === "diamond" ? magiDiamondHTML(id) : ""}
+      ${detGame === "abyss" ? magiAbyssHTML(id) : ""}
       ${detGame === "boccia" ? magiBocciaHTML(id) : ""}
       ${/* ★ 2026-08-26 ページ側が足したい行（図鑑の「アイコンに設定」など）。
             フックを立てていない画面（ガチャ）では何も出ない。 */""}

@@ -106,6 +106,7 @@ html.xv-full #xevaSplash { position: absolute !important; top: 0 !important; bot
 .tt-chars { position: absolute; left: calc(env(safe-area-inset-left, 0px) + 12px); top: calc(var(--safet) + 10px); display: flex; align-items: center; gap: 6px; padding: 4px 10px; font-size: 11px; color: #fff; background: rgba(10,6,24,.72); clip-path: var(--cut); box-shadow: inset 0 0 0 1px rgba(232,216,255,.5); text-shadow: 1px 1px 0 #000; }
 .tt-chars b { padding: 0 5px; font-size: 11px; color: #1a0a20; }
 .tt-chars b.f4 { background: linear-gradient(90deg, #3d8bff, #b9a8ff); }   /* ★★ 2026-10-07 Sapphire Breeze */
+.tt-chars b.f5 { background: linear-gradient(90deg, #ff8a1f, #c06bff); color: #fff; }   /* ★★ 2026-10-09 Pumpkin Night */
 .tt-chars b.f1 { background: linear-gradient(90deg, #ff8fd0, #ffd84a); } .tt-chars b.f2 { background: linear-gradient(90deg, #ffd84a, #fff4b0); } .tt-chars b.f3 { background: linear-gradient(90deg, #7fd0ff, #ff8fd0); }
 .tt-ver { position: absolute; right: calc(env(safe-area-inset-right, 0px) + 10px); bottom: calc(var(--safeb) + 6px); font-size: 11px; color: rgba(255,255,255,.55); }
 .tt-ver .warn { display: block; color: #ffb0b0; }
@@ -147,6 +148,9 @@ html.xv-full #xevaSplash { position: absolute !important; top: 0 !important; bot
 /* ══ ギルド ══ */
 #guild { pointer-events: none; }
 #guild > * { pointer-events: auto; }
+/* ★★ 2026-10-09 名札の入れもの（全面を覆う透明な箱）は素通し。上の `#guild > *` のほうが .g-labels より強く、
+   画面全体がクリックを吸って「右上の設定・戻るなど、すべてのボタンが反応しない」になっていた（名札 .glab だけ押せる） */
+#guild > .g-labels { pointer-events: none; }
 .g-top { position: absolute; left: 0; right: 0; top: 0; padding: calc(var(--safet) + 6px) 8px 6px; display: flex; align-items: center; gap: 6px; background: linear-gradient(rgba(8,4,18,.9), rgba(8,4,18,0)); }
 .g-logo { display: flex; align-items: center; gap: 6px; margin-right: auto; font-size: 18px; text-shadow: 2px 2px 0 #000; }
 .g-logo img { width: 30px; height: 30px; clip-path: var(--cut); }
@@ -439,6 +443,42 @@ body.touchdev .h-interact { bottom: calc(var(--safeb) + 12px); font-size: 13px; 
 @keyframes ciIn { from { transform: skewY(-6deg) scaleY(0); } }
 @keyframes ciOut { to { opacity: 0; transform: skewY(-6deg) scaleY(.2); } }
 @keyframes ciImg { from { transform: skewY(6deg) translateX(40px); opacity: 0; } }
+/* ★★ 2026-10-09 必殺技のカットイン（作り直し）：左はしのななめの額に縦長の絵・まん中（自分と技）はあける */
+.cutin2 { position: absolute; inset: 0; pointer-events: none; --pw: min(32vw, 34vh, 260px); --ph: calc(var(--pw) * 1.3333); }
+.cutin2.tall { --pw: min(30vw, 30vh, 240px); --ph: calc(var(--pw) * 1.7778); }
+.ci2-vig { position: absolute; inset: 0; background: radial-gradient(ellipse 44% 50% at 56% 52%, transparent 62%, rgba(6, 2, 16, .58) 100%); animation: ci2Vig 1.25s ease forwards; }
+.ci2-lines { position: absolute; left: 0; top: 0; bottom: 0; width: 48%; opacity: 0;
+  background: repeating-linear-gradient(98deg, transparent 0 16px, rgba(255, 255, 255, .16) 16px 18px, transparent 18px 34px, var(--cc) 34px 35px);
+  -webkit-mask: linear-gradient(90deg, #000 35%, transparent); mask: linear-gradient(90deg, #000 35%, transparent); animation: ci2Lines 1.25s linear forwards; }
+.ci2-flash { position: absolute; left: 0; top: 0; bottom: 0; width: 42%; background: linear-gradient(90deg, var(--cc2), transparent); opacity: 0; animation: ci2Flash .5s ease-out forwards; }
+.ci2-panel { position: absolute; left: calc(env(safe-area-inset-left, 0px) + 10px); top: calc(50% - var(--ph) / 2); width: var(--pw); height: var(--ph); overflow: hidden;
+  clip-path: polygon(14% 0, 100% 0, 86% 100%, 0 100%); background: linear-gradient(160deg, var(--cc), #120624 70%);
+  animation: ci2In .22s cubic-bezier(.2, .9, .3, 1.2) both, ci2Out .25s 1s ease-in forwards; }
+.ci2-panel::after { content: ""; position: absolute; inset: 0; clip-path: inherit; box-shadow: inset 0 0 0 3px #fff, inset 0 0 18px var(--cc); pointer-events: none; }
+.cutin2.ur .ci2-panel::after { box-shadow: inset 0 0 0 3px #fff, inset 0 0 0 6px #ffd257, inset 0 0 22px #ff8fd0; }
+.ci2-art { position: absolute; inset: 0; }
+.ci2-art img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 12%; animation: ci2Art 1.25s ease-out both; }
+.ci2-shine { position: absolute; inset: 0; background: linear-gradient(115deg, transparent 35%, rgba(255, 255, 255, .75) 48%, transparent 60%); transform: translateX(-120%); animation: ci2Shine .7s .14s ease-out forwards; }
+.ci2-sp i { position: absolute; left: var(--x); top: var(--y); width: 7px; height: 7px; background: #fff; opacity: 0;
+  clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%); animation: ci2Sp .9s var(--d) ease-out forwards; }
+.cutin2.ur .ci2-sp i:nth-child(3n) { background: #ffd257; } .cutin2.ur .ci2-sp i:nth-child(3n+1) { background: #ff8fd0; }
+.ci2-ur { position: absolute; left: 18%; top: 6px; padding: 1px 8px; font-size: 14px; letter-spacing: .1em; color: #fff; text-shadow: 1px 1px 0 #2a0a4a;
+  background: linear-gradient(115deg, #ff5fa2, #ffd257 30%, #7dffb0 50%, #5fd0ff 70%, #a35cff); }
+.ci2-t { position: absolute; left: calc(env(safe-area-inset-left, 0px) + 10px); top: calc(50% + var(--ph) / 2 - 64px); max-width: calc(var(--pw) * 1.5); padding: 4px 12px 5px 14px;
+  background: linear-gradient(90deg, rgba(10, 4, 24, .92), rgba(10, 4, 24, .55)); clip-path: polygon(0 0, 100% 0, 94% 100%, 0 100%); border-left: 4px solid var(--cc);
+  animation: ci2TIn .3s .08s cubic-bezier(.2, .9, .3, 1.2) both, ci2Out .25s 1s ease-in forwards; }
+.ci2-t small { display: block; font-size: 10px; letter-spacing: .45em; color: var(--cc2); }
+.ci2-t b { display: block; font-size: clamp(15px, 3.2vw, 26px); line-height: 1.15; color: #fff; text-shadow: 2px 2px 0 #000, 0 0 12px var(--cc); }
+.ci2-t span { display: block; font-size: 11px; color: #e8e0ff; }
+@keyframes ci2In { from { transform: translateX(-120%) skewX(-10deg); opacity: 0; } }
+@keyframes ci2Out { to { transform: translateX(-130%); opacity: 0; } }
+@keyframes ci2TIn { from { transform: translateX(-60px); opacity: 0; } }
+@keyframes ci2Art { from { transform: scale(1.2) translateY(5%); } to { transform: scale(1.04); } }
+@keyframes ci2Shine { to { transform: translateX(120%); } }
+@keyframes ci2Sp { 0% { opacity: 0; transform: scale(.2) rotate(0); } 40% { opacity: 1; transform: scale(1.3) rotate(90deg); } 100% { opacity: 0; transform: scale(.5) rotate(180deg); } }
+@keyframes ci2Vig { 0% { opacity: 0; } 15%, 80% { opacity: 1; } 100% { opacity: 0; } }
+@keyframes ci2Lines { 0% { opacity: 0; background-position: 0 0; } 15% { opacity: .9; } 100% { opacity: 0; background-position: 360px 0; } }
+@keyframes ci2Flash { 0% { opacity: .55; } 100% { opacity: 0; } }
 
 /* ══ 結果 ══ */
 #result { overflow: auto; background: #07050f; }
@@ -712,6 +752,7 @@ body.touchdev #guild .g-sel { bottom: auto; top: calc(var(--safet) + 50px); }
 }
 .fes { display: inline-block; font-style: normal; font-size: 10px; padding: 0 5px; margin: 0 2px; color: #1a0a20; text-shadow: none; vertical-align: 1px; }
 .fes.f4, em.f4 { background: linear-gradient(90deg, #3d8bff, #b9a8ff); color: #fff; }   /* ★★ 2026-10-07 Sapphire Breeze */
+.fes.f5, em.f5 { background: linear-gradient(90deg, #ff8a1f, #c06bff); color: #fff; }   /* ★★ 2026-10-09 Pumpkin Night */
 .fes.f1, em.f1 { background: linear-gradient(90deg, #ff8fd0, #ffd84a); } .fes.f2, em.f2 { background: linear-gradient(90deg, #ffd84a, #fff4b0); } .fes.f3, em.f3 { background: linear-gradient(90deg, #7fd0ff, #ff8fd0); }
 .g-noown em { font-style: normal; padding: 0 4px; margin: 0 1px; color: #1a0a20; }
 

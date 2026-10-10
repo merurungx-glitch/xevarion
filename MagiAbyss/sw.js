@@ -5,32 +5,32 @@
    ・フォント（Google Fonts）も一度読めたら控える（オフラインでもドットの文字になる）。
    ・Firebase（同期）はキャッシュしない。
    ============================================================ */
-const VERSION = "magiabyss-sw-v5";
+const VERSION = "magiabyss-sw-v6";
 const RUNTIME = "magiabyss-rt-v1";
 const CORE = [
   "./index.html",
   "./manifest.webmanifest",
-  "./css/ma.css?v=3",
-  "./js/ma-data.js?v=3",
-  "./js/ma-pixel.js?v=3",
-  "./js/ma-art.js?v=3",
+  "./css/ma.css?v=4",
+  "./js/ma-data.js?v=4",
+  "./js/ma-pixel.js?v=4",
+  "./js/ma-art.js?v=4",
   "./js/ma-map.js?v=1",
   "./js/ma-save.js?v=2",
   "./js/ma-stats.js?v=2",
   "./js/ma-audio.js?v=1",
   "./js/ma-input.js?v=2",
-  "./js/ma-engine.js?v=3",
+  "./js/ma-engine.js?v=4",
   "./js/ma-ai.js?v=1",
-  "./js/ma-weapons.js?v=3",
+  "./js/ma-weapons.js?v=4",
   "./js/ma-cards.js?v=2",
   "./js/ma-boss.js?v=1",
   "./js/ma-prog.js?v=2",
   "./js/ma-render.js?v=2",
-  "./js/ma-ui.js?v=3",
+  "./js/ma-ui.js?v=4",
   "./js/ma-town.js?v=1",
-  "./js/ma-guild.js?v=3",
+  "./js/ma-guild.js?v=4",
   "./js/ma-stages.js?v=1",
-  "./js/ma-howto.js?v=2",
+  "./js/ma-howto.js?v=3",
   "./js/ma-main.js?v=2",
   "./img/title.webp",
   "./img/title_blur.webp",
@@ -39,9 +39,9 @@ const CORE = [
   "../gem.png",
   /* XEVARION の共通部品 */
   "../mb-boot.js?v=17",
-  "../MagiBurst/js/mb-core.js?v=134",
-  "../xeva.js?v=75",
-  "../xeva-alive.js?v=4",
+  "../MagiBurst/js/mb-core.js?v=135",
+  "../xeva.js?v=76",
+  "../xeva-alive.js?v=5",
   "../xeva-loading.js?v=18",
   "../xeva-splash.js?v=13",
   "../xeva-safebottom.js?v=12",
@@ -55,6 +55,15 @@ const CORE = [
   "../xevarion-fb.js?v=33",
   /* 遊べる10体（極彩祭・極煌祭・極華祭）の絵 */
   "../img/Takina.webp", "../img/t_Takina.webp",
+  /* ★★ 2026-10-09 Pumpkin Night の10体（絵）と、UR の必殺技カットインの縦長の SS 絵 */
+  "../img/Ayano.webp", "../img/t_Ayano.webp", "../img/Saki.webp", "../img/t_Saki.webp", "../img/Yuka.webp", "../img/t_Yuka.webp",
+  "../img/Natsumi.webp", "../img/t_Natsumi.webp", "../img/Miu.webp", "../img/t_Miu.webp", "../img/Mai.webp", "../img/t_Mai.webp",
+  "../img/Chinatsu.webp", "../img/t_Chinatsu.webp", "../img/Yuumi.webp", "../img/t_Yuumi.webp", "../img/Rina.webp", "../img/t_Rina.webp",
+  "../img/Kaori.webp", "../img/t_Kaori.webp",
+  "../MagiBurst/img/ss/TakinaSS.webp", "../MagiBurst/img/ss/HibanaSS.webp", "../MagiBurst/img/ss/FukiSS.webp",
+  "../MagiBurst/img/ss/AyanoSS.webp", "../MagiBurst/img/ss/SakiSS.webp", "../MagiBurst/img/ss/YukaSS.webp", "../MagiBurst/img/ss/NatsumiSS.webp",
+  "../MagiBurst/img/ss/MiuSS.webp", "../MagiBurst/img/ss/MaiSS.webp", "../MagiBurst/img/ss/ChinatsuSS.webp", "../MagiBurst/img/ss/YuumiSS.webp",
+  "../MagiBurst/img/ss/RinaSS.webp", "../MagiBurst/img/ss/KaoriSS.webp",
   /* ★★ 2026-10-07 Sapphire Breeze ヒバナ・フキ */
   "../img/Hibana.webp", "../img/t_Hibana.webp", "../img/Fuki.webp", "../img/t_Fuki.webp",
   "../img/Hinano.webp", "../img/t_Hinano.webp",

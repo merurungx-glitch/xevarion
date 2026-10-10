@@ -19,7 +19,9 @@
 
   /* ★★ 2026-10-03 極彩祭にタキナ（Takina）を追加 */
   /* ★★ 2026-10-07 Sapphire Breeze（UR）のヒバナ・フキも（タキナは極彩祭から移ったがそのまま動かす） */
-  var NAMES = ["Hinano", "Hanon", "Kokoha", "Takina", "Hibana", "Fuki", "Mutsumi", "Reina", "Azusa", "KumikoReina", "Kagura", "Kotori"];
+  /* ★★ 2026-10-09 Pumpkin Night の10体（MagiAbyss で使える UR）も */
+  var NAMES = ["Hinano", "Hanon", "Kokoha", "Takina", "Hibana", "Fuki", "Mutsumi", "Reina", "Azusa", "KumikoReina", "Kagura", "Kotori",
+    "Ayano", "Saki", "Yuka", "Natsumi", "Miu", "Mai", "Chinatsu", "Yuumi", "Rina", "Kaori"];
   /* 「…/t_Reina.webp」「…/Reina.webp」は対象。「…/KumikoReina.webp」は KumikoReina として。KotoriAlpha は対象外 */
   var RE = new RegExp("(?:^|/)(?:t_)?(" + NAMES.join("|") + ")\\.webp(?:[?#]|$)");
 

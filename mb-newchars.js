@@ -17,6 +17,27 @@
      こちらに足したら<b>あちらにも since 付きで1行</b>足すこと（無いとポータルに絵が出ない）。
    ══════════════════════════════════════════════════════════════ */
 window.MB_NEW_CHARS = [
+  /* ── ★★ 2026-10-09 Pumpkin Night（UR 10体・11/30まで）── */
+  { id: "kaori", since: "2026-10-09", where: "Pumpkin Night（11月30日まで）", mode: "fes18",
+    catch: "いたずらしても、いいでしょ？", color: "#c06bff" },
+  { id: "rina", since: "2026-10-09", where: "Pumpkin Night（11月30日まで）", mode: "fes18",
+    catch: "ほどけた包帯は、もう戻らないよ。", color: "#b58cff" },
+  { id: "yuumi", since: "2026-10-09", where: "Pumpkin Night（11月30日まで）", mode: "fes18",
+    catch: "ランタンの灯りが、きみの道しるべ。", color: "#ffb347" },
+  { id: "chinatsu", since: "2026-10-09", where: "Pumpkin Night（11月30日まで）", mode: "fes18",
+    catch: "灯りをともして。夜はまだ長いから。", color: "#ffd257" },
+  { id: "mai", since: "2026-10-09", where: "Pumpkin Night（11月30日まで）", mode: "fes18",
+    catch: "四つ葉はね、ちゃんと見つけた人のもの。", color: "#3dd17a" },
+  { id: "miu", since: "2026-10-09", where: "Pumpkin Night（11月30日まで）", mode: "fes18",
+    catch: "さあ、収穫祭のパレードのはじまり！", color: "#ff9a1f" },
+  { id: "natsumi", since: "2026-10-09", where: "Pumpkin Night（11月30日まで）", mode: "fes18",
+    catch: "満月の夜は、ねこもすこし大胆になるの。", color: "#3d7bff" },
+  { id: "yuka", since: "2026-10-09", where: "Pumpkin Night（11月30日まで）", mode: "fes18",
+    catch: "星に願いを。——叶えるのは、わたし。", color: "#5ab8ff" },
+  { id: "saki", since: "2026-10-09", where: "Pumpkin Night（11月30日まで）", mode: "fes18",
+    catch: "トリック・オア・トリート♪ 甘いのちょうだい？", color: "#ff8a1f" },
+  { id: "ayano", since: "2026-10-09", where: "Pumpkin Night（11月30日まで）", mode: "fes18",
+    catch: "今宵の魔法は、とびきり紅いよ。", color: "#ff5a3c" },
   /* ── ★★ 2026-10-07 Sapphire Breeze（新レアリティ UR）ヒバナ・フキ ── */
   { id: "fuki", since: "2026-10-07", where: "Sapphire Breeze（無期限開催）", mode: "fes17",
     catch: "宵の桜は、まだ散らせない。", color: "#7a5cff" },

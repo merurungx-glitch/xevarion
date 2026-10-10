@@ -169,12 +169,54 @@
       if (many) E().pop(P.x, P.y - 24, "花吹雪", "#ffc4dc");
       A().sfx("slash");
     },
+    /* ★★ 2026-10-09 Pumpkin Night：弾を撃つ共通の型（数字と色はキャラの atk。every 回ごとに burst 発） */
+    pnshot(P, A0) {
+      const a = aim(), el = P.C.el, cs = A0.cols || [ec(el), ec2(el)];
+      P.atkN++;
+      const many = !!A0.every && P.atkN % A0.every === 0;
+      const n = Math.max(1, (many ? A0.burst : A0.n) + (P.st.spread || 0));
+      const arc = many ? (A0.burstArc || 1.0) : (A0.arc || 0.3);
+      const full = arc >= 6.2;
+      for (let i = 0; i < n; i++) {
+        const aa = full ? a + i * TAU / n : a + (n > 1 ? (i - (n - 1) / 2) * (arc / (n - 1)) : 0);
+        const b = shoot({ x: P.x, y: P.y - 5, a: aa, speed: A0.speed * (A0.pk === "petal" ? 0.9 + Math.random() * 0.2 : 1),
+          dmg: atkOf(A0.mul) * (A0.mag ? P.st.mag : 1), el, pierce: (A0.pierce || 0) + (P.st.pierce || 0),
+          life: A0.range / A0.speed + (A0.homing ? 0.4 : 0), r: A0.pk === "ball" ? 5 : A0.pk === "orb" ? 4 : 3,
+          kind: A0.pk || "petal", col: cs[i % cs.length], src: "atk", homing: A0.homing || 0, kb: A0.kb || 0,
+          burn: !!(A0.burn && Math.random() < A0.burn * P.st.elem) });
+        if (A0.chain) b.onHit = (bb, e) => { E().chainFrom(e, A0.chain + (P.st.chain || 0), bb.dmg * 0.6, el); };
+      }
+      if (many && A0.burstNm) E().pop(P.x, P.y - 24, A0.burstNm, cs[0]);
+      A().sfx(A0.pk === "petal" ? "slash" : "shot");
+    },
+    /* ★★ 2026-10-09 Pumpkin Night：前を大きく薙ぐ近接の共通型（every 回ごとに波を飛ばす） */
+    pnswing(P, A0) {
+      const a = aim(), el = P.C.el, cs = A0.cols || [ec(el), ec2(el)];
+      P.atkN++;
+      slashArc(P.x + Math.cos(a) * 7, P.y - 2 + Math.sin(a) * 7, a, A0.r * (P.st.area || 1), A0.arc, atkOf(A0.mul), el, { kb: A0.kb || 0, src: "atk", slow: A0.slow || 0 });
+      E().fx({ type: "crescent", x: P.x, y: P.y - 2, a, r: A0.r + 6, t: 0, dur: 0.22, col: cs[0] });
+      if (A0.wave && A0.every && P.atkN % A0.every === 0) {
+        shoot({ x: P.x, y: P.y - 4, a, speed: A0.wave.speed, dmg: atkOf(A0.wave.mul), el, pierce: 99, life: A0.wave.range / A0.wave.speed, r: A0.wave.w, kind: "crescentShot", col: cs[0], src: "atk", kb: 8 });
+        E().pop(P.x, P.y - 24, "WAVE!", cs[0]);
+      }
+      A().sfx("slash");
+    },
   };
 
   /* ══════════════════════════════════════════════════════════════
      探索の武器
      ══════════════════════════════════════════════════════════════ */
   function wLv(w) { return D().WEAPONS[w.k].lv[Math.min(w.lv, 7) - 1]; }
+  /* ★★ 2026-10-09 Pumpkin Night の専用進化（EVOS[].fx）。弾が当たったときの効き目 */
+  function pnEvoProj(b, evo, el) {
+    if (!b || !evo || !evo.fx) return;
+    const P = G().P;
+    if (evo.fx === "burnzone") b.onHit = (bb, e) => { if (Math.random() < 0.35) E().zone({ x: e.x, y: e.y, r: 24, dur: 2, dmg: magOf(0.35), el: "fire", burn: 1, quiet: 1, col: "#ff5a3c", tick: 0.3, src: "weapon" }); };
+    else if (evo.fx === "starsplit") b.onHit = (bb, e) => { for (let k = 0; k < 3; k++) shoot({ x: e.x, y: e.y, a: Math.random() * TAU, speed: 200, dmg: atkOf(0.5), el, pierce: 1, life: 0.5, r: 3, kind: "magic", col: "#e8f6ff", src: "weapon", slow: 0.4 }); };
+    else if (evo.fx === "chainlight") b.onHit = (bb, e) => { E().chainFrom(e, 2, bb.dmg * 0.5, el); };
+    else if (evo.fx === "vulmark") b.onHit = (bb, e) => { e.vulT = Math.max(e.vulT || 0, 3); e.vulK = Math.max(e.vulK || 0, 0.2); };
+    else if (evo.fx === "drainhit") b.onHit = () => { E().heal(P.st.hp * 0.003, true); };
+  }
   const WFIRE = {
     sword(P, w, L, evo) {
       const a = aim(), el = w.el;
@@ -184,6 +226,8 @@
         slashArc(P.x + Math.cos(aa) * 8, P.y - 2 + Math.sin(aa) * 8, aa, L.r * P.st.area, 1.9, atkOf(mul), el, { src: "weapon", kb: 4 });
         if (evo) shoot({ x: P.x, y: P.y - 4, a: aa, speed: 220, dmg: atkOf(mul * 0.6), el, pierce: 99, life: 0.7, r: 8, kind: "wave", col: ec(el), src: "weapon" });
         if (w.evo === "evo_mutsumi") G().queue.push({ at: G().t + 0.18, f: () => slashArc(P.x - Math.cos(aa) * 8, P.y - 2 - Math.sin(aa) * 8, aa + Math.PI, L.r * P.st.area, 1.9, atkOf(mul * 0.8), el, { src: "weapon" }) });
+        /* ★★ 2026-10-09 リナ：斬ったあとに包帯が残って遅くする */
+        if (evo && evo.fx === "slowzone") E().zone({ x: P.x + Math.cos(aa) * 20, y: P.y + Math.sin(aa) * 20, r: 22, dur: 2, dmg: atkOf(0.3), el, slow: 0.5, quiet: 1, col: "#b58cff", tick: 0.4, src: "weapon" });
         A().sfx("slash");
       } });
     },
@@ -197,6 +241,7 @@
         const b = shoot({ x: P.x, y: P.y - 4, a: aa, speed: L.speed, dmg: atkOf(evo ? evo.mul : L.mul), el, pierce: L.pierce, life: 1.0, r: 3, kind: "arrow", col: ec(el), src: "weapon" });
         if (evo && w.evo === "evo_bow") b.onHit = (bb, e) => { if (Math.random() < 0.3) E().telegraph({ shape: "circle", x: e.x, y: e.y, r: 22, dur: 0.3, col: "#ffe86a", onFire: (o) => { circleHit(o.x, o.y, o.r, atkOf(1.2), "light", { src: "weapon" }); E().fx({ type: "meteor", x: o.x, y: o.y, t: 0, dur: 0.35, col: "#ffe86a" }); } }); };
         if (w.evo === "evo_takina") b.onHit = (bb, e) => { e.defDownT = 2.5; };
+        if (evo && evo.fx) pnEvoProj(b, evo, el);   /* ★★ 2026-10-09 ユカ・ユウミ */
       }
       A().sfx("shot");
     },
@@ -215,6 +260,9 @@
         if (w.evo === "evo_kokoha") o.onHit = (b, e) => { if (Math.random() < 0.12) E().zone({ x: e.x, y: e.y, r: 26, dur: 2, dmg: magOf(0.4), el: "fire", burn: 1, quiet: 1 }); };
         if (w.evo === "evo_kotori") o.onHit = (b, e) => { G().P.shield = Math.min(G().P.st.hp * 0.5, G().P.shield + 2); };
         if (w.evo === "evo_hibana") o.onHit = (b, e) => { E().heal(G().P.st.hp * 0.004, true); };
+        /* ★★ 2026-10-09 サキ（回復）・マイ（バリア） */
+        if (evo && evo.fx === "healhit") o.onHit = (b, e) => { E().heal(G().P.st.hp * 0.004, true); };
+        if (evo && evo.fx === "shieldhit") o.onHit = (b, e) => { G().P.shield = Math.min(G().P.st.hp * 0.5, G().P.shield + 2); };
         if (w.evo === "evo_kumireina") o.onHit = (b, e) => { G().P.buffs.haste = { t: 1.5, v: 0.2 }; };
         if (w.evo === "evo_tome") o.onHit = (b, e) => { if (Math.random() < 0.08) { circleHit(b.x, b.y, 28, magOf(1.0), el, { src: "weapon" }); E().fx({ type: "ring", x: b.x, y: b.y, t: 0, dur: 0.3, r: 28, col: ec(el) }); } };
         w.orbs.push(o);
@@ -231,6 +279,8 @@
         if (evo && w.evo === "evo_dagger") G().queue.push({ at: G().t + 0.15, f: () => lineHit(P.x, P.y - 3, aa, L.len * 1.2, 10, atkOf(evo.mul * 0.5), "dark", { src: "weapon" }) });
         if (w.evo === "evo_azusa") shoot({ x: P.x, y: P.y - 3, a: aa, speed: 160, dmg: atkOf(0.6), el: "water", pierce: 3, life: 0.6, r: 4, kind: "petal", col: "#5a8cff", src: "weapon" });
         if (w.evo === "evo_fuki") { const pb = shoot({ x: P.x, y: P.y - 3, a: aa, speed: 170, dmg: atkOf(0.65), el: "dark", pierce: 3, life: 0.6, r: 4, kind: "petal", col: "#ffc4dc", src: "weapon" }); pb.onHit = (bb, e) => { e.defDownT = Math.max(e.defDownT || 0, 2); }; }
+        /* ★★ 2026-10-09 ナツミ：突きのあと黒猫の爪がもう1回 */
+        if (evo && evo.fx === "clawextra") G().queue.push({ at: G().t + 0.1, f: () => { lineHit(P.x, P.y - 3, aa + 0.25, L.len, 10, atkOf(evo.mul * 0.5), el, { src: "weapon" }); E().fx({ type: "thrust", x: P.x, y: P.y - 3, a: aa + 0.25, len: L.len, t: 0, dur: 0.1, col: "#ffe9a8", col2: ec(el) }); } });
       } });
       A().sfx("slash");
     },
@@ -244,6 +294,8 @@
       if (evo && w.evo === "evo_scythe") E().zone({ x: P.x, y: P.y, r: 46, dur: 1.6, dmg: atkOf(0.35), el, pull: 1, quiet: 1, col: ec(el) });
       if (w.evo === "evo_reina") G().queue.push({ at: G().t + 0.45, f: () => { [0, Math.PI / 2].forEach((a) => { lineHit(P.x - Math.cos(a) * 80, P.y - Math.sin(a) * 80, a, 160, 14, atkOf(2.4), "dark", { src: "weapon" }); E().fx({ type: "beam", x: P.x - Math.cos(a) * 80, y: P.y - Math.sin(a) * 80, a, len: 160, w: 10, t: 0, dur: 0.3, col: "#a874ff" }); }); } });
       if (w.evo === "evo_kagura") E().enemiesIn(P.x, P.y, L.r * P.st.area).slice(0, 3).forEach((e) => G().queue.push({ at: G().t + 0.4, f: () => { if (!e.dead) { circleHit(e.x, e.y, 26, atkOf(2.0), "fire", { src: "weapon", burn: 1 }); E().fx({ type: "bloom", x: e.x, y: e.y, t: 0, dur: 0.4, r: 26, col: "#ff3a46" }); } } }));
+      /* ★★ 2026-10-09 ミウ：回転のたびにカボチャ爆弾が3つ */
+      if (evo && evo.fx === "pumpkinbomb") E().nearestN(P.x, P.y, 150, 3).forEach((e) => E().telegraph({ shape: "circle", x: e.x, y: e.y, r: 24, dur: 0.3, col: "#ff9a1f", onFire: (o) => { circleHit(o.x, o.y, o.r, atkOf(1.6), "wood", { src: "weapon", kb: 8 }); E().fx({ type: "boom", x: o.x, y: o.y, t: 0, dur: 0.35, r: o.r, col: "#ff9a1f" }); } }));
     },
     staff(P, w, L, evo) {
       const el = w.el;
@@ -252,6 +304,7 @@
         const b = shoot({ x: P.x, y: P.y - 6, a, speed: L.speed, dmg: magOf(evo ? evo.mul : L.mul), el, pierce: 0, life: 2.2, r: 3, kind: "magic", col: ec(el), src: "weapon", homing: 5 });
         if (evo && w.evo === "evo_staff") b.onHit = (bb, e) => { circleHit(e.x, e.y, 26, bb.dmg * 0.5, el, { src: "weapon", noChain: 1 }); E().chainFrom(e, 2, bb.dmg * 0.5, el); E().fx({ type: "ring", x: e.x, y: e.y, t: 0, dur: 0.25, r: 26, col: ec(el) }); };
         if (w.evo === "evo_hanon") { b.bounceN = 3; b.onHit = (bb, e) => { if (bb.bounceN-- > 0) { const nx = E().nearest(e.x, e.y, 120, (o) => o === e); if (nx) { const aa = Math.atan2(nx.y - e.y, nx.x - e.x); bb.vx = Math.cos(aa) * L.speed; bb.vy = Math.sin(aa) * L.speed; bb.pierce = 1; bb.life = 1; } } }; }
+        if (evo && evo.fx) pnEvoProj(b, evo, el);   /* ★★ 2026-10-09 アヤノ・チナツ・カオリ */
       }
       A().sfx("shot");
     },
@@ -474,6 +527,56 @@
         A().sfx("boom"); G().shake = 4;
       } });
     },
+    /* ★★ 2026-10-09 Pumpkin Night のスキル（共通の型・数字と色はキャラの skill） */
+    pnzone(P, K) {
+      const c = crowdPoint(P, 220), cs = pnCols(P);
+      E().zone({ x: c.x, y: c.y, r: K.r * P.st.area, dur: K.dur, dmg: skillOf(K.mul), el: P.C.el, tick: K.tick || 0.3, burn: K.burn ? 1 : 0, slow: K.slow || 0, pull: K.pull ? 1 : 0, quiet: 1, col: cs[0], kind: "gate", src: "skill", gauge: 1 });
+      E().fx({ type: "ring", x: c.x, y: c.y, t: 0, dur: 0.5, r: K.r * P.st.area, col: cs[1] || cs[0] });
+      pnSkillEnd(P, K);
+    },
+    pnburst(P, K) {
+      const r = K.r * P.st.area, cs = pnCols(P);
+      circleHit(P.x, P.y, r, skillOf(K.mul), P.C.el, { src: "skill", kb: 10 });
+      for (let i = 0; i < 3; i++) E().fx({ type: "ring", x: P.x, y: P.y, t: -i * 0.06, dur: 0.45, r: r * (0.5 + i * 0.25), col: i % 2 ? (cs[1] || cs[0]) : cs[0] });
+      E().fx({ type: "bloom", x: P.x, y: P.y, t: 0, dur: 0.5, r: r * 0.6, col: cs[0] });
+      if (K.heal) E().heal(P.st.hp * K.heal);
+      if (K.shield) P.shield = Math.max(P.shield, Math.round(P.st.hp * K.shield * (1 + (P.st.skill || 0))));
+      if (K.haste) P.buffs.haste = { t: K.haste[1], v: Math.max((P.buffs.haste && P.buffs.haste.v) || 0, K.haste[0]) };
+      pnSkillEnd(P, K);
+    },
+    pnvolley(P, K) {
+      const cs = pnCols(P), el = P.C.el;
+      const list = E().nearestN(P.x, P.y, 260, K.n);
+      for (let i = 0; i < K.n; i++) G().queue.push({ at: G().t + i * 0.06, f: () => {
+        const t = list.length ? list[i % list.length] : null;
+        const a = t && !t.dead ? Math.atan2(t.y - P.y, t.x - P.x) : aim() + (i - (K.n - 1) / 2) * 0.2;
+        const b = shoot({ x: P.x, y: P.y - 6, a, speed: 300, dmg: skillOf(K.mul), el, pierce: K.pierce || 0, life: 1.2, r: 4, kind: K.pk || "magic", col: cs[i % cs.length], src: "skill", homing: 6, tgt: t && !t.dead ? t : null, slow: K.slow || 0 });
+        b.onHit = (bb, e) => { if (K.defdown) e.defDownT = Math.max(e.defDownT || 0, K.defdown); if (K.drain) E().heal(P.st.hp * K.drain, true); };
+      } });
+      pnSkillEnd(P, K);
+    },
+    pndash(P, K) {
+      const a = aim(), sx = P.x, sy = P.y, cs = pnCols(P);
+      E().moveCircle(P, Math.cos(a) * K.dist, Math.sin(a) * K.dist, true);
+      lineHit(sx, sy, a, Math.hypot(P.x - sx, P.y - sy) + 8, K.w || 26, skillOf(K.mul), P.C.el, { src: "skill", kb: 8 });
+      E().fx({ type: "afterimage", x: sx, y: sy, x2: P.x, y2: P.y, t: 0, dur: 0.35, col: cs[0] });
+      P.iT = Math.max(P.iT, 0.45);
+      onDash();
+      pnSkillEnd(P, K);
+    },
+    pnblast(P, K) {
+      const c = crowdPoint(P, 220), r = K.r * P.st.area, cs = pnCols(P), el = P.C.el;
+      E().telegraph({ shape: "circle", x: c.x, y: c.y, r, dur: 0.3, col: cs[0], onFire: (o) => {
+        E().enemiesIn(o.x, o.y, o.r).forEach((e) => {
+          E().damageEnemy(e, skillOf(K.mul), { el, src: "skill", kb: K.kb || 0, kx: e.x - o.x, ky: e.y - o.y, stun: K.stun || 0 });
+          if (K.vul) { e.vulT = Math.max(e.vulT || 0, K.vul[1]); e.vulK = Math.max(e.vulK || 0, K.vul[0]); }
+        });
+        E().fx({ type: "boom", x: o.x, y: o.y, t: 0, dur: 0.5, r: o.r, col: cs[0] });
+        E().fx({ type: "ring", x: o.x, y: o.y, t: 0, dur: 0.5, r: o.r, col: cs[1] || cs[0] });
+        A().sfx("boom"); G().shake = 6;
+      } });
+      pnSkillEnd(P, K);
+    },
     wall(P, K) {
       if (K.mul) circleHit(P.x, P.y, (K.r || 64) * P.st.area, skillOf(K.mul), "water", { src: "skill", kb: 16 });
       P.shield = Math.max(P.shield, Math.round(P.st.hp * K.shield * (1 + (P.st.skill || 0))));
@@ -481,6 +584,9 @@
       E().fx({ type: "ring", x: P.x, y: P.y, t: 0, dur: 0.4, r: 22, col: "#7fd0ff" });
     },
   };
+  /* ★★ 2026-10-09 Pumpkin Night の技の色（キャラの atk.cols。無ければ属性の色） */
+  function pnCols(P) { const c = P.C.atk && P.C.atk.cols; return (c && c.length) ? c : [ec(P.C.el), ec2(P.C.el)]; }
+  function pnSkillEnd(P, K) { if (K.gauge) P.ultG = Math.min(100, P.ultG + K.gauge); }
   function skill() {
     const P = G().P, K = P.C.skill;
     if (!P.alive) return;
@@ -642,6 +748,34 @@
         A().sfx("boom");
       } });
     },
+    /* ★★ 2026-10-09 Pumpkin Night の必殺技（共通の型）：いちばん強い敵へ連射 → 画面全体へ大輪＋それぞれの追加効果 */
+    pnbarrage(P, U) {
+      const el = P.C.el, cs = U.cols || pnCols(P), gap = 0.017;
+      for (let i = 0; i < U.n; i++) G().queue.push({ at: G().t + i * gap, f: () => {
+        const t = E().strongest(P.x, P.y, 300) || E().nearest(P.x, P.y, 300); if (!t) return;
+        const a = Math.atan2(t.y - P.y, t.x - P.x) + (Math.random() - 0.5) * 0.3;
+        const b = shoot({ x: P.x, y: P.y - 6, a, speed: 410, dmg: ultOf(U.mul), el, pierce: 1, life: 0.9, r: U.pk === "ball" ? 4 : 3, kind: U.pk || "petal", col: cs[i % cs.length], src: "ult", homing: 6, tgt: t });
+        if (U.drainAll) b.onHit = () => { E().heal(G().P.st.hp * U.drainAll * 0.1, true); };
+        if (i % 4 === 0) A().sfx("shot");
+      } });
+      G().queue.push({ at: G().t + U.n * gap + 0.25, f: () => {
+        const P2 = G().P, cx = G().cam.x, cy = G().cam.y;
+        G().E.forEach((e) => {
+          if (e.dead || Math.abs(e.x - cx) >= G().vw / 2 + 20 || Math.abs(e.y - cy) >= G().vh / 2 + 20) return;
+          E().damageEnemy(e, ultOf(U.fin), { el, src: "ult", stun: U.stun || 0, burn: U.burn ? 1 : 0 });
+          e.defDownT = 6;
+          if (U.vul) { e.vulT = Math.max(e.vulT || 0, U.vul[1]); e.vulK = Math.max(e.vulK || 0, U.vul[0]); }
+          if (U.slowAll) { e.slowT = Math.max(e.slowT || 0, (U.stun || 0) + 3); e.slowK = Math.max(e.slowK || 0, U.slowAll); }
+        });
+        E().fx({ type: "bellflower", x: cx, y: cy, t: 0, dur: 1.1, col: cs[0] });
+        if (U.heal) E().heal(P2.st.hp * U.heal);
+        if (U.shield) P2.shield = Math.max(P2.shield, Math.round(P2.st.hp * U.shield));
+        if (U.atkUp) P2.buffs.pnAtk = { t: U.atkUp[1], v: U.atkUp[0] };
+        if (U.gaugeBack) P2.ultG = Math.min(100, P2.ultG + U.gaugeBack);
+        G().flash = 0.8; G().flashCol = cs[1] || "#ffffff"; G().shake = 11;
+        A().sfx("boom");
+      } });
+    },
     tempest(P, U) {
       for (let i = 0; i < U.n; i++) G().queue.push({ at: G().t + i * 0.04, f: () => { const a = i * 0.55; shoot({ x: P.x, y: P.y - 4, a, speed: 200, dmg: ultOf(U.mul), el: "wood", pierce: 6, life: 1.4, r: 5, kind: "blade", col: "#2fbf71", src: "ult", spin: 1, curve: 1.2 }); } });
       G().E.forEach((e) => { if (!e.dead && E().dist2(e.x, e.y, P.x, P.y) < 260 * 260) { e.paintT = 8; e.paintEl = "water"; } });
@@ -742,6 +876,8 @@
     const P = G().P;
     if (P.C.passive.kind === "galestep") { P.buffs.gale = { t: P.C.passive.t, v: Math.min(P.C.passive.max, ((P.buffs.gale && P.buffs.gale.v) || 0) / P.C.passive.stack + 1) * P.C.passive.stack }; }
     if (P.C.passive.kind === "chainkill") P.chainT = P.C.passive.t + (P.st.passive ? 1 : 0);
+    /* ★★ 2026-10-09 カオリ「幽霊のいたずら」：倒すたび回復＋必殺技ゲージ */
+    if (P.C.passive.kind === "pndrain") { E().heal(P.st.hp * (P.C.passive.heal + (P.st.passive ? 0.01 : 0)), true); P.ultG = Math.min(100, P.ultG + P.C.passive.gauge); }
     if (P.C.passive.kind === "spreadburn" && e.burnT > 0) { E().enemiesIn(e.x, e.y, 40).forEach((o) => { o.burnT = 3; o.burnDps = Math.max(o.burnDps || 0, e.burnDps || P.st.atk * 0.3); }); E().fx({ type: "boom", x: e.x, y: e.y, t: 0, dur: 0.3, r: 40, col: "#ff5a3c" }); }
   }
 

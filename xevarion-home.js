@@ -264,15 +264,21 @@ const XH_ORDER_GEN_KEY = "xeva_home_order_gen";
      ずっと後ろ、という状態を防ぐため。
      ＝ 新しいイベントを足すときは<b>この配列のどこに書いてもよい</b>。 */
 const XH_EVENTS = [
-  /* ★★ 2026-10-07 Sapphire Breeze（新レアリティ UR・<b>無期限開催</b>）。ガチャ一覧では極彩祭の上に固定 */
+  /* ★★ 2026-10-09 Pumpkin Night（UR 10体・<b>11月30日まで</b>）。ガチャ一覧では Sapphire Breeze の上に固定 */
+  { tag:"UR", t1:"Pumpkin Night（UR 10体）",
+    t2:"11月30日まで。アヤノ・サキ・ユカ・ナツミ・ミウ・マイ・チナツ・ユウミ・リナ・カオリの UR 10体（各1.5%）——初回10連無料・🎫フェス券OK。全員 治癒の祈り・アンチ4つ・キラー・3属性有利・撃つたび技が出るショットスキル・最強のリンク。MagiAbyss でも使えます",
+    since:"2026-10-09", from:"2026-10-09", to:"2026-11-30",
+    href:"gacha.html#fes18", img:"thumbs/MagiBurst.jpg" },
+  /* ★★ 2026-10-07 Sapphire Breeze（新レアリティ UR・<b>無期限開催</b>）。ガチャ一覧では極彩祭の上に固定
+     ★★ 2026-10-09 確率1.5倍で各1.5%・全属性有利→3属性有利 */
   { tag:"UR", t1:"Sapphire Breeze（新レアリティ UR）",
-    t2:"無期限開催。ヒバナ・フキ・タキナの UR 3体（各1.0%）——初回10連無料・🎫フェス券OK。フキは史上最大のフルバースト、3体とも全属性有利・オムニアンチ・治癒の祈り・最強のリンク",
+    t2:"無期限開催。ヒバナ・フキ・タキナの UR 3体（各1.5%）——初回10連無料・🎫フェス券OK。フキは史上最大のフルバースト、3体とも3属性有利・オムニアンチ・治癒の祈り・最強のリンク",
     always:true, perm:true, since:"2026-10-07", from:"2026-10-07", to:"",
     href:"gacha.html#fes17", img:"thumbs/MagiBurst.jpg" },
   /* ★★ 2026-09-17d 花宴祭（アカツキ）＝<b>無期限開催</b>。戦姫祭と同じく always/perm を付け、to は空。 */
   /* ★★ 2026-09-19d アヤネ・チハを追加（3体に） */
   { tag:"FES", t1:"花宴祭 に ヒメリ・ホノカ 追加",
-    t2:"無期限開催。アカツキ・アヤネ・チハ・ヒメリ・ホノカの5体——乱打フルバースト・全属性有利・オムニアンチ＋治癒の祈り。天界の審判 14面を有利属性のまま完全対応",
+    t2:"無期限開催。アカツキ・アヤネ・チハ・ヒメリ・ホノカの5体——乱打フルバースト・3属性有利・オムニアンチ＋治癒の祈り",
     always:true, perm:true, since:"2026-09-17", from:"2026-09-17", to:"",
     href:"gacha.html#fes15", img:"thumbs/MagiBurst.jpg" },
   /* ★★ 2026-09-13c GRAND DEBUT GACHA Ver.8.0（版ごと<b>20日間</b>へ統一・ご指定） */
@@ -282,7 +288,7 @@ const XH_EVENTS = [
     href:"gacha.html#debut:8.0", img:"thumbs/MagiBurst.jpg" },
   /* ★★ 2026-09-13 極華祭に クミコ＆レイナ（火＆光）が参戦。毎月 11〜20日の開催。 */
   { tag:"FES", t1:"極華祭 に クミコ＆レイナ",
-    t2:"MagiBurst 史上最大のフルバースト（乱打70連）と史上最強のリンク。全属性有利・ショットスキル付き。極華・ブルームネクサスも強化",
+    t2:"MagiBurst 史上最大のフルバースト（乱打70連）と史上最強のリンク。3属性有利・ショットスキル付き。極華・ブルームネクサスも強化",
     always:true, perm:true, monthly:[11, 20], since:"2026-09-13", from:"2026-09-13", to:"2027-12-31",
     href:"gacha.html#fes9", img:"thumbs/MagiBurst.jpg" },
   /* ★★ 2026-09-23 CRYSTAL ACADEMY FEST（20日間の期間限定） */
@@ -300,7 +306,7 @@ const XH_EVENTS = [
      戦姫祭と同じように always:true / perm:true を付け、to は空にする。
      ★ perm を書かないと xhEventsLive の「to があるか perm」のふるいに引っかかる。 */
   { tag:"BUNNY FES", t1:"BUNNY GIRL FEST",
-    t2:"無期限開催。限定SSR 17体が参戦！ 全員が⚖天界の審判を有利属性のまま完全対応。サヤは MagiBurst 初の「全属性有利」",
+    t2:"無期限開催。限定SSR 17体が参戦！ 全員が⚖天界の審判を有利属性のまま完全対応。サヤは「3属性有利」持ち",
     always:true, perm:true, since:"2026-09-11", from:"2026-09-11", to:"",
     href:"gacha.html#fes13", img:"thumbs/MagiBurst.jpg" },
   /* ★★ 2026-09-11 極華祭に カグラ（火）が参戦。毎月11〜20日の開催。 */
@@ -313,10 +319,11 @@ const XH_EVENTS = [
     t2:"レイ（闇）・リカ（木）・アンナ＆ラン（火＆光）が参戦！ リンクスキルの素の威力が MagiBurst 史上最強",
     always:true, perm:true, since:"2026-09-06", from:"2026-09-06", to:"",
     href:"gacha.html#fes11", img:"thumbs/MagiBurst.jpg" },
-  /* ★★ 2026-09-13 RISING STAR FEST も<b>無期限開催</b>になった（ご指定） */
+  /* ★★ 2026-09-13 RISING STAR FEST も<b>無期限開催</b>になった（ご指定）
+     ★★ 2026-10-09 <b>10月31日まで</b>に変更（ご指定）→ always/perm を外して to を入れた（mb-core の FESTS.fes12 も until） */
   { tag:"RISING FES", t1:"RISING STAR FEST",
-    t2:"無期限開催。限定SSR 13体——第3弾（ヨイヅキ・カヨ・シノ・マアヤ・アスカ）は天界の審判を有利属性のまま完全対応",
-    always:true, perm:true, since:"2026-09-06", from:"2026-09-06", to:"",
+    t2:"10月31日まで。限定SSR 13体——第3弾（ヨイヅキ・カヨ・シノ・マアヤ・アスカ）は天界の審判を有利属性のまま完全対応",
+    since:"2026-09-06", from:"2026-09-06", to:"2026-10-31",
     href:"gacha.html#fes12", img:"thumbs/MagiBurst.jpg" },
   /* ★★ 2026-09-06 GRAND DEBUT GACHA Ver.7.0（版ごとに10日間） */
   { tag:"GRAND DEBUT", t1:"GRAND DEBUT GACHA Ver.7.0",
@@ -472,6 +479,16 @@ XH_EVENTS.unshift({ tag:"EVENT", t1:"Violet Breeze", t2:"MagiLex 系統の XEVA 
    ══════════════════════════════════════════════════════════════ */
 const XH_UPDATE_MAX = 12;
 const XH_UPDATES = [
+  /* ★★ 2026-10-09 Pumpkin Night（UR 10体）／ガチャ確率1.5倍・演出の作り直し／3属性有利・MagiAbyss・MagiChemLex */
+  { tag:"NEW", t1:"Pumpkin Night（UR 10体）", at:"2026-10-09",
+    t2:"11月30日まで。アヤノ・サキ（火）／ユカ・ナツミ（水）／ミウ・マイ（木）／チナツ・ユウミ（光）／リナ・カオリ（闇）の UR 10体が各1.5%／はじめての10連は無料・🎫フェス券OK／ガチャ一覧のいちばん上／MagiBurst・MagiBocciaRush・MagiAbyss でも最強クラス（ミウ・マイは少し上）",
+    href:"gacha.html#fes18", img:"thumbs/MagiBurst.jpg" },
+  { tag:"UPDATE", t1:"ガチャの確率1.5倍・演出を一新", at:"2026-10-09",
+    t2:"すべてのガチャで SSR 以上の確率が1.5倍（12%→18%）／ガチャの演出を作り直し：10連も1体ずつめくる・確定演出いくつか・UR は縦長の絵で登場／一覧に「MagiAbyss 対応」の絞り込み／新キャラ紹介・キャラ詳細に MagiAbyss の性能（MagiDiamond の欄と入れかえ）／RISING STAR FEST は10月31日まで",
+    href:"gacha.html", img:"thumbs/MagiBurst.jpg" },
+  { tag:"UPDATE", t1:"3属性有利・MagiAbyss・MagiChemLex", at:"2026-10-09",
+    t2:"MagiBurst：全属性有利は全キャラ「3属性有利」に（自分と同じ属性・苦手な属性をのぞく3つ）・UR 13体を同じくらいの強さにそろえネクサスを強化／MagiAbyss：ホーム右上のボタンが押せなかった不具合を修正・必殺技のカットインを豪華に（UR は縦長の絵・技を隠さない）・UR の火力をそろえた／MagiChemLex：ナビ（ケミィ）を持っている UR キャラにかえられる",
+    href:"MagiAbyss/index.html", img:"thumbs/MagiAbyss.jpg" },
   /* ★★ 2026-10-07 新レアリティ UR「Sapphire Breeze」／MagiChemLex 大型アップデート／天井100・パートナー値下げ・Boccia・MagiLex */
   { tag:"NEW", t1:"新レアリティ UR「Sapphire Breeze」", at:"2026-10-07",
     t2:"無期限。ヒバナ（木）・フキ（闇）・タキナ（水）の UR 3体が各1.0%／はじめての10連は無料・🎫フェス券OK／フキは史上最大のフルバースト／ガチャ一覧のいちばん上",
@@ -1499,8 +1516,10 @@ const XH_PACKS = [
   { id:"pk_senki_select", ic:"⚔️", nm:"戦姫祭 セレクトパック", pay:280, gem:130, gticket:24,
     fsel:"fes11", c:"#e0405e", cycle:"term", max:3,
     desc:"戦姫祭の限定SSRから<b>好きな1体を確定で</b>。💎130 と 🎫ガチャチケット24枚つき。" },
+  /* ★★ 2026-10-09 RISING STAR FEST が<b>10月31日まで</b>になった → 販売も 10/31 まで（saleTo）。
+     ★ to を書くと回数の数え方（期間キー "tall"）が変わって買える回数が戻ってしまうので、to ではなく saleTo。 */
   { id:"pk_rising_select", ic:"🌟", nm:"RISING STAR セレクトパック", pay:280, gem:130, ticket:24,
-    fsel:"fes12", c:"#38a6ff", cycle:"term", max:3,
+    fsel:"fes12", c:"#38a6ff", cycle:"term", max:3, saleTo:"2026-10-31",
     desc:"RISING STAR FEST の限定SSRから<b>好きな1体を確定で</b>。💎130 と 🎫フェスチケット24枚つき。" },
   /* ── ☀ 夏限定パック（★★ 2026-08-24 新設・ご指定）──
      中身は <b>💎ジェム ＋ 🎫ガチャチケット ＋ ★プレミアムセレクト券1枚</b>。
@@ -1603,8 +1622,10 @@ function xhPackValue(p) {
 function xhPackUp(p) { return Math.round((xhPackValue(p) / xhPackBase(p) - 1) * 100); }
 /* 期間内か（to のないパックは常設） */
 function xhPackOpen(p) {
-  if (!p.to) return true;
   const t = xhToday();
+  /* ★★ 2026-10-09 saleTo … 回数の数え方（期間キー）はそのままで、売るのをやめる日（RISING STAR セレクトパック） */
+  if (p.saleTo && t > p.saleTo) return false;
+  if (!p.to) return true;
   return (!p.from || p.from <= t) && t <= p.to;
 }
 function xhPacksNow() { return XH_PACKS.filter(xhPackOpen); }
@@ -1951,7 +1972,7 @@ function xhMbReady() {
   if (typeof CHARS !== "undefined" && typeof PREMIUM_CHARS !== "undefined") return Promise.resolve(true);
   if (_xhMbLoading) return _xhMbLoading;
   _xhMbLoading = xhLoadScript("mb-boot.js?v=17")
-    .then(() => xhLoadScript("MagiBurst/js/mb-core.js?v=134"))
+    .then(() => xhLoadScript("MagiBurst/js/mb-core.js?v=135"))
     .then(() => true)
     .catch((e) => { _xhMbLoading = null; throw e; });
   return _xhMbLoading;
@@ -2129,6 +2150,7 @@ function xhPaintShop() {
              「週N回まで」と誤って書いてしまうため。 */
           (weekly ? '<br><b>週' + max + '回まで</b>（毎週月曜にリセット）'
             : p.to ? '<br><b>' + p.to.replace(/-/g, "/") + ' まで・期間中' + max + '回まで</b>'
+                   : p.saleTo ? '<br><b>' + p.saleTo.replace(/-/g, "/") + ' まで販売・全部で' + max + '回まで</b>'   /* ★★ 2026-10-09 */
                    : '<br><b>常設・全部で' + max + '回まで</b>') + '</div>' +
       '</div>' +
       '<div class="xh-pkbuy">' +

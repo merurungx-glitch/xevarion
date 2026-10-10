@@ -119,6 +119,8 @@ function modeDef(k) {
     sub: (fesLocked(k) ? fesOpenText(f)
       /* ★★ 2026-10-07 Sapphire Breeze は「新レアリティ UR」 */
       : f.sapphire ? "新レアリティ UR・🎫チケット優先／無期限開催"
+      /* ★★ 2026-10-09 Pumpkin Night も「新レアリティ UR」（期間つき） */
+      : f.pumpkin ? "新レアリティ UR・🎫チケット優先／あと" + fesDaysLeft(k) + "日（" + fesPeriodText(k).replace(/<[^>]+>/g, "") + "）"
       /* ★★ 2026-09-17g 極◯祭は今回の残り日数（gachaMenuList とそろえる） */
       : f.monthly ? (f.noFesTicket ? "限定キャラクター・🎫ガチャ券のみ" : "限定キャラクター・🎫チケット優先") + "／" + fesMonthlyLeftText(f)
       : (fesTimed(f) ? "フェス限定SSR・🎫チケット優先／あと" + fesDaysLeft(k) + "日"
@@ -167,7 +169,10 @@ function paintHero() {
   /* ★★ 2026-08-26 版が2本並ぶことがあるので、帯には<b>その版</b>の番号と公開日を出す */
   const ver = dv
     ? `<span class="ghver">${gachaVerText(dv)}<small>${dv.date}</small></span>` : "";
-  $("#ghero").innerHTML = `<img src="${src}" alt="${d.nm}"><span class="ghlab">${lab}</span>${ver}`;
+  /* ★★ 2026-10-09 確率1.5倍の札（ご指定「大きく表示してわかりやすく」） */
+  const boost = (typeof RATE_BOOST !== "undefined" && RATE_BOOST > 1)
+    ? `<span class="ghboost"><b>×${RATE_BOOST}</b><small>SSR以上の確率<br>${ratePct(SSR_TOTAL / RATE_BOOST)} → ${ratePct(SSR_TOTAL)}</small></span>` : "";
+  $("#ghero").innerHTML = `<img src="${src}" alt="${d.nm}"><span class="ghlab">${lab}</span>${ver}${boost}`;
 }
 
 /* ══════════ ピックアップ／フェス限定キャラ ══════════
@@ -209,7 +214,7 @@ function paintPickup() {
       <div class="fgrid">${cards}</div>
       <div class="pksub" style="margin-top:9px">
         新キャラSSR <b>${dchars.length}体</b>（合計${ratePct(DEBUT_S5_TOTAL)}・ピックアップなし）に加えて、
-        <b>${PREMIUM_NM} のSSRも合計${ratePct(FES_PREMIUM_TOTAL)}で排出</b>されます（フェスガチャと同じしくみ）。<br>
+        <b>${PREMIUM_NM} のSSRも合計${ratePct(fillTotalOfMode(gMode))}で排出</b>されます（フェスガチャと同じしくみ）。<br>
         ${/* ★★ 2026-08-26b 版ごとに初回の10連が無料（ご指定）。1日1回の無料単発とは別枠。 */""}
         🎁 <b>この版の初回10連は無料</b>です（🎫チケットも<i class='icc ic-gem'></i>ジェムも減りません。
         <b>最後の1枠のSSR確定つき</b>）。${debutFree10Left(gMode) > 0
@@ -792,7 +797,7 @@ function openRatesX() {
         : "　きょうのぶんは使いました（あと約 "
           + (typeof debutFreeNextText === "function" ? debutFreeNextText() : "1日") + "）。")));
     rows.push(rateNoteRow("※ <b>キャラの排出と確定枠のしくみはフェスガチャと同じ</b>です。"
-      + "道中でも <b>" + PREMIUM_NM + " のSSRが合計 " + ratePct(FES_PREMIUM_TOTAL) + "</b> で出て、"
+      + "道中でも <b>" + PREMIUM_NM + " のSSRが合計 " + ratePct(fillTotalOfMode(gMode)) + "</b> で出て、"
       + "<b>確定枠は新キャラと " + PREMIUM_NM + " のSSRをまとめた " + dsure.length + "体から全員おなじ確率</b>です"
       + "（限界突破MAXのキャラは除外）。"));
     rows.push(rateNoteRow("※ <b>この" + dchars.length + "体は " + DEBUT_NM + " " + gachaVerText(_dv) + " でしか引けません</b>。"
@@ -913,6 +918,11 @@ function openRatesX() {
   }
   rows.push(rateNoteRow("※ 同じキャラを引くと<b>限界突破</b>（最大" + MAX_AWK + "）になります。所持キャラ・限界突破・<i class='icc ic-gem'></i>ジェムは <b>MagiBurst と共通</b>です。"));
   rows.push(rateNoteRow("※ キャラの行を押すと、そのキャラの<b>性能</b>が見られます。"));
+  /* ★★ 2026-10-09 確率1.5倍のお知らせ（いちばん上） */
+  if (typeof RATE_BOOST !== "undefined" && RATE_BOOST > 1) {
+    rows.unshift(`<div class="rtboost"><b>×${RATE_BOOST}</b><span><b>SSR以上の確率が${RATE_BOOST}倍</b>になりました（すべてのガチャ）。`
+      + `SSR以上の合計 ${ratePct(SSR_TOTAL / RATE_BOOST)} → <b>${ratePct(SSR_TOTAL)}</b>・下の数字はどれも${RATE_BOOST}倍にしたあとの確率です。</span></div>`);
+  }
   $("#rateTbl").innerHTML = rows.join("");
   $("#rateCard").scrollTop = 0;
   $("#rateOv").classList.add("on");
@@ -1393,6 +1403,11 @@ function nciShow(i) {
   if (bc) bc.innerHTML = nciBocciaHTML(_nciIds[i]);
   const mb = $("#nciBattle");
   if (mb) mb.innerHTML = nciBattleHTML(_nciIds[i]);
+  /* ★★ 2026-10-09 MagiAbyss の面（ご指定「アニメーションで MagiAbyss の性能表示も」）。使えないキャラは札ごと隠して飛ばす */
+  const ma = $("#nciAbyss");
+  if (ma) ma.innerHTML = nciAbyssHTML(_nciIds[i]);
+  const mab = document.querySelector('#nciPg button[data-pg="abyss"]');
+  if (mab) mab.style.display = nciHasAbyss(_nciIds[i]) ? "" : "none";
   nciPage("burst");
 
   const dots = $("#nciDots");
@@ -1413,18 +1428,23 @@ function nciPage(pg) {
   const ov = $("#nciOv"); if (!ov) return;
   ov.classList.toggle("pg-boccia", pg === "boccia");
   ov.classList.toggle("pg-battle", pg === "battle");
+  ov.classList.toggle("pg-abyss", pg === "abyss");
   document.querySelectorAll("#nciPg button").forEach((b) => b.classList.toggle("on", b.dataset.pg === pg));
   try { const p = ov.querySelector(".nci-panel"); if (p) p.scrollTop = 0; } catch (e) {}
-  if (pg === "boccia" || pg === "battle") {
-    const bc = $(pg === "boccia" ? "#nciBoccia" : "#nciBattle");
+  if (pg === "boccia" || pg === "battle" || pg === "abyss") {
+    const bc = $(pg === "boccia" ? "#nciBoccia" : pg === "abyss" ? "#nciAbyss" : "#nciBattle");
     if (bc) { bc.classList.remove("go"); void bc.offsetWidth; bc.classList.add("go"); }
   }
 }
 /* 時間がたったとき・余白をタップしたとき：MagiBurst の面なら Boccia の面へ、Boccia の面なら次のキャラへ */
 function nciAdvance() {
   if (_nciT) { clearTimeout(_nciT); _nciT = 0; }
-  /* ★★ 2026-09-23 MagiBurst → MagiBattle → MagiBocciaRush → 次のキャラ */
-  if (_nciPg === "burst") {
+  /* ★★ 2026-09-23 MagiBurst → MagiBattle → MagiBocciaRush → 次のキャラ
+     ★★ 2026-10-09 MagiAbyss で使えるキャラは MagiBurst のあとに MagiAbyss の面をはさむ */
+  if (_nciPg === "burst" && nciHasAbyss(_nciIds[_nciAt])) {
+    nciPage("abyss");
+    _nciT = setTimeout(nciAdvance, NCI_BOCCIA_MS);
+  } else if (_nciPg === "burst" || _nciPg === "abyss") {
     nciPage("battle");
     _nciT = setTimeout(nciAdvance, NCI_BOCCIA_MS);
   } else if (_nciPg === "battle") {
@@ -1466,6 +1486,36 @@ function nciBattleHTML(id) {
   if (!MBStats.unit(id)) return '<div class="nd-note">このキャラの MagiBattle の性能はまだありません。</div>';
   try { MBStats.ensureCSS(); } catch (e) {}
   return MBStats.detailHTML(id, { lv: MBStats.MAX_LV, awk: MBStats.MAX_AWK, compact: true });
+}
+/* ★★ 2026-10-09 MagiAbyss の面（性能は MagiAbyss の ma-data.js／ma-stats.js をそのまま読む＝ゲーム内と同じ数字） */
+function nciHasAbyss(id) { try { return typeof isAbyssChar === "function" && isAbyssChar(id); } catch (e) { return false; } }
+function nciAbyssHTML(id) {
+  if (!nciHasAbyss(id)) return '<div class="nd-note">このキャラは MagiAbyss では使えません。</div>';
+  if (!(window.MA && MA.D && MA.Stats)) {
+    if (typeof maEnsure === "function") maEnsure().then(() => {
+      if (window.MA && MA.D && MA.Stats && _nciIds[_nciAt] === id) { const el = $("#nciAbyss"); if (el) el.innerHTML = nciAbyssHTML(id); }
+    });
+    return '<div class="nd-note">MagiAbyss の性能を読みこんでいます…</div>';
+  }
+  const C = MA.D.CHARS[id];
+  if (!C) return '<div class="nd-note">このキャラの MagiAbyss の性能はまだありません。</div>';
+  const S0 = { chars: {}, eq: {}, gear: {} };
+  let st = null;
+  try { st = MA.Stats.compute(id, { lv: MA.D.CHAR_MAX_LV, awk: 0, S: S0, tree: {}, gear: [] }); } catch (e) {}
+  const A = MA.D.ARTS[C.art && C.art.k] || {}, T = MA.D.TRAITS[C.trait && C.trait.k] || {};
+  const gm = (MA.D.GRADE_MUL || [])[(C.art && C.art.g) || 3] || 1, gt = (MA.D.GRADE_MUL || [])[(C.trait && C.trait.g) || 3] || 1;
+  const ty = MA.D.CTYPE[C.type] || {}, sub = MA.D.CTYPE[C.sub] || {};
+  const sk = (tag, col, nm, d) => '<div class="nd-sk" style="--kc:' + col + '"><b>' + nciEsc(nm) + "</b><small>" + tag + "</small><div>" + d + "</div></div>";
+  return '<div class="nd-ty"><span style="background:' + (C.rank === "UR" ? "linear-gradient(90deg,#ff5fa2,#ffd257,#7dffb0,#5fd0ff)" : "#ffcc3a") + '">' + C.rank + "</span>"
+    + "<b>" + nciEsc(ty.nm || "") + "</b>" + (sub.nm ? "／サブ " + nciEsc(sub.nm) : "") + "　得意 <b>" + nciEsc(C.good || "") + "</b></div>"
+    + (st ? '<div class="nd-stats ab"><span><i>HP</i><b>' + st.hp + '</b></span><span><i>攻撃</i><b>' + st.atk + '</b></span><span><i>戦力</i><b>'
+      + MA.Stats.power(st).toLocaleString() + '</b></span></div><div class="nd-note">Lv.' + MA.D.CHAR_MAX_LV + "・凸なし・装備なし</div>" : "")
+    + sk("通常攻撃", "#8b93a8", C.atk.nm, C.atk.d)
+    + sk("スキル（Q）", "#2f8fff", C.skill.nm, C.skill.d)
+    + sk("技（E）★" + ((C.art && C.art.g) || 3), "#a35cff", A.nm || "", typeof A.d === "function" ? A.d(gm) : (A.d || ""))
+    + sk("必殺技（R）", "#e39a10", C.ult.nm, C.ult.d)
+    + sk("パッシブ", "#2fd18c", C.passive.nm, C.passive.d)
+    + sk("特性 ★" + ((C.trait && C.trait.g) || 3), "#ff6aa8", T.nm || "", typeof T.d === "function" ? T.d(gt) : (T.d || ""));
 }
 function nciBocciaHTML(id) {
   if (!(window.MBR && MBR.VERSION >= 4)) {
@@ -1604,11 +1654,56 @@ function glVisible(m) {
   try {
     if (isDebutMode(k)) return k === "debut" || !!debutVerOfMode(k);
     if (k === "premium" || k === ARCHIVE_KEY) return true;
-    if (isFesMode(k)) { const f = fesDef(k); if (f && (f.monthly || fesPerm(f))) return true; return !fesEnded(k); }
+    if (isFesMode(k)) {
+      const f = fesDef(k); if (f && (f.monthly || fesPerm(f))) return true;
+      /* ★★ 2026-10-09 終わったフェスでも<b>そのフェスのセレクト券を持っている</b>あいだは出す
+         （RISING STAR FEST が 10/31 で終わる。券はそのフェスの画面でしか使えないため） */
+      if (typeof FESSEL_KEYS !== "undefined" && FESSEL_KEYS.indexOf(k) >= 0 && fesSelTickets(k) > 0) return true;
+      return !fesEnded(k);
+    }
   } catch (e) {}
   return true;
 }
-function glList() { return gachaMenuList().filter(glVisible); }
+/* ══ ★★ 2026-10-09 一覧の絞り込み（ご指定「MagiAbyss 対応キャラが排出されるガチャ」）══
+   ・「すべて」／「MagiAbyss 対応」の2つ。えらんだものは端末に覚える（xev_gl_filter）。
+   ・MagiAbyss で使えるキャラの台帳は mb-core の ABYSS_CHAR_IDS（isAbyssChar）の1本。 */
+let glFilter = "all";
+try { glFilter = localStorage.getItem("xev_gl_filter") === "abyss" ? "abyss" : "all"; } catch (e) {}
+/* そのガチャで排出されるキャラ（glInfo の「注目キャラ全員」と同じ見かた） */
+function glCastOf(k) {
+  try {
+    if (k === "premium") return PREMIUM_CHARS.slice();
+    if (k === ARCHIVE_KEY) return archiveChars();
+    if (isDebutMode(k)) return debutVerOfMode(k) ? debutCharsOfMode(k) : [];
+    if (isFesMode(k) && fesDef(k) && Array.isArray(fesDef(k).chars)) return fesDef(k).chars.slice();
+  } catch (e) {}
+  return [];
+}
+function glAbyssIds(k) { try { return typeof isAbyssChar === "function" ? glCastOf(k).filter((id) => isAbyssChar(id)) : []; } catch (e) { return []; } }
+function glHasAbyss(k) { return glAbyssIds(k).length > 0; }
+function glListAll() { return gachaMenuList().filter(glVisible); }
+function glList() { const L = glListAll(); return glFilter === "abyss" ? L.filter((m) => glHasAbyss(m.k)) : L; }
+function glSetFilter(f) {
+  glFilter = f === "abyss" ? "abyss" : "all";
+  try { localStorage.setItem("xev_gl_filter", glFilter); } catch (e) {}
+  glIdx = 0; paintList(); window.scrollTo(0, 0);
+  try { if (window.SFX && SFX.pick) SFX.pick(); } catch (e) {}
+}
+window.glSetFilter = glSetFilter;
+function glFilterHTML() {
+  const n = glListAll().filter((m) => glHasAbyss(m.k)).length;
+  return `<div class="gl-flt"><button class="${glFilter === "all" ? "on" : ""}" onclick="glSetFilter('all')">すべてのガチャ</button>`
+    + `<button class="ab${glFilter === "abyss" ? " on" : ""}" onclick="glSetFilter('abyss')"><i>🗡</i>MagiAbyss 対応<small>${n}</small></button></div>`
+    + (glFilter === "abyss" ? `<div class="gl-fnote">🗡 <b>MagiAbyss で使えるキャラ</b>（${typeof ABYSS_CHAR_IDS !== "undefined" ? ABYSS_CHAR_IDS.length : ""}人）が排出されるガチャだけを表示しています</div>` : "");
+}
+/* ══ ★★ 2026-10-09 確率1.5倍を大きく表示（ご指定）══ */
+function glBoostHTML() {
+  if (typeof RATE_BOOST === "undefined" || !(RATE_BOOST > 1)) return "";
+  return `<div class="gl-boost"><div class="glb-x"><small>RATE UP</small><b>×${RATE_BOOST}</b></div>`
+    + `<div class="glb-t"><b>すべてのガチャで <em>SSR以上の確率が${RATE_BOOST}倍</em>！</b>`
+    + `<span>SSR以上の合計 <s>${ratePct(SSR_TOTAL / RATE_BOOST)}</s> → <strong>${ratePct(SSR_TOTAL)}</strong>／ピックアップ・限定キャラの1体ごとの確率も${RATE_BOOST}倍</span></div>`
+    + `<i class="glb-sh"></i></div>`;
+}
 function glCard(m, i) {
   const k = m.k, d = modeDef(k), locked = glLocked(k) || m.soon;
   let seal = "";
@@ -1625,14 +1720,18 @@ function glCard(m, i) {
     const dt = dupeText(id);
     /* ★★ 2026-09-19g NEW のキャラには NEW の印（確率の NEW と同じ charIsNewNow） */
     let nw = false; try { nw = !sec && charIsNewNow(id, fesDef(k)); } catch (e) {}
-    return `<button class="gl-ch${sec ? " sec" : ""}" ${sec ? "" : `onclick="openDetX('${id}')"`}>${nw ? '<i class="gl-new">NEW</i>' : ""}<img src="${CHARS[id].img}" alt="" loading="lazy">`
+    /* ★★ 2026-10-09 MagiAbyss で使えるキャラに小さな印 */
+    const ma = !sec && typeof isAbyssChar === "function" && isAbyssChar(id);
+    return `<button class="gl-ch${sec ? " sec" : ""}" ${sec ? "" : `onclick="openDetX('${id}')"`}>${nw ? '<i class="gl-new">NEW</i>' : ""}${ma ? '<i class="gl-ma1" title="MagiAbyss で使える">🗡</i>' : ""}<img src="${CHARS[id].img}" alt="" loading="lazy">`
       + `<span class="${dt.cls}">${sec ? "???" : dt.cls === "max" ? "完凸" : dt.cls === "have" ? (DB.chars[id].awk ? "+" + DB.chars[id].awk + "凸" : "所持") : "未所持"}</span></button>`;
   }).join("");
   return `<div class="gl-card" data-k="${k}" style="border-color:${m.c}55">
     <div class="gl-hd"><span class="per">${nciEsc(m.nm)}<small>${nciEsc(nciPlain(d.sub || m.sub || ""))}</small></span>
       ${seal}<button onclick="glRates('${k}')">提供割合</button><button onclick="glInfo('${k}')">詳細</button></div>
     <div class="gl-ban"><img src="${glBanner(k)}" alt="${nciEsc(m.nm)}" loading="${i < 2 ? "eager" : "lazy"}">
-      <span class="lab">${lab}</span>${m.isNew ? '<span class="nw">NEW</span>' : ""}<span class="nm">${nciEsc(m.nm)}</span></div>
+      <span class="lab">${lab}</span>${m.isNew ? '<span class="nw">NEW</span>' : ""}<span class="nm">${nciEsc(m.nm)}</span>
+      ${typeof RATE_BOOST !== "undefined" && RATE_BOOST > 1 ? `<span class="rb">確率 ×${RATE_BOOST}</span>` : ""}
+      ${glHasAbyss(k) ? `<span class="ma">🗡 MagiAbyss 対応</span>` : ""}</div>
     ${chars.length ? `<div class="gl-pk"><div class="cap">注目キャラ</div><div class="row">${row}</div></div>` : ""}
     ${locked ? `<div class="gl-lock">⏳ ${nciEsc(nciPlain(d.sub || "準備中です"))}</div>`
       /* ★★ 2026-09-19f 一覧では「このガチャを引く」1つだけ。押すとガチャの画面へ（そこで 1回・10連） */
@@ -1644,6 +1743,7 @@ function paintList() {
   const list = glList();
   if (glIdx >= list.length) glIdx = 0;
   box.innerHTML = `<div class="gl-ttl"><b>注目ガチャ</b><span>下へスクロールしてえらぶ</span></div>`
+    + glBoostHTML() + glFilterHTML()
     + `<div class="gl-tabs">${list.map((m, i) => `<button class="gl-tab${i === glIdx ? " on" : ""}" onclick="glGo(${i})"><i style="background:${m.c}"></i>${nciEsc(m.nm)}${m.isNew ? "<em>NEW</em>" : ""}</button>`).join("")}</div>`
     + `<div class="gl-rail" id="glRail">${list.map(glCard).join("")}</div>`;
 }

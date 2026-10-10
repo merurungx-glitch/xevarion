@@ -508,6 +508,7 @@
     if (e.defDownT > 0) d *= 1.25;
     if (e.breakT > 0) d *= 2;
     if (P.buffs.fanfare) d *= 1 + P.buffs.fanfare.v;
+    if (P.buffs.pnAtk) d *= 1 + P.buffs.pnAtk.v;   /* ★★ 2026-10-09 アヤノ・マイの必殺技（与えるダメージ+） */
     if (P.C.passive.kind === "backwater" || P.C.passive.kind === "wasurena") { const lost = 1 - P.hp / st.hp; d *= 1 + Math.min(P.C.passive.max + (st.passive ? 0.1 : 0), lost * P.C.passive.per); }   /* ★★ 2026-10-07 ヒバナ「勿忘草の加護」も同じ式 */
     /* 守り（防御型・ボスの装甲）：光は無視する */
     if (e.guardOn && el !== "light") d *= 1 - e.guardK;
