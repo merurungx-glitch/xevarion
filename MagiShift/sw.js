@@ -3,7 +3,7 @@
    ・1台で遊ぶボードゲーム。キャッシュすれば完全にオフラインで動く
    ・アカウントの紐づけと賞金だけ通信が要る（遊ぶこと自体はオフラインでできる）
    ============================================================ */
-const VERSION = "magishift-sw-v11";
+const VERSION = "magishift-sw-v12";
 const CORE = [
   "./index.html",
   "./css/shift.css?v=5",
@@ -17,8 +17,8 @@ const CORE = [
   "../xeva-loading.js?v=18",
   "../xeva-back.js?v=9",
   "../maintenance-gate.js?v=13",
-  "../xeva.js?v=75",
-  "../xeva-alive.js?v=4",
+  "../xeva.js?v=76",
+  "../xeva-alive.js?v=5",
   "../game-link.js?v=12",
   "../xevarion-fb.js?v=33",
   "../img/ld_b_stand.webp?v=5",

@@ -265,6 +265,27 @@
     /* ★★ 2026-10-07 Sapphire Breeze ヒバナ・フキだけのパッシブ（MagiBurst のショットスキルとは別の名前＝同名は同効果のきまり） */
     wasurenaguard:{ en: "Wasurena Guard", ja: "ワスレナ・ガード",
       d: { ja: "ブレが常に <b>-30%</b>、ボールが重い（<b>×1.12</b>）。ジャックの <b>1m 以内</b>で止まると <b>GUARD</b> になり、自分のゲージ <b>+8</b>、<b>次の味方</b>のゲージも <b>+8</b>。", en: "Always -30% scatter, heavier balls (×1.12). Stopping within 1m of the jack gives a GUARD, +8 gauge to you and +8 to the next teammate." } },
+    /* ★★ 2026-10-09 Pumpkin Night の10体だけのパッシブ（MagiBurst のショットスキル・FB とは別の名前＝同名は同効果のきまり） */
+    scarletspell:{ en: "Scarlet Spell", ja: "スカーレット・スペル",
+      d: { ja: "ブレが常に <b>-30%</b>、ボールが少し重い（<b>×1.10</b>）、相手への押し出し <b>×1.08</b>。当てるとゲージ <b>+6</b>（2回まで）。", en: "Always -30% scatter, slightly heavier (×1.10), push ×1.08. Each hit gives +6 gauge (up to 2)." } },
+    candydrop:{ en: "Candy Drop", ja: "キャンディ・ドロップ",
+      d: { ja: "ブレが常に <b>-30%</b>、ボールが少し重い（<b>×1.10</b>）、止まりやすい（減速 <b>+6%</b>）。ジャックの <b>1m 以内</b>で止まると自分のゲージ <b>+8</b>、<b>次の味方</b>のゲージも <b>+8</b>。", en: "Always -30% scatter, slightly heavier (×1.10), +6% braking. Stopping within 1m of the jack gives +8 gauge to you and +8 to the next teammate." } },
+    starbell:{ en: "Star Bell", ja: "スター・ベル",
+      d: { ja: "ブレが常に <b>-30%</b>、壁の反発 <b>×1.12</b>、ボールが少し重い（<b>×1.06</b>）。壁で反射するたびゲージ <b>+6</b>（3回まで）。", en: "Always -30% scatter, rail rebound ×1.12, slightly heavier (×1.06). +6 gauge per bank (up to 3)." } },
+    blackcatstep:{ en: "Black Cat Step", ja: "ブラックキャット・ステップ",
+      d: { ja: "ブレが常に <b>-30%</b>、ボールが少し重い（<b>×1.08</b>）、最大の強さ <b>+5%</b>。当てたボールは <b>SHOCK</b>（すぐ止まる）になり、当てるとゲージ <b>+6</b>（2回まで）。", en: "Always -30% scatter, slightly heavier (×1.08), +5% max power. Balls you hit become SHOCKed; each hit gives +6 gauge (up to 2)." } },
+    harvestparade:{ en: "Harvest Parade", ja: "ハーベスト・パレード",
+      d: { ja: "ブレが常に <b>-32%</b>、ボールが重い（<b>×1.14</b>）。ジャックの <b>1m 以内</b>で止まると <b>GUARD</b> になりゲージ <b>+8</b>。当てるとゲージ <b>+6</b>（2回まで）。", en: "Always -32% scatter, heavy balls (×1.14). Stopping within 1m of the jack makes a GUARD and gives +8 gauge; each hit gives +6 gauge (up to 2)." } },
+    fourleaf:{ en: "Four-Leaf Luck", ja: "フォーリーフ・ラック",
+      d: { ja: "ブレが常に <b>-32%</b>、ボールが重い（<b>×1.12</b>）、ジャックへの押し出し <b>×1.10</b>。ジャックの <b>1m 以内</b>で止まると自分のゲージ <b>+8</b>、<b>次の味方</b>のゲージも <b>+8</b>。", en: "Always -32% scatter, heavy balls (×1.12), jack push ×1.10. Stopping within 1m of the jack gives +8 gauge to you and +8 to the next teammate." } },
+    candleward:{ en: "Candle Ward", ja: "キャンドル・ウォード",
+      d: { ja: "ブレが常に <b>-30%</b>、ボールが重い（<b>×1.12</b>）。ジャックの <b>1m 以内</b>で止まると <b>GUARD</b> になり、ゲージ <b>+8</b>。", en: "Always -30% scatter, heavy balls (×1.12). Stopping within 1m of the jack makes a GUARD and gives +8 gauge." } },
+    lanternlight:{ en: "Lantern Light", ja: "ランタン・ライト",
+      d: { ja: "ブレが常に <b>-30%</b>、ボールが少し重い（<b>×1.08</b>）、軌道の予測が <b>+20%</b> 長く見える。ジャックの <b>1m 以内</b>で止まるとゲージ <b>+8</b>。", en: "Always -30% scatter, slightly heavier (×1.08), 20% longer preview. Stopping within 1m of the jack gives +8 gauge." } },
+    mummywrap:{ en: "Mummy Wrap", ja: "マミー・ラップ",
+      d: { ja: "ブレが常に <b>-30%</b>、ボールが少し重い（<b>×1.10</b>）、止まりやすい（減速 <b>+6%</b>）。当てたボールは <b>SHOCK</b>（すぐ止まる）になり、当てるとゲージ <b>+6</b>（2回まで）。", en: "Always -30% scatter, slightly heavier (×1.10), +6% braking. Balls you hit become SHOCKed; each hit gives +6 gauge (up to 2)." } },
+    phantomwaltz:{ en: "Phantom Waltz", ja: "ファントム・ワルツ",
+      d: { ja: "ブレが常に <b>-30%</b>、壁の反発 <b>×1.10</b>、ボールが少し重い（<b>×1.08</b>）。壁で反射するたびゲージ <b>+4</b>（3回まで）、当てるとゲージ <b>+5</b>（2回まで）。", en: "Always -30% scatter, rail rebound ×1.10, slightly heavier (×1.08). +4 gauge per bank (up to 3) and +5 per hit (up to 2)." } },
     yoiyamiveil:{ en: "Yoiyami Veil", ja: "ヨイヤミ・ヴェール",
       d: { ja: "ブレが常に <b>-30%</b>、ボールが少し重い（<b>×1.10</b>）。当てたボールは <b>SHOCK</b>（すぐ止まる）になり、当てるとゲージ <b>+6</b>（2回まで）。", en: "Always -30% scatter, slightly heavier (×1.10). Balls you hit become SHOCKed, and each hit gives +6 gauge (up to 2)." } },
   };
@@ -310,6 +331,38 @@
     fuki: { type: "trick", grade: "UR",
       st: { power: 88, control: 92, friction: 80, bounce: 78, jack: 76, charge: 72 },
       specials: ["split", "pinpoint"], active: "shocktap", passive: "yoiyamiveil" },
+    /* ★★ 2026-10-09 Pumpkin Night（UR）＝合計 <b>486</b>（タキナ・ヒバナ・フキと同じいちばん上）。ご指定でミウ・マイだけ少し上の <b>490</b>。
+       型は7つに散らし、パッシブは10体とも専用（どれも「ブレ -30%前後＋重さ＋ひとつの持ち味」で UR 3体と同じ強さの帯）。 */
+    ayano: { type: "power", grade: "UR",
+      st: { power: 92, control: 88, friction: 78, bounce: 78, jack: 76, charge: 74 },
+      specials: ["powerhit", "straight"], active: "steadyhand", passive: "scarletspell" },
+    saki: { type: "support", grade: "UR",
+      st: { power: 80, control: 88, friction: 82, bounce: 76, jack: 80, charge: 80 },
+      specials: ["guard", "follow"], active: "rallycall", passive: "candydrop" },
+    yuka: { type: "bounce", grade: "UR",
+      st: { power: 80, control: 88, friction: 78, bounce: 94, jack: 74, charge: 72 },
+      specials: ["bank", "doublebank"], active: "mirrorrail", passive: "starbell" },
+    natsumi: { type: "trick", grade: "UR",
+      st: { power: 84, control: 90, friction: 80, bounce: 78, jack: 78, charge: 76 },
+      specials: ["curve", "split"], active: "shocktap", passive: "blackcatstep" },
+    miu: { type: "power", grade: "UR",
+      st: { power: 94, control: 90, friction: 80, bounce: 76, jack: 76, charge: 74 },
+      specials: ["powerhit", "heavy"], active: "ironwall", passive: "harvestparade" },
+    mai: { type: "jack", grade: "UR",
+      st: { power: 78, control: 90, friction: 82, bounce: 74, jack: 92, charge: 74 },
+      specials: ["jackpush", "jackkiss"], active: "jackresonance", passive: "fourleaf" },
+    chinatsu: { type: "defense", grade: "UR",
+      st: { power: 84, control: 88, friction: 84, bounce: 76, jack: 80, charge: 74 },
+      specials: ["guard", "softstop"], active: "ironwall", passive: "candleward" },
+    yuumi: { type: "technique", grade: "UR",
+      st: { power: 80, control: 94, friction: 82, bounce: 80, jack: 76, charge: 74 },
+      specials: ["pinpoint", "softstop"], active: "focusaim", passive: "lanternlight" },
+    rina: { type: "trick", grade: "UR",
+      st: { power: 86, control: 90, friction: 82, bounce: 76, jack: 76, charge: 76 },
+      specials: ["split", "curve"], active: "shocktap", passive: "mummywrap" },
+    kaori: { type: "bounce", grade: "UR",
+      st: { power: 82, control: 88, friction: 78, bounce: 92, jack: 74, charge: 72 },
+      specials: ["bank", "curve"], active: "mirrorrail", passive: "phantomwaltz" },
   };
   Object.assign(PASSIVES, {
     steadybase: { en: "Steady Base", ja: "ステディ・ベース", d: { ja: "ブレ常に <b>-10%</b>・減速 +3%。", en: "Always -10% scatter and +3% braking." } },
@@ -428,10 +481,13 @@
   };
   const TRAIT_KEYS = Object.keys(TRAITS);
   /* 特別なキャラ（SPECIAL_KIT）のトレイト */
-  const KIT_TRAIT = { akatsuki: "clutch", ayane: "sharp", chiha: "jackwhisper", himeri: "encore", honoka: "lucky7", azusa: "railrunner", kokoha: "ironnerve", takina: "sharp", hibana: "ironnerve", fuki: "clutch" };
+  const KIT_TRAIT = { akatsuki: "clutch", ayane: "sharp", chiha: "jackwhisper", himeri: "encore", honoka: "lucky7", azusa: "railrunner", kokoha: "ironnerve", takina: "sharp", hibana: "ironnerve", fuki: "clutch",
+    /* ★★ 2026-10-09 Pumpkin Night */
+    ayano: "clutch", saki: "encore", yuka: "railrunner", natsumi: "lucky7", miu: "ironnerve", mai: "jackwhisper", chinatsu: "ironnerve", yuumi: "sharp", rina: "clutch", kaori: "railrunner" };
   /* ★★ 2026-10-03 これより後に足した SPECIAL_KIT のトレイトは、assignKits で<b>図鑑の順の自分の番</b>に数える。
      最初にまとめて数えると、使用回数の少ないトレイトを選ぶ式がずれて<b>既存キャラ全員のトレイトが変わってしまう</b>ため。 */
-  const KIT_TRAIT_INLINE = { takina: 1, hibana: 1, fuki: 1 };
+  const KIT_TRAIT_INLINE = { takina: 1, hibana: 1, fuki: 1,
+    ayano: 1, saki: 1, yuka: 1, natsumi: 1, miu: 1, mai: 1, chinatsu: 1, yuumi: 1, rina: 1, kaori: 1 };
 
   /* ── ④ 編成シナジー（編成の「型」「属性」の組み合わせ） ── */
   const SYNERGIES = [
@@ -1235,6 +1291,17 @@
     if (pas === "kikyouminamo") { o.spread *= 0.70; o.mass *= 1.10; o.wallMul *= 1.10; }
     if (pas === "wasurenaguard") { o.spread *= 0.70; o.mass *= 1.12; o.umbrella = 1; }
     if (pas === "yoiyamiveil") { o.spread *= 0.70; o.mass *= 1.10; o.shock = 1; }
+    /* ★★ 2026-10-09 Pumpkin Night の10体 */
+    if (pas === "scarletspell") { o.spread *= 0.70; o.mass *= 1.10; o.hitMul *= 1.08; }
+    if (pas === "candydrop") { o.spread *= 0.70; o.mass *= 1.10; o.fric *= 1.06; }
+    if (pas === "starbell") { o.spread *= 0.70; o.wallMul *= 1.12; o.mass *= 1.06; }
+    if (pas === "blackcatstep") { o.spread *= 0.70; o.mass *= 1.08; o.vmax *= 1.05; o.shock = 1; }
+    if (pas === "harvestparade") { o.spread *= 0.68; o.mass *= 1.14; o.umbrella = 1; }
+    if (pas === "fourleaf") { o.spread *= 0.68; o.mass *= 1.12; o.jackMul *= 1.10; }
+    if (pas === "candleward") { o.spread *= 0.70; o.mass *= 1.12; o.umbrella = 1; }
+    if (pas === "lanternlight") { o.spread *= 0.70; o.mass *= 1.08; o.preview = Math.min(1, o.preview + 0.2); }
+    if (pas === "mummywrap") { o.spread *= 0.70; o.mass *= 1.10; o.fric *= 1.06; o.shock = 1; }
+    if (pas === "phantomwaltz") { o.spread *= 0.70; o.wallMul *= 1.10; o.mass *= 1.08; }
     if (pas === "steadybase") { o.spread *= 0.9; o.fric *= 1.03; }
     if (pas === "sprinter") o.vmax *= 1.05;
     if (pas === "grip") o.fric *= 1.08;
@@ -1424,7 +1491,7 @@
       const walls = kinds.filter((k) => k === "wall").length;
       const hits = kinds.filter((k) => k === "hit").length;
       const jacks = kinds.filter((k) => k === "jack").length;
-      gain += Math.min(3, walls) * (4 + (ch.passive === "reboundcharge" ? 7 : 0) + (ch.passive === "hyoukamirror" || ch.passive === "bluerosewaltz" ? 6 : 0) + (mod.bankSp ? 4 : 0)) * (mod.bankUlt ? 2 : 1);
+      gain += Math.min(3, walls) * (4 + (ch.passive === "reboundcharge" ? 7 : 0) + (ch.passive === "hyoukamirror" || ch.passive === "bluerosewaltz" || ch.passive === "starbell" ? 6 : 0) + (ch.passive === "phantomwaltz" ? 4 : 0) + (mod.bankSp ? 4 : 0)) * (mod.bankUlt ? 2 : 1);
       gain += Math.min(2, hits) * 8;
       if (jacks) gain += 6 + (ch.passive === "jacksense" ? 10 : 0) + (mod.resonance ? 20 : 0);
       if (chain >= 2) gain += Math.min(18, (chain - 1) * 6);
@@ -1433,7 +1500,9 @@
         const d = dist(b, jk);
         if (d < 0.5) gain += 6 + (ch.passive === "jackgravity" ? 8 : 0) + (ch.passive === "shirahanaverse" ? 10 : 0);
         if (ch.passive === "tsubakiumbrella" && d < 1.0) gain += 8;
-        if ((ch.passive === "kikyouminamo" || ch.passive === "wasurenaguard") && d < 1.0) {
+        /* ★★ 2026-10-09 Pumpkin Night：ジャックの 1m 以内で止まるとゲージ（GUARD は umbrella／次の味方は candydrop・fourleaf） */
+        if ((ch.passive === "harvestparade" || ch.passive === "candleward" || ch.passive === "lanternlight") && d < 1.0) gain += 8;
+        if ((ch.passive === "kikyouminamo" || ch.passive === "wasurenaguard" || ch.passive === "candydrop" || ch.passive === "fourleaf") && d < 1.0) {
           const L = lineupOf(M, side).length || 1;
           const ni = (i + 1) % L;
           if (ni !== i) M.gauge[side][ni] = Math.min(GAUGE_MAX, M.gauge[side][ni] + 8);
@@ -1456,6 +1525,9 @@
       if (ch.passive === "sakurabloom" && (hits || b.bossHits)) gain += 6;
       if (ch.passive === "abyssglow" && (hits || b.bossHits)) gain += 5;
       if (ch.passive === "yoiyamiveil") gain += Math.min(2, hits + (b.bossHits ? 1 : 0)) * 6;
+      /* ★★ 2026-10-09 Pumpkin Night：当てるとゲージ */
+      if (ch.passive === "scarletspell" || ch.passive === "blackcatstep" || ch.passive === "harvestparade" || ch.passive === "mummywrap") gain += Math.min(2, hits + (b.bossHits ? 1 : 0)) * 6;
+      if (ch.passive === "phantomwaltz") gain += Math.min(2, hits + (b.bossHits ? 1 : 0)) * 5;
       if (ch.passive === "hunter") gain += Math.min(2, hits) * 5;
       if (ch.passive === "chainmaster" && chain >= 2) gain += 6;
       gain += b.gainBonus || 0;
