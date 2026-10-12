@@ -887,6 +887,19 @@
      ・果実は<b>ガチャでだけ</b>手に入る（MagiBurst のクエスト報酬からは外した）＝持っている果実はすべてガチャ産。
      ・1個で Lv +1（上限 LV_MAX）。 */
   function mbSave() { try { return JSON.parse(localStorage.getItem("magiburst_v1") || "null"); } catch (e) { return null; } }
+  /* ★★ 2026-10-13 叡智の果実の絵を MagiBurst と同じものに（ご指定「デザインを MagiBurst などと統一」）。
+     前は絵文字の 🍐 だった。絵は mb-core.js の itemIcon("wisdom") と同じ形・同じ色（きらめく智慧の宝石果実） */
+  function fruitSvg(px) {
+    const s = px || 24;
+    return '<svg viewBox="0 0 40 40" width="' + s + '" height="' + s + '" style="display:inline-block;vertical-align:middle" aria-hidden="true">'
+      + '<path d="M21 7c3-3 7.2-3 9.2-1.8-1.2 3.4-4.6 5.4-7.8 4.8" fill="#4ade80"/>'
+      + '<path d="M20 8.5v4" stroke="#2fbf71" stroke-width="1.9" stroke-linecap="round"/>'
+      + '<path d="M20 11 L30 22 Q30.6 34 20 37 Q9.4 34 10 22 Z" fill="#1aa3c8"/>'
+      + '<path d="M20 11 L27 21 Q27 31.6 20 34 Q13 31.6 13 21 Z" fill="#7ce8ff"/>'
+      + '<path d="M20 13 L23.6 20.5 Q23.6 27.4 20 29.4 Q16.4 27.4 16.4 20.5 Z" fill="#d8f8ff" opacity=".9"/>'
+      + '<path d="M20 11 L20 37 M11 22 L29 22" stroke="#eafaff" stroke-width=".8" opacity=".55"/>'
+      + '<path d="M27.6 12 l.9 2.1 2.1.9-2.1.9-.9 2.1-.9-2.1-2.1-.9 2.1-.9z" fill="#fff"/></svg>';
+  }
   function fruitCount() { const d = mbSave(); return Math.max(0, (d && d.items && d.items.wisdom) | 0); }
   /* ★★ 2026-09-17g <b>使う個数を自由にえらび、画面の中で確認してから使う</b>（ご指定）。
      confirm() は出ない環境があるので使わない。状態は fruitSel（キャラが変わったら 1 にもどす）。
@@ -902,7 +915,7 @@
     if (fruitSel.id !== c.id) fruitSel = { id: c.id, n: 1, ask: false };
     fruitSel.n = Math.max(mx ? 1 : 0, Math.min(fruitSel.n, mx));
     const k = fruitSel.n;
-    const head = '<div class="fh"><div class="fi">🍐</div><div class="ft"><b>' + J("叡智の果実", "Fruit of Wisdom") + "</b> "
+    const head = '<div class="fh"><div class="fi">' + fruitSvg(32) + '</div><div class="ft"><b>' + J("叡智の果実", "Fruit of Wisdom") + "</b> "
       + J("所持 ", "Owned ") + "<b>" + n + "</b>" + J("個", "")
       + "<small>" + (room <= 0 ? J("熟練度は最大です", "Mastery is maxed")
         : !n ? J("果実がありません（ガチャで入手できます）", "No fruit (get it from the gacha)")
@@ -927,7 +940,7 @@
       + '<div class="fchips">' + chips + "</div>"
       + '<div class="fpre">' + J("使う数 ", "Use ") + "<b>" + k + "</b>" + J("個", "") + " ・ Lv." + p.lv + " → <b>Lv." + after + "</b>"
       + (B.lvBonus(after) > B.lvBonus(p.lv) ? ' <span class="up">' + J("全能力 +", "stats +") + (B.lvBonus(after) - B.lvBonus(p.lv)) + "</span>" : "") + "</div>"
-      + '<button class="btn pri" data-a="fruitask">' + J("🍐 " + k + "個 使う", "🍐 USE " + k) + "</button></div>";
+      + '<button class="btn pri" data-a="fruitask">' + fruitSvg(18) + " " + J(k + "個 使う", "USE " + k) + "</button></div>";
   }
   /* 果実の枠だけ描き直す */
   function paintFruit() {
@@ -961,7 +974,7 @@
     try { localStorage.setItem("magiburst_v1", JSON.stringify(d)); } catch (e) { toast("SAVE ERROR"); return; }
     const r = B.addCharLevels(id, use);
     FX.sfx("guard");
-    toast("🍐 ×" + use + " ─ Lv." + r.before + " → Lv." + r.after);
+    toast(J("叡智の果実", "Fruit of Wisdom") + " ×" + use + " ─ Lv." + r.before + " → Lv." + r.after);
     fruitSel = { id, n: 1, ask: false };
     const y = window.scrollY;
     renderDetail();

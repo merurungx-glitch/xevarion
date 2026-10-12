@@ -8,6 +8,11 @@
        「調べる」）が押せなかった。いまは window で受けて、ボタンの上なら何もしない。
      ・スマホのボタンは5つの枠に好きな行動を割り当てられる（S.set.touch.map）。
    ★ ゲーム画面でのタッチは画面をスクロールさせない（touch-action:none＋preventDefault）。
+   ★★ 2026-10-12b（ご指定）
+     ・ダッシュ回避は無し（行動の一覧・キー・スマホのボタンから外した）。
+     ・スマホのボタンは4つとも同じ大きさ（固有技・技・秘技・必殺技）で、重ならないひし形に。
+     ・スティックは左下に固定（指についてこない）。左側のどこをさわっても、固定した中心から指の方向へ進む。
+       設定で「さわった所に出る」にもできる（そのときも中心は動かない）。
    ============================================================ */
 (function () {
   "use strict";
@@ -23,18 +28,20 @@
   /* ══ 行動の一覧（設定の画面もこの順で並べる）══ */
   const ACTIONS = [
     ["up", "上へ移動"], ["down", "下へ移動"], ["left", "左へ移動"], ["right", "右へ移動"],
-    ["attack", "通常攻撃（押しているあいだ）"], ["skill", "スキル"], ["burst", "技"], ["ult", "必殺技"], ["dash", "回避（ダッシュ）"],
+    ["attack", "通常攻撃（押しているあいだ）"], ["skill", "固有技"], ["burst", "技"], ["tech", "秘技（条件でたまる）"], ["ult", "必殺技"],
     ["interact", "調べる・決定"], ["map", "地図"], ["menu", "メニュー（ポーズ）"],
   ];
   const DEFAULT_KEYS = {
     up: ["KeyW", "ArrowUp"], down: ["KeyS", "ArrowDown"], left: ["KeyA", "ArrowLeft"], right: ["KeyD", "ArrowRight"],
-    attack: ["KeyJ", null], skill: ["KeyQ", null], burst: ["KeyE", null], ult: ["KeyR", null], dash: ["Space", null],
+    attack: ["KeyJ", null], skill: ["KeyQ", null], burst: ["KeyE", null], tech: ["KeyT", null], ult: ["KeyR", null],
     interact: ["KeyF", "Enter"], map: ["Tab", "KeyM"], menu: ["Escape", "KeyP"],
   };
-  /* スマホのボタンの枠（big＝いちばん大きい丸）。割り当てられる行動 */
-  const TOUCH_SLOTS = ["big", "a", "b", "c", "d"];
-  const DEFAULT_TOUCH_MAP = { big: "attack", a: "skill", b: "burst", c: "ult", d: "dash" };
-  const TOUCH_ACTS = ["attack", "skill", "burst", "ult", "dash", "interact", "map", "none"];
+  /* スマホのボタンの枠。割り当てられる行動
+     ★★ 2026-10-12 スマホでは通常攻撃はいつも自動（攻撃ボタンは無し・ご指定）。
+     ★★ 2026-10-12b 4つとも同じ大きさのひし形（a＝下・b＝右・c＝左・d＝上）。ダッシュは無し */
+  const TOUCH_SLOTS = ["a", "b", "c", "d"];
+  const DEFAULT_TOUCH_MAP = { a: "skill", b: "burst", c: "tech", d: "ult" };
+  const TOUCH_ACTS = ["skill", "burst", "tech", "ult", "interact", "map", "none"];
   let KEYMAP = {};
   function keysNow() {
     const S = MA.Save && MA.Save.S, k = S && S.set && S.set.keys;
@@ -68,7 +75,7 @@
     /* 入力欄に打っているときは何もしない */
     const tg = e.target; if (tg && (tg.tagName === "INPUT" || tg.tagName === "TEXTAREA" || tg.tagName === "SELECT")) return;
     if (!I.enabled) { if (a === "menu" && down) I.pressed.add("menu"); return; }
-    if (a === "map" || a === "dash" || e.code.startsWith("Arrow") || a === "menu" || e.code === "Space" || e.code === "Tab") e.preventDefault();
+    if (a === "map" || e.code.startsWith("Arrow") || a === "menu" || e.code === "Space" || e.code === "Tab") e.preventDefault();
     if (down) { if (!I.keys[a]) I.pressed.add(a); I.keys[a] = true; if (a === "attack") I.held.add("attack"); }
     else { I.keys[a] = false; if (a === "attack") I.held.delete("attack"); }
     I.touch = false;
@@ -88,8 +95,11 @@
   }
 
   /* ══ スマホのスティック ══
-     window で受ける。ボタン・名札・枠の上をさわったときはスティックにしない。 */
+     window で受ける。ボタン・名札・枠の上をさわったときはスティックにしない。
+     ★★ 2026-10-12b 標準は「左下に固定」（前は指についてきて、中心が動いてしまい動かしづらかった・ご指定）。
+       中心から 60% まで倒すと全速（端まで倒さなくてよい） */
   const R = 46;
+  function fixedStick() { const S = MA.Save && MA.Save.S; return !(S && S.set && S.set.stickMode === "float"); }
   const NOT_STICK = "button, a, input, select, textarea, label, [data-a], [data-act], .mdl, .no-stick, #rotate";
   let baseEl = null, knobEl = null, homeEl = null;
   function stickRefs() {
@@ -98,7 +108,8 @@
   function setKnob() {
     stickRefs();
     if (!baseEl) return;
-    baseEl.style.left = I.stick.ox + "px"; baseEl.style.top = I.stick.oy + "px";
+    if (fixedStick()) { baseEl.style.left = ""; baseEl.style.top = ""; }
+    else { baseEl.style.left = I.stick.ox + "px"; baseEl.style.top = I.stick.oy + "px"; }
     if (knobEl) knobEl.style.transform = "translate(" + (I.stick.x * R) + "px," + (I.stick.y * R) + "px)";
     baseEl.classList.toggle("on", I.stick.on);
     if (homeEl) homeEl.classList.toggle("off", I.stick.on);
@@ -122,23 +133,33 @@
       I.touch = true;
       I.stick.id = t.identifier; I.stick.on = true;
       I.stick.ox = t.clientX; I.stick.oy = t.clientY; I.stick.x = 0; I.stick.y = 0;
+      /* 固定のとき：中心は左下の丸のまん中。さわった所へすぐ倒す */
+      if (fixedStick()) {
+        stickRefs();
+        const r = baseEl && baseEl.getBoundingClientRect();
+        if (r && r.width) { I.stick.ox = r.left + r.width / 2; I.stick.oy = r.top + r.height / 2; }
+        stickTo(t.clientX, t.clientY);
+      }
       setKnob();
       if (e.cancelable) e.preventDefault();
       break;
     }
   }
+  /* 指の位置 → つまみの位置と移動の向き（中心は動かさない） */
+  function stickTo(cx, cy) {
+    let dx = (cx - I.stick.ox) / R, dy = (cy - I.stick.oy) / R;
+    const l = Math.hypot(dx, dy); if (l > 1) { dx /= l; dy /= l; }
+    I.stick.x = dx; I.stick.y = dy;
+    const m = Math.min(l, 1);
+    if (m < 0.16) { I.mx = 0; I.my = 0; return; }
+    const sp = Math.min(1, (m - 0.16) / 0.44 + 0.35);
+    I.mx = dx / Math.max(m, 1e-6) * sp; I.my = dy / Math.max(m, 1e-6) * sp;
+  }
   function onTouchMove(e) {
     if (I.stick.id == null) return;
     for (const t of e.changedTouches) {
       if (t.identifier !== I.stick.id) continue;
-      let dx = (t.clientX - I.stick.ox) / R, dy = (t.clientY - I.stick.oy) / R;
-      const l = Math.hypot(dx, dy);
-      /* 指がスティックの外まで行ったら、中心がついてくる（大きく動かしても止まらない） */
-      if (l > 1.35) { const k = (l - 1.35) / l; I.stick.ox += (t.clientX - I.stick.ox) * k; I.stick.oy += (t.clientY - I.stick.oy) * k; dx = (t.clientX - I.stick.ox) / R; dy = (t.clientY - I.stick.oy) / R; }
-      const l2 = Math.hypot(dx, dy); if (l2 > 1) { dx /= l2; dy /= l2; }
-      I.stick.x = dx; I.stick.y = dy;
-      const dz = Math.hypot(dx, dy) < 0.18;
-      I.mx = dz ? 0 : dx; I.my = dz ? 0 : dy;
+      stickTo(t.clientX, t.clientY);
       setKnob();
       if (e.cancelable) e.preventDefault();
     }
@@ -175,8 +196,14 @@
   /* スマホのボタンの割り当て（設定） */
   function touchMap() {
     const S = MA.Save && MA.Save.S, m = S && S.set && S.set.touch && S.set.touch.map;
-    const out = {};
-    TOUCH_SLOTS.forEach((s) => { out[s] = m && TOUCH_ACTS.indexOf(m[s]) >= 0 ? m[s] : DEFAULT_TOUCH_MAP[s]; });
+    /* ★ 前の割り当て（攻撃ボタン・大きい丸・回避があったころ）は、新しい標準に読みかえる。同じ行動が2つの枠に入らないように */
+    const old = !m || m.big !== undefined || TOUCH_SLOTS.some((s) => m[s] === "attack" || m[s] === "dash");
+    const out = {}, used = new Set();
+    TOUCH_SLOTS.forEach((s) => {
+      let a = !old && TOUCH_ACTS.indexOf(m[s]) >= 0 ? m[s] : DEFAULT_TOUCH_MAP[s];
+      if (a !== "none" && used.has(a)) a = "none";
+      used.add(a); out[s] = a;
+    });
     return out;
   }
   window.addEventListener("keydown", (e) => onKey(e, true));

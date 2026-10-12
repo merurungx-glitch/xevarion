@@ -20,10 +20,10 @@
   }
   </script>
   <script src="../xeva-safebottom.js?v=12"></script>
-  <link rel="stylesheet" href="css/style.css?v=18" />
+  <link rel="stylesheet" href="css/style.css?v=19" />
 
   <!-- 起動スプラッシュは ../xeva-splash.js（全アプリ共通）に統一 -->
-  <script src="../xeva-splash.js?v=13" data-app="MagiChainParty" data-logo="../thumbs/MagiChainParty.jpg"></script>
+  <script src="../xeva-splash.js?v=14" data-app="MagiChainParty" data-logo="../thumbs/MagiChainParty.jpg"></script>
 </head>
 <body>
 
@@ -171,6 +171,8 @@
   <!-- ===== ゲーム ===== -->
   <section id="game" class="screen">
     <div id="player-bar"></div>
+    <!-- ★★ 2026-10-13 縦持ちの画面では「だれの番か」を盤の上に大きく出す（中身は game.js の updatePanels） -->
+    <div id="turn-banner" class="turn-banner" aria-live="polite"></div>
     <div id="table">
       <div id="board-area"><div id="board"></div></div>
     </div>
@@ -214,14 +216,14 @@
   <!-- お知らせトースト -->
   <div id="toast" class="toast"></div>
 
-  <script src="../xeva.js?v=76"></script>
-<script src="../xeva-loading.js?v=18" defer></script>
+  <script src="../xeva.js?v=77"></script>
+<script src="../xeva-loading.js?v=19" defer></script>
   <script type="module" src="../xevarion-fb.js?v=33"></script>
 <script src="../xeva-presence.js?v=9" defer></script>
-  <script type="module" src="../xeva-cloud.js?v=42"></script>
+  <script type="module" src="../xeva-cloud.js?v=44"></script>
   <script type="module" src="js/online.js?v=12"></script>
   <script src="../game-link.js?v=12"></script>
-  <script src="js/game.js?v=17"></script>
+  <script src="js/game.js?v=18"></script>
 <!-- XEVARION へもどる導線（同期を送り切ってから移動する） -->
 <script src="../xeva-back.js?v=9" data-mode="hook"></script>
 </body>

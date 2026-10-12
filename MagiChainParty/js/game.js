@@ -516,6 +516,13 @@ function updatePanels() {
     p.el.querySelector(".pscore").textContent = gemCount(p.id);
     p.el.querySelector(".pturn").textContent = p.dead ? "💀 脱落" : ((S.turn === p.id && !S.over) ? "▶ 番" : "");
   });
+  /* ★★ 2026-10-13 縦持ちのときは盤の上に「◯◯ の番」を大きく（CSS で縦持ちのときだけ見える） */
+  const tb = $("#turn-banner");
+  if (tb) {
+    const p = S.over ? null : cur();
+    if (p) { tb.style.setProperty("--c", p.color); tb.innerHTML = '<span class="pdot"></span><b>' + escapeHtml(p.name) + "</b><span>の番" + (p.type === "cpu" ? "（CPU）" : "") + "</span>"; }
+    else tb.innerHTML = "";
+  }
 }
 function setBoardFrame() {
   const color = S.over ? "transparent" : cur().color;
@@ -1616,5 +1623,20 @@ function leaveOnlineToSetup() {
   try { if (window.XevaPresence) XevaPresence.leave(); } catch (e) {}
   softLeaveToSetup();
 }
+
+/* ★★ 2026-10-13 ご指定「特に iPhone・iPad で下バーのあたりに空白」：iPhone・iPad のアプリ表示（html.xv-full）では
+   文書が箱より少し長い（本当の画面の高さ）。中身はすべて画面の板の中でスクロールする作りなので、
+   <b>文書そのもの</b>が動くと（入力でキーボードが出たあと等）下バーごと上へずれて下に帯が見える → いつも 0 に留める。
+   ★ 入力中（キーボードが出ている）は iOS が持ち上げているので触らない。閉じたら戻す。 */
+function cpPinDoc() {
+  if (!document.documentElement.classList.contains("xv-full")) return;
+  if (!window.scrollY && !window.scrollX) return;
+  const a = document.activeElement;
+  if (a && (a.tagName === "INPUT" || a.tagName === "TEXTAREA" || a.isContentEditable) && !a.readOnly) return;
+  window.scrollTo(0, 0);
+}
+window.addEventListener("scroll", cpPinDoc, { passive: true });
+document.addEventListener("focusout", () => { setTimeout(cpPinDoc, 60); setTimeout(cpPinDoc, 360); });
+if (window.visualViewport) visualViewport.addEventListener("resize", () => setTimeout(cpPinDoc, 60));
 
 window.addEventListener("DOMContentLoaded", () => { preventZoom(); initSetup(); });

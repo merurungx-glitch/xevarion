@@ -51,7 +51,7 @@
   const SLIDES = [
     {
       t: "移動と通常攻撃",
-      d: () => (touch() ? "画面の<b>左半分</b>（ボタンのないところ）を指でさわると<b>スティック</b>が出ます。動かした方向へ歩きます。"
+      d: () => (touch() ? "左下の<b>スティック</b>（画面の左側のボタンのないところ）を指でさわって、歩きたい方向へ倒します。スティックの丸は動きません。"
         : "<b>" + key("up") + key("left") + key("down") + key("right") + "</b>（または矢印キー）で歩きます。") +
         "<br>通常攻撃は<b>自動で</b>、<b>向いている方向へいつも</b>出ます（前に敵がいなくても出ます）。",
       draw(t) {
@@ -94,9 +94,9 @@
       },
     },
     {
-      t: "スキル・技・必殺技",
+      t: "固有技・技・必殺技（自分で使う）",
       d: () => {
-        const k = touch() ? ["右下の<b>スキル</b>", "<b>技</b>", "<b>必殺技</b>"] : ["<b>" + key("skill") + "</b> スキル", "<b>" + key("burst") + "</b> 技", "<b>" + key("ult") + "</b> 必殺技"];
+        const k = touch() ? ["右下の<b>固有技</b>", "<b>技</b>", "<b>必殺技</b>"] : ["<b>" + key("skill") + "</b> 固有技", "<b>" + key("burst") + "</b> 技", "<b>" + key("ult") + "</b> 必殺技"];
         return k[0] + "・" + k[1] + "は <b>MP</b>（青いバー）を使います。ボタンのまわりの<b>輪</b>がたまると使えます。<br>" + k[2] + "は<b>必殺技ゲージ</b>（10目盛り）が100%で発動。敵を倒す・ダメージを与えるとたまり、いっぱいで <b>READY!</b>";
       },
       draw(t) {
@@ -114,7 +114,7 @@
         /* ボタン */
         const bx = 268, by = 150;
         const skReady = mp > 0.62 && k < 0.42;
-        tbtn(bx - 70, by, 13, "sk_ripple", skReady, "#5ab8ff"); T(touch() ? "スキル" : key("skill"), bx - 70, by - 20, "#bfe8ff", 9);
+        tbtn(bx - 70, by, 13, "sk_ripple", skReady, "#5ab8ff"); T(touch() ? "固有技" : key("skill"), bx - 70, by - 20, "#bfe8ff", 9);
         tbtn(bx - 36, by, 13, "flash", mp > 0.6, "#7fd0ff"); T(touch() ? "技" : key("burst"), bx - 36, by - 20, "#bfe8ff", 9);
         tbtn(bx, by, 15, "ultc", ug >= 1, "#ff6aa8"); T(ug >= 1 ? "READY!" : (touch() ? "必殺技" : key("ult")), bx, by - 22, ug >= 1 ? "#ffd84a" : "#ffb8de", 9);
         /* 発動の演出 */
@@ -123,22 +123,21 @@
       },
     },
     {
-      t: "回避（ダッシュ）",
-      d: () => (touch() ? "<b>回避</b>ボタン" : "<b>" + key("dash") + "</b>") + "で、向いている方向へすばやく移動します。<b>移動中は無敵</b>なので、敵の弾や突進をすりぬけられます。<br>回数（×2 など）はしばらくすると回復します。",
+      /* ★★ 2026-10-12b ダッシュ回避は無し（ご指定）→ 歩いて「よける」 */
+      t: "よける（赤い予告から出る）",
+      d: () => "敵の大技の前には、床に<b>赤い予告</b>が出ます。光る前に<b>歩いて外へ出る</b>と「よけた！」。<br>よけると<b>秘技のゲージ</b>がたまり、「よけたとき」のスキルも発動します。弾を<b>かすめる</b>のも「よけた」に数えます。",
       draw(t) {
         floor("lava");
-        const L = 3.2, k = (t % L) / L;
-        const dashing = k > 0.4 && k < 0.55;
-        const px = k < 0.4 ? 90 : k < 0.55 ? 90 + (k - 0.4) / 0.15 * 90 : 180;
-        if (dashing) { g.globalAlpha = 0.35; hero(px - 18, 112, "side", t); hero(px - 36, 112, "side", t); g.globalAlpha = 1; }
-        hero(px, 112, dashing ? "side" : "idle", t);
-        /* 敵の弾（右から） */
-        const bx = 300 - k * 260;
-        if (bx > 20) { g.fillStyle = "#ff6a2a"; g.beginPath(); g.arc(Math.round(bx), 104, 6, 0, TAU); g.fill(); g.fillStyle = "#ffe86a"; g.beginPath(); g.arc(Math.round(bx), 104, 3, 0, TAU); g.fill(); }
-        enemy("emberImp", 296, 114, t);
-        if (dashing) T("無敵！", px, 76, "#bfe8ff", 12);
-        if (k > 0.55 && k < 0.8) T("すりぬけた！", 180, 76, "#ffe86a", 11);
-        if (touch()) { tbtn(286, 150, 12, "dash", dashing, "#e8f4ff"); T("回避", 286, 132, "#fff", 9); } else keycap(286, 148, key("dash"), dashing);
+        const L = 3.6, k = (t % L) / L;
+        const cx = 150, cy = 112;
+        const px = k < 0.35 ? cx : k < 0.6 ? cx + (k - 0.35) / 0.25 * 80 : cx + 80;
+        /* 予告の赤い円（だんだん濃く）→ 光る */
+        if (k < 0.7) { const a = 0.18 + k * 0.5; g.fillStyle = "rgba(255,48,80," + a.toFixed(2) + ")"; g.beginPath(); g.ellipse(cx, cy, 46, 23, 0, 0, TAU); g.fill(); g.strokeStyle = "#ff3050"; g.lineWidth = 2; g.beginPath(); g.ellipse(cx, cy, 46 * Math.min(1, k / 0.7), 23 * Math.min(1, k / 0.7), 0, 0, TAU); g.stroke(); }
+        else if (k < 0.78) { g.fillStyle = "rgba(255,220,200,.85)"; g.beginPath(); g.ellipse(cx, cy, 48, 24, 0, 0, TAU); g.fill(); }
+        enemy("emberImp", 66, 104, t);
+        hero(px, 112, k > 0.35 && k < 0.6 ? "side" : "idle", t);
+        if (k > 0.7 && k < 0.95) T("よけた！", cx + 80, 76, "#bfe8ff", 12);
+        if (k > 0.74 && k < 0.95) T("秘技 +", cx + 80, 92, "#ffd84a", 10);
       },
     },
     {
@@ -161,8 +160,8 @@
       },
     },
     {
-      t: "鍵を集めてボスへ",
-      d: () => "迷宮のどこかにある<b>鍵を3つ</b>（中ボス・試練の魔法陣・宝物庫・祭壇など）集めると、<b>ボスの扉</b>が開きます。<br>ボスのまわりのギミックを全部こわすと <b>BREAK</b>（6秒止まってダメージ2倍）。ボスを倒して出口からクリア！",
+      t: "中ボスを倒して鍵を集める",
+      d: () => "迷宮にいる<b>中ボス3体</b>を倒すと<b>星脈の鍵</b>が1つずつ手に入り、3つそろうと<b>ボスの扉</b>が開きます（鍵は中ボスからだけ）。<br>ボスのまわりのギミックを全部こわすと <b>BREAK</b>（6秒止まってダメージ2倍）。ボスを倒して出口からクリア！",
       draw(t) {
         floor("library");
         const L = 5, k = (t % L) / L;

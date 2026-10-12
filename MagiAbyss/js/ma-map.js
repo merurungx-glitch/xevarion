@@ -154,9 +154,13 @@
     /* 行き止まり（つながりが1本）は宝物庫・封印区域に向く */
     const deg = (rm) => rm.cell.links.length;
     const byDist = others.slice().sort((a, b) => a.dist - b.dist);
-    const midRoom = byDist[Math.floor(byDist.length * 0.6)] || others[0];
-    if (midRoom) midRoom.type = "mid";
-    const pool = r.shuffle(others.filter((x) => x !== midRoom));
+    /* ★★ 2026-10-12 星脈の鍵は中ボスを倒したときだけ（ご指定）→ 中ボスの部屋を入口から近い順に3つ（遠さ 3割・6割・9割の所） */
+    const midRooms = [];
+    [0.3, 0.6, 0.9].forEach((q) => { const x = byDist[Math.min(byDist.length - 1, Math.floor(byDist.length * q))]; if (x && midRooms.indexOf(x) < 0) midRooms.push(x); });
+    if (!midRooms.length && others[0]) midRooms.push(others[0]);
+    midRooms.forEach((x, i) => { x.type = "mid"; x.midIdx = i; });
+    const midRoom = midRooms[0] || null;
+    const pool = r.shuffle(others.filter((x) => midRooms.indexOf(x) < 0));
     const deadEnds = pool.filter((x) => deg(x) === 1);
     const take = (pref) => { let x = pref.length ? pref.shift() : null; if (!x) x = pool.find((p) => p.type === "battle"); if (x) { const i = pool.indexOf(x); if (i >= 0) pool.splice(i, 1); const j = deadEnds.indexOf(x); if (j >= 0) deadEnds.splice(j, 1); } return x; };
     const want = opt.arena ? ["heal"] : ["vault", "sealed", "heal", "circle", "altar", "spirit", "vault2"];
@@ -337,10 +341,8 @@
       if (room.type === "battle" && r() < 0.35) place(room, "chest", { tier: 1 });
     });
     for (let k = 0; k < extraChests; k++) { const rm = r.pick(rooms.filter((x) => x.type === "battle")); if (rm) place(rm, "chest", { tier: 1 }); }
-    /* 星脈の鍵：中ボス（倒すと出る）＋ 試練・宝物庫・祭壇・隠し部屋のうち3つに。必要なのは3つ */
-    const keySpots = [];
-    if (midRoom) keySpots.push({ room: midRoom.id, how: "mid" });
-    rooms.filter((x) => x.type === "circle" || x.type === "vault" || x.type === "altar" || x.type === "timed").forEach((x) => keySpots.push({ room: x.id, how: x.type }));
+    /* 星脈の鍵：★★ 2026-10-12 中ボス（3体）を倒したときだけ。試練・宝物庫・祭壇・時間制限区域は宝箱や素材になった */
+    const keySpots = midRooms.map((x) => ({ room: x.id, how: "mid" }));
     /* 転移門（書庫）：遠い部屋どうしを2組 */
     const warps = [];
     if (biome === "library" && !opt.arena) {
@@ -366,7 +368,7 @@
 
     return {
       W, H, TS, tiles, roomAt, rooms, corridors, objects, decos, vines, warps,
-      start: { x: start.x * TS + 8, y: start.y * TS + 8 }, startRoom: startRoom.id, bossRoom: bossRoom.id, midRoom: midRoom ? midRoom.id : -1,
+      start: { x: start.x * TS + 8, y: start.y * TS + 8 }, startRoom: startRoom.id, bossRoom: bossRoom.id, midRoom: midRoom ? midRoom.id : -1, midRooms: midRooms.map((x) => x.id),
       sealedRoom: sealedRoom ? sealedRoom.id : -1, secretRoom: secretRoom ? secretRoom.id : -1,
       bossDoors, sealDoors, keySpots, gimSpots, biome, seen: new Uint8Array(W * H), layout: L,
       seed: opt.seed,

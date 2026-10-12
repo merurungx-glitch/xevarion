@@ -183,10 +183,12 @@
         e.cd -= dt;
         if (e.cd <= 0 && d < 170) {
           setSt(e, "wind");
-          e.pat = (e.pat || 0) % 3;
+          e.pat = (e.pat || 0) % (e.mid ? 5 : 3);   /* ★★ 2026-10-12 中ボスは技が5つ */
           if (e.pat === 0) { e.ang = Math.atan2(p.y - e.y, p.x - e.x); e.tg = E().telegraph({ shape: "line", x: e.x, y: e.y, ang: e.ang, len: 170, w: e.r * 2 + 8, dur: 0.85, owner: e, follow: true, onFire: () => {} }); }
           else if (e.pat === 1) e.tg = E().telegraph({ shape: "circle", x: e.x, y: e.y, r: 56, dur: 1.0, dmg: e.atk * 1.5, owner: e, follow: true });
-          else E().fx({ type: "charge", x: e.x, y: e.y, t: 0, dur: 0.8, col: e.d.col, r: e.r + 10, owner: e });
+          else if (e.pat === 2) E().fx({ type: "charge", x: e.x, y: e.y, t: 0, dur: 0.8, col: e.d.col, r: e.r + 10, owner: e });
+          else if (e.pat === 3) { for (let i = 0; i < 3; i++) { const a = Math.random() * TAU, dd = i ? 20 + Math.random() * 30 : 0; E().telegraph({ shape: "circle", x: p.x + Math.cos(a) * dd, y: p.y + Math.sin(a) * dd, r: 22, dur: 0.9, dmg: e.atk * 1.3, owner: e, col: "#ff8a3d" }); } }
+          else { const a0 = Math.atan2(p.y - e.y, p.x - e.x); for (let i = 0; i < 5; i++) { const a = a0 + (i - 2) * 0.22; E().ebullet({ x: e.x, y: e.y, vx: Math.cos(a) * 120, vy: Math.sin(a) * 120, dmg: e.atk * 0.8, r: 4, col: e.d.col, kind: "orb", src: e }); } }
           e.pat++;
         }
       } else if (e.st === "wind") {

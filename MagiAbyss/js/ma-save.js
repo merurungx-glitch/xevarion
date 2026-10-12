@@ -185,7 +185,7 @@
 
   /* ══ 探索の途中の控え（再開用）══ */
   function saveRun(obj) { try { localStorage.setItem(RUNKEY, JSON.stringify(obj)); } catch (e) {} }
-  function loadRun() { try { const o = JSON.parse(localStorage.getItem(RUNKEY) || "null"); return o && o.v === 1 ? o : null; } catch (e) { return null; } }
+  function loadRun() { try { const o = JSON.parse(localStorage.getItem(RUNKEY) || "null"); return o && (o.v === 1 || o.v === 2) ? o : null; } catch (e) { return null; } }
   function clearRun() { try { localStorage.removeItem(RUNKEY); } catch (e) {} }
 
   /* ══ ミッションの日付の切りかえ ══ */

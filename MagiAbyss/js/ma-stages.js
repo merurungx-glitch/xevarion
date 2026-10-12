@@ -20,8 +20,8 @@
   const $ = (s, r) => (r || document).querySelector(s);
 
   /* 地図の上の位置（480×270 の中）。道は迷宮の順（解放の順） */
-  const POS = { town: [70, 205], d1: [96, 148], d2: [122, 70], d3: [226, 74], d4: [250, 158], d5: [346, 204], d6: [408, 76] };
-  const ROUTE = ["town", "d1", "d2", "d3", "d4", "d5", "d6"];
+  const POS = { town: [70, 205], d1: [96, 148], d2: [122, 70], d3: [226, 74], d4: [250, 158], d5: [346, 204], d6: [408, 76], d7: [452, 150], d8: [430, 236], d9: [296, 248] };
+  const ROUTE = ["town", "d1", "d2", "d3", "d4", "d5", "d6", "d7", "d8", "d9"];
   const BIOME_AT = { town: "town", d1: "forest", d2: "ice", d3: "lava", d4: "library", d5: "abyss", d6: "sky" };
 
   /* ══ ノイズ（いつも同じ地図になる）══ */
@@ -137,6 +137,15 @@
     const isle = (x, y, w) => { g.fillStyle = "#5a4a3a"; g.beginPath(); g.moveTo(x - w / 2, y); g.lineTo(x + w / 2, y); g.lineTo(x + w * 0.15, y + w * 0.6); g.lineTo(x - w * 0.12, y + w * 0.52); g.closePath(); g.fill(); g.fillStyle = "#7a6a52"; g.beginPath(); g.moveTo(x - w / 2, y); g.lineTo(x, y); g.lineTo(x - w * 0.08, y + w * 0.4); g.closePath(); g.fill(); R(x - w / 2, y - 3, w, 4, "#8ac458"); R(x - w / 2, y, w, 1, "#4a7a2a"); };
     isle(408, 88, 46); isle(368, 58, 20); isle(448, 46, 18);
     R(396, 68, 24, 18, "#f6f2e2"); tri(408, 68, 30, 10, "#ffd84a"); for (let i = 0; i < 4; i++) R(398 + i * 6, 72, 2, 14, "#c8c0a0"); R(406, 78, 4, 8, "#ffd84a"); circ(408, 58, 2, "#ffffff");
+    /* ★★ 2026-10-12b 第7〜第9迷宮：海に浮かぶ異界の島（岩の小島＋光る門） */
+    const rift = (x, y, c1, c2) => {
+      ell(x + 2, y + 7, 15, 5, "rgba(10,20,40,.35)"); ell(x, y + 4, 15, 6, "#3a3448"); ell(x - 2, y + 2, 12, 4, "#5a5268"); ell(x - 3, y + 1, 6, 2, "#7a7290");
+      for (let k = 0; k < 4; k++) { g.strokeStyle = [c2, c1, "#ffffff", c1][k]; g.lineWidth = 1.5; g.beginPath(); g.ellipse(x, y - 6, 7 - k * 1.6, 9 - k * 2, 0, 0, TAU); g.stroke(); }
+      R(x - 1, y - 7, 2, 2, "#ffffff");
+    };
+    rift(POS.d7[0], POS.d7[1], "#ff4f7a", "#6a1030");
+    rift(POS.d8[0], POS.d8[1], "#7fd0ff", "#ff7a2a");
+    rift(POS.d9[0], POS.d9[1], "#b06aff", "#2a1046");
     /* 星のきらめき（神殿のまわり） */
     [[392, 52], [430, 70], [384, 90], [446, 96]].forEach(([x, y]) => { R(x, y - 2, 1, 5, "#fff8c0"); R(x - 2, y, 5, 1, "#fff8c0"); });
     /* ── 地図のふち（古い紙のよう）── */
@@ -238,7 +247,7 @@
     const cid = S().sel, C = D().CHARS[cid];
     const own = MA.Save.owned(cid);
     const power = MA.Stats.power(MA.Stats.compute(cid));
-    const recLv = d.rec.lv + (MD.recAdd || 0), recPw = Math.round(d.rec.power * (diff === "hard" ? 1.9 : 1));
+    const recLv = Math.min(60, d.rec.lv + (MD.recAdd || 0)), recPw = D().recOf(d, diff);
     const rec = diff === "hard" ? hr : dr;
     const B = D().BOSSES[d.boss];
     /* 敵の属性と、いまのキャラとの相性 */
@@ -258,7 +267,7 @@
     const firstGot = !!rec.clears;
     det.innerHTML = '<button class="sd-x" data-a="stClose" aria-label="閉じる">' + ic("close") + "</button>" +
       '<div class="sd-art" id="sdArt" style="--c:' + d.c + '"></div>' +
-      '<div class="sd-h"><small>第' + d.no + "迷宮・" + esc(d.en) + "</small><b>" + esc(d.nm) + '</b><div><span class="stars">' + "★".repeat(d.stars) + "<i>" + "★".repeat(6 - d.stars) + "</i></span><em>" + esc(d.diff) + "</em>" + '<span class="sd-elb">' + ic("el_" + d.el) + D().ELEM[d.el].nm + "属性が多い</span></div></div>" +
+      '<div class="sd-h"><small>第' + d.no + "迷宮・" + esc(d.en) + "</small><b>" + esc(d.nm) + '</b><div><span class="stars">' + "★".repeat(d.stars) + "<i>" + "★".repeat(Math.max(0, 6 - d.stars)) + "</i></span><em>" + esc(d.diff) + "</em>" + '<span class="sd-elb">' + ic("el_" + d.el) + D().ELEM[d.el].nm + "属性が多い</span></div></div>" +
       '<div class="sd-tabs"><button class="' + (diff === "normal" ? "on" : "") + '" data-a="stDiff" data-v="normal">' + ic("normal") + "ノーマル</button>" +
       '<button class="hard ' + (diff === "hard" ? "on" : "") + '" data-a="stDiff" data-v="hard"' + (hOpen ? "" : " disabled") + ">" + ic(hOpen ? "hard" : "lock") + "ハード" + (hOpen ? "" : "<small>ノーマルをクリアで解放</small>") + "</button></div>" +
       '<p class="sd-d">' + esc(d.d) + (diff === "hard" ? '<br><span class="sd-hd">' + esc(MD.d) + "</span>" : "") + "</p>" +

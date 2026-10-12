@@ -76,7 +76,7 @@
     MA.Input.enabled = true;
     MA.Input.clearAll();
     $("#touch").innerHTML = '<div class="t-home" id="tHome"><i></i><span>移動</span></div><div class="t-base" id="tBase"><div class="t-knob" id="tKnob"></div></div>' +
-      '<div class="t-btns"><button class="tb s-big a-interact" data-act="interact" id="tb_interact"><span class="tb-ring"></span><span class="tb-ic">' + ic("info") + '</span><em class="tb-n"></em><span class="tb-l">調べる</span></button></div>';
+      '<div class="t-btns"><button class="tb s-one a-interact" data-act="interact" id="tb_interact"><span class="tb-ring"></span><span class="tb-in"><span class="tb-ic">' + ic("info") + '</span><span class="tb-l">調べる</span></span><em class="tb-n"></em></button></div>';
     MA.Input.bindTouch();
     MA.Input.bindButtons($("#touch"));
     GS.x = MA.Town.start[0] * TS; GS.y = MA.Town.start[1] * TS; GS.near = null;
@@ -148,7 +148,7 @@
     if (!modalOpen && (I.consume("interact") || I.consume("attack")) && near) openFac(near.open);
     if (!modalOpen && I.consume("menu")) openPanel("settings");
     if (!modalOpen && I.consume("map")) openFac("stages");
-    I.pressed.delete("dash"); I.pressed.delete("skill"); I.pressed.delete("burst"); I.pressed.delete("ult");
+    I.pressed.delete("skill"); I.pressed.delete("burst"); I.pressed.delete("ult");
     /* NPC：ときどき近くを歩く */
     GS.npcs.forEach((n) => {
       n.t -= dt;
@@ -264,7 +264,7 @@
     const f = PANELS[id]; const r = f(arg);
     const inner = m.querySelector(".mdl-in");
     const sc = inner.scrollTop;
-    inner.innerHTML = '<button class="mdl-x" data-a="closeModal" aria-label="閉じる">' + ic("close") + "</button>" + r.html;
+    inner.innerHTML = '<div class="mdl-xw"><button class="mdl-x" data-a="closeModal" aria-label="閉じる">' + ic("close") + "</button></div>" + r.html;
     inner.scrollTop = sc;
     if (r.after) r.after(m);
   }
@@ -286,7 +286,7 @@
     const dr = s.dun[dunId] || {};
     const hard = prepDiff === "hard";
     const MD = D().MODES[prepDiff];
-    const recLv = d.rec.lv + (MD.recAdd || 0), recPw = Math.round(d.rec.power * (hard ? 1.9 : 1));
+    const recLv = Math.min(60, d.rec.lv + (MD.recAdd || 0)), recPw = D().recOf(d, prepDiff);
     const mutOpen = dr.clears > 0;
     const gear = MA.Stats.gearOf(cid, s);
     const slots = D().SLOT_KEYS.map((sl) => { const g = own ? gear.find((x) => D().GEAR[x.id].slot === sl) : null; return '<div class="slot' + (g ? "" : " empty") + '" style="--rc:' + (g ? D().RAR[g.rar].c : "#555") + '">' + ic(D().SLOTS[sl].ic, g ? D().RAR[g.rar].c : "#666") + "<small>" + (g ? esc(D().GEAR[g.id].nm) + (g.lv ? " +" + g.lv : "") : D().SLOTS[sl].nm + "（なし）") + "</small></div>"; }).join("");
@@ -295,13 +295,13 @@
       '<div class="prep' + (hard ? " hard" : "") + '">' +
       (hard ? '<div class="pr-hard">' + ic("hard") + "<b>ハード</b><span>" + esc(MD.d) + "</span></div>" : "") +
       '<div class="pr-char"><img src="../img/t_' + UI().imgName(cid) + '.webp" alt=""><canvas id="prSprite" width="48" height="60"></canvas><div><b>' + esc(C.nm) + ' <em class="cc-rar r-' + C.rank + '">' + C.rank + "</em></b><small>" + ic("el_" + C.el) + D().ELEM[C.el].nm + "・" + esc(C.title) + "・" + D().CTYPE[C.type].nm + "</small><span>Lv." + st.lv + '　戦力 <b class="' + (pw >= recPw ? "ok" : "ng") + '">' + fmt(pw) + '</b></span><button class="btn sm" data-a="fac" data-v="chars">キャラを変える</button></div></div>' +
-      '<div class="pr-sec">装備</div><div class="slots">' + slots + '</div><button class="btn sm ghost" data-a="panel" data-v="storage">装備を変更</button>' +
+      '<div class="pr-sec">装備</div><div class="slots">' + slots + '</div><div class="row"><button class="btn sm ghost" data-a="panel" data-v="storage">装備を変更</button>' + (own ? '<button class="btn sm gold" data-a="eqBest" data-v="' + cid + '">' + ic("star") + "おすすめ一括装備</button>" : "") + "</div>" +
       '<div class="pr-sec">ダンジョン変異 ' + (mutOpen ? "<small>（報酬 ×" + rewardK.toFixed(2) + "）</small>" : "<small>（この迷宮を1回クリアすると選べます）</small>") + '</div><div class="muts">' +
       Object.keys(D().MUTATIONS).map((k) => { const M = D().MUTATIONS[k]; const on = prepMuts.indexOf(k) >= 0; return '<button class="mut' + (on ? " on" : "") + '" data-a="togMut" data-v="' + k + '" data-d="' + dunId + '"' + (mutOpen ? "" : " disabled") + "><b>" + esc(M.nm) + "</b><small>" + esc(M.d) + (M.reward ? "・報酬+" + Math.round(M.reward * 100) + "%" : "") + "</small></button>"; }).join("") +
       '</div><div class="pr-sec">持ちこみ</div><div class="carry">' +
       [["potion", "回復薬"], ["elixir", "エリクサー"], ["reroll", "運命のダイス（引き直し）"], ["banish", "忘却の砂（とばす）"]].map(([k, n]) => '<span>' + ic(k === "reroll" ? "dice" : k === "banish" ? "sand" : k) + esc(n) + " <b>×" + Math.min(k === "elixir" ? 1 : 3, s.items[k] || 0) + "</b></span>").join("") +
       '<button class="btn sm ghost" data-a="panel" data-v="shop">店で買う</button></div>' +
-      '<p class="hint">探索は1回 10〜30分ほど。鍵を3つ集めるとボスの扉が開きます。早くクリアするとクリア時間のミッションでジェムがもらえます。途中で閉じても次に開いたときに再開できます。</p>' +
+      '<p class="hint">探索は1回 10〜30分ほど。中ボスを3体倒して鍵を3つ集めるとボスの扉が開きます。早くクリアするとクリア時間のミッションでジェムがもらえます。途中で閉じても次に開いたときに再開できます。</p>' +
       (own ? '<button class="btn gold big' + (hard ? " hardgo" : "") + '" data-a="go" data-v="' + dunId + '">' + ic("door") + (hard ? "ハードで" : "") + "出発する</button>"
         : '<div class="locked">' + ic("lock") + "このキャラは持っていないので出発できません。「キャラを変える」から選んでください</div>") + "</div>";
     return { html, after: (m) => { m._arg = dunId; drawSpritePreview($("#prSprite", m), cid); } };
@@ -402,15 +402,21 @@
       '<div class="cd-sec">能力（Lv.' + st.lv + "）</div>" +
       '<div class="cd-stats">' + stat("hp", "HP", st.hp, st.hp / 40) + stat("atk", "攻撃力", st.atk, st.atk / 3) + stat("def", "防御力", st.def, st.def * 3) + stat("spd", "移動速度", Math.round(st.spd), st.spd / 1.2) +
         stat("aspd", "攻撃速度", "×" + st.aspd.toFixed(2), st.aspd * 60) + stat("crit", "会心率", st.crit + "%", st.crit * 2.5) + stat("critDmg", "会心ダメージ", "×" + st.critDmg.toFixed(2), st.critDmg * 40) + stat("mag", "魔法威力", "×" + st.mag.toFixed(2), st.mag * 55) + stat("eva", "回避", st.eva, st.eva * 3) + "</div>" +
-      '<div class="cd-sec">技の組み合わせ<small>★ が多いほど強い（5段階）</small></div><div class="kits">' +
-      kit("atk", UI().kitIc(C, "atk"), elC, "通常攻撃（いつも出る）", C.atk.nm, esc(C.atk.d)) +
-      kit("sk", UI().kitIc(C, "skill"), null, "スキル" + (own ? " ［" + MA.Input.keyLabel("skill") + "］" : ""), C.skill.nm, esc(C.skill.d), '<span class="kch">' + ic("st_time") + C.skill.cd + "秒 " + ic("burst") + "MP " + C.skill.mp + "</span>") +
+      /* ★★ 2026-10-12b ご指定「自分で操作するものは技、自動発動はスキル」：2つの見出しに分けた */
+      '<div class="cd-sec">技<small>自分で使う（ボタン・キー）。★ が多いほど強い（5段階）</small></div><div class="kits">' +
+      kit("atk", UI().kitIc(C, "atk"), elC, "通常攻撃（自動で出る）", C.atk.nm, esc(C.atk.d)) +
+      kit("sk", UI().kitIc(C, "skill"), null, "固有技" + (own ? " ［" + MA.Input.keyLabel("skill") + "］" : ""), C.skill.nm, esc(C.skill.d), '<span class="kch">' + ic("st_time") + C.skill.cd + "秒 " + ic("burst") + "MP " + C.skill.mp + "</span>") +
       kit("art", Ad.ic, null, "技" + (own ? " ［" + MA.Input.keyLabel("burst") + "］" : ""), Ad.nm, esc(Ad.d(gm(C.art.g) * (1 + (st.art || 0)))), stars(C.art.g) + '<span class="kch">' + ic("st_time") + Ad.cd + "秒 " + ic("burst") + "MP " + Ad.mp + "</span>") +
+      (function () { const T = MA.Skills.techOf(id); return kit("tech", T.ic, "#ffd84a", "秘技" + (own ? " ［" + MA.Input.keyLabel("tech") + "］" : ""), T.nm, esc(MA.Skills.techText(T)), '<span class="kch">' + ic("st_time") + esc(MA.Skills.techCondText(T.cond)) + "</span>"); })() +
       kit("ult", "ultc", elC, "必殺技" + (own ? " ［" + MA.Input.keyLabel("ult") + "］" : ""), C.ult.nm, esc(C.ult.d), '<span class="kch">' + ic("ult") + "ゲージ100%（敵を倒す・ダメージを与える・戦闘中の時間でたまる）</span>") +
-      kit("tr", Tr.ic, null, "特性（いつも効く）", Tr.nm, esc(Tr.d(gm(C.trait.g)))) +
-      kit("ps", UI().kitIc(C, "passive"), null, "パッシブ", C.passive.nm, esc(C.passive.d)) +
       kit("evo", "star", "#ff6aa8", "専用進化", D().EVOS[C.evo.to].nm, esc(D().ELEM[C.evo.el].nm + "の" + D().WEAPONS[C.evo.weapon].nm + " を Lv7 にすると進化：" + D().EVOS[C.evo.to].d)) +
       "</div>" +
+      '<div class="cd-sec">スキル<small>自動で効く・自動で発動（ボタンはいりません）</small></div><div class="kits">' +
+      kit("ps", UI().kitIc(C, "passive"), null, "固有スキル（いつも効く）", C.passive.nm, esc(C.passive.d)) +
+      kit("tr", Tr.ic, null, "特性スキル（いつも効く）", Tr.nm, esc(Tr.d(gm(C.trait.g))), stars(C.trait.g)) +
+      "</div>" +
+      '<h4 class="sks-h">条件スキル<small>条件がそろうと自動で発動（虹＝このキャラだけ・金・白）</small></h4><div class="sks">' +
+      MA.Skills.list(id).map((s2) => '<div class="skr r-' + s2.rar + '"><span class="skr-ic">' + ic(s2.ic) + "</span><div><b>" + esc(s2.nm) + "<em>" + ({ U: "虹", G: "金", W: "白" }[s2.rar] || "") + "</em></b><small>" + esc(MA.Skills.condText(s2.cond)) + (s2.cd >= 2 ? "（" + s2.cd + "秒に1回まで）" : "") + "</small><p>" + esc(MA.Skills.fxText(s2.fx)) + "</p></div></div>").join("") + "</div>" +
       '<div class="cd-sec">属性の相性<small>' + esc(C.nm) + "の攻撃が、その属性の敵に与えるダメージ</small></div><div class=\"cd-rel\">" + rel + "</div>" +
       '<div class="cd-gw"><div><span class="ok">得意</span>' + esc(C.good) + '</div><div><span class="ng">苦手</span>' + esc(C.weak) + '</div><div><span>成長</span>' + esc(Object.keys(C.bias).map((k) => D().CAT[k]).join("・")) + " がレベルアップの候補に出やすい</div></div>" +
       '<div class="cd-sec">凸の効果<small>XEVARION のガチャで同じキャラを引くと凸（最大4）</small></div><div class="cd-awk">' +
@@ -431,7 +437,7 @@
     const br = Object.keys(D().TREE_BR).map((b) => '<div class="tr-br"><div class="tr-bh" style="--c:' + D().TREE_BR[b].c + '">' + D().TREE_BR[b].nm + "</div>" +
       D().TREE.filter((n) => n.br === b).map((n) => {
         const has = !!rec.tree[n.id], can = !has && n.req.every((r) => rec.tree[r]) && sp.left >= n.cost;
-        const fx = Object.keys(n.fx).map((k) => ({ atk: "攻撃力+" + Math.round(n.fx[k] * 100) + "%", crit: "会心率+" + n.fx[k] + "%", aspd: "攻撃速度+" + Math.round(n.fx[k] * 100) + "%", critDmg: "会心ダメージ+" + Math.round(n.fx[k] * 100) + "%", hp: "最大HP+" + Math.round(n.fx[k] * 100) + "%", def: "防御力+" + n.fx[k], regen: "毎秒HP+" + n.fx[k], skill: "固有スキルの威力+" + Math.round(n.fx[k] * 100) + "%", mp: "MPの回復・最大MPアップ", cdr: "再使用-" + Math.round(n.fx[k] * 100) + "%", passive: "パッシブが強くなる", ult: "必殺技の威力+" + Math.round(n.fx[k] * 100) + "%", ultCharge: "必殺技ゲージのたまり+" + Math.round(n.fx[k] * 100) + "%", shieldStart: "探索開始時に最大HPの" + Math.round(n.fx[k] * 100) + "%のバリア" }[k] || k)).join("・");
+        const fx = Object.keys(n.fx).map((k) => ({ atk: "攻撃力+" + Math.round(n.fx[k] * 100) + "%", crit: "会心率+" + n.fx[k] + "%", aspd: "攻撃速度+" + Math.round(n.fx[k] * 100) + "%", critDmg: "会心ダメージ+" + Math.round(n.fx[k] * 100) + "%", hp: "最大HP+" + Math.round(n.fx[k] * 100) + "%", def: "防御力+" + n.fx[k], regen: "毎秒HP+" + n.fx[k], skill: "固有技の威力+" + Math.round(n.fx[k] * 100) + "%", mp: "MPの回復・最大MPアップ", cdr: "再使用-" + Math.round(n.fx[k] * 100) + "%", passive: "パッシブが強くなる", ult: "必殺技の威力+" + Math.round(n.fx[k] * 100) + "%", ultCharge: "必殺技ゲージのたまり+" + Math.round(n.fx[k] * 100) + "%", shieldStart: "探索開始時に最大HPの" + Math.round(n.fx[k] * 100) + "%のバリア" }[k] || k)).join("・");
         return '<button class="tr-n' + (has ? " on" : can ? " can" : "") + '" data-a="learn" data-v="' + n.id + '" data-c="' + id + '"' + (has || !can ? " disabled" : "") + '><b>' + esc(n.nm) + "</b><small>" + esc(fx) + "</small><i>" + (has ? "習得" : "SP " + n.cost) + "</i></button>";
       }).join('<span class="tr-ln"></span>') + "</div>").join("");
     const html = head("tree", C.nm + " のスキルツリー", "スキルポイント（レベル1つで1）：のこり <b>" + sp.left + "</b> ／ " + sp.total, "#c27bff") +
@@ -458,6 +464,7 @@
       '<span>戦力 <b>' + fmt(MA.Stats.power(st)) + "</b>　HP " + st.hp + "・攻 " + st.atk + "・防 " + st.def + "・会心 " + st.crit + "%</span></div>" +
       (own ? "" : '<p class="warn">このキャラは未所持のため装備できません（おためしは装備なし）</p>') +
       '<div class="slots big">' + slotsHTML + "</div>" +
+      (own ? '<div class="row eqb"><button class="btn gold" data-a="eqBest" data-v="' + cid + '">' + ic("star") + 'おすすめ一括装備</button><small class="hint">空いている装備と いまの装備から、戦力がいちばん上がる組み合わせをまとめて付けます（ほかのキャラの装備は使いません）</small></div>' : "") +
       '<div class="tabs sm"><button class="tab' + (storSlot === "all" ? " on" : "") + '" data-a="storSlot" data-v="all">すべて</button>' + D().SLOT_KEYS.map((sl) => '<button class="tab' + (storSlot === sl ? " on" : "") + '" data-a="storSlot" data-v="' + sl + '">' + D().SLOTS[sl].nm + "</button>").join("") + "</div>" +
       '<div class="glist">' + inv + "</div>";
     return { html, after: (m) => { m._arg = cid; storChar = cid; } };
@@ -630,7 +637,7 @@
     }).join("");
     const story = D().STORY.map((st) => '<div class="mis' + (s.codex.story[st.id] ? "" : " no") + '">' + ic("book") + "<div><b>" + (s.codex.story[st.id] ? esc(st.nm) : "？？？") + "</b><small>" + (st.at ? esc(D().DUN[st.at].nm) + "のあと" : "はじまり") + "</small></div>" + (s.codex.story[st.id] ? '<button class="btn sm" data-a="story" data-v="' + st.id + '">読む</button>' : "") + "</div>").join("");
     const K = (a) => esc(MA.Input.keyLabel(a));
-    const howto = '<div class="row"><button class="btn gold" data-a="howto">' + ic("info") + '遊び方の映像を見る</button></div><ul class="howto"><li><b>移動</b>：' + K("up") + K("left") + K("down") + K("right") + '／方向キー（スマホは画面の左半分をさわるとスティック）</li><li><b>通常攻撃</b>：自動で、向いている方向へいつも出る（設定で「近い敵をねらう」「マウスの方向」にもできる）</li><li><b>' + K("skill") + '</b> スキル／<b>' + K("burst") + '</b> 技（キャラごとにちがう・MP）／<b>' + K("ult") + '</b> 必殺技（ゲージ100%）</li><li><b>' + K("dash") + '</b> 回避（無敵）／<b>' + K("map") + '</b> 地図／<b>' + K("menu") + '</b> メニュー／<b>' + K("interact") + '</b> 調べる（キーは設定で変えられる）</li><li><b>属性</b>：火→木→水→火・光⇄闇 が有利（×1.25）、逆は不利（×0.75）</li><li>敵を倒すと経験値の結晶。レベルアップで能力を1つ選ぶ（引き直し・とばすもできる）</li><li>武器 Lv7 ＋ 条件の能力 Lv2 で<b>進化</b>。キャラごとの<b>専用進化</b>もある</li><li>武器・魔法・装備・キャラの組み合わせで<b>星脈共鳴</b>が発動する（図鑑で条件を確認）</li><li>鍵を3つ集めるとボスの扉が開く（中ボス・試練の魔法陣・宝物庫・祭壇・時間制限区域）</li><li>ボスのまわりのギミックを全部こわす（踏む）と <b>BREAK</b>：6秒止まってダメージ2倍</li></ul>';
+    const howto = '<div class="row"><button class="btn gold" data-a="howto">' + ic("info") + '遊び方の映像を見る</button></div><ul class="howto"><li><b>移動</b>：' + K("up") + K("left") + K("down") + K("right") + '／方向キー（スマホは左下のスティック）</li><li><b>通常攻撃</b>：自動で、向いている方向へいつも出る（設定で「近い敵をねらう」「マウスの方向」にもできる）</li><li><b>技（自分で使う）</b>：<b>' + K("skill") + '</b> 固有技／<b>' + K("burst") + '</b> 技（キャラごとにちがう・MP）／<b>' + K("tech") + '</b> 秘技（敵を倒す・よける など条件でゲージがたまる）／<b>' + K("ult") + '</b> 必殺技（ゲージ100%）</li><li><b>よける</b>：敵の大技の前に床へ<b>赤い予告</b>が出る。光る前に歩いて外へ出ると「よけた」（秘技ゲージ・スキルの条件）。弾をかすめるのも「よけた」</li><li><b>スキル（自動）</b>：固有スキル・特性スキルはいつも効く。条件スキルは条件がそろうと自動で発動（虹・金・白）</li><li><b>' + K("map") + '</b> 地図／<b>' + K("menu") + '</b> メニュー／<b>' + K("interact") + '</b> 調べる（キーは設定で変えられる）</li><li><b>属性</b>：火→木→水→火・光⇄闇 が有利（×1.25）、逆は不利（×0.75）</li><li>敵を倒すと経験値の結晶。レベルアップで能力を1つ選ぶ（引き直し・とばすもできる）</li><li>武器 Lv7 ＋ 条件の能力 Lv2 で<b>進化</b>。キャラごとの<b>専用進化</b>もある</li><li>武器・魔法・装備・キャラの組み合わせで<b>星脈共鳴</b>が発動する（図鑑で条件を確認）</li><li>迷宮にいる<b>中ボス3体</b>を倒すと鍵が3つそろい、ボスの扉が開く（鍵は中ボスからだけ）</li><li>魔法陣の<b>試練</b>のあいだは部屋の出口が閉じる。耐えきるとレアな宝箱</li><li>ボスのまわりのギミックを全部こわす（踏む）と <b>BREAK</b>：6秒止まってダメージ2倍</li></ul>';
     return { html: head("person", "受付", "ギルドマスター ラウラ「おかえりなさい。今日はどうする？」", "#ff8fd0") +
       '<div class="pr-sec">拠点施設の強化</div><div class="glist">' + fac + '</div><div class="pr-sec">ストーリー</div>' + story + '<div class="pr-sec">遊び方</div>' + howto };
   };
@@ -639,8 +646,8 @@
      ★★ 2026-10-05 キーボードの割り当て・スマホのボタン（大きさ・濃さ・左右・割り当て）を変えられる（ご指定）。
        攻撃の向きの標準は「向いている方向」（PC もスマホも同じ） */
   let setTab = "play", keyWait = null;
-  const TOUCH_SLOT_NM = { big: "いちばん大きい丸", d: "① 左", a: "② 左上", b: "③ 上", c: "④ 右上" };
-  const TOUCH_ACT_NM = { attack: "通常攻撃", skill: "スキル", burst: "技", ult: "必殺技", dash: "回避", interact: "調べる", map: "地図", none: "なし（出さない）" };
+  const TOUCH_SLOT_NM = { a: "① 下", b: "② 右", c: "③ 左", d: "④ 上" };
+  const TOUCH_ACT_NM = { skill: "固有技", burst: "技", tech: "秘技", ult: "必殺技", interact: "調べる", map: "地図", none: "なし（出さない）" };
   PANELS.settings = () => {
     const st = S().set;
     const seg = (k, opts) => '<div class="seg">' + opts.map(([v, n]) => '<button class="' + (String(st[k]) === String(v) ? "on" : "") + '" data-a="setv" data-v="' + k + '" data-x="' + v + '">' + esc(n) + "</button>").join("") + "</div>";
@@ -648,7 +655,7 @@
     let body = "";
     if (setTab === "play") {
       body = "<div><span>攻撃の向き</span>" + seg("aim", [["facing", "向いている方向（標準）"], ["auto", "近い敵を自動でねらう"], ["mouse", "マウスの方向（PC）"]]) + '<small class="sub">通常攻撃は敵がいなくても いつも出ます。標準は PC もスマホも「向いている方向」です。</small></div>' +
-        "<div><span>通常攻撃</span>" + seg("autoAtk", [[true, "自動で撃つ"], [false, "押しているあいだ"]]) + "</div>" +
+        "<div><span>通常攻撃</span>" + (MA.Input.touchDev ? '<small class="sub">スマホ・タブレットでは いつも自動で撃ちます（攻撃ボタンはありません）。</small>' : seg("autoAtk", [[true, "自動で撃つ"], [false, "押しているあいだ"]])) + "</div>" +
         "<div><span>敵の最大数（重いときは少なく）</span>" + seg("maxEnemies", [[30, "30"], [45, "45"], [60, "60"], [80, "80"]]) + "</div>" +
         "<div><span>画面の大きさ</span>" + seg("zoom", [["near", "大きく"], ["auto", "ふつう"], ["far", "広く"]]) + "</div>" +
         "<div><span>遊び方</span><div class=\"row\"><button class=\"btn sm\" data-a=\"howto\">" + ic("info") + "遊び方の映像を見る</button></div></div>";
@@ -667,11 +674,12 @@
       body = "<div><span>ボタンの大きさ</span>" + segT("size", [[0.85, "小さめ"], [1, "ふつう"], [1.15, "大きめ"], [1.3, "特大"]]) + "</div>" +
         "<div><span>ボタンの濃さ</span>" + segT("alpha", [[0.55, "うすい"], [0.75, "ややうすい"], [0.9, "ふつう"], [1, "こい"]]) + "</div>" +
         "<div><span>スティックの位置</span>" + seg("stickSide", [["left", "左（ボタンは右）"], ["right", "右（ボタンは左）"]]) + "</div>" +
+        "<div><span>スティックの出かた</span>" + '<div class="seg">' + [["fixed", "すみに固定（標準）"], ["float", "さわった所に出る"]].map(([v, n]) => '<button class="' + ((st.stickMode || "fixed") === v ? "on" : "") + '" data-a="setv" data-v="stickMode" data-x="' + v + '">' + n + "</button>").join("") + "</div>" + '<small class="sub">固定：すみの丸が動かず、左側のどこをさわっても丸の中心から指の方向へ進みます。どちらも中心は指についてきません。</small></div>' +
         "<div><span>ボタンの割り当て</span><div class=\"tmap\">" +
         '<div class="tm-prev">' + MA.Input.TOUCH_SLOTS.map((s) => '<i class="tp s-' + s + (tm[s] === "none" ? " off" : "") + '"><b>' + esc((TOUCH_ACT_NM[tm[s]] || "").replace("（出さない）", "")) + "</b></i>").join("") + "</div>" +
         '<div class="tm-sel">' + MA.Input.TOUCH_SLOTS.map((s) => '<label><span>' + TOUCH_SLOT_NM[s] + '</span><select data-in="tmap" data-slot="' + s + '">' + MA.Input.TOUCH_ACTS.map((a) => '<option value="' + a + '"' + (tm[s] === a ? " selected" : "") + ">" + TOUCH_ACT_NM[a] + "</option>").join("") + "</select></label>").join("") + "</div></div>" +
         '<div class="row"><button class="btn sm ghost" data-a="touchReset">' + ic("back") + "初期設定にもどす</button></div></div>" +
-        '<p class="hint">移動は、画面の左半分（ボタンのないところ）をさわるとスティックが出ます。スマホでは横画面で遊びます。</p>';
+        '<p class="hint">移動は、画面の左側（ボタンのないところ）をさわるとスティックが動きます。スマホでは横画面で遊びます。</p>';
     } else {
       body = '<label>BGM の音量<input type="range" min="0" max="1" step="0.05" value="' + st.bgm + '" data-in="bgm"></label>' +
         '<label>効果音の音量<input type="range" min="0" max="1" step="0.05" value="' + st.se + '" data-in="se"></label>' +
@@ -775,6 +783,32 @@
   A.storTab = (el) => { storTab = el.dataset.v; refreshTop(); };
   A.storSlot = (el) => { storSlot = el.dataset.v; refreshTop(); };
   A.equip = (el) => { const m = UI().topModal(); const cid = (m && m._arg) || S().sel; if (!MA.Save.owned(cid)) { UI().toast("未所持のキャラは装備できません", "#ff5a6a"); return; } MA.Save.equip(cid, el.dataset.v); S().gear[el.dataset.v].nw = 0; MA.Save.save(); MA.Audio.sfx("key"); refreshTop(); };
+  /* ★★ 2026-10-12 おすすめ一括装備（ご指定）：空いている装備と いま付けている装備の中から、
+       部位ごとに戦力がいちばん上がる物を選んで まとめて付ける（ほかのキャラが付けている物は使わない） */
+  function bestGear(cid) {
+    const s = S(), eq = Object.assign({}, s.eq[cid] || {});
+    const pool = Object.keys(s.gear).filter((u) => { const w = MA.Save.gearOwner(u); return D().GEAR[s.gear[u].id] && (!w || w === cid); });
+    const powOf = (e) => MA.Stats.power(MA.Stats.compute(cid, { gear: D().SLOT_KEYS.map((sl) => (e[sl] && s.gear[e[sl]]) ? Object.assign({ uid: e[sl] }, s.gear[e[sl]]) : null).filter(Boolean) }));
+    for (let pass = 0; pass < 2; pass++) D().SLOT_KEYS.forEach((sl) => {
+      let best = eq[sl] || null, bp = powOf(eq);
+      pool.forEach((u) => { if (D().GEAR[s.gear[u].id].slot !== sl || u === best) return; const p = powOf(Object.assign({}, eq, { [sl]: u })); if (p > bp) { bp = p; best = u; } });
+      if (best) eq[sl] = best;
+    });
+    return eq;
+  }
+  A.eqBest = (el) => {
+    const m = UI().topModal(); const cid = (el && el.dataset.v) || (m && m._arg) || S().sel;
+    if (!D().CHARS[cid] || !MA.Save.owned(cid)) { UI().toast("未所持のキャラは装備できません", "#ff5a6a"); return; }
+    const before = MA.Stats.power(MA.Stats.compute(cid));
+    const eq = bestGear(cid), cur = S().eq[cid] || {};
+    let n = 0;
+    Object.keys(eq).forEach((sl) => { const u = eq[sl]; if (u && cur[sl] !== u) { MA.Save.equip(cid, u); if (S().gear[u]) S().gear[u].nw = 0; n++; } });
+    MA.Save.save();
+    const after = MA.Stats.power(MA.Stats.compute(cid));
+    MA.Audio.sfx(n ? "key" : "click");
+    UI().toast(n && after > before ? "おすすめ装備にしました（" + n + "か所）：戦力 " + fmt(before) + " → " + fmt(after) : "いまの装備が いちばん強い組み合わせです", n ? "#7dffb0" : "#c8c8d8");
+    refreshTop();
+  };
   A.unequip = (el) => { const m = UI().topModal(); const cid = (m && m._arg) || S().sel; MA.Save.unequip(cid, el.dataset.v); MA.Save.save(); refreshTop(); };
   A.smithTab = (el) => { smithTab = el.dataset.v; refreshTop(); };
   A.enhance = (el) => { const g = S().gear[el.dataset.v]; if (!g) return; const max = 2 + (S().fac.smith || 0) * 2; if (g.lv >= max) return; if (!MA.Save.payCost(enhCost(g))) return; g.lv++; MA.Audio.sfx("chest"); UI().toast(D().GEAR[g.id].nm + " +" + g.lv + " に強化！", "#ffd84a"); if (g.lv >= 10) MA.Prog.unlock("plus10"); MA.Save.save(); refreshTop(); };
@@ -793,7 +827,7 @@
   A.storySkip = () => { UI().closeModal(); checkResume(); };
   A.resumeRun = (el) => { const m = el.closest(".mdl"); const run = m._run; UI().closeModal(); startRun({ mode: run.mode, dun: run.dun, cid: run.cid, muts: run.muts, seed: run.seed, floor: run.floor, resume: run }); };
   A.resumeGiveUp = (el) => { const m = el.closest(".mdl"); const run = m._run; UI().closeModal(); const out = MA.Prog.settleAbandoned(run); UI().toast("中断した探索を受け取りました：" + fmt(out.gold) + "G" + Object.keys(out.mats).map((k) => "・" + D().MATS[k].nm + "×" + out.mats[k]).join(""), "#8affc4"); renderTop(); };
-  A.setv = (el) => { const k = el.dataset.v; let v = el.dataset.x; if (v === "true") v = true; else if (v === "false") v = false; else if (!isNaN(+v) && v !== "") v = +v; S().set[k] = v; MA.Save.saveSoon(); if (k === "zoom") { MA.Render.resize(); resizeHub(); } if (k === "stickSide") MA.applyDeviceClasses(); refreshTop(); };
+  A.setv = (el) => { const k = el.dataset.v; let v = el.dataset.x; if (v === "true") v = true; else if (v === "false") v = false; else if (!isNaN(+v) && v !== "") v = +v; S().set[k] = v; MA.Save.saveSoon(); if (k === "zoom") { MA.Render.resize(); resizeHub(); } if (k === "stickSide" || k === "stickMode") MA.applyDeviceClasses(); refreshTop(); };
   A.setTab = (el) => { setTab = el.dataset.v; keyWait = null; MA.Input.capture = null; refreshTop(); };
   /* キーの割り当て：押したキーをその枠へ（ほかで使っていたら入れかえ） */
   A.keyCap = (el) => {
@@ -828,7 +862,13 @@
     const k = e.target.dataset && e.target.dataset.in;
     if (k === "file") { const f = e.target.files[0]; if (!f) return; const rd = new FileReader(); rd.onload = () => { $("#dataTxt").value = rd.result; UI().toast("ファイルを読みました。「この内容を読み込む」で反映します", "#5ab8ff"); }; rd.readAsText(f); }
     if (e.target.dataset && e.target.dataset.a === "storChar") { storChar = e.target.value; refreshTop(); }
-    if (k === "tmap") { const t = S().set.touch = S().set.touch || {}; const m = Object.assign({}, MA.Input.touchMap()); m[e.target.dataset.slot] = e.target.value; t.map = m; MA.Save.saveSoon(); refreshTop(); }
+    if (k === "tmap") {
+      /* ★ ほかの枠で使っている行動を選んだら、2つの枠の中身を入れかえる（同じボタンが2つにならない） */
+      const t = S().set.touch = S().set.touch || {}; const m = Object.assign({}, MA.Input.touchMap());
+      const slot = e.target.dataset.slot, v = e.target.value, old = m[slot];
+      Object.keys(m).forEach((s2) => { if (s2 !== slot && v !== "none" && m[s2] === v) m[s2] = old; });
+      m[slot] = v; t.map = m; MA.Save.saveSoon(); refreshTop();
+    }
   });
 
   MA.Guild = { enter, leave, title, startRun, playStory, openPanel, openFac, renderTop, refreshTop, resizeHub, FAC, checkResume, GS, npcSprite };

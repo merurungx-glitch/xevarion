@@ -28,7 +28,7 @@
     opt = opt || {};
     const m = document.createElement("div");
     m.className = "mdl" + (opt.cls ? " " + opt.cls : "");
-    m.innerHTML = '<div class="mdl-in' + (opt.wide ? " wide" : "") + (opt.tall ? " tall" : "") + '">' + (opt.noClose ? "" : '<button class="mdl-x" data-a="closeModal" aria-label="閉じる">' + ic("close") + "</button>") + html + "</div>";
+    m.innerHTML = '<div class="mdl-in' + (opt.wide ? " wide" : "") + (opt.tall ? " tall" : "") + '">' + (opt.noClose ? "" : '<div class="mdl-xw"><button class="mdl-x" data-a="closeModal" aria-label="閉じる">' + ic("close") + "</button></div>") + html + "</div>";
     $("#modals").appendChild(m);
     modalStack.push({ el: m, onClose: opt.onClose });
     requestAnimationFrame(() => m.classList.add("on"));
@@ -71,7 +71,7 @@
        右上 … 地図（押すと大きく）。その下にクエスト（鍵・探索率…）
        左 … 武器・魔法の列（Lv つき）
        左下（PC）… キャラの顔・HP・MP（スキルと技に使う）・必殺技ゲージ（10目盛り）
-                  ＋スキル／技／必殺技／回避のボタン（キーの表示は大きめ）
+                  ＋固有技／技／秘技／必殺技のボタン（キーの表示は大きめ）
        スマホ … キャラは左上に小さく。ボタンは右下（キーの表示は出さない）
      ══════════════════════════════════════════════════════════════ */
   /* 技・スキルのアイコン（キャラ詳細・遊び方でも使う） */
@@ -100,6 +100,7 @@
     const g = G(), P = g.P, C = P.C;
     const elC = D().ELEM[C.el].c;
     const Ad = D().ARTS[(C.art && C.art.k) || "starnova"];
+    const Tq = (MA.Skills && MA.Skills.techOf(P.cid)) || { ic: "star", nm: "秘技" };
     const face = MA.Pix.portrait(P.cid, "../img/t_" + imgName(P.cid) + ".webp", 96, (url) => { const im = $("#hudFace"); if (im) im.src = url; });
     $("#hud").innerHTML = `
       <div class="h-xp"><i id="hExp"></i></div>
@@ -109,6 +110,7 @@
       <div class="h-boss" id="hBoss" hidden><div class="hb-nm" id="hbNm"></div><div class="hb-bar"><i id="hbHp"></i><em style="left:70%"></em><em style="left:40%"></em><em style="left:15%"></em></div><div class="hb-st" id="hbSt"></div></div>
       <div class="h-tl"><button class="h-menu" data-a="pause" aria-label="メニュー">${ic("gear")}${kk("menu")}</button>${g.diff === "hard" ? '<span class="h-diff">' + ic("hard") + "HARD</span>" : ""}</div>
       <div class="h-char" style="--ec:${elC}">
+        <div class="hc-sk" id="hSk"></div>
         <div class="hc-top">
           <div class="hc-face"><img id="hudFace" src="${face || "../img/t_" + imgName(P.cid) + ".webp"}" alt=""><span class="hc-el">${ic("el_" + C.el)}</span></div>
           <div class="hc-main">
@@ -119,10 +121,10 @@
           </div>
         </div>
         <div class="hc-acts">
-          ${pill("skill", kitIc(C, "skill"), null, "スキル", C.skill.nm)}
+          ${pill("skill", kitIc(C, "skill"), null, "固有技", C.skill.nm)}
           ${pill("burst", Ad.ic, null, "技", Ad.nm)}
+          ${pill("tech", Tq.ic, "#ffd84a", "秘技", Tq.nm)}
           ${pill("ult", "ultc", elC, "必殺技", C.ult.nm)}
-          ${pill("dash", "dash", null, "回避", "ダッシュ")}
         </div>
       </div>
       <div class="h-map"><canvas id="miniMap" width="112" height="112" data-a="map" aria-label="地図を大きくする"></canvas><span class="hm-z" data-a="map">${ic("map")}<b>拡大</b>${kk("map")}</span><div class="h-bossinfo" id="hBossInfo"></div></div>
@@ -131,13 +133,13 @@
       <button class="h-interact" id="hInteract" data-act="interact" hidden>${ic("info")}<span>調べる</span>${kk("interact")}</button>
       <div class="h-fps" id="hFps" hidden></div>
     `;
-    /* スマホのボタン（5つの枠に設定の割り当て） */
+    /* スマホのボタン（4つの枠に設定の割り当て・★★ 2026-10-12b 同じ大きさのひし形。名前は丸の中） */
     const tm = MA.Input.touchMap();
-    const TB = { attack: ["attack", "攻撃"], skill: [kitIc(C, "skill"), "スキル"], burst: [Ad.ic, "技"], ult: ["ultc", "必殺技"], dash: ["dash", "回避"], interact: ["info", "調べる"], map: ["map", "地図"] };
+    const TB = { skill: [kitIc(C, "skill"), "固有技"], burst: [Ad.ic, "技"], tech: [Tq.ic, "秘技"], ult: ["ultc", "必殺技"], interact: ["info", "調べる"], map: ["map", "地図"] };
     $("#touch").innerHTML = '<div class="t-home" id="tHome"><i></i><span>移動</span></div><div class="t-base" id="tBase"><div class="t-knob" id="tKnob"></div></div>' +
       '<div class="t-btns">' + MA.Input.TOUCH_SLOTS.map((s) => {
         const a = tm[s]; if (!TB[a]) return "";
-        return '<button class="tb s-' + s + " a-" + a + '" data-act="' + a + '" id="tb_' + a + '"><span class="tb-ring"></span><span class="tb-ic">' + ic(TB[a][0], a === "ult" ? elC : null) + '</span><em class="tb-n"></em><span class="tb-l">' + TB[a][1] + "</span></button>";
+        return '<button class="tb s-' + s + " a-" + a + '" data-act="' + a + '" id="tb_' + a + '"><span class="tb-ring"></span><span class="tb-in"><span class="tb-ic">' + ic(TB[a][0], a === "ult" ? elC : null) + '</span><span class="tb-l">' + TB[a][1] + '</span></span><em class="tb-n"></em></button>';
       }).join("") + "</div>";
     MA.Input.bindTouch();
     MA.Input.bindButtons($("#touch"));
@@ -152,14 +154,15 @@
     return { takina: "Takina", hibana: "Hibana", fuki: "Fuki", hinano: "Hinano", hanon: "Hanon", kokoha: "Kokoha", mutsumi: "Mutsumi", reina: "Reina", azusa: "Azusa", kumireina: "KumikoReina", kagura: "Kagura", kotori: "Kotori",
       ayano: "Ayano", saki: "Saki", yuka: "Yuka", natsumi: "Natsumi", miu: "Miu", mai: "Mai", chinatsu: "Chinatsu", yuumi: "Yuumi", rina: "Rina", kaori: "Kaori" }[id] || "Takina";
   }
-  /* 武器・魔法・能力のアイコン列（左）。武器と魔法は大きく Lv つき */
+  /* 武器・魔法・能力のアイコン列（左上）。
+     ★★ 2026-10-12 もっと小さく（ご指定）：武器と魔法は小さな四角に Lv を重ね、1行にならべる。能力はその下に小さく */
   function hudSlots() {
     const P = G().P; if (!P) return;
-    const w = P.weapons.map((x) => '<div class="wl" style="--c:' + D().ELEM[x.el].c + '" title="' + esc(x.evo ? D().EVOS[x.evo].nm : D().ELEM[x.el].nm + "の" + D().WEAPONS[x.k].nm) + '"><span class="wl-ic">' + ic(x.k, D().ELEM[x.el].c) + "</span><b>" + (x.evo ? "EVO" : "Lv" + x.lv) + "</b></div>").join("");
-    const m = P.magics.map((x) => '<div class="wl m" title="' + esc(D().MAGICS[x.k].nm) + '"><span class="wl-ic">' + ic(x.k) + "</span><b>Lv" + x.lv + "</b></div>").join("");
+    const w = P.weapons.map((x) => '<div class="wl" style="--c:' + D().ELEM[x.el].c + '" title="' + esc(x.evo ? D().EVOS[x.evo].nm : D().ELEM[x.el].nm + "の" + D().WEAPONS[x.k].nm) + '"><span class="wl-ic">' + ic(x.k, D().ELEM[x.el].c) + "</span><b>" + (x.evo ? "EVO" : x.lv) + "</b></div>").join("");
+    const m = P.magics.map((x) => '<div class="wl m" title="' + esc(D().MAGICS[x.k].nm) + '"><span class="wl-ic">' + ic(x.k) + "</span><b>" + x.lv + "</b></div>").join("");
     const s = Object.keys(P.passives).map((k) => '<span class="sl" title="' + esc(D().STATS[k].nm) + '">' + ic(/^seal_/.test(k) ? "seal" : k, D().STATS[k].el ? D().ELEM[D().STATS[k].el].c : null) + "<b>" + P.passives[k] + "</b></span>").join("");
     const r = Array.from(P.res).map((id) => { const R = D().RESONANCES.find((x) => x.id === id); return '<span class="sl r" style="--c:' + R.c + '" title="' + esc(R.nm) + '">' + ic("star", R.c) + "</span>"; }).join("");
-    $("#hSlots").innerHTML = w + m + (s || r ? '<div class="sl-row">' + s + r + "</div>" : "");
+    $("#hSlots").innerHTML = '<div class="wl-row">' + w + m + "</div>" + (s || r ? '<div class="sl-row">' + s + r + "</div>" : "");
   }
   /* ボタン（PC の札・スマホの丸）の見た目：p … 再使用まで（1→0）、ring … たまり具合（0→1） */
   let actCache = {};
@@ -207,13 +210,20 @@
       $("#hKill").textContent = fmt(g.stats.kills);
       $("#hTime").textContent = (g.mode === "abyss" ? "B" + g.floor + "F " : "") + fmtT(g.t);
       $("#hObj").textContent = g.objective || "";
-      /* ボタン：スキル・技・必殺技・回避 */
+      /* ボタン：固有技・技・必殺技・秘技 */
       const skMax = C.skill.cd * (1 - st.cdr), arMax = Ad.cd * (1 - st.cdr);
       setAct("skill", P.skillCd <= 0 && P.mp >= C.skill.mp, P.skillCd > 0 ? Math.min(1, P.skillCd / skMax) : 0, P.skillCd > 0 ? 1 - Math.min(1, P.skillCd / skMax) : Math.min(1, P.mp / C.skill.mp), P.skillCd > 0 ? String(Math.ceil(P.skillCd)) : (P.mp < C.skill.mp ? "MP" : ""));
       setAct("burst", P.burstCd <= 0 && P.mp >= Ad.mp, P.burstCd > 0 ? Math.min(1, P.burstCd / arMax) : 0, Math.min(1, P.mp / Ad.mp) * (P.burstCd > 0 ? 1 - Math.min(1, P.burstCd / arMax) : 1), P.burstCd > 0 ? String(Math.ceil(P.burstCd)) : (P.mp < Ad.mp ? "MP" : ""));
       setAct("ult", ug >= 100, 0, ug / 100, ug >= 100 ? "" : Math.floor(ug) + "%");
-      setAct("dash", P.dashN > 0, P.dashN > 0 ? 0 : Math.min(1, Math.max(0, P.dashCd) / 1.2), P.dashN / Math.max(1, st.dashMax), "×" + P.dashN);
-      setAct("attack", true, 0, 1, "");
+      const tg = Math.max(0, Math.min(1, P.techG || 0));
+      setAct("tech", tg >= 1, 0, tg, tg >= 1 ? "" : Math.floor(tg * 100) + "%");
+      /* 発動中のスキル（キャラ欄の上に小さく） */
+      const skEl = $("#hSk");
+      if (skEl) {
+        const act = (P.skAct || []).filter((a) => a.max >= 2);
+        const sig = act.map((a) => a.id + ":" + Math.ceil(a.t * 5)).join();
+        if (skEl._s !== sig) { skEl._s = sig; skEl.innerHTML = act.map((a) => '<span class="skc r-' + a.rar + '" style="--w:' + Math.round(a.t / a.max * 100) + '%">' + ic(a.ic) + "<span>" + esc(a.nm) + "</span><i></i></span>").join(""); }
+      }
       setAct("map", true, 0, 1, "");
       /* 調べる（近くに物があるとき） */
       const it = $("#hInteract");
@@ -251,7 +261,9 @@
     if (g.mode === "dungeon") {
       h += '<div class="q-keys">' + Array.from({ length: g.keysNeed }, (_, i) => '<span class="' + (i < g.keys ? "on" : "") + '">' + ic("key") + "</span>").join("") + '<small>鍵 ' + g.keys + "/" + g.keysNeed + "</small></div>";
       const seen = map.rooms.filter((r) => r.seen).length;
-      h += '<div class="q-l">探索率 <b>' + Math.round(seen / map.rooms.length * 100) + "%</b>　中ボス " + (g.midDone ? '<b class="ok">撃破</b>' : g.mid ? "<b>戦闘中</b>" : "未発見") + "</div>";
+      /* ★★ 2026-10-12 探索率はスマホの低い画面でも出す（q-ex）。中ボスは 倒した数/全体 */
+      const mids = map.rooms.filter((r) => r.type === "mid"), midN = mids.filter((r) => r.midDone).length;
+      h += '<div class="q-l q-ex">探索率 <b>' + Math.round(seen / map.rooms.length * 100) + "%</b>　中ボス <b" + (midN >= mids.length ? ' class="ok"' : "") + ">" + midN + "/" + mids.length + "</b>" + (g.mid && !g.mid.dead ? '<b class="warn">戦闘中</b>' : "") + "</div>";
       if (map.sealedRoom >= 0) h += '<div class="q-l">封印区域 ' + (g.sealKey ? '<b class="ok">開放</b>' : "封印中") + "</div>";
       if (g.trial) h += '<div class="q-l warn">試練 のこり <b>' + Math.ceil(g.trial.left) + "</b>秒</div>";
       if (g.timedRoom && g.timedRoom.left > 0) h += '<div class="q-l warn">時間制限 <b>' + Math.ceil(g.timedRoom.left) + "</b>秒</div>";
@@ -365,6 +377,18 @@
   }
   ACT.closeMap = () => { closeModal(); if (!modalStack.length) MA.E.resume(); };
 
+  /* ══ 発動スキルの名前（★★ 2026-10-12 ウマ娘風：虹・金・白の帯が左から流れてくる。秘技は橙）══ */
+  function skillBanner(s) {
+    let box = $("#skBan");
+    if (!box) { box = document.createElement("div"); box.id = "skBan"; box.className = "sk-ban-box"; $("#run").appendChild(box); }
+    const el = document.createElement("div");
+    el.className = "sk-ban r-" + (s.rar || "W");
+    el.innerHTML = '<span class="sb-ic">' + ic(s.ic || "star") + "</span><b>" + esc(s.nm) + "</b>" + (s.rar === "U" ? "<small>固有スキル</small>" : s.rar === "T" ? "<small>秘技</small>" : "<small>スキル</small>");
+    box.appendChild(el);
+    while (box.children.length > 3) box.firstChild.remove();
+    setTimeout(() => { el.classList.add("out"); setTimeout(() => el.remove(), 320); }, s.rar === "U" || s.rar === "T" ? 2100 : 1500);
+  }
+
   /* ══ 演出 ══ */
   function resonance(r) {
     const el = document.createElement("div");
@@ -472,7 +496,50 @@
   ACT.again = () => { const c = MA.lastRunCfg; if (!c) return MA.Guild.enter(); MA.Guild.startRun(c); };
 
   /* ══ ボタンの受け口（document 全体で1つ）══ */
+  /* ★★ 2026-10-12 指で押したときの反応を速く（ご指定：地図などが押しにくい・とくにスマホ）。
+       ・click を待たず、指を離した瞬間に動かす（動いた距離が 14px 以内・押した所と同じボタンのときだけ）
+       ・探索中の地図・メニューは、押した瞬間に開く
+       ・そのあと届く click（同じ場所に出た新しいボタンへの「すり抜け」）は 0.45 秒すてる */
+  let tapEl = null, tapX = 0, tapY = 0, tapHold = false, fastAt = -1e9;
+  const NATIVE = "input, select, textarea, label";
+  function fireAct(el, e) {
+    const a = el.dataset.a, f = ACT[a];
+    if (!f || el.disabled) return false;
+    fastAt = performance.now();
+    if (a !== "closeModal" && a !== "pickCard") MA.Audio.sfx("click");
+    f(el, e);
+    return true;
+  }
+  function bindFastTap() {
+    document.addEventListener("pointerdown", (e) => {
+      if (e.pointerType === "mouse") { tapEl = null; return; }
+      const el = e.target.closest && e.target.closest("[data-a]");
+      tapEl = el && !el.disabled && !el.matches(NATIVE) && !el.closest(".mdl:not(.on)") ? el : null;
+      tapX = e.clientX; tapY = e.clientY; tapHold = false;
+      if (tapEl && document.body.dataset.scr === "run" && tapEl.closest("#hud") && (tapEl.dataset.a === "map" || tapEl.dataset.a === "pause")) {
+        if (e.cancelable) e.preventDefault();
+        fireAct(tapEl, e); tapEl = null; tapHold = true;
+      }
+    }, true);
+    document.addEventListener("pointerup", (e) => {
+      if (e.pointerType === "mouse") return;
+      if (tapHold) { tapHold = false; fastAt = performance.now(); return; }
+      const el = tapEl; tapEl = null;
+      if (!el || !el.isConnected) return;
+      if (Math.hypot(e.clientX - tapX, e.clientY - tapY) > 14) return;
+      const hit = document.elementFromPoint(e.clientX, e.clientY);
+      if (!hit || hit.closest("[data-a]") !== el) return;
+      fireAct(el, e);
+    }, true);
+    document.addEventListener("pointercancel", () => { tapEl = null; }, true);
+    document.addEventListener("click", (e) => {
+      if (performance.now() - fastAt > 450) return;
+      if (e.target.closest && e.target.closest(NATIVE)) return;
+      e.preventDefault(); e.stopPropagation();
+    }, true);
+  }
   function bind() {
+    bindFastTap();
     document.addEventListener("click", (e) => {
       const el = e.target.closest("[data-a]");
       if (!el || el.disabled) return;
@@ -490,5 +557,5 @@
     requestAnimationFrame(cutCheck);
   }
 
-  MA.UI = { ACT, scr, modal, closeModal, topModal, ask, toast, buildHud, hud, hudSlots, kitIc, SKILL_IC, ATK_IC, PASS_IC, showLevelUp, showChest, showEvent, showRetreat, showPause, showMap, resonance, bossIntro, bossLine, bossDown, showResult, bind, ic, esc, fmt, fmtT, imgName, $, $$ };
+  MA.UI = { ACT, scr, modal, closeModal, topModal, ask, toast, buildHud, skillBanner, hud, hudSlots, kitIc, SKILL_IC, ATK_IC, PASS_IC, showLevelUp, showChest, showEvent, showRetreat, showPause, showMap, resonance, bossIntro, bossLine, bossDown, showResult, bind, ic, esc, fmt, fmtT, imgName, $, $$ };
 })();

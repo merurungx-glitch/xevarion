@@ -10,9 +10,9 @@
   const MA = (window.MA = window.MA || {});
   const D = () => MA.D;
   const G = () => MA.G;
-  const FIRST_GEMS = { d1: 10, d2: 12, d3: 15, d4: 18, d5: 22, d6: 30 };
+  const FIRST_GEMS = { d1: 10, d2: 12, d3: 15, d4: 18, d5: 22, d6: 30, d7: 35, d8: 40, d9: 50 };
   /* ★★ 2026-10-05 ハードの初回クリアは 1.5倍 */
-  const FIRST_GEMS_HARD = { d1: 15, d2: 18, d3: 22, d4: 27, d5: 33, d6: 45 };
+  const FIRST_GEMS_HARD = { d1: 15, d2: 18, d3: 22, d4: 27, d5: 33, d6: 45, d7: 52, d8: 60, d9: 75 };
 
   /* ══ クリア時間のミッション（data の TIME_MIS）══
      key は "d1:normal:0"（迷宮:難易度:段）。達成は S.tmis、ジェムの受け取りは S.tmisClaim。

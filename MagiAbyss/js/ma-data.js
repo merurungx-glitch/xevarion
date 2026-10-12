@@ -39,10 +39,10 @@
 
   /* ══ 戦闘タイプ ══ */
   const CTYPE = {
-    melee:  { nm: "近接アタッカー", c: "#ff6a5a", d: "高い攻撃力と近距離の範囲攻撃で、敵の集団を突破する。前衛の守りで受けるダメージ −15%（サブが近接のキャラも）" },
+    melee:  { nm: "近接アタッカー", c: "#ff6a5a", d: "高い攻撃力と近距離の範囲攻撃で、敵の集団を突破する。前衛の守りで受けるダメージ −25%（サブが近接のキャラも）" },
     ranged: { nm: "遠距離アタッカー", c: "#5ab8ff", d: "長い射程と貫通・追尾で、敵との距離を保って戦う" },
     magic:  { nm: "魔法特化", c: "#b07bff", d: "魔法威力と属性攻撃にすぐれ、範囲と持続で制圧する" },
-    mobile: { nm: "高機動", c: "#4fe39a", d: "移動とダッシュが速く、避けながら攻撃する" },
+    mobile: { nm: "高機動", c: "#4fe39a", d: "移動がさらに速く（+8%）、避けながら攻撃する" },
     tank:   { nm: "防御・耐久", c: "#ffc24a", d: "HPと防御が高く、守りを攻撃に変える" },
     summon: { nm: "召喚・支援", c: "#ff8fd0", d: "使い魔や強化で、複数の攻撃ユニットを組み合わせる" },
   };
@@ -79,7 +79,7 @@
       ult: { kind: "suitenka", nm: "キキョウ・スイテンカ", gauge: 100, n: 100, mul: 1.57, fin: 14,
         d: "いちばん強い敵へ蒼い雫を100連射し、最後に画面全体へ蒼い桔梗の大輪（攻撃力×14・防御ダウン）" },
       passive: { kind: "focus", nm: "結髪の集中", crits: 3, drain: 0.03,
-        d: "ダッシュのあと3発は必ず会心。与えたダメージの3%でHPを回復（ドレイン）" },
+        d: "技を使ったあと3発は必ず会心。与えたダメージの3%でHPを回復（ドレイン）" },
       bias: { aspd: 1.6, crit: 1.6, weapon: 1.3, elem: 1.2, spd: 1.2 },
       evo: { weapon: "bow", el: "water", to: "evo_takina", nm: "蒼穹・キキョウ天穿" },
       good: "遠くからの連射・ボスの単体火力・回避しながらの戦闘", weak: "（目立った苦手はない）接近戦の範囲攻撃はやや控えめ",
@@ -194,7 +194,7 @@
       ult: { kind: "pnbarrage", nm: "ブラックキャット・ミッドナイト", gauge: 100, n: 104, mul: 0.95, fin: 14.5, pk: "bullet", cols: ["#3d7bff", "#ffe9a8"], gaugeBack: 30,
         d: "いちばん強い敵へ黒猫の影を104連射し、最後に画面全体へ満月の水鏡（攻撃力×14.5・防御ダウン）＋必殺技ゲージが30%もどる" },
       passive: { kind: "afterdash", nm: "黒猫の身のこなし", t: 2, aspd: 0.45,
-        d: "ダッシュのあと2秒間 攻撃速度+45%" },
+        d: "技を使ったあと2秒間 攻撃速度+45%" },
       bias: { spd: 1.6, aspd: 1.5, crit: 1.2 },
       evo: { weapon: "dagger", el: "water", to: "evo_natsumi", nm: "ブラックキャット・クロウ" },
       good: "走りまわりながらの連撃・必殺技の回転", weak: "（目立った苦手はない）一撃はやや軽い",
@@ -248,7 +248,7 @@
       ult: { kind: "pnbarrage", nm: "キャンドルライト・ヴェール", gauge: 100, n: 104, mul: 1.07, fin: 14.5, pk: "arrow", cols: ["#ffd257", "#fff6d8"], shield: 0.5,
         d: "いちばん強い敵へ燭台の火を104連射し、最後に画面全体へ千の燭台（攻撃力×14.5・防御ダウン）＋最大HPの50%のバリア" },
       passive: { kind: "focus", nm: "燭光の集中", crits: 3, drain: 0.03,
-        d: "ダッシュのあと3発は必ず会心。与えたダメージの3%でHPを回復（ドレイン）" },
+        d: "技を使ったあと3発は必ず会心。与えたダメージの3%でHPを回復（ドレイン）" },
       bias: { crit: 1.5, weapon: 1.4, aspd: 1.2 },
       evo: { weapon: "staff", el: "light", to: "evo_chinatsu", nm: "キャンドルライト・ワンド" },
       good: "並んだ敵を貫く・会心の連射", weak: "（目立った苦手はない）",
@@ -395,7 +395,7 @@
         d: "くるりと回りながら駆けぬけ、ふれた敵すべてに攻撃力×2.6（無敵）。花びらが残る" },
       ult: { kind: "rondo", nm: "アオバラ・ロンドフィナーレ", gauge: 100, r: 140, n: 48, mul: 0.8, fin: 9,
         d: "まわりの敵へ青薔薇の乱舞48連、最後に大輪（攻撃力×9）" },
-      passive: { kind: "afterdash", nm: "円舞の余韻", t: 2, aspd: 0.4, d: "ダッシュのあと2秒間 攻撃速度+40%" },
+      passive: { kind: "afterdash", nm: "円舞の余韻", t: 2, aspd: 0.4, d: "技を使ったあと2秒間 攻撃速度+40%" },
       bias: { spd: 1.6, aspd: 1.5, crit: 1.2 },
       evo: { weapon: "dagger", el: "water", to: "evo_azusa", nm: "ロンド・オブ・ブルーローズ" },
       good: "敵の攻撃を避けながら戦うこと", weak: "一撃の威力や耐久力",
@@ -508,8 +508,8 @@
   const TRAITS = {
     insight:   { nm: "見切り", ic: "crit", kind: "insight", eva: 10, crits: 3,
       d: (k) => "回避率 +" + Math.round(10 * k) + "%。よけたあとの3発は必ず会心" },
-    galefoot:  { nm: "疾風の足", ic: "swift", kind: "galefoot", spd: 0.12, dash: 1,
-      d: (k) => "移動速度 +" + Math.round(12 * k) + "%・ダッシュの回数 +1" },
+    galefoot:  { nm: "疾風の足", ic: "swift", kind: "galefoot", spd: 0.16,
+      d: (k) => "移動速度 +" + Math.round(16 * k) + "%" },
     clutch:    { nm: "勝負強さ", ic: "power", kind: "clutch", crit: 15, critDmg: 0.3,
       d: (k) => "HPが50%以下のとき 会心率 +" + Math.round(15 * k) + "%・会心ダメージ +" + Math.round(30 * k) + "%" },
     kindle:    { nm: "延焼の才", ic: "fireball", kind: "kindle", burn: 0.4, vsBurn: 0.1,
@@ -658,11 +658,11 @@
     swift:   { nm: "羽の靴", cat: "spd", max: 5, v: 0.08, d: (v) => "移動速度 +" + Math.round(v * 100) + "%" },
     wisdom:  { nm: "叡智の書", cat: "exp", max: 5, v: 0.12, d: (v) => "経験値 +" + Math.round(v * 100) + "%" },
     regen:   { nm: "癒しの泉", cat: "heal", max: 5, v: 0.5, d: (v) => "毎秒HP +" + v + "・回復アイテム +" + Math.round(v * 50) + "%" },
-    arcana:  { nm: "魔導の心得", cat: "magic", max: 5, v: 0.12, d: (v) => "魔法・スキルの威力 +" + Math.round(v * 100) + "%・範囲 +" + Math.round(v * 60) + "%" },
+    arcana:  { nm: "魔導の心得", cat: "magic", max: 5, v: 0.12, d: (v) => "魔法・技の威力 +" + Math.round(v * 100) + "%・範囲 +" + Math.round(v * 60) + "%" },
     affinity:{ nm: "星脈の調律", cat: "elem", max: 5, v: 0.2, d: (v) => "属性効果 +" + Math.round(v * 100) + "%（燃焼・減速・連鎖・吸収など）" },
     magnet:  { nm: "引き寄せの石", cat: "special", max: 5, v: 0.3, d: (v) => "アイテムを拾う範囲 +" + Math.round(v * 100) + "%" },
-    cooldown:{ nm: "時の砂", cat: "special", max: 5, v: 0.08, d: (v) => "スキルと魔法の再使用 -" + Math.round(v * 100) + "%" },
-    dashup:  { nm: "跳躍の翼", cat: "special", max: 3, v: 1, d: (v) => "ダッシュの回数 +" + v + "・ダッシュの速さ +10%" },
+    cooldown:{ nm: "時の砂", cat: "special", max: 5, v: 0.08, d: (v) => "技と魔法の再使用 -" + Math.round(v * 100) + "%" },
+    dashup:  { nm: "跳躍の翼", cat: "special", max: 3, v: 1, d: (v) => "回避率 +" + (4 * v) + "%・移動の速さ +" + (5 * v) + "%" },
     luck:    { nm: "幸運の四つ葉", cat: "special", max: 5, v: 0.1, d: (v) => "レアな候補・宝箱の中身が良くなる（+" + Math.round(v * 100) + "%）" },
     revive:  { nm: "不死鳥の羽", cat: "special", max: 1, v: 1, d: () => "一度だけ、倒れても HP50% で起き上がる" },
   };
@@ -697,7 +697,7 @@
     { id: "seirai", nm: "星雷連鎖", c: "#ffe44a", req: [["weapon:staff:light"], ["equip:ring:starring", "seal:light"]],
       d: "魔弾が当たるたび、星の雷がさらに3体へつながる", fx: [{ t: "chain", chance: 0.5, n: 3, mul: 0.9, el: "light" }, { t: "rain", cd: 2.2, n: 2, mul: 2.4, el: "light" }] },
     { id: "shinei", nm: "深影乱舞", c: "#a874ff", req: [["weapon:dagger:dark"], ["equip:charm:soulcharm", "magic:shadowbind"]],
-      d: "ダッシュの軌跡に影の刃が残り、与えたダメージでHPを吸う", fx: [{ t: "trail", mul: 1.4, el: "dark" }, { t: "stat", drain: 0.04, aspd: 0.12 }] },
+      d: "技を使ったあとの足あとに影の刃が残り、与えたダメージでHPを吸う", fx: [{ t: "trail", mul: 1.4, el: "dark" }, { t: "stat", drain: 0.04, aspd: 0.12 }] },
     { id: "souhyou", nm: "蒼氷円環", c: "#6fd0ff", req: [["weapon:tome:water", "weapon:scythe:water"], ["magic:frost", "seal:water"]],
       d: "まわりに凍える環。中の敵は遅くなり、凍りつく", fx: [{ t: "aura", r: 64, mul: 0.35, el: "water", slow: 0.45 }] },
     { id: "seikou", nm: "聖光の矢雨", c: "#fff4b0", req: [["weapon:bow:light", "weapon:bow"], ["magic:holy"]],
@@ -740,7 +740,7 @@
     { id: "kuroyuri", nm: "宵闇の連鎖", c: "#a874ff", req: [["char:reina"], ["seal:dark", "magic:shadowbind"]],
       d: "レイナの魔弾のつながる回数+2", fx: [{ t: "stat", chain: 2 }] },
     { id: "bararondo", nm: "薔薇の輪舞", c: "#5a8cff", req: [["char:azusa"], ["weapon:dagger", "seal:water"]],
-      d: "アズサのダッシュのあと、まわりに青薔薇が咲く", fx: [{ t: "trail", mul: 1.3, el: "water" }, { t: "stat", aspd: 0.08 }] },
+      d: "アズサが技を使ったあと、足あとに青薔薇が咲く", fx: [{ t: "trail", mul: 1.3, el: "water" }, { t: "stat", aspd: 0.08 }] },
     { id: "souou", nm: "響きあう双奏", c: "#ff8fd0", req: [["char:kumireina"], ["seal:light", "seal:fire"]],
       d: "クミコ＆レイナの音符が2つ増える", fx: [{ t: "summon", n: 2, mul: 0.8, el: "light" }] },
     { id: "higan", nm: "彼岸の緋刃", c: "#ff3a46", req: [["char:kagura"], ["weapon:scythe", "seal:fire"]],
@@ -796,22 +796,32 @@
   const BOSSES = {
     treeGuardian: { nm: "古樹の守護者", art: "bTree", hp: 2600, atk: 13, spd: 22, r: 26, el: "wood", col: "#5a8a3a",
       gim: { kind: "vine", nm: "蔦の封印", n: 4, hp: 60, d: "守護者に力を送る蔦の封印。4つすべて断ち切ると守護者が崩れて動けなくなる" },
-      pats: ["roots", "leafSpiral", "summon", "charge", "rootRing", "leafStorm"], lines: ["……森を荒らすのは、だれだ。", "古き樹は、まだ眠らぬ。", "星脈よ……わが根に力を……！"] },
+      pats: ["roots", "leafSpiral", "seedBomb", "summon", "charge", "thornWall", "rootRing", "rootCross", "leafStorm"], lines: ["……森を荒らすのは、だれだ。", "古き樹は、まだ眠らぬ。", "星脈よ……わが根に力を……！"] },
     iceQueen: { nm: "氷晶の女王", art: "bQueen", hp: 4200, atk: 22, spd: 30, r: 22, el: "water", col: "#9ad8ff",
       gim: { kind: "mirror", nm: "氷の鏡", n: 4, hp: 90, d: "女王の分身を映す鏡。4枚すべて割ると女王が凍りつく" },
-      pats: ["lances", "freezeRing", "icicles", "clones", "blizzard", "lanceRain"], lines: ["凍えて、眠りなさい。", "わたくしの城で、勝手は許さないわ。", "砕けるのは……あなたのほうよ！"] },
+      pats: ["lances", "freezeRing", "mirrorLance", "icicles", "clones", "frostNova", "blizzard", "iceRain", "lanceRain"], lines: ["凍えて、眠りなさい。", "わたくしの城で、勝手は許さないわ。", "砕けるのは……あなたのほうよ！"] },
     lavaTitan: { nm: "熔岩の巨神", art: "bTitan", hp: 6500, atk: 30, spd: 18, r: 30, el: "fire", col: "#ff6a2a",
       gim: { kind: "cooler", nm: "冷却の水晶", n: 3, hp: 120, d: "巨神の熱を吸う水晶。3つ起動すると巨神の鎧が冷えて固まる" },
-      pats: ["slam", "lavaWave", "meteor", "charge", "eruption", "magmaRing"], lines: ["ゴゴゴ……燃えよ……。", "この城は……溶けぬ……！", "すべて……熔かしてくれる！！"] },
+      pats: ["slam", "lavaWave", "magmaBomb", "meteor", "charge", "fissure", "eruption", "flameRing", "magmaRing"], lines: ["ゴゴゴ……燃えよ……。", "この城は……溶けぬ……！", "すべて……熔かしてくれる！！"] },
     librarian: { nm: "禁書の司書", art: "bLibrarian", hp: 8600, atk: 36, spd: 34, r: 22, el: "light", col: "#e8d080",
       gim: { kind: "rune", nm: "封印の頁", n: 4, hp: 80, d: "床に浮かぶ封印の頁。4枚すべて踏むと司書の魔法が封じられる" },
-      pats: ["tomeBarrage", "teleport", "pageStorm", "puppets", "laserGrid", "spiral"], lines: ["静かに。ここは書庫ですよ。", "その頁は、まだ読ませません。", "禁書よ、ひらけ——！"] },
+      pats: ["tomeBarrage", "teleport", "starBurst", "pageStorm", "puppets", "pageCross", "laserGrid", "summonTomes", "spiral"], lines: ["静かに。ここは書庫ですよ。", "その頁は、まだ読ませません。", "禁書よ、ひらけ——！"] },
     executionerBoss: { nm: "奈落の執行者", art: "bExecutioner", hp: 11500, atk: 44, spd: 40, r: 24, el: "dark", col: "#4a2a7a",
       gim: { kind: "brazier", nm: "光の燭台", n: 4, hp: 100, d: "闇をはらう燭台。4つ灯すと執行者の影が消え、動きが止まる" },
-      pats: ["sweep", "darkZones", "clones", "lunge", "darkness", "scytheStorm"], lines: ["……裁きの時だ。", "奈落に、光は届かぬ。", "すべてを、無に。"] },
+      pats: ["sweep", "darkZones", "shadowStep", "clones", "lunge", "guillotine", "darkness", "soulChain", "scytheStorm"], lines: ["……裁きの時だ。", "奈落に、光は届かぬ。", "すべてを、無に。"] },
     dragon: { nm: "星脈の原初竜", art: "bDragon", hp: 16000, atk: 52, spd: 34, r: 34, el: "light", col: "#ffe86a",
       gim: { kind: "pillar", nm: "星の柱", n: 3, hp: 140, d: "竜の星脈をつなぐ柱。3本すべて倒すと竜が地に落ちる" },
-      pats: ["breath", "meteor", "gravity", "timestop", "starRain", "supernova"], lines: ["……小さき者よ。星脈に何を望む。", "我は星脈そのもの。", "ならば——星ごと、受けとめてみよ！"] },
+      pats: ["breath", "meteor", "wingGust", "gravity", "timestop", "laserSweep", "starRain", "starfallX", "supernova"], lines: ["……小さき者よ。星脈に何を望む。", "我は星脈そのもの。", "ならば——星ごと、受けとめてみよ！"] },
+    /* ★★ 2026-10-12b 第7〜第9迷宮のボス（色ちがい・ほかのボスの技もまざる） */
+    crimsonGuardian: { nm: "紅月の守護者", art: "bTreeEx", hp: 18000, atk: 56, spd: 26, r: 26, el: "dark", col: "#c0306a",
+      gim: { kind: "vine", nm: "紅蔦の封印", n: 4, hp: 160, d: "紅い月の力を送る蔦。4つすべて断ち切ると守護者が崩れて動けなくなる" },
+      pats: ["roots", "darkZones", "seedBomb", "summon", "lunge", "thornWall", "soulChain", "rootCross", "scytheStorm"], lines: ["……月が、紅い。", "森も闇も、わが根のうち。", "紅き月よ……すべてを喰らえ！"] },
+    frostTitan: { nm: "氷炎の巨神", art: "bTitanEx", hp: 20000, atk: 60, spd: 20, r: 30, el: "fire", col: "#7fd0ff",
+      gim: { kind: "cooler", nm: "均衡の水晶", n: 3, hp: 180, d: "氷と炎の力をつりあわせる水晶。3つ起動すると巨神の鎧が割れて固まる" },
+      pats: ["slam", "lances", "magmaBomb", "freezeRing", "charge", "fissure", "blizzard", "iceRain", "magmaRing"], lines: ["凍レ……燃エヨ……。", "氷ト炎ハ……ヒトツニ……！", "スベテ……砕ケ散レ！！"] },
+    starEater: { nm: "星喰いの竜", art: "bDragonEx", hp: 24000, atk: 66, spd: 36, r: 34, el: "dark", col: "#b06aff",
+      gim: { kind: "pillar", nm: "封星の柱", n: 3, hp: 200, d: "星を喰らう力をおさえる柱。3本すべて倒すと竜が地に落ちる" },
+      pats: ["breath", "darkZones", "laserSweep", "teleport", "timestop", "guillotine", "starRain", "pageCross", "supernova"], lines: ["……星脈は、我が糧。", "光も闇も、ひとしく喰らおう。", "星よ、尽きよ——！"] },
   };
 
   /* ══════════════════════════════════════════════════════════════
@@ -821,42 +831,63 @@
      ・layouts … マップの構成（毎回この中から選び、部屋の中身はランダム）
      ══════════════════════════════════════════════════════════════ */
   const DUNGEONS = [
-    { id: "d1", no: 1, nm: "翠緑の古代樹", en: "VERDANT ANCIENT TREE", diff: "初級", stars: 1, lvMul: 0.85, gold: 1.0, rec: { lv: 1, power: 300 },
+    { id: "d1", no: 1, nm: "翠緑の古代樹", en: "VERDANT ANCIENT TREE", diff: "初級", stars: 1, lvMul: 0.85, gold: 1.0, rec: { lv: 1, power: 600, hard: 1500 },
       biome: "forest", el: "wood", c: "#4fe39a",
       d: "古代遺跡を飲みこんだ巨大な樹の迷宮。自然の魔力が満ちている。",
       enemies: ["slime", "goblin", "goblinArcher", "treant"], elite: "mossKing", mid: "mossKing", boss: "treeGuardian",
       mats: ["sap", "stone"], gim: ["vine", "poison"], rules: ["蔦の封印（部屋をふさぐ蔦。こわすと通れる）", "毒沼（踏むと毒）"],
       unlock: null },
-    { id: "d2", no: 2, nm: "蒼晶の氷窟", en: "AZURE CRYSTAL CAVERN", diff: "初級〜中級", stars: 2, lvMul: 1.35, gold: 1.9, rec: { lv: 8, power: 650 },
+    { id: "d2", no: 2, nm: "蒼晶の氷窟", en: "AZURE CRYSTAL CAVERN", diff: "初級〜中級", stars: 2, lvMul: 1.35, gold: 1.9, rec: { lv: 10, power: 1000, hard: 2300 },
       biome: "ice", el: "water", c: "#6fd0ff",
       d: "結晶に覆われた凍てつく洞窟。足もとは氷で滑り、天井からは氷柱が落ちる。",
       enemies: ["iceSlime", "iceWolf", "frostWisp", "golem"], elite: "whiteWolf", mid: "whiteWolf", boss: "iceQueen",
       mats: ["shard", "stone"], gim: ["slip", "icicle"], rules: ["滑る床（止まりにくい）", "氷柱の落下（影が出たら避ける）"],
       unlock: "d1" },
-    { id: "d3", no: 3, nm: "紅蓮の熔岩城", en: "CRIMSON LAVA CASTLE", diff: "中級", stars: 3, lvMul: 1.65, gold: 3.1, rec: { lv: 15, power: 1200 },
+    { id: "d3", no: 3, nm: "紅蓮の熔岩城", en: "CRIMSON LAVA CASTLE", diff: "中級", stars: 3, lvMul: 1.65, gold: 3.1, rec: { lv: 20, power: 1800, hard: 3500 },
       biome: "lava", el: "fire", c: "#ff6a3d",
       d: "溶岩の川が流れる火山の城。噴火口があちこちで火を噴く。",
       enemies: ["ember", "fireBeast", "lavaSoldier", "emberImp"], elite: "flameKnight", mid: "flameKnight", boss: "lavaTitan",
       mats: ["core", "stone"], gim: ["erupt", "lava"], rules: ["噴火（印の出た場所が爆ぜる）", "溶岩流（踏むと燃える）"],
       unlock: "d2" },
-    { id: "d4", no: 4, nm: "忘却の魔導書庫", en: "LIBRARY OF OBLIVION", diff: "中級〜上級", stars: 4, lvMul: 2.2, gold: 4.9, rec: { lv: 22, power: 2000 },
+    { id: "d4", no: 4, nm: "忘却の魔導書庫", en: "LIBRARY OF OBLIVION", diff: "中級〜上級", stars: 4, lvMul: 2.2, gold: 4.9, rec: { lv: 30, power: 3000, hard: 5000 },
       biome: "library", el: "light", c: "#e8d080",
       d: "古代の魔法が眠る巨大な図書館。転移門と魔法の床が探索者を惑わせる。",
       enemies: ["puppet", "flyingTome", "illusionist"], elite: "bookKeeper", mid: "bookKeeper", boss: "librarian",
       mats: ["page", "stone"], gim: ["warp", "rune"], rules: ["転移門（入ると対になる門へ）", "魔法床（光ると敵が強くなる・踏むと痛い）"],
       unlock: "d3" },
-    { id: "d5", no: 5, nm: "深淵の奈落", en: "ABYSSAL DEPTHS", diff: "上級", stars: 5, lvMul: 2.8, gold: 7.6, rec: { lv: 30, power: 3200 },
+    { id: "d5", no: 5, nm: "深淵の奈落", en: "ABYSSAL DEPTHS", diff: "上級", stars: 5, lvMul: 2.8, gold: 7.6, rec: { lv: 38, power: 4500, hard: 7000 },
       biome: "abyss", el: "dark", c: "#a874ff",
       d: "闇に包まれた異界。視界は狭く、魔力の汚染が体をむしばむ。",
       enemies: ["abyssSlime", "shadowSwarm", "voidEye", "abyssKnight"], elite: "executioner", mid: "executioner", boss: "executionerBoss",
       mats: ["abyss", "stone"], gim: ["dark", "taint"], rules: ["視界制限（明かりの範囲しか見えない）", "魔力汚染（紫の床にいると汚染がたまる）"],
       unlock: "d4" },
-    { id: "d6", no: 6, nm: "星天の神殿", en: "CELESTIAL TEMPLE", diff: "最高難度", stars: 6, lvMul: 3.6, gold: 11.5, rec: { lv: 40, power: 5000 },
+    { id: "d6", no: 6, nm: "星天の神殿", en: "CELESTIAL TEMPLE", diff: "最高難度", stars: 6, lvMul: 3.6, gold: 11.5, rec: { lv: 45, power: 6500, hard: 9500 },
       biome: "sky", el: "light", c: "#ffe86a",
       d: "星々が浮かぶ天空の神殿。重力がゆがみ、時間の流れも乱れている。",
       enemies: ["stardust", "starSpirit", "guardian"], elite: "starKnight", mid: "starKnight", boss: "dragon",
       mats: ["star", "stone"], gim: ["gravity", "timed"], rules: ["重力変化（引き寄せる渦）", "時間制限区域（入ると時間内に抜ける）"],
       unlock: "d5" },
+    /* ══ ★★ 2026-10-12b 第7〜第9迷宮（ご指定「クエストを追加」）。いちばん上の難しさ。
+         地形はいままでの迷宮のもの・敵はいくつもの迷宮からまざる・ボスは色ちがいで技がまざった強い個体。
+         第9迷宮のハードが最難関（推奨戦力 17,000。UR を最大まで育てた戦力 約13,000 で勝率およそ半分＝早回しの実測：16,000 で 5/6・17,500 で 3/8）══ */
+    { id: "d7", no: 7, nm: "紅月の禁域", en: "CRIMSON MOON SANCTUM", diff: "超級", stars: 7, lvMul: 4.2, gold: 14, rec: { lv: 50, power: 8500, hard: 12000 },
+      biome: "forest", el: "dark", c: "#ff4f7a",
+      d: "紅い月に照らされた古代樹の奥。奈落の闇が根を侵し、森の魔物と影の軍勢がいりまじる。",
+      enemies: ["goblin", "treant", "shadowSwarm", "voidEye", "abyssKnight"], elite: "executioner", mid: "executioner", boss: "crimsonGuardian",
+      mats: ["sap", "abyss"], gim: ["vine", "poison"], rules: ["蔦の封印・毒沼（古代樹と同じ）", "森の魔物と奈落の影がいっしょに出る"],
+      unlock: "d6" },
+    { id: "d8", no: 8, nm: "氷炎の大回廊", en: "HALL OF FROST AND FLAME", diff: "超級", stars: 8, lvMul: 4.8, gold: 17, rec: { lv: 55, power: 10500, hard: 14500 },
+      biome: "lava", el: "fire", c: "#ff9a3a",
+      d: "熔岩の城の地下に眠る大回廊。凍てつく冷気と灼熱の炎がぶつかりあう。",
+      enemies: ["iceWolf", "golem", "fireBeast", "lavaSoldier", "frostWisp"], elite: "flameKnight", mid: "flameKnight", boss: "frostTitan",
+      mats: ["core", "shard"], gim: ["erupt", "lava"], rules: ["噴火・溶岩流（熔岩城と同じ）", "氷の魔物と炎の魔物がいっしょに出る"],
+      unlock: "d7" },
+    { id: "d9", no: 9, nm: "星喰いの深淵神殿", en: "STAR-EATER ABYSS", diff: "最難関", stars: 9, lvMul: 5.6, gold: 21, rec: { lv: 58, power: 13000, hard: 17000 },
+      biome: "sky", el: "dark", c: "#b06aff",
+      d: "星脈そのものを喰らう竜が眠る、神殿の最深部。書庫の幻影と奈落の騎士が門を守る。",
+      enemies: ["starSpirit", "guardian", "illusionist", "voidEye", "abyssKnight"], elite: "starKnight", mid: "starKnight", boss: "starEater",
+      mats: ["star", "abyss"], gim: ["gravity", "timed"], rules: ["重力変化・時間制限区域（神殿と同じ）", "書庫・奈落・神殿の敵がいっしょに出る"],
+      unlock: "d8" },
   ];
   const DUN = {}; DUNGEONS.forEach((d) => { DUN[d.id] = d; });
 
@@ -923,12 +954,12 @@
     guardCharm:  { slot: "charm", nm: "守りの護符", st: { def: 2 }, d: "被ダメージを減らす" },
     /* 靴 */
     galeboots:   { slot: "boots", nm: "疾風の靴", tag: "galeboots", el: "wood", st: { spd: 5 }, d: "風のように速く走れる（迅雷双刃・疾風の矢の鍵）" },
-    jumpBoots:   { slot: "boots", nm: "跳躍の靴", st: { spd: 2, dash: 1 }, d: "ダッシュの回数+1" },
+    jumpBoots:   { slot: "boots", nm: "跳躍の靴", st: { spd: 2, eva: 3 }, d: "回避+3" },
     ironBoots:   { slot: "boots", nm: "鉄の靴", st: { def: 2, hp: 6 }, d: "重いが丈夫" },
     starBoots:   { slot: "boots", nm: "星歩きの靴", el: "light", st: { spd: 3, eva: 2 }, d: "星の上を歩くように軽い" },
     /* 魔導具 */
     manaCrystal: { slot: "tool", nm: "魔力の水晶", st: { mp: 0.5 }, d: "MPの回復が速くなる" },
-    hourglass:   { slot: "tool", nm: "時の砂時計", st: { cdr: 0.04 }, d: "スキルと魔法の再使用が速くなる" },
+    hourglass:   { slot: "tool", nm: "時の砂時計", st: { cdr: 0.04 }, d: "技と魔法の再使用が速くなる" },
     sageStone:   { slot: "tool", nm: "賢者の石", st: { exp: 0.06 }, d: "経験値が増える" },
     compass:     { slot: "tool", nm: "星脈の羅針盤", st: { magnet: 0.15, reveal: 1 }, d: "拾う範囲が広がり、ミニマップに宝箱が出る" },
     spiritBell:  { slot: "tool", nm: "精霊の鈴", el: "wood", st: { summon: 1 }, d: "小さな精霊がついてきて攻撃する" },
@@ -965,7 +996,7 @@
     { id: "d3", br: "def", nm: "自然治癒", cost: 2, fx: { regen: 0.4 }, req: ["d2"] },
     { id: "d4", br: "def", nm: "不屈", cost: 2, fx: { hp: 0.12, def: 2 }, req: ["d3"] },
     { id: "d5", br: "def", nm: "守護の誓い", cost: 3, fx: { shieldStart: 0.25 }, req: ["d4"] },
-    { id: "u1", br: "uniq", nm: "固有スキル強化", cost: 1, fx: { skill: 0.15 }, req: [] },
+    { id: "u1", br: "uniq", nm: "固有技強化", cost: 1, fx: { skill: 0.15 }, req: [] },
     { id: "u2", br: "uniq", nm: "魔力の泉", cost: 1, fx: { mp: 0.5 }, req: ["u1"] },
     { id: "u3", br: "uniq", nm: "速い詠唱", cost: 2, fx: { cdr: 0.08 }, req: ["u2"] },
     { id: "u4", br: "uniq", nm: "パッシブ覚醒", cost: 2, fx: { passive: 1 }, req: ["u3"] },
@@ -978,7 +1009,7 @@
   const AWK = [
     { d: "—" },
     { d: "全能力 +8%・必殺技の威力 +5%", all: 0.08, ult: 0.05 },
-    { d: "全能力 +16%・必殺技の威力 +10%・スキルと技の再使用 -8%", all: 0.16, ult: 0.10, cdr: 0.08 },
+    { d: "全能力 +16%・必殺技の威力 +10%・固有技と技の再使用 -8%", all: 0.16, ult: 0.10, cdr: 0.08 },
     { d: "全能力 +24%・必殺技の威力 +15%・技（E）の威力 +15%・探索開始時に「引き直し」+1", all: 0.24, ult: 0.15, art: 0.15, cdr: 0.08, reroll: 1 },
     { d: "全能力 +32%・必殺技の威力 +20%・技（E）の威力 +20%・必殺技ゲージ 30%でスタート（完凸）", all: 0.32, ult: 0.20, art: 0.20, cdr: 0.10, reroll: 1, ultStart: 30 },
   ];
@@ -987,9 +1018,27 @@
   const MODES = {
     normal: { id: "normal", nm: "ノーマル", hp: 1, atk: 1, elite: 1, gold: 1, mat: 1, gearUp: 0, recAdd: 0, c: "#7dffb0",
       d: "ふつうの難しさ" },
-    hard:   { id: "hard", nm: "ハード", hp: 1.75, atk: 1.45, elite: 1.6, gold: 1.8, mat: 1.8, gearUp: 1, recAdd: 10, c: "#ff5a6a",
-      d: "敵の体力 ×1.75・攻撃 ×1.45・エリートが多い。報酬（ゴールド・素材）×1.8・装備のレア度が上がりやすい" },
+    hard:   { id: "hard", nm: "ハード", hp: 1, atk: 1, elite: 1.6, gold: 1.8, mat: 1.8, gearUp: 1, recAdd: 10, c: "#ff5a6a",
+      d: "敵がずっと強い（推奨戦力がノーマルより高い）・エリートが多い。報酬（ゴールド・素材）×1.8・装備のレア度が上がりやすい" },
   };
+
+  /* ══ ★★ 2026-10-12b 敵の強さは<b>推奨戦力</b>から決める（ご指定「推奨戦力を大きく下回るとクリアできない・最難関は UR の最大育成で勝率半分」）══
+     キャラの「耐久（HP÷被ダメージ率）」は戦力の 1.71 乗、「火力（攻撃×魔法×攻撃速度）」は 1.30 乗で伸びる（ステータスの実測）。
+     → 敵の攻撃は推奨戦力の 1.76 乗、体力は 1.35 乗に比例させる（キャラより少しだけ速く伸ばす＝上の迷宮ほど手ごたえが増す。
+       探索中の強化は基礎の強さによらず同じだけ伸びるので、そのぶんを上乗せ）。
+       推奨戦力の半分だと耐久は約 1/3・火力は約 1/2.5 ＝ クリアできない（早回し：紅月の禁域 0.55 倍で 0/3・1.0 倍で 2/2）。
+     迷宮ごとの敵の基本値の差（後の迷宮ほど大きい）は割って打ち消す。K_HP / K_ATK は早回しで合わせた数 */
+  const SCALE = { r0: 600, pHp: 1.345, pAtk: 1.758, kHp: 0.85, kAtk: 0.95, bHp: 0.2, bAtk: 0.35, baseHp: 31.5, baseAtk: 7.25 };
+  function recOf(dun, diff) { return diff === "hard" ? (dun.rec.hard || dun.rec.power * 1.9) : dun.rec.power; }
+  function scaleOf(dun, diff) {
+    const l = dun.enemies.map((k) => ENEMIES[k]).filter(Boolean);
+    const bh = l.reduce((a, e) => a + e.hp, 0) / l.length / SCALE.baseHp, ba = l.reduce((a, e) => a + e.atk, 0) / l.length / SCALE.baseAtk;
+    const r = recOf(dun, diff) / SCALE.r0;
+    /* 第1迷宮（推奨 600）から推奨 1,800 にかけて、敵を 体力+20%・攻撃+35% まで少しずつ上乗せ（低い迷宮は探索中の強化で差が縮みやすく、
+       推奨の半分でもクリアできていた）。そのぶん乗数を下げて、最難関（推奨 17,000）の強さは変えていない */
+    const ramp = Math.min(1, Math.log(Math.max(1, r)) / Math.log(3));
+    return { hp: SCALE.kHp * (1 + SCALE.bHp * ramp) * Math.pow(r, SCALE.pHp) / bh, atk: SCALE.kAtk * (1 + SCALE.bAtk * ramp) * Math.pow(r, SCALE.pAtk) / ba, rec: recOf(dun, diff) };
+  }
 
   /* ══ クリア時間のミッション（迷宮×難易度ごとに3段・ジェム）★★ 2026-10-05 ご指定 ══
      min … この分数以内にクリア ／ gem … XEVARION のジェム（受け取りは1回だけ・アカウントで共通） */
@@ -1000,6 +1049,9 @@
     d4: { normal: [[22, 6], [15, 10], [11, 14]], hard: [[24, 10], [17, 15], [13, 20]] },
     d5: { normal: [[24, 8], [16, 12], [12, 16]], hard: [[26, 12], [18, 18], [14, 24]] },
     d6: { normal: [[24, 10], [16, 15], [12, 20]], hard: [[26, 15], [18, 22], [14, 30]] },
+    d7: { normal: [[26, 12], [18, 18], [13, 24]], hard: [[28, 18], [20, 26], [15, 36]] },
+    d8: { normal: [[26, 14], [18, 20], [13, 28]], hard: [[28, 20], [20, 30], [15, 40]] },
+    d9: { normal: [[28, 16], [20, 24], [14, 32]], hard: [[30, 24], [22, 36], [16, 50]] },
   };
 
   /* ══ ダンジョン変異（探索開始時に選ぶ。報酬が増える）══ */
@@ -1029,13 +1081,13 @@
       opts: [
         { k: "absorb", nm: "星脈を吸収", d: "この探索のあいだ 攻撃力+25%。かわりに敵が30%増える" },
         { k: "purify", nm: "星脈を浄化", d: "HPを全回復し、防御+4（この探索のあいだ）" },
-        { k: "seal", nm: "祭壇を封印", d: "星脈の鍵を1つと、素材を多めに得る" },
+        { k: "seal", nm: "祭壇を封印", d: "素材とゴールドを多めに得る" },
       ] },
     spirit: { nm: "精霊の祭壇", d: "小さな精霊がこちらを見ている。どの加護を授かる？",
       opts: [] /* その場で属性の刻印を2つ選ばせる */ },
     circle: { nm: "魔法陣", d: "床に描かれた古い魔法陣。触れると力が満ちてくる。",
       opts: [
-        { k: "trial", nm: "試練を受ける", d: "25秒間 敵の群れに耐えると、星脈の鍵と宝箱" },
+        { k: "trial", nm: "試練を受ける", d: "25秒間 敵の群れに耐えるとレアな宝箱（試練のあいだは部屋の出口が閉じる）" },
         { k: "bless", nm: "祝福を受ける", d: "ランダムな能力を1つ（1段階）得る" },
       ] },
   };
@@ -1048,6 +1100,9 @@
     { id: "clear_d4", nm: "書庫の踏破者", d: "忘却の魔導書庫をクリア", rw: { gold: 1600, page: 10 } },
     { id: "clear_d5", nm: "奈落の踏破者", d: "深淵の奈落をクリア", rw: { gold: 2200, abyss: 10 } },
     { id: "clear_d6", nm: "星天の覇者", d: "星天の神殿をクリア", rw: { gold: 3000, star: 10, crystal: 3 } },
+    { id: "clear_d7", nm: "紅月を越えし者", d: "紅月の禁域をクリア", rw: { gold: 3500, abyss: 12, crystal: 3 } },
+    { id: "clear_d8", nm: "氷炎の調停者", d: "氷炎の大回廊をクリア", rw: { gold: 4000, core: 12, shard: 12, crystal: 4 } },
+    { id: "clear_d9", nm: "星喰いを討つ者", d: "星喰いの深淵神殿をクリア", rw: { gold: 5000, star: 15, crystal: 5 } },
     { id: "kill_1k", nm: "千の討伐", d: "敵を合計1,000体倒す", rw: { gold: 300 } },
     { id: "kill_10k", nm: "万の討伐", d: "敵を合計10,000体倒す", rw: { gold: 1500, crystal: 1 } },
     { id: "kill_50k", nm: "深淵を払う者", d: "敵を合計50,000体倒す", rw: { gold: 5000, crystal: 3 } },
@@ -1141,7 +1196,7 @@
   applyKits();
   MA.D = {
     ELEM, ELEM_KEYS, ADV, BEATS, EL_UP, EL_DOWN, elemMul, elemRel, elemWeakTo, MB_EL, CTYPE, CAT, CHARS, CHAR_ORDER, WEAPONS, WEAPON_KEYS, WEAPON_MAX, EVOS,
-    GRADE_MUL, RANK, ARTS, TRAITS, CHAR_KIT, MODES, TIME_MIS,
+    GRADE_MUL, RANK, ARTS, TRAITS, CHAR_KIT, MODES, TIME_MIS, SCALE, scaleOf, recOf,
     MAGICS, MAGIC_KEYS, MAGIC_MAX, STATS, STAT_KEYS, RAR, RAR_KEYS, RESONANCES, ENEMIES, BOSSES, DUNGEONS, DUN, MATS,
     SLOTS, SLOT_KEYS, GEAR, GEAR_KEYS, GEAR_RAR, SHOP_ITEMS, FACILITIES, TREE, TREE_BR, CHAR_MAX_LV, AWK, MUTATIONS,
     ABYSS_RULES, EVENTS, ACH, MISSIONS, STORY, LORE,

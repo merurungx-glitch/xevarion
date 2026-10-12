@@ -51,6 +51,7 @@
     MA.UI.bossIntro(def, e);
     E().toast("BOSS「" + def.nm + "」", "#ff5a6a");
     E().updateObjective();
+    if (MA.Skills) MA.Skills.ev("boss");
   }
   function placeGimmicks(room, def) {
     const g = G();
@@ -120,6 +121,8 @@
     E().telegraph({ shape: "line", x: b.x, y: b.y, ang: a, len: 200, w: b.r * 1.6, dur: 0.85, owner: b, onFire: () => { b.dash = { a, t: 0.5, mul }; } });
   }
   function summon(b, k, n) { for (let i = 0; i < n; i++) { const a = i / n * TAU; const m = E().spawnEnemy(k, b.x + Math.cos(a) * 40, b.y + Math.sin(a) * 40, { summoned: true }); if (m) m.room = G().bossRoomId; } }
+  /* 点から弾の輪（★★ 2026-10-12） */
+  function burstAt(b, x, y, n, sp, mul, col) { for (let i = 0; i < n; i++) { const a = i / n * TAU; E().ebullet({ x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, dmg: b.atk * mul, r: 3, col: col || b.d.col, kind: "orb", src: b }); } }
   function hazardZones(b, n, col, mul, dark) { for (let i = 0; i < n; i++) { const room = G().map.rooms[G().bossRoomId]; const x = (room.x + 2 + Math.random() * (room.w - 4)) * 16, y = (room.y + 2 + Math.random() * (room.h - 4)) * 16; E().telegraph({ shape: "circle", x, y, r: 26, dur: 1.0, col, onFire: (o) => E().zone({ x: o.x, y: o.y, r: 26, dur: 8, side: "enemy", dmg: b.atk * mul, tick: 0.5, dark: !!dark, col }) }); } }
 
   /* ══ ボスごとの技 ══ */
@@ -169,6 +172,32 @@
     },
     starRain(b) { circles(b, 12, 150, 18, 1.1, 1.3, "#ffe86a"); },
     supernova(b) { ring(b, 160, 54, 1.6, 2.4); G().queue.push({ at: G().t + 1.6, f: () => { burstRing(b, 24, 110, 0.9, 0, "#ffe86a"); G().flash = 0.6; G().flashCol = "#fff4b0"; } }); },
+
+    /* ══ ★★ 2026-10-12 追加の技（ご指定：ボスの攻撃パターンと頻度を増やす）。どれも床の予告つき ══ */
+    /* 古樹の守護者：種の爆弾（落ちた所から弾の輪）・茨の壁（横の列）・根の十字（あなたを中心に） */
+    seedBomb(b) { for (let i = 0; i < 3 + b.phase; i++) G().queue.push({ at: G().t + i * 0.35, f: () => { if (b.dead) return; const p = P(); E().telegraph({ shape: "circle", x: p.x + (Math.random() - 0.5) * 30, y: p.y + (Math.random() - 0.5) * 30, r: 24, dur: 0.9, dmg: b.atk * 1.2, owner: b, col: "#7fd060", onFire: (o) => burstAt(b, o.x, o.y, 8, 70, 0.5, "#a0e060") }); } }); },
+    thornWall(b) { const room = G().map.rooms[G().bossRoomId]; const gap = Math.floor(Math.random() * 5); for (let k = 0; k < 5; k++) { if (k === gap) continue; const y = (room.y + 1.5 + k * (room.h - 3) / 4) * 16; E().telegraph({ shape: "line", x: room.x * 16, y, ang: 0, len: room.w * 16, w: 18, dur: 1.15, dmg: b.atk * 1.3, owner: b, col: "#a0e060" }); } },
+    rootCross(b) { const p = P(); [0, Math.PI / 2, Math.PI / 4, -Math.PI / 4].forEach((a, i) => { if (i >= 2 && b.phase < 3) return; E().telegraph({ shape: "line", x: p.x - Math.cos(a) * 160, y: p.y - Math.sin(a) * 160, ang: a, len: 320, w: 18, dur: 1.0, dmg: b.atk * 1.4, owner: b, col: "#a0e060" }); }); },
+    /* 氷晶の女王：鏡の槍（4方向から）・氷の波（3重の輪）・氷の雨（市松） */
+    mirrorLance(b) { const p = P(); for (let i = 0; i < 4; i++) { const a = i / 4 * TAU + Math.random() * 0.3; E().telegraph({ shape: "line", x: p.x - Math.cos(a) * 150, y: p.y - Math.sin(a) * 150, ang: a, len: 300, w: 12, dur: 0.95, dmg: b.atk * 1.4, owner: b, col: "#7fd0ff" }); } },
+    frostNova(b) { for (let k = 0; k < 3; k++) G().queue.push({ at: G().t + k * 0.55, f: () => { if (b.dead) return; E().telegraph({ shape: "ring", x: b.x, y: b.y, r: 64 + k * 46, r2: 30 + k * 46, dur: 0.8, dmg: b.atk * 1.3, owner: b, col: "#bff0ff" }); } }); },
+    iceRain(b) { const room = G().map.rooms[G().bossRoomId]; const off = Math.random() < 0.5 ? 0 : 1; for (let gx = 0; gx < 6; gx++) for (let gy = 0; gy < 4; gy++) { if ((gx + gy + off) % 2) continue; const x = (room.x + 2 + gx * (room.w - 4) / 5) * 16, y = (room.y + 2 + gy * (room.h - 4) / 3) * 16; E().telegraph({ shape: "circle", x, y, r: 22, dur: 1.1 + (gx + gy) * 0.03, dmg: b.atk * 1.2, owner: b, col: "#9ad8ff" }); } },
+    /* 熔岩の巨神：追いかける溶岩弾（3連）・地割れ（あなたへ一直線）・炎の輪（真ん中だけ安全） */
+    magmaBomb(b) { for (let i = 0; i < 3; i++) G().queue.push({ at: G().t + i * 0.45, f: () => { if (b.dead) return; const p = P(); E().telegraph({ shape: "circle", x: p.x, y: p.y, r: 34, dur: 0.85, dmg: b.atk * 1.6, owner: b, col: "#ff6a1a" }); } }); },
+    fissure(b) { const p = P(); const a = Math.atan2(p.y - b.y, p.x - b.x); for (let k = 1; k <= 8; k++) { const x = b.x + Math.cos(a) * k * 30 + Math.sin(k * 1.7) * 10, y = b.y + Math.sin(a) * k * 30 + Math.cos(k * 1.3) * 10; E().telegraph({ shape: "circle", x, y, r: 20, dur: 0.6 + k * 0.08, dmg: b.atk * 1.4, owner: b, col: "#ff7a2a" }); } },
+    flameRing(b) { const p = P(); E().telegraph({ shape: "ring", x: p.x, y: p.y, r: 84, r2: 26, dur: 1.1, dmg: b.atk * 1.5, owner: b, col: "#ff9a3a" }); if (b.phase >= 3) G().queue.push({ at: G().t + 1.1, f: () => { if (!b.dead) burstRing(b, 18, 90, 0.7, 0.1, "#ffb03a"); } }); },
+    /* 禁書の司書：星の連弾・回る十字の光線（3回）・魔書を呼ぶ */
+    starBurst(b) { aimed(b, 5, 0.22, 140, 0.8, "#fff4b0"); G().queue.push({ at: G().t + 0.6, f: () => { if (!b.dead) burstRing(b, 16, 100, 0.7, 0.2, "#e8d080"); } }); },
+    pageCross(b) { const base = Math.random() * TAU; for (let k = 0; k < 3; k++) G().queue.push({ at: G().t + k * 0.42, f: () => { if (b.dead) return; for (let i = 0; i < 4; i++) { const a = base + k * 0.4 + i * Math.PI / 2; E().telegraph({ shape: "line", x: b.x, y: b.y, ang: a, len: 260, w: 12, dur: 0.8, dmg: b.atk * 1.3, owner: b, col: "#e8d080" }); } } }); },
+    summonTomes(b) { summon(b, "flyingTome", 2 + b.phase); },
+    /* 奈落の執行者：影渡り（背後へ回って薙ぎ払い）・断頭の刃（縦→横）・魂の鎖（まわりに闇の床） */
+    shadowStep(b) { const p = P(); const a = Math.atan2(p.y - b.y, p.x - b.x); const nx = p.x + Math.cos(a) * 46, ny = p.y + Math.sin(a) * 46; if (!MA.Map.solidAt(G().map, nx, ny)) { E().fx({ type: "poof", x: b.x, y: b.y, t: 0, dur: 0.4, col: "#6a3aa0", r: 24 }); b.x = nx; b.y = ny; E().fx({ type: "poof", x: nx, y: ny, t: 0, dur: 0.4, col: "#6a3aa0", r: 24 }); } cone(b, 100, 2.0, 0.8, 1.7); },
+    guillotine(b) { const room = G().map.rooms[G().bossRoomId]; const p = P(); E().telegraph({ shape: "line", x: p.x, y: room.y * 16, ang: Math.PI / 2, len: room.h * 16, w: 26, dur: 1.0, dmg: b.atk * 1.8, owner: b, col: "#a874ff" }); G().queue.push({ at: G().t + 0.7, f: () => { if (b.dead) return; const p2 = P(); E().telegraph({ shape: "line", x: room.x * 16, y: p2.y, ang: 0, len: room.w * 16, w: 26, dur: 1.0, dmg: b.atk * 1.8, owner: b, col: "#a874ff" }); } }); },
+    soulChain(b) { const p = P(); for (let i = 0; i < 6; i++) { const a = i / 6 * TAU; E().telegraph({ shape: "circle", x: p.x + Math.cos(a) * 70, y: p.y + Math.sin(a) * 70, r: 24, dur: 1.0, col: "#6a3aa0", onFire: (o) => E().zone({ x: o.x, y: o.y, r: 24, dur: 6, side: "enemy", dmg: b.atk * 0.35, tick: 0.5, dark: true, col: "#6a3aa0" }) }); } },
+    /* 星脈の原初竜：翼の突風（押しもどし＋渦の弾）・光線のなぎ払い・星の X 字 */
+    wingGust(b) { const p = P(); const a = Math.atan2(p.y - b.y, p.x - b.x); if (Math.hypot(p.x - b.x, p.y - b.y) < 160) E().moveCircle(p, Math.cos(a) * 50, Math.sin(a) * 50, true); spiral(b, 2.2, 5, 100, 0.6, 0.14, "#fff4b0"); },
+    laserSweep(b) { const p = P(); const a0 = Math.atan2(p.y - b.y, p.x - b.x) - 0.9; for (let k = 0; k < 6; k++) G().queue.push({ at: G().t + k * 0.22, f: () => { if (b.dead) return; E().telegraph({ shape: "line", x: b.x, y: b.y, ang: a0 + k * 0.36, len: 280, w: 16, dur: 0.75, dmg: b.atk * 1.5, owner: b, col: "#ffe86a" }); } }); },
+    starfallX(b) { const p = P(); for (let k = -3; k <= 3; k++) [[1, 1], [1, -1]].forEach(([sx, sy]) => { if (k === 0 && sy < 0) return; E().telegraph({ shape: "circle", x: p.x + k * 26 * sx, y: p.y + k * 26 * sy, r: 18, dur: 0.9 + Math.abs(k) * 0.07, dmg: b.atk * 1.4, owner: b, col: "#ffe86a" }); }); },
   };
   /* ボスの技の並び（data の pats の名前を、ここの技に対応づける） */
   const ALIAS = { clones: "clones", summonD: "clonesD" };
@@ -178,8 +207,9 @@
       if (b.bk === "dragon" && p === "meteor") return "meteorD";
       return ALIAS[p] && PAT[ALIAS[p]] ? ALIAS[p] : p;
     });
-    /* フェーズで使える技が増える：0→2つ・1→4つ・2→5つ・3→6つ（最後の技は最終フェーズで多め） */
-    const n = [2, 4, 5, 6][b.phase];
+    /* フェーズで使える技が増える：0→3つ・1→5つ・2→7つ・3→9つ（最後の技は最終フェーズで多め）
+       ★★ 2026-10-12 技を 6→9 に増やした（ご指定） */
+    const n = [3, 5, 7, 9][b.phase];
     return list.slice(0, n);
   }
 
@@ -237,7 +267,15 @@
       b.lastPat = k;
       (PAT[k] || PAT.circles || (() => {}))(b);
       E().fx({ type: "charge", x: b.x, y: b.y, t: 0, dur: 0.5, col: b.d.col, r: b.r + 8, owner: b });
-      b.patT = [3.0, 2.6, 2.2, 1.8][b.phase] * (G().muts.warp ? 0.8 : 1);
+      /* ★★ 2026-10-12 頻度を上げた（技の間隔 3.0/2.6/2.2/1.8 → 2.5/2.1/1.75/1.45 秒）。
+           フェーズ2から、少しあとにもう1つ技を続ける（連続攻撃：30%・45%・60%） */
+      const cc = [0, 0.3, 0.45, 0.6][b.phase];
+      if (Math.random() < cc && list.length > 1) {
+        const rest = list.filter((x) => x !== k && x !== list[list.length - 1]);
+        const k2 = rest[Math.floor(Math.random() * rest.length)];
+        if (k2) G().queue.push({ at: G().t + 0.75, f: () => { if (!b.dead && !(b.breakT > 0) && !b.dash && G().bossActive) (PAT[k2] || (() => {}))(b); } });
+      }
+      b.patT = [2.5, 2.1, 1.75, 1.45][b.phase] * (G().muts.warp ? 0.8 : 1);
     }
   }
   /* フェーズ3以降：地形が変わる */
@@ -249,6 +287,9 @@
     if (k === "librarian") hazardZones(b, 5, "#e8d080", 0.35);
     if (k === "executionerBoss") { G().darkT = 999; hazardZones(b, 4, "#6a3aa0", 0.4, true); }
     if (k === "dragon") PAT.gravity(b);
+    if (k === "crimsonGuardian") { G().darkT = 999; hazardZones(b, 5, "#c0306a", 0.4, true); }
+    if (k === "frostTitan") { G().iceStorm = true; hazardZones(b, 6, "#ff6a1a", 0.4); hazardZones(b, 3, "#9ad8ff", 0.3); }
+    if (k === "starEater") { PAT.gravity(b); hazardZones(b, 4, "#6a3aa0", 0.4, true); }
     E().toast("地形が変わった！", "#ff8a3d");
   }
   function onKilled(e) {

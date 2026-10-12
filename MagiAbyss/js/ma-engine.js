@@ -16,6 +16,8 @@
 
   const G = (MA.G = { running: false, paused: null });
   let uid = 1;
+  /* ★★ 2026-10-12 必殺技ゲージのたまり ×0.85（ご指定：チャージ率を少し下げる。威力は ma-weapons の ULT_POW で ×1.2） */
+  const ULT_CHG = 0.85;
 
   /* ══════════════════════════════════════════════════════════════
      敵のすばやい検索（32px のマス目）
@@ -97,7 +99,7 @@
       cid, C, x: G.map.start.x, y: G.map.start.y + 20, vx: 0, vy: 0, r: 5, face: 1, aimA: 0, moving: false, walkT: 0,
       lv: 1, exp: 0, need: MA.Stats.expNeed(1), base: st0,
       weapons: [], magics: [], passives: {}, seals: {}, tags: new Set(), res: new Set(), resFx: [],
-      skillCd: 0, burstCd: 0, ultG: st0.ultStart || 0, atkT: 0, atkN: 0,
+      skillCd: 0, burstCd: 0, ultG: st0.ultStart || 0, techG: 0, atkT: 0, atkN: 0,
       dashN: 1, dashCd: 0, dashT: 0, dvx: 0, dvy: 0, iT: 1.5, hurtT: 0, shield: 0,
       buffs: {}, focus: 0, heat: 0, gale: [], chainT: 0, guardCd: 0, mirage: [], clones: [], notes: [],
       revive: 0, rerolls: (st0.awkReroll || 0) + Math.ceil((S.fac.train || 0) / 2) + Math.min(3, S.items.reroll || 0),
@@ -106,6 +108,7 @@
       kills: 0, alive: true,
     };
     G.P = P;
+    if (MA.Skills) MA.Skills.start();
     /* 持ちこんだ消耗品はここで使ったことにする */
     if (!cfg.resume) { S.items.reroll = Math.max(0, (S.items.reroll || 0) - Math.min(3, S.items.reroll || 0)); S.items.banish = Math.max(0, (S.items.banish || 0) - Math.min(3, S.items.banish || 0)); S.items.potion = Math.max(0, (S.items.potion || 0) - P.potion); S.items.elixir = Math.max(0, (S.items.elixir || 0) - P.elixir); }
     /* 武器枠の装備：その武器を Lv1 で持って始める */
@@ -141,6 +144,10 @@
     /* ★ 2026-10-05 強さ（levelMul）と報酬（goldMul）を分けた。敵の基本値が迷宮ごとにもう強くなっているので、
        強さの倍率まで大きくすると二重に伸びて、推奨レベルでも開始20秒で倒れていた（早回しの実測）。 */
     G.levelMul = isAbyss ? abyssMul(G.floor) : G.dun.lvMul;
+    /* ★★ 2026-10-12b 敵の体力・攻撃の倍率は推奨戦力から（ma-data の scaleOf）。深淵は今までどおり階の倍率 */
+    if (isAbyss) { G.eHp = G.eAtk = G.levelMul; }
+    else { const sc = D().scaleOf(G.dun, G.diff); G.eHp = sc.hp; G.eAtk = sc.atk; }
+    G.hz = Math.max(G.levelMul, G.eAtk * 0.5);   /* 地形のダメージ（溶岩・噴火・氷柱…）も敵の強さに合わせる */
     G.goldMul = isAbyss ? Math.max(1, abyssMul(G.floor) * 1.6) : (G.dun.gold || G.dun.lvMul);
     if (isAbyss) {
       /* 階ごとの特殊ルール（5階ごとはボスの階） */
@@ -148,6 +155,10 @@
       G.rule = G.floor === 1 ? rules[0] : rules[(G.floor * 7 + (G.seed % 11)) % rules.length];
       G.abyssBoss = G.floor % 5 === 0;
       G.bossOpen = true; G.keysNeed = 0;
+    } else {
+      /* ★★ 2026-10-12 鍵は中ボスを倒したときだけ＝必要な鍵の数は中ボスの部屋の数（ふつう3） */
+      G.keysNeed = Math.max(1, (G.map.midRooms || []).length || 1);
+      G.midN = 0;
     }
     if (MA.Render && MA.Render.onMap) MA.Render.onMap();
   }
@@ -174,7 +185,10 @@
     st.elem = 1 + pm("affinity");
     st.magnet = 1 + (b.magnet || 0) + pm("magnet");
     st.cdr = Math.min(0.5, (b.cdr || 0) + pm("cooldown"));
-    st.dashMax = 1 + (b.dash || 0) + pv("dashup") + (P.C.type === "mobile" ? 1 : 0);
+    /* ★★ 2026-10-12b ダッシュは無し。「跳躍の翼」は 回避+4・移動の速さ+5%（1段ごと）。
+       ダッシュの無敵で囲みを抜けられなくなったぶん、全員の移動の速さを +10%（歩いて予告の外へ出やすく） */
+    st.eva = (b.eva || 0) + 4 * pv("dashup");
+    st.spd *= 1.1 * (1 + 0.05 * pv("dashup")) * (P.C.type === "mobile" ? 1.08 : 1);   /* 高機動は前のダッシュ+1のかわりに さらに +8% */
     st.luck = pm("luck");
     st.drain = (b.drain || 0) + (P.C.passive.kind === "focus" ? P.C.passive.drain : 0);
     st.mmp = 100 + Math.round((b.mp || 0) * 40);
@@ -190,7 +204,7 @@
       const T = P.traitK = Object.assign({}, TD);
       ["eva", "spd", "crit", "critDmg", "burn", "vsBurn", "per", "max", "dmg", "drain", "aspd", "summon", "def", "hp", "k"].forEach((k2) => { if (typeof T[k2] === "number") T[k2] = T[k2] * gk; });
       if (T.kind === "insight" || T.kind === "dance") st.eva += T.eva;
-      if (T.kind === "galefoot") { st.spd *= 1 + T.spd; st.dashMax += T.dash; }
+      if (T.kind === "galefoot") st.spd *= 1 + T.spd;
       if (T.kind === "dusk") { st.elDmg.dark = (st.elDmg.dark || 1) * (1 + T.dmg); st.drain += T.drain; }
       if (T.kind === "ironwall") { st.def += T.def; st.hp = Math.round(st.hp * (1 + T.hp)); }
     } else P.traitK = null;
@@ -217,7 +231,6 @@
     const hpRatio = P.st ? P.hp / P.st.hp : 1;
     P.st = st;
     if (P.hp != null) P.hp = Math.min(st.hp, Math.max(1, Math.round(st.hp * hpRatio)));
-    P.dashN = Math.min(P.dashN, st.dashMax);
   }
 
   /* ══════════════════════════════════════════════════════════════
@@ -245,7 +258,7 @@
   }
   function pause(why) { G.paused = why || "menu"; MA.Input.clearAll(); }
   function resume() { G.paused = null; lastT = performance.now(); acc = 0; MA.Input.clearAll(); }
-  function stop() { G.running = false; cancelAnimationFrame(raf); MA.Input.enabled = false; }
+  function stop() { G.running = false; cancelAnimationFrame(raf); MA.Input.enabled = false; if (MA.Skills) MA.Skills.stop(); }
 
   /* ══════════════════════════════════════════════════════════════
      1ステップ
@@ -263,6 +276,7 @@
     input(dt);
     updatePlayer(dt);
     MA.W.update(dt);           // 攻撃・武器・魔法・スキル・共鳴
+    if (MA.Skills) MA.Skills.update(dt);   // ★★ 2026-10-12 発動スキル（条件で自動）・秘技のゲージ
     updateEnemies(dt);
     updateProjectiles(dt);
     updateEnemyBullets(dt);
@@ -287,10 +301,10 @@
     const I = MA.Input, P = G.P, S = MA.Save.S;
     if (I.consume("menu")) { pause("menu"); MA.UI.showPause(); return; }
     if (I.consume("map")) { pause("map"); MA.UI.showMap(); return; }
-    if (I.consume("dash")) dash();
     if (I.consume("skill")) MA.W.skill();
     if (I.consume("burst")) MA.W.burst();
     if (I.consume("ult")) MA.W.ult();
+    if (I.consume("tech") && MA.Skills) MA.Skills.tech();
     if (I.consume("interact")) interact();
     /* ねらう向き
        ★★ 2026-10-05 標準は「向いている方向」（PC もスマホも同じ・ご提案どおり統一）。
@@ -313,20 +327,6 @@
     P.aimA = Math.atan2(ay, ax);
     P.atkHeld = I.held.has("attack") || I.consume("attackTap");
   }
-  function dash() {
-    const P = G.P, I = MA.Input;
-    if (P.dashN <= 0 || P.dashT > 0) return;
-    let dx = I.mx, dy = I.my;
-    if (!dx && !dy) { dx = Math.cos(P.aimA); dy = Math.sin(P.aimA); }
-    const l = Math.hypot(dx, dy) || 1;
-    const sp = 260 * (1 + 0.1 * (P.passives.dashup || 0));
-    P.dvx = dx / l * sp; P.dvy = dy / l * sp; P.dashT = 0.17;
-    P.dashN--; if (P.dashCd <= 0) P.dashCd = 1.2;
-    P.iT = Math.max(P.iT, 0.3);
-    MA.Audio.sfx("dash");
-    fx({ type: "dust", x: P.x, y: P.y + 4, t: 0, dur: 0.3 });
-    MA.W.onDash && MA.W.onDash();
-  }
 
   /* ══════════════════════════════════════════════════════════════
      プレイヤー
@@ -334,9 +334,7 @@
   function updatePlayer(dt) {
     const P = G.P, I = MA.Input, st = P.st, map = G.map;
     if (!P.alive) return;
-    /* ダッシュの回復 */
-    if (P.dashN < st.dashMax) { P.dashCd -= dt; if (P.dashCd <= 0) { P.dashN++; P.dashCd = P.dashN < st.dashMax ? 1.2 : 0; } }
-    let spd = st.spd * (P.buffs.haste ? 1.15 : 1) * (P.buffs.gale ? (1 + P.buffs.gale.v) : 1);
+    let spd = st.spd * (P.buffs.haste ? 1.15 : 1) * (P.buffs.gale ? (1 + P.buffs.gale.v) : 1) * (P.skB ? 1 + P.skB.spd : 1);
     if (P.taintSlow) spd *= 0.85;
     let tvx = I.mx * spd, tvy = I.my * spd;
     /* 滑る床（氷）＝ゆっくり加速・ゆっくり止まる */
@@ -350,13 +348,15 @@
     if (G.pull) { mvx += G.pull.x; mvy += G.pull.y; }
     moveCircle(P, mvx * dt, mvy * dt, true);
     P.moving = Math.hypot(I.mx, I.my) > 0.1;
-    /* ★ 蔦の封印に向かって歩きつづけると切り払える（スマホでも狙わずに進める） */
+    /* ★ 蔦の封印に向かって歩きつづけると切り払える（スマホでも狙わずに進める）
+       ★★ 2026-10-12b ダッシュが無くなったので、隠し壁（ひびの入った壁）も押しつづけるとこわれる */
     if (P.moving) {
       const fx2 = P.x + I.mx * (P.r + 4), fy2 = P.y + I.my * (P.r + 4);
-      if (M().tileAt(map, fx2, fy2) === M().T.VINE) {
+      const tt = M().tileAt(map, fx2, fy2);
+      if (tt === M().T.VINE || tt === M().T.SECRET) {
         P.cutT = (P.cutT || 0) + dt;
-        if (P.cutT > 0.5) { P.cutT = 0; breakTile(fx2, fy2); toast("蔦の封印を切り払った", "#5fd86a"); }
-        else if (Math.floor(P.cutT * 10) % 2 === 0) fx({ type: "spark", x: fx2, y: fy2, t: 0, dur: 0.15, col: "#7fe060" });
+        if (P.cutT > (tt === M().T.VINE ? 0.5 : 0.8)) { P.cutT = 0; breakTile(fx2, fy2); if (tt === M().T.VINE) toast("蔦の封印を切り払った", "#5fd86a"); }
+        else if (Math.floor(P.cutT * 10) % 2 === 0) fx({ type: "spark", x: fx2, y: fy2, t: 0, dur: 0.15, col: tt === M().T.VINE ? "#7fe060" : "#c8c0e0" });
       } else P.cutT = 0;
     }
     if (P.moving) { P.walkT += dt; if (Math.abs(I.mx) > 0.1) P.face = I.mx > 0 ? 1 : -1; }
@@ -376,7 +376,7 @@
     /* 特性「闘志」：まわりの敵の数（0.25秒ごとに数える） */
     if (P.traitK && P.traitK.kind === "fervor") { G.fervT = (G.fervT || 0) - dt; if (G.fervT <= 0) { G.fervT = 0.25; P.fervorN = enemiesIn(P.x, P.y, P.traitK.r).length; } }
     /* 戦闘中（近くに敵がいる）は必殺技ゲージが時間でもたまる（単体のボス戦でも撃てるように） */
-    if (P.ultG < 100) { G.ultNearT = (G.ultNearT || 0) - dt; if (G.ultNearT <= 0) { G.ultNearT = 0.25; G.ultNear = !!nearest(P.x, P.y, 260); } if (G.ultNear) P.ultG = Math.min(100, P.ultG + 0.7 * dt * (1 + (st.ultCharge || 0))); }
+    if (P.ultG < 100) { G.ultNearT = (G.ultNearT || 0) - dt; if (G.ultNearT <= 0) { G.ultNearT = 0.25; G.ultNear = !!nearest(P.x, P.y, 260); } if (G.ultNear) P.ultG = Math.min(100, P.ultG + 0.7 * ULT_CHG * dt * (1 + (st.ultCharge || 0))); }
     Object.keys(P.buffs).forEach((b) => { const x = P.buffs[b]; x.t -= dt; if (x.t <= 0) { delete P.buffs[b]; if (x.re) recompute(); } });
     /* コトリ：HP40%未満でバリア */
     if (P.C.passive.kind === "guardian") { if (P.guardCd > 0) P.guardCd -= dt; else if (P.hp < st.hp * P.C.passive.hp) { P.shield = Math.max(P.shield, Math.round(st.hp * (P.C.passive.shield + (st.passive ? 0.1 : 0)))); P.guardCd = P.C.passive.cd; pop(P.x, P.y - 22, "BARRIER", "#7fd0ff"); MA.Audio.sfx("heal"); } }
@@ -392,12 +392,6 @@
       o.y += dy / steps;
       p = M().collideCircle(map, o.x, o.y, o.r);
       o.x += p[0]; o.y += p[1];
-    }
-    /* 隠し壁・蔦にぶつかったダッシュはこわす */
-    if (isPlayer && G.P.dashT > 0) {
-      const ax = o.x + Math.sign(G.P.dvx) * (o.r + 3), ay = o.y + Math.sign(G.P.dvy) * (o.r + 3);
-      const t = M().tileAt(map, ax, ay);
-      if (t === M().T.SECRET) breakTile(ax, ay);
     }
   }
   function breakTile(px, py) {
@@ -430,17 +424,21 @@
   }
   function hurtPlayer(dmg, src) {
     const P = G.P;
-    if (!P.alive || P.iT > 0 || P.dashT > 0) return false;
+    if (!P.alive) return false;
+    if (P.iT > 0) return false;
     let d = dmg * P.st.dmgIn * (60 / (60 + Math.max(0, P.st.def) * 4));
+    if (P.skB) d *= 1 - Math.min(0.6, P.skB.def);
     /* ★★ 2026-10-05 属性の相性（敵 → キャラ）：有利な敵からは ×1.2・不利な敵からは ×0.85 */
     const sEl = src && (src.el || (src.src && src.src.el));
     if (sEl) { const r = D().elemRel(sEl, P.C.el); if (r === "adv") d *= 1.2; else if (r === "dis") d *= 0.85; }
     /* 特性「不屈」 */
     if (P.traitK && P.traitK.kind === "undaunted" && P.hp < P.st.hp * P.traitK.under) d *= 1 - P.traitK.k;
-    /* 前衛の守り：近接で戦うキャラ（ムツミ・カグラ・アズサ）は被ダメージ −15%（敵のそばに立つぶん） */
-    if (P.C.type === "melee" || P.C.sub === "melee") d *= 0.85;
+    /* 前衛の守り：近接で戦うキャラ（ムツミ・カグラ・アズサ）は被ダメージ −15%（敵のそばに立つぶん）
+       ★★ 2026-10-12b ダッシュで囲みを抜けられなくなったので −25% に（早回しで、近接キャラだけ序盤に倒れやすかった） */
+    if (P.C.type === "melee" || P.C.sub === "melee") d *= 0.75;
     if (Math.random() * 100 < P.st.eva * 0.5) {
       pop(P.x, P.y - 22, "MISS", "#c8c8d8"); P.iT = 0.2;
+      if (src && MA.Skills) MA.Skills.ev("dodge");
       /* 特性「見切り」：よけたあと必ず会心／「舞踏」：よけたあと攻撃速度アップ */
       if (P.traitK && P.traitK.kind === "insight") P.focus = Math.max(P.focus || 0, P.traitK.crits);
       if (P.traitK && P.traitK.kind === "dance") P.buffs.dance = { t: P.traitK.t, v: P.traitK.aspd };
@@ -453,8 +451,9 @@
     }
     d = Math.max(1, Math.round(d));
     P.hp -= d; G.stats.taken += d;
+    if (src && MA.Skills) MA.Skills.ev("hurt", d);
     if (G.bossActive) G.stats.bossHitTaken += d;
-    P.iT = 0.55; P.hurtT = 0.25;
+    P.iT = 0.7; P.hurtT = 0.25;   /* ★★ 2026-10-12b ダッシュが無くなったので 0.55→0.7 秒 */
     G.shake = Math.max(G.shake, 4); G.flash = 0.35; G.flashCol = "#ff3050";
     pop(P.x, P.y - 22, "-" + d, "#ff5a6a", { big: d > P.st.hp * 0.15 });
     MA.Audio.sfx("hurt");
@@ -509,6 +508,7 @@
     if (e.breakT > 0) d *= 2;
     if (P.buffs.fanfare) d *= 1 + P.buffs.fanfare.v;
     if (P.buffs.pnAtk) d *= 1 + P.buffs.pnAtk.v;   /* ★★ 2026-10-09 アヤノ・マイの必殺技（与えるダメージ+） */
+    if (P.skB) d *= 1 + P.skB.atk;                  /* ★★ 2026-10-12 発動スキル（ma-skills.js）の強化 */
     if (P.C.passive.kind === "backwater" || P.C.passive.kind === "wasurena") { const lost = 1 - P.hp / st.hp; d *= 1 + Math.min(P.C.passive.max + (st.passive ? 0.1 : 0), lost * P.C.passive.per); }   /* ★★ 2026-10-07 ヒバナ「勿忘草の加護」も同じ式 */
     /* 守り（防御型・ボスの装甲）：光は無視する */
     if (e.guardOn && el !== "light") d *= 1 - e.guardK;
@@ -517,10 +517,11 @@
     let crit = false;
     if (!opt.noCrit) {
       let cr = st.crit, cd = st.critDmg;
+      if (P.skB) { cr += P.skB.crit; cd += P.skB.critDmg; }
       if (TK && TK.kind === "clutch" && P.hp < st.hp * 0.5) { cr += TK.crit; cd += TK.critDmg; }
       if (P.focus > 0 && opt.src === "atk") { cr = 100; }
       crit = opt.crit || Math.random() * 100 < cr;
-      if (crit) d *= cd;
+      if (crit) { d *= cd; if (MA.Skills) MA.Skills.ev("crit"); }
       /* ★★ 2026-10-07 フキ「宵闇の残影」：会心で防御ダウン＋必殺技ゲージ+1 */
       if (crit && P.C.passive.kind === "yoiyami") { e.defDownT = Math.max(e.defDownT || 0, P.C.passive.t + (st.passive ? 1 : 0)); P.ultG = Math.min(100, P.ultG + 1); }
     }
@@ -532,7 +533,7 @@
     if (G.dbg) { const k = opt.src || "other"; G.dbg[k] = (G.dbg[k] || 0) + d; }   /* 調整用の内訳（ふだんは null） */
     /* 必殺技ゲージ：当たり1回で「攻撃力の何倍か」×0.45（最大×2.2）。
        ★ 1秒にたまる量は 5 まで（G.gTok）＝範囲攻撃で一瞬にたまって連発にならない。時間でも少しずつ（updatePlayer） */
-    if (!opt.noGauge && G.gTok > 0) { const add = Math.min(G.gTok, 0.45 * Math.min(2.2, d / Math.max(1, st.atk))); G.gTok -= add; P.ultG = Math.min(100, P.ultG + add * (1 + (st.ultCharge || 0))); }
+    if (!opt.noGauge && G.gTok > 0) { const add = Math.min(G.gTok, 0.45 * Math.min(2.2, d / Math.max(1, st.atk))); G.gTok -= add; P.ultG = Math.min(100, P.ultG + add * ULT_CHG * (1 + (st.ultCharge || 0))); }
     /* ドレイン */
     if (st.drain > 0 && !opt.noDrain) heal(d * st.drain, true);
     /* ふっとばし */
@@ -590,7 +591,7 @@
     MA.Save.S.codex.en[e.k] = (MA.Save.S.codex.en[e.k] || 0) + 1;
     MA.Audio.sfx("kill");
     fx({ type: "poof", x: e.x, y: e.y, t: 0, dur: 0.35, col: e.d.col || "#ffffff", r: e.r });
-    P.ultG = Math.min(100, P.ultG + (e.boss ? 30 : e.elite ? 8 : 0.6) * (1 + (P.st.ultCharge || 0)));
+    P.ultG = Math.min(100, P.ultG + (e.boss ? 30 : e.elite ? 8 : 0.6) * ULT_CHG * (1 + (P.st.ultCharge || 0)));
     /* 経験値・ドロップ */
     if (!e.summoned || Math.random() < 0.4) {
       const exp = (e.d.exp || 1) * (e.elite ? 1 : 1);
@@ -602,6 +603,7 @@
     }
     /* キャラのパッシブ */
     MA.W.onKill && MA.W.onKill(e, el);
+    if (MA.Skills) MA.Skills.ev("kill", e);
     if (e.elite && !e.boss) { G.stats.elites++; if (!e.mid) { const c = { kind: "chest", x: e.x, y: e.y, tier: 1, done: false, dyn: 1 }; G.map.objects.push(c); } }
     if (e.mid) onMidKilled(e);
     if (e.boss) MA.Boss && MA.Boss.onKilled(e);
@@ -625,8 +627,8 @@
          探索 Lv1 のうちに上位の迷宮の待ち伏せに囲まれて、開始10〜40秒で倒れていた（早回しの実測）。深淵の2階からは無し */
     const warm = G.mode === "abyss" && G.floor > 1 ? 1 : Math.min(1, 0.55 + G.t / 240);
     const MD = G.modeDef || { hp: 1, atk: 1 };
-    let hp = G.levelMul * warm * (1 + 0.06 * min) * (G.muts.bounty ? G.muts.bounty.hp : 1) * MD.hp;
-    let atk = G.levelMul * warm * (1 + 0.035 * min) * MD.atk;
+    let hp = (G.eHp || G.levelMul) * warm * (1 + 0.06 * min) * (G.muts.bounty ? G.muts.bounty.hp : 1) * MD.hp;
+    let atk = (G.eAtk || G.levelMul) * warm * (1 + 0.035 * min) * MD.atk;
     if (G.mode === "dungeon" && G.t > 30 * 60 && !G.bossDone) { hp *= 1.5; atk *= 1.4; }
     return { hp, atk };
   }
@@ -758,7 +760,13 @@
       if (!b.ghost && M().solidAt(G.map, b.x, b.y)) b.life = 0;
       /* 水の壁（コトリ）・アクア・フープ・バリアで止まる */
       if (P.wall && b.life > 0) { const w = P.wall; const dx = b.x - w.x, dy = b.y - w.y; if (Math.abs(dx * Math.cos(w.a) + dy * Math.sin(w.a)) < 6 && Math.abs(-dx * Math.sin(w.a) + dy * Math.cos(w.a)) < w.len / 2) { b.life = 0; fx({ type: "spark", x: b.x, y: b.y, t: 0, dur: 0.2, col: "#7fd0ff" }); } }
-      if (b.life > 0 && dist2(b.x, b.y, P.x, P.y) < (b.r + P.r) * (b.r + P.r)) { if (hurtPlayer(b.dmg, b.src)) b.life = 0; }
+      if (b.life > 0) {
+        const d2 = dist2(b.x, b.y, P.x, P.y);
+        if (d2 < (b.r + P.r) * (b.r + P.r)) { b.hitP = 1; if (hurtPlayer(b.dmg, b.src)) b.life = 0; }
+        /* ★★ 2026-10-12b 弾をかすめた（すぐそばを通って当たらなかった）＝「よけた」（スキル・秘技の条件） */
+        else if (!b.gz && d2 < (b.r + P.r + 9) * (b.r + P.r + 9)) b.gz = 1;
+        else if (b.gz === 1 && !b.hitP && d2 > (b.r + P.r + 14) * (b.r + P.r + 14)) { b.gz = 2; if (MA.Skills && P.alive) MA.Skills.ev("dodge", "graze"); }
+      }
       if (b.life <= 0) G.EB.splice(i, 1);
     }
     if (G.EB.length > 500) G.EB.splice(0, G.EB.length - 500);
@@ -784,9 +792,13 @@
       const o = G.TG[i]; if (!o) continue;   /* ★ 途中でボスが倒れると TG が作り直される（短くなる）ので、無い番号は飛ばす */
       if (o.owner && o.follow && !o.owner.dead) { o.x = o.owner.x; o.y = o.owner.y; }
       o.t += dt;
+      /* ★★ 2026-10-12b 敵の予告（owner か dmg があるもの）の中にいたのに、光る前に外へ出た＝「よけた」 */
+      const foe = !!(o.owner || o.dmg);
+      if (foe && !o.wasIn && P.alive && inShape(o, P.x, P.y, P.r)) o.wasIn = 1;
       if (o.t >= o.dur) {
         G.TG.splice(i, 1);
         if (o.owner && o.owner.dead && !o.keep) continue;
+        if (foe && o.wasIn && P.alive && !inShape(o, P.x, P.y, P.r)) { pop(P.x, P.y - 22, "よけた！", "#bfe8ff"); if (MA.Skills) MA.Skills.ev("dodge"); }
         if (o.onFire) o.onFire(o);
         else if (o.dmg && inShape(o, P.x, P.y, P.r)) hurtPlayer(o.dmg, o.owner);
         fx({ type: "tgfire", shape: o.shape, x: o.x, y: o.y, r: o.r, r2: o.r2, ang: o.ang, len: o.len, w: o.w, arc: o.arc, rw: o.w, rh: o.h, t: 0, dur: 0.25, col: o.fireCol || "#ffb0a0" });
@@ -845,6 +857,7 @@
       P.exp -= P.need; P.lv++; P.need = MA.Stats.expNeed(P.lv);
       G.stats.levels++; G.stats.maxLv = Math.max(G.stats.maxLv, P.lv);
       G.pendingLv = (G.pendingLv || 0) + 1;
+      if (MA.Skills) MA.Skills.ev("lv");
     }
     if (G.pendingLv && !G.paused) openLevelUp();
   }
@@ -877,7 +890,7 @@
       const d2 = dist2(o.x, o.y, P.x, P.y);
       if (o.kind === "chest" && d2 < 14 * 14 && !o.locked) { openChest(o); continue; }
       if (o.kind === "lore" && d2 < 14 * 14) { o.done = true; gainLore(); continue; }
-      if (o.kind === "starShard" && d2 < 14 * 14) { if (G.timedRoom && G.timedRoom.left > 0) { o.done = true; G.timedRoom.ok = true; G.timedRoom.left = 0; giveKey("時間内に星の欠片を手に入れた"); } continue; }
+      if (o.kind === "starShard" && d2 < 14 * 14) { if (G.timedRoom && G.timedRoom.left > 0) { o.done = true; G.timedRoom.ok = true; G.timedRoom.left = 0; map.objects.push({ kind: "chest", x: o.x, y: o.y + 16, tier: 2, done: false, dyn: 1 }); MA.Audio.sfx("key"); toast("時間内に星の欠片を手に入れた：レアな宝箱があらわれた", "#ffe86a"); } continue; }
       if (o.kind === "warp" && d2 < 10 * 10 && !(G.warpCd > 0)) { const to = map.objects[o.pair]; if (to) { P.x = to.x; P.y = to.y + 14; G.warpCd = 1.2; fx({ type: "ring", x: to.x, y: to.y, t: 0, dur: 0.4, r: 26, col: "#5ab8ff" }); MA.Audio.sfx("skill"); } continue; }
       if (["fountain", "altar", "spirit", "circle", "retreat", "purifier", "exit"].indexOf(o.kind) >= 0 && d2 < 26 * 26) { G.near = o; }
     }
@@ -901,7 +914,7 @@
     o.done = true;
     if (k === "absorb") { P.altarAtk = (P.altarAtk || 0) + 0.25; G.spawnMul = (G.spawnMul || 1) * 1.3; toast("星脈を吸収した：攻撃力+25%（敵が増える）", "#ff8fd0"); }
     if (k === "purify") { P.hp = P.st.hp; P.altarDef = (P.altarDef || 0) + 4; toast("星脈を浄化した：HP全回復・防御+4", "#7dffb0"); }
-    if (k === "seal") { giveKey("祭壇を封印した"); const m = G.mode === "abyss" ? "abyss" : G.dun.mats[0]; G.stats.mats[m] = (G.stats.mats[m] || 0) + 4; }
+    if (k === "seal") { const m = G.mode === "abyss" ? "abyss" : G.dun.mats[0]; G.stats.mats[m] = (G.stats.mats[m] || 0) + 6; const gold = Math.round(60 * G.goldMul * ((G.modeDef && G.modeDef.gold) || 1)); G.stats.gold += gold; MA.Audio.sfx("key"); toast("祭壇を封印した：素材 +6・" + gold + "G", "#ff8fd0"); }
     if (k === "trial") startTrial(o);
     if (k === "bless") { const c = MA.Cards.randomStat(); MA.Cards.apply(c); toast("祝福：" + c.nm + " を得た", "#c27bff"); }
     if (k === "seal_el") { MA.Cards.apply({ type: "stat", k: "seal_" + extra, rar: "R" }); toast(D().ELEM[extra].nm + "の刻印を授かった", D().ELEM[extra].c); }
@@ -909,17 +922,47 @@
     MA.W.refreshTags(); recompute();
     resume();
   }
+  /* ★★ 2026-10-12 試練のあいだは部屋の出口を閉じる（ご指定：部屋を出ると簡単に耐えられてしまっていた）。
+       敵も部屋の中にだけ出す（前は円のまわり 90px で、壁の向こうの通路に出て届かないことがあった） */
+  function trialSpot(room) {
+    const P = G.P;
+    for (let n = 0; n < 12; n++) {
+      const x = (room.x + 1.5 + G.rnd() * (room.w - 3)) * 16, y = (room.y + 1.5 + G.rnd() * (room.h - 3)) * 16;
+      if (M().solidAt(G.map, x, y) || dist2(x, y, P.x, P.y) < 56 * 56) continue;
+      return { x, y };
+    }
+    return null;
+  }
+  function sealRoom(room) {
+    const map = G.map, T = M().T, out = [];
+    const P = G.P, ptx = Math.floor(P.x / 16), pty = Math.floor(P.y / 16);
+    for (let y = room.y - 1; y <= room.y + room.h; y++) for (let x = room.x - 1; x <= room.x + room.w; x++) {
+      if (x >= room.x && x < room.x + room.w && y >= room.y && y < room.y + room.h) continue;
+      if (x < 0 || y < 0 || x >= map.W || y >= map.H || (x === ptx && y === pty)) continue;
+      const i = y * map.W + x;
+      if (map.tiles[i] === T.FLOOR && map.roomAt[i] < 0) { map.tiles[i] = T.SEALDOOR; out.push(i); }
+    }
+    MA.Render.dirtyMap && MA.Render.dirtyMap();
+    return out;
+  }
+  function unsealRoom(list) {
+    const map = G.map, T = M().T;
+    (list || []).forEach((i) => { if (map.tiles[i] === T.SEALDOOR) map.tiles[i] = T.FLOOR; });
+    MA.Render.dirtyMap && MA.Render.dirtyMap();
+  }
   function startTrial(o) {
     const room = G.map.rooms[o.room];
-    G.trial = { room, left: 25, o };
-    toast("試練：25秒間 耐えぬけ！", "#c27bff");
+    G.trial = { room, left: 25, o, doors: sealRoom(room) };
+    toast("試練：25秒間 耐えぬけ！（部屋の出口が閉じた）", "#c27bff");
+    MA.Audio.sfx("warn");
     const list = G.mode === "abyss" ? ["slime"] : G.dun.enemies;
-    for (let k = 0; k < 14; k++) { const a = G.rnd() * TAU; const p = { x: o.x + Math.cos(a) * 90, y: o.y + Math.sin(a) * 70 }; if (!M().solidAt(G.map, p.x, p.y)) spawnEnemy(list[k % list.length], p.x, p.y, { room: room.id }); }
+    for (let k = 0; k < 14; k++) { const p = trialSpot(room); if (p) spawnEnemy(list[k % list.length], p.x, p.y, { room: room.id }); }
   }
   function openChest(o) {
     o.done = true;
     G.stats.chests++;
     MA.Save.misAdd("chests", 1);
+    if (MA.Skills) MA.Skills.ev("chest");
     const rewards = MA.Cards.chest(o.tier || 1);
     MA.Audio.sfx("chest");
     pause("chest");
@@ -950,7 +993,11 @@
     updateObjective();
   }
   function onMidKilled(e) {
-    G.midDone = true;
+    const room = G.map.rooms[e.room];
+    if (room) room.midDone = true;
+    G.midN = G.map.rooms.filter((r) => r.type === "mid" && r.midDone).length;
+    G.midDone = G.midN >= G.keysNeed;
+    if (G.mid === e) G.mid = null;
     giveKey("中ボスを倒した");
     if (!G.sealKey && G.map.sealedRoom >= 0) { G.sealKey = true; const map = G.map; map.sealDoors.forEach(([x, y]) => { map.tiles[y * map.W + x] = M().T.FLOOR; }); MA.Render.dirtyMap && MA.Render.dirtyMap(); toast("封印の鍵を手に入れた：封印区域の扉が開いた", "#e8d080"); }
     G.map.objects.push({ kind: "chest", x: e.x, y: e.y, tier: 2, done: false, dyn: 1 });
@@ -967,12 +1014,12 @@
       G.hzT = 0;
       /* 毒沼：最大HPの約3%/秒。HP は 1 までしか減らない（毒だけでは倒れない。敵に囲まれると危ない）
          ★ 前は固定の 3＋倍率×2（約10/秒）で、HP の低いキャラは毒沼の多い部屋で戦うだけで削りきられていた（早回しの実測） */
-      if (t === T.POISON) { if (P.hp > 1) { const pd = Math.min(Math.max(1, P.st.hp * 0.015 + G.levelMul), P.hp - 1); P.hp -= pd; G.stats.taken += pd; P.hurtT = 0.15; pop(P.x, P.y - 24, "毒 -" + Math.round(pd), "#c070ff"); } }
-      if (t === T.LAVA) { hurtPlayer(6 + G.levelMul * 3, null); }
-      if (t === T.RUNE && Math.floor(G.t / 3) % 2 === 0) hurtPlayer(4 + G.levelMul * 2, null);
+      if (t === T.POISON) { if (P.hp > 1) { const pd = Math.min(Math.max(1, P.st.hp * 0.015 + G.hz), P.hp - 1); P.hp -= pd; G.stats.taken += pd; P.hurtT = 0.15; pop(P.x, P.y - 24, "毒 -" + Math.round(pd), "#c070ff"); } }
+      if (t === T.LAVA) { hurtPlayer(6 + G.hz * 3, null); }
+      if (t === T.RUNE && Math.floor(G.t / 3) % 2 === 0) hurtPlayer(4 + G.hz * 2, null);
       if (t === T.TAINT) { G.corruption = Math.min(100, G.corruption + 9); }
       else G.corruption = Math.max(0, G.corruption - 1.5);
-      if (G.corruption >= 100) { hurtPlayer(5 + G.levelMul * 3, null); P.mp = Math.max(0, P.mp - 10); }
+      if (G.corruption >= 100) { hurtPlayer(5 + G.hz * 3, null); P.mp = Math.max(0, P.mp - 10); }
     }
     /* 奈落：視界が狭い／暗黒領域・暗黒の階 */
     const darkBase = G.biome === "abyss" || G.muts.dark || (G.rule && G.rule.dark);
@@ -981,20 +1028,20 @@
     /* 氷柱（氷窟）：ときどき近くに影 → 落下 */
     if (G.biome === "ice" && !G.bossActive) {
       G.iceT = (G.iceT || 4) - dt;
-      if (G.iceT <= 0) { G.iceT = 3 + G.rnd() * 3; const a = G.rnd() * TAU, d = 20 + G.rnd() * 60; const x = P.x + Math.cos(a) * d, y = P.y + Math.sin(a) * d; if (!M().solidAt(map, x, y)) telegraph({ shape: "circle", x, y, r: 14, dur: 1.1, dmg: 8 + G.levelMul * 4, col: "#7fd0ff", onFire: (o) => { if (inShape(o, P.x, P.y, P.r)) hurtPlayer(o.dmg, null); fx({ type: "icicle", x: o.x, y: o.y, t: 0, dur: 0.4 }); } }); }
+      if (G.iceT <= 0) { G.iceT = 3 + G.rnd() * 3; const a = G.rnd() * TAU, d = 20 + G.rnd() * 60; const x = P.x + Math.cos(a) * d, y = P.y + Math.sin(a) * d; if (!M().solidAt(map, x, y)) telegraph({ shape: "circle", x, y, r: 14, dur: 1.1, dmg: 8 + G.hz * 4, col: "#7fd0ff", onFire: (o) => { if (inShape(o, P.x, P.y, P.r)) hurtPlayer(o.dmg, null); fx({ type: "icicle", x: o.x, y: o.y, t: 0, dur: 0.4 }); } }); }
     }
     /* 噴火口（熔岩城） */
     if (G.biome === "lava") map.objects.forEach((o) => {
       if (o.kind !== "vent") return;
       o.cd = (o.cd == null ? 2 + G.rnd() * 4 : o.cd) - dt;
-      if (o.cd <= 0) { o.cd = 5 + G.rnd() * 3; if (dist2(o.x, o.y, P.x, P.y) < 220 * 220) telegraph({ shape: "circle", x: o.x, y: o.y, r: 34, dur: 1.2, dmg: 10 + G.levelMul * 4, col: "#ff7a2a" }); }
+      if (o.cd <= 0) { o.cd = 5 + G.rnd() * 3; if (dist2(o.x, o.y, P.x, P.y) < 220 * 220) telegraph({ shape: "circle", x: o.x, y: o.y, r: 34, dur: 1.2, dmg: 10 + G.hz * 4, col: "#ff7a2a" }); }
     });
     /* 重力の渦（星天） */
     G.pull = null;
     if (G.biome === "sky") map.objects.forEach((o) => {
       if (o.kind !== "gravity") return;
       const d = Math.sqrt(dist2(o.x, o.y, P.x, P.y));
-      if (d < 110 && d > 4) { const k = (1 - d / 110) * 70; G.pull = { x: (o.x - P.x) / d * k, y: (o.y - P.y) / d * k }; if (d < 14) { hurtPlayer(5 + G.levelMul * 2, null); } }
+      if (d < 110 && d > 4) { const k = (1 - d / 110) * 70; G.pull = { x: (o.x - P.x) / d * k, y: (o.y - P.y) / d * k }; if (d < 14) { hurtPlayer(5 + G.hz * 2, null); } }
     });
     /* 時間制限区域（星天）：入ったら時間内に星の欠片をとる */
     const rid = M().roomOf(map, P.x, P.y);
@@ -1005,20 +1052,20 @@
     if (G.timedRoom && G.timedRoom.left > 0) {
       G.timedRoom.left -= dt;
       if (G.timedRoom.left <= 0 && !G.timedRoom.ok) {
-        toast("時間切れ！ 星の番人があらわれた（倒すと鍵）", "#ff5a6a");
+        toast("時間切れ！ 星の番人があらわれた（倒すと宝箱）", "#ff5a6a");
         const r = G.timedRoom.room;
         const o = map.objects.find((x) => x.kind === "starShard" && x.room === r.id); if (o) o.done = true;
         const guards = [];
         for (let k = 0; k < 2; k++) { const gd = spawnEnemy(G.dun ? G.dun.elite : "starKnight", r.cx * 16 + 8 + (k ? 30 : -30), r.cy * 16 + 8, { room: r.id }); if (gd) guards.push(gd); }
-        guards.forEach((gd) => { gd.onDeath = () => { if (guards.every((x) => x.dead) && !G.timedRoom.keyGiven) { G.timedRoom.keyGiven = true; giveKey("星の番人を倒した"); } }; });
+        guards.forEach((gd) => { gd.onDeath = () => { if (guards.every((x) => x.dead) && !G.timedRoom.keyGiven) { G.timedRoom.keyGiven = true; map.objects.push({ kind: "chest", x: gd.x, y: gd.y, tier: 1, done: false, dyn: 1 }); toast("星の番人を倒した：宝箱があらわれた", "#ffe86a"); } }; });
       }
     }
     /* 試練（魔法陣） */
     if (G.trial) {
       G.trial.left -= dt;
       G.trial.spawnT = (G.trial.spawnT || 0) - dt;
-      if (G.trial.spawnT <= 0 && G.trial.left > 3) { G.trial.spawnT = 2.2; const o = G.trial.o; const list = G.mode === "abyss" ? ["slime"] : G.dun.enemies; for (let k = 0; k < 4; k++) { const a = G.rnd() * TAU; const x = o.x + Math.cos(a) * 100, y = o.y + Math.sin(a) * 70; if (!M().solidAt(map, x, y)) spawnEnemy(list[(G.rnd() * list.length) | 0], x, y); } }
-      if (G.trial.left <= 0) { const o = G.trial.o; G.trial = null; toast("試練を乗りこえた！", "#c27bff"); giveKey("試練"); map.objects.push({ kind: "chest", x: o.x, y: o.y + 18, tier: 2, done: false, dyn: 1 }); }
+      if (G.trial.spawnT <= 0 && G.trial.left > 3) { G.trial.spawnT = 2.2; const list = G.mode === "abyss" ? ["slime"] : G.dun.enemies; for (let k = 0; k < 4; k++) { const p = trialSpot(G.trial.room); if (p) spawnEnemy(list[(G.rnd() * list.length) | 0], p.x, p.y, { room: G.trial.room.id }); } }
+      if (G.trial.left <= 0) { const o = G.trial.o; unsealRoom(G.trial.doors); G.trial = null; MA.Audio.sfx("key"); toast("試練を乗りこえた！ 出口が開き、レアな宝箱があらわれた", "#c27bff"); map.objects.push({ kind: "chest", x: o.x, y: o.y + 18, tier: 2, done: false, dyn: 1 }); }
     }
     /* 宝物庫の番人（入ると番人があらわれ、倒すまで宝箱は開かない） */
     if (rid >= 0) {
@@ -1035,7 +1082,7 @@
       if (room.type === "vault" && room.guards && !room.vaultDone && room.guards.every((g) => !g || g.dead)) {
         room.vaultDone = true;
         map.objects.forEach((o) => { if (o.room === rid && o.kind === "chest") o.locked = false; });
-        giveKey("宝物庫を守りぬいた");
+        MA.Audio.sfx("key"); toast("宝物庫を守りぬいた：宝箱の封印がとけた", "#ffd84a");
       }
       /* 部屋に入ったら待ち伏せ（通常戦闘区域） */
       if (room.type === "battle" && !room.ambush && G.mode === "dungeon") {
@@ -1045,12 +1092,18 @@
         const n = Math.min(12, 3 + Math.floor(G.rnd() * 4) + Math.min(4, room.dist || 0) + Math.floor(G.t / 120));
         for (let k = 0; k < n; k++) { const x = (room.x + 1 + G.rnd() * (room.w - 2)) * 16, y = (room.y + 1 + G.rnd() * (room.h - 2)) * 16; if (dist2(x, y, P.x, P.y) < 60 * 60 || M().solidAt(map, x, y)) continue; spawnEnemy(list[(G.rnd() * list.length) | 0], x, y, { room: rid }); }
       }
-      /* 中ボスの部屋 */
-      if (room.type === "mid" && !G.mid && G.mode === "dungeon") {
-        G.mid = spawnEnemy(G.dun.mid, room.cx * 16 + 8, room.cy * 16 + 8, { mid: true, hpMul: 2.2, atkMul: 1.2, scale: 1.3, room: rid });
-        G.mid.name = "中ボス " + G.mid.d.nm;
-        toast("中ボス「" + G.mid.d.nm + "」があらわれた！", "#ff8a3d");
-        MA.Audio.sfx("roar");
+      /* 中ボスの部屋（★★ 2026-10-12 3部屋。奥の中ボスほど体力が多く、取り巻きを連れている。倒すと星脈の鍵） */
+      if (room.type === "mid" && !room.midSpawned && !room.midDone && G.mode === "dungeon") {
+        room.midSpawned = true;
+        const mi = room.midIdx || 0;
+        const e = spawnEnemy(G.dun.mid, room.cx * 16 + 8, room.cy * 16 + 8, { mid: true, hpMul: [2.2, 2.6, 3.0][mi] || 3.0, atkMul: [1.2, 1.28, 1.36][mi] || 1.36, scale: 1.3, room: rid });
+        if (e) {
+          e.name = "中ボス " + e.d.nm; e.midIdx = mi; G.mid = e;
+          const list = G.dun.enemies;
+          for (let k = 0; k < mi * 3; k++) { const a = k / Math.max(1, mi * 3) * TAU; const x = e.x + Math.cos(a) * 46, y = e.y + Math.sin(a) * 34; if (!M().solidAt(map, x, y)) spawnEnemy(list[k % list.length], x, y, { room: rid }); }
+          toast("中ボス「" + e.d.nm + "」があらわれた！（" + (mi + 1) + "体目・倒すと星脈の鍵）", "#ff8a3d");
+          MA.Audio.sfx("roar");
+        }
       }
       /* ボスの部屋 */
       if (room.type === "boss" && !G.bossActive && !G.bossDone && G.bossOpen && G.mode === "dungeon") MA.Boss.begin(room);
@@ -1263,7 +1316,7 @@
     if (G.bossDone) G.objective = "脱出地点へ向かおう（ボスの部屋の光）";
     else if (G.bossActive) G.objective = G.dun ? D().BOSSES[G.dun.boss].nm + "を倒せ" : "ボスを倒せ";
     else if (G.bossOpen) G.objective = "最深部のボスの部屋へ";
-    else G.objective = "星脈の鍵を集めよう（" + G.keys + "/" + G.keysNeed + "）";
+    else G.objective = "中ボスを倒して星脈の鍵を集めよう（" + G.keys + "/" + G.keysNeed + "）";
   }
 
   /* ══════════════════════════════════════════════════════════════
@@ -1302,13 +1355,13 @@
   function snapshot() {
     const P = G.P;
     return {
-      v: 1, at: Date.now(), mode: G.mode, dun: G.dun && G.dun.id, cid: G.cid, seed: G.seed, floor: G.floor, muts: G.mutList, trial: G.cfg.trial || null, diff: G.diff,
+      v: 2, at: Date.now(), mode: G.mode, dun: G.dun && G.dun.id, cid: G.cid, seed: G.seed, floor: G.floor, muts: G.mutList, trial: G.cfg.trial || null, diff: G.diff,
       t: G.t, keys: G.keys, sealKey: G.sealKey, bossOpen: G.bossOpen, midDone: !!G.midDone,
       stats: G.stats,
-      P: { lv: P.lv, exp: P.exp, hp: P.hp, mp: P.mp, weapons: P.weapons.map((w) => ({ k: w.k, lv: w.lv, el: w.el, evo: w.evo || null })), magics: P.magics.map((m) => ({ k: m.k, lv: m.lv })), passives: P.passives, passiveMul: P.passiveMul || {}, ultG: P.ultG, rerolls: P.rerolls, banish: P.banish, potion: P.potion, elixir: P.elixir, revUsed: !!P.revUsed, altarAtk: P.altarAtk || 0, altarDef: P.altarDef || 0, x: P.x, y: P.y },
+      P: { lv: P.lv, exp: P.exp, hp: P.hp, mp: P.mp, weapons: P.weapons.map((w) => ({ k: w.k, lv: w.lv, el: w.el, evo: w.evo || null })), magics: P.magics.map((m) => ({ k: m.k, lv: m.lv })), passives: P.passives, passiveMul: P.passiveMul || {}, ultG: P.ultG, techG: P.techG || 0, rerolls: P.rerolls, banish: P.banish, potion: P.potion, elixir: P.elixir, revUsed: !!P.revUsed, altarAtk: P.altarAtk || 0, altarDef: P.altarDef || 0, x: P.x, y: P.y },
       objs: G.map.objects.map((o) => (o.dyn ? null : (o.done ? 1 : 0))),
       dyn: G.map.objects.filter((o) => o.dyn && !o.done).map((o) => ({ kind: o.kind, x: o.x, y: o.y, tier: o.tier })),
-      rooms: G.map.rooms.map((r) => (r.seen ? 1 : 0) | (r.ambush ? 2 : 0) | (r.vaultDone ? 4 : 0) | (r.guardSpawned ? 8 : 0)),
+      rooms: G.map.rooms.map((r) => (r.seen ? 1 : 0) | (r.ambush ? 2 : 0) | (r.vaultDone ? 4 : 0) | (r.guardSpawned ? 8 : 0) | (r.midDone ? 16 : 0)),
       seen: Array.from(G.map.seen.reduce((acc, v, i) => { if (v) acc.push(i); return acc; }, [])),
       tiles: diffTiles(),
     };
@@ -1336,7 +1389,7 @@
     G.t = s.t || 0; G.keys = s.keys || 0; G.sealKey = !!s.sealKey; G.midDone = !!s.midDone;
     G.stats = Object.assign(G.stats, s.stats || {});
     const p = s.P || {};
-    ["lv", "exp", "ultG", "rerolls", "banish", "potion", "elixir", "altarAtk", "altarDef"].forEach((k) => { if (p[k] != null) P[k] = p[k]; });
+    ["lv", "exp", "ultG", "techG", "rerolls", "banish", "potion", "elixir", "altarAtk", "altarDef"].forEach((k) => { if (p[k] != null) P[k] = p[k]; });
     P.need = MA.Stats.expNeed(P.lv);
     P.revUsed = !!p.revUsed;
     /* ★★ 2026-10-05 前の属性名（風・雷・影）で控えた探索も再開できるように読みかえる */
@@ -1349,20 +1402,23 @@
     P.hp = Math.min(P.st.hp, p.hp || P.st.hp); P.mp = p.mp || P.st.mmp;
     if (p.x) { P.x = p.x; P.y = p.y; }
     const map = G.map;
+    /* ★★ 2026-10-12 前の版（v1）の控えは地図の作り方がちがう（中ボス1体）→ 地図の進み具合は戻さない（レベル・武器は戻す） */
+    if (s.v !== 2) { G.keys = 0; G.midDone = false; G.sealKey = false; s = Object.assign({}, s, { objs: [], dyn: [], rooms: [], seen: [], tiles: [] }); toast("更新のため、地図は新しく作り直しました", "#ffd84a"); }
     (s.objs || []).forEach((v, i) => { if (v && map.objects[i]) map.objects[i].done = true; });
     (s.dyn || []).forEach((o) => map.objects.push({ kind: o.kind, x: o.x, y: o.y, tier: o.tier, done: false, dyn: 1 }));
-    (s.rooms || []).forEach((v, i) => { const r = map.rooms[i]; if (!r) return; r.seen = !!(v & 1); r.ambush = !!(v & 2); r.vaultDone = !!(v & 4); r.guardSpawned = !!(v & 8); });
+    (s.rooms || []).forEach((v, i) => { const r = map.rooms[i]; if (!r) return; r.seen = !!(v & 1); r.ambush = !!(v & 2); r.vaultDone = !!(v & 4); r.guardSpawned = !!(v & 8); r.midDone = !!(v & 16); });
     (s.seen || []).forEach((i) => { map.seen[i] = 1; });
     G.orig = map.tiles.slice();
     (s.tiles || []).forEach((i) => { map.tiles[i] = M().T.FLOOR; });
-    if (G.midDone) G.mid = { dead: true };
+    G.midN = map.rooms.filter((r) => r.type === "mid" && r.midDone).length;
+    G.midDone = G.midN >= G.keysNeed;
     if (G.keys >= G.keysNeed) { G.bossOpen = true; map.bossDoors.forEach(([x, y]) => { map.tiles[y * map.W + x] = M().T.FLOOR; }); }
     if (G.sealKey) map.sealDoors.forEach(([x, y]) => { map.tiles[y * map.W + x] = M().T.FLOOR; });
     MA.Render.dirtyMap && MA.Render.dirtyMap();
   }
 
   MA.E = {
-    start, stop, pause, resume, recompute, afterCard, eventChoice, endRun, interact, dash,
+    start, stop, pause, resume, recompute, afterCard, eventChoice, endRun, interact,
     pathDir, canSee, tick,   /* tick：調整用の早回し（ふだんはループからだけ呼ぶ） */
     spawnEnemy, damageEnemy, hurtPlayer, heal, killEnemy, chainFrom, burstAround,
     ebullet, pbullet, telegraph, inShape, zone, fx, num, pop, toast, ach, updateObjective, openStairs, giveKey,

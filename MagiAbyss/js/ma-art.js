@@ -180,6 +180,32 @@
     rect(g, 27, 36, 4, 3, "#ffe06a"); rect(g, 34, 36, 4, 3, "#ffe06a"); rect(g, 28, 44, 9, 3, "#2a1a0e");
     for (let i = 0; i < 5; i++) rect(g, 20 + i * 6, 56, 4, 8, "#4a321c");
   }, ["#6b4a2a", "#4a321c", "#3f8a34", "#2f6a28", "#4fa040", "#7fd060", "#ffe06a", "#2a1a0e"]);
+  /* ★★ 2026-10-12b 色ちがいのボス（第7〜第9迷宮）：もとの絵の色相・彩度・明るさを変える。白い点滅の絵はもとのまま */
+  function recolor(baseKey, hue, sat, lit) {
+    return () => {
+      const s = ART[baseKey]();
+      const frames = s.frames.map((c) => {
+        const o = P.mkCanvas(c.width, c.height), g = o.getContext("2d");
+        g.drawImage(c, 0, 0);
+        const im = g.getImageData(0, 0, c.width, c.height), d = im.data;
+        for (let i = 0; i < d.length; i += 4) {
+          if (!d[i + 3]) continue;
+          let r = d[i] / 255, gg = d[i + 1] / 255, b = d[i + 2] / 255;
+          const mx = Math.max(r, gg, b), mn = Math.min(r, gg, b), l = (mx + mn) / 2;
+          let h = 0, sv = 0;
+          if (mx !== mn) { const dd = mx - mn; sv = l > 0.5 ? dd / (2 - mx - mn) : dd / (mx + mn); h = mx === r ? (gg - b) / dd + (gg < b ? 6 : 0) : mx === gg ? (b - r) / dd + 2 : (r - gg) / dd + 4; h /= 6; }
+          if (sv < 0.08) continue;   /* 白・黒・灰色（目・ふち）はそのまま */
+          h = (h + hue + 1) % 1; sv = Math.min(1, sv * sat); const l2 = Math.max(0, Math.min(1, l * lit));
+          const q = l2 < 0.5 ? l2 * (1 + sv) : l2 + sv - l2 * sv, p = 2 * l2 - q;
+          const f2 = (t) => { t = (t + 1) % 1; return t < 1 / 6 ? p + (q - p) * 6 * t : t < 1 / 2 ? q : t < 2 / 3 ? p + (q - p) * (2 / 3 - t) * 6 : p; };
+          d[i] = Math.round(f2(h + 1 / 3) * 255); d[i + 1] = Math.round(f2(h) * 255); d[i + 2] = Math.round(f2(h - 1 / 3) * 255);
+        }
+        g.putImageData(im, 0, 0);
+        return o;
+      });
+      return Object.assign({}, s, { frames });
+    };
+  }
   ART.bQueen = () => make(46, 58, (g) => {
     poly(g, [[23, 18], [40, 56], [6, 56]], "#7fc8ff"); poly(g, [[23, 18], [33, 56], [13, 56]], "#bfe8ff");
     rect(g, 17, 16, 12, 12, "#9ad8ff"); circ(g, 23, 11, 6, "#f0f6ff"); ell(g, 23, 8, 8, 4, "#e8f6ff");
@@ -568,5 +594,8 @@
     }
   }
 
+  ART.bTreeEx = recolor("bTree", 0.62, 1.15, 0.92);     /* 紅月の守護者：緑→紅紫 */
+  ART.bTitanEx = recolor("bTitan", 0.5, 1.0, 1.05);     /* 氷炎の巨神：赤→青 */
+  ART.bDragonEx = recolor("bDragon", 0.62, 1.1, 0.8);   /* 星喰いの竜：金→紫 */
   MA.Art = { sprite, tiles, deco, icon, iconHTML, BIOME, ART, ICON, devSheet, rng };
 })();

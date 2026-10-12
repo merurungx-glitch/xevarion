@@ -81,8 +81,12 @@
   function applyDeviceClasses() {
     const b = document.body;
     b.classList.toggle("touchdev", isTouch());
+    /* ★★ 2026-10-12 指で遊ぶ端末は通常攻撃がいつも自動（攻撃ボタンなし） */
+    MA.Input.touchDev = isTouch();
     b.classList.toggle("phone", isPhone());
     b.classList.toggle("stick-right", MA.Save.S.set.stickSide === "right");
+    /* ★★ 2026-10-12b スティックは標準で左下に固定 */
+    b.classList.toggle("stick-fixed", MA.Save.S.set.stickMode !== "float");
     const t = MA.Save.S.set.touch || {};
     b.style.setProperty("--tbs", String(t.size || 1));
     b.style.setProperty("--tba", String(t.alpha == null ? 0.9 : t.alpha));

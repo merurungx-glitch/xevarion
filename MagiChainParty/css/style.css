@@ -50,6 +50,27 @@ body{
 .screen.active{display:flex;}
 .hidden{display:none !important;}
 
+/* ══ ★★ 2026-10-13 ご指定「特に iPhone・iPad で、下バーのあたりに画面の下とのあいだの空白がある」══
+   真因：iPhone・iPad のアプリ表示（ホーム画面から開く）では、position:fixed の板（.screen・下のバー .su-sticky・
+   モーダル）が<b>画面より短い箱</b>の下端で描画ごと切られる（実測 画面 852 / 箱 793）。箱の外（下の帯）に塗れるのは
+   html の背景だけ＝下バーと画面の下のあいだに色のちがう帯が残っていた。余白も「箱の不足ぶん」を引いた値になっていた。
+   → MagiRail・MagiChemLex と同じく、xeva-safebottom.js が付ける <b>html.xv-full</b> のあいだは
+     ・html/body を本当の画面の高さ（--xv-fullh・箱につられて動かない）にして、画面の板を absolute（文書の中身＝切られない）に
+     ・下のバーは画面（スクロールする板）の中で sticky にして下端に置く（中身が短いときも、flex で下端へ押しやる）
+     ・余白は env() そのまま（ホームバーぶん。箱の不足ぶんは引かない）
+     ・文書のスクロールは 0 に留める（game.js の cpPinDoc）
+   ★ PC・Android・Safari のふつうの表示（xv-full が付かない）は今までどおり。
+   ★ --xv-safeb・--app-vh は JS が html の style に直接入れるので、ここは !important で上書きする。 */
+html.xv-full{--app-vh:var(--xv-fullh)!important;--xv-safeb:env(safe-area-inset-bottom,0px)!important;--xv-safebar:env(safe-area-inset-bottom,0px)}
+html.xv-full,html.xv-full body{height:var(--xv-fullh,100%);}
+html.xv-full .screen{position:absolute;top:0;bottom:auto;height:var(--xv-fullh);}
+html.xv-full #setup.active,html.xv-full #online.active{display:flex;flex-direction:column;padding-bottom:0;}
+html.xv-full #setup .setup-wrap,html.xv-full #online .setup-wrap{flex:1 0 auto;}
+html.xv-full .su-sticky{position:sticky;left:auto;right:auto;bottom:0;flex:none;margin:0 -16px;
+  padding:14px 16px calc(14px + env(safe-area-inset-bottom,0px));}
+html.xv-full .modal{position:absolute;top:0;bottom:auto;height:var(--xv-fullh);}
+html.xv-full #xevaSplash{position:absolute!important;top:0!important;bottom:auto!important;height:var(--xv-fullh)!important;padding-bottom:0!important;}
+
 /* ================= セットアップ（カード分割の新デザイン） ================= */
 #setup,#online{
   overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;
@@ -181,6 +202,36 @@ body{
 #table{position:relative;flex:1;width:100%;display:flex;align-items:center;justify-content:center;overflow:hidden;
   padding:0 env(safe-area-inset-right) var(--xv-safeb,env(safe-area-inset-bottom,0px)) env(safe-area-inset-left);}
 #board-area{display:flex;align-items:center;justify-content:center;}
+/* ★★ 2026-10-13 ご指定「下に空白があるので改善」：スマホの縦持ちでは盤（正方形・横幅で決まる）の下に大きな空白が残り、
+   逆に上のプレイヤーの札は右上のボタンと重なって窮屈だった。
+   → 縦長の画面ではプレイヤーの札を<b>下にまとめて大きめに</b>並べ、盤は右上のボタンと札のあいだのまん中に置く。
+   ★ 横長・正方形に近い画面（iPad の横持ちなど）はこれまでどおり上。 */
+.turn-banner{display:none}
+@media (orientation:portrait) and (max-aspect-ratio:3/4){
+  #game .turn-banner{order:1;display:flex;align-items:center;justify-content:center;gap:8px;flex-shrink:0;
+    padding:calc(70px + env(safe-area-inset-top)) 16px 0;font-size:20px;font-weight:900;color:var(--ink)}
+  #game .turn-banner:empty{visibility:hidden}
+  #game .turn-banner .pdot{width:18px;height:18px;border-radius:50%;background:var(--c);box-shadow:0 0 0 4px color-mix(in srgb,var(--c) 25%,transparent)}
+  #game .turn-banner b{color:var(--c);font-size:24px;max-width:60vw;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  #game .turn-banner span:last-child{font-size:16px;color:var(--muted)}
+  #game #player-bar{order:3;border-bottom:none;border-top:1.5px solid var(--line);min-height:0;
+    display:grid;grid-template-columns:repeat(auto-fit,minmax(104px,1fr));gap:8px;
+    padding:10px 12px calc(12px + var(--xv-safebar,env(safe-area-inset-bottom,0px)));
+    background:rgba(255,255,255,.82)}
+  #game #table{order:2;padding-top:8px;padding-bottom:8px}
+  /* 札は2段：名前（と CPU の印）／数（と ▶番）。前の1段だと、番の印で名前が切れていた */
+  #game .pside{position:relative;display:grid;grid-template-columns:auto 1fr auto;grid-template-areas:"dot name badge" "score score score";
+    align-items:center;column-gap:6px;row-gap:2px;padding:8px 10px;border-radius:15px;white-space:nowrap}
+  #game .pside .pdot{grid-area:dot}
+  #game .pside .pname{grid-area:name;font-size:14px;overflow:hidden;text-overflow:ellipsis;min-width:0}
+  #game .pside .pbadge{grid-area:badge}
+  #game .pside .pscore{grid-area:score;font-size:20px;line-height:1.1}
+  /* 「▶ 番」は札の右上の小さな札に（名前の幅を取らない） */
+  #game .pside .pturn{position:absolute;top:-9px;right:8px;padding:1px 7px;border-radius:99px;background:var(--c);color:#fff;font-size:10px}
+  #game .pside .pturn:empty{display:none}
+  #game .pside img.ol-av{grid-area:dot;width:22px;height:22px;border-radius:50%;object-fit:cover}
+  #game .pside:has(img.ol-av) .pdot{display:none}
+}
 
 #board{
   display:grid;gap:min(1vmin,7px);

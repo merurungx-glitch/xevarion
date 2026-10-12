@@ -421,8 +421,6 @@
       sum: "獲得XEVAの月間ランキング。", det: "月末の順位に応じて最大1,000 XEVAを配布。" },
     { id: "magiarena", nm: "MagiArena", cat: "ゲーム", href: "../MagiArena/MagiArena.html",
       sum: "1台でみんなと対戦する闘技場。2〜6人。", det: "オリジナル陣取り「TAKAGAME」、オセロ・五目並べ・神経衰弱。" },
-    { id: "magidiamond", nm: "MagiDiamond", cat: "ゲーム", href: "../MagiDiamond/index.html",
-      sum: "配球と狙いを同時公開する読み合い野球盤。", det: "2〜6人の役割分担、CPU、2台オンライン対戦。" },
     { id: "magiempire", nm: "MagiEmpire", cat: "ゲーム", href: "../MagiEmpire/MagiEmpire.html",
       sum: "1台で2〜4人の国盗り対戦。", det: "アクション版「国盗りパックマン」と陣取りの「ぐんぐん国盗り」。" },
     { id: "magiportfolio", nm: "MagiPortfolio", cat: "ツール", href: "../MagiPortfolio/MagiPortfolio.html",

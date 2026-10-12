@@ -21,8 +21,10 @@
   function atkOf(mul) { const P = G().P; return P.st.atk * mul * (P._stanceMul || 1); }
   function magOf(mul) { const P = G().P; return P.st.atk * mul * P.st.mag; }
   function skillOf(mul) { const P = G().P; return P.st.atk * mul * P.st.mag * (1 + (P.st.skill || 0)); }
-  function ultOf(mul) { const P = G().P; return P.st.atk * mul * P.st.mag * (1 + (P.st.ult || 0)); }
-  function cdOf(cd) { const P = G().P; return cd / (P.st.aspd * (P.buffs.haste ? 1 + P.buffs.haste.v : 1) * (P.buffs.fanfare ? 1 + P.buffs.fanfare.a : 1) * (P.buffs.afterdash ? 1 + P.buffs.afterdash.v : 1) * (P.buffs.dance ? 1 + P.buffs.dance.v : 1)); }
+  /* ★★ 2026-10-12 必殺技の威力を全員 ×1.2（ご指定：少し上げる。かわりにゲージのたまりを ×0.85＝ma-engine の ULT_CHG） */
+  const ULT_POW = 1.2;
+  function ultOf(mul) { const P = G().P; return P.st.atk * mul * P.st.mag * (1 + (P.st.ult || 0)) * ULT_POW; }
+  function cdOf(cd) { const P = G().P; return cd / (P.st.aspd * (P.buffs.haste ? 1 + P.buffs.haste.v : 1) * (P.buffs.fanfare ? 1 + P.buffs.fanfare.a : 1) * (P.buffs.afterdash ? 1 + P.buffs.afterdash.v : 1) * (P.buffs.dance ? 1 + P.buffs.dance.v : 1) * (P.skB ? 1 + P.skB.aspd : 1)); }
   function mcdOf(cd) { const P = G().P; return cd * (1 - P.st.cdr); }
   function aim() { return G().P.aimA; }
   function slashArc(x, y, a, r, arc, dmg, el, opt) {
@@ -371,7 +373,7 @@
     const A0 = P.C.atk;
     /* 通常攻撃（自動 or 押しているあいだ） */
     P.atkT -= dt;
-    const want = S.set.autoAtk || P.atkHeld;
+    const want = S.set.autoAtk || P.atkHeld || MA.Input.touchDev;
     /* ★★ 2026-10-05 敵が前にいなくても<b>いつも</b>出す（ご指定）。向きは input() の「ねらい」 */
     if (want && P.atkT <= 0) {
       /* 紅蓮の構え（技E）：次の何回かの通常攻撃が強くなる */
@@ -407,7 +409,7 @@
     summons(dt);
     /* バフの残り（ヒナノの翠風） */
     if (P.chainT > 0) P.chainT -= dt;
-    if (P.heat > 0 && !P.atkHeld && !S.set.autoAtk) P.heat = Math.max(0, P.heat - dt * 0.5);
+    if (P.heat > 0 && !P.atkHeld && !S.set.autoAtk && !MA.Input.touchDev) P.heat = Math.max(0, P.heat - dt * 0.5);
     if (P.wall) { P.wall.t -= dt; if (P.wall.t <= 0) P.wall = null; else { P.wall.x = P.x + Math.cos(P.wall.a) * 18; P.wall.y = P.y + Math.sin(P.wall.a) * 18; P.wall.a = aim(); } }
   }
 
@@ -597,6 +599,8 @@
     (SKILL[K.kind] || (() => {}))(P, K);
     E().pop(P.x, P.y - 26, K.nm, ec(P.C.el));
     A().sfx("skill");
+    onDash();
+    if (MA.Skills) MA.Skills.ev("skill");
   }
   /* ══════════════════════════════════════════════════════════════
      技（E）：キャラごとに1つ（data の ARTS・CHAR_KIT）。★（グレード）と凸で威力が変わる
@@ -634,7 +638,6 @@
       lineHit(sx, sy, a, Math.hypot(P.x - sx, P.y - sy) + 8, 26, skillOf(A.mul * k), P.C.el, { src: "art", kb: 10 });
       E().fx({ type: "afterimage", x: sx, y: sy, x2: P.x, y2: P.y, t: 0, dur: 0.35, col: ec(P.C.el) });
       P.iT = Math.max(P.iT, 0.45);
-      onDash();   /* ダッシュあつかい（タキナの「結髪の集中」・アズサの「円舞の余韻」がのる） */
       A_().sfx("dash");
     },
     aegis(P, A, k) {
@@ -692,6 +695,8 @@
     P.mp -= Ad.mp; P.burstCd = Ad.cd * (1 - P.st.cdr);
     (ARTF[Ad.kind] || ARTF.nova)(P, Ad, artK());
     E().pop(P.x, P.y - 26, Ad.nm, ec(P.C.el));
+    onDash();
+    if (MA.Skills) MA.Skills.ev("art");
   }
 
   /* ══════════════════════════════════════════════════════════════
@@ -852,14 +857,18 @@
     (ULT[U.kind] || (() => {}))(P, U);
     A().sfx("ult");
     G().slow = 0.25;
+    onDash();
+    if (MA.Skills) MA.Skills.ev("ult");
   }
 
-  /* ══ キャラのパッシブの入口 ══ */
+  /* ══ キャラのパッシブの入口 ══
+     ★★ 2026-10-12b ダッシュ回避を無くしたので、「技（固有技・技・秘技・必殺技）を使ったとき」に呼ぶ
+       （タキナの会心・ナツミ/アズサの攻撃速度・軌跡の共鳴は 0.7 秒の足あと） */
   function onDash() {
     const P = G().P;
     if (P.C.passive.kind === "focus") P.focus = P.C.passive.crits + (P.st.passive ? 1 : 0);
     if (P.C.passive.kind === "afterdash") P.buffs.afterdash = { t: P.C.passive.t, v: P.C.passive.aspd + (P.st.passive ? 0.15 : 0) };
-    P.dashTrail = true;
+    P.dashTrail = true; P.trailT = 0.7;
   }
   function onDashEnd() { const P = G().P; P.dashTrail = false; }
   function onHit(e, d, el, opt) {
@@ -933,6 +942,7 @@
   }
   function resUpdate(dt) {
     const P = G().P;
+    if (P.trailT > 0) { P.trailT -= dt; if (P.trailT <= 0) P.dashTrail = false; }
     P.resFx.forEach((f) => {
       if (f.t === "nova") { f.cdT -= dt; if (f.cdT <= 0) { f.cdT = f.cd; const r = f.r * P.st.area; circleHit(P.x, P.y, r, P.st.atk * f.mul, f.el, { src: "res", kb: f.pull ? 0 : 8 }); if (f.pull) E().zone({ x: P.x, y: P.y, r, dur: 1.2, dmg: P.st.atk * 0.2, el: f.el, pull: 1, quiet: 1, col: ec(f.el) }); E().fx({ type: "ring", x: P.x, y: P.y, t: 0, dur: 0.4, r, col: ec(f.el) }); } }
       if (f.t === "rain") { f.cdT -= dt; if (f.cdT <= 0) { f.cdT = f.cd; E().nearestN(P.x, P.y, 230, f.n).forEach((e) => { E().telegraph({ shape: "circle", x: e.x, y: e.y, r: 18, dur: 0.25, col: ec(f.el), onFire: (o) => { circleHit(o.x, o.y, o.r, P.st.atk * f.mul, f.el, { src: "res" }); E().fx({ type: f.el === "light" ? "lightning" : "pillar", x: o.x, y: o.y, t: 0, dur: 0.3, r: 18, col: ec(f.el) }); } }); }); } }

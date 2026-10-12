@@ -6,14 +6,14 @@
    ・オフライン中の記録は localStorage に残り、オンライン復帰時に
      xeva-cloud.js がクラウドへ反映する。
    ============================================================ */
-const VERSION = "xevynar-sw-v55";
+const VERSION = "xevynar-sw-v58";
 const CORE = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
   "./xevynar.css?v=20",
   "./xevynar-tf.js?v=10",
-  "./xevynar-kb.js?v=21",
+  "./xevynar-kb.js?v=22",
   "./xevynar-lex.js?v=17",
   "./xevynar-steps.js?v=14",
   "./xevynar-figs.js?v=17",
@@ -27,10 +27,10 @@ const CORE = [
   "./xevynar-192.png",
   "./xevynar-512.png",
   "../maintenance-gate.js?v=13",
-  "../xeva.js?v=76",
+  "../xeva.js?v=77",
   "../xeva-alive.js?v=5",
-  "../xeva-splash.js?v=13",
-  "../xeva-loading.js?v=18",
+  "../xeva-splash.js?v=14",
+  "../xeva-loading.js?v=19",
   "../XEVA.png",
   "../gem.png",
   /* ★ MagiLex の問題データ。オフラインでも「苦手問題の出題」「問題の解説」を
@@ -57,8 +57,14 @@ const CORE = [
 self.addEventListener("install", (e) => {
   e.waitUntil((async () => {
     const cache = await caches.open(VERSION);
+    /* ★★ 2026-10-13 入れかえの進み具合もホームの更新画面へ知らせる（ほかのアプリの SW とそろえた）。
+       知らせないと、更新画面が「ファイルの数」を決めるまで最大10秒待たされていた */
+    let done = 0;
+    await xevRefreshPost({ type: "xev-precache", scope: XEV_SCOPE, done: 0, total: CORE.length });
     for (const u of CORE) {
       try { await cache.add(u); } catch (err) { try { await cache.add(u); } catch (e2) {} }
+      done++;
+      await xevRefreshPost({ type: "xev-precache", scope: XEV_SCOPE, done: done, total: CORE.length });
     }
     self.skipWaiting();
   })());

@@ -6,7 +6,7 @@
      一度でも再生した曲は fetch ハンドラが自動でキャッシュする。
    ・キャッシュ済みの曲はオフライン（機内モード）でもそのまま再生できる。
    ============================================================ */
-const VERSION = "magimusic-sw-v24";
+const VERSION = "magimusic-sw-v27";
 const AUDIO_CACHE = "magimusic-audio-v1";   // 曲は本体と別キャッシュ（本体更新で消えないように）
 
 const CORE = [
@@ -15,9 +15,9 @@ const CORE = [
   "../thumbs/MagiMusic.jpg",
   "../thumbs/MagiBurst.jpg",
   "../Xevarion.png",
-  "../brand/NGX.png",
-  "../brand/MagicalFuture.png",
-  "../brand/ISHIDA Production.png",
+  "../brand/NGX_s.webp",
+  "../brand/MagicalFuture_s.webp",
+  "../brand/ISHIDA_s.webp",
   "../maintenance-gate.js?v=13",
 ];
 
@@ -37,7 +37,15 @@ const trackUrl = (f) => new URL("../music/" + encodeURIComponent(f), self.locati
 self.addEventListener("install", (e) => {
   e.waitUntil((async () => {
     const cache = await caches.open(VERSION);
-    await Promise.allSettled(CORE.map((u) => cache.add(new Request(u, { cache: "reload" }))));
+    /* ★★ 2026-10-13 入れかえの進み具合もホームの更新画面へ知らせる（ほかのアプリの SW とそろえた）。
+       知らせないと、更新画面が「ファイルの数」を決めるまで最大10秒待たされていた */
+    let done = 0;
+    await xevRefreshPost({ type: "xev-precache", scope: XEV_SCOPE, done: 0, total: CORE.length });
+    await Promise.allSettled(CORE.map(async (u) => {
+      try { await cache.add(new Request(u, { cache: "reload" })); } catch (err) {}
+      done++;
+      await xevRefreshPost({ type: "xev-precache", scope: XEV_SCOPE, done: done, total: CORE.length });
+    }));
     self.skipWaiting();
   })());
 });
