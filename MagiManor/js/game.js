@@ -1159,7 +1159,7 @@ async function runEnding(key) {
   $("#ending").classList.remove("hidden");
   $("#endCredit").innerHTML =
     `MagiManor — "The Manor Remembers Everything."<br>
-     <img src="../../brand/NGX.png" alt="NGX"><img src="../../brand/MagicalFuture.png" alt="Magical Future"><img src="../../brand/ISHIDA Production.png" alt="ISHIDA Production"><br>
+     <img src="../../brand/NGX_s.webp" alt="NGX"><img src="../../brand/MagicalFuture_s.webp" alt="Magical Future"><img src="../../brand/ISHIDA_s.webp" alt="ISHIDA Production"><br>
      PRESENTED BY NGX × MAGICAL FUTURE × ISHIDA PRODUCTION<br>XEVARION`;
   throw ABORT;
 }
