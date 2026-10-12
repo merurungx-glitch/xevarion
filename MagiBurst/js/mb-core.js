@@ -15,8 +15,8 @@
    <b>ふつうの &lt;script&gt;</b>（type="module" ではない）で読むこと。
    トップレベルの const/let はグローバルの字句環境に入るので、
    あとから読み込む MagiBurst 本体のスクリプトからそのまま見える。
-     MagiBurst : <script src="js/mb-core.js?v=135"></script>
-     gacha.html: <script src="MagiBurst/js/mb-core.js?v=135"></script>
+     MagiBurst : <script src="js/mb-core.js?v=136"></script>
+     gacha.html: <script src="MagiBurst/js/mb-core.js?v=136"></script>
 
    ── ホストが先に用意しておくもの ──
      window.MB_IMGD … 画像フォルダへの相対パス（MagiBurst は "../img/"、ポータルは "img/"）
@@ -15012,6 +15012,15 @@ PN_IDS.forEach((id) => {
 });
 /* ★★ 2026-10-09 UR の縦長の SS 絵（ガチャ演出・MagiAbyss のカットイン・治癒の祈り）。ファイルは MagiBurst/img/ss/ */
 CHARS.takina.ss = "TakinaSS.webp"; CHARS.hibana.ss = "HibanaSS.webp"; CHARS.fuki.ss = "FukiSS.webp";
+/* ★★ 2026-10-09b ほかの SS 絵（治癒の祈り・神癒の祈り・クロス「お待たせ!」のカットイン）もここに集めた。
+   キャラ詳細の「SS絵」ボタン（mb-char-detail.js）と MagiBurst の SS_ART がこの1本を見る。
+   ★ SS 絵を持つキャラを足すときは、絵を MagiBurst/img/ss/ に置いて CHARS[id].ss（または下の表）に1つ足すだけ。 */
+Object.entries({
+  kureha: "KurehaSS.webp", mikoto: "MikotoSS.webp", mei: "MeiSS.webp", hikaru: "HikaruSS.webp", miduki: "MidukiSS.webp",
+  yaju: "YajuSS.webp", mayu: "MayuSS.webp", chizuru: "ChizuruSS.webp", kokonaalpha: "KokonaAlphaSS.webp",
+  arisa: "ArisaSS.webp", kokona: "KokonaSS.webp", rezelia: "RezeliaSS.webp", ran: "RanSS.webp",
+  akatsuki: "AkatsukiSS.webp", ayane: "AyaneSS.webp", chiha: "ChihaSS.webp", himeri: "HimeriSS.webp", honoka: "HonokaSS.webp",
+}).forEach(([id, f]) => { if (CHARS[id] && !CHARS[id].ss) CHARS[id].ss = f; });
 function ssArtOf(id) { const c = CHARS[id]; return c && c.ss ? GIMGD + "ss/" + c.ss : null; }
 /* ★★ 2026-10-09 <b>MagiAbyss で使えるキャラ</b>の台帳（ここ1本）。MagiAbyss の ma-data.js（CHAR_ORDER）・
    ガチャ一覧の「MagiAbyss 対応」の絞り込み・キャラ詳細の MagiAbyss の面が同じこれを見る。

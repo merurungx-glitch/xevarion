@@ -6,13 +6,13 @@
    ・オンライン対戦・XEVA換金はアプリ側でオフライン時に無効化している
    ・取得できたリソースは随時キャッシュ更新（stale-while-revalidate）
    ============================================================ */
-const VERSION = "magiburst-sw-v188";
+const VERSION = "magiburst-sw-v191";
 const CORE = [
   "./index.html",
   "./css/mb-ui2.css?v=26",
   "./css/localplay.css?v=7",
   "./js/localplay.js?v=8",
-  "./js/mb-core.js?v=135",
+  "./js/mb-core.js?v=136",
   /* ★★ 2026-09-13 クエスト作成（ステージエディター・MB613Create26）。
      遅延読みこみだが、オフラインでも開けるようにここには入れておく。 */
   "./js/mb-create.js?v=2",
@@ -33,21 +33,21 @@ const CORE = [
   "../xeva-i18n-mb3.js?v=8",
   "../xeva-i18n-mb4.js?v=9",
   "../xeva-i18n-mb5.js?v=7",
-  "../xeva-i18n-p1.js?v=6",
+  "../xeva-i18n-p1.js?v=7",
   "../xeva-i18n-p2.js?v=6",
   "../xeva-i18n-mb6.js?v=7",
   "../xeva-i18n-p3.js?v=7",
   "../xeva-i18n-mb7.js?v=7",
-  "../xeva-i18n-p4.js?v=7",
-  "../xeva-i18n-n1.js?v=15",
+  "../xeva-i18n-p4.js?v=8",
+  "../xeva-i18n-n1.js?v=16",
   "../xeva-i18n-n2.js?v=3",
-  "../xeva.js?v=76",
+  "../xeva.js?v=77",
   "../xeva-alive.js?v=5",
-  "../xeva-loading.js?v=18",
-  "../xeva-splash.js?v=13",
+  "../xeva-loading.js?v=19",
+  "../xeva-splash.js?v=14",
   "../app-cloud.js?v=12",
-  "../xeva-keys.js?v=31",
-  "./magiburst-cloud.js?v=22",
+  "../xeva-keys.js?v=32",
+  "./magiburst-cloud.js?v=23",
   "../maintenance-gate.js?v=13",
   "../app-install-notice.js?v=9",
   "../XEVA.png",
@@ -56,9 +56,9 @@ const CORE = [
   "../stamina.png",
   /* BGM は権利確認のため一時提供停止中 → 先読みしない */
   "../thumbs/MagiBurst.jpg",
-  "../brand/NGX.png",
-  "../brand/MagicalFuture.png",
-  "../brand/ISHIDA Production.png",
+  "../brand/NGX_s.webp",
+  "../brand/MagicalFuture_s.webp",
+  "../brand/ISHIDA_s.webp",
   "img/bn_premium_s.webp",
   "img/bn_castle_s.webp",
   "img/bn_lab_s.webp",
