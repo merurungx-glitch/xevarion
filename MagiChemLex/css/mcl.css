@@ -398,7 +398,9 @@ html.xv-full #xevaSplash { position: absolute !important; top: 0 !important; bot
   .sheet.on .sh-card { transform: translate(-50%, -50%); opacity: 1; }
 }
 .sh-grab { width: 44px; height: 5px; border-radius: 99px; background: var(--line); margin: 2px auto 8px; }
-.sh-x { position: absolute; right: 12px; top: 12px; width: 36px; height: 36px; border-radius: 50%; display: grid; place-items: center; background: var(--card2); color: var(--sub); z-index: 2; }
+/* ★★ 2026-10-12b ×は sticky の高さ0の箱の中＝下へ読み進めても いつも右上に見えている */
+.sh-xw { position: sticky; top: 0; height: 0; z-index: 6; }
+.sh-x { position: absolute; right: -6px; top: 4px; width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; background: var(--card2); color: var(--sub); z-index: 2; box-shadow: var(--sh); }
 .sh-t { display: flex; align-items: center; gap: 8px; font-size: 1.2rem; font-weight: 900; margin: 6px 44px 6px 0; }
 .sh-sub { color: var(--sub); font-size: .86rem; margin: 0 0 12px; }
 .sh-warn { background: rgba(255, 176, 32, .15); color: #b26b00; border-radius: 12px; padding: 9px 12px; font-size: .84rem; font-weight: 800; margin: 0 0 10px; }
@@ -532,6 +534,8 @@ html.xv-full #xevaSplash { position: absolute !important; top: 0 !important; bot
 .fig .tx.b { font-weight: 900; font-size: 12px; }
 .fig .tx.w { fill: #fff; }
 .fig .tx.c1 { fill: var(--pri); } .fig .tx.c2 { fill: var(--acc); } .fig .tx.c3 { fill: var(--ng); }
+/* ★★ 2026-10-13 線の上に重なる注記は地の色でふちどる（線が文字をよごさない） */
+.fig .tx.hl { paint-order: stroke; stroke: var(--card); stroke-width: 3.2px; stroke-linejoin: round; }
 .fig .lb { fill: var(--ink); font-size: 12px; font-weight: 900; }
 .fig .bx { fill: var(--card2); stroke: var(--line); stroke-width: 1.5; }
 .fig .bx2 { fill: var(--card); stroke: var(--sub); stroke-width: 1.5; }
@@ -748,11 +752,12 @@ table.sum small { color: var(--mute); }
 .mascot.nav .nv-ring { position: absolute; left: 4%; right: 4%; top: 8%; aspect-ratio: 1; border-radius: 50%; padding: 3px;
   background: conic-gradient(from 200deg, #ff5f9e, #ffb23f, #ffe36b, #5fe0a8, #5fc4ff, #a678ff, #ff5f9e); box-shadow: 0 4px 12px rgba(40, 20, 90, .3); }
 .mascot.nav .nv-ring img { display: block; width: 100%; height: 100%; border-radius: 50%; object-fit: cover; object-position: 50% 18%; background: #fff; border: 2px solid #fff; box-sizing: border-box; }
-.mascot.nav .nv-ur { position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); padding: 1px 7px; border-radius: 99px; font: 900 .56rem/1.4 var(--font); letter-spacing: .06em; color: #fff;
-  background: linear-gradient(90deg, #ff5f9e, #a678ff); box-shadow: 0 2px 6px rgba(80, 30, 120, .35); }
+/* ★★ 2026-10-09b 丸い絵の下の札は「UR」ではなく<b>キャラの名前</b>（ご指定） */
+.mascot.nav .nv-nm { position: absolute; left: 50%; bottom: -2px; transform: translateX(-50%); max-width: 120%; padding: 1px 8px; border-radius: 99px; font: 900 .6rem/1.45 var(--font); letter-spacing: .04em; color: #fff;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; background: linear-gradient(90deg, #ff5f9e, #a678ff); box-shadow: 0 2px 6px rgba(80, 30, 120, .35); }
 .mascot.nav .nv-fx { position: absolute; left: -22%; top: -20%; width: 144%; height: 140%; overflow: visible; pointer-events: none; filter: drop-shadow(0 1px 2px rgba(0, 0, 0, .35)); }
 .mascot.nav.sad .nv-ring img { filter: saturate(.65) brightness(.96); }
-.fb .mascot.nav .nv-ur { display: none; }
+.fb .mascot.nav .nv-nm { display: none; }
 .hero-nv { display: block; padding: 0; border: 0; background: none; cursor: pointer; border-radius: 50%; }
 .nv-chg { display: inline-flex; align-items: center; gap: 3px; margin-top: 6px; padding: 3px 9px; border-radius: 99px; font-size: .62rem; font-weight: 900; color: #fff;
   background: rgba(255, 255, 255, .22); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .45); white-space: nowrap; }
@@ -811,6 +816,9 @@ html:not(.ready) .main { opacity: 0; }
 .seg.grp { margin: 0 0 10px; max-width: 420px; }
 .setc.g2::before { background: linear-gradient(90deg, #10b17f, #3b5bff); }
 .setc.g2.full::before { background: linear-gradient(90deg, #ffb020, #10b17f, #3b5bff); }
+/* ★★ 2026-10-09b 本番セット3 */
+.setc.g3::before { background: linear-gradient(90deg, #8e44ec, #ff6aa8); }
+.setc.g3.full::before { background: linear-gradient(90deg, #ffb020, #ff6aa8, #8e44ec); }
 .setc.g1.full::before { background: linear-gradient(90deg, #ffb020, #ff4f6d, #7b5cff); }
 /* 問題一覧：分野の行＋「しぼりこみ」 */
 .lib-bar { display: flex; align-items: flex-start; gap: 8px; }
@@ -909,12 +917,38 @@ html:not(.ready) .main { opacity: 0; }
 .gc-b small { font-size: .74rem; color: var(--sub); }
 .gc-bar { display: block; height: 6px; border-radius: 99px; background: var(--card3); overflow: hidden; }
 .gc-bar i { display: block; height: 100%; border-radius: 99px; background: var(--c); transition: width .4s; }
+/* ══ ★★ 2026-10-09b 習得率の色（未着手＝灰・習得中＝橙・完全習得＝緑）と計算の印 ══ */
+.gcard { --ps: #9aa3b8; --psS: rgba(154, 163, 184, .16); }
+.gcard.ps-mid { --ps: #f08c00; --psS: rgba(240, 140, 0, .14); }
+.gcard.ps-done { --ps: #12a86b; --psS: rgba(18, 168, 107, .15); }
+.gcard .gc-bar i { background: var(--ps); }
+.gc-pct { flex: 0 0 auto; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 58px; padding: 6px 6px 5px; border-radius: 14px; background: var(--psS); color: var(--ps); line-height: 1; }
+.gc-pct b { font-size: 1.12rem; font-weight: 900; letter-spacing: -.02em; }
+.gc-pct b small { font-size: .62rem; margin-left: 1px; }
+.gc-pct em { font-style: normal; font-size: .6rem; font-weight: 900; margin-top: 3px; white-space: nowrap; }
+.gcard.ps-new .gc-pct b { opacity: .55; }
+.gc-calc { display: inline-flex; vertical-align: -1px; margin-left: 5px; color: var(--mute); opacity: .7; }
+.gc-calc .di { width: 13px; height: 13px; }
+.gc-calc small { font-size: .62rem; font-weight: 800; margin-left: 1px; color: var(--mute); }
+.gs-lg { display: flex; flex-wrap: wrap; align-items: center; gap: 4px 12px; margin: 0 0 10px; font-size: .7rem; font-weight: 800; color: var(--sub); }
+.gs-lg span { display: inline-flex; align-items: center; gap: 4px; }
+.gs-lg .lg-new::before, .gs-lg .lg-mid::before, .gs-lg .lg-done::before { content: ""; width: 9px; height: 9px; border-radius: 50%; background: #9aa3b8; }
+.gs-lg .lg-mid::before { background: #f08c00; }
+.gs-lg .lg-done::before { background: #12a86b; }
+.gs-lg .lg-calc { color: var(--mute); }
+.gs-lg .lg-calc .di { width: 12px; height: 12px; }
+:root[data-theme="dark"] .gcard.ps-mid { --ps: #ffb347; }
+:root[data-theme="dark"] .gcard.ps-done { --ps: #4fdca0; }
 .gbd { align-self: flex-start; display: inline-flex; align-items: center; gap: 4px; margin-top: 2px; padding: 2px 9px; border-radius: 99px; font-size: .68rem; font-weight: 900; }
 .gbd .di { width: 14px; height: 14px; }
 .gbd.ok { background: rgba(255, 176, 32, .18); color: #a35b00; }
 .gbd.pass { background: var(--okS); color: var(--ok); }
 :root[data-theme="dark"] .gbd.ok { color: #ffcf6a; }
 .back { display: inline-flex; align-items: center; gap: 2px; margin: 2px 0 8px; padding: 6px 12px 6px 6px; border-radius: 99px; background: var(--card2); color: var(--sub); font-weight: 800; font-size: .84rem; }
+/* ★★ 2026-10-12b 戻るボタンは下へ読み進めても上に出したまま */
+.backbar { position: sticky; top: -6px; z-index: 5; margin: -6px -16px 4px; padding: 6px 16px 2px; background: linear-gradient(var(--bg) 70%, transparent); pointer-events: none; }
+.backbar .back { pointer-events: auto; margin: 0 0 6px; box-shadow: var(--sh); background: var(--card); }
+@media (min-width: 900px) { .backbar { top: -10px; margin: -10px -28px 4px; padding: 10px 28px 2px; } }
 .back .di { width: 18px; height: 18px; }
 .gh { display: flex; align-items: center; gap: 14px; padding: 16px; border-radius: 22px; background: linear-gradient(120deg, color-mix(in srgb, var(--c) 16%, var(--card)), var(--card) 75%); box-shadow: var(--sh); margin-bottom: 12px; }
 .gh .ring .rg-fg { stroke: var(--c); }
@@ -954,6 +988,18 @@ html:not(.ready) .main { opacity: 0; }
 .pad-t.hand.on { background: var(--priS); color: var(--pri); }
 .pad-cv.hand { cursor: grab; }
 .pad-cv.panning { cursor: grabbing; }
+/* ★★ 2026-10-12 メモを広く（ご指定）：ふだんの高さを大きく。横に広い画面（PC・iPad 横）は問題の右に縦いっぱい */
+.play.pad-on .pad { height: var(--padH, min(58vh, 600px)); }
+@media (min-width: 900px) { .play.pad-on .pad { height: var(--padH, min(60vh, 700px)); } }
+.play.pad-full .pad { height: auto; }
+@media (min-width: 1100px) and (min-height: 560px) {
+  .play.pad-on:not(.pad-full) { grid-template-columns: minmax(0, 1fr) minmax(440px, 50%); grid-template-rows: auto minmax(0, 1fr) auto; }
+  .play.pad-on:not(.pad-full) .pl-top { grid-column: 1 / -1; grid-row: 1; }
+  .play.pad-on:not(.pad-full) .pl-body { grid-column: 1; grid-row: 2; }
+  .play.pad-on:not(.pad-full) .pad { grid-column: 2; grid-row: 2; height: auto !important; border-top: 0; border-left: 1px solid var(--line); box-shadow: -8px 0 26px rgba(40, 60, 150, .08); }
+  .play.pad-on:not(.pad-full) .pad-grip { display: none; }
+  .play.pad-on:not(.pad-full) .pl-bot { grid-column: 1 / -1; grid-row: 3; }
+}
 /* スマホでは道具の文字を隠して2行に収める（全部消すの確認の文字だけは出す） */
 @media (max-width: 460px) {
   .pad-tools { gap: 5px; }
@@ -1024,3 +1070,80 @@ html:not(.ready) .main { opacity: 0; }
 @supports not selector(::-webkit-scrollbar) {
   * { scrollbar-width: thin; scrollbar-color: var(--sb-ff) transparent; }
 }
+
+/* ★★ 2026-10-12 習得まで（控えめ）・習得までの流れ・セットのリセット */
+.qeta { font-size: .62rem; font-weight: 800; color: var(--mute); white-space: nowrap; margin-right: 4px; opacity: .85; }
+.st-ok .qeta { color: color-mix(in srgb, var(--gold) 70%, var(--mute)); }
+.mexp { margin: 0 2px 10px; border-radius: 14px; background: var(--card2); box-shadow: inset 0 0 0 1.5px var(--line); font-size: .8rem; color: var(--sub); }
+.mexp > summary { display: flex; align-items: center; gap: 6px; padding: 9px 12px; cursor: pointer; font-weight: 800; list-style: none; }
+.mexp > summary::-webkit-details-marker { display: none; }
+.mexp > summary .di { width: 16px; height: 16px; color: var(--pri2); }
+.mexp[open] > summary { border-bottom: 1px solid var(--line); }
+.mexp .mh-l, .mexp .mh-u { margin: 8px 12px 10px 28px; padding: 0; line-height: 1.65; }
+.mexp.open { background: transparent; box-shadow: none; }
+.mexp.open .mh-l, .mexp.open .mh-u { margin: 4px 4px 10px 22px; }
+.mexp .mh-l li { margin-bottom: 4px; }
+.mexp .mh-l small { display: block; color: var(--mute); font-size: .72rem; }
+.mexp .mh-u li { margin-bottom: 3px; font-size: .76rem; }
+.mh-ok { color: #d08a00; font-weight: 900; }
+.mh-mas { color: var(--ok); font-weight: 900; }
+.gs-lg .lg-help { display: inline-flex; align-items: center; gap: 3px; margin-left: auto; padding: 2px 8px; border-radius: 99px; font-size: .68rem; font-weight: 800; color: var(--pri2); background: color-mix(in srgb, var(--pri2) 9%, transparent); }
+.gs-lg .lg-help .di { width: 12px; height: 12px; }
+.mode-b .mi.f { color: #12a86b; background: color-mix(in srgb, #12a86b 14%, var(--card)); }
+.g-rst { display: flex; flex-direction: column; align-items: center; gap: 3px; margin: 18px 0 8px; }
+.g-rst.sh { margin: 14px 0 0; }
+.g-reset { display: inline-flex; align-items: center; gap: 5px; padding: 7px 14px; border-radius: 99px; font-size: .76rem; font-weight: 800; color: var(--mute); background: transparent; box-shadow: inset 0 0 0 1.5px var(--line); }
+.g-reset .di { width: 15px; height: 15px; }
+.g-reset:hover { color: var(--ng); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--ng) 40%, transparent); }
+.g-rst small { font-size: .66rem; color: var(--mute); }
+.rst-l { margin: 4px 0 14px 20px; padding: 0; font-size: .84rem; line-height: 1.7; color: var(--sub); }
+.rst-b { display: flex; flex-direction: column; gap: 8px; }
+
+/* ★★ 2026-10-12 標準セット（マーク式）の色・図のクラス（mcl-fig2.js） */
+.setc.g4::before { background: linear-gradient(90deg, #e64980, #ff9f43); }
+.setc.g4.full::before { background: linear-gradient(90deg, #ffb020, #ff9f43, #e64980); }
+.setc.g5::before { background: linear-gradient(90deg, #b0661e, #f0b429); }
+.setc.g5.full::before { background: linear-gradient(90deg, #ffb020, #f0b429, #b0661e); }
+/* ★★ 2026-10-12c 標準セット3＝緑 */
+.setc.g6::before { background: linear-gradient(90deg, #1f9d6b, #7bd389); }
+.setc.g6.full::before { background: linear-gradient(90deg, #ffb020, #7bd389, #1f9d6b); }
+/* ★★ 2026-10-13 標準セット4＝朱 */
+.setc.g7::before { background: linear-gradient(90deg, #e8590c, #ffa94d); }
+.setc.g7.full::before { background: linear-gradient(90deg, #ffb020, #ffa94d, #e8590c); }
+.seg.gk button { font-size: .8rem; }
+.fig .gl { stroke: var(--line); stroke-width: .6; }
+.fig .gm { stroke: var(--mute); stroke-width: .9; opacity: .55; }
+.fig .ls2 { fill: none; stroke: var(--acc); stroke-width: 3; stroke-linecap: round; stroke-linejoin: round; }
+.fig .ldd { fill: none; stroke: var(--ok); stroke-width: 2.6; stroke-dasharray: 9 4 2 4; stroke-linecap: round; }
+.fig .bar { fill: rgba(59, 91, 255, .22); stroke: var(--pri); stroke-width: 1.2; }
+.fig .ptg { fill: var(--ok); }
+.fig .ptw { fill: var(--card); stroke: var(--ink); stroke-width: 1.5; }
+
+/* ══ ★★ 2026-10-12b 解説のシートで前後の問題へめくる・解く画面のめくり・関連問題タブの本番/標準 ══ */
+.dt-nav { position: sticky; top: 0; z-index: 5; display: flex; align-items: center; gap: 8px; margin: -8px -18px 10px; padding: 8px 56px 8px 12px; background: var(--card); border-bottom: 1px solid var(--line); }
+.dt-nav b { font-size: .95rem; font-weight: 900; min-width: 56px; text-align: center; }
+.dt-nav b small { color: var(--mute); font-size: .74rem; }
+.dtn { display: inline-flex; align-items: center; gap: 2px; padding: 6px 10px; border-radius: 99px; background: var(--card2); color: var(--pri); font-weight: 800; font-size: .8rem; }
+.dtn:disabled { opacity: .35; }
+.dtn .di { width: 16px; height: 16px; }
+.dt-nextbig { display: flex; align-items: center; justify-content: center; gap: 4px; width: 100%; margin-top: 10px; padding: 11px; border-radius: 14px; background: var(--card2); color: var(--pri); font-weight: 900; }
+.dt-nextbig .di { width: 18px; height: 18px; }
+.sh-card.flipL > :not(.sh-xw):not(.sh-grab) { animation: dtFlipL .26s ease-out; }
+.sh-card.flipR > :not(.sh-xw):not(.sh-grab) { animation: dtFlipR .26s ease-out; }
+@keyframes dtFlipL { from { transform: translateX(36px); opacity: 0; } to { transform: none; opacity: 1; } }
+@keyframes dtFlipR { from { transform: translateX(-36px); opacity: 0; } to { transform: none; opacity: 1; } }
+.pl-flip { display: inline-flex; align-items: center; gap: 2px; }
+.plf { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: var(--card); box-shadow: var(--sh); color: var(--pri); }
+.plf:disabled { opacity: .35; box-shadow: none; }
+.plf .di { width: 18px; height: 18px; }
+.seg.rlv { margin: 0 0 6px; max-width: 460px; }
+.seg.rlv button { display: inline-flex; align-items: center; justify-content: center; gap: 5px; }
+.seg.rlv .di { width: 16px; height: 16px; }
+.rlv-d { margin: 0 0 6px; font-size: .78rem; color: var(--sub); }
+.gs-dai.rel { color: var(--pri); }
+/* ★★ 2026-10-12c 難関タブ：大問の改題のすぐ下に、その範囲ごとの関連問題 */
+.gs-rel { display: flex; align-items: center; gap: 6px; margin: 10px 4px 6px 14px; font-size: .82rem; font-weight: 900; color: var(--pri); }
+.gs-rel svg { width: 15px; height: 15px; flex: 0 0 auto; }
+.gs-rel small { font-size: .7rem; color: var(--mute); font-weight: 700; }
+.gcards.rel { padding-left: 10px; border-left: 3px solid rgba(59,91,255,.2); margin-left: 6px; }
+.gs-rw.view { opacity: .85; }

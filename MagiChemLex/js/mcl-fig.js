@@ -161,6 +161,46 @@
       T(10, 22, "水が半透膜を通って溶液側へ入り、液面に差 h ができる", "tx s") +
       T(100, 118, "Π ＝ 液柱 h の圧力", "tx s c1") + T(100, 132, "ΠV ＝ nRT", "tx s") + "</svg>";
   }
+  /* ── ★★ 2026-10-09b ダイヤモンド型の単位格子（ケイ素の結晶）：頂点・面心・内部の原子と、内部の原子の結合 ── */
+  function dia() {
+    const P = (x, y, z) => [28 + 112 * x + 46 * z, 184 - 112 * y - 40 * z];
+    const f1 = (v) => v.toFixed(1);
+    const line = (a, b, c) => { const p = P(a[0], a[1], a[2]), r = P(b[0], b[1], b[2]); return '<line x1="' + f1(p[0]) + '" y1="' + f1(p[1]) + '" x2="' + f1(r[0]) + '" y2="' + f1(r[1]) + '" class="' + c + '"/>'; };
+    const atom = (a, r, c) => { const p = P(a[0], a[1], a[2]); return '<circle cx="' + f1(p[0]) + '" cy="' + f1(p[1]) + '" r="' + r + '" class="' + c + '"/>'; };
+    const C = [], E = [];
+    for (let i = 0; i < 8; i++) C.push([i & 1, (i >> 1) & 1, (i >> 2) & 1]);
+    C.forEach((a) => C.forEach((b) => { const d = Math.abs(a[0] - b[0]) + Math.abs(a[1] - b[1]) + Math.abs(a[2] - b[2]); if (d === 1 && a < b) E.push([a, b]); }));
+    const hidden = (a, b) => [a, b].some((v) => v[0] === 0 && v[1] === 0 && v[2] === 1);
+    const Fc = [[0.5, 0.5, 0], [0.5, 0.5, 1], [0.5, 0, 0.5], [0.5, 1, 0.5], [0, 0.5, 0.5], [1, 0.5, 0.5]];
+    const I = [[[0.25, 0.25, 0.25], [0, 0, 0], [0.5, 0.5, 0], [0.5, 0, 0.5], [0, 0.5, 0.5]],
+               [[0.75, 0.75, 0.25], [1, 1, 0], [0.5, 0.5, 0], [1, 0.5, 0.5], [0.5, 1, 0.5]],
+               [[0.75, 0.25, 0.75], [1, 0, 1], [0.5, 0, 0.5], [1, 0.5, 0.5], [0.5, 0.5, 1]],
+               [[0.25, 0.75, 0.75], [0, 1, 1], [0, 0.5, 0.5], [0.5, 1, 0.5], [0.5, 0.5, 1]]];
+    let g = E.map((e) => line(e[0], e[1], hidden(e[0], e[1]) ? "gd" : "ax")).join("");
+    I.forEach((s) => { for (let k = 1; k < 5; k++) g += line(s[0], s[k], "ls"); });
+    const all = C.map((a) => [a, 6, "aL"]).concat(Fc.map((a) => [a, 6.5, "aZ"]), I.map((s) => [s[0], 7.5, "aC"]));
+    all.sort((u, v) => v[0][2] - u[0][2]);
+    g += all.map((t) => atom(t[0], t[1], t[2])).join("");
+    return '<svg viewBox="0 0 360 212" role="img" aria-label="ダイヤモンド型の単位格子">' + g +
+      '<circle cx="222" cy="40" r="6" class="aL"/>' + T(234, 44, "頂点 8 × 1/8", "tx s") +
+      '<circle cx="222" cy="62" r="6.5" class="aZ"/>' + T(234, 66, "面の中心 6 × 1/2", "tx s") +
+      '<circle cx="222" cy="84" r="7.5" class="aC"/>' + T(234, 88, "内部 4", "tx s") +
+      T(214, 116, "合計 8 個", "tx b c1") +
+      T(214, 142, "最も近い原子の距離", "tx s") + T(214, 158, "＝ √3 a / 4 ＝ 2r", "tx b") +
+      T(84, 204, "一辺 a", "tx s", "middle") + "</svg>";
+  }
+  /* ── ★★ 2026-10-09b 水素の貯蔵：1 m³ あたりの水素の質量（液体水素・メチルシクロヘキサン・液体アンモニア）── */
+  function h2bar() {
+    const rows = [["(a) 液体水素", 71, "cA"], ["(b) メチルシクロヘキサン", 47, "cC"], ["(c) 液体アンモニア", 122, "cA"]];
+    let g = T(10, 20, "1 m³ あたりに貯蔵できる水素の質量", "tx b");
+    rows.forEach((r, i) => {
+      const y = 40 + i * 38, w = r[1] * 1.0;
+      g += T(10, y + 17, r[0], "tx s") + '<rect x="146" y="' + y + '" width="' + w.toFixed(1) + '" height="24" rx="6" class="' + r[2] + '"/>' +
+        T(152 + w, y + 17, r[1] + " kg", "tx b");
+    });
+    g += T(10, 164, "(c) ＞ (a) ＞ (b)", "tx b c1");
+    return '<svg viewBox="0 0 340 176" role="img" aria-label="水素の貯蔵量のくらべ">' + g + "</svg>";
+  }
   /* ── 分子の形（電子対反発則）── */
   function shape(kind, cen, lig, chg) {
     cen = cen || "C"; lig = lig || "H";
@@ -212,10 +252,16 @@
       case "buffer": return buffer();
       case "vflow": return vflow();
       case "osmo": return osmo();
+      case "dia": return dia();
+      case "h2bar": return h2bar();
       case "shape": return shape(p[1], p[2], p[3], p[4]);
     }
+    if (EXTRA[p[0]]) { try { return EXTRA[p[0]](p) || ""; } catch (e) { return ""; } }
     return "";
   }
+  /* ★★ 2026-10-12 ほかのファイル（mcl-fig2.js）から図を足す口 */
+  const EXTRA = {};
+  function add(name, fn) { if (name && typeof fn === "function") EXTRA[name] = fn; }
 
   /* ══ ★★ 2026-10-09 ナビゲーター（マスコット）を XEVARION の UR キャラにかえられる（ご指定）══
      設定 set.nav … "" ＝ケミィ（はじめから）／"miu" など＝UR キャラ（XEVA.MB_CHARS の rarLabel "UR"）。
@@ -265,7 +311,7 @@
     const nv = opt && opt.chemy ? null : navCur();
     if (nv) {
       return '<span class="mascot nav ' + mood + '" aria-hidden="true"><span class="nv-ring"><img src="' + nv.img + '" alt="" loading="lazy" decoding="async"></span>' +
-        '<b class="nv-ur">UR</b>' + (extra ? '<svg class="nv-fx" viewBox="0 0 80 84">' + extra + "</svg>" : "") + "</span>";
+        '<b class="nv-nm">' + nv.nm + "</b>" + (extra ? '<svg class="nv-fx" viewBox="0 0 80 84">' + extra + "</svg>" : "") + "</span>";
     }
     return '<svg class="mascot ' + mood + '" viewBox="0 0 80 84" aria-hidden="true"><defs>' +
       '<linearGradient id="' + id + 'g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5fd0ff"/><stop offset="1" stop-color="#7b5cff"/></linearGradient>' +
@@ -279,5 +325,5 @@
       extra + "</svg>";
   }
 
-  window.MCLFig = { make, mascot, navList, navCur, navName };
+  window.MCLFig = { make, add, mascot, navList, navCur, navName };
 })();

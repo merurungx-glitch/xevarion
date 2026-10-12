@@ -3,33 +3,41 @@
    ・問題・解説・図はすべて JS の中にあるので、CORE をそろえれば完全にオフラインで使える。
    ・フォント（Google Fonts）は一度読めたら控える。Firebase（同期）はキャッシュしない。
    ============================================================ */
-const VERSION = "magichemlex-sw-v5";
+const VERSION = "magichemlex-sw-v8";
 const RUNTIME = "magichemlex-rt-v1";
 const CORE = [
   "./index.html",
   "./manifest.webmanifest",
-  "./css/mcl.css?v=5",
-  "./js/mcl-data.js?v=3",
-  "./js/mcl-data2.js?v=3",
-  "./js/mcl-core.js?v=3",
-  "./js/mcl-fig.js?v=3",
-  "./js/mcl-ui.js?v=4",
-  "./img/icon_192.png",
-  "./img/apple-touch-icon.png",
-  "../thumbs/MagiChemLex.jpg",
+  "./css/mcl.css?v=8",
+  "./js/mcl-data.js?v=5",
+  "./js/mcl-data2.js?v=4",
+  "./js/mcl-data3.js?v=2",
+  "./js/mcl-data4.js?v=2",
+  "./js/mcl-data5.js?v=2",
+  "./js/mcl-data6.js?v=1",
+  "./js/mcl-data7.js?v=1",
+  "./js/mcl-core.js?v=6",
+  "./js/mcl-fig.js?v=5",
+  "./js/mcl-fig2.js?v=1",
+  "./js/mcl-fig3.js?v=1",
+  "./js/mcl-fig4.js?v=1",
+  "./js/mcl-ui.js?v=7",
+  "./img/icon_192.png?v=2",
+  "./img/apple-touch-icon.png?v=2",
+  "../thumbs/MagiChemLex.jpg?v=2",
   "../XEVA.png",
   "../events/violet_breeze_s.webp",
   /* XEVARION の共通部品 */
-  "../xeva.js?v=76",
-  "../xeva-loading.js?v=18",
-  "../xeva-splash.js?v=13",
+  "../xeva.js?v=77",
+  "../xeva-loading.js?v=19",
+  "../xeva-splash.js?v=14",
   "../xeva-safebottom.js?v=12",
   "../xeva-back.js?v=9",
   "../xeva-presence.js?v=9",
   "../maintenance-gate.js?v=13",
-  "../xeva-cloud.js?v=42",
+  "../xeva-cloud.js?v=44",
   "../app-cloud.js?v=12",
-  "../xeva-keys.js?v=31",
+  "../xeva-keys.js?v=32",
   "../xevarion-fb.js?v=33",
 ];
 

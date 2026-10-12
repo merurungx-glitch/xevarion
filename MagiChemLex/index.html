@@ -7,9 +7,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <title>MagiChemLex — 難関化学の問題集</title>
-<meta name="description" content="難関大の化学を、本試験の改題と関連問題で鍛える学習アプリ。おすすめ出題・間隔反復の復習・本番セット・ヒントと図つきの解説・関数電卓。XEVARION の MagiLex 系統。" />
-<link rel="icon" href="../thumbs/MagiChemLex.jpg" type="image/jpeg" />
-<link rel="apple-touch-icon" href="img/apple-touch-icon.png" />
+<meta name="description" content="難関大の化学を、入試問題の改題と関連問題で鍛える学習アプリ。おすすめ出題・間隔反復の復習・模試モード・ヒントと図つきの解説・関数電卓。XEVARION の MagiLex 系統。" />
+<link rel="icon" href="../thumbs/MagiChemLex.jpg?v=2" type="image/jpeg" />
+<link rel="apple-touch-icon" href="img/apple-touch-icon.png?v=2" />
 <meta name="theme-color" content="#f2f5ff" />
 <link rel="manifest" href="manifest.webmanifest" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -29,14 +29,14 @@ if ("serviceWorker" in navigator) {
 }
 </script>
 <script src="../xeva-safebottom.js?v=12"></script>
-<link rel="stylesheet" href="css/mcl.css?v=5" />
-<script src="../xeva-splash.js?v=13" data-app="MagiChemLex" data-logo="../thumbs/MagiChemLex.jpg"></script>
+<link rel="stylesheet" href="css/mcl.css?v=8" />
+<script src="../xeva-splash.js?v=14" data-app="MagiChemLex" data-logo="../thumbs/MagiChemLex.jpg?v=2"></script>
 </head>
 <body>
 <div id="app">
   <header class="hd">
     <a class="hd-back" href="../index.html" aria-label="XEVARION へもどる"><svg class="di" viewBox="0 0 24 24" aria-hidden="true"><path class="f" d="M15 18l-6-6 6-6"/></svg>XEVARION</a>
-    <div class="hd-brand"><img src="img/icon_192.png" alt=""><b>MagiChemLex</b></div>
+    <div class="hd-brand"><img src="img/icon_192.png?v=2" alt=""><b>MagiChemLex</b></div>
     <span class="hd-ev" id="hdEv" hidden></span>
     <span class="hd-xeva" title="所持 XEVA"><img src="../XEVA.png" alt="XEVA"><span id="hdXevaV">0</span></span>
     <button class="hd-gear" data-a="settings" aria-label="設定"><svg class="di" viewBox="0 0 24 24" aria-hidden="true"><circle class="b" cx="12" cy="12" r="7"/><circle class="f" cx="12" cy="12" r="3"/><path class="f" d="M12 2.8v2.6M12 18.6v2.6M4.6 4.6l1.9 1.9M17.5 17.5l1.9 1.9M2.8 12h2.6M18.6 12h2.6M4.6 19.4l1.9-1.9M17.5 6.5l1.9-1.9"/></svg></button>
@@ -60,16 +60,28 @@ if ("serviceWorker" in navigator) {
 <noscript><p style="padding:20px">MagiChemLex を使うには JavaScript を有効にしてください。</p></noscript>
 
 <script type="module" src="../xevarion-fb.js?v=33"></script>
-<script type="module" src="../xeva-cloud.js?v=42"></script>
-<script src="../xeva.js?v=76"></script>
-<script src="../xeva-loading.js?v=18" defer></script>
+<script type="module" src="../xeva-cloud.js?v=44"></script>
+<script src="../xeva.js?v=77"></script>
+<script src="../xeva-loading.js?v=19" defer></script>
 <script src="../xeva-presence.js?v=9" defer></script>
-<script src="js/mcl-data.js?v=3"></script>
+<script src="js/mcl-data.js?v=5"></script>
 <!-- ★★ 2026-10-06b 本番セット2（改題61問＋関連問題113問）。最後に MCL_DATA.finalize() -->
-<script src="js/mcl-data2.js?v=3"></script>
-<script src="js/mcl-core.js?v=3"></script>
-<script src="js/mcl-fig.js?v=3"></script>
-<script src="js/mcl-ui.js?v=4"></script>
+<script src="js/mcl-data2.js?v=4"></script>
+<!-- ★★ 2026-10-09b 本番セット3（改題54問＋関連問題117問）。最後に MCL_DATA.finalize() -->
+<script src="js/mcl-data3.js?v=2"></script>
+<!-- ★★ 2026-10-12 標準セット1・2（マーク式の改題＋大問ごとの関連問題）。本番セットとは別の枠（D.GRPK） -->
+<script src="js/mcl-data4.js?v=2"></script>
+<script src="js/mcl-data5.js?v=2"></script>
+<!-- ★★ 2026-10-12c 標準セット3（マーク式の改題30問＋大問ごとの関連問題96問）。図は mcl-fig3.js -->
+<script src="js/mcl-data6.js?v=1"></script>
+<!-- ★★ 2026-10-13 標準セット4（マーク式の改題30問＋大問ごとの関連問題101問）。図は mcl-fig4.js -->
+<script src="js/mcl-data7.js?v=1"></script>
+<script src="js/mcl-core.js?v=6"></script>
+<script src="js/mcl-fig.js?v=5"></script>
+<script src="js/mcl-fig2.js?v=1"></script>
+<script src="js/mcl-fig3.js?v=1"></script>
+<script src="js/mcl-fig4.js?v=1"></script>
+<script src="js/mcl-ui.js?v=7"></script>
 <script src="../xeva-back.js?v=9" data-mode="hook"></script>
 </body>
 </html>

@@ -4,15 +4,15 @@
    ・記録（mdg_records_v1）は localStorage
    ・Firebase など外部通信はキャッシュしない
    ============================================================ */
-const VERSION = "mdgrid-sw-v23";
+const VERSION = "mdgrid-sw-v26";
 const CORE = [
   "./index.html",
   "./css/mdg.css?v=9",
   "./js/mdg.js?v=8",
-  "../xeva.js?v=76",
+  "../xeva.js?v=77",
   "../xeva-alive.js?v=5",
-  "../xeva-loading.js?v=18",
-  "../xeva-splash.js?v=13",
+  "../xeva-loading.js?v=19",
+  "../xeva-splash.js?v=14",
   "../xeva-safebottom.js?v=12",
   "../xeva-back.js?v=9",
   "../maintenance-gate.js?v=13",
