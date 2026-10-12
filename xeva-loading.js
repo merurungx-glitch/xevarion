@@ -18,7 +18,7 @@
        の<b>両方</b>を使う。①②は xeva-safebottom.js が持っているので、
        読まれていないページでは<b>自分で読みこむ</b>。
 
-   使い方: <script src="../xeva-loading.js?v=18" defer></script>
+   使い方: <script src="../xeva-loading.js?v=19" defer></script>
    ============================================================ */
 (function () {
   "use strict";
@@ -256,6 +256,26 @@
     };
     var wait = Math.max(0, MIN_SHOW - (Date.now() - shownAt));
     setTimeout(go, wait);
+  }
+
+  /* ★★ 2026-10-09b 起動を速く（ご指定）：同じタブで<b>直前（2分以内）に同期できていれば</b>出さない。
+     ホームとアプリを行き来するたびに「同期しています」が1〜2秒出ていた。
+     同期そのものは裏でいつもどおり走り、終わったら同じように数字を描き直す。 */
+  var FRESH_MS = 120000, FRESH_KEY = "xev_synced_at";
+  window.addEventListener("xeva:synced", function () { try { sessionStorage.setItem(FRESH_KEY, String(Date.now())); } catch (e) {} });
+  var fresh = false;
+  try { fresh = Date.now() - (+sessionStorage.getItem(FRESH_KEY) || 0) < FRESH_MS; } catch (e) { fresh = false; }
+  if (fresh && loggedIn()) {
+    window.addEventListener("xeva:synced", function () {
+      try {
+        if (window.XEVA && window.XEVA.reload) window.XEVA.reload();
+        window.dispatchEvent(new CustomEvent("xeva:change", {
+          detail: { balance: (window.XEVA && window.XEVA.getBalance && window.XEVA.getBalance()) || 0 }
+        }));
+      } catch (e) {}
+    }, { once: true });
+    window.XevaLoading = { hide: function () {} };
+    return;
   }
 
   /* 未ログイン／オフラインなら待つ意味がないので出さない */

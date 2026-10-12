@@ -6,7 +6,7 @@
 <script>(function(){try{var a=JSON.parse(localStorage.getItem('xeva_account_v1'));if(!a||!a.setupDone)location.replace('index.html');}catch(e){}})();</script>
 <script type="module" src="xevarion-fb.js?v=33"></script>
 <script src="xeva-presence.js?v=9" defer></script>
-<script type="module" src="xeva-cloud.js?v=42"></script>
+<script type="module" src="xeva-cloud.js?v=44"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -19,8 +19,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+JP:wght@300;400;500;700&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="xeva-theme.css?v=9">
 <!-- ★ 2026-08-10 キャラ詳細（性能画面）の見た目。ガチャ（gacha.html）と共通 -->
-<link rel="stylesheet" href="mb-char-detail.css?v=27">
-<script src="xeva.js?v=76"></script>
+<link rel="stylesheet" href="mb-char-detail.css?v=29">
+<script src="xeva.js?v=77"></script>
 <!-- ★★ 2026-09-05 言語切りかえ（日本語 ⇄ English）。辞書は本体のあとに読むこと。 -->
 <script src="xeva-i18n.js?v=8"></script>
 <script src="xeva-i18n-dict.js?v=12"></script>
@@ -31,16 +31,16 @@
 <script src="xeva-i18n-mb3.js?v=8"></script>
 <script src="xeva-i18n-mb4.js?v=9"></script>
 <script src="xeva-i18n-mb5.js?v=7"></script>
-<script src="xeva-i18n-p1.js?v=6"></script>
+<script src="xeva-i18n-p1.js?v=7"></script>
 <script src="xeva-i18n-p2.js?v=6"></script>
 <script src="xeva-i18n-mb6.js?v=7"></script>
 <script src="xeva-i18n-p3.js?v=7"></script>
 <script src="xeva-i18n-mb7.js?v=7"></script>
-<script src="xeva-i18n-p4.js?v=7"></script>
+<script src="xeva-i18n-p4.js?v=8"></script>
 <!-- ★★ 2026-09-06b 今回足したもの（新キャラ14体・装備・スタメンなど）の英語辞書 -->
-<script src="xeva-i18n-n1.js?v=15"></script>
+<script src="xeva-i18n-n1.js?v=16"></script>
 <script src="xeva-i18n-n2.js?v=3"></script>
-<script src="xeva-loading.js?v=18" defer></script>
+<script src="xeva-loading.js?v=19" defer></script>
 <script src="magibattle-stats.js?v=17"></script>
 <script type="module" src="xeva-sync.js?v=18"></script>
 <style>
@@ -89,6 +89,38 @@ a{color:inherit;text-decoration:none}
 
 /* filter tabs */
 .filters{display:flex;gap:8px;padding:0 18px 16px;flex-wrap:wrap}
+/* ★★ 2026-10-12c 並び替えのボタン（画面の中・横にスクロール） */
+/* ★★ 2026-10-12d 「並び替え」ボタン（押すと下から選ぶ板）＋ ▲▼ のボタン */
+.csort{display:flex;align-items:center;gap:6px;padding:0 18px 10px}
+.csort .cs-open{flex:1;min-width:0;display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:14px;border:1.5px solid var(--bdr);background:#fff;
+  color:var(--txt2);font-family:inherit;font-size:12px;font-weight:800;cursor:pointer;text-align:left}
+.csort .cs-open svg{width:16px;height:16px;flex:none;color:#4cae2c}
+.csort .cs-open .cs-l{flex:none}
+.csort .cs-open b{flex:1;min-width:0;color:#2f8a1a;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.csort .cs-open .cs-ar{font-style:normal;font-size:12px;opacity:.7}
+.csort .cs-rev{flex:none;width:42px;padding:8px 0;border-radius:14px;border:1.5px solid var(--bdr);background:#fff;color:#2f8a1a;font-family:inherit;font-size:13px;font-weight:900;cursor:pointer}
+.cs-ov{position:fixed;inset:0;z-index:9000;display:flex;align-items:flex-end;justify-content:center;padding:12px 12px calc(12px + env(safe-area-inset-bottom,0px));
+  background:rgba(40,70,20,.32);opacity:0;pointer-events:none;transition:opacity .18s ease}
+.cs-ov.on{opacity:1;pointer-events:auto}
+.cs-menu{width:100%;max-width:420px;max-height:min(78vh,560px);overflow:auto;border-radius:22px;background:linear-gradient(180deg,#ffffff,#f6fbef);
+  box-shadow:0 0 0 2px #fff inset,0 -4px 0 rgba(76,174,44,.35),0 12px 30px rgba(40,80,20,.25);padding:10px 12px 12px;transform:translateY(24px);transition:transform .22s cubic-bezier(.2,1.2,.4,1)}
+.cs-ov.on .cs-menu{transform:none}
+.cs-h{display:flex;align-items:center;justify-content:space-between;margin:0 0 8px;padding:8px 8px 8px 14px;border-radius:14px;background:linear-gradient(180deg,#8fdc64,#4cae2c);box-shadow:0 0 0 2px #fff inset}
+.cs-h b{color:#fff;font-size:14px;font-weight:900;text-shadow:0 1.5px 0 rgba(47,138,26,.75)}
+.cs-x{width:30px;height:30px;border:none;border-radius:50%;background:#fff;color:#3f7a24;font-weight:900;cursor:pointer}
+.cs-list{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.cs-list button{display:flex;flex-direction:column;align-items:flex-start;gap:1px;padding:10px 12px;border-radius:14px;border:1.5px solid #d4ebc4;background:#fff;
+  font-family:inherit;cursor:pointer;text-align:left;box-shadow:0 2px 0 rgba(47,138,26,.14)}
+.cs-list button span{font-size:13px;font-weight:900;color:#4a3f33}
+.cs-list button small{font-size:10px;font-weight:700;color:#8c9f7c}
+.cs-list button.on{border-color:#43b324;background:linear-gradient(180deg,#f3fde9,#ddf6c9);box-shadow:0 0 0 1.5px #43b324,0 2px 0 rgba(47,138,26,.25)}
+.cs-list button.on span{color:#2f8a1a}
+.cs-list button.on span::before{content:"✓ "}
+.cs-dir{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:9px}
+.cs-dir button{padding:9px 8px;border-radius:12px;border:1.5px solid #d4ebc4;background:#fff;font-family:inherit;font-size:12px;font-weight:900;color:#5e7a4c;cursor:pointer}
+.cs-dir button.on{color:#fff;border-color:#2a8614;background:linear-gradient(180deg,#a6ec72,#43b324);text-shadow:0 1px 0 rgba(42,134,20,.7)}
+
+
 .ftab{padding:8px 16px;border-radius:100px;border:1.5px solid var(--bdr);background:#fff;color:var(--txt2);font-size:12px;font-weight:800;cursor:pointer;transition:all .2s;box-shadow:0 3px 10px rgba(90,130,210,.12)}
 .ftab.on{background:linear-gradient(135deg,var(--pur),var(--pur2));border-color:transparent;color:#fff;box-shadow:0 4px 14px rgba(124,58,237,.3)}
 
@@ -154,6 +186,7 @@ a{color:inherit;text-decoration:none}
   .grid{grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:10px;padding:0 12px calc(env(safe-area-inset-bottom,0px) + 24px)}
   .stats-bar{padding:12px 12px;gap:8px}
   .filters{padding:0 12px 12px}
+  .csort{padding:0 12px 10px}
 }
 
 /* ══ コミュニティ／会社概要と同じトーンにそろえる ══ */
@@ -180,6 +213,9 @@ a{color:inherit;text-decoration:none}
 .gh .wallet img{width:20px;height:20px}
 .gh .wallet b{font-family:'Orbitron',sans-serif;font-size:14px}
 </style>
+<!-- ★★ 2026-10-12b ウマ娘風のポップな見た目（色・書体だけ。いちばん最後に読む） -->
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="xeva-pop-pages.css?v=2">
 </head>
 <body>
 <div class="gh">
@@ -195,17 +231,36 @@ a{color:inherit;text-decoration:none}
      アイコンを選ぶのに その区分は関係がない（どちらで手に入れても同じキャラ）。 -->
 <div class="csearch">
   <input id="cq" type="search" placeholder="キャラ名で検索（例：スズハ）" oninput="setQuery(this.value)" autocomplete="off">
-  <!-- ★ 2026-08-16c 並び替え。新しいキャラから見たいことが多いので「新しい順」も用意した -->
-  <select id="csort" onchange="setSort(this.value)" aria-label="並び替え">
-    <option value="no">番号順（No.）</option>
-    <option value="new">新しい順（No.の大きい順）</option>
-    <option value="name">名前順（あいうえお）</option>
-    <option value="own">所持しているキャラを先に</option>
-  </select>
+</div>
+<!-- ★★ 2026-10-12c 並び替えは<b>画面の中のボタン</b>で（ご指定）。前のプルダウンは、スマホだと画面の外の選択の板が開いていた。
+     ★★ 2026-10-12d ボタンを横に並べると、スマホでは列が画面の外へはみ出した（ご指定）→
+     <b>「並び替え」ボタンを押してから選ぶ</b>形に。選ぶ板は画面の下から出る（いつも画面の中）。
+     ▲▼ のボタンで逆の順。えらんだものは端末に覚える（xev_char_sort） -->
+<div class="csort" id="csort">
+  <button type="button" class="cs-open" id="csOpen" onclick="openSortMenu()" aria-haspopup="dialog" aria-expanded="false">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v15M3.6 15.6 7 19l3.4-3.4M17 20V5M13.6 8.4 17 5l3.4 3.4" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+    <span class="cs-l">並び替え</span><b id="csCur">番号</b><i class="cs-ar">▾</i>
+  </button>
+  <button type="button" class="cs-rev" id="csRev" onclick="toggleSortRev()" aria-label="逆の順にする"><span id="csDir">▲</span></button>
+</div>
+<div class="cs-ov" id="csOv" onclick="if(event.target===this)closeSortMenu()" aria-hidden="true">
+  <div class="cs-menu" role="dialog" aria-label="並び替え">
+    <div class="cs-h"><b>並び替え</b><button type="button" class="cs-x" onclick="closeSortMenu()" aria-label="とじる">✕</button></div>
+    <div class="cs-list" id="csList">
+      <button type="button" data-s="no" onclick="pickSort('no')"><span>番号</span><small>No.1 から</small></button>
+      <button type="button" data-s="new" onclick="pickSort('new')"><span>新しい順</span><small>新しく加わったキャラから</small></button>
+      <button type="button" data-s="rar" onclick="pickSort('rar')"><span>レア度</span><small>UR → SSR → SR</small></button>
+      <button type="button" data-s="el" onclick="pickSort('el')"><span>属性</span><small>火・水・木・光・闇</small></button>
+      <button type="button" data-s="name" onclick="pickSort('name')"><span>名前</span><small>あいうえお順</small></button>
+      <button type="button" data-s="own" onclick="pickSort('own')"><span>所持を先に</span><small>持っているキャラから</small></button>
+    </div>
+    <div class="cs-dir"><button type="button" data-r="0" onclick="pickRev(false)">▲ ふつうの順</button><button type="button" data-r="1" onclick="pickRev(true)">▼ 逆の順</button></div>
+  </div>
 </div>
 <div class="filters">
   <button class="ftab on" onclick="setFilter('all',this)">すべて</button>
   <button class="ftab" onclick="setFilter('owned',this)">所持</button>
+  <button class="ftab" onclick="setFilter('ur',this)">UR</button>
   <button class="ftab" onclick="setFilter('ssr',this)">SSR</button>
   <button class="ftab" onclick="setFilter('sr',this)">SR</button>
 </div>
@@ -418,10 +473,10 @@ renderGrid();
      同期を担当する magiburst-cloud.js を読んでいなかった。
      そのためポータルで引いたキャラはクラウドに上がらず、
      別の端末の MagiBurst が書いたセーブに負けて<b>消えて</b>いた。 -->
-<script type="module" src="MagiBurst/magiburst-cloud.js?v=22"></script>
+<script type="module" src="MagiBurst/magiburst-cloud.js?v=23"></script>
 <script src="mb-boot.js?v=17"></script>
-<script src="MagiBurst/js/mb-core.js?v=135"></script>
-<script src="mb-char-detail.js?v=42"></script>
+<script src="MagiBurst/js/mb-core.js?v=136"></script>
+<script src="mb-char-detail.js?v=45"></script>
 <script>
 "use strict";
 /* MagiBurst のキャラを、この図鑑のカードの形で描く */
@@ -496,9 +551,53 @@ renderStats = function () {
    ・名前で検索できる（ひらがな・カタカナはそろえて比べる）。
    もとの renderGrid / renderStats はここで丸ごと置き換える。 */
 var charQuery = "";
-var charSort = "no";
+var charSort = "no", charSortRev = false;
+try { var _cs = JSON.parse(localStorage.getItem("xev_char_sort") || "null"); if (_cs && _cs.s) { charSort = _cs.s; charSortRev = !!_cs.r; } } catch (e) {}
 function setQuery(v){ charQuery = String(v || "").trim(); renderGrid(); }
-function setSort(v){ charSort = v || "no"; renderGrid(); }
+/* ★★ 2026-10-12c 同じボタンをもう一度押すと逆の順
+   ★★ 2026-10-12d 「並び替え」ボタン → 下から出る板で選ぶ（pickSort）。▲▼ は toggleSortRev / pickRev */
+var SORT_NM = { no: "番号", "new": "新しい順", rar: "レア度", el: "属性", name: "名前", own: "所持を先に" };
+function saveSort(){ try { localStorage.setItem("xev_char_sort", JSON.stringify({ s: charSort, r: charSortRev })); } catch (e) {} }
+function setSort(v){
+  v = SORT_NM[v] ? v : "no";
+  if (v === charSort) charSortRev = !charSortRev; else { charSort = v; charSortRev = false; }
+  saveSort(); paintSortBtns(); renderGrid();
+}
+function pickSort(v){
+  v = SORT_NM[v] ? v : "no";
+  if (v !== charSort) { charSort = v; charSortRev = false; }
+  saveSort(); paintSortBtns(); renderGrid(); closeSortMenu();
+}
+function pickRev(r){ charSortRev = !!r; saveSort(); paintSortBtns(); renderGrid(); closeSortMenu(); }
+function toggleSortRev(){ charSortRev = !charSortRev; saveSort(); paintSortBtns(); renderGrid(); }
+function openSortMenu(){
+  paintSortBtns();
+  var ov = document.getElementById("csOv"); if (!ov) return;
+  ov.classList.add("on"); ov.setAttribute("aria-hidden", "false");
+  var b = document.getElementById("csOpen"); if (b) b.setAttribute("aria-expanded", "true");
+}
+function closeSortMenu(){
+  var ov = document.getElementById("csOv"); if (!ov) return;
+  ov.classList.remove("on"); ov.setAttribute("aria-hidden", "true");
+  var b = document.getElementById("csOpen"); if (b) b.setAttribute("aria-expanded", "false");
+}
+addEventListener("keydown", function(e){ if (e.key === "Escape") closeSortMenu(); });
+function paintSortBtns(){
+  var cur = document.getElementById("csCur"); if (cur) cur.textContent = SORT_NM[charSort] || "番号";
+  var dir = document.getElementById("csDir"); if (dir) dir.textContent = charSortRev ? "▼" : "▲";
+  var rv = document.getElementById("csRev"); if (rv) rv.classList.toggle("on", charSortRev);
+  var box = document.getElementById("csList");
+  if (box) box.querySelectorAll("button[data-s]").forEach(function(b){
+    var on = b.getAttribute("data-s") === charSort;
+    b.classList.toggle("on", on);
+    b.setAttribute("aria-pressed", on ? "true" : "false");
+  });
+  var ov = document.getElementById("csOv");
+  if (ov) ov.querySelectorAll(".cs-dir button").forEach(function(b){ b.classList.toggle("on", (b.getAttribute("data-r") === "1") === charSortRev); });
+}
+function charNoNum(id){ try { return typeof charNoOf === "function" ? (parseInt(String(charNoOf(id)).replace(/\D/g, ""), 10) || 0) : 0; } catch (e) { return 0; } }
+function charRarRank(id){ try { var r = typeof rarLabel === "function" ? rarLabel(id) : ""; return r === "UR" ? 3 : r === "SSR" ? 2 : r === "SR" ? 1 : 0; } catch (e) { return 0; } }
+function charElRank(id){ var o = ["fire", "water", "wood", "light", "dark"]; try { var c = typeof CHARS !== "undefined" && CHARS[id]; var i = c ? o.indexOf(c.el) : -1; return i < 0 ? 9 : i; } catch (e) { return 9; } }
 /* カタカナ・ひらがなの違いを無視して比べる */
 function kanaFold(s){
   return String(s || "").toLowerCase().replace(/[\u30a1-\u30f6]/g, function(ch){
@@ -538,18 +637,25 @@ renderGrid = function(){
     var own = charOwnedAny(id);
     var s5 = (typeof isStar5 === "function") ? isStar5(id) : false;
     if (curFilter === "owned" && !own) return false;
-    if (curFilter === "ssr" && !s5) return false;
-    if (curFilter === "sr" && s5) return false;
+    /* ★★ 2026-10-12c UR を足した（SSR・SR はそのレア度だけ） */
+    if (curFilter === "ur" && charRarRank(id) !== 3) return false;
+    if (curFilter === "ssr" && (typeof rarLabel === "function" ? charRarRank(id) !== 2 : !s5)) return false;
+    if (curFilter === "sr" && (typeof rarLabel === "function" ? charRarRank(id) !== 1 : s5)) return false;
     if (q && kanaFold(charNameOf(id)).indexOf(q) < 0) return false;
     return true;
   });
-  /* ★ 2026-08-16c 並び替え。既定は番号順（CHAR_IDS の並びそのもの） */
+  /* ★ 2026-08-16c 並び替え。既定は番号順（CHAR_IDS の並びそのもの）
+     ★★ 2026-10-12c レア度順（UR→SSR→SR）・属性順（火・水・木・光・闇）を追加。同じなら番号順。charSortRev で逆の順 */
   if (charSort === "new") ids.reverse();
   else if (charSort === "name") ids.sort(function(a,b){ return kanaFold(charNameOf(a)).localeCompare(kanaFold(charNameOf(b)), "ja"); });
+  else if (charSort === "rar") ids.sort(function(a,b){ return charRarRank(b) - charRarRank(a) || charNoNum(a) - charNoNum(b); });
+  else if (charSort === "el") ids.sort(function(a,b){ return charElRank(a) - charElRank(b) || charRarRank(b) - charRarRank(a) || charNoNum(a) - charNoNum(b); });
   else if (charSort === "own") ids.sort(function(a,b){
     var oa = charOwnedAny(a) ? 0 : 1, ob = charOwnedAny(b) ? 0 : 1;
-    return oa - ob || (typeof charNoOf === "function" ? (parseInt(charNoOf(a).replace(/\D/g,""),10) - parseInt(charNoOf(b).replace(/\D/g,""),10)) : 0);
+    return oa - ob || charNoNum(a) - charNoNum(b);
   });
+  if (charSortRev) ids.reverse();
+  paintSortBtns();
   var g = document.getElementById("grid");
   if (!g) return;
   if (!ids.length){
@@ -664,5 +770,7 @@ renderGrid();
   }, 60);
 })();
 </script>
+<!-- ★★ 2026-10-12c ウマ娘風のボタン・シート・動き（いちばん最後に読む＝ページの中の style より強く） -->
+<link rel="stylesheet" href="xeva-uma.css?v=1">
 </body>
 </html>

@@ -1,0 +1,258 @@
+/* ============================================================
+   XEVARION UMA — ウマ娘風のボタン・画面（シート）の見た目と動き（★★ 2026-10-12c ご指定）
+   ------------------------------------------------------------
+   ご指定：「ボタンのデザインもウマ娘風に」「メール・ミッション・設定などでまだウマ娘風になっていない部分を」
+           「ウマ娘の UI のように、それぞれにモーションを」
+   ・ボタン：白い太いふち＋上半分のつや＋色のふち取り文字＋下に落ちる影。押すと沈み、はなすと戻る。
+       緑＝決定・受け取る／橙＝ガチャ・特別／桃＝イベント／白＝もどる・サブ／タブ＝白の札 → 選ぶと緑。
+   ・ミッション・メール・アカウント設定・お知らせなどのシートも若草色の見た目に（xeva-pop.css の続き）。
+   ・動き：シート・パネルはぽんと出る／行は下から順に／選んだタブははねる／印ははねる（★ 10-12d ロビーのボタンは静止・ご指定）。
+   ・位置・大きさは変えない（ふちは box-shadow・inset で描く）。このファイルは xeva-pop(-pages).css の<b>あと</b>に読む。
+   ・Xevion OS の「動きを減らす」（body.xos-nomotion）と端末の設定（prefers-reduced-motion）では動きを止める。
+   ============================================================ */
+:root{
+  --um-gloss:linear-gradient(180deg,rgba(255,255,255,.6) 0,rgba(255,255,255,.2) 46%,rgba(255,255,255,0) 47%);
+  --um-font:'M PLUS Rounded 1c','Noto Sans JP',sans-serif;
+}
+
+/* ══ ボタンの色の割りあて ══ */
+/* 緑：決定・受け取る・保存 */
+:is(.xh-sbtn:not(.ghost), .mail-all, .xeva-m-claim, .mm-milestone-claim, .mail-claim-btn, .acc-set-btn, .acc-overlay button[style*="#8e6bff"],
+  body.pp-community .btn:not(.ghost), .pkbtn, .pbtn:not(.p10), .c-set-btn:not(.current), .wz-next, .wz-btn, .cdk-btn, .xh-gem-btn){
+  --c1:#a6ec72; --c2:#43b324; --ce:#2a8614; --cl:#226f10;
+}
+/* 橙：ガチャ・特別 */
+:is(.gl-go .gl-draw, .pbtn.p10, .mm-gacha, .xh-sechead .more, .gh .gacha-link, .sealgo){
+  --c1:#ffd36e; --c2:#ff8a1f; --ce:#c25c00; --cl:#a44d00;
+}
+/* 白：もどる・サブ・情報 */
+:is(.xh-sbtn.ghost, body.pp-community .btn.ghost, .gl-hd button, .xeva-m-go, .ratebtn, .c-set-btn.current){
+  --c1:#ffffff; --c2:#eef6e8; --ce:#a9cc96; --cl:#bccfae;
+}
+/* 共通の形 */
+:is(.xh-sbtn, .mail-all, .xeva-m-claim, .mm-milestone-claim, .mail-claim-btn, .acc-set-btn, .acc-overlay button[style*="#8e6bff"],
+  body.pp-community .btn, .pkbtn, .pbtn, .c-set-btn, .wz-next, .wz-btn, .cdk-btn, .xh-gem-btn,
+  .gl-go .gl-draw, .mm-gacha, .xh-sechead .more, .gh .gacha-link, .sealgo, .gl-hd button, .xeva-m-go, .ratebtn){
+  background:var(--um-gloss),linear-gradient(180deg,var(--c1),var(--c2))!important;
+  border-color:#fff!important;
+  color:#fff!important;
+  box-shadow:inset 0 0 0 2px rgba(255,255,255,.95),0 0 0 1.5px var(--ce),0 4px 0 var(--cl),0 6px 12px rgba(40,70,20,.14)!important;
+  text-shadow:-1.3px 0 var(--ce),1.3px 0 var(--ce),0 -1.3px var(--ce),0 1.3px var(--ce),-1px -1px var(--ce),1px -1px var(--ce),-1px 1px var(--ce),1px 1px var(--ce)!important;
+  font-family:var(--um-font);font-weight:900;
+  transition:transform .09s ease,box-shadow .09s ease,filter .15s ease!important;
+  -webkit-tap-highlight-color:transparent;
+}
+/* 白いボタンは文字を緑に（ふち取りなし） */
+:is(.xh-sbtn.ghost, body.pp-community .btn.ghost, .gl-hd button, .xeva-m-go, .ratebtn, .c-set-btn.current){
+  color:#3f7a24!important;text-shadow:none!important;
+}
+:is(.xh-sbtn, .mail-all, .xeva-m-claim, .mm-milestone-claim, .mail-claim-btn, .acc-set-btn, .acc-overlay button[style*="#8e6bff"],
+  body.pp-community .btn, .pkbtn, .pbtn, .c-set-btn, .wz-next, .wz-btn, .cdk-btn, .xh-gem-btn,
+  .gl-go .gl-draw, .mm-gacha, .xh-sechead .more, .gh .gacha-link, .sealgo, .gl-hd button, .xeva-m-go, .ratebtn):active:not(:disabled){
+  transform:translateY(3px)!important;
+  box-shadow:inset 0 0 0 2px rgba(255,255,255,.95),0 0 0 1.5px var(--ce),0 1px 0 var(--cl),0 2px 5px rgba(40,70,20,.12)!important;
+  filter:brightness(1.06);
+}
+@media (hover:hover){
+  :is(.xh-sbtn, .mail-all, .xeva-m-claim, .mm-milestone-claim, .mail-claim-btn, .acc-set-btn, body.pp-community .btn, .pkbtn, .pbtn, .c-set-btn,
+    .gl-go .gl-draw, .mm-gacha, .xh-sechead .more, .gh .gacha-link, .sealgo, .gl-hd button, .xeva-m-go, .ratebtn):hover:not(:disabled){filter:brightness(1.07)}
+}
+:is(.pbtn, .acc-set-btn, .mail-all, .xeva-m-claim):disabled{filter:grayscale(.6) brightness(.95)!important;opacity:.6}
+/* 小さい札のボタン（ガチャの「提供割合」「詳細」）は丸みを少しだけ */
+.gl-hd button{border-radius:10px!important}
+
+/* ══ ホームのアイコンボタン（右上・ロビーの左右）：白い板につや＋緑のふち＋下に沈む影。名前は白い字に緑のふち取り ══ */
+.xh-act .ic, .xl-ic .i{
+  background:var(--um-gloss),linear-gradient(180deg,#ffffff,#e6f7d8)!important;
+  box-shadow:inset 0 0 0 2px #fff,0 0 0 2.5px #62c43e,0 3.5px 0 2.5px #3f9a22,0 6px 10px rgba(40,80,20,.16)!important;
+}
+.xl-ic.dia .i{background:var(--um-gloss),linear-gradient(180deg,#a6ec72,#43b324)!important;color:#fff}
+.xh-act .lb{color:#fff!important;text-shadow:-1.2px 0 #2f8a1a,1.2px 0 #2f8a1a,0 -1.2px #2f8a1a,0 1.2px #2f8a1a,-1px -1px #2f8a1a,1px 1px #2f8a1a,1px -1px #2f8a1a,-1px 1px #2f8a1a!important}
+.mm-gacha{text-decoration:none!important}
+/* ガチャの「新キャラクター紹介を見る」：桃のつやのある札＋白いふち */
+.ncib{background:var(--um-gloss),linear-gradient(135deg,#ff9cc4,#ff5f93 55%,#c86bff)!important;
+  box-shadow:inset 0 0 0 2px rgba(255,255,255,.9),0 0 0 1.5px #c43a6c,0 4px 0 #a32e59,0 6px 12px rgba(120,20,60,.18)!important;transition:transform .09s ease!important}
+.ncib:active{transform:translateY(3px)!important;box-shadow:inset 0 0 0 2px rgba(255,255,255,.9),0 0 0 1.5px #c43a6c,0 1px 0 #a32e59!important}
+
+/* ══ ★★ 2026-10-12d アイコン（ご指定「下バーや右上などのアイコンをウマ娘風に」）══
+   index.html の <svg class="uic"> は色を持たず、ここの変数で塗る：
+     .p＝おもな色（--ua）／.s＝差し色（--ub）／.w＝白／.k＝ふち（--uk）／.ln・.kl＝線／.wl＝白い線／.sl・.pl＝色の線／.gl＝つや
+   ・右上とロビー（白い板）…若草色の絵＋アイコンごとの差し色（index.html の style で --ub）
+   ・ロビーの緑の板（パートナー・表示）…白い絵
+   ・下バー…えらんでいないタブは淡い灰緑、えらんだタブは<b>緑の札が浮いて白い絵</b>（ウマ娘のメニューの見せ方） */
+.uic{overflow:visible}
+.uic .p{fill:var(--ua,#5cc23a)}
+.uic .s{fill:var(--ub,#ffc83d)}
+.uic .w{fill:#fff}
+.uic .k{stroke:var(--uk,#2a7a14);stroke-width:1.6;stroke-linejoin:round;stroke-linecap:round}
+.uic .ln{fill:none;stroke:var(--uk,#2a7a14);stroke-width:2.1;stroke-linecap:round;stroke-linejoin:round}
+.uic .kl{fill:none;stroke:var(--uk,#2a7a14);stroke-width:1.4;stroke-linecap:round;opacity:.55}
+.uic .wl{fill:none;stroke:#fff;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+.uic .sl{fill:none;stroke:var(--ub,#ffc83d);stroke-width:2.1;stroke-linecap:round}
+.uic .pl{fill:none;stroke:var(--ua,#5cc23a);stroke-width:2.3;stroke-linecap:round;stroke-linejoin:round}
+.uic .gl{fill:none;stroke:#fff;stroke-width:1.6;stroke-linecap:round;opacity:.75}
+.xh-act .uic, .xl-ic .uic{--ua:#5cc23a;--uk:#2a7a14}
+.xl-ic.dia .uic{--ua:#fff;--ub:#ff7fb0;--uk:#fff}
+.xl-ic.dia .uic .k{stroke-width:1.5}
+.xh-act .ic .uic{filter:drop-shadow(0 1px 0 rgba(42,122,20,.25))}
+/* 下バー：えらんでいないタブ */
+.xh-ntab .uic{--ua:#b4c3a7;--ub:#d7e1cd;--uk:#788b6a;filter:none!important}
+.xh-ntab .tl{color:#7f9272!important;font-family:var(--um-font)}
+/* えらんだタブ：緑の札（つや・白いふち・下に影）が浮いて、絵は白 */
+.xh-ntab.on .uic{--ua:#fff;--ub:#ffd84a;--uk:#2a7a14;transform:translateY(-2px) scale(1.02)!important;filter:drop-shadow(0 1.5px 0 rgba(34,100,14,.45))!important}
+.xh-ntab.on .tl{color:#2f8a1a!important}
+.xh-ntab.on::before{top:4px!important;width:50px!important;height:36px!important;border-radius:14px!important;
+  background:var(--um-gloss),linear-gradient(180deg,#a6ec72,#43b324)!important;
+  box-shadow:inset 0 0 0 2px rgba(255,255,255,.95),0 0 0 1.5px #2a8614,0 2px 0 #226f10,0 4px 8px rgba(40,80,20,.18)!important;
+  animation:umPop .34s cubic-bezier(.2,1.6,.4,1)}
+.xh-ntab:not(.on):active .uic{transform:translateY(2px) scale(.94)}
+/* ガチャタブのキャラの絵も白いふち＋緑の輪 */
+.xh-ntab .xh-tabchar{box-shadow:0 0 0 1.5px #fff,0 0 0 3px #62c43e,0 2px 0 3px rgba(42,122,20,.3)!important;border-color:#fff!important}
+/* ロビーの左右のボタン：少し詰めてコンパクトに（ご指定）。前は 10px あけていた */
+.xl-left,.xl-right{gap:6px!important}
+.xl-ic{gap:2px!important}
+.xl-ic .l{font-family:var(--um-font)}
+
+/* ★★ 2026-10-13 XEVARION PARK はオンラインのときだけ（オフライン対応を廃止・ご指定）→ オフラインでは薄く */
+.xl-expo.xh-offlock{filter:grayscale(.85) brightness(.95)!important;opacity:.6}
+
+/* ══ タブ・札（白い札 → 選ぶと緑の札。選ぶとはねる）══ */
+:is(.mm-tab, .gl-tab, .ftab, body.pp-community .tab, .gl-flt button, .xh-mini){
+  font-family:var(--um-font);font-weight:900;
+  transition:transform .12s ease,box-shadow .12s ease!important;
+}
+:is(.mm-tab, .ftab, .gl-flt button):not(.on):not(.active){
+  background:linear-gradient(180deg,#ffffff,#f2f9ec)!important;color:#5e7a4c!important;border-color:#cfe6bf!important;
+  box-shadow:inset 0 0 0 1.5px #fff,0 2px 0 #c9dcbb!important;
+}
+:is(.mm-tab.active, .gl-tab.on, .ftab.on, body.pp-community .tab.on, .gl-flt button.on, .xh-mini.on){
+  background:var(--um-gloss),linear-gradient(180deg,#a6ec72,#43b324)!important;color:#fff!important;border-color:#fff!important;
+  box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.95),0 0 0 1.5px #2a8614,0 3px 0 #226f10!important;
+  text-shadow:-1px 0 #2a8614,1px 0 #2a8614,0 -1px #2a8614,0 1px #2a8614!important;
+  animation:umPop .32s cubic-bezier(.2,1.6,.4,1);
+}
+:is(.mm-tab, .gl-tab, .ftab, body.pp-community .tab, .gl-flt button):active{transform:translateY(2px)}
+
+/* ══ 閉じるボタン（×）：白い丸＋緑のふち ══ */
+:is(.mm-close, .mail-close, .accset-x, .xh-sheet-x, .nm-close, .coll-x){
+  background:linear-gradient(180deg,#ffffff,#eef6e8)!important;color:#3f7a24!important;border:none!important;
+  box-shadow:inset 0 0 0 2px #fff,0 0 0 2px #7cc95a,0 3px 0 #5aa83c!important;font-weight:900!important;
+  transition:transform .09s ease!important;
+}
+:is(.mm-close, .mail-close, .accset-x, .xh-sheet-x, .nm-close, .coll-x):active{transform:translateY(2px) scale(.96)}
+
+/* ══ ミッション ══ */
+#missionOverlay, #mailOverlay{background:rgba(70,120,40,.32)!important}
+#missionModal, #mailModal{font-family:var(--um-font);background:linear-gradient(180deg,#ffffff,#f6fbef)!important;
+  box-shadow:0 -4px 0 rgba(76,174,44,.35),0 -10px 30px rgba(60,120,30,.2)!important;border-color:#fff!important}
+#missionModal .mm-head, #mailModal .mail-head{position:relative;background:linear-gradient(180deg,#8fdc64,#4cae2c);border-radius:16px;padding:8px 8px 8px 14px;
+  box-shadow:0 0 0 2px #fff inset,0 3px 0 rgba(47,138,26,.35);overflow:hidden}
+#missionModal .mm-head::after, #mailModal .mail-head::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:repeating-linear-gradient(135deg,rgba(255,255,255,.2) 0 7px,rgba(255,255,255,0) 7px 14px)}
+#missionModal .mm-head > *, #mailModal .mail-head > *{position:relative;z-index:1}
+#missionModal .mm-title, #mailModal .mail-title-h{color:#fff!important;text-shadow:0 1.5px 0 rgba(47,138,26,.75),-1px 0 #2f8a1a,1px 0 #2f8a1a,0 -1px #2f8a1a;font-weight:900!important}
+#missionModal .mm-bal{background:linear-gradient(180deg,#ffffff,#fff6dc)!important;border:none!important;
+  box-shadow:inset 0 0 0 2px #fff,0 0 0 2px #ffcf6a,0 3px 0 #f0b440!important}
+#missionModal .mm-bal .v{color:#c06a00!important}
+#missionModal .mm-tabs{gap:6px}
+.xeva-mission, .mm-limited-card, .mm-milestone{background:#fff!important;border-color:#d4ebc4!important;border-radius:16px!important;
+  box-shadow:0 0 0 1.5px #d4ebc4,0 3px 0 rgba(47,138,26,.16)!important}
+.xeva-mission.done{background:#f7fbf3!important}
+.xeva-m-ic{box-shadow:0 0 0 2px #fff,0 0 0 3.5px #8fdc64}
+.xeva-m-title{color:#4a3f33!important;font-weight:900!important}
+.xeva-m-rew b, .mm-milestone-rew, .mm-limited-rew{color:#d06a00!important}
+.xeva-m-done{color:#3f9a22!important;font-weight:900}
+.mm-prog-bar, .xeva-m-prog{background:#e4f2d8!important}
+.mm-prog-fill{background:linear-gradient(90deg,#8fdc64,#43b324)!important}
+.mm-prog-num{color:#3f9a22!important}
+.mm-tab-badge, .mail-all-n{background:#ff5f93!important;box-shadow:0 0 0 1.5px #fff}
+.mm-limited-badge{background:linear-gradient(180deg,#ffadd0,#ff5f93)!important;color:#fff!important}
+/* ══ メール ══ */
+.mail-item{background:#fff!important;border-color:#d4ebc4!important;box-shadow:0 0 0 1.5px #d4ebc4,0 3px 0 rgba(47,138,26,.16)!important}
+.mail-item:not(.claimed){border-color:#ffcf6a!important;box-shadow:0 0 0 2px #ffcf6a,0 3px 0 #f0b440!important}
+.mail-item-icon{background:#eef8e6!important;box-shadow:inset 0 0 0 2px #fff}
+.mail-item-title{color:#4a3f33!important}
+.mail-item-date{color:#8c9f7c!important}
+.mail-item-text{color:#6d6253!important}
+.mail-item-reward{background:#fff6dc!important;border-color:#ffcf6a!important}
+.mail-claimed-badge{color:#3f9a22!important}
+/* ══ アカウント設定などの板（acc-overlay）══ */
+.acc-overlay.sheetify, .acc-overlay{background:rgba(70,120,40,.32)!important}
+.acc-card{font-family:var(--um-font);background:linear-gradient(180deg,#ffffff,#f6fbef)!important;border-color:#fff!important}
+.accset-head{position:relative;background:linear-gradient(180deg,#8fdc64,#4cae2c)!important;border-radius:16px;margin:10px 10px 6px;padding:8px 8px 8px 14px!important;
+  box-shadow:0 0 0 2px #fff inset,0 3px 0 rgba(47,138,26,.35);overflow:hidden;border-bottom:none!important}
+.accset-head::after{content:"";position:absolute;inset:0;pointer-events:none;background:repeating-linear-gradient(135deg,rgba(255,255,255,.2) 0 7px,rgba(255,255,255,0) 7px 14px)}
+.accset-head > *{position:relative;z-index:1}
+.accset-title{color:#fff!important;text-shadow:0 1.5px 0 rgba(47,138,26,.75),-1px 0 #2f8a1a,1px 0 #2f8a1a,0 -1px #2f8a1a;font-weight:900!important}
+.acc-set-label{display:inline-block;color:#fff!important;padding:3px 14px 3px 10px;border-radius:6px 0 0 6px;background:linear-gradient(180deg,#ffbf5e,#ff9d2e);
+  clip-path:polygon(0 0,100% 0,calc(100% - 9px) 100%,0 100%);letter-spacing:.08em}
+.acc-set-section{border-bottom-color:#e3efd8!important}
+.acc-set-avatar{border-color:#62c43e!important;box-shadow:0 0 0 2.5px #fff,0 3px 0 2.5px rgba(47,138,26,.3)}
+.acc-overlay .wz-input, .acc-overlay input[type=text], .acc-overlay input[type=date]{border-color:#cfe6bf!important;background:#fbfff7!important}
+.acc-overlay .wz-input:focus{border-color:#62c43e!important;box-shadow:0 0 0 3px rgba(98,196,62,.2)!important}
+.acc-collbtn{background:#fff!important;border-color:#d4ebc4!important;box-shadow:0 0 0 1.5px #d4ebc4,0 3px 0 rgba(47,138,26,.16)!important}
+.acc-del-btn{border-color:#ffb3c6!important;color:#d23a5f!important}
+/* ══ お知らせ・新キャラのお知らせ ══ */
+.news-modal{border-color:#fff!important;box-shadow:0 -4px 0 rgba(76,174,44,.35),0 -10px 30px rgba(60,120,30,.2)!important}
+.nm-item{background:#fff!important;border-radius:16px!important;box-shadow:0 0 0 1.5px #e3efd8,0 3px 0 rgba(47,138,26,.12)!important}
+.nm-tag, .nm-date{color:#5e9a3e!important}
+#ncOverlay .nc-card, #ncOverlay [class*="nc-head"]{font-family:var(--um-font)}
+
+/* ══ スクロールバー：若草色 ══ */
+html.xh-html, html.xh-html body, #missionModal .mm-body, #mailList, .accset-body, .xh-sheet-body, #xhScroll, body{scrollbar-color:#62c43e #eaf8de}
+:is(html.xh-html, #missionModal, #mailModal, .acc-card, .xh-sheet-card, #xhScroll) ::-webkit-scrollbar{width:7px;height:7px}
+:is(html.xh-html, #missionModal, #mailModal, .acc-card, .xh-sheet-card, #xhScroll) ::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#8fdc64,#4cae2c);border-radius:99px}
+:is(html.xh-html, #missionModal, #mailModal, .acc-card, .xh-sheet-card, #xhScroll) ::-webkit-scrollbar-track{background:#eaf8de;border-radius:99px}
+
+/* ══ 動き（モーション）══ */
+@keyframes umPop{0%{transform:scale(.86)}55%{transform:scale(1.08)}100%{transform:scale(1)}}
+@keyframes umIn{0%{opacity:0;transform:translateY(16px) scale(.97)}70%{opacity:1;transform:translateY(-3px) scale(1.01)}100%{opacity:1;transform:none}}
+@keyframes umSheet{0%{transform:translateY(46px) scale(.97)}65%{transform:translateY(-6px) scale(1.005)}100%{transform:none}}
+@keyframes umFloat{0%,100%{transform:translateY(0)}50%{transform:translateY(-4px)}}
+@keyframes umBadge{0%,70%,100%{transform:scale(1)}78%{transform:scale(1.3) rotate(-8deg)}86%{transform:scale(.92) rotate(5deg)}93%{transform:scale(1.08)}}
+@keyframes umRibbon{0%{opacity:0;transform:translateX(-24px) skewX(-8deg)}70%{opacity:1;transform:translateX(3px)}100%{opacity:1;transform:none}}
+@keyframes umShine{0%,72%{transform:translateX(-130%) skewX(-18deg)}100%{transform:translateX(230%) skewX(-18deg)}}
+/* シート・パネルはぽんと出る */
+.xh-sheet.on .xh-sheet-card{animation:umSheet .46s cubic-bezier(.2,1.25,.4,1)}
+#missionModal.open, #mailModal.open, .acc-overlay.open .acc-card, .news-modal.open, .news-modal.show{animation:umSheet .46s cubic-bezier(.2,1.25,.4,1)}
+/* 行は下から順に */
+.xh-sheet.on .xh-row, #missionModal.open .xeva-mission, #mailModal.open .mail-item, .acc-overlay.open .acc-set-section{animation:umIn .42s cubic-bezier(.2,1.2,.4,1) both}
+:is(.xh-sheet.on .xh-row, #missionModal.open .xeva-mission, #mailModal.open .mail-item, .acc-overlay.open .acc-set-section):nth-child(2){animation-delay:.04s}
+:is(.xh-sheet.on .xh-row, #missionModal.open .xeva-mission, #mailModal.open .mail-item, .acc-overlay.open .acc-set-section):nth-child(3){animation-delay:.08s}
+:is(.xh-sheet.on .xh-row, #missionModal.open .xeva-mission, #mailModal.open .mail-item, .acc-overlay.open .acc-set-section):nth-child(4){animation-delay:.12s}
+:is(.xh-sheet.on .xh-row, #missionModal.open .xeva-mission, #mailModal.open .mail-item, .acc-overlay.open .acc-set-section):nth-child(5){animation-delay:.16s}
+:is(.xh-sheet.on .xh-row, #missionModal.open .xeva-mission, #mailModal.open .mail-item, .acc-overlay.open .acc-set-section):nth-child(6){animation-delay:.2s}
+:is(.xh-sheet.on .xh-row, #missionModal.open .xeva-mission, #mailModal.open .mail-item, .acc-overlay.open .acc-set-section):nth-child(7){animation-delay:.24s}
+:is(.xh-sheet.on .xh-row, #missionModal.open .xeva-mission, #mailModal.open .mail-item, .acc-overlay.open .acc-set-section):nth-child(n+8){animation-delay:.28s}
+/* ★★ 2026-10-12d ロビーのボタン（パートナー・イベントなど）は<b>静止</b>（ご指定「上下に動いているので静止させて」）。
+   前はゆっくり浮く動き（umFloat）を付けていた。押したときに沈む動きだけ残す。印ははねる
+   ★★ 2026-10-13 「メニュー」の取っ手の白い棒の上下（xlNudge）も止めた（ロビーで上下に動くものは無し） */
+.xl-handle span{animation:none!important}
+.xl-ic:active .i, .xh-act:active .ic, .xl-app:active .ic{transform:translateY(2px) scale(.94);transition:transform .08s}
+.xh-act .bdg, .xl-ic .bdg, .mm-tab-badge, .xl-new, .xh-newb, .gl-ch .gl-new, .gl-ban .nw{animation:umBadge 2.6s ease-in-out infinite}
+/* 見出しのリボンはすべりこむ */
+.xh-sechead .t, .gl-ttl b, .xh-sec-label, .acc-set-label, body.pp-community .lbl{animation:umRibbon .5s cubic-bezier(.2,1.3,.4,1) both}
+/* ガチャの「引く」ボタン・ホームの大きいバナーに光が走る */
+.gl-go .gl-draw, .pbtn.p10{position:relative;overflow:hidden}
+.gl-go .gl-draw::after, .pbtn.p10::after{content:"";position:absolute;top:-10%;bottom:-10%;left:0;width:34%;pointer-events:none;
+  background:linear-gradient(90deg,rgba(255,255,255,0),rgba(255,255,255,.55),rgba(255,255,255,0));animation:umShine 3.2s ease-in-out infinite}
+.pbtn.p10{overflow:visible}
+.pbtn.p10::after{display:none}
+/* 図鑑・ガチャのカードは押すと少し沈む */
+.ccard, .gl-ch, .xl-ban, .gl-card .gl-ban{transition:transform .12s ease}
+.ccard:active, .gl-ch:active{transform:scale(.96)}
+/* 図鑑のカードは順に出る */
+.grid .ccard{animation:umIn .4s cubic-bezier(.2,1.2,.4,1) both}
+.grid .ccard:nth-child(2){animation-delay:.03s}.grid .ccard:nth-child(3){animation-delay:.06s}.grid .ccard:nth-child(4){animation-delay:.09s}
+.grid .ccard:nth-child(5){animation-delay:.12s}.grid .ccard:nth-child(6){animation-delay:.15s}.grid .ccard:nth-child(7){animation-delay:.18s}
+.grid .ccard:nth-child(8){animation-delay:.21s}.grid .ccard:nth-child(n+9){animation-delay:.24s}
+
+/* ══ 動きを減らす設定 ══ */
+body.xos-nomotion :is(.xh-sheet-card, #missionModal, #mailModal, .acc-card, .news-modal, .xh-row, .xeva-mission, .mail-item, .acc-set-section, .xl-ic .i, .bdg, .mm-tab-badge, .xl-new, .xh-newb, .gl-new, .nw,
+  .xh-sechead .t, .gl-ttl b, .xh-sec-label, .acc-set-label, .lbl, .ccard, .mm-tab, .gl-tab, .ftab, .tab, .gl-flt button, .xh-mini),
+body.xos-nomotion :is(.gl-draw, .pbtn)::after, body.xos-nomotion .xh-ntab.on::before{animation:none!important}
+@media (prefers-reduced-motion:reduce){
+  :is(.xh-sheet-card, #missionModal, #mailModal, .acc-card, .news-modal, .xh-row, .xeva-mission, .mail-item, .acc-set-section, .xl-ic .i, .bdg, .mm-tab-badge, .xl-new, .xh-newb, .gl-new, .nw,
+    .xh-sechead .t, .gl-ttl b, .xh-sec-label, .acc-set-label, .lbl, .ccard, .mm-tab, .gl-tab, .ftab, .tab, .gl-flt button, .xh-mini),
+  :is(.gl-draw, .pbtn)::after, .xh-ntab.on::before{animation:none!important}
+}

@@ -173,13 +173,12 @@ const MISSION_META = {
   magichainparty_play: { href: "MagiChainParty/index.html",        icon: "thumbs/MagiChainParty.jpg", cta: "プレイ" },
   magiempire_play:     { href: "MagiEmpire/MagiEmpire.html",       icon: "thumbs/MagiEmpire.jpg",     cta: "プレイ" },
   magiarena_play:      { href: "MagiArena/MagiArena.html",         icon: "thumbs/MagiArena.jpg",      cta: "プレイ" },
-  magidiamond_play:    { href: "MagiDiamond/index.html",           icon: "thumbs/MagiDiamond.jpg",    cta: "プレイ" },
   magimanor_play:      { href: "MagiManor/index.html",             icon: "thumbs/MagiManor.jpg",      cta: "探索へ" },
   magicraft_play:      { href: "MagiCraft/index.html",             icon: "thumbs/MagiCraft.jpg",      cta: "プレイ" },
   magijackpot_play:    { href: "MagiJackpot/index.html",           icon: "thumbs/MagiJackpot.jpg",    cta: "プレイ" },
   magilotto_buy:       { href: "MagiLotto/index.html",             icon: "thumbs/MagiLotto.jpg",      cta: "買ってみる" },
   magilex_play:        { href: "MagiLex/MagiLex.html",             icon: "thumbs/MagiLex.jpg",        cta: "学ぶ" },
-  magichemlex_play:    { href: "MagiChemLex/index.html",           icon: "thumbs/MagiChemLex.jpg",    cta: "学ぶ" },
+  magichemlex_play:    { href: "MagiChemLex/index.html",           icon: "thumbs/MagiChemLex.jpg?v=2",    cta: "学ぶ" },
   magifocus_study:     { href: "MagiFocus/index.html",             icon: "thumbs/MagiFocus.jpg",      cta: "はじめる" },
   xevynar_ask:         { href: "XEVYNAR/index.html",               icon: "thumbs/XEVYNAR.jpg",        cta: "きいてみる" },
   magilink_register:   { href: "MagiLink/MagiLink.html",           icon: "thumbs/MagiLink.jpg",       cta: "登録へ" },
@@ -211,7 +210,7 @@ function renderXevaMissions() {
         ? `<button class="xeva-m-claim" onclick="claimMsnStarter('${m.id}')">受け取る +${m.reward}</button>`
         : `<a class="xeva-m-go" href="${meta.href || "#"}">${meta.cta || "開く"} →</a>`;
     return `<div class="xeva-mission${m.claimed ? " done" : ""}${claimable ? " claimable" : ""}">
-      <div class="xeva-m-ic">${meta.icon ? `<img src="${meta.icon}" alt="">` : "🎯"}</div>
+      <div class="xeva-m-ic">${meta.icon ? `<img src="${meta.icon}" loading="lazy" decoding="async" alt="">` : "🎯"}</div>
       <div class="xeva-m-body">
         <div class="xeva-m-title">${m.title}</div>
         <div class="xeva-m-rew">報酬 <b>+${m.reward} XEVA</b>${claimable ? '　<span style="color:#e0701a;font-weight:800">達成！受け取ろう</span>' : ""}</div>
@@ -502,7 +501,7 @@ function renderMsnCollection(){
     /* MB_CHARS の file は "../img/t_Xxx.webp"（MagiBurst 基準）なので、ポータルからは ../ を外す */
     const thumbs=g.map(c=>{
       const src = String(c.file||"").replace(/^\.\.\//, "");
-      return `<img src="${src}" title="No.${c.no} ${c.name}" alt="${c.name}" style="width:36px;height:36px;border-radius:9px;object-fit:cover;border:2px solid ${owned[c.id]?'#17a673':'rgba(56,140,220,.22)'};${owned[c.id]?'':'filter:grayscale(1);opacity:.45'}">`;
+      return `<img src="${src}" loading="lazy" decoding="async" title="No.${c.no} ${c.name}" alt="${c.name}" style="width:36px;height:36px;border-radius:9px;object-fit:cover;border:2px solid ${owned[c.id]?'#17a673':'rgba(56,140,220,.22)'};${owned[c.id]?'':'filter:grayscale(1);opacity:.45'}">`;
     }).join("");
     const btn = done ? '<span style="font-size:11px;color:#17a673;font-weight:700;white-space:nowrap">✓ 受取済み</span>'
       : all ? `<button class="mm-milestone-claim" onclick="claimCollection('${s}')">受け取る</button>`
@@ -2282,6 +2281,12 @@ function grantMbGift(srcId, mb) {
 }
 
 const INITIAL_MAILS = [
+  /* ── ★★ 2026-10-13 日ごろの感謝をこめて（選べるSSRキャラ確定チケット 2枚・ご指定）──
+     ★ ssrsel:2 ＝ XEVA.ssrSelect.grantOnce("<メールの id>", 2)。同じメールを2台で受け取っても2枚のまま。
+     ★ 使う場所はガチャ一覧のいちばん上（gacha-ui.js の useSsrSelTicket）。 */
+  { id:"mail_thanks_ssrsel_261013", icon:"🎟️", title:"日ごろの感謝をこめて（選べるSSRキャラ確定チケット 2枚）", date:"2026-10-13",
+    body:"いつも XEVARION をご利用いただきありがとうございます。\n\n日ごろの感謝をこめて、全ユーザーに「選べるSSRキャラ確定チケット」を2枚お贈りします。\n\n・1枚につき、ガチャから出る SSR キャラの中から 好きな1体を確定で 受け取れます（UR は対象外です）。\n・すでに持っているキャラをえらぶと 限界突破 が進みます。\n・使うときは、ガチャを開いて いちばん上の「選べるSSRキャラ確定チケット」 を押してください。えらぶ画面で「まだ使用しない」を押せば、チケットは減りません。\n\nこれからも XEVARION をよろしくお願いいたします。",
+    ssrsel:2 },
   /* ── ★★ 2026-10-07 MagiLex ビンゴの不具合のお詫び（🎫フェスチケット40枚・ご指定）──
      ★ mb:{ticket:40} ＝<b>フェスチケット</b>（フェス専用）。ガチャチケット（mb:{gticket}）ではない。
      ★ 受け取った瞬間に XEVARION 共通ウォレット（XEVA.fesTicket）へ入る（grantMbGift）。 */
@@ -2427,7 +2432,7 @@ function seedMails() {
       const before = JSON.stringify(cur);
       Object.keys(m).forEach((k) => { cur[k] = m[k]; });
       /* 旧版で入っていて新版に無いキーは消す（ticket → gticket の付け替えなど） */
-      ["amount", "gem", "mb", "charId", "charFull"].forEach((k) => {
+      ["amount", "gem", "mb", "charId", "charFull", "ssrsel"].forEach((k) => {
         if (!(k in m) && k in cur) delete cur[k];
       });
       if (JSON.stringify(cur) !== before) changed = true;
@@ -2487,6 +2492,11 @@ function claimMail(id) {
     const tk = grantMbGift(mail.mbFrom || mail.id, mail.mb);
     if (tk > 0 && window.xhRenderTicket) window.xhRenderTicket();
   }
+  /* ★★ 2026-10-13 選べるSSRキャラ確定チケット（同じ回のぶんは何度受け取っても n 枚まで） */
+  let ssrGot = 0;
+  if (mail.ssrsel > 0 && window.XEVA && window.XEVA.ssrSelect) {
+    try { ssrGot = window.XEVA.ssrSelect.grantOnce(mail.id, mail.ssrsel, "📧メール：" + mail.title); } catch (e) {}
+  }
   if (mail.charId) {
     const GKEY = "xeva_gacha_v1";
     let G = { owned: {}, dupes: {}, points: {} };
@@ -2510,6 +2520,7 @@ function claimMail(id) {
   renderMailList();
   updateMailBadge();
   if (mail.amount > 0) showXevaToast(mail.amount, "「" + mail.title + "」");
+  else if (mail.ssrsel > 0) showXevaToast(0, "🎟️ 選べるSSRキャラ確定チケット ×" + mail.ssrsel + " を受け取りました（ガチャのいちばん上から使えます）");
 }
 
 /* ── 一括受け取り：未受取のメールをまとめて受け取る ──
@@ -2526,9 +2537,12 @@ function claimAllMails() {
   if (!G.owned) G.owned = {};
   if (!G.dupes) G.dupes = {};
 
-  let gemTotal = 0, tktTotal = 0;
+  let gemTotal = 0, tktTotal = 0, ssrTotal = 0;
   targets.forEach((m) => {
     m.claimed = true;
+    if (m.ssrsel > 0 && window.XEVA && window.XEVA.ssrSelect) {
+      try { window.XEVA.ssrSelect.grantOnce(m.id, m.ssrsel, "📧メール：" + m.title); ssrTotal += m.ssrsel; } catch (e) {}
+    }
     if (m.amount > 0) total += m.amount;
     const dup = mbAlreadyGot(m.mbFrom);
     if (m.gem > 0 && !dup) gemTotal += m.gem;
@@ -2556,6 +2570,7 @@ function claimAllMails() {
   updateMailBadge();
   if (total > 0) showXevaToast(total, "メール" + targets.length + "件をまとめて受け取りました");
   else if (tktTotal > 0) showXevaToast(0, "🎫 チケット ×" + tktTotal + " を受け取りました");
+  else if (ssrTotal > 0) showXevaToast(0, "🎟️ 選べるSSRキャラ確定チケット ×" + ssrTotal + " を受け取りました");
   else if (chars.length) showXevaToast(0, chars.join("・") + " を受け取りました");
 }
 window.claimAllMails = claimAllMails;
@@ -2584,6 +2599,8 @@ function renderMailList() {
     const ch = m.charId && window.XEVA ? window.XEVA.CHARS.find(c => c.id === m.charId) : null;
     const iconHtml = ch
       ? `<img src="${charSmallPath(ch.file)}" style="width:46px;height:46px;border-radius:14px;object-fit:cover" alt="${ch.name}">`
+      : (m.ssrsel && window.XevaSsrTicketSVG)   /* ★★ 2026-10-13 選べるSSRキャラ確定チケットは券面の絵 */
+      ? `<div class="mail-item-icon" style="display:grid;place-items:center">${window.XevaSsrTicketSVG(26)}</div>`
       : `<div class="mail-item-icon">${m.icon || "📨"}</div>`;
     // 受け取り期限（未受取のみ表示）。残り3日以内は警告色。
     let expiryHtml = "";
@@ -2614,6 +2631,7 @@ function renderMailList() {
         ${m.mb && m.mb.ticket ? `<div class="mail-item-reward"><span style="font-size:11px;color:#c48bff;font-weight:700">🎫 フェスチケット ×${m.mb.ticket}</span></div>` : ""}
         ${m.mb && m.mb.gticket ? `<div class="mail-item-reward"><span style="font-size:11px;color:#5ab6ff;font-weight:700">🎫 ガチャチケット ×${m.mb.gticket}</span></div>` : ""}
         ${m.mb && m.mb.gold ? `<div class="mail-item-reward"><span style="font-size:11px;color:#d79a1e;font-weight:700">🪙 ゴールド ×${m.mb.gold.toLocaleString()}</span></div>` : ""}
+        ${m.ssrsel ? `<div class="mail-item-reward" style="display:flex;align-items:center;gap:6px">${window.XevaSsrTicketSVG ? window.XevaSsrTicketSVG(16) : "🎟️"}<span style="font-size:11px;color:#d0337f;font-weight:900">選べるSSRキャラ確定チケット ×${m.ssrsel}</span></div>` : ""}
         ${/* ★ 2026-08-13 🎫はここで即座に受け取れる（MagiBurst を開く必要はなくなった）。
               ゴールドのように MagiBurst のセーブにしか置けないものだけ、これまでどおりの案内を出す。 */""}
         ${m.mb && m.mb.gold ? `<div style="font-size:10px;font-weight:700;color:rgba(34,52,77,.5);margin-top:3px">※ 🪙ゴールドは MagiBurst を起動したときに反映されます</div>` : ""}

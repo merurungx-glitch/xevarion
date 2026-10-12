@@ -11,7 +11,7 @@
      ② アプリロゴ ＋ ロードバー ＋ "Loading <App> ..."
 
    使い方（<head> に、defer なしで置く）:
-     <script src="../xeva-splash.js?v=13"
+     <script src="../xeva-splash.js?v=14"
              data-app="MagiLex"
              data-logo="../thumbs/MagiLex.jpg"></script>
 
@@ -110,21 +110,32 @@
   var CAP = D.cap || ("Loading " + APP + " ...");
   var NOTE = D.note || "";
 
-  /* ── タイミング（MagiBurst と同一） ── */
-  var T_IN = 60;        // 3社ロゴを出すまで
-  var T_HOLD = 3600;    // 3社ロゴの表示時間
-  var T_OUT = 520;      // 3社ロゴのフェードアウト
-  var T_BAR = 1400;     // ロードバーが伸びきるまで
-  var T_MAIN = 1650;    // アプリロゴの最短表示時間
-  var T_FADE = 560;     // 全体のフェードアウト
-  var T_PRELOAD = 2600; // 画像プリロードの上限
-  var T_MAX = 15000;    // wait() が返ってこないときの保険
+  /* ── タイミング ──
+     ★★ 2026-10-09b 起動を速く（ご指定「ホームやアプリの起動に時間がかかる」）。
+       前は<b>毎回</b>「3社ロゴ 3.6秒 → アプリロゴ 最短1.65秒」で、読みこみが速くても約6秒かかっていた。
+       ・3社ロゴは<b>そのタブで最初の1回だけ</b>（sessionStorage）。ホームとアプリを行き来するときは出さない
+       ・時間を短く：3社ロゴ 1.6秒・アプリロゴ 最短0.6秒（2回目からは 0.25秒）
+       ・画面をタップするとすぐ先へ進む（アプリ側の wait()＝読みこみ待ちはそのまま守る）
+       ・3社ロゴは起動画面用の小さい絵（brand/*_s.webp・合計約30KB。元の png は合計2MB だった） */
+  var SEEN_KEY = "xev_splash_seen";
+  var SEEN = false;
+  try { SEEN = sessionStorage.getItem(SEEN_KEY) === "1"; sessionStorage.setItem(SEEN_KEY, "1"); } catch (e) {}
+  var T_IN = 60;                    // 3社ロゴを出すまで
+  var T_HOLD = 1600;                // 3社ロゴの表示時間（前は 3600）
+  var T_OUT = 320;                  // 3社ロゴのフェードアウト
+  var T_BAR = SEEN ? 380 : 800;     // ロードバーが伸びきるまで
+  var T_MAIN = SEEN ? 250 : 600;    // アプリロゴの最短表示時間（前は 1650）
+  var T_FADE = 320;                 // 全体のフェードアウト
+  var T_PRELOAD = 1500;             // 画像プリロードの上限
+  var T_MAX = 15000;                // wait() が返ってこないときの保険
 
   var BRAND = [
-    { src: BASE + "brand/NGX.png", alt: "NGX" },
-    { src: BASE + "brand/MagicalFuture.png", alt: "Magical Future" },
-    { src: BASE + "brand/ISHIDA Production.png", alt: "ISHIDA Production" }
+    { src: BASE + "brand/NGX_s.webp", alt: "NGX" },
+    { src: BASE + "brand/MagicalFuture_s.webp", alt: "Magical Future" },
+    { src: BASE + "brand/ISHIDA_s.webp", alt: "ISHIDA Production" }
   ];
+  /* タップで先へ（3社ロゴ・最短表示時間を飛ばす） */
+  var skipRes = null, skipP = new Promise(function (r) { skipRes = r; });
 
   var ID = "xevaSplash";
   var holds = [];      // wait() で渡された Promise
@@ -137,7 +148,7 @@
        padding-bottom を同じぶん足すので、中の .xsph（inset:0）の位置は変わらない。 */
     "#" + ID + "{position:fixed;top:0;left:0;right:0;bottom:calc(-1 * var(--xv-under,0px));" +
     "padding-bottom:var(--xv-under,0px);z-index:2147483000;" +
-    "background:linear-gradient(160deg,#fff,#ffeede);transition:opacity .55s;" +
+    "background:linear-gradient(160deg,#fff,#ffeede);transition:opacity .32s;" +
     "font-family:'Noto Sans JP',system-ui,-apple-system,'Segoe UI',sans-serif}" +
     "#" + ID + ".hide{opacity:0;pointer-events:none}" +
     /* ★★ 2026-09-06 「いちばん下まで色が届かない」対策（ご指定）。
@@ -224,13 +235,14 @@
         (NOTE ? '<div class="xsnote">' + esc(NOTE) + "</div>" : "") +
       "</div>";
     (document.body || document.documentElement).appendChild(el);
+    el.addEventListener("pointerdown", function () { if (skipRes) skipRes(); }, { passive: true });
     run();
   }
 
   function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
 
   function preload() {
-    var srcs = BRAND.map(function (b) { return b.src; }).concat([LOGO]);
+    var srcs = (SEEN ? [] : BRAND.map(function (b) { return b.src; })).concat([LOGO]);
     return new Promise(function (res) {
       var n = srcs.length, fin = false;
       var done = function () { if (!fin) { fin = true; res(); } };
@@ -249,13 +261,16 @@
     var fill = el.querySelector(".xsbar i");
 
     var pre = preload();
-    setTimeout(function () { intro.classList.add("in"); }, T_IN);
-    await sleep(T_HOLD);
-
-    intro.classList.remove("in");
-    intro.classList.add("out");
-    await sleep(T_OUT);
-    intro.style.display = "none";
+    if (SEEN) {
+      intro.style.display = "none";          /* ★★ 2026-10-09b 2回目からは3社ロゴを出さない */
+    } else {
+      setTimeout(function () { intro.classList.add("in"); }, T_IN);
+      await Promise.race([sleep(T_HOLD), skipP]);
+      intro.classList.remove("in");
+      intro.classList.add("out");
+      await sleep(T_OUT);
+      intro.style.display = "none";
+    }
 
     main.classList.add("in");
     setTimeout(function () {
@@ -266,7 +281,7 @@
     /* 画像プリロード・アプリ側の wait()・最短表示時間 が全部そろうまで待つ。
        どれかが返ってこなくても T_MAX で必ず先へ進める。 */
     await Promise.race([
-      Promise.all([pre, sleep(T_MAIN)].concat(holds.map(function (p) {
+      Promise.all([Promise.race([pre, skipP]), Promise.race([sleep(T_MAIN), skipP])].concat(holds.map(function (p) {
         return Promise.resolve(p).catch(function () {});
       }))),
       sleep(T_MAX)

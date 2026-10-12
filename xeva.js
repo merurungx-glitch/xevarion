@@ -6,6 +6,13 @@
 
   var KEY = "xeva_wallet_v1";
   var ACC_KEY = "xeva_account_v1";
+  /* ★★ 2026-10-13 MagiDiamond は廃止（ご指定「ファイルなどやゲーム内の性能なども完全に消去」）。
+     端末に残っているそのセーブ・設定も消す（どれも MagiDiamond だけのキー。同期の台帳 xeva-keys.js からも外した） */
+  try {
+    ["magidiamond2_v1", "magidiamond_setup_v1", "magidiamond_ver_v1"].forEach(function (k) {
+      if (localStorage.getItem(k) != null) localStorage.removeItem(k);
+    });
+  } catch (e) {}
   var GEM_KEY = "xeva_gem_v1";
   var LOGIN_BONUS = 50; // kept for compatibility
   var DAILY_REWARDS = [50, 50, 50, 50, 50, 100, 150]; // day 1-7
@@ -69,7 +76,6 @@
     magichainparty_play: { reward: 150, title: "MagiChainParty で対戦してみよう",         app: "MagiChainParty" },
     magiempire_play:     { reward: 150, title: "MagiEmpire で国盗り対戦をしよう",         app: "MagiEmpire" },
     magiarena_play:      { reward: 150, title: "MagiArena で1台対戦をあそぼう",           app: "MagiArena" },
-    magidiamond_play:    { reward: 150, title: "MagiDiamond で読み合い野球盤を遊ぼう",    app: "MagiDiamond" },
     magimanor_play:      { reward: 150, title: "MagiManor で洋館を探索しよう",            app: "MagiManor" },
     magicraft_play:      { reward: 150, title: "MagiCraft でブロックを掘ってみよう",      app: "MagiCraft" },
     magijackpot_play:    { reward: 200, title: "MagiJackpot でゲームを1回プレイしよう",   app: "MagiJackpot" },
@@ -462,6 +468,52 @@
        まとめて1本にすると、フェスで引いた印で GRAND DEBUT のキャラが取れてしまう。 */
   var SEAL_KEY = "xeva_seal_v1";
   var seal = makeCountMap(SEAL_KEY, "xeva:seal");
+  /* ══ ★★ 2026-10-13 選べるSSRキャラ確定チケット（日ごろの感謝・ご指定）══
+     1枚につき、ガチャから出る SSR の中から<b>好きな1体を確定で</b>受け取れる（UR は対象外）。使う場所はガチャ一覧のいちばん上。
+     ★ 残高は<b>フェスセレクト券と同じ台帳（xeva_fessel_v1）</b>の "ssr:<配った回>" の欄に置く。
+       e（もらった総数）・u（使った総数）は増えるだけで、端末をまたいでも max で混ざる（xeva-cloud の mergeCountMap）
+       ＝ 同期の書き足しが要らず、<b>2台で同時に受け取っても2枚のまま</b>（grantOnce は「その回の e を n にそろえる」だけ）。 */
+  /* 券面の絵（★★ 2026-10-13 新しくデザイン）。MagiBurst のフェス券・ガチャ券と同じ形（62×40・切りこみ・ミシン目・左の紋章）で、
+     SSR の虹色に近い 紫→桃→橙 の地・金のふち・「SSR SELECT」・紋章は星に「えらぶ」の緑のチェック。高さ px で幅は 1.55 倍 */
+  window.XevaSsrTicketSVG = function (px) {
+    var s = px || 30, w = "width:" + (s * 1.55) + "px;height:" + s + "px;display:block";
+    return '<svg viewBox="0 0 62 40" style="' + w + '" aria-hidden="true"><defs>'
+      + '<linearGradient id="sstg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6a1fa8"/><stop offset=".48" stop-color="#e0337f"/><stop offset="1" stop-color="#ff9a3c"/></linearGradient>'
+      + '<linearGradient id="sstr" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff6c4"/><stop offset=".5" stop-color="#ffd257"/><stop offset="1" stop-color="#fff6c4"/></linearGradient>'
+      + '<linearGradient id="ssts" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".5"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient></defs>'
+      + '<path d="M3 6h56v9a5 5 0 000 10v9H3v-9a5 5 0 000-10z" fill="url(#sstg)" stroke="url(#sstr)" stroke-width="1.8"/>'
+      + '<path d="M5 7.6h52v6.6c-1.6.3-2.6 1.2-3 2.4H8c-.4-1.2-1.4-2.1-3-2.4Z" fill="url(#ssts)"/>'
+      + '<path d="M22 4v32" stroke="#ffe9a8" stroke-width="1.2" stroke-dasharray="3 3" opacity=".9"/>'
+      + '<g transform="translate(12.5 20)"><circle r="7.8" fill="#fff6d8" stroke="#ffd257" stroke-width="1.2"/>'
+      + '<path d="M0-5.8 1.7-2 5.8-1.7 2.7 1.1 3.6 5.2 0 3.1-3.6 5.2-2.7 1.1-5.8-1.7-1.7-2Z" fill="#ff5fa2" stroke="#b8235e" stroke-width=".6" stroke-linejoin="round"/>'
+      + '<circle cx="5.4" cy="5.4" r="2.9" fill="#2fbf71" stroke="#fff" stroke-width=".9"/><path d="M4 5.5l1 1 1.9-2.1" fill="none" stroke="#fff" stroke-width="1" stroke-linecap="round" stroke-linejoin="round"/></g>'
+      + '<text x="41.5" y="19" text-anchor="middle" font-family="Orbitron,sans-serif" font-size="10" font-weight="900" fill="url(#sstr)" stroke="#7a1f4a" stroke-width=".6" paint-order="stroke">SSR</text>'
+      + '<text x="41.5" y="28.2" text-anchor="middle" font-family="Orbitron,sans-serif" font-size="5.6" font-weight="900" fill="#fff">SELECT</text>'
+      + '<path d="M30.5 32.6h22" stroke="#ffe9a8" stroke-width=".9" opacity=".7"/>'
+      + '<path d="M55.4 9.6l.7 1.6 1.6.7-1.6.7-.7 1.6-.7-1.6-1.6-.7 1.6-.7Z" fill="#fff"/></svg>';
+  };
+  var ssrSelect = (function () {
+    var PFX = "ssr:";
+    function bal() { var a = fesSelect.all(), n = 0; Object.keys(a).forEach(function (k) { if (k.indexOf(PFX) === 0) n += a[k]; }); return n; }
+    return {
+      get: bal,
+      /* 配った回（tag）ごとに n 枚まで。すでにもらっていれば何もしない */
+      grantOnce: function (tag, n, reason) {
+        var k = PFX + String(tag || ""), e = fesSelect.earned(k);
+        n = Math.max(0, Math.round(n || 0));
+        if (!tag || e >= n) return 0;
+        fesSelect.add(k, n - e, reason || "選べるSSRキャラ確定チケット");
+        return n - e;
+      },
+      /* 1枚使う。足りなければ false */
+      spend: function (reason) {
+        var a = fesSelect.all();
+        var ks = Object.keys(a).filter(function (k) { return k.indexOf(PFX) === 0 && a[k] > 0; }).sort();
+        if (!ks.length) return false;
+        return fesSelect.spend(ks[0], 1, reason || "選べるSSRキャラ確定チケット");
+      },
+    };
+  })();
   function loadTkt() { return ticket._load(); }
   function emitTkt(b) { ticket._emit(b); }
 
@@ -1753,7 +1805,7 @@
         { id: "lexXeva", ic: "📚", title: "MagiLex 系統で XEVA を 3,000 獲得する（2倍込み）", key: "lexXeva", n: 3000, tk: 3, href: "MagiLex/MagiLex.html" },
         { id: "lexAns", ic: "✏️", title: "MagiLex で問題に 50問 答える", key: "lexAns", n: 50, tk: 3, href: "MagiLex/MagiLex.html" },
         { id: "chemOk", ic: "⚗️", title: "MagiChemLex で 20問 正解する", key: "chemOk", n: 20, tk: 3, href: "MagiChemLex/index.html" },
-        { id: "chemSet", ic: "📝", title: "MagiChemLex の「本番セット」を 1回 やりとげる", key: "chemSet", n: 1, tk: 3, href: "MagiChemLex/index.html" },
+        { id: "chemSet", ic: "📝", title: "MagiChemLex の「模試」を 1回 やりとげる", key: "chemSet", n: 1, tk: 3, href: "MagiChemLex/index.html" },
         { id: "gacha10", ic: "🎰", title: "ガチャを 10回 引く", key: "gacha", n: 10, tk: 2, href: "gacha.html" },
         { id: "all", ic: "💜", title: "ほかのイベントミッションを すべて 達成する", all: true, n: 6, tk: 4, href: "" },
       ],
@@ -1844,6 +1896,9 @@
        使いかた: XEVA.fesSelect.get("fes13") / .add("fes13",1,"…") / .spend("fes13",1,"…") */
     FSEL_KEY: FSEL_KEY,
     fesSelect: fesSelect,
+    /* ★★ 2026-10-13 選べるSSRキャラ確定チケット。使いかた: XEVA.ssrSelect.get() / .grantOnce("261013", 2, "…") / .spend("…")
+       変わったら "xeva:fessel" が飛ぶ（台帳がフェスセレクト券と同じため） */
+    ssrSelect: ssrSelect,
     /* ★★ 2026-09-13c ★星煌印（ガチャの天井）。
        使いかた: XEVA.seal.get("fes14") / .add("fes14",1,"…") / .spend("fes14",150,"…")
        ★ 引いた数そのものは .earned("fes14")（減らない通算）。 */

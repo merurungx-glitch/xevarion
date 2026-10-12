@@ -57,7 +57,7 @@ body.xl-drawer-open .hm-over{visibility:hidden}
 
 .xl-left,.xl-right{position:absolute;top:calc(var(--xl-profh,112px) + 10px);display:flex;flex-direction:column;gap:10px;align-items:center}
 .xl-left{left:12px;align-items:flex-start}  /* ★ 2026-09-24g 右のボタンと同じく画面端から14px */
-/* ボタンの文字は短く（イベント／更新情報）。文字の中心をアイコンにそろえる */
+/* ボタンの文字は短く。文字の中心をアイコンにそろえる（★ 2026-10-13 左の「イベント」「更新情報」は廃止・ご指定） */
 .xl-left .xl-ic{align-items:center;min-width:44px}
 .xl-right{right:10px}
 /* 左上：ガチャのバナー（新キャラが入った直近のガチャ5つ）。★ 絵と同じ比率の枠＋contain＝端が切れない */

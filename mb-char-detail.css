@@ -97,6 +97,29 @@
   letter-spacing:.06em;padding:1.5px 7px;border-radius:99px;vertical-align:1px}
 .dhero .dnm .drar.ssr{background:linear-gradient(120deg,#ffd257,#ffb020);color:#3a2600}
 .dhero .dnm .drar.sr{background:rgba(143,180,255,.92);color:#0e1d3a}
+/* ══ ★★ 2026-10-09b 絵の切りかえ（横長／正方形／SS絵）・UR の札 ══ */
+.dhero .dnm .drar.ur{background:linear-gradient(115deg,#ff5fa2,#ffd257 30%,#7dffb0 50%,#5fd0ff 70%,#a35cff);color:#fff;text-shadow:0 1px 2px rgba(40,10,80,.6)}
+.dhero.ursq{overflow:hidden}
+.dhero.ursq img{aspect-ratio:1/1;object-fit:cover}
+.dimgsw{position:absolute;right:10px;top:56px;z-index:7;display:flex;gap:3px;padding:3px;border-radius:99px;background:rgba(15,10,40,.55);
+  backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);box-shadow:0 2px 10px rgba(0,0,0,.25)}
+.dimgsw button{border:none;cursor:pointer;font:800 11px/1 system-ui,sans-serif;color:#fff;background:transparent;padding:6px 10px;border-radius:99px;white-space:nowrap}
+.dimgsw button.on{background:#fff;color:#2a2540}
+.dimgsw button.ss{background:linear-gradient(120deg,#ff5fa2,#a35cff)}
+#detSS{position:fixed;inset:0;z-index:975;display:none;align-items:center;justify-content:center;background:rgba(8,6,20,.9);
+  backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px);padding:calc(env(safe-area-inset-top,0px) + 14px) 14px calc(env(safe-area-inset-bottom,0px) + 14px)}
+#detSS.on{display:flex;animation:dssIn .25s ease}
+@keyframes dssIn{from{opacity:0}}
+#detSS .dss-in{display:flex;flex-direction:column;align-items:center;gap:10px;max-height:100%;max-width:100%}
+#detSS img{display:block;max-height:calc(100vh - 120px);max-height:calc(100dvh - 120px);max-width:100%;width:auto;border-radius:16px;
+  box-shadow:0 0 0 2px rgba(255,255,255,.7),0 10px 40px rgba(0,0,0,.6);animation:dssZoom .35s cubic-bezier(.2,.8,.3,1)}
+@keyframes dssZoom{from{transform:scale(.92);opacity:0}}
+#detSS .dss-cap{margin:0;color:#fff;font-size:12px;font-weight:700;text-align:center;line-height:1.5}
+#detSS .dss-err{display:none;margin:0;color:#ffb0c8;font-weight:800}
+#detSS .err .dss-err{display:block}
+#detSS .err img{display:none}
+#detSS .dss-x{position:absolute;top:calc(env(safe-area-inset-top,0px) + 12px);right:12px;width:40px;height:40px;border-radius:50%;border:none;
+  background:rgba(255,255,255,.92);color:#2a2540;font-size:16px;font-weight:900;cursor:pointer}
 /* ガチャの詳細だけ「初期」と添える（大きい数字が Lv.1・限界突破なしの値であること） */
 .dstats.hasmax .dst i .dstini{display:inline-block;font-style:normal;font-size:8px;font-weight:900;
   margin-left:4px;padding:0 5px;border-radius:99px;background:rgba(0,0,0,.10);color:var(--txt2);letter-spacing:.04em}
@@ -197,24 +220,24 @@
 .pw-facts .pwh b{color:#e0574c}
 @media (max-width:400px){.pw-facts .pwh{display:block;margin-top:2px}}
 
-/* ══ ★★ 2026-09-06 どのゲームの性能を見るか（MagiBurst ⇄ MagiDiamond）══ */
+/* ══ ★★ 2026-09-06 どのゲームの性能を見るか（MagiBurst・MagiBattle・MagiAbyss・Boccia）══ */
 .dgseg{display:grid;grid-template-columns:1fr 1fr;gap:6px;margin:0 0 10px}
 .dgseg button{border:1.5px solid var(--line,rgba(142,107,255,.28));border-radius:12px;background:#fff;
   color:var(--tx,#3a3350);font-size:12.5px;font-weight:900;font-family:inherit;padding:10px 8px;cursor:pointer}
 .dgseg button.on{border-color:#8e6bff;color:#8e6bff;background:rgba(142,107,255,.12)}
 .dgseg button:active{transform:translateY(1px)}
-/* ★★ 2026-09-06 MagiDiamond を選んでいるあいだは、MagiBurst の性能を丸ごと隠す。 */
+/* ★★ 2026-09-06 MagiBurst 以外を選んでいるあいだは、MagiBurst の性能を丸ごと隠す。 */
 #detCard.gdia .dgburst{display:none}
 /* ★★ 2026-09-10 3つめ（MagiBocciaRush）が増えたので3列に。
    狭い画面では文字が入りきらないので、ここだけ字を小さくして詰める。 */
 .dgseg.g3{grid-template-columns:repeat(3,1fr);gap:4px}
 .dgseg.g3 button{font-size:10.5px;padding:9px 2px;letter-spacing:-.01em;border-radius:10px}
 @media (max-width:360px){.dgseg.g3 button{font-size:9.5px}}
-/* ★★ 2026-09-23 MagiBattle を足して4つに（MagiBurst・MagiBattle・MagiDiamond・Boccia） */
+/* ★★ 2026-09-23 4つに（いまは MagiBurst・MagiBattle・MagiAbyss・Boccia） */
 .dgseg.g4{grid-template-columns:repeat(4,1fr);gap:4px}
 .dgseg.g4 button{font-size:9.8px;padding:9px 1px;letter-spacing:-.02em;border-radius:10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media (max-width:370px){.dgseg.g4 button{font-size:8.8px}}
-/* MagiDiamond の能力バー */
+/* 能力バー（MagiAbyss・Boccia） */
 .mdrow{display:flex;align-items:center;gap:8px;margin:4px 0}
 .mdrow .k{flex:none;width:64px;font-size:11px;font-weight:900;color:var(--sub,#8b87a8)}
 .mdrow .b{flex:1;height:8px;border-radius:99px;background:rgba(142,107,255,.14);overflow:hidden}

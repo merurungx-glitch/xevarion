@@ -1,0 +1,63 @@
+/* ============================================================
+   XEVARION POP（ページ用）— ガチャ・図鑑・コミュニティ・about をウマ娘風のポップな見た目に
+   ★★ 2026-10-12b ご指定（デザインだけ。位置・大きさ・機能は変えない）
+   ・各ページの色の札（--pur / --pink / --bdr / --txt …）を若草色の組み合わせに入れかえる。
+   ・地は若草色と白の斜めのしま。見出し・選んだタブは若草色、決定ボタンは橙のまま（目立たせる）。
+   ・文字は丸ゴシック（M PLUS Rounded 1c）。このファイルは各ページの style の<b>あと</b>に読む。
+   ============================================================ */
+:root{
+  --pur:#4cae2c; --pur2:#8fdc64; --pink:#8fdc64;
+  --bdr:rgba(76,174,44,.3);
+  --txt:#4a3f33; --txt2:#8c7f6d;
+  --bg:#eef9e4; --bg2:#ffffff; --card2:#f6fbef;
+  --blu:#2f9fe0;
+  --pp-g:#62c43e; --pp-g2:#4cae2c; --pp-gd:#2f8a1a; --pp-ink:#4a3f33; --pp-or:#ff9d2e; --pp-pk:#ff6fa4;
+  --pp-font:'M PLUS Rounded 1c','Noto Sans JP',sans-serif;
+}
+body{font-family:var(--pp-font)!important;color:var(--txt);
+  background:repeating-linear-gradient(135deg,rgba(255,255,255,.55) 0 22px,rgba(255,255,255,0) 22px 44px),linear-gradient(175deg,#dff6cd 0%,#f1fbe8 45%,#fffbe9 100%)!important;
+  background-attachment:fixed!important}
+body::before{background:radial-gradient(circle,rgba(143,220,100,.35),transparent 70%)!important}
+body::after{background:radial-gradient(circle,rgba(255,216,74,.32),transparent 70%)!important}
+button, input, select, textarea{font-family:var(--pp-font)}
+
+/* ── 上の帯（ガチャ・図鑑）── */
+.gh{background:rgba(255,255,255,.94)!important;border-bottom:3px solid var(--pp-g)!important;box-shadow:0 3px 0 rgba(47,138,26,.18)!important}
+.gh h1{color:var(--pp-gd)!important}
+.gh .back{color:var(--pp-gd)!important}
+.gh .back.bk{background:linear-gradient(180deg,#8fdc64,#4cae2c)!important;box-shadow:0 3px 0 var(--pp-gd)!important}
+
+/* ── ガチャ ── */
+.gl-ttl b{background:none!important;-webkit-text-fill-color:#fff!important;color:#fff!important;padding:4px 18px 5px 12px;border-radius:8px 0 0 8px;
+  background-image:linear-gradient(180deg,#8fdc64,#4cae2c)!important;clip-path:polygon(0 0,100% 0,calc(100% - 12px) 100%,0 100%);text-shadow:0 1.5px 0 rgba(47,138,26,.7)}
+/* ★★ 2026-10-13 貼りつくのは名前の札の列だけ（絞り込みのボタンの固定は廃止・ご指定） */
+.gl-tabs{background:rgba(255,255,255,.95)!important;border-bottom:2px solid rgba(76,174,44,.35)!important}
+.gl-tab{border-color:rgba(76,174,44,.35)!important;box-shadow:0 2px 0 rgba(47,138,26,.15)}
+.gl-tab.on{background:linear-gradient(180deg,#8fdc64,#4cae2c)!important;box-shadow:0 3px 0 var(--pp-gd)!important;text-shadow:0 1px 0 rgba(47,138,26,.6)}
+.gl-flt button{border-color:rgba(76,174,44,.35)!important;box-shadow:0 2px 0 rgba(47,138,26,.15)}
+.gl-flt button.on{background:linear-gradient(180deg,#8fdc64,#4cae2c)!important;box-shadow:0 3px 0 var(--pp-gd)!important}
+.gl-card{border:2px solid rgba(76,174,44,.45)!important;box-shadow:0 0 0 3px #fff,0 5px 0 3px rgba(47,138,26,.18)!important}
+.gl-hd button{color:var(--pp-gd)!important;background:#ecf9e1!important;border-color:rgba(76,174,44,.4)!important}
+.gl-start{background:#ecf9e1!important}
+.gl-go .gl-draw{background:linear-gradient(180deg,#ffb54a,#ff8a1f)!important;box-shadow:0 4px 0 #d16a00!important;text-shadow:0 1.5px 0 rgba(160,70,0,.55)}
+.wal .walc{box-shadow:0 0 0 2px #fff inset,0 2px 0 rgba(47,138,26,.2)}
+
+/* ── 図鑑 ── */
+.gh .gacha-link{background:linear-gradient(180deg,#ffb54a,#ff8a1f)!important;box-shadow:0 3px 0 #d16a00!important}
+.csearch input, .csearch select{border-color:rgba(76,174,44,.4)!important}
+.csearch input:focus{border-color:var(--pp-g)!important;box-shadow:0 0 0 3px rgba(98,196,62,.18)!important}
+.stat-pill{border-color:rgba(76,174,44,.35)!important;box-shadow:0 2px 0 rgba(47,138,26,.15)!important}
+
+/* ── コミュニティ（body.pp-community）── */
+body.pp-community .top{background:rgba(255,255,255,.94)!important;border-bottom:3px solid var(--pp-g)!important}
+body.pp-community .back{color:var(--pp-gd)!important;border-color:rgba(76,174,44,.4)!important;box-shadow:0 3px 0 rgba(47,138,26,.2)!important}
+body.pp-community .ttl small{color:var(--pp-g2)!important}
+body.pp-community .tabs{border-color:rgba(76,174,44,.35)!important;box-shadow:0 3px 0 rgba(47,138,26,.15)!important}
+body.pp-community .tab{color:var(--txt2)!important}
+body.pp-community .tab.on{color:#fff!important;background:linear-gradient(180deg,#8fdc64,#4cae2c)!important;box-shadow:0 3px 0 var(--pp-gd)!important}
+body.pp-community .card{box-shadow:0 0 0 2px rgba(76,174,44,.3),0 4px 0 2px rgba(47,138,26,.14)!important}
+body.pp-community .lbl{color:#fff!important;display:inline-block;padding:3px 14px 3px 10px;border-radius:6px 0 0 6px;background:linear-gradient(180deg,#8fdc64,#4cae2c);clip-path:polygon(0 0,100% 0,calc(100% - 9px) 100%,0 100%)}
+body.pp-community .inp{background:#fbfff7!important;border-color:rgba(76,174,44,.35)!important}
+body.pp-community .btn{background:linear-gradient(180deg,#8fdc64,#4cae2c)!important;box-shadow:0 4px 0 var(--pp-gd)!important;text-shadow:0 1px 0 rgba(47,138,26,.6)}
+body.pp-community .btn.ghost{background:#fff!important;color:var(--txt2)!important;box-shadow:0 3px 0 #e3dccd!important;text-shadow:none}
+body.pp-community .urow{background:#fbfff7!important;border-color:rgba(76,174,44,.25)!important}

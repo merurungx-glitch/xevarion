@@ -130,8 +130,8 @@ function mtEnsureCSS() {
      （次に別のキャラを開いたら、また MagiBurst から始まる）。 */
 /* ★★ 2026-09-10 3つめ "boccia"（MagiBocciaRush）を足した（ご指定）。 */
 let detGame = "burst";
-/* ★★ 2026-09-23 "battle"（MagiBattle）を <b>MagiBurst と MagiDiamond のあいだ</b>に足した（ご指定） */
-/* ★★ 2026-10-09 MagiDiamond の面を <b>MagiAbyss</b> に差しかえた（ご指定）。並びは MagiBurst → MagiBattle → MagiAbyss → Boccia */
+/* ★★ 2026-09-23 "battle"（MagiBattle）を足した（ご指定）
+   ★★ 2026-10-09 MagiAbyss を足した。並びは MagiBurst → MagiBattle → MagiAbyss → Boccia（★ 2026-10-13 MagiDiamond は廃止） */
 const DET_GAMES = ["burst", "battle", "abyss", "boccia"];
 /* このファイルの置き場（MagiTier など1つ下の階層から読まれても、兄弟のファイルを正しく読むため） */
 const MBD_BASE = (function () { try { return String(document.currentScript.src).replace(/mb-char-detail\.js.*$/, ""); } catch (e) { return ""; } })();
@@ -159,7 +159,7 @@ function maEnsure() {
   if (window.MA && window.MA.D && window.MA.Stats) return Promise.resolve();
   if (window.__maLoading) return window.__maLoading;
   const load = (src) => new Promise((res) => { const s = document.createElement("script"); s.src = src; s.onload = () => res(); s.onerror = () => res(); document.head.appendChild(s); });
-  window.__maLoading = load(MBD_BASE + "MagiAbyss/js/ma-data.js?v=4").then(() => load(MBD_BASE + "MagiAbyss/js/ma-stats.js?v=2"));
+  window.__maLoading = load(MBD_BASE + "MagiAbyss/js/ma-data.js?v=6").then(() => load(MBD_BASE + "MagiAbyss/js/ma-stats.js?v=2"));
   return window.__maLoading;
 }
 window.maEnsure = maEnsure;
@@ -207,22 +207,6 @@ function magiAbyssHTML(id) {
     <div class="ddesc" style="margin-top:8px;font-size:10px">
       ※ MagiAbyss のレベル・スキルツリー・装備は<b>MagiAbyss の中だけ</b>で育てます。<b>凸（限界突破）は XEVARION と共通</b>です。</div>
   </div>`;
-}
-/* MagiDiamond の性能。MD2DATA が読めていないときは、その場で読みこむ。 */
-function mdEnsure() {
-  if (window.MD2DATA) return Promise.resolve();
-  if (window.__mdLoading) return window.__mdLoading;
-  window.__mdLoading = new Promise((res) => {
-    const s = document.createElement("script");
-    s.src = "MagiDiamond/js/md2-data.js?v=18";
-    s.onload = () => res(); s.onerror = () => res();
-    document.head.appendChild(s);
-  }).then(() => {
-    /* md2-data は「使うときに組み立てる」作りなので、ここで一度呼んで用意させる */
-    try { if (window.MD2DATA) MD2DATA.build(); } catch (e) {}
-    return null;
-  });
-  return window.__mdLoading;
 }
 /* ══ ★★ 2026-09-10 MagiBocciaRush の性能 ══
    ★ ボッチャの能力は <b>MagiBocciaRush/js/mbr-core.js</b> が
@@ -281,51 +265,63 @@ function magiBocciaHTML(id) {
       <b>ルール準拠モード・ランクマッチ</b>では能力の効きが1/3になり、スキルは使えません。</div>
   </div>`;
 }
-const MD_STAT_NM = { meet: "ミート", power: "パワー", run: "走力", field: "守備", arm: "肩力", catch: "捕球",
-  velo: "球速", heavy: "球威", ctrl: "制球", stam: "スタミナ", brk: "変化量", mind: "精神力" };
-function magiDiamondHTML(id) {
-  let p = null;
-  try { p = window.MD2DATA ? MD2DATA.get(id) : null; } catch (e) { p = null; }
-  if (!p) {
-    return `<div class="dsec mbb"><div class="t">評価（MagiDiamond）</div>
-      <div class="mbnone">読みこんでいます…（出ないときは、いちど MagiDiamond を開いてから戻ってきてください）</div></div>`;
-  }
-  const bar = (k) => `<div class="mdrow"><span class="k">${MD_STAT_NM[k]}</span>
-      <span class="b"><i style="width:${Math.max(0, Math.min(100, p[k]))}%"></i></span><span class="v">${p[k]}</span></div>`;
-  const bat = ["meet", "power", "run", "field", "arm", "catch"].map(bar).join("");
-  const pit = ["velo", "heavy", "ctrl", "stam", "brk", "mind"].map(bar).join("");
-  const pos = (MD2DATA.POS || []).map((ps) => `<span class="dchip">${ps} ${p.pos[ps]}</span>`).join("");
-  return `<div class="dsec mbb"><div class="t">評価（MagiDiamond）<span class="turn">${p.role}</span></div>
-    <div class="dchips">
-      <span class="dchip">総合 ${p.ovr}</span>
-      <span class="dchip">${p.bats || "右打"}</span>
-      <span class="dchip">${p.throws || "右投"}</span>
-      <span class="dchip">弾道 ${"★".repeat(p.traj)}</span>
-      <span class="dchip">${p.bat}</span>
-      <span class="dchip">${p.pitchType}</span>
-    </div>
-    <div class="ddesc" style="margin:8px 0 4px"><b>打撃・走塁・守備</b></div>${bat}
-    <div class="ddesc" style="margin:8px 0 4px"><b>投球</b></div>${pit}
-    <div class="ddesc" style="margin:8px 0 4px"><b>ポジション適性</b></div>
-    <div class="dchips">${pos}</div>
-    <div class="ddesc" style="margin-top:6px;font-size:10px">
-      ※ MagiDiamond の性能は<b>MagiBurst のステータスとアビリティから決まります</b>
-      （速いキャラはミートと走力、力のあるキャラはパワーと球速が高くなります）。
-      レベルや限界突破は MagiDiamond の中だけで育てます。</div>
-  </div>`;
+/* ══ ★★ 2026-10-09b 絵の切りかえ（ご指定）══
+   ・UR は「横長（顔の方から流して見せる）」と「正方形」を切りかえられる
+   ・治癒の祈り・神癒の祈りなどの SS 絵（縦長）を持つキャラは「SS絵」で大きく見られる（mb-core の ssArtOf）
+   ・切りかえは絵の段（#detHero）だけ描き直す＝下の性能の欄・スクロールはそのまま。別のキャラを開いたら横長にもどる */
+let detImgMode = "main", detImgFor = null;
+function detHeroHTML(id) {
+  const c = CHARS[id]; if (!c) return "";
+  if (detImgFor !== id) { detImgFor = id; detImgMode = "main"; }
+  const own = !!DB.chars[id], awk = own ? (DB.chars[id].awk || 0) : 0, s5 = isStar5(id);
+  const rl = typeof rarLabel === "function" ? rarLabel(id) : (s5 ? "SSR" : "SR");
+  const ur = rl === "UR";
+  let ss = null; try { ss = typeof ssArtOf === "function" ? ssArtOf(id) : null; } catch (e) { ss = null; }
+  const wide = !!c.wide && detImgMode !== "sq";
+  const sw = (c.wide || ss) ? '<div class="dimgsw">' +
+      (c.wide ? '<button type="button" class="' + (wide ? "on" : "") + '" onclick="setDetImg(\'main\',event)">横長</button>'
+              + '<button type="button" class="' + (wide ? "" : "on") + '" onclick="setDetImg(\'sq\',event)">正方形</button>' : "") +
+      (ss ? '<button type="button" class="ss" onclick="openDetSS(\'' + id + '\',event)">SS絵 ⤢</button>' : "") + "</div>" : "";
+  /* ★★ 2026-08-22b レアリティは SSR / SR（★の本数は使わない）。★★ 2026-10-09b UR は虹色の札 */
+  return `<div class="dhero${wide ? " wide urx" : ""}${ur && !wide ? " ursq" : ""}" id="detHero">
+      <img src="${wide ? c.wide : c.img}" alt="${c.nm}"${wide ? ' class="urx-pan"' : ""}>${wide && typeof urDecor === "function" ? urDecor() : (ur ? '<span class="urx-ring" aria-hidden="true"></span><span class="urx-badge" aria-label="UR">UR</span>' : "")}
+      ${sw}
+      <div class="dnm"><b>${c.nm}</b><span>${charNoText(id)}　<em class="drar ${ur ? "ur" : s5 ? "ssr" : "sr"}">${rl}</em>${awk ? (awk >= MAX_AWK ? "　👑完凸" : "　覚醒+" + awk) : ""}</span></div>
+    </div>`;
 }
-
+window.setDetImg = function (m, e) {
+  if (e) { e.preventDefault(); e.stopPropagation(); }
+  detImgMode = m === "sq" ? "sq" : "main";
+  const h = document.getElementById("detHero");
+  if (h && detCurId) h.outerHTML = detHeroHTML(detCurId);
+};
+/* SS 絵を画面いっぱいに（タップでとじる）。キャラ詳細（960）の上・確認ダイアログ（990）の下 */
+window.openDetSS = function (id, e) {
+  if (e) { e.preventDefault(); e.stopPropagation(); }
+  let src = null; try { src = typeof ssArtOf === "function" ? ssArtOf(id) : null; } catch (err) { src = null; }
+  if (!src) return;
+  const c = CHARS[id] || {};
+  let ov = document.getElementById("detSS");
+  if (!ov) {
+    ov = document.createElement("div"); ov.id = "detSS";
+    ov.addEventListener("click", () => ov.classList.remove("on"));
+    document.addEventListener("keydown", (ev) => { if (ev.key === "Escape") ov.classList.remove("on"); });
+    document.body.appendChild(ov);
+  }
+  ov.innerHTML = `<div class="dss-in"><img src="${src}" alt="${c.nm || ""}" onerror="this.parentNode.classList.add('err')">`
+    + `<p class="dss-cap"><b>${c.nm || ""}</b>　SS絵（アビリティのカットインで出る絵）</p><p class="dss-err">絵を読みこめませんでした</p></div>`
+    + `<button type="button" class="dss-x" aria-label="とじる">✕</button>`;
+  ov.classList.remove("on"); void ov.offsetWidth; ov.classList.add("on");
+};
 function openDetX(id, keepGame) {
   const c = CHARS[id]; if (!c) return;
   detCurId = id;
   if (!keepGame) detGame = "burst";       /* ★ 開いたときは必ず MagiBurst（ご指定） */
-  /* ★ MD2DATA がまだ無いときだけ読みこんで、読めたら1回だけ開き直す。
-     「あるとき」も呼ぶと Promise.resolve → openDetX → … と<b>無限に回る</b>。 */
+  /* ★ 性能のデータがまだ無いときだけ読みこんで、読めたら1回だけ開き直す。
+     「あるとき」も呼ぶと Promise.resolve → openDetX → … と<b>無限に回る</b>。
+     ★★ 2026-10-13 MagiDiamond は廃止（ご指定）。その性能（MD2DATA）を読む処理も消した */
   if (detGame === "battle" && !(window.MBStats && MBStats.VERSION >= 2)) {
     mbtEnsure().then(() => { if (detCurId === id && detGame === "battle" && window.MBStats && MBStats.VERSION >= 2) openDetX(id, true); });
-  }
-  if (detGame === "diamond" && !window.MD2DATA) {
-    mdEnsure().then(() => { if (detCurId === id && detGame === "diamond") openDetX(id, true); });
   }
   /* ★★ 2026-10-09 MagiAbyss（無いときだけ読みこんで、読めたら1回だけ開き直す＝無限に回らない） */
   if (detGame === "abyss" && !(window.MA && MA.D && MA.Stats) && typeof isAbyssChar === "function" && isAbyssChar(id)) {
@@ -366,20 +362,13 @@ function openDetX(id, keepGame) {
           下へスクロールすると絵ごと画面の外へ流れて<b>閉じるボタンが見えなくなっていた</b>。
           float:right ＋ position:sticky にして、どこまでスクロールしても右上に残るようにする。 */""}
     <button class="dx" onclick="closeDetX()" aria-label="とじる" title="とじる">✕</button>
-    <div class="dhero${c.wide ? " wide urx" : ""}">
-      <img src="${c.wide || c.img}" alt="${c.nm}"${c.wide ? ' class="urx-pan"' : ""}>${c.wide && typeof urDecor === "function" ? urDecor() : ""}
-      ${/* ★★ 2026-08-22b レアリティは<b>SSR / SR</b> で統一（ご指定）。
-            ★の本数はもう使っていない（クエストの難易度表示の★とまぎらわしいため）。 */""}
-      <div class="dnm"><b>${c.nm}</b><span>${charNoText(id)}　<em class="drar ${s5 ? "ssr" : "sr"}">${typeof rarLabel === "function" ? rarLabel(id) : (s5 ? "SSR" : "SR")}</em>${awk ? (awk >= MAX_AWK ? "　👑完凸" : "　覚醒+" + awk) : ""}</span></div>
-    </div>
+    ${detHeroHTML(id)}
     <div class="dbody">
       ${/* ★★ 2026-09-06 どのゲームの性能を見るか（ご指定・はじめは MagiBurst） */""}
       <div class="dgseg g4">
         <button class="${detGame === "burst" ? "on" : ""}" onclick="setDetGame('burst')">⚔ MagiBurst</button>
-        ${/* ★★ 2026-09-23 ご指定により <b>MagiBurst と MagiDiamond のあいだ</b> */""}
         <button class="${detGame === "battle" ? "on" : ""}" onclick="setDetGame('battle')">⚡ MagiBattle</button>
         <button class="${detGame === "abyss" ? "on" : ""}" onclick="setDetGame('abyss')">🗡 MagiAbyss</button>
-        ${/* ★★ 2026-09-10 ご指定により <b>MagiDiamond の右</b>に足す */""}
         <button class="${detGame === "boccia" ? "on" : ""}" onclick="setDetGame('boccia')">🎯 Boccia</button>
       </div>
       <div class="dchips">
@@ -398,7 +387,7 @@ function openDetX(id, keepGame) {
         <div class="ddesc">${(typeof charSourceList === "function" ? charSourceList(id) : []).join("<br>")}</div></div>
 
       ${/* ★★ 2026-09-06 ここから下は<b>MagiBurst（MagiBattle）の性能だけ</b>（ご指定）。
-            ⚑の切りかえで MagiDiamond にしたときは、この箱ごと隠す——
+            ⚑の切りかえで MagiBurst 以外にしたときは、この箱ごと隠す——
             以前は MagiBurst の<b>下に足される</b>形だったので、
             どちらの数字を見ているのか分からなかった。
             隠しかたは #detCard の .gdia （下で付け外しする）。 */""}

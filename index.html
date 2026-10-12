@@ -24,8 +24,11 @@
      xevarion-home.css の<b>あと</b>に読む＝上書きできるようにする。 -->
 <link rel="stylesheet" href="xevion-os.css?v=15">
 <!-- ★★ 2026-09-24 ホームの「動くキャラ」（舞香）。中身は home-mate.js。 -->
-<link rel="stylesheet" href="home-mate.css?v=19">
-<script src="xeva.js?v=76" defer></script>
+<link rel="stylesheet" href="home-mate.css?v=20">
+<!-- ★★ 2026-10-12b ウマ娘風のポップな見た目（色・ふち・影・書体だけ。位置と大きさは変えない）。いちばん最後に読む -->
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="xeva-pop.css?v=1">
+<script src="xeva.js?v=77" defer></script>
 <!-- ★★ 2026-09-05 コレクションを XEVARION 全体で1本にする共通部品。
      xeva.js の iconCharList() を使うので、必ず xeva.js の<b>あと</b>に置く。 -->
 <script src="xeva-collection.js?v=8" defer></script>
@@ -41,14 +44,14 @@
 <script src="xeva-i18n-mb3.js?v=8"></script>
 <script src="xeva-i18n-mb4.js?v=9"></script>
 <script src="xeva-i18n-mb5.js?v=7"></script>
-<script src="xeva-i18n-p1.js?v=6"></script>
+<script src="xeva-i18n-p1.js?v=7"></script>
 <script src="xeva-i18n-p2.js?v=6"></script>
 <script src="xeva-i18n-mb6.js?v=7"></script>
 <script src="xeva-i18n-p3.js?v=7"></script>
 <script src="xeva-i18n-mb7.js?v=7"></script>
-<script src="xeva-i18n-p4.js?v=7"></script>
+<script src="xeva-i18n-p4.js?v=8"></script>
 <!-- ★★ 2026-09-06b 今回足したもの（新キャラ14体・装備・スタメンなど）の英語辞書 -->
-<script src="xeva-i18n-n1.js?v=15"></script>
+<script src="xeva-i18n-n1.js?v=16"></script>
 <script src="xeva-i18n-n2.js?v=3"></script>
 <!-- ★ 2026-08-20 通信設定（Wi-Fi／モバイルデータごとに「最新を取りに行くか」を決める）。
      決めた内容はここから各アプリの Service Worker へ送られ、SW 側が動きを切り替える。 -->
@@ -64,15 +67,15 @@
 <script src="xevion-os.js?v=13"></script>
 <!-- ジェム⇄XEVA のレート（ドル円連動）。xevarion-home.js より先に読み込む -->
 <script src="xeva-fx.js?v=9" defer></script>
-<script src="xeva-loading.js?v=18" defer></script>
+<script src="xeva-loading.js?v=19" defer></script>
 <script type="module" src="xeva-sync.js?v=18"></script>
 <script type="module" src="xevarion-fb.js?v=33"></script>
 <script src="xeva-presence.js?v=9" defer></script>
-<script type="module" src="xeva-cloud.js?v=42"></script>
+<script type="module" src="xeva-cloud.js?v=44"></script>
 <script src="xeva-qr.js?v=9" defer></script>
-<script src="xevarion.js?v=98" defer></script>
-<script src="xevarion-home.js?v=158" defer></script>
-<script src="home-mate.js?v=20" defer></script>
+<script src="xevarion.js?v=101" defer></script>
+<script src="xevarion-home.js?v=161" defer></script>
+<script src="home-mate.js?v=21" defer></script>
 <!-- ★★ 2026-10-06 XEVARION 共通イベント（Violet Breeze）のページ。中身は xeva.js の XEVA.event -->
 <script src="xeva-event-ui.js?v=2" defer></script>
 </head>
@@ -161,6 +164,15 @@
 @keyframes mlTap{0%,100%{opacity:1}50%{opacity:.45}}
 .xh-start-line{width:170px;height:2px;margin:0 auto;background:linear-gradient(90deg,transparent,#9ecbff,transparent)}
 .xh-start-sub{font-size:10px;font-weight:700;letter-spacing:.4em;opacity:.85;color:#eef6ff}
+/* ★★ 2026-10-12b サーバーの番号（左上の札） */
+.xh-server{position:absolute;top:calc(env(safe-area-inset-top,0px) + 16px);left:14px;z-index:3;display:inline-flex;align-items:center;gap:6px;
+  padding:6px 12px 6px 10px;border-radius:99px;background:rgba(255,255,255,.9);color:#4a3f33;font-size:11px;font-weight:900;letter-spacing:.04em;
+  box-shadow:0 0 0 2px #62c43e,0 3px 0 2px rgba(47,138,26,.3);pointer-events:none}
+.xh-server .dot{width:8px;height:8px;border-radius:50%;background:#3ccf62;box-shadow:0 0 0 2px rgba(60,207,98,.25);animation:xhSrvDot 1.6s ease-in-out infinite}
+.xh-server.off .dot{background:#b5aa98;box-shadow:none;animation:none}
+.xh-server b{font-family:'Orbitron',sans-serif;font-size:12px;color:#2f8a1a}
+.xh-server small{font-family:'Orbitron',sans-serif;font-size:9px;opacity:.7;letter-spacing:.12em}
+@keyframes xhSrvDot{50%{opacity:.4}}
 .xh-hint{position:absolute;bottom:calc(env(safe-area-inset-bottom,0px) + 16px);left:0;right:0;text-align:center;font-size:10.5px;color:rgba(205,214,255,.55);z-index:2;letter-spacing:.06em}
 /* 音楽が鳴ることの常時警告 */
 .xh-musicwarn{position:absolute;bottom:calc(env(safe-area-inset-bottom,0px) + 36px);left:50%;transform:translateX(-50%);z-index:2;
@@ -271,6 +283,9 @@ body.music-on #beatFrame{opacity:1}
       </div>
     </div>
     <div class="xh-musicwarn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h3.6L13 19.4V4.6L7.6 9H4Z" fill="currentColor"/><path d="M15.5 8.6a4.8 4.8 0 010 6.8M18 6.2a8.2 8.2 0 010 11.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>タップすると BGM が再生されます（右上の🔊でON/OFF）</div>
+    <!-- ★★ 2026-10-12b タイトル画面にサーバーの番号（ご指定）。点の色＝つながっているか -->
+    <div class="xh-server" id="xhServer"><i class="dot"></i><span>サーバー</span><b>No.01</b><small>ASIA</small></div>
+    <script>(function(){var s=document.getElementById('xhServer');function u(){if(s)s.classList.toggle('off',!navigator.onLine);}u();addEventListener('online',u);addEventListener('offline',u);})();</script>
     <div class="xh-hint" id="xhHint"></div>
   </div>
 
@@ -349,26 +364,26 @@ body.music-on #beatFrame{opacity:1}
         <!-- ★★ 2026-08-29 スケジュール（ご指定：メールと AI のあいだ）。
              ガチャの日程・開催中のイベントを<b>月ごとのカレンダー</b>で見る。 -->
         <button class="xh-act" onclick="xhOpenSched()">
-          <span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.6" y="5" width="18.8" height="16.4" rx="4" fill="#2fb463" stroke="#12203d" stroke-width="1.8"/><path d="M2.6 10.2h18.8" stroke="#12203d" stroke-width="1.8"/><path d="M7.4 2.4v4.2M16.6 2.4v4.2" stroke="#12203d" stroke-width="2.6" stroke-linecap="round"/><rect x="6" y="12.4" width="4" height="3.6" rx="1.2" fill="#fff"/><rect x="14" y="12.4" width="4" height="3.6" rx="1.2" fill="#bdf5d6"/></svg></span>
+          <span class="ic"><svg class="uic" viewBox="0 0 24 24" aria-hidden="true" style="--ub:#ffb300"><rect class="p k" x="2.8" y="4.8" width="18.4" height="16.4" rx="3.6"/><rect class="w" x="5" y="10" width="14" height="9.2" rx="1.9"/><path class="ln" d="M7.6 2.6v4.4M16.4 2.6v4.4"/><rect class="p" x="6.7" y="11.7" width="3" height="2.6" rx=".9"/><rect class="p" x="10.5" y="11.7" width="3" height="2.6" rx=".9"/><rect class="s" x="14.3" y="11.7" width="3" height="2.6" rx=".9"/><rect class="p" x="6.7" y="15.2" width="3" height="2.6" rx=".9"/><rect class="p" x="10.5" y="15.2" width="3" height="2.6" rx=".9"/><path class="gl" d="M5.2 7.6h3"/></svg></span>
           <span class="lb">スケジュール</span>
         </button>
         <!-- ★★ 2026-09-05 ショップ（ご指定：スケジュールとメールのあいだ）。
              ここから 💎ジェム変換所 ／ 🛒パックストア ／ 💠結晶交換所 へ入る。
              アイコンは新規デザイン＝のれんを下ろした小さなお店の中に💎。 -->
         <button class="xh-act" onclick="xhOpenShopHub()">
-          <span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.6 8.6 6.2 4a1.6 1.6 0 0 1 1.5-1h8.6a1.6 1.6 0 0 1 1.5 1l1.6 4.6Z" fill="#ff7ab8" stroke="#12203d" stroke-width="1.7" stroke-linejoin="round"/><rect x="4.2" y="8.6" width="15.6" height="12.6" rx="3" fill="#8e6bff" stroke="#12203d" stroke-width="1.8"/><path d="M9 12.4a3 3 0 0 0 6 0" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"/></svg><span class="bdg" id="xhShopBdg2"></span></span>
+          <span class="ic"><svg class="uic" viewBox="0 0 24 24" aria-hidden="true" style="--ub:#ff7fb0"><rect class="p k" x="4.4" y="9" width="15.2" height="12" rx="2.4"/><path class="s k" d="M3.2 9.4 5 4.2a1.6 1.6 0 0 1 1.5-1.1h11a1.6 1.6 0 0 1 1.5 1.1l1.8 5.2c0 1.2-1 2.1-2.2 2.1s-2.2-.9-2.2-2.1c0 1.2-1 2.1-2.2 2.1s-2.2-.9-2.2-2.1c0 1.2-1 2.1-2.2 2.1s-2.2-.9-2.2-2.1c0 1.2-1 2.1-2.2 2.1s-2.2-.9-2.2-2.1Z"/><path class="wl" d="M9.6 3.4 8.9 9.2M14.4 3.4l.7 5.8"/><rect class="w k" x="9.6" y="13.6" width="4.8" height="7.4" rx="1.3"/></svg><span class="bdg" id="xhShopBdg2"></span></span>
           <span class="lb">ショップ</span>
         </button>
         <button class="xh-act" onclick="xhTapMail()">
-          <span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.4" y="5" width="19.2" height="14.4" rx="3.6" fill="#4b8bff" stroke="#12203d" stroke-width="1.8"/><path d="M4.4 7.8 12 13.6l7.6-5.8" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="bdg" id="xhMailBdg"></span></span>
+          <span class="ic"><svg class="uic" viewBox="0 0 24 24" aria-hidden="true" style="--ub:#ff6fa4"><rect class="p k" x="2.4" y="5" width="19.2" height="14.4" rx="3.4"/><path class="wl" d="M4.8 7.8 12 13.2l7.2-5.4"/><path class="s k" d="M12 19.6c-.6-.6-3.1-2.2-3.1-4 0-1.1.8-1.9 1.7-1.9.7 0 1.1.4 1.4.8.3-.4.7-.8 1.4-.8.9 0 1.7.8 1.7 1.9 0 1.8-2.5 3.4-3.1 4Z"/><path class="gl" d="M4.6 16.6v-2"/></svg><span class="bdg" id="xhMailBdg"></span></span>
           <span class="lb">メール</span>
         </button>
         <button class="xh-act" onclick="xhTapNews()">
-          <span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.6a6.4 6.4 0 0 1 6.4 6.4c0 3.6.9 5.2 2 6.4.6.7.1 1.8-.8 1.8H4.4c-.9 0-1.4-1.1-.8-1.8 1.1-1.2 2-2.8 2-6.4A6.4 6.4 0 0 1 12 2.6Z" fill="#ffc63c" stroke="#12203d" stroke-width="1.8" stroke-linejoin="round"/><path d="M9.4 18.6a2.6 2.6 0 0 0 5.2 0Z" fill="#e8442f" stroke="#12203d" stroke-width="1.6" stroke-linejoin="round"/><circle cx="12" cy="2.4" r="1.5" fill="#e8442f" stroke="#12203d" stroke-width="1.4"/></svg><span class="bdg" id="xhNewsBdg"></span></span>
+          <span class="ic"><svg class="uic" viewBox="0 0 24 24" aria-hidden="true" style="--ub:#ff9d2e"><path class="p k" d="M6.8 14.4 8.3 20.2h2.9l-1.1-5.8Z"/><path class="p k" d="M3.4 9h3.8l8.2-5v15.6l-8.2-5H3.4a1.2 1.2 0 0 1-1.2-1.2v-3.2A1.2 1.2 0 0 1 3.4 9Z"/><rect class="s k" x="14.6" y="5.8" width="2.6" height="12" rx="1.3"/><path class="sl" d="M19.4 9a4.2 4.2 0 0 1 0 5.6M21.4 7a7 7 0 0 1 0 9.6"/><path class="gl" d="M4.6 10.8h2.4"/></svg><span class="bdg" id="xhNewsBdg"></span></span>
           <span class="lb">お知らせ</span>
         </button>
         <button class="xh-act" onclick="xhTapMission()">
-          <span class="ic"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4.4" y="3.6" width="15.2" height="17.8" rx="3.4" fill="#9b7bff" stroke="#12203d" stroke-width="1.8"/><rect x="8" y="1.8" width="8" height="4" rx="1.9" fill="#fff" stroke="#12203d" stroke-width="1.7"/><path d="M8.2 13.2l2.5 2.5 4.9-5.1" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="bdg" id="xhMsnBdg"></span></span>
+          <span class="ic"><svg class="uic" viewBox="0 0 24 24" aria-hidden="true" style="--ub:#ffc83d"><rect class="p k" x="4.2" y="3.6" width="15.6" height="18" rx="3.2"/><rect class="w" x="6.6" y="6.8" width="10.8" height="12.6" rx="1.9"/><rect class="s k" x="8.2" y="1.8" width="7.6" height="4" rx="1.8"/><path class="pl" d="M8.8 13.2l2.4 2.4 4.4-4.8"/></svg><span class="bdg" id="xhMsnBdg"></span></span>
           <span class="lb">ミッション</span>
         </button>
       </div>
@@ -439,12 +454,11 @@ body.music-on #beatFrame{opacity:1}
         <button class="xl-ban" id="xlBan" aria-label="ガチャ">
           <img class="xl-ban-img" id="xlBanImg" alt=""><span class="xl-ban-dots" id="xlBanDots"></span>
         </button>
-        <button class="xl-ic" onclick="HomeMate.openInfo('ev')"><span class="i"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.8c.6 3.2 2.4 4.6 4.6 5.8 2.4 1.3 3.8 3.6 3.8 6.2a8.4 8.4 0 0 1-16.8 0c0-2.3 1-4.1 2.6-5.5.2 1.8 1 2.9 2.2 3.4-.4-3.9 1.2-7.3 3.6-9.9Z" fill="#ff6a3d" stroke="#12203d" stroke-width="1.7" stroke-linejoin="round"/></svg></span><span class="l">イベント</span></button>
-        <button class="xl-ic" onclick="HomeMate.openInfo('up')"><span class="i"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.4 2.8h3.2v7.6h3.9L12 17.2 6.5 10.4h3.9Z" fill="#3f8ce8" stroke="#12203d" stroke-width="1.6" stroke-linejoin="round"/><rect x="4.6" y="18.4" width="14.8" height="3" rx="1.5" fill="#12203d"/></svg></span><span class="l">更新情報</span></button>
+        <!-- ★★ 2026-10-13 左の「イベント」「更新情報」のボタンは廃止（ご指定）。左はガチャのバナーだけ -->
       </div>
       <div class="xl-right">
-        <button class="xl-ic dia" onclick="HomeMate.openPicker()"><span class="i"><b>♥</b></span><span class="l">パートナー</span></button>
-        <button class="xl-ic dia" onclick="HomeMate.cycleView()"><span class="i"><b>⤢</b></span><span class="l" id="xlViewLb">表示</span></button>
+        <button class="xl-ic dia" onclick="HomeMate.openPicker()"><span class="i"><svg class="uic" viewBox="0 0 24 24" aria-hidden="true"><path class="s k" d="M12 20.6c-1.2-1.1-8.6-5.7-8.6-11.2 0-2.9 2.1-4.9 4.7-4.9 1.7 0 3.1.9 3.9 2.3.8-1.4 2.2-2.3 3.9-2.3 2.6 0 4.7 2 4.7 4.9 0 5.5-7.4 10.1-8.6 11.2Z"/><path class="gl" d="M6.6 8.6a2.4 2.4 0 0 1 1.7-1.9"/></svg></span><span class="l">パートナー</span></button>
+        <button class="xl-ic dia" onclick="HomeMate.cycleView()"><span class="i"><svg class="uic" viewBox="0 0 24 24" aria-hidden="true"><path class="pl" d="M3.6 8.4V5.2a1.6 1.6 0 0 1 1.6-1.6h3.2M15.6 3.6h3.2a1.6 1.6 0 0 1 1.6 1.6v3.2M20.4 15.6v3.2a1.6 1.6 0 0 1-1.6 1.6h-3.2M8.4 20.4H5.2a1.6 1.6 0 0 1-1.6-1.6v-3.2"/><circle class="p" cx="12" cy="9" r="2.6"/><path class="p" d="M7.4 17.4c.4-3 2.2-4.8 4.6-4.8s4.2 1.8 4.6 4.8Z"/></svg></span><span class="l" id="xlViewLb">表示</span></button>
       </div>
       <!-- ★★ 2026-09-28 3D 会場（XEVARION WORLD CONFERENCE）への特設の入口（ご指定） -->
       <!-- ★★ 2026-10-06b ご指定：左へ移す・NEW を外す・β版の札は右上の角 -->
@@ -523,26 +537,28 @@ body.music-on #beatFrame{opacity:1}
 
     </div>
 
-    <!-- ───── タブバー ───── -->
+    <!-- ───── タブバー ─────
+         ★★ 2026-10-12d アイコンをウマ娘風に描き直した（ご指定）。色は xeva-uma.css の .uic（--ua/--ub/--uk）で、
+         えらんでいないタブは淡い灰緑・えらんだタブは緑の札が浮いて白い絵になる。右上・ロビーのアイコンも同じ作り。 -->
     <div class="xh-bar" role="tablist">
       <button class="xh-ntab on" data-tab="home" onclick="xhGo('home')">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3 2.6 11.1h2.6v9.3h13.6v-9.3h2.6Z" fill="#ffd257" stroke="#12203d" stroke-width="1.7" stroke-linejoin="round"/><rect x="9.5" y="14.1" width="5" height="6.3" rx="1.1" fill="#e8942a" stroke="#12203d" stroke-width="1.5"/></svg>
+        <svg class="uic" viewBox="0 0 24 24" aria-hidden="true"><path class="p k" d="M15.4 3.9h2.8v5.2l-2.8-2.4Z"/><path class="p k" d="M5 10.6 12 4.8l7 5.8v8.6a1.8 1.8 0 0 1-1.8 1.8H6.8A1.8 1.8 0 0 1 5 19.2Z"/><path class="ln" d="M2.6 11.6 12 3.6l9.4 8"/><rect class="s k" x="9.8" y="13.8" width="4.4" height="7" rx="1.4"/><path class="gl" d="M7.4 11 10.6 8.3"/></svg>
         <span class="tl">ホーム</span>
       </button>
       <button class="xh-ntab" data-tab="community" onclick="xhGo('community')">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="16.4" cy="9.4" r="2.7" fill="#8fbdf5" stroke="#12203d" stroke-width="1.5"/><path d="M14.4 15.1a4.8 4.8 0 0 1 6.9 4.6h-4.6" fill="#8fbdf5" stroke="#12203d" stroke-width="1.5" stroke-linejoin="round"/><circle cx="8.6" cy="8.1" r="3.3" fill="#e6eefc" stroke="#12203d" stroke-width="1.6"/><path d="M2.8 19.7a5.8 5.8 0 0 1 11.6 0Z" fill="#e6eefc" stroke="#12203d" stroke-width="1.6" stroke-linejoin="round"/></svg>
+        <svg class="uic" viewBox="0 0 24 24" aria-hidden="true"><circle class="s k" cx="16.4" cy="8.2" r="2.8"/><path class="s k" d="M12.6 19.8c.2-3.4 1.8-5.4 3.8-5.4s3.7 2 3.9 5.4Z"/><circle class="p k" cx="9" cy="7.8" r="3.4"/><path class="p k" d="M3.2 20.2c.3-4.2 2.6-6.6 5.8-6.6s5.5 2.4 5.8 6.6Z"/><path class="gl" d="M7.3 6.6a2 2 0 0 1 1.5-1.1"/></svg>
         <span class="tl">コミュニティ</span>
       </button>
       <button class="xh-ntab" data-tab="gacha" onclick="xhGo('gacha')">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11.4" cy="13" r="8.2" fill="#fff" stroke="#12203d" stroke-width="1.9"/><path d="M3.2 13a8.2 8.2 0 0 1 16.4 0Z" fill="#ff4d5e" stroke="#12203d" stroke-width="1.9" stroke-linejoin="round"/><circle cx="11.4" cy="13" r="2.9" fill="#ffd257" stroke="#12203d" stroke-width="1.8"/><path d="M6.2 9.6a5.6 5.6 0 0 1 2.9-2.2" fill="none" stroke="#fff" stroke-width="1.5" stroke-linecap="round" opacity=".9"/><path d="M19.6 2.6l.85 2.05 2.05.85-2.05.85-.85 2.05-.85-2.05L16.7 5.5l2.05-.85Z" fill="#ffd257" stroke="#12203d" stroke-width="1.15" stroke-linejoin="round"/></svg>
+        <svg class="uic" viewBox="0 0 24 24" aria-hidden="true"><path class="w k" d="M3.4 12.8a8.6 8.6 0 0 0 17.2 0Z"/><path class="s k" d="M3.4 12.8a8.6 8.6 0 0 1 17.2 0Z"/><circle class="p k" cx="12" cy="12.8" r="2.8"/><path class="gl" d="M6.6 9.4a5.8 5.8 0 0 1 3-2.7"/><path class="s k" d="M19.8 1.6l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8Z"/></svg>
         <span class="tl">ガチャ</span>
       </button>
       <button class="xh-ntab" data-tab="chars" onclick="xhGo('chars')">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11.9 6.4C10.2 4.9 8.1 4.4 4.1 4.4v13.3c4 0 6.1.5 7.8 2 1.7-1.5 3.8-2 7.8-2V4.4c-4 0-6.1.5-7.8 2Z" fill="#4b8bff" stroke="#12203d" stroke-width="2" stroke-linejoin="round"/><path d="M11.9 6.4v13.3" stroke="#12203d" stroke-width="2"/><path d="M6.4 8.6h3.2M6.4 11.4h3.2M14.2 8.6h3.2M14.2 11.4h3.2" stroke="#cfe8ff" stroke-width="1.8" stroke-linecap="round"/><circle cx="12" cy="3.2" r="1.9" fill="#ffc63c" stroke="#12203d" stroke-width="1.6"/></svg>
+        <svg class="uic" viewBox="0 0 24 24" aria-hidden="true"><path class="p k" d="M12 6.4C10.1 4.8 7.8 4.3 3.4 4.3v14.6c4.4 0 6.7.5 8.6 2.1Z"/><path class="p k" d="M12 6.4c1.9-1.6 4.2-2.1 8.6-2.1v14.6c-4.4 0-6.7.5-8.6 2.1Z"/><path class="kl" d="M5.8 8.6h3.6M5.8 11.6h3.6M5.8 14.6h2.6"/><path class="s k" d="M14.6 5.2v6.6l1.5-1.2 1.5 1.2V4.7"/></svg>
         <span class="tl">図鑑</span>
       </button>
       <button class="xh-ntab" data-tab="settings" onclick="xhGo('settings')">
-        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 1.9 14 5l3.5-.7.6 3.5 3.1 1.7-1.7 3.2 1.7 3.2-3.1 1.7-.6 3.5L14 20l-2 3.1-2-3.1-3.5.7-.6-3.5-3.1-1.7 1.7-3.2-1.7-3.2 3.1-1.7.6-3.5L10 5Z" fill="#ffc63c" stroke="#12203d" stroke-width="1.8" stroke-linejoin="round"/><circle cx="12" cy="12.4" r="3.6" fill="#fff" stroke="#12203d" stroke-width="1.8"/></svg>
+        <svg class="uic" viewBox="0 0 24 24" aria-hidden="true"><path class="p k" d="M10.0 4.4 10.5 1.7 13.5 1.7 14.0 4.4 16.0 5.2 18.2 3.6 20.4 5.8 18.8 8.1 19.6 10.0 22.3 10.5 22.3 13.5 19.6 14.0 18.8 15.9 20.4 18.2 18.2 20.4 16.0 18.8 14.0 19.6 13.5 22.3 10.5 22.3 10.0 19.6 8.1 18.8 5.8 20.4 3.6 18.2 5.2 15.9 4.4 14.0 1.7 13.5 1.7 10.5 4.4 10.0 5.2 8.0 3.6 5.8 5.8 3.6 8.0 5.2Z"/><circle class="w k" cx="12" cy="12" r="3.6"/><path class="gl" d="M6.4 9.2a6.2 6.2 0 0 1 2.4-2.8"/></svg>
         <span class="tl">設定</span>
       </button>
     </div>
@@ -1901,6 +1917,60 @@ body.music-on #beatFrame{opacity:1}
 
   <div class="nm-body" id="newsBody">
     <div class="nm-divider" id="newDivider" style="display:none;">NEW — 前回から更新</div>
+    <!-- 2026-10-13 選べるSSRキャラ確定チケット2枚／ガチャ演出をさらに豪華に／アイコンとボタンをウマ娘風に／MagiChemLex 全1,013問／MagiAbyss の操作 -->
+    <div class="nm-item" data-tag="new" data-date="2026-10-13">
+      <div class="nm-date">2026<br>10.13</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag new">NEW</span></div>
+        <div class="nm-title">🎟️ 選べるSSRキャラ確定チケット2枚プレゼント／ガチャ演出をさらに豪華に／アイコンとボタンをウマ娘風に／MagiChemLex 全1,013問</div>
+        <div class="nm-txt">・<b>日ごろの感謝をこめて</b>、全員に<b>「選べるSSRキャラ確定チケット」を2枚</b>お贈りします（メールから受け取り）。ガチャから出る SSR の中から<b>好きな1体を確定で</b>受け取れます（持っているキャラなら限界突破が進みます）。ガチャ一覧のいちばん上から使えます。<br>
+          ・<b>ガチャの演出</b>をさらに豪華にしました。10連はまず<b>10枠のレア度を印で</b>見せ、その場で<b>昇格</b>します（本当にランクが上がります）。確定演出・文字の変化・カットインは<b>キャラが出る前</b>に入ります。前の円と落ちてくる演出はなくしました。<br>
+          ・ガチャで出る<b>チケット・ジェム・ゴールド・道具の絵</b>を MagiBurst と同じものにそろえ、光がアイテムの枠からはみ出さないようにしました。確率1.5倍の札はコンパクトにし、バナーの「MagiAbyss でも使えるキャラ」の表記はなくしました（キャラごとの紫の帯はそのままです）。<br>
+          ・ホームの<b>右上・下バー・ロビーのアイコン</b>、ボタン、メール・ミッション・設定の画面をウマ娘風にし、動きを付けました。ロビーのボタンは<b>静止</b>させて間隔を詰め、左の「イベント」「更新情報」のボタンはなくしました。<br>
+          ・キャラクター図鑑の<b>並び替え</b>は「並び替え」ボタンを押して、下から出る一覧で選ぶ形にしました（スマホで画面の外に出ていた不具合の修正）。コミュニティのランキングタブはなくしました（ランキングは MagiRanking で見られます）。<br>
+          ・<b>更新のダウンロード</b>：ファイルの件数が途中で変わらないようにし、<b>すべての読み込みが終わってから 100%</b> になるようにしました。<br>
+          ・<b>MagiChemLex</b>：<b>標準セット3・4</b>（マーク式の大問ごとの改題と関連問題）を追加して<b>全1,013問</b>に。「本番」は「<b>難関</b>」、時間を計るのは「<b>模試</b>」モードになりました。難関セットの関連問題も小問の範囲ごとに分けて、ごほうびを受け取れます。「関連問題」タブは「<b>単元別問題</b>」になりました（中身は同じです。問題を足すと自動でここにも加わります）。<br>
+          ・<b>MagiAbyss</b>：スマホの技のボタンを<b>同じ大きさの4つ</b>にしてコンパクトに。左下のスティックは<b>すみに固定</b>しました（設定「スティックの出かた」で切りかえられます）。<b>ダッシュ回避は廃止</b>し、赤い予告から歩いて出る・弾をかすめると「よけた！」になります。<br>
+          ・<b>MagiBurst</b>：ショップのガチャタブをなくし、下バーの「育成」と「キャラ図鑑」を別々のボタンにしました。<b>MagiBocciaRush</b>：叡智の果実の絵を MagiBurst と同じにしました。<b>MagiChainParty</b>：iPhone・iPad で下バーのあたりと画面の下のあいだにできていた空白をなくしました。<br>
+          ・<b>XEVARION PARK</b> のオフライン対応とダウンロードは終了しました（オンラインのときに入れます）。
+        </div>
+      </div>
+    </div>
+    <!-- 2026-10-13 MagiDiamond のサービス終了 -->
+    <div class="nm-item" data-tag="end" data-date="2026-10-13">
+      <div class="nm-date">2026<br>10.13</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag end">終了</span></div>
+        <div class="nm-title">🙇 MagiDiamond のサービス終了のお知らせ</div>
+        <div class="nm-txt">誠に勝手ながら、<b>MagiDiamond</b>（キャラクター野球）は<b>2026年10月13日をもってサービスを終了</b>いたしました。ご愛顧いただき、心より御礼申し上げます。<br>
+        ・アプリはホームおよびアプリ一覧から表示されなくなり、キャラ詳細の「MagiDiamond の性能」もなくなりました。<br>
+        ・<b>獲得済みの XEVA・キャラクター・ジェムはそのまま残ります</b>（ほかのアプリでお使いいただけます）。<br>
+        ・端末に残っていた MagiDiamond のセーブデータは消去されます。
+        </div>
+      </div>
+    </div>
+    <!-- 2026-10-12 その2：ポップな見た目・ガチャ演出の作り直し・MagiAbyss 大型更新・MagiChemLex 標準セット -->
+    <div class="nm-item" data-tag="new" data-date="2026-10-12">
+      <div class="nm-date">2026<br>10.12</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag new">NEW</span></div>
+        <div class="nm-title">🌸 ホームをポップな見た目に／ガチャ演出を一新／MagiAbyss 大型更新（第7〜第9迷宮・技とスキル）／MagiChemLex 全756問</div>
+        <div class="nm-txt">・<b>ホーム・ガチャ・図鑑・コミュニティの見た目</b>を、明るくポップな若草色に変えました（ボタンの位置や使いかたはそのままです）。タイトル画面の左上に<b>サーバーの番号</b>を出しました。<br>
+          ・<b>ガチャの演出</b>を作り直しました。警報 → 解析の画面 → 大きな題字 → 光の十字の爆発のあとに1体ずつ公開。UR の前には「EMERGENCY」。前より長く・派手になりました（右上の SKIP でいつでもまとめへ）。<br>
+          ・<b>MagiAbyss</b>：<b>第7〜第9迷宮</b>（紅月の禁域・氷炎の大回廊・星喰いの深淵神殿）を追加。敵の強さを<b>推奨戦力</b>から決めるようにしました（推奨を大きく下回るとクリアできません。最難関の第9迷宮ハードは、UR を最大まで育ててもおよそ半分の勝率）。鍵は<b>中ボス3体</b>からだけ・試練のあいだは部屋から出られない・ボスの技が増えて連続攻撃も。キャラごとに自分で使う<b>技</b>（固有技・技・秘技・必殺技）と、条件がそろうと自動で発動する<b>スキル</b>（虹・金・白）を用意しました。スマホは攻撃ボタンなし（いつも自動）・必殺技の威力アップ・地図やボタンの反応を速く・<b>おすすめ一括装備</b>・戻るボタンをいつも表示。<br>
+          ・<b>MagiChemLex</b>：<b>標準セット1・2</b>（大問ごとの改題と関連問題）を追加して<b>全756問</b>に。本番セットにも<b>大問ごとの関連問題</b>。関連問題タブは「本番レベル／標準レベル」に分けました。問題セットごとに<b>リセット</b>して、もう一度習得とごほうびの受け取りができます。「まだ習得中になっていない問題だけ」・完全習得までの日数の表示・問題一覧から<b>前後の問題へめくれる</b>・メモを広く・戻るボタンをいつも表示・アイコンを新しくしました。
+        </div>
+      </div>
+    </div>
+    <!-- 2026-10-12 起動の高速化／提供割合の UR 表示／キャラ詳細の正方形・SS絵／MagiChemLex 本番セット3（全501問）・セット一覧の色分け -->
+    <div class="nm-item" data-tag="new" data-date="2026-10-12">
+      <div class="nm-date">2026<br>10.12</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">⚡ 起動を速く／キャラ詳細で正方形の絵・SS絵／MagiChemLex 本番セット3（全501問）</div>
+        <div class="nm-txt">・<b>ホームとアプリの起動を速く</b>しました。会社ロゴの画面は短くし（はじめて約2.7秒・同じタブの2回目からは約0.4秒・タップで飛ばせます）、直前（2分以内）に同期できていれば「同期しています」の画面を出さずにすぐ開きます。画像も軽くし、ホームを開いたときの読みこみを約4割減らしました（見えていない画像は表示されるまで読みません）。<br>・ガチャの<b>提供割合</b>で、UR のキャラが「SSR」と表示されていた不具合を直しました（「限定UR」「SSR以上」と表示）。<br>・<b>キャラ詳細</b>で、UR のキャラは<b>横長の絵と正方形の絵</b>を切りかえて見られます。<br>・<b>治癒の祈り</b>などの <b>SS絵</b>を持つキャラは、キャラ詳細の「SS」ボタンから SS絵を大きく見られます（ポータル・MagiBurst のどちらでも）。<br>・<b>MagiChemLex</b>：<b>本番セット3</b>（大問3つ・改題54問）と関連問題117問を追加して<b>全501問</b>に。単元に「周期表と酸化物」「結晶格子と密度」「コロイド」「アルケン・アルキンの反応」「両性金属」が増えました。セット一覧は<b>習得率を色分け</b>（未着手＝灰・習得中＝橙・完全習得＝緑）し、計算問題を含むセットには小さな電卓マーク（数つき）を付けました。ナビを UR キャラにしたとき、顔の下に「UR」ではなく<b>名前</b>を出すようにしました。</div>
+      </div>
+    </div>
     <!-- 2026-10-09 Pumpkin Night（UR 10体）／ガチャ確率1.5倍・演出の作り直し／3属性有利／MagiAbyss／MagiChemLex のナビ -->
     <div class="nm-item" data-tag="new" data-date="2026-10-09">
       <div class="nm-date">2026<br>10.09</div>
@@ -5561,5 +5631,7 @@ body.music-on #beatFrame{opacity:1}
   </div>
 </div>
 
+<!-- ★★ 2026-10-12c ウマ娘風のボタン・シート・動き（いちばん最後に読む＝ページの中の style より強く） -->
+<link rel="stylesheet" href="xeva-uma.css?v=1">
 </body>
 </html>

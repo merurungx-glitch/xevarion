@@ -24,7 +24,7 @@
      以前はここに直接書いてあり、MagiBurst / MagiLex の一覧は別ファイルにあったため、
      新機能を足すたびに「同期リストへの入れ忘れ」が起きていた
      （ジェムショップの購入履歴 xeva_shop_v1 が同期されていなかったのがその例）。 */
-import { PORTAL_SYNC_KEYS, wipeAccountData, wipeAccountDataFull } from "./xeva-keys.js?v=31";
+import { PORTAL_SYNC_KEYS, wipeAccountData, wipeAccountDataFull } from "./xeva-keys.js?v=32";
 
 const SYNC_KEYS = PORTAL_SYNC_KEYS;
 const SYNC_SET = new Set(SYNC_KEYS);
@@ -473,6 +473,26 @@ function mergeChem(winnerStr, loserStr) {
   const obj = (v) => !!v && typeof v === "object" && !Array.isArray(v);
   if (!obj(W) || !obj(Lo)) return null;
   const num = (v) => Number(v) || 0;
+  /* ★★ 2026-10-12 リセットの墓標（MagiChemLex の resetGroup / resetExam / resetAll）。
+     消した時刻より前の記録・印は<b>両側から</b>捨ててから混ぜる（捨てないと、回数の多いほう・印の和で元にもどる）。 */
+  const tomb = (a, b) => { const o = {}; [a, b].forEach((m) => { if (obj(m)) Object.keys(m).forEach((k) => { o[k] = Math.max(num(o[k]), num(m[k])); }); }); return o; };
+  const RQ = tomb(W.rq, Lo.rq), RR = tomb(W.rr, Lo.rr);
+  W.rq = RQ; W.rr = RR;
+  const qT = (id) => Math.max(num(RQ[id]), num(RQ["*"]));
+  const mT = (k) => num(RR[k]);
+  const runT = (setId) => Math.max(num(RR["run:" + setId]), num(RR["run:*"]));
+  [W, Lo].forEach((X) => {
+    if (obj(X.q)) Object.keys(X.q).forEach((id) => { const t = qT(id); if (t && num(X.q[id] && X.q[id].at) <= t) delete X.q[id]; });
+    if (obj(X.rw)) Object.keys(X.rw).forEach((k) => { const t = mT(k), v = X.rw[k]; if (t && (typeof v !== "number" || v <= t)) delete X.rw[k]; });
+    if (Array.isArray(X.runs)) X.runs = X.runs.filter((r) => !(r && num(r.at) <= runT(r.set)));
+    if (obj(X.memo) && num(RR["memo:*"])) Object.keys(X.memo).forEach((id) => { if (num(X.memo[id] && X.memo[id].at) <= num(RR["memo:*"])) delete X.memo[id]; });
+    if (obj(X.bm) && num(RR["bm:*"])) Object.keys(X.bm).forEach((id) => { if (num(X.bm[id]) <= num(RR["bm:*"])) delete X.bm[id]; });
+    if (obj(X.days) && num(RR["days:*"])) { const d0 = new Date(num(RR["days:*"])); d0.setHours(0, 0, 0, 0); Object.keys(X.days).forEach((d) => { if (new Date(d + "T00:00:00").getTime() < d0.getTime()) delete X.days[d]; }); }
+    if (obj(X.cf)) Object.keys(X.cf).forEach((g) => { const t = mT("cf:" + g); if (t && num(X.cf[g] && X.cf[g].at) <= t) delete X.cf[g]; });
+  });
+  /* 確認テストの記録（cf）も混ぜる（これまでは勝った側だけ） */
+  W.cf = obj(W.cf) ? W.cf : {};
+  if (obj(Lo.cf)) Object.keys(Lo.cf).forEach((g) => { const l = Lo.cf[g], w = W.cf[g]; if (!obj(l)) return; if (!obj(w) || num(l.at) > num(w.at)) W.cf[g] = l; });
   W.q = obj(W.q) ? W.q : {};
   if (obj(Lo.q)) Object.keys(Lo.q).forEach((id) => { const l = Lo.q[id], w = W.q[id]; if (!obj(l)) return; if (!obj(w) || num(l.n) > num(w.n) || (num(l.n) === num(w.n) && num(l.at) > num(w.at))) W.q[id] = l; });
   const runs = Array.isArray(W.runs) ? W.runs.slice() : [];

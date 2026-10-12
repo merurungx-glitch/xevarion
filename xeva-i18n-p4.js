@@ -51,7 +51,6 @@
     "評価（MagiBurst）": "Rating (MagiBurst)",
     "評価（MagiTier）": "Rating (MagiTier)",
     "⚔️ MagiBattle 性能": "⚔️ MagiBattle stats",
-    "⚾ MagiDiamond 性能": "⚾ MagiDiamond stats",
     "✦ 必殺技": "✦ Special move",
     "サブリンク": "Sub-Link",
 

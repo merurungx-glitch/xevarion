@@ -85,7 +85,6 @@
     "MagiManor で洋館を探索しよう": "Explore the manor in MagiManor",
     "MagiEmpire で国盗り対戦をしよう": "Play a conquest match in MagiEmpire",
     "MagiChainParty で対戦してみよう": "Play a match in MagiChainParty",
-    "MagiDiamond で読み合い野球盤を遊ぼう": "Play a round of mind-games baseball in MagiDiamond",
     "MagiArena で1台対戦をあそぼう": "Play a same-device match in MagiArena",
     "MagiJackpot でゲームを1回プレイしよう": "Play one game in MagiJackpot",
     "MagiFocus で集中セッションを完了しよう": "Finish a focus session in MagiFocus",

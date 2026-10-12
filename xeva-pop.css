@@ -1,0 +1,168 @@
+/* ============================================================
+   XEVARION POP — ウマ娘風のポップな見た目（★★ 2026-10-12b ご指定）
+   ------------------------------------------------------------
+   ご指定：「ホーム画面やそれぞれのデザインをウマ娘風なポップなデザインに。
+           ただし、機能やボタンの位置は変更しないでデザインのみをすべて変えて」
+   ・このファイルは<b>いちばん最後</b>に読む。位置・大きさ・余白は<b>変えない</b>
+     （border の太さも変えない。足すふちは box-shadow／outline だけ）。
+   ・中心は xevarion-home.css の色の札（--yw-* / --xh-*）の入れかえ：
+       濃紺の太いふち → 若草色 ／ 金の内わく → 白 ／ クリームの地 → 白
+       青（見出し・下バー）→ 若草色 ／ 赤（印）→ 桃色 ／ 文字 → あたたかい焦げ茶
+   ・形の決まり：角は丸く・白いふち＋若草色のふち・影は「下に落ちるやわらかい緑の影」。
+     見出しはリボン（右はしを斜めに切る＋白い斜めのしま）。文字は丸ゴシック。
+   ============================================================ */
+:root{
+  --pp-g:#62c43e; --pp-g2:#4cae2c; --pp-gd:#2f8a1a; --pp-gl:#eaf8de; --pp-gl2:#d3f0bf;
+  --pp-pk:#ff6fa4; --pp-pkd:#e0457f; --pp-or:#ff9d2e; --pp-yl:#ffd84a; --pp-sky:#7fd3f7;
+  --pp-ink:#4a3f33; --pp-sub:#8c7f6d; --pp-cream:#fffdf6;
+  --pp-stripe:repeating-linear-gradient(135deg,rgba(255,255,255,.22) 0 7px,rgba(255,255,255,0) 7px 14px);
+  --pp-drop:0 3px 0 rgba(47,138,26,.32);
+  --pp-font:'M PLUS Rounded 1c','Noto Sans JP',sans-serif;
+
+  /* xevarion-home.css の札を入れかえる */
+  --yw-line:#4cae2c;
+  --yw-gold:#ffffff;
+  --yw-gold-d:#d3f0bf;
+  --yw-cream:#ffffff;
+  --yw-cream-d:#eaf8de;
+  --yw-blue:#62c43e;
+  --yw-blue-d:#2f8a1a;
+  --yw-blue-l:#bfeaa3;
+  --yw-red:#ff5f93;
+  --yw-green:#62c43e;
+  --xh-ink:#4a3f33;
+  --xh-sub:#8c7f6d;
+  --xh-line:rgba(76,174,44,.25);
+  --xh-blue:#4cae2c;
+  --xh-card:#ffffff;
+  --xh-shadow:0 3px 0 rgba(47,138,26,.24);
+  --xh-shadow-s:0 2px 0 rgba(47,138,26,.18);
+  --yw-frame:0 0 0 3px #ffffff inset;
+  --yw-drop:0 3px 0 rgba(47,138,26,.32);
+}
+
+/* ── 文字：丸ゴシック ── */
+html.xh-html body, #xhome, #xhome button, .xh-sheet, .xh-sheet button, .news-modal, #xevaHome, #xevaHome button{font-family:var(--pp-font)}
+
+/* ── うしろの地：若草色の空＋白い斜めのしま＋丘 ── */
+html.xh-html, html.xh-html body.xh-mode{background-color:#bfeaa3}
+#xhBg{background:linear-gradient(180deg,#9ee0ff 0%,#c9f0ff 34%,#e9fbd8 70%,#d3f0bf 100%)!important}
+#xhBg::before{opacity:1!important;background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.28) 0 26px,rgba(255,255,255,0) 26px 52px)!important;background-size:auto!important}
+#xhBg::after{opacity:1!important;height:150px!important;background-size:auto 150px!important;
+  background-image:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='420' height='150' viewBox='0 0 420 150'%3E%3Cpath d='M0 90 Q60 40 120 80 T240 72 T360 64 T420 80 V150 H0Z' fill='%2389d65f'/%3E%3Cpath d='M0 118 Q70 84 140 110 T280 104 T420 112 V150 H0Z' fill='%2362c43e'/%3E%3Cg fill='%23ffffff' opacity='.85'%3E%3Ccircle cx='60' cy='122' r='3'/%3E%3Ccircle cx='190' cy='128' r='2.5'/%3E%3Ccircle cx='330' cy='120' r='3'/%3E%3C/g%3E%3C/svg%3E")!important}
+@media (min-width:960px){ #xhCol{box-shadow:0 0 0 4px #fff,0 0 0 8px rgba(76,174,44,.35)} }
+
+/* ── 上：ロゴの札・右上のボタン ── */
+#xhome .xh-brandbar{background:linear-gradient(180deg,#8fdc64,#4cae2c);border-color:#fff;
+  box-shadow:0 0 0 2.5px var(--pp-g2),0 4px 0 rgba(47,138,26,.4)}
+#xhome .xh-brandbar .xh-word{font-family:var(--pp-font);font-weight:900;letter-spacing:.06em;
+  text-shadow:-2px 0 var(--pp-gd),2px 0 var(--pp-gd),0 -2px var(--pp-gd),0 2px var(--pp-gd),-2px -2px var(--pp-gd),2px -2px var(--pp-gd),-2px 2px var(--pp-gd),2px 2px var(--pp-gd),0 3px 0 rgba(47,138,26,.45)}
+.xh-act .ic{border-color:var(--pp-g)!important;box-shadow:0 0 0 2px #fff inset,0 3px 0 rgba(47,138,26,.38)!important;
+  background:linear-gradient(180deg,#ffffff,#f1fbe9)!important}
+.xh-act .lb{color:var(--pp-ink);font-weight:900;text-shadow:0 0 2px #fff,0 0 2px #fff,0 1px 0 #fff}
+.xh-act .bdg{background:var(--pp-pk);border-color:#fff;box-shadow:0 0 0 1.5px var(--pp-pkd),0 2px 0 rgba(224,69,127,.4)}
+
+/* ── プロフィール・4つの札（レベル・スタミナ・XEVA・ジェム）── */
+.xh-lv,.xh-stam,.xh-pill{border-color:var(--pp-g)!important;box-shadow:0 0 0 1.5px #fff inset,0 2.5px 0 rgba(47,138,26,.3)!important}
+.xh-lv{background:linear-gradient(180deg,#ffffff,#e6f7d6)!important;color:var(--pp-gd)!important}
+.xh-pill{background:linear-gradient(180deg,#ffffff,#fff1d0)!important}
+.xh-pill.gem{background:linear-gradient(180deg,#ffffff,#ffe3ee)!important}
+.xh-pill.gem .cval{color:var(--pp-pkd)!important}
+.xh-pill .cval{color:#b0610a}
+.xh-pill .xh-info, .xh-pill.gem .xh-info{background:linear-gradient(180deg,#8fdc64,#4cae2c)!important;color:#fff}
+.xh-lv .xh-lvbar{background:#e2efd8!important}
+.xh-lv .xh-lvbar i{background:linear-gradient(90deg,#8fdc64,#4cae2c)!important}
+#xhAv, .xh-av{box-shadow:0 0 0 2.5px #fff,0 0 0 5px var(--pp-g),0 3px 0 5px rgba(47,138,26,.25)!important}
+
+/* ── 見出し（リボン）── */
+.xh-sechead .t{background:linear-gradient(180deg,#8fdc64,#4cae2c)!important;border-color:#fff!important;
+  box-shadow:0 0 0 2px var(--pp-g2),0 3px 0 2px rgba(47,138,26,.3)!important;text-shadow:0 1.5px 0 rgba(47,138,26,.75)!important}
+.xh-sechead .t::after{content:"";position:absolute;inset:0;border-radius:inherit;background:var(--pp-stripe);pointer-events:none}
+.xh-sechead .t .dot.up{background:linear-gradient(180deg,#7fd3f7,#2f9fe0)!important}
+.xh-sechead .t .dot.app{background:linear-gradient(180deg,#ffb0cc,#ff6fa4)!important}
+.xh-sechead .more{background:linear-gradient(180deg,#ffbf5e,#ff9d2e)!important;border-color:#fff!important;box-shadow:0 0 0 2px #f08a14,0 3px 0 2px rgba(200,110,10,.3)!important;text-shadow:0 1px 0 rgba(160,80,0,.6)}
+
+/* ── 左右のボタン・旗（ロビー）── */
+.xl-ic .i{box-shadow:0 0 0 2.5px #fff inset,0 0 0 2.5px var(--pp-g),0 3px 0 2.5px rgba(47,138,26,.3)!important}
+.xl-ic .l{color:#fff;text-shadow:0 1px 0 var(--pp-gd),1px 0 0 var(--pp-gd),-1px 0 0 var(--pp-gd),0 -1px 0 var(--pp-gd),0 2px 3px rgba(47,138,26,.5)!important}
+.xl-ic.dia .i{background:linear-gradient(180deg,#8fdc64,#4cae2c)!important}
+.xl-ban, .xl-evb{box-shadow:0 0 0 3px #fff,0 0 0 5.5px var(--pp-g),0 4px 0 5.5px rgba(47,138,26,.28)!important}
+.xl-evb .evb-bar{background:linear-gradient(90deg,#ff8ab6,#ff6fa4)!important}
+.xl-evb .evb-tag{filter:hue-rotate(80deg) saturate(1.2)}
+.xl-expo{box-shadow:0 0 0 3px #fff,0 0 0 5px var(--pp-or),0 4px 0 5px rgba(200,110,10,.28)!important;filter:saturate(1.15)}
+/* アプリの並び：白い板＋若草色のふち＋しま */
+.xl-apps{background:rgba(255,255,255,.86)!important;box-shadow:0 0 0 3px #fff inset,0 0 0 2px var(--pp-g),0 4px 0 2px rgba(47,138,26,.25)!important;
+  backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px)}
+.xl-apps::before{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;
+  background:repeating-linear-gradient(135deg,rgba(98,196,62,.06) 0 10px,rgba(98,196,62,0) 10px 20px)}
+.xl-app .ic{border-color:var(--pp-g)!important;box-shadow:0 0 0 2px #fff inset,0 3px 0 rgba(47,138,26,.35)!important;background:#fff}
+.xl-app .nm{color:var(--pp-ink)!important;text-shadow:none!important;font-weight:900}
+.xl-new, .xh-newb{filter:hue-rotate(-30deg) saturate(1.2)}
+.xl-handle{background:linear-gradient(180deg,#8fdc64,#4cae2c)!important;box-shadow:0 0 0 2px #fff,0 3px 0 2px rgba(47,138,26,.3)!important}
+
+/* ── 話しかける吹き出し ── */
+.hm-bubble{background:#fff!important;border-color:var(--pp-g)!important;color:var(--pp-ink)!important;
+  box-shadow:0 0 0 3px #fff inset,0 4px 0 rgba(47,138,26,.25)!important;font-family:var(--pp-font)}
+.hm-bubble::before{border-bottom-color:var(--pp-g)!important}
+
+/* ── 下のタブ：白い板＋若草色の帯。選んだタブは若草色の丸の上に ── */
+.xh-bar{background:linear-gradient(180deg,#ffffff 0,#f2fbea 60%,#e3f6d4 100%)!important;box-shadow:0 -3px 0 rgba(76,174,44,.28)!important}
+.xh-bar::before{background:linear-gradient(180deg,var(--pp-g2) 0 3px,#b9e99c 3px 6px)!important}
+.xh-ntab{color:#7a8f6c}
+.xh-ntab .tl{text-shadow:none!important;color:#6d8160;font-weight:900}
+.xh-ntab svg{filter:drop-shadow(0 2px 0 rgba(47,138,26,.25))!important}
+.xh-ntab.on{color:var(--pp-gd)!important}
+.xh-ntab.on .tl{color:var(--pp-gd)}
+.xh-ntab.on::before{width:44px!important;height:44px!important;top:5px!important;
+  background:radial-gradient(circle,#dff6cd 0 60%,rgba(223,246,205,0) 72%)!important;box-shadow:none}
+.xh-ntab .xh-tabchar{border-color:var(--pp-g)!important}
+
+/* ── シート（設定・お知らせ など）── */
+.xh-sheet{background:rgba(70,120,40,.3)!important}
+.xh-sheet-card{background:linear-gradient(180deg,#ffffff,#f6fbef)!important;border-color:#fff!important;
+  box-shadow:0 -4px 0 rgba(76,174,44,.35),0 -10px 30px rgba(60,120,30,.2)!important}
+.xh-sheet-head{position:relative;background:linear-gradient(180deg,#8fdc64,#4cae2c);border-bottom:none!important;border-radius:26px 26px 0 0}
+.xh-sheet-head::after{content:"";position:absolute;inset:0;border-radius:inherit;background:var(--pp-stripe);pointer-events:none}
+.xh-sheet-title{color:#fff!important;text-shadow:0 1.5px 0 rgba(47,138,26,.7);position:relative;z-index:1}
+.xh-sheet-x{background:#fff!important;color:var(--pp-gd)!important;box-shadow:0 2px 0 rgba(47,138,26,.35);position:relative;z-index:1}
+.xh-row{border-color:#e3dccd!important;box-shadow:0 2px 0 rgba(150,130,100,.18)!important}
+.xh-row .rl svg{color:var(--pp-g2)!important}
+.xh-row .rv{color:var(--pp-g2)!important}
+.xh-row .rt{color:var(--pp-ink)!important}
+.xh-sec-label{color:#fff!important;display:inline-block;padding:3px 14px 3px 10px;border-radius:6px 0 0 6px;
+  background:linear-gradient(180deg,#ffbf5e,#ff9d2e);clip-path:polygon(0 0,100% 0,calc(100% - 9px) 100%,0 100%);letter-spacing:.08em}
+.xh-sbtn{background:linear-gradient(180deg,#8fdc64,#4cae2c)!important;box-shadow:0 4px 0 var(--pp-gd)!important;text-shadow:0 1px 0 rgba(47,138,26,.6)}
+.xh-sbtn.ghost{background:#fff!important;color:var(--pp-sub)!important;box-shadow:0 3px 0 #e3dccd!important}
+.xh-sw{background:#e3dccd!important}
+.xh-sw.on{background:linear-gradient(180deg,#8fdc64,#4cae2c)!important}
+.xh-mini.on{background:linear-gradient(180deg,#8fdc64,#4cae2c)!important;box-shadow:0 2px 0 var(--pp-gd)!important}
+.xh-grid{background:linear-gradient(180deg,#ffffff,#f3fbea)!important;box-shadow:0 0 0 3px #fff inset,0 0 0 2px var(--pp-g),0 4px 0 2px rgba(47,138,26,.22)!important}
+.xh-sq{box-shadow:0 0 0 2px #fff inset,0 0 0 2px var(--pp-g),0 3px 0 2px rgba(47,138,26,.25)!important}
+
+/* ── お知らせ（ニュース）── */
+.news-modal{font-family:var(--pp-font)}
+.news-modal .nm-head, .news-modal .nm-hd{background:linear-gradient(180deg,#8fdc64,#4cae2c)!important;color:#fff!important}
+.nm-item{border-color:#e3dccd!important}
+.nm-title{color:var(--pp-ink)!important}
+
+/* ── タイトル画面（タップしてスタート）── */
+.xh-start-tap{font-family:var(--pp-font);color:#fff;text-shadow:0 0 0 #fff,-2px 0 var(--pp-g2),2px 0 var(--pp-g2),0 -2px var(--pp-g2),0 2px var(--pp-g2),0 4px 10px rgba(0,0,0,.35)!important}
+.xh-start-line{background:linear-gradient(90deg,transparent,#bff59a,transparent)!important}
+.xh-musicwarn{background:rgba(255,255,255,.88)!important;color:#7a4a00!important;border-color:var(--pp-or)!important}
+
+/* ── ロビー（キャラの上）の4つの札：白い半透明＋若草色のふち（home-mate.css の #xhLobby 指定より強く）── */
+html #xhLobby .xh-lv, html #xhLobby .xh-stam, html #xhLobby .xh-pill{background:rgba(255,255,255,.9)!important;border-color:var(--pp-g)!important;
+  box-shadow:0 2px 0 rgba(47,138,26,.3)!important;color:var(--pp-ink)!important}
+html #xhLobby .xh-lv b{color:var(--pp-gd)!important}
+html #xhLobby .xh-stam .sv{color:#d4580a!important}
+html #xhLobby .xh-pill .cval{color:#b0610a!important}
+html #xhLobby .xh-pill.gem .cval{color:var(--pp-pkd)!important}
+html #xhLobby .xh-lv .xh-lvbar{border-color:rgba(76,174,44,.35);background:#e2efd8}
+.xl-ban-dots .n{background:rgba(76,174,44,.85)!important}
+
+/* ── メニュー（下から出るシート）：若草色の空→クリーム ── */
+html #xhScroll{background-image:linear-gradient(180deg,#dff6cd 0%,#f1fbe8 40%,#fffdf3 100%)!important;box-shadow:0 -4px 0 rgba(76,174,44,.3),0 -8px 24px rgba(60,120,30,.18)!important}
+html .xl-dhead{background-image:linear-gradient(180deg,#dff6cd 70%,rgba(223,246,205,0))!important}
+html .xl-dhead .grab{background:var(--pp-g)!important}
+html .xl-dhead .dt{color:var(--pp-gd)!important}
+html .xl-dhead .dx{color:var(--pp-gd)!important;box-shadow:0 0 0 2px var(--pp-g),0 3px 0 2px rgba(47,138,26,.3)!important}

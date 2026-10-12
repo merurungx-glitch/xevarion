@@ -28,7 +28,7 @@ const XH_OFFLINE_OK = {
      xhAppRow／xhOpenApp の3か所がここを見る）。
      ところが下の6本は sw.js を持って CORE も全部キャッシュしているのに
      台帳に載っていなかったので、<b>オフラインだと灰色になって押せなかった</b>。
-     ★ 逆に MagiDiamond・MagiBattle などは sw.js が無いので、ここには足さない
+     ★ 逆に MagiBattle などは sw.js が無いので、ここには足さない
        （押せても白い画面になるだけ）。足すときは必ず sw.js の有無を確かめること。 */
   magidominiongrid:{ name: "Dominion",       href: "MagiDominionGrid/index.html",sw: "MagiDominionGrid/sw.js" },
   magibocciarush:  { name: "Boccia Rush",    href: "MagiBocciaRush/index.html",  sw: "MagiBocciaRush/sw.js" },
@@ -80,8 +80,8 @@ const XH_APPS = [
     desc:"魔法の書から問題が飛び出す学習アプリ。難関大英単語（発音つき）・物理・化学・古文をクイズ×単語帳で。オフライン学習OK。" },
   /* ★★ 2026-10-06 新作 MagiChemLex（MagiLex の派生・難関化学の問題集）。ご指定でホームの MagiCounter の左。 */
   { id:"magichemlex", name:"MagiChemLex", full:"MagiChemLex", sub:"難関化学の問題集", cat:"learn", tone:"blue", newUntil:"2026-10-27",
-    href:"MagiChemLex/index.html", img:"thumbs/MagiChemLex.jpg",
-    desc:"難関大の化学を、<b>入試問題の改題</b>（入試1回ぶんの全小問）と<b>関連問題</b>で鍛える学習アプリ。おすすめ出題・間隔反復の復習・時間を計る本番セット・ヒントと図つきの解説・関連問題・関数電卓・学習カレンダー。獲得 XEVA は MagiLex 系統のイベントで2倍。オフラインOK。" },
+    href:"MagiChemLex/index.html", img:"thumbs/MagiChemLex.jpg?v=2",
+    desc:"難関大の化学を、<b>入試問題の改題</b>（難関セット3回ぶん・標準セット4回ぶんの全小問）と<b>関連問題</b>（全1,013問）で鍛える学習アプリ。おすすめ出題・間隔反復の復習・時間を計る模試モード・ヒントと図つきの解説・単元別問題・関数電卓・学習カレンダー。獲得 XEVA は MagiLex 系統のイベントで2倍。オフラインOK。" },
   { id:"magiburst", name:"MagiBurst", sub:"爽快アクション", cat:"game", tone:"violet",
     href:"MagiBurst/index.html", img:"thumbs/MagiBurst.jpg",
     desc:"引っぱって、はなして、ぶっとばせ！最大4人マルチの引っぱりハンティング。オフラインでもソロクエストが遊べます。" },
@@ -139,10 +139,7 @@ const XH_APPS = [
   { id:"magimanor", name:"MagiManor", sub:"探索ホラー", cat:"game", tone:"violet",
     href:"MagiManor/index.html", img:"thumbs/MagiManor.jpg",
     desc:"不気味な洋館からの脱出を目指す2D探索ホラーADV。謎解き・追跡者・恐怖ゲージ、6種類の結末。最大4人の共鳴探索も。" },
-  /* ★★ 2026-08-30 大幅リニューアル。開くと最新版・過去版をえらべる（ご指定）。 */
-  { id:"magidiamond", name:"Diamond", full:"MagiDiamond", sub:"キャラクター野球", cat:"game", tone:"red",
-    href:"MagiDiamond/index.html", img:"thumbs/MagiDiamond.jpg",
-    desc:"集めたキャラクターで、野球を極めろ。XEVARION の SR・SSR 全キャラクターが選手になり、育成・チーム編成・チームスキル・野球盤の打球処理・オンライン対戦まで。過去版の「読み合い野球盤」もそのまま遊べます。" },
+  /* ★★ 2026-10-13 MagiDiamond（キャラクター野球）は廃止（ご指定）。アプリ・ファイル・キャラ詳細の性能をすべて消した */
   { id:"xevynar", name:"XEVYNAR", sub:"学習AI", cat:"learn", tone:"violet",
     href:"XEVYNAR/index.html", img:"thumbs/XEVYNAR.jpg",
     desc:"XEVARION の学習AI。勉強のプラン・自由なタイマー・記録に加えて、わからない問題の解説、MagiLex の苦手問題づくり、MagiBurst の編成・攻略、XEVARION の各アプリの質問にも答えます。" },
@@ -174,7 +171,7 @@ const XH_APPS = [
     href:"NGX/NGX_website.html", img:"thumbs/NGX.jpg",
     desc:"XEVARION を開発・運営する NGX の公式サイト。最新情報・沿革・会社概要はこちら。" },
   { id:"ishida", name:"ISHIDA", full:"ISHIDA Production", sub:"製作パートナー", cat:"shop", tone:"gold",
-    href:"IshidaProduction/index.html", img:"brand/ISHIDA Production.png",
+    href:"IshidaProduction/index.html", img:"thumbs/ISHIDA.webp",   /* ★★ 2026-10-09b 元のロゴ（1024px・394KB）→ 正方形の小さいアイコン（3KB） */
     desc:"XEVARION の製作パートナー ISHIDA Production の公式サイト。" },
   { id:"magicalfuture", name:"M.Future", full:"Magical Future", sub:"技術提携パートナー", cat:"shop", tone:"pink",
     href:"MagicalFuture/index.html", img:"thumbs/MagicalFuture.jpg",
@@ -192,8 +189,11 @@ const XH_RETIRED = {
   magimuse: "MagiMuse",
   magifinance: "MagiFinance",
   magisports: "MagiSports",
+  magidiamond: "MagiDiamond",     /* ★★ 2026-10-13 廃止（ご指定） */
 };
 const XH_RETIRED_ON = "2026-07-29";
+/* ★★ 2026-10-13 終了日がほかとちがうアプリ（ここに無ければ XH_RETIRED_ON） */
+const XH_RETIRED_AT = { MagiDiamond: "2026-10-13" };
 
 /* ホームに並ぶ既定の順番（先頭11個 + 「その他」で 4×3 のグリッド）
    ★ MagiPortfolio は「その他」へ移動し、空いた枠に MagiBattle を戻す。
@@ -222,7 +222,8 @@ const XH_DEFAULT_ORDER = [
   /* ★★ 2026-09-24d <b>MagiChainParty と MagiScope の位置を入れかえ</b>（ご指定）。 */
   /* ★★ 2026-10-06 <b>MagiTier は「その他」へ</b>、新作 <b>MagiChemLex を MagiCounter の左</b>に（ご指定）。 */
   "magilex", "magilink", "magiburst", "magibocciarush",
-  "magiscope", "magidominiongrid", "magidiamond",
+  /* ★★ 2026-10-13 MagiDiamond を廃止（ご指定）→ 後ろを1つずつ前へつめた */
+  "magiscope", "magidominiongrid",
   "magichemlex", "magicounter", "xevynar", "magijackpot",
   /* 以降は「その他」の中に入る */
   /* ★★ 2026-09-21c 並びのご指定：
@@ -479,6 +480,36 @@ XH_EVENTS.unshift({ tag:"EVENT", t1:"Violet Breeze", t2:"MagiLex 系統の XEVA 
    ══════════════════════════════════════════════════════════════ */
 const XH_UPDATE_MAX = 12;
 const XH_UPDATES = [
+  /* ★★ 2026-10-13 選べるSSRキャラ確定チケット・ガチャ演出をさらに豪華に・アイコンとボタンをウマ娘風に・MagiChemLex 全1,013問・MagiAbyss の操作 */
+  { tag:"NEW", t1:"選べるSSRキャラ確定チケットを2枚プレゼント", at:"2026-10-13",
+    t2:"日ごろの感謝をこめて、全員に2枚（メールから受け取り）／ガチャから出る SSR の中から好きな1体を確定で・持っているキャラなら限界突破が進む／ガチャ一覧のいちばん上から使えます",
+    href:"gacha.html", img:"thumbs/MagiBurst.jpg" },
+  { tag:"UPDATE", t1:"ガチャ演出をさらに豪華に・アイコンとボタンをウマ娘風に", at:"2026-10-13",
+    t2:"10連はレア度を先に印で見せてその場で昇格・確定演出はキャラの前に／チケット・ジェム・ゴールド・道具の絵を MagiBurst と同じに・光が枠からはみ出さない／右上・下バー・ロビーのアイコン・ボタン・メール・ミッション・設定をウマ娘風に・ロビーのボタンは静止して詰めた（左の「イベント」「更新情報」は廃止）／確率1.5倍の札をコンパクトに／図鑑の並び替えはボタンから選ぶ形に／ダウンロードは件数が変わらず、全部終わってから100%",
+    href:"gacha.html", img:"thumbs/MagiBurst.jpg" },
+  { tag:"UPDATE", t1:"MagiChemLex 標準セット3・4・全1,013問", at:"2026-10-13",
+    t2:"標準セット3・4（マーク式の大問ごとの改題と関連問題）を追加／「本番」は「難関」・時間を計るのは「模試」モード／難関セットの関連問題も小問の範囲ごとにごほうびつき／「関連問題」タブは「単元別問題」に（中身は同じ・問題を足すと自動で加わる）",
+    href:"MagiChemLex/index.html", img:"thumbs/MagiChemLex.jpg?v=2" },
+  { tag:"UPDATE", t1:"MagiAbyss のスマホ操作・MagiBurst の下バー", at:"2026-10-13",
+    t2:"MagiAbyss：技のボタンは同じ大きさの4つでコンパクトに・左下のスティックはすみに固定・ダッシュ回避を廃止（赤い予告から歩いて出る・弾をかすめると「よけた！」）／MagiBurst：ショップのガチャタブを廃止・「育成」と「キャラ図鑑」を下バーで別々に／MagiBocciaRush：叡智の果実の絵を MagiBurst と同じに／MagiChainParty：iPhone・iPad で下バーと画面の下のあいだの空白をなくした",
+    href:"MagiAbyss/index.html", img:"thumbs/MagiAbyss.jpg" },
+  /* ★★ 2026-10-12 その2：ポップな見た目・ガチャ演出・MagiAbyss 大型更新・MagiChemLex 標準セット */
+  { tag:"NEW", t1:"ホームをポップな見た目に・ガチャ演出を一新", at:"2026-10-12",
+    t2:"ホーム・ガチャ・図鑑・コミュニティを明るい若草色に（ボタンの位置はそのまま）／ガチャは警報→解析→大きな題字→光の十字のあとに1体ずつ・UR の前に EMERGENCY・前より長く派手に／タイトル画面にサーバーの番号",
+    href:"gacha.html", img:"thumbs/MagiBurst.jpg" },
+  { tag:"NEW", t1:"MagiAbyss 第7〜第9迷宮・技とスキル", at:"2026-10-12",
+    t2:"紅月の禁域・氷炎の大回廊・星喰いの深淵神殿／敵の強さは推奨戦力から（最難関は UR 最大育成で勝率およそ半分）／鍵は中ボス3体から・試練中は部屋から出られない・ボスの技が増えて連続攻撃／自分で使う技（固有技・技・秘技・必殺技）と自動のスキル（虹・金・白）／スマホは自動攻撃・おすすめ一括装備",
+    href:"MagiAbyss/index.html", img:"thumbs/MagiAbyss.jpg" },
+  { tag:"UPDATE", t1:"MagiChemLex 標準セット・全756問", at:"2026-10-12",
+    t2:"標準セット1・2（改題と大問ごとの関連問題）を追加／本番セットにも大問ごとの関連問題・関連問題タブは本番レベル／標準レベル／セットごとのリセット（もう一度ごほうび）／習得中になっていない問題だけ・完全習得までの日数／前後の問題へめくれる・メモを広く",
+    href:"MagiChemLex/index.html", img:"thumbs/MagiChemLex.jpg?v=2" },
+  /* ★★ 2026-10-12 起動の高速化・提供割合の UR 表示・キャラ詳細の正方形/SS絵／MagiChemLex 本番セット3 */
+  { tag:"UPDATE", t1:"起動を速く・キャラ詳細で正方形の絵とSS絵", at:"2026-10-12",
+    t2:"会社ロゴの画面を短く（2回目からは約0.4秒・タップで飛ばせる）・直前に同期できていれば同期の画面を出さない・画像を軽く／提供割合で UR が「SSR」と出ていたのを修正／キャラ詳細で UR は横長⇔正方形を切りかえ・治癒の祈りなどの SS絵も見られる",
+    href:"characters.html", img:"thumbs/MagiBurst.jpg" },
+  { tag:"UPDATE", t1:"MagiChemLex 本番セット3・全501問", at:"2026-10-12",
+    t2:"本番セット3（大問3つ・改題54問）と関連問題117問を追加／新しい単元：周期表と酸化物・結晶格子・コロイド・アルケンとアルキン・両性金属／セット一覧の習得率を色分け（未着手・習得中・完全習得）・計算問題のあるセットに小さな電卓マーク／ナビの UR キャラは名前を表示",
+    href:"MagiChemLex/index.html", img:"thumbs/MagiChemLex.jpg?v=2" },
   /* ★★ 2026-10-09 Pumpkin Night（UR 10体）／ガチャ確率1.5倍・演出の作り直し／3属性有利・MagiAbyss・MagiChemLex */
   { tag:"NEW", t1:"Pumpkin Night（UR 10体）", at:"2026-10-09",
     t2:"11月30日まで。アヤノ・サキ（火）／ユカ・ナツミ（水）／ミウ・マイ（木）／チナツ・ユウミ（光）／リナ・カオリ（闇）の UR 10体が各1.5%／はじめての10連は無料・🎫フェス券OK／ガチャ一覧のいちばん上／MagiBurst・MagiBocciaRush・MagiAbyss でも最強クラス（ミウ・マイは少し上）",
@@ -498,7 +529,7 @@ const XH_UPDATES = [
     href:"gacha.html", img:"thumbs/MagiBurst.jpg" },
   { tag:"UPDATE", t1:"MagiChemLex 大型アップデート", at:"2026-10-07",
     t2:"本番セット2と関連問題で全330問／「セット」タブ（改題は小問ごとに細かく・一覧から解く・確認テスト）／シャッフル出題・選択肢もランダム・未習得だけ／問題中のメモ／XEVA を約3.5倍／iPhone の下のすき間を修正・スクロールバーをデザイン",
-    href:"MagiChemLex/index.html", img:"thumbs/MagiChemLex.jpg" },
+    href:"MagiChemLex/index.html", img:"thumbs/MagiChemLex.jpg?v=2" },
   { tag:"UPDATE", t1:"MagiBocciaRush・MagiLex・ホーム", at:"2026-10-07",
     t2:"Boccia：場外のジャックは中央のクロスへ・VS は左右に縦6人ずつ・アドバイスは初回だけ・ボールの縁は凸で／MagiLex：ビンゴの反映もれを修正（お詫びに🎫フェス券40枚）／ホーム：下バーのガチャはタキナ・PARK は左・イベントのバナーは右下",
     href:"MagiBocciaRush/index.html", img:"thumbs/MagiBocciaRush.jpg" },
@@ -508,7 +539,7 @@ const XH_UPDATES = [
     href:"index.html#event", img:"thumbs/VioletBreeze.jpg" },
   { tag:"NEW", t1:"新作 MagiChemLex", at:"2026-10-06",
     t2:"難関化学の問題集。入試問題の改題と関連問題（156問）／おすすめ出題・間隔反復の復習・本番セット・ヒントと図つきの解説・関数電卓・公式カード・学習カレンダー／ホームは MagiCounter の左（MagiTier は「その他」へ）",
-    href:"MagiChemLex/index.html", img:"thumbs/MagiChemLex.jpg" },
+    href:"MagiChemLex/index.html", img:"thumbs/MagiChemLex.jpg?v=2" },
   { tag:"UPDATE", t1:"MagiAbyss 大型アップデート", at:"2026-10-06",
     t2:"拠点の広場・迷宮えらびの地図・探索中の画面を一新／スマホは横画面＋スティックとボタン・PC はキー設定／キャラ一覧と性能をアイコンでわかりやすく／ハードモード・クリア時間のミッション（ジェム）／XEVARION と共通の5属性／遊び方のアニメ説明／ミニマップを押すと拡大",
     href:"MagiAbyss/index.html", img:"thumbs/MagiAbyss.jpg" },
@@ -955,12 +986,6 @@ const XH_UPDATES = [
   { tag:"UPDATE", t1:"装備をステータスに含めました", at:"2026-09-07",
     t2:"編成・バトル中・キャラ詳細のどこからでも分かります。同じ効果を別の部位で持っていたら両方とも効きます",
     href:"MagiBurst/index.html", img:"thumbs/MagiBurst.jpg" },
-  { tag:"NEW", t1:"MagiDiamond にスタメンと選手交代", at:"2026-09-07",
-    t2:"試合のはじめに両チームの打順・守備・ベンチを見られ、投手交代と代打も出せます（打率などの成績つき）",
-    href:"MagiDiamond/index.html", img:"thumbs/MagiDiamond.jpg" },
-  { tag:"UPDATE", t1:"MagiDiamond の不具合をまとめて修正", at:"2026-09-07",
-    t2:"相手の打順が変わらない・守備ターンに打たれる演出がない・守備位置の印が動かない・球速がちがう・中断ボタンが見づらい",
-    href:"MagiDiamond/index.html", img:"thumbs/MagiDiamond.jpg" },
   { tag:"NEW", t1:"ジェフ千葉 17年ぶりJ1勝利記念の配布", at:"2026-09-07",
     t2:"📧 メールに 17,000 XEVA をお届けしています",
     href:"index.html", img:"thumbs/Xevarion.png" },
@@ -983,36 +1008,21 @@ const XH_UPDATES = [
   { tag:"UPDATE", t1:"いちばん下まで色が届くようにしました", at:"2026-09-06",
     t2:"起動画面・ホーム・MagiLink・MagiDiamond で、下バーと画面のいちばん下のあいだにできていたすきまを埋めました",
     href:"index.html", img:"thumbs/Xevarion.png" },
-  { tag:"UPDATE", t1:"MagiDiamond のアイコンを描き直しました", at:"2026-09-06",
-    t2:"下バーで開いているタブのアイコンが板にまぎれて見えなかったのを直し、線だけの自前アイコンにそろえました",
-    href:"MagiDiamond/index.html", img:"thumbs/MagiDiamond.jpg" },
   /* ★★ 2026-09-06（4回目）MagiDiamond の限界突破を XEVARION に一本化 */
-  { tag:"UPDATE", t1:"MagiDiamond の限界突破を一本化", at:"2026-09-06",
-    t2:"MagiDiamond の中にもう1本あった限界突破を廃止し、XEVARION（MagiBurst）のものをそのまま使います",
-    href:"MagiDiamond/index.html", img:"thumbs/MagiDiamond.jpg" },
   /* ★★ 2026-09-06（3回目）Xevion OS の言語／キャラ詳細の切りかえ／ご報告の修正 */
   { tag:"NEW", t1:"言語の切りかえが Xevion OS に", at:"2026-09-06",
     t2:"XEVARION 全体の土台の設定なので、ここに移しました。いままでの場所と同じ置き場所を見ています",
     href:"index.html", img:"thumbs/Xevarion.png" },
-  { tag:"NEW", t1:"キャラ詳細に MagiDiamond の性能", at:"2026-09-06",
-    t2:"⚔MagiBurst ⇄ ⚾MagiDiamond を切りかえられます（開いたときは必ず MagiBurst）",
-    href:"characters.html", img:"thumbs/Xevarion.png" },
   { tag:"UPDATE", t1:"ボスの攻撃ターンが進まない不具合を修正", at:"2026-09-06",
     t2:"即死・クラッシュのあとで通常攻撃のカウントを巻きもどしていたため、両方を持つボスで数字が下がりきりませんでした",
     href:"MagiBurst/index.html", img:"thumbs/MagiBurst.jpg" },
   { tag:"UPDATE", t1:"下バーのすきまの色をそろえました", at:"2026-09-06",
     t2:"fixed の箱の外側は <html> の背景しか塗れないので、そこにバーと同じ色を敷きました",
     href:"index.html", img:"thumbs/Xevarion.png" },
-  { tag:"UPDATE", t1:"MagiDiamond のマルチが LOCAL PLAY に", at:"2026-09-06",
-    t2:"MagiBurst とまったく同じしくみ（ROOM CODE と QR・最大4人）。戻るボタン・試合の中断・球速の消えかたも直しました",
-    href:"MagiDiamond/index.html", img:"thumbs/MagiDiamond.jpg" },
   /* ★★ 2026-09-06（2回目）新UIの色／MagiDiamond 大改修／ご報告の修正 */
   { tag:"UPDATE", t1:"新UIを黄・赤・黒・白に", at:"2026-09-06",
     t2:"構想案どおりの4色に。角は斜めに切った板、押すと沈んで黄色く光ります。タップの演出も中心から開く形に",
     href:"MagiBurst/index.html", img:"thumbs/MagiBurst.jpg" },
-  { tag:"NEW", t1:"MagiDiamond 大改修", at:"2026-09-06",
-    t2:"バット型の照準と左右の相性／守備はステータスと守備配置で計算／球速を1球ごとに計測／作戦コマンド／検索と並び替え",
-    href:"MagiDiamond/index.html", img:"thumbs/MagiDiamond.jpg" },
   { tag:"UPDATE", t1:"重力バリアが見えない不具合を修正", at:"2026-09-06",
     t2:"天界の審判と蓬莱だけ、バリアの半径に 1〜2px を渡していました（ほかは 105〜165px）。敵の絵に埋もれて見えなくなっていました",
     href:"MagiBurst/index.html", img:"thumbs/MagiBurst.jpg" },
@@ -1070,9 +1080,6 @@ const XH_UPDATES = [
   { tag:"NEW", t1:"新作 Magi Dominion Grid", at:"2026-09-03",
     t2:"1台を囲んで 2〜10人。サイコロもランダムもなし。全員同時に行動をえらぶ、思考だけの陣取り",
     href:"MagiDominionGrid/index.html", img:"thumbs/MagiDominionGrid.jpg" },
-  { tag:"UPDATE", t1:"MagiDiamond の打席がリアルタイムに", at:"2026-09-03",
-    t2:"飛んでくる球に焦点を合わせ、指を離した瞬間に振るプロスピ式。キャラの絵も正方形に",
-    href:"MagiDiamond/index.html", img:"thumbs/MagiDiamond.jpg" },
   { tag:"UPDATE", t1:"MagiBurst のローカル通信に QR", at:"2026-09-03",
     t2:"まねきコードを QR で渡せるように。iPhone は標準のカメラで読むだけで参加画面まで進みます",
     href:"MagiBurst/index.html", img:"thumbs/MagiBurst.jpg" },
@@ -1101,9 +1108,6 @@ const XH_UPDATES = [
   { tag:"NEW", t1:"MagiBurst にローカル通信マルチ", at:"2026-09-01",
     t2:"同じ Wi-Fi なら回線が無くても協力バトル。通信を使わない「1台でまわして遊ぶ」（2〜4人）も追加",
     href:"MagiBurst/index.html", img:"thumbs/MagiBurst.jpg" },
-  { tag:"UPDATE", t1:"MagiDiamond の打席が3D風に", at:"2026-09-01",
-    t2:"投手・打者・守備がキャラクターの絵に。ボールが手前へ近づくのに合わせてタイミングを取ります",
-    href:"MagiDiamond/index.html", img:"thumbs/MagiDiamond.jpg" },
   { tag:"UPDATE", t1:"MagiLink をリセット＆コード不要に", at:"2026-09-01",
     t2:"ユーザーを一度すべてリセット。開いた人から順に登録され、友達は XEVARION のコミュニティと同じに",
     href:"MagiLink/MagiLink.html", img:"thumbs/MagiLink.jpg" },
@@ -1114,9 +1118,6 @@ const XH_UPDATES = [
     t2:"括弧は アンナ(STAR)・アンナ(祭) だけ。ぶつかる名前は古いほうを改名（アンナ→アンネ ほか）",
     href:"index.html", img:"thumbs/MagiBurst.jpg" },
   /* ★★ 2026-08-30 MagiDiamond 大幅リニューアル／MagiLex 地理・化学ε増量 */
-  { tag:"UPDATE", t1:"MagiDiamond を大幅リニューアル", at:"2026-08-30",
-    t2:"XEVARION の SR・SSR 全キャラクターが野球選手に。開いたときに最新版と過去版をえらべます",
-    href:"MagiDiamond/index.html", img:"thumbs/MagiDiamond.jpg" },
   { tag:"NEW", t1:"MagiLex に「地理」を追加", at:"2026-08-30",
     t2:"工業・人口・人口問題の17セット204問。教科書の太字の用語と図・表の数値から作りました",
     href:"MagiLex/MagiLex.html", img:"thumbs/MagiLex.jpg" },
@@ -1972,7 +1973,7 @@ function xhMbReady() {
   if (typeof CHARS !== "undefined" && typeof PREMIUM_CHARS !== "undefined") return Promise.resolve(true);
   if (_xhMbLoading) return _xhMbLoading;
   _xhMbLoading = xhLoadScript("mb-boot.js?v=17")
-    .then(() => xhLoadScript("MagiBurst/js/mb-core.js?v=135"))
+    .then(() => xhLoadScript("MagiBurst/js/mb-core.js?v=136"))
     .then(() => true)
     .catch((e) => { _xhMbLoading = null; throw e; });
   return _xhMbLoading;
@@ -2392,7 +2393,7 @@ function xhRenderEvents() {
     const t1 = live && e.liveT1 ? e.liveT1 : e.t1;
     const t2 = live && e.liveT2 ? e.liveT2 : e.t2;
     return '<div class="xh-ev">' +
-      '<div class="evimg"><img src="' + xhEscape(e.img) + '" alt=""></div>' +
+      '<div class="evimg"><img src="' + xhEscape(e.img) + '" loading="lazy" decoding="async" alt=""></div>' +
       '<div class="evbody">' +
         '<span class="evtag">' + xhEscape(tag) + "</span>" +
         '<div class="evt1">' + xhEscape(t1) + "</div>" +
@@ -2469,7 +2470,7 @@ function xhRenderUpdates() {
   }
   track.innerHTML = _xhUpList.map((u) =>
     '<div class="xh-ev up">' +
-      '<div class="evimg"><img src="' + xhEscape(u.img) + '" alt=""></div>' +
+      '<div class="evimg"><img src="' + xhEscape(u.img) + '" loading="lazy" decoding="async" alt=""></div>' +
       '<div class="evbody">' +
         '<span class="evtag">' + xhEscape(u.tag || "UPDATE") + "</span>" +
         '<div class="evt1">' + xhEscape(xhPlain(u.t1 || "")) + "</div>" +
@@ -3093,12 +3094,14 @@ function xhApplyOfflineLocks() {
   if (st) st.textContent = off ? "オフライン中" : "›";
   /* ★★ 2026-09-13c 画面上の帯も<b>台帳から</b>書く（手書きだと追加したときに古いままになる）。 */
   const ob = xhEl("xhOfflineBar");
+  /* ★★ 2026-10-13 XEVARION PARK はオフライン対応を廃止（ご指定）＝オフラインでは入れない */
   if (ob) ob.innerHTML = "📴 オフライン中 — " + xhEscape(xhOfflineOkNames(6)) +
-    " と 🎰 ガチャ・🎡 XEVARION PARK は遊べます";
+    " と 🎰 ガチャは遊べます";
+  document.querySelectorAll("a.xl-expo").forEach((a) => a.classList.toggle("xh-offlock", off));
   if (xhEl("xhAppsSheet") && xhEl("xhAppsSheet").classList.contains("on")) xhPaintAppList();
 }
 function xhOpenApp(id, href) {
-  if (String(href || "").indexOf("expo/") === 0) { xhOpenPark(href); return; }          /* ★★ 2026-10-01 XEVARION PARK はオフラインでも開ける（推奨環境を見てから） */
+  if (String(href || "").indexOf("expo/") === 0) { xhOpenPark(href); return; }          /* ★★ 2026-10-01 XEVARION PARK は推奨環境を見てから（★ 10-13 オフラインでは開かない） */
   /* ★★ 2026-08-22b 更新の印は「そのアプリに入ったら消す」（ご指定）。
      ★ 実際に開けたときだけ消すこと。オフラインで開けなかったときに消すと、
        次に開いたときには印が無く「更新に気づけない」が起きる。 */
@@ -3115,7 +3118,8 @@ window.xhOpenApp = xhOpenApp;
 /* ══════════════════════════════════════════════════════════════
    ★★ 2026-10-01 XEVARION PARK を開く前に、推奨環境（パソコン・スマホ）と注意を出す（ご指定「推奨スペックの表示は PARK を開く前に」）
    ------------------------------------------------------------
-   ・判定と表は expo/park_spec.js（PARK と同じもの）を読みこんで使う。オフラインでも出せるよう sw.js の CORE に入れてある。
+   ・判定と表は expo/park_spec.js（PARK と同じもの）を読みこんで使う。
+     ★★ 2026-10-13 PARK のオフライン対応とダウンロードを廃止（ご指定）＝ sw.js の CORE からも外した。オフラインのときは開く前に知らせて止める。
    ・「PARK に入る」で入る。推奨より低いときは「画質を『低』で入る」も出す（PARK の画質の設定 xeva_park_quality を書く）。
    ・見たことは sessionStorage（xeva_park_spec_ok）に残す＝PARK の中ではもう出さない（重いときの fps の知らせだけ）。
    ══════════════════════════════════════════════════════════════ */
@@ -3148,6 +3152,11 @@ function xhParkSpecStyle() {
 }
 async function xhOpenPark(href) {
   href = href || "expo/index.html";
+  /* ★★ 2026-10-13 PARK のオフライン対応とダウンロードは廃止（ご指定）。オフラインのときは入らずに知らせる */
+  if (!xhOnline()) {
+    xhToast("📴 XEVARION PARK はオンラインのときに入れます<br><span style='font-size:11px;font-weight:700;color:#6f82ad'>PARK はオフラインでは遊べません（ダウンロードもしません）</span>", 3200);
+    return;
+  }
   const go = () => { try { sessionStorage.setItem("xeva_park_spec_ok", String(Date.now())); } catch (e) {} location.href = href; };
   const S = await xhParkSpecLoad();
   if (!S || !S.pre) { go(); return; }
@@ -3256,7 +3265,7 @@ function xhPaintXos() {
     <div class="xh-sec-label">言語 / Language</div>
     <div class="xos-note" style="margin:0 2px 7px">
       ★★ 2026-09-06 ご指定でここに移しました。<b>XEVARION 全体</b>（開始画面・ホーム・ガチャ・
-      コレクション・ミッション・MagiBurst・MagiDiamond）にそのまま効きます。</div>
+      コレクション・ミッション・MagiBurst）にそのまま効きます。</div>
     <div class="xos-seg">
       <button class="${xhLangNow() === "ja" ? "on" : ""}" onclick="xhXosLang('ja')">🇯🇵 日本語</button>
       <button class="${xhLangNow() === "en" ? "on" : ""}" onclick="xhXosLang('en')">🇺🇸 English</button>
@@ -4204,9 +4213,26 @@ function xhCloseInstallHint() {
 window.xhCloseInstallHint = xhCloseInstallHint;
 
 /* ポータル自身 + 3アプリの Service Worker を登録（＝オフライン下準備） */
-async function xhRegisterAppSWs() {
+async function xhRegisterAppSWs(opt) {
   if (!("serviceWorker" in navigator)) return false;
   const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  /* ★★ 2026-10-12d 更新のとき（quick）は、まだ登録していない SW だけを<b>待たずに</b>登録する。
+     前は毎回 4 秒おきに全部を登録し直していたので、そのあいだに SW が順に名乗り出て件数が増え続けていた。 */
+  if (opt && opt.quick) {
+    let have = new Set();
+    try { have = new Set((await navigator.serviceWorker.getRegistrations()).map((r) => r.scope)); } catch (e) {}
+    const reg1 = async (sw, sc) => {
+      const abs = new URL(sc, location.href).href;
+      if (have.has(abs)) return;
+      try { await navigator.serviceWorker.register(sw, { scope: sc }); } catch (e) {}
+    };
+    await reg1("sw.js", "./");
+    for (const id of Object.keys(XH_OFFLINE_OK)) {
+      const sw = XH_OFFLINE_OK[id].sw;
+      await reg1(sw, sw.slice(0, sw.lastIndexOf("/") + 1));
+    }
+    return true;
+  }
   try { await navigator.serviceWorker.register("sw.js", { scope: "./" }); } catch (e) {}
   // 4つのSWが一斉に事前キャッシュを走らせると回線を食い合って取りこぼすので、間隔を空ける
   for (const id of Object.keys(XH_OFFLINE_OK)) {
@@ -4216,23 +4242,23 @@ async function xhRegisterAppSWs() {
     catch (e) { /* 個別に失敗しても他を続ける */ }
   }
   xhWarmChars();
-  if (!xhWarmOffline(true)) { try { localStorage.setItem(XH_WARM_REQ, "park"); } catch (e) {} }   /* ★★ 2026-10-01 キャラの絵・パーク */
+  if (!xhWarmOffline()) { try { localStorage.setItem(XH_WARM_REQ, "imgs"); } catch (e) {} }   /* ★★ 2026-10-01 キャラの絵（★ 10-13 PARK のモデルは入れない） */
   return true;
 }
 
-/* ★★ 2026-10-01 オフラインでもキャラの絵と XEVARION PARK が出るように、SW に「ためておいて」と頼む（ご報告「オフライン時キャラ画像が表示されない」）。
+/* ★★ 2026-10-01 オフラインでもキャラの絵が出るように、SW に「ためておいて」と頼む（ご報告「オフライン時キャラ画像が表示されない」）。
    ・全キャラの小さい絵（img/t_*.webp・1枚 約35KB・まだ無いものだけ）を、版に縛られない置き場へ。大きい絵が無いときはこれで代わりに出る。
-   ・park … XEVARION PARK のキャラのモデル（約21MB）も入れる（オフライン用のダウンロード・更新のとき）。
+   ・★★ 2026-10-13 XEVARION PARK のキャラのモデル（約21MB）を入れるのは廃止（PARK のオフライン対応とダウンロードをやめた・ご指定）。
    ★ まとめて落とすものなので、ふだんは「自動ダウンロード」を許した回線のときだけ。
      ほかは<b>更新・オフライン用のダウンロード</b>（確認してから落とす操作）のときに一緒にやる。
      更新のあとは SW が入れかわるので、印（xeva_warm_req_v1）を残して<b>次に開いたとき</b>新しい SW に頼む。 */
 const XH_WARM_REQ = "xeva_warm_req_v1", XH_WARM_AT = "xeva_warm_at_v1";
-function xhWarmOffline(park) {
+function xhWarmOffline() {
   try {
     if (!("serviceWorker" in navigator) || !xhOnline()) return false;
     const sw = navigator.serviceWorker.controller;
     if (!sw) return false;
-    sw.postMessage({ type: "xev-warm", imgs: true, park: !!park });
+    sw.postMessage({ type: "xev-warm", imgs: true });
     localStorage.setItem(XH_WARM_AT, String(Date.now()));
     return true;
   } catch (e) { return false; }
@@ -4242,9 +4268,9 @@ function xhWarmOnBoot() {
     try {
       if (!xhOnline()) return;
       const req = localStorage.getItem(XH_WARM_REQ);
-      if (req) { if (xhWarmOffline(req === "park")) localStorage.removeItem(XH_WARM_REQ); return; }
+      if (req) { if (xhWarmOffline()) localStorage.removeItem(XH_WARM_REQ); return; }
       const last = Number(localStorage.getItem(XH_WARM_AT)) || 0;
-      if (Date.now() - last > 20 * 3600e3 && window.XHNet && XHNet.allowDownload()) xhWarmOffline(true);
+      if (Date.now() - last > 20 * 3600e3 && window.XHNet && XHNet.allowDownload()) xhWarmOffline();
     } catch (e) {}
   }, 9000);
 }
@@ -4278,7 +4304,21 @@ async function xhWarmChars() {
    ダウンロード（＝各SWの事前キャッシュ）を実行し、完了後に読み込み直す。 */
 const XH_PKG_KEY = "xeva_pkg_ver_v1";
 let _xhUpd = null;             // 取得した update.json
-let _xhUpdProg = {};           // { scope: {done,total} }
+let _xhUpdProg = {};           // { scope: {done,total,got,hit,bytes} } … 「変わっていないか確かめる」（xev-refresh）の進み具合
+/* ★★ 2026-10-12d ご報告「ダウンロードが100%なのに読み込みが途中」「ファイルの件数が変わる」の直し。
+   ------------------------------------------------------------
+   真因は2つ。
+     ① SW の<b>入れかえ（install の事前キャッシュ）</b>と<b>確かめ（xev-refresh）</b>が、同じ名前（scope）で進み具合を送っていた。
+        _xhUpdProg[scope] がどちらかの値で交互に上書きされ、分母が CORE の数 ⇄ CORE＋実行時キャッシュの数 で行き来していた。
+        さらに入れかえ中の SW には<b>古い SW</b> に「確かめて」を頼んでいたので、古い置き場を確かめているあいだに
+        新しい SW の事前キャッシュが裏で続き、「確かめ」が 100% でも新しい版の読みこみは途中のままだった。
+     ② アプリの SW が<b>あとから順に名乗り出る</b>（登録を 4 秒おきにしていた）ので、そのたびに分母が増えた。
+   直しかた：入れかえの進み具合（got の無い便り）は _xhInstProg に分けて数える。入れかえが要らない SW にはすぐ確かめを頼み、
+   入れかえ中の SW は<b>入れかえが終わってから新しい SW に</b>確かめを頼む。はじめの数秒で全部の件数（計画 _xhPlan）を
+   決めて、<b>そこから分母は変えない</b>。100% は<b>計画に入った SW が全部「確かめ終わり」を返したときだけ</b>。 */
+let _xhInstProg = {};          // { scope: {done,total} } … 新しい版の SW の事前キャッシュ（install）の進み具合
+let _xhRefDone = new Set();    // 確かめ終わり（xev-refreshed）を返した scope
+let _xhPlan = null;            // { fixed, files:{scope:件数}, inst:{scope:1} } … 件数はここで決めたまま変えない
 let _xhUpdRunning = false;
 
 function xhFmtSize(b) {
@@ -4993,10 +5033,12 @@ function xhUpdPaintSize(m, many) {
   /* ★ 2026-08-03: 更新は差分になった（変更のないファイルは落とし直さない）。
      ここに出せるのは「確認する対象の全体量」＝最大値なので、そう書く。
      実際に落ちた量は進み具合の下に出す。 */
-  const rows = ["<b>確認するデータ " + xhEscape(sz) + "</b>（" + m.files.toLocaleString() + " ファイル）"];
+  /* ★★ 2026-10-12d ここでは件数を出さない（ご報告「ファイルの件数が変化する」）。
+     確かめる件数は走りはじめに数えて決め、そのあとは変えない（xhUpdTally）。 */
+  const rows = ["<b>確認するデータ " + xhEscape(sz) + "</b>"];
   if (m.extraFiles) {
     rows.push("内訳: アプリ本体 " + xhFmtSize(m.bytes - m.extraBytes) +
-      " ＋ 端末に保存済みの画像など " + xhFmtSize(m.extraBytes) + "（" + m.extraFiles.toLocaleString() + " ファイル）");
+      " ＋ 端末に保存済みの画像など " + xhFmtSize(m.extraBytes));
   }
   rows.push("<b>ダウンロードするのは変更があったファイルだけ</b>です。すでに入っていて中身が変わっていないぶんは、"
     + "確認だけして落とし直しません（実際のダウンロード量はこれよりずっと小さくなります）。");
@@ -5088,20 +5130,38 @@ window.xhUpdLater = xhUpdLater;
    自動ダウンロードは裏で走るので、進み具合を「数える」ことと
    「画面に出す」ことを分けておかないと、読んでいる更新内容を書きかえてしまう。 */
 function xhUpdTally() {
-  let done = 0, total = 0, got = 0, hit = 0, bytes = 0;
+  let done = 0, total = 0, got = 0, hit = 0, bytes = 0, all = true;
+  const P = _xhPlan;
+  /* ★★ 2026-10-12d 件数は計画（_xhPlan.files）だけで数える＝分母は途中で増えない。
+     入れかえ中の SW は「受け取り（install）」と「確かめ」の半分ずつで1件と数える。 */
+  if (P && P.fixed) {
+    Object.keys(P.files).forEach((sc) => {
+      const n = P.files[sc] | 0, ins = _xhInstProg[sc], ref = _xhUpdProg[sc];
+      const rd = ref ? Math.min(n, Math.round((ref.done | 0) * n / Math.max(1, ref.total | 0))) : 0;
+      let d;
+      if (_xhRefDone.has(sc)) d = n;
+      else if (P.inst[sc]) d = Math.floor(((ins ? Math.min(n, ins.done | 0) : 0) + rd) / 2);
+      else d = rd;
+      if (!_xhRefDone.has(sc)) all = false;
+      done += Math.min(n, d); total += n;
+    });
+  } else all = false;
   Object.keys(_xhUpdProg).forEach((k) => {
     const p = _xhUpdProg[k];
-    done += p.done; total += p.total;
     got += p.got | 0; hit += p.hit | 0; bytes += p.bytes | 0;
   });
-  const pct = total ? Math.min(100, Math.round((done / total) * 100)) : 0;
-  return { done, total, pct, got, hit, bytes };
+  const fixed = !!(P && P.fixed);
+  /* ★★ 2026-10-13 計画に入らなかった（遅れて名乗り出た）SW も、確かめ終わるまでは 100% にしない（件数には入れない） */
+  const late = fixed && Object.keys(_xhUpdProg).some((sc) => !(sc in P.files) && !_xhRefDone.has(sc));
+  const finished = fixed && total > 0 && all && !late;
+  const pct = total ? Math.min(finished ? 100 : 99, Math.round((done / total) * 100)) : 0;
+  return { done, total, pct, got, hit, bytes, fixed, finished };
 }
 /* ★★ 2026-09-10 画面に出している割合。<b>下げない</b>ために覚えておく。 */
 let _xhUpdShownPct = 0;
 function xhUpdResetPct() { _xhUpdShownPct = 0; }
 function xhUpdPaint() {
-  const { done, total, pct, got, hit, bytes } = xhUpdTally();
+  const { done, total, pct, got, hit, bytes, fixed, finished } = xhUpdTally();
   /* ══ ★★ 2026-09-10 「バーが戻る」の直し ══
      たし合わせの分母（total）は、SW が名乗り出るたびに<b>あとから増える</b>。
        例）MagiLex だけ返事 → 10/100 ＝ 10%
@@ -5109,7 +5169,7 @@ function xhUpdPaint() {
      数え方は正しいのに、割合だけが 10% → 2% と<b>後退して見えていた</b>。
      ★ 出す割合は<b>いちど上がったら下げない</b>。
      ★ 全部終わるまでは 99% で止める（先に 100% にして止まって見えるのを防ぐ）。 */
-  const finished = !!(total && done >= total);
+  /* ★★ 2026-10-12d 100% は「計画に入った SW が全部 確かめ終わった」ときだけ（xhUpdTally の finished） */
   const want = finished ? 100 : Math.min(99, pct);
   if (want > _xhUpdShownPct) _xhUpdShownPct = want;
   const shown = _xhUpdShownPct;
@@ -5117,9 +5177,11 @@ function xhUpdPaint() {
   const pt = xhEl("xhUpdPct");
   /* 100% に届いたあとも、遅れて動きだすSWがないか少しだけ見届ける。
      そのあいだ「ダウンロード中… 100%」のままだと止まって見えるので文言を変える。 */
-  if (pt) pt.textContent = finished
-    ? "確認完了（" + done + " ファイル）— 仕上げています…"
-    : "確認中… " + shown + "%（" + done + " / " + (total || "?") + " ファイル）";
+  if (pt) pt.textContent = !fixed
+    ? "準備しています…（ファイルの数を数えています）"
+    : finished
+    ? "確認完了（" + total.toLocaleString() + " ファイル）— 仕上げています…"
+    : "確認中… " + shown + "%（" + done.toLocaleString() + " / " + total.toLocaleString() + " ファイル）";
   /* ★ 差分更新になったので「実際に落としたぶん」を見せる。
      変更が無ければ 0 件・0 B のまま終わるのが正しい姿。 */
   const dl = xhEl("xhUpdDl");
@@ -5131,9 +5193,11 @@ function xhUpdPaint() {
   /* ★★ 2026-09-13 更新中の全画面にも同じものを出す */
   xhUrSet({
     pct: shown,
-    sub: finished
-      ? "確認完了（" + done.toLocaleString() + " ファイル）— 仕上げています…"
-      : "確認中… " + done.toLocaleString() + " / " + (total ? total.toLocaleString() : "?") + " ファイル",
+    sub: !fixed
+      ? "準備しています…（ファイルの数を数えています）"
+      : finished
+      ? "確認完了（" + total.toLocaleString() + " ファイル）— 仕上げています…"
+      : "確認中… " + done.toLocaleString() + " / " + total.toLocaleString() + " ファイル",
     dl: "更新したファイル <b>" + got.toLocaleString() + "</b> 件（" + xhFmtSize(bytes) + "）"
       + "　／　変更なし " + hit.toLocaleString() + " 件",
   });
@@ -5142,7 +5206,7 @@ function xhUpdPaint() {
      ・落としはじめた           → ②変わったぶんだけ落とす
      ・全件つき合わせ終わった   → ③スマホに保存する */
   if (_xhUpdRunning) {
-    if (total && done >= total) {
+    if (finished) {
       xhDlStep(3, "③ 保存しています");
     } else if (got > 0) {
       xhDlStep(2, "② " + got.toLocaleString() + " 件を取得中（" + xhFmtSize(bytes) + "）");
@@ -5251,130 +5315,80 @@ window.xhRedownloadOffline = xhRedownloadOffline;
    ★ 落とす中身は手で押したときと1バイトも変わらない（同じこの関数を通る）。
    ══════════════════════════════════════════════════════════════ */
 async function xhDownloadCore(paint) {
-  _xhUpdProg = {};
+  _xhUpdProg = {}; _xhInstProg = {}; _xhRefDone = new Set();
+  _xhPlan = { fixed: false, files: {}, inst: {} };
   const tick = () => (paint ? paint() : xhUpdTally());
-
-  /* SW からの進捗を受け取る */
-  const doneScopes = new Set();
+  const wait = (ms) => new Promise((r) => setTimeout(r, ms));
+  let lastMove = Date.now();
+  /* SW からの便り。got の有る xev-precache＝確かめ（xev-refresh）／無いもの＝入れかえ（install の事前キャッシュ） */
   const onMsg = (ev) => {
     const m = ev.data;
-    if (!m) return;
+    if (!m || !m.scope) return;
     if (m.type === "xev-precache") {
-      _xhUpdProg[m.scope] = { done: m.done | 0, total: m.total | 0,
-        got: m.got | 0, hit: m.hit | 0, bytes: m.bytes | 0 };
+      if (typeof m.got === "number") _xhUpdProg[m.scope] = { done: m.done | 0, total: m.total | 0, got: m.got | 0, hit: m.hit | 0, bytes: m.bytes | 0 };
+      else _xhInstProg[m.scope] = { done: m.done | 0, total: m.total | 0 };
+      lastMove = Date.now();
       tick();
     } else if (m.type === "xev-refreshed") {
-      doneScopes.add(m.scope);
+      _xhRefDone.add(m.scope);
+      lastMove = Date.now();
+      tick();
     }
   };
   navigator.serviceWorker.addEventListener("message", onMsg);
-
-  /* ① 各SWを更新（バージョンが変わっていれば install が走る） */
-  try { await xhRegisterAppSWs(); } catch (e) {}
-  try {
-    const regs = await navigator.serviceWorker.getRegistrations();
-    await Promise.all(regs.map((r) => r.update().catch(() => {})));
-  } catch (e) {}
-
-  /* ② ★ 全ファイルを取り直す（xev-refresh）
-     ここが「いままで見送っていたぶんもまとめて最新にする」本体。
-     install だけに任せると
-       ・sw.js の中身が変わらなかった回は何も落ちてこない
-       ・CORE に載っていない実行時キャッシュぶんが古いまま残る
-     ので、更新のたびに必ず全URLを cache:"reload" で取り直させる。
-     待ち時間は伸びるが、「更新したのに前のまま」が起きなくなる。
-     ★ 投げるだけ。何台が応じたかは数えない（応じない SW を待つと固まるため。下の完了判定を参照）。 */
-  try {
-    const regs = await navigator.serviceWorker.getRegistrations();
-    /* installing/waiting しかいない直後でも届くよう、少しだけ待ってから投げる */
-    await new Promise((r) => setTimeout(r, 600));
-    const regs2 = await navigator.serviceWorker.getRegistrations();
-    (regs2.length ? regs2 : regs).forEach((r) => {
-      const sw = r.active || r.waiting || r.installing;
-      if (!sw) return;
-      try { sw.postMessage({ type: "xev-refresh" }); } catch (e) {}
-    });
-  } catch (e) {}
-
-  /* ══ 完了の見きわめ（★「100%から終わらない」の修正） ══
-     以前は「登録されている SW の数（swCount）ぶんだけ xev-refreshed が返るまで待つ」
-     という条件だった。ところが xev-refresh を知らない SW —— たとえば MagiMusic の
-     ように後から登録されたものや、削除したアプリの登録が残っているもの —— は
-     返事をしないので、返事の数が swCount に永久に届かない。
-     進捗は「返事をした scope」だけで集計しているため 100% に見え、そこから
-     5分の打ち切りまで固まって見えていた。
-     ★ 直しかた：数えるのは「実際に反応した scope」だけ。その全部が終わっていれば完了。
-       遅れて動きだす SW を取りこぼさないよう、静かになってから GRACE ぶんだけ見届け、
-       まだ installing/waiting の SW がいるあいだは（上限つきで）待つ。 */
-  const GRACE = 2500;      // 最後の動きからこれだけ静かなら「もう来ない」とみなす
-  const LATE  = 60000;     // installing/waiting を待つのはここまで
-  const STALL = 90000;     // 進捗が止まったきり動かない（回線が落ちた等）ときの打ち切り
-  /* ══ ★★ 2026-09-13 ご報告「進捗率が 100% なのに終わらないことがある」の直し ══
-     真因は<b>installing/waiting の SW を LATE（60秒）も待っていた</b>こと。
-     新しい SW は「古い SW が手を離すまで<b>waiting のまま</b>」になる。
-     ところが古い SW を手放すのは<b>このあとの location.reload()</b> なので、
-     ここで待っても<b>永遠に waiting のまま</b>＝必ず 60 秒消える。
-     ★ 直しかたは2つ。
-       ① waiting には <b>skipWaiting を頂む</b>（待つのではなく<b>進める</b>）。
-       ② 100% に届いたあとは、busy でも <b>FULL_WAIT（6秒）だけ</b>で打ち切る。
-         落とすものはもう無い（done >= total）のだから、それ以上待つ意味がない。 */
-  const FULL_WAIT = 6000;  // 100% に届いてから installing/waiting を待つ上限
-  let fullAt = 0;
-  const started = Date.now();
-  let lastMove = Date.now(), lastKey = "", iv = null;
+  const regsNow = async () => { try { return await navigator.serviceWorker.getRegistrations(); } catch (e) { return []; } };
+  const askRefresh = (sw) => { try { if (sw) sw.postMessage({ type: "xev-refresh" }); } catch (e) {} };
   let endMsg = "";
-  await new Promise((res) => {
-    const finish = (msg) => {
-      if (iv) clearInterval(iv);
-      endMsg = msg || "";
-      res();
-    };
-    iv = setInterval(async () => {
-      const { done, total } = tick();
-      const scopes = Object.keys(_xhUpdProg).length;
-      /* 「動きがあったか」は 進捗・返事の数 が変わったかで見る */
-      const key = scopes + ":" + done + ":" + total + ":" + doneScopes.size;
-      if (key !== lastKey) { lastKey = key; lastMove = Date.now(); }
-      const quiet = Date.now() - lastMove, age = Date.now() - started;
-
-      if (scopes >= 1 && total > 0 && done >= total) {
-        if (!fullAt) fullAt = Date.now();     /* ★ 100% に届いた時刻を覚えておく */
-      } else {
-        fullAt = 0;
-      }
-      if (scopes >= 1 && total > 0 && done >= total && quiet > GRACE) {
-        /* まだ install 中の SW がいるなら、そのぶんは待ってあげる——
-           ただし<b>100% に届いてからは FULL_WAIT まで</b>（上の★★参照）。 */
-        let busy = false;
-        if (age < LATE && Date.now() - fullAt < FULL_WAIT) {
-          try {
-            const regs = await navigator.serviceWorker.getRegistrations();
-            busy = regs.some((r) => r.installing || r.waiting);
-            /* ★ waiting は「待つ」のではなく<b>進める</b>。
-               これを頂かないと waiting のまま永遠に終わらない。 */
-            regs.forEach((r) => {
-              const w = r.waiting;
-              if (w) { try { w.postMessage({ type: "SKIP_WAITING" }); } catch (e) {} }
-            });
-          } catch (e) {}
-        }
-        if (!busy) { finish(); return; }
-      }
-      if (!scopes && age > 8000) {
-        let busy = false;
-        try {
-          const regs = await navigator.serviceWorker.getRegistrations();
-          busy = regs.some((r) => r.installing || r.waiting);
-        } catch (e) {}
-        if (!busy) {   // 反応が無い＝落とすものが無い
-          finish("すでに最新のデータが入っています"); return;
-        }
-      }
-      if (quiet > STALL) { finish("通信が不安定なため、ここまでを適用します"); return; }
-      if (age > 300000) { finish(); }
-    }, 400);
-  });
-  navigator.serviceWorker.removeEventListener("message", onMsg);
+  try {
+    /* ① まだ登録していないアプリの SW だけ登録（すでにあるものは待たない）→ ぜんぶに「新しい版はある？」 */
+    try { await xhRegisterAppSWs({ quick: true }); } catch (e) {}
+    let regs = await regsNow();
+    await Promise.all(regs.map((r) => r.update().catch(() => {})));
+    regs = await regsNow();
+    /* 入れかえ待ち（waiting）は待たずに進める */
+    regs.forEach((r) => { if (r.waiting && !r.installing) { try { r.waiting.postMessage({ type: "SKIP_WAITING" }); } catch (e) {} } });
+    if (regs.some((r) => r.waiting && !r.installing)) await wait(500);
+    regs = await regsNow();
+    /* ② 入れかえの要らない SW には、すぐ「変わっていないか確かめて」（xev-refresh） */
+    const installing = regs.filter((r) => r.installing);
+    const asked = new Set();
+    regs.forEach((r) => { if (!r.installing) { askRefresh(r.active || r.waiting); asked.add(r.scope); } });
+    /* ③ 計画：入れかえ中の SW の件数と、確かめる SW の件数がそろうまで（最大10秒）待って、件数を決める
+       ★★ 2026-10-13 4秒 → 10秒（止まっていた SW は起きるのに時間がかかることがある。そろえば待たずに進む） */
+    const t0 = Date.now();
+    while (Date.now() - t0 < 10000) {
+      if (Object.keys(_xhInstProg).length >= installing.length && Object.keys(_xhUpdProg).length >= asked.size) break;
+      await wait(150);
+    }
+    Object.keys(_xhInstProg).forEach((sc) => { _xhPlan.files[sc] = _xhInstProg[sc].total | 0; _xhPlan.inst[sc] = 1; });
+    Object.keys(_xhUpdProg).forEach((sc) => { if (!_xhPlan.inst[sc]) _xhPlan.files[sc] = _xhUpdProg[sc].total | 0; });
+    _xhPlan.fixed = true;     /* ★ ここから件数は変えない */
+    lastMove = Date.now();
+    tick();
+    /* ④ 入れかえが終わった SW には、<b>新しい SW に</b>確かめを頼む。計画に入った SW が全部 確かめ終わったら完了 */
+    const STALL = 90000;      // 便りがまったく来ない（回線が落ちた等）ときの打ち切り
+    const started = Date.now();
+    for (;;) {
+      await wait(400);
+      regs = await regsNow();
+      regs.forEach((r) => {
+        if (r.waiting && !r.installing) { try { r.waiting.postMessage({ type: "SKIP_WAITING" }); } catch (e) {} }
+        if (!r.installing && !r.waiting && r.active && !asked.has(r.scope)) { askRefresh(r.active); asked.add(r.scope); lastMove = Date.now(); }
+      });
+      /* 計画に入っていない scope（遅れて名乗り出たもの）は、件数には入れないが<b>終わるまで待つ</b>（★★ 2026-10-13） */
+      const planScopes = Object.keys(_xhPlan.files);
+      const pend = planScopes.filter((sc) => !_xhRefDone.has(sc));
+      const late = Object.keys(_xhUpdProg).filter((sc) => !(sc in _xhPlan.files) && !_xhRefDone.has(sc));
+      const busy = regs.some((r) => r.installing || r.waiting);
+      if (!pend.length && !late.length && !busy) break;
+      if (!planScopes.length && !busy && Date.now() - started > 3000) { endMsg = "すでに最新のデータが入っています"; break; }
+      if (Date.now() - lastMove > STALL) { endMsg = "通信が不安定なため、ここまでを適用します"; break; }
+      if (Date.now() - started > 300000) break;
+    }
+    tick();
+  } finally {
+    navigator.serviceWorker.removeEventListener("message", onMsg);
+  }
   return { msg: endMsg, tally: xhUpdTally() };
 }
 
@@ -5488,8 +5502,8 @@ async function xhUpdStart(keepVer) {
   xhDlStep(4, keepVer ? "④ 完了しました" : "④ 最新版に切り替えます");
   /* ★ 再ダウンロードでは版を書き換えない（見送り中の更新の案内を消さないため） */
   if (!keepVer) { try { localStorage.setItem(XH_PKG_KEY, (_xhUpd && _xhUpd.version) || ""); } catch (e) {} }
-  /* ★★ 2026-10-01 オフライン用のキャラの絵・パークは、読み込み直したあとの新しい SW に頼む */
-  try { localStorage.setItem(XH_WARM_REQ, "park"); } catch (e) {}
+  /* ★★ 2026-10-01 オフライン用のキャラの絵は、読み込み直したあとの新しい SW に頼む（★ 10-13 PARK は入れない） */
+  try { localStorage.setItem(XH_WARM_REQ, "imgs"); } catch (e) {}
   setTimeout(() => { try { location.reload(); } catch (e) {} }, keepVer ? 1400 : 700);
 }
 window.xhUpdStart = xhUpdStart;
@@ -6006,11 +6020,11 @@ function xhAiPickApps(raw) {
   const q = xhAiNorm(raw);
   const want = [];
   if (/2人|ふたり|二人|3人|さんにん|三人|4人|よにん|四人|5人|6人|みんな|複数|ぱーてぃ|party|囲ん|大人数/.test(q))
-    want.push("magijackpot", "magichainparty", "magiarena", "magiempire", "magidiamond");
+    want.push("magijackpot", "magichainparty", "magiarena", "magiempire");
   if (/一人|ひとり|1人|そろ|solo|暇|ひま|退屈|時間つぶし/.test(q))
     want.push("magiburst", "magijackpot", "magicraft", "magimanor", "magibattle");
   if (/短|さくっ|すぐ|軽く|5分|10分|すきま/.test(q)) want.push("magiburst", "magilex", "magijackpot", "magichainparty");
-  if (/頭|考え|戦略|読み合い|よみあい|ぱずる|puzzle|将棋|囲碁/.test(q)) want.push("magichainparty", "magidiamond", "magiarena");
+  if (/頭|考え|戦略|読み合い|よみあい|ぱずる|puzzle|将棋|囲碁/.test(q)) want.push("magichainparty", "magiarena");
   if (/こわ|怖|ほらー|horror|恐/.test(q)) want.push("magimanor");
   if (/rpg|冒険|物語|すとーりー|story|育成/.test(q)) want.push("magibattle", "magicraft", "magiburst");
   if (/かじの|casino|すろっと|slot|ぽーかー|poker|るーれっと|roulette|びんご|bingo|ばから|かーど|とらんぷ|ちっぷ|かけ|ばくち|じゃっくぽっと/.test(q))
@@ -6020,7 +6034,6 @@ function xhAiPickApps(raw) {
   if (/ai|えーあい|相談|そうだん|質問|しつもん|プラン|計画|管理|タイマー/.test(q)) want.push("xevynar", "magifocus");
   if (/株|投資|相場|銘柄|資産/.test(q)) want.push("magiportfolio");
   if (/音楽|bgm|曲|おんがく/.test(q)) want.push("magimusic");
-  if (/やきゅう|野球|よみあい/.test(q)) want.push("magidiamond");
   if (/作る|つくる|建て|くらふと|creative/.test(q)) want.push("magicraft", "magitier");
 
   const ids = [...new Set(want)].filter((id) => xhApp(id));
@@ -6049,7 +6062,6 @@ const XH_APP_ALIAS = {
   magimanor: ["まなー", "manor", "ようかん", "洋館"],
   ordyxis: ["おるでぃくしす", "ordyxis", "ちゅうもん", "注文", "おーだー"],
   magiarena: ["ありーな", "arena", "おせろ", "ごもくならべ"],
-  magidiamond: ["だいやもんど", "diamond", "やきゅうばん", "野球盤"],
   magijackpot: ["じゃっくぽっと", "jackpot", "かじの", "casino", "すろっと", "slot", "るーれっと", "ぽーかー", "びんご", "ぶらっくじゃっく"],
   magifocus: ["ふぉーかす", "focus"],
   magimusic: ["みゅーじっく", "music", "おんがくぷれいやー"],
@@ -6069,6 +6081,7 @@ const XH_RETIRED_ALIAS = {
   MagiMuse: ["ミューズ", "muse"],
   MagiFinance: ["ファイナンス", "finance", "株価", "かぶか"],
   MagiSports: ["スポーツ", "sports"],
+  MagiDiamond: ["ダイヤモンド", "diamond", "やきゅうばん", "野球盤"],
 };
 function xhAiRetired(raw) {
   const q = xhAiNorm(raw);
@@ -6281,7 +6294,7 @@ function xhAiRespond(text) {
   const dead = xhAiRetired(raw);
   if (dead) {
     return {
-      html: "<b>" + xhEscape(dead) + "</b> は <b>" + XH_RETIRED_ON.replace(/-/g, "/") + "</b> をもって<b>サービスを終了</b>しました。<br>" +
+      html: "<b>" + xhEscape(dead) + "</b> は <b>" + (XH_RETIRED_AT[dead] || XH_RETIRED_ON).replace(/-/g, "/") + "</b> をもって<b>サービスを終了</b>しました。<br>" +
         "獲得済みの XEVA・ジェム・キャラクターはそのまま残っていて、ほかのアプリで使えます。",
       chips: [["いま遊べるアプリ", "xhOpenAllApps()"], ["お知らせを見る", "xhTapNews()"]],
     };

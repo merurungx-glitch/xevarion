@@ -4,7 +4,7 @@
    ・XEVARION（同期の画面・配布メール・イベント）
    ・MagiBurst（新キャラ14体・装備・クリティカル・天律族キラー・新リンク／サブリンク
      ・新フルバースト・ショットスキル・お知らせのページ送り・所持アイテム一覧）
-   ・MagiDiamond（スタメン・投手交代・代打・成績）
+   ・（★ 2026-10-13 MagiDiamond の項目は廃止にあわせて消した）
    ★ 新しいものを足したら、<b>ここにも1行</b>足すこと。
      置き場所を分けているのは「どの回で足したか」を追えるようにするため。
    ══════════════════════════════════════════════════════════════ */
@@ -186,30 +186,6 @@
 
     /* ══ MagiBurst：お知らせ ══ */
     "← 前": "← Prev", "次 →": "Next →",
-
-    /* ══ MagiDiamond ══ */
-    "スタメン": "Line-up", "📋 スタメン": "📋 Line-up",
-    "✕ 中断": "✕ Quit",
-    "じぶん": "You", "あいて": "Opponent",
-    "🥎 投手": "🥎 Pitcher", "🏏 打順": "🏏 Batting order", "🪑 ベンチ": "🪑 Bench",
-    "🔁 投手を交代する": "🔁 Change pitcher",
-    "🔁 代打・守備交代": "🔁 Pinch hitter / defensive change",
-    "🔁 投手交代": "🔁 Pitcher change",
-    "🔁 代打・守備交代": "🔁 Pinch hitter / defensive change",
-    "だれと代えますか？": "Who comes in?",
-    "いま出ている選手": "Currently in the game",
-    "← もどる": "← Back",
-    "自分のチーム": "Your team", "相手のチーム": "Opponent's team",
-    "交代しました": "Substitution made",
-    "いまは交代できません": "You cannot substitute right now",
-    "投手交代は、自分が守っているとき（投球の前）だけです":
-      "You can only change pitchers while you are fielding (before the pitch)",
-    "代打は、自分の打席のまえだけです": "You can only send a pinch hitter before your own at-bat",
-    "控えの選手がいません。<b>TEAM</b> タブでベンチに入れておくと、試合中に交代できます。":
-      "No bench players. Add players to the bench on the <b>TEAM</b> tab so you can substitute during a game.",
-    "交代できる選手がいません。<b>TEAM</b> タブでベンチに入れておいてください。":
-      "No one available. Add players to the bench on the <b>TEAM</b> tab.",
-    "投げました！": "Pitch away!",
 
     /* ══ ★★ 2026-09-07（2回目のご依頼ぶん）══ */
     "装備がついていません。<b>育成タブ</b>の「装備の装着」から付けられます（頭・腕・胸・足の4か所）。装備は<b>天界の審判</b>を5WAVEすすむごとに手に入ります。":

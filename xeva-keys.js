@@ -95,7 +95,6 @@ export const PORTAL_SYNC_KEYS = [
        入れない（下の APP_SYNC_KEYS を参照）。 */
   "magibattle_v1",
   "chainparty_save_v1", "chainparty_setup_v1",
-  "magidiamond_setup_v1",
   "magisharecore_save_v1",
   "magires_dq1",
   "magimanor_save_v1", "magimanor_mem_v1", "magimanor_x_v1",
