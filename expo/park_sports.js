@@ -5,7 +5,7 @@
    13 SPORTS WORLD … XEVARION NATIONAL STADIUM（大きな陸上競技場：2層のすり鉢の客席（色のモザイク）・3段の木の軒と緑・
         白い屋根の輪・400m トラック・聖火台・大画面）、スポーツホール（体育館）。
    31 XEVARION BALLPARK（南西）… 野球場（ダイヤモンド・内野の土・外野の芝・フェンス・内野席と外野席・大きなスコアボード・照明塔）。
-        入口で MagiDiamond（キャラクター野球）へ。
+        （★ 2026-10-13 MagiDiamond は廃止。入口からアプリへは行かない）
    ・建物のデザインはオリジナル（実在の会場の雰囲気だけ参考）。
    ══════════════════════════════════════════════════════════════════ */
 (function () {
@@ -164,13 +164,11 @@
       [a0, a1].forEach((a) => { const pts = [[100, 0], [RBo, 0], [RBo, BHo], [100, 0.6]], sh = new T.Shape(); pts.forEach(([r, y], i) => i ? sh.lineTo(r, y) : sh.moveTo(r, y)); const g = new T.ShapeGeometry(sh); g.rotateY(-a); w.geo("concrete", g, HX, 0, HZ); const g2 = new T.ShapeGeometry(sh); g2.rotateY(-a); flip(g2); w.geo("concrete", g2, HX, 0, HZ); });
       w.colRing(HX, HZ, 99, 110.5, [[F + 0.6, F - 0.6 + TAU]]); }
     { const [sx, sz] = pol(116, F); w.box("pNavy", sx, 0, sz - 2, 34, 3, 3); w.box("white2", sx - 15, 0, sz - 2, 1.4, 20, 1.4); w.box("white2", sx + 15, 0, sz - 2, 1.4, 20, 1.4); w.colRot(sx, sz - 2, 34, 3, 0); w.caster(sx, sz - 2, 34, 3, 22);
-      w.screen(30, 13, 1024, sx, 12.4, sz - 0.4, 0, (g, W, H, t) => { g.fillStyle = "#06121a"; g.fillRect(0, 0, W, H); g.fillStyle = "#ffd86a"; g.font = "900 56px sans-serif"; g.textAlign = "center"; g.fillText("XEVARION BALLPARK", W / 2, 70); g.font = "800 40px monospace"; g.fillStyle = "#fff"; ["1", "2", "3", "4", "5", "6", "7", "8", "9", "R"].forEach((s, i) => g.fillText(s, 250 + i * 70, 150)); const sc = [[0, 1, 0, 2, 0, 0, 1, 0, 0], [1, 0, 0, 0, 3, 0, 0, 0, 1]]; ["XEVA", "YOMA"].forEach((nm, j) => { g.textAlign = "left"; g.fillStyle = j ? "#ff8aa8" : "#8ad8ff"; g.fillText(nm, 40, 220 + j * 80); g.textAlign = "center"; g.fillStyle = "#fff"; let tot = 0; sc[j].forEach((v, i) => { const show = i <= (Math.floor(t / 6) % 9); if (show) tot += v; g.fillText(show ? String(v) : "", 250 + i * 70, 220 + j * 80); }); g.fillStyle = "#ffd86a"; g.fillText(String(tot), 250 + 9 * 70, 220 + j * 80); }); g.font = "900 44px sans-serif"; g.fillStyle = "#7fe8ff"; g.fillText("MagiDiamond STADIUM", W / 2, H - 40); g.textAlign = "left"; }, { every: 1 }); }
+      w.screen(30, 13, 1024, sx, 12.4, sz - 0.4, 0, (g, W, H, t) => { g.fillStyle = "#06121a"; g.fillRect(0, 0, W, H); g.fillStyle = "#ffd86a"; g.font = "900 56px sans-serif"; g.textAlign = "center"; g.fillText("XEVARION BALLPARK", W / 2, 70); g.font = "800 40px monospace"; g.fillStyle = "#fff"; ["1", "2", "3", "4", "5", "6", "7", "8", "9", "R"].forEach((s, i) => g.fillText(s, 250 + i * 70, 150)); const sc = [[0, 1, 0, 2, 0, 0, 1, 0, 0], [1, 0, 0, 0, 3, 0, 0, 0, 1]]; ["XEVA", "YOMA"].forEach((nm, j) => { g.textAlign = "left"; g.fillStyle = j ? "#ff8aa8" : "#8ad8ff"; g.fillText(nm, 40, 220 + j * 80); g.textAlign = "center"; g.fillStyle = "#fff"; let tot = 0; sc[j].forEach((v, i) => { const show = i <= (Math.floor(t / 6) % 9); if (show) tot += v; g.fillText(show ? String(v) : "", 250 + i * 70, 220 + j * 80); }); g.fillStyle = "#ffd86a"; g.fillText(String(tot), 250 + 9 * 70, 220 + j * 80); }); g.font = "900 44px sans-serif"; g.fillStyle = "#7fe8ff"; g.fillText("XEVARION STADIUM", W / 2, H - 40); g.textAlign = "left"; }, { every: 1 }); }
     [[F - 0.9, 70], [F + 0.9, 70], [F - 2.2, 58], [F + 2.2, 58], [F - 0.35, 108], [F + 0.35, 108]].forEach(([a, r]) => { const [x, z] = pol(r, a); w.geo("white2", new T.CylinderGeometry(0.5, 0.9, 38, 8), x, 19, z); w.box("darkMetal", x, 38, z, 8, 3.2, 0.8, { ry: -a + Math.PI / 2 }); for (let i = 0; i < 6; i++) w.box("neonWhite", x + Math.cos(a + Math.PI / 2) * (i - 2.5) * 1.2, 38.6, z + Math.sin(a + Math.PI / 2) * (i - 2.5) * 1.2, 0.8, 0.8, 0.15, { ry: -a + Math.PI / 2 }); w.colCircle(x, z, 1); w.caster(x, z, 3, 3, 40); });
-    /* 入口（一塁側）：門・MagiDiamond へ */
+    /* 入口（一塁側）：門（★ 2026-10-13 MagiDiamond の廃止にあわせて、アプリへの入口は外した） */
     { const gx = -150, gz = 760; w.rect("plaza", gx - 12, gz - 14, gx + 8, gz + 14, 0.012); w.box("pRed", gx - 2, 0, gz - 9, 1.6, 9, 1.6, { collide: true }); w.box("pRed", gx - 2, 0, gz + 9, 1.6, 9, 1.6, { collide: true }); w.box("white2", gx - 2, 9, gz, 2.4, 2, 20);
       w.sign("XEVARION BALLPARK", { bg: "#1a3a6a", color: "#fff", glow: "#ffd86a", px: 1024, both: true }, 16, 1.6, gx - 2, 10, gz, Math.PI / 2);
-      const md = ((window.EXPO_DATA && EXPO_DATA.apps) || []).find((a) => a.id === "magidiamond");
-      if (md) w.interact(gx - 2, gz + 12, 3.4, "MagiDiamond（キャラクター野球）で試合をする", () => ({ open: md.href, app: md }), "⚾");
       w.route([[gx + 8, gz], [-113, 760]], 12, "walkY", { lamps: "yoma", lampEvery: 16, trees: false, benches: false, bushes: false }); }
     w._landmark = lm;
     w.plazaCrowd(HX, HZ - 30, 26, 0.5);
