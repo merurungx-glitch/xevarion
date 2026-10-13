@@ -512,6 +512,332 @@
       }
     }
   };
+  /* ══ ★★ 2026-10-13 セリフを大幅に拡充（ご指定「MagiChemLex などへの促しや、勉強がつらい時など励みになる言葉」）══
+     ここに書いたものは起動時に HM_MATES[id].lines へ<b>足しこむ</b>（もとの台帳はそのまま）。
+       apps        … アプリへの誘い。{go:アプリid} を書くと、吹き出しに「◯◯をひらく」ボタンが出る（gacha はガチャの画面）
+       study       … 勉強がつらいときの励まし（夜おそいときは出やすい）
+       studyOk     … 今日 MagiChemLex・MagiLex で解いた数 {n} をほめる（解いた日だけ）
+       studyGo     … まだ今日は勉強していないときの誘い（{go:…} つき）
+       studyStreak … 勉強の連続日数 {n}（2日以上）
+       idle・chain … いつもの話・掛け合いの追加ぶん
+     ★ 勉強の記録は MagiChemLex（magichemlex_v1 の days）と MagiLex（magilex_v2 の days）を読むだけ（書きかえない） */
+  const HM_EXTRA = {
+    shoko: {
+      apps: ["{proud}……化学の問題、いっしょにやってみる？MagiChemLex、わたしも少しだけ解けるようになったの。{go:magichemlex}",
+             "{shy}MagiChemLex は『標準』から始めると、こわくないよ。……わたしも、そうしたの。{go:magichemlex}",
+             "{smile}単語、ちょっとだけ覚えにいかない？MagiLex、静かにできるから好き。{go:magilex}",
+             "{half}……わからないところは、XEVYNAR に聞くと、ゆっくり教えてくれるよ。{go:xevynar}",
+             "{proud}MagiBurst、引っぱって飛ばすの……見てるだけで、すっきりする。{go:magiburst}",
+             "{tease}MagiShift、CPU と対戦できるようになったんだって。……わたし、たぶん負ける。{go:magishift}",
+             "{smile}MagiScope で、新しいアニメ見つけたの。……いっしょに見る？{go:magiscope}",
+             "{sleepy}……勉強のときは、MagiMusic で静かな曲をかけると、落ちつくよ。{go:magimusic}"],
+      study: ["{shy}……勉強、つらいときは、五分だけでいいよ。五分たったら、やめてもいいから。",
+              "{proud}わからない問題はね、わかるようになる途中の問題、なんだって。",
+              "{half}まちがえるの、はずかしくないよ。……まちがえたところから、覚えられるから。",
+              "{closed}……きのうのきみより、一問だけ多く。それで、じゅうぶん。",
+              "{sleepy}つかれたら、ここで休んでいって。……休むのも、がんばるうちだよ。",
+              "{smile}ノートを開いただけで、えらいよ。……ほんとに。",
+              "{shy}……がんばってるの、ちゃんと見てるからね。だれも見てなくても、わたしは見てる。",
+              "{proud}今日できなかったことは、明日のきみにお願いしよ。……明日のきみも、きっとがんばれる。",
+              "{half}……点数より、きのうより少しわかるようになったことのほうが、ずっと大事だよ。"],
+      studyOk: ["{smile}今日、{n}問も解いたんだね。……すごい。ちゃんと見てたよ。",
+                "{proud}{n}問……ふふ、わたしなら途中で寝ちゃう。きみはえらいね。",
+                "{shy}……{n}問、おつかれさま。今日はいっぱい、なでてあげたい気分。"],
+      studyGo: ["{shy}……今日、まだ勉強してないなら、一問だけ、いっしょにやる？{go:magichemlex}",
+                "{proud}寝る前に、単語を三つだけ覚えるの。……どうかな。{go:magilex}",
+                "{half}化学の計算、ひとつだけやってみない？……できたら、ほめてあげる。{go:magichemlex}"],
+      studyStreak: ["{proud}{n}日つづけて勉強してるね。……わたし、毎日数えてたの。",
+                    "{smile}{n}日連続……すごいね。きみの『つづける力』、わたし好きだよ。"],
+      idle: ["{proud}……きみの好きな季節、教えて？わたしは、パーカーが着られる秋。", "{half}……窓をあけると、街の音がちょっとだけ聞こえるの。",
+             "{smile}あめ玉、ひとつあげる。……いちご味。", "{shy}……今日の空、写真に撮ったの。あとで見せてもいい？"],
+      chain: ["{proud}ねえ、今日のごほうび、なにがいい？|{half}……ガチャ、とか？|{smile}……ふふ、きみらしい。",
+              "{shy}……わたし、ちょっとだけ化学、勉強してみたの。|{proud}水って、H₂O なんだって。|{half}……知ってた？そう、だよね。"],
+    },
+    hitomi: {
+      apps: ["{smile}ねえねえ、MagiChemLex やってみよ！化学って、海の水のしくみもわかるんだって！{go:magichemlex}",
+             "{proud}MagiChemLex の『単元別問題』、ちょっとずつ進めるの楽しいよ！いっしょにやろ！{go:magichemlex}",
+             "{smile}MagiLex で単語クイズ！正解したら、ハイタッチね！{go:magilex}",
+             "{proud}MagiBurst でドーンって飛ばしに行こ！スカッとするよ〜！{go:magiburst}",
+             "{smile}MagiAbyss の迷宮、いっしょに冒険しよ！わたし、前を歩くね！{go:magiabyss}",
+             "{tease}MagiChainParty でバクハツ合戦しよ！負けたら、ぎゅーの刑だからね！{go:magichainparty}",
+             "{smile}わからないとこは XEVYNAR に聞いちゃお！すっごくていねいなんだよ！{go:xevynar}",
+             "{proud}MagiShift、CPU とも遊べるんだって！わたし、つよいCPUに挑戦してくる！{go:magishift}"],
+      study: ["{smile}勉強つかれた？……はい、ぎゅー！充電完了！",
+              "{proud}一問とけたら、ハイタッチ！二問とけたら、ぎゅー！どう？やる気出た？",
+              "{closed}わからないときは、深呼吸！海の空気、いっぱい吸って〜、はいて〜。",
+              "{half}がんばりすぎてない？休憩も、だいじな練習だよ！",
+              "{smile}まちがえても大丈夫！波だって、何回も寄せては返すでしょ？",
+              "{proud}キミならできる！わたしが一番知ってるもん！",
+              "{shy}……つらいときは、わたしに言ってね。ぜんぶ聞くから。",
+              "{smile}今日はできなくても、明日またチャレンジ！ずっと応援してるよ！",
+              "{tease}テストが終わったら、海に行こうね！約束！……だから、もうひと息！"],
+      studyOk: ["{smile}今日、{n}問も解いたの！？すごいすごい！ぎゅーってしてあげる！",
+                "{proud}{n}問クリア！キミ、天才かも！ハイタッチ〜！",
+                "{closed}{n}問もがんばったんだね。……えらいえらい、なでなで！"],
+      studyGo: ["{smile}今日の勉強、まだだったら、ちょっとだけやろ！終わったら遊ぼ！{go:magichemlex}",
+                "{proud}単語クイズ、三問だけ！三問だけだから！{go:magilex}",
+                "{tease}化学の問題、一問とけたらハグしてあげる！……ほら、やる気出た？{go:magichemlex}"],
+      studyStreak: ["{smile}{n}日連続で勉強してる！キミ、すごすぎ！ぎゅー！",
+                    "{proud}{n}日つづいてるね！このまま記録、伸ばしちゃお！"],
+      idle: ["{smile}今日は波がおだやか〜！泳ぎに行くなら今だよ！", "{proud}ビーチボール、ふくらませておいたよ！あとで遊ぼ！",
+             "{tease}キミ、ちゃんと水分とってる？わたしのジュース、半分あげる！", "{closed}砂のお城、つくったの！……波にさらわれちゃったけど！"],
+      chain: ["{smile}ねえ、クイズ！|{proud}海の水がしょっぱいのは、なにが溶けてるから？|{tease}……答えは MagiChemLex で！なんてね！",
+              "{proud}今日ね、早起きして勉強したの！|{half}……五分だけ。|{smile}でも、五分でもえらいでしょ！"],
+    },
+    hana: {
+      apps: ["{tease}化学、苦手なの？……ふふ、MagiChemLex で少し鍛えてきなさい。できたら、ほめてあげる。{go:magichemlex}",
+             "{proud}MagiChemLex の『模試』、時間を計って解くの。……緊張した顔、見せてちょうだい。{go:magichemlex}",
+             "{smile}言葉を知ると、世界が広がるわ。MagiLex で、今夜は三つだけ覚えていきなさい。{go:magilex}",
+             "{tease}わからないことは XEVYNAR に聞くといいわ。……わたしより、やさしく教えてくれるかしら？{go:xevynar}",
+             "{proud}MagiBurst で派手にやってきたら？……あなたの勇ましいところ、見たいわ。{go:magiburst}",
+             "{half}MagiAbyss の迷宮……夜の宮殿より暗いのかしら。気をつけて行ってらっしゃい。{go:magiabyss}",
+             "{tease}MagiShift で駒を動かす読み合い……わたし、駆け引きは得意よ？{go:magishift}",
+             "{smile}MagiScope で、今夜見る映画を探しましょう。……となりで見てあげる。{go:magiscope}"],
+      study: ["{proud}つらいのね。……いいのよ、今夜はわたしの前で弱音を吐いても。",
+              "{tease}完璧な人なんていないわ。まちがえるあなたも、わたしは嫌いじゃないの。",
+              "{closed}月だって、毎晩少しずつ満ちていくの。あなたも同じよ。",
+              "{half}がんばりすぎて倒れたら、看病するのはわたしなのよ？……ほどほどにね。",
+              "{smile}わからないところは、わかるまで何度でも。……わたし、待つのは得意なの。",
+              "{proud}今日の一問は、明日のあなたを少しだけ強くするわ。",
+              "{shy}……あなたが努力しているところ、わたしは好きよ。……これは、ないしょ。",
+              "{tease}休憩しましょう。紅茶をいれたわ。……勉強の続きは、それからでいいの。",
+              "{proud}結果が出ない夜もあるわ。でも、積み重ねたものは、夜明けにちゃんと残っているの。"],
+      studyOk: ["{tease}今日は{n}問も？……ふふ、ずいぶんがんばったのね。ごほうびが欲しい顔をしているわ。",
+                "{proud}{n}問……合格よ。今夜はあなたを甘やかしてあげる。",
+                "{smile}{n}問も解くなんて、見直したわ。……少しだけ、ね。"],
+      studyGo: ["{tease}今日はまだ勉強していないのね？……一問だけ、わたしに見せて。{go:magichemlex}",
+                "{proud}眠る前に、言葉を三つ。夢の中で、わたしがおさらいしてあげる。{go:magilex}",
+                "{half}……化学の問題、ひとつ解けたら、となりに座ってあげるわ。{go:magichemlex}"],
+      studyStreak: ["{proud}{n}日続けているのね。……その真面目さ、少し妬けるわ。",
+                    "{smile}{n}日連続……月が満ちるより早いじゃない。えらいわ。"],
+      idle: ["{proud}今夜の月、少し欠けているわね。……満月より、わたしは好き。", "{tease}そんなに見つめて。……わたしの顔、覚えてしまいそう？",
+             "{closed}夜風が冷たいわ。……もう少し、そばに来て。", "{half}宮殿の噴水、夜になると光るの。……あなたにも見せたいわ。"],
+      chain: ["{proud}ねえ、ひとつ教えて。|{tease}あなたの好きな元素は？|{half}……わたし？そうね、金かしら。光るものは好きよ。",
+              "{half}最近、夜ふかしが多いみたいね。|{proud}……勉強？|{smile}そう。なら、許してあげる。"],
+    },
+    lisa: {
+      apps: ["{smile}化学のお勉強、MagiChemLex でいっしょにしませんか？わたし、計算の問題は……えへへ、まだ練習中です。{go:magichemlex}",
+             "{proud}MagiChemLex の『標準』は、基本からていねいに進められるんですよ。{go:magichemlex}",
+             "{tease}MagiLex で単語を覚えたら、わたしにも教えてくださいね。……ウインクでお礼します。{go:magilex}",
+             "{smile}わからないことは XEVYNAR に聞くと、やさしく教えてくれますよ。{go:xevynar}",
+             "{proud}MagiBurst、元気が出ますよね。……わたしは、見ていてはらはらします。{go:magiburst}",
+             "{half}MagiShift、CPU と遊べるようになったそうです。……わたし、ルールをまちがえそう。{go:magishift}",
+             "{smile}MagiMusic で、お茶の時間にぴったりの曲を探しましょうか。{go:magimusic}",
+             "{tease}MagiChainParty、連鎖がつながると、きれいなんですよ。{go:magichainparty}"],
+      study: ["{smile}お勉強、つかれましたか？……お茶をいれますね。ひと休みしましょう。",
+              "{proud}一歩ずつで大丈夫ですよ。宮殿の階段だって、一段ずつのぼるんですから。",
+              "{half}わたしもよくまちがえます。……昨日も、お砂糖とお塩をまちがえました。だから、大丈夫です。",
+              "{closed}わからない問題は、少し寝かせておくと、ふっとわかることがあるんですよ。",
+              "{tease}がんばっているあなたに、ウインクのおまじない。……えいっ。効きました？",
+              "{smile}今日できたことを、ひとつだけ数えてみてください。……ほら、ちゃんとあるでしょう？",
+              "{shy}……わたしは、がんばっているあなたを、ずっと応援しています。",
+              "{proud}夕日みたいに、あせらずゆっくり。それでも、ちゃんと進んでいますよ。",
+              "{half}無理をして体をこわしたら、悲しいです。……ちゃんと寝てくださいね？"],
+      studyOk: ["{smile}今日は{n}問も解いたんですね。すばらしいです！お茶とお菓子でお祝いしましょう。",
+                "{proud}{n}問……わたしには、まねできません。尊敬しちゃいます。",
+                "{tease}{n}問がんばったあなたに、特別なウインクです。……えいっ。"],
+      studyGo: ["{smile}今日のお勉強、まだでしたら、一問だけいっしょにどうですか？{go:magichemlex}",
+                "{proud}お茶を飲みながら、単語を少しだけ。……優雅でしょう？{go:magilex}",
+                "{half}化学の問題……わたしも一問、挑戦してみますね。あなたもどうですか？{go:magichemlex}"],
+      studyStreak: ["{smile}{n}日もつづけているんですね。……毎日えらいです。",
+                    "{proud}{n}日連続です。宮殿のみなさんにも自慢しちゃいます。"],
+      idle: ["{smile}今日のお菓子は、スコーンにしてみました。", "{half}……あら、ティーカップのお花の模様、ひとつ足りません。どこへ行ったのでしょう。",
+             "{proud}夕焼けを見ると、なんだか明日もがんばれる気がします。", "{tease}わたしの好きな紅茶、当ててみてください。……ふふ、ダージリンです。"],
+      chain: ["{smile}今日、化学の本を読んでみたんです。|{half}……三ページで眠ってしまいました。|{tease}あなたは、わたしより長くがんばれますか？",
+              "{proud}ひとつ、お願いがあります。|{shy}……お勉強が終わったら、いっしょに夕日を見てください。"],
+    },
+    anna: {
+      apps: ["{proud}化学は暗記と計算のバランスよ。MagiChemLex で少しずつ慣れていきましょ。{go:magichemlex}",
+             "{smile}MagiChemLex の単元別問題、苦手な単元からやるのがおすすめ。お姉さんの経験よ。{go:magichemlex}",
+             "{proud}単語は毎日ちょっとずつが一番。MagiLex、今日の分やっていく？{go:magilex}",
+             "{smile}わからないところは、遠慮なく XEVYNAR に聞きなさい。聞くのは恥ずかしくないのよ。{go:xevynar}",
+             "{tease}MagiBurst で思いっきり飛ばしてきたら？……すっきりした顔、見せて。{go:magiburst}",
+             "{half}MagiAbyss、迷宮の奥は危ないわよ。……無理しないで戻ってくること。{go:magiabyss}",
+             "{proud}MagiShift でお姉さんと勝負する？……手加減はしないわよ。{go:magishift}",
+             "{smile}MagiScope で、夜に見る映画を選びましょ。ポップコーンはわたしが用意するわ。{go:magiscope}"],
+      study: ["{proud}疲れたら、ちゃんと休むこと。お姉さんとの約束よ。",
+              "{smile}一問とけたら、一回なでてあげる。……ほら、がんばれそうでしょう？",
+              "{closed}つらいときほど、ゆっくり深呼吸。波の音をきいて、もう一回。",
+              "{half}完璧じゃなくていいの。昨日より、ほんの少しでいいのよ。",
+              "{proud}まちがえた問題は宝物よ。そこから一番伸びるんだから。",
+              "{shy}……がんばってるあなた、ちゃんと見てるわ。かっこいいわよ。",
+              "{tease}あら、ため息？……しょうがない子ね。ほら、肩をもんであげる。",
+              "{smile}今日はここまでにして、また明日。続けられることが、一番の才能よ。",
+              "{proud}あなたなら大丈夫。お姉さんが保証してあげる。"],
+      studyOk: ["{smile}今日は{n}問？えらいわ、いい子いい子。",
+                "{proud}{n}問もがんばったのね。ごほうびに、冷たいドリンクをおごってあげる。",
+                "{closed}{n}問……ふふ、お姉さん、ちょっと感動しちゃった。"],
+      studyGo: ["{proud}今日の勉強、まだでしょう？一問だけ、お姉さんと約束。{go:magichemlex}",
+                "{smile}寝る前に単語を少し。覚えたら、ほめてあげるわ。{go:magilex}",
+                "{tease}化学の問題、一問とけたら……となりで膝枕、してあげよっか？{go:magichemlex}"],
+      studyStreak: ["{proud}{n}日連続ね。続けられるあなた、本当にえらいわ。",
+                    "{smile}{n}日も毎日……お姉さん、鼻が高いわ。"],
+      idle: ["{smile}サングラス、似合うかしら？……ふふ、冗談よ。", "{proud}夕方になったら、浜辺を散歩しましょ。",
+             "{half}日焼けしちゃったかも。……あとで、アフターケア手伝ってね。", "{closed}波の音を聞いてると、なんでも許せちゃう気がするわ。"],
+      chain: ["{proud}お姉さんクイズ、第二問。|{smile}食塩の化学式は？|{tease}……NaCl。あたり？ふふ、さすがね。",
+              "{half}最近、勉強がんばってるでしょう。|{proud}顔を見ればわかるのよ。|{smile}……えらいわ。"],
+    },
+    sana: {
+      apps: ["{half}……化学、MagiChemLex でやる？わたしも、少しだけ。{go:magichemlex}",
+             "{proud}MagiChemLex の計算問題、電卓つき。……便利。{go:magichemlex}",
+             "{shy}単語……MagiLex で、いっしょに覚える？{go:magilex}",
+             "{half}わからないなら、XEVYNAR。……わたしより、説明うまい。{go:xevynar}",
+             "{proud}MagiBurst、引っぱって、離す。……気持ちいい。{go:magiburst}",
+             "{smile}MagiChainParty、連鎖……きれい。いっしょにやろ。{go:magichainparty}",
+             "{half}MagiShift のCPU、つよいのにした。……負けた。{go:magishift}",
+             "{shy}MagiMusic……勉強のとき、静かな曲、いいよ。{go:magimusic}"],
+      study: ["{half}……つらいなら、休んで。休んだら、またやればいい。",
+              "{shy}わからなくても、だいじょうぶ。……わたしも、わからないこと、いっぱい。",
+              "{proud}一問ずつ。……それだけで、いい。",
+              "{closed}……がんばってるの、知ってる。",
+              "{half}まちがえたら、もう一回。泳ぎも、そうやって覚えた。",
+              "{shy}……あなたなら、できる。言わなくても、わかってると思うけど。",
+              "{proud}今日は、ここまで。……続きは、明日のあなたに。",
+              "{sleepy}……眠いなら、寝て。寝不足だと、覚えられない。",
+              "{smile}終わったら、アイス、半分こ。……だから、もうちょっと。"],
+      studyOk: ["{shy}……今日、{n}問。すごい。",
+                "{smile}{n}問……えらい。なでてあげる。……特別。",
+                "{proud}{n}問がんばったあなた、……ちょっと、かっこいい。"],
+      studyGo: ["{half}……今日の勉強、まだ？一問だけ。{go:magichemlex}",
+                "{shy}単語、三つだけ。……見ててあげる。{go:magilex}",
+                "{proud}化学の問題、とけたら……アイス。{go:magichemlex}"],
+      studyStreak: ["{shy}{n}日つづけてる。……えらい。",
+                    "{proud}{n}日連続。……わたしも、見習う。"],
+      idle: ["{half}……プールの水、今日はつめたい。", "{shy}ゴーグルの跡、ついてない？……見ないで。",
+             "{proud}クロール、速くなった。……たぶん。", "{closed}……となり、静かでいい。"],
+      chain: ["{half}……ねえ。|{shy}勉強、終わった？|{smile}……じゃあ、いっしょにいられる。",
+              "{proud}水の化学式、知ってる？|{half}……H₂O。|{shy}……言ってみたかっただけ。"],
+    },
+    maika: {
+      apps: ["{proud}化学のお勉強、MagiChemLex でいっしょにしませんか？解説がとても丁寧なんです。{go:magichemlex}",
+             "{smile}MagiChemLex には、時間を計る『模試』もあるんですよ。……わたし、負けずぎらいなので燃えます。{go:magichemlex}",
+             "{proud}本を読むのも好きですが、MagiLex で言葉を覚えるのも楽しいです。{go:magilex}",
+             "{shy}わからないところは、XEVYNAR に聞いてみてください。わたしも、こっそり聞いています。{go:xevynar}",
+             "{smile}MagiBurst、元気が出ますね。……見ていると、わたしまで力が入ります。{go:magiburst}",
+             "{proud}MagiAbyss の物語、続きが気になります。……いっしょに進めませんか？{go:magiabyss}",
+             "{tease}MagiShift で勝負しましょう。……わたし、負けずぎらいですよ？{go:magishift}",
+             "{smile}MagiScope で、話題の作品を探してみませんか？本の映画化も多いんです。{go:magiscope}"],
+      study: ["{proud}つらいときは、少し休みましょう。紅茶をいれますね。",
+              "{smile}わからないことがあるのは、まだ伸びしろがある、ということですよ。",
+              "{half}……わたしも、テスト前はいつも不安でした。だから、気持ち、わかります。",
+              "{closed}一ページずつ読めば、どんなに厚い本も、いつか読み終わります。",
+              "{proud}まちがえた問題は、もう一度解いてみてください。二回目は、きっと違います。",
+              "{shy}……がんばっているあなたを、そばで応援できるのが、うれしいです。",
+              "{smile}今日の分は、今日のあなたの分だけで十分です。",
+              "{proud}少し歩いて、海を見てきませんか？……頭が、すっきりしますよ。",
+              "{tease}負けずぎらいどうし、もう一問だけ、がんばりましょう。"],
+      studyOk: ["{smile}今日は{n}問も解いたんですね。……すばらしいです。",
+                "{proud}{n}問……わたしも、負けていられません。",
+                "{shy}{n}問がんばったあなたに、……あの、拍手、です。"],
+      studyGo: ["{proud}今日のお勉強は、もう終わりましたか？……まだなら、一問だけ。{go:magichemlex}",
+                "{smile}寝る前の十分、単語を見直すと覚えやすいそうですよ。{go:magilex}",
+                "{tease}化学の問題、どちらが早く解けるか、競争しませんか？{go:magichemlex}"],
+      studyStreak: ["{smile}{n}日も続けているんですね。……毎日、本当にえらいです。",
+                    "{proud}{n}日連続……わたしの読書記録より長いです。"],
+      idle: ["{proud}最近読んだ本、とても面白かったんです。……主人公が、少しあなたに似ていて。", "{smile}海辺の朝は、空気が澄んでいて好きです。",
+             "{half}……しおり、どこに挟んだか忘れてしまいました。", "{shy}リボン、結び直しました。……気づいてくれましたか？"],
+      chain: ["{proud}しりとり、また、しませんか？……『化学』。|{half}……『く』から始まる元素……。|{smile}ふふ、クロムです。",
+              "{shy}あの……|{proud}今日、あなたのために、勉強に合う紅茶を選んだんです。|{smile}……ミントティーです。"],
+    },
+    iori: {
+      apps: ["{smile}MagiChemLex やろーよ！化学ってさ、意外とおもしろいんだよ！{go:magichemlex}",
+             "{proud}MagiChemLex の標準セット、あたしも一個クリアしたんだ〜！キミもやってみて！{go:magichemlex}",
+             "{tease}MagiLex で単語勝負しよ！負けたらアイスおごりね！{go:magilex}",
+             "{smile}わかんないとこは XEVYNAR に聞いちゃえ！めっちゃわかりやすいよ！{go:xevynar}",
+             "{proud}MagiBurst でドッカーンってやろ！あたし、応援してる！{go:magiburst}",
+             "{smile}MagiChainParty、みんなでやると盛り上がるよね〜！{go:magichainparty}",
+             "{tease}MagiShift でCPUに勝てる？あたしは……ひみつ！{go:magishift}",
+             "{smile}MagiAbyss の迷宮、こわいけどわくわくする〜！いっしょに行こ！{go:magiabyss}"],
+      study: ["{smile}勉強つかれた〜？ほら、アイス食べて休憩しよ！",
+              "{proud}キミならできるって！あたしが保証する！",
+              "{half}むずかしい問題は、いったん飛ばしてもいいんだよ？あとで戻ればOK！",
+              "{tease}がんばってるキミ、ちょっとかっこいいじゃん！",
+              "{closed}まちがえても気にしない気にしない！次、次！",
+              "{smile}一問とけたらハイタッチね！いえーい！",
+              "{shy}……つらいときは、あたしに言ってね。いっしょにいるから。",
+              "{proud}今日できなかったら、明日やればいいじゃん！あたしもそうしてる！",
+              "{half}寝る時間はちゃんと守ってよ〜？寝不足じゃ頭に入らないんだから！"],
+      studyOk: ["{smile}今日{n}問もやったの！？すごっ！アイスでお祝いしよ！",
+                "{proud}{n}問クリア〜！キミ、やるじゃん！",
+                "{closed}{n}問もがんばったんだ〜。えらいえらい！"],
+      studyGo: ["{smile}今日の勉強、まだならちょっとだけやろ！終わったらプールね！{go:magichemlex}",
+                "{tease}単語クイズ、あたしと勝負！{go:magilex}",
+                "{proud}化学の問題、一問だけ！一問とけたら、あたしのアイス一口あげる！{go:magichemlex}"],
+      studyStreak: ["{smile}{n}日連続で勉強！？キミ、天才じゃん！",
+                    "{proud}{n}日つづいてる〜！このまま記録更新しちゃお！"],
+      idle: ["{smile}今日のネイル、星柄なんだ〜！かわいいでしょ！", "{tease}ねえ、浮き輪で寝てたら、流れるプール一周しちゃった！",
+             "{proud}お団子、今日は二個にしてみた！", "{half}アイス、もう一本食べたら怒られるかな〜？"],
+      chain: ["{proud}ねえキミ、化学クイズ！|{tease}アイスが溶けるのは、なに変化でしょー？|{smile}正解は、状態変化！あたし、天才！",
+              "{smile}今日ね、ちょっと勉強したんだ〜。|{half}……十分だけ。|{proud}でも十分でもえらいっしょ！"],
+    },
+    kiara: {
+      apps: ["{proud}化学の勉強なら、MagiChemLex がいいよ。解説もちゃんとついてるから安心。{go:magichemlex}",
+             "{smile}MagiChemLex の『単元別問題』で、苦手なところだけやってみよっか。わたしも見ててあげる。{go:magichemlex}",
+             "{proud}単語は毎日ちょっとずつね。MagiLex、今日の分やった？{go:magilex}",
+             "{half}わからないところは、一人で悩まないで XEVYNAR に聞くんだよ？{go:xevynar}",
+             "{smile}息抜きに MagiBurst はどう？ちょっとだけならいいよ。{go:magiburst}",
+             "{proud}MagiShift、CPU が相手してくれるんだって。ルールもわかりやすいよ。{go:magishift}",
+             "{tease}MagiChainParty、みんなで遊ぶと楽しいよ。……あ、宿題が終わってからね？{go:magichainparty}",
+             "{smile}MagiMusic で、集中できる曲をかけておくね。{go:magimusic}"],
+      study: ["{half}ちゃんと休んでる？……つらいときは、無理しなくていいんだよ。",
+              "{proud}一問ずつ、ゆっくりでいいの。わたし、ずっとここにいるから。",
+              "{smile}がんばってるキミに、お菓子の差し入れ。……ほら、糖分補給！",
+              "{closed}わからないのは、ちゃんと向き合ってる証拠だよ。えらいえらい。",
+              "{half}寝る前は勉強を切り上げて、ちゃんと寝ること。わかった？",
+              "{proud}まちがえた問題に印をつけておくと、あとで復習しやすいよ。",
+              "{shy}……キミががんばってるの、わたし、ほんとにうれしいんだ。",
+              "{smile}今日はよくやったよ。明日の自分に、バトンタッチしよ。",
+              "{tease}ため息ついたら、幸せがにげちゃうぞ？……ほら、深呼吸。"],
+      studyOk: ["{smile}今日は{n}問も！？えらすぎるよ。ほら、なでなで。",
+                "{proud}{n}問がんばったね。ごほうびに、晩ごはんはキミの好きなものにしよっか。",
+                "{closed}{n}問……ちゃんと見てたよ。おつかれさま。"],
+      studyGo: ["{proud}今日の勉強、まだなら一問だけやっておこ？あとで楽になるよ。{go:magichemlex}",
+                "{smile}寝る前に単語を少しだけ。わたしが問題出してあげる。{go:magilex}",
+                "{half}テスト、近いんじゃない？……化学、ちょっとだけ見ておこ？{go:magichemlex}"],
+      studyStreak: ["{smile}{n}日連続で勉強してるね。……わたし、うれしくて泣きそう。",
+                    "{proud}{n}日もつづけてるなんて。キミはほんとにえらいね。"],
+      idle: ["{proud}お弁当の卵焼き、今日は甘めにしてみたよ。", "{half}ほら、髪がはねてる。……直してあげる。",
+             "{smile}ハイビスカス、新しいのに替えたんだ。", "{tease}キミ、ちゃんとごはん食べてる？顔に『食べてない』って書いてあるよ？"],
+      chain: ["{proud}ちょっと、キミ。|{half}最近、夜遅くまで勉強してるでしょ。|{smile}……がんばるのはいいけど、ちゃんと寝てね。",
+              "{smile}クッキー、元素記号の形にしてみたの。|{proud}Na、Cl、H、O……|{half}……O だけ、ただの丸になっちゃった。"],
+    },
+    emiri: {
+      apps: ["{proud}化学の勉強なら、MagiChemLex がいいわ。……あなたの真剣な顔、見てみたいもの。{go:magichemlex}",
+             "{tease}MagiChemLex の『模試』、時間を計って解くそうよ。……わたしが見張っていてあげる。{go:magichemlex}",
+             "{smile}言葉を覚えるのは、恋文を書くための準備……なんて。MagiLex、どう？{go:magilex}",
+             "{proud}わからないことは XEVYNAR に聞きなさい。……素直に聞けるあなたは、すてきよ。{go:xevynar}",
+             "{tease}MagiBurst で発散してきたら？……すっきりしたら、戻ってきてね。{go:magiburst}",
+             "{half}MagiAbyss の迷宮……暗い所は少し苦手。あなたが行くなら、待っているわ。{go:magiabyss}",
+             "{proud}MagiShift、読み合いのゲームね。……わたし、あなたの次の手が読めるわよ？{go:magishift}",
+             "{smile}MagiScope で、恋愛映画でも探しましょうか。……となりで見るの。{go:magiscope}"],
+      study: ["{proud}つらいときは、コーヒーを一杯。……落ちついたら、また始めればいいの。",
+              "{tease}ため息なんて、あなたらしくないわね。……ほら、肩の力を抜いて。",
+              "{closed}わからない夜も、いつか終わるわ。朝が来るみたいにね。",
+              "{half}がんばりすぎるところ、少し心配なの。……ちゃんと休んで。",
+              "{proud}一問とけるたびに、あなたは昨日より少し大人になるのよ。",
+              "{shy}……努力しているあなた、わたしは好きよ。……聞こえなかったことにして。",
+              "{smile}まちがえた問題は、あとで読み返す日記みたいなもの。大切にしなさい。",
+              "{proud}今日はここまでにしましょう。……続きは、明日のあなたの楽しみに。",
+              "{tease}合格点をあげるかどうかは、結果じゃなくて、あなたの姿勢で決めるわ。"],
+      studyOk: ["{proud}今日は{n}問？……合格よ。ごほうびをあげなきゃね。",
+                "{tease}{n}問も解いたの？……ふふ、今日はわたしが甘える番じゃなさそうね。",
+                "{smile}{n}問がんばったあなた、少しだけ誇らしいわ。"],
+      studyGo: ["{tease}今日の勉強は？……まだなら、一問だけ見せて。{go:magichemlex}",
+                "{proud}眠る前に言葉を三つ。……覚えたら、わたしに聞かせて。{go:magilex}",
+                "{half}化学の問題……一問とけたら、コーヒーをいれてあげるわ。{go:magichemlex}"],
+      studyStreak: ["{proud}{n}日続けているのね。……その一途さ、嫌いじゃないわ。",
+                    "{smile}{n}日連続……わたしの読書より続いているじゃない。"],
+      idle: ["{proud}窓辺で本を読むのが好きなの。……今日は、短い恋の話。", "{tease}そのしぐさ、かわいいわね。……自覚はないの？",
+             "{closed}雨の音って、落ちつくわ。……今日は晴れているけど。", "{half}髪飾り、少しずれているかしら。……直して？"],
+      chain: ["{proud}ねえ、化学の問題よ。|{tease}わたしとあなたの関係を、反応で言うと？|{smile}……答えは、まだ秘密。",
+              "{half}最近、勉強を頑張っているのね。|{proud}顔つきが変わったわ。|{shy}……少し、見とれたじゃない。"],
+    },
+  };
+  Object.keys(HM_EXTRA).forEach((id) => {
+    const L = HM_MATES[id] && HM_MATES[id].lines; if (!L) return;
+    const X = HM_EXTRA[id];
+    Object.keys(X).forEach((k) => { L[k] = (Array.isArray(L[k]) ? L[k] : []).concat(X[k]); });
+  });
   const HM_COST = 20000;       /* ★★ 2026-09-24g パートナーの開放：1人 30,000 XEVA（ご指定・前は 15,000）→ ★★ 2026-10-06c 20,000 XEVA（ご指定） */
   const HM_OLD_COST = 30000;   /* 値下げ前の値段（差額の返金に使う） */
   const HM_FREE = "shoko";     /* ★★ 2026-09-25 最初から使えるのは笙古だけ（ほかは全員 開放）。前に無料で選んだ子はそのまま */
@@ -1101,10 +1427,12 @@
   /* ══════════════ セリフの読み方（★★ 2026-09-25b） ══════════════
      "{@id}{表情}本文|{表情}続き" … {@id} はその子を開放しているときだけ・{表情} はその表情で・| は続きの吹き出し */
   function parseLine(s) {
-    let need = null, expr = null;
+    let need = null, expr = null, go = null;
     s = String(s || "").replace(/^\{@(\w+)\}/, (_, id) => { need = id; return ""; });
     s = s.replace(/^\{(\w+)\}/, (m, e) => { if (EXPR[e]) { expr = e; return ""; } return m; });
-    return { text: s, expr, need };
+    /* ★★ 2026-10-13 {go:アプリid} … 吹き出しに「◯◯をひらく」ボタンを出す（アプリへの誘い） */
+    s = s.replace(/\{go:(\w+)\}/g, (_, id) => { go = id; return ""; }).replace(/\s+$/, "");
+    return { text: s, expr, need, go };
   }
   /* 候補から1つ（開放していない子の話は出さない・最近言ったものはなるべく避ける） */
   Mate.prototype.pickLine = function (arr) {
@@ -1135,6 +1463,7 @@
     const more = this.chain.length > 0;
     if (ex) this.setExpr(ex, Math.max(this.chainMs || 2600, 1800 + p.text.length * 70));
     this.gesture(this.expr, p.text);
+    this.goNext = p.go || null;
     this.say(p.text);
     if (more) {                                                        /* 読み終わるころに続きを出す（吹き出しは消さない） */
       clearTimeout(this.hideT);
@@ -1147,6 +1476,8 @@
     if (!text || !this.bubble) return;
     this.lastLine = text;
     const b = this.bubble, span = b.querySelector(".hm-txt");
+    const go = this.goNext; this.goNext = null;
+    const old = b.querySelector(".hm-go"); if (old) old.remove();
     clearInterval(this.typing); clearTimeout(this.hideT);
     b.classList.remove("on"); b.style.minHeight = ""; b.style.width = "";
     b.style.maxWidth = Math.min(300, Math.max(180, (this.frame ? this.frame.w : 360) * 0.8)) + "px";
@@ -1158,11 +1489,54 @@
     this.placeBubble();
     let i = 0;
     this.typingOn = true;
-    this.typing = setInterval(() => { i++; span.textContent = text.slice(0, i); if (i >= text.length) { clearInterval(this.typing); this.typingOn = false; } }, 38);
+    this.typing = setInterval(() => { i++; span.textContent = text.slice(0, i); if (i >= text.length) { clearInterval(this.typing); this.typingOn = false; if (go) this.showGo(go); } }, 38);
     const quick = this.quick; this.quick = false;
-    this.hideT = setTimeout(() => b.classList.remove("on"), quick ? 2200 + text.length * 40 : 4200 + text.length * 60);
+    this.hideT = setTimeout(() => b.classList.remove("on"), (quick ? 2200 + text.length * 40 : 4200 + text.length * 60) + (go ? 4500 : 0));
     this.idleAt = performance.now() + 22000 + Math.random() * 12000;
   };
+
+  /* ══ ★★ 2026-10-13 アプリへの誘い：吹き出しの「◯◯をひらく」ボタン ══
+     id はホームのアプリ台帳（XH_APPS・xhApp）の id。gacha はガチャの画面。開きかたはホームと同じ（オフラインのとき等は xhOpenApp が止める） */
+  function goMeta(id) {
+    if (id === "gacha") return { name: "ガチャ", open: () => { try { if (typeof xhGo === "function") return xhGo("gacha"); } catch (e) {} location.href = "gacha.html"; } };
+    let a = null;
+    try { a = typeof xhApp === "function" ? xhApp(id) : null; } catch (e) { a = null; }
+    if (!a || !a.href) return null;
+    return { name: String(a.full || a.name || id).split(" — ")[0], open: () => { try { if (typeof xhOpenApp === "function") return xhOpenApp(a.id, a.href); } catch (e) {} location.href = a.href; } };
+  }
+  Mate.prototype.showGo = function (id) {
+    const b = this.bubble, g = goMeta(id); if (!b || !g || !b.classList.contains("on")) return;
+    const btn = document.createElement("button");
+    btn.type = "button"; btn.className = "hm-go";
+    btn.innerHTML = "<span>" + esc(g.name) + ' をひらく</span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>';
+    btn.addEventListener("click", (e) => { e.stopPropagation(); e.preventDefault(); try { g.open(); } catch (err) {} });
+    b.style.minHeight = "";
+    b.appendChild(btn);
+    this.placeBubble();
+  };
+  /* ══ ★★ 2026-10-13 勉強の記録（読むだけ）：今日 MagiChemLex・MagiLex で解いた数と、続けている日数 ══ */
+  function studyInfo() {
+    const d = new Date(), td = ymd(d), utc = d.toISOString().slice(0, 10);
+    let chem = 0, lex = 0, streak = 0;
+    try {
+      const c = JSON.parse(localStorage.getItem("magichemlex_v1") || "null");
+      if (c && c.days) {
+        chem = c.days[td] || 0;
+        const t = new Date(); if (!c.days[ymd(t)]) t.setDate(t.getDate() - 1);
+        let k = 0; while (c.days[ymd(t)] && k < 999) { k++; t.setDate(t.getDate() - 1); }
+        streak = k;
+      }
+    } catch (e) {}
+    try {
+      const l = JSON.parse(localStorage.getItem("magilex_v2") || "null");
+      if (l && l.days) { const r = l.days[utc] || l.days[td]; if (r) lex = r.a || 0; }
+      if (l && l.streak && l.lastStudy) {
+        const y = new Date(); y.setDate(y.getDate() - 1);
+        if (l.lastStudy === utc || l.lastStudy === td || l.lastStudy === y.toISOString().slice(0, 10)) streak = Math.max(streak, l.streak | 0);
+      }
+    } catch (e) {}
+    return { n: chem + lex, chem, lex, streak };
+  }
 
   /* ══════════════ アプリとの連携：いまの状態に合わせた話題（★★ 2026-09-25b） ══════════════ */
   Mate.prototype.appTopics = function () {
@@ -1177,20 +1551,30 @@
     try { const g = liveGachas().filter((x) => x.t && x.t.length === 10)[0]; if (A.gacha && g && Date.now() - Date.parse(g.t + "T00:00:00") < 4 * 864e5) out.push([A.gacha]); } catch (e) {}
     try { const n = window.XEVA && XEVA.getLoginStreak ? XEVA.getLoginStreak() : 0; if (A.streak && n >= 3) out.push([A.streak, { n }]); } catch (e) {}
     /* ★★ 2026-10-13 「いまイベントが◯件開いている」の話題は廃止（案内先だったロビー左のボタンを外したため・ご指定） */
+    /* ★★ 2026-10-13 勉強：今日解いた数をほめる／まだなら誘う／続けている日数 */
+    try {
+      const L = this.def.lines, si = studyInfo(), h = new Date().getHours();
+      if (L.studyOk && si.n > 0) out.push([L.studyOk, { n: si.n }]);
+      else if (L.studyGo && h >= 9) out.push([L.studyGo]);
+      if (L.studyStreak && si.streak >= 2) out.push([L.studyStreak, { n: si.streak }]);
+    } catch (e) {}
     return out;
   };
   /* 手持ちぶさたのとき：アプリの話題・ほかの子の話・掛け合い・ひとりごとを混ぜる */
   Mate.prototype.idleTalk = function () {
-    const L = this.def.lines, r = Math.random();
+    const L = this.def.lines, r = Math.random(), h = new Date().getHours(), late = h >= 22 || h < 5;
     const topics = this.appTopics();
-    if ((this.appNext || r < 0.28) && topics.length) {
+    if ((this.appNext || r < 0.22) && topics.length) {
       this.appNext = false;
       const t = topics[Math.floor(Math.random() * topics.length)];
       if (this.line(t[0], "proud", 3000, t[1])) return;
     }
     this.appNext = false;
-    if (r < 0.46 && L.friends && this.line(L.friends, "smile", 3000)) return;
-    if (r < 0.66 && L.chain && this.line(L.chain, "proud", 3000)) return;
+    /* ★★ 2026-10-13 アプリへの誘い（「ひらく」ボタンつき）・勉強の励まし */
+    if (r < 0.36 && L.apps && this.line(L.apps, "proud", 3200)) return;
+    if (r < (late ? 0.62 : 0.5) && L.study && this.line(L.study, "smile", 3200)) return;
+    if (r < 0.62 && L.friends && this.line(L.friends, "smile", 3000)) return;
+    if (r < 0.78 && L.chain && this.line(L.chain, "proud", 3000)) return;
     const ex = ["proud", "tease", "smile"];
     this.line(L.idle, ex[Math.floor(Math.random() * ex.length)], 2800);
   };
@@ -1500,6 +1884,7 @@
         save(st);
         cf.classList.remove("on");
         api.setPartner(id, true); sh.classList.remove("on");
+        try { paintSaleBadge(); } catch (e) {}   /* ★★ 2026-10-13 割引を使ったら SALE の印を消す */
       };
       cf.querySelector(".no").onclick = () => cf.classList.remove("on");
       cf.classList.add("on");
@@ -1556,9 +1941,29 @@
     window.addEventListener("xeva:synced", () => setTimeout(refundOldPrice, 400));
     window.addEventListener("xeva:event", paintEventBtn);
     window.addEventListener("xeva:synced", paintEventBtn);
+    /* ★★ 2026-10-13 パートナーの SALE の印 */
+    paintSaleBadge();
+    window.addEventListener("xeva:event", paintSaleBadge);
+    window.addEventListener("xeva:synced", paintSaleBadge);
+    window.addEventListener("xeva:change", paintSaleBadge);
     renderLobbyApps();
     window.addEventListener("storage", (e) => { if (e.key === LOBBY_APPS_KEY) renderLobbyApps(); });
     paintViewLabel();
+  }
+
+  /* ══ ★★ 2026-10-13 ご指定「パートナーのボタンの右上にセールのマーク」══
+     イベント（Violet Breeze など）の「パートナー1人ぶん ◯%OFF」が使えるあいだだけ出す（割引を使ったら消える）。
+     割引の有無は XEVA.event.partnerOff（パートナー選びの画面と同じ） */
+  function paintSaleBadge() {
+    const btn = document.querySelector('.xl-ic[onclick*="openPicker"]'); if (!btn) return;
+    const ico = btn.querySelector(".i") || btn;
+    let ev = null;
+    try { ev = window.XEVA && XEVA.event ? XEVA.event.partnerOff() : null; } catch (e) { ev = null; }
+    let tag = ico.querySelector(".xl-sale");
+    if (!ev) { if (tag) tag.remove(); btn.removeAttribute("title"); return; }
+    if (!tag) { tag = document.createElement("i"); tag.className = "xl-sale"; ico.appendChild(tag); }
+    tag.textContent = "SALE";
+    btn.title = ev.nm + "：パートナー1人ぶん " + Math.round(ev.off * 100) + "%OFF";
   }
 
   /* ══════════════ 左上：開催中のガチャのバナー（全部を順番に） ══════════════

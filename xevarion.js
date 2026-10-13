@@ -170,7 +170,7 @@ addEventListener("load", () => {
 const MISSION_META = {
   magiburst_play:      { href: "MagiBurst/index.html",             icon: "thumbs/MagiBurst.jpg",      cta: "プレイ" },
   magibattle_win:      { href: "MagiBattle/index.html",            icon: "thumbs/MagiBattle.jpg?v=2",     cta: "プレイ" },
-  magichainparty_play: { href: "MagiChainParty/index.html",        icon: "thumbs/MagiChainParty.jpg", cta: "プレイ" },
+  magichainparty_play: { href: "MagiChainParty/index.html",        icon: "thumbs/MagiChainParty.jpg?v=2", cta: "プレイ" },
   magiempire_play:     { href: "MagiEmpire/MagiEmpire.html",       icon: "thumbs/MagiEmpire.jpg",     cta: "プレイ" },
   magiarena_play:      { href: "MagiArena/MagiArena.html",         icon: "thumbs/MagiArena.jpg",      cta: "プレイ" },
   magimanor_play:      { href: "MagiManor/index.html",             icon: "thumbs/MagiManor.jpg",      cta: "探索へ" },
@@ -2078,7 +2078,7 @@ const HOWTO_SLIDES = [
         </div>
         <div style="padding:8px;display:flex;flex-direction:column;gap:4px">
           ${[
-            ["thumbs/MagiChainParty.jpg","MagiChainPartyでゲームにチャレンジ"],
+            ["thumbs/MagiChainParty.jpg?v=2","MagiChainPartyでゲームにチャレンジ"],
             ["thumbs/MagiLink.jpg","MagiLinkに登録しよう"],
             ["thumbs/MagiLex.jpg","MagiLexで問題にチャレンジしよう"]
           ].map(([img,txt]) => `
@@ -3386,7 +3386,7 @@ addEventListener("DOMContentLoaded", () => { if (_xevLang === "en") applyLang("e
 (function () {
   const POOL = [
     "thumbs/MagiLink.jpg", "thumbs/MagiLex.jpg", "thumbs/MagiEmpire.jpg",
-    "thumbs/MagiCraft.jpg", "thumbs/MagiChainParty.jpg", "thumbs/MagiBurst.jpg",
+    "thumbs/MagiCraft.jpg", "thumbs/MagiChainParty.jpg?v=2", "thumbs/MagiBurst.jpg",
     "thumbs/MagiPortfolio.jpg", "thumbs/MagiRanking.jpg", "thumbs/MagiBattle.jpg?v=2",
   ];
   const tiles = document.querySelectorAll(".hero-art .ha-tile:not(.main) img");

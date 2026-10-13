@@ -104,7 +104,11 @@
 .xh-ntab.on::before{top:4px!important;width:50px!important;height:36px!important;border-radius:14px!important;
   background:var(--um-gloss),linear-gradient(180deg,#a6ec72,#43b324)!important;
   box-shadow:inset 0 0 0 2px rgba(255,255,255,.95),0 0 0 1.5px #2a8614,0 2px 0 #226f10,0 4px 8px rgba(40,80,20,.18)!important;
-  animation:umPop .34s cubic-bezier(.2,1.6,.4,1)}
+  animation:umPop .34s cubic-bezier(.2,1.6,.4,1);
+  /* ★★ 2026-10-13 ご指定「下バーの開いているマークが右から動きすぎ」：中央寄せを translateX(-50%) でしていたので、
+     はねる動き（umPop＝transform:scale）のあいだだけ translateX が消えて、右から滑りこんで見えていた。
+     → 中央寄せは left/right:0＋margin:auto にして、transform は動きだけに使う */
+  left:0!important;right:0!important;margin-left:auto!important;margin-right:auto!important;transform:none}
 .xh-ntab:not(.on):active .uic{transform:translateY(2px) scale(.94)}
 /* ガチャタブのキャラの絵も白いふち＋緑の輪 */
 .xh-ntab .xh-tabchar{box-shadow:0 0 0 1.5px #fff,0 0 0 3px #62c43e,0 2px 0 3px rgba(42,122,20,.3)!important;border-color:#fff!important}

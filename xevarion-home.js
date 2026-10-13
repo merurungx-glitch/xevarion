@@ -81,7 +81,7 @@ const XH_APPS = [
   /* ★★ 2026-10-06 新作 MagiChemLex（MagiLex の派生・難関化学の問題集）。ご指定でホームの MagiCounter の左。 */
   { id:"magichemlex", name:"MagiChemLex", full:"MagiChemLex", sub:"難関化学の問題集", cat:"learn", tone:"blue", newUntil:"2026-10-27",
     href:"MagiChemLex/index.html", img:"thumbs/MagiChemLex.jpg?v=2",
-    desc:"難関大の化学を、<b>入試問題の改題</b>（難関セット3回ぶん・標準セット4回ぶんの全小問）と<b>関連問題</b>（全1,013問）で鍛える学習アプリ。おすすめ出題・間隔反復の復習・時間を計る模試モード・ヒントと図つきの解説・単元別問題・関数電卓・学習カレンダー。獲得 XEVA は MagiLex 系統のイベントで2倍。オフラインOK。" },
+    desc:"難関大の化学を、<b>入試問題の改題</b>（難関セット3回ぶん・標準セット4回ぶんの全小問）と、教科書レベルの<b>基礎セット</b>、<b>関連問題</b>（全1,285問）で鍛える学習アプリ。おすすめ出題・間隔反復の復習・時間を計る模試モード・ヒントと図つきの解説・単元別問題・関数電卓・学習カレンダー。獲得 XEVA は MagiLex 系統のイベントで2倍。オフラインOK。" },
   { id:"magiburst", name:"MagiBurst", sub:"爽快アクション", cat:"game", tone:"violet",
     href:"MagiBurst/index.html", img:"thumbs/MagiBurst.jpg",
     desc:"引っぱって、はなして、ぶっとばせ！最大4人マルチの引っぱりハンティング。オフラインでもソロクエストが遊べます。" },
@@ -92,8 +92,8 @@ const XH_APPS = [
     href:"MagiLink/MagiLink.html", img:"thumbs/MagiLink.jpg",
     desc:"魔法のようなメッセージ体験。友達やグループとスタイリッシュにつながるチャットアプリ。コレクション共有にも対応。" },
   { id:"magichainparty", name:"ChainParty", full:"MagiChainParty", sub:"連鎖陣取り", cat:"game", tone:"gold",
-    href:"MagiChainParty/index.html", img:"thumbs/MagiChainParty.jpg",
-    desc:"2〜5人で囲む連鎖バクハツの陣取り頭脳戦。ルールは「マスをタップ」だけ・運ゼロ。CPU・部屋番号オンライン対戦つき。" },
+    href:"MagiChainParty/index.html", img:"thumbs/MagiChainParty.jpg?v=2",
+    desc:"2〜6人で囲む連鎖バクハツの陣取り頭脳戦。ルールは「マスをタップ」だけ・運ゼロ。CPU・部屋番号オンライン対戦つき。" },
   /* ★★ 2026-09-03 新作。<b>1台を囲む</b>系統なので ChainParty のとなりへ。
      運の要素が一つも無い（サイコロもランダムイベントも戦闘乱数もなし）のが特徴。 */
   { id:"magidominiongrid", name:"Dominion", full:"Magi Dominion Grid", sub:"思考の陣取り", cat:"game", tone:"blue",
@@ -113,7 +113,7 @@ const XH_APPS = [
   /* ★★ 2026-09-21 新作 MagiShift（対戦ボードゲーム）。ご指定で MagiScope の右。 */
   { id:"magishift", name:"MagiShift", full:"MagiShift", sub:"対戦ボードゲーム", cat:"game", tone:"blue",
     href:"MagiShift/index.html", img:"thumbs/MagiShift.jpg",
-    desc:"1台の iPad を2〜6人で囲む、マルバツを発展させた対戦ボードゲーム。<b>置いた駒をあとから動かせる</b>のが特徴で、盤面はいつも変わり最後まで逆転があります。人数で盤面と勝利条件が変わり（5×5〜9×9・4〜5つ並べ）、XEVARION アカウントと紐づけて名前と戦績を残せます。" },
+    desc:"1台の iPad を2〜6人（CPU も）で囲む、マルバツを発展させた対戦ボードゲーム。<b>置いた駒をあとから動かせる</b>（間の駒を飛びこえて2マス先へ）のが特徴で、盤面はいつも変わり最後まで逆転があります。押す・ブロックで守りの手が増える「タクティクス」ルールつき。人数で盤面と勝利条件が変わり（5×5〜9×9・4〜5つ並べ）、XEVARION アカウントと紐づけて名前と戦績を残せます。" },
   /* ★★ 2026-10-05 新作 MagiAbyss（見下ろし型ドットアクションRPG）。キャラは極彩祭・極煌祭・極華祭の10体（所持と凸は共通）。 */
   /* ★ newUntil … この日まで、ロビーとメニューのアイコンに「NEW」の印（home-mate.js の isNewApp・xhAppTile） */
   { id:"magiabyss", name:"MagiAbyss", full:"MagiAbyss", sub:"ドットアクションRPG", cat:"game", tone:"violet", newUntil:"2026-10-26",
@@ -480,6 +480,26 @@ XH_EVENTS.unshift({ tag:"EVENT", t1:"Violet Breeze", t2:"MagiLex 系統の XEVA 
    ══════════════════════════════════════════════════════════════ */
 const XH_UPDATE_MAX = 12;
 const XH_UPDATES = [
+  /* ★★ 2026-10-14 MagiChemLex 基礎タブ／パートナーの会話・SALE／下バーの大きさ／ChainParty・MagiShift の見た目 */
+  { tag:"NEW", t1:"MagiChemLex に「基礎」タブ（全1,285問）", at:"2026-10-14",
+    t2:"教科書レベルの基礎セット1・2（改題92問＋関連問題180問）／タブ（難関・標準・基礎・単元別）を見やすく／標準・基礎は改題のあとに関連問題をまとめて表示／単元別にもとの問題の難易度",
+    href:"MagiChemLex/index.html", img:"thumbs/MagiChemLex.jpg?v=2" },
+  { tag:"UPDATE", t1:"パートナーの会話が大幅に増加・下バーをホームと同じ大きさに", at:"2026-10-14",
+    t2:"勉強がつらいときの励まし・MagiChemLex などへのお誘い（ひらくボタン）・今日の学習をほめる／セール中はパートナーのボタンに SALE／ガチャ・コミュニティ・図鑑の幅と下バーをホームにそろえた",
+    href:"gacha.html", img:"thumbs/MagiBurst.jpg" },
+  { tag:"UPDATE", t1:"MagiChainParty・MagiShift の見た目を調整", at:"2026-10-14",
+    t2:"ChainParty：タイトルを名前と小さな盤の動きに・CHAIN の表示をやめた・数字の動きを修正／MagiShift：50周の引き分けは CPU だけの対戦に／どちらも戻るボタンなどをデザイン",
+    href:"MagiChainParty/index.html", img:"thumbs/MagiChainParty.jpg?v=2" },
+  /* ★★ 2026-10-13 その2：MagiShift CPU・タクティクス／MagiChainParty 新ロゴ・新しい見た目／下バー・会社ロゴ／MagiChemLex 絞り込み */
+  { tag:"NEW", t1:"MagiShift に CPU と新ルール「タクティクス」", at:"2026-10-13",
+    t2:"席ごとに人／CPU（よわい・ふつう・つよい）／動かすときは間の駒を飛びこえて2マス先へ／タクティクス＝となりの相手の駒を押す・1周だけの壁（ブロック）で守りの手が増える／画面をシンプルで明るく・前回の紐づけを引きつぎ",
+    href:"MagiShift/index.html", img:"thumbs/MagiShift.jpg" },
+  { tag:"UPDATE", t1:"MagiChainParty が新しいロゴと見た目に", at:"2026-10-13",
+    t2:"新しいロゴ／画面をシンプルで明るく作り直し（機能はそのまま）／バクハツの粒・連鎖の数・勝利の紙ふぶきなど控えめな動き",
+    href:"MagiChainParty/index.html", img:"thumbs/MagiChainParty.jpg?v=2" },
+  { tag:"UPDATE", t1:"下バーをいつでも・会社ロゴ・MagiChemLex の絞り込み", at:"2026-10-13",
+    t2:"ガチャ・コミュニティ・図鑑でも下バーを表示／起動とアプリを開くたびに3社ロゴ（タップで飛ばせる）／MagiChemLex：問題セットの絞り込み・並び替え・スマホのメモと電卓を大きく",
+    href:"MagiChemLex/index.html", img:"thumbs/MagiChemLex.jpg?v=2" },
   /* ★★ 2026-10-13 選べるSSRキャラ確定チケット・ガチャ演出をさらに豪華に・アイコンとボタンをウマ娘風に・MagiChemLex 全1,013問・MagiAbyss の操作 */
   { tag:"NEW", t1:"選べるSSRキャラ確定チケットを2枚プレゼント", at:"2026-10-13",
     t2:"日ごろの感謝をこめて、全員に2枚（メールから受け取り）／ガチャから出る SSR の中から好きな1体を確定で・持っているキャラなら限界突破が進む／ガチャ一覧のいちばん上から使えます",
@@ -4197,6 +4217,44 @@ function xhSyncWarnOff() {
 }
 window.xhSyncWarnOff = xhSyncWarnOff;
 
+/* ══ ★★ 2026-10-13 ご指定「MagiChemLex で難関化学に加えて標準レベルの問題も追加されたのでポップアップ表示。
+      次回から表示しないを押した場合は次回から表示されません」══
+   ・XEVARION を開くたび（このタブで1回）に出す。「次回から表示しない」は端末に覚える（XH_CHEMNEW_OFF）
+   ・ほかのシート・メール・ログインボーナス・起動画面などが出ているあいだは待ち、閉じてから出す（最大 60 秒待つ）
+   ★ MagiChemLex は試験名・大学名・年度を出さない決まり（文言は「標準レベル」「マーク式」） */
+const XH_CHEMNEW_OFF = "xh_chemnew_off_v1", XH_CHEMNEW_SEEN = "xh_chemnew_seen_v1";
+function xhOverlayBusy() {
+  if (document.querySelector(".xh-sheet.on, #mailOverlay.open, #missionOverlay.open, #ncOverlay.open, .modal-overlay.open, .acc-overlay.open, #xevaSplash, #xevaLoadVeil")) return true;
+  const lb = document.getElementById("loginBonusOv"); if (lb && lb.style.display === "flex") return true;
+  const ht = document.getElementById("howtoOv"); if (ht && ht.style.display && ht.style.display !== "none") return true;
+  const ho = document.getElementById("xevaHome"); if (ho && ho.classList.contains("open")) return true;
+  const home = xhEl("xhome"); if (!home || !home.classList.contains("on")) return true;
+  return false;
+}
+function xhChemNewMaybe(tries) {
+  try { if (localStorage.getItem(XH_CHEMNEW_OFF) === "1") return; } catch (e) {}
+  try { if (sessionStorage.getItem(XH_CHEMNEW_SEEN) === "1") return; } catch (e) {}
+  tries = tries || 0;
+  if (xhOverlayBusy()) { if (tries < 50) setTimeout(() => xhChemNewMaybe(tries + 1), 1200); return; }
+  try { sessionStorage.setItem(XH_CHEMNEW_SEEN, "1"); } catch (e) {}
+  xhOpenSheet("xhChemNewSheet");
+}
+window.xhChemNewMaybe = xhChemNewMaybe;
+function xhChemNewClose() { xhCloseSheet("xhChemNewSheet"); }
+window.xhChemNewClose = xhChemNewClose;
+function xhChemNewOff() {
+  try { localStorage.setItem(XH_CHEMNEW_OFF, "1"); } catch (e) {}
+  xhChemNewClose();
+  try { xhToast("🔕 MagiChemLex のお知らせは次回から表示しません", 2600); } catch (e) {}
+}
+window.xhChemNewOff = xhChemNewOff;
+function xhChemNewGo() {
+  xhChemNewClose();
+  try { if (typeof xhOpenApp === "function") { xhOpenApp("magichemlex", "MagiChemLex/index.html"); return; } } catch (e) {}
+  location.href = "MagiChemLex/index.html";
+}
+window.xhChemNewGo = xhChemNewGo;
+
 function xhOpenInstallHint(force) {
   if (!force) {
     if (xhIsInstalled()) return;
@@ -6523,6 +6581,8 @@ function xhShow() {
        ★ インストール案内と<b>同じタイミングに出さない</b>（シートが重なる）。
          こちらを先に出し、インストール案内はそのあとへずらす。 */
     setTimeout(() => { try { xhOpenSyncWarn(false); } catch (e) {} }, 900);
+    /* ★★ 2026-10-13 MagiChemLex の新しいレベルのお知らせ（ほかのシートが閉じてから） */
+    setTimeout(() => { try { xhChemNewMaybe(); } catch (e) {} }, 1600);
     /* 初回だけ「アプリとして入れられます」を案内（インストール済みなら出さない） */
     setTimeout(() => { try { if (!xhEl("xhSyncWarnSheet") || !xhEl("xhSyncWarnSheet").classList.contains("on")) xhOpenInstallHint(false); } catch (e) {} }, 4200);
     /* ★ 更新の確認が先。保留の更新があるときは自動ダウンロードせず、
@@ -6556,9 +6616,10 @@ window.xhShow = xhShow;
    （MagiBurst・MagiJackpot の「変換所はホームへ移動しました」からの導線） */
 function xhConsumeHash() {
   const h = (location.hash || "").replace("#", "").toLowerCase();
-  if (h !== "exchange" && h !== "shop") return;
+  /* ★★ 2026-10-13 ガチャ・コミュニティ・図鑑の下バー（xeva-tabbar.js）の「設定」は index.html#settings で来る */
+  if (h !== "exchange" && h !== "shop" && h !== "settings") return;
   try { history.replaceState(null, "", location.pathname + location.search); } catch (e) {}
-  setTimeout(() => { if (h === "shop") xhOpenShop(); else xhOpenExchange(); }, 420);
+  setTimeout(() => { if (h === "shop") xhOpenShop(); else if (h === "settings") xhOpenSettings(); else xhOpenExchange(); }, 420);
 }
 function xhHide() {
   const home = xhEl("xhome"); if (home) home.classList.remove("on");

@@ -276,3 +276,20 @@ body.xl-drawer-open .xh-lobby{pointer-events:none}
 .hm-pk-ev b { color: #fff; }
 .hm-pk-item .lock s, .hm-pk-info s, .hm-pk-confirm s { opacity: .55; margin-right: 2px; }
 .hm-pk-confirm .q small.ev { color: #8a6cff; font-weight: 800; }
+
+/* ══ ★★ 2026-10-13 吹き出しの「◯◯をひらく」ボタン（アプリへの誘い） ══ */
+.hm-bubble .hm-go{pointer-events:auto;display:flex;align-items:center;justify-content:center;gap:3px;margin:8px auto 0;padding:6px 12px 6px 15px;
+  border:none;border-radius:99px;cursor:pointer;font:900 12px 'M PLUS Rounded 1c','Noto Sans JP',sans-serif;color:#fff;white-space:nowrap;
+  background:linear-gradient(180deg,rgba(255,255,255,.55) 0,rgba(255,255,255,.18) 46%,rgba(255,255,255,0) 47%),linear-gradient(180deg,#a6ec72,#43b324);
+  box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.9),0 0 0 1.5px #2a8614,0 3px 0 #226f10;
+  text-shadow:-1px 0 #2a8614,1px 0 #2a8614,0 -1px #2a8614,0 1px #2a8614;animation:hmGoIn .38s cubic-bezier(.34,1.56,.64,1) both}
+.hm-bubble .hm-go svg{width:13px;height:13px;fill:none;stroke:#fff;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.hm-bubble .hm-go:active{transform:translateY(2px);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.9),0 0 0 1.5px #2a8614,0 1px 0 #226f10}
+@keyframes hmGoIn{from{opacity:0;transform:scale(.8)}to{opacity:1;transform:none}}
+/* ══ ★★ 2026-10-13 パートナーのボタンの右上の SALE ══ */
+.xl-ic .i .xl-sale{position:absolute;top:-8px;right:-14px;z-index:3;padding:1px 5px 2px;border-radius:7px;font-style:normal;font-size:8.5px;font-weight:900;
+  letter-spacing:.04em;line-height:1.25;color:#fff;background:linear-gradient(180deg,#ff8a5c,#ff3d6e);
+  box-shadow:0 0 0 1.5px #fff,0 2px 0 rgba(160,20,60,.35);animation:xlSale 1.8s ease-in-out infinite;pointer-events:none}
+@keyframes xlSale{0%,100%{transform:scale(1) rotate(-6deg)}50%{transform:scale(1.12) rotate(-6deg)}}
+body.xos-nomotion .xl-sale,body.xos-nomotion .hm-go{animation:none!important}
+@media (prefers-reduced-motion:reduce){.xl-sale,.hm-go{animation:none!important}}

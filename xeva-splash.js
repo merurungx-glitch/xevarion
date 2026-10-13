@@ -11,7 +11,7 @@
      ② アプリロゴ ＋ ロードバー ＋ "Loading <App> ..."
 
    使い方（<head> に、defer なしで置く）:
-     <script src="../xeva-splash.js?v=14"
+     <script src="../xeva-splash.js?v=15"
              data-app="MagiLex"
              data-logo="../thumbs/MagiLex.jpg"></script>
 
@@ -51,6 +51,17 @@
      ★ この変数を使っていないアプリには何の影響もない（値を置くだけ）。 */
   var ME = document.currentScript;
   if (!ME || window.XevaSplash) return;
+  /* ★★ 2026-10-13 ご指定「アプリ開始時に企業ロゴが表示されていません」→ XEVARION 本体（index.html）にも出す。
+     本体は data-home="1"。<b>XEVARION を起動したとき</b>（このタブでまだ「タップしてスタート」していない）だけ出し、
+     アプリから戻ってきたとき（xeva_accessed が立っている）は出さない＝何もしない。 */
+  if (ME.dataset && ME.dataset.home === "1") {
+    var accessed = false;
+    try { accessed = sessionStorage.getItem("xeva_accessed") === "1"; } catch (e) {}
+    if (accessed) {
+      window.XevaSplash = { wait: function () { return this; }, hide: function () {}, done: function () { return Promise.resolve(); }, get app() { return "XEVARION"; } };
+      return;
+    }
+  }
 
   (function () {
     var root = document.documentElement;
@@ -117,11 +128,13 @@
        ・時間を短く：3社ロゴ 1.6秒・アプリロゴ 最短0.6秒（2回目からは 0.25秒）
        ・画面をタップするとすぐ先へ進む（アプリ側の wait()＝読みこみ待ちはそのまま守る）
        ・3社ロゴは起動画面用の小さい絵（brand/*_s.webp・合計約30KB。元の png は合計2MB だった） */
+  /* ★★ 2026-10-13 ご指定（企業ロゴ）：3社ロゴは<b>アプリを開くたびに毎回</b>出す。
+       2回目からは短め（1.1秒）・タップで飛ばせる。アプリロゴの最短表示は 10-09b のまま（2回目から 0.25秒）。 */
   var SEEN_KEY = "xev_splash_seen";
   var SEEN = false;
   try { SEEN = sessionStorage.getItem(SEEN_KEY) === "1"; sessionStorage.setItem(SEEN_KEY, "1"); } catch (e) {}
   var T_IN = 60;                    // 3社ロゴを出すまで
-  var T_HOLD = 1600;                // 3社ロゴの表示時間（前は 3600）
+  var T_HOLD = SEEN ? 1100 : 1600;  // 3社ロゴの表示時間（前は 3600。2回目からは短め）
   var T_OUT = 320;                  // 3社ロゴのフェードアウト
   var T_BAR = SEEN ? 380 : 800;     // ロードバーが伸びきるまで
   var T_MAIN = SEEN ? 250 : 600;    // アプリロゴの最短表示時間（前は 1650）
@@ -242,7 +255,7 @@
   function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
 
   function preload() {
-    var srcs = (SEEN ? [] : BRAND.map(function (b) { return b.src; })).concat([LOGO]);
+    var srcs = BRAND.map(function (b) { return b.src; }).concat([LOGO]);
     return new Promise(function (res) {
       var n = srcs.length, fin = false;
       var done = function () { if (!fin) { fin = true; res(); } };
@@ -261,16 +274,13 @@
     var fill = el.querySelector(".xsbar i");
 
     var pre = preload();
-    if (SEEN) {
-      intro.style.display = "none";          /* ★★ 2026-10-09b 2回目からは3社ロゴを出さない */
-    } else {
-      setTimeout(function () { intro.classList.add("in"); }, T_IN);
-      await Promise.race([sleep(T_HOLD), skipP]);
-      intro.classList.remove("in");
-      intro.classList.add("out");
-      await sleep(T_OUT);
-      intro.style.display = "none";
-    }
+    /* ★★ 2026-10-13 3社ロゴは毎回（10-09b の「2回目からは出さない」をやめた・ご指定） */
+    setTimeout(function () { intro.classList.add("in"); }, T_IN);
+    await Promise.race([sleep(T_HOLD), skipP]);
+    intro.classList.remove("in");
+    intro.classList.add("out");
+    await sleep(T_OUT);
+    intro.style.display = "none";
 
     main.classList.add("in");
     setTimeout(function () {

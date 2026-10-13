@@ -61,3 +61,23 @@ body.pp-community .inp{background:#fbfff7!important;border-color:rgba(76,174,44,
 body.pp-community .btn{background:linear-gradient(180deg,#8fdc64,#4cae2c)!important;box-shadow:0 4px 0 var(--pp-gd)!important;text-shadow:0 1px 0 rgba(47,138,26,.6)}
 body.pp-community .btn.ghost{background:#fff!important;color:var(--txt2)!important;box-shadow:0 3px 0 #e3dccd!important;text-shadow:none}
 body.pp-community .urow{background:#fbfff7!important;border-color:rgba(76,174,44,.25)!important}
+
+/* ══ ★★ 2026-10-13 ご指定「下バーのサイズや画面自体のサイズが変わる。コミュニティ・図鑑・ガチャなどのサイズをホームに統一」══
+   html.xvtb … 下バー（xeva-tabbar.js）を出すページ（ガチャ・コミュニティ・図鑑。HTML の <html class="xvtb">）。
+   ・中身の幅はホームの列（#xhCol）と同じ <b>600px まで</b>・まん中寄せ。PC の広い画面ではホームと同じ細いふち
+   ・下バーぶんの余白を下に（下バーの高さ --xvtb-h は xeva-tabbar.js が実測）
+   ・iPhone のアプリ表示（html.xv-full＝xeva-safebottom.js）では、ホームと同じく<b>本当の画面いっぱい</b>：
+     fixed の板は画面より短い箱で切られる（下バーが浮いて小さく見えていた真因）ので、
+     文書は画面の高さで止めて、<b>body の中でスクロール</b>。下バー・ガチャの引くボタン・図鑑のお知らせは html に absolute で置く。 */
+html.xvtb body{max-width:600px;margin-left:auto!important;margin-right:auto!important;
+  padding-bottom:calc(var(--xvtb-h,69px) + var(--xv-safeb,env(safe-area-inset-bottom,0px)))!important}
+@media (min-width:960px){html.xvtb body{box-shadow:0 0 0 3px rgba(18,32,61,.10);min-height:100vh}}
+html.xvtb #pullbar{left:0!important;right:0!important;margin:0 auto!important;max-width:600px!important;
+  bottom:calc(var(--xvtb-h,69px) + var(--xv-safeb,env(safe-area-inset-bottom,0px)))!important;padding-bottom:9px!important}
+html.xvtb .toast{bottom:calc(var(--xvtb-h,69px) + var(--xv-safeb,env(safe-area-inset-bottom,0px)) + 14px)!important}
+html.xvtb.xv-full{height:var(--xv-fullh)!important;overflow:hidden!important;position:relative!important}
+html.xvtb.xv-full body{height:var(--xv-fullh)!important;min-height:0!important;overflow-y:auto!important;overflow-x:hidden!important;
+  -webkit-overflow-scrolling:touch;overscroll-behavior:none;position:static!important;
+  padding-bottom:calc(var(--xvtb-h,69px) + env(safe-area-inset-bottom,0px))!important}
+html.xvtb.xv-full #pullbar{position:absolute!important;bottom:calc(var(--xvtb-h,69px) + env(safe-area-inset-bottom,0px))!important}
+html.xvtb.xv-full .toast{position:absolute!important;bottom:calc(var(--xvtb-h,69px) + env(safe-area-inset-bottom,0px) + 14px)!important}

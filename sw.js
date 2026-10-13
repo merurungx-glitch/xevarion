@@ -7,7 +7,7 @@
    ・オフライン中の進行は localStorage に残り、オンライン復帰時に
      xeva-cloud.js がタイムスタンプ比較でクラウドへ上書き反映する
    ============================================================ */
-const VERSION = "xevarion-sw-v232";
+const VERSION = "xevarion-sw-v234";
 
 /* ホームを成立させる最小セット（重い画像は runtime キャッシュに任せる） */
 const CORE = [
@@ -38,7 +38,7 @@ const CORE = [
   "./manifest.webmanifest",
   "./xeva-theme.css?v=9",
   "./xevarion.css?v=25",
-  "./xevarion-home.css?v=84",
+  "./xevarion-home.css?v=85",
   /* ★★ 2026-09-03 下バーを画面の下端に合わせる共通部品 */
   "./xeva-safebottom.js?v=12",
   "./xeva-qr.js?v=9",
@@ -63,16 +63,18 @@ const CORE = [
   "./xeva-alive.js?v=5",
   "./xeva-fx.js?v=9",
   "./xeva-loading.js?v=19",
-  "./xevarion.js?v=101",
-  "./xevarion-home.js?v=161",
+  "./xeva-splash.js?v=15",          // ★★ 2026-10-13 XEVARION の起動画面（3社ロゴ）にも使う
+  "./xevarion.js?v=102",
+  "./xevarion-home.js?v=163",
   /* ★★ 2026-09-24 ホームのロビーとパートナー。素材は home-mate/<id>/（?v= は home-mate.js の HM_VER）・笙古／瞳／舞香／衣織／樹愛羅／映美里（09-25 ボイス廃止・表情は webp） */
   "./gacha-live.js?v=6",
-  "./home-mate.js?v=21",
+  "./home-mate.js?v=22",
   "./xeva-event-ui.js?v=2",
-  "./home-mate.css?v=20",
+  "./home-mate.css?v=21",
   "./xeva-pop.css?v=1",
-  "./xeva-pop-pages.css?v=2",
-  "./xeva-uma.css?v=1",
+  "./xeva-pop-pages.css?v=3",
+  "./xeva-uma.css?v=2",
+  "./xeva-tabbar.js?v=3",          // ★★ 2026-10-13 ガチャ・コミュニティ・図鑑にも下バー
   "./home-mate/shoko/shoko.json?v=17",
   "./home-mate/shoko/shoko.webp?v=17",
   "./home-mate/shoko/shoko_label.webp?v=17",
@@ -161,7 +163,7 @@ const CORE = [
   "./thumbs/MagiBurst.jpg",
   "./thumbs/MagiArena.jpg",
   "./thumbs/MagiLink.jpg",
-  "./thumbs/MagiChainParty.jpg",
+  "./thumbs/MagiChainParty.jpg?v=2",
   /* ★★ 2026-09-03 新作 Magi Dominion Grid */
   "./thumbs/MagiDominionGrid.jpg",
   /* ★★ 2026-09-08 新作 MagiCounter。ここに無いとオフラインでアプリ一覧の絵が出ない。 */

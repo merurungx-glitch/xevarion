@@ -1,16 +1,17 @@
 {
-  "version": "2026-10-13-1",
-  "date": "2026-10-13",
-  "title": "選べるSSRキャラ確定チケット2枚／ガチャ演出をさらに豪華に・アイコンをウマ娘風に／MagiChemLex 全1,013問",
+  "version": "2026-10-14-1",
+  "date": "2026-10-14",
+  "title": "MagiChemLex に「基礎」タブ（全1,285問）／パートナーの会話を大幅追加／下バーをホームと同じ大きさに",
   "notes": [
-    "日ごろの感謝をこめて「選べるSSRキャラ確定チケット」を2枚プレゼント（メールから受け取り・ガチャ一覧のいちばん上から使えます）",
-    "ガチャ演出をさらに豪華に（10連のレア度を先に印で見せてその場で昇格・確定演出はキャラの前）・チケットや道具の絵を MagiBurst と同じに・確率1.5倍の札をコンパクトに・バナーの MagiAbyss 表記をなくした",
-    "ホームのアイコン・ボタン・メール・ミッション・設定をウマ娘風に・ロビーのボタンは静止して詰めた（左の「イベント」「更新情報」は廃止）・図鑑の並び替えはボタンから選ぶ形に・更新のダウンロードは件数が変わらず全部終わってから100%",
-    "MagiChemLex：標準セット3・4を追加して全1,013問・「本番」→「難関」・「関連問題」タブ→「単元別問題」／MagiAbyss：技のボタン4つ・スティック固定・ダッシュ回避の廃止",
-    "MagiBurst：下バーに育成と図鑑・ショップのガチャタブを廃止／Boccia：叡智の果実の絵／MagiChainParty：iPhone・iPad の下の空白を修正／MagiDiamond と XEVARION PARK のオフライン対応は終了"
+    "MagiChemLex：教科書レベルの「基礎」タブを追加（基礎セット1・2＝改題92問＋大問ごとの関連問題180問・単元別問題にも基礎レベル）で全1,285問",
+    "MagiChemLex：問題セットのタブ（難関・標準・基礎・単元別）を見やすい札に・標準と基礎は改題のあとに関連問題をまとめて左に線・単元別のカードにもとの問題の難易度・正誤の問題は選択肢の順を固定",
+    "パートナー：10人の会話を大幅に追加（勉強がつらいときの励まし・MagiChemLex などへのお誘いと「ひらく」ボタン・今日の学習をほめる）・セール中はボタンの右上に SALE",
+    "ガチャ・コミュニティ・図鑑：画面の幅と下バーの大きさをホームにそろえ、ガチャのアイコンもキャラの絵に・選んだタブの印が右から動きすぎるのを修正",
+    "MagiChainParty：タイトルを絵から名前と小さな盤の動きに・CHAIN の表示をやめた・個数の数字が左へ動きすぎるのを修正・戻るボタンなどをアイコンつきのデザインに",
+    "MagiShift：50周の引き分けは CPU だけの対戦のときだけに・戻る／メニュー／確認などのボタンをデザイン"
   ],
-  "bytes": 68373507,
-  "files": 755,
+  "bytes": 69015546,
+  "files": 762,
   "urls": [
     "index.html",
     "characters.html",
@@ -56,6 +57,7 @@
     "xeva-alive.js",
     "xeva-fx.js",
     "xeva-loading.js",
+    "xeva-splash.js",
     "xevarion.js",
     "xevarion-home.js",
     "gacha-live.js",
@@ -65,6 +67,7 @@
     "xeva-pop.css",
     "xeva-pop-pages.css",
     "xeva-uma.css",
+    "xeva-tabbar.js",
     "home-mate/shoko/shoko.json",
     "home-mate/shoko/shoko.webp",
     "home-mate/shoko/shoko_label.webp",
@@ -204,7 +207,6 @@
     "img/t_Homura.webp",
     "img/t_Yoizuki.webp",
     "img/t_Sumika.webp",
-    "xeva-splash.js",
     "MagiLex/magilex-cloud.js",
     "app-install-notice.js",
     "MagiBurst/index.html",
@@ -584,6 +586,8 @@
     "MagiChainParty/index.html",
     "MagiChainParty/css/style.css",
     "MagiChainParty/js/game.js",
+    "MagiChainParty/img/logo_hero.webp",
+    "MagiChainParty/img/icon192.png",
     "XEVYNAR/index.html",
     "XEVYNAR/manifest.webmanifest",
     "XEVYNAR/xevynar.css",
@@ -697,6 +701,7 @@
     "MagiShift/index.html",
     "MagiShift/css/shift.css",
     "MagiShift/js/shift-core.js",
+    "MagiShift/js/shift-ai.js",
     "MagiShift/js/shift-account.js",
     "MagiShift/js/shift-ui.js",
     "MagiShift/img/icon192.png",
@@ -759,38 +764,95 @@
     "MagiChemLex/js/mcl-data5.js",
     "MagiChemLex/js/mcl-data6.js",
     "MagiChemLex/js/mcl-data7.js",
+    "MagiChemLex/js/mcl-data8.js",
+    "MagiChemLex/js/mcl-data9.js",
     "MagiChemLex/js/mcl-core.js",
     "MagiChemLex/js/mcl-fig.js",
     "MagiChemLex/js/mcl-fig2.js",
     "MagiChemLex/js/mcl-fig3.js",
     "MagiChemLex/js/mcl-fig4.js",
+    "MagiChemLex/js/mcl-fig5.js",
     "MagiChemLex/js/mcl-ui.js",
     "MagiChemLex/img/icon_192.png",
     "MagiChemLex/img/apple-touch-icon.png"
   ],
   "apps": [
-    "magiabyss",
-    "magibattle",
-    "magibocciarush",
-    "magiburst",
     "magichainparty",
     "magichemlex",
-    "magicounter",
-    "magidominiongrid",
-    "magijackpot",
-    "magilex",
-    "magilotto",
-    "magimusic",
-    "magiscope",
     "magishift",
     "tab:chars",
     "tab:community",
     "tab:gacha",
-    "tab:home",
-    "xevynar"
+    "tab:home"
   ],
-  "changedFiles": 1,
+  "changedFiles": 25,
   "history": [
+    {
+      "version": "2026-10-13-2",
+      "date": "2026-10-13",
+      "title": "MagiShift に CPU と新ルール／MagiChainParty が新しいロゴと見た目に／下バーをいつでも表示",
+      "notes": [
+        "MagiShift：CPU 対戦（席ごとに人／CPU・強さは3段階）。駒を動かすときは間の駒を飛びこえて2マス先へ置けるように",
+        "MagiShift：守りの手を増やした新ルール「タクティクス」（となりの相手の駒を押す・1周だけの壁ブロック）・画面をシンプルで明るく作り直し・左右のずれを修正・前回の紐づけを「要確認」で引きつぎ",
+        "MagiChainParty：新しいロゴ・画面をシンプルで明るい見た目に作り直し（機能はそのまま）・バクハツの粒や連鎖の数など控えめな動き",
+        "ガチャ・コミュニティ・図鑑でもホームと同じ下バーを表示",
+        "XEVARION の起動時と、アプリを開くたびに NGX × Magical Future × ISHIDA Production のロゴ（タップで飛ばせる）",
+        "MagiChemLex：問題セットに「絞り込み」「並び替え」ボタン・スマホでメモと電卓を大きく・ホームに標準レベル追加のお知らせ（次回から表示しないで消せる）"
+      ],
+      "apps": [
+        "magiabyss",
+        "magibocciarush",
+        "magiburst",
+        "magichainparty",
+        "magichemlex",
+        "magicounter",
+        "magidominiongrid",
+        "magijackpot",
+        "magilex",
+        "magilotto",
+        "magirail",
+        "magiscope",
+        "magishift",
+        "tab:chars",
+        "tab:community",
+        "tab:gacha",
+        "tab:home",
+        "xevynar"
+      ]
+    },
+    {
+      "version": "2026-10-13-1",
+      "date": "2026-10-13",
+      "title": "選べるSSRキャラ確定チケット2枚／ガチャ演出をさらに豪華に・アイコンをウマ娘風に／MagiChemLex 全1,013問",
+      "notes": [
+        "日ごろの感謝をこめて「選べるSSRキャラ確定チケット」を2枚プレゼント（メールから受け取り・ガチャ一覧のいちばん上から使えます）",
+        "ガチャ演出をさらに豪華に（10連のレア度を先に印で見せてその場で昇格・確定演出はキャラの前）・チケットや道具の絵を MagiBurst と同じに・確率1.5倍の札をコンパクトに・バナーの MagiAbyss 表記をなくした",
+        "ホームのアイコン・ボタン・メール・ミッション・設定をウマ娘風に・ロビーのボタンは静止して詰めた（左の「イベント」「更新情報」は廃止）・図鑑の並び替えはボタンから選ぶ形に・更新のダウンロードは件数が変わらず全部終わってから100%",
+        "MagiChemLex：標準セット3・4を追加して全1,013問・「本番」→「難関」・「関連問題」タブ→「単元別問題」／MagiAbyss：技のボタン4つ・スティック固定・ダッシュ回避の廃止",
+        "MagiBurst：下バーに育成と図鑑・ショップのガチャタブを廃止／Boccia：叡智の果実の絵／MagiChainParty：iPhone・iPad の下の空白を修正／MagiDiamond と XEVARION PARK のオフライン対応は終了"
+      ],
+      "apps": [
+        "magiabyss",
+        "magibattle",
+        "magibocciarush",
+        "magiburst",
+        "magichainparty",
+        "magichemlex",
+        "magicounter",
+        "magidominiongrid",
+        "magijackpot",
+        "magilex",
+        "magilotto",
+        "magimusic",
+        "magiscope",
+        "magishift",
+        "tab:chars",
+        "tab:community",
+        "tab:gacha",
+        "tab:home",
+        "xevynar"
+      ]
+    },
     {
       "version": "2026-10-12-2",
       "date": "2026-10-12",
@@ -1236,32 +1298,6 @@
         "tab:home",
         "xevynar",
         "magibattle"
-      ]
-    },
-    {
-      "version": "2026-09-22-5",
-      "date": "2026-09-22",
-      "title": "MagiScope スマホの表示を修正",
-      "notes": [
-        "おすすめ特集のボタンが画面外に出ないように",
-        "マイページのお気に入り件数を見やすく"
-      ],
-      "apps": [
-        "magiscope"
-      ]
-    },
-    {
-      "version": "2026-09-22-4",
-      "date": "2026-09-22",
-      "title": "MagiScope のサンプル・おすすめ特集を改善",
-      "notes": [
-        "サンプル画像の途切れを修正",
-        "おすすめ特集はボタンで切りかえ",
-        "Filmarks のランキングを廃止",
-        "映画の歴代興収は別の枠に"
-      ],
-      "apps": [
-        "magiscope"
       ]
     }
   ]

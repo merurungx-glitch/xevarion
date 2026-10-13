@@ -14,17 +14,20 @@
 <link rel="apple-touch-icon" href="icons/xev-192.png">
 <link rel="manifest" href="manifest.webmanifest">
 <script src="maintenance-gate.js?v=13"></script>
+<!-- ★★ 2026-10-13 ご指定「アプリ開始時に企業ロゴ」：XEVARION を起動したときだけ 3社ロゴ → XEVARION のロゴとロードバー
+     （アプリから戻ってきたとき＝このタブで「タップしてスタート」ずみは出さない。判定は xeva-splash.js の data-home） -->
+<script src="xeva-splash.js?v=15" data-app="XEVARION" data-logo="icons/xev-512.png" data-home="1" data-keep-legacy="1"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Exo+2:ital,wght@0,300;0,400;0,600;0,700;1,300&family=Noto+Sans+JP:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="xeva-theme.css?v=9">
 <link rel="stylesheet" href="xevarion.css?v=25">
-<link rel="stylesheet" href="xevarion-home.css?v=84">
+<link rel="stylesheet" href="xevarion-home.css?v=85">
 <!-- ★★ 2026-08-22b Xevion OS の見た目（テーマ・文字の大きさ・動きを減らす）。
      xevarion-home.css の<b>あと</b>に読む＝上書きできるようにする。 -->
 <link rel="stylesheet" href="xevion-os.css?v=15">
 <!-- ★★ 2026-09-24 ホームの「動くキャラ」（舞香）。中身は home-mate.js。 -->
-<link rel="stylesheet" href="home-mate.css?v=20">
+<link rel="stylesheet" href="home-mate.css?v=21">
 <!-- ★★ 2026-10-12b ウマ娘風のポップな見た目（色・ふち・影・書体だけ。位置と大きさは変えない）。いちばん最後に読む -->
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="xeva-pop.css?v=1">
@@ -73,9 +76,9 @@
 <script src="xeva-presence.js?v=9" defer></script>
 <script type="module" src="xeva-cloud.js?v=44"></script>
 <script src="xeva-qr.js?v=9" defer></script>
-<script src="xevarion.js?v=101" defer></script>
-<script src="xevarion-home.js?v=161" defer></script>
-<script src="home-mate.js?v=21" defer></script>
+<script src="xevarion.js?v=102" defer></script>
+<script src="xevarion-home.js?v=163" defer></script>
+<script src="home-mate.js?v=22" defer></script>
 <!-- ★★ 2026-10-06 XEVARION 共通イベント（Violet Breeze）のページ。中身は xeva.js の XEVA.event -->
 <script src="xeva-event-ui.js?v=2" defer></script>
 </head>
@@ -782,6 +785,38 @@ body.music-on #beatFrame{opacity:1}
       <button class="xh-sheet-x" onclick="xhCloseSheet('xhSchedSheet')">✕</button>
     </div>
     <div class="xh-sheet-body" id="xhSchedBody"></div>
+  </div>
+</div>
+
+<!-- ───── ★★ 2026-10-13 MagiChemLex の新しいレベルのお知らせ（ご指定）─────
+     XEVARION を開くたびに出す。「次回から表示しない」を押したら出さない（xevarion-home.js の xhChemNewMaybe）。
+     ★ MagiChemLex は試験名・大学名・年度を出さない決まり（「標準レベル」「マーク式」と書く） -->
+<div class="xh-sheet" id="xhChemNewSheet" onclick="if(event.target===this)xhChemNewClose()">
+  <div class="xh-sheet-card">
+    <div class="xh-sheet-head">
+      <div class="xh-sheet-title">🧪 MagiChemLex に「標準レベル」が登場</div>
+      <button class="xh-sheet-x" onclick="xhChemNewClose()">✕</button>
+    </div>
+    <div class="xh-sheet-body">
+      <div class="xh-chemnew">
+        <div class="cn-hero">
+          <img src="thumbs/MagiChemLex.jpg" alt="MagiChemLex">
+          <div><div class="t1">MagiChemLex</div><div class="t2">化学の問題集・全 <b>1,013</b> 問</div></div>
+          <span class="cn-new">NEW</span>
+        </div>
+        <div class="cn-lead"><b>難関レベル</b>の化学（入試問題の改題）に加えて、
+          基礎〜標準の<b>マーク式の問題</b>が遊べるようになりました。</div>
+        <div class="cn-list">
+          <div class="it"><span class="ic">📘</span><span><b>標準セット1〜4</b>（512問）<br><small>マーク式の大問の改題と、大問ごとの関連問題。習得でXEVAのごほうび</small></span></div>
+          <div class="it"><span class="ic">🧩</span><span><b>単元別問題</b><br><small>関連問題を単元ごとにまとめて練習（難関レベル／標準レベル）</small></span></div>
+          <div class="it"><span class="ic">⏱️</span><span><b>模試モード</b><br><small>時間を計って最後にまとめて採点。標準セットでも使えます</small></span></div>
+          <div class="it"><span class="ic">🔎</span><span><b>絞り込み・並び替え</b><br><small>問題セットを状態・計算問題・組で絞りこみ、習得率などで並び替え</small></span></div>
+        </div>
+      </div>
+      <button class="xh-sbtn" onclick="xhChemNewGo()">🧪 MagiChemLex をひらく</button>
+      <button class="xh-sbtn ghost" onclick="xhChemNewClose()">とじる</button>
+      <button class="xh-cn-off" onclick="xhChemNewOff()">次回から表示しない</button>
+    </div>
   </div>
 </div>
 
@@ -1917,6 +1952,34 @@ body.music-on #beatFrame{opacity:1}
 
   <div class="nm-body" id="newsBody">
     <div class="nm-divider" id="newDivider" style="display:none;">NEW — 前回から更新</div>
+    <!-- 2026-10-14：MagiChemLex 基礎タブ（基礎セット1・2）・タブの見直し／パートナーの会話の大幅追加・SALE の印／下バーの大きさをホームにそろえる／MagiChainParty・MagiShift の見た目 -->
+    <div class="nm-item" data-tag="new" data-date="2026-10-14">
+      <div class="nm-date">2026<br>10.14</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag new">NEW</span></div>
+        <div class="nm-title">🧪 MagiChemLex に「基礎」タブ（全1,285問）／パートナーの会話が大幅に増えました／下バーをホームと同じ大きさに</div>
+        <div class="nm-txt">・<b>MagiChemLex</b>：教科書レベルの<b>「基礎」タブ</b>を追加しました。<b>基礎セット1・2</b>（大問10・改題92問）と、大問ごとの<b>関連問題180問</b>。単元別問題にも「基礎レベル」が加わり、全部で<b>1,285問</b>になりました。問題セットのタブ（難関・標準・基礎・単元別）は、名前と問題数がひと目でわかる札に作り直しました。標準・基礎のセットは「改題 → その組の関連問題」の順にまとめて、関連問題の左に線を入れています。単元別問題のカードには、その単元の<b>もとの問題の難易度</b>を小さく出しています。「正しい／誤り」を答える問題は、選択肢の順番が入れかわらないようにしました。<br>
+          ・<b>パートナー</b>：10人の会話を大幅に増やしました。勉強がつらいときの励まし、MagiChemLex・MagiLex などへのお誘い（そのまま開ける「ひらく」ボタンつき）、今日解いた問題の数や連続日数をほめてくれます。パートナーのセール中は、ボタンの右上に<b>「SALE」</b>が出ます。<br>
+          ・<b>下バー</b>：ガチャ・コミュニティ・図鑑の画面の幅と下バーの大きさを<b>ホームと同じ</b>にしました。ガチャのアイコンもホームと同じキャラの絵になります。選んだタブの印が右から大きく動いていたのも直しました。<br>
+          ・<b>MagiChainParty</b>：タイトルのロゴを、絵から MagiShift のような<b>名前と小さな盤の動き</b>に変えました。「n CHAIN!」の表示はなくし、個数の数字がはねるときに左へずれないようにしました。戻る・メニューなどのボタンをアイコンつきのデザインにそろえました。<br>
+          ・<b>MagiShift</b>：50周で引き分けになるのは<b>CPU だけの対戦</b>のときだけにしました（人がいる対戦は決着がつくまで続きます）。戻る・メニュー・確認などのボタンをデザインし直しました。
+        </div>
+      </div>
+    </div>
+    <!-- 2026-10-13 その2：MagiShift CPU・タクティクス／MagiChainParty 新しいロゴと見た目／下バーをガチャ・コミュニティ・図鑑にも／会社ロゴ／MagiChemLex 絞り込み・並び替え -->
+    <div class="nm-item" data-tag="new" data-date="2026-10-13">
+      <div class="nm-date">2026<br>10.13</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag new">NEW</span></div>
+        <div class="nm-title">🎲 MagiShift に CPU と新ルール「タクティクス」／MagiChainParty が新しいロゴと見た目に／下バーをいつでも表示</div>
+        <div class="nm-txt">・<b>MagiShift</b>：<b>CPU 対戦</b>ができるようになりました（席ごとに「人／CPU」・強さは よわい／ふつう／つよい）。駒を動かすときは、<b>あいだにほかの駒があっても飛びこえて</b>2マス先に置けます。守りの手を増やした新しいルール<b>「タクティクス」</b>を追加（となりの相手の駒を1マス<b>押す</b>／1周だけの壁<b>ブロック</b>・1人2個）。画面をシンプルで明るい見た目に作り直し、左右のずれも直しました。前回の紐づけは「🔒 要確認」で引きつがれ、パスワードを入れると有効になります（MagiChainParty と同じ）。50周で決着がつかなければ引き分けです。<br>
+          ・<b>MagiChainParty</b>：<b>新しいロゴ</b>にしました。画面をシンプルで明るい見た目に作り直し、バクハツで粒が飛ぶ・連鎖の数（2 CHAIN!）・勝ったときの紙ふぶきなどの動きを付けました（遊びかたや機能はこれまでどおりです）。<br>
+          ・<b>下バー</b>：ホームの下バーから開く<b>ガチャ・コミュニティ・図鑑</b>でも、下バーを出したままにしました。<br>
+          ・<b>起動画面</b>：XEVARION を起動したときと、各アプリを開くたびに <b>NGX × Magical Future × ISHIDA Production</b> のロゴを出すようにしました（タップで飛ばせます）。<br>
+          ・<b>MagiChemLex</b>：問題セットに「<b>絞り込み</b>」（状態・計算問題・組・分野）と「<b>並び替え</b>」（習得率・正答率・問題数・最近解いた順など）のボタンを追加。スマホで<b>メモと電卓を大きく</b>しました（メモの段を広く・道具は1行・電卓はキーを大きく）。ホームで「標準レベル」のお知らせを出します（「次回から表示しない」で消せます）。
+        </div>
+      </div>
+    </div>
     <!-- 2026-10-13 選べるSSRキャラ確定チケット2枚／ガチャ演出をさらに豪華に／アイコンとボタンをウマ娘風に／MagiChemLex 全1,013問／MagiAbyss の操作 -->
     <div class="nm-item" data-tag="new" data-date="2026-10-13">
       <div class="nm-date">2026<br>10.13</div>
@@ -5632,6 +5695,6 @@ body.music-on #beatFrame{opacity:1}
 </div>
 
 <!-- ★★ 2026-10-12c ウマ娘風のボタン・シート・動き（いちばん最後に読む＝ページの中の style より強く） -->
-<link rel="stylesheet" href="xeva-uma.css?v=1">
+<link rel="stylesheet" href="xeva-uma.css?v=2">
 </body>
 </html>
