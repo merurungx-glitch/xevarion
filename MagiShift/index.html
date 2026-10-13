@@ -4,13 +4,13 @@
 <script src="../maintenance-gate.js?v=13"></script>
 <meta charset="UTF-8" />
 <script>(function(){try{var a=JSON.parse(localStorage.getItem('xeva_account_v1'));if(!a||!a.setupDone)location.replace('../index.html');}catch(e){}})();</script>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <title>MagiShift</title>
-<meta name="description" content="つなげて、動かして、勝ちをつかめ。1台のiPadを2〜6人で囲む、駒を動かせるマルバツ対戦ボードゲーム。" />
+<meta name="description" content="つなげて、動かして、勝ちをつかめ。1台のiPadを2〜6人（CPUも）で囲む、駒を動かせるマルバツ対戦ボードゲーム。" />
 <link rel="icon" href="../thumbs/MagiShift.jpg" type="image/jpeg" />
 <link rel="apple-touch-icon" href="../thumbs/MagiShift.jpg" />
-<meta name="theme-color" content="#f6f8fd" />
+<meta name="theme-color" content="#f5f7fc" />
 <link rel="manifest" href="manifest.webmanifest" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -21,139 +21,159 @@ if ("serviceWorker" in navigator) {
 }
 </script>
 <script src="../xeva-safebottom.js?v=12"></script>
-<link rel="stylesheet" href="css/shift.css?v=5" />
-<script src="../xeva-splash.js?v=14" data-app="MagiShift" data-logo="../thumbs/MagiShift.jpg"></script>
+<link rel="stylesheet" href="css/shift.css?v=7" />
+<script src="../xeva-splash.js?v=15" data-app="MagiShift" data-logo="../thumbs/MagiShift.jpg"></script>
 </head>
 <body>
+<!-- ══════════════════════════════════════════════════════════════
+     ★★ 2026-10-13 画面を1から作り直した（ご指定「より分かりやすいシンプルかつライトな UI」
+        「動きがあり盛り上がれる、カジュアルで少し控えめなモーション」「左が空いて重なる・右がギリギリ」）。
+     ・どの画面も「画面の高さぶんの板」の中でスクロールする（iPhone のアプリ表示でも下が切れない）
+     ・準備は1画面（人数・ルール・プレイヤー・CPU の強さ）→ 順番の抽選 → 対戦
+     ・対戦は、たて長＝上から「プレイヤー → 盤 → 手番の板」、横長＝「プレイヤー｜盤｜手番の板」の3列
+     ══════════════════════════════════════════════════════════════ -->
+<div class="bgfx" aria-hidden="true"><i></i><i></i><i></i></div>
 
 <!-- ① タイトル -->
 <section id="title" class="scr on">
-  <h1 class="logo">Magi<i>Shift</i></h1>
-  <p class="tagline">つなげて、動かして、勝ちをつかめ。</p>
-  <div class="marks">
-    <svg class="pc" viewBox="0 0 24 24" style="--pc:#e5484d"><circle class="bg" cx="12" cy="12" r="10.4"/><g class="mk"><circle cx="12" cy="12" r="6.4"/></g></svg>
-    <svg class="pc" viewBox="0 0 24 24" style="--pc:#2a77e8"><circle class="bg" cx="12" cy="12" r="10.4"/><g class="mk"><path d="M7.5 7.5l9 9M16.5 7.5l-9 9"/></g></svg>
-    <svg class="pc" viewBox="0 0 24 24" style="--pc:#12a05c"><circle class="bg" cx="12" cy="12" r="10.4"/><g class="mk"><path d="M12 6l6 11H6z"/></g></svg>
-    <svg class="pc" viewBox="0 0 24 24" style="--pc:#eab308"><circle class="bg" cx="12" cy="12" r="10.4"/><g class="mk"><rect x="6.6" y="6.6" width="10.8" height="10.8" rx="1.6"/></g></svg>
-    <svg class="pc" viewBox="0 0 24 24" style="--pc:#8b5cf6"><circle class="bg" cx="12" cy="12" r="10.4"/><g class="mk"><path d="M12 5.6l2 4.3 4.7.6-3.4 3.3.8 4.6L12 16.2 7.9 18.4l.8-4.6-3.4-3.3 4.7-.6z"/></g></svg>
-    <svg class="pc" viewBox="0 0 24 24" style="--pc:#f97316"><circle class="bg" cx="12" cy="12" r="10.4"/><g class="mk"><path d="M12 5.4l5.6 3.3v6.6L12 18.6l-5.6-3.3V8.7z"/></g></svg>
-  </div>
-  <div class="tbtns">
-    <button class="btn pri" data-a="start">▶ ゲームをはじめる</button>
-    <button class="btn" data-a="cont" id="btnCont" hidden>つづきから</button>
-    <div class="tsmall">
-      <button class="btn sm" data-a="rules">📖 ルール説明</button>
-      <button class="btn sm" data-a="stats">🏆 戦績を見る</button>
-      <button class="btn sm" data-a="settings">⚙ 設定</button>
-      <a class="btn sm" href="../index.html">XEVARION へ</a>
+  <a class="homebtn" href="../index.html" aria-label="XEVARION へもどる"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span>XEVARION</span></a>
+  <div class="tmain">
+    <div class="tlogo">
+      <h1 class="logo">Magi<i>Shift</i></h1>
+      <p class="tagline">つなげて、動かして、勝ちをつかめ。</p>
+    </div>
+    <!-- 置いた駒があとから動く、を小さな盤でくり返し見せる（控えめに） -->
+    <div class="tdemo" aria-hidden="true" id="tdemo"></div>
+    <div class="tbtns">
+      <button class="btn pri big" data-a="start"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="fl" d="M8 5.5v13l10.5-6.5z"/></svg>あそぶ</button>
+      <button class="btn" data-a="cont" id="btnCont" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4.5V9h4.5"/></svg><span id="btnContTx">つづきから</span></button>
+      <div class="tsmall">
+        <button class="tool" data-a="rules"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4.5h9.5a2 2 0 0 1 2 2v13H7a2 2 0 0 1-2-2z"/><path d="M5 17.5a2 2 0 0 1 2-2h9.5"/><path d="M8.5 8.5h5M8.5 11.5h4"/></svg><span>ルール</span></button>
+        <button class="tool" data-a="stats"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5h10v4a5 5 0 0 1-10 0z"/><path d="M7 6H4.5a2.5 2.5 0 0 0 2.6 3.6M17 6h2.5a2.5 2.5 0 0 1-2.6 3.6"/><path d="M12 13.5v3M8.5 19.5h7"/></svg><span>戦績</span></button>
+        <button class="tool" data-a="settings"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 3.5v2.2M12 18.3v2.2M3.5 12h2.2M18.3 12h2.2M6 6l1.6 1.6M16.4 16.4 18 18M6 18l1.6-1.6M16.4 7.6 18 6"/></svg><span>設定</span></button>
+      </div>
     </div>
   </div>
 </section>
 
-<!-- ② 人数えらび -->
-<section id="count" class="scr">
-  <h2 class="h2">プレイヤー人数を選択してください</h2>
-  <div id="counts"></div>
-  <div class="foot"><button class="btn" data-a="title">戻る</button><button class="btn sm" data-a="settings">⚙ 盤面の設定</button></div>
-</section>
-
-<!-- ③ プレイヤー登録 -->
+<!-- ② 準備（人数・ルール・プレイヤー・CPU）を1画面に -->
 <section id="setup" class="scr">
-  <h2 class="h2">プレイヤーを登録してください</h2>
-  <p class="note" style="text-align:center;margin:-10px 0 4px">名前はそのまま打って変えられます（6文字まで）。🔗 で XEVARION アカウントを紐づけると、名前と戦績が残り賞金を受け取れます（紐づけなくても遊べます）。</p>
-  <p class="note" style="text-align:center;margin-bottom:14px" id="setupSub"></p>
-  <div id="plist"></div>
-  <div class="foot"><button class="btn" data-a="count">戻る</button><button class="btn pri" data-a="begin">ゲーム開始</button></div>
-  <p class="note" style="text-align:center;margin-top:10px">※ 前回紐づけた席は <b>🔒（要確認）</b>で戻ります。押して4桁パスワードを入れると有効になります。<br>アカウントのパスワードはゲームの中に保存しません。</p>
+  <div class="topbar">
+<button class="bbtn" data-a="title"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span>もどる</span></button>
+    <h2>ゲームの準備</h2>
+    <button class="ibtn" data-a="rules" aria-label="ルール"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.4 2.3c-.6.3-1 .8-1 1.5v.6"/><path d="M12 16.6v.4"/></svg></button>
+  </div>
+  <div class="swrap">
+    <div class="card">
+      <h3><span class="hn">1</span>人数</h3>
+      <div class="seg" id="segN"></div>
+      <p class="rinfo" id="ruleInfo"></p>
+    </div>
+    <div class="card">
+      <h3><span class="hn">2</span>ルール</h3>
+      <div class="modes" id="segMode"></div>
+    </div>
+    <div class="card">
+      <h3><span class="hn">3</span>プレイヤー<small>名前はそのまま打って変えられます（6文字まで）</small></h3>
+      <div id="plist"></div>
+      <p class="note">🔗 で XEVARION アカウントを紐づけると、戦績が残り順位に応じた賞金を受け取れます（紐づけなくても遊べます）。前回紐づけた席は <b>🔒 要確認</b> で引きつがれ、押して4桁パスワードを入れると有効になります。パスワードはゲームの中に保存しません。</p>
+    </div>
+    <div class="card" id="cpuCard">
+      <h3><span class="hn">4</span>CPU の強さ</h3>
+      <div class="seg" id="segCpu"></div>
+    </div>
+  </div>
+  <div class="sticky"><button class="btn pri big" data-a="begin"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4.5" y="4.5" width="15" height="15" rx="3.5"/><circle class="fl" cx="9" cy="9" r="1.2"/><circle class="fl" cx="15" cy="15" r="1.2"/><circle class="fl" cx="15" cy="9" r="1.2"/><circle class="fl" cx="9" cy="15" r="1.2"/></svg>順番をきめる</button></div>
 </section>
 
 <!-- ★★ 2026-09-22 順番の抽選（MagiChainParty と同じ見せかた） -->
 <section id="order" class="scr">
   <div class="ocard">
     <h2 id="orderTitle">順番を抽選中…</h2>
-    <div id="orderDice" class="odice">🎲</div>
+    <div id="orderDice" class="odice" aria-hidden="true"></div>
     <div id="orderList"></div>
-    <div id="orderBtns" class="foot" hidden>
-      <button class="btn" data-a="orderRedo">もう一度きめる</button>
-      <button class="btn pri" data-a="orderGo">この順番ではじめる！</button>
+    <div id="orderBtns" class="obtns" hidden>
+      <button class="btn pri big" data-a="orderGo">この順番ではじめる！</button>
+      <button class="btn" data-a="orderRedo"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.4-5.7"/><path d="M20 4.5V9h-4.5"/></svg>もう一度きめる</button>
     </div>
-    <div class="foot" style="margin-top:6px"><button class="btn sm ghost" data-a="orderBack">登録にもどる</button></div>
+    <button class="bbtn mid" data-a="orderBack"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span>準備にもどる</span></button>
   </div>
 </section>
 
 <!-- ④ 対戦 -->
 <section id="game" class="scr">
-  <div class="ghead">
-    <span class="ttl">MagiShift</span>
-    <span class="meta" id="gmeta"></span>
-    <button class="btn sm" data-a="gmenu" aria-label="メニュー">☰</button>
+  <div class="gtop">
+    <button class="ibtn" data-a="gmenu" aria-label="メニュー"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7h14M5 12h14M5 17h14"/></svg></button>
+    <div class="gtitle"><b>Magi<i>Shift</i></b><span id="gmeta"></span></div>
+    <button class="ibtn" data-a="rules" aria-label="ルール"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.4 2.3c-.6.3-1 .8-1 1.5v.6"/><path d="M12 16.6v.4"/></svg></button>
   </div>
-  <div class="glayout">
-    <div id="gplayers"></div>
-    <div class="bwrap">
-      <div id="board"></div>
-      <div id="turnbar"></div>
-    </div>
-  </div>
+  <div id="gplayers"></div>
+  <div class="bstage"><div id="board"></div></div>
+  <div id="turnbar"></div>
 </section>
 
-<!-- ⑤ 勝利 -->
-<section id="win" class="scr"><div id="winbox"></div></section>
+<!-- ⑤ 勝利（盤の上に重ねて出す＝そろった列が見える） -->
+<div id="win" class="winov" hidden><div id="winbox"></div></div>
 
 <!-- ⑥ 結果 -->
 <section id="result" class="scr">
-  <h2 class="h2">試合結果</h2>
-  <div id="resultList"></div>
-  <div id="resultMeta"></div>
-  <div class="foot"><button class="btn pri" data-a="again">もう一度遊ぶ</button><button class="btn" data-a="menu">メニューへ</button></div>
+  <div class="topbar"><span></span><h2>試合結果</h2><span></span></div>
+  <div class="swrap">
+    <div id="resultList"></div>
+    <div id="resultMeta"></div>
+  </div>
+  <div class="sticky row"><button class="btn pri big" data-a="again"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.4-5.7"/><path d="M20 4.5V9h-4.5"/></svg>もう一度あそぶ</button><button class="btn big" data-a="menu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 11.2 12 4.5l8 6.7"/><path d="M6.5 9.5v9.5h11V9.5"/><path d="M10 19v-5h4v5"/></svg>タイトルへ</button></div>
 </section>
 
 <!-- 設定 -->
 <section id="settings" class="scr">
-  <h2 class="h2">設定</h2>
-  <div class="card"><h3>盤面サイズ</h3><div class="chips" id="setSize"></div></div>
-  <div class="card"><h3>勝利条件（いくつ並べるか）</h3><div class="chips" id="setWin"></div></div>
-  <div class="card"><h3>1人が置ける駒の数</h3><div class="chips" id="setPieces"></div></div>
-  <div class="card">
-    <div class="srow" style="border-top:none"><b>効果音</b><label class="sw"><input type="checkbox" id="setSe"><span></span></label></div>
-    <div class="srow"><b>BGM</b><label class="sw"><input type="checkbox" id="setBgm"><span></span></label></div>
+  <div class="topbar">
+<button class="bbtn" data-a="back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span>もどる</span></button>
+    <h2>設定</h2><span></span>
   </div>
-  <div class="foot"><button class="btn" data-a="title">戻る</button><button class="btn sm" data-a="setreset">初期設定に戻す</button></div>
+  <div class="swrap">
+    <div class="card"><h3>盤面サイズ<small>「人数どおり」は 2人 5×5 〜 6人 9×9</small></h3><div class="chips" id="setSize"></div></div>
+    <div class="card"><h3>勝利条件（いくつ並べるか）</h3><div class="chips" id="setWin"></div></div>
+    <div class="card"><h3>1人が置ける駒の数</h3><div class="chips" id="setPieces"></div></div>
+    <div class="card">
+      <div class="srow first"><b>効果音</b><label class="sw"><input type="checkbox" id="setSe"><span></span></label></div>
+      <div class="srow"><b>BGM</b><label class="sw"><input type="checkbox" id="setBgm"><span></span></label></div>
+      <div class="srow"><b>CPU の手をゆっくり見せる</b><label class="sw"><input type="checkbox" id="setSlow"><span></span></label></div>
+    </div>
+    <div class="foot"><button class="btn sm ghost" data-a="setreset"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12a8 8 0 1 0 2.4-5.7"/><path d="M4 4.5V9h4.5"/></svg>初期設定に戻す</button></div>
+  </div>
 </section>
 
 <!-- ルール -->
 <section id="rules" class="scr">
-  <h2 class="h2">ルール説明</h2>
-  <div class="card rules">
-    <ul>
-      <li>自分の番になったら、<b>空いているマスに駒を置く</b>か、<b>自分の駒を動かす</b>かのどちらかをします。</li>
-      <li>駒は<b>たて・よこ・ななめに2マスまで</b>動かせます（ほかの駒は飛びこえられません）。</li>
-      <li>自分の駒が<b>たて・よこ・ななめに決められた数だけ並んだら勝ち</b>です。</li>
-      <li>置くだけでは勝てないとき、<b>すでに置いた駒を動かして</b>別の場所に並びを作れます。ここがこのゲームのいちばんの特徴です。</li>
-      <li>人数によって盤面の広さと並べる数が変わります（2人＝5×5で4つ、6人＝9×9で5つ）。設定で変えられます。</li>
-      <li>ほかの人の駒は選べません。動かせないマスは反応しません。</li>
-    </ul>
+  <div class="topbar">
+<button class="bbtn" data-a="back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span>もどる</span></button>
+    <h2>ルール</h2><span></span>
   </div>
-  <div class="foot"><button class="btn" data-a="title">戻る</button></div>
+  <div class="swrap" id="rulesBody"></div>
 </section>
 
 <!-- 戦績 -->
 <section id="stats" class="scr">
-  <h2 class="h2">戦績</h2>
-  <div id="statList"></div>
-  <div class="foot"><button class="btn" data-a="title">戻る</button></div>
+  <div class="topbar">
+<button class="bbtn" data-a="title"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span>もどる</span></button>
+    <h2>戦績</h2><span></span>
+  </div>
+  <div class="swrap"><div id="statList"></div></div>
 </section>
 
 <div id="ov" class="ov"><div class="sheet" id="sheet"></div></div>
 <div id="toast" class="toast" hidden></div>
+<div id="fx" class="fx" aria-hidden="true"></div>
 
 <script type="module" src="../xevarion-fb.js?v=33"></script>
 <script src="../xeva.js?v=77"></script>
 <script src="../xeva-loading.js?v=19" defer></script>
 <script src="../game-link.js?v=12"></script>
-<script src="js/shift-core.js?v=3"></script>
-<script src="js/shift-account.js?v=1"></script>
-<script src="js/shift-ui.js?v=6"></script>
+<script src="js/shift-core.js?v=5"></script>
+<script src="js/shift-ai.js?v=1"></script>
+<script src="js/shift-account.js?v=2"></script>
+<script src="js/shift-ui.js?v=8"></script>
 <script src="../xeva-back.js?v=9" data-mode="hook"></script>
 </body>
 </html>

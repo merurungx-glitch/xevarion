@@ -69,6 +69,10 @@
     zin: '<circle class="b" cx="11" cy="11" r="6.5"/><circle class="f" cx="11" cy="11" r="7"/><path class="f" d="M21 21l-4.6-4.6M8 11h6M11 8v6"/>',
     zout: '<circle class="b" cx="11" cy="11" r="6.5"/><circle class="f" cx="11" cy="11" r="7"/><path class="f" d="M21 21l-4.6-4.6M8 11h6"/>',
     fit: '<rect class="b" x="5" y="5" width="14" height="14" rx="2"/><path class="f" d="M4 9V5a1 1 0 0 1 1-1h4M15 4h4a1 1 0 0 1 1 1v4M20 15v4a1 1 0 0 1-1 1h-4M9 20H5a1 1 0 0 1-1-1v-4"/>',
+    /* ★★ 2026-10-13 並び替え */
+    sort: '<path class="f" d="M7 4v16M3.5 16.5 7 20l3.5-3.5M17 20V4M13.5 7.5 17 4l3.5 3.5"/>',
+    /* ★★ 2026-10-14 基礎（若葉） */
+    leaf: '<path class="b" d="M5 19.5C5 11 11 5 19.5 4.5 19.5 13 13.5 19.5 5 19.5z"/><path class="f" d="M4.5 20C4.5 11 11 4.5 20 4c0 9-6.5 16-15.5 16z"/><path class="f" d="M4.5 20 14 10.5"/>',
   };
   const ic = (n, cls) => '<svg class="di' + (cls ? " " + cls : "") + '" viewBox="0 0 24 24" aria-hidden="true">' + (DI[n] || "") + "</svg>";
 
@@ -107,8 +111,10 @@
       "<li>1日で進めるのは「習得中」まで。その日は<b>「まだ習得中になっていない問題だけ」</b>で解くと、むだがありません。</li>" +
       "<li>問題の一覧の右の小さな字（あと1日 など）は、最短で習得できるまでの日数です。</li></ul>";
   }
-  const UI = { recIds: null, libIds: [], lastWrong: [], grp: 1, sgrp: 4, gkind: "o", gid: "" };
-  try { UI.grp = Number(sessionStorage.getItem("mcl_grp")) || 1; UI.sgrp = Number(sessionStorage.getItem("mcl_sgrp")) || 4; const gk = sessionStorage.getItem("mcl_gkind"); UI.gkind = gk === "r" || gk === "s" ? gk : "o"; UI.gid = sessionStorage.getItem("mcl_gid") || ""; UI.rlv = sessionStorage.getItem("mcl_rlv") === "s" ? "s" : "o"; } catch (e) {}
+  const UI = { recIds: null, libIds: [], lastWrong: [], grp: 1, sgrp: 4, bgrp: 8, gkind: "o", gid: "" };
+  /* ★★ 2026-10-14 基礎タブ（gkind "b"）・単元別の基礎レベル（rlv "b"）・ホームの基礎セットの組（bgrp） */
+  const GK_OK = { o: 1, s: 1, b: 1, r: 1 }, RLV_OK = { o: 1, s: 1, b: 1 };
+  try { UI.grp = Number(sessionStorage.getItem("mcl_grp")) || 1; UI.sgrp = Number(sessionStorage.getItem("mcl_sgrp")) || 4; UI.bgrp = Number(sessionStorage.getItem("mcl_bgrp")) || 8; const gk = sessionStorage.getItem("mcl_gkind"); UI.gkind = GK_OK[gk] ? gk : "o"; UI.gid = sessionStorage.getItem("mcl_gid") || ""; const rv = sessionStorage.getItem("mcl_rlv"); UI.rlv = RLV_OK[rv] ? rv : "o"; } catch (e) {}
 
   /* ── 設定の見た目 ── */
   function applySettings() {
@@ -260,9 +266,10 @@
       return '<div class="tm-f"><h3 style="--c:' + D.F[f].c + '"><i></i>' + D.F[f].nm + "<small>" + ts.length + "単元</small></h3><div class=\"tm-g\">" + ts.map(topicTile).join("") + "</div></div>";
     }).join("");
     /* ★★ 2026-10-12 標準セット（マーク式）は難関セットとは別の段（★★ 2026-10-12c 「本番」→「難関」・時間を計るモードは「模試」） */
-    const grpAll = Object.keys(D.GRP || { 1: "" }).map(Number), grps = grpAll.filter((g) => !M.isStd(g)), sgrps = grpAll.filter((g) => M.isStd(g));
+    const grpAll = Object.keys(D.GRP || { 1: "" }).map(Number), grps = grpAll.filter((g) => M.lvOf(g) === "o"), sgrps = grpAll.filter((g) => M.isStd(g)), bgrps = grpAll.filter((g) => M.isBasic(g));
     if (grps.indexOf(UI.grp) < 0) UI.grp = grps[0];
     if (sgrps.length && sgrps.indexOf(UI.sgrp) < 0) UI.sgrp = sgrps[0];
+    if (bgrps.length && bgrps.indexOf(UI.bgrp) < 0) UI.bgrp = bgrps[0];
     return '<section class="hero">' +
       '<div class="hero-t"><p class="hello">' + greet() + "！</p><h1>難関化学を、<br>毎日すこしずつ。</h1>" +
       '<div class="lvl"><span class="lv-b">Lv.' + lv.lv + "</span><b>" + lv.title + '</b></div><div class="xpbar"><i style="width:' + (lv.cur / lv.need * 100).toFixed(1) + '%"></i></div><small class="xp-t">次のレベルまで ' + (lv.need - lv.cur) + " XP</small></div>" +
@@ -281,6 +288,10 @@
       (sgrps.length ? '<h2 class="sec">標準セット<small>マーク式の大問をまるごと（改題）・難関セットとは別</small></h2>' +
         (sgrps.length > 1 ? '<div class="seg grp std">' + sgrps.map((g) => '<button class="' + (g === UI.sgrp ? "on" : "") + '" data-a="sgrp" data-v="' + g + '">' + esc(D.GRP[g]) + "</button>").join("") + "</div>" : "") +
         '<div class="sets">' + setCards(UI.sgrp) + "</div>" : "") +
+      /* ★★ 2026-10-14 基礎セット（教科書レベル・ご指定「新たに基礎のタブ」） */
+      (bgrps.length ? '<h2 class="sec">基礎セット<small>教科書レベルの大問をまるごと（改題）・まずはここから</small></h2>' +
+        (bgrps.length > 1 ? '<div class="seg grp bas">' + bgrps.map((g) => '<button class="' + (g === UI.bgrp ? "on" : "") + '" data-a="bgrp" data-v="' + g + '">' + esc(D.GRP[g]) + "</button>").join("") + "</div>" : "") +
+        '<div class="sets">' + setCards(UI.bgrp) + "</div>" : "") +
       '<h2 class="sec" id="tmap">単元マップ<small>' + tt.mas + " / " + tt.total + " 習得</small></h2>" + fields + rwCard() +
       '<p class="foot">問題は、難関大の入試問題をもとに作り直した<b>改題</b>と、数値や条件を変えた<b>関連問題</b>です（原文の転載ではありません）。</p>';
   }
@@ -288,9 +299,24 @@
   /* ══ ★★ 2026-10-06c 問題セット（ご指定「問題や関連問題の括りで、MagiLex のように一覧で見て、そこから解けるように」）══
      改題＝本番セットの大問ごと／関連問題＝単元ごと。開くと問題の一覧と「全問（シャッフル）」「未習得だけ」「確認テスト」。 */
   /* ★★ 2026-10-09b 本番セット3＝紫 ／ ★★ 2026-10-12 標準セット1＝桃・標準セット2＝琥珀（関連問題 kind "x" も同じ色） */
-  const GCOL = { 1: "#3b5bff", 2: "#0aa2c0", 3: "#8e44ec", 4: "#e64980", 5: "#b0661e", 6: "#1f9d6b", 7: "#e8590c" };   /* ★★ 2026-10-12c 標準セット3＝緑・★★ 2026-10-13 標準セット4＝朱 */
+  const GCOL = { 1: "#3b5bff", 2: "#0aa2c0", 3: "#8e44ec", 4: "#e64980", 5: "#b0661e", 6: "#1f9d6b", 7: "#e8590c", 8: "#12b886", 9: "#228be6", 10: "#f59f00", 11: "#ae3ec9" };   /* ★★ 2026-10-14 基礎セット1＝ミント・2＝青・3＝山吹・4＝ぶどう */   /* ★★ 2026-10-12c 標準セット3＝緑・★★ 2026-10-13 標準セット4＝朱 */
   function gColor(g) { return g.kind === "r" ? D.F[g.f].c : (GCOL[g.grp] || "#3b5bff"); }
   function gIcon(g) { return g.kind === "r" ? sym(g.t, "s") : '<span class="gs-ic">' + ic(g.kind === "x" ? "atom" : "exam") + "</span>"; }
+  /* ══ ★★ 2026-10-14 ご指定「単元別で元の問題のそれぞれの難易度を大まかに控えめに表示」══
+     単元別のカードに、その単元の<b>もとの問題</b>（同じレベルの改題）の難易度を3段で小さく出す（やさしめ・ふつう・むずかしめ）。
+     その単元に同じレベルの改題が無いときは、そのまとまりの問題の難易度で。 */
+  const DIF_C = {};
+  const qLv = (x) => (x && x.sg ? M.lvOf(x.sg) : "o");
+  function difOf(g) {
+    if (DIF_C[g.id] != null) return DIF_C[g.id];
+    const lv = g.lv || "o";
+    let src = D.Q.filter((x) => x.g === "o" && x.t === g.t && qLv(x) === lv);
+    if (!src.length) src = g.ids.map((id) => D.BY[id]).filter(Boolean);
+    const av = src.reduce((a, x) => a + (x.d || 1), 0) / Math.max(1, src.length);
+    return (DIF_C[g.id] = av < 1.45 ? 1 : av < 2.25 ? 2 : 3);
+  }
+  const DIF_LB = { 1: "やさしめ", 2: "ふつう", 3: "むずかしめ" };
+  function difHTML(g) { const v = difOf(g); return '<small class="gc-dif" title="もとの問題の難易度（大まかに）"><span>もとの問題</span><i class="d' + v + '"><b></b><b></b><b></b></i>' + DIF_LB[v] + "</small>"; }
   function gCard(g) {
     const st = M.groupStat(g), p = st.total ? st.mas / st.total : 0;
     const badge = st.cfPass ? '<span class="gbd pass">' + ic("medal") + "確認テスト合格</span>" : st.done ? '<span class="gbd ok">' + ic("trophy") + "完全習得・確認テストへ</span>" : "";
@@ -303,31 +329,131 @@
     const calc = cn ? '<i class="gc-calc" title="計算問題 ' + cn + '問" aria-label="計算問題 ' + cn + '問">' + ic("calc") + "<small>" + cn + "</small></i>" : "";
     /* ★★ 2026-10-07 分けたセット（part）は大問の小見出しの下に並ぶので、名前は範囲だけ＋中身の単元 */
     return '<button class="gcard' + (st.done ? " done" : "") + (g.part ? " part" : "") + " ps-" + ps + '" data-a="gopen" data-g="' + g.id + '" style="--c:' + gColor(g) + '">' + gIcon(g) +
-      '<span class="gc-b"><b>' + esc(g.part ? g.lb : g.nm) + calc + "</b>" + ((g.part || g.kind === "x" || M.isStd(g.grp)) && g.sub ? '<small class="gc-sub">' + esc(g.sub) + "</small>" : "") + "<small>" + st.total + "問・" + st.mas + " 習得" + (st.acc != null ? "・正答 " + pctTxt(st.acc) : "") + "</small>" +
+      '<span class="gc-b"><b>' + esc(g.part ? g.lb : g.nm) + calc + "</b>" + ((g.part || g.kind === "x" || M.lvOf(g.grp) !== "o") && g.sub ? '<small class="gc-sub">' + esc(g.sub) + "</small>" : "") + "<small>" + st.total + "問・" + st.mas + " 習得" + (st.acc != null ? "・正答 " + pctTxt(st.acc) : "") + "</small>" + (g.kind === "r" ? difHTML(g) : "") +
       '<span class="gc-bar"><i style="width:' + (p * 100).toFixed(1) + '%"></i></span>' + badge + "</span>" +
       '<span class="gc-pct"><b>' + Math.round(p * 100) + '<small>%</small></b><em>' + pl + "</em></span>" + ic("chevR") + "</button>";
   }
+  /* ══ ★★ 2026-10-13 ご指定「セットなどを絞り込みボタンを押して絞り込み・並び替えも並び替えボタンを押して選択して」══
+     ・タブ（難関／標準／単元別問題）の下に「絞り込み」「並び替え」の2つのボタン。押すと下から選ぶ板が出る
+     ・絞り込み：状態（未着手・習得中・完全習得・確認テスト合格／まだ）・計算問題（あり／なし）・どの組か（難関セット1〜・標準セット1〜）・分野（単元別問題）
+     ・並び替え：いつもの並び・習得率・正答率・問題数・最近解いた順・計算問題の数
+     ・どちらかを使っているあいだは、見出しで分けずに<b>1列の一覧</b>（カードの上に「どの組のどの大問か」を小さく）
+     ・えらんだ条件は端末に覚える（mcl_gsf_v1）。条件はカードの上の札の ✕ でひとつずつ外せる */
+  const GSF_KEY = "mcl_gsf_v1";
+  const GSF = { st: "all", calc: "all", grp: "all", f: "all", sort: "def" };
+  try { Object.assign(GSF, JSON.parse(localStorage.getItem(GSF_KEY) || "{}")); } catch (e) {}
+  const gsfSave = () => { try { localStorage.setItem(GSF_KEY, JSON.stringify(GSF)); } catch (e) {} };
+  const GS_ST = [["all", "すべて"], ["new", "未着手"], ["mid", "習得中"], ["done", "完全習得"], ["cf", "確認テスト合格"], ["cfyet", "確認テストまだ"]];
+  const GS_CALC = [["all", "すべて"], ["yes", "計算問題あり"], ["no", "計算問題なし"]];
+  const GS_SORT = [["def", "いつもの並び（セット順）"], ["low", "習得率が低い順"], ["high", "習得率が高い順"], ["acc", "正答率が低い順"], ["many", "問題数が多い順"], ["few", "問題数が少ない順"], ["recent", "最近解いた順"], ["calc", "計算問題が多い順"]];
+  const gsLb = (list, v) => { const p = list.find((x) => String(x[0]) === String(v)); return p ? p[1] : ""; };
+  /* そのタブで選べる「組」（難関セット1〜／標準セット1〜） */
+  const gsGrps = (kind) => Object.keys(D.GRP || {}).map(Number).filter((g) => M.lvOf(g) === kind);
+  function gsActive(kind) {
+    const out = [];
+    if (GSF.st !== "all") out.push(["st", gsLb(GS_ST, GSF.st)]);
+    if (GSF.calc !== "all") out.push(["calc", gsLb(GS_CALC, GSF.calc)]);
+    if (kind !== "r" && GSF.grp !== "all" && gsGrps(kind).indexOf(Number(GSF.grp)) >= 0) out.push(["grp", D.GRP[GSF.grp]]);
+    if (kind === "r" && GSF.f !== "all" && D.F[GSF.f]) out.push(["f", D.F[GSF.f].nm]);
+    return out;
+  }
+  function gsLastAt(g) { const s = M.get(); let t = 0; g.ids.forEach((id) => { const r = s.q[id]; if (r && r.at > t) t = r.at; }); return t; }
+  function gsKeep(g, kind) {
+    if (GSF.st !== "all") {
+      const st = M.groupStat(g), ps = st.done ? "done" : st.seen ? "mid" : "new";
+      if (GSF.st === "cf") { if (!st.cfPass) return false; }
+      else if (GSF.st === "cfyet") { if (!st.done || st.cfPass) return false; }
+      else if (ps !== GSF.st) return false;
+    }
+    if (GSF.calc !== "all") { const n = M.groupCalcN ? M.groupCalcN(g) : 0; if (GSF.calc === "yes" ? !n : n) return false; }
+    if (kind !== "r" && GSF.grp !== "all" && gsGrps(kind).indexOf(Number(GSF.grp)) >= 0 && Number(g.grp) !== Number(GSF.grp)) return false;
+    if (kind === "r" && GSF.f !== "all" && D.F[GSF.f] && g.f !== GSF.f) return false;
+    return true;
+  }
+  /* カードの上に出す「どの組のどこか」 */
+  function gsFrom(g) {
+    if (g.kind === "r") return D.F[g.f].nm + "・" + LV[g.lv || "o"] + "レベル";
+    const gp = (D.GRP && D.GRP[g.grp]) || "";
+    if (g.kind === "x") return gp + "・" + (g.dai ? String(g.dai).split(" ")[0] + "の関連問題" : "関連問題");
+    return gp + (g.part && g.dai ? "・" + g.dai : "");
+  }
+  function gsFlatHTML(list, kind) {
+    const rows = list.map((g, i) => {
+      const st = M.groupStat(g);
+      return { g, i, p: st.total ? st.mas / st.total : 0, acc: st.acc == null ? 2 : st.acc, n: g.ids.length, at: gsLastAt(g), cn: M.groupCalcN ? M.groupCalcN(g) : 0 };
+    });
+    const by = {
+      low: (a, b) => a.p - b.p || a.i - b.i, high: (a, b) => b.p - a.p || a.i - b.i, acc: (a, b) => a.acc - b.acc || a.i - b.i,
+      many: (a, b) => b.n - a.n || a.i - b.i, few: (a, b) => a.n - b.n || a.i - b.i, recent: (a, b) => b.at - a.at || a.i - b.i, calc: (a, b) => b.cn - a.cn || a.i - b.i,
+    }[GSF.sort];
+    if (by) rows.sort(by);
+    if (!rows.length) return '<div class="empty">' + F.mascot("think") + "<p>条件に合うセットがありません。<br>絞り込みを変えてみてね。</p></div>";
+    return '<div class="gcards gs-flat">' + rows.map((r) => '<div class="gcw"><small class="gc-from">' + esc(gsFrom(r.g)) + "</small>" + gCard(r.g) + "</div>").join("") + "</div>";
+  }
+  function gsToolsHTML(kind, cntN) {
+    const act = gsActive(kind), sorted = GSF.sort !== "def";
+    return '<div class="gs-tools"><button class="fbtn' + (act.length ? " on" : "") + '" data-a="gsFilter">' + ic("filter") + "<span>絞り込み</span>" + (act.length ? "<b>" + act.length + "</b>" : "") + "</button>" +
+      '<button class="fbtn' + (sorted ? " on" : "") + '" data-a="gsSort">' + ic("sort") + "<span>" + (sorted ? esc(gsLb(GS_SORT, GSF.sort)) : "並び替え") + "</span></button>" +
+      (act.length || sorted ? '<span class="gs-cnt">' + cntN + "セット</span>" : "") + "</div>" +
+      (act.length ? '<div class="chips act">' + act.map((a) => '<button class="cf on" data-a="gsClr" data-k="' + a[0] + '">' + esc(a[1]) + " ✕</button>").join("") + "</div>" : "");
+  }
+  function openGsFilter() {
+    const kind = GK_OK[UI.gkind] ? UI.gkind : "o";
+    const seg = (k, list) => '<div class="seg wrap">' + list.map((p) => '<button class="' + (String(GSF[k]) === String(p[0]) ? "on" : "") + '" data-a="gsfs" data-k="' + k + '" data-v="' + p[0] + '">' + esc(p[1]) + "</button>").join("") + "</div>";
+    const gl = kind === "r" ? [["all", "すべて"]].concat(Object.keys(D.F).map((k) => [k, D.F[k].nm])) : [["all", "すべて"]].concat(gsGrps(kind).map((g) => [g, D.GRP[g]]));
+    sheet('<h2 class="sh-t">' + ic("filter") + " 絞り込み</h2>" +
+      '<div class="st-r"><b>状態</b>' + seg("st", GS_ST) + "</div>" +
+      '<div class="st-r"><b>計算問題</b>' + seg("calc", GS_CALC) + "</div>" +
+      (gl.length > 2 ? '<div class="st-r"><b>' + (kind === "r" ? "分野" : "セットの組") + "</b>" + seg(kind === "r" ? "f" : "grp", gl) + "</div>" : "") +
+      '<div class="sh-btns row"><button class="btn" data-a="gsfReset">リセット</button><button class="btn main" data-a="shclose">' + ic("check") + " この条件で見る</button></div>", { onClose: () => go("sets", true) });
+  }
+  function openGsSort() {
+    sheet('<h2 class="sh-t">' + ic("sort") + " 並び替え</h2>" +
+      '<div class="sort-list">' + GS_SORT.map((p) => '<button class="sort-o' + (GSF.sort === p[0] ? " on" : "") + '" data-a="gsSortPick" data-v="' + p[0] + '"><span>' + esc(p[1]) + "</span>" + (GSF.sort === p[0] ? ic("check") : "") + "</button>").join("") + "</div>" +
+      '<p class="sh-note">いつもの並び以外を選ぶと、見出しで分けずに1列で並びます（カードの上にどの組のどこかを表示）。</p>');
+  }
+  /* ══ ★★ 2026-10-14 タブ（難関／標準／基礎／単元別）を見やすく（ご指定「難関や標準などのタブが見づらい」）══
+     ・4つを同じ大きさの札にして、アイコン・名前・問題数を縦に並べる（前は「難関（501問）」が2行に折り返して読みにくかった）。
+       えらんだ札はそのタブの色でふちどり＋アイコンを塗る。
+     ・そのタブの中身の説明は、タブの下に1行だけ（前は4つぶんの説明をまとめて上に書いていた）。 */
+  const GK = {
+    o: { nm: "難関", ic: "exam", c: "#3b5bff", d: "入試の大問（改題）を小問の範囲ごとに分けたセットと、その範囲ごとの関連問題です。" },
+    s: { nm: "標準", ic: "target", c: "#e64980", d: "マーク式の大問（改題）と、大問ごとの関連問題です。セットごとに、改題のあとに関連問題をまとめています。" },
+    b: { nm: "基礎", ic: "leaf", c: "#12b886", d: "教科書レベルの大問（改題）と、大問ごとの関連問題です。まずはここから。" },
+    r: { nm: "単元別", ic: "atom", c: "#0aa2c0", d: "関連問題を単元ごとに並べかえたものです（問題を足すと自動で加わります）。" },
+  };
+  const LV = { o: "難関", s: "標準", b: "基礎" };
+  const RLV_D = { o: "入試の大問（難関セット）の関連問題を、単元ごとに並べかえたものです。", s: "マーク式の大問（標準セット）の関連問題を、単元ごとに並べかえたものです。", b: "教科書レベルの大問（基礎セット）の関連問題を、単元ごとに並べかえたものです。" };
   function pgSets() {
-    const kind = UI.gkind === "r" || UI.gkind === "s" ? UI.gkind : "o", all = M.groups();
-    /* ★★ 2026-10-12 「標準」タブ＝標準セットの改題（kind o・標準の組）＋大問ごとの関連問題（kind x） */
-    /* ★★ 2026-10-12b 本番タブにも大問ごとの関連問題（kind x・本番の組）。関連問題タブは本番レベル（t:）と標準レベル（ts:）を分ける
-       ★★ 2026-10-13 「関連問題」タブは「単元別問題」に改名（ご指定）。中身は同じ（関連問題を単元ごとに並べかえたもの・mcl-core の groups が
-         データから組むので、問題を足すと自動でここにも加わる） */
-    const inTab = (g, k) => k === "r" ? g.kind === "r" : k === "s" ? ((g.kind === "x" || g.kind === "o") && M.isStd(g.grp)) : ((g.kind === "o" || g.kind === "x") && !M.isStd(g.grp));
-    const rlv = UI.rlv === "s" ? "s" : "o";
+    const kind = GK_OK[UI.gkind] ? UI.gkind : "o", all = M.groups();
+    /* 難関タブ＝難関の組の改題（kind o）＋小問の範囲ごとの関連問題（kind x）／標準・基礎タブ＝その組の改題＋大問ごとの関連問題（kind x）／
+       単元別問題タブ＝関連問題を単元ごとに並べかえたもの（kind r・難関 t:／標準 ts:／基礎 tb:） */
+    const inTab = (g, k) => k === "r" ? g.kind === "r" : (g.kind === "x" || g.kind === "o") && M.lvOf(g.grp) === k;
+    const rlv = RLV_OK[UI.rlv] ? UI.rlv : "o";
     const gs = all.filter((g) => inTab(g, kind)), cnt = (l) => l.reduce((a, g) => a + g.ids.length, 0);
+    const rlvSeg = (lvN) => '<div class="seg rlv">' + ["o", "s", "b"].filter((v) => gs.some((g) => (g.lv || "o") === v)).map((v) => '<button class="' + (rlv === v ? "on" : "") + '" data-a="rlv" data-v="' + v + '" style="--c:' + GK[v].c + '">' + ic(GK[v].ic) + "<span>" + LV[v] + "レベル" + (lvN ? "<small>" + lvN(v) + "問</small>" : "") + "</span></button>").join("") + "</div>";
+    /* ★★ 2026-10-13 絞り込み・並び替えを使っているか */
+    const flat = gsActive(kind).length > 0 || GSF.sort !== "def";
+    const pool = kind === "r" ? gs.filter((g) => (g.lv || "o") === rlv) : gs;
+    const shown = flat ? pool.filter((g) => gsKeep(g, kind)) : pool;
     let body = "";
-    if (kind === "s") {
-      const sgs = Object.keys(D.GRP || {}).map(Number).filter((g) => M.isStd(g));
+    if (flat) {
+      body = (kind === "r" ? rlvSeg(null) : "") + gsFlatHTML(shown, kind);
+    } else if (kind === "s" || kind === "b") {
+      /* ★★ 2026-10-14 ご指定「標準の左の線は 標準1の改題全ての後に関連問題、標準2…と続くようにして、それぞれまとめて」：
+         組ごとに ①改題（第1問〜第5問）をまとめて → ②その組の関連問題（第1問の関連問題〜）を、左に線のある段にまとめて。基礎タブも同じ形 */
+      const sgs = Object.keys(D.GRP || {}).map(Number).filter((g) => M.lvOf(g) === kind);
       body = sgs.map((gp) => {
         const lo = gs.filter((g) => g.grp === gp && g.kind === "o"), lx = gs.filter((g) => g.grp === gp && g.kind === "x");
         if (!lo.length && !lx.length) return "";
-        return '<h2 class="sec">' + esc(D.GRP[gp]) + "<small>" + cnt(lo) + "問 ＋ 関連 " + cnt(lx) + "問</small></h2>" +
-          (lo.length ? '<h3 class="gs-dai">改題（大問ごと）<small>' + lo.length + "セット</small></h3>" + '<div class="gcards">' + lo.map(gCard).join("") + "</div>" : "") +
-          (lx.length ? '<h3 class="gs-dai">関連問題（大問ごと）<small>' + lx.length + "セット</small></h3>" + '<div class="gcards">' + lx.map(gCard).join("") + "</div>" : "");
+        return '<section class="gs-grp" style="--c:' + (GCOL[gp] || GK[kind].c) + '"><h2 class="sec">' + esc(D.GRP[gp]) + "<small>改題 " + cnt(lo) + "問 ＋ 関連 " + cnt(lx) + "問</small></h2>" +
+          (D.GRPSUB && D.GRPSUB[gp] ? '<p class="gs-gsub">' + esc(D.GRPSUB[gp]) + "</p>" : "") +
+          (lo.length ? '<h3 class="gs-dai">改題<small>' + cnt(lo) + "問・" + lo.length + "セット</small></h3>" + '<div class="gcards">' + lo.map(gCard).join("") + "</div>" : "") +
+          (lx.length ? '<h4 class="gs-rel">' + ic("atom") + "<span>" + esc(D.GRP[gp]) + " の関連問題</span><small>" + cnt(lx) + "問・" + lx.length + "セット</small></h4>" + '<div class="gcards rel">' + lx.map(gCard).join("") + "</div>" : "") +
+          "</section>";
       }).join("");
     } else if (kind === "o") {
-      const grps = Object.keys(D.GRP || { 1: "" }).map(Number).filter((g) => !M.isStd(g));
+      const grps = Object.keys(D.GRP || { 1: "" }).map(Number).filter((g) => M.lvOf(g) === "o");
       /* ★★ 2026-10-07 大問ごとに小見出し（第1問 マーク …）を立て、その下に分けたセットを並べる
          ★★ 2026-10-12c その大問の関連問題も、改題と同じ小問の範囲ごとに分けてすぐ下に（ご指定・ごほうびつき） */
       body = grps.map((gp) => {
@@ -339,29 +465,31 @@
               (lr.length ? '<h4 class="gs-rel">' + ic("atom") + "<span>" + esc(String(dn).split(" ")[0]) + "の関連問題</span><small>" + cnt(lr) + "問・" + lr.length + "セット</small></h4>" + '<div class="gcards rel">' + lr.map(gCard).join("") + "</div>" : ""); }).join("");
       }).join("");
     } else {
-      /* ★★ 2026-10-12b 難関レベル（入試の大問の関連）と標準レベル（マーク式の大問の関連）を分けて、それぞれ単元ごと（並べかえて見るだけ） */
+      /* 難関・標準・基礎のレベルごとに、それぞれ単元ごと（並べかえて見るだけ）。カードには「もとの問題の難易度」を小さく */
       const lvN = (v) => cnt(gs.filter((g) => (g.lv || "o") === v));
       const gl = gs.filter((g) => (g.lv || "o") === rlv);
-      body = '<div class="seg rlv"><button class="' + (rlv === "o" ? "on" : "") + '" data-a="rlv" data-v="o">' + ic("exam") + "難関レベル（" + lvN("o") + '問）</button><button class="' + (rlv === "s" ? "on" : "") + '" data-a="rlv" data-v="s">' + ic("target") + "標準レベル（" + lvN("s") + "問）</button></div>" +
-        '<p class="rlv-d">' + (rlv === "o" ? "入試の大問（難関セット）の関連問題を、単元ごとに並べかえたものです。" : "マーク式の大問（標準セット）の関連問題を、単元ごとに並べかえたものです。") + "</p>" +
+      body = rlvSeg(lvN) + '<p class="rlv-d">' + RLV_D[rlv] + "</p>" +
         Object.keys(D.F).map((f) => { const l = gl.filter((g) => g.f === f); return l.length ? '<h2 class="sec"><span class="fdot" style="--c:' + D.F[f].c + '"></span>' + D.F[f].nm + "<small>" + cnt(l) + '問</small></h2><div class="gcards">' + l.map(gCard).join("") + "</div>" : ""; }).join("");
     }
     /* ★★ 2026-10-07 ごほうびはセットの問題数で変わる（分けたセットは大問ぶんを問題数で分けた額）→ 幅で出す */
     const m = M.mult(), rws = gs.filter((g) => !g.view && (kind !== "r" || (g.lv || "o") === rlv)).map((g) => M.groupReward(g));
     const rg = (k) => { if (!rws.length) return "+0"; const a = Math.min.apply(null, rws.map((r) => r[k])) * m, b = Math.max.apply(null, rws.map((r) => r[k])) * m; return "+" + nf(a) + (a === b ? "" : "〜" + nf(b)); };
-    return '<h1 class="pt">問題セット</h1><p class="pst"><b>難関</b>は入試の大問（<b>改題</b>）を小問ごとに分けたセットと、その範囲ごとの<b>関連問題</b>。<b>標準</b>はマーク式の大問をもとにした別の枠（改題と、大問ごとの関連問題）。<b>単元別問題</b>タブは関連問題を単元ごとに並べかえたものです（問題を足すと、ここにも自動で加わります）。開くと問題の一覧から解けます。ぜんぶ習得したら<b>確認テスト</b>に挑戦しよう。</p>' +
+    const tabs = ["o", "s", "b", "r"].filter((k) => k === "r" || k === kind || all.some((g) => inTab(g, k)));
+    return '<h1 class="pt">問題セット</h1>' +
+      '<div class="gtabs n' + tabs.length + '" role="tablist">' + tabs.map((k) => '<button class="gt' + (kind === k ? " on" : "") + '" role="tab" aria-selected="' + (kind === k) + '" data-a="gkind" data-v="' + k + '" style="--c:' + GK[k].c + '"><span class="gt-i">' + ic(GK[k].ic) + "</span><b>" + GK[k].nm + "</b><small>" + cnt(all.filter((g) => inTab(g, k))) + "問</small></button>").join("") + "</div>" +
+      '<p class="gt-d" style="--c:' + GK[kind].c + '">' + GK[kind].d + "開くと問題の一覧から解けます。ぜんぶ習得したら<b>確認テスト</b>に挑戦しよう。</p>" +
       /* ★★ 2026-10-09b 色と印の見かた（小さく1行） */
       '<p class="gs-lg"><span class="lg-new">未着手</span><span class="lg-mid">習得中</span><span class="lg-done">完全習得</span><span class="lg-calc">' + ic("calc") + '＝計算問題の数</span><button class="lg-help" data-a="mhelp">' + ic("help") + "完全習得までの期間</button></p>" +
-      '<div class="seg gk"><button class="' + (kind === "o" ? "on" : "") + '" data-a="gkind" data-v="o">' + ic("exam") + "難関（" + cnt(all.filter((g) => inTab(g, "o"))) + '問）</button><button class="' + (kind === "s" ? "on" : "") + '" data-a="gkind" data-v="s">' + ic("target") + "標準（" + cnt(all.filter((g) => inTab(g, "s"))) + '問）</button><button class="' + (kind === "r" ? "on" : "") + '" data-a="gkind" data-v="r">' + ic("atom") + "単元別問題（" + cnt(all.filter((g) => inTab(g, "r"))) + "問）</button></div>" +
+      gsToolsHTML(kind, shown.length) +
       (rws.length ? '<p class="gs-rw">' + ic("gift") + "<span>完全習得 <b>" + rg("gm") + "</b>・確認テスト（全問正解）<b>" + rg("cf") + "</b> XEVA" + (m > 1 ? "（いまは" + m + "倍）" : "") + "<small>問題数の多いセットほど多くもらえます</small></span></p>"
-        : '<p class="gs-rw view">' + ic("gift") + "<span>このまとまりは並べかえて見るためのものです。ごほうびは<b>" + (rlv === "s" ? "標準" : "難関") + "タブの関連問題</b>（" + (rlv === "s" ? "大問ごと" : "小問の範囲ごと") + "）で受け取れます</span></p>") + body;
+        : '<p class="gs-rw view">' + ic("gift") + "<span>このまとまりは並べかえて見るためのものです。ごほうびは<b>" + LV[rlv] + "タブの関連問題</b>（" + (rlv === "o" ? "小問の範囲ごと" : "大問ごと") + "）で受け取れます</span></p>") + body;
   }
   function pgGSet() {
     const g = M.groupById(UI.gid);
     if (!g) return pgSets();
     const st = M.groupStat(g), rw = M.groupReward(g), m = M.mult(), un = st.total - st.mas;
     /* ★★ 2026-10-13 単元ごとのまとまり（kind r）は「単元別問題」タブのもの */
-    const head = g.kind === "o" ? esc(D.GRP ? D.GRP[g.grp] : "難関セット") + "・改題" : g.kind === "x" ? esc(D.GRP[g.grp] || "標準セット") + "・関連問題" : "単元別問題・" + (g.lv === "s" ? "標準レベル・" : "難関レベル・") + esc(D.F[g.f].nm);
+    const head = g.kind === "o" ? esc(D.GRP ? D.GRP[g.grp] : "難関セット") + "・改題" : g.kind === "x" ? esc(D.GRP[g.grp] || "標準セット") + "・関連問題" : "単元別問題・" + LV[g.lv || "o"] + "レベル・" + esc(D.F[g.f].nm);
     const rows = g.ids.map((id, i) => { const x = D.BY[id], stt = M.status(id); return '<button class="qrow st-' + stt + '" data-a="detail" data-id="' + id + '"><span class="qn">' + (i + 1) + '</span><span class="qdot" title="' + ST_LB[stt] + '"></span><span class="qtx">' + esc(short(id, 70)) + '</span><span class="qmeta">' + etaHTML(id) + '<span class="qd">' + "★".repeat(x.d) + "</span></span></button>"; }).join("");
     /* ★★ 2026-10-12 まだ習得中になっていない（未解答・まちがえた）問題の数 */
     const fr = g.ids.filter((id) => { const t = M.status(id); return t === "new" || t === "ng"; }).length;
@@ -377,7 +505,7 @@
       (g.view ? (st.done ? "ヒントなし・全問正解で合格（このまとまりは ごほうびなし）" : "ぜんぶ習得すると受けられます（このまとまりは ごほうびなし）") : st.done ? (st.cfPass ? "合格ずみ（もう一度受けられます。ごほうびは1回だけ）" : "ヒントなし・全問正解で合格 <b>+" + rw.cf * m + " XEVA</b>") : "ぜんぶ習得すると受けられます（全問正解で +" + rw.cf * m + " XEVA）") + "</small></span>" + ic("chevR") + "</button>" +
       (g.kind === "o" && D.SETS[g.set] ? '<button class="mode-b" data-a="examGo" data-set="' + g.set + '"><span class="mi">' + ic("clock") + "</span><span><b>模試モード（" + (g.part ? esc(String(g.dai).split(" ")[0]) + "まるごと・" : "") + "目安 " + D.SETS[g.set].min + "分）</b><small>時間を計って、最後にまとめて採点（順番は入試どおり）</small></span>" + ic("chevR") + "</button>" : "") +
       "</div>" +
-      (g.view ? '<p class="gs-rw view">' + ic("gift") + "<span>このまとまりは並べかえて見るためのものです。ごほうびは" + (g.lv === "s" ? "標準タブの<b>大問ごとの関連問題</b>" : "難関タブの<b>小問の範囲ごとの関連問題</b>") + "で受け取れます</span></p>"
+      (g.view ? '<p class="gs-rw view">' + ic("gift") + "<span>このまとまりは並べかえて見るためのものです。ごほうびは" + (g.lv === "s" ? "標準タブの<b>大問ごとの関連問題</b>" : g.lv === "b" ? "基礎タブの<b>大問ごとの関連問題</b>" : "難関タブの<b>小問の範囲ごとの関連問題</b>") + "で受け取れます</span></p>"
         : '<p class="gs-rw">' + ic("gift") + "<span>完全習得 <b>+" + rw.gm * m + "</b>" + (st.gm ? " ✓" : "") + "・確認テスト <b>+" + rw.cf * m + "</b>" + (st.cfPass ? " ✓" : "") + " XEVA" + (rw.v > 1 ? "<small>20問以上なので2倍</small>" : "") + "</span></p>") +
       '<h2 class="sec">問題の一覧<small>押すと問題と解説</small></h2><div class="lib-cnt"><span>' + st.total + '問</span><span class="lg-lg"><i class="st-new"></i>未解答<i class="st-ng"></i>まちがえた<i class="st-ok"></i>習得中<i class="st-mas"></i>習得</span></div>' +
       '<details class="mexp"><summary>' + ic("help") + " 習得・完全習得までの流れ（最短で次の日）</summary>" + masterHelpHTML() + "</details>" +
@@ -511,7 +639,7 @@
       '<h2 class="sec">学習カレンダー<small>16週間</small></h2><section class="card">' + heatHTML() + "</section>" +
       '<h2 class="sec">分野ごと</h2><section class="card">' + fb + '<p class="lgd"><i class="s"></i>解いた<i class="m"></i>習得</p></section>' +
       '<h2 class="sec">単元ごと</h2><section class="card tbl"><table class="tt2"><thead><tr><th>単元</th><th>習得</th><th>正答率</th></tr></thead><tbody>' + trs + "</tbody></table></section>" +
-      '<h2 class="sec" id="runs">模試の記録</h2><section class="card">' + (runs || '<p class="muted">まだありません。ホームの「難関セット」「標準セット」の大問を開くと、模試モードで挑戦できます。</p>') + "</section>" +
+      '<h2 class="sec" id="runs">模試の記録</h2><section class="card">' + (runs || '<p class="muted">まだありません。ホームの「難関セット」「標準セット」「基礎セット」の大問を開くと、模試モードで挑戦できます。</p>') + "</section>" +
       '<h2 class="sec">バッジ<small>' + bd.filter((b) => b.ok).length + " / " + bd.length + '</small></h2><div class="badges">' + bd.map((b) => '<div class="bdg' + (b.ok ? " ok" : "") + '"><span>' + b.ic + "</span><b>" + b.nm + "</b><small>" + b.sub + "</small></div>").join("") + "</div>";
   }
 
@@ -527,7 +655,7 @@
       '<div class="tools-g"><section class="card"><h2 class="sec0">' + ic("calc") + ' 関数電卓</h2><div id="calcHere"></div></section>' +
       '<section class="card"><h2 class="sec0">' + ic("table") + " 定数・原子量</h2>" + constHTML() + "</section></div>" +
       '<section class="card"><h2 class="sec0">' + ic("card") + " 公式カード</h2>" + formHTML() + "</section>" +
-      '<section class="card about"><h2 class="sec0">' + ic("help") + ' このアプリについて</h2><p>MagiChemLex は XEVARION の学習アプリ MagiLex から生まれた、<b>難関大の化学</b>に特化した問題集です。</p><ul><li>問題は、<b>難関大の入試問題</b>の全小問を同じ数値・同じ考え方で作り直した改題（' + D.Q.filter((x) => x.g === "o").length + "問・難関セット" + Object.keys(D.GRP || {}).filter((g) => !M.isStd(Number(g))).length + "組" + (Object.keys(D.GRP || {}).some((g) => M.isStd(Number(g))) ? "・マーク式の標準セット" + Object.keys(D.GRP || {}).filter((g) => M.isStd(Number(g))).length + "組" : "") + "）と、数値や条件を変えた関連問題（" + D.Q.filter((x) => x.g === "r").length + "問）です。</li><li>記録とメモは XEVARION のアカウントで同期されます。</li></ul></section>";
+      '<section class="card about"><h2 class="sec0">' + ic("help") + ' このアプリについて</h2><p>MagiChemLex は XEVARION の学習アプリ MagiLex から生まれた、<b>難関大の化学</b>に特化した問題集です。</p><ul><li>問題は、<b>難関大の入試問題</b>の全小問を同じ数値・同じ考え方で作り直した改題（' + D.Q.filter((x) => x.g === "o").length + "問・難関セット" + Object.keys(D.GRP || {}).filter((g) => M.lvOf(Number(g)) === "o").length + "組" + (Object.keys(D.GRP || {}).some((g) => M.isStd(Number(g))) ? "・マーク式の標準セット" + Object.keys(D.GRP || {}).filter((g) => M.isStd(Number(g))).length + "組" : "") + (Object.keys(D.GRP || {}).some((g) => M.isBasic(Number(g))) ? "・教科書レベルの基礎セット" + Object.keys(D.GRP || {}).filter((g) => M.isBasic(Number(g))).length + "組" : "") + "）と、数値や条件を変えた関連問題（" + D.Q.filter((x) => x.g === "r").length + "問）です。</li><li>記録とメモは XEVARION のアカウントで同期されます。</li></ul></section>";
   }
   after.tools = () => { mountCalc($("#calcHere")); };
 
@@ -646,14 +774,16 @@
   function padBindGrip() {
     const gr = $("#padGrip"), el = $("#pad"); if (!gr || !el) return;
     let y0 = 0, h0 = 0, on = false;
-    try { const h = Number(localStorage.getItem("mcl_pad_h")); if (h > 120) el.style.setProperty("--padH", h + "px"); } catch (e) {}
+    /* ★★ 2026-10-13 ご指定「スマホでメモや電卓が小さく使いづらい」：ふだんの高さを大きくしたので、前に覚えた高さ（mcl_pad_h）は使わず新しい台帳に。
+       覚えた高さも「画面の高さ − 問題を少し見せるぶん」を超えないように */
+    try { const h = Number(localStorage.getItem("mcl_pad_h2")); if (h > 120) el.style.setProperty("--padH", Math.min(h, Math.max(200, innerHeight - 200)) + "px"); } catch (e) {}
     gr.addEventListener("pointerdown", (ev) => { on = true; y0 = ev.clientY; h0 = el.getBoundingClientRect().height; try { gr.setPointerCapture(ev.pointerId); } catch (e) {} ev.preventDefault(); });
     gr.addEventListener("pointermove", (ev) => {
       if (!on) return;
       const h = Math.max(150, Math.min(innerHeight * 0.9, h0 + (y0 - ev.clientY)));
       el.style.setProperty("--padH", Math.round(h) + "px"); padFit();
     });
-    const end = () => { if (!on) return; on = false; try { localStorage.setItem("mcl_pad_h", String(Math.round(el.getBoundingClientRect().height))); } catch (e) {} };
+    const end = () => { if (!on) return; on = false; try { localStorage.setItem("mcl_pad_h2", String(Math.round(el.getBoundingClientRect().height))); } catch (e) {} };
     gr.addEventListener("pointerup", end); gr.addEventListener("pointercancel", end);
   }
   /* 紙の見え方（拡大・位置）を範囲に収める */
@@ -688,12 +818,14 @@
     if (off.width !== W || off.height !== H) { off.width = W; off.height = H; }
     const og = off.getContext("2d"); og.clearRect(0, 0, W, H);
     const cols = padColors(), V = PAD.view;
+    /* ★★ 2026-10-13 スマホ（紙の幅がせまい）でも線が細くなりすぎないように、画面上の太さに下限を */
+    const dpr = Math.min(3, window.devicePixelRatio || 1), penMin = 2.4 * dpr / V.s, erMin = 20 * dpr / V.s;
     padSt().strokes.concat(PAD.cur ? [PAD.cur] : []).forEach((s) => {
       const p = s.p; if (!p || !p.length) return;
       og.save(); og.setTransform(V.s, 0, 0, V.s, -V.ox * V.s * W, -V.oy * V.s * W); og.lineCap = "round"; og.lineJoin = "round";
       og.globalCompositeOperation = s.e ? "destination-out" : "source-over";
       og.strokeStyle = cols[s.c || 0] || cols[0];
-      og.lineWidth = (s.e ? 0.05 : 0.0055) * W;
+      og.lineWidth = Math.max((s.e ? 0.05 : 0.0055) * W, s.e ? erMin : penMin);
       og.beginPath(); og.moveTo(p[0][0] * W, p[0][1] * W);
       if (p.length === 1) og.lineTo(p[0][0] * W + 0.1, p[0][1] * W);
       for (let i = 1; i < p.length; i++) og.lineTo(p[i][0] * W, p[i][1] * W);
@@ -1024,6 +1156,8 @@
   function optOrder(q) {
     const n = (q.o || []).length, key = P ? P.i + ":" + q.id : q.id;
     if (!P) return q.o.map((_, i) => i);
+    /* ★★ 2026-10-14 「正しい／誤り」の2択は並べかえない（入れかわると読みまちがえやすい・ほかはご指定どおりランダム） */
+    if (q.fix || (n === 2 && q.o[0] === "正しい" && q.o[1] === "誤り")) return q.o.map((_, i) => i);
     P.ord = P.ord || {};
     let o = P.ord[key];
     if (!o || o.length !== n) { o = M.shuffle(q.o.map((_, i) => i)); P.ord[key] = o; }
@@ -1322,6 +1456,7 @@
     },
     grp: (el) => { UI.grp = Number(el.dataset.v) || 1; try { sessionStorage.setItem("mcl_grp", String(UI.grp)); } catch (e) {} go("home", true); },
     sgrp: (el) => { UI.sgrp = Number(el.dataset.v) || 4; try { sessionStorage.setItem("mcl_sgrp", String(UI.sgrp)); } catch (e) {} go("home", true); },
+    bgrp: (el) => { UI.bgrp = Number(el.dataset.v) || 8; try { sessionStorage.setItem("mcl_bgrp", String(UI.bgrp)); } catch (e) {} go("home", true); },
     start: (el) => {
       const m = el.dataset.mode;
       let ids;
@@ -1335,7 +1470,7 @@
     startTopic: (el) => startSession(M.build("topic", { t: el.dataset.t, shuffle: true }), { title: D.T[el.dataset.t].nm }),
     startTopicUn: (el) => startSession(M.build("topic", { t: el.dataset.t, only: "un", shuffle: true }), { title: D.T[el.dataset.t].nm + "（未習得）", empty: "この単元はすべて習得ずみ！" }),
     /* ★★ 2026-10-06c 問題セット */
-    gkind: (el) => { const v = el.dataset.v; UI.gkind = v === "r" || v === "s" ? v : "o"; try { sessionStorage.setItem("mcl_gkind", UI.gkind); } catch (e) {} go("sets", true); },
+    gkind: (el) => { const v = el.dataset.v; UI.gkind = GK_OK[v] ? v : "o"; try { sessionStorage.setItem("mcl_gkind", UI.gkind); } catch (e) {} go("sets", true); },
     gopen: (el) => { UI.gid = el.dataset.g; try { sessionStorage.setItem("mcl_gid", UI.gid); } catch (e) {} go("gset"); },
     gplay: (el) => { const g = M.groupById(el.dataset.g); if (g) startSession(M.build("group", { g: g.id }), { title: g.nm }); },
     gplayUn: (el) => { const g = M.groupById(el.dataset.g); if (g) startSession(M.build("group", { g: g.id, only: "un" }), { title: g.nm + "（未習得）", empty: "このセットはすべて習得ずみ！" }); },
@@ -1460,7 +1595,14 @@
     detail: (el) => { const box = el.closest(".glist, .rv-list, .res-list, .ex-list, .pg, .pl-in") || document; openDetail(el.dataset.id, Array.from(box.querySelectorAll('[data-a="detail"][data-id]')).map((b) => b.dataset.id)); },
     dtPrev: () => dtGo(-1),
     dtNext: () => dtGo(1),
-    rlv: (el) => { UI.rlv = el.dataset.v === "s" ? "s" : "o"; try { sessionStorage.setItem("mcl_rlv", UI.rlv); } catch (e) {} go("sets", true); },
+    rlv: (el) => { UI.rlv = RLV_OK[el.dataset.v] ? el.dataset.v : "o"; try { sessionStorage.setItem("mcl_rlv", UI.rlv); } catch (e) {} go("sets", true); },
+    /* ★★ 2026-10-13 問題セットの絞り込み・並び替え */
+    gsFilter: () => openGsFilter(),
+    gsSort: () => openGsSort(),
+    gsfs: (el) => { const k = el.dataset.k; GSF[k] = el.dataset.v; gsfSave(); $$('#sheet [data-a="gsfs"][data-k="' + k + '"]').forEach((b) => b.classList.toggle("on", b === el)); },
+    gsfReset: () => { GSF.st = "all"; GSF.calc = "all"; GSF.grp = "all"; GSF.f = "all"; gsfSave(); $$('#sheet [data-a="gsfs"]').forEach((b) => b.classList.toggle("on", b.dataset.v === "all")); },
+    gsSortPick: (el) => { GSF.sort = el.dataset.v; gsfSave(); closeSheet(); go("sets", true); },
+    gsClr: (el) => { const k = el.dataset.k; if (GSF[k] != null) GSF[k] = "all"; gsfSave(); go("sets", true); },
     flipPrev: () => flip(-1),
     flipNext: () => flip(1),
     solveOne: (el) => { const id = el.dataset.id; closeSheet(); if (P) closePlay(); startSession([id], { title: "1問チャレンジ" }); },

@@ -5,21 +5,24 @@
    ・セーブ・前回設定は localStorage 保存 → オンライン復帰時に xeva-cloud が同期
    ・Firebase など外部通信はキャッシュしない
    ============================================================ */
-const VERSION = "chainparty-sw-v52";
+const VERSION = "chainparty-sw-v54";
 const CORE = [
   "./index.html",
-  "./css/style.css?v=19",
-  "./js/game.js?v=18",
+  "./css/style.css?v=21",
+  "./js/game.js?v=20",
+  /* ★★ 2026-10-13 新しいロゴ（タイトルの絵・小さいアイコン） */
+  "./img/logo_hero.webp",
+  "./img/icon192.png",
   /* ★★ 2026-09-03 下バーを画面の下端に合わせる共通部品 */
   "../xeva-safebottom.js?v=12",
   "../xeva.js?v=77",
   "../xeva-alive.js?v=5",
   "../xeva-loading.js?v=19",
-  "../xeva-splash.js?v=14",
+  "../xeva-splash.js?v=15",
   "../game-link.js?v=12",
   "../maintenance-gate.js?v=13",
   "../app-install-notice.js?v=9",
-  "../thumbs/MagiChainParty.jpg",
+  "../thumbs/MagiChainParty.jpg?v=2",
   "../brand/NGX_s.webp",
   "../brand/MagicalFuture_s.webp",
   "../brand/ISHIDA_s.webp",

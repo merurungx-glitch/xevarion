@@ -238,7 +238,7 @@
        ★★ 2026-10-12c さらに改題と同じ<b>小問の範囲（parts）</b>ごとに分け、ごほうびつきにした（ご指定「本番の関連問題も本番セットのように
        分けて表示し、標準の関連問題同様それぞれ報酬を」）。id "xp:<大問のセット>:<1〜>"・kind "x"・xo:1。
        範囲へは「その関連問題を rel にあげている改題がいちばん多い範囲」へ（無ければ同じ単元の改題がいちばん多い範囲）。4問未満の範囲はとなりとまとめる */
-    const oSets = Object.keys(D.SETS).filter((k) => { const S = D.SETS[k]; return !S.full && S.ids && S.ids.length && !isStd(S.grp); });
+    const oSets = Object.keys(D.SETS).filter((k) => { const S = D.SETS[k]; return !S.full && S.ids && S.ids.length && lvOf(S.grp) === "o"; });
     const sdOf = {}, nOf = {};
     oSets.forEach((k) => { const gp = D.SETS[k].grp; nOf[gp] = (nOf[gp] || 0) + 1; sdOf[k] = nOf[gp]; });
     const refs = {}, tCnt = {};
@@ -290,12 +290,17 @@
       });
     });
     /* ★★ 2026-10-12b 標準の関連問題も単元ごとに（関連問題タブの「標準レベル」）。id "ts:<単元>"・view:1（ごほうびは標準タブの大問ごとのセット） */
-    Object.keys(D.T).forEach((t) => { const ids = D.Q.filter((x) => x.t === t && x.g === "r" && x.sg).map((x) => x.id); if (ids.length) out.push({ id: "ts:" + t, kind: "r", lv: "s", t, f: D.T[t].f, nm: D.T[t].nm, sub: "関連問題（標準）", ids, view: 1 }); });
+    Object.keys(D.T).forEach((t) => { const ids = D.Q.filter((x) => x.t === t && x.g === "r" && x.sg && isStd(x.sg)).map((x) => x.id); if (ids.length) out.push({ id: "ts:" + t, kind: "r", lv: "s", t, f: D.T[t].f, nm: D.T[t].nm, sub: "関連問題（標準）", ids, view: 1 }); });
+    /* ★★ 2026-10-14 基礎セットの関連問題も単元ごとに（単元別問題タブの「基礎レベル」）。id "tb:<単元>"・view:1（ごほうびは基礎タブの大問ごとのセット） */
+    Object.keys(D.T).forEach((t) => { const ids = D.Q.filter((x) => x.t === t && x.g === "r" && x.sg && isBasic(x.sg)).map((x) => x.id); if (ids.length) out.push({ id: "tb:" + t, kind: "r", lv: "b", t, f: D.T[t].f, nm: D.T[t].nm, sub: "関連問題（基礎）", ids, view: 1 }); });
     return (GROUPS = out);
   }
   function groupById(id) { return groups().find((g) => g.id === id) || null; }
   /* ★★ 2026-10-12 組（grp）が標準セットか */
   function isStd(grp) { return !!(D.GRPK && D.GRPK[grp] === "std"); }
+  /* ★★ 2026-10-14 基礎セット（教科書レベル）の組か・組のレベル（"o" 難関／"s" 標準／"b" 基礎） */
+  function isBasic(grp) { return !!(D.GRPK && D.GRPK[grp] === "basic"); }
+  function lvOf(grp) { return isStd(grp) ? "s" : isBasic(grp) ? "b" : "o"; }
   /* ★★ 2026-10-09b 計算問題か（セット一覧の控えめな印・ご指定）。問題に calc:1/0 を書けば上書きできる。
      ・数値を入れて答える問題（type n）
      ・選択肢がすべて数で、小数・×10ⁿ・20以上の数をふくむもの（「2〜6個」のような数え上げや酸化数は入れない） */
@@ -597,6 +602,6 @@
     rec, status, isDue, idsOf, topicStat, fieldStat, totals, dueList, wrongList, unsureList, bmList, dueForecast,
     streak, bestStreak, todayCount, level, answer, finishSet, bestRun, setUns, toggleBm, setMemo, setCombo, setSetting, resetAll, resetGroup, resetExam, masterEta,
     build, pickRelated, shuffle, badges,
-    groups, groupById, groupsOf, groupStat, groupReward, volMul, finishConfirm, finishMix, catchUpGroups, qNo, isCalc, groupHasCalc, groupCalcN, isStd,
+    groups, groupById, groupsOf, groupStat, groupReward, volMul, finishConfirm, finishMix, catchUpGroups, qNo, isCalc, groupHasCalc, groupCalcN, isStd, isBasic, lvOf,
   });
 })();

@@ -3,16 +3,17 @@
    ・1台で遊ぶボードゲーム。キャッシュすれば完全にオフラインで動く
    ・アカウントの紐づけと賞金だけ通信が要る（遊ぶこと自体はオフラインでできる）
    ============================================================ */
-const VERSION = "magishift-sw-v15";
+const VERSION = "magishift-sw-v17";
 const CORE = [
   "./index.html",
-  "./css/shift.css?v=5",
-  "./js/shift-core.js?v=3",
-  "./js/shift-account.js?v=1",
-  "./js/shift-ui.js?v=6",
+  "./css/shift.css?v=7",
+  "./js/shift-core.js?v=5",
+  "./js/shift-ai.js?v=1",          /* ★★ 2026-10-13 CPU */
+  "./js/shift-account.js?v=2",
+  "./js/shift-ui.js?v=8",
   "./img/icon192.png",
   "./manifest.webmanifest",
-  "../xeva-splash.js?v=14",
+  "../xeva-splash.js?v=15",
   "../xeva-safebottom.js?v=12",
   "../xeva-loading.js?v=19",
   "../xeva-back.js?v=9",
@@ -24,6 +25,10 @@ const CORE = [
   "../img/ld_b_stand.webp?v=5",
   "../img/ld_b_bow.webp?v=5",
   "../thumbs/MagiShift.jpg",
+  /* ★★ 2026-10-13 起動画面の3社ロゴは毎回出すので、オフラインでも出るように */
+  "../brand/NGX_s.webp",
+  "../brand/MagicalFuture_s.webp",
+  "../brand/ISHIDA_s.webp",
 ];
 
 /* ── 事前キャッシュの進捗をページへ通知する（更新ダウンロード画面用） ── */

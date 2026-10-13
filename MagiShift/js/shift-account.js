@@ -54,40 +54,65 @@
     if (window.XEVA && XEVA.canonCharFile) cf = XEVA.canonCharFile(cf, acc.charId);
     return cf ? "../chars/" + cf : "";
   };
+  /* ★★ 2026-10-13 小さいアイコン用（MagiChainParty の olCharImg と同じ組み立て）。
+     MagiBurst のキャラは "../img/Xxx.webp" → "../chars_s/../img/t_Xxx.webp"＝img/t_Xxx.webp。
+     読めないときはページ全体の img onerror（xeva.js）が原寸へ差し戻す。 */
+  const thumb = (acc) => {
+    if (!acc || !acc.charFile) return "";
+    const X = window.XEVA || {};
+    const f = X.canonCharFile ? X.canonCharFile(acc.charFile, acc.charId) : String(acc.charFile);
+    if (!f) return "";
+    const isMb = X.isMbCharFile ? X.isMbCharFile(f) : /^\.\.\/(img|MagiBurst\/img)\//.test(f);
+    const th = isMb ? (X.charThumbFile ? X.charThumbFile(f) : f.replace(/\/([^/]+)$/, "/t_$1")) : f.replace(/\.(png|jpe?g)$/i, "") + ".jpg";
+    return "../chars_s/" + th;
+  };
 
   /* 試合の結果を XEVARION へ（順位に応じた XEVA と、戦績の保存）
      ★ 遊ぶのに必要のない個人情報は送らない（uid と表示名と順位だけ）。 */
   async function report(state, standings) {
     const linked = standings.filter((p) => p.uid);
     const out = { prizes: [], saved: false };
-    if (!linked.length) return out;
-    /* 戦績（この端末にためる。XEVARION 側で見るときのために同じ形で持つ） */
+    const draw = !!(state && state.draw);
+    /* 戦績（この端末にためる。XEVARION 側で見るときのために同じ形で持つ）
+       ★★ 2026-10-13 紐づけていない人のぶんもためる（前は紐づけた人がいないと何も残らなかった）。CPU はためない。 */
     try {
       const k = "magishift_stats_v1";
       const st = JSON.parse(localStorage.getItem(k) || "{}");
       standings.forEach((p) => {
-        const id = p.uid || ("local:" + p.slot);
+        if (p.type === "cpu") return;
+        const id = p.uid || ("local:" + p.name);
         const r = st[id] || { name: p.name, games: 0, wins: 0, best: 99, at: 0 };
         r.name = p.name; r.games++; r.at = Date.now();
-        if (p.rank === 1) r.wins++;
-        if (p.rank < r.best) r.best = p.rank;
+        if (!draw && p.rank === 1) r.wins++;
+        if (!draw && p.rank < r.best) r.best = p.rank;
         st[id] = r;
       });
       localStorage.setItem(k, JSON.stringify(st));
       out.saved = true;
     } catch (e) {}
-    /* 賞金（1位から順に。紐づけた人だけ） */
+    /* 賞金（紐づけた人だけ・引き分けはなし）。
+       ★★ 2026-10-13 順位は<b>そのままの順位</b>で渡す（紐づけていない人・CPU は uid なし＝飛ばす）。
+       前は紐づけた人だけを詰めて渡していたので、CPU に負けた3位の人が「1位の賞金」を受け取れてしまった
+       （MagiChainParty と同じ渡しかたにそろえた）。 */
+    if (!linked.length || draw) return out;
     try {
       if (window.GameLink && navigator.onLine !== false) {
-        out.prizes = await window.GameLink.awardPrizes(linked.map((p) => ({ uid: p.uid, name: p.name, game: "MagiShift" })));
+        out.prizes = await window.GameLink.awardPrizes(standings.slice(0, 5).map((p) => ({ uid: p.uid || null, name: p.name, game: "MagiShift" })));
       }
     } catch (e) {}
     return out;
+  }
+
+  /* ★★ 2026-10-13 紐づけたアカウントの「今の」名前・キャラを取り直す（MagiChainParty と同じ）。
+     取れなかったときは null（前の値のまま使う）。 */
+  function refresh(acc) {
+    if (!window.GameLink || !window.GameLink.refresh || !acc || !acc.uid || navigator.onLine === false) return Promise.resolve(null);
+    return window.GameLink.refresh(acc).catch(() => null);
   }
 
   function stats() {
     try { return JSON.parse(localStorage.getItem("magishift_stats_v1") || "{}"); } catch (e) { return {}; }
   }
 
-  MS.Account = { pick, portalAccount, recent: load, remember, avatar, report, stats };
+  MS.Account = { pick, portalAccount, recent: load, remember, avatar, thumb, report, stats, refresh };
 })();

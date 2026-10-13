@@ -163,6 +163,8 @@ function initSetup() {
   refreshResume();
   initOnline();
   initOfflinePwa();
+  /* ★★ 2026-10-13 その2 タイトルの小さな盤（起動画面が閉じてから動かしはじめる） */
+  setTimeout(() => { try { const s = $("#setup"); heroDemo(!!(s && s.classList.contains("active"))); } catch (e) {} }, 400);
 }
 
 /* ============================================================
@@ -264,9 +266,11 @@ function renderPlayers() {
       : confirmed
         ? `<button class="gl-link-btn on" title="タップで紐づけを解除">✓ ${escapeHtml(p.link.name)}</button>`
         : `<button class="gl-link-btn pending" title="前回の紐づけ — タップして4桁パスワードで確認">🔒 ${escapeHtml(p.link.name)}（要確認）</button>`;
+    /* ★★ 2026-10-13 紐づけた席はアイコンも（色の丸の右下に小さく） */
+    const av = (p.type === "human" && linked) ? olAvatarHTML(p.link.charFile) : "";
     row.innerHTML = `
-      <span class="pdot"></span>
-      <input class="pname-in" maxlength="6" value="${escapeHtml(p.name)}" />
+      <span class="pdot"></span>${av}
+      <input class="pname-in" maxlength="6" value="${escapeHtml(p.name)}" aria-label="${NAMES[i]}の席の名前" />
       <div class="type-seg">
         <button data-t="human" class="${p.type === "human" ? "on" : ""}">人</button>
         <button data-t="cpu" class="${p.type === "cpu" ? "on" : ""}">CPU</button>
@@ -304,14 +308,14 @@ function openSeatLink(idx) {
   });
 }
 
-function showScreen(id) { $$(".screen").forEach((s) => s.classList.remove("active")); $(id).classList.add("active"); if (id === "#setup") refreshResume(); }
+function showScreen(id) { $$(".screen").forEach((s) => s.classList.remove("active")); $(id).classList.add("active"); if (id === "#setup") refreshResume(); if (id === "#game") setTimeout(fitPanelCols, 0); try { heroDemo(id === "#setup"); } catch (e) {} }
 function toggleModal(id, show) { $(id).classList.toggle("hidden", !show); }
 
 /* つづきからボタンの表示更新 */
 function refreshResume() {
   const btn = $("#resume-btn"); if (!btn) return;
   const d = loadSave();
-  if (d) { btn.classList.remove("hidden"); btn.textContent = `▶ つづきから（${d.n}人・R${d.round || 1}${d.roundLimit ? "/" + d.roundLimit : ""}）`; }
+  if (d) { btn.classList.remove("hidden"); btn.innerHTML = CPI.play + `<span>つづきから（${d.n}人・R${d.round || 1}${d.roundLimit ? "/" + d.roundLimit : ""}）</span>`; }
   else btn.classList.add("hidden");
 }
 
@@ -448,13 +452,22 @@ function buildPanels() {
       <span class="pdot"></span>
       ${olAvatarHTML(p.charFile, "sm")}
       <span class="pname">${escapeHtml(p.name)}</span>
-      <span class="pbadge">${p.type === "cpu" ? "🤖" : ""}</span>
+      <span class="pbadge">${p.type === "cpu" ? "CPU" : ""}</span>
       <span class="pscore">0</span>
       <span class="pturn"></span>`;
     if (bar) bar.appendChild(el);
     p.el = el;
   });
+  fitPanelCols();
 }
+/* ★★ 2026-10-13 札の列の数を人数に合わせて均等に（3人なら3列、4人なら2列×2、6人なら3列×2） */
+function fitPanelCols() {
+  const bar = $("#player-bar"); if (!bar || !S || !S.n) return;
+  const w = bar.clientWidth || 340, mx = Math.max(1, Math.floor((w + 8) / 108));
+  let cols = Math.min(S.n, mx); if (cols < S.n) cols = Math.ceil(S.n / Math.ceil(S.n / cols));
+  bar.style.gridTemplateColumns = "repeat(" + cols + ",minmax(0,1fr))";
+}
+window.addEventListener("resize", () => { try { if ($("#game").classList.contains("active")) fitPanelCols(); } catch (e) {} });
 
 /* ============================================================
    盤面ユーティリティ（size を引数化してデモ/AIでも使う）
@@ -496,7 +509,8 @@ function paintCell(r, c) {
   }
   const color = S.players[cell.owner].color;
   el.style.setProperty("--c", color);
-  el.style.background = `color-mix(in srgb, ${color} 22%, #fff)`;
+  el.style.background = `color-mix(in srgb, ${color} 15%, #fff)`;
+  el.classList.add("own");
   if (cell.count === critical(r, c) - 1) el.classList.add("ready");
   el.innerHTML = gemsHtml(cell.count, color);
 }
@@ -513,21 +527,33 @@ function updatePanels() {
     if (!p.el) return;
     p.el.classList.toggle("active", S.turn === p.id && !S.over);
     p.el.classList.toggle("dead", p.dead);
-    p.el.querySelector(".pscore").textContent = gemCount(p.id);
-    p.el.querySelector(".pturn").textContent = p.dead ? "💀 脱落" : ((S.turn === p.id && !S.over) ? "▶ 番" : "");
+    /* ★★ 2026-10-13 数が変わったら、数字を小さく弾ませる */
+    const sc = p.el.querySelector(".pscore"), v = String(gemCount(p.id));
+    if (sc.textContent !== v) {
+      sc.textContent = v;
+      sc.classList.remove("bump"); void sc.offsetWidth; sc.classList.add("bump");
+      clearTimeout(sc._bt); sc._bt = setTimeout(() => sc.classList.remove("bump"), 260);
+    }
+    p.el.querySelector(".pturn").textContent = p.dead ? "脱落" : ((S.turn === p.id && !S.over) ? "番" : "");
   });
   /* ★★ 2026-10-13 縦持ちのときは盤の上に「◯◯ の番」を大きく（CSS で縦持ちのときだけ見える） */
   const tb = $("#turn-banner");
   if (tb) {
     const p = S.over ? null : cur();
-    if (p) { tb.style.setProperty("--c", p.color); tb.innerHTML = '<span class="pdot"></span><b>' + escapeHtml(p.name) + "</b><span>の番" + (p.type === "cpu" ? "（CPU）" : "") + "</span>"; }
+    if (p) {
+      const html = '<span class="pdot"></span><b>' + escapeHtml(p.name) + "</b><span>の番" + (p.type === "cpu" ? "（CPU）" : "") + "</span>";
+      tb.style.setProperty("--c", p.color);
+      /* ★★ 2026-10-13 番がかわったときだけ、ふわっと入れかえる */
+      if (tb.innerHTML !== html) { tb.innerHTML = html; tb.classList.remove("swap"); void tb.offsetWidth; tb.classList.add("swap"); }
+    }
     else tb.innerHTML = "";
   }
 }
+/* ★★ 2026-10-13 盤のふち・CPU の表示などの色は CSS の --tc（いまの番の人の色）1つで決める */
 function setBoardFrame() {
-  const color = S.over ? "transparent" : cur().color;
-  $("#board").style.borderColor = color;
-  $("#board").style.boxShadow = S.over ? "0 10px 30px rgba(70,90,160,.16)" : `0 0 24px ${color}55, 0 10px 30px rgba(70,90,160,.16)`;
+  const g = $("#game");
+  if (g) g.style.setProperty("--tc", S.over ? "#9aa2bf" : cur().color);
+  $("#board").classList.toggle("over", !!S.over);
 }
 
 /* ============================================================
@@ -550,6 +576,130 @@ function onTap(r, c) {
   resolve();
 }
 
+/* ══ ★★ 2026-10-13 演出（ご指定「動きがあり盛り上がれる、カジュアルで少し控えめなモーション」）══
+   ・バクハツ：マスの中心から、となり（上下左右）へ小さな粒が飛ぶ＋輪が広がる。1回に出す数は 24 マスぶんまで（重くしない）
+   ・（連鎖の数の札「n CHAIN!」は 2026-10-13 その2 でやめた・ご指定）
+   ・勝利：紙ふぶきを少しだけ
+   ・OS の「視差効果を減らす」がオンなら出さない */
+const FX_OFF = () => !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);
+function fxBurst(cells, color) {
+  const host = $("#burst"), bd = $("#board"); if (!host || !bd || FX_OFF()) return;
+  const hb = host.getBoundingClientRect();
+  let h = "";
+  cells.slice(0, 24).forEach(([r, c]) => {
+    const el = S.cellEls[r] && S.cellEls[r][c]; if (!el) return;
+    const b = el.getBoundingClientRect(), x = b.left - hb.left + b.width / 2, y = b.top - hb.top + b.height / 2, d = b.width * 0.95;
+    h += '<b style="left:' + x.toFixed(1) + "px;top:" + y.toFixed(1) + "px;--s:" + (b.width * 0.8).toFixed(1) + "px;--c:" + color + '"></b>';
+    neighbors(r, c).forEach(([nr, nc]) => {
+      h += '<i style="left:' + x.toFixed(1) + "px;top:" + y.toFixed(1) + "px;--c:" + color + ";--fx:" + ((nc - c) * d).toFixed(1) + "px;--fy:" + ((nr - r) * d).toFixed(1) + 'px"></i>';
+    });
+  });
+  host.insertAdjacentHTML("beforeend", h);
+  clearTimeout(host._t); host._t = setTimeout(() => { host.innerHTML = ""; }, 460);
+}
+/* ══ ★★ 2026-10-13 その2 ご指定「ホームに画像がありますが、画像ではなく MagiShift のような名前と動きのものに」══
+   タイトルの文字のロゴの下に 4×4 の小さな盤を置き、あか・あおが交互に置いて、たまったらバクハツ → 連鎖、をゆっくりくり返す。
+   ・タイトル（#setup）が出ているときだけ動かす（ほかの画面・タブが裏のときは止める）。OS の「視差効果を減らす」では止めたまま
+   ・ルールは本番と同じ（角2・辺3・中央4でバクハツ・となりへ1個ずつ・飛んだ先は置いた人の色） */
+const HD = { n: 4, b: null, els: null, t: 0, turn: 0, moves: 0, on: false };
+function hdBuild() {
+  const host = $("#cdemo"); if (!host) return false;
+  if (!host.childElementCount) host.innerHTML = Array.from({ length: HD.n * HD.n }, () => '<div class="cell"></div>').join("");
+  HD.els = [...host.children];
+  return true;
+}
+function hdPaint() {
+  for (let r = 0; r < HD.n; r++) for (let c = 0; c < HD.n; c++) {
+    const el = HD.els[r * HD.n + c], cell = HD.b[r][c];
+    const own = cell.owner !== null && cell.count > 0, color = own ? COLORS[cell.owner] : "";
+    const key = own ? cell.owner + ":" + cell.count : "";
+    el.classList.toggle("own", own);
+    el.classList.toggle("ready", own && cell.count === critN(r, c, HD.n) - 1);
+    if (el._k === key) continue;
+    el._k = key;
+    if (!own) { el.style.background = ""; el.style.removeProperty("--c"); el.innerHTML = ""; continue; }
+    el.style.setProperty("--c", color);
+    el.style.background = `color-mix(in srgb, ${color} 15%, #fff)`;
+    el.innerHTML = gemsHtml(cell.count, color);
+  }
+}
+function hdReset() {
+  HD.b = Array.from({ length: HD.n }, () => Array.from({ length: HD.n }, () => ({ owner: null, count: 0 })));
+  HD.turn = 0; HD.moves = 0;
+  if (HD.els) hdPaint();
+}
+function hdPick(p) {
+  const own = [], ready = [], empty = [];
+  for (let r = 0; r < HD.n; r++) for (let c = 0; c < HD.n; c++) {
+    const cell = HD.b[r][c];
+    if (cell.owner === p && cell.count > 0) { own.push([r, c]); if (cell.count === critN(r, c, HD.n) - 1) ready.push([r, c]); }
+    else if (cell.owner === null || cell.count === 0) empty.push([r, c]);
+  }
+  const one = (a) => a[(Math.random() * a.length) | 0];
+  if (ready.length && Math.random() < 0.7) return one(ready);
+  const edge = empty.filter(([r, c]) => critN(r, c, HD.n) <= 3);
+  if (edge.length && Math.random() < 0.6) return one(edge);
+  if (own.length && Math.random() < 0.5) return one(own);
+  return empty.length ? one(empty) : (own.length ? one(own) : null);
+}
+async function hdStep() {
+  if (!HD.on) return;
+  const p = HD.turn, mv = hdPick(p);
+  if (!mv) { hdReset(); HD.t = setTimeout(hdStep, 900); return; }
+  const cell = HD.b[mv[0]][mv[1]];
+  cell.owner = p; cell.count += 1;
+  hdPaint();
+  let guard = 0;
+  while (HD.on && guard++ < 40) {
+    const un = [];
+    for (let r = 0; r < HD.n; r++) for (let c = 0; c < HD.n; c++) if (HD.b[r][c].count > 0 && HD.b[r][c].count >= critN(r, c, HD.n)) un.push([r, c]);
+    if (!un.length) break;
+    un.forEach(([r, c]) => HD.els[r * HD.n + c].classList.add("pop"));
+    await sleep(360);
+    if (!HD.on) return;
+    const delta = new Map(), touched = new Set(), add = (k, d) => delta.set(k, (delta.get(k) || 0) + d);
+    for (const [r, c] of un) {
+      const k = r * HD.n + c; add(k, -critN(r, c, HD.n)); touched.add(k);
+      for (const [nr, nc] of neighborsN(r, c, HD.n)) { const k2 = nr * HD.n + nc; add(k2, 1); touched.add(k2); }
+    }
+    delta.forEach((d, k) => { HD.b[(k / HD.n) | 0][k % HD.n].count += d; });
+    touched.forEach((k) => { const x = HD.b[(k / HD.n) | 0][k % HD.n]; if (x.count <= 0) { x.count = 0; x.owner = null; } else x.owner = p; });
+    un.forEach(([r, c]) => HD.els[r * HD.n + c].classList.remove("pop"));
+    hdPaint();
+    await sleep(240);
+    if (!HD.on) return;
+  }
+  HD.moves++;
+  const owners = new Set();
+  HD.b.forEach((row) => row.forEach((x) => { if (x.count > 0) owners.add(x.owner); }));
+  if ((HD.moves >= 4 && owners.size <= 1) || HD.moves > 26) {
+    HD.t = setTimeout(() => { if (!HD.on) return; hdReset(); HD.t = setTimeout(hdStep, 700); }, 1700);
+    return;
+  }
+  HD.turn = 1 - HD.turn;
+  HD.t = setTimeout(hdStep, 820);
+}
+function heroDemo(on) {
+  if (on && (document.hidden || FX_OFF())) on = false;
+  if (on) {
+    if (HD.on) return;
+    if (!hdBuild()) return;
+    if (!HD.b) hdReset(); else hdPaint();
+    HD.on = true; clearTimeout(HD.t); HD.t = setTimeout(hdStep, 600);
+  } else { HD.on = false; clearTimeout(HD.t); }
+}
+document.addEventListener("visibilitychange", () => { const s = document.getElementById("setup"); heroDemo(!document.hidden && !!(s && s.classList.contains("active"))); });
+
+function fxConfetti(colors) {
+  const fx = $("#fx"); if (!fx || FX_OFF()) return;
+  const cols = (colors || COLORS).concat(["#ffd34d", "#ffffff"]);
+  let h = "";
+  for (let i = 0; i < 46; i++) {
+    h += '<i style="left:' + (Math.random() * 100).toFixed(1) + "%;--cc:" + cols[i % cols.length] + ";--du:" + (1.6 + Math.random() * 1.2).toFixed(2) + "s;--sx:" + ((Math.random() - 0.5) * 120).toFixed(0) + "px;--rr:" + ((Math.random() - 0.5) * 900).toFixed(0) + "deg;animation-delay:" + (Math.random() * 0.4).toFixed(2) + 's"></i>';
+  }
+  fx.innerHTML = h;
+  clearTimeout(fx._t); fx._t = setTimeout(() => { fx.innerHTML = ""; }, 3400);
+}
 const sleep = (ms) => new Promise((res) => setTimeout(res, ms));
 
 async function resolve() {
@@ -575,6 +725,8 @@ async function resolve() {
 
     unstable.forEach(([r, c]) => S.cellEls[r][c].classList.add("pop"));
     blip(170 - Math.min(unstable.length * 6, 90), 0.08, "sawtooth");
+    /* ★★ 2026-10-13 はじけて粒がとなりへ飛ぶ（★ その2：「n CHAIN!」の札はやめた・ご指定） */
+    fxBurst(unstable, cur().color);
     await sleep(150);
 
     const delta = new Map(), touched = new Set();
@@ -638,7 +790,7 @@ function postMove() {
 function endGame(winner) {
   if (ONLINE) return endOnline("last");
   S.over = true; clearSave();
-  updatePanels(); setBoardFrame(); winChime();
+  updatePanels(); setBoardFrame(); winChime(); fxConfetti(S.players.map((p) => p.color));
   $("#win-emoji").textContent = winner.face;
   $("#win-title").textContent = `${winner.name} の勝ち！`;
   $("#win-title").style.color = winner.color;
@@ -674,7 +826,7 @@ function awardChainPrizes(ranked) {
 function endByTerritory() {
   if (ONLINE) return endOnline("territory");
   S.over = true; clearSave();
-  updatePanels(); setBoardFrame(); winChime();
+  updatePanels(); setBoardFrame(); winChime(); fxConfetti(S.players.map((p) => p.color));
   const terr = (p) => ownedCount(S.board, S.size, p.id);
   const ranked = [...S.players].sort((a, b) => (terr(b) - terr(a)) || (gemCount(b.id) - gemCount(a.id)));
   const win = ranked[0];
@@ -946,7 +1098,7 @@ function gotoStep(i) {
   $("#tut-total").textContent = STEPS.length;
   $("#tut-extra").innerHTML = st.extra || "";
   $("#tut-prev").disabled = i === 0;
-  $("#tut-next").textContent = (i === STEPS.length - 1) ? "とじる ✓" : "つぎへ ▶";
+  $("#tut-next").innerHTML = (i === STEPS.length - 1) ? "とじる" + CPI.check : "つぎへ" + CPI.next;
   cap(st.cap);
   st.run();
 }
@@ -1005,23 +1157,42 @@ function toast(msg, color) {
 /* ============================================================
    メニュー（≡）
    ============================================================ */
+/* ★★ 2026-10-14 ボタンのアイコン（絵文字や ▶ ✋ などの記号をやめて、線のアイコンにそろえた・ご指定「戻るボタンなどは全てデザイン」） */
+const CPI = {
+  play: '<svg viewBox="0 0 24 24" aria-hidden="true"><path class="fl" d="M8 5.5v13l10.5-6.5z"/></svg>',
+  book: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4.5h9.5a2 2 0 0 1 2 2v13H7a2 2 0 0 1-2-2z"/><path d="M5 17.5a2 2 0 0 1 2-2h9.5"/><path d="M8.5 8.5h5M8.5 11.5h4"/></svg>',
+  pause: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6v12M15 6v12"/></svg>',
+  sound: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 9.5h3l4.5-4v13l-4.5-4h-3z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/></svg>',
+  mute: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 9.5h3l4.5-4v13l-4.5-4h-3z"/><path d="M16 9.5l5 5M21 9.5l-5 5"/></svg>',
+  redo: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.4-5.7"/><path d="M20 4.5V9h-4.5"/></svg>',
+  setup: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 12h4M12 12h8M4 17h12"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="12" r="2"/><circle cx="18" cy="17" r="2"/></svg>',
+  next: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>',
+  check: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>',
+  hand: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 11V6.5a1.5 1.5 0 0 1 3 0V11M11 10V5a1.5 1.5 0 0 1 3 0v5M14 10.5V6.5a1.5 1.5 0 0 1 3 0V14a6 6 0 0 1-6 6h-.6a5 5 0 0 1-4-2l-2.6-3.6a1.5 1.5 0 0 1 2.3-1.9L8 14"/></svg>',
+};
 function buildMenu() {
   const m = document.createElement("div");
   m.id = "menu"; m.className = "modal hidden";
+  /* ★★ 2026-10-13 新しい見た目（中身・id は前と同じ） */
   m.innerHTML = `
-    <div class="modal-card" style="max-width:340px;text-align:center;">
+    <div class="modal-card menu-card">
       <h2>メニュー</h2>
-      <button class="primary" id="m-rules">あそびかた</button>
-      <button class="ghost" id="m-suspend">⏸ 中断してタイトルへ（再開できます）</button>
-      <button class="ghost" id="m-sound">🔊 音：ON</button>
-      <button class="ghost" id="m-restart">同じ設定でやり直す</button>
-      <button class="ghost" id="m-setup">設定にもどる</button>
-      <button class="ghost" id="m-close">とじる</button>
+      <div class="menu-list">
+        <button class="main" id="m-close"><span class="mi">${CPI.play}</span>ゲームにもどる</button>
+        <button id="m-rules"><span class="mi">${CPI.book}</span>あそびかた</button>
+        <button id="m-suspend"><span class="mi">${CPI.pause}</span>中断してタイトルへ（再開できます）</button>
+        <button id="m-sound"><span class="mi">${muted ? CPI.mute : CPI.sound}</span><span class="ml">${muted ? "音：OFF" : "音：ON"}</span></button>
+        <button id="m-restart"><span class="mi">${CPI.redo}</span>同じ設定でやり直す</button>
+        <button class="sub" id="m-setup"><span class="mi">${CPI.setup}</span>設定にもどる</button>
+      </div>
     </div>`;
   document.body.appendChild(m);
   $("#m-rules").addEventListener("click", () => { toggleModal("#menu", false); openRules(); });
   $("#m-suspend").addEventListener("click", () => { saveGame(); toggleModal("#menu", false); showScreen("#setup"); toast("💾 保存しました。タイトルの「つづきから」で再開できます", "#13c08a"); });
-  $("#m-sound").addEventListener("click", () => { muted = !muted; $("#m-sound").textContent = muted ? "🔇 音：OFF" : "🔊 音：ON"; });
+  $("#m-sound").addEventListener("click", () => {
+    muted = !muted;
+    $("#m-sound").innerHTML = '<span class="mi">' + (muted ? CPI.mute : CPI.sound) + '</span><span class="ml">' + (muted ? "音：OFF" : "音：ON") + "</span>";
+  });
   $("#m-restart").addEventListener("click", () => { toggleModal("#menu", false); beginOrder(); });
   $("#m-setup").addEventListener("click", () => { toggleModal("#menu", false); showScreen("#setup"); });
   $("#m-close").addEventListener("click", () => toggleModal("#menu", false));
@@ -1395,13 +1566,13 @@ function renderLobby(room, players) {
   const rb = $("#ol-ready");
   if (rb) {
     rb.classList.toggle("hidden", !!ONLINE.isHost);
-    rb.textContent = (meP && meP.ready) ? "✋ 準備OK（タップで解除）" : "✋ 準備する";
+    rb.innerHTML = CPI.hand + ((meP && meP.ready) ? "準備OK（タップで解除）" : "準備する");
     rb.classList.toggle("on", !!(meP && meP.ready));
   }
   // 開始ボタン（ホスト・2人以上・全員準備OK）
   const allReady = players.length >= 2 && players.every((p) => p.ready);
   const sb = $("#ol-start");
-  if (sb) { sb.classList.toggle("hidden", !ONLINE.isHost); sb.disabled = !allReady; sb.textContent = allReady ? "▶ ゲーム開始（ホスト）" : "▶ 全員の準備を待っています…"; }
+  if (sb) { sb.classList.toggle("hidden", !ONLINE.isHost); sb.disabled = !allReady; sb.innerHTML = CPI.play + (allReady ? "ゲーム開始（ホスト）" : "全員の準備を待っています…"); }
 }
 
 function onToggleReady() {
@@ -1573,7 +1744,7 @@ function endOnline(kind) {
 
 function showOnlineWin(state) {
   if (S.onlineWinShown) return; S.onlineWinShown = true;
-  winChime();
+  winChime(); fxConfetti(S.players.map((p) => p.color));
   const result = (state && state.result) || { kind: "last", rankedSlots: S.players.map((p) => p.id) };
   const ranked = result.rankedSlots.map((slot) => S.players[slot]).filter(Boolean);
   const win = ranked[0];
