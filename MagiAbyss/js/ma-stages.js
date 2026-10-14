@@ -165,10 +165,82 @@
     s.className = "scr"; s.id = "stages";
     s.innerHTML = '<div class="wm-box" id="wmBox"><div class="wm-cv" id="wmCv"></div><svg class="wm-route" id="wmRoute" viewBox="0 0 ' + MW + " " + MH + '" preserveAspectRatio="none"></svg><div class="wm-nodes" id="wmNodes"></div></div>' +
       '<div class="st-top"><button class="st-back" data-a="stBack">' + ic("back") + "<b>STAGES</b><small>冒険の地図</small></button><div class=\"st-cur\" id=\"stCur\"></div></div>" +
-      '<div class="st-det scroll-y" id="stDet" hidden></div><div class="st-tip" id="stTip">迷宮をえらんでください</div>';
+      '<button class="st-pan l" data-a="stPan" data-v="-1" aria-label="地図を左へ">' + ic("back") + '</button><button class="st-pan r" data-a="stPan" data-v="1" aria-label="地図を右へ">' + ic("back") + "</button>" +
+      '<div class="st-det scroll-y" id="stDet" hidden></div><div class="st-tip" id="stTip">迷宮をえらんでください<small>地図はドラッグで動かせます</small></div>';
     const ref = document.getElementById("run");
     ref.parentNode.insertBefore(s, ref);
+    bindPan(s);
     return s;
+  }
+  /* ══ ★★ 2026-10-14 ご報告「クエスト選択で右側が表示されず、マップも動かせない」══
+     地図（16:9）は画面を覆う大きさ（縦に長い画面ほど左右にはみ出す）のまま<b>まん中に固定</b>していたので、
+     地図の右はしの第6〜第8迷宮と左はしの拠点の町が画面の外に出て、えらべなかった（10-12 に第7〜第9迷宮を右に足してから目立った）。
+     → 地図を<b>ドラッグ（指・マウス）・ホイール・左右の矢印</b>で動かせるようにした（地図のはしで止まる）。
+       開いたときは「いま挑戦中の迷宮」（ひらいていて、まだクリアしていない最初の迷宮）が見える位置から。
+       迷宮をえらぶと、詳細の左の空きにくるよう動かす（いままでどおり）。 */
+  const PAN = { x: 0, y: 0 };
+  function detW() { const det = document.getElementById("stDet"); return det && !det.hidden ? det.getBoundingClientRect().width : 0; }
+  function panSize() {
+    const box = document.getElementById("wmBox"), st = document.getElementById("stages");
+    return { W: box ? box.offsetWidth : 0, H: box ? box.offsetHeight : 0, vw: (st && st.clientWidth) || innerWidth, vh: (st && st.clientHeight) || innerHeight };
+  }
+  function panBounds(dw) {
+    const z = panSize(), ox = Math.max(0, (z.W - z.vw) / 2), oy = Math.max(0, (z.H - z.vh) / 2);
+    return { x0: -ox - (dw || 0), x1: ox, y0: -oy, y1: oy };
+  }
+  function panClamp(dw) { const b = panBounds(dw); PAN.x = Math.max(b.x0, Math.min(b.x1, PAN.x)); PAN.y = Math.max(b.y0, Math.min(b.y1, PAN.y)); }
+  function panApply(anim) {
+    const box = document.getElementById("wmBox"); if (!box) return;
+    box.classList.toggle("drag", !anim);
+    box.style.transform = "translate(" + Math.round(PAN.x) + "px," + Math.round(PAN.y) + "px)";
+    /* 左右の矢印は、その向きにまだ動かせるときだけ */
+    const s = document.getElementById("stages"); if (!s) return;
+    const b = panBounds(detW());
+    s.classList.toggle("pan-l", PAN.x < b.x1 - 2);
+    s.classList.toggle("pan-r", PAN.x > b.x0 + 2);
+  }
+  /* いま挑戦中の迷宮（ひらいていて、まだクリアしていない最初の迷宮。全部クリアなら最後にひらいた迷宮） */
+  function frontId() {
+    const ds = D().DUNGEONS; let last = null;
+    for (const d of ds) { if (!dunOpen(d)) continue; last = d.id; if (!(S().dun[d.id] && S().dun[d.id].clears)) return d.id; }
+    return last;
+  }
+  function bindPan(s) {
+    if (s.dataset.pan) return; s.dataset.pan = "1";
+    let st = null, moved = false, killClick = -1e9;
+    s.addEventListener("pointerdown", (e) => {
+      if (e.button > 0) return;
+      if (e.target.closest(".st-det, .st-top, .st-pan")) return;   /* 詳細の板・上のバー・矢印では動かさない */
+      st = { id: e.pointerId, x: e.clientX, y: e.clientY, px: PAN.x, py: PAN.y }; moved = false;
+    });
+    s.addEventListener("pointermove", (e) => {
+      if (!st || e.pointerId !== st.id) return;
+      const dx = e.clientX - st.x, dy = e.clientY - st.y;
+      /* 14px までは「押しただけ」（ma-ui.js の指で押した判定と同じ幅）＝迷宮をえらべる */
+      if (!moved && Math.hypot(dx, dy) < 14) return;
+      if (!moved) { moved = true; s.classList.add("panning"); try { s.setPointerCapture(e.pointerId); } catch (x) {} }
+      PAN.x = st.px + dx; PAN.y = st.py + dy;
+      panClamp(detW()); panApply(false);
+      if (e.cancelable) e.preventDefault();
+    });
+    const end = (e) => {
+      if (!st || (e && e.pointerId !== st.id)) return;
+      if (moved) killClick = performance.now();
+      st = null; moved = false; s.classList.remove("panning");
+      const box = document.getElementById("wmBox"); if (box) box.classList.remove("drag");
+    };
+    s.addEventListener("pointerup", end); s.addEventListener("pointercancel", end);
+    /* ドラッグのあとに来る click（マウス）で迷宮をえらばないように */
+    s.addEventListener("click", (e) => { if (performance.now() - killClick < 350) { e.preventDefault(); e.stopPropagation(); } }, true);
+    s.addEventListener("wheel", (e) => {
+      if (e.target.closest(".st-det")) return;
+      e.preventDefault();
+      const b = panBounds(0), onlyX = b.y1 - b.y0 < 2;
+      const dx = e.shiftKey ? e.deltaY : e.deltaX, dy = e.shiftKey ? 0 : e.deltaY;
+      /* 横にだけはみ出す地図（縦長・ふつうの画面）は、縦のホイールでも横に動かす */
+      if (onlyX) PAN.x -= (Math.abs(dx) > Math.abs(dy) ? dx : dy); else { PAN.x -= dx; PAN.y -= dy; }
+      panClamp(detW()); panApply(false);
+    }, { passive: false });
   }
   function dunOpen(d) { return !d.unlock || (S().dun[d.unlock] && S().dun[d.unlock].clears > 0); }
   function hardOpen(d) { return !!(S().dun[d.id] && S().dun[d.id].clears > 0); }
@@ -184,7 +256,9 @@
     MA.Input.enabled = false;
     renderNodes();
     renderCur();
-    if (id) select(id); else { sel = null; $("#stDet").hidden = true; s.classList.remove("det"); focusMap(null); }
+    if (id) select(id); else { sel = null; $("#stDet").hidden = true; s.classList.remove("det"); requestAnimationFrame(() => focusMap(null, false)); }
+    /* 案内（迷宮をえらんでください・地図はドラッグで動かせます）は開くたびに出して、少しして消す */
+    const tp = $("#stTip"); if (tp) { tp.classList.remove("show"); void tp.offsetWidth; tp.classList.add("show"); }
     MA.Audio.bgm("guild");
   }
   function hide() { const s = document.getElementById("stages"); if (s) s.classList.remove("det"); }
@@ -215,19 +289,17 @@
       if (c.dataset.hide) c.style.filter = "brightness(0) drop-shadow(0 0 2px rgba(255,255,255,.5))";
     });
   }
-  /* 選んだ迷宮が詳細の左の空きにくるよう、地図を少しずらす */
-  function focusMap(id) {
-    const box = $("#wmBox");
-    if (!id) { box.style.transform = ""; return; }
-    const r = box.getBoundingClientRect(), vw = window.innerWidth;
-    const det = $("#stDet"); const dw = det && !det.hidden ? det.getBoundingClientRect().width : 0;
-    const nx = r.left + POS[id][0] / MW * r.width;
-    const want = (vw - dw) / 2;
-    const cur = parseFloat((box.style.transform.match(/translateX\((-?[\d.]+)px\)/) || [0, 0])[1]) || 0;
-    let dx = cur + (want - nx);
-    const minX = -(r.width - vw) / 2 - dw * 0.9, maxX = (r.width - vw) / 2 + 40;
-    dx = Math.max(Math.min(dx, maxX), Math.min(0, minX));
-    box.style.transform = "translateX(" + Math.round(dx) + "px)";
+  /* 選んだ迷宮が詳細の左の空きにくるよう、地図をずらす（id が無いときは、いま挑戦中の迷宮が画面のまん中あたりに）
+     ★★ 2026-10-14 ずらし方は PAN（ドラッグと同じ値）に一本化。地図のはしより外へは出さない */
+  function focusMap(id, anim) {
+    const k = id || frontId();
+    const dw = id ? detW() : 0;
+    if (k && POS[k]) {
+      const z = panSize();
+      const nx = (z.vw - z.W) / 2 + POS[k][0] / MW * z.W, ny = (z.vh - z.H) / 2 + POS[k][1] / MH * z.H;
+      PAN.x = (z.vw - dw) / 2 - nx; PAN.y = z.vh / 2 - ny;
+    } else { PAN.x = 0; PAN.y = 0; }
+    panClamp(dw); panApply(anim !== false);
   }
   function select(id) {
     sel = id;
@@ -308,13 +380,16 @@
     bg2.drawImage(bf, (56 - bf.width * k) / 2, (56 - bf.height * k) / 2, bf.width * k, bf.height * k);
     if (!S().codex.boss[d.boss]) bc.style.filter = "brightness(0.15)";
   }
-  window.addEventListener("resize", () => { if (document.body.dataset.scr === "stages" && sel) focusMap(sel); });
+  window.addEventListener("resize", () => { if (document.body.dataset.scr !== "stages") return; if (sel) focusMap(sel); else { panClamp(0); panApply(false); } });
 
   /* ══ ボタン ══ */
   const A = MA.UI.ACT;
   A.stBack = () => { MA.Guild.enter(); };
   A.stSel = (b) => { const d = D().DUN[b.dataset.v]; if (!d) return; MA.Audio.sfx(dunOpen(d) ? "click" : "error"); select(d.id); };
-  A.stClose = () => { sel = null; $("#stDet").hidden = true; $("#stages").classList.remove("det"); renderNodes(); focusMap(null); };
+  /* ★★ 2026-10-14 詳細を閉じたときは、いまの位置のまま（はしだけ合わせる） */
+  A.stClose = () => { sel = null; $("#stDet").hidden = true; $("#stages").classList.remove("det"); renderNodes(); panClamp(0); panApply(true); };
+  /* 左右の矢印：画面の幅の半分ずつ */
+  A.stPan = (b) => { const z = panSize(); PAN.x -= (Number(b.dataset.v) || 0) * z.vw * 0.5; panClamp(detW()); panApply(true); };
   A.stDiff = (b) => { const d = D().DUN[sel]; if (b.dataset.v === "hard" && !hardOpen(d)) return; diff = b.dataset.v; renderDet(); };
   A.claimTime = (b) => {
     const n = MA.Prog.claimTime(b.dataset.v);

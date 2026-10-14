@@ -582,20 +582,38 @@ function onTap(r, c) {
    ・勝利：紙ふぶきを少しだけ
    ・OS の「視差効果を減らす」がオンなら出さない */
 const FX_OFF = () => !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);
+/* ★★ 2026-10-14 ご指定「爆発の演出を派手過ぎずカジュアルな演出に」
+   前は「光る粒（ぼかしの光つき）＋太い輪」をはじけたマスの数（24 マスまで）だけ一度に出していたので、大きな連鎖では盤が光だらけになっていた。
+   → ・はじけたマスは「ぷにっ」とつぶれて戻る（光らせない・style.css の pop）
+     ・まわりへは小さな<b>しゃぼん玉のような丸</b>（色は淡く・白いつや・光らない）がとなりのマスへ「ぽよん」と飛ぶ
+     ・輪は細く淡く、小さく広がるだけ
+     ・一度に出すのは 10 マスぶんまで（大きな連鎖でもうるさくしない）
+     ・音は「ブー」（のこぎり波）から、連鎖が続くほど少しずつ高くなる「ぽん」に（chainPop） */
 function fxBurst(cells, color) {
   const host = $("#burst"), bd = $("#board"); if (!host || !bd || FX_OFF()) return;
   const hb = host.getBoundingClientRect();
   let h = "";
-  cells.slice(0, 24).forEach(([r, c]) => {
+  cells.slice(0, 10).forEach(([r, c]) => {
     const el = S.cellEls[r] && S.cellEls[r][c]; if (!el) return;
-    const b = el.getBoundingClientRect(), x = b.left - hb.left + b.width / 2, y = b.top - hb.top + b.height / 2, d = b.width * 0.95;
-    h += '<b style="left:' + x.toFixed(1) + "px;top:" + y.toFixed(1) + "px;--s:" + (b.width * 0.8).toFixed(1) + "px;--c:" + color + '"></b>';
-    neighbors(r, c).forEach(([nr, nc]) => {
-      h += '<i style="left:' + x.toFixed(1) + "px;top:" + y.toFixed(1) + "px;--c:" + color + ";--fx:" + ((nc - c) * d).toFixed(1) + "px;--fy:" + ((nr - r) * d).toFixed(1) + 'px"></i>';
+    const b = el.getBoundingClientRect(), x = b.left - hb.left + b.width / 2, y = b.top - hb.top + b.height / 2, d = b.width * 0.62;
+    h += '<b style="left:' + x.toFixed(1) + "px;top:" + y.toFixed(1) + "px;--s:" + (b.width * 0.72).toFixed(1) + "px;--c:" + color + '"></b>';
+    neighbors(r, c).forEach(([nr, nc], k) => {
+      h += '<i style="left:' + x.toFixed(1) + "px;top:" + y.toFixed(1) + "px;--c:" + color + ";--fx:" + ((nc - c) * d).toFixed(1) + "px;--fy:" + ((nr - r) * d).toFixed(1) + "px;--z:" + (b.width * 0.24).toFixed(1) + "px;animation-delay:" + (k * 0.012).toFixed(3) + 's"></i>';
     });
   });
   host.insertAdjacentHTML("beforeend", h);
-  clearTimeout(host._t); host._t = setTimeout(() => { host.innerHTML = ""; }, 460);
+  clearTimeout(host._t); host._t = setTimeout(() => { host.innerHTML = ""; }, 520);
+}
+/* 連鎖の「ぽん」：段（step）が進むほど少しずつ高く（上限あり）。はじけたマスが多くても音量は上げない */
+function chainPop(step) {
+  if (muted) return; const ctx = ac(); if (!ctx) return;
+  try {
+    const t = ctx.currentTime, f = Math.min(1100, 480 * Math.pow(1.06, Math.min(step, 14)));
+    const o = ctx.createOscillator(), g = ctx.createGain();
+    o.type = "sine"; o.frequency.setValueAtTime(f * 1.35, t); o.frequency.exponentialRampToValueAtTime(f, t + 0.07);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.11, t + 0.008); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.13);
+    o.connect(g); g.connect(ctx.destination); o.start(t); o.stop(t + 0.15);
+  } catch (e) {}
 }
 /* ══ ★★ 2026-10-13 その2 ご指定「ホームに画像がありますが、画像ではなく MagiShift のような名前と動きのものに」══
    タイトルの文字のロゴの下に 4×4 の小さな盤を置き、あか・あおが交互に置いて、たまったらバクハツ → 連鎖、をゆっくりくり返す。
@@ -724,8 +742,10 @@ async function resolve() {
     if (activeOwnersB(S.board, S.size).size <= 1) break;
 
     unstable.forEach(([r, c]) => S.cellEls[r][c].classList.add("pop"));
-    blip(170 - Math.min(unstable.length * 6, 90), 0.08, "sawtooth");
-    /* ★★ 2026-10-13 はじけて粒がとなりへ飛ぶ（★ その2：「n CHAIN!」の札はやめた・ご指定） */
+    /* ★★ 2026-10-14 音は連鎖の段ごとに少し高くなる「ぽん」（前は低い「ブー」） */
+    chainPop(guard);
+    chainCount(guard + 1, cur().color);   /* ★★ 2026-10-15 連鎖の数を控えめに（盤の右上の小さな札・2連鎖から） */
+    /* ★★ 2026-10-13 はじけて粒がとなりへ飛ぶ（★ その2：「n CHAIN!」の札はやめた・ご指定）★ 10-14 しゃぼん玉のような控えめな丸に */
     fxBurst(unstable, cur().color);
     await sleep(150);
 
@@ -749,9 +769,29 @@ async function resolve() {
     await sleep(105);
     if (++guard > 600) break;
   }
+  chainCountEnd();
   paintAll();
   S.busy = false;
   postMove();
+}
+/* ══ ★★ 2026-10-15 ご指定「連鎖のコンボ数を控えめに表示」══
+   10-13 その2 で大きな「n CHAIN!」の札はやめた（ご指定）。かわりに<b>盤の右上のふちに小さな札</b>「2 連鎖」を出す。
+   ・2連鎖から（1回だけのバクハツは出さない）。数が増えるたびに少しだけはねる。連鎖が終わったら少し残して消える
+   ・色は連鎖させた人の色。盤の上には重ねない（ふちに乗せるだけ）。光らせない・大きくしない */
+function chainCount(n, color) {
+  const host = $("#board-area"); if (!host) return;
+  let el = $("#chainCt");
+  if (!el) { el = document.createElement("div"); el.id = "chainCt"; el.className = "chain-ct"; el.setAttribute("aria-live", "polite"); host.appendChild(el); }
+  clearTimeout(el._t);
+  if (n < 2) { el.classList.remove("on"); return; }
+  el.style.setProperty("--c", color);
+  el.innerHTML = "<b>" + n + "</b>連鎖";
+  el.classList.add("on");
+  el.classList.remove("bump"); void el.offsetWidth; el.classList.add("bump");
+}
+function chainCountEnd() {
+  const el = $("#chainCt"); if (!el || !el.classList.contains("on")) return;
+  clearTimeout(el._t); el._t = setTimeout(() => el.classList.remove("on"), 1100);
 }
 
 /* ============================================================
@@ -1122,7 +1162,7 @@ async function demoResolve(player) {
     if (!unstable.length) break;
     if (activeOwnersB(dB, DSIZE).size <= 1) break;
     unstable.forEach(([r, c]) => dEls[r][c].classList.add("pop"));
-    blip(160, .08, "sawtooth");
+    chainPop(guard);   /* ★★ 2026-10-14 本番と同じ「ぽん」 */
     await sleep(420); // デモはゆっくり見せる
     const delta = new Map(), touched = new Set();
     const add = (k, d) => delta.set(k, (delta.get(k) || 0) + d);

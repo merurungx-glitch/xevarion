@@ -506,3 +506,25 @@ body:has(.modal:not(.hidden)) .toast{top:auto;bottom:calc(18px + var(--xv-safeb,
 #gl-unlink.show{display:flex!important;align-items:center;justify-content:center;width:auto!important;margin:12px auto 0!important;padding:8px 16px!important;
   border:1.5px solid #ffd2d9!important;border-radius:99px!important;background:#fff6f7!important;color:#e0445d!important}
 #gl-cands .gl-cand{border-radius:16px!important}
+
+/* ══ ★★ 2026-10-14 ご指定「爆発の演出を派手過ぎずカジュアルな演出に」══
+   ・はじけたマス：光らせず「ぷにっ」とつぶれて戻る（squash & stretch）
+   ・となりへ飛ぶもの：光る粒 → 淡いしゃぼん玉のような丸（白いつや・光のぼかしなし）が「ぽよん」と弾んで消える
+   ・輪：細く淡く、小さく広がるだけ */
+.cell.pop{animation:popSoft .24s cubic-bezier(.3,1.4,.5,1);z-index:2}
+@keyframes popSoft{0%{transform:scale(1)}35%{transform:scale(1.12,.9)}70%{transform:scale(.96,1.05)}100%{transform:scale(1)}}
+.burst i{width:var(--z,12px);height:var(--z,12px);margin:calc(var(--z,12px) / -2) 0 0 calc(var(--z,12px) / -2);box-shadow:none;
+  background:radial-gradient(circle at 34% 30%,rgba(255,255,255,.95) 0 18%,rgba(255,255,255,0) 40%),color-mix(in srgb,var(--c) 62%,#fff);
+  border:1.5px solid color-mix(in srgb,var(--c) 70%,#fff);opacity:0;animation:bubble .46s cubic-bezier(.25,.9,.35,1) forwards}
+@keyframes bubble{0%{transform:translate(0,0) scale(.5);opacity:0}18%{opacity:.95}70%{transform:translate(var(--fx),var(--fy)) scale(1.05);opacity:.85}100%{transform:translate(var(--fx),var(--fy)) scale(.6);opacity:0}}
+.burst b{border-width:2px;border-color:color-mix(in srgb,var(--c) 45%,#fff);animation:ringSoft .38s ease-out forwards}
+@keyframes ringSoft{from{transform:scale(.55);opacity:.6}to{transform:scale(1.18);opacity:0}}
+/* ★★ 2026-10-15 連鎖の数（控えめ）：盤の右上のふちに乗る小さな札（game.js の chainCount） */
+.chain-ct{position:absolute;right:10px;top:-11px;z-index:4;display:flex;align-items:baseline;gap:2px;padding:2px 10px 3px;border-radius:99px;
+  background:#fff;border:2px solid var(--c,#8892a6);color:color-mix(in srgb,var(--c,#8892a6) 82%,#1d2445);font-size:11px;font-weight:900;letter-spacing:.04em;
+  box-shadow:0 2px 6px rgba(29,36,69,.12);opacity:0;transform:translateY(-3px);transition:opacity .22s ease,transform .22s ease;pointer-events:none;white-space:nowrap}
+.chain-ct b{font-size:14px;line-height:1;font-weight:900;font-variant-numeric:tabular-nums}
+.chain-ct.on{opacity:1;transform:none}
+.chain-ct.on.bump b{animation:ctBump .26s ease-out}
+@keyframes ctBump{0%{transform:scale(1)}40%{transform:scale(1.22)}100%{transform:scale(1)}}
+@media (prefers-reduced-motion:reduce){.chain-ct.on.bump b{animation:none}}

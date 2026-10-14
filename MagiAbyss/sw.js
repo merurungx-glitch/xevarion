@@ -5,12 +5,12 @@
    ・フォント（Google Fonts）も一度読めたら控える（オフラインでもドットの文字になる）。
    ・Firebase（同期）はキャッシュしない。
    ============================================================ */
-const VERSION = "magiabyss-sw-v10";
+const VERSION = "magiabyss-sw-v11";
 const RUNTIME = "magiabyss-rt-v1";
 const CORE = [
   "./index.html",
   "./manifest.webmanifest",
-  "./css/ma.css?v=6",
+  "./css/ma.css?v=7",
   "./js/ma-data.js?v=6",
   "./js/ma-pixel.js?v=4",
   "./js/ma-art.js?v=5",
@@ -30,7 +30,7 @@ const CORE = [
   "./js/ma-ui.js?v=6",
   "./js/ma-town.js?v=1",
   "./js/ma-guild.js?v=6",
-  "./js/ma-stages.js?v=2",
+  "./js/ma-stages.js?v=3",
   "./js/ma-howto.js?v=5",
   "./js/ma-main.js?v=4",
   "./img/title.webp",
@@ -88,16 +88,86 @@ async function xevPrecache(cache, list, scope) {
   let done = 0;
   await xevPost({ type: "xev-precache", scope, done: 0, total: list.length });
   for (const u of list) {
-    try { await cache.add(u); } catch (e) {}
+    try { await xevIrAdd(cache, u); } catch (e) {}
     done++;
     await xevPost({ type: "xev-precache", scope, done, total: list.length });
   }
 }
 
+/* ══ ★★ 2026-10-14 「更新したファイル」を数える（ご報告「更新があったファイルが0のまま」）══
+   新しい版は<b>install でまとめて取りこむ</b>ので、そのあとの「確かめ（xev-refresh）」では全部「変更なし（304）」になり、
+   ホームの更新画面の「更新したファイル」がいつも 0 件だった。
+   → install のときに<b>前の版の置き場とくらべて中身が変わったもの</b>（前の版に無い URL＝?v= が上がったもの、
+     または ETag／Last-Modified＋大きさがちがうもの）を控えておき、確かめの件数（got・bytes）に足して返す。
+   ・前の版がまったく無い（はじめて入れた）ときは数えない（更新ではないため）。
+   ・控えは版に縛られない置き場（xev-instrep-v1）に、この SW の場所ごとに1件。見送った版のぶんは足しこむ（同じファイルは1件）。
+   ・確かめで使ったら消す（2回数えない）。 */
+const XEV_IR_CACHE = "xev-instrep-v1";
+const XEV_IR_KEY = new URL("./__xev_instrep", self.location.href).href;
+let xevIrChg = null;            /* install 中に見つけた「変わったファイル」 { パス: 大きさ } */
+let xevIrOld = null;            /* 前の版の置き場の名前（無ければ null＝はじめて） */
+async function xevIrBegin() {
+  xevIrChg = {}; xevIrOld = null;
+  try {
+    const pre = VERSION.replace(/v\d+$/, "");
+    const ks = (await caches.keys()).filter((k) => k !== VERSION && k.startsWith(pre) && /v\d+$/.test(k));
+    xevIrOld = ks.length ? ks : null;
+  } catch (e) { xevIrOld = null; }
+}
+function xevIrPath(u) { try { return new URL(u, self.location.href).pathname; } catch (e) { return String(u); } }
+async function xevIrAdd(cache, u, init) {
+  const res = await fetch(u, init);
+  if (!res || !res.ok) throw new Error("precache " + u);
+  if (xevIrOld && xevIrChg) {
+    let same = false;
+    try {
+      for (const k of xevIrOld) {
+        const old = await (await caches.open(k)).match(u);
+        if (!old) continue;
+        const a = res.headers, b = old.headers;
+        const e1 = a.get("ETag"), e2 = b.get("ETag");
+        if (e1 && e2) same = e1 === e2;
+        else {
+          const l1 = a.get("Last-Modified"), l2 = b.get("Last-Modified");
+          same = !!(l1 && l1 === l2 && a.get("content-length") === b.get("content-length"));
+        }
+        break;
+      }
+    } catch (e) {}
+    if (!same) {
+      let n = Number(res.headers.get("content-length")) || 0;
+      if (!n) { try { n = (await res.clone().blob()).size || 0; } catch (e) { n = 0; } }
+      xevIrChg[xevIrPath(u)] = n;
+    }
+  }
+  await cache.put(u, res);
+}
+async function xevIrSave() {
+  if (!xevIrOld || !xevIrChg) return;
+  try {
+    const c = await caches.open(XEV_IR_CACHE);
+    let cur = {};
+    try { const r = await c.match(XEV_IR_KEY); if (r) cur = await r.json(); } catch (e) { cur = {}; }
+    const files = Object.assign({}, (cur && cur.files) || {}, xevIrChg);
+    await c.put(XEV_IR_KEY, new Response(JSON.stringify({ files: files, at: Date.now() }), { headers: { "Content-Type": "application/json" } }));
+  } catch (e) {}
+}
+async function xevIrTake() {
+  try {
+    const r = await (await caches.open(XEV_IR_CACHE)).match(XEV_IR_KEY);
+    if (!r) return {};
+    const o = await r.json();
+    return (o && o.files) || {};
+  } catch (e) { return {}; }
+}
+async function xevIrDrop() { try { await (await caches.open(XEV_IR_CACHE)).delete(XEV_IR_KEY); } catch (e) {} }
+
 self.addEventListener("install", (e) => {
   e.waitUntil((async () => {
     const cache = await caches.open(VERSION);
+    await xevIrBegin();
     await xevPrecache(cache, CORE, "magiabyss");
+    await xevIrSave();
     self.skipWaiting();
   })());
 });
@@ -182,6 +252,8 @@ async function xevRefreshAll() {
     }
   } catch (e) {}
   let done = 0, got = 0, hit = 0, bytes = 0, lastPost = 0;
+  const irf = await xevIrTake();   /* ★★ 2026-10-14 install で取りこんだぶん（変わったファイル）も「更新した」に数える */
+  for (const ip in irf) { got++; bytes += irf[ip] | 0; }
   const post = () => xevPost({ type: "xev-precache", scope: XEV_SCOPE, done, total: urls.length, got, hit, bytes });
   const tickPost = async (force) => { const now = Date.now(); if (!force && now - lastPost < 120) return; lastPost = now; await post(); };
   await post();
@@ -193,12 +265,12 @@ async function xevRefreshAll() {
       if (old) { const et = old.headers.get("ETag"), lm = old.headers.get("Last-Modified"); if (et) h["If-None-Match"] = et; if (lm) h["If-Modified-Since"] = lm; }
       const opt = Object.keys(h).length ? { cache: "no-store", headers: h } : { cache: "no-cache" };
       const res = await fetch(u, opt);
-      if (res && res.status === 304 && old) hit++;
+      if (res && res.status === 304 && old) if (!(xevIrPath(u) in irf)) hit++;
       else if (res && res.ok && res.type === "basic") {
         let n = Number(res.headers.get("content-length")) || 0;
         await cache.put(u, res.clone());
         if (!n) { try { n = (await res.clone().blob()).size || 0; } catch (e2) { n = 0; } }
-        got++; bytes += n;
+        if (!(xevIrPath(u) in irf)) { got++; bytes += n; }
       }
     } catch (e) {}
     done++;
@@ -208,6 +280,7 @@ async function xevRefreshAll() {
   const crew = []; for (let ci = 0; ci < 6; ci++) crew.push(worker());
   await Promise.all(crew);
   await tickPost(true);
+  await xevIrDrop();
   await xevPost({ type: "xev-refreshed", scope: XEV_SCOPE, total: urls.length, got, hit, bytes });
 }
 self.addEventListener("message", (e) => {
