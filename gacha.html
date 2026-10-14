@@ -574,6 +574,8 @@ body:not(.glmode) #glist{display:none}
 <link rel="stylesheet" href="xeva-pop-pages.css?v=3">
 </head>
 <body>
+<!-- ★★ 2026-10-14 下バーは body のいちばん最初で作る（ページの最後に defer で読んでいたので、開いて少しあとに出ていた） -->
+<script src="xeva-tabbar.js?v=4" data-tab="gacha"></script>
 
 <div class="wrap">
   <div class="gh">
@@ -1046,6 +1048,5 @@ body:not(.glmode) #glist{display:none}
 <!-- ★★ 2026-10-12c ウマ娘風のボタン・シート・動き（いちばん最後に読む＝ページの中の style より強く） -->
 <link rel="stylesheet" href="xeva-uma.css?v=2">
 <!-- ★★ 2026-10-13 ホームと同じ下バーを、このページにも出す（ご指定「下バーを常に表示」） -->
-<script src="xeva-tabbar.js?v=3" data-tab="gacha" defer></script>
 </body>
 </html>

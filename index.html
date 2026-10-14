@@ -16,7 +16,7 @@
 <script src="maintenance-gate.js?v=13"></script>
 <!-- ★★ 2026-10-13 ご指定「アプリ開始時に企業ロゴ」：XEVARION を起動したときだけ 3社ロゴ → XEVARION のロゴとロードバー
      （アプリから戻ってきたとき＝このタブで「タップしてスタート」ずみは出さない。判定は xeva-splash.js の data-home） -->
-<script src="xeva-splash.js?v=15" data-app="XEVARION" data-logo="icons/xev-512.png" data-home="1" data-keep-legacy="1"></script>
+<script src="xeva-splash.js?v=16" data-app="XEVARION" data-logo="icons/xev-512.png" data-home="1" data-keep-legacy="1"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Exo+2:ital,wght@0,300;0,400;0,600;0,700;1,300&family=Noto+Sans+JP:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
@@ -31,6 +31,41 @@
 <!-- ★★ 2026-10-12b ウマ娘風のポップな見た目（色・ふち・影・書体だけ。位置と大きさは変えない）。いちばん最後に読む -->
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="xeva-pop.css?v=1">
+<style>
+/* ★★ 2026-10-15 追加データのダウンロード（必須）の注意書き */
+.xh-upd-must{margin:10px 0 4px;padding:10px 12px;border-radius:14px;background:#fff6e6;border:2px solid #ffc861;color:#6b4300;font-size:12px;font-weight:700;line-height:1.55}
+.xh-upd-must b{display:block;font-size:13px;font-weight:900;color:#b25a00;margin-bottom:2px}
+.xh-upd-must span{display:block}
+#xhUpdSheet.must .xh-sheet-head .xh-sheet-title{color:#b25a00}
+/* ★★ 2026-10-15 ご指定「浮気判定シートのボタンを XEVARION PARK と同じサイズで真上に。2つとも少し小さく（同じ大きさならデザインは変えてよい）」
+   ・.xl-pills（もとの PARK の位置）に縦に並べる。2つとも 150×42（前の PARK は約165×49）
+   ・PARK は青紫・判定シートはピンク。どちらも白いふち＋色の輪（xeva-pop.css の作法）・光の帯・右上の札 */
+.xl-pills{position:absolute;left:12px;bottom:calc(30px + 2 * min(62px,16.4vw) + 74px);display:flex;flex-direction:column;gap:15px;z-index:5}
+.xl-pills .xl-expo,.xl-pills .xl-uwk{position:relative;left:auto;bottom:auto;width:150px;height:42px;box-sizing:border-box;padding:4px 9px 4px 4px;gap:6px;flex:none}
+.xl-pills .orb{width:30px;height:30px;flex:none}
+.xl-pills .xl-expo .orb img{width:26px}
+.xl-pills .tx{min-width:0}
+.xl-pills .tx b{font-size:10.5px;letter-spacing:.02em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.xl-pills .tx small{font-size:9px;white-space:nowrap}
+.xl-uwk{display:flex;align-items:center;border-radius:99px;text-decoration:none;color:#fff;border:2.5px solid var(--yw-line,#12203d);
+  background:linear-gradient(120deg,#ff3f78,#ff6f9a 55%,#ff9a6b);isolation:isolate;
+  box-shadow:0 0 0 3px #fff,0 0 0 5px #ff5f8f,0 4px 0 5px rgba(201,42,98,.28);-webkit-tap-highlight-color:transparent}
+.xl-uwk .xl-shine{position:absolute;inset:0;border-radius:inherit;overflow:hidden;z-index:-1;pointer-events:none}
+.xl-uwk .xl-shine::before{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.38) 50%,transparent 70%);
+  transform:translateX(-120%);animation:xlShine 3.2s ease-in-out 1.6s infinite}
+.xl-uwk .orb{border-radius:50%;display:grid;place-items:center;background:rgba(255,255,255,.24)}
+.xl-uwk .orb svg{width:23px;height:23px;overflow:visible}
+.xl-uwk .orb .h{fill:#fff;stroke:#fff;stroke-width:1.2;stroke-linejoin:round}
+.xl-uwk .orb .g{fill:#ffe3ec;stroke:#c92a62;stroke-width:1.8}
+.xl-uwk .orb .gl{fill:none;stroke:#c92a62;stroke-width:2.6;stroke-linecap:round}
+.xl-uwk .tx{display:flex;flex-direction:column;line-height:1.15}
+.xl-uwk .tx b{font-weight:900;text-shadow:0 1px 0 rgba(150,20,60,.55)}
+.xl-uwk .tx small{font-weight:800;opacity:.95}
+.xl-uwk .xl-new{position:absolute;right:-9px;top:-10px;z-index:2;font-style:normal;padding:1px 7px;font-size:9.5px;line-height:1.45;font-weight:900;border-radius:99px;
+  color:#fff;background:#ffb21e;border:1.5px solid var(--yw-line,#12203d);box-shadow:0 1px 0 rgba(0,0,0,.25)}
+.xl-uwk:active{translate:0 2px}
+@media (prefers-reduced-motion:reduce){.xl-uwk .xl-shine::before{animation:none}}
+</style>
 <script src="xeva.js?v=77" defer></script>
 <!-- ★★ 2026-09-05 コレクションを XEVARION 全体で1本にする共通部品。
      xeva.js の iconCharList() を使うので、必ず xeva.js の<b>あと</b>に置く。 -->
@@ -77,8 +112,8 @@
 <script type="module" src="xeva-cloud.js?v=44"></script>
 <script src="xeva-qr.js?v=9" defer></script>
 <script src="xevarion.js?v=102" defer></script>
-<script src="xevarion-home.js?v=163" defer></script>
-<script src="home-mate.js?v=22" defer></script>
+<script src="xevarion-home.js?v=164" defer></script>
+<script src="home-mate.js?v=23" defer></script>
 <!-- ★★ 2026-10-06 XEVARION 共通イベント（Violet Breeze）のページ。中身は xeva.js の XEVA.event -->
 <script src="xeva-event-ui.js?v=2" defer></script>
 </head>
@@ -240,6 +275,125 @@ body.music-on #beatFrame{opacity:1}
      ・ホームの「設定」タブの BGM スイッチ（#xhSwMusic）
    の2か所にあるので、浮きボタンは不要です。 */
 </style>
+<style>
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-10-14 開始画面（タップしてスタート／ログイン）もウマ娘風に（ご指定）
+   ------------------------------------------------------------
+   ・ほかの画面（xeva-uma.css）と同じ作法：白い太いふち＋上半分のつや＋若草色のふち取り文字＋下に落ちる影。
+   ・「タップしてスタート」は大きな白い字＋緑のふち（1文字ずつ順にはねる）＋下に緑のリボン「TAP TO START」・左右にきらきら。
+   ・右上の BGM／アカウントは白い板（ホームの右上と同じ）＋下に名前。左上のサーバーの札の下に版の番号。
+   ・画面の下は暗い幕をやめて白い光に（明るく）。光の粒・オーロラも淡い桃・黄・若草に。
+   ・ログインのカードは若草色のわく＋しま模様の見出し＋緑のボタン（新規作成は橙）。
+   ★ xeva-uma.css はページの最後で読むので、最初に出るこの画面はここで塗る（あとから色が変わってちらつかないように）。
+     xeva-pop.css の !important に勝つため、要るところは !important。位置と大きさ・動きの仕組みは変えない。
+   ══════════════════════════════════════════════════════════════ */
+#xevaHome{--ut-font:'M PLUS Rounded 1c','Noto Sans JP',system-ui,sans-serif;
+  --ut-gloss:linear-gradient(180deg,rgba(255,255,255,.6) 0,rgba(255,255,255,.2) 46%,rgba(255,255,255,0) 47%);
+  --ut-stripe:repeating-linear-gradient(135deg,rgba(255,255,255,.22) 0 7px,rgba(255,255,255,0) 7px 14px);
+  --ut-g:#43b324;--ut-gd:#2a8614;--ut-gk:#226f10;
+  --ut-ol:-1.3px 0 #2f8a1a,1.3px 0 #2f8a1a,0 -1.3px #2f8a1a,0 1.3px #2f8a1a,-1px -1px #2f8a1a,1px 1px #2f8a1a,1px -1px #2f8a1a,-1px 1px #2f8a1a;
+  font-family:var(--ut-font)}
+/* 背景：左右のぼかしを明るく・下は白い光・オーロラと粒は淡い色 */
+.xh-bg{background:#eaf3ff}
+.xh-bg::before{filter:blur(26px) brightness(.92) saturate(1.2)}
+.xh-scrim{background:linear-gradient(180deg,rgba(255,255,255,0) 0,rgba(255,255,255,0) 56%,rgba(255,255,255,.22) 74%,rgba(240,252,232,.7) 100%)!important}
+.xh-aurora{opacity:.4;background:radial-gradient(42% 34% at 18% 22%,rgba(255,170,210,.5),transparent 70%),
+  radial-gradient(38% 30% at 84% 70%,rgba(170,240,130,.42),transparent 70%),radial-gradient(30% 26% at 60% 12%,rgba(255,230,120,.4),transparent 70%)}
+.xh-p{background:radial-gradient(circle,#fff,rgba(255,236,150,.95) 45%,transparent 72%)}
+.xh-p:nth-child(3n){background:radial-gradient(circle,#fff,rgba(255,160,205,.95) 45%,transparent 72%)}
+.xh-p:nth-child(4n){background:radial-gradient(circle,#fff,rgba(170,236,120,.95) 45%,transparent 72%)}
+/* 「タップしてスタート」 */
+.xh-access-center::before{content:"";position:absolute;left:50%;top:50%;width:min(560px,130vw);height:170px;transform:translate(-50%,-50%);
+  background:radial-gradient(closest-side,rgba(255,255,255,.62),rgba(255,255,255,0));z-index:-1;pointer-events:none}
+.xh-start{position:relative;gap:12px!important}
+.xh-start-tap{font-family:var(--ut-font)!important;font-size:27px!important;font-weight:900!important;letter-spacing:.1em!important;color:#fff!important;animation:none!important;
+  text-shadow:-2.6px 0 var(--ut-g),2.6px 0 var(--ut-g),0 -2.6px var(--ut-g),0 2.6px var(--ut-g),-2px -2px var(--ut-g),2px -2px var(--ut-g),-2px 2px var(--ut-g),2px 2px var(--ut-g),
+    0 5px 0 var(--ut-gd),-2px 5px 0 var(--ut-gd),2px 5px 0 var(--ut-gd),0 9px 14px rgba(20,60,10,.35)!important}
+.xh-start-tap .hp{display:inline-block;animation:utHop 2.6s ease-in-out infinite}
+.xh-start-tap .hp:nth-child(2){animation-delay:.06s}.xh-start-tap .hp:nth-child(3){animation-delay:.12s}
+.xh-start-tap .hp:nth-child(4){animation-delay:.18s}.xh-start-tap .hp:nth-child(5){animation-delay:.24s}
+.xh-start-tap .hp:nth-child(6){animation-delay:.30s}.xh-start-tap .hp:nth-child(7){animation-delay:.36s}
+.xh-start-tap .hp:nth-child(8){animation-delay:.42s}.xh-start-tap .hp:nth-child(9){animation-delay:.48s}
+@keyframes utHop{0%,52%,100%{transform:translateY(0)}60%{transform:translateY(-8px)}68%{transform:translateY(0)}73%{transform:translateY(-2.5px)}78%{transform:translateY(0)}}
+.xh-start-line{display:none!important}
+.xh-start-sub{font-family:'Orbitron',var(--ut-font);font-size:11px!important;font-weight:900!important;letter-spacing:.34em!important;opacity:1!important;color:#fff!important;
+  padding:7px 20px 7px 24px;border-radius:99px;background:var(--ut-stripe),linear-gradient(180deg,#a6ec72,var(--ut-g));
+  box-shadow:inset 0 0 0 2px rgba(255,255,255,.95),0 0 0 1.5px var(--ut-gd),0 3px 0 var(--ut-gk),0 7px 14px rgba(20,60,10,.25);
+  text-shadow:0 1px 0 var(--ut-gd);animation:utBreath 2.6s ease-in-out infinite}
+@keyframes utBreath{0%,100%{transform:scale(1);filter:brightness(1)}50%{transform:scale(1.045);filter:brightness(1.08)}}
+.xh-start::before,.xh-start::after{content:"";position:absolute;top:0;width:24px;height:24px;pointer-events:none;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M12 1.5l2.6 7.9 7.9 2.6-7.9 2.6L12 22.5l-2.6-7.9L1.5 12l7.9-2.6Z' fill='%23ffe14a' stroke='%23fff' stroke-width='1.8' stroke-linejoin='round'/%3E%3C/svg%3E") center/contain no-repeat;
+  filter:drop-shadow(0 2px 0 rgba(170,120,0,.35));animation:utTwinkle 1.9s ease-in-out infinite}
+.xh-start::before{left:-34px}
+.xh-start::after{right:-32px;top:12px;width:17px;height:17px;animation-delay:.95s}
+@keyframes utTwinkle{0%,100%{transform:scale(.7) rotate(0deg);opacity:.65}50%{transform:scale(1.12) rotate(22deg);opacity:1}}
+/* 読み込み中 */
+.xh-loading{color:#fff!important;font-family:var(--ut-font);font-weight:900!important;text-shadow:var(--ut-ol)}
+.xh-spin{border:4px solid #fff!important;border-top-color:var(--ut-g)!important;box-shadow:0 0 0 1.5px var(--ut-gd),inset 0 0 0 1.5px var(--ut-gd),0 3px 0 1.5px rgba(20,60,10,.25)}
+/* 右上の BGM／アカウント：白い板＋緑のふち＋下に沈む影・下に名前 */
+.xh-access-top{gap:12px!important;top:calc(env(safe-area-inset-top,0px) + 12px)!important}
+.xh-icbtn{position:relative;width:46px!important;height:46px!important;border-radius:14px!important;border:none!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+  background:var(--ut-gloss),linear-gradient(180deg,#ffffff,#e6f7d8)!important;color:var(--ut-g)!important;
+  box-shadow:inset 0 0 0 2px #fff,0 0 0 2.5px #62c43e,0 3.5px 0 2.5px #3f9a22,0 7px 12px rgba(20,60,10,.22)!important;transition:transform .09s ease!important;-webkit-tap-highlight-color:transparent}
+.xh-icbtn:active{transform:translateY(3px)}
+.xh-icbtn.off{color:#a2b394!important}
+.xh-icbtn .xvic{width:22px!important;height:22px!important}
+.xh-icbtn[data-lb]::after{content:attr(data-lb);position:absolute;left:50%;top:calc(100% + 7px);transform:translateX(-50%);white-space:nowrap;
+  font:900 9.5px var(--ut-font);color:#fff;letter-spacing:.02em;text-shadow:var(--ut-ol);pointer-events:none}
+.xh-acctmenu{top:70px!important;background:#fff!important;border:none!important;border-radius:16px!important;padding:8px!important;
+  box-shadow:inset 0 0 0 2px #fff,0 0 0 2.5px #62c43e,0 4px 0 2.5px #3f9a22,0 18px 34px rgba(20,60,10,.3)!important}
+.xh-acctmenu button{color:#4a3f33!important;font-family:var(--ut-font)!important;font-weight:800!important}
+.xh-acctmenu button .xvic-mn{color:var(--ut-g)}
+.xh-acctmenu button .xvic-mn circle{fill:#fff}
+.xh-acctmenu button:hover{background:#eaf8de!important}
+/* 左上のサーバーの札・版の番号 */
+.xh-server{background:var(--ut-gloss),linear-gradient(180deg,#ffffff,#eefae6)!important;font-family:var(--ut-font);
+  box-shadow:inset 0 0 0 2px #fff,0 0 0 2px #62c43e,0 3px 0 2px rgba(47,138,26,.35)!important}
+.xh-ver{position:absolute;top:calc(env(safe-area-inset-top,0px) + 50px);left:18px;z-index:3;pointer-events:none;
+  font:900 10px 'Orbitron',var(--ut-font);letter-spacing:.06em;color:#fff;text-shadow:var(--ut-ol)}
+.xh-ver:empty{display:none}
+/* お知らせ（赤い札）→ 桃のつやのある札 */
+.xh-notice{font-family:var(--ut-font);background:var(--ut-gloss),linear-gradient(180deg,#ff9cc4,#ff5f93)!important;
+  box-shadow:inset 0 0 0 2px rgba(255,255,255,.9),0 0 0 1.5px #c43a6c,0 3px 0 #a32e59,0 10px 22px rgba(120,20,60,.25)!important;
+  text-shadow:0 1px 0 #c43a6c}
+/* BGM の案内・ようこそ */
+.xh-musicwarn{font-family:var(--ut-font);background:var(--ut-gloss),linear-gradient(180deg,#ffffff,#f1fbe9)!important;color:#4a3f33!important;border:none!important;
+  backdrop-filter:none!important;-webkit-backdrop-filter:none!important;
+  box-shadow:inset 0 0 0 2px #fff,0 0 0 2px #62c43e,0 3px 0 2px rgba(47,138,26,.32)!important}
+.xh-musicwarn svg{color:#ff9d2e!important}
+.xh-hint{color:#fff!important;font-family:var(--ut-font);font-weight:900;font-size:11.5px!important;letter-spacing:.04em!important;text-shadow:var(--ut-ol)}
+/* ── ログイン・新規作成のカード ── */
+.xh-card{border:none!important;border-radius:24px!important;color:#4a3f33!important;font-family:var(--ut-font);
+  box-shadow:inset 0 0 0 3px #fff,0 0 0 3px #62c43e,0 6px 0 3px #3f9a22,0 26px 60px rgba(20,60,10,.38)!important}
+.xh-hero{background:var(--ut-stripe),linear-gradient(180deg,#a6ec72,#4cae2c)!important;padding:22px 24px 18px!important}
+.xh-logo{box-shadow:0 0 0 3px #fff,0 4px 0 3px rgba(42,122,20,.4)!important}
+.xh-title{background:none!important;-webkit-text-fill-color:#fff!important;color:#fff!important;
+  text-shadow:-2px 0 var(--ut-gd),2px 0 var(--ut-gd),0 -2px var(--ut-gd),0 2px var(--ut-gd),-1.5px -1.5px var(--ut-gd),1.5px 1.5px var(--ut-gd),1.5px -1.5px var(--ut-gd),-1.5px 1.5px var(--ut-gd),0 4px 0 var(--ut-gk)}
+.xh-sub{color:#fff!important;font-weight:800;text-shadow:0 1px 0 rgba(42,122,20,.7)}
+.xh-tab{background:#fff!important;border:none!important;border-radius:14px!important;color:#7f9272!important;font-family:var(--ut-font)!important;font-weight:900!important;
+  box-shadow:inset 0 0 0 2px #dcecd0,0 3px 0 #c6dab6!important;transition:transform .09s ease!important}
+.xh-tab.on{background:var(--ut-gloss),linear-gradient(180deg,#a6ec72,var(--ut-g))!important;color:#fff!important;
+  box-shadow:inset 0 0 0 2px rgba(255,255,255,.95),0 0 0 1.5px var(--ut-gd),0 3px 0 var(--ut-gk)!important;text-shadow:0 1px 0 var(--ut-gd)}
+.xh-label{color:#2f8a1a!important;font-weight:900!important}
+.xh-input{border-color:#cfe6bf!important;background:#fbfff8!important;color:#4a3f33!important}
+.xh-input:focus{border-color:#62c43e!important;box-shadow:0 0 0 3px rgba(98,196,62,.18)}
+.xh-btn{border-radius:16px!important;font-family:var(--ut-font)!important;font-weight:900!important;color:#fff!important;
+  background:var(--ut-gloss),linear-gradient(180deg,#a6ec72,var(--ut-g))!important;
+  box-shadow:inset 0 0 0 2px rgba(255,255,255,.95),0 0 0 1.5px var(--ut-gd),0 4px 0 var(--ut-gk),0 7px 14px rgba(40,70,20,.16)!important;
+  text-shadow:-1.3px 0 var(--ut-gd),1.3px 0 var(--ut-gd),0 -1.3px var(--ut-gd),0 1.3px var(--ut-gd)!important;transition:transform .09s ease,box-shadow .09s ease!important}
+.xh-btn:active{transform:translateY(3px)!important;box-shadow:inset 0 0 0 2px rgba(255,255,255,.95),0 0 0 1.5px var(--ut-gd),0 1px 0 var(--ut-gk)!important}
+.xh-btn.create{background:var(--ut-gloss),linear-gradient(180deg,#ffd36e,#ff8a1f)!important;
+  box-shadow:inset 0 0 0 2px rgba(255,255,255,.95),0 0 0 1.5px #c25c00,0 4px 0 #a44d00,0 7px 14px rgba(120,60,0,.16)!important;
+  text-shadow:-1.3px 0 #c25c00,1.3px 0 #c25c00,0 -1.3px #c25c00,0 1.3px #c25c00!important}
+.xh-back{color:#2f8a1a!important;font-family:var(--ut-font)!important}
+.xh-cand{border-color:#dcecd0!important;background:#f6fbf2!important}
+.xh-cand:hover{border-color:#62c43e!important;background:#eaf8de!important}
+.xh-acct{border-color:#bfe3a6!important;background:#f3fbec!important}
+.xh-msg{color:#e0457f!important}
+.xh-note,.xh-create-hero p{color:#8c7f6d!important}
+body.xos-nomotion .xh-start-tap .hp, body.xos-nomotion .xh-start-sub, body.xos-nomotion .xh-start::before, body.xos-nomotion .xh-start::after{animation:none!important}
+@media (prefers-reduced-motion:reduce){.xh-start-tap .hp,.xh-start-sub,.xh-start::before,.xh-start::after{animation:none!important}}
+</style>
 <div id="xevaHome">
   <script>
   /* ★ プリペイント判定（FOUC対策）: 本体が一瞬見えてからアクセス画面が出るのを防ぐため、
@@ -266,9 +420,9 @@ body.music-on #beatFrame{opacity:1}
   <!-- アクセス画面 -->
   <div class="xh-access" id="xhAccess" onclick="xhAccessTap(event)">
     <div class="xh-access-top" onclick="event.stopPropagation()">
-      <button class="xh-icbtn" id="xhMusicBtn" onclick="xevaToggleMusic()" title="音楽 ON/OFF"><svg class="xvic" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M4 9v6h3.6L13 19.4V4.6L7.6 9H4Z" fill="currentColor"/><path d="M15.5 8.6a4.8 4.8 0 010 6.8M18 6.2a8.2 8.2 0 010 11.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
+      <button class="xh-icbtn" id="xhMusicBtn" onclick="xevaToggleMusic()" title="音楽 ON/OFF" data-lb="BGM"><svg class="xvic" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M4 9v6h3.6L13 19.4V4.6L7.6 9H4Z" fill="currentColor"/><path d="M15.5 8.6a4.8 4.8 0 010 6.8M18 6.2a8.2 8.2 0 010 11.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
       <div style="position:relative">
-        <button class="xh-icbtn" id="xhAcctBtn" onclick="xhToggleAcctMenu()" title="アカウント"><svg class="xvic" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><circle cx="12" cy="8.2" r="4.1" fill="currentColor"/><path d="M4.6 20.4a7.4 7.4 0 0114.8 0l.1.8H4.5Z" fill="currentColor"/></svg></button>
+        <button class="xh-icbtn" id="xhAcctBtn" onclick="xhToggleAcctMenu()" title="アカウント" data-lb="アカウント"><svg class="xvic" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><circle cx="12" cy="8.2" r="4.1" fill="currentColor"/><path d="M4.6 20.4a7.4 7.4 0 0114.8 0l.1.8H4.5Z" fill="currentColor"/></svg></button>
         <div class="xh-acctmenu" id="xhAcctMenu">
           <button onclick="xhChangeAccount()"><svg class="xvic xvic-mn" viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 12a7.5 7.5 0 0113-5.2M19.5 12a7.5 7.5 0 01-13 5.2" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M17.6 2.6v4.4h-4.4M6.4 21.4V17h4.4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg> 別のアカウントでログイン</button>
           <button onclick="xhOpenAccSettings()"><svg class="xvic xvic-mn" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2.8l1.2 2.7 2.9-.5 1 2.8 2.8 1-.5 2.9L22 12l-2.6 1.3.5 2.9-2.8 1-1 2.8-2.9-.5L12 21.2l-1.2-2.7-2.9.5-1-2.8-2.8-1 .5-2.9L2 12l2.6-1.3-.5-2.9 2.8-1 1-2.8 2.9.5Z" fill="currentColor" opacity=".9"/><circle cx="12" cy="12" r="3.4" fill="rgba(16,14,34,.95)"/></svg> アカウント設定</button>
@@ -280,7 +434,8 @@ body.music-on #beatFrame{opacity:1}
     <div class="xh-access-center">
       <div class="xh-loading" id="xhLoading"><div class="xh-spin"></div>読み込み中…</div>
       <div class="xh-start" id="xhStart">
-        <div class="xh-start-tap">タップしてスタート</div>
+        <!-- ★★ 2026-10-14 ウマ娘風：1文字ずつ順にはねる（遅れは CSS の nth-child） -->
+        <div class="xh-start-tap" aria-label="タップしてスタート"><span class="hp">タ</span><span class="hp">ッ</span><span class="hp">プ</span><span class="hp">し</span><span class="hp">て</span><span class="hp">ス</span><span class="hp">タ</span><span class="hp">ー</span><span class="hp">ト</span></div>
         <div class="xh-start-line"></div>
         <div class="xh-start-sub">TAP TO START</div>
       </div>
@@ -289,6 +444,9 @@ body.music-on #beatFrame{opacity:1}
     <!-- ★★ 2026-10-12b タイトル画面にサーバーの番号（ご指定）。点の色＝つながっているか -->
     <div class="xh-server" id="xhServer"><i class="dot"></i><span>サーバー</span><b>No.01</b><small>ASIA</small></div>
     <script>(function(){var s=document.getElementById('xhServer');function u(){if(s)s.classList.toggle('off',!navigator.onLine);}u();addEventListener('online',u);addEventListener('offline',u);})();</script>
+    <!-- ★★ 2026-10-14 ウマ娘風に、左上（サーバーの札の下）へ端末に入っている版の番号 -->
+    <div class="xh-ver" id="xhVer"></div>
+    <script>(function(){try{var v=localStorage.getItem('xeva_pkg_ver_v1');var e=document.getElementById('xhVer');if(e&&v)e.textContent='Ver. '+v;}catch(x){}})();</script>
     <div class="xh-hint" id="xhHint"></div>
   </div>
 
@@ -465,11 +623,20 @@ body.music-on #beatFrame{opacity:1}
       </div>
       <!-- ★★ 2026-09-28 3D 会場（XEVARION WORLD CONFERENCE）への特設の入口（ご指定） -->
       <!-- ★★ 2026-10-06b ご指定：左へ移す・NEW を外す・β版の札は右上の角 -->
-      <a class="xl-expo" href="expo/index.html" aria-label="3Dパーク XEVARION PARK へ（β版）">
-        <span class="xl-shine" aria-hidden="true"></span>
-        <span class="orb"><img src="brand-xevarion-orb.png" alt=""></span>
-        <span class="tx"><b>XEVARION PARK</b><small>3Dパークへ入る</small></span><i class="hm-beta xl-beta" title="β版">β版</i>
-      </a>
+      <!-- ★★ 2026-10-15 ご指定：PARK と<b>同じ大きさ</b>のボタンを<b>真上</b>に置き「これって浮気？判定シート」（uwaki.html）。
+           2つとも少し小さく・大きさをそろえた（.xl-pills の中に縦に並べる。見た目は下の <style> の 2026-10-15） -->
+      <div class="xl-pills" id="xlPills">
+        <a class="xl-uwk" href="uwaki.html" aria-label="これって浮気？判定シート">
+          <span class="xl-shine" aria-hidden="true"></span>
+          <span class="orb"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="h" d="M12 20.2C10.9 19.2 3.6 14.7 3.6 9.3 3.6 6.5 5.6 4.6 8.1 4.6c1.6 0 3 .9 3.9 2.2.9-1.3 2.3-2.2 3.9-2.2 2.5 0 4.5 1.9 4.5 4.7 0 5.4-7.3 9.9-8.4 10.9Z"/><circle class="g" cx="14.6" cy="12.4" r="3.4"/><path class="gl" d="M17 14.8l3 3"/></svg></span>
+          <span class="tx"><b>これって浮気？</b><small>判定シート</small></span><i class="xl-new">NEW</i>
+        </a>
+        <a class="xl-expo" href="expo/index.html" aria-label="3Dパーク XEVARION PARK へ（β版）">
+          <span class="xl-shine" aria-hidden="true"></span>
+          <span class="orb"><img src="brand-xevarion-orb.png" alt=""></span>
+          <span class="tx"><b>XEVARION PARK</b><small>3Dパークへ入る</small></span><i class="hm-beta xl-beta" title="β版">β版</i>
+        </a>
+      </div>
       <!-- ★★ 2026-10-06b 開催中の XEVARION イベントのバナーとボタン（もと PARK の場所・中身は home-mate.js の paintEventBtn） -->
       <button class="xl-evb" id="xlEvb" hidden aria-label="開催中のイベント"></button>
       <!-- ★★ 2026-09-24c 下は<b>アプリ5つを1行</b>（設定 → ロビーのアプリ で入れかえ） -->
@@ -646,6 +813,8 @@ body.music-on #beatFrame{opacity:1}
       </div>
       <!-- ★ ダウンロード量の内訳。「何回ぶんたまっていても取り直す量は同じ」を明示する -->
       <div class="xh-upd-size" id="xhUpdSizeNote"></div>
+      <!-- ★★ 2026-10-15 追加データのダウンロードは必須（ご指定「追加でダウンロードされていないと最新のデータで遊べません」）。中身は xhUpdMustPaint() -->
+      <div class="xh-upd-must" id="xhUpdMust" style="display:none"></div>
 
 
       <!-- ★★ 2026-08-22 自動ダウンロードの状態（設定の「更新を自動でダウンロード」がオンの回線だけ出る）。
@@ -665,7 +834,7 @@ body.music-on #beatFrame{opacity:1}
         <div class="pt" id="xhUpdDl" style="display:none;opacity:.85"></div>
       </div>
       <button class="xh-sbtn" id="xhUpdGo" onclick="xhUpdStart()">⬇ 更新する（最大 <span id="xhUpdSize2">—</span>）</button>
-      <button class="xh-sbtn ghost" id="xhUpdSkip" onclick="xhUpdLater()">あとで</button>
+      <button class="xh-sbtn ghost" id="xhUpdSkip" onclick="if(document.getElementById('xhUpdSheet').classList.contains('must'))xhUpdPlayNow();else xhUpdLater()">あとで</button>
       <div class="xh-upd-tip">Wi-Fi での更新をおすすめします。更新すると<b>オフラインでも最新版</b>で遊べます。</div>
 
       <!-- ══ ★★ 2026-09-10 説明は<b>たたんでおく</b>（ご指定：コンパクトに）══
@@ -1952,6 +2121,38 @@ body.music-on #beatFrame{opacity:1}
 
   <div class="nm-body" id="newsBody">
     <div class="nm-divider" id="newDivider" style="display:none;">NEW — 前回から更新</div>
+    <!-- 2026-10-15：これって浮気？判定シート（PARK の真上）／MagiChemLex フラッシュカード・特設予想問題／追加データのダウンロードを必須に／起動画面のロゴ -->
+    <div class="nm-item" data-tag="new" data-date="2026-10-15">
+      <div class="nm-date">2026<br>10.15</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag new">NEW</span></div>
+        <div class="nm-title">💗 これって浮気？判定シート／🃏 MagiChemLex にフラッシュカードと特設予想問題／📥 追加データのダウンロード</div>
+        <div class="nm-txt">・<b>これって浮気？判定シート</b>：ホームの <b>XEVARION PARK の真上</b>にボタンを置きました（2つのボタンは少し小さく、同じ大きさにそろえました）。40個の行動を「<b>浮気</b>」「<b>浮気じゃないけど嫌</b>」「<b>全然OK</b>」に仕分けると、あなたの<b>浮気ライン（0〜100）とタイプ</b>、ジャンルごとのきびしさと境界線、仕分け表がわかります。恋人や友だちと<b>コードを見せ合って一致度を比べる</b>こともできます（答えはこの端末の中だけに残ります）。<br>
+          ・<b>MagiChemLex</b>：<b>フラッシュカード</b>を追加しました（ホームの「フラッシュカード」・問題セット・単元・問題一覧から）。表は問題、めくると<b>正解と解説</b>（図・ポイントつき）。裏には<b>自分のメモ</b>を書けて、下の「メモ」で手書き・電卓・公式も使えます。「もう一度」「あやしい」「覚えた」で仕分けると、もう一度のカードは少しあとにまた出ます（習得の記録は変わりません）。<br>
+          　ホームに<b>特設予想問題「553 ＞ 1107 を証明せよ」（藤垣の最終定理）</b>を追加しました。ニュースの整理とグラフ、数学・化学・情報の<b>解法18通り</b>（成り立たない解法も正直に）と確認テストつきです。確認テストを<b>はじめて最後まで解くと 1,660 XEVA</b>（553＋1107・正解の数に関係なく1回だけ）。解法はすべてネタで、実際の選考や事実とは無関係かもしれません。<br>
+          　問題セットなどの一覧から開いた問題の下にあった「次の問題へ」をなくしました（上の ‹ 前の問題・次の問題 › で移れます）。<br>
+          ・<b>追加データのダウンロード</b>：更新があるときは、<b>ダウンロードしてから遊ぶ</b>ようにしました（最新のデータで遊ぶためです）。オフラインのときや、ダウンロードできなかったときは、今のデータでも遊べます。<br>
+          ・<b>起動画面</b>：XEVARION のロゴの下に3社のロゴを並べ（ロードバーはなし）、少し長めに表示するようにしました。
+        </div>
+      </div>
+    </div>
+    <!-- 2026-10-14 その2：MagiChemLex 基礎セット3・4（番号順に並べ直し）・色分けバー・メモ／更新したファイルの数／下バー／開始画面ウマ娘風／MagiShift 1手もどる ほか／MagiAbyss 地図／ChainParty 爆発 -->
+    <div class="nm-item" data-tag="new" data-date="2026-10-15">
+      <div class="nm-date">2026<br>10.15</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag new">NEW</span></div>
+        <div class="nm-title">🧪 MagiChemLex に基礎セット3・4（全1,569問）／更新したファイルの数がわかるように／開始画面もウマ娘風に</div>
+        <div class="nm-txt">・<b>MagiChemLex</b>：<b>基礎セット3・4</b>を追加しました（大問10・改題104問＋関連問題180問）。全部で<b>1,569問</b>です。基礎セット1〜4は、もとの小テストの<b>番号順</b>に並べ直しました（これまでの記録・習得・ごほうびの受け取りは、そのまま引きつぎます）。<br>
+          　問題セットのバーは、<b>習得（緑）・習得中（橙）・未習（灰）</b>を色分けした1本のバーと、それぞれの問題数で表示します。絞り込み・並び替えのときもカードの大きさをそろえました。メモの幅を広くし、横に広い画面では<b>メモの左のふちを左右にドラッグ</b>して幅を変えられます（ダブルクリックで元に）。電卓で入力するとき、表示がわずかに上下していたのを直しました。<br>
+          ・<b>更新画面</b>：「更新したファイル」がいつも 0 件と出ていたのを直し、<b>実際に変わったファイルの数と大きさ</b>を出すようにしました（新しい版は入れかえのときにまとめて取りこむので、その分を数えていませんでした）。<br>
+          ・<b>下バー</b>：ガチャ・コミュニティ・図鑑で、下バーが開いて少しあとに出ていたのを直しました。<b>開いた瞬間</b>から表示されます。<br>
+          ・<b>開始画面</b>：「タップしてスタート」とログインの画面を<b>ウマ娘風</b>のデザインにしました（白いふちのボタン・緑のふち取り文字・1文字ずつはねるタップしてスタート・左上に版の番号）。<br>
+          ・<b>MagiShift</b>：<b>「1手もどる」</b>ボタンを追加しました。<b>だれの手でも、押すたびに1手ずつ</b>戻ります（CPU の手を戻したときは CPU が止まるので、続けて戻すか「再開」を押します）。順番の決め方を<b>カードめくり</b>にしました（1人1枚めくって、数字の小さい人から。CPU は自分でめくり、「おまかせ」もあります）。<b>あと1つでそろうマスの印</b>を設定で出せます（「いまの番の人だけ」「全員」。標準は表示しない）。<b>中断を10件まで</b>セーブしておけるようにしました（タイトルの「つづきから」で選べます）。5人・6人の対戦も<b>4つ並べ</b>が標準になりました。駒を使い切ったときの表示が札からはみ出していたのを直しました。<br>
+          ・<b>MagiAbyss</b>：クエスト選択の冒険の地図を、<b>ドラッグ・ホイール・左右の矢印</b>で動かせるようにしました（画面の外にあった第6〜第8迷宮もえらべます）。<br>
+          ・<b>MagiChainParty</b>：バクハツの演出を、派手すぎない<b>カジュアルな動き</b>（しゃぼん玉のような粒と、連鎖ごとに少しずつ高くなる「ぽん」の音）にしました。連鎖の数は、盤の右上のふちに<b>小さく控えめ</b>に出します（2連鎖から）。
+        </div>
+      </div>
+    </div>
     <!-- 2026-10-14：MagiChemLex 基礎タブ（基礎セット1・2）・タブの見直し／パートナーの会話の大幅追加・SALE の印／下バーの大きさをホームにそろえる／MagiChainParty・MagiShift の見た目 -->
     <div class="nm-item" data-tag="new" data-date="2026-10-14">
       <div class="nm-date">2026<br>10.14</div>

@@ -81,7 +81,7 @@ const XH_APPS = [
   /* ★★ 2026-10-06 新作 MagiChemLex（MagiLex の派生・難関化学の問題集）。ご指定でホームの MagiCounter の左。 */
   { id:"magichemlex", name:"MagiChemLex", full:"MagiChemLex", sub:"難関化学の問題集", cat:"learn", tone:"blue", newUntil:"2026-10-27",
     href:"MagiChemLex/index.html", img:"thumbs/MagiChemLex.jpg?v=2",
-    desc:"難関大の化学を、<b>入試問題の改題</b>（難関セット3回ぶん・標準セット4回ぶんの全小問）と、教科書レベルの<b>基礎セット</b>、<b>関連問題</b>（全1,285問）で鍛える学習アプリ。おすすめ出題・間隔反復の復習・時間を計る模試モード・ヒントと図つきの解説・単元別問題・関数電卓・学習カレンダー。獲得 XEVA は MagiLex 系統のイベントで2倍。オフラインOK。" },
+    desc:"難関大の化学を、<b>入試問題の改題</b>（難関セット3回ぶん・標準セット4回ぶんの全小問）と、教科書レベルの<b>基礎セット</b>（4回ぶん）、<b>関連問題</b>（全1,569問）で鍛える学習アプリ。おすすめ出題・間隔反復の復習・時間を計る模試モード・ヒントと図つきの解説・単元別問題・<b>フラッシュカード</b>・関数電卓・学習カレンダー。獲得 XEVA は MagiLex 系統のイベントで2倍。オフラインOK。" },
   { id:"magiburst", name:"MagiBurst", sub:"爽快アクション", cat:"game", tone:"violet",
     href:"MagiBurst/index.html", img:"thumbs/MagiBurst.jpg",
     desc:"引っぱって、はなして、ぶっとばせ！最大4人マルチの引っぱりハンティング。オフラインでもソロクエストが遊べます。" },
@@ -480,6 +480,26 @@ XH_EVENTS.unshift({ tag:"EVENT", t1:"Violet Breeze", t2:"MagiLex 系統の XEVA 
    ══════════════════════════════════════════════════════════════ */
 const XH_UPDATE_MAX = 12;
 const XH_UPDATES = [
+  /* ★★ 2026-10-15 これって浮気？判定シート／MagiChemLex フラッシュカード・特設予想問題／追加データのダウンロード・起動画面 */
+  { tag:"NEW", t1:"これって浮気？判定シート", at:"2026-10-15",
+    t2:"ホームの XEVARION PARK の真上から。40個の行動を「浮気・浮気じゃないけど嫌・全然OK」に仕分けて、浮気ライン（0〜100）とタイプ・ジャンルごとの境界線がわかる／コードでふたりの一致度を比べられる",
+    href:"uwaki.html", img:"thumbs/Uwaki.jpg" },
+  { tag:"NEW", t1:"MagiChemLex にフラッシュカード・特設予想問題", at:"2026-10-15",
+    t2:"問題 → 正解と解説をめくるフラッシュカード（自分のメモ・手書き・電卓つき）／特設予想問題「553＞1107 を証明せよ」（藤垣の最終定理・解法18通り・ニュースとグラフ・確認テストで1,660 XEVA）",
+    href:"MagiChemLex/index.html", img:"thumbs/MagiChemLex.jpg?v=2" },
+  { tag:"UPDATE", t1:"追加データのダウンロード・起動画面のロゴ", at:"2026-10-15",
+    t2:"更新があるときはダウンロードしてから遊ぶように（オフラインのときは今のデータで）／XEVARION のロゴの下に3社のロゴを少し長めに表示",
+    href:"index.html", img:"icons/xev-512.png" },
+  /* ★★ 2026-10-14 その2 MagiChemLex 基礎セット3・4／更新したファイルの数・下バー・開始画面／MagiShift・MagiAbyss・ChainParty */
+  { tag:"NEW", t1:"MagiChemLex に基礎セット3・4（全1,569問）", at:"2026-10-15",
+    t2:"基礎セット1〜4を番号順に並べ直し（記録はそのまま）／習得・習得中・未習を色分けしたバー／絞り込みのときもカードの大きさをそろえた／メモを広く（幅をドラッグで変えられる）・電卓の表示のゆれを修正",
+    href:"MagiChemLex/index.html", img:"thumbs/MagiChemLex.jpg?v=2" },
+  { tag:"UPDATE", t1:"更新したファイルの数・下バーの表示・開始画面をウマ娘風に", at:"2026-10-15",
+    t2:"更新画面に実際に変わったファイルの数と大きさ（いつも0件だったのを修正）／ガチャ・コミュニティ・図鑑の下バーを開いた瞬間に表示／タップしてスタートとログインの画面をウマ娘風に",
+    href:"gacha.html", img:"thumbs/MagiBurst.jpg" },
+  { tag:"UPDATE", t1:"MagiShift に1手もどる・MagiAbyss の地図を動かせるように", at:"2026-10-15",
+    t2:"MagiShift：1手もどる（だれの手でも1手ずつ）・順番はカードめくりで・あと1つでそろう印（標準は表示しない）・中断を10件まで・5〜6人も4つ並べ／MagiAbyss：冒険の地図をドラッグで動かせる／MagiChainParty：バクハツを控えめでカジュアルに・連鎖の数を小さく表示",
+    href:"MagiShift/index.html", img:"thumbs/MagiShift.jpg" },
   /* ★★ 2026-10-14 MagiChemLex 基礎タブ／パートナーの会話・SALE／下バーの大きさ／ChainParty・MagiShift の見た目 */
   { tag:"NEW", t1:"MagiChemLex に「基礎」タブ（全1,285問）", at:"2026-10-14",
     t2:"教科書レベルの基礎セット1・2（改題92問＋関連問題180問）／タブ（難関・標準・基礎・単元別）を見やすく／標準・基礎は改題のあとに関連問題をまとめて表示／単元別にもとの問題の難易度",
@@ -5153,14 +5173,20 @@ function xhShowUpdate(d, latest) {
   }
   const pg = xhEl("xhUpdProg"); if (pg) pg.classList.remove("on");
   ["xhUpdGo", "xhUpdSkip", "xhUpdX"].forEach((id) => { const e = xhEl(id); if (e) e.style.display = ""; });
+  /* ★★ 2026-10-15 ご指定「追加でダウンロードされていないと最新のデータで遊べません」
+     → 更新があるとき（オンライン）は<b>追加データのダウンロードを必須</b>に（ウマ娘と同じ：ダウンロードしてから遊ぶ）。
+       「あとで」「✕」は出さない。オフラインになった・失敗したときだけ「今のデータで遊ぶ」（xhUpdMustPaint）。 */
+  _xhUpdMust = !latest;
+  _xhUpdFail = false;
+  xhUpdMustPaint();
   const hd = xhEl("xhUpdHead");
   if (hd) hd.textContent = latest ? "✅ データは最新です"
-    : many ? "🚀 " + missed.length + " 件のアップデート" : "🚀 アップデートがあります";
+    : "📥 追加データのダウンロード" + (many ? "（" + missed.length + " 件ぶん）" : "");
   /* ★ ボタンの中には <span id="xhUpdSize2"> が入っている。textContent で書き換えると
      その span ごと消えて、次にサイズを出す時に参照できなくなるので innerHTML で組み直す。 */
   const go = xhEl("xhUpdGo");
   if (go) {
-    go.innerHTML = (latest ? "⟳ 変更がないか確認する（最大 " : "⬇ 更新する（最大 ") +
+    go.innerHTML = (latest ? "⟳ 変更がないか確認する（最大 " : "⬇ ダウンロードして遊ぶ（最大 ") +
       '<span id="xhUpdSize2">約 ' + xhEscape(sz) + "</span>）";
   }
   const dl0 = xhEl("xhUpdDl"); if (dl0) { dl0.style.display = "none"; dl0.innerHTML = ""; }
@@ -5180,9 +5206,40 @@ function xhShowUpdate(d, latest) {
 
 function xhUpdLater() {
   if (_xhUpdRunning) return;
+  /* ★★ 2026-10-15 追加データのダウンロードが必須のあいだは閉じない（オフライン・失敗のときは xhUpdPlayNow で閉じられる） */
+  if (_xhUpdMust && xhOnline() && !_xhUpdFail) { xhToast("📥 追加データをダウンロードしてから遊べます<br><span style='font-size:11px;font-weight:700;color:#6f82ad'>最新のデータで遊ぶために必要です</span>", 2600); return; }
   xhCloseSheet("xhUpdSheet");
 }
 window.xhUpdLater = xhUpdLater;
+/* ══ ★★ 2026-10-15 追加データのダウンロード（必須）══
+   _xhUpdMust … いま出している更新が「遊ぶ前に必須」か（最新が入っているときの確認画面は false）
+   _xhUpdFail … ダウンロードできなかった（回線など）。このときだけ「今のデータで遊ぶ」を出す */
+let _xhUpdMust = false, _xhUpdFail = false;
+function xhUpdMustPaint() {
+  const must = _xhUpdMust && !_xhUpdRunning;
+  const off = !xhOnline();
+  const sh = xhEl("xhUpdSheet"); if (sh) sh.classList.toggle("must", _xhUpdMust);
+  const box = xhEl("xhUpdMust");
+  if (box) {
+    box.style.display = _xhUpdMust ? "" : "none";
+    box.innerHTML = off
+      ? "<b>📴 オフラインです</b><span>追加データはオンラインのときにダウンロードできます。いまは<b>今のデータ</b>で遊べます（最新の内容は入っていません）。</span>"
+      : _xhUpdFail
+      ? "<b>⚠ ダウンロードできませんでした</b><span>通信を確かめて、もう一度お試しください。どうしても今遊ぶときは、下の「今のデータで遊ぶ」から（最新の内容は入っていません）。</span>"
+      : "<b>⚠ 追加データをダウンロードしないと、最新のデータで遊べません</b><span>ダウンロードが終わると、自動で最新版に切り替わります。途中でやめると、次に開いたときにまた表示されます。</span>";
+  }
+  ["xhUpdSkip", "xhUpdX"].forEach((id) => {
+    const e = xhEl(id); if (!e) return;
+    if (!_xhUpdMust) return;                     /* 必須でないとき（最新の確認）は xhShowUpdate のまま */
+    e.style.display = must && (off || _xhUpdFail) ? "" : "none";
+  });
+  const sk = xhEl("xhUpdSkip");
+  if (sk && _xhUpdMust) sk.textContent = off ? "今のデータで遊ぶ（オフライン）" : "今のデータで遊ぶ（おすすめしません）";
+}
+function xhUpdPlayNow() { _xhUpdFail = true; xhUpdLater(); }
+window.xhUpdPlayNow = xhUpdPlayNow;
+window.addEventListener("online", () => { try { if (_xhUpdMust) xhUpdMustPaint(); } catch (e) {} });
+window.addEventListener("offline", () => { try { if (_xhUpdMust) xhUpdMustPaint(); } catch (e) {} });
 
 /* ★★ 2026-08-22 数えるだけ（画面は触らない）。
    自動ダウンロードは裏で走るので、進み具合を「数える」ことと
@@ -5535,7 +5592,7 @@ async function xhUpdStart(keepVer) {
     return;
   }
   /* ★ 2026-08-20 通信設定: いまの回線で「更新を自動でダウンロード」をオフにしているときは一度きく */
-  if (!(await xhAskBigDownload(keepVer ? "足りないファイル" : "最新のデータ"))) { _xhUpdRunning = false; xhUrClose(); return; }
+  if (!(await xhAskBigDownload(keepVer ? "足りないファイル" : "最新のデータ"))) { _xhUpdRunning = false; xhUrClose(); try { xhUpdMustPaint(); } catch (e) {} return; }
   _xhUpdRunning = true;
   xhUpdResetPct();          /* ★ 走りはじめは 0% から（前回の値を引きずらない） */
   ["xhUpdGo", "xhUpdSkip", "xhUpdX"].forEach((id) => { const e = xhEl(id); if (e) e.style.display = "none"; });
@@ -5548,7 +5605,17 @@ async function xhUpdStart(keepVer) {
   xhDlStep(1, "① くらべています");
   xhUpdPaint();
 
-  const r = await xhDownloadCore(xhUpdPaint);
+  let r = null;
+  try { r = await xhDownloadCore(xhUpdPaint); }
+  catch (e) {
+    /* ★★ 2026-10-15 ダウンロードできなかった：更新画面にもどして「もう一度」と「今のデータで遊ぶ」を出す */
+    _xhUpdRunning = false; _xhUpdFail = true;
+    try { xhUrClose(); } catch (e2) {}
+    ["xhUpdGo"].forEach((id) => { const e3 = xhEl(id); if (e3) { e3.style.display = ""; e3.innerHTML = "⟳ もう一度ダウンロードする"; } });
+    const pg1 = xhEl("xhUpdProg"); if (pg1) pg1.classList.remove("on");
+    xhOpenSheet("xhUpdSheet"); xhUpdMustPaint();
+    return;
+  }
   _xhUpdRunning = false;
 
   const bar = xhEl("xhUpdBar"); if (bar) bar.style.width = "100%";

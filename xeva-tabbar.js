@@ -13,7 +13,13 @@
    ・iPhone のアプリ表示（html.xv-full）では、ホームと同じく<b>本当の画面の下端</b>に置く
      （fixed の板は画面より短い箱で切られるので、文書は動かさず body の中でスクロールし、下バーは html に absolute で置く）
    ・ガチャのタブは、ホームと同じく<b>キャラの絵</b>（XH_GACHA_TAB_CHAR と同じ子・Xevion OS の設定でオフにできる）
-   使い方: <script src="xeva-tabbar.js?v=3" data-tab="gacha" defer></script>（data-tab＝community / gacha / chars）
+   使い方: <script src="xeva-tabbar.js?v=4" data-tab="gacha"></script>（data-tab＝community / gacha / chars）
+   ★★ 2026-10-14 ご報告「コミュニティやガチャや図鑑の下バーが、開いて少しあとに表示される」
+   ・真因：このファイルを<b>ページのいちばん最後に defer</b> で読んでいたので、ガチャなら mb-core.js（約2MB）など
+     重い部品を全部読み終わるまで下バーが作られなかった（＋0.3秒かけて薄く出していた）。
+   → <b>body のいちばん最初</b>で（defer なしで）読んで、その場で作る。薄く出す動きもやめた。
+   ・絵の色は xeva-uma.css（ページの最後で読む）が塗っていたので、下バーのぶんだけ同じ指定をここにも持つ
+     （先に出た下バーが、色の付かない絵で一瞬見えないように）。
    ============================================================ */
 (function () {
   "use strict";
@@ -36,9 +42,7 @@
     "html.xvtb{--xvtb-h:69px}" +
     "#xvTabBar{position:fixed;left:0;right:0;bottom:-240px;margin:0 auto;max-width:600px;z-index:150;display:grid;grid-template-columns:repeat(5,1fr);gap:2px;grid-auto-rows:min-content;align-content:start;" +
     "padding:5px 5px calc(var(--xv-safeb,env(safe-area-inset-bottom,0px)) + 240px);" +
-    "background:linear-gradient(180deg,#ffffff 0,#f2fbea 40px,#e3f6d4 70px,#e3f6d4 100%);box-shadow:0 -3px 0 rgba(76,174,44,.28);" +
-    "animation:xvtbIn .3s ease both}" +
-    "@keyframes xvtbIn{from{opacity:0}to{opacity:1}}" +
+    "background:linear-gradient(180deg,#ffffff 0,#f2fbea 40px,#e3f6d4 70px,#e3f6d4 100%);box-shadow:0 -3px 0 rgba(76,174,44,.28)}" +
     /* iPhone のアプリ表示：本当の画面の下端（html の中に absolute）。下の余白はホームと同じ env() */
     "html.xvtb.xv-full #xvTabBar{position:absolute;bottom:0;padding-bottom:env(safe-area-inset-bottom,0px)}" +
     "#xvTabBar::before{content:'';position:absolute;top:0;left:0;right:0;height:6px;pointer-events:none;background:linear-gradient(180deg,#5cc23a 0 3px,#b9e99c 3px 6px)}" +
@@ -59,8 +63,21 @@
     "white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .2s}" +
     "html.xvtb.xv-full #xvTbToast{position:absolute;bottom:calc(var(--xvtb-h) + env(safe-area-inset-bottom,0px) + 14px)}" +
     "#xvTbToast.on{opacity:1}" +
-    "body.xos-nomotion #xvTabBar{animation:none}" +
-    "@media (prefers-reduced-motion:reduce){#xvTabBar{animation:none}}";
+    /* ★★ 2026-10-14 絵の色（xeva-uma.css の .uic と下バーのぶんを写したもの。あちらを直したらここも） */
+    "#xvTabBar .uic{overflow:visible}" +
+    "#xvTabBar .uic .p{fill:var(--ua,#5cc23a)}#xvTabBar .uic .s{fill:var(--ub,#ffc83d)}#xvTabBar .uic .w{fill:#fff}" +
+    "#xvTabBar .uic .k{stroke:var(--uk,#2a7a14);stroke-width:1.6;stroke-linejoin:round;stroke-linecap:round}" +
+    "#xvTabBar .uic .ln{fill:none;stroke:var(--uk,#2a7a14);stroke-width:2.1;stroke-linecap:round;stroke-linejoin:round}" +
+    "#xvTabBar .uic .kl{fill:none;stroke:var(--uk,#2a7a14);stroke-width:1.4;stroke-linecap:round;opacity:.55}" +
+    "#xvTabBar .uic .gl{fill:none;stroke:#fff;stroke-width:1.6;stroke-linecap:round;opacity:.75}" +
+    "#xvTabBar .xh-ntab .uic{--ua:#b4c3a7;--ub:#d7e1cd;--uk:#788b6a}" +
+    "#xvTabBar .xh-ntab .tl{color:#7f9272;font-family:'M PLUS Rounded 1c','Noto Sans JP',sans-serif}" +
+    "#xvTabBar .xh-ntab.on .uic{--ua:#fff;--ub:#ffd84a;--uk:#2a7a14;transform:translateY(-2px) scale(1.02);filter:drop-shadow(0 1.5px 0 rgba(34,100,14,.45))}" +
+    "#xvTabBar .xh-ntab.on .tl{color:#2f8a1a}" +
+    "#xvTabBar .xh-ntab.on::before{top:4px;width:50px;height:36px;border-radius:14px;" +
+    "background:linear-gradient(180deg,rgba(255,255,255,.6) 0,rgba(255,255,255,.2) 46%,rgba(255,255,255,0) 47%),linear-gradient(180deg,#a6ec72,#43b324);" +
+    "box-shadow:inset 0 0 0 2px rgba(255,255,255,.95),0 0 0 1.5px #2a8614,0 2px 0 #226f10,0 4px 8px rgba(40,80,20,.18)}" +
+    "#xvTabBar .xh-ntab .xh-tabchar{box-shadow:0 0 0 1.5px #fff,0 0 0 3px #62c43e,0 2px 0 3px rgba(42,122,20,.3);border-color:#fff}";
 
   function toast(t) {
     var el = document.getElementById("xvTbToast");

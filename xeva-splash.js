@@ -130,6 +130,12 @@
        ・3社ロゴは起動画面用の小さい絵（brand/*_s.webp・合計約30KB。元の png は合計2MB だった） */
   /* ★★ 2026-10-13 ご指定（企業ロゴ）：3社ロゴは<b>アプリを開くたびに毎回</b>出す。
        2回目からは短め（1.1秒）・タップで飛ばせる。アプリロゴの最短表示は 10-09b のまま（2回目から 0.25秒）。 */
+  /* ★★ 2026-10-15 ご指定「XEVARION 起動時の企業ロゴ表示は、アプリロゴのロードバーを消してその下に表示して、少し長めに」
+       → 本体（data-home="1"）は<b>1枚の画面</b>：XEVARION のロゴ → その下に3社ロゴ（ロードバーは出さない）。
+         表示は 3.2 秒（前は 3社ロゴ 1.6 秒＋アプリロゴ 0.6 秒）。タップで飛ばせるのは同じ。
+         ほかのアプリはこれまでどおりの2段（3社ロゴ → アプリロゴ＋ロードバー）。data-combo="1" を付ければ同じ1枚にできる。 */
+  var COMBO = D.home === "1" || D.combo === "1";
+  var T_COMBO = 3200;
   var SEEN_KEY = "xev_splash_seen";
   var SEEN = false;
   try { SEEN = sessionStorage.getItem(SEEN_KEY) === "1"; sessionStorage.setItem(SEEN_KEY, "1"); } catch (e) {}
@@ -198,6 +204,27 @@
     "background:linear-gradient(135deg,#ff9d2e,#ff5d8f,#8e6bff)}" +
     "#" + ID + " .xscap{color:#b6a596;font-size:13px;letter-spacing:.22em;text-align:center}" +
     "#" + ID + " .xsnote{font-size:11.5px;font-weight:800;color:#c98a10;letter-spacing:.04em;text-align:center}" +
+    /* ★★ 2026-10-15 1枚の起動画面（本体）：アプリロゴの下に3社ロゴ。広い画面は横1列、せまい画面（520px 以下）は縦に */
+    "#" + ID + " .xsmain.combo{gap:20px}" +
+    "#" + ID + " .xsmain.combo .xsapp{width:min(176px,44vw)}" +
+    "#" + ID + " .xsmain.combo.in .xsapp{animation:xsUp .7s cubic-bezier(.2,.7,.3,1) both}" +
+    "#" + ID + " .xsbrands{display:flex;align-items:center;justify-content:center;gap:8px;width:min(600px,94vw)}" +
+    "#" + ID + " .xsbrands .xslg{width:auto;flex:1 1 0;min-width:0;padding:6px 8px;border-radius:16px;box-shadow:0 8px 22px rgba(200,150,60,.13)}" +
+    "#" + ID + " .xsbrands .xslg img{width:100%;max-height:13vh}" +
+    "#" + ID + " .xsbrands .xsamp{font-size:17px;flex:none}" +
+    "#" + ID + " .xsbrands .xstx{font-size:15px}" +
+    "#" + ID + " .xsmain.combo .xscap{font-size:11.5px;letter-spacing:.2em;margin-top:-4px}" +
+    "#" + ID + " .xsmain.combo.in .xsbrands>*{animation:xsFade .7s ease both}" +
+    "#" + ID + " .xsmain.combo.in .xsbrands>:nth-child(1){animation:xsUp .7s cubic-bezier(.2,.7,.3,1) .25s both}" +
+    "#" + ID + " .xsmain.combo.in .xsbrands>:nth-child(2){animation-delay:.38s}" +
+    "#" + ID + " .xsmain.combo.in .xsbrands>:nth-child(3){animation:xsUp .7s cubic-bezier(.2,.7,.3,1) .45s both}" +
+    "#" + ID + " .xsmain.combo.in .xsbrands>:nth-child(4){animation-delay:.58s}" +
+    "#" + ID + " .xsmain.combo.in .xsbrands>:nth-child(5){animation:xsUp .7s cubic-bezier(.2,.7,.3,1) .65s both}" +
+    "#" + ID + " .xsmain.combo.in .xscap{animation:xsFade .8s ease .9s both}" +
+    "@media (max-width:520px){#" + ID + " .xsbrands{flex-direction:column;gap:5px;width:min(290px,74vw)}" +
+    "#" + ID + " .xsbrands .xslg{width:100%;flex:none;padding:4px 10px}" +
+    "#" + ID + " .xsbrands .xslg img{width:auto;max-width:100%;max-height:10.5vh}" +
+    "#" + ID + " .xsbrands .xsamp{font-size:14px;line-height:1}}" +
     "@keyframes xsUp{from{opacity:0;transform:translateY(26px)}to{opacity:1;transform:none}}" +
     "@keyframes xsDown{from{opacity:0;transform:translateY(-26px)}to{opacity:1;transform:none}}" +
     "@keyframes xsFade{from{opacity:0}to{opacity:1}}";
@@ -235,6 +262,24 @@
     paintHtml(true);
     el = document.createElement("div");
     el.id = ID;
+    if (COMBO) {
+      /* ★★ 2026-10-15 本体：XEVARION のロゴ → その下に3社ロゴ（ロードバーなし） */
+      el.innerHTML =
+        '<div class="xsph xsmain combo">' +
+          '<img class="xsapp" src="' + esc(LOGO) + '" alt="' + esc(APP) + '" onerror="this.style.display=\'none\'">' +
+          '<div class="xsbrands">' +
+            brandCard(BRAND[0]) + '<div class="xsamp">×</div>' +
+            brandCard(BRAND[1]) + '<div class="xsamp">×</div>' +
+            brandCard(BRAND[2]) +
+          "</div>" +
+          '<div class="xscap">' + esc(CAP) + "</div>" +
+          (NOTE ? '<div class="xsnote">' + esc(NOTE) + "</div>" : "") +
+        "</div>";
+      (document.body || document.documentElement).appendChild(el);
+      el.addEventListener("pointerdown", function () { if (skipRes) skipRes(); }, { passive: true });
+      runCombo();
+      return;
+    }
     el.innerHTML =
       '<div class="xsph xsintro">' +
         brandCard(BRAND[0]) + '<div class="xsamp">×</div>' +
@@ -266,6 +311,20 @@
         im.src = s;
       });
     });
+  }
+
+  /* ★★ 2026-10-15 本体の1枚の起動画面：ロゴを 3.2 秒（タップで飛ばせる）＋画像・アプリ側の wait() を待って閉じる */
+  async function runCombo() {
+    var main = el.querySelector(".xsmain");
+    var pre = preload();
+    setTimeout(function () { main.classList.add("in"); }, T_IN);
+    await Promise.race([
+      Promise.all([Promise.race([pre, skipP]), Promise.race([sleep(T_COMBO), skipP])].concat(holds.map(function (p) {
+        return Promise.resolve(p).catch(function () {});
+      }))),
+      sleep(T_MAX)
+    ]);
+    hide();
   }
 
   async function run() {
@@ -321,7 +380,7 @@
       if (closed) return Promise.resolve();
       return new Promise(function (r) {
         window.addEventListener("xeva:splash-done", function () { r(); }, { once: true });
-        setTimeout(r, T_MAX + T_HOLD);   // 保険（イベントを取り逃しても進む）
+        setTimeout(r, T_MAX + (COMBO ? T_COMBO : T_HOLD));   // 保険（イベントを取り逃しても進む）
       });
     },
     get app() { return APP; }

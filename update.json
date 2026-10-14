@@ -1,17 +1,22 @@
 {
-  "version": "2026-10-14-1",
-  "date": "2026-10-14",
-  "title": "MagiChemLex に「基礎」タブ（全1,285問）／パートナーの会話を大幅追加／下バーをホームと同じ大きさに",
+  "version": "2026-10-15-1",
+  "date": "2026-10-15",
+  "title": "これって浮気？判定シート／MagiChemLex にフラッシュカード・特設予想問題・基礎セット3・4（全1,569問）",
   "notes": [
-    "MagiChemLex：教科書レベルの「基礎」タブを追加（基礎セット1・2＝改題92問＋大問ごとの関連問題180問・単元別問題にも基礎レベル）で全1,285問",
-    "MagiChemLex：問題セットのタブ（難関・標準・基礎・単元別）を見やすい札に・標準と基礎は改題のあとに関連問題をまとめて左に線・単元別のカードにもとの問題の難易度・正誤の問題は選択肢の順を固定",
-    "パートナー：10人の会話を大幅に追加（勉強がつらいときの励まし・MagiChemLex などへのお誘いと「ひらく」ボタン・今日の学習をほめる）・セール中はボタンの右上に SALE",
-    "ガチャ・コミュニティ・図鑑：画面の幅と下バーの大きさをホームにそろえ、ガチャのアイコンもキャラの絵に・選んだタブの印が右から動きすぎるのを修正",
-    "MagiChainParty：タイトルを絵から名前と小さな盤の動きに・CHAIN の表示をやめた・個数の数字が左へ動きすぎるのを修正・戻るボタンなどをアイコンつきのデザインに",
-    "MagiShift：50周の引き分けは CPU だけの対戦のときだけに・戻る／メニュー／確認などのボタンをデザイン"
+    "これって浮気？判定シート（ホームの XEVARION PARK の真上）：40個の行動を3つに仕分けて浮気ライン・タイプ・境界線がわかる／コードでふたりの一致度を比べられる",
+    "MagiChemLex：フラッシュカード（問題→正解・解説・自分のメモ・手書き・電卓）／特設予想問題「553＞1107 を証明せよ」（藤垣の最終定理・解法18通り・ニュースとグラフ・確認テストをはじめて解くと1,660 XEVA）",
+    "MagiChemLex：基礎セット3・4を追加（改題104問＋関連問題180問）で全1,569問・基礎セット1〜4を番号順に並べ直し（記録はそのまま）",
+    "MagiChemLex：習得・習得中・未習を色分けしたバー／絞り込み時のカードの大きさをそろえた／メモの幅を広く（ドラッグで変更可）／電卓の表示が上下するのを修正／一覧の下の「次の問題へ」をなくした",
+    "追加データのダウンロード：更新があるときはダウンロードしてから遊ぶように（オフラインのときは今のデータで）",
+    "更新画面：「更新したファイル」がいつも0件だったのを直し、実際に変わったファイルの数と大きさを表示",
+    "起動画面：XEVARION のロゴの下に3社のロゴを少し長めに・タップしてスタートとログインの画面をウマ娘風に",
+    "ガチャ・コミュニティ・図鑑：下バーを開いた瞬間に表示（少し遅れて出ていたのを修正）",
+    "MagiShift：1手もどる（だれの手でも1手ずつ）・順番はカードめくり・あと1つでそろう印（標準は表示しない）・中断を10件まで・5〜6人も4つ並べ・使いきり表示のはみ出しを修正",
+    "MagiAbyss：冒険の地図をドラッグ・ホイール・矢印で動かせるように（画面外の迷宮もえらべる）",
+    "MagiChainParty：バクハツの演出を控えめでカジュアルに・連鎖の数を盤の右上に小さく表示"
   ],
-  "bytes": 69015546,
-  "files": 762,
+  "bytes": 69465541,
+  "files": 771,
   "urls": [
     "index.html",
     "characters.html",
@@ -58,6 +63,10 @@
     "xeva-fx.js",
     "xeva-loading.js",
     "xeva-splash.js",
+    "uwaki.html",
+    "uwaki.js",
+    "uwaki.css",
+    "thumbs/Uwaki.jpg",
     "xevarion.js",
     "xevarion-home.js",
     "gacha-live.js",
@@ -766,6 +775,9 @@
     "MagiChemLex/js/mcl-data7.js",
     "MagiChemLex/js/mcl-data8.js",
     "MagiChemLex/js/mcl-data9.js",
+    "MagiChemLex/js/mcl-data10.js",
+    "MagiChemLex/js/mcl-data11.js",
+    "MagiChemLex/js/mcl-data12.js",
     "MagiChemLex/js/mcl-core.js",
     "MagiChemLex/js/mcl-fig.js",
     "MagiChemLex/js/mcl-fig2.js",
@@ -773,10 +785,13 @@
     "MagiChemLex/js/mcl-fig4.js",
     "MagiChemLex/js/mcl-fig5.js",
     "MagiChemLex/js/mcl-ui.js",
+    "MagiChemLex/js/mcl-flash.js",
+    "MagiChemLex/js/mcl-special.js",
     "MagiChemLex/img/icon_192.png",
     "MagiChemLex/img/apple-touch-icon.png"
   ],
   "apps": [
+    "magiabyss",
     "magichainparty",
     "magichemlex",
     "magishift",
@@ -785,8 +800,30 @@
     "tab:gacha",
     "tab:home"
   ],
-  "changedFiles": 25,
+  "changedFiles": 34,
   "history": [
+    {
+      "version": "2026-10-14-1",
+      "date": "2026-10-14",
+      "title": "MagiChemLex に「基礎」タブ（全1,285問）／パートナーの会話を大幅追加／下バーをホームと同じ大きさに",
+      "notes": [
+        "MagiChemLex：教科書レベルの「基礎」タブを追加（基礎セット1・2＝改題92問＋大問ごとの関連問題180問・単元別問題にも基礎レベル）で全1,285問",
+        "MagiChemLex：問題セットのタブ（難関・標準・基礎・単元別）を見やすい札に・標準と基礎は改題のあとに関連問題をまとめて左に線・単元別のカードにもとの問題の難易度・正誤の問題は選択肢の順を固定",
+        "パートナー：10人の会話を大幅に追加（勉強がつらいときの励まし・MagiChemLex などへのお誘いと「ひらく」ボタン・今日の学習をほめる）・セール中はボタンの右上に SALE",
+        "ガチャ・コミュニティ・図鑑：画面の幅と下バーの大きさをホームにそろえ、ガチャのアイコンもキャラの絵に・選んだタブの印が右から動きすぎるのを修正",
+        "MagiChainParty：タイトルを絵から名前と小さな盤の動きに・CHAIN の表示をやめた・個数の数字が左へ動きすぎるのを修正・戻るボタンなどをアイコンつきのデザインに",
+        "MagiShift：50周の引き分けは CPU だけの対戦のときだけに・戻る／メニュー／確認などのボタンをデザイン"
+      ],
+      "apps": [
+        "magichainparty",
+        "magichemlex",
+        "magishift",
+        "tab:chars",
+        "tab:community",
+        "tab:gacha",
+        "tab:home"
+      ]
+    },
     {
       "version": "2026-10-13-2",
       "date": "2026-10-13",
@@ -1265,39 +1302,6 @@
         "tab:chars",
         "magibattle",
         "magilex"
-      ]
-    },
-    {
-      "version": "2026-09-23-1",
-      "date": "2026-09-23",
-      "title": "MagiBattle 全面リニューアル／CRYSTAL ACADEMY FEST",
-      "notes": [
-        "MagiBattle：XEVARION の全キャラが参戦・バーストⅠ→Ⅱ→Ⅲの FULL BURST・装備・迎撃戦・凸は共通・同期に対応・NIKKE 風の画面",
-        "CRYSTAL ACADEMY FEST：クレハ・ミコト・メイ・ヒカル・ミヅキ（神癒の祈り・結晶のフルバースト・新リンク5本）",
-        "MagiBurst：編成が5体に／治癒の祈りは左から順に抽選／編成の固定表示の重なりを修正／装備は MagiBattle へ移設",
-        "XEVARION：同期のロードがくり返す不具合を修正／アプリをイベントの下に／XEVARION のアイコンをキャラ画像に／MagiRail と MagiBattle の位置を入れかえ／ガチャのアイコンをクレハに",
-        "図鑑・新キャラ紹介に MagiBattle の性能の面",
-        "MagiScope：特別版は R15 以上／戻ると元の画面へ／ページ数・1話の長さ／リンクの共有"
-      ],
-      "apps": [
-        "magibocciarush",
-        "magiburst",
-        "magichainparty",
-        "magicounter",
-        "magidiamond",
-        "magidominiongrid",
-        "magijackpot",
-        "magilex",
-        "magilotto",
-        "magimusic",
-        "magiscope",
-        "magishift",
-        "tab:chars",
-        "tab:community",
-        "tab:gacha",
-        "tab:home",
-        "xevynar",
-        "magibattle"
       ]
     }
   ]

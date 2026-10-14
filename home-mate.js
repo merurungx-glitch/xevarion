@@ -1341,8 +1341,18 @@
     let y = cy;
     const apps = document.getElementById("xlApps"), st = this.stage.getBoundingClientRect();
     if (apps && apps.offsetParent) y = Math.min(y, apps.getBoundingClientRect().top - st.top - bh - 12);
-    b.style.transform = "translate(" + Math.round(x) + "px," + Math.round(y) + "px)";
-    b.style.setProperty("--tail-x", Math.max(22, Math.min(bw - 22, cx - x)) + "px");
+    /* ★★ 2026-10-15 左下の2つのボタン（浮気判定シート・XEVARION PARK）にも重ねない：右へずらし、入らなければ上へ */
+    let xx = x;
+    const pl = document.getElementById("xlPills");
+    if (pl && pl.offsetParent) {
+      const pr = pl.getBoundingClientRect(), L = pr.left - st.left - 8, R = pr.right - st.left + 10, T = pr.top - st.top - 10, Bm = pr.bottom - st.top + 8;
+      if (xx < R && xx + bw > L && y < Bm && y + bh > T) {
+        if (R + bw <= W - 8) xx = R;
+        else y = Math.min(y, T - bh - 4);
+      }
+    }
+    b.style.transform = "translate(" + Math.round(xx) + "px," + Math.round(y) + "px)";
+    b.style.setProperty("--tail-x", Math.max(22, Math.min(bw - 22, cx - xx)) + "px");
   };
 
   /* ══════════════ しぐさ・セリフ ══════════════ */

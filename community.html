@@ -151,6 +151,8 @@ body.isoff .off{display:block}
 <link rel="stylesheet" href="xeva-pop-pages.css?v=3">
 </head>
 <body class="pp-community">
+<!-- ★★ 2026-10-14 下バーは body のいちばん最初で作る（ページの最後に defer で読んでいたので、開いて少しあとに出ていた） -->
+<script src="xeva-tabbar.js?v=4" data-tab="community"></script>
 
 <div class="top">
   <a class="back" href="index.html" aria-label="ホームへ戻る">
@@ -603,6 +605,5 @@ async function loadRanking(force){
 <!-- ★★ 2026-10-12c ウマ娘風のボタン・シート・動き（いちばん最後に読む＝ページの中の style より強く） -->
 <link rel="stylesheet" href="xeva-uma.css?v=2">
 <!-- ★★ 2026-10-13 ホームと同じ下バーを、このページにも出す（ご指定「下バーを常に表示」） -->
-<script src="xeva-tabbar.js?v=3" data-tab="community" defer></script>
 </body>
 </html>
