@@ -21,8 +21,11 @@
   const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
 
   let S = null;                 /* いまの試合 */
-  const UI = { prev: "title", blockMode: false, reported: false };
-  let opt = { size: 0, win: 0, pieces: 0, se: true, bgm: false, slow: false };
+  let HIST = [];                /* ★★ 2026-10-14 一手もどる用の記録（手を指す直前の盤面）。セーブにも最後の30手ぶんを残す */
+  /* hold … ★★ 2026-10-15 1手もどして CPU の番になったときは、CPU を止めておく（「再開」で動き出す） */
+  const UI = { prev: "title", blockMode: false, reported: false, hold: false };
+  /* reach … ★★ 2026-10-14 あと1つでそろうマスの印（0＝表示しない〔標準〕・1＝いまの番の人だけ・2＝全員） */
+  let opt = { size: 0, win: 0, pieces: 0, se: true, bgm: false, slow: false, reach: 0 };
   const OPT_KEY = "magishift_opt_v1";
   try { opt = Object.assign(opt, JSON.parse(localStorage.getItem(OPT_KEY) || "{}")); } catch (e) {}
   const saveOpt = () => { try { localStorage.setItem(OPT_KEY, JSON.stringify(opt)); } catch (e) {} };
@@ -46,6 +49,10 @@
     jump: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 17c2-7 6-10 9-10s5 2 6 5"/><path d="M16.5 9.6 19.2 12l.6-3.6"/></svg>',
     push: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="7" cy="12" r="3.4"/><circle cx="15" cy="12" r="3.4"/><path d="M18.8 12h2.4M19.8 10.3l1.6 1.7-1.6 1.7"/></svg>',
     cpu: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="7" width="14" height="11" rx="3"/><path d="M12 7V4.5M9.5 12h.01M14.5 12h.01M9.5 15.5h5"/></svg>',
+    /* ★★ 2026-10-14 一手もどる（↩） */
+    undo: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.6 4.6 4 9.2l4.6 4.6"/><path d="M4.6 9.2h9.2a5.6 5.6 0 0 1 0 11.2H10"/></svg>',
+    /* ★★ 2026-10-15 止めた CPU の再開（▶） */
+    play: '<svg viewBox="0 0 24 24" aria-hidden="true"><path class="fl" d="M8 5.5v13l10.5-6.5z"/></svg>',
   };
   const blkHTML = (color) => '<span class="blk" style="--bc:' + color + '"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h16M4 15h16M10 4v5M15 9v6M10 15v5"/></svg></span>';
   const thumb = (p) => (G.Account && G.Account.thumb ? G.Account.thumb(p) : (G.Account && G.Account.avatar ? G.Account.avatar(p) : ""));
@@ -83,6 +90,8 @@
       case "win": [523, 659, 784, 1046].forEach((f, i) => tone(f, i * 0.11, 0.3, "triangle", 0.11)); break;
       case "draw": tone(440, 0, 0.25, "sine", 0.08, 330); break;
       case "dice": tone(300 + Math.random() * 300, 0, 0.04, "square", 0.025); break;
+      case "undo": tone(820, 0, 0.12, "triangle", 0.08, 520); tone(560, 0.07, 0.1, "sine", 0.05, 420); break;
+      case "card": tone(1180, 0, 0.05, "sine", 0.05, 900); tone(700, 0.04, 0.09, "triangle", 0.06); break;
     }
   }
   /* ★ BGM。曲のファイルは持たず、やわらかい和音をその場で鳴らす（重くならない・オフラインでも鳴る）。
@@ -129,12 +138,41 @@
   }
 
   /* ══ ① タイトル ══ */
+  /* ★★ 2026-10-14 中断は試合ごとの枠（いくつでも・最大 G.MAX_SAVES）。1件ならそのまま再開、2件以上は一覧から選ぶ */
   function renderTitle() {
-    const saved = G.load();
-    const ok = !!(saved && saved.S && saved.S.phase === "play");
-    $("#btnCont").hidden = !ok;
-    if (ok) $("#btnContTx").textContent = "つづきから（" + saved.S.players.length + "人・" + (G.MODES[saved.S.mode] || G.MODES.normal).nm + "・" + (saved.S.round || 1) + "周目）";
+    const list = G.list();
+    $("#btnCont").hidden = !list.length;
+    if (list.length === 1) {
+      const m = list[0].meta || {};
+      $("#btnContTx").textContent = "つづきから（" + (m.players || []).length + "人・" + (G.MODES[m.mode] || G.MODES.normal).nm + "・" + (m.round || 1) + "周目）";
+    } else if (list.length) $("#btnContTx").textContent = "つづきから（中断中 " + list.length + "件）";
     show("title");
+  }
+  function whenTxt(at) {
+    const d = new Date(at || Date.now()), now = new Date();
+    const hm = d.getHours() + ":" + String(d.getMinutes()).padStart(2, "0");
+    if (d.toDateString() === now.toDateString()) return "きょう " + hm;
+    const y = new Date(now); y.setDate(now.getDate() - 1);
+    if (d.toDateString() === y.toDateString()) return "きのう " + hm;
+    return (d.getMonth() + 1) + "/" + d.getDate() + " " + hm;
+  }
+  function svRow(r) {
+    const m = r.meta || {}, ps = m.players || [], tp = ps[m.turn] || null;
+    return '<div class="svrow" data-g="' + esc(r.gid) + '"><div class="svp">' + ps.map((p) => pieceSVG({ color: p.color, mark: p.mark })).join("") + "</div>" +
+      '<div class="svt"><b>' + ps.length + "人・" + esc((G.MODES[m.mode] || G.MODES.normal).nm) + "・" + m.size + "×" + m.size + "・" + m.win + "つ並べ</b>" +
+      "<small>" + (m.round || 1) + "周目" + (tp ? '・<span style="color:' + esc(tp.color) + '">' + esc(tp.name) + "</span> の番" : "") + "・" + whenTxt(r.at) + "</small>" +
+      '<small class="svn">' + ps.map((p) => esc(p.name) + (p.type === "cpu" ? "（CPU）" : "")).join("・") + "</small></div>" +
+      '<div class="svb"><button class="btn sm pri" data-a="contGid" data-g="' + esc(r.gid) + '">' + IC2.play + "つづける</button>" +
+      '<button class="ibtn sm del" data-a="delAsk" data-g="' + esc(r.gid) + '" aria-label="このセーブを消す">' + IC2.trash + "</button></div></div>";
+  }
+  function openSaves() {
+    const list = G.list();
+    if (!list.length) { $("#ov").classList.remove("on"); renderTitle(); return; }
+    $("#ov").classList.add("on");
+    $("#sheet").innerHTML = '<h2 class="svh">' + IC2.save + "つづきから</h2><p>中断中の試合が <b>" + list.length + "件</b> あります。つづける試合を選んでください" +
+      "（いちばん新しいものが上・最大 " + G.MAX_SAVES + "件。こえると いちばん古いものから消えます）。</p>" +
+      '<div class="svlist">' + list.map(svRow).join("") + "</div>" +
+      '<div class="wbtns"><button class="btn" data-a="closeSheet">' + IC2.back + "もどる</button></div>";
   }
   /* タイトルの小さな盤：置く → 飛びこえて動かす、をゆっくりくり返す（控えめな動き） */
   const DEMO = { t: 0, i: 0, c: new Array(16).fill(-1) };
@@ -285,9 +323,10 @@
     saveSetup();
   });
 
-  /* ══ ③ 順番の抽選 ══
-     ★★ 2026-09-22 ご指定「順番を抽選でランダムに」（MagiChainParty と同じ見せかた）
-     サイコロ（2人ならコイン）を回して、1番から順に発表する。「もう一度きめる」で引き直せる。 */
+  /* ══ ③ 順番の決め方 ══
+     ★★ 2026-09-22 ご指定「順番を抽選でランダムに」→ ★★ 2026-10-15 ご指定「順番の決め方を新しいものに（カジュアルかつシンプルに）」
+     ＝<b>カードめくり</b>：うら向きのカード（中は 1〜人数 の数字）を、席の順に1人1枚ずつめくる。数字の小さい人から順番。
+       CPU は自分でめくる。「おまかせ」で残りを全部めくれる。「もう一度きめる」で配り直し。 */
   function begin() {
     const ps = seats();
     if (ps.every((p) => p.type === "cpu")) { toast("1人は「人」にしてください（CPU だけでは遊べません）"); return; }
@@ -304,54 +343,146 @@
     UI.reported = false;
     drawOrder();
   }
-  let orderTimer = 0, diceTimer = 0;
-  const PIPS = { 1: [4], 2: [0, 8], 3: [0, 4, 8], 4: [0, 2, 6, 8], 5: [0, 2, 4, 6, 8], 6: [0, 2, 3, 5, 6, 8] };
-  const dieHTML = (v) => '<div class="die">' + Array.from({ length: 9 }, (_, i) => '<i class="' + (PIPS[v].indexOf(i) >= 0 ? "p" : "") + '"></i>').join("") + "</div>";
+  let orderTimer = 0;
+  /* OD … カードめくりの状態（nums[k]＝k 枚目のカードの数字・by[k]＝めくった人の slot・who＝いまめくる人の席の番号） */
+  let OD = null;
   function drawOrder() {
-    const n = S.players.length, coin = n === 2;
-    const d = $("#orderDice");
-    $("#orderTitle").textContent = coin ? "コイントス中…" : "順番を抽選中…";
-    d.innerHTML = coin ? '<div class="coin">★</div>' : dieHTML(1 + ((Math.random() * 6) | 0));
-    d.className = "odice spin";
+    const n = S.players.length;
+    clearTimeout(orderTimer);
+    OD = { nums: G.shuffleOrder(n).map((v) => v + 1), by: Array(n).fill(-1), who: 0, auto: false, done: false };
     $("#orderList").innerHTML = "";
     $("#orderBtns").hidden = true;
+    const box = $("#orderCards");
+    box.dataset.n = n;
+    box.innerHTML = OD.nums.map((v, k) =>
+      '<button class="ocd" data-a="orderPick" data-k="' + k + '" aria-label="' + (k + 1) + '枚目のカード" style="--d:' + (k * 0.06).toFixed(2) + 's">' +
+        '<span class="in"><span class="bk"><i>?</i></span><span class="fr"><b>' + v + "</b><em></em></span></span></button>").join("");
     show("order");
-    clearTimeout(orderTimer); clearInterval(diceTimer);
-    if (!coin) diceTimer = setInterval(() => { d.innerHTML = dieHTML(1 + ((Math.random() * 6) | 0)); sfx("dice"); }, 130);
-    orderTimer = setTimeout(() => {
-      clearInterval(diceTimer);
-      S.order = G.shuffleOrder(n);
-      G.startTurn(S);
-      d.className = "odice land";
-      if (!coin) d.innerHTML = dieHTML(Math.min(6, n));
-      $("#orderTitle").textContent = "順番が決まりました！";
-      $("#orderList").innerHTML = S.order.map((slot, k) => {
-        const p = S.players[slot];
-        return '<div class="oitem" style="--c:' + p.color + ";animation-delay:" + (k * 0.12) + 's"><span class="ork">' + (k + 1) + "</span>" + pieceSVG(p) + '<b class="onm">' + esc(p.name) + "</b>" +
-          (isCpu(p) ? '<span class="ocpu">CPU</span>' : "") + (k === 0 ? '<span class="ofirst">先攻</span>' : "") + "</div>";
-      }).join("");
-      sfx("put");
-      setTimeout(() => { $("#orderBtns").hidden = false; }, n * 120 + 250);
-    }, 1250);
+    orderTurn();
+  }
+  /* いまめくる人を出す（CPU なら少し待って自分でめくる） */
+  function orderTurn() {
+    const n = S.players.length;
+    if (OD.who >= n) { orderDone(); return; }
+    const p = S.players[OD.who];
+    $("#orderTitle").innerHTML = pieceSVG(p) + "<b>" + esc(p.name) + "</b><small>" + (isCpu(p) ? "（CPU）がカードをえらんでいます…" : "　カードを1枚えらんでね") + "</small>";
+    $("#orderSub").textContent = "数字の小さい人から順番です（1 が先攻）";
+    $("#orderAuto").hidden = false;
+    $$("#orderCards .ocd").forEach((b) => { b.disabled = OD.by[+b.dataset.k] >= 0 || isCpu(p); });
+    $("#order").style.setProperty("--tc", p.color);
+    if (isCpu(p) || OD.auto) {
+      orderTimer = setTimeout(() => {
+        const free = OD.by.map((v, k) => (v < 0 ? k : -1)).filter((k) => k >= 0);
+        orderPick(free[(Math.random() * free.length) | 0]);
+      }, OD.auto ? 170 : 560);
+    }
+  }
+  function orderPick(k) {
+    if (!OD || OD.done || OD.who >= S.players.length || OD.by[k] >= 0) return;
+    const p = S.players[OD.who];
+    OD.by[k] = p.slot;
+    const b = $('#orderCards .ocd[data-k="' + k + '"]');
+    if (b) {
+      b.style.setProperty("--c", p.color);
+      const em = b.querySelector(".fr em"); if (em) em.innerHTML = pieceSVG(p) + "<span>" + esc(p.name) + "</span>";
+      b.classList.add("open"); b.disabled = true;
+      if (OD.nums[k] === 1) b.classList.add("first");
+    }
+    sfx("card");
+    OD.who++;
+    clearTimeout(orderTimer);
+    orderTimer = setTimeout(orderTurn, OD.auto ? 140 : 380);
+  }
+  /* 全員めくったら、数字の順に並べて発表 */
+  function orderDone() {
+    const n = S.players.length;
+    OD.done = true;
+    const slotOf = {}; OD.nums.forEach((v, k) => { slotOf[v] = OD.by[k]; });
+    S.order = Array.from({ length: n }, (_, i) => slotOf[i + 1]);
+    G.startTurn(S);
+    const f = S.players[S.order[0]];
+    $("#orderTitle").innerHTML = "<b>順番が決まりました！</b>";
+    $("#orderSub").innerHTML = "<b>" + esc(f.name) + "</b> から始めます";
+    $("#orderAuto").hidden = true;
+    $("#order").style.setProperty("--tc", f.color);
+    $("#orderList").innerHTML = S.order.map((slot, k) => {
+      const p = S.players[slot];
+      return '<div class="oitem" style="--c:' + p.color + ";animation-delay:" + (0.25 + k * 0.08) + 's"><span class="ork">' + (k + 1) + "</span>" + pieceSVG(p) + '<b class="onm">' + esc(p.name) + "</b>" +
+        (isCpu(p) ? '<span class="ocpu">CPU</span>' : "") + (k === 0 ? '<span class="ofirst">先攻</span>' : "") + "</div>";
+    }).join("");
+    sfx("put");
+    orderTimer = setTimeout(() => { $("#orderBtns").hidden = false; }, 300 + n * 80);
   }
 
   /* ══ ④ 対戦 ══ */
   function startGame() {
-    UI.blockMode = false;
-    G.save(S);
+    UI.blockMode = false; UI.hold = false;
+    HIST = [];
+    const dropped = G.save(S, HIST);
     renderGame(true);
     show("game");
     toast("🎯 <b>" + S.win + "つ</b>並べたら勝ち！" + (G.isTactics(S) ? "（タクティクス：押す・ブロックあり）" : ""), 2400);
+    if (dropped) setTimeout(() => toast("💾 中断中の試合が " + G.MAX_SAVES + "件をこえたので、いちばん古いセーブを消しました", 3200), 2500);
     scheduleCpu();
   }
-  function resume() {
-    const d = G.load();
-    if (!d || !d.S) return;
-    S = d.S; UI.blockMode = false; UI.reported = false;
+  function resume(gid) {
+    const d = G.load(gid);
+    if (!d || !d.S) { toast("このセーブは読めませんでした"); renderTitle(); return; }
+    S = d.S; HIST = d.hist || []; UI.blockMode = false; UI.reported = false; UI.hold = false;
     renderGame(true);
     show("game");
     toast("▶ つづきから再開");
     scheduleCpu();
+  }
+  /* ══ ★★ 2026-10-14 ご指定「一手戻るボタン（デザインして）」══
+     ・手を指す直前の盤面を HIST に積む（人の手は h:1、CPU の手は h:0。h は今は見せかたにだけ使う）。
+     ・★★ 2026-10-15 ご指定「一手戻るは、自分・相手に関係なく、一つ前にだれかが置いたところに戻る」（MagiChainParty の「一手もどす」と同じ考え方）
+       ＝<b>押すたびに、最後に指された1手だけ</b>を戻す（CPU の手でも1手）。
+       戻した結果 CPU の番になったときは、CPU を<b>一時停止</b>（UI.hold）＝すぐ指し直さない。続けて押せばさらに1手ずつ戻り、「再開」で CPU が動き出す。
+     ・決着がついた試合は戻さない（賞金・戦績を送ったあとなので）。番が回ってこない「とばし」は記録しない。 */
+  function pushHist() {
+    if (!S || S.phase !== "play") return;
+    HIST.push({ s: JSON.stringify(Object.assign({}, S, { sel: null, log: [] })), ll: (S.log || []).length, h: isCpu(G.cur(S)) ? 0 : 1 });
+    if (HIST.length > 300) HIST.splice(0, HIST.length - 300);
+  }
+  const canUndo = () => !!S && S.phase === "play" && HIST.length > 0;
+  function undo() {
+    if (!canUndo()) return;
+    clearTimeout(cpuT);
+    const h = HIST.pop();
+    if (!h) return;
+    const before = S.cells.slice(), log = (S.log || []).slice(0, h.ll);
+    let R = null;
+    try { R = JSON.parse(h.s); } catch (e) { R = null; }
+    if (!R || !R.cells) return;
+    R.log = log; S = R; UI.blockMode = false;
+    const who = G.cur(S);
+    UI.hold = isCpu(who);           /* CPU の手を戻したら、CPU は止めておく */
+    renderGame(true);
+    /* 変わったマスを軽く光らせる（どこが戻ったか分かるように） */
+    for (let i = 0; i < S.cells.length; i++) if (S.cells[i] !== before[i]) { const el = cellEl(i % S.size, Math.floor(i / S.size)); if (el) flash(el, ["rew"], 560); }
+    sfx("undo");
+    toast("↩ <b>" + esc(who.name) + "</b> の手をもどしました" + (HIST.length ? "" : "（これ以上はもどれません）") + (UI.hold ? "<br><small>CPU は止めています。「再開」で動き出します</small>" : ""), UI.hold ? 2600 : 1800);
+    scheduleCpu();
+  }
+  function cpuResume() {
+    if (!S || S.phase !== "play") return;
+    UI.hold = false;
+    renderGame();
+    scheduleCpu();
+  }
+  /* ══ ★★ 2026-10-14 ご指定「あと一つで揃うマーク（標準は表示しない）」══
+     空いているマスのうち、そこに置けばその人の駒が「並べる数」そろうマスに、その人の色の印。設定で 表示しない／いまの番の人だけ／全員 */
+  function reachMap() {
+    const out = {};
+    if (!opt.reach || !S || S.phase !== "play") return out;
+    const slots = opt.reach === 1 ? [S.turn] : S.players.map((p) => p.slot);
+    for (let i = 0; i < S.cells.length; i++) {
+      if (S.cells[i] !== -1) continue;
+      const x = i % S.size, y = Math.floor(i / S.size);
+      slots.forEach((sl) => { S.cells[i] = sl; const ln = G.lineAt(S, x, y); S.cells[i] = -1; if (ln) (out[i] = out[i] || []).push(sl); });
+    }
+    return out;
   }
   function renderGame(full, swap) {
     if (!S) return;
@@ -368,7 +499,9 @@
     gp.innerHTML = G.orderOf(S).map((slot, k) => {
       const q = S.players[slot], on = q.slot === S.turn && play;
       const out = G.outOfPieces(S, q.slot), left = G.leftOf(S, q.slot);
-      const pieces = S.maxPieces ? (out ? '<small class="out">使いきり・動かすだけ</small>' : "<small>のこり " + left + "個" + bk(q.slot) + "</small>") : "<small>" + G.countOf(S, q.slot) + "個" + bk(q.slot) + "</small>";
+      /* ★★ 2026-10-14 ご指摘「駒を使い切った表示が範囲を出ていて見づらい」：長い文（使いきり・動かすだけ）が札の外へはみ出していた
+         → 短い札「使いきり」（くわしい説明は手番の板・title に）にして、はみ出しても札の中で切る */
+      const pieces = S.maxPieces ? (out ? '<small class="out" title="駒を使いきりました（動かすだけ）"><span class="ob">使いきり</span>' + bk(q.slot) + "</small>" : "<small>のこり " + left + "個" + bk(q.slot) + "</small>") : "<small>" + G.countOf(S, q.slot) + "個" + bk(q.slot) + "</small>";
       return '<div class="pchip' + (on ? " on" : "") + (isCpu(q) ? " cpu" : "") + '" style="--c:' + q.color + '"><span class="ord">' + (k + 1) + '</span><span class="pcw">' + pieceSVG(q) + avatarHTML(q, "mini") + "</span>" +
         '<span class="pn"><b>' + esc(q.name) + (isCpu(q) ? ' <span class="tag">CPU</span>' : "") + "</b>" + pieces + "</span></div>";
     }).join("");
@@ -376,7 +509,7 @@
     paintBoard();
     paintTurn(swap);
     $("#board").classList.toggle("done", !play);
-    G.save(S);
+    if (play) G.save(S, HIST);
   }
   function bk(slot) {
     if (!G.isTactics(S)) return "";
@@ -396,11 +529,14 @@
     const pushes = sel ? G.pushesOf(S, sel.x, sel.y) : [];
     const blkBy = {}; (S.blks || []).forEach((b) => { blkBy[b.y * S.size + b.x] = b.by; });
     const L = S.last, lc = L ? S.players[L.slot].color : "";
+    const RC = reachMap();
     $$("#board .cell").forEach((el) => {
       const x = +el.dataset.x, y = +el.dataset.y, v = G.at(S, x, y), i = y * S.size + x;
       let h = v >= 0 ? pieceSVG(S.players[v]) : v === G.BLOCK ? blkHTML((S.players[blkBy[i]] || { color: "#9aa6bd" }).color) : "";
       const pu = pushes.find((q) => q.tx === x && q.ty === y);
       if (pu) h += '<span class="parr" style="--rot:' + Math.round(Math.atan2(pu.dy, pu.dx) * 180 / Math.PI) + 'deg">' + ICON.arrow + "</span>";
+      /* ★★ 2026-10-14 あと1つでそろうマスの印（その人の色の輪。何人ぶんも重なるときは小さく並べる） */
+      if (v === -1 && RC[i]) h += '<span class="rch n' + Math.min(4, RC[i].length) + '" title="あと1つでそろう">' + RC[i].map((sl) => '<i style="--rc:' + S.players[sl].color + '"></i>').join("") + "</span>";
       if (el._h !== h) { el.innerHTML = h; el._h = h; }
       const mv = moves.find((m) => m.x === x && m.y === y);
       el.classList.toggle("mine", human && v === S.turn);
@@ -428,7 +564,8 @@
     const pushes = S.sel ? G.pushesOf(S, S.sel.x, S.sel.y) : [];
     const left = G.leftOf(S, p.slot);
     let hint;
-    if (cpu) hint = '考えています<span class="tb-think"><i></i><i></i><i></i></span>';
+    if (cpu && UI.hold) hint = "<b>一時停止中</b>（1手もどしました）。もう一度「もどる」でさらに1手、<b>再開</b>で CPU が動きます";
+    else if (cpu) hint = '考えています<span class="tb-think"><i></i><i></i><i></i></span>';
     else if (UI.blockMode) hint = "ブロックを置くマスを選んでください。<b>次の自分の番まで</b>、そこにはだれも置けません";
     else if (S.sel) hint = "光っているマスへ<b>動かす</b>" + (pushes.length ? "／<b>矢印の駒を押す</b>" : "") + "。同じ駒をもう一度押すと取り消し";
     else if (G.outOfPieces(S, p.slot)) hint = "駒を使いきりました。<b>自分の駒を選んで動かします</b>" + (tac ? "（押す・ブロックもできます）" : "");
@@ -439,6 +576,9 @@
       acts += '<button class="tbtn' + (UI.blockMode ? " on" : "") + '" data-a="blockMode"' + (bl ? "" : " disabled") + ">" + ICON.wall + '<span class="tl">ブロック</span><b>' + bl + "</b></button>";
     }
     if (!cpu && (S.sel || UI.blockMode)) acts += '<button class="tbtn" data-a="cancel" aria-label="やめる">' + ICON.x + '<span class="tl">やめる</span></button>';
+    /* ★★ 2026-10-14 1手もどる（CPU の番でも押せる）→ ★★ 10-15 だれの手でも1手ずつ。止めた CPU は「再開」 */
+    if (cpu && UI.hold) acts += '<button class="tbtn go" data-a="cpuGo" aria-label="CPU を再開">' + ICON.play + '<span class="tl">再開</span></button>';
+    if (canUndo()) acts += '<button class="tbtn undo" data-a="undo" aria-label="1手もどる" title="1手もどる（だれの手でも、ひとつ前にもどります）">' + ICON.undo + '<span class="tl">1手もどる</span><span class="ts">もどる</span></button>';
     t.innerHTML = '<div class="tb-who' + (swap ? " swap" : "") + '">' + pieceSVG(p) + "<b>" + esc(p.name) + "</b><small>の番" + (cpu ? "（CPU）" : "") + "</small></div>" +
       '<div class="tb-hint">' + hint + "</div>" + '<div class="tb-acts">' + acts + "</div>";
   }
@@ -460,13 +600,13 @@
     if (!S || S.phase !== "play") return;
     if (isCpu(G.cur(S))) { toast("いまは CPU の番です"); return; }
     if (UI.blockMode) {
-      if (G.canBlock(S, x, y)) { const res = G.block(S, x, y); sfx("block"); after(res); return; }
+      if (G.canBlock(S, x, y)) { pushHist(); const res = G.block(S, x, y); sfx("block"); after(res); return; }
       sfx("no"); toast("ブロックは空いているマスに置けます"); return;
     }
     if (S.sel) {
       if (S.sel.x === x && S.sel.y === y) { S.sel = null; renderGame(); return; }      /* もう一度押すと取り消し */
-      if (G.canMove(S, S.sel.x, S.sel.y, x, y)) { const res = G.move(S, S.sel.x, S.sel.y, x, y); sfx("move"); after(res); return; }
-      if (G.canPush(S, S.sel.x, S.sel.y, x, y)) { const res = G.push(S, S.sel.x, S.sel.y, x, y); sfx("push"); after(res); return; }
+      if (G.canMove(S, S.sel.x, S.sel.y, x, y)) { pushHist(); const res = G.move(S, S.sel.x, S.sel.y, x, y); sfx("move"); after(res); return; }
+      if (G.canPush(S, S.sel.x, S.sel.y, x, y)) { pushHist(); const res = G.push(S, S.sel.x, S.sel.y, x, y); sfx("push"); after(res); return; }
       if (G.canPick(S, x, y)) { pick(x, y); return; }
       sfx("no"); toast(G.at(S, x, y) === -1 ? "そこへは動かせません（2マス先まで）" : "その駒は押せません"); return;
     }
@@ -475,6 +615,7 @@
     if (v === G.BLOCK) { sfx("no"); toast("ブロックのマスです（置いた人の次の番に消えます）"); return; }
     if (v >= 0) { sfx("no"); toast(G.isTactics(S) ? "ほかの人の駒は、自分の駒を選んでから押せます" : "ほかの人の駒は動かせません"); return; }
     if (!G.canPlace(S, x, y)) { sfx("no"); if (G.outOfPieces(S, S.turn)) toast("駒を使いきりました。自分の駒を選んで動かしてください"); return; }
+    pushHist();
     const res = G.place(S, x, y);
     sfx("put");
     after(res);
@@ -512,7 +653,7 @@
   }
   function after(res) {
     if (!res) return;
-    UI.blockMode = false;
+    UI.blockMode = false; UI.hold = false;
     renderGame(false, true);
     animate(res);
     if (S.phase === "end") { finish(); return; }
@@ -533,17 +674,19 @@
   let cpuT = 0;
   function scheduleCpu() {
     clearTimeout(cpuT);
-    if (!S || S.phase !== "play" || !isCpu(G.cur(S))) return;
+    if (!S || S.phase !== "play" || !isCpu(G.cur(S)) || UI.hold) return;
     if (!$("#game").classList.contains("on")) return;
     cpuT = setTimeout(cpuStep, opt.slow ? 1200 : 700);
   }
   function cpuStep() {
-    if (!S || S.phase !== "play" || !isCpu(G.cur(S))) return;
+    if (!S || S.phase !== "play" || !isCpu(G.cur(S)) || UI.hold) return;
     if ($("#ov").classList.contains("on") || !$("#game").classList.contains("on")) { cpuT = setTimeout(cpuStep, 600); return; }
     const a = G.AI.choose(S);
     if (!a) { G.pass(S); renderGame(false, true); scheduleCpu(); return; }
     const go = () => {
+      if (!S || S.phase !== "play" || !isCpu(G.cur(S)) || UI.hold) return;   /* ★ 選んだ駒を見せているあいだに「1手もどる」が押されたとき */
       S.sel = null;
+      pushHist();
       const res = G.AI.play(S, a);
       sfx(a.t === "place" ? "put" : a.t === "move" ? "move" : a.t === "push" ? "push" : "block");
       after(res);
@@ -569,7 +712,8 @@
     clearTimeout(cpuT);
     S.sel = null;
     renderGame();
-    G.clear();
+    G.remove(S.gid);      /* ★★ 2026-10-14 この試合の枠だけ消す（ほかの中断はそのまま） */
+    HIST = [];
     if (S.draw) { sfx("draw"); setTimeout(winScreen, 500); }
     else { sfx("win"); confetti(); setTimeout(winScreen, 1100); }
     report();
@@ -619,6 +763,9 @@
     $("#setWin").innerHTML = [0, 3, 4, 5, 6].map((n) => '<button class="chip' + ((opt.win || 0) === n ? " on" : "") + '" data-a="setwin" data-v="' + n + '">' + (n ? n + "つ" : "人数どおり") + "</button>").join("");
     $("#setPieces").innerHTML = [0, 5, 6, 7, 8, 10, 99].map((n) => '<button class="chip' + ((opt.pieces || 0) === n ? " on" : "") + '" data-a="setpieces" data-v="' + n + '">' + (n === 99 ? "上限なし" : n ? n + "個" : "人数どおり") + "</button>").join("") +
       '<span class="note" style="width:100%;margin-top:6px">いまの人数（' + setup.n + "人）の初期値は <b>" + r.size + "×" + r.size + "・" + r.win + "つ並べ・" + r.pieces + "個</b>です。変えた設定は次の試合から使われます。</span>";
+    /* ★★ 2026-10-14 あと1つでそろうマスの印（標準は表示しない） */
+    const rb = $("#setReach");
+    if (rb) rb.innerHTML = [[0, "表示しない（標準）"], [1, "いまの番の人だけ"], [2, "全員"]].map((c) => '<button class="chip' + ((opt.reach || 0) === c[0] ? " on" : "") + '" data-a="setreach" data-v="' + c[0] + '">' + c[1] + "</button>").join("");
     $("#setSe").checked = !!opt.se;
     $("#setBgm").checked = !!opt.bgm;
     $("#setSlow").checked = !!opt.slow;
@@ -649,6 +796,11 @@
         mini(5, { "1,2": "p0 s", "2,2": "p1 p", "3,2": "", "2,1": "p1 p", "4,4": "b" }) + "</div>" +
       '<div class="card rl-card"><div class="rl-tx"><h4>🤖 CPU</h4><p>準備の画面で席ごとに「人／CPU」を選べます。強さは <b>よわい・ふつう・つよい</b> の3段階。CPU は相手のリーチを止め、自分のリーチを作ろうとします。</p></div></div>' +
       '<div class="card rl-card"><div class="rl-tx"><h4>⏱️ 決着がつかないとき</h4><p><b>CPU だけの対戦</b>で ' + MAXR + "周しても決着がつかないときは<b>引き分け</b>です（順位は、いちばん長く並べた人から）。人が1人でもいる対戦は、決着がつくまで続きます。置く場所も動かせる駒もない人は、その番をとばします。</p></div></div>" +
+      /* ★★ 2026-10-14 便利な機能（1手もどる・あと1つの印・いくつもの中断） */
+      '<div class="card rl-card"><div class="rl-tx"><h4>🧰 便利な機能</h4><p>' +
+        "<b>↩ 1手もどる</b>：手番の板のボタンで、<b>だれの手でも、押すたびに1手ずつ</b>戻せます。CPU の手を戻したときは CPU が止まるので、続けて戻すか「▶ 再開」を押してください。決着がついたあとは戻せません。<br>" +
+        "<b>◎ あと1つでそろう印</b>：設定で「いまの番の人だけ」か「全員」を選ぶと、そこに置けばそろうマスに、その人の色の輪が出ます（標準は表示しない）。<br>" +
+        "<b>💾 中断</b>：試合はいつも自動でセーブされ、<b>いくつでも（" + G.MAX_SAVES + "件まで）</b>中断しておけます。タイトルの「つづきから」で選べます。</p></div></div>" +
       '<div class="card"><h3>人数ごとの決まり<small>設定で盤面・並べる数・駒の数を変えられます</small></h3><table class="rtable"><tr><th>人数</th><th>盤面</th><th>並べる数</th><th>1人の駒</th></tr>' + rows + "</table></div>";
   }
   function openRules() { if (!$("#rulesBody").childElementCount) renderRules(); show("rules"); }
@@ -677,7 +829,22 @@
     setCpu: (b) => { setup.cpuLevel = +b.dataset.v; saveSetup(); renderSetup(); },
     seatlink: (b) => seatLink(+b.dataset.i),
     begin: () => begin(),
-    cont: () => resume(),
+    /* ★★ 2026-10-14 中断が1件ならそのまま、2件以上なら一覧から */
+    cont: () => { const l = G.list(); if (l.length === 1) resume(l[0].gid); else openSaves(); },
+    contGid: (b) => resume(b.dataset.g),
+    delAsk: (b) => {
+      const row = b.closest(".svrow"); if (!row) return;
+      const box = row.querySelector(".svb");
+      box.innerHTML = '<span class="svq">消しますか？</span><button class="btn sm danger" data-a="delGid" data-g="' + esc(b.dataset.g) + '">' + IC2.trash + "消す</button>" +
+        '<button class="btn sm" data-a="delNo">やめる</button>';
+      row.classList.add("ask");
+    },
+    delNo: () => openSaves(),
+    delGid: (b) => { G.remove(b.dataset.g); toast("🗑 セーブを消しました"); if (G.list().length) openSaves(); else { $("#ov").classList.remove("on"); renderTitle(); } },
+    undo: () => undo(),
+    cpuGo: () => cpuResume(),
+    orderPick: (b) => orderPick(+b.dataset.k),
+    orderAuto: () => { if (!OD || OD.done) return; OD.auto = true; $("#orderAuto").hidden = true; clearTimeout(orderTimer); orderTurn(); },
     cell: (b) => onCell(+b.dataset.x, +b.dataset.y),
     cancel: () => { if (!S) return; S.sel = null; UI.blockMode = false; renderGame(); },
     blockMode: () => { if (!S || isCpu(G.cur(S))) return; UI.blockMode = !UI.blockMode; S.sel = null; renderGame(); },
@@ -694,14 +861,16 @@
       begin();
     },
     result: () => resultScreen(),
-    menu: () => { G.clear(); renderTitle(); },
+    /* ★★ 2026-10-14 消すのは<b>この試合の枠だけ</b>（結果の画面の「タイトルへ」も同じボタン。決着した試合の枠はもう無い） */
+    menu: () => { if (S) G.remove(S.gid); HIST = []; renderTitle(); },
     settings: () => openSettings(),
     stats: () => statsScreen(),
     rules: () => openRules(),
     setsize: (b) => { opt.size = +b.dataset.v; saveOpt(); renderSettings(); },
     setwin: (b) => { opt.win = +b.dataset.v; saveOpt(); renderSettings(); },
     setpieces: (b) => { opt.pieces = +b.dataset.v; saveOpt(); renderSettings(); },
-    setreset: () => { opt = { size: 0, win: 0, pieces: 0, se: true, bgm: false, slow: false }; saveOpt(); bgmStop(); renderSettings(); toast("初期設定に戻しました"); },
+    setreach: (b) => { opt.reach = +b.dataset.v || 0; saveOpt(); renderSettings(); },
+    setreset: () => { opt = { size: 0, win: 0, pieces: 0, se: true, bgm: false, slow: false, reach: 0 }; saveOpt(); bgmStop(); renderSettings(); toast("初期設定に戻しました"); },
     gmenu: () => {
       $("#ov").classList.add("on");
       $("#sheet").innerHTML = "<h2>メニュー</h2><p>いまの試合はいつでも<b>セーブして中断</b>できます。つづきはタイトルの「つづきから」で始められます。</p>" +
@@ -714,8 +883,9 @@
     /* ★★ 2026-09-21 ご指定：途中でセーブして、あとからつづきを遊べるようにした。 */
     saveQuit: () => {
       if (!S) { renderTitle(); return; }
-      S.sel = null; G.save(S);
-      toast("💾 セーブしました。タイトルの「つづきから」でつづけられます");
+      S.sel = null; G.save(S, HIST);
+      const n = G.list().length;
+      toast("💾 セーブしました。タイトルの「つづきから」でつづけられます" + (n > 1 ? "（中断中 " + n + "件）" : ""));
       renderTitle();
     },
     /* ★ confirm() が出ない環境があるので（MagiLex・MagiTier で踏んだ）、確認は画面の中で聞く */
@@ -727,7 +897,7 @@
     closeSheet: () => { $("#ov").classList.remove("on"); scheduleCpu(); },
     orderGo: () => startGame(),
     orderRedo: () => drawOrder(),
-    orderBack: () => { clearTimeout(orderTimer); clearInterval(diceTimer); openSetup(); },
+    orderBack: () => { clearTimeout(orderTimer); OD = null; openSetup(); },
   };
   document.addEventListener("click", (e) => {
     const b = e.target.closest("[data-a]");
@@ -735,7 +905,8 @@
     const f = ACT[b.dataset.a];
     if (!f) return;
     e.preventDefault();
-    if (b.dataset.a !== "cell" && b.dataset.a !== "gmenu" && b.dataset.a !== "giveup") $("#ov").classList.remove("on");
+    /* シートを開いたままにする操作（盤・メニュー・中断の一覧の消す確認）。それ以外はシートを閉じてから */
+    if (["cell", "gmenu", "giveup", "delAsk", "delNo", "delGid"].indexOf(b.dataset.a) < 0) $("#ov").classList.remove("on");
     ac();
     f(b);
   });

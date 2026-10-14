@@ -410,3 +410,79 @@ svg{display:block}
 .wbtns.col .btn{flex:none;width:100%}
 .wbtns .wrow{display:flex;gap:8px}
 .wbtns .wrow .btn{flex:1;min-width:0}
+
+/* ══ ★★ 2026-10-14 ご指定（1手もどる・あと1つでそろう印・使いきりの表示・いくつもの中断）══ */
+/* ① 1手もどる：白い札に、いまの番の人の色の ↩。押すと ↩ がくるっと戻る */
+.tbtn.undo{background:var(--card);border:1.5px solid var(--line2);box-shadow:var(--sh);color:var(--ink);padding:0 13px 0 9px}
+.tbtn.undo svg{width:26px;height:26px;padding:4px;border-radius:50%;color:#fff;background:var(--tc);stroke-width:2.6;box-shadow:0 3px 8px color-mix(in srgb,var(--tc) 35%,transparent);transition:transform .4s var(--spring)}
+.tbtn.undo:active svg{transform:rotate(-70deg)}
+.tbtn.undo .ts{display:none}
+@media (max-width:440px){.tbtn.undo .ts{display:inline}.tbtn.undo{padding:0 11px 0 7px}}
+@media (min-width:760px) and (min-aspect-ratio:5/4){.tbtn.undo{order:9;margin-top:4px}}
+.cell.rew>.pc,.cell.rew>.blk{animation:rew .5s var(--spring) both}
+.cell.rew::before{content:"";position:absolute;inset:6%;border-radius:50%;border:2.5px dashed color-mix(in srgb,var(--tc) 60%,transparent);animation:ripple .55s ease-out forwards;pointer-events:none}
+@keyframes rew{0%{transform:scale(.4) rotate(-40deg);opacity:0}100%{transform:none;opacity:1}}
+/* ② あと1つでそろうマス：その人の色の輪（何人ぶんも重なるときは小さく並べる）。ゆっくり光る */
+.cell .rch{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:6%;padding:16%;pointer-events:none}
+.cell .rch i{width:40%;aspect-ratio:1;border-radius:50%;border:2.5px solid var(--rc);background:color-mix(in srgb,var(--rc) 16%,transparent);animation:rchGlow 1.8s ease-in-out infinite}
+.cell .rch.n1 i{width:46%}
+.cell .rch.n3 i,.cell .rch.n4 i{width:34%;border-width:2px}
+@keyframes rchGlow{50%{box-shadow:0 0 0 3px color-mix(in srgb,var(--rc) 22%,transparent);transform:scale(1.08)}}
+.cell.cand .rch,.cell.bcand .rch{opacity:.55}
+/* ③ 駒を使いきった札：短い赤い札。はみ出しても札の中で切る */
+.pchip .pn small{overflow:hidden;min-width:0}
+.pchip .pn small.out .ob{flex:none;padding:0 7px;border-radius:99px;background:color-mix(in srgb,var(--ng) 12%,#fff);color:var(--ng);font-size:10px;font-weight:900;line-height:1.6}
+/* ④ 中断の一覧（つづきから） */
+.sheet .svh{display:flex;align-items:center;gap:8px}
+.sheet .svh svg{width:24px;height:24px;color:var(--pri);fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.svlist{display:flex;flex-direction:column;gap:8px;max-height:min(52vh,460px);overflow-y:auto;margin:0 -4px 4px;padding:2px 4px}
+.svrow{display:grid;grid-template-columns:auto minmax(0,1fr);grid-template-areas:"p t" "b b";gap:6px 10px;align-items:center;padding:10px 12px;border-radius:16px;background:var(--bg2);animation:rowIn .3s var(--ease) both}
+.svrow .svp{grid-area:p;display:flex;flex-wrap:wrap;width:62px;gap:2px}
+.svrow .svp .pc{width:19px;height:19px}
+.svrow .svt{grid-area:t;min-width:0;display:flex;flex-direction:column;line-height:1.35}
+.svrow .svt b{font-size:13.5px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.svrow .svt small{font-size:11.5px;color:var(--sub);font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.svrow .svt small.svn{font-weight:700;opacity:.85}
+.svrow .svb{grid-area:b;display:flex;gap:8px;align-items:center;justify-content:flex-end}
+.svrow .svb .btn.sm{min-height:36px}
+.svrow .svb .btn.pri{flex:1}
+.svrow .svb .ibtn.sm{width:36px;height:36px;border-radius:12px;color:var(--ng)}
+.svrow .svb .ibtn.sm svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.svrow.ask{background:#fff5f6;box-shadow:inset 0 0 0 1.5px #ffd3d9}
+.svrow .svq{flex:1;font-size:12.5px;font-weight:900;color:#d93a4f}
+@media (min-width:520px){.svrow{grid-template-columns:auto minmax(0,1fr) auto;grid-template-areas:"p t b"}.svrow .svb .btn.pri{flex:none}}
+.sheet:has(.svlist){width:min(580px,100%)}
+
+/* ══ ★★ 2026-10-15 順番の決め方：カードめくり（ご指定「新しい決め方・カジュアルかつシンプルに」） ══ */
+.otitle{display:flex;align-items:center;justify-content:center;gap:8px;flex-wrap:wrap;min-height:34px}
+.otitle .pc{width:28px;height:28px;flex:none}
+.otitle small{font-size:14px;font-weight:800;color:var(--sub)}
+.osub{font-size:12.5px;font-weight:800;color:var(--sub);margin:0 0 12px;min-height:1.4em}
+.ocards{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin:2px auto 12px;max-width:380px;perspective:700px}
+.ocd{--c:#9aa3bd;width:74px;height:100px;padding:0;border:0;background:none;cursor:pointer;position:relative;animation:ocdIn .42s var(--spring) var(--d,0s) both;-webkit-tap-highlight-color:transparent}
+.ocards[data-n="6"] .ocd,.ocards[data-n="5"] .ocd{width:66px;height:90px}
+.ocd .in{position:absolute;inset:0;transform-style:preserve-3d;transition:transform .5s var(--spring)}
+.ocd .bk,.ocd .fr{position:absolute;inset:0;border-radius:14px;backface-visibility:hidden;-webkit-backface-visibility:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.ocd .bk{background:repeating-linear-gradient(45deg,rgba(255,255,255,.16) 0 7px,transparent 7px 14px),linear-gradient(150deg,#7b6cff,#4fa3ff);
+  border:3px solid #fff;box-shadow:0 0 0 1.5px var(--line2),0 8px 18px rgba(29,36,69,.16)}
+.ocd .bk i{font-style:normal;font-family:'Baloo 2',system-ui,sans-serif;font-weight:800;font-size:34px;color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.16)}
+.ocd .fr{transform:rotateY(180deg);background:#fff;border:3px solid var(--c);box-shadow:0 8px 18px rgba(29,36,69,.14);gap:2px}
+.ocd .fr b{font-family:'Baloo 2',system-ui,sans-serif;font-size:40px;font-weight:800;line-height:1;color:var(--c)}
+.ocd .fr em{font-style:normal;display:flex;align-items:center;gap:3px;max-width:92%;font-size:10.5px;font-weight:900;color:var(--ink)}
+.ocd .fr em .pc{width:15px;height:15px;flex:none}
+.ocd .fr em span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ocd.open .in{transform:rotateY(180deg)}
+.ocd.first .fr{background:linear-gradient(180deg,#fff,#fff7d6)}
+.ocd.first .fr::after{content:"先攻";position:absolute;top:-11px;left:50%;translate:-50% 0;white-space:nowrap;padding:1px 8px;border-radius:99px;font-size:10px;font-weight:900;color:#fff;background:var(--c);border:2px solid #fff}
+.ocd:not(:disabled):hover .in{transform:translateY(-4px)}
+.ocd:not(:disabled):active .in{transform:translateY(-1px) scale(.97)}
+.ocd:disabled{cursor:default}
+.ocd:disabled:not(.open) .bk{filter:saturate(.75) brightness(.98)}
+#order:not(.done) .ocd:not(:disabled) .bk{box-shadow:0 0 0 2.5px var(--tc,#4fa3ff),0 8px 18px rgba(29,36,69,.16)}
+.oauto{margin:0 auto 6px;display:inline-flex}
+.oauto[hidden]{display:none}
+@keyframes ocdIn{from{opacity:0;transform:translateY(16px) rotate(-6deg)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.ocd{animation:none}.ocd .in{transition:none}}
+/* ★★ 2026-10-15 止めた CPU の「再開」 */
+.tbtn.go{color:#fff;background:linear-gradient(180deg,#43c16a,#2f9e52);border-color:#2f9e52}
+.tbtn.go svg .fl{fill:currentColor;stroke:none}

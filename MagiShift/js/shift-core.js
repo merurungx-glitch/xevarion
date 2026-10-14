@@ -31,12 +31,13 @@
        2人 5×5 6個 4つ並べ ・ 3人 6×6 6個 4つ並べ ・ 4人 7×7 6個 4つ並べ
        5人 8×8 7個 5つ並べ ・ 6人 9×9 7個 5つ並べ
      ★ 駒を使いきったあとは<b>置けず、動かすだけ</b>になる。ここがこのゲームの読み合いの中心。 */
+  /* ★★ 2026-10-14 ご指定「勝利条件で 5・6人で4個並べを標準に」：5人・6人も<b>4つ並べ</b>（盤と駒の数はそのまま） */
   const RULES = {
     2: { size: 5, win: 4, pieces: 6, move: 2 },
     3: { size: 6, win: 4, pieces: 6, move: 2 },
     4: { size: 7, win: 4, pieces: 6, move: 2 },
-    5: { size: 8, win: 5, pieces: 7, move: 2 },
-    6: { size: 9, win: 5, pieces: 7, move: 2 },
+    5: { size: 8, win: 4, pieces: 7, move: 2 },
+    6: { size: 9, win: 4, pieces: 7, move: 2 },
   };
   /* pieces:0 ＝ 置ける数に上限なし。move ＝ 1手で動ける距離（たて・よこ・ななめ） */
 
@@ -85,7 +86,7 @@
     const win = opt.win || base.win;
     const mode = MODES[opt.mode] ? opt.mode : "normal";
     return {
-      v: 2, mode, size, win, move: opt.move || base.move,
+      v: 2, gid: newGid(), mode, size, win, move: opt.move || base.move,
       maxPieces: opt.pieces === 99 ? 0 : (opt.pieces || base.pieces),
       cpuLevel: opt.cpuLevel == null ? 1 : opt.cpuLevel,
       players: players.map((p, i) => Object.assign({ slot: i, wins: 0, type: "human" }, COLORS[i], p)),
@@ -299,23 +300,88 @@
       .map((p, i) => Object.assign(p, { rank: i + 1 }));
   }
 
-  /* ══ 保存（中断してもつづきから遊べる） ══ */
-  const KEY = "magishift_v1";
-  function save(S, stats) {
+  /* ══ 保存（中断してもつづきから遊べる） ══
+     ★★ 2026-10-14 ご指定「中断の保存を複数個できるように」
+     ・前は1つの枠（magishift_v1）だけで、新しい試合をはじめると前の中断が上書きされていた。
+     ・いまは<b>試合ごとの枠</b>：試合には gid（番号）があり、その試合の手番のたびに自分の枠へ書く（自動セーブ）。
+       一覧（magishift_saves_v1）には枠ごとの「顔ぶれ・ルール・周回・日時」だけを持つ（一覧を出すのに本体を読まない）。
+       本体は枠ごとのキー（magishift_s_<gid>）。一手もどる用の記録（hist）もいっしょに残す（最後の30手ぶん）。
+     ・枠は MAX_SAVES まで。こえたら、いちばん古い枠を消す（save の戻り値で知らせる）。
+     ・決着した試合・「セーブせずにやめる」の試合は枠ごと消す（remove）。
+     ・前の版の1つだけのセーブは、はじめて一覧を読むときに枠へ移す。 */
+  const KEY = "magishift_v1";               /* 前の版（1つだけ） */
+  const IDX = "magishift_saves_v1";
+  const SKEY = (gid) => "magishift_s_" + gid;
+  const MAX_SAVES = 10;
+  function newGid() { return Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+  function idxLoad() { try { const a = JSON.parse(localStorage.getItem(IDX) || "null"); return Array.isArray(a) ? a.filter((x) => x && x.gid) : []; } catch (e) { return []; } }
+  function idxSave(a) { try { localStorage.setItem(IDX, JSON.stringify(a)); } catch (e) {} }
+  function metaOf(S) {
+    return { players: S.players.map((p) => ({ name: p.name, color: p.color, mark: p.mark, type: p.type || "human" })),
+      mode: S.mode || "normal", size: S.size, win: S.win, round: S.round || 1, moves: S.moves || 0, turn: S.turn };
+  }
+  let migrated = false;
+  function migrate() {
+    if (migrated) return; migrated = true;
     try {
-      const c = Object.assign({}, S, { sel: null });
-      localStorage.setItem(KEY, JSON.stringify({ v: 2, S: c, stats, at: Date.now() }));
+      const raw = localStorage.getItem(KEY); if (!raw) return;
+      const d = JSON.parse(raw);
+      if (d && d.S && d.S.phase === "play") {
+        upgrade(d.S);
+        if (!d.S.gid) d.S.gid = newGid();
+        const list = idxLoad();
+        if (!list.some((x) => x.gid === d.S.gid)) {
+          localStorage.setItem(SKEY(d.S.gid), JSON.stringify({ v: 3, S: d.S, hist: [], at: d.at || Date.now() }));
+          list.push({ gid: d.S.gid, at: d.at || Date.now(), meta: metaOf(d.S) });
+          list.sort((a, b) => b.at - a.at); idxSave(list);
+        }
+      }
+      localStorage.removeItem(KEY);
     } catch (e) {}
   }
-  function load() {
-    try { const d = JSON.parse(localStorage.getItem(KEY) || "null"); if (d && d.S) { upgrade(d.S); return d; } return null; } catch (e) { return null; }
+  /* S の枠を書きかえる（無ければ足す）。枠がいっぱいでいちばん古い枠を消したときは、その一覧の行を返す */
+  function save(S, hist) {
+    if (!S || S.phase !== "play") return null;
+    migrate();
+    if (!S.gid) S.gid = newGid();
+    let dropped = null;
+    try {
+      const c = Object.assign({}, S, { sel: null }), now = Date.now();
+      localStorage.setItem(SKEY(S.gid), JSON.stringify({ v: 3, S: c, hist: (hist || []).slice(-30), at: now }));
+      const list = idxLoad().filter((x) => x.gid !== S.gid);
+      list.unshift({ gid: S.gid, at: now, meta: metaOf(S) });
+      while (list.length > MAX_SAVES) { dropped = list.pop(); try { localStorage.removeItem(SKEY(dropped.gid)); } catch (e) {} }
+      idxSave(list);
+    } catch (e) {}
+    return dropped;
   }
-  function clear() { try { localStorage.removeItem(KEY); } catch (e) {} }
+  /* gid の枠を読む（gid なし＝いちばん新しい枠）→ { S, hist, at } */
+  function load(gid) {
+    migrate();
+    try {
+      const list = idxLoad();
+      const row = gid ? list.find((x) => x.gid === gid) : list[0];
+      if (!row) return null;
+      const d = JSON.parse(localStorage.getItem(SKEY(row.gid)) || "null");
+      if (!d || !d.S) { remove(row.gid); return null; }
+      upgrade(d.S); if (!d.S.gid) d.S.gid = row.gid;
+      return { S: d.S, hist: Array.isArray(d.hist) ? d.hist : [], at: d.at || row.at };
+    } catch (e) { return null; }
+  }
+  /* 中断中の試合の一覧（新しい順） */
+  function list() { migrate(); return idxLoad(); }
+  function remove(gid) {
+    if (!gid) return;
+    try { localStorage.removeItem(SKEY(gid)); } catch (e) {}
+    idxSave(idxLoad().filter((x) => x.gid !== gid));
+  }
+  /* 前の呼び方（引数なし）は「いまの試合の枠を消す」ではなく何もしない。S か gid を渡す */
+  function clear(Sg) { remove(Sg && typeof Sg === "object" ? Sg.gid : Sg); }
 
   Object.assign(MS, {
-    RULES, MODES, COLORS, BLOCKS, BLOCK, MAX_ROUNDS, DIR8, allCpu,
+    RULES, MODES, COLORS, BLOCKS, BLOCK, MAX_ROUNDS, MAX_SAVES, DIR8, allCpu,
     newGame, upgrade, place, move, push, block, pass, movesOf, pushesOf, canPlace, canPick, canMove, canPush, canBlock,
     shuffleOrder, orderOf, startTurn, isTactics, canAct,
-    at, inBoard, cur, countOf, leftOf, outOfPieces, checkWin, lineAt, stuck, standings, save, load, clear, KEY,
+    at, inBoard, cur, countOf, leftOf, outOfPieces, checkWin, lineAt, stuck, standings, save, load, list, remove, clear, KEY,
   });
 })();

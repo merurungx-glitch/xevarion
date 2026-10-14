@@ -322,8 +322,12 @@
   function isMas(s, id) { const r = s.q[id]; return !!(r && (r.lv || 0) >= 2 && r.last); }
   /* ★★ 2026-10-07 ごほうびの印。分けたセット（part）は、前の「大問まるごと」の印（gm:s:s1 など）があれば受け取りずみ
      ★★ 2026-10-12c 難関の関連問題（xp:）は、前に単元のまとまり（t:）で同じ問題ぶんのごほうびを受け取っていれば受け取りずみ（二重にしない） */
+  /* ★★ 2026-10-14b 基礎セットを番号順に組み直したとき、大問ごとの関連問題のまとまり（x:組:大問）の id が変わった。
+     前の id で受け取ったごほうび・確認テストの記録も、新しいまとまりのものとして見る（D.OLDG ＝ { 新しい id: 前の id }・mcl-data10.js） */
+  function oldGid(g) { return (g && D.OLDG && D.OLDG[g.id]) || null; }
   function gotMark(s, kind, g) {
     if (s.rw[kind + ":" + g.id]) return true;
+    const og = oldGid(g); if (og && s.rw[kind + ":" + og]) return true;
     if (g.kind === "o" && g.part && s.rw[kind + ":s:" + g.set]) return true;
     if (g.xo && g.ids.length && g.ids.every((id) => { const q = D.BY[id]; return !!(q && s.rw[kind + ":t:" + q.t]); })) return true;
     return false;
@@ -331,7 +335,8 @@
   function groupStat(g) {
     const s = get(); let seen = 0, mas = 0, ok = 0, n = 0;
     g.ids.forEach((id) => { const r = s.q[id]; if (r && r.n) { seen++; ok += r.ok || 0; n += r.n || 0; } if (isMas(s, id)) mas++; });
-    return { total: g.ids.length, seen, mas, acc: n ? ok / n : null, n, done: mas === g.ids.length, gm: gotMark(s, "gm", g), cfPass: gotMark(s, "cf", g), cf: (s.cf || {})[g.id] || null };
+    const cfs = s.cf || {}, og = oldGid(g);
+    return { total: g.ids.length, seen, mas, acc: n ? ok / n : null, n, done: mas === g.ids.length, gm: gotMark(s, "gm", g), cfPass: gotMark(s, "cf", g), cf: cfs[g.id] || (og && cfs[og]) || null };
   }
   /* ★★ 2026-10-07 分けたセットは<b>大問ぶんのごほうびを問題数で分ける</b>（10円単位）。合計は分ける前と同じ */
   function groupReward(g) {
@@ -477,15 +482,17 @@
     mut((s) => {
       tombs(s);
       g.ids.forEach((id) => { delete s.q[id]; s.rq[id] = now; dropMark(s, "first:" + id, now); });
+      const og = oldGid(g);
       ["gm", "cf"].forEach((kind) => {
         dropMark(s, kind + ":" + g.id, now);
+        if (og) dropMark(s, kind + ":" + og, now);   /* ★★ 2026-10-14b 前の id の印も消す（リセットしたのに受け取りずみに見えないように） */
         /* 分ける前の「大問まるごと」の印（gm:s:s1 など）は、ほかの分けたセットの印に移してから消す */
         if (g.part) {
           const lk = kind + ":s:" + g.set, t = s.rw[lk];
           if (t) { groups().forEach((x) => { if (x.set === g.set && x.part && x.id !== g.id && !s.rw[kind + ":" + x.id]) s.rw[kind + ":" + x.id] = t; }); dropMark(s, lk, now); }
         }
       });
-      if (s.cf && typeof s.cf === "object") delete s.cf[g.id];
+      if (s.cf && typeof s.cf === "object") { delete s.cf[g.id]; if (og) delete s.cf[og]; }
       if (g.kind === "r") dropMark(s, "topic:" + g.t, now);
     });
     return g.ids.length;

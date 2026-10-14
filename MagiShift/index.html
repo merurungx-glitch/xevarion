@@ -21,7 +21,7 @@ if ("serviceWorker" in navigator) {
 }
 </script>
 <script src="../xeva-safebottom.js?v=12"></script>
-<link rel="stylesheet" href="css/shift.css?v=7" />
+<link rel="stylesheet" href="css/shift.css?v=8" />
 <script src="../xeva-splash.js?v=15" data-app="MagiShift" data-logo="../thumbs/MagiShift.jpg"></script>
 </head>
 <body>
@@ -86,11 +86,13 @@ if ("serviceWorker" in navigator) {
   <div class="sticky"><button class="btn pri big" data-a="begin"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4.5" y="4.5" width="15" height="15" rx="3.5"/><circle class="fl" cx="9" cy="9" r="1.2"/><circle class="fl" cx="15" cy="15" r="1.2"/><circle class="fl" cx="15" cy="9" r="1.2"/><circle class="fl" cx="9" cy="15" r="1.2"/></svg>順番をきめる</button></div>
 </section>
 
-<!-- ★★ 2026-09-22 順番の抽選（MagiChainParty と同じ見せかた） -->
+<!-- ★★ 2026-09-22 順番の抽選 → ★★ 2026-10-15 カードめくり（1人1枚ずつめくって、数字の小さい人から） -->
 <section id="order" class="scr">
   <div class="ocard">
-    <h2 id="orderTitle">順番を抽選中…</h2>
-    <div id="orderDice" class="odice" aria-hidden="true"></div>
+    <h2 id="orderTitle" class="otitle">カードを1枚えらんでね</h2>
+    <p id="orderSub" class="osub"></p>
+    <div id="orderCards" class="ocards"></div>
+    <button id="orderAuto" class="btn sm oauto" data-a="orderAuto"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h3l10 10h3M4 17h3l2.6-2.6M14.4 9.6 17 7h3"/><path d="M18 4.5 20.5 7 18 9.5M18 14.5l2.5 2.5-2.5 2.5"/></svg>おまかせ（のこりを全部めくる）</button>
     <div id="orderList"></div>
     <div id="orderBtns" class="obtns" hidden>
       <button class="btn pri big" data-a="orderGo">この順番ではじめる！</button>
@@ -135,6 +137,8 @@ if ("serviceWorker" in navigator) {
     <div class="card"><h3>盤面サイズ<small>「人数どおり」は 2人 5×5 〜 6人 9×9</small></h3><div class="chips" id="setSize"></div></div>
     <div class="card"><h3>勝利条件（いくつ並べるか）</h3><div class="chips" id="setWin"></div></div>
     <div class="card"><h3>1人が置ける駒の数</h3><div class="chips" id="setPieces"></div></div>
+    <!-- ★★ 2026-10-14 あと1つでそろうマスの印（ご指定・標準は表示しない） -->
+    <div class="card"><h3>あと1つでそろうマスの印<small>そこに置けばそろうマスに、その人の色の輪を出します</small></h3><div class="chips" id="setReach"></div></div>
     <div class="card">
       <div class="srow first"><b>効果音</b><label class="sw"><input type="checkbox" id="setSe"><span></span></label></div>
       <div class="srow"><b>BGM</b><label class="sw"><input type="checkbox" id="setBgm"><span></span></label></div>
@@ -170,10 +174,10 @@ if ("serviceWorker" in navigator) {
 <script src="../xeva.js?v=77"></script>
 <script src="../xeva-loading.js?v=19" defer></script>
 <script src="../game-link.js?v=12"></script>
-<script src="js/shift-core.js?v=5"></script>
+<script src="js/shift-core.js?v=6"></script>
 <script src="js/shift-ai.js?v=1"></script>
 <script src="js/shift-account.js?v=2"></script>
-<script src="js/shift-ui.js?v=8"></script>
+<script src="js/shift-ui.js?v=9"></script>
 <script src="../xeva-back.js?v=9" data-mode="hook"></script>
 </body>
 </html>
