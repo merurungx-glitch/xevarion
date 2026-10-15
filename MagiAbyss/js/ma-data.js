@@ -306,6 +306,103 @@
       evo: { weapon: "staff", el: "dark", to: "evo_kaori", nm: "ゴースト・ランタン" },
       good: "追尾でまとめて削る・吸収で長く戦う", weak: "（目立った苦手はない）守りはやや控えめ",
     },
+    /* ══ ★★ 2026-10-16 超極華祭（UR・MagiAbyss 専用）5体 ══
+       ご指定「MagiAbyss では、ユナは最強のタキナより少し強く、他の4キャラはタキナと同等に」。
+       技は Pumpkin Night と同じ共通の型（pnshot／pnswing／pnzone…／pnbarrage）にキャラごとの数字と色を入れる。
+       ★ 火力は早回しの的あて（体力無限の的1体・90秒／体力420の的8体・補充あり・60秒を各4回）でタキナとの比を測り、
+         atk.mul と ult.mul で合わせた：単体 チエ・イチカ・ノノカ 1.01／アイナ 0.99／<b>ユナ 1.16</b>（集団はユナが5体でいちばん上）。
+         ユナは「会心で必殺技ゲージ」（yoiyami）だと必殺技が回りつづけて11倍になった → タキナと同じ focus にした。追尾も外した（貫通の花びらが同じ敵に何度も当たる）。 */
+    chie: {
+      nm: "チエ", fes: "超極華祭", el: "fire", type: "melee", sub: "mobile", rank: "UR",
+      title: "桜火の巫女",
+      base: { hp: 134, atk: 16, def: 5, spd: 82, aspd: 1.15, crit: 15, critDmg: 1.85, mag: 1.05, eva: 15 },
+      grow: { hp: 1.045, atk: 1.05, def: 1.04 },
+      atk: { kind: "pnswing", nm: "桜火一閃", ic: "cy_sakura", cd: 0.55, mul: 5.08, r: 50, arc: 2.7, kb: 8,
+        every: 3, wave: { mul: 3.7, speed: 250, range: 210, w: 14 }, cols: ["#ff6a8a", "#ffd0e0"],
+        d: "刀で前方を大きく斬る（半径50）。3回ごとに桜色の斬撃を飛ばす" },
+      skill: { kind: "pndash", nm: "桜花・居合", ic: "dashup", cd: 6, mp: 15, dist: 120, w: 28, mul: 3.0, gauge: 6,
+        d: "前へ踏みこんで居合斬り、ふれた敵すべてに攻撃力×3.0（その間は無敵）＋必殺技ゲージ+6" },
+      ult: { kind: "pnbarrage", nm: "千本桜・火影", gauge: 100, n: 104, mul: 2.31, fin: 14.5, pk: "blade", cols: ["#ff6a8a", "#ffd0e0", "#ff3a3a"], burn: 1, atkUp: [0.25, 6],
+        d: "いちばん強い敵へ桜の刃を104連射し、最後に画面全体へ桜火の大輪（攻撃力×14.5・防御ダウン・燃焼）＋6秒間 与えるダメージ+25%" },
+      passive: { kind: "afterdash", nm: "残心", t: 2, aspd: 0.45,
+        d: "技を使ったあと2秒間 攻撃速度+45%" },
+      bias: { atk: 1.5, crit: 1.3, spd: 1.2 },
+      evo: { weapon: "sword", el: "fire", to: "evo_chie", nm: "桜火・千本桜" },
+      good: "近接の大ぶりと居合で敵の群れを斬りひらく・ボスの単体火力", weak: "（目立った苦手はない）遠くの敵には斬撃を飛ばして届かせる",
+    },
+    ichika: {
+      nm: "イチカ", fes: "超極華祭", el: "water", type: "ranged", sub: "mobile", rank: "UR",
+      title: "夏渚の水しぶき",
+      base: { hp: 130, atk: 15, def: 4, spd: 84, aspd: 1.2, crit: 15, critDmg: 1.8, mag: 1.15, eva: 16 },
+      grow: { hp: 1.045, atk: 1.05, def: 1.04 },
+      atk: { kind: "pnshot", nm: "マリン・スプラッシュ", ic: "cy_shell", cd: 0.36, mul: 1.32, speed: 300, range: 230, pk: "bullet", n: 2, arc: 0.2, pierce: 2,
+        every: 5, burst: 6, burstArc: 1.0, burstNm: "ビッグウェーブ", cols: ["#38a6ff", "#e8f8ff", "#7fe0ff"],
+        d: "水しぶきの弾を2つ（2体まで貫通）。5回ごとに6つの大波" },
+      skill: { kind: "pnvolley", nm: "ハイビスカス・シャワー", ic: "cy_shell", cd: 8, mp: 18, n: 6, mul: 1.8, pk: "magic", slow: 0.4, gauge: 6,
+        d: "近い敵へ水の花を6つ降らせる（1つ 攻撃力×1.8・動きを遅くする）＋必殺技ゲージ+6" },
+      ult: { kind: "pnbarrage", nm: "サマー・ブルーラグーン", gauge: 100, n: 104, mul: 1.65, fin: 14.5, pk: "bullet", cols: ["#38a6ff", "#e8f8ff"], stun: 2, gaugeBack: 15,
+        d: "いちばん強い敵へ水しぶきを104連射し、最後に画面全体へ青い大波（攻撃力×14.5・防御ダウン）＋2秒しびれさせる＋必殺技ゲージが15%もどる" },
+      passive: { kind: "galestep", nm: "夏風の足どり", stack: 0.05, max: 5, t: 4,
+        d: "敵を倒すたび移動速度+5%（最大5つ・4秒）" },
+      bias: { aspd: 1.5, spd: 1.3, crit: 1.2 },
+      evo: { weapon: "bow", el: "water", to: "evo_ichika", nm: "ブルーラグーン・アロー" },
+      good: "走りながらの連射・敵の列を貫く・まとめて止める", weak: "（目立った苦手はない）守りはやや控えめ",
+    },
+    nonoka: {
+      nm: "ノノカ", fes: "超極華祭", el: "wood", type: "tank", sub: "summon", rank: "UR",
+      title: "白花のメイド",
+      base: { hp: 144, atk: 15, def: 6, spd: 78, aspd: 1.14, crit: 14, critDmg: 1.8, mag: 1.25, eva: 13 },
+      grow: { hp: 1.045, atk: 1.05, def: 1.04 },
+      atk: { kind: "pnshot", nm: "ティーカップ・トス", ic: "cy_teacup", cd: 0.48, mul: 1.14, speed: 220, range: 200, pk: "orb", n: 3, arc: 0.5, homing: 3, mag: 1,
+        every: 4, burst: 6, burstArc: 6.28, burstNm: "おもてなし", cols: ["#3dd17a", "#ffffff"],
+        d: "ティーカップを3つ（ゆるく追尾）。4回ごとに6つがまわりへ" },
+      skill: { kind: "pnburst", nm: "ティータイム・ガード", ic: "cy_teacup", cd: 8, mp: 18, r: 96, mul: 3.0, heal: 0.12, shield: 0.25, haste: [0.25, 5], gauge: 8,
+        d: "まわりに白い花がはじける（半径96・攻撃力×3.0）＋HPを12%回復＋最大HPの25%のバリア＋5秒間 攻撃速度+25%＋必殺技ゲージ+8" },
+      ult: { kind: "pnbarrage", nm: "ホワイトリリー・サーヴィス", gauge: 100, n: 104, mul: 1.42, fin: 14.5, pk: "orb", cols: ["#3dd17a", "#ffffff"], heal: 0.3, shield: 0.4, atkUp: [0.2, 6],
+        d: "いちばん強い敵へティーカップを104連射し、最後に画面全体へ白百合のおもてなし（攻撃力×14.5・防御ダウン）＋HPを30%回復＋最大HPの40%のバリア＋6秒間 与えるダメージ+20%" },
+      passive: { kind: "wasurena", nm: "メイドのたしなみ", per: 0.5, max: 0.4, regen: 0.01,
+        d: "失ったHPの割合に応じて与えるダメージが増える（最大+40%）。毎秒 最大HPの1%を回復" },
+      bias: { hp: 1.4, heal: 1.4, magic: 1.3 },
+      evo: { weapon: "tome", el: "wood", to: "evo_nonoka", nm: "ホワイトリリー・ティーセット" },
+      good: "回復とバリアで倒れない・追尾でまとめて削る", weak: "（目立った苦手はない）足は速くない",
+    },
+    aina: {
+      nm: "アイナ", fes: "超極華祭", el: "light", type: "magic", sub: "summon", rank: "UR",
+      title: "月下の薔薇姫",
+      base: { hp: 130, atk: 15, def: 5, spd: 80, aspd: 1.15, crit: 15, critDmg: 1.85, mag: 1.3, eva: 14 },
+      grow: { hp: 1.045, atk: 1.05, def: 1.04 },
+      atk: { kind: "pnshot", nm: "ムーンライト・ローズ", ic: "sk_rose", cd: 0.46, mul: 0.86, speed: 230, range: 210, pk: "petal", n: 4, arc: 0.6, homing: 3, mag: 1,
+        every: 4, burst: 6, burstArc: 6.28, burstNm: "月下の花園", cols: ["#f0d060", "#c8d8ff", "#5a7aff"],
+        d: "月光の花びらを4枚（追尾）。4回ごとに6枚がまわりへ" },
+      skill: { kind: "pnzone", nm: "月影の庭", ic: "sk_rose", cd: 9, mp: 20, r: 90, dur: 4, tick: 0.3, mul: 0.85, slow: 0.4, gauge: 6,
+        d: "敵がいちばん集まっている所に4秒間 月影の庭（半径90・0.3秒ごとに攻撃力×0.85・動きを遅くする）＋必殺技ゲージ+6" },
+      ult: { kind: "pnbarrage", nm: "ルナ・ローズガーデン", gauge: 100, n: 104, mul: 1.08, fin: 14.5, pk: "petal", cols: ["#f0d060", "#c8d8ff", "#5a7aff"], stun: 2, shield: 0.4,
+        d: "いちばん強い敵へ月光の花びらを104連射し、最後に画面全体へ満月の薔薇園（攻撃力×14.5・防御ダウン）＋2秒しびれさせる＋最大HPの40%のバリア" },
+      passive: { kind: "focus", nm: "月の加護", crits: 3, drain: 0.03,
+        d: "技を使ったあと3発は必ず会心。与えたダメージの3%でHPを回復（ドレイン）" },
+      bias: { magic: 1.5, crit: 1.3, elem: 1.3 },
+      evo: { weapon: "staff", el: "light", to: "evo_aina", nm: "ルナ・ローズ・ワンド" },
+      good: "追尾する花びらでまとめて削る・敵をまとめて止める", weak: "（目立った苦手はない）守りはやや控えめ",
+    },
+    /* ★ ユナは「タキナより少し強い」（ご指定）：能力の合計がいちばん高く、必殺技も一段上（120連・締め ×16.5） */
+    yuna: {
+      nm: "ユナ", fes: "超極華祭", el: "dark", type: "ranged", sub: "magic", rank: "UR",
+      title: "宵闇の青薔薇",
+      base: { hp: 140, atk: 17, def: 6, spd: 82, aspd: 1.22, crit: 17, critDmg: 1.9, mag: 1.25, eva: 16 },
+      grow: { hp: 1.045, atk: 1.05, def: 1.04 },
+      atk: { kind: "pnshot", nm: "ノワール・ローズ", ic: "sk_rose", cd: 0.34, mul: 0.34, speed: 320, range: 230, pk: "petal", n: 3, arc: 0.35, pierce: 2,
+        every: 4, burst: 7, burstArc: 1.1, burstNm: "青薔薇の嵐", cols: ["#7a5cff", "#c8b8ff", "#5a8cff"],
+        d: "宵闇の青薔薇を3枚（2体まで貫通）。4回ごとに7枚の嵐" },
+      skill: { kind: "pnblast", nm: "ブルーローズ・ジャッジ", ic: "sk_rose", cd: 8, mp: 18, r: 100, mul: 4.6, stun: 1, vul: [0.25, 5], gauge: 8,
+        d: "敵がいちばん集まっている所に青薔薇の裁き（半径100・攻撃力×4.6・1秒しびれ）＋5秒間 受けるダメージ+25%＋必殺技ゲージ+8" },
+      ult: { kind: "pnbarrage", nm: "宵闇・ノクターンローズ", gauge: 100, n: 120, mul: 0.3, fin: 16.5, pk: "petal", cols: ["#7a5cff", "#c8b8ff", "#5a8cff"], vul: [0.3, 6], heal: 0.2, atkUp: [0.3, 6],
+        d: "いちばん強い敵へ青薔薇を120連射し、最後に画面全体へ宵闇の大薔薇（攻撃力×16.5・防御ダウン）＋6秒間 受けるダメージ+30%＋HPを20%回復＋6秒間 与えるダメージ+30%" },
+      passive: { kind: "focus", nm: "宵闇の独占", crits: 3, drain: 0.03,
+        d: "技を使ったあと3発は必ず会心。与えたダメージの3%でHPを回復（ドレイン）" },
+      bias: { crit: 1.6, aspd: 1.4, elem: 1.3, weapon: 1.2 },
+      evo: { weapon: "dagger", el: "dark", to: "evo_yuna", nm: "ノクターン・ブルーローズ" },
+      good: "会心の連射・ボスの単体火力・敵をまとめて止める（UR の中でもいちばん上）", weak: "（目立った苦手はない）",
+    },
     hinano: {
       nm: "ヒナノ", fes: "極彩祭", el: "wood", type: "mobile", sub: "magic", rank: "SSR",
       title: "翠光のプリズム",
@@ -452,7 +549,7 @@
   };
   /* ★★ 2026-10-09 並びと顔ぶれは mb-core の ABYSS_CHAR_IDS（ポータルの絞り込み・キャラ詳細と同じ1本）。読めないときだけ下の並び */
   const CHAR_ORDER = ((typeof ABYSS_CHAR_IDS !== "undefined" && ABYSS_CHAR_IDS.length) ? ABYSS_CHAR_IDS.slice()
-    : ["ayano", "saki", "yuka", "natsumi", "miu", "mai", "chinatsu", "yuumi", "rina", "kaori",
+    : ["chie", "ichika", "nonoka", "aina", "yuna", "ayano", "saki", "yuka", "natsumi", "miu", "mai", "chinatsu", "yuumi", "rina", "kaori",
        "takina", "hibana", "fuki", "hinano", "hanon", "kokoha", "mutsumi", "reina", "azusa", "kumireina", "kagura", "kotori"]).filter((id) => CHARS[id]);
   /* 組み合わせを CHARS に流しこむ（下の CHAR_KIT が本体） */
   function applyKits() {
@@ -544,6 +641,12 @@
     yuumi:     { rank: "UR",  art: ["haste", 5],     trait: ["galefoot", 5] },
     rina:      { rank: "UR",  art: ["gate", 5],      trait: ["dusk", 5] },
     kaori:     { rank: "UR",  art: ["whirl", 5],     trait: ["insight", 5] },
+    /* ★★ 2026-10-16 超極華祭（UR・★5） */
+    chie:      { rank: "UR",  art: ["flashcut", 5],  trait: ["fervor", 5] },
+    ichika:    { rank: "UR",  art: ["haste", 5],     trait: ["galefoot", 5] },
+    nonoka:    { rank: "UR",  art: ["healing", 5],   trait: ["ironwall", 5] },
+    aina:      { rank: "UR",  art: ["starnova", 5],  trait: ["insight", 5] },
+    yuna:      { rank: "UR",  art: ["gate", 5],      trait: ["dusk", 5] },
     hinano:    { rank: "SSR", art: ["whirl", 4],     trait: ["galefoot", 3] },
     hanon:     { rank: "SSR", art: ["meteor", 4],    trait: ["clutch", 3] },
     kokoha:    { rank: "SSR", art: ["blast", 4],     trait: ["kindle", 4] },
@@ -627,6 +730,12 @@
     evo_yuumi:    { nm: "ジャック・ランタン・ボウ", base: "bow", char: "yuumi", mul: 2.8, kind: "w_bow", fx: "vulmark", d: "矢が刺さった敵は3秒 受けるダメージ+20%（ユウミ専用）" },
     evo_rina:     { nm: "マミー・バンデージ", base: "sword", char: "rina", mul: 3.8, kind: "w_sword", fx: "slowzone", d: "斬ったあとに包帯が残って敵を遅くする（リナ専用）" },
     evo_kaori:    { nm: "ゴースト・ランタン", base: "staff", char: "kaori", mul: 2.5, kind: "w_staff", fx: "drainhit", d: "魔弾が当たるとHPを少し吸う（カオリ専用）" },
+    /* ★★ 2026-10-16 超極華祭の専用進化 */
+    evo_chie:     { nm: "桜火・千本桜", base: "sword", char: "chie", mul: 3.8, kind: "w_sword", fx: "burnzone", d: "斬ったあとに桜火が残って燃やす（チエ専用）" },
+    evo_ichika:   { nm: "ブルーラグーン・アロー", base: "bow", char: "ichika", mul: 2.8, kind: "w_bow", fx: "starsplit", d: "矢が刺さると水しぶきが3つにはじけて遅くする（イチカ専用）" },
+    evo_nonoka:   { nm: "ホワイトリリー・ティーセット", base: "tome", char: "nonoka", mul: 2.3, kind: "w_tome", fx: "healhit", d: "回るティーカップが当たるたびにHPが少し回復する（ノノカ専用）" },
+    evo_aina:     { nm: "ルナ・ローズ・ワンド", base: "staff", char: "aina", mul: 2.6, kind: "w_staff", fx: "chainlight", d: "魔弾が当たると近くの敵へ2回つながる（アイナ専用）" },
+    evo_yuna:     { nm: "ノクターン・ブルーローズ", base: "dagger", char: "yuna", mul: 1.6, kind: "w_dagger", fx: "vulmark", d: "突きが青薔薇になって舞い、当たった敵は3秒 受けるダメージ+20%（ユナ専用）" },
   };
 
   /* ══ 魔法（自動で唱える。属性は固定）══ */

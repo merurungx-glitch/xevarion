@@ -566,7 +566,7 @@
     const out = [];
     ids.forEach((id) => {
       const c = CH[id];
-      if (!c || !c.nm) return;
+      if (!c || !c.nm || c.abyssOnly) return;   /* ★★ 2026-10-16 MagiAbyss 専用のキャラ（超極華祭）はボッチャに出ない */
       const h = fnv(id);
       const raw = {
         hp: norm((c.hp && c.hp[1]) || 7800, 5300, 10600),

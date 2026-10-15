@@ -56,6 +56,12 @@
     yuumi:     { nm: "ランタンの道しるべ", ic: "pn_hat", cond: { k: "room" }, cd: 15, fx: { spd: 0.3, atk: 0.2, t: 8 } },
     rina:      { nm: "解けない呪縛", ic: "vital", cond: { k: "hpLow", v: 0.4 }, cd: 50, fx: { atk: 0.4, def: 0.2, t: 10 } },
     kaori:     { nm: "ゴースト・パーティー", ic: "pn_ghost", cond: { k: "ult" }, cd: 0, fx: { atk: 0.25, t: 10, techG: 0.4 } },
+    /* ★★ 2026-10-16 超極華祭 */
+    chie:      { nm: "桜吹雪の型", ic: "cy_sakura", cond: { k: "skill" }, cd: 6, fx: { atk: 0.25, crit: 15, t: 4 } },
+    ichika:    { nm: "真夏のビッグウェーブ", ic: "cy_shell", cond: { k: "kills", n: 15, s: 8 }, cd: 20, fx: { aspd: 0.35, spd: 0.15, t: 8 } },
+    nonoka:    { nm: "おかえりなさいませ", ic: "cy_teacup", cond: { k: "hpLow", v: 0.5 }, cd: 45, fx: { heal: 0.25, shield: 0.35, def: 0.25, t: 8 } },
+    aina:      { nm: "月下の誓い", ic: "sk_rose", cond: { k: "boss" }, cd: 0, fx: { atk: 0.3, def: 0.2, t: 20 } },
+    yuna:      { nm: "宵闇の独占欲", ic: "sk_rose", cond: { k: "ult" }, cd: 0, fx: { atk: 0.3, crit: 20, t: 10, techG: 0.4 } },
     hinano:    { nm: "翠光の追い風", ic: "gale", cond: { k: "kills", n: 12, s: 6 }, cd: 18, fx: { aspd: 0.35, spd: 0.2, t: 6 } },
     hanon:     { nm: "ブザービーター", ic: "at_ball", cond: { k: "foeLow", v: 0.3 }, cd: 30, fx: { atk: 0.4, t: 10 } },
     kokoha:    { nm: "椿雨の帳", ic: "sk_umbrella", cond: { k: "noHit", s: 10 }, cd: 25, fx: { atk: 0.25, crit: 15, t: 10 } },
@@ -77,6 +83,9 @@
     kokoha: ["renkei", "shinkokyu", "kakomare"], mutsumi: ["zenshin", "ikioi", "oikaze"], reina: ["yoin", "shuchu", "omono"],
     azusa: ["kaishin", "mikiri", "oikaze"], kumireina: ["renkei", "seicho", "takara"], kagura: ["zenshin", "kakomare", "gyakkyo"],
     kotori: ["teppeki", "gyakkyo", "kakomare"],
+    /* ★★ 2026-10-16 超極華祭 */
+    chie: ["kaishin", "ikioi", "oikaze"], ichika: ["shippu", "oikaze", "mikiri"], nonoka: ["teppeki", "shinkokyu", "takara"],
+    aina: ["fudo", "omono", "shuchu"], yuna: ["yoin", "mikiri", "shuchu"],
   };
   const KIT_DEF = ["fudo", "mikiri", "shinkokyu"];
 
@@ -96,6 +105,12 @@
     yuumi:     { nm: "ランタン・ファン", ic: "at_fan", kind: "fan", cond: { k: "dodge", n: 5 }, mul: 2.3, n: 14 },
     rina:      { nm: "バンデージ・ストーム", ic: "shadowbind", kind: "whirl", cond: { k: "hurt", n: 6 }, mul: 3.4, r: 90, n: 3 },
     kaori:     { nm: "ポルターガイスト", ic: "pn_ghost", kind: "starfall", cond: { k: "kill", n: 30 }, mul: 5, n: 7 },
+    /* ★★ 2026-10-16 超極華祭 */
+    chie:      { nm: "桜花・千刃", ic: "cy_sakura", kind: "dashcut", cond: { k: "dodge", n: 4 }, mul: 7.5, dist: 150 },
+    ichika:    { nm: "スプラッシュ・ファン", ic: "cy_shell", kind: "fan", cond: { k: "dodge", n: 5 }, mul: 2.3, n: 14 },
+    nonoka:    { nm: "ティーパーティー・ドーム", ic: "cy_teacup", kind: "barrier", cond: { k: "hurt", n: 6 }, shield: 0.5, heal: 0.15, mul: 2.8, r: 105 },
+    aina:      { nm: "ムーンライト・ジャッジ", ic: "sk_rose", kind: "beam", cond: { k: "crit", n: 30 }, mul: 9, w: 30, len: 320 },
+    yuna:      { nm: "朔夜・ブルーローズ", ic: "sk_rose", kind: "mark", cond: { k: "crit", n: 30 }, mul: 9, vul: 0.3, t: 8 },
     hinano:    { nm: "プリズム・スプラッシュ", ic: "sk_prism", kind: "fan", cond: { k: "dodge", n: 5 }, mul: 2.2, n: 14 },
     hanon:     { nm: "ゴールデン・ブザー", ic: "sk_hoop", kind: "mark", cond: { k: "skill", n: 4 }, mul: 11, vul: 0.3, t: 8 },
     kokoha:    { nm: "ツバキ・シグレ", ic: "sk_umbrella", kind: "rain", cond: { k: "time", n: 25 }, mul: 0.95, r: 95, t: 3, burn: 1 },

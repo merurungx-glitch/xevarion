@@ -761,6 +761,10 @@
        動かし方：ホイール（Shift で横）・Ctrl/⌘＋ホイールで拡大・「移動」（手のひら）でドラッグ・マウスの中ボタン・スペースを押しながら・2本指（ピンチで拡大）。 */
     view: { s: 1, ox: 0, oy: 0 }, hand: false, space: false, pans: null, ptrs: {} };
   const PAD_PAGES = 10;  /* 紙の長さ（幅の10倍）。下へいくらでも書き足せる（★★ 2026-10-12 6→10・ご指定「メモの領域をより拡大」） */
+  /* ★★ 2026-10-16 ご指定「メモの左右で表示できる領域を広く。いまは色が薄くなっていてずらせない」：
+     紙の左右に、それぞれ幅の PAD_SIDE 倍の余白を足した（全体で幅の2倍）。ふつうの大きさでも左右へずらして書ける。
+     うすい色にするのは、この広げた紙のさらに外側だけ。下には横の位置の目じるし（バー）を出す。 */
+  const PAD_SIDE = 0.5;
   function padLoad() {
     let s = null; try { s = JSON.parse(localStorage.getItem(PAD_KEY) || "null"); } catch (e) {}
     if (!s || typeof s !== "object" || Array.isArray(s)) s = {};
@@ -837,7 +841,8 @@
   function padClamp() {
     const v = PAD.view, cv = $("#padCv");
     v.s = Math.max(0.6, Math.min(3, v.s));
-    const lo = Math.min(0, 1 - 1 / v.s), hi = Math.max(0, 1 - 1 / v.s);
+    let lo = -PAD_SIDE, hi = 1 + PAD_SIDE - 1 / v.s;
+    if (hi < lo) lo = hi = (lo + hi) / 2;            /* 小さくして紙が画面より細いときは真ん中に */
     v.ox = Math.max(lo, Math.min(hi, v.ox));
     const ar = cv && cv.width ? cv.height / cv.width : 0.6;
     v.oy = Math.max(0, Math.min(PAD_PAGES - ar / v.s, v.oy));
@@ -885,10 +890,13 @@
     for (let x = gx0; x < W; x += step) { if (x <= 0) continue; const px = Math.round(x) + 0.5; g.beginPath(); g.moveTo(px, 0); g.lineTo(px, H); g.stroke(); }
     for (let y = gy0; y < H; y += step) { if (y <= 0) continue; const py = Math.round(y) + 0.5; g.beginPath(); g.moveTo(0, py); g.lineTo(W, py); g.stroke(); }
     /* 紙の端（拡大を小さくしたとき）と、いまの位置の目じるし（右のバー） */
-    const ex0 = (0 - V.ox) * V.s * W, ex1 = (1 - V.ox) * V.s * W;
+    const ex0 = (-PAD_SIDE - V.ox) * V.s * W, ex1 = (1 + PAD_SIDE - V.ox) * V.s * W;
     if (ex0 > 0 || ex1 < W) { g.fillStyle = document.documentElement.dataset.theme === "dark" ? "rgba(0,0,0,.35)" : "rgba(60,70,120,.08)"; if (ex0 > 0) g.fillRect(0, 0, ex0, H); if (ex1 < W) g.fillRect(ex1, 0, W - ex1, H); }
     const visH = H / (W * V.s), barH = Math.max(18, H * visH / PAD_PAGES), barY = (H - barH) * (V.oy / Math.max(0.001, PAD_PAGES - visH));
     g.fillStyle = "rgba(99,102,241,.35)"; g.fillRect(W - Math.max(4, W / 160), Math.max(0, Math.min(H - barH, barY)), Math.max(3, W / 220), barH);
+    /* ★★ 2026-10-16 横の位置の目じるし（下のバー）。紙の全体の幅＝1＋左右の余白 */
+    const totW = 1 + PAD_SIDE * 2, visW = 1 / V.s, barW = Math.max(18, W * Math.min(1, visW / totW)), barX = (W - barW) * ((V.ox + PAD_SIDE) / Math.max(0.001, totW - visW));
+    if (visW < totW - 0.001) g.fillRect(Math.max(0, Math.min(W - barW, barX)), H - Math.max(4, W / 160), barW, Math.max(3, W / 220));
     g.restore();
     g.drawImage(off, 0, 0);
     if (PAD.er && PAD.ptr) {

@@ -589,6 +589,141 @@
         { x: 15, y: 2, rows: [".D.", "DDD", ".D."] },
       ],
     },
+    /* ══ ★★ 2026-10-16 超極華祭（UR）5体 ══ */
+    /* ── チエ（火）：長い黒髪のポニーテール・金の髪かざり・白い巫女装束・赤い袴・刀 ── */
+    chie: {
+      pal: { H: "#1e1a26", h: "#100e16", L: "#4a4660", E: "#b77ad8", A: "#fbf6f4", a: "#d8ccd0", C: "#d42a3a", c: "#8e1622",
+             D: "#e8b84a", d: "#a87a20", G: "#e8b84a", g: "#a87a20", P: "#c8202e", p: "#8a1420", O: "#3a2a2a", o: "#1e1414",
+             X: "#dfe4f0", x: "#8a90a8", Y: "#2a1a20", K: "#140f18" },
+      legY: 23,
+      layers: [
+        backLong(24),
+        /* ポニーテール（頭のうしろ右上から右へ流れる） */
+        { x: 15, y: 0, rows: [
+          "..hhhh.",
+          ".hHHHHh",
+          "hHHLHHh",
+          ".hhDDhh",
+          "...hHHh",
+          "...hHHHh",
+          "....hHHh",
+          "....hHHh",
+          ".....hHh",
+          ".....hhh",
+        ] },
+        { x: 6, y: 14, rows: [
+          ".AAACAACAAA.",
+          "AAAAACCAAAAA",
+          "A.AAAAAAAA.A",
+          "a.AaAAAAaA.a",
+          "A.CCCCCCCC.A",
+          "A.PPPPPPPP.A",
+        ].concat(BOTTOM_SKIRT) },
+        "FACE",
+        frontStraight(14),
+        /* 金と赤の髪かざり */
+        { x: 15, y: 2, rows: ["DG", "dC"] },
+        /* 右手の刀 */
+        { x: 17, y: 12, rows: ["....x", "...X.", "..X..", ".X...", "D....", "Y....", "Y...."] },
+      ],
+    },
+    /* ── イチカ（水）：長い黒髪・白いカチューシャと青い花・白いシャツ・青いショートパンツ・水しぶき ── */
+    ichika: {
+      pal: { H: "#1a1a26", h: "#0e0e18", L: "#4a5a80", E: "#3a8ee8", A: "#f6f8fc", a: "#c8d4e4", C: "#ffffff", c: "#d0d8e6",
+             D: "#ffffff", d: "#c8d4e4", G: "#3a8ee8", P: "#2f8fd8", p: "#1c5ea0", O: "#f0e6d8", o: "#b8a890",
+             X: "#9ae0ff", x: "#3a8ee8", Y: "#fff4b0", K: "#120f18" },
+      legY: 23,
+      layers: [
+        backLong(25),
+        { x: 6, y: 14, rows: [
+          ".SSaSSSSaSS.",
+          "SAAAAAAAAAAS",
+          "S.AAAAAAAA.S",
+          "s.AaAAAAaA.s",
+          "S.SSSSSSSS.S",
+          "S.SSSssSSS.S",
+        ].concat(BOTTOM_SHORTS) },
+        "FACE",
+        frontStraight(14),
+        /* 白いカチューシャと青い花 */
+        { x: 6, y: 3, rows: ["CCCCCCCCCCCC"] },
+        { x: 15, y: 1, rows: [".G.", "GYG", ".G."] },
+        /* 左手の水しぶき */
+        { x: 1, y: 16, rows: [".X.X", "XxXx", ".XX."] },
+      ],
+    },
+    /* ── ノノカ（木）：黒のショートボブ・白いヘッドドレス・黒いメイド服・白いエプロン・ティーカップ ── */
+    nonoka: {
+      pal: { H: "#1c1a20", h: "#0f0d12", L: "#4a4858", E: "#3fbf6e", A: "#ffffff", a: "#d4d8e0", C: "#1e1e26", c: "#0e0e14",
+             D: "#ffffff", d: "#c8ccd8", G: "#1e1e26", P: "#1e1e26", p: "#0e0e14", O: "#1a1a20", o: "#0c0c10",
+             X: "#ffffff", x: "#3dd17a", Y: "#c8a060", K: "#120f16" },
+      legY: 23,
+      layers: [
+        backBob(),
+        { x: 6, y: 14, rows: [
+          ".CCAGGGACCC.",
+          "CCAAAGAAAACC",
+          "C.AAAAAAAA.C",
+          "c.AaAAAAaA.c",
+          "C.AAAAAAAA.C",
+          "C.AAAAAAAA.C",
+        ].concat(BOTTOM_SKIRT) },
+        "FACE",
+        frontBob(false),
+        /* 白いヘッドドレス */
+        { x: 6, y: 2, rows: [".DdDdDdDdDd."] },
+        /* 左手のティーカップ */
+        { x: 1, y: 17, rows: ["XXX.", "XxXX", ".X.."] },
+      ],
+    },
+    /* ── アイナ（光）：うす紫の長い髪・黒いリボン・黒いレースのドレス・青い薔薇 ── */
+    aina: {
+      pal: { H: "#a898d0", h: "#7a6aa8", L: "#d8d0f0", E: "#6a7ae0", A: "#1e1a28", a: "#0f0d16", C: "#3a3450", c: "#24203a",
+             D: "#1e1a28", d: "#0f0d16", G: "#5a7aff", P: "#1e1a28", p: "#0f0d16", O: "#1a1622", o: "#0c0a10",
+             X: "#f0d060", x: "#c8a030", Y: "#3a5ad8", K: "#120f18" },
+      legY: 23,
+      layers: [
+        backLong(25, true),
+        { x: 6, y: 14, rows: [
+          ".AAACCCCAAA.",
+          "AAAAACCAAAAA",
+          "A.AAAAAAAA.A",
+          "a.AaAAAAaA.a",
+          "A.AAAAAAAA.A",
+          "A.AAAAAAAA.A",
+        ].concat(BOTTOM_SKIRT) },
+        "FACE",
+        frontStraight(14),
+        /* 黒いリボン */
+        { x: 15, y: 2, rows: ["DD.", "dDD", ".D."] },
+        /* 左手の青い薔薇 */
+        { x: 1, y: 16, rows: [".Y.", "YGY", ".Y.", "..x"] },
+      ],
+    },
+    /* ── ユナ（闇）：紫のひと房が入った長い黒髪・白いシャツ・黒いネクタイとサスペンダー・青い薔薇 ── */
+    yuna: {
+      pal: { H: "#16141e", h: "#0b0a10", L: "#8a5cff", E: "#c070e0", A: "#f4f2fa", a: "#c8c4d8", C: "#16141e", c: "#0b0a10",
+             D: "#5a8cff", d: "#3a5ad8", G: "#8a5cff", P: "#1e1c28", p: "#0f0e16", O: "#1a1822", o: "#0c0b10",
+             X: "#c8b8ff", x: "#7a5cff", Y: "#3a7a5a", K: "#120f18" },
+      legY: 23,
+      layers: [
+        backLong(25),
+        { x: 6, y: 14, rows: [
+          ".AAAACCAAAA.",
+          "AAAAACCAAAAA",
+          "A.CAACCAAC.A",
+          "a.CaACCAaC.a",
+          "A.CAAccAAC.A",
+          "A.CAAAAAAC.A",
+        ].concat(BOTTOM_SKIRT) },
+        "FACE",
+        frontStraight(14, { part: true }),
+        /* 青い薔薇の髪どめ */
+        { x: 15, y: 3, rows: ["DD", "dD"] },
+        /* 左手の青い薔薇 */
+        { x: 1, y: 16, rows: [".D.", "DdD", ".D.", "..Y"] },
+      ],
+    },
     /* ── カオリ（闇）：紫の長い髪・オレンジの魔女帽・オレンジと黒の服・おばけ ── */
     kaori: {
       pal: { H: "#6a3a8a", h: "#42205a", L: "#a07ac8", E: "#ff6a5a", A: "#ff8a1f", a: "#c85a10", C: "#1e1428", c: "#100a16",
@@ -1020,6 +1155,12 @@
     yuumi:   { hair: "long", len: 23, top: "scarf", arm: "C", bottom: "skirt", prop: "pumpkin" },
     rina:    { hair: "bob", top: "tank", arm: "A", bottom: "shorts", acc: "bandage" },
     kaori:   { hair: "long", len: 25, top: "blouse", arm: "A", bottom: "skirt", prop: "ghost", acc: "witch" },
+    /* ★★ 2026-10-16 超極華祭 */
+    chie:    { hair: "pony", top: "kimono", arm: "A", bottom: "skirt", prop: "katana", acc: "camellia" },
+    ichika:  { hair: "long", len: 24, top: "tank", arm: "S", bottom: "shorts", prop: "orb", acc: "pin" },
+    nonoka:  { hair: "bob", top: "uniform", arm: "C", bottom: "skirt", prop: "orb" },
+    aina:    { hair: "long", len: 25, wavy: 1, top: "gothic", arm: "A", bottom: "dress", prop: "orb", acc: "rose" },
+    yuna:    { hair: "long", len: 25, top: "blouse", arm: "A", bottom: "skirt", prop: "orb", acc: "rose", susp: 1 },
     generic: { hair: "long", len: 23, top: "tank", arm: "S", bottom: "skirt" },
   };
   function sideBuf(pal0, sd, ph, legY0) {
@@ -1244,6 +1385,8 @@
     /* ★★ 2026-10-09 Pumpkin Night */
     ayano: [0.36, 0.30, 0.32], saki: [0.38, 0.28, 0.32], yuka: [0.34, 0.28, 0.34], natsumi: [0.36, 0.18, 0.33], miu: [0.42, 0.24, 0.34],
     mai: [0.46, 0.26, 0.34], chinatsu: [0.40, 0.25, 0.33], yuumi: [0.36, 0.20, 0.34], rina: [0.42, 0.22, 0.34], kaori: [0.36, 0.28, 0.34],
+    /* ★★ 2026-10-16 超極華祭 */
+    chie: [0.26, 0.12, 0.34], ichika: [0.36, 0.12, 0.30], nonoka: [0.28, 0.12, 0.36], aina: [0.40, 0.24, 0.36], yuna: [0.34, 0.16, 0.36],
   };
   const portraitCache = {};
   function portrait(id, file, size, cb) {
