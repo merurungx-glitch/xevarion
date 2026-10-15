@@ -15,8 +15,8 @@
    <b>ふつうの &lt;script&gt;</b>（type="module" ではない）で読むこと。
    トップレベルの const/let はグローバルの字句環境に入るので、
    あとから読み込む MagiBurst 本体のスクリプトからそのまま見える。
-     MagiBurst : <script src="js/mb-core.js?v=136"></script>
-     gacha.html: <script src="MagiBurst/js/mb-core.js?v=136"></script>
+     MagiBurst : <script src="js/mb-core.js?v=137"></script>
+     gacha.html: <script src="MagiBurst/js/mb-core.js?v=137"></script>
 
    ── ホストが先に用意しておくもの ──
      window.MB_IMGD … 画像フォルダへの相対パス（MagiBurst は "../img/"、ポータルは "img/"）
@@ -15010,6 +15010,40 @@ PN_IDS.forEach((id) => {
     fsName: ROSE_FS_NM, fsKind: "bluerosenet", fsPow: ROSE_FS_POW, fsDesc: ROSE_FS_DESC,
   };
 });
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-10-16 <b>超極華祭</b>（fes19）の UR 5体（No.275〜279）＝ <b>MagiAbyss 専用</b>（ご指定）
+   ・チエ（火）・イチカ（水）・ノノカ（木）・アイナ（光）・ユナ（闇）。
+   ・ご指定「性能は MagiAbyss の性能のみを所持し、他のゲームの性能は所持しません（MagiChemLex やアイコンでは使用できます）」
+     → <b>abyssOnly</b> の印。MagiBurst（CHAR_IDS から外す・MagiBurst/index.html）・MagiBattle（MBStats.roster/unit）・
+       MagiBocciaRush（buildRoster）・MagiTier には<b>出さない</b>。ガチャ・図鑑・キャラ詳細（MagiAbyss の面だけ）・
+       アイコン・XEVA のコレクション・MagiChemLex のナビには出る。
+   ・下の hp/atk/spd などは<b>画面を落とさないための置き物</b>（タキナの値の写し・どこにも表示しない）。
+     統計の基準（statMinMax / coverMinMax）からも外してある。
+   ・MagiAbyss の性能は MagiAbyss/js/ma-data.js（ユナはタキナより少し強く、ほか4体はタキナと同じ帯）。
+   ══════════════════════════════════════════════════════════════ */
+const ABYSS_ONLY_IDS = ["chie", "ichika", "nonoka", "aina", "yuna"];
+const AO_CHAR_DEF = {
+  chie:   { nm: "チエ",   f: "Chie",   el: "fire",  shot: "pierce", type: "桜火巫女型" },
+  ichika: { nm: "イチカ", f: "Ichika", el: "water", shot: "bounce", type: "夏渚型" },
+  nonoka: { nm: "ノノカ", f: "Nonoka", el: "wood",  shot: "bounce", type: "白花メイド型" },
+  aina:   { nm: "アイナ", f: "Aina",   el: "light", shot: "pierce", type: "月下薔薇型" },
+  yuna:   { nm: "ユナ",   f: "Yuna",   el: "dark",  shot: "pierce", type: "宵闇薔薇型" },
+};
+ABYSS_ONLY_IDS.forEach((id) => {
+  const d = AO_CHAR_DEF[id], T = CHARS.takina;
+  CHARS[id] = {
+    id, nm: d.nm, img: d.f + ".webp", th: "t_" + d.f + ".webp", wide: d.f + "_w.webp", ss: d.f + "SS.webp",
+    el: d.el, shot: d.shot, type: d.type,
+    gacha: true, fes: true, fesKey: "chokaen", lux: true, star5: true,
+    abyssOnly: true,
+    hp: T.hp.slice(), atk: T.atk.slice(), spd: T.spd.slice(),
+    abil: [], subfs: T.subfs,
+    ssName: "—", ssTurns: T.ssTurns, ssKind: T.ssKind, ssPow: "", ssDesc: "",
+    fsName: "—", fsKind: T.fsKind, fsPow: "", fsDesc: "",
+  };
+});
+/* MagiAbyss 専用のキャラか（MagiBurst・MagiBattle・Boccia・MagiTier では使えない） */
+function isAbyssOnly(id) { const c = CHARS[id]; return !!(c && c.abyssOnly); }
 /* ★★ 2026-10-09 UR の縦長の SS 絵（ガチャ演出・MagiAbyss のカットイン・治癒の祈り）。ファイルは MagiBurst/img/ss/ */
 CHARS.takina.ss = "TakinaSS.webp"; CHARS.hibana.ss = "HibanaSS.webp"; CHARS.fuki.ss = "FukiSS.webp";
 /* ★★ 2026-10-09b ほかの SS 絵（治癒の祈り・神癒の祈り・クロス「お待たせ!」のカットイン）もここに集めた。
@@ -15025,7 +15059,8 @@ function ssArtOf(id) { const c = CHARS[id]; return c && c.ss ? GIMGD + "ss/" + c
 /* ★★ 2026-10-09 <b>MagiAbyss で使えるキャラ</b>の台帳（ここ1本）。MagiAbyss の ma-data.js（CHAR_ORDER）・
    ガチャ一覧の「MagiAbyss 対応」の絞り込み・キャラ詳細の MagiAbyss の面が同じこれを見る。
    ★ 新しく MagiAbyss で使えるキャラを足すときは、ここと ma-data.js の CHARS（性能）の2か所。 */
-const ABYSS_CHAR_IDS = PN_IDS.concat(["takina", "hibana", "fuki", "hinano", "hanon", "kokoha", "mutsumi", "reina", "azusa", "kumireina", "kagura", "kotori"]);
+/* ★★ 2026-10-16 超極華祭の5体（MagiAbyss 専用）も足した */
+const ABYSS_CHAR_IDS = ABYSS_ONLY_IDS.concat(PN_IDS, ["takina", "hibana", "fuki", "hinano", "hanon", "kokoha", "mutsumi", "reina", "azusa", "kumireina", "kagura", "kotori"]);
 function isAbyssChar(id) { return ABYSS_CHAR_IDS.indexOf(id) >= 0; }
 /* エルシアのフルバースト説明は定数を使うのでここで組み立てる */
 CHARS.elsia.ssPow = "自強化（攻撃×1.6・スピード×1.2）＋ <b>残りチームHPの" + Math.round(ELSIA_HP_COST * 100) + "%を消費</b>し、"
@@ -15263,6 +15298,8 @@ const CHAR_IDS = [
   /* ★★ 2026-10-09 Pumpkin Night（UR） */
   "ayano", "saki", "yuka", "natsumi", "miu",           /* No.265〜269 */
   "mai", "chinatsu", "yuumi", "rina", "kaori",         /* No.270〜274 */
+  /* ★★ 2026-10-16 超極華祭（UR・MagiAbyss 専用） */
+  "chie", "ichika", "nonoka", "aina", "yuna",          /* No.275〜279 */
 ];
 /* id → キャラクター番号（1始まり）。図鑑・詳細・ガチャ結果に「No.XX」として出す */
 const CHAR_NO = {};
@@ -15315,6 +15352,8 @@ function isStar5(id) {
 const RAR_LABEL = { takina: "UR", hibana: "UR", fuki: "UR" };   /* ★★ 2026-10-07 Sapphire Breeze の3体は UR */
 /* ★★ 2026-10-09 Pumpkin Night の10体も UR */
 PN_IDS.forEach((id) => { RAR_LABEL[id] = "UR"; });
+/* ★★ 2026-10-16 超極華祭の5体も UR */
+ABYSS_ONLY_IDS.forEach((id) => { RAR_LABEL[id] = "UR"; });
 function rarLabel(id) { return RAR_LABEL[id] || (isStar5(id) ? "SSR" : "SR"); }
 /* 限界突破MAXの金演出クラス。SRは「金の縁取りだけ」で発光させない（v14） */
 /* ★ 2026-08-12 限界突破MAXの見た目は<b>SSRだけ</b>にした。
@@ -15347,7 +15386,9 @@ function wideArt(id) { const c = CHARS[id]; return c && c.wide ? c.wide : null; 
 Object.entries({ takina: [0.26, 0.35], hibana: [0.69, 0.45], fuki: [0.20, 0.41],
   /* ★★ 2026-10-09 Pumpkin Night */
   ayano: [0.75, 0.38], saki: [0.73, 0.35], yuka: [0.30, 0.48], natsumi: [0.30, 0.36], miu: [0.35, 0.38],
-  mai: [0.65, 0.36], chinatsu: [0.32, 0.41], yuumi: [0.35, 0.44], rina: [0.35, 0.38], kaori: [0.28, 0.38] })
+  mai: [0.65, 0.36], chinatsu: [0.32, 0.41], yuumi: [0.35, 0.44], rina: [0.35, 0.38], kaori: [0.28, 0.38],
+  /* ★★ 2026-10-16 超極華祭 */
+  chie: [0.27, 0.32], ichika: [0.78, 0.35], nonoka: [0.68, 0.38], aina: [0.77, 0.50], yuna: [0.40, 0.40] })
   .forEach(([id, f]) => { if (CHARS[id]) CHARS[id].wideFace = f; });
 /* ★★ 2026-10-06b UR の絵の見せ方（どのアプリのキャラ詳細でも共通・ご指定「UR の絵が SSR より小さい」）
    ・枠は SSR と同じ大きさ（高さ）にして、横長の絵を<b>大きく</b>出し、ゆっくり左右に流して全体を見せる（.urx-pan）。
@@ -15722,7 +15763,8 @@ const CHAR_TYPE = {
 Object.keys(CHARS).forEach((id) => {
   const t = BATTLE_TYPES[CHAR_TYPE[id] || "balance"];
   CHARS[id].typeKey = CHAR_TYPE[id] || "balance";
-  CHARS[id].type = t.nm;
+  /* ★★ 2026-10-16 MagiAbyss 専用のキャラ（超極華祭）は MagiBurst の戦型を持たないので、型の名前（桜火巫女型など）はそのまま */
+  if (!CHARS[id].abyssOnly) CHARS[id].type = t.nm;
 });
 const MAX_LV = 50;
 /* ★ v12: 「超越の書」を使ったキャラだけ、レベル上限が 60 まで解放される。
@@ -16094,7 +16136,8 @@ function arcCol(st, k) {
 let _statMinMax = null;
 function statMinMax() {
   if (_statMinMax) return _statMinMax;
-  const ids = Object.keys(CHARS);
+  /* ★★ 2026-10-16 MagiAbyss 専用のキャラ（MagiBurst の性能を持たない）は基準に入れない */
+  const ids = Object.keys(CHARS).filter((id) => !CHARS[id].abyssOnly);
   const maxOf = (id) => statsOf(id, MAX_LV, MAX_AWK);
   const hp = ids.map((id) => maxOf(id).hp), atk = ids.map((id) => maxOf(id).atk), spd = ids.map((id) => maxOf(id).spd);
   const ss = ids.map((id) => CHARS[id].ssTurns);
@@ -16215,7 +16258,7 @@ function coverCurve(r) { return Math.sqrt(Math.max(0, r || 0)); }
 let _coverMinMax = null;
 function coverMinMax() {
   if (_coverMinMax) return _coverMinMax;
-  const rs = Object.keys(CHARS).map((id) => coverCurve(questCoverStat(CHARS[id]).rate));
+  const rs = Object.keys(CHARS).filter((id) => !CHARS[id].abyssOnly).map((id) => coverCurve(questCoverStat(CHARS[id]).rate));
   _coverMinMax = [Math.min(...rs), Math.max(...rs)];
   return _coverMinMax;
 }
@@ -24697,6 +24740,44 @@ FESTS.fes18 = {
   },
 };
 /* ══════════════════════════════════════════════════════════════
+   ★★ 2026-10-16 <b>超極華祭</b>（fes19・ご指定）
+   ・UR 5体（チエ・イチカ・ノノカ・アイナ・ユナ）。<b>1体 1.5%</b>（pickEach・flatPick＝NEW が終わっても下げない）。
+   ・ご指定「開催期間と日数や使用などは現在の極華祭と同じ」→ <b>毎月 11〜20日（中旬）</b>（monthly）・
+     <b>🎫フェス券は使えない</b>（noFesTicket＝ガチャ券のみ）・初回10連無料なし・アーカイブに入らない。
+   ・ご指定「極華祭とは異なる」→ 別のガチャ（キーも台帳も別）。「ガチャ一覧の一番上」→ chokaen の印（gachaMenuList）。
+   ・5体とも <b>MagiAbyss 専用</b>（abyssOnly・ABYSS_ONLY_IDS）。MagiBurst などの性能は持たない。
+   ══════════════════════════════════════════════════════════════ */
+FESTS.fes19 = {
+  key: "fes19", sfx: "19", nm: "超極華祭", tab: "超極華祭",
+  banner: "../img/bn_fes19_s.webp", c: "#6a5cff", leadCls: "star",
+  monthly: [11, 20],
+  noFesTicket: true,
+  chokaen: true, flatPick: true,
+  pickEach: 0.015,   /* 1.5%（ご指定） */
+  chars: ABYSS_ONLY_IDS.slice(),
+  newChars: ABYSS_ONLY_IDS.slice(),
+  newSince: "2026-10-16",
+  itemTable: D_ITEM_TABLE,
+  get lead() {
+    return "新レアリティ <b>UR 5体</b>（各" + ratePct(pickRateOf("fes19", "yuna")) + "）に加えて、<b>"
+      + PREMIUM_NM + "のSSRも排出</b>（SSR以上 合計 " + ratePct(SSR_TOTAL) + "）";
+  },
+  get sub() {
+    return "UR <b>5体</b>（各" + ratePct(pickRateOf("fes19", "yuna")) + "）／<b>残りは " + PREMIUM_NM + " のSSRが等確率</b>。"
+      + "<b>毎月 11〜20日（中旬）</b>だけの開催・🎫ガチャ券が使えます（フェス券は使えません）";
+  },
+  get note() {
+    return "<b>★★ 2026-10-16 超極華祭 開幕</b>"
+      + "<br>★ <b>チエ（火）・イチカ（水）・ノノカ（木）・アイナ（光）・ユナ（闇）</b>の5体。"
+      + "5体とも<b>UR</b>で、排出は<b>1体 " + ratePct(pickRateOf("fes19", "yuna")) + "</b>です。"
+      + "<br>★ 開催は極華祭と同じ<b>毎月 11〜20日（中旬）</b>。🎫<b>ガチャ券</b>が使えます（フェス券は使えません）。極華祭とは別のガチャです。"
+      + "<br>★ 5体とも <b>MagiAbyss 専用のキャラクター</b>です。性能は <b>MagiAbyss の性能だけ</b>で、"
+      + "MagiBurst・MagiBattle・MagiBocciaRush では使えません（キャラ詳細は MagiAbyss の面だけ）。"
+      + "<br>★ <b>MagiChemLex のナビゲーター</b>や <b>XEVARION のアイコン</b>には使えます。"
+      + "<br>★ MagiAbyss では <b>ユナはタキナより少し強く</b>、ほかの4体は<b>タキナと同じくらい</b>の強さです。";
+  },
+};
+/* ══════════════════════════════════════════════════════════════
    ★★ 2026-08-28 Festival Archive GACHA（archive）
    ・<b>20日を過ぎたフェスガチャの限定キャラ</b>だけが封入される（ご指定）。
    ・そのなかから<b>属性ごとに1体ずつ・計5体</b>をピックアップして引く。
@@ -25490,7 +25571,7 @@ function firstGachaMode() {
      ここを FES_KEYS の順（＝定義順）のままにすると、新しいフェスが下に沈む。
    ══════════════════════════════════════════════════════════════ */
 function gachaMenuList() {
-  const pump = [], sapph = [], lux = [], kaen = [], crystal = [], senki = [], bunny = [], soft = [], rising = [], fes = [], luxOff = [], ended = [];
+  const choka = [], pump = [], sapph = [], lux = [], kaen = [], crystal = [], senki = [], bunny = [], soft = [], rising = [], fes = [], luxOff = [], ended = [];
   FES_KEYS.forEach((k) => {
     if (k === ARCHIVE_KEY) return;                       /* アーカイブは⑥（下で足す） */
     const f = fesDef(k);
@@ -25509,11 +25590,15 @@ function gachaMenuList() {
     if (f.sapphire && !row.soon) row.sub = "新レアリティ UR・🎫チケット優先／無期限開催";
     /* ★★ 2026-10-09 Pumpkin Night（UR・期間つき） */
     if (f.pumpkin && !row.soon) row.sub = "新レアリティ UR・🎫チケット優先／あと" + fesDaysLeft(k) + "日";
+    /* ★★ 2026-10-16 超極華祭（UR・極華祭と同じ毎月中旬・ガチャ券のみ） */
+    if (f.chokaen && !row.soon) row.sub = "新レアリティ UR・🎫ガチャ券のみ／" + fesMonthlyLeftText(f);
     /* ★★ 2026-10-06c 初回10連無料が残っていれば一覧の1行にも書く */
     if (fesFree10Left(k) > 0) row.sub += "／🎁 初回10連無料";
     /* ★★ 2026-10-07 Sapphire Breeze は<b>極彩祭の上に固定</b>（ご指定） */
     /* ★★ 2026-10-09 Pumpkin Night は<b>Sapphire Breeze の上に固定</b>（ご指定）。終わったら ended へ */
-    if (f.pumpkin) (fesEnded(k) ? ended : pump).push(row);
+    /* ★★ 2026-10-16 超極華祭は<b>ガチャ一覧のいちばん上</b>（ご指定）。開催していない月の上旬・下旬は極◯祭と同じく下へ */
+    if (f.chokaen) (fesInMonthly(f) ? choka : luxOff).push(row);
+    else if (f.pumpkin) (fesEnded(k) ? ended : pump).push(row);
     else if (f.sapphire) sapph.push(row);
     /* ★★ 2026-09-17d 花宴祭は<b>開催中の極◯祭のすぐ下</b>（ご指定） */
     else if (f.kaen) kaen.push(row);
@@ -25541,7 +25626,7 @@ function gachaMenuList() {
     soon: !archiveChars().length };
   /* ★★ 2026-09-13b <b>RISING STAR FEST は戦姫祭のすぐ下に固定</b>（ご指定）。
      並びは 極◯祭 → 戦姫祭 → RISING STAR → BUNNY GIRL → SOFT NIGHT → GRAND DEBUT → そのほか。 */
-  const list = pump.concat(sapph, lux, kaen, crystal, senki, rising, bunny, soft, gachaMenuDebutRows(), fes,
+  const list = choka.concat(pump, sapph, lux, kaen, crystal, senki, rising, bunny, soft, gachaMenuDebutRows(), fes,
     [{ k: "premium", nm: PREMIUM_NM, sub: "ピックアップを1体えらべる常設ガチャ", c: "#ff9d2e" }],
     [arcRow], luxOff, ended);
   /* ★★ 2026-08-29 NEW マーク（ご指定）。まだ一度も開いていないガチャに付ける。 */

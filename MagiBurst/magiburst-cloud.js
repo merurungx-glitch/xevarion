@@ -1,5 +1,5 @@
 /* MagiBurst のステージ攻略情報・キャラ所持／詳細をアカウントに紐づけてクラウド保存（magiburst） */
-import { initAppCloud } from "../app-cloud.js?v=12";
+import { initAppCloud } from "../app-cloud.js?v=13";
 /* ★ 同期するキーの一覧は ../xeva-keys.js の台帳が正。
    ここに直接書くと「ログアウト時に消すキー」の一覧とズレて、
    前のアカウントのセーブが端末に残る（＝新規登録に引き継がれる）原因になる。 */
