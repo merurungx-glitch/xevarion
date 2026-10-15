@@ -38,9 +38,12 @@
     square: '<rect x="6.8" y="6.8" width="10.4" height="10.4" rx="1.6"/>',
     star: '<path d="M12 5.6l2 4.3 4.7.6-3.4 3.3.8 4.6L12 16.2 7.9 18.4l.8-4.6-3.4-3.3 4.7-.6z"/>',
     hex: '<path d="M12 5.4l5.6 3.3v6.6L12 18.6l-5.6-3.3V8.7z"/>',
+    /* ★★ 2026-10-16 オレンジの印（ハート） */
+    heart: '<path d="M12 18.2C8 15.3 5.6 13 5.6 10.2a3.2 3.2 0 0 1 6.4-.9 3.2 3.2 0 0 1 6.4.9c0 2.8-2.4 5.1-6.4 8z"/>',
   };
-  const pieceSVG = (p, cls) => '<svg class="pc ' + (cls || "") + '" viewBox="0 0 24 24" style="--pc:' + p.color + '" aria-hidden="true">' +
-    '<circle class="bg" cx="12" cy="12" r="10.6"/><ellipse class="hl" cx="9" cy="6.8" rx="5" ry="2.6"/><g class="mk">' + (MARK[p.mark] || MARK.circle) + "</g></svg>";
+  /* ★★ 2026-10-16 見た目は G.looks（色・形・印の色）。黄色は印を濃い色で描く（--pk） */
+  const pieceSVG = (p, cls) => { const L = G.looks ? G.looks(p) : p; return '<svg class="pc ' + (cls || "") + '" viewBox="0 0 24 24" style="--pc:' + L.color + (L.ink ? ";--pk:" + L.ink : "") + '" aria-hidden="true">' +
+    '<circle class="bg" cx="12" cy="12" r="10.6"/><ellipse class="hl" cx="9" cy="6.8" rx="5" ry="2.6"/><g class="mk">' + (MARK[L.mark] || MARK.circle) + "</g></svg>"; };
   const ICON = {
     wall: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="14" rx="2.5"/><path d="M3.5 9.7h17M3.5 14.3h17M9 5v4.7M15 9.7v4.6M9 14.3V19"/></svg>',
     x: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7 7 17"/></svg>',
@@ -158,9 +161,9 @@
   }
   function svRow(r) {
     const m = r.meta || {}, ps = m.players || [], tp = ps[m.turn] || null;
-    return '<div class="svrow" data-g="' + esc(r.gid) + '"><div class="svp">' + ps.map((p) => pieceSVG({ color: p.color, mark: p.mark })).join("") + "</div>" +
+    return '<div class="svrow" data-g="' + esc(r.gid) + '"><div class="svp">' + ps.map((p) => pieceSVG({ id: p.id, color: p.color, mark: p.mark })).join("") + "</div>" +
       '<div class="svt"><b>' + ps.length + "人・" + esc((G.MODES[m.mode] || G.MODES.normal).nm) + "・" + m.size + "×" + m.size + "・" + m.win + "つ並べ</b>" +
-      "<small>" + (m.round || 1) + "周目" + (tp ? '・<span style="color:' + esc(tp.color) + '">' + esc(tp.name) + "</span> の番" : "") + "・" + whenTxt(r.at) + "</small>" +
+      "<small>" + (m.round || 1) + "周目" + (tp ? '・<span style="color:color-mix(in srgb,' + esc(G.looks(tp).color) + ' 78%,#1d2445)">' + esc(tp.name) + "</span> の番" : "") + "・" + whenTxt(r.at) + "</small>" +
       '<small class="svn">' + ps.map((p) => esc(p.name) + (p.type === "cpu" ? "（CPU）" : "")).join("・") + "</small></div>" +
       '<div class="svb"><button class="btn sm pri" data-a="contGid" data-g="' + esc(r.gid) + '">' + IC2.play + "つづける</button>" +
       '<button class="ibtn sm del" data-a="delAsk" data-g="' + esc(r.gid) + '" aria-label="このセーブを消す">' + IC2.trash + "</button></div></div>";
@@ -745,10 +748,21 @@
     if (!S) { renderTitle(); return; }
     const st = G.standings(S);
     const sec = Math.max(1, Math.round(((S.endedAt || Date.now()) - S.startedAt) / 1000));
+    /* ★★ 2026-10-16 ご指定「2位以降の決めかたと、もらえる XEVA を表示」：行ごとに 最長・駒の数・賞金、下に決めかたの札 */
+    const PZ = (window.GameLink && GameLink.PRIZES) || [250, 200, 150, 100, 50];
+    const prizeOf = (p) => {
+      if (S.draw) return '<em class="pz no">引き分け・賞金なし</em>';
+      const a = PZ[p.rank - 1];
+      if (!a) return '<em class="pz no">賞金なし（6位〜）</em>';
+      if (isCpu(p)) return '<em class="pz no">CPU（' + a + ' XEVA の枠）</em>';
+      if (!p.uid) return '<em class="pz no">紐づけなし（' + a + ' XEVA の枠）</em>';
+      return '<em class="pz">+' + a + " XEVA</em>";
+    };
     $("#resultList").innerHTML = st.map((p, i) => '<div class="rrow' + (p.rank === 1 && !S.draw ? " top" : "") + '" style="--c:' + p.color + ";animation-delay:" + (i * 0.06) + 's">' +
-      '<span class="rk">' + p.rank + "位</span>" + pieceSVG(p) + avatarHTML(p) +
-      '<span class="pn"><b>' + esc(p.name) + "</b><small>" + (p.acct && p.acct !== p.name ? "🔗 " + esc(p.acct) : p.uid ? "🔗 紐づけ" : isCpu(p) ? "CPU（" + CPU_LV[S.cpuLevel || 0][0] + "）" : "") + "</small></span>" +
-      '<span class="rl">' + (p.rank === 1 && !S.draw ? "<b>勝ち</b>" : "<b>—</b>") + "最長 " + p.line + "</span></div>").join("");
+      '<span class="rk">' + p.rank + "位" + (p.tie ? '<i class="tie">同順</i>' : "") + "</span>" + pieceSVG(p) + avatarHTML(p) +
+      '<span class="pn"><b>' + esc(p.name) + "</b><small>" + (p.acct && p.acct !== p.name ? "🔗 " + esc(p.acct) : p.uid ? "🔗 紐づけ" : isCpu(p) ? "CPU（" + CPU_LV[S.cpuLevel || 0][0] + "）" : "") + "</small>" + prizeOf(p) + "</span>" +
+      '<span class="rl">' + (p.rank === 1 && !S.draw ? "<b>勝ち</b>" : "<b>最長 " + p.line + "</b>") + (p.rank === 1 && !S.draw ? "最長 " + p.line : "駒 " + p.pieces + "個") + "</span></div>").join("") +
+      rankRuleHTML(PZ);
     $("#resultMeta").innerHTML = "<div><small>対戦人数</small><b>" + S.players.length + "人</b></div>" +
       "<div><small>ルール</small><b>" + (G.MODES[S.mode] || G.MODES.normal).nm + "</b></div>" +
       "<div><small>盤面・勝利条件</small><b>" + S.size + "×" + S.size + "・" + S.win + "つ</b></div>" +
@@ -782,6 +796,17 @@
     }
     return h + "</div>";
   }
+  /* ★★ 2026-10-16 順位の決めかたと賞金の札（結果の画面・ルールの画面で同じものを出す） */
+  function rankRuleHTML(PZ) {
+    PZ = PZ || (window.GameLink && GameLink.PRIZES) || [250, 200, 150, 100, 50];
+    return '<div class="card rkrule"><h4>🏅 順位の決めかた</h4><ol>' +
+      "<li><b>1位</b>：決められた数を先にそろえた人</li>" +
+      "<li><b>2位から</b>：盤に残った自分の駒の<b>いちばん長い並び（最長）</b>が長い順</li>" +
+      "<li>最長が同じなら、盤の上の<b>自分の駒の数</b>が多い順</li>" +
+      "<li>それでも同じなら<b>同じ順位</b>（例：2位・2位・4位）。賞金も同じ額です</li></ol>" +
+      '<h4>🎁 もらえる XEVA</h4><div class="pztab">' + PZ.map((a, i) => "<span><small>" + (i + 1) + "位</small><b>" + a + "</b></span>").join("") + "</div>" +
+      "<p>XEVARION のアカウントを<b>🔗 紐づけた人だけ</b>が受け取れます（CPU・紐づけなしの席はもらえません）。6位からと、引き分けのときは賞金なし。</p></div>";
+  }
   function renderRules() {
     const rows = [2, 3, 4, 5, 6].map((n) => { const r = G.RULES[n]; return "<tr><td><b>" + n + "人</b></td><td>" + r.size + "×" + r.size + "</td><td>" + r.win + "つ</td><td>" + r.pieces + "個</td></tr>"; }).join("");
     $("#rulesBody").innerHTML =
@@ -801,6 +826,7 @@
         "<b>↩ 1手もどる</b>：手番の板のボタンで、<b>だれの手でも、押すたびに1手ずつ</b>戻せます。CPU の手を戻したときは CPU が止まるので、続けて戻すか「▶ 再開」を押してください。決着がついたあとは戻せません。<br>" +
         "<b>◎ あと1つでそろう印</b>：設定で「いまの番の人だけ」か「全員」を選ぶと、そこに置けばそろうマスに、その人の色の輪が出ます（標準は表示しない）。<br>" +
         "<b>💾 中断</b>：試合はいつも自動でセーブされ、<b>いくつでも（" + G.MAX_SAVES + "件まで）</b>中断しておけます。タイトルの「つづきから」で選べます。</p></div></div>" +
+      rankRuleHTML() +
       '<div class="card"><h3>人数ごとの決まり<small>設定で盤面・並べる数・駒の数を変えられます</small></h3><table class="rtable"><tr><th>人数</th><th>盤面</th><th>並べる数</th><th>1人の駒</th></tr>' + rows + "</table></div>";
   }
   function openRules() { if (!$("#rulesBody").childElementCount) renderRules(); show("rules"); }

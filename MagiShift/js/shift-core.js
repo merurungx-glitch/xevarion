@@ -53,14 +53,28 @@
   const allCpu = (S) => !!(S && S.players && S.players.length && S.players.every((p) => p.type === "cpu"));
 
   /* ══ プレイヤーの色と印（色だけに頼らないよう、印と番号も付ける） ══ */
+  /* ★★ 2026-10-16 ご指定「赤・黄・オレンジが見分けにくい → 色を区別しやすく、中の形もバツや星などに」：
+     ・色は明るさでも分ける（赤＝深い赤・オレンジ＝あざやかな橙・黄＝明るいレモン）
+     ・形は 赤＝✕（バツ）／黄＝★（星）／オレンジ＝♥（ハート）。前の ✕ と ★ はブルー・パープルと<b>交換</b>（ブルー＝●・パープル＝■）
+     ・印の色はどの色も白（★★ 2026-10-16b ご指定で黄色も白に。濃い色の印にしたい色は ink を書く）
+     ★ 古いセーブの駒も upgrade() でこの表に合わせなおす（色と形は id＝席の色の番号で決まる） */
   const COLORS = [
-    { id: 0, name: "レッド",   color: "#ef4b5a", mark: "circle" },
-    { id: 1, name: "ブルー",   color: "#2f7cf6", mark: "cross" },
+    { id: 0, name: "レッド",   color: "#d81e3c", mark: "cross" },
+    { id: 1, name: "ブルー",   color: "#2f7cf6", mark: "circle" },
     { id: 2, name: "グリーン", color: "#16a865", mark: "triangle" },
-    { id: 3, name: "イエロー", color: "#f0b400", mark: "square" },
-    { id: 4, name: "パープル", color: "#8b5cf6", mark: "star" },
-    { id: 5, name: "オレンジ", color: "#f97316", mark: "hex" },
+    { id: 3, name: "イエロー", color: "#ffd21f", mark: "star" },   /* ★★ 2026-10-16b 星はほかと同じ白（ご指定） */
+    { id: 4, name: "パープル", color: "#8b5cf6", mark: "square" },
+    { id: 5, name: "オレンジ", color: "#ff8a12", mark: "heart" },
   ];
+  /* 前の色（古いセーブの駒・保存一覧の見出し）→ 新しい表の番号 */
+  const OLD_COLOR = { "#ef4b5a": 0, "#2f7cf6": 1, "#16a865": 2, "#f0b400": 3, "#8b5cf6": 4, "#f97316": 5 };
+  /* 駒の見た目（色・形・印の色）。id があればそれ、なければ前の色から引く */
+  function looks(p) {
+    if (!p) return COLORS[0];
+    let c = (p.id != null && COLORS[p.id]) ? COLORS[p.id] : null;
+    if (!c && p.color && OLD_COLOR[String(p.color).toLowerCase()] != null) c = COLORS[OLD_COLOR[String(p.color).toLowerCase()]];
+    return c ? { color: c.color, mark: c.mark, ink: c.ink || "" } : { color: p.color, mark: p.mark, ink: p.ink || "" };
+  }
   const DIR8 = [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]];
 
   const idx = (S, x, y) => y * S.size + x;
@@ -109,6 +123,8 @@
     if (!S.round) S.round = 1;
     if (S.cpuLevel == null) S.cpuLevel = 1;
     S.players.forEach((p) => { if (!p.type) p.type = "human"; });
+    /* ★★ 2026-10-16 色と形の表を変えたので、古いセーブの駒も新しい見た目に */
+    S.players.forEach((p) => { const L = looks(p); p.color = L.color; p.mark = L.mark; if (L.ink) p.ink = L.ink; else delete p.ink; });
     S.v = 2;
     return S;
   }
@@ -281,7 +297,12 @@
   /* 置く場所も動かせる駒もない＝その人はパス */
   const stuck = (S) => S.phase === "play" && !canAct(S, S.turn);
 
-  /* 成績（試合結果の並び）。勝った人が1位、あとは置いた駒のいちばん長い並びが長い順 */
+  /* 成績（試合結果の並び）。勝った人が1位、あとは置いた駒のいちばん長い並びが長い順
+     ★★ 2026-10-16 ご指定「2位以降の決めかたと、同じ数のときを決めて表示」：
+       ① 勝った人（そろえた人）が1位
+       ② 2位からは「いちばん長い並び（最長）」が長い順
+       ③ 最長が同じなら「盤の上の自分の駒の数」が多い順
+       ④ それでも同じなら<b>同じ順位</b>（例：2位・2位・4位）。賞金も同じ順位なら同じ額（Shift.PRIZE_RULE） */
   function standings(S) {
     const best = S.players.map((p) => {
       let m = 0;
@@ -295,9 +316,11 @@
       }
       return { slot: p.slot, line: m, pieces: countOf(S, p.slot) };
     });
-    return S.players.map((p, i) => Object.assign({}, p, best[i]))
-      .sort((a, b) => (b.slot === S.winner) - (a.slot === S.winner) || b.line - a.line || b.pieces - a.pieces)
-      .map((p, i) => Object.assign(p, { rank: i + 1 }));
+    const cmp = (a, b) => (b.slot === S.winner) - (a.slot === S.winner) || b.line - a.line || b.pieces - a.pieces;
+    const list = S.players.map((p, i) => Object.assign({}, p, best[i])).sort(cmp);
+    let r = 0;
+    return list.map((p, i) => { if (i === 0 || cmp(list[i - 1], p) !== 0) r = i + 1; return Object.assign(p, { rank: r, tie: false }); })
+      .map((p, i, a) => Object.assign(p, { tie: a.some((q) => q !== p && q.rank === p.rank) }));
   }
 
   /* ══ 保存（中断してもつづきから遊べる） ══
@@ -379,7 +402,7 @@
   function clear(Sg) { remove(Sg && typeof Sg === "object" ? Sg.gid : Sg); }
 
   Object.assign(MS, {
-    RULES, MODES, COLORS, BLOCKS, BLOCK, MAX_ROUNDS, MAX_SAVES, DIR8, allCpu,
+    RULES, MODES, COLORS, looks, BLOCKS, BLOCK, MAX_ROUNDS, MAX_SAVES, DIR8, allCpu,
     newGame, upgrade, place, move, push, block, pass, movesOf, pushesOf, canPlace, canPick, canMove, canPush, canBlock,
     shuffleOrder, orderOf, startTurn, isTactics, canAct,
     at, inBoard, cur, countOf, leftOf, outOfPieces, checkWin, lineAt, stuck, standings, save, load, list, remove, clear, KEY,

@@ -92,8 +92,10 @@ svg{display:block}
 .pc{width:34px;height:34px;flex:none;display:block;overflow:visible}
 .pc .bg{fill:var(--pc);stroke:rgba(0,0,0,.10);stroke-width:.8}
 .pc .hl{fill:#fff;opacity:.22}
-.pc .mk{fill:#fff;stroke:#fff;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
-.pc .mk path,.pc .mk rect,.pc .mk circle{fill:#fff}
+.pc .mk{fill:var(--pk,#fff);stroke:var(--pk,#fff);stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round}
+.pc .mk path,.pc .mk rect,.pc .mk circle{fill:var(--pk,#fff)}
+/* ★★ 2026-10-16 ✕（バツ）は線で描く形なので太く（塗りは使わない） */
+.pc .mk path[d^="M7.6 7.6"]{stroke-width:3.2}
 .av{width:32px;height:32px;border-radius:50%;object-fit:cover;background:var(--bg2);flex:none;box-shadow:0 0 0 2px #fff,0 0 0 3.5px var(--c,var(--line2))}
 .av.ph{display:grid;place-items:center;font-weight:900;color:var(--sub);font-size:13px}
 
@@ -262,7 +264,7 @@ svg{display:block}
 #turnbar::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--tc);transition:background .4s}
 .tb-who{grid-area:who;display:flex;align-items:center;gap:8px;min-width:0;min-height:40px}
 .tb-who .pc{width:32px;height:32px}
-.tb-who b{font-size:17px;font-weight:900;color:var(--tc);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:40vw}
+.tb-who b{font-size:17px;font-weight:900;color:color-mix(in srgb,var(--tc) 78%,#1d2445);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:40vw}
 .tb-who small{font-size:13px;color:var(--sub);font-weight:800;white-space:nowrap}
 .tb-who.swap{animation:whoIn .45s var(--spring)}
 @keyframes whoIn{from{opacity:0;transform:translateY(8px) scale(.96)}to{opacity:1;transform:none}}
@@ -331,6 +333,19 @@ svg{display:block}
 .rrow .pn small{color:var(--sub);font-size:11.5px;font-weight:700}
 .rrow .rl{font-size:12px;color:var(--sub);font-weight:800;text-align:right;flex:none}
 .rrow .rl b{display:block;font-size:15px;color:var(--ink)}
+/* ★★ 2026-10-16 賞金・同じ順位・順位の決めかた */
+.rrow .rk{position:relative}
+.rrow .rk .tie{position:absolute;left:50%;bottom:-7px;transform:translateX(-50%);font-style:normal;font-size:9px;font-weight:900;color:#fff;background:#8b93a8;border-radius:99px;padding:1px 5px;white-space:nowrap}
+.rrow .pn .pz{display:inline-block;margin-top:3px;font-style:normal;font-size:11.5px;font-weight:900;color:#0f8a52;background:#e7f8ef;border-radius:99px;padding:1px 8px;align-self:flex-start}
+.rrow .pn .pz.no{color:var(--sub);background:var(--bg2);font-weight:800}
+.rkrule{margin-top:12px}
+.rkrule h4{margin:0 0 6px;font-size:14px;font-weight:900}
+.rkrule ol{margin:0 0 12px;padding-left:1.3em;font-size:12.5px;line-height:1.7;color:var(--ink)}
+.rkrule p{margin:8px 0 0;font-size:11.5px;line-height:1.6;color:var(--sub)}
+.pztab{display:grid;grid-template-columns:repeat(5,1fr);gap:6px}
+.pztab span{display:flex;flex-direction:column;align-items:center;background:var(--bg2);border-radius:12px;padding:6px 2px}
+.pztab small{font-size:11px;font-weight:800;color:var(--sub)}
+.pztab b{font-size:15px;font-weight:900;color:var(--ink)}
 #resultMeta{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-top:4px}
 #resultMeta div{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:9px 12px;box-shadow:var(--sh)}
 #resultMeta small{display:block;color:var(--sub);font-size:11px;font-weight:800}
@@ -467,7 +482,7 @@ svg{display:block}
   border:3px solid #fff;box-shadow:0 0 0 1.5px var(--line2),0 8px 18px rgba(29,36,69,.16)}
 .ocd .bk i{font-style:normal;font-family:'Baloo 2',system-ui,sans-serif;font-weight:800;font-size:34px;color:#fff;text-shadow:0 2px 0 rgba(0,0,0,.16)}
 .ocd .fr{transform:rotateY(180deg);background:#fff;border:3px solid var(--c);box-shadow:0 8px 18px rgba(29,36,69,.14);gap:2px}
-.ocd .fr b{font-family:'Baloo 2',system-ui,sans-serif;font-size:40px;font-weight:800;line-height:1;color:var(--c)}
+.ocd .fr b{font-family:'Baloo 2',system-ui,sans-serif;font-size:40px;font-weight:800;line-height:1;color:color-mix(in srgb,var(--c) 78%,#1d2445)}
 .ocd .fr em{font-style:normal;display:flex;align-items:center;gap:3px;max-width:92%;font-size:10.5px;font-weight:900;color:var(--ink)}
 .ocd .fr em .pc{width:15px;height:15px;flex:none}
 .ocd .fr em span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}

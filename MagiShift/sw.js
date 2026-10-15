@@ -3,14 +3,14 @@
    ・1台で遊ぶボードゲーム。キャッシュすれば完全にオフラインで動く
    ・アカウントの紐づけと賞金だけ通信が要る（遊ぶこと自体はオフラインでできる）
    ============================================================ */
-const VERSION = "magishift-sw-v18";
+const VERSION = "magishift-sw-v19";
 const CORE = [
   "./index.html",
-  "./css/shift.css?v=8",
-  "./js/shift-core.js?v=6",
+  "./css/shift.css?v=9",
+  "./js/shift-core.js?v=7",
   "./js/shift-ai.js?v=1",          /* ★★ 2026-10-13 CPU */
-  "./js/shift-account.js?v=2",
-  "./js/shift-ui.js?v=9",
+  "./js/shift-account.js?v=3",
+  "./js/shift-ui.js?v=10",
   "./img/icon192.png",
   "./manifest.webmanifest",
   "../xeva-splash.js?v=15",
@@ -18,10 +18,10 @@ const CORE = [
   "../xeva-loading.js?v=19",
   "../xeva-back.js?v=9",
   "../maintenance-gate.js?v=13",
-  "../xeva.js?v=77",
-  "../xeva-alive.js?v=5",
-  "../game-link.js?v=12",
-  "../xevarion-fb.js?v=33",
+  "../xeva.js?v=78",
+  "../xeva-alive.js?v=6",
+  "../game-link.js?v=13",
+  "../xevarion-fb.js?v=34",
   "../img/ld_b_stand.webp?v=5",
   "../img/ld_b_bow.webp?v=5",
   "../thumbs/MagiShift.jpg",
