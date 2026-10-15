@@ -177,6 +177,9 @@ function goHome() {
 
 /* ════════════ ストア同期 ════════════ */
 let FB = null;
+/* ★★ 2026-10-16 knownT＝この端末が取りこんだ／送ったクラウドの書込時刻（key → ms）。
+   送る前に storeT と比べて「知らない書き込み」があれば、先に取りこんで混ぜてから送る（flushPush）。 */
+const knownT = {};
 let pushSuspended = false;         // pull適用中は push を止める（エコー防止）
 const dirty = new Map();           // key -> { v: valueString|null, t: 書込ms }
 let pushTimer = null;
@@ -737,6 +740,7 @@ function mergeStore(uid, remote, remoteT) {
     SYNC_KEYS.forEach((k) => {
       const rv = Object.prototype.hasOwnProperty.call(remote, k) && remote[k] != null ? String(remote[k]) : null;
       const rT = remoteT[k] || 0;
+      if (rT) knownT[k] = Math.max(knownT[k] || 0, rT);   /* ★★ 2026-10-16 ここまでのクラウドの書き込みは取りこんだ */
       const lv = lsGet(k);
       const lT = meta[k] || 0;
       if (rv != null) {
@@ -830,7 +834,7 @@ function mergeStore(uid, remote, remoteT) {
          次のマージで二重に足したり巻き戻したりする（ここが唯一のこわいところ）。 */
       try {
         const pr = FB.pushStore(uid, pushKv);
-        if (pr && pr.then) pr.then((r) => { if (r && r.ok) setBaseMany(pushKv); }).catch(() => {});
+        if (pr && pr.then) pr.then((r) => { if (r && r.ok) { setBaseMany(pushKv); Object.keys(pushKv).forEach((k) => { knownT[k] = Math.max(knownT[k] || 0, Number(pushKv[k].t) || 0); }); } }).catch(() => {});
       } catch (e) {}
     }
   }
@@ -887,6 +891,20 @@ async function flushPush() {
   const uid = currentUid();
   if (!uid || !FB || !dirty.size) return;
   if (pushInFlight) { schedulePush(); return; }          // 進行中なら次の機会に（取りこぼさない）
+  /* ══ ★★ 2026-10-16 「キャラ・パートナーの所持が同期されないことがある」の直し ══
+     送信は「この端末の値でクラウドを上書き」なので、開きっぱなしの端末が<b>別の端末で開放した
+     パートナーや引いたキャラを知らないまま</b>何かを保存すると、それがクラウドから消えていた。
+     → 混ぜる決まりのあるキーは、送る前に storeT を見て、知らない書き込みがあれば
+       先に pullNow（取りこむ→混ぜる→送る）へまわす。storeT が読めないときは今までどおり送る。 */
+  if (!_pullBusy && FB.pullStoreT) {
+    const mk = []; dirty.forEach((e, k) => { if (e.v != null && hasMergeRule(k)) mk.push(k); });
+    if (mk.length) {
+      pushInFlight = true;
+      let rt = null; try { rt = await FB.pullStoreT(uid); } catch (e) {}
+      pushInFlight = false;
+      if (rt && mk.some((k) => (Number(rt[k]) || 0) > (knownT[k] || 0))) { await pullNow(); if (dirty.size) schedulePush(); return; }
+    }
+  }
   const kv = {};
   dirty.forEach((e, k) => { kv[k] = e; });
   pushInFlight = true;
@@ -896,7 +914,7 @@ async function flushPush() {
   if (!ok) { schedulePush(); return; }                 // dirty はそのまま＝次回まとめて再送
   setBaseMany(kv);                                     // ★ 2026-09-01 送れた値＝クラウドにある値＝土台
   // 送信できた分だけ dirty から取り除く（送信中に上書きされた新しい値は残す）
-  Object.keys(kv).forEach((k) => { const cur = dirty.get(k); if (cur && cur.t === kv[k].t) dirty.delete(k); });
+  Object.keys(kv).forEach((k) => { knownT[k] = Math.max(knownT[k] || 0, Number(kv[k].t) || 0); const cur = dirty.get(k); if (cur && cur.t === kv[k].t) dirty.delete(k); });
 }
 
 /* ★ 離脱時（ホームに戻る／アプリを切り替える／タブを閉じる）専用の送信。
@@ -952,6 +970,15 @@ function startPushCapture() {
   /* ★ こまめな同期: 画面が見えている間は定期的に送る。
      長時間開きっぱなしのタブで、送信に失敗したまま溜まった変更を確実に押し出す。 */
   setInterval(() => { if (document.visibilityState === "visible") flushPush(); }, 15000);
+  /* ★★ 2026-10-16 開いたままの画面でも、ほかの端末の変化を1分ごとに確かめる（storeT だけ読む＝軽い）。
+     前は「画面に戻ってきたとき」しか取りこまなかったので、PC で開きっぱなしのホームには
+     スマホで開放したパートナーなどがいつまでも出てこなかった。 */
+  setInterval(async () => {
+    if (document.visibilityState !== "visible" || _pullBusy || pushInFlight || !FB || !FB.pullStoreT) return;
+    const uid = currentUid(); if (!uid) return;
+    let rt = null; try { rt = await FB.pullStoreT(uid); } catch (e) {}
+    if (rt && SYNC_KEYS.some((k) => (Number(rt[k]) || 0) > (knownT[k] || 0))) { try { await pullNow(); } catch (e) {} }
+  }, 60000);
 }
 
 /* クラウド⇄ローカルのマージ（毎ページ読込で実行）。ローカルが変わったら1回だけ reload */

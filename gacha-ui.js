@@ -124,6 +124,8 @@ function modeDef(k) {
       : f.sapphire ? "新レアリティ UR・🎫チケット優先／無期限開催"
       /* ★★ 2026-10-09 Pumpkin Night も「新レアリティ UR」（期間つき） */
       : f.pumpkin ? "新レアリティ UR・🎫チケット優先／あと" + fesDaysLeft(k) + "日（" + fesPeriodText(k).replace(/<[^>]+>/g, "") + "）"
+      /* ★★ 2026-10-16 超極華祭（UR・極華祭と同じ毎月中旬・ガチャ券のみ） */
+      : f.chokaen ? "新レアリティ UR・🎫ガチャ券のみ／" + fesMonthlyLeftText(f)
       /* ★★ 2026-09-17g 極◯祭は今回の残り日数（gachaMenuList とそろえる） */
       : f.monthly ? (f.noFesTicket ? "限定キャラクター・🎫ガチャ券のみ" : "限定キャラクター・🎫チケット優先") + "／" + fesMonthlyLeftText(f)
       : (fesTimed(f) ? "フェス限定SSR・🎫チケット優先／あと" + fesDaysLeft(k) + "日"
@@ -1449,8 +1451,10 @@ function nciShow(i) {
   let _gnm = ""; try { _gnm = gachaNmOfMode(_gm) || ""; } catch (e) {}
   $("#nciTy").textContent = (no ? no + " ・ " : "") + (c.type || "") + (_gnm ? " ・ 🎰 " + _gnm + " で登場" : "");
 
-  /* 技の帯。★ ある項目だけ出す（無いキャラで空の帯が残らないように） */
-  const rows = nciRowsOf(c);
+  /* 技の帯。★ ある項目だけ出す（無いキャラで空の帯が残らないように）
+     ★★ 2026-10-16 MagiAbyss 専用のキャラ（超極華祭）は MagiBurst の技を持たないので帯は出さない */
+  const aoOnly = typeof isAbyssOnly === "function" && isAbyssOnly(_nciIds[i]);
+  const rows = aoOnly ? [] : nciRowsOf(c);
   const sk = $("#nciSk");
   sk.innerHTML = rows.map((r, k) => {
     const d = NCI_KIND[r.k];
@@ -1481,7 +1485,9 @@ function nciShow(i) {
   if (ma) ma.innerHTML = nciAbyssHTML(_nciIds[i]);
   const mab = document.querySelector('#nciPg button[data-pg="abyss"]');
   if (mab) mab.style.display = nciHasAbyss(_nciIds[i]) ? "" : "none";
-  nciPage("burst");
+  /* ★★ 2026-10-16 MagiAbyss 専用のキャラは MagiAbyss の面だけ（ほかのゲームの札は隠す） */
+  document.querySelectorAll('#nciPg button[data-pg]').forEach((b) => { if (b.dataset.pg !== "abyss") b.style.display = aoOnly ? "none" : ""; });
+  nciPage(aoOnly ? "abyss" : "burst");
 
   const dots = $("#nciDots");
   dots.innerHTML = _nciIds.map((x, k) => '<i class="' + (k === i ? "on" : "") + '"></i>').join("");
@@ -1514,7 +1520,10 @@ function nciAdvance() {
   if (_nciT) { clearTimeout(_nciT); _nciT = 0; }
   /* ★★ 2026-09-23 MagiBurst → MagiBattle → MagiBocciaRush → 次のキャラ
      ★★ 2026-10-09 MagiAbyss で使えるキャラは MagiBurst のあとに MagiAbyss の面をはさむ */
-  if (_nciPg === "burst" && nciHasAbyss(_nciIds[_nciAt])) {
+  /* ★★ 2026-10-16 MagiAbyss 専用のキャラは MagiAbyss の面のあと、すぐ次のキャラへ */
+  if (typeof isAbyssOnly === "function" && isAbyssOnly(_nciIds[_nciAt])) {
+    nciNext();
+  } else if (_nciPg === "burst" && nciHasAbyss(_nciIds[_nciAt])) {
     nciPage("abyss");
     _nciT = setTimeout(nciAdvance, NCI_BOCCIA_MS);
   } else if (_nciPg === "burst" || _nciPg === "abyss") {
@@ -1951,6 +1960,10 @@ function showList(top) {
   document.body.classList.add("glmode");
   if (top === true) glIdx = 0;
   else { try { const i = glList().findIndex((m) => m.k === gMode); if (i >= 0) glIdx = i; } catch (e) {} }
+  /* ★★ 2026-10-16 ご報告「ガチャ画面でジェムやチケットの所持個数が表示されない」の真因：
+     ガチャのタブで開くと一覧（showList）から始まるのに、ここで<b>所持数を塗っていなかった</b>。
+     同期の知らせ（xeva:change）が来るまで「0」のまま（Orbitron の 0 は四角に見える）だった。 */
+  try { paintWal(); } catch (e) {}
   paintList();
   glMeasureHead();
   glGo(glIdx, true);

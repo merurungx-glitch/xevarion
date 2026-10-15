@@ -17,6 +17,17 @@
      こちらに足したら<b>あちらにも since 付きで1行</b>足すこと（無いとポータルに絵が出ない）。
    ══════════════════════════════════════════════════════════════ */
 window.MB_NEW_CHARS = [
+  /* ── ★★ 2026-10-16 超極華祭（UR 5体・毎月11〜20日・MagiAbyss 専用）── */
+  { id: "yuna", since: "2026-10-16", where: "超極華祭（毎月11〜20日）・MagiAbyss 専用", mode: "fes19",
+    catch: "わたしの闇は、あなただけを映すの。", color: "#7a5cff" },
+  { id: "aina", since: "2026-10-16", where: "超極華祭（毎月11〜20日）・MagiAbyss 専用", mode: "fes19",
+    catch: "月の光が、ふたりの合図。", color: "#f0b429" },
+  { id: "nonoka", since: "2026-10-16", where: "超極華祭（毎月11〜20日）・MagiAbyss 専用", mode: "fes19",
+    catch: "お帰りなさい。お茶にしますか、それとも冒険？", color: "#2fbf71" },
+  { id: "ichika", since: "2026-10-16", where: "超極華祭（毎月11〜20日）・MagiAbyss 専用", mode: "fes19",
+    catch: "夏の海みたいに、まっすぐいくよ！", color: "#38a6ff" },
+  { id: "chie", since: "2026-10-16", where: "超極華祭（毎月11〜20日）・MagiAbyss 専用", mode: "fes19",
+    catch: "桜の舞ううちに、斬りひらく。", color: "#ff5d47" },
   /* ── ★★ 2026-10-09 Pumpkin Night（UR 10体・11/30まで）── */
   { id: "kaori", since: "2026-10-09", where: "Pumpkin Night（11月30日まで）", mode: "fes18",
     catch: "いたずらしても、いいでしょ？", color: "#c06bff" },

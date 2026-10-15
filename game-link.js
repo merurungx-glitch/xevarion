@@ -245,10 +245,12 @@
       if (!FB) return [];
       var out = [];
       var jobs = [];
+      /* ★★ 2026-10-16 r.rank があればその順位の額（同じ順位＝同じ額。MagiShift）。無ければ並び順（これまでどおり） */
       rankedUids.forEach(function (r, i) {
-        var amt = PRIZES[i]; if (!amt || !r || !r.uid) return;
-        jobs.push(FB.awardXeva(r.uid, amt, (i + 1) + "位 賞金（" + (r.game || "ゲーム") + "）"));
-        out.push({ rank: i + 1, name: r.name, amount: amt });
+        var rk = (r && r.rank > 0) ? r.rank : i + 1;
+        var amt = PRIZES[rk - 1]; if (!amt || !r || !r.uid) return;
+        jobs.push(FB.awardXeva(r.uid, amt, rk + "位 賞金（" + (r.game || "ゲーム") + "）"));
+        out.push({ rank: rk, name: r.name, amount: amt });
       });
       return Promise.all(jobs).then(function () { return out; });
     });

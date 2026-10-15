@@ -1043,6 +1043,12 @@
     { id: "mb:yuumi", mbId: "yuumi", name:"ユウミ", file: "../img/t_Yuumi.webp", since:"2026-10-09", rarLabel: "UR" },
     { id: "mb:rina", mbId: "rina", name:"リナ", file: "../img/t_Rina.webp", since:"2026-10-09", rarLabel: "UR" },
     { id: "mb:kaori", mbId: "kaori", name:"カオリ", file: "../img/t_Kaori.webp", since:"2026-10-09", rarLabel: "UR" },
+    /* ★★ 2026-10-16 超極華祭（UR・MagiAbyss 専用。アイコン・コレクションには使える） */
+    { id: "mb:chie", mbId: "chie", name:"チエ", file: "../img/t_Chie.webp", since:"2026-10-16", rarLabel: "UR" },
+    { id: "mb:ichika", mbId: "ichika", name:"イチカ", file: "../img/t_Ichika.webp", since:"2026-10-16", rarLabel: "UR" },
+    { id: "mb:nonoka", mbId: "nonoka", name:"ノノカ", file: "../img/t_Nonoka.webp", since:"2026-10-16", rarLabel: "UR" },
+    { id: "mb:aina", mbId: "aina", name:"アイナ", file: "../img/t_Aina.webp", since:"2026-10-16", rarLabel: "UR" },
+    { id: "mb:yuna", mbId: "yuna", name:"ユナ", file: "../img/t_Yuna.webp", since:"2026-10-16", rarLabel: "UR" },
   ];
   /* ★ 2026-08-10 初期SR 4体（ゼラ・アヤメ・レイラ・セリーヌ）は廃止しました。
      いまは<b>全キャラがアイコンに選べる</b>ので、starter という区別そのものが要らない。 */
@@ -1154,7 +1160,9 @@
   /* ★★ 2026-10-07 Sapphire Breeze（UR） */
   , "hibana", "fuki"
   /* ★★ 2026-10-09 Pumpkin Night（UR） */
-  , "ayano", "saki", "yuka", "natsumi", "miu", "mai", "chinatsu", "yuumi", "rina", "kaori"];
+  , "ayano", "saki", "yuka", "natsumi", "miu", "mai", "chinatsu", "yuumi", "rina", "kaori"
+  /* ★★ 2026-10-16 超極華祭（UR） */
+  , "chie", "ichika", "nonoka", "aina", "yuna"];
   MB_CHAR_MASTER.forEach(function (c) { c.mb = true; c.starter = MB_STARTERS.indexOf(c.mbId) >= 0; });
   MB_CHAR_MASTER.forEach(function (c) { c.star5 = MB_STAR5.indexOf(c.mbId) >= 0; });
   /* id は "mb:zera" のように接頭辞つき。XEVAガチャにも同じ名前のキャラ（シオンなど）が
@@ -2228,7 +2236,7 @@
       window.__xevaAliveReq = 1;
       var aliveGo = function () {
         var s = document.createElement("script");
-        s.src = new URL("xeva-alive.js?v=5", aliveSrc).href;
+        s.src = new URL("xeva-alive.js?v=6", aliveSrc).href;
         s.async = true;
         (document.head || document.documentElement).appendChild(s);
       };

@@ -1994,7 +1994,8 @@
       if (timed && today >= (f.until ? addDays(f.until, 1) : addDays(f.since, D.fesDays || 20))) return;   /* 終わった */
       if (f.since && today < f.since) return;
       /* 並び：新しいものが先（毎月のフェスは今月の開始日、常設のアーカイブはいちばん後ろ） */
-      const t = f.key === "archive" ? "0000" : f.monthly ? today.slice(0, 8) + String(f.monthly[0]).padStart(2, "0") : (f.since || "0001");
+      /* ★★ 2026-10-16 top（超極華祭）はガチャ一覧と同じく先頭 */
+      const t = f.top ? "9998" : f.key === "archive" ? "0000" : f.monthly ? today.slice(0, 8) + String(f.monthly[0]).padStart(2, "0") : (f.since || "0001");
       out.push({ key: f.key, banner: f.banner, t, nm: f.nm });
     });
     const dv = ((D.debut && D.debut.vers) || []).filter((v) => today >= v.date && today < (v.movedAt || addDays(v.date, D.debut.days || 20)));

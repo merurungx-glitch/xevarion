@@ -640,13 +640,17 @@
     const evLen = evaTimeline(t, lv, rank);
     t += evLen;
     /* ② カットイン（2回のときもある）・カウントダウン */
-    const cuts = [];
-    if (info.cut) cuts.push(info.cut);
-    if (has1(info, "double")) cuts.push(info.best === 3 ? "rb" : "gold");
-    if (has1(info, "pk")) cuts.push("pk");
-    cuts.forEach((c, k) => {
-      at(t, () => { if (alive(ov)) cutIn(c, k); });
-      t += 1650;
+    /* ★★ 2026-10-16 ご報告「カットインの数と排出されるキャラ数が合っていない」：
+       前はカットインが確率で0〜3回（青＝何も約束しない回・W・南瓜が別々に足される）で、出てくる SSR 以上の数と食いちがっていた。
+       → <b>カットインは SSR 以上のキャラ1体につき1回ちょうど</b>（低いレア度から順に・UR は虹／南瓜・SSR は赤）。
+         多いときは1回を短くする（3回まで 1.65 秒・それ以上は全体で約6秒に収める）。 */
+    const hi = S.rs.filter((r) => r.type === "char" && tierOf(r) >= 2).sort((a, b) => tierOf(a) - tierOf(b));
+    const step = hi.length <= 3 ? 1650 : Math.max(900, Math.round(6000 / hi.length));
+    hi.forEach((r, k) => {
+      const ur = tierOf(r) === 3;
+      const c = ur ? (has1(info, "pk") ? "pk" : "rb") : "red";
+      at(t, () => { if (alive(ov)) cutIn(c, k, r, hi.length); });
+      t += step;
     });
     if (has1(info, "count")) {
       at(t, () => { if (!alive(ov)) return; const cn = ov.querySelector(".xs-count"); cn.classList.add("on"); });
@@ -726,16 +730,18 @@
     return len;
   }
   /* ② カットイン（色：blue / red / gold / rb / pk） */
-  function cutIn(c, k) {
+  function cutIn(c, k, r, n) {
     const ov = S.ov, info = S.info, box = ov.querySelector(".xs-cut");
-    const T1 = { blue: ["SIGNAL", "ANALYZE", "反応を解析中…"], red: ["SUPER RARE", "SSR以上", "強い反応！"], gold: ["DOUBLE", "W SSR以上", "反応が2つ！"],
-      rb: ["ULTRA RARE", "UR", "臨界を突破！"], pk: ["PUMPKIN NIGHT", "UR 確定", "南瓜の灯がともる"] }[c] || ["SIGNAL", "", ""];
+    const T1 = ({ blue: ["SIGNAL", "ANALYZE", "反応を解析中…"], red: ["SUPER RARE", "SSR", "強い反応！"], gold: ["DOUBLE", "W SSR以上", "反応が2つ！"],
+      rb: ["ULTRA RARE", "UR", "臨界を突破！"], pk: ["PUMPKIN NIGHT", "UR 確定", "南瓜の灯がともる"] }[c] || ["SIGNAL", "", ""]).slice();
+    /* ★★ 2026-10-16 何体目のカットインかを出す（カットインの数＝SSR 以上のキャラの数） */
+    if (n > 1) T1[2] = "反応 " + (k + 1) + " / " + n;
     let pic = '<svg viewBox="0 0 100 110"><path d="M50 4L94 29V81L50 106L6 81V29Z" fill="rgba(0,0,0,.4)" stroke="#fff" stroke-width="5"/><path d="M50 22L78 38V72L50 88L22 72V38Z" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><text x="50" y="64" text-anchor="middle" font-family="Orbitron,sans-serif" font-weight="900" font-size="20" fill="#fff">' + (c === "rb" ? "UR" : c === "blue" ? "?" : "SSR") + "</text></svg>";
     if (c === "pk") pic = '<svg viewBox="0 0 100 100"><path d="M50 22c-3-9 3-13 8-14-4 4-4 8-3 14" fill="#3a8a2a"/><ellipse cx="50" cy="60" rx="38" ry="30" fill="#ff8a1f" stroke="#7a3a00" stroke-width="3"/><path d="M50 30v60M30 34c-6 10-6 42 0 52M70 34c6 10 6 42 0 52" stroke="#c85a00" stroke-width="2.5" fill="none"/><path d="M33 52l8-7 8 7zM51 52l8-7 8 7z" fill="#ffe37a"/><path d="M34 68q16 12 32 0l-5 4-5-4-6 5-6-5-5 4z" fill="#ffe37a"/></svg>';
-    if (has1(info, "sil") && info.pickHit && (c === "red" || c === "gold" || c === "rb") && k === 0) {
+    if (has1(info, "sil") && info.pickHit && (c === "red" || c === "gold" || c === "rb") && (r ? r === info.pickHit : k === 0)) {
       const ch = chr(info.pickHit.id);
       if (ch) pic = '<img src="' + esc(ch.th || ch.img) + '" alt="">';
-      T1[2] = "ピックアップの反応！";
+      T1[2] = "ピックアップの反応！" + (n > 1 ? "（" + (k + 1) + " / " + n + "）" : "");
     }
     const tok = String(Math.random());
     box.dataset.tok = tok;

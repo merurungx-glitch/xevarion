@@ -1056,6 +1056,17 @@ async function pullStoreFull(uid) {
   } catch (e) { return { kv: {}, t: {} }; }
 }
 
+/* ★★ 2026-10-16 書いた時刻（storeT）だけを取得。{ key: ms }。送る前に「知らない書き込み」があるか見るのに使う（軽い） */
+async function pullStoreT(uid) {
+  if (!uid) return null;
+  try {
+    const st = await get(ref(db, NODE + "/" + uid + "/storeT"));
+    const t = {};
+    if (st.exists()) st.forEach((c) => { t[decKey(c.key)] = c.val(); });
+    return t;
+  } catch (e) { return null; }
+}
+
 /* 同期マージで負けた側のローカル値を退避（復旧用の1世代バックアップ） */
 async function pushBackup(uid, bak) {
   if (!uid || !bak) return { error: "arg" };
@@ -1326,7 +1337,7 @@ window.XEVARIONFB = {
   // アプリ個別メンテナンス
   getAppMaintenanceAll, getAppMaintenance, setAppMaintenance,
   // クラウドアカウント（ストア同期・セッション）
-  pullStore, pushStore, pullStoreFull, pushBackup, claimSession, watchSession, logoutSession, getAccount,
+  pullStore, pushStore, pullStoreFull, pullStoreT, pushBackup, claimSession, watchSession, logoutSession, getAccount,
   // 同期の土台（サーバー時刻・離脱時の確実な送信）
   now, serverSkew, pushStoreBeacon, DB_URL,
   // フレンド（XEVARION アカウント主体）

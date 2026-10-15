@@ -127,6 +127,22 @@ export function initAppCloud(opts) {
 
   function schedule() { if (!timer) timer = setTimeout(flush, PUSH_DEBOUNCE); }
 
+  /* ══ ★★ 2026-10-16 「キャラの所持・凸が同期されないことがある」の直し ══
+     送信は「この端末の値でクラウドを上書き」なので、開きっぱなしの端末（PC のタブなど）が
+     <b>別の端末で引いたキャラを知らないまま</b>何かを保存すると、そのキャラがクラウドから消えていた
+     （引いた端末が次に同期するまで戻らない）。
+     → 送る前に storeT（書いた時刻だけ・小さい）を見て、<b>この端末が知らない書き込み</b>があれば
+       先に取りこんで混ぜて（rescue）から送る。knownT＝この端末が取りこんだ／送ったクラウドの時刻。 */
+  const knownT = {};
+  async function remoteChanged(keys) {
+    if (!db || !uid || !keys.length) return false;
+    try {
+      const snap = await get(ref(db, "users/" + uid + "/storeT"));
+      const t = snap.exists() ? (snap.val() || {}) : {};
+      return keys.some((k) => (Number(t[k]) || 0) > (knownT[k] || 0));
+    } catch (e) { return false; }                 /* 読めないときは今までどおり送る */
+  }
+
   function payloadOf(kv) {
     const payload = {};
     Object.keys(kv).forEach((k) => {
@@ -142,6 +158,16 @@ export function initAppCloud(opts) {
     if (!db || !uid || !dirty.size) return;
     if (pushing) { schedule(); return; }               // 進行中なら次の機会に（取りこぼさない）
     pushing = true;
+    /* ★★ 2026-10-16 混ぜる決まり（rescue）のあるキーは、知らない書き込みがあれば先に取りこむ */
+    if (RESCUE && !syncing) {
+      const mk = []; dirty.forEach((e, k) => { if (e.v != null) mk.push(k); });
+      if (await remoteChanged(mk)) {
+        pushing = false;
+        if (await syncDown()) emit("restored", {});    /* merge が混ぜた結果を dirty に入れる */
+        if (dirty.size) schedule();
+        return;
+      }
+    }
     const kv = {};
     dirty.forEach((e, k) => { kv[k] = e; });
     let ok = true;
@@ -149,7 +175,7 @@ export function initAppCloud(opts) {
     catch (e) { ok = false; }
     pushing = false;
     if (!ok) { schedule(); return; }
-    Object.keys(kv).forEach((k) => { const c = dirty.get(k); if (c && c.t === kv[k].t) dirty.delete(k); });
+    Object.keys(kv).forEach((k) => { knownT[k] = Math.max(knownT[k] || 0, kv[k].t); const c = dirty.get(k); if (c && c.t === kv[k].t) dirty.delete(k); });
     emit("pushed", { keys: Object.keys(kv) });
   }
 
@@ -198,6 +224,7 @@ export function initAppCloud(opts) {
         const rT = remoteT[k] || 0;
         const lv = lsGet(k);
         const lT = meta[k] || 0;
+        if (rT) knownT[k] = Math.max(knownT[k] || 0, rT);   /* ★★ 2026-10-16 ここまでのクラウドの書き込みは取りこんだ */
         if (rv != null) {
           if (rv === lv) { if (rT > lT) meta[k] = rT; return; }
           /* ★ 勝敗の決め方（旧: 同着なら「データ量が多い方」＝誤判定の元）
@@ -238,14 +265,23 @@ export function initAppCloud(opts) {
     return changed;
   }
 
+  let syncing = false;
   async function syncDown() {
-    if (!db || !uid) return false;
+    if (!db || !uid || syncing) return false;
+    syncing = true;
     try {
-      const snap = await get(ref(db, "users/" + uid));
-      const v = snap.exists() ? snap.val() : {};
-      return merge(v.store, v.storeT);
-    } catch (e) { return false; }
+      /* ★★ 2026-10-16 users/{uid} まるごとではなく store と storeT だけ読む（ほかの枝まで落とさない） */
+      const [s, st] = await Promise.all([get(ref(db, "users/" + uid + "/store")), get(ref(db, "users/" + uid + "/storeT"))]);
+      return merge(s.exists() ? s.val() : {}, st.exists() ? st.val() : {});
+    } catch (e) { return false; } finally { syncing = false; }
   }
+  /* ★★ 2026-10-16 開いたままの画面でも、ほかの端末の変化を1分ごとに確かめる（storeT だけ読む＝軽い）。
+     前は「画面に戻ってきたとき」しか取りこまなかったので、PC で開きっぱなしのタブには
+     スマホで引いたキャラがいつまでも出てこなかった。 */
+  setInterval(async () => {
+    if (document.visibilityState !== "visible" || !ready || !uid || syncing || pushing) return;
+    if (await remoteChanged(KEYS)) { if (await syncDown()) emit("restored", {}); await flush(); }
+  }, 60000);
 
   /* ── Firebase 接続の確立（オフラインで開いた場合は後から呼び直せる） ── */
   let connecting = false;

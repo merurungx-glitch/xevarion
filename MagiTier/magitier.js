@@ -3029,7 +3029,8 @@ function mbCheck() {
    トップレベルの const は<b>window のプロパティにならない</b>ので、
    window.CHARS ではなく「素の名前」で受け取ること（ここで一度つまずいた）。 */
 function mbChars()   { return (typeof CHARS !== "undefined") ? CHARS : null; }
-function mbCharIds() { return (typeof CHAR_IDS !== "undefined") ? CHAR_IDS : null; }
+/* ★★ 2026-10-16 MagiAbyss 専用のキャラ（超極華祭・abyssOnly）は MagiBurst の Tier 表に出さない */
+function mbCharIds() { return (typeof CHAR_IDS !== "undefined") ? CHAR_IDS.filter((id) => !(typeof CHARS !== "undefined" && CHARS[id] && CHARS[id].abyssOnly)) : null; }
 /* ══ ★★ 2026-08-22 mb-core.js を動かすための最小限の土台 ══
    ------------------------------------------------------------
    mb-core.js は MagiBurst の本体ページにある小道具（$ / DB / clamp / fmt / B）を
@@ -3071,7 +3072,7 @@ function loadScriptOnce(src) {
 function loadMbCore() {
   mbShim();
   if (mbChars() && mbCharIds()) return Promise.resolve();
-  return loadScriptOnce("../MagiBurst/js/mb-core.js?v=136");
+  return loadScriptOnce("../MagiBurst/js/mb-core.js?v=137");
 }
 /* ══ ★★ 2026-08-22 キャラ詳細は XEVARION と<b>同じ1本</b>（mb-char-detail.js）を読む ══
    自前で組み直すと、アビリティ・クロススキル・リンクの文面が必ず食いちがっていく。
@@ -3081,12 +3082,12 @@ async function loadMbDetail() {
   if (_mbDetailReady) return;
   if (!$('link[data-mbdet]')) {
     const l = document.createElement("link");
-    l.rel = "stylesheet"; l.href = "../mb-char-detail.css?v=29"; l.setAttribute("data-mbdet", "1");
+    l.rel = "stylesheet"; l.href = "../mb-char-detail.css?v=30"; l.setAttribute("data-mbdet", "1");
     document.head.appendChild(l);
   }
   /* MagiBattle の評価も出したいので、その計算だけ先に読む（無くても詳細は開く） */
-  if (!window.MBStats) { try { await loadScriptOnce("../magibattle-stats.js?v=17"); } catch (e) {} }
-  if (typeof window.openDetX !== "function") await loadScriptOnce("../mb-char-detail.js?v=45");
+  if (!window.MBStats) { try { await loadScriptOnce("../magibattle-stats.js?v=18"); } catch (e) {} }
+  if (typeof window.openDetX !== "function") await loadScriptOnce("../mb-char-detail.js?v=46");
   _mbDetailReady = true;
 }
 /* ══ ★ 2026-08-17f MagiBurst 表の中身をそろえ直す ══

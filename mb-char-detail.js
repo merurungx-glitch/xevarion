@@ -147,7 +147,7 @@ function mbtEnsure() {
   if (window.__mbtLoading) return window.__mbtLoading;
   window.__mbtLoading = new Promise((res) => {
     const s = document.createElement("script");
-    s.src = MBD_BASE + "magibattle-stats.js?v=17";
+    s.src = MBD_BASE + "magibattle-stats.js?v=18";
     s.onload = () => res(); s.onerror = () => res();
     document.head.appendChild(s);
   });
@@ -159,7 +159,7 @@ function maEnsure() {
   if (window.MA && window.MA.D && window.MA.Stats) return Promise.resolve();
   if (window.__maLoading) return window.__maLoading;
   const load = (src) => new Promise((res) => { const s = document.createElement("script"); s.src = src; s.onload = () => res(); s.onerror = () => res(); document.head.appendChild(s); });
-  window.__maLoading = load(MBD_BASE + "MagiAbyss/js/ma-data.js?v=6").then(() => load(MBD_BASE + "MagiAbyss/js/ma-stats.js?v=2"));
+  window.__maLoading = load(MBD_BASE + "MagiAbyss/js/ma-data.js?v=7").then(() => load(MBD_BASE + "MagiAbyss/js/ma-stats.js?v=2"));
   return window.__maLoading;
 }
 window.maEnsure = maEnsure;
@@ -167,7 +167,7 @@ function magiAbyssHTML(id) {
   const usable = typeof isAbyssChar === "function" && isAbyssChar(id);
   if (!usable) {
     return `<div class="dsec mbb"><div class="t">評価（MagiAbyss）</div>
-      <div class="mbnone">このキャラは <b>MagiAbyss では使えません</b>。<br>MagiAbyss で使えるのは、XEVARION のガチャ <b>Pumpkin Night・Sapphire Breeze・極彩祭・極煌祭・極華祭</b> のキャラ（${typeof ABYSS_CHAR_IDS !== "undefined" ? ABYSS_CHAR_IDS.length : ""}人）です。</div></div>`;
+      <div class="mbnone">このキャラは <b>MagiAbyss では使えません</b>。<br>MagiAbyss で使えるのは、XEVARION のガチャ <b>超極華祭・Pumpkin Night・Sapphire Breeze・極彩祭・極煌祭・極華祭</b> のキャラ（${typeof ABYSS_CHAR_IDS !== "undefined" ? ABYSS_CHAR_IDS.length : ""}人）です。</div></div>`;
   }
   if (!(window.MA && MA.D && MA.Stats) || !MA.D.CHARS[id]) {
     return `<div class="dsec mbb"><div class="t">評価（MagiAbyss）</div>
@@ -219,7 +219,7 @@ function mbrEnsure() {
   if (window.__mbrLoading) return window.__mbrLoading;
   window.__mbrLoading = new Promise((res) => {
     const s = document.createElement("script");
-    s.src = "MagiBocciaRush/js/mbr-core.js?v=20";
+    s.src = "MagiBocciaRush/js/mbr-core.js?v=21";
     s.onload = () => res(); s.onerror = () => res();
     document.head.appendChild(s);
   });
@@ -283,8 +283,10 @@ function detHeroHTML(id) {
               + '<button type="button" class="' + (wide ? "" : "on") + '" onclick="setDetImg(\'sq\',event)">正方形</button>' : "") +
       (ss ? '<button type="button" class="ss" onclick="openDetSS(\'' + id + '\',event)">SS絵 ⤢</button>' : "") + "</div>" : "";
   /* ★★ 2026-08-22b レアリティは SSR / SR（★の本数は使わない）。★★ 2026-10-09b UR は虹色の札 */
-  return `<div class="dhero${wide ? " wide urx" : ""}${ur && !wide ? " ursq" : ""}" id="detHero">
-      <img src="${wide ? c.wide : c.img}" alt="${c.nm}"${wide ? ' class="urx-pan"' : ""}>${wide && typeof urDecor === "function" ? urDecor() : (ur ? '<span class="urx-ring" aria-hidden="true"></span><span class="urx-badge" aria-label="UR">UR</span>' : "")}
+  /* ★★ 2026-10-16 キャラのまわりに属性色の細いフレーム（ご指定）。色は --elc（.delf が描く） */
+  const elc = (typeof ELEM !== "undefined" && ELEM[c.el] && ELEM[c.el].c) || "#a86bff";
+  return `<div class="dhero${wide ? " wide urx" : ""}${ur && !wide ? " ursq" : ""}" id="detHero" style="--elc:${elc}">
+      <img src="${wide ? c.wide : c.img}" alt="${c.nm}"${wide ? ' class="urx-pan"' : ""}>${wide && typeof urDecor === "function" ? urDecor() : (ur ? '<span class="urx-ring" aria-hidden="true"></span><span class="urx-badge" aria-label="UR">UR</span>' : "")}<i class="delf" aria-hidden="true"></i>
       ${sw}
       <div class="dnm"><b>${c.nm}</b><span>${charNoText(id)}　<em class="drar ${ur ? "ur" : s5 ? "ssr" : "sr"}">${rl}</em>${awk ? (awk >= MAX_AWK ? "　👑完凸" : "　覚醒+" + awk) : ""}</span></div>
     </div>`;
@@ -311,12 +313,20 @@ window.openDetSS = function (id, e) {
   ov.innerHTML = `<div class="dss-in"><img src="${src}" alt="${c.nm || ""}" onerror="this.parentNode.classList.add('err')">`
     + `<p class="dss-cap"><b>${c.nm || ""}</b>　SS絵（アビリティのカットインで出る絵）</p><p class="dss-err">絵を読みこめませんでした</p></div>`
     + `<button type="button" class="dss-x" aria-label="とじる">✕</button>`;
+  /* ★★ 2026-10-16 ご報告「ガチャ結果からキャラ詳細を開いて SS 画像を出すと後ろに出て見えない」：
+     ガチャ演出（#xsm 1250）の上で詳細を出すときは #detOv を 1300 に上げているのに、SS 絵は 975 のままだった。
+     → いまの詳細より必ず1つ上に出す。 */
+  let dz = 960; try { const d = document.getElementById("detOv"); dz = parseInt(getComputedStyle(d).zIndex, 10) || 960; } catch (err) {}
+  ov.style.zIndex = String(Math.max(975, dz + 15));
   ov.classList.remove("on"); void ov.offsetWidth; ov.classList.add("on");
 };
 function openDetX(id, keepGame) {
   const c = CHARS[id]; if (!c) return;
   detCurId = id;
   if (!keepGame) detGame = "burst";       /* ★ 開いたときは必ず MagiBurst（ご指定） */
+  /* ★★ 2026-10-16 MagiAbyss 専用のキャラ（超極華祭）は MagiAbyss の面だけ（ご指定「他のゲームの性能は所持しません」） */
+  const aoOnly = typeof isAbyssOnly === "function" && isAbyssOnly(id);
+  if (aoOnly) detGame = "abyss";
   /* ★ 性能のデータがまだ無いときだけ読みこんで、読めたら1回だけ開き直す。
      「あるとき」も呼ぶと Promise.resolve → openDetX → … と<b>無限に回る</b>。
      ★★ 2026-10-13 MagiDiamond は廃止（ご指定）。その性能（MD2DATA）を読む処理も消した */
@@ -365,24 +375,25 @@ function openDetX(id, keepGame) {
     ${detHeroHTML(id)}
     <div class="dbody">
       ${/* ★★ 2026-09-06 どのゲームの性能を見るか（ご指定・はじめは MagiBurst） */""}
-      <div class="dgseg g4">
+      ${aoOnly ? `<div class="dgseg ao"><button class="on">🗡 MagiAbyss 専用キャラ</button></div>` : `<div class="dgseg g4">
         <button class="${detGame === "burst" ? "on" : ""}" onclick="setDetGame('burst')">⚔ MagiBurst</button>
         <button class="${detGame === "battle" ? "on" : ""}" onclick="setDetGame('battle')">⚡ MagiBattle</button>
         <button class="${detGame === "abyss" ? "on" : ""}" onclick="setDetGame('abyss')">🗡 MagiAbyss</button>
         <button class="${detGame === "boccia" ? "on" : ""}" onclick="setDetGame('boccia')">🎯 Boccia</button>
-      </div>
+      </div>`}
       <div class="dchips">
         ${/* ★★ 2026-09-02 二属性キャラは「闇＆火」のように2つ並べる（リンクスキルの属性が先）。
              elemNameOf は mb-core.js にあるが、ここは遅延読みこみされることがあるので保険をかける。 */""}
         <span class="dchip" style="color:${ELEM[c.el].c};border-color:${ELEM[c.el].c}66">${typeof elemNameOf === "function" ? elemNameOf(c) : ELEM[c.el].nm}属性</span>
-        <span class="dchip">${c.shot === "pierce" ? "貫通" : "反射"}</span>
-        <span class="dchip">${c.type}</span>
+        ${aoOnly ? "" : `<span class="dchip">${c.shot === "pierce" ? "貫通" : "反射"}</span>
+        <span class="dchip">${c.type}</span>`}
         <span class="dchip">${own ? "所持済み" : "未所持"}</span>
       </div>
       ${/* ★★ 2026-08-29b <b>入手方法</b>（ご指定: ガチャの名前まで書く）。
             中身は mb-core.js の charSourceList()——FESTS / DEBUT_VERSIONS /
             PREMIUM_CHARS / RAIDS から機械的に組み立てるので、
             キャラを足してもここに書き足す必要はない。 */""}
+      ${aoOnly ? `<div class="dsec"><div class="ddesc">このキャラは <b>MagiAbyss 専用</b>です。性能は <b>MagiAbyss の性能だけ</b>で、MagiBurst・MagiBattle・MagiBocciaRush では使えません（MagiChemLex のナビゲーターや XEVARION のアイコンには使えます）。</div></div>` : ""}
       <div class="dsec"><div class="t">入手方法</div>
         <div class="ddesc">${(typeof charSourceList === "function" ? charSourceList(id) : []).join("<br>")}</div></div>
 

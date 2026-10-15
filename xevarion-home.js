@@ -265,6 +265,11 @@ const XH_ORDER_GEN_KEY = "xeva_home_order_gen";
      ずっと後ろ、という状態を防ぐため。
      ＝ 新しいイベントを足すときは<b>この配列のどこに書いてもよい</b>。 */
 const XH_EVENTS = [
+  /* ★★ 2026-10-16 超極華祭（UR 5体・MagiAbyss 専用）。極華祭と同じ毎月 11〜20日・ガチャ一覧のいちばん上 */
+  { tag:"UR", t1:"超極華祭（UR 5体）",
+    t2:"毎月11〜20日。チエ・イチカ・ノノカ・アイナ・ユナの UR 5体（各1.5%）——MagiAbyss 専用のキャラクター（ユナはタキナより少し強い）。🎫ガチャ券OK",
+    always:true, perm:true, monthly:[11, 20], since:"2026-10-16", from:"2026-10-16", to:"2027-12-31",
+    href:"gacha.html#fes19", img:"thumbs/MagiBurst.jpg" },
   /* ★★ 2026-10-09 Pumpkin Night（UR 10体・<b>11月30日まで</b>）。ガチャ一覧では Sapphire Breeze の上に固定 */
   { tag:"UR", t1:"Pumpkin Night（UR 10体）",
     t2:"11月30日まで。アヤノ・サキ・ユカ・ナツミ・ミウ・マイ・チナツ・ユウミ・リナ・カオリの UR 10体（各1.5%）——初回10連無料・🎫フェス券OK。全員 治癒の祈り・アンチ4つ・キラー・3属性有利・撃つたび技が出るショットスキル・最強のリンク。MagiAbyss でも使えます",
@@ -480,6 +485,16 @@ XH_EVENTS.unshift({ tag:"EVENT", t1:"Violet Breeze", t2:"MagiLex 系統の XEVA 
    ══════════════════════════════════════════════════════════════ */
 const XH_UPDATE_MAX = 12;
 const XH_UPDATES = [
+  /* ★★ 2026-10-16 超極華祭（UR 5体・MagiAbyss 専用）／同期・ガチャ画面／MagiShift／MagiChemLex */
+  { tag:"NEW", t1:"超極華祭（UR 5体・MagiAbyss 専用）", at:"2026-10-16",
+    t2:"チエ・イチカ・ノノカ・アイナ・ユナ（各1.5%）。毎月11〜20日・🎫ガチャ券OK・ガチャ一覧のいちばん上。MagiAbyss ではユナがタキナより少し強く、ほかの4体はタキナと同じくらい",
+    href:"gacha.html#fes19", img:"thumbs/MagiBurst.jpg" },
+  { tag:"UPDATE", t1:"同期・ガチャ画面・キャラ詳細の直し／ホスト権限", at:"2026-10-16",
+    t2:"キャラの所持・凸やパートナーが別の端末に反映されないことがあったのを修正／ガチャの所持数の表示・カットインの数・SS絵が後ろに出る、を修正／キャラ詳細に属性色のフレーム／設定にホスト権限",
+    href:"gacha.html", img:"icons/xev-512.png" },
+  { tag:"UPDATE", t1:"MagiShift の色と形・順位の決めかた／MagiChemLex のメモを左右に広く", at:"2026-10-16",
+    t2:"赤✕・黄★・オレンジ♥で見分けやすく／順位の決めかたともらえる XEVA を表示（同じなら同じ順位）／メモの紙を左右に広げて縮小しても書けるように",
+    href:"MagiShift/index.html", img:"thumbs/MagiShift.jpg" },
   /* ★★ 2026-10-15 これって浮気？判定シート／MagiChemLex フラッシュカード・特設予想問題／追加データのダウンロード・起動画面 */
   { tag:"NEW", t1:"これって浮気？判定シート", at:"2026-10-15",
     t2:"ホームの XEVARION PARK の真上から。40個の行動を「浮気・浮気じゃないけど嫌・全然OK」に仕分けて、浮気ライン（0〜100）とタイプ・ジャンルごとの境界線がわかる／コードでふたりの一致度を比べられる",
@@ -2013,7 +2028,7 @@ function xhMbReady() {
   if (typeof CHARS !== "undefined" && typeof PREMIUM_CHARS !== "undefined") return Promise.resolve(true);
   if (_xhMbLoading) return _xhMbLoading;
   _xhMbLoading = xhLoadScript("mb-boot.js?v=17")
-    .then(() => xhLoadScript("MagiBurst/js/mb-core.js?v=136"))
+    .then(() => xhLoadScript("MagiBurst/js/mb-core.js?v=137"))
     .then(() => true)
     .catch((e) => { _xhMbLoading = null; throw e; });
   return _xhMbLoading;
@@ -3648,6 +3663,53 @@ function xhAdminEnter() {
   location.href = "admin.html";
 }
 window.xhAdminEnter = xhAdminEnter;
+
+/* ══════════════ ★★ 2026-10-16 ホスト権限（ご指定）══════════════
+   設定 → その他 →「ホスト権限」。アクセスコードが合えば、入力した数の XEVA を受け取れる。
+   ・ご指定「アクセスコードは毎度記録をリセットし、毎度要求」：コードは<b>どこにも保存しない</b>
+     （localStorage・sessionStorage・変数のどれにも残さない）。開くたび・受け取るたびに入力欄を空にする。
+   ・照合は SHA-256 の値どうし（ソースにコードそのものは書かない）。
+   ・受け取った XEVA は月間ランキングに数えない（noRank＝メールの配布と同じあつかい）。 */
+const XH_HOST_HASH = "043597417b58703ba306393a392628045baf99cb0da899f496680e65667f90df";
+const XH_HOST_MAX = 100000000;
+function xhHostReset() {
+  ["xhHostCode", "xhHostAmt"].forEach((id) => { const el = xhEl(id); if (el) el.value = ""; });
+  const msg = xhEl("xhHostMsg"); if (msg) { msg.textContent = ""; msg.style.color = ""; }
+  const b = xhEl("xhHostBtn"); if (b) b.disabled = false;
+}
+function xhOpenHost() {
+  xhCloseSheet("xhSetSheet");
+  xhHostReset();
+  xhOpenSheet("xhHostSheet");
+  setTimeout(() => { try { xhEl("xhHostCode").focus(); } catch (e) {} }, 220);
+}
+function xhCloseHost() { xhHostReset(); xhCloseSheet("xhHostSheet"); }
+async function xhHostHash(t) {
+  const buf = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(t));
+  return Array.from(new Uint8Array(buf)).map((x) => x.toString(16).padStart(2, "0")).join("");
+}
+async function xhHostGo() {
+  const ci = xhEl("xhHostCode"), ai = xhEl("xhHostAmt"), msg = xhEl("xhHostMsg"), btn = xhEl("xhHostBtn");
+  const say = (t, ok) => { if (msg) { msg.textContent = t; msg.style.color = ok ? "#1aa86a" : ""; } };
+  const code = (ci && ci.value || "").trim();
+  const amt = Math.floor(Number(String(ai && ai.value || "").replace(/[,，\s]/g, "")));
+  if (!code) { say("アクセスコードを入力してください"); return; }
+  if (!(amt >= 1)) { say("受け取る XEVA の数を入力してください（1以上）"); return; }
+  if (amt > XH_HOST_MAX) { say("一度に受け取れるのは " + XH_HOST_MAX.toLocaleString("ja-JP") + " XEVA までです"); return; }
+  if (btn) btn.disabled = true;
+  let ok = false;
+  try { ok = (await xhHostHash(code)) === XH_HOST_HASH; } catch (e) { ok = false; }
+  /* ★ 合っていても合っていなくても、コードの欄はすぐ空にする（毎回たずねる） */
+  if (ci) ci.value = "";
+  if (!ok) { if (btn) btn.disabled = false; say("アクセスコードがちがいます"); return; }
+  try { if (window.XEVA) XEVA.add(amt, "ホスト権限で受け取り", { noRank: true }); } catch (e) { ok = false; }
+  if (ai) ai.value = "";
+  if (btn) btn.disabled = false;
+  if (!ok || !window.XEVA) { say("受け取れませんでした。もう一度お試しください"); return; }
+  say(amt.toLocaleString("ja-JP") + " XEVA を受け取りました（残高 " + (XEVA.getBalance() || 0).toLocaleString("ja-JP") + "）", true);
+  try { if (typeof xhToast === "function") xhToast("🔐 ホスト権限で " + amt.toLocaleString("ja-JP") + " XEVA を受け取りました"); } catch (e) {}
+}
+window.xhOpenHost = xhOpenHost; window.xhCloseHost = xhCloseHost; window.xhHostGo = xhHostGo;
 
 /* ══════════════ 【一時】画面の測定値（下バーの位置しらべ） ══════════════
    ★ 2026-08-12c iPhone で下のタブバーが画面の下端より高い位置で止まる件の調査用。

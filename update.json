@@ -1,22 +1,17 @@
 {
-  "version": "2026-10-15-1",
-  "date": "2026-10-15",
-  "title": "これって浮気？判定シート／MagiChemLex にフラッシュカード・特設予想問題・基礎セット3・4（全1,569問）",
+  "version": "2026-10-16-1",
+  "date": "2026-10-16",
+  "title": "新ガチャ「超極華祭」（UR 5体・MagiAbyss 専用）／同期・ガチャ画面の不具合を修正",
   "notes": [
-    "これって浮気？判定シート（ホームの XEVARION PARK の真上）：40個の行動を3つに仕分けて浮気ライン・タイプ・境界線がわかる／コードでふたりの一致度を比べられる",
-    "MagiChemLex：フラッシュカード（問題→正解・解説・自分のメモ・手書き・電卓）／特設予想問題「553＞1107 を証明せよ」（藤垣の最終定理・解法18通り・ニュースとグラフ・確認テストをはじめて解くと1,660 XEVA）",
-    "MagiChemLex：基礎セット3・4を追加（改題104問＋関連問題180問）で全1,569問・基礎セット1〜4を番号順に並べ直し（記録はそのまま）",
-    "MagiChemLex：習得・習得中・未習を色分けしたバー／絞り込み時のカードの大きさをそろえた／メモの幅を広く（ドラッグで変更可）／電卓の表示が上下するのを修正／一覧の下の「次の問題へ」をなくした",
-    "追加データのダウンロード：更新があるときはダウンロードしてから遊ぶように（オフラインのときは今のデータで）",
-    "更新画面：「更新したファイル」がいつも0件だったのを直し、実際に変わったファイルの数と大きさを表示",
-    "起動画面：XEVARION のロゴの下に3社のロゴを少し長めに・タップしてスタートとログインの画面をウマ娘風に",
-    "ガチャ・コミュニティ・図鑑：下バーを開いた瞬間に表示（少し遅れて出ていたのを修正）",
-    "MagiShift：1手もどる（だれの手でも1手ずつ）・順番はカードめくり・あと1つでそろう印（標準は表示しない）・中断を10件まで・5〜6人も4つ並べ・使いきり表示のはみ出しを修正",
-    "MagiAbyss：冒険の地図をドラッグ・ホイール・矢印で動かせるように（画面外の迷宮もえらべる）",
-    "MagiChainParty：バクハツの演出を控えめでカジュアルに・連鎖の数を盤の右上に小さく表示"
+    "超極華祭：チエ・イチカ・ノノカ・アイナ・ユナの UR 5体（各1.5%）。毎月11〜20日・🎫ガチャ券OK・ガチャ一覧のいちばん上。5体とも MagiAbyss 専用（ユナはタキナより少し強く、ほかの4体はタキナと同じくらい）。MagiChemLex のナビやアイコンにも使えます",
+    "ガチャ画面：ジェム・チケットの所持数が出ないことがあったのを修正／カットインは SSR 以上のキャラ1体につき1回に／ガチャ結果のキャラ詳細で SS 絵が後ろに出ていたのを修正",
+    "同期：キャラの所持・限界突破やパートナーの開放が別の端末に反映されないことがあったのを修正（開いたままの画面も1分ごとに取りこみ）",
+    "キャラ詳細：キャラのまわりに属性色のフレーム／設定：ホスト権限（アクセスコードは毎回入力）",
+    "MagiShift：赤✕・黄★・オレンジ♥で見分けやすく／順位の決めかたともらえる XEVA を表示（同じなら同じ順位）",
+    "MagiChemLex：メモの紙を左右に広く（縮小しても色が薄くならず、ずらして書ける）"
   ],
-  "bytes": 69465541,
-  "files": 771,
+  "bytes": 73797643,
+  "files": 792,
   "urls": [
     "index.html",
     "characters.html",
@@ -306,6 +301,11 @@
     "MagiBurst/img/ss/YuumiSS.webp",
     "MagiBurst/img/ss/RinaSS.webp",
     "MagiBurst/img/ss/KaoriSS.webp",
+    "MagiBurst/img/ss/ChieSS.webp",
+    "MagiBurst/img/ss/IchikaSS.webp",
+    "MagiBurst/img/ss/NonokaSS.webp",
+    "MagiBurst/img/ss/AinaSS.webp",
+    "MagiBurst/img/ss/YunaSS.webp",
     "MagiBurst/img/ss/YajuSS.webp",
     "MagiBurst/img/ss/KokonaAlphaSS.webp",
     "img/Kaede.webp",
@@ -427,6 +427,7 @@
     "MagiBurst/img/bn_fes16_s.webp",
     "MagiBurst/img/bn_fes17_s.webp",
     "MagiBurst/img/bn_fes18_s.webp",
+    "MagiBurst/img/bn_fes19_s.webp",
     "MagiBurst/img/bn_fes14_s.webp",
     "img/t_Suzune.webp",
     "img/t_Minamo.webp",
@@ -566,6 +567,16 @@
     "img/Rina_w.webp",
     "img/t_Kaori.webp",
     "img/Kaori_w.webp",
+    "img/t_Chie.webp",
+    "img/Chie_w.webp",
+    "img/t_Ichika.webp",
+    "img/Ichika_w.webp",
+    "img/t_Nonoka.webp",
+    "img/Nonoka_w.webp",
+    "img/t_Aina.webp",
+    "img/Aina_w.webp",
+    "img/t_Yuna.webp",
+    "img/Yuna_w.webp",
     "MagiBurst/img/eq_head.webp",
     "MagiBurst/img/eq_arm.webp",
     "MagiBurst/img/eq_body.webp",
@@ -752,6 +763,11 @@
     "img/Yuumi.webp",
     "img/Rina.webp",
     "img/Kaori.webp",
+    "img/Chie.webp",
+    "img/Ichika.webp",
+    "img/Nonoka.webp",
+    "img/Aina.webp",
+    "img/Yuna.webp",
     "img/Hibana.webp",
     "img/Fuki.webp",
     "img/Hinano.webp",
@@ -792,16 +808,55 @@
   ],
   "apps": [
     "magiabyss",
+    "magibattle",
+    "magibocciarush",
+    "magiburst",
     "magichainparty",
     "magichemlex",
+    "magicounter",
+    "magidominiongrid",
+    "magijackpot",
+    "magilex",
+    "magilotto",
+    "magimusic",
+    "magiscope",
     "magishift",
     "tab:chars",
     "tab:community",
     "tab:gacha",
-    "tab:home"
+    "tab:home",
+    "xevynar"
   ],
-  "changedFiles": 34,
+  "changedFiles": 73,
   "history": [
+    {
+      "version": "2026-10-15-1",
+      "date": "2026-10-15",
+      "title": "これって浮気？判定シート／MagiChemLex にフラッシュカード・特設予想問題・基礎セット3・4（全1,569問）",
+      "notes": [
+        "これって浮気？判定シート（ホームの XEVARION PARK の真上）：40個の行動を3つに仕分けて浮気ライン・タイプ・境界線がわかる／コードでふたりの一致度を比べられる",
+        "MagiChemLex：フラッシュカード（問題→正解・解説・自分のメモ・手書き・電卓）／特設予想問題「553＞1107 を証明せよ」（藤垣の最終定理・解法18通り・ニュースとグラフ・確認テストをはじめて解くと1,660 XEVA）",
+        "MagiChemLex：基礎セット3・4を追加（改題104問＋関連問題180問）で全1,569問・基礎セット1〜4を番号順に並べ直し（記録はそのまま）",
+        "MagiChemLex：習得・習得中・未習を色分けしたバー／絞り込み時のカードの大きさをそろえた／メモの幅を広く（ドラッグで変更可）／電卓の表示が上下するのを修正／一覧の下の「次の問題へ」をなくした",
+        "追加データのダウンロード：更新があるときはダウンロードしてから遊ぶように（オフラインのときは今のデータで）",
+        "更新画面：「更新したファイル」がいつも0件だったのを直し、実際に変わったファイルの数と大きさを表示",
+        "起動画面：XEVARION のロゴの下に3社のロゴを少し長めに・タップしてスタートとログインの画面をウマ娘風に",
+        "ガチャ・コミュニティ・図鑑：下バーを開いた瞬間に表示（少し遅れて出ていたのを修正）",
+        "MagiShift：1手もどる（だれの手でも1手ずつ）・順番はカードめくり・あと1つでそろう印（標準は表示しない）・中断を10件まで・5〜6人も4つ並べ・使いきり表示のはみ出しを修正",
+        "MagiAbyss：冒険の地図をドラッグ・ホイール・矢印で動かせるように（画面外の迷宮もえらべる）",
+        "MagiChainParty：バクハツの演出を控えめでカジュアルに・連鎖の数を盤の右上に小さく表示"
+      ],
+      "apps": [
+        "magiabyss",
+        "magichainparty",
+        "magichemlex",
+        "magishift",
+        "tab:chars",
+        "tab:community",
+        "tab:gacha",
+        "tab:home"
+      ]
+    },
     {
       "version": "2026-10-14-1",
       "date": "2026-10-14",
@@ -1283,25 +1338,6 @@
         "magiportfolio",
         "magiranking",
         "magitier"
-      ]
-    },
-    {
-      "version": "2026-09-24-3",
-      "date": "2026-09-24",
-      "title": "ホームがロビーに／パートナー3人（舞香・衣織・樹愛羅）",
-      "notes": [
-        "ホームをパートナーが真ん中に立つロビーに（下にアプリ5つ・設定で入れかえ）",
-        "パートナーに衣織・樹愛羅を追加（設定から選べる・キャラごとに背景）",
-        "イベント・アップデートはボタンから一覧で／最近のガチャのバナー",
-        "MagiBattle のレベル・装備を独立（所持と凸は共通のまま）",
-        "MagiScope と MagiChainParty の位置を入れかえ"
-      ],
-      "apps": [
-        "tab:home",
-        "tab:gacha",
-        "tab:chars",
-        "magibattle",
-        "magilex"
       ]
     }
   ]

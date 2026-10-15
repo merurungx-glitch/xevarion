@@ -399,7 +399,8 @@
     GEAR_PARTS, GEAR_PART, GEAR_FX, GEAR_FX_IDS, GEAR_FX_DESC, FX_TEXT, ADV, DIS,
     ready: core, hashN, elemMult, triAdv, unit, statsAt, powerOf, gearSum, gearIsHigh, sharedOf, defMul, lvCurve,
     s2Text, burstText, detailHTML, ensureCSS, esc,
-    roster() { try { return CHAR_IDS.filter((id) => CHARS[id]); } catch (e) { return []; } },
+    /* ★★ 2026-10-16 MagiAbyss 専用のキャラ（超極華祭・abyssOnly）は MagiBattle に出さない */
+    roster() { try { return CHAR_IDS.filter((id) => CHARS[id] && !CHARS[id].abyssOnly); } catch (e) { return []; } },
     /* ★ 旧 API（characters.html の古い XEVA キャラの詳細が呼ぶ）。XEVA の id を MagiBurst の id に読みかえて出す */
     statsHTML(c) {
       const id = (c && (XEVA_ALIAS_R[c.id] || c.id)) || "";

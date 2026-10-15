@@ -7,7 +7,7 @@
    ・オフライン中の進行は localStorage に残り、オンライン復帰時に
      xeva-cloud.js がタイムスタンプ比較でクラウドへ上書き反映する
    ============================================================ */
-const VERSION = "xevarion-sw-v235";
+const VERSION = "xevarion-sw-v237";
 
 /* ホームを成立させる最小セット（重い画像は runtime キャッシュに任せる） */
 const CORE = [
@@ -17,22 +17,22 @@ const CORE = [
   "./characters.html",
   /* ★ 2026-08-10 ガチャは XEVARION に一本化。中身は MagiBurst の共有モジュールが持つ */
   "./gacha.html",
-  "./gacha-ui.js?v=62",
-  "./mb-newchars.js?v=35",
+  "./gacha-ui.js?v=63",
+  "./mb-newchars.js?v=36",
   "./xevion-os.js?v=13",
   "./xevion-os.css?v=15",
-  "./magibattle-stats.js?v=17",
-  "./MagiBurst/js/mb-core.js?v=136",
+  "./magibattle-stats.js?v=18",
+  "./MagiBurst/js/mb-core.js?v=137",
   /* ★ 2026-08-10 ガチャと図鑑で共通の土台・キャラ詳細・結果演出 */
   /* ★ 2026-08-12 ポータルのガチャ・図鑑も magiburst_v1 を同期するようになった */
-  "./app-cloud.js?v=12",
-  "./MagiBurst/magiburst-cloud.js?v=23",
+  "./app-cloud.js?v=13",
+  "./MagiBurst/magiburst-cloud.js?v=24",
   "./mb-boot.js?v=17",
-  "./mb-char-detail.js?v=45",
-  "./mb-char-detail.css?v=29",
+  "./mb-char-detail.js?v=46",
+  "./mb-char-detail.css?v=30",
   "./mb-gacha-reveal.css?v=11",
   /* ★★ 2026-10-09 ガチャの演出を1から作り直した（1体ずつ・確定演出・UR は縦長の絵） */
-  "./xeva-summon.js?v=3",
+  "./xeva-summon.js?v=4",
   "./community.html",
   "./about.html",
   "./manifest.webmanifest",
@@ -57,10 +57,10 @@ const CORE = [
   "./xeva-i18n-p3.js?v=7",
   "./xeva-i18n-mb7.js?v=7",
   "./xeva-i18n-p4.js?v=8",
-  "./xeva-i18n-n1.js?v=16",
+  "./xeva-i18n-n1.js?v=17",
   "./xeva-i18n-n2.js?v=3",
-  "./xeva.js?v=77",
-  "./xeva-alive.js?v=5",
+  "./xeva.js?v=78",
+  "./xeva-alive.js?v=6",
   "./xeva-fx.js?v=9",
   "./xeva-loading.js?v=19",
   "./xeva-splash.js?v=16",          // ★★ 2026-10-13 XEVARION の起動画面（3社ロゴ）にも使う
@@ -69,10 +69,10 @@ const CORE = [
   "./uwaki.css?v=1",
   "./thumbs/Uwaki.jpg",
   "./xevarion.js?v=102",
-  "./xevarion-home.js?v=164",
+  "./xevarion-home.js?v=165",
   /* ★★ 2026-09-24 ホームのロビーとパートナー。素材は home-mate/<id>/（?v= は home-mate.js の HM_VER）・笙古／瞳／舞香／衣織／樹愛羅／映美里（09-25 ボイス廃止・表情は webp） */
-  "./gacha-live.js?v=6",
-  "./home-mate.js?v=23",
+  "./gacha-live.js?v=7",
+  "./home-mate.js?v=24",
   "./xeva-event-ui.js?v=2",
   "./home-mate.css?v=21",
   "./xeva-pop.css?v=1",
@@ -136,14 +136,14 @@ const CORE = [
   "./xeva-back.js?v=9",
   "./xeva-keys.js?v=32",
   /* ★★ 2026-10-01 同期のモジュールも入れる（前は実行時キャッシュだけ＝更新直後のオフラインで読めなかった） */
-  "./xeva-cloud.js?v=44",
-  "./xevarion-fb.js?v=33",
+  "./xeva-cloud.js?v=45",
+  "./xevarion-fb.js?v=34",
   "./xeva-sync.js?v=18",
   "./xeva-presence.js?v=9",
   /* ★ 2026-08-20 通信設定（Wi-Fi／モバイルデータごとの動き）。
      この SW へ設定を送る側なので、オフラインでも読めるようにここに入れておく。 */
   "./xeva-netmode.js?v=10",
-  "./game-link.js?v=10",
+  "./game-link.js?v=11",
   "Xevarion.png",
   "XEVA.png",
   "./brand-xevarion-orb.png",
@@ -189,9 +189,9 @@ const CORE = [
   "./thumbs/MagiManor.jpg",
   /* ★★ 2026-10-13 MagiDiamond は廃止（ご指定）。そのファイル・アイコン・英語辞書（xeva-i18n-md1.js）を外して消した */
   /* ★★ 2026-09-10 図鑑のキャラ詳細で Magi: Boccia Rush の性能も出すので、ここでも持つ */
-  "./MagiBocciaRush/js/mbr-core.js?v=20",
+  "./MagiBocciaRush/js/mbr-core.js?v=21",
   /* ★★ 2026-10-09 キャラ詳細・新キャラ紹介で MagiAbyss の性能も出すので、ここでも持つ */
-  "./MagiAbyss/js/ma-data.js?v=6",
+  "./MagiAbyss/js/ma-data.js?v=7",
   "./MagiAbyss/js/ma-stats.js?v=2",
   "./thumbs/MagiMusic.jpg",
   "./thumbs/MagiFocus.jpg",

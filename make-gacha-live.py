@@ -47,6 +47,9 @@ def main():
         d = dict(key=key, nm=f('nm'), banner=f('banner'), bannerSoon=f('bannerSoon'), since=f('since'), until=f('until'),
                  openAt=f('openAt'), monthly=[int(mon.group(1)), int(mon.group(2))] if mon else None,
                  perm=bool(re.search(r'\bperm:\s*true', blk)), lux=bool(re.search(r'\bluxGacha:\s*true', blk)))
+        # ★★ 2026-10-16 超極華祭（chokaen）はガチャ一覧のいちばん上＝ロビーのバナーでも先頭に（home-mate.js の liveGachas）
+        if re.search(r'\bchokaen:\s*true', blk):
+            d['top'] = True
         for k in ('banner', 'bannerSoon'):
             d[k] = d[k].replace('../img/', 'MagiBurst/img/')
         defs.append(d)

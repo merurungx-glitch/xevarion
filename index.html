@@ -66,7 +66,7 @@
 .xl-uwk:active{translate:0 2px}
 @media (prefers-reduced-motion:reduce){.xl-uwk .xl-shine::before{animation:none}}
 </style>
-<script src="xeva.js?v=77" defer></script>
+<script src="xeva.js?v=78" defer></script>
 <!-- ★★ 2026-09-05 コレクションを XEVARION 全体で1本にする共通部品。
      xeva.js の iconCharList() を使うので、必ず xeva.js の<b>あと</b>に置く。 -->
 <script src="xeva-collection.js?v=8" defer></script>
@@ -89,7 +89,7 @@
 <script src="xeva-i18n-mb7.js?v=7"></script>
 <script src="xeva-i18n-p4.js?v=8"></script>
 <!-- ★★ 2026-09-06b 今回足したもの（新キャラ14体・装備・スタメンなど）の英語辞書 -->
-<script src="xeva-i18n-n1.js?v=16"></script>
+<script src="xeva-i18n-n1.js?v=17"></script>
 <script src="xeva-i18n-n2.js?v=3"></script>
 <!-- ★ 2026-08-20 通信設定（Wi-Fi／モバイルデータごとに「最新を取りに行くか」を決める）。
      決めた内容はここから各アプリの Service Worker へ送られ、SW 側が動きを切り替える。 -->
@@ -97,9 +97,9 @@
 <!-- ★ 2026-08-18 新キャラ告知の台帳（MagiBurst と共通）。
      告知を<b>ポータルのログイン時</b>に一本化したので、ここでも読む。
      defer なので xevarion.js より先に実行される（書いた順番で走る）。 -->
-<script src="mb-newchars.js?v=35" defer></script>
+<script src="mb-newchars.js?v=36" defer></script>
 <!-- ★★ 2026-09-25 ガチャの台帳（開催期間とバナー。make-gacha-live.py が mb-core.js から自動で作る）。ホーム左上のバナー用 -->
-<script src="gacha-live.js?v=6" defer></script>
+<script src="gacha-live.js?v=7" defer></script>
 <!-- ★★ 2026-08-22b Xevion OS（XEVARION の UI をひとつの OS として扱う土台）。
      ほかの画面より<b>先に</b>読む（body のクラスを立てるので、あとから読むと一瞬ちらつく）。 -->
 <script src="xevion-os.js?v=13"></script>
@@ -107,13 +107,15 @@
 <script src="xeva-fx.js?v=9" defer></script>
 <script src="xeva-loading.js?v=19" defer></script>
 <script type="module" src="xeva-sync.js?v=18"></script>
-<script type="module" src="xevarion-fb.js?v=33"></script>
+<script type="module" src="xevarion-fb.js?v=34"></script>
 <script src="xeva-presence.js?v=9" defer></script>
-<script type="module" src="xeva-cloud.js?v=44"></script>
+<script type="module" src="xeva-cloud.js?v=45"></script>
+<!-- ★★ 2026-10-16 キャラの所持・凸（magiburst_v1）もここで同期する（前は読むだけで、別の端末で引いたキャラが出てこないことがあった） -->
+<script type="module" src="MagiBurst/magiburst-cloud.js?v=24"></script>
 <script src="xeva-qr.js?v=9" defer></script>
 <script src="xevarion.js?v=102" defer></script>
-<script src="xevarion-home.js?v=164" defer></script>
-<script src="home-mate.js?v=23" defer></script>
+<script src="xevarion-home.js?v=165" defer></script>
+<script src="home-mate.js?v=24" defer></script>
 <!-- ★★ 2026-10-06 XEVARION 共通イベント（Violet Breeze）のページ。中身は xeva.js の XEVA.event -->
 <script src="xeva-event-ui.js?v=2" defer></script>
 </head>
@@ -1161,6 +1163,12 @@ body.xos-nomotion .xh-start-tap .hp, body.xos-nomotion .xh-start-sub, body.xos-n
       </button>
 
       <div class="xh-sec-label">その他</div>
+      <!-- ★★ 2026-10-16 ホスト権限（ご指定）：アクセスコードを入れると、入力した数の XEVA を受け取れる。コードは毎回たずねる（どこにも覚えない） -->
+      <button class="xh-row" onclick="xhOpenHost()">
+        <span class="rl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4.6" y="10.4" width="14.8" height="10" rx="2.2"/><path d="M8 10.4V7.6a4 4 0 018 0v2.8"/><circle cx="12" cy="15.4" r="1.5" fill="currentColor"/></svg>
+          <span><span class="rt">ホスト権限</span><span class="rs">アクセスコードで XEVA を受け取る（毎回コードが必要です）</span></span></span>
+        <span class="rv">›</span>
+      </button>
       <button class="xh-row" onclick="xhOpenAdmin()">
         <span class="rl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.2 4.6 6.4v5.2c0 4.6 3.1 8.4 7.4 9.6 4.3-1.2 7.4-5 7.4-9.6V6.4Z"/><path d="M9.4 12.2l1.9 1.9 3.6-3.9"/></svg>
           <span><span class="rt">管理画面</span><span class="rs">アクセスコードが必要です</span></span></span>
@@ -1471,6 +1479,24 @@ body.xos-nomotion .xh-start-tap .hp, body.xos-nomotion .xh-start-sub, body.xos-n
   </div>
 </div>
 
+
+<!-- ★★ 2026-10-16 ホスト権限（ご指定）。照合は xevarion-home.js の xhHostGo（SHA-256）。コードも数も、毎回まっさらにする -->
+<div class="xh-sheet" id="xhHostSheet" onclick="if(event.target===this)xhCloseHost()">
+  <div class="xh-sheet-card">
+    <div class="xh-sheet-head">
+      <div class="xh-sheet-title">🔐 ホスト権限</div>
+      <button class="xh-sheet-x" onclick="xhCloseHost()">✕</button>
+    </div>
+    <div class="xh-sheet-body">
+      <div class="xh-sortnote"><b>アクセスコード</b>と受け取る <b>XEVA の数</b>を入力してください。<br>コードは記録しません（毎回入力が必要です）。</div>
+      <input class="xh-code" id="xhHostCode" type="password" placeholder="アクセスコード" autocomplete="off" autocapitalize="off" spellcheck="false">
+      <input class="xh-code" id="xhHostAmt" type="number" inputmode="numeric" min="1" max="100000000" step="1" placeholder="受け取る XEVA の数" autocomplete="off"
+             onkeydown="if(event.key==='Enter')xhHostGo()">
+      <div class="xh-codemsg" id="xhHostMsg"></div>
+      <button class="xh-sbtn" id="xhHostBtn" onclick="xhHostGo()">XEVA を受け取る</button>
+    </div>
+  </div>
+</div>
 
 <!-- ───── XEVA HUB ───── -->
 <style>
@@ -2121,6 +2147,23 @@ body.xos-nomotion .xh-start-tap .hp, body.xos-nomotion .xh-start-sub, body.xos-n
 
   <div class="nm-body" id="newsBody">
     <div class="nm-divider" id="newDivider" style="display:none;">NEW — 前回から更新</div>
+    <!-- 2026-10-16：超極華祭（UR 5体・MagiAbyss 専用）／同期・ガチャ画面・キャラ詳細の直し／ホスト権限／MagiShift の色と形・順位／MagiChemLex のメモ -->
+    <div class="nm-item" data-tag="new" data-date="2026-10-16">
+      <div class="nm-date">2026<br>10.16</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag new">NEW</span></div>
+        <div class="nm-title">🌸 新ガチャ「超極華祭」（UR 5体・MagiAbyss 専用）／同期とガチャ画面の不具合を修正</div>
+        <div class="nm-txt">・<b>超極華祭</b>：<b>チエ（火）・イチカ（水）・ノノカ（木）・アイナ（光）・ユナ（闇）</b>の <b>UR 5体</b>が登場する新しいガチャです（各1.5%）。開催は極華祭と同じ<b>毎月11〜20日</b>、🎫ガチャ券が使えます。極華祭とは別のガチャで、ガチャ一覧の<b>いちばん上</b>に出ます。<br>
+          　5体は <b>MagiAbyss 専用のキャラクター</b>で、性能は MagiAbyss の性能だけです（MagiBurst・MagiBattle・MagiBocciaRush では使えません。MagiChemLex のナビゲーターや XEVARION のアイコンには使えます）。MagiAbyss では<b>ユナはタキナより少し強く</b>、ほかの4体は<b>タキナと同じくらい</b>の強さです。<br>
+          ・<b>ガチャ画面</b>：ジェムやチケットの所持数が表示されないことがあったのを直しました。カットインは <b>SSR 以上のキャラ1体につき1回</b>になり、出てくるキャラの数と合うようにしました。ガチャ結果からキャラ詳細を開いて<b>SS絵</b>を出すと後ろに隠れていたのを直しました。<br>
+          ・<b>キャラ詳細</b>：キャラのまわりに<b>属性の色のフレーム</b>を付けました。<br>
+          ・<b>同期</b>：キャラの所持・限界突破や、パートナーの開放が、別の端末に反映されないことがあったのを直しました（開いたままの画面も、1分ごとにほかの端末の変化を取りこみます）。<br>
+          ・<b>設定</b>：「その他」に<b>ホスト権限</b>を追加しました（アクセスコードは毎回入力が必要です）。<br>
+          ・<b>MagiShift</b>：赤・黄・オレンジを見分けやすい色にし、駒の中の形を<b>✕（赤）・★（黄）・♥（オレンジ）</b>にしました。結果の画面と遊び方に<b>順位の決めかた</b>と<b>もらえる XEVA</b>を出し、最長の並びと駒の数が同じときは<b>同じ順位（賞金も同じ）</b>にしました。<br>
+          ・<b>MagiChemLex</b>：メモの紙を<b>左右に広く</b>し、縮小しても色が薄くならず、左右へずらして書けるようにしました。
+        </div>
+      </div>
+    </div>
     <!-- 2026-10-15：これって浮気？判定シート（PARK の真上）／MagiChemLex フラッシュカード・特設予想問題／追加データのダウンロードを必須に／起動画面のロゴ -->
     <div class="nm-item" data-tag="new" data-date="2026-10-15">
       <div class="nm-date">2026<br>10.15</div>
