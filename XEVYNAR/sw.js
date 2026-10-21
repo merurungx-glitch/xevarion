@@ -6,7 +6,7 @@
    ・オフライン中の記録は localStorage に残り、オンライン復帰時に
      xeva-cloud.js がクラウドへ反映する。
    ============================================================ */
-const VERSION = "xevynar-sw-v62";
+const VERSION = "xevynar-sw-v63";
 const CORE = [
   "./",
   "./index.html",
@@ -27,8 +27,8 @@ const CORE = [
   "./xevynar-192.png",
   "./xevynar-512.png",
   "../maintenance-gate.js?v=13",
-  "../xeva.js?v=79",
-  "../xeva-alive.js?v=6",
+  "../xeva.js?v=80",
+  "../xeva-alive.js?v=7",
   "../xeva-splash.js?v=17",
   "../xeva-loading.js?v=19",
   "../XEVA.png",

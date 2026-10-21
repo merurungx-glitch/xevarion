@@ -174,7 +174,10 @@ if ("serviceWorker" in navigator) {
 <div id="fx" class="fx" aria-hidden="true"></div>
 
 <script type="module" src="../xevarion-fb.js?v=35"></script>
-<script src="../xeva.js?v=79"></script>
+<!-- ★★ 2026-10-22 xeva-cloud.js を読んでいなかった（賞金の XEVA・レベルがこのページではクラウドへ送られなかった）。ログインなしでも遊べるようにホームへは戻さない -->
+<script>window.XEVA_CLOUD_NO_GATE = true;</script>
+<script type="module" src="../xeva-cloud.js?v=47"></script>
+<script src="../xeva.js?v=80"></script>
 <script src="../xeva-loading.js?v=19" defer></script>
 <script src="../game-link.js?v=13"></script>
 <script src="js/shift-core.js?v=8"></script>
