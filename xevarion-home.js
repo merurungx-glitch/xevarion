@@ -48,7 +48,10 @@ const XH_OFFLINE_OK = {
      （キャラの絵は一度見たら控える。よく使う10体ぶんは最初から控えてある）。 */
   magiabyss:       { name: "MagiAbyss",      href: "MagiAbyss/index.html",       sw: "MagiAbyss/sw.js" },
   /* ★★ 2026-10-06 新作 MagiChemLex。問題・解説・図はすべて端末の中にあるので通信は要らない（記録の同期だけ通信を使う）。 */
-  magichemlex:     { name: "MagiChemLex",    href: "MagiChemLex/index.html",     sw: "MagiChemLex/sw.js" }
+  magichemlex:     { name: "MagiChemLex",    href: "MagiChemLex/index.html",     sw: "MagiChemLex/sw.js" },
+  /* ★★ 2026-10-21 新作 MagiDerby（実際の JRA GⅠ）。一度読んだ出馬表・結果は端末に控えるので、見るだけならオフラインでも開ける。
+     ★ 馬券を買う・払い戻すときだけ通信が要る（締切・払い戻しの時刻をサーバーの時刻で確かめるため）。 */
+  magiderby:       { name: "MagiDerby",      href: "MagiDerby/index.html",       sw: "MagiDerby/sw.js" }
 };
 /* オフラインでも遊べるアプリの名前を「◯◯ ／ ◯◯」でつなぐ。
    ★★ 2026-09-13c <b>案内の文面を手で書かない</b>ためのもの。
@@ -113,12 +116,16 @@ const XH_APPS = [
   /* ★★ 2026-09-21 新作 MagiShift（対戦ボードゲーム）。ご指定で MagiScope の右。 */
   { id:"magishift", name:"MagiShift", full:"MagiShift", sub:"対戦ボードゲーム", cat:"game", tone:"blue",
     href:"MagiShift/index.html", img:"thumbs/MagiShift.jpg",
-    desc:"1台の iPad を2〜6人（CPU も）で囲む、マルバツを発展させた対戦ボードゲーム。<b>置いた駒をあとから動かせる</b>（間の駒を飛びこえて2マス先へ）のが特徴で、盤面はいつも変わり最後まで逆転があります。押す・ブロックで守りの手が増える「タクティクス」ルールつき。人数で盤面と勝利条件が変わり（5×5〜9×9・4〜5つ並べ）、XEVARION アカウントと紐づけて名前と戦績を残せます。" },
+    desc:"1台の iPad を2〜8人（CPU も）で囲む、マルバツを発展させた対戦ボードゲーム。<b>置いた駒をあとから動かせる</b>（間の駒を飛びこえて2マス先へ）のが特徴で、盤面はいつも変わり最後まで逆転があります。押す・ブロックで守りの手が増える「タクティクス」ルールつき。人数で盤面と勝利条件が変わり（5×5〜9×9・4〜5つ並べ）、XEVARION アカウントと紐づけて名前と戦績を残せます。" },
   /* ★★ 2026-10-05 新作 MagiAbyss（見下ろし型ドットアクションRPG）。キャラは極彩祭・極煌祭・極華祭の10体（所持と凸は共通）。 */
   /* ★ newUntil … この日まで、ロビーとメニューのアイコンに「NEW」の印（home-mate.js の isNewApp・xhAppTile） */
   { id:"magiabyss", name:"MagiAbyss", full:"MagiAbyss", sub:"ドットアクションRPG", cat:"game", tone:"violet", newUntil:"2026-10-26",
-    href:"MagiAbyss/index.html", img:"thumbs/MagiAbyss.jpg",
+    href:"MagiAbyss/index.html", img:"thumbs/MagiAbyss.jpg?v=2",
     desc:"広大なアビス（魔力迷宮）を探索し、大量の敵をなぎ払う見下ろし型ドットアクションRPG。6種の武器と魔法・装備を組み合わせる<b>星脈共鳴</b>で自分だけのビルドを作り、鍵を集めて最深部のボスへ。6つの迷宮・中ボス・祭壇・隠し部屋・エンドコンテンツ「深淵踏破」。キャラクターは極彩祭・極煌祭・極華祭の10体（所持と凸は XEVARION と共通）。オフラインで遊べます。" },
+  /* ★★ 2026-10-21 新作 MagiDerby（競馬 G1）。ご指定でホームのロビーの PARK の場所にボタン（index.html の a.xl-g1）。並びは XH_DEFAULT_ORDER のロビーの次 */
+  { id:"magiderby", name:"MagiDerby", full:"MagiDerby", sub:"競馬 G1・馬券", cat:"game", tone:"gold", newUntil:"2026-11-04",
+    href:"MagiDerby/index.html", img:"thumbs/MagiDerby.jpg",
+    desc:"<b>実際の JRA 平地 GⅠ</b>（今年の全24レース）に XEVA で賭ける競馬アプリ。出馬表・馬柱・血統・オッズ・結果・払戻金は<b>すべて本物</b>（自動取得）で、払い戻しは<b>実際の払戻金どおり</b>（1 XEVA ＝ 1円）。単勝・複勝・枠連・馬連・ワイド・馬単・3連複・3連単（ボックス・ながし・フォーメーション）。発売はレースの日の 0:00 から・<b>締切は発走2分前</b>（サーバーの時刻で判定）・払い戻しは次の日の 0:00。結果から JRA 公式のレース映像へ、データからの再現アニメーションも。" },
   { id:"magiscope", name:"MagiScope", full:"MagiScope", sub:"エンタメランキング", cat:"info", tone:"blue",
     href:"MagiScope/index.html", img:"thumbs/MagiScope.jpg",
     desc:"アニメ（国内の視聴者数＝Annict・トレンド＝AniList）・FANZA同人・カラオケ（DAM）の<b>実際のランキング</b>を、本物の表紙・ジャケットつきで1時間ごとに自動更新。<b>3カテゴリーは完全に別々のランキング</b>で、種類・期間・絞り込み・詳細もカテゴリーごと。順位推移・同じカテゴリー内の比較・カテゴリー別のお気に入りとトレンド。" },
@@ -202,50 +209,27 @@ const XH_RETIRED_AT = { MagiDiamond: "2026-10-13" };
      枠は11個のままなので、押し出された MagiManor は「その他」へ移る。
    ★ 2026-08-13 11枠目を MagiCraft から ORDYXIS に入れ替え（MagiCraft は「その他」へ）。 */
 const XH_DEFAULT_ORDER = [
-  /* ★★ 2026-09-09 ホームの11枠を入れかえ（ご指定）。
-     ・Arcana Rush の位置 → <b>XEVYNAR</b>
-     ・もとの XEVYNAR の位置 → <b>MagiRanking</b>
-     ・もとの MagiRanking の位置 → <b>MagiCounter</b>
-     ・もとの Magi Lotto の位置 → <b>Magi: Boccia Rush</b>
-     ・Arcana Rush と Magi Lotto は「その他」へ下げる。
-     ★★ MagiCounter と Boccia Rush は XH_APPS にだけ足して<b>この並びに無かった</b>ので、
-        アプリ一覧（ホームも「その他」も）に一切出ていなかった。
-        ★ <b>新しいアプリは XH_APPS と XH_DEFAULT_ORDER の両方</b>に必ず書くこと。 */
-  /* ★★ 2026-09-12 <b>MagiRanking の場所を MagiQuest と入れかえ</b>（ご指定）。
-     MagiRanking は「その他」のいちばん前へ下げる。 */
-  /* ★★ 2026-09-17 <b>XEVYNAR の位置に Boccia Rush</b>、<b>MagiJackpot の位置に XEVYNAR</b>（ご指定）。
-     空いたもとの Boccia Rush の枠（10番目）には MagiJackpot を入れる。 */
-  /* ★★ 2026-09-17e <b>MagiArcanaRush を廃止</b>（ご指定）。その位置に MagiJackpot、
-     もとの MagiJackpot の位置（ホーム10番目）に MagiTier。 */
-  /* ★★ 2026-09-17f <b>MagiQuest を廃止</b>（ご指定）。後ろのアプリを1つずつ前へつめ、
-     もとの XEVYNAR の位置（ホーム11番目）に MagiJackpot。 */
-  /* ★★ 2026-09-24d <b>MagiChainParty と MagiScope の位置を入れかえ</b>（ご指定）。 */
-  /* ★★ 2026-10-06 <b>MagiTier は「その他」へ</b>、新作 <b>MagiChemLex を MagiCounter の左</b>に（ご指定）。 */
-  "magilex", "magilink", "magiburst", "magibocciarush",
-  /* ★★ 2026-10-13 MagiDiamond を廃止（ご指定）→ 後ろを1つずつ前へつめた */
-  "magiscope", "magidominiongrid",
-  "magichemlex", "magicounter", "xevynar", "magijackpot",
-  /* 以降は「その他」の中に入る */
-  /* ★★ 2026-09-21c 並びのご指定：
-       ・もとの MagiRail の場所（12番目）＝ <b>MagiLotto</b>
-       ・もとの MagiRanking の場所（15番目）＝ <b>MagiRail</b>
-       ・<b>MagiRanking は「その他」へ</b>
-     ホームに出るのは先頭から XH_HOME_SLOTS（15）個まで。 */
-  /* ★★ 2026-09-23 <b>MagiRail と MagiBattle の位置を入れかえ</b>（ご指定）。
-       MagiBattle がホームの15番目へ、MagiRail は「その他」のもとの MagiBattle の位置へ。 */
-  "magilotto",
-  "magichainparty",
-  "magishift",
-  "magibattle",
-  /* ★★ 2026-10-05 新作 MagiAbyss は MagiBattle のすぐ後ろ（並びを変えた人にも、MagiBattle の右に入る＝xhOrder） */
-  "magiabyss",
-  /* ★★ 2026-10-06 MagiTier はホームから「その他」へ（MagiAbyss のすぐ後ろ） */
-  "magitier",
-  /* ここから下は「その他」の中に入る */
-  "magiranking",
-  "ordyxis", "magicraft", "magimanor", "magiportfolio",
-  "magiarena", "magirail", "magiempire", "magifocus", "magimusic",
-  "ngx", "ishida", "magicalfuture",
+  /* ★★ 2026-10-20 ご指定「メニューのアプリの標準の並びを、ホームの常時表示（ロビーの2行・10個）と同じ順に。残りもきれいに」
+     → メニューの棚は5列にして、<b>上の2行＝ロビーとまったく同じ並び</b>。そのあとは種類ごと（新作 → ゲーム → 学習・AI → 情報・ツール → 会社）。
+     ★ ロビーの2行目は home-mate.js の LOBBY_ROW2_DEF（1行目はこの並びの先頭から）。どちらかを変えたらもう一方もそろえる。
+     ★ 新しいアプリは XH_APPS とこの並びの両方に書くこと（片方だけだとどこにも出ない）。
+     （それまでの並びの経緯：09-09 11枠の入れかえ／09-12 MagiRanking⇔MagiQuest／09-17 Boccia・XEVYNAR・Jackpot／09-17e Arcana Rush 廃止／
+       09-17f MagiQuest 廃止／09-21c Lotto・Rail／09-23 Rail⇔Battle／09-24d ChainParty⇔Scope／10-05 MagiAbyss／10-06 ChemLex・Tier／10-13 MagiDiamond 廃止） */
+  /* ロビーの1行目 */
+  "magilex", "magilink", "magiburst", "magibocciarush", "magiscope",
+  /* ロビーの2行目（★★ 2026-10-21 ご指定で MagiCounter と MagiDerby を入れかえ） */
+  "magichemlex", "magiderby", "magiabyss", "magishift", "magichainparty",
+  /* 対戦サポート（ホームでは左の札） */
+  "magicounter",
+  /* ゲーム */
+  "magibattle", "magidominiongrid", "magijackpot", "magilotto",
+  "magiarena", "magirail", "magicraft", "magimanor", "magiempire",
+  /* 学習・AI */
+  "xevynar", "magifocus",
+  /* 情報・ツール */
+  "magitier", "magimusic", "magiportfolio", "magiranking",
+  /* 会社・お店 */
+  "ordyxis", "ngx", "ishida", "magicalfuture",
 ];
 /* ★★ 2026-09-21 ホームに出すアプリを1列（4つ）増やして 15 個に（ご指定）。
    ホームの棚は4列なので、11＋「その他」＝3列だったのが 15＋「その他」＝4列になる。 */
@@ -255,7 +239,7 @@ const XH_ORDER_KEY = "xeva_home_order_v2";
    （アプリの入れ替えを、既にホームを触った人にも確実に反映させるため） */
 /* ★★ 2026-09-21c 並びを変えたので世代を上げる（保存ずみの並びを一度だけ既定に戻す）。
    これを上げないと、ホームを並びかえたことがある人には新しい並びが出ない。 */
-const XH_ORDER_GEN = "13-1006";   /* ★★ 2026-10-06 MagiChemLex を MagiCounter の左・MagiTier を「その他」へ */ /* 前: "12-0924" */   /* ★★ 2026-09-24d MagiChainParty と MagiScope の入れかえ */ /* 前: "11-0923" */   /* ★★ 2026-09-23 MagiRail と MagiBattle の入れかえ */ /* 前: "10-0921c" */   /* ★★ 2026-09-17e Arcana Rush 廃止・MagiTier をホームへ（保存ずみの並びも一度だけ既定へ） */   /* ★★ 2026-09-09 11枠の入れかえと、抹けていた新作2本を既存の並びにも効かせる */
+const XH_ORDER_GEN = "15-1021";   /* ★★ 2026-10-21 MagiCounter と MagiDerby の入れかえ */ /* 前: "14-1020" */   /* ★★ 2026-10-20 メニューの並びをロビーと同じに・残りを種類ごとに（保存ずみの並びも一度だけ既定へ） */ /* 前: "13-1006" */   /* ★★ 2026-10-06 MagiChemLex を MagiCounter の左・MagiTier を「その他」へ */ /* 前: "12-0924" */   /* ★★ 2026-09-24d MagiChainParty と MagiScope の入れかえ */ /* 前: "11-0923" */   /* ★★ 2026-09-23 MagiRail と MagiBattle の入れかえ */ /* 前: "10-0921c" */   /* ★★ 2026-09-17e Arcana Rush 廃止・MagiTier をホームへ（保存ずみの並びも一度だけ既定へ） */   /* ★★ 2026-09-09 11枠の入れかえと、抹けていた新作2本を既存の並びにも効かせる */
 const XH_ORDER_GEN_KEY = "xeva_home_order_gen";
 
 /* 期間限定イベント（from/to は YYYY-MM-DD。期間内のものだけ表示）
@@ -267,7 +251,7 @@ const XH_ORDER_GEN_KEY = "xeva_home_order_gen";
 const XH_EVENTS = [
   /* ★★ 2026-10-16 超極華祭（UR 5体・MagiAbyss 専用）。極華祭と同じ毎月 11〜20日・ガチャ一覧のいちばん上 */
   { tag:"UR", t1:"超極華祭（UR 5体）",
-    t2:"毎月11〜20日。チエ・イチカ・ノノカ・アイナ・ユナの UR 5体（各1.5%）——MagiAbyss 専用のキャラクター（ユナはタキナより少し強い）。🎫ガチャ券OK",
+    t2:"毎月11〜20日。ヨシノ・イチカ・ノノカ・アイナ・ユナの UR 5体（各1.5%）——MagiAbyss 専用のキャラクター（ユナはタキナより少し強い）。🎫ガチャ券OK",
     always:true, perm:true, monthly:[11, 20], since:"2026-10-16", from:"2026-10-16", to:"2027-12-31",
     href:"gacha.html#fes19", img:"thumbs/MagiBurst.jpg" },
   /* ★★ 2026-10-09 Pumpkin Night（UR 10体・<b>11月30日まで</b>）。ガチャ一覧では Sapphire Breeze の上に固定 */
@@ -466,6 +450,10 @@ const XH_EVENTS = [
    中身（ミッション・割引・倍率）は xeva.js の XEVA.event。押すとイベントのページ（xeva-event-ui.js）。 */
 XH_EVENTS.unshift({ tag:"EVENT", t1:"Violet Breeze", t2:"MagiLex 系統の XEVA ×2・イベントミッションで🎫最大20枚・パートナー1人20%OFF・お得なパック",
   since:"2026-10-06", from:"2026-10-06", to:"2026-10-31", href:"index.html#event", img:"thumbs/VioletBreeze.jpg" });
+/* ★★ 2026-10-20 11月の共通イベント「Midnight Pumpkin」（11/1〜11/30・ご指定「開催予告と準備」）。
+   開催前（10/20〜）の予告は、ホーム左上のバナー（home-mate.js の liveEvents が XEVA.event.upcoming を見る）とお知らせ。 */
+XH_EVENTS.unshift({ tag:"EVENT", t1:"Midnight Pumpkin", t2:"イベントミッションで🎫ガチャチケット・💱両替チケット／MagiDerby の的中払戻 +10%・MagiAbyss のゴールド ×1.5・MagiLex 系統 XEVA ×1.5／限定パック",
+  since:"2026-11-01", from:"2026-11-01", to:"2026-11-30", href:"index.html#event", img:"thumbs/MidnightPumpkin.jpg" });
 
 /* ══════════════════════════════════════════════════════════════
    ★★ 2026-08-29b アップデート情報（ご指定）
@@ -485,9 +473,25 @@ XH_EVENTS.unshift({ tag:"EVENT", t1:"Violet Breeze", t2:"MagiLex 系統の XEVA 
    ══════════════════════════════════════════════════════════════ */
 const XH_UPDATE_MAX = 12;
 const XH_UPDATES = [
+  /* ★★ 2026-10-21 新作 MagiDerby（実際の JRA GⅠ）／Midnight Pumpkin 予告／両替所／下バー・コミュニティ／ChemLex WP／MagiShift 8人 */
+  { tag:"NEW", t1:"新作 MagiDerby（実際の JRA GⅠ に XEVA で賭ける）", at:"2026-10-21",
+    t2:"ホームの PARK の場所から。出馬表・馬柱・血統・オッズ・結果・払戻金はすべて本物／8券種・ボックス・ながし・フォーメーション／発売は当日 0:00・締切は発走2分前・払い戻しは次の日 0:00（実際の払戻金どおり）／JRA 公式のレース映像へ",
+    href:"MagiDerby/index.html", img:"thumbs/MagiDerby.jpg" },
+  { tag:"EVENT", t1:"🎃 Midnight Pumpkin（11/1〜11/30）開催予告", at:"2026-10-21",
+    t2:"イベントミッションで🎫ガチャチケット・💱両替チケット／MagiDerby 的中払戻 +10%・MagiAbyss ゴールド ×1.5・MagiLex 系統 XEVA ×1.5／限定パック",
+    href:"index.html#event", img:"thumbs/MidnightPumpkin.jpg" },
+  { tag:"UPDATE", t1:"XEVA 両替所／下バー・コミュニティ・アイコン", at:"2026-10-21",
+    t2:"ショップに両替所（💱1枚で💎5を XEVA に）／下バーは図鑑・ガチャ・ホーム・コミュニティ・設定／PARK とアニメTier はコミュニティへ／キャラアイコンに属性色の縁・完凸で光る／チエ → ヨシノ",
+    href:"community.html", img:"icons/xev-512.png" },
+  { tag:"UPDATE", t1:"MagiChemLex に Wisdom Point・計算以外モード／MagiShift 8人まで", at:"2026-10-21",
+    t2:"完全習得 +5・確認テスト +10 の WP をチケットと交換（オフラインでも保存・同期）／計算問題以外を解くモード／MagiShift は8人・CPU 交代・ヒント・手番の時計・戦況バー・TOP3",
+    href:"MagiChemLex/index.html", img:"thumbs/MagiChemLex.jpg?v=2" },
+  { tag:"UPDATE", t1:"MagiTier リニューアル（PC）／ホームの MagiDerby 発売中", at:"2026-10-21",
+    t2:"一覧のカードを見やすく／編集画面のボタンを整理・元に戻す／やり直す（Ctrl+Z / Ctrl+Y）・数字キーで段へ移す／アニメ Tier表は縦長で表示／ホームは MagiDerby の発売中をボタンで知らせる・MagiCounter と入れかえ",
+    href:"MagiTier/MagiTier.html", img:"thumbs/MagiTier.jpg" },
   /* ★★ 2026-10-16 超極華祭（UR 5体・MagiAbyss 専用）／同期・ガチャ画面／MagiShift／MagiChemLex */
   { tag:"NEW", t1:"超極華祭（UR 5体・MagiAbyss 専用）", at:"2026-10-16",
-    t2:"チエ・イチカ・ノノカ・アイナ・ユナ（各1.5%）。毎月11〜20日・🎫ガチャ券OK・ガチャ一覧のいちばん上。MagiAbyss ではユナがタキナより少し強く、ほかの4体はタキナと同じくらい",
+    t2:"ヨシノ・イチカ・ノノカ・アイナ・ユナ（各1.5%）。毎月11〜20日・🎫ガチャ券OK・ガチャ一覧のいちばん上。MagiAbyss ではユナがタキナより少し強く、ほかの4体はタキナと同じくらい",
     href:"gacha.html#fes19", img:"thumbs/MagiBurst.jpg" },
   { tag:"UPDATE", t1:"同期・ガチャ画面・キャラ詳細の直し／ホスト権限", at:"2026-10-16",
     t2:"キャラの所持・凸やパートナーが別の端末に反映されないことがあったのを修正／ガチャの所持数の表示・カットインの数・SS絵が後ろに出る、を修正／キャラ詳細に属性色のフレーム／設定にホスト権限",
@@ -547,14 +551,14 @@ const XH_UPDATES = [
     href:"MagiChemLex/index.html", img:"thumbs/MagiChemLex.jpg?v=2" },
   { tag:"UPDATE", t1:"MagiAbyss のスマホ操作・MagiBurst の下バー", at:"2026-10-13",
     t2:"MagiAbyss：技のボタンは同じ大きさの4つでコンパクトに・左下のスティックはすみに固定・ダッシュ回避を廃止（赤い予告から歩いて出る・弾をかすめると「よけた！」）／MagiBurst：ショップのガチャタブを廃止・「育成」と「キャラ図鑑」を下バーで別々に／MagiBocciaRush：叡智の果実の絵を MagiBurst と同じに／MagiChainParty：iPhone・iPad で下バーと画面の下のあいだの空白をなくした",
-    href:"MagiAbyss/index.html", img:"thumbs/MagiAbyss.jpg" },
+    href:"MagiAbyss/index.html", img:"thumbs/MagiAbyss.jpg?v=2" },
   /* ★★ 2026-10-12 その2：ポップな見た目・ガチャ演出・MagiAbyss 大型更新・MagiChemLex 標準セット */
   { tag:"NEW", t1:"ホームをポップな見た目に・ガチャ演出を一新", at:"2026-10-12",
     t2:"ホーム・ガチャ・図鑑・コミュニティを明るい若草色に（ボタンの位置はそのまま）／ガチャは警報→解析→大きな題字→光の十字のあとに1体ずつ・UR の前に EMERGENCY・前より長く派手に／タイトル画面にサーバーの番号",
     href:"gacha.html", img:"thumbs/MagiBurst.jpg" },
   { tag:"NEW", t1:"MagiAbyss 第7〜第9迷宮・技とスキル", at:"2026-10-12",
     t2:"紅月の禁域・氷炎の大回廊・星喰いの深淵神殿／敵の強さは推奨戦力から（最難関は UR 最大育成で勝率およそ半分）／鍵は中ボス3体から・試練中は部屋から出られない・ボスの技が増えて連続攻撃／自分で使う技（固有技・技・秘技・必殺技）と自動のスキル（虹・金・白）／スマホは自動攻撃・おすすめ一括装備",
-    href:"MagiAbyss/index.html", img:"thumbs/MagiAbyss.jpg" },
+    href:"MagiAbyss/index.html", img:"thumbs/MagiAbyss.jpg?v=2" },
   { tag:"UPDATE", t1:"MagiChemLex 標準セット・全756問", at:"2026-10-12",
     t2:"標準セット1・2（改題と大問ごとの関連問題）を追加／本番セットにも大問ごとの関連問題・関連問題タブは本番レベル／標準レベル／セットごとのリセット（もう一度ごほうび）／習得中になっていない問題だけ・完全習得までの日数／前後の問題へめくれる・メモを広く",
     href:"MagiChemLex/index.html", img:"thumbs/MagiChemLex.jpg?v=2" },
@@ -574,7 +578,7 @@ const XH_UPDATES = [
     href:"gacha.html", img:"thumbs/MagiBurst.jpg" },
   { tag:"UPDATE", t1:"3属性有利・MagiAbyss・MagiChemLex", at:"2026-10-09",
     t2:"MagiBurst：全属性有利は全キャラ「3属性有利」に（自分と同じ属性・苦手な属性をのぞく3つ）・UR 13体を同じくらいの強さにそろえネクサスを強化／MagiAbyss：ホーム右上のボタンが押せなかった不具合を修正・必殺技のカットインを豪華に（UR は縦長の絵・技を隠さない）・UR の火力をそろえた／MagiChemLex：ナビ（ケミィ）を持っている UR キャラにかえられる",
-    href:"MagiAbyss/index.html", img:"thumbs/MagiAbyss.jpg" },
+    href:"MagiAbyss/index.html", img:"thumbs/MagiAbyss.jpg?v=2" },
   /* ★★ 2026-10-07 新レアリティ UR「Sapphire Breeze」／MagiChemLex 大型アップデート／天井100・パートナー値下げ・Boccia・MagiLex */
   { tag:"NEW", t1:"新レアリティ UR「Sapphire Breeze」", at:"2026-10-07",
     t2:"無期限。ヒバナ（木）・フキ（闇）・タキナ（水）の UR 3体が各1.0%／はじめての10連は無料・🎫フェス券OK／フキは史上最大のフルバースト／ガチャ一覧のいちばん上",
@@ -597,7 +601,7 @@ const XH_UPDATES = [
     href:"MagiChemLex/index.html", img:"thumbs/MagiChemLex.jpg?v=2" },
   { tag:"UPDATE", t1:"MagiAbyss 大型アップデート", at:"2026-10-06",
     t2:"拠点の広場・迷宮えらびの地図・探索中の画面を一新／スマホは横画面＋スティックとボタン・PC はキー設定／キャラ一覧と性能をアイコンでわかりやすく／ハードモード・クリア時間のミッション（ジェム）／XEVARION と共通の5属性／遊び方のアニメ説明／ミニマップを押すと拡大",
-    href:"MagiAbyss/index.html", img:"thumbs/MagiAbyss.jpg" },
+    href:"MagiAbyss/index.html", img:"thumbs/MagiAbyss.jpg?v=2" },
   { tag:"UPDATE", t1:"MagiBocciaRush の画面と演出を一新", at:"2026-10-06",
     t2:"少し明るいデザインと動きのある演出／ショットの矢印を大きく／ショットの予測の点線を出さない設定",
     href:"MagiBocciaRush/index.html", img:"thumbs/MagiBocciaRush.jpg" },
@@ -607,7 +611,7 @@ const XH_UPDATES = [
   /* ★★ 2026-10-05 新作 MagiAbyss／極彩祭に タキナ */
   { tag:"NEW", t1:"新作 MagiAbyss", at:"2026-10-05",
     t2:"見下ろし型ドットアクションRPG。冒険者ギルドから6つの迷宮へ／8方向移動・回避・スキル・必殺技／6種の武器と魔法・星脈共鳴のビルド／鍵を集めて最深部のボスへ／深淵踏破／キャラは極彩祭・極煌祭・極華祭の10体（所持と凸は共通・レベルと装備はこのアプリだけ）／オフライン対応",
-    href:"MagiAbyss/index.html", img:"thumbs/MagiAbyss.jpg" },
+    href:"MagiAbyss/index.html", img:"thumbs/MagiAbyss.jpg?v=2" },
   { tag:"NEW", t1:"極彩祭 に タキナ", at:"2026-10-05",
     t2:"史上最大のフルバースト・治癒の祈り・オムニアンチ＋超アンチ減速壁・全属性有利・全属性キラーEL/ボスキラーEL/パワーオーラEL・クロススキル（ドレインEL・全属性耐性M・リンク×2）・撃つたびのショットスキル。MagiBocciaRush・MagiAbyss でも最強",
     href:"gacha.html#fes7", img:"thumbs/MagiBurst.jpg" },
@@ -1343,12 +1347,27 @@ function xhStartStars() {
 }
 
 /* ══════════════ プロフィール / 通貨 ══════════════ */
+/* ★★ 2026-10-20 ご指定「ホームの左上の自分のアイコンが完凸で光るように」
+   アイコンのキャラが<b>限界突破MAX（4）</b>なら .xh-av-max（金→桃→空色にゆっくり光る＋光の帯）。
+   凸の数は MagiBurst のキャラ＝magiburst_v1.chars[id].awk、XEVA ガチャのキャラ＝xeva_gacha_v1.dupes[id]（どちらか大きいほう）。 */
+const XH_AV_MAX_AWK = 4;
+function xhAccAwk(acc) {
+  const id0 = String((acc && acc.charId) || ""); if (!id0) return 0;
+  const id = id0.replace(/^mb:/, "");
+  let awk = 0;
+  try { const db = JSON.parse(localStorage.getItem("magiburst_v1") || "null"); if (db && db.chars && db.chars[id]) awk = Math.max(awk, db.chars[id].awk | 0); } catch (e) {}
+  try { const g = JSON.parse(localStorage.getItem("xeva_gacha_v1") || "null"); if (g && g.dupes) awk = Math.max(awk, g.dupes[id] | 0, g.dupes[id0] | 0); } catch (e) {}
+  return awk;
+}
 function xhRenderProfile() {
   const acc = xhAcc() || {};
   const av = xhEl("xhAv");
   if (av) {
     if (acc.charFile) av.innerHTML = '<img src="' + xhCharS(acc.charFile) + '" alt="">';
     else av.innerHTML = '<span class="xh-av-init">' + xhEscape((acc.name || "?")[0].toUpperCase()) + "</span>";
+    const mx = !!acc.charFile && xhAccAwk(acc) >= XH_AV_MAX_AWK;
+    av.classList.toggle("xh-av-max", mx);
+    av.title = mx ? "限界突破MAX" : "";
   }
   const nm = xhEl("xhUserName"); if (nm) nm.textContent = acc.name || "XEVARION";
   /* ★★ 2026-08-25b 「キャラクター N体 所持」の行（#xhUidLine）は<b>廃止</b>しました（ご指定）。
@@ -1621,6 +1640,17 @@ const XH_PACKS = [
   { id:"pk_vb_select",  ic:"🌌", nm:"Violet Breeze セレクトパック",   pay:260, gem:160, gticket:32, select:1, c:"#5ab8ff",
     from:"2026-10-06", to:"2026-10-31", cycle:"term", max:2,
     desc:"PREMIUM SELECT GACHA のSSRから<b>好きな1体を確定で</b>。💎160 と 🎫ガチャチケット32枚つき。" },
+  /* ── 🎃 Midnight Pumpkin 限定パック（★★ 2026-10-20 イベントの準備・11/1〜11/30・各2回まで）──
+     🎫は<b>ガチャチケット</b>、💱は<b>両替チケット</b>（cash＝ショップの XEVA 両替所で 💎5 → XEVA）。 */
+  { id:"pk_mp_starter", ic:"🎃", nm:"Midnight Pumpkin スターターパック", pay:15, gem:6, gticket:6, cash:2, c:"#ff8a1f",
+    from:"2026-11-01", to:"2026-11-30", cycle:"term", max:2,
+    desc:"🎫6枚＋💎6＋💱両替チケット2枚。かぼちゃ祭りのはじめの一歩に。" },
+  { id:"pk_mp_value",   ic:"🦇", nm:"Midnight Pumpkin バリューパック",   pay:75, gem:55, gticket:22, cash:5, c:"#c2550c",
+    from:"2026-11-01", to:"2026-11-30", cycle:"term", max:2,
+    desc:"🎫22枚＋💎55＋💱両替チケット5枚。10連を2回以上たっぷり回せる、いちばん人気。" },
+  { id:"pk_mp_select",  ic:"🌙", nm:"Midnight Pumpkin セレクトパック",   pay:260, gem:160, gticket:32, select:1, cash:8, c:"#8b4dff",
+    from:"2026-11-01", to:"2026-11-30", cycle:"term", max:2,
+    desc:"PREMIUM SELECT GACHA のSSRから<b>好きな1体を確定で</b>。💎160・🎫ガチャチケット32枚・💱両替チケット8枚つき。" },
   /* ── 常設（毎週リセット・週1回）── */
   { id:"pk_beginner", ic:"✨", nm:"ビギナーパック",   pay:5,   gem:8,   c:"#3fd9b0", cycle:"week", max:1,
     desc:"はじめての一歩に。まずはここから。" },
@@ -1669,8 +1699,11 @@ const XH_FESSEL_GEM = 150;
 const XH_FESSEL_NM = { fes11:"戦姫祭", fes12:"RISING STAR FEST", fes13:"BUNNY GIRL FEST" };
 /* パックの中身をジェム換算した合計
    （🎫は XH_TICKET_GEM 個ぶん、★セレクト券は XH_SELECT_GEM 個ぶんとして数える） */
+/* ★★ 2026-10-20 💱両替チケット 1枚は「💎5 を XEVA に戻せる権利」なので、ジェム1個ぶんとして数える（中身を水増ししない） */
+const XH_CASH_TICKET_GEM = 1;
 function xhPackValue(p) {
   return p.gem
+    + (p.cash || 0) * XH_CASH_TICKET_GEM
     + ((p.ticket || 0) + (p.gticket || 0)) * XH_TICKET_GEM
     + (p.select || 0) * XH_SELECT_GEM
     + (p.fsel ? XH_FESSEL_GEM : 0);
@@ -1957,12 +1990,100 @@ function xhPaintShopHub() {
         "<small>通常より 50〜70% お得に💎とチケットを。" +
         (packs > 0 ? "いま <b>" + packs + "件</b> 買えます" : "いまは買えるパックがありません") +
         "</small></span><span class=\"sn\">›</span></button>" +
+      /* ★★ 2026-10-20 XEVA 両替所（ご指定「ジェムを XEVA に換金・換金チケット必須・1枚で 5ジェム」） */
+      '<button class="xh-shopitem cx" onclick="xhCloseSheet(\'xhShopHubSheet\');xhOpenCash()">' +
+        '<span class="si si-tk">' + (window.XevaCashTicketSVG ? XevaCashTicketSVG(22) : "💱") + '</span><span class="st"><b>XEVA 両替所</b>' +
+        "<small>💎ジェムを XEVA に両替します。<b>両替チケット1枚で 💎" + XH_CASH_GEM + "</b>（いまは 💎" + XH_CASH_GEM + " ＝ <b>" + (XH_CASH_GEM * rate).toLocaleString() + " XEVA</b>・チケット " + xhCashBal() + "枚）</small></span><span class=\"sn\">›</span></button>" +
       '<button class="xh-shopitem cr" onclick="xhCloseSheet(\'xhShopHubSheet\');xhOpenCryst()">' +
         '<span class="si">💠</span><span class="st"><b>結晶交換所</b>' +
         "<small>結晶 <b>" + xhCrystCost() + "個</b>で PREMIUM SELECT / GRAND DEBUT の<b>好きな1体</b>と交換" +
         "（いま " + xhCrystBal().toLocaleString() + "個）</small></span><span class=\"sn\">›</span></button>" +
     "</div>";
 }
+
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-10-20 XEVA 両替所（ご指定）
+   ------------------------------------------------------------
+   ・💎ジェム → XEVA。<b>両替チケットが必須</b>で、<b>1枚につき 💎5</b> を<b>そのときのレート</b>（ドル円・xhGemRate）で XEVA に。
+     例）レート 152 のとき 1枚で 💎5 → 760 XEVA。
+   ・両替チケット（XEVA.cashTicket・xeva.js）は MagiChemLex の Wisdom Point 交換・イベントミッション・メールでもらえる。
+   ・順番は「チケットとジェムを先に減らす → XEVA を足す」。片方が失敗したら戻す（ふえるだけ・減るだけを作らない）。
+   ・XEVA は opts.noRank（月間ランキングに入れない）・noEarn（獲得の累計に積まない）＝両替は「かせいだ」ものではないため。
+   ★ レートは押したときに読み直す（変換所と同じ。表示と支払いをずらさない）。
+   ══════════════════════════════════════════════════════════════ */
+const XH_CASH_GEM = 5;                    /* チケット1枚で両替できるジェムの数 */
+let _xhCashQty = 1;
+function xhCashBal() { try { return (window.XEVA && XEVA.cashTicket) ? XEVA.cashTicket.get() : 0; } catch (e) { return 0; } }
+function xhCashMax() { return Math.max(0, Math.min(xhCashBal(), Math.floor(xhGemBal() / XH_CASH_GEM))); }
+function xhOpenCash() { _xhCashQty = 1; xhPaintCash(); xhOpenSheet("xhCashSheet"); }
+window.xhOpenCash = xhOpenCash;
+function xhCashSet(n) { _xhCashQty = Math.max(1, Math.min(Math.max(1, xhCashMax()), Math.round(n) || 1)); xhPaintCash(); }
+window.xhCashSet = xhCashSet;
+function xhPaintCash() {
+  const box = xhEl("xhCashBody"); if (!box) return;
+  const tk = xhCashBal(), gem = xhGemBal(), rate = xhGemRate();
+  const maxN = xhCashMax();
+  const n = Math.max(1, Math.min(_xhCashQty, Math.max(1, maxN)));
+  _xhCashQty = n;
+  const g = n * XH_CASH_GEM, got = g * rate;
+  const can = maxN >= n && n > 0;
+  const why = tk < 1 ? "両替チケットがありません" : gem < XH_CASH_GEM ? "💎ジェムが足りません（1枚で💎" + XH_CASH_GEM + "）" : "";
+  const art = (px) => (window.XevaCashTicketSVG ? XevaCashTicketSVG(px) : "🎟️");
+  box.innerHTML =
+    '<div class="xh-cxhero"><div class="xh-cxtk">' + art(54) + '</div><div class="xh-cxhd"><b>両替チケット</b><span>1枚で 💎' + XH_CASH_GEM + ' を XEVA に両替</span>' +
+      '<em>所持 <b>' + tk.toLocaleString() + "</b> 枚</em></div></div>" +
+    xhFxPanel() +
+    '<div class="xh-sortnote">💎ジェムは <b>1個 ＝ 1米ドル</b>、XEVA は <b>1 ＝ 1円</b>。両替も<b>そのときのドル円</b>で計算します' +
+      '（いまは <b>💎1 ＝ ' + rate.toLocaleString() + " XEVA</b>）。<br>両替には <b>両替チケット</b>が要ります（<b>1枚につき 💎" + XH_CASH_GEM + "</b>）。" +
+      "チケットは <b>MagiChemLex の Wisdom Point 交換</b>・イベントミッション・メールで手に入ります。</div>" +
+    '<div class="xh-exbal">' +
+      '<span class="xh-cxbal">' + art(16) + tk.toLocaleString() + "枚</span>" +
+      '<span><img src="gem.png" alt="ジェム">' + gem.toLocaleString() + "</span>" +
+      '<span><img src="XEVA.png" alt="XEVA">' + (window.XEVA ? XEVA.getBalance() : 0).toLocaleString() + "</span>" +
+    "</div>" +
+    '<div class="xh-exstep">' +
+      '<button onclick="xhCashSet(' + (n - 1) + ')" ' + (n <= 1 ? "disabled" : "") + ' aria-label="1枚減らす">−</button>' +
+      '<span class="xh-exqty"><b>' + n.toLocaleString() + ' 枚</b><small>使う両替チケット（💎' + g.toLocaleString() + "）</small></span>" +
+      '<button onclick="xhCashSet(' + (n + 1) + ')" ' + (n >= maxN ? "disabled" : "") + ' aria-label="1枚増やす">＋</button>' +
+    "</div>" +
+    '<div class="xh-cxflow"><span><img src="gem.png" alt="">' + g.toLocaleString() + '</span><i>→</i><span class="to"><img src="XEVA.png" alt="">' + got.toLocaleString() + "</span></div>" +
+    '<button class="xh-sbtn" ' + (can ? "" : "disabled") + ' onclick="xhDoCash()">' +
+      (can ? "💱 " + got.toLocaleString() + " XEVA に両替する" : (why || "両替できません")) + "</button>" +
+    (maxN > n ? '<button class="xh-sbtn ghost" style="margin-top:8px" onclick="xhCashSet(' + maxN + ')">上限いっぱい（' + maxN + "枚・💎" + (maxN * XH_CASH_GEM) + "）にする</button>" : "") +
+    '<div class="xh-exmsg" id="xhCashMsg"></div>';
+}
+function xhCashMsg(t, ok) { const m = xhEl("xhCashMsg"); if (!m) return; m.innerHTML = t; m.style.color = ok ? "#0e8a5c" : "#e0405e"; }
+async function xhDoCash() {
+  const n = _xhCashQty, g = n * XH_CASH_GEM, rate = xhGemRate(), got = g * rate;
+  if (!window.XEVA || !XEVA.cashTicket || !XEVA.gem) { xhCashMsg("XEVA ウォレットに接続できません"); return; }
+  if (xhCashBal() < n) { xhCashMsg("両替チケットが足りません"); return; }
+  if (xhGemBal() < g) { xhCashMsg("💎ジェムが足りません（必要 💎" + g + "）"); return; }
+  const ok = await xhAsk({
+    icon: "💱", title: "XEVA に両替しますか？",
+    ok: "この内容で両替する", cancel: "やめる",
+    cost: { from: "💎" + g.toLocaleString(), to: got.toLocaleString() + " XEVA" },
+    body: "いまのレートは <b>💎1 ＝ " + rate.toLocaleString() + " XEVA</b>（ドル円連動）です。<br>" +
+      "<b>両替チケット " + n + "枚</b>と <b>💎" + g.toLocaleString() + "</b> を使って、<b>" + got.toLocaleString() + " XEVA</b> を受け取ります。<br><br>" +
+      "使ったチケットとジェムは戻せません。",
+  });
+  if (!ok) { xhCashMsg("両替をとりやめました"); return; }
+  if (g * xhGemRate() !== got) { xhPaintCash(); xhCashMsg("為替が動いたので金額を更新しました。もう一度お願いします"); return; }
+  if (xhCashBal() < n || xhGemBal() < g) { xhPaintCash(); xhCashMsg("残高が変わりました。もう一度お願いします"); return; }
+  /* 先に減らす（ジェム → チケット）。チケットで失敗したらジェムを戻す */
+  if (!XEVA.gem.spend(g, "XEVA 両替所（→ " + got + " XEVA）")) { xhCashMsg("両替に失敗しました"); return; }
+  if (!XEVA.cashTicket.spend(n, "XEVA 両替所（💎" + g + " → " + got + " XEVA）")) {
+    XEVA.gem.add(g, "XEVA 両替所（とりやめの返却）");
+    xhCashMsg("両替に失敗しました（ジェムは戻しました）"); return;
+  }
+  XEVA.add(got, "XEVA 両替所（💎" + g + "・両替チケット" + n + "枚）", { noRank: true, noEarn: true });
+  xhRenderXeva();
+  xhPaintCash();
+  xhCashMsg("💱 " + got.toLocaleString() + " XEVA に両替しました！（💎" + g + "・チケット" + n + "枚）", true);
+  xhToast("<b>" + got.toLocaleString() + " XEVA</b> に両替しました");
+  try { if (window.XOS) XOS.haptic(); } catch (e) {}
+}
+window.xhDoCash = xhDoCash;
+window.addEventListener("xeva:cashticket", () => { const sh = xhEl("xhCashSheet"); if (sh && sh.classList.contains("open")) xhPaintCash(); });
 
 /* ── パックストア（1回限りのパック） ── */
 function xhOpenShop() { xhPaintShop(); xhOpenSheet("xhShopSheet"); xhShopMarkSeen(); }
@@ -2028,7 +2149,7 @@ function xhMbReady() {
   if (typeof CHARS !== "undefined" && typeof PREMIUM_CHARS !== "undefined") return Promise.resolve(true);
   if (_xhMbLoading) return _xhMbLoading;
   _xhMbLoading = xhLoadScript("mb-boot.js?v=17")
-    .then(() => xhLoadScript("MagiBurst/js/mb-core.js?v=137"))
+    .then(() => xhLoadScript("MagiBurst/js/mb-core.js?v=138"))
     .then(() => true)
     .catch((e) => { _xhMbLoading = null; throw e; });
   return _xhMbLoading;
@@ -2190,6 +2311,7 @@ function xhPaintShop() {
           (p.fsel ? '<span class="xh-pksel f">★' + xhEscape(XH_FESSEL_NM[p.fsel] || p.fsel) + ' セレクト</span>' : "") +
           (p.ticket ? '<span class="xh-pkticket">🎫' + p.ticket.toLocaleString() + '</span>' : "") +
           (p.gticket ? '<span class="xh-pkticket g">🎫' + p.gticket.toLocaleString() + '</span>' : "") +
+          (p.cash ? '<span class="xh-pkticket cx">' + (window.XevaCashTicketSVG ? XevaCashTicketSVG(14) : "💱") + p.cash.toLocaleString() + '</span>' : "") +
           '<img src="gem.png" alt="ジェム">' +
           '<span class="n">' + p.gem.toLocaleString() + '</span>' +
           '<s>通常 ' + base.toLocaleString() + '</s>' +
@@ -2197,6 +2319,7 @@ function xhPaintShop() {
         '<div class="xh-pkdesc">' + p.desc +
           (p.ticket ? '<br>🎫は <b>フェスチケット</b>（買ったその場で増え、どのフェスでも使えます）' : "") +
           (p.gticket ? '<br>🎫は <b>ガチャチケット</b>（プレミアムでも各フェスでも使えます・1枚＝1回ぶん）' : "") +
+          (p.cash ? '<br>💱は <b>両替チケット</b>（ショップの「XEVA 両替所」で 💎5 をそのときのレートで XEVA に）' : "") +
           (p.select ? '<br>★<b>プレミアムセレクト券</b>は、<b>ガチャ画面</b>で使います'
             + '（PREMIUM SELECT GACHA から出るSSRの中から、好きな1体を確定で受け取れます）' : "") +
           (p.fsel ? '<br>★<b>' + xhEscape(XH_FESSEL_NM[p.fsel] || p.fsel) + ' セレクト券</b>は、<b>ガチャ画面のそのフェス</b>で使います'
@@ -2246,6 +2369,7 @@ function xhPackGot(p) {
   if (p.fsel) t.push("★" + (XH_FESSEL_NM[p.fsel] || p.fsel) + " セレクト券1枚");
   if (p.ticket) t.push("🎫フェスチケット" + p.ticket.toLocaleString() + "枚");
   if (p.gticket) t.push("🎫ガチャチケット" + p.gticket.toLocaleString() + "枚");
+  if (p.cash) t.push("💱両替チケット" + p.cash.toLocaleString() + "枚");
   if (p.gem) t.push("💎" + p.gem.toLocaleString());
   return t.join(" ＋ ");
 }
@@ -2310,6 +2434,10 @@ async function xhBuyPack(id) {
   /* ★ 2026-08-24 🎫ガチャチケット（どのガチャでも使える）。フェス券とは別のキー。 */
   if (p.gticket && window.XEVA && window.XEVA.ticket) {
     window.XEVA.ticket.add(p.gticket, "パックストア：" + p.nm);
+  }
+  /* ★★ 2026-10-20 💱両替チケット（ショップの XEVA 両替所で使う） */
+  if (p.cash && window.XEVA && window.XEVA.cashTicket) {
+    window.XEVA.cashTicket.add(p.cash, "パックストア：" + p.nm);
   }
   /* ★ 2026-08-24 ★プレミアムセレクト券。使うのはガチャ画面。 */
   if (p.select && window.XEVA && window.XEVA.selectTicket) {
@@ -2596,9 +2724,12 @@ function xhIsNewApp(a) {
   return t <= a.newUntil;
 }
 function xhAppTile(a) {
-  return '<button class="xh-app" data-app="' + a.id + '" data-tone="' + a.tone + '" ' +
+  /* ★★ 2026-10-21 MagiDerby の GⅠ の発売中は「🎫 発売中」の札（home-mate.js の XH_DERBY_SALE） */
+  let sale = null; try { if (a.id === "magiderby" && typeof window.XH_DERBY_SALE === "function") sale = window.XH_DERBY_SALE(); } catch (e) {}
+  return '<button class="xh-app' + (sale ? " on-sale" : "") + '" data-app="' + a.id + '" data-tone="' + a.tone + '" ' +
          'onclick="xhOpenApp(\'' + a.id + "','" + a.href + "')\">" +
          '<span class="xh-sq"><img src="' + xhEscape(xhAppIconSrc(a)) + '" alt="" loading="lazy"></span>' +
+         (sale ? '<em class="xl-sale-g1">発売中</em>' : "") +
          (xhIsNewApp(a) ? '<em class="xh-newb">NEW</em>' : "") +
          '<span class="nm">' + xhEscape(a.name) + "</span>" +
          '<span class="sb">' + xhEscape(a.sub) + "</span></button>";
@@ -2815,14 +2946,31 @@ window.xhResetSort = xhResetSort;
    ★ 絵が取れないときは onerror で元のアイコンに戻る（xeva.js の差し戻しも効く）。
    ══════════════════════════════════════════════════════════════ */
 const XH_APPICON_KEY = "xeva_home_appicon_v1";
-let _xhIconCache = null;
+let _xhIconCache = null, _xhIconRaw = null;
+/* ★★ 2026-10-20 ご報告「アプリアイコンのデザインの同期ができていないことがある」
+   真因：① 覚えた写し（_xhIconCache）を、同期で中身が変わっても使いつづけることがあった
+          （ロビーの描き直しが写しを消すより先に走ると古い絵のまま）
+        ② アイコンを変えても、描き直していたのはメニューの棚だけ＝<b>ロビーのアプリ（2行・10個）は古い絵のまま</b>
+   → 写しは「localStorage の中身が同じとき」だけ使う。変えたとき・同期・別タブで変わったときは
+     メニュー・ロビー・一覧・XEVARION 本体のアイコンをまとめて描き直す（xhRepaintAppIcons）。 */
 function xhAppIconMap() {
-  if (_xhIconCache) return _xhIconCache;
+  let raw = null;
+  try { raw = localStorage.getItem(XH_APPICON_KEY); } catch (e) {}
+  if (_xhIconCache && raw === _xhIconRaw) return _xhIconCache;
   let m = null;
-  try { m = JSON.parse(localStorage.getItem(XH_APPICON_KEY) || "null"); } catch (e) {}
+  try { m = JSON.parse(raw || "null"); } catch (e) {}
+  _xhIconRaw = raw;
   _xhIconCache = (m && typeof m === "object") ? m : {};
   return _xhIconCache;
 }
+function xhRepaintAppIcons() {
+  _xhIconCache = null;
+  try { xhRenderShelf(); } catch (e) {}
+  try { if (window.HomeMate && HomeMate.refreshApps) HomeMate.refreshApps(); } catch (e) {}
+  try { const sh = xhEl("xhAppsSheet"); if (sh && sh.classList.contains("on")) xhPaintAppList(); } catch (e) {}
+  try { xhApplyPortalIcon(); } catch (e) {}
+}
+window.xhRepaintAppIcons = xhRepaintAppIcons;
 function xhAppIconOf(appId) { return xhAppIconMap()[appId] || ""; }
 function xhIconChars() {
   try { return (window.XEVA && XEVA.iconCharList) ? XEVA.iconCharList() : []; } catch (e) { return []; }
@@ -2835,8 +2983,8 @@ function xhAppIconSrc(a) {
   return c ? xhCharS(c.file, c.id) : a.img;
 }
 /* 同期で別の端末から書きかわったとき、次に読むときに取り直す */
-window.addEventListener("storage", (e) => { if (e.key === XH_APPICON_KEY) _xhIconCache = null; });
-window.addEventListener("xeva:synced", () => { _xhIconCache = null; try { xhRenderShelf(); } catch (e) {} });
+window.addEventListener("storage", (e) => { if (e.key === XH_APPICON_KEY) xhRepaintAppIcons(); });
+window.addEventListener("xeva:synced", () => { xhRepaintAppIcons(); });
 
 let _xhIconApp = "", _xhIconQ = "";
 /* ══ ★★ 2026-09-23 <b>XEVARION そのもののアプリアイコン</b>もキャラ画像に（ご指定）══
@@ -2962,11 +3110,11 @@ function xhSetAppIcon(cid) {
     delete m[a.id];
   }
   try { localStorage.setItem(XH_APPICON_KEY, JSON.stringify(m)); } catch (e) {}
-  _xhIconCache = m;
+  _xhIconCache = null;
   xhPaintAppIcon();
   try { xhPaintSort(); } catch (e) {}
-  xhRenderShelf();
-  if (a.id === XH_PORTAL_ICON_ID) { try { xhApplyPortalIcon(); } catch (e) {} }
+  /* ★★ 2026-10-20 メニューの棚だけでなく、ロビーのアプリ・一覧・本体のアイコンも描き直す */
+  xhRepaintAppIcons();
   xhToast(cid ? "アイコンを変更しました" : "元のアイコンに戻しました");
 }
 window.xhSetAppIcon = xhSetAppIcon;
@@ -3342,9 +3490,7 @@ function xhPaintXos() {
     ${xosRow(XOS_IC.bell, "更新のあったアプリに印をつける",
       "前回から中身が変わったアプリと下のタブに赤い点を出します。そのアプリを開くと消えます。",
       xosSw(g("updateDots")), "xhXosToggle('updateDots')")}
-    ${xosRow(XOS_IC.gacha, "新キャラをガチャタブに出す",
-      "下のガチャタブを、いちばん新しいキャラの絵にします。",
-      xosSw(g("newCharTab")), "xhXosToggle('newCharTab')")}
+    ${/* ★★ 2026-10-20 ガチャタブはいつも通常の絵（ご指定）＝「新キャラをガチャタブに出す」の行は外した */ ""}
 
     <div class="xh-sec-label">表示</div>
     ${xosRow(XOS_IC.chr, "キャラクターの絵を出す",
@@ -3455,6 +3601,8 @@ function xhGo(tab) {
   try { if (window.XOS) XOS.haptic(); } catch (e) {}
   if (tab === "home") {
     try { xhMarkClear("tab:home"); } catch (e) {}
+    /* ★★ 2026-10-20 設定を開いているときにホームを押したら、設定を閉じてロビーへ */
+    { const ss = xhEl("xhSetSheet"); if (ss && ss.classList.contains("on")) { xhCloseSheet("xhSetSheet"); return; } }
     /* ★★ 2026-09-24 ホームはロビーになった。下バーの「ホーム」は引き出しシートを閉じてロビーへ戻る */
     if (typeof window.xlCloseDrawer === "function" && document.body.classList.contains("xl-drawer-open")) { window.xlCloseDrawer(); return; }
     const s = xhEl("xhScroll"); if (s) s.scrollTo({ top: 0, behavior: "smooth" });
@@ -3616,7 +3764,25 @@ function xhAsk(o) {
 window.xhAsk = xhAsk;
 
 function xhOpenSheet(id) { const s = xhEl(id); if (s) { xhSyncViewportH(); s.classList.add("on"); } }
-function xhCloseSheet(id) { const s = xhEl(id); if (s) s.classList.remove("on"); }
+function xhCloseSheet(id) { const s = xhEl(id); if (s) s.classList.remove("on"); if (id === "xhSetSheet") xhSetTabMark(false); }
+/* ══ ★★ 2026-10-20 ご報告「設定タブを開いたとき下バーが隠れる」══
+   設定は下バーのタブなのに、画面いっぱいのシート（z-index 1400）が下バーごと覆っていた。
+   → 設定のシートは<b>下バーの上の端まで</b>にする（開くときに下バーの位置を測る・画面の大きさが変わったら測りなおす）。
+     開いているあいだは下バーの「設定」を選んだ見た目にし、閉じたら「ホーム」にもどす。 */
+function xhSetSheetFit() {
+  const sh = xhEl("xhSetSheet"); if (!sh) return;
+  const bar = document.querySelector("#xhome .xh-bar");
+  const r = bar ? bar.getBoundingClientRect() : null;
+  if (r && r.height > 0 && r.top > 120) { sh.style.height = Math.round(r.top) + "px"; sh.classList.add("xh-tabsheet"); }
+  else { sh.style.height = ""; sh.classList.remove("xh-tabsheet"); }
+}
+function xhSetTabMark(on) {
+  document.querySelectorAll("#xhome .xh-bar .xh-ntab[data-tab]").forEach((b) => {
+    const t = b.getAttribute("data-tab");
+    b.classList.toggle("on", on ? t === "settings" : t === "home");
+  });
+}
+window.addEventListener("resize", () => { const sh = xhEl("xhSetSheet"); if (sh && sh.classList.contains("on")) xhSetSheetFit(); });
 window.xhCloseSheet = xhCloseSheet;
 
 function xhOpenSettings() {
@@ -3629,6 +3795,8 @@ function xhOpenSettings() {
   if (ist) ist.textContent = xhIsInstalled() ? "インストール済み — オフラインでも起動できます"
                                              : "ホーム画面に追加してアプリとして使う";
   xhOpenSheet("xhSetSheet");
+  xhSetSheetFit();
+  xhSetTabMark(true);
 }
 window.xhOpenSettings = xhOpenSettings;
 
@@ -4981,11 +5149,15 @@ function xhGachaTabChar() {
       { id: "mb:" + XH_GACHA_TAB_CHAR, mbId: XH_GACHA_TAB_CHAR, file: "../img/t_Takina.webp" };
   } catch (e) { return null; }
 }
+/* ★★ 2026-10-20 ご指定「下バーのガチャのアイコンをキャラではなく通常に戻して」
+   → キャラの絵はかぶせない（いつも下バーの SVG の絵）。Xevion OS の「新キャラをガチャタブに出す」の行も外した。
+   残っている絵（前の版で付けたもの）はここで外す。 */
+const XH_GACHA_TAB_USE_CHAR = false;
 function xhPaintGachaTabIcon() {
   const btn = document.querySelector('.xh-bar .xh-ntab[data-tab="gacha"]');
   if (!btn) return;
   /* ★ Xevion OS の設定でオフにできる（既定はオン） */
-  let allow = true;
+  let allow = XH_GACHA_TAB_USE_CHAR;
   try { if (window.XOS && !XOS.get("newCharTab")) allow = false; } catch (e) {}
   const c = allow ? xhGachaTabChar() : null;
   const show = !!c;

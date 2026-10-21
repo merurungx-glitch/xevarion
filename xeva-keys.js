@@ -147,6 +147,10 @@ export const PORTAL_SYNC_KEYS = [
   "magichemlex_v1",
   /* ★★ 2026-10-06c MagiChemLex のメモ（手書きの線・文字・「次の問題で消す」）。新しいほうが勝つ（混ぜない） */
   "magichemlex_pad_v1",
+  /* ★★ 2026-10-21 新作 MagiDerby（実際の JRA GⅠ に XEVA で賭ける）。買った馬券・収支・予想の印・設定。
+     混ぜ方は xeva-cloud.js の mergeDerby（馬券は id で和・精算ずみが勝つ＝払い戻しは二重にならない）。
+     ★ 出馬表・結果の控え（md_cache_v1:…）は同期しない（オンラインならいつでも取り直せる）。 */
+  "magiderby_v1",
   /* ★★ 2026-09-17f MagiQuest は廃止（magiquest_v1 は同期しない。端末に残ったぶんはホームが消す） */
 ];
 

@@ -2015,13 +2015,16 @@
     let pend = 0; try { pend = XEVA.event.pending(E.id); } catch (e) {}
     b.hidden = false;
     b.dataset.pend = pend ? String(pend) : "";
-    b.innerHTML = '<span class="evb-tag">EVENT</span><span class="evb-im"><img src="' + E.banner + '" alt=""></span><span class="evb-bar"><b>イベント開催中</b><small>のこり' + left + '日</small></span>';
+    b.innerHTML = '<span class="evb-tag">EVENT</span><span class="evb-im"><img src="' + E.banner + '" alt=""></span><span class="evb-bar"><b>開催中</b><small>のこり' + left + '日</small></span>';   /* ★★ 2026-10-20 バナーを小さくしたので「イベント開催中」→「開催中」 */
     b.onclick = () => { try { if (window.XOS) XOS.haptic(); } catch (e) {} if (window.XEVAEventUI) XEVAEventUI.open(E.id); else location.hash = "event"; };
   }
   function liveEvents() {
     try {
       if (!window.XEVA || !XEVA.event) return [];
-      return Object.keys(XEVA.event.DEFS).filter((id) => XEVA.event.active(id)).map((id) => { const E = XEVA.event.DEFS[id]; return { key: "ev_" + id, ev: id, banner: E.banner, nm: E.nm, t: "9999" }; });
+      /* ★★ 2026-10-20 開催予告中のイベント（Midnight Pumpkin など・preFrom 〜）も、開催中のあとに並べる（押すと予告の画面） */
+      const D = XEVA.event.DEFS, up = XEVA.event.upcoming || (() => false);
+      return Object.keys(D).filter((id) => XEVA.event.active(id)).map((id) => { const E = D[id]; return { key: "ev_" + id, ev: id, banner: E.banner, nm: E.nm, t: "9999" }; })
+        .concat(Object.keys(D).filter((id) => !XEVA.event.active(id) && up(id)).map((id) => { const E = D[id]; return { key: "ev_" + id, ev: id, banner: E.banner, nm: E.nm + "（開催予告）", t: "9998", pre: E.from }; }));
     } catch (e) { return []; }
   }
   let banI = 0, banTimer = 0;
@@ -2040,6 +2043,9 @@
       img.alt = g.nm || "";
       btn.onclick = () => { try { if (window.XOS) XOS.haptic(); } catch (e) {} if (g.ev) { if (window.XEVAEventUI) XEVAEventUI.open(g.ev); else location.hash = "event"; return; } location.href = "gacha.html#" + g.key; };
       btn.classList.toggle("ev", !!g.ev);
+      /* ★★ 2026-10-20 開催予告のバナーには「11/1〜」の札 */
+      btn.classList.toggle("pre", !!g.pre);
+      btn.dataset.pre = g.pre ? (Number(g.pre.slice(5, 7)) + "/" + Number(g.pre.slice(8, 10)) + "〜 予告") : "";
       const pend = (() => { try { return g.ev && window.XEVA && XEVA.event ? XEVA.event.pending(g.ev) : 0; } catch (e) { return 0; } })();
       btn.dataset.pend = pend ? String(pend) : "";
       /* 点はガチャが多いと並びきらないので、8個までは点・それより多いと「3/12」 */
@@ -2109,7 +2115,9 @@
   const LOBBY_PER_ROW = 5, LOBBY_MAX = 10;
   /* ★★ 2026-10-06 2行目を MagiChemLex・MagiCounter・MagiAbyss・MagiShift・MagiChainParty に（ご指定：MagiTier は「その他」へ・MagiChemLex は MagiCounter の左）。
      ★ 前の既定の2行目（下の OLD）をそのまま保存している人は、一度だけ新しい既定に直す（自分で並べた人はそのまま）。 */
-  const LOBBY_ROW2_DEF = ["magichemlex", "magicounter", "magiabyss", "magishift", "magichainparty"];
+  /* ★★ 2026-10-21 ご指定「MagiCounter と MagiDerby のボタンの位置を入れかえ」→ 2行目の2つめを MagiDerby に（MagiCounter はロビーの左の札へ） */
+  const LOBBY_ROW2_DEF = ["magichemlex", "magiderby", "magiabyss", "magishift", "magichainparty"];
+  const LOBBY_ROW2_1006 = ["magichemlex", "magicounter", "magiabyss", "magishift", "magichainparty"];
   const LOBBY_ROW2_OLD = ["magicounter", "magiabyss", "magishift", "magichainparty", "magitier"];
   try {
     if (localStorage.getItem("xeva_lobby_gen") !== "1006") {
@@ -2118,6 +2126,15 @@
         localStorage.setItem(LOBBY_APPS_KEY, JSON.stringify(sv.slice(0, LOBBY_PER_ROW).concat(LOBBY_ROW2_DEF.filter((id) => sv.slice(0, LOBBY_PER_ROW).indexOf(id) < 0))));
       }
       localStorage.setItem("xeva_lobby_gen", "1006");
+    }
+    /* ★★ 2026-10-21 10-06 の既定の2行目のままの人は、MagiCounter の場所を MagiDerby に（自分で並べた人はそのまま） */
+    if (localStorage.getItem("xeva_lobby_gen") === "1006") {
+      const sv = JSON.parse(localStorage.getItem(LOBBY_APPS_KEY) || "null");
+      if (Array.isArray(sv) && sv.length > LOBBY_PER_ROW && sv.slice(LOBBY_PER_ROW).join(",") === LOBBY_ROW2_1006.join(",") && sv.indexOf("magiderby") < 0) {
+        const nv = sv.slice(); nv[LOBBY_PER_ROW + 1] = "magiderby";
+        localStorage.setItem(LOBBY_APPS_KEY, JSON.stringify(nv));
+      }
+      localStorage.setItem("xeva_lobby_gen", "1021");
     }
   } catch (e) {}
   /* NEW の印（XH_APPS の newUntil の日まで） */
@@ -2149,10 +2166,51 @@
     return ids.slice(0, LOBBY_MAX).map((id) => byId[id]);
   }
   function iconOf(a) { try { if (typeof xhAppIconSrc === "function") return xhAppIconSrc(a); } catch (e) {} return a.img; }
+  /* ══ ★★ 2026-10-21 ご指定「MagiDerby の新しい GⅠ が買えるようになったら、ボタンをわかりやすく」══
+     MagiDerby の自動取得の一覧（derby/index.json）を10分ごとに見て、いま発売中（レースの日の 0:00〜発走の2分前・枠順確定ずみ）の
+     GⅠ があれば、ロビーとメニューの MagiDerby のアイコンに「🎫 発売中」の札と金色の輪を付ける。
+     ★ 見た目だけ（買えるかどうかの判定は MagiDerby がサーバーの時刻でする）。MagiDerby を開いたときの控え（md_cache_v1:index.json）も使う。 */
+  const DERBY_IDX = "https://raw.githubusercontent.com/merurungx-glitch/xevarion/magiscope-data/derby/index.json";
+  const DERBY_SHORT = { "優駿牝馬": "オークス", "東京優駿": "日本ダービー", "天皇賞（春）": "天皇賞・春", "天皇賞（秋）": "天皇賞・秋", "フェブラリーステークス": "フェブラリーS",
+    "スプリンターズステークス": "スプリンターズS", "マイルチャンピオンシップ": "マイルCS", "ジャパンカップ": "ジャパンC", "チャンピオンズカップ": "チャンピオンズC",
+    "阪神ジュベナイルフィリーズ": "阪神JF", "朝日杯フューチュリティステークス": "朝日杯FS", "ホープフルステークス": "ホープフルS", "NHKマイルカップ": "NHKマイルC", "ヴィクトリアマイル": "ヴィクトリアM" };
+  let _derbyIdx = null;
+  try { const c = JSON.parse(localStorage.getItem("md_cache_v1:index.json") || "null"); if (c && c.data) _derbyIdx = c.data; } catch (e) {}
+  function derbyNow() { try { if (window.XEVARIONFB && XEVARIONFB.now) return XEVARIONFB.now(); } catch (e) {} return Date.now(); }
+  function derbySale() {
+    const L = (_derbyIdx && _derbyIdx.races) || []; const t = derbyNow();
+    for (let i = 0; i < L.length; i++) {
+      const r = L[i]; if (!r || !r.rid || r.st !== "draw" || !r.date) continue;
+      const d = String(r.date).split("-").map(Number), p = String(r.post || "15:40").split(":").map(Number);
+      const day0 = Date.UTC(d[0], d[1] - 1, d[2]) - 9 * 3600000, post = day0 + (p[0] * 60 + p[1]) * 60000;
+      if (t >= day0 && t < post - 120000) return { nm: r.nm, short: DERBY_SHORT[r.nm] || r.nm, close: post - 120000 };
+    }
+    return null;
+  }
+  window.XH_DERBY_SALE = derbySale;
+  let _derbySig = "";
+  function derbyRefresh() {
+    if (document.hidden || navigator.onLine === false) { derbyPaint(); return; }
+    fetch(DERBY_IDX + "?t=" + Math.floor(Date.now() / 300000), { cache: "no-cache" }).then((r) => (r.ok ? r.json() : null)).then((j) => { if (j && j.races) _derbyIdx = j; derbyPaint(); }).catch(() => derbyPaint());
+  }
+  function derbyPaint() {
+    const ds = derbySale(), sig = ds ? ds.nm : "";
+    if (sig === _derbySig) return;
+    _derbySig = sig;
+    try { renderLobbyApps(); } catch (e) {}
+    try { if (typeof xhRenderShelf === "function") xhRenderShelf(); } catch (e) {}
+  }
+  setTimeout(derbyRefresh, 2500);
+  setInterval(derbyRefresh, 10 * 60000);
+  setInterval(derbyPaint, 60000);
   function renderLobbyApps() {
     const box = document.getElementById("xlApps"); if (!box) return;
     const apps = lobbyApps();
-    box.innerHTML = apps.map((a) => '<button class="xl-app" data-id="' + a.id + '"><span class="ic"><img src="' + iconOf(a) + '" alt="" loading="lazy"></span>' + (isNewApp(a) ? '<em class="xl-new">NEW</em>' : "") + '<span class="nm">' + a.name + "</span></button>").join("");
+    const ds = derbySale();
+    box.innerHTML = apps.map((a) => { const sale = a.id === "magiderby" && ds;
+      return '<button class="xl-app' + (sale ? " on-sale" : "") + '" data-id="' + a.id + '"' + (sale ? ' title="' + esc(ds.nm) + ' 発売中"' : "") + '><span class="ic"><img src="' + iconOf(a) + '" alt="" loading="lazy"></span>' +
+        (sale ? '<em class="xl-sale-g1">発売中</em>' : "") + (isNewApp(a) ? '<em class="xl-new">NEW</em>' : "") + '<span class="nm">' + a.name + "</span>" +
+        (sale ? '<span class="xl-sale-nm">' + esc(ds.short) + "</span>" : "") + "</button>"; }).join("");
     box.classList.toggle("two", apps.length > LOBBY_PER_ROW);
     box.querySelectorAll(".xl-app").forEach((b) => b.addEventListener("click", () => {
       const a = apps.find((x) => x.id === b.dataset.id); if (!a) return;
@@ -2262,7 +2320,9 @@
     openAppPicker,
     openInfo,
     liveGachas,
-    refreshBanners() { try { paintBanners(); paintEventBtn(); } catch (e) {} }
+    refreshBanners() { try { paintBanners(); paintEventBtn(); } catch (e) {} },
+    /* ★★ 2026-10-20 ロビーのアプリ（2行）を描き直す（アプリのアイコンを変えたとき・同期のあと） */
+    refreshApps() { try { renderLobbyApps(); } catch (e) {} }
   };
   window.HomeMate = api;
   const boot = () => {

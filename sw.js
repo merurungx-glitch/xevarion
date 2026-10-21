@@ -7,7 +7,7 @@
    ・オフライン中の進行は localStorage に残り、オンライン復帰時に
      xeva-cloud.js がタイムスタンプ比較でクラウドへ上書き反映する
    ============================================================ */
-const VERSION = "xevarion-sw-v237";
+const VERSION = "xevarion-sw-v238";
 
 /* ホームを成立させる最小セット（重い画像は runtime キャッシュに任せる） */
 const CORE = [
@@ -22,18 +22,19 @@ const CORE = [
   "./xevion-os.js?v=13",
   "./xevion-os.css?v=15",
   "./magibattle-stats.js?v=18",
-  "./MagiBurst/js/mb-core.js?v=137",
+  "./MagiBurst/js/mb-core.js?v=138",
   /* ★ 2026-08-10 ガチャと図鑑で共通の土台・キャラ詳細・結果演出 */
   /* ★ 2026-08-12 ポータルのガチャ・図鑑も magiburst_v1 を同期するようになった */
-  "./app-cloud.js?v=13",
-  "./MagiBurst/magiburst-cloud.js?v=24",
+  "./app-cloud.js?v=14",
+  "./MagiBurst/magiburst-cloud.js?v=25",
   "./mb-boot.js?v=17",
-  "./mb-char-detail.js?v=46",
+  "./mb-char-detail.js?v=47",
   "./mb-char-detail.css?v=30",
   "./mb-gacha-reveal.css?v=11",
   /* ★★ 2026-10-09 ガチャの演出を1から作り直した（1体ずつ・確定演出・UR は縦長の絵） */
   "./xeva-summon.js?v=4",
   "./community.html",
+  "./xeva-community.js?v=1",     // ★★ 2026-10-20 コミュニティ（PARK の入口・アニメTier）
   "./about.html",
   "./manifest.webmanifest",
   "./xeva-theme.css?v=9",
@@ -57,28 +58,28 @@ const CORE = [
   "./xeva-i18n-p3.js?v=7",
   "./xeva-i18n-mb7.js?v=7",
   "./xeva-i18n-p4.js?v=8",
-  "./xeva-i18n-n1.js?v=17",
+  "./xeva-i18n-n1.js?v=18",
   "./xeva-i18n-n2.js?v=3",
-  "./xeva.js?v=78",
+  "./xeva.js?v=79",
   "./xeva-alive.js?v=6",
   "./xeva-fx.js?v=9",
   "./xeva-loading.js?v=19",
-  "./xeva-splash.js?v=16",          // ★★ 2026-10-13 XEVARION の起動画面（3社ロゴ）にも使う
+  "./xeva-splash.js?v=17",          // ★★ 2026-10-13 XEVARION の起動画面（3社ロゴ）にも使う
   "./uwaki.html",                    // ★★ 2026-10-15 これって浮気？判定シート（ホームの PARK の真上のボタン）
   "./uwaki.js?v=1",
   "./uwaki.css?v=1",
   "./thumbs/Uwaki.jpg",
   "./xevarion.js?v=102",
-  "./xevarion-home.js?v=165",
+  "./xevarion-home.js?v=166",
   /* ★★ 2026-09-24 ホームのロビーとパートナー。素材は home-mate/<id>/（?v= は home-mate.js の HM_VER）・笙古／瞳／舞香／衣織／樹愛羅／映美里（09-25 ボイス廃止・表情は webp） */
   "./gacha-live.js?v=7",
-  "./home-mate.js?v=24",
-  "./xeva-event-ui.js?v=2",
+  "./home-mate.js?v=25",
+  "./xeva-event-ui.js?v=3",
   "./home-mate.css?v=21",
   "./xeva-pop.css?v=1",
   "./xeva-pop-pages.css?v=3",
   "./xeva-uma.css?v=2",
-  "./xeva-tabbar.js?v=4",          // ★★ 2026-10-13 ガチャ・コミュニティ・図鑑にも下バー
+  "./xeva-tabbar.js?v=5",          // ★★ 2026-10-13 ガチャ・コミュニティ・図鑑にも下バー
   "./home-mate/shoko/shoko.json?v=17",
   "./home-mate/shoko/shoko.webp?v=17",
   "./home-mate/shoko/shoko_label.webp?v=17",
@@ -134,10 +135,10 @@ const CORE = [
   "./home-mate/emiri/bg.webp?v=17",
   "./maintenance-gate.js?v=13",
   "./xeva-back.js?v=9",
-  "./xeva-keys.js?v=32",
+  "./xeva-keys.js?v=33",
   /* ★★ 2026-10-01 同期のモジュールも入れる（前は実行時キャッシュだけ＝更新直後のオフラインで読めなかった） */
-  "./xeva-cloud.js?v=45",
-  "./xevarion-fb.js?v=34",
+  "./xeva-cloud.js?v=46",
+  "./xevarion-fb.js?v=35",
   "./xeva-sync.js?v=18",
   "./xeva-presence.js?v=9",
   /* ★ 2026-08-20 通信設定（Wi-Fi／モバイルデータごとの動き）。
@@ -176,14 +177,19 @@ const CORE = [
   "./thumbs/MagiRail.jpg",
   "./thumbs/MagiScope.jpg",
   "./thumbs/MagiShift.jpg",
-  "./thumbs/MagiAbyss.jpg",   // ★★ 2026-10-05 新作 MagiAbyss
+  "./thumbs/MagiAbyss.jpg?v=2",   // ★★ 2026-10-05 新作 MagiAbyss
   "./thumbs/ISHIDA.webp",      // ★★ 2026-10-09b ISHIDA のアイコン（小さい正方形）
   "./brand/NGX_s.webp", "./brand/MagicalFuture_s.webp", "./brand/ISHIDA_s.webp",   // ★★ 2026-10-09b 起動画面の3社ロゴ（小さい版）
   "./thumbs/MagiChemLex.jpg?v=2", // ★★ 2026-10-06 新作 MagiChemLex
+  "./thumbs/MagiDerby.jpg",       // ★★ 2026-10-21 新作 MagiDerby（実際の JRA GⅠ）
   /* ★★ 2026-10-06 XEVARION 共通イベント Violet Breeze（左上のバナー・イベントのページ・一覧の絵） */
   "./thumbs/VioletBreeze.jpg",
   "./events/violet_breeze.webp",
   "./events/violet_breeze_s.webp",
+  /* ★★ 2026-10-20 11月の共通イベント Midnight Pumpkin（予告から） */
+  "./thumbs/MidnightPumpkin.jpg",
+  "./events/midnight_pumpkin.webp",
+  "./events/midnight_pumpkin_s.webp",
   "./thumbs/MagiRanking.jpg",
   "./thumbs/MagiCraft.jpg",
   "./thumbs/MagiManor.jpg",
@@ -191,7 +197,7 @@ const CORE = [
   /* ★★ 2026-09-10 図鑑のキャラ詳細で Magi: Boccia Rush の性能も出すので、ここでも持つ */
   "./MagiBocciaRush/js/mbr-core.js?v=21",
   /* ★★ 2026-10-09 キャラ詳細・新キャラ紹介で MagiAbyss の性能も出すので、ここでも持つ */
-  "./MagiAbyss/js/ma-data.js?v=7",
+  "./MagiAbyss/js/ma-data.js?v=8",
   "./MagiAbyss/js/ma-stats.js?v=2",
   "./thumbs/MagiMusic.jpg",
   "./thumbs/MagiFocus.jpg",

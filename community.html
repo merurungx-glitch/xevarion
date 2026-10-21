@@ -6,9 +6,9 @@
 <script src="xeva-safebottom.js?v=12"></script>
 <meta charset="UTF-8">
 <script>(function(){try{var a=JSON.parse(localStorage.getItem('xeva_account_v1'));if(!a||!a.setupDone)location.replace('index.html');}catch(e){}})();</script>
-<script type="module" src="xevarion-fb.js?v=34"></script>
+<script type="module" src="xevarion-fb.js?v=35"></script>
 <script src="xeva-presence.js?v=9" defer></script>
-<script type="module" src="xeva-cloud.js?v=45"></script>
+<script type="module" src="xeva-cloud.js?v=46"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#eaf4ff">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -22,7 +22,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Noto+Sans+JP:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="xeva-theme.css?v=9">
-<script src="xeva.js?v=78"></script>
+<script src="xeva.js?v=79"></script>
 <!-- ★★ 2026-09-05 言語切りかえ（日本語 ⇄ English）。辞書は本体のあとに読むこと。 -->
 <script src="xeva-i18n.js?v=8"></script>
 <script src="xeva-i18n-dict.js?v=12"></script>
@@ -40,18 +40,20 @@
 <script src="xeva-i18n-mb7.js?v=7"></script>
 <script src="xeva-i18n-p4.js?v=8"></script>
 <!-- ★★ 2026-09-06b 今回足したもの（新キャラ14体・装備・スタメンなど）の英語辞書 -->
-<script src="xeva-i18n-n1.js?v=17"></script>
+<script src="xeva-i18n-n1.js?v=18"></script>
 <script src="xeva-i18n-n2.js?v=3"></script>
 <script src="xeva-collection.js?v=8"></script>
 <script src="xeva-loading.js?v=19" defer></script>
 <script type="module" src="xeva-sync.js?v=18"></script>
+<!-- ★★ 2026-10-20 ショートカット・PARK の入口・アニメTier -->
+<script src="xeva-community.js?v=1" defer></script>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 body{font-family:'Noto Sans JP',sans-serif;color:#22345c;min-height:100vh;
   background:linear-gradient(175deg,#d9ecff 0%,#eef6ff 34%,#fdf4ff 72%,#fff7ef 100%);
   background-attachment:fixed;padding-bottom:calc(env(safe-area-inset-bottom,0px) + 28px)}
 a{color:inherit;text-decoration:none}
-.wrap{max-width:560px;margin:0 auto;padding:0 14px}
+.wrap{max-width:560px;margin:0 auto;padding:20px 14px 0}   /* ★★ 2026-10-20 ご指摘「上が上バーにくっついている」→ 上に余白 */
 
 /* ── ヘッダー ── */
 .top{position:sticky;top:0;z-index:20;display:flex;align-items:center;gap:10px;
@@ -152,7 +154,7 @@ body.isoff .off{display:block}
 </head>
 <body class="pp-community">
 <!-- ★★ 2026-10-14 下バーは body のいちばん最初で作る（ページの最後に defer で読んでいたので、開いて少しあとに出ていた） -->
-<script src="xeva-tabbar.js?v=4" data-tab="community"></script>
+<script src="xeva-tabbar.js?v=5" data-tab="community"></script>
 
 <div class="top">
   <a class="back" href="index.html" aria-label="ホームへ戻る">
@@ -166,6 +168,11 @@ body.isoff .off{display:block}
 
   <!-- ★★ 2026-10-12c ランキングのタブは削除（ご指定）。フレンドだけになったのでタブの帯もなくした。
        ランキングは MagiRanking アプリ（ホームのアプリ一覧）で見られる -->
+
+  <!-- ★★ 2026-10-20 ご指定「XEVARION PARK の入口をコミュニティタブへ。アニメTier も」
+       中身は xeva-community.js（PARK #cmPark・アニメTier #cmAnime）。★ 2回目のご指定でショートカットはやめた -->
+  <div id="cmPark"></div>
+  <div class="card cm-at" id="cmAnime"></div>
 
   <!-- ═══ フレンド ═══ -->
   <div id="paneFriend">

@@ -13,7 +13,7 @@
    ・iPhone のアプリ表示（html.xv-full）では、ホームと同じく<b>本当の画面の下端</b>に置く
      （fixed の板は画面より短い箱で切られるので、文書は動かさず body の中でスクロールし、下バーは html に absolute で置く）
    ・ガチャのタブは、ホームと同じく<b>キャラの絵</b>（XH_GACHA_TAB_CHAR と同じ子・Xevion OS の設定でオフにできる）
-   使い方: <script src="xeva-tabbar.js?v=4" data-tab="gacha"></script>（data-tab＝community / gacha / chars）
+   使い方: <script src="xeva-tabbar.js?v=5" data-tab="gacha"></script>（data-tab＝community / gacha / chars）
    ★★ 2026-10-14 ご報告「コミュニティやガチャや図鑑の下バーが、開いて少しあとに表示される」
    ・真因：このファイルを<b>ページのいちばん最後に defer</b> で読んでいたので、ガチャなら mb-core.js（約2MB）など
      重い部品を全部読み終わるまで下バーが作られなかった（＋0.3秒かけて薄く出していた）。
@@ -34,7 +34,8 @@
     "chars": "<svg class=\"uic\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path class=\"p k\" d=\"M12 6.4C10.1 4.8 7.8 4.3 3.4 4.3v14.6c4.4 0 6.7.5 8.6 2.1Z\"/><path class=\"p k\" d=\"M12 6.4c1.9-1.6 4.2-2.1 8.6-2.1v14.6c-4.4 0-6.7.5-8.6 2.1Z\"/><path class=\"kl\" d=\"M5.8 8.6h3.6M5.8 11.6h3.6M5.8 14.6h2.6\"/><path class=\"s k\" d=\"M14.6 5.2v6.6l1.5-1.2 1.5 1.2V4.7\"/></svg>",
     "settings": "<svg class=\"uic\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path class=\"p k\" d=\"M10.0 4.4 10.5 1.7 13.5 1.7 14.0 4.4 16.0 5.2 18.2 3.6 20.4 5.8 18.8 8.1 19.6 10.0 22.3 10.5 22.3 13.5 19.6 14.0 18.8 15.9 20.4 18.2 18.2 20.4 16.0 18.8 14.0 19.6 13.5 22.3 10.5 22.3 10.0 19.6 8.1 18.8 5.8 20.4 3.6 18.2 5.2 15.9 4.4 14.0 1.7 13.5 1.7 10.5 4.4 10.0 5.2 8.0 3.6 5.8 5.8 3.6 8.0 5.2Z\"/><circle class=\"w k\" cx=\"12\" cy=\"12\" r=\"3.6\"/><path class=\"gl\" d=\"M6.4 9.2a6.2 6.2 0 0 1 2.4-2.8\"/></svg>"
   };
-  var TABS = [["home", "ホーム", "index.html"], ["community", "コミュニティ", "community.html"], ["gacha", "ガチャ", "gacha.html"], ["chars", "図鑑", "characters.html"], ["settings", "設定", "index.html#settings"]];
+  /* ★★ 2026-10-20 ご指定で並びを「図鑑・ガチャ・ホーム・コミュニティ・設定」に（index.html の .xh-bar と同じ順） */
+  var TABS = [["chars", "図鑑", "characters.html"], ["gacha", "ガチャ", "gacha.html"], ["home", "ホーム", "index.html"], ["community", "コミュニティ", "community.html"], ["settings", "設定", "index.html#settings"]];
   /* ガチャのタブの絵（xevarion-home.js の XH_GACHA_TAB_CHAR と同じ子にそろえる） */
   var GACHA_TAB_CHAR = "takina";
 
@@ -132,9 +133,11 @@
     if (h > 30 && h < 140) R.style.setProperty("--xvtb-h", h + "px");
   }
   /* ガチャのタブをキャラの絵に（xevarion-home.js の xhPaintGachaTabIcon と同じ。Xevion OS の「ガチャタブにキャラ」がオフなら絵のまま） */
+  /* ★★ 2026-10-20 ご指定「下バーのガチャのアイコンをキャラではなく通常に戻して」→ キャラの絵はかぶせない（xevarion-home.js と同じ） */
+  var USE_CHAR = false;
   function paintGachaChar(nav) {
     var btn = nav.querySelector('.xh-ntab[data-tab="gacha"]'); if (!btn) return;
-    var allow = true;
+    var allow = USE_CHAR;
     try { var os = JSON.parse(localStorage.getItem("xevion_os_v1") || "{}"); if (os && ("newCharTab" in os) && !os.newCharTab) allow = false; } catch (e) {}
     try { if (window.XOS && window.XOS.get && !window.XOS.get("newCharTab")) allow = false; } catch (e) {}
     var img = btn.querySelector(".xh-tabchar");

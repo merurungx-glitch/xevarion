@@ -24,7 +24,7 @@
      以前はここに直接書いてあり、MagiBurst / MagiLex の一覧は別ファイルにあったため、
      新機能を足すたびに「同期リストへの入れ忘れ」が起きていた
      （ジェムショップの購入履歴 xeva_shop_v1 が同期されていなかったのがその例）。 */
-import { PORTAL_SYNC_KEYS, wipeAccountData, wipeAccountDataFull } from "./xeva-keys.js?v=32";
+import { PORTAL_SYNC_KEYS, wipeAccountData, wipeAccountDataFull } from "./xeva-keys.js?v=33";
 
 const SYNC_KEYS = PORTAL_SYNC_KEYS;
 const SYNC_SET = new Set(SYNC_KEYS);
@@ -470,6 +470,37 @@ function mergeEvent(winnerStr, loserStr) {
    ・ブックマーク bm … 和（外したものは勝った側の dm［外した時刻］が新しければ外れたまま）
    ・メモ memo … 書いた時刻の新しいほう
    ・設定・選んでいる絞り込み … 勝った側のまま */
+/* ★★ 2026-10-21 新作 MagiDerby（magiderby_v1）を混ぜる。
+   { tk:{ 馬券id: { st:"open"|"hit"|"miss"|"refund"|"void", pay, … } }, st:{ bet, ret, n, hit, best }, fav:{}, mk:{ race_id:{ 馬id:印 } }, opt:{} }
+   ・馬券 tk … id で和。同じ馬券が両方にあれば<b>精算ずみ（open 以外）が勝つ</b>（片方の端末で払い戻したら、
+     もう片方では open に戻らない＝<b>二重に払い戻さない</b>）。どちらも精算ずみなら done（精算した時刻）の早いほう。
+   ・集計 st … 数は大きいほう（減らさない）・最高払戻は大きいほう
+   ・予想の印 mk … レースごとに勝った側（新しいほう）、無いレースは負けた側から足す
+   ・設定 … 勝った側のまま */
+const DERBY_KEYS = new Set(["magiderby_v1"]);
+function mergeDerby(winnerStr, loserStr) {
+  const W = jparse(winnerStr, null), Lo = jparse(loserStr, null);
+  const obj = (v) => !!v && typeof v === "object" && !Array.isArray(v);
+  if (!obj(W) || !obj(Lo)) return null;
+  const num = (v) => Number(v) || 0;
+  W.tk = obj(W.tk) ? W.tk : {};
+  if (obj(Lo.tk)) Object.keys(Lo.tk).forEach((id) => {
+    const l = Lo.tk[id], w = W.tk[id];
+    if (!obj(l)) return;
+    if (!obj(w)) { W.tk[id] = l; return; }
+    const lo = l.st === "open", wo = w.st === "open";
+    if (wo && !lo) W.tk[id] = l;
+    else if (!wo && !lo && num(l.done) && num(l.done) < num(w.done)) W.tk[id] = l;
+  });
+  const S = obj(W.st) ? W.st : {}, L = obj(Lo.st) ? Lo.st : {};
+  ["bet", "ret", "n", "hit"].forEach((k) => { S[k] = Math.max(num(S[k]), num(L[k])); });
+  if (obj(L.best) && (!obj(S.best) || num(L.best.pay) > num(S.best.pay))) S.best = L.best;
+  W.st = S;
+  W.mk = obj(W.mk) ? W.mk : {};
+  if (obj(Lo.mk)) Object.keys(Lo.mk).forEach((rid) => { if (!obj(W.mk[rid])) W.mk[rid] = Lo.mk[rid]; });
+  W.fav = Object.assign({}, obj(Lo.fav) ? Lo.fav : {}, obj(W.fav) ? W.fav : {});
+  return JSON.stringify(W);
+}
 const CHEM_KEYS = new Set(["magichemlex_v1"]);
 function mergeChem(winnerStr, loserStr) {
   const W = jparse(winnerStr, null), Lo = jparse(loserStr, null);
@@ -514,7 +545,7 @@ function mergeChem(winnerStr, loserStr) {
   return JSON.stringify(W);
 }
 function hasMergeRule(k) { return WALLET_KEYS.has(k) || CHAR_KEYS.has(k) || COUNT_KEYS.has(k) || MBR_KEYS.has(k) || BATTLE_KEYS.has(k)
-  || CLAIM_KEYS.has(k) || MAIL_KEYS.has(k) || SCOPE_KEYS.has(k) || MATE_KEYS.has(k) || ABYSS_KEYS.has(k) || EVENT_KEYS.has(k) || CHEM_KEYS.has(k); }
+  || CLAIM_KEYS.has(k) || MAIL_KEYS.has(k) || SCOPE_KEYS.has(k) || MATE_KEYS.has(k) || ABYSS_KEYS.has(k) || EVENT_KEYS.has(k) || CHEM_KEYS.has(k) || DERBY_KEYS.has(k); }
 /* { id: 印 } を和で混ぜる（片方にしか無い印も残す。両方にあれば早いほうの時刻） */
 function unionMarks(a, b) {
   const out = {};
@@ -789,7 +820,9 @@ function mergeStore(uid, remote, remoteT) {
                             ? mergeEvent(remoteWins ? rv : lv, remoteWins ? lv : rv)
                             : CHEM_KEYS.has(k)
                               ? mergeChem(remoteWins ? rv : lv, remoteWins ? lv : rv)
-                              : mergeCharsInto(k, remoteWins ? rv : lv, remoteWins ? lv : rv);
+                              : DERBY_KEYS.has(k)
+                                ? mergeDerby(remoteWins ? rv : lv, remoteWins ? lv : rv)
+                                : mergeCharsInto(k, remoteWins ? rv : lv, remoteWins ? lv : rv);
         }
         if (merged != null) {
           if (WALLET_KEYS.has(k)) newBase[k] = rv;      /* 土台は「クラウドに確かにある値」 */
@@ -875,7 +908,9 @@ const URGENT_KEYS = new Set(["xeva_wallet_v1", "xeva_gem_v1", "xeva_gticket_v1",
   /* ★★ 2026-09-13 フェスセレクト券。買ってそのままガチャ画面で使うので同じ理由。 */
   "xeva_fessel_v1", "xeva_seal_v1",
   /* ★★ 2026-10-01 ホームのパートナー（開放は XEVA を払うので、財布と同じくすぐ送る） */
-  "xeva_mate_v1"]);
+  "xeva_mate_v1",
+  /* ★★ 2026-10-21 MagiDerby の馬券（買った・払い戻した の印。遅れるとほかの端末で二重に払い戻しかねない） */
+  "magiderby_v1"]);
 
 function schedulePush(urgent) {
   if (urgent) { if (pushTimer) { clearTimeout(pushTimer); pushTimer = null; } flushPush(); return; }
@@ -991,9 +1026,37 @@ const RELOAD_FLAG = "xeva_pullrld";
      xeva:synced（上で出している）で画面に描き直してもらう。 */
 const RELOAD_HIST = "xeva_pullrld_hist";
 const RELOAD_WIN = 90000;
+/* ══ ★★ 2026-10-20 ご報告「iPhone のアカウントを PC などで開いたとき、キャラの所持やジェムが同期されて出ないことがある」══
+   真因：クラウドを<b>読みに行って失敗した</b>とき（起動直後でまだつながっていない・回線が不安定）、pullStoreFull は
+   「空っぽのクラウド」と同じ形を返していた → mergeStore が「クラウドに無い＝この端末のを上げる」の規則で
+   <b>その端末の古いデータをまるごとクラウドへ送っていた</b>（ジェムは別の端末の3方向マージで差分として引かれ、
+   キャラ・XEVA も古いまま）。しかも送った時刻を「知っている」扱いにするので、1分ごとの確認でも取りこみ直さない。
+   → 読めなかったときは混ぜない・送らない。少し待って2〜3回読み直し、だめなら 12〜15 秒後にもう一度（pullNow）。
+     画面（ロード画面）は止めない（xeva:synced に failed を付けて出す）。 */
+async function pullFullSafe(uid, tries) {
+  tries = tries || 3;
+  for (let i = 0; i < tries; i++) {
+    let full = null;
+    try { full = await FB.pullStoreFull(uid); } catch (e) { full = null; }
+    if (full && !full.err) return full;
+    if (i < tries - 1) await new Promise((r) => setTimeout(r, 700 * (i + 1)));
+  }
+  return null;
+}
+let _pullRetryT = 0;
+function schedulePullRetry(ms) {
+  clearTimeout(_pullRetryT);
+  _pullRetryT = setTimeout(() => { try { pullNow(); } catch (e) {} }, ms || 15000);
+}
 async function syncDown(uid, forceReload) {
   let remote = {}, remoteT = {};
-  try { const full = await FB.pullStoreFull(uid); remote = full.kv || {}; remoteT = full.t || {}; } catch (e) {}
+  const full = await pullFullSafe(uid, 3);
+  if (!full) {
+    schedulePullRetry(12000);
+    try { window.dispatchEvent(new CustomEvent("xeva:synced", { detail: { changed: false, failed: true } })); } catch (e) {}
+    return false;
+  }
+  remote = full.kv || {}; remoteT = full.t || {};
   const changed = mergeStore(uid, remote, remoteT);
   /* ★ クラウドの内容をローカルへ取り込み終えた合図。
      XEVA を表示するページは、これを待ってから数字を出すことで
@@ -1037,7 +1100,8 @@ async function pullNow() {
        こちらの値でクラウドを上書きしてから読み直すことになり、
        別端末の増減が<b>混ざる前に消えて</b>いた。
        いまは「取りに行く → 混ぜる → 送る」。 */
-    const full = await FB.pullStoreFull(uid);
+    const full = await pullFullSafe(uid, 2);
+    if (!full) { schedulePullRetry(15000); return false; }   /* ★★ 2026-10-20 読めないときは混ぜない・送らない */
     const changed = mergeStore(uid, full.kv, full.t);
     await flushPush();                                   // 混ざった結果と、未送信ぶんを送る
     try { window.dispatchEvent(new CustomEvent("xeva:synced", { detail: { changed } })); } catch (e) {}
@@ -1116,7 +1180,8 @@ async function reclaim() {
   try { await FB.claimSession(uid, dev, APP_ID); } catch (e) {}
   startWatch(uid, dev);
   // 追い出されている間に別端末が変更している可能性 → 最新をマージ（reloadなし・新しい側が勝つ）
-  try { const full = await FB.pullStoreFull(uid); mergeStore(uid, full.kv, full.t); } catch (e) {}
+  /* ★★ 2026-10-20 読めなかったときは混ぜない（空と取りちがえて古いデータを送らない）→ 少しあとで取りこみ直す */
+  try { const full = await pullFullSafe(uid, 3); if (full) mergeStore(uid, full.kv, full.t); else schedulePullRetry(10000); } catch (e) {}
   try { window.dispatchEvent(new Event("xeva:change")); } catch (e) {}
 }
 
@@ -1230,8 +1295,10 @@ async function onAccountCreated() {
   /* ★ 先にクラウドを見る。すでに store があるアカウント（＝機種変・入れ直し）に
      いきなり pushAll すると、手元の空っぽの状態でクラウドを塗りつぶしてしまう。 */
   let hasRemote = false;
+  /* ★★ 2026-10-20 読めなかったときは pushAll しない（機種変・入れ直しのアカウントを空の手元で塗りつぶさない） */
+  const full = await pullFullSafe(uid, 3);
+  if (!full) { schedulePullRetry(10000); return; }
   try {
-    const full = await FB.pullStoreFull(uid);
     hasRemote = !!(full && full.kv && Object.keys(full.kv).length);
     if (hasRemote) mergeStore(uid, full.kv, full.t);
   } catch (e) {}

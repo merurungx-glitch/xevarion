@@ -128,7 +128,8 @@
        「別の端末で増やしたはずのXEVAが元に戻る」＝同期していないように見えていた。 */
     state = load();
     state.balance = (state.balance || 0) + amount;
-    state.totalEarned = totalEarned(state) + Math.max(0, amount);   // 獲得だけ積む
+    /* ★★ 2026-10-20 opts.noEarn＝両替（ジェム→XEVA）のように「獲得」ではないものは累計に積まない */
+    if (!(opts && opts.noEarn)) state.totalEarned = totalEarned(state) + Math.max(0, amount);   // 獲得だけ積む
     state.history = state.history || [];
     state.history.unshift({ amount: amount, reason: reason || "", t: Date.now() });
     if (state.history.length > 100) state.history.length = 100;
@@ -514,6 +515,109 @@
       },
     };
   })();
+  /* ══ ★★ 2026-10-20 両替チケット（ご指定「ジェムから XEVA への換金は換金チケット必須・1枚で 5ジェムをその時のレートで」）══
+     ・名前は「両替チケット」（ご指定の仮称「換金チケット」から。ジェム⇄XEVA の“両替”なので）
+     ・使う場所はショップの「XEVA 両替所」（xevarion-home.js の xhOpenCash）。1枚で 💎5 → 5 × いまのレート XEVA
+     ・もらえる所：MagiChemLex の Wisdom Point 交換（5WP）・イベントミッション・メール
+     ★ 残高は<b>フェスセレクト券と同じ台帳（xeva_fessel_v1）</b>の "cx:" の欄に置く（選べるSSRチケットと同じ考え方）。
+       e（もらった総数）・u（使った総数）は増えるだけ → 端末をまたいでも max で混ざる（xeva-cloud の mergeCountMap）。
+       ★ 何度でももらえるもの（WP 交換など）は、1回ごとに<b>別の欄</b>（cx:g:時刻+乱数）に積む
+         ＝2台で別々にもらっても足し算になる（同じ欄だと max で1枚ぶん消える）。
+       ★ 1回だけのもの（メール・イベント）は grantOnce(タグ) ＝ "cx:t:タグ" の欄をその枚数にそろえるだけ。 */
+  var cashTicket = (function () {
+    var PFX = "cx:";
+    function bal() { var a = fesSelect.all(), n = 0; Object.keys(a).forEach(function (k) { if (k.indexOf(PFX) === 0) n += a[k]; }); return n; }
+    function uid() { return Date.now().toString(36) + Math.floor(Math.random() * 1e6).toString(36); }
+    function emitC() { try { window.dispatchEvent(new CustomEvent("xeva:cashticket", { detail: { balance: bal() } })); } catch (e) {} }
+    return {
+      NAME: "両替チケット",
+      get: bal,
+      /* 何度でももらえるもの（1回ごとに別の欄） */
+      add: function (n, reason) {
+        n = Math.max(0, Math.round(n || 0)); if (!n) return bal();
+        fesSelect.add(PFX + "g:" + uid(), n, reason || "両替チケット");
+        emitC(); return bal();
+      },
+      /* 配った回（tag）ごとに n 枚まで。すでにもらっていれば何もしない（戻り値＝今回ふえた枚数） */
+      grantOnce: function (tag, n, reason) {
+        var k = PFX + "t:" + String(tag || ""), e = fesSelect.earned(k);
+        n = Math.max(0, Math.round(n || 0));
+        if (!tag || e >= n) return 0;
+        fesSelect.add(k, n - e, reason || "両替チケット");
+        emitC(); return n - e;
+      },
+      isGranted: function (tag) { return fesSelect.earned(PFX + "t:" + String(tag || "")) > 0; },
+      /* n 枚使う。足りなければ false を返して何もしない */
+      spend: function (n, reason) {
+        n = Math.max(1, Math.round(n || 1));
+        if (bal() < n) return false;
+        var a = fesSelect.all();
+        var ks = Object.keys(a).filter(function (k) { return k.indexOf(PFX) === 0 && a[k] > 0; }).sort();
+        var left = n;
+        for (var i = 0; i < ks.length && left > 0; i++) {
+          var take = Math.min(left, a[ks[i]]);
+          if (fesSelect.spend(ks[i], take, reason || "両替チケット")) left -= take;
+        }
+        emitC();
+        return left === 0;
+      },
+      _emit: emitC,
+    };
+  })();
+  /* ══ ★★ 2026-10-20 チケットの券面（共通）══
+     MagiBurst（mb-core.js）の fesTicketSVG / gachaTicketSVG と<b>同じ絵</b>を、mb-core を読まないアプリ
+     （ホーム・MagiChemLex など）でも出せるように写したもの。★ グラデーションの id は mb-core とも別名（xf…/xg…/xc…）。
+     どれも 62×40 の券（切りこみ・ミシン目・左の紋章）。高さ px・幅は 1.55 倍。 */
+  window.XevaFesTicketSVG = function (px) {
+    var s = px || 30, w = "width:" + (s * 1.55) + "px;height:" + s + "px;display:block";
+    return '<svg viewBox="0 0 62 40" style="' + w + '" aria-hidden="true"><defs>'
+      + '<linearGradient id="xftg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#2b1b4d"/><stop offset=".5" stop-color="#5b2a8c"/><stop offset="1" stop-color="#1a1030"/></linearGradient>'
+      + '<linearGradient id="xftp" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff8ab5"/><stop offset="1" stop-color="#c86bff"/></linearGradient></defs>'
+      + '<path d="M3 6h56v9a5 5 0 000 10v9H3v-9a5 5 0 000-10z" fill="url(#xftg)" stroke="#ffd257" stroke-width="1.6"/>'
+      + '<path d="M22 4v32" stroke="#ffd257" stroke-width="1.2" stroke-dasharray="3 3" opacity=".85"/>'
+      + '<g transform="translate(12.5 20)"><circle r="7.6" fill="none" stroke="#ffd257" stroke-width="1.1" opacity=".7"/><g fill="url(#xftp)">'
+      + '<ellipse cx="0" cy="-4.6" rx="2.5" ry="4.1"/><ellipse cx="4.4" cy="-1.4" rx="2.5" ry="4.1" transform="rotate(72 4.4 -1.4)"/><ellipse cx="2.7" cy="3.7" rx="2.5" ry="4.1" transform="rotate(144 2.7 3.7)"/>'
+      + '<ellipse cx="-2.7" cy="3.7" rx="2.5" ry="4.1" transform="rotate(216 -2.7 3.7)"/><ellipse cx="-4.4" cy="-1.4" rx="2.5" ry="4.1" transform="rotate(288 -4.4 -1.4)"/></g><circle r="2.2" fill="#fff6d8"/></g>'
+      + '<text x="41.5" y="17" text-anchor="middle" font-family="Orbitron,sans-serif" font-size="7.4" font-weight="900" fill="#ffd257">FES</text>'
+      + '<text x="41.5" y="27.5" text-anchor="middle" font-family="Orbitron,sans-serif" font-size="6" font-weight="900" fill="#ffd0e2">TICKET</text>'
+      + '<path d="M31 32.5h21" stroke="#ffd257" stroke-width=".9" opacity=".6"/></svg>';
+  };
+  window.XevaGachaTicketSVG = function (px) {
+    var s = px || 30, w = "width:" + (s * 1.55) + "px;height:" + s + "px;display:block";
+    return '<svg viewBox="0 0 62 40" style="' + w + '" aria-hidden="true"><defs>'
+      + '<linearGradient id="xgtg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0d2a52"/><stop offset=".5" stop-color="#1a63b8"/><stop offset="1" stop-color="#08182f"/></linearGradient>'
+      + '<linearGradient id="xgtp" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#bfe9ff"/><stop offset="1" stop-color="#5ab6ff"/></linearGradient></defs>'
+      + '<path d="M3 6h56v9a5 5 0 000 10v9H3v-9a5 5 0 000-10z" fill="url(#xgtg)" stroke="#ffd257" stroke-width="1.6"/>'
+      + '<path d="M22 4v32" stroke="#ffd257" stroke-width="1.2" stroke-dasharray="3 3" opacity=".85"/>'
+      + '<g transform="translate(12.5 20)"><circle r="7.6" fill="none" stroke="#ffd257" stroke-width="1.1" opacity=".7"/><g fill="url(#xgtp)">'
+      + '<path d="M0-7.4 1.7-1.7 7.4 0 1.7 1.7 0 7.4-1.7 1.7-7.4 0-1.7-1.7Z"/><path d="M0-4.6 1.1-1.1 4.6 0 1.1 1.1 0 4.6-1.1 1.1-4.6 0-1.1-1.1Z" transform="rotate(45)"/></g><circle r="1.9" fill="#fff"/></g>'
+      + '<text x="41.5" y="17" text-anchor="middle" font-family="Orbitron,sans-serif" font-size="7.4" font-weight="900" fill="#ffd257">GACHA</text>'
+      + '<text x="41.5" y="27.5" text-anchor="middle" font-family="Orbitron,sans-serif" font-size="6" font-weight="900" fill="#bfe9ff">TICKET</text>'
+      + '<path d="M31 32.5h21" stroke="#ffd257" stroke-width=".9" opacity=".6"/></svg>';
+  };
+  /* 両替チケットの券面（★★ 2026-10-20 新しくデザイン）：エメラルドの地＋金のふち・
+     左の紋章＝紫のジェムが金の XEVA コインへ（2本の矢印でぐるり）・右に「XEVA / EXCHANGE」 */
+  window.XevaCashTicketSVG = function (px) {
+    var s = px || 30, w = "width:" + (s * 1.55) + "px;height:" + s + "px;display:block";
+    return '<svg viewBox="0 0 62 40" style="' + w + '" aria-hidden="true"><defs>'
+      + '<linearGradient id="xctg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#06352c"/><stop offset=".5" stop-color="#11946c"/><stop offset="1" stop-color="#042a22"/></linearGradient>'
+      + '<linearGradient id="xctr" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff3bf"/><stop offset=".5" stop-color="#ffcf4a"/><stop offset="1" stop-color="#fff3bf"/></linearGradient>'
+      + '<radialGradient id="xctc" cx=".38" cy=".32" r=".8"><stop offset="0" stop-color="#fff6c8"/><stop offset=".55" stop-color="#ffc93c"/><stop offset="1" stop-color="#c47a06"/></radialGradient>'
+      + '<linearGradient id="xctm" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#e9d4ff"/><stop offset=".5" stop-color="#a66bff"/><stop offset="1" stop-color="#5b23c9"/></linearGradient>'
+      + '<linearGradient id="xcts" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".42"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient></defs>'
+      + '<path d="M3 6h56v9a5 5 0 000 10v9H3v-9a5 5 0 000-10z" fill="url(#xctg)" stroke="url(#xctr)" stroke-width="1.7"/>'
+      + '<path d="M5 7.6h52v6.6c-1.6.3-2.6 1.2-3 2.4H8c-.4-1.2-1.4-2.1-3-2.4Z" fill="url(#xcts)"/>'
+      + '<path d="M22 4v32" stroke="#ffe7a0" stroke-width="1.2" stroke-dasharray="3 3" opacity=".85"/>'
+      + '<g transform="translate(12.5 20)"><circle r="8" fill="#063a2f" stroke="#ffcf4a" stroke-width="1.1" opacity=".95"/>'
+      + '<path d="M-6.1-1.6A6.3 6.3 0 0 1 3.4-5.3" fill="none" stroke="#7df0c4" stroke-width="1.1" stroke-linecap="round"/><path d="M3.9-7.1 3.6-5.1 1.7-4.5" fill="none" stroke="#7df0c4" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/>'
+      + '<path d="M6.1 1.6A6.3 6.3 0 0 1-3.4 5.3" fill="none" stroke="#7df0c4" stroke-width="1.1" stroke-linecap="round"/><path d="M-3.9 7.1-3.6 5.1-1.7 4.5" fill="none" stroke="#7df0c4" stroke-width="1.1" stroke-linecap="round" stroke-linejoin="round"/>'
+      + '<path d="M-3.4-4.6-1.2-2.3-3.4 1.2-5.6-2.3Z" fill="url(#xctm)" stroke="#fff" stroke-width=".55" stroke-linejoin="round"/>'
+      + '<circle cx="2.6" cy="2.2" r="3.3" fill="url(#xctc)" stroke="#8a5200" stroke-width=".55"/><text x="2.6" y="3.75" text-anchor="middle" font-family="Orbitron,sans-serif" font-size="4.1" font-weight="900" fill="#8a5200">X</text></g>'
+      + '<text x="39.6" y="18.6" text-anchor="middle" font-family="Orbitron,sans-serif" font-size="8.4" font-weight="900" fill="url(#xctr)" stroke="#05362a" stroke-width=".55" paint-order="stroke">XEVA</text>'
+      + '<text x="39.6" y="27.4" text-anchor="middle" font-family="Orbitron,sans-serif" font-size="4.4" font-weight="900" fill="#c9ffe9">EXCHANGE</text>'
+      + '<path d="M30.5 32.6h22" stroke="#ffe7a0" stroke-width=".9" opacity=".7"/>'
+      + '<path d="M55.2 9.4l.7 1.6 1.6.7-1.6.7-.7 1.6-.7-1.6-1.6-.7 1.6-.7Z" fill="#fff"/></svg>';
+  };
   function loadTkt() { return ticket._load(); }
   function emitTkt(b) { ticket._emit(b); }
 
@@ -679,6 +783,27 @@
   function saveAcc(a) {
     try { localStorage.setItem(ACC_KEY, JSON.stringify(a)); } catch (e) {}
     try { window.dispatchEvent(new CustomEvent("xeva:account", { detail: a || null })); } catch (e) {}
+    pushIconSoon(a);
+  }
+  /* ★★ 2026-10-20 ご報告「図鑑からアイコンに設定すると反映されないことがある」
+     真因：図鑑（characters.html）は端末の保存（xeva_account_v1＝クラウドの store）と MagiLink には送っていたが、
+     <b>XEVARION のアカウント（accounts/{uid} の charFile・charId）には送っていなかった</b>
+     （送っていたのはホームの設定から変えたときだけ＝xevarion.js の syncXFBProfile）。
+     コミュニティ・フレンド・ランキング・ゲーム内の紐づけ（MagiChainParty・MagiShift）・別の端末でのログインは
+     accounts の絵を見るので、そこでは前のアイコンのまま。
+     → アカウントを保存したら、アイコンだけ accounts へも送る（どのページから変えても同じ。名前は設定の重複チェックを通すのでここでは送らない）。 */
+  var _iconT = 0;
+  function pushIconSoon(a) {
+    if (!a || !a.xvUid || !a.charFile) return;
+    clearTimeout(_iconT);
+    _iconT = setTimeout(function () {
+      var go = function () {
+        var FB = window.XEVARIONFB;
+        try { if (FB && FB.updateProfile) FB.updateProfile({ xvUid: a.xvUid, charFile: a.charFile || "", charId: a.charId || "" }); } catch (e) {}
+      };
+      if (window.XEVARIONFB) go();
+      else { try { window.addEventListener("xevarionfb:ready", go, { once: true }); } catch (e) {} }
+    }, 500);
   }
 
   /* ══════════════════════════════════════════════════════════════
@@ -1044,7 +1169,7 @@
     { id: "mb:rina", mbId: "rina", name:"リナ", file: "../img/t_Rina.webp", since:"2026-10-09", rarLabel: "UR" },
     { id: "mb:kaori", mbId: "kaori", name:"カオリ", file: "../img/t_Kaori.webp", since:"2026-10-09", rarLabel: "UR" },
     /* ★★ 2026-10-16 超極華祭（UR・MagiAbyss 専用。アイコン・コレクションには使える） */
-    { id: "mb:chie", mbId: "chie", name:"チエ", file: "../img/t_Chie.webp", since:"2026-10-16", rarLabel: "UR" },
+    { id: "mb:chie", mbId: "chie", name:"ヨシノ", file: "../img/t_Chie.webp", since:"2026-10-16", rarLabel: "UR" },
     { id: "mb:ichika", mbId: "ichika", name:"イチカ", file: "../img/t_Ichika.webp", since:"2026-10-16", rarLabel: "UR" },
     { id: "mb:nonoka", mbId: "nonoka", name:"ノノカ", file: "../img/t_Nonoka.webp", since:"2026-10-16", rarLabel: "UR" },
     { id: "mb:aina", mbId: "aina", name:"アイナ", file: "../img/t_Aina.webp", since:"2026-10-16", rarLabel: "UR" },
@@ -1818,6 +1943,33 @@
         { id: "all", ic: "💜", title: "ほかのイベントミッションを すべて 達成する", all: true, n: 6, tk: 4, href: "" },
       ],
     },
+    /* ★★ 2026-10-20 ご指定「11月開催予定の新たなイベント Midnight Pumpkin の開催予告と準備」
+       ・開催 11/1〜11/30。preFrom（10/20）からは<b>開催予告</b>（ホーム左上のバナー・イベントの画面は「開催まで」・ミッションは見るだけ）
+       ・特典（perks）：MagiDerby の的中払戻 +10%（boost.derby）／MagiAbyss のゴールド 1.5倍（boost.abyssGold）／MagiLex 系統 XEVA 1.5倍（lexMult）／
+         限定パック（xevarion-home.js の XH_PACKS・pk_mp_*）
+       ・ミッションのごほうびは 🎫ガチャチケット（tk）と <b>💱両替チケット（cx）</b>。
+       ・数える場所：derbyBet / derbyHit（MagiDerby）・abyssClear（MagiAbyss）・chemWp（MagiChemLex の Wisdom Point）・gacha（ガチャ）・login（日付） */
+    pumpkin: {
+      id: "pumpkin", nm: "Midnight Pumpkin", from: "2026-11-01", to: "2026-11-30", preFrom: "2026-10-20", c: "#ff8a1f", c2: "#8b4dff", theme: "pumpkin",
+      banner: "events/midnight_pumpkin_s.webp", art: "events/midnight_pumpkin.webp",
+      lexMult: 1.5, boost: { derby: 1.1, abyssGold: 1.5 },
+      catch: "真夜中のかぼちゃ祭り。秋の夜長は、走って・潜って・学んで・集めて。",
+      perks: [
+        { ic: "🏇", t: "MagiDerby 的中払戻 +10%", d: "新作の競馬 G1。期間中は的中した払戻金に 10% 上乗せ（パンプキンボーナス）", go: "MagiDerby/index.html", gl: "MagiDerby へ →" },
+        { ic: "🌀", t: "MagiAbyss ゴールド ×1.5", d: "新しいロゴの MagiAbyss。期間中は迷宮で手に入るゴールドが 1.5倍", go: "MagiAbyss/index.html", gl: "MagiAbyss へ →" },
+        { ic: "📚", t: "MagiLex 系統 XEVA ×1.5", d: "MagiLex・MagiChemLex で手に入る XEVA が 1.5倍。Wisdom Point もためよう", go: "MagiChemLex/index.html", gl: "MagiChemLex へ →" },
+        { ic: "🛍️", t: "Midnight Pumpkin 限定パック", d: "ショップに 💱両替チケットつきの限定パックが並びます（期間中のみ）", act: "shop", gl: "ショップへ →" },
+      ],
+      missions: [
+        { id: "login5", ic: "📅", title: "イベント期間中に 5日 ログインする", day: "login", n: 5, tk: 2, href: "index.html" },
+        { id: "derbyBet", ic: "🏇", title: "MagiDerby で G1 の馬券を 10回 買う", key: "derbyBet", n: 10, cx: 2, href: "MagiDerby/index.html" },
+        { id: "derbyHit", ic: "🎯", title: "MagiDerby で 3回 的中させる", key: "derbyHit", n: 3, tk: 3, href: "MagiDerby/index.html" },
+        { id: "abyss5", ic: "🌀", title: "MagiAbyss で迷宮を 5回 クリアする", key: "abyssClear", n: 5, tk: 3, href: "MagiAbyss/index.html" },
+        { id: "chemWp", ic: "🔷", title: "MagiChemLex で Wisdom Point を 30 ためる", key: "chemWp", n: 30, cx: 2, href: "MagiChemLex/index.html" },
+        { id: "gacha10", ic: "🎰", title: "ガチャを 10回 引く", key: "gacha", n: 10, tk: 2, href: "gacha.html" },
+        { id: "all", ic: "🎃", title: "ほかのイベントミッションを すべて 達成する", all: true, n: 6, tk: 5, cx: 3, href: "" },
+      ],
+    },
   };
   function evToday() { var d = new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
   function evLoad() {
@@ -1826,6 +1978,8 @@
   }
   function evSave(s) { try { localStorage.setItem(EV_KEY, JSON.stringify(s)); } catch (e) {} try { window.dispatchEvent(new CustomEvent("xeva:event")); } catch (e) {} }
   function evActive(id) { var E = EVENT_DEFS[id]; if (!E) return false; var t = evToday(); return t >= E.from && t <= E.to; }
+  /* ★★ 2026-10-20 開催予告（preFrom 〜 from の前日） */
+  function evUpcoming(id) { var E = EVENT_DEFS[id]; if (!E || !E.preFrom) return false; var t = evToday(); return t >= E.preFrom && t < E.from; }
   function evActiveList() { return Object.keys(EVENT_DEFS).filter(evActive); }
   function evRec(s, id) { var r = s[id] = s[id] || {}; r.c = r.c || {}; r.d = r.d || {}; r.cl = r.cl || {}; return r; }
   var EVT = {
@@ -1859,21 +2013,31 @@
       if (m.all) v = E.missions.filter(function (x) { return !x.all && EVT.prog(id, x.id).done; }).length;
       else if (m.day) v = Object.keys(r.d[m.day] || {}).length;
       else v = Number(r.c[m.key]) || 0;
-      var claimed = !!r.cl[mid] || !!(ticket.isMigrated && ticket.isMigrated("ev:" + id + ":" + mid));
+      var tag = "ev:" + id + ":" + mid;
+      var claimed = !!r.cl[mid] || (m.tk ? !!(ticket.isMigrated && ticket.isMigrated(tag)) : false) || (!m.tk && m.cx ? cashTicket.isGranted(tag) : false);
       return { v: Math.min(v, m.n), n: m.n, done: v >= m.n, claimed: claimed, m: m };
     },
     list: function (id) { var E = EVENT_DEFS[id]; return E ? E.missions.map(function (m) { return EVT.prog(id, m.id); }) : []; },
     /* 受け取りを待っている数（バッジ用） */
     pending: function (id) { return EVT.list(id).filter(function (p) { return p.done && !p.claimed; }).length; },
-    /* 受け取る → 🎫ガチャチケット（アカウントで1回だけ）。戻り値＝今回ふえた枚数 */
+    /* 受け取る → 🎫ガチャチケット（tk）・💱両替チケット（cx）。どちらもアカウントで1回だけ。戻り値＝今回ふえた🎫の枚数
+       ★★ 2026-10-20 両替チケットのぶんは EVT.lastCx に入れる（画面の「受け取りました」の文に使う） */
     claim: function (id, mid) {
       var p = EVT.prog(id, mid); if (!p || !p.done) return 0;
       var s = evLoad(), r = evRec(s, id);
+      EVT.lastCx = 0;
       if (r.cl[mid]) return 0;
-      var got = ticket.migrateOnce("ev:" + id + ":" + mid, p.m.tk, EVENT_DEFS[id].nm + " イベントミッション：" + p.m.title);
+      var tag = "ev:" + id + ":" + mid, why = EVENT_DEFS[id].nm + " イベントミッション：" + p.m.title;
+      var got = p.m.tk ? ticket.migrateOnce(tag, p.m.tk, why) : false;
+      if (p.m.cx) { try { EVT.lastCx = cashTicket.grantOnce(tag, p.m.cx, why) || 0; } catch (e) {} }
       r.cl[mid] = Date.now(); r.at = Date.now(); evSave(s);
       return got ? p.m.tk : 0;
     },
+    lastCx: 0,
+    /* ★★ 2026-10-20 開催予告中のイベント（無ければ null）・アプリごとの上乗せ（boost.derby など。無ければ 1） */
+    upcoming: evUpcoming,
+    next: function () { var l = Object.keys(EVENT_DEFS).filter(evUpcoming); return l.length ? EVENT_DEFS[l[0]] : null; },
+    boost: function (key) { var m = 1; evActiveList().forEach(function (id) { var b = EVENT_DEFS[id].boost; if (b && b[key]) m = Math.max(m, b[key]); }); return m; },
     /* パートナーの購入1人ぶん 20%オフ（イベント中・1回だけ） */
     partnerOff: function () {
       var l = evActiveList(); var s = evLoad();
@@ -1907,6 +2071,9 @@
     /* ★★ 2026-10-13 選べるSSRキャラ確定チケット。使いかた: XEVA.ssrSelect.get() / .grantOnce("261013", 2, "…") / .spend("…")
        変わったら "xeva:fessel" が飛ぶ（台帳がフェスセレクト券と同じため） */
     ssrSelect: ssrSelect,
+    /* ★★ 2026-10-20 両替チケット（ジェム→XEVA の両替に1枚＝💎5）。XEVA.cashTicket.get() / .add(n,"…") / .grantOnce(tag,n,"…") / .spend(n,"…")
+       変わったら "xeva:cashticket"（台帳はフェスセレクト券と同じなので "xeva:fessel" も飛ぶ） */
+    cashTicket: cashTicket,
     /* ★★ 2026-09-13c ★星煌印（ガチャの天井）。
        使いかた: XEVA.seal.get("fes14") / .add("fes14",1,"…") / .spend("fes14",150,"…")
        ★ 引いた数そのものは .earned("fes14")（減らない通算）。 */
@@ -2083,6 +2250,89 @@
     }
   };
 
+
+  /* ══════════════════════════════════════════════════════════════
+     ★★ 2026-10-20 正方形のキャラアイコンに<b>属性色の細い縁</b>（ご指定「通常で表示される正方形のキャラアイコンで、
+     ガチャなどで、目立たない程度で属性の色で縁を付けて」）
+     ──────────────────────────────────────────────
+     ・対象＝src がキャラの絵（img/Xxx.webp・img/t_Xxx.webp）で、画面で <b>24〜160px の正方形</b>に出ているもの。
+       大きな立ち絵・横長の絵・バナー（bn_…）・UR の横長（…_w）には付けない。
+     ・縁は outline（内側に 1.5px・少し透ける）＝img の角丸にそって付き、まわりの並びは動かさない。
+     ・属性は mb-core（CHARS）があるページはそこから、無いページは下の XEL_RAW（★ 新キャラを足したらここにも1つ足す）。
+     ・MagiBurst・MagiBattle・MagiAbyss・Boccia・PARK（ゲームの画面は自前の枠を持つ）では付けない。
+     ・見えたときに1回だけ測る（IntersectionObserver）。差しかわった絵（src が変わった）は測り直す。
+     ══════════════════════════════════════════════════════════════ */
+  (function () {
+    if (window.__xevaElEdge) return;
+    window.__xevaElEdge = 1;
+    try { if (/\/(MagiBurst|MagiBattle|MagiAbyss|MagiBocciaRush|expo)\//.test(location.pathname || "")) return; } catch (e) { return; }
+    if (!("IntersectionObserver" in window) || !window.MutationObserver) return;
+    var XEL_RAW = "fire:Ririka,Akane,Mika,Nana,RinonX,Ema,Arisa,Tsubaki,Natsuki,Shirayuki,Nazuna,Milfy,Lysera,Soleria,Altia,KaguyaAlpha,KokonaAlpha,Nanami,Kaede,Kotone,Karem,Tsukino,Youhi,Kanata,Satsuki,Otoha,Guren,Suzune,Mirelle,Karin,Homura,Seina,Mutsumi,Yuika,Yua,RanS,Kurenai,Chia,Hisui,AnnaRan,Asuka,Amane,RenaD,Reia,Natsume,Kagura,Miya,Akatsuki,Kokoha,Kureha,KumikoReina,RanAlpha,Ayano,Saki,Chie|water:Shiona,Serina,Airi,Kaho,Sakura,Shion,Kokona,Rinne,Selene,Fiona,Chloe,Sheril,Fia,Solea,CherylAlpha,Yukino,Chitose,Shizuku,Fuka,Moeka,Elena,Blair,Roxy,Sayaka,Yuuna,Minamo,Scarlet,Mirei,Yoizuki,Shiduki,Misuzu,Shiori,Kotori,Yuki,Risa,Riona,Shizuru,Yoiduki,Sougetsu,Kaoru,NaoS,HarukaS,AoiKuroha,Misaki,Ruri,Nagisa,Hiyori,Emika,Ayane,Mikoto,Azusa,KotoriAlpha,Takina,Yuka,Natsumi,Ichika|wood:Hina,Haruka,Ede,Aira,Mizuki,Ayaka,Mashiro,Hotaru,Rezelia,Lilia,Mabel,Beltia,Astera,Roselia,Kokoro,Ceris,Tsumugi,Mayu,Izumi,Violet,Asuha,Akari,Chihaya,Tomoe,Amelia,Miyabi,Sara,Hinano,Kokoa,Ryouka,Marika,Minori,MireiR,Yuuri,Rika,Kayo,Natsune,Kasumi,Narumi,Haduki,Shiho,Chiha,Mei,AsuhaAlpha,Hibana,Miu,Mai,Nonoka|light:Runa,Noa,Eruna,Rei,Rusia,Riko,Kaguya,Mion,Bernica,Iroha,Koharu,Yuri,Elsia,Setsuna,Nephia,Arche,Nemu,Liana,Reika,Rinon,Ran,Yuunagi,Suzuka,Anna,Youka,Grace,Touka,Artemia,Sayo,Hinata,Yui,Himari,Mio,Sumire,Kanade,Sakuya,Nodoka,Miko,YuukaS,AnnaM,Seika,SuzuhaR,Hanon,Shino,Kuon,TsukinoD,Astraea,AstraeaC,AnnaMaid,Saya,Hikari,Momoka,Miyuki,Kiduki,Hikaru,Himeri,Kana,AnnaAlpha,Chinatsu,Yuumi,Aina|dark:Yuina,Kotoha,Mirea,Miyu,Nene,Kotomi,Rea,Cheryl,Viola,Mao,Alicia,Hecatia,Karina,Revia,Abyss,Shizuka,Yuria,MionAlpha,Yaju,Iori,Noelle,Ange,Dominia,Chizuru,Seira,Suzuha,Lilith,Lyra,Melty,Sayuri,Momo,Karen,Koyuki,Yuuka,Sumika,Sayuki,Kazane,Rena,Reina,AnnaS,Rin,SeiraK,Raika,ReiS,Maaya,Asahi,Subaru,Miori,Ayame,Kyoka,Erika,Uta,Miduki,Honoka,Maki,SayakaAlpha,Fuki,Rina,Kaori,Yuna";
+    var RE = /(?:^|\/)img\/(?:t_)?([A-Za-z0-9]+)\.webp(?:[?#].*)?$/;
+    var MAP = null;
+    function elMap() {
+      if (MAP) return MAP;
+      MAP = {};
+      XEL_RAW.split("|").forEach(function (g) { var p = g.split(":"); (p[1] || "").split(",").forEach(function (st) { if (st) MAP[st] = p[0]; }); });
+      try {
+        /* mb-core.js があるページ（ガチャ・図鑑）は、その台帳で上書き（新キャラも自動で入る） */
+        if (typeof CHARS !== "undefined" && CHARS && typeof CHARS === "object") {
+          Object.keys(CHARS).forEach(function (id) {
+            var c = CHARS[id]; if (!c || !c.el) return;
+            [c.img, c.th].forEach(function (pp) { var m = String(pp || "").match(RE); if (m) MAP[m[1]] = c.el; });
+          });
+        }
+      } catch (e) {}
+      return MAP;
+    }
+    function addCss() {
+      if (document.getElementById("xevaElEdgeCss")) return;
+      var st = document.createElement("style");
+      st.id = "xevaElEdgeCss";
+      st.textContent = "img[data-xel]{outline:1.5px solid var(--xel);outline-offset:-1.5px}" +
+        "img[data-xel=fire]{--xel:rgba(255,93,71,.8)}img[data-xel=water]{--xel:rgba(56,166,255,.8)}" +
+        "img[data-xel=wood]{--xel:rgba(47,191,113,.8)}img[data-xel=light]{--xel:rgba(232,170,30,.85)}img[data-xel=dark]{--xel:rgba(168,107,255,.8)}" +
+        "body.xv-nochar img[data-xel]{outline:none}";
+      (document.head || document.documentElement).appendChild(st);
+    }
+    var io = new IntersectionObserver(function (es) {
+      es.forEach(function (e) {
+        if (!e.isIntersecting) return;
+        var im = e.target; io.unobserve(im);
+        var r = e.boundingClientRect, w = r.width, h = r.height;
+        if (!w && !im.complete) { im.addEventListener("load", function () { io.observe(im); }, { once: true }); return; }
+        var m = (im.getAttribute("src") || "").match(RE);
+        if (!m || w < 24 || w > 160 || Math.abs(w - h) > Math.max(6, w * 0.12)) { im.removeAttribute("data-xel"); return; }
+        var el = elMap()[m[1]];
+        if (el) im.setAttribute("data-xel", el); else im.removeAttribute("data-xel");
+      });
+    });
+    function look(im) {
+      var src = im.getAttribute("src") || "";
+      if (im.__xelSrc === src) return;
+      im.__xelSrc = src;
+      if (RE.test(src)) io.observe(im); else if (im.hasAttribute("data-xel")) im.removeAttribute("data-xel");
+    }
+    function scan(root) {
+      if (!root) return;
+      if (root.tagName === "IMG") { look(root); return; }
+      if (!root.querySelectorAll) return;
+      var list = root.querySelectorAll("img");
+      for (var i = 0; i < list.length; i++) look(list[i]);
+    }
+    function start() {
+      addCss();
+      scan(document.body || document.documentElement);
+      new MutationObserver(function (ms) {
+        for (var i = 0; i < ms.length; i++) {
+          var m = ms[i];
+          if (m.type === "attributes") { if (m.target.tagName === "IMG") look(m.target); continue; }
+          for (var j = 0; j < m.addedNodes.length; j++) { var n = m.addedNodes[j]; if (n.nodeType === 1) scan(n); }
+        }
+      }).observe(document.documentElement, { childList: true, subtree: true, attributes: true, attributeFilter: ["src"] });
+    }
+    if (document.body) start(); else document.addEventListener("DOMContentLoaded", start, { once: true });
+  })();
 
   /* ══════════════════════════════════════════════════════════════
      ★★ 2026-08-26 画像の長押しを「まったく反応しない」ようにする（ご指定）

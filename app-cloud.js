@@ -266,14 +266,31 @@ export function initAppCloud(opts) {
   }
 
   let syncing = false;
+  /* ★★ 2026-10-20 ご報告「iPhone のアカウントを PC で開くとキャラの所持が同期されて出ないことがある」
+     起動のときにクラウドを読めないと（まだつながっていない・回線が不安定）、そのまま次の1分ごとの確認まで古いまま
+     （その確認も storeT が読めないと「変化なし」扱い）だった。→ 読めなかったら 4秒・10秒・20秒…後に読み直す。 */
+  let pullFailed = false, retryT = 0, retryN = 0;
   async function syncDown() {
     if (!db || !uid || syncing) return false;
     syncing = true;
     try {
       /* ★★ 2026-10-16 users/{uid} まるごとではなく store と storeT だけ読む（ほかの枝まで落とさない） */
       const [s, st] = await Promise.all([get(ref(db, "users/" + uid + "/store")), get(ref(db, "users/" + uid + "/storeT"))]);
+      pullFailed = false; retryN = 0;
       return merge(s.exists() ? s.val() : {}, st.exists() ? st.val() : {});
-    } catch (e) { return false; } finally { syncing = false; }
+    } catch (e) { pullFailed = true; return false; } finally { syncing = false; }
+  }
+  function retryLater() {
+    if (!pullFailed || retryT) return;
+    const ms = [4000, 10000, 20000, 40000][Math.min(retryN, 3)];
+    retryN++;
+    retryT = setTimeout(async () => {
+      retryT = 0;
+      if (!ready || !uid) return;
+      const changed = await syncDown();
+      if (!pullFailed) { emit("ready", { synced: true, changed }); if (changed) emit("restored", {}); await flush(); }
+      else retryLater();
+    }, ms);
   }
   /* ★★ 2026-10-16 開いたままの画面でも、ほかの端末の変化を1分ごとに確かめる（storeT だけ読む＝軽い）。
      前は「画面に戻ってきたとき」しか取りこまなかったので、PC で開きっぱなしのタブには
@@ -320,6 +337,7 @@ export function initAppCloud(opts) {
     emit("ready", { synced: true, changed });
     if (changed) emit("restored", {});           // 別端末の続きが入った
     await flush();
+    retryLater();                                /* ★★ 2026-10-20 読めなかったときは少しあとで読み直す */
   })();
 
   /* オンライン復帰時：まだ接続していなければ確立してから、送る→取り込む。

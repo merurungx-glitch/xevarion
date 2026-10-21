@@ -1053,7 +1053,7 @@ async function pullStoreFull(uid) {
     if (s.exists()) s.forEach((c) => { kv[decKey(c.key)] = c.val(); });
     if (st.exists()) st.forEach((c) => { t[decKey(c.key)] = c.val(); });
     return { kv, t };
-  } catch (e) { return { kv: {}, t: {} }; }
+  } catch (e) { return { kv: {}, t: {}, err: true }; }   /* ★★ 2026-10-20 読めなかった印（「クラウドは空」と区別する・xeva-cloud の pullFullSafe） */
 }
 
 /* ★★ 2026-10-16 書いた時刻（storeT）だけを取得。{ key: ms }。送る前に「知らない書き込み」があるか見るのに使う（軽い） */

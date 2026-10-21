@@ -11,7 +11,7 @@
      ② アプリロゴ ＋ ロードバー ＋ "Loading <App> ..."
 
    使い方（<head> に、defer なしで置く）:
-     <script src="../xeva-splash.js?v=15"
+     <script src="../xeva-splash.js?v=17"
              data-app="MagiLex"
              data-logo="../thumbs/MagiLex.jpg"></script>
 
@@ -140,7 +140,16 @@
   var SEEN = false;
   try { SEEN = sessionStorage.getItem(SEEN_KEY) === "1"; sessionStorage.setItem(SEEN_KEY, "1"); } catch (e) {}
   var T_IN = 60;                    // 3社ロゴを出すまで
-  var T_HOLD = SEEN ? 1100 : 1600;  // 3社ロゴの表示時間（前は 3600。2回目からは短め）
+  /* ★★ 2026-10-20 ご報告「アプリ起動時に企業ロゴが表示される前に切り替わってしまう」
+       真因は2つ：① 3社ロゴの時間（1.1秒）を<b>画像が届く前から</b>数えていた（届くのが遅いと白い札のまま次へ）
+       ② 出てくる動き（最大1.04秒）が終わってから 0.06 秒で消えていた（2回目からの 1.1 秒）。
+       → 画像が<b>描ける状態になってから</b>出して数える（最大 2.5 秒まで待つ）・出てきてから見える時間を確保（T_SHOW）。
+       ③ ページの読みこみ（defer の JS）が終わるまで起動画面を作っていなかった（DOMContentLoaded 待ち）
+       → body がまだ無くても &lt;html&gt; に置いてすぐ出す（中身より先に起動画面）。 */
+  var T_ANIM = 1050;                // 3社ロゴが出てくる動きの長さ（いちばん遅い札の .24s＋.8s）
+  var T_SHOW = SEEN ? 1000 : 1400;  // 出きってから見せておく時間
+  var T_HOLD = T_ANIM + T_SHOW;     // 3社ロゴの表示時間（画像がそろってから数える）
+  var T_IMGWAIT = 2500;             // 画像を待つ上限
   var T_OUT = 320;                  // 3社ロゴのフェードアウト
   var T_BAR = SEEN ? 380 : 800;     // ロードバーが伸びきるまで
   var T_MAIN = SEEN ? 250 : 600;    // アプリロゴの最短表示時間（前は 1650）
@@ -299,6 +308,18 @@
 
   function sleep(ms) { return new Promise(function (r) { setTimeout(r, ms); }); }
 
+  /* ★★ 2026-10-20 起動画面の中の画像（3社ロゴ・アプリロゴ）が<b>描ける状態</b>になるまで待つ（decode）。上限 T_IMGWAIT */
+  function imgsReady(box) {
+    var ims = box ? Array.prototype.slice.call(box.querySelectorAll("img")) : [];
+    var one = function (im) {
+      if (im.complete && im.naturalWidth) return im.decode ? im.decode().catch(function () {}) : Promise.resolve();
+      return new Promise(function (r) {
+        im.addEventListener("load", function () { (im.decode ? im.decode() : Promise.resolve()).catch(function () {}).then(r); }, { once: true });
+        im.addEventListener("error", r, { once: true });
+      });
+    };
+    return Promise.race([Promise.all(ims.map(one)), sleep(T_IMGWAIT), skipP]);
+  }
   function preload() {
     var srcs = BRAND.map(function (b) { return b.src; }).concat([LOGO]);
     return new Promise(function (res) {
@@ -317,7 +338,10 @@
   async function runCombo() {
     var main = el.querySelector(".xsmain");
     var pre = preload();
-    setTimeout(function () { main.classList.add("in"); }, T_IN);
+    /* ★★ 2026-10-20 ロゴの画像がそろってから出して、そこから 3.2 秒 */
+    await imgsReady(main);
+    await sleep(T_IN);
+    main.classList.add("in");
     await Promise.race([
       Promise.all([Promise.race([pre, skipP]), Promise.race([sleep(T_COMBO), skipP])].concat(holds.map(function (p) {
         return Promise.resolve(p).catch(function () {});
@@ -333,8 +357,11 @@
     var fill = el.querySelector(".xsbar i");
 
     var pre = preload();
-    /* ★★ 2026-10-13 3社ロゴは毎回（10-09b の「2回目からは出さない」をやめた・ご指定） */
-    setTimeout(function () { intro.classList.add("in"); }, T_IN);
+    /* ★★ 2026-10-13 3社ロゴは毎回（10-09b の「2回目からは出さない」をやめた・ご指定）
+       ★★ 2026-10-20 画像がそろってから出して、出きってからも見える時間をとる（T_HOLD＝動き＋T_SHOW） */
+    await imgsReady(intro);
+    await sleep(T_IN);
+    intro.classList.add("in");
     await Promise.race([sleep(T_HOLD), skipP]);
     intro.classList.remove("in");
     intro.classList.add("out");
@@ -386,6 +413,8 @@
     get app() { return APP; }
   };
 
-  if (document.body) build();
-  else document.addEventListener("DOMContentLoaded", build, { once: true });
+  /* ★★ 2026-10-20 body がまだ無くても（&lt;head&gt; で読まれたとき）すぐ作る＝&lt;html&gt; の直下に置く。
+     前は DOMContentLoaded（defer の JS をぜんぶ読み終わったあと）まで待っていたので、
+     そのあいだにホームやアプリの画面が先に見えて、あとから起動画面が出ていた。 */
+  build();
 })();
