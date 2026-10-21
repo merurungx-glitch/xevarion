@@ -98,7 +98,8 @@
     try {
       if (window.GameLink && navigator.onLine !== false) {
         /* ★★ 2026-10-16 同じ順位は同じ額（rank を渡す＝game-link が PRIZES[rank-1] を使う） */
-        out.prizes = await window.GameLink.awardPrizes(standings.filter((p) => p.rank <= 5).map((p) => ({ uid: p.uid || null, name: p.name, rank: p.rank, game: "MagiShift" })));
+        /* ★★ 2026-10-20 途中から CPU にした席（type cpu）は、紐づけていても賞金なし */
+        out.prizes = await window.GameLink.awardPrizes(standings.filter((p) => p.rank <= 5).map((p) => ({ uid: p.type === "cpu" ? null : (p.uid || null), name: p.name, rank: p.rank, game: "MagiShift" })));
       }
     } catch (e) {}
     return out;

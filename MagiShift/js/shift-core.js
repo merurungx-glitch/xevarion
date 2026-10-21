@@ -1,7 +1,7 @@
 /* ============================================================
    MagiShift — ルールの本体（2026-09-21 新作）
    ------------------------------------------------------------
-   マルバツゲームを発展させた 2〜6人のボードゲーム。
+   マルバツゲームを発展させた 2〜8人のボードゲーム（★★ 2026-10-20 8人まで）。
    ★ このゲームの要：<b>置いた駒をあとから動かせる</b>。
      そのため盤面はいつも変わり、最後まで逆転がある。
 
@@ -32,13 +32,17 @@
        5人 8×8 7個 5つ並べ ・ 6人 9×9 7個 5つ並べ
      ★ 駒を使いきったあとは<b>置けず、動かすだけ</b>になる。ここがこのゲームの読み合いの中心。 */
   /* ★★ 2026-10-14 ご指定「勝利条件で 5・6人で4個並べを標準に」：5人・6人も<b>4つ並べ</b>（盤と駒の数はそのまま） */
+  /* ★★ 2026-10-20 ご指定「8人対応まで」：7人・8人は 10×10・4つ並べ・1人7個（駒のこみぐあいは 6人とほぼ同じ） */
   const RULES = {
     2: { size: 5, win: 4, pieces: 6, move: 2 },
     3: { size: 6, win: 4, pieces: 6, move: 2 },
     4: { size: 7, win: 4, pieces: 6, move: 2 },
     5: { size: 8, win: 4, pieces: 7, move: 2 },
     6: { size: 9, win: 4, pieces: 7, move: 2 },
+    7: { size: 10, win: 4, pieces: 7, move: 2 },
+    8: { size: 10, win: 4, pieces: 7, move: 2 },
   };
+  const MAX_PLAYERS = 8;
   /* pieces:0 ＝ 置ける数に上限なし。move ＝ 1手で動ける距離（たて・よこ・ななめ） */
 
   /* ★★ 2026-10-13 ルールの種類（ご指定「守りに行かなければならないときに手段が固定される」への別ルール） */
@@ -65,6 +69,10 @@
     { id: 3, name: "イエロー", color: "#ffd21f", mark: "star" },   /* ★★ 2026-10-16b 星はほかと同じ白（ご指定） */
     { id: 4, name: "パープル", color: "#8b5cf6", mark: "square" },
     { id: 5, name: "オレンジ", color: "#ff8a12", mark: "heart" },
+    /* ★★ 2026-10-20 7人目・8人目（ご指定「マークや色が見やすいように」）：
+       ほかの6色とは色相も明るさもはなれた<b>シアン（水色）＝◆</b>と<b>ブラック＝☾（三日月）</b>。形もほかと重ならないものに */
+    { id: 6, name: "シアン",   color: "#06aecb", mark: "diamond" },
+    { id: 7, name: "ブラック", color: "#2f3447", mark: "moon" },
   ];
   /* 前の色（古いセーブの駒・保存一覧の見出し）→ 新しい表の番号 */
   const OLD_COLOR = { "#ef4b5a": 0, "#2f7cf6": 1, "#16a865": 2, "#f0b400": 3, "#8b5cf6": 4, "#f97316": 5 };
@@ -296,6 +304,18 @@
   }
   /* 置く場所も動かせる駒もない＝その人はパス */
   const stuck = (S) => S.phase === "play" && !canAct(S, S.turn);
+  /* ★★ 2026-10-20 ご指定「途中離脱した人の分を途中から CPU として動かせるように」
+     席の「人／CPU」を試合の途中で入れかえる（sub＝途中から CPU にした印。人にもどすと消える）。
+     ★ CPU にした席は賞金・戦績の対象外（shift-account.js の report が type を見る） */
+  function setType(S, slot, type) {
+    const p = S && S.players[slot]; if (!p) return false;
+    const t = type === "cpu" ? "cpu" : "human";
+    if (p.type === t) return false;
+    p.type = t;
+    if (t === "cpu") p.sub = Date.now(); else delete p.sub;
+    S.log.push({ t: "seat", slot, to: t });
+    return true;
+  }
 
   /* 成績（試合結果の並び）。勝った人が1位、あとは置いた駒のいちばん長い並びが長い順
      ★★ 2026-10-16 ご指定「2位以降の決めかたと、同じ数のときを決めて表示」：
@@ -402,7 +422,7 @@
   function clear(Sg) { remove(Sg && typeof Sg === "object" ? Sg.gid : Sg); }
 
   Object.assign(MS, {
-    RULES, MODES, COLORS, looks, BLOCKS, BLOCK, MAX_ROUNDS, MAX_SAVES, DIR8, allCpu,
+    RULES, MODES, COLORS, looks, BLOCKS, BLOCK, MAX_ROUNDS, MAX_SAVES, DIR8, allCpu, MAX_PLAYERS, setType,
     newGame, upgrade, place, move, push, block, pass, movesOf, pushesOf, canPlace, canPick, canMove, canPush, canBlock,
     shuffleOrder, orderOf, startTurn, isTactics, canAct,
     at, inBoard, cur, countOf, leftOf, outOfPieces, checkWin, lineAt, stuck, standings, save, load, list, remove, clear, KEY,

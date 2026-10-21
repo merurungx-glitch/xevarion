@@ -123,9 +123,11 @@
     return sc;
   }
 
-  /* ══ CPU の1手を決める ══ */
-  function choose(S) {
-    const level = S.cpuLevel == null ? 1 : S.cpuLevel;
+  /* ══ CPU の1手を決める ══
+     ★★ 2026-10-20 o.level（強さの上書き）・o.det（ゆらぎなし＝ヒント用）・o.info（理由を返す） */
+  function choose(S, o) {
+    o = o || {};
+    const level = o.level != null ? o.level : S.cpuLevel == null ? 1 : S.cpuLevel;
     const B = snap(S), me = S.turn;
     const ord = G.orderOf(S), k0 = ord.indexOf(me);
     const opps = [];
@@ -138,15 +140,17 @@
     if (!acts.length) return null;
 
     /* ① 勝てる手 */
-    for (const a of acts) { const r = apply(B, me, a); if (r.win === me) return a; }
+    for (const a of acts) { const r = apply(B, me, a); if (r.win === me) return o.info ? { a, why: "win" } : a; }
 
     /* よわい：ときどき適当に（ただし相手に勝ちをわたす押しかたはしない） */
-    if (level === 0 && Math.random() < 0.42) {
+    if (level === 0 && !o.det && Math.random() < 0.42) {
       const safe = acts.filter((a) => a.t !== "push");
       return safe[(Math.random() * safe.length) | 0] || acts[0];
     }
 
-    let best = null, bestSc = -Infinity;
+    let best = null, bestSc = -Infinity, bestInfo = null;
+    /* いま相手がすぐ勝てるマス（ヒントの理由に使う） */
+    const nowThreat = {}; opps.forEach((op) => { winCells(B, op).forEach((i) => { (nowThreat[i] = nowThreat[i] || []).push(op); }); });
     for (const a of acts) {
       const r = apply(B, me, a);
       if (r.win >= 0 && r.win !== me) continue;              /* 押して相手の並びを作ってしまう手は指さない */
@@ -167,11 +171,36 @@
       else if (myW === 1) sc += level === 2 ? 7000 : 2500;
       if (a.t === "block") sc -= 150;                        /* ブロックは数が限られるので、ほかの手で守れるならそちら */
       if (a.t === "place" && B.maxP && cnt(B, me) >= B.maxP - 1) sc -= 40;   /* 最後の1個はなるべく残す */
-      const noise = level === 2 ? 4 : level === 1 ? 25 : 120;
+      const noise = o.det ? 0 : level === 2 ? 4 : level === 1 ? 25 : 120;
       sc += Math.random() * noise;
-      if (sc > bestSc) { bestSc = sc; best = a; }
+      if (sc > bestSc) { bestSc = sc; best = a; bestInfo = { pen, myW }; }
     }
-    return best || acts[0];
+    if (!o.info) return best || acts[0];
+    /* ★★ 2026-10-20 ヒントの理由 */
+    const a = best || acts[0], tgt = a.y * B.n + a.x;
+    let why = "shape", who = null;
+    const blocked = Object.keys(nowThreat).length && bestInfo && !bestInfo.pen;
+    if (nowThreat[tgt] && (a.t === "place" || a.t === "move" || a.t === "block")) { why = "stop"; who = nowThreat[tgt][0]; }
+    else if (a.t === "push" && Object.keys(nowThreat).length) { why = "stop"; who = Number(Object.values(nowThreat)[0][0]); }
+    else if (bestInfo && bestInfo.myW >= 2) why = "fork";
+    else if (bestInfo && bestInfo.myW === 1) why = "reach";
+    else if (blocked) { why = "stop"; who = Number(Object.values(nowThreat)[0][0]); }
+    return { a, why, who };
+  }
+  /* ★★ 2026-10-20 ご指定「ヒント」：いまの番の人にとっていちばんよい手（つよいの考え方・ゆらぎなし）と、その理由
+     why … win（勝てる）／stop（相手のリーチを止める）／fork（ふたまた）／reach（リーチを作る）／shape（形をよくする） */
+  function hint(S) { try { return choose(S, { level: 2, det: true, info: true }); } catch (e) { return null; } }
+  /* ★★ 2026-10-20 ご指定「戦況をバーで」：人ごとの「勢い」（形のよさ＋すぐ勝てるマス）を割合にして返す（合計 1）。
+     ★ そろえかけの窓の点（shape）は駒が増えると急にふくらむので、0.6乗でならし、だれもが少しは見えるように床を足す */
+  function advantage(S) {
+    const B = snap(S), sh = shape(B), np = B.np, out = new Array(np).fill(0);
+    let sum = 0;
+    for (let p = 0; p < np; p++) {
+      const w = winCells(B, p).length;
+      const v = Math.pow(Math.max(0, sh[p]) + w * 900 + 6, 0.6);
+      out[p] = v; sum += v;
+    }
+    return out.map((v) => (sum ? v / sum : 1 / np));
   }
 
   /* CPU の手を、画面と同じ形で実行する（shift-core の place/move/push/block） */
@@ -184,5 +213,5 @@
     return null;
   }
 
-  G.AI = { choose, play, winCells: (S, s) => winCells(snap(S), s) };
+  G.AI = { choose, play, hint, advantage, winCells: (S, s) => winCells(snap(S), s) };
 })();

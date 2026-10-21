@@ -1,7 +1,7 @@
 {
   "name": "MagiShift",
   "short_name": "MagiShift",
-  "description": "つなげて、動かして、勝ちをつかめ。1台のiPadを2〜6人で囲む対戦ボードゲーム。",
+  "description": "つなげて、動かして、勝ちをつかめ。1台のiPadを2〜8人（CPUも）で囲む対戦ボードゲーム。",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

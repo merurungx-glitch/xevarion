@@ -3,7 +3,7 @@
    ・ランキングは実データ（AniList・中継サーバー）。最後に取ったぶんは localStorage に控えるのでオフラインでも前回の順位を出せる
    ・保存（magiscope_v1）は localStorage。XEVARION のアカウントで同期する
    ============================================================ */
-const VERSION = "magiscope-sw-v34";
+const VERSION = "magiscope-sw-v35";
 const CORE = [
   "./index.html",
   "./css/scope.css?v=21",
@@ -14,20 +14,20 @@ const CORE = [
   "./img/emblem.png",
   "./img/icon192.png",
   "./manifest.webmanifest",
-  "../xeva-splash.js?v=15",
+  "../xeva-splash.js?v=17",
   "../xeva-safebottom.js?v=12",
   "../xeva-loading.js?v=19",
   "../xeva-back.js?v=9",
   "../maintenance-gate.js?v=13",
-  "../xeva.js?v=78",
+  "../xeva.js?v=79",
   "../xeva-alive.js?v=6",
   /* ★★ 2026-09-22 英語版（オフラインでも切りかえられるように） */
   "../xeva-i18n.js?v=8",
   "../xeva-i18n-dict.js?v=12",
   "../xeva-i18n-ms1.js?v=3",
   /* xeva-cloud.js はモジュールなので、そこから読む xeva-keys.js も要る */
-  "../xeva-cloud.js?v=45",
-  "../xeva-keys.js?v=32",
+  "../xeva-cloud.js?v=46",
+  "../xeva-keys.js?v=33",
   "../img/ld_b_stand.webp?v=5",
   "../img/ld_b_bow.webp?v=5",
   "../thumbs/MagiScope.jpg",

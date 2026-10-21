@@ -201,11 +201,58 @@ function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch
 let saveTimer = null;
 async function save(t, quiet) {
   t = t || cur; if (!t) return;
+  if (t === cur) undoRecord();      /* ★★ 2026-10-21 元に戻す用に、置き場所が変わっていたら1つ覚える */
   t.updatedAt = Date.now();
   await idbPut(JSON.parse(JSON.stringify(t)));
   if (!quiet) renderHomeSoft();
 }
 function saveSoon() { clearTimeout(saveTimer); saveTimer = setTimeout(() => save(cur, true), 400); }
+
+/* ══ ★★ 2026-10-21 元に戻す・やり直す（Ctrl+Z / Ctrl+Y・上のバーの ↶ ↷）══
+   ・覚えるのは「どの段に・どの順で・どの画像があるか」と段の設定（ラベル・色・大きさ）と並び順の種類。
+     画像そのもの（data URL）は<b>同じものを指すだけ</b>なので、何回ぶん覚えても重くならない。
+   ・名前やメモの書きかえは対象外（文字の入力欄はブラウザ自身の取り消しが効く）。
+   ・save() のたびに形を比べ、変わっていたときだけ1つ積む（文字の入力では積まない）。 */
+let undoStack = [], redoStack = [], undoBusy = false;
+function layoutSnap(t) {
+  const s = { tiers: t.tiers.map((tr) => Object.assign({}, tr, { images: tr.images.slice() })),
+              images: t.images.slice(), sortMode: t.sortMode };
+  s.k = JSON.stringify([s.sortMode, s.images.map((im) => im.id), s.tiers.map((tr) =>
+    [tr.id, tr.label, tr.name, tr.bg, tr.tc, tr.h, tr.w, tr.fs, tr.bold, tr.align, tr.criteria, tr.images.map((im) => im.id)])]);
+  return s;
+}
+function undoReset() { undoStack = cur ? [layoutSnap(cur)] : []; redoStack = []; paintUndo(); }
+function undoRecord() {
+  if (undoBusy || !cur || !undoStack.length) return;
+  const s = layoutSnap(cur);
+  if (undoStack[undoStack.length - 1].k === s.k) return;
+  undoStack.push(s); if (undoStack.length > 80) undoStack.splice(1, 1);
+  redoStack = []; paintUndo();
+}
+function undoApply(s) {
+  cur.tiers = s.tiers.map((tr) => Object.assign({}, tr, { images: tr.images.slice() }));
+  cur.images = s.images.slice(); cur.sortMode = s.sortMode;
+  if (selImg && !findImg(selImg)) selImg = null;
+  undoBusy = true; save(cur, true); undoBusy = false;
+  refresh(); paintUndo();
+}
+function undo() {
+  if (!cur || undoStack.length < 2) { toast("これ以上は戻せません"); return; }
+  redoStack.push(undoStack.pop());
+  undoApply(undoStack[undoStack.length - 1]);
+  toast("元に戻しました");
+}
+function redo() {
+  if (!cur || !redoStack.length) { toast("やり直せる操作がありません"); return; }
+  const s = redoStack.pop(); undoStack.push(s);
+  undoApply(s);
+  toast("やり直しました");
+}
+function paintUndo() {
+  const u = $("#etUndo"), r = $("#etRedo");
+  if (u) u.disabled = undoStack.length < 2;
+  if (r) r.disabled = !redoStack.length;
+}
 
 function pushRecent(id) {
   let r = lsGet(RECENT_KEY, []);
@@ -235,7 +282,7 @@ function go(name) {
    ══════════════════════════════════════════════ */
 function tierThumbHTML(t) {
   const rows = t.tiers.slice(0, 4).map((tr) => {
-    const imgs = tr.images.slice(0, 6).map((im) => `<img src="${esc(im.src)}" alt="" loading="lazy">`).join("");
+    const imgs = tr.images.slice(0, t.id === AN_TABLE_ID ? 10 : 8).map((im) => `<img src="${esc(im.src)}" alt="" loading="lazy">`).join("");
     return `<div class="tr"><span style="background:${esc(tr.bg)};color:${esc(tr.tc)}">${esc(String(tr.label).slice(0, 2))}</span>${imgs}</div>`;
   }).join("");
   return `<div class="thumb">${rows || '<div class="muted" style="padding:8px">まだ空です</div>'}</div>`;
@@ -247,20 +294,22 @@ function cardHTML(t) {
      ひと目でそれと分かるようにする。消せない表なので削除ボタンも出さない
      （押せるのに断られる、という見た目にしない）。編集にはアクセスコードが要る。 */
   const isMb = isFixedTable(t.id);
-  return `<div class="tcard${isMb ? " mbfix" : ""}" data-id="${t.id}" onclick="MT.open('${t.id}')">
+  /* ★★ 2026-10-21 リニューアル：帯 → 見本 → 名前 → 操作 の順に<b>重ねずに</b>積む
+     （以前は見本の上に操作ボタンと帯が重なっていた）。操作は文字つきでいつも見せる。 */
+  /* ★★ 2026-10-21 ご指定「アニメ固定のものは縦長で」→ 見本の絵も 3:4（.tallpv） */
+  return `<div class="tcard${isMb ? " mbfix" : ""}${t.id === AN_TABLE_ID ? " tallpv" : ""}" data-id="${t.id}" onclick="MT.open('${t.id}')">
     ${t.id === MB_TABLE_ID ? '<div class="mbtag">⚔ MagiBurst 公式・固定<span>編集にはアクセスコード</span></div>' : ""}
     ${t.id === AN_TABLE_ID ? '<div class="mbtag an">📺 アニメ Tier・固定<span>編集にはアクセスコード</span></div>' : ""}
-    ${t.password ? '<div class="lock">🔒</div>' : ""}
-    <div class="acts">
-      <button title="名前を変える" onclick="event.stopPropagation();MT.renameDlg('${t.id}')">✎</button>
-      <button title="複製" onclick="event.stopPropagation();MT.dup('${t.id}')">⧉</button>
-      ${isMb ? "" : `<button title="削除" onclick="event.stopPropagation();MT.del('${t.id}')">🗑</button>`}
-    </div>
     ${tierThumbHTML(t)}
     <div class="bd">
-      <div class="nm">${esc(t.name)}</div>
+      <div class="nm">${t.password ? '<i class="lock" title="パスワードつき">🔒</i>' : ""}<b>${esc(t.name)}</b></div>
       <div class="mt">${esc(comp) || "—"}</div>
       <div class="mt">${n} 枚 ・ 更新 ${isMb ? fmtDay(t.updatedAt) : fmtDate(t.updatedAt)}</div>
+    </div>
+    <div class="acts">
+      <button title="名前を変える" onclick="event.stopPropagation();MT.renameDlg('${t.id}')"><svg class="ico" viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z"/><path d="M13.5 6.5l4 4"/></svg><span>名前</span></button>
+      <button title="複製" onclick="event.stopPropagation();MT.dup('${t.id}')"><svg class="ico" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 00-2-2H6a2 2 0 00-2 2v8a2 2 0 002 2h2"/></svg><span>複製</span></button>
+      ${isMb ? "" : `<button class="dg" title="削除" onclick="event.stopPropagation();MT.del('${t.id}')"><svg class="ico" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 002 2h6a2 2 0 002-2l1-12M9 7V4h6v3"/></svg><span>削除</span></button>`}
     </div>
   </div>`;
 }
@@ -441,6 +490,7 @@ function open(id) {
 function openTable(id) {
   cur = tables.find((x) => x.id === id); if (!cur) return;
   normalize(cur); selImg = null; pushRecent(id);
+  undoReset();   /* ★★ 2026-10-21 元に戻すのは、開いたときの形まで */
   $("#etName").value = cur.name;
   go("edit");
   /* ★★ 2026-08-18 MagiBurst 表は、開くたびに
@@ -521,6 +571,7 @@ async function mbRefreshPool() {
   mbNormalizeTable(t);
   mbDedupe(t);                 /* ★ 1キャラ1枚を守る */
   await save(t, true);
+  if (cur === t) undoReset();  /* ★★ 2026-10-21 自動で足したキャラまで「元に戻す」で消えないように、ここを起点にする */
   if (screen === "edit" && cur && cur.id === MB_TABLE_ID) renderEditor();
   if (added) toast(added + " 体をプールに追加しました");
 }
@@ -639,15 +690,20 @@ function renderTable(host, forPresent) {
 }
 function renderTierList() {
   const el = $("#tierList");
+  /* ★★ 2026-10-21 名前が見えていなかった（幅 200px に ↑↓＋⋮ の4つが並んで、名前の幅が 0 になっていた）。
+     名前と枚数を2行で見せ、ボタンはマウスを乗せたときに重ねて出す。行そのものを押すと段の設定。 */
+  const last = cur.tiers.length - 1;
   el.innerHTML = cur.tiers.map((tr, i) => `
-    <div class="tlrow">
+    <div class="tlrow" onclick="MT.tierDlg(${i})" title="${esc(tr.name)}（押すと段の設定）">
       <span class="bdg" style="background:${esc(tr.bg)};color:${esc(tr.tc)}">${esc(String(tr.label).slice(0, 2))}</span>
-      <span class="nm">${esc(tr.name)}</span>
-      <button title="上へ" onclick="MT.moveTier(${i},-1)">↑</button>
-      <button title="下へ" onclick="MT.moveTier(${i},1)">↓</button>
-      ${/* ★★ 2026-08-26e この段の<b>すぐ下</b>に段を足す（アルファベットのずらしも選べる） */""}
-      <button title="この下に段を追加" onclick="MT.insertDlg(${i},true)">＋</button>
-      <button title="編集" onclick="MT.tierDlg(${i})">⋮</button>
+      <span class="nm"><b>${esc(tr.name)}</b><small>${tr.images.length} 枚</small></span>
+      <span class="tlacts" onclick="event.stopPropagation()">
+        <button title="上へ" onclick="MT.moveTier(${i},-1)"${i === 0 ? " disabled" : ""}>↑</button>
+        <button title="下へ" onclick="MT.moveTier(${i},1)"${i === last ? " disabled" : ""}>↓</button>
+        ${/* ★★ 2026-08-26e この段の<b>すぐ下</b>に段を足す（アルファベットのずらしも選べる） */""}
+        <button title="この下に段を追加" onclick="MT.insertDlg(${i},true)">＋</button>
+        <button title="編集" onclick="MT.tierDlg(${i})">⋮</button>
+      </span>
     </div>`).join("") || '<div class="muted">Tierがありません</div>';
 }
 /* ★ 2026-08-17d プールの検索文字。表そのものには保存しない（その場かぎりの絞り込み） */
@@ -743,10 +799,11 @@ function renderPool() {
 function renderSel() {
   const box = $("#selBox");
   const f = selImg && findImg(selImg);
-  if (!f) { box.innerHTML = '<div class="empty" style="padding:26px 8px">画像をえらぶと<br>ここで編集できます</div>'; return; }
+  if (!f) { box.innerHTML = '<div class="empty" style="padding:26px 8px">画像をえらぶと<br>ここで編集できます</div>' + KBD_HINT; return; }
   const im = f.img;
-  const tierOpts = ['<option value="">（未配置）</option>']
-    .concat(cur.tiers.map((tr, i) => `<option value="${i}"${f.tier === tr ? " selected" : ""}>${esc(tr.label)} — ${esc(tr.name)}</option>`)).join("");
+  const moveBtns = cur.tiers.map((tr, i) => `<button class="${f.tier === tr ? "on" : ""}" style="background:${esc(tr.bg)};color:${esc(tr.tc)}"
+      title="${esc(tr.name)}${i < 9 ? "（キー " + (i + 1) + "）" : ""}" onclick="MT.moveImgTo('${im.id}',${i})">${esc(String(tr.label).slice(0, 3))}</button>`).join("")
+    + `<button class="pool${f.tier ? "" : " on"}" title="未配置へ（キー 0）" onclick="MT.moveImgTo('${im.id}','')">未配置</button>`;
   const stars = (val, key) => {
     let h = '<div class="stars">';
     for (let i = 1; i <= 5; i++) h += `<button class="${val >= i ? "on" : ""}" onclick="MT.setScore('${key}',${i})">★</button>`;
@@ -766,7 +823,8 @@ function renderSel() {
     </div>
     <div class="fld"><label class="lbl">名前</label><input class="inp" value="${esc(im.name)}" oninput="MT.setImgField('name',this.value)"></div>
     <div class="fld"><label class="lbl">メモ</label><textarea class="inp" style="min-height:56px" oninput="MT.setImgField('memo',this.value)">${esc(im.memo)}</textarea></div>
-    <div class="fld"><label class="lbl">現在の Tier</label><select class="inp" onchange="MT.moveImgTo('${im.id}',this.value)">${tierOpts}</select></div>
+    ${/* ★★ 2026-10-21 「現在の Tier」の選択欄 → 段のボタンを押すだけで移せるように（数字キーでも同じ） */""}
+    <div class="fld"><label class="lbl">段へ移す（いまの段が枠つき）</label><div class="selmove">${moveBtns}</div></div>
     <div class="fld">
       <label class="lbl">評価（${cur.rateMax === 10 ? "10点" : "5段階"}）</label>
       ${cur.rateMax === 10
@@ -781,8 +839,13 @@ function renderSel() {
         <span class="total">${totalScore(im).toFixed(1)}<small>/ 10</small></span></div>
       <button class="btn sm wide" style="margin-top:8px" onclick="MT.axesDlg()">評価項目を編集</button>
       ${cur.autoRule.on ? `<button class="btn sm wide" style="margin-top:6px" onclick="MT.applyAuto('${im.id}')">評価から Tier を決める</button>` : ""}
-    </div>`;
+    </div>` + KBD_HINT;
 }
+/* ★★ 2026-10-21 PC のキー操作の案内（スマホでは CSS で隠す） */
+const KBD_HINT = `<div class="kbdhint"><b>キー操作</b>
+  <kbd>1</kbd>〜<kbd>9</kbd> 段へ移す ・ <kbd>0</kbd> 未配置へ<br>
+  <kbd>←</kbd><kbd>→</kbd> となりの画像 ・ <kbd>Del</kbd> 削除 ・ <kbd>Esc</kbd> えらぶのをやめる<br>
+  <kbd>Ctrl</kbd>+<kbd>Z</kbd> 元に戻す ・ <kbd>Ctrl</kbd>+<kbd>Y</kbd> やり直す ・ <kbd>Ctrl</kbd>+<kbd>S</kbd> 保存</div>`;
 function renderSwitches() {
   $("#swName").classList.toggle("on", cur.cardName);
   $("#swMemo").classList.toggle("on", cur.cardMemo);
@@ -809,14 +872,18 @@ function fitEditTools() {
   const acts = $(".etop-acts"), btn = $("#etMenuBtn");
   if (!acts || !btn) return;
   /* いったん出して素の幅を測る（隠れていると幅が0になる） */
-  acts.classList.remove("hide");
+  acts.classList.remove("hide", "compact");
   const bar = acts.parentElement;
-  const need = acts.scrollWidth;
   /* 並びの中で、ボタン以外（名前の入力・保存ボタンなど）が使っている幅を引く */
-  let used = 0;
-  Array.prototype.forEach.call(bar.children, (el) => { if (el !== acts) used += el.offsetWidth; });
-  const room = bar.clientWidth - used - 12;
-  const overflow = need > room;
+  const fits = () => {
+    let used = 0;
+    Array.prototype.forEach.call(bar.children, (el) => { if (el !== acts) used += el.offsetWidth; });
+    return acts.scrollWidth <= bar.clientWidth - used - 12;
+  };
+  /* ★★ 2026-10-21 はみ出したら、まず文字を消して絵だけにする（PC の少し狭い窓でも、ボタンは見えたままにする） */
+  let overflow = !fits();
+  if (overflow) { acts.classList.add("compact"); overflow = !fits(); }
+  if (overflow) acts.classList.remove("compact");
   acts.classList.toggle("hide", overflow);
   btn.classList.toggle("show", overflow);
 }
@@ -1289,6 +1356,16 @@ async function moveImgTo(id, ti) {
   if (cur.id === MB_TABLE_ID) mbDedupe(cur);   /* ★ 2026-08-19 1キャラ1枚を守る */
   await save(cur, true); refresh();
   if ($("#ov").classList.contains("on")) tierPickDlg(id);
+}
+/* ★★ 2026-10-21 ←→ で、となりの画像をえらぶ（表の上から順・最後は未配置） */
+function selStep(d) {
+  const ids = $$("#tt .icard, #pool .icard").map((el) => el.dataset.img);
+  if (!ids.length) return;
+  const i = ids.indexOf(selImg);
+  selImg = ids[i < 0 ? 0 : clamp(i + d, 0, ids.length - 1)];
+  refresh();
+  const el = document.querySelector('.icard[data-img="' + CSS.escape(selImg) + '"]');
+  if (el) el.scrollIntoView({ block: "nearest", inline: "nearest" });
 }
 function setImgField(k, v) { const f = findImg(selImg); if (!f) return; f.img[k] = v; saveSoon(); if (k !== "name" && k !== "memo") refresh(); else redrawCards(); }
 function setImgFieldOf(id, k, v) { const f = findImg(id); if (!f) return; f.img[k] = v; saveSoon(); redrawCards(); }
@@ -1939,26 +2016,30 @@ function starStr(im) {
 /* 画像1枚ぶんの角丸カード。名前・評価の帯は表の設定に合わせる */
 function drawCard(g, im, x, y, size, col, big) {
   const src = slideImgs[im.id];
+  /* ★★ 2026-10-21 ご指定「アニメ固定のものは縦長で」：ポスターは 3:4。
+     置き場所（size の正方形）は変えずに横幅を 3/4 にして真ん中へ置く（スライドの割り付けはそのまま使える） */
+  let w = size;
+  if (cur && cur.id === AN_TABLE_ID) { w = Math.round(size * 0.75); x += (size - w) / 2; }
   g.save();
-  roundRect(g, x, y, size, size, Math.max(8, size * 0.06)); g.clip();
+  roundRect(g, x, y, w, size, Math.max(8, w * 0.06)); g.clip();
   if (src) {
-    const s = Math.max(size / src.width, size / src.height);
-    g.drawImage(src, x + (size - src.width * s) / 2, y + (size - src.height * s) / 2, src.width * s, src.height * s);
-  } else { g.fillStyle = col.line; g.fillRect(x, y, size, size); }
+    const s = Math.max(w / src.width, size / src.height);
+    g.drawImage(src, x + (w - src.width * s) / 2, y + (size - src.height * s) / 2, src.width * s, src.height * s);
+  } else { g.fillStyle = col.line; g.fillRect(x, y, w, size); }
   if (!big && cur.cardName && im.name) {
     const bh = Math.max(20, size * 0.19);
-    g.fillStyle = "rgba(0,0,0,.62)"; g.fillRect(x, y + size - bh, size, bh);
+    g.fillStyle = "rgba(0,0,0,.62)"; g.fillRect(x, y + size - bh, w, bh);
     g.fillStyle = "#fff"; g.textAlign = "center";
     g.font = "800 " + Math.max(11, Math.round(bh * 0.52)) + "px 'Noto Sans JP',sans-serif";
-    g.fillText(clip(g, im.name, size - 10), x + size / 2, y + size - bh / 2);
+    g.fillText(clip(g, im.name, w - 10), x + w / 2, y + size - bh / 2);
   }
   g.restore();
   if (!big && cur.cardScore) {
-    const w = Math.max(30, size * 0.28), h = Math.max(16, size * 0.15);
-    g.fillStyle = "rgba(0,0,0,.62)"; roundRect(g, x + size - w - 5, y + 5, w, h, 5); g.fill();
+    const bw = Math.max(30, size * 0.28), h = Math.max(16, size * 0.15);
+    g.fillStyle = "rgba(0,0,0,.62)"; roundRect(g, x + w - bw - 5, y + 5, bw, h, 5); g.fill();
     g.fillStyle = "#fff"; g.textAlign = "center";
     g.font = "800 " + Math.max(10, Math.round(h * 0.62)) + "px 'Noto Sans JP',sans-serif";
-    g.fillText(totalScore(im).toFixed(1), x + size - w / 2 - 5, y + 5 + h / 2);
+    g.fillText(totalScore(im).toFixed(1), x + w - bw / 2 - 5, y + 5 + h / 2);
   }
 }
 /* 折り返して書く。返り値は「最後に書いた行の y」 */
@@ -2312,6 +2393,8 @@ function pickScale(b) { $$("#dlg [data-sc]").forEach((x) => x.classList.remove("
 async function drawTable(opt) {
   const t = cur;
   const pad = 26, gap = 8, cell = 92, labelW = 132;
+  /* ★★ 2026-10-21 ご指定「アニメ固定のものは縦長で」：マスの高さだけ 4/3 にする（幅・1行の枚数は同じ） */
+  const cellH = t.id === AN_TABLE_ID ? Math.round(cell * 4 / 3) : cell;
   const showTitle = opt.title, showAuthor = opt.author, showDate = opt.date, showLogo = opt.logo, showTierNm = opt.tierNm;
   /* 画像をぜんぶ読み込む */
   const imgs = {};
@@ -2325,7 +2408,7 @@ async function drawTable(opt) {
   const perRow = 8;
   const rows = t.tiers.map((tr) => {
     const n = Math.max(1, Math.ceil(tr.images.length / perRow));
-    return Math.max(cell + gap * 2, n * (cell + gap) + gap);
+    return Math.max(cellH + gap * 2, n * (cellH + gap) + gap);
   });
   const W = pad * 2 + labelW + perRow * (cell + gap) + gap;
   const headH = showTitle ? 84 : 18;
@@ -2360,19 +2443,19 @@ async function drawTable(opt) {
     /* 画像 */
     sortImages(tr.images).forEach((im, i) => {
       const cx = pad + labelW + gap + (i % perRow) * (cell + gap);
-      const cy = y + gap + Math.floor(i / perRow) * (cell + gap);
+      const cy = y + gap + Math.floor(i / perRow) * (cellH + gap);
       const src = imgs[im.id];
       if (src) {
         g.save();
-        roundRect(g, cx, cy, cell, cell, 10); g.clip();
-        const s = Math.max(cell / src.width, cell / src.height);
-        g.drawImage(src, cx + (cell - src.width * s) / 2, cy + (cell - src.height * s) / 2, src.width * s, src.height * s);
+        roundRect(g, cx, cy, cell, cellH, 10); g.clip();
+        const s = Math.max(cell / src.width, cellH / src.height);
+        g.drawImage(src, cx + (cell - src.width * s) / 2, cy + (cellH - src.height * s) / 2, src.width * s, src.height * s);
         g.restore();
-      } else { g.fillStyle = line; roundRect(g, cx, cy, cell, cell, 10); g.fill(); }
+      } else { g.fillStyle = line; roundRect(g, cx, cy, cell, cellH, 10); g.fill(); }
       if (t.cardName && im.name) {
-        g.fillStyle = "rgba(0,0,0,.62)"; g.fillRect(cx, cy + cell - 20, cell, 20);
+        g.fillStyle = "rgba(0,0,0,.62)"; g.fillRect(cx, cy + cellH - 20, cell, 20);
         g.fillStyle = "#fff"; g.font = "800 11px 'Noto Sans JP',sans-serif"; g.textAlign = "center";
-        g.fillText(clip(g, im.name, cell - 8), cx + cell / 2, cy + cell - 10);
+        g.fillText(clip(g, im.name, cell - 8), cx + cell / 2, cy + cellH - 10);
       }
       if (t.cardScore) {
         const sc = totalScore(im).toFixed(1);
@@ -2627,6 +2710,7 @@ function pubImgSrc(im) {
 /* 公開ぶんを閲覧モードの画面に出す（編集はできない） */
 function renderPubViewer(d) {
   go("mbview");
+  $("#mvTable").classList.remove("tall");
   const note = $(".mvnote");
   if (note) note.innerHTML = "<b>閲覧モード</b><p>この Tier表は <b>MagiTier</b> で作られ、公開されたものです。"
     + "ここからは<b>読むだけ</b>で、編集はできません。</p>";
@@ -2644,7 +2728,7 @@ function renderPubViewer(d) {
       </div>`).join("");
     return `<div class="mvrow">
       <div class="mvlab" style="background:${esc(tr.bg || "#555")};color:${esc(tr.tc || "#fff")}">
-        <b>${esc(tr.label || "")}</b>${tr.name ? `<small>${esc(tr.name)}</small>` : ""}</div>
+        <b>${esc(tr.label || "")}</b></div>
       <div class="mvcell">${cells || '<span class="muted">まだ入っていません</span>'}</div>
     </div>`;
   }).join("");
@@ -2708,7 +2792,13 @@ function editMenu() {
     /* ★★ 2026-08-26e 作り直したいときの入口（全部／えらんだ段だけ 未配置へ） */
     ["表からもどす（未配置へ）", "resetDlg"],
   ];
-  dlgOpen(`<h2>メニュー</h2>
+  /* ★★ 2026-10-21 PC は「⋯ その他」をいつも出す。上にボタンが並んでいるときは、バーに無いものだけにする
+     （「表からもどす」「テンプレート保存」は、これまで PC の広い画面では入口が無かった） */
+  const acts = $(".etop-acts");
+  if (acts && !acts.classList.contains("hide")) items.splice(0, items.length,
+    ["この構成をテンプレート保存", "saveAsTpl"], ["表からもどす（未配置へ）", "resetDlg"],
+    ["評価項目・評価から段を決める", "axesDlg"], ["使いかた・キー操作", "help"]);
+  dlgOpen(`<h2>${acts && !acts.classList.contains("hide") ? "その他の操作" : "メニュー"}</h2>
     <div class="menulist">
       ${items.map(([label, fn]) => `<button class="menurow" onclick="MT.closeDlg();MT.${fn}()">${label}</button>`).join("")}
     </div>
@@ -2971,6 +3061,10 @@ function help() {
     <button class="pickrow"><span class="pi">2</span><span><b>画像を追加する</b><small>写真・カメラ・ファイル・URL から。PC はドラッグ＆ドロップでも入ります</small></span></button>
     <button class="pickrow"><span class="pi">3</span><span><b>ならべる</b><small>PCはドラッグ、スマホは画像をタップして移動先の Tier をえらびます（長押しドラッグも可）</small></span></button>
     <button class="pickrow"><span class="pi">4</span><span><b>見せる・配る</b><small>プレゼンモードで全画面表示、Export で SNS 用の画像を保存できます</small></span></button>
+    ${/* ★★ 2026-10-21 PC のキー操作 */""}
+    <div class="kbdhint" style="margin-top:4px"><b>PC のキー操作（画像をクリックでえらんでから）</b>
+      <kbd>1</kbd>〜<kbd>9</kbd> その段へ移す ・ <kbd>0</kbd> 未配置へ ・ <kbd>←</kbd><kbd>→</kbd> となりの画像<br>
+      <kbd>Del</kbd> 削除 ・ <kbd>Ctrl</kbd>+<kbd>Z</kbd> 元に戻す ・ <kbd>Ctrl</kbd>+<kbd>Y</kbd> やり直す ・ <kbd>Ctrl</kbd>+<kbd>S</kbd> 保存</div>
     <div class="foot"><button class="btn pri" onclick="MT.closeDlg()">とじる</button></div>`);
 }
 
@@ -3072,7 +3166,7 @@ function loadScriptOnce(src) {
 function loadMbCore() {
   mbShim();
   if (mbChars() && mbCharIds()) return Promise.resolve();
-  return loadScriptOnce("../MagiBurst/js/mb-core.js?v=137");
+  return loadScriptOnce("../MagiBurst/js/mb-core.js?v=138");
 }
 /* ══ ★★ 2026-08-22 キャラ詳細は XEVARION と<b>同じ1本</b>（mb-char-detail.js）を読む ══
    自前で組み直すと、アビリティ・クロススキル・リンクの文面が必ず食いちがっていく。
@@ -3087,7 +3181,7 @@ async function loadMbDetail() {
   }
   /* MagiBattle の評価も出したいので、その計算だけ先に読む（無くても詳細は開く） */
   if (!window.MBStats) { try { await loadScriptOnce("../magibattle-stats.js?v=18"); } catch (e) {} }
-  if (typeof window.openDetX !== "function") await loadScriptOnce("../mb-char-detail.js?v=46");
+  if (typeof window.openDetX !== "function") await loadScriptOnce("../mb-char-detail.js?v=47");
   _mbDetailReady = true;
 }
 /* ══ ★ 2026-08-17f MagiBurst 表の中身をそろえ直す ══
@@ -3181,6 +3275,8 @@ let mvData = null;
 /* 閲覧画面のまわり（案内・戻る・編集ボタン）を表の種類に合わせる。
    ★ renderPubViewer が書き換えたままだと、次に MagiBurst 表を開いたときに文面が残るので毎回そろえる。 */
 function setViewerChrome(kind) {
+  /* ★★ 2026-10-21 ご指定「アニメ固定のものは縦長で」：閲覧モードもポスターを 3:4 で出す（正方形に切ると顔や題字が切れる） */
+  $("#mvTable").classList.toggle("tall", kind === "anime");
   const note = $(".mvnote");
   const back = document.querySelector("#scr-mbview .homehead .btn");
   if (kind === "anime") {
@@ -3227,7 +3323,7 @@ function renderMbViewer() {
     }).join("");
     return `<div class="mvrow">
       <div class="mvlab" style="background:${esc(tr.bg || "#555")};color:${esc(tr.tc || "#fff")}">
-        <b>${esc(tr.label || "")}</b>${tr.name ? `<small>${esc(tr.name)}</small>` : ""}</div>
+        <b>${esc(tr.label || "")}</b></div>
       <div class="mvcell">${cells || '<span class="muted">まだ入っていません</span>'}</div>
     </div>`;
   }).join("");
@@ -3473,6 +3569,9 @@ async function anPublish() {
     else toast("公開できませんでした（通信）");
   }
 }
+/* ★★ 2026-10-21 ご指定「アニメTier などの左の『殿堂入り』などの表記を削除」：
+   閲覧モード（アニメ・MagiBurst キャラ・公開した表の3つ）の左の列はランク（SS・S・A…）だけ。
+   段の名前は編集画面の段一覧と段の設定には残る（コミュニティのホストの表も 10-20 からランクだけ） */
 async function openAnViewer() {
   go("mbview");
   setViewerChrome("anime");
@@ -3491,7 +3590,7 @@ async function openAnViewer() {
     const cells = (tr.items || []).filter((x) => x && x.src).map((x) =>
       `<button class="mvc" onclick="MT.toastMsg('${esc(String(x.nm || "").replace(/'/g, "’"))}')"><img src="${esc(x.src)}" alt="" loading="lazy"><span>${esc(x.nm)}</span></button>`).join("");
     return `<div class="mvrow"><div class="mvlab" style="background:${esc(tr.bg || "#555")};color:${esc(tr.tc || "#fff")}">
-      <b>${esc(tr.label || "")}</b>${tr.name ? `<small>${esc(tr.name)}</small>` : ""}</div>
+      <b>${esc(tr.label || "")}</b></div>
       <div class="mvcell">${cells || '<span class="muted">まだ入っていません</span>'}</div></div>`;
   }).join("");
 }
@@ -3571,6 +3670,23 @@ function bindGlobal() {
       if (e.key === "ArrowLeft" || e.key === "PageUp") { e.preventDefault(); slPrev(); return; }
       return;
     }
+    /* ★★ 2026-10-21 PC の編集画面のキー操作。文字を打っている最中・ダイアログやプレゼンの最中は横取りしない */
+    if (screen === "edit" && cur && !$("#ov").classList.contains("on") && !$("#present").classList.contains("on")
+        && !$("#deckOv").classList.contains("on") && !$("#detOv").classList.contains("on")) {
+      const ae = document.activeElement || {};
+      const typing = /^(INPUT|TEXTAREA|SELECT)$/.test(ae.tagName || "") || ae.isContentEditable;
+      const mod = e.ctrlKey || e.metaKey;
+      if (mod && !e.altKey && (e.key === "s" || e.key === "S")) { e.preventDefault(); saveOrPublish(); return; }
+      if (!typing && mod && !e.altKey && (e.key === "z" || e.key === "Z")) { e.preventDefault(); if (e.shiftKey) redo(); else undo(); return; }
+      if (!typing && mod && !e.altKey && (e.key === "y" || e.key === "Y")) { e.preventDefault(); redo(); return; }
+      if (!typing && !mod && !e.altKey) {
+        if (e.key === "ArrowLeft" || e.key === "ArrowRight") { e.preventDefault(); selStep(e.key === "ArrowRight" ? 1 : -1); return; }
+        if (selImg && /^[1-9]$/.test(e.key) && +e.key <= cur.tiers.length) { e.preventDefault(); moveImgTo(selImg, +e.key - 1); return; }
+        if (selImg && e.key === "0") { e.preventDefault(); moveImgTo(selImg, ""); return; }
+        if (selImg && e.key === "Delete") { e.preventDefault(); delImg(selImg); toast("削除しました（Ctrl+Z で元に戻せます）"); return; }
+        if (selImg && e.key === "Escape") { selImg = null; refresh(); return; }
+      }
+    }
     if (e.key === "Escape") { if ($("#present").classList.contains("on")) pClose(); else dlgClose(); }
   });
   /* スライドは画面幅で実ピクセル数が変わるので、そのたび描き直す */
@@ -3637,6 +3753,7 @@ window.MT = {
   slidePreset, openDeck, deckClose, deckReset, deckSel, deckSet,
   deckAdd, deckAddKind, deckDup, deckDel, deckMove, deckPdf,
   editMenu,
+  undo, redo,                                           /* ★★ 2026-10-21 元に戻す・やり直す */
   exportDlg, pickFmt, pickScale, doExport,
   shareDlg, copyUrl, shareImage, showQR, togglePublic,
   publishTable, unpublishTable,                         /* ★ 2026-08-18 ほんものの「公開」 */

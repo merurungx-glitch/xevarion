@@ -25,7 +25,8 @@
   /* hold … ★★ 2026-10-15 1手もどして CPU の番になったときは、CPU を止めておく（「再開」で動き出す） */
   const UI = { prev: "title", blockMode: false, reported: false, hold: false };
   /* reach … ★★ 2026-10-14 あと1つでそろうマスの印（0＝表示しない〔標準〕・1＝いまの番の人だけ・2＝全員） */
-  let opt = { size: 0, win: 0, pieces: 0, se: true, bgm: false, slow: false, reach: 0 };
+  /* war … ★★ 2026-10-20 戦況バー（1＝出す〔標準〕・0＝出さない） */
+  let opt = { size: 0, win: 0, pieces: 0, se: true, bgm: false, slow: false, reach: 0, war: 1 };
   const OPT_KEY = "magishift_opt_v1";
   try { opt = Object.assign(opt, JSON.parse(localStorage.getItem(OPT_KEY) || "{}")); } catch (e) {}
   const saveOpt = () => { try { localStorage.setItem(OPT_KEY, JSON.stringify(opt)); } catch (e) {} };
@@ -40,6 +41,9 @@
     hex: '<path d="M12 5.4l5.6 3.3v6.6L12 18.6l-5.6-3.3V8.7z"/>',
     /* ★★ 2026-10-16 オレンジの印（ハート） */
     heart: '<path d="M12 18.2C8 15.3 5.6 13 5.6 10.2a3.2 3.2 0 0 1 6.4-.9 3.2 3.2 0 0 1 6.4.9c0 2.8-2.4 5.1-6.4 8z"/>',
+    /* ★★ 2026-10-20 7人目（シアン）＝◆・8人目（ブラック）＝☾ */
+    diamond: '<path d="M12 5.2 18.6 12 12 18.8 5.4 12z"/>',
+    moon: '<path d="M14 6A6.6 6.6 0 1 0 17.6 15 5.2 5.2 0 0 1 14 6z"/>',
   };
   /* ★★ 2026-10-16 見た目は G.looks（色・形・印の色）。黄色は印を濃い色で描く（--pk） */
   const pieceSVG = (p, cls) => { const L = G.looks ? G.looks(p) : p; return '<svg class="pc ' + (cls || "") + '" viewBox="0 0 24 24" style="--pc:' + L.color + (L.ink ? ";--pk:" + L.ink : "") + '" aria-hidden="true">' +
@@ -56,6 +60,10 @@
     undo: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.6 4.6 4 9.2l4.6 4.6"/><path d="M4.6 9.2h9.2a5.6 5.6 0 0 1 0 11.2H10"/></svg>',
     /* ★★ 2026-10-15 止めた CPU の再開（▶） */
     play: '<svg viewBox="0 0 24 24" aria-hidden="true"><path class="fl" d="M8 5.5v13l10.5-6.5z"/></svg>',
+    /* ★★ 2026-10-20 ヒント（電球）・手番の時計・席の交代 */
+    bulb: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 17.5h6M9.8 20.5h4.4"/><path d="M12 3.5a6 6 0 0 0-3.6 10.8c.7.6 1.1 1.4 1.1 2.2h5c0-.8.4-1.6 1.1-2.2A6 6 0 0 0 12 3.5z"/></svg>',
+    clock: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="13" r="7.5"/><path d="M12 9v4.4l2.8 1.8M10 3.5h4"/></svg>',
+    swap: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7h11l-3-3M17 17H6l3 3"/></svg>',
   };
   const blkHTML = (color) => '<span class="blk" style="--bc:' + color + '"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h16M4 15h16M10 4v5M15 9v6M10 15v5"/></svg></span>';
   const thumb = (p) => (G.Account && G.Account.thumb ? G.Account.thumb(p) : (G.Account && G.Account.avatar ? G.Account.avatar(p) : ""));
@@ -217,7 +225,7 @@
        ・紐づけたアカウントの名前・アイコンは開くたびに最新へ取り直す
      ★ パスワードはここでは保存しない（GameLink が確かめるのに使うだけ）。 */
   const SETUP_KEY = "magishift_setup_v1";
-  const DEF_NAMES = ["あか", "あお", "みどり", "きいろ", "むらさき", "だいだい"];
+  const DEF_NAMES = ["あか", "あお", "みどり", "きいろ", "むらさき", "だいだい", "みずいろ", "くろ"];   /* ★★ 2026-10-20 8人まで */
   const CPU_LV = [["よわい", "ときどき油断"], ["ふつう", "守りもする"], ["つよい", "ふたまたを狙う"]];
   const setup = { n: 2, mode: "normal", cpuLevel: 1, all: DEF_NAMES.map((nm, i) => ({ name: nm, type: i === 0 ? "human" : "human", link: null })), restored: false };
   function saveSetup() {
@@ -232,10 +240,10 @@
     try {
       const d = JSON.parse(localStorage.getItem(SETUP_KEY) || "null");
       if (!d) return;
-      if ([2, 3, 4, 5, 6].indexOf(d.n) >= 0) setup.n = d.n;
+      if (d.n >= 2 && d.n <= G.MAX_PLAYERS) setup.n = d.n;
       if (G.MODES[d.mode]) setup.mode = d.mode;
       if ([0, 1, 2].indexOf(d.cpuLevel) >= 0) setup.cpuLevel = d.cpuLevel;
-      if (Array.isArray(d.players)) d.players.slice(0, 6).forEach((sp, i) => {
+      if (Array.isArray(d.players)) d.players.slice(0, G.MAX_PLAYERS).forEach((sp, i) => {
         const p = setup.all[i];
         if (sp && sp.name) p.name = String(sp.name).slice(0, 6);
         if (sp && (sp.type === "cpu" || sp.type === "human")) p.type = sp.type;
@@ -251,7 +259,7 @@
     return { size: opt.size || r.size, win: opt.win || r.win, pieces: opt.pieces === 99 ? 0 : (opt.pieces || r.pieces) };
   }
   function renderSetup() {
-    $("#segN").innerHTML = [2, 3, 4, 5, 6].map((n) => '<button class="' + (n === setup.n ? "on" : "") + '" data-a="setN" data-v="' + n + '">' + n + "人</button>").join("");
+    $("#segN").innerHTML = [2, 3, 4, 5, 6, 7, 8].map((n) => '<button class="' + (n === setup.n ? "on" : "") + '" data-a="setN" data-v="' + n + '">' + n + "人</button>").join("");
     const r = ruleOf(setup.n);
     $("#ruleInfo").innerHTML = "<span>盤 <b>" + r.size + "×" + r.size + "</b></span><span><b>" + r.win + "つ</b>並べたら勝ち</span><span>駒 1人 <b>" + (r.pieces ? r.pieces + "個" : "上限なし") + "</b></span>";
     $("#segMode").innerHTML = [
@@ -357,6 +365,8 @@
     $("#orderBtns").hidden = true;
     const box = $("#orderCards");
     box.dataset.n = n;
+    /* ★★ 2026-10-20 ご指定「順番決めのトランプがきれいに揃って」：1段に並べる枚数を決めて、段ごとに同じ数（5枚＝3＋2・7枚＝4＋3…）。残りの段はまん中 */
+    box.style.setProperty("--cols", n <= 4 ? n : Math.ceil(n / 2));
     box.innerHTML = OD.nums.map((v, k) =>
       '<button class="ocd" data-a="orderPick" data-k="' + k + '" aria-label="' + (k + 1) + '枚目のカード" style="--d:' + (k * 0.06).toFixed(2) + 's">' +
         '<span class="in"><span class="bk"><i>?</i></span><span class="fr"><b>' + v + "</b><em></em></span></span></button>").join("");
@@ -422,8 +432,12 @@
     UI.blockMode = false; UI.hold = false;
     HIST = [];
     const dropped = G.save(S, HIST);
-    renderGame(true);
+    /* ★★ 2026-10-20 ご指摘「開始してから上の名前の表示がまとまり、盤が動く」：
+       前は<b>画面を出す前</b>に描いていたので、札の列の幅が 0 → 仮の幅（340px）で列を数えていた（4人なら2段）。
+       次の手で本当の幅で数えなおして1段に「まとまり」、そのぶん盤が動いていた → 画面を出してから描く */
     show("game");
+    renderGame(true);
+    turnClock(true);
     toast("🎯 <b>" + S.win + "つ</b>並べたら勝ち！" + (G.isTactics(S) ? "（タクティクス：押す・ブロックあり）" : ""), 2400);
     if (dropped) setTimeout(() => toast("💾 中断中の試合が " + G.MAX_SAVES + "件をこえたので、いちばん古いセーブを消しました", 3200), 2500);
     scheduleCpu();
@@ -432,8 +446,9 @@
     const d = G.load(gid);
     if (!d || !d.S) { toast("このセーブは読めませんでした"); renderTitle(); return; }
     S = d.S; HIST = d.hist || []; UI.blockMode = false; UI.reported = false; UI.hold = false;
-    renderGame(true);
     show("game");
+    renderGame(true);
+    turnClock(true);
     toast("▶ つづきから再開");
     scheduleCpu();
   }
@@ -458,7 +473,9 @@
     let R = null;
     try { R = JSON.parse(h.s); } catch (e) { R = null; }
     if (!R || !R.cells) return;
-    R.log = log; S = R; UI.blockMode = false;
+    /* ★★ 2026-10-20 途中で CPU にした席は、もどしても CPU のまま（交代は手の記録ではないので） */
+    (R.players || []).forEach((q, i) => { const c = S.players[i]; if (!c) return; q.type = c.type; if (c.sub) q.sub = c.sub; else delete q.sub; });
+    R.log = log; S = R; UI.blockMode = false; UI.hint = null;
     const who = G.cur(S);
     UI.hold = isCpu(who);           /* CPU の手を戻したら、CPU は止めておく */
     renderGame(true);
@@ -496,7 +513,12 @@
     /* ★★ 2026-09-22 ご指定：名前は<b>手番の順に</b>並べる（左の数字＝手番の順） */
     const gp = $("#gplayers"), n = S.players.length;
     gp.dataset.n = n;
-    const w = gp.clientWidth || 340, mx = Math.max(1, Math.floor((w + 8) / 136));
+    /* ★★ 2026-10-20 幅は「札の列 → 対戦の画面 → 画面の幅」の順で測る（画面を出す前に呼ばれても仮の 340px で数えない）。
+       5人以上でせまい画面は札を小さく（cmp）して4列まで。段ごとの数はそろえる（5人＝3＋2・7人＝4＋3） */
+    const w = gp.clientWidth || ($("#game").clientWidth - 24) || (window.innerWidth - 24) || 340;
+    const cmp = n >= 5 && w < 560;
+    gp.classList.toggle("cmp", cmp);
+    const mx = Math.max(1, Math.floor((w + 8) / (cmp ? 82 : 136)));
     let cols = Math.min(n, mx); if (cols < n) cols = Math.ceil(n / Math.ceil(n / cols));
     gp.style.gridTemplateColumns = "repeat(" + cols + ",minmax(0,1fr))";
     gp.innerHTML = G.orderOf(S).map((slot, k) => {
@@ -504,15 +526,82 @@
       const out = G.outOfPieces(S, q.slot), left = G.leftOf(S, q.slot);
       /* ★★ 2026-10-14 ご指摘「駒を使い切った表示が範囲を出ていて見づらい」：長い文（使いきり・動かすだけ）が札の外へはみ出していた
          → 短い札「使いきり」（くわしい説明は手番の板・title に）にして、はみ出しても札の中で切る */
-      const pieces = S.maxPieces ? (out ? '<small class="out" title="駒を使いきりました（動かすだけ）"><span class="ob">使いきり</span>' + bk(q.slot) + "</small>" : "<small>のこり " + left + "個" + bk(q.slot) + "</small>") : "<small>" + G.countOf(S, q.slot) + "個" + bk(q.slot) + "</small>";
-      return '<div class="pchip' + (on ? " on" : "") + (isCpu(q) ? " cpu" : "") + '" style="--c:' + q.color + '"><span class="ord">' + (k + 1) + '</span><span class="pcw">' + pieceSVG(q) + avatarHTML(q, "mini") + "</span>" +
-        '<span class="pn"><b>' + esc(q.name) + (isCpu(q) ? ' <span class="tag">CPU</span>' : "") + "</b>" + pieces + "</span></div>";
+      /* ★★ 2026-10-20 小さい札（5人以上・せまい画面）は「のこり」を省いて数だけ（CPU は印のかどの小さな札で） */
+      const pieces = S.maxPieces ? (out ? '<small class="out" title="駒を使いきりました（動かすだけ）"><span class="ob">' + (cmp ? "使用済" : "使いきり") + "</span>" + bk(q.slot) + "</small>" : "<small>" + (cmp ? "のこ" : "のこり ") + left + "個" + bk(q.slot) + "</small>") : "<small>" + G.countOf(S, q.slot) + "個" + bk(q.slot) + "</small>";
+      return '<div class="pchip' + (on ? " on" : "") + (isCpu(q) ? " cpu" : "") + (q.sub ? " sub" : "") + '" style="--c:' + q.color + '"><span class="ord">' + (k + 1) + '</span><span class="pcw">' + pieceSVG(q) + avatarHTML(q, "mini") + "</span>" +
+        '<span class="pn"><b>' + esc(q.name) + (isCpu(q) ? ' <span class="tag">' + (q.sub ? "代打CPU" : "CPU") + "</span>" : "") + "</b>" + pieces + "</span></div>";
     }).join("");
     if (full) buildBoard();
+    paintWar();
     paintBoard();
     paintTurn(swap);
+    turnClock();
     $("#board").classList.toggle("done", !play);
     if (play) G.save(S, HIST);
+  }
+  /* ══ ★★ 2026-10-20 ご指定「戦況をバーで表示（設定で非表示にも）」══
+     人ごとの勢い（形のよさ＋すぐ勝てるマス・shift-ai.js の advantage）を、1本の帯の長さで。
+     いまの番の人の区切りは少し明るく・リーチがある人には小さな印。決着したら勝った人の色いっぱいに。 */
+  function paintWar() {
+    const el = $("#gwar"); if (!el) return;
+    const on = !!opt.war && S && S.players.length > 1;
+    el.hidden = !on;
+    if (!on) return;
+    let sh = null;
+    try { sh = S.phase === "play" ? G.AI.advantage(S) : S.players.map((p) => (p.slot === S.winner ? 1 : 0)); } catch (e) { sh = null; }
+    if (!sh) { el.hidden = true; return; }
+    if (S.draw) sh = S.players.map(() => 1 / S.players.length);
+    const reach = {}; if (S.phase === "play") S.players.forEach((p) => { try { if (G.AI.winCells(S, p.slot).length) reach[p.slot] = 1; } catch (e) {} });
+    const ord = G.orderOf(S);
+    if (!el.firstChild || el.dataset.n !== String(S.players.length)) {
+      el.dataset.n = S.players.length;
+      el.innerHTML = '<span class="wl">戦況</span><div class="wbar">' + ord.map((slot) => '<i data-s="' + slot + '"><b></b></i>').join("") + "</div>";
+    }
+    ord.forEach((slot) => {
+      const q = S.players[slot], seg = el.querySelector('i[data-s="' + slot + '"]'); if (!seg) return;
+      const pct = Math.max(0, sh[slot] || 0) * 100;
+      seg.style.flexGrow = Math.max(0.0001, pct).toFixed(3);
+      seg.style.setProperty("--c", q.color);
+      seg.classList.toggle("on", S.phase === "play" && slot === S.turn);
+      seg.classList.toggle("rch", !!reach[slot]);
+      seg.title = q.name + "：" + Math.round(pct) + "%" + (reach[slot] ? "（リーチ）" : "");
+      seg.firstChild.textContent = pct >= 12 ? Math.round(pct) + "%" : "";
+    });
+  }
+  /* ══ ★★ 2026-10-20 ご指定「毎回の手番開始から経過時間を表示（次の人になったら毎度リセット）」══
+     手番が変わった（moves か turn が変わった）ときに 0 から数えなおす。1秒ごとに手番の板の時計だけ書きかえる */
+  let clockT = 0;
+  function turnClock(reset) {
+    if (!S) return;
+    const key = S.moves + ":" + S.turn + ":" + S.phase;
+    if (reset || UI.clockKey !== key) { UI.clockKey = key; UI.clock0 = Date.now(); }
+    paintClock();
+    clearInterval(clockT);
+    if (S.phase === "play") clockT = setInterval(() => { if (!$("#game").classList.contains("on") || !S || S.phase !== "play") { clearInterval(clockT); return; } paintClock(); }, 1000);
+  }
+  function paintClock() {
+    const el = $("#tbClock"); if (!el || !UI.clock0) return;
+    const sec = Math.max(0, Math.floor((Date.now() - UI.clock0) / 1000));
+    el.lastChild.textContent = Math.floor(sec / 60) + ":" + String(sec % 60).padStart(2, "0");
+    el.classList.toggle("long", sec >= 60);
+  }
+  /* ══ ★★ 2026-10-20 ご指定「ヒントを表示できるように」══
+     いまの番の人にとって、いちばんよい手（CPU の「つよい」の考え方）を盤の上に光で出す＋理由をひとこと。
+     ・置く／ブロック … そのマスが光る　・動かす／押す … 選ぶ駒と行き先が光る（矢印）
+     ・手を指すか、番が変わると消える。もう一度押すと消える */
+  const HINT_WHY = { win: "ここで<b>勝てます</b>！", stop: "{p} の<b>リーチを止める</b>手です", fork: "<b>2か所のリーチ（ふたまた）</b>を作る手です", reach: "<b>あと1つでそろう形（リーチ）</b>を作る手です", shape: "並びがのびる、<b>形のよい</b>手です" };
+  function showHint() {
+    if (!S || S.phase !== "play" || isCpu(G.cur(S))) return;
+    if (UI.hint) { UI.hint = null; paintBoard(); return; }
+    const h = G.AI.hint(S);
+    if (!h || !h.a) { toast("いまは良い手が見つかりませんでした"); return; }
+    UI.hint = Object.assign({ key: S.moves + ":" + S.turn }, h);
+    S.sel = null; UI.blockMode = false;
+    renderGame();
+    const a = h.a, verb = a.t === "place" ? "置く" : a.t === "move" ? "動かす" : a.t === "push" ? "押す" : "ブロックを置く";
+    const who = h.who != null && S.players[h.who] ? '<span style="color:color-mix(in srgb,' + S.players[h.who].color + ' 80%,#1d2445)">' + esc(S.players[h.who].name) + "</span>" : "相手";
+    toast("💡 ヒント：光っているところに<b>" + verb + "</b>。" + (HINT_WHY[h.why] || HINT_WHY.shape).replace("{p}", who), 3200);
+    sfx("pick");
   }
   function bk(slot) {
     if (!G.isTactics(S)) return "";
@@ -533,6 +622,8 @@
     const blkBy = {}; (S.blks || []).forEach((b) => { blkBy[b.y * S.size + b.x] = b.by; });
     const L = S.last, lc = L ? S.players[L.slot].color : "";
     const RC = reachMap();
+    const H = UI.hint && UI.hint.key === S.moves + ":" + S.turn && play ? UI.hint.a : null;
+    if (!H && UI.hint) UI.hint = null;
     $$("#board .cell").forEach((el) => {
       const x = +el.dataset.x, y = +el.dataset.y, v = G.at(S, x, y), i = y * S.size + x;
       let h = v >= 0 ? pieceSVG(S.players[v]) : v === G.BLOCK ? blkHTML((S.players[blkBy[i]] || { color: "#9aa6bd" }).color) : "";
@@ -548,6 +639,10 @@
       el.classList.toggle("jump", !!(mv && mv.jump));
       el.classList.toggle("pushc", !!pu);
       el.classList.toggle("bcand", human && UI.blockMode && v === -1);
+      /* ★★ 2026-10-20 ヒント：行き先（hto）・選ぶ駒（hfrom）・押す駒（hpush） */
+      el.classList.toggle("hto", !!H && H.x === x && H.y === y);
+      el.classList.toggle("hfrom", !!H && (H.t === "move" || H.t === "push") && H.fx === x && H.fy === y);
+      el.classList.toggle("hpush", !!H && H.t === "push" && H.tx === x && H.ty === y);
       el.classList.toggle("last", !!L && L.x === x && L.y === y && play);
       el.classList.toggle("lastfrom", !!L && (L.t === "move" && L.fx === x && L.fy === y || L.t === "push" && L.tx === x && L.ty === y) && v === -1 && play);
       el.style.setProperty("--lc", lc);
@@ -581,8 +676,11 @@
     if (!cpu && (S.sel || UI.blockMode)) acts += '<button class="tbtn" data-a="cancel" aria-label="やめる">' + ICON.x + '<span class="tl">やめる</span></button>';
     /* ★★ 2026-10-14 1手もどる（CPU の番でも押せる）→ ★★ 10-15 だれの手でも1手ずつ。止めた CPU は「再開」 */
     if (cpu && UI.hold) acts += '<button class="tbtn go" data-a="cpuGo" aria-label="CPU を再開">' + ICON.play + '<span class="tl">再開</span></button>';
+    /* ★★ 2026-10-20 ヒント（人の番だけ） */
+    if (!cpu) acts += '<button class="tbtn hint' + (UI.hint ? " on" : "") + '" data-a="hint" aria-label="ヒント" title="いちばん良さそうな手を光らせます">' + ICON.bulb + '<span class="tl">ヒント</span></button>';
     if (canUndo()) acts += '<button class="tbtn undo" data-a="undo" aria-label="1手もどる" title="1手もどる（だれの手でも、ひとつ前にもどります）">' + ICON.undo + '<span class="tl">1手もどる</span><span class="ts">もどる</span></button>';
-    t.innerHTML = '<div class="tb-who' + (swap ? " swap" : "") + '">' + pieceSVG(p) + "<b>" + esc(p.name) + "</b><small>の番" + (cpu ? "（CPU）" : "") + "</small></div>" +
+    t.innerHTML = '<div class="tb-who' + (swap ? " swap" : "") + '">' + pieceSVG(p) + "<b>" + esc(p.name) + "</b><small>の番" + (cpu ? "（CPU）" : "") + "</small>" +
+        '<span class="tb-clock" id="tbClock" title="この手番の経過時間（次の人でリセット）">' + ICON.clock + "<span>0:00</span></span></div>" +
       '<div class="tb-hint">' + hint + "</div>" + '<div class="tb-acts">' + acts + "</div>";
   }
   const MAXR = G.MAX_ROUNDS;
@@ -656,7 +754,7 @@
   }
   function after(res) {
     if (!res) return;
-    UI.blockMode = false; UI.hold = false;
+    UI.blockMode = false; UI.hold = false; UI.hint = null;
     renderGame(false, true);
     animate(res);
     if (S.phase === "end") { finish(); return; }
@@ -671,6 +769,35 @@
     if (S.phase === "end") { finish(); return; }
     sfx("turn");
     scheduleCpu();
+  }
+
+  /* ══ ★★ 2026-10-20 ご指定「途中離脱した人の分を途中から CPU として動かせるように」══
+     メニュー →「プレイヤーの交代」：席ごとに 人／CPU を切りかえる（CPU にした席は「代打CPU」。人にもどすこともできる）。
+     ・人は1人以上のこす（全員 CPU にはしない）。CPU の強さもここで変えられる。
+     ・その人の番だったら、すぐ CPU が指す。CPU にした席は賞金・戦績の対象外（紐づけていても）。 */
+  function openSeats() {
+    if (!S || S.phase !== "play") return;
+    $("#ov").classList.add("on");
+    const humans = S.players.filter((q) => !isCpu(q)).length;
+    $("#sheet").innerHTML = '<h2 class="svh">' + ICON.swap + "プレイヤーの交代</h2><p>途中で抜けた人の席を <b>CPU</b> にすると、つづきを CPU が指します（戻ってきたら <b>人</b> にもどせます）。CPU にした席は賞金・戦績の対象外です。</p>" +
+      '<div class="seatlist">' + G.orderOf(S).map((slot) => {
+        const q = S.players[slot], cpu = isCpu(q), last = !cpu && humans <= 1;
+        return '<div class="seat" style="--c:' + q.color + '">' + pieceSVG(q) + avatarHTML(q, "mini") + '<span class="sn"><b>' + esc(q.name) + "</b><small>" + (q.sub ? "代打CPU（途中から）" : cpu ? "CPU" : q.uid ? "🔗 紐づけ" : "人") + (q.slot === S.turn ? "・いまの番" : "") + "</small></span>" +
+          '<div class="ptype"><button class="' + (!cpu ? "on" : "") + '" data-a="seatType" data-s="' + slot + '" data-v="human">人</button><button class="' + (cpu ? "on" : "") + '" data-a="seatType" data-s="' + slot + '" data-v="cpu"' + (last ? ' disabled title="人は1人以上のこしてください"' : "") + ">CPU</button></div></div>";
+      }).join("") + "</div>" +
+      '<h3 class="sth">CPU の強さ</h3><div class="seg sm">' + CPU_LV.map((l, i) => '<button class="' + (i === (S.cpuLevel == null ? 1 : S.cpuLevel) ? "on" : "") + '" data-a="seatCpu" data-v="' + i + '">' + l[0] + "</button>").join("") + "</div>" +
+      '<div class="wbtns"><button class="btn pri" data-a="closeSheet">' + IC2.play + "つづける</button></div>";
+  }
+  function seatType(slot, v) {
+    if (!S || S.phase !== "play") return;
+    const q = S.players[slot]; if (!q) return;
+    if (v === "cpu" && S.players.filter((x) => !isCpu(x)).length <= 1 && !isCpu(q)) { toast("人は1人以上のこしてください"); return; }
+    if (!G.setType(S, slot, v)) { openSeats(); return; }
+    if (q.slot === S.turn) { UI.hint = null; S.sel = null; UI.blockMode = false; UI.hold = false; }
+    G.save(S, HIST);
+    renderGame();
+    openSeats();
+    toast(v === "cpu" ? "🤖 <b>" + esc(q.name) + "</b> の席は CPU が指します" : "🙋 <b>" + esc(q.name) + "</b> の席を人にもどしました");
   }
 
   /* ══ CPU ══ */
@@ -729,10 +856,24 @@
       setTimeout(() => toast("🎁 " + rep.prizes.map((p) => p.rank + "位 " + esc(p.name) + " +" + p.amount + " XEVA").join(" ／ "), 4200), 1400);
     }
   }
+  /* ★★ 2026-10-20 ご指定「試合が終わったあとに TOP3 の人は、結果のボタンを押さなくても表示」：勝利の板に 1〜3位（同じ順位も）・最長・賞金 */
+  function podiumHTML() {
+    const st = G.standings(S).filter((p) => p.rank <= 3).slice(0, 4);
+    const PZ = (window.GameLink && GameLink.PRIZES) || [250, 200, 150, 100, 50];
+    const medal = ["", "🥇", "🥈", "🥉"];
+    return '<div class="podium">' + st.map((p, i) => {
+      const a = S.draw ? 0 : PZ[p.rank - 1] || 0, paid = a && !isCpu(p) && p.uid;
+      return '<div class="pdr r' + p.rank + '" style="--c:' + p.color + ";animation-delay:" + (0.25 + i * 0.12).toFixed(2) + 's">' +
+        '<span class="pdm">' + (medal[p.rank] || p.rank) + '</span><span class="pdk">' + p.rank + "位" + (p.tie ? "<i>同順</i>" : "") + "</span>" + pieceSVG(p) + avatarHTML(p, "mini") +
+        '<span class="pdn"><b>' + esc(p.name) + "</b><small>" + (p.rank === 1 && !S.draw ? "そろえた！" : "最長 " + p.line + "・駒 " + p.pieces + "個") + "</small></span>" +
+        '<span class="pdz' + (paid ? "" : " no") + '">' + (S.draw ? "—" : paid ? "+" + a + " XEVA" : a ? (isCpu(p) ? "CPU" : "紐づけなし") : "—") + "</span></div>";
+    }).join("") + "</div>";
+  }
   function winScreen() {
     if (!S) return;
     if (S.draw) {
       $("#winbox").innerHTML = '<div class="winttl draw">DRAW</div><h2>引き分け</h2><p>CPU どうしで ' + MAXR + "周しても決着がつきませんでした。順位は「いちばん長い並び」の順です。</p>" +
+        podiumHTML() +
         '<div class="wbtns"><button class="btn pri" data-a="again">' + IC2.redo + 'もう一度</button><button class="btn" data-a="result">' + IC2.list + "結果を見る</button></div>";
     } else {
       const w = S.players[S.winner];
@@ -740,6 +881,7 @@
       $("#winbox").innerHTML = '<div class="crown">' + ICON.crown + '</div><div class="winttl">WIN!</div>' +
         '<div class="winp">' + avatarHTML(w) + pieceSVG(w) + "</div>" +
         "<h2>" + esc(w.name) + " の勝ち！</h2><p>" + (isCpu(w) ? "CPU の勝ちです。もう一度挑戦しよう！" : "おめでとうございます！") + "</p>" +
+        podiumHTML() +
         '<div class="wbtns"><button class="btn pri" data-a="again">' + IC2.redo + 'もう一度</button><button class="btn" data-a="result">' + IC2.list + "結果を見る</button></div>";
     }
     $("#win").hidden = false;
@@ -773,13 +915,16 @@
   /* ══ 設定・ルール・戦績 ══ */
   function renderSettings() {
     const r = G.RULES[setup.n] || G.RULES[4];
-    $("#setSize").innerHTML = [0, 5, 6, 7, 8, 9].map((n) => '<button class="chip' + ((opt.size || 0) === n ? " on" : "") + '" data-a="setsize" data-v="' + n + '">' + (n ? n + "×" + n : "人数どおり") + "</button>").join("");
+    $("#setSize").innerHTML = [0, 5, 6, 7, 8, 9, 10].map((n) => '<button class="chip' + ((opt.size || 0) === n ? " on" : "") + '" data-a="setsize" data-v="' + n + '">' + (n ? n + "×" + n : "人数どおり") + "</button>").join("");
     $("#setWin").innerHTML = [0, 3, 4, 5, 6].map((n) => '<button class="chip' + ((opt.win || 0) === n ? " on" : "") + '" data-a="setwin" data-v="' + n + '">' + (n ? n + "つ" : "人数どおり") + "</button>").join("");
     $("#setPieces").innerHTML = [0, 5, 6, 7, 8, 10, 99].map((n) => '<button class="chip' + ((opt.pieces || 0) === n ? " on" : "") + '" data-a="setpieces" data-v="' + n + '">' + (n === 99 ? "上限なし" : n ? n + "個" : "人数どおり") + "</button>").join("") +
       '<span class="note" style="width:100%;margin-top:6px">いまの人数（' + setup.n + "人）の初期値は <b>" + r.size + "×" + r.size + "・" + r.win + "つ並べ・" + r.pieces + "個</b>です。変えた設定は次の試合から使われます。</span>";
     /* ★★ 2026-10-14 あと1つでそろうマスの印（標準は表示しない） */
     const rb = $("#setReach");
     if (rb) rb.innerHTML = [[0, "表示しない（標準）"], [1, "いまの番の人だけ"], [2, "全員"]].map((c) => '<button class="chip' + ((opt.reach || 0) === c[0] ? " on" : "") + '" data-a="setreach" data-v="' + c[0] + '">' + c[1] + "</button>").join("");
+    /* ★★ 2026-10-20 戦況バー（標準は表示） */
+    const wb = $("#setWar");
+    if (wb) wb.innerHTML = [[1, "表示する（標準）"], [0, "表示しない"]].map((c) => '<button class="chip' + ((opt.war == null ? 1 : opt.war) === c[0] ? " on" : "") + '" data-a="setwar" data-v="' + c[0] + '">' + c[1] + "</button>").join("");
     $("#setSe").checked = !!opt.se;
     $("#setBgm").checked = !!opt.bgm;
     $("#setSlow").checked = !!opt.slow;
@@ -808,7 +953,7 @@
       "<p>XEVARION のアカウントを<b>🔗 紐づけた人だけ</b>が受け取れます（CPU・紐づけなしの席はもらえません）。6位からと、引き分けのときは賞金なし。</p></div>";
   }
   function renderRules() {
-    const rows = [2, 3, 4, 5, 6].map((n) => { const r = G.RULES[n]; return "<tr><td><b>" + n + "人</b></td><td>" + r.size + "×" + r.size + "</td><td>" + r.win + "つ</td><td>" + r.pieces + "個</td></tr>"; }).join("");
+    const rows = [2, 3, 4, 5, 6, 7, 8].map((n) => { const r = G.RULES[n]; return "<tr><td><b>" + n + "人</b></td><td>" + r.size + "×" + r.size + "</td><td>" + r.win + "つ</td><td>" + r.pieces + "個</td></tr>"; }).join("");
     $("#rulesBody").innerHTML =
       '<div class="card rl-card"><div class="rl-tx"><h4>🎯 勝ちかた</h4><p>自分の駒を<b>たて・よこ・ななめ</b>のどれかに、決められた数だけ並べたら勝ちです。数は人数で変わります（設定で変えられます）。</p></div>' +
         mini(5, { "0,4": "p0", "1,3": "p0", "2,2": "p0", "3,1": "p0", "1,1": "p1", "3,3": "p1" }) + "</div>" +
@@ -825,7 +970,12 @@
       '<div class="card rl-card"><div class="rl-tx"><h4>🧰 便利な機能</h4><p>' +
         "<b>↩ 1手もどる</b>：手番の板のボタンで、<b>だれの手でも、押すたびに1手ずつ</b>戻せます。CPU の手を戻したときは CPU が止まるので、続けて戻すか「▶ 再開」を押してください。決着がついたあとは戻せません。<br>" +
         "<b>◎ あと1つでそろう印</b>：設定で「いまの番の人だけ」か「全員」を選ぶと、そこに置けばそろうマスに、その人の色の輪が出ます（標準は表示しない）。<br>" +
-        "<b>💾 中断</b>：試合はいつも自動でセーブされ、<b>いくつでも（" + G.MAX_SAVES + "件まで）</b>中断しておけます。タイトルの「つづきから」で選べます。</p></div></div>" +
+        "<b>💾 中断</b>：試合はいつも自動でセーブされ、<b>いくつでも（" + G.MAX_SAVES + "件まで）</b>中断しておけます。タイトルの「つづきから」で選べます。<br>" +
+        /* ★★ 2026-10-20 ヒント・手番の時計・戦況バー・プレイヤーの交代 */
+        "<b>💡 ヒント</b>：手番の板の電球を押すと、いちばん良さそうな手が光り、理由（勝てる・リーチを止める・ふたまた など）が出ます。<br>" +
+        "<b>⏱ 手番の時計</b>：その人の番になってからの時間です。次の人の番になると 0 にもどります。<br>" +
+        "<b>📊 戦況バー</b>：札の下の帯で、だれが優勢か（形のよさ・あと1つでそろう所）が分かります。設定で消せます。<br>" +
+        "<b>🔁 プレイヤーの交代</b>：メニューから、途中で抜けた人の席を CPU にできます（戻ってきたら人にもどせます）。CPU にした席は賞金・戦績の対象外です。</p></div></div>" +
       rankRuleHTML() +
       '<div class="card"><h3>人数ごとの決まり<small>設定で盤面・並べる数・駒の数を変えられます</small></h3><table class="rtable"><tr><th>人数</th><th>盤面</th><th>並べる数</th><th>1人の駒</th></tr>' + rows + "</table></div>";
   }
@@ -869,6 +1019,12 @@
     delGid: (b) => { G.remove(b.dataset.g); toast("🗑 セーブを消しました"); if (G.list().length) openSaves(); else { $("#ov").classList.remove("on"); renderTitle(); } },
     undo: () => undo(),
     cpuGo: () => cpuResume(),
+    /* ★★ 2026-10-20 ヒント・席の交代・戦況バー */
+    hint: () => showHint(),
+    seats: () => openSeats(),
+    seatType: (b) => seatType(+b.dataset.s, b.dataset.v),
+    seatCpu: (b) => { if (!S) return; S.cpuLevel = +b.dataset.v; G.save(S, HIST); openSeats(); },
+    setwar: (b) => { opt.war = +b.dataset.v ? 1 : 0; saveOpt(); renderSettings(); },
     orderPick: (b) => orderPick(+b.dataset.k),
     orderAuto: () => { if (!OD || OD.done) return; OD.auto = true; $("#orderAuto").hidden = true; clearTimeout(orderTimer); orderTurn(); },
     cell: (b) => onCell(+b.dataset.x, +b.dataset.y),
@@ -896,12 +1052,14 @@
     setwin: (b) => { opt.win = +b.dataset.v; saveOpt(); renderSettings(); },
     setpieces: (b) => { opt.pieces = +b.dataset.v; saveOpt(); renderSettings(); },
     setreach: (b) => { opt.reach = +b.dataset.v || 0; saveOpt(); renderSettings(); },
-    setreset: () => { opt = { size: 0, win: 0, pieces: 0, se: true, bgm: false, slow: false, reach: 0 }; saveOpt(); bgmStop(); renderSettings(); toast("初期設定に戻しました"); },
+    setreset: () => { opt = { size: 0, win: 0, pieces: 0, se: true, bgm: false, slow: false, reach: 0, war: 1 }; saveOpt(); bgmStop(); renderSettings(); toast("初期設定に戻しました"); },
     gmenu: () => {
       $("#ov").classList.add("on");
       $("#sheet").innerHTML = "<h2>メニュー</h2><p>いまの試合はいつでも<b>セーブして中断</b>できます。つづきはタイトルの「つづきから」で始められます。</p>" +
         '<div class="wbtns col"><button class="btn pri" data-a="closeSheet">' + IC2.play + "つづける</button>" +
         '<button class="btn" data-a="saveQuit">' + IC2.save + "セーブして中断</button>" +
+        /* ★★ 2026-10-20 途中で抜けた人を CPU に */
+        '<button class="btn" data-a="seats">' + ICON.swap + "プレイヤーの交代（途中で抜けた人を CPU に）</button>" +
         '<div class="wrow"><button class="btn" data-a="rules">' + IC2.book + "ルール</button>" +
         '<button class="btn" data-a="settings">' + IC2.gear + "設定</button></div>" +
         '<button class="btn danger" data-a="giveup">' + IC2.exit + "セーブせずにやめる</button></div>";
@@ -932,7 +1090,7 @@
     if (!f) return;
     e.preventDefault();
     /* シートを開いたままにする操作（盤・メニュー・中断の一覧の消す確認）。それ以外はシートを閉じてから */
-    if (["cell", "gmenu", "giveup", "delAsk", "delNo", "delGid"].indexOf(b.dataset.a) < 0) $("#ov").classList.remove("on");
+    if (["cell", "gmenu", "giveup", "delAsk", "delNo", "delGid", "seats", "seatType", "seatCpu"].indexOf(b.dataset.a) < 0) $("#ov").classList.remove("on");
     ac();
     f(b);
   });

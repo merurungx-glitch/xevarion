@@ -8,23 +8,24 @@
    ============================================================ */
 :root{
   color-scheme: light dark;
-  --bg:#f6f7f9;         /* 画面の地 */
+  --bg:#f3f4f9;         /* 画面の地（★★ 2026-10-21 リニューアルで、ほんの少し青みに） */
   --panel:#ffffff;      /* カード・パネル */
-  --panel2:#fbfcfd;     /* 一段うすいパネル */
-  --line:#e4e7ec;       /* 薄いボーダー */
-  --line2:#eef1f5;
-  --ink:#1f2733;        /* 濃いグレー（本文） */
-  --ink2:#5b6676;       /* 補助テキスト */
-  --faint:#9aa4b2;
-  --accent:#2f6df6;     /* 操作色（ボタン） */
+  --panel2:#f8f9fc;     /* 一段うすいパネル */
+  --line:#e2e5ef;       /* 薄いボーダー */
+  --line2:#edf0f6;
+  --ink:#1b2130;        /* 濃いグレー（本文） */
+  --ink2:#586276;       /* 補助テキスト */
+  --faint:#97a0b3;
+  --accent:#4f46e5;     /* 操作色（ボタン）★★ 2026-10-21 青 → 藍 */
   --accent-ink:#ffffff;
-  --accent-soft:#eaf1ff;
+  --accent-soft:#eef0ff;
+  --grad:linear-gradient(135deg,var(--accent),#8b5cf6);   /* ★★ 2026-10-21 主ボタン・＋の丸 */
   --danger:#e0405e;
   --ok:#17a673;
-  --shadow:0 1px 2px rgba(16,24,40,.05), 0 6px 18px rgba(16,24,40,.06);
-  --shadow-sm:0 1px 2px rgba(16,24,40,.06);
-  --r:14px;             /* 標準の角丸 */
-  --r-sm:10px;
+  --shadow:0 1px 2px rgba(24,24,70,.05), 0 8px 24px rgba(24,24,70,.08);
+  --shadow-sm:0 1px 2px rgba(24,24,70,.06);
+  --r:16px;             /* 標準の角丸 */
+  --r-sm:11px;
   --hd:58px;            /* 上部バーの高さ */
   --nav:62px;           /* 下部ナビの高さ（スマホ） */
   --sat:env(safe-area-inset-top,0px);
@@ -33,16 +34,18 @@
   --t-s:#ef4444; --t-a:#f97316; --t-b:#eab308; --t-c:#22c55e; --t-d:#3b82f6;
 }
 :root[data-theme="dark"]{
-  --bg:#12151a; --panel:#191d24; --panel2:#1f242c; --line:#2a313b; --line2:#232932;
-  --ink:#e9edf3; --ink2:#a6b0be; --faint:#6f7987;
-  --accent:#5b8cff; --accent-soft:#1b2740;
+  --bg:#0f1117; --panel:#171a22; --panel2:#1c2029; --line:#2a2f3c; --line2:#222631;
+  --ink:#e8ebf3; --ink2:#a3abbd; --faint:#6c7487;
+  --accent:#8b83ff; --accent-soft:#25234a;
   --shadow:0 1px 2px rgba(0,0,0,.35), 0 8px 22px rgba(0,0,0,.35);
   --shadow-sm:0 1px 2px rgba(0,0,0,.35);
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{margin:0;padding:0;height:100%}
 body{
-  background:var(--bg); color:var(--ink);
+  /* ★★ 2026-10-21 上の方にだけ、うすい色のにじみ（no-repeat：くり返すと途中で色が変わって見える） */
+  background:radial-gradient(1100px 380px at 80% -160px,color-mix(in srgb,var(--accent) 11%,transparent),transparent 72%) no-repeat,var(--bg);
+  color:var(--ink);
   font-family:'Noto Sans JP',-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
   font-size:14px; line-height:1.6; overscroll-behavior-y:none;
 }
@@ -61,7 +64,7 @@ a{color:var(--accent)}
   box-shadow:var(--shadow-sm);white-space:nowrap;transition:transform .08s,background .15s
 }
 .btn:active{transform:scale(.97)}
-.btn.pri{background:var(--accent);color:var(--accent-ink);border-color:transparent;box-shadow:0 4px 14px rgba(47,109,246,.28)}
+.btn.pri{background:var(--grad);color:var(--accent-ink);border-color:transparent;box-shadow:0 4px 14px color-mix(in srgb,var(--accent) 30%,transparent)}
 .btn.dgr{color:var(--danger);border-color:rgba(224,64,94,.3)}
 .btn.sm{padding:6px 11px;font-size:12px;border-radius:9px}
 .btn.wide{width:100%}
@@ -129,39 +132,54 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.7}
 .searchbox{position:relative;flex:1;min-width:180px;max-width:380px}
 .searchbox .ico{position:absolute;left:11px;top:50%;transform:translateY(-50%);color:var(--faint);width:16px;height:16px}
 .searchbox input{padding-left:34px}
-.tgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:13px}
+/* ══ ★★ 2026-10-21 リニューアル：一覧のカード ══
+   ・以前は段の見本の上に ✎⧉🗑 と「公式・固定」の帯が重なり、見本も4段目が切れていた。
+   ・上から「見本 → 名前 → 操作（名前・複製・削除）」と重ねずに積む。操作はいつも見える（タッチでも押せる）。
+   ・見本は「ラベル＋絵＋のこりは薄い帯」で、Tier表の縮図に見えるようにした。 */
+.tgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
 .tcard{
+  position:relative;display:flex;flex-direction:column;overflow:hidden;cursor:pointer;
   background:var(--panel);border:1px solid var(--line);border-radius:var(--r);
-  box-shadow:var(--shadow-sm);overflow:hidden;cursor:pointer;transition:transform .12s,box-shadow .18s;position:relative
+  box-shadow:var(--shadow-sm);transition:transform .14s,box-shadow .18s,border-color .18s
 }
-.tcard:hover{transform:translateY(-2px);box-shadow:var(--shadow)}
-.tcard .thumb{height:104px;background:var(--panel2);display:flex;flex-direction:column;gap:2px;padding:8px;overflow:hidden}
-.tcard .thumb .tr{display:flex;gap:2px;align-items:center;height:22px;flex:none}
-.tcard .thumb .tr span{width:22px;height:22px;border-radius:5px;display:grid;place-items:center;font-size:10px;font-weight:900;flex:none}
-.tcard .thumb .tr img{width:22px;height:22px;border-radius:4px;object-fit:cover;flex:none}
-.tcard .bd{padding:11px 13px 13px}
-.tcard .nm{font-weight:800;font-size:14px;margin-bottom:3px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.tcard .mt{font-size:11.5px;color:var(--ink2)}
-/* ★ 2026-08-16b 名前変更・複製・削除のボタンは<b>いつも出す</b>。
-   以前は opacity:0 でマウスを乗せたときだけ出していたので、
-   <b>タッチ端末では指を乗せるという操作が無く、一度も出てこなかった</b>
-   （＝表を削除する手段が無い、と見えていた）。
-   マウスのある環境だけ、これまでどおり「乗せたら濃くなる」ようにしてある。 */
-.tcard .acts{position:absolute;top:7px;right:7px;display:flex;gap:4px;opacity:1;transition:opacity .15s}
 @media (hover:hover){
-  .tcard .acts{opacity:.55}
-  .tcard:hover .acts,.tcard.showacts .acts{opacity:1}
+  .tcard:hover{transform:translateY(-2px);box-shadow:var(--shadow);border-color:color-mix(in srgb,var(--accent) 35%,var(--line))}
 }
-.tcard .acts button{width:28px;height:28px;border-radius:8px;background:rgba(255,255,255,.92);border:1px solid var(--line);display:grid;place-items:center;box-shadow:var(--shadow-sm)}
-:root[data-theme="dark"] .tcard .acts button{background:rgba(25,29,36,.92)}
-.tcard .lock{position:absolute;top:7px;left:7px;font-size:12px;background:rgba(0,0,0,.5);color:#fff;border-radius:7px;padding:2px 7px}
+.tcard .thumb{height:118px;flex:none;background:var(--panel2);display:flex;flex-direction:column;gap:3px;padding:10px 11px;overflow:hidden;border-bottom:1px solid var(--line2)}
+.tcard .thumb .tr{display:flex;gap:3px;align-items:center;height:21px;flex:none}
+.tcard .thumb .tr::after{content:"";flex:1;align-self:stretch;border-radius:5px;background:var(--line2)}
+.tcard .thumb .tr span{min-width:24px;height:21px;padding:0 3px;border-radius:5px;display:grid;place-items:center;font-size:10px;font-weight:900;flex:none}
+.tcard .thumb .tr img{width:21px;height:21px;border-radius:5px;object-fit:cover;flex:none}
+.tcard .thumb > .muted{margin:auto}
+.tcard .bd{flex:1;min-width:0;padding:11px 14px 6px}
+.tcard .nm{display:flex;align-items:center;gap:5px;font-weight:900;font-size:14.5px;margin-bottom:2px;min-width:0}
+.tcard .nm b{font-weight:900;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tcard .lock{font-style:normal;font-size:12px;flex:none}
+.tcard .mt{font-size:11.5px;color:var(--ink2);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tcard .acts{display:flex;gap:5px;padding:5px 10px 10px}
+.tcard .acts button{flex:1;display:flex;align-items:center;justify-content:center;gap:5px;height:30px;border-radius:9px;
+  font-size:11.5px;font-weight:800;color:var(--ink2);background:var(--panel2);border:1px solid var(--line2);transition:color .12s,border-color .12s,background .12s}
+.tcard .acts button .ico{width:14px;height:14px}
+.tcard .acts button:hover{color:var(--accent);border-color:color-mix(in srgb,var(--accent) 40%,var(--line));background:var(--accent-soft)}
+.tcard .acts button.dg:hover{color:var(--danger);border-color:color-mix(in srgb,var(--danger) 40%,var(--line));background:color-mix(in srgb,var(--danger) 8%,var(--panel))}
 .newcard{
-  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;min-height:172px;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;min-height:150px;
   border:1.5px dashed var(--line);border-radius:var(--r);color:var(--ink2);font-weight:800;font-size:13px;
-  background:var(--panel2);cursor:pointer
+  background:transparent;cursor:pointer;transition:border-color .15s,color .15s,background .15s
 }
-.newcard:hover{border-color:var(--accent);color:var(--accent)}
-.newcard .plus{width:38px;height:38px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;font-size:20px;font-weight:400}
+.newcard:hover{border-color:var(--accent);color:var(--accent);background:var(--accent-soft)}
+.newcard .plus{width:42px;height:42px;border-radius:50%;background:var(--grad);color:#fff;display:grid;place-items:center;font-size:22px;font-weight:400;
+  box-shadow:0 6px 16px color-mix(in srgb,var(--accent) 35%,transparent)}
+/* 最近ひらいた表：下の一覧と同じ大きなカードを2回出さず、横にすべらせる小さなカードにする */
+#recentGrid{display:flex;gap:10px;overflow-x:auto;padding:2px 2px 10px;margin:0 -2px;scroll-snap-type:x proximity}
+#recentGrid .tcard{flex:0 0 212px;scroll-snap-align:start}
+#recentGrid .tcard .thumb{height:80px;padding:8px 9px;gap:2px}
+#recentGrid .tcard .thumb .tr{height:15px}
+#recentGrid .tcard .thumb .tr span{min-width:20px;height:15px;font-size:8.5px;border-radius:4px}
+#recentGrid .tcard .thumb .tr img{width:15px;height:15px;border-radius:3px}
+#recentGrid .tcard .bd{padding:8px 11px 10px}
+#recentGrid .tcard .nm{font-size:13px}
+#recentGrid .tcard .mt + .mt, #recentGrid .tcard .acts, #recentGrid .tcard .mbtag span{display:none}
 
 /* ══════════ エディタ ══════════ */
 .etop{
@@ -344,7 +362,7 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.7}
 #nav button{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--faint);font-size:10px;font-weight:700;height:100%}
 #nav button.on{color:var(--accent)}
 #nav button.fab{flex:none;width:64px}
-#nav .fabin{width:46px;height:46px;border-radius:50%;background:var(--accent);color:#fff;display:grid;place-items:center;box-shadow:0 6px 18px rgba(47,109,246,.4);margin-top:-14px}
+#nav .fabin{width:46px;height:46px;border-radius:50%;background:var(--grad);color:#fff;display:grid;place-items:center;box-shadow:0 6px 18px color-mix(in srgb,var(--accent) 40%,transparent);margin-top:-14px}
 
 /* ══════════ レスポンシブ ══════════ */
 @media (max-width:1180px){
@@ -543,25 +561,19 @@ textarea.inp{resize:vertical;min-height:70px;line-height:1.7}
 
 /* ★ 2026-08-17b MagiBurst のキャラTier表を目立たせて先頭に固定する。
    ほかの表と同じ見た目だと「たくさんある中の1つ」に埋もれてしまうので、
-   金色の枠＋見出し帯で「これは特別な表」と分かるようにする。 */
-.tcard.mbfix{
-  border:2px solid var(--gold,#f0b429);
-  box-shadow:0 6px 22px rgba(240,180,41,.28);
-  position:relative;
+   金色の枠＋見出し帯で「これは特別な表」と分かるようにする。
+   ★★ 2026-10-21 帯は絵の上に重ねていた（操作ボタンと見本の1段目が隠れていた）→ カードの一番上に置く。 */
+.tcard.mbfix{border:2px solid #f0b429;box-shadow:0 6px 22px rgba(240,180,41,.22)}
+.tcard .mbtag{
+  flex:none;display:flex;align-items:center;justify-content:space-between;gap:8px;
+  padding:5px 11px;font-size:11.5px;font-weight:900;letter-spacing:.02em;color:#3a2a00;
+  background:linear-gradient(90deg,#f0b429,#ffd76a)
 }
-.tcard.mbfix .mbtag{
-  position:absolute; left:0; right:0; top:0; z-index:3;
-  background:linear-gradient(90deg,#f0b429,#ffd76a);
-  color:#3a2a00; font-weight:900; font-size:11.5px;
-  padding:5px 10px; letter-spacing:.02em;
-  display:flex; align-items:center; gap:8px; justify-content:space-between;
-  border-radius:12px 12px 0 0;
-}
-.tcard.mbfix .mbtag span{ font-size:10px; font-weight:800; opacity:.82 }
-.tcard.mbfix .thumbs, .tcard.mbfix .tthumb{ margin-top:26px }
+.tcard .mbtag span{font-size:10px;font-weight:800;opacity:.82}
+.tcard .mbtag.an{color:#fff}
 @media (max-width:420px){
-  .tcard.mbfix .mbtag{ font-size:10.5px; padding:4px 8px }
-  .tcard.mbfix .mbtag span{ display:none }
+  .tcard .mbtag{ font-size:10.5px; padding:4px 8px }
+  .tcard .mbtag span{ display:none }
 }
 
 
@@ -703,3 +715,97 @@ body.tall-cards .pool .icard.full img{height:calc(var(--icard,84px) * 1.27)}
 @media (max-width:640px){body.tall-cards .icard img{width:52px;height:69px}body.tall-cards .icard.full img{height:92px}}
 /* 検索結果は絵の全体を見せる（切らない） */
 .anitem img{object-fit:contain;background:rgba(120,140,200,.12)}
+
+
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-10-21 リニューアル（PC 版）
+   ・ご指定「使いやすく・機能は維持」。スマホ版の作り直しは後回し（ご指定）なので、
+     ここで足すものは PC で効くものだけにしてある（スマホに効くのは色と一覧のカードだけ）。
+   ・編集画面：上のボタンを「足す／並べる／見せる」の3つにまとめて絵をつけた。
+     入りきらないときは、まず文字を消して絵だけにし、それでも入らなければ「⋯」へたたむ。
+     元に戻す・やり直す（Ctrl+Z / Ctrl+Y）を足した。
+   ・左の段一覧：名前と枚数が見えるように（操作ボタンはマウスを乗せたときに出す）。
+   ・右の「選択中の画像」：段のボタンを押すだけで移せる。数字キーでも移せる。
+   ══════════════════════════════════════════════════════════════ */
+@media (hover:hover){
+  .btn:not(:disabled):hover{border-color:color-mix(in srgb,var(--accent) 40%,var(--line))}
+  .btn.pri:not(:disabled):hover{filter:brightness(1.07);border-color:transparent}
+  .iconbtn:not(:disabled):hover{border-color:color-mix(in srgb,var(--accent) 40%,var(--line));color:var(--accent)}
+}
+.iconbtn:disabled{opacity:.35;cursor:default;box-shadow:none}
+#hd{box-shadow:0 1px 0 rgba(255,255,255,.4) inset}
+#hd .navs button{transition:background .12s,color .12s}
+#hd .navs button:not(.on):hover{background:var(--line2);color:var(--ink)}
+.sect{display:flex;align-items:center;gap:7px}
+.sect::before{content:"";width:4px;height:13px;border-radius:2px;background:var(--grad);flex:none}
+.homehead h1{font-size:22px}
+.dlg{border-radius:20px;box-shadow:0 30px 80px rgba(24,24,70,.28)}
+
+/* 編集画面の上のバー */
+.etop{background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.etop .btn.sm{height:34px}
+.etop .btn.sm .ico{width:15px;height:15px}
+.etop-acts{gap:6px}
+.etg{display:flex;align-items:center;gap:4px;padding-left:8px;border-left:1px solid var(--line)}
+.etg:first-child{padding-left:0;border-left:none}
+.etop-acts.compact .lb{display:none}
+.etop-acts.compact .btn.sm{padding:6px 9px}
+.etop-ur{display:flex;gap:4px;flex:none}
+.etop-ur .iconbtn{width:34px;height:34px}
+#etMenuBtn .ico{fill:currentColor;stroke:none}
+@media (min-width:901px){ #etMenuBtn{display:inline-flex} }   /* PC は「⋯ その他」をいつも出す（表からもどす・テンプレート保存など） */
+@media (max-width:900px){ .etop-ur{display:none} }            /* スマホ版は後回し：キー操作のないスマホでは出さない */
+
+/* 左：段の一覧（名前と枚数を見せる。操作はマウスを乗せたときに重ねて出す） */
+.tlrow{position:relative;cursor:pointer;transition:border-color .12s,background .12s}
+.tlrow:hover{border-color:color-mix(in srgb,var(--accent) 35%,var(--line))}
+.tlrow .nm{display:flex;flex-direction:column;line-height:1.25}
+.tlrow .nm b{font-weight:800;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tlrow .nm small{font-size:10.5px;font-weight:700;color:var(--faint)}
+.tlacts{display:flex;gap:2px;flex:none}
+.tlrow button:disabled{opacity:.28;cursor:default}
+@media (hover:hover){
+  .tlacts{position:absolute;right:5px;top:50%;transform:translateY(-50%);padding:2px;border-radius:9px;
+    background:var(--panel);box-shadow:var(--shadow);opacity:0;pointer-events:none;transition:opacity .12s}
+  .tlrow:hover .tlacts,.tlrow:focus-within .tlacts{opacity:1;pointer-events:auto}
+}
+
+/* 中央：表 */
+.ttable{border-radius:var(--r)}
+.tlab{box-shadow:inset -1px 0 0 rgba(0,0,0,.08)}
+.tcell .addbtn{border-radius:12px}
+.icard{transition:transform .1s,box-shadow .12s}
+@media (hover:hover){ .icard:hover{box-shadow:0 4px 12px rgba(24,24,70,.16)} }
+.icard.sel{border-color:var(--accent);box-shadow:0 0 0 3px color-mix(in srgb,var(--accent) 30%,transparent)}
+.addtier{display:flex;width:100%;margin-top:9px;border-style:dashed;background:transparent;box-shadow:none;color:var(--ink2)}
+.addtier:hover{color:var(--accent);background:var(--accent-soft)}
+.poolwrap{border-radius:16px 16px 0 0}
+
+/* 右：えらんだ画像を段へ移すボタン・キーの案内 */
+.selmove{display:flex;flex-wrap:wrap;gap:5px}
+.selmove button{min-width:36px;height:32px;padding:0 8px;border-radius:9px;font-weight:900;font-size:13px;
+  border:2px solid transparent;transition:transform .08s}
+.selmove button:active{transform:scale(.95)}
+.selmove button.on{outline:2.5px solid var(--accent);outline-offset:1.5px}
+.selmove button.pool{background:var(--panel2);color:var(--ink2);border:1px solid var(--line);font-size:11.5px}
+.kbdhint{margin-top:12px;padding:9px 10px;border-radius:11px;background:var(--panel2);border:1px solid var(--line2);
+  font-size:11px;line-height:1.95;color:var(--ink2)}
+.kbdhint b{display:block;font-size:11px;color:var(--ink);margin-bottom:1px}
+kbd{display:inline-block;min-width:18px;padding:0 5px;border-radius:5px;border:1px solid var(--line);border-bottom-width:2px;
+  background:var(--panel);font:800 10.5px/16px 'Noto Sans JP',sans-serif;text-align:center;color:var(--ink)}
+@media (max-width:900px){
+  .kbdhint{display:none}
+  .tcard .acts button span{display:none}    /* スマホは2列で狭いので、操作は絵だけ */
+}
+
+/* ══ ★★ 2026-10-21 ご指定「アニメ固定のものは縦長で表示」══
+   編集画面（body.tall-cards）はもとから 3:4。ほかの場所でも正方形に切らないようにそろえる：
+   一覧の見本（.tallpv）・閲覧モード（#mvTable.tall）・右の大きな絵・比較。
+   （Export・スライドの書き出しは magitier.js の drawTable / drawCard で 3:4 にしている） */
+.tcard.tallpv .thumb .tr img{width:16px}
+#recentGrid .tcard.tallpv .thumb .tr img{width:11px}
+.mvtbl.tall .mvc img{height:77px}
+body.tall-cards .selprev{aspect-ratio:3/4}
+body.tall-cards .cmpcol img{aspect-ratio:3/4}
+body.tall-cards .cmppick img{height:69px}
+@media (max-width:640px){ .mvtbl.tall .mvc img{height:69px} }

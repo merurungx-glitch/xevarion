@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <title>MagiShift</title>
-<meta name="description" content="つなげて、動かして、勝ちをつかめ。1台のiPadを2〜6人（CPUも）で囲む、駒を動かせるマルバツ対戦ボードゲーム。" />
+<meta name="description" content="つなげて、動かして、勝ちをつかめ。1台のiPadを2〜8人（CPUも）で囲む、駒を動かせるマルバツ対戦ボードゲーム。" />
 <link rel="icon" href="../thumbs/MagiShift.jpg" type="image/jpeg" />
 <link rel="apple-touch-icon" href="../thumbs/MagiShift.jpg" />
 <meta name="theme-color" content="#f5f7fc" />
@@ -21,8 +21,8 @@ if ("serviceWorker" in navigator) {
 }
 </script>
 <script src="../xeva-safebottom.js?v=12"></script>
-<link rel="stylesheet" href="css/shift.css?v=9" />
-<script src="../xeva-splash.js?v=15" data-app="MagiShift" data-logo="../thumbs/MagiShift.jpg"></script>
+<link rel="stylesheet" href="css/shift.css?v=10" />
+<script src="../xeva-splash.js?v=17" data-app="MagiShift" data-logo="../thumbs/MagiShift.jpg"></script>
 </head>
 <body>
 <!-- ══════════════════════════════════════════════════════════════
@@ -109,7 +109,8 @@ if ("serviceWorker" in navigator) {
     <div class="gtitle"><b>Magi<i>Shift</i></b><span id="gmeta"></span></div>
     <button class="ibtn" data-a="rules" aria-label="ルール"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.4 2.3c-.6.3-1 .8-1 1.5v.6"/><path d="M12 16.6v.4"/></svg></button>
   </div>
-  <div id="gplayers"></div>
+  <!-- ★★ 2026-10-20 プレイヤーの札と、その下に戦況バー（#gwar・設定で非表示にできる）をひとまとめに -->
+  <div class="gside"><div id="gplayers"></div><div id="gwar" class="gwar" hidden></div></div>
   <div class="bstage"><div id="board"></div></div>
   <div id="turnbar"></div>
 </section>
@@ -134,11 +135,13 @@ if ("serviceWorker" in navigator) {
     <h2>設定</h2><span></span>
   </div>
   <div class="swrap">
-    <div class="card"><h3>盤面サイズ<small>「人数どおり」は 2人 5×5 〜 6人 9×9</small></h3><div class="chips" id="setSize"></div></div>
+    <div class="card"><h3>盤面サイズ<small>「人数どおり」は 2人 5×5 〜 6人 9×9・7〜8人 10×10</small></h3><div class="chips" id="setSize"></div></div>
     <div class="card"><h3>勝利条件（いくつ並べるか）</h3><div class="chips" id="setWin"></div></div>
     <div class="card"><h3>1人が置ける駒の数</h3><div class="chips" id="setPieces"></div></div>
     <!-- ★★ 2026-10-14 あと1つでそろうマスの印（ご指定・標準は表示しない） -->
     <div class="card"><h3>あと1つでそろうマスの印<small>そこに置けばそろうマスに、その人の色の輪を出します</small></h3><div class="chips" id="setReach"></div></div>
+    <!-- ★★ 2026-10-20 戦況バー（ご指定・設定で非表示にもできる） -->
+    <div class="card"><h3>戦況バー<small>プレイヤーの札の下に、だれが優勢かを1本の帯で出します</small></h3><div class="chips" id="setWar"></div></div>
     <div class="card">
       <div class="srow first"><b>効果音</b><label class="sw"><input type="checkbox" id="setSe"><span></span></label></div>
       <div class="srow"><b>BGM</b><label class="sw"><input type="checkbox" id="setBgm"><span></span></label></div>
@@ -170,14 +173,14 @@ if ("serviceWorker" in navigator) {
 <div id="toast" class="toast" hidden></div>
 <div id="fx" class="fx" aria-hidden="true"></div>
 
-<script type="module" src="../xevarion-fb.js?v=34"></script>
-<script src="../xeva.js?v=78"></script>
+<script type="module" src="../xevarion-fb.js?v=35"></script>
+<script src="../xeva.js?v=79"></script>
 <script src="../xeva-loading.js?v=19" defer></script>
 <script src="../game-link.js?v=13"></script>
-<script src="js/shift-core.js?v=7"></script>
-<script src="js/shift-ai.js?v=1"></script>
-<script src="js/shift-account.js?v=3"></script>
-<script src="js/shift-ui.js?v=10"></script>
+<script src="js/shift-core.js?v=8"></script>
+<script src="js/shift-ai.js?v=2"></script>
+<script src="js/shift-account.js?v=4"></script>
+<script src="js/shift-ui.js?v=11"></script>
 <script src="../xeva-back.js?v=9" data-mode="hook"></script>
 </body>
 </html>
