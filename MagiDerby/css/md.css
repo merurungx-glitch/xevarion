@@ -68,6 +68,7 @@ main{max-width:860px;margin:0 auto;padding:4px 12px calc(28px + var(--safe-b))}
 .chip{display:inline-block;padding:2px 9px;border-radius:99px;font-size:11px;font-weight:900;white-space:nowrap;background:#e8eee9;color:var(--sub)}
 .chip.st-sale{background:#16a34a;color:#fff}
 .chip.st-entry{background:#fde68a;color:#7a5200}
+.chip.st-gap{background:#fed7aa;color:#8a3a00}   /* ★★ 2026-10-22 前日発売と当日発売のあいだ */
 .chip.st-closed{background:#64748b;color:#fff}
 .chip.st-run{background:var(--red);color:#fff;animation:pulse 1.2s ease-in-out infinite}
 .chip.st-wait{background:#7c3aed;color:#fff}

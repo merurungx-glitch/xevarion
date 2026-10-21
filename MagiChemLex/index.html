@@ -29,7 +29,7 @@ if ("serviceWorker" in navigator) {
 }
 </script>
 <script src="../xeva-safebottom.js?v=12"></script>
-<link rel="stylesheet" href="css/mcl.css?v=12" />
+<link rel="stylesheet" href="css/mcl.css?v=13" />
 <script src="../xeva-splash.js?v=17" data-app="MagiChemLex" data-logo="../thumbs/MagiChemLex.jpg?v=2"></script>
 </head>
 <body>
@@ -45,6 +45,8 @@ if ("serviceWorker" in navigator) {
   <nav class="tabbar" id="tabbar" aria-label="メニュー">
     <button data-a="tab" data-tab="home"><svg class="di" viewBox="0 0 24 24" aria-hidden="true"><path class="b" d="M4.5 11.4 12 5.3l7.5 6.1V20h-15z"/><path class="f" d="M3 11.2 12 4l9 7.2"/><path class="f" d="M5.2 10v10h13.6V10"/><path class="f" d="M10 20v-5.2h4V20"/></svg>ホーム</button>
     <button data-a="tab" data-tab="sets"><svg class="di" viewBox="0 0 24 24" aria-hidden="true"><rect class="b" x="6" y="3.5" width="14" height="13" rx="2.2"/><path class="f" d="M8 3h10.5A2.5 2.5 0 0 1 21 5.5V14"/><rect class="f" x="3" y="6.5" width="15" height="14" rx="2.4"/><path class="f" d="M6.5 11h8M6.5 14.5h5.5"/></svg>セット</button>
+    <!-- ★★ 2026-10-22 新しいタブ「大問」（難関・標準・基礎セット＝模試と単元マップ。もとはホームの下のほう） -->
+    <button data-a="tab" data-tab="big"><svg class="di" viewBox="0 0 24 24" aria-hidden="true"><rect class="b" x="4" y="4" width="7" height="7" rx="1.6"/><rect class="b" x="13" y="13" width="7" height="7" rx="1.6"/><rect class="f" x="4" y="4" width="7" height="7" rx="1.6"/><rect class="f" x="13" y="4" width="7" height="7" rx="1.6"/><rect class="f" x="4" y="13" width="7" height="7" rx="1.6"/><rect class="f" x="13" y="13" width="7" height="7" rx="1.6"/><path class="f" d="M6.6 7.6h1.8M15.6 16.6h1.8"/></svg>大問</button>
     <button data-a="tab" data-tab="lib"><svg class="di" viewBox="0 0 24 24" aria-hidden="true"><path class="b" d="M5.2 4.6A1.6 1.6 0 0 1 6.8 3H19v14H7a1.8 1.8 0 0 0-1.8 1.8z"/><path class="f" d="M5 19.2V5a2 2 0 0 1 2-2h12v14H7a2 2 0 0 0-2 2.2z"/><path class="f" d="M7 21h12v-4"/><path class="f" d="M9 7.5h6.5M9 11h4.5"/></svg>問題</button>
     <button data-a="tab" data-tab="review"><svg class="di" viewBox="0 0 24 24" aria-hidden="true"><circle class="b" cx="12" cy="12" r="7.6"/><path class="f" d="M19.4 13.3A7.6 7.6 0 0 1 6 17.4"/><path class="f" d="M4.6 10.7A7.6 7.6 0 0 1 18 6.6"/><path class="f" d="M18.4 3v3.9h-3.9M5.6 21v-3.9h3.9"/></svg>復習</button>
     <button data-a="tab" data-tab="stats"><svg class="di" viewBox="0 0 24 24" aria-hidden="true"><rect class="b" x="4.5" y="11" width="4" height="9" rx="1.2"/><rect class="b" x="10" y="5" width="4" height="15" rx="1.2"/><rect class="b" x="15.5" y="13" width="4" height="7" rx="1.2"/><path class="f" d="M3 21h18"/><rect class="f" x="4.5" y="11" width="4" height="9" rx="1.2"/><rect class="f" x="10" y="5" width="4" height="15" rx="1.2"/><rect class="f" x="15.5" y="13" width="4" height="7" rx="1.2"/></svg>記録</button>
@@ -60,10 +62,10 @@ if ("serviceWorker" in navigator) {
 <noscript><p style="padding:20px">MagiChemLex を使うには JavaScript を有効にしてください。</p></noscript>
 
 <script type="module" src="../xevarion-fb.js?v=35"></script>
-<script type="module" src="../xeva-cloud.js?v=46"></script>
+<script type="module" src="../xeva-cloud.js?v=47"></script>
 <!-- ★★ 2026-10-16 キャラの所持・凸（magiburst_v1）もここで同期する（前は読むだけで、別の端末で引いたキャラが出てこないことがあった） -->
-<script type="module" src="../MagiBurst/magiburst-cloud.js?v=25"></script>
-<script src="../xeva.js?v=79"></script>
+<script type="module" src="../MagiBurst/magiburst-cloud.js?v=26"></script>
+<script src="../xeva.js?v=80"></script>
 <script src="../xeva-loading.js?v=19" defer></script>
 <script src="../xeva-presence.js?v=9" defer></script>
 <script src="js/mcl-data.js?v=5"></script>
@@ -91,7 +93,7 @@ if ("serviceWorker" in navigator) {
 <script src="js/mcl-fig3.js?v=1"></script>
 <script src="js/mcl-fig4.js?v=1"></script>
 <script src="js/mcl-fig5.js?v=2"></script>
-<script src="js/mcl-ui.js?v=12"></script>
+<script src="js/mcl-ui.js?v=13"></script>
 <!-- ★★ 2026-10-15 フラッシュカード（問題→答え・解説・自分のメモ）と特設予想問題（553＞1107） -->
 <script src="js/mcl-flash.js?v=2"></script>
 <script src="js/mcl-special.js?v=1"></script>

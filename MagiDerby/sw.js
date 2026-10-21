@@ -4,16 +4,16 @@
    ・★ 実際の GⅠ のデータ（raw.githubusercontent.com）は別のサイトなのでここでは扱わない（いつも最新を取りに行く）。
    ・★ 時刻あわせ（clock.txt?__mdclock=…）は<b>キャッシュしない</b>（サーバーの時刻を毎回聞く＝締切の判定）。
    ============================================================ */
-const VERSION = "magiderby-sw-v1";
+const VERSION = "magiderby-sw-v2";
 const CORE = [
   "./index.html",
   "./manifest.webmanifest",
-  "./css/md.css?v=1",
-  "./js/md-data.js?v=1",
-  "./js/md-net.js?v=1",
-  "./js/md-bet.js?v=1",
+  "./css/md.css?v=2",
+  "./js/md-data.js?v=2",
+  "./js/md-net.js?v=2",
+  "./js/md-bet.js?v=2",
   "./js/md-race.js?v=1",
-  "./js/md-ui.js?v=1",
+  "./js/md-ui.js?v=2",
   "./img/icon192.png",
   "../thumbs/MagiDerby.jpg",
   "../XEVA.png",
@@ -23,10 +23,10 @@ const CORE = [
   "../xeva-back.js?v=9",
   "../xeva-presence.js?v=9",
   "../maintenance-gate.js?v=13",
-  "../xeva.js?v=79",
-  "../xeva-alive.js?v=6",
-  "../xeva-cloud.js?v=46",
-  "../xeva-keys.js?v=33",
+  "../xeva.js?v=80",
+  "../xeva-alive.js?v=7",
+  "../xeva-cloud.js?v=47",
+  "../xeva-keys.js?v=34",
   "../xevarion-fb.js?v=35",
   "../img/ld_a_stand.webp?v=5",
   "../img/ld_a_bow.webp?v=5",

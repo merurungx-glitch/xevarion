@@ -79,7 +79,27 @@
   N.closeAt = (r) => N.postAt(r) - D.CLOSE_BEFORE * 1000;
   /* その日の 0:00（JST）から days 日ずらした時刻 */
   N.dayAt = function (date, days) { const d = String(date || "").split("-").map(Number); return Date.UTC(d[0], d[1] - 1, d[2] + (days || 0), 0, 0) - JST; };
-  N.saleAt = (r) => N.dayAt(r.date, -D.SALE_OPEN_DAY);      /* 発売開始（レースの日の 0:00） */
+  /* ══ ★★ 2026-10-22 ご指定「馬券の注文は実際の開始日時と同じに」＝ JRA のネット投票（即PAT）と同じ発売の時間
+     （JRA 公式「即PAT 会員の発売時間（2026年）」：GⅠ の前日発売＝金曜 18:30〜土曜 17:30／日曜のレースの当日発売＝土曜 19:30〜／
+       土曜のレース＝金曜 18:30〜／月曜のレース＝日曜 19:30〜（月曜の重賞の前日発売＝土曜 19:30〜日曜 17:30））
+     ・日曜のレース … [金曜 18:30, 土曜 17:30) と [土曜 19:30, 締切)。土曜 17:30〜19:30 は前日発売と当日発売の切りかえで<b>発売していない</b>（JRA と同じ）
+     ・土曜のレース … [金曜 18:30, 締切)
+     ・月曜のレース … [土曜 19:30, 日曜 17:30) と [日曜 19:30, 締切)
+     ・そのほかの曜日（年末などの特別な開催日）… [前日 19:30, 締切)
+     締切は今までどおり発走の CLOSE_BEFORE 前（2分前）。判定はサーバーの時刻（B.clock）。
+     ★ 夏の「競走時間帯の拡大」期間（7〜8月）に GⅠ は無いので扱わない。 */
+  N.at = function (date, days, hh, mm) { const d = String(date || "").split("-").map(Number); return Date.UTC(d[0], d[1] - 1, d[2] + (days || 0), hh || 0, mm || 0) - JST; };
+  N.saleWins = function (r) {
+    const d = String(r.date || "").split("-").map(Number), wd = new Date(Date.UTC(d[0], d[1] - 1, d[2])).getUTCDay(), close = N.closeAt(r);
+    if (wd === 0) return [[N.at(r.date, -2, 18, 30), N.at(r.date, -1, 17, 30)], [N.at(r.date, -1, 19, 30), close]];
+    if (wd === 6) return [[N.at(r.date, -1, 18, 30), close]];
+    if (wd === 1) return [[N.at(r.date, -2, 19, 30), N.at(r.date, -1, 17, 30)], [N.at(r.date, -1, 19, 30), close]];
+    return [[N.at(r.date, -1, 19, 30), close]];
+  };
+  N.saleAt = (r) => N.saleWins(r)[0][0];                     /* 発売開始（いちばん最初の窓） */
+  /* いま発売しているか（窓の中か）／次に発売が始まる時刻（無ければ null） */
+  N.onSale = (r, t) => N.saleWins(r).some((w) => t >= w[0] && t < w[1]);
+  N.nextSaleAt = function (r, t) { const w = N.saleWins(r).find((x) => t < x[0]); return w ? w[0] : null; };
   N.payAt = (r) => N.dayAt(r.date, D.PAYOUT_DAY);           /* 払い戻し（次の日の 0:00） */
   N.dtStr = function (ms) { return N.dateStr(N.ymd(ms)) + " " + N.hm(ms); };
   N.WD = ["日", "月", "火", "水", "木", "金", "土"];
@@ -103,7 +123,7 @@
   /* ══════════ レースの状態 ══════════
      sched 出走登録の前／entry 枠順確定の前（馬番がまだない）／sale 発売中／closed 締切（発走待ち）
      run 発走（走っている）／wait 結果待ち（自動取得を待っている）／final 確定 */
-  N.STATUS = { sched: "登録前", entry: "枠順確定前", pre: "発売前", sale: "発売中", closed: "締切", run: "発走", wait: "結果待ち", final: "確定" };
+  N.STATUS = { sched: "登録前", entry: "枠順確定前", pre: "発売前", gap: "当日発売前", sale: "発売中", closed: "締切", run: "発走", wait: "結果待ち", final: "確定" };   /* ★★ 2026-10-22 gap＝前日発売の締切（土曜 17:30）〜当日発売（土曜 19:30） */
   N.status = function (r, now) {
     if (!r) return "sched";
     if (r.st === "result") return "final";
@@ -112,7 +132,8 @@
     if (!r.rid || r.st === "sched") return "sched";
     if (now >= N.closeAt(r)) return "closed";
     if (r.st === "entry") return "entry";
-    if (now < N.saleAt(r)) return "pre";                     /* 枠順は決まったが、発売（当日の 0:00）の前 */
+    if (now < N.saleAt(r)) return "pre";                     /* 枠順は決まったが、発売（日曜のレースなら金曜 18:30）の前 */
+    if (!N.onSale(r, now)) return "gap";                     /* ★★ 2026-10-22 前日発売と当日発売のあいだ（JRA と同じく買えない） */
     return "sale";
   };
   /* いちばん大事なレース（走っている・結果待ち → 次に発走する → 最後に確定したもの） */

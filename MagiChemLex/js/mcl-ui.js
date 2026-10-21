@@ -341,15 +341,7 @@
     else if (due.length) { msg = "今日の復習が <b>" + due.length + "問</b> あるよ。<br>忘れる前にサクッと！"; mood = "think"; }
     else if (tc >= goal) { msg = "今日の目標クリア！<br>えらすぎる…！🎉"; mood = "happy"; }
     else { msg = "今日はあと <b>" + (goal - tc) + "問</b> で目標達成！"; }
-    const fields = Object.keys(D.F).map((f) => {
-      const ts = Object.keys(D.T).filter((t) => D.T[t].f === f);
-      return '<div class="tm-f"><h3 style="--c:' + D.F[f].c + '"><i></i>' + D.F[f].nm + "<small>" + ts.length + "単元</small></h3><div class=\"tm-g\">" + ts.map(topicTile).join("") + "</div></div>";
-    }).join("");
-    /* ★★ 2026-10-12 標準セット（マーク式）は難関セットとは別の段（★★ 2026-10-12c 「本番」→「難関」・時間を計るモードは「模試」） */
-    const grpAll = Object.keys(D.GRP || { 1: "" }).map(Number), grps = grpAll.filter((g) => M.lvOf(g) === "o"), sgrps = grpAll.filter((g) => M.isStd(g)), bgrps = grpAll.filter((g) => M.isBasic(g));
-    if (grps.indexOf(UI.grp) < 0) UI.grp = grps[0];
-    if (sgrps.length && sgrps.indexOf(UI.sgrp) < 0) UI.sgrp = sgrps[0];
-    if (bgrps.length && bgrps.indexOf(UI.bgrp) < 0) UI.bgrp = bgrps[0];
+    /* ★★ 2026-10-22 難関・標準・基礎セットと単元マップは「大問」タブ（pgBig）へ移した（ご指定） */
     return '<section class="hero">' +
       '<div class="hero-t"><p class="hello">' + greet() + "！</p><h1>難関化学を、<br>毎日すこしずつ。</h1>" +
       '<div class="lvl"><span class="lv-b">Lv.' + lv.lv + "</span><b>" + lv.title + '</b></div><div class="xpbar"><i style="width:' + (lv.cur / lv.need * 100).toFixed(1) + '%"></i></div><small class="xp-t">次のレベルまで ' + (lv.need - lv.cur) + " XP</small></div>" +
@@ -370,18 +362,35 @@
       /* ★★ 2026-10-15 特設予想問題（mcl-special.js） */
       (window.MCLSpecial ? MCLSpecial.bannerHTML() : "") +
       eventCard() +
-      '<h2 class="sec">難関セット<small>入試の大問をまるごと（改題）</small></h2>' +
-      (grps.length > 1 ? '<div class="seg grp">' + grps.map((g) => '<button class="' + (g === UI.grp ? "on" : "") + '" data-a="grp" data-v="' + g + '">' + esc(D.GRP[g]) + "</button>").join("") + "</div>" : "") +
-      '<div class="sets">' + setCards(UI.grp) + "</div>" +
-      (sgrps.length ? '<h2 class="sec">標準セット<small>マーク式の大問をまるごと（改題）・難関セットとは別</small></h2>' +
-        (sgrps.length > 1 ? '<div class="seg grp std">' + sgrps.map((g) => '<button class="' + (g === UI.sgrp ? "on" : "") + '" data-a="sgrp" data-v="' + g + '">' + esc(D.GRP[g]) + "</button>").join("") + "</div>" : "") +
-        '<div class="sets">' + setCards(UI.sgrp) + "</div>" : "") +
-      /* ★★ 2026-10-14 基礎セット（教科書レベル・ご指定「新たに基礎のタブ」） */
-      (bgrps.length ? '<h2 class="sec">基礎セット<small>教科書レベルの大問をまるごと（改題）・まずはここから</small></h2>' +
-        (bgrps.length > 1 ? '<div class="seg grp bas">' + bgrps.map((g) => '<button class="' + (g === UI.bgrp ? "on" : "") + '" data-a="bgrp" data-v="' + g + '">' + esc(D.GRP[g]) + "</button>").join("") + "</div>" : "") +
-        '<div class="sets">' + setCards(UI.bgrp) + "</div>" : "") +
-      '<h2 class="sec" id="tmap">単元マップ<small>' + tt.mas + " / " + tt.total + " 習得</small></h2>" + fields + rwCard() +
+      /* ★★ 2026-10-22 大問セット・単元マップへの入口（中身は「大問」タブ） */
+      '<button class="bigl" data-a="tab" data-tab="big"><span class="bigl-i">' + ic("exam") + '</span><span class="bigl-t"><b>大問セット・単元マップ</b><small>難関・標準・基礎セット（模試）と単元ごとの習得は「大問」タブへ移りました・' + tt.mas + " / " + tt.total + " 習得</small></span>" + ic("chevR") + "</button>" +
+      rwCard() +
       '<p class="foot">問題は、難関大の入試問題をもとに作り直した<b>改題</b>と、数値や条件を変えた<b>関連問題</b>です（原文の転載ではありません）。</p>';
+  }
+
+  /* ══ ★★ 2026-10-22 新しいタブ「大問」（ご指定「ホームの難関セット＆標準セット＆基礎セット＆単元マップはホームから消して、
+     新たなタブとしてセットと問題のタブの間に」）。中身はもとのホームの段そのまま＋上に段へ飛ぶボタン。 */
+  function pgBig() {
+    const tt = M.totals();
+    const fields = Object.keys(D.F).map((f) => {
+      const ts = Object.keys(D.T).filter((t) => D.T[t].f === f);
+      return '<div class="tm-f"><h3 style="--c:' + D.F[f].c + '"><i></i>' + D.F[f].nm + "<small>" + ts.length + "単元</small></h3><div class=\"tm-g\">" + ts.map(topicTile).join("") + "</div></div>";
+    }).join("");
+    const grpAll = Object.keys(D.GRP || { 1: "" }).map(Number), grps = grpAll.filter((g) => M.lvOf(g) === "o"), sgrps = grpAll.filter((g) => M.isStd(g)), bgrps = grpAll.filter((g) => M.isBasic(g));
+    if (grps.indexOf(UI.grp) < 0) UI.grp = grps[0];
+    if (sgrps.length && sgrps.indexOf(UI.sgrp) < 0) UI.sgrp = sgrps[0];
+    if (bgrps.length && bgrps.indexOf(UI.bgrp) < 0) UI.bgrp = bgrps[0];
+    const seg = (cls, list, cur, act) => list.length > 1 ? '<div class="seg grp' + cls + '">' + list.map((g) => '<button class="' + (g === cur ? "on" : "") + '" data-a="' + act + '" data-v="' + g + '">' + esc(D.GRP[g]) + "</button>").join("") + "</div>" : "";
+    const jump = (id, t, c) => '<button class="bj" data-a="bigJump" data-v="' + id + '" style="--c:' + c + '">' + t + "</button>";
+    return '<h1 class="pt">大問</h1><p class="pt-sub">入試の大問をまるごと解く<b>難関・標準・基礎セット</b>（模試・練習・計算以外だけ）と、単元ごとの習得のようす（単元マップ）。</p>' +
+      '<div class="bjs">' + jump("bk-o", "難関セット", "#3b5bff") + (sgrps.length ? jump("bk-s", "標準セット", "#e64980") : "") + (bgrps.length ? jump("bk-b", "基礎セット", "#12b886") : "") + jump("tmap", "単元マップ", "#f59f00") + "</div>" +
+      '<h2 class="sec" id="bk-o">難関セット<small>入試の大問をまるごと（改題）</small></h2>' + seg("", grps, UI.grp, "grp") +
+      '<div class="sets">' + setCards(UI.grp) + "</div>" +
+      (sgrps.length ? '<h2 class="sec" id="bk-s">標準セット<small>マーク式の大問をまるごと（改題）・難関セットとは別</small></h2>' + seg(" std", sgrps, UI.sgrp, "sgrp") +
+        '<div class="sets">' + setCards(UI.sgrp) + "</div>" : "") +
+      (bgrps.length ? '<h2 class="sec" id="bk-b">基礎セット<small>教科書レベルの大問をまるごと（改題）・まずはここから</small></h2>' + seg(" bas", bgrps, UI.bgrp, "bgrp") +
+        '<div class="sets">' + setCards(UI.bgrp) + "</div>" : "") +
+      '<h2 class="sec" id="tmap">単元マップ<small>' + tt.mas + " / " + tt.total + " 習得</small></h2>" + fields;
   }
 
   /* ══ ★★ 2026-10-06c 問題セット（ご指定「問題や関連問題の括りで、MagiLex のように一覧で見て、そこから解けるように」）══
@@ -597,6 +606,8 @@
       '<div class="gh-t"><small>' + head + "</small><h1>" + (g.part ? esc(g.dai) + ' <span class="gh-lb">' + esc(g.lb) + "</span>" : esc(g.nm)) + "</h1>" + (g.part && g.sub ? '<p class="gh-sub">' + esc(g.sub) + "</p>" : "") + "<p>" + (st.cfPass ? "🏅 確認テスト合格ずみ" : st.done ? "🏆 完全習得！確認テストを受けられます" : "あと <b>" + un + "問</b> で完全習得") + (st.acc != null ? "・正答 " + pctTxt(st.acc) : "") + "</p></div></section>" +
       '<div class="gacts">' +
       '<button class="cta" data-a="gplay" data-g="' + g.id + '"><span class="cta-i">' + ic("shuffle") + '</span><span class="cta-t"><b>全問を解く（' + st.total + "問）</b><small>順番はシャッフル・1問ずつ答え合わせ</small></span>" + ic("chevR") + "</button>" +
+      /* ★★ 2026-10-22 ご指定「計算問題以外の出題はそれぞれのセットで」：このセットの計算以外の問題だけ（ホームの計算なしモードがオフでも使える） */
+      (function () { const nc = g.ids.filter((id) => !M.isCalc(D.BY[id])).length; return nc && nc < g.ids.length ? '<button class="mode-b nc" data-a="gplayNoCalc" data-g="' + g.id + '"><span class="mi nc">' + NOCALC_IC + "</span><span><b>計算以外の問題だけ（" + nc + "問）</b><small>計算問題（" + (g.ids.length - nc) + "問）をとばして、知識・考え方の問題だけをシャッフルで</small></span>" + ic("chevR") + "</button>" : ""; })() +
       '<button class="mode-b" data-a="gplayUn" data-g="' + g.id + '"' + (un ? "" : " disabled") + '><span class="mi p">' + ic("target") + "</span><span><b>まだ習得していない問題だけ（" + un + "問）</b><small>" + (un ? "習得ずみの問題はとばします（シャッフル）" : "すべて習得ずみ！") + "</small></span>" + ic("chevR") + "</button>" +
       /* ★★ 2026-10-12 ご指定「習得中までしかできない場合でも、習得中になっていない問題のみに絞り込んで」 */
       (fr && fr < un ? '<button class="mode-b" data-a="gplayFresh" data-g="' + g.id + '"><span class="mi f">' + ic("spark") + "</span><span><b>まだ習得中になっていない問題だけ（" + fr + "問）</b><small>未解答・まちがえた問題だけ。今日すすめられる問題です（習得中の問題は次の日以降に）</small></span>" + ic("chevR") + "</button>" : "") +
@@ -743,7 +754,7 @@
       '<h2 class="sec">学習カレンダー<small>16週間</small></h2><section class="card">' + heatHTML() + "</section>" +
       '<h2 class="sec">分野ごと</h2><section class="card">' + fb + '<p class="lgd"><i class="s"></i>解いた<i class="m"></i>習得</p></section>' +
       '<h2 class="sec">単元ごと</h2><section class="card tbl"><table class="tt2"><thead><tr><th>単元</th><th>習得</th><th>正答率</th></tr></thead><tbody>' + trs + "</tbody></table></section>" +
-      '<h2 class="sec" id="runs">模試の記録</h2><section class="card">' + (runs || '<p class="muted">まだありません。ホームの「難関セット」「標準セット」「基礎セット」の大問を開くと、模試モードで挑戦できます。</p>') + "</section>" +
+      '<h2 class="sec" id="runs">模試の記録</h2><section class="card">' + (runs || '<p class="muted">まだありません。「大問」タブの「難関セット」「標準セット」「基礎セット」の大問を開くと、模試モードで挑戦できます。</p>') + "</section>" +
       '<h2 class="sec">バッジ<small>' + bd.filter((b) => b.ok).length + " / " + bd.length + '</small></h2><div class="badges">' + bd.map((b) => '<div class="bdg' + (b.ok ? " ok" : "") + '"><span>' + b.ic + "</span><b>" + b.nm + "</b><small>" + b.sub + "</small></div>").join("") + "</div>";
   }
 
@@ -1117,6 +1128,8 @@
       '<div class="setinfo"><div><b>' + S.ids.length + "</b><span>問</span></div><div><b>" + S.min + "</b><span>分（目安）</span></div><div><b>" + (b ? Math.round(b.score / b.total * 100) + "%" : "—") + "</b><span>ベスト</span></div><div><b>" + n + "</b><span>挑戦</span></div></div>" +
       '<button class="mode-b" data-a="examGo" data-set="' + k + '"><span class="mi">' + ic("clock") + "</span><span><b>模試モード</b><small>時間を計って、最後にまとめて採点。解説は結果の画面で。</small></span>" + ic("chevR") + "</button>" +
       '<button class="mode-b" data-a="setPractice" data-set="' + k + '"><span class="mi p">' + ic("hint") + "</span><span><b>練習モード</b><small>1問ずつ答え合わせ（シャッフル）。ヒント・解説・関連問題つき。</small></span>" + ic("chevR") + "</button>" +
+      /* ★★ 2026-10-22 ご指定「計算問題以外の出題はそれぞれのセットで」 */
+      (function () { const nc = S.ids.filter((id) => !M.isCalc(D.BY[id])).length; return nc && nc < S.ids.length ? '<button class="mode-b nc" data-a="setNoCalc" data-set="' + k + '"><span class="mi nc">' + NOCALC_IC + "</span><span><b>計算以外の問題だけ（" + nc + "問）</b><small>計算問題（" + (S.ids.length - nc) + "問）をとばして練習（シャッフル）</small></span>" + ic("chevR") + "</button>" : ""; })() +
       /* ★★ 2026-10-06c ご指定「各問題セットで習得ずみでない問題だけを出すモード」 */
       (function () { const un = S.ids.filter((id) => M.status(id) !== "mas").length; return '<button class="mode-b" data-a="setUn" data-set="' + k + '"' + (un ? "" : " disabled") + '><span class="mi p">' + ic("target") + "</span><span><b>未習得だけ（" + un + "問）</b><small>" + (un ? "習得ずみの問題をとばして練習（シャッフル）" : "すべて習得ずみ！") + "</small></span>" + ic("chevR") + "</button>"; })() +
       /* ★★ 2026-10-12 まだ習得中になっていない問題だけ */
@@ -1602,9 +1615,10 @@
     wpOpen: () => openWp(),
     wpBuy: (el) => wpBuy(el.dataset.k),
     wpDo: (el) => wpDo(el.dataset.k),
-    grp: (el) => { UI.grp = Number(el.dataset.v) || 1; try { sessionStorage.setItem("mcl_grp", String(UI.grp)); } catch (e) {} go("home", true); },
-    sgrp: (el) => { UI.sgrp = Number(el.dataset.v) || 4; try { sessionStorage.setItem("mcl_sgrp", String(UI.sgrp)); } catch (e) {} go("home", true); },
-    bgrp: (el) => { UI.bgrp = Number(el.dataset.v) || 8; try { sessionStorage.setItem("mcl_bgrp", String(UI.bgrp)); } catch (e) {} go("home", true); },
+    grp: (el) => { UI.grp = Number(el.dataset.v) || 1; try { sessionStorage.setItem("mcl_grp", String(UI.grp)); } catch (e) {} go(TAB, true); },   /* ★★ 2026-10-22 「大問」タブで切りかえ */
+    sgrp: (el) => { UI.sgrp = Number(el.dataset.v) || 4; try { sessionStorage.setItem("mcl_sgrp", String(UI.sgrp)); } catch (e) {} go(TAB, true); },
+    bgrp: (el) => { UI.bgrp = Number(el.dataset.v) || 8; try { sessionStorage.setItem("mcl_bgrp", String(UI.bgrp)); } catch (e) {} go(TAB, true); },
+    bigJump: (el) => { const t = document.getElementById(el.dataset.v), main = $("#main"); if (t && main) main.scrollTo({ top: Math.max(0, t.offsetTop - 8), behavior: "smooth" }); },
     start: (el) => {
       const m = el.dataset.mode;
       let ids;
@@ -1621,6 +1635,9 @@
     gkind: (el) => { const v = el.dataset.v; UI.gkind = GK_OK[v] ? v : "o"; try { sessionStorage.setItem("mcl_gkind", UI.gkind); } catch (e) {} go("sets", true); },
     gopen: (el) => { UI.gid = el.dataset.g; try { sessionStorage.setItem("mcl_gid", UI.gid); } catch (e) {} go("gset"); },
     gplay: (el) => { const g = M.groupById(el.dataset.g); if (g) startSession(M.build("group", { g: g.id }), { title: g.nm }); },
+    /* ★★ 2026-10-22 そのセットの計算以外の問題だけ（ご指定「計算問題以外の出題はそれぞれのセットで」） */
+    gplayNoCalc: (el) => { const g = M.groupById(el.dataset.g); if (!g) return; const ids = M.build("group", { g: g.id, all: true }).filter((id) => !M.isCalc(D.BY[id])); startSession(ids, { title: g.nm + "（計算以外）", empty: "このセットには計算以外の問題がありません" }); },
+    setNoCalc: (el) => { const k = el.dataset.set; closeSheet(); const ids = M.shuffle(D.SETS[k].ids.filter((id) => !M.isCalc(D.BY[id]))); startSession(ids, { title: setTitle(k) + "（計算以外）", empty: "このセットには計算以外の問題がありません" }); },
     gplayUn: (el) => { const g = M.groupById(el.dataset.g); if (g) startSession(M.build("group", { g: g.id, only: "un" }), { title: g.nm + "（未習得）", empty: "このセットはすべて習得ずみ！" }); },
     gconf: (el) => {
       const g = M.groupById(el.dataset.g); if (!g) return;
@@ -1794,7 +1811,7 @@
   });
 
   /* ══════════════ 起動 ══════════════ */
-  const PAGES = { home: pgHome, sets: pgSets, gset: pgGSet, lib: pgLib, review: pgReview, stats: pgStats, tools: pgTools };
+  const PAGES = { home: pgHome, sets: pgSets, big: pgBig, gset: pgGSet, lib: pgLib, review: pgReview, stats: pgStats, tools: pgTools };   /* ★★ 2026-10-22 big＝「大問」タブ */
   function boot() {
     applySettings();
     let t = "home";

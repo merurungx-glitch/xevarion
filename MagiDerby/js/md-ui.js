@@ -53,6 +53,8 @@
     const t = now();
     if (st === "sale") return '<div class="cd"><span>締切まで</span><b data-cd="' + N.closeAt(r) + '">' + N.left(N.closeAt(r) - t) + '</b><small>締切 ' + esc(N.hm(N.closeAt(r))) + "（発走の" + D.CLOSE_BEFORE / 60 + "分前）・払い戻しは " + esc(N.dtStr(N.payAt(r))) + "</small></div>";
     if (st === "pre") return '<div class="cd"><span>発売開始まで</span><b data-cd="' + N.saleAt(r) + '">' + N.left(N.saleAt(r) - t) + '</b><small>' + esc(N.dtStr(N.saleAt(r))) + " から発売・締切 " + esc(N.hm(N.closeAt(r))) + "（発走の" + D.CLOSE_BEFORE / 60 + "分前）</small></div>";
+    /* ★★ 2026-10-22 前日発売の締切（土曜 17:30）〜当日発売（土曜 19:30）。JRA と同じく、このあいだは買えない */
+    if (st === "gap") { const nx = N.nextSaleAt(r, t) || N.closeAt(r); return '<div class="cd"><span>当日発売まで</span><b data-cd="' + nx + '">' + N.left(nx - t) + '</b><small>前日発売は終了・' + esc(N.dtStr(nx)) + " から当日発売（締切 " + esc(N.hm(N.closeAt(r))) + "）</small></div>"; }
     if (st === "entry") return '<div class="cd"><span>発走まで</span><b data-cd="' + N.postAt(r) + '">' + N.left(N.postAt(r) - t) + '</b><small>枠順は木曜の午後ごろに決まります。発売は ' + esc(N.dtStr(N.saleAt(r))) + " から</small></div>";
     if (st === "sched") return '<div class="cd"><span>発走まで</span><b data-cd="' + N.postAt(r) + '">' + N.left(N.postAt(r) - t) + '</b><small>出走登録は1週間前の日曜</small></div>';
     if (st === "closed") return '<div class="cd hot"><span>締切 ── 発走まで</span><b data-cd="' + N.postAt(r) + '">' + N.left(N.postAt(r) - t) + "</b></div>";
@@ -503,7 +505,7 @@
     box.innerHTML =
       '<div class="sh-hd"><b>馬券を買う<small>' + esc(D.shortName(r.nm)) + " " + esc(N.dateStr(r.date)) + " " + esc(r.post) + '発走</small></b><button class="sh-x" data-a="closeSheet" aria-label="閉じる">✕</button></div>' +
       '<div class="sh-body slip">' +
-      (st !== "sale" ? '<div class="warn">' + (st === "entry" ? "枠順が決まるまで（ふつうは木曜の午後）は買えません" : st === "pre" ? "発売は " + esc(N.dtStr(N.saleAt(r))) + " から（あと <b data-cd=\"" + N.saleAt(r) + "\">" + N.left(N.saleAt(r) - t) + "</b>）。買い目は先に作っておけます" : "このレースの発売は終わりました（締切は発走の2分前）") + "</div>" : '<div class="slip-cd">締切まで <b data-cd="' + N.closeAt(r) + '">' + N.left(N.closeAt(r) - t) + "</b><small>（" + esc(N.hm(N.closeAt(r))) + "・サーバーの時刻）</small></div>") +
+      (st !== "sale" ? '<div class="warn">' + (st === "entry" ? "枠順が決まるまで（ふつうは木曜の午後）は買えません" : st === "pre" ? "発売は " + esc(N.dtStr(N.saleAt(r))) + " から（あと <b data-cd=\"" + N.saleAt(r) + "\">" + N.left(N.saleAt(r) - t) + "</b>）。買い目は先に作っておけます" : st === "gap" ? "前日発売は終わりました。当日発売は " + esc(N.dtStr(N.nextSaleAt(r, t) || N.closeAt(r))) + " から（JRA と同じ時間）。買い目は先に作っておけます" : "このレースの発売は終わりました（締切は発走の2分前）") + "</div>" : '<div class="slip-cd">締切まで <b data-cd="' + N.closeAt(r) + '">' + N.left(N.closeAt(r) - t) + "</b><small>（" + esc(N.hm(N.closeAt(r))) + "・サーバーの時刻）</small></div>") +
       '<div class="types">' + B.TYPES.map((x) => '<button data-ty="' + x.k + '" class="' + (S.type === x.k ? "on" : "") + '"><b>' + x.nm + "</b></button>").join("") + "</div>" +
       '<p class="tdesc">' + esc(T.d) + "</p>" +
       (modes.length > 1 ? '<div class="seg modes">' + modes.map((m) => '<button data-md="' + m[0] + '" class="' + (S.mode === m[0] ? "on" : "") + '">' + m[1] + "</button>").join("") + "</div>" : "") +
@@ -542,7 +544,7 @@
       return;
     }
     const msg = { offline: "オフラインのため買えません（締切をサーバーの時刻で確かめる必要があります）", closed: "締切を過ぎています（締切は発走の2分前）", nodraw: "枠順が決まるまで買えません",
-      notyet: "発売はレースの日の 0:00 からです",
+      notyet: "いまは発売していません（JRA と同じ時間：日曜の GⅠ は金曜 18:30〜土曜 17:30 と 土曜 19:30〜発走の2分前）",
       balance: "XEVA が足りません（必要 " + fmt(res.cost || 0) + "・残高 " + fmt(res.bal || 0) + "）", cap: "1レースで買えるのは " + fmt(D.MAX_PER_RACE) + " XEVA までです", invalid: "出走しない馬（取消・除外）を含む買い目があります", empty: "買い目がありません" }[res.err] || "購入できませんでした";
     toast(msg, "err");
     paintSlip();

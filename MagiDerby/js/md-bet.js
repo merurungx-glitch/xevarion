@@ -222,7 +222,7 @@
     const ok = await B.clock.sync();
     if (!ok) return { err: "offline" };
     if (B.clock.now() + 1500 >= N.closeAt(r)) return { err: "closed" };
-    if (B.clock.now() < N.saleAt(r)) return { err: "notyet" };   /* ★★ 2026-10-21 発売はレースの日の 0:00 から */
+    if (!N.onSale(r, B.clock.now())) return { err: "notyet" };   /* ★★ 2026-10-22 発売の時間は JRA と同じ（N.saleWins・サーバーの時刻） */
     const cost = lines.reduce((t, l) => t + l.cb.length * l.u, 0);
     if (B.raceSpent(r.rid) + cost > D.MAX_PER_RACE) return { err: "cap", cost: cost };
     const bal = window.XEVA ? window.XEVA.getBalance() : 0;

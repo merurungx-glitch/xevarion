@@ -3,12 +3,12 @@
    ・問題・解説・図はすべて JS の中にあるので、CORE をそろえれば完全にオフラインで使える。
    ・フォント（Google Fonts）は一度読めたら控える。Firebase（同期）はキャッシュしない。
    ============================================================ */
-const VERSION = "magichemlex-sw-v13";
+const VERSION = "magichemlex-sw-v14";
 const RUNTIME = "magichemlex-rt-v1";
 const CORE = [
   "./index.html",
   "./manifest.webmanifest",
-  "./css/mcl.css?v=12",
+  "./css/mcl.css?v=13",
   "./js/mcl-data.js?v=5",
   "./js/mcl-data2.js?v=4",
   "./js/mcl-data3.js?v=2",
@@ -27,7 +27,7 @@ const CORE = [
   "./js/mcl-fig3.js?v=1",
   "./js/mcl-fig4.js?v=1",
   "./js/mcl-fig5.js?v=2",
-  "./js/mcl-ui.js?v=12",
+  "./js/mcl-ui.js?v=13",
   "./js/mcl-flash.js?v=2",      // ★★ 2026-10-15 フラッシュカード
   "./js/mcl-special.js?v=1",    // ★★ 2026-10-15 特設予想問題
   "./img/icon_192.png?v=2",
@@ -39,17 +39,17 @@ const CORE = [
   "./img/wp.webp",                        // ★★ 2026-10-20 Wisdom Point
   "./img/wp@2x.webp",
   /* XEVARION の共通部品 */
-  "../xeva.js?v=79",
+  "../xeva.js?v=80",
   "../xeva-loading.js?v=19",
   "../xeva-splash.js?v=17",
   "../xeva-safebottom.js?v=12",
   "../xeva-back.js?v=9",
   "../xeva-presence.js?v=9",
   "../maintenance-gate.js?v=13",
-  "../xeva-cloud.js?v=46",
-  "../MagiBurst/magiburst-cloud.js?v=25",
-  "../app-cloud.js?v=14",
-  "../xeva-keys.js?v=33",
+  "../xeva-cloud.js?v=47",
+  "../MagiBurst/magiburst-cloud.js?v=26",
+  "../app-cloud.js?v=15",
+  "../xeva-keys.js?v=34",
   "../xevarion-fb.js?v=35",
 ];
 
