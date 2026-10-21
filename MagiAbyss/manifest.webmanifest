@@ -10,6 +10,6 @@
   "theme_color": "#0a0716",
   "lang": "ja",
   "icons": [
-    { "src": "../thumbs/MagiAbyss.jpg", "sizes": "512x512", "type": "image/jpeg", "purpose": "any" }
+    { "src": "../thumbs/MagiAbyss.jpg?v=2", "sizes": "512x512", "type": "image/jpeg", "purpose": "any" }
   ]
 }

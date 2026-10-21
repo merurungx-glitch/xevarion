@@ -310,10 +310,10 @@
        ご指定「MagiAbyss では、ユナは最強のタキナより少し強く、他の4キャラはタキナと同等に」。
        技は Pumpkin Night と同じ共通の型（pnshot／pnswing／pnzone…／pnbarrage）にキャラごとの数字と色を入れる。
        ★ 火力は早回しの的あて（体力無限の的1体・90秒／体力420の的8体・補充あり・60秒を各4回）でタキナとの比を測り、
-         atk.mul と ult.mul で合わせた：単体 チエ・イチカ・ノノカ 1.01／アイナ 0.99／<b>ユナ 1.16</b>（集団はユナが5体でいちばん上）。
+         atk.mul と ult.mul で合わせた：単体 ヨシノ・イチカ・ノノカ 1.01／アイナ 0.99／<b>ユナ 1.16</b>（集団はユナが5体でいちばん上）。
          ユナは「会心で必殺技ゲージ」（yoiyami）だと必殺技が回りつづけて11倍になった → タキナと同じ focus にした。追尾も外した（貫通の花びらが同じ敵に何度も当たる）。 */
     chie: {
-      nm: "チエ", fes: "超極華祭", el: "fire", type: "melee", sub: "mobile", rank: "UR",
+      nm: "ヨシノ", fes: "超極華祭", el: "fire", type: "melee", sub: "mobile", rank: "UR",
       title: "桜火の巫女",
       base: { hp: 134, atk: 16, def: 5, spd: 82, aspd: 1.15, crit: 15, critDmg: 1.85, mag: 1.05, eva: 15 },
       grow: { hp: 1.045, atk: 1.05, def: 1.04 },
@@ -731,7 +731,7 @@
     evo_rina:     { nm: "マミー・バンデージ", base: "sword", char: "rina", mul: 3.8, kind: "w_sword", fx: "slowzone", d: "斬ったあとに包帯が残って敵を遅くする（リナ専用）" },
     evo_kaori:    { nm: "ゴースト・ランタン", base: "staff", char: "kaori", mul: 2.5, kind: "w_staff", fx: "drainhit", d: "魔弾が当たるとHPを少し吸う（カオリ専用）" },
     /* ★★ 2026-10-16 超極華祭の専用進化 */
-    evo_chie:     { nm: "桜火・千本桜", base: "sword", char: "chie", mul: 3.8, kind: "w_sword", fx: "burnzone", d: "斬ったあとに桜火が残って燃やす（チエ専用）" },
+    evo_chie:     { nm: "桜火・千本桜", base: "sword", char: "chie", mul: 3.8, kind: "w_sword", fx: "burnzone", d: "斬ったあとに桜火が残って燃やす（ヨシノ専用）" },
     evo_ichika:   { nm: "ブルーラグーン・アロー", base: "bow", char: "ichika", mul: 2.8, kind: "w_bow", fx: "starsplit", d: "矢が刺さると水しぶきが3つにはじけて遅くする（イチカ専用）" },
     evo_nonoka:   { nm: "ホワイトリリー・ティーセット", base: "tome", char: "nonoka", mul: 2.3, kind: "w_tome", fx: "healhit", d: "回るティーカップが当たるたびにHPが少し回復する（ノノカ専用）" },
     evo_aina:     { nm: "ルナ・ローズ・ワンド", base: "staff", char: "aina", mul: 2.6, kind: "w_staff", fx: "chainlight", d: "魔弾が当たると近くの敵へ2回つながる（アイナ専用）" },

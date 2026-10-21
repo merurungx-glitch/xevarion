@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<script src="../maintenance-gate.js?v=13"></script>
+<meta charset="UTF-8" />
+<script>(function(){try{var a=JSON.parse(localStorage.getItem('xeva_account_v1'));if(!a||!a.setupDone)location.replace('../index.html');}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<title>MagiDerby — 競馬 GⅠ</title>
+<meta name="description" content="実際の JRA 平地 GⅠ に XEVA で賭ける競馬アプリ。出馬表・馬柱・血統・オッズ・コース・結果・払戻金はすべて本物。払い戻しは実際の払戻金どおり（1 XEVA ＝ 1円）。締切は発走の2分前（サーバーの時刻で判定）。" />
+<link rel="icon" href="../thumbs/MagiDerby.jpg" type="image/jpeg" />
+<link rel="apple-touch-icon" href="img/icon192.png" />
+<meta name="theme-color" content="#0a3d24" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&family=Shippori+Mincho+B1:wght@700;800&family=Barlow+Condensed:wght@600;700;800&display=swap" rel="stylesheet">
+<!-- ══════════════════════════════════════════════════════════════
+     ★★ 2026-10-20 新作 MagiDerby（ご指定「PARK の入口の位置に、競馬 G1 の賭けを XEVA で・豪華に・詳細も見られる」）
+     ★★ 2026-10-21 ご指定「実際の結果を使う形に」→ 実際の JRA 平地 GⅠ に賭ける形に作り直した。
+     ・出馬表・オッズ・結果・払戻金は PC の自動取得（MagiDerby/collector/derby.py・MagiScope と同じタスク）が
+       GitHub の magiscope-data ブランチの derby/ に置いたもの。払い戻しは実際の払戻金どおり（1 XEVA ＝ 1円）。
+     ・締切は発走の2分前。判定は端末の時計ではなくサーバーの時刻（clock.txt の Date ヘッダー）。オフラインでは買えない。
+     ・馬券 magiderby_v1 は xeva-cloud（xeva-keys.js の PORTAL_SYNC_KEYS）で同期。混ぜ方は mergeDerby。
+     ══════════════════════════════════════════════════════════════ -->
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function () { navigator.serviceWorker.register("sw.js").catch(function () {}); });
+}
+</script>
+<script src="../xeva-safebottom.js?v=12"></script>
+<link rel="stylesheet" href="css/md.css?v=1" />
+<script src="../xeva-splash.js?v=17" data-app="MagiDerby" data-logo="../thumbs/MagiDerby.jpg"></script>
+</head>
+<body>
+<header class="hd">
+  <a class="hd-back" href="../index.html" aria-label="XEVARION へもどる"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg><span>XEVARION</span></a>
+  <div class="hd-logo">
+    <img class="hd-ic" src="img/icon192.png" alt="" width="30" height="30"><!-- ★★ 2026-10-21 ご指定のアイコン（元は Documents/Claude/_derby_src/MagiDerby_icon_src.webp） -->
+    <b>MagiDerby</b><small>競馬 GⅠ</small>
+  </div>
+  <span class="hd-pill" title="XEVA"><img src="../XEVA.png" alt="XEVA"><span id="hdXeva">0</span></span>
+  <span class="hd-pill" title="サーバーの時刻（締切はこの時刻で判定）"><i id="hdSync"></i><span id="hdClock">--:--:--</span></span>
+</header>
+<div class="offbar" id="offBar" hidden>📴 オフライン：手元に控えた情報を表示しています（馬券は買えません）</div>
+<nav class="tabs" aria-label="画面">
+  <button data-tab="home" class="on">G1 レース</button>
+  <button data-tab="tickets">馬券</button>
+  <button data-tab="data">データ</button>
+</nav>
+<main id="main"></main>
+<div id="race" class="race" hidden></div>
+<div class="sheet" id="sheet"></div>
+<div id="toasts"></div>
+<noscript><p style="padding:20px">MagiDerby を使うには JavaScript を有効にしてください。</p></noscript>
+
+<script type="module" src="../xevarion-fb.js?v=35"></script>
+<script type="module" src="../xeva-cloud.js?v=46"></script>
+<script src="../xeva.js?v=79"></script>
+<script src="../xeva-loading.js?v=19" defer></script>
+<script src="../xeva-presence.js?v=9" defer></script>
+<script src="js/md-data.js?v=1"></script>
+<script src="js/md-net.js?v=1"></script>
+<script src="js/md-bet.js?v=1"></script>
+<script src="js/md-race.js?v=1"></script>
+<script src="js/md-ui.js?v=1"></script>
+<script src="../xeva-back.js?v=9" data-mode="hook"></script>
+</body>
+</html>

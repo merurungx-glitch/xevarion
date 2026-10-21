@@ -230,7 +230,7 @@
   function renderTop() {
     const s = S();
     const kk = (a) => isTouchUI() ? "" : '<kbd class="kk">' + esc(MA.Input.keyLabel(a)) + "</kbd>";
-    $("#gTop").innerHTML = '<div class="g-logo"><img src="img/icon_s.webp" alt=""><b>Magi<i>Abyss</i></b></div>' +
+    $("#gTop").innerHTML = '<div class="g-logo"><img src="img/icon_s.webp?v=2" alt=""><b>Magi<i>Abyss</i></b></div>' +
       '<div class="g-curs"><span class="g-cur" title="ゴールド">' + ic("gold") + "<b>" + fmt(s.gold) + '</b></span><span class="g-cur" title="魔石">' + ic("mat", D().MATS.stone.c) + "<b>" + fmt(s.mats.stone || 0) + '</b></span><span class="g-cur" title="星脈結晶">' + ic("crystal") + "<b>" + fmt(s.mats.crystal || 0) + "</b></span></div>" +
       '<div class="g-tbs"><button class="g-tb gold" data-a="fac" data-v="stages">' + ic("map") + "<span>クエスト</span>" + kk("map") + '</button>' +
       '<button class="g-tb" data-a="fac" data-v="chars">' + ic("person") + "<span>キャラ</span></button>" +

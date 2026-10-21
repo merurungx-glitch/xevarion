@@ -92,8 +92,8 @@ html.xv-full #xevaSplash { position: absolute !important; top: 0 !important; bot
 /* ══ タイトル ══
    ★★ 2026-10-05 絵を横長（16:9）に差しかえ。横の画面では画面いっぱい（cover）、縦長の窓だけ全体を入れる */
 #title { background: #05030c; overflow: hidden; }
-.tt-bg { position: absolute; inset: -40px; background: url("../img/title_blur.webp") center/cover; filter: brightness(.6) saturate(1.2) blur(8px); }
-.tt-art { position: absolute; inset: 0; background: url("../img/title.webp") 58% 50%/cover no-repeat; animation: ttZoom 18s ease-in-out infinite alternate; }
+.tt-bg { position: absolute; inset: -40px; background: url("../img/title_blur.webp?v=2") center/cover; filter: brightness(.6) saturate(1.2) blur(8px); }
+.tt-art { position: absolute; inset: 0; background: url("../img/title.webp?v=2") center 38%/contain no-repeat; animation: ttZoom 18s ease-in-out infinite alternate; }   /* ★★ 2026-10-20 新ロゴ（正方形の絵）は切らずに全部見せる・まわりはぼかした同じ絵 */
 @keyframes ttZoom { to { transform: scale(1.04); } }
 @media (max-aspect-ratio: 5/4) { .tt-art { background-size: contain; background-position: center 30%; animation: none; } }
 .tt-shade { position: absolute; inset: 0; background: linear-gradient(transparent 62%, rgba(5,3,12,.78)), linear-gradient(90deg, transparent 60%, rgba(5,3,12,.35)); }
@@ -1063,3 +1063,6 @@ body.touchdev .skc { padding: 1px 2px 3px; } body.touchdev .skc span { display: 
 @keyframes tipShow { 0% { opacity: 0; } 6%, 82% { opacity: 1; } 100% { opacity: 0; } }
 body.xos-nomotion .st-pan { animation: none; }
 @media (prefers-reduced-motion: reduce) { .st-pan { animation: none; } }
+
+/* ★★ 2026-10-21 イベント（Midnight Pumpkin）のゴールドの上乗せ */
+.rs-list li small.rs-ev { font-size: 11px; color: #ffb35c; margin-left: 4px; white-space: nowrap; }

@@ -1,0 +1,16 @@
+{
+  "name": "MagiDerby — 競馬 GⅠ",
+  "short_name": "MagiDerby",
+  "description": "実際の JRA 平地 GⅠ に XEVA で賭ける競馬アプリ。出馬表・オッズ・結果・払戻金はすべて本物。",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#eef3ee",
+  "theme_color": "#0a3d24",
+  "lang": "ja",
+  "icons": [
+    { "src": "../thumbs/MagiDerby.jpg", "sizes": "512x512", "type": "image/jpeg", "purpose": "any" },
+    { "src": "./img/icon192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" }
+  ]
+}

@@ -479,7 +479,7 @@
             </div>
             ${xpLine}
             <div class="rs-sec">持ち帰ったもの</div>
-            <ul class="rs-list"><li>${ic("gold")}ゴールド <b>+${fmt(sum.gold)}</b></li>${mats}${gear}${sum.gems ? '<li class="wide"><img class="pxi" src="../gem.png" alt="">XEVARION ジェム（' + (sum.firstClear ? "初回クリア" + (sum.timeMis && sum.timeMis.some((m) => m.got) ? "＋クリア時間" : "") : "クリア時間") + "） <b>+" + sum.gems + "</b></li>" : ""}</ul>
+            <ul class="rs-list"><li>${ic("gold")}ゴールド <b>+${fmt(sum.gold)}</b>${sum.goldEv ? '<small class="rs-ev">🎃 イベント +' + fmt(sum.goldEv) + "</small>" : ""}</li>${mats}${gear}${sum.gems ? '<li class="wide"><img class="pxi" src="../gem.png" alt="">XEVARION ジェム（' + (sum.firstClear ? "初回クリア" + (sum.timeMis && sum.timeMis.some((m) => m.got) ? "＋クリア時間" : "") : "クリア時間") + "） <b>+" + sum.gems + "</b></li>" : ""}</ul>
             ${tmH}
             ${res ? '<div class="rs-sec">発動した星脈共鳴</div><ul class="rs-list">' + res + "</ul>" : ""}
           </div>

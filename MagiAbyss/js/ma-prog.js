@@ -87,6 +87,8 @@
     if (result === "clear") gold += Math.round((200 + (g.dun ? g.dun.no : 1) * 180) * g.rewardMul * MD.gold);
     if (isAbyss) gold += Math.round((g.floor - 1) * 60);
     sum.gold = Math.round(gold * keep);
+    /* ★★ 2026-10-21 XEVARION 共通イベント（Midnight Pumpkin：11/1〜11/30）の「MagiAbyss ゴールド ×1.5」 */
+    try { const evB = window.XEVA && XEVA.event && XEVA.event.boost ? Number(XEVA.event.boost("abyssGold")) || 1 : 1; if (evB > 1 && sum.gold > 0) { sum.goldEv = Math.round(sum.gold * (evB - 1)); sum.gold += sum.goldEv; } } catch (e) {}
     MA.Save.addMat("gold", sum.gold);
     Object.keys(st.mats).forEach((k) => { const n = Math.round(st.mats[k] * keep * MD.mat); if (n > 0) { sum.mats[k] = n; MA.Save.addMat(k, n); } });
     if (result === "clear") { const k = g.dun.mats[0]; const n = Math.round((6 + g.dun.no * 2) * g.rewardMul * MD.mat); sum.mats[k] = (sum.mats[k] || 0) + n; MA.Save.addMat(k, n); if (g.stats.bosses) { const cr = g.dun.no * (sum.diff === "hard" ? 2 : 1); sum.mats.crystal = (sum.mats.crystal || 0) + cr; MA.Save.addMat("crystal", cr); } }
@@ -120,6 +122,8 @@
         dr.by = dr.by || []; if (dr.by.indexOf(g.cid) < 0) dr.by.push(g.cid);
         if (!hard) dr.mutBest = Math.max(dr.mutBest || 0, g.mutList.length);
         MA.Save.misAdd("clears", 1);
+        /* ★★ 2026-10-21 共通イベントのミッション「MagiAbyss で迷宮を◯回クリア」（おためしは数えない） */
+        if (!g.cfg.trial) { try { if (window.XEVA && XEVA.event) XEVA.event.bump("abyssClear", 1); } catch (e) {} }
         if (g.mutList.length >= 3) unlock("mut3");
         unlock("clear_" + g.dun.id);
         if (sum.firstClear) {
