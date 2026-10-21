@@ -66,6 +66,95 @@
     return amt;
   }
   function takeEarned() { return _earned.splice(0, _earned.length); }
+
+  /* ══ ★★ 2026-10-20 Wisdom Point（WP）— MagiLex の KP のような、MagiChemLex のポイント（ご指定）══
+     ・ためかた：問題セットの<b>完全習得 +5</b>／<b>確認テスト（全問正解）+10</b>（どちらも XEVA のごほうびと同じ「はじめての1回」）
+     ・交換（mcl-ui.js の WP 交換所）：5WP → 💱両替チケット／10WP → 🎫フェスガチャチケット／100WP → 選べるSSRキャラ確定チケット
+     ★ 置き場は<b>ごほうびの印 rw</b>（クラウドで<b>和</b>で混ざる＝2台で別々にためても使っても消えない）
+        ・ためた：rw["wp:gm:<セット>:g<世代>"] = 時刻（+5）／rw["wp:cf:<セット>:g<世代>"]（+10）
+          世代＝そのセットの印を最後にリセットした時刻（rr["gm:<セット>"]・リセットしていなければ 0）。
+          ★ 印の名前が<b>どの端末でも同じ</b>なので、2台で付けても1つに重なる（二重にならない）。リセットして取り直すと世代が変わってまた +5／+10。
+        ・はじめる前のぶん（WP の前に完全習得・確認テストをしていたもの）も同じ名前の印を付ける（wpBackfill）
+        ・使った：rw["wpx:<時刻>:<乱数>:<WP>:<品>"] = 時刻
+       残高＝ためた合計 − 使った合計。セットをリセットしても、ためた WP は減らない（取り直すとまた +5／+10）。
+     ★★ 2026-10-21 ご指定「WP が保存され、オフライン時でも同期されるように」
+        ・WP はすべて magichemlex_v1 の中の印なので、オフラインでもこの端末に<b>すぐ保存</b>される。
+          オンラインにもどると xeva-cloud が「取りに行く → 混ぜる（印は和）→ 送る」をするので、ほかの端末のぶんと両方残る。
+        ・前は「はじめる前のぶん」を<b>数（wp:bf）</b>で持っていて、2台で数えがちがうと小さいほう（min）が残る＝
+          まだ同期していない端末（オフラインなど）で数えた小さい数で<b>WP が減る</b>ことがあった
+          → セットごとの<b>同じ名前の印</b>にした（何台で付けても重なるだけ・減らない・二重にならない）。 */
+  const WP = { MASTER: 5, CONFIRM: 10 };
+  const WP_START = Date.UTC(2026, 9, 20, 15, 0, 0);     /* 2026-10-21 0:00 JST。これより前の時刻の印＝はじめる前のぶん */
+  function wpGen(s, kind, gid) { const rr = s && s.rr ? Number(s.rr[kind + ":" + gid]) || 0 : 0; return "wp:" + kind + ":" + gid + ":g" + rr; }
+  function wpUid() { return Date.now().toString(36) + Math.floor(Math.random() * 46656).toString(36); }
+  function wpStat(s) {
+    s = s || get();
+    let earned = 0, used = 0, gm = 0, cf = 0;
+    const rw = s.rw || {};
+    let bf = 0;
+    Object.keys(rw).forEach((k) => {
+      if (k.slice(0, 3) === "wp:") {
+        const n = k.indexOf("wp:gm:") === 0 ? WP.MASTER : k.indexOf("wp:cf:") === 0 ? WP.CONFIRM : 0;   /* 古い wp:bf（数）は数えない */
+        if (!n) return;
+        earned += n; if (n === WP.MASTER) gm++; else cf++;
+        if ((Number(rw[k]) || 0) < WP_START) bf += n;
+      } else if (k.slice(0, 4) === "wpx:") {
+        const p = k.split(":"); used += Math.max(0, Number(p[3]) || 0);
+      }
+    });
+    return { earned, used, bal: Math.max(0, earned - used), gm, cf, bf };
+  }
+  /* ごほうびの印を付けたその場で呼ぶ（mut の中・s を渡す）。戻り値＝増えた WP */
+  const _wpGot = [];
+  function wpEarn(s, kind, gid, why) {
+    const n = kind === "cf" ? WP.CONFIRM : WP.MASTER;
+    const key = wpGen(s, kind, gid);
+    if (s.rw[key]) return 0;                        /* この世代ではもう受け取りずみ（ほかの端末で付いた印も同じ名前） */
+    s.rw[key] = Date.now();
+    _wpGot.push({ n, why });
+    return n;
+  }
+  function takeWp() { const a = _wpGot.splice(0, _wpGot.length); a.forEach((o) => evBump("chemWp", o.n)); return a; }
+  /* WP の印が付いていない「完全習得（gm:セット）」「確認テスト（cf:セット）」の印に、WP の印を付ける（起動・同期のあとで呼ぶ）。
+     ★ 印の名前は「wp:gm:<セット>:bf」＝どの端末で付けても同じ名前 → 和で混ざっても1つ（二重にならない）。
+     ★ 付けるものが無いときは書かない（開いただけで記録が新しくなり、ほかの端末のぶんを上書きしないように）。
+     ★ wpn:<種類>:<セット> は「WP を付けない」しるし（リセットで大問まるごとの印をほかのセットへ移したもの）。 */
+  function wpMissing(s) {
+    const rw = s.rw || {}, skip = { gm: {}, cf: {} }, out = [];
+    Object.keys(rw).forEach((k) => {
+      const m = /^wp:(gm|cf):(.+):([^:]+)$/.exec(k); if (m && !/^g\d+$/.test(m[3])) skip[m[1]][m[2]] = 1;   /* 前の書き方の印（乱数つき） */
+      const w = /^wpn:(gm|cf):(.+)$/.exec(k); if (w) skip[w[1]][w[2]] = 1;
+    });
+    Object.keys(rw).forEach((k) => {
+      const m = /^(gm|cf):(.+)$/.exec(k);
+      if (!m || !rw[k] || skip[m[1]][m[2]] || rw[wpGen(s, m[1], m[2])]) return;
+      out.push({ kind: m[1], gid: m[2], t: Number(rw[k]) || Date.now() });
+    });
+    return out;
+  }
+  function wpBackfill() {
+    if (!wpMissing(get()).length) return 0;
+    let n = 0;
+    mut((s) => { wpMissing(s).forEach((o) => { s.rw[wpGen(s, o.kind, o.gid)] = o.t; n += o.kind === "cf" ? WP.CONFIRM : WP.MASTER; }); });
+    return n;
+  }
+  /* 使う。足りなければ false（品は記録用の短い名前） */
+  function wpSpend(cost, item) {
+    cost = Math.max(1, Math.round(cost || 0));
+    if (wpStat().bal < cost) return false;
+    let ok = false;
+    mut((s) => { if (wpStat(s).bal >= cost) { s.rw["wpx:" + wpUid() + ":" + Math.floor(Math.random() * 1e6).toString(36) + ":" + cost + ":" + String(item || "").replace(/:/g, "")] = Date.now(); ok = true; } });
+    return ok;
+  }
+  /* 交換の記録（新しい順） */
+  function wpLog() {
+    const rw = get().rw || {}, out = [];
+    Object.keys(rw).forEach((k) => {
+      if (k.indexOf("wp:gm:") === 0 || k.indexOf("wp:cf:") === 0) out.push({ t: Number(rw[k]) || 0, n: k.indexOf("wp:cf:") === 0 ? WP.CONFIRM : WP.MASTER, kind: k.slice(3, 5), gid: k.split(":").slice(2, -1).join(":") });
+      else if (k.indexOf("wpx:") === 0) { const p = k.split(":"); out.push({ t: Number(rw[k]) || 0, n: -(Number(p[3]) || 0), item: p.slice(4).join(":") }); }
+    });
+    return out.sort((a, b) => b.t - a.t);
+  }
   function evBump(key, n) { try { if (window.XEVA && XEVA.event) XEVA.event.bump(key, n); } catch (e) {} }
   function mission() { try { if (window.XEVA && XEVA.completeMission) XEVA.completeMission("magichemlex_play"); } catch (e) {} }
 
@@ -393,7 +482,7 @@
       if (ok) groupsOf(id).forEach((g) => {
         if (g.view) return;
         const mk = "gm:" + g.id;
-        if (!gotMark(s, "gm", g) && g.ids.every((x) => isMas(s, x))) { earnOnce(s, mk, groupReward(g).gm, "問題セット「" + g.nm + "」完全習得"); res.groupDone = (res.groupDone || []).concat([g.nm]); s.xp += 80; }
+        if (!gotMark(s, "gm", g) && g.ids.every((x) => isMas(s, x))) { earnOnce(s, mk, groupReward(g).gm, "問題セット「" + g.nm + "」完全習得"); res.groupDone = (res.groupDone || []).concat([g.nm]); s.xp += 80; res.wp = (res.wp || 0) + wpEarn(s, "gm", g.id, "「" + g.nm + "」完全習得"); }
       });
       const goal = Number(s.set.goal) || 10;
       if (s.days[td] >= goal && !s.rw["daily:" + td]) { earnOnce(s, "daily:" + td, REWARD.daily, "今日の目標 " + goal + "問 達成"); res.daily = true; }
@@ -434,7 +523,7 @@
       c.n = (c.n || 0) + 1; c.best = Math.max(c.best || 0, total ? score / total : 0); c.at = Date.now();
       if (out.pass && !c.pass) c.pass = Date.now();
       s.xp = (s.xp || 0) + 20 + score * 2;
-      if (out.pass && !g.view && !gotMark(s, "cf", g)) { out.got = earnOnce(s, "cf:" + gid, groupReward(g).cf, "確認テスト「" + g.nm + "」全問正解"); out.first = true; }
+      if (out.pass && !g.view && !gotMark(s, "cf", g)) { out.got = earnOnce(s, "cf:" + gid, groupReward(g).cf, "確認テスト「" + g.nm + "」全問正解"); out.first = true; out.wp = wpEarn(s, "cf", gid, "確認テスト「" + g.nm + "」"); }
     });
     return out;
   }
@@ -452,7 +541,7 @@
     const need = groups().filter((g) => !g.view && !gotMark(s0, "gm", g) && g.ids.every((x) => isMas(s0, x)));
     if (!need.length) return [];
     const got = [];
-    mut((s) => { need.forEach((g) => { const mk = "gm:" + g.id; if (!gotMark(s, "gm", g) && g.ids.every((x) => isMas(s, x))) { earnOnce(s, mk, groupReward(g).gm, "問題セット「" + g.nm + "」完全習得"); got.push(g.nm); } }); });
+    mut((s) => { need.forEach((g) => { const mk = "gm:" + g.id; if (!gotMark(s, "gm", g) && g.ids.every((x) => isMas(s, x))) { earnOnce(s, mk, groupReward(g).gm, "問題セット「" + g.nm + "」完全習得"); got.push(g.nm); wpEarn(s, "gm", g.id, "「" + g.nm + "」完全習得"); } }); });
     return got;
   }
   function bestRun(setId) { let b = null; (get().runs || []).forEach((r) => { if (r.set === setId && (!b || r.score / r.total > b.score / b.total)) b = r; }); return b; }
@@ -489,7 +578,7 @@
         /* 分ける前の「大問まるごと」の印（gm:s:s1 など）は、ほかの分けたセットの印に移してから消す */
         if (g.part) {
           const lk = kind + ":s:" + g.set, t = s.rw[lk];
-          if (t) { groups().forEach((x) => { if (x.set === g.set && x.part && x.id !== g.id && !s.rw[kind + ":" + x.id]) s.rw[kind + ":" + x.id] = t; }); dropMark(s, lk, now); }
+          if (t) { groups().forEach((x) => { if (x.set === g.set && x.part && x.id !== g.id && !s.rw[kind + ":" + x.id]) { s.rw[kind + ":" + x.id] = t; s.rw["wpn:" + kind + ":" + x.id] = now; } }); dropMark(s, lk, now); }
         }
       });
       if (s.cf && typeof s.cf === "object") { delete s.cf[g.id]; if (og) delete s.cf[og]; }
@@ -520,8 +609,19 @@
 
   /* ══ 出題する問題をえらぶ ══ */
   function shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+  /* ★★ 2026-10-20 ご指定「計算問題以外を解くモード」：設定 set.noCalc（または opt.noCalc）のとき、出題から計算問題（isCalc）を外す。
+     ★ 模試・確認テストは全問が条件なので外さない（呼ぶ側が opt.all を渡す）。 */
+  function noCalcOn(opt) { if (opt && opt.all) return false; if (opt && opt.noCalc != null) return !!opt.noCalc; try { return !!get().set.noCalc; } catch (e) { return false; } }
   function build(mode, opt) {
     opt = opt || {};
+    if (noCalcOn(opt) && !(mode === "group" && opt.keep)) {
+      const o2 = Object.assign({}, opt, { noCalc: false }), want = opt.n || 10;
+      const many = ["rec", "random", "weak", "field"].indexOf(mode) >= 0;
+      if (many) o2.n = want * 4;   /* 外すぶん多めにとってから */
+      let ids = build(mode, o2).filter((id) => !isCalc(D.BY[id]));
+      if (mode === "random" && ids.length < want) ids = shuffle(D.Q.filter((x) => !isCalc(x)).map((x) => x.id));
+      return many ? ids.slice(0, want) : ids;
+    }
     const s = get(), N = opt.n || 10;
     const notMas = (id) => { const r = s.q[id]; return !(r && (r.lv || 0) >= 2 && r.last); };
     /* ★★ 2026-10-12 まだ「習得中」になっていない（未解答・最後にまちがえた）＝今日すすめられる問題 */
@@ -610,5 +710,7 @@
     streak, bestStreak, todayCount, level, answer, finishSet, bestRun, setUns, toggleBm, setMemo, setCombo, setSetting, resetAll, resetGroup, resetExam, masterEta,
     build, pickRelated, shuffle, badges,
     groups, groupById, groupsOf, groupStat, groupReward, volMul, finishConfirm, finishMix, catchUpGroups, qNo, isCalc, groupHasCalc, groupCalcN, isStd, isBasic, lvOf,
+    /* ★★ 2026-10-20 Wisdom Point・計算なしモード */
+    WP, wpStat, wpSpend, wpBackfill, wpLog, takeWp, noCalcOn,
   });
 })();

@@ -3,12 +3,12 @@
    ・問題・解説・図はすべて JS の中にあるので、CORE をそろえれば完全にオフラインで使える。
    ・フォント（Google Fonts）は一度読めたら控える。Firebase（同期）はキャッシュしない。
    ============================================================ */
-const VERSION = "magichemlex-sw-v12";
+const VERSION = "magichemlex-sw-v13";
 const RUNTIME = "magichemlex-rt-v1";
 const CORE = [
   "./index.html",
   "./manifest.webmanifest",
-  "./css/mcl.css?v=11",
+  "./css/mcl.css?v=12",
   "./js/mcl-data.js?v=5",
   "./js/mcl-data2.js?v=4",
   "./js/mcl-data3.js?v=2",
@@ -21,33 +21,36 @@ const CORE = [
   "./js/mcl-data10.js?v=1",
   "./js/mcl-data11.js?v=1",
   "./js/mcl-data12.js?v=1",
-  "./js/mcl-core.js?v=8",
+  "./js/mcl-core.js?v=9",
   "./js/mcl-fig.js?v=5",
   "./js/mcl-fig2.js?v=1",
   "./js/mcl-fig3.js?v=1",
   "./js/mcl-fig4.js?v=1",
   "./js/mcl-fig5.js?v=2",
-  "./js/mcl-ui.js?v=11",
-  "./js/mcl-flash.js?v=1",      // ★★ 2026-10-15 フラッシュカード
+  "./js/mcl-ui.js?v=12",
+  "./js/mcl-flash.js?v=2",      // ★★ 2026-10-15 フラッシュカード
   "./js/mcl-special.js?v=1",    // ★★ 2026-10-15 特設予想問題
   "./img/icon_192.png?v=2",
   "./img/apple-touch-icon.png?v=2",
   "../thumbs/MagiChemLex.jpg?v=2",
   "../XEVA.png",
   "../events/violet_breeze_s.webp",
+  "../events/midnight_pumpkin_s.webp",   // ★★ 2026-10-20 Midnight Pumpkin（予告）
+  "./img/wp.webp",                        // ★★ 2026-10-20 Wisdom Point
+  "./img/wp@2x.webp",
   /* XEVARION の共通部品 */
-  "../xeva.js?v=78",
+  "../xeva.js?v=79",
   "../xeva-loading.js?v=19",
-  "../xeva-splash.js?v=15",
+  "../xeva-splash.js?v=17",
   "../xeva-safebottom.js?v=12",
   "../xeva-back.js?v=9",
   "../xeva-presence.js?v=9",
   "../maintenance-gate.js?v=13",
-  "../xeva-cloud.js?v=45",
-  "../MagiBurst/magiburst-cloud.js?v=24",
-  "../app-cloud.js?v=13",
-  "../xeva-keys.js?v=32",
-  "../xevarion-fb.js?v=34",
+  "../xeva-cloud.js?v=46",
+  "../MagiBurst/magiburst-cloud.js?v=25",
+  "../app-cloud.js?v=14",
+  "../xeva-keys.js?v=33",
+  "../xevarion-fb.js?v=35",
 ];
 
 async function xevPost(msg) {

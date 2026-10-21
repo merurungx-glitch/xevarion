@@ -226,13 +226,90 @@
   function eventCard() {
     let E = null; try { E = window.XEVA && XEVA.event && XEVA.event.cur(); } catch (e) {}
     if (!E) return "";
-    let a = null, b = null; try { a = XEVA.event.prog(E.id, "chemOk"); b = XEVA.event.prog(E.id, "chemSet"); } catch (e) {}
-    const pr = (p, t) => p ? '<span class="evm-i' + (p.done ? " ok" : "") + '">' + t + " <b>" + p.v + "/" + p.n + "</b>" + (p.done ? (p.claimed ? " ✓" : " 🎁") : "") + "</span>" : "";
+    /* ★★ 2026-10-20 イベントごとに、MagiChemLex に関係するミッション（key が chem で始まるもの）を出す（Violet Breeze＝正解・模試／Midnight Pumpkin＝WP） */
+    const ms = (E.missions || []).filter((m) => /^chem/.test(m.key || "")).slice(0, 2);
+    const pr = (m) => { let p = null; try { p = XEVA.event.prog(E.id, m.id); } catch (e) {} return p ? '<span class="evm-i' + (p.done ? " ok" : "") + '">' + m.ic + " " + esc(m.title.replace(/^MagiChemLex (で|の)\s*/, "")) + " <b>" + p.v + "/" + p.n + "</b>" + (p.done ? (p.claimed ? " ✓" : " 🎁") : "") + "</span>" : ""; };
+    const emo = E.theme === "pumpkin" ? "🎃" : "💜";
     return '<a class="evc" href="../index.html#event">' +
       '<img class="evc-im" src="../' + esc(E.banner) + '" alt="' + esc(E.nm) + '">' +
-      '<div class="evc-b"><div class="evc-h"><b>💜 ' + esc(E.nm) + '</b><span>〜' + E.to.slice(5).replace("-", "/") + "</span></div>" +
-      "<p>MagiChemLex の獲得 XEVA が <b>" + M.mult() + "倍</b>！イベントミッションで🎫ガチャチケット</p>" +
-      '<div class="evm">' + pr(a, "⚗️ 20問正解") + pr(b, "📝 模試") + '</div><span class="evc-go">イベントのページへ ' + ic("chevR") + "</span></div></a>";
+      '<div class="evc-b"><div class="evc-h"><b>' + emo + " " + esc(E.nm) + '</b><span>〜' + E.to.slice(5).replace("-", "/") + "</span></div>" +
+      "<p>MagiChemLex の獲得 XEVA が <b>" + M.mult() + "倍</b>！イベントミッションで🎫ガチャチケット" + (ms.some((m) => m.cx) ? "・💱両替チケット" : "") + "</p>" +
+      '<div class="evm">' + ms.map(pr).join("") + '</div><span class="evc-go">イベントのページへ ' + ic("chevR") + "</span></div></a>";
+  }
+  /* ══ ★★ 2026-10-20 計算なしモード ══ */
+  function noCalcBar() {
+    const on = !!M.get().set.noCalc;
+    const nAll = D.Q.length, nNo = D.Q.filter((q) => !M.isCalc(q)).length;
+    return '<button class="ncb' + (on ? " on" : "") + '" data-a="noCalc" aria-pressed="' + on + '">' +
+      '<span class="ncb-i">' + NOCALC_IC + "</span>" +
+      '<span class="ncb-t"><b>計算なしモード' + (on ? "：オン" : "") + "</b><small>" + (on ? "計算問題をとばして出題中（" + nf(nNo) + " / " + nf(nAll) + "問）・模試と確認テストは全問" : "計算問題をとばして、知識・考え方の問題だけ（" + nf(nNo) + "問）") + "</small></span>" +
+      '<i class="sw"></i></button>';
+  }
+  const NOCALC_IC = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><rect x="8" y="6" width="8" height="3.2" rx="1" fill="currentColor" opacity=".55"/><circle cx="9" cy="13" r="1.1" fill="currentColor"/><circle cx="12" cy="13" r="1.1" fill="currentColor"/><circle cx="15" cy="13" r="1.1" fill="currentColor"/><circle cx="9" cy="16.6" r="1.1" fill="currentColor"/><circle cx="12" cy="16.6" r="1.1" fill="currentColor"/><path d="M3 21 21 3" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>';
+  /* ══ ★★ 2026-10-20 Wisdom Point（WP）══
+     ためかた：問題セットの完全習得 +5・確認テスト（全問正解）+10。交換：5WP 両替チケット／10WP フェスガチャチケット／100WP 選べるSSRキャラ確定チケット。
+     券面は XEVARION と同じ絵（xeva.js の XevaCashTicketSVG / XevaFesTicketSVG / XevaSsrTicketSVG）。 */
+  const WP_ITEMS = [
+    { k: "cash", cost: 5, nm: "両替チケット", d: "ショップの「XEVA 両替所」で 💎5 をそのときのレートで XEVA に両替できる券", art: (px) => window.XevaCashTicketSVG ? XevaCashTicketSVG(px) : "💱", have: () => { try { return XEVA.cashTicket.get(); } catch (e) { return 0; } } },
+    { k: "fes", cost: 10, nm: "フェスガチャチケット", d: "フェスガチャを1回まわせる 🎫（どのフェスでも使えます）", art: (px) => window.XevaFesTicketSVG ? XevaFesTicketSVG(px) : "🎫", have: () => { try { return XEVA.fesTicket.get(); } catch (e) { return 0; } } },
+    { k: "ssr", cost: 100, nm: "選べるSSRキャラ確定チケット", d: "ガチャから出る SSR の中から好きな1体を確定で（UR は対象外・ガチャ一覧のいちばん上で使います）", art: (px) => window.XevaSsrTicketSVG ? XevaSsrTicketSVG(px) : "🎟️", have: () => { try { return XEVA.ssrSelect.get(); } catch (e) { return 0; } } },
+  ];
+  function wpImg(cls) { return '<img class="' + (cls || "wp-ic") + '" src="img/wp.webp" srcset="img/wp.webp 1x, img/wp@2x.webp 2x" alt="WP">'; }
+  function wpCard() {
+    const st = M.wpStat();
+    const nxt = WP_ITEMS.find((x) => x.cost > st.bal);
+    return '<button class="wpc" data-a="wpOpen">' + wpImg("wpc-ic") +
+      '<span class="wpc-t"><small>WISDOM POINT</small><b>' + nf(st.bal) + "<i>WP</i></b><em>完全習得 +" + M.WP.MASTER + "・確認テスト +" + M.WP.CONFIRM + "</em></span>" +
+      '<span class="wpc-go">交換所' + ic("chevR") + "</span>" +
+      (nxt ? '<span class="wpc-bar"><i style="width:' + Math.min(100, st.bal / nxt.cost * 100).toFixed(1) + '%"></i><s>' + esc(nxt.nm) + " まで あと " + (nxt.cost - st.bal) + " WP</s></span>" : "") +
+      (navigator.onLine === false ? '<span class="wpc-off">オフライン：WP はこの端末に保存ずみ。つながると自動で同期します</span>' : "") + "</button>";
+  }
+  function openWp(msg) {
+    const st = M.wpStat();
+    const log = M.wpLog().slice(0, 12);
+    const row = (x) => {
+      const can = st.bal >= x.cost && !!window.XEVA;
+      return '<div class="wpx' + (can ? "" : " no") + '"><span class="wpx-a">' + x.art(40) + "</span>" +
+        '<span class="wpx-t"><b>' + esc(x.nm) + "</b><small>" + esc(x.d) + "</small><em>所持 " + nf(x.have()) + "枚</em></span>" +
+        '<button class="wpx-b" data-a="wpBuy" data-k="' + x.k + '"' + (can ? "" : " disabled") + ">" + wpImg("wpx-i") + "<b>" + x.cost + "</b><small>" + (can ? "交換" : "WP不足") + "</small></button></div>";
+    };
+    sheet('<div class="wps">' +
+      '<div class="wps-hero">' + wpImg("wps-ic") + '<div><small>WISDOM POINT 交換所</small><b>' + nf(st.bal) + "<i>WP</i></b><span>これまでに " + nf(st.earned) + " WP ためました</span></div></div>" +
+      (msg ? '<div class="wps-msg">' + msg + "</div>" : "") +
+      '<p class="wps-how">' + ic("trophy") + "問題セットを<b>完全習得</b>すると <b>+" + M.WP.MASTER + " WP</b>、<b>確認テスト</b>で全問正解すると <b>+" + M.WP.CONFIRM + " WP</b>（どちらもセットごとに1回・リセットして取り直すとまたもらえます）。</p>" +
+      '<div class="wpxs">' + WP_ITEMS.map(row).join("") + "</div>" +
+      (log.length ? '<h3 class="sec">きろく</h3><div class="wpl">' + log.map((o) => '<div><span>' + new Date(o.t).toLocaleDateString("ja-JP", { month: "numeric", day: "numeric" }) + "</span><b>" +
+        (o.n > 0 ? (o.kind === "cf" ? "確認テスト" : "完全習得") : esc((WP_ITEMS.find((x) => x.k === o.item) || {}).nm || "交換")) + '</b><em class="' + (o.n > 0 ? "p" : "m") + '">' + (o.n > 0 ? "+" : "") + o.n + " WP</em></div>").join("") + "</div>" : "") +
+      (st.bf ? '<p class="wps-note">はじめる前の学習ぶん（完全習得・確認テスト）として ' + nf(st.bf) + " WP を受け取っています。</p>" : "") +
+      '<p class="wps-note">WP はこの端末にすぐ保存され、XEVARION のアカウントで同期します（オフラインでためた・使ったぶんも、つながったときに自動で同期）。</p>' +
+      "</div>");
+  }
+  let wpBusy = false;
+  function wpBuy(k) {
+    const x = WP_ITEMS.find((i) => i.k === k); if (!x || wpBusy) return;
+    if (!window.XEVA) { toast("XEVARION につながっていません"); return; }
+    sheet('<div class="wps wpc-cf">' + '<div class="wpcf-a">' + x.art(64) + '</div><h2 class="sh-t">' + esc(x.nm) + " と交換しますか？</h2>" +
+      '<p class="wps-how">' + wpImg("wpx-i") + " <b>" + x.cost + " WP</b> を使って、<b>" + esc(x.nm) + " を1枚</b>受け取ります。<br>（いまの残高 " + nf(M.wpStat().bal) + " WP → " + nf(M.wpStat().bal - x.cost) + " WP）</p>" +
+      '<div class="wpcf-b"><button class="btn ghost" data-a="wpOpen">やめる</button><button class="btn main" data-a="wpDo" data-k="' + x.k + '">交換する</button></div></div>');
+  }
+  function wpDo(k) {
+    const x = WP_ITEMS.find((i) => i.k === k); if (!x || wpBusy) return;
+    wpBusy = true;
+    try {
+      if (!M.wpSpend(x.cost, x.k)) { openWp('<span class="ng">WP が足りません</span>'); return; }
+      const why = "MagiChemLex WP 交換所（" + x.cost + " WP）";
+      if (x.k === "cash") XEVA.cashTicket.add(1, why);
+      else if (x.k === "fes") XEVA.fesTicket.add(1, why);
+      else if (x.k === "ssr") XEVA.ssrSelect.grantOnce("wp" + Date.now().toString(36) + Math.floor(Math.random() * 1e6).toString(36), 1, why);
+      SFX.ok(); confetti(26);
+      openWp(x.art(26) + "<b>" + esc(x.nm) + "</b> を受け取りました！" + (x.k === "ssr" ? "（XEVARION のガチャ一覧のいちばん上で使えます）" : x.k === "cash" ? "（XEVARION のショップ → XEVA 両替所）" : "（フェスガチャで使えます）"));
+      paintHeader();
+    } finally { wpBusy = false; }
+  }
+  function wpToast(list) {
+    if (!list || !list.length) return;
+    const n = list.reduce((a, o) => a + o.n, 0);
+    toast(wpImg("wpt-i") + " ＋" + n + " WP（" + esc(list.map((o) => o.why).join("・")) + "）");
   }
   function topicTile(t) {
     const T = D.T[t], st = M.topicStat(t), col = D.F[T.f].c;
@@ -286,6 +363,10 @@
       '<div class="cta2"><button class="pill" data-a="start" data-mode="random">' + ic("shuffle") + "ランダム10問</button><button class=\"pill\" data-a=\"start\" data-mode=\"weak\">" + ic("target") + "弱点克服</button>" +
         /* ★★ 2026-10-15 フラッシュカード（mcl-flash.js） */
         '<button class="pill fcp" data-a="fcPick">' + ic("flash") + "フラッシュカード</button></div>" +
+      /* ★★ 2026-10-20 ご指定「計算問題以外を解くモード」：押すたびに オン／オフ（設定 set.noCalc） */
+      noCalcBar() +
+      /* ★★ 2026-10-20 Wisdom Point（WP） */
+      wpCard() +
       /* ★★ 2026-10-15 特設予想問題（mcl-special.js） */
       (window.MCLSpecial ? MCLSpecial.bannerHTML() : "") +
       eventCard() +
@@ -1116,6 +1197,7 @@
       '<div class="st-r"><b>ナビゲーター</b><button class="nv-cur" data-a="navPick">' + F.mascot("smile") + "<span><b>" + esc(F.navName()) + "</b><small>" + (F.navCur() ? "UR キャラ" : "はじめからいる丸底フラスコ") + "</small></span>" + ic("chevR") + "</button>" +
       '<small class="muted">XEVARION で持っている UR キャラを、ホーム・復習・答え合わせ・結果のナビにできます。</small></div>' +
       tg("relAuto", "まちがえたら類題を出す", "同じ考え方の関連問題を、すぐあとに1問はさみます") +
+      tg("noCalc", "計算なしモード", "おすすめ・ランダム・弱点克服・単元・問題セット・フラッシュカードから計算問題をとばします（模試・確認テストは全問）") +
       tg("timer", "1問ごとの時間を表示") +
       tg("sound", "効果音") +
       (navigator.vibrate ? tg("vib", "振動（まちがえたとき）") : "") +
@@ -1343,6 +1425,7 @@
     P.res[P.i] = { id, ok, hint: P.hint, ms, giveup: !!giveup, sel: Array.isArray(P.sel) ? P.sel.slice() : P.sel };
     P.done = true; P.xp += r ? r.xp : 0;
     const earned = M.takeEarned(); P.earned = P.earned.concat(earned);
+    try { M.takeWp(); } catch (e) {}   /* ★★ 2026-10-20 WP のイベントの数（chemWp）を送る */
     if (ok) { P.combo++; P.best = Math.max(P.best, P.combo); SFX.ok(); if (P.combo >= 5 && P.combo % 5 === 0) setTimeout(SFX.combo, 220); }
     else { P.combo = 0; SFX.ng(); vib([25, 40, 25]); }
     let relAdded = null;
@@ -1364,6 +1447,7 @@
       (r && r.daily ? '<div class="fbn day">' + ic("target") + "今日の目標を達成しました！</div>" : "") +
       (relAdded ? '<div class="fbn rel">' + ic("atom") + '<span>同じ考え方の<b>類題</b>を、次に1問出します</span><button class="fbx" data-a="relCancel" data-id="' + relAdded + '">取り消す</button></div>' : "") +
       (r && r.groupDone && r.groupDone.length ? '<div class="fbn mas">' + ic("trophy") + "問題セット「" + esc(r.groupDone.join("」「")) + "」を<b>完全習得</b>！確認テストに挑戦できます</div>" : "") +
+      (r && r.wp ? '<div class="fbn wpb">' + wpImg("wpt-i") + "<span><b>＋" + r.wp + " WP</b>（Wisdom Point・完全習得）</span></div>" : "") +
       solHTML(q) +
       (ok ? '<div class="fbact"><button class="chipb" data-a="uns" data-id="' + id + '">' + ic("help") + "<span>自信がない（明日もう一度）</span></button></div>" : "") +
       ((q.rel || []).length && !P.confirm ? '<section class="relw"><h3>' + ic("atom") + "関連問題<small>押すと次に出題・もう一度押すと取り消し</small></h3><div class=\"rels\">" + q.rel.slice(0, 4).map(relChip).join("") + "</div></section>" : "");
@@ -1455,7 +1539,8 @@
     let banner = "";
     if (P.confirm) {
       const g = M.groupById(P.confirm), fin = M.finishConfirm(P.confirm, ok, n);
-      banner = fin.pass ? '<div class="fbn mas big">' + ic("medal") + "<span>確認テスト <b>合格</b>！" + (fin.got ? " ＋" + nf(fin.got) + " XEVA" : "（ごほうびは受け取りずみ）") + "</span></div>"
+      try { M.takeWp(); } catch (e) {}
+      banner = fin.pass ? '<div class="fbn mas big">' + ic("medal") + "<span>確認テスト <b>合格</b>！" + (fin.got ? " ＋" + nf(fin.got) + " XEVA" : "（ごほうびは受け取りずみ）") + (fin.wp ? "・<b>＋" + fin.wp + " WP</b>" : "") + "</span></div>"
         : '<div class="fbn ngb">' + ic("help") + "<span>確認テストは<b>全問正解で合格</b>です（" + ok + " / " + (g ? g.ids.length : n) + "）。まちがえた問題を見直して、もう一度！</span></div>";
       if (fin.pass) setTimeout(() => confetti(60), 260);
     } else if (P.mix) {
@@ -1512,6 +1597,11 @@
       const k = el.dataset.k, raw = el.dataset.v, v = /^-?\d+$/.test(raw) ? Number(raw) : raw;
       M.setSetting(k, v); applySettings(); openSettings(); if (!P) go(TAB, true);
     },
+    /* ★★ 2026-10-20 計算なしモード・WP 交換所 */
+    noCalc: () => { const on = !M.get().set.noCalc; M.setSetting("noCalc", on ? 1 : 0); UI.recIds = null; toast(on ? "計算なしモード：オン（計算問題をとばします）" : "計算なしモード：オフ"); if (!P) go(TAB, true); },
+    wpOpen: () => openWp(),
+    wpBuy: (el) => wpBuy(el.dataset.k),
+    wpDo: (el) => wpDo(el.dataset.k),
     grp: (el) => { UI.grp = Number(el.dataset.v) || 1; try { sessionStorage.setItem("mcl_grp", String(UI.grp)); } catch (e) {} go("home", true); },
     sgrp: (el) => { UI.sgrp = Number(el.dataset.v) || 4; try { sessionStorage.setItem("mcl_sgrp", String(UI.sgrp)); } catch (e) {} go("home", true); },
     bgrp: (el) => { UI.bgrp = Number(el.dataset.v) || 8; try { sessionStorage.setItem("mcl_bgrp", String(UI.bgrp)); } catch (e) {} go("home", true); },
@@ -1535,7 +1625,7 @@
     gconf: (el) => {
       const g = M.groupById(el.dataset.g); if (!g) return;
       if (!M.groupStat(g).done) { toast("ぜんぶ習得すると受けられます"); return; }
-      startSession(M.build("group", { g: g.id }), { title: "確認テスト「" + g.nm + "」", confirm: g.id });
+      startSession(M.build("group", { g: g.id, all: true }), { title: "確認テスト「" + g.nm + "」", confirm: g.id });   /* ★★ 2026-10-20 確認テストは計算なしモードでも全問（all） */
     },
     setUn: (el) => { const k = el.dataset.set; startSession(M.build("set", { set: k, only: "un", shuffle: true }), { title: setTitle(k) + "（未習得）", empty: "このセットはすべて習得ずみ！" }); },
     /* ★★ 2026-10-12 まだ習得中になっていない問題だけ・リセット・習得までの流れ */
@@ -1566,7 +1656,7 @@
     lclr: (el) => { const k = el.dataset.k; if (k === "t") LIB.t = ""; else LIB[k] = k === "d" ? 0 : "all"; go("lib", true); },
     libFilter: () => openLibFilter(),
     exam: (el) => openSet(el.dataset.set),
-    examGo: (el) => { const k = el.dataset.set; startSession(M.build("set", { set: k }), { exam: true, set: k, title: setTitle(k) }); },
+    examGo: (el) => { const k = el.dataset.set; startSession(M.build("set", { set: k, all: true }), { exam: true, set: k, title: setTitle(k) }); },   /* ★★ 2026-10-20 模試は計算なしモードでも全問 */
     setPractice: (el) => { const k = el.dataset.set; startSession(M.build("set", { set: k, shuffle: true }), { title: setTitle(k) + "（練習）" }); },
     pick: (el) => pick(+el.dataset.i),
     kp: (el) => keypad(el.dataset.k),
@@ -1713,7 +1803,11 @@
     go(t);
     if (!M.get().set.onb) setTimeout(openWelcome, 500);
     /* ★★ 2026-10-06c 問題セットを入れる前に完全習得していたぶん（起動・同期のあと） */
-    const catchUp = () => { try { const got = M.catchUpGroups(); if (got.length) { toast("🏆 完全習得ずみの問題セット " + got.length + "つぶんの XEVA を受け取りました"); paintHeader(); } } catch (e) {} };
+    const catchUp = () => {
+      try { const got = M.catchUpGroups(); if (got.length) { toast("🏆 完全習得ずみの問題セット " + got.length + "つぶんの XEVA を受け取りました"); paintHeader(); } } catch (e) {}
+      /* ★★ 2026-10-20 WP を始める前の学習ぶん（1回だけ） */
+      try { const n = M.wpBackfill(); M.takeWp(); if (n) { setTimeout(() => toast(wpImg("wpt-i") + " これまでの学習ぶん ＋" + n + " WP を受け取りました"), 900); if (!P && !sheetOpen()) go(TAB, true); } } catch (e) {}
+    };
     setTimeout(catchUp, 1800);
     window.addEventListener("xeva:synced", () => setTimeout(catchUp, 300));
     document.documentElement.classList.add("ready");

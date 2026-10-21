@@ -1514,3 +1514,80 @@ html.xv-full .mcl-sp { position: absolute; top: 0; bottom: auto; height: var(--x
 .sp-end .fermat { font-size: 1rem !important; font-weight: 900; color: var(--pri2); }
 .sp-end .sp-dis { text-align: left; font-size: .8rem !important; color: var(--sub); background: var(--card2); border-radius: 14px; padding: 10px 12px; }
 .sp-end .btn { margin-top: 6px; }
+
+/* ══ ★★ 2026-10-20 計算なしモード（ホームの切りかえ） ══ */
+.ncb { display: flex; align-items: center; gap: 10px; width: 100%; margin: 10px 0 0; padding: 10px 12px; border: 0; border-radius: 16px; background: var(--card); box-shadow: var(--sh); color: var(--ink); font: inherit; text-align: left; cursor: pointer; }
+.ncb-i { flex: none; width: 36px; height: 36px; border-radius: 12px; display: grid; place-items: center; background: var(--card3); color: var(--mute); }
+.ncb-i svg { width: 22px; height: 22px; }
+.ncb-t { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.35; }
+.ncb-t b { font-size: .9rem; font-weight: 900; }
+.ncb-t small { font-size: .72rem; font-weight: 700; color: var(--sub); }
+.ncb .sw { flex: none; position: relative; width: 44px; height: 26px; border-radius: 99px; background: var(--line); transition: background .18s; }
+.ncb .sw::after { content: ""; position: absolute; left: 3px; top: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.25); transition: transform .18s; }
+.ncb.on { box-shadow: 0 0 0 2px var(--acc), var(--sh); background: linear-gradient(100deg, rgba(255, 138, 31, .1), var(--card) 60%); }
+.ncb.on .ncb-i { background: linear-gradient(140deg, #ffb24a, #ff6a1f); color: #fff; }
+.ncb.on .sw { background: var(--acc); }
+.ncb.on .sw::after { transform: translateX(18px); }
+
+/* ══ ★★ 2026-10-20 Wisdom Point（ホームのカード・交換所） ══ */
+.wpc { position: relative; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 4px 12px; width: 100%; margin: 10px 0 0; padding: 12px 14px; border: 0; border-radius: 20px; cursor: pointer; text-align: left; font: inherit; color: #fff; overflow: hidden; isolation: isolate;
+  background: radial-gradient(120% 140% at 0% 0%, #4fc3ff 0, #2b5bff 45%, #2a1a8f 100%); box-shadow: 0 10px 26px rgba(40, 80, 220, .3), inset 0 0 0 1.5px rgba(255, 214, 110, .55); }
+.wpc::before { content: ""; position: absolute; inset: 0; z-index: -1; background: radial-gradient(2px 2px at 20% 30%, #fff 50%, transparent 51%), radial-gradient(1.5px 1.5px at 70% 20%, #fff 50%, transparent 51%), radial-gradient(1.8px 1.8px at 85% 70%, #ffe9a8 50%, transparent 51%), radial-gradient(1.4px 1.4px at 45% 80%, #cfe8ff 50%, transparent 51%); }
+.wpc::after { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, .25) 50%, transparent 70%); transform: translateX(-120%); animation: wpShine 4.2s ease-in-out 1.2s infinite; }
+@keyframes wpShine { to { transform: translateX(120%); } }
+.wpc-ic { width: 54px; height: 54px; grid-row: span 2; filter: drop-shadow(0 4px 10px rgba(0, 20, 80, .45)); animation: wpBob 3.4s ease-in-out infinite; }
+@keyframes wpBob { 50% { transform: translateY(-3px) rotate(-3deg); } }
+.wpc-t { min-width: 0; display: flex; flex-direction: column; line-height: 1.15; }
+.wpc-t small { font-size: .62rem; font-weight: 900; letter-spacing: .16em; color: #bfe6ff; }
+.wpc-t b { font-family: "Orbitron", var(--font); font-size: 1.55rem; font-weight: 900; text-shadow: 0 2px 10px rgba(80, 180, 255, .7); }
+.wpc-t b i { font-style: normal; font-size: .75rem; margin-left: 4px; color: #ffe27a; }
+.wpc-t em { font-style: normal; font-size: .7rem; font-weight: 800; opacity: .92; }
+.wpc-go { display: inline-flex; align-items: center; gap: 2px; padding: 6px 10px 6px 12px; border-radius: 99px; font-size: .78rem; font-weight: 900; color: #2a2a8f; background: #fff; box-shadow: 0 3px 0 rgba(20, 20, 100, .35); }
+.wpc-go svg { width: 16px; height: 16px; }
+.wpc-bar { grid-column: 2 / 4; position: relative; height: 16px; border-radius: 99px; background: rgba(255, 255, 255, .18); overflow: hidden; }
+.wpc-bar i { position: absolute; inset: 0 auto 0 0; border-radius: 99px; background: linear-gradient(90deg, #ffe27a, #ffb21e); }
+.wpc-bar s { position: absolute; inset: 0; text-decoration: none; font-size: .64rem; font-weight: 900; line-height: 16px; text-align: center; color: #fff; text-shadow: 0 1px 2px rgba(0, 0, 60, .6); }
+.wps-hero { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 20px; color: #fff; background: radial-gradient(120% 140% at 0% 0%, #4fc3ff 0, #2b5bff 45%, #2a1a8f 100%); box-shadow: 0 10px 26px rgba(40, 80, 220, .3); }
+.wps-ic { width: 72px; height: 72px; flex: none; filter: drop-shadow(0 6px 14px rgba(0, 20, 80, .5)); animation: wpBob 3.4s ease-in-out infinite; }
+.wps-hero small { display: block; font-size: .66rem; font-weight: 900; letter-spacing: .14em; color: #bfe6ff; }
+.wps-hero b { display: block; font-family: "Orbitron", var(--font); font-size: 2rem; font-weight: 900; line-height: 1.1; }
+.wps-hero b i { font-style: normal; font-size: .9rem; margin-left: 4px; color: #ffe27a; }
+.wps-hero span { font-size: .75rem; font-weight: 700; opacity: .92; }
+.wps-msg { margin: 10px 0 0; padding: 10px 12px; border-radius: 14px; background: var(--okS); color: var(--ok); font-weight: 900; font-size: .85rem; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.wps-msg svg { width: 40px !important; height: 26px !important; }
+.wps-msg .ng { color: var(--ng); }
+.wps-how { margin: 12px 0 10px; font-size: .78rem; font-weight: 700; color: var(--sub); line-height: 1.7; }
+.wps-how svg { width: 16px; height: 16px; vertical-align: -3px; color: var(--gold); }
+.wpxs { display: flex; flex-direction: column; gap: 8px; }
+.wpx { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 16px; background: var(--card2); box-shadow: inset 0 0 0 1.5px var(--line); }
+.wpx-a { flex: none; width: 66px; display: grid; place-items: center; }
+.wpx-a svg { filter: drop-shadow(0 3px 6px rgba(0, 0, 0, .2)); }
+.wpx-t { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.4; }
+.wpx-t b { font-size: .88rem; font-weight: 900; }
+.wpx-t small { font-size: .7rem; font-weight: 700; color: var(--sub); }
+.wpx-t em { font-style: normal; font-size: .7rem; font-weight: 800; color: var(--mute); }
+.wpx-b { flex: none; display: flex; flex-direction: column; align-items: center; gap: 0; min-width: 64px; padding: 6px 8px; border: 0; border-radius: 14px; cursor: pointer; font: inherit; color: #fff; background: linear-gradient(140deg, #4fc3ff, #2b5bff 60%, #5b3ad8); box-shadow: 0 4px 0 rgba(30, 40, 140, .35); }
+.wpx-b b { font-family: "Orbitron", var(--font); font-size: 1.05rem; font-weight: 900; line-height: 1.1; }
+.wpx-b small { font-size: .62rem; font-weight: 900; }
+.wpx-b:disabled { background: var(--line); color: var(--mute); box-shadow: none; cursor: default; }
+.wpx-b:not(:disabled):active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(30, 40, 140, .35); }
+.wpx-i, .wpt-i { width: 18px; height: 18px; vertical-align: -4px; }
+.wpx.no { opacity: .8; }
+.wpl { display: flex; flex-direction: column; gap: 4px; }
+.wpl div { display: grid; grid-template-columns: 48px 1fr auto; gap: 8px; padding: 7px 10px; border-radius: 12px; background: var(--card2); font-size: .78rem; }
+.wpl span { color: var(--mute); font-weight: 800; }
+.wpl b { font-weight: 800; }
+.wpl em { font-style: normal; font-weight: 900; }
+.wpl em.p { color: var(--pri); }
+.wpl em.m { color: var(--acc2); }
+.wps-note { margin: 10px 0 0; font-size: .72rem; color: var(--mute); }
+.wpc-cf { text-align: center; }
+.wpcf-a { display: flex; justify-content: center; margin: 4px 0 6px; }
+.wpcf-b { display: flex; gap: 8px; justify-content: center; }
+.wpcf-b .btn { flex: 1; max-width: 200px; }
+.fbn.wpb { background: linear-gradient(100deg, rgba(79, 195, 255, .2), rgba(91, 58, 216, .12)); color: #2b47c9; display: flex; align-items: center; gap: 8px; }
+:root[data-theme="dark"] .fbn.wpb { color: #9fc4ff; }
+@media (prefers-reduced-motion: reduce) { .wpc::after, .wpc-ic, .wps-ic { animation: none; } }
+
+/* ★★ 2026-10-21 WP のオフライン案内 */
+.wpc-off{display:block;grid-column:1/-1;margin-top:6px;font-size:11px;font-weight:800;color:#8a5a00;background:#fff4d6;border-radius:10px;padding:5px 8px;text-align:left}

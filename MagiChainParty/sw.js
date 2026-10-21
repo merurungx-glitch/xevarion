@@ -5,7 +5,7 @@
    ・セーブ・前回設定は localStorage 保存 → オンライン復帰時に xeva-cloud が同期
    ・Firebase など外部通信はキャッシュしない
    ============================================================ */
-const VERSION = "chainparty-sw-v56";
+const VERSION = "chainparty-sw-v57";
 const CORE = [
   "./index.html",
   "./css/style.css?v=22",
@@ -15,10 +15,10 @@ const CORE = [
   "./img/icon192.png",
   /* ★★ 2026-09-03 下バーを画面の下端に合わせる共通部品 */
   "../xeva-safebottom.js?v=12",
-  "../xeva.js?v=78",
+  "../xeva.js?v=79",
   "../xeva-alive.js?v=6",
   "../xeva-loading.js?v=19",
-  "../xeva-splash.js?v=15",
+  "../xeva-splash.js?v=17",
   "../game-link.js?v=13",
   "../maintenance-gate.js?v=13",
   "../app-install-notice.js?v=9",

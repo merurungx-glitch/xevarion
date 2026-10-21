@@ -38,6 +38,12 @@
     ids = (ids || []).filter((id, k, a) => D.BY[id] && a.indexOf(id) === k);
     if (!ids.length) { U.toast(opt.empty || "めくれるカードがありません"); return; }
     let note = "";
+    /* ★★ 2026-10-20 計算なしモード（設定 noCalc）のときは計算問題を外す */
+    if (M.noCalcOn && M.noCalcOn()) {
+      const nc = ids.filter((id) => !M.isCalc(D.BY[id]));
+      if (!nc.length) { U.toast("計算なしモード：このデッキは計算問題だけです（モードを切ると全部めくれます）"); return; }
+      if (nc.length < ids.length) { note = "計算問題 " + (ids.length - nc.length) + "枚を除いて " + nc.length + "枚"; ids = nc; }
+    }
     if (ST.opt.hide && !opt.all) {
       const rest = ids.filter((id) => !(ST.b[id] && ST.b[id].r === 2));
       if (!rest.length) { U.toast("🎉 ぜんぶ「覚えた」です（設定の「覚えたカードを出さない」を切ると全部めくれます）"); return; }
