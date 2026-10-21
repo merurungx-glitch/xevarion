@@ -6,13 +6,13 @@
    ・オンライン対戦・XEVA換金はアプリ側でオフライン時に無効化している
    ・取得できたリソースは随時キャッシュ更新（stale-while-revalidate）
    ============================================================ */
-const VERSION = "magiburst-sw-v195";
+const VERSION = "magiburst-sw-v196";
 const CORE = [
   "./index.html",
   "./css/mb-ui2.css?v=26",
   "./css/localplay.css?v=7",
   "./js/localplay.js?v=8",
-  "./js/mb-core.js?v=138",
+  "./js/mb-core.js?v=139",
   /* ★★ 2026-09-13 クエスト作成（ステージエディター・MB613Create26）。
      遅延読みこみだが、オフラインでも開けるようにここには入れておく。 */
   "./js/mb-create.js?v=2",
@@ -39,15 +39,15 @@ const CORE = [
   "../xeva-i18n-p3.js?v=7",
   "../xeva-i18n-mb7.js?v=7",
   "../xeva-i18n-p4.js?v=8",
-  "../xeva-i18n-n1.js?v=18",
+  "../xeva-i18n-n1.js?v=19",
   "../xeva-i18n-n2.js?v=3",
-  "../xeva.js?v=79",
-  "../xeva-alive.js?v=6",
+  "../xeva.js?v=80",
+  "../xeva-alive.js?v=7",
   "../xeva-loading.js?v=19",
   "../xeva-splash.js?v=17",
-  "../app-cloud.js?v=14",
-  "../xeva-keys.js?v=33",
-  "./magiburst-cloud.js?v=25",
+  "../app-cloud.js?v=15",
+  "../xeva-keys.js?v=34",
+  "./magiburst-cloud.js?v=26",
   "../maintenance-gate.js?v=13",
   "../app-install-notice.js?v=9",
   "../XEVA.png",
@@ -155,6 +155,8 @@ const CORE = [
   "img/ss/KaoriSS.webp",
   /* ★★ 2026-10-16 超極華祭（UR・MagiAbyss 専用）の SS 絵 */
   "img/ss/ChieSS.webp", "img/ss/IchikaSS.webp", "img/ss/NonokaSS.webp", "img/ss/AinaSS.webp", "img/ss/YunaSS.webp",
+  /* ★★ 2026-10-22 超極煌祭（UR・MagiAbyss 専用）の SS 絵 */
+  "img/ss/KohakuSS.webp", "img/ss/SuzuSS.webp", "img/ss/ShoukoSS.webp",
   "img/ss/YajuSS.webp",   /* ★ 2026-08-08d クロススキル「お待たせ!」用 */
   "img/ss/KokonaAlphaSS.webp",   /* ★ 2026-08-11 ココナα（治癒の祈り）用 */
   /* ★ 2026-08-08 プレミアム新SSR「カエデ」「リノン」「ココロ」「アンジェ」 */
@@ -306,6 +308,7 @@ const CORE = [
   "img/bn_fes17_s.webp?v=2",   /* ★★ 2026-10-07 Sapphire Breeze のバナー（同日に差しかえ → ?v=2） */
   "img/bn_fes18_s.webp",   /* ★★ 2026-10-09 Pumpkin Night のバナー */
   "img/bn_fes19_s.webp",   /* ★★ 2026-10-16 超極華祭のバナー */
+  "img/bn_fes20_s.webp",   /* ★★ 2026-10-22 超極煌祭のバナー */
   "img/bn_fes14_s.webp",   /* ★★ 2026-09-13 SOFT NIGHT FEST のバナー */   /* ★★ 2026-09-11 BUNNY GIRL FEST のバナー */
   "../img/t_Suzune.webp",
   "../img/t_Minamo.webp",
@@ -477,6 +480,8 @@ const CORE = [
   /* ★★ 2026-10-16 超極華祭 */
   "../img/t_Chie.webp", "../img/Chie_w.webp", "../img/t_Ichika.webp", "../img/Ichika_w.webp", "../img/t_Nonoka.webp", "../img/Nonoka_w.webp",
   "../img/t_Aina.webp", "../img/Aina_w.webp", "../img/t_Yuna.webp", "../img/Yuna_w.webp",
+  /* ★★ 2026-10-22 超極煌祭 */
+  "../img/t_Kohaku.webp", "../img/Kohaku_w.webp", "../img/t_Suzu.webp", "../img/Suzu_w.webp", "../img/t_Shouko.webp", "../img/Shouko_w.webp",
   /* ★★ 2026-09-06 同期の画面に出る案内役（立ち姿とお辞儀・2人ぶん）。
      ここに無いとオフラインのときだけ絵が出ない。 */
   "../img/ld_a_stand.webp",
