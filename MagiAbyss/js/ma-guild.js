@@ -241,7 +241,7 @@
     const sel = s.sel, C = D().CHARS[sel];
     const anyOwned = D().CHAR_ORDER.some((id) => MA.Save.owned(id));
     if (!anyOwned) {
-      $("#gSel").innerHTML = '<div class="g-noown">' + ic("lock") + '<div><b>遊べるキャラがいません</b><small>XEVARION の <em class="f6">超極華祭</em><em class="f5">Pumpkin Night</em><em class="f4">Sapphire Breeze</em><em class="f1">極彩祭</em><em class="f2">極煌祭</em><em class="f3">極華祭</em> のキャラを手に入れると遊べます</small></div><a class="btn sm gold" href="../gacha.html">ガチャへ</a></div>';
+      $("#gSel").innerHTML = '<div class="g-noown">' + ic("lock") + '<div><b>遊べるキャラがいません</b><small>XEVARION の <em class="f7">超極煌祭</em><em class="f6">超極華祭</em><em class="f5">Pumpkin Night</em><em class="f4">Sapphire Breeze</em><em class="f1">極彩祭</em><em class="f2">極煌祭</em><em class="f3">極華祭</em> のキャラを手に入れると遊べます</small></div><a class="btn sm gold" href="../gacha.html">ガチャへ</a></div>';
       return;
     }
     $("#gSel").innerHTML = '<img src="../img/t_' + UI().imgName(sel) + '.webp" alt=""><div><small>出発するキャラ</small><b>' + esc(C.nm) + ' <em class="cc-rar r-' + C.rank + '">' + C.rank + "</em></b><span>" + ic("el_" + C.el) + "Lv." + MA.Save.lvOf(sel) + "・" + D().CTYPE[C.type].nm + '</span></div><button class="btn sm" data-a="fac" data-v="chars">変更</button>';
@@ -308,7 +308,8 @@
   };
   function drawSpritePreview(c, cid, mode) {
     if (!c) return;
-    const sp = MA.Pix.charSprite(cid);
+    /* ★★ 2026-10-22 キャラの紹介は HD ドット（2倍の細かさ・顔と横顔を描き直したもの）で見せる（ご指定「キャラを入手する意欲につながるので重点的に」） */
+    const sp = MA.Pix.charSpriteHD ? MA.Pix.charSpriteHD(cid) : MA.Pix.charSprite(cid);
     const g = c.getContext("2d"); g.imageSmoothingEnabled = false;
     let t = 0;
     const loop = () => {
@@ -322,7 +323,7 @@
       else if (ph === 2 && sp.side) { f = sp.side[Math.floor(t * 10) % 4]; flip = Math.floor(t / 1.6 / 4) % 2 === 1; }
       else if (ph === 3) f = Math.floor(t * 6) % 2 ? sp.atk : sp.idle[0];
       else f = sp.idle[(t % 3.2) > 3.05 ? 2 : Math.floor(t * 2) % 2];
-      const k = Math.floor(Math.min(c.width / sp.w, c.height / sp.h));
+      const k = Math.max(0.5, Math.floor(Math.min(c.width / sp.w, c.height / sp.h)));
       const x = Math.round((c.width - f.width * k) / 2), y = Math.round(c.height - f.height * k);
       if (flip) { g.save(); g.translate(c.width, 0); g.scale(-1, 1); g.drawImage(f, x, y, f.width * k, f.height * k); g.restore(); }
       else g.drawImage(f, x, y, f.width * k, f.height * k);
@@ -337,10 +338,11 @@
   /* ★★ 2026-10-07 Sapphire Breeze（UR）も使える（ご指定） */
   /* ★★ 2026-10-09 Pumpkin Night（UR）も使える（ご指定） */
   /* ★★ 2026-10-16 超極華祭（UR・MagiAbyss 専用）も使える（ご指定） */
-  const FES_CLS = { "極彩祭": "f1", "極煌祭": "f2", "極華祭": "f3", "Sapphire Breeze": "f4", "Pumpkin Night": "f5", "超極華祭": "f6" };
+  /* ★★ 2026-10-22 超極煌祭（UR・MagiAbyss 専用）も */
+  const FES_CLS = { "極彩祭": "f1", "極煌祭": "f2", "極華祭": "f3", "Sapphire Breeze": "f4", "Pumpkin Night": "f5", "超極華祭": "f6", "超極煌祭": "f7" };
   function fesBadge(C) { return '<em class="fes ' + (FES_CLS[C.fes] || "") + '">' + esc(C.fes) + "</em>"; }
   function fesInfo() {
-    return '<div class="fes-info">' + ic("star", "#ffd84a") + '<div><b>MagiAbyss で使えるキャラ</b><small>XEVARION のガチャ <em class="fes f6">超極華祭</em><em class="fes f5">Pumpkin Night</em><em class="fes f4">Sapphire Breeze</em><em class="fes f1">極彩祭</em><em class="fes f2">極煌祭</em><em class="fes f3">極華祭</em> で手に入るキャラ（' + D().CHAR_ORDER.length + "人）。持っているキャラだけで遊べます。凸は XEVARION と共通・レベルはこのアプリだけ。</small></div>" +
+    return '<div class="fes-info">' + ic("star", "#ffd84a") + '<div><b>MagiAbyss で使えるキャラ</b><small>XEVARION のガチャ <em class="fes f7">超極煌祭</em><em class="fes f6">超極華祭</em><em class="fes f5">Pumpkin Night</em><em class="fes f4">Sapphire Breeze</em><em class="fes f1">極彩祭</em><em class="fes f2">極煌祭</em><em class="fes f3">極華祭</em> で手に入るキャラ（' + D().CHAR_ORDER.length + "人）。持っているキャラだけで遊べます。凸は XEVARION と共通・レベルはこのアプリだけ。</small></div>" +
       '<a class="btn sm gold" href="../gacha.html">ガチャへ</a></div>';
   }
   let charFilter = "all";
@@ -354,7 +356,7 @@
       if (/^fes:/.test(charFilter)) return C.fes === charFilter.slice(4);
       return C.el === charFilter;
     });
-    const tabs = [["all", "すべて"], ["own", "所持（" + ownN + "）"], ["fes:超極華祭", "超極華祭"], ["fes:Pumpkin Night", "Pumpkin"], ["fes:Sapphire Breeze", "Sapphire"], ["fes:極彩祭", "極彩祭"], ["fes:極煌祭", "極煌祭"], ["fes:極華祭", "極華祭"]].concat(D().ELEM_KEYS.map((k) => [k, D().ELEM[k].nm]));
+    const tabs = [["all", "すべて"], ["own", "所持（" + ownN + "）"], ["fes:超極煌祭", "超極煌祭"], ["fes:超極華祭", "超極華祭"], ["fes:Pumpkin Night", "Pumpkin"], ["fes:Sapphire Breeze", "Sapphire"], ["fes:極彩祭", "極彩祭"], ["fes:極煌祭", "極煌祭"], ["fes:極華祭", "極華祭"]].concat(D().ELEM_KEYS.map((k) => [k, D().ELEM[k].nm]));
     const html = head("person", "キャラクター一覧（酒場）", "押すとくわしい性能。持っているキャラだけ出発できます", "#ff6a5a") + fesInfo() +
       '<div class="tabs">' + tabs.map(([k, n]) => '<button class="tab' + (charFilter === k ? " on" : "") + '" data-a="charFilter" data-v="' + k + '">' + (D().ELEM[k] ? ic("el_" + k) : "") + esc(n) + "</button>").join("") + "</div>" +
       '<div class="cgrid">' + list.map((id) => {
@@ -659,6 +661,8 @@
         "<div><span>通常攻撃</span>" + (MA.Input.touchDev ? '<small class="sub">スマホ・タブレットでは いつも自動で撃ちます（攻撃ボタンはありません）。</small>' : seg("autoAtk", [[true, "自動で撃つ"], [false, "押しているあいだ"]])) + "</div>" +
         "<div><span>敵の最大数（重いときは少なく）</span>" + seg("maxEnemies", [[30, "30"], [45, "45"], [60, "60"], [80, "80"]]) + "</div>" +
         "<div><span>画面の大きさ</span>" + seg("zoom", [["near", "大きく"], ["auto", "ふつう"], ["far", "広く"]]) + "</div>" +
+        /* ★★ 2026-10-22 2.5D（ご指定「2.5D 対応化・超絶きれいなグラフィック」）。重い端末は「軽め」か「2D」に */
+        "<div><span>グラフィック</span>" + seg("gfx", [["hd", "2.5D 高画質"], ["lite", "2.5D 軽め"], ["2d", "2D（従来）"]]) + '<small class="sub">2.5D は奥行きのある画面・光・ただよう粒子・HD ドットのキャラ。動きが重いときは「軽め」（光と粒子を少なく）か「2D」に。</small></div>' +
         "<div><span>遊び方</span><div class=\"row\"><button class=\"btn sm\" data-a=\"howto\">" + ic("info") + "遊び方の映像を見る</button></div></div>";
     } else if (setTab === "keys") {
       const k = MA.Input.keysNow();
@@ -753,7 +757,7 @@
     MA.Input.enabled = false;
     const s = S();
     $("#title").innerHTML = '<div class="tt-bg"></div><div class="tt-art"></div><div class="tt-shade"></div>' +
-      '<div class="tt-chars">' + ic("star", "#ffd84a") + '使えるキャラ：XEVARION の<b class="f6">超極華祭</b><b class="f5">Pumpkin Night</b><b class="f4">Sapphire Breeze</b><b class="f1">極彩祭</b><b class="f2">極煌祭</b><b class="f3">極華祭</b></div>' +
+      '<div class="tt-chars">' + ic("star", "#ffd84a") + '使えるキャラ：XEVARION の<b class="f7">超極煌祭</b><b class="f6">超極華祭</b><b class="f5">Pumpkin Night</b><b class="f4">Sapphire Breeze</b><b class="f1">極彩祭</b><b class="f2">極煌祭</b><b class="f3">極華祭</b></div>' +
       '<div class="tt-in">' +
       '<div class="tt-tap" id="ttTap">TAP TO START</div>' +
       '<div class="tt-menu" id="ttMenu" hidden>' +
@@ -828,7 +832,7 @@
   A.storySkip = () => { UI().closeModal(); checkResume(); };
   A.resumeRun = (el) => { const m = el.closest(".mdl"); const run = m._run; UI().closeModal(); startRun({ mode: run.mode, dun: run.dun, cid: run.cid, muts: run.muts, seed: run.seed, floor: run.floor, resume: run }); };
   A.resumeGiveUp = (el) => { const m = el.closest(".mdl"); const run = m._run; UI().closeModal(); const out = MA.Prog.settleAbandoned(run); UI().toast("中断した探索を受け取りました：" + fmt(out.gold) + "G" + Object.keys(out.mats).map((k) => "・" + D().MATS[k].nm + "×" + out.mats[k]).join(""), "#8affc4"); renderTop(); };
-  A.setv = (el) => { const k = el.dataset.v; let v = el.dataset.x; if (v === "true") v = true; else if (v === "false") v = false; else if (!isNaN(+v) && v !== "") v = +v; S().set[k] = v; MA.Save.saveSoon(); if (k === "zoom") { MA.Render.resize(); resizeHub(); } if (k === "stickSide" || k === "stickMode") MA.applyDeviceClasses(); refreshTop(); };
+  A.setv = (el) => { const k = el.dataset.v; let v = el.dataset.x; if (v === "true") v = true; else if (v === "false") v = false; else if (!isNaN(+v) && v !== "") v = +v; S().set[k] = v; MA.Save.saveSoon(); if (k === "zoom" || k === "gfx") { MA.Render.resize(); resizeHub(); } if (k === "stickSide" || k === "stickMode") MA.applyDeviceClasses(); refreshTop(); };
   A.setTab = (el) => { setTab = el.dataset.v; keyWait = null; MA.Input.capture = null; refreshTop(); };
   /* キーの割り当て：押したキーをその枠へ（ほかで使っていたら入れかえ） */
   A.keyCap = (el) => {

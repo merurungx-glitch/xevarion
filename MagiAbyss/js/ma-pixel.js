@@ -724,6 +724,89 @@
         { x: 1, y: 16, rows: [".D.", "DdD", ".D.", "..Y"] },
       ],
     },
+    /* ══ ★★ 2026-10-22 超極煌祭 ══ */
+    /* ── コハク（火）：外が黒・内が銀の長い髪（ぱっつん）・赤いリボン・白いシャツに赤い蝶ネクタイ・黒いスカート・紅い薔薇 ── */
+    kohaku: {
+      pal: { H: "#1c1a22", h: "#0e0d13", L: "#f2eff6", E: "#7d8ad0", A: "#f8f6fb", a: "#d2cde0", C: "#d0162e", c: "#8e0c1e",
+             D: "#e01c38", d: "#950f24", G: "#e6e2ee", P: "#1e1c26", p: "#0f0e14", O: "#1a1820", o: "#0c0b10",
+             X: "#ff2a44", x: "#a8102a", Y: "#2f8a4a", K: "#140f18" },
+      legY: 23,
+      layers: [
+        backLong(25),
+        /* 内側の銀の髪（インナーカラー） */
+        { x: 7, y: 14, rows: ["G........G", "G........G", "G........G", "G........G", "G........G", "G........G", "G........G", "G........G", "G........G", "G........G"] },
+        { x: 6, y: 14, rows: [
+          ".AAAACCAAAA.",
+          "AAAACCCCAAAA",
+          "A.AAACCAAA.A",
+          "a.AaAAAAaA.a",
+          "A.AAAAAAAA.A",
+          "A.AAAAAAAA.A",
+        ].concat(BOTTOM_SKIRT) },
+        "FACE",
+        frontStraight(14),
+        /* 銀のひと房（顔のまわり） */
+        { x: 17, y: 9, rows: ["G", "G", "G", "G"] },
+        /* 赤いリボン */
+        { x: 15, y: 1, rows: ["D.D", "DdD", "d.d"] },
+        /* 左手の紅い薔薇 */
+        { x: 1, y: 16, rows: [".X.", "XxX", ".X.", "..Y"] },
+      ],
+    },
+    /* ── スズ（木）：長い黒髪・大きな麦わら帽子（白いリボン）・白いワンピース・白い花 ── */
+    suzu: {
+      pal: { H: "#1c1d2c", h: "#0f1018", L: "#5c6c9c", E: "#4a8ef0", A: "#fcfcff", a: "#d8dce8", C: "#ecca8e", c: "#c49a5a",
+             D: "#ffffff", d: "#d0d4e0", G: "#ecca8e", P: "#fcfcff", p: "#d8dce8", O: "#ecdcc4", o: "#b8a080",
+             X: "#ffffff", x: "#ffd84a", Y: "#3fbf6e", K: "#121420" },
+      legY: 23,
+      layers: [
+        backLong(25, true),
+        { x: 6, y: 14, rows: [
+          ".SSASSSSASS.",
+          "SSAAAAAAAASS",
+          "S.AAAAAAAA.S",
+          "s.AaAAAAaA.s",
+          "S.AAAAAAAA.S",
+          "S.AAAAAAAA.S",
+        ].concat(BOTTOM_SKIRT) },
+        "FACE",
+        frontStraight(14),
+        /* 麦わら帽子（白いリボン） */
+        { x: 1, y: 0, rows: [
+          "......CCCCCCCCCC......",
+          ".....CCCCCCCCCCCC.....",
+          "....cDDDDDDDDDDDDc....",
+          "CCCCCCCCCCCCCCCCCCCCCC",
+          ".cccccccccccccccccccc.",
+        ] },
+        /* 左手の白い花 */
+        { x: 1, y: 16, rows: [".X.", "XxX", ".X.", "..Y"] },
+      ],
+    },
+    /* ── ショウコ（光）：小麦色の肌・毛先が金の焦げ茶ショート・琥珀の瞳・黒いビキニ・デニムのショートパンツ・ハイビスカス ── */
+    shouko: {
+      pal: { S: "#c98c5e", s: "#a26a42", B: "#e0786a", H: "#3a2a22", h: "#22170f", L: "#e0a848", E: "#d8a030",
+             A: "#1a1a20", a: "#0c0c10", C: "#4a7ac8", c: "#2f5a9a", D: "#ff5a6a", d: "#c83a4a",
+             P: "#4a7ac8", p: "#2f5a9a", O: "#ecdcc4", o: "#b8a080", X: "#ffd84a", x: "#ff8a3d", Y: "#3fbf6e", K: "#1a1210" },
+      legY: 23,
+      layers: [
+        backBob(),
+        { x: 6, y: 14, rows: [
+          ".SSASSSSASS.",
+          "SSAAAAAAAASS",
+          "S.AAAssAAA.S",
+          "s.SSSSSSSS.s",
+          "S.SSSssSSS.S",
+          "S.SSSSSSSS.S",
+        ].concat(BOTTOM_SHORTS) },
+        "FACE",
+        frontBob(true),
+        /* 毛先の金 */
+        { x: 4, y: 12, rows: [".L............L.", "L..............L"] },
+        /* ハイビスカスの髪かざり */
+        { x: 15, y: 2, rows: [".D.", "DdD", ".D."] },
+      ],
+    },
     /* ── カオリ（闇）：紫の長い髪・オレンジの魔女帽・オレンジと黒の服・おばけ ── */
     kaori: {
       pal: { H: "#6a3a8a", h: "#42205a", L: "#a07ac8", E: "#ff6a5a", A: "#ff8a1f", a: "#c85a10", C: "#1e1428", c: "#100a16",
@@ -1161,6 +1244,10 @@
     nonoka:  { hair: "bob", top: "uniform", arm: "C", bottom: "skirt", prop: "orb" },
     aina:    { hair: "long", len: 25, wavy: 1, top: "gothic", arm: "A", bottom: "dress", prop: "orb", acc: "rose" },
     yuna:    { hair: "long", len: 25, top: "blouse", arm: "A", bottom: "skirt", prop: "orb", acc: "rose", susp: 1 },
+    /* ★★ 2026-10-22 超極煌祭（acc：strawhat 麦わら帽子・top：bikini） */
+    kohaku:  { hair: "long", len: 25, top: "blouse", arm: "A", bottom: "skirt", prop: "flame", acc: "rose", ribbon: 1 },
+    suzu:    { hair: "long", len: 24, wavy: 1, top: "blouse", arm: "S", bottom: "dress", prop: "orb", acc: "strawhat" },
+    shouko:  { hair: "bob", top: "bikini", arm: "S", bottom: "shorts", acc: "pin" },
     generic: { hair: "long", len: 23, top: "tank", arm: "S", bottom: "skirt" },
   };
   function sideBuf(pal0, sd, ph, legY0) {
@@ -1238,6 +1325,7 @@
     else if (T === "turtle") { torso("A", "a"); put(11, 13 + dy, "A"); put(12, 13 + dy, "A"); put(14, 17 + dy, "G"); put(14, 18 + dy, "G"); put(13, 17 + dy, "g"); put(14, 19 + dy, "G"); }
     else if (T === "gothic") { torso("A", "a"); box(9, 18 + dy, 14, 18 + dy, "C"); put(13, 14 + dy, "C"); put(14, 14 + dy, "C"); }
     else if (T === "uniform") { torso("A", "a"); box(9, 14 + dy, 11, 15 + dy, "C"); put(14, 15 + dy, "D"); put(15, 16 + dy, "D"); put(14, 16 + dy, "D"); }
+    else if (T === "bikini") { torso("S", "s"); box(9, 14 + dy, 14, 16 + dy, "A"); put(9, 16 + dy, "a"); put(12, 19 + dy, "s"); }   /* ★★ 2026-10-22 ショウコ */
     else if (T === "scarf") { torso("A", "a"); box(9, 13 + dy, 15, 14 + dy, "D"); put(15, 15 + dy, "D"); put(15, 16 + dy, "d"); put(16, 15 + dy, "d"); }   /* ★★ 2026-10-09 ユウミ */
     else torso("A", "a");
     if (sd.susp) { for (let y = 14; y <= legY - 1; y++) put(12, y + dy, "C"); }
@@ -1286,6 +1374,14 @@
     }
     if (sd.acc === "cat") { put(9, 1 + hy, "H"); put(9, 2 + hy, "H"); put(10, 2 + hy, "D"); put(14, 1 + hy, "H"); put(14, 2 + hy, "H"); put(13, 2 + hy, "D"); }
     if (sd.acc === "bonnet") { for (let y = 2; y <= 10; y++) for (let x = 6; x <= 10; x++) put(x, y + hy, (x === 6 || y === 2) ? "d" : "D"); for (let x = 7; x <= 15; x++) put(x, 2 + hy, "D"); put(12, 13 + hy, "G"); put(13, 14 + hy, "G"); }
+    /* ★★ 2026-10-22 麦わら帽子（スズ）：つばは横に大きく・白いリボン */
+    if (sd.acc === "strawhat") {
+      for (let x = 3; x <= 21; x++) put(x, 3 + hy, (x === 3 || x === 21) ? "c" : "C");
+      for (let x = 5; x <= 19; x++) put(x, 4 + hy, "c");
+      for (let x = 8; x <= 16; x++) { put(x, 1 + hy, "C"); put(x, 2 + hy, "D"); }
+      for (let x = 9; x <= 15; x++) put(x, 0 + hy, "C");
+      put(7, 2 + hy, "D"); put(6, 3 + hy, "D"); put(6, 4 + hy, "d");
+    }
     if (sd.acc === "clover") { put(8, 3 + hy, "D"); put(9, 3 + hy, "D"); put(8, 4 + hy, "D"); put(9, 4 + hy, "d"); }
     if (sd.acc === "bandage") { for (let x = 7; x <= 17; x++) { put(x, 4 + hy, "C"); if (x % 3 === 0) put(x, 5 + hy, "c"); } }
     if (sd.prop === "takina" || sd.hair === "pony") { put(7, 3 + hy, "D"); put(7, 4 + hy, "D"); }
@@ -1387,6 +1483,8 @@
     mai: [0.46, 0.26, 0.34], chinatsu: [0.40, 0.25, 0.33], yuumi: [0.36, 0.20, 0.34], rina: [0.42, 0.22, 0.34], kaori: [0.36, 0.28, 0.34],
     /* ★★ 2026-10-16 超極華祭 */
     chie: [0.26, 0.12, 0.34], ichika: [0.36, 0.12, 0.30], nonoka: [0.28, 0.12, 0.36], aina: [0.40, 0.24, 0.36], yuna: [0.34, 0.16, 0.36],
+    /* ★★ 2026-10-22 超極煌祭 */
+    kohaku: [0.30, 0.20, 0.36], suzu: [0.38, 0.22, 0.32], shouko: [0.38, 0.13, 0.34],
   };
   const portraitCache = {};
   function portrait(id, file, size, cb) {
@@ -1424,9 +1522,265 @@
   }
   const PARTS = { FACE, frontStraight, frontSwept, backLong, backBob, frontBob, outfitTank, BOTTOM_SHORTS, BOTTOM_SKIRT, BOTTOM_PANTS, BOTTOM_BOOTS_SKIRT };
 
+  /* ══════════════════════════════════════════════════════════════
+     ★★ 2026-10-22 HD ドット（ご指定「キャラをより細かく設計し、特に横顔がかわいく見えるように。入手意欲につながるので重点的に」）
+     ------------------------------------------------------------
+     今までの 24×30 の絵（パーツの方眼）を土台に、<b>2倍の細かさ（48×60）</b>の絵を作る。描く大きさは今までと同じ（2.5D の画面で1画素＝0.5ドット）。
+     ① 2倍にするときに斜めの段差をなめらかに（EPX／Scale2x：となりの色を見て角を丸める）
+     ② 正面の顔を2倍の細かさで描き直す：大きな瞳（上は濃く・下は明るく）・ハイライト・まつげのはね・ほほ・小さな「にこっ」とした口。
+        前髪の下には描かない（前髪の画素は残す）＝前髪が瞳にかかる絵はそのまま
+     ③ 横顔（走る絵）は輪郭を彫りなおす：おでこ → 小さな鼻先 → くちびる → あご → 首。横向きの瞳（まつげが前にはねる）・ほほ・耳
+     ④ 光：左上のふちを明るく・右下を少し暗く（立体感）。前髪に天使の輪
+     ⑤ 輪郭線は<b>色つき</b>（となりの色を暗くした線）＝真っ黒なふち取りより、やわらかく細い
+     ★ 画像は作らない（いままでどおり方眼から計算）。新しいキャラも CHAR_ART／SIDE を書けば自動で HD になる。
+     ══════════════════════════════════════════════════════════════ */
+  const HD = 2;
+  function px32(b, x, y) {
+    if (x < 0 || y < 0 || x >= b.w || y >= b.h) return 0;
+    const i = (y * b.w + x) * 4;
+    return b.d[i + 3] ? (((b.d[i] << 24) | (b.d[i + 1] << 16) | (b.d[i + 2] << 8) | b.d[i + 3]) >>> 0) : 0;
+  }
+  /* EPX（Scale2x）：P のまわり A（上）B（右）C（左）D（下）で角を決める */
+  function epx(b) {
+    const o = mkBuf(b.w * 2, b.h * 2);
+    const cp = (dx, dy, sx, sy) => {
+      if (sx < 0 || sy < 0 || sx >= b.w || sy >= b.h) return;
+      const si = (sy * b.w + sx) * 4;
+      if (!b.d[si + 3]) return;
+      o.d.set(b.d.subarray(si, si + 4), (dy * o.w + dx) * 4);
+    };
+    for (let y = 0; y < b.h; y++) for (let x = 0; x < b.w; x++) {
+      const A = px32(b, x, y - 1), B = px32(b, x + 1, y), C = px32(b, x - 1, y), D = px32(b, x, y + 1);
+      const ox = x * 2, oy = y * 2;
+      if (C === A && C !== D && A !== B) cp(ox, oy, x, y - 1); else cp(ox, oy, x, y);
+      if (A === B && A !== C && B !== D) cp(ox + 1, oy, x + 1, y); else cp(ox + 1, oy, x, y);
+      if (D === C && D !== B && C !== A) cp(ox, oy + 1, x - 1, y); else cp(ox, oy + 1, x, y);
+      if (B === D && B !== A && D !== C) cp(ox + 1, oy + 1, x, y + 1); else cp(ox + 1, oy + 1, x, y);
+    }
+    return o;
+  }
+  function getRGB(b, x, y) { if (x < 0 || y < 0 || x >= b.w || y >= b.h) return null; const i = (y * b.w + x) * 4; return b.d[i + 3] ? [b.d[i], b.d[i + 1], b.d[i + 2]] : null; }
+  function sameRGB(a, c) { return !!a && !!c && a[0] === c[0] && a[1] === c[1] && a[2] === c[2]; }
+  function setRGB(b, x, y, c, a) {
+    if (x < 0 || y < 0 || x >= b.w || y >= b.h || !c) return;
+    const i = (y * b.w + x) * 4;
+    if (a != null && a < 1 && b.d[i + 3]) { b.d[i] = Math.round(b.d[i] + (c[0] - b.d[i]) * a); b.d[i + 1] = Math.round(b.d[i + 1] + (c[1] - b.d[i + 1]) * a); b.d[i + 2] = Math.round(b.d[i + 2] + (c[2] - b.d[i + 2]) * a); return; }
+    b.d[i] = c[0]; b.d[i + 1] = c[1]; b.d[i + 2] = c[2]; b.d[i + 3] = 255;
+  }
+  function clearPx(b, x, y) { if (x < 0 || y < 0 || x >= b.w || y >= b.h) return; b.d[(y * b.w + x) * 4 + 3] = 0; }
+  /* 顔に使う色（パレットから） */
+  function facePal(pal) {
+    const c = (k, d) => hex(String(pal[k] || d).slice(0, 7));
+    return {
+      S: c("S", "#f8d8c4"), s: c("s", "#e2a891"), K: c("K", "#14111c"), E: c("E", "#5a6ad0"), W: [255, 255, 255],
+      B: c("B", "#f49aaa"), M: c("M", "#c4566a"),
+      eD: hex(shade(String(pal.E || "#5a6ad0").slice(0, 7), 0.5)), eL: hex(mix(String(pal.E || "#5a6ad0").slice(0, 7), "#ffffff", 0.5)),
+      lash: hex(mix(String(pal.K || "#14111c").slice(0, 7), String(pal.H || "#14111c").slice(0, 7), 0.25)),
+      hair: ["H", "h", "L", "G"].filter((k) => pal[k]).map((k) => hex(String(pal[k]).slice(0, 7))),
+      old: ["K", "E", "W", "B", "M"].filter((k) => pal[k]).map((k) => hex(String(pal[k]).slice(0, 7))),
+    };
+  }
+  function isHairPx(o, x, y, F) { const c = getRGB(o, x, y); return !!c && F.hair.some((h) => sameRGB(h, c)) && !sameRGB(c, F.S) && !sameRGB(c, F.s); }
+  function isSkinPx(o, x, y, F) { const c = getRGB(o, x, y); return !!c && (sameRGB(c, F.S) || sameRGB(c, F.s)); }
+  /* 古い1倍の目・口・ほほを肌に戻す（決めた四角の中だけ・髪の色は消さない） */
+  function clearOld(o, F, x0, y0, x1, y1) {
+    for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
+      const c = getRGB(o, x, y); if (!c) continue;
+      if (F.hair.some((h) => sameRGB(h, c))) continue;
+      if (F.old.some((k) => sameRGB(k, c))) setRGB(o, x, y, F.S);
+    }
+  }
+  /* 方眼の文字で顔を描く（肌の画素にだけ描く＝前髪・小物は残す）。'.' は描かない */
+  function stamp(o, F, ox, oy, rows, map) {
+    for (let j = 0; j < rows.length; j++) for (let i = 0; i < rows[j].length; i++) {
+      const ch = rows[j][i]; if (ch === "." || ch === " ") continue;
+      const x = ox + i, y = oy + j;
+      if (!isSkinPx(o, x, y, F)) continue;
+      const m = map[ch]; if (!m) continue;
+      setRGB(o, x, y, m[0], m[1]);
+    }
+  }
+  /* 正面の顔（dx, dy は1倍の絵での顔のずれ） */
+  function hdFaceFront(o, pal, dx, dy, closed) {
+    const F = facePal(pal), X = dx * HD, Y = dy * HD;
+    clearOld(o, F, 15 + X, 15 + Y, 32 + X, 24 + Y);
+    const map = { K: [F.lash], k: [F.lash, 0.55], e: [F.eD], E: [F.E], i: [F.eL], W: [F.W], B: [F.B, 0.7], b: [F.B, 0.4], M: [F.M], m: [F.M, 0.55], s: [F.s, 0.7] };
+    if (closed) {
+      /* まばたき：やわらかく下に丸い線（にっこり目） */
+      stamp(o, F, 15 + X, 17 + Y, ["k.....", ".K..K.", "..KK.."], map);
+      stamp(o, F, 27 + X, 17 + Y, [".....k", ".K..K.", "..KK.."], map);
+    } else {
+      /* 左の目（外側＝左にまつげのはね）・右の目（外側＝右）。ハイライトはどちらも左上（光の向きをそろえる） */
+      stamp(o, F, 15 + X, 15 + Y, ["K.....", ".KKKK.", ".WeeeK", ".eeee.", ".EEWE.", ".EiiE.", "..ss.."], map);
+      stamp(o, F, 27 + X, 15 + Y, [".....K", ".KKKK.", "KWeee.", ".eeee.", ".EEWE.", ".EiiE.", "..ss.."], map);
+    }
+    /* ほほ・鼻・口（「にこっ」） */
+    stamp(o, F, 15 + X, 22 + Y, [".BBb.........bBB."], map);
+    stamp(o, F, 22 + X, 21 + Y, ["..s.", "m..m", ".MM."], map);
+  }
+  /* 横顔（右向き・dx, dy は1倍の絵でのずれ）
+     ★ 子どもっぽくかわいい横顔の形：前はほぼまっすぐ（おでこは前髪の下）→ 1画素だけの小さな鼻 → 口のへこみ → 小さく丸いあご → 首。
+       瞳は顔の下半分に大きく（5画素の高さ）・まつげは前へはねる・ほほに赤み。前髪は斜めに流してひたいをかくす。 */
+  const SIDE_FRONT = { 13: 33, 14: 34, 15: 35, 16: 35, 17: 35, 18: 35, 19: 35, 20: 35, 21: 36, 22: 36, 23: 35, 24: 34, 25: 34, 26: 33, 27: 32, 28: 30, 29: 27 };
+  const SIDE_FRINGE = { 13: 34, 14: 34, 15: 33, 16: 31 };
+  function hdFaceSide(o, pal, dx, dy) {
+    const F = facePal(pal), X = dx * HD, Y = dy * HD;
+    const H = pal.H ? hex(String(pal.H).slice(0, 7)) : null, h2 = pal.h ? hex(String(pal.h).slice(0, 7)) : H;
+    const Lh = H ? hex(mix(String(pal.H).slice(0, 7), "#ffffff", 0.3)) : null;
+    clearOld(o, F, 26 + X, 14 + Y, 38 + X, 28 + Y);
+    const isFeat = (x, y) => { const c = getRGB(o, x, y); return !!c && (sameRGB(c, F.M) || sameRGB(c, F.B) || F.old.some((k) => sameRGB(k, c))); };
+    /* ① 輪郭：決めた前のはしまで肌で埋め、その先の肌・古い目口はけずる（髪・小物・服はさわらない） */
+    Object.keys(SIDE_FRONT).forEach((k) => {
+      const y = +k + Y, fx = SIDE_FRONT[k] + X;
+      for (let x = 25 + X; x <= fx; x++) { const c = getRGB(o, x, y); if (!c || isFeat(x, y)) setRGB(o, x, y, F.S); }
+      for (let x = fx + 1; x <= 41 + X; x++) { if (isSkinPx(o, x, y, F) || isFeat(x, y)) clearPx(o, x, y); }
+    });
+    /* ② 前髪：ひたいを斜めにかくす（肌の上にだけ描く） */
+    if (H) Object.keys(SIDE_FRINGE).forEach((k) => {
+      const y = +k + Y, fx = SIDE_FRINGE[k] + X;
+      for (let x = 24 + X; x <= fx; x++) if (isSkinPx(o, x, y, F)) setRGB(o, x, y, (x === fx || +k >= 16) ? h2 : H);
+    });
+    /* ③ 頭のてっぺんの前と後ろの角を丸く（髪の色の画素だけけずる＝帽子・リボンなどの小物は残す） */
+    if (H) {
+      const hairC = F.hair;
+      for (let y = 2; y <= 11; y++) {
+        const dyc = y - 16.5, w = Math.sqrt(Math.max(0, 12.8 * 12.8 - dyc * dyc));
+        for (let x = 6; x <= 42; x++) {
+          if (x >= 24.5 - w && x <= 24.5 + w) continue;
+          const c = getRGB(o, x + X, y + Y);
+          if (c && hairC.some((hc) => sameRGB(hc, c))) clearPx(o, x + X, y + Y);
+        }
+      }
+    }
+    const map = { K: [F.lash], k: [F.lash, 0.55], e: [F.eD], E: [F.E], i: [F.eL], W: [F.W], B: [F.B, 0.75], b: [F.B, 0.4], M: [F.M], m: [F.M, 0.55], s: [F.s, 0.8], t: [F.s, 0.45] };
+    /* ③ 横向きの大きな瞳（まつげは前へはねる・ハイライトは後ろ寄り） */
+    stamp(o, F, 28 + X, 17 + Y, [".KKKKKk", "KWeeeK.", ".eWee..", ".EEEE..", ".EiiE..", "..EE..."], map);
+    /* 横の髪（ほおの後ろ・耳をかくす）＝顔のまわりを髪でかこんで小顔に */
+    if (H) for (let y = 14; y <= 24; y++) for (let x = 24; x <= (y >= 22 ? 24 : 25); x++) if (isSkinPx(o, x + X, y + Y, F)) setRGB(o, x + X, y + Y, x === 25 || y >= 22 ? h2 : H);
+    /* ④ ほほ・鼻の下・口・あごの陰・首 */
+    stamp(o, F, 29 + X, 23 + Y, ["bBBb"], map);
+    stamp(o, F, 35 + X, 23 + Y, ["t"], map);
+    stamp(o, F, 33 + X, 25 + Y, [".M", "m."], map);
+    stamp(o, F, 27 + X, 28 + Y, ["tssst"], map);
+  }
+  /* 前髪の天使の輪（H の画素だけを L の色に寄せる） */
+  function hdHairShine(o, pal, dx, dy) {
+    if (!pal.H) return;
+    const H = hex(String(pal.H).slice(0, 7)), L = hex(mix(String(pal.H).slice(0, 7), "#ffffff", 0.34));
+    const X = dx * HD, Y = dy * HD;
+    for (let x = 12; x <= 35; x++) {
+      const t = (x - 23.5) / 11.5, y = Math.round(8 + t * t * 3) + Y;
+      if (sameRGB(getRGB(o, x + X, y), H)) setRGB(o, x + X, y, L, 0.55);
+      if (Math.abs(t) < 0.75 && sameRGB(getRGB(o, x + X, y + 1), H)) setRGB(o, x + X, y + 1, L, 0.25);
+    }
+  }
+  /* 光：左上のふちを明るく・右下を少し暗く */
+  function hdLight(o) {
+    const src = cloneBuf(o);
+    const a = (x, y) => { if (x < 0 || y < 0 || x >= src.w || y >= src.h) return 0; return src.d[(y * src.w + x) * 4 + 3]; };
+    for (let y = 0; y < o.h; y++) for (let x = 0; x < o.w; x++) {
+      const i = (y * o.w + x) * 4; if (!src.d[i + 3]) continue;
+      let k = 1;
+      if (!a(x - 1, y) || !a(x, y - 1)) k = 1.13;
+      else if (!a(x + 1, y) || !a(x, y + 1)) k = 0.86;
+      if (k === 1) continue;
+      o.d[i] = Math.min(255, o.d[i] * k); o.d[i + 1] = Math.min(255, o.d[i + 1] * k); o.d[i + 2] = Math.min(255, o.d[i + 2] * k);
+    }
+  }
+  /* 色つきの輪郭線（となりの色を暗くして、線の色へ寄せる） */
+  function hdOutline(o, ink) {
+    const K = hex(String(ink || "#14111c").slice(0, 7)), src = cloneBuf(o);
+    const g = (x, y) => getRGB(src, x, y);
+    for (let y = 0; y < o.h; y++) for (let x = 0; x < o.w; x++) {
+      if (g(x, y)) continue;
+      const n = g(x, y - 1) || g(x - 1, y) || g(x + 1, y) || g(x, y + 1);
+      if (!n) continue;
+      setRGB(o, x, y, [Math.round(n[0] * 0.32 + K[0] * 0.5), Math.round(n[1] * 0.32 + K[1] * 0.5), Math.round(n[2] * 0.32 + K[2] * 0.5)]);
+    }
+    return o;
+  }
+  /* 1倍の絵（輪郭線の前）→ HD のコマ */
+  function hdFrame(b1, faces, pal, opt) {
+    const o = epx(b1);
+    (faces || []).forEach((f) => {
+      if (f.side) hdFaceSide(o, f.pal || pal, f.dx || 0, f.dy || 0);
+      else { hdFaceFront(o, f.pal || pal, f.dx || 0, f.dy || 0, f.closed); hdHairShine(o, f.pal || pal, f.dx || 0, f.dy || 0); }
+    });
+    hdLight(o);
+    hdOutline(o, (opt && opt.ink) || pal.K);
+    if (opt && opt.white) { const w = whiteOf(o); return bufToCanvas(w); }
+    return bufToCanvas(o);
+  }
+  const hdCache = {};
+  function charSpriteHD(id) {
+    if (hdCache[id]) return hdCache[id];
+    const def = CHAR_ART[id] || genericArt(id);
+    let res;
+    try {
+      const legY = def.legY || 23;
+      let base, blink, pal, faceAt;
+      if (def.duo) {
+        /* ふたり：奥（右）＋手前（左）。顔は2人ぶん */
+        const W = 32;
+        const mk = (blinkIt) => {
+          const bk = (blinkIt ? composeBlink : composeChar)(def.back).buf, fr = (blinkIt ? composeBlink : composeChar)(def.front).buf;
+          const b = mkBuf(W, CH);
+          const put = (src, ox, oy) => { for (let y = 0; y < src.h; y++) for (let x = 0; x < src.w; x++) { const i = (y * src.w + x) * 4; if (!src.d[i + 3]) continue; const nx = x + ox, ny = y + oy; if (nx < 0 || nx >= W || ny < 0 || ny >= CH) continue; b.d.set(src.d.subarray(i, i + 4), (ny * W + nx) * 4); } };
+          put(outlineBuf(bk, def.back.pal.K), 8, -1); put(fr, 0, 0);
+          return b;
+        };
+        base = mk(false); blink = mk(true);
+        pal = Object.assign({}, BASE_PAL, def.front.pal);
+        const palB = Object.assign({}, BASE_PAL, def.back.pal);
+        faceAt = (dx, dy, closed) => [{ pal: palB, dx: dx + 8, dy: dy - 1, closed }, { pal, dx, dy, closed }];
+      } else {
+        base = composeChar(def).buf; blink = composeBlink(def).buf;
+        pal = Object.assign({}, BASE_PAL, def.pal);
+        faceAt = (dx, dy, closed) => [{ pal, dx, dy, closed }];
+      }
+      const W = base.w, mid = W / 2;
+      const up = (b) => shiftWhere(b, (x, y) => y < legY, 0, -1);
+      const walk = def.robe
+        ? [[base, 0], [shiftWhere(up(base), (x, y) => y >= legY - 3, 1, 0), -1], [base, 0], [shiftWhere(up(base), (x, y) => y >= legY - 3, -1, 0), -1]]
+        : [[base, 0], [shiftWhere(up(base), (x, y) => y >= legY && x < mid, 0, -1), -1], [base, 0], [shiftWhere(up(base), (x, y) => y >= legY && x >= mid, 0, -1), -1]];
+      const ink = pal.K || "#14111c";
+      res = {
+        hd: HD,
+        idle: [hdFrame(base, faceAt(0, 0), pal, { ink }), hdFrame(shiftWhere(base, (x, y) => y < legY - 2, 0, 1), faceAt(0, 1), pal, { ink }), hdFrame(blink, faceAt(0, 0, true), pal, { ink })],
+        walk: walk.map(([b, dy]) => hdFrame(b, faceAt(0, dy), pal, { ink })),
+        atk: hdFrame(shiftWhere(base, (x, y) => y < 14, 1, 0), faceAt(1, 0), pal, { ink }),
+        hurt: hdFrame(base, [], pal, { ink, white: true }),
+      };
+      res.w = W * HD; res.h = CH * HD;
+      /* 横向きに走る4コマ（右向き） */
+      try {
+        if (def.duo) {
+          const Wd = 32;
+          res.side = [0, 1, 2, 3].map((ph) => {
+            const bk = outlineBuf(sideBuf(def.back.pal, SIDE.duoBack, (ph + 2) % 4, 23), def.back.pal.K);
+            const fr = sideBuf(def.front.pal, SIDE.duoFront, ph, 23);
+            const b = mkBuf(Wd, CH);
+            const put2 = (src, ox, oy) => { for (let y = 0; y < src.h; y++) for (let x = 0; x < src.w; x++) { const i = (y * src.w + x) * 4; if (!src.d[i + 3]) continue; const nx = x + ox, ny = y + oy; if (nx < 0 || nx >= Wd || ny < 0 || ny >= CH) continue; b.d.set(src.d.subarray(i, i + 4), (ny * Wd + nx) * 4); } };
+            put2(bk, 1, -1); put2(fr, 8, 0);
+            const dy = ph % 2 === 1 ? -1 : 0;
+            return hdFrame(b, [{ side: 1, pal: Object.assign({}, BASE_PAL, def.back.pal), dx: 1, dy: dy - 1 + ((ph + 2) % 4 % 2 === 1 ? -1 : 0) - (dy) }, { side: 1, pal, dx: 8, dy }], pal, { ink });
+          });
+        } else {
+          const sd = SIDE[CHAR_ART[id] ? id : "generic"] || SIDE.generic;
+          res.side = [0, 1, 2, 3].map((ph) => hdFrame(sideBuf(def.pal, sd, ph, def.legY || 23), [{ side: 1, pal, dx: 0, dy: ph % 2 === 1 ? -1 : 0 }], pal, { ink }));
+        }
+      } catch (e) { res.side = null; }
+    } catch (e) {
+      /* 作れなかったときは今までの絵（1倍） */
+      res = charSprite(id);
+    }
+    hdCache[id] = res;
+    return res;
+  }
+
   MA.Pix = {
     hex, toHex, shade, mix, rgba, mkCanvas, mkBuf, bufToCanvas, setPx, outlineBuf, shiftWhere, whiteOf,
-    drawLayer, pixelize, framesFrom, textSprite, shortNum, charSprite, portrait, CHAR_ART, FACE_BOX, CW, CH, SIDE,
+    drawLayer, pixelize, framesFrom, textSprite, shortNum, charSprite, charSpriteHD, portrait, CHAR_ART, FACE_BOX, CW, CH, SIDE,
     spriteFromDef, PARTS,
   };
 })();

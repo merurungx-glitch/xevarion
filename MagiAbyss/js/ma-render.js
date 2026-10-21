@@ -14,6 +14,11 @@
   const TS = 16, CH = 32;
   let cv = null, ctx = null;
   let chunks = {}, chunkDirty = true;
+  /* ★★ 2026-10-22 2.5D（ma-render25.js）から、この中の描きかたを借りる：描く先（ctx）の差しかえと HD ドットの切りかえ */
+  let HDS = false;
+  function useCtx(c) { const p = ctx; ctx = c; return p; }
+  function setHD(v) { HDS = !!v; }
+  function charSp(id) { return HDS && MA.Pix.charSpriteHD ? MA.Pix.charSpriteHD(id) : MA.Pix.charSprite(id); }
 
   let bound = false;
   function init(canvas) {
@@ -234,21 +239,29 @@
     ctx.drawImage(f, Math.round(d.x * TS + 8 - f.width / 2 - camX), Math.round(d.y * TS + 15 - f.height - camY));
   }
   function shadow(x, y, w) { ctx.fillStyle = "rgba(0,0,0,.3)"; ctx.beginPath(); ctx.ellipse(x, y, w, w * 0.4, 0, 0, TAU); ctx.fill(); }
-  function drawPlayer(P, camX, camY) {
+  function drawPlayer(P, camX, camY, _u, ghostOnly) {
     const g = G();
-    const sp = MA.Pix.charSprite(P.cid);
+    const sp = charSp(P.cid), kk = sp.hd ? 1 / sp.hd : 1;   /* ★★ 2026-10-22 HD ドットは半分の大きさで描く（＝同じ大きさで2倍の細かさ） */
     let f;
     if (P.hurtT > 0 && Math.floor(P.hurtT * 30) % 2 === 0) f = sp.hurt;
     else if (P.atkAnim > 0) f = sp.atk;
     else if (P.moving && P.side && sp.side) f = sp.side[Math.floor(P.walkT * 10) % 4];
     else if (P.moving) f = sp.walk[Math.floor(P.walkT * 9) % 4];
     else { const it = Math.floor(g.t * 2) % 2; f = sp.idle[(g.t % 3.2) > 3.05 ? 2 : it]; }
-    const x = Math.round(P.x - camX), y = Math.round(P.y - camY);
+    const x = Math.round(P.x - camX), y = Math.round(P.y - camY), fw = f.width * kk, fh = f.height * kk;
+    if (ghostOnly) {
+      /* ★★ 2026-10-22 壁の向こうでも見えるように重ねる「うすい自分」（影・ねらいの印は描かない） */
+      const a0 = ctx.globalAlpha;
+      if (P.face < 0) { ctx.save(); ctx.translate(x, 0); ctx.scale(-1, 1); ctx.drawImage(f, -Math.floor(fw / 2), y - fh + 4, fw, fh); ctx.restore(); }
+      else ctx.drawImage(f, x - Math.floor(fw / 2), y - fh + 4, fw, fh);
+      ctx.globalAlpha = a0;
+      return;
+    }
     shadow(x, y + 2, 7);
-    if (P.dashT > 0) { ctx.globalAlpha = 0.35; ctx.drawImage(f, x - f.width / 2 - Math.sign(P.dvx) * 8, y - f.height + 4); ctx.globalAlpha = 1; }
+    if (P.dashT > 0) { ctx.globalAlpha = 0.35; ctx.drawImage(f, x - fw / 2 - Math.sign(P.dvx) * 8, y - fh + 4, fw, fh); ctx.globalAlpha = 1; }
     if (P.iT > 0 && P.hurtT <= 0 && Math.floor(P.iT * 20) % 2 === 0) ctx.globalAlpha = 0.6;
-    if (P.face < 0) { ctx.save(); ctx.translate(x, 0); ctx.scale(-1, 1); ctx.drawImage(f, -Math.floor(f.width / 2), y - f.height + 4); ctx.restore(); }
-    else ctx.drawImage(f, x - Math.floor(f.width / 2), y - f.height + 4);
+    if (P.face < 0) { ctx.save(); ctx.translate(x, 0); ctx.scale(-1, 1); ctx.drawImage(f, -Math.floor(fw / 2), y - fh + 4, fw, fh); ctx.restore(); }
+    else ctx.drawImage(f, x - Math.floor(fw / 2), y - fh + 4, fw, fh);
     ctx.globalAlpha = 1;
     if (P.shield > 0) { ctx.strokeStyle = "rgba(127,208,255,.7)"; ctx.beginPath(); ctx.ellipse(x, y - 10, 13, 16, 0, 0, TAU); ctx.stroke(); }
     /* ねらいの向き（小さな矢印） */
@@ -256,9 +269,9 @@
     ctx.fillStyle = "rgba(255,255,255,.55)"; ctx.fillRect(Math.round(ax) - 1, Math.round(ay) - 1, 2, 2);
   }
   function drawGhost(o, camX, camY, col) {
-    const sp = MA.Pix.charSprite(G().P.cid);
-    const f = sp.idle[0];
-    ctx.globalAlpha = 0.45; ctx.drawImage(f, Math.round(o.x - camX - f.width / 2), Math.round(o.y - camY - f.height + 4)); ctx.globalAlpha = 1;
+    const sp = charSp(G().P.cid), kk = sp.hd ? 1 / sp.hd : 1;
+    const f = sp.idle[0], fw = f.width * kk, fh = f.height * kk;
+    ctx.globalAlpha = 0.45; ctx.drawImage(f, Math.round(o.x - camX - fw / 2), Math.round(o.y - camY - fh + 4), fw, fh); ctx.globalAlpha = 1;
     ctx.fillStyle = col; ctx.fillRect(Math.round(o.x - camX) - 1, Math.round(o.y - camY) + 3, 3, 1);
   }
   function drawEnemy(e, camX, camY) {
@@ -538,5 +551,8 @@
     if (!full) { g2.strokeStyle = "#ffffff"; g2.strokeRect(w / 2 - g.vw / 16 * s / 2, h / 2 - g.vh / 16 * s / 2, g.vw / 16 * s, g.vh / 16 * s); }
   }
 
-  MA.Render = { init, resize, draw, onStart, onMap, dirtyMap, drawMap, drawNum };
+  /* ★★ 2026-10-22 2D の描画は MA.Render2D。2.5D（ma-render25.js）が MA.Render を上書きし、2D を選んだときはこちらを呼ぶ */
+  MA.Render2D = { init, resize, draw, onStart, onMap, dirtyMap, drawMap, drawNum };
+  MA.Render = MA.Render2D;
+  MA.RenderLib = { useCtx, setHD, chunk, animTiles, drawZone, drawTelegraph, drawObject, drawPickup, drawPB, drawEB, drawFx, drawEnemy, drawPlayer, drawGhost, drawDeco, drawLabel, drawNum, drawStars, bigRain };
 })();

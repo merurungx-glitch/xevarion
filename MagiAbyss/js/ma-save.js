@@ -38,7 +38,7 @@
       shop: { day: "", stock: [] },
       /* ★★ 2026-10-05 aim の標準は「向いている方向」（facing）。keys … キーボードの割り当て（null＝標準）。
          touch … スマホのボタン（大きさ・濃さ・位置・割り当て） */
-      set: { bgm: 0.55, se: 0.8, aim: "facing", aimV2: 1, autoAtk: true, dmgNum: true, shake: true, maxEnemies: 60, zoom: "auto", stickSide: "left", vib: true, fps: false, quality: "high", hints: true,
+      set: { bgm: 0.55, se: 0.8, aim: "facing", aimV2: 1, autoAtk: true, dmgNum: true, shake: true, maxEnemies: 60, zoom: "auto", stickSide: "left", vib: true, fps: false, quality: "high", gfx: "hd", hints: true,
         keys: null, touch: { size: 1, alpha: 0.9, pos: null, map: null } },
       tmis: {}, tmisClaim: {}, tutorial: 0,
       stats: { kills: 0, runs: 0, clears: 0, playSec: 0, goldTotal: 0, bosses: 0, floors: 0, resonances: 0, levels: 0 },

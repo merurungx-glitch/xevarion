@@ -545,6 +545,9 @@
   ICON.cy_sakura = () => (g) => { for (let i = 0; i < 5; i++) { const a = -Math.PI / 2 + i / 5 * TAU; ell(g, 8 + Math.cos(a) * 3.6, 8 + Math.sin(a) * 3.6, 2.6, 2.6, "#ffb0c8"); } circ(g, 8, 8, 1.8, "#ff5a7a"); px(g, 8, 8, "#fff4b0"); };
   ICON.cy_shell = () => (g) => { poly(g, [[8, 2], [14, 8], [13, 13], [3, 13], [2, 8]], "#7fd0ff"); line(g, 8, 3, 8, 13, 1, "#e8f8ff"); line(g, 8, 3, 4, 13, 1, "#e8f8ff"); line(g, 8, 3, 12, 13, 1, "#e8f8ff"); rect(g, 5, 13, 6, 2, "#38a6ff"); };
   ICON.cy_teacup = () => (g) => { rect(g, 3, 6, 9, 6, "#ffffff"); rect(g, 4, 7, 7, 1, "#3dd17a"); g.strokeStyle = "#ffffff"; g.lineWidth = 1.4; g.beginPath(); g.arc(12.5, 9, 2, -1.4, 1.4); g.stroke(); ell(g, 7.5, 13, 6, 1.4, "#d8e4ec"); px(g, 6, 3, "#e8f8ff"); px(g, 8, 2, "#e8f8ff"); };
+  /* ★★ 2026-10-22 超極煌祭：麦わら帽子（スズ）・太陽（ショウコ） */
+  ICON.cy_hat = () => (g) => { ell(g, 8, 10, 7, 2.6, "#e8c890"); ell(g, 8, 7.4, 3.8, 3.4, "#e8c890"); rect(g, 4.4, 8, 7.2, 1.4, "#ffffff"); ell(g, 8, 10.6, 6, 1.1, "#c49a5a"); circ(g, 12.2, 7.4, 1.5, "#ffffff"); px(g, 12, 7, "#ffd84a"); };
+  ICON.cy_sun = () => (g) => { for (let i = 0; i < 8; i++) { const a = i / 8 * Math.PI * 2; line(g, 8 + Math.cos(a) * 4.4, 8 + Math.sin(a) * 4.4, 8 + Math.cos(a) * 6.8, 8 + Math.sin(a) * 6.8, 1.3, "#ffb03a"); } circ(g, 8, 8, 3.7, "#ffd84a"); circ(g, 7.1, 7.1, 1.3, "#fff6c8"); };
   ICON.pn_ghost = () => (g) => { circ(g, 8, 7, 5, "#f4f4ff"); poly(g, [[3, 7], [13, 7], [13, 14], [11, 12.5], [9.5, 14], [8, 12.5], [6.5, 14], [5, 12.5], [3, 14]], "#f4f4ff"); circ(g, 6.2, 7, 1, "#2a1a3a"); circ(g, 9.8, 7, 1, "#2a1a3a"); ell(g, 8, 9.6, 1.2, 0.8, "#c06bff"); };
   /* 通常攻撃の型のアイコン */
   ICON.at_gun = () => (g) => { rect(g, 2, 5, 11, 3, "#3a3c4c"); rect(g, 12, 5, 3, 2, "#2a2c38"); poly(g, [[3, 8], [7, 8], [6, 14], [2, 14]], "#262833"); rect(g, 7, 8, 2, 2, "#4f8fe0"); rect(g, 3, 5, 9, 1, "#d8ecff"); px(g, 15, 5, "#7fd0ff"); };

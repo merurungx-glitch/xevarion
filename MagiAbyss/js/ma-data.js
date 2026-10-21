@@ -403,6 +403,64 @@
       evo: { weapon: "dagger", el: "dark", to: "evo_yuna", nm: "ノクターン・ブルーローズ" },
       good: "会心の連射・ボスの単体火力・敵をまとめて止める（UR の中でもいちばん上）", weak: "（目立った苦手はない）",
     },
+    /* ══ ★★ 2026-10-22 超極煌祭（UR・MagiAbyss 専用）3体 ══
+       ご指定「MagiAbyss では、コハクはユナと同等、他の2キャラはタキナと同等に」。
+       → 火力を測りずみの型をそのまま使う（数字は1つも変えない・名前と色だけ）：
+         コハク＝ユナの型（タキナ比 1.16〜1.20）／スズ＝アイナの型（0.98〜0.99）／ショウコ＝イチカの型（1.01）。属性はご指定の 火・木・光。 */
+    kohaku: {
+      nm: "コハク", fes: "超極煌祭", el: "fire", type: "ranged", sub: "magic", rank: "UR",
+      title: "紅薔薇の令嬢",
+      base: { hp: 140, atk: 17, def: 6, spd: 82, aspd: 1.22, crit: 17, critDmg: 1.9, mag: 1.25, eva: 16 },
+      grow: { hp: 1.045, atk: 1.05, def: 1.04 },
+      atk: { kind: "pnshot", nm: "クリムゾン・ローズ", ic: "sk_rose", cd: 0.34, mul: 0.34, speed: 320, range: 230, pk: "petal", n: 3, arc: 0.35, pierce: 2,
+        every: 4, burst: 7, burstArc: 1.1, burstNm: "紅薔薇の嵐", cols: ["#ff3a4a", "#ffd0d8", "#ff8a3d"],
+        d: "紅い薔薇の花びらを3枚（2体まで貫通）。4回ごとに7枚の嵐" },
+      skill: { kind: "pnblast", nm: "ローズ・ブレイズ", ic: "sk_rose", cd: 8, mp: 18, r: 100, mul: 4.6, stun: 1, vul: [0.25, 5], gauge: 8,
+        d: "敵がいちばん集まっている所に紅蓮の薔薇が咲く（半径100・攻撃力×4.6・1秒しびれ）＋5秒間 受けるダメージ+25%＋必殺技ゲージ+8" },
+      ult: { kind: "pnbarrage", nm: "紅煌・ロイヤルローズ", gauge: 100, n: 120, mul: 0.3, fin: 16.5, pk: "petal", cols: ["#ff3a4a", "#ffd0d8", "#ff8a3d"], vul: [0.3, 6], heal: 0.2, atkUp: [0.3, 6],
+        d: "いちばん強い敵へ紅薔薇を120連射し、最後に画面全体へ紅煌の大薔薇（攻撃力×16.5・防御ダウン）＋6秒間 受けるダメージ+30%＋HPを20%回復＋6秒間 与えるダメージ+30%" },
+      passive: { kind: "focus", nm: "紅薔薇の誓い", crits: 3, drain: 0.03,
+        d: "技を使ったあと3発は必ず会心。与えたダメージの3%でHPを回復（ドレイン）" },
+      bias: { crit: 1.6, aspd: 1.4, elem: 1.3, weapon: 1.2 },
+      evo: { weapon: "dagger", el: "fire", to: "evo_kohaku", nm: "紅煌・ルビーローズ" },
+      good: "会心の連射・ボスの単体火力・敵をまとめて止める（ユナと並ぶ UR の最上位）", weak: "（目立った苦手はない）",
+    },
+    suzu: {
+      nm: "スズ", fes: "超極煌祭", el: "wood", type: "magic", sub: "summon", rank: "UR",
+      title: "夕なぎの麦わら",
+      base: { hp: 130, atk: 15, def: 5, spd: 80, aspd: 1.15, crit: 15, critDmg: 1.85, mag: 1.3, eva: 14 },
+      grow: { hp: 1.045, atk: 1.05, def: 1.04 },
+      atk: { kind: "pnshot", nm: "サマー・ブロッサム", ic: "cy_hat", cd: 0.46, mul: 0.86, speed: 230, range: 210, pk: "petal", n: 4, arc: 0.6, homing: 3, mag: 1,
+        every: 4, burst: 6, burstArc: 6.28, burstNm: "夏花の輪", cols: ["#ffffff", "#ffe08a", "#3fbf6e"],
+        d: "白い夏花の花びらを4枚（追尾）。4回ごとに6枚がまわりへ" },
+      skill: { kind: "pnzone", nm: "夕なぎの花畑", ic: "cy_hat", cd: 9, mp: 20, r: 90, dur: 4, tick: 0.3, mul: 0.85, slow: 0.4, gauge: 6,
+        d: "敵がいちばん集まっている所に4秒間 夕なぎの花畑（半径90・0.3秒ごとに攻撃力×0.85・動きを遅くする）＋必殺技ゲージ+6" },
+      ult: { kind: "pnbarrage", nm: "サンセット・ジャスミン", gauge: 100, n: 104, mul: 1.08, fin: 14.5, pk: "petal", cols: ["#ffffff", "#ffe08a", "#3fbf6e"], stun: 2, shield: 0.4,
+        d: "いちばん強い敵へ夏花の花びらを104連射し、最後に画面全体へ夕焼けの花吹雪（攻撃力×14.5・防御ダウン）＋2秒しびれさせる＋最大HPの40%のバリア" },
+      passive: { kind: "focus", nm: "麦わらの約束", crits: 3, drain: 0.03,
+        d: "技を使ったあと3発は必ず会心。与えたダメージの3%でHPを回復（ドレイン）" },
+      bias: { magic: 1.5, crit: 1.3, elem: 1.3 },
+      evo: { weapon: "staff", el: "wood", to: "evo_suzu", nm: "サンセット・ブーケ" },
+      good: "追尾する花びらでまとめて削る・敵をまとめて止める", weak: "（目立った苦手はない）守りはやや控えめ",
+    },
+    shouko: {
+      nm: "ショウコ", fes: "超極煌祭", el: "light", type: "ranged", sub: "mobile", rank: "UR",
+      title: "陽だまりの渚",
+      base: { hp: 130, atk: 15, def: 4, spd: 84, aspd: 1.2, crit: 15, critDmg: 1.8, mag: 1.15, eva: 16 },
+      grow: { hp: 1.045, atk: 1.05, def: 1.04 },
+      atk: { kind: "pnshot", nm: "サンシャイン・ショット", ic: "cy_sun", cd: 0.36, mul: 1.32, speed: 300, range: 230, pk: "bullet", n: 2, arc: 0.2, pierce: 2,
+        every: 5, burst: 6, burstArc: 1.0, burstNm: "トロピカル・フレア", cols: ["#ffd84a", "#fff6c8", "#ff8a3d"],
+        d: "陽ざしの弾を2つ（2体まで貫通）。5回ごとに6つの陽光" },
+      skill: { kind: "pnvolley", nm: "ハイビスカス・サンバースト", ic: "cy_sun", cd: 8, mp: 18, n: 6, mul: 1.8, pk: "magic", slow: 0.4, gauge: 6,
+        d: "近い敵へ陽光の花を6つ降らせる（1つ 攻撃力×1.8・動きを遅くする）＋必殺技ゲージ+6" },
+      ult: { kind: "pnbarrage", nm: "ミッドサマー・サンライズ", gauge: 100, n: 104, mul: 1.65, fin: 14.5, pk: "bullet", cols: ["#ffd84a", "#fff6c8"], stun: 2, gaugeBack: 15,
+        d: "いちばん強い敵へ陽ざしの弾を104連射し、最後に画面全体へ真夏の陽光（攻撃力×14.5・防御ダウン）＋2秒しびれさせる＋必殺技ゲージが15%もどる" },
+      passive: { kind: "galestep", nm: "陽だまりステップ", stack: 0.05, max: 5, t: 4,
+        d: "敵を倒すたび移動速度+5%（最大5つ・4秒）" },
+      bias: { aspd: 1.5, spd: 1.3, crit: 1.2 },
+      evo: { weapon: "bow", el: "light", to: "evo_shouko", nm: "サンライズ・アロー" },
+      good: "走りながらの連射・敵の列を貫く・まとめて止める", weak: "（目立った苦手はない）守りはやや控えめ",
+    },
     hinano: {
       nm: "ヒナノ", fes: "極彩祭", el: "wood", type: "mobile", sub: "magic", rank: "SSR",
       title: "翠光のプリズム",
@@ -549,7 +607,7 @@
   };
   /* ★★ 2026-10-09 並びと顔ぶれは mb-core の ABYSS_CHAR_IDS（ポータルの絞り込み・キャラ詳細と同じ1本）。読めないときだけ下の並び */
   const CHAR_ORDER = ((typeof ABYSS_CHAR_IDS !== "undefined" && ABYSS_CHAR_IDS.length) ? ABYSS_CHAR_IDS.slice()
-    : ["chie", "ichika", "nonoka", "aina", "yuna", "ayano", "saki", "yuka", "natsumi", "miu", "mai", "chinatsu", "yuumi", "rina", "kaori",
+    : ["kohaku", "suzu", "shouko", "chie", "ichika", "nonoka", "aina", "yuna", "ayano", "saki", "yuka", "natsumi", "miu", "mai", "chinatsu", "yuumi", "rina", "kaori",
        "takina", "hibana", "fuki", "hinano", "hanon", "kokoha", "mutsumi", "reina", "azusa", "kumireina", "kagura", "kotori"]).filter((id) => CHARS[id]);
   /* 組み合わせを CHARS に流しこむ（下の CHAR_KIT が本体） */
   function applyKits() {
@@ -647,6 +705,10 @@
     nonoka:    { rank: "UR",  art: ["healing", 5],   trait: ["ironwall", 5] },
     aina:      { rank: "UR",  art: ["starnova", 5],  trait: ["insight", 5] },
     yuna:      { rank: "UR",  art: ["gate", 5],      trait: ["dusk", 5] },
+    /* ★★ 2026-10-22 超極煌祭（UR・★5）＝ユナ／アイナ／イチカと同じ組み合わせ */
+    kohaku:    { rank: "UR",  art: ["gate", 5],      trait: ["dusk", 5] },
+    suzu:      { rank: "UR",  art: ["starnova", 5],  trait: ["insight", 5] },
+    shouko:    { rank: "UR",  art: ["haste", 5],     trait: ["galefoot", 5] },
     hinano:    { rank: "SSR", art: ["whirl", 4],     trait: ["galefoot", 3] },
     hanon:     { rank: "SSR", art: ["meteor", 4],    trait: ["clutch", 3] },
     kokoha:    { rank: "SSR", art: ["blast", 4],     trait: ["kindle", 4] },
@@ -736,6 +798,10 @@
     evo_nonoka:   { nm: "ホワイトリリー・ティーセット", base: "tome", char: "nonoka", mul: 2.3, kind: "w_tome", fx: "healhit", d: "回るティーカップが当たるたびにHPが少し回復する（ノノカ専用）" },
     evo_aina:     { nm: "ルナ・ローズ・ワンド", base: "staff", char: "aina", mul: 2.6, kind: "w_staff", fx: "chainlight", d: "魔弾が当たると近くの敵へ2回つながる（アイナ専用）" },
     evo_yuna:     { nm: "ノクターン・ブルーローズ", base: "dagger", char: "yuna", mul: 1.6, kind: "w_dagger", fx: "vulmark", d: "突きが青薔薇になって舞い、当たった敵は3秒 受けるダメージ+20%（ユナ専用）" },
+    /* ★★ 2026-10-22 超極煌祭の専用進化（ユナ・アイナ・イチカと同じ数字） */
+    evo_kohaku:   { nm: "紅煌・ルビーローズ", base: "dagger", char: "kohaku", mul: 1.6, kind: "w_dagger", fx: "vulmark", d: "突きが紅薔薇になって舞い、当たった敵は3秒 受けるダメージ+20%（コハク専用）" },
+    evo_suzu:     { nm: "サンセット・ブーケ", base: "staff", char: "suzu", mul: 2.6, kind: "w_staff", fx: "chainlight", d: "魔弾が当たると近くの敵へ2回つながる（スズ専用）" },
+    evo_shouko:   { nm: "サンライズ・アロー", base: "bow", char: "shouko", mul: 2.8, kind: "w_bow", fx: "starsplit", d: "矢が刺さると陽光が3つにはじけて遅くする（ショウコ専用）" },
   };
 
   /* ══ 魔法（自動で唱える。属性は固定）══ */

@@ -108,6 +108,8 @@
     /* 記録 */
     S.stats.kills += st.kills; S.stats.runs++; S.stats.playSec += Math.round(g.t); S.stats.levels += st.levels;
     MA.Save.misAdd("kills", st.kills); MA.Save.misAdd("levels", st.levels);
+    /* ★★ 2026-10-22 共通イベントのミッション「MagiAbyss で敵を◯体／ボスを◯体」（おためしは数えない） */
+    if (!g.cfg.trial) { try { if (window.XEVA && XEVA.event) { if (st.kills) XEVA.event.bump("abyssKill", st.kills); if (g.stats && g.stats.bosses) XEVA.event.bump("abyssBoss", g.stats.bosses); } } catch (e) {} }
     if (!isAbyss) {
       const dr0 = S.dun[g.dun.id] = S.dun[g.dun.id] || { clears: 0, best: 0, runs: 0, by: [], mutBest: 0 };
       /* ★★ 2026-10-05 ハードの記録は dun[id].hard に別に持つ */
@@ -124,6 +126,8 @@
         MA.Save.misAdd("clears", 1);
         /* ★★ 2026-10-21 共通イベントのミッション「MagiAbyss で迷宮を◯回クリア」（おためしは数えない） */
         if (!g.cfg.trial) { try { if (window.XEVA && XEVA.event) XEVA.event.bump("abyssClear", 1); } catch (e) {} }
+        /* ★★ 2026-10-22 XEVA ミッション「MagiAbyss で迷宮をクリアしよう」（おためしは数えない） */
+        if (!g.cfg.trial) { try { if (window.XEVA && XEVA.completeMission) XEVA.completeMission("magiabyss_clear"); } catch (e) {} }
         if (g.mutList.length >= 3) unlock("mut3");
         unlock("clear_" + g.dun.id);
         if (sum.firstClear) {

@@ -153,7 +153,7 @@
     try { if (typeof CHARS !== "undefined" && CHARS[id]) return String(CHARS[id].img).replace(/^.*\//, "").replace(/\.webp$/, ""); } catch (e) {}
     return { takina: "Takina", hibana: "Hibana", fuki: "Fuki", hinano: "Hinano", hanon: "Hanon", kokoha: "Kokoha", mutsumi: "Mutsumi", reina: "Reina", azusa: "Azusa", kumireina: "KumikoReina", kagura: "Kagura", kotori: "Kotori",
       ayano: "Ayano", saki: "Saki", yuka: "Yuka", natsumi: "Natsumi", miu: "Miu", mai: "Mai", chinatsu: "Chinatsu", yuumi: "Yuumi", rina: "Rina", kaori: "Kaori",
-      chie: "Chie", ichika: "Ichika", nonoka: "Nonoka", aina: "Aina", yuna: "Yuna" }[id] || "Takina";
+      chie: "Chie", ichika: "Ichika", nonoka: "Nonoka", aina: "Aina", yuna: "Yuna", kohaku: "Kohaku", suzu: "Suzu", shouko: "Shouko" }[id] || "Takina";
   }
   /* 武器・魔法・能力のアイコン列（左上）。
      ★★ 2026-10-12 もっと小さく（ご指定）：武器と魔法は小さな四角に Lv を重ね、1行にならべる。能力はその下に小さく */

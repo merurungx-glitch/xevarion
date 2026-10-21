@@ -316,7 +316,9 @@
     if (Math.hypot(I.mx, I.my) > 0.2) P.faceA = Math.atan2(I.my, I.mx);
     if (P.faceA == null) P.faceA = P.face < 0 ? Math.PI : 0;
     if (mode === "mouse" && I.hasMouse && !I.touch) {
-      const wx = G.cam.x - G.vw / 2 + I.aimSX * G.vw, wy = G.cam.y - G.vh / 2 + I.aimSY * G.vh;
+      /* ★★ 2026-10-22 2.5D の画面は遠近がついているので、画面の点を地面の点に戻す（ma-render25.js の screenToWorld） */
+      const sw = MA.Render && MA.Render.screenToWorld ? MA.Render.screenToWorld(I.aimSX, I.aimSY) : null;
+      const wx = sw ? sw.x : G.cam.x - G.vw / 2 + I.aimSX * G.vw, wy = sw ? sw.y : G.cam.y - G.vh / 2 + I.aimSY * G.vh;
       ax = wx - P.x; ay = wy - P.y; ok = true;
     }
     if (!ok && mode === "auto") {
@@ -1284,10 +1286,12 @@
     const P = G.P, map = G.map;
     const k = Math.min(1, dt * 7);
     G.cam.x += (P.x - G.cam.x) * k; G.cam.y += (P.y - G.cam.y) * k;
-    const hw = G.vw / 2, hh = G.vh / 2;
+    /* ★★ 2026-10-22 2.5D は遠近で奥が広く見えるので、G.vw/vh（いちばん広いところ）ではなく、まん中の行の広さ（camVW/camVH）でカメラを止める */
+    const cvw = G.camVW || G.vw, cvh = G.camVH || G.vh;
+    const hw = cvw / 2, hh = cvh / 2;
     const mw = map.W * 16, mh = map.H * 16;
-    G.cam.x = mw > G.vw ? clamp(G.cam.x, hw, mw - hw) : mw / 2;
-    G.cam.y = mh > G.vh ? clamp(G.cam.y, hh, mh - hh) : mh / 2;
+    G.cam.x = mw > cvw ? clamp(G.cam.x, hw, mw - hw) : mw / 2;
+    G.cam.y = mh > cvh ? clamp(G.cam.y, hh, mh - hh) : mh / 2;
     /* プレイヤーが画面外に出ないように（カメラが追いつかないとき） */
     if (Math.abs(P.x - G.cam.x) > hw - 12) G.cam.x = P.x - Math.sign(P.x - G.cam.x) * (hw - 12);
     if (Math.abs(P.y - G.cam.y) > hh - 16) G.cam.y = P.y - Math.sign(P.y - G.cam.y) * (hh - 16);
