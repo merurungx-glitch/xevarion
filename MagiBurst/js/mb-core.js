@@ -15,8 +15,8 @@
    <b>ふつうの &lt;script&gt;</b>（type="module" ではない）で読むこと。
    トップレベルの const/let はグローバルの字句環境に入るので、
    あとから読み込む MagiBurst 本体のスクリプトからそのまま見える。
-     MagiBurst : <script src="js/mb-core.js?v=137"></script>
-     gacha.html: <script src="MagiBurst/js/mb-core.js?v=137"></script>
+     MagiBurst : <script src="js/mb-core.js?v=138"></script>
+     gacha.html: <script src="MagiBurst/js/mb-core.js?v=138"></script>
 
    ── ホストが先に用意しておくもの ──
      window.MB_IMGD … 画像フォルダへの相対パス（MagiBurst は "../img/"、ポータルは "img/"）
@@ -15012,7 +15012,7 @@ PN_IDS.forEach((id) => {
 });
 /* ══════════════════════════════════════════════════════════════
    ★★ 2026-10-16 <b>超極華祭</b>（fes19）の UR 5体（No.275〜279）＝ <b>MagiAbyss 専用</b>（ご指定）
-   ・チエ（火）・イチカ（水）・ノノカ（木）・アイナ（光）・ユナ（闇）。
+   ・ヨシノ（火）・イチカ（水）・ノノカ（木）・アイナ（光）・ユナ（闇）。
    ・ご指定「性能は MagiAbyss の性能のみを所持し、他のゲームの性能は所持しません（MagiChemLex やアイコンでは使用できます）」
      → <b>abyssOnly</b> の印。MagiBurst（CHAR_IDS から外す・MagiBurst/index.html）・MagiBattle（MBStats.roster/unit）・
        MagiBocciaRush（buildRoster）・MagiTier には<b>出さない</b>。ガチャ・図鑑・キャラ詳細（MagiAbyss の面だけ）・
@@ -15023,7 +15023,7 @@ PN_IDS.forEach((id) => {
    ══════════════════════════════════════════════════════════════ */
 const ABYSS_ONLY_IDS = ["chie", "ichika", "nonoka", "aina", "yuna"];
 const AO_CHAR_DEF = {
-  chie:   { nm: "チエ",   f: "Chie",   el: "fire",  shot: "pierce", type: "桜火巫女型" },
+  chie:   { nm: "ヨシノ",   f: "Chie",   el: "fire",  shot: "pierce", type: "桜火巫女型" },
   ichika: { nm: "イチカ", f: "Ichika", el: "water", shot: "bounce", type: "夏渚型" },
   nonoka: { nm: "ノノカ", f: "Nonoka", el: "wood",  shot: "bounce", type: "白花メイド型" },
   aina:   { nm: "アイナ", f: "Aina",   el: "light", shot: "pierce", type: "月下薔薇型" },
@@ -24741,7 +24741,7 @@ FESTS.fes18 = {
 };
 /* ══════════════════════════════════════════════════════════════
    ★★ 2026-10-16 <b>超極華祭</b>（fes19・ご指定）
-   ・UR 5体（チエ・イチカ・ノノカ・アイナ・ユナ）。<b>1体 1.5%</b>（pickEach・flatPick＝NEW が終わっても下げない）。
+   ・UR 5体（ヨシノ・イチカ・ノノカ・アイナ・ユナ）。<b>1体 1.5%</b>（pickEach・flatPick＝NEW が終わっても下げない）。
    ・ご指定「開催期間と日数や使用などは現在の極華祭と同じ」→ <b>毎月 11〜20日（中旬）</b>（monthly）・
      <b>🎫フェス券は使えない</b>（noFesTicket＝ガチャ券のみ）・初回10連無料なし・アーカイブに入らない。
    ・ご指定「極華祭とは異なる」→ 別のガチャ（キーも台帳も別）。「ガチャ一覧の一番上」→ chokaen の印（gachaMenuList）。
@@ -24768,7 +24768,7 @@ FESTS.fes19 = {
   },
   get note() {
     return "<b>★★ 2026-10-16 超極華祭 開幕</b>"
-      + "<br>★ <b>チエ（火）・イチカ（水）・ノノカ（木）・アイナ（光）・ユナ（闇）</b>の5体。"
+      + "<br>★ <b>ヨシノ（火）・イチカ（水）・ノノカ（木）・アイナ（光）・ユナ（闇）</b>の5体。"
       + "5体とも<b>UR</b>で、排出は<b>1体 " + ratePct(pickRateOf("fes19", "yuna")) + "</b>です。"
       + "<br>★ 開催は極華祭と同じ<b>毎月 11〜20日（中旬）</b>。🎫<b>ガチャ券</b>が使えます（フェス券は使えません）。極華祭とは別のガチャです。"
       + "<br>★ 5体とも <b>MagiAbyss 専用のキャラクター</b>です。性能は <b>MagiAbyss の性能だけ</b>で、"
