@@ -1958,6 +1958,7 @@
     window.addEventListener("xeva:change", paintSaleBadge);
     renderLobbyApps();
     window.addEventListener("storage", (e) => { if (e.key === LOBBY_APPS_KEY) renderLobbyApps(); });
+    { let rt = 0; window.addEventListener("resize", () => { clearTimeout(rt); rt = setTimeout(() => { if (hiddenOn()) renderLobbyApps(); }, 200); }); }
     paintViewLabel();
   }
 
@@ -1995,7 +1996,8 @@
       if (f.since && today < f.since) return;
       /* 並び：新しいものが先（毎月のフェスは今月の開始日、常設のアーカイブはいちばん後ろ） */
       /* ★★ 2026-10-16 top（超極華祭）はガチャ一覧と同じく先頭 */
-      const t = f.top ? "9998" : f.key === "archive" ? "0000" : f.monthly ? today.slice(0, 8) + String(f.monthly[0]).padStart(2, "0") : (f.since || "0001");
+      /* ★★ 2026-10-22 top2（超極煌祭）は超極華祭よりも上 */
+      const t = f.top2 ? "99985" : f.top ? "9998" : f.key === "archive" ? "0000" : f.monthly ? today.slice(0, 8) + String(f.monthly[0]).padStart(2, "0") : (f.since || "0001");
       out.push({ key: f.key, banner: f.banner, t, nm: f.nm });
     });
     const dv = ((D.debut && D.debut.vers) || []).filter((v) => today >= v.date && today < (v.movedAt || addDays(v.date, D.debut.days || 20)));
@@ -2156,7 +2158,7 @@
     if (!Array.isArray(ids) || !ids.length) {
       /* 既定はホームのアプリの並び（xhOrder：並びかえ・入れかえを反映したもの）の先頭5つ */
       let def = null;
-      try { if (typeof xhOrder === "function") def = xhOrder(); } catch (e) {}
+      try { if (typeof window.xhOrderBase === "function") def = window.xhOrderBase(); else if (typeof xhOrder === "function") def = xhOrder(); } catch (e) {}   /* ★★ 2026-10-22 xhOrder はロビーを先頭にするので、既定は元の並びから */
       if (!Array.isArray(def) || !def.length) def = typeof XH_DEFAULT_ORDER !== "undefined" ? XH_DEFAULT_ORDER : all.map((a) => a.id);
       ids = def.filter((id) => byId[id] && LOBBY_ROW2_DEF.indexOf(id) < 0).slice(0, LOBBY_PER_ROW);
     }
@@ -2183,7 +2185,11 @@
       const r = L[i]; if (!r || !r.rid || r.st !== "draw" || !r.date) continue;
       const d = String(r.date).split("-").map(Number), p = String(r.post || "15:40").split(":").map(Number);
       const day0 = Date.UTC(d[0], d[1] - 1, d[2]) - 9 * 3600000, post = day0 + (p[0] * 60 + p[1]) * 60000;
-      if (t >= day0 && t < post - 120000) return { nm: r.nm, short: DERBY_SHORT[r.nm] || r.nm, close: post - 120000 };
+      /* ★★ 2026-10-22 発売の時間は JRA と同じ（MagiDerby の N.saleWins と同じ決まり）：日曜＝金曜 18:30〜土曜 17:30・土曜 19:30〜／土曜＝金曜 18:30〜／月曜＝土曜 19:30〜日曜 17:30・日曜 19:30〜／ほか＝前日 19:30〜 */
+      const at = (dd, h, m) => day0 + dd * 86400000 + (h * 60 + m) * 60000, wd = new Date(day0 + 9 * 3600000).getUTCDay(), close = post - 120000;
+      const W = wd === 0 ? [[at(-2, 18, 30), at(-1, 17, 30)], [at(-1, 19, 30), close]] : wd === 6 ? [[at(-1, 18, 30), close]]
+        : wd === 1 ? [[at(-2, 19, 30), at(-1, 17, 30)], [at(-1, 19, 30), close]] : [[at(-1, 19, 30), close]];
+      if (W.some((w) => t >= w[0] && t < w[1])) return { nm: r.nm, short: DERBY_SHORT[r.nm] || r.nm, close: close };
     }
     return null;
   }
@@ -2203,20 +2209,41 @@
   setTimeout(derbyRefresh, 2500);
   setInterval(derbyRefresh, 10 * 60000);
   setInterval(derbyPaint, 60000);
+  /* ★★ 2026-10-22 ご指定「パートナー非表示版も選べるように・そのときはアプリの表示数を増やしてバランスを調整」
+     パートナーを表示しないときは、ロビーのアプリを<b>4行（20個）</b>（画面の高さが 760px 未満なら3行・15個）に。
+     11個目からはメニューの並び（ロビーの10個のあと）。左右のボタン・イベントのバナーは --xl-rows で行の数だけ上へ。 */
+  function lobbyRows() {
+    if (!hiddenOn()) return 2;
+    const h = window.innerHeight || 800;
+    return h >= 760 ? 4 : 3;
+  }
+  function lobbyAppsShown() {
+    const base = lobbyApps(), rows = lobbyRows();
+    if (rows <= 2) return base;
+    const all = appList(), byId = {}; all.forEach((a) => { byId[a.id] = a; });
+    let order = []; try { if (typeof xhOrder === "function") order = xhOrder(); } catch (e) {}
+    if (!order.length) order = all.map((a) => a.id);
+    const ids = base.map((a) => a.id);
+    order.forEach((id) => { if (byId[id] && ids.indexOf(id) < 0) ids.push(id); });
+    return ids.slice(0, rows * LOBBY_PER_ROW).map((id) => byId[id]);
+  }
   function renderLobbyApps() {
     const box = document.getElementById("xlApps"); if (!box) return;
-    const apps = lobbyApps();
+    const apps = lobbyAppsShown(), rows = lobbyRows();
+    const lob = document.getElementById("xhLobby");
+    if (lob) { lob.style.setProperty("--xl-rows", String(rows)); lob.classList.toggle("xl-many", rows > 2); }
     const ds = derbySale();
     box.innerHTML = apps.map((a) => { const sale = a.id === "magiderby" && ds;
       return '<button class="xl-app' + (sale ? " on-sale" : "") + '" data-id="' + a.id + '"' + (sale ? ' title="' + esc(ds.nm) + ' 発売中"' : "") + '><span class="ic"><img src="' + iconOf(a) + '" alt="" loading="lazy"></span>' +
         (sale ? '<em class="xl-sale-g1">発売中</em>' : "") + (isNewApp(a) ? '<em class="xl-new">NEW</em>' : "") + '<span class="nm">' + a.name + "</span>" +
         (sale ? '<span class="xl-sale-nm">' + esc(ds.short) + "</span>" : "") + "</button>"; }).join("");
     box.classList.toggle("two", apps.length > LOBBY_PER_ROW);
+    box.classList.toggle("many", rows > 2);
     box.querySelectorAll(".xl-app").forEach((b) => b.addEventListener("click", () => {
       const a = apps.find((x) => x.id === b.dataset.id); if (!a) return;
       if (typeof xhOpenApp === "function") xhOpenApp(a.id, a.href); else location.href = a.href;
     }));
-    const sub = document.getElementById("xhSetLobbySub"); if (sub) sub.textContent = apps.map((a) => a.name).join("・");
+    const sub = document.getElementById("xhSetLobbySub"); if (sub) sub.textContent = lobbyApps().map((a) => a.name).join("・");
   }
   function openAppPicker() {
     let sh = document.getElementById("hmAppPicker");
@@ -2293,6 +2320,7 @@
     /* ★★ 2026-09-30 パートナーを表示しない（true）／表示する（false） */
     setHidden(on) {
       const st = store(); st.hide = !!on; save(st);
+      try { renderLobbyApps(); } catch (e) {}   /* ★★ 2026-10-22 表示しないときはアプリを多く並べる */
       api.setPartner(api.current(), on ? false : "quiet");
       if (!on && live && !live.backdrop) setTimeout(() => { if (live && !live.dead && !live.backdrop) live.greet(false); }, 700);
     },
@@ -2322,7 +2350,9 @@
     liveGachas,
     refreshBanners() { try { paintBanners(); paintEventBtn(); } catch (e) {} },
     /* ★★ 2026-10-20 ロビーのアプリ（2行）を描き直す（アプリのアイコンを変えたとき・同期のあと） */
-    refreshApps() { try { renderLobbyApps(); } catch (e) {} }
+    refreshApps() { try { renderLobbyApps(); } catch (e) {} },
+    /* ★★ 2026-10-22 ロビーに出ている10個（メニューの先頭をこれにそろえる・xevarion-home.js の xhOrder） */
+    lobbyIds() { try { return lobbyApps().map((a) => a.id); } catch (e) { return []; } }
   };
   window.HomeMate = api;
   const boot = () => {

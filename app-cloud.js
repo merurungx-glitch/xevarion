@@ -134,11 +134,14 @@ export function initAppCloud(opts) {
      → 送る前に storeT（書いた時刻だけ・小さい）を見て、<b>この端末が知らない書き込み</b>があれば
        先に取りこんで混ぜて（rescue）から送る。knownT＝この端末が取りこんだ／送ったクラウドの時刻。 */
   const knownT = {};
+  /* ★★ 2026-10-22 いちばん新しく読んだ storeT と読んだ時刻（離脱の瞬間に送ってよいかの判定・xeva-cloud と同じ） */
+  let rtSeen = null, rtAt = 0;
   async function remoteChanged(keys) {
     if (!db || !uid || !keys.length) return false;
     try {
       const snap = await get(ref(db, "users/" + uid + "/storeT"));
       const t = snap.exists() ? (snap.val() || {}) : {};
+      rtSeen = t; rtAt = Date.now();
       return keys.some((k) => (Number(t[k]) || 0) > (knownT[k] || 0));
     } catch (e) { return false; }                 /* 読めないときは今までどおり送る */
   }
@@ -185,7 +188,15 @@ export function initAppCloud(opts) {
   function flushBeacon() {
     if (!uid || !dirty.size || !DB_URL) { try { flush(); } catch (e) {} return; }
     const kv = {};
-    dirty.forEach((e, k) => { kv[k] = e; });
+    /* ★★ 2026-10-22 足し戻し（rescue）のあるキー（所持キャラ・凸）は、離脱の直前20秒以内に storeT を読んで
+       「知らない書き込みが無い」と分かっているときだけここで送る（ほかの端末で引いたキャラをクラウドから消さない）。
+       分からないときは送らない＝端末に残り、戻ってきたとき・次に開いたときに取りこんで混ぜてから送る。 */
+    const age = Date.now() - rtAt;
+    dirty.forEach((e, k) => {
+      if (RESCUE && e && e.v != null && !(rtSeen && age < 20000 && (Number(rtSeen[k]) || 0) <= (knownT[k] || 0))) return;
+      kv[k] = e;
+    });
+    if (!Object.keys(kv).length) { try { flush(); } catch (e) {} return; }
     let json;
     try { json = JSON.stringify(payloadOf(kv)); } catch (e) { json = null; }
     if (!json) { try { flush(); } catch (e) {} return; }
@@ -277,6 +288,7 @@ export function initAppCloud(opts) {
       /* ★★ 2026-10-16 users/{uid} まるごとではなく store と storeT だけ読む（ほかの枝まで落とさない） */
       const [s, st] = await Promise.all([get(ref(db, "users/" + uid + "/store")), get(ref(db, "users/" + uid + "/storeT"))]);
       pullFailed = false; retryN = 0;
+      if (st.exists()) { rtSeen = st.val() || {}; rtAt = Date.now(); }
       return merge(s.exists() ? s.val() : {}, st.exists() ? st.val() : {});
     } catch (e) { pullFailed = true; return false; } finally { syncing = false; }
   }
@@ -295,10 +307,11 @@ export function initAppCloud(opts) {
   /* ★★ 2026-10-16 開いたままの画面でも、ほかの端末の変化を1分ごとに確かめる（storeT だけ読む＝軽い）。
      前は「画面に戻ってきたとき」しか取りこまなかったので、PC で開きっぱなしのタブには
      スマホで引いたキャラがいつまでも出てこなかった。 */
+  /* ★★ 2026-10-22 1分 → 20秒ごと（xeva-cloud とそろえる） */
   setInterval(async () => {
     if (document.visibilityState !== "visible" || !ready || !uid || syncing || pushing) return;
     if (await remoteChanged(KEYS)) { if (await syncDown()) emit("restored", {}); await flush(); }
-  }, 60000);
+  }, 20000);
 
   /* ── Firebase 接続の確立（オフラインで開いた場合は後から呼び直せる） ── */
   let connecting = false;
@@ -365,5 +378,17 @@ export function initAppCloud(opts) {
   });
   setInterval(() => { if (document.visibilityState === "visible") { try { flush(); } catch (e) {} } }, 15000);
 
-  return { flush, flushBeacon, syncDown: () => syncDown(), isReady: () => ready };
+  /* ★★ 2026-10-22 syncAll＝送り残し → 読む → 混ぜる → 送る（設定「データを最新にする」から） */
+  async function syncAll() {
+    if (!uid && isLoggedIn()) { uid = currentUid(); if (uid) { guardOwner(uid); capture(); } }
+    if (!uid) return { ok: false, reason: "login" };
+    if (!ready && !(await connect())) return { ok: false, reason: "net" };
+    try { await flush(); } catch (e) {}
+    const changed = await syncDown();
+    if (pullFailed) return { ok: false, reason: "net" };
+    if (changed) emit("restored", {});
+    try { await flush(); } catch (e) {}
+    return { ok: true, changed };
+  }
+  return { flush, flushBeacon, syncDown: () => syncDown(), isReady: () => ready, syncAll };
 }

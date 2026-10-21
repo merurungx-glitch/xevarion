@@ -80,6 +80,8 @@
     magicraft_play:      { reward: 150, title: "MagiCraft でブロックを掘ってみよう",      app: "MagiCraft" },
     magijackpot_play:    { reward: 200, title: "MagiJackpot でゲームを1回プレイしよう",   app: "MagiJackpot" },
     magilotto_buy:       { reward: 200, title: "Magi Lotto でくじを1枚買ってみよう",      app: "MagiLotto" },
+    /* ★★ 2026-10-22 MagiAbyss（ご指定「MagiAbyss を XEVARION のミッションなどにも積極的に」。達成は ma-prog.js のクリア） */
+    magiabyss_clear:     { reward: 300, title: "MagiAbyss で迷宮をクリアしよう",          app: "MagiAbyss" },
     /* ── 学ぶ ── */
     magilex_play:        { reward: 200, title: "MagiLex で問題にチャレンジしよう",        app: "MagiLex" },
     /* ★★ 2026-10-06 新作 MagiChemLex（達成は mcl-core.js の answer() から） */
@@ -1174,6 +1176,10 @@
     { id: "mb:nonoka", mbId: "nonoka", name:"ノノカ", file: "../img/t_Nonoka.webp", since:"2026-10-16", rarLabel: "UR" },
     { id: "mb:aina", mbId: "aina", name:"アイナ", file: "../img/t_Aina.webp", since:"2026-10-16", rarLabel: "UR" },
     { id: "mb:yuna", mbId: "yuna", name:"ユナ", file: "../img/t_Yuna.webp", since:"2026-10-16", rarLabel: "UR" },
+    /* ★★ 2026-10-22 超極煌祭（UR・MagiAbyss 専用。アイコン・コレクションには使える） */
+    { id: "mb:kohaku", mbId: "kohaku", name:"コハク", file: "../img/t_Kohaku.webp", since:"2026-10-22", rarLabel: "UR" },
+    { id: "mb:suzu", mbId: "suzu", name:"スズ", file: "../img/t_Suzu.webp", since:"2026-10-22", rarLabel: "UR" },
+    { id: "mb:shouko", mbId: "shouko", name:"ショウコ", file: "../img/t_Shouko.webp", since:"2026-10-22", rarLabel: "UR" },
   ];
   /* ★ 2026-08-10 初期SR 4体（ゼラ・アヤメ・レイラ・セリーヌ）は廃止しました。
      いまは<b>全キャラがアイコンに選べる</b>ので、starter という区別そのものが要らない。 */
@@ -1287,7 +1293,9 @@
   /* ★★ 2026-10-09 Pumpkin Night（UR） */
   , "ayano", "saki", "yuka", "natsumi", "miu", "mai", "chinatsu", "yuumi", "rina", "kaori"
   /* ★★ 2026-10-16 超極華祭（UR） */
-  , "chie", "ichika", "nonoka", "aina", "yuna"];
+  , "chie", "ichika", "nonoka", "aina", "yuna"
+  /* ★★ 2026-10-22 超極煌祭（UR） */
+  , "kohaku", "suzu", "shouko"];
   MB_CHAR_MASTER.forEach(function (c) { c.mb = true; c.starter = MB_STARTERS.indexOf(c.mbId) >= 0; });
   MB_CHAR_MASTER.forEach(function (c) { c.star5 = MB_STAR5.indexOf(c.mbId) >= 0; });
   /* id は "mb:zera" のように接頭辞つき。XEVAガチャにも同じ名前のキャラ（シオンなど）が
@@ -1939,25 +1947,28 @@
         { id: "lexAns", ic: "✏️", title: "MagiLex で問題に 50問 答える", key: "lexAns", n: 50, tk: 3, href: "MagiLex/MagiLex.html" },
         { id: "chemOk", ic: "⚗️", title: "MagiChemLex で 20問 正解する", key: "chemOk", n: 20, tk: 3, href: "MagiChemLex/index.html" },
         { id: "chemSet", ic: "📝", title: "MagiChemLex の「模試」を 1回 やりとげる", key: "chemSet", n: 1, tk: 3, href: "MagiChemLex/index.html" },
+        /* ★★ 2026-10-22 ご指定「MagiAbyss を XEVARION のイベントミッションなどにも積極的に追加」（2.5D になった MagiAbyss） */
+        { id: "abyssC2", ic: "🌀", title: "MagiAbyss で迷宮を 2回 クリアする", key: "abyssClear", n: 2, tk: 2, href: "MagiAbyss/index.html" },
+        { id: "abyssK300", ic: "⚔️", title: "MagiAbyss で敵を 300体 倒す", key: "abyssKill", n: 300, tk: 2, href: "MagiAbyss/index.html" },
         { id: "gacha10", ic: "🎰", title: "ガチャを 10回 引く", key: "gacha", n: 10, tk: 2, href: "gacha.html" },
-        { id: "all", ic: "💜", title: "ほかのイベントミッションを すべて 達成する", all: true, n: 6, tk: 4, href: "" },
+        { id: "all", ic: "💜", title: "ほかのイベントミッションを すべて 達成する", all: true, n: 8, tk: 4, href: "" },
       ],
     },
     /* ★★ 2026-10-20 ご指定「11月開催予定の新たなイベント Midnight Pumpkin の開催予告と準備」
        ・開催 11/1〜11/30。preFrom（10/20）からは<b>開催予告</b>（ホーム左上のバナー・イベントの画面は「開催まで」・ミッションは見るだけ）
-       ・特典（perks）：MagiDerby の的中払戻 +10%（boost.derby）／MagiAbyss のゴールド 1.5倍（boost.abyssGold）／MagiLex 系統 XEVA 1.5倍（lexMult）／
+       ・特典（perks）：MagiDerby の的中払戻 +10%（boost.derby）／MagiAbyss のゴールド 1.5倍（boost.abyssGold）／MagiLex 系統 XEVA <b>2倍</b>（lexMult・★★ 2026-10-22 ご指定「MagiLex 系の報酬は同じく2倍に」で 1.5 → 2）／
          限定パック（xevarion-home.js の XH_PACKS・pk_mp_*）
        ・ミッションのごほうびは 🎫ガチャチケット（tk）と <b>💱両替チケット（cx）</b>。
        ・数える場所：derbyBet / derbyHit（MagiDerby）・abyssClear（MagiAbyss）・chemWp（MagiChemLex の Wisdom Point）・gacha（ガチャ）・login（日付） */
     pumpkin: {
       id: "pumpkin", nm: "Midnight Pumpkin", from: "2026-11-01", to: "2026-11-30", preFrom: "2026-10-20", c: "#ff8a1f", c2: "#8b4dff", theme: "pumpkin",
       banner: "events/midnight_pumpkin_s.webp", art: "events/midnight_pumpkin.webp",
-      lexMult: 1.5, boost: { derby: 1.1, abyssGold: 1.5 },
+      lexMult: 2, boost: { derby: 1.1, abyssGold: 1.5 },
       catch: "真夜中のかぼちゃ祭り。秋の夜長は、走って・潜って・学んで・集めて。",
       perks: [
         { ic: "🏇", t: "MagiDerby 的中払戻 +10%", d: "新作の競馬 G1。期間中は的中した払戻金に 10% 上乗せ（パンプキンボーナス）", go: "MagiDerby/index.html", gl: "MagiDerby へ →" },
         { ic: "🌀", t: "MagiAbyss ゴールド ×1.5", d: "新しいロゴの MagiAbyss。期間中は迷宮で手に入るゴールドが 1.5倍", go: "MagiAbyss/index.html", gl: "MagiAbyss へ →" },
-        { ic: "📚", t: "MagiLex 系統 XEVA ×1.5", d: "MagiLex・MagiChemLex で手に入る XEVA が 1.5倍。Wisdom Point もためよう", go: "MagiChemLex/index.html", gl: "MagiChemLex へ →" },
+        { ic: "📚", t: "MagiLex 系統 XEVA ×2", d: "MagiLex・MagiChemLex で手に入る XEVA が 2倍。Wisdom Point もためよう", go: "MagiChemLex/index.html", gl: "MagiChemLex へ →" },
         { ic: "🛍️", t: "Midnight Pumpkin 限定パック", d: "ショップに 💱両替チケットつきの限定パックが並びます（期間中のみ）", act: "shop", gl: "ショップへ →" },
       ],
       missions: [
@@ -1965,9 +1976,12 @@
         { id: "derbyBet", ic: "🏇", title: "MagiDerby で G1 の馬券を 10回 買う", key: "derbyBet", n: 10, cx: 2, href: "MagiDerby/index.html" },
         { id: "derbyHit", ic: "🎯", title: "MagiDerby で 3回 的中させる", key: "derbyHit", n: 3, tk: 3, href: "MagiDerby/index.html" },
         { id: "abyss5", ic: "🌀", title: "MagiAbyss で迷宮を 5回 クリアする", key: "abyssClear", n: 5, tk: 3, href: "MagiAbyss/index.html" },
+        /* ★★ 2026-10-22 MagiAbyss をもっと（ご指定） */
+        { id: "abyssK1000", ic: "⚔️", title: "MagiAbyss で敵を 1,000体 倒す", key: "abyssKill", n: 1000, tk: 2, cx: 1, href: "MagiAbyss/index.html" },
+        { id: "abyssBoss3", ic: "👑", title: "MagiAbyss でボスを 3体 倒す", key: "abyssBoss", n: 3, tk: 3, href: "MagiAbyss/index.html" },
         { id: "chemWp", ic: "🔷", title: "MagiChemLex で Wisdom Point を 30 ためる", key: "chemWp", n: 30, cx: 2, href: "MagiChemLex/index.html" },
         { id: "gacha10", ic: "🎰", title: "ガチャを 10回 引く", key: "gacha", n: 10, tk: 2, href: "gacha.html" },
-        { id: "all", ic: "🎃", title: "ほかのイベントミッションを すべて 達成する", all: true, n: 6, tk: 5, cx: 3, href: "" },
+        { id: "all", ic: "🎃", title: "ほかのイベントミッションを すべて 達成する", all: true, n: 8, tk: 5, cx: 3, href: "" },
       ],
     },
   };
@@ -2251,6 +2265,82 @@
   };
 
 
+  /* ══ ★★ 2026-10-22 個人情報の入力への注意（ご指定「昨今の状況に伴い、重要な特に個人情報に関わる情報の入力を避けるように警告」）══
+     ・文字を入れる欄に<b>はじめて触れたとき</b>、欄のすぐ下に小さな注意を出す（ページごとに1回・数秒で消える）。
+       数字だけの欄・検索の欄・パスワードの欄では出さない（答えを入れる欄などで毎回出ないように）。
+     ・入れた文字が<b>メールアドレス・電話番号・郵便番号・カード番号・マイナンバー・住所</b>らしいときは、その場で赤い注意を出す
+       （送信は止めない・同じ欄の同じ種類は1回だけ）。data-nopii を付けた欄（とその中）は見ない。 */
+  (function () {
+    if (window.__xevaPii) return;
+    window.__xevaPii = 1;
+    var KINDS = [
+      { nm: "メールアドレス", t: function (s) { return /[A-Za-z0-9._%+-]+@[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)*\.[A-Za-z]{2,}/.test(s); } },
+      { nm: "電話番号", t: function (s) { var n = s.replace(/[\s\-‐－ー()（）]/g, ""); return /(^|[^\d.])(\+81|0)\d{9,10}([^\d]|$)/.test(n); } },
+      { nm: "郵便番号", t: function (s) { return /〒\s?\d{3}-?\d{4}|(^|[^\d])\d{3}-\d{4}([^\d]|$)/.test(s); } },
+      { nm: "カード番号", t: function (s) { var n = s.replace(/[\s-]/g, ""); return /(^|[^\d.])\d{13,16}([^\d]|$)/.test(n); } },
+      { nm: "マイナンバー", t: function (s) { var n = s.replace(/[\s-]/g, ""); return /(^|[^\d.])\d{12}([^\d]|$)/.test(n); } },
+      { nm: "住所", t: function (s) { return /(東京都|北海道|京都府|大阪府|[^\s]{2,3}県)[^\s]{1,10}[市区町村郡][^\s]{0,14}\d/.test(s); } },
+    ];
+    function isText(el) {
+      if (!el || !el.tagName) return false;
+      if (el.closest && el.closest("[data-nopii]")) return false;
+      if (el.readOnly || el.disabled) return false;
+      if (el.tagName === "TEXTAREA") return true;
+      if (el.tagName !== "INPUT") return false;
+      var ty = (el.getAttribute("type") || "text").toLowerCase();
+      return ty === "text" || ty === "email" || ty === "tel" || ty === "url" || ty === "search" || ty === "";
+    }
+    function quietField(el) {
+      var ty = (el.getAttribute("type") || "").toLowerCase(), im = (el.getAttribute("inputmode") || "").toLowerCase();
+      var ph = el.getAttribute("placeholder") || "";
+      if (ty === "search" || im === "numeric" || im === "decimal" || /検索|さがす|探す|search/i.test(ph)) return true;
+      var ml = Number(el.getAttribute("maxlength") || 0);
+      return ml > 0 && ml <= 6;
+    }
+    function tip(el, html, strong) {
+      try {
+        var b = document.getElementById("xevaPiiTip");
+        if (!b) { b = document.createElement("div"); b.id = "xevaPiiTip"; b.setAttribute("role", "status"); b.setAttribute("aria-live", "polite"); document.body.appendChild(b); }
+        b.style.cssText = "position:fixed;z-index:2147483000;max-width:min(92vw,340px);padding:8px 12px;border-radius:12px;" +
+          "font:600 12px/1.6 'Noto Sans JP',system-ui,sans-serif;box-shadow:0 10px 26px rgba(0,0,0,.28);pointer-events:none;transition:opacity .25s;" +
+          (strong ? "background:#e8344f;color:#fff;" : "background:#fff8e1;color:#5a4300;border:1px solid #ffd27a;");
+        b.innerHTML = html;
+        var r = el.getBoundingClientRect(), vh = window.innerHeight || 600, vw = window.innerWidth || 360;
+        var top = r.bottom + 6; if (top + 78 > vh) top = Math.max(6, r.top - 78);
+        b.style.top = Math.round(top) + "px";
+        b.style.left = Math.round(Math.max(6, Math.min(vw - Math.min(vw * 0.92, 340) - 6, r.left))) + "px";
+        b.style.opacity = "1";
+        clearTimeout(b._t); b._t = setTimeout(function () { b.style.opacity = "0"; }, strong ? 6500 : 4500);
+      } catch (e) {}
+    }
+    var HINT = "⚠ 個人情報（本名・住所・電話番号・メールアドレス・学校名・パスワードなど）は入力しないでください。";
+    document.addEventListener("focusin", function (ev) {
+      var el = ev.target;
+      if (!isText(el) || quietField(el)) return;
+      var k = "xeva_pii_hint:" + (location.pathname || "");
+      try { if (sessionStorage.getItem(k)) return; sessionStorage.setItem(k, "1"); } catch (e) {}
+      tip(el, HINT, false);
+    }, true);
+    var timer = 0;
+    document.addEventListener("input", function (ev) {
+      var el = ev.target;
+      if (!isText(el)) return;
+      clearTimeout(timer);
+      timer = setTimeout(function () {
+        var s = String(el.value || "");
+        if (s.length < 7) return;
+        for (var i = 0; i < KINDS.length; i++) {
+          if (!KINDS[i].t(s)) continue;
+          var seen = el.__piiSeen || (el.__piiSeen = {});
+          if (seen[KINDS[i].nm]) return;
+          seen[KINDS[i].nm] = 1;
+          tip(el, "⚠ <b>" + KINDS[i].nm + "</b>のような文字が入っています。<br>個人情報は入力しないでください（ほかの人に見えたり、記録に残ったりすることがあります）。", true);
+          return;
+        }
+      }, 450);
+    }, true);
+  })();
+
   /* ══════════════════════════════════════════════════════════════
      ★★ 2026-10-20 正方形のキャラアイコンに<b>属性色の細い縁</b>（ご指定「通常で表示される正方形のキャラアイコンで、
      ガチャなどで、目立たない程度で属性の色で縁を付けて」）
@@ -2267,7 +2357,7 @@
     window.__xevaElEdge = 1;
     try { if (/\/(MagiBurst|MagiBattle|MagiAbyss|MagiBocciaRush|expo)\//.test(location.pathname || "")) return; } catch (e) { return; }
     if (!("IntersectionObserver" in window) || !window.MutationObserver) return;
-    var XEL_RAW = "fire:Ririka,Akane,Mika,Nana,RinonX,Ema,Arisa,Tsubaki,Natsuki,Shirayuki,Nazuna,Milfy,Lysera,Soleria,Altia,KaguyaAlpha,KokonaAlpha,Nanami,Kaede,Kotone,Karem,Tsukino,Youhi,Kanata,Satsuki,Otoha,Guren,Suzune,Mirelle,Karin,Homura,Seina,Mutsumi,Yuika,Yua,RanS,Kurenai,Chia,Hisui,AnnaRan,Asuka,Amane,RenaD,Reia,Natsume,Kagura,Miya,Akatsuki,Kokoha,Kureha,KumikoReina,RanAlpha,Ayano,Saki,Chie|water:Shiona,Serina,Airi,Kaho,Sakura,Shion,Kokona,Rinne,Selene,Fiona,Chloe,Sheril,Fia,Solea,CherylAlpha,Yukino,Chitose,Shizuku,Fuka,Moeka,Elena,Blair,Roxy,Sayaka,Yuuna,Minamo,Scarlet,Mirei,Yoizuki,Shiduki,Misuzu,Shiori,Kotori,Yuki,Risa,Riona,Shizuru,Yoiduki,Sougetsu,Kaoru,NaoS,HarukaS,AoiKuroha,Misaki,Ruri,Nagisa,Hiyori,Emika,Ayane,Mikoto,Azusa,KotoriAlpha,Takina,Yuka,Natsumi,Ichika|wood:Hina,Haruka,Ede,Aira,Mizuki,Ayaka,Mashiro,Hotaru,Rezelia,Lilia,Mabel,Beltia,Astera,Roselia,Kokoro,Ceris,Tsumugi,Mayu,Izumi,Violet,Asuha,Akari,Chihaya,Tomoe,Amelia,Miyabi,Sara,Hinano,Kokoa,Ryouka,Marika,Minori,MireiR,Yuuri,Rika,Kayo,Natsune,Kasumi,Narumi,Haduki,Shiho,Chiha,Mei,AsuhaAlpha,Hibana,Miu,Mai,Nonoka|light:Runa,Noa,Eruna,Rei,Rusia,Riko,Kaguya,Mion,Bernica,Iroha,Koharu,Yuri,Elsia,Setsuna,Nephia,Arche,Nemu,Liana,Reika,Rinon,Ran,Yuunagi,Suzuka,Anna,Youka,Grace,Touka,Artemia,Sayo,Hinata,Yui,Himari,Mio,Sumire,Kanade,Sakuya,Nodoka,Miko,YuukaS,AnnaM,Seika,SuzuhaR,Hanon,Shino,Kuon,TsukinoD,Astraea,AstraeaC,AnnaMaid,Saya,Hikari,Momoka,Miyuki,Kiduki,Hikaru,Himeri,Kana,AnnaAlpha,Chinatsu,Yuumi,Aina|dark:Yuina,Kotoha,Mirea,Miyu,Nene,Kotomi,Rea,Cheryl,Viola,Mao,Alicia,Hecatia,Karina,Revia,Abyss,Shizuka,Yuria,MionAlpha,Yaju,Iori,Noelle,Ange,Dominia,Chizuru,Seira,Suzuha,Lilith,Lyra,Melty,Sayuri,Momo,Karen,Koyuki,Yuuka,Sumika,Sayuki,Kazane,Rena,Reina,AnnaS,Rin,SeiraK,Raika,ReiS,Maaya,Asahi,Subaru,Miori,Ayame,Kyoka,Erika,Uta,Miduki,Honoka,Maki,SayakaAlpha,Fuki,Rina,Kaori,Yuna";
+    var XEL_RAW = "fire:Ririka,Akane,Mika,Nana,RinonX,Ema,Arisa,Tsubaki,Natsuki,Shirayuki,Nazuna,Milfy,Lysera,Soleria,Altia,KaguyaAlpha,KokonaAlpha,Nanami,Kaede,Kotone,Karem,Tsukino,Youhi,Kanata,Satsuki,Otoha,Guren,Suzune,Mirelle,Karin,Homura,Seina,Mutsumi,Yuika,Yua,RanS,Kurenai,Chia,Hisui,AnnaRan,Asuka,Amane,RenaD,Reia,Natsume,Kagura,Miya,Akatsuki,Kokoha,Kureha,KumikoReina,RanAlpha,Ayano,Saki,Chie,Kohaku|water:Shiona,Serina,Airi,Kaho,Sakura,Shion,Kokona,Rinne,Selene,Fiona,Chloe,Sheril,Fia,Solea,CherylAlpha,Yukino,Chitose,Shizuku,Fuka,Moeka,Elena,Blair,Roxy,Sayaka,Yuuna,Minamo,Scarlet,Mirei,Yoizuki,Shiduki,Misuzu,Shiori,Kotori,Yuki,Risa,Riona,Shizuru,Yoiduki,Sougetsu,Kaoru,NaoS,HarukaS,AoiKuroha,Misaki,Ruri,Nagisa,Hiyori,Emika,Ayane,Mikoto,Azusa,KotoriAlpha,Takina,Yuka,Natsumi,Ichika|wood:Hina,Haruka,Ede,Aira,Mizuki,Ayaka,Mashiro,Hotaru,Rezelia,Lilia,Mabel,Beltia,Astera,Roselia,Kokoro,Ceris,Tsumugi,Mayu,Izumi,Violet,Asuha,Akari,Chihaya,Tomoe,Amelia,Miyabi,Sara,Hinano,Kokoa,Ryouka,Marika,Minori,MireiR,Yuuri,Rika,Kayo,Natsune,Kasumi,Narumi,Haduki,Shiho,Chiha,Mei,AsuhaAlpha,Hibana,Miu,Mai,Nonoka,Suzu|light:Runa,Noa,Eruna,Rei,Rusia,Riko,Kaguya,Mion,Bernica,Iroha,Koharu,Yuri,Elsia,Setsuna,Nephia,Arche,Nemu,Liana,Reika,Rinon,Ran,Yuunagi,Suzuka,Anna,Youka,Grace,Touka,Artemia,Sayo,Hinata,Yui,Himari,Mio,Sumire,Kanade,Sakuya,Nodoka,Miko,YuukaS,AnnaM,Seika,SuzuhaR,Hanon,Shino,Kuon,TsukinoD,Astraea,AstraeaC,AnnaMaid,Saya,Hikari,Momoka,Miyuki,Kiduki,Hikaru,Himeri,Kana,AnnaAlpha,Chinatsu,Yuumi,Aina,Shouko|dark:Yuina,Kotoha,Mirea,Miyu,Nene,Kotomi,Rea,Cheryl,Viola,Mao,Alicia,Hecatia,Karina,Revia,Abyss,Shizuka,Yuria,MionAlpha,Yaju,Iori,Noelle,Ange,Dominia,Chizuru,Seira,Suzuha,Lilith,Lyra,Melty,Sayuri,Momo,Karen,Koyuki,Yuuka,Sumika,Sayuki,Kazane,Rena,Reina,AnnaS,Rin,SeiraK,Raika,ReiS,Maaya,Asahi,Subaru,Miori,Ayame,Kyoka,Erika,Uta,Miduki,Honoka,Maki,SayakaAlpha,Fuki,Rina,Kaori,Yuna";
     var RE = /(?:^|\/)img\/(?:t_)?([A-Za-z0-9]+)\.webp(?:[?#].*)?$/;
     var MAP = null;
     function elMap() {
@@ -2486,7 +2576,7 @@
       window.__xevaAliveReq = 1;
       var aliveGo = function () {
         var s = document.createElement("script");
-        s.src = new URL("xeva-alive.js?v=6", aliveSrc).href;
+        s.src = new URL("xeva-alive.js?v=7", aliveSrc).href;
         s.async = true;
         (document.head || document.documentElement).appendChild(s);
       };

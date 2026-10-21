@@ -32,6 +32,8 @@
     "マイ": "Mai", "チナツ": "Chinatsu", "ユウミ": "Yuumi", "リナ": "Rina", "カオリ": "Kaori",
     /* ★★ 2026-10-16 超極華祭 */
     "ヨシノ": "Yoshino", "イチカ": "Ichika", "ノノカ": "Nonoka", "アイナ": "Aina", "ユナ": "Yuna", "超極華祭": "Super Kyokka Festival",
+    /* ★★ 2026-10-22 超極煌祭 */
+    "コハク": "Kohaku", "スズ": "Suzu", "ショウコ": "Shoko", "超極煌祭": "Super Kyokou Festival",
     "Pumpkin Night": "Pumpkin Night", "3属性有利": "Tri-Element Advantage",
     "神癒の祈り": "Divine Prayer", "CRYSTAL ACADEMY FEST": "CRYSTAL ACADEMY FEST",
     "レナ": "Rena", "カオル": "Kaoru", "スバル": "Subaru", "カスミ": "Kasumi", "ツキノ": "Tsukino",

@@ -23,7 +23,9 @@
   var NAMES = ["Hinano", "Hanon", "Kokoha", "Takina", "Hibana", "Fuki", "Mutsumi", "Reina", "Azusa", "KumikoReina", "Kagura", "Kotori",
     "Ayano", "Saki", "Yuka", "Natsumi", "Miu", "Mai", "Chinatsu", "Yuumi", "Rina", "Kaori",
     /* ★★ 2026-10-16 超極華祭の5体（UR） */
-    "Chie", "Ichika", "Nonoka", "Aina", "Yuna"];
+    "Chie", "Ichika", "Nonoka", "Aina", "Yuna",
+    /* ★★ 2026-10-22 超極煌祭の3体（UR） */
+    "Kohaku", "Suzu", "Shouko"];
   /* 「…/t_Reina.webp」「…/Reina.webp」は対象。「…/KumikoReina.webp」は KumikoReina として。KotoriAlpha は対象外 */
   var RE = new RegExp("(?:^|/)(?:t_)?(" + NAMES.join("|") + ")\\.webp(?:[?#]|$)");
 

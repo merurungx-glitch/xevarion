@@ -24,7 +24,7 @@
      以前はここに直接書いてあり、MagiBurst / MagiLex の一覧は別ファイルにあったため、
      新機能を足すたびに「同期リストへの入れ忘れ」が起きていた
      （ジェムショップの購入履歴 xeva_shop_v1 が同期されていなかったのがその例）。 */
-import { PORTAL_SYNC_KEYS, wipeAccountData, wipeAccountDataFull } from "./xeva-keys.js?v=33";
+import { PORTAL_SYNC_KEYS, wipeAccountData, wipeAccountDataFull } from "./xeva-keys.js?v=34";
 
 const SYNC_KEYS = PORTAL_SYNC_KEYS;
 const SYNC_SET = new Set(SYNC_KEYS);
@@ -180,6 +180,10 @@ let FB = null;
 /* ★★ 2026-10-16 knownT＝この端末が取りこんだ／送ったクラウドの書込時刻（key → ms）。
    送る前に storeT と比べて「知らない書き込み」があれば、先に取りこんで混ぜてから送る（flushPush）。 */
 const knownT = {};
+/* ★★ 2026-10-22 いちばん新しく読んだクラウドの storeT（key → ms）と、読んだ時刻。
+   離脱の瞬間の送信（flushPushBeacon）が「ほかの端末の新しい書き込みを知らないまま上書きしない」かの判定に使う。 */
+let rtSeen = null, rtAt = 0;
+function noteRemoteT(rt) { if (rt && typeof rt === "object") { rtSeen = rt; rtAt = Date.now(); } }
 let pushSuspended = false;         // pull適用中は push を止める（エコー防止）
 const dirty = new Map();           // key -> { v: valueString|null, t: 書込ms }
 let pushTimer = null;
@@ -936,6 +940,7 @@ async function flushPush() {
     if (mk.length) {
       pushInFlight = true;
       let rt = null; try { rt = await FB.pullStoreT(uid); } catch (e) {}
+      noteRemoteT(rt);
       pushInFlight = false;
       if (rt && mk.some((k) => (Number(rt[k]) || 0) > (knownT[k] || 0))) { await pullNow(); if (dirty.size) schedulePush(); return; }
     }
@@ -961,7 +966,22 @@ function flushPushBeacon() {
   const uid = currentUid();
   if (!uid || !dirty.size) return;
   const kv = {};
-  dirty.forEach((e, k) => { kv[k] = e; });
+  /* ══ ★★ 2026-10-22 ご報告「MagiChemLex の習得状況・キャラの所持・XEVA・ジェムが同期されない／更新されないことがある」══
+     真因のひとつ：離脱の瞬間の送信（keepalive・同期XHR）は<b>クラウドの値をそのまま上書き</b>する。
+     混ぜる決まりのあるキー（財布・キャラ・MagiChemLex・MagiAbyss…）でも、ほかの端末が直前に書いた新しい値を
+     <b>取りこむ前に</b>上書きしてしまうことがあった（財布は3方向マージの土台がずれて、ほかの端末で増えたぶんが失われる）。
+     → 混ぜる決まりのあるキーは、離脱の直前（財布は8秒・ほかは20秒以内）に storeT を読んで
+       「知らない書き込みが無い」と分かっているときだけ送る。分からないときはここでは送らない
+       （端末に残っていて、戻ってきたとき・次に開いたときに「取りこむ→混ぜる→送る」の順で必ず合わさる）。 */
+  const age = Date.now() - rtAt;
+  dirty.forEach((e, k) => {
+    if (e && e.v != null && hasMergeRule(k)) {
+      const fresh = !!rtSeen && age < (WALLET_KEYS.has(k) ? 8000 : 20000) && (Number(rtSeen[k]) || 0) <= (knownT[k] || 0);
+      if (!fresh) return;
+    }
+    kv[k] = e;
+  });
+  if (!Object.keys(kv).length) { try { flushPush(); } catch (e) {} return; }
   let sent = false;
   try { if (FB && FB.pushStoreBeacon) sent = FB.pushStoreBeacon(uid, kv); } catch (e) {}
   // beacon が使えない／大きすぎた場合は通常 push に賭ける
@@ -1008,12 +1028,15 @@ function startPushCapture() {
   /* ★★ 2026-10-16 開いたままの画面でも、ほかの端末の変化を1分ごとに確かめる（storeT だけ読む＝軽い）。
      前は「画面に戻ってきたとき」しか取りこまなかったので、PC で開きっぱなしのホームには
      スマホで開放したパートナーなどがいつまでも出てこなかった。 */
+  /* ★★ 2026-10-22 1分 → 20秒ごと（storeT だけ＝数KB）。ほかの端末で解いた・引いた・使ったぶんが早く届き、
+     離脱の瞬間の送信がしてよいかの判定（rtSeen）も新しく保てる。 */
   setInterval(async () => {
     if (document.visibilityState !== "visible" || _pullBusy || pushInFlight || !FB || !FB.pullStoreT) return;
     const uid = currentUid(); if (!uid) return;
     let rt = null; try { rt = await FB.pullStoreT(uid); } catch (e) {}
+    noteRemoteT(rt);
     if (rt && SYNC_KEYS.some((k) => (Number(rt[k]) || 0) > (knownT[k] || 0))) { try { await pullNow(); } catch (e) {} }
-  }, 60000);
+  }, 20000);
 }
 
 /* クラウド⇄ローカルのマージ（毎ページ読込で実行）。ローカルが変わったら1回だけ reload */
@@ -1057,7 +1080,9 @@ async function syncDown(uid, forceReload) {
     return false;
   }
   remote = full.kv || {}; remoteT = full.t || {};
+  noteRemoteT(remoteT);
   const changed = mergeStore(uid, remote, remoteT);
+  try { _rawSet("xeva_lastsync_v1", String(Date.now())); } catch (e) {}
   /* ★ クラウドの内容をローカルへ取り込み終えた合図。
      XEVA を表示するページは、これを待ってから数字を出すことで
      「古い残高のまま変わらない」状態を防ぐ。 */
@@ -1102,12 +1127,39 @@ async function pullNow() {
        いまは「取りに行く → 混ぜる → 送る」。 */
     const full = await pullFullSafe(uid, 2);
     if (!full) { schedulePullRetry(15000); return false; }   /* ★★ 2026-10-20 読めないときは混ぜない・送らない */
+    noteRemoteT(full.t);
     const changed = mergeStore(uid, full.kv, full.t);
+    try { _rawSet("xeva_lastsync_v1", String(Date.now())); } catch (e) {}
     await flushPush();                                   // 混ざった結果と、未送信ぶんを送る
     try { window.dispatchEvent(new CustomEvent("xeva:synced", { detail: { changed } })); } catch (e) {}
     try { window.dispatchEvent(new CustomEvent("xeva:change", { detail: { balance: (window.XEVA && window.XEVA.getBalance()) || 0 } })); } catch (e) {}
     return changed;
   } catch (e) { return false; } finally { _pullBusy = false; }
+}
+
+/* ══ ★★ 2026-10-22 設定「データを最新にする」（ご指定「最新のデータを基準に全て受け取れる形で」）══
+   送り残し → クラウドの全部を読む（失敗は3回まで読み直し）→ 混ぜる → 送る。結果 { ok, changed, reason } を返す。
+   ★ 読めなかったときは混ぜない・送らない（空のクラウドと取りちがえない）。 */
+async function syncAll() {
+  const uid = currentUid();
+  FB = FB || (await waitFB());
+  if (!uid) return { ok: false, reason: "login" };
+  if (!FB) return { ok: false, reason: "net" };
+  for (let i = 0; i < 30 && _pullBusy; i++) await new Promise((r) => setTimeout(r, 200));
+  _pullBusy = true;
+  try {
+    /* ★ 先に送らない（送り残しは mergeStore が「手元の値」として混ぜてから送る＝ほかの端末のぶんを上書きしない） */
+    const full = await pullFullSafe(uid, 3);
+    if (!full) return { ok: false, reason: "net" };
+    noteRemoteT(full.t);
+    const changed = mergeStore(uid, full.kv, full.t);
+    _pullBusy = false;
+    await flushPush();
+    try { window.dispatchEvent(new CustomEvent("xeva:synced", { detail: { changed } })); } catch (e) {}
+    try { window.dispatchEvent(new CustomEvent("xeva:change", { detail: { balance: (window.XEVA && window.XEVA.getBalance()) || 0 } })); } catch (e) {}
+    try { _rawSet("xeva_lastsync_v1", String(Date.now())); } catch (e) {}
+    return { ok: true, changed };
+  } catch (e) { return { ok: false, reason: "err" }; } finally { _pullBusy = false; }
 }
 
 /* ════════════ 別端末に持って行かれた時のアクセス画面（ゲームページ共通） ════════════
@@ -1403,7 +1455,8 @@ function announceSynced() {
 (async function boot() {
   // 未ログイン: ポータルはホーム表示は xevarion.js が担当。ゲームページはホームへ。
   if (!isLoggedIn()) {
-    if (!IS_PORTAL) { goHome(); }
+    /* ★★ 2026-10-22 window.XEVA_CLOUD_NO_GATE のページ（ログインなしでも遊べる MagiShift など）はホームへ戻さない */
+    if (!IS_PORTAL && !window.XEVA_CLOUD_NO_GATE) { goHome(); }
     announceSynced();
     return;
   }
@@ -1418,6 +1471,8 @@ window.XevaCloud = {
   isLoggedIn, currentUid, deviceId,
   SYNC_KEYS, PORTAL_URL, IS_PORTAL,
   flushPush, flushPushBeacon, pullNow,
+  /* ★★ 2026-10-22 設定「データを最新にする」と、サーバー基準の時刻（MagiChemLex の記録の時刻をそろえる） */
+  syncAll, now: nowMs,
   /* 登録まわりから呼べるように公開（前のアカウントの残りを掃除する） */
   wipeLocalAccount,
   /* ★ 2026-08-05 アカウント削除専用（端末設定いがいを全部消す） */

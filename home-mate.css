@@ -98,6 +98,9 @@ body.xl-drawer-open .hm-over{visibility:hidden}
 .xl-app .nm{max-width:100%;font-size:10.5px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
   text-shadow:0 1px 2px rgba(0,0,0,.8)}
 .xl-app:active .ic{translate:0 2px}
+/* ★★ 2026-10-22 パートナーを表示しないときはアプリを3〜4行に（すこし間をあける） */
+.xl-apps.many{row-gap:7px;padding:9px 6px 8px}
+.xh-lobby.xl-many .xl-evb,.xh-lobby.xl-many .xl-pills{margin-bottom:var(--xl-many-up,14px)}
 
 /* 「メニュー」の取っ手（押す／上へはらうと、今までの欄が下から出てくる） */
 .xl-handle{position:absolute;left:50%;bottom:3px;translate:-50% 0;display:flex;flex-direction:column;align-items:center;gap:2px;
@@ -257,7 +260,7 @@ body.xl-drawer-open .xh-lobby{pointer-events:none}
   background: #ff3b52; color: #fff; font-size: 10px; font-weight: 900; display: grid; place-items: center; box-shadow: 0 0 0 2px #fff; z-index: 2; }
 /* ★★ 2026-10-06b 開催中のイベントのバナー（もと XEVARION PARK のボタンの場所＝右下・アプリの列の上） */
 /* ★★ 2026-10-06c 少しだけ小さく（ご指定・196 → 170px）。EVENT の札は絵より前（z-index）——絵の .evb-im が後ろの要素なので上に重なっていた */
-.xl-evb{position:absolute;right:10px;bottom:calc(30px + 2 * min(62px,16.4vw) + 66px);width:min(37vw,170px);padding:0;border-radius:16px;overflow:visible;cursor:pointer;
+.xl-evb{position:absolute;right:10px;bottom:calc(30px + var(--xl-rows,2) * (min(62px,16.4vw) + 19px) + 28px);width:min(37vw,170px);padding:0;border-radius:16px;overflow:visible;cursor:pointer;
   border:2.5px solid var(--yw-line,#12203d);background:#2a1466;box-shadow:0 0 0 1.5px #c9b6ff inset,0 6px 18px rgba(110,80,230,.5);animation:xlEvGlow 2.4s ease-in-out infinite;color:#fff;text-align:left}
 .xl-evb[hidden]{display:none}
 .xl-evb .evb-im{display:block;position:relative;border-radius:13px 13px 0 0;overflow:hidden;aspect-ratio:900/483}

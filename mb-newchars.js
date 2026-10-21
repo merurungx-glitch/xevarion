@@ -17,6 +17,13 @@
      こちらに足したら<b>あちらにも since 付きで1行</b>足すこと（無いとポータルに絵が出ない）。
    ══════════════════════════════════════════════════════════════ */
 window.MB_NEW_CHARS = [
+  /* ── ★★ 2026-10-22 超極煌祭（UR 3体・毎月21日〜末日・MagiAbyss 専用）── */
+  { id: "kohaku", since: "2026-10-22", where: "超極煌祭（毎月21日〜末日）・MagiAbyss 専用", mode: "fes20",
+    catch: "紅い薔薇に誓って——あなたの隣は、わたしの席。", color: "#ff3a5a" },
+  { id: "suzu", since: "2026-10-22", where: "超極煌祭（毎月21日〜末日）・MagiAbyss 専用", mode: "fes20",
+    catch: "夕なぎの海で、ずっと待ってたよ。", color: "#3fbf6e" },
+  { id: "shouko", since: "2026-10-22", where: "超極煌祭（毎月21日〜末日）・MagiAbyss 専用", mode: "fes20",
+    catch: "太陽ぜんぶ、あたしの味方なんだから！", color: "#f0b429" },
   /* ── ★★ 2026-10-16 超極華祭（UR 5体・毎月11〜20日・MagiAbyss 専用）── */
   { id: "yuna", since: "2026-10-16", where: "超極華祭（毎月11〜20日）・MagiAbyss 専用", mode: "fes19",
     catch: "わたしの闇は、あなただけを映すの。", color: "#7a5cff" },

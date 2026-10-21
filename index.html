@@ -27,7 +27,7 @@
      xevarion-home.css の<b>あと</b>に読む＝上書きできるようにする。 -->
 <link rel="stylesheet" href="xevion-os.css?v=15">
 <!-- ★★ 2026-09-24 ホームの「動くキャラ」（舞香）。中身は home-mate.js。 -->
-<link rel="stylesheet" href="home-mate.css?v=21">
+<link rel="stylesheet" href="home-mate.css?v=22">
 <!-- ★★ 2026-10-12b ウマ娘風のポップな見た目（色・ふち・影・書体だけ。位置と大きさは変えない）。いちばん最後に読む -->
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="xeva-pop.css?v=1">
@@ -40,7 +40,7 @@
 /* ★★ 2026-10-15 ご指定「浮気判定シートのボタンを XEVARION PARK と同じサイズで真上に。2つとも少し小さく（同じ大きさならデザインは変えてよい）」
    ・.xl-pills（もとの PARK の位置）に縦に並べる。2つとも 150×42（前の PARK は約165×49）
    ・PARK は青紫・判定シートはピンク。どちらも白いふち＋色の輪（xeva-pop.css の作法）・光の帯・右上の札 */
-.xl-pills{position:absolute;left:12px;bottom:calc(30px + 2 * min(62px,16.4vw) + 74px);display:flex;flex-direction:column;gap:15px;z-index:5}
+.xl-pills{position:absolute;left:12px;bottom:calc(30px + var(--xl-rows,2) * (min(62px,16.4vw) + 19px) + 36px);display:flex;flex-direction:column;gap:15px;z-index:5}
 .xl-pills .xl-expo,.xl-pills .xl-uwk{position:relative;left:auto;bottom:auto;width:150px;height:42px;box-sizing:border-box;padding:4px 9px 4px 4px;gap:6px;flex:none}
 .xl-pills .orb{width:30px;height:30px;flex:none}
 .xl-pills .xl-expo .orb img{width:26px}
@@ -126,7 +126,7 @@ html #xlBan.pre{box-shadow:0 0 0 2px #fff,0 0 0 3.5px #ff8a1f,0 3px 0 3.5px rgba
 #xhSetSheet.xh-tabsheet .xh-sheet-card{border-radius:26px 26px 0 0;box-shadow:0 -10px 40px rgba(60,100,180,.28)}
 #xhSetSheet.xh-tabsheet .xh-sheet-body{padding-bottom:18px}
 </style>
-<script src="xeva.js?v=79" defer></script>
+<script src="xeva.js?v=80" defer></script>
 <!-- ★★ 2026-09-05 コレクションを XEVARION 全体で1本にする共通部品。
      xeva.js の iconCharList() を使うので、必ず xeva.js の<b>あと</b>に置く。 -->
 <script src="xeva-collection.js?v=8" defer></script>
@@ -149,7 +149,7 @@ html #xlBan.pre{box-shadow:0 0 0 2px #fff,0 0 0 3.5px #ff8a1f,0 3px 0 3.5px rgba
 <script src="xeva-i18n-mb7.js?v=7"></script>
 <script src="xeva-i18n-p4.js?v=8"></script>
 <!-- ★★ 2026-09-06b 今回足したもの（新キャラ14体・装備・スタメンなど）の英語辞書 -->
-<script src="xeva-i18n-n1.js?v=18"></script>
+<script src="xeva-i18n-n1.js?v=19"></script>
 <script src="xeva-i18n-n2.js?v=3"></script>
 <!-- ★ 2026-08-20 通信設定（Wi-Fi／モバイルデータごとに「最新を取りに行くか」を決める）。
      決めた内容はここから各アプリの Service Worker へ送られ、SW 側が動きを切り替える。 -->
@@ -157,9 +157,9 @@ html #xlBan.pre{box-shadow:0 0 0 2px #fff,0 0 0 3.5px #ff8a1f,0 3px 0 3.5px rgba
 <!-- ★ 2026-08-18 新キャラ告知の台帳（MagiBurst と共通）。
      告知を<b>ポータルのログイン時</b>に一本化したので、ここでも読む。
      defer なので xevarion.js より先に実行される（書いた順番で走る）。 -->
-<script src="mb-newchars.js?v=36" defer></script>
+<script src="mb-newchars.js?v=37" defer></script>
 <!-- ★★ 2026-09-25 ガチャの台帳（開催期間とバナー。make-gacha-live.py が mb-core.js から自動で作る）。ホーム左上のバナー用 -->
-<script src="gacha-live.js?v=7" defer></script>
+<script src="gacha-live.js?v=8" defer></script>
 <!-- ★★ 2026-08-22b Xevion OS（XEVARION の UI をひとつの OS として扱う土台）。
      ほかの画面より<b>先に</b>読む（body のクラスを立てるので、あとから読むと一瞬ちらつく）。 -->
 <script src="xevion-os.js?v=13"></script>
@@ -169,13 +169,13 @@ html #xlBan.pre{box-shadow:0 0 0 2px #fff,0 0 0 3.5px #ff8a1f,0 3px 0 3.5px rgba
 <script type="module" src="xeva-sync.js?v=18"></script>
 <script type="module" src="xevarion-fb.js?v=35"></script>
 <script src="xeva-presence.js?v=9" defer></script>
-<script type="module" src="xeva-cloud.js?v=46"></script>
+<script type="module" src="xeva-cloud.js?v=47"></script>
 <!-- ★★ 2026-10-16 キャラの所持・凸（magiburst_v1）もここで同期する（前は読むだけで、別の端末で引いたキャラが出てこないことがあった） -->
-<script type="module" src="MagiBurst/magiburst-cloud.js?v=25"></script>
+<script type="module" src="MagiBurst/magiburst-cloud.js?v=26"></script>
 <script src="xeva-qr.js?v=9" defer></script>
-<script src="xevarion.js?v=102" defer></script>
-<script src="xevarion-home.js?v=166" defer></script>
-<script src="home-mate.js?v=25" defer></script>
+<script src="xevarion.js?v=103" defer></script>
+<script src="xevarion-home.js?v=167" defer></script>
+<script src="home-mate.js?v=26" defer></script>
 <!-- ★★ 2026-10-06 XEVARION 共通イベント（Violet Breeze）のページ。中身は xeva.js の XEVA.event -->
 <script src="xeva-event-ui.js?v=3" defer></script>
 </head>
@@ -1152,6 +1152,12 @@ body.xos-nomotion .xh-start-tap .hp, body.xos-nomotion .xh-start-sub, body.xos-n
           <span><span class="rt">ホームのパートナー</span><span class="rs" id="xhSetMateSub">ロビーに立つキャラを選ぶ</span></span></span>
         <span class="rv">›</span>
       </button>
+      <!-- ★★ 2026-10-22 パートナーを表示しない（ご指定）：ホームはアプリを3〜4行に増やして並べる -->
+      <button class="xh-row" onclick="xhToggleMateHide()">
+        <span class="rl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.6" y="3.6" width="7" height="7" rx="1.6"/><rect x="13.4" y="3.6" width="7" height="7" rx="1.6"/><rect x="3.6" y="13.4" width="7" height="7" rx="1.6"/><rect x="13.4" y="13.4" width="7" height="7" rx="1.6"/></svg>
+          <span><span class="rt">パートナーを表示しない</span><span class="rs">ホームにキャラを出さず、アプリを多く並べる（3〜4行）</span></span></span>
+        <span class="xh-sw" id="xhSwMateHide"></span>
+      </button>
 
       <div class="xh-sec-label">システム</div>
       <!-- ★★ 2026-08-22b Xevion OS。見た目・動き・通知・XEVYNAR 連携をまとめてここへ。 -->
@@ -1222,6 +1228,18 @@ body.xos-nomotion .xh-start-tap .hp, body.xos-nomotion .xh-start-sub, body.xos-n
       </button>
 
       <div class="xh-sec-label">その他</div>
+      <!-- ★★ 2026-10-22 ご指定「同期・更新されないことがある → 最新のデータを基準に全て受け取れる形に」：いますぐクラウドの最新を受け取る -->
+      <button class="xh-row" onclick="xhSyncNow()">
+        <span class="rl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.6-4.4L4 8"/><path d="M4 3.6V8h4.4"/><path d="M4 13a8 8 0 0 0 14.6 4.4L20 16"/><path d="M20 20.4V16h-4.4"/></svg>
+          <span><span class="rt">データを最新にする</span><span class="rs" id="xhSyncSub">ほかの端末の学習・キャラ・XEVA・ジェムをいますぐ受け取る</span></span></span>
+        <span class="rv">›</span>
+      </button>
+      <!-- ★★ 2026-10-22 個人情報の入力について（ご指定の警告をいつでも読み返せる） -->
+      <button class="xh-row" onclick="xhPiiNotice(true)">
+        <span class="rl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.2 4.6 6.4v5.2c0 4.6 3.1 8.4 7.4 9.6 4.3-1.2 7.4-5 7.4-9.6V6.4Z"/><path d="M12 8.2v4.6"/><circle cx="12" cy="16" r="1.1" fill="currentColor"/></svg>
+          <span><span class="rt">個人情報の入力について</span><span class="rs">本名・住所・電話番号などは入力しないでください</span></span></span>
+        <span class="rv">›</span>
+      </button>
       <!-- ★★ 2026-10-16 ホスト権限（ご指定）：アクセスコードを入れると、入力した数の XEVA を受け取れる。コードは毎回たずねる（どこにも覚えない） -->
       <button class="xh-row" onclick="xhOpenHost()">
         <span class="rl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="4.6" y="10.4" width="14.8" height="10" rx="2.2"/><path d="M8 10.4V7.6a4 4 0 018 0v2.8"/><circle cx="12" cy="15.4" r="1.5" fill="currentColor"/></svg>
@@ -1903,6 +1921,9 @@ body.xos-nomotion .xh-start-tap .hp, body.xos-nomotion .xh-start-sub, body.xos-n
   box-sizing:border-box;max-width:100%;-webkit-appearance:none;appearance:none}
 .wz-input:focus{border-color:#38a6ff}
 .wz-note{font-size:11px;color:rgba(34,52,77,.5);margin-top:6px;text-align:center}
+/* ★★ 2026-10-22 個人情報の注意（登録・アカウント設定） */
+.wz-note.wz-pii,.acc-pii{color:#9a3a10;background:#fff4e0;border:1px solid #ffd6a0;border-radius:10px;padding:7px 10px;text-align:left;line-height:1.6}
+.acc-pii{font-size:11px;margin:0 0 10px}
 
 /* wizard buttons */
 .wz-btns{display:flex;gap:10px;margin-top:20px}
@@ -2238,6 +2259,25 @@ body.xos-nomotion .xh-start-tap .hp, body.xos-nomotion .xh-start-sub, body.xos-n
 
   <div class="nm-body" id="newsBody">
     <div class="nm-divider" id="newDivider" style="display:none;">NEW — 前回から更新</div>
+    <!-- 2026-10-22：超極煌祭（UR 3体・MagiAbyss 専用）／MagiAbyss 2.5D・HD ドット／同期の改善・データを最新にする／個人情報の注意／メニューの並び・パートナー非表示／ChemLex「大問」タブ／MagiDerby の発売時間 -->
+    <div class="nm-item" data-tag="new" data-date="2026-10-22">
+      <div class="nm-date">2026<br>10.22</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag new">NEW</span></div>
+        <div class="nm-title">🌹 UR 3体「超極煌祭」開幕／🌀 MagiAbyss が 2.5D に／🔒 個人情報の入力についてのお願い</div>
+        <div class="nm-txt">・<b>超極煌祭</b>（ガチャ一覧のいちばん上・<b>毎月21日〜末日</b>・🎫ガチャ券OK）：<b>コハク（火）・スズ（木）・ショウコ（光）</b>の <b>UR 3体</b>（各1.5%）。3体とも <b>MagiAbyss 専用</b>のキャラクターです（MagiChemLex のナビ・XEVARION のアイコンにも使えます）。MagiAbyss では<b>コハクはユナと同じくらい</b>、スズ・ショウコはタキナと同じくらいの強さです。<br>
+          ・<b>MagiAbyss が 2.5D に</b>：奥行きのある画面（地面が傾き、キャラ・敵・壁は立って見える）・光と影（ランプ・溶岩・魔法・弾が光る）・奥の霧・迷宮ごとの ほたる／雪／火の粉／星くず。キャラは<b>2倍の細かさの HD ドット</b>になり、大きな瞳の顔と<b>かわいい横顔</b>に描き直しました。動きが重いときは、MagiAbyss の設定 →「あそび」の<b>グラフィック</b>で「2.5D 軽め」「2D（従来）」にできます。<br>
+          ・<b>イベントミッションに MagiAbyss</b>：Violet Breeze に「迷宮を2回クリア」「敵を300体倒す」、Midnight Pumpkin（11月）に「敵を1,000体倒す」「ボスを3体倒す」を追加。XEVA ミッション「MagiAbyss で迷宮をクリアしよう」（300 XEVA）も。<br>
+          ・<b>🔒 個人情報の入力について</b>：本名・住所・電話番号・メールアドレス・学校名、ほかのサービスと同じパスワードなどは<b>入力しないでください</b>。入力欄に電話番号やメールアドレスらしい文字が入るとお知らせします（設定 → 個人情報の入力について）。<br>
+          ・<b>同期の改善</b>：MagiChemLex の習得状況・キャラの所持・XEVA・ジェムが、ほかの端末に届かない・古いまま になることがあったのを直しました（アプリを閉じる瞬間の送信がほかの端末の新しいデータを上書きしないように・ほかの端末の変化を20秒ごとに確認・一部のアプリで同期そのものが動いていなかったのを修正）。設定に<b>「データを最新にする」</b>（いますぐ全部受け取る）を追加。<br>
+          ・<b>ホーム</b>：メニューの並びが、ロビー（ホームの常時表示）で入れかえた並びと同じになるようにしました。設定に<b>「パートナーを表示しない」</b>を追加（そのときはホームのアプリが3〜4行に増えます）。<br>
+          ・<b>MagiChemLex</b>：難関・標準・基礎セットと単元マップを、新しい<b>「大問」タブ</b>（セットと問題のあいだ）へ移しました。各セットに<b>「計算以外の問題だけ」</b>を付けました。<br>
+          ・<b>MagiDerby</b>：馬券の発売を<b>JRA と同じ時間</b>にしました（日曜の GⅠ は 金曜 18:30〜土曜 17:30 と 土曜 19:30〜発走の2分前）。<br>
+          ・<b>🎃 Midnight Pumpkin</b>（11/1〜）の <b>MagiLex 系統の XEVA は2倍</b>になりました。<br>
+          ・図鑑の「入手方法」で、超極華祭のキャラが別のガチャの名前になっていたのを直しました。
+        </div>
+      </div>
+    </div>
     <!-- 2026-10-21：新作 MagiDerby（実際の JRA GⅠ）／Midnight Pumpkin 予告／XEVA 両替所／下バー・コミュニティ／MagiChemLex WP／MagiShift 8人 ほか -->
     <div class="nm-item" data-tag="new" data-date="2026-10-21">
       <div class="nm-date">2026<br>10.21</div>
@@ -2246,7 +2286,7 @@ body.xos-nomotion .xh-start-tap .hp, body.xos-nomotion .xh-start-sub, body.xos-n
         <div class="nm-title">🏇 新作「MagiDerby」— 実際の JRA GⅠ に XEVA で賭けられます／🎃 Midnight Pumpkin 開催予告／💱 XEVA 両替所</div>
         <div class="nm-txt">・<b>MagiDerby（新作）</b>：ホームの <b>XEVARION PARK のボタンの場所</b>から。<b>実際の JRA 平地 GⅠ</b>（今年の全24レース）に XEVA で賭けられます。出馬表・馬柱・血統・オッズ・結果・払戻金は<b>すべて本物</b>です。単勝・複勝・枠連・馬連・ワイド・馬単・3連複・3連単（ボックス・ながし・フォーメーション）。<b>発売はレースの日の 0:00 から</b>、<b>締切は発走の2分前</b>（サーバーの時刻で判定）、<b>払い戻しは次の日の 0:00</b> に<b>実際の払戻金どおり</b>（1 XEVA ＝ 1円）。結果から <b>JRA 公式のレース映像</b>へ飛べて、データから作った<b>再現アニメーション</b>も見られます。<br>
           ・<b>コミュニティ</b>：XEVARION PARK の入口はコミュニティタブへ移りました。<b>アニメTier</b>（ホストの表・人気Tier をボタンで切りかえ）を見られます。<br>
-          ・<b>🎃 Midnight Pumpkin（11/1〜11/30）開催予告</b>：イベントミッションで🎫ガチャチケット・💱両替チケット、期間中は <b>MagiDerby の的中払戻 +10%</b>・<b>MagiAbyss のゴールド ×1.5</b>・<b>MagiLex 系統の XEVA ×1.5</b>、限定パックも登場します。<br>
+          ・<b>🎃 Midnight Pumpkin（11/1〜11/30）開催予告</b>：イベントミッションで🎫ガチャチケット・💱両替チケット、期間中は <b>MagiDerby の的中払戻 +10%</b>・<b>MagiAbyss のゴールド ×1.5</b>・<b>MagiLex 系統の XEVA ×2</b>、限定パックも登場します。<br>
           ・<b>💱 XEVA 両替所</b>（ショップ）：<b>両替チケット1枚</b>で 💎5 をそのときのレートで XEVA に両替できます。<br>
           ・<b>下バー</b>の並びを「図鑑・ガチャ・ホーム・コミュニティ・設定」にしました。ガチャのアイコンは通常の絵に、設定を開いても下バーが隠れないようにしました。<br>
           ・正方形のキャラアイコンに<b>属性の色の縁</b>、完凸のキャラをアイコンにすると<b>左上で光る</b>ようにしました。メニューのアプリの並びはホームの常時表示と同じ順に。イベントのバナーとボタンを少し小さくしました。<br>
@@ -5716,6 +5756,8 @@ body.xos-nomotion .xh-start-tap .hp, body.xos-nomotion .xh-start-sub, body.xos-n
       <div class="wz-sub">XEVARION 全体で使われる名前です（最大20文字）</div>
       <input class="wz-input" id="wzName" type="text" maxlength="20" placeholder="例：ポータルユーザー" autocomplete="off">
       <div class="wz-note">後から変更できます。同じ名前は全端末で1つだけ使えます。</div>
+      <!-- ★★ 2026-10-22 個人情報の注意（ご指定） -->
+      <div class="wz-note wz-pii">⚠ 表示名はほかのユーザーにも見えます。<b>本名・学校名・住所・電話番号・メールアドレス</b>など、個人が特定できる情報は使わないでください。</div>
       <div class="wz-msg" id="wzNameMsg"></div>
       <div class="wz-btns">
         <button class="wz-btn sec" onclick="wzNext(0)">← 戻る</button>
@@ -5729,6 +5771,7 @@ body.xos-nomotion .xh-start-tap .hp, body.xos-nomotion .xh-start-sub, body.xos-n
       <div class="wz-sub">誕生日おめでとうメッセージなどに使います</div>
       <input class="wz-input" id="wzBday" type="date" autocomplete="off">
       <div class="wz-note">入力は任意です。そのまま「次へ」でスキップできます。</div>
+      <div class="wz-note wz-pii">⚠ 生年月日も個人情報です。不安なときは入力しないでください（入力しなくても、XEVARION はすべて使えます）。</div>
       <div class="wz-btns">
         <button class="wz-btn sec" onclick="wzNext(1)">← 戻る</button>
         <button class="wz-btn pri" onclick="wzNext(3)">次へ →</button>
@@ -5741,6 +5784,7 @@ body.xos-nomotion .xh-start-tap .hp, body.xos-nomotion .xh-start-sub, body.xos-n
       <div class="wz-sub">設定するとポータルを開くたびにロック確認が入ります</div>
       <input class="wz-input" id="wzPw" type="password" maxlength="32" placeholder="パスワード（任意）" autocomplete="new-password">
       <div class="wz-note">入力は任意です。空欄のまま「次へ」でスキップできます。</div>
+      <div class="wz-note wz-pii">⚠ メール・SNS・銀行など、<b>ほかのサービスと同じパスワードは使わないでください</b>。</div>
       <div class="wz-btns">
         <button class="wz-btn sec" onclick="wzNext(2)">← 戻る</button>
         <button class="wz-btn pri" onclick="wzNext(4)">次へ →</button>
@@ -5838,6 +5882,7 @@ body.xos-nomotion .xh-start-tap .hp, body.xos-nomotion .xh-start-sub, body.xos-n
         </div>
         <div style="font-size:11px;color:rgba(34,52,77,.55)">アイコンをタップして変更</div>
       </div>
+      <div class="acc-pii">⚠ 表示名・メッセージなどに <b>本名・住所・電話番号・メールアドレス・学校名</b> などの個人情報は入れないでください。</div>
       <div class="acc-set-row">
         <label>表示名</label>
         <input class="wz-input" id="setNameInp" type="text" maxlength="20" style="flex:1">

@@ -179,6 +179,7 @@ const MISSION_META = {
   magilotto_buy:       { href: "MagiLotto/index.html",             icon: "thumbs/MagiLotto.jpg",      cta: "買ってみる" },
   magilex_play:        { href: "MagiLex/MagiLex.html",             icon: "thumbs/MagiLex.jpg",        cta: "学ぶ" },
   magichemlex_play:    { href: "MagiChemLex/index.html",           icon: "thumbs/MagiChemLex.jpg?v=2",    cta: "学ぶ" },
+  magiabyss_clear:     { href: "MagiAbyss/index.html",             icon: "thumbs/MagiAbyss.jpg?v=2",      cta: "遊ぶ" },   /* ★★ 2026-10-22 */
   magifocus_study:     { href: "MagiFocus/index.html",             icon: "thumbs/MagiFocus.jpg",      cta: "はじめる" },
   xevynar_ask:         { href: "XEVYNAR/index.html",               icon: "thumbs/XEVYNAR.jpg",        cta: "きいてみる" },
   magilink_register:   { href: "MagiLink/MagiLink.html",           icon: "thumbs/MagiLink.jpg",       cta: "登録へ" },

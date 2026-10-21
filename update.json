@@ -1,23 +1,20 @@
 {
-  "version": "2026-10-21-1",
-  "date": "2026-10-21",
-  "title": "新作 MagiDerby（実際の JRA GⅠ）・Midnight Pumpkin 予告・XEVA 両替所",
+  "version": "2026-10-22-1",
+  "date": "2026-10-22",
+  "title": "超極煌祭（UR 3体）・MagiAbyss が 2.5D に・同期の改善・個人情報の注意",
   "notes": [
-    "新作 MagiDerby：実際の JRA 平地 GⅠ に XEVA で賭けられます（出馬表・オッズ・結果・払戻金は本物／発売は当日0:00・締切は発走2分前・払い戻しは翌日0:00／JRA 公式のレース映像へ）",
-    "ホームの XEVARION PARK のボタンを MagiDerby に（PARK の入口はコミュニティタブへ）・コミュニティにアニメTier",
-    "ホーム：MagiDerby の新しい GⅠ が発売中のときはボタンに「発売中」・MagiCounter と MagiDerby の位置を入れかえ・上の方の縁を細く",
-    "11月の共通イベント Midnight Pumpkin（11/1〜11/30）の開催予告・限定パック",
-    "ショップに XEVA 両替所（💱両替チケット1枚で💎5を XEVA に）",
-    "下バーの順番（図鑑・ガチャ・ホーム・コミュニティ・設定）・ガチャのアイコンを通常の絵に・設定を開いても下バーが見えるように",
-    "キャラアイコンに属性色の縁・完凸で光る・メニューのアプリの並び・バナーとボタンを少し小さく・チエ→ヨシノ",
-    "MagiChemLex に Wisdom Point（オフラインでも保存・同期）と計算以外モード",
-    "MagiShift 8人まで・CPU 交代・ヒント・手番の時計・戦況バー・TOP3",
-    "MagiTier リニューアル（PC）：一覧のカード・編集画面のボタン整理・元に戻す／やり直す・数字キーで段へ・アニメ Tier表は縦長",
-    "MagiAbyss の新しいロゴ",
-    "アイコンの同期・PC で所持が出ないことがある・起動ロゴが飛ぶ、を修正"
+    "新ガチャ「超極煌祭」：コハク（火）・スズ（木）・ショウコ（光）の UR 3体（各1.5%）。毎月21日〜末日・🎫ガチャ券OK・ガチャ一覧のいちばん上。3体とも MagiAbyss 専用（ナビ・アイコンにも使えます）",
+    "MagiAbyss が 2.5D に：奥行きのある画面・光と影・奥の霧・迷宮ごとの粒子。キャラは2倍の細かさの HD ドットで、顔と横顔を描き直し（設定のグラフィックで「軽め」「2D」も）",
+    "イベントミッションに MagiAbyss（Violet Breeze・Midnight Pumpkin）／XEVA ミッション「MagiAbyss で迷宮をクリアしよう」",
+    "同期の改善：MagiChemLex の習得状況・キャラの所持・XEVA・ジェムが届かない・古いままになることがあったのを修正／設定に「データを最新にする」",
+    "個人情報の入力についての注意（登録・設定・入力欄）",
+    "ホーム：メニューの並びをロビーの並びと同じに・「パートナーを表示しない」（アプリが3〜4行に）",
+    "MagiChemLex：新しい「大問」タブ（難関・標準・基礎セットと単元マップ）・各セットに「計算以外の問題だけ」",
+    "MagiDerby：馬券の発売を JRA と同じ時間に（日曜の GⅠ は金曜 18:30〜）",
+    "Midnight Pumpkin（11月）の MagiLex 系統の XEVA を2倍に"
   ],
-  "bytes": 74807749,
-  "files": 808,
+  "bytes": 77608152,
+  "files": 822,
   "urls": [
     "index.html",
     "characters.html",
@@ -317,6 +314,9 @@
     "MagiBurst/img/ss/NonokaSS.webp",
     "MagiBurst/img/ss/AinaSS.webp",
     "MagiBurst/img/ss/YunaSS.webp",
+    "MagiBurst/img/ss/KohakuSS.webp",
+    "MagiBurst/img/ss/SuzuSS.webp",
+    "MagiBurst/img/ss/ShoukoSS.webp",
     "MagiBurst/img/ss/YajuSS.webp",
     "MagiBurst/img/ss/KokonaAlphaSS.webp",
     "img/Kaede.webp",
@@ -439,6 +439,7 @@
     "MagiBurst/img/bn_fes17_s.webp",
     "MagiBurst/img/bn_fes18_s.webp",
     "MagiBurst/img/bn_fes19_s.webp",
+    "MagiBurst/img/bn_fes20_s.webp",
     "MagiBurst/img/bn_fes14_s.webp",
     "img/t_Suzune.webp",
     "img/t_Minamo.webp",
@@ -588,6 +589,12 @@
     "img/Aina_w.webp",
     "img/t_Yuna.webp",
     "img/Yuna_w.webp",
+    "img/t_Kohaku.webp",
+    "img/Kohaku_w.webp",
+    "img/t_Suzu.webp",
+    "img/Suzu_w.webp",
+    "img/t_Shouko.webp",
+    "img/Shouko_w.webp",
     "MagiBurst/img/eq_head.webp",
     "MagiBurst/img/eq_arm.webp",
     "MagiBurst/img/eq_body.webp",
@@ -754,6 +761,7 @@
     "MagiAbyss/js/ma-boss.js",
     "MagiAbyss/js/ma-prog.js",
     "MagiAbyss/js/ma-render.js",
+    "MagiAbyss/js/ma-render25.js",
     "MagiAbyss/js/ma-ui.js",
     "MagiAbyss/js/ma-town.js",
     "MagiAbyss/js/ma-guild.js",
@@ -779,6 +787,9 @@
     "img/Nonoka.webp",
     "img/Aina.webp",
     "img/Yuna.webp",
+    "img/Kohaku.webp",
+    "img/Suzu.webp",
+    "img/Shouko.webp",
     "img/Hibana.webp",
     "img/Fuki.webp",
     "img/Hinano.webp",
@@ -830,6 +841,7 @@
   ],
   "apps": [
     "magiabyss",
+    "magibattle",
     "magibocciarush",
     "magiburst",
     "magichainparty",
@@ -841,7 +853,6 @@
     "magilex",
     "magilotto",
     "magimusic",
-    "magirail",
     "magiscope",
     "magishift",
     "tab:chars",
@@ -850,8 +861,49 @@
     "tab:home",
     "xevynar"
   ],
-  "changedFiles": 73,
+  "changedFiles": 69,
   "history": [
+    {
+      "version": "2026-10-21-1",
+      "date": "2026-10-21",
+      "title": "新作 MagiDerby（実際の JRA GⅠ）・Midnight Pumpkin 予告・XEVA 両替所",
+      "notes": [
+        "新作 MagiDerby：実際の JRA 平地 GⅠ に XEVA で賭けられます（出馬表・オッズ・結果・払戻金は本物／発売は当日0:00・締切は発走2分前・払い戻しは翌日0:00／JRA 公式のレース映像へ）",
+        "ホームの XEVARION PARK のボタンを MagiDerby に（PARK の入口はコミュニティタブへ）・コミュニティにアニメTier",
+        "ホーム：MagiDerby の新しい GⅠ が発売中のときはボタンに「発売中」・MagiCounter と MagiDerby の位置を入れかえ・上の方の縁を細く",
+        "11月の共通イベント Midnight Pumpkin（11/1〜11/30）の開催予告・限定パック",
+        "ショップに XEVA 両替所（💱両替チケット1枚で💎5を XEVA に）",
+        "下バーの順番（図鑑・ガチャ・ホーム・コミュニティ・設定）・ガチャのアイコンを通常の絵に・設定を開いても下バーが見えるように",
+        "キャラアイコンに属性色の縁・完凸で光る・メニューのアプリの並び・バナーとボタンを少し小さく・チエ→ヨシノ",
+        "MagiChemLex に Wisdom Point（オフラインでも保存・同期）と計算以外モード",
+        "MagiShift 8人まで・CPU 交代・ヒント・手番の時計・戦況バー・TOP3",
+        "MagiTier リニューアル（PC）：一覧のカード・編集画面のボタン整理・元に戻す／やり直す・数字キーで段へ・アニメ Tier表は縦長",
+        "MagiAbyss の新しいロゴ",
+        "アイコンの同期・PC で所持が出ないことがある・起動ロゴが飛ぶ、を修正"
+      ],
+      "apps": [
+        "magiabyss",
+        "magibocciarush",
+        "magiburst",
+        "magichainparty",
+        "magichemlex",
+        "magicounter",
+        "magiderby",
+        "magidominiongrid",
+        "magijackpot",
+        "magilex",
+        "magilotto",
+        "magimusic",
+        "magirail",
+        "magiscope",
+        "magishift",
+        "tab:chars",
+        "tab:community",
+        "tab:gacha",
+        "tab:home",
+        "xevynar"
+      ]
+    },
     {
       "version": "2026-10-16-1",
       "date": "2026-10-16",
@@ -1342,18 +1394,6 @@
         "全セリフに声（VOICEVOX）・声に合わせて口が動く・選択画面でオン／オフ",
         "まばたきと目の動きを自然に・新しいタッチの反応",
         "パートナーの開放は1人 30,000 XEVA に（最初の1人は無料）"
-      ],
-      "apps": [
-        "tab:home"
-      ]
-    },
-    {
-      "version": "2026-09-24-5",
-      "date": "2026-09-24",
-      "title": "パートナーの表情を改善",
-      "notes": [
-        "目を閉じたとき・話すときの目と口の色と形を、キャラごとの絵に合わせて作り直し",
-        "ロビーのボタン名を「イベント」「更新情報」に変更・左端へ"
       ],
       "apps": [
         "tab:home"

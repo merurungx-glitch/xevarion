@@ -125,7 +125,7 @@ const XH_APPS = [
   /* ★★ 2026-10-21 新作 MagiDerby（競馬 G1）。ご指定でホームのロビーの PARK の場所にボタン（index.html の a.xl-g1）。並びは XH_DEFAULT_ORDER のロビーの次 */
   { id:"magiderby", name:"MagiDerby", full:"MagiDerby", sub:"競馬 G1・馬券", cat:"game", tone:"gold", newUntil:"2026-11-04",
     href:"MagiDerby/index.html", img:"thumbs/MagiDerby.jpg",
-    desc:"<b>実際の JRA 平地 GⅠ</b>（今年の全24レース）に XEVA で賭ける競馬アプリ。出馬表・馬柱・血統・オッズ・結果・払戻金は<b>すべて本物</b>（自動取得）で、払い戻しは<b>実際の払戻金どおり</b>（1 XEVA ＝ 1円）。単勝・複勝・枠連・馬連・ワイド・馬単・3連複・3連単（ボックス・ながし・フォーメーション）。発売はレースの日の 0:00 から・<b>締切は発走2分前</b>（サーバーの時刻で判定）・払い戻しは次の日の 0:00。結果から JRA 公式のレース映像へ、データからの再現アニメーションも。" },
+    desc:"<b>実際の JRA 平地 GⅠ</b>（今年の全24レース）に XEVA で賭ける競馬アプリ。出馬表・馬柱・血統・オッズ・結果・払戻金は<b>すべて本物</b>（自動取得）で、払い戻しは<b>実際の払戻金どおり</b>（1 XEVA ＝ 1円）。単勝・複勝・枠連・馬連・ワイド・馬単・3連複・3連単（ボックス・ながし・フォーメーション）。発売は<b>JRA と同じ時間</b>（日曜の GⅠ は金曜 18:30〜）・<b>締切は発走2分前</b>（サーバーの時刻で判定）・払い戻しは次の日の 0:00。結果から JRA 公式のレース映像へ、データからの再現アニメーションも。" },
   { id:"magiscope", name:"MagiScope", full:"MagiScope", sub:"エンタメランキング", cat:"info", tone:"blue",
     href:"MagiScope/index.html", img:"thumbs/MagiScope.jpg",
     desc:"アニメ（国内の視聴者数＝Annict・トレンド＝AniList）・FANZA同人・カラオケ（DAM）の<b>実際のランキング</b>を、本物の表紙・ジャケットつきで1時間ごとに自動更新。<b>3カテゴリーは完全に別々のランキング</b>で、種類・期間・絞り込み・詳細もカテゴリーごと。順位推移・同じカテゴリー内の比較・カテゴリー別のお気に入りとトレンド。" },
@@ -249,6 +249,11 @@ const XH_ORDER_GEN_KEY = "xeva_home_order_gen";
      ずっと後ろ、という状態を防ぐため。
      ＝ 新しいイベントを足すときは<b>この配列のどこに書いてもよい</b>。 */
 const XH_EVENTS = [
+  /* ★★ 2026-10-22 超極煌祭（UR 3体・MagiAbyss 専用）。極煌祭と同じ毎月 21日〜末日・ガチャ一覧のいちばん上 */
+  { tag:"UR", t1:"超極煌祭（UR 3体）",
+    t2:"毎月21日〜末日。コハク・スズ・ショウコの UR 3体（各1.5%）——MagiAbyss 専用のキャラクター（コハクはユナと同じくらい強い）。🎫ガチャ券OK",
+    always:true, perm:true, monthly:[21, 31], since:"2026-10-22", from:"2026-10-22", to:"2027-12-31",
+    href:"gacha.html#fes20", img:"thumbs/MagiBurst.jpg" },
   /* ★★ 2026-10-16 超極華祭（UR 5体・MagiAbyss 専用）。極華祭と同じ毎月 11〜20日・ガチャ一覧のいちばん上 */
   { tag:"UR", t1:"超極華祭（UR 5体）",
     t2:"毎月11〜20日。ヨシノ・イチカ・ノノカ・アイナ・ユナの UR 5体（各1.5%）——MagiAbyss 専用のキャラクター（ユナはタキナより少し強い）。🎫ガチャ券OK",
@@ -452,7 +457,7 @@ XH_EVENTS.unshift({ tag:"EVENT", t1:"Violet Breeze", t2:"MagiLex 系統の XEVA 
   since:"2026-10-06", from:"2026-10-06", to:"2026-10-31", href:"index.html#event", img:"thumbs/VioletBreeze.jpg" });
 /* ★★ 2026-10-20 11月の共通イベント「Midnight Pumpkin」（11/1〜11/30・ご指定「開催予告と準備」）。
    開催前（10/20〜）の予告は、ホーム左上のバナー（home-mate.js の liveEvents が XEVA.event.upcoming を見る）とお知らせ。 */
-XH_EVENTS.unshift({ tag:"EVENT", t1:"Midnight Pumpkin", t2:"イベントミッションで🎫ガチャチケット・💱両替チケット／MagiDerby の的中払戻 +10%・MagiAbyss のゴールド ×1.5・MagiLex 系統 XEVA ×1.5／限定パック",
+XH_EVENTS.unshift({ tag:"EVENT", t1:"Midnight Pumpkin", t2:"イベントミッションで🎫ガチャチケット・💱両替チケット／MagiDerby の的中払戻 +10%・MagiAbyss のゴールド ×1.5・MagiLex 系統 XEVA ×2／限定パック",
   since:"2026-11-01", from:"2026-11-01", to:"2026-11-30", href:"index.html#event", img:"thumbs/MidnightPumpkin.jpg" });
 
 /* ══════════════════════════════════════════════════════════════
@@ -473,12 +478,22 @@ XH_EVENTS.unshift({ tag:"EVENT", t1:"Midnight Pumpkin", t2:"イベントミッ�
    ══════════════════════════════════════════════════════════════ */
 const XH_UPDATE_MAX = 12;
 const XH_UPDATES = [
+  /* ★★ 2026-10-22 超極煌祭／MagiAbyss 2.5D／同期・個人情報の注意／メニュー・パートナー非表示／ChemLex 大問タブ／MagiDerby 発売時間 */
+  { tag:"NEW", t1:"超極煌祭（UR 3体・MagiAbyss 専用）", at:"2026-10-22",
+    t2:"コハク・スズ・ショウコ（各1.5%）。毎月21日〜末日・🎫ガチャ券OK・ガチャ一覧のいちばん上。MagiAbyss ではコハクがユナと同じくらい、スズ・ショウコはタキナと同じくらい",
+    href:"gacha.html#fes20", img:"thumbs/MagiBurst.jpg" },
+  { tag:"UPDATE", t1:"MagiAbyss が 2.5D に（HD ドットのキャラ・光と粒子）", at:"2026-10-22",
+    t2:"奥行きのある画面・光と影・奥の霧・迷宮ごとの粒子。キャラは2倍の細かさで、顔と横顔を描き直し。設定のグラフィックで「軽め」「2D」も。イベントミッションに MagiAbyss を追加",
+    href:"MagiAbyss/index.html", img:"thumbs/MagiAbyss.jpg?v=2" },
+  { tag:"UPDATE", t1:"同期の改善・個人情報の注意・メニューの並び・パートナー非表示", at:"2026-10-22",
+    t2:"習得状況・キャラ・XEVA・ジェムが届かないことがあったのを修正／設定「データを最新にする」／個人情報は入力しないでください／メニューの並びをロビーと同じに／パートナーを表示しない（アプリが3〜4行）／ChemLex「大問」タブ・計算以外だけ／MagiDerby の発売を JRA と同じ時間に／Midnight Pumpkin の MagiLex 系 XEVA 2倍",
+    href:"index.html", img:"thumbs/MagiChemLex.jpg?v=2" },
   /* ★★ 2026-10-21 新作 MagiDerby（実際の JRA GⅠ）／Midnight Pumpkin 予告／両替所／下バー・コミュニティ／ChemLex WP／MagiShift 8人 */
   { tag:"NEW", t1:"新作 MagiDerby（実際の JRA GⅠ に XEVA で賭ける）", at:"2026-10-21",
     t2:"ホームの PARK の場所から。出馬表・馬柱・血統・オッズ・結果・払戻金はすべて本物／8券種・ボックス・ながし・フォーメーション／発売は当日 0:00・締切は発走2分前・払い戻しは次の日 0:00（実際の払戻金どおり）／JRA 公式のレース映像へ",
     href:"MagiDerby/index.html", img:"thumbs/MagiDerby.jpg" },
   { tag:"EVENT", t1:"🎃 Midnight Pumpkin（11/1〜11/30）開催予告", at:"2026-10-21",
-    t2:"イベントミッションで🎫ガチャチケット・💱両替チケット／MagiDerby 的中払戻 +10%・MagiAbyss ゴールド ×1.5・MagiLex 系統 XEVA ×1.5／限定パック",
+    t2:"イベントミッションで🎫ガチャチケット・💱両替チケット／MagiDerby 的中払戻 +10%・MagiAbyss ゴールド ×1.5・MagiLex 系統 XEVA ×2／限定パック",
     href:"index.html#event", img:"thumbs/MidnightPumpkin.jpg" },
   { tag:"UPDATE", t1:"XEVA 両替所／下バー・コミュニティ・アイコン", at:"2026-10-21",
     t2:"ショップに両替所（💱1枚で💎5を XEVA に）／下バーは図鑑・ガチャ・ホーム・コミュニティ・設定／PARK とアニメTier はコミュニティへ／キャラアイコンに属性色の縁・完凸で光る／チエ → ヨシノ",
@@ -2149,7 +2164,7 @@ function xhMbReady() {
   if (typeof CHARS !== "undefined" && typeof PREMIUM_CHARS !== "undefined") return Promise.resolve(true);
   if (_xhMbLoading) return _xhMbLoading;
   _xhMbLoading = xhLoadScript("mb-boot.js?v=17")
-    .then(() => xhLoadScript("MagiBurst/js/mb-core.js?v=138"))
+    .then(() => xhLoadScript("MagiBurst/js/mb-core.js?v=139"))
     .then(() => true)
     .catch((e) => { _xhMbLoading = null; throw e; });
   return _xhMbLoading;
@@ -2689,7 +2704,24 @@ function xhTapUpdate() {
 }
 
 /* ══════════════ ホームのアプリ棚 ══════════════ */
+/* ══ ★★ 2026-10-22 ご報告「メニューの並びが反映されていません」══
+   真因：メニューの棚は「ホームの常時表示（ロビーの2行）と同じ並び＋残り」のはずが、ロビーのアプリを自分で入れかえた人
+   （設定 → ロビーのアプリ・xeva_lobby_apps_v1）は、<b>ロビーとメニューの先頭がずれていた</b>（メニューは既定の並びのまま）。
+   → xhOrder＝<b>いまロビーに出ている10個をその順で先頭に</b>、そのあとに残りを今までの並び（xhOrderBase）で。
+     メニューの「並びかえ」で保存したときは、先頭の10個をロビーにも書く（xhSaveOrder）＝どちらで変えても同じ並び。
+   ★ ロビーの既定（まだ自分で選んでいない人）は xhOrderBase から作る（xhOrder を呼ぶとぐるぐる回る）。 */
 function xhOrder() {
+  const base = xhOrderBase();
+  try {
+    const lob = (window.HomeMate && typeof HomeMate.lobbyIds === "function") ? HomeMate.lobbyIds() : null;
+    if (Array.isArray(lob) && lob.length) {
+      const head = lob.filter((id, i) => base.indexOf(id) >= 0 && lob.indexOf(id) === i);
+      return head.concat(base.filter((id) => head.indexOf(id) < 0));
+    }
+  } catch (e) {}
+  return base;
+}
+function xhOrderBase() {
   let saved = [];
   /* アプリ構成が変わった世代では、保存済みの並びを一度だけ捨てて既定に戻す。
      そうしないと「ホームを並び替えたことがある人」にだけ新アプリが出てこない。 */
@@ -2715,6 +2747,11 @@ function xhOrder() {
 }
 function xhSaveOrder(order) {
   try { localStorage.setItem(XH_ORDER_KEY, JSON.stringify(order)); } catch (e) {}
+  /* ★★ 2026-10-22 メニューで並びかえたら、先頭の10個をロビー（ホームの常時表示）にも */
+  try {
+    const ids = (order || []).filter((id) => xhApp(id)).slice(0, 10);
+    if (ids.length) { localStorage.setItem("xeva_lobby_apps_v1", JSON.stringify(ids)); if (window.HomeMate && HomeMate.refreshApps) HomeMate.refreshApps(); }
+  } catch (e) {}
 }
 
 /* ★★ 2026-10-05 NEW の印（XH_APPS の newUntil の日まで） */
@@ -3797,9 +3834,101 @@ function xhOpenSettings() {
   xhOpenSheet("xhSetSheet");
   xhSetSheetFit();
   xhSetTabMark(true);
+  xhPaintSyncSub();
+  xhPaintMateHide();
 }
 window.xhOpenSettings = xhOpenSettings;
 
+/* ══ ★★ 2026-10-22 設定「データを最新にする」（ご指定「MagiChemLex の習得状況・キャラの所持・XEVA・ジェムなどが同期・更新されないことがある
+   → 最新のデータを基準に全て受け取れる形で」）
+   ポータルの台帳（XEVA・ジェム・チケット・ガチャの所持・MagiChemLex など）と MagiBurst の所持・凸を、
+   「取りこむ → 混ぜる → 送る」でいますぐそろえ、画面を読み直す。読めなかったときは何も混ぜない（xeva-cloud の syncAll）。 */
+function xhPaintSyncSub() {
+  const sub = xhEl("xhSyncSub"); if (!sub || xhSyncNow._busy) return;
+  let t = 0; try { t = Number(localStorage.getItem("xeva_lastsync_v1") || 0); } catch (e) {}
+  if (!t) { sub.textContent = "ほかの端末の学習・キャラ・XEVA・ジェムをいますぐ受け取る"; return; }
+  const d = new Date(t), p = (n) => String(n).padStart(2, "0");
+  sub.textContent = "最後に同期：" + (d.getMonth() + 1) + "/" + d.getDate() + " " + p(d.getHours()) + ":" + p(d.getMinutes()) + "（押すといますぐ受け取る）";
+}
+async function xhSyncNow() {
+  const sub = xhEl("xhSyncSub");
+  if (xhSyncNow._busy) return;
+  if (navigator.onLine === false) { xhToast("オフラインです。インターネットにつながってから、もう一度お試しください", 3200); return; }
+  if (!window.XevaCloud || typeof XevaCloud.syncAll !== "function") { xhToast("同期の準備中です。少し待ってからもう一度お試しください", 3000); return; }
+  xhSyncNow._busy = true;
+  if (sub) sub.textContent = "クラウドから最新のデータを受け取っています…";
+  let r = null, r2 = null;
+  try { r = await XevaCloud.syncAll(); } catch (e) { r = { ok: false, reason: "err" }; }
+  try { if (window.MagiBurstCloud && typeof MagiBurstCloud.syncAll === "function") r2 = await MagiBurstCloud.syncAll(); } catch (e) { r2 = { ok: false }; }
+  xhSyncNow._busy = false;
+  if (!r || !r.ok) {
+    xhPaintSyncSub();
+    xhToast(r && r.reason === "login" ? "ログインしているときだけ同期できます" : "クラウドに届きませんでした。通信を確かめて、もう一度お試しください", 3600);
+    return;
+  }
+  xhToast("✅ 最新のデータを受け取りました" + (r2 && r2.ok === false ? "（MagiBurst のキャラは次に開いたときに受け取ります）" : "") + "。画面を読み直します", 2400);
+  setTimeout(() => { try { location.reload(); } catch (e) {} }, 900);
+}
+window.xhSyncNow = xhSyncNow;
+
+/* ══ ★★ 2026-10-22 個人情報の入力についてのお知らせ（ご指定「昨今の状況に伴い、重要な特に個人情報に関わる情報の入力を避けるように警告」）
+   はじめてホームを開いたとき1回だけ（端末ごと・xeva_pii_notice_v1）。設定の「個人情報の入力について」からいつでも読み返せる。
+   ★ 入力欄そのものの注意（メールアドレス・電話番号らしい文字を入れたときの赤い注意など）は xeva.js（全ページ共通）。 */
+function xhPiiNotice(force) {
+  try { if (!force && localStorage.getItem("xeva_pii_notice_v1")) return; } catch (e) {}
+  if (document.getElementById("xhPiiOv")) return;
+  if (force) xhCloseSheet("xhSetSheet");
+  const ov = document.createElement("div");
+  ov.id = "xhPiiOv";
+  ov.style.cssText = "position:fixed;inset:0;z-index:1600;display:flex;align-items:center;justify-content:center;padding:18px;" +
+    "background:rgba(10,12,28,.55);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);font-family:'Noto Sans JP',system-ui,sans-serif";
+  ov.innerHTML =
+    '<div role="dialog" aria-modal="true" aria-labelledby="xhPiiT" style="width:min(420px,100%);max-height:86vh;overflow:auto;background:#fff;color:#22344d;border-radius:20px;' +
+    'box-shadow:0 24px 60px rgba(0,0,0,.35);padding:20px 20px 16px">' +
+    '<div style="display:flex;align-items:center;gap:10px;margin-bottom:10px"><span style="font-size:26px">🔒</span>' +
+    '<div><div id="xhPiiT" style="font-weight:800;font-size:16px">個人情報の入力について</div>' +
+    '<div style="font-size:11px;color:#c0303f;font-weight:700">大切なお知らせ</div></div></div>' +
+    '<div style="font-size:13px;line-height:1.8">昨今、個人情報の流出や悪用が増えています。XEVARION とすべてのアプリでは、次のような情報を<b>入力しないでください</b>。' +
+    '<ul style="margin:8px 0 8px 1.2em;padding:0">' +
+    '<li><b>本名・住所・電話番号・メールアドレス・学校名・勤務先</b></li>' +
+    '<li>メール・SNS・銀行などと<b>同じパスワードや暗証番号</b></li>' +
+    '<li><b>クレジットカード番号・マイナンバー</b>・顔写真</li></ul>' +
+    '表示名・メッセージ・メモ・Tier 表の名前などは、<b>ほかの人に見えたり、記録に残ったりすることがあります</b>。' +
+    '<div style="margin-top:8px;padding:8px 10px;border-radius:10px;background:#fff8e1;color:#6a5200;font-size:12px">入力欄に個人情報らしい文字が入ると、画面でもお知らせします。生年月日の入力は任意です。</div></div>' +
+    '<button id="xhPiiOk" style="margin-top:14px;width:100%;padding:12px;border:none;border-radius:999px;font-weight:800;font-size:14px;color:#fff;cursor:pointer;' +
+    'background:linear-gradient(135deg,#8e6bff,#ff6f91)">わかりました</button></div>';
+  const close = () => { try { localStorage.setItem("xeva_pii_notice_v1", String(Date.now())); } catch (e) {} ov.remove(); };
+  ov.addEventListener("click", (ev) => { if (ev.target === ov || (ev.target && ev.target.id === "xhPiiOk")) close(); });
+  document.body.appendChild(ov);
+}
+window.xhPiiNotice = xhPiiNotice;
+/* はじめての1回：起動の演出・ロード・ログイン画面と重ならないよう、ホームが出てから少し待って */
+setTimeout(function xhPiiFirst() {
+  try {
+    const home = document.getElementById("xevaHome");
+    const busy = document.getElementById("xevaLoadVeil") || document.getElementById("xevaSplash");
+    if (!home || !home.classList.contains("open") || busy || document.getElementById("xhUpdSheet") && document.getElementById("xhUpdSheet").classList.contains("on")) { setTimeout(xhPiiFirst, 4000); return; }
+    xhPiiNotice(false);
+  } catch (e) {}
+}, 6000);
+
+/* ★★ 2026-10-22 ご指定「パートナー非表示版も選択できるように（そのときはアプリの表示数を増やしてバランスを調整）」
+   設定のスイッチ＝ロビーの「表示」ボタンの「なし」と同じ（xeva_mate_v1.hide・同期する）。表示しないときはロビーのアプリが3〜4行になる（home-mate.js）。 */
+function xhToggleMateHide() {
+  try {
+    if (!window.HomeMate || !HomeMate.setHidden) return;
+    const on = !(HomeMate.hidden && HomeMate.hidden());
+    HomeMate.setHidden(on);
+    xhPaintMateHide();
+    xhToast(on ? "パートナーを表示しないモードにしました（ホームのアプリが多く並びます）" : "パートナーを表示します", 2400);
+  } catch (e) {}
+}
+window.xhToggleMateHide = xhToggleMateHide;
+function xhPaintMateHide() {
+  const sw = xhEl("xhSwMateHide"); if (!sw) return;
+  let on = false; try { on = !!(window.HomeMate && HomeMate.hidden && HomeMate.hidden()); } catch (e) {}
+  sw.classList.toggle("on", on);
+}
 function xhToggleMusic() {
   if (typeof xevaToggleMusic === "function") xevaToggleMusic();
   const sw = xhEl("xhSwMusic");

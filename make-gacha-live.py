@@ -50,6 +50,10 @@ def main():
         # ★★ 2026-10-16 超極華祭（chokaen）はガチャ一覧のいちばん上＝ロビーのバナーでも先頭に（home-mate.js の liveGachas）
         if re.search(r'\bchokaen:\s*true', blk):
             d['top'] = True
+        # ★★ 2026-10-22 超極煌祭（chokou）は超極華祭よりもさらに上
+        if re.search(r'\bchokou:\s*true', blk):
+            d['top'] = True
+            d['top2'] = True
         for k in ('banner', 'bannerSoon'):
             d[k] = d[k].replace('../img/', 'MagiBurst/img/')
         defs.append(d)

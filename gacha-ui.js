@@ -126,6 +126,8 @@ function modeDef(k) {
       : f.pumpkin ? "新レアリティ UR・🎫チケット優先／あと" + fesDaysLeft(k) + "日（" + fesPeriodText(k).replace(/<[^>]+>/g, "") + "）"
       /* ★★ 2026-10-16 超極華祭（UR・極華祭と同じ毎月中旬・ガチャ券のみ） */
       : f.chokaen ? "新レアリティ UR・🎫ガチャ券のみ／" + fesMonthlyLeftText(f)
+      /* ★★ 2026-10-22 超極煌祭（UR・極煌祭と同じ毎月下旬・ガチャ券のみ） */
+      : f.chokou ? "新レアリティ UR・🎫ガチャ券のみ／" + fesMonthlyLeftText(f)
       /* ★★ 2026-09-17g 極◯祭は今回の残り日数（gachaMenuList とそろえる） */
       : f.monthly ? (f.noFesTicket ? "限定キャラクター・🎫ガチャ券のみ" : "限定キャラクター・🎫チケット優先") + "／" + fesMonthlyLeftText(f)
       : (fesTimed(f) ? "フェス限定SSR・🎫チケット優先／あと" + fesDaysLeft(k) + "日"
@@ -2008,6 +2010,11 @@ function paintAll() {
   } catch (e) {}
 }
 window.addEventListener("xeva:change", () => { paintWal(); paintPullBar(); });
+/* ★★ 2026-10-22 ほかの端末で引いた・使ったぶんがクラウドから届いたら、所持数・凸・チケットを描き直す（結果の画面を出しているときは触らない） */
+window.addEventListener("xeva:synced", (e) => {
+  if (e && e.detail && e.detail.changed === false) return;
+  try { const busy = (document.getElementById("gres") || {}).classList; if (busy && busy.contains("on")) return; paintAll(); } catch (err) {}
+});
 /* 💎ジェム・🎫チケットは XEVARION 共通ウォレット。別タブや同期で動いたら値段表示もそろえる */
 window.addEventListener("xeva:gem", () => { paintWal(); paintPullBar(); });
 window.addEventListener("xeva:ticket", () => { paintWal(); paintPullBar(); });
