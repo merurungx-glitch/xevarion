@@ -104,6 +104,20 @@ function rescue(key, winStr, loseStr) {
   ["trans", "hero"].forEach((k) => {
     if (lose[k]) win[k] = Object.assign({}, lose[k], win[k] || {});
   });
+  /* ★★ 2026-10-24 ご報告「下バーのガチャタブの『無料』の印が消えない」
+     真因：無料を使った記録（初回10連無料 fesFree10・debutFree10／1日1回の単発 debutFree）が混ざっておらず、
+     別の端末の古いセーブが勝つと「まだ使っていない」に戻っていた（印が出つづけ、無料がもう一度使えてしまう）。
+     → 使ったという印は消えない側へ：fesFree10・debutFree10 は true が勝つ、debutFree は版ごとに新しい日付が勝つ。 */
+  ["fesFree10", "debutFree10"].forEach((k) => {
+    const L = lose[k];
+    if (!L || typeof L !== "object") return;
+    const W = (win[k] && typeof win[k] === "object") ? win[k] : (win[k] = {});
+    Object.keys(L).forEach((x) => { if (L[x] && !W[x]) { W[x] = L[x]; fixed++; } });
+  });
+  if (lose.debutFree && typeof lose.debutFree === "object") {
+    const W = (win.debutFree && typeof win.debutFree === "object") ? win.debutFree : (win.debutFree = {});
+    Object.keys(lose.debutFree).forEach((v) => { const a = String(lose.debutFree[v] || ""); if (a > String(W[v] || "")) { W[v] = a; fixed++; } });
+  }
   if (!fixed) return null;                 /* 直すところが無ければ従来どおり */
   try {
     console.log("[magiburst-cloud] 所持キャラ／記録を " + fixed + " 件ぶん合流しました");

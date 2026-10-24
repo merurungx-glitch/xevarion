@@ -15,8 +15,8 @@
    <b>ふつうの &lt;script&gt;</b>（type="module" ではない）で読むこと。
    トップレベルの const/let はグローバルの字句環境に入るので、
    あとから読み込む MagiBurst 本体のスクリプトからそのまま見える。
-     MagiBurst : <script src="js/mb-core.js?v=139"></script>
-     gacha.html: <script src="MagiBurst/js/mb-core.js?v=139"></script>
+     MagiBurst : <script src="js/mb-core.js?v=140"></script>
+     gacha.html: <script src="MagiBurst/js/mb-core.js?v=140"></script>
 
    ── ホストが先に用意しておくもの ──
      window.MB_IMGD … 画像フォルダへの相対パス（MagiBurst は "../img/"、ポータルは "img/"）
@@ -15034,13 +15034,22 @@ const AO_CHAR_DEF = {
    ・ABYSS_ONLY_IDS（超極華祭の5体＝fes19 の chars）とは別の台帳 CHOKOU_IDS（fes20 の chars）。
      「MagiAbyss 専用のキャラ全部」は ABYSS_ONLY_ALL（下の ABYSS_CHAR_IDS・UR の札で使う）。
    ・MagiAbyss の性能は ma-data.js（コハクはユナと同じ帯、スズ・ショウコはタキナと同じ帯）。 */
-const CHOKOU_IDS = ["kohaku", "suzu", "shouko"];
+/* ★★ 2026-10-24 超極煌祭に <b>ヒサコ（水）・アリス（闇）</b>を追加（No.283・284・ご指定）。
+   MagiAbyss ではヒサコが<b>UR でいちばん強い</b>、アリスはコハクと同じ帯（ma-data.js）。 */
+const CHOKOU_IDS = ["kohaku", "suzu", "shouko", "hisako", "alice"];
 Object.assign(AO_CHAR_DEF, {
   kohaku: { nm: "コハク",   f: "Kohaku", el: "fire",  shot: "pierce", type: "紅薔薇令嬢型", fesKey: "chokou" },
   suzu:   { nm: "スズ",     f: "Suzu",   el: "wood",  shot: "bounce", type: "夏花日和型",   fesKey: "chokou" },
   shouko: { nm: "ショウコ", f: "Shouko", el: "light", shot: "bounce", type: "陽だまり渚型", fesKey: "chokou" },
+  hisako: { nm: "ヒサコ",   f: "Hisako", el: "water", shot: "pierce", type: "桜色教室型",   fesKey: "chokou" },
+  alice:  { nm: "アリス",   f: "Alice",  el: "dark",  shot: "pierce", type: "白銀百合型",   fesKey: "chokou" },
 });
-const ABYSS_ONLY_ALL = CHOKOU_IDS.concat(ABYSS_ONLY_IDS);
+/* ★★ 2026-10-24 <b>MagiChemLex の WP 交換所</b>の UR（ガチャからは出ない・120WP で1体・ご指定）＝ ミキ（木・No.285）。
+   これも MagiAbyss 専用（性能は MagiAbyss だけ・MagiChemLex のナビやアイコンには使える）。MagiAbyss ではタキナと同じ帯。 */
+const WP_CHAR_IDS = ["miki"];
+AO_CHAR_DEF.miki = { nm: "ミキ", f: "Miki", el: "wood", shot: "bounce", type: "青花学舎型" };
+/* 並び（MagiAbyss の一覧などは新しい順）：今回の3体 → 超極煌祭のはじめの3体 → 超極華祭 */
+const ABYSS_ONLY_ALL = ["hisako", "alice", "miki", "kohaku", "suzu", "shouko"].concat(ABYSS_ONLY_IDS);
 ABYSS_ONLY_ALL.forEach((id) => {
   const d = AO_CHAR_DEF[id], T = CHARS.takina;
   CHARS[id] = {
@@ -15054,6 +15063,8 @@ ABYSS_ONLY_ALL.forEach((id) => {
     fsName: "—", fsKind: T.fsKind, fsPow: "", fsDesc: "",
   };
 });
+/* ★★ 2026-10-24 ミキはガチャから出ない（MagiChemLex の WP 交換所だけ）＝ガチャ・フェスの印を外して「交換キャラ」の印 */
+WP_CHAR_IDS.forEach((id) => { const c = CHARS[id]; if (!c) return; c.gacha = false; c.fes = false; delete c.fesKey; c.reward = true; c.chemchar = true; });
 /* MagiAbyss 専用のキャラか（MagiBurst・MagiBattle・Boccia・MagiTier では使えない） */
 function isAbyssOnly(id) { const c = CHARS[id]; return !!(c && c.abyssOnly); }
 /* ★★ 2026-10-09 UR の縦長の SS 絵（ガチャ演出・MagiAbyss のカットイン・治癒の祈り）。ファイルは MagiBurst/img/ss/ */
@@ -15315,6 +15326,8 @@ const CHAR_IDS = [
   "chie", "ichika", "nonoka", "aina", "yuna",          /* No.275〜279 */
   /* ★★ 2026-10-22 超極煌祭（UR・MagiAbyss 専用） */
   "kohaku", "suzu", "shouko",                          /* No.280〜282 */
+  /* ★★ 2026-10-24 超極煌祭の追加2体（UR）・MagiChemLex の WP 交換の UR（すべて MagiAbyss 専用） */
+  "hisako", "alice", "miki",                           /* No.283〜285 */
 ];
 /* id → キャラクター番号（1始まり）。図鑑・詳細・ガチャ結果に「No.XX」として出す */
 const CHAR_NO = {};
@@ -15371,6 +15384,8 @@ PN_IDS.forEach((id) => { RAR_LABEL[id] = "UR"; });
 ABYSS_ONLY_IDS.forEach((id) => { RAR_LABEL[id] = "UR"; });
 /* ★★ 2026-10-22 超極煌祭の3体も UR */
 CHOKOU_IDS.forEach((id) => { RAR_LABEL[id] = "UR"; });
+/* ★★ 2026-10-24 MagiChemLex の WP 交換のミキも UR */
+WP_CHAR_IDS.forEach((id) => { RAR_LABEL[id] = "UR"; });
 function rarLabel(id) { return RAR_LABEL[id] || (isStar5(id) ? "SSR" : "SR"); }
 /* 限界突破MAXの金演出クラス。SRは「金の縁取りだけ」で発光させない（v14） */
 /* ★ 2026-08-12 限界突破MAXの見た目は<b>SSRだけ</b>にした。
@@ -15407,7 +15422,9 @@ Object.entries({ takina: [0.26, 0.35], hibana: [0.69, 0.45], fuki: [0.20, 0.41],
   /* ★★ 2026-10-16 超極華祭 */
   chie: [0.27, 0.32], ichika: [0.78, 0.35], nonoka: [0.68, 0.38], aina: [0.77, 0.50], yuna: [0.40, 0.40],
   /* ★★ 2026-10-22 超極煌祭 */
-  kohaku: [0.27, 0.42], suzu: [0.68, 0.38], shouko: [0.26, 0.28] })
+  kohaku: [0.27, 0.42], suzu: [0.68, 0.38], shouko: [0.26, 0.28],
+  /* ★★ 2026-10-24 ヒサコ・アリス・ミキ */
+  hisako: [0.33, 0.36], alice: [0.30, 0.42], miki: [0.26, 0.40] })
   .forEach(([id, f]) => { if (CHARS[id]) CHARS[id].wideFace = f; });
 /* ★★ 2026-10-06b UR の絵の見せ方（どのアプリのキャラ詳細でも共通・ご指定「UR の絵が SSR より小さい」）
    ・枠は SSR と同じ大きさ（高さ）にして、横長の絵を<b>大きく</b>出し、ゆっくり左右に流して全体を見せる（.urx-pan）。
@@ -23037,7 +23054,9 @@ function charSourceList(id) {
   /* ★★ 2026-09-06 天界の審判の踏破報酬 */
   if (id === "astraea") out.push("⚖ <b>天界の審判 60WAVE 踏破</b>の報酬");
   /* ⑦ MagiLex（KP交換所）・XEVARION のCDK */
-  if (c.lexchar) out.push("📚 <b>MagiLex の KP交換所</b>（80KP）");
+  /* ★★ 2026-10-24 MagiChemLex の WP 交換所（ミキ） */
+  if (c.chemchar) out.push("🧪 <b>MagiChemLex の WP交換所</b>（120WP・1体）");
+  else if (c.lexchar) out.push("📚 <b>MagiLex の KP交換所</b>（80KP）");
   else if (c.reward) out.push("🎁 配布キャラ（XEVARION のミッション報酬）");
   if (c.cdk) out.push("🎫 <b>XEVARION のシリアルコード／制覇ミッション</b>");
   /* ⑧ どれにも当てはまらない＝はじめから使えるキャラ */
@@ -24799,6 +24818,7 @@ FESTS.fes19 = {
 /* ══════════════════════════════════════════════════════════════
    ★★ 2026-10-22 <b>超極煌祭</b>（fes20・ご指定）
    ・UR 3体（コハク・スズ・ショウコ）。<b>1体 1.5%</b>（pickEach・flatPick＝NEW が終わっても下げない）。
+   ・★★ 2026-10-24 <b>ヒサコ（水）・アリス（闇）</b>を追加して UR 5体（1体 1.5%のまま・合計 7.5%）。
    ・ご指定「開催期間と日数や仕様などは現在の極煌祭と同じ」→ <b>毎月 21日〜末日（下旬）</b>（monthly）・
      <b>🎫フェス券は使えない</b>（noFesTicket＝ガチャ券のみ・極煌祭と同じ）・初回10連無料なし・アーカイブに入らない。
    ・ご指定「極華祭（極煌祭）とは異なる」→ 別のガチャ（キーも台帳も別）。「ガチャ一覧の一番上」→ chokou の印
@@ -24817,22 +24837,22 @@ FESTS.fes20 = {
   newSince: "2026-10-22",
   itemTable: D_ITEM_TABLE,
   get lead() {
-    return "新レアリティ <b>UR 3体</b>（各" + ratePct(pickRateOf("fes20", "kohaku")) + "）に加えて、<b>"
+    return "新レアリティ <b>UR 5体</b>（各" + ratePct(pickRateOf("fes20", "kohaku")) + "）に加えて、<b>"
       + PREMIUM_NM + "のSSRも排出</b>（SSR以上 合計 " + ratePct(SSR_TOTAL) + "）";
   },
   get sub() {
-    return "UR <b>3体</b>（各" + ratePct(pickRateOf("fes20", "kohaku")) + "）／<b>残りは " + PREMIUM_NM + " のSSRが等確率</b>。"
+    return "UR <b>5体</b>（各" + ratePct(pickRateOf("fes20", "kohaku")) + "）／<b>残りは " + PREMIUM_NM + " のSSRが等確率</b>。"
       + "<b>毎月 21日〜末日（下旬）</b>だけの開催・🎫ガチャ券が使えます（フェス券は使えません）";
   },
   get note() {
-    return "<b>★★ 2026-10-22 超極煌祭 開幕</b>"
-      + "<br>★ <b>コハク（火）・スズ（木）・ショウコ（光）</b>の3体。"
-      + "3体とも<b>UR</b>で、排出は<b>1体 " + ratePct(pickRateOf("fes20", "kohaku")) + "</b>です。"
+    return "<b>★★ 2026-10-24 超極煌祭に新キャラ2体</b>"
+      + "<br>★ <b>ヒサコ（水）・アリス（闇）</b>が加わり、<b>コハク（火）・スズ（木）・ショウコ（光）</b>とあわせて5体。"
+      + "5体とも<b>UR</b>で、排出は<b>1体 " + ratePct(pickRateOf("fes20", "kohaku")) + "</b>です。"
       + "<br>★ 開催は極煌祭と同じ<b>毎月 21日〜末日（下旬）</b>。🎫<b>ガチャ券</b>が使えます（フェス券は使えません）。極煌祭・極華祭とは別のガチャです。"
-      + "<br>★ 3体とも <b>MagiAbyss 専用のキャラクター</b>です。性能は <b>MagiAbyss の性能だけ</b>で、"
+      + "<br>★ 5体とも <b>MagiAbyss 専用のキャラクター</b>です。性能は <b>MagiAbyss の性能だけ</b>で、"
       + "MagiBurst・MagiBattle・MagiBocciaRush では使えません（キャラ詳細は MagiAbyss の面だけ）。"
       + "<br>★ <b>MagiChemLex のナビゲーター</b>や <b>XEVARION のアイコン</b>には使えます。"
-      + "<br>★ MagiAbyss では <b>コハクはユナと同じくらい（タキナより少し強い）</b>、スズ・ショウコは<b>タキナと同じくらい</b>の強さです。";
+      + "<br>★ MagiAbyss では <b>ヒサコが UR でいちばん強く</b>、<b>アリス・コハクはユナと同じくらい（タキナより少し強い）</b>、スズ・ショウコは<b>タキナと同じくらい</b>の強さです。";
   },
 };
 /* ══════════════════════════════════════════════════════════════
@@ -25089,7 +25109,8 @@ function gachaTicketSVG(px) {
 /* ★★ 2026-08-26 MagiLex の KP交換キャラ4体を追加。
    ここに無いと、MagiLex の交換所で受け取っても<b>MagiBurst に出てこない</b>
    （xeva_gacha_v1 → magiburst_v1 の橋渡しがこの配列だけなので）。 */
-const SHARED_CHARS = CROSS_CHARS.concat(["mizuki", "ayaka", "kanade", "homura", "yoizuki", "sumika"]);
+/* ★★ 2026-10-24 MagiChemLex の WP 交換所のミキも（交換所は xeva_gacha_v1 にも書くので、MagiBurst のセーブへの橋渡しが要る） */
+const SHARED_CHARS = CROSS_CHARS.concat(["mizuki", "ayaka", "kanade", "homura", "yoizuki", "sumika", "miki"]);
 
 /* ── XEVAガチャの共有コレクション（xeva_gacha_v1）読み書き ── */
 const XG_KEY = "xeva_gacha_v1";
