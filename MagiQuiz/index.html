@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<script src="../maintenance-gate.js?v=13"></script>
+<meta charset="UTF-8" />
+<script>(function(){try{var a=JSON.parse(localStorage.getItem('xeva_account_v1'));if(!a||!a.setupDone)location.replace('../index.html');}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<title>MagiQuiz</title>
+<meta name="description" content="化学の基礎で、みんなでクイズバトル！ 1台の iPad を囲んで、ミリオネア・ばくだんの2つの遊び方で。個人戦もチーム戦も。" />
+<link rel="icon" href="../thumbs/MagiQuiz.jpg" type="image/jpeg" />
+<link rel="apple-touch-icon" href="img/apple-touch-icon.png" />
+<meta name="theme-color" content="#f3f6ff" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&family=Baloo+2:wght@700;800&display=swap" rel="stylesheet">
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function () { navigator.serviceWorker.register("sw.js").catch(function () {}); });
+}
+</script>
+<script src="../xeva-safebottom.js?v=12"></script>
+<link rel="stylesheet" href="css/quiz.css?v=2" />
+<script src="../xeva-splash.js?v=17" data-app="MagiQuiz" data-logo="../thumbs/MagiQuiz.jpg"></script>
+</head>
+<body>
+<!-- ══════════════════════════════════════════════════════════════
+     ★★ 2026-10-23 新作 MagiQuiz（ご指定「MagiChemLex の基礎問題を、1台の iPad で MagiShift のような名前や紐づけ・
+        シンプルな仕組みで、個人や団体戦で、クイズミリオネアや爆弾のように学習しつつ楽しめる」「シンプルかつライトなデザイン」）
+     ・遊び方は2つ（ご指定）：ミリオネア（10問のはしご）／ばくだん（見えない時間の爆弾を回す）。どちらもチーム戦あり。
+     ・学習：答えるたびに正解と「ポイント1行」。試合のあとに、まちがえた問題を解説つきで見直せる。
+     ・紐づけ・賞金は MagiShift と同じ（GameLink・順位で 250/200/150/100/50 XEVA）。
+     ・画面：タイトル → 準備（1画面）→ 手番（iPad をわたす）→ ゲーム → 結果
+     ══════════════════════════════════════════════════════════════ -->
+<div class="bgfx" aria-hidden="true"><i></i><i></i><i></i></div>
+
+<!-- ① タイトル -->
+<section id="title" class="scr on">
+  <a class="homebtn" href="../index.html" aria-label="XEVARION へもどる"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span>XEVARION</span></a>
+  <button class="sebtn" data-a="se" id="seBtn" aria-label="効果音"></button>
+  <div class="tmain">
+    <div class="tlogo">
+      <img class="ticon" src="../thumbs/MagiQuiz.jpg" alt="">
+      <h1 class="logo">Magi<i>Quiz</i></h1>
+      <p class="tagline">化学の基礎で、みんなでクイズバトル！</p>
+    </div>
+    <div class="tmodes" aria-hidden="true">
+      <div class="tm mil"><span class="tmi" data-ic="crown"></span><b>ミリオネア</b><small>10問のはしごを登って<br>32,000 pt をめざせ</small></div>
+      <div class="tm bomb"><span class="tmi" data-ic="bomb"></span><b>ばくだん</b><small>正解したら となりへ！<br>爆発したらハート −1</small></div>
+    </div>
+    <div class="tbtns">
+      <button class="btn pri big" data-a="start"><span data-ic="play"></span>あそぶ</button>
+      <div class="tsmall">
+        <button class="tool" data-a="rules"><span data-ic="book"></span><span>ルール</span></button>
+        <button class="tool" data-a="stats"><span data-ic="trophy"></span><span>戦績</span></button>
+      </div>
+    </div>
+    <p class="tsrc" id="tSrc"></p>
+  </div>
+</section>
+
+<!-- ② 準備（1画面） -->
+<section id="setup" class="scr">
+  <div class="topbar">
+    <button class="bbtn" data-a="title"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span>もどる</span></button>
+    <h2>ゲームの準備</h2>
+    <button class="ibtn" data-a="rules" aria-label="ルール"><span data-ic="help"></span></button>
+  </div>
+  <div class="swrap">
+    <div class="card">
+      <h3><span class="hn">1</span>あそびかた</h3>
+      <div class="modes" id="segMode"></div>
+    </div>
+    <div class="card">
+      <h3><span class="hn">2</span>たたかいかた</h3>
+      <div class="seg" id="segTeam"></div>
+      <div class="seg sm" id="segTeams"></div>
+      <p class="tnote" id="teamDrawNote" hidden>チームは、全員の名前を入れて「はじめる」を押したあと<b>抽選</b>で決まります。</p>
+    </div>
+    <div class="card">
+      <h3><span class="hn">3</span>プレイヤー<small>名前はそのまま打って変えられます（6文字まで）</small></h3>
+      <div class="seg" id="segN"></div>
+      <div id="plist"></div>
+      <p class="note">🔗 で XEVARION アカウントを紐づけると、戦績が残り<b>順位に応じた XEVA</b>（1位 250〜5位 50）を受け取れます（紐づけなくても遊べます）。前回紐づけた席は <b>🔒 要確認</b> で引きつがれ、押して4桁パスワードを入れると有効になります。パスワードはゲームの中に保存しません。</p>
+    </div>
+    <div class="card">
+      <h3><span class="hn">4</span>出題範囲<small>MagiChemLex の基礎セットの問題から</small></h3>
+      <div class="chips" id="chipSets"></div>
+      <div class="chips" id="chipFields"></div>
+      <p class="pinfo" id="poolInfo"></p>
+    </div>
+    <div class="card" id="optCard">
+      <h3><span class="hn">5</span><span id="optTitle">ルール</span></h3>
+      <div id="modeOpts"></div>
+    </div>
+  </div>
+  <div class="sticky"><button class="btn pri big" data-a="begin"><span data-ic="play"></span><span id="beginTx">はじめる</span></button></div>
+</section>
+
+<!-- ③ 手番（iPad をわたす） -->
+<section id="turn" class="scr">
+  <div class="tcard" id="turnBox"></div>
+</section>
+
+<!-- ④ ミリオネア -->
+<section id="mil" class="scr">
+  <div class="gtop">
+    <button class="ibtn" data-a="gmenu" aria-label="メニュー"><span data-ic="menu"></span></button>
+    <div class="gtitle"><b>Magi<i>Quiz</i></b><span>ミリオネア</span></div>
+    <div class="gwho" id="mWho"></div>
+  </div>
+  <div class="mwrap">
+    <div class="mmain">
+      <div class="mhead">
+        <div class="mstep" id="mStep"></div>
+        <div class="mtimer" id="mTimer" hidden></div>
+      </div>
+      <div class="mprog" id="mProg"></div>
+      <div class="qcard" id="mQ"></div>
+      <div class="opts" id="mOpts"></div>
+      <div class="mlife" id="mLife"></div>
+      <div class="mbar" id="mBar"></div>
+    </div>
+    <aside class="ladder" id="mLadder"></aside>
+  </div>
+</section>
+
+<!-- ⑤ ばくだん -->
+<section id="bomb" class="scr">
+  <div id="bGlow" class="bglow" aria-hidden="true"></div><!-- ★★ 2026-10-24 画面のふちが光って危機を知らせる（quiz-ui.js の glowPaint） -->
+  <div class="gtop">
+    <button class="ibtn" data-a="gmenu" aria-label="メニュー"><span data-ic="menu"></span></button>
+    <div class="gtitle"><b>Magi<i>Quiz</i></b><span>ばくだん</span></div>
+    <div class="gwho" id="bRound"></div>
+  </div>
+  <div class="bplayers" id="bPlayers"></div>
+  <div class="bmain">
+    <div class="bstage" id="bStage">
+      <div class="bombw" id="bBomb"></div>
+      <div class="bholder" id="bHolder"></div>
+    </div>
+    <div class="bq">
+      <div class="qcard" id="bQ"></div>
+      <div class="opts" id="bOpts"></div>
+      <div class="bfb" id="bFb" hidden></div>
+    </div>
+  </div>
+  <div class="bstart" id="bStart" hidden></div>
+</section>
+
+<!-- ⑥ 結果 -->
+<section id="result" class="scr">
+  <div class="topbar"><span></span><h2>試合結果</h2><span></span></div>
+  <div class="swrap">
+    <div id="podium" class="podium"></div>
+    <div id="resultList"></div>
+    <div id="resultMeta"></div>
+  </div>
+  <div class="sticky row">
+    <button class="btn" data-a="review" id="btnReview"><span data-ic="book"></span><span id="btnReviewTx">見直す</span></button>
+    <button class="btn pri" data-a="again"><span data-ic="again"></span>もう一度</button>
+    <button class="btn" data-a="title"><span data-ic="home"></span>タイトルへ</button>
+  </div>
+</section>
+
+<!-- 戦績 -->
+<section id="stats" class="scr">
+  <div class="topbar">
+    <button class="bbtn" data-a="title"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span>もどる</span></button>
+    <h2>戦績</h2><span></span>
+  </div>
+  <div class="swrap"><div id="statList"></div></div>
+</section>
+
+<div id="ov" class="ov"><div class="sheet" id="sheet"></div></div>
+<div id="toast" class="toast" hidden></div>
+<div id="fx" class="fx" aria-hidden="true"></div>
+
+<script type="module" src="../xevarion-fb.js?v=36"></script>
+<!-- 賞金の XEVA・レベルをクラウドへ送るため xeva-cloud.js も読む（ログインなしでも遊べるようにホームへは戻さない） -->
+<script>window.XEVA_CLOUD_NO_GATE = true;</script>
+<script type="module" src="../xeva-cloud.js?v=48"></script>
+<script src="../xeva.js?v=82"></script>
+<script src="../xeva-loading.js?v=19" defer></script>
+<script src="../game-link.js?v=13"></script>
+<!-- 問題は MagiChemLex の問題データそのもの（基礎セットの選択問題だけを使う・quiz-data.js） -->
+<script src="../MagiChemLex/js/mcl-data.js?v=5"></script>
+<script src="../MagiChemLex/js/mcl-data2.js?v=4"></script>
+<script src="../MagiChemLex/js/mcl-data3.js?v=2"></script>
+<script src="../MagiChemLex/js/mcl-data4.js?v=2"></script>
+<script src="../MagiChemLex/js/mcl-data5.js?v=2"></script>
+<script src="../MagiChemLex/js/mcl-data6.js?v=1"></script>
+<script src="../MagiChemLex/js/mcl-data7.js?v=1"></script>
+<script src="../MagiChemLex/js/mcl-data8.js?v=2"></script>
+<script src="../MagiChemLex/js/mcl-data9.js?v=2"></script>
+<script src="../MagiChemLex/js/mcl-data10.js?v=1"></script>
+<script src="../MagiChemLex/js/mcl-data11.js?v=1"></script>
+<script src="../MagiChemLex/js/mcl-data12.js?v=1"></script>
+<script src="js/quiz-data.js?v=2"></script>
+<script src="js/quiz-account.js?v=1"></script>
+<script src="js/quiz-ui.js?v=2"></script>
+<script src="../xeva-back.js?v=9" data-mode="hook"></script>
+</body>
+</html>

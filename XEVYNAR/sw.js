@@ -6,19 +6,19 @@
    ・オフライン中の記録は localStorage に残り、オンライン復帰時に
      xeva-cloud.js がクラウドへ反映する。
    ============================================================ */
-const VERSION = "xevynar-sw-v63";
+const VERSION = "xevynar-sw-v65";
 const CORE = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
   "./xevynar.css?v=20",
   "./xevynar-tf.js?v=10",
-  "./xevynar-kb.js?v=22",
-  "./xevynar-lex.js?v=17",
+  "./xevynar-kb.js?v=23",
+  "./xevynar-lex.js?v=18",
   "./xevynar-steps.js?v=14",
   "./xevynar-figs.js?v=17",
   "./xevynar-terms.js?v=11",
-  "./xevynar-deep.js?v=14",
+  "./xevynar-deep.js?v=15",
   "./xevynar-brain.js?v=20",
   "./xevynar-talk.js?v=20",
   "./xevynar-app.js?v=22",
@@ -27,8 +27,8 @@ const CORE = [
   "./xevynar-192.png",
   "./xevynar-512.png",
   "../maintenance-gate.js?v=13",
-  "../xeva.js?v=80",
-  "../xeva-alive.js?v=7",
+  "../xeva.js?v=82",
+  "../xeva-alive.js?v=8",
   "../xeva-splash.js?v=17",
   "../xeva-loading.js?v=19",
   "../XEVA.png",
@@ -44,14 +44,10 @@ const CORE = [
   "../MagiLex/magilex-eigo.js",
   "../MagiLex/magilex-rika.js",
   "../MagiLex/magilex-chemb.js",
-  "../MagiLex/magilex-suugaku.js",
   "../MagiLex/magilex-intro.js",
   "../MagiLex/magilex-mid.js",
-  "../MagiLex/magilex-math3.js",
   "../MagiLex/magilex-chemg.js",
   "../MagiLex/magilex-chemd.js",
-  "../MagiLex/magilex-physb.js",
-  "../MagiLex/magilex-butsuri.js",
 ];
 
 /* ══ ★★ 2026-10-14 「更新したファイル」を数える（ご報告「更新があったファイルが0のまま」）══

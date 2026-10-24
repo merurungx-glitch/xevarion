@@ -429,7 +429,7 @@
 
   /* ══ ④ 対戦 ══ */
   function startGame() {
-    UI.blockMode = false; UI.hold = false;
+    UI.blockMode = false; UI.hold = false; UI.review = false;
     HIST = [];
     const dropped = G.save(S, HIST);
     /* ★★ 2026-10-20 ご指摘「開始してから上の名前の表示がまとまり、盤が動く」：
@@ -445,7 +445,7 @@
   function resume(gid) {
     const d = G.load(gid);
     if (!d || !d.S) { toast("このセーブは読めませんでした"); renderTitle(); return; }
-    S = d.S; HIST = d.hist || []; UI.blockMode = false; UI.reported = false; UI.hold = false;
+    S = d.S; HIST = d.hist || []; UI.blockMode = false; UI.reported = false; UI.hold = false; UI.review = false;
     show("game");
     renderGame(true);
     turnClock(true);
@@ -529,7 +529,9 @@
       /* ★★ 2026-10-20 小さい札（5人以上・せまい画面）は「のこり」を省いて数だけ（CPU は印のかどの小さな札で） */
       const pieces = S.maxPieces ? (out ? '<small class="out" title="駒を使いきりました（動かすだけ）"><span class="ob">' + (cmp ? "使用済" : "使いきり") + "</span>" + bk(q.slot) + "</small>" : "<small>" + (cmp ? "のこ" : "のこり ") + left + "個" + bk(q.slot) + "</small>") : "<small>" + G.countOf(S, q.slot) + "個" + bk(q.slot) + "</small>";
       return '<div class="pchip' + (on ? " on" : "") + (isCpu(q) ? " cpu" : "") + (q.sub ? " sub" : "") + '" style="--c:' + q.color + '"><span class="ord">' + (k + 1) + '</span><span class="pcw">' + pieceSVG(q) + avatarHTML(q, "mini") + "</span>" +
-        '<span class="pn"><b>' + esc(q.name) + (isCpu(q) ? ' <span class="tag">' + (q.sub ? "代打CPU" : "CPU") + "</span>" : "") + "</b>" + pieces + "</span></div>";
+        '<span class="pn"><span class="pnr"><b>' + esc(q.name) + (isCpu(q) ? ' <span class="tag">' + (q.sub ? "代打CPU" : "CPU") + "</span>" : "") + "</b>" +
+        /* ★★ 2026-10-24 ご指定「守りの回数を名前のところに小さく」 */
+        '<i class="dfc" title="守り：ほかの人の「あと1つでそろう」マスを防いだ回数">🛡' + ((S.def && S.def[q.slot]) || 0) + "</i></span>" + pieces + "</span></div>";
     }).join("");
     if (full) buildBoard();
     paintWar();
@@ -537,7 +539,7 @@
     paintTurn(swap);
     turnClock();
     $("#board").classList.toggle("done", !play);
-    if (play) G.save(S, HIST);
+    if (play && !UI.review && !S.sandbox) G.save(S, HIST);
   }
   /* ══ ★★ 2026-10-20 ご指定「戦況をバーで表示（設定で非表示にも）」══
      人ごとの勢い（形のよさ＋すぐ勝てるマス・shift-ai.js の advantage）を、1本の帯の長さで。
@@ -654,6 +656,7 @@
   }
   function paintTurn(swap) {
     const t = $("#turnbar");
+    if (UI.review) { t.innerHTML = reviewBarHTML(); return; }   /* ★★ 2026-10-24 見返し中 */
     if (S.phase !== "play") {
       t.innerHTML = '<div class="tb-who"><b style="color:var(--sub)">' + (S.draw ? "引き分け" : "試合終了") + '</b></div><div class="tb-hint">' + (S.draw ? "CPU どうしで " + MAXR + "周しても決着がつきませんでした" : "おつかれさまでした！") + "</div>";
       return;
@@ -679,7 +682,9 @@
     /* ★★ 2026-10-20 ヒント（人の番だけ） */
     if (!cpu) acts += '<button class="tbtn hint' + (UI.hint ? " on" : "") + '" data-a="hint" aria-label="ヒント" title="いちばん良さそうな手を光らせます">' + ICON.bulb + '<span class="tl">ヒント</span></button>';
     if (canUndo()) acts += '<button class="tbtn undo" data-a="undo" aria-label="1手もどる" title="1手もどる（だれの手でも、ひとつ前にもどります）">' + ICON.undo + '<span class="tl">1手もどる</span><span class="ts">もどる</span></button>';
-    t.innerHTML = '<div class="tb-who' + (swap ? " swap" : "") + '">' + pieceSVG(p) + "<b>" + esc(p.name) + "</b><small>の番" + (cpu ? "（CPU）" : "") + "</small>" +
+    /* ★★ 2026-10-24 試しの対局のときは「見返しにもどる」「本番の結果へ」 */
+    if (S.sandbox) acts += '<button class="tbtn" data-a="rvBack" title="見返しにもどる">' + ICON.undo + '<span class="tl">見返し</span></button><button class="tbtn" data-a="rvEnd">' + IC2.list + '<span class="tl">本番の結果へ</span></button>';
+    t.innerHTML = (S.sandbox ? '<div class="tb-sand">🧪 試しの対局（保存しない・賞金なし）</div>' : "") + '<div class="tb-who' + (swap ? " swap" : "") + '">' + pieceSVG(p) + "<b>" + esc(p.name) + "</b><small>の番" + (cpu ? "（CPU）" : "") + "</small>" +
         '<span class="tb-clock" id="tbClock" title="この手番の経過時間（次の人でリセット）">' + ICON.clock + "<span>0:00</span></span></div>" +
       '<div class="tb-hint">' + hint + "</div>" + '<div class="tb-acts">' + acts + "</div>";
   }
@@ -698,7 +703,7 @@
   };
 
   function onCell(x, y) {
-    if (!S || S.phase !== "play") return;
+    if (!S || S.phase !== "play" || UI.review) return;   /* ★★ 2026-10-24 見返し中は見るだけ */
     if (isCpu(G.cur(S))) { toast("いまは CPU の番です"); return; }
     if (UI.blockMode) {
       if (G.canBlock(S, x, y)) { pushHist(); const res = G.block(S, x, y); sfx("block"); after(res); return; }
@@ -804,7 +809,7 @@
   let cpuT = 0;
   function scheduleCpu() {
     clearTimeout(cpuT);
-    if (!S || S.phase !== "play" || !isCpu(G.cur(S)) || UI.hold) return;
+    if (!S || S.phase !== "play" || !isCpu(G.cur(S)) || UI.hold || UI.review) return;
     if (!$("#game").classList.contains("on")) return;
     cpuT = setTimeout(cpuStep, opt.slow ? 1200 : 700);
   }
@@ -842,11 +847,63 @@
     clearTimeout(cpuT);
     S.sel = null;
     renderGame();
-    G.remove(S.gid);      /* ★★ 2026-10-14 この試合の枠だけ消す（ほかの中断はそのまま） */
+    /* ★★ 2026-10-24 見返し用に、手ごとの盤面（HIST）と最終盤面を残す（試しの対局のときは試しのぶん） */
+    UI.rv = { list: HIST.map((h) => h.s), fin: JSON.stringify(Object.assign({}, S, { sel: null })), at: HIST.length, sand: !!S.sandbox };
+    if (!S.sandbox) { UI.main = { rv: UI.rv }; G.remove(S.gid); }     /* ★★ 2026-10-14 この試合の枠だけ消す（ほかの中断はそのまま） */
     HIST = [];
     if (S.draw) { sfx("draw"); setTimeout(winScreen, 500); }
     else { sfx("win"); confetti(); setTimeout(winScreen, 1100); }
-    report();
+    if (!S.sandbox) report();
+  }
+  /* ══ ★★ 2026-10-24 ご指定「勝負がついたときに最終盤面を確認したり、戻して操作して見られるように」══
+     ・勝利の板・結果の画面の「盤面を見る」→ 盤の上で <b>最初／1手もどる／1手すすむ／最終盤面</b> を行き来（見るだけ・CPU も動かない）。
+     ・「ここから試す」で、見ている局面から続きを指して試せる（<b>試しの対局</b>：保存しない・賞金も戦績もなし・CPU の席は CPU が指す）。
+       試しの対局が決着したら、その盤面も見返せる。「本番の結果へ」でいつでも本番の結果にもどる。
+     ・見返しの記録は決着のときの HIST（手を指す直前の盤面・最大300手）＋最終盤面（UI.rv）。 */
+  function reviewShow(at) {
+    const R0 = UI.rv; if (!R0) return;
+    const n = R0.list.length;
+    at = Math.max(0, Math.min(n, at));
+    let R = null;
+    try { R = JSON.parse(at >= n ? R0.fin : R0.list[at]); } catch (e) { R = null; }
+    if (!R || !R.cells) return;
+    R.sel = null; R.log = R.log || [];
+    R0.at = at;
+    UI.review = true; UI.blockMode = false; UI.hint = null; UI.hold = true;
+    clearTimeout(cpuT);
+    S = R;
+    $("#win").hidden = true;
+    show("game");
+    renderGame(true);
+  }
+  function reviewStart() { if (!UI.rv) return; reviewShow(UI.rv.list.length); toast("🔍 盤面の見返し：◀ ▶ で1手ずつ。「ここから試す」で続きを指して試せます", 2600); }
+  function reviewTry() {
+    const R0 = UI.rv; if (!R0 || !S || S.phase !== "play") return;
+    UI.review = false; UI.hold = false;
+    S.sandbox = true; S.gid = "sandbox";
+    HIST = R0.list.slice(0, R0.at).map((s) => ({ s: s, ll: 0, h: 1 }));
+    renderGame(true);
+    toast("🧪 試しの対局：ここから続きを指せます（保存しない・賞金なし）", 2400);
+    scheduleCpu();
+  }
+  function reviewMain() {
+    const M = UI.main && UI.main.rv; if (!M) { renderTitle(); return; }
+    UI.rv = M; UI.review = false; UI.hold = false; clearTimeout(cpuT);
+    try { S = JSON.parse(M.fin); } catch (e) { renderTitle(); return; }
+    resultScreen();
+  }
+  function reviewBarHTML() {
+    const R0 = UI.rv, n = R0 ? R0.list.length : 0, at = R0 ? R0.at : 0, fin = at >= n;
+    const who = S && S.phase === "play" ? G.cur(S) : null;
+    return '<div class="tb-who rv">' + ICON.undo + "<b>" + (R0 && R0.sand ? "試しの対局の見返し" : "盤面の見返し") + "</b><small>" + (fin ? "最終盤面（" + n + "手）" : at + " / " + n + " 手目" + (who ? "・次は " + esc(who.name) : "")) + "</small></div>" +
+      '<div class="tb-acts rvb">' +
+        '<button class="tbtn" data-a="rvFirst"' + (at > 0 ? "" : " disabled") + ' aria-label="最初"><span class="tl">最初</span><b>⏮</b></button>' +
+        '<button class="tbtn" data-a="rvPrev"' + (at > 0 ? "" : " disabled") + ' aria-label="1手もどる"><span class="tl">1手もどる</span><b>◀</b></button>' +
+        '<button class="tbtn" data-a="rvNext"' + (!fin ? "" : " disabled") + ' aria-label="1手すすむ"><span class="tl">1手すすむ</span><b>▶</b></button>' +
+        '<button class="tbtn" data-a="rvLast"' + (!fin ? "" : " disabled") + ' aria-label="最終盤面"><span class="tl">最終盤面</span><b>⏭</b></button>' +
+        '<button class="tbtn go" data-a="rvTry"' + (!fin ? "" : " disabled") + ' title="この局面から続きを指して試す（保存しない・賞金なし）">' + ICON.play + '<span class="tl">ここから試す</span></button>' +
+        '<button class="tbtn" data-a="rvEnd">' + IC2.list + '<span class="tl">本番の結果へ</span></button>' +
+      "</div>";
   }
   async function report() {
     if (UI.reported) return; UI.reported = true;
@@ -865,24 +922,26 @@
       const a = S.draw ? 0 : PZ[p.rank - 1] || 0, paid = a && !isCpu(p) && p.uid;
       return '<div class="pdr r' + p.rank + '" style="--c:' + p.color + ";animation-delay:" + (0.25 + i * 0.12).toFixed(2) + 's">' +
         '<span class="pdm">' + (medal[p.rank] || p.rank) + '</span><span class="pdk">' + p.rank + "位" + (p.tie ? "<i>同順</i>" : "") + "</span>" + pieceSVG(p) + avatarHTML(p, "mini") +
-        '<span class="pdn"><b>' + esc(p.name) + "</b><small>" + (p.rank === 1 && !S.draw ? "そろえた！" : "最長 " + p.line + "・駒 " + p.pieces + "個") + "</small></span>" +
+        '<span class="pdn"><b>' + esc(p.name) + "</b><small>" + (p.rank === 1 && !S.draw ? "そろえた！" : "守り " + (p.def || 0) + "・最長 " + p.line) + "</small></span>" +
         '<span class="pdz' + (paid ? "" : " no") + '">' + (S.draw ? "—" : paid ? "+" + a + " XEVA" : a ? (isCpu(p) ? "CPU" : "紐づけなし") : "—") + "</span></div>";
     }).join("") + "</div>";
   }
   function winScreen() {
     if (!S) return;
     if (S.draw) {
-      $("#winbox").innerHTML = '<div class="winttl draw">DRAW</div><h2>引き分け</h2><p>CPU どうしで ' + MAXR + "周しても決着がつきませんでした。順位は「いちばん長い並び」の順です。</p>" +
+      $("#winbox").innerHTML = '<div class="winttl draw">DRAW</div><h2>引き分け</h2><p>CPU どうしで ' + MAXR + "周しても決着がつきませんでした。順位は「長さ3割・守り7割」の点の順です。</p>" +
         podiumHTML() +
-        '<div class="wbtns"><button class="btn pri" data-a="again">' + IC2.redo + 'もう一度</button><button class="btn" data-a="result">' + IC2.list + "結果を見る</button></div>";
+        '<div class="wbtns"><button class="btn pri" data-a="again">' + IC2.redo + 'もう一度</button><button class="btn" data-a="review">' + ICON.undo + '盤面を見る</button><button class="btn" data-a="result">' + IC2.list + "結果を見る</button></div>";
     } else {
       const w = S.players[S.winner];
       $("#winbox").style.setProperty("--c", w.color);
       $("#winbox").innerHTML = '<div class="crown">' + ICON.crown + '</div><div class="winttl">WIN!</div>' +
         '<div class="winp">' + avatarHTML(w) + pieceSVG(w) + "</div>" +
-        "<h2>" + esc(w.name) + " の勝ち！</h2><p>" + (isCpu(w) ? "CPU の勝ちです。もう一度挑戦しよう！" : "おめでとうございます！") + "</p>" +
-        podiumHTML() +
-        '<div class="wbtns"><button class="btn pri" data-a="again">' + IC2.redo + 'もう一度</button><button class="btn" data-a="result">' + IC2.list + "結果を見る</button></div>";
+        "<h2>" + esc(w.name) + " の勝ち！" + (S.sandbox ? "<small>（試しの対局）</small>" : "") + "</h2><p>" + (S.sandbox ? "試しの対局なので、保存も賞金もありません。" : isCpu(w) ? "CPU の勝ちです。もう一度挑戦しよう！" : "おめでとうございます！") + "</p>" +
+        (S.sandbox ? "" : podiumHTML()) +
+        (S.sandbox
+          ? '<div class="wbtns"><button class="btn pri" data-a="review">' + ICON.undo + '盤面を見る</button><button class="btn" data-a="rvEnd">' + IC2.list + "本番の結果へ</button></div>"
+          : '<div class="wbtns"><button class="btn pri" data-a="again">' + IC2.redo + 'もう一度</button><button class="btn" data-a="review">' + ICON.undo + '盤面を見る</button><button class="btn" data-a="result">' + IC2.list + "結果を見る</button></div>");
     }
     $("#win").hidden = false;
   }
@@ -903,8 +962,10 @@
     $("#resultList").innerHTML = st.map((p, i) => '<div class="rrow' + (p.rank === 1 && !S.draw ? " top" : "") + '" style="--c:' + p.color + ";animation-delay:" + (i * 0.06) + 's">' +
       '<span class="rk">' + p.rank + "位" + (p.tie ? '<i class="tie">同順</i>' : "") + "</span>" + pieceSVG(p) + avatarHTML(p) +
       '<span class="pn"><b>' + esc(p.name) + "</b><small>" + (p.acct && p.acct !== p.name ? "🔗 " + esc(p.acct) : p.uid ? "🔗 紐づけ" : isCpu(p) ? "CPU（" + CPU_LV[S.cpuLevel || 0][0] + "）" : "") + "</small>" + prizeOf(p) + "</span>" +
-      '<span class="rl">' + (p.rank === 1 && !S.draw ? "<b>勝ち</b>" : "<b>最長 " + p.line + "</b>") + (p.rank === 1 && !S.draw ? "最長 " + p.line : "駒 " + p.pieces + "個") + "</span></div>").join("") +
+      '<span class="rl">' + (p.rank === 1 && !S.draw ? "<b>勝ち</b>" : "<b>" + (p.score || 0) + "点</b>") + (p.rank === 1 && !S.draw ? "最長 " + p.line + "・守り " + (p.def || 0) : "守り " + (p.def || 0) + "・最長 " + p.line + '<small class="rlb">長さ ' + (p.lp || 0) + " ＋ 守り " + (p.dp || 0) + "</small>") + "</span></div>").join("") +
       rankRuleHTML(PZ);
+    /* ★★ 2026-10-24 結果の画面からも盤面の見返しへ */
+    if (UI.rv && !UI.rv.sand) $("#resultList").insertAdjacentHTML("beforeend", '<button class="btn rvgo" data-a="review">' + ICON.undo + "盤面を見る（最終盤面・1手ずつ見返す・ここから試す）</button>");
     $("#resultMeta").innerHTML = "<div><small>対戦人数</small><b>" + S.players.length + "人</b></div>" +
       "<div><small>ルール</small><b>" + (G.MODES[S.mode] || G.MODES.normal).nm + "</b></div>" +
       "<div><small>盤面・勝利条件</small><b>" + S.size + "×" + S.size + "・" + S.win + "つ</b></div>" +
@@ -946,8 +1007,13 @@
     PZ = PZ || (window.GameLink && GameLink.PRIZES) || [250, 200, 150, 100, 50];
     return '<div class="card rkrule"><h4>🏅 順位の決めかた</h4><ol>' +
       "<li><b>1位</b>：決められた数を先にそろえた人</li>" +
-      "<li><b>2位から</b>：盤に残った自分の駒の<b>いちばん長い並び（最長）</b>が長い順</li>" +
-      "<li>最長が同じなら、盤の上の<b>自分の駒の数</b>が多い順</li>" +
+      "<li><b>2位から</b>：<b>守り7割・長さ3割</b>の点（100点満点）が高い順。<b>守り</b>＝ほかの人の「あと1つでそろう」マスに自分で置いて（動かして・ブロックして）防いだ回数（試合中は名前の横の 🛡）、<b>長さ</b>＝盤に残った自分の駒のいちばん長い並び（最長）" +
+        /* ★★ 2026-10-24 ご指定「2位以降の順位の計算方法をはっきり」 */
+        '<div class="rkf"><b>点 ＝ 長さの点 ＋ 守りの点</b>' +
+          "<span>長さの点 ＝ 30 × 最長 ÷（並べる数 − 1）<small>（30点まで。4つ並べなら最長3で30点）</small></span>" +
+          "<span>守りの点 ＝ 70 × 自分の守り ÷ いちばん多い人の守り<small>（いちばん多い人が70点。だれも守っていなければ全員0点）</small></span>" +
+          "<em>例：4つ並べで 最長2・守り3（いちばん多い人は6）→ 30×2÷3 ＋ 70×3÷6 ＝ 20 ＋ 35 ＝ <b>55点</b></em></div></li>" +
+      "<li>点が同じなら最長 → 盤の上の<b>自分の駒の数</b>が多い順</li>" +
       "<li>それでも同じなら<b>同じ順位</b>（例：2位・2位・4位）。賞金も同じ額です</li></ol>" +
       '<h4>🎁 もらえる XEVA</h4><div class="pztab">' + PZ.map((a, i) => "<span><small>" + (i + 1) + "位</small><b>" + a + "</b></span>").join("") + "</div>" +
       "<p>XEVARION のアカウントを<b>🔗 紐づけた人だけ</b>が受け取れます（CPU・紐づけなしの席はもらえません）。6位からと、引き分けのときは賞金なし。</p></div>";
@@ -1043,6 +1109,15 @@
       begin();
     },
     result: () => resultScreen(),
+    /* ★★ 2026-10-24 盤面の見返し・試し */
+    review: () => reviewStart(),
+    rvFirst: () => reviewShow(0),
+    rvPrev: () => { if (UI.rv) reviewShow(UI.rv.at - 1); },
+    rvNext: () => { if (UI.rv) reviewShow(UI.rv.at + 1); },
+    rvLast: () => { if (UI.rv) reviewShow(UI.rv.list.length); },
+    rvTry: () => reviewTry(),
+    rvBack: () => { if (UI.rv) reviewShow(UI.rv.at); },
+    rvEnd: () => reviewMain(),
     /* ★★ 2026-10-14 消すのは<b>この試合の枠だけ</b>（結果の画面の「タイトルへ」も同じボタン。決着した試合の枠はもう無い） */
     menu: () => { if (S) G.remove(S.gid); HIST = []; renderTitle(); },
     settings: () => openSettings(),

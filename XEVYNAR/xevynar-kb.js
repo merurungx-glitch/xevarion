@@ -419,6 +419,8 @@
       sum: "手とスマホを見張るAIで勉強を守る学習管理アプリ。", det: "みまもりカメラ・タイムライン・予定カレンダー・実績。集中30分ごとに10 XEVA。" },
     { id: "magiranking", nm: "MagiRanking", cat: "つながる", href: "../MagiRanking/index.html",
       sum: "獲得XEVAの月間ランキング。", det: "月末の順位に応じて最大1,000 XEVAを配布。" },
+    { id: "magiquiz", nm: "MagiQuiz", cat: "ゲーム", href: "../MagiQuiz/index.html",
+      sum: "1台の iPad を囲んで化学の基礎でクイズバトル。1〜8人・チーム戦も。", det: "ミリオネア（10問のはしご・ライフライン・ファイナルアンサー）と、ばくだん（正解したらとなりへ・爆発でハート −1）。問題は MagiChemLex の基礎セット。試合のあとにまちがえた問題を見直せる。" },
     { id: "magiarena", nm: "MagiArena", cat: "ゲーム", href: "../MagiArena/MagiArena.html",
       sum: "1台でみんなと対戦する闘技場。2〜6人。", det: "オリジナル陣取り「TAKAGAME」、オセロ・五目並べ・神経衰弱。" },
     { id: "magiempire", nm: "MagiEmpire", cat: "ゲーム", href: "../MagiEmpire/MagiEmpire.html",

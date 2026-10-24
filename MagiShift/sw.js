@@ -3,14 +3,14 @@
    ・1台で遊ぶボードゲーム。キャッシュすれば完全にオフラインで動く
    ・アカウントの紐づけと賞金だけ通信が要る（遊ぶこと自体はオフラインでできる）
    ============================================================ */
-const VERSION = "magishift-sw-v21";
+const VERSION = "magishift-sw-v23";
 const CORE = [
   "./index.html",
-  "./css/shift.css?v=10",
-  "./js/shift-core.js?v=8",
+  "./css/shift.css?v=12",
+  "./js/shift-core.js?v=9",
   "./js/shift-ai.js?v=2",          /* ★★ 2026-10-13 CPU */
   "./js/shift-account.js?v=4",
-  "./js/shift-ui.js?v=11",
+  "./js/shift-ui.js?v=12",
   "./img/icon192.png",
   "./manifest.webmanifest",
   "../xeva-splash.js?v=17",
@@ -18,10 +18,10 @@ const CORE = [
   "../xeva-loading.js?v=19",
   "../xeva-back.js?v=9",
   "../maintenance-gate.js?v=13",
-  "../xeva.js?v=80", "../xeva-cloud.js?v=47", "../xeva-keys.js?v=34",   /* ★★ 2026-10-22 同期（このページでも xeva-cloud を読む） */
-  "../xeva-alive.js?v=7",
+  "../xeva.js?v=82", "../xeva-cloud.js?v=48", "../xeva-keys.js?v=34",   /* ★★ 2026-10-22 同期（このページでも xeva-cloud を読む） */
+  "../xeva-alive.js?v=8",
   "../game-link.js?v=13",
-  "../xevarion-fb.js?v=35",
+  "../xevarion-fb.js?v=36",
   "../img/ld_b_stand.webp?v=5",
   "../img/ld_b_bow.webp?v=5",
   "../thumbs/MagiShift.jpg",

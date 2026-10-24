@@ -76,7 +76,8 @@ svg{display:block}
 .note{color:var(--sub);font-size:12px;line-height:1.7;margin-top:10px}
 .note b{color:var(--ink)}
 /* ★★ 2026-10-14 左の「‹ もどる」が札になって幅が変わっても、見出しは画面のまん中（左右を同じ幅の列に） */
-.topbar{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:10px;max-width:720px;margin:0 auto 14px}
+.topbar{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:center;gap:10px;max-width:720px;margin:0 auto 14px;
+  width:100%}   /* ★★ 2026-10-24 ご報告「ゲームの準備画面の戻るボタンが真ん中に寄っている」：中身の幅に縮んで中央に置かれていた → 本文と同じ幅いっぱい */
 .topbar h2{font-size:18px;font-weight:900;text-align:center;white-space:nowrap}
 .topbar>:first-child{justify-self:start}
 .topbar>:last-child{justify-self:end}
@@ -207,6 +208,16 @@ svg{display:block}
 .pcw .av.mini{position:absolute;right:-7px;bottom:-6px;width:17px;height:17px;box-shadow:0 0 0 2px #fff}
 .pchip .pn{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.2}
 .pchip .pn b{font-size:13px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* ★★ 2026-10-24 名前の横の守りの数（🛡） */
+.pchip .pnr{display:flex;align-items:center;gap:4px;min-width:0}
+.pchip .pnr b{min-width:0}
+.pchip .dfc{flex:none;font-style:normal;font-size:10px;font-weight:900;line-height:1.5;padding:0 5px;border-radius:99px;background:color-mix(in srgb,var(--c) 14%,#fff);color:#3a4258;font-variant-numeric:tabular-nums}
+#gplayers.cmp .pchip .dfc{font-size:9px;padding:0 3px}
+.rkf{margin:6px 0 2px;padding:8px 10px;border-radius:10px;background:#f4f6fb;display:flex;flex-direction:column;gap:3px;font-size:12px;line-height:1.45}
+.rkf>b{font-size:13px}
+.rkf span small{display:block;color:var(--sub);font-size:11px}
+.rkf em{font-style:normal;font-size:11.5px;color:#3a4258}
+.rl .rlb{display:block;font-size:10.5px;color:var(--sub);font-weight:700}
 .pchip .pn small{font-size:10.5px;color:var(--sub);font-weight:800;white-space:nowrap;display:flex;align-items:center;gap:5px}
 .pchip .pn small.out{color:var(--ng)}
 .pchip .tag{font-size:9.5px;font-weight:900;padding:0 5px;border-radius:5px;background:var(--bg2);color:var(--sub)}
@@ -246,8 +257,11 @@ svg{display:block}
 @keyframes candIn{from{transform:scale(0)}to{transform:scale(1)}}
 .cell.bcand{box-shadow:inset 0 0 0 2px #9aa6bd;background:repeating-linear-gradient(135deg,#f0f3f9 0 6px,#e6eaf2 6px 12px)}
 .cell.pushc{box-shadow:inset 0 0 0 2.5px var(--warn)}
-.cell .parr{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;transform:rotate(var(--rot));animation:candIn .3s var(--spring) both}
-.cell .parr svg{width:46%;height:46%;fill:var(--warn);stroke:#fff;stroke-width:1.5;filter:drop-shadow(0 1px 2px rgba(0,0,0,.25));transform:translateX(38%)}
+/* ★★ 2026-10-23 ご指定「タクティクスのとき、吹っ飛ぶ方向に矢印を向けて」
+   真因：向き（rotate）を .parr の transform に書いていたが、出てくるときの candIn（transform:scale・fill both）が
+   transform を上書きしたまま残る → どの矢印も右向きだった。→ 向きは中の svg に（押し出される向きへ回してから、その向きへ少しずらす）。 */
+.cell .parr{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;animation:candIn .3s var(--spring) both}
+.cell .parr svg{width:46%;height:46%;fill:var(--warn);stroke:#fff;stroke-width:1.5;filter:drop-shadow(0 1px 2px rgba(0,0,0,.25));transform:rotate(var(--rot,0deg)) translateX(38%)}
 .cell.last::before{content:"";position:absolute;inset:3px;border-radius:22%;box-shadow:0 0 0 2px color-mix(in srgb,var(--lc) 45%,transparent);pointer-events:none}
 .cell.lastfrom::after{content:"";width:20%;height:20%;border-radius:50%;border:2px dashed color-mix(in srgb,var(--lc) 55%,transparent)}
 .cell.win{background:#fff3c8;box-shadow:inset 0 0 0 2.5px #f5c518}
@@ -605,3 +619,14 @@ svg{display:block}
 /* ★★ 2026-10-20 勝利の板のボタンは1行に（上位3人を足したので幅がせまい） */
 #winbox .wbtns .btn{white-space:nowrap;padding-left:12px;padding-right:12px}
 @media (max-width:400px){#winbox .wbtns .btn{font-size:14px}}
+
+/* ══ ★★ 2026-10-24 終局後の盤面の見返し・試しの対局 ══ */
+.tb-who.rv b{color:var(--ink)}
+.tb-who.rv svg{width:22px;height:22px;fill:none;stroke:var(--pri,#5878ff);stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round;flex:none}
+.tb-acts.rvb{flex-wrap:wrap;justify-content:center;gap:6px}
+.tb-acts.rvb .tbtn b{font-size:15px;line-height:1}
+.tb-acts.rvb .tbtn[disabled]{opacity:.38}
+.tb-sand{margin:-2px 0 6px;padding:4px 10px;border-radius:99px;background:#fff4d6;color:#8a5a00;font-size:12px;font-weight:900;text-align:center}
+.btn.rvgo{display:flex;width:100%;justify-content:center;margin:12px 0 4px}
+.btn.rvgo svg,.wbtns .btn svg{fill:none;stroke:currentColor}
+#winbox h2 small{display:block;font-size:12px;font-weight:800;color:var(--sub);margin-top:2px}

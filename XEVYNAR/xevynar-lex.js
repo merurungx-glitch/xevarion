@@ -29,12 +29,9 @@
     "../MagiLex/magilex-eigo.js",
     "../MagiLex/magilex-rika.js",
     "../MagiLex/magilex-chemb.js",
-    "../MagiLex/magilex-suugaku.js",
     "../MagiLex/magilex-intro.js",
     "../MagiLex/magilex-mid.js",
-    "../MagiLex/magilex-math3.js",
     "../MagiLex/magilex-chemg.js",
-    "../MagiLex/magilex-butsuri.js",
   ];
 
   let loading = null, loaded = false;
@@ -56,6 +53,8 @@
     loading = (async () => {
       /* 依存があるので順番に読む（eigo/rika/chemb は data の配列に足しに行く） */
       for (const s of SRC) await inject(s);
+      /* ★★ 2026-10-24 旧MagiLex は化学・英語・古文だけ（物理・数学・地理は削除）。まじったファイルからも外す */
+      window.LEX_SECTIONS = (window.LEX_SECTIONS || []).filter(function (s) { return !(s && /^(math_|phys_|physb_|physg_|geo_)/.test(String(s.id || ""))); });
       loaded = !!(window.LEX_SECTIONS && window.LEX_SECTIONS.length);
       return loaded;
     })();

@@ -240,10 +240,28 @@
     }
   }
 
+  /* ══ ★★ 2026-10-24 守りの点（ご指定「自分以外のプレイヤーの、あと一つで揃う状態を自分で防御する位置に置いたときに点」）══
+     手を指す<b>前</b>の盤で、そのマスが「ほかの人の駒が入ればそろうマス」なら、その人数ぶん +1（S.def[自分の番号]）。
+     置く・動かす（行き先）・ブロック（タクティクス）が対象。一手もどる（盤面ごと戻る）と点も戻る。 */
+  function threatsAt(S, x, y, me) {
+    if (!inBoard(S, x, y) || at(S, x, y) !== -1) return 0;
+    const i = idx(S, x, y);
+    let n = 0;
+    S.players.forEach((p) => {
+      if (p.slot === me) return;
+      S.cells[i] = p.slot;
+      if (lineAt(S, x, y)) n++;
+      S.cells[i] = -1;
+    });
+    return n;
+  }
+  function addDef(S, me, n) { if (!n) return; S.def = (S.def && typeof S.def === "object") ? S.def : {}; S.def[me] = (S.def[me] || 0) + n; }
+
   /* ══ 手番の操作（画面と CPU はこれだけ呼ぶ） ══ */
   function place(S, x, y) {
     if (!canPlace(S, x, y)) return null;
     const me = S.turn;
+    addDef(S, me, threatsAt(S, x, y, me));
     S.cells[idx(S, x, y)] = me;
     S.log.push({ t: "place", slot: me, x, y });
     S.last = { t: "place", slot: me, x, y };
@@ -254,6 +272,7 @@
   function move(S, fx, fy, tx, ty) {
     if (!canMove(S, fx, fy, tx, ty)) return null;
     const me = S.turn;
+    addDef(S, me, threatsAt(S, tx, ty, me));     /* ★★ 2026-10-24 守りの点（行き先） */
     S.cells[idx(S, fx, fy)] = -1;
     S.cells[idx(S, tx, ty)] = me;
     S.log.push({ t: "move", slot: me, fx, fy, x: tx, y: ty });
@@ -278,6 +297,7 @@
   function block(S, x, y) {
     if (!canBlock(S, x, y)) return null;
     const me = S.turn;
+    addDef(S, me, threatsAt(S, x, y, me));       /* ★★ 2026-10-24 守りの点（ブロックで防いだ） */
     S.cells[idx(S, x, y)] = BLOCK;
     S.blockLeft[me] = (S.blockLeft[me] || 0) - 1;
     S.blks.push({ x, y, by: me });
@@ -323,7 +343,14 @@
        ② 2位からは「いちばん長い並び（最長）」が長い順
        ③ 最長が同じなら「盤の上の自分の駒の数」が多い順
        ④ それでも同じなら<b>同じ順位</b>（例：2位・2位・4位）。賞金も同じ順位なら同じ額（Shift.PRIZE_RULE） */
+  /* ★★ 2026-10-24 ご指定「2位以降の順位の決定方法を変更：守りの合計得点が高いほど高順位。影響は 長さの得点 3割・守り 7割」
+       ① 勝った人（そろえた人）が1位（変わらない）
+       ② 2位から：点＝ 0.3 ×（最長 ÷（並べる数−1）・1 まで）＋ 0.7 ×（守りの点 ÷ いちばん多い人の守りの点）の高い順
+       ③ 点が同じなら最長 → 駒の数 → それでも同じなら同じ順位（賞金も同じ額） */
+  const W_LINE = 0.3, W_DEF = 0.7;
   function standings(S) {
+    const defOf = (slot) => Math.max(0, Number(S.def && S.def[slot]) || 0);
+    const defMax = Math.max(0, ...S.players.map((p) => defOf(p.slot)));
     const best = S.players.map((p) => {
       let m = 0;
       for (let y = 0; y < S.size; y++) for (let x = 0; x < S.size; x++) {
@@ -334,9 +361,12 @@
           if (n > m) m = n;
         });
       }
-      return { slot: p.slot, line: m, pieces: countOf(S, p.slot) };
+      const def = defOf(p.slot);
+      const lp = W_LINE * Math.min(1, m / Math.max(1, S.win - 1)), dp = W_DEF * (defMax > 0 ? def / defMax : 0);
+      /* ★★ 2026-10-24 内訳（lp＝長さの点・dp＝守りの点。どちらも 100 点満点に直した値）も結果の画面で見せる */
+      return { slot: p.slot, line: m, pieces: countOf(S, p.slot), def: def, defMax: defMax, lp: Math.round(lp * 1000) / 10, dp: Math.round(dp * 1000) / 10, score: Math.round((lp + dp) * 1000) / 10 };
     });
-    const cmp = (a, b) => (b.slot === S.winner) - (a.slot === S.winner) || b.line - a.line || b.pieces - a.pieces;
+    const cmp = (a, b) => (b.slot === S.winner) - (a.slot === S.winner) || b.score - a.score || b.line - a.line || b.pieces - a.pieces;
     const list = S.players.map((p, i) => Object.assign({}, p, best[i])).sort(cmp);
     let r = 0;
     return list.map((p, i) => { if (i === 0 || cmp(list[i - 1], p) !== 0) r = i + 1; return Object.assign(p, { rank: r, tie: false }); })
@@ -384,7 +414,7 @@
   }
   /* S の枠を書きかえる（無ければ足す）。枠がいっぱいでいちばん古い枠を消したときは、その一覧の行を返す */
   function save(S, hist) {
-    if (!S || S.phase !== "play") return null;
+    if (!S || S.phase !== "play" || S.sandbox) return null;   /* ★★ 2026-10-24 終局後の「試し」の対局は保存しない */
     migrate();
     if (!S.gid) S.gid = newGid();
     let dropped = null;
