@@ -51,11 +51,12 @@
   function statusChip(st) { return '<span class="chip st-' + st + '">' + esc(N.STATUS[st] || "") + "</span>"; }
   function cdBlock(r, st) {
     const t = now();
-    if (st === "sale") return '<div class="cd"><span>締切まで</span><b data-cd="' + N.closeAt(r) + '">' + N.left(N.closeAt(r) - t) + '</b><small>締切 ' + esc(N.hm(N.closeAt(r))) + "（発走の" + D.CLOSE_BEFORE / 60 + "分前）・払い戻しは " + esc(N.dtStr(N.payAt(r))) + "</small></div>";
+    if (st === "sale") return '<div class="cd"><span>締切まで</span><b data-cd="' + N.closeAt(r) + '">' + N.left(N.closeAt(r) - t) + '</b><small>締切 ' + esc(N.hm(N.closeAt(r))) + "（発走の" + D.CLOSE_BEFORE / 60 + "分前）・払い戻しは " + esc(N.dtStr(N.payAt(r))) + "</small>" +
+      (r.st === "entry" ? '<small class="cd-pre">枠順の発表前です。馬名で買えます（馬番は発表されしだい券に入ります・ふつうは木曜の午後）</small>' : "") + "</div>";
     if (st === "pre") return '<div class="cd"><span>発売開始まで</span><b data-cd="' + N.saleAt(r) + '">' + N.left(N.saleAt(r) - t) + '</b><small>' + esc(N.dtStr(N.saleAt(r))) + " から発売・締切 " + esc(N.hm(N.closeAt(r))) + "（発走の" + D.CLOSE_BEFORE / 60 + "分前）</small></div>";
     /* ★★ 2026-10-22 前日発売の締切（土曜 17:30）〜当日発売（土曜 19:30）。JRA と同じく、このあいだは買えない */
     if (st === "gap") { const nx = N.nextSaleAt(r, t) || N.closeAt(r); return '<div class="cd"><span>当日発売まで</span><b data-cd="' + nx + '">' + N.left(nx - t) + '</b><small>前日発売は終了・' + esc(N.dtStr(nx)) + " から当日発売（締切 " + esc(N.hm(N.closeAt(r))) + "）</small></div>"; }
-    if (st === "entry") return '<div class="cd"><span>発走まで</span><b data-cd="' + N.postAt(r) + '">' + N.left(N.postAt(r) - t) + '</b><small>枠順は木曜の午後ごろに決まります。発売は ' + esc(N.dtStr(N.saleAt(r))) + " から</small></div>";
+    if (st === "entry") return '<div class="cd"><span>発走まで</span><b data-cd="' + N.postAt(r) + '">' + N.left(N.postAt(r) - t) + '</b><small>発売は ' + esc(N.dtStr(N.saleAt(r))) + " から（枠順の発表前でも馬名で買えます・枠順はふつう木曜の午後）</small></div>";
     if (st === "sched") return '<div class="cd"><span>発走まで</span><b data-cd="' + N.postAt(r) + '">' + N.left(N.postAt(r) - t) + '</b><small>出走登録は1週間前の日曜</small></div>';
     if (st === "closed") return '<div class="cd hot"><span>締切 ── 発走まで</span><b data-cd="' + N.postAt(r) + '">' + N.left(N.postAt(r) - t) + "</b></div>";
     if (st === "run") return '<div class="cd hot"><span>🏇 発走しました！</span><small>結果は自動取得を待っています（GⅠ の日は数分ごと）</small></div>';
@@ -110,7 +111,7 @@
   function myMini() {
     const s = B.load();
     const tk = Object.values(s.tk);
-    const open = tk.filter((t) => t.st === "open");
+    const open = tk.filter((t) => t.st === "open" || t.st === "ready");
     const recent = tk.filter((t) => t.st === "hit").sort((a, b) => (b.done || 0) - (a.done || 0)).slice(0, 1);
     if (!tk.length) return '<section class="card mini"><b>🎫 はじめての馬券</b><p>実際の GⅠ に XEVA で賭けられます。的中すると<b>実際の払戻金</b>（100円あたり）がそのまま XEVA で戻ります。</p></section>';
     return '<section class="card mini" data-tab="tickets"><div class="mini-row"><span><small>発走・結果待ち</small><b>' + open.length + '</b>枚</span><span><small>払戻</small><b>' + fmt(s.st.ret) + '</b></span><span><small>回収率</small><b>' + (s.st.bet ? Math.round(100 * s.st.ret / s.st.bet) : 0) + "%</b></span></div>" +
@@ -152,43 +153,192 @@
     if (!U.idx) return loadingHTML(U.err);
     const races = U.idx.races || [];
     if (!races.length) return loadingHTML("まだ今年の GⅠ のデータがありません");
-    return saleBar(races) + heroHTML(N.focusRace(races, now())) + myMini() + seasonHTML(races) + footHTML();
+    /* ★★ 2026-10-24 結果が出て、まだ確かめていない馬券があれば、いちばん上に札（押すと馬券タブ） */
+    const rdy = B.readyList();
+    const rv = rdy.length ? '<button class="rvbar" data-tab="tickets"><span class="rv-ic">🎫</span><span class="rv-tx"><b>結果が出た馬券が ' + rdy.length + " 枚あります</b><small>馬券タブで1枚ずつ押して確認（押したときに払い戻し）</small></span><em>確認する ›</em></button>" : "";
+    return rv + saleBar(races) + heroHTML(N.focusRace(races, now())) + myMini() + seasonHTML(races) + footHTML();
   }
 
-  /* ══════════ 馬券タブ ══════════ */
-  const ST_NM = { open: "発走・結果待ち", hit: "的中", miss: "はずれ", refund: "返還", void: "返還" };
-  function ticketHTML(tk) {
-    const T = B.TYPE[tk.type];
-    const cb = tk.cb.slice(0, 18).map((c) => '<span class="cb">' + esc(B.comboStr(tk.type, c)) + "</span>").join("") + (tk.cb.length > 18 ? '<span class="cb more">ほか' + (tk.cb.length - 18) + "点</span>" : "");
-    let res = "";
-    if (tk.st === "hit") res = '<div class="tk-res hit"><span>払戻</span><b>' + fmt(tk.pay) + " XEVA</b><small>" + tk.hits.map((h) => esc(B.comboStr(tk.type, h[0])) + "＝" + yen(h[1])).join("・") + (tk.bo > 1 ? "・🎃+" + Math.round((tk.bo - 1) * 100) + "%" : "") + "</small></div>";
-    else if (tk.st === "miss") res = '<div class="tk-res miss">はずれ' + (tk.ref ? "（返還 " + fmt(tk.ref) + "）" : "") + "</div>";
-    else if (tk.st === "refund" || tk.st === "void") res = '<div class="tk-res ref">返還 ' + fmt(tk.pay) + " XEVA</div>";
-    else { const rr = raceOf(tk.rid); res = rr && rr.st === "result" ? '<div class="tk-res open">結果確定・払い戻しは ' + esc(N.dtStr(N.payAt(rr))) + "</div>" : '<div class="tk-res open">' + esc(N.dateStr(tk.date)) + " " + esc(tk.post || "") + " 発走</div>"; }
-    return '<article class="tk st-' + tk.st + '" data-race="' + esc(tk.rid) + '" data-rt="' + (tk.st === "open" ? "card" : "result") + '">' +
-      '<div class="tk-hd"><b>MagiDerby</b><span>勝馬投票券</span><em>' + esc(N.dateStr(tk.date)) + " " + esc(tk.place || "") + "</em></div>" +
-      '<div class="tk-race"><span class="g1">G1</span>' + esc(D.shortName(tk.nm)) + "</div>" +
-      '<div class="tk-type">' + esc(B.lineLabel(tk)) + "</div>" +
-      '<div class="tk-cbs">' + cb + "</div>" +
-      '<div class="tk-amt">各 ' + fmt(tk.u) + " × " + tk.cb.length + "点 ＝ <b>" + fmt(tk.cost) + "</b> XEVA</div>" + res +
-      (tk.st === "hit" ? '<i class="stamp">的中</i>' : "") + "</article>";
+  /* ══════════ 馬券タブ ══════════
+     ★★ 2026-10-24 ご指定「購入した馬券は実際の馬券のようにそれぞれ表示・購入した馬券一覧で確認・結果は券をそれぞれ押して確認」
+     ・券面は勝馬投票券ふう：左＝年・回・日・場／レース番号／レース名／発行（MagiDerby）と買った日、
+       緑の帯、まん中＝券種（縦書き＋英語）、右＝買い目と金額（☆で桁をうめる）、下＝合計（★）と通し番号。
+       ★ 公式のロゴは使わない。★★ 2026-10-24 2回目のご指定：地の透かしは XEVARION のロゴ・QR は要らない。
+     ・馬名・レース名は1行のまま、はみ出すぶんだけ横に詰める（実際の券の詰め字。文字の高さは変えない＝fitNames）。
+     ・結果が出た券（st="ready"）は「タップして確認」→ 押すと判が押されて、そのとき払い戻し（md-bet の B.reveal）。 */
+  const ST_NM = { open: "発走・結果待ち", ready: "結果あり・未確認", hit: "的中", miss: "はずれ", refund: "返還", void: "返還" };
+  const PLACE_CODE = { "01": "札幌", "02": "函館", "03": "福島", "04": "新潟", "05": "東京", "06": "中山", "07": "中京", "08": "京都", "09": "阪神", "10": "小倉" };
+  const TYPE_EN = { win: "WIN", place: "PLACE", waku: "BRACKET", quin: "QUINELLA", wide: "WIDE", exa: "EXACTA", trio: "TRIO", tri: "TRIFECTA" };
+  const MODE_EN = { box: "BOX", nag: "WHEEL", form: "FORMATION" };
+  function h32(s) { let h = 2166136261; s = String(s || ""); for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+  function prng(seed) { let x = (seed >>> 0) || 1; return () => { x ^= x << 13; x >>>= 0; x ^= x >>> 17; x ^= x << 5; x >>>= 0; return x / 4294967296; }; }
+  function kaiOf(tk) {
+    const m = String(tk.rid || "").match(/^(\d{4})(\d{2})(\d{2})(\d{2})(\d{2})$/);
+    return m ? { y: m[1], pl: PLACE_CODE[m[2]] || tk.place || "", kai: Number(m[3]), day: Number(m[4]), rno: Number(m[5]) }
+      : { y: String(tk.date || "").slice(0, 4), pl: tk.place || "", kai: 0, day: 0, rno: 11 };
   }
+  const star = (s, w, ch) => { s = String(s); return (s.length < w ? (ch || "☆").repeat(w - s.length) : "") + s; };
+  function nameOf(race, no) { if (!race) return ""; const e = N.runners(race).find((x) => x.no === no); return e ? e.nm : ""; }
+  /* ★★ 2026-10-24 枠順の発表前に買った券（B.isPre）は、番号の代わりに「?」・名前は券に残した馬名（pn）。
+     差し替えたあとで出走しなかった馬（0）は「消」 */
+  const tkName = (tk, race, x) => (B.isPre(tk) ? (tk.pn && tk.pn[x]) || "" : nameOf(race, x) || (tk.nn && tk.nn[x]) || "");
+  const tkNo = (tk, x) => (B.isPre(tk) ? "?" : x ? x : "消");
+  /* ★★ 2026-10-24 ご指定「馬の名前は1行で・文字の高さは変えず実際の馬券のように詰め字」
+     → 枠（.jt-hn など）の幅に入りきらないぶんだけ、中の span を横だけ縮める（scaleX）。券の幅が変わったら測りなおす。 */
+  function fitNames(root) {
+    $$(".jt .fit", root || document).forEach((s) => {
+      s.style.transform = "";
+      const box = s.parentElement, w = box.clientWidth, sw = s.scrollWidth;
+      if (w > 0 && sw > w + 0.5) s.style.transform = "scaleX(" + (w / sw).toFixed(4) + ")";
+    });
+  }
+  let fitT = 0;
+  window.addEventListener("resize", () => { clearTimeout(fitT); fitT = setTimeout(() => fitNames(), 120); });
+  try { document.fonts && document.fonts.ready.then(() => fitNames()); } catch (e) {}
+  function numsHTML(tk, c) { const T = B.TYPE[tk.type]; return c.map((x) => '<i class="jt-n' + (T.frame ? " fr" : "") + (B.isPre(tk) ? " pre" : "") + '">' + esc(tkNo(tk, x)) + "</i>").join('<s>' + (T.ord ? "→" : "−") + "</s>"); }
+  /* 右側（買い目と金額） */
+  function jtSel(tk, race) {
+    const T = B.TYPE[tk.type], amt = '<span class="jt-am">' + star(fmt(tk.u), 6) + "<small>XEVA</small></span>";
+    const list = (a) => (B.isPre(tk) ? (a || []).map((x) => esc(tkName(tk, race, x))).join("・") : (a || []).map((x) => esc(x || "消")).join("・"));
+    if (T.n === 1 && tk.cb.length === 1) {
+      const no = tk.cb[0][0];
+      return '<div class="jt-one"><i class="jt-n big' + (B.isPre(tk) ? " pre" : "") + '">' + esc(tkNo(tk, no)) + '</i><b class="jt-hn"><span class="fit">' + esc(tkName(tk, race, no)) + "</span></b></div>" + '<div class="jt-amr">' + amt + "</div>";
+    }
+    if (tk.mode === "box") return '<div class="jt-md"><em>' + MODE_EN.box + "</em><b>" + list((tk.sel.pick || []).slice().sort((a, b) => a - b)) + "</b></div>" + '<div class="jt-amr"><small>各組</small>' + amt + "</div>";
+    if (tk.mode === "nag") {
+      const pos = B.lineLabel(tk).replace(/^.*?（|）$/g, "");
+      return '<div class="jt-md"><em>' + MODE_EN.nag + "</em><b>軸 " + list(tk.sel.axis || []) + "</b><span>相手 " + list(tk.sel.part || []) + "</span>" + (pos && T.ord ? "<small>" + esc(pos) + "</small>" : "") + "</div>" + '<div class="jt-amr"><small>各組</small>' + amt + "</div>";
+    }
+    if (tk.mode === "form") {
+      const lab = T.ord ? ["1着", "2着", "3着"] : ["1頭目", "2頭目", "3頭目"];
+      return '<div class="jt-md"><em>' + MODE_EN.form + "</em>" + (tk.sel.cols || []).slice(0, T.n).map((col, k) => "<span>" + lab[k] + " " + list(col || []) + "</span>").join("") + "</div>" + '<div class="jt-amr"><small>各組</small>' + amt + "</div>";
+    }
+    const rows = tk.cb.slice(0, 4).map((c) => '<div class="jt-row"><span class="jt-cb">' + numsHTML(tk, c) + "</span>" + (T.n === 1 || tk.pm ? '<b class="jt-hs"><span class="fit">' + esc(c.map((x) => tkName(tk, race, x)).join(T.ord ? "→" : "・")) + "</span></b>" : "") + amt + "</div>").join("");
+    return '<div class="jt-rows">' + rows + (tk.cb.length > 4 ? '<div class="jt-more">ほか ' + (tk.cb.length - 4) + " 点</div>" : "") + "</div>";
+  }
+  function stampHTML(tk) {
+    if (tk.st === "hit") return '<i class="jt-stamp hit"><b>的中</b><small>' + fmt(tk.pay) + "</small></i>";
+    if (tk.st === "miss") return '<i class="jt-stamp miss"><b>はずれ</b></i>';
+    if (tk.st === "refund" || tk.st === "void") return '<i class="jt-stamp ref"><b>返還</b></i>';
+    return "";
+  }
+  /* 券面（big＝くわしく見る画面の大きな券） */
+  function jtHTML(tk, big) {
+    const T = B.TYPE[tk.type], K = kaiOf(tk), race = N.peekRace(tk.rid), sd = h32(tk.id);
+    const bought = new Date((tk.at || Date.now()) + 9 * 3600000);
+    const R = prng(sd ^ 0x9e3779b9), dg = (k) => { let s = ""; for (let i = 0; i < k; i++) s += Math.floor(R() * 10); return s; };
+    const tyW = T.nm.replace(/^3連/, "三連");
+    return '<article class="jt st-' + tk.st + (big ? " big" : "") + '"' + (big ? "" : ' data-tk="' + esc(tk.id) + '"') + ">" +
+      '<div class="jt-p">' +
+        '<div class="jt-l">' +
+          '<div class="jt-kai">' + esc(K.y) + "年" + (K.kai ? K.kai + "回" + K.day + "日" : "") + "</div>" +
+          '<div class="jt-pl"><b>' + esc(K.pl) + '</b><span class="jt-gr">GⅠ</span></div>' +
+          '<div class="jt-rno"><b>' + esc(K.rno) + "</b><span>レース</span></div>" +
+          '<div class="jt-nm"><small>（GⅠ）</small><b><span class="fit">' + esc(D.shortName(tk.nm)) + "</span></b></div>" +
+          '<div class="jt-is"><b>MagiDerby</b> XEVARION<br>' + (bought.getUTCMonth() + 1) + "月" + bought.getUTCDate() + "日</div>" +
+        "</div>" +
+        '<div class="jt-band" aria-hidden="true"></div>' +
+        '<div class="jt-ty"><small>' + TYPE_EN[tk.type] + "</small><b>" + esc(tyW) + "</b><small>" + (tk.mode && tk.mode !== "norm" ? MODE_EN[tk.mode] : TYPE_EN[tk.type]) + "</small></div>" +
+        '<div class="jt-r">' + jtSel(tk, race) + "</div>" +
+        '<div class="jt-b"><div class="jt-sum">合計 <b>' + star(tk.cb.length, 5, "★") + "</b>点 <b>" + star(fmt(tk.cost), 6, "★") + '</b><small>XEVA</small></div>' +
+          '<div class="jt-ser">' + dg(13) + " " + dg(13) + " " + dg(8) + " " + dg(6) + "</div></div>" +
+        stampHTML(tk) +
+        (tk.st === "ready" ? '<div class="jt-rdy"><b>結果が出ました！</b><span>タップして確認</span></div>' : "") +
+      "</div></article>";
+  }
+  function jtStateHTML(tk) {
+    if (tk.st === "hit") return '<div class="jt-res hit"><span>払戻</span><b>' + fmt(tk.pay) + " XEVA</b><small>" + (tk.hits || []).map((h) => esc(B.comboStr(tk.type, h[0])) + "＝" + yen(h[1]) + "円").join("・") + (tk.bo > 1 ? "・🎃+" + Math.round((tk.bo - 1) * 100) + "%" : "") + (tk.ref ? "・返還 " + fmt(tk.ref) : "") + "</small></div>";
+    if (tk.st === "miss") return '<div class="jt-res miss">はずれ' + (tk.ref ? "（返還 " + fmt(tk.ref) + " XEVA）" : "") + "</div>";
+    if (tk.st === "refund" || tk.st === "void") return '<div class="jt-res ref">返還 ' + fmt(tk.pay) + " XEVA" + (tk.st === "void" ? "（締切後の記録）" : "（取消・除外）") + "</div>";
+    if (tk.st === "ready") return '<div class="jt-res rdy">結果が出ています・押して確認すると払い戻します</div>';
+    /* ★★ 2026-10-24 ご指定「結果待ちで勝敗の確定日をそれぞれ表示」：払い戻し（＝勝敗がわかる）はレースの次の日の 0:00 */
+    const rr = raceOf(tk.rid), fixAt = rr ? N.payAt(rr) : N.dayAt(tk.date, D.PAYOUT_DAY);
+    if (B.isPre(tk)) return '<div class="jt-res open"><span>枠順の発表前に購入・馬番は発表されしだい入ります</span><b>勝敗の確定 ' + esc(N.dtStr(fixAt)) + "</b></div>";
+    return '<div class="jt-res open"><span>' + (rr && rr.st === "result" ? "レースは終了（結果は出ています）" : esc(N.dateStr(tk.date)) + " " + esc(tk.post || "") + " 発走") + "</span>" +
+      "<b>勝敗の確定 " + esc(N.dtStr(fixAt)) + "</b></div>";
+  }
+  /* 1枚の券（一覧）＝券面＋下の一行 */
+  function ticketHTML(tk) { return '<div class="jtw">' + jtHTML(tk, false) + jtStateHTML(tk) + "</div>"; }
   function ticketsHTML() {
     const s = B.load(), all = Object.values(s.tk).sort((a, b) => (b.at || 0) - (a.at || 0));
-    const pl = s.st.ret - s.st.bet;
-    let h = '<section class="card stat"><div class="stat-g">' +
+    const rdy = all.filter((t) => t.st === "ready");
+    let h = "";
+    if (rdy.length) h += '<button class="rvbar" data-a="rvAll"><span class="rv-ic">🎫</span><span class="rv-tx"><b>結果が出た馬券が ' + rdy.length + " 枚</b><small>券を1枚ずつ押して確認・まとめて確認もできます</small></span><em>" + (rdy.length > 1 ? "まとめて確認 ›" : "確認する ›") + "</em></button>";
+    h += '<h3 class="tk-h">購入した馬券<small>' + all.length + "枚</small></h3>";
+    h += '<div class="seg tkf">' + [["all", "すべて"], ["ready", "結果あり"], ["open", "結果待ち"], ["hit", "的中"], ["miss", "はずれ"]].map((x) => '<button data-tkf="' + x[0] + '" class="' + (U.tkf === x[0] ? "on" : "") + '">' + x[1] + (x[0] === "ready" && rdy.length ? "<i>" + rdy.length + "</i>" : "") + "</button>").join("") + "</div>";
+    const list = all.filter((t) => U.tkf === "all" || t.st === U.tkf || (U.tkf === "miss" && (t.st === "refund" || t.st === "void")));
+    if (!list.length) h += '<div class="empty sm"><b>' + (all.length ? "あてはまる馬券はありません" : "まだ馬券がありません") + "</b><p>GⅠ タブから、発売中のレースの馬券を買えます。</p></div>";
+    else h += '<div class="jts">' + list.slice(0, 120).map(ticketHTML).join("") + "</div>";
+    return h;
+  }
+  /* ★★ 2026-10-24 ご指定「馬券タブの上の成績はマイページボタンを上部に置き、そこから見る」 */
+  function openMyPage() {
+    const s = B.load(), all = Object.values(s.tk), pl = s.st.ret - s.st.bet;
+    const cnt = (f) => all.filter(f).length;
+    const byType = {}; all.forEach((t) => { if (t.st === "open" || t.st === "ready") return; const k = t.type, o = byType[k] = byType[k] || { n: 0, hit: 0, bet: 0, ret: 0 }; o.n++; o.bet += t.cost || 0; o.ret += t.pay || 0; if (t.st === "hit") o.hit++; });
+    const tyRows = Object.keys(B.TYPE).filter((k) => byType[k]).map((k) => { const o = byType[k]; return "<tr><td><b>" + esc(B.TYPE[k].nm) + "</b></td><td>" + o.n + "</td><td>" + o.hit + "</td><td>" + fmt(o.bet) + "</td><td>" + fmt(o.ret) + "</td><td>" + (o.bet ? Math.round(100 * o.ret / o.bet) : 0) + "%</td></tr>"; }).join("");
+    const html = '<div class="sh-hd"><b>マイページ<small>MagiDerby の成績（XEVA）</small></b><button class="sh-x" data-a="closeSheet" aria-label="閉じる">✕</button></div>' +
+      '<div class="sh-body mypg"><section class="card stat"><div class="stat-g">' +
       '<span><small>買った額</small><b>' + fmt(s.st.bet) + "</b></span>" +
       '<span><small>払い戻し</small><b>' + fmt(s.st.ret) + "</b></span>" +
       '<span class="' + (pl >= 0 ? "plus" : "minus") + '"><small>収支</small><b>' + (pl >= 0 ? "+" : "") + fmt(pl) + "</b></span>" +
       '<span><small>回収率</small><b>' + (s.st.bet ? Math.round(100 * s.st.ret / s.st.bet) : 0) + "%</b></span>" +
       '<span><small>的中</small><b>' + s.st.hit + " / " + s.st.n + "</b></span>" +
       '<span><small>最高払戻</small><b>' + (s.st.best ? fmt(s.st.best.pay) : "–") + "</b></span></div>" +
-      (s.st.best ? '<p class="stat-best">🏆 ' + esc(D.shortName(s.st.best.nm || "")) + " " + esc((B.TYPE[s.st.best.type] || {}).nm || "") + " " + fmt(s.st.best.pay) + " XEVA</p>" : "") + "</section>";
-    h += '<div class="seg tkf">' + [["all", "すべて"], ["open", "結果待ち"], ["hit", "的中"], ["miss", "はずれ"]].map((x) => '<button data-tkf="' + x[0] + '" class="' + (U.tkf === x[0] ? "on" : "") + '">' + x[1] + "</button>").join("") + "</div>";
-    const list = all.filter((t) => U.tkf === "all" || t.st === U.tkf || (U.tkf === "miss" && (t.st === "refund" || t.st === "void")));
-    if (!list.length) h += '<div class="empty sm"><b>' + (all.length ? "あてはまる馬券はありません" : "まだ馬券がありません") + "</b><p>GⅠ タブから、発売中のレースの馬券を買えます。</p></div>";
-    else h += '<div class="tks">' + list.slice(0, 120).map(ticketHTML).join("") + "</div>";
-    return h;
+      (s.st.best ? '<p class="stat-best">🏆 ' + esc(D.shortName(s.st.best.nm || "")) + " " + esc((B.TYPE[s.st.best.type] || {}).nm || "") + " " + fmt(s.st.best.pay) + " XEVA</p>" : "") + "</section>" +
+      '<section class="card"><h3>馬券の枚数</h3><div class="stat-g">' +
+        '<span><small>結果待ち</small><b>' + cnt((t) => t.st === "open") + "</b></span>" +
+        '<span><small>未確認</small><b>' + cnt((t) => t.st === "ready") + "</b></span>" +
+        '<span><small>返還</small><b>' + cnt((t) => t.st === "refund" || t.st === "void") + "</b></span></div></section>" +
+      (tyRows ? '<section class="card"><h3>券種ごと</h3><div class="tbl-wrap"><table class="tbl"><thead><tr><th>券種</th><th>枚</th><th>的中</th><th>買った額</th><th>払戻</th><th>回収率</th></tr></thead><tbody>' + tyRows + "</tbody></table></div></section>" : "") +
+      '<button class="btn" data-a="myTickets">購入した馬券を見る ›</button></div>';
+    openSheet(html, "mypg-pane");
+  }
+  /* 券をくわしく見る（大きな券面＋結果）。ready なら「結果を確認する」 */
+  function openTicket(id, anim) {
+    const tk = B.load().tk[id]; if (!tk) return;
+    const r = raceOf(tk.rid);
+    if (!N.peekRace(tk.rid) || B.isPre(tk)) N.race(tk.rid, r && r.st === "result").then((rc) => { if (B.fixAll(tk.rid, rc) && U.tkOpen === id) { openTicket(id); render(); } else if (U.tkOpen === id && !N.peekRace(tk.rid)) openTicket(id); }).catch(() => {});
+    U.tkOpen = id;
+    const btns = tk.st === "ready"
+      ? '<button class="btn pri big" data-rv="' + esc(id) + '">結果を確認する</button>'
+      : '<button class="btn" data-race="' + esc(tk.rid) + '" data-rt="' + (tk.st === "open" ? "card" : "result") + '">' + (tk.st === "open" ? "出馬表・データを見る" : "レースの結果を見る") + "</button>";
+    const html = '<div class="sh-hd"><b>馬券<small>' + esc(D.shortName(tk.nm)) + " " + esc(N.dateStr(tk.date)) + " " + esc(tk.post || "") + " 発走・" + esc(ST_NM[tk.st] || "") + '</small></b><button class="sh-x" data-a="closeSheet" aria-label="閉じる">✕</button></div>' +
+      '<div class="sh-body tkd' + (anim ? " rv-anim" : "") + '"><div class="jt-zoom">' + jtHTML(tk, true) + "</div>" + jtStateHTML(tk) +
+      '<div class="tkd-meta"><span>' + esc(B.lineLabel(tk)) + "</span><span>" + tk.cb.length + "点 × " + fmt(tk.u) + " XEVA</span><span>購入 " + esc(N.dtStr(tk.at)) + "</span></div>" +
+      (tk.cb.length > 4 ? '<div class="tkd-cbs">' + tk.cb.map((c) => '<span class="cb' + ((tk.hits || []).some((h) => B.keyOf(tk.type, h[0]) === B.keyOf(tk.type, c)) ? " hit" : "") + '">' + esc(B.isPre(tk) ? c.map((x) => tkName(tk, null, x)).join(B.TYPE[tk.type].ord ? "→" : "−") : c.map((x) => x || "消").join(B.TYPE[tk.type].ord ? "→" : "-")) + "</span>").join("") + "</div>" : "") +
+      '<div class="tkd-btns">' + btns + "</div></div>";
+    if (U.sheetOpen && $("#sheet .sh-pane.tkd-pane")) { $("#sheet .sh-pane").innerHTML = html; fitNames($("#sheet")); return; }
+    openSheet(html, "tkd-pane");
+    fitNames($("#sheet"));
+  }
+  function winFx(sum, sub) {
+    const fx = document.createElement("div"); fx.className = "winfx";
+    fx.innerHTML = '<div class="winfx-card"><em>的中！</em><b>' + fmt(sum) + ' XEVA</b><small>' + sub + '</small><button class="btn pri" data-a="closeFx">うけとる</button></div>' +
+      Array.from({ length: 28 }, (_, i) => '<i style="left:' + (i * 37 % 100) + "%;animation-delay:" + (i % 7) * 0.12 + "s;background:" + ["#ffd257", "#ff6b6b", "#4ade80", "#60a5fa", "#f472b6"][i % 5] + '"></i>').join("");
+    document.body.appendChild(fx);
+  }
+  /* 1枚確かめる（判を押す演出 → 払い戻し） */
+  async function revealOne(id) {
+    const btn = $('[data-rv="' + id + '"]'); if (btn) { btn.disabled = true; btn.textContent = "確認しています…"; }
+    const tk = await B.reveal(id);
+    paintHead(); render();
+    if (!tk) { toast("確認できませんでした。もう一度押してください", "err"); openTicket(id); return; }
+    openTicket(id, true);
+    if (tk.st === "hit") setTimeout(() => winFx(tk.pay, esc(D.shortName(tk.nm)) + " " + esc(B.TYPE[tk.type].nm) + "・" + (tk.hits || []).map((h) => esc(B.comboStr(tk.type, h[0]))).join("・")), 650);
+  }
+  /* まとめて確かめる */
+  async function revealAll() {
+    const L = B.readyList(); if (!L.length) return;
+    if (L.length === 1) { openTicket(L[0].id); return; }
+    const bar = $('[data-a="rvAll"]'); if (bar) { bar.disabled = true; const em = bar.querySelector("em"); if (em) em.textContent = "確認しています…"; }
+    try { const XC = window.XevaCloud; if (navigator.onLine !== false && XC && XC.pullNow && (!XC.isLoggedIn || XC.isLoggedIn())) await XC.pullNow(); } catch (e) {}
+    const got = [];
+    for (const t of L) { const x = await B.reveal(t.id, { noPull: true }); if (x && x.rv) got.push(x); }
+    paintHead(); U.tkf = "all"; render();
+    const hits = got.filter((t) => t.st === "hit"), sum = hits.reduce((a, t) => a + t.pay, 0);
+    if (hits.length) winFx(sum, hits.map((t) => esc(D.shortName(t.nm)) + " " + esc(B.TYPE[t.type].nm)).join("・") + "<br>（" + got.length + "枚を確認・的中 " + hits.length + "枚）");
+    else toast("🎫 " + got.length + "枚を確認しました（的中なし）");
   }
 
   /* ══════════ データタブ（今年の GⅠ の傾向）══════════ */
@@ -234,8 +384,11 @@
     const y = window.scrollY;
     m.innerHTML = U.tab === "tickets" ? ticketsHTML() : U.tab === "data" ? dataHTML() : homeHTML();
     $$(".tabs [data-tab]").forEach((b) => b.classList.toggle("on", b.getAttribute("data-tab") === U.tab));
+    /* ★★ 2026-10-24 結果が出て、まだ確かめていない馬券の数を「馬券」タブに */
+    const tb = $('.tabs [data-tab="tickets"]'); if (tb) { const n = B.readyList().length; let i = tb.querySelector("i.tb-n"); if (n) { if (!i) { i = document.createElement("i"); i.className = "tb-n"; tb.appendChild(i); } i.textContent = n; } else if (i) i.remove(); }
     window.scrollTo(0, y);
     paintHead();
+    fitNames(m);
   }
 
   /* ══════════ レースの画面 ══════════ */
@@ -431,8 +584,18 @@
   }
 
   /* ══════════ シート ══════════ */
+  /* ★★ 2026-10-24 ご報告「馬券を買う画面でスクロールすると後ろの画面がスクロールされる」
+     → シートのあいだは後ろ（文書）を止める（body を fixed にして位置を覚える・閉じたら戻す）。
+       中のスクロールは .sh-body の overscroll-behavior:contain で外へ伝えない（md.css）。 */
+  let lockY = null;
+  function lockBg(on) {
+    const b = document.body;
+    if (on) { if (lockY != null) return; lockY = window.scrollY || 0; b.style.position = "fixed"; b.style.top = -lockY + "px"; b.style.left = "0"; b.style.right = "0"; b.classList.add("noscroll"); }
+    else { if (lockY == null) return; const y = lockY; lockY = null; b.style.position = ""; b.style.top = ""; b.style.left = ""; b.style.right = ""; b.classList.remove("noscroll"); window.scrollTo(0, y); }
+  }
   function openSheet(html, kind) {
     const sh = $("#sheet");
+    lockBg(true);
     sh.innerHTML = '<div class="sh-bg" data-a="closeSheet"></div><div class="sh-pane ' + (kind || "") + '">' + html + "</div>";
     sh.classList.add("on");
     if (!U.sheetOpen) { try { history.pushState({ md: "sheet" }, ""); } catch (e) {} }
@@ -441,7 +604,8 @@
   function closeSheet(fromPop) {
     const sh = $("#sheet"); sh.classList.remove("on"); sh.innerHTML = "";
     const was = U.sheetOpen;
-    U.slip = null; U.sheetOpen = false;
+    U.slip = null; U.sheetOpen = false; U.tkOpen = null;
+    lockBg(false);
     if (!fromPop && was) { try { if (history.state && history.state.md === "sheet") { ignorePop++; history.back(); } } catch (e) {} }
   }
 
@@ -451,11 +615,16 @@
     let race = U.rid === rid && U.race ? U.race : N.peekRace(rid);
     if (!race || r.st !== "result") { try { race = await N.race(rid, false, true); } catch (e) {} }
     if (!race) { toast("出馬表を読めませんでした", "err"); return; }
-    U.slip = { rid: rid, race: race, ex: U.rid === rid ? U.ex : null, type: "win", mode: "norm", cols: [[], [], []], pick: [], axis: [], part: [], pos: "1", u: 100, lines: [] };
+    B.fixAll(rid, race);
+    /* ★★ 2026-10-24 枠順の発表前は仮の番号の写し（N.betRace）で買う。オッズはまだ無い */
+    race = N.betRace(race);
+    U.slip = { rid: rid, race: race, ex: U.rid === rid && !race.pre ? U.ex : null, type: "win", mode: "norm", cols: [[], [], []], pick: [], axis: [], part: [], pos: "1", u: 100, lines: [] };
     openSheet('<div id="slip"></div>', "slip");
     paintSlip();
-    N.odds(rid).then((ex) => { if (U.slip && U.slip.rid === rid) { U.slip.ex = ex; paintSlip(); } }).catch(() => {});
+    if (!race.pre) N.odds(rid).then((ex) => { if (U.slip && U.slip.rid === rid) { U.slip.ex = ex; paintSlip(); } }).catch(() => {});
   }
+  /* 枠順の発表前の組を馬名で（"ダノン−ロブチェン"） */
+  function preStr(race, type, c) { const nm = (p) => { const e = (race.entries || []).find((x) => x.pno === p); return e ? e.nm : "?"; }; return c.map(nm).join(B.TYPE[type].ord ? "→" : "−"); }
   function slipCombos() {
     const S = U.slip; if (!S) return [];
     const sel = S.mode === "box" ? { pick: S.pick } : S.mode === "nag" ? { axis: S.axis, part: S.part, pos: S.pos } : { cols: S.cols };
@@ -470,7 +639,7 @@
       const fr = {}; ents.forEach((e) => { (fr[e.waku] = fr[e.waku] || []).push(e); });
       return '<div class="grid fr">' + [1, 2, 3, 4, 5, 6, 7, 8].filter((w) => fr[w]).map((w) => '<button class="gb' + (sel.indexOf(w) >= 0 ? " on" : "") + '" data-pk="' + key + ":" + w + '">' + wakuChip(w) + "<small>" + fr[w].map((e) => esc(e.nm.slice(0, 5))).join("<br>") + "</small></button>").join("") + "</div>";
     }
-    return '<div class="grid">' + ents.map((e) => { const o = N.winOdds(race, e); return '<button class="gb' + (sel.indexOf(e.no) >= 0 ? " on" : "") + '" data-pk="' + key + ":" + e.no + '">' + noChip(e.no, e.waku) + "<span>" + esc(e.nm) + "</span><small>" + (o ? esc(o[0]) : "") + "</small></button>"; }).join("") + "</div>";
+    return '<div class="grid">' + ents.map((e) => { const o = race.pre ? null : N.winOdds(race, e); return '<button class="gb' + (sel.indexOf(e.no) >= 0 ? " on" : "") + '" data-pk="' + key + ":" + e.no + '">' + (race.pre ? '<b class="no pre">?</b>' : noChip(e.no, e.waku)) + "<span>" + esc(e.nm) + "</span><small>" + (o ? esc(o[0]) : "") + "</small></button>"; }).join("") + "</div>";
   }
   function paintSlip() {
     const S = U.slip, box = $("#slip"); if (!S || !box) return;
@@ -505,8 +674,9 @@
     box.innerHTML =
       '<div class="sh-hd"><b>馬券を買う<small>' + esc(D.shortName(r.nm)) + " " + esc(N.dateStr(r.date)) + " " + esc(r.post) + '発走</small></b><button class="sh-x" data-a="closeSheet" aria-label="閉じる">✕</button></div>' +
       '<div class="sh-body slip">' +
-      (st !== "sale" ? '<div class="warn">' + (st === "entry" ? "枠順が決まるまで（ふつうは木曜の午後）は買えません" : st === "pre" ? "発売は " + esc(N.dtStr(N.saleAt(r))) + " から（あと <b data-cd=\"" + N.saleAt(r) + "\">" + N.left(N.saleAt(r) - t) + "</b>）。買い目は先に作っておけます" : st === "gap" ? "前日発売は終わりました。当日発売は " + esc(N.dtStr(N.nextSaleAt(r, t) || N.closeAt(r))) + " から（JRA と同じ時間）。買い目は先に作っておけます" : "このレースの発売は終わりました（締切は発走の2分前）") + "</div>" : '<div class="slip-cd">締切まで <b data-cd="' + N.closeAt(r) + '">' + N.left(N.closeAt(r) - t) + "</b><small>（" + esc(N.hm(N.closeAt(r))) + "・サーバーの時刻）</small></div>") +
-      '<div class="types">' + B.TYPES.map((x) => '<button data-ty="' + x.k + '" class="' + (S.type === x.k ? "on" : "") + '"><b>' + x.nm + "</b></button>").join("") + "</div>" +
+      (race.pre && st === "sale" ? '<div class="warn pre">🕘 <b>枠順の発表前</b>です。馬名で買えます（馬番は「?」・発表されしだい券に本当の馬番が入ります）。発表までに出走しなくなった馬を含む組は返還。枠連とオッズは枠順が出てから。</div>' : "") +
+      (st !== "sale" ? '<div class="warn">' + (st === "entry" ? "発売は " + esc(N.dtStr(N.saleAt(r))) + " から" : st === "pre" ? "発売は " + esc(N.dtStr(N.saleAt(r))) + " から（あと <b data-cd=\"" + N.saleAt(r) + "\">" + N.left(N.saleAt(r) - t) + "</b>）。買い目は先に作っておけます" : st === "gap" ? "前日発売は終わりました。当日発売は " + esc(N.dtStr(N.nextSaleAt(r, t) || N.closeAt(r))) + " から（JRA と同じ時間）。買い目は先に作っておけます" : "このレースの発売は終わりました（締切は発走の2分前）") + "</div>" : '<div class="slip-cd">締切まで <b data-cd="' + N.closeAt(r) + '">' + N.left(N.closeAt(r) - t) + "</b><small>（" + esc(N.hm(N.closeAt(r))) + "・サーバーの時刻）</small></div>") +
+      '<div class="types">' + B.TYPES.filter((x) => !(race.pre && x.frame)).map((x) => '<button data-ty="' + x.k + '" class="' + (S.type === x.k ? "on" : "") + '"><b>' + x.nm + "</b></button>").join("") + "</div>" +
       '<p class="tdesc">' + esc(T.d) + "</p>" +
       (modes.length > 1 ? '<div class="seg modes">' + modes.map((m) => '<button data-md="' + m[0] + '" class="' + (S.mode === m[0] ? "on" : "") + '">' + m[1] + "</button>").join("") + "</div>" : "") +
       picks +
@@ -514,7 +684,7 @@
         '<div class="amt-u"><button data-u="-">−</button><b>' + fmt(S.u) + '</b><button data-u="+">＋</button><span>XEVA/点</span></div>' +
         '<div class="amt-q">' + [100, 500, 1000, 5000].map((v) => '<button data-uq="' + v + '">' + fmt(v) + "</button>").join("") + "</div>" +
         '<button class="btn add" data-a="addLine" ' + (cb.length ? "" : "disabled") + ">買い目に追加（" + fmt(lineCost) + " XEVA）</button></div>" +
-      (S.lines.length ? '<div class="lines"><div class="pick-h">買い目<small>' + S.lines.length + "件</small></div>" + S.lines.map((l, i) => '<div class="ln"><span><b>' + esc(B.lineLabel(l)) + "</b><small>" + esc(l.cb.slice(0, 6).map((c) => B.comboStr(l.type, c)).join(" ") + (l.cb.length > 6 ? " …" : "")) + "</small></span><em>" + l.cb.length + "点×" + fmt(l.u) + "</em><b>" + fmt(l.cb.length * l.u) + '</b><button data-del="' + i + '" aria-label="消す">✕</button></div>').join("") + "</div>" : "") +
+      (S.lines.length ? '<div class="lines"><div class="pick-h">買い目<small>' + S.lines.length + "件</small></div>" + S.lines.map((l, i) => '<div class="ln"><span><b>' + esc(B.lineLabel(l)) + "</b><small>" + esc(l.cb.slice(0, 6).map((c) => race.pre ? preStr(race, l.type, c) : B.comboStr(l.type, c)).join(" ") + (l.cb.length > 6 ? " …" : "")) + "</small></span><em>" + l.cb.length + "点×" + fmt(l.u) + "</em><b>" + fmt(l.cb.length * l.u) + '</b><button data-del="' + i + '" aria-label="消す">✕</button></div>').join("") + "</div>" : "") +
       '<div class="buy"><div><small>合計</small><b>' + fmt(total) + ' XEVA</b><small>残高 ' + fmt(bal) + (spent ? "・このレースで " + fmt(spent) + " 購入ずみ" : "") + "</small></div>" +
         '<button class="btn pri big" data-a="buy" ' + (S.lines.length && st === "sale" ? "" : "disabled") + ">購入する</button></div>" +
       '<p class="sm">1点 100 XEVA から。払い戻しは実際の払戻金（100円あたり）どおり。1レース ' + fmt(D.MAX_PER_RACE) + " XEVA まで。</p></div>";
@@ -544,7 +714,7 @@
       return;
     }
     const msg = { offline: "オフラインのため買えません（締切をサーバーの時刻で確かめる必要があります）", closed: "締切を過ぎています（締切は発走の2分前）", nodraw: "枠順が決まるまで買えません",
-      notyet: "いまは発売していません（JRA と同じ時間：日曜の GⅠ は金曜 18:30〜土曜 17:30 と 土曜 19:30〜発走の2分前）",
+      notyet: "いまは発売していません（発売は木曜 0:00 から＝枠順が出てから・締切は発走の2分前）",
       balance: "XEVA が足りません（必要 " + fmt(res.cost || 0) + "・残高 " + fmt(res.bal || 0) + "）", cap: "1レースで買えるのは " + fmt(D.MAX_PER_RACE) + " XEVA までです", invalid: "出走しない馬（取消・除外）を含む買い目があります", empty: "買い目がありません" }[res.err] || "購入できませんでした";
     toast(msg, "err");
     paintSlip();
@@ -557,18 +727,12 @@
   }
 
   /* ══════════ 精算と的中の演出 ══════════ */
+  /* ★★ 2026-10-24 結果が出た馬券は「計算だけ」して、押して確認してもらう（払い戻しは確認したとき） */
   async function settle() {
     const done = await B.settle();
     if (!done.length) return;
-    const hits = done.filter((t) => t.st === "hit");
     paintHead(); render(); if (U.rid) renderRace();
-    if (hits.length) {
-      const sum = hits.reduce((a, t) => a + t.pay, 0);
-      const fx = document.createElement("div"); fx.className = "winfx";
-      fx.innerHTML = '<div class="winfx-card"><em>的中！</em><b>' + fmt(sum) + ' XEVA</b><small>' + hits.map((t) => esc(D.shortName(t.nm)) + " " + esc(B.TYPE[t.type].nm)).join("・") + '</small><button class="btn pri" data-a="closeFx">うけとる</button></div>' +
-        Array.from({ length: 28 }, (_, i) => '<i style="left:' + (i * 37 % 100) + "%;animation-delay:" + (i % 7) * 0.12 + "s;background:" + ["#ffd257", "#ff6b6b", "#4ade80", "#60a5fa", "#f472b6"][i % 5] + '"></i>').join("");
-      document.body.appendChild(fx);
-    } else toast("結果が確定しました：" + done.length + "件の馬券を精算しました");
+    toast("🎫 結果が出ました：" + done.length + "枚の馬券を「馬券」タブで押して確認できます", "ok");
   }
 
   /* ══════════ 読みこみ・定期の更新 ══════════ */
@@ -578,6 +742,8 @@
       const changed = !U.idx || U.idx.at !== idx.at;
       U.idx = idx; U.err = "";
       if (changed) { U.data = null; render(); if (U.rid) { const r = raceOf(U.rid); try { U.race = await N.race(U.rid, r && r.st === "result", true); } catch (e) {} renderRace(); } }
+      /* ★★ 2026-10-24 枠順の発表前に買った券：枠順が出ていたら本当の馬番へ差し替え */
+      B.fixPending(idx).then((k) => { if (k) { render(); toast("🎫 枠順が発表されました。馬券に馬番を入れました（" + k + "件）", "ok"); } }).catch(() => {});
       settle();
     } catch (e) {
       if (!U.idx) { U.err = e && e.code === "nodata" ? "まだデータがありません（自動取得の初回を待っています）" : "通信できませんでした"; render(); }
@@ -589,7 +755,7 @@
     paintHead();
     /* ★★ 2026-10-21 払い戻しはレースの次の日の 0:00 → その時刻を過ぎたら精算する（10秒に1回まで） */
     if (U.idx && (!U.lastSettle || t - U.lastSettle > 10000)) {
-      const open = Object.values(B.load().tk).some((k) => { if (k.st !== "open") return false; const rr = raceOf(k.rid); return rr && rr.st === "result" && t >= N.payAt(rr); });
+      const open = Object.values(B.load().tk).some((k) => { if (k.st !== "open") return false; const rr = raceOf(k.rid); return rr && rr.st === "result" && t >= N.payAt(rr); });   /* ready は押したときに払い戻すので数えない */
       if (open) { U.lastSettle = t; settle(); }
     }
     /* 状態が変わったら描きなおす（締切・発走） */
@@ -601,9 +767,15 @@
 
   /* ══════════ 操作 ══════════ */
   document.addEventListener("click", (e) => {
-    const a = e.target.closest("[data-a],[data-tab],[data-race],[data-rt],[data-bet],[data-horse],[data-mk],[data-ot],[data-oax],[data-tkf],[data-ty],[data-md],[data-pk],[data-pos],[data-u],[data-uq],[data-del]");
+    const a = e.target.closest("[data-a],[data-tab],[data-race],[data-rt],[data-bet],[data-horse],[data-mk],[data-ot],[data-oax],[data-tkf],[data-ty],[data-md],[data-pk],[data-pos],[data-u],[data-uq],[data-del],[data-tk],[data-rv]");
     if (!a) return;
     const d = a.dataset;
+    /* ★★ 2026-10-24 馬券：券を押す＝くわしく（結果ありなら確認）／確認する／まとめて確認 */
+    if (d.tk) { openTicket(d.tk); return; }
+    if (d.rv) { revealOne(d.rv); return; }
+    if (d.a === "rvAll") { revealAll(); return; }
+    if (d.a === "mypage") { openMyPage(); return; }
+    if (d.a === "myTickets") { closeSheet(); U.tab = "tickets"; U.tkf = "all"; render(); window.scrollTo(0, 0); return; }
     if (d.a === "reload") { U.err = ""; render(); loadIndex(true); return; }
     if (d.a === "closeRace") { closeRace(); return; }
     if (d.a === "closeSheet") { closeSheet(); return; }
@@ -617,7 +789,7 @@
     if (d.a === "buy") { doBuy(); return; }
     if (d.tab != null && !a.closest(".rc-tabs")) { U.tab = d.tab; try { sessionStorage.setItem("md_tab", U.tab); } catch (e2) {} window.scrollTo(0, 0); render(); return; }
     if (d.bet) { openSlip(d.bet); return; }
-    if (d.race && !a.closest("#race .rc-tabs")) { openRace(d.race, d.rt); return; }
+    if (d.race && !a.closest("#race .rc-tabs")) { if (U.tkOpen) closeSheet(); openRace(d.race, d.rt); return; }
     if (d.rt && U.rid) { U.rtab = d.rt; renderRace(); const b = $("#race .rc-body"); if (b) b.scrollTop = 0; $("#race").scrollTop = 0; return; }
     if (d.horse) { openHorse(d.horse); return; }
     if (d.mk) {
@@ -639,7 +811,7 @@
     if (d.del != null) { U.slip.lines.splice(Number(d.del), 1); paintSlip(); return; }
   });
   window.addEventListener("xeva:change", paintHead);
-  window.addEventListener("md:save", () => { if (U.tab === "tickets") render(); });
+  window.addEventListener("md:save", () => { if (U.tab === "tickets" || B.readyList().length) render(); });
   document.addEventListener("visibilitychange", () => { if (!document.hidden) { loadIndex(true); settle(); } });
 
   /* ══════════ はじめ ══════════ */

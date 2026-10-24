@@ -5,15 +5,15 @@
    ・フォント（Google Fonts）も一度読めたら控える（オフラインでもドットの文字になる）。
    ・Firebase（同期）はキャッシュしない。
    ============================================================ */
-const VERSION = "magiabyss-sw-v14";
+const VERSION = "magiabyss-sw-v16";
 const RUNTIME = "magiabyss-rt-v1";
 const CORE = [
   "./index.html",
   "./manifest.webmanifest",
-  "./css/ma.css?v=10",
-  "./js/ma-data.js?v=9",
-  "./js/ma-pixel.js?v=7",
-  "./js/ma-art.js?v=8",
+  "./css/ma.css?v=11",
+  "./js/ma-data.js?v=10",
+  "./js/ma-pixel.js?v=8",
+  "./js/ma-art.js?v=9",
   "./js/ma-map.js?v=2",
   "./js/ma-save.js?v=4",
   "./js/ma-stats.js?v=2",
@@ -22,15 +22,16 @@ const CORE = [
   "./js/ma-engine.js?v=7",
   "./js/ma-ai.js?v=2",
   "./js/ma-weapons.js?v=6",
-  "./js/ma-skills.js?v=4",
+  "./js/ma-skills.js?v=5",
   "./js/ma-cards.js?v=2",
   "./js/ma-boss.js?v=2",
   "./js/ma-prog.js?v=5",
   "./js/ma-render.js?v=3",
   "./js/ma-render25.js?v=1",   /* ★★ 2026-10-22 2.5D の描画 */
-  "./js/ma-ui.js?v=9",
-  "./js/ma-town.js?v=1",
-  "./js/ma-guild.js?v=9",
+  "./js/ma-ui.js?v=10",
+  "./js/ma-town.js?v=2",
+  "./js/ma-town25.js?v=1",   /* ★★ 2026-10-23 拠点（町の広場）の 2.5D */
+  "./js/ma-guild.js?v=11",
   "./js/ma-stages.js?v=3",
   "./js/ma-howto.js?v=6",
   "./js/ma-main.js?v=4",
@@ -41,20 +42,20 @@ const CORE = [
   "../gem.png",
   /* XEVARION の共通部品 */
   "../mb-boot.js?v=17",
-  "../MagiBurst/js/mb-core.js?v=139",
-  "../xeva.js?v=80",
-  "../xeva-alive.js?v=7",
+  "../MagiBurst/js/mb-core.js?v=140",
+  "../xeva.js?v=82",
+  "../xeva-alive.js?v=8",
   "../xeva-loading.js?v=19",
   "../xeva-splash.js?v=17",
   "../xeva-safebottom.js?v=12",
   "../xeva-back.js?v=9",
   "../xeva-presence.js?v=9",
   "../maintenance-gate.js?v=13",
-  "../xeva-cloud.js?v=47",
-  "../MagiBurst/magiburst-cloud.js?v=26",
+  "../xeva-cloud.js?v=48",
+  "../MagiBurst/magiburst-cloud.js?v=27",
   "../app-cloud.js?v=15",
   "../xeva-keys.js?v=34",
-  "../xevarion-fb.js?v=35",
+  "../xevarion-fb.js?v=36",
   /* 遊べる10体（極彩祭・極煌祭・極華祭）の絵 */
   "../img/Takina.webp", "../img/t_Takina.webp",
   /* ★★ 2026-10-09 Pumpkin Night の10体（絵）と、UR の必殺技カットインの縦長の SS 絵 */
@@ -69,6 +70,9 @@ const CORE = [
   /* ★★ 2026-10-22 超極煌祭の3体（絵と SS 絵） */
   "../img/Kohaku.webp", "../img/t_Kohaku.webp", "../img/Suzu.webp", "../img/t_Suzu.webp", "../img/Shouko.webp", "../img/t_Shouko.webp",
   "../MagiBurst/img/ss/KohakuSS.webp", "../MagiBurst/img/ss/SuzuSS.webp", "../MagiBurst/img/ss/ShoukoSS.webp",
+  /* ★★ 2026-10-24 ヒサコ・アリス（超極煌祭）・ミキ（MagiChemLex の WP 交換）の絵と SS 絵 */
+  "../img/Hisako.webp", "../img/t_Hisako.webp", "../img/Alice.webp", "../img/t_Alice.webp", "../img/Miki.webp", "../img/t_Miki.webp",
+  "../MagiBurst/img/ss/HisakoSS.webp", "../MagiBurst/img/ss/AliceSS.webp", "../MagiBurst/img/ss/MikiSS.webp",
   "../MagiBurst/img/ss/TakinaSS.webp", "../MagiBurst/img/ss/HibanaSS.webp", "../MagiBurst/img/ss/FukiSS.webp",
   "../MagiBurst/img/ss/AyanoSS.webp", "../MagiBurst/img/ss/SakiSS.webp", "../MagiBurst/img/ss/YukaSS.webp", "../MagiBurst/img/ss/NatsumiSS.webp",
   "../MagiBurst/img/ss/MiuSS.webp", "../MagiBurst/img/ss/MaiSS.webp", "../MagiBurst/img/ss/ChinatsuSS.webp", "../MagiBurst/img/ss/YuumiSS.webp",

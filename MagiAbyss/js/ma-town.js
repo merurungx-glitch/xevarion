@@ -48,6 +48,9 @@
   ];
   /* 旗飾り（2本の柱のあいだ） */
   const BUNTING = [[9.5, 20.2, 17.5, 20.2], [9.5, 26.2, 17.5, 26.2], [2.4, 12.4, 9.5, 20.2]];
+  const BUNT_COLS = ["#ff5a6a", "#ffd84a", "#4fe39a", "#5ab8ff", "#c27bff", "#ff8fd0"];
+  /* アルパカの囲いの柵（タイル単位。2.5D では立てて描く） */
+  const FENCES = [[9.5, 20.2, 17.5, 20.2], [9.5, 26.2, 17.5, 26.2], [9.5, 20.2, 9.5, 23], [17.5, 20.2, 17.5, 23]];
 
   function buildMap() {
     const tiles = new Uint8Array(W * H).fill(1);
@@ -142,7 +145,10 @@
     for (let j = 0; j < h; j += 6) for (let i = (j / 6) % 2 ? 5 : 0; i < w; i += 10) { R(x + i, y + j, 9, 5, shade(c, 0.9 + ((i * 7 + j * 3) % 5) * 0.05)); R(x + i, y + j + 5, 10, 1, shade(c, 0.62)); R(x + i + 9, y + j, 1, 5, shade(c, 0.62)); }
     R(x, y + h - 1, w, 1, shade(c, 0.45));
   }
+  /* ★★ 2026-10-23 2.5D の拠点で夕方・夜に窓を光らせるため、建物ごとの窓の位置を覚える（bgParts のときだけ） */
+  let WINS = null, curB = "";
   function win(x, y, w, h) {
+    if (WINS) WINS.push({ b: curB, x, y, w, h });
     R(x - 1, y - 1, w + 2, h + 2, "#4a2c18"); R(x, y, w, h, "#ffe8a0"); R(x, y, w, 2, "#fff6d0");
     R(x + Math.floor(w / 2), y, 1, h, "#6a4428"); R(x, y + Math.floor(h / 2), w, 1, "#6a4428");
     R(x - 2, y + h + 1, w + 4, 2, "#7a5030");
@@ -291,13 +297,45 @@
     /* 干し草・たき火の石 */
     ell(12 * TS, 23 * TS, 12, 6, "#d8b860"); ell(12 * TS - 3, 22.7 * TS, 8, 4, "#e8cc78");
     /* アルパカの囲い（柵）*/
-    fence(9.5 * TS, 20.2 * TS, 17.5 * TS, 20.2 * TS); fence(9.5 * TS, 26.2 * TS, 17.5 * TS, 26.2 * TS);
-    fence(9.5 * TS, 20.2 * TS, 9.5 * TS, 23 * TS); fence(17.5 * TS, 20.2 * TS, 17.5 * TS, 23 * TS);
+    FENCES.forEach(([x1, y1, x2, y2]) => fence(x1 * TS, y1 * TS, x2 * TS, y2 * TS));
     /* 敷物と、楽器を弾く場所 */
     ell(13.2 * TS, 28.3 * TS, 18, 6, "#8a3a2a"); ell(13.2 * TS, 28.3 * TS, 14, 4, "#b8503a");
     drawShed(); drawLibrary(); drawStall(); drawTent(); drawSmith(); drawShop(); drawTavern(); drawHall();
     g = null;
     return bgCanvas;
+  }
+
+  /* ══ ★★ 2026-10-23 2.5D の拠点用：地面（建物・柵なし）と、建物1つずつの絵（ma-town25.js）══
+     ・ground … 地面の絵（PW×PH）。2D と同じ乱数で同じ草・道・広場になる
+     ・blds … { id: { c:絵, x0,y0:絵の左上（ワールド）, base:足もとの y（建物の南のふち）, cx:横のまん中 } }
+     ・wins … 窓の位置（ワールド）と、どの建物のものか */
+  let partsCache = null;
+  const BLD_DRAW = { smith: () => drawSmith(), shop: () => drawShop(), tavern: () => drawTavern(), hall: () => drawHall(),
+    tent: () => drawTent(), stall: () => drawStall(), library: () => drawLibrary(), shed: () => drawShed() };
+  function bgParts() {
+    if (partsCache) return partsCache;
+    const gc = MA.Pix.mkCanvas(PW, PH);
+    g = gc.getContext("2d"); g.imageSmoothingEnabled = false;
+    const r = rng(20261005);
+    ground(r);
+    ell(12 * TS, 23 * TS, 12, 6, "#d8b860"); ell(12 * TS - 3, 22.7 * TS, 8, 4, "#e8cc78");
+    ell(13.2 * TS, 28.3 * TS, 18, 6, "#8a3a2a"); ell(13.2 * TS, 28.3 * TS, 14, 4, "#b8503a");
+    const blds = {};
+    WINS = [];
+    const MX = 16, MT = 30, MB = 4;
+    Object.keys(BLD).forEach((id) => {
+      const [bx, by, bw, bh] = BLD[id];
+      const x0 = bx * TS - MX, y0 = by * TS - MT, w = bw * TS + MX * 2, h = bh * TS + MT + MB;
+      const c = MA.Pix.mkCanvas(w, h);
+      g = c.getContext("2d"); g.imageSmoothingEnabled = false;
+      g.setTransform(1, 0, 0, 1, -x0, -y0);
+      curB = id;
+      BLD_DRAW[id]();
+      blds[id] = { c, x0, y0, base: (by + bh) * TS, cx: (bx + bw / 2) * TS };
+    });
+    partsCache = { ground: gc, blds, wins: WINS };
+    WINS = null; curB = ""; g = null;
+    return partsCache;
   }
 
   /* ══ 置物のスプライト（キャッシュ）══ */
@@ -469,23 +507,33 @@
     }
     gg.globalAlpha = 1;
   }
-  function drawAnim(gg, cx, cy, t) {
-    /* 炉の火（鍛冶屋） */
-    const sx = BLD.smith[0] * TS + 30 - cx, sy = BLD.smith[1] * TS + 86 - cy;
-    gg.globalAlpha = 0.5 + 0.3 * Math.sin(t * 9); gg.fillStyle = "#ffb03a"; gg.beginPath(); gg.ellipse(Math.round(sx), Math.round(sy - 4), 9, 6, 0, 0, TAU); gg.fill(); gg.globalAlpha = 1;
-    drawFire(gg, sx, sy + 2, t, 1.4);
-    /* 煙突の煙（鍛冶屋・酒場・資料室） */
-    [[BLD.smith[0] * TS + 26, BLD.smith[1] * TS + 4], [BLD.tavern[0] * TS + 11 * TS - 26, BLD.tavern[1] * TS], [BLD.library[0] * TS + 20, BLD.library[1] * TS + 18]].forEach(([x, y], j) => {
+  /* 建物についた動き：鍛冶屋の炉の火・煙突の煙（鍛冶屋・酒場・資料室）。
+     ★★ 2026-10-23 2.5D では建物を立てて描くので、建物ごとに（その建物と同じ変形の中で）描けるように分けた */
+  const SMOKE = { smith: [[BLD.smith[0] * TS + 26, BLD.smith[1] * TS + 4], 0], tavern: [[BLD.tavern[0] * TS + 11 * TS - 26, BLD.tavern[1] * TS], 1], library: [[BLD.library[0] * TS + 20, BLD.library[1] * TS + 18], 2] };
+  function drawBldAnim(gg, id, cx, cy, t) {
+    if (id === "smith") {
+      const sx = BLD.smith[0] * TS + 30 - cx, sy = BLD.smith[1] * TS + 86 - cy;
+      gg.globalAlpha = 0.5 + 0.3 * Math.sin(t * 9); gg.fillStyle = "#ffb03a"; gg.beginPath(); gg.ellipse(Math.round(sx), Math.round(sy - 4), 9, 6, 0, 0, TAU); gg.fill(); gg.globalAlpha = 1;
+      drawFire(gg, sx, sy + 2, t, 1.4);
+    }
+    const sm = SMOKE[id];
+    if (sm) {
+      const [[x, y], j] = sm;
       for (let i = 0; i < 4; i++) {
         const k = (t * 0.35 + i / 4 + j * 0.13) % 1;
         gg.globalAlpha = (1 - k) * 0.45; gg.fillStyle = "#e8e4ee";
         const r = 3 + k * 7;
         gg.beginPath(); gg.arc(Math.round(x - cx + Math.sin(k * 5 + j) * 4 + k * 10), Math.round(y - cy - k * 34), r, 0, TAU); gg.fill();
       }
-    });
+      gg.globalAlpha = 1;
+    }
+  }
+  function drawAnim(gg, cx, cy, t) {
+    /* 炉の火（鍛冶屋）・煙突の煙（鍛冶屋・酒場・資料室） */
+    ["smith", "tavern", "library"].forEach((id) => drawBldAnim(gg, id, cx, cy, t));
     gg.globalAlpha = 1;
     /* 旗飾り（ゆれる） */
-    const cols = ["#ff5a6a", "#ffd84a", "#4fe39a", "#5ab8ff", "#c27bff", "#ff8fd0"];
+    const cols = BUNT_COLS;
     BUNTING.forEach(([x1, y1, x2, y2], bi) => {
       const ax = x1 * TS - cx, ay = y1 * TS - cy - 14, bx = x2 * TS - cx, by = y2 * TS - cy - 14;
       const n = Math.max(4, Math.round(Math.hypot(bx - ax, by - ay) / 9));
@@ -507,5 +555,6 @@
     gg.globalAlpha = 1;
   }
 
-  MA.Town = { W, H, TS, PW, PH, FAC, BLD, PROPS, ANIMALS, buildMap, drawBg, drawAnim, collectProps, drawProp, updateAnimals, start: [23, 20.5] };
+  MA.Town = { W, H, TS, PW, PH, FAC, BLD, PROPS, ANIMALS, BUNTING, BUNT_COLS, FENCES, rng, buildMap, drawBg, drawAnim, collectProps, drawProp, updateAnimals,
+    bgParts, drawBldAnim, drawFire, propSprite, start: [23, 20.5] };
 })();

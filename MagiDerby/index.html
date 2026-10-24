@@ -29,7 +29,7 @@ if ("serviceWorker" in navigator) {
 }
 </script>
 <script src="../xeva-safebottom.js?v=12"></script>
-<link rel="stylesheet" href="css/md.css?v=2" />
+<link rel="stylesheet" href="css/md.css?v=3" />
 <script src="../xeva-splash.js?v=17" data-app="MagiDerby" data-logo="../thumbs/MagiDerby.jpg"></script>
 </head>
 <body>
@@ -40,7 +40,9 @@ if ("serviceWorker" in navigator) {
     <b>MagiDerby</b><small>競馬 GⅠ</small>
   </div>
   <span class="hd-pill" title="XEVA"><img src="../XEVA.png" alt="XEVA"><span id="hdXeva">0</span></span>
-  <span class="hd-pill" title="サーバーの時刻（締切はこの時刻で判定）"><i id="hdSync"></i><span id="hdClock">--:--:--</span></span>
+  <span class="hd-pill hd-clk" title="サーバーの時刻（締切はこの時刻で判定）"><i id="hdSync"></i><span id="hdClock">--:--:--</span></span>
+  <!-- ★★ 2026-10-24 ご指定：成績は上の「マイページ」から -->
+  <button class="hd-my" data-a="mypage" aria-label="マイページ" title="マイページ（成績）"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.2" r="3.8"/><path d="M4.5 20.2c.8-4 3.9-6.2 7.5-6.2s6.7 2.2 7.5 6.2"/></svg><span>マイページ</span></button>
 </header>
 <div class="offbar" id="offBar" hidden>📴 オフライン：手元に控えた情報を表示しています（馬券は買えません）</div>
 <nav class="tabs" aria-label="画面">
@@ -54,16 +56,16 @@ if ("serviceWorker" in navigator) {
 <div id="toasts"></div>
 <noscript><p style="padding:20px">MagiDerby を使うには JavaScript を有効にしてください。</p></noscript>
 
-<script type="module" src="../xevarion-fb.js?v=35"></script>
-<script type="module" src="../xeva-cloud.js?v=47"></script>
-<script src="../xeva.js?v=80"></script>
+<script type="module" src="../xevarion-fb.js?v=36"></script>
+<script type="module" src="../xeva-cloud.js?v=48"></script>
+<script src="../xeva.js?v=82"></script>
 <script src="../xeva-loading.js?v=19" defer></script>
 <script src="../xeva-presence.js?v=9" defer></script>
 <script src="js/md-data.js?v=2"></script>
-<script src="js/md-net.js?v=2"></script>
-<script src="js/md-bet.js?v=2"></script>
+<script src="js/md-net.js?v=3"></script>
+<script src="js/md-bet.js?v=3"></script>
 <script src="js/md-race.js?v=1"></script>
-<script src="js/md-ui.js?v=2"></script>
+<script src="js/md-ui.js?v=3"></script>
 <script src="../xeva-back.js?v=9" data-mode="hook"></script>
 </body>
 </html>

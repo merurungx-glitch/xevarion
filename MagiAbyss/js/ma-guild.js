@@ -46,7 +46,9 @@
   function npcSprite(k) {
     const n = NPCDEF[k], PA = MA.Pix.PARTS;
     const layers = [n.hair === "bob" ? PA.backBob() : PA.backLong(24), n.outfit === "robe" ? { x: 6, y: 14, rows: ["..AACCAA....", ".AAAACAAAAA.", "AAAAACAAAAAA", "A.AAAAAAAA.A", "a.AaAAAAaA.a", "S.AAAAAAAA.S", "..AAAAAAAA..", "..AaAAAAaA..", "..AAAAAAAA..", "..aAAAAAAa..", "...OO..OO...", "...oo..oo..."] } : PA.outfitTank(PA.BOTTOM_PANTS), "FACE", n.hair === "bob" ? PA.frontBob(false) : PA.frontStraight(14)];
-    return MA.Pix.spriteFromDef("npc_" + k, { pal: n.pal, legY: n.outfit === "robe" ? 27 : 23, robe: n.outfit === "robe", layers, side: n.outfit === "robe" ? SIDE_ROBE(n.hair) : SIDE_TANK(n.hair) });
+    const def = { pal: n.pal, legY: n.outfit === "robe" ? 27 : 23, robe: n.outfit === "robe", layers, side: n.outfit === "robe" ? SIDE_ROBE(n.hair) : SIDE_TANK(n.hair) };
+    /* ★★ 2026-10-24 町の人も自分のキャラと同じ HD ドット（ご指定「自分のキャラ以外の表示もプレイヤーと同じように細かく」） */
+    return MA.Pix.spriteFromDefHD ? MA.Pix.spriteFromDefHD("npc_" + k, def) : MA.Pix.spriteFromDef("npc_" + k, def);
   }
   function initNpcs() {
     GS.npcs = [
@@ -103,6 +105,9 @@
     const v = MA.vp ? MA.vp() : { w: window.innerWidth, h: window.innerHeight };
     const w = v.w, h = v.h;
     const phone = MA.isPhone && MA.isPhone();
+    /* ★★ 2026-10-23 拠点も 2.5D（ma-town25.js）。設定「グラフィック」が 2D のときは今までどおり */
+    if (MA.Town25 && MA.Town25.on()) { GS.scale = MA.Town25.resize(hub, w, h, phone); GS.k25 = MA.Town25.key(); return; }
+    GS.k25 = "";
     let scale = h / (phone ? 230 : 420);
     if (scale >= 2) scale = Math.floor(scale * 2) / 2;
     scale = Math.max(1, scale);
@@ -120,6 +125,8 @@
     /* ★ rAF の時刻は performance.now() より前のことがある（最初のコマ）→ 負の時間にしない */
     const dt = Math.max(0, Math.min(0.05, (now - GS.last) / 1000)); GS.last = now;
     if (document.body.dataset.scr !== "guild") return;
+    /* 設定で 2.5D ⇄ 2D を切りかえたら作り直す */
+    if ((MA.Town25 && MA.Town25.on() ? MA.Town25.key() : "") !== (GS.k25 || "")) resizeHub();
     GS.t += dt;
     updateHub(dt);
     drawHub();
@@ -159,12 +166,18 @@
     });
     MA.Town.updateAnimals(dt);
     /* カメラ */
+    if (GS.k25) { MA.Town25.camera(GS); return; }
     const vw = hub.width, vh = hub.height, mw = MA.Town.PW, mh = MA.Town.PH;
     GS.cam.x = mw > vw ? Math.max(vw / 2, Math.min(mw - vw / 2, GS.x)) : mw / 2;
     GS.cam.y = mh > vh ? Math.max(vh / 2, Math.min(mh - vh / 2, GS.y - 10)) : mh / 2;
   }
   function isTouchUI() { return document.body.classList.contains("touchdev"); }
   function drawHub() {
+    if (GS.k25) {
+      MA.Town25.draw(GS, { near: GS.near, walker: drawWalker, npcSprite, mySprite: () => (MA.Pix.charSpriteHD ? MA.Pix.charSpriteHD(S().sel) : MA.Pix.charSprite(S().sel)) });
+      placeLabels25();
+      return;
+    }
     const g = hctx, vw = hub.width, vh = hub.height;
     g.setTransform(1, 0, 0, 1, 0, 0); g.globalAlpha = 1;   /* ★ 前のコマの変形が残らないように */
     const cx = Math.round(GS.cam.x - vw / 2), cy = Math.round(GS.cam.y - vh / 2);
@@ -177,7 +190,7 @@
     list.push({ y: GS.y, me: 1 });
     list.sort((a, b) => a.y - b.y);
     list.forEach((it) => {
-      if (it.me) { drawWalker(g, MA.Pix.charSprite(S().sel), GS, cx, cy); return; }
+      if (it.me) { drawWalker(g, MA.Pix.charSpriteHD ? MA.Pix.charSpriteHD(S().sel) : MA.Pix.charSprite(S().sel), GS, cx, cy); return; }   /* ★★ 2026-10-24 2D の拠点も HD */
       if (it.n) { drawWalker(g, npcSprite(it.n.k), it.n, cx, cy); return; }
       MA.Town.drawProp(g, it, cx, cy, GS.t);
     });
@@ -191,17 +204,20 @@
     /* 名札の位置 */
     placeLabels(cx, cy);
   }
-  function drawWalker(g, sp, o, cx, cy) {
+  /* ★★ 2026-10-23 2.5D（ma-town25.js）からも呼ぶ：影は地面に別に描く（noShadow）・HD ドット（sp.hd）は半分の大きさで・うすい重ね（ghost）は絵だけ */
+  function drawWalker(g, sp, o, cx, cy, noShadow, ghost) {
     let f;
     if (o.moving && o.side && sp.side) f = sp.side[Math.floor(o.walkT * 10) % 4];
     else if (o.moving) f = sp.walk[Math.floor(o.walkT * 9) % 4];
     else if (o.play) f = sp.idle[Math.floor(GS.t * 3) % 2];
     else { const it = Math.floor(GS.t * 2 + (o.x % 3)) % 2; f = sp.idle[((GS.t + o.x * 0.01) % 3.4) > 3.25 ? 2 : it]; }
     const x = Math.round(o.x - cx), y = Math.round(o.y - cy);
-    g.fillStyle = "rgba(0,0,0,.28)"; g.beginPath(); g.ellipse(x, y + 2, 7, 3, 0, 0, Math.PI * 2); g.fill();
+    if (!noShadow) { g.fillStyle = "rgba(0,0,0,.28)"; g.beginPath(); g.ellipse(x, y + 2, 7, 3, 0, 0, Math.PI * 2); g.fill(); }
     if (!f) return;
-    if (o.face < 0) { g.save(); try { g.translate(x, 0); g.scale(-1, 1); g.drawImage(f, -Math.floor(f.width / 2), y - f.height + 4); } finally { g.restore(); } }
-    else g.drawImage(f, x - Math.floor(f.width / 2), y - f.height + 4);
+    const kk = sp.hd ? 1 / sp.hd : 1, fw = f.width * kk, fh = f.height * kk;
+    if (o.face < 0) { g.save(); try { g.translate(x, 0); g.scale(-1, 1); g.drawImage(f, -Math.floor(fw / 2), y - fh + 4, fw, fh); } finally { g.restore(); } }
+    else g.drawImage(f, x - Math.floor(fw / 2), y - fh + 4, fw, fh);
+    if (ghost) return;
     /* 吟遊詩人の音符 */
     if (o.play) { const k = (GS.t * 0.8) % 1; g.globalAlpha = 1 - k; g.fillStyle = "#ffd84a"; g.fillRect(x + 6 + Math.sin(k * 6) * 3, y - 30 - k * 14, 2, 4); g.fillRect(x + 6 + Math.sin(k * 6) * 3 - 2, y - 27 - k * 14, 3, 2); g.globalAlpha = 1; }
   }
@@ -215,6 +231,15 @@
       b.innerHTML = ic(locked ? "lock" : f.ic, f.c) + "<span>" + esc(f.nm) + "</span>";
       b._f = f;
       box.appendChild(b);
+    });
+  }
+  /* 2.5D：名札は建物といっしょに立っている高さ（ma-town25.js の labelXY） */
+  function placeLabels25() {
+    document.querySelectorAll(".glab").forEach((b) => {
+      const f = b._f; if (!f) return;
+      const p = MA.Town25.labelXY(f);
+      b.style.transform = "translate(" + Math.round(p.x) + "px," + Math.round(p.y) + "px) translate(-50%,-100%)";
+      b.classList.toggle("near", GS.near === f);
     });
   }
   function placeLabels(cx, cy) {
@@ -241,7 +266,7 @@
     const sel = s.sel, C = D().CHARS[sel];
     const anyOwned = D().CHAR_ORDER.some((id) => MA.Save.owned(id));
     if (!anyOwned) {
-      $("#gSel").innerHTML = '<div class="g-noown">' + ic("lock") + '<div><b>遊べるキャラがいません</b><small>XEVARION の <em class="f7">超極煌祭</em><em class="f6">超極華祭</em><em class="f5">Pumpkin Night</em><em class="f4">Sapphire Breeze</em><em class="f1">極彩祭</em><em class="f2">極煌祭</em><em class="f3">極華祭</em> のキャラを手に入れると遊べます</small></div><a class="btn sm gold" href="../gacha.html">ガチャへ</a></div>';
+      $("#gSel").innerHTML = '<div class="g-noown">' + ic("lock") + '<div><b>遊べるキャラがいません</b><small>XEVARION の <em class="f7">超極煌祭</em><em class="f6">超極華祭</em><em class="f5">Pumpkin Night</em><em class="f4">Sapphire Breeze</em><em class="f1">極彩祭</em><em class="f2">極煌祭</em><em class="f3">極華祭</em> のキャラ・<em class="f8">MagiChemLex の WP交換所</em> のミキを手に入れると遊べます</small></div><a class="btn sm gold" href="../gacha.html">ガチャへ</a></div>';
       return;
     }
     $("#gSel").innerHTML = '<img src="../img/t_' + UI().imgName(sel) + '.webp" alt=""><div><small>出発するキャラ</small><b>' + esc(C.nm) + ' <em class="cc-rar r-' + C.rank + '">' + C.rank + "</em></b><span>" + ic("el_" + C.el) + "Lv." + MA.Save.lvOf(sel) + "・" + D().CTYPE[C.type].nm + '</span></div><button class="btn sm" data-a="fac" data-v="chars">変更</button>';
@@ -339,10 +364,14 @@
   /* ★★ 2026-10-09 Pumpkin Night（UR）も使える（ご指定） */
   /* ★★ 2026-10-16 超極華祭（UR・MagiAbyss 専用）も使える（ご指定） */
   /* ★★ 2026-10-22 超極煌祭（UR・MagiAbyss 専用）も */
-  const FES_CLS = { "極彩祭": "f1", "極煌祭": "f2", "極華祭": "f3", "Sapphire Breeze": "f4", "Pumpkin Night": "f5", "超極華祭": "f6", "超極煌祭": "f7" };
+  /* ★★ 2026-10-24 MagiChemLex の WP 交換所（ミキ）も */
+  /* ★★ 2026-10-24 入手先：WP交換所のキャラ（ミキ）はガチャでなく MagiChemLex の WP 交換所 */
+  const isWp = (C) => C && C.fes === "WP交換所";
+  const getWhere = (C) => isWp(C) ? "MagiChemLex の WP 交換所" : "XEVARION の" + (C && C.fes ? C.fes : "ガチャ");
+  const FES_CLS = { "極彩祭": "f1", "極煌祭": "f2", "極華祭": "f3", "Sapphire Breeze": "f4", "Pumpkin Night": "f5", "超極華祭": "f6", "超極煌祭": "f7", "WP交換所": "f8" };
   function fesBadge(C) { return '<em class="fes ' + (FES_CLS[C.fes] || "") + '">' + esc(C.fes) + "</em>"; }
   function fesInfo() {
-    return '<div class="fes-info">' + ic("star", "#ffd84a") + '<div><b>MagiAbyss で使えるキャラ</b><small>XEVARION のガチャ <em class="fes f7">超極煌祭</em><em class="fes f6">超極華祭</em><em class="fes f5">Pumpkin Night</em><em class="fes f4">Sapphire Breeze</em><em class="fes f1">極彩祭</em><em class="fes f2">極煌祭</em><em class="fes f3">極華祭</em> で手に入るキャラ（' + D().CHAR_ORDER.length + "人）。持っているキャラだけで遊べます。凸は XEVARION と共通・レベルはこのアプリだけ。</small></div>" +
+    return '<div class="fes-info">' + ic("star", "#ffd84a") + '<div><b>MagiAbyss で使えるキャラ</b><small>XEVARION のガチャ <em class="fes f7">超極煌祭</em><em class="fes f6">超極華祭</em><em class="fes f5">Pumpkin Night</em><em class="fes f4">Sapphire Breeze</em><em class="fes f1">極彩祭</em><em class="fes f2">極煌祭</em><em class="fes f3">極華祭</em> と <em class="fes f8">MagiChemLex の WP交換所</em> で手に入るキャラ（' + D().CHAR_ORDER.length + "人）。持っているキャラだけで遊べます。凸は XEVARION と共通・レベルはこのアプリだけ。</small></div>" +
       '<a class="btn sm gold" href="../gacha.html">ガチャへ</a></div>';
   }
   let charFilter = "all";
@@ -356,7 +385,7 @@
       if (/^fes:/.test(charFilter)) return C.fes === charFilter.slice(4);
       return C.el === charFilter;
     });
-    const tabs = [["all", "すべて"], ["own", "所持（" + ownN + "）"], ["fes:超極煌祭", "超極煌祭"], ["fes:超極華祭", "超極華祭"], ["fes:Pumpkin Night", "Pumpkin"], ["fes:Sapphire Breeze", "Sapphire"], ["fes:極彩祭", "極彩祭"], ["fes:極煌祭", "極煌祭"], ["fes:極華祭", "極華祭"]].concat(D().ELEM_KEYS.map((k) => [k, D().ELEM[k].nm]));
+    const tabs = [["all", "すべて"], ["own", "所持（" + ownN + "）"], ["fes:超極煌祭", "超極煌祭"], ["fes:WP交換所", "WP交換"], ["fes:超極華祭", "超極華祭"], ["fes:Pumpkin Night", "Pumpkin"], ["fes:Sapphire Breeze", "Sapphire"], ["fes:極彩祭", "極彩祭"], ["fes:極煌祭", "極煌祭"], ["fes:極華祭", "極華祭"]].concat(D().ELEM_KEYS.map((k) => [k, D().ELEM[k].nm]));
     const html = head("person", "キャラクター一覧（酒場）", "押すとくわしい性能。持っているキャラだけ出発できます", "#ff6a5a") + fesInfo() +
       '<div class="tabs">' + tabs.map(([k, n]) => '<button class="tab' + (charFilter === k ? " on" : "") + '" data-a="charFilter" data-v="' + k + '">' + (D().ELEM[k] ? ic("el_" + k) : "") + esc(n) + "</button>").join("") + "</div>" +
       '<div class="cgrid">' + list.map((id) => {
@@ -371,7 +400,7 @@
           '<div class="cc-b"><b>' + esc(C.nm) + "</b>" + fesBadge(C) + "<small>" + D().CTYPE[C.type].nm + "</small>" +
           '<span class="cc-kit">' + ic(UI().kitIc(C, "skill")) + ic(Ad.ic) + ic("ultc", D().ELEM[C.el].c) + ic(Tr.ic) + "</span>" +
           '<span class="cc-st">' + ic("st_hp") + st.hp + " " + ic("st_atk") + st.atk + " " + ic("st_def") + st.def + "</span>" +
-          "<em>" + (own ? "Lv." + lv + "・戦力 " + fmt(MA.Stats.power(st)) : "XEVARION のガチャで入手") + "</em></div></button>";
+          "<em>" + (own ? "Lv." + lv + "・戦力 " + fmt(MA.Stats.power(st)) : (isWp(C) ? "MagiChemLex の WP 交換所で入手" : "XEVARION のガチャで入手")) + "</em></div></button>";
       }).join("") + "</div>";
     return { html };
   };
@@ -397,10 +426,11 @@
       (function () { const w = typeof wideArt === "function" ? wideArt(id) : null; return '<div class="cd-top' + (w ? " wide" : "") + '"><div class="cd-art"><img src="' + (w || "../img/" + UI().imgName(id) + ".webp") + '" alt=""><canvas id="cdSprite" width="96" height="120"></canvas></div>'; })() +
       '<div class="cd-info">' + fesBadge(C) + '<small class="cd-ttl">' + esc(C.title) + '</small><b class="cd-nm">' + esc(C.nm) + ' <span class="cc-rar r-' + C.rank + '">' + C.rank + "</span></b>" +
       '<div class="cd-tags"><i class="el" style="--c:' + elC + '">' + ic("el_" + C.el) + D().ELEM[C.el].nm + (C.el2 ? "＆" + D().ELEM[C.el2].nm : "") + '属性</i><i style="--c:' + D().CTYPE[C.type].c + '">' + D().CTYPE[C.type].nm + "</i>" + (C.sub ? '<i style="--c:' + D().CTYPE[C.sub].c + '">' + D().CTYPE[C.sub].nm + "</i>" : "") + "</div>" +
-      '<div class="cd-lv">' + (own ? "Lv." + lv + ' <span class="xpbar"><i style="width:' + xpPct + '%"></i></span> <small>凸 ' + awk + "/4（XEVARION と共通）</small>" : '<span class="ng">' + ic("lock") + "未所持（XEVARION の" + esc(C.fes) + "で手に入ります）</span>") + "</div>" +
+      '<div class="cd-lv">' + (own ? "Lv." + lv + ' <span class="xpbar"><i style="width:' + xpPct + '%"></i></span> <small>凸 ' + awk + "/4（XEVARION と共通）</small>" : '<span class="ng">' + ic("lock") + "未所持（" + esc(getWhere(C)) + "で手に入ります）</span>") + "</div>" +
       '<div class="cd-pow">戦力 <b>' + fmt(MA.Stats.power(st)) + "</b>" + (C.rank === "UR" ? '<small class="ur">UR：全能力 ×' + D().RANK.UR.mul + "</small>" : "") + "</div>" +
       '<div class="row">' + (own ? '<button class="btn gold" data-a="selChar" data-v="' + id + '"' + (s.sel === id ? " disabled" : "") + ">" + (s.sel === id ? "出発キャラに選択中" : "このキャラで出発") + "</button>" +
         '<button class="btn" data-a="panel" data-v="tree" data-x="' + id + '">' + ic("tree") + 'スキルツリー</button><button class="btn" data-a="panel" data-v="storage" data-x="' + id + '">' + ic("armor") + "装備</button>"
+        : isWp(C) ? '<a class="btn gold" href="../MagiChemLex/index.html">' + ic("star") + "MagiChemLex の WP 交換所へ</a>"
         : '<a class="btn gold" href="../gacha.html">' + ic("star") + "XEVARION のガチャへ</a>") + "</div></div></div>" +
       '<div class="cd-sec">能力（Lv.' + st.lv + "）</div>" +
       '<div class="cd-stats">' + stat("hp", "HP", st.hp, st.hp / 40) + stat("atk", "攻撃力", st.atk, st.atk / 3) + stat("def", "防御力", st.def, st.def * 3) + stat("spd", "移動速度", Math.round(st.spd), st.spd / 1.2) +
@@ -734,7 +764,7 @@
   function startRun(cfg) {
     const s = S();
     /* ★★ 2026-10-05 持っていないキャラでは出発できない（ご指定）。前に始めた探索の再開だけは続けられる */
-    if (!MA.Save.owned(cfg.cid) && !cfg.resume) { UI().toast("このキャラは持っていません（XEVARION のガチャで手に入ります）", "#ff5a6a"); openPanel("chars"); return; }
+    if (!MA.Save.owned(cfg.cid) && !cfg.resume) { UI().toast("このキャラは持っていません（" + getWhere(D().CHARS[cfg.cid]) + "で手に入ります）", "#ff5a6a"); openPanel("chars"); return; }
     leave();
     UI().closeModal(true);
     if (MA.Stages) MA.Stages.hide();
@@ -757,7 +787,7 @@
     MA.Input.enabled = false;
     const s = S();
     $("#title").innerHTML = '<div class="tt-bg"></div><div class="tt-art"></div><div class="tt-shade"></div>' +
-      '<div class="tt-chars">' + ic("star", "#ffd84a") + '使えるキャラ：XEVARION の<b class="f7">超極煌祭</b><b class="f6">超極華祭</b><b class="f5">Pumpkin Night</b><b class="f4">Sapphire Breeze</b><b class="f1">極彩祭</b><b class="f2">極煌祭</b><b class="f3">極華祭</b></div>' +
+      '<div class="tt-chars">' + ic("star", "#ffd84a") + '使えるキャラ：XEVARION の<b class="f7">超極煌祭</b><b class="f6">超極華祭</b><b class="f5">Pumpkin Night</b><b class="f4">Sapphire Breeze</b><b class="f1">極彩祭</b><b class="f2">極煌祭</b><b class="f3">極華祭</b><b class="f8">WP交換所</b></div>' +
       '<div class="tt-in">' +
       '<div class="tt-tap" id="ttTap">TAP TO START</div>' +
       '<div class="tt-menu" id="ttMenu" hidden>' +

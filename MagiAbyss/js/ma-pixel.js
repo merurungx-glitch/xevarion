@@ -361,6 +361,28 @@
     "..ooo..ooo..",
   ];
 
+  /* ★★ 2026-10-24 白いハイソックス（ヒサコ）・黒いタイツ（ミキ：T/t） */
+  const BOTTOM_SKIRT_SOCKS = [
+    "..PPPPPPPP..",
+    ".PPPPPPPPPP.",
+    ".PpPPpPPpPP.",
+    "...SS..SS...",
+    "...WW..WW...",
+    "...WW..WW...",
+    "..OOO..OOO..",
+    "..ooo..ooo..",
+  ];
+  const BOTTOM_SKIRT_TIGHTS = [
+    "..PPPPPPPP..",
+    ".PPPPPPPPPP.",
+    ".PpPPpPPpPP.",
+    "...TT..TT...",
+    "...TT..TT...",
+    "...tt..tt...",
+    "..OOO..OOO..",
+    "..ooo..ooo..",
+  ];
+
   /* ══════════════════════════════════════════════════════════════
      キャラごとの定義（MagiBurst の id と同じ）
      ══════════════════════════════════════════════════════════════ */
@@ -750,6 +772,88 @@
         /* 赤いリボン */
         { x: 15, y: 1, rows: ["D.D", "DdD", "d.d"] },
         /* 左手の紅い薔薇 */
+        { x: 1, y: 16, rows: [".X.", "XxX", ".X.", "..Y"] },
+      ],
+    },
+    /* ══ ★★ 2026-10-24 超極煌祭の追加2体・MagiChemLex の WP 交換のミキ（どれもセーラー服）══ */
+    /* ── ヒサコ（水）：茶色の髪・右に三つ編みのサイドポニー・琥珀の瞳・白い長袖のセーラー服（深緑のえり・白い線）・
+          青緑のスカーフ・前を開けたシャツから黒いレース・深緑のスカート・白いハイソックス・青い本 ── */
+    hisako: {
+      pal: { H: "#8a4b2c", h: "#5e2f19", L: "#c27c4c", E: "#c98a2c", A: "#fdfdff", a: "#d9dde8", C: "#1d4b3a", c: "#123226",
+             D: "#1f7d6c", d: "#135448", G: "#ffffff", P: "#1d3d32", p: "#122a22", O: "#3a2a24", o: "#1e1410",
+             X: "#3a6ad0", x: "#9fc0ff", Y: "#ffb0c8", K: "#16121a" },
+      legY: 23,
+      layers: [
+        backLong(21),
+        /* 右のサイドポニー（三つ編みから流れる） */
+        { x: 17, y: 3, rows: [
+          ".hh..",
+          "hHHh.",
+          "hHLHh",
+          ".hHHh",
+          ".hHHh",
+          "..hHh",
+          "..hHh",
+          "..hHh",
+          "...hh",
+        ] },
+        { x: 6, y: 14, rows: [
+          ".CGCSSSSCGC.",
+          "ACCCCSSCCCCA",
+          "A.AAKKKKAA.A",
+          "a.AaASSAaA.a",
+          "A.AAAAAAAA.A",
+          "C.AAAAAAAA.C",
+        ].concat(BOTTOM_SKIRT_SOCKS) },
+        "FACE",
+        frontSwept(14),
+        /* 頭の右上の三つ編み */
+        { x: 13, y: 2, rows: ["LhL", "hLh"] },
+        /* 左手の青い本 */
+        { x: 0, y: 17, rows: ["XXXX", "XxxX", "XXXX"] },
+      ],
+    },
+    /* ── アリス（闇）：長いぱっつんの黒髪・黒い瞳・白い半袖のセーラー服（紺のえり・白い線）・紺のスカーフ・紺のスカート・白い花（青い葉） ── */
+    alice: {
+      pal: { H: "#18171f", h: "#0c0b11", L: "#4b4b62", E: "#33333f", A: "#fbfbff", a: "#d5d9e8", C: "#1f2a5c", c: "#121a3d",
+             D: "#26336f", d: "#151d48", G: "#ffffff", P: "#1f2a5c", p: "#121a3d", O: "#1b1b24", o: "#0c0c12",
+             X: "#ffffff", x: "#cfd8ff", Y: "#3a62c8", K: "#120f18" },
+      legY: 23,
+      layers: [
+        backLong(25),
+        { x: 6, y: 14, rows: [
+          ".CGCAAAACGC.",
+          "ACCCCDDCCCCA",
+          "A.AAADDAAA.A",
+          "s.AaAddAaA.s",
+          "S.AAAAAAAA.S",
+          "S.AAAAAAAA.S",
+        ].concat(BOTTOM_SKIRT) },
+        "FACE",
+        frontStraight(14),
+        /* 左手の白い花 */
+        { x: 1, y: 16, rows: [".X.", "XxX", ".X.", "..Y"] },
+      ],
+    },
+    /* ── ミキ（木）：長い黒髪（ぱっつん）・青灰色の瞳・白い半袖のセーラー服（濃紺のえり・白い線）・青緑のスカーフ・黒いスカート・黒いタイツ・青い花 ── */
+    miki: {
+      pal: { H: "#1a1920", h: "#0d0c12", L: "#4d4c60", E: "#5b6c96", A: "#fdfdff", a: "#d6dae8", C: "#1d3a5e", c: "#11243f",
+             D: "#1f8f8a", d: "#126462", G: "#ffffff", P: "#1c1c24", p: "#0e0e14", O: "#1b1b22", o: "#0c0c10",
+             T: "#2c2833", t: "#1a1720", X: "#7aa8ff", x: "#ffffff", Y: "#3fbf6e", K: "#120f18" },
+      legY: 23,
+      layers: [
+        backLong(25),
+        { x: 6, y: 14, rows: [
+          ".CGCAAAACGC.",
+          "ACCCCDDCCCCA",
+          "A.AAADDAAA.A",
+          "s.AaAddAaA.s",
+          "S.AAAAAAAA.S",
+          "S.AAAAAAAA.S",
+        ].concat(BOTTOM_SKIRT_TIGHTS) },
+        "FACE",
+        frontStraight(14),
+        /* 左手の青い花 */
         { x: 1, y: 16, rows: [".X.", "XxX", ".X.", "..Y"] },
       ],
     },
@@ -1248,6 +1352,10 @@
     kohaku:  { hair: "long", len: 25, top: "blouse", arm: "A", bottom: "skirt", prop: "flame", acc: "rose", ribbon: 1 },
     suzu:    { hair: "long", len: 24, wavy: 1, top: "blouse", arm: "S", bottom: "dress", prop: "orb", acc: "strawhat" },
     shouko:  { hair: "bob", top: "bikini", arm: "S", bottom: "shorts", acc: "pin" },
+    /* ★★ 2026-10-24 セーラー服の3人（socks：白いハイソックス・legs：脚の色＝タイツ） */
+    hisako:  { hair: "pony", len: 20, top: "uniform", arm: "A", bottom: "skirt", prop: "orb", socks: 1 },
+    alice:   { hair: "long", len: 25, top: "uniform", arm: "S", bottom: "skirt", prop: "orb" },
+    miki:    { hair: "long", len: 25, top: "uniform", arm: "S", bottom: "skirt", prop: "orb", legs: "Tt" },
     generic: { hair: "long", len: 23, top: "tank", arm: "S", bottom: "skirt" },
   };
   function sideBuf(pal0, sd, ph, legY0) {
@@ -1289,11 +1397,11 @@
     if (sd.tail) { seg(8, 20 + dy, 4, 17 + dy, "H", 1); seg(4, 17 + dy, 3, 12 + dy, "H", 1); put(3, 11 + dy, "h"); }
     /* 奥の脚（暗い色） */
     const shoe = (x, y, ch, ch2) => { put(x - 1, y, ch); put(x, y, ch); put(x + 1, y, ch); put(x + 2, y, ch); put(x - 1, y + 1, ch2); put(x, y + 1, ch2); put(x + 1, y + 1, ch2); put(x + 2, y + 1, ch2); };
-    const legCol = sd.bottom === "pants" ? "p" : "s";
+    const legCol = sd.bottom === "pants" ? "p" : sd.legs ? sd.legs[1] : "s";   /* ★★ 2026-10-24 legs：タイツの色（ミキ） */
     const leg = (hx, sgn, back) => {
       /* sgn：1＝前へ踏む／-1＝後ろへ蹴る／0＝すれちがい（back なら持ち上げる） */
-      const c = back ? legCol : (sd.bottom === "pants" ? "P" : "S");
-      const lowerC = sd.bottom === "bootsSkirt" ? (back ? "o" : "O") : c;
+      const c = back ? legCol : (sd.bottom === "pants" ? "P" : sd.legs ? sd.legs[0] : "S");
+      const lowerC = sd.bottom === "bootsSkirt" ? (back ? "o" : "O") : sd.socks ? (back ? "a" : "W") : c;   /* ★★ 2026-10-24 socks：白いハイソックス（ヒサコ） */
       let fx, fy;
       if (sgn > 0) { fx = hx + 3; fy = 27; }
       else if (sgn < 0) { fx = hx - 3; fy = 27; }
@@ -1485,6 +1593,8 @@
     chie: [0.26, 0.12, 0.34], ichika: [0.36, 0.12, 0.30], nonoka: [0.28, 0.12, 0.36], aina: [0.40, 0.24, 0.36], yuna: [0.34, 0.16, 0.36],
     /* ★★ 2026-10-22 超極煌祭 */
     kohaku: [0.30, 0.20, 0.36], suzu: [0.38, 0.22, 0.32], shouko: [0.38, 0.13, 0.34],
+    /* ★★ 2026-10-24 */
+    hisako: [0.27, 0.14, 0.40], alice: [0.26, 0.21, 0.38], miki: [0.29, 0.19, 0.38],
   };
   const portraitCache = {};
   function portrait(id, file, size, cb) {
@@ -1778,9 +1888,42 @@
     return res;
   }
 
+  /* ══ ★★ 2026-10-24 ご指定「MagiAbyss のホーム画面の、自分のキャラ以外の表示もプレイヤーと同じように細かいものに」══
+     町の人（ギルドマスター・お店の人・冒険者など＝spriteFromDef の定義）も、自分のキャラと同じ <b>HD ドット</b>
+     （2倍の細かさ・斜めをなめらかに・顔を描き直し・横顔も）で作る。作り方は charSpriteHD と同じ（1人ぶんの形だけ）。
+     作れなかったときは今までの1倍の絵。 */
+  const hdDefCache = {};
+  function spriteFromDefHD(key, def) {
+    if (hdDefCache[key]) return hdDefCache[key];
+    let res;
+    try {
+      const legY = def.legY || 23;
+      const base = composeChar(def).buf, blink = composeBlink(def).buf;
+      const pal = Object.assign({}, BASE_PAL, def.pal);
+      const faceAt = (dx, dy, closed) => [{ pal, dx, dy, closed }];
+      const W = base.w, mid = W / 2;
+      const up = (b) => shiftWhere(b, (x, y) => y < legY, 0, -1);
+      const walk = def.robe
+        ? [[base, 0], [shiftWhere(up(base), (x, y) => y >= legY - 3, 1, 0), -1], [base, 0], [shiftWhere(up(base), (x, y) => y >= legY - 3, -1, 0), -1]]
+        : [[base, 0], [shiftWhere(up(base), (x, y) => y >= legY && x < mid, 0, -1), -1], [base, 0], [shiftWhere(up(base), (x, y) => y >= legY && x >= mid, 0, -1), -1]];
+      const ink = pal.K || "#14111c";
+      res = {
+        hd: HD,
+        idle: [hdFrame(base, faceAt(0, 0), pal, { ink }), hdFrame(shiftWhere(base, (x, y) => y < legY - 2, 0, 1), faceAt(0, 1), pal, { ink }), hdFrame(blink, faceAt(0, 0, true), pal, { ink })],
+        walk: walk.map(([b, dy]) => hdFrame(b, faceAt(0, dy), pal, { ink })),
+        atk: hdFrame(shiftWhere(base, (x, y) => y < 14, 1, 0), faceAt(1, 0), pal, { ink }),
+        hurt: hdFrame(base, [], pal, { ink, white: true }),
+      };
+      res.w = W * HD; res.h = CH * HD;
+      if (def.side) { try { res.side = [0, 1, 2, 3].map((ph) => hdFrame(sideBuf(def.pal, def.side, ph, legY), [{ side: 1, pal, dx: 0, dy: ph % 2 === 1 ? -1 : 0 }], pal, { ink })); } catch (e) { res.side = null; } }
+    } catch (e) { res = spriteFromDef(key, def); }
+    hdDefCache[key] = res;
+    return res;
+  }
+
   MA.Pix = {
     hex, toHex, shade, mix, rgba, mkCanvas, mkBuf, bufToCanvas, setPx, outlineBuf, shiftWhere, whiteOf,
     drawLayer, pixelize, framesFrom, textSprite, shortNum, charSprite, charSpriteHD, portrait, CHAR_ART, FACE_BOX, CW, CH, SIDE,
-    spriteFromDef, PARTS,
+    spriteFromDef, spriteFromDefHD, PARTS,
   };
 })();

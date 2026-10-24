@@ -109,6 +109,7 @@ html.xv-full #xevaSplash { position: absolute !important; top: 0 !important; bot
 .tt-chars b.f5 { background: linear-gradient(90deg, #ff8a1f, #c06bff); color: #fff; }   /* ★★ 2026-10-09 Pumpkin Night */
 .tt-chars b.f6 { background: linear-gradient(90deg, #7a5cff, #ff6a8a); color: #fff; }   /* ★★ 2026-10-16 超極華祭 */
 .tt-chars b.f7 { background: linear-gradient(90deg, #ff3a5a, #ffb03a); color: #fff; }   /* ★★ 2026-10-22 超極煌祭 */
+.tt-chars b.f8 { background: linear-gradient(90deg, #1f8f8a, #3a6ad0); color: #fff; }   /* ★★ 2026-10-24 MagiChemLex の WP交換所（ミキ） */
 .tt-chars b.f1 { background: linear-gradient(90deg, #ff8fd0, #ffd84a); } .tt-chars b.f2 { background: linear-gradient(90deg, #ffd84a, #fff4b0); } .tt-chars b.f3 { background: linear-gradient(90deg, #7fd0ff, #ff8fd0); }
 .tt-ver { position: absolute; right: calc(env(safe-area-inset-right, 0px) + 10px); bottom: calc(var(--safeb) + 6px); font-size: 11px; color: rgba(255,255,255,.55); }
 .tt-ver .warn { display: block; color: #ffb0b0; }
@@ -783,6 +784,7 @@ body.touchdev #guild .g-sel { bottom: auto; top: calc(var(--safet) + 50px); }
 .fes.f5, em.f5 { background: linear-gradient(90deg, #ff8a1f, #c06bff); color: #fff; }   /* ★★ 2026-10-09 Pumpkin Night */
 .fes.f6, em.f6 { background: linear-gradient(90deg, #7a5cff, #ff6a8a); color: #fff; }   /* ★★ 2026-10-16 超極華祭 */
 .fes.f7, em.f7 { background: linear-gradient(90deg, #ff3a5a, #ffb03a); color: #fff; }   /* ★★ 2026-10-22 超極煌祭 */
+.fes.f8, em.f8 { background: linear-gradient(90deg, #1f8f8a, #3a6ad0); color: #fff; }   /* ★★ 2026-10-24 MagiChemLex の WP交換所（ミキ） */
 .fes.f1, em.f1 { background: linear-gradient(90deg, #ff8fd0, #ffd84a); } .fes.f2, em.f2 { background: linear-gradient(90deg, #ffd84a, #fff4b0); } .fes.f3, em.f3 { background: linear-gradient(90deg, #7fd0ff, #ff8fd0); }
 .g-noown em { font-style: normal; padding: 0 4px; margin: 0 1px; color: #1a0a20; }
 

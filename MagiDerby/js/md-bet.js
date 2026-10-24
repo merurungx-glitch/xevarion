@@ -201,7 +201,7 @@
     const ids = Object.keys(s.tk);
     if (ids.length > 600) {
       ids.sort((a, b) => (s.tk[a].at || 0) - (s.tk[b].at || 0));
-      for (let i = 0; i < ids.length - 600; i++) { const t = s.tk[ids[i]]; if (t.st !== "open") delete s.tk[ids[i]]; }
+      for (let i = 0; i < ids.length - 600; i++) { const t = s.tk[ids[i]]; if (t.st !== "open" && t.st !== "ready") delete s.tk[ids[i]]; }
     }
     try { localStorage.setItem(KEY, JSON.stringify(s)); } catch (e) {}
     try { window.dispatchEvent(new CustomEvent("md:save")); } catch (e) {}
@@ -218,6 +218,8 @@
     if (navigator.onLine === false) return { err: "offline" };
     const ents = race.entries || [];
     if (!ents.length || !ents.every((e) => e.cx || e.no)) return { err: "nodraw" };
+    /* ★★ 2026-10-24 枠順の発表前（N.betRace の仮の番号）は枠連を買えない（枠が無い） */
+    if (race.pre && lines.some((l) => B.TYPE[l.type].frame)) return { err: "nodraw" };
     for (const l of lines) for (const c of l.cb) if (!B.comboOk(race, l.type, c)) return { err: "invalid" };
     const ok = await B.clock.sync();
     if (!ok) return { err: "offline" };
@@ -235,6 +237,8 @@
       const id = "t" + at.toString(36) + Math.random().toString(36).slice(2, 7);
       const tk = { id: id, rid: r.rid, nm: r.nm, date: r.date, post: r.post, place: r.place, surf: r.surf, dist: r.dist, at: at,
         type: l.type, mode: l.mode || "norm", sel: l.sel || {}, cb: l.cb, u: l.u, cost: l.cb.length * l.u, bo: bo, st: "open", pay: 0, hits: [], ref: 0 };
+      /* ★★ 2026-10-24 枠順の発表前に買った券：仮の番号 → 馬（pm＝hid・pn＝馬名）。発表されたら B.fixPre で本当の馬番へ */
+      if (race.pre) { tk.pm = {}; tk.pn = {}; (race.entries || []).forEach((e) => { if (e.pno) { tk.pm[e.pno] = e.hid; tk.pn[e.pno] = e.nm; } }); }
       s.tk[id] = tk; made.push(tk);
       s.st.bet += tk.cost; s.st.n += 1;
     });
@@ -242,6 +246,47 @@
     try { if (window.XEVA.event) window.XEVA.event.bump("derbyBet", made.length); } catch (e) {}
     return { ok: true, tickets: made, cost: cost };
   };
+
+  /* ══ ★★ 2026-10-24 枠順の発表前に買った券の差し替え ══
+     本当の出馬表（または結果）で、全頭の馬番が出ていれば、券の買い目（cb）と選んだ馬（sel）を仮の番号から本当の馬番へ。
+     出走しなくなった馬（除外・取消・出馬表にいない）を含む組は xr（返還する組の番号）に入れ、精算で返還する。
+     差し替えたら pf=1（pm・pn は記録として残す）。返す：差し替えたか */
+  B.fixPre = function (tk, race) {
+    if (!tk || !tk.pm || tk.pf || !race) return false;
+    const ents = N.runners(race), act = ents.filter((e) => !e.cx);
+    if (!act.length || act.some((e) => !e.no)) return false;          /* まだ発表前 */
+    const byHid = {}; ents.forEach((e) => { if (e.hid) byHid[e.hid] = e; });
+    const T = B.TYPE[tk.type];
+    const to = (p) => { const e = byHid[tk.pm[p]]; return e && !e.cx && e.no ? e.no : 0; };
+    tk.nn = {}; Object.keys(tk.pm).forEach((p) => { const x = to(p); if (x) tk.nn[x] = tk.pn ? tk.pn[p] : ""; });   /* 馬番 → 馬名（券の表示用） */
+    const xr = [];
+    tk.cb = tk.cb.map((c, i) => { let m = c.map(to); if (m.some((x) => !x)) xr.push(i); else if (!T.ord) m = sortN(m); return m; });
+    const ms = (a) => (Array.isArray(a) ? a.map(to) : a);
+    if (tk.sel) { const s = tk.sel; tk.sel = Object.assign({}, s, { pick: ms(s.pick), axis: ms(s.axis), part: ms(s.part), cols: Array.isArray(s.cols) ? s.cols.map(ms) : s.cols }); }
+    if (xr.length) tk.xr = xr;
+    tk.pf = 1; tk.pfAt = Date.now();
+    return true;
+  };
+  /* そのレースの券をまとめて差し替える（出馬表・結果を読んだとき） */
+  B.fixAll = function (rid, race) {
+    const s = B.load(); let n = 0;
+    Object.keys(s.tk).forEach((id) => { const tk = s.tk[id]; if (tk.rid === rid && B.fixPre(tk, race)) n++; });
+    if (n) { B.save(s); try { const XC = window.XevaCloud; if (XC && XC.flushPush) XC.flushPush(); } catch (e) {} }
+    return n;
+  };
+  /* 差し替えを待っている券のレース（index で枠順が出た／結果が出たもの）を読んで差し替える */
+  B.fixPending = async function (idx) {
+    const s = B.load(), want = {};
+    Object.keys(s.tk).forEach((id) => { const tk = s.tk[id]; if (tk.pm && !tk.pf && (tk.st === "open" || tk.st === "ready")) want[tk.rid] = 1; });
+    const byRid = {}; ((idx && idx.races) || []).forEach((r) => { if (r.rid) byRid[r.rid] = r; });
+    let n = 0;
+    for (const rid of Object.keys(want)) {
+      const r = byRid[rid]; if (!r || r.st === "entry" || r.st === "sched") continue;
+      try { const race = await N.race(rid, r.st === "result", true); n += B.fixAll(rid, race); } catch (e) {}
+    }
+    return n;
+  };
+  B.isPre = (tk) => !!(tk && tk.pm && !tk.pf);
 
   /* ══════════ 払い戻し ══════════
      実際の払戻金（race.result.pay の y＝100円あたりの円）→ 1点 u XEVA なら u × y / 100 XEVA。 */
@@ -260,7 +305,14 @@
     if (B.TYPE[type].frame) { if (c[0] === c[1]) return (frames[c[0]] || 0) < 2; return c.some((f) => !frames[f]); }
     return c.some((x) => gone.has(x));
   };
-  /* 確定したレースの馬券をまとめて精算する（index と race を読む）。返す：精算した馬券 */
+  /* ══ ★★ 2026-10-24 ご指定「結果はアプリを開いたときに、券をそれぞれ押して確認できるように」══
+     精算を2段にした：
+       ① B.settle … 結果が確定し、払い戻しの時刻（レースの次の日の 0:00）を過ぎた馬券の<b>当たり・はずれ・払戻金を計算だけ</b>して
+                    st="ready"（rs＝結果）にする。XEVA はまだ動かさない。
+       ② B.reveal … 券を押したとき。結果を見せて、そのとき XEVA を払い戻す（st を hit / miss / refund / void に）。
+     ★ 同期（xeva-cloud の mergeDerby）は open ＜ ready ＜ 確認ずみ の順に強い＝ほかの端末で確認ずみの券は、こちらで二度払い戻さない。
+       確認の前に、オンラインならクラウドの最新を取りこむ（XevaCloud.pullNow）。
+     ★ 古い版の端末は st="open" の券だけを精算するので、ready の券には手を出さない。 */
   let settling = false;
   B.settle = async function () {
     if (settling) return [];
@@ -273,8 +325,7 @@
       const t0 = B.clock.now();
       const due = open.filter((tk) => { const r = byRid[tk.rid]; return r && r.st === "result" && t0 >= N.payAt(r); });
       if (!due.length) return [];
-      /* ★★ 2026-10-21 精算はオンラインのときだけ：サーバーの時刻で「次の日の 0:00」を確かめ、
-         ほかの端末で精算した馬券を先に取りこむ（mergeDerby で精算ずみが勝つ）＝二重に払い戻さない */
+      /* 計算はオンラインのときだけ：サーバーの時刻で「次の日の 0:00」を確かめ、ほかの端末の券を先に取りこむ */
       if (!(await B.clock.sync())) return [];
       try { const XC = window.XevaCloud; if (XC && XC.pullNow && (!XC.isLoggedIn || XC.isLoggedIn())) await XC.pullNow(); } catch (e) {}
       const races = {};
@@ -288,38 +339,63 @@
         if (tk.st !== "open") return;
         const race = races[tk.rid], r = byRid[tk.rid];
         if (!race || !race.result || !race.result.pay || !r) return;
-        if (now < N.payAt(r)) return;                            /* ★★ 2026-10-21 払い戻しはレースの次の日の 0:00 */
-        const nm = D.shortName(tk.nm);
+        /* ★★ 2026-10-24 枠順の発表前に買った券は、まず本当の馬番へ（結果の並びで差し替え） */
+        if (tk.pm && !tk.pf && !B.fixPre(tk, race)) return;
+        if (now < N.payAt(r)) return;
+        let rs;
         /* 締切のあとの時刻で記録された馬券は返還（ふつうは起きない・二重の守り） */
-        if (tk.at >= N.closeAt(r)) {
-          tk.st = "void"; tk.pay = tk.cost; tk.done = Date.now();
-          s.st.bet -= tk.cost; done.push(tk);
-          try { window.XEVA.add(tk.cost, "MagiDerby：返還（" + nm + "）", { noRank: true, noEarn: true }); } catch (e) {}
-          return;
+        if (tk.at >= N.closeAt(r)) rs = { st: "void", win: 0, ref: tk.cost, pay: tk.cost, hits: [] };
+        else {
+          let win = 0, ref = 0; const hits = [];
+          tk.cb.forEach((c, i) => {
+            if ((tk.xr && tk.xr.indexOf(i) >= 0) || B.isRefund(race, tk.type, c)) { ref += tk.u; return; }   /* ★★ 2026-10-24 xr＝出走しなくなった馬を含む組（枠順の発表前に買った券） */
+            const y = B.payFor(race, tk.type, c);
+            if (y > 0) { hits.push([c, y]); win += Math.floor(tk.u * y / 100); }
+          });
+          if (win > 0 && tk.bo > 1) win = Math.floor(win * tk.bo);
+          rs = { st: win > 0 ? "hit" : ref > 0 && ref === tk.cost ? "refund" : "miss", win: win, ref: ref, pay: win + ref, hits: hits };
         }
-        let win = 0, ref = 0; const hits = [];
-        tk.cb.forEach((c) => {
-          if (B.isRefund(race, tk.type, c)) { ref += tk.u; return; }
-          const y = B.payFor(race, tk.type, c);
-          if (y > 0) { hits.push([c, y]); win += Math.floor(tk.u * y / 100); }
-        });
-        if (win > 0 && tk.bo > 1) win = Math.floor(win * tk.bo);
-        tk.hits = hits; tk.ref = ref; tk.pay = win + ref; tk.done = Date.now();
-        tk.st = win > 0 ? "hit" : ref > 0 && ref === tk.cost ? "refund" : "miss";
+        tk.st = "ready"; tk.rs = rs; tk.rdy = Date.now();
         done.push(tk);
-        if (win > 0) {
-          s.st.ret += win; s.st.hit += 1;
-          if (!s.st.best || win > s.st.best.pay) s.st.best = { pay: win, rid: tk.rid, nm: tk.nm, type: tk.type, date: tk.date };
-          try { window.XEVA.add(win, "MagiDerby：払い戻し（" + nm + "・" + B.TYPE[tk.type].nm + "）", { noRank: true }); } catch (e) {}
-          try { if (window.XEVA.event) window.XEVA.event.bump("derbyHit", 1); } catch (e) {}
-        }
-        if (ref > 0) {
-          s.st.bet -= ref;
-          try { window.XEVA.add(ref, "MagiDerby：返還（" + nm + "・取消/除外）", { noRank: true, noEarn: true }); } catch (e) {}
-        }
       });
       if (done.length) { B.save(s); try { const XC = window.XevaCloud; if (XC && XC.flushPush) XC.flushPush(); } catch (e) {} }
       return done;
     } finally { settling = false; }
+  };
+  /* 結果が出て、まだ確かめていない券 */
+  B.readyList = function () { return Object.values(B.load().tk).filter((t) => t.st === "ready" && t.rs).sort((a, b) => (a.at || 0) - (b.at || 0)); };
+  /* 券を1枚確かめる（このとき XEVA を払い戻す）。返す：確かめたあとの券（ほかの端末で確認ずみならその券） */
+  const revealing = {};
+  B.reveal = async function (id, opt) {
+    if (revealing[id]) return null;
+    revealing[id] = 1;
+    try {
+      if (!(opt && opt.noPull) && navigator.onLine !== false) {
+        try { const XC = window.XevaCloud; if (XC && XC.pullNow && (!XC.isLoggedIn || XC.isLoggedIn())) await XC.pullNow(); } catch (e) {}
+      }
+      const s = B.load(), tk = s.tk[id];
+      if (!tk || tk.st !== "ready" || !tk.rs) return tk || null;
+      const rs = tk.rs, nm = D.shortName(tk.nm);
+      tk.st = rs.st; tk.pay = rs.pay; tk.hits = rs.hits || []; tk.ref = rs.ref || 0; tk.done = Date.now(); tk.rv = 1;
+      delete tk.rs;
+      if (rs.st === "void") {
+        s.st.bet -= tk.cost;
+        try { window.XEVA.add(tk.cost, "MagiDerby：返還（" + nm + "）", { noRank: true, noEarn: true }); } catch (e) {}
+      } else {
+        if (rs.win > 0) {
+          s.st.ret += rs.win; s.st.hit += 1;
+          if (!s.st.best || rs.win > s.st.best.pay) s.st.best = { pay: rs.win, rid: tk.rid, nm: tk.nm, type: tk.type, date: tk.date };
+          try { window.XEVA.add(rs.win, "MagiDerby：払い戻し（" + nm + "・" + B.TYPE[tk.type].nm + "）", { noRank: true }); } catch (e) {}
+          try { if (window.XEVA.event) window.XEVA.event.bump("derbyHit", 1); } catch (e) {}
+        }
+        if (rs.ref > 0) {
+          s.st.bet -= rs.ref;
+          try { window.XEVA.add(rs.ref, "MagiDerby：返還（" + nm + "・取消/除外）", { noRank: true, noEarn: true }); } catch (e) {}
+        }
+      }
+      B.save(s);
+      try { const XC = window.XevaCloud; if (XC && XC.flushPush) XC.flushPush(); } catch (e) {}
+      return tk;
+    } finally { delete revealing[id]; }
   };
 })();

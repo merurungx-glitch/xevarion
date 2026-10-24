@@ -5,7 +5,7 @@
    ・キャラクターの絵は XEVARION の img/ にあるので、ここでは丸ごと持たない
      （ポータル側の SW が持っている。開いたぶんだけ実行時に控える）。
    ============================================================ */
-const VERSION = "boccia-sw-v47";
+const VERSION = "boccia-sw-v49";
 const RUNTIME = "boccia-rt-v1";
 const CORE = [
   "./index.html",
@@ -17,11 +17,11 @@ const CORE = [
   "./js/mbr-fx.js?v=9",
   "./js/mbr-help.js?v=8",
   "./js/mbr-ui.js?v=22",
-  "../mb-newchars.js?v=37",
+  "../mb-newchars.js?v=38",
   "../mb-boot.js?v=17",
-  "../MagiBurst/js/mb-core.js?v=139",
-  "../xeva.js?v=80",
-  "../xeva-alive.js?v=7",
+  "../MagiBurst/js/mb-core.js?v=140",
+  "../xeva.js?v=82",
+  "../xeva-alive.js?v=8",
   "../xeva-loading.js?v=19",
   "../xeva-splash.js?v=17",
   "../xeva-safebottom.js?v=12",
@@ -33,8 +33,8 @@ const CORE = [
      ・オンライン対戦とアカウント同期のモジュール（読めないと console が赤くなるだけで遊べるが、そろえておく）
      ・英語版の辞書（オフラインで英語にしたとき、キャラ名が日本語に戻らないように） */
   "./js/mbr-online.js?v=6",
-  "../xeva-cloud.js?v=47",
-  "../MagiBurst/magiburst-cloud.js?v=26",
+  "../xeva-cloud.js?v=48",
+  "../MagiBurst/magiburst-cloud.js?v=27",
   "../app-cloud.js?v=15",
   "../xeva-keys.js?v=34",
   "../xeva-i18n.js?v=8",
@@ -46,7 +46,7 @@ const CORE = [
   "../xeva-i18n-mb5.js?v=7",
   "../xeva-i18n-mb6.js?v=7",
   "../xeva-i18n-mb7.js?v=7",
-  "../xeva-i18n-n1.js?v=19",
+  "../xeva-i18n-n1.js?v=20",
   "../xeva-i18n-n2.js?v=3",
 ];
 /* チュートリアルの音声（ずんだもん）。Range で取りに来るので CORE とは別の入れ物に置き、下の fetch で切り出して返す */

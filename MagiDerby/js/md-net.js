@@ -89,12 +89,16 @@
      締切は今までどおり発走の CLOSE_BEFORE 前（2分前）。判定はサーバーの時刻（B.clock）。
      ★ 夏の「競走時間帯の拡大」期間（7〜8月）に GⅠ は無いので扱わない。 */
   N.at = function (date, days, hh, mm) { const d = String(date || "").split("-").map(Number); return Date.UTC(d[0], d[1] - 1, d[2] + (days || 0), hh || 0, mm || 0) - JST; };
+  /* ══ ★★ 2026-10-24 ご指定「馬券を購入できる日時を少し早く（金曜日の 0:00 からや木曜日からなど）」══
+     → 土・日・月曜のレースは<b>その週の木曜 0:00</b> から、ほかの曜日（年末などの特別な開催日）は<b>2日前の 0:00</b> から、
+       締切（発走の2分前）まで<b>ずっと</b>発売（前日発売と当日発売のあいだの休みもなくした）。
+     ★★ 2026-10-24 ご指定「木曜の 0:00 から、枠順が出ていなくても買えるように」：枠順（馬番）の発表前も発売中。
+       そのあいだは馬に<b>仮の番号</b>を付けて馬名で買い（N.betRace）、発表されたら券の番号を本当の馬番へ差し替える（md-bet の B.fixPre）。
+     ★ ホームの「発売中」の札（home-mate.js の derbySale）も同じ決まり。片方を変えたらもう一方も。 */
   N.saleWins = function (r) {
     const d = String(r.date || "").split("-").map(Number), wd = new Date(Date.UTC(d[0], d[1] - 1, d[2])).getUTCDay(), close = N.closeAt(r);
-    if (wd === 0) return [[N.at(r.date, -2, 18, 30), N.at(r.date, -1, 17, 30)], [N.at(r.date, -1, 19, 30), close]];
-    if (wd === 6) return [[N.at(r.date, -1, 18, 30), close]];
-    if (wd === 1) return [[N.at(r.date, -2, 19, 30), N.at(r.date, -1, 17, 30)], [N.at(r.date, -1, 19, 30), close]];
-    return [[N.at(r.date, -1, 19, 30), close]];
+    const back = wd === 6 ? 2 : wd === 0 ? 3 : wd === 1 ? 4 : 2;     /* 土→木（2日前）・日→木（3日前）・月→木（4日前）・ほか→2日前 */
+    return [[N.at(r.date, -back, 0, 0), close]];
   };
   N.saleAt = (r) => N.saleWins(r)[0][0];                     /* 発売開始（いちばん最初の窓） */
   /* いま発売しているか（窓の中か）／次に発売が始まる時刻（無ければ null） */
@@ -131,8 +135,8 @@
     if (now >= post) return now < post + 4 * 60000 ? "run" : "wait";
     if (!r.rid || r.st === "sched") return "sched";
     if (now >= N.closeAt(r)) return "closed";
-    if (r.st === "entry") return "entry";
-    if (now < N.saleAt(r)) return "pre";                     /* 枠順は決まったが、発売（日曜のレースなら金曜 18:30）の前 */
+    /* ★★ 2026-10-24 枠順の発表前（r.st＝entry）でも、発売の時刻（木曜 0:00）を過ぎていれば発売中（馬名で買う） */
+    if (now < N.saleAt(r)) return r.st === "entry" ? "entry" : "pre";
     if (!N.onSale(r, now)) return "gap";                     /* ★★ 2026-10-22 前日発売と当日発売のあいだ（JRA と同じく買えない） */
     return "sale";
   };
@@ -148,6 +152,20 @@
   };
 
   /* ══════════ 出馬表・結果の読みかえ ══════════ */
+  /* ══ ★★ 2026-10-24 枠順の発表前の発売 ══
+     preDraw … 出馬表はあるが、出走する馬にまだ馬番が無い（結果が出ていない）
+     betRace … 発表前なら、出走する馬を出馬表の並び（登録の順）で 1,2,3… の<b>仮の番号</b>にした写し（枠は無し・pre:true）。
+               買う画面はこれを使うので、選び方・組み合わせの作り方は発表後と同じ。券には「仮の番号 → 馬（hid）」を残す（B.buy）。 */
+  N.preDraw = function (race) {
+    if (!race || (race.result && race.result.rows && race.result.rows.length)) return false;
+    const act = (race.entries || []).filter((e) => !e.cx);
+    return act.length > 0 && act.some((e) => !e.no);
+  };
+  N.betRace = function (race) {
+    if (!N.preDraw(race)) return race;
+    const act = (race.entries || []).filter((e) => !e.cx).slice().sort((a, b) => (a.idx || 0) - (b.idx || 0));
+    return Object.assign({}, race, { pre: true, odds: null, entries: act.map((e, i) => Object.assign({}, e, { no: i + 1, waku: null, pno: i + 1 })) });
+  };
   N.runners = function (race) {
     /* 確定していれば結果の並び（取消・除外も含む）、そうでなければ出馬表 */
     if (race && race.result && race.result.rows && race.result.rows.length) {

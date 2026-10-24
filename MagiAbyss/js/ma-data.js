@@ -461,6 +461,65 @@
       evo: { weapon: "bow", el: "light", to: "evo_shouko", nm: "サンライズ・アロー" },
       good: "走りながらの連射・敵の列を貫く・まとめて止める", weak: "（目立った苦手はない）守りはやや控えめ",
     },
+    /* ══ ★★ 2026-10-24 超極煌祭の追加2体（ヒサコ・アリス）・MagiChemLex の WP 交換所のミキ（UR・MagiAbyss 専用）══
+       ご指定「ヒサコは UR で最強、アリスはコハルと同等」（MagiAbyss にコハルはいないので<b>コハク</b>と読んだ）・「ミキはタキナと同等」。
+       → アリス＝コハク（＝ユナ）の型を<b>数字そのまま</b>（タキナ比 1.16〜1.20）。
+         ヒサコ＝同じ型の<b>与えるダメージの倍率をおよそ1割上げた</b>もの（通常攻撃・技・必殺技・秘技・専用進化）＝ UR の最上位。
+         ミキ＝イチカ（＝ショウコ）の型を数字そのまま（1.01）。属性はご指定の 水・闇・木。 */
+    hisako: {
+      nm: "ヒサコ", fes: "超極煌祭", el: "water", type: "ranged", sub: "magic", rank: "UR",
+      title: "桜色の教室",
+      base: { hp: 140, atk: 17, def: 6, spd: 82, aspd: 1.22, crit: 17, critDmg: 1.9, mag: 1.25, eva: 16 },
+      grow: { hp: 1.045, atk: 1.05, def: 1.04 },
+      atk: { kind: "pnshot", nm: "サクラ・ノート", ic: "cy_book", cd: 0.34, mul: 0.375, speed: 320, range: 230, pk: "petal", n: 3, arc: 0.35, pierce: 2,
+        every: 4, burst: 7, burstArc: 1.1, burstNm: "放課後の桜吹雪", cols: ["#ffb0c8", "#ffffff", "#38a6ff"],
+        d: "桜の花びらとノートのページを3枚（2体まで貫通）。4回ごとに7枚の嵐" },
+      skill: { kind: "pnblast", nm: "スプリング・レッスン", ic: "cy_book", cd: 8, mp: 18, r: 100, mul: 5.05, stun: 1, vul: [0.25, 5], gauge: 8,
+        d: "敵がいちばん集まっている所に桜色の特別授業（半径100・攻撃力×5.05・1秒しびれ）＋5秒間 受けるダメージ+25%＋必殺技ゲージ+8" },
+      ult: { kind: "pnbarrage", nm: "桜色・ファーストレッスン", gauge: 100, n: 120, mul: 0.33, fin: 18.2, pk: "petal", cols: ["#ffb0c8", "#ffffff", "#38a6ff"], vul: [0.3, 6], heal: 0.2, atkUp: [0.3, 6],
+        d: "いちばん強い敵へ桜の花びらを120連射し、最後に画面全体へ満開の桜（攻撃力×18.2・防御ダウン）＋6秒間 受けるダメージ+30%＋HPを20%回復＋6秒間 与えるダメージ+30%" },
+      passive: { kind: "focus", nm: "放課後の約束", crits: 3, drain: 0.03,
+        d: "技を使ったあと3発は必ず会心。与えたダメージの3%でHPを回復（ドレイン）" },
+      bias: { crit: 1.6, aspd: 1.4, elem: 1.3, weapon: 1.2 },
+      evo: { weapon: "dagger", el: "water", to: "evo_hisako", nm: "桜色・ブロッサムペン" },
+      good: "会心の連射・ボスの単体火力・敵をまとめて止める（UR でいちばん強い）", weak: "（目立った苦手はない）",
+    },
+    alice: {
+      nm: "アリス", fes: "超極煌祭", el: "dark", type: "ranged", sub: "magic", rank: "UR",
+      title: "白銀の百合",
+      base: { hp: 140, atk: 17, def: 6, spd: 82, aspd: 1.22, crit: 17, critDmg: 1.9, mag: 1.25, eva: 16 },
+      grow: { hp: 1.045, atk: 1.05, def: 1.04 },
+      atk: { kind: "pnshot", nm: "シルバー・リリィ", ic: "cy_lily", cd: 0.34, mul: 0.34, speed: 320, range: 230, pk: "petal", n: 3, arc: 0.35, pierce: 2,
+        every: 4, burst: 7, burstArc: 1.1, burstNm: "白百合の嵐", cols: ["#f2f4ff", "#a9b8ff", "#7a5cff"],
+        d: "白銀の百合の花びらを3枚（2体まで貫通）。4回ごとに7枚の嵐" },
+      skill: { kind: "pnblast", nm: "リリィ・ジャッジメント", ic: "cy_lily", cd: 8, mp: 18, r: 100, mul: 4.6, stun: 1, vul: [0.25, 5], gauge: 8,
+        d: "敵がいちばん集まっている所に白百合の裁き（半径100・攻撃力×4.6・1秒しびれ）＋5秒間 受けるダメージ+25%＋必殺技ゲージ+8" },
+      ult: { kind: "pnbarrage", nm: "白銀・ムーンリリィ", gauge: 100, n: 120, mul: 0.3, fin: 16.5, pk: "petal", cols: ["#f2f4ff", "#a9b8ff", "#7a5cff"], vul: [0.3, 6], heal: 0.2, atkUp: [0.3, 6],
+        d: "いちばん強い敵へ白百合を120連射し、最後に画面全体へ月光の大百合（攻撃力×16.5・防御ダウン）＋6秒間 受けるダメージ+30%＋HPを20%回復＋6秒間 与えるダメージ+30%" },
+      passive: { kind: "focus", nm: "まどろみの百合", crits: 3, drain: 0.03,
+        d: "技を使ったあと3発は必ず会心。与えたダメージの3%でHPを回復（ドレイン）" },
+      bias: { crit: 1.6, aspd: 1.4, elem: 1.3, weapon: 1.2 },
+      evo: { weapon: "dagger", el: "dark", to: "evo_alice", nm: "白銀・リリィダガー" },
+      good: "会心の連射・ボスの単体火力・敵をまとめて止める（コハク・ユナと並ぶ UR の上位）", weak: "（目立った苦手はない）",
+    },
+    miki: {
+      nm: "ミキ", fes: "WP交換所", el: "wood", type: "ranged", sub: "mobile", rank: "UR",
+      title: "青い花の学び舎",
+      base: { hp: 130, atk: 15, def: 4, spd: 84, aspd: 1.2, crit: 15, critDmg: 1.8, mag: 1.15, eva: 16 },
+      grow: { hp: 1.045, atk: 1.05, def: 1.04 },
+      atk: { kind: "pnshot", nm: "ブルーベル・ショット", ic: "cy_bloom", cd: 0.36, mul: 1.32, speed: 300, range: 230, pk: "bullet", n: 2, arc: 0.2, pierce: 2,
+        every: 5, burst: 6, burstArc: 1.0, burstNm: "青い花のフレア", cols: ["#7aa8ff", "#ffffff", "#3fbf6e"],
+        d: "青い花の弾を2つ（2体まで貫通）。5回ごとに6つの花" },
+      skill: { kind: "pnvolley", nm: "ブルーム・シャワー", ic: "cy_bloom", cd: 8, mp: 18, n: 6, mul: 1.8, pk: "magic", slow: 0.4, gauge: 6,
+        d: "近い敵へ青い花を6つ降らせる（1つ 攻撃力×1.8・動きを遅くする）＋必殺技ゲージ+6" },
+      ult: { kind: "pnbarrage", nm: "ブルーベル・ガーデン", gauge: 100, n: 104, mul: 1.65, fin: 14.5, pk: "bullet", cols: ["#7aa8ff", "#ffffff"], stun: 2, gaugeBack: 15,
+        d: "いちばん強い敵へ青い花の弾を104連射し、最後に画面全体へ花園の光（攻撃力×14.5・防御ダウン）＋2秒しびれさせる＋必殺技ゲージが15%もどる" },
+      passive: { kind: "galestep", nm: "花園のステップ", stack: 0.05, max: 5, t: 4,
+        d: "敵を倒すたび移動速度+5%（最大5つ・4秒）" },
+      bias: { aspd: 1.5, spd: 1.3, crit: 1.2 },
+      evo: { weapon: "bow", el: "wood", to: "evo_miki", nm: "ブルーベル・アロー" },
+      good: "走りながらの連射・敵の列を貫く・まとめて止める", weak: "（目立った苦手はない）守りはやや控えめ",
+    },
     hinano: {
       nm: "ヒナノ", fes: "極彩祭", el: "wood", type: "mobile", sub: "magic", rank: "SSR",
       title: "翠光のプリズム",
@@ -607,7 +666,7 @@
   };
   /* ★★ 2026-10-09 並びと顔ぶれは mb-core の ABYSS_CHAR_IDS（ポータルの絞り込み・キャラ詳細と同じ1本）。読めないときだけ下の並び */
   const CHAR_ORDER = ((typeof ABYSS_CHAR_IDS !== "undefined" && ABYSS_CHAR_IDS.length) ? ABYSS_CHAR_IDS.slice()
-    : ["kohaku", "suzu", "shouko", "chie", "ichika", "nonoka", "aina", "yuna", "ayano", "saki", "yuka", "natsumi", "miu", "mai", "chinatsu", "yuumi", "rina", "kaori",
+    : ["hisako", "alice", "miki", "kohaku", "suzu", "shouko", "chie", "ichika", "nonoka", "aina", "yuna", "ayano", "saki", "yuka", "natsumi", "miu", "mai", "chinatsu", "yuumi", "rina", "kaori",
        "takina", "hibana", "fuki", "hinano", "hanon", "kokoha", "mutsumi", "reina", "azusa", "kumireina", "kagura", "kotori"]).filter((id) => CHARS[id]);
   /* 組み合わせを CHARS に流しこむ（下の CHAR_KIT が本体） */
   function applyKits() {
@@ -709,6 +768,10 @@
     kohaku:    { rank: "UR",  art: ["gate", 5],      trait: ["dusk", 5] },
     suzu:      { rank: "UR",  art: ["starnova", 5],  trait: ["insight", 5] },
     shouko:    { rank: "UR",  art: ["haste", 5],     trait: ["galefoot", 5] },
+    /* ★★ 2026-10-24 ヒサコ・アリス＝コハク（ユナ）と同じ組み合わせ・ミキ＝ショウコ（イチカ）と同じ */
+    hisako:    { rank: "UR",  art: ["gate", 5],      trait: ["dusk", 5] },
+    alice:     { rank: "UR",  art: ["gate", 5],      trait: ["dusk", 5] },
+    miki:      { rank: "UR",  art: ["haste", 5],     trait: ["galefoot", 5] },
     hinano:    { rank: "SSR", art: ["whirl", 4],     trait: ["galefoot", 3] },
     hanon:     { rank: "SSR", art: ["meteor", 4],    trait: ["clutch", 3] },
     kokoha:    { rank: "SSR", art: ["blast", 4],     trait: ["kindle", 4] },
@@ -802,6 +865,10 @@
     evo_kohaku:   { nm: "紅煌・ルビーローズ", base: "dagger", char: "kohaku", mul: 1.6, kind: "w_dagger", fx: "vulmark", d: "突きが紅薔薇になって舞い、当たった敵は3秒 受けるダメージ+20%（コハク専用）" },
     evo_suzu:     { nm: "サンセット・ブーケ", base: "staff", char: "suzu", mul: 2.6, kind: "w_staff", fx: "chainlight", d: "魔弾が当たると近くの敵へ2回つながる（スズ専用）" },
     evo_shouko:   { nm: "サンライズ・アロー", base: "bow", char: "shouko", mul: 2.8, kind: "w_bow", fx: "starsplit", d: "矢が刺さると陽光が3つにはじけて遅くする（ショウコ専用）" },
+    /* ★★ 2026-10-24 ヒサコ（コハクの1割増し）・アリス（コハクと同じ）・ミキ（ショウコと同じ）の専用進化 */
+    evo_hisako:   { nm: "桜色・ブロッサムペン", base: "dagger", char: "hisako", mul: 1.76, kind: "w_dagger", fx: "vulmark", d: "突きが桜の花びらになって舞い、当たった敵は3秒 受けるダメージ+20%（ヒサコ専用）" },
+    evo_alice:    { nm: "白銀・リリィダガー", base: "dagger", char: "alice", mul: 1.6, kind: "w_dagger", fx: "vulmark", d: "突きが白百合になって舞い、当たった敵は3秒 受けるダメージ+20%（アリス専用）" },
+    evo_miki:     { nm: "ブルーベル・アロー", base: "bow", char: "miki", mul: 2.8, kind: "w_bow", fx: "starsplit", d: "矢が刺さると青い花が3つにはじけて遅くする（ミキ専用）" },
   };
 
   /* ══ 魔法（自動で唱える。属性は固定）══ */
