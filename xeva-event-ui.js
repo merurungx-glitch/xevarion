@@ -275,7 +275,7 @@
           '<div class="xev-rw">' + rwHTML(m) + right + "</div></div>";
       }).join("") + "</div>" +
       '<p class="xev-note">・🎫ガチャチケットは PREMIUM SELECT・GRAND DEBUT・各フェスのどのガチャでも使えます（1枚＝1回）。<br>' +
-      (cxTotal ? "・💱<b>両替チケット</b>は、ショップの「XEVA 両替所」で 💎ジェムを XEVA に両替するときに使います（1枚＝💎5）。<br>" : "") +
+      (cxTotal ? "・💱<b>両替チケット</b>は、ショップの「XEVA 両替所」で 💎ジェムを XEVA に両替するときに使います（1枚＝💎10）。<br>" : "") +
       "・受け取りは XEVARION のアカウントで1回だけです（ほかの端末で受け取ったぶんは受取ずみになります）。<br>・" +
       (E.lexMult ? esc(E.nm) + " の開催中は、MagiLex 系統の XEVA が " + E.lexMult + "倍になります。" : "") + "</p>" +
       "</div>";

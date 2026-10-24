@@ -1812,7 +1812,7 @@ function glCard(m, i) {
     /* ★★ 2026-10-09 MagiAbyss で使えるキャラに小さな印
        ★★ 2026-10-12c 小さな 🗡 だけでは分からない（ご指定）→ 絵の下に紫の帯で「MagiAbyss」と文字で入れる＋見出しに凡例 */
     const ma = !sec && typeof isAbyssChar === "function" && isAbyssChar(id);
-    return `<button class="gl-ch${sec ? " sec" : ""}${ma ? " ma" : ""}" ${sec ? "" : `onclick="openDetX('${id}')"`}>${nw ? '<i class="gl-new">NEW</i>' : ""}<img src="${CHARS[id].img}" alt="" loading="lazy">${ma ? '<i class="gl-ma1" title="MagiAbyss でも使えるキャラ">' + GL_MA_IC + "MagiAbyss</i>" : ""}`
+    return `<button class="gl-ch${sec ? " sec" : ""}${ma ? " ma" : ""}" ${sec ? "" : `onclick="openDetX('${id}')"`}>${nw ? '<i class="gl-new">NEW</i>' : ""}<img src="${CHARS[id].img}" alt="" loading="lazy">${ma ? '<i class="gl-ma1" title="MagiAbyss でも使えるキャラ">' + GL_MA_IC + "</i>" : ""}`
       + `<span class="${dt.cls}">${sec ? "???" : dt.cls === "max" ? "完凸" : dt.cls === "have" ? (DB.chars[id].awk ? "+" + DB.chars[id].awk + "凸" : "所持") : "未所持"}</span></button>`;
   }).join("");
   return `<div class="gl-card" data-k="${k}" style="border-color:${m.c}55">
@@ -1822,7 +1822,7 @@ function glCard(m, i) {
       <span class="lab">${lab}</span>${m.isNew ? '<span class="nw">NEW</span>' : ""}<span class="nm">${nciEsc(m.nm)}</span>
       ${typeof RATE_BOOST !== "undefined" && RATE_BOOST > 1 ? `<span class="rb">確率 ×${RATE_BOOST}</span>` : ""}
       ${/* ★★ 2026-10-13 バナーの「MagiAbyss でも使えるキャラ」（FEST などの下）は消した（ご指定）。キャラごとの紫の帯と凡例は残す */""}</div>
-    ${chars.length ? `<div class="gl-pk"><div class="cap">注目キャラ${chars.some((id) => !charSecret(id) && typeof isAbyssChar === "function" && isAbyssChar(id)) ? `<small class="gl-malg"><i>${GL_MA_IC}MagiAbyss</i>の帯 ＝ MagiAbyss でも使えるキャラ</small>` : ""}</div><div class="row">${row}</div></div>` : ""}
+    ${chars.length ? `<div class="gl-pk"><div class="cap">注目キャラ${chars.some((id) => !charSecret(id) && typeof isAbyssChar === "function" && isAbyssChar(id)) ? `<small class="gl-malg"><i>${GL_MA_IC}</i>＝MagiAbyss でも使える</small>` : ""}</div><div class="row">${row}</div></div>` : ""}
     ${locked ? `<div class="gl-lock">⏳ ${nciEsc(nciPlain(d.sub || "準備中です"))}</div>`
       /* ★★ 2026-09-19f 一覧では「このガチャを引く」1つだけ。押すとガチャの画面へ（そこで 1回・10連） */
       : `<div class="gl-go"><button class="gl-draw" onclick="glOpen('${k}')">このガチャを引く<small>シングル・10連（${sureTag(k)}）</small></button>${glSelBtn(k)}</div>`}

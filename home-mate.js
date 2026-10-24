@@ -1551,7 +1551,8 @@
   /* ══════════════ アプリとの連携：いまの状態に合わせた話題（★★ 2026-09-25b） ══════════════ */
   Mate.prototype.appTopics = function () {
     const A = this.def.lines.app || {}, out = [];
-    try { const s = window.XEVA && XEVA.status; if (A.stamina && s && s.getStamina() >= s.getMax()) out.push([A.stamina]); } catch (e) {}
+    /* ★★ 2026-10-24 スタミナは廃止＝「スタミナ満タン」の話題は出さない */
+    try { const s = window.XEVA && XEVA.status; if (A.stamina && s && !s.off && s.getStamina() >= s.getMax()) out.push([A.stamina]); } catch (e) {}
     try {
       const ms = window.XEVA && XEVA.getMissions ? XEVA.getMissions() : [];
       if (A.claim && ms.some((m) => m.done && !m.claimed)) out.push([A.claim]);
@@ -1931,6 +1932,7 @@
       if (top) col.style.setProperty("--xl-toph", Math.max(0, top.getBoundingClientRect().bottom - cb.top) + "px");
       const lob = document.getElementById("xhLobby"), prof = lob && lob.querySelector(".xh-prof");
       if (lob && prof) lob.style.setProperty("--xl-profh", Math.max(0, prof.getBoundingClientRect().bottom - lob.getBoundingClientRect().top) + "px");
+      try { nmLayout(); } catch (e) {}
       if (live) live.layout();
     };
     measure(); window.addEventListener("resize", measure); setTimeout(measure, 800); setTimeout(measure, 2500);
@@ -1951,6 +1953,7 @@
     window.addEventListener("xeva:synced", () => setTimeout(refundOldPrice, 400));
     window.addEventListener("xeva:event", paintEventBtn);
     window.addEventListener("xeva:synced", paintEventBtn);
+    window.addEventListener("xeva:event", () => setTimeout(nmLayout, 50));   /* ★★ 2026-10-24 イベントのバナーが出る・消えるとき */
     /* ★★ 2026-10-13 パートナーの SALE の印 */
     paintSaleBadge();
     window.addEventListener("xeva:event", paintSaleBadge);
@@ -2118,7 +2121,7 @@
   /* ★★ 2026-10-06 2行目を MagiChemLex・MagiCounter・MagiAbyss・MagiShift・MagiChainParty に（ご指定：MagiTier は「その他」へ・MagiChemLex は MagiCounter の左）。
      ★ 前の既定の2行目（下の OLD）をそのまま保存している人は、一度だけ新しい既定に直す（自分で並べた人はそのまま）。 */
   /* ★★ 2026-10-21 ご指定「MagiCounter と MagiDerby のボタンの位置を入れかえ」→ 2行目の2つめを MagiDerby に（MagiCounter はロビーの左の札へ） */
-  const LOBBY_ROW2_DEF = ["magichemlex", "magiderby", "magiabyss", "magishift", "magichainparty"];
+  const LOBBY_ROW2_DEF = ["magiquiz", "magiderby", "magiabyss", "magishift", "magichainparty"];   /* ★★ 2026-10-24 MagiChemLex の場所に MagiQuiz（ChemLex は MagiLex の中へ） */
   const LOBBY_ROW2_1006 = ["magichemlex", "magicounter", "magiabyss", "magishift", "magichainparty"];
   const LOBBY_ROW2_OLD = ["magicounter", "magiabyss", "magishift", "magichainparty", "magitier"];
   try {
@@ -2138,9 +2141,21 @@
       }
       localStorage.setItem("xeva_lobby_gen", "1021");
     }
+    /* ★★ 2026-10-24 ご指定「MagiChemLex のアイコンの位置に MagiQuiz を」：保存ずみのロビーにある MagiChemLex を MagiQuiz に置きかえる
+       （MagiQuiz がもうあるときは MagiChemLex を外すだけ）。MagiChemLex は MagiLex の入口から開く。 */
+    if (localStorage.getItem("xeva_lobby_gen") !== "1024") {
+      const sv = JSON.parse(localStorage.getItem(LOBBY_APPS_KEY) || "null");
+      if (Array.isArray(sv)) {
+        const i = sv.indexOf("magichemlex");
+        if (i >= 0) { if (sv.indexOf("magiquiz") < 0) sv[i] = "magiquiz"; else sv.splice(i, 1); localStorage.setItem(LOBBY_APPS_KEY, JSON.stringify(sv)); }
+      }
+      localStorage.setItem("xeva_lobby_gen", "1024");
+    }
   } catch (e) {}
-  /* NEW の印（XH_APPS の newUntil の日まで） */
+  /* NEW の印（XH_APPS の newUntil の日まで）・β版の印（beta） */
+  function newBadge(a) { return a.beta ? '<em class="xl-new beta">β版</em>' : '<em class="xl-new">NEW</em>'; }
   function isNewApp(a) {
+    if (a && a.beta) return true;   /* ★★ 2026-10-24 β版の印（newBadge） */
     if (!a || !a.newUntil) return false;
     const d = new Date(), t = d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0");
     return t <= a.newUntil;
@@ -2148,7 +2163,7 @@
   function appList() {
     try {
       const retired = typeof XH_RETIRED !== "undefined" ? XH_RETIRED : {};
-      return (typeof XH_APPS !== "undefined" ? XH_APPS : []).filter((a) => a && a.id && a.href && !retired[a.id]);
+      return (typeof XH_APPS !== "undefined" ? XH_APPS : []).filter((a) => a && a.id && a.href && !retired[a.id] && !a.inLex);   /* ★★ 2026-10-24 MagiChemLex は MagiLex の中から */
     } catch (e) { return []; }
   }
   function lobbyApps() {
@@ -2173,6 +2188,7 @@
      GⅠ があれば、ロビーとメニューの MagiDerby のアイコンに「🎫 発売中」の札と金色の輪を付ける。
      ★ 見た目だけ（買えるかどうかの判定は MagiDerby がサーバーの時刻でする）。MagiDerby を開いたときの控え（md_cache_v1:index.json）も使う。 */
   const DERBY_IDX = "https://raw.githubusercontent.com/merurungx-glitch/xevarion/magiscope-data/derby/index.json";
+  const DERBY_SOON_MS = 6 * 3600000;   /* ★★ 2026-10-24 締切まで6時間を切ったら「締切間近」 */
   const DERBY_SHORT = { "優駿牝馬": "オークス", "東京優駿": "日本ダービー", "天皇賞（春）": "天皇賞・春", "天皇賞（秋）": "天皇賞・秋", "フェブラリーステークス": "フェブラリーS",
     "スプリンターズステークス": "スプリンターズS", "マイルチャンピオンシップ": "マイルCS", "ジャパンカップ": "ジャパンC", "チャンピオンズカップ": "チャンピオンズC",
     "阪神ジュベナイルフィリーズ": "阪神JF", "朝日杯フューチュリティステークス": "朝日杯FS", "ホープフルステークス": "ホープフルS", "NHKマイルカップ": "NHKマイルC", "ヴィクトリアマイル": "ヴィクトリアM" };
@@ -2182,25 +2198,48 @@
   function derbySale() {
     const L = (_derbyIdx && _derbyIdx.races) || []; const t = derbyNow();
     for (let i = 0; i < L.length; i++) {
-      const r = L[i]; if (!r || !r.rid || r.st !== "draw" || !r.date) continue;
+      const r = L[i]; if (!r || !r.rid || (r.st !== "draw" && r.st !== "entry") || !r.date) continue;   /* ★★ 2026-10-24 枠順の発表前（entry）も発売中 */
       const d = String(r.date).split("-").map(Number), p = String(r.post || "15:40").split(":").map(Number);
       const day0 = Date.UTC(d[0], d[1] - 1, d[2]) - 9 * 3600000, post = day0 + (p[0] * 60 + p[1]) * 60000;
-      /* ★★ 2026-10-22 発売の時間は JRA と同じ（MagiDerby の N.saleWins と同じ決まり）：日曜＝金曜 18:30〜土曜 17:30・土曜 19:30〜／土曜＝金曜 18:30〜／月曜＝土曜 19:30〜日曜 17:30・日曜 19:30〜／ほか＝前日 19:30〜 */
-      const at = (dd, h, m) => day0 + dd * 86400000 + (h * 60 + m) * 60000, wd = new Date(day0 + 9 * 3600000).getUTCDay(), close = post - 120000;
-      const W = wd === 0 ? [[at(-2, 18, 30), at(-1, 17, 30)], [at(-1, 19, 30), close]] : wd === 6 ? [[at(-1, 18, 30), close]]
-        : wd === 1 ? [[at(-2, 19, 30), at(-1, 17, 30)], [at(-1, 19, 30), close]] : [[at(-1, 19, 30), close]];
-      if (W.some((w) => t >= w[0] && t < w[1])) return { nm: r.nm, short: DERBY_SHORT[r.nm] || r.nm, close: close };
+      /* ★★ 2026-10-24 ご指定で発売を早めた：土・日・月曜のレースは<b>その週の木曜 0:00</b>、ほかは2日前の 0:00 から締切（発走の2分前）までずっと
+         （MagiDerby の N.saleWins と同じ決まり。★★ 2026-10-24 枠順の発表前＝r.st "entry" でも馬名で買えるので札を出す） */
+      const wd = new Date(day0 + 9 * 3600000).getUTCDay(), close = post - 120000;
+      const back = wd === 6 ? 2 : wd === 0 ? 3 : wd === 1 ? 4 : 2;
+      if (t >= day0 - back * 86400000 && t < close) return { nm: r.nm, short: DERBY_SHORT[r.nm] || r.nm, close: close, soon: close - t <= DERBY_SOON_MS, left: close - t };
     }
     return null;
   }
   window.XH_DERBY_SALE = derbySale;
+  /* ══ ★★ 2026-10-24 ご指定「MagiDerby のアプリの表示に、購入期間間近の表示と結果・払い戻しのマークも場合によって」══
+     ・締切間近：発売中で、締切（発走の2分前）まで DERBY_SOON_MS（6時間）を切ったら、札を「締切間近」（赤）に・下に残り時間。
+     ・結果・払い戻し：買った馬券（magiderby_v1）のうち、結果が出て払い戻しの時刻（レースの次の日の 0:00）を過ぎたのに
+       まだ確かめていないもの（MagiDerby で押して確認すると払い戻し）があれば、左上に「結果」の札と枚数
+       （★★ 2026-10-24 はずれの券も数えるので「払戻」→「結果」に）。 */
+  function derbyPayN() {
+    let s = null; try { s = JSON.parse(localStorage.getItem("magiderby_v1") || "null"); } catch (e) {}
+    const tk = s && s.tk; if (!tk || typeof tk !== "object") return 0;
+    const L = (_derbyIdx && _derbyIdx.races) || [], byRid = {}; L.forEach((r) => { if (r && r.rid) byRid[r.rid] = r; });
+    const t = derbyNow(); let n = 0;
+    Object.keys(tk).forEach((id) => {
+      const k = tk[id]; if (!k) return;
+      if (k.st === "ready") { n++; return; }
+      if (k.st !== "open") return;
+      const r = byRid[k.rid]; if (!r || r.st !== "result" || !r.date) return;
+      const d = String(r.date).split("-").map(Number), pay = Date.UTC(d[0], d[1] - 1, d[2] + 1) - 9 * 3600000;
+      if (t >= pay) n++;
+    });
+    return n;
+  }
+  window.XH_DERBY_PAY = derbyPayN;
+  function derbyLeftStr(ms) { const m = Math.max(0, Math.ceil(ms / 60000)); return m >= 60 ? "あと" + Math.floor(m / 60) + "時間" + (m % 60 ? (m % 60) + "分" : "") : "あと" + m + "分"; }
+  window.XH_DERBY_LEFT = derbyLeftStr;
   let _derbySig = "";
   function derbyRefresh() {
     if (document.hidden || navigator.onLine === false) { derbyPaint(); return; }
     fetch(DERBY_IDX + "?t=" + Math.floor(Date.now() / 300000), { cache: "no-cache" }).then((r) => (r.ok ? r.json() : null)).then((j) => { if (j && j.races) _derbyIdx = j; derbyPaint(); }).catch(() => derbyPaint());
   }
   function derbyPaint() {
-    const ds = derbySale(), sig = ds ? ds.nm : "";
+    const ds = derbySale(), sig = (ds ? ds.nm + (ds.soon ? ":soon:" + Math.ceil(ds.left / 600000) : "") : "") + "|" + derbyPayN();
     if (sig === _derbySig) return;
     _derbySig = sig;
     try { renderLobbyApps(); } catch (e) {}
@@ -2209,6 +2248,14 @@
   setTimeout(derbyRefresh, 2500);
   setInterval(derbyRefresh, 10 * 60000);
   setInterval(derbyPaint, 60000);
+  /* ★★ 2026-10-24 ご指定「購入して結果を確認していない馬券があればアプリに印」：
+     MagiDerby で確かめて戻ってきた・同期でほかの端末の券が届いた・先読み（xeva-prefetch.js）で結果が届いた、のどれでもすぐ描き直す */
+  function derbyFromCache() { try { const c = JSON.parse(localStorage.getItem("md_cache_v1:index.json") || "null"); if (c && c.data && c.data.races) _derbyIdx = c.data; } catch (e) {} }
+  window.addEventListener("pageshow", () => { derbyFromCache(); derbyPaint(); });
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) { derbyFromCache(); derbyPaint(); } });
+  window.addEventListener("storage", (e) => { if (e.key === "magiderby_v1" || e.key === "md_cache_v1:index.json") { derbyFromCache(); derbyPaint(); } });
+  window.addEventListener("xeva:prefetched", () => { derbyFromCache(); derbyPaint(); });
+  window.addEventListener("xeva:synced", derbyPaint);
   /* ★★ 2026-10-22 ご指定「パートナー非表示版も選べるように・そのときはアプリの表示数を増やしてバランスを調整」
      パートナーを表示しないときは、ロビーのアプリを<b>4行（20個）</b>（画面の高さが 760px 未満なら3行・15個）に。
      11個目からはメニューの並び（ロビーの10個のあと）。左右のボタン・イベントのバナーは --xl-rows で行の数だけ上へ。 */
@@ -2220,23 +2267,46 @@
   function lobbyAppsShown() {
     const base = lobbyApps(), rows = lobbyRows();
     if (rows <= 2) return base;
+    /* ★★ 2026-10-24 パートナー非表示のときは<b>すべてのアプリ</b>を棚に（中でスクロール・nmLayout） */
+    const allMode = hiddenOn();
     const all = appList(), byId = {}; all.forEach((a) => { byId[a.id] = a; });
     let order = []; try { if (typeof xhOrder === "function") order = xhOrder(); } catch (e) {}
     if (!order.length) order = all.map((a) => a.id);
     const ids = base.map((a) => a.id);
     order.forEach((id) => { if (byId[id] && ids.indexOf(id) < 0) ids.push(id); });
-    return ids.slice(0, rows * LOBBY_PER_ROW).map((id) => byId[id]);
+    all.forEach((a) => { if (ids.indexOf(a.id) < 0) ids.push(a.id); });
+    return (allMode ? ids : ids.slice(0, rows * LOBBY_PER_ROW)).map((id) => byId[id]).filter(Boolean);
+  }
+  /* ══ ★★ 2026-10-24 ご指定「パートナー非表示のときの表示の配置はパートナーありのときと変えてよいので、違う形で使いやすく」══
+     ダッシュボード型：① プロフィールの下に「ガチャ｜イベント」の大きなバナー2枚 ② 小さなボタンの列（判定シート・♥パートナー）
+     ③ その下ぜんぶが<b>すべてのアプリの棚</b>（中でスクロール）。ここでは各段の高さをはかって CSS の変数に入れるだけ（見た目は home-mate.css）。 */
+  function nmLayout() {
+    const lob = document.getElementById("xhLobby"); if (!lob) return;
+    if (!hiddenOn()) { ["--nm-top", "--nm-row2", "--nm-apps"].forEach((v) => lob.style.removeProperty(v)); lob.classList.remove("nm-noev"); return; }
+    const lr = lob.getBoundingClientRect(); if (!lr.height) return;
+    const prof = lob.querySelector(".xh-prof");
+    const top = prof ? Math.max(0, prof.getBoundingClientRect().bottom - lr.top) + 8 : 120;
+    lob.style.setProperty("--nm-top", top + "px");
+    const evb = document.getElementById("xlEvb");
+    lob.classList.toggle("nm-noev", !evb || evb.hidden);
+    let bot = top;
+    ["xlBan", "xlEvb"].forEach((id) => { const el = document.getElementById(id); if (el && !el.hidden && el.getClientRects().length) bot = Math.max(bot, el.getBoundingClientRect().bottom - lr.top); });
+    const pills = document.getElementById("xlPills"), right = lob.querySelector(".xl-right");
+    let h2 = 0;
+    [pills, right].forEach((el) => { if (el && el.getClientRects().length) h2 = Math.max(h2, el.getBoundingClientRect().height); });
+    lob.style.setProperty("--nm-row2", Math.round(bot + 12) + "px");
+    lob.style.setProperty("--nm-apps", Math.round(bot + 12 + (h2 || 42) + 12) + "px");
   }
   function renderLobbyApps() {
     const box = document.getElementById("xlApps"); if (!box) return;
     const apps = lobbyAppsShown(), rows = lobbyRows();
     const lob = document.getElementById("xhLobby");
-    if (lob) { lob.style.setProperty("--xl-rows", String(rows)); lob.classList.toggle("xl-many", rows > 2); }
-    const ds = derbySale();
-    box.innerHTML = apps.map((a) => { const sale = a.id === "magiderby" && ds;
-      return '<button class="xl-app' + (sale ? " on-sale" : "") + '" data-id="' + a.id + '"' + (sale ? ' title="' + esc(ds.nm) + ' 発売中"' : "") + '><span class="ic"><img src="' + iconOf(a) + '" alt="" loading="lazy"></span>' +
-        (sale ? '<em class="xl-sale-g1">発売中</em>' : "") + (isNewApp(a) ? '<em class="xl-new">NEW</em>' : "") + '<span class="nm">' + a.name + "</span>" +
-        (sale ? '<span class="xl-sale-nm">' + esc(ds.short) + "</span>" : "") + "</button>"; }).join("");
+    if (lob) { lob.style.setProperty("--xl-rows", String(rows)); lob.classList.toggle("xl-many", rows > 2); lob.classList.toggle("xl-nomate", hiddenOn()); }
+    const ds = derbySale(), dp = derbyPayN();
+    box.innerHTML = apps.map((a) => { const sale = a.id === "magiderby" && ds, pay = a.id === "magiderby" && dp;
+      return '<button class="xl-app' + (sale ? " on-sale" + (ds.soon ? " sale-soon" : "") : "") + (pay ? " has-pay" : "") + '" data-id="' + a.id + '"' + (sale ? ' title="' + esc(ds.nm) + (ds.soon ? " 締切間近" : " 発売中") + '"' : "") + '><span class="ic"><img src="' + iconOf(a) + '" alt="" loading="lazy"></span>' +
+        (sale ? '<em class="xl-sale-g1">' + (ds.soon ? "締切間近" : "発売中") + "</em>" : "") + (pay ? '<em class="xl-pay" title="結果が出た馬券（まだ確認していない）' + dp + '枚">結果<b>' + dp + "</b></em>" : "") + (isNewApp(a) && !sale && !pay ? newBadge(a) : "") + '<span class="nm">' + a.name + "</span>" +
+        (sale ? '<span class="xl-sale-nm">' + esc(ds.soon ? derbyLeftStr(ds.left) : ds.short) + "</span>" : "") + "</button>"; }).join("");
     box.classList.toggle("two", apps.length > LOBBY_PER_ROW);
     box.classList.toggle("many", rows > 2);
     box.querySelectorAll(".xl-app").forEach((b) => b.addEventListener("click", () => {
@@ -2244,6 +2314,8 @@
       if (typeof xhOpenApp === "function") xhOpenApp(a.id, a.href); else location.href = a.href;
     }));
     const sub = document.getElementById("xhSetLobbySub"); if (sub) sub.textContent = lobbyApps().map((a) => a.name).join("・");
+    box.classList.toggle("all", hiddenOn());
+    nmLayout(); setTimeout(nmLayout, 60); setTimeout(nmLayout, 600);
   }
   function openAppPicker() {
     let sh = document.getElementById("hmAppPicker");
@@ -2262,7 +2334,7 @@
       sh.querySelector(".hm-ap-list").innerHTML = appList().map((a) => {
         const i = sel.indexOf(a.id);
         return '<button class="hm-ap' + (i >= 0 ? " on" : "") + '" data-id="' + a.id + '"><span class="ic"><img src="' + iconOf(a) + '" alt="" loading="lazy">' +
-          (i >= 0 ? "<b>" + (i + 1) + "</b>" : "") + '</span>' + (isNewApp(a) ? '<em class="xl-new">NEW</em>' : "") + '<span class="nm">' + a.name + "</span></button>";
+          (i >= 0 ? "<b>" + (i + 1) + "</b>" : "") + '</span>' + (isNewApp(a) ? newBadge(a) : "") + '<span class="nm">' + a.name + "</span></button>";
       }).join("");
       sh.querySelectorAll(".hm-ap").forEach((b) => b.addEventListener("click", () => {
         const id = b.dataset.id, i = sel.indexOf(id);

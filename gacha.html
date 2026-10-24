@@ -6,9 +6,9 @@
 <script src="xeva-safebottom.js?v=12"></script>
 <meta charset="UTF-8">
 <script>(function(){try{var a=JSON.parse(localStorage.getItem('xeva_account_v1'));if(!a||!a.setupDone)location.replace('index.html');}catch(e){}})();</script>
-<script type="module" src="xevarion-fb.js?v=35"></script>
+<script type="module" src="xevarion-fb.js?v=36"></script>
 <script src="xeva-presence.js?v=9" defer></script>
-<script type="module" src="xeva-cloud.js?v=47"></script>
+<script type="module" src="xeva-cloud.js?v=48"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -24,7 +24,7 @@
 <link rel="stylesheet" href="mb-gacha-reveal.css?v=11">
 <!-- ★ 2026-08-10 キャラ詳細（性能画面）の見た目。図鑑（characters.html）と共通 -->
 <link rel="stylesheet" href="mb-char-detail.css?v=30">
-<script src="xeva.js?v=80"></script>
+<script src="xeva.js?v=82"></script>
 <!-- ★★ 2026-09-05 言語切りかえ（日本語 ⇄ English）。辞書は本体のあとに読むこと。 -->
 <script src="xeva-i18n.js?v=8"></script>
 <script src="xeva-i18n-dict.js?v=12"></script>
@@ -42,7 +42,7 @@
 <script src="xeva-i18n-mb7.js?v=7"></script>
 <script src="xeva-i18n-p4.js?v=8"></script>
 <!-- ★★ 2026-09-06b 今回足したもの（新キャラ14体・装備・スタメンなど）の英語辞書 -->
-<script src="xeva-i18n-n1.js?v=19"></script>
+<script src="xeva-i18n-n1.js?v=20"></script>
 <script src="xeva-i18n-n2.js?v=3"></script>
 <script src="xeva-loading.js?v=19" defer></script>
 <script src="magibattle-stats.js?v=18"></script>
@@ -167,14 +167,14 @@ body:not(.glmode) #glist{display:none}
   background:linear-gradient(135deg,#fff,#ffe9a8);border-radius:10px;padding:4px 10px;box-shadow:0 3px 10px rgba(160,30,60,.35);transform:rotate(-4deg)}
 /* ★★ 2026-10-13 バナーの「MagiAbyss でも使えるキャラ」（.gl-ban .ma）は廃止（ご指定） */
 /* ★★ 2026-10-12c MagiAbyss で使えるキャラ：絵の下に紫の帯と「MagiAbyss」の文字（前は右上の小さな 🗡 だけで分かりにくかった） */
-.gl-ch .gl-ma1{position:absolute;left:0;right:0;top:44px;z-index:1;display:flex;align-items:center;justify-content:center;gap:1px;height:18px;font-style:normal;
-  font:900 8.5px/1 'Noto Sans JP',sans-serif;letter-spacing:0;color:#fff;background:linear-gradient(90deg,#3a1d6e,#8a3cd8);border-radius:0 0 12px 12px;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.35)}
-.gl-ch.ma img{border-color:#8a3cd8}
+/* ★★ 2026-10-24 ご指定「ガチャで MagiAbyss で使えるマークの表記を控えめに」：紫の帯（文字つき）→ 絵の右下の小さな丸い印（剣のアイコンだけ）・絵のふちの色も変えない */
+.gl-ch .gl-ma1{position:absolute;right:3px;top:44px;z-index:1;width:15px;height:15px;display:flex;align-items:center;justify-content:center;font-style:normal;
+  color:#fff;background:rgba(58,29,110,.72);border-radius:50%;box-shadow:0 0 0 1.2px rgba(255,255,255,.8)}
 .gl-maic{width:10px;height:10px;flex:none;display:inline-block;vertical-align:-1px}
-.gl-ch .gl-ma1 .gl-maic{width:9px;height:9px}
-.gl-pk .gl-malg{display:block;margin-top:3px;font-size:9.5px;font-weight:800;color:#5a3a98}
-.gl-pk .gl-malg i{display:inline-flex;align-items:center;gap:2px;font-style:normal;font:900 8.5px/1 'Orbitron','Noto Sans JP',sans-serif;color:#fff;background:linear-gradient(90deg,#3a1d6e,#8a3cd8);border-radius:4px;padding:2px 5px;margin-right:3px}
+.gl-ch .gl-ma1 .gl-maic{width:8.5px;height:8.5px}
+.gl-pk .gl-malg{display:inline;margin-left:6px;font-size:9px;font-weight:700;color:#9a90b8}
+.gl-pk .gl-malg i{display:inline-flex;align-items:center;justify-content:center;width:12px;height:12px;vertical-align:-2px;font-style:normal;color:#fff;background:rgba(58,29,110,.6);border-radius:50%;margin-right:2px}
+.gl-pk .gl-malg i .gl-maic{width:7.5px;height:7.5px}
 .gl-flt .ab i .gl-maic,.gl-fnote .gl-maic{width:11px;height:11px;margin-right:2px}
 .gl-ch{position:relative;flex:none;width:62px;border:none;background:none;padding:0;cursor:pointer;font-family:inherit}
 /* ★★ 2026-09-19h NEW の印は<b>絵の内側の左上</b>へ（外へはみ出すと横スクロールの列で上が切れて、絵のふちと重なっていた） */
@@ -984,24 +984,24 @@ body:not(.glmode) #glist{display:none}
      同期を担当する magiburst-cloud.js を読んでいなかった。
      そのためポータルで引いたキャラはクラウドに上がらず、
      別の端末の MagiBurst が書いたセーブに負けて<b>消えて</b>いた。 -->
-<script type="module" src="MagiBurst/magiburst-cloud.js?v=26"></script>
+<script type="module" src="MagiBurst/magiburst-cloud.js?v=27"></script>
 <script src="mb-boot.js?v=17"></script>
 <!-- ★ MagiBurst のドメイン層（キャラ・アビリティ・技・ガチャの規則）。
      MagiBurst と<b>同じファイル</b>を読むので、キャラを足せば両方に反映される。 -->
 <!-- ★★ 2026-09-08 新キャラの<b>実装日</b>の台帳。
      mb-core.js の charImplDate() がこれを見て「実装から10日以内か」を判定する。
      ★ mb-core.js より<b>前</b>に読むこと（defer にしない）。 -->
-<script src="mb-newchars.js?v=37"></script>
-<script src="MagiBurst/js/mb-core.js?v=139"></script>
+<script src="mb-newchars.js?v=38"></script>
+<script src="MagiBurst/js/mb-core.js?v=140"></script>
 <!-- ★★ 2026-10-09 ガチャの演出（1から作り直し）：召喚陣・確定演出・1体ずつ公開・UR は縦長の SS 絵 -->
-<script src="xeva-summon.js?v=4"></script>
+<script src="xeva-summon.js?v=5"></script>
 <!-- ★ 2026-08-10 キャラ詳細（性能画面）。図鑑（characters.html）と同じものを使う -->
 <!-- ★★ 2026-08-22 ガチャの詳細だけ「このキャラの最大値」も並べる（ご指定）。
      図鑑（characters.html）はこの旗を立てないので、これまでどおり いまの値だけ。
      旗は mb-char-detail.js を読む<b>前</b>に立てること。 -->
 <script>window.MBDET_MAXSTATS = true;</script>
-<script src="mb-char-detail.js?v=48"></script>
-<script src="gacha-ui.js?v=64"></script>
+<script src="mb-char-detail.js?v=49"></script>
+<script src="gacha-ui.js?v=65"></script>
     <!-- ★★ 2026-09-13c 新キャラ紹介アニメの舞台。中身は gacha-ui.js の nciOpen() が入れる。 -->
     <div class="nci" id="nciOv">
       <div class="nci-sky"><i class="s1"></i><i class="s2"></i><div class="nci-rays"></div></div>

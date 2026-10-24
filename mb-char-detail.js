@@ -159,7 +159,7 @@ function maEnsure() {
   if (window.MA && window.MA.D && window.MA.Stats) return Promise.resolve();
   if (window.__maLoading) return window.__maLoading;
   const load = (src) => new Promise((res) => { const s = document.createElement("script"); s.src = src; s.onload = () => res(); s.onerror = () => res(); document.head.appendChild(s); });
-  window.__maLoading = load(MBD_BASE + "MagiAbyss/js/ma-data.js?v=9").then(() => load(MBD_BASE + "MagiAbyss/js/ma-stats.js?v=2"));
+  window.__maLoading = load(MBD_BASE + "MagiAbyss/js/ma-data.js?v=10").then(() => load(MBD_BASE + "MagiAbyss/js/ma-stats.js?v=2"));
   return window.__maLoading;
 }
 window.maEnsure = maEnsure;
@@ -167,7 +167,7 @@ function magiAbyssHTML(id) {
   const usable = typeof isAbyssChar === "function" && isAbyssChar(id);
   if (!usable) {
     return `<div class="dsec mbb"><div class="t">評価（MagiAbyss）</div>
-      <div class="mbnone">このキャラは <b>MagiAbyss では使えません</b>。<br>MagiAbyss で使えるのは、XEVARION のガチャ <b>超極華祭・Pumpkin Night・Sapphire Breeze・極彩祭・極煌祭・極華祭</b> のキャラ（${typeof ABYSS_CHAR_IDS !== "undefined" ? ABYSS_CHAR_IDS.length : ""}人）です。</div></div>`;
+      <div class="mbnone">このキャラは <b>MagiAbyss では使えません</b>。<br>MagiAbyss で使えるのは、XEVARION のガチャ <b>超極煌祭・超極華祭・Pumpkin Night・Sapphire Breeze・極彩祭・極煌祭・極華祭</b> と <b>MagiChemLex の WP交換所</b> のキャラ（${typeof ABYSS_CHAR_IDS !== "undefined" ? ABYSS_CHAR_IDS.length : ""}人）です。</div></div>`;
   }
   if (!(window.MA && MA.D && MA.Stats) || !MA.D.CHARS[id]) {
     return `<div class="dsec mbb"><div class="t">評価（MagiAbyss）</div>
@@ -219,7 +219,7 @@ function mbrEnsure() {
   if (window.__mbrLoading) return window.__mbrLoading;
   window.__mbrLoading = new Promise((res) => {
     const s = document.createElement("script");
-    s.src = "MagiBocciaRush/js/mbr-core.js?v=21";
+    s.src = MBD_BASE + "MagiBocciaRush/js/mbr-core.js?v=21";   /* ★★ 2026-10-24 ページの場所によらず読めるように（MagiLex の KP交換所から開くと 404 で「読みこんでいます…」のままだった） */
     s.onload = () => res(); s.onerror = () => res();
     document.head.appendChild(s);
   });

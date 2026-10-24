@@ -60,6 +60,9 @@ body.xl-drawer-open .hm-over{visibility:hidden}
 /* ボタンの文字は短く。文字の中心をアイコンにそろえる（★ 2026-10-13 左の「イベント」「更新情報」は廃止・ご指定） */
 .xl-left .xl-ic{align-items:center;min-width:44px}
 .xl-right{right:10px}
+/* ★★ 2026-10-23 ご指定「パートナー非表示のときは『表示』ボタンも非表示に」（4行にしたアプリの上のイベントのバナーに隠れていた）。
+   もう一度表示するのは ♥（パートナーを選ぶ）か、設定のスイッチから。 */
+#xhLobby.xl-nomate .xl-view{display:none}
 /* 左上：ガチャのバナー（新キャラが入った直近のガチャ5つ）。★ 絵と同じ比率の枠＋contain＝端が切れない */
 .xl-ban{position:relative;width:112px;aspect-ratio:900/483;border-radius:12px;overflow:hidden;padding:0;cursor:pointer;
   border:2.5px solid var(--yw-line,#12203d);box-shadow:0 0 0 1.5px var(--yw-gold,#ffc63c) inset,0 3px 0 rgba(18,32,61,.3);background:#152742}
@@ -92,6 +95,8 @@ body.xl-drawer-open .hm-over{visibility:hidden}
 @keyframes xlNewPop{0%,100%{transform:scale(1)}50%{transform:scale(1.12)}}
 .hm-ap{position:relative}
 .hm-ap .xl-new{top:-4px;right:2px}
+/* ★★ 2026-10-24 β版の印（MagiQuiz）：NEW と同じ場所・落ちついた紺 */
+.xl-new.beta{background:linear-gradient(180deg,#5a7cff,#3048c8);animation:none;letter-spacing:0}
 .xl-app .ic{width:min(62px,16.4vw);aspect-ratio:1;border-radius:16px;   /* ★ 2026-09-25 少し大きく（52→62） */overflow:hidden;border:2.5px solid var(--yw-line,#12203d);
   box-shadow:0 0 0 1.5px rgba(255,255,255,.55) inset,0 3px 0 rgba(0,0,0,.3);background:#fff}
 .xl-app .ic img{width:100%;height:100%;object-fit:cover;display:block}
@@ -296,3 +301,18 @@ body.xl-drawer-open .xh-lobby{pointer-events:none}
 @keyframes xlSale{0%,100%{transform:scale(1) rotate(-6deg)}50%{transform:scale(1.12) rotate(-6deg)}}
 body.xos-nomotion .xl-sale,body.xos-nomotion .hm-go{animation:none!important}
 @media (prefers-reduced-motion:reduce){.xl-sale,.hm-go{animation:none!important}}
+
+/* ══ ★★ 2026-10-24 パートナー非表示のときの配置（ご指定「パートナーありのときと変えてよいので、違う形で使いやすく」）══
+   上から ① ガチャ｜イベントの大きなバナー2枚 ② 小さなボタンの列（判定シート・♥パートナー）③ すべてのアプリの棚（中でスクロール）。
+   段の位置は home-mate.js の nmLayout が --nm-top（プロフィールの下）・--nm-row2・--nm-apps に入れる。 */
+#xhLobby.xl-nomate .xl-left{top:var(--nm-top,120px);left:12px;right:calc(50% + 5px);align-items:stretch}
+#xhLobby.xl-nomate.nm-noev .xl-left{right:12px}
+#xhLobby.xl-nomate .xl-ban{width:100%}
+#xhLobby.xl-nomate .xl-evb{top:var(--nm-top,120px);bottom:auto;left:calc(50% + 5px);right:12px;width:auto;margin-bottom:0}
+#xhLobby.xl-nomate .xl-pills{top:var(--nm-row2,250px);bottom:auto;left:12px;margin-bottom:0;flex-direction:row}
+#xhLobby.xl-nomate .xl-right{top:var(--nm-row2,250px);right:12px;flex-direction:row;gap:8px}
+#xhLobby.xl-nomate .xl-apps{top:var(--nm-apps,310px);bottom:30px;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;
+  align-content:start;grid-auto-rows:max-content;row-gap:10px;padding:28px 6px 12px;scrollbar-width:none;background:rgba(10,22,48,.5)}
+#xhLobby.xl-nomate .xl-apps::-webkit-scrollbar{display:none}
+#xhLobby.xl-nomate .xl-apps::before{content:"すべてのアプリ";position:absolute;left:12px;top:8px;font-size:11px;font-weight:900;color:#fff;letter-spacing:.04em;opacity:.95;
+  text-shadow:0 1px 2px rgba(0,0,0,.5)}

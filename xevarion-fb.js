@@ -984,7 +984,7 @@ async function pullStore(uid) {
 /* 変更キーだけを push。
    kv = { key: valueString | null }（旧形式）または { key: {v: valueString|null, t: ms} }（v3形式）。
    v=null は削除（storeT は残してトゥームストーン＝他端末での復活を防ぐ）。 */
-async function pushStore(uid, kv) {
+async function pushStore(uid, kv, box) {
   if (!uid || !kv) return { error: "arg" };
   const upd = {};
   Object.keys(kv).forEach((k) => {
@@ -992,9 +992,24 @@ async function pushStore(uid, kv) {
     if (e && typeof e === "object" && "v" in e) { upd["store/" + ek] = e.v; upd["storeT/" + ek] = e.t || now(); }
     else { upd["store/" + ek] = e; upd["storeT/" + ek] = now(); }
   });
+  boxUpd(upd, box);
   if (!Object.keys(upd).length) return { ok: true };
   try { await update(ref(db, NODE + "/" + uid), upd); return { ok: true }; }
   catch (e) { return { error: "net" }; }
+}
+
+/* ★★ 2026-10-24 財布の「端末ごとの積み上げ」の控え（accounts/{uid}/wbox/<端末ID>/<キー>）。
+   中身は<b>その端末の欄と印だけ</b>（xeva-cloud の wBoxOf）。置き場所が端末ごとに分かれていて
+   ほかの端末の書き込みとぶつからないので、離脱の瞬間（keepalive）でも安心して送れる。
+   storeT/_wbox に時刻を入れる＝ほかの端末の20秒ごとの見回り（pullStoreT）が気づいて取りこむ。 */
+function boxUpd(upd, box) {
+  if (!box || !box.dev || !box.items) return;
+  let n = 0;
+  Object.keys(box.items).forEach((k) => {
+    const v = box.items[k]; if (v == null) return;
+    upd["wbox/" + encKey(box.dev) + "/" + encKey(k)] = v; n++;
+  });
+  if (n) upd["storeT/" + encKey("_wbox")] = box.t || now();
 }
 
 /* ── 離脱時でも確実に届く push（iPhone対策の要） ──
@@ -1006,7 +1021,7 @@ async function pushStore(uid, kv) {
    pagehide / visibilitychange のタイミングではこちらを使う。
    ※ keepalive の本文上限は 64KB。超える分は通常の push に任せる。 */
 const BEACON_MAX = 60 * 1024;
-function pushStoreBeacon(uid, kv) {
+function pushStoreBeacon(uid, kv, box) {
   if (!uid || !kv) return false;
   const body = {};
   Object.keys(kv).forEach((k) => {
@@ -1016,6 +1031,7 @@ function pushStoreBeacon(uid, kv) {
     body["store/" + ek] = v;
     body["storeT/" + ek] = t;
   });
+  boxUpd(body, box);
   if (!Object.keys(body).length) return true;
   let json;
   try { json = JSON.stringify(body); } catch (e) { return false; }
@@ -1045,14 +1061,17 @@ function pushStoreBeacon(uid, kv) {
 async function pullStoreFull(uid) {
   if (!uid) return { kv: {}, t: {} };
   try {
-    const [s, st] = await Promise.all([
+    /* ★★ 2026-10-24 財布の控え（wbox）もいっしょに読む。読めなくても store は使う（控えは無くても混ぜられる） */
+    const [s, st, wb] = await Promise.all([
       get(ref(db, NODE + "/" + uid + "/store")),
       get(ref(db, NODE + "/" + uid + "/storeT")),
+      get(ref(db, NODE + "/" + uid + "/wbox")).catch(() => null),
     ]);
-    const kv = {}, t = {};
+    const kv = {}, t = {}, box = {};
     if (s.exists()) s.forEach((c) => { kv[decKey(c.key)] = c.val(); });
     if (st.exists()) st.forEach((c) => { t[decKey(c.key)] = c.val(); });
-    return { kv, t };
+    if (wb && wb.exists()) wb.forEach((d) => { const m = {}; d.forEach((c) => { m[decKey(c.key)] = c.val(); }); box[decKey(d.key)] = m; });
+    return { kv, t, box };
   } catch (e) { return { kv: {}, t: {}, err: true }; }   /* ★★ 2026-10-20 読めなかった印（「クラウドは空」と区別する・xeva-cloud の pullFullSafe） */
 }
 

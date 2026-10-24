@@ -492,9 +492,12 @@ function mergeDerby(winnerStr, loserStr) {
     const l = Lo.tk[id], w = W.tk[id];
     if (!obj(l)) return;
     if (!obj(w)) { W.tk[id] = l; return; }
-    const lo = l.st === "open", wo = w.st === "open";
-    if (wo && !lo) W.tk[id] = l;
-    else if (!wo && !lo && num(l.done) && num(l.done) < num(w.done)) W.tk[id] = l;
+    /* ★★ 2026-10-24 open（結果待ち）＜ ready（結果を計算ずみ・まだ押して確かめていない）＜ 確認ずみ（払い戻しずみ）。
+       強いほうが勝つ＝ほかの端末で確認（払い戻し）ずみの券を、こちらでもう一度払い戻さない。 */
+    const rk = (t) => (t.st === "open" ? 0 : t.st === "ready" ? 1 : 2);
+    const lr = rk(l), wr = rk(w);
+    if (lr > wr) W.tk[id] = l;
+    else if (lr === 2 && wr === 2 && num(l.done) && num(l.done) < num(w.done)) W.tk[id] = l;
   });
   const S = obj(W.st) ? W.st : {}, L = obj(Lo.st) ? Lo.st : {};
   ["bet", "ret", "n", "hit"].forEach((k) => { S[k] = Math.max(num(S[k]), num(L[k])); });
@@ -692,28 +695,178 @@ function mergeHistory(a, b) {
   if (out.length > 100) out.length = 100;
   return out;
 }
-/* ① 財布の3方向マージ。混ぜられなければ null（＝今までどおりの勝ち負けに任せる） */
+/* ══ ★★ 2026-10-24 ご報告「ジェムなどが無限に増え続ける」「XEVA などが別の端末で反映されていないことがある」══
+   真因：財布の3方向マージは「前にクラウドとそろっていた値（土台 base）」が正しいことが前提だった。
+     ところが離脱の瞬間の送信（keepalive・flushPushBeacon）は、クラウドに届いても土台を進めない。
+     そのあと次のページの起動処理などで財布に書きこみがあると、次のマージで
+     「もうクラウドにある自分の増減（L−base）」と「クラウド側の増減（R−base）」の両方に同じぶんが入り、
+     <b>増えたぶんが二重に足されていた</b>（くり返すたびに増える）。
+     また 2台がほぼ同時に送ると、あとの送信が先の送信を上書きして、先の端末の増減がクラウドから消えていた。
+   → 財布の数（残高・累計・使った数）を<b>端末ごとの積み上げ</b>で持つ（CRDT）：
+       dv = { 端末ID: { b:[足した合計, 引いた合計], e:[…], u:[…], s:[…] } }・起点 b0（{b,e,u,s}）・起点の名前 fid
+       値 ＝ 起点 ＋ 全端末の（足した − 引いた）
+     ・混ぜる＝端末ごとに大きいほうをとるだけ。何回混ぜても・どの順でも同じ（二重に足されない）。
+     ・自分の端末の増減は自分の欄にだけ書く（残高が書きかわったら差を自分の欄へ＝wRec）。
+     ・クラウドが上書きされて誰かの欄が古くなっても、その端末が次に混ぜたとき／ほかの端末が控え（wbox）を読んだときに戻る。
+     ・控え wbox/<端末>/<キー> は自分の欄と印（移行ずみ・受取ずみ）だけ。場所が端末ごとなので離脱の瞬間でもいつでも送れる。
+   ★ 古い形（dv なし）とは、いままでの3方向マージで1回だけ混ぜてから積み上げへ移る。
+     起点はクラウドの値から作る（fid＝その文字列のハッシュ）＝どの端末が移っても同じ起点になる。
+     古い版の端末が書いた値（起点はあるのに数が合わない）は、いままでの3方向マージの結果に合うよう
+     特別な欄 "o~"（あとの時刻が勝つ）で差をうめる（古い版の端末がなくなれば動かない）。 */
+const WFLD = { balance: "b", totalEarned: "e", used: "u", spent: "s" };
+const WBOX_T = "_wbox";
+const WMARKS = ["mig", "missions", "missionClaims", "loginMilestones"];
+function wHash(s) {
+  s = String(s || ""); let h = 5381;
+  for (let i = 0; i < s.length; i++) h = ((h << 5) + h + s.charCodeAt(i)) | 0;
+  return (h >>> 0).toString(36);
+}
+function wFramed(o) {
+  return !!(o && typeof o === "object" && typeof o.fid === "string" && o.fid && o.b0 && typeof o.b0 === "object"
+    && o.dv && typeof o.dv === "object" && !Array.isArray(o.dv));
+}
+/* どれかの値（または起点）にある数の欄 */
+function wFieldsOf() {
+  const set = {};
+  for (let i = 0; i < arguments.length; i++) {
+    const o = arguments[i]; if (!o || typeof o !== "object") continue;
+    Object.keys(WFLD).forEach((f) => {
+      if (typeof o[f] === "number" || (o.b0 && typeof o.b0 === "object" && (WFLD[f] in o.b0))) set[f] = 1;
+    });
+  }
+  return Object.keys(WFLD).filter((f) => set[f]);
+}
+/* 起点＋全端末の積み上げ（0 で切らない生の値） */
+function wSum(o, f) {
+  const c = WFLD[f]; let v = Number(o.b0[c]) || 0;
+  Object.keys(o.dv).forEach((d) => {
+    const e = o.dv[d], a = e && e[c];
+    if (Array.isArray(a)) v += (Number(a[0]) || 0) - (Number(a[1]) || 0);
+  });
+  return Math.round(v);
+}
+/* 数が積み上げと合っているか（＝新しい版が書いた値か） */
+function wCons(o) {
+  if (!wFramed(o)) return false;
+  return wFieldsOf(o).every((f) => Math.round(Number(o[f]) || 0) === Math.max(0, wSum(o, f)));
+}
+function wAdd(dv, dev, c, delta) {
+  delta = Math.round(delta || 0); if (!delta) return;
+  const e = (dv[dev] && typeof dv[dev] === "object") ? dv[dev] : (dv[dev] = {});
+  const a = Array.isArray(e[c]) ? [Number(e[c][0]) || 0, Number(e[c][1]) || 0] : [0, 0];
+  if (delta > 0) a[0] += delta; else a[1] -= delta;
+  e[c] = a;
+}
+/* 手元の値で「まだ自分の欄に入っていない増減」を自分の欄へ（起点のある値だけ）。変えたら true */
+function wRec(o, me) {
+  if (!wFramed(o)) return false;
+  let ch = false;
+  wFieldsOf(o).forEach((f) => {
+    const cur = Math.round(Number(o[f]) || 0), s = wSum(o, f);
+    if (cur !== Math.max(0, s)) { wAdd(o.dv, me, WFLD[f], cur - s); ch = true; }
+  });
+  return ch;
+}
+function wApply(o) { wFieldsOf(o).forEach((f) => { o[f] = Math.max(0, wSum(o, f)); }); }
+/* 端末ごとに大きいほう（"o~" だけは時刻 t があとのほう） */
+function dvMerge(a, b) {
+  const out = {};
+  [a, b].forEach((src) => {
+    if (!src || typeof src !== "object") return;
+    Object.keys(src).forEach((d) => {
+      const e = src[d]; if (!e || typeof e !== "object") return;
+      if (d === "o~") {
+        if (!out[d] || (Number(e.t) || 0) > (Number(out[d].t) || 0)) out[d] = JSON.parse(JSON.stringify(e));
+        return;
+      }
+      const o = out[d] || (out[d] = {});
+      Object.keys(e).forEach((c) => {
+        const x = e[c]; if (!Array.isArray(x)) return;
+        const y = Array.isArray(o[c]) ? o[c] : [0, 0];
+        o[c] = [Math.max(Number(x[0]) || 0, Number(y[0]) || 0), Math.max(Number(x[1]) || 0, Number(y[1]) || 0)];
+      });
+    });
+  });
+  return out;
+}
+/* 書きこまれた財布の文字列を「自分の欄」にそろえる。before＝書く前の値（起点が抜けた書きこみに起点を引きつぐ） */
+function wFixWrite(k, s, before) {
+  if (!WALLET_KEYS.has(k) || s == null) return s;
+  const o = jparse(s, null);
+  if (!o || typeof o !== "object" || Array.isArray(o)) return s;
+  let ch = false;
+  if (!wFramed(o)) {
+    const b = jparse(before, null);
+    if (!wFramed(b)) return s;
+    o.fid = b.fid; o.b0 = b.b0; o.dv = b.dv; ch = true;
+  }
+  if (wRec(o, deviceId())) ch = true;
+  return ch ? JSON.stringify(o) : s;
+}
+/* 控え（wbox）の中身：起点の名前・自分の欄・印 */
+function wBoxOf(k, s) {
+  if (!WALLET_KEYS.has(k)) return null;
+  const o = jparse(s, null);
+  if (!wFramed(o)) return null;
+  const me = deviceId(), mk = {};
+  WMARKS.forEach((f) => { if (o[f] && typeof o[f] === "object" && !Array.isArray(o[f]) && Object.keys(o[f]).length) mk[f] = o[f]; });
+  return JSON.stringify({ f: o.fid, d: o.dv[me] || {}, mk: mk, t: nowMs() });
+}
+/* { key: {v,t} } から、送る控えをまとめる（財布で起点のあるものだけ） */
+function wBoxes(kv) {
+  const items = {}; let n = 0;
+  Object.keys(kv || {}).forEach((k) => {
+    const e = kv[k]; const b = (e && e.v != null) ? wBoxOf(k, e.v) : null;
+    if (b) { items[k] = b; n++; }
+  });
+  return n ? { dev: deviceId(), items: items, t: nowMs() } : null;
+}
+/* クラウドの控え（{ 端末: { key: 文字列 } }）を手元の値にたたみこむ（起点が同じものだけ）。変わらなければ null */
+function wFoldBoxes(k, s, box) {
+  if (!box || !WALLET_KEYS.has(k)) return null;
+  const o = jparse(s, null);
+  if (!wFramed(o)) return null;
+  let touched = false;
+  Object.keys(box).forEach((dev) => {
+    if (dev === "o~") return;
+    const b = jparse(box[dev] && box[dev][k], null);
+    if (!b || b.f !== o.fid || !b.d || typeof b.d !== "object") return;
+    const prev = _canonJSON(o.dv[dev] || {});
+    const m = dvMerge({ [dev]: o.dv[dev] || {} }, { [dev]: b.d });
+    if (_canonJSON(m[dev] || {}) !== prev) { o.dv[dev] = m[dev]; touched = true; }
+    if (b.mk && typeof b.mk === "object") WMARKS.forEach((f) => {
+      if (!b.mk[f] || typeof b.mk[f] !== "object") return;
+      const u = unionMarks(o[f], b.mk[f]);
+      if (_canonJSON(u) !== _canonJSON(o[f] || {})) { o[f] = u; touched = true; }
+    });
+  });
+  if (!touched) return null;
+  wApply(o);
+  return JSON.stringify(o);
+}
+/* いままでの3方向マージ（古い形の値と混ぜる1回だけ使う）の数 */
+function wLegacy(k, L, R) {
+  const base = getBase()[k] || null, N = {};
+  wFieldsOf(L, R).forEach((f) => {
+    const ln = Number(L[f]) || 0, rn = Number(R[f]) || 0;
+    if (!base) { N[f] = Math.max(ln, rn); return; }
+    const bn = Number(base[WFLD[f]]) || 0;
+    N[f] = Math.max(0, bn + (ln - bn) + (rn - bn));
+  });
+  if ("totalEarned" in N && "balance" in N) N.totalEarned = Math.max(N.totalEarned, N.balance);
+  return N;
+}
+/* ① 財布のマージ。混ぜられなければ null（＝今までどおりの勝ち負けに任せる） */
 function mergeWallet(k, lv, rv) {
   const L = jparse(lv, null), R = jparse(rv, null);
-  if (!L || !R || typeof L !== "object" || typeof R !== "object") return null;
-  const base = getBase()[k] || null;
-  const three = (field, bf) => {
-    const ln = Number(L[field]) || 0, rn = Number(R[field]) || 0;
-    if (!base) return Math.max(ln, rn);                 /* 土台なし＝多い方（減らさない） */
-    const bn = Number(base[bf]) || 0;
-    return Math.max(0, bn + (ln - bn) + (rn - bn));
-  };
+  if (!L || !R || typeof L !== "object" || typeof R !== "object" || Array.isArray(L) || Array.isArray(R)) return null;
+  const me = deviceId();
+  wRec(L, me);                                      /* 手元のまだ数えていない増減を自分の欄へ */
   const out = {};
   Object.keys(R).forEach((x) => { out[x] = R[x]; });
   Object.keys(L).forEach((x) => { out[x] = L[x]; });
-  out.balance = three("balance", "b");
-  if ("totalEarned" in L || "totalEarned" in R) out.totalEarned = Math.max(three("totalEarned", "e"), out.balance);
-  if ("used" in L || "used" in R) out.used = three("used", "u");
-  if ("spent" in L || "spent" in R) out.spent = three("spent", "s");
   out.mig = Object.assign({}, R.mig || {}, L.mig || {});   /* 移行ずみの印は消さない（二重付与よけ） */
-  /* ★★ 2026-09-20 ミッションの「達成」「受取済み」とログイン日数の報酬は<b>和</b>で混ぜる。
-     これまでは手前の端末（L）の中身で丸ごと上書きしていたので、
-     別の端末で受け取ったミッションが、こちらを開いたとたん「未受取」に戻っていた。 */
+  /* ★★ 2026-09-20 ミッションの「達成」「受取済み」とログイン日数の報酬は<b>和</b>で混ぜる。 */
   ["missions", "missionClaims", "loginMilestones"].forEach((f) => {
     if (L[f] || R[f]) out[f] = unionMarks(L[f], R[f]);
   });
@@ -723,6 +876,44 @@ function mergeWallet(k, lv, rv) {
     out.lastLoginDate = String(L.lastLoginDate || "") > String(R.lastLoginDate || "") ? L.lastLoginDate : R.lastLoginDate;
   out.history = mergeHistory(L.history, R.history);
   out.at = Math.max(Number(L.at) || 0, Number(R.at) || 0);
+  const lF = wFramed(L), rOk = wCons(R);
+  const fields = wFieldsOf(L, R);
+  if (lF && rOk && L.fid === R.fid) {
+    /* ふつうの場合：端末ごとに大きいほう */
+    out.fid = L.fid; out.b0 = Object.assign({}, L.b0); out.dv = dvMerge(L.dv, R.dv);
+  } else if (lF && rOk && R.fid > L.fid) {
+    /* 起点がちがう（ほぼ起きない）：名前の小さいほうが勝つ。こちらが勝つときは相手の数を入れない（相手が自分で移ってくる） */
+    out.fid = L.fid; out.b0 = Object.assign({}, L.b0); out.dv = dvMerge(L.dv, null);
+  } else {
+    const N = wLegacy(k, L, R);
+    if (rOk) {
+      /* 相手（新しい版）の起点へ移る：自分の増減（いままでの3方向マージでの L−base）を自分の欄へ */
+      out.fid = R.fid; out.b0 = Object.assign({}, R.b0); out.dv = dvMerge(R.dv, null);
+      fields.forEach((f) => { wAdd(out.dv, me, WFLD[f], N[f] - wSum(out, f)); });
+    } else if (lF || wFramed(R)) {
+      /* 相手が古い版の値（起点なし、または数が合わない）：起点は手元（無ければ相手）のまま、
+         自分の欄はそのまま、差は "o~" でうめて、いままでの3方向マージの結果にそろえる */
+      const F = lF ? L : R;
+      out.fid = F.fid; out.b0 = Object.assign({}, F.b0);
+      out.dv = dvMerge(lF ? L.dv : null, (wFramed(R) && R.fid === F.fid) ? R.dv : null);
+      const bs = getBase()[k] || null;
+      if (!lF && bs) fields.forEach((f) => { wAdd(out.dv, me, WFLD[f], (Number(L[f]) || 0) - (Number(bs[WFLD[f]]) || 0)); });
+      const o = out.dv["o~"] ? JSON.parse(JSON.stringify(out.dv["o~"])) : {};
+      fields.forEach((f) => {
+        const c = WFLD[f], d = N[f] - wSum(out, f); if (!d) return;
+        const a = Array.isArray(o[c]) ? [Number(o[c][0]) || 0, Number(o[c][1]) || 0] : [0, 0];
+        if (d > 0) a[0] += d; else a[1] -= d;
+        o[c] = a;
+      });
+      o.t = nowMs(); out.dv["o~"] = o;
+    } else {
+      /* どちらも古い形：クラウドの値を起点にして、自分の増減（L−base）を自分の欄へ */
+      out.fid = "f" + wHash(rv); out.b0 = {}; out.dv = {};
+      fields.forEach((f) => { out.b0[WFLD[f]] = Math.round(Number(R[f]) || 0); });
+      fields.forEach((f) => { wAdd(out.dv, me, WFLD[f], N[f] - wSum(out, f)); });
+    }
+  }
+  wApply(out);
   return JSON.stringify(out);
 }
 /* ② キャラの拾い直し。winner に loser のキャラを足して返す（変化がなければ null） */
@@ -763,8 +954,10 @@ function mergeCharsInto(k, winnerStr, loserStr) {
    ・ローカルが勝った／クラウドに無いキーはクラウドへアップロード（欠けたキーの救済）
    ・クラウドが勝つ時、消えるローカル値は storeBak へ退避
    戻り値: ローカルに変化があったか */
-function mergeStore(uid, remote, remoteT) {
+function mergeStore(uid, remote, remoteT, remoteBox) {
   remote = remote || {}; remoteT = remoteT || {};
+  /* ★★ 2026-10-24 控え（wbox）の時刻も「知っている」に（自分の20秒ごとの見回りが同じ控えで何度も読み直さない） */
+  if (remoteT[WBOX_T]) knownT[WBOX_T] = Math.max(knownT[WBOX_T] || 0, Number(remoteT[WBOX_T]) || 0);
   const meta = getMeta();
   const pushKv = {};      // key -> {v,t}
   const bak = {};         // key -> {v,t}（クラウドに負けて消えるローカル値）
@@ -776,7 +969,9 @@ function mergeStore(uid, remote, remoteT) {
       const rv = Object.prototype.hasOwnProperty.call(remote, k) && remote[k] != null ? String(remote[k]) : null;
       const rT = remoteT[k] || 0;
       if (rT) knownT[k] = Math.max(knownT[k] || 0, rT);   /* ★★ 2026-10-16 ここまでのクラウドの書き込みは取りこんだ */
-      const lv = lsGet(k);
+      let lv = lsGet(k);
+      /* ★★ 2026-10-24 手元の財布の「まだ自分の欄に入っていない増減」を先に自分の欄へ（書きこみの見張りが無いページで変わったぶん） */
+      if (lv != null && WALLET_KEYS.has(k)) { const fx = wFixWrite(k, lv, null); if (fx !== lv) { _rawSet(k, fx); lv = fx; } }
       const lT = meta[k] || 0;
       if (rv != null) {
         if (rv === lv) {
@@ -857,6 +1052,16 @@ function mergeStore(uid, remote, remoteT) {
         }
       }
     });
+    /* ★★ 2026-10-24 クラウドの控え（wbox）を財布にたたみこむ。だれかの送信で上書きされて
+       古くなった端末の欄も、ここで戻る（戻ったら送り直してクラウドも直す） */
+    if (remoteBox) WALLET_KEYS.forEach((k) => {
+      const cur = lsGet(k); if (cur == null) return;
+      const fv = wFoldBoxes(k, cur, remoteBox);
+      if (fv == null) return;
+      _rawSet(k, fv); if (!sameJSON(fv, cur)) changed = true;
+      meta[k] = nowMs(); dirty.delete(k);
+      pushKv[k] = { v: fv, t: meta[k] };
+    });
     saveMeta(meta);
     if (Object.keys(newBase).length) {
       const b = getBase();
@@ -870,8 +1075,9 @@ function mergeStore(uid, remote, remoteT) {
       /* ★ 送信できたと分かってから土台を進める。分からないうちに進めると
          次のマージで二重に足したり巻き戻したりする（ここが唯一のこわいところ）。 */
       try {
-        const pr = FB.pushStore(uid, pushKv);
-        if (pr && pr.then) pr.then((r) => { if (r && r.ok) { setBaseMany(pushKv); Object.keys(pushKv).forEach((k) => { knownT[k] = Math.max(knownT[k] || 0, Number(pushKv[k].t) || 0); }); } }).catch(() => {});
+        const box = wBoxes(pushKv);
+        const pr = FB.pushStore(uid, pushKv, box);
+        if (pr && pr.then) pr.then((r) => { if (r && r.ok) { setBaseMany(pushKv); Object.keys(pushKv).forEach((k) => { knownT[k] = Math.max(knownT[k] || 0, Number(pushKv[k].t) || 0); }); if (box) knownT[WBOX_T] = Math.max(knownT[WBOX_T] || 0, box.t); } }).catch(() => {});
       } catch (e) {}
     }
   }
@@ -946,15 +1152,27 @@ async function flushPush() {
     }
   }
   const kv = {};
-  dirty.forEach((e, k) => { kv[k] = e; });
+  dirty.forEach((e, k) => { wFixDirty(k, e); kv[k] = e; });
+  const box = wBoxes(kv);                              /* ★★ 2026-10-24 財布の控え（自分の欄）もいっしょに */
   pushInFlight = true;
   let ok = false;
-  try { const r = await FB.pushStore(uid, kv); ok = !!(r && r.ok); } catch (e) { ok = false; }
+  try { const r = await FB.pushStore(uid, kv, box); ok = !!(r && r.ok); } catch (e) { ok = false; }
   pushInFlight = false;
   if (!ok) { schedulePush(); return; }                 // dirty はそのまま＝次回まとめて再送
   setBaseMany(kv);                                     // ★ 2026-09-01 送れた値＝クラウドにある値＝土台
+  if (box) knownT[WBOX_T] = Math.max(knownT[WBOX_T] || 0, box.t);
   // 送信できた分だけ dirty から取り除く（送信中に上書きされた新しい値は残す）
   Object.keys(kv).forEach((k) => { knownT[k] = Math.max(knownT[k] || 0, Number(kv[k].t) || 0); const cur = dirty.get(k); if (cur && cur.t === kv[k].t) dirty.delete(k); });
+}
+
+/* ★★ 2026-10-24 送る直前に、財布の値を「自分の欄」にそろえる（別のタブ・見張りの無いページが書いた値もここで直す） */
+function wFixDirty(k, e) {
+  if (!e || e.v == null || !WALLET_KEYS.has(k)) return;
+  const cur = lsGet(k);
+  const fx = wFixWrite(k, e.v, cur !== e.v ? cur : null);
+  if (fx === e.v) return;
+  if (cur === e.v) { try { _rawSet(k, fx); } catch (err) {} }
+  e.v = fx;
 }
 
 /* ★ 離脱時（ホームに戻る／アプリを切り替える／タブを閉じる）専用の送信。
@@ -974,16 +1192,21 @@ function flushPushBeacon() {
        「知らない書き込みが無い」と分かっているときだけ送る。分からないときはここでは送らない
        （端末に残っていて、戻ってきたとき・次に開いたときに「取りこむ→混ぜる→送る」の順で必ず合わさる）。 */
   const age = Date.now() - rtAt;
+  /* ★★ 2026-10-24 財布は「自分の欄」の控え（wbox）だけは<b>いつでも</b>送る。置き場所が端末ごとなので
+     ほかの端末の値を上書きしない → これで「閉じる直前に増えた XEVA がほかの端末に出ない」が起きにくい。 */
+  const wkv = {};
   dirty.forEach((e, k) => {
+    if (e && e.v != null && WALLET_KEYS.has(k)) { wFixDirty(k, e); wkv[k] = e; }
     if (e && e.v != null && hasMergeRule(k)) {
       const fresh = !!rtSeen && age < (WALLET_KEYS.has(k) ? 8000 : 20000) && (Number(rtSeen[k]) || 0) <= (knownT[k] || 0);
       if (!fresh) return;
     }
     kv[k] = e;
   });
-  if (!Object.keys(kv).length) { try { flushPush(); } catch (e) {} return; }
+  const box = wBoxes(wkv);
+  if (!Object.keys(kv).length && !box) { try { flushPush(); } catch (e) {} return; }
   let sent = false;
-  try { if (FB && FB.pushStoreBeacon) sent = FB.pushStoreBeacon(uid, kv); } catch (e) {}
+  try { if (FB && FB.pushStoreBeacon) sent = FB.pushStoreBeacon(uid, kv, box); } catch (e) {}
   // beacon が使えない／大きすぎた場合は通常 push に賭ける
   if (!sent) { try { flushPush(); } catch (e) {} return; }
   try { flushPush(); } catch (e) {}
@@ -997,6 +1220,8 @@ function startPushCapture() {
   const origRemove = localStorage.removeItem.bind(localStorage);
   localStorage.setItem = function (k, v) {
     const before = isSynced(k) ? lsGet(k) : null;
+    /* ★★ 2026-10-24 財布は書かれたその場で「自分の欄」へ（積み上げ式の同期） */
+    if (!pushSuspended && WALLET_KEYS.has(k)) { try { v = wFixWrite(k, String(v), before); } catch (e) {} }
     origSet(k, v);
     if (!pushSuspended && isSynced(k) && String(v) !== before) {
       const t = nowMs();
@@ -1035,7 +1260,8 @@ function startPushCapture() {
     const uid = currentUid(); if (!uid) return;
     let rt = null; try { rt = await FB.pullStoreT(uid); } catch (e) {}
     noteRemoteT(rt);
-    if (rt && SYNC_KEYS.some((k) => (Number(rt[k]) || 0) > (knownT[k] || 0))) { try { await pullNow(); } catch (e) {} }
+    if (rt && (SYNC_KEYS.some((k) => (Number(rt[k]) || 0) > (knownT[k] || 0))
+      || (Number(rt[WBOX_T]) || 0) > (knownT[WBOX_T] || 0))) { try { await pullNow(); } catch (e) {} }
   }, 20000);
 }
 
@@ -1081,7 +1307,7 @@ async function syncDown(uid, forceReload) {
   }
   remote = full.kv || {}; remoteT = full.t || {};
   noteRemoteT(remoteT);
-  const changed = mergeStore(uid, remote, remoteT);
+  const changed = mergeStore(uid, remote, remoteT, full.box);
   try { _rawSet("xeva_lastsync_v1", String(Date.now())); } catch (e) {}
   /* ★ クラウドの内容をローカルへ取り込み終えた合図。
      XEVA を表示するページは、これを待ってから数字を出すことで
@@ -1128,7 +1354,7 @@ async function pullNow() {
     const full = await pullFullSafe(uid, 2);
     if (!full) { schedulePullRetry(15000); return false; }   /* ★★ 2026-10-20 読めないときは混ぜない・送らない */
     noteRemoteT(full.t);
-    const changed = mergeStore(uid, full.kv, full.t);
+    const changed = mergeStore(uid, full.kv, full.t, full.box);
     try { _rawSet("xeva_lastsync_v1", String(Date.now())); } catch (e) {}
     await flushPush();                                   // 混ざった結果と、未送信ぶんを送る
     try { window.dispatchEvent(new CustomEvent("xeva:synced", { detail: { changed } })); } catch (e) {}
@@ -1152,7 +1378,7 @@ async function syncAll() {
     const full = await pullFullSafe(uid, 3);
     if (!full) return { ok: false, reason: "net" };
     noteRemoteT(full.t);
-    const changed = mergeStore(uid, full.kv, full.t);
+    const changed = mergeStore(uid, full.kv, full.t, full.box);
     _pullBusy = false;
     await flushPush();
     try { window.dispatchEvent(new CustomEvent("xeva:synced", { detail: { changed } })); } catch (e) {}
@@ -1233,7 +1459,7 @@ async function reclaim() {
   startWatch(uid, dev);
   // 追い出されている間に別端末が変更している可能性 → 最新をマージ（reloadなし・新しい側が勝つ）
   /* ★★ 2026-10-20 読めなかったときは混ぜない（空と取りちがえて古いデータを送らない）→ 少しあとで取りこみ直す */
-  try { const full = await pullFullSafe(uid, 3); if (full) mergeStore(uid, full.kv, full.t); else schedulePullRetry(10000); } catch (e) {}
+  try { const full = await pullFullSafe(uid, 3); if (full) mergeStore(uid, full.kv, full.t, full.box); else schedulePullRetry(10000); } catch (e) {}
   try { window.dispatchEvent(new Event("xeva:change")); } catch (e) {}
 }
 
@@ -1352,7 +1578,7 @@ async function onAccountCreated() {
   if (!full) { schedulePullRetry(10000); return; }
   try {
     hasRemote = !!(full && full.kv && Object.keys(full.kv).length);
-    if (hasRemote) mergeStore(uid, full.kv, full.t);
+    if (hasRemote) mergeStore(uid, full.kv, full.t, full.box);
   } catch (e) {}
   if (!hasRemote) await pushAll(uid);   // 作成直後のローカル（スターター）をクラウドへ
 }

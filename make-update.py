@@ -35,7 +35,9 @@ SWS = ["sw.js", "MagiLex/sw.js", "MagiBurst/sw.js", "MagiChainParty/sw.js", "XEV
        # ★★ 2026-10-06 新作 MagiChemLex（難関化学の問題集）
        "MagiChemLex/sw.js",
        # ★★ 2026-10-21 新作 MagiDerby（実際の JRA GⅠ に XEVA で賭ける）
-       "MagiDerby/sw.js"]
+       "MagiDerby/sw.js",
+       # ★★ 2026-10-23 新作 MagiQuiz（MagiChemLex の基礎問題で遊ぶ1台のクイズ対戦）
+       "MagiQuiz/sw.js"]
 
 
 # ══════════════════════════════════════════════════════════════

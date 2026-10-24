@@ -76,6 +76,8 @@
     magichainparty_play: { reward: 150, title: "MagiChainParty で対戦してみよう",         app: "MagiChainParty" },
     magiempire_play:     { reward: 150, title: "MagiEmpire で国盗り対戦をしよう",         app: "MagiEmpire" },
     magiarena_play:      { reward: 150, title: "MagiArena で1台対戦をあそぼう",           app: "MagiArena" },
+    /* ★★ 2026-10-23 新作 MagiQuiz（達成は quiz-account.js の report＝試合の結果を出したとき） */
+    magiquiz_play:       { reward: 150, title: "MagiQuiz でクイズ対戦をあそぼう",         app: "MagiQuiz" },
     magimanor_play:      { reward: 150, title: "MagiManor で洋館を探索しよう",            app: "MagiManor" },
     magicraft_play:      { reward: 150, title: "MagiCraft でブロックを掘ってみよう",      app: "MagiCraft" },
     magijackpot_play:    { reward: 200, title: "MagiJackpot でゲームを1回プレイしよう",   app: "MagiJackpot" },
@@ -519,7 +521,8 @@
   })();
   /* ══ ★★ 2026-10-20 両替チケット（ご指定「ジェムから XEVA への換金は換金チケット必須・1枚で 5ジェムをその時のレートで」）══
      ・名前は「両替チケット」（ご指定の仮称「換金チケット」から。ジェム⇄XEVA の“両替”なので）
-     ・使う場所はショップの「XEVA 両替所」（xevarion-home.js の xhOpenCash）。1枚で 💎5 → 5 × いまのレート XEVA
+     ・使う場所はショップの「XEVA 両替所」（xevarion-home.js の xhOpenCash）。1枚で 💎10 → 10 × いまのレート XEVA
+       （★★ 2026-10-24 ご指定で 💎5 → 💎10。数は xevarion-home.js の XH_CASH_GEM）
      ・もらえる所：MagiChemLex の Wisdom Point 交換（5WP）・イベントミッション・メール
      ★ 残高は<b>フェスセレクト券と同じ台帳（xeva_fessel_v1）</b>の "cx:" の欄に置く（選べるSSRチケットと同じ考え方）。
        e（もらった総数）・u（使った総数）は増えるだけ → 端末をまたいでも max で混ざる（xeva-cloud の mergeCountMap）。
@@ -1180,6 +1183,10 @@
     { id: "mb:kohaku", mbId: "kohaku", name:"コハク", file: "../img/t_Kohaku.webp", since:"2026-10-22", rarLabel: "UR" },
     { id: "mb:suzu", mbId: "suzu", name:"スズ", file: "../img/t_Suzu.webp", since:"2026-10-22", rarLabel: "UR" },
     { id: "mb:shouko", mbId: "shouko", name:"ショウコ", file: "../img/t_Shouko.webp", since:"2026-10-22", rarLabel: "UR" },
+    /* ★★ 2026-10-24 超極煌祭の追加2体・MagiChemLex の WP 交換のミキ（UR・MagiAbyss 専用。アイコン・コレクションには使える） */
+    { id: "mb:hisako", mbId: "hisako", name:"ヒサコ", file: "../img/t_Hisako.webp", since:"2026-10-24", rarLabel: "UR" },
+    { id: "mb:alice", mbId: "alice", name:"アリス", file: "../img/t_Alice.webp", since:"2026-10-24", rarLabel: "UR" },
+    { id: "mb:miki", mbId: "miki", name:"ミキ", file: "../img/t_Miki.webp", since:"2026-10-24", rarLabel: "UR" },
   ];
   /* ★ 2026-08-10 初期SR 4体（ゼラ・アヤメ・レイラ・セリーヌ）は廃止しました。
      いまは<b>全キャラがアイコンに選べる</b>ので、starter という区別そのものが要らない。 */
@@ -1295,7 +1302,9 @@
   /* ★★ 2026-10-16 超極華祭（UR） */
   , "chie", "ichika", "nonoka", "aina", "yuna"
   /* ★★ 2026-10-22 超極煌祭（UR） */
-  , "kohaku", "suzu", "shouko"];
+  , "kohaku", "suzu", "shouko"
+  /* ★★ 2026-10-24 超極煌祭の追加2体・WP 交換のミキ（UR） */
+  , "hisako", "alice", "miki"];
   MB_CHAR_MASTER.forEach(function (c) { c.mb = true; c.starter = MB_STARTERS.indexOf(c.mbId) >= 0; });
   MB_CHAR_MASTER.forEach(function (c) { c.star5 = MB_STAR5.indexOf(c.mbId) >= 0; });
   /* id は "mb:zera" のように接頭辞つき。XEVAガチャにも同じ名前のキャラ（シオンなど）が
@@ -1609,8 +1618,16 @@
     return h + "時間" + (m % 60 ? (m % 60) + "分" : "");
   }
 
+  /* ══ ★★ 2026-10-24 ご指定「レベル機能とスタミナ機能を廃止」══
+     ・スタミナ：もう減らない・増えない（canPlay はいつも true／spend・add は何もしない）。上限や回復の案内も出さない。
+     ・レベル：XEVARION のレベルとしては出さない（ホーム・MagiLex・MagiBurst の表示を消した）。MagiLex では上がらない。
+       ★ MagiBurst の「アーク」（属性ごとの強化）のポイントだけは、これまでどおりクエストクリアの EXP から出す
+         （ここで止めるとアークがそれ以上育たなくなるため）。表示は「アークのポイント」だけ。
+     ・API は残す（古い画面・ほかのアプリから呼ばれても落ちないように）。off＝廃止の印。 */
+  var STATUS_OFF = true;
   var status = {
     KEY: ST_KEY,
+    off: STATUS_OFF,
     PLV_MAX: PLV_MAX,
     plvNeed: plvNeed,
     lvOfExp: lvOfExp,
@@ -1672,9 +1689,10 @@
     /* ── スタミナ ── */
     getStamina: function () { return stGet().stam; },
     getMax: function () { return stGet().max; },
-    canPlay: function (n) { return stGet().stam >= Math.round(n == null ? STAM_PLAY : n); },
+    canPlay: function (n) { if (STATUS_OFF) return true; return stGet().stam >= Math.round(n == null ? STAM_PLAY : n); },
     /* 足りなければ false（何も減らさない） */
     spend: function (n, why) {
+      if (STATUS_OFF) return true;                 /* ★★ 2026-10-24 スタミナは廃止 */
       n = Math.round(n == null ? STAM_PLAY : n);
       if (n <= 0) return true;
       var s = stSettle(stLoad());
@@ -1690,6 +1708,7 @@
     /* over:true なら<b>上限を超えて</b>足す（MagiLex の確認テストぶん）。
        既定は上限まで（時間・ジェムぶん）。 */
     add: function (n, why, over) {
+      if (STATUS_OFF) return stGet().stam;         /* ★★ 2026-10-24 スタミナは廃止 */
       n = Math.round(n || 0);
       if (!(n > 0)) return stGet().stam;
       var s = stSettle(stLoad());
@@ -2085,7 +2104,7 @@
     /* ★★ 2026-10-13 選べるSSRキャラ確定チケット。使いかた: XEVA.ssrSelect.get() / .grantOnce("261013", 2, "…") / .spend("…")
        変わったら "xeva:fessel" が飛ぶ（台帳がフェスセレクト券と同じため） */
     ssrSelect: ssrSelect,
-    /* ★★ 2026-10-20 両替チケット（ジェム→XEVA の両替に1枚＝💎5）。XEVA.cashTicket.get() / .add(n,"…") / .grantOnce(tag,n,"…") / .spend(n,"…")
+    /* ★★ 2026-10-20 両替チケット（ジェム→XEVA の両替に1枚＝💎10・2026-10-24 から）。XEVA.cashTicket.get() / .add(n,"…") / .grantOnce(tag,n,"…") / .spend(n,"…")
        変わったら "xeva:cashticket"（台帳はフェスセレクト券と同じなので "xeva:fessel" も飛ぶ） */
     cashTicket: cashTicket,
     /* ★★ 2026-09-13c ★星煌印（ガチャの天井）。
@@ -2357,7 +2376,7 @@
     window.__xevaElEdge = 1;
     try { if (/\/(MagiBurst|MagiBattle|MagiAbyss|MagiBocciaRush|expo)\//.test(location.pathname || "")) return; } catch (e) { return; }
     if (!("IntersectionObserver" in window) || !window.MutationObserver) return;
-    var XEL_RAW = "fire:Ririka,Akane,Mika,Nana,RinonX,Ema,Arisa,Tsubaki,Natsuki,Shirayuki,Nazuna,Milfy,Lysera,Soleria,Altia,KaguyaAlpha,KokonaAlpha,Nanami,Kaede,Kotone,Karem,Tsukino,Youhi,Kanata,Satsuki,Otoha,Guren,Suzune,Mirelle,Karin,Homura,Seina,Mutsumi,Yuika,Yua,RanS,Kurenai,Chia,Hisui,AnnaRan,Asuka,Amane,RenaD,Reia,Natsume,Kagura,Miya,Akatsuki,Kokoha,Kureha,KumikoReina,RanAlpha,Ayano,Saki,Chie,Kohaku|water:Shiona,Serina,Airi,Kaho,Sakura,Shion,Kokona,Rinne,Selene,Fiona,Chloe,Sheril,Fia,Solea,CherylAlpha,Yukino,Chitose,Shizuku,Fuka,Moeka,Elena,Blair,Roxy,Sayaka,Yuuna,Minamo,Scarlet,Mirei,Yoizuki,Shiduki,Misuzu,Shiori,Kotori,Yuki,Risa,Riona,Shizuru,Yoiduki,Sougetsu,Kaoru,NaoS,HarukaS,AoiKuroha,Misaki,Ruri,Nagisa,Hiyori,Emika,Ayane,Mikoto,Azusa,KotoriAlpha,Takina,Yuka,Natsumi,Ichika|wood:Hina,Haruka,Ede,Aira,Mizuki,Ayaka,Mashiro,Hotaru,Rezelia,Lilia,Mabel,Beltia,Astera,Roselia,Kokoro,Ceris,Tsumugi,Mayu,Izumi,Violet,Asuha,Akari,Chihaya,Tomoe,Amelia,Miyabi,Sara,Hinano,Kokoa,Ryouka,Marika,Minori,MireiR,Yuuri,Rika,Kayo,Natsune,Kasumi,Narumi,Haduki,Shiho,Chiha,Mei,AsuhaAlpha,Hibana,Miu,Mai,Nonoka,Suzu|light:Runa,Noa,Eruna,Rei,Rusia,Riko,Kaguya,Mion,Bernica,Iroha,Koharu,Yuri,Elsia,Setsuna,Nephia,Arche,Nemu,Liana,Reika,Rinon,Ran,Yuunagi,Suzuka,Anna,Youka,Grace,Touka,Artemia,Sayo,Hinata,Yui,Himari,Mio,Sumire,Kanade,Sakuya,Nodoka,Miko,YuukaS,AnnaM,Seika,SuzuhaR,Hanon,Shino,Kuon,TsukinoD,Astraea,AstraeaC,AnnaMaid,Saya,Hikari,Momoka,Miyuki,Kiduki,Hikaru,Himeri,Kana,AnnaAlpha,Chinatsu,Yuumi,Aina,Shouko|dark:Yuina,Kotoha,Mirea,Miyu,Nene,Kotomi,Rea,Cheryl,Viola,Mao,Alicia,Hecatia,Karina,Revia,Abyss,Shizuka,Yuria,MionAlpha,Yaju,Iori,Noelle,Ange,Dominia,Chizuru,Seira,Suzuha,Lilith,Lyra,Melty,Sayuri,Momo,Karen,Koyuki,Yuuka,Sumika,Sayuki,Kazane,Rena,Reina,AnnaS,Rin,SeiraK,Raika,ReiS,Maaya,Asahi,Subaru,Miori,Ayame,Kyoka,Erika,Uta,Miduki,Honoka,Maki,SayakaAlpha,Fuki,Rina,Kaori,Yuna";
+    var XEL_RAW = "fire:Ririka,Akane,Mika,Nana,RinonX,Ema,Arisa,Tsubaki,Natsuki,Shirayuki,Nazuna,Milfy,Lysera,Soleria,Altia,KaguyaAlpha,KokonaAlpha,Nanami,Kaede,Kotone,Karem,Tsukino,Youhi,Kanata,Satsuki,Otoha,Guren,Suzune,Mirelle,Karin,Homura,Seina,Mutsumi,Yuika,Yua,RanS,Kurenai,Chia,Hisui,AnnaRan,Asuka,Amane,RenaD,Reia,Natsume,Kagura,Miya,Akatsuki,Kokoha,Kureha,KumikoReina,RanAlpha,Ayano,Saki,Chie,Kohaku|water:Shiona,Serina,Airi,Kaho,Sakura,Shion,Kokona,Rinne,Selene,Fiona,Chloe,Sheril,Fia,Solea,CherylAlpha,Yukino,Chitose,Shizuku,Fuka,Moeka,Elena,Blair,Roxy,Sayaka,Yuuna,Minamo,Scarlet,Mirei,Yoizuki,Shiduki,Misuzu,Shiori,Kotori,Yuki,Risa,Riona,Shizuru,Yoiduki,Sougetsu,Kaoru,NaoS,HarukaS,AoiKuroha,Misaki,Ruri,Nagisa,Hiyori,Emika,Ayane,Mikoto,Azusa,KotoriAlpha,Takina,Yuka,Natsumi,Ichika,Hisako|wood:Hina,Haruka,Ede,Aira,Mizuki,Ayaka,Mashiro,Hotaru,Rezelia,Lilia,Mabel,Beltia,Astera,Roselia,Kokoro,Ceris,Tsumugi,Mayu,Izumi,Violet,Asuha,Akari,Chihaya,Tomoe,Amelia,Miyabi,Sara,Hinano,Kokoa,Ryouka,Marika,Minori,MireiR,Yuuri,Rika,Kayo,Natsune,Kasumi,Narumi,Haduki,Shiho,Chiha,Mei,AsuhaAlpha,Hibana,Miu,Mai,Nonoka,Suzu,Miki|light:Runa,Noa,Eruna,Rei,Rusia,Riko,Kaguya,Mion,Bernica,Iroha,Koharu,Yuri,Elsia,Setsuna,Nephia,Arche,Nemu,Liana,Reika,Rinon,Ran,Yuunagi,Suzuka,Anna,Youka,Grace,Touka,Artemia,Sayo,Hinata,Yui,Himari,Mio,Sumire,Kanade,Sakuya,Nodoka,Miko,YuukaS,AnnaM,Seika,SuzuhaR,Hanon,Shino,Kuon,TsukinoD,Astraea,AstraeaC,AnnaMaid,Saya,Hikari,Momoka,Miyuki,Kiduki,Hikaru,Himeri,Kana,AnnaAlpha,Chinatsu,Yuumi,Aina,Shouko|dark:Yuina,Kotoha,Mirea,Miyu,Nene,Kotomi,Rea,Cheryl,Viola,Mao,Alicia,Hecatia,Karina,Revia,Abyss,Shizuka,Yuria,MionAlpha,Yaju,Iori,Noelle,Ange,Dominia,Chizuru,Seira,Suzuha,Lilith,Lyra,Melty,Sayuri,Momo,Karen,Koyuki,Yuuka,Sumika,Sayuki,Kazane,Rena,Reina,AnnaS,Rin,SeiraK,Raika,ReiS,Maaya,Asahi,Subaru,Miori,Ayame,Kyoka,Erika,Uta,Miduki,Honoka,Maki,SayakaAlpha,Fuki,Rina,Kaori,Yuna,Alice";
     var RE = /(?:^|\/)img\/(?:t_)?([A-Za-z0-9]+)\.webp(?:[?#].*)?$/;
     var MAP = null;
     function elMap() {
@@ -2567,6 +2586,143 @@
     }, true);
   } catch (e) {}
 
+  /* ══════════════════════════════════════════════════════════════
+     ★★ 2026-10-23 ご報告「iPad にアップデートが来て、上がぼやけるようになった」
+     ──────────────────────────────────────────────
+     ・真因＝iOS／iPadOS 26〜 は<b>ホーム画面に置いた Web アプリ</b>の上の端（約40pt）に、OS が「スクロールエッジ効果」の
+       ぼかしをかける（Safari のタブでは出ない）。CSS や meta で消す方法は無い。
+     ・ただし WebKit は、<b>上の端のまん中（上から4px）に重なる要素の祖先に、横幅いっぱい（画面の90%以上）の
+       position:fixed／sticky の箱</b>があり、そこまでの地の色が<b>1色で不透明</b>なら、ぼかしのかわりにその色をのばす
+       （WebKit の LocalFrameView::fixedContainerEdges。高さか幅が10px以下の箱の地は数えない・backdrop-filter があるとぼかし）。
+     ・そこで、ホーム画面アプリのときだけ上の端を調べて、<b>条件に合わない画面にだけ単色の帯</b>（#xevaEdgeTop）を置く。
+       帯の高さ＝ステータスバーの下に入りこむ版はその高さ、入りこまない版（26.5〜・27 はステータスバーが別の帯になった）は 11px。
+       色＝帯のすぐ下の地の色（半透明は重ねて計算）。画面が変わったら追いかける（1.5秒ごと・タップのあと）。
+     ・ページの側で決めたいとき：html の data-xedge＝"#xxxxxx"（帯の色）／"off"（何もしない）。
+     ・帯が中身にかぶる量を html の --xeva-edge-pad に入れる（ヘッダーの上の余白に足せる。ホームの .xh-top で使用）。
+     ・PC で試すときは localStorage "xeva_edge_test"＝"1"（ホーム画面アプリでなくても動く）。
+     ══════════════════════════════════════════════════════════════ */
+  (function () {
+    if (window.__xevaEdgeTop) return;
+    window.__xevaEdgeTop = 1;
+    var ua = navigator.userAgent || "";
+    var ios = /iP(hone|ad|od)/.test(ua) || (/Macintosh/.test(ua) && (navigator.maxTouchPoints || 0) > 1);
+    var app = false, test = false;
+    try { app = navigator.standalone === true || matchMedia("(display-mode: standalone)").matches || matchMedia("(display-mode: fullscreen)").matches; } catch (e) {}
+    try { test = localStorage.getItem("xeva_edge_test") === "1"; } catch (e) {}
+    if (!test && !(ios && app)) return;
+    var root = document.documentElement, band = null, probe = null, on = false, last = "", timer = 0;
+    function rgba(s) {
+      var m = /rgba?\(\s*([\d.]+)[,\s]+([\d.]+)[,\s]+([\d.]+)(?:\s*[,\/]\s*([\d.]+%?))?\s*\)/.exec(s || ""), k = 1;
+      /* 半透明の色は color(srgb 0.95 0.96 1 / 0.88) の形で返ってくることがある（0〜1） */
+      if (!m) { m = /color\(srgb\s+([\d.]+)\s+([\d.]+)\s+([\d.]+)(?:\s*\/\s*([\d.]+%?))?\s*\)/.exec(s || ""); k = 255; }
+      if (!m) return null;
+      var a = m[4] == null ? 1 : (/%$/.test(m[4]) ? parseFloat(m[4]) / 100 : parseFloat(m[4]));
+      return [m[1] * k, m[2] * k, m[3] * k, a];
+    }
+    /* c（上）を d（下）に重ねた色 */
+    function over(c, d) {
+      var a = c[3] + d[3] * (1 - c[3]);
+      if (a <= 0) return [0, 0, 0, 0];
+      return [0, 1, 2].map(function (i) { return (c[i] * c[3] + d[i] * d[3] * (1 - c[3])) / a; }).concat(a);
+    }
+    function css(c) { return "rgb(" + Math.round(c[0]) + "," + Math.round(c[1]) + "," + Math.round(c[2]) + ")"; }
+    function bgOf(n) {
+      var cs = getComputedStyle(n), r = n.getBoundingClientRect();
+      if (r.width <= 10 || r.height <= 10) return null;
+      var c = rgba(cs.backgroundColor);
+      return c && c[3] > 0.01 ? c : null;
+    }
+    /* ステータスバーの下に入りこんでいる高さ（入りこまない版は 0） */
+    function insetTop() {
+      if (!probe) {
+        probe = document.createElement("div");
+        probe.style.cssText = "position:fixed;top:0;left:0;width:0;height:env(safe-area-inset-top,0px);visibility:hidden;pointer-events:none";
+        root.appendChild(probe);
+      }
+      return probe.getBoundingClientRect().height || 0;
+    }
+    /* WebKit と同じ見かたで「このままでぼかしが出ないか」を調べる。true＝出ない／false＝出る／null＝暗くするための幕（前の判断のまま） */
+    function plain() {
+      var W = innerWidth, H = innerHeight, n = document.elementFromPoint(W / 2, 4), colors = [], glass = false;
+      while (n && n.nodeType === 1 && n !== root) {
+        var cs = getComputedStyle(n);
+        if ((cs.backdropFilter && cs.backdropFilter !== "none") || (cs.webkitBackdropFilter && cs.webkitBackdropFilter !== "none")) glass = true;
+        var c = bgOf(n);
+        if (c && !colors.some(function (d) { return Math.abs(d[0] - c[0]) + Math.abs(d[1] - c[1]) + Math.abs(d[2] - c[2]) < 3 && Math.abs(d[3] - c[3]) < 0.02; })) colors.push(c);
+        if (cs.position === "fixed" || cs.position === "sticky") {
+          var r = n.getBoundingClientRect();
+          if (r.width >= W * 0.9 && r.height < H * 1.05) {
+            if (colors.length === 1 && colors[0][3] < 0.75 && r.height >= H * 0.9) return null;
+            return !glass && colors.length === 1 && colors[0][3] >= 0.75;
+          }
+        }
+        n = n.parentElement;
+      }
+      return false;
+    }
+    /* 帯の色＝帯のすぐ下に見えている地の色（上から重ねていき、不透明になったところで止める） */
+    function colorBelow(y) {
+      var want = root.getAttribute("data-xedge");
+      if (want && want !== "off") return want;
+      var acc = [0, 0, 0, 0], list = document.elementsFromPoint ? document.elementsFromPoint(innerWidth / 2, y) : [];
+      for (var i = 0; i < list.length && acc[3] < 0.99; i++) {
+        if (list[i] === band) continue;
+        var c = bgOf(list[i]);
+        if (c) acc = over(acc, c);
+      }
+      if (acc[3] < 0.99) {
+        var base = null, mt = document.querySelector('meta[name="theme-color"]');
+        if (mt) { var t = document.createElement("i"); t.style.color = mt.content; root.appendChild(t); base = rgba(getComputedStyle(t).color); t.remove(); }
+        if (!base) base = rgba(getComputedStyle(document.body || root).backgroundColor);
+        if (!base || base[3] < 0.5) base = rgba(getComputedStyle(root).backgroundColor);
+        acc = over(acc, base && base[3] > 0.5 ? [base[0], base[1], base[2], 1] : [0, 0, 0, 1]);
+      }
+      return css(acc);
+    }
+    function check() {
+      timer = 0;
+      if (!document.body) return;
+      if (root.getAttribute("data-xedge") === "off") { show(false); return; }
+      if (!band) {
+        band = document.createElement("div");
+        band.id = "xevaEdgeTop";
+        band.setAttribute("aria-hidden", "true");
+        band.style.cssText = "position:fixed;left:0;right:0;top:0;z-index:2147483646;pointer-events:none;display:none";
+        root.appendChild(band);
+      }
+      var was = band.style.display;
+      band.style.display = "none";
+      var ok = plain();
+      band.style.display = was;
+      if (ok === null) return;
+      if (ok) { show(false); return; }
+      var ins = insetTop(), h = Math.max(11, Math.round(ins));
+      var col = colorBelow(h + 2), key = h + "|" + col;
+      if (!on || key !== last) {
+        band.style.height = h + "px";
+        band.style.background = col;
+        last = key;
+      }
+      show(true, Math.max(0, h - Math.round(ins)));
+    }
+    function show(v, pad) {
+      if (band) band.style.display = v ? "block" : "none";
+      on = !!v;
+      root.style.setProperty("--xeva-edge-pad", (v ? pad || 0 : 0) + "px");
+      root.classList.toggle("xeva-edge", !!v);
+    }
+    function soon(ms) { if (!timer) timer = setTimeout(check, ms || 60); }
+    if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", function () { soon(0); });
+    else soon(0);
+    window.addEventListener("load", function () { soon(0); });
+    window.addEventListener("resize", function () { soon(120); });
+    window.addEventListener("orientationchange", function () { soon(300); });
+    document.addEventListener("pointerup", function () { soon(350); }, true);
+    document.addEventListener("visibilitychange", function () { if (!document.hidden) soon(0); });
+    setInterval(function () { if (!document.hidden) soon(0); }, 1500);
+    window.XevaEdge = { check: check };
+  })();
+
   /* ★★ 2026-10-02 極彩祭・極煌祭・極華祭のキャラの四角い絵を、パートナーのように少しだけ動かす（ご指定）。
      本体は xeva-alive.js（WebGL）。この xeva.js と同じ場所から、画面の読み込みが終わってから読む
      （各画面の HTML は書きかえなくてよい）。止めたいときは localStorage "xeva_alive" = "off"。 */
@@ -2576,7 +2732,7 @@
       window.__xevaAliveReq = 1;
       var aliveGo = function () {
         var s = document.createElement("script");
-        s.src = new URL("xeva-alive.js?v=7", aliveSrc).href;
+        s.src = new URL("xeva-alive.js?v=8", aliveSrc).href;
         s.async = true;
         (document.head || document.documentElement).appendChild(s);
       };

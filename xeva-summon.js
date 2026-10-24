@@ -338,7 +338,28 @@
 /* ── 上の帯（題・SKIP）── */
 #xsm .xs-top{position:absolute;left:0;right:0;top:0;display:flex;align-items:center;gap:10px;padding:calc(env(safe-area-inset-top,0px) + 10px) 14px 8px;z-index:70;background:linear-gradient(rgba(0,0,0,.7),transparent)}
 #xsm .xs-ttl{flex:1;min-width:0;font-size:12px;font-weight:900;letter-spacing:.04em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;opacity:.9}
-#xsm .xs-skip{flex:none;border:1.5px solid rgba(255,255,255,.7);background:rgba(10,8,30,.55);color:#fff;font:900 12px 'Orbitron',sans-serif;letter-spacing:.12em;padding:8px 14px;border-radius:99px;cursor:pointer}
+/* ★★ 2026-10-24 ご指定「スキップボタンをデザイン」：演出（エヴァ風）に合わせた斜めの札。
+   左に黄と黒の警告の縞・黒いガラスの地・「SKIP」と小さな「結果へ」・右へ流れる三つの矢印。押すと沈む */
+#xsm .xs-skip{flex:none;position:relative;display:flex;align-items:center;gap:8px;height:38px;padding:0 16px 0 24px;border:0;cursor:pointer;color:#fff;
+  background:linear-gradient(100deg,rgba(14,10,34,.86),rgba(40,22,70,.86));
+  clip-path:polygon(10px 0,100% 0,calc(100% - 10px) 100%,0 100%);
+  box-shadow:inset 0 0 0 1.5px rgba(255,210,26,.85);transition:transform .12s,filter .12s;-webkit-tap-highlight-color:transparent}
+#xsm .xs-skip::before{content:"";position:absolute;left:0;top:0;bottom:0;width:15px;
+  background:repeating-linear-gradient(-55deg,#ffd21a 0 5px,#111 5px 9px);clip-path:polygon(10px 0,15px 0,5px 100%,0 100%)}
+#xsm .xs-skip::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 35%,rgba(255,255,255,.22) 50%,transparent 65%);
+  transform:translateX(-110%);animation:xsSkShine 2.8s ease-in-out infinite;pointer-events:none}
+@keyframes xsSkShine{55%,100%{transform:translateX(110%)}}
+#xsm .xs-skip .sk-tx{display:flex;flex-direction:column;align-items:flex-start;line-height:1}
+#xsm .xs-skip .sk-tx b{font:900 14px/1 'Orbitron',sans-serif;letter-spacing:.16em;color:#ffd21a;text-shadow:0 0 8px rgba(255,210,26,.55)}
+#xsm .xs-skip .sk-tx small{margin-top:3px;font-size:9px;font-weight:900;letter-spacing:.2em;opacity:.85}
+#xsm .xs-skip .sk-ar{display:flex;gap:1px}
+#xsm .xs-skip .sk-ar i{width:8px;height:12px;background:#ffd21a;clip-path:polygon(0 0,45% 0,100% 50%,45% 100%,0 100%,55% 50%);opacity:.25;animation:xsSkAr 1s linear infinite}
+#xsm .xs-skip .sk-ar i:nth-child(2){animation-delay:.18s}
+#xsm .xs-skip .sk-ar i:nth-child(3){animation-delay:.36s}
+@keyframes xsSkAr{0%,100%{opacity:.25}35%{opacity:1}}
+#xsm .xs-skip:hover{filter:brightness(1.15)}
+#xsm .xs-skip:active{transform:translateY(1px) scale(.96)}
+@media (prefers-reduced-motion:reduce){#xsm .xs-skip::after,#xsm .xs-skip .sk-ar i{animation:none;opacity:.9}}
 #xsm .xs-cnt{flex:none;font:900 12px 'Orbitron',sans-serif;letter-spacing:.08em;opacity:.85}
 /* ── ⑤ 1体ずつ ── */
 #xsm .xs-cards{position:absolute;inset:0;display:none;align-items:center;justify-content:center;perspective:1100px;z-index:22}
@@ -593,7 +614,7 @@
       <div class="xs-ur"></div>
       <div class="xs-sum"></div>
       <div class="xs-flash"></div>
-      <div class="xs-top"><span class="xs-ttl">${esc(String(title || "").replace(/<[^>]+>/g, ""))}</span><span class="xs-cnt"></span><button class="xs-skip" type="button">SKIP ▶▶</button></div>
+      <div class="xs-top"><span class="xs-ttl">${esc(String(title || "").replace(/<[^>]+>/g, ""))}</span><span class="xs-cnt"></span><button class="xs-skip" type="button" aria-label="スキップして結果へ"><span class="sk-tx"><b>SKIP</b><small>結果へ</small></span><span class="sk-ar" aria-hidden="true"><i></i><i></i><i></i></span></button></div>
       <div class="xs-foot"><span class="xs-dots"></span><span class="xs-tap">TAP</span></div>`;
     document.body.appendChild(ov);
     try { document.body.style.overflow = "hidden"; } catch (e) {}

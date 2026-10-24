@@ -173,6 +173,7 @@ const MISSION_META = {
   magichainparty_play: { href: "MagiChainParty/index.html",        icon: "thumbs/MagiChainParty.jpg?v=2", cta: "プレイ" },
   magiempire_play:     { href: "MagiEmpire/MagiEmpire.html",       icon: "thumbs/MagiEmpire.jpg",     cta: "プレイ" },
   magiarena_play:      { href: "MagiArena/MagiArena.html",         icon: "thumbs/MagiArena.jpg",      cta: "プレイ" },
+  magiquiz_play:       { href: "MagiQuiz/index.html",              icon: "thumbs/MagiQuiz.jpg",       cta: "あそぶ" },   /* ★★ 2026-10-23 */
   magimanor_play:      { href: "MagiManor/index.html",             icon: "thumbs/MagiManor.jpg",      cta: "探索へ" },
   magicraft_play:      { href: "MagiCraft/index.html",             icon: "thumbs/MagiCraft.jpg",      cta: "プレイ" },
   magijackpot_play:    { href: "MagiJackpot/index.html",           icon: "thumbs/MagiJackpot.jpg",    cta: "プレイ" },
@@ -2995,7 +2996,9 @@ function runPortalBoot() {
   // 新シーズン登場バナー（ログイン時ポップアップ）は廃止しました。
   /* ★ 2026-08-10 新キャラのお知らせ。ログインボーナス・誕生日のあとに出す
      （同時に出すと重なって、どれを閉じたのか分からなくなるため）。 */
-  setTimeout(showNewChars, granted.amount > 0 ? 4600 : 2200);
+  /* ★★ 2026-10-24 ご指定：更新のあとは NIKKE のような「デベロッパーノート」（新キャラの絵もここ）。
+     キャラ追加のポップアップ（showNewChars）は出さない（xeva-devnotes.js が読めなかったときだけの予備） */
+  setTimeout(() => { if (!window.XevDevNotes) showNewChars(); else XevDevNotes.maybeShow(); }, granted.amount > 0 ? 4600 : 2200);
 }
 
 /* ══════════════════════════════════════════════════════════════

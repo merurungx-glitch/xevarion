@@ -103,6 +103,10 @@ html.xv-gate{background:#0a0716}
   overflow:visible;
   color:var(--xh-ink);font-family:'Noto Sans JP',sans-serif;
   overscroll-behavior:none;-webkit-tap-highlight-color:transparent;
+  /* ★★ 2026-10-23 iPadOS 26〜 の「上がぼやける」対策（xeva.js の #xevaEdgeTop の説明）。
+     上の端のまん中は透明なヘッダー → この全画面の板。板に地の色が1色あれば、WebKit はぼかしのかわりにこの色をのばす。
+     板の中は #xhBg（空の絵）が全部おおうので、見た目は変わらない。 */
+  background-color:#2560c8;
 }
 #xhome.on{display:flex}
 /* 箱の下にはみ出したぶんも下バーと同じ濃紺で塗る */
@@ -158,7 +162,8 @@ html.xv-gate{background:#0a0716}
    ★ 妖怪ウォッチ風では、ヘッダーは<b>すりガラスの帯ではなく</b>
      「空の上にロゴの札とボタンの札を置いた」形にする。地は透かしたまま。 */
 .xh-top{flex-shrink:0;display:flex;align-items:center;justify-content:space-between;gap:8px;
-  padding:calc(env(safe-area-inset-top,0px) + 8px) 10px 6px;
+  /* ★★ 2026-10-23 上の端に帯が出たとき（xeva.js）はそのぶん下げる */
+  padding:calc(env(safe-area-inset-top,0px) + var(--xeva-edge-pad,0px) + 8px) 10px 6px;
   background:none;border:none}
 #xhome .xh-brandbar{display:flex;align-items:center;gap:5px;min-width:0;flex-shrink:0;
   padding:5px 12px 5px 7px;border-radius:99px;
@@ -536,7 +541,8 @@ body.xh-off .xh-offline{display:flex}
   background:url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Cpath d='M20 40c0-11 9-20 20-20s20 9 20 20-9 20-20 20c-7.4 0-13.4-6-13.4-13.4S32.6 33 40 33s11 4.9 11 11' fill='none' stroke='%232f7fe0' stroke-opacity='.11' stroke-width='6' stroke-linecap='round'/%3E%3C/svg%3E") no-repeat right 10px top 8px/52px,var(--yw-cream)}
 /* シート内のグリッドはカード背景を外す（シート自体が地を持っているので二重にしない） */
 .xh-grid.sheet{background:none;box-shadow:none;border:none;padding:0;margin-bottom:6px}
-/* ★★ 2026-10-05 NEW の印（xhIsNewApp） */
+/* ★★ 2026-10-05 NEW の印（xhIsNewApp）・★★ 2026-10-24 β版（.beta） */
+.xh-newb.beta{background:linear-gradient(180deg,#5a7cff,#3048c8);letter-spacing:0}
 .xh-newb{position:absolute;top:-6px;right:calc(50% - 29px - 8px);z-index:3;padding:1px 6px;border-radius:7px;font-style:normal;font-size:9.5px;font-weight:900;letter-spacing:.04em;
   color:#fff;background:linear-gradient(180deg,#ff5a7a,#e0204a);border:1.5px solid #12203d;box-shadow:0 2px 0 rgba(18,32,61,.35)}
 .xh-app{position:relative;display:flex;flex-direction:column;align-items:center;gap:5px;padding:0;border:none;
@@ -1600,3 +1606,8 @@ html.xh-shim #xhome::after{display:none}
 @keyframes xhCnBeat{50%{transform:scale(1.1)}}
 body.xos-nomotion .xh-chemnew *{animation:none!important}
 @media (prefers-reduced-motion:reduce){.xh-chemnew *{animation:none!important}}
+
+/* ★★ 2026-10-24 ご指定「レベル機能とスタミナ機能を廃止。ホームはいまのスタミナの位置に XEVA を置いて縦1段に」
+   → レベル・スタミナの札（.xh-status）を消し、XEVA とジェムを右の1列に（上が XEVA＝もとのスタミナの位置・下がジェム） */
+.xh-status{display:none!important}
+.xh-wallet{grid-template-columns:var(--xh-pw)!important}
