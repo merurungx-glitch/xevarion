@@ -250,10 +250,36 @@
      ためかた：問題セットの完全習得 +5・確認テスト（全問正解）+10。交換：5WP 両替チケット／10WP フェスガチャチケット／100WP 選べるSSRキャラ確定チケット。
      券面は XEVARION と同じ絵（xeva.js の XevaCashTicketSVG / XevaFesTicketSVG / XevaSsrTicketSVG）。 */
   const WP_ITEMS = [
-    { k: "cash", cost: 5, nm: "両替チケット", d: "ショップの「XEVA 両替所」で 💎5 をそのときのレートで XEVA に両替できる券", art: (px) => window.XevaCashTicketSVG ? XevaCashTicketSVG(px) : "💱", have: () => { try { return XEVA.cashTicket.get(); } catch (e) { return 0; } } },
+    { k: "cash", cost: 5, nm: "両替チケット", d: "ショップの「XEVA 両替所」で 💎10 をそのときのレートで XEVA に両替できる券", art: (px) => window.XevaCashTicketSVG ? XevaCashTicketSVG(px) : "💱", have: () => { try { return XEVA.cashTicket.get(); } catch (e) { return 0; } } },
     { k: "fes", cost: 10, nm: "フェスガチャチケット", d: "フェスガチャを1回まわせる 🎫（どのフェスでも使えます）", art: (px) => window.XevaFesTicketSVG ? XevaFesTicketSVG(px) : "🎫", have: () => { try { return XEVA.fesTicket.get(); } catch (e) { return 0; } } },
     { k: "ssr", cost: 100, nm: "選べるSSRキャラ確定チケット", d: "ガチャから出る SSR の中から好きな1体を確定で（UR は対象外・ガチャ一覧のいちばん上で使います）", art: (px) => window.XevaSsrTicketSVG ? XevaSsrTicketSVG(px) : "🎟️", have: () => { try { return XEVA.ssrSelect.get(); } catch (e) { return 0; } } },
+    /* ★★ 2026-10-24 ご指定「WP 交換所で、新たに 120WP でミキ（UR）を1体交換できるように」
+       ・MagiAbyss 専用の UR（性能は MagiAbyss だけ・タキナと同じくらい）。MagiChemLex のナビゲーターや XEVARION のアイコンには使える。
+       ・<b>1体だけ</b>（once）：持っている・交換したことがある（WP の記録）なら押せない。 */
+    { k: "miki", cost: 120, once: 1, nm: "ミキ（UR）", d: "MagiAbyss で使える UR キャラ（木属性・タキナと同じくらいの強さ）。このアプリのナビゲーターや XEVARION のアイコンにも使えます。1体だけ交換できます",
+      art: (px) => '<img class="wpx-ch" src="../img/t_Miki.webp" alt="ミキ" style="width:' + px + "px;height:" + px + 'px;border-radius:' + Math.round(px * 0.22) + 'px;object-fit:cover;box-shadow:0 0 0 2px #fff,0 0 0 4px #2fbf71">', have: () => (mikiOwned() ? 1 : 0) },
   ];
+  /* ミキを持っているか（XEVARION のガチャの所持・MagiBurst のセーブ・WP の交換の記録のどれか） */
+  function mikiOwned() {
+    try { const g = JSON.parse(localStorage.getItem("xeva_gacha_v1") || "null"); if (g && g.owned && g.owned.miki) return true; } catch (e) {}
+    try { const b = JSON.parse(localStorage.getItem("magiburst_v1") || "null"); if (b && b.chars && b.chars.miki) return true; } catch (e) {}
+    try { return M.wpLog().some((o) => o.item === "miki"); } catch (e) { return false; }
+  }
+  /* ミキを受け取る（XEVARION のキャラの所持＝xeva_gacha_v1 と MagiBurst のセーブ＝magiburst_v1 の両方へ。どちらも同期される） */
+  function grantMiki() {
+    let ok = false;
+    try {
+      const g = JSON.parse(localStorage.getItem("xeva_gacha_v1") || "null") || {};
+      g.owned = g.owned || {}; g.dupes = g.dupes || {}; g.points = g.points || {};
+      if (!g.owned.miki) { g.owned.miki = true; if (g.dupes.miki == null) g.dupes.miki = 0; }
+      localStorage.setItem("xeva_gacha_v1", JSON.stringify(g)); ok = true;
+    } catch (e) {}
+    try {
+      const raw = localStorage.getItem("magiburst_v1");
+      if (raw) { const b = JSON.parse(raw); if (b && typeof b === "object") { b.chars = b.chars || {}; if (!b.chars.miki) { b.chars.miki = { lv: 1, awk: 0, exp: 0 }; localStorage.setItem("magiburst_v1", JSON.stringify(b)); } } }
+    } catch (e) {}
+    return ok;
+  }
   function wpImg(cls) { return '<img class="' + (cls || "wp-ic") + '" src="img/wp.webp" srcset="img/wp.webp 1x, img/wp@2x.webp 2x" alt="WP">'; }
   function wpCard() {
     const st = M.wpStat();
@@ -268,10 +294,11 @@
     const st = M.wpStat();
     const log = M.wpLog().slice(0, 12);
     const row = (x) => {
-      const can = st.bal >= x.cost && !!window.XEVA;
-      return '<div class="wpx' + (can ? "" : " no") + '"><span class="wpx-a">' + x.art(40) + "</span>" +
-        '<span class="wpx-t"><b>' + esc(x.nm) + "</b><small>" + esc(x.d) + "</small><em>所持 " + nf(x.have()) + "枚</em></span>" +
-        '<button class="wpx-b" data-a="wpBuy" data-k="' + x.k + '"' + (can ? "" : " disabled") + ">" + wpImg("wpx-i") + "<b>" + x.cost + "</b><small>" + (can ? "交換" : "WP不足") + "</small></button></div>";
+      const got = x.once && x.have() > 0;
+      const can = st.bal >= x.cost && !!window.XEVA && !got;
+      return '<div class="wpx' + (can ? "" : " no") + (x.once ? " ch" : "") + '"><span class="wpx-a">' + x.art(40) + "</span>" +
+        '<span class="wpx-t"><b>' + esc(x.nm) + "</b><small>" + esc(x.d) + "</small><em>" + (x.once ? (got ? "交換ずみ（所持）" : "未所持・1体だけ") : "所持 " + nf(x.have()) + "枚") + "</em></span>" +
+        '<button class="wpx-b" data-a="wpBuy" data-k="' + x.k + '"' + (can ? "" : " disabled") + ">" + wpImg("wpx-i") + "<b>" + x.cost + "</b><small>" + (got ? "交換ずみ" : can ? "交換" : "WP不足") + "</small></button></div>";
     };
     sheet('<div class="wps">' +
       '<div class="wps-hero">' + wpImg("wps-ic") + '<div><small>WISDOM POINT 交換所</small><b>' + nf(st.bal) + "<i>WP</i></b><span>これまでに " + nf(st.earned) + " WP ためました</span></div></div>" +
@@ -289,15 +316,26 @@
     const x = WP_ITEMS.find((i) => i.k === k); if (!x || wpBusy) return;
     if (!window.XEVA) { toast("XEVARION につながっていません"); return; }
     sheet('<div class="wps wpc-cf">' + '<div class="wpcf-a">' + x.art(64) + '</div><h2 class="sh-t">' + esc(x.nm) + " と交換しますか？</h2>" +
-      '<p class="wps-how">' + wpImg("wpx-i") + " <b>" + x.cost + " WP</b> を使って、<b>" + esc(x.nm) + " を1枚</b>受け取ります。<br>（いまの残高 " + nf(M.wpStat().bal) + " WP → " + nf(M.wpStat().bal - x.cost) + " WP）</p>" +
+      '<p class="wps-how">' + wpImg("wpx-i") + " <b>" + x.cost + " WP</b> を使って、<b>" + esc(x.nm) + (x.once ? " を1体" : " を1枚") + "</b>受け取ります。<br>（いまの残高 " + nf(M.wpStat().bal) + " WP → " + nf(M.wpStat().bal - x.cost) + " WP）</p>" +
       '<div class="wpcf-b"><button class="btn ghost" data-a="wpOpen">やめる</button><button class="btn main" data-a="wpDo" data-k="' + x.k + '">交換する</button></div></div>');
   }
   function wpDo(k) {
     const x = WP_ITEMS.find((i) => i.k === k); if (!x || wpBusy) return;
     wpBusy = true;
     try {
+      if (x.once && x.have() > 0) { openWp('<span class="ng">' + esc(x.nm) + " はもう交換ずみです（1体だけ）</span>"); return; }
       if (!M.wpSpend(x.cost, x.k)) { openWp('<span class="ng">WP が足りません</span>'); return; }
       const why = "MagiChemLex WP 交換所（" + x.cost + " WP）";
+      /* ★★ 2026-10-24 ミキ（UR）：キャラを受け取って、大きな絵でお祝い */
+      if (x.k === "miki") {
+        grantMiki();
+        SFX.ok(); confetti(60);
+        sheet('<div class="wps wpc-cf"><div class="wpcf-ch"><img src="../img/Miki.webp" alt="ミキ"></div><h2 class="sh-t">ミキ（UR）を手に入れました！</h2>' +
+          '<p class="wps-how"><b>MagiAbyss</b> で遊べます（木属性・タキナと同じくらいの強さ）。<br>設定の「ナビゲーター」でこのアプリの案内役にしたり、XEVARION のアイコンにもできます。</p>' +
+          '<div class="wpcf-b"><button class="btn ghost" data-a="wpOpen">交換所にもどる</button><a class="btn main" href="../MagiAbyss/index.html">MagiAbyss へ</a></div></div>');
+        paintHeader();
+        return;
+      }
       if (x.k === "cash") XEVA.cashTicket.add(1, why);
       else if (x.k === "fes") XEVA.fesTicket.add(1, why);
       else if (x.k === "ssr") XEVA.ssrSelect.grantOnce("wp" + Date.now().toString(36) + Math.floor(Math.random() * 1e6).toString(36), 1, why);
@@ -422,13 +460,21 @@
        計算問題をふくむセットは名前のうしろに<b>控えめな電卓の印</b>（ご指定「あまり主張せずに」） */
     const ps = st.done ? "done" : st.seen ? "mid" : "new";
     const pl = st.done ? "完全習得" : st.seen ? "習得中" : "未着手";
+    /* ★★ 2026-10-23 ご指定「セット全体の完全習得まで最短何日か、それぞれで小さく」 */
+    const eta = st.done ? "" : etaGroupHTML(g);
     const cn = M.groupCalcN ? M.groupCalcN(g) : 0;
     const calc = cn ? '<i class="gc-calc" title="計算問題 ' + cn + '問" aria-label="計算問題 ' + cn + '問">' + ic("calc") + "<small>" + cn + "</small></i>" : "";
     /* ★★ 2026-10-07 分けたセット（part）は大問の小見出しの下に並ぶので、名前は範囲だけ＋中身の単元 */
     return '<button class="gcard' + (st.done ? " done" : "") + (g.part ? " part" : "") + " ps-" + ps + '" data-a="gopen" data-g="' + g.id + '" style="--c:' + gColor(g) + '">' + gIcon(g) +
       '<span class="gc-b"><b>' + esc(g.part ? g.lb : g.nm) + calc + "</b>" + ((g.part || g.kind === "x" || M.lvOf(g.grp) !== "o") && g.sub ? '<small class="gc-sub">' + esc(g.sub) + "</small>" : "") + "<small>" + st.total + "問" + (st.acc != null ? "・正答 " + pctTxt(st.acc) : "") + "</small>" + (g.kind === "r" ? difHTML(g) : "") +
       barHTML(st) + badge + "</span>" +
-      '<span class="gc-pct"><b>' + Math.round(p * 100) + '<small>%</small></b><em>' + pl + "</em></span>" + ic("chevR") + "</button>";
+      '<span class="gc-pct"><b>' + Math.round(p * 100) + '<small>%</small></b><em>' + pl + "</em>" + eta + "</span>" + ic("chevR") + "</button>";
+  }
+  /* 完全習得まで最短何日か（控えめな小さい字）。0日＝今日のうちに完全習得できる */
+  function etaGroupHTML(g) {
+    const e = M.groupEta(g); if (e.done) return "";
+    const tip = "完全習得まで：最短" + (e.days <= 0 ? "で今日（のこりを今日ヒントなしで正解）" : "あと" + e.days + "日（毎日ヒントなしで正解した場合）");
+    return '<small class="gc-eta' + (e.days <= 0 ? " now" : "") + '" title="' + tip + '">' + (e.days <= 0 ? "今日で完了" : "最短" + e.days + "日") + "</small>";
   }
   /* ══ ★★ 2026-10-14 ご指定「習得中や習得や未修をバーの表示で色別でそれぞれ表示して分かりやすく」══
      前のバーは「習得した問題の割合」1本だけを、セットの状態の色（未着手＝灰・習得中＝橙・完全習得＝緑）で塗っていた
@@ -595,7 +641,7 @@
   function pgGSet() {
     const g = M.groupById(UI.gid);
     if (!g) return pgSets();
-    const st = M.groupStat(g), rw = M.groupReward(g), m = M.mult(), un = st.total - st.mas;
+    const st = M.groupStat(g), rw = M.groupReward(g), m = M.mult(), un = st.total - st.mas, ge = M.groupEta(g);
     /* ★★ 2026-10-13 単元ごとのまとまり（kind r）は「単元別問題」タブのもの */
     const head = g.kind === "o" ? esc(D.GRP ? D.GRP[g.grp] : "難関セット") + "・改題" : g.kind === "x" ? esc(D.GRP[g.grp] || "標準セット") + "・関連問題" : "単元別問題・" + LV[g.lv || "o"] + "レベル・" + esc(D.F[g.f].nm);
     const rows = g.ids.map((id, i) => { const x = D.BY[id], stt = M.status(id); return '<button class="qrow st-' + stt + '" data-a="detail" data-id="' + id + '"><span class="qn">' + (i + 1) + '</span><span class="qdot" title="' + ST_LB[stt] + '"></span><span class="qtx">' + esc(short(id, 70)) + '</span><span class="qmeta">' + etaHTML(id) + '<span class="qd">' + "★".repeat(x.d) + "</span></span></button>"; }).join("");
@@ -603,7 +649,7 @@
     const fr = g.ids.filter((id) => { const t = M.status(id); return t === "new" || t === "ng"; }).length;
     return '<div class="backbar"><button class="back" data-a="tab" data-tab="sets">' + ic("chevL") + "問題セット</button></div>" +
       '<section class="gh" style="--c:' + gColor(g) + '">' + ringW(st.total ? st.mas / st.total : 0, 86, 8, "<b>" + st.mas + "</b><small>/" + st.total + "</small>") +
-      '<div class="gh-t"><small>' + head + "</small><h1>" + (g.part ? esc(g.dai) + ' <span class="gh-lb">' + esc(g.lb) + "</span>" : esc(g.nm)) + "</h1>" + (g.part && g.sub ? '<p class="gh-sub">' + esc(g.sub) + "</p>" : "") + "<p>" + (st.cfPass ? "🏅 確認テスト合格ずみ" : st.done ? "🏆 完全習得！確認テストを受けられます" : "あと <b>" + un + "問</b> で完全習得") + (st.acc != null ? "・正答 " + pctTxt(st.acc) : "") + "</p></div></section>" +
+      '<div class="gh-t"><small>' + head + "</small><h1>" + (g.part ? esc(g.dai) + ' <span class="gh-lb">' + esc(g.lb) + "</span>" : esc(g.nm)) + "</h1>" + (g.part && g.sub ? '<p class="gh-sub">' + esc(g.sub) + "</p>" : "") + "<p>" + (st.cfPass ? "🏅 確認テスト合格ずみ" : st.done ? "🏆 完全習得！確認テストを受けられます" : "あと <b>" + un + "問</b> で完全習得" + (ge.done ? "" : '<span class="gh-eta">（最短' + (ge.days <= 0 ? "で今日" : "あと" + ge.days + "日") + "）</span>")) + (st.acc != null ? "・正答 " + pctTxt(st.acc) : "") + "</p></div></section>" +
       '<div class="gacts">' +
       '<button class="cta" data-a="gplay" data-g="' + g.id + '"><span class="cta-i">' + ic("shuffle") + '</span><span class="cta-t"><b>全問を解く（' + st.total + "問）</b><small>順番はシャッフル・1問ずつ答え合わせ</small></span>" + ic("chevR") + "</button>" +
       /* ★★ 2026-10-22 ご指定「計算問題以外の出題はそれぞれのセットで」：このセットの計算以外の問題だけ（ホームの計算なしモードがオフでも使える） */
@@ -611,6 +657,8 @@
       '<button class="mode-b" data-a="gplayUn" data-g="' + g.id + '"' + (un ? "" : " disabled") + '><span class="mi p">' + ic("target") + "</span><span><b>まだ習得していない問題だけ（" + un + "問）</b><small>" + (un ? "習得ずみの問題はとばします（シャッフル）" : "すべて習得ずみ！") + "</small></span>" + ic("chevR") + "</button>" +
       /* ★★ 2026-10-12 ご指定「習得中までしかできない場合でも、習得中になっていない問題のみに絞り込んで」 */
       (fr && fr < un ? '<button class="mode-b" data-a="gplayFresh" data-g="' + g.id + '"><span class="mi f">' + ic("spark") + "</span><span><b>まだ習得中になっていない問題だけ（" + fr + "問）</b><small>未解答・まちがえた問題だけ。今日すすめられる問題です（習得中の問題は次の日以降に）</small></span>" + ic("chevR") + "</button>" : "") +
+      /* ★★ 2026-10-23 ご指定「習得中から完全習得待ちで、今日習得にできる問題のみ出題」 */
+      (ge.today ? '<button class="mode-b" data-a="gplayToday" data-g="' + g.id + '"><span class="mi td">' + ic("flag") + "</span><span><b>今日習得にできる問題だけ（" + ge.today + "問）</b><small>習得中の問題のうち、今日ヒントなしで正解すると「習得」になる問題（シャッフル）</small></span>" + ic("chevR") + "</button>" : "") +
       /* ★★ 2026-10-15 フラッシュカード（問題 → 答え・解説をめくる。習得の記録は変えない） */
       '<button class="mode-b" data-a="fcGroup" data-g="' + g.id + '"><span class="mi fc">' + ic("flash") + "</span><span><b>フラッシュカードでめくる（" + st.total + "枚）</b><small>問題 → 答え・解説をめくって確認。メモ・電卓も使えます（習得の記録は変わりません）</small></span>" + ic("chevR") + "</button>" +
       '<button class="mode-b conf' + (st.done ? " rdy" : "") + '" data-a="gconf" data-g="' + g.id + '"' + (st.done ? "" : " disabled") + '><span class="mi c">' + ic("medal") + "</span><span><b>確認テスト（全" + st.total + "問）</b><small>" +
@@ -705,7 +753,7 @@
     return '<button class="qrow st-' + stt + '" data-a="detail" data-id="' + id + '"><span class="qdot"></span><span class="qtx"><em class="' + x.g + '">' + D.T[x.t].nm + "</em>" + esc(short(id, 60)) + "</span>" + ic("chevR") + "</button>";
   }
   function pgReview() {
-    const due = M.dueList(), wr = M.wrongList(), un = M.unsureList(), bm = M.bmList(), fc = M.dueForecast(), s = M.get();
+    const due = M.dueList(), wr = M.wrongList(), un = M.unsureList(), bm = M.bmList(), fc = M.dueForecast(), s = M.get(), tdl = M.todayList();
     const weak = Object.keys(D.T).map((t) => ({ t, st: M.topicStat(t) })).filter((o) => o.st.acc != null && o.st.n >= 2).sort((a, b) => a.st.acc - b.st.acc).slice(0, 3);
     let nextTxt = "まだ復習の予定はありません。問題を解くと、忘れかけたころに出てきます。";
     if (!due.length) {
@@ -718,6 +766,9 @@
       '<section class="rv-main">' + F.mascot(due.length ? "think" : "happy") + '<div class="rv-t"><b>' + (due.length ? "今日の復習 " + due.length + "問" : "今日の復習は完了！") + "</b><p>" + (due.length ? "まちがえた問題・期限の来た問題です。" : nextTxt) +
       (fc[0] > due.length ? "<br><small>このあと <b>" + (fc[0] - due.length) + "問</b> が今日の復習に入ります（まちがえた問題は10分後から）。</small>" : "") + "</p>" +
       '<button class="cta sm" data-a="start" data-mode="due"' + (due.length ? "" : " disabled") + ">" + ic("review") + "<span>復習をはじめる</span></button></div></section>" +
+      /* ★★ 2026-10-23 ご指定「習得中から完全習得待ちで、今日習得にできる問題のみ出題」（どのセットの問題もまとめて） */
+      '<button class="mode-b rv-td" data-a="start" data-mode="today"' + (tdl.length ? "" : " disabled") + '><span class="mi td">' + ic("flag") + "</span><span><b>今日習得にできる問題（" + tdl.length + "問）</b><small>" +
+        (tdl.length ? "習得中の問題のうち、今日ヒントなしで正解すると「習得」になる問題をまとめて" : "いまはありません（習得中の問題は、正解した次の日から習得にできます）") + "</small></span>" + ic("chevR") + "</button>" +
       '<div class="rv-cards">' +
       '<button class="rvc" data-a="start" data-mode="wrong" style="--c:#ff8a1f">' + ic("x") + "<b>" + wr.length + "</b><span>まちがえた問題</span></button>" +
       '<button class="rvc" data-a="start" data-mode="unsure" style="--c:#0aa2c0">' + ic("help") + "<b>" + un.length + "</b><span>あやしい問題</span></button>" +
@@ -1135,6 +1186,9 @@
       /* ★★ 2026-10-12 まだ習得中になっていない問題だけ */
       (function () { const un = S.ids.filter((id) => M.status(id) !== "mas").length, fr = S.ids.filter((id) => { const t = M.status(id); return t === "new" || t === "ng"; }).length;
         return fr && fr < un ? '<button class="mode-b" data-a="setFresh" data-set="' + k + '"><span class="mi f">' + ic("spark") + "</span><span><b>まだ習得中になっていない問題だけ（" + fr + "問）</b><small>未解答・まちがえた問題だけ（今日すすめられる問題）</small></span>" + ic("chevR") + "</button>" : ""; })() +
+      /* ★★ 2026-10-23 今日習得にできる問題だけ */
+      (function () { const n = S.ids.filter((id) => M.canMasterToday(id)).length;
+        return n ? '<button class="mode-b" data-a="setToday" data-set="' + k + '"><span class="mi td">' + ic("flag") + "</span><span><b>今日習得にできる問題だけ（" + n + "問）</b><small>習得中の問題のうち、今日ヒントなしで正解すると「習得」になる問題</small></span>" + ic("chevR") + "</button>" : ""; })() +
       '<p class="sh-note">' + ic("gift") + " はじめて 60%・80%・100% をこえると +" + R.set60 * m + "・+" + R.set80 * m + "・+" + R.set100 * m + " XEVA" + (m > 1 ? "（いまは" + m + "倍）" : "") + "</p>" +
       (n ? '<div class="g-rst sh"><button class="g-reset" data-a="exReset" data-set="' + k + '">' + ic("undo") + "模試の記録をリセット</button><small>挑戦の記録を消して、60%・80%・100% のごほうびをもう一度もらえます</small></div>" : ""));
   }
@@ -1590,8 +1644,8 @@
   }
 
   /* ══════════════ 操作 ══════════════ */
-  const EMPTY = { due: "今日の復習はありません 🎉", wrong: "まちがえた問題はありません", unsure: "あやしい問題はありません", bm: "ブックマークした問題はありません", weak: "まだデータがありません。まずは解いてみよう！", list: "問題がありません" };
-  const TITLE = { rec: "今日のおすすめ", due: "今日の復習", wrong: "まちがえた問題", unsure: "あやしい問題", bm: "ブックマーク", weak: "弱点克服", random: "ランダム10問", list: "問題一覧から" };
+  const EMPTY = { today: "今日習得にできる問題はありません（習得中の問題は、正解した次の日から習得にできます）", due: "今日の復習はありません 🎉", wrong: "まちがえた問題はありません", unsure: "あやしい問題はありません", bm: "ブックマークした問題はありません", weak: "まだデータがありません。まずは解いてみよう！", list: "問題がありません" };
+  const TITLE = { today: "今日習得にできる問題", rec: "今日のおすすめ", due: "今日の復習", wrong: "まちがえた問題", unsure: "あやしい問題", bm: "ブックマーク", weak: "弱点克服", random: "ランダム10問", list: "問題一覧から" };
   let resetArm = 0;
   const ACT = {
     tab: (el) => { closeSheet(); go(el.dataset.tab); },
@@ -1648,6 +1702,9 @@
     /* ★★ 2026-10-12 まだ習得中になっていない問題だけ・リセット・習得までの流れ */
     setFresh: (el) => { const k = el.dataset.set; startSession(M.build("set", { set: k, only: "fresh", shuffle: true }), { title: setTitle(k) + "（今日すすめる問題）", empty: "未解答・まちがえた問題はありません！" }); },
     gplayFresh: (el) => { const g = M.groupById(el.dataset.g); if (g) startSession(M.build("group", { g: g.id, only: "fresh" }), { title: g.nm + "（今日すすめる問題）", empty: "未解答・まちがえた問題はありません！" }); },
+    /* ★★ 2026-10-23 今日習得にできる問題だけ（セット・模試のシート） */
+    gplayToday: (el) => { const g = M.groupById(el.dataset.g); if (g) startSession(M.build("group", { g: g.id, only: "today" }), { title: g.nm + "（今日習得にできる問題）", empty: EMPTY.today }); },
+    setToday: (el) => { const k = el.dataset.set; closeSheet(); startSession(M.build("set", { set: k, only: "today", shuffle: true }), { title: setTitle(k) + "（今日習得にできる問題）", empty: EMPTY.today }); },
     mhelp: () => sheet('<p class="sh-pre">MagiChemLex</p><h2 class="sh-t">' + ic("help") + ' 習得・完全習得までの流れ</h2><div class="mexp open">' + masterHelpHTML() + "</div>"),
     gReset: (el) => {
       const g = M.groupById(el.dataset.g); if (!g) return;

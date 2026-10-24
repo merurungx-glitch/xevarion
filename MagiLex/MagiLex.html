@@ -5,9 +5,9 @@
 <script src="../xeva-splash.js?v=17" data-app="MagiLex" data-logo="../thumbs/MagiLex.jpg"></script>
 <meta charset="UTF-8">
 <script>(function(){try{var a=JSON.parse(localStorage.getItem('xeva_account_v1'));if(!a||!a.setupDone)location.replace('../index.html');}catch(e){}})();</script>
-<script type="module" src="../xevarion-fb.js?v=35"></script>
+<script type="module" src="../xevarion-fb.js?v=36"></script>
 <script src="../xeva-presence.js?v=9" defer></script>
-<script type="module" src="../xeva-cloud.js?v=47"></script>
+<script type="module" src="../xeva-cloud.js?v=48"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>MagiLex — 学習アプリ（クイズ × 単語帳）</title>
 <link rel="icon" href="../thumbs/MagiLex.jpg">
@@ -72,7 +72,7 @@ if ("serviceWorker" in navigator) {
 <div class="app">
   <header class="topbar">
     <!-- XEVARION へもどる（xeva-back.js が同期を送り切ってから移動させる） -->
-    <a class="xv-back" href="../index.html" aria-label="XEVARION へもどる" title="XEVARION へもどる">‹</a>
+    <a class="xv-back" href="index.html" aria-label="MagiLex の入口へもどる" title="MagiLex（MagiChemLex／旧MagiLex をえらぶ画面）へもどる">‹</a>
     <div class="logo"><img src="../thumbs/MagiLex.jpg" alt="MagiLex"><b class="serif">Magi<span>Lex</span></b></div>
     <div class="coin"><img src="../XEVA.png" alt="XEVA"><span class="js-coin">0</span></div>
     <img class="u-av js-av" src="../img/Hina.webp" alt="アカウント" onclick="lexTab('settings')">
@@ -128,38 +128,29 @@ if ("serviceWorker" in navigator) {
 
 <div class="toast" id="toast"></div>
 
-<script src="../xeva.js?v=80"></script>
+<script src="../xeva.js?v=82"></script>
 <script src="../xeva-loading.js?v=19" defer></script>
 <script src="magilex-data.js?v=10"></script>
 <script src="magilex-eigo.js?v=9"></script>
 <script src="magilex-rika.js?v=9"></script>
-<!-- ★ 2026-08-15 物理の最難関レベル演習（全範囲・16セット / 192問） -->
-<script src="magilex-butsuri.js?v=10"></script>
+<!-- ★★ 2026-10-24 ご指定「旧MagiLex の問題で化学と英語と古典以外のものは削除」→ 物理α・β・γ・数学・地理のファイル（butsuri／math3／suugaku／physb／physg／chiri）は削除した -->
 <script src="magilex-chemb.js?v=10"></script>
-<script src="magilex-math3.js?v=9"></script>
 <!-- ★ 2026-08-16 化学γ（最難関の有機・無機＋物質別 33セット / 324問） -->
 <script src="magilex-chemg.js?v=11"></script>
-<!-- ★ 2026-08-16 数学 全範囲の最難関演習（14セット / 168問） -->
-<script src="magilex-suugaku.js?v=11"></script>
 <!-- ★★ 2026-08-20 化学δ（脂質・芳香族とフェノール類・元素別各論 14〜18族／27セット 324問） -->
 <script src="magilex-chemd.js?v=9"></script>
-<!-- ★★ 2026-08-20 物理β（電磁気学。抵抗・直流回路・磁場・電磁誘導・導体棒・コイル／24セット 288問）
-     これまでの物理は「物理α」になった（id は phys_ のまま）。 -->
-<script src="magilex-physb.js?v=9"></script>
 <!-- ★★ 2026-08-26 化学ε（全範囲の標準演習 理論・無機・有機・高分子／20セット 240問） -->
 <script src="magilex-cheme.js?v=11"></script>
-<!-- ★★ 2026-08-26 物理γ（全範囲の標準演習 力学・熱・波動・電磁気・原子／20セット 240問） -->
-<script src="magilex-physg.js?v=10"></script>
-<!-- ★★ 2026-08-30 地理（工業／人口／人口問題）。教科書の太字と図・表から作った演習。 -->
-<script src="magilex-chiri.js?v=9"></script>
 <!-- ★★ 2026-08-19 中堅レベル（最難関のひとつ手前）。数学・物理・化学γ の15セット / 150問 -->
 <!-- ★★ 2026-08-19 入門レベル（中堅のひとつ手前） -->
 <script src="magilex-intro.js?v=9"></script>
 <script src="magilex-mid.js?v=9"></script>
+<!-- ★★ 2026-10-24 入門・中堅・理科のファイルにまじっている数学・物理のセットも外す（化学・英語・古文だけ残す） -->
+<script>window.LEX_SECTIONS = (window.LEX_SECTIONS || []).filter(function (s) { return !(s && /^(math_|phys_|physb_|physg_|geo_)/.test(String(s.id || ""))); });</script>
 <!-- ★★ 2026-08-19 図・グラフのエンジン。XEVYNAR と<b>同じ1本</b>を共有する。
      （両方に同じ図を書くと、片方だけ直して食いちがうので必ず共有にする） -->
 <script src="../XEVYNAR/xevynar-figs.js?v=17"></script>
-<script type="module" src="magilex.js?v=88"></script>
+<script type="module" src="magilex.js?v=89"></script>
 <!-- XEVARION へもどる導線（同期を送り切ってから移動する） -->
 <script src="../xeva-back.js?v=9" data-mode="hook"></script>
 </body>

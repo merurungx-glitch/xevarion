@@ -926,6 +926,12 @@ html:not(.ready) .main { opacity: 0; }
 .gc-pct b { font-size: 1.12rem; font-weight: 900; letter-spacing: -.02em; }
 .gc-pct b small { font-size: .62rem; margin-left: 1px; }
 .gc-pct em { font-style: normal; font-size: .6rem; font-weight: 900; margin-top: 3px; white-space: nowrap; }
+/* ★★ 2026-10-23 完全習得まで最短何日か（控えめ） */
+.gc-pct .gc-eta { font-size: .54rem; font-weight: 800; margin-top: 2px; white-space: nowrap; color: var(--mute); opacity: .9; letter-spacing: -.01em; }
+.gc-pct .gc-eta.now { color: #12a86b; opacity: 1; }
+.gh-eta { font-size: .86em; font-weight: 700; color: var(--mute); }
+.mode-b .mi.td { color: #fff; background: linear-gradient(135deg, #2fbf71, #12a86b); }
+.mode-b.rv-td { margin-top: 12px; }
 .gcard.ps-new .gc-pct b { opacity: .55; }
 .gc-calc { display: inline-flex; vertical-align: -1px; margin-left: 5px; color: var(--mute); opacity: .7; }
 .gc-calc .di { width: 13px; height: 13px; }
@@ -1605,3 +1611,10 @@ html.xv-full .mcl-sp { position: absolute; top: 0; bottom: auto; height: var(--x
 .bigl-t small { color: var(--mute); font-size: .72rem; line-height: 1.5; }
 .mode-b .mi.nc { color: #0b8f6a; background: rgba(18, 184, 134, .12); }
 .mode-b .mi.nc svg { width: 20px; height: 20px; }
+
+/* ★★ 2026-10-24 WP 交換所のキャラ（ミキ）：受け取ったときの大きな絵 */
+.wpcf-ch{display:flex;justify-content:center;margin:4px 0 8px}
+.wpcf-ch img{width:min(62vw,260px);aspect-ratio:1;object-fit:cover;border-radius:22px;box-shadow:0 0 0 3px #fff,0 0 0 6px #2fbf71,0 14px 34px rgba(31,143,138,.35);animation:wpChIn .6s cubic-bezier(.2,1.5,.4,1)}
+@keyframes wpChIn{from{transform:scale(.6) rotate(-6deg);opacity:0}}
+.wpx.ch .wpx-a{display:flex;align-items:center;justify-content:center}
+@media (prefers-reduced-motion:reduce){.wpcf-ch img{animation:none}}

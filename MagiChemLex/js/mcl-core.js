@@ -606,6 +606,18 @@
     const canToday = !(r && r.lastOk === today());
     return { done: false, need, days: canToday ? need - 1 : need };
   }
+  /* ★★ 2026-10-23 ご指定「セット全体の完全習得まで最短何日か、それぞれで小さく表示」
+     ＝ そのセットの問題ごとの「習得まで最短」（masterEta）のいちばん長いもの（毎日ヒントなしで正解した場合）。
+     → { done:完全習得ずみ, days:最短で何日後に完全習得（0＝今日のうちに）, today:今日のうちに習得にできる問題の数 } */
+  function groupEta(g) {
+    let days = 0, done = true, now = 0;
+    ((g && g.ids) || []).forEach((id) => { const e = masterEta(id); if (e.done) return; done = false; if (e.days > days) days = e.days; if (e.days <= 0) now++; });
+    return { done, days, today: now };
+  }
+  /* ★★ 2026-10-23 ご指定「習得中から完全習得待ちで、今日習得にできる問題のみ出題」
+     ＝ 習得中（前の日までにヒントなしで正解・まだ習得でない）で、今日はまだ正解していない問題。今日ヒントなしで正解すると「習得」になる。 */
+  function canMasterToday(id) { const e = masterEta(id); return !e.done && e.days <= 0; }
+  function todayList() { return D.Q.filter((x) => canMasterToday(x.id)).map((x) => x.id); }
 
   /* ══ 出題する問題をえらぶ ══ */
   function shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
@@ -626,7 +638,7 @@
     const notMas = (id) => { const r = s.q[id]; return !(r && (r.lv || 0) >= 2 && r.last); };
     /* ★★ 2026-10-12 まだ「習得中」になっていない（未解答・最後にまちがえた）＝今日すすめられる問題 */
     const notYet = (id) => { const r = s.q[id]; return !(r && r.n && r.last); };
-    const only = (ids) => opt.only === "un" ? ids.filter(notMas) : opt.only === "fresh" ? ids.filter(notYet) : ids;
+    const only = (ids) => opt.only === "un" ? ids.filter(notMas) : opt.only === "fresh" ? ids.filter(notYet) : opt.only === "today" ? ids.filter(canMasterToday) : ids;
     if (mode === "list") { const l = (opt.ids || []).filter((id) => D.BY[id]); return opt.shuffle ? shuffle(l) : l; }
     /* ★★ 2026-10-06c 出題はシャッフル（ご指定）。本番モード（時間を計る）だけは本番どおりの順番（shuffle を渡さない） */
     if (mode === "set") { const ids = only((D.SETS[opt.set] ? D.SETS[opt.set].ids : []).slice()); return opt.shuffle ? shuffle(ids) : ids; }
@@ -635,6 +647,7 @@
     if (mode === "wrong") return shuffle(wrongList()).slice(0, opt.n || 30);
     if (mode === "unsure") return shuffle(unsureList()).slice(0, opt.n || 30);
     if (mode === "bm") return bmList();
+    if (mode === "today") return shuffle(todayList());   /* ★★ 2026-10-23 今日習得にできる問題（ぜんぶ） */
     if (mode === "topic") {
       let ids = D.Q.filter((x) => x.t === opt.t).sort((a, b) => (a.g === b.g ? 0 : a.g === "o" ? -1 : 1)).map((x) => x.id);
       ids = only(ids);
@@ -708,6 +721,7 @@
     chem, fmt, fmtOpt, plain, esc, parseNum, judge, judgeNum, answerText,
     rec, status, isDue, idsOf, topicStat, fieldStat, totals, dueList, wrongList, unsureList, bmList, dueForecast,
     streak, bestStreak, todayCount, level, answer, finishSet, bestRun, setUns, toggleBm, setMemo, setCombo, setSetting, resetAll, resetGroup, resetExam, masterEta,
+    groupEta, canMasterToday, todayList,
     build, pickRelated, shuffle, badges,
     groups, groupById, groupsOf, groupStat, groupReward, volMul, finishConfirm, finishMix, catchUpGroups, qNo, isCalc, groupHasCalc, groupCalcN, isStd, isBasic, lvOf,
     /* ★★ 2026-10-20 Wisdom Point・計算なしモード */

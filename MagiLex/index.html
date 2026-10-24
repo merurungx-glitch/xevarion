@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<script src="../maintenance-gate.js?v=13"></script>
+<meta charset="UTF-8" />
+<script>(function(){try{var a=JSON.parse(localStorage.getItem('xeva_account_v1'));if(!a||!a.setupDone)location.replace('../index.html');}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<title>MagiLex — 学ぶアプリをえらぶ</title>
+<meta name="description" content="MagiLex の入口。MagiChemLex（難関化学の問題集）と 旧MagiLex（英単語・化学・古文）から、学ぶほうをえらびます。" />
+<link rel="icon" href="../thumbs/MagiLex.jpg" type="image/jpeg" />
+<link rel="apple-touch-icon" href="../thumbs/MagiLex.jpg" />
+<meta name="theme-color" content="#2f6bff" />
+<!-- ══════════════════════════════════════════════════════════════
+     ★★ 2026-10-24 MagiLex の入口（新規）
+     ご指定「現在の MagiChemLex の UI・構造・システムを中心として MagiLex と統合。ただし基本は別のものとして扱う。
+             MagiLex のアプリを開くと、旧MagiLex（今後の問題追加予定なし）と MagiChemLex から選べ、それぞれを押すとそれぞれを開いて学習できる」
+     ・XEVARION のメニュー・ロビーの「MagiLex」はこのページを開く（xevarion-home.js の XH_APPS）。
+     ・見た目は MagiChemLex にそろえた（色・丸ゴシック・白いカード）。記録はそれぞれ別（magichemlex_v1 ／ magilex_v2）。
+     ・ここで出す数字は端末の記録を読むだけ（書きこまない）。
+     ══════════════════════════════════════════════════════════════ -->
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function () { navigator.serviceWorker.register("sw.js").catch(function () {}); });
+}
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#f2f5ff; --card:#ffffff; --ink:#1b2142; --sub:#59628a; --mute:#8b93b7; --line:#e0e6f6;
+  --pri:#3b5bff; --pri2:#7b5cff; --acc:#ff8a1f; --ok:#10b17f;
+  --grad:linear-gradient(135deg,#2f6bff 0%,#6a5cff 55%,#a35cff 100%);
+  --sh:0 4px 18px rgba(40,60,150,.08),0 1px 3px rgba(40,60,150,.06);
+  --font:"M PLUS Rounded 1c","Hiragino Maru Gothic ProN","BIZ UDPGothic","Hiragino Sans","Yu Gothic UI",system-ui,sans-serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){--bg:#0e1226;--card:#171d3a;--ink:#edf0ff;--sub:#aab2da;--mute:#7a83ad;--line:#2a325c;--pri:#6c86ff;--pri2:#9b82ff;
+    --sh:0 4px 18px rgba(0,0,0,.35),0 1px 3px rgba(0,0,0,.3);color-scheme:dark}
+}
+:root[data-theme="dark"]{--bg:#0e1226;--card:#171d3a;--ink:#edf0ff;--sub:#aab2da;--mute:#7a83ad;--line:#2a325c;--pri:#6c86ff;--pri2:#9b82ff;
+  --sh:0 4px 18px rgba(0,0,0,.35),0 1px 3px rgba(0,0,0,.3);color-scheme:dark}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font-family:var(--font);-webkit-tap-highlight-color:transparent}
+body{min-height:100vh;min-height:100dvh;display:flex;flex-direction:column}
+.hd{position:sticky;top:0;z-index:5;display:flex;align-items:center;gap:10px;padding:calc(10px + env(safe-area-inset-top,0px)) 14px 10px;background:var(--grad);color:#fff;box-shadow:0 6px 20px rgba(59,91,255,.25)}
+.hd-back{display:flex;align-items:center;gap:2px;color:#fff;text-decoration:none;font-size:12px;font-weight:900;padding:6px 10px 6px 6px;border-radius:12px;background:rgba(255,255,255,.18)}
+.hd-back svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.8;stroke-linecap:round;stroke-linejoin:round}
+.hd-t{flex:1;min-width:0;display:flex;align-items:center;gap:8px}
+.hd-t img{width:30px;height:30px;border-radius:9px;box-shadow:0 0 0 2px rgba(255,255,255,.7)}
+.hd-t b{font-size:19px;font-weight:900;letter-spacing:.02em}
+.hd-t small{display:block;font-size:10.5px;font-weight:800;opacity:.85;margin-top:-2px}
+main{flex:1;width:100%;max-width:720px;margin:0 auto;padding:18px 14px calc(22px + env(safe-area-inset-bottom,0px))}
+.lead{margin:2px 4px 14px;font-size:13px;font-weight:800;color:var(--sub)}
+.pick{display:block;position:relative;overflow:hidden;margin:0 0 14px;padding:16px 16px 14px;border-radius:22px;background:var(--card);color:var(--ink);text-decoration:none;
+  box-shadow:var(--sh);border:2px solid transparent;transition:transform .12s ease,box-shadow .2s ease}
+.pick:active{transform:scale(.985)}
+.pick.main{border-color:var(--pri);box-shadow:0 10px 30px rgba(59,91,255,.18)}
+.pick.main::before{content:"";position:absolute;inset:0 0 auto 0;height:5px;background:var(--grad)}
+.pk-top{display:flex;align-items:center;gap:12px}
+.pk-top img{width:62px;height:62px;flex:none;border-radius:16px;object-fit:cover;box-shadow:0 0 0 1.5px var(--line),0 4px 10px rgba(40,60,150,.15)}
+.pk-t{flex:1;min-width:0}
+.pk-t b{display:block;font-size:19px;font-weight:900;line-height:1.25}
+.pk-t small{display:block;font-size:12px;font-weight:700;color:var(--sub);line-height:1.5}
+.pk-go{flex:none;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:var(--grad);color:#fff}
+.pick.old .pk-go{background:#8b93b7}
+.pk-go svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+.pk-tags{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+.pk-tags span{font-size:11px;font-weight:900;padding:3px 9px;border-radius:99px;background:rgba(59,91,255,.1);color:var(--pri)}
+.pk-tags span.or{background:rgba(255,138,31,.14);color:#d9690a}
+.pk-tags span.gr{background:rgba(139,147,183,.16);color:var(--sub)}
+.pk-st{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px}
+.pk-st div{padding:8px 6px;border-radius:14px;background:var(--bg);text-align:center}
+.pk-st b{display:block;font-size:17px;font-weight:900;line-height:1.2}
+.pk-st small{display:block;font-size:10.5px;font-weight:800;color:var(--mute)}
+.pk-last{position:absolute;top:12px;right:14px;font-size:10px;font-weight:900;color:#fff;background:var(--acc);padding:2px 8px;border-radius:99px}
+.note{margin:18px 4px 0;font-size:11.5px;line-height:1.7;color:var(--mute);font-weight:700}
+@media (min-width:760px){main{padding-top:28px}.pk-top img{width:72px;height:72px}}
+@media (prefers-reduced-motion:reduce){.pick{transition:none}}
+</style>
+</head>
+<body>
+<header class="hd">
+  <a class="hd-back" href="../index.html" aria-label="XEVARION へもどる"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg>XEVARION</a>
+  <div class="hd-t"><img src="../thumbs/MagiLex.jpg" alt=""><div><b>MagiLex</b><small>学ぶアプリをえらぶ</small></div></div>
+</header>
+<main>
+  <p class="lead">どちらで学びますか？ 記録はそれぞれ別に保存され、XEVARION のアカウントで同期されます。</p>
+  <a class="pick main" id="pkChem" href="../MagiChemLex/index.html" data-k="chem">
+    <div class="pk-top">
+      <img src="../thumbs/MagiChemLex.jpg?v=2" alt="">
+      <div class="pk-t"><b>MagiChemLex</b><small>難関化学の問題集。基礎・標準・難関の改題と、単元別の問題で鍛える</small></div>
+      <span class="pk-go" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></span>
+    </div>
+    <div class="pk-tags"><span>メインの学習</span><span class="or">問題は増えていきます</span><span>WP 交換所</span></div>
+    <div class="pk-st" id="stChem"></div>
+  </a>
+  <a class="pick old" id="pkOld" href="MagiLex.html" data-k="old">
+    <div class="pk-top">
+      <img src="../thumbs/MagiLex.jpg" alt="">
+      <div class="pk-t"><b>旧MagiLex</b><small>英単語（発音つき）・化学・古文のクイズと単語帳</small></div>
+      <span class="pk-go" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6"/></svg></span>
+    </div>
+    <div class="pk-tags"><span class="gr">今後の問題追加の予定はありません</span><span>KP 交換所</span></div>
+    <div class="pk-st" id="stOld"></div>
+  </a>
+  <p class="note">・どちらのアプリからも、上のバーの「MagiLex」からこの画面にもどれます。<br>・旧MagiLex の物理・数学・地理の問題は 2026年10月24日 に終了しました（化学・英語・古文は引きつづき学べます）。</p>
+</main>
+<script>
+(function () {
+  "use strict";
+  function jget(k) { try { return JSON.parse(localStorage.getItem(k) || "null"); } catch (e) { return null; } }
+  function pad(n) { return String(n).padStart(2, "0"); }
+  function ymd(d) { return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()); }
+  function nf(n) { return Math.round(Number(n) || 0).toLocaleString("ja-JP"); }
+  function box(id, rows) { var el = document.getElementById(id); if (el) el.innerHTML = rows.map(function (r) { return "<div><b>" + r[0] + "</b><small>" + r[1] + "</small></div>"; }).join(""); }
+  /* MagiChemLex：習得（lv≥2）の問題の数・連続日数・今日解いた数（mcl-core の streak と同じ数え方） */
+  var c = jget("magichemlex_v1") || {};
+  var q = c.q || {}, mas = 0, seen = 0;
+  Object.keys(q).forEach(function (id) { var r = q[id]; if (!r) return; seen++; if ((Number(r.lv) || 0) >= 2) mas++; });
+  var days = c.days || {}, t = new Date(), st = 0;
+  if (!days[ymd(t)]) t.setDate(t.getDate() - 1);
+  while (days[ymd(t)]) { st++; t.setDate(t.getDate() - 1); }
+  box("stChem", [[nf(mas), "習得した問題"], [nf(st) + "日", "連続学習"], [nf(days[ymd(new Date())] || 0), "今日解いた数"]]);
+  /* 旧MagiLex：完全習得したクイズ・単語帳の数と連続日数 */
+  var o = jget("magilex_v2") || {};
+  var qm = o.qmastered ? Object.keys(o.qmastered).filter(function (k) { return o.qmastered[k]; }).length : 0;
+  var wm = o.wmastered ? Object.keys(o.wmastered).filter(function (k) { return o.wmastered[k]; }).length : 0;
+  box("stOld", [[nf(qm + wm), "完全習得"], [nf(o.streak || 0) + "日", "連続学習"], [o.lastStudy ? String(o.lastStudy).slice(5).replace("-", "/") : "–", "前回の学習"]]);
+  /* 前回ひらいたほうに印（端末だけ） */
+  var last = ""; try { last = localStorage.getItem("magilex_hub_last_v1") || ""; } catch (e) {}
+  var lp = last === "old" ? document.getElementById("pkOld") : last === "chem" ? document.getElementById("pkChem") : null;
+  if (lp) { var s = document.createElement("span"); s.className = "pk-last"; s.textContent = "前回"; lp.appendChild(s); }
+  document.querySelectorAll(".pick").forEach(function (a) {
+    a.addEventListener("click", function () { try { localStorage.setItem("magilex_hub_last_v1", a.getAttribute("data-k")); } catch (e) {} });
+  });
+  /* ダークテーマは MagiChemLex の設定にそろえる */
+  try { var th = c.set && c.set.theme; if (th === "dark" || th === "light") document.documentElement.setAttribute("data-theme", th); } catch (e) {}
+})();
+</script>
+</body>
+</html>

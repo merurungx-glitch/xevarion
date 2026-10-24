@@ -29,13 +29,14 @@ if ("serviceWorker" in navigator) {
 }
 </script>
 <script src="../xeva-safebottom.js?v=12"></script>
-<link rel="stylesheet" href="css/mcl.css?v=13" />
+<link rel="stylesheet" href="css/mcl.css?v=15" />
 <script src="../xeva-splash.js?v=17" data-app="MagiChemLex" data-logo="../thumbs/MagiChemLex.jpg?v=2"></script>
 </head>
 <body>
 <div id="app">
   <header class="hd">
-    <a class="hd-back" href="../index.html" aria-label="XEVARION へもどる"><svg class="di" viewBox="0 0 24 24" aria-hidden="true"><path class="f" d="M15 18l-6-6 6-6"/></svg>XEVARION</a>
+    <!-- ★★ 2026-10-24 MagiLex に統合（ご指定）→ もどる先は MagiLex の入口（MagiChemLex／旧MagiLex をえらぶ画面） -->
+    <a class="hd-back" href="../MagiLex/index.html" aria-label="MagiLex の入口へもどる"><svg class="di" viewBox="0 0 24 24" aria-hidden="true"><path class="f" d="M15 18l-6-6 6-6"/></svg>MagiLex</a>
     <div class="hd-brand"><img src="img/icon_192.png?v=2" alt=""><b>MagiChemLex</b></div>
     <span class="hd-ev" id="hdEv" hidden></span>
     <span class="hd-xeva" title="所持 XEVA"><img src="../XEVA.png" alt="XEVA"><span id="hdXevaV">0</span></span>
@@ -61,11 +62,11 @@ if ("serviceWorker" in navigator) {
 <div id="fx"></div>
 <noscript><p style="padding:20px">MagiChemLex を使うには JavaScript を有効にしてください。</p></noscript>
 
-<script type="module" src="../xevarion-fb.js?v=35"></script>
-<script type="module" src="../xeva-cloud.js?v=47"></script>
+<script type="module" src="../xevarion-fb.js?v=36"></script>
+<script type="module" src="../xeva-cloud.js?v=48"></script>
 <!-- ★★ 2026-10-16 キャラの所持・凸（magiburst_v1）もここで同期する（前は読むだけで、別の端末で引いたキャラが出てこないことがあった） -->
-<script type="module" src="../MagiBurst/magiburst-cloud.js?v=26"></script>
-<script src="../xeva.js?v=80"></script>
+<script type="module" src="../MagiBurst/magiburst-cloud.js?v=27"></script>
+<script src="../xeva.js?v=82"></script>
 <script src="../xeva-loading.js?v=19" defer></script>
 <script src="../xeva-presence.js?v=9" defer></script>
 <script src="js/mcl-data.js?v=5"></script>
@@ -87,13 +88,13 @@ if ("serviceWorker" in navigator) {
 <script src="js/mcl-data10.js?v=1"></script>
 <script src="js/mcl-data11.js?v=1"></script>
 <script src="js/mcl-data12.js?v=1"></script>
-<script src="js/mcl-core.js?v=9"></script>
+<script src="js/mcl-core.js?v=10"></script>
 <script src="js/mcl-fig.js?v=5"></script>
 <script src="js/mcl-fig2.js?v=1"></script>
 <script src="js/mcl-fig3.js?v=1"></script>
 <script src="js/mcl-fig4.js?v=1"></script>
 <script src="js/mcl-fig5.js?v=2"></script>
-<script src="js/mcl-ui.js?v=13"></script>
+<script src="js/mcl-ui.js?v=15"></script>
 <!-- ★★ 2026-10-15 フラッシュカード（問題→答え・解説・自分のメモ）と特設予想問題（553＞1107） -->
 <script src="js/mcl-flash.js?v=2"></script>
 <script src="js/mcl-special.js?v=1"></script>

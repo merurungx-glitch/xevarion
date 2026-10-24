@@ -5,32 +5,28 @@
      オンライン復帰後にポータル側へ自然に反映される
    ・取得できたリソースは随時キャッシュ更新（stale-while-revalidate）
    ============================================================ */
-const VERSION = "magilex-sw-v127";
+const VERSION = "magilex-sw-v129";
 const CORE = [
   /* ★ 2026-08-19 図・グラフのエンジンは XEVYNAR と共有。
      ここに無いと、オフラインで「図で見る」が出ない。 */
   "../XEVYNAR/xevynar-figs.js?v=17",
   "./MagiLex.html",
+  "./index.html",                 /* ★★ 2026-10-24 MagiLex の入口（MagiChemLex／旧MagiLex をえらぶ） */
+  "../thumbs/MagiChemLex.jpg?v=2",
   "./magilex.css?v=47",
-  "./magilex.js?v=88",
+  "./magilex.js?v=89",
   "./magilex-data.js?v=10",
   "./magilex-eigo.js?v=9",
   "./magilex-rika.js?v=9",
-  "./magilex-butsuri.js?v=10",
   "./magilex-chemb.js?v=10",
-  "./magilex-math3.js?v=9",
   "./magilex-chemg.js?v=11",
-  "./magilex-suugaku.js?v=11",
   "./magilex-intro.js?v=9",
   "./magilex-mid.js?v=9",
   "./magilex-chemd.js?v=9",
-  "./magilex-physb.js?v=9",
   /* ★★ 2026-08-26 化学ε・物理γ（全範囲の標準演習。各20セット240問）。
      ここに無いとオフラインでこの2科目だけ問題が出てこない。 */
   "./magilex-cheme.js?v=11",
-  "./magilex-physg.js?v=10",
   /* ★★ 2026-08-30 地理。ここに無いとオフラインで開けず、update.json にも載らない。 */
-  "./magilex-chiri.js?v=9",
   "./mlhome_s.jpg",
   /* ★★ 2026-08-26 Knowledge Point（KP）のアイコン。
      ここに無いとオフラインで KP の絵が出ない。 */
@@ -48,8 +44,8 @@ const CORE = [
   "../brand/NGX_s.webp",
   "../brand/MagicalFuture_s.webp",
   "../brand/ISHIDA_s.webp",
-  "../xeva.js?v=80",
-  "../xeva-alive.js?v=7",
+  "../xeva.js?v=82",
+  "../xeva-alive.js?v=8",
   "../xeva-loading.js?v=19",
   "../xeva-splash.js?v=17",
   "../app-cloud.js?v=15",
@@ -188,7 +184,7 @@ self.addEventListener("fetch", (e) => {
         return res;
       } catch (err) {
         const cache = await caches.open(VERSION);
-        return (await cache.match(req)) || (await cache.match("./MagiLex.html"));
+        return (await cache.match(req)) || (await cache.match(/\/MagiLex\/(index\.html)?$/.test(new URL(req.url).pathname) ? "./index.html" : "./MagiLex.html")) || (await cache.match("./MagiLex.html"));
       }
     })());
     return;

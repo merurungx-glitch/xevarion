@@ -273,7 +273,7 @@ const LEX_EXP_CONFIRM = 200;   // 確認テスト合格（はじめての1回）
 function xstatus(){ return (window.XEVA && window.XEVA.status) || null; }
 /* レベルが上がったらトーストで知らせる */
 function lexGainExp(n, why){
-  const S = xstatus(); if(!S) return;
+  const S = xstatus(); if(!S || S.off) return;      /* ★★ 2026-10-24 レベルは廃止（ご指定） */
   const up = S.addExp(n, why || "MagiLex");
   /* toast は textContent なので、素の文字だけで組む（タグを入れるとそのまま出る） */
   if(up) toast("🎉 レベルアップ！ Lv."+up.from+" → Lv."+up.to, true);
@@ -281,7 +281,7 @@ function lexGainExp(n, why){
 }
 /* 確認テストのクリアぶん（上限を超えて回復する） */
 function lexGainStamina(name){
-  const S = xstatus(); if(!S) return;
+  const S = xstatus(); if(!S || S.off) return;      /* ★★ 2026-10-24 スタミナは廃止（ご指定） */
   const n = S.addFromLex("MagiLex 確認テスト"+(name?"："+name:""));
   toast("⚡ スタミナ ＋"+S.STAM_LEX_GAIN+"（いま "+S.text(n)+"）", true);
   try{ renderTop(); }catch(e){}
@@ -788,7 +788,7 @@ function render(name, arg){
    ・スタミナは MagiBurst のプレイで減り、<b>確認テストを1つクリアするたびに +50</b>。
      こちらは<b>上限を超えて</b>たまるので、4ケタになったら「999+」と出す。 */
 function lexStatusHTML(){
-  const S = xstatus(); if(!S) return "";
+  const S = xstatus(); if(!S || S.off) return "";   /* ★★ 2026-10-24 レベル・スタミナは廃止＝ホームに出さない */
   const v = S.get();
   return `<div class="hero-st">
     <div class="hs-lv" title="XEVARION 全体のレベル（MagiBurst と共通）">
@@ -1045,8 +1045,12 @@ window.lexKpDetail = async function(id){
       document.head.appendChild(l);
     }
     if(typeof window.DB === "undefined") await _loadScript("../mb-boot.js?v=17");
-    if(typeof window.CHARS === "undefined") await _loadScript("../MagiBurst/js/mb-core.js?v=139");
-    if(typeof window.openDetX !== "function") await _loadScript("../mb-char-detail.js?v=48");
+    /* ★★ 2026-10-24 ご報告「KP交換所のキャラの性能表示がうまくされず、画像も表示されない」
+       真因：mb-boot.js は絵のフォルダを "img/"（ポータル用）に決めるので、MagiLex（../img/ が正しい）から開くと
+       大きな絵（img/Mizuki.webp → MagiLex/img/…）が読めなかった。mb-core.js を読む前に直す（MagiAbyss と同じ）。 */
+    window.MB_IMGD = "../img/"; window.MB_GIMGD = "../MagiBurst/img/";
+    if(typeof window.CHARS === "undefined") await _loadScript("../MagiBurst/js/mb-core.js?v=140");
+    if(typeof window.openDetX !== "function") await _loadScript("../mb-char-detail.js?v=49");
     _kpDetReady = true;
     _kpOpen(id);
   }catch(e){
