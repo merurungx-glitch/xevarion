@@ -15,8 +15,8 @@
    <b>ふつうの &lt;script&gt;</b>（type="module" ではない）で読むこと。
    トップレベルの const/let はグローバルの字句環境に入るので、
    あとから読み込む MagiBurst 本体のスクリプトからそのまま見える。
-     MagiBurst : <script src="js/mb-core.js?v=140"></script>
-     gacha.html: <script src="MagiBurst/js/mb-core.js?v=140"></script>
+     MagiBurst : <script src="js/mb-core.js?v=141"></script>
+     gacha.html: <script src="MagiBurst/js/mb-core.js?v=141"></script>
 
    ── ホストが先に用意しておくもの ──
      window.MB_IMGD … 画像フォルダへの相対パス（MagiBurst は "../img/"、ポータルは "img/"）
@@ -24842,7 +24842,8 @@ FESTS.fes20 = {
   },
   get sub() {
     return "UR <b>5体</b>（各" + ratePct(pickRateOf("fes20", "kohaku")) + "）／<b>残りは " + PREMIUM_NM + " のSSRが等確率</b>。"
-      + "<b>毎月 21日〜末日（下旬）</b>だけの開催・🎫ガチャ券が使えます（フェス券は使えません）";
+      + "<b>毎月 21日〜末日（下旬）</b>だけの開催・🎫ガチャ券が使えます（フェス券は使えません）"
+      + "<br>👑 <b>ヒサコ・アリスは完凸でホームの「ロビー」</b>（動く立ち絵）が選べます";   /* ★★ 2026-10-26 ご指定「ロビーとして完凸で取得できることを表記」 */
   },
   get note() {
     return "<b>★★ 2026-10-24 超極煌祭に新キャラ2体</b>"
@@ -24852,7 +24853,10 @@ FESTS.fes20 = {
       + "<br>★ 5体とも <b>MagiAbyss 専用のキャラクター</b>です。性能は <b>MagiAbyss の性能だけ</b>で、"
       + "MagiBurst・MagiBattle・MagiBocciaRush では使えません（キャラ詳細は MagiAbyss の面だけ）。"
       + "<br>★ <b>MagiChemLex のナビゲーター</b>や <b>XEVARION のアイコン</b>には使えます。"
-      + "<br>★ MagiAbyss では <b>ヒサコが UR でいちばん強く</b>、<b>アリス・コハクはユナと同じくらい（タキナより少し強い）</b>、スズ・ショウコは<b>タキナと同じくらい</b>の強さです。";
+      + "<br>★ MagiAbyss では <b>ヒサコが UR でいちばん強く</b>、<b>アリス・コハクはユナと同じくらい（タキナより少し強い）</b>、スズ・ショウコは<b>タキナと同じくらい</b>の強さです。"
+      /* ★★ 2026-10-26 完凸ロビー（ご指定「ロビーとして完凸で取得できることを表記」） */
+      + "<br>👑 <b>完凸ボーナス</b>：<b>ヒサコ・アリス</b>を<b>完凸（4凸）</b>すると、XEVARION ホームの<b>「ロビー」</b>（パートナーの所に出る、動く立ち絵と展望テラスの背景）が選べるようになります。"
+      + "ロビーはホームの ♥パートナー →「ロビー」タブから。";
   },
 };
 /* ══════════════════════════════════════════════════════════════

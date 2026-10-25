@@ -24,7 +24,7 @@ if ("serviceWorker" in navigator) {
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
 <script src="../xeva-splash.js?v=17" data-app="MagiBurst" data-logo="../thumbs/MagiBurst.jpg"
         data-note="⚠️ このゲームの対象年齢は 13歳以上 です"></script>
-<script src="../xeva.js?v=82"></script>
+<script src="../xeva.js?v=83"></script>
 <!-- ★★ 2026-09-05 言語切りかえ（日本語 ⇄ English）。辞書は本体のあとに読むこと。 -->
 <script src="../xeva-i18n.js?v=8"></script>
 <script src="../xeva-i18n-dict.js?v=12"></script>
@@ -4031,14 +4031,14 @@ textarea.oninp.mbcode[readonly]{background:#f2f0fb;color:#3b3560}
 </div></div>
 
 <script>window.MB_IMGD = "../img/"; window.MB_GIMGD = "img/";</script>
-<script src="../mb-newchars.js?v=38"></script>
+<script src="../mb-newchars.js?v=39"></script>
 <!-- ★★ 2026-09-06 新UI（スタイリッシュ）。
      body.mb-ui2 の中だけにかかるので、旧UIに戻すのは class を外すだけ。
      ★ 本文の <style> より<b>あと</b>に置くこと（あとに来たほうが勝つ）。 -->
 <link rel="stylesheet" href="css/mb-ui2.css?v=26">
 <!-- ★★ 2026-09-06 LOCAL PLAY（近距離ローカルマルチ）の画面 -->
 <link rel="stylesheet" href="css/localplay.css?v=7">
-<script src="js/mb-core.js?v=140"></script>
+<script src="js/mb-core.js?v=141"></script>
 <!-- ★★ 2026-10-16 MagiAbyss 専用のキャラ（超極華祭の5体・abyssOnly）は MagiBurst には出さない（ご指定「他のゲームの性能は所持しません」）。
      CHAR_IDS（図鑑・編成・育成などの一覧のもと）から外す。いちばん後ろの番号なので、ほかの子の No. は変わらない -->
 <script>try { for (let i = CHAR_IDS.length - 1; i >= 0; i--) if (isAbyssOnly(CHAR_IDS[i])) CHAR_IDS.splice(i, 1); } catch (e) {}</script>
@@ -6170,6 +6170,11 @@ window.openNewChar = openNewChar; window.closeNewChar = closeNewChar;
 
 /* ══════════ お知らせ（アップデートのたびにここへ追記する） ══════════ */
 const NEWS = [
+  /* ★★ 2026-10-26 完凸ロビー・ドット絵 */
+  { date: "2026-10-26", title: "👑 ヒサコ・アリスの完凸ロビー", body: [
+    "👑 XEVARION のガチャ「<b>超極煌祭</b>」の <b>ヒサコ・アリス</b>を<b>完凸</b>すると、ホームのロビーに<b>動く立ち絵</b>を出せるようになりました。",
+    "🎮 ホームのイベントのバナーの上を、持っているキャラが<b>ドット絵</b>で動くようになりました。",
+  ] },
   /* ★★ 2026-10-24 レベル・スタミナ廃止・超極煌祭にヒサコ・アリス */
   { date: "2026-10-24", title: "⭐ レベル・スタミナを廃止／超極煌祭に2体", body: [
     "⭐ XEVARION の<b>レベルとスタミナを廃止</b>しました。クエストはスタミナなしで遊べます。",
