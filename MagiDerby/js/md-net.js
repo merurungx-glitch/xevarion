@@ -65,7 +65,8 @@
   /* いま手元にあるもの（通信しない） */
   N.peek = function (name) { const m = mem.get(name); if (m) return m.data; const c = cget(name); return c ? c.data : null; };
   N.index = (force) => getJSON("index.json", force ? 0 : 60000, true);
-  N.race = (rid, final, force) => getJSON("race/" + rid + ".json", force ? 0 : final ? 1e13 : 60000, true, final ? (d) => !!(d && d.result) : null);
+  /* ★★ 2026-10-26 結果が途中（速報で上位だけ）の控えは「確定した控え」として使わない（全頭そろうまで読み直す） */
+  N.race = (rid, final, force) => getJSON("race/" + rid + ".json", force ? 0 : final ? 1e13 : 60000, true, final ? (d) => !!(d && d.result && !N.partial(d)) : null);
   N.odds = (rid, force) => getJSON("odds/" + rid + ".json", force ? 0 : 60000, false);
   N.peekRace = (rid) => N.peek("race/" + rid + ".json");
   N.peekIndex = () => N.peek("index.json");
@@ -95,16 +96,18 @@
      ★★ 2026-10-24 ご指定「木曜の 0:00 から、枠順が出ていなくても買えるように」：枠順（馬番）の発表前も発売中。
        そのあいだは馬に<b>仮の番号</b>を付けて馬名で買い（N.betRace）、発表されたら券の番号を本当の馬番へ差し替える（md-bet の B.fixPre）。
      ★ ホームの「発売中」の札（home-mate.js の derbySale）も同じ決まり。片方を変えたらもう一方も。 */
+  /* ★★ 2026-10-26 ご指定「馬券の購入を発走から三日前からできるように」
+     → どの曜日のレースも<b>レースの日の3日前の 0:00</b>（D.SALE_DAYS_BEFORE）から締切までずっと（日曜のレース＝木曜 0:00・土曜＝水曜 0:00）。 */
   N.saleWins = function (r) {
-    const d = String(r.date || "").split("-").map(Number), wd = new Date(Date.UTC(d[0], d[1] - 1, d[2])).getUTCDay(), close = N.closeAt(r);
-    const back = wd === 6 ? 2 : wd === 0 ? 3 : wd === 1 ? 4 : 2;     /* 土→木（2日前）・日→木（3日前）・月→木（4日前）・ほか→2日前 */
-    return [[N.at(r.date, -back, 0, 0), close]];
+    return [[N.at(r.date, -(D.SALE_DAYS_BEFORE || 3), 0, 0), N.closeAt(r)]];
   };
   N.saleAt = (r) => N.saleWins(r)[0][0];                     /* 発売開始（いちばん最初の窓） */
   /* いま発売しているか（窓の中か）／次に発売が始まる時刻（無ければ null） */
   N.onSale = (r, t) => N.saleWins(r).some((w) => t >= w[0] && t < w[1]);
   N.nextSaleAt = function (r, t) { const w = N.saleWins(r).find((x) => t < x[0]); return w ? w[0] : null; };
-  N.payAt = (r) => N.dayAt(r.date, D.PAYOUT_DAY);           /* 払い戻し（次の日の 0:00） */
+  /* ★★ 2026-10-26 ご指定「結果や払い戻しは端末が情報を受信でき次第行って」→ 待つ時刻は無し（＝発走の時刻。結果のデータが届けばすぐ精算）。
+     そのかわり画面に「データが届きしだい・取得の時刻は前後する」と出す（md-ui の PAY_NOTE） */
+  N.payAt = (r) => N.postAt(r);
   N.dtStr = function (ms) { return N.dateStr(N.ymd(ms)) + " " + N.hm(ms); };
   N.WD = ["日", "月", "火", "水", "木", "金", "土"];
   N.dateStr = function (date, withWd) {
@@ -166,11 +169,22 @@
     const act = (race.entries || []).filter((e) => !e.cx).slice().sort((a, b) => (a.idx || 0) - (b.idx || 0));
     return Object.assign({}, race, { pre: true, odds: null, entries: act.map((e, i) => Object.assign({}, e, { no: i + 1, waku: null, pno: i + 1 })) });
   };
+  /* ★★ 2026-10-26 結果の表が途中か（自動取得の part の印・または出走頭数より行が少ない＝速報で上位だけ） */
+  N.partial = function (race) {
+    const res = race && race.result; if (!res) return false;
+    if (res.part) return true;
+    const need = race.heads || 0;
+    return need > 0 && (res.rows || []).length < need;
+  };
   N.runners = function (race) {
     /* 確定していれば結果の並び（取消・除外も含む）、そうでなければ出馬表 */
     if (race && race.result && race.result.rows && race.result.rows.length) {
       const ents = {}; (race.entries || []).forEach((e) => { ents[e.hid] = e; });
-      return race.result.rows.map((x) => Object.assign({}, ents[x.hid] || {}, { hid: x.hid, nm: x.nm, waku: x.waku, no: x.no, sa: x.sa, kg: x.kg, j: x.j, jid: x.jid, tr: x.tr, trb: x.trb, bw: x.bw, cx: /取消|除外/.test(x.pos) ? 1 : 0, res: x }));
+      const out = race.result.rows.map((x) => Object.assign({}, ents[x.hid] || {}, { hid: x.hid, nm: x.nm, waku: x.waku, no: x.no, sa: x.sa, kg: x.kg, j: x.j, jid: x.jid, tr: x.tr, trb: x.trb, bw: x.bw, cx: /取消|除外/.test(x.pos) ? 1 : 0, res: x }));
+      /* ★★ 2026-10-26 結果の表が途中まで（速報で上位だけ）のときは、出馬表の残りの馬もうしろにつなぐ（名前・馬番の引き当て用） */
+      const seen = {}; out.forEach((x) => { if (x.hid) seen[x.hid] = 1; });
+      (race.entries || []).forEach((e) => { if (e.hid && !seen[e.hid]) out.push(Object.assign({}, e)); });
+      return out;
     }
     return (race && race.entries) || [];
   };

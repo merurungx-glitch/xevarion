@@ -534,14 +534,14 @@ html::-webkit-scrollbar-track,.race::-webkit-scrollbar-track{background:linear-g
 .jt{position:relative;container-type:inline-size;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .jt.big{cursor:default;max-width:620px;width:100%;margin:0 auto}
 .jt-p{position:relative;aspect-ratio:1301/805;border-radius:1.4cqw;overflow:hidden;color:#141414;
-  display:grid;grid-template-columns:35% 4.5% 11% 1fr;grid-template-rows:1fr auto;   /* ★★ 2026-10-24 縦線を少し左へ（38%→35%）＝馬名の幅を広く */
+  display:grid;grid-template-columns:35% 11.4% 1fr;grid-template-rows:1fr auto;   /* ★★ 2026-10-26 緑の縦の帯は列から外して左の文字に重ねる（.jt-band）・券種と番号を近く */
   background-color:#fdfdfb;isolation:isolate;   /* ★★ 2026-10-24 実物の券に寄せて、紙はほぼ白 */
   box-shadow:0 0 0 1px #cfd8d1,0 4px 14px rgba(10,61,36,.13)}
 /* ★★ 2026-10-24 ご指定「馬券の背景は XEVARION のロゴ」：オーブ＋文字ロゴを、元の青紫のままうすく大きく1つ（文字の下に敷く）。
    （ミント色・敷きつめも試したが、ご指定で元の色・1つに戻した。紙・帯の色は実物に寄せたまま） */
 .jt-p::before{content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;opacity:.14;
   background:url("../../brand-xevarion-orb.png") 50% 30%/30cqw auto no-repeat,url("../../brand-xevarion-wordmark-dark.png") 50% 74%/58cqw auto no-repeat}
-.jt-l{grid-column:1;grid-row:1 / 3;padding:3.2cqw 1.6cqw 2.6cqw 3.4cqw;display:flex;flex-direction:column;align-items:flex-start;gap:.8cqw;min-width:0}
+.jt-l{grid-column:1;grid-row:1 / 3;position:relative;z-index:1;padding:3.2cqw 1cqw 2.6cqw 3.4cqw;display:flex;flex-direction:column;align-items:flex-start;gap:.8cqw;min-width:0}
 .jt-kai{font-family:var(--num);font-weight:700;font-size:4.4cqw;line-height:1;letter-spacing:.02em}
 .jt-pl{display:flex;align-items:center;gap:1.4cqw;line-height:1}
 .jt-pl b{font-family:var(--min);font-weight:800;font-size:8.2cqw;letter-spacing:.06em}
@@ -556,11 +556,12 @@ html::-webkit-scrollbar-track,.race::-webkit-scrollbar-track{background:linear-g
 .jt .fit{display:inline-block;white-space:nowrap;transform-origin:0 50%}
 .jt-is{margin-top:auto;font-size:2.8cqw;font-weight:700;line-height:1.3;color:#333}
 .jt-is b{font-family:var(--min);font-weight:800;color:#141414}
-.jt-band{grid-column:2;grid-row:1 / 3;background:#c3ebe4}   /* 実物の券の縦の帯（うすいミント） */
-.jt-ty{grid-column:3;grid-row:1;margin:3.2cqw 1cqw .8cqw;border:.32cqw solid #141414;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:1.2cqw 0;background:#fdfdfb}
+/* ★★ 2026-10-26 ご指定「緑の縦線はより左に・文字に重なっている」：実物の券（_fes_src/1024/jra_ticket_ref.jpg）と同じく、券の幅の 22〜30.5% に置いて左の欄の文字の下に敷く */
+.jt-band{position:absolute;top:0;bottom:0;left:22.2%;width:8.3%;z-index:0;background:#c3ebe4}   /* 実物の券の縦の帯（うすいミント） */
+.jt-ty{grid-column:2;grid-row:1;margin:3.2cqw .2cqw .8cqw .2cqw;border:.32cqw solid #141414;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:1.2cqw 0;background:#fdfdfb}
 .jt-ty small{font-family:var(--num);font-weight:700;font-size:1.9cqw;letter-spacing:.04em;line-height:1;text-align:center;max-width:100%;overflow:hidden}
 .jt-ty b{writing-mode:vertical-rl;text-orientation:upright;font-family:var(--min);font-weight:800;font-size:5.6cqw;letter-spacing:.35em;line-height:1}
-.jt-r{grid-column:4;grid-row:1;padding:3.6cqw 3.2cqw .8cqw 2.4cqw;display:flex;flex-direction:column;justify-content:center;gap:1.4cqw;min-width:0}
+.jt-r{grid-column:3;grid-row:1;padding:3.6cqw 3.2cqw .8cqw .8cqw;display:flex;flex-direction:column;justify-content:center;gap:1.4cqw;min-width:0}
 .jt-n{display:inline-flex;align-items:center;justify-content:center;min-width:5.6cqw;height:5.6cqw;padding:0 .6cqw;border:.3cqw solid #141414;font-style:normal;font-family:var(--num);font-weight:700;font-size:4.4cqw;line-height:1}
 .jt-n.fr{border-radius:50%}
 /* ★★ 2026-10-24 枠順の発表前に買った券の番号（?）・買う画面の仮の番号 */
@@ -587,7 +588,7 @@ html::-webkit-scrollbar-track,.race::-webkit-scrollbar-track{background:linear-g
 .jt-md b{font-family:var(--num);font-weight:700;font-size:5.4cqw;line-height:1.1;word-break:break-all}
 .jt-md span{font-family:var(--num);font-weight:700;font-size:4.2cqw;line-height:1.15;word-break:break-all}
 .jt-md small{font-size:2.8cqw;font-weight:800;color:#444}
-.jt-b{grid-column:3 / 5;grid-row:2;padding:0 3.2cqw 2.6cqw 1cqw;display:flex;flex-direction:column;gap:.6cqw}
+.jt-b{grid-column:2 / 4;grid-row:2;padding:0 3.2cqw 2.6cqw 1cqw;display:flex;flex-direction:column;gap:.6cqw}
 .jt-sum{display:flex;align-items:baseline;justify-content:flex-end;gap:1cqw;font-size:3.2cqw;font-weight:900;white-space:nowrap}
 .jt-sum b{font-family:var(--num);font-weight:700;font-size:4.6cqw;letter-spacing:.02em}
 .jt-sum small{font-size:2.4cqw}
@@ -641,11 +642,199 @@ html::-webkit-scrollbar-track,.race::-webkit-scrollbar-track{background:linear-g
 .sh-pane.tkd-pane .jt.big{max-width:none;width:100%;flex:none}
 .sh-pane.tkd-pane .sh-body{padding-top:14px}
 @media (orientation:landscape) and (max-height:520px){.sh-pane.tkd-pane .jt.big{width:min(100%,120dvh)}}
-/* スマホの縦向きは、券を横に倒して画面いっぱいに（幅の約1.6倍の大きさ） */
+/* スマホの縦向きは、券を横に倒して画面いっぱいに（幅の約1.6倍の大きさ）
+   ★★ 2026-10-26 ご報告「上の ✕ などが隠れる・下に線が出る」→ 拡大の画面を<b>画面いっぱいの板</b>にした（上の端に ✕・下の端にボタン）。
+   券の欄（.jt-zoom）が残りの高さをもらい、倒した券の大きさ（--L）は md-ui の zoomFit が欄の幅と高さから決める＝シートはスクロールしない */
 @media (max-width:600px) and (orientation:portrait){
-  .jt-zoom{--L:min(calc((96vw - 28px) * 1.616), 62dvh);position:relative;width:100%;height:var(--L);flex:none}
+  .sh-pane.tkd-pane{top:0;left:0;right:0;bottom:0;width:auto;max-width:none;max-height:none;height:100%;border-radius:0;transform:scale(.96);
+    padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);box-sizing:border-box}
+  .sheet.on .sh-pane.tkd-pane{transform:none}
+  .sh-pane.tkd-pane .sh-body{display:flex;flex-direction:column;overflow:hidden;padding:10px 12px 12px;scrollbar-width:none}
+  .sh-pane.tkd-pane .sh-body::-webkit-scrollbar{display:none}
+  .sh-pane.tkd-pane .tkd{flex:1 1 auto;min-height:0;gap:8px}
+  .jt-zoom{--L:min(calc((96vw - 28px) * 1.616), 52dvh);position:relative;width:100%;flex:1 1 auto;min-height:160px;height:auto;overflow:hidden}
   .sh-pane.tkd-pane .jt-zoom .jt.big{position:absolute;left:50%;top:50%;width:var(--L);max-width:none;margin:0;transform:translate(-50%,-50%) rotate(90deg)}
+  .sh-pane.tkd-pane .tkd-cbs{max-height:72px;overflow:auto}
 }
 .mypg .card{margin:0 0 10px}
 .mypg .card h3{margin:0 0 8px;font-size:14px}
 .mypg>.btn{width:100%}
+
+/* ══ ★★ 2026-10-26 ご指定「GⅠ の結果が出たら上に結果を見るボタン（結果発表から三日目まで）」══ */
+.rsbar{display:flex;align-items:center;gap:10px;width:100%;margin:10px 0 0;padding:11px 12px 11px 14px;border-radius:18px;text-align:left;color:#3a2600;
+  background:linear-gradient(100deg,#f7d867,#f3cf5b 45%,#ffe9a6);box-shadow:0 0 0 2px #fff,0 0 0 3.5px #c8960f,0 4px 0 3.5px rgba(120,80,0,.28);position:relative;overflow:hidden}
+.rsbar::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.55) 50%,transparent 70%);transform:translateX(-120%);animation:rvShine 3s ease-in-out infinite;pointer-events:none}
+.rs-ic{font-size:26px;flex:none}
+.rs-tx{flex:1;min-width:0;line-height:1.3}
+.rs-tx b{display:block;font-size:15px;font-weight:900}
+.rs-tx small{display:block;font-size:11px;font-weight:800;opacity:.9;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rsbar em{flex:none;font-style:normal;font-weight:900;font-size:13px;padding:8px 12px;border-radius:99px;background:#0a3d24;color:#fff;box-shadow:0 3px 0 rgba(0,0,0,.25)}
+@media (prefers-reduced-motion:reduce){.rsbar::after{animation:none}}
+/* ══ ★★ 2026-10-26 ライブ配信のボタン ══ */
+.btn.live{background:linear-gradient(180deg,#1f6feb,#1450b8);color:#fff;box-shadow:0 3px 0 #0b3478;text-decoration:none;flex-direction:column;gap:0;line-height:1.25}
+.btn.live b{font-size:14px}
+.btn.live small{font-size:10.5px;font-weight:800;opacity:.9}
+.btn.live.big{width:100%}
+.rc-live{padding:0 12px 8px}
+.rc-live .btn{width:100%}
+.hd-ic2{flex:none;display:flex;align-items:center;justify-content:center;gap:3px;height:32px;min-width:32px;padding:0 8px;border-radius:99px;background:rgba(255,255,255,.14);color:#fff;
+  font-size:12px;font-weight:900;text-decoration:none;white-space:nowrap;box-shadow:0 0 0 1px rgba(255,255,255,.18) inset}
+.hd-ic2.lv{background:linear-gradient(180deg,#ff5a5a,#d01f1f);box-shadow:0 0 0 1px rgba(255,255,255,.3) inset}
+.hd-ic2.lv i{width:7px;height:7px;border-radius:50%;background:#fff;animation:lvBlink 1.4s ease-in-out infinite}
+@keyframes lvBlink{50%{opacity:.25}}
+@media (max-width:560px){.hd-ic2{padding:0 7px;font-size:11px}.hd-ic2 span{display:none}}
+@media (max-width:430px){.hd-logo b{display:none}}   /* ★★ 2026-10-26 LIVE・？ を足したので、せまい画面ではロゴの文字を出さない（「M」だけになっていた） */
+@media (prefers-reduced-motion:reduce){.hd-ic2.lv i{animation:none}}
+.foot-btns{display:flex;gap:8px;flex-wrap:wrap}
+.foot-btns .btn{flex:1}
+/* ══ ★★ 2026-10-26 馬券タブ：レースで絞りこむ・結果の時刻の注意 ══ */
+.tkr{display:flex;align-items:center;gap:6px;margin:10px 0 -4px}
+.tkr-h{flex:none;font-size:11.5px;font-weight:900;color:var(--sub)}
+.tkr-s{margin:0;flex:1;min-width:0}
+.tkr-s button{flex:0 0 auto;display:flex;flex-direction:column;align-items:center;line-height:1.15;padding:6px 12px}
+.tkr-s button small{font-size:9.5px;font-weight:800;opacity:.8}
+.tk-note{margin:14px 2px 0;padding:9px 12px;border-radius:12px;background:#eef7f1;color:#2f5a42;font-size:11.5px;font-weight:700;line-height:1.6}
+/* ══ ★★ 2026-10-26 金額のボタン（足していく）とリセット・馬券の種類の説明へ ══ */
+.amt-q{flex-wrap:wrap}
+.amt-q button{min-width:0}
+.amt-q button.rs{flex:0 0 auto;padding:6px 12px;background:#fff;color:#b42318;box-shadow:0 0 0 1.5px #f3b8b3 inset;font-family:"Noto Sans JP",sans-serif;font-size:12.5px;font-weight:900}
+.tdesc{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.tdesc-q{flex:none;padding:4px 10px;border-radius:99px;background:#fff;box-shadow:0 0 0 1.5px var(--line) inset;font-size:11.5px;font-weight:900;color:var(--g2)}
+
+/* ══ ★★ 2026-10-26 使い方（アニメ）・馬券の種類・きまり（md-help.js）══ */
+.mdh{position:fixed;inset:0;z-index:95;pointer-events:none}
+.mdh.on{pointer-events:auto}
+.mdh-bg{position:absolute;inset:0;background:rgba(6,20,12,.5);opacity:0;transition:opacity .2s}
+.mdh.on .mdh-bg{opacity:1}
+.mdh-pane{position:absolute;left:50%;top:calc(env(safe-area-inset-top,0px) + 10px);bottom:calc(env(safe-area-inset-bottom,0px) + 10px);width:min(94vw,560px);
+  display:flex;flex-direction:column;background:var(--bg);border-radius:22px;box-shadow:0 20px 50px rgba(0,0,0,.35);transform:translate(-50%,16px) scale(.97);opacity:0;transition:transform .25s cubic-bezier(.2,1.2,.3,1),opacity .18s}
+.mdh.on .mdh-pane{transform:translate(-50%,0);opacity:1}
+.mdh-hd{display:flex;align-items:center;gap:8px;padding:14px 14px 8px}
+.mdh-hd b{flex:1;font-size:17px;font-weight:900}
+.mdh-x{width:34px;height:34px;border-radius:50%;background:#fff;box-shadow:0 0 0 1.5px var(--line) inset;font-weight:900}
+.mdh-tabs{display:flex;gap:5px;margin:0 12px;padding:4px;border-radius:14px;background:#e3efe7}
+.mdh-tabs button{flex:1;padding:8px 4px;border-radius:10px;font-weight:900;font-size:13px;color:var(--sub);line-height:1.15}
+.mdh-tabs button small{display:block;font-size:9.5px;font-weight:800;opacity:.8}
+.mdh-tabs button.on{background:#fff;color:var(--g2);box-shadow:0 2px 0 rgba(10,61,36,.15)}
+.mdh-body{flex:1 1 auto;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:12px 14px 16px;-webkit-overflow-scrolling:touch}
+.mdh-how{display:flex;flex-direction:column;align-items:center;gap:10px}
+.mk-phone{position:relative;width:min(64vw,250px,calc((100dvh - 330px) * .6));min-width:170px;aspect-ratio:9/15;border-radius:28px;padding:10px;background:#141a17;box-shadow:0 0 0 3px #2b3a32,0 12px 26px rgba(0,0,0,.3)}
+.mk-screen{position:absolute;inset:10px;border-radius:20px;overflow:hidden;background:var(--bg,#f4f1e8)}
+.mk-sc{position:absolute;inset:0;padding:10px;display:flex;flex-direction:column;gap:8px;font-size:11px;animation:mkIn .35s ease-out}
+@keyframes mkIn{from{opacity:0;transform:translateX(10px)}}
+.mk-fg{position:absolute;left:78%;top:92%;width:30px;height:30px;margin:-6px 0 0 -10px;border-radius:50%;z-index:5;pointer-events:none;
+  background:radial-gradient(circle at 40% 35%,#fff 0 30%,rgba(255,255,255,.85) 31% 60%,rgba(255,255,255,0) 62%);box-shadow:0 0 0 2px rgba(10,61,36,.55),0 4px 10px rgba(0,0,0,.3);
+  transition:left .6s cubic-bezier(.45,0,.2,1),top .6s cubic-bezier(.45,0,.2,1)}
+.mk-fg.tap{animation:mkTap .45s ease-out}
+@keyframes mkTap{0%{transform:scale(1)}35%{transform:scale(.72)}100%{transform:scale(1)}}
+.mk-hit{animation:mkHit .45s ease-out}
+@keyframes mkHit{0%{filter:none}40%{filter:brightness(1.15) drop-shadow(0 0 6px rgba(255,200,60,.9))}100%{filter:none}}
+.mk-hd,.mk-hd2{display:flex;align-items:baseline;justify-content:space-between;padding:6px 8px;border-radius:10px;background:#0a3d24;color:#fff}
+.mk-hd b,.mk-hd2 b{font-size:13px;font-weight:900}
+.mk-hd i,.mk-hd2 i{font-style:normal;font-size:10px;opacity:.8}
+.mk-sale{display:flex;align-items:center;gap:6px;padding:8px 8px 8px 10px;border-radius:12px;color:#fff;background:linear-gradient(100deg,#e2332b,#ff7a1a 60%,#ffb21e)}
+.mk-sale span{flex:1;min-width:0;line-height:1.25}
+.mk-sale b{display:block;font-size:12px}
+.mk-sale small{font-size:9px}
+.mk-sale em{font-style:normal;font-weight:900;font-size:10px;padding:5px 8px;border-radius:99px;background:#fff;color:#d0302a}
+.mk-hero{padding:10px;border-radius:12px;background:linear-gradient(160deg,#0f5a35,#0a3d24);color:#fff;display:flex;flex-direction:column;gap:3px}
+.mk-hero .g1{align-self:flex-start;font-size:9px;font-weight:900;padding:1px 6px;border-radius:5px;background:#f3cf5b;color:#3a2600}
+.mk-hero b{font-size:15px}
+.mk-cd{margin-top:6px;padding:6px;border-radius:9px;background:rgba(255,255,255,.12)}
+.mk-cd b{display:block;font-family:var(--num);font-size:16px}
+.mk-types{display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
+.mk-types i{font-style:normal;text-align:center;padding:7px 0;border-radius:9px;background:#fff;box-shadow:0 0 0 1.5px #d9e3dc inset;font-weight:900}
+.mk-types i.on{background:#0f5a35;color:#fff;box-shadow:0 2px 0 #08331d}
+.mk-desc{margin:0;padding:6px 8px;border-radius:9px;background:#fff;color:#4a5b50;font-weight:700}
+.mk-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.mk-grid span{display:flex;align-items:center;gap:5px;padding:5px;border-radius:9px;background:#fff;box-shadow:0 0 0 1.5px #d9e3dc inset}
+.mk-grid span b{width:20px;height:20px;border-radius:5px;display:grid;place-items:center;font-family:var(--num);font-size:12px;box-shadow:0 0 0 1px #b9bdc6 inset}
+.mk-grid span small{font-size:9.5px;font-weight:800;color:#33443a}
+.mk-grid span.on{background:#fff6d8;box-shadow:0 0 0 2px #e39a10 inset}
+.mk-pts{align-self:flex-end;font-family:var(--num);font-size:16px;font-weight:800}
+.mk-amt{display:flex;align-items:baseline;justify-content:center;gap:6px;padding:10px;border-radius:12px;background:#fff}
+.mk-amt b{font-family:var(--num);font-size:30px}
+.mk-q{display:flex;flex-wrap:wrap;gap:5px}
+.mk-q i{flex:1 0 28%;font-style:normal;text-align:center;padding:7px 0;border-radius:9px;background:#e3efe7;font-family:var(--num);font-weight:700;font-size:12px}
+.mk-q i.rs{background:#fff;color:#b42318;box-shadow:0 0 0 1.5px #f3b8b3 inset;font-family:inherit;font-weight:900}
+.mk-add,.mk-buy{text-align:center;padding:9px;border-radius:12px;background:#0f5a35;color:#fff;font-weight:900}
+.mk-buy.arm{background:#d0302a}
+.mk-line{padding:7px 9px;border-radius:9px;background:#fff;font-weight:800}
+.mk-tot{display:flex;align-items:baseline;justify-content:space-between;padding:6px 8px}
+.mk-tot b{font-family:var(--num);font-size:18px}
+.mk-toast{padding:8px;border-radius:99px;background:#0a3d24;color:#fff;text-align:center;font-weight:800;animation:mkIn .3s ease-out}
+.mk-tabs{display:flex;gap:4px}
+.mk-tabs i{flex:1;font-style:normal;text-align:center;padding:6px 0;border-radius:99px;background:#fff;font-weight:900;color:#6a7a70;position:relative}
+.mk-tabs i.on{background:#0f5a35;color:#fff}
+.mk-tabs em{position:absolute;top:-5px;right:4px;font-style:normal;font-size:9px;min-width:14px;height:14px;line-height:14px;border-radius:99px;background:#e2332b;color:#fff}
+.mk-tk{position:relative;display:grid;grid-template-columns:37% 12% 1fr;aspect-ratio:1301/805;border-radius:8px;overflow:hidden;background:#fdfdfb;box-shadow:0 0 0 1px #cfd8d1,0 3px 10px rgba(0,0,0,.12)}
+.mk-band{position:absolute;top:0;bottom:0;left:22.2%;width:8.3%;background:#c3ebe4}
+.mk-tk-l{position:relative;z-index:1;padding:6px;display:flex;flex-direction:column;gap:1px;line-height:1.1}
+.mk-tk-l small{font-size:7px}
+.mk-tk-l b{font-family:var(--min);font-size:15px}
+.mk-tk-l span{font-size:8px;font-weight:900}
+.mk-tk-ty{margin:6px 1px 14px 3px;border:1px solid #141414;display:grid;place-items:center;font-family:var(--min);font-weight:800;font-size:11px;line-height:1.15;text-align:center}
+.mk-tk-r{padding:8px 6px;display:flex;flex-direction:column;justify-content:center;gap:4px}
+.mk-tk-r span{font-family:var(--num);font-size:12px;font-weight:800}
+.mk-tk-r span i{font-style:normal;display:inline-block;min-width:14px;padding:0 2px;border:1px solid #141414;text-align:center}
+.mk-tk-r b{align-self:flex-end;font-family:var(--num);font-size:14px}
+.mk-tk-r b small{font-size:7px;margin-left:2px}
+.mk-rdy{position:absolute;left:0;right:0;bottom:0;padding:4px;text-align:center;color:#fff;font-weight:900;font-size:9.5px;background:linear-gradient(90deg,#b4231a,#e0592c)}
+.mk-stamp{position:absolute;right:8%;top:18%;width:30%;aspect-ratio:1;border-radius:50%;border:2px solid #d0261c;color:#d0261c;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  transform:rotate(-14deg);animation:stampIn .55s cubic-bezier(.2,1.6,.4,1) both;background:rgba(255,255,255,.55)}
+.mk-stamp b{font-family:var(--min);font-size:14px;line-height:1}
+.mk-stamp small{font-family:var(--num);font-size:9px}
+.mk-win{padding:8px;border-radius:12px;background:#fff1c2;color:#7a4f00;text-align:center;font-weight:900;font-size:12.5px;animation:mkIn .3s ease-out}
+.mdh-cap{width:100%;max-width:440px;min-height:64px;text-align:center}
+.mdh-cap .c{margin:0;font-size:14.5px;font-weight:800;line-height:1.5}
+.mdh-cap .s{margin:3px 0 0;font-size:11.5px;color:var(--sub);font-weight:700;line-height:1.5}
+.mdh-ctl{display:flex;align-items:center;gap:12px}
+.mdh-ctl>button{width:38px;height:38px;border-radius:50%;background:#fff;box-shadow:0 0 0 1.5px var(--line) inset;font-size:20px;font-weight:900;color:var(--g2)}
+.mdh-dots{display:flex;gap:6px}
+.mdh-dots i{width:9px;height:9px;border-radius:50%;background:#cbd8cf;cursor:pointer}
+.mdh-dots i.on{background:var(--g2);transform:scale(1.25)}
+.mdh-again{padding:7px 14px;border-radius:99px;background:#fff;box-shadow:0 0 0 1.5px var(--line) inset;font-weight:900;font-size:12.5px;color:var(--g2)}
+.mdh-lead{margin:0 0 10px;font-size:12.5px;line-height:1.7;color:#33443a}
+.mdh-types{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px}
+.mdh-t,.mdh-m{padding:10px 12px;border-radius:14px;background:#fff;box-shadow:var(--sh)}
+.mdh-th{display:flex;align-items:baseline;gap:6px}
+.mdh-th b{font-family:var(--min);font-size:18px;font-weight:800}
+.mdh-th small{font-family:var(--num);font-size:11px;font-weight:700;color:var(--sub);letter-spacing:.05em}
+.mdh-th .lv{margin-left:auto;font-size:11px;color:#d19a0a;letter-spacing:.05em}
+.mdh-t p,.mdh-m p{margin:4px 0 0;font-size:12px;line-height:1.6}
+.mdh-t .ex i,.mdh-m .ex i{font-style:normal;font-size:10px;font-weight:900;color:#fff;background:var(--g2);padding:0 6px;border-radius:5px;margin-right:6px}
+.mdh-t .pt{color:var(--sub);font-size:11px;font-weight:700}
+.mdh-h{margin:16px 0 8px;font-size:14px}
+.mdh-modes{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:8px}
+.mdh-m b{font-size:14px;font-weight:900}
+.mdh-note{margin:12px 2px 0;font-size:11.5px;color:var(--sub);line-height:1.6}
+.mdh-rules{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:8px}
+.mdh-rules li{display:flex;flex-direction:column;gap:2px;padding:10px 12px;border-radius:14px;background:#fff;box-shadow:var(--sh)}
+.mdh-rules b{font-size:13px;font-weight:900;color:var(--g2)}
+.mdh-rules span{font-size:12px;line-height:1.65}
+.mdh-rules a{color:#1450b8;font-weight:800}
+@media (prefers-reduced-motion:reduce){.mk-sc,.mk-fg.tap,.mk-hit,.mk-stamp,.mk-toast,.mk-win{animation:none}.mk-fg{transition:none}}
+
+/* ══ ★★ 2026-10-26（2回目）馬券一覧の絞り込み・並び替え（MagiChemLex と同じ形）・結果の6着以下 ══ */
+.tk-tools{display:flex;gap:8px;margin:10px 0 4px;flex-wrap:wrap}
+.tk-fb{display:flex;align-items:center;gap:6px;padding:8px 14px;border-radius:99px;background:#fff;box-shadow:0 0 0 1.5px var(--line) inset;font-weight:900;font-size:12.5px;color:var(--sub)}
+.tk-fb.on{background:var(--g2);color:#fff;box-shadow:none}
+.tk-fb b{min-width:18px;height:18px;line-height:18px;padding:0 5px;border-radius:99px;background:#fff;color:var(--g2);font-size:11px;text-align:center}
+.tk-fb:not(.on) b{background:var(--g2);color:#fff}
+.tk-fb.rdy{margin-left:auto;background:#ffe7dc;color:#a0331a;box-shadow:none}
+.tk-fb.rdy b{background:#e0592c;color:#fff}
+.tkfs h4{margin:4px 0 8px;font-size:13px}
+.tkcs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.tkcs.col{flex-direction:column}
+.tkc{display:flex;align-items:center;gap:6px;padding:8px 12px;border-radius:12px;background:#fff;box-shadow:0 0 0 1.5px var(--line) inset;font-weight:800;font-size:12.5px;text-align:left}
+.tkc i{font-style:normal;font-size:11px;color:var(--sub)}
+.tkc small{min-width:18px;padding:0 5px;border-radius:99px;background:var(--soft);font-size:10.5px;text-align:center}
+.tkc.on{background:var(--g2);color:#fff;box-shadow:none}
+.tkc.on i,.tkc.on small{color:#fff;background:rgba(255,255,255,.2)}
+.tkfs-btns{display:flex;gap:8px}
+.tkfs-btns .btn{flex:1}
+.res-more{width:100%;margin:8px 0 12px}
+.res-rest{margin:8px 0 0;padding:10px 12px;border-radius:12px;background:#fff6d8;font-size:12px}
+.res-rest p{margin:0 0 6px;font-weight:800;color:#7a5200}
+.res-rest div{display:flex;flex-wrap:wrap;gap:6px 12px}
+.res-rest span{display:flex;align-items:center;gap:4px;font-weight:800}

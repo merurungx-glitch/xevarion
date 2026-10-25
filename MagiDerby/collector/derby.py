@@ -557,12 +557,23 @@ def race_path(rid):
     return os.path.join(D_OUT, "race", rid + ".json")
 
 
+def result_full(race):
+    """結果の表が全頭そろっているか。
+    ★★ 2026-10-26 レース直後の netkeiba の結果は速報（上位5頭だけ）のことがあり、それで確定あつかいにして取り直さなかった
+    → アプリで6着以下の馬の名前が出なかった・取消の返還を見落とすおそれ。出走頭数（heads）に足りなければ「途中」"""
+    rows = ((race.get("result") or {}).get("rows") or [])
+    need = race.get("heads") or len([e for e in (race.get("entries") or []) if not e.get("cx")])
+    return (not need) or len(rows) >= need
+
+
 def update_race(r, full=True):
     today = now().date()
     d = datetime.date(*[int(x) for x in r["date"].split("-")])
     days = (d - today).days
     if r.get("st") == "result":
-        return False
+        # ★★ 2026-10-26 結果が途中（速報）なら、全頭そろうまで（レースから1週間まで）取り直す
+        if not (r.get("rid") and days >= -7 and (r.get("part") or not result_full(load_json(race_path(r["rid"]), {}) or {}))):
+            return False
     if days > AHEAD_DAYS:
         r["st"] = "sched"
         return False
@@ -585,6 +596,12 @@ def update_race(r, full=True):
                 race["result"] = res
                 race["st"] = "result"
                 r["st"] = "result"
+                if result_full(race):
+                    r.pop("part", None)
+                else:
+                    res["part"] = 1
+                    r["part"] = 1
+                    log("結果（速報・上位だけ）", r["nm"], len(res["rows"]), "頭")
                 top = [x for x in res["rows"] if x["pos"] == "1"]
                 r["win"] = {"no": top[0]["no"], "nm": top[0]["nm"], "j": top[0]["j"], "time": top[0]["time"]} if top else None
                 w = res["pay"].get("win") or []
@@ -676,7 +693,7 @@ def push(msg):
 
 
 def active_now(r):
-    if r.get("st") == "result" or not r.get("rid"):
+    if (r.get("st") == "result" and not r.get("part")) or not r.get("rid"):   # ★★ 2026-10-26 結果が途中（速報）なら4分おきに取り直しつづける
         return False
     t = now()
     p = post_dt(r)

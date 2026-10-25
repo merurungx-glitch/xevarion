@@ -239,6 +239,9 @@
         type: l.type, mode: l.mode || "norm", sel: l.sel || {}, cb: l.cb, u: l.u, cost: l.cb.length * l.u, bo: bo, st: "open", pay: 0, hits: [], ref: 0 };
       /* ★★ 2026-10-24 枠順の発表前に買った券：仮の番号 → 馬（pm＝hid・pn＝馬名）。発表されたら B.fixPre で本当の馬番へ */
       if (race.pre) { tk.pm = {}; tk.pn = {}; (race.entries || []).forEach((e) => { if (e.pno) { tk.pm[e.pno] = e.hid; tk.pn[e.pno] = e.nm; } }); }
+      /* ★★ 2026-10-26 ご報告「馬券の結果で馬の名前が出ないことがある」：出馬表の控えが無い端末（同期で届いた券など）でも名前が出るよう、
+         買い目に入っている馬の名前を券に残す（nn＝馬番→馬名。枠順の発表前の券は差し替えのときに B.fixPre が作る） */
+      else if (!B.TYPE[l.type].frame) { const use = {}; l.cb.forEach((c) => c.forEach((x) => { use[x] = 1; })); tk.nn = {}; (race.entries || []).forEach((e) => { if (e.no && use[e.no]) tk.nn[e.no] = e.nm; }); }
       s.tk[id] = tk; made.push(tk);
       s.st.bet += tk.cost; s.st.n += 1;
     });
@@ -307,7 +310,7 @@
   };
   /* ══ ★★ 2026-10-24 ご指定「結果はアプリを開いたときに、券をそれぞれ押して確認できるように」══
      精算を2段にした：
-       ① B.settle … 結果が確定し、払い戻しの時刻（レースの次の日の 0:00）を過ぎた馬券の<b>当たり・はずれ・払戻金を計算だけ</b>して
+       ① B.settle … 結果が確定した馬券の<b>当たり・はずれ・払戻金を計算だけ</b>して（★★ 2026-10-26 から次の日の 0:00 を待たない＝結果のデータが届きしだい）
                     st="ready"（rs＝結果）にする。XEVA はまだ動かさない。
        ② B.reveal … 券を押したとき。結果を見せて、そのとき XEVA を払い戻す（st を hit / miss / refund / void に）。
      ★ 同期（xeva-cloud の mergeDerby）は open ＜ ready ＜ 確認ずみ の順に強い＝ほかの端末で確認ずみの券は、こちらで二度払い戻さない。
@@ -331,7 +334,7 @@
       const races = {};
       for (const tk of due) {
         if (races[tk.rid]) continue;
-        try { races[tk.rid] = await N.race(tk.rid, true); } catch (e) {}
+        try { races[tk.rid] = await N.race(tk.rid, true, !!byRid[tk.rid].part); } catch (e) {}   /* ★★ 2026-10-26 途中の結果は取り直す */
       }
       const s = B.load(), done = [], now = B.clock.now();
       Object.keys(s.tk).forEach((id) => {
@@ -339,6 +342,8 @@
         if (tk.st !== "open") return;
         const race = races[tk.rid], r = byRid[tk.rid];
         if (!race || !race.result || !race.result.pay || !r) return;
+        /* ★★ 2026-10-26 結果の表が途中（速報で上位だけ）のあいだは精算しない（取消・除外の返還を見落とさないため）。全頭そろったデータが届きしだい */
+        if (N.partial(race)) return;
         /* ★★ 2026-10-24 枠順の発表前に買った券は、まず本当の馬番へ（結果の並びで差し替え） */
         if (tk.pm && !tk.pf && !B.fixPre(tk, race)) return;
         if (now < N.payAt(r)) return;

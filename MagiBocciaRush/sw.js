@@ -5,7 +5,7 @@
    ・キャラクターの絵は XEVARION の img/ にあるので、ここでは丸ごと持たない
      （ポータル側の SW が持っている。開いたぶんだけ実行時に控える）。
    ============================================================ */
-const VERSION = "boccia-sw-v49";
+const VERSION = "boccia-sw-v50";
 const RUNTIME = "boccia-rt-v1";
 const CORE = [
   "./index.html",
@@ -17,10 +17,10 @@ const CORE = [
   "./js/mbr-fx.js?v=9",
   "./js/mbr-help.js?v=8",
   "./js/mbr-ui.js?v=22",
-  "../mb-newchars.js?v=38",
+  "../mb-newchars.js?v=39",
   "../mb-boot.js?v=17",
-  "../MagiBurst/js/mb-core.js?v=140",
-  "../xeva.js?v=82",
+  "../MagiBurst/js/mb-core.js?v=141",
+  "../xeva.js?v=83",
   "../xeva-alive.js?v=8",
   "../xeva-loading.js?v=19",
   "../xeva-splash.js?v=17",

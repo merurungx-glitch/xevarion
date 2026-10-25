@@ -15,11 +15,12 @@
   /* 自動取得の置き場（開発中は localStorage の md_data_base で差しかえられる） */
   D.DATA_DEFAULT = "https://raw.githubusercontent.com/merurungx-glitch/xevarion/magiscope-data/derby/";
   D.CLOSE_BEFORE = 120;            /* 締切は発走の何秒前か（★ ご指定「締切は必ず出走前」・判定はサーバーの時刻） */
+  D.SALE_DAYS_BEFORE = 3;          /* ★★ 2026-10-26 ご指定「馬券の購入を発走から三日前から」：発売はレースの日の何日前の 0:00 からか（md-net の N.saleWins） */
   /* ★★ 2026-10-21 ご指定「馬券の発売開始と、結果の払い戻しの時刻を 0:00 に」
      発売開始＝レースの日の 0:00（JST）／払い戻し＝レースの次の日の 0:00（JST）。どちらもサーバーの時刻で判定
      ★★ 2026-10-22 ご指定「馬券の注文は実際の開始日時と同じに」で、発売は JRA と同じ時間に変えた（md-net.js の N.saleWins）。払い戻しは 0:00 のまま */
   D.SALE_OPEN_DAY = 0;             /* （2026-10-22 から使っていない。発売の時間は md-net.js の N.saleWins＝JRA と同じ） */
-  D.PAYOUT_DAY = 1;                /* 払い戻し：レースの日から何日後の 0:00 か（1＝次の日の 0:00） */
+  D.PAYOUT_DAY = 1;                /* （2026-10-26 から使っていない：ご指定「結果や払い戻しは端末が情報を受信でき次第」＝ N.payAt は発走の時刻） */
   D.UNIT = 100;                    /* 馬券は 100 XEVA 単位 */
   D.MAX_PER_RACE = 100000;         /* 1レースで買える上限（XEVA） */
   D.MAX_COMBOS = 2000;             /* 1つの買い目で作れる組み合わせの上限 */

@@ -67,10 +67,25 @@
   };
   const blkHTML = (color) => '<span class="blk" style="--bc:' + color + '"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9h16M4 15h16M10 4v5M15 9v6M10 15v5"/></svg></span>';
   const thumb = (p) => (G.Account && G.Account.thumb ? G.Account.thumb(p) : (G.Account && G.Account.avatar ? G.Account.avatar(p) : ""));
+  /* ★★ 2026-10-26 ご指定「ユーザーのアイコンが完凸なら XEVARION ホームと同じように光る」
+     凸の数はこの端末の記録（magiburst_v1.chars[id].awk・xeva_gacha_v1.dupes）でしか分からないので、
+     <b>この端末のアカウント</b>（xeva_account_v1.xvUid）と紐づけた席だけ判定する（ほかの人の凸の数はクラウドから読めない） */
+  function myUid() { try { const a = JSON.parse(localStorage.getItem("xeva_account_v1") || "null"); return (a && a.xvUid) || ""; } catch (e) { return ""; } }
+  function awkOf(cid) {
+    const id0 = String(cid || ""), id = id0.replace(/^mb:/, ""); if (!id) return 0;
+    let awk = 0;
+    try { const db = JSON.parse(localStorage.getItem("magiburst_v1") || "null"); if (db && db.chars && db.chars[id]) awk = Math.max(awk, db.chars[id].awk | 0); } catch (e) {}
+    try { const g = JSON.parse(localStorage.getItem("xeva_gacha_v1") || "null"); if (g && g.dupes) awk = Math.max(awk, g.dupes[id] | 0, g.dupes[id0] | 0); } catch (e) {}
+    return awk;
+  }
+  const avMax = (p) => { const uid = p && (p.uid || (p.link && p.link.uid)); const me = myUid(); return !!(uid && me && uid === me && p.charId && awkOf(p.charId) >= 4); };
   const avatarHTML = (p, cls) => {
     const a = thumb(p);
-    return a ? '<img class="av' + (cls ? " " + cls : "") + '" src="' + esc(a) + '" alt="" style="--c:' + p.color + '" loading="lazy">' : "";
+    return a ? '<img class="av' + (cls ? " " + cls : "") + (avMax(p) ? " avmax" : "") + '" src="' + esc(a) + '" alt="" style="--c:' + p.color + '" loading="lazy"' + (avMax(p) ? ' title="限界突破MAX"' : "") + ">" : "";
   };
+  /* ★★ 2026-10-26 ご指定「防御回数を示す盾のアイコンもデザイン」：席の色の盾＋白いふち＋中に小さな星 */
+  const shieldSVG = () => '<svg class="shd" viewBox="0 0 20 22" aria-hidden="true"><path class="o" d="M10 1.2 18.2 4v6.3c0 5.2-3.6 8.8-8.2 10.6C5.4 19.1 1.8 15.5 1.8 10.3V4Z"/>' +
+    '<path class="i" d="M10 3.4 16 5.5v4.8c0 3.9-2.6 6.7-6 8.2-3.4-1.5-6-4.3-6-8.2V5.5Z"/><path class="s" d="m10 6.6 1.1 2.3 2.5.3-1.8 1.7.5 2.5L10 12.2l-2.3 1.2.5-2.5-1.8-1.7 2.5-.3Z"/><path class="g" d="M6.2 6.8 9.2 5.7"/></svg>';
   const isCpu = (p) => !!p && p.type === "cpu";
 
   /* ══ 音（短く・軽く・控えめ） ══ */
@@ -272,7 +287,7 @@
       const btn = p.type === "cpu" ? "" : !linked ? '<button class="gl-link-btn" data-a="seatlink" data-i="' + i + '" title="XEVARIONアカウントを紐づけて賞金を受け取る">🔗</button>'
         : ok ? '<button class="gl-link-btn on" data-a="seatlink" data-i="' + i + '" title="タップで紐づけを解除">✓ ' + esc(p.link.name) + "</button>"
         : '<button class="gl-link-btn pending" data-a="seatlink" data-i="' + i + '" title="前回の紐づけ — タップして4桁パスワードで確認">🔒 ' + esc(p.link.name) + "（要確認）</button>";
-      const av = linked && p.type !== "cpu" ? avatarHTML({ charFile: p.link.charFile, charId: p.link.charId, color: c.color }) : "";
+      const av = linked && p.type !== "cpu" ? avatarHTML({ uid: p.link.uid, charFile: p.link.charFile, charId: p.link.charId, color: c.color }) : "";
       return '<div class="prow" data-i="' + i + '" style="--c:' + c.color + ";animation-delay:" + (i * 0.04) + 's">' + pieceSVG(c) + av +
         '<input class="pname-in" maxlength="6" value="' + esc(p.name) + '" aria-label="' + esc(c.name) + 'の席の名前">' +
         '<div class="ptype"><button class="' + (p.type !== "cpu" ? "on" : "") + '" data-a="setType" data-i="' + i + '" data-v="human">人</button><button class="' + (p.type === "cpu" ? "on" : "") + '" data-a="setType" data-i="' + i + '" data-v="cpu">CPU</button></div>' + btn + "</div>";
@@ -531,7 +546,7 @@
       return '<div class="pchip' + (on ? " on" : "") + (isCpu(q) ? " cpu" : "") + (q.sub ? " sub" : "") + '" style="--c:' + q.color + '"><span class="ord">' + (k + 1) + '</span><span class="pcw">' + pieceSVG(q) + avatarHTML(q, "mini") + "</span>" +
         '<span class="pn"><span class="pnr"><b>' + esc(q.name) + (isCpu(q) ? ' <span class="tag">' + (q.sub ? "代打CPU" : "CPU") + "</span>" : "") + "</b>" +
         /* ★★ 2026-10-24 ご指定「守りの回数を名前のところに小さく」 */
-        '<i class="dfc" title="守り：ほかの人の「あと1つでそろう」マスを防いだ回数">🛡' + ((S.def && S.def[q.slot]) || 0) + "</i></span>" + pieces + "</span></div>";
+        '<i class="dfc" title="守り：ほかの人の「あと1つでそろう」マスを防いだ回数">' + shieldSVG() + "<b>" + ((S.def && S.def[q.slot]) || 0) + "</b></i></span>" + pieces + "</span></div>";
     }).join("");
     if (full) buildBoard();
     paintWar();

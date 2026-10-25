@@ -5,7 +5,7 @@
    ・フォント（Google Fonts）も一度読めたら控える（オフラインでもドットの文字になる）。
    ・Firebase（同期）はキャッシュしない。
    ============================================================ */
-const VERSION = "magiabyss-sw-v16";
+const VERSION = "magiabyss-sw-v17";
 const RUNTIME = "magiabyss-rt-v1";
 const CORE = [
   "./index.html",
@@ -42,8 +42,8 @@ const CORE = [
   "../gem.png",
   /* XEVARION の共通部品 */
   "../mb-boot.js?v=17",
-  "../MagiBurst/js/mb-core.js?v=140",
-  "../xeva.js?v=82",
+  "../MagiBurst/js/mb-core.js?v=141",
+  "../xeva.js?v=83",
   "../xeva-alive.js?v=8",
   "../xeva-loading.js?v=19",
   "../xeva-splash.js?v=17",
