@@ -1185,7 +1185,7 @@ function pinClear(id) { pinCells(id).forEach((c) => { c.value = ""; c.classList.
 function pinFocus(id) {
   const cells = pinCells(id);
   const next = cells.find((c) => !c.value) || cells[0];
-  if (next) { try { next.focus(); next.select(); } catch (e) {} }
+  if (next) { try { next.focus({ preventScroll: true }); next.select(); } catch (e) {} }
 }
 function pinBind(id) {
   const cells = pinCells(id);
@@ -2744,7 +2744,7 @@ function showXevaHome(opts) {
     const idInp = document.getElementById("xhSearchId");
     const acc = getAcc();
     if (idInp && acc && acc.name && !idInp.value) idInp.value = acc.name;
-    setTimeout(() => { const n = document.getElementById("xhSearchId"); if (n && !n.value) try { n.focus(); } catch (e) {} }, 150);
+    setTimeout(() => { const n = document.getElementById("xhSearchId"); if (n && !n.value) try { n.focus({ preventScroll: true }); } catch (e) {} }, 150);
   }
 }
 window.showXevaHome = showXevaHome;
@@ -2840,7 +2840,7 @@ function xhPickAccount(uid, nameEnc, charEnc) {
   if (box) box.innerHTML = '<img src="' + av + '" alt="" onerror="this.src=\'Xevarion.png\'"><div><div class="an">' + xhEsc(name) + '</div><div class="al">このアカウントでログイン</div></div>';
   document.getElementById("xhLoginStep1").style.display = "none";
   document.getElementById("xhLoginStep2").style.display = "block";
-  const pin = document.getElementById("xhPin"); if (pin) { pin.value = ""; setTimeout(() => { try { pin.focus(); } catch (e) {} }, 120); }
+  const pin = document.getElementById("xhPin"); if (pin) { pin.value = ""; setTimeout(() => { try { pin.focus({ preventScroll: true }); } catch (e) {} }, 120); }
   const m2 = document.getElementById("xhMsg2"); if (m2) m2.textContent = "";
 }
 window.xhPickAccount = xhPickAccount;
@@ -2971,7 +2971,7 @@ function enterPortal() {
       if (lockAvImg && acc.charFile) lockAvImg.src = getCharImgPath(acc.charFile);
       if (lockName) lockName.textContent = acc.name || "XEVARION";
       lock.classList.add("open");
-      const li = document.getElementById("lockInput"); if (li) setTimeout(() => { try { li.focus(); } catch (e) {} }, 80);
+      const li = document.getElementById("lockInput"); if (li) setTimeout(() => { try { li.focus({ preventScroll: true }); } catch (e) {} }, 80);
     }
     return;   // 解錠後 unlockAndContinue が runPortalBoot を担当
   }
@@ -3106,7 +3106,7 @@ function showAccessLockEarly() {
     if (lockName) lockName.textContent = acc.name || "XEVARION";
     lock.classList.add("open");
     const li = document.getElementById("lockInput");
-    if (li) setTimeout(() => { try { li.focus(); } catch (e) {} }, 80);
+    if (li) setTimeout(() => { try { li.focus({ preventScroll: true }); } catch (e) {} }, 80);
   } catch (e) {}
 }
 /* 重い load を待たず、即ホーム画面（ログイン中＝アクセス画面／未ログイン＝サインイン）を表示。
@@ -3697,16 +3697,30 @@ addEventListener("DOMContentLoaded", () => { if (_xevLang === "en") applyLang("e
   window.addEventListener("focus", onSync);
   try { window.addEventListener("scroll", onSync, { passive: true }); } catch (e) { window.addEventListener("scroll", onSync); }
   /* ★★ 2026-09-18 .xh-shim のあいだは文書が不足分だけ長くなる。全画面の板が出ているときに
-     ずれて見えないよう、文書のスクロールを 0 に留める（板の中のスクロールには関係しない）。 */
+     ずれて見えないよう、文書のスクロールを 0 に留める（板の中のスクロールには関係しない）。
+     ★★ 2026-10-26 ご報告「XEVA の取得やアカウントログインのときに、どんどん画面が下がっていく」
+       アプリ表示の iPhone／iPad では、入力欄にカーソルが入る（ログインの ID・PIN・4桁パスワード）と OS が文書をスクロールして欄を見せる。
+       キーボードを閉じたあとは scroll が飛ばないことがあり、ずれたまま残る → そのままログインボーナス（XEVA）などの画面が出て、
+       また入力するたびにずれが重なっていた。
+       → スクロールの合図だけでなく、<b>入力欄からカーソルが外れたとき・キーボードが閉じたとき（visualViewport の resize）・
+         1秒ごと</b>にも 0 へ戻す。入力しているあいだ（キーボードが出ている）は OS にまかせて触らない。 */
+  function typing() {
+    var ae = document.activeElement;
+    return !!(ae && (ae.tagName === "INPUT" || ae.tagName === "TEXTAREA" || ae.tagName === "SELECT" || ae.isContentEditable));
+  }
   function pinScroll() {
     var r = document.documentElement;
     if (!r.classList.contains("xh-shim")) return;
     if (!(window.scrollY || window.pageYOffset)) return;
+    if (typing()) return;
     if (document.querySelector("#xhome.on,#xevaHome.open,#xevaLoadVeil,#xevaSplash:not(.hide),#accLock.open")) {
       try { window.scrollTo(0, 0); } catch (e) {}
     }
   }
   try { window.addEventListener("scroll", pinScroll, { passive: true }); } catch (e) { window.addEventListener("scroll", pinScroll); }
+  document.addEventListener("focusout", function () { setTimeout(pinScroll, 80); setTimeout(pinScroll, 450); }, true);
+  if (window.visualViewport) window.visualViewport.addEventListener("resize", function () { setTimeout(pinScroll, 150); });
+  setInterval(function () { if (!document.hidden) pinScroll(); }, 1000);
   [0, 80, 250, 700, 1400, 2600].forEach(function (ms) { setTimeout(onSync, ms); });
   sync();
 })();

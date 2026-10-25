@@ -7,7 +7,7 @@
    ・オフライン中の進行は localStorage に残り、オンライン復帰時に
      xeva-cloud.js がタイムスタンプ比較でクラウドへ上書き反映する
    ============================================================ */
-const VERSION = "xevarion-sw-v242";
+const VERSION = "xevarion-sw-v244";
 
 /* ホームを成立させる最小セット（重い画像は runtime キャッシュに任せる） */
 const CORE = [
@@ -17,13 +17,13 @@ const CORE = [
   "./characters.html",
   /* ★ 2026-08-10 ガチャは XEVARION に一本化。中身は MagiBurst の共有モジュールが持つ */
   "./gacha.html",
-  "./gacha-ui.js?v=65",
-  "./mb-newchars.js?v=38",
-  "./xeva-devnotes.js?v=1",
+  "./gacha-ui.js?v=66",
+  "./mb-newchars.js?v=39",
+  "./xeva-devnotes.js?v=3",
   "./xevion-os.js?v=13",
   "./xevion-os.css?v=15",
   "./magibattle-stats.js?v=18",
-  "./MagiBurst/js/mb-core.js?v=140",
+  "./MagiBurst/js/mb-core.js?v=141",
   /* ★ 2026-08-10 ガチャと図鑑で共通の土台・キャラ詳細・結果演出 */
   /* ★ 2026-08-12 ポータルのガチャ・図鑑も magiburst_v1 を同期するようになった */
   "./app-cloud.js?v=15",
@@ -35,12 +35,12 @@ const CORE = [
   /* ★★ 2026-10-09 ガチャの演出を1から作り直した（1体ずつ・確定演出・UR は縦長の絵） */
   "./xeva-summon.js?v=5",
   "./community.html",
-  "./xeva-community.js?v=1",     // ★★ 2026-10-20 コミュニティ（PARK の入口・アニメTier）
+  "./xeva-community.js?v=2",     // ★★ 2026-10-20 コミュニティ（PARK の入口・アニメTier）
   "./about.html",
   "./manifest.webmanifest",
   "./xeva-theme.css?v=9",
   "./xevarion.css?v=25",
-  "./xevarion-home.css?v=87",
+  "./xevarion-home.css?v=89",
   /* ★★ 2026-09-03 下バーを画面の下端に合わせる共通部品 */
   "./xeva-safebottom.js?v=12",
   "./xeva-qr.js?v=9",
@@ -61,7 +61,7 @@ const CORE = [
   "./xeva-i18n-p4.js?v=8",
   "./xeva-i18n-n1.js?v=20",
   "./xeva-i18n-n2.js?v=3",
-  "./xeva.js?v=82",
+  "./xeva.js?v=83",
   "./xeva-alive.js?v=8",
   "./xeva-fx.js?v=9",
   "./xeva-loading.js?v=19",
@@ -70,18 +70,25 @@ const CORE = [
   "./uwaki.js?v=1",
   "./uwaki.css?v=1",
   "./thumbs/Uwaki.jpg",
-  "./xevarion.js?v=105",
-  "./xevarion-home.js?v=169",
+  "./xevarion.js?v=106",
+  "./xevarion-home.js?v=170",
   /* ★★ 2026-09-24 ホームのロビーとパートナー。素材は home-mate/<id>/（?v= は home-mate.js の HM_VER）・笙古／瞳／舞香／衣織／樹愛羅／映美里（09-25 ボイス廃止・表情は webp） */
   "./gacha-live.js?v=8",
-  "./home-mate.js?v=28",
+  "./home-mate.js?v=30",
+  /* ★★ 2026-10-26 完凸ロビー（ヒサコ・アリス）と、バナーの上のドット絵のキャラ（絵は MagiAbyss の ma-pixel.js） */
+  "./home-lobby.js?v=1",
+  "./home-dot.js?v=2",
+  "./MagiAbyss/js/ma-pixel.js?v=8",
+  "./home-mate/lobby/hisako.webp?v=1",
+  "./home-mate/lobby/alice.webp?v=1",
+  "./home-mate/lobby/park.webp?v=1",
   "./xeva-prefetch.js?v=1",     // ★★ 2026-10-24 MagiDerby・MagiScope の先読み
   "./xeva-event-ui.js?v=4",
-  "./home-mate.css?v=24",
+  "./home-mate.css?v=26",
   "./xeva-pop.css?v=1",
   "./xeva-pop-pages.css?v=3",
   "./xeva-uma.css?v=2",
-  "./xeva-tabbar.js?v=5",          // ★★ 2026-10-13 ガチャ・コミュニティ・図鑑にも下バー
+  "./xeva-tabbar.js?v=7",          // ★★ 2026-10-13 ガチャ・コミュニティ・図鑑にも下バー
   "./home-mate/shoko/shoko.json?v=17",
   "./home-mate/shoko/shoko.webp?v=17",
   "./home-mate/shoko/shoko_label.webp?v=17",

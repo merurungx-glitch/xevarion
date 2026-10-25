@@ -176,8 +176,8 @@ function paintHero() {
   /* ★★ 2026-08-26 版が2本並ぶことがあるので、帯には<b>その版</b>の番号と公開日を出す */
   const ver = dv
     ? `<span class="ghver">${gachaVerText(dv)}<small>${dv.date}</small></span>` : "";
-  /* ★★ 2026-10-09 確率1.5倍の札（ご指定「大きく表示してわかりやすく」） */
-  const boost = (typeof RATE_BOOST !== "undefined" && RATE_BOOST > 1)
+  /* ★★ 2026-10-09 確率1.5倍の札（ご指定「大きく表示してわかりやすく」）→ ★★ 2026-10-26 ご指定で表示しない（確率はそのまま・GL_SHOW_BOOST） */
+  const boost = (GL_SHOW_BOOST && typeof RATE_BOOST !== "undefined" && RATE_BOOST > 1)
     ? `<span class="ghboost"><b>×${RATE_BOOST}</b><small>SSR以上の確率<br>${ratePct(SSR_TOTAL / RATE_BOOST)} → ${ratePct(SSR_TOTAL)}</small></span>` : "";
   $("#ghero").innerHTML = `<img src="${src}" alt="${d.nm}"><span class="ghlab">${lab}</span>${ver}${boost}`;
 }
@@ -939,7 +939,7 @@ function openRatesX() {
   rows.push(rateNoteRow("※ 同じキャラを引くと<b>限界突破</b>（最大" + MAX_AWK + "）になります。所持キャラ・限界突破・<i class='icc ic-gem'></i>ジェムは <b>MagiBurst と共通</b>です。"));
   rows.push(rateNoteRow("※ キャラの行を押すと、そのキャラの<b>性能</b>が見られます。"));
   /* ★★ 2026-10-09 確率1.5倍のお知らせ（いちばん上） */
-  if (typeof RATE_BOOST !== "undefined" && RATE_BOOST > 1) {
+  if (GL_SHOW_BOOST && typeof RATE_BOOST !== "undefined" && RATE_BOOST > 1) {
     rows.unshift(`<div class="rtboost"><b>×${RATE_BOOST}</b><span><b>SSR以上の確率が${RATE_BOOST}倍</b>になりました（すべてのガチャ）。`
       + `SSR以上の合計 ${ratePct(SSR_TOTAL / RATE_BOOST)} → <b>${ratePct(SSR_TOTAL)}</b>・下の数字はどれも${RATE_BOOST}倍にしたあとの確率です。</span></div>`);
   }
@@ -1786,8 +1786,10 @@ function glFilterNote() {
 }
 /* ══ ★★ 2026-10-09 確率1.5倍を大きく表示（ご指定）══
    ★★ 2026-10-12d <b>コンパクトに少し小さく</b>（ご指定）：丸い ×1.5 の札＋1行の見出し＋小さな1行の2段だけ */
+/* ★★ 2026-10-26 ご指定「すべてのガチャで SSR以上1.5倍の表示と、注目ガチャの表示を消して」→ 札・見出しを出さない（確率は変えていない） */
+var GL_SHOW_BOOST = false;
 function glBoostHTML() {
-  if (typeof RATE_BOOST === "undefined" || !(RATE_BOOST > 1)) return "";
+  if (!GL_SHOW_BOOST || typeof RATE_BOOST === "undefined" || !(RATE_BOOST > 1)) return "";
   return `<div class="gl-boost"><b class="glb-x"><small>UP</small>×${RATE_BOOST}</b>`
     + `<span class="glb-t"><b>すべてのガチャで <em>SSR以上 ${RATE_BOOST}倍</em>！</b>`
     + `<span>SSR以上の合計 <s>${ratePct(SSR_TOTAL / RATE_BOOST)}</s> → <strong>${ratePct(SSR_TOTAL)}</strong>・ピックアップも${RATE_BOOST}倍</span></span>`
@@ -1820,7 +1822,7 @@ function glCard(m, i) {
       ${seal}<button onclick="glRates('${k}')">提供割合</button><button onclick="glInfo('${k}')">詳細</button></div>
     <div class="gl-ban"><img src="${glBanner(k)}" alt="${nciEsc(m.nm)}" loading="${i < 2 ? "eager" : "lazy"}">
       <span class="lab">${lab}</span>${m.isNew ? '<span class="nw">NEW</span>' : ""}<span class="nm">${nciEsc(m.nm)}</span>
-      ${typeof RATE_BOOST !== "undefined" && RATE_BOOST > 1 ? `<span class="rb">確率 ×${RATE_BOOST}</span>` : ""}
+      ${GL_SHOW_BOOST && typeof RATE_BOOST !== "undefined" && RATE_BOOST > 1 ? `<span class="rb">確率 ×${RATE_BOOST}</span>` : ""}
       ${/* ★★ 2026-10-13 バナーの「MagiAbyss でも使えるキャラ」（FEST などの下）は消した（ご指定）。キャラごとの紫の帯と凡例は残す */""}</div>
     ${chars.length ? `<div class="gl-pk"><div class="cap">注目キャラ${chars.some((id) => !charSecret(id) && typeof isAbyssChar === "function" && isAbyssChar(id)) ? `<small class="gl-malg"><i>${GL_MA_IC}</i>＝MagiAbyss でも使える</small>` : ""}</div><div class="row">${row}</div></div>` : ""}
     ${locked ? `<div class="gl-lock">⏳ ${nciEsc(nciPlain(d.sub || "準備中です"))}</div>`
@@ -1832,7 +1834,7 @@ function paintList() {
   const box = $("#glist"); if (!box) return;
   const list = glList();
   if (glIdx >= list.length) glIdx = 0;
-  box.innerHTML = `<div class="gl-ttl"><b>注目ガチャ</b><span>下へスクロールしてえらぶ</span></div>`
+  box.innerHTML = ""   /* ★★ 2026-10-26 「注目ガチャ」の見出しは消した（ご指定） */
     /* ★★ 2026-10-13 選べるSSRキャラ確定チケット（持っているときだけ・いちばん上） */
     + (ssrSelN() ? '<div class="gl-ssrsel">' + ssrSelCardHTML() + "</div>" : "")
     + glBoostHTML()

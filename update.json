@@ -1,20 +1,16 @@
 {
-  "version": "2026-10-25-1",
-  "date": "2026-10-25",
-  "title": "レベル・スタミナ廃止／MagiLex と MagiChemLex を統合／超極煌祭にヒサコ・アリス",
+  "version": "2026-10-26-2",
+  "date": "2026-10-26",
+  "title": "ロビーのボタンと画面の整理／MagiDerby の絞り込み・並び替え／MagiShift の盾",
   "notes": [
-    "レベルとスタミナを廃止（ホームの上は XEVA とジェムの縦1列）・両替チケット 1枚＝💎10",
-    "同期の作り直し：ほかの端末で XEVA が増えない・ジェムなどが増えつづけるのを修正",
-    "アップデートのあとにデベロッパーノート（変更点と新キャラの絵・設定から過去の回も）",
-    "超極煌祭にヒサコ（水）・アリス（闇）／MagiChemLex の WP 交換所にミキ（木）——どれも MagiAbyss 専用の UR",
-    "MagiLex を開くと MagiChemLex と旧MagiLex（化学・英単語・古文）を選べる・KP 交換所のキャラ表示を修正",
-    "MagiDerby：実際の馬券のような券面（馬名は1行の詰め字）・押して拡大／結果確認・勝敗の確定日・マイページ・木曜 0:00 から発売（枠順の前は馬名で・発表後に馬番へ差し替え）・スクロールの修正",
-    "MagiShift：2位からは守り7割・長さ3割（名前の横に守りの数・計算式）・最後の盤面を見返す",
-    "MagiQuiz（β版）：基礎の改題だけ・チームはくじ引き・ばくだんは小さく画面のふちが光る",
-    "MagiAbyss：町の人も細かいドット絵に／パートナー非表示のホーム・ガチャの SKIP ボタン・無料の印を修正"
+    "ホームの「パートナー」ボタンは「ロビー」に（中は ロビー｜ドット絵・ロビーの中で パートナー｜完凸ロビー、その上に「表示しない」）・ランダム表示は廃止",
+    "これって浮気？判定シートはコミュニティの XEVARION PARK の下へ・パートナー非表示のときはロビーのボタンをイベントのバナーの上に、すべてのアプリを広く",
+    "下バーのガチャのアイコンは前の絵で少し大きく・ガチャ一覧の「SSR以上1.5倍」「注目ガチャ」の表示を消した（確率は変わらない）",
+    "MagiDerby：結果は5着まで＋「6着以下も見る」・馬券一覧に絞り込み（状態・レース・券種）と並び替え・券種の四角を少し左へ",
+    "MagiShift：この端末のアカウントの完凸アイコンが光る・守りの数に盾のアイコン"
   ],
-  "bytes": 79302741,
-  "files": 841,
+  "bytes": 80249664,
+  "files": 847,
   "urls": [
     "index.html",
     "characters.html",
@@ -71,6 +67,12 @@
     "xevarion-home.js",
     "gacha-live.js",
     "home-mate.js",
+    "home-lobby.js",
+    "home-dot.js",
+    "MagiAbyss/js/ma-pixel.js",
+    "home-mate/lobby/hisako.webp",
+    "home-mate/lobby/alice.webp",
+    "home-mate/lobby/park.webp",
     "xeva-prefetch.js",
     "xeva-event-ui.js",
     "home-mate.css",
@@ -754,7 +756,6 @@
     "MagiAbyss/index.html",
     "MagiAbyss/manifest.webmanifest",
     "MagiAbyss/css/ma.css",
-    "MagiAbyss/js/ma-pixel.js",
     "MagiAbyss/js/ma-art.js",
     "MagiAbyss/js/ma-map.js",
     "MagiAbyss/js/ma-save.js",
@@ -848,6 +849,7 @@
     "MagiDerby/js/md-bet.js",
     "MagiDerby/js/md-race.js",
     "MagiDerby/js/md-ui.js",
+    "MagiDerby/js/md-help.js",
     "MagiDerby/img/icon192.png",
     "MagiQuiz/index.html",
     "MagiQuiz/css/quiz.css",
@@ -859,29 +861,90 @@
     "MagiQuiz/manifest.webmanifest"
   ],
   "apps": [
-    "magiabyss",
-    "magibocciarush",
-    "magiburst",
-    "magichainparty",
-    "magichemlex",
-    "magicounter",
     "magiderby",
-    "magidominiongrid",
-    "magijackpot",
-    "magilex",
-    "magilotto",
-    "magimusic",
-    "magiquiz",
-    "magiscope",
     "magishift",
     "tab:chars",
     "tab:community",
     "tab:gacha",
-    "tab:home",
-    "xevynar"
+    "tab:home"
   ],
-  "changedFiles": 74,
+  "changedFiles": 18,
   "history": [
+    {
+      "version": "2026-10-26-1",
+      "date": "2026-10-26",
+      "title": "完凸ロビー（ヒサコ・アリス）／バナーのドット絵／MagiDerby の見直し",
+      "notes": [
+        "超極煌祭のヒサコ・アリスを完凸（4凸）すると、ホームのロビーに動く立ち絵（♥パートナー →「ロビー」タブ・表情は変わらず軽く動く）",
+        "開催中のイベントのバナーの上を、持っているキャラがドット絵で動く（押すと「✎ かえる」・♥パートナー →「ドット絵」）・パートナー非表示のときのバナーを少し小さく",
+        "下バーのガチャのアイコンを新しいデザインに（「無料」の印は出さない）・iPad の上の端の対策を元に戻した",
+        "デベロッパーノートは追加データのダウンロードのあとに表示・XEVA の受け取りやログインのあとに画面が下がっていくのを修正",
+        "MagiDerby：発売はレースの日の3日前の 0:00 から・結果と払い戻しはデータが届きしだい（取得の時刻は前後します）・GⅠ の結果が出たら上に「結果を見る」（3日目まで）",
+        "MagiDerby：金額は押すたびに足す＋リセット（押しても画面が上にもどらない）・馬券タブでレースごとに絞りこみ・LIVE（JRA 公式の無料ライブ）・使い方アニメと馬券の種類の説明",
+        "MagiDerby：レースの特集ページへのボタン（再現アニメは外した）・券面の緑の帯と券種の位置・スマホで拡大したときの ✕ と下の線・結果の券の馬の名前を修正"
+      ],
+      "apps": [
+        "magiabyss",
+        "magibattle",
+        "magibocciarush",
+        "magiburst",
+        "magichainparty",
+        "magichemlex",
+        "magicounter",
+        "magiderby",
+        "magidominiongrid",
+        "magijackpot",
+        "magilex",
+        "magilotto",
+        "magimusic",
+        "magiquiz",
+        "magiscope",
+        "magishift",
+        "tab:chars",
+        "tab:community",
+        "tab:gacha",
+        "tab:home",
+        "xevynar"
+      ]
+    },
+    {
+      "version": "2026-10-25-1",
+      "date": "2026-10-25",
+      "title": "レベル・スタミナ廃止／MagiLex と MagiChemLex を統合／超極煌祭にヒサコ・アリス",
+      "notes": [
+        "レベルとスタミナを廃止（ホームの上は XEVA とジェムの縦1列）・両替チケット 1枚＝💎10",
+        "同期の作り直し：ほかの端末で XEVA が増えない・ジェムなどが増えつづけるのを修正",
+        "アップデートのあとにデベロッパーノート（変更点と新キャラの絵・設定から過去の回も）",
+        "超極煌祭にヒサコ（水）・アリス（闇）／MagiChemLex の WP 交換所にミキ（木）——どれも MagiAbyss 専用の UR",
+        "MagiLex を開くと MagiChemLex と旧MagiLex（化学・英単語・古文）を選べる・KP 交換所のキャラ表示を修正",
+        "MagiDerby：実際の馬券のような券面（馬名は1行の詰め字）・押して拡大／結果確認・勝敗の確定日・マイページ・木曜 0:00 から発売（枠順の前は馬名で・発表後に馬番へ差し替え）・スクロールの修正",
+        "MagiShift：2位からは守り7割・長さ3割（名前の横に守りの数・計算式）・最後の盤面を見返す",
+        "MagiQuiz（β版）：基礎の改題だけ・チームはくじ引き・ばくだんは小さく画面のふちが光る",
+        "MagiAbyss：町の人も細かいドット絵に／パートナー非表示のホーム・ガチャの SKIP ボタン・無料の印を修正"
+      ],
+      "apps": [
+        "magiabyss",
+        "magibocciarush",
+        "magiburst",
+        "magichainparty",
+        "magichemlex",
+        "magicounter",
+        "magiderby",
+        "magidominiongrid",
+        "magijackpot",
+        "magilex",
+        "magilotto",
+        "magimusic",
+        "magiquiz",
+        "magiscope",
+        "magishift",
+        "tab:chars",
+        "tab:community",
+        "tab:gacha",
+        "tab:home",
+        "xevynar"
+      ]
+    },
     {
       "version": "2026-10-23-1",
       "date": "2026-10-23",
@@ -1426,42 +1489,6 @@
       ],
       "apps": [
         "magilex",
-        "tab:home"
-      ]
-    },
-    {
-      "version": "2026-09-28-3",
-      "date": "2026-09-28",
-      "title": "3Dテーマパーク XEVARION PARK オープン／新パートナー 杏奈・沙夏",
-      "notes": [
-        "ホームの「XEVARION PARK」ボタン（β版）から、海に囲まれた3Dテーマパークへ",
-        "大噴水を中心に GATE・MARKET・TOWER・METROPOLIS・SPACE PORT・AQUA・BEACH・ADVENTURE・GAME WORLD・RESORT・NIGHT ZONE など各エリア",
-        "XEVARION HALL（基調講演・講演トラック・展示ホールから各アプリへ）",
-        "CPU とサッカー（SOCCER STADIUM）・ボッチャ（BOCCIA ARENA）・カートレース（MOTOR CITY）",
-        "ベンチ・客席にすわれる／W を2回でダッシュ・スマホのスティック操作／地図からワープ",
-        "歩くのは VRoid のキャラ、パークの人たちも VRoid のキャラ（色違い）・歩き方をなめらかに",
-        "新パートナー 杏奈・沙夏（背景つき）／パートナーを変えると特別な登場",
-        "表情の目の線・口の位置を修正／セリフに合わせた表情・しぐさ／沙夏の胸の下側の反応・揺れと顔の追従を控えめに"
-      ],
-      "apps": [
-        "tab:home"
-      ]
-    },
-    {
-      "version": "2026-09-28-2",
-      "date": "2026-09-28",
-      "title": "3D会場 WORLD CONFERENCE／テーマパーク・ミニゲーム／新パートナー 杏奈・沙夏",
-      "notes": [
-        "ホームの「WORLD CONFERENCE」ボタン（β版）から歩いて回れる3D会場へ（基調講演・講演トラック・展示ホールから各アプリへ）",
-        "大噴水のセントラルパーク・観覧車のワンダーランド・スポーツパーク・サーキットのテーマパーク",
-        "CPU のキャラとサッカー（3対3）・ボッチャ・カートレース（3周）",
-        "ベンチ・客席・カフェのいす・ソファにすわれる／W を2回でダッシュ・スマホのスティック操作",
-        "会場を歩くのは VRoid のキャラ、スタッフや登壇者は会場オリジナルのキャラ",
-        "新パートナー 杏奈・沙夏（背景つき）／パートナーを変えると特別な登場",
-        "表情の目の線・口の位置を修正（悪戯っぽい笑みは廃止）／セリフに合わせた表情・しぐさ",
-        "沙夏の胸の下側の反応・マウスへの顔の追従を控えめに・開放の確認を中央に"
-      ],
-      "apps": [
         "tab:home"
       ]
     }

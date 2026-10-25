@@ -58,6 +58,13 @@
 .cm-park .go{flex:none;padding:7px 12px;border-radius:99px;font-size:12px;font-weight:900;color:#3a2aa8;background:#fff;box-shadow:0 3px 0 rgba(30,20,110,.35)}
 .cm-park .beta{position:absolute;right:12px;top:9px;font-style:normal;font-size:9px;font-weight:900;padding:1px 7px;border-radius:99px;background:#ffb21e;color:#fff;border:1.5px solid rgba(255,255,255,.8)}
 .cm-park.off{filter:grayscale(.85) brightness(.95);opacity:.7}
+/* ★★ 2026-10-26 判定シート（PARK と同じ形・色だけ桃色） */
+.cm-uwk{text-decoration:none;color:#fff}
+.cm-uwk::before{background:linear-gradient(120deg,#ff6fa4,#ff8a6a 55%,#ffb35a)!important}
+.cm-uwk .orb b{font-size:30px;line-height:1}
+.cm-uwk .tx b{font-family:'Noto Sans JP',sans-serif;text-shadow:0 1px 0 rgba(150,20,60,.45)}
+.cm-uwk .tx small{color:#fff3f7}
+.cm-uwk .go{color:#c92a62}
 .cm-park:active{transform:translateY(2px)}
 /* ── ② アニメTier（ボタンで ホストの表／人気Tier を切りかえ） ── */
 .cm-at .cm-hd{display:flex;align-items:flex-end;justify-content:space-between;gap:8px;margin:2px 0 10px}
@@ -132,7 +139,10 @@
     box.innerHTML = '<button type="button" class="cm-park" id="cmParkBtn" aria-label="XEVARION PARK（3Dパーク・β版）に入る">' +
       '<span class="orb"><img src="brand-xevarion-orb.png" alt=""></span>' +
       '<span class="tx"><small>3D PARK</small><b>XEVARION PARK</b><span>3Dのパークで遊ぶ・みんなと会える</span></span>' +
-      '<span class="go">入る ›</span><i class="beta">β版</i></button>';
+      '<span class="go">入る ›</span><i class="beta">β版</i></button>' +
+      /* ★★ 2026-10-26 ご指定「これって浮気？判定シートのボタンをホームから消して、XEVARION PARK の下に同じように」 */
+      '<a class="cm-park cm-uwk" href="uwaki.html" aria-label="これって浮気？判定シート"><span class="orb"><b>💗</b></span>' +
+      '<span class="tx"><small>CHECK SHEET</small><b>これって浮気？</b><span>判定シートでふたりの線引きをチェック</span></span><span class="go">ひらく ›</span></a>';
     $("cmParkBtn").onclick = openPark;
     paintParkOff();
   }

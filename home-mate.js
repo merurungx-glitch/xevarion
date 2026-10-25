@@ -1678,11 +1678,13 @@
   /* ══════════════ ★★ 2026-09-30 パートナーを表示しないモード（ご指定「ホームでパートナーを表示しないモード」） ══════════════
      部屋の背景だけを出す（キャラ・吹き出し・タップの反応・WebGL は作らない＝軽い）。
      Mate と同じ呼ばれ方（mount / layout / greet / destroy）をするので、ほかの所はそのまま動く。 */
-  function Backdrop(stage, id) { this.stage = stage; this.id = id; this.def = HM_MATES[id]; this.backdrop = true; this.view = store().view || "normal"; }
+  /* ★★ 2026-10-26 完凸ロビー（lb）を選んでいるときは、そのロビーの背景（bgKey で見分ける） */
+  function Backdrop(stage, id, lb) { this.stage = stage; this.id = id; this.def = HM_MATES[id]; this.backdrop = true; this.view = store().view || "normal"; this.lb = lb || null; this.bgKey = lb ? "lb:" + lb : id; }
   Backdrop.prototype.mount = function () {
     const layer = document.createElement("div");
     layer.className = "hm-layer hm-empty"; layer.dataset.mate = this.id;
-    layer.innerHTML = '<div class="hm-bg" style="background-image:url(' + asset(this.def, "bg.webp") + ')"></div>';
+    const L = window.HMLobby, bg = this.lb && L && L.DEFS[this.lb] ? L.src(L.DEFS[this.lb].bg) : asset(this.def, "bg.webp");
+    layer.innerHTML = '<div class="hm-bg" style="background-image:url(' + bg + ')"></div>';
     this.stage.appendChild(layer); this.layer = layer;
     requestAnimationFrame(() => layer.classList.add("in"));
     setTimeout(() => { if (!this.dead) layer.classList.add("in"); }, 700);
@@ -1796,7 +1798,8 @@
   /* ══════════════ ランダム表示（アプリを開くたびに、開放ずみの中から1人） ══════════════
      設定は xeva_mate_v1.random（同期）。この起動で出す子は sessionPick（同じ起動中は変えない）。 */
   let sessionPick = null;
-  function randomOn() { return !!store().random; }
+  /* ★★ 2026-10-26 ご指定でランダム表示は廃止（xeva_mate_v1.random が残っていても見ない） */
+  function randomOn() { return false; }
   function randomPick() {
     const own = owned();
     let last = null; try { last = localStorage.getItem(HM_LAST); } catch (e) {}
@@ -1804,6 +1807,27 @@
     const id = c[Math.floor(Math.random() * c.length)] || HM_FREE;
     try { localStorage.setItem(HM_LAST, id); } catch (e) {}
     return id;
+  }
+
+  /* ══ ★★ 2026-10-26 完凸ロビー（home-lobby.js の HMLobby）══
+     xeva_mate_v1.lobby に選んだロビー（同期）。開放（完凸）していなければ出さない＝パートナーにもどる */
+  function lobbyId() {
+    const L = window.HMLobby, v = store().lobby;
+    if (!L || !v || !L.DEFS[v]) return null;
+    return L.unlocked(v) ? v : null;
+  }
+  /* 選ぶ画面の写真の枠に、顔のあたりが来るように置く（centerNose のロビー版） */
+  function centerLobby(im, id) {
+    const L = window.HMLobby, d = L && L.DEFS[id]; if (!d) return;
+    const go = () => {
+      const box = im.parentElement, bw = box.clientWidth, bh = box.clientHeight;
+      if (!bw || !bh) { requestAnimationFrame(go); return; }
+      const [W, H] = d.rig.size, fx = d.rig.face[0], fy = d.rig.face[1] + 60;
+      const s = (bh * 2.9) / H;
+      im.style.cssText = "position:absolute;left:0;top:0;height:" + (H * s) + "px;width:" + (W * s) + "px;max-width:none;translate:0 0;transform:translate(" +
+        (bw / 2 - fx * s) + "px," + (bh / 2 - fy * s) + "px)";
+    };
+    go();
   }
 
   const rigCache = {};
@@ -1822,24 +1846,38 @@
   }
 
   function mateSub() {
-    const id = api.current(), m = HM_MATES[id];
+    const id = api.current(), m = HM_MATES[id], lb = lobbyId();
+    if (lb && !hiddenOn()) return "ロビー：" + window.HMLobby.DEFS[lb].name + "（完凸）・パートナー開放 " + owned().length + "/" + Object.keys(HM_MATES).length;
     if (hiddenOn()) return "表示しない（部屋だけ）・開放 " + owned().length + "/" + Object.keys(HM_MATES).length;
     return randomOn() ? "ランダム表示（いまは " + m.name + "）・開放 " + owned().length + "/" + Object.keys(HM_MATES).length
                       : m.name + "（" + m.ruby + "）・開放 " + owned().length + "/" + Object.keys(HM_MATES).length;
   }
 
-  function openPicker() {
+  /* ★★ 2026-10-26 タブ：パートナー（いままで）｜ロビー（完凸のヒサコ・アリス）｜ドット絵（バナーの上を動くキャラ・home-dot.js）
+     openPicker("lobby"／"dot") でそのタブから開く。ドット絵のキャラを押したときの「✎ かえる」は "dot" */
+  /* ★★ 2026-10-26（2回目）ご指定「パートナーとロビーはどちらもロビーなので、ロビーを押して、その中でボタンで分けて」
+     → 上のタブは「ロビー｜ドット絵」。ロビーの中の切りかえ（.hm-pk-sub）で「パートナー｜完凸ロビー」 */
+  const PK_TTL = { mate: "ホームのロビー", lobby: "ホームのロビー", dot: "バナーのドット絵キャラ" };
+  let pkRoom = "mate";
+  function openPicker(want) {
     let sh = document.getElementById("hmPicker");
     if (!sh) {
       sh = document.createElement("div");
       sh.id = "hmPicker"; sh.className = "hm-picker";
-      sh.innerHTML = '<div class="hm-pk-card"><div class="hm-pk-head"><b>ホームのパートナー</b>' +
-        '<button class="hm-pk-x" aria-label="閉じる">✕</button></div><div class="hm-pk-info"></div>' +
-        '<div class="hm-pk-rand hm-pk-hide"><span><b>パートナーを表示しない</b><small>ホームのロビーにキャラを出さず、部屋の背景だけにします（ロビーの「表示」ボタンでも切りかえられます）</small></span>' +
+      sh.innerHTML = '<div class="hm-pk-card"><div class="hm-pk-head"><b class="hm-pk-ttl">ホームのロビー</b>' +
+        '<button class="hm-pk-x" aria-label="閉じる">✕</button></div>' +
+        '<div class="hm-pk-tabs" role="tablist"><button type="button" data-t="room">ロビー</button><button type="button" data-t="dot">ドット絵</button></div>' +
+        /* ★★ 2026-10-26 ご指定「表示しないはパートナーと完凸ロビーの両方に関わるので、その切りかえの上に」 */
+        '<div class="hm-pk-rand hm-pk-hide"><span><b>パートナーを表示しない</b><small>パートナー・完凸ロビーのキャラを出さず、背景だけにします（ロビーの「表示」ボタンでも切りかえられます）</small></span>' +
         '<button class="hm-vsw" aria-label="パートナーを表示しないモードのオン・オフ"></button></div>' +
-        '<div class="hm-pk-rand hm-pk-rnd"><span><b>ランダムに表示</b><small>アプリを開くたびに、開放ずみのパートナーから1人が出てきます</small></span>' +
-        '<button class="hm-vsw" aria-label="ランダム表示のオン・オフ"></button></div><div class="hm-pk-list"></div>' +
-        '<p class="hm-pk-note">選んだキャラがホームのロビーに立ちます。タップすると表情とセリフで反応します。</p>' +
+        '<div class="hm-pk-sub"><button type="button" data-s="mate">パートナー</button><button type="button" data-s="lobby">完凸ロビー<em>完凸</em></button></div>' +
+        '<div class="hm-pk-pane" data-p="mate"><div class="hm-pk-info"></div>' +
+        '<div class="hm-pk-list"></div>' +
+        '<p class="hm-pk-note">選んだキャラがホームのロビーに立ちます。タップすると表情とセリフで反応します。</p></div>' +
+        '<div class="hm-pk-pane" data-p="lobby" hidden><div class="hm-lb-info"></div><div class="hm-lb-list"></div>' +
+        '<p class="hm-pk-note">ロビーは<b>完凸（4凸）したキャラ</b>だけの特別な表示です。表情は変わらず、呼吸や髪・スカートのゆれで軽く動きます。表示（標準・アップ・全身）はパートナーと同じボタンで切りかえられます。</p></div>' +
+        '<div class="hm-pk-pane" data-p="dot" hidden><div class="hm-dt-info"></div><div class="hm-dt-opts"></div><div class="hm-dt-grid"></div>' +
+        '<p class="hm-pk-note">ドット絵のキャラは、ホームの「開催中のイベント」のバナー（イベントが無いときはガチャのバナー）の上で動きます。キャラを押すと反応して、ここを開く「✎ かえる」が出ます。</p></div>' +
         '</div><div class="hm-pk-confirm"><div class="box"><p class="q"></p><div class="row"><button class="no">やめる</button><button class="yes">開放する</button></div></div></div>';
       document.body.appendChild(sh);
       sh.addEventListener("click", (e) => { if (e.target === sh || e.target.closest(".hm-pk-x")) sh.classList.remove("on"); });
@@ -1848,32 +1886,86 @@
     const price = () => { try { if (window.XEVA && XEVA.event) return XEVA.event.partnerPrice(HM_COST); } catch (e) {} return HM_COST; };
     const offEv = () => { try { return window.XEVA && XEVA.event ? XEVA.event.partnerOff() : null; } catch (e) { return null; } };
     const priceTag = () => price() < HM_COST ? '<s>' + nf(HM_COST) + '</s> ' + nf(price()) : nf(HM_COST);
+    const ttl = sh.querySelector(".hm-pk-ttl"), flash = (el, html) => { if (!el) return; el.innerHTML = html; el.classList.remove("hm-flash"); void el.offsetWidth; el.classList.add("hm-flash"); };
+    const paintLobby = () => {
+      const L = window.HMLobby, box = sh.querySelector(".hm-lb-list"), info = sh.querySelector(".hm-lb-info");
+      if (!L) { info.textContent = "読みこみ中です…"; box.innerHTML = ""; return; }
+      const curLb = lobbyId();
+      info.innerHTML = '超極煌祭の <b>ヒサコ</b>・<b>アリス</b>は、<b>完凸（4凸）</b>すると<b>ロビー</b>として選べます。' +
+        '動く立ち絵と、木もれ日の展望テラスの背景になります。' + (curLb ? '<button type="button" class="hm-lb-off">ロビーを外して、パートナーにもどす</button>' : "");
+      box.innerHTML = L.ids().map((id) => {
+        const d = L.DEFS[id], a = L.awkOf(id), ok = a.awk >= 4, isCur = curLb === id;
+        const tag = isCur ? '<span class="now">選択中</span>' : ok ? "" : '<span class="lock">🔒 完凸で解放</span>';
+        const how = ok ? '<span class="hm-lb-awk ok">完凸ずみ・選べます</span>'
+          : '<span class="hm-lb-awk">' + (a.own ? "いま " + a.awk + " 凸（あと " + (4 - a.awk) + "）" : "まだ持っていません") + "・超極煌祭（毎月21日〜末日）</span>";
+        return '<button type="button" class="hm-pk-item hm-lb-item' + (isCur ? " on" : "") + (ok ? "" : " locked") + '" data-lb="' + id + '" style="--c:' + d.color + '">' +
+          '<span class="ph" style="background-image:url(' + L.src(d.bg) + ')"><img data-lb="' + id + '" src="' + L.src(d.img) + '" alt="" loading="lazy"></span>' +
+          '<span class="nm">' + d.name + "<small>" + d.ruby + '</small></span><span class="ds">' + d.intro + "</span>" + how + tag + "</button>";
+      }).join("");
+      box.querySelectorAll(".hm-lb-item").forEach((b) => { b.onclick = () => {
+        const id = b.dataset.lb, d = L.DEFS[id];
+        if (!L.unlocked(id)) { flash(info, "🔒 <b>" + d.name + "</b>のロビーは、" + d.name + "を<b>完凸（4凸）</b>すると選べます（超極煌祭・毎月21日〜末日）。"); return; }
+        api.setLobby(id); sh.classList.remove("on");
+      }; });
+      box.querySelectorAll(".hm-lb-item .ph img").forEach((im) => centerLobby(im, im.dataset.lb));
+      const off = info.querySelector(".hm-lb-off"); if (off) off.onclick = () => { api.clearLobby(); paintLobby(); paint(); };
+    };
+    const paintDot = () => {
+      const D = window.HomeDot, info = sh.querySelector(".hm-dt-info"), opts = sh.querySelector(".hm-dt-opts"), grid = sh.querySelector(".hm-dt-grid");
+      if (!D) { info.textContent = "読みこみ中です…"; opts.innerHTML = grid.innerHTML = ""; return; }
+      const ids = D.ids(), own = D.ownedIds(), cur = D.setting(), shown = D.shown();
+      info.innerHTML = '持っているキャラが、ホームの<b>イベントのバナーの上</b>で歩いたり、跳ねたり、すわって足をぶらぶらさせたりします。' +
+        'ガチャなどで<b>手に入れたキャラ</b>（ドット絵のあるキャラ）から選べます。<span class="hm-dt-cnt">所持 <b>' + own.length + " / " + ids.length + "</b></span>";
+      opts.innerHTML = '<button type="button" data-v="" class="' + (cur === "" ? "on" : "") + '"><b>🎲 おまかせ</b><small>持っている子から起動ごとに1人</small></button>' +
+        '<button type="button" data-v="off" class="' + (cur === "off" ? "on" : "") + '"><b>🚫 表示しない</b><small>バナーの上には出さない</small></button>';
+      grid.innerHTML = ids.map((id) => {
+        const ok = own.indexOf(id) >= 0, isCur = cur === id;
+        return '<button type="button" class="hm-dt-cell' + (isCur ? " on" : "") + (ok ? "" : " locked") + '" data-v="' + id + '"><canvas data-id="' + id + '" width="48" height="60"></canvas>' +
+          '<span class="n">' + esc(D.nameOf(id)) + "</span>" + (ok ? "" : '<i class="lk">🔒</i>') + (cur === "" && shown === id ? '<em class="sh">表示中</em>' : "") + "</button>";
+      }).join("");
+      grid.querySelectorAll("canvas").forEach((c) => { D.thumb(c.dataset.id, c); });
+      [].slice.call(opts.querySelectorAll("button")).concat([].slice.call(grid.querySelectorAll("button"))).forEach((b) => { b.onclick = () => {
+        const v = b.dataset.v;
+        if (v && v !== "off" && !D.owned(v)) { flash(info, "🔒 <b>" + esc(D.nameOf(v)) + "</b>はまだ持っていません。ガチャなどで手に入れると選べます。"); return; }
+        try { if (window.XOS) XOS.haptic(); } catch (e) {}
+        D.set(v); sh.classList.remove("on");
+      }; });
+    };
+    let tab = want === "lobby" || want === "dot" ? want : (want === "mate" ? "mate" : (lobbyId() ? "lobby" : "mate"));
+    const setTab = (t) => {
+      tab = t; if (t !== "dot") pkRoom = t;
+      const top = t === "dot" ? "dot" : "room";
+      sh.querySelectorAll(".hm-pk-tabs button").forEach((b) => { b.classList.toggle("on", b.dataset.t === top); b.setAttribute("aria-selected", b.dataset.t === top ? "true" : "false"); });
+      const hd = sh.querySelector(".hm-pk-hide"); if (hd) hd.hidden = t === "dot";
+      const sub = sh.querySelector(".hm-pk-sub"); if (sub) { sub.hidden = t === "dot"; sub.querySelectorAll("button").forEach((b) => b.classList.toggle("on", b.dataset.s === t)); }
+      sh.querySelectorAll(".hm-pk-pane").forEach((p) => { p.hidden = p.dataset.p !== t; });
+      if (ttl) ttl.textContent = PK_TTL[t] || PK_TTL.mate;
+      if (t === "lobby") paintLobby();
+      if (t === "dot") paintDot();
+    };
+    sh.querySelectorAll(".hm-pk-tabs button").forEach((b) => { b.onclick = () => setTab(b.dataset.t === "room" ? pkRoom : b.dataset.t); });
+    sh.querySelectorAll(".hm-pk-sub button").forEach((b) => { b.onclick = () => setTab(b.dataset.s); });
     const paint = () => {
-      const cur = api.current(), own = owned(), bal = xevaBal(), ev = offEv();
+      const cur = api.current(), own = owned(), bal = xevaBal(), ev = offEv(), lbNow = lobbyId();
       sh.querySelector(".hm-pk-info").innerHTML = (ev ? '<div class="hm-pk-ev">💜 <b>' + ev.nm + '</b> 開催中：パートナー<b>1人ぶん ' + Math.round(ev.off * 100) + '%OFF</b>（' + nf(HM_COST) + ' → <b>' + nf(price()) + '</b> XEVA）</div>' : "") +
         '<b>' + HM_MATES[HM_FREE].name + '</b>は最初から選べます。ほかのパートナーは 1人 <b>' + priceTag() + ' XEVA</b> で開放できます。<br>' +
-        '開放ずみ <b>' + own.length + ' / ' + Object.keys(HM_MATES).length + '</b>人　・　所持 <b>' + nf(bal) + ' XEVA</b>';
+        '開放ずみ <b>' + own.length + ' / ' + Object.keys(HM_MATES).length + '</b>人　・　所持 <b>' + nf(bal) + ' XEVA</b>' +
+        (lbNow ? '<div class="hm-pk-lbnow">いまはロビー（<b>' + window.HMLobby.DEFS[lbNow].name + '</b>）を表示中。パートナーを選ぶとロビーは外れます。</div>' : "");
       sh.querySelector(".hm-pk-list").innerHTML = Object.keys(HM_MATES).map((id) => {
-        const m = HM_MATES[id], has = own.indexOf(id) >= 0, isCur = id === cur && has;
+        const m = HM_MATES[id], has = own.indexOf(id) >= 0, isCur = id === cur && has && !lbNow;
         const tag = isCur ? '<span class="now">' + (randomOn() ? "表示中" : "選択中") + '</span>'
           : has ? "" : '<span class="lock">🔒 ' + priceTag() + ' XEVA</span>';
         return '<button class="hm-pk-item' + (isCur ? " on" : "") + (has ? "" : " locked") + '" data-id="' + id + '" style="--c:' + m.color + '">' +
           '<span class="ph" style="background-image:url(' + asset(m, "bg.webp") + ')"><img data-id="' + id + '" src="' + asset(m, id + ".webp") + '" alt="" loading="lazy"></span>' +
           '<span class="nm">' + m.name + '<small>' + m.ruby + '</small></span><span class="ds">' + m.intro + "</span>" + tag + "</button>";
       }).join("");
-      sh.querySelectorAll(".hm-pk-item").forEach((b) => b.addEventListener("click", () => choose(b.dataset.id)));
+      sh.querySelectorAll(".hm-pk-list .hm-pk-item").forEach((b) => b.addEventListener("click", () => choose(b.dataset.id)));
       /* ★ 2026-09-24g 写真の枠の真ん中に<b>鼻のあたり</b>が来るように置く（目印の face は顔の中心＝鼻の少し上） */
-      sh.querySelectorAll(".hm-pk-item .ph img").forEach((im) => centerNose(im, im.dataset.id));
-      sw.classList.toggle("on", randomOn());
+      sh.querySelectorAll(".hm-pk-list .hm-pk-item .ph img").forEach((im) => centerNose(im, im.dataset.id));
       swH.classList.toggle("on", hiddenOn());
       sh.querySelector(".hm-pk-card").classList.toggle("hm-pk-hidden", hiddenOn());
     };
-    const sw = sh.querySelector(".hm-pk-rnd .hm-vsw"), swH = sh.querySelector(".hm-pk-hide .hm-vsw");
-    sw.onclick = () => {
-      const st = store(); st.random = !st.random; save(st);
-      if (st.random) sessionPick = api.get() ? api.get().id : null;     /* 今の子はそのまま。次に開いたときから入れかわる */
-      paint(); api.refreshSub();
-    };
+    const swH = sh.querySelector(".hm-pk-hide .hm-vsw");
     swH.onclick = () => { api.setHidden(!hiddenOn()); paint(); };
     const cf = sh.querySelector(".hm-pk-confirm");
     const choose = (id) => {
@@ -1902,6 +1994,7 @@
     };
     cf.classList.remove("on");
     paint();
+    setTab(tab);
     requestAnimationFrame(() => sh.classList.add("on"));
   }
 
@@ -2203,8 +2296,8 @@
       const day0 = Date.UTC(d[0], d[1] - 1, d[2]) - 9 * 3600000, post = day0 + (p[0] * 60 + p[1]) * 60000;
       /* ★★ 2026-10-24 ご指定で発売を早めた：土・日・月曜のレースは<b>その週の木曜 0:00</b>、ほかは2日前の 0:00 から締切（発走の2分前）までずっと
          （MagiDerby の N.saleWins と同じ決まり。★★ 2026-10-24 枠順の発表前＝r.st "entry" でも馬名で買えるので札を出す） */
-      const wd = new Date(day0 + 9 * 3600000).getUTCDay(), close = post - 120000;
-      const back = wd === 6 ? 2 : wd === 0 ? 3 : wd === 1 ? 4 : 2;
+      /* ★★ 2026-10-26 ご指定「馬券の購入を発走から三日前から」→ どの曜日もレースの日の3日前の 0:00 から（MagiDerby の D.SALE_DAYS_BEFORE と同じ） */
+      const close = post - 120000, back = 3;
       if (t >= day0 - back * 86400000 && t < close) return { nm: r.nm, short: DERBY_SHORT[r.nm] || r.nm, close: close, soon: close - t <= DERBY_SOON_MS, left: close - t };
     }
     return null;
@@ -2224,9 +2317,9 @@
       const k = tk[id]; if (!k) return;
       if (k.st === "ready") { n++; return; }
       if (k.st !== "open") return;
-      const r = byRid[k.rid]; if (!r || r.st !== "result" || !r.date) return;
-      const d = String(r.date).split("-").map(Number), pay = Date.UTC(d[0], d[1] - 1, d[2] + 1) - 9 * 3600000;
-      if (t >= pay) n++;
+      /* ★★ 2026-10-26 ご指定「結果や払い戻しは端末が情報を受信でき次第」→ 次の日の 0:00 を待たない（結果が出ていれば数える） */
+      const r = byRid[k.rid]; if (!r || r.st !== "result") return;
+      n++;
     });
     return n;
   }
@@ -2285,17 +2378,19 @@
     if (!hiddenOn()) { ["--nm-top", "--nm-row2", "--nm-apps"].forEach((v) => lob.style.removeProperty(v)); lob.classList.remove("nm-noev"); return; }
     const lr = lob.getBoundingClientRect(); if (!lr.height) return;
     const prof = lob.querySelector(".xh-prof");
-    const top = prof ? Math.max(0, prof.getBoundingClientRect().bottom - lr.top) + 8 : 120;
+    /* ★★ 2026-10-26 バナーの上をドット絵のキャラが歩くので、そのぶん（HomeDot.room）下げる */
+    let dotRoom = 0; try { dotRoom = window.HomeDot ? HomeDot.room() : 0; } catch (e) {}
+    /* ★★ 2026-10-26（2回目）ご指定：ロビーのボタンはパートナー表示のときと同じ右上（イベントのバナーの上）。バナーはその下から */
+    const right = lob.querySelector(".xl-right");
+    const rb = right && right.getClientRects().length ? right.getBoundingClientRect().bottom - lr.top + 8 : 0;
+    const top = Math.max((prof ? Math.max(0, prof.getBoundingClientRect().bottom - lr.top) + 8 : 120) + dotRoom, rb);
     lob.style.setProperty("--nm-top", top + "px");
     const evb = document.getElementById("xlEvb");
     lob.classList.toggle("nm-noev", !evb || evb.hidden);
     let bot = top;
     ["xlBan", "xlEvb"].forEach((id) => { const el = document.getElementById(id); if (el && !el.hidden && el.getClientRects().length) bot = Math.max(bot, el.getBoundingClientRect().bottom - lr.top); });
-    const pills = document.getElementById("xlPills"), right = lob.querySelector(".xl-right");
-    let h2 = 0;
-    [pills, right].forEach((el) => { if (el && el.getClientRects().length) h2 = Math.max(h2, el.getBoundingClientRect().height); });
-    lob.style.setProperty("--nm-row2", Math.round(bot + 12) + "px");
-    lob.style.setProperty("--nm-apps", Math.round(bot + 12 + (h2 || 42) + 12) + "px");
+    /* ★★ 2026-10-26（2回目）判定シートとロビーのボタンの段は無くしたので、すぐ下からすべてのアプリ */
+    lob.style.setProperty("--nm-apps", Math.round(bot + 12) + "px");
   }
   function renderLobbyApps() {
     const box = document.getElementById("xlApps"); if (!box) return;
@@ -2360,10 +2455,6 @@
     /* 表示するパートナー：ランダム表示なら この起動で選んだ子。ふだんは開放ずみの中から選んでいる子（なければ笙古） */
     current() {
       const st = store(), own = owned();
-      if (st.random && own.length > 1) {
-        if (!sessionPick || own.indexOf(sessionPick) < 0) sessionPick = randomPick();
-        return sessionPick;
-      }
       return own.indexOf(st.partner) >= 0 ? st.partner : HM_FREE;
     },
     owned,
@@ -2375,12 +2466,16 @@
     setPartner(id, picked) {
       if (!HM_MATES[id]) return;
       /* ★★ 2026-09-30 選択画面でパートナーを選んだら「表示しない」は解除（選んだ子がすぐ出る） */
-      if (picked === true) { const st = store(); st.partner = id; if (st.hide) st.hide = false; save(st); sessionPick = id; }
+      if (picked === true) { const st = store(); st.partner = id; if (st.hide) st.hide = false; if (st.lobby) delete st.lobby; save(st); sessionPick = id; }
       const stage = document.getElementById("xhMate");
       if (stage) {
+        const lb = lobbyId();    /* ★★ 2026-10-26 完凸ロビーを選んでいれば、パートナーの代わりにロビー（home-lobby.js） */
         if (hiddenOn()) {
-          if (!(live && live.backdrop && live.id === id && !live.dead)) { if (live) live.destroy(); live = new Backdrop(stage, id); live.mount(); }
-        } else if (live && live.id === id && !live.dead && !live.backdrop && picked !== "quiet") { if (picked === true) live.greet(true); }
+          const bgKey = lb ? "lb:" + lb : id;
+          if (!(live && live.backdrop && live.bgKey === bgKey && !live.dead)) { if (live) live.destroy(); live = new Backdrop(stage, id, lb); live.mount(); }
+        } else if (lb) {
+          if (!(live && live.lobby && live.id === lb && !live.dead && picked !== "quiet")) { if (live) live.destroy(); live = window.HMLobby.create(stage, lb); live.mount(picked); }
+        } else if (live && live.id === id && !live.dead && !live.backdrop && !live.lobby && picked !== "quiet") { if (picked === true) live.greet(true); }
         else {
           if (live) live.destroy();
           live = new Mate(stage, id);
@@ -2397,6 +2492,20 @@
       if (!on && live && !live.backdrop) setTimeout(() => { if (live && !live.dead && !live.backdrop) live.greet(false); }, 700);
     },
     hidden: hiddenOn,
+    /* ★★ 2026-10-26 完凸ロビーを選ぶ／外す（選ぶ画面の「ロビー」タブ） */
+    setLobby(lb) {
+      const L = window.HMLobby; if (!L || !L.DEFS[lb] || !L.unlocked(lb)) return;
+      const st = store(), wasHidden = !!st.hide; st.lobby = lb; st.hide = false; st.random = false; save(st);
+      if (wasHidden) { try { renderLobbyApps(); } catch (e) {} }
+      api.setPartner(api.current(), "pickLobby");
+    },
+    clearLobby() {
+      const st = store(); if (!st.lobby) return;
+      delete st.lobby; save(st);
+      api.setPartner(api.current(), true);
+    },
+    lobby: lobbyId,
+    relayout() { try { nmLayout(); } catch (e) {} },
     /* ★★ 2026-09-25 WebGL が消された・描けなくなったときに作り直す（1分に4回まで） */
     revive(m) {
       if (!m || m !== live || m.dead) return;
@@ -2404,7 +2513,7 @@
       api._rv = (api._rv || []).filter((t) => now - t < 60000);
       if (api._rv.length >= 4) return;
       api._rv.push(now);
-      setTimeout(() => { if (m === live && !m.dead) { m.dead = true; api.setPartner(m.id, "quiet"); } }, 250);
+      setTimeout(() => { if (m === live && !m.dead) { m.dead = true; api.setPartner(m.lobby || m.backdrop ? api.current() : m.id, "quiet"); } }, 250);
     },
     /* 標準 → アップ → 全身 → なし（パートナーを表示しない）→ 標準 … */
     cycleView() {
@@ -2448,8 +2557,11 @@
   const resync = () => {
     try {
       renderLobbyApps();
-      const id = api.current();
-      if (!live || live.id !== id || !!live.backdrop !== hiddenOn()) api.setPartner(id, false);          /* ★★ 2026-09-30 表示しないモードが別の端末で変わったときも */
+      const id = api.current(), lb = lobbyId();
+      /* ★★ 2026-10-26 出したいもの（パートナー／完凸ロビー／背景だけ）と、いま出ているものを見くらべる */
+      const want = hiddenOn() ? "bd:" + (lb ? "lb:" + lb : id) : lb ? "lb:" + lb : "m:" + id;
+      const have = !live || live.dead ? "" : live.backdrop ? "bd:" + live.bgKey : live.lobby ? "lb:" + live.id : "m:" + live.id;
+      if (want !== have) api.setPartner(id, false);          /* ★★ 2026-09-30 表示しないモードが別の端末で変わったときも */
       else api.refreshSub();
       const v = store().view || "normal";
       if (live && live.view !== v) { live.view = v; live.layout(); }

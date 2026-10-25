@@ -13,7 +13,7 @@
    ・iPhone のアプリ表示（html.xv-full）では、ホームと同じく<b>本当の画面の下端</b>に置く
      （fixed の板は画面より短い箱で切られるので、文書は動かさず body の中でスクロールし、下バーは html に absolute で置く）
    ・ガチャのタブは、ホームと同じく<b>キャラの絵</b>（XH_GACHA_TAB_CHAR と同じ子・Xevion OS の設定でオフにできる）
-   使い方: <script src="xeva-tabbar.js?v=5" data-tab="gacha"></script>（data-tab＝community / gacha / chars）
+   使い方: <script src="xeva-tabbar.js?v=7" data-tab="gacha"></script>（data-tab＝community / gacha / chars）
    ★★ 2026-10-14 ご報告「コミュニティやガチャや図鑑の下バーが、開いて少しあとに表示される」
    ・真因：このファイルを<b>ページのいちばん最後に defer</b> で読んでいたので、ガチャなら mb-core.js（約2MB）など
      重い部品を全部読み終わるまで下バーが作られなかった（＋0.3秒かけて薄く出していた）。
@@ -30,7 +30,7 @@
   var ICONS = {
     "home": "<svg class=\"uic\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path class=\"p k\" d=\"M15.4 3.9h2.8v5.2l-2.8-2.4Z\"/><path class=\"p k\" d=\"M5 10.6 12 4.8l7 5.8v8.6a1.8 1.8 0 0 1-1.8 1.8H6.8A1.8 1.8 0 0 1 5 19.2Z\"/><path class=\"ln\" d=\"M2.6 11.6 12 3.6l9.4 8\"/><rect class=\"s k\" x=\"9.8\" y=\"13.8\" width=\"4.4\" height=\"7\" rx=\"1.4\"/><path class=\"gl\" d=\"M7.4 11 10.6 8.3\"/></svg>",
     "community": "<svg class=\"uic\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><circle class=\"s k\" cx=\"16.4\" cy=\"8.2\" r=\"2.8\"/><path class=\"s k\" d=\"M12.6 19.8c.2-3.4 1.8-5.4 3.8-5.4s3.7 2 3.9 5.4Z\"/><circle class=\"p k\" cx=\"9\" cy=\"7.8\" r=\"3.4\"/><path class=\"p k\" d=\"M3.2 20.2c.3-4.2 2.6-6.6 5.8-6.6s5.5 2.4 5.8 6.6Z\"/><path class=\"gl\" d=\"M7.3 6.6a2 2 0 0 1 1.5-1.1\"/></svg>",
-    "gacha": "<svg class=\"uic\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path class=\"w k\" d=\"M3.4 12.8a8.6 8.6 0 0 0 17.2 0Z\"/><path class=\"s k\" d=\"M3.4 12.8a8.6 8.6 0 0 1 17.2 0Z\"/><circle class=\"p k\" cx=\"12\" cy=\"12.8\" r=\"2.8\"/><path class=\"gl\" d=\"M6.6 9.4a5.8 5.8 0 0 1 3-2.7\"/><path class=\"s k\" d=\"M19.8 1.6l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8Z\"/></svg>",
+    "gacha": "<svg class=\"uic gtb\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path class=\"w k\" d=\"M3.4 12.8a8.6 8.6 0 0 0 17.2 0Z\"/><path class=\"s k\" d=\"M3.4 12.8a8.6 8.6 0 0 1 17.2 0Z\"/><circle class=\"p k\" cx=\"12\" cy=\"12.8\" r=\"2.8\"/><path class=\"gl\" d=\"M6.6 9.4a5.8 5.8 0 0 1 3-2.7\"/><path class=\"s k\" d=\"M19.8 1.6l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8Z\"/></svg>",
     "chars": "<svg class=\"uic\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path class=\"p k\" d=\"M12 6.4C10.1 4.8 7.8 4.3 3.4 4.3v14.6c4.4 0 6.7.5 8.6 2.1Z\"/><path class=\"p k\" d=\"M12 6.4c1.9-1.6 4.2-2.1 8.6-2.1v14.6c-4.4 0-6.7.5-8.6 2.1Z\"/><path class=\"kl\" d=\"M5.8 8.6h3.6M5.8 11.6h3.6M5.8 14.6h2.6\"/><path class=\"s k\" d=\"M14.6 5.2v6.6l1.5-1.2 1.5 1.2V4.7\"/></svg>",
     "settings": "<svg class=\"uic\" viewBox=\"0 0 24 24\" aria-hidden=\"true\"><path class=\"p k\" d=\"M10.0 4.4 10.5 1.7 13.5 1.7 14.0 4.4 16.0 5.2 18.2 3.6 20.4 5.8 18.8 8.1 19.6 10.0 22.3 10.5 22.3 13.5 19.6 14.0 18.8 15.9 20.4 18.2 18.2 20.4 16.0 18.8 14.0 19.6 13.5 22.3 10.5 22.3 10.0 19.6 8.1 18.8 5.8 20.4 3.6 18.2 5.2 15.9 4.4 14.0 1.7 13.5 1.7 10.5 4.4 10.0 5.2 8.0 3.6 5.8 5.8 3.6 8.0 5.2Z\"/><circle class=\"w k\" cx=\"12\" cy=\"12\" r=\"3.6\"/><path class=\"gl\" d=\"M6.4 9.2a6.2 6.2 0 0 1 2.4-2.8\"/></svg>"
   };
@@ -78,7 +78,9 @@
     "#xvTabBar .xh-ntab.on::before{top:4px;width:50px;height:36px;border-radius:14px;" +
     "background:linear-gradient(180deg,rgba(255,255,255,.6) 0,rgba(255,255,255,.2) 46%,rgba(255,255,255,0) 47%),linear-gradient(180deg,#a6ec72,#43b324);" +
     "box-shadow:inset 0 0 0 2px rgba(255,255,255,.95),0 0 0 1.5px #2a8614,0 2px 0 #226f10,0 4px 8px rgba(40,80,20,.18)}" +
-    "#xvTabBar .xh-ntab .xh-tabchar{box-shadow:0 0 0 1.5px #fff,0 0 0 3px #62c43e,0 2px 0 3px rgba(42,122,20,.3);border-color:#fff}";
+    "#xvTabBar .xh-ntab .xh-tabchar{box-shadow:0 0 0 1.5px #fff,0 0 0 3px #62c43e,0 2px 0 3px rgba(42,122,20,.3);border-color:#fff}" +
+    /* ★★ 2026-10-26 ガチャのタブはもとの絵のまま少しだけ大きく（xevarion-home.css と同じ） */
+    "#xvTabBar .xh-ntab[data-tab=\"gacha\"] svg.gtb{width:35px;height:35px;margin:-3px 0 -2px}";
 
   function toast(t) {
     var el = document.getElementById("xvTbToast");

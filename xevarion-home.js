@@ -490,6 +490,13 @@ XH_EVENTS.unshift({ tag:"EVENT", t1:"Midnight Pumpkin", t2:"イベントミッ�
    ══════════════════════════════════════════════════════════════ */
 const XH_UPDATE_MAX = 12;
 const XH_UPDATES = [
+  /* ★★ 2026-10-26 完凸ロビー・バナーのドット絵・MagiDerby の見直し */
+  { tag:"NEW", t1:"ヒサコ・アリスの完凸ロビー／バナーの上のドット絵", at:"2026-10-26",
+    t2:"完凸（4凸）でホームのロビーに動く立ち絵（♥パートナー →「ロビー」）・イベントのバナーの上を持っているキャラがドット絵で動く（♥パートナー →「ドット絵」）",
+    href:"index.html", img:"img/t_Alice.webp" },
+  { tag:"UPDATE", t1:"MagiDerby：3日前から発売・結果はすぐ・使い方アニメ", at:"2026-10-26",
+    t2:"結果と払い戻しはデータが届きしだい（時刻は前後します）・結果を見る札・金額は足していく・レースで絞りこみ・LIVE・馬券の種類の説明・特集ページ",
+    href:"MagiDerby/index.html", img:"thumbs/MagiDerby.jpg" },
   /* ★★ 2026-10-24 レベル・スタミナ廃止／同期／MagiLex 統合／超極煌祭 2体・ミキ／MagiDerby 券面／MagiShift 順位 */
   { tag:"NEW", t1:"超極煌祭にヒサコ・アリス／WP 交換所にミキ", at:"2026-10-24",
     t2:"ヒサコ（水・いちばん強い UR）とアリス（闇）が超極煌祭に。MagiChemLex の WP 交換所にミキ（木・120 WP）。どれも MagiAbyss 専用",
@@ -2203,7 +2210,7 @@ function xhMbReady() {
   if (typeof CHARS !== "undefined" && typeof PREMIUM_CHARS !== "undefined") return Promise.resolve(true);
   if (_xhMbLoading) return _xhMbLoading;
   _xhMbLoading = xhLoadScript("mb-boot.js?v=17")
-    .then(() => xhLoadScript("MagiBurst/js/mb-core.js?v=140"))
+    .then(() => xhLoadScript("MagiBurst/js/mb-core.js?v=141"))
     .then(() => true)
     .catch((e) => { _xhMbLoading = null; throw e; });
   return _xhMbLoading;
@@ -5274,18 +5281,13 @@ window.xhFesFree10Left = xhFesFree10Left;
 /* 下バーの印は「単発・10連の<b>どちらか</b>が無料なら出す」 */
 function xhDebutAnyFree() { return xhDebutFreeLeft() || xhDebutFree10Left() || xhFesFree10Left(); }
 window.xhDebutAnyFree = xhDebutAnyFree;
+/* ★★ 2026-10-26 ご指定「下バーのガチャの無料の表示は消して」→ 下バーには出さない（前の版で付いた印は外す）。
+   無料で引けることは、ガチャの画面の中（各ガチャの札）でこれまでどおり分かる */
 function xhPaintGachaFree() {
   const btn = document.querySelector('.xh-bar .xh-ntab[data-tab="gacha"]');
   if (!btn) return;
-  const show = xhDebutAnyFree();
-  let tag = btn.querySelector(".xh-freetag");
-  if (!show) { if (tag) tag.remove(); return; }
-  if (!tag) {
-    tag = document.createElement("span");
-    tag.className = "xh-freetag";
-    tag.textContent = "無料";
-    btn.appendChild(tag);
-  }
+  const tag = btn.querySelector(".xh-freetag");
+  if (tag) tag.remove();
 }
 window.xhPaintGachaFree = xhPaintGachaFree;
 /* ガチャから戻ってきたとき・日付が変わったときに出しなおす */
@@ -5625,6 +5627,19 @@ window.xhUpdLater = xhUpdLater;
    _xhUpdMust … いま出している更新が「遊ぶ前に必須」か（最新が入っているときの確認画面は false）
    _xhUpdFail … ダウンロードできなかった（回線など）。このときだけ「今のデータで遊ぶ」を出す */
 let _xhUpdMust = false, _xhUpdFail = false;
+/* ══ ★★ 2026-10-25 ご報告「更新のあとに出るデベロッパーノートが、ダウンロードの前に裏で出て見られない」══
+   真因：デベロッパーノート（xeva-devnotes.js）は入場の 2.2 秒後に出していたが、そのころ更新の画面（必須のダウンロード）が
+   前に出ていた。ノートは「見た」印も付けるので、ダウンロードして読み込み直したあとにはもう出なかった。
+   → ノートは xhUpdBusy() が false になるまで待つ（起動時の更新の確認がまだ・更新の画面が開いている・ダウンロード中は true）。
+     ダウンロードが終わると読み込み直すので、ノートは<b>新しい版で開いたとき</b>に出る。 */
+let _xhUpdChecked = false;
+function xhUpdBusy() {
+  if (!_xhUpdChecked) return "wait";
+  if (_xhUpdRunning || _xhUrOpen) return true;
+  const sh = xhEl("xhUpdSheet");
+  return !!(_xhUpdMust && sh && sh.classList.contains("on"));
+}
+window.xhUpdBusy = xhUpdBusy;
 function xhUpdMustPaint() {
   const must = _xhUpdMust && !_xhUpdRunning;
   const off = !xhOnline();
@@ -7068,8 +7083,9 @@ function xhShow() {
        「サイズと更新内容を見せて → 同意 → ダウンロード」の順にする。 */
     setTimeout(() => {
       xhCheckUpdate().then((pending) => {
+        _xhUpdChecked = true;
         if (!pending && xhOnline()) xhRegisterAppSWs();
-      }).catch(() => { if (xhOnline()) xhRegisterAppSWs(); });
+      }).catch(() => { _xhUpdChecked = true; if (xhOnline()) xhRegisterAppSWs(); });
     }, 1200);
   }
   xhRenderShelf();

@@ -18,9 +18,9 @@
    ══════════════════════════════════════════════════════════════ */
 window.MB_NEW_CHARS = [
   /* ── ★★ 2026-10-24 超極煌祭に2体（UR・MagiAbyss 専用）／MagiChemLex の WP 交換所に UR（ガチャ排出なし＝mode なし）── */
-  { id: "hisako", since: "2026-10-24", where: "超極煌祭（毎月21日〜末日）・MagiAbyss 専用", mode: "fes20",
+  { id: "hisako", since: "2026-10-24", where: "超極煌祭（毎月21日〜末日）・MagiAbyss 専用・👑完凸でホームのロビー", mode: "fes20",
     catch: "放課後、ふたりだけの特別授業……しよっか？", color: "#38a6ff" },
-  { id: "alice", since: "2026-10-24", where: "超極煌祭（毎月21日〜末日）・MagiAbyss 専用", mode: "fes20",
+  { id: "alice", since: "2026-10-24", where: "超極煌祭（毎月21日〜末日）・MagiAbyss 専用・👑完凸でホームのロビー", mode: "fes20",
     catch: "白い花が咲くまで、そばにいて。", color: "#7a5cff" },
   { id: "miki", since: "2026-10-24", where: "MagiChemLex の WP交換所（120WP・1体）・MagiAbyss 専用",
     catch: "わかるまで、いっしょに考えよう。", color: "#2fbf71" },

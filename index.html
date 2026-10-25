@@ -22,12 +22,12 @@
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Exo+2:ital,wght@0,300;0,400;0,600;0,700;1,300&family=Noto+Sans+JP:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="xeva-theme.css?v=9">
 <link rel="stylesheet" href="xevarion.css?v=25">
-<link rel="stylesheet" href="xevarion-home.css?v=87">
+<link rel="stylesheet" href="xevarion-home.css?v=89">
 <!-- ★★ 2026-08-22b Xevion OS の見た目（テーマ・文字の大きさ・動きを減らす）。
      xevarion-home.css の<b>あと</b>に読む＝上書きできるようにする。 -->
 <link rel="stylesheet" href="xevion-os.css?v=15">
 <!-- ★★ 2026-09-24 ホームの「動くキャラ」（舞香）。中身は home-mate.js。 -->
-<link rel="stylesheet" href="home-mate.css?v=24">
+<link rel="stylesheet" href="home-mate.css?v=26">
 <!-- ★★ 2026-10-12b ウマ娘風のポップな見た目（色・ふち・影・書体だけ。位置と大きさは変えない）。いちばん最後に読む -->
 <link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800;900&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="xeva-pop.css?v=1">
@@ -144,7 +144,7 @@ html #xlBan.pre{box-shadow:0 0 0 2px #fff,0 0 0 3.5px #ff8a1f,0 3px 0 3.5px rgba
 #xhSetSheet.xh-tabsheet .xh-sheet-card{border-radius:26px 26px 0 0;box-shadow:0 -10px 40px rgba(60,100,180,.28)}
 #xhSetSheet.xh-tabsheet .xh-sheet-body{padding-bottom:18px}
 </style>
-<script src="xeva.js?v=82" defer></script>
+<script src="xeva.js?v=83" defer></script>
 <!-- ★★ 2026-09-05 コレクションを XEVARION 全体で1本にする共通部品。
      xeva.js の iconCharList() を使うので、必ず xeva.js の<b>あと</b>に置く。 -->
 <script src="xeva-collection.js?v=8" defer></script>
@@ -175,8 +175,8 @@ html #xlBan.pre{box-shadow:0 0 0 2px #fff,0 0 0 3.5px #ff8a1f,0 3px 0 3.5px rgba
 <!-- ★ 2026-08-18 新キャラ告知の台帳（MagiBurst と共通）。
      告知を<b>ポータルのログイン時</b>に一本化したので、ここでも読む。
      defer なので xevarion.js より先に実行される（書いた順番で走る）。 -->
-<script src="mb-newchars.js?v=38" defer></script>
-<script src="xeva-devnotes.js?v=1" defer></script><!-- ★★ 2026-10-24 デベロッパーノート（新キャラのお知らせの代わり） -->
+<script src="mb-newchars.js?v=39" defer></script>
+<script src="xeva-devnotes.js?v=3" defer></script><!-- ★★ 2026-10-24 デベロッパーノート（新キャラのお知らせの代わり） -->
 <!-- ★★ 2026-09-25 ガチャの台帳（開催期間とバナー。make-gacha-live.py が mb-core.js から自動で作る）。ホーム左上のバナー用 -->
 <script src="gacha-live.js?v=8" defer></script>
 <!-- ★★ 2026-08-22b Xevion OS（XEVARION の UI をひとつの OS として扱う土台）。
@@ -192,9 +192,11 @@ html #xlBan.pre{box-shadow:0 0 0 2px #fff,0 0 0 3.5px #ff8a1f,0 3px 0 3.5px rgba
 <!-- ★★ 2026-10-16 キャラの所持・凸（magiburst_v1）もここで同期する（前は読むだけで、別の端末で引いたキャラが出てこないことがあった） -->
 <script type="module" src="MagiBurst/magiburst-cloud.js?v=27"></script>
 <script src="xeva-qr.js?v=9" defer></script>
-<script src="xevarion.js?v=105" defer></script>
-<script src="xevarion-home.js?v=169" defer></script>
-<script src="home-mate.js?v=28" defer></script>
+<script src="xevarion.js?v=106" defer></script>
+<script src="xevarion-home.js?v=170" defer></script>
+<script src="home-lobby.js?v=1" defer></script><!-- ★★ 2026-10-26 完凸ロビー（ヒサコ・アリス）。home-mate.js より先 -->
+<script src="home-mate.js?v=30" defer></script>
+<script src="home-dot.js?v=2" defer></script><!-- ★★ 2026-10-26 イベントのバナーの上を動くドット絵のキャラ（MagiAbyss のドット絵） -->
 <!-- ★★ 2026-10-24 MagiDerby・MagiScope のデータの先読み（ご指定「アプリを開いていなくても情報を取得してオフラインでも開けるように」） -->
 <script src="xeva-prefetch.js?v=1" defer></script>
 <!-- ★★ 2026-10-06 XEVARION 共通イベント（Violet Breeze）のページ。中身は xeva.js の XEVA.event -->
@@ -701,7 +703,7 @@ body.xos-nomotion .xh-start-tap .hp, body.xos-nomotion .xh-start-sub, body.xos-n
         <!-- ★★ 2026-10-13 左の「イベント」「更新情報」のボタンは廃止（ご指定）。左はガチャのバナーだけ -->
       </div>
       <div class="xl-right">
-        <button class="xl-ic dia" onclick="HomeMate.openPicker()"><span class="i"><svg class="uic" viewBox="0 0 24 24" aria-hidden="true"><path class="s k" d="M12 20.6c-1.2-1.1-8.6-5.7-8.6-11.2 0-2.9 2.1-4.9 4.7-4.9 1.7 0 3.1.9 3.9 2.3.8-1.4 2.2-2.3 3.9-2.3 2.6 0 4.7 2 4.7 4.9 0 5.5-7.4 10.1-8.6 11.2Z"/><path class="gl" d="M6.6 8.6a2.4 2.4 0 0 1 1.7-1.9"/></svg></span><span class="l">パートナー</span></button>
+        <button class="xl-ic dia" onclick="HomeMate.openPicker()"><span class="i"><svg class="uic" viewBox="0 0 24 24" aria-hidden="true"><path class="s k" d="M12 20.6c-1.2-1.1-8.6-5.7-8.6-11.2 0-2.9 2.1-4.9 4.7-4.9 1.7 0 3.1.9 3.9 2.3.8-1.4 2.2-2.3 3.9-2.3 2.6 0 4.7 2 4.7 4.9 0 5.5-7.4 10.1-8.6 11.2Z"/><path class="gl" d="M6.6 8.6a2.4 2.4 0 0 1 1.7-1.9"/></svg></span><span class="l">ロビー</span></button><!-- ★★ 2026-10-26 ご指定で名前を「ロビー」に -->
         <button class="xl-ic dia xl-view" onclick="HomeMate.cycleView()"><span class="i"><svg class="uic" viewBox="0 0 24 24" aria-hidden="true"><path class="pl" d="M3.6 8.4V5.2a1.6 1.6 0 0 1 1.6-1.6h3.2M15.6 3.6h3.2a1.6 1.6 0 0 1 1.6 1.6v3.2M20.4 15.6v3.2a1.6 1.6 0 0 1-1.6 1.6h-3.2M8.4 20.4H5.2a1.6 1.6 0 0 1-1.6-1.6v-3.2"/><circle class="p" cx="12" cy="9" r="2.6"/><path class="p" d="M7.4 17.4c.4-3 2.2-4.8 4.6-4.8s4.2 1.8 4.6 4.8Z"/></svg></span><span class="l" id="xlViewLb">表示</span></button>
       </div>
       <!-- ★★ 2026-09-28 3D 会場（XEVARION WORLD CONFERENCE）への特設の入口（ご指定） -->
@@ -709,11 +711,7 @@ body.xos-nomotion .xh-start-tap .hp, body.xos-nomotion .xh-start-sub, body.xos-n
       <!-- ★★ 2026-10-15 ご指定：PARK と<b>同じ大きさ</b>のボタンを<b>真上</b>に置き「これって浮気？判定シート」（uwaki.html）。
            2つとも少し小さく・大きさをそろえた（.xl-pills の中に縦に並べる。見た目は下の <style> の 2026-10-15） -->
       <div class="xl-pills" id="xlPills">
-        <a class="xl-uwk" href="uwaki.html" aria-label="これって浮気？判定シート">
-          <span class="xl-shine" aria-hidden="true"></span>
-          <span class="orb"><svg viewBox="0 0 24 24" aria-hidden="true"><path class="h" d="M12 20.2C10.9 19.2 3.6 14.7 3.6 9.3 3.6 6.5 5.6 4.6 8.1 4.6c1.6 0 3 .9 3.9 2.2.9-1.3 2.3-2.2 3.9-2.2 2.5 0 4.5 1.9 4.5 4.7 0 5.4-7.3 9.9-8.4 10.9Z"/><circle class="g" cx="14.6" cy="12.4" r="3.4"/><path class="gl" d="M17 14.8l3 3"/></svg></span>
-          <span class="tx"><b>これって浮気？</b><small>判定シート</small></span><i class="xl-new">NEW</i>
-        </a>
+        <!-- ★★ 2026-10-26 ご指定「これって浮気？判定シートのボタンをホームから消して、コミュニティの XEVARION PARK の下に」→ xeva-community.js -->
         <!-- ★★ 2026-10-21 ご指定「ホームの XEVARION PARK のボタンを競馬に」→ MagiDerby の札にした。
              → さらにご指定「MagiCounter と MagiDerby のボタンの位置を入れかえ」で MagiDerby はロビーのアプリの2行目へ、
              → さらにご指定「浮気判定シートの下の MagiCounter のボタンは要らない」で、ここは判定シートだけ（MagiCounter はメニューから） -->
@@ -798,7 +796,7 @@ body.xos-nomotion .xh-start-tap .hp, body.xos-nomotion .xh-start-sub, body.xos-n
         <span class="tl">図鑑</span>
       </button>
       <button class="xh-ntab" data-tab="gacha" onclick="xhGo('gacha')">
-        <svg class="uic" viewBox="0 0 24 24" aria-hidden="true"><path class="w k" d="M3.4 12.8a8.6 8.6 0 0 0 17.2 0Z"/><path class="s k" d="M3.4 12.8a8.6 8.6 0 0 1 17.2 0Z"/><circle class="p k" cx="12" cy="12.8" r="2.8"/><path class="gl" d="M6.6 9.4a5.8 5.8 0 0 1 3-2.7"/><path class="s k" d="M19.8 1.6l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8Z"/></svg>
+        <svg class="uic gtb" viewBox="0 0 24 24" aria-hidden="true"><path class="w k" d="M3.4 12.8a8.6 8.6 0 0 0 17.2 0Z"/><path class="s k" d="M3.4 12.8a8.6 8.6 0 0 1 17.2 0Z"/><circle class="p k" cx="12" cy="12.8" r="2.8"/><path class="gl" d="M6.6 9.4a5.8 5.8 0 0 1 3-2.7"/><path class="s k" d="M19.8 1.6l.8 2 2 .8-2 .8-.8 2-.8-2-2-.8 2-.8Z"/></svg>
         <span class="tl">ガチャ</span>
       </button>
       <button class="xh-ntab on" data-tab="home" onclick="xhGo('home')">
@@ -2287,6 +2285,19 @@ body.xos-nomotion .xh-start-tap .hp, body.xos-nomotion .xh-start-sub, body.xos-n
   <div class="nm-body" id="newsBody">
     <div class="nm-divider" id="newDivider" style="display:none;">NEW — 前回から更新</div>
     <!-- 2026-10-24：レベル・スタミナ廃止／同期の作り直し／MagiLex と MagiChemLex の統合／超極煌祭にヒサコ・アリス／WP 交換所にミキ／MagiDerby の券面／MagiShift の順位／デベロッパーノート -->
+    <div class="nm-item" data-tag="new" data-date="2026-10-26">
+      <div class="nm-date">2026<br>10.26</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag new">NEW</span></div>
+        <div class="nm-title">👑 完凸で選べるロビー／🎮 バナーの上のドット絵キャラ／🏇 MagiDerby を使いやすく</div>
+        <div class="nm-txt">・<b>ロビー</b>：超極煌祭の <b>ヒサコ・アリス</b>を<b>完凸（4凸）</b>すると、ホームのロビー（パートナーの所）に<b>動く立ち絵</b>を出せます。♥パートナー →「ロビー」タブから。<br>
+          ・<b>ドット絵のキャラ</b>：開催中のイベントのバナーの上を、持っているキャラがドット絵で動きます。キャラを押すか ♥パートナー →「ドット絵」で選べます。<br>
+          ・<b>ホーム</b>：「パートナー」ボタンは<b>「ロビー」</b>に（中は ロビー｜ドット絵・ロビーの中で パートナー｜完凸ロビー）。ランダム表示は廃止。<b>これって浮気？判定シート</b>はコミュニティの PARK の下へ。パートナー非表示のときはロビーのボタンをイベントのバナーの上に・バナーを少し小さく・すべてのアプリを広く。下バーのガチャは前の絵で少し大きく（「無料」の印は出さない）。ガチャ一覧の「SSR以上1.5倍」「注目ガチャ」の表示を消しました。iPad の上の端は前の形に・デベロッパーノートはダウンロードのあとに・XEVA の受け取りやログインのあとに画面が下がっていくのを修正。<br>
+          ・<b>MagiDerby</b>：発売はレースの日の<b>3日前の 0:00</b> から。<b>結果と払い戻しはデータが届きしだい</b>（反映の時刻は前後します）。結果が出たら上に「結果を見る」（3日目まで）。金額は<b>押すたびに足す</b>形に・リセット・画面が上にもどらない。馬券タブでレースごとに絞りこみ。<b>LIVE</b>（JRA 公式の無料ライブ）・<b>使い方（アニメ）</b>と馬券の種類の説明。特集ページへのボタン（再現アニメは外しました）。券面の帯と券種の位置・スマホで大きく見るときの ✕・馬の名前の表示を修正。結果は5着まで＋「6着以下も見る」・馬券一覧に絞り込みと並び替え。<br>
+          ・<b>MagiShift</b>：この端末のアカウントの完凸アイコンが光るように・守りの数に盾のアイコン。
+        </div>
+      </div>
+    </div>
     <div class="nm-item" data-tag="new" data-date="2026-10-24">
       <div class="nm-date">2026<br>10.24</div>
       <div class="nm-content">
