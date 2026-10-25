@@ -3,7 +3,7 @@
    ・問題・解説・図はすべて JS の中にあるので、CORE をそろえれば完全にオフラインで使える。
    ・フォント（Google Fonts）は一度読めたら控える。Firebase（同期）はキャッシュしない。
    ============================================================ */
-const VERSION = "magichemlex-sw-v16";
+const VERSION = "magichemlex-sw-v17";
 const RUNTIME = "magichemlex-rt-v1";
 const CORE = [
   "./index.html",
@@ -40,7 +40,7 @@ const CORE = [
   "./img/wp@2x.webp",
   "../img/t_Miki.webp", "../img/Miki.webp",   // ★★ 2026-10-24 WP 交換所のミキ（UR）
   /* XEVARION の共通部品 */
-  "../xeva.js?v=82",
+  "../xeva.js?v=83",
   "../xeva-loading.js?v=19",
   "../xeva-splash.js?v=17",
   "../xeva-safebottom.js?v=12",

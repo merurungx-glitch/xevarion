@@ -1049,7 +1049,7 @@ window.lexKpDetail = async function(id){
        真因：mb-boot.js は絵のフォルダを "img/"（ポータル用）に決めるので、MagiLex（../img/ が正しい）から開くと
        大きな絵（img/Mizuki.webp → MagiLex/img/…）が読めなかった。mb-core.js を読む前に直す（MagiAbyss と同じ）。 */
     window.MB_IMGD = "../img/"; window.MB_GIMGD = "../MagiBurst/img/";
-    if(typeof window.CHARS === "undefined") await _loadScript("../MagiBurst/js/mb-core.js?v=140");
+    if(typeof window.CHARS === "undefined") await _loadScript("../MagiBurst/js/mb-core.js?v=141");
     if(typeof window.openDetX !== "function") await _loadScript("../mb-char-detail.js?v=49");
     _kpDetReady = true;
     _kpOpen(id);

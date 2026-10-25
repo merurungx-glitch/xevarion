@@ -7,7 +7,7 @@
      取れなければキャッシュ（前回の中身）を返すので、オフラインでも壊れない。
    ・アカウント同期（Firebase）はキャッシュしない。
    ============================================================ */
-const VERSION = "magicounter-sw-v38";
+const VERSION = "magicounter-sw-v39";
 /* ★★ 2026-09-08 ポケモンの絵の入れ物。VERSION とは<b>別</b>にしてあるので、
    アプリを更新しても絵は残る（毎回取り直さない）。 */
 const ART_CACHE = "magicounter-art-v1";
@@ -21,7 +21,7 @@ const CORE = [
   "./js/mc-ui.js?v=6",
   "./js/mc-scan.js?v=8",
   "./data/meta.json",
-  "../xeva.js?v=82", "../xevarion-fb.js?v=36",   /* ★★ 2026-10-22 同期（このページでも xeva-cloud を読む） */
+  "../xeva.js?v=83", "../xevarion-fb.js?v=36",   /* ★★ 2026-10-22 同期（このページでも xeva-cloud を読む） */
   "../xeva-alive.js?v=8",
   "../xeva-loading.js?v=19",
   "../xeva-splash.js?v=17",
