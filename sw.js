@@ -7,7 +7,7 @@
    ・オフライン中の進行は localStorage に残り、オンライン復帰時に
      xeva-cloud.js がタイムスタンプ比較でクラウドへ上書き反映する
    ============================================================ */
-const VERSION = "xevarion-sw-v244";
+const VERSION = "xevarion-sw-v245";
 
 /* ホームを成立させる最小セット（重い画像は runtime キャッシュに任せる） */
 const CORE = [
@@ -19,7 +19,7 @@ const CORE = [
   "./gacha.html",
   "./gacha-ui.js?v=66",
   "./mb-newchars.js?v=39",
-  "./xeva-devnotes.js?v=3",
+  "./xeva-devnotes.js?v=4",
   "./xevion-os.js?v=13",
   "./xevion-os.css?v=15",
   "./magibattle-stats.js?v=18",
@@ -71,14 +71,14 @@ const CORE = [
   "./uwaki.css?v=1",
   "./thumbs/Uwaki.jpg",
   "./xevarion.js?v=106",
-  "./xevarion-home.js?v=170",
+  "./xevarion-home.js?v=171",
   /* ★★ 2026-09-24 ホームのロビーとパートナー。素材は home-mate/<id>/（?v= は home-mate.js の HM_VER）・笙古／瞳／舞香／衣織／樹愛羅／映美里（09-25 ボイス廃止・表情は webp） */
   "./gacha-live.js?v=8",
-  "./home-mate.js?v=30",
+  "./home-mate.js?v=31",
   /* ★★ 2026-10-26 完凸ロビー（ヒサコ・アリス）と、バナーの上のドット絵のキャラ（絵は MagiAbyss の ma-pixel.js） */
   "./home-lobby.js?v=1",
-  "./home-dot.js?v=2",
-  "./MagiAbyss/js/ma-pixel.js?v=8",
+  "./home-dot.js?v=3",
+  "./MagiAbyss/js/ma-pixel.js?v=9",
   "./home-mate/lobby/hisako.webp?v=1",
   "./home-mate/lobby/alice.webp?v=1",
   "./home-mate/lobby/park.webp?v=1",
@@ -88,7 +88,8 @@ const CORE = [
   "./xeva-pop.css?v=1",
   "./xeva-pop-pages.css?v=3",
   "./xeva-uma.css?v=2",
-  "./xeva-tabbar.js?v=7",          // ★★ 2026-10-13 ガチャ・コミュニティ・図鑑にも下バー
+  "./xeva-uma2.css?v=1",   /* ★★ 2026-10-27 ウマ娘のホーム画面の配色 */
+  "./xeva-tabbar.js?v=8",          // ★★ 2026-10-13 ガチャ・コミュニティ・図鑑にも下バー
   "./home-mate/shoko/shoko.json?v=17",
   "./home-mate/shoko/shoko.webp?v=17",
   "./home-mate/shoko/shoko_label.webp?v=17",

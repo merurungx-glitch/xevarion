@@ -89,7 +89,7 @@ const XH_APPS = [
   /* ★★ 2026-10-06 新作 MagiChemLex（MagiLex の派生・難関化学の問題集）。ご指定でホームの MagiCounter の左。 */
   { id:"magichemlex", name:"MagiChemLex", full:"MagiChemLex", sub:"難関化学の問題集", cat:"learn", tone:"blue", inLex: true,
     href:"MagiChemLex/index.html", img:"thumbs/MagiChemLex.jpg?v=2",
-    desc:"難関大の化学を、<b>入試問題の改題</b>（難関セット3回ぶん・標準セット4回ぶんの全小問）と、教科書レベルの<b>基礎セット</b>（4回ぶん）、<b>関連問題</b>（全1,569問）で鍛える学習アプリ。おすすめ出題・間隔反復の復習・時間を計る模試モード・ヒントと図つきの解説・単元別問題・<b>フラッシュカード</b>・関数電卓・学習カレンダー。獲得 XEVA は MagiLex 系統のイベントで2倍。オフラインOK。" },
+    desc:"難関大の化学を、<b>入試問題の改題</b>（難関セット3回ぶん・標準セット4回ぶんの全小問）と、教科書レベルの<b>基礎セット</b>（4回ぶん）、<b>関連問題</b>（全1,569問）で鍛える学習アプリ。おすすめ出題・間隔反復の復習・組をまるごと解く模試の冊子（解答・解説つき）・ヒントと図つきの解説・単元別問題・<b>フラッシュカード</b>・関数電卓・学習カレンダー。獲得 XEVA は MagiLex 系統のイベントで2倍。オフラインOK。" },
   { id:"magiburst", name:"MagiBurst", sub:"爽快アクション", cat:"game", tone:"violet",
     href:"MagiBurst/index.html", img:"thumbs/MagiBurst.jpg",
     desc:"引っぱって、はなして、ぶっとばせ！最大4人マルチの引っぱりハンティング。オフラインでもソロクエストが遊べます。" },
@@ -490,6 +490,13 @@ XH_EVENTS.unshift({ tag:"EVENT", t1:"Midnight Pumpkin", t2:"イベントミッ�
    ══════════════════════════════════════════════════════════════ */
 const XH_UPDATE_MAX = 12;
 const XH_UPDATES = [
+  /* ★★ 2026-10-27 ウマ娘風の配色・MagiAbyss 外伝・ChemLex 模試の冊子・Derby 水曜発売 */
+  { tag:"NEW", t1:"MagiAbyss：外伝クエスト6つ・ストーリー増量・中ボス戦の封鎖", at:"2026-10-27",
+    t2:"海に浮かぶ異界の島（新しい敵とボス・どの属性も有利なクエスト3つずつ）・外伝6章と本編の続き・中ボス戦は部屋を封鎖・豪華な演出・マップの閉じる・キャラ変更の反映",
+    href:"MagiAbyss/index.html", img:"thumbs/MagiAbyss.jpg?v=2" },
+  { tag:"UPDATE", t1:"ホームをウマ娘風の配色に／MagiChemLex 模試の冊子", at:"2026-10-27",
+    t2:"白い板＋灰色のふち・色つきの下タブ（選ぶと水色）・ドット絵の横顔をかわいく／組をまるごと解く模試の冊子（解答・解説つき）／MagiDerby は水曜 0:00 発売・全券種の予想オッズ・GⅠ の演出",
+    href:"MagiChemLex/index.html", img:"thumbs/MagiChemLex.jpg?v=2" },
   /* ★★ 2026-10-26 完凸ロビー・バナーのドット絵・MagiDerby の見直し */
   { tag:"NEW", t1:"ヒサコ・アリスの完凸ロビー／バナーの上のドット絵", at:"2026-10-26",
     t2:"完凸（4凸）でホームのロビーに動く立ち絵（♥パートナー →「ロビー」）・イベントのバナーの上を持っているキャラがドット絵で動く（♥パートナー →「ドット絵」）",

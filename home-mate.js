@@ -2297,7 +2297,9 @@
       /* ★★ 2026-10-24 ご指定で発売を早めた：土・日・月曜のレースは<b>その週の木曜 0:00</b>、ほかは2日前の 0:00 から締切（発走の2分前）までずっと
          （MagiDerby の N.saleWins と同じ決まり。★★ 2026-10-24 枠順の発表前＝r.st "entry" でも馬名で買えるので札を出す） */
       /* ★★ 2026-10-26 ご指定「馬券の購入を発走から三日前から」→ どの曜日もレースの日の3日前の 0:00 から（MagiDerby の D.SALE_DAYS_BEFORE と同じ） */
-      const close = post - 120000, back = 3;
+      /* ★★ 2026-10-27 ご指定「馬券を水曜日の 0:00 から」→ レースの日の前の水曜 0:00 から（MagiDerby の D.saleBack と同じ：日曜＝4日前・土曜＝3日前） */
+      const wd = new Date(Date.UTC(d[0], d[1] - 1, d[2])).getUTCDay();
+      const close = post - 120000, back = ((wd - 3 + 7) % 7) || 7;
       if (t >= day0 - back * 86400000 && t < close) return { nm: r.nm, short: DERBY_SHORT[r.nm] || r.nm, close: close, soon: close - t <= DERBY_SOON_MS, left: close - t };
     }
     return null;

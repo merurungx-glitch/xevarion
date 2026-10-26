@@ -1,16 +1,17 @@
 {
-  "version": "2026-10-26-2",
-  "date": "2026-10-26",
-  "title": "ロビーのボタンと画面の整理／MagiDerby の絞り込み・並び替え／MagiShift の盾",
+  "version": "2026-10-27-1",
+  "date": "2026-10-27",
+  "title": "ホームをウマ娘風の配色に／MagiAbyss 外伝クエスト6つ・ストーリー増量／ChemLex 模試の冊子",
   "notes": [
-    "ホームの「パートナー」ボタンは「ロビー」に（中は ロビー｜ドット絵・ロビーの中で パートナー｜完凸ロビー、その上に「表示しない」）・ランダム表示は廃止",
-    "これって浮気？判定シートはコミュニティの XEVARION PARK の下へ・パートナー非表示のときはロビーのボタンをイベントのバナーの上に、すべてのアプリを広く",
-    "下バーのガチャのアイコンは前の絵で少し大きく・ガチャ一覧の「SSR以上1.5倍」「注目ガチャ」の表示を消した（確率は変わらない）",
-    "MagiDerby：結果は5着まで＋「6着以下も見る」・馬券一覧に絞り込み（状態・レース・券種）と並び替え・券種の四角を少し左へ",
-    "MagiShift：この端末のアカウントの完凸アイコンが光る・守りの数に盾のアイコン"
+    "ホーム：白い板＋灰色のふち・色つきの下タブ（選ぶと水色）・XEVA とジェムに緑の「＋」・ドット絵の横顔をかわいく",
+    "MagiAbyss：外伝クエスト6つ（新しい敵とボス・どの属性も有利なクエスト3つずつ）・ストーリー増量（本編の終章＋外伝6章）",
+    "MagiAbyss：中ボス戦は部屋を封鎖・豪華な演出・マップの閉じるボタンをいつも表示・出撃前のキャラ変更の反映を修正",
+    "MagiChemLex：各セットの模試モードのかわりに、組をまるごと解く「模試の冊子」（続きから・解答と解説）",
+    "MagiDerby：水曜 0:00 から発売・GⅠ のレース名の演出・全券種の予想オッズ・スマホで券の上下が切れるのを修正",
+    "MagiShift：CPU は自分の番から近い人のリーチを先に止める"
   ],
-  "bytes": 80249664,
-  "files": 847,
+  "bytes": 80440045,
+  "files": 852,
   "urls": [
     "index.html",
     "characters.html",
@@ -79,6 +80,7 @@
     "xeva-pop.css",
     "xeva-pop-pages.css",
     "xeva-uma.css",
+    "xeva-uma2.css",
     "xeva-tabbar.js",
     "home-mate/shoko/shoko.json",
     "home-mate/shoko/shoko.webp",
@@ -757,6 +759,7 @@
     "MagiAbyss/manifest.webmanifest",
     "MagiAbyss/css/ma.css",
     "MagiAbyss/js/ma-art.js",
+    "MagiAbyss/js/ma-gaiden.js",
     "MagiAbyss/js/ma-map.js",
     "MagiAbyss/js/ma-save.js",
     "MagiAbyss/js/ma-audio.js",
@@ -771,6 +774,7 @@
     "MagiAbyss/js/ma-render.js",
     "MagiAbyss/js/ma-render25.js",
     "MagiAbyss/js/ma-ui.js",
+    "MagiAbyss/js/ma-fx.js",
     "MagiAbyss/js/ma-town.js",
     "MagiAbyss/js/ma-town25.js",
     "MagiAbyss/js/ma-guild.js",
@@ -836,6 +840,7 @@
     "MagiChemLex/js/mcl-fig5.js",
     "MagiChemLex/js/mcl-ui.js",
     "MagiChemLex/js/mcl-flash.js",
+    "MagiChemLex/js/mcl-book.js",
     "MagiChemLex/js/mcl-special.js",
     "MagiChemLex/img/icon_192.png",
     "MagiChemLex/img/apple-touch-icon.png",
@@ -850,6 +855,7 @@
     "MagiDerby/js/md-race.js",
     "MagiDerby/js/md-ui.js",
     "MagiDerby/js/md-help.js",
+    "MagiDerby/js/md-intro.js",
     "MagiDerby/img/icon192.png",
     "MagiQuiz/index.html",
     "MagiQuiz/css/quiz.css",
@@ -861,6 +867,9 @@
     "MagiQuiz/manifest.webmanifest"
   ],
   "apps": [
+    "magiabyss",
+    "magiburst",
+    "magichemlex",
     "magiderby",
     "magishift",
     "tab:chars",
@@ -868,8 +877,28 @@
     "tab:gacha",
     "tab:home"
   ],
-  "changedFiles": 18,
+  "changedFiles": 39,
   "history": [
+    {
+      "version": "2026-10-26-2",
+      "date": "2026-10-26",
+      "title": "ロビーのボタンと画面の整理／MagiDerby の絞り込み・並び替え／MagiShift の盾",
+      "notes": [
+        "ホームの「パートナー」ボタンは「ロビー」に（中は ロビー｜ドット絵・ロビーの中で パートナー｜完凸ロビー、その上に「表示しない」）・ランダム表示は廃止",
+        "これって浮気？判定シートはコミュニティの XEVARION PARK の下へ・パートナー非表示のときはロビーのボタンをイベントのバナーの上に、すべてのアプリを広く",
+        "下バーのガチャのアイコンは前の絵で少し大きく・ガチャ一覧の「SSR以上1.5倍」「注目ガチャ」の表示を消した（確率は変わらない）",
+        "MagiDerby：結果は5着まで＋「6着以下も見る」・馬券一覧に絞り込み（状態・レース・券種）と並び替え・券種の四角を少し左へ",
+        "MagiShift：この端末のアカウントの完凸アイコンが光る・守りの数に盾のアイコン"
+      ],
+      "apps": [
+        "magiderby",
+        "magishift",
+        "tab:chars",
+        "tab:community",
+        "tab:gacha",
+        "tab:home"
+      ]
+    },
     {
       "version": "2026-10-26-1",
       "date": "2026-10-26",
@@ -1470,25 +1499,6 @@
         "動く目・来場者の会話の吹き出し・掲示板・客席の裏やレールの表示などを修正"
       ],
       "apps": [
-        "tab:home"
-      ]
-    },
-    {
-      "version": "2026-09-29-1",
-      "date": "2026-09-29",
-      "title": "XEVARION PARK 大型アップデート：建物の中・乗り物・音楽とショー",
-      "notes": [
-        "パークの約190の建物に入れるように（食堂・お店・ゲームセンター・映画館・教室・カラオケ・スパ・お化け屋敷・プラネタリウムなど、それぞれにできること）",
-        "思い出バッグとスタンプラリー（買ったもの・カプセルトイ・施設スタンプ・行ったエリア・ミニゲームの記録）",
-        "パークの音楽（メインテーマ・デイタイムパレード・XEVARION NIGHT）と曲に合わせた光の演出・動画を映せるライブ会場",
-        "コースター・フリーフォール・急流すべり・観覧車・ピープルムーバー・路面電車・スライダー・流れるプール・クルーズ・XEVA HOVER",
-        "妖魔横丁風の街並みと未来の建物・水や草や木や建物の映りこみ・歩き/走りのフォーム・見上げるカメラ",
-        "見やすい地図（番号・大きな文字・拡大縮小・押してワープ）と上空から飛べる場所の札・右上のボタンとスクロールバーをパークのデザインに",
-        "門・道・川・壁のずれや貫通、入れない所の線と物のずれを修正",
-        "MagiLex：問題の束の画面の「←」がスクロールしても左上に残るように"
-      ],
-      "apps": [
-        "magilex",
         "tab:home"
       ]
     }

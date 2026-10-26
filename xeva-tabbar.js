@@ -13,7 +13,7 @@
    ・iPhone のアプリ表示（html.xv-full）では、ホームと同じく<b>本当の画面の下端</b>に置く
      （fixed の板は画面より短い箱で切られるので、文書は動かさず body の中でスクロールし、下バーは html に absolute で置く）
    ・ガチャのタブは、ホームと同じく<b>キャラの絵</b>（XH_GACHA_TAB_CHAR と同じ子・Xevion OS の設定でオフにできる）
-   使い方: <script src="xeva-tabbar.js?v=7" data-tab="gacha"></script>（data-tab＝community / gacha / chars）
+   使い方: <script src="xeva-tabbar.js?v=8" data-tab="gacha"></script>（data-tab＝community / gacha / chars）
    ★★ 2026-10-14 ご報告「コミュニティやガチャや図鑑の下バーが、開いて少しあとに表示される」
    ・真因：このファイルを<b>ページのいちばん最後に defer</b> で読んでいたので、ガチャなら mb-core.js（約2MB）など
      重い部品を全部読み終わるまで下バーが作られなかった（＋0.3秒かけて薄く出していた）。
@@ -43,10 +43,13 @@
     "html.xvtb{--xvtb-h:69px}" +
     "#xvTabBar{position:fixed;left:0;right:0;bottom:-240px;margin:0 auto;max-width:600px;z-index:150;display:grid;grid-template-columns:repeat(5,1fr);gap:2px;grid-auto-rows:min-content;align-content:start;" +
     "padding:5px 5px calc(var(--xv-safeb,env(safe-area-inset-bottom,0px)) + 240px);" +
-    "background:linear-gradient(180deg,#ffffff 0,#f2fbea 40px,#e3f6d4 70px,#e3f6d4 100%);box-shadow:0 -3px 0 rgba(76,174,44,.28)}" +
+    /* ★★ 2026-10-27 ご指定「ウマ娘風（特に配色）」：白い板＋灰色の線（ホームの xeva-uma2.css と同じ） */
+    "background:linear-gradient(180deg,#ffffff 0,#f4f6f8 28px,#e6eaee 70px,#e6eaee 100%);box-shadow:0 -2px 0 #fff,0 -4px 0 #cdd4db,0 -8px 16px rgba(60,70,85,.12)}" +
     /* iPhone のアプリ表示：本当の画面の下端（html の中に absolute）。下の余白はホームと同じ env() */
     "html.xvtb.xv-full #xvTabBar{position:absolute;bottom:0;padding-bottom:env(safe-area-inset-bottom,0px)}" +
-    "#xvTabBar::before{content:'';position:absolute;top:0;left:0;right:0;height:6px;pointer-events:none;background:linear-gradient(180deg,#5cc23a 0 3px,#b9e99c 3px 6px)}" +
+    "#xvTabBar::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;pointer-events:none;background:#fff}" +
+    "#xvTabBar .xh-ntab+.xh-ntab::after{content:'';position:absolute;left:-1px;top:12px;height:40px;width:1.5px;pointer-events:none;background:linear-gradient(180deg,rgba(150,160,172,0),rgba(150,160,172,.55),rgba(150,160,172,0))}" +
+    "#xvTabBar .xh-ntab.on::after,#xvTabBar .xh-ntab.on+.xh-ntab::after{display:none}" +
     "#xvTabBar .xh-ntab{position:relative;display:flex;flex-direction:column;align-items:center;gap:3px;padding:10px 2px 7px;border:none;background:none;cursor:pointer;" +
     "color:#7a8f6c;border-radius:14px;font-family:'Noto Sans JP',sans-serif;-webkit-tap-highlight-color:transparent;touch-action:manipulation}" +
     "#xvTabBar .xh-ntab svg{width:30px;height:30px;transition:transform .14s;position:relative;z-index:1}" +
@@ -71,14 +74,19 @@
     "#xvTabBar .uic .ln{fill:none;stroke:var(--uk,#2a7a14);stroke-width:2.1;stroke-linecap:round;stroke-linejoin:round}" +
     "#xvTabBar .uic .kl{fill:none;stroke:var(--uk,#2a7a14);stroke-width:1.4;stroke-linecap:round;opacity:.55}" +
     "#xvTabBar .uic .gl{fill:none;stroke:#fff;stroke-width:1.6;stroke-linecap:round;opacity:.75}" +
-    "#xvTabBar .xh-ntab .uic{--ua:#b4c3a7;--ub:#d7e1cd;--uk:#788b6a}" +
-    "#xvTabBar .xh-ntab .tl{color:#7f9272;font-family:'M PLUS Rounded 1c','Noto Sans JP',sans-serif}" +
-    "#xvTabBar .xh-ntab.on .uic{--ua:#fff;--ub:#ffd84a;--uk:#2a7a14;transform:translateY(-2px) scale(1.02);filter:drop-shadow(0 1.5px 0 rgba(34,100,14,.45))}" +
-    "#xvTabBar .xh-ntab.on .tl{color:#2f8a1a}" +
-    "#xvTabBar .xh-ntab.on::before{top:4px;width:50px;height:36px;border-radius:14px;" +
-    "background:linear-gradient(180deg,rgba(255,255,255,.6) 0,rgba(255,255,255,.2) 46%,rgba(255,255,255,0) 47%),linear-gradient(180deg,#a6ec72,#43b324);" +
-    "box-shadow:inset 0 0 0 2px rgba(255,255,255,.95),0 0 0 1.5px #2a8614,0 2px 0 #226f10,0 4px 8px rgba(40,80,20,.18)}" +
-    "#xvTabBar .xh-ntab .xh-tabchar{box-shadow:0 0 0 1.5px #fff,0 0 0 3px #62c43e,0 2px 0 3px rgba(42,122,20,.3);border-color:#fff}" +
+    /* ★★ 2026-10-27 ウマ娘のホームのタブ：アイコンは色つき（図鑑＝緑・ガチャ＝橙・ホーム＝青・コミュニティ＝桃・設定＝灰青）・字は濃い灰色に白いふち取り・
+       選んだタブは水色の札が上へ盛り上がって、絵は白・字は白に青のふち取り（ホームの xeva-uma2.css と同じ） */
+    "#xvTabBar .xh-ntab .uic{--ua:#8a9bb0;--ub:#ffd84a;--uk:#4f5f72}" +
+    "#xvTabBar .xh-ntab[data-tab=\"chars\"] .uic{--ua:#5cc23a;--uk:#2a7a14}#xvTabBar .xh-ntab[data-tab=\"gacha\"] .uic{--ua:#ff9a2a;--uk:#b55a00}" +
+    "#xvTabBar .xh-ntab[data-tab=\"home\"] .uic{--ua:#3aa0f0;--uk:#1a64a8}#xvTabBar .xh-ntab[data-tab=\"community\"] .uic{--ua:#ff7aa8;--uk:#c23c6e}" +
+    "#xvTabBar .xh-ntab svg{filter:drop-shadow(0 2px 0 rgba(70,80,95,.25))}" +
+    "#xvTabBar .xh-ntab .tl{color:#4b4744;font-family:'M PLUS Rounded 1c','Noto Sans JP',sans-serif;text-shadow:-1.4px 0 #fff,1.4px 0 #fff,0 -1.4px #fff,0 1.4px #fff,-1px -1px #fff,1px 1px #fff,1px -1px #fff,-1px 1px #fff}" +
+    "#xvTabBar .xh-ntab.on .uic{--ua:#fff!important;--ub:#ffe86a;--uk:#1f78c8!important;transform:translateY(-3px) scale(1.04);filter:drop-shadow(0 1.5px 0 rgba(23,96,159,.5))}" +
+    "#xvTabBar .xh-ntab.on .tl{color:#fff;text-shadow:-1.4px 0 #1f78c8,1.4px 0 #1f78c8,0 -1.4px #1f78c8,0 1.4px #1f78c8,-1px -1px #1f78c8,1px 1px #1f78c8,1px -1px #1f78c8,-1px 1px #1f78c8}" +
+    "#xvTabBar .xh-ntab.on::before{top:-10px;width:auto;height:66px;left:3px;right:3px;margin:0;border-radius:16px 16px 10px 10px;" +
+    "background:linear-gradient(180deg,rgba(255,255,255,.65) 0,rgba(255,255,255,.18) 48%,rgba(255,255,255,0) 49%),linear-gradient(180deg,#a6e4ff,#3aa6ee 62%,#2b8ede);" +
+    "box-shadow:inset 0 0 0 2px rgba(255,255,255,.95),0 0 0 1.5px #1f78c8,0 3px 0 1.5px #17609f,0 6px 12px rgba(23,96,159,.25)}" +
+    "#xvTabBar .xh-ntab .xh-tabchar{box-shadow:0 0 0 1.5px #fff,0 0 0 3px #cdd4db,0 2px 0 3px rgba(70,80,95,.25);border-color:#fff}" +
     /* ★★ 2026-10-26 ガチャのタブはもとの絵のまま少しだけ大きく（xevarion-home.css と同じ） */
     "#xvTabBar .xh-ntab[data-tab=\"gacha\"] svg.gtb{width:35px;height:35px;margin:-3px 0 -2px}";
 

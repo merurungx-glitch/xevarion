@@ -14,7 +14,7 @@
    ══════════════════════════════════════════════════════════════ */
 (function () {
   "use strict";
-  const PIX_SRC = "MagiAbyss/js/ma-pixel.js?v=8";
+  const PIX_SRC = "MagiAbyss/js/ma-pixel.js?v=9";
   const KEY = "xeva_mate_v1";
   const PICK = "xeva_dot_pick";          /* おまかせで、この起動に出している子（タブごと） */
   const HINT = "xeva_dot_hint_v1";       /* はじめて出たときの「✎ かえる」（端末ごと・1回） */

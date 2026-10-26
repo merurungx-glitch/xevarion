@@ -176,7 +176,7 @@ html #xlBan.pre{box-shadow:0 0 0 2px #fff,0 0 0 3.5px #ff8a1f,0 3px 0 3.5px rgba
      告知を<b>ポータルのログイン時</b>に一本化したので、ここでも読む。
      defer なので xevarion.js より先に実行される（書いた順番で走る）。 -->
 <script src="mb-newchars.js?v=39" defer></script>
-<script src="xeva-devnotes.js?v=3" defer></script><!-- ★★ 2026-10-24 デベロッパーノート（新キャラのお知らせの代わり） -->
+<script src="xeva-devnotes.js?v=4" defer></script><!-- ★★ 2026-10-24 デベロッパーノート（新キャラのお知らせの代わり） -->
 <!-- ★★ 2026-09-25 ガチャの台帳（開催期間とバナー。make-gacha-live.py が mb-core.js から自動で作る）。ホーム左上のバナー用 -->
 <script src="gacha-live.js?v=8" defer></script>
 <!-- ★★ 2026-08-22b Xevion OS（XEVARION の UI をひとつの OS として扱う土台）。
@@ -193,10 +193,10 @@ html #xlBan.pre{box-shadow:0 0 0 2px #fff,0 0 0 3.5px #ff8a1f,0 3px 0 3.5px rgba
 <script type="module" src="MagiBurst/magiburst-cloud.js?v=27"></script>
 <script src="xeva-qr.js?v=9" defer></script>
 <script src="xevarion.js?v=106" defer></script>
-<script src="xevarion-home.js?v=170" defer></script>
+<script src="xevarion-home.js?v=171" defer></script>
 <script src="home-lobby.js?v=1" defer></script><!-- ★★ 2026-10-26 完凸ロビー（ヒサコ・アリス）。home-mate.js より先 -->
-<script src="home-mate.js?v=30" defer></script>
-<script src="home-dot.js?v=2" defer></script><!-- ★★ 2026-10-26 イベントのバナーの上を動くドット絵のキャラ（MagiAbyss のドット絵） -->
+<script src="home-mate.js?v=31" defer></script>
+<script src="home-dot.js?v=3" defer></script><!-- ★★ 2026-10-26 イベントのバナーの上を動くドット絵のキャラ（MagiAbyss のドット絵） -->
 <!-- ★★ 2026-10-24 MagiDerby・MagiScope のデータの先読み（ご指定「アプリを開いていなくても情報を取得してオフラインでも開けるように」） -->
 <script src="xeva-prefetch.js?v=1" defer></script>
 <!-- ★★ 2026-10-06 XEVARION 共通イベント（Violet Breeze）のページ。中身は xeva.js の XEVA.event -->
@@ -1058,7 +1058,7 @@ body.xos-nomotion .xh-start-tap .hp, body.xos-nomotion .xh-start-sub, body.xos-n
         <div class="cn-list">
           <div class="it"><span class="ic">📘</span><span><b>標準セット1〜4</b>（512問）<br><small>マーク式の大問の改題と、大問ごとの関連問題。習得でXEVAのごほうび</small></span></div>
           <div class="it"><span class="ic">🧩</span><span><b>単元別問題</b><br><small>関連問題を単元ごとにまとめて練習（難関レベル／標準レベル）</small></span></div>
-          <div class="it"><span class="ic">⏱️</span><span><b>模試モード</b><br><small>時間を計って最後にまとめて採点。標準セットでも使えます</small></span></div>
+          <div class="it"><span class="ic">📖</span><span><b>模試の冊子</b><br><small>組をまるごと冊子のように解いて、最後にまとめて採点・解答解説つき</small></span></div>
           <div class="it"><span class="ic">🔎</span><span><b>絞り込み・並び替え</b><br><small>問題セットを状態・計算問題・組で絞りこみ、習得率などで並び替え</small></span></div>
         </div>
       </div>
@@ -2285,6 +2285,19 @@ body.xos-nomotion .xh-start-tap .hp, body.xos-nomotion .xh-start-sub, body.xos-n
   <div class="nm-body" id="newsBody">
     <div class="nm-divider" id="newDivider" style="display:none;">NEW — 前回から更新</div>
     <!-- 2026-10-24：レベル・スタミナ廃止／同期の作り直し／MagiLex と MagiChemLex の統合／超極煌祭にヒサコ・アリス／WP 交換所にミキ／MagiDerby の券面／MagiShift の順位／デベロッパーノート -->
+    <div class="nm-item" data-tag="new" data-date="2026-10-27">
+      <div class="nm-date">2026<br>10.27</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag new">NEW</span></div>
+        <div class="nm-title">🏝️ MagiAbyss 外伝クエスト6つ・ストーリー増量／🎨 ホームをウマ娘風の配色に／📖 ChemLex 模試の冊子</div>
+        <div class="nm-txt">・<b>ホーム</b>：配色を<b>ウマ娘風</b>に（白い板＋灰色のふち・色つきの下タブ・選んだタブは水色）。XEVA・ジェムの札は<b>緑の「＋」</b>。ドット絵のキャラの<b>横顔</b>をかわいく（大きな瞳とほほの赤み）。<br>
+          ・<b>MagiAbyss</b>：<b>外伝クエスト6つ</b>（第10〜第15迷宮・敵はすべて新しい魔物・どの属性にも有利なクエストが3つずつ）。<b>ストーリーを増量</b>（本編の終章まで＋外伝6章・立ち姿と文字送り）。<b>中ボス戦は部屋を封鎖</b>（いつの間にか鍵が手に入るのを修正）。クエスト開始・中ボス・鍵・ボスの扉・クリアの<b>演出</b>。マップの閉じるボタンをいつも表示。出撃前のキャラ変更が反映されないことがあるのを修正。<br>
+          ・<b>MagiChemLex</b>：各セットの模試モードのかわりに、組をまるごと解く<b>「模試の冊子」</b>（表紙・マークシート風の解答欄・続きから・解答と解説）。<br>
+          ・<b>MagiDerby</b>：馬券は<b>水曜 0:00</b> から。GⅠ を押すと<b>レース名の演出</b>。<b>単勝・複勝以外のオッズ</b>も（発売前は単勝からの試算）。スマホで券の上下が切れるのを修正。<br>
+          ・<b>MagiShift</b>：CPU は、あと1つでそろう人が何人かいるとき<b>自分の番から近い人</b>を先に止めます。
+        </div>
+      </div>
+    </div>
     <div class="nm-item" data-tag="new" data-date="2026-10-26">
       <div class="nm-date">2026<br>10.26</div>
       <div class="nm-content">
@@ -6169,5 +6182,7 @@ body.xos-nomotion .xh-start-tap .hp, body.xos-nomotion .xh-start-sub, body.xos-n
 
 <!-- ★★ 2026-10-12c ウマ娘風のボタン・シート・動き（いちばん最後に読む＝ページの中の style より強く） -->
 <link rel="stylesheet" href="xeva-uma.css?v=2">
+<!-- ★★ 2026-10-27 ご指定「添付の画像のようなウマ娘風（特に配色）」：白い板＋灰色のふち・選んだ下タブは水色・期限はピンク（いちばん最後に読む） -->
+<link rel="stylesheet" href="xeva-uma2.css?v=1">
 </body>
 </html>

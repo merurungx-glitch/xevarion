@@ -1,0 +1,117 @@
+/* ============================================================
+   XEVARION UMA 2 — ウマ娘のホーム画面の配色に寄せる（★★ 2026-10-27 ご指定）
+   ------------------------------------------------------------
+   ご指定「ホーム画面やそれぞれの XEVARION 関係の画面のデザインを、機能は維持したままで、
+          添付した画像のようなウマ娘風のデザインに変更（特に配色など）」
+   添付の画面（ウマ娘のホーム）の色の決まりに合わせて、xeva-pop.css / xeva-uma.css（緑のふちが中心）を上書きする：
+     ・ふつうのボタン・札・アイコン … <b>白い板＋明るい灰色のふち</b>（緑のふちはやめる）・下に灰色の影
+     ・文字 … 濃い灰色に<b>白いふち取り</b>（板の外の文字）
+     ・主なボタン（メニュー・決定）… 黄緑のつや（白いふち・濃い緑のふち取り文字）
+     ・下のタブ … 白い板を細い線で区切る・アイコンは色つき・<b>選んだタブは水色の札が盛り上がる</b>（白い字に青のふち取り）
+     ・期限・イベントの札 … <b>ピンク</b>／数の印 … 赤
+     ・通貨の札 … 白い板＋灰色のふち・数字は濃い灰色・右はしに<b>緑の丸い「＋」</b>（押すと今までどおり入手方法）
+   ・位置・大きさ・はたらきは変えない（色・ふち・影・文字のふちだけ）。いちばん最後に読む。
+   ============================================================ */
+:root{
+  --u2-ink:#4b4744; --u2-sub:#7b746e;
+  --u2-ring:#cdd4db; --u2-ring2:#b3bcc6; --u2-drop:rgba(70,80,95,.28);
+  --u2-g1:#b6f06a; --u2-g2:#52bd3c; --u2-gd:#2d8a22; --u2-gk:#226b18;
+  --u2-b1:#a6e4ff; --u2-b2:#3aa6ee; --u2-bd:#1f78c8; --u2-bk:#17609f;
+  --u2-p1:#ff8fb6; --u2-p2:#ff4f87; --u2-pd:#d63a6f;
+  --u2-gloss:linear-gradient(180deg,rgba(255,255,255,.65) 0,rgba(255,255,255,.18) 48%,rgba(255,255,255,0) 49%);
+  --u2-wol:-1.4px 0 #fff,1.4px 0 #fff,0 -1.4px #fff,0 1.4px #fff,-1px -1px #fff,1px 1px #fff,1px -1px #fff,-1px 1px #fff;
+  --u2-gol:-1.4px 0 var(--u2-gd),1.4px 0 var(--u2-gd),0 -1.4px var(--u2-gd),0 1.4px var(--u2-gd),-1px -1px var(--u2-gd),1px 1px var(--u2-gd),1px -1px var(--u2-gd),-1px 1px var(--u2-gd);
+  --u2-bol:-1.4px 0 var(--u2-bd),1.4px 0 var(--u2-bd),0 -1.4px var(--u2-bd),0 1.4px var(--u2-bd),-1px -1px var(--u2-bd),1px 1px var(--u2-bd),1px -1px var(--u2-bd),-1px 1px var(--u2-bd);
+  --u2-pol:-1.3px 0 var(--u2-pd),1.3px 0 var(--u2-pd),0 -1.3px var(--u2-pd),0 1.3px var(--u2-pd),-1px -1px var(--u2-pd),1px 1px var(--u2-pd),1px -1px var(--u2-pd),-1px 1px var(--u2-pd);
+  /* 札の色の入れかえ（xevarion-home.css / xeva-pop.css の --yw-* を、灰色のふち・白の板に） */
+  --yw-line:#c3cbd3; --xh-line:rgba(120,130,145,.22); --yw-red:#ff4f6a;
+  --xh-shadow:0 3px 0 rgba(70,80,95,.2); --xh-shadow-s:0 2px 0 rgba(70,80,95,.16); --yw-drop:0 3px 0 rgba(70,80,95,.24);
+}
+
+/* ══ 上：右上のボタン（スケジュール・ショップ・メール・お知らせ・ミッション）══ */
+html body .xh-act .ic{
+  background:var(--u2-gloss),linear-gradient(180deg,#ffffff,#eef1f4)!important;border-color:#fff!important;
+  box-shadow:inset 0 0 0 2px #fff,0 0 0 2px var(--u2-ring),0 3px 0 2px var(--u2-ring2),0 6px 10px var(--u2-drop)!important}
+html body .xh-act .lb{color:var(--u2-ink)!important;text-shadow:var(--u2-wol)!important}
+html body .xh-act .bdg{background:linear-gradient(180deg,#ff6a7a,#ff2e4d)!important;box-shadow:0 0 0 2px #fff,0 2px 0 2px rgba(180,20,40,.35)!important}
+
+/* ══ 通貨の札：白い板＋灰色のふち・濃い灰色の数字・右はしに緑の丸い「＋」══ */
+html body .xh-pill,html body #xhLobby .xh-pill,html body .xh-pill.gem,html body #xhLobby .xh-pill.gem{background:linear-gradient(180deg,#ffffff,#f1f3f5)!important;border-color:#fff!important;
+  box-shadow:inset 0 0 0 1.5px #fff,0 0 0 1.5px var(--u2-ring),0 2.5px 0 1.5px var(--u2-ring2)!important}
+html body .xh-pill .cval,html body #xhLobby .xh-pill .cval,html body .xh-pill.gem .cval,html body #xhLobby .xh-pill.gem .cval{color:var(--u2-ink)!important;font-weight:900}
+html body .xh-pill .xh-info,html body #xhLobby .xh-pill .xh-info,html body .xh-pill.gem .xh-info,html body #xhLobby .xh-pill.gem .xh-info{font-size:0!important;background:var(--u2-gloss),linear-gradient(180deg,var(--u2-g1),var(--u2-g2))!important;
+  box-shadow:inset 0 0 0 1.5px #fff,0 0 0 1px var(--u2-gd)!important;color:#fff!important}
+html body .xh-pill .xh-info::before,html body #xhLobby .xh-pill .xh-info::before{content:"+";font-size:13px;font-weight:900;line-height:1;color:#fff;text-shadow:0 1px 0 var(--u2-gd)}
+html body .xh-lv,html body #xhLobby .xh-lv,html body .xh-stam,html body #xhLobby .xh-stam{border-color:#fff!important;box-shadow:inset 0 0 0 1.5px #fff,0 0 0 1.5px var(--u2-ring),0 2.5px 0 1.5px var(--u2-ring2)!important}
+
+/* ══ プロフィール ══ */
+html body #xhAv,html body .xh-av,html body #xhLobby .xh-av{box-shadow:0 0 0 2.5px #fff,0 0 0 4.5px var(--u2-ring),0 3px 0 4.5px var(--u2-ring2)!important}
+html body .xh-uname,html body #xhLobby .xh-uname{color:var(--u2-ink)!important;text-shadow:var(--u2-wol)!important}
+
+/* ══ ロビーの左右のボタン（白い丸い板＋灰色のふち）・ロビー（パートナー）は主ボタンの黄緑 ══ */
+html body .xl-ic .i{background:var(--u2-gloss),linear-gradient(180deg,#ffffff,#eef1f4)!important;
+  box-shadow:inset 0 0 0 2px #fff,0 0 0 2.5px var(--u2-ring),0 3px 0 2.5px var(--u2-ring2),0 6px 10px var(--u2-drop)!important}
+html body .xl-ic.dia .i{background:var(--u2-gloss),linear-gradient(180deg,var(--u2-g1),var(--u2-g2))!important;
+  box-shadow:inset 0 0 0 2px rgba(255,255,255,.95),0 0 0 2px var(--u2-gd),0 3px 0 2px var(--u2-gk),0 6px 10px rgba(40,90,20,.2)!important}
+html body .xl-ic .l{color:var(--u2-ink)!important;text-shadow:var(--u2-wol)!important}
+
+/* ══ バナー（ガチャ・イベント）：白いふち＋灰色の線・期限の帯はピンク ══ */
+html body .xl-ban,html body .xl-evb{box-shadow:0 0 0 3px #fff,0 0 0 5px var(--u2-ring),0 4px 0 5px var(--u2-ring2),0 8px 14px var(--u2-drop)!important}
+html body .xl-evb .evb-bar{background:var(--u2-gloss),linear-gradient(180deg,var(--u2-p1),var(--u2-p2))!important}
+html body .xl-evb .evb-bar b,html body .xl-evb .evb-bar span{color:#fff!important;text-shadow:var(--u2-pol)!important}
+html body .xl-evb .evb-tag{filter:none!important;background:linear-gradient(180deg,#ff8a5a,#ff4f3a)!important;color:#fff!important}
+
+/* ══ アプリの並び：白い板＋灰色のふち（緑のしまはやめる）・アイコンは白いふち＋灰色の線・名前は濃い灰色 ══ */
+html body .xl-apps{background:rgba(255,255,255,.9)!important;
+  box-shadow:inset 0 0 0 3px #fff,0 0 0 2px var(--u2-ring),0 4px 0 2px var(--u2-ring2),0 10px 22px var(--u2-drop)!important}
+html body .xl-apps::before{background:none!important}
+html body .xl-app .ic{border-color:#fff!important;background:#fff!important;
+  box-shadow:inset 0 0 0 2px #fff,0 0 0 2px var(--u2-ring),0 3px 0 2px var(--u2-ring2)!important}
+html body .xl-app .nm{color:var(--u2-ink)!important;text-shadow:var(--u2-wol)!important}
+html body .xl-apps .xl-ttl,html body .xl-apps>small,html body .xl-apps .xl-cap{color:var(--u2-sub)!important}
+/* 「NEW」は黄緑の字に濃い緑のふち（ウマ娘の NEW） */
+html body .xl-new,html body .xh-newb{filter:none!important;background:linear-gradient(180deg,#f2ff6a,#9be03a)!important;color:#2d6a12!important;box-shadow:0 0 0 1.5px #fff,0 0 0 2.5px #5aa628!important}
+
+/* ══ メニューの取っ手：主ボタンの黄緑（白いふち・白い字に濃い緑のふち取り）══ */
+html body .xl-handle{background:var(--u2-gloss),linear-gradient(180deg,var(--u2-g1),var(--u2-g2))!important;color:#fff!important;
+  box-shadow:inset 0 0 0 2px rgba(255,255,255,.95),0 0 0 1.5px var(--u2-gd),0 3px 0 1.5px var(--u2-gk),0 6px 10px rgba(40,90,20,.2)!important;
+  text-shadow:var(--u2-gol)!important}
+
+/* ══ 吹き出し（パートナー）：白い板＋灰色のふち・濃い灰色の字 ══ */
+html body .hm-bubble{background:#fff!important;border-color:var(--u2-ring)!important;color:var(--u2-ink)!important;box-shadow:0 0 0 2px #fff inset,0 4px 0 var(--u2-ring2),0 8px 16px var(--u2-drop)!important}
+html body .hm-bubble::before{border-bottom-color:var(--u2-ring)!important}
+
+/* ══ 下のタブ：白い板を細い線で区切る・アイコンは色つき・選んだタブは水色の札が盛り上がる ══ */
+html body .xh-bar{background:linear-gradient(180deg,#ffffff 0,#f4f6f8 40%,#e6eaee 100%)!important;box-shadow:0 -2px 0 #fff,0 -4px 0 var(--u2-ring),0 -8px 16px rgba(60,70,85,.12)!important}
+html body .xh-bar::before{background:linear-gradient(180deg,#ffffff 0 2px,rgba(255,255,255,0) 2px)!important}
+html body .xh-ntab{position:relative}
+html body .xh-ntab+.xh-ntab::after{content:"";position:absolute;left:-1px;top:12px;height:40px;width:1.5px;background:linear-gradient(180deg,rgba(150,160,172,0),rgba(150,160,172,.55),rgba(150,160,172,0));pointer-events:none}
+html body .xh-ntab .tl{color:var(--u2-ink)!important;text-shadow:var(--u2-wol)!important;font-weight:900}
+html body .xh-ntab svg{filter:drop-shadow(0 2px 0 rgba(70,80,95,.25))!important}
+/* アイコンの色（図鑑＝緑・ガチャ＝橙・ホーム＝青・コミュニティ＝桃・設定＝灰青） */
+html body .xh-ntab:nth-child(1) .uic{--ua:#5cc23a;--ub:#ffd84a;--uk:#2a7a14}
+html body .xh-ntab:nth-child(2) .uic{--ua:#ff9a2a;--ub:#ffd84a;--uk:#b55a00}
+html body .xh-ntab:nth-child(3) .uic{--ua:#3aa0f0;--ub:#ffd84a;--uk:#1a64a8}
+html body .xh-ntab:nth-child(4) .uic{--ua:#ff7aa8;--ub:#ffd84a;--uk:#c23c6e}
+html body .xh-ntab:nth-child(5) .uic{--ua:#8a9bb0;--ub:#ffd84a;--uk:#4f5f72}
+/* 選んだタブ：水色の札（白いふち・青い線・下に影）が上へ盛り上がり、絵は白・字は白に青のふち取り */
+html body .xh-ntab.on .uic{--ua:#fff!important;--ub:#ffe86a!important;--uk:var(--u2-bd)!important;filter:drop-shadow(0 1.5px 0 rgba(23,96,159,.5))!important}
+html body .xh-ntab.on .tl{color:#fff!important;text-shadow:var(--u2-bol)!important}
+html body .xh-ntab.on::before{top:-10px!important;width:auto!important;height:66px!important;left:3px!important;right:3px!important;margin:0!important;border-radius:16px 16px 10px 10px!important;
+  background:var(--u2-gloss),linear-gradient(180deg,var(--u2-b1),var(--u2-b2) 62%,#2b8ede)!important;
+  box-shadow:inset 0 0 0 2px rgba(255,255,255,.95),0 0 0 1.5px var(--u2-bd),0 3px 0 1.5px var(--u2-bk),0 6px 12px rgba(23,96,159,.25)!important}
+html body .xh-ntab.on::after{display:none!important}
+html body .xh-ntab.on+.xh-ntab::after{display:none}
+html body .xh-ntab .xh-tabchar{box-shadow:0 0 0 1.5px #fff,0 0 0 3px var(--u2-ring)!important}
+
+/* ══ シート（設定・お知らせ・メール…）：板は白・見出しは黄緑のまま（ウマ娘の決定の色）・行は灰色のふち ══ */
+html body .xh-sheet-card{background:linear-gradient(180deg,#ffffff,#f5f7f9)!important}
+html body .xh-row{border-color:#e1e5ea!important;box-shadow:0 2px 0 rgba(120,130,145,.18)!important}
+html body .xh-row .rt{color:var(--u2-ink)!important}
+html body .xh-grid{background:linear-gradient(180deg,#ffffff,#f4f6f8)!important;box-shadow:inset 0 0 0 3px #fff,0 0 0 2px var(--u2-ring),0 4px 0 2px var(--u2-ring2)!important}
+html body .xh-sq{box-shadow:inset 0 0 0 2px #fff,0 0 0 2px var(--u2-ring),0 3px 0 2px var(--u2-ring2)!important}
+/* 白いボタン（もどる・サブ）は灰色のふち・濃い灰色の字 */
+html body :is(.xh-sbtn.ghost, body.pp-community .btn.ghost, .gl-hd button, .xeva-m-go, .ratebtn, .c-set-btn.current){
+  --c1:#ffffff;--c2:#eef1f4;--ce:var(--u2-ring2);--cl:#a3adb8;color:var(--u2-ink)!important}
+/* イベント・期限の札（ピンク） */
+html body .xh-sec-label{background:linear-gradient(180deg,var(--u2-p1),var(--u2-p2))!important}
