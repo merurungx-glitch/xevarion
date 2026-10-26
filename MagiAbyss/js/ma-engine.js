@@ -992,7 +992,13 @@
     MA.Render.dirtyMap && MA.Render.dirtyMap();
     toast("ボスの扉が開いた！ 最深部へ向かおう", "#ff5a6a");
     MA.Audio.sfx("roar");
+    if (MA.UI.doorOpen) setTimeout(() => { if (G.running) MA.UI.doorOpen(G.dun); }, 900);   /* ★★ 2026-10-27 ボスの扉の演出（鍵の演出のあと） */
     updateObjective();
+  }
+  /* ★★ 2026-10-27 部屋の中まで入ったか（はしの1マスは出入口なので、少し内側に入ってから中ボス戦） */
+  function deepIn(room, P) {
+    const tx = P.x / 16, ty = P.y / 16, mx = Math.max(0.6, Math.min(1.4, room.w / 2 - 1)), my = Math.max(0.6, Math.min(1.4, room.h / 2 - 1));
+    return tx > room.x + mx && tx < room.x + room.w - mx && ty > room.y + my && ty < room.y + room.h - my;
   }
   function onMidKilled(e) {
     const room = G.map.rooms[e.room];
@@ -1000,6 +1006,10 @@
     G.midN = G.map.rooms.filter((r) => r.type === "mid" && r.midDone).length;
     G.midDone = G.midN >= G.keysNeed;
     if (G.mid === e) G.mid = null;
+    /* ★★ 2026-10-27 中ボス戦の封鎖をとく（扉が開く）＋鍵を手に入れる演出 */
+    if (G.midFight && (!room || G.midFight.room === room)) { unsealRoom(G.midFight.doors); G.midFight = null; }
+    G.shake = Math.max(G.shake || 0, 5); G.flash = 0.3; G.flashCol = "#ffd84a";
+    if (MA.UI.keyGet) MA.UI.keyGet(Math.min(G.keys + 1, G.keysNeed), G.keysNeed, e);
     giveKey("中ボスを倒した");
     if (!G.sealKey && G.map.sealedRoom >= 0) { G.sealKey = true; const map = G.map; map.sealDoors.forEach(([x, y]) => { map.tiles[y * map.W + x] = M().T.FLOOR; }); MA.Render.dirtyMap && MA.Render.dirtyMap(); toast("封印の鍵を手に入れた：封印区域の扉が開いた", "#e8d080"); }
     G.map.objects.push({ kind: "chest", x: e.x, y: e.y, tier: 2, done: false, dyn: 1 });
@@ -1094,9 +1104,15 @@
         const n = Math.min(12, 3 + Math.floor(G.rnd() * 4) + Math.min(4, room.dist || 0) + Math.floor(G.t / 120));
         for (let k = 0; k < n; k++) { const x = (room.x + 1 + G.rnd() * (room.w - 2)) * 16, y = (room.y + 1 + G.rnd() * (room.h - 2)) * 16; if (dist2(x, y, P.x, P.y) < 60 * 60 || M().solidAt(map, x, y)) continue; spawnEnemy(list[(G.rnd() * list.length) | 0], x, y, { room: rid }); }
       }
-      /* 中ボスの部屋（★★ 2026-10-12 3部屋。奥の中ボスほど体力が多く、取り巻きを連れている。倒すと星脈の鍵） */
-      if (room.type === "mid" && !room.midSpawned && !room.midDone && G.mode === "dungeon") {
+      /* 中ボスの部屋（★★ 2026-10-12 3部屋。奥の中ボスほど体力が多く、取り巻きを連れている。倒すと星脈の鍵）
+         ★★ 2026-10-27 ご報告「鍵がいつの間にか入手されている」→ ご指定「中ボスに来たらエリアを限定して封鎖して中ボス戦が始まるように」：
+         前は部屋のはしを通っただけで中ボスが出て、部屋を出ても追いかけてきた（離れた所で自動攻撃が倒して、気づかないうちに鍵）。
+         → 部屋の中まで入ったら出入口を閉じ（試練と同じ SEALDOOR）、中ボス戦の演出のあとで中ボスと取り巻きを出す。
+           倒すまで出られない・外の敵も入れない。倒すと扉が開き、鍵を手に入れる演出（MA.UI.midIntro / keyGet） */
+      if (room.type === "mid" && !room.midSpawned && !room.midDone && G.mode === "dungeon" && deepIn(room, P)) {
         room.midSpawned = true;
+        G.midFight = { room, doors: sealRoom(room) };
+        G.shake = Math.max(G.shake || 0, 6); G.flash = 0.25; G.flashCol = "#ff8a3d";
         const mi = room.midIdx || 0;
         const e = spawnEnemy(G.dun.mid, room.cx * 16 + 8, room.cy * 16 + 8, { mid: true, hpMul: [2.2, 2.6, 3.0][mi] || 3.0, atkMul: [1.2, 1.28, 1.36][mi] || 1.36, scale: 1.3, room: rid });
         if (e) {
@@ -1105,6 +1121,7 @@
           for (let k = 0; k < mi * 3; k++) { const a = k / Math.max(1, mi * 3) * TAU; const x = e.x + Math.cos(a) * 46, y = e.y + Math.sin(a) * 34; if (!M().solidAt(map, x, y)) spawnEnemy(list[k % list.length], x, y, { room: rid }); }
           toast("中ボス「" + e.d.nm + "」があらわれた！（" + (mi + 1) + "体目・倒すと星脈の鍵）", "#ff8a3d");
           MA.Audio.sfx("roar");
+          if (MA.UI.midIntro) MA.UI.midIntro(e, mi, G.keysNeed);
         }
       }
       /* ボスの部屋 */
@@ -1146,7 +1163,7 @@
     if (G.mode === "abyss") target = Math.min(cap, target + 8);
     const alive = G.E.reduce((a, e) => a + (e.dead ? 0 : 1), 0);
     G.dir.spawnT -= dt;
-    if (G.dir.spawnT <= 0 && alive < target) {
+    if (G.dir.spawnT <= 0 && alive < target && !G.midFight) {   /* ★★ 2026-10-27 中ボス戦（封鎖中）は外から湧かせない */
       G.dir.spawnT = Math.max(0.35, 1.6 - min * 0.06);
       const list = G.mode === "abyss" ? abyssList() : G.dun.enemies;
       /* 時間がたつほど重い敵が混ざる（並びの後ろほど重い） */
@@ -1158,7 +1175,7 @@
     }
     /* エリート */
     G.dir.eliteT -= dt * (G.muts.elites ? G.muts.elites.elite : 1) * ((G.rule && G.rule.elite) || 1) * ((G.modeDef && G.modeDef.elite) || 1);
-    if (G.dir.eliteT <= 0) {
+    if (G.dir.eliteT <= 0 && !G.midFight) {
       G.dir.eliteT = 85 - Math.min(40, min * 2);
       const pos = spawnPos();
       if (pos) {

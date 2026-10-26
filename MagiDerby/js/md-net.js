@@ -98,8 +98,9 @@
      ★ ホームの「発売中」の札（home-mate.js の derbySale）も同じ決まり。片方を変えたらもう一方も。 */
   /* ★★ 2026-10-26 ご指定「馬券の購入を発走から三日前からできるように」
      → どの曜日のレースも<b>レースの日の3日前の 0:00</b>（D.SALE_DAYS_BEFORE）から締切までずっと（日曜のレース＝木曜 0:00・土曜＝水曜 0:00）。 */
+  /* ★★ 2026-10-27 ご指定「馬券を水曜日の 0:00 から」→ レースの日の前の水曜 0:00（D.saleBack）から締切までずっと */
   N.saleWins = function (r) {
-    return [[N.at(r.date, -(D.SALE_DAYS_BEFORE || 3), 0, 0), N.closeAt(r)]];
+    return [[N.at(r.date, -D.saleBack(r.date), 0, 0), N.closeAt(r)]];
   };
   N.saleAt = (r) => N.saleWins(r)[0][0];                     /* 発売開始（いちばん最初の窓） */
   /* いま発売しているか（窓の中か）／次に発売が始まる時刻（無ければ null） */
@@ -138,7 +139,7 @@
     if (now >= post) return now < post + 4 * 60000 ? "run" : "wait";
     if (!r.rid || r.st === "sched") return "sched";
     if (now >= N.closeAt(r)) return "closed";
-    /* ★★ 2026-10-24 枠順の発表前（r.st＝entry）でも、発売の時刻（木曜 0:00）を過ぎていれば発売中（馬名で買う） */
+    /* ★★ 2026-10-24 枠順の発表前（r.st＝entry）でも、発売の時刻（★ 2026-10-27 から水曜 0:00）を過ぎていれば発売中（馬名で買う） */
     if (now < N.saleAt(r)) return r.st === "entry" ? "entry" : "pre";
     if (!N.onSale(r, now)) return "gap";                     /* ★★ 2026-10-22 前日発売と当日発売のあいだ（JRA と同じく買えない） */
     return "sale";
@@ -167,7 +168,8 @@
   N.betRace = function (race) {
     if (!N.preDraw(race)) return race;
     const act = (race.entries || []).filter((e) => !e.cx).slice().sort((a, b) => (a.idx || 0) - (b.idx || 0));
-    return Object.assign({}, race, { pre: true, odds: null, entries: act.map((e, i) => Object.assign({}, e, { no: i + 1, waku: null, pno: i + 1 })) });
+    /* ★★ 2026-10-27 単勝の予想オッズ（馬の id で引く yoso）は残す＝発表前でも単勝の予想と、ほかの券種の試算（md-bet の B.est）が出せる */
+    return Object.assign({}, race, { pre: true, odds: race.odds && race.odds.kind === "yoso" ? race.odds : null, entries: act.map((e, i) => Object.assign({}, e, { no: i + 1, waku: null, pno: i + 1 })) });
   };
   /* ★★ 2026-10-26 結果の表が途中か（自動取得の part の印・または出走頭数より行が少ない＝速報で上位だけ） */
   N.partial = function (race) {

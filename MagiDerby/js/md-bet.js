@@ -102,6 +102,122 @@
     const m = exMap(ex, type); const x = m && m[B.keyOf(type, c)]; return x ? x.pop : 0;
   };
 
+  /* ══ ★★ 2026-10-27 ご報告「単勝・複勝以外のオッズが表示されない」══
+     本物の枠連〜3連単のオッズは、JRA の発売が始まってから（GⅠ はおよそ前日）しか出ない
+     （netkeiba も発売の前は「単勝の予想オッズ」だけ）。水曜から買えるのに、それまで何も出ていなかった。
+     → 本物が無い券種は<b>単勝オッズからの試算</b>（予想オッズ）を出す。
+       ・各馬の勝つ確率 p ∝ 1/単勝オッズ（合計を 1 に直す。オッズの無い馬は、いちばん人気の無い馬の半分）
+       ・2着・3着は「残った馬の中で勝つ確率」の順に決まるとして（ハービルの式）組み合わせの確率を出す
+       ・倍率 ＝ 払戻率 ÷ 確率（JRA の払戻率：複勝 80%・枠連・馬連・ワイド 77.5%・馬単・3連複 75%・3連単 72.5%）。10円単位で切り捨て・1.0倍から
+       ・複勝とワイドは実物と同じ「下限〜上限」（いっしょに来る馬で配当が変わるため、その幅を出す）
+     返す形は odds/<id>.json と同じ（kind:"est"）＋ place（{馬番:[下限,上限,人気]}）。本物が届いた券種は本物が勝つ（B.oddsAny）。 */
+  const RET = { place: 0.8, waku: 0.775, quin: 0.775, wide: 0.775, exa: 0.75, trio: 0.75, tri: 0.725 };
+  const estMemo = new WeakMap();
+  const odd1 = (x) => Math.max(1, Math.floor(x * 10 + 1e-9) / 10);
+  function popRank(rows, at) {
+    rows.sort((a, b) => a[at] - b[at]);
+    rows.forEach((x, i) => x.push(i + 1));
+    return rows;
+  }
+  B.est = function (race) {
+    if (!race) return null;
+    const memo = estMemo.get(race); if (memo !== undefined) return memo;
+    const ents = N.runners(race).filter((e) => !e.cx && e.no);
+    const n = ents.length;
+    let out = null;
+    if (n >= 2) {
+      let q = ents.map((e) => { const o = N.winOdds(race, e); return o && Number(o[0]) > 0 ? 1 / Number(o[0]) : 0; });
+      const have = q.filter((x) => x > 0);
+      if (have.length) {
+        const qmin = Math.min.apply(null, have);
+        q = q.map((x) => x || qmin * 0.5);
+        const sq = q.reduce((a, b) => a + b, 0), p = q.map((x) => x / sq), no = ents.map((e) => e.no);
+        out = { kind: "est", at: (race.odds && race.odds.at) || "", base: (race.odds && race.odds.kind) || "", place: {} };
+        /* 1着→2着（P2）・1→2→3着（P3） */
+        const P2 = [], P3 = {};
+        for (let i = 0; i < n; i++) { P2[i] = []; for (let j = 0; j < n; j++) P2[i][j] = i === j ? 0 : p[i] * p[j] / Math.max(1e-9, 1 - p[i]); }
+        const exa = [], quin = [], tri = [], trio = [], wide = [];
+        const Q = []; for (let i = 0; i < n; i++) { Q[i] = []; for (let j = 0; j < n; j++) Q[i][j] = P2[i][j] + P2[j][i]; }
+        for (let i = 0; i < n; i++) for (let j = 0; j < n; j++) {
+          if (i === j) continue;
+          exa.push([no[i], no[j], odd1(RET.exa / P2[i][j])]);
+          if (i < j) quin.push([no[i], no[j], odd1(RET.quin / Q[i][j])]);
+          if (n >= 3) for (let k = 0; k < n; k++) {
+            if (k === i || k === j) continue;
+            const v = P2[i][j] * p[k] / Math.max(1e-9, 1 - p[i] - p[j]);
+            P3[i + "," + j + "," + k] = v;
+            tri.push([no[i], no[j], no[k], odd1(RET.tri / v)]);
+          }
+        }
+        out.exa = popRank(exa, 2); out.quin = popRank(quin, 2);
+        if (n >= 3) {
+          /* 3連複・ワイド（2頭がそろって3着まで）・3着までに入る確率 */
+          const T = (a, b, c) => P3[a + "," + b + "," + c] + P3[a + "," + c + "," + b] + P3[b + "," + a + "," + c] + P3[b + "," + c + "," + a] + P3[c + "," + a + "," + b] + P3[c + "," + b + "," + a];
+          const W = []; for (let i = 0; i < n; i++) W[i] = new Array(n).fill(0);
+          const top3 = new Array(n).fill(0);
+          for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) for (let k = j + 1; k < n; k++) {
+            const v = T(i, j, k);
+            trio.push([no[i], no[j], no[k], odd1(RET.trio / v)]);
+            W[i][j] += v; W[i][k] += v; W[j][k] += v;
+            top3[i] += v; top3[j] += v; top3[k] += v;
+          }
+          out.trio = popRank(trio, 3); out.tri = popRank(tri, 3);
+          /* ワイド：買われ方＝当たる確率に比例（1組の取り分 u＝W/3）。3着の馬 k で、当たる3組の取り分が変わる → 下限〜上限 */
+          const u = (a, b) => (a < b ? W[a][b] : W[b][a]) / 3;
+          for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) {
+            let lo = Infinity, hi = 0;
+            for (let k = 0; k < n; k++) {
+              if (k === i || k === j) continue;
+              const o = 1 + (RET.wide - u(i, j) - u(i, k) - u(j, k)) / (3 * Math.max(1e-9, u(i, j)));
+              lo = Math.min(lo, o); hi = Math.max(hi, o);
+            }
+            wide.push([no[i], no[j], odd1(lo), odd1(hi)]);
+          }
+          out.wide = popRank(wide, 2);
+          /* 複勝：8頭以上は3着まで・5〜7頭は2着まで（4頭以下は発売なし） */
+          if (n >= 5) {
+            const kk = n >= 8 ? 3 : 2;
+            const pp = kk === 3 ? top3 : p.map((x, i) => { let s = 0; for (let j = 0; j < n; j++) s += Q[i][j]; return s; });
+            const s = pp.map((x) => x / kk);
+            const rows = [];
+            for (let i = 0; i < n; i++) {
+              const ot = s.filter((x, j) => j !== i).sort((a, b) => b - a);
+              const big = ot.slice(0, kk - 1).reduce((a, b) => a + b, 0), small = ot.slice(-(kk - 1)).reduce((a, b) => a + b, 0);
+              rows.push([no[i], odd1(1 + (RET.place - s[i] - big) / (kk * s[i])), odd1(1 + (RET.place - s[i] - small) / (kk * s[i]))]);
+            }
+            popRank(rows, 1).forEach((x) => { out.place[String(x[0])] = [x[1], x[2], x[3]]; });
+          }
+        }
+        /* 枠連：枠番が出ていれば（同じ枠どうし＝ゾロ目は、その枠に2頭以上いるときだけ） */
+        if (ents.every((e) => e.waku)) {
+          const wk = ents.map((e) => e.waku), F = {};
+          for (let i = 0; i < n; i++) for (let j = i + 1; j < n; j++) {
+            const a = Math.min(wk[i], wk[j]), b = Math.max(wk[i], wk[j]), key = a + "-" + b;
+            F[key] = (F[key] || 0) + Q[i][j];
+          }
+          out.waku = popRank(Object.keys(F).map((k) => { const ab = k.split("-").map(Number); return [ab[0], ab[1], odd1(RET.waku / F[k])]; }), 2);
+        }
+      }
+    }
+    estMemo.set(race, out);
+    return out;
+  };
+  /* 本物があれば本物、無ければ試算。返す：{ o: 倍率（複勝・ワイドは [下限, 上限]）, est: 試算か } か null。
+     ★ 単勝の「予想オッズ」（発売の前の netkeiba の予想）も est あつかい */
+  B.oddsAny = function (race, ex, type, c) {
+    const real = B.oddsOf(race, ex, type, c);
+    if (real) return { o: real, est: false };
+    if (type === "win") {
+      const e = N.runners(race).find((x) => x.no === c[0] && !x.cx);
+      const o = e && N.winOdds(race, e);
+      return o ? { o: Number(o[0]), est: true } : null;
+    }
+    const E = B.est(race); if (!E) return null;
+    if (type === "place") { const o = E.place[String(c[0])]; return o ? { o: [o[0], o[1]], est: true } : null; }
+    const m = exMap(E, type), x = m && m[B.keyOf(type, c)];
+    return x ? { o: x.o, est: true } : null;
+  };
+
   /* ══════════ 買い目の展開（通常・ボックス・ながし・フォーメーション）══════════
      sel：
        通常 norm  … { cols: [[a],[b],[c]] }（単勝・複勝は cols[0] に何頭でも＝1頭ずつ別の買い目）

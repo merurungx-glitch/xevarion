@@ -149,7 +149,7 @@
   function footHTML() {
     const at = U.idx && U.idx.at;
     return '<footer class="foot"><p>データ：netkeiba（JRA の発表をもとにしたもの）の公開ページから、XEVARION の自動取得が1時間ごとに（GⅠ の日は発走の前後に数分ごと）集めています。' +
-      (at ? "<br>最終更新 " + esc(N.dateStr(N.ymd(at), false)) + " " + esc(N.hm(at)) + "（" + esc(agoStr(at)) + "）" : "") + "</p><p>馬券は XEVA（1 XEVA ＝ 1円）で、払い戻しは実際の払戻金どおりです。発売はレースの日の" + (D.SALE_DAYS_BEFORE || 3) + "日前の 0:00 から、締切は発走の2分前（サーバーの時刻で判定）。結果と払い戻しは、この端末が結果のデータを受け取りしだい行います（" + PAY_NOTE + "）。</p>" +
+      (at ? "<br>最終更新 " + esc(N.dateStr(N.ymd(at), false)) + " " + esc(N.hm(at)) + "（" + esc(agoStr(at)) + "）" : "") + "</p><p>馬券は XEVA（1 XEVA ＝ 1円）で、払い戻しは実際の払戻金どおりです。発売は" + D.SALE_TXT + " から、締切は発走の2分前（サーバーの時刻で判定）。結果と払い戻しは、この端末が結果のデータを受け取りしだい行います（" + PAY_NOTE + "）。</p>" +
       '<p class="foot-btns"><button class="btn" data-a="help">📘 使い方（アニメ）</button><button class="btn" data-a="helpTypes">🎫 馬券の種類</button></p></footer>';
   }
   /* ★★ 2026-10-21 ご指定「新しい GⅠ が買えるようになったら、ボタンをわかりやすく」：発売中のレースは、いちばん上に大きな札 */
@@ -203,7 +203,26 @@
   const tkNo = (tk, x) => (B.isPre(tk) ? "?" : x ? x : "消");
   /* ★★ 2026-10-24 ご指定「馬の名前は1行で・文字の高さは変えず実際の馬券のように詰め字」
      → 枠（.jt-hn など）の幅に入りきらないぶんだけ、中の span を横だけ縮める（scaleX）。券の幅が変わったら測りなおす。 */
+  /* ★★ 2026-10-27 ご報告「スマホで馬券を表示すると上下が切れる」：買い目（ボックス・ながし・フォーメーション・枠順の発表前の馬名）が
+     券の高さより長いと、行がのびて下の「合計」が紙の外へはみ出して切れていた。
+     → 行は紙の高さで止め（md.css の .jt-p の minmax(0,1fr)）、入りきらない買い目（.jt-rin）は入りきるまで縮める（zoom・二分探索） */
+  function fitSel(root) {
+    $$(".jt-rin", root || document).forEach((w) => {
+      w.style.zoom = "";
+      const r = w.parentElement, cs = getComputedStyle(r);
+      const avail = r.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
+      /* 高さは offsetHeight（縮める前の座標）× zoom で測る（拡大の画面は券を90°倒すので getBoundingClientRect は使えない） */
+      if (!(avail > 0) || w.offsetHeight <= avail + 0.5) return;
+      let lo = 0.3, hi = 1;
+      for (let k = 0; k < 7; k++) {
+        const z = (lo + hi) / 2; w.style.zoom = z.toFixed(3);
+        if (w.offsetHeight * z <= avail + 0.5) lo = z; else hi = z;
+      }
+      w.style.zoom = lo.toFixed(3);
+    });
+  }
   function fitNames(root) {
+    fitSel(root);
     $$(".jt .fit", root || document).forEach((s) => {
       s.style.transform = "";
       const box = s.parentElement, w = box.clientWidth, sw = s.scrollWidth;
@@ -265,7 +284,7 @@
         "</div>" +
         '<div class="jt-band" aria-hidden="true"></div>' +
         '<div class="jt-ty"><small>' + TYPE_EN[tk.type] + "</small><b>" + esc(tyW) + "</b><small>" + (tk.mode && tk.mode !== "norm" ? MODE_EN[tk.mode] : TYPE_EN[tk.type]) + "</small></div>" +
-        '<div class="jt-r">' + jtSel(tk, race) + "</div>" +
+        '<div class="jt-r"><div class="jt-rin">' + jtSel(tk, race) + "</div></div>" +
         '<div class="jt-b"><div class="jt-sum">合計 <b>' + star(tk.cb.length, 5, "★") + "</b>点 <b>" + star(fmt(tk.cost), 6, "★") + '</b><small>XEVA</small></div>' +
           '<div class="jt-ser">' + dg(13) + " " + dg(13) + " " + dg(8) + " " + dg(6) + "</div></div>" +
         stampHTML(tk) +
@@ -497,9 +516,9 @@
     loadEx();
   }
   async function loadEx() {
-    const r = raceOf(U.rid); if (!r || r.st === "result") return;
-    const d = (new Date(r.date + "T00:00:00+09:00").getTime() - now()) / 86400000;
-    if (d > 2) return;
+    /* ★★ 2026-10-27 前は「レースの2日前から・確定の前だけ」読んでいた → 確定したレースの最後のオッズも見られるよう、いつも読む
+       （まだ無ければ 404。そのときは単勝オッズからの試算＝md-bet の B.est を出す） */
+    const r = raceOf(U.rid); if (!r || !r.rid) return;
     try { const ex = await N.odds(r.rid); if (U.rid === r.rid) { U.ex = ex; if (U.rtab === "odds") renderRace(); } } catch (e) {}
   }
   let ignorePop = 0;
@@ -600,6 +619,19 @@
   }
   /* ── オッズ ── */
   const OT = [["win", "単勝・複勝"], ["waku", "枠連"], ["quin", "馬連"], ["wide", "ワイド"], ["exa", "馬単"], ["trio", "3連複"], ["tri", "3連単"]];
+  /* ★★ 2026-10-27 試算のオッズ（B.est）。枠順の発表前は仮の番号の写し（N.betRace）で計算し、馬の id から番号を引く */
+  const brMemo = new WeakMap();
+  function estFor(race) {
+    let x = brMemo.get(race);
+    if (!x) {
+      const br = N.betRace(race), noOf = {};
+      N.runners(br).forEach((e) => { if (e.hid && e.no) noOf[e.hid] = e.no; });
+      x = { br: br, E: B.est(br), noOf: noOf, pre: !!br.pre };
+      brMemo.set(race, x);
+    }
+    return x;
+  }
+  const estNote = (E) => "予想オッズ（単勝" + (E && E.base === "yoso" ? "の予想オッズ" : "オッズ") + "からの試算）" + (E && E.at ? "・" + esc(String(E.at).slice(5, 16)) + " 時点" : "");
   function oddsHTML(r, race) {
     const kind = race.odds && race.odds.kind;
     let h = '<div class="seg otype">' + OT.map((x) => '<button data-ot="' + x[0] + '" class="' + (U.otype === x[0] ? "on" : "") + '">' + x[1] + "</button>").join("") + "</div>";
@@ -608,21 +640,39 @@
       const ents = N.runners(race);
       if (!race.odds) return h + '<div class="empty sm"><b>オッズはまだありません</b></div>';
       h += '<p class="sm pad">' + esc(N.oddsKindNm[kind] || "") + (race.odds.at ? "・" + esc(race.odds.at) + " 時点" : "") + "（自動取得のときの値です。払い戻しは確定の払戻金）</p>";
+      /* ★★ 2026-10-27 複勝の本物が無いとき（発売の前）は試算（斜体・色をうすく）。下に注記 */
+      const X = race.odds.place ? null : estFor(race);
+      let estUsed = false;
       h += '<div class="tbl-wrap"><table class="tbl odds"><thead><tr><th>馬</th><th>馬名</th><th>単勝</th><th>複勝</th><th>人気</th></tr></thead><tbody>' +
-        ents.filter((e) => !e.cx).map((e) => { const o = N.winOdds(race, e), p = N.placeOdds(race, e); return "<tr><td>" + (e.no ? noChip(e.no, e.waku) : "–") + "</td><td>" + esc(e.nm) + '</td><td class="num">' + (o ? esc(o[0]) : "–") + '</td><td class="num">' + (p ? esc(p[0]) + "–" + esc(p[1]) : "–") + '</td><td class="num">' + (o ? esc(o[1]) : "") + "</td></tr>"; }).join("") + "</tbody></table></div>";
+        ents.filter((e) => !e.cx).map((e) => {
+          const o = N.winOdds(race, e), p = N.placeOdds(race, e);
+          let pc = p ? esc(p[0]) + "–" + esc(p[1]) : "–", pcl = "num";
+          if (!p && X && X.E && X.E.place) { const q = X.E.place[String(X.noOf[e.hid])]; if (q) { pc = q[0].toFixed(1) + "–" + q[1].toFixed(1); pcl = "num est"; estUsed = true; } }
+          return "<tr><td>" + (e.no ? noChip(e.no, e.waku) : "–") + "</td><td>" + esc(e.nm) + '</td><td class="num">' + (o ? esc(o[0]) : "–") + '</td><td class="' + pcl + '">' + pc + '</td><td class="num">' + (o ? esc(o[1]) : "") + "</td></tr>";
+        }).join("") + "</tbody></table></div>";
+      if (estUsed) h += '<p class="sm pad est-note">複勝の<i>斜体</i>は' + estNote(X.E) + "。JRA の発売が始まると本物のオッズに切りかわります。</p>";
       return h;
     }
-    const ex = U.ex;
-    if (!ex || !ex[U.otype]) return h + '<div class="empty sm"><b>' + esc(OT.find((x) => x[0] === U.otype)[1]) + " のオッズは、発売の前日から出ます</b><p>単勝・複勝はいつでも見られます。</p></div>";
-    const T = B.TYPE[U.otype], rows = ex[U.otype];
-    const ents = N.runners(race), nm = {}; ents.forEach((e) => { nm[e.no] = e; });
+    /* ★★ 2026-10-27 ご報告「単勝・複勝以外のオッズが表示されない」：本物（odds/<id>.json）が無い券種は、単勝オッズからの試算（B.est）を出す。
+       枠順の発表前は仮の番号で計算し、組み合わせは<b>馬名</b>で見せる */
+    const real = U.ex && U.ex[U.otype] ? U.ex : null;
+    const X = real ? null : estFor(race);
+    const src = real || (X && X.E && X.E[U.otype] ? X.E : null);
+    if (!src) {
+      if (U.otype === "waku" && X && X.pre) return h + '<div class="empty sm"><b>枠連のオッズは、枠順が出てから</b><p>枠順はふつう木曜の午後に決まります。</p></div>';
+      return h + '<div class="empty sm"><b>' + esc(OT.find((x) => x[0] === U.otype)[1]) + " のオッズはまだありません</b><p>単勝のオッズ（予想オッズ）が出ると、単勝からの試算をここに出します。</p></div>";
+    }
+    const T = B.TYPE[U.otype], rows = src[U.otype], pre = !real && X.pre;
+    const ents = N.runners(real ? race : X.br), nm = {}; ents.forEach((e) => { nm[e.no] = e; });
+    const chip = (n) => (T.frame ? wakuChip(n) : pre ? '<i class="pnm">' + esc(String((nm[n] || {}).nm || "?").slice(0, 7)) + "</i>" : noChip(n, (nm[n] || {}).waku));
     const ax = U.oaxis;
-    h += '<div class="oaxis"><span>軸：</span><button data-oax="0" class="' + (!ax ? "on" : "") + '">人気順</button>' + (T.frame ? [1, 2, 3, 4, 5, 6, 7, 8] : ents.filter((e) => !e.cx && e.no).map((e) => e.no)).map((n) => '<button data-oax="' + n + '" class="' + (ax === n ? "on" : "") + '">' + (T.frame ? wakuChip(n) : noChip(n, (nm[n] || {}).waku)) + "</button>").join("") + "</div>";
+    h += '<div class="oaxis"><span>軸：</span><button data-oax="0" class="' + (!ax ? "on" : "") + '">人気順</button>' + (T.frame ? [1, 2, 3, 4, 5, 6, 7, 8].filter((w) => ents.some((e) => e.waku === w)) : ents.filter((e) => !e.cx && e.no).map((e) => e.no)).map((n) => '<button data-oax="' + n + '" class="' + (ax === n ? "on" : "") + '">' + chip(n) + "</button>").join("") + "</div>";
     const L = rows.filter((x) => !ax || x.slice(0, T.n).indexOf(ax) >= 0).slice(0, ax ? 400 : 60);
-    h += '<p class="sm pad">' + esc(N.oddsKindNm[ex.kind] || "") + (ex.at ? "・" + esc(ex.at) + " 時点" : "") + "・" + (ax ? "その馬を含む組み合わせ" : "人気の上位60") + "</p>";
-    h += '<div class="olist">' + L.map((x) => {
+    h += '<p class="sm pad' + (real ? "" : " est-note") + '">' + (real ? esc(N.oddsKindNm[src.kind] || "") + (src.at ? "・" + esc(src.at) + " 時点" : "") : estNote(src)) + "・" + (ax ? "その馬を含む組み合わせ" : "人気の上位60") +
+      (real ? "" : "<br>JRA の発売が始まると本物のオッズに切りかわります（払い戻しはいつも確定の払戻金）") + "</p>";
+    h += '<div class="olist' + (real ? "" : " est") + (pre ? " pre" : "") + '">' + L.map((x) => {
       const c = x.slice(0, T.n), o = U.otype === "wide" ? x[T.n].toFixed(1) + "–" + x[T.n + 1].toFixed(1) : x[T.n].toFixed(1), pop = x[x.length - 1];
-      return '<div class="oi"><span class="oi-c">' + c.map((n, i) => (i ? '<em>' + (T.ord ? "→" : "-") + "</em>" : "") + (T.frame ? wakuChip(n) : noChip(n, (nm[n] || {}).waku))).join("") + '</span><b class="oi-o">' + esc(o) + '</b><small class="oi-p">' + esc(pop) + "人気</small></div>";
+      return '<div class="oi"><span class="oi-c">' + c.map((n, i) => (i ? '<em>' + (T.ord ? "→" : "-") + "</em>" : "") + chip(n)).join("") + '</span><b class="oi-o">' + esc(o) + '</b><small class="oi-p">' + esc(pop) + "人気</small></div>";
     }).join("") + "</div>";
     return h;
   }
@@ -742,7 +792,7 @@
       const fr = {}; ents.forEach((e) => { (fr[e.waku] = fr[e.waku] || []).push(e); });
       return '<div class="grid fr">' + [1, 2, 3, 4, 5, 6, 7, 8].filter((w) => fr[w]).map((w) => '<button class="gb' + (sel.indexOf(w) >= 0 ? " on" : "") + '" data-pk="' + key + ":" + w + '">' + wakuChip(w) + "<small>" + fr[w].map((e) => esc(e.nm.slice(0, 5))).join("<br>") + "</small></button>").join("") + "</div>";
     }
-    return '<div class="grid">' + ents.map((e) => { const o = race.pre ? null : N.winOdds(race, e); return '<button class="gb' + (sel.indexOf(e.no) >= 0 ? " on" : "") + '" data-pk="' + key + ":" + e.no + '">' + (race.pre ? '<b class="no pre">?</b>' : noChip(e.no, e.waku)) + "<span>" + esc(e.nm) + "</span><small>" + (o ? esc(o[0]) : "") + "</small></button>"; }).join("") + "</div>";
+    return '<div class="grid">' + ents.map((e) => { const o = N.winOdds(race, e); return '<button class="gb' + (sel.indexOf(e.no) >= 0 ? " on" : "") + '" data-pk="' + key + ":" + e.no + '">' + (race.pre ? '<b class="no pre">?</b>' : noChip(e.no, e.waku)) + "<span>" + esc(e.nm) + "</span><small>" + (o ? esc(o[0]) : "") + "</small></button>"; }).join("") + "</div>";
   }
   function paintSlip() {
     const S = U.slip, box = $("#slip"); if (!S || !box) return;
@@ -770,8 +820,13 @@
     const ex = S.ex;
     let orng = "";
     if (cb.length) {
-      const os = cb.map((c) => B.oddsOf(race, ex, S.type, c)).filter((o) => o).map((o) => (Array.isArray(o) ? o[0] : o));
-      if (os.length) orng = "オッズ " + Math.min.apply(null, os).toFixed(1) + (os.length > 1 ? "〜" + Math.max.apply(null, os).toFixed(1) : "") + " 倍";
+      /* ★★ 2026-10-27 本物が無ければ単勝からの試算（予想オッズ）。複勝・ワイドは下限〜上限 */
+      const os = cb.map((c) => B.oddsAny(race, ex, S.type, c)).filter((o) => o);
+      if (os.length) {
+        const lo = Math.min.apply(null, os.map((o) => (Array.isArray(o.o) ? o.o[0] : o.o))), hi = Math.max.apply(null, os.map((o) => (Array.isArray(o.o) ? o.o[1] : o.o)));
+        const est = os.some((o) => o.est);
+        orng = (est ? "予想オッズ " : "オッズ ") + lo.toFixed(1) + (hi > lo ? "〜" + hi.toFixed(1) : "") + " 倍" + (est ? "（試算）" : "");
+      }
     }
     const lineCost = cb.length * S.u, total = S.lines.reduce((a, l) => a + l.cb.length * l.u, 0);
     let bal = 0; try { bal = window.XEVA.getBalance(); } catch (e) {}
@@ -821,7 +876,7 @@
       return;
     }
     const msg = { offline: "オフラインのため買えません（締切をサーバーの時刻で確かめる必要があります）", closed: "締切を過ぎています（締切は発走の2分前）", nodraw: "枠順が決まるまで買えません",
-      notyet: "いまは発売していません（発売はレースの日の" + (D.SALE_DAYS_BEFORE || 3) + "日前の 0:00 から・締切は発走の2分前）",
+      notyet: "いまは発売していません（発売は" + D.SALE_TXT + " から・締切は発走の2分前）",
       balance: "XEVA が足りません（必要 " + fmt(res.cost || 0) + "・残高 " + fmt(res.bal || 0) + "）", cap: "1レースで買えるのは " + fmt(D.MAX_PER_RACE) + " XEVA までです", invalid: "出走しない馬（取消・除外）を含む買い目があります", empty: "買い目がありません" }[res.err] || "購入できませんでした";
     toast(msg, "err");
     paintSlip();
@@ -899,7 +954,12 @@
     if (d.a === "buy") { doBuy(); return; }
     if (d.tab != null && !a.closest(".rc-tabs")) { U.tab = d.tab; try { sessionStorage.setItem("md_tab", U.tab); } catch (e2) {} window.scrollTo(0, 0); render(); return; }
     if (d.bet) { openSlip(d.bet); return; }
-    if (d.race && !a.closest("#race .rc-tabs")) { if (U.tkOpen) closeSheet(); openRace(d.race, d.rt); return; }
+    if (d.race && !a.closest("#race .rc-tabs")) {
+      /* ★★ 2026-10-27 ご指定「G1 レースのそれぞれを押したとき、実際のレース開始時のようにレース名が豪華なアニメーションで」
+         → GⅠ の一覧（ホームのタブ）から開いたときは、レースの画面をうしろで開きながら md-intro.js の演出を重ねる */
+      if (U.tab === "home" && !U.rid && !U.sheetOpen && window.MD_INTRO) { const r = raceOf(d.race); if (r) window.MD_INTRO.play(r, N.peekRace(d.race)); }
+      if (U.tkOpen) closeSheet(); openRace(d.race, d.rt); return;
+    }
     if (d.rt && U.rid) { U.rtab = d.rt; renderRace(); const b = $("#race .rc-body"); if (b) b.scrollTop = 0; $("#race").scrollTop = 0; return; }
     if (d.horse) { openHorse(d.horse); return; }
     if (d.mk) {

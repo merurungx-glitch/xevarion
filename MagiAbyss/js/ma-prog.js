@@ -10,9 +10,11 @@
   const MA = (window.MA = window.MA || {});
   const D = () => MA.D;
   const G = () => MA.G;
-  const FIRST_GEMS = { d1: 10, d2: 12, d3: 15, d4: 18, d5: 22, d6: 30, d7: 35, d8: 40, d9: 50 };
+  const FIRST_GEMS = { d1: 10, d2: 12, d3: 15, d4: 18, d5: 22, d6: 30, d7: 35, d8: 40, d9: 50, d10: 13, d11: 16, d12: 20, d13: 26, d14: 38, d15: 45 };   /* ★★ 2026-10-27 外伝 d10〜d15 */
   /* ★★ 2026-10-05 ハードの初回クリアは 1.5倍 */
-  const FIRST_GEMS_HARD = { d1: 15, d2: 18, d3: 22, d4: 27, d5: 33, d6: 45, d7: 52, d8: 60, d9: 75 };
+  const FIRST_GEMS_HARD = { d1: 15, d2: 18, d3: 22, d4: 27, d5: 33, d6: 45, d7: 52, d8: 60, d9: 75, d10: 20, d11: 24, d12: 30, d13: 39, d14: 56, d15: 68 };
+  /* ★★ 2026-10-27 報酬の段：外伝（第10〜第15迷宮）は本編の番号の間の強さなので、番号ではなく tier で数える */
+  const tierOf = (d) => (d ? d.tier || d.no : 1);
 
   /* ══ クリア時間のミッション（data の TIME_MIS）══
      key は "d1:normal:0"（迷宮:難易度:段）。達成は S.tmis、ジェムの受け取りは S.tmisClaim。
@@ -84,14 +86,14 @@
     let gold = st.gold;
     const MD = g.modeDef || D().MODES.normal;
     sum.diff = g.diff || "normal";
-    if (result === "clear") gold += Math.round((200 + (g.dun ? g.dun.no : 1) * 180) * g.rewardMul * MD.gold);
+    if (result === "clear") gold += Math.round((200 + tierOf(g.dun) * 180) * g.rewardMul * MD.gold);
     if (isAbyss) gold += Math.round((g.floor - 1) * 60);
     sum.gold = Math.round(gold * keep);
     /* ★★ 2026-10-21 XEVARION 共通イベント（Midnight Pumpkin：11/1〜11/30）の「MagiAbyss ゴールド ×1.5」 */
     try { const evB = window.XEVA && XEVA.event && XEVA.event.boost ? Number(XEVA.event.boost("abyssGold")) || 1 : 1; if (evB > 1 && sum.gold > 0) { sum.goldEv = Math.round(sum.gold * (evB - 1)); sum.gold += sum.goldEv; } } catch (e) {}
     MA.Save.addMat("gold", sum.gold);
     Object.keys(st.mats).forEach((k) => { const n = Math.round(st.mats[k] * keep * MD.mat); if (n > 0) { sum.mats[k] = n; MA.Save.addMat(k, n); } });
-    if (result === "clear") { const k = g.dun.mats[0]; const n = Math.round((6 + g.dun.no * 2) * g.rewardMul * MD.mat); sum.mats[k] = (sum.mats[k] || 0) + n; MA.Save.addMat(k, n); if (g.stats.bosses) { const cr = g.dun.no * (sum.diff === "hard" ? 2 : 1); sum.mats.crystal = (sum.mats.crystal || 0) + cr; MA.Save.addMat("crystal", cr); } }
+    if (result === "clear") { const k = g.dun.mats[0]; const n = Math.round((6 + tierOf(g.dun) * 2) * g.rewardMul * MD.mat); sum.mats[k] = (sum.mats[k] || 0) + n; MA.Save.addMat(k, n); if (g.stats.bosses) { const cr = Math.round(tierOf(g.dun)) * (sum.diff === "hard" ? 2 : 1); sum.mats.crystal = (sum.mats.crystal || 0) + cr; MA.Save.addMat("crystal", cr); } }
     if (isAbyss && g.floor > 1) { const n = Math.floor((g.floor - 1) / 2); if (n) { sum.mats.abyss = (sum.mats.abyss || 0) + n; MA.Save.addMat("abyss", n); } const cr = Math.floor((g.floor - 1) / 10); if (cr) { sum.mats.crystal = (sum.mats.crystal || 0) + cr; MA.Save.addMat("crystal", cr); } }
     /* 装備（倒れても持ち帰れる） */
     st.gear.forEach((x) => { MA.Save.newGear(x.id, x.rar); sum.gear.push(x); });
@@ -99,7 +101,7 @@
     if (!g.cfg.trial) {
       const rec = MA.Save.charRec(g.cid);
       sum.lvBefore = MA.Save.lvOf(g.cid);
-      let xp = st.kills * 0.6 + g.t / 6 + g.P.lv * 8 + (result === "clear" ? 300 + (g.dun ? g.dun.no * 120 : 0) : 0) + (isAbyss ? (g.floor - 1) * 40 : 0);
+      let xp = st.kills * 0.6 + g.t / 6 + g.P.lv * 8 + (result === "clear" ? 300 + (g.dun ? tierOf(g.dun) * 120 : 0) : 0) + (isAbyss ? (g.floor - 1) * 40 : 0);
       xp *= (result === "defeat" ? 0.6 : 1) * (1 + (S.fac.tavern || 0) * 0.1) * g.rewardMul;
       sum.xp = Math.round(xp);
       rec.xp += sum.xp;

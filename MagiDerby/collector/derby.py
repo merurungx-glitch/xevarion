@@ -631,12 +631,13 @@ def update_race(r, full=True):
                 changed = True
         except Exception as e:
             log("出馬表の取得失敗", r["nm"], e)
-        # ── オッズ（単勝・複勝はいつも。発売が始まる前日からは全券種）
+        # ── オッズ（単勝・複勝はいつも。JRA の発売が始まっていれば全券種）
+        # ★★ 2026-10-27 ご報告「単勝・複勝以外のオッズが表示されない」：前は「レースの前日から」だけ枠連〜3連単を取っていた。
+        #   → 単勝が予想オッズ（yoso）でなくなったら＝JRA の発売が始まったら、日に関係なく全券種を取る（アプリは無いあいだ単勝からの試算を出す）
         try:
-            types = [1, 2]
-            if days <= 1:
-                types = [1, 2, 3, 4, 5, 6, 7, 8]
-            od = odds_block(rid, types)
+            od = odds_block(rid, [1, 2])
+            if od and od.get("kind") not in (None, "", "yoso"):
+                od.update({k: v for k, v in odds_block(rid, [3, 4, 5, 6, 7, 8]).items() if k not in ("kind", "at")})
             if od:
                 if od.get("kind") == "yoso":
                     # 予想オッズ（発売前）：番号は「登録の並び（tr_◯）」なので、馬の id に読みかえて置く

@@ -149,7 +149,7 @@
   ];
   function gearRar(tier) {
     const g = G();
-    const no = g.mode === "abyss" ? Math.min(5, Math.floor(g.floor / 6)) : g.dun.no - 1;
+    const no = g.mode === "abyss" ? Math.min(5, Math.floor(g.floor / 6)) : Math.round(g.dun.tier || g.dun.no) - 1;   /* ★★ 2026-10-27 外伝は tier */
     const t = GEAR_TABLE[Math.max(0, Math.min(5, no + (tier >= 3 ? 1 : 0) + ((g.modeDef && g.modeDef.gearUp) || 0)))].slice();
     if (tier >= 3) { t[0] = 0; t[1] = Math.round(t[1] * 0.4); }
     const luck = g.P.st.luck || 0;

@@ -5,36 +5,38 @@
    ・フォント（Google Fonts）も一度読めたら控える（オフラインでもドットの文字になる）。
    ・Firebase（同期）はキャッシュしない。
    ============================================================ */
-const VERSION = "magiabyss-sw-v17";
+const VERSION = "magiabyss-sw-v18";
 const RUNTIME = "magiabyss-rt-v1";
 const CORE = [
   "./index.html",
   "./manifest.webmanifest",
-  "./css/ma.css?v=11",
+  "./css/ma.css?v=12",
   "./js/ma-data.js?v=10",
-  "./js/ma-pixel.js?v=8",
+  "./js/ma-pixel.js?v=9",
   "./js/ma-art.js?v=9",
+  "./js/ma-gaiden.js?v=1",
   "./js/ma-map.js?v=2",
   "./js/ma-save.js?v=4",
   "./js/ma-stats.js?v=2",
   "./js/ma-audio.js?v=1",
   "./js/ma-input.js?v=4",
-  "./js/ma-engine.js?v=7",
+  "./js/ma-engine.js?v=8",
   "./js/ma-ai.js?v=2",
   "./js/ma-weapons.js?v=6",
   "./js/ma-skills.js?v=5",
-  "./js/ma-cards.js?v=2",
-  "./js/ma-boss.js?v=2",
-  "./js/ma-prog.js?v=5",
+  "./js/ma-cards.js?v=3",
+  "./js/ma-boss.js?v=3",
+  "./js/ma-prog.js?v=6",
   "./js/ma-render.js?v=3",
   "./js/ma-render25.js?v=1",   /* ★★ 2026-10-22 2.5D の描画 */
-  "./js/ma-ui.js?v=10",
+  "./js/ma-ui.js?v=11",
+  "./js/ma-fx.js?v=1",
   "./js/ma-town.js?v=2",
   "./js/ma-town25.js?v=1",   /* ★★ 2026-10-23 拠点（町の広場）の 2.5D */
-  "./js/ma-guild.js?v=11",
-  "./js/ma-stages.js?v=3",
+  "./js/ma-guild.js?v=12",
+  "./js/ma-stages.js?v=4",
   "./js/ma-howto.js?v=6",
-  "./js/ma-main.js?v=4",
+  "./js/ma-main.js?v=5",
   "./img/title.webp?v=2",
   "./img/title_blur.webp?v=2",
   "./img/icon_s.webp?v=2",

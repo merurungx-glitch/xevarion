@@ -15,7 +15,17 @@
   /* 自動取得の置き場（開発中は localStorage の md_data_base で差しかえられる） */
   D.DATA_DEFAULT = "https://raw.githubusercontent.com/merurungx-glitch/xevarion/magiscope-data/derby/";
   D.CLOSE_BEFORE = 120;            /* 締切は発走の何秒前か（★ ご指定「締切は必ず出走前」・判定はサーバーの時刻） */
-  D.SALE_DAYS_BEFORE = 3;          /* ★★ 2026-10-26 ご指定「馬券の購入を発走から三日前から」：発売はレースの日の何日前の 0:00 からか（md-net の N.saleWins） */
+  /* ★★ 2026-10-27 ご指定「馬券を水曜日の 0:00 から買えるように」：発売は<b>レースの日の前の水曜 0:00</b>（JST）から締切まで
+     （日曜のレース＝4日前・土曜＝3日前・月曜＝5日前。年末などの平日の開催も、その前の水曜）。
+     md-net の N.saleWins・ホームの home-mate.js の derbySale が同じ決まり（片方を変えたらもう一方も）。
+     （前は 2026-10-26 ご指定の「レースの日の3日前の 0:00」＝ D.SALE_DAYS_BEFORE） */
+  D.SALE_WD = 3;                   /* 発売を始める曜日（0＝日 … 3＝水） */
+  D.SALE_TXT = "レースの前の水曜 0:00";
+  D.saleBack = function (date) {    /* レースの日の何日前の 0:00 から発売か（1〜7） */
+    const p = String(date || "").split("-").map(Number); if (p.length < 3) return 4;
+    const wd = new Date(Date.UTC(p[0], p[1] - 1, p[2])).getUTCDay();
+    return ((wd - D.SALE_WD + 7) % 7) || 7;
+  };
   /* ★★ 2026-10-21 ご指定「馬券の発売開始と、結果の払い戻しの時刻を 0:00 に」
      発売開始＝レースの日の 0:00（JST）／払い戻し＝レースの次の日の 0:00（JST）。どちらもサーバーの時刻で判定
      ★★ 2026-10-22 ご指定「馬券の注文は実際の開始日時と同じに」で、発売は JRA と同じ時間に変えた（md-net.js の N.saleWins）。払い戻しは 0:00 のまま */

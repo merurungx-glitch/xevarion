@@ -360,15 +360,28 @@
     return '<details class="rwc"><summary>' + ic("gift") + " XEVA のもらい方" + (m > 1 ? '<span class="x2">💜 いまは' + m + "倍</span>" : "") + "</summary><ul>" +
       row("🌱", "はじめての学習", R.reg * m) + row("✅", "問題にはじめて正解（1問ごと）", R.first * m) + row("🎯", "今日の目標を達成（毎日）", R.daily * m) +
       row("🏅", "単元マスター（単元の全問を習得）", R.topic * m) + row("🗂️", "問題セットを完全習得（20問以上は2倍）", R.gmaster * m) + row("🎓", "確認テストで全問正解（20問以上は2倍）", R.confirm * m) +
-      row("📝", "模試で 60%・80%・100%（はじめて）", R.set60 * m + "・" + R.set80 * m + "・" + R.set100 * m) +
+      row("📝", "模試の冊子で 60%・80%・100%（はじめて・組ごと）", R.set60 * m + "・" + R.set80 * m + "・" + R.set100 * m) +
       row("🎲", "ランダム10問で 90%以上・全問正解（何度でも）", R.mix90 * m + "・" + R.mix100 * m) +
       row("🔥", "7日連続の学習（7日ごと）", R.streak7 * m) + "</ul><p>習得＝日をあけて2回正解した問題。XEVA は XEVARION の共通通貨です。</p></details>";
   }
   function setCards(grp) {
     return Object.keys(D.SETS).filter((k) => D.SETS[k].grp === grp).map((k) => {
       const S = D.SETS[k], b = M.bestRun(k);
-      return '<button class="setc' + (S.full ? " full" : "") + ' g' + grp + '" data-a="exam" data-set="' + k + '"><span class="setc-n">' + esc(S.nm) + '</span><span class="setc-s">' + esc(S.sub) + '</span><span class="setc-f"><span>' + ic("clock") + S.min + "分</span><b>" + (b ? "ベスト " + Math.round(b.score / b.total * 100) + "%" : "未挑戦") + "</b></span></button>";
+      /* ★★ 2026-10-27 ご指定「各セットに模試モードは要りません」：大問の札の下の段は習得のようす（総合は冊子のベスト） */
+      const ids = S.ids || [], mas = ids.filter((id) => M.status(id) === "mas").length;
+      const foot = S.full ? (b ? "ベスト " + Math.round(b.score / b.total * 100) + "%" : "未挑戦") : "習得 " + mas + " / " + ids.length;
+      return '<button class="setc' + (S.full ? " full" : "") + ' g' + grp + '" data-a="exam" data-set="' + k + '"><span class="setc-n">' + esc(S.nm) + '</span><span class="setc-s">' + esc(S.sub) + '</span><span class="setc-f"><span>' + ic("clock") + S.min + "分</span><b>" + foot + "</b></span></button>";
     }).join("");
+  }
+  /* ★★ 2026-10-27 ご指定「基礎1のようにまとめて、実際の模試の冊子のようにすべての問題を解けるモード」：組ごとの冊子の入口（mcl-book.js） */
+  function bookCard(grp) {
+    if (!window.MCLBook) return "";
+    const ids = MCLBook.idsOf(grp); if (!ids.length) return "";
+    const fk = MCLBook.fullKey(grp), b = fk ? M.bestRun(fk) : null, sv = MCLBook.saved(grp), min = fk ? D.SETS[fk].min : 60;
+    return '<button class="bookc" data-a="bookOpen" data-g="' + grp + '" style="--c:' + (GCOL[grp] || "#3b5bff") + '">' +
+      '<span class="bookc-i">' + ic("exam") + "</span>" +
+      '<span class="bookc-t"><small>模試の冊子</small><b>' + esc(D.GRP[grp]) + " をまるごと解く</b><span>全" + ids.length + "問・目安" + min + "分・解答・解説つき</span></span>" +
+      '<span class="bookc-r"><em>' + (sv ? "続きから " + Object.keys(sv.ans).length + "/" + ids.length : b ? "ベスト " + Math.round(b.score / b.total * 100) + "%" : "未挑戦") + "</em>" + ic("chevR") + "</span></button>";
   }
   function pgHome() {
     const s = M.get(), lv = M.level(), tc = M.todayCount(), goal = Number(s.set.goal) || 10, stc = M.streak(), due = M.dueList(), tt = M.totals();
@@ -401,7 +414,7 @@
       (window.MCLSpecial ? MCLSpecial.bannerHTML() : "") +
       eventCard() +
       /* ★★ 2026-10-22 大問セット・単元マップへの入口（中身は「大問」タブ） */
-      '<button class="bigl" data-a="tab" data-tab="big"><span class="bigl-i">' + ic("exam") + '</span><span class="bigl-t"><b>大問セット・単元マップ</b><small>難関・標準・基礎セット（模試）と単元ごとの習得は「大問」タブへ移りました・' + tt.mas + " / " + tt.total + " 習得</small></span>" + ic("chevR") + "</button>" +
+      '<button class="bigl" data-a="tab" data-tab="big"><span class="bigl-i">' + ic("exam") + '</span><span class="bigl-t"><b>大問セット・単元マップ</b><small>難関・標準・基礎セット（模試の冊子）と単元ごとの習得は「大問」タブへ移りました・' + tt.mas + " / " + tt.total + " 習得</small></span>" + ic("chevR") + "</button>" +
       rwCard() +
       '<p class="foot">問題は、難関大の入試問題をもとに作り直した<b>改題</b>と、数値や条件を変えた<b>関連問題</b>です（原文の転載ではありません）。</p>';
   }
@@ -420,14 +433,14 @@
     if (bgrps.length && bgrps.indexOf(UI.bgrp) < 0) UI.bgrp = bgrps[0];
     const seg = (cls, list, cur, act) => list.length > 1 ? '<div class="seg grp' + cls + '">' + list.map((g) => '<button class="' + (g === cur ? "on" : "") + '" data-a="' + act + '" data-v="' + g + '">' + esc(D.GRP[g]) + "</button>").join("") + "</div>" : "";
     const jump = (id, t, c) => '<button class="bj" data-a="bigJump" data-v="' + id + '" style="--c:' + c + '">' + t + "</button>";
-    return '<h1 class="pt">大問</h1><p class="pt-sub">入試の大問をまるごと解く<b>難関・標準・基礎セット</b>（模試・練習・計算以外だけ）と、単元ごとの習得のようす（単元マップ）。</p>' +
+    return '<h1 class="pt">大問</h1><p class="pt-sub">入試の大問をまるごと解く<b>難関・標準・基礎セット</b>（模試の冊子・練習・計算以外だけ）と、単元ごとの習得のようす（単元マップ）。</p>' +
       '<div class="bjs">' + jump("bk-o", "難関セット", "#3b5bff") + (sgrps.length ? jump("bk-s", "標準セット", "#e64980") : "") + (bgrps.length ? jump("bk-b", "基礎セット", "#12b886") : "") + jump("tmap", "単元マップ", "#f59f00") + "</div>" +
       '<h2 class="sec" id="bk-o">難関セット<small>入試の大問をまるごと（改題）</small></h2>' + seg("", grps, UI.grp, "grp") +
-      '<div class="sets">' + setCards(UI.grp) + "</div>" +
+      bookCard(UI.grp) + '<div class="sets">' + setCards(UI.grp) + "</div>" +
       (sgrps.length ? '<h2 class="sec" id="bk-s">標準セット<small>マーク式の大問をまるごと（改題）・難関セットとは別</small></h2>' + seg(" std", sgrps, UI.sgrp, "sgrp") +
-        '<div class="sets">' + setCards(UI.sgrp) + "</div>" : "") +
+        bookCard(UI.sgrp) + '<div class="sets">' + setCards(UI.sgrp) + "</div>" : "") +
       (bgrps.length ? '<h2 class="sec" id="bk-b">基礎セット<small>教科書レベルの大問をまるごと（改題）・まずはここから</small></h2>' + seg(" bas", bgrps, UI.bgrp, "bgrp") +
-        '<div class="sets">' + setCards(UI.bgrp) + "</div>" : "") +
+        bookCard(UI.bgrp) + '<div class="sets">' + setCards(UI.bgrp) + "</div>" : "") +
       '<h2 class="sec" id="tmap">単元マップ<small>' + tt.mas + " / " + tt.total + " 習得</small></h2>" + fields;
   }
 
@@ -663,7 +676,8 @@
       '<button class="mode-b" data-a="fcGroup" data-g="' + g.id + '"><span class="mi fc">' + ic("flash") + "</span><span><b>フラッシュカードでめくる（" + st.total + "枚）</b><small>問題 → 答え・解説をめくって確認。メモ・電卓も使えます（習得の記録は変わりません）</small></span>" + ic("chevR") + "</button>" +
       '<button class="mode-b conf' + (st.done ? " rdy" : "") + '" data-a="gconf" data-g="' + g.id + '"' + (st.done ? "" : " disabled") + '><span class="mi c">' + ic("medal") + "</span><span><b>確認テスト（全" + st.total + "問）</b><small>" +
       (g.view ? (st.done ? "ヒントなし・全問正解で合格（このまとまりは ごほうびなし）" : "ぜんぶ習得すると受けられます（このまとまりは ごほうびなし）") : st.done ? (st.cfPass ? "合格ずみ（もう一度受けられます。ごほうびは1回だけ）" : "ヒントなし・全問正解で合格 <b>+" + rw.cf * m + " XEVA</b>") : "ぜんぶ習得すると受けられます（全問正解で +" + rw.cf * m + " XEVA）") + "</small></span>" + ic("chevR") + "</button>" +
-      (g.kind === "o" && D.SETS[g.set] ? '<button class="mode-b" data-a="examGo" data-set="' + g.set + '"><span class="mi">' + ic("clock") + "</span><span><b>模試モード（" + (g.part ? esc(String(g.dai).split(" ")[0]) + "まるごと・" : "") + "目安 " + D.SETS[g.set].min + "分）</b><small>時間を計って、最後にまとめて採点（順番は入試どおり）</small></span>" + ic("chevR") + "</button>" : "") +
+      /* ★★ 2026-10-27 ご指定「各セットに模試モードは要りません」→ 組をまるごと解く冊子（mcl-book.js）へ */
+      (g.kind === "o" && g.grp && window.MCLBook && MCLBook.idsOf(g.grp).length ? '<button class="mode-b bk" data-a="bookOpen" data-g="' + g.grp + '"><span class="mi">' + ic("exam") + "</span><span><b>模試の冊子で解く（" + esc(D.GRP[g.grp] || "") + "・全" + MCLBook.idsOf(g.grp).length + "問）</b><small>この組の大問をぜんぶ冊子のように並べて、最後にまとめて採点。解答・解説つき</small></span>" + ic("chevR") + "</button>" : "") +
       "</div>" +
       (g.view ? '<p class="gs-rw view">' + ic("gift") + "<span>このまとまりは並べかえて見るためのものです。ごほうびは" + (g.lv === "s" ? "標準タブの<b>大問ごとの関連問題</b>" : g.lv === "b" ? "基礎タブの<b>大問ごとの関連問題</b>" : "難関タブの<b>小問の範囲ごとの関連問題</b>") + "で受け取れます</span></p>"
         : '<p class="gs-rw">' + ic("gift") + "<span>完全習得 <b>+" + rw.gm * m + "</b>" + (st.gm ? " ✓" : "") + "・確認テスト <b>+" + rw.cf * m + "</b>" + (st.cfPass ? " ✓" : "") + " XEVA" + (rw.v > 1 ? "<small>20問以上なので2倍</small>" : "") + "</span></p>") +
@@ -805,7 +819,7 @@
       '<h2 class="sec">学習カレンダー<small>16週間</small></h2><section class="card">' + heatHTML() + "</section>" +
       '<h2 class="sec">分野ごと</h2><section class="card">' + fb + '<p class="lgd"><i class="s"></i>解いた<i class="m"></i>習得</p></section>' +
       '<h2 class="sec">単元ごと</h2><section class="card tbl"><table class="tt2"><thead><tr><th>単元</th><th>習得</th><th>正答率</th></tr></thead><tbody>' + trs + "</tbody></table></section>" +
-      '<h2 class="sec" id="runs">模試の記録</h2><section class="card">' + (runs || '<p class="muted">まだありません。「大問」タブの「難関セット」「標準セット」「基礎セット」の大問を開くと、模試モードで挑戦できます。</p>') + "</section>" +
+      '<h2 class="sec" id="runs">模試の記録</h2><section class="card">' + (runs || '<p class="muted">まだありません。「大問」タブの各組の「模試の冊子」で挑戦できます。</p>') + "</section>" +
       '<h2 class="sec">バッジ<small>' + bd.filter((b) => b.ok).length + " / " + bd.length + '</small></h2><div class="badges">' + bd.map((b) => '<div class="bdg' + (b.ok ? " ok" : "") + '"><span>' + b.ic + "</span><b>" + b.nm + "</b><small>" + b.sub + "</small></div>").join("") + "</div>";
   }
 
@@ -1175,9 +1189,12 @@
   }
   function openSet(k) {
     const S = D.SETS[k], b = M.bestRun(k), n = (M.get().runs || []).filter((r) => r.set === k).length, R = M.REWARD, m = M.mult();
+    const mas = S.ids.filter((id) => M.status(id) === "mas").length, bn = window.MCLBook ? MCLBook.idsOf(S.grp).length : 0;
+    /* ★★ 2026-10-27 ご指定「各セットに模試モードは要りません。その代わり…模試の冊子のように」：模試モードの代わりに、組をまるごと解く冊子（mcl-book.js）へ */
     sheet('<p class="sh-pre">' + esc(D.GRP ? D.GRP[S.grp] : "難関セット") + '</p><h2 class="sh-t">' + esc(S.nm) + '</h2><p class="sh-sub">' + esc(S.sub) + "</p>" +
-      '<div class="setinfo"><div><b>' + S.ids.length + "</b><span>問</span></div><div><b>" + S.min + "</b><span>分（目安）</span></div><div><b>" + (b ? Math.round(b.score / b.total * 100) + "%" : "—") + "</b><span>ベスト</span></div><div><b>" + n + "</b><span>挑戦</span></div></div>" +
-      '<button class="mode-b" data-a="examGo" data-set="' + k + '"><span class="mi">' + ic("clock") + "</span><span><b>模試モード</b><small>時間を計って、最後にまとめて採点。解説は結果の画面で。</small></span>" + ic("chevR") + "</button>" +
+      '<div class="setinfo"><div><b>' + S.ids.length + "</b><span>問</span></div><div><b>" + S.min + "</b><span>分（目安）</span></div>" +
+        (S.full ? "<div><b>" + (b ? Math.round(b.score / b.total * 100) + "%" : "—") + "</b><span>ベスト</span></div><div><b>" + n + "</b><span>挑戦</span></div>" : "<div><b>" + mas + "</b><span>習得</span></div><div><b>" + (S.ids.length - mas) + "</b><span>未習得</span></div>") + "</div>" +
+      (bn ? '<button class="mode-b bk" data-a="bookOpen" data-g="' + S.grp + '"><span class="mi">' + ic("exam") + "</span><span><b>模試の冊子で解く（" + esc(D.GRP[S.grp] || "") + "・全" + bn + "問）</b><small>" + (S.full ? "大問をぜんぶ冊子のように並べて、最後にまとめて採点。解答・解説つき" : "この大問をふくむ組をまるごと冊子で。最後にまとめて採点・解答・解説つき") + "</small></span>" + ic("chevR") + "</button>" : "") +
       '<button class="mode-b" data-a="setPractice" data-set="' + k + '"><span class="mi p">' + ic("hint") + "</span><span><b>練習モード</b><small>1問ずつ答え合わせ（シャッフル）。ヒント・解説・関連問題つき。</small></span>" + ic("chevR") + "</button>" +
       /* ★★ 2026-10-22 ご指定「計算問題以外の出題はそれぞれのセットで」 */
       (function () { const nc = S.ids.filter((id) => !M.isCalc(D.BY[id])).length; return nc && nc < S.ids.length ? '<button class="mode-b nc" data-a="setNoCalc" data-set="' + k + '"><span class="mi nc">' + NOCALC_IC + "</span><span><b>計算以外の問題だけ（" + nc + "問）</b><small>計算問題（" + (S.ids.length - nc) + "問）をとばして練習（シャッフル）</small></span>" + ic("chevR") + "</button>" : ""; })() +
@@ -1189,7 +1206,7 @@
       /* ★★ 2026-10-23 今日習得にできる問題だけ */
       (function () { const n = S.ids.filter((id) => M.canMasterToday(id)).length;
         return n ? '<button class="mode-b" data-a="setToday" data-set="' + k + '"><span class="mi td">' + ic("flag") + "</span><span><b>今日習得にできる問題だけ（" + n + "問）</b><small>習得中の問題のうち、今日ヒントなしで正解すると「習得」になる問題</small></span>" + ic("chevR") + "</button>" : ""; })() +
-      '<p class="sh-note">' + ic("gift") + " はじめて 60%・80%・100% をこえると +" + R.set60 * m + "・+" + R.set80 * m + "・+" + R.set100 * m + " XEVA" + (m > 1 ? "（いまは" + m + "倍）" : "") + "</p>" +
+      (S.full ? '<p class="sh-note">' + ic("gift") + " 模試の冊子ではじめて 60%・80%・100% をこえると +" + R.set60 * m + "・+" + R.set80 * m + "・+" + R.set100 * m + " XEVA" + (m > 1 ? "（いまは" + m + "倍）" : "") + "</p>" : "") +
       (n ? '<div class="g-rst sh"><button class="g-reset" data-a="exReset" data-set="' + k + '">' + ic("undo") + "模試の記録をリセット</button><small>挑戦の記録を消して、60%・80%・100% のごほうびをもう一度もらえます</small></div>" : ""));
   }
   function solHTML(q) {
@@ -1319,6 +1336,7 @@
   function closePlay() {
     clearInterval(tickId); P = null;
     if (window.MCLFlash) MCLFlash.reset();   /* ★★ 2026-10-15 フラッシュカードの最中に閉じたとき */
+    if (window.MCLBook) MCLBook.reset();     /* ★★ 2026-10-27 模試の冊子 */
     padClose();
     const pl = $("#play"); pl.hidden = true; pl.innerHTML = ""; pl.classList.remove("pad-on", "pad-full", "exam"); document.body.classList.remove("playing");
     go(TAB, true);
@@ -1905,6 +1923,7 @@
      act … data-a の表（ほかのファイルから足せる）・closePlay … 演習の画面を閉じてタブへ戻る */
   window.MCLUI = { go, startSession, toast, openSettings, padOpen, padClose, padHas, paintPadBtn, padNext,
     sheet, closeSheet, sheetOpen, ic, sym, solHTML, chipsHTML, playShell, closePlay, confetti, SFX, setTitle, short, act: ACT,
+    ringW, earnHTML, fmtNum, paintHeader,   /* ★★ 2026-10-27 模試の冊子（mcl-book.js）で使う */
     get tab() { return TAB; }, get isTouch() { return isTouch; }, get padOpenNow() { return PAD.open; } };
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", boot); else boot();
 })();

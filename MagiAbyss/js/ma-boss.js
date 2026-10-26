@@ -131,6 +131,8 @@
     roots(b) { circles(b, 5 + b.phase, 70, 18, 1.0, 1.2, "#a0e060"); },
     leafSpiral(b) { spiral(b, 2.6, 3 + b.phase, 80 + b.phase * 10, 0.7, 0.16, "#7fd060"); },
     summon(b) { summon(b, "goblin", 3 + b.phase); },
+    /* ★★ 2026-10-27 外伝のボス：その迷宮の雑魚（新しい敵）を呼ぶ */
+    summonOwn(b) { const l = (G().dun && G().dun.enemies) || ["slime"]; summon(b, l[(Math.random() * l.length) | 0], 3 + b.phase); },
     charge(b) { dashAt(b, 1.6); },
     rootRing(b) { ring(b, 120, 40, 1.2, 1.4); },
     leafStorm(b) { for (let k = 0; k < 4; k++) G().queue.push({ at: G().t + k * 0.5, f: () => burstRing(b, 18, 90, 0.7, k * 0.17, "#7fd060") }); circles(b, 6, 90, 20, 1.2, 1.3, "#a0e060"); },

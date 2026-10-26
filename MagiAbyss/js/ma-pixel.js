@@ -1733,6 +1733,8 @@
        瞳は顔の下半分に大きく（5画素の高さ）・まつげは前へはねる・ほほに赤み。前髪は斜めに流してひたいをかくす。 */
   const SIDE_FRONT = { 13: 33, 14: 34, 15: 35, 16: 35, 17: 35, 18: 35, 19: 35, 20: 35, 21: 36, 22: 36, 23: 35, 24: 34, 25: 34, 26: 33, 27: 32, 28: 30, 29: 27 };
   const SIDE_FRINGE = { 13: 34, 14: 34, 15: 33, 16: 31 };
+  /* ★★ 2026-10-27 顔の後ろのはし（ここから前は肌＝髪がかぶさっていても塗りなおす）。耳の前で止め、あごに向かってすぼめる */
+  const SIDE_BACK = { 16: 27, 17: 27, 18: 27, 19: 27, 20: 27, 21: 27, 22: 27, 23: 27, 24: 28, 25: 28, 26: 29, 27: 30, 28: 31 };
   function hdFaceSide(o, pal, dx, dy) {
     const F = facePal(pal), X = dx * HD, Y = dy * HD;
     const H = pal.H ? hex(String(pal.H).slice(0, 7)) : null, h2 = pal.h ? hex(String(pal.h).slice(0, 7)) : H;
@@ -1744,6 +1746,13 @@
       const y = +k + Y, fx = SIDE_FRONT[k] + X;
       for (let x = 25 + X; x <= fx; x++) { const c = getRGB(o, x, y); if (!c || isFeat(x, y)) setRGB(o, x, y, F.S); }
       for (let x = fx + 1; x <= 41 + X; x++) { if (isSkinPx(o, x, y, F) || isFeat(x, y)) clearPx(o, x, y); }
+    });
+    /* ①b ★★ 2026-10-27 ご指定「ドット絵のキャラをより可愛く（特に横顔）」：横の髪が顔にかぶさって、瞳が半分しか見えず顔が細かった
+       → 顔の範囲（前髪の下〜あご・耳の前まで）は、髪の色の画素も肌で塗りなおす＝丸く大きな横顔（リボン・帽子などの小物は髪の色でないので残る）。
+         前髪と横の髪はこのあと描きなおす */
+    Object.keys(SIDE_BACK).forEach((k) => {
+      const y = +k + Y, fx = SIDE_FRONT[k] + X;
+      for (let x = SIDE_BACK[k] + X; x <= fx; x++) if (isHairPx(o, x, y, F)) setRGB(o, x, y, F.S);
     });
     /* ② 前髪：ひたいを斜めにかくす（肌の上にだけ描く） */
     if (H) Object.keys(SIDE_FRINGE).forEach((k) => {
@@ -1764,11 +1773,12 @@
     }
     const map = { K: [F.lash], k: [F.lash, 0.55], e: [F.eD], E: [F.E], i: [F.eL], W: [F.W], B: [F.B, 0.75], b: [F.B, 0.4], M: [F.M], m: [F.M, 0.55], s: [F.s, 0.8], t: [F.s, 0.45] };
     /* ③ 横向きの大きな瞳（まつげは前へはねる・ハイライトは後ろ寄り） */
-    stamp(o, F, 28 + X, 17 + Y, [".KKKKKk", "KWeeeK.", ".eWee..", ".EEEE..", ".EiiE..", "..EE..."], map);
+    /* ★★ 2026-10-27 瞳を少し大きく・ハイライトを2画素（後ろ上）＋下のきらめき・まつげを前へはねる */
+    stamp(o, F, 28 + X, 16 + Y, ["..KKKkk", ".KKKKKK", "KWWeeK.", "KWeeE..", ".EEEE..", ".EiWE..", "..EE..."], map);
     /* 横の髪（ほおの後ろ・耳をかくす）＝顔のまわりを髪でかこんで小顔に */
     if (H) for (let y = 14; y <= 24; y++) for (let x = 24; x <= (y >= 22 ? 24 : 25); x++) if (isSkinPx(o, x + X, y + Y, F)) setRGB(o, x + X, y + Y, x === 25 || y >= 22 ? h2 : H);
     /* ④ ほほ・鼻の下・口・あごの陰・首 */
-    stamp(o, F, 29 + X, 23 + Y, ["bBBb"], map);
+    stamp(o, F, 28 + X, 23 + Y, ["bBBBb", ".bbb."], map);   /* ★★ 2026-10-27 ほほの赤みを少し大きく */
     stamp(o, F, 35 + X, 23 + Y, ["t"], map);
     stamp(o, F, 33 + X, 25 + Y, [".M", "m."], map);
     stamp(o, F, 27 + X, 28 + Y, ["tssst"], map);

@@ -4,17 +4,18 @@
    ・★ 実際の GⅠ のデータ（raw.githubusercontent.com）は別のサイトなのでここでは扱わない（いつも最新を取りに行く）。
    ・★ 時刻あわせ（clock.txt?__mdclock=…）は<b>キャッシュしない</b>（サーバーの時刻を毎回聞く＝締切の判定）。
    ============================================================ */
-const VERSION = "magiderby-sw-v6";
+const VERSION = "magiderby-sw-v7";
 const CORE = [
   "./index.html",
   "./manifest.webmanifest",
-  "./css/md.css?v=5",
-  "./js/md-data.js?v=3",
-  "./js/md-net.js?v=4",
-  "./js/md-bet.js?v=4",
+  "./css/md.css?v=6",
+  "./js/md-data.js?v=4",
+  "./js/md-net.js?v=5",
+  "./js/md-bet.js?v=5",
   "./js/md-race.js?v=1",
-  "./js/md-ui.js?v=5",
-  "./js/md-help.js?v=1",
+  "./js/md-ui.js?v=6",
+  "./js/md-help.js?v=2",
+  "./js/md-intro.js?v=1",
   "./img/icon192.png",
   "../thumbs/MagiDerby.jpg",
   "../XEVA.png",

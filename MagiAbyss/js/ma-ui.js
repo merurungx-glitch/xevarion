@@ -370,8 +370,10 @@
     if (!G().paused) MA.E.pause("map");
     showMap();
   };
+  /* ★★ 2026-10-27 ご指定「マップの閉じるボタンは常に表示して押せるように」：
+     右上に固定の ✕（.mdl-xw＝下へ読み進めても見えたまま）＋地図は画面の高さに収める（下の「閉じる」も画面の中・固定） */
   function showMap() {
-    const m = modal('<div class="fmap" data-a="closeMap"><div class="ev-h">' + ic("map") + "<b>全体マップ</b><small>どこを押しても閉じます</small></div><canvas id=\"fullMap\" width=\"640\" height=\"440\"></canvas>" +
+    const m = modal('<div class="mdl-xw"><button class="mdl-x" data-a="closeMap" aria-label="閉じる">' + ic("close") + '</button></div><div class="fmap" data-a="closeMap"><div class="ev-h">' + ic("map") + "<b>全体マップ</b><small>どこを押しても閉じます</small></div><canvas id=\"fullMap\" width=\"640\" height=\"440\"></canvas>" +
       '<div class="legend">' + [["#ffffff", "あなた"], ["#ffd84a", "宝箱"], ["#7dffb0", "回復の泉"], ["#c27bff", "魔法陣"], ["#ff8fd0", "祭壇"], ["#4fe39a", "精霊の祭壇"], ["#ff3050", "ボス"], ["#8affc4", "出口"], ["#7a4aff", "帰還"]].map(([c, t]) => '<span><i style="background:' + c + '"></i>' + t + "</span>").join("") + '</div><div class="row c"><button class="btn gold" data-a="closeMap">閉じる</button></div></div>', { cls: "mpm", wide: true, noClose: true });
     const c = $("#fullMap", m);
     MA.Render.drawMap(c.getContext("2d"), c.width, c.height, { full: true });
@@ -490,6 +492,7 @@
         </div>
       </div>`;
     MA.lastRunCfg = { mode: sum.mode, dun: sum.dun, cid: sum.cid, muts: (G().mutList || []).slice(), diff: sum.diff || "normal" };
+    if (sum.result === "clear" && MA.UI.clearBurst) setTimeout(() => MA.UI.clearBurst(), 180);   /* ★★ 2026-10-27 クリアの演出（ma-fx.js） */
     /* 物語は結果を少し見せてから */
     if (sum.story) setTimeout(() => { if (document.body.dataset.scr === "result") MA.Guild && MA.Guild.playStory(sum.story); }, 1400);
   }

@@ -39,6 +39,8 @@
     barkeep: { nm: "酒場のローザ", pal: { H: "#c83a4a", h: "#8a2230", L: "#f07080", E: "#3a8a3a", A: "#f2f2f6", a: "#c8c8d6", C: "#2a2a30", c: "#16161a", P: "#2a2a30", p: "#16161a", O: "#2a2a30", o: "#16161a", K: "#160a0e" }, hair: "long", outfit: "tank" },
     teller: { nm: "占い師のシエル", pal: { H: "#d8d0f0", h: "#a89cc8", L: "#ffffff", E: "#c070ff", A: "#5a2a90", a: "#3a1a60", C: "#ffd84a", c: "#c8a030", P: "#5a2a90", p: "#3a1a60", O: "#2a1a3a", o: "#140a20", K: "#140a1e" }, hair: "long", outfit: "robe" },
     bard: { nm: "吟遊詩人のリュート", pal: { H: "#c88a3a", h: "#8a5a20", L: "#f0c070", E: "#2a8a5a", A: "#2a8a5a", a: "#1a6040", C: "#e0b040", c: "#a07a20", P: "#5a4a3a", p: "#3a2e24", O: "#3a2a1a", o: "#1e140a", K: "#120e08" }, hair: "bob", outfit: "tank" },
+    /* ★★ 2026-10-27 外伝のストーリーの人（旅の星読み セツナ。ストーリーの立ち姿だけ） */
+    setsuna: { nm: "旅の星読み セツナ", pal: { H: "#a8d8f8", h: "#6a9ac8", L: "#e8f8ff", E: "#2ab0a0", A: "#2a3a7a", a: "#1a2450", C: "#ffd84a", c: "#c8a030", P: "#2a3a7a", p: "#1a2450", O: "#2a2030", o: "#141018", K: "#0e1424" }, hair: "long", outfit: "robe" },
     adv1: { nm: "冒険者", pal: { H: "#d8b040", h: "#a07a20", L: "#ffe08a", E: "#3a6aff", A: "#5a7a3a", a: "#3e5a28", C: "#8a5a2a", c: "#5a3a1a", P: "#5a4a3a", p: "#3a2e24", O: "#3a2a1a", o: "#1e140a", K: "#120e08" }, hair: "bob", outfit: "tank" },
     adv2: { nm: "冒険者", pal: { H: "#2a3a6a", h: "#1a2448", L: "#5a6aa0", E: "#ff8a3a", A: "#8a2a3a", a: "#5a1a26", C: "#e0b040", c: "#a07a20", P: "#2a2a36", p: "#1a1a24", O: "#2a1e12", o: "#140e08", K: "#0e0e18" }, hair: "long", outfit: "tank" },
     adv3: { nm: "冒険者", pal: { H: "#e8e8f0", h: "#b0b0c0", L: "#ffffff", E: "#c070ff", A: "#3a2a5a", a: "#261a40", C: "#9a90b0", c: "#6a6080", P: "#3a2a5a", p: "#261a40", O: "#2a2030", o: "#141018", K: "#120e1a" }, hair: "long", outfit: "robe" },
@@ -294,6 +296,14 @@
     if (r.after) r.after(m);
   }
   function refreshTop() { const m = UI().topModal(); if (m && m.dataset.panel) refresh(m, m.dataset.panel, m._arg); renderTop(); }
+  /* ★★ 2026-10-27 ご報告「戦闘出撃前にキャラ変更をして、それが反映されないことがある」：
+     「キャラを変える」で選び直しても、下に残っている探索準備の板（とクエストの詳細）は前のキャラのままだった
+     → 出発キャラが変わったら、開いている板をぜんぶ描き直す（いちばん上だけでなく下の板も）・クエストの詳細も */
+  function selChanged() {
+    document.querySelectorAll(".mdl.on[data-panel]").forEach((m) => { try { refresh(m, m.dataset.panel, m._arg); } catch (e) {} });
+    renderTop();
+    try { if (MA.Stages && MA.Stages.refreshDet) MA.Stages.refreshDet(); } catch (e) {}
+  }
   function head(icon, title, sub, col) { return '<div class="pn-h">' + ic(icon, col) + "<div><b>" + esc(title) + "</b>" + (sub ? "<small>" + sub + "</small>" : "") + "</div></div>"; }
   const PANELS = {};
 
@@ -327,7 +337,7 @@
       [["potion", "回復薬"], ["elixir", "エリクサー"], ["reroll", "運命のダイス（引き直し）"], ["banish", "忘却の砂（とばす）"]].map(([k, n]) => '<span>' + ic(k === "reroll" ? "dice" : k === "banish" ? "sand" : k) + esc(n) + " <b>×" + Math.min(k === "elixir" ? 1 : 3, s.items[k] || 0) + "</b></span>").join("") +
       '<button class="btn sm ghost" data-a="panel" data-v="shop">店で買う</button></div>' +
       '<p class="hint">探索は1回 10〜30分ほど。中ボスを3体倒して鍵を3つ集めるとボスの扉が開きます。早くクリアするとクリア時間のミッションでジェムがもらえます。途中で閉じても次に開いたときに再開できます。</p>' +
-      (own ? '<button class="btn gold big' + (hard ? " hardgo" : "") + '" data-a="go" data-v="' + dunId + '">' + ic("door") + (hard ? "ハードで" : "") + "出発する</button>"
+      (own ? '<button class="btn gold big' + (hard ? " hardgo" : "") + '" data-a="go" data-v="' + dunId + '" data-c="' + cid + '">' + ic("door") + (hard ? "ハードで" : "") + "出発する</button>"
         : '<div class="locked">' + ic("lock") + "このキャラは持っていないので出発できません。「キャラを変える」から選んでください</div>") + "</div>";
     return { html, after: (m) => { m._arg = dunId; drawSpritePreview($("#prSprite", m), cid); } };
   };
@@ -739,15 +749,67 @@
     return { html, wide: false };
   };
 
-  /* ══ ストーリー（会話）══ */
+  /* ══ ストーリー（会話）══
+     ★★ 2026-10-27 ご指定「ストーリーをより充実」「様々な部分で豪華なアニメーション」：
+       章のはじまりの演出（MA.FX.chapterCard）・章ごとの色の背景（流れる星）・話す人の立ち姿（町の人の HD ドット絵を大きく・
+       話すたびに少し跳ねる）・文字送り（押すと全部出る→もう一度押すと次へ）・「自動」（読み終わったら少し待って次へ）・何行目か */
   function playStory(id) {
     const st = D().STORY.find((x) => x.id === id); if (!st) return;
     S().codex.story[id] = 1; MA.Save.saveSoon();
-    let i = 0;
-    const m = UI().modal('<div class="story"><div class="st-h">' + esc(st.nm) + '</div><div class="st-box"><b class="st-who"></b><p class="st-line"></p></div><div class="row c"><button class="btn ghost sm" data-a="storySkip">とばす</button><button class="btn gold" data-a="storyNext">つぎへ</button></div></div>', { cls: "stm", noClose: true });
-    const show = () => { const L = st.lines[i]; $(".st-who", m).textContent = L[0]; $(".st-line", m).textContent = L[1]; $("[data-a=storyNext]", m).textContent = i >= st.lines.length - 1 ? "とじる" : "つぎへ"; };
-    m._next = () => { i++; if (i >= st.lines.length) { UI().closeModal(); checkResume(); return; } show(); };
+    let i = 0, typeT = 0, full = "", shown = 0, auto = false, autoT = 0, hop = 0, cur = null;
+    const m = UI().modal('<div class="story" style="--c:' + (st.c || "#ffd84a") + '"><div class="st-bg"><i></i><i></i><i></i></div>' +
+      '<div class="st-h">' + esc(st.nm) + '<small class="st-n"></small></div>' +
+      '<div class="st-stage"><canvas class="st-pt" width="120" height="132"></canvas></div>' +
+      '<div class="st-box"><b class="st-who"></b><p class="st-line"></p><i class="st-nx">▼</i></div>' +
+      '<div class="row c"><button class="btn ghost sm" data-a="storySkip">とばす</button><button class="btn ghost sm st-auto" data-a="storyAuto">自動</button><button class="btn gold" data-a="storyNext">つぎへ</button></div></div>', { cls: "stm", noClose: true });
+    const cv = $(".st-pt", m), g = cv.getContext("2d"); g.imageSmoothingEnabled = false;
+    const NPC = D().STORY_NPC || {};
+    const spOf = (who) => { const k = NPC[who]; if (!k || !NPCDEF[k]) return null; try { return npcSprite(k); } catch (e) { return null; } };
+    const box = $(".st-box", m), line = $(".st-line", m), nx = $(".st-nx", m);
+    function show() {
+      const L = st.lines[i];
+      $(".st-who", m).textContent = L[0];
+      full = L[1]; shown = 0; typeT = 0; autoT = 0;
+      line.textContent = "";
+      nx.classList.remove("on");
+      $(".st-n", m).textContent = (i + 1) + " / " + st.lines.length;
+      $("[data-a=storyNext]", m).textContent = i >= st.lines.length - 1 ? "とじる" : "つぎへ";
+      const sp = spOf(L[0]);
+      if (sp !== cur) { cur = sp; cv.classList.remove("in"); void cv.offsetWidth; cv.classList.add("in"); }
+      cv.style.visibility = sp ? "" : "hidden";
+      box.classList.toggle("nopt", !sp);
+      hop = 1;
+    }
+    let last = performance.now();
+    const loop = (now) => {
+      if (!m.isConnected) return;
+      const dt = Math.min(0.05, (now - last) / 1000); last = now;
+      if (shown < full.length) {
+        typeT += dt;
+        const n = Math.min(full.length, Math.floor(typeT / 0.028));
+        if (n !== shown) { shown = n; line.textContent = full.slice(0, shown); }
+        if (shown >= full.length) nx.classList.add("on");
+      } else if (auto) { autoT += dt; if (autoT > 1.1 + full.length * 0.02) m._next(); }
+      /* 立ち姿（待機のゆれ・話しはじめに小さく跳ねる） */
+      g.clearRect(0, 0, cv.width, cv.height);
+      if (cur) {
+        const t = now / 1000, f = cur.idle[(t % 3.2) > 3.05 ? 2 : Math.floor(t * 2) % 2];
+        const k = Math.max(1, Math.floor(Math.min(cv.width / cur.w, cv.height / cur.h)));
+        hop = Math.max(0, hop - dt * 4);
+        const y = cv.height - f.height * k - Math.round(Math.sin(hop * Math.PI) * 6);
+        g.drawImage(f, Math.round((cv.width - f.width * k) / 2), y, f.width * k, f.height * k);
+      }
+      requestAnimationFrame(loop);
+    };
+    m._next = () => {
+      if (shown < full.length) { shown = full.length; line.textContent = full; nx.classList.add("on"); return; }
+      i++; if (i >= st.lines.length) { UI().closeModal(); checkResume(); return; } show();
+    };
+    m._auto = () => { auto = !auto; const b = $(".st-auto", m); if (b) b.classList.toggle("on", auto); };
+    box.addEventListener("click", () => m._next());
     show();
+    requestAnimationFrame(loop);
+    if (MA.FX && MA.FX.chapterCard) MA.FX.chapterCard($(".story", m), st.nm, st.c);
   }
 
   /* ══ 中断した探索 ══ */
@@ -776,6 +838,8 @@
     MA.Render.init($("#gc"));
     MA.E.start({ mode: cfg.mode, dun: cfg.dun, cid: cfg.cid, muts: cfg.muts || [], trial, resume: cfg.resume, seed: cfg.seed, floor: cfg.floor, diff: cfg.diff || (cfg.resume && cfg.resume.diff) || "normal" });
     MA.UI.buildHud();
+    /* ★★ 2026-10-27 クエスト開始のタイトル（ma-fx.js） */
+    if (MA.UI.questIntro) setTimeout(() => { if (MA.G && MA.G.running) MA.UI.questIntro(MA.G); }, 250);
     void s;
   }
 
@@ -807,11 +871,13 @@
   A.prep = (el) => { prepMuts = []; prepDiff = el.dataset.x === "hard" ? "hard" : "normal"; openPanel("prep", el.dataset.v); };
   A.howto = () => { if (MA.Howto) MA.Howto.open(0); };
   A.togMut = (el) => { const k = el.dataset.v; const i = prepMuts.indexOf(k); if (i >= 0) prepMuts.splice(i, 1); else prepMuts.push(k); refreshTop(); };
-  A.go = (el) => { startRun({ mode: "dungeon", dun: el.dataset.v, cid: S().sel, muts: prepMuts.slice(), diff: prepDiff }); };
+  /* ★★ 2026-10-27 出発は「板に見えているキャラ」で（data-c）。選択もそれにそろえる */
+  A.go = (el) => { const cid = el.dataset.c || S().sel; if (cid !== S().sel && MA.Save.owned(cid)) { S().sel = cid; MA.Save.save(); } startRun({ mode: "dungeon", dun: el.dataset.v, cid: S().sel, muts: prepMuts.slice(), diff: prepDiff }); };
   A.goAbyss = () => { startRun({ mode: "abyss", cid: S().sel }); };
   A.charFilter = (el) => { charFilter = el.dataset.v; refreshTop(); };
   A.charDet = (el) => openPanel("charDet", el.dataset.v);
-  A.selChar = (el) => { if (!MA.Save.owned(el.dataset.v)) { UI().toast("持っていないキャラは選べません", "#ff5a6a"); return; } S().sel = el.dataset.v; MA.Save.saveSoon(); MA.Audio.sfx("key"); UI().toast(D().CHARS[el.dataset.v].nm + " を出発キャラにしました", "#ffd84a"); refreshTop(); renderTop(); };
+  /* ★★ 2026-10-27 選んだらすぐ保存（0.4秒待つあいだに同期の読み直しが来ると、前のキャラに戻っていた）＋開いている板をぜんぶ描き直す */
+  A.selChar = (el) => { if (!MA.Save.owned(el.dataset.v)) { UI().toast("持っていないキャラは選べません", "#ff5a6a"); return; } S().sel = el.dataset.v; MA.Save.save(); MA.Audio.sfx("key"); UI().toast(D().CHARS[el.dataset.v].nm + " を出発キャラにしました", "#ffd84a"); selChanged(); };
   A.treeOf = (el) => openPanel("tree", el.dataset.v);
   A.learn = (el) => { const id = el.dataset.c, n = D().TREE.find((x) => x.id === el.dataset.v); const sp = MA.Save.spOf(id); if (!n || sp.left < n.cost) return; MA.Save.charRec(id).tree[n.id] = 1; MA.Save.save(); MA.Audio.sfx("levelup"); refreshTop(); };
   A.treeReset = (el) => { const id = el.dataset.v; UI().ask("スキルツリーをふりなおしますか？（500G）", () => { if (!MA.Save.payCost({ gold: 500 })) { UI().toast("ゴールドが足りません", "#ff5a6a"); return; } MA.Save.charRec(id).tree = {}; MA.Save.save(); refreshTop(); }); };
@@ -859,6 +925,7 @@
   A.facUp = (el) => { const k = el.dataset.v, F = D().FACILITIES[k], lv = S().fac[k] || 0; if (lv >= F.max) return; if (!MA.Save.payCost(F.cost(lv))) return; S().fac[k] = lv + 1; MA.Audio.sfx("levelup"); UI().toast(F.nm + " を Lv" + (lv + 1) + " にした", "#ffd84a"); MA.Save.save(); refreshTop(); };
   A.story = (el) => { UI().closeModal(); playStory(el.dataset.v); };
   A.storyNext = (el) => { const m = el.closest(".mdl"); m._next && m._next(); };
+  A.storyAuto = (el) => { const m = el.closest(".mdl"); m._auto && m._auto(); };
   A.storySkip = () => { UI().closeModal(); checkResume(); };
   A.resumeRun = (el) => { const m = el.closest(".mdl"); const run = m._run; UI().closeModal(); startRun({ mode: run.mode, dun: run.dun, cid: run.cid, muts: run.muts, seed: run.seed, floor: run.floor, resume: run }); };
   A.resumeGiveUp = (el) => { const m = el.closest(".mdl"); const run = m._run; UI().closeModal(); const out = MA.Prog.settleAbandoned(run); UI().toast("中断した探索を受け取りました：" + fmt(out.gold) + "G" + Object.keys(out.mats).map((k) => "・" + D().MATS[k].nm + "×" + out.mats[k]).join(""), "#8affc4"); renderTop(); };

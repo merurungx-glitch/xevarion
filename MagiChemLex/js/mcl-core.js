@@ -503,7 +503,7 @@
       const run = { id: "r" + Date.now().toString(36) + Math.random().toString(36).slice(2, 6), set: setId, at: Date.now(), score: result.score, total: result.total, ms: result.ms, wrong: result.wrong || [] };
       s.runs = [run].concat(s.runs || []).slice(0, 60);
       s.xp = (s.xp || 0) + 50 + result.score * 2;
-      const nm = D.SETS[setId] ? D.SETS[setId].nm : setId;
+      const nm = result.nm || (D.SETS[setId] ? D.SETS[setId].nm : setId);   /* ★★ 2026-10-27 模試の冊子は「基礎セット1の冊子」の名前で */
       [[0.6, "60", REWARD.set60], [0.8, "80", REWARD.set80], [1, "100", REWARD.set100]].forEach(([th, k, base]) => {
         if (pct + 1e-9 >= th && !s.rw["set:" + setId + ":" + k]) { earnOnce(s, "set:" + setId + ":" + k, base, "模試「" + nm + "」" + k + "%以上"); out.tiers.push(k); }
       });

@@ -114,7 +114,11 @@
   function onSynced() {
     MA.Save.dropShared();
     if (MA.G && MA.G.running) { pending = true; return; }
+    /* ★★ 2026-10-27 ご報告「出撃前にキャラ変更をして、それが反映されないことがある」：同期の読み直しで、この端末で選んだ
+       出発キャラがほかの端末（クラウド）の選択に戻っていた → 出発キャラはこの端末の選択を引きつぐ（持っていれば） */
+    const keepSel = MA.Save.S && MA.Save.S.sel;
     MA.Save.load();
+    if (keepSel && MA.Save.S && MA.Save.owned(keepSel)) MA.Save.S.sel = keepSel;
     pickDefaultChar();
     MA.Input.rebuildKeys();
     if (document.body.dataset.scr === "guild" && MA.Guild) MA.Guild.renderTop();

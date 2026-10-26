@@ -20,8 +20,12 @@
   const $ = (s, r) => (r || document).querySelector(s);
 
   /* 地図の上の位置（480×270 の中）。道は迷宮の順（解放の順） */
-  const POS = { town: [70, 205], d1: [96, 148], d2: [122, 70], d3: [226, 74], d4: [250, 158], d5: [346, 204], d6: [408, 76], d7: [452, 150], d8: [430, 236], d9: [296, 248] };
+  const POS = { town: [70, 205], d1: [96, 148], d2: [122, 70], d3: [226, 74], d4: [250, 158], d5: [346, 204], d6: [408, 76], d7: [452, 150], d8: [430, 236], d9: [296, 248],
+    /* ★★ 2026-10-27 外伝（第10〜第15迷宮）：海に浮かぶ異界の島（まわりが海の所を地図の色から探した） */
+    d10: [46, 246], d11: [150, 18], d12: [284, 18], d13: [342, 44], d14: [462, 96], d15: [386, 244] };
   const ROUTE = ["town", "d1", "d2", "d3", "d4", "d5", "d6", "d7", "d8", "d9"];
+  /* 外伝の道（解放のもと → 外伝の島） */
+  const SIDE_ROUTE = [["d2", "d10"], ["d3", "d11"], ["d4", "d12"], ["d5", "d13"], ["d7", "d14"], ["d8", "d15"]];
   const BIOME_AT = { town: "town", d1: "forest", d2: "ice", d3: "lava", d4: "library", d5: "abyss", d6: "sky" };
 
   /* ══ ノイズ（いつも同じ地図になる）══ */
@@ -146,6 +150,13 @@
     rift(POS.d7[0], POS.d7[1], "#ff4f7a", "#6a1030");
     rift(POS.d8[0], POS.d8[1], "#7fd0ff", "#ff7a2a");
     rift(POS.d9[0], POS.d9[1], "#b06aff", "#2a1046");
+    /* ★★ 2026-10-27 外伝の異界の島（島の上に、その島らしい小さな印） */
+    rift(POS.d10[0], POS.d10[1], "#9be36a", "#e84a4a"); ell(POS.d10[0] - 9, POS.d10[1] + 1, 3, 2, "#e84a4a"); R(POS.d10[0] - 9.5, POS.d10[1] + 2, 1, 2, "#f2dfb8");
+    rift(POS.d11[0], POS.d11[1], "#7fe0ff", "#2a6aa0"); R(POS.d11[0] + 8, POS.d11[1], 3, 3, "#e8f8ff");
+    rift(POS.d12[0], POS.d12[1], "#ff9a4a", "#7a1a0a"); R(POS.d12[0] - 10, POS.d12[1] - 1, 2, 4, "#ffd04a");
+    rift(POS.d13[0], POS.d13[1], "#fff2a0", "#a08a30"); R(POS.d13[0] + 8, POS.d13[1] - 3, 2, 6, "#f6f2e2");
+    rift(POS.d14[0], POS.d14[1], "#ffb0d8", "#7a2a50"); ell(POS.d14[0] - 9, POS.d14[1], 3.4, 2.4, "#ffb0d8");
+    rift(POS.d15[0], POS.d15[1], "#3ab0ff", "#0a2a5a"); ell(POS.d15[0] + 9, POS.d15[1] + 2, 3, 1.4, "#1f5f8a");
     /* 星のきらめき（神殿のまわり） */
     [[392, 52], [430, 70], [384, 90], [446, 96]].forEach(([x, y]) => { R(x, y - 2, 1, 5, "#fff8c0"); R(x - 2, y, 5, 1, "#fff8c0"); });
     /* ── 地図のふち（古い紙のよう）── */
@@ -268,17 +279,19 @@
     const ds = D().DUNGEONS;
     /* 点線の道（ひらいた所まで明るく） */
     const pts = ROUTE.map((k) => POS[k]);
+    /* ★★ 2026-10-27 本編の道は本編の迷宮だけで数える（外伝が開いていても、本編の道を先まで明るくしない） */
     let lastOpen = 0;
-    ds.forEach((d, i) => { if (dunOpen(d)) lastOpen = i + 1; });
+    ROUTE.slice(1).forEach((k, i) => { const d = D().DUN[k]; if (d && dunOpen(d)) lastOpen = i + 1; });
     const poly = (arr, cls) => '<polyline class="' + cls + '" points="' + arr.map((p) => p.join(",")).join(" ") + '" />';
-    $("#wmRoute").innerHTML = poly(pts, "rt-all") + poly(pts.slice(0, lastOpen + 1), "rt-open");
+    $("#wmRoute").innerHTML = poly(pts, "rt-all") + poly(pts.slice(0, lastOpen + 1), "rt-open") +
+      SIDE_ROUTE.filter(([a, b]) => POS[a] && POS[b] && D().DUN[b]).map(([a, b]) => poly([POS[a], POS[b]], "rt-all rt-side" + (dunOpen(D().DUN[b]) ? " rt-open" : ""))).join("");
     let h = '<div class="wm-node town" style="left:' + (POS.town[0] / MW * 100) + "%;top:" + (POS.town[1] / MH * 100) + '%"><i></i><span>拠点の町</span></div>';
     ds.forEach((d) => {
       const open = dunOpen(d), dr = S().dun[d.id] || {}, hr = dr.hard || {};
       const cls = "wm-node" + (open ? "" : " lock") + (dr.clears ? " clr" : open ? " new" : "") + (hr.clears ? " hclr" : "") + (sel === d.id ? " sel" : "");
       h += '<button class="' + cls + '" style="left:' + (POS[d.id][0] / MW * 100) + "%;top:" + (POS[d.id][1] / MH * 100) + "%;--c:" + d.c + '" data-a="stSel" data-v="' + d.id + '">' +
         '<i>' + (open ? (dr.clears ? ic("check") : "") : ic("lock")) + "</i>" +
-        '<span><small>第' + d.no + "迷宮</small>" + esc(d.nm) + (hr.clears ? ' <em class="hd">HARD</em>' : "") + "</span>" +
+        '<span><small>' + (d.side ? "外伝・" : "") + "第" + d.no + "迷宮</small>" + esc(d.nm) + (hr.clears ? ' <em class="hd">HARD</em>' : "") + "</span>" +
         '<canvas class="wm-boss" width="40" height="40" data-boss="' + d.boss + '"' + (S().codex.boss[d.boss] ? "" : ' data-hide="1"') + "></canvas></button>";
     });
     box.innerHTML = h;
@@ -339,7 +352,7 @@
     const firstGot = !!rec.clears;
     det.innerHTML = '<button class="sd-x" data-a="stClose" aria-label="閉じる">' + ic("close") + "</button>" +
       '<div class="sd-art" id="sdArt" style="--c:' + d.c + '"></div>' +
-      '<div class="sd-h"><small>第' + d.no + "迷宮・" + esc(d.en) + "</small><b>" + esc(d.nm) + '</b><div><span class="stars">' + "★".repeat(d.stars) + "<i>" + "★".repeat(Math.max(0, 6 - d.stars)) + "</i></span><em>" + esc(d.diff) + "</em>" + '<span class="sd-elb">' + ic("el_" + d.el) + D().ELEM[d.el].nm + "属性が多い</span></div></div>" +
+      '<div class="sd-h"><small>' + (d.side ? "外伝・" : "") + "第" + d.no + "迷宮・" + esc(d.en) + "</small><b>" + esc(d.nm) + '</b><div><span class="stars">' + "★".repeat(d.stars) + "<i>" + "★".repeat(Math.max(0, 6 - d.stars)) + "</i></span><em>" + esc(d.diff) + "</em>" + '<span class="sd-elb">' + ic("el_" + d.el) + D().ELEM[d.el].nm + "属性が多い</span></div></div>" +
       '<div class="sd-tabs"><button class="' + (diff === "normal" ? "on" : "") + '" data-a="stDiff" data-v="normal">' + ic("normal") + "ノーマル</button>" +
       '<button class="hard ' + (diff === "hard" ? "on" : "") + '" data-a="stDiff" data-v="hard"' + (hOpen ? "" : " disabled") + ">" + ic(hOpen ? "hard" : "lock") + "ハード" + (hOpen ? "" : "<small>ノーマルをクリアで解放</small>") + "</button></div>" +
       '<p class="sd-d">' + esc(d.d) + (diff === "hard" ? '<br><span class="sd-hd">' + esc(MD.d) + "</span>" : "") + "</p>" +
@@ -397,5 +410,7 @@
     if (document.body.dataset.scr === "stages") renderDet();
     MA.Guild && MA.Guild.refreshTop && MA.Guild.refreshTop();
   };
-  MA.Stages = { open, hide, select, POS, paint };
+  /* ★★ 2026-10-27 出発キャラを変えたとき、開いている詳細（敵との相性・戦力）を描き直す */
+  function refreshDet() { const s = document.getElementById("stages"); if (s && s.classList.contains("det") && sel && document.body.dataset.scr === "stages") renderDet(); }
+  MA.Stages = { open, hide, select, POS, paint, refreshDet };
 })();

@@ -5,6 +5,7 @@
    ・考える順番
        ① その手で勝てるなら必ず指す
        ② 指したあと、相手（とくに次の人）が<b>すぐ勝てる形</b>が残る手は大きく減点（＝守る）
+          ★ 2026-10-27 減点は番の近い人ほど重い（3倍ずつ）＝止められるのが1人だけなら、自分の番から近い人を止める
        ③ 自分が次に勝てる形（リーチ）を作る手、2か所以上のリーチ（ふたまた）は加点
        ④ のこりは「並べる数ぶんの窓」に自分の駒がいくつ入っているかで形のよさを点にする
    ・強さ（S.cpuLevel）
@@ -149,18 +150,26 @@
     }
 
     let best = null, bestSc = -Infinity, bestInfo = null;
-    /* いま相手がすぐ勝てるマス（ヒントの理由に使う） */
-    const nowThreat = {}; opps.forEach((op) => { winCells(B, op).forEach((i) => { (nowThreat[i] = nowThreat[i] || []).push(op); }); });
+    /* いま相手がすぐ勝てるマス（ヒントの理由に使う）。nowThreat[マス]・nowBy とも番の近い順 */
+    const nowThreat = {}, nowBy = [];
+    opps.forEach((op) => { const ws = winCells(B, op); if (ws.length) nowBy.push(op); ws.forEach((i) => { (nowThreat[i] = nowThreat[i] || []).push(op); }); });
+    /* ★★ 2026-10-27 ご指定「守りの手は、自分の番から近い相手に対して」：
+       相手のリーチの重さを、番の近い順に3倍ずつ重くする（いちばん遠い人が前と同じ 12000／40000）。
+       近い人1人の重さ ＞ それより遠い人ぜんぶ（ふたまたの1.6倍こみ）なので、1手で1人しか止められないときは必ず近い人を止める。
+       次の人（j=0）は前と同じく最低 100000。 */
+    const far = level === 2 ? 40000 : 12000, m = opps.length;
+    const TW = opps.map((_, j) => Math.max(j === 0 ? 100000 : 0, far * Math.pow(3, m - 1 - j)));
     for (const a of acts) {
       const r = apply(B, me, a);
       if (r.win >= 0 && r.win !== me) continue;              /* 押して相手の並びを作ってしまう手は指さない */
       let pen = 0;
+      const left = [];
       opps.forEach((o, j) => {
         if (level === 0 && j > 0) return;
         const w = winCells(r.B, o).length;
         if (!w) return;
-        const wt = j === 0 ? 100000 : level === 2 ? 40000 : 12000;
-        pen += wt * (w > 1 ? 1.6 : 1);
+        left.push(o);
+        pen += TW[j] * (w > 1 ? 1.6 : 1);
       });
       const sh = shape(r.B);
       let mine = sh[me], other = 0, sum = 0;
@@ -173,18 +182,19 @@
       if (a.t === "place" && B.maxP && cnt(B, me) >= B.maxP - 1) sc -= 40;   /* 最後の1個はなるべく残す */
       const noise = o.det ? 0 : level === 2 ? 4 : level === 1 ? 25 : 120;
       sc += Math.random() * noise;
-      if (sc > bestSc) { bestSc = sc; best = a; bestInfo = { pen, myW }; }
+      if (sc > bestSc) { bestSc = sc; best = a; bestInfo = { pen, myW, left }; }
     }
     if (!o.info) return best || acts[0];
-    /* ★★ 2026-10-20 ヒントの理由 */
+    /* ★★ 2026-10-20 ヒントの理由（★ 2026-10-27 止めた相手＝その手で勝てるマスが消えた人のうち、番がいちばん近い人） */
     const a = best || acts[0], tgt = a.y * B.n + a.x;
     let why = "shape", who = null;
-    const blocked = Object.keys(nowThreat).length && bestInfo && !bestInfo.pen;
+    const stopped = bestInfo ? nowBy.filter((op) => bestInfo.left.indexOf(op) < 0) : [];
+    const blocked = nowBy.length && bestInfo && !bestInfo.pen;
     if (nowThreat[tgt] && (a.t === "place" || a.t === "move" || a.t === "block")) { why = "stop"; who = nowThreat[tgt][0]; }
-    else if (a.t === "push" && Object.keys(nowThreat).length) { why = "stop"; who = Number(Object.values(nowThreat)[0][0]); }
+    else if (a.t === "push" && stopped.length) { why = "stop"; who = stopped[0]; }
     else if (bestInfo && bestInfo.myW >= 2) why = "fork";
     else if (bestInfo && bestInfo.myW === 1) why = "reach";
-    else if (blocked) { why = "stop"; who = Number(Object.values(nowThreat)[0][0]); }
+    else if (blocked) { why = "stop"; who = stopped.length ? stopped[0] : nowBy[0]; }
     return { a, why, who };
   }
   /* ★★ 2026-10-20 ご指定「ヒント」：いまの番の人にとっていちばんよい手（つよいの考え方・ゆらぎなし）と、その理由
