@@ -14,7 +14,7 @@
 <link rel="manifest" href="manifest.webmanifest" />
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DotGothic16&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DotGothic16&family=Noto+Sans+JP:wght@400;700;900&family=Shippori+Mincho+B1:wght@700;800&family=Cinzel:wght@700;900&display=swap" rel="stylesheet"><!-- ★★ 2026-10-28 本文・見出し・英字の見出しの字（ma-ui2.css） -->
 <!-- ══════════════════════════════════════════════════════════════
      ★★ 2026-10-03 新作 MagiAbyss（ご指定）
      ・見下ろし型のドットアクションRPG。冒険者ギルド《アストラ》を拠点に、6つのアビスと深淵踏破に挑む。
@@ -29,7 +29,8 @@ if ("serviceWorker" in navigator) {
 </script>
 <script src="../xeva-safebottom.js?v=12"></script>
 <link rel="stylesheet" href="css/ma.css?v=12" />
-<script src="../xeva-splash.js?v=17" data-app="MagiAbyss" data-logo="../thumbs/MagiAbyss.jpg?v=2"></script>
+<link rel="stylesheet" href="css/ma-ui2.css?v=1" /><!-- ★★ 2026-10-28 UI・デザインの作り直し（本格的な見た目・スマホの横画面） -->
+<script src="../xeva-splash.js?v=18" data-app="MagiAbyss" data-logo="../thumbs/MagiAbyss.jpg?v=2"></script>
 </head>
 <body data-scr="title">
 
@@ -70,12 +71,12 @@ if ("serviceWorker" in navigator) {
 <script type="module" src="../xeva-cloud.js?v=48"></script>
 <!-- 所持・凸の最新を MagiBurst のクラウドから取ってくる（このアプリからは書きこまない） -->
 <script type="module" src="../MagiBurst/magiburst-cloud.js?v=27"></script>
-<script src="../xeva.js?v=83"></script>
+<script src="../xeva.js?v=84"></script>
 <script src="../xeva-loading.js?v=19" defer></script>
 <script src="../xeva-presence.js?v=9" defer></script>
-<script src="../mb-boot.js?v=17"></script>
+<script src="../mb-boot.js?v=18"></script>
 <script>window.MB_IMGD = "../img/"; window.MB_GIMGD = "../MagiBurst/img/";</script>
-<script src="../MagiBurst/js/mb-core.js?v=141"></script>
+<script src="../MagiBurst/js/mb-core.js?v=142"></script>
 <script src="js/ma-data.js?v=10"></script>
 <script src="js/ma-pixel.js?v=9"></script>
 <script src="js/ma-art.js?v=9"></script>
@@ -100,7 +101,7 @@ if ("serviceWorker" in navigator) {
 <script src="js/ma-town.js?v=2"></script>
 <script src="js/ma-town25.js?v=1"></script>
 <script src="js/ma-guild.js?v=12"></script>
-<script src="js/ma-stages.js?v=4"></script>
+<script src="js/ma-stages.js?v=5"></script>
 <script src="js/ma-howto.js?v=6"></script>
 <script src="js/ma-main.js?v=5"></script>
 <script src="../xeva-back.js?v=9" data-mode="hook"></script>

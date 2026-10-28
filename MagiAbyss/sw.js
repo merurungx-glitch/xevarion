@@ -5,12 +5,13 @@
    ・フォント（Google Fonts）も一度読めたら控える（オフラインでもドットの文字になる）。
    ・Firebase（同期）はキャッシュしない。
    ============================================================ */
-const VERSION = "magiabyss-sw-v18";
+const VERSION = "magiabyss-sw-v19";
 const RUNTIME = "magiabyss-rt-v1";
 const CORE = [
   "./index.html",
   "./manifest.webmanifest",
   "./css/ma.css?v=12",
+  "./css/ma-ui2.css?v=1",      // ★★ 2026-10-28 UI・デザインの作り直し
   "./js/ma-data.js?v=10",
   "./js/ma-pixel.js?v=9",
   "./js/ma-art.js?v=9",
@@ -34,7 +35,7 @@ const CORE = [
   "./js/ma-town.js?v=2",
   "./js/ma-town25.js?v=1",   /* ★★ 2026-10-23 拠点（町の広場）の 2.5D */
   "./js/ma-guild.js?v=12",
-  "./js/ma-stages.js?v=4",
+  "./js/ma-stages.js?v=5",
   "./js/ma-howto.js?v=6",
   "./js/ma-main.js?v=5",
   "./img/title.webp?v=2",
@@ -43,12 +44,12 @@ const CORE = [
   "../thumbs/MagiAbyss.jpg?v=2",
   "../gem.png",
   /* XEVARION の共通部品 */
-  "../mb-boot.js?v=17",
-  "../MagiBurst/js/mb-core.js?v=141",
-  "../xeva.js?v=83",
+  "../mb-boot.js?v=18",
+  "../MagiBurst/js/mb-core.js?v=142",
+  "../xeva.js?v=84",
   "../xeva-alive.js?v=8",
   "../xeva-loading.js?v=19",
-  "../xeva-splash.js?v=17",
+  "../xeva-splash.js?v=18",
   "../xeva-safebottom.js?v=12",
   "../xeva-back.js?v=9",
   "../xeva-presence.js?v=9",
