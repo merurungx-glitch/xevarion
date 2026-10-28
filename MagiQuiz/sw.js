@@ -3,7 +3,7 @@
    ・1台で遊ぶクイズ。キャッシュすれば完全にオフラインで動く（問題は MagiChemLex の問題データ）
    ・アカウントの紐づけと賞金だけ通信が要る（遊ぶこと自体はオフラインでできる）
    ============================================================ */
-const VERSION = "magiquiz-sw-v3";
+const VERSION = "magiquiz-sw-v4";
 const CORE = [
   "./index.html",
   "./css/quiz.css?v=2",
@@ -18,12 +18,12 @@ const CORE = [
   "../MagiChemLex/js/mcl-data4.js?v=2", "../MagiChemLex/js/mcl-data5.js?v=2", "../MagiChemLex/js/mcl-data6.js?v=1",
   "../MagiChemLex/js/mcl-data7.js?v=1", "../MagiChemLex/js/mcl-data8.js?v=2", "../MagiChemLex/js/mcl-data9.js?v=2",
   "../MagiChemLex/js/mcl-data10.js?v=1", "../MagiChemLex/js/mcl-data11.js?v=1", "../MagiChemLex/js/mcl-data12.js?v=1",
-  "../xeva-splash.js?v=17",
+  "../xeva-splash.js?v=18",
   "../xeva-safebottom.js?v=12",
   "../xeva-loading.js?v=19",
   "../xeva-back.js?v=9",
   "../maintenance-gate.js?v=13",
-  "../xeva.js?v=83", "../xeva-cloud.js?v=48", "../xeva-keys.js?v=34",
+  "../xeva.js?v=84", "../xeva-cloud.js?v=48", "../xeva-keys.js?v=34",
   "../xeva-alive.js?v=8",
   "../game-link.js?v=13",
   "../xevarion-fb.js?v=36",
@@ -34,6 +34,7 @@ const CORE = [
   "../brand/NGX_s.webp",
   "../brand/MagicalFuture_s.webp",
   "../brand/ISHIDA_s.webp",
+  "../brand/YRA_s.webp",
 ];
 
 /* ── 事前キャッシュの進捗をページへ通知する（更新ダウンロード画面用） ── */

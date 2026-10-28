@@ -3,7 +3,7 @@
    ・1台で遊ぶボードゲーム。キャッシュすれば完全にオフラインで動く
    ・アカウントの紐づけと賞金だけ通信が要る（遊ぶこと自体はオフラインでできる）
    ============================================================ */
-const VERSION = "magishift-sw-v26";
+const VERSION = "magishift-sw-v27";
 const CORE = [
   "./index.html",
   "./css/shift.css?v=13",
@@ -13,12 +13,12 @@ const CORE = [
   "./js/shift-ui.js?v=13",
   "./img/icon192.png",
   "./manifest.webmanifest",
-  "../xeva-splash.js?v=17",
+  "../xeva-splash.js?v=18",
   "../xeva-safebottom.js?v=12",
   "../xeva-loading.js?v=19",
   "../xeva-back.js?v=9",
   "../maintenance-gate.js?v=13",
-  "../xeva.js?v=83", "../xeva-cloud.js?v=48", "../xeva-keys.js?v=34",   /* ★★ 2026-10-22 同期（このページでも xeva-cloud を読む） */
+  "../xeva.js?v=84", "../xeva-cloud.js?v=48", "../xeva-keys.js?v=34",   /* ★★ 2026-10-22 同期（このページでも xeva-cloud を読む） */
   "../xeva-alive.js?v=8",
   "../game-link.js?v=13",
   "../xevarion-fb.js?v=36",
@@ -29,6 +29,7 @@ const CORE = [
   "../brand/NGX_s.webp",
   "../brand/MagicalFuture_s.webp",
   "../brand/ISHIDA_s.webp",
+  "../brand/YRA_s.webp",
 ];
 
 /* ── 事前キャッシュの進捗をページへ通知する（更新ダウンロード画面用） ── */

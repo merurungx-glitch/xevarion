@@ -1159,8 +1159,8 @@ async function runEnding(key) {
   $("#ending").classList.remove("hidden");
   $("#endCredit").innerHTML =
     `MagiManor — "The Manor Remembers Everything."<br>
-     <img src="../../brand/NGX_s.webp" alt="NGX"><img src="../../brand/MagicalFuture_s.webp" alt="Magical Future"><img src="../../brand/ISHIDA_s.webp" alt="ISHIDA Production"><br>
-     PRESENTED BY NGX × MAGICAL FUTURE × ISHIDA PRODUCTION<br>XEVARION`;
+     <img src="../../brand/NGX_s.webp" alt="NGX"><img src="../../brand/MagicalFuture_s.webp" alt="Magical Future"><img src="../../brand/ISHIDA_s.webp" alt="ISHIDA Production"><img src="../../brand/YRA_s.webp" alt="YRA"><br>
+     PRESENTED BY NGX × MAGICAL FUTURE × ISHIDA PRODUCTION × YRA<br>XEVARION`;   /* ★★ 2026-10-28 YRA が運営協力に参入 */
   throw ABORT;
 }
 $("#ending").addEventListener("click", () => {
