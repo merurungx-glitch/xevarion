@@ -664,9 +664,7 @@ window.addEventListener("appcloud:restored", (e) => {
       loadLocal();
       try{ render(cur.name, cur.arg); }catch(e2){}
     }
-    try{ mlBingoSync(); }catch(e2){}
-    try{ renderTop(); }catch(e2){}
-    if(document.getElementById("mlBingoOv")){ try{ lexBingoOpen(); }catch(e2){} }
+    try{ renderTop(); }catch(e2){}   /* ★★ 2026-10-28 ビンゴは廃止（数え直し・画面の出し直しはしない） */
   }catch(err){}
 });
 function save(){ P.updatedAt=Date.now(); try{ localStorage.setItem(LS_KEY, JSON.stringify(P)); }catch(e){} }
@@ -900,7 +898,9 @@ function renderHome(){
         <div class="chip" title="正答率"><span>正答率</span><b>${P.totals.answered? Math.round(P.totals.correct/P.totals.answered*100):0}%</b></div>
       </div>
     </div>
-    ${mlBingoCardHTML()}
+    ${/* ★★ 2026-10-28 ご指定「MagiLex のビンゴカードを廃止」→ ホームの入口を外した（補填の 5,000 XEVA・🎫ガチャチケット20枚はメールで）。
+          ビンゴカードは MagiChemLex に作り直した（MagiChemLex/js/mcl-bingo.js） */""}
+    <p class="mlg-end">ミッションビンゴは終了しました（補填は XEVARION の📧メールで）。ビンゴカードは <b>MagiChemLex</b> に新しくなりました。</p>
     <div class="menu-grid">
       <button class="m-card accent wide" onclick="lexTab('library')">
         <div class="mi">${uiIconSVG('study')}</div><div><h3>学習する</h3><p>選択クイズ・単語帳フラッシュカードから選ぶ・未習得の問題を優先出題</p></div>
@@ -1041,16 +1041,16 @@ window.lexKpDetail = async function(id){
   try{
     if(!document.getElementById("mbDetCss")){
       const l = document.createElement("link");
-      l.id = "mbDetCss"; l.rel = "stylesheet"; l.href = "../mb-char-detail.css?v=30";
+      l.id = "mbDetCss"; l.rel = "stylesheet"; l.href = "../mb-char-detail.css?v=31";
       document.head.appendChild(l);
     }
-    if(typeof window.DB === "undefined") await _loadScript("../mb-boot.js?v=17");
+    if(typeof window.DB === "undefined") await _loadScript("../mb-boot.js?v=18");
     /* ★★ 2026-10-24 ご報告「KP交換所のキャラの性能表示がうまくされず、画像も表示されない」
        真因：mb-boot.js は絵のフォルダを "img/"（ポータル用）に決めるので、MagiLex（../img/ が正しい）から開くと
        大きな絵（img/Mizuki.webp → MagiLex/img/…）が読めなかった。mb-core.js を読む前に直す（MagiAbyss と同じ）。 */
     window.MB_IMGD = "../img/"; window.MB_GIMGD = "../MagiBurst/img/";
-    if(typeof window.CHARS === "undefined") await _loadScript("../MagiBurst/js/mb-core.js?v=141");
-    if(typeof window.openDetX !== "function") await _loadScript("../mb-char-detail.js?v=49");
+    if(typeof window.CHARS === "undefined") await _loadScript("../MagiBurst/js/mb-core.js?v=142");
+    if(typeof window.openDetX !== "function") await _loadScript("../mb-char-detail.js?v=50");
     _kpDetReady = true;
     _kpOpen(id);
   }catch(e){
@@ -2661,8 +2661,7 @@ function finishQuiz(){
   /* ★★ 2026-08-22 ビンゴの「全問正解を◯回」用。ここが1セットの終わりなので、
      ミックス・確認テスト・ふつうのクイズのどれで終わっても同じように数えられる。 */
   try{ if(pct===100 && n>0){ mlBump("perfect"); save(); } }catch(e){}
-  /* ★ 解き終わるたびにビンゴのマスを開け直す（あとから見に行かなくても進む） */
-  try{ mlBingoSync(); }catch(e){}
+  /* ★★ 2026-10-28 ビンゴは廃止（マスの開け直しはしない） */
   const grade = pct===100?"💯":pct>=80?"🌟":pct>=50?"👍":"📖";
   /* ★★ 2026-08-19 まちがえた問題を、その場で<b>くわしい解説</b>へ渡せるようにした。
      ここが「解けなかった」と分かる唯一の場所なので、
@@ -3894,8 +3893,7 @@ function grantDaily(){
   try{ if(window.XEVA) window.XEVA.add(r.xeva, "MagiLex 連続ログイン " + L.streak + "日目"); }catch(e){}
   try{ if(r.gem > 0 && window.XEVA && window.XEVA.gem) window.XEVA.gem.add(r.gem, "MagiLex 連続ログイン " + L.streak + "日目の節目"); }catch(e){}
   renderTop();
-  /* ビンゴの「ログイン」マスと、連続ログイン系のマスをここで開け直す */
-  try{ mlBingoSync(); }catch(e){}
+  /* ★★ 2026-10-28 ビンゴは廃止（ログインのマスの開け直しはしない） */
   /* 起動直後は注意書き・スプラッシュが重なるので、少し待ってから出す */
   /* ★ ここを黙ってつぶさない。出なかったときに原因が分からなくなる */
   setTimeout(() => { try{ mlShowLoginBonus(r, L); }catch(e){ console.error("[MagiLex] ログインボーナスを出せませんでした", e); } }, 1400);
@@ -4126,6 +4124,9 @@ window.lexBingoClaim = () => {
 
 /* ── 画面 ── */
 window.lexBingoOpen = () => {
+  /* ★★ 2026-10-28 ビンゴは廃止。古いリンクから呼ばれても開かない */
+  try{ toast("ミッションビンゴは終了しました（ビンゴカードは MagiChemLex へ）"); }catch(e){}
+  if(true) return;
   mlBingoSync();
   const B = mlBingo();
   const old = document.getElementById("mlBingoOv"); if(old) old.remove();

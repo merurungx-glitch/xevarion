@@ -20,7 +20,8 @@
      ★★ 2026-10-21 ご指定「実際の結果を使う形に」→ 実際の JRA 平地 GⅠ に賭ける形に作り直した。
      ・出馬表・オッズ・結果・払戻金は PC の自動取得（MagiDerby/collector/derby.py・MagiScope と同じタスク）が
        GitHub の magiscope-data ブランチの derby/ に置いたもの。払い戻しは実際の払戻金どおり（1 XEVA ＝ 1円）。
-     ・締切は発走の2分前。判定は端末の時計ではなくサーバーの時刻（clock.txt の Date ヘッダー）。オフラインでは買えない。
+     ・締切は発走の2分前。判定は端末の時計ではなくサーバーの時刻（clock.txt の Date ヘッダー）。
+       ★★ 2026-10-28 オフラインでも買える（いちばん遅い見積もりの時刻で締切を確かめる・精算のときに測り直す＝md-bet.js）。
      ・馬券 magiderby_v1 は xeva-cloud（xeva-keys.js の PORTAL_SYNC_KEYS）で同期。混ぜ方は mergeDerby。
      ══════════════════════════════════════════════════════════════ -->
 <script>
@@ -29,8 +30,8 @@ if ("serviceWorker" in navigator) {
 }
 </script>
 <script src="../xeva-safebottom.js?v=12"></script>
-<link rel="stylesheet" href="css/md.css?v=6" />
-<script src="../xeva-splash.js?v=17" data-app="MagiDerby" data-logo="../thumbs/MagiDerby.jpg"></script>
+<link rel="stylesheet" href="css/md.css?v=7" />
+<script src="../xeva-splash.js?v=18" data-app="MagiDerby" data-logo="../thumbs/MagiDerby.jpg"></script>
 </head>
 <body>
 <header class="hd">
@@ -47,7 +48,7 @@ if ("serviceWorker" in navigator) {
   <!-- ★★ 2026-10-24 ご指定：成績は上の「マイページ」から -->
   <button class="hd-my" data-a="mypage" aria-label="マイページ" title="マイページ（成績）"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8.2" r="3.8"/><path d="M4.5 20.2c.8-4 3.9-6.2 7.5-6.2s6.7 2.2 7.5 6.2"/></svg><span>マイページ</span></button>
 </header>
-<div class="offbar" id="offBar" hidden>📴 オフライン：手元に控えた情報を表示しています（馬券は買えません）</div>
+<div class="offbar" id="offBar" hidden>📴 オフライン：手元に控えた情報を表示しています（馬券は買えます・つながったら同期します）</div>
 <nav class="tabs" aria-label="画面">
   <button data-tab="home" class="on">G1 レース</button>
   <button data-tab="tickets">馬券</button>
@@ -61,16 +62,16 @@ if ("serviceWorker" in navigator) {
 
 <script type="module" src="../xevarion-fb.js?v=36"></script>
 <script type="module" src="../xeva-cloud.js?v=48"></script>
-<script src="../xeva.js?v=83"></script>
+<script src="../xeva.js?v=84"></script>
 <script src="../xeva-loading.js?v=19" defer></script>
 <script src="../xeva-presence.js?v=9" defer></script>
 <script src="js/md-data.js?v=4"></script>
 <script src="js/md-net.js?v=5"></script>
-<script src="js/md-bet.js?v=5"></script>
+<script src="js/md-bet.js?v=6"></script>
 <script src="js/md-race.js?v=1"></script>
-<script src="js/md-ui.js?v=6"></script>
-<script src="js/md-help.js?v=2"></script><!-- ★★ 2026-10-26 使い方（アニメ）・馬券の種類 -->
-<script src="js/md-intro.js?v=1"></script><!-- ★★ 2026-10-27 GⅠ を押したときのレース名の演出 -->
+<script src="js/md-ui.js?v=7"></script>
+<script src="js/md-help.js?v=3"></script><!-- ★★ 2026-10-26 使い方（アニメ）・馬券の種類 -->
+<script src="js/md-intro.js?v=2"></script><!-- ★★ 2026-10-27 GⅠ を押したときのレース名の演出 -->
 <script src="../xeva-back.js?v=9" data-mode="hook"></script>
 </body>
 </html>

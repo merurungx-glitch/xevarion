@@ -5,7 +5,10 @@
      ・締切・発走は<b>端末の時計ではなくサーバーの時刻</b>で決める。
        同じサイトの小さなファイル（clock.txt）を no-store で聞き、返ってきた Date ヘッダー（サーバーの時刻）を基準にする。
        基準を取ったあとは performance.now()（端末の時計を変えても進み方が変わらない）で数える。
-     ・購入のときは<b>その場で時刻を取り直してから</b>締切を確かめる。オフラインでは買えない（時刻を確かめられないため）。
+     ・購入のときは<b>その場で時刻を取り直してから</b>締切を確かめる。
+     ・★★ 2026-10-28 ご指定「馬券をオフラインでも購入できるように」：時刻を取り直せないとき（オフライン）は、
+       いちばん遅い見積もりの時刻（B.clock.offNow＝このページで取ったサーバーの時刻＋経過／端末の時計＋前に測ったずれ／いままでに見たサーバーの時刻の最大）
+       で締切を確かめて買える。券に off=1・dw（端末の時計）を残し、精算のときに<b>いまのずれで測り直した時刻</b>が締切を過ぎていれば返還（B.settle）。
      ・締切は実際の発走時刻の CLOSE_BEFORE 秒前（2分前）。さらに 1.5 秒の余裕を見る。
      ・万一、締切のあとの時刻で記録された馬券があれば、払い戻しのときに「返還」にする（二重の守り）。
    ■ 払い戻し：<b>実際の払戻金</b>（100円あたり）をそのまま 100 XEVA あたりの払い戻しにする（1 XEVA ＝ 1円）。
@@ -18,7 +21,13 @@
   const B = (window.MD_BET = {});
 
   /* ══════════ 時計 ══════════ */
-  const CLK = { ok: false, base: 0, at: 0, wall: 0, syncAt: 0, busy: null, err: "" };
+  const CLK = { ok: false, base: 0, at: 0, wall: 0, syncAt: 0, busy: null, err: "", ofs: null };
+  /* ★★ 2026-10-28 オフラインで買うときのための控え（端末ごと）：md_clk_v1 { o: サーバー−端末の時計（ms）, hw: いままでに見たサーバーの時刻の最大 } */
+  const CLK_KEY = "md_clk_v1";
+  function clkSaved() { try { return JSON.parse(localStorage.getItem(CLK_KEY) || "null") || {}; } catch (e) { return {}; } }
+  function clkSave(srv) {
+    try { const c = clkSaved(); c.o = Math.round(srv - Date.now()); c.hw = Math.max(Number(c.hw) || 0, Math.round(srv)); c.at = Date.now(); localStorage.setItem(CLK_KEY, JSON.stringify(c)); } catch (e) {}
+  }
   async function headDate(method) {
     const url = new URL("clock.txt", location.href).href + "?__mdclock=" + Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
     const t0 = performance.now();
@@ -37,6 +46,8 @@
           let r;
           try { r = await headDate("HEAD"); } catch (e) { r = await headDate("GET"); }
           CLK.base = r.srv; CLK.at = r.at; CLK.wall = Date.now(); CLK.ok = true; CLK.syncAt = Date.now(); CLK.err = "";
+          CLK.ofs = r.srv - (Date.now() - (performance.now() - r.at));   /* サーバー − 端末の時計（返ってきた瞬間） */
+          clkSave(r.srv + (performance.now() - r.at));
           return true;
         } catch (e) { CLK.err = "offline"; return false; }
         finally { setTimeout(() => { CLK.busy = null; }, 0); }
@@ -49,6 +60,17 @@
       return Date.now();
     },
     ok: () => CLK.ok,
+    /* ★★ 2026-10-28 オフラインのときの「いま」（いちばん遅い見積もり＝締切を甘くしない） */
+    offNow: function () {
+      const c = clkSaved();
+      let t = Date.now() + (Number(c.o) || 0);
+      if (CLK.base) t = Math.max(t, CLK.base + (performance.now() - CLK.at));
+      if (c.hw) t = Math.max(t, Number(c.hw));
+      try { const fb = window.XEVARIONFB; if (fb && fb.now) t = Math.max(t, fb.now()); } catch (e) {}
+      return t;
+    },
+    /* いまのずれ（サーバー − 端末の時計）。このページで取れていなければ前に測った値 */
+    ofs: function () { if (CLK.ofs != null) return CLK.ofs; const c = clkSaved(); return c.o != null ? Number(c.o) || 0 : null; },
     check: function () {
       if (!CLK.ok) return;
       const dw = Date.now() - CLK.wall, dp = performance.now() - CLK.at;
@@ -326,33 +348,36 @@
 
   /* ══════════ 購入 ══════════
      r：index のレース、race：race/<id>.json。lines：[{ type, mode, sel, cb:[[..]], u（1点あたり XEVA）}]
-     失敗は { err: "offline" | "notyet" | "closed" | "nodraw" | "balance" | "cap" | "empty" | "invalid" } */
+     失敗は { err: "notyet" | "closed" | "nodraw" | "balance" | "cap" | "empty" | "invalid" }（★★ 2026-10-28 オフラインでも買える＝"offline" は返さない） */
   B.buy = async function (r, race, lines) {
     lines = (lines || []).filter((l) => l && l.cb && l.cb.length && l.u >= D.UNIT);
     if (!lines.length) return { err: "empty" };
     if (!r || !r.rid || !race || r.st === "result") return { err: "closed" };
-    if (navigator.onLine === false) return { err: "offline" };
     const ents = race.entries || [];
     if (!ents.length || !ents.every((e) => e.cx || e.no)) return { err: "nodraw" };
     /* ★★ 2026-10-24 枠順の発表前（N.betRace の仮の番号）は枠連を買えない（枠が無い） */
     if (race.pre && lines.some((l) => B.TYPE[l.type].frame)) return { err: "nodraw" };
     for (const l of lines) for (const c of l.cb) if (!B.comboOk(race, l.type, c)) return { err: "invalid" };
-    const ok = await B.clock.sync();
-    if (!ok) return { err: "offline" };
-    if (B.clock.now() + 1500 >= N.closeAt(r)) return { err: "closed" };
-    if (!N.onSale(r, B.clock.now())) return { err: "notyet" };   /* ★★ 2026-10-22 発売の時間は JRA と同じ（N.saleWins・サーバーの時刻） */
+    /* ★★ 2026-10-28 時刻を取り直せない（オフライン）ときは、いちばん遅い見積もりの時刻で締切を確かめて買う（券に off=1） */
+    const ok = navigator.onLine === false ? false : await B.clock.sync();
+    const off = !ok;
+    const tNow = () => (off ? B.clock.offNow() : B.clock.now());
+    if (tNow() + 1500 >= N.closeAt(r)) return { err: "closed" };
+    if (!N.onSale(r, tNow())) return { err: "notyet" };   /* ★★ 2026-10-22 発売の時間は JRA と同じ（N.saleWins・サーバーの時刻） */
     const cost = lines.reduce((t, l) => t + l.cb.length * l.u, 0);
     if (B.raceSpent(r.rid) + cost > D.MAX_PER_RACE) return { err: "cap", cost: cost };
     const bal = window.XEVA ? window.XEVA.getBalance() : 0;
     if (bal < cost) return { err: "balance", cost: cost, bal: bal };
     if (!window.XEVA || !window.XEVA.spend(cost)) return { err: "balance", cost: cost, bal: bal };
-    const at = Math.round(B.clock.now());
+    const at = Math.round(tNow());
     let bo = 1; try { bo = window.XEVA.event ? window.XEVA.event.boost("derby") || 1 : 1; } catch (e) {}
     const s = B.load(), made = [];
     lines.forEach((l) => {
       const id = "t" + at.toString(36) + Math.random().toString(36).slice(2, 7);
       const tk = { id: id, rid: r.rid, nm: r.nm, date: r.date, post: r.post, place: r.place, surf: r.surf, dist: r.dist, at: at,
         type: l.type, mode: l.mode || "norm", sel: l.sel || {}, cb: l.cb, u: l.u, cost: l.cb.length * l.u, bo: bo, st: "open", pay: 0, hits: [], ref: 0 };
+      /* ★★ 2026-10-28 オフラインで買った券：dw＝そのときの端末の時計（精算のときに、いまのずれで測り直す） */
+      if (off) { tk.off = 1; tk.dw = Date.now(); }
       /* ★★ 2026-10-24 枠順の発表前に買った券：仮の番号 → 馬（pm＝hid・pn＝馬名）。発表されたら B.fixPre で本当の馬番へ */
       if (race.pre) { tk.pm = {}; tk.pn = {}; (race.entries || []).forEach((e) => { if (e.pno) { tk.pm[e.pno] = e.hid; tk.pn[e.pno] = e.nm; } }); }
       /* ★★ 2026-10-26 ご報告「馬券の結果で馬の名前が出ないことがある」：出馬表の控えが無い端末（同期で届いた券など）でも名前が出るよう、
@@ -363,7 +388,7 @@
     });
     B.save(s);
     try { if (window.XEVA.event) window.XEVA.event.bump("derbyBet", made.length); } catch (e) {}
-    return { ok: true, tickets: made, cost: cost };
+    return { ok: true, tickets: made, cost: cost, off: off };
   };
 
   /* ══ ★★ 2026-10-24 枠順の発表前に買った券の差し替え ══
@@ -464,8 +489,12 @@
         if (tk.pm && !tk.pf && !B.fixPre(tk, race)) return;
         if (now < N.payAt(r)) return;
         let rs;
-        /* 締切のあとの時刻で記録された馬券は返還（ふつうは起きない・二重の守り） */
-        if (tk.at >= N.closeAt(r)) rs = { st: "void", win: 0, ref: tk.cost, pay: tk.cost, hits: [] };
+        /* 締切のあとの時刻で記録された馬券は返還（ふつうは起きない・二重の守り）
+           ★★ 2026-10-28 オフラインで買った券（off）は、そのときの端末の時計（dw）を<b>いまのずれ</b>で測り直した時刻でも確かめる
+           （端末の時計を戻して締切のあとに買った券を返還にする） */
+        const ofsNow = B.clock.ofs();
+        const atEff = tk.off && tk.dw && ofsNow != null ? Math.max(tk.at, tk.dw + ofsNow) : tk.at;
+        if (atEff >= N.closeAt(r)) rs = { st: "void", win: 0, ref: tk.cost, pay: tk.cost, hits: [] };
         else {
           let win = 0, ref = 0; const hits = [];
           tk.cb.forEach((c, i) => {

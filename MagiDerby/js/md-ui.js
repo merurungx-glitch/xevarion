@@ -771,7 +771,8 @@
     B.fixAll(rid, race);
     /* ★★ 2026-10-24 枠順の発表前は仮の番号の写し（N.betRace）で買う。オッズはまだ無い */
     race = N.betRace(race);
-    U.slip = { rid: rid, race: race, ex: U.rid === rid && !race.pre ? U.ex : null, type: "win", mode: "norm", cols: [[], [], []], pick: [], axis: [], part: [], pos: "1", u: 100, lines: [] };
+    /* ★★ 2026-10-28 ご指定「馬券購入で初期入力値を0に」（u: 100 → 0。金額のボタンで足していく） */
+    U.slip = { rid: rid, race: race, ex: U.rid === rid && !race.pre ? U.ex : null, type: "win", mode: "norm", cols: [[], [], []], pick: [], axis: [], part: [], pos: "1", u: 0, lines: [] };
     openSheet('<div id="slip"></div>', "slip");
     paintSlip();
     if (!race.pre) N.odds(rid).then((ex) => { if (U.slip && U.slip.rid === rid) { U.slip.ex = ex; paintSlip(); } }).catch(() => {});
@@ -846,9 +847,13 @@
         '<div class="amt-q">' + [100, 500, 1000, 5000].map((v) => '<button data-uq="' + v + '">＋' + fmt(v) + "</button>").join("") + '<button class="rs" data-ur="1">リセット</button></div>' +
         '<button class="btn add" data-a="addLine" ' + (cb.length && S.u >= D.UNIT ? "" : "disabled") + ">" + (S.u >= D.UNIT ? "買い目に追加（" + fmt(lineCost) + " XEVA）" : "金額を入れてください（1点 " + fmt(D.UNIT) + " XEVA から）") + "</button></div>" +
       (S.lines.length ? '<div class="lines"><div class="pick-h">買い目<small>' + S.lines.length + "件</small></div>" + S.lines.map((l, i) => '<div class="ln"><span><b>' + esc(B.lineLabel(l)) + "</b><small>" + esc(l.cb.slice(0, 6).map((c) => race.pre ? preStr(race, l.type, c) : B.comboStr(l.type, c)).join(" ") + (l.cb.length > 6 ? " …" : "")) + "</small></span><em>" + l.cb.length + "点×" + fmt(l.u) + "</em><b>" + fmt(l.cb.length * l.u) + '</b><button data-del="' + i + '" aria-label="消す">✕</button></div>').join("") + "</div>" : "") +
-      '<div class="buy"><div><small>合計</small><b>' + fmt(total) + ' XEVA</b><small>残高 ' + fmt(bal) + (spent ? "・このレースで " + fmt(spent) + " 購入ずみ" : "") + "</small></div>" +
-        '<button class="btn pri big" data-a="buy" ' + (S.lines.length && st === "sale" ? "" : "disabled") + ">購入する</button></div>" +
-      '<p class="sm">1点 100 XEVA から。払い戻しは実際の払戻金（100円あたり）どおり。1レース ' + fmt(D.MAX_PER_RACE) + " XEVA まで。結果と払い戻しはデータが届きしだい（" + PAY_NOTE + "）。</p></div>";
+      '<p class="sm">1点 100 XEVA から。払い戻しは実際の払戻金（100円あたり）どおり。1レース ' + fmt(D.MAX_PER_RACE) + " XEVA まで。結果と払い戻しはデータが届きしだい（" + PAY_NOTE + "）。" +
+        (navigator.onLine === false ? "<br>📴 オフラインでも買えます（時刻はこの端末の時計で記録し、つながったときに同期・確認します）。" : "") + "</p></div>" +
+      /* ★★ 2026-10-28 ご報告「購入するボタンが下の縁から浮いて上目に表示」：
+         前は .sh-body（スクロールの箱）の中の sticky（bottom:-16px）で、下の余白（16px＋env の下）のぶん浮いていた（iPhone のアプリ表示では env が二重）
+         → シートの<b>下のふちに固定した帯</b>（.sh-ft・スクロールの外）にした。下の余白は --xv-safeb（二重にならない値） */
+      '<div class="buy sh-ft"><div><small>合計</small><b>' + fmt(total) + ' XEVA</b><small>残高 ' + fmt(bal) + (spent ? "・このレースで " + fmt(spent) + " 購入ずみ" : "") + "</small></div>" +
+        '<button class="btn pri big" data-a="buy" ' + (S.lines.length && st === "sale" ? "" : "disabled") + ">購入する</button></div>";
     const sb1 = box.querySelector(".sh-body"); if (sb1 && keepY) sb1.scrollTop = keepY;
   }
   function slipPick(key, v) {
@@ -871,11 +876,11 @@
     const res = await B.buy(r, S.race, S.lines);
     if (res.ok) {
       closeSheet();
-      toast("🎫 購入しました：" + res.tickets.length + "件・" + fmt(res.cost) + " XEVA", "ok");
+      toast("🎫 購入しました：" + res.tickets.length + "件・" + fmt(res.cost) + " XEVA" + (res.off ? "（オフライン：つながったら同期します）" : ""), "ok");
       paintHead(); render(); if (U.rid) renderRace();
       return;
     }
-    const msg = { offline: "オフラインのため買えません（締切をサーバーの時刻で確かめる必要があります）", closed: "締切を過ぎています（締切は発走の2分前）", nodraw: "枠順が決まるまで買えません",
+    const msg = { offline: "通信できませんでした。もう一度お試しください", closed: "締切を過ぎています（締切は発走の2分前）", nodraw: "枠順が決まるまで買えません",
       notyet: "いまは発売していません（発売は" + D.SALE_TXT + " から・締切は発走の2分前）",
       balance: "XEVA が足りません（必要 " + fmt(res.cost || 0) + "・残高 " + fmt(res.bal || 0) + "）", cap: "1レースで買えるのは " + fmt(D.MAX_PER_RACE) + " XEVA までです", invalid: "出走しない馬（取消・除外）を含む買い目があります", empty: "買い目がありません" }[res.err] || "購入できませんでした";
     toast(msg, "err");
