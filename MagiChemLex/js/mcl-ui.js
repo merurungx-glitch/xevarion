@@ -410,6 +410,8 @@
       noCalcBar() +
       /* ★★ 2026-10-20 Wisdom Point（WP） */
       wpCard() +
+      /* ★★ 2026-10-28 ビンゴカード（mcl-bingo.js・ご指定「ビンゴカードを豪華に追加」） */
+      (window.MCLBingo ? MCLBingo.bannerHTML() : "") +
       /* ★★ 2026-10-15 特設予想問題（mcl-special.js） */
       (window.MCLSpecial ? MCLSpecial.bannerHTML() : "") +
       eventCard() +

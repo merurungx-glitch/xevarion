@@ -18,7 +18,10 @@
   /* ★★ 2026-10-06c ご指定「MagiLex にくらべて XEVA が少ない → 同じくらいに」：全体を約3.5倍に。
      MagiLex は1問あたり約120 XEVA（完全習得＋確認テスト）。こちらも問題セットの完全習得（gmaster）・確認テスト（confirm）・
      ランダム10問（mix90/mix100・何度でも＝MagiLex のミックス問題と同じ）を足して、1問あたり約140 にそろえた。 */
-  const REWARD = { reg: 50, first: 15, topic: 300, set60: 150, set80: 300, set100: 600, daily: 100, streak7: 300, gmaster: 300, confirm: 500, mix90: 50, mix100: 150 };
+  /* ★★ 2026-10-28 ご指定「XEVA の報酬量で、イベントで2倍の前の素の量を3倍に（そこにイベントの2倍がかかる）・3倍の表記は要らない」
+     → 素の量（ここ）をすべて3倍（前は reg 50・first 15・topic 300・set60/80/100 150/300/600・daily 100・streak7 300・gmaster 300・confirm 500・mix90 50・mix100 150）。
+       イベントの倍率（mult）はこのあとでかかる。画面の数字はこの表から出すので、ほかに直す所は無い。特設予想問題の 1660 XEVA（倍率なし）はそのまま。 */
+  const REWARD = { reg: 150, first: 45, topic: 900, set60: 450, set80: 900, set100: 1800, daily: 300, streak7: 900, gmaster: 900, confirm: 1500, mix90: 150, mix100: 450 };
   const TITLES = [[1, "ビーカー見習い"], [3, "試験管ルーキー"], [5, "フラスコ使い"], [8, "滴定職人"], [12, "平衡の賢者"], [16, "反応速度の覇者"], [20, "化学の探究者"], [25, "難関化学マスター"]];
 
   function pad(n) { return String(n).padStart(2, "0"); }
@@ -532,6 +535,8 @@
     if (n < 10) return 0;
     const p = ok / n, base = p >= 1 ? REWARD.mix100 : p >= 0.9 ? REWARD.mix90 : 0;
     if (!base) return 0;
+    /* ★★ 2026-10-28 ビンゴカード（mcl-bingo.js）の「ランダム10問で 90%以上」を数える印（1回ごとに別の名前＝ほかの端末のぶんと和で混ざる） */
+    try { mut((s) => { s.rw = s.rw || {}; s.rw["bgc:mix:" + Date.now().toString(36) + Math.floor(Math.random() * 46656).toString(36)] = Date.now(); }); } catch (e) {}
     return earn(base, "ランダム10問 " + (p >= 1 ? "全問正解" : "90%以上"));
   }
   /* ★★ 2026-10-06c 問題セットを入れる前に完全習得していたセットのぶんを渡す（起動・同期のあと）。
