@@ -22,9 +22,9 @@ if ("serviceWorker" in navigator) {
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
-<script src="../xeva-splash.js?v=17" data-app="MagiBurst" data-logo="../thumbs/MagiBurst.jpg"
+<script src="../xeva-splash.js?v=18" data-app="MagiBurst" data-logo="../thumbs/MagiBurst.jpg"
         data-note="⚠️ このゲームの対象年齢は 13歳以上 です"></script>
-<script src="../xeva.js?v=83"></script>
+<script src="../xeva.js?v=84"></script>
 <!-- ★★ 2026-09-05 言語切りかえ（日本語 ⇄ English）。辞書は本体のあとに読むこと。 -->
 <script src="../xeva-i18n.js?v=8"></script>
 <script src="../xeva-i18n-dict.js?v=12"></script>
@@ -4031,14 +4031,14 @@ textarea.oninp.mbcode[readonly]{background:#f2f0fb;color:#3b3560}
 </div></div>
 
 <script>window.MB_IMGD = "../img/"; window.MB_GIMGD = "img/";</script>
-<script src="../mb-newchars.js?v=39"></script>
+<script src="../mb-newchars.js?v=40"></script>
 <!-- ★★ 2026-09-06 新UI（スタイリッシュ）。
      body.mb-ui2 の中だけにかかるので、旧UIに戻すのは class を外すだけ。
      ★ 本文の <style> より<b>あと</b>に置くこと（あとに来たほうが勝つ）。 -->
 <link rel="stylesheet" href="css/mb-ui2.css?v=26">
 <!-- ★★ 2026-09-06 LOCAL PLAY（近距離ローカルマルチ）の画面 -->
 <link rel="stylesheet" href="css/localplay.css?v=7">
-<script src="js/mb-core.js?v=141"></script>
+<script src="js/mb-core.js?v=142"></script>
 <!-- ★★ 2026-10-16 MagiAbyss 専用のキャラ（超極華祭の5体・abyssOnly）は MagiBurst には出さない（ご指定「他のゲームの性能は所持しません」）。
      CHAR_IDS（図鑑・編成・育成などの一覧のもと）から外す。いちばん後ろの番号なので、ほかの子の No. は変わらない -->
 <script>try { for (let i = CHAR_IDS.length - 1; i >= 0; i--) if (isAbyssOnly(CHAR_IDS[i])) CHAR_IDS.splice(i, 1); } catch (e) {}</script>
@@ -6170,6 +6170,12 @@ window.openNewChar = openNewChar; window.closeNewChar = closeNewChar;
 
 /* ══════════ お知らせ（アップデートのたびにここへ追記する） ══════════ */
 const NEWS = [
+  /* ★★ 2026-10-28 フェス終了・属性の表記・10連半額券 */
+  { date: "2026-10-28", title: "🎪 花宴祭・RISING STAR FEST 終了／10連半額券", body: [
+    "🎪 <b>花宴祭</b>と <b>RISING STAR FEST</b> の開催を終了しました。この2つのキャラは、ほかのフェスと同じく <b>Festival Archive GACHA</b> で引けます。",
+    "🎟️ 新しいアイテム<b>「ガチャ10連半額券」</b>：どのガチャでも10連を1枚で 💎25 で引けます（XEVARION のメールで5枚配布中）。",
+    "🔤 XEVARION の図鑑・ガチャでは、属性の表記を<b>火・水・木・光・闇</b>に戻しました。",
+  ] },
   /* ★★ 2026-10-27 ウマ娘風の配色・MagiAbyss 外伝 */
   { date: "2026-10-27", title: "🏝️ MagiAbyss 外伝クエスト・ホームの新しい配色", body: [
     "🏝️ <b>MagiAbyss</b> に<b>外伝クエスト6つ</b>（新しい敵とボス）と<b>ストーリー</b>を追加。中ボス戦は部屋を封鎖するように・豪華な演出も。",

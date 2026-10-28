@@ -15,8 +15,8 @@
    <b>ふつうの &lt;script&gt;</b>（type="module" ではない）で読むこと。
    トップレベルの const/let はグローバルの字句環境に入るので、
    あとから読み込む MagiBurst 本体のスクリプトからそのまま見える。
-     MagiBurst : <script src="js/mb-core.js?v=141"></script>
-     gacha.html: <script src="MagiBurst/js/mb-core.js?v=141"></script>
+     MagiBurst : <script src="js/mb-core.js?v=142"></script>
+     gacha.html: <script src="MagiBurst/js/mb-core.js?v=142"></script>
 
    ── ホストが先に用意しておくもの ──
      window.MB_IMGD … 画像フォルダへの相対パス（MagiBurst は "../img/"、ポータルは "img/"）
@@ -46,6 +46,61 @@ const ELEM = {
   light: { nm: "LUMEN", jp: "光", c: "#f0b429", tint: "#ffcc00" },
   dark:  { nm: "UMBRA", jp: "闇", c: "#a86bff", tint: null },
 };
+/* ══ ★★ 2026-10-28 ご指定「図鑑やガチャの属性表記を火水木光闇に戻して」══
+   ポータルの mb-boot.js が先に window.MB_ELEM_JA を立てたページ（ガチャ・図鑑・MagiLex のキャラ詳細・MagiAbyss など）だけ、
+   呼び名 nm を<b>漢字1文字（jp）</b>に戻す（もとの英語の名前は en に残す）。MagiBurst 本体は IGNIS…のまま。
+   ・名前を組み立てるところ（abilName・fsElemChip）は elNmK で「火属性キラー」「火属性」のように「属性」を足す。
+   ・説明文に<b>直接書いてある</b>「IGNIS属性」などは elTxt（文字）／elJaDom（画面の中の文字）で漢字に置きかえる。
+     画面のほうは、このページの body を見張って、足された文字をその場で直す（elJaWatch）。 */
+const ELEM_JA = typeof window !== "undefined" && !!window.MB_ELEM_JA;
+if (ELEM_JA) Object.keys(ELEM).forEach((k) => { ELEM[k].en = ELEM[k].nm; ELEM[k].nm = ELEM[k].jp; });
+/* 属性の名前＋「属性」（漢字のときだけ。IGNIS などはそれ自体が属性の名前なので付けない＝2026-09-06b の決まり） */
+function elNmK(el) { const e = ELEM[el]; if (!e) return ""; return ELEM_JA ? e.nm + "属性" : e.nm; }
+const EL_JA_OF = { IGNIS: "火", AQUA: "水", VERDE: "木", LUMEN: "光", UMBRA: "闇" };
+const EL_JA_RX = /(IGNIS|AQUA|VERDE|LUMEN|UMBRA)(属性|キラー|耐性)?/g;
+function elTxt(s) {
+  if (!ELEM_JA || s == null) return s;
+  return String(s).replace(EL_JA_RX, (m, w, t, off, all) => {
+    /* 英単語の一部・「LUMEN-04」のような飾りの文字は触らない */
+    const pv = all.charAt(off - 1), nx = all.charAt(off + m.length);
+    if (/[A-Za-z_]/.test(pv) || (!t && /[A-Za-z_0-9-]/.test(nx))) return m;
+    return EL_JA_OF[w] + (t === "キラー" || t === "耐性" ? "属性" + t : (t || ""));
+  });
+}
+function elJaDom(root) {
+  if (!ELEM_JA || !root || typeof document === "undefined") return;
+  const RX = /IGNIS|AQUA|VERDE|LUMEN|UMBRA/;
+  try {
+    if (root.nodeType === 3) { if (RX.test(root.nodeValue)) root.nodeValue = elTxt(root.nodeValue); return; }
+    if (root.nodeType !== 1 || root.closest("#xsm,script,style,textarea,[contenteditable]")) return;   /* ガチャの召喚演出（xeva-summon.js）の飾りの文字は触らない */
+    if (RX.test(root.textContent || "")) {
+      const tw = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+      for (let n = tw.nextNode(); n; n = tw.nextNode()) {
+        if (RX.test(n.nodeValue) && !(n.parentNode && n.parentNode.closest && n.parentNode.closest("#xsm,script,style,textarea"))) n.nodeValue = elTxt(n.nodeValue);
+      }
+    }
+    const ts = root.querySelectorAll ? root.querySelectorAll("[title]") : [];
+    for (let i = 0; i < ts.length; i++) { const t = ts[i].getAttribute("title"); if (t && RX.test(t)) ts[i].setAttribute("title", elTxt(t)); }
+    if (root.getAttribute && root.getAttribute("title") && RX.test(root.getAttribute("title"))) root.setAttribute("title", elTxt(root.getAttribute("title")));
+  } catch (e) {}
+}
+(function elJaWatch() {
+  /* ★ ホーム（交換所を開いたときだけ mb-core.js を読む）は見張らない：お知らせに「火→IGNIS」のような昔の文がある（window.MB_ELEM_JA_NOWATCH） */
+  if (!ELEM_JA || typeof MutationObserver === "undefined" || typeof document === "undefined" || window.MB_ELEM_JA_NOWATCH) return;
+  const start = () => {
+    if (!document.body) return;
+    elJaDom(document.body);
+    new MutationObserver((ms) => {
+      for (let i = 0; i < ms.length; i++) {
+        const m = ms[i];
+        if (m.type === "characterData") elJaDom(m.target);
+        else for (let j = 0; j < m.addedNodes.length; j++) elJaDom(m.addedNodes[j]);
+      }
+    }).observe(document.body, { childList: true, subtree: true, characterData: true });
+  };
+  if (document.body) start(); else document.addEventListener("DOMContentLoaded", start);
+})();
+if (typeof window !== "undefined") { window.elTxt = elTxt; window.elJaDom = elJaDom; }
 const ELEM_GLYPH = {
   fire:  (c, l) => `<path d="M12 2c1 4 5 6 5 11a5 5 0 01-10 0c0-2.6 1.4-4.2 2.7-5.7C10.2 9 11 9.4 12 9c.9-.4 1-2.8 0-7Z" fill="${c}"/><path d="M12 11.5c1.3 1.3 2.1 2.3 2.1 3.8a2.1 2.1 0 01-4.2 0c0-1.4 .9-2.4 2.1-3.8Z" fill="${l}"/>`,
   wood:  (c, l) => `<path d="M12 21C6 17 5 9 12 3c7 6 6 14 0 18Z" fill="${c}"/><path d="M12 6.5v12.5M12 11l3-2.2M12 14.5l-3-2.2" stroke="${l}" stroke-width="1.3" stroke-linecap="round" fill="none"/>`,
@@ -131,7 +186,7 @@ function fsElemChip(el, kind, sub, sm) {
      IGNIS / AQUA / VERDE / LUMEN / UMBRA はそれ自体が属性の名前なので、
      うしろに「属性」と付けると<b>二重</b>になっていた（キラーの札と同じ話）。
      ★ 何のことか分からなくならないよう、説明（title）には残す。 */
-  return `<span class="elmk${sm ? " sm" : ""}" style="--emc:${e.c}" title="${e.nm}属性のダメージになります（属性相性が乗ります）">${elIcon(el, px)}${e.nm}</span>`;
+  return `<span class="elmk${sm ? " sm" : ""}" style="--emc:${e.c}" title="${e.nm}属性のダメージになります（属性相性が乗ります）">${elIcon(el, px)}${elNmK(el)}</span>`;   /* ★★ 2026-10-28 漢字のときは「火属性」 */
 }
 const BEATS = { fire: "wood", wood: "water", water: "fire" };
 /* 属性相性: 有利属性への攻撃は1.25倍・不利属性へは0.75倍 */
@@ -2226,12 +2281,13 @@ function abilName(a) {
      <b>「AQUAキラー」</b>に短くする。★ ここが全画面の表示元。 */
   /* ★ 2026-10-05 属性の無い呼び出しでも落ちないように（検索の文字列づくりで落ちていた） */
   if (/^(killer|elemres)/.test(a.t) && !ELEM[a.el]) return AB_NM[a.t] || a.t;
-  if (a.t === "killer") return ELEM[a.el].nm + "キラー";
-  if (a.t === "killerM") return ELEM[a.el].nm + "キラーM";
-  if (a.t === "killerL") return ELEM[a.el].nm + "キラーL";   /* ★ 2026-08-11 等級L＝×2.5 */
-  if (a.t === "killerEL") return ELEM[a.el].nm + "キラーEL";  /* ★ 2026-08-16b 等級EL＝×3.0 */
-  if (a.t === "elemres") return ELEM[a.el].nm + "耐性";
-  if (a.t === "elemresM") return ELEM[a.el].nm + "耐性M";   /* ★ 2026-08-07 等級M＝50%カット */
+  /* ★★ 2026-10-28 図鑑・ガチャ（漢字の呼び名）では「火属性キラー」「水属性耐性」（elNmK） */
+  if (a.t === "killer") return elNmK(a.el) + "キラー";
+  if (a.t === "killerM") return elNmK(a.el) + "キラーM";
+  if (a.t === "killerL") return elNmK(a.el) + "キラーL";   /* ★ 2026-08-11 等級L＝×2.5 */
+  if (a.t === "killerEL") return elNmK(a.el) + "キラーEL";  /* ★ 2026-08-16b 等級EL＝×3.0 */
+  if (a.t === "elemres") return elNmK(a.el) + "耐性";
+  if (a.t === "elemresM") return elNmK(a.el) + "耐性M";   /* ★ 2026-08-07 等級M＝50%カット */
   return AB_NM[a.t] || a.t;
 }
 function abilDesc(a) {
@@ -15037,6 +15093,11 @@ const AO_CHAR_DEF = {
 /* ★★ 2026-10-24 超極煌祭に <b>ヒサコ（水）・アリス（闇）</b>を追加（No.283・284・ご指定）。
    MagiAbyss ではヒサコが<b>UR でいちばん強い</b>、アリスはコハクと同じ帯（ma-data.js）。 */
 const CHOKOU_IDS = ["kohaku", "suzu", "shouko", "hisako", "alice"];
+/* ★★ 2026-10-28 ご指定「ヒサコとアリスは、ガチャや図鑑で完凸するとロビーで設定できることを控えめに表記」
+   完凸（4凸）でホームの「ロビー」に出せるキャラ（home-lobby.js の DEFS と同じ顔ぶれ。片方を足したらもう一方も）。
+   ガチャの顔ぶれのカード（gacha-ui.js の .flb）とキャラ詳細（mb-char-detail.js の .dlob）に小さく出す。 */
+const LOBBY_CHAR_IDS = ["hisako", "alice"];
+function hasLobby(id) { return LOBBY_CHAR_IDS.indexOf(id) >= 0; }
 Object.assign(AO_CHAR_DEF, {
   kohaku: { nm: "コハク",   f: "Kohaku", el: "fire",  shot: "pierce", type: "紅薔薇令嬢型", fesKey: "chokou" },
   suzu:   { nm: "スズ",     f: "Suzu",   el: "wood",  shot: "bounce", type: "夏花日和型",   fesKey: "chokou" },
@@ -24310,8 +24371,10 @@ FESTS.fes12 = {
   rising: true,
   /* ★★ 2026-09-13 <b>無期限開催</b>（ご指定「戦姫祭と同じように無期限開催」）。
      🎫フェス券はこれまでどおり使える（noFesTicket は付けない）。
-     ★★ 2026-10-09 ご指定で<b>10月31日まで</b>に変更（perm を外して until）。終わったら Festival Archive へ封入される。 */
-  until: "2026-10-31",
+     ★★ 2026-10-09 ご指定で<b>10月31日まで</b>に変更（perm を外して until）。終わったら Festival Archive へ封入される。
+     ★★ 2026-10-28 ご指定「花宴祭と RISING STAR FEST の開催を終了」→ <b>10月27日まで</b>（10/28 0:00 に終了・Festival Archive へ封入）。
+       フェスセレクト券を持っている人には、券を使い切るまで一覧に残る（gacha-ui.js の glVisible）。 */
+  until: "2026-10-27",
   since: "2026-09-01",
   /* ★★ 2026-09-03 限定が8体になったので、1体あたり <b>1.2%</b>（戦姫祭と同じ）。
      8×1.2＝9.6% ＋ プレミアム 2.4% で、SSR 合計はこれまでどおり 12%。 */
@@ -24596,11 +24659,16 @@ FESTS.fes14 = {
    ・戦姫祭と同じく <b>luxGacha</b>（1体1.2%・🎫フェス券は使えない・アーカイブに入らない）。
    ・ガチャ一覧では<b>開催中の極◯祭のすぐ下</b>（ご指定）。その位置決めのために <b>kaen</b> の印を付ける。
    ══════════════════════════════════════════════════════════════ */
+/* ★★ 2026-10-28 ご指定「花宴祭と RISING STAR FEST の開催を終了します。このガチャのキャラはほかのフェス同様、
+   Festival Archive GACHA で今後引くことができます」→ 無期限（perm）と luxGacha の印をやめて<b>10月27日まで</b>の期間つきに
+   （fesTimed が true になる＝10/28 0:00 に配信終了・Festival Archive へ封入）。確率は終了まで 1体 PICK_LUX のまま（pickEach）。 */
 FESTS.fes15 = {
   key: "fes15", sfx: "15", nm: "花宴祭", tab: "花宴祭",
   banner: "../img/bn_fes15_s.webp", c: "#ff4d6d", leadCls: "star",
-  luxGacha: true, noFesTicket: true, perm: true, kaen: true,
+  noFesTicket: true, kaen: true,
+  pickEach: PICK_LUX,
   since: "2026-09-17",
+  until: "2026-10-27",
   chars: ["akatsuki", "ayane", "chiha", "himeri", "honoka"],
   newChars: ["himeri", "honoka"],
   newSince: "2026-09-19",
@@ -24611,7 +24679,7 @@ FESTS.fes15 = {
   },
   get sub() {
     return "花宴祭の限定SSR <b>5体</b>（各" + ratePct(pickRateOf("fes15", "akatsuki")) + "）／<b>残りは "
-      + PREMIUM_NM + " のSSRが等確率</b>。<b>無期限開催</b>です（🎫フェス券は使えません）";
+      + PREMIUM_NM + " のSSRが等確率</b>。" + fesPeriodText("fes15") + "の開催です（🎫フェス券は使えません）";
   },
   get note() {
     return "<b>★★ 2026-09-19 花宴祭に追加</b>：<b>ヒメリ（光・反射）</b>と<b>ホノカ（闇・貫通）</b>。"
@@ -24843,7 +24911,7 @@ FESTS.fes20 = {
   get sub() {
     return "UR <b>5体</b>（各" + ratePct(pickRateOf("fes20", "kohaku")) + "）／<b>残りは " + PREMIUM_NM + " のSSRが等確率</b>。"
       + "<b>毎月 21日〜末日（下旬）</b>だけの開催・🎫ガチャ券が使えます（フェス券は使えません）"
-      + "<br>👑 <b>ヒサコ・アリスは完凸でホームの「ロビー」</b>（動く立ち絵）が選べます";   /* ★★ 2026-10-26 ご指定「ロビーとして完凸で取得できることを表記」 */
+      + '<br><small style="opacity:.78">👑 ヒサコ・アリスは完凸でホームのロビーに設定できます</small>';   /* ★★ 2026-10-26 ご指定「ロビーとして完凸で取得できることを表記」・★★ 2026-10-28 控えめに */
   },
   get note() {
     return "<b>★★ 2026-10-24 超極煌祭に新キャラ2体</b>"
@@ -24855,8 +24923,7 @@ FESTS.fes20 = {
       + "<br>★ <b>MagiChemLex のナビゲーター</b>や <b>XEVARION のアイコン</b>には使えます。"
       + "<br>★ MagiAbyss では <b>ヒサコが UR でいちばん強く</b>、<b>アリス・コハクはユナと同じくらい（タキナより少し強い）</b>、スズ・ショウコは<b>タキナと同じくらい</b>の強さです。"
       /* ★★ 2026-10-26 完凸ロビー（ご指定「ロビーとして完凸で取得できることを表記」） */
-      + "<br>👑 <b>完凸ボーナス</b>：<b>ヒサコ・アリス</b>を<b>完凸（4凸）</b>すると、XEVARION ホームの<b>「ロビー」</b>（パートナーの所に出る、動く立ち絵と展望テラスの背景）が選べるようになります。"
-      + "ロビーはホームの ♥パートナー →「ロビー」タブから。";
+      + '<br><small style="opacity:.78">👑 ヒサコ・アリスを完凸（4凸）すると、ホームのロビー（動く立ち絵と展望テラスの背景）に設定できます。ホームの「ロビー」ボタンから選べます。</small>';   /* ★★ 2026-10-28 控えめに */
   },
 };
 /* ══════════════════════════════════════════════════════════════
@@ -25691,7 +25758,7 @@ function gachaMenuList() {
     else if (f.pumpkin) (fesEnded(k) ? ended : pump).push(row);
     else if (f.sapphire) sapph.push(row);
     /* ★★ 2026-09-17d 花宴祭は<b>開催中の極◯祭のすぐ下</b>（ご指定） */
-    else if (f.kaen) kaen.push(row);
+    else if (f.kaen) (fesEnded(k) ? ended : kaen).push(row);   /* ★★ 2026-10-28 期間つきにした（終わったら ended へ） */
     /* ★★ 2026-09-23 CRYSTAL ACADEMY FEST は<b>花宴祭のすぐ下</b>（終わったら ended へ） */
     else if (f.crystal) (fesEnded(k) ? ended : crystal).push(row);
     else if (f.senki) senki.push(row);
@@ -26160,10 +26227,23 @@ function payGacha(n, fes) {
   try { if (window.XEVA && XEVA.event) XEVA.event.bump("gacha", n); } catch (e) {}
   return c;
 }
+/* ══ ★★ 2026-10-28 ガチャ10連半額券（ご指定「全てのガチャの10連で、1枚で1回半額の25ジェムで引くことができます」）══
+   ・券1枚＋💎HALF10_GEMS（25）で 10連1回。🎫フェス券・ガチャ券は使わない（半額券を使うと決めたときだけ・ふつうの10連とは別のボタン）。
+   ・券の台帳は XEVARION 共通の XEVA.halfTicket（xeva.js）。払えないときは null。 */
+const HALF10_GEMS = 25;
+function halfTickets() { try { return (window.XEVA && XEVA.halfTicket) ? XEVA.halfTicket.get() : 0; } catch (e) { return 0; } }
+function payHalf10(nm) {
+  if (halfTickets() < 1 || DB.orbs < HALF10_GEMS) return null;
+  if (!XEVA.halfTicket.spend(1, (nm || "ガチャ") + " 10連（半額券）")) return null;
+  DB.orbs -= HALF10_GEMS;
+  try { if (window.XEVA && XEVA.event) XEVA.event.bump("gacha", 10); } catch (e) {}
+  return { fes: 0, tickets: 0, gems: HALF10_GEMS, half: 1 };
+}
 /* 支払いの内訳を「（フェス券3枚 ＋ ガチャ券2枚 ＋ ジェム25）」の形にする
    （結果画面の見出しに添える。何で払ったかが結果と一緒に残るようにする） */
 function gachaPayText(pay) {
   if (!pay) return "";
+  if (pay.half) return "（🎟10連半額券 ＋ ジェム" + pay.gems + "）";   /* ★★ 2026-10-28 */
   const t = [];
   if (pay.fes > 0) t.push("フェス券" + pay.fes + "枚");
   if (pay.tickets > 0) t.push("ガチャ券" + pay.tickets + "枚");
@@ -26172,7 +26252,7 @@ function gachaPayText(pay) {
 }
 /* 旧名（フェス専用だった頃の入口）。フェス扱いで呼ぶ。 */
 function payFesGacha(n) { return payGacha(n, true); }
-function doFesGacha(n, key) {
+function doFesGacha(n, key, opt) {
   key = isFesMode(key) ? key : "fes";
   /* ★ 2026-08-07: 開催前のフェスは回せない（ボタンも押せないが、念のため入口でも止める） */
   if (fesLocked(key)) { uiAlert(fesOpenText(fesDef(key)) + "です。", { icon: "⏳", title: fesDef(key).nm }); return; }
@@ -26181,7 +26261,9 @@ function doFesGacha(n, key) {
      （極彩祭・極華祭・極煌祭・戦姫祭は使えない）。 */
   /* ★★ 2026-10-06c 初回10連無料（free10 のフェスだけ）。🎫も💎も減らない */
   const free10 = n === 10 && fesFree10Left(key) > 0;
+  const half = n === 10 && !free10 && !!(opt && opt.half);   /* ★★ 2026-10-28 10連半額券 */
   const pay = free10 ? { fes: 0, tickets: 0, gems: 0, free: true, free10: true }
+    : half ? payHalf10(fesDef(key).nm)
     : payGacha(n, fesTicketOK(key));   /* フェス券 → ガチャ券 → ジェム の順 */
   if (!pay) return;
   if (free10) { fesFree10Use(key); try { if (window.XEVA && XEVA.event) XEVA.event.bump("gacha", n); } catch (e) {} }
@@ -27218,7 +27300,7 @@ function debutGuaranteedS5Old(mode) {
   if (!pool.length) return debutRollOnce(mode);  // 全員が限界突破MAX＝確定枠も通常抽選に戻す
   return grantChar(pool[Math.floor(Math.random() * pool.length)]);
 }
-function doDebutGacha(n, mode) {
+function doDebutGacha(n, mode, opt) {
   n = n === 10 ? 10 : n === 5 ? 5 : 1;
   mode = mode || "debut";
   const dver = debutVerOfMode(mode);
@@ -27231,7 +27313,8 @@ function doDebutGacha(n, mode) {
      単発の無料（1日1回）とは台帳が別なので、両方を同じ日に使える。 */
   const free10 = (n === 10 && debutFree10Left(mode) > 0);
   const free = free10 || (n === 1 && debutFreeLeft(mode) > 0);
-  const pay = free ? { fes: 0, tickets: 0, gems: 0, free: true, free10: free10 } : payGacha(n, false);
+  const half = n === 10 && !free && !!(opt && opt.half);   /* ★★ 2026-10-28 10連半額券 */
+  const pay = free ? { fes: 0, tickets: 0, gems: 0, free: true, free10: free10 } : half ? payHalf10(DEBUT_NM) : payGacha(n, false);
   if (!pay) return;
   if (free10) debutFree10Use(mode);
   else if (free) debutFreeUse(mode);
@@ -27257,11 +27340,12 @@ function doDebutGacha(n, mode) {
     + (n === 10 ? " 10連結果！" : n === 5 ? " 5連結果！" : " 結果！") + payTx, mode);
 }
 window.doDebutGacha = doDebutGacha;
-function doGacha(n) {
+function doGacha(n, opt) {
   n = n === 10 ? 10 : n === 5 ? 5 : 1;
   /* ★ v11: 10連の割引は廃止（1回5ジェムの等倍。10連はSSR確定のみが特典）
-     ★ 2026-08-13: 新しい🎫ガチャチケットはプレミアムでも使える（フェス券は使えない）。 */
-  const pay = payGacha(n, false);
+     ★ 2026-08-13: 新しい🎫ガチャチケットはプレミアムでも使える（フェス券は使えない）。
+     ★★ 2026-10-28 10連半額券（opt.half）なら 券1枚＋💎25。 */
+  const pay = (n === 10 && opt && opt.half) ? payHalf10(PREMIUM_NM) : payGacha(n, false);
   if (!pay) return;
   DB.pulls = (DB.pulls || 0) + n; missionTick("pull", n);   /* ★ 2026-08-05 ミッション（ガチャを引く） */
   sealAdd("premium", n);                  /* ★★ 2026-09-13c 天井の★星煌印（1連＝1つ） */
