@@ -16,7 +16,7 @@
 <script src="maintenance-gate.js?v=13"></script>
 <!-- ★★ 2026-10-13 ご指定「アプリ開始時に企業ロゴ」：XEVARION を起動したときだけ 3社ロゴ → XEVARION のロゴとロードバー
      （アプリから戻ってきたとき＝このタブで「タップしてスタート」ずみは出さない。判定は xeva-splash.js の data-home） -->
-<script src="xeva-splash.js?v=17" data-app="XEVARION" data-logo="icons/xev-512.png" data-home="1" data-keep-legacy="1"></script>
+<script src="xeva-splash.js?v=18" data-app="XEVARION" data-logo="icons/xev-512.png" data-home="1" data-keep-legacy="1"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Exo+2:ital,wght@0,300;0,400;0,600;0,700;1,300&family=Noto+Sans+JP:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
@@ -144,7 +144,7 @@ html #xlBan.pre{box-shadow:0 0 0 2px #fff,0 0 0 3.5px #ff8a1f,0 3px 0 3.5px rgba
 #xhSetSheet.xh-tabsheet .xh-sheet-card{border-radius:26px 26px 0 0;box-shadow:0 -10px 40px rgba(60,100,180,.28)}
 #xhSetSheet.xh-tabsheet .xh-sheet-body{padding-bottom:18px}
 </style>
-<script src="xeva.js?v=83" defer></script>
+<script src="xeva.js?v=84" defer></script>
 <!-- ★★ 2026-09-05 コレクションを XEVARION 全体で1本にする共通部品。
      xeva.js の iconCharList() を使うので、必ず xeva.js の<b>あと</b>に置く。 -->
 <script src="xeva-collection.js?v=8" defer></script>
@@ -175,10 +175,10 @@ html #xlBan.pre{box-shadow:0 0 0 2px #fff,0 0 0 3.5px #ff8a1f,0 3px 0 3.5px rgba
 <!-- ★ 2026-08-18 新キャラ告知の台帳（MagiBurst と共通）。
      告知を<b>ポータルのログイン時</b>に一本化したので、ここでも読む。
      defer なので xevarion.js より先に実行される（書いた順番で走る）。 -->
-<script src="mb-newchars.js?v=39" defer></script>
-<script src="xeva-devnotes.js?v=4" defer></script><!-- ★★ 2026-10-24 デベロッパーノート（新キャラのお知らせの代わり） -->
+<script src="mb-newchars.js?v=40" defer></script>
+<script src="xeva-devnotes.js?v=5" defer></script><!-- ★★ 2026-10-24 デベロッパーノート（新キャラのお知らせの代わり） -->
 <!-- ★★ 2026-09-25 ガチャの台帳（開催期間とバナー。make-gacha-live.py が mb-core.js から自動で作る）。ホーム左上のバナー用 -->
-<script src="gacha-live.js?v=8" defer></script>
+<script src="gacha-live.js?v=9" defer></script>
 <!-- ★★ 2026-08-22b Xevion OS（XEVARION の UI をひとつの OS として扱う土台）。
      ほかの画面より<b>先に</b>読む（body のクラスを立てるので、あとから読むと一瞬ちらつく）。 -->
 <script src="xevion-os.js?v=13"></script>
@@ -192,10 +192,10 @@ html #xlBan.pre{box-shadow:0 0 0 2px #fff,0 0 0 3.5px #ff8a1f,0 3px 0 3.5px rgba
 <!-- ★★ 2026-10-16 キャラの所持・凸（magiburst_v1）もここで同期する（前は読むだけで、別の端末で引いたキャラが出てこないことがあった） -->
 <script type="module" src="MagiBurst/magiburst-cloud.js?v=27"></script>
 <script src="xeva-qr.js?v=9" defer></script>
-<script src="xevarion.js?v=106" defer></script>
-<script src="xevarion-home.js?v=171" defer></script>
+<script src="xevarion.js?v=107" defer></script>
+<script src="xevarion-home.js?v=172" defer></script>
 <script src="home-lobby.js?v=1" defer></script><!-- ★★ 2026-10-26 完凸ロビー（ヒサコ・アリス）。home-mate.js より先 -->
-<script src="home-mate.js?v=31" defer></script>
+<script src="home-mate.js?v=32" defer></script>
 <script src="home-dot.js?v=3" defer></script><!-- ★★ 2026-10-26 イベントのバナーの上を動くドット絵のキャラ（MagiAbyss のドット絵） -->
 <!-- ★★ 2026-10-24 MagiDerby・MagiScope のデータの先読み（ご指定「アプリを開いていなくても情報を取得してオフラインでも開けるように」） -->
 <script src="xeva-prefetch.js?v=1" defer></script>
@@ -2285,6 +2285,23 @@ body.xos-nomotion .xh-start-tap .hp, body.xos-nomotion .xh-start-sub, body.xos-n
   <div class="nm-body" id="newsBody">
     <div class="nm-divider" id="newDivider" style="display:none;">NEW — 前回から更新</div>
     <!-- 2026-10-24：レベル・スタミナ廃止／同期の作り直し／MagiLex と MagiChemLex の統合／超極煌祭にヒサコ・アリス／WP 交換所にミキ／MagiDerby の券面／MagiShift の順位／デベロッパーノート -->
+    <!-- 2026-10-28：起動の企業ロゴ（YRA 参入・2×2）／図鑑・ガチャの属性を火水木光闇に／花宴祭・RISING STAR FEST 終了／ガチャ10連半額券／GⅠ 発売の告知／MagiAbyss の UI 作り直し／ChemLex ビンゴカード -->
+    <div class="nm-item" data-tag="new" data-date="2026-10-28">
+      <div class="nm-date">2026<br>10.28</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag new">NEW</span></div>
+        <div class="nm-title">🗡️ MagiAbyss の画面と冒険の地図を作り直し／🧪 ChemLex にビンゴカード／🎟️ ガチャ10連半額券</div>
+        <div class="nm-txt">・<b>XEVARION</b>：運営協力に<b>YRA</b> が参入。起動の画面は<b>企業ロゴ 4社（縦2×横2）</b>に（XEVARION のロゴは出しません）。図鑑・ガチャの属性の表記を<b>火・水・木・光・闇</b>に戻しました。ヒサコ・アリスは<b>完凸でロビーに設定できる</b>ことをガチャと図鑑に小さく表記。<br>
+          ・<b>ガチャ</b>：<b>花宴祭</b>と <b>RISING STAR FEST</b> は開催を終了しました（キャラは <b>Festival Archive GACHA</b> で引けます）。新しいアイテム<b>「ガチャ10連半額券」</b>（どのガチャでも10連を1枚で 💎25）。<br>
+          ・<b>配布</b>：MagiChemLex の修正に伴い <b>10連半額券5枚・両替チケット10枚・5,000 XEVA</b>／MagiLex のビンゴカード廃止の補填に <b>5,000 XEVA・ガチャチケット20枚</b>（📧メールから）。<br>
+          ・<b>ホーム</b>：MagiDerby で新しい GⅠ が買えるようになったら、はじめの1回だけ<b>豪華な告知</b>（ダウンロード・デベロッパーノートのあと）。パートナーの「表示」ボタンで<b>非表示にならない</b>ように。<br>
+          ・<b>MagiAbyss</b>：UI・デザインを<b>本格的に作り直し</b>（紺のガラスの板・金のふち・明朝の見出し）・<b>スマホの横画面</b>に合わせて調整。<b>冒険の地図</b>を作り直し（迷宮どうしの間かく・名札が重ならないように・島ごとの形）。<br>
+          ・<b>MagiChemLex</b>：<b>ビンゴカード</b>（毎月の 5×5・元素カードのマス・BINGO! の演出）。XEVA のごほうびの<b>素の量を3倍</b>（イベントの倍率はその上に）。<br>
+          ・<b>MagiDerby</b>：<b>オフラインでも馬券を購入</b>できるように・金額の初期値は 0・購入ボタンが下から浮くのを修正・GⅠ の演出の「GⅠ」を中央に。<br>
+          ・<b>MagiLex</b>：ミッションビンゴ（ビンゴカード）を廃止しました。
+        </div>
+      </div>
+    </div>
     <div class="nm-item" data-tag="new" data-date="2026-10-27">
       <div class="nm-date">2026<br>10.27</div>
       <div class="nm-content">

@@ -284,9 +284,10 @@ const XH_EVENTS = [
     href:"gacha.html#fes17", img:"thumbs/MagiBurst.jpg" },
   /* ★★ 2026-09-17d 花宴祭（アカツキ）＝<b>無期限開催</b>。戦姫祭と同じく always/perm を付け、to は空。 */
   /* ★★ 2026-09-19d アヤネ・チハを追加（3体に） */
+  /* ★★ 2026-10-28 ご指定で<b>開催終了</b>（10/27 まで）→ always/perm を外して to。キャラは Festival Archive GACHA へ */
   { tag:"FES", t1:"花宴祭 に ヒメリ・ホノカ 追加",
-    t2:"無期限開催。アカツキ・アヤネ・チハ・ヒメリ・ホノカの5体——乱打フルバースト・3属性有利・オムニアンチ＋治癒の祈り",
-    always:true, perm:true, since:"2026-09-17", from:"2026-09-17", to:"",
+    t2:"10月27日まで。アカツキ・アヤネ・チハ・ヒメリ・ホノカの5体——乱打フルバースト・3属性有利・オムニアンチ＋治癒の祈り",
+    since:"2026-09-17", from:"2026-09-17", to:"2026-10-27",
     href:"gacha.html#fes15", img:"thumbs/MagiBurst.jpg" },
   /* ★★ 2026-09-13c GRAND DEBUT GACHA Ver.8.0（版ごと<b>20日間</b>へ統一・ご指定） */
   { tag:"GRAND DEBUT", t1:"GRAND DEBUT GACHA Ver.8.0",
@@ -328,9 +329,10 @@ const XH_EVENTS = [
     href:"gacha.html#fes11", img:"thumbs/MagiBurst.jpg" },
   /* ★★ 2026-09-13 RISING STAR FEST も<b>無期限開催</b>になった（ご指定）
      ★★ 2026-10-09 <b>10月31日まで</b>に変更（ご指定）→ always/perm を外して to を入れた（mb-core の FESTS.fes12 も until） */
+  /* ★★ 2026-10-28 ご指定で<b>開催終了</b>（10/27 まで）。キャラは Festival Archive GACHA へ */
   { tag:"RISING FES", t1:"RISING STAR FEST",
-    t2:"10月31日まで。限定SSR 13体——第3弾（ヨイヅキ・カヨ・シノ・マアヤ・アスカ）は天界の審判を有利属性のまま完全対応",
-    since:"2026-09-06", from:"2026-09-06", to:"2026-10-31",
+    t2:"10月27日まで。限定SSR 13体——第3弾（ヨイヅキ・カヨ・シノ・マアヤ・アスカ）は天界の審判を有利属性のまま完全対応",
+    since:"2026-09-06", from:"2026-09-06", to:"2026-10-27",
     href:"gacha.html#fes12", img:"thumbs/MagiBurst.jpg" },
   /* ★★ 2026-09-06 GRAND DEBUT GACHA Ver.7.0（版ごとに10日間） */
   { tag:"GRAND DEBUT", t1:"GRAND DEBUT GACHA Ver.7.0",
@@ -490,6 +492,13 @@ XH_EVENTS.unshift({ tag:"EVENT", t1:"Midnight Pumpkin", t2:"イベントミッ�
    ══════════════════════════════════════════════════════════════ */
 const XH_UPDATE_MAX = 12;
 const XH_UPDATES = [
+  /* ★★ 2026-10-28 MagiAbyss の UI と地図・ChemLex ビンゴ・10連半額券・YRA・フェス終了 */
+  { tag:"NEW", t1:"MagiAbyss：UI と冒険の地図を作り直し", at:"2026-10-28",
+    t2:"紺のガラスの板＋金のふち＋明朝の見出しの本格的な見た目・スマホの横画面に合わせて調整・迷宮どうしの間かくと名札を見直した新しい地図（島ごとの形・なめらかな道）",
+    href:"MagiAbyss/index.html", img:"thumbs/MagiAbyss.jpg?v=2" },
+  { tag:"NEW", t1:"MagiChemLex にビンゴカード／ガチャ10連半額券", at:"2026-10-28",
+    t2:"毎月の 5×5 のビンゴ（元素カードのマス・BINGO! の演出）・XEVA の素の量を3倍／どのガチャでも10連を1枚で💎25／花宴祭・RISING STAR FEST 終了（Festival Archive へ）／MagiDerby はオフラインでも購入",
+    href:"MagiChemLex/index.html", img:"thumbs/MagiChemLex.jpg?v=2" },
   /* ★★ 2026-10-27 ウマ娘風の配色・MagiAbyss 外伝・ChemLex 模試の冊子・Derby 水曜発売 */
   { tag:"NEW", t1:"MagiAbyss：外伝クエスト6つ・ストーリー増量・中ボス戦の封鎖", at:"2026-10-27",
     t2:"海に浮かぶ異界の島（新しい敵とボス・どの属性も有利なクエスト3つずつ）・外伝6章と本編の続き・中ボス戦は部屋を封鎖・豪華な演出・マップの閉じる・キャラ変更の反映",
@@ -2216,8 +2225,9 @@ function xhLoadScript(src) {
 function xhMbReady() {
   if (typeof CHARS !== "undefined" && typeof PREMIUM_CHARS !== "undefined") return Promise.resolve(true);
   if (_xhMbLoading) return _xhMbLoading;
-  _xhMbLoading = xhLoadScript("mb-boot.js?v=17")
-    .then(() => xhLoadScript("MagiBurst/js/mb-core.js?v=141"))
+  window.MB_ELEM_JA_NOWATCH = true;   /* ★★ 2026-10-28 属性名を漢字にする見張り（mb-core.js の elJaWatch）はホームではしない */
+  _xhMbLoading = xhLoadScript("mb-boot.js?v=18")
+    .then(() => xhLoadScript("MagiBurst/js/mb-core.js?v=142"))
     .then(() => true)
     .catch((e) => { _xhMbLoading = null; throw e; });
   return _xhMbLoading;

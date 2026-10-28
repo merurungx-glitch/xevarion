@@ -71,6 +71,11 @@ function paintWal() {
   const g = $("#walGtk"); if (g) g.textContent = walFmt(gachaTickets());
   const fi = $("#walFesIc"); if (fi && !fi.innerHTML) fi.innerHTML = fesTicketSVG(13);
   const gi = $("#walGacIc"); if (gi && !gi.innerHTML) gi.innerHTML = gachaTicketSVG(13);
+  /* ★★ 2026-10-28 ガチャ10連半額券（持っているときだけ財布に出す） */
+  const hw = $("#walHalfWrap"), hb = $("#walHalf"), hi = $("#walHalfIc"), hn = halfTickets();
+  if (hb) hb.textContent = walFmt(hn);
+  if (hi && !hi.innerHTML && window.XevaHalfTicketSVG) hi.innerHTML = window.XevaHalfTicketSVG(13);
+  if (hw) hw.style.display = hn > 0 ? "" : "none";
   /* ★★ 2026-08-30 💠結晶（完凸したプレミアムのキャラが出るともらえる） */
   const cw = $("#walCryWrap"), cb = $("#walCry"), ci = $("#walCryIc");
   if (cb) cb.textContent = walFmt(crystGet());
@@ -213,6 +218,7 @@ function paintPickup() {
         <img src="${c.th}" alt="${c.nm}">
         <span class="fr">${mx ? "対象外" : ratePct(debutEachRateOf(gMode))}</span>
         <span class="fo ${own ? "ok" : "no"}">${own ? (mx ? "👑MAX" : aw ? "+" + aw + "凸" : "所持") : "未所持"}</span>
+        ${/* ★★ 2026-10-28 完凸でホームのロビーに出せる子（ヒサコ・アリス）に控えめな札 */ typeof hasLobby === "function" && hasLobby(id) ? '<span class="flb" title="完凸（4凸）でホームのロビーに設定できます">完凸でロビー</span>' : ""}
         <span class="fn">${c.nm}</span></button>`;
     }).join("");
     w.innerHTML = `<div class="pkbox" style="border-color:${DEBUT_C}55">
@@ -266,6 +272,7 @@ function paintPickup() {
         <img src="${c.th}" alt="${c.nm}">
         <span class="fr">${mx ? "対象外" : ratePct(PICK_ARCHIVE)}</span>
         <span class="fo ${own ? "ok" : "no"}">${own ? (mx ? "👑MAX" : aw ? "+" + aw + "凸" : "所持") : "未所持"}</span>
+        ${/* ★★ 2026-10-28 完凸でホームのロビーに出せる子（ヒサコ・アリス）に控えめな札 */ typeof hasLobby === "function" && hasLobby(id) ? '<span class="flb" title="完凸（4凸）でホームのロビーに設定できます">完凸でロビー</span>' : ""}
         <span class="fn">${ELEM[el].nm}・${c.nm}${n > 1 ? "（他" + (n - 1) + "体）" : ""}</span></button>`;
     }).join("");
     w.innerHTML = `<div class="pkbox" style="border-color:${f.c}55">
@@ -309,6 +316,7 @@ function paintPickup() {
         <span class="fr">${mx ? "対象外" : ratePct(pickRateOf(gMode, id))}</span>
         ${_newIds.indexOf(id) >= 0 ? '<span class="fnew">NEW</span>' : ""}
         <span class="fo ${own ? "ok" : "no"}">${own ? (mx ? "👑MAX" : aw ? "+" + aw + "凸" : "所持") : "未所持"}</span>
+        ${/* ★★ 2026-10-28 完凸でホームのロビーに出せる子（ヒサコ・アリス）に控えめな札 */ typeof hasLobby === "function" && hasLobby(id) ? '<span class="flb" title="完凸（4凸）でホームのロビーに設定できます">完凸でロビー</span>' : ""}
         <span class="fn">${c.nm}</span></button>`;
     }).join("");
     w.innerHTML = `<div class="pkbox" style="border-color:${f.c}55">
@@ -636,7 +644,16 @@ function paintPullBar() {
         : arcEmpty ? ARCHIVE_NM + " はまだ封入されたキャラクターがいません"
         : fesOpenText(fesDef(gMode))}</div>`
     /* ★★ 2026-09-19e 5連は廃止（ご指定）。10連には「SSR確定」の札 */
-    : btn(1, "", "1回") + btn(10, "p10", "10連");
+    : btn(1, "", "1回") + btn(10, "p10", "10連") + halfBtn();
+  /* ★★ 2026-10-28 ガチャ10連半額券：持っていれば、下にもう1段「半額券で10連（💎25）」（初回10連無料のあいだは出さない） */
+  function halfBtn() {
+    const hn = halfTickets();
+    if (!(hn > 0) || free10On) return "";
+    const ok = DB.orbs >= HALF10_GEMS;
+    const art = window.XevaHalfTicketSVG ? '<span class="phart">' + window.XevaHalfTicketSVG(22) + "</span>" : "";
+    return `<button class="pbtn phalf" ${ok ? "" : "disabled"} onclick="pull(10,1)">${art}<span class="phtx"><b>半額券で10連<em>${sureTag(gMode)}</em></b>`
+      + `<small><i class='icc ic-gem'></i>${HALF10_GEMS} ＋ 半額券1枚（所持 ${hn}枚）${ok ? "" : "・ジェムが足りません"}</small></span></button>`;
+  }
 }
 /* いま何凸かの1行（ピックアップ一覧・提供割合で共通に使う）。
    awk は DB.chars[id].awk（0〜MAX_AWK）。持っていなければ「未所持」。 */
@@ -681,12 +698,14 @@ async function okToPullPremium(n) {
   return ok;
 }
 
-async function pull(n) {
+async function pull(n, half) {
+  /* ★★ 2026-10-28 half＝ガチャ10連半額券で10連（券1枚＋💎25） */
+  const opt = n === 10 && half ? { half: true } : null;
   /* ★★ 2026-08-26 版ごとの GRAND DEBUT。gMode をそのまま渡す（"debut" / "debut:3.0"） */
-  if (isDebutMode(gMode)) { if (debutVerOfMode(gMode)) doDebutGacha(n, gMode); return; }
-  if (gMode !== "premium") { doFesGacha(n, gMode); return; }
+  if (isDebutMode(gMode)) { if (debutVerOfMode(gMode)) doDebutGacha(n, gMode, opt); return; }
+  if (gMode !== "premium") { doFesGacha(n, gMode, opt); return; }
   if (!(await okToPullPremium(n))) return;
-  doGacha(n);
+  doGacha(n, opt);
 }
 window.pull = pull;
 
@@ -2023,6 +2042,7 @@ window.addEventListener("xeva:ticket", () => { paintWal(); paintPullBar(); });
 window.addEventListener("xeva:festicket", () => { paintWal(); paintPullBar(); });
 /* ★★ 2026-08-30 💠結晶（ガチャで増える／ホームの交換所で減る） */
 window.addEventListener("xeva:cryst", () => { paintWal(); });
+window.addEventListener("xeva:halfticket", () => { paintWal(); paintPullBar(); });   /* ★★ 2026-10-28 ガチャ10連半額券 */
 /* ★★ 2026-08-29 最初に開いているガチャも「開いた」ものとして NEW を消す。
    ★ 塗ったあとに消すこと。先に消すと、いま見ているガチャの NEW が
      1回目の描画から出なくなる（気づかないうちに消えた、になる）。 */

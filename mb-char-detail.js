@@ -389,6 +389,8 @@ function openDetX(id, keepGame) {
         <span class="dchip">${c.type}</span>`}
         <span class="dchip">${own ? "所持済み" : "未所持"}</span>
       </div>
+      ${/* ★★ 2026-10-28 ご指定「ヒサコとアリスは、ガチャや図鑑で完凸するとロビーで設定できることを控えめに」 */""}
+      ${typeof hasLobby === "function" && hasLobby(id) ? `<div class="dlob">👑 完凸（4凸）すると、ホームのロビーに設定できます</div>` : ""}
       ${/* ★★ 2026-08-29b <b>入手方法</b>（ご指定: ガチャの名前まで書く）。
             中身は mb-core.js の charSourceList()——FESTS / DEBUT_VERSIONS /
             PREMIUM_CHARS / RAIDS から機械的に組み立てるので、

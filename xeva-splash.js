@@ -7,11 +7,11 @@
      別実装で、背景色もタイミングもバラバラだった）
 
    構成（MagiBurst と同じ2段）:
-     ① NGX × Magical Future × ISHIDA Production の3社ロゴ
+     ① NGX × Magical Future × ISHIDA Production × YRA の企業ロゴ（★★ 2026-10-28 YRA が参入・縦2×横2）
      ② アプリロゴ ＋ ロードバー ＋ "Loading <App> ..."
 
    使い方（<head> に、defer なしで置く）:
-     <script src="../xeva-splash.js?v=17"
+     <script src="../xeva-splash.js?v=18"
              data-app="MagiLex"
              data-logo="../thumbs/MagiLex.jpg"></script>
 
@@ -134,6 +134,9 @@
        → 本体（data-home="1"）は<b>1枚の画面</b>：XEVARION のロゴ → その下に3社ロゴ（ロードバーは出さない）。
          表示は 3.2 秒（前は 3社ロゴ 1.6 秒＋アプリロゴ 0.6 秒）。タップで飛ばせるのは同じ。
          ほかのアプリはこれまでどおりの2段（3社ロゴ → アプリロゴ＋ロードバー）。data-combo="1" を付ければ同じ1枚にできる。 */
+  /* ★★ 2026-10-28 ご指定「XEVARION 起動時のロゴ表示は消して」「YRA が運営協力に参入 → 企業ロゴを縦2×横2で」
+       → 本体（data-home="1"）の1枚の画面は<b>企業ロゴ 2×2 だけ</b>（XEVARION のロゴは出さない）。
+         アプリの起動の①（企業ロゴ）も同じ 2×2。②（アプリのロゴ＋ロードバー）はこれまでどおり。 */
   var COMBO = D.home === "1" || D.combo === "1";
   var T_COMBO = 3200;
   var SEEN_KEY = "xev_splash_seen";
@@ -160,7 +163,8 @@
   var BRAND = [
     { src: BASE + "brand/NGX_s.webp", alt: "NGX" },
     { src: BASE + "brand/MagicalFuture_s.webp", alt: "Magical Future" },
-    { src: BASE + "brand/ISHIDA_s.webp", alt: "ISHIDA Production" }
+    { src: BASE + "brand/ISHIDA_s.webp", alt: "ISHIDA Production" },
+    { src: BASE + "brand/YRA_s.webp", alt: "YRA" }          /* ★★ 2026-10-28 運営協力に参入 */
   ];
   /* タップで先へ（3社ロゴ・最短表示時間を飛ばす） */
   var skipRes = null, skipP = new Promise(function (r) { skipRes = r; });
@@ -234,6 +238,23 @@
     "#" + ID + " .xsbrands .xslg{width:100%;flex:none;padding:4px 10px}" +
     "#" + ID + " .xsbrands .xslg img{width:auto;max-width:100%;max-height:10.5vh}" +
     "#" + ID + " .xsbrands .xsamp{font-size:14px;line-height:1}}" +
+    /* ★★ 2026-10-28 企業ロゴは<b>縦2×横2</b>（YRA が加わって4社）。まん中に小さな「×」。
+       横向きのスマホでも2段が画面に収まるよう、幅は高さからも決める（(高さの78% − すき間) × 1.5）。 */
+    "#" + ID + " .xsgrid{position:relative;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;" +
+    "width:min(560px,90vw);width:min(560px,90vw,calc((78vh - 12px) * 1.5 + 12px));width:min(560px,90vw,calc((78dvh - 12px) * 1.5 + 12px))}" +
+    "#" + ID + " .xsgrid .xslg{width:auto;aspect-ratio:3/2;padding:6px 10px;border-radius:18px;box-shadow:0 10px 26px rgba(200,150,60,.14)}" +
+    "#" + ID + " .xsgrid .xslg img{width:100%;height:100%;max-height:none;object-fit:contain}" +
+    "#" + ID + " .xsgrid .xstx{display:flex;align-items:center;justify-content:center;aspect-ratio:3/2;background:#fff;border-radius:18px;font-size:16px}" +
+    "#" + ID + " .xsx{position:absolute;left:50%;top:50%;width:26px;height:26px;margin:-13px 0 0 -13px;border-radius:50%;background:#fff;" +
+    "color:#d9a441;font:800 16px/26px system-ui,-apple-system,sans-serif;text-align:center;font-style:normal;box-shadow:0 2px 10px rgba(200,150,60,.28);z-index:1;pointer-events:none}" +
+    "#" + ID + " .xsph.in .xsgrid>.xslg,#" + ID + " .xsph.in .xsgrid>.xstx{animation:xsPop .7s cubic-bezier(.2,.8,.3,1.15) both}" +
+    "#" + ID + " .xsph.in .xsgrid>:nth-child(2){animation-delay:.1s}" +
+    "#" + ID + " .xsph.in .xsgrid>:nth-child(3){animation-delay:.2s}" +
+    "#" + ID + " .xsph.in .xsgrid>:nth-child(4){animation-delay:.3s}" +
+    "#" + ID + " .xsph.in .xsx{animation:xsFade .6s ease .45s both}" +
+    "#" + ID + " .xsmain.combo{gap:18px}" +
+    "#" + ID + " .xsmain.combo.in .xscap{animation:xsFade .8s ease .7s both}" +
+    "@keyframes xsPop{from{opacity:0;transform:translateY(14px) scale(.93)}to{opacity:1;transform:none}}" +
     "@keyframes xsUp{from{opacity:0;transform:translateY(26px)}to{opacity:1;transform:none}}" +
     "@keyframes xsDown{from{opacity:0;transform:translateY(-26px)}to{opacity:1;transform:none}}" +
     "@keyframes xsFade{from{opacity:0}to{opacity:1}}";
@@ -259,6 +280,10 @@
     return '<div class="xslg"><img src="' + esc(b.src) + '" alt="' + esc(b.alt) + '" ' +
       "onerror=\"this.parentNode.outerHTML='<div class=&quot;xstx&quot;>" + esc(b.alt) + "</div>'\"></div>";
   }
+  /* ★★ 2026-10-28 企業ロゴ 4社を縦2×横2で */
+  function brandGrid() {
+    return '<div class="xsgrid">' + BRAND.map(brandCard).join("") + '<i class="xsx" aria-hidden="true">×</i></div>';
+  }
 
   /* ★ &lt;html&gt; の背景をスプラッシュと同じにする（箱の外はここしか塗れない） */
   var SPLASH_BG = "linear-gradient(160deg,#fff,#ffeede)";
@@ -272,15 +297,11 @@
     el = document.createElement("div");
     el.id = ID;
     if (COMBO) {
-      /* ★★ 2026-10-15 本体：XEVARION のロゴ → その下に3社ロゴ（ロードバーなし） */
+      /* ★★ 2026-10-15 本体：XEVARION のロゴ → その下に3社ロゴ（ロードバーなし）
+         ★★ 2026-10-28 ご指定で XEVARION のロゴは出さない・企業ロゴは 2×2（YRA が加わって4社） */
       el.innerHTML =
         '<div class="xsph xsmain combo">' +
-          '<img class="xsapp" src="' + esc(LOGO) + '" alt="' + esc(APP) + '" onerror="this.style.display=\'none\'">' +
-          '<div class="xsbrands">' +
-            brandCard(BRAND[0]) + '<div class="xsamp">×</div>' +
-            brandCard(BRAND[1]) + '<div class="xsamp">×</div>' +
-            brandCard(BRAND[2]) +
-          "</div>" +
+          brandGrid() +
           '<div class="xscap">' + esc(CAP) + "</div>" +
           (NOTE ? '<div class="xsnote">' + esc(NOTE) + "</div>" : "") +
         "</div>";
@@ -290,11 +311,7 @@
       return;
     }
     el.innerHTML =
-      '<div class="xsph xsintro">' +
-        brandCard(BRAND[0]) + '<div class="xsamp">×</div>' +
-        brandCard(BRAND[1]) + '<div class="xsamp">×</div>' +
-        brandCard(BRAND[2]) +
-      "</div>" +
+      '<div class="xsph xsintro">' + brandGrid() + "</div>" +
       '<div class="xsph xsmain">' +
         '<img class="xsapp" src="' + esc(LOGO) + '" alt="' + esc(APP) + '" onerror="this.style.display=\'none\'">' +
         '<div class="xsbar"><i></i></div>' +
@@ -321,7 +338,7 @@
     return Promise.race([Promise.all(ims.map(one)), sleep(T_IMGWAIT), skipP]);
   }
   function preload() {
-    var srcs = BRAND.map(function (b) { return b.src; }).concat([LOGO]);
+    var srcs = BRAND.map(function (b) { return b.src; }).concat(COMBO ? [] : [LOGO]);   /* ★★ 2026-10-28 本体はアプリのロゴを出さない */
     return new Promise(function (res) {
       var n = srcs.length, fin = false;
       var done = function () { if (!fin) { fin = true; res(); } };

@@ -7,7 +7,7 @@
    ・オフライン中の進行は localStorage に残り、オンライン復帰時に
      xeva-cloud.js がタイムスタンプ比較でクラウドへ上書き反映する
    ============================================================ */
-const VERSION = "xevarion-sw-v245";
+const VERSION = "xevarion-sw-v247";
 
 /* ホームを成立させる最小セット（重い画像は runtime キャッシュに任せる） */
 const CORE = [
@@ -17,20 +17,20 @@ const CORE = [
   "./characters.html",
   /* ★ 2026-08-10 ガチャは XEVARION に一本化。中身は MagiBurst の共有モジュールが持つ */
   "./gacha.html",
-  "./gacha-ui.js?v=66",
-  "./mb-newchars.js?v=39",
-  "./xeva-devnotes.js?v=4",
+  "./gacha-ui.js?v=67",
+  "./mb-newchars.js?v=40",
+  "./xeva-devnotes.js?v=5",
   "./xevion-os.js?v=13",
   "./xevion-os.css?v=15",
   "./magibattle-stats.js?v=18",
-  "./MagiBurst/js/mb-core.js?v=141",
+  "./MagiBurst/js/mb-core.js?v=142",
   /* ★ 2026-08-10 ガチャと図鑑で共通の土台・キャラ詳細・結果演出 */
   /* ★ 2026-08-12 ポータルのガチャ・図鑑も magiburst_v1 を同期するようになった */
   "./app-cloud.js?v=15",
   "./MagiBurst/magiburst-cloud.js?v=27",
-  "./mb-boot.js?v=17",
-  "./mb-char-detail.js?v=49",
-  "./mb-char-detail.css?v=30",
+  "./mb-boot.js?v=18",
+  "./mb-char-detail.js?v=50",
+  "./mb-char-detail.css?v=31",
   "./mb-gacha-reveal.css?v=11",
   /* ★★ 2026-10-09 ガチャの演出を1から作り直した（1体ずつ・確定演出・UR は縦長の絵） */
   "./xeva-summon.js?v=5",
@@ -61,20 +61,20 @@ const CORE = [
   "./xeva-i18n-p4.js?v=8",
   "./xeva-i18n-n1.js?v=20",
   "./xeva-i18n-n2.js?v=3",
-  "./xeva.js?v=83",
+  "./xeva.js?v=84",
   "./xeva-alive.js?v=8",
   "./xeva-fx.js?v=9",
   "./xeva-loading.js?v=19",
-  "./xeva-splash.js?v=17",          // ★★ 2026-10-13 XEVARION の起動画面（3社ロゴ）にも使う
+  "./xeva-splash.js?v=18",          // ★★ 2026-10-13 XEVARION の起動画面（3社ロゴ）にも使う
   "./uwaki.html",                    // ★★ 2026-10-15 これって浮気？判定シート（ホームの PARK の真上のボタン）
   "./uwaki.js?v=1",
   "./uwaki.css?v=1",
   "./thumbs/Uwaki.jpg",
-  "./xevarion.js?v=106",
-  "./xevarion-home.js?v=171",
+  "./xevarion.js?v=107",
+  "./xevarion-home.js?v=172",
   /* ★★ 2026-09-24 ホームのロビーとパートナー。素材は home-mate/<id>/（?v= は home-mate.js の HM_VER）・笙古／瞳／舞香／衣織／樹愛羅／映美里（09-25 ボイス廃止・表情は webp） */
-  "./gacha-live.js?v=8",
-  "./home-mate.js?v=31",
+  "./gacha-live.js?v=9",
+  "./home-mate.js?v=32",
   /* ★★ 2026-10-26 完凸ロビー（ヒサコ・アリス）と、バナーの上のドット絵のキャラ（絵は MagiAbyss の ma-pixel.js） */
   "./home-lobby.js?v=1",
   "./home-dot.js?v=3",
@@ -190,7 +190,8 @@ const CORE = [
   "./thumbs/MagiQuiz.jpg",   /* ★★ 2026-10-23 新作 MagiQuiz */
   "./thumbs/MagiAbyss.jpg?v=2",   // ★★ 2026-10-05 新作 MagiAbyss
   "./thumbs/ISHIDA.webp",      // ★★ 2026-10-09b ISHIDA のアイコン（小さい正方形）
-  "./brand/NGX_s.webp", "./brand/MagicalFuture_s.webp", "./brand/ISHIDA_s.webp",   // ★★ 2026-10-09b 起動画面の3社ロゴ（小さい版）
+  "./MagiDerby/js/md-data.js?v=4", "./MagiDerby/js/md-intro.js?v=2",   // ★★ 2026-10-28 ホームの GⅠ 発売開始の告知（home-mate.js の derbyAnn）
+  "./brand/NGX_s.webp", "./brand/MagicalFuture_s.webp", "./brand/ISHIDA_s.webp", "./brand/YRA_s.webp",   // ★★ 2026-10-09b 起動画面の3社ロゴ（小さい版）
   "./thumbs/MagiChemLex.jpg?v=2", // ★★ 2026-10-06 新作 MagiChemLex
   "./thumbs/MagiDerby.jpg",       // ★★ 2026-10-21 新作 MagiDerby（実際の JRA GⅠ）
   /* ★★ 2026-10-06 XEVARION 共通イベント Violet Breeze（左上のバナー・イベントのページ・一覧の絵） */

@@ -569,6 +569,72 @@
       _emit: emitC,
     };
   })();
+  /* ══ ★★ 2026-10-28 ガチャ10連半額券（ご指定「新たなアイテム ガチャ10連半額券は新たにデザインし、全てのガチャの10連で、
+       1枚で1回半額の25ジェムで引くことができます」）══
+     ・使う場所：ガチャの下の「半額券で10連」（mb-core.js の payHalf10）。1枚で <b>10連1回を 💎25</b>（ふつうは 💎50）。🎫チケットは使わない。
+     ・もらえる所：メール（half10:n）。
+     ★ 残高は両替チケットと同じく<b>フェスセレクト券の台帳（xeva_fessel_v1）</b>の "h10:" の欄（e＝もらった総数・u＝使った総数は増えるだけ
+       → 端末をまたいでも max で混ざる＝xeva-cloud の mergeCountMap）。1回だけのもの（メール）は grantOnce(タグ)。 */
+  var halfTicket = (function () {
+    var PFX = "h10:";
+    function bal() { var a = fesSelect.all(), n = 0; Object.keys(a).forEach(function (k) { if (k.indexOf(PFX) === 0) n += a[k]; }); return n; }
+    function uid() { return Date.now().toString(36) + Math.floor(Math.random() * 1e6).toString(36); }
+    function emitH() { try { window.dispatchEvent(new CustomEvent("xeva:halfticket", { detail: { balance: bal() } })); } catch (e) {} }
+    return {
+      NAME: "ガチャ10連半額券",
+      GEMS: 25,                       /* 1枚で 10連1回を 💎25 */
+      get: bal,
+      add: function (n, reason) {
+        n = Math.max(0, Math.round(n || 0)); if (!n) return bal();
+        fesSelect.add(PFX + "g:" + uid(), n, reason || "ガチャ10連半額券");
+        emitH(); return bal();
+      },
+      /* 配った回（tag）ごとに n 枚まで（戻り値＝今回ふえた枚数） */
+      grantOnce: function (tag, n, reason) {
+        var k = PFX + "t:" + String(tag || ""), e = fesSelect.earned(k);
+        n = Math.max(0, Math.round(n || 0));
+        if (!tag || e >= n) return 0;
+        fesSelect.add(k, n - e, reason || "ガチャ10連半額券");
+        emitH(); return n - e;
+      },
+      spend: function (n, reason) {
+        n = Math.max(1, Math.round(n || 1));
+        if (bal() < n) return false;
+        var a = fesSelect.all();
+        var ks = Object.keys(a).filter(function (k) { return k.indexOf(PFX) === 0 && a[k] > 0; }).sort();
+        var left = n;
+        for (var i = 0; i < ks.length && left > 0; i++) {
+          var take = Math.min(left, a[ks[i]]);
+          if (fesSelect.spend(ks[i], take, reason || "ガチャ10連半額券")) left -= take;
+        }
+        emitH();
+        return left === 0;
+      },
+      _emit: emitH,
+    };
+  })();
+  /* 券面（★★ 2026-10-28 新しくデザイン）：紅〜朱のグラデーション＋金のふち・左の紋章は金の円に白抜きの「½」・
+     右に「10連」と「HALF」。ほかの券（62×40・切りこみ・ミシン目）と同じ形。高さ px・幅は 1.55 倍。グラデーションの id は xh…（別名） */
+  window.XevaHalfTicketSVG = function (px) {
+    var s = px || 30, w = "width:" + (s * 1.55) + "px;height:" + s + "px;display:block";
+    return '<svg viewBox="0 0 62 40" style="' + w + '" aria-hidden="true"><defs>'
+      + '<linearGradient id="xhtg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#8a0a22"/><stop offset=".5" stop-color="#e2263e"/><stop offset="1" stop-color="#ff8a2a"/></linearGradient>'
+      + '<linearGradient id="xhtr" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff4c2"/><stop offset=".5" stop-color="#ffcf4a"/><stop offset="1" stop-color="#fff4c2"/></linearGradient>'
+      + '<radialGradient id="xhtc" cx=".38" cy=".32" r=".8"><stop offset="0" stop-color="#fff8d0"/><stop offset=".55" stop-color="#ffcb3c"/><stop offset="1" stop-color="#c47a06"/></radialGradient>'
+      + '<linearGradient id="xhts" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".45"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient></defs>'
+      + '<path d="M3 6h56v9a5 5 0 000 10v9H3v-9a5 5 0 000-10z" fill="url(#xhtg)" stroke="url(#xhtr)" stroke-width="1.7"/>'
+      + '<path d="M5 7.6h52v6.6c-1.6.3-2.6 1.2-3 2.4H8c-.4-1.2-1.4-2.1-3-2.4Z" fill="url(#xhts)"/>'
+      + '<path d="M22 4v32" stroke="#ffe7a0" stroke-width="1.2" stroke-dasharray="3 3" opacity=".9"/>'
+      + '<g transform="translate(12.5 20)"><circle r="8" fill="url(#xhtc)" stroke="#fff3c4" stroke-width="1"/>'
+      + '<circle r="6.3" fill="none" stroke="#a25a00" stroke-width=".6" stroke-dasharray="1.2 1.1" opacity=".8"/>'
+      + '<text x="-2.2" y="-.6" text-anchor="middle" font-family="Orbitron,sans-serif" font-size="5.6" font-weight="900" fill="#8a0a22">1</text>'
+      + '<path d="M-3.6 4.4 3.8-4.2" stroke="#8a0a22" stroke-width="1.1" stroke-linecap="round"/>'
+      + '<text x="2.6" y="5.4" text-anchor="middle" font-family="Orbitron,sans-serif" font-size="5.6" font-weight="900" fill="#8a0a22">2</text></g>'
+      + '<text x="41.5" y="19" text-anchor="middle" font-family="\'Noto Sans JP\',sans-serif" font-size="9.4" font-weight="900" fill="url(#xhtr)" stroke="#6a0618" stroke-width=".6" paint-order="stroke">10連</text>'
+      + '<text x="41.5" y="28.2" text-anchor="middle" font-family="Orbitron,sans-serif" font-size="5.4" font-weight="900" fill="#fff" letter-spacing=".3">HALF</text>'
+      + '<path d="M30.5 32.6h22" stroke="#ffe7a0" stroke-width=".9" opacity=".7"/>'
+      + '<path d="M55.2 9.4l.7 1.6 1.6.7-1.6.7-.7 1.6-.7-1.6-1.6-.7 1.6-.7Z" fill="#fff"/></svg>';
+  };
   /* ══ ★★ 2026-10-20 チケットの券面（共通）══
      MagiBurst（mb-core.js）の fesTicketSVG / gachaTicketSVG と<b>同じ絵</b>を、mb-core を読まないアプリ
      （ホーム・MagiChemLex など）でも出せるように写したもの。★ グラデーションの id は mb-core とも別名（xf…/xg…/xc…）。
@@ -2107,6 +2173,9 @@
     /* ★★ 2026-10-20 両替チケット（ジェム→XEVA の両替に1枚＝💎10・2026-10-24 から）。XEVA.cashTicket.get() / .add(n,"…") / .grantOnce(tag,n,"…") / .spend(n,"…")
        変わったら "xeva:cashticket"（台帳はフェスセレクト券と同じなので "xeva:fessel" も飛ぶ） */
     cashTicket: cashTicket,
+    /* ★★ 2026-10-28 ガチャ10連半額券（全ガチャの10連を1枚で 💎25）。XEVA.halfTicket.get() / .add(n,"…") / .grantOnce(tag,n,"…") / .spend(n,"…")
+       変わったら "xeva:halfticket"（台帳はフェスセレクト券と同じなので "xeva:fessel" も飛ぶ） */
+    halfTicket: halfTicket,
     /* ★★ 2026-09-13c ★星煌印（ガチャの天井）。
        使いかた: XEVA.seal.get("fes14") / .add("fes14",1,"…") / .spend("fes14",150,"…")
        ★ 引いた数そのものは .earned("fes14")（減らない通算）。 */

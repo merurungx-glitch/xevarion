@@ -21,6 +21,41 @@
 
   const NOTES = [
     {
+      id: "2026-10-28", date: "2026.10.28", title: "MagiAbyss の画面と地図を作り直し／ChemLex にビンゴカード／ガチャ10連半額券",
+      lead: "いつも XEVARION を遊んでいただき、ありがとうございます。<br>今回は <b>MagiAbyss の画面と冒険の地図</b>を作り直し、MagiChemLex に<b>ビンゴカード</b>を追加しました。新しいアイテム<b>「ガチャ10連半額券」</b>も登場です（📧メールで配布中）。",
+      chars: [],
+      secs: [
+        { h: "XEVARION", img: "brand/YRA_s.webp", href: "index.html", items: [
+          "運営協力に <b>YRA</b> が参入しました。起動の画面は<b>企業ロゴ4社を縦2×横2</b>で表示します（XEVARION のロゴの表示はなくしました）",
+          "図鑑・ガチャの<b>属性の表記</b>を <b>火・水・木・光・闇</b> に戻しました（「火属性キラー」のように）",
+          "<b>ヒサコ・アリス</b>は、完凸するとホームのロビーに設定できることを、ガチャの顔ぶれとキャラ詳細に<b>小さく</b>表記しました",
+          "<b>花宴祭</b>と <b>RISING STAR FEST</b> の開催を終了しました。キャラは、ほかのフェスと同じく <b>Festival Archive GACHA</b> で引けます",
+          "新しいアイテム<b>「ガチャ10連半額券」</b>：<b>どのガチャでも10連を1枚で 💎25</b>（ふつうは 💎50）。ガチャの下の「半額券で10連」から使えます",
+          "配布：MagiChemLex の修正に伴い <b>10連半額券5枚・両替チケット10枚・5,000 XEVA</b>／MagiLex のビンゴカード廃止の補填に <b>5,000 XEVA・ガチャチケット20枚</b>（どちらも📧メールから）",
+          "MagiDerby で<b>新しい GⅠ が買えるようになったら</b>、はじめての1回だけホームで<b>豪華なアニメーション</b>でお知らせします（追加データのダウンロードやこのノートのあと）",
+          "パートナーを表示しているときに<b>「表示」ボタンを押すと非表示になる</b>ことがあったのを修正（標準・アップ・全身だけを切りかえます。表示しないは「ロビー」の画面から）",
+        ] },
+        { h: "MagiAbyss", img: "thumbs/MagiAbyss.jpg?v=2", href: "MagiAbyss/index.html", items: [
+          "<b>UI・デザインを作り直し</b>：紺のガラスの板に金のふちと四隅の飾り、見出しは明朝、ボタンは角の丸い金・紺に。タイトル・町・枠・HUD・操作ボタン・結果まで",
+          "<b>スマホの横画面</b>に合わせて調整：上のバー・枠・地図の詳細・HUD・操作ボタンを詰めて、画面の中に収まるように",
+          "<b>冒険の地図を作り直し</b>：迷宮どうしの間かくをあけて置き直し、<b>名札が重ならない</b>ように。外伝の島はそれぞれ形と色をかえ、道はなめらかな曲線に。迷宮は番号のメダル（クリア・NEW・HARD の印）",
+        ] },
+        { h: "MagiChemLex", img: "thumbs/MagiChemLex.jpg?v=2", href: "MagiChemLex/index.html", items: [
+          "<b>ビンゴカード</b>：毎月の 5×5（まん中は FREE）。マスは<b>元素カード</b>の形で、条件を満たすと金色のはんこ。そろうと <b>BINGO!</b> の演出とごほうび（ライン・3ライン・6ライン・コンプリート）",
+          "XEVA のごほうびの<b>素の量を3倍</b>にしました（イベントの倍率はその上にかかります）",
+        ] },
+        { h: "MagiDerby", img: "thumbs/MagiDerby.jpg", href: "MagiDerby/index.html", items: [
+          "<b>オフラインでも馬券を購入</b>できるようになりました（つながったときに同期・時刻を確かめ直します）",
+          "金額の<b>初期値は 0</b>（金額のボタンで足していきます）",
+          "<b>購入するボタン</b>が下の縁から浮いて見えていたのを修正（シートの下のふちに固定）",
+          "GⅠ の演出で <b>「GⅠ」の文字が中央にそろっていなかった</b>のを修正",
+        ] },
+        { h: "MagiLex", img: "thumbs/MagiLex.jpg", href: "MagiLex/index.html", items: [
+          "<b>ミッションビンゴ（ビンゴカード）を廃止</b>しました。補填は📧メールでお送りしています。ビンゴカードは MagiChemLex に新しく作りました",
+        ] },
+      ],
+    },
+    {
       id: "2026-10-27", date: "2026.10.27", title: "ウマ娘風の配色に／MagiAbyss 外伝クエスト6つ・ストーリー増量／ChemLex 模試の冊子",
       lead: "いつも XEVARION を遊んでいただき、ありがとうございます。<br>今回は<b>ホームの配色をウマ娘風に</b>見直し、MagiAbyss に<b>外伝クエスト6つ（新しい敵とボス）とストーリー</b>を追加しました。MagiChemLex には、組をまるごと解く<b>模試の冊子</b>ができました。",
       chars: [],
@@ -306,6 +341,10 @@
   /* ★★ 2026-10-25 更新（追加データのダウンロード）の画面が出ているあいだは出さない（ご報告「ダウンロードの前に裏で出て見られない」）。
      ホームの xhUpdBusy()：起動時の更新の確認がまだ＝"wait"（15秒まで待つ）・更新の画面／ダウンロード中＝true（終われば読み込み直すので、そのあと出る）。 */
   let waitT = 0;
+  /* ★★ 2026-10-28 ほかのお知らせ（ホームの MagiDerby の GⅠ 発売の告知など）が、このノートのあとに出られるように：
+     maybeShow が終わった（出した・出すものが無かった）か。出したノートが開いているあいだは false */
+  let settledF = false;
+  function settled() { const ov = document.getElementById("xdnOv"); return settledF && !(ov && ov.classList.contains("open")); }
   function updBusy() {
     try { return window.xhUpdBusy ? window.xhUpdBusy() : false; } catch (e) { return false; }
   }
@@ -321,6 +360,7 @@
     let unseen = [];
     try { unseen = (window.XEVA && XEVA.newCharsUnseen && XEVA.newCharsUnseen()) || []; } catch (e) {}
     const fresh = seen() !== N.id;
+    settledF = true;
     if (!fresh && !unseen.length) return false;
     open(N, unseen, !fresh);
     markSeen(N.id);
@@ -328,5 +368,5 @@
     return true;
   }
 
-  window.XevDevNotes = { maybeShow: maybeShow, open: () => open(NOTES[0], [], false), history: history, NOTES: NOTES };
+  window.XevDevNotes = { maybeShow: maybeShow, open: () => open(NOTES[0], [], false), history: history, NOTES: NOTES, settled: settled };
 })();

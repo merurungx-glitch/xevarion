@@ -15,6 +15,11 @@
 
 /* 画像フォルダ。ポータルは img/ を直接見る（MagiBurst は "../img/"） */
 window.MB_IMGD = "img/";
+/* ★★ 2026-10-28 ご指定「図鑑やガチャの属性表記を火水木光闇に戻して」：
+   このファイルを先に読むページ（ガチャ・図鑑・MagiLex のキャラ詳細・MagiAbyss など＝mb-core.js を借りるページ）では、
+   mb-core.js の属性の呼び名を IGNIS / AQUA / VERDE / LUMEN / UMBRA から <b>火・水・木・光・闇</b> に戻す（mb-core.js の ELEM_JA）。
+   MagiBurst 本体（このファイルを読まない）は今までどおり。 */
+window.MB_ELEM_JA = true;
 /* ★ 2026-08-12 MagiBurst のゲーム用画像（バナー・戦闘背景・敵の絵）は MagiBurst/img/ に分けた。
    ポータルの各ページは XEVARION 直下にあるので、1つ下へ降りるパスになる。 */
 window.MB_GIMGD = "MagiBurst/img/";

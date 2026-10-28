@@ -1868,7 +1868,7 @@
         '<button class="hm-pk-x" aria-label="閉じる">✕</button></div>' +
         '<div class="hm-pk-tabs" role="tablist"><button type="button" data-t="room">ロビー</button><button type="button" data-t="dot">ドット絵</button></div>' +
         /* ★★ 2026-10-26 ご指定「表示しないはパートナーと完凸ロビーの両方に関わるので、その切りかえの上に」 */
-        '<div class="hm-pk-rand hm-pk-hide"><span><b>パートナーを表示しない</b><small>パートナー・完凸ロビーのキャラを出さず、背景だけにします（ロビーの「表示」ボタンでも切りかえられます）</small></span>' +
+        '<div class="hm-pk-rand hm-pk-hide"><span><b>パートナーを表示しない</b><small>パートナー・完凸ロビーのキャラを出さず、背景だけにします</small></span>' +
         '<button class="hm-vsw" aria-label="パートナーを表示しないモードのオン・オフ"></button></div>' +
         '<div class="hm-pk-sub"><button type="button" data-s="mate">パートナー</button><button type="button" data-s="lobby">完凸ロビー<em>完凸</em></button></div>' +
         '<div class="hm-pk-pane" data-p="mate"><div class="hm-pk-info"></div>' +
@@ -2300,7 +2300,7 @@
       /* ★★ 2026-10-27 ご指定「馬券を水曜日の 0:00 から」→ レースの日の前の水曜 0:00 から（MagiDerby の D.saleBack と同じ：日曜＝4日前・土曜＝3日前） */
       const wd = new Date(Date.UTC(d[0], d[1] - 1, d[2])).getUTCDay();
       const close = post - 120000, back = ((wd - 3 + 7) % 7) || 7;
-      if (t >= day0 - back * 86400000 && t < close) return { nm: r.nm, short: DERBY_SHORT[r.nm] || r.nm, close: close, soon: close - t <= DERBY_SOON_MS, left: close - t };
+      if (t >= day0 - back * 86400000 && t < close) return { nm: r.nm, short: DERBY_SHORT[r.nm] || r.nm, close: close, soon: close - t <= DERBY_SOON_MS, left: close - t, r: r };
     }
     return null;
   }
@@ -2333,8 +2333,55 @@
     if (document.hidden || navigator.onLine === false) { derbyPaint(); return; }
     fetch(DERBY_IDX + "?t=" + Math.floor(Date.now() / 300000), { cache: "no-cache" }).then((r) => (r.ok ? r.json() : null)).then((j) => { if (j && j.races) _derbyIdx = j; derbyPaint(); }).catch(() => derbyPaint());
   }
+  /* ══ ★★ 2026-10-28 ご指定「MagiDerby で新たに GⅠ レースの購入が可能になった初回に、豪華なアニメーションで開催することを表示。
+       ただし、ダウンロードやデベロッパーノートなどが全て表示し終えた後に表示」══
+     ・発売中の GⅠ（derbySale）があり、その rid をまだ告知していなければ、MagiDerby の md-intro.js（発売開始モード）で告知する。
+       見た印は xh_derby_ann_v1（{ rid: 時刻 }・端末ごと）。1つのレースにつき1回だけ。
+     ・待つもの：起動時の更新の確認と追加データのダウンロード（xhUpdBusy）・デベロッパーノート（XevDevNotes.settled）・
+       ほかのシートや起動の画面（xhOverlayBusy：ログインボーナス・メール・スタート画面…）。ホームが見えていないとき（アプリの裏など）も出さない。
+     ・md-data.js／md-intro.js（合わせて約30KB）は出すときだけ読む（ルートの sw.js の CORE にも入れた）。 */
+  const DERBY_ANN_KEY = "xh_derby_ann_v1";
+  let _annBusy = false, _annT = 0;
+  function annSeen() { try { return JSON.parse(localStorage.getItem(DERBY_ANN_KEY) || "{}") || {}; } catch (e) { return {}; } }
+  function annMark(rid) {
+    try { const m = annSeen(), now = Date.now(); m[rid] = now; Object.keys(m).forEach((k) => { if (now - (m[k] || 0) > 120 * 86400000) delete m[k]; }); localStorage.setItem(DERBY_ANN_KEY, JSON.stringify(m)); } catch (e) {}
+  }
+  function annLoad(src) {
+    return new Promise((res, rej) => { const s = document.createElement("script"); s.src = src; s.onload = () => res(); s.onerror = () => rej(new Error(src)); document.head.appendChild(s); });
+  }
+  function annQuiet() {
+    if (document.hidden) return false;
+    try { const u = window.xhUpdBusy ? window.xhUpdBusy() : false; if (u) return false; } catch (e) {}
+    try { if (window.XevDevNotes && XevDevNotes.settled && !XevDevNotes.settled()) return false; } catch (e) {}
+    if (document.querySelector("#xdnOv.open, .g1i, #hmPicker.on, .hm-pk-ov.on")) return false;
+    try { if (typeof xhOverlayBusy === "function" && xhOverlayBusy()) return false; } catch (e) {}
+    return true;
+  }
+  function derbyAnnMaybe(tries) {
+    clearTimeout(_annT);
+    const ds = derbySale();
+    if (!ds || !ds.r || !ds.r.rid || annSeen()[ds.r.rid] || _annBusy) return;
+    tries = tries || 0;
+    /* 2回つづけて静か（1.4秒あけて）＝ほかの画面がちょうど開くところではない */
+    if (!annQuiet()) { if (tries < 240) _annT = setTimeout(() => derbyAnnMaybe(tries + 1), 1400); return; }
+    if (tries < 1) { _annT = setTimeout(() => derbyAnnMaybe(1), 1400); return; }
+    _annBusy = true;
+    (window.MD_INTRO ? Promise.resolve() : (window.MD_DATA ? Promise.resolve() : annLoad("MagiDerby/js/md-data.js?v=4")).then(() => annLoad("MagiDerby/js/md-intro.js?v=2")))
+      .then(() => {
+        if (!window.MD_INTRO || !annQuiet()) { _annBusy = false; _annT = setTimeout(() => derbyAnnMaybe(1), 2000); return; }
+        const r = ds.r;
+        annMark(r.rid);
+        return window.MD_INTRO.play(r, null, { sale: { close: ds.close }, onGo: () => {
+          try { if (typeof xhOpenApp === "function") { xhOpenApp("magiderby", "MagiDerby/index.html"); return; } } catch (e) {}
+          location.href = "MagiDerby/index.html";
+        } }).then(() => { _annBusy = false; });
+      })
+      .catch(() => { _annBusy = false; });
+  }
+  window.XH_DERBY_ANN = derbyAnnMaybe;
   function derbyPaint() {
     const ds = derbySale(), sig = (ds ? ds.nm + (ds.soon ? ":soon:" + Math.ceil(ds.left / 600000) : "") : "") + "|" + derbyPayN();
+    if (ds && ds.r && ds.r.rid && !annSeen()[ds.r.rid] && !_annBusy) { clearTimeout(_annT); _annT = setTimeout(() => derbyAnnMaybe(0), 1200); }   /* ★★ 2026-10-28 発売開始の告知 */
     if (sig === _derbySig) return;
     _derbySig = sig;
     try { renderLobbyApps(); } catch (e) {}
@@ -2517,12 +2564,14 @@
       api._rv.push(now);
       setTimeout(() => { if (m === live && !m.dead) { m.dead = true; api.setPartner(m.lobby || m.backdrop ? api.current() : m.id, "quiet"); } }, 250);
     },
-    /* 標準 → アップ → 全身 → なし（パートナーを表示しない）→ 標準 … */
+    /* 標準 → アップ → 全身 → 標準 …
+       ★★ 2026-10-28 ご報告「パートナー表示をしているときに表示変更のボタンを押すと、パートナー非表示になったりする」
+       → 前は 全身 の次が「なし（パートナーを表示しない）」だった。表示を変えるボタンでは<b>非表示にしない</b>（標準・アップ・全身だけを回す）。
+         表示しないは「ロビー」の画面の「パートナーを表示しない」だけで切りかえる。表示しないときに押したら、標準で表示にもどす。 */
     cycleView() {
       const st = store();
       if (st.hide) { st.view = "normal"; save(st); api.setHidden(false); return; }
       const i = VIEWS.findIndex((v) => v[0] === (st.view || "normal"));
-      if (i === VIEWS.length - 1) { api.setHidden(true); return; }
       const nx = VIEWS[(i + 1) % VIEWS.length]; st.view = nx[0]; save(st);
       paintViewLabel();
       if (live) { live.view = nx[0]; live.layout(); }

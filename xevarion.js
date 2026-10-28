@@ -2283,6 +2283,17 @@ function grantMbGift(srcId, mb) {
 }
 
 const INITIAL_MAILS = [
+  /* ── ★★ 2026-10-28 MagiChemLex の修正に伴う配布（ご指定：ガチャ10連半額券5枚・両替チケット10枚・5,000 XEVA）──
+     ★ half10:n ＝ XEVA.halfTicket.grantOnce("<メールの id>", n)（新しいアイテム・全ガチャの10連を1枚で💎25）
+     ★ cash:n   ＝ XEVA.cashTicket.grantOnce("<メールの id>", n)（両替チケット）。どちらも同じメールを2台で受け取っても n 枚のまま。 */
+  { id:"mail_chemfix_261028", icon:"🧪", title:"MagiChemLex の修正に伴う配布（10連半額券5枚・両替チケット10枚・5,000 XEVA）", date:"2026-10-28",
+    body:"いつも XEVARION をご利用いただきありがとうございます。\n\nMagiChemLex の修正に伴い、全ユーザーに次のアイテムをお贈りします。\n\n・ガチャ10連半額券 ×5（新しいアイテムです。どのガチャでも、10連を1枚で 💎25 で引けます）\n・両替チケット ×10（ショップの XEVA 両替所で、1枚につき 💎10 を XEVA に両替できます）\n・5,000 XEVA\n\nガチャ10連半額券は、ガチャの画面の下の「半額券で10連」から使えます。\n今後とも XEVARION をよろしくお願いいたします。",
+    amount:5000, cash:10, half10:5 },
+  /* ── ★★ 2026-10-28 MagiLex のビンゴカード廃止に伴う補填（ご指定：5,000 XEVA・🎫ガチャチケット20枚）──
+     ★ mb:{gticket:20} ＝<b>ガチャチケット</b>（全ガチャ共通）。フェスチケット（mb:{ticket}）ではない。 */
+  { id:"mail_lexbingo_end_261028", icon:"🙇", title:"MagiLex ビンゴカード廃止に伴う補填（5,000 XEVA・🎫ガチャチケット20枚）", date:"2026-10-28",
+    body:"いつも XEVARION をご利用いただきありがとうございます。\n\nMagiLex のミッションビンゴ（ビンゴカード）を廃止しました。これまで遊んでいただき、ありがとうございました。\n廃止に伴い、全ユーザーに 5,000 XEVA と ガチャチケット20枚 をお贈りします。\n\n・ガチャチケットは PREMIUM SELECT GACHA でも各フェスでも使えます。\n・ビンゴカードは MagiChemLex に新しく追加しました（MagiChemLex のホームの「ビンゴカード」から）。\n\n今後とも XEVARION をよろしくお願いいたします。",
+    amount:5000, mb:{ gticket:20 } },
   /* ── ★★ 2026-10-13 日ごろの感謝をこめて（選べるSSRキャラ確定チケット 2枚・ご指定）──
      ★ ssrsel:2 ＝ XEVA.ssrSelect.grantOnce("<メールの id>", 2)。同じメールを2台で受け取っても2枚のまま。
      ★ 使う場所はガチャ一覧のいちばん上（gacha-ui.js の useSsrSelTicket）。 */
@@ -2434,7 +2445,7 @@ function seedMails() {
       const before = JSON.stringify(cur);
       Object.keys(m).forEach((k) => { cur[k] = m[k]; });
       /* 旧版で入っていて新版に無いキーは消す（ticket → gticket の付け替えなど） */
-      ["amount", "gem", "mb", "charId", "charFull", "ssrsel"].forEach((k) => {
+      ["amount", "gem", "mb", "charId", "charFull", "ssrsel", "cash", "half10"].forEach((k) => {
         if (!(k in m) && k in cur) delete cur[k];
       });
       if (JSON.stringify(cur) !== before) changed = true;
@@ -2494,6 +2505,9 @@ function claimMail(id) {
     const tk = grantMbGift(mail.mbFrom || mail.id, mail.mb);
     if (tk > 0 && window.xhRenderTicket) window.xhRenderTicket();
   }
+  /* ★★ 2026-10-28 両替チケット・ガチャ10連半額券（同じ回のぶんは何度受け取っても n 枚まで） */
+  if (mail.cash > 0 && window.XEVA && window.XEVA.cashTicket) { try { window.XEVA.cashTicket.grantOnce(mail.id, mail.cash, "📧メール：" + mail.title); } catch (e) {} }
+  if (mail.half10 > 0 && window.XEVA && window.XEVA.halfTicket) { try { window.XEVA.halfTicket.grantOnce(mail.id, mail.half10, "📧メール：" + mail.title); } catch (e) {} }
   /* ★★ 2026-10-13 選べるSSRキャラ確定チケット（同じ回のぶんは何度受け取っても n 枚まで） */
   let ssrGot = 0;
   if (mail.ssrsel > 0 && window.XEVA && window.XEVA.ssrSelect) {
@@ -2545,6 +2559,9 @@ function claimAllMails() {
     if (m.ssrsel > 0 && window.XEVA && window.XEVA.ssrSelect) {
       try { window.XEVA.ssrSelect.grantOnce(m.id, m.ssrsel, "📧メール：" + m.title); ssrTotal += m.ssrsel; } catch (e) {}
     }
+    /* ★★ 2026-10-28 両替チケット・ガチャ10連半額券 */
+    if (m.cash > 0 && window.XEVA && window.XEVA.cashTicket) { try { window.XEVA.cashTicket.grantOnce(m.id, m.cash, "📧メール：" + m.title); } catch (e) {} }
+    if (m.half10 > 0 && window.XEVA && window.XEVA.halfTicket) { try { window.XEVA.halfTicket.grantOnce(m.id, m.half10, "📧メール：" + m.title); } catch (e) {} }
     if (m.amount > 0) total += m.amount;
     const dup = mbAlreadyGot(m.mbFrom);
     if (m.gem > 0 && !dup) gemTotal += m.gem;
@@ -2633,6 +2650,9 @@ function renderMailList() {
         ${m.mb && m.mb.ticket ? `<div class="mail-item-reward"><span style="font-size:11px;color:#c48bff;font-weight:700">🎫 フェスチケット ×${m.mb.ticket}</span></div>` : ""}
         ${m.mb && m.mb.gticket ? `<div class="mail-item-reward"><span style="font-size:11px;color:#5ab6ff;font-weight:700">🎫 ガチャチケット ×${m.mb.gticket}</span></div>` : ""}
         ${m.mb && m.mb.gold ? `<div class="mail-item-reward"><span style="font-size:11px;color:#d79a1e;font-weight:700">🪙 ゴールド ×${m.mb.gold.toLocaleString()}</span></div>` : ""}
+        ${/* ★★ 2026-10-28 ガチャ10連半額券・両替チケット（券面の小さな絵つき） */""}
+        ${m.half10 ? `<div class="mail-item-reward" style="display:flex;align-items:center;gap:6px">${window.XevaHalfTicketSVG ? window.XevaHalfTicketSVG(16) : "🎟️"}<span style="font-size:11px;color:#c8102e;font-weight:900">ガチャ10連半額券 ×${m.half10}</span></div>` : ""}
+        ${m.cash ? `<div class="mail-item-reward" style="display:flex;align-items:center;gap:6px">${window.XevaCashTicketSVG ? window.XevaCashTicketSVG(16) : "💱"}<span style="font-size:11px;color:#0f8a63;font-weight:900">両替チケット ×${m.cash}</span></div>` : ""}
         ${m.ssrsel ? `<div class="mail-item-reward" style="display:flex;align-items:center;gap:6px">${window.XevaSsrTicketSVG ? window.XevaSsrTicketSVG(16) : "🎟️"}<span style="font-size:11px;color:#d0337f;font-weight:900">選べるSSRキャラ確定チケット ×${m.ssrsel}</span></div>` : ""}
         ${/* ★ 2026-08-13 🎫はここで即座に受け取れる（MagiBurst を開く必要はなくなった）。
               ゴールドのように MagiBurst のセーブにしか置けないものだけ、これまでどおりの案内を出す。 */""}
