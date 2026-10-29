@@ -268,7 +268,7 @@
     const sel = s.sel, C = D().CHARS[sel];
     const anyOwned = D().CHAR_ORDER.some((id) => MA.Save.owned(id));
     if (!anyOwned) {
-      $("#gSel").innerHTML = '<div class="g-noown">' + ic("lock") + '<div><b>遊べるキャラがいません</b><small>XEVARION の <em class="f7">超極煌祭</em><em class="f6">超極華祭</em><em class="f5">Pumpkin Night</em><em class="f4">Sapphire Breeze</em><em class="f1">極彩祭</em><em class="f2">極煌祭</em><em class="f3">極華祭</em> のキャラ・<em class="f8">MagiChemLex の WP交換所</em> のミキを手に入れると遊べます</small></div><a class="btn sm gold" href="../gacha.html">ガチャへ</a></div>';
+      $("#gSel").innerHTML = '<div class="g-noown">' + ic("lock") + '<div><b>遊べるキャラがいません</b><small>XEVARION の <em class="f9">超極彩祭</em><em class="f7">超極煌祭</em><em class="f6">超極華祭</em><em class="f5">Pumpkin Night</em><em class="f4">Sapphire Breeze</em><em class="f1">極彩祭</em><em class="f2">極煌祭</em><em class="f3">極華祭</em> のキャラ・<em class="f8">MagiChemLex の WP交換所</em> のミキを手に入れると遊べます</small></div><a class="btn sm gold" href="../gacha.html">ガチャへ</a></div>';
       return;
     }
     $("#gSel").innerHTML = '<img src="../img/t_' + UI().imgName(sel) + '.webp" alt=""><div><small>出発するキャラ</small><b>' + esc(C.nm) + ' <em class="cc-rar r-' + C.rank + '">' + C.rank + "</em></b><span>" + ic("el_" + C.el) + "Lv." + MA.Save.lvOf(sel) + "・" + D().CTYPE[C.type].nm + '</span></div><button class="btn sm" data-a="fac" data-v="chars">変更</button>';
@@ -378,10 +378,10 @@
   /* ★★ 2026-10-24 入手先：WP交換所のキャラ（ミキ）はガチャでなく MagiChemLex の WP 交換所 */
   const isWp = (C) => C && C.fes === "WP交換所";
   const getWhere = (C) => isWp(C) ? "MagiChemLex の WP 交換所" : "XEVARION の" + (C && C.fes ? C.fes : "ガチャ");
-  const FES_CLS = { "極彩祭": "f1", "極煌祭": "f2", "極華祭": "f3", "Sapphire Breeze": "f4", "Pumpkin Night": "f5", "超極華祭": "f6", "超極煌祭": "f7", "WP交換所": "f8" };
+  const FES_CLS = { "極彩祭": "f1", "極煌祭": "f2", "極華祭": "f3", "Sapphire Breeze": "f4", "Pumpkin Night": "f5", "超極華祭": "f6", "超極煌祭": "f7", "WP交換所": "f8", "超極彩祭": "f9" };   /* ★★ 2026-10-30 超極彩祭 */
   function fesBadge(C) { return '<em class="fes ' + (FES_CLS[C.fes] || "") + '">' + esc(C.fes) + "</em>"; }
   function fesInfo() {
-    return '<div class="fes-info">' + ic("star", "#ffd84a") + '<div><b>MagiAbyss で使えるキャラ</b><small>XEVARION のガチャ <em class="fes f7">超極煌祭</em><em class="fes f6">超極華祭</em><em class="fes f5">Pumpkin Night</em><em class="fes f4">Sapphire Breeze</em><em class="fes f1">極彩祭</em><em class="fes f2">極煌祭</em><em class="fes f3">極華祭</em> と <em class="fes f8">MagiChemLex の WP交換所</em> で手に入るキャラ（' + D().CHAR_ORDER.length + "人）。持っているキャラだけで遊べます。凸は XEVARION と共通・レベルはこのアプリだけ。</small></div>" +
+    return '<div class="fes-info">' + ic("star", "#ffd84a") + '<div><b>MagiAbyss で使えるキャラ</b><small>XEVARION のガチャ <em class="fes f9">超極彩祭</em><em class="fes f7">超極煌祭</em><em class="fes f6">超極華祭</em><em class="fes f5">Pumpkin Night</em><em class="fes f4">Sapphire Breeze</em><em class="fes f1">極彩祭</em><em class="fes f2">極煌祭</em><em class="fes f3">極華祭</em> と <em class="fes f8">MagiChemLex の WP交換所</em> で手に入るキャラ（' + D().CHAR_ORDER.length + "人）。持っているキャラだけで遊べます。凸は XEVARION と共通・レベルはこのアプリだけ。</small></div>" +
       '<a class="btn sm gold" href="../gacha.html">ガチャへ</a></div>';
   }
   let charFilter = "all";
@@ -395,7 +395,7 @@
       if (/^fes:/.test(charFilter)) return C.fes === charFilter.slice(4);
       return C.el === charFilter;
     });
-    const tabs = [["all", "すべて"], ["own", "所持（" + ownN + "）"], ["fes:超極煌祭", "超極煌祭"], ["fes:WP交換所", "WP交換"], ["fes:超極華祭", "超極華祭"], ["fes:Pumpkin Night", "Pumpkin"], ["fes:Sapphire Breeze", "Sapphire"], ["fes:極彩祭", "極彩祭"], ["fes:極煌祭", "極煌祭"], ["fes:極華祭", "極華祭"]].concat(D().ELEM_KEYS.map((k) => [k, D().ELEM[k].nm]));
+    const tabs = [["all", "すべて"], ["own", "所持（" + ownN + "）"], ["fes:超極彩祭", "超極彩祭"], ["fes:超極煌祭", "超極煌祭"], ["fes:WP交換所", "WP交換"], ["fes:超極華祭", "超極華祭"], ["fes:Pumpkin Night", "Pumpkin"], ["fes:Sapphire Breeze", "Sapphire"], ["fes:極彩祭", "極彩祭"], ["fes:極煌祭", "極煌祭"], ["fes:極華祭", "極華祭"]].concat(D().ELEM_KEYS.map((k) => [k, D().ELEM[k].nm]));
     const html = head("person", "キャラクター一覧（酒場）", "押すとくわしい性能。持っているキャラだけ出発できます", "#ff6a5a") + fesInfo() +
       '<div class="tabs">' + tabs.map(([k, n]) => '<button class="tab' + (charFilter === k ? " on" : "") + '" data-a="charFilter" data-v="' + k + '">' + (D().ELEM[k] ? ic("el_" + k) : "") + esc(n) + "</button>").join("") + "</div>" +
       '<div class="cgrid">' + list.map((id) => {
@@ -851,7 +851,7 @@
     MA.Input.enabled = false;
     const s = S();
     $("#title").innerHTML = '<div class="tt-bg"></div><div class="tt-art"></div><div class="tt-shade"></div>' +
-      '<div class="tt-chars">' + ic("star", "#ffd84a") + '使えるキャラ：XEVARION の<b class="f7">超極煌祭</b><b class="f6">超極華祭</b><b class="f5">Pumpkin Night</b><b class="f4">Sapphire Breeze</b><b class="f1">極彩祭</b><b class="f2">極煌祭</b><b class="f3">極華祭</b><b class="f8">WP交換所</b></div>' +
+      '<div class="tt-chars">' + ic("star", "#ffd84a") + '使えるキャラ：XEVARION の<b class="f9">超極彩祭</b><b class="f7">超極煌祭</b><b class="f6">超極華祭</b><b class="f5">Pumpkin Night</b><b class="f4">Sapphire Breeze</b><b class="f1">極彩祭</b><b class="f2">極煌祭</b><b class="f3">極華祭</b><b class="f8">WP交換所</b></div>' +
       '<div class="tt-in">' +
       '<div class="tt-tap" id="ttTap">TAP TO START</div>' +
       '<div class="tt-menu" id="ttMenu" hidden>' +

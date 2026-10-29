@@ -212,6 +212,10 @@
   padding:calc(env(safe-area-inset-top,0px) + 14px) 10px calc(env(safe-area-inset-bottom,0px) + 22px);
   background:radial-gradient(120% 80% at 50% 0%,#2c2470 0%,#14113a 45%,#07061a 100%);opacity:0;transition:opacity .25s}
 .mclbg.on{opacity:1}
+/* ★★ 2026-10-30 ご報告「ビンゴカードを開いて閉じると画面が反応しなくなる」の真因：.mclbg の display:flex が hidden 属性（display:none）に勝ち、
+   閉じたあとも透明の板（position:fixed・inset:0・z70）が画面全体をおおってタップを受けていた → hidden なら消す・閉じている間はタップを通す */
+.mclbg[hidden]{display:none}
+.mclbg:not(.on){pointer-events:none}
 .mclbg::before{content:"";position:fixed;inset:0;pointer-events:none;opacity:.5;
   background:radial-gradient(1.5px 1.5px at 12% 20%,#fff 50%,transparent 51%),radial-gradient(1.5px 1.5px at 78% 12%,#ffe9a8 50%,transparent 51%),radial-gradient(1px 1px at 40% 70%,#fff 50%,transparent 51%),radial-gradient(1.5px 1.5px at 88% 64%,#cfe4ff 50%,transparent 51%),radial-gradient(1px 1px at 22% 86%,#ffe9a8 50%,transparent 51%),
   repeating-linear-gradient(0deg,rgba(255,255,255,.025) 0 1px,transparent 1px 34px),repeating-linear-gradient(90deg,rgba(255,255,255,.025) 0 1px,transparent 1px 34px)}

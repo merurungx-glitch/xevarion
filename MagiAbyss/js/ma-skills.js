@@ -70,6 +70,9 @@
     hisako:    { nm: "ふたりだけの特別授業", ic: "cy_book", cond: { k: "ult" }, cd: 0, fx: { atk: 0.33, crit: 22, t: 10, techG: 0.4 } },
     alice:     { nm: "白百合の独占", ic: "cy_lily", cond: { k: "ult" }, cd: 0, fx: { atk: 0.3, crit: 20, t: 10, techG: 0.4 } },
     miki:      { nm: "青い花の約束", ic: "cy_bloom", cond: { k: "kills", n: 15, s: 8 }, cd: 20, fx: { aspd: 0.35, spd: 0.15, t: 8 } },
+    /* ★★ 2026-10-30 超極彩祭（ヒサコより少し上） */
+    haru:      { nm: "あじさいの海風", ic: "cy_hydra", cond: { k: "ult" }, cd: 0, fx: { atk: 0.35, crit: 23, t: 10, techG: 0.4 } },
+    chika:     { nm: "月夜だけの素顔", ic: "cy_moon", cond: { k: "ult" }, cd: 0, fx: { atk: 0.35, crit: 23, t: 10, techG: 0.4 } },
     hinano:    { nm: "翠光の追い風", ic: "gale", cond: { k: "kills", n: 12, s: 6 }, cd: 18, fx: { aspd: 0.35, spd: 0.2, t: 6 } },
     hanon:     { nm: "ブザービーター", ic: "at_ball", cond: { k: "foeLow", v: 0.3 }, cd: 30, fx: { atk: 0.4, t: 10 } },
     kokoha:    { nm: "椿雨の帳", ic: "sk_umbrella", cond: { k: "noHit", s: 10 }, cd: 25, fx: { atk: 0.25, crit: 15, t: 10 } },
@@ -98,6 +101,8 @@
     kohaku: ["yoin", "mikiri", "shuchu"], suzu: ["fudo", "omono", "shuchu"], shouko: ["shippu", "oikaze", "mikiri"],
     /* ★★ 2026-10-24 */
     hisako: ["yoin", "mikiri", "shuchu"], alice: ["yoin", "mikiri", "shuchu"], miki: ["shippu", "oikaze", "mikiri"],
+    /* ★★ 2026-10-30 */
+    haru: ["yoin", "mikiri", "shuchu"], chika: ["yoin", "mikiri", "shuchu"],
   };
   const KIT_DEF = ["fudo", "mikiri", "shinkokyu"];
 
@@ -131,6 +136,9 @@
     hisako:    { nm: "桜色・ハナミズキ", ic: "cy_book", kind: "mark", cond: { k: "crit", n: 30 }, mul: 9.9, vul: 0.3, t: 8 },
     alice:     { nm: "白銀・ホワイトムーン", ic: "cy_lily", kind: "mark", cond: { k: "crit", n: 30 }, mul: 9, vul: 0.3, t: 8 },
     miki:      { nm: "ブルーベル・ファン", ic: "cy_bloom", kind: "fan", cond: { k: "dodge", n: 5 }, mul: 2.3, n: 14 },
+    /* ★★ 2026-10-30 */
+    haru:      { nm: "蒼海・ブルーティアーズ", ic: "cy_hydra", kind: "mark", cond: { k: "crit", n: 30 }, mul: 10.4, vul: 0.3, t: 8 },
+    chika:     { nm: "月下・フルムーンメモリー", ic: "cy_moon", kind: "mark", cond: { k: "crit", n: 30 }, mul: 10.4, vul: 0.3, t: 8 },
     hinano:    { nm: "プリズム・スプラッシュ", ic: "sk_prism", kind: "fan", cond: { k: "dodge", n: 5 }, mul: 2.2, n: 14 },
     hanon:     { nm: "ゴールデン・ブザー", ic: "sk_hoop", kind: "mark", cond: { k: "skill", n: 4 }, mul: 11, vul: 0.3, t: 8 },
     kokoha:    { nm: "ツバキ・シグレ", ic: "sk_umbrella", kind: "rain", cond: { k: "time", n: 25 }, mul: 0.95, r: 95, t: 3, burn: 1 },

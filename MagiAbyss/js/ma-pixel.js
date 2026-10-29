@@ -383,6 +383,23 @@
     "..ooo..ooo..",
   ];
 
+  /* ★★ 2026-10-30 くるぶしまでの長いドレス（チカ・robe） */
+  const DRESS_LONG_BODY = [
+    ".AASSGGSSAA.",
+    "AAACCAACCAAA",
+    "A.AAAAAAAA.A",
+    "a.AaAAAAaA.a",
+    "S.AADDDDAA.S",
+    "..PPPPPPPP..",
+    "..PPPPPPPP..",
+    ".PPpPPPPpPP.",
+    ".PPPPPpPPPP.",
+    "PPpPPPPPPpPP",
+    "PPPPpPPPpPPP",
+    "pPPPPPPPPPPp",
+    "...OO..OO...",
+    "...oo..oo...",
+  ];
   /* ══════════════════════════════════════════════════════════════
      キャラごとの定義（MagiBurst の id と同じ）
      ══════════════════════════════════════════════════════════════ */
@@ -772,6 +789,48 @@
         /* 赤いリボン */
         { x: 15, y: 1, rows: ["D.D", "DdD", "d.d"] },
         /* 左手の紅い薔薇 */
+        { x: 1, y: 16, rows: [".X.", "XxX", ".X.", "..Y"] },
+      ],
+    },
+    /* ══ ★★ 2026-10-30 超極彩祭（ハル・チカ）══ */
+    /* ── ハル（水）：青いボブ・青い瞳・水色のキャミソール（黒いふち）・白いはおり（長そで）・黒いショートパンツ・白いスニーカー・青いあじさい ── */
+    haru: {
+      pal: { H: "#3a6fd6", h: "#24499e", L: "#93c2ff", E: "#2f8fff", A: "#8fb4f0", a: "#6a8fd0", C: "#f4f6ff", c: "#c6cfe6",
+             D: "#1e2030", d: "#0f1018", G: "#ffffff", P: "#23232c", p: "#121218", O: "#f4f6ff", o: "#aab6d2",
+             X: "#5a8cff", x: "#c8dcff", Y: "#3fbf6e", K: "#141a2c" },
+      legY: 23,
+      layers: [
+        backBob(),
+        { x: 6, y: 14, rows: [
+          ".CSSDSSDSSC.",
+          "CCAADAADAACC",
+          "C.AAAAAAAA.C",
+          "c.AaAAAAaA.c",
+          "C.AAAAAAAA.C",
+          "C.AAAAAAAA.C",
+        ].concat(BOTTOM_SHORTS) },
+        /* はおりのすそ（腰の横まで） */
+        { x: 6, y: 20, rows: ["C..........C", "c..........c"] },
+        "FACE",
+        frontBob(false),
+        /* 左手の青いあじさい */
+        { x: 1, y: 16, rows: [".X.", "XxX", ".X.", "..Y"] },
+      ],
+    },
+    /* ── チカ（闇）：紺がかった長い黒髪（右に編みこみ）・紫の瞳・白いドレス（うす紫の影・フリル・白いリボンのベルト）・金のネックレス・うす紫のヒール・白い花 ── */
+    chika: {
+      pal: { H: "#1a1830", h: "#0d0c1a", L: "#5a5a8a", E: "#8a6ad8", A: "#f8f6ff", a: "#cfc8ec", C: "#e2dcfa", c: "#b8aee0",
+             D: "#ffffff", d: "#d6d0f2", G: "#e8b84a", g: "#b8862a", P: "#f4f2ff", p: "#cbc4ea", O: "#d8d0f8", o: "#a89ed8",
+             X: "#ffffff", x: "#c9b8ff", Y: "#3a62c8", K: "#120f1e" },
+      legY: 27, robe: true,
+      layers: [
+        backLong(25),
+        { x: 6, y: 14, rows: DRESS_LONG_BODY },
+        "FACE",
+        frontStraight(14),
+        /* 頭の右の編みこみ */
+        { x: 15, y: 2, rows: ["Lh.", "hL.", ".h."] },
+        /* 左手の白い花 */
         { x: 1, y: 16, rows: [".X.", "XxX", ".X.", "..Y"] },
       ],
     },
@@ -1356,6 +1415,9 @@
     hisako:  { hair: "pony", len: 20, top: "uniform", arm: "A", bottom: "skirt", prop: "orb", socks: 1 },
     alice:   { hair: "long", len: 25, top: "uniform", arm: "S", bottom: "skirt", prop: "orb" },
     miki:    { hair: "long", len: 25, top: "uniform", arm: "S", bottom: "skirt", prop: "orb", legs: "Tt" },
+    /* ★★ 2026-10-30 超極彩祭（ハル＝白いはおりの袖・チカ＝長いドレス） */
+    haru:    { hair: "bob", top: "tank", arm: "C", bottom: "shorts", prop: "orb", acc: "pin" },
+    chika:   { hair: "long", len: 25, top: "blouse", arm: "A", bottom: "dress", prop: "orb" },
     generic: { hair: "long", len: 23, top: "tank", arm: "S", bottom: "skirt" },
   };
   function sideBuf(pal0, sd, ph, legY0) {
@@ -1595,6 +1657,8 @@
     kohaku: [0.30, 0.20, 0.36], suzu: [0.38, 0.22, 0.32], shouko: [0.38, 0.13, 0.34],
     /* ★★ 2026-10-24 */
     hisako: [0.27, 0.14, 0.40], alice: [0.26, 0.21, 0.38], miki: [0.29, 0.19, 0.38],
+    /* ★★ 2026-10-30 超極彩祭 */
+    haru: [0.30, 0.18, 0.36], chika: [0.32, 0.19, 0.36],
   };
   const portraitCache = {};
   function portrait(id, file, size, cb) {

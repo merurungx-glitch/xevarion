@@ -1899,6 +1899,8 @@
     /* ★★ 2026-10-06c 問題セットを入れる前に完全習得していたぶん（起動・同期のあと） */
     const catchUp = () => {
       try { const got = M.catchUpGroups(); if (got.length) { toast("🏆 完全習得ずみの問題セット " + got.length + "つぶんの XEVA を受け取りました"); paintHeader(); } } catch (e) {}
+      /* ★★ 2026-10-30 難関セットのごほうびを標準・基礎とそろえた差額（前の式で受け取ったぶん・1回だけ） */
+      try { const d = M.catchUpPartDiff && M.catchUpPartDiff(); if (d && d.amt > 0) { setTimeout(() => toast("🏆 難関セットのごほうびを標準・基礎とそろえました（差額 ＋" + d.amt.toLocaleString() + " XEVA）"), 2600); paintHeader(); } } catch (e) {}
       /* ★★ 2026-10-20 WP を始める前の学習ぶん（1回だけ） */
       try { const n = M.wpBackfill(); M.takeWp(); if (n) { setTimeout(() => toast(wpImg("wpt-i") + " これまでの学習ぶん ＋" + n + " WP を受け取りました"), 900); if (!P && !sheetOpen()) go(TAB, true); } } catch (e) {}
     };

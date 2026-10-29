@@ -5,16 +5,16 @@
    ・フォント（Google Fonts）も一度読めたら控える（オフラインでもドットの文字になる）。
    ・Firebase（同期）はキャッシュしない。
    ============================================================ */
-const VERSION = "magiabyss-sw-v19";
+const VERSION = "magiabyss-sw-v20";
 const RUNTIME = "magiabyss-rt-v1";
 const CORE = [
   "./index.html",
   "./manifest.webmanifest",
-  "./css/ma.css?v=12",
+  "./css/ma.css?v=13",
   "./css/ma-ui2.css?v=1",      // ★★ 2026-10-28 UI・デザインの作り直し
-  "./js/ma-data.js?v=10",
-  "./js/ma-pixel.js?v=9",
-  "./js/ma-art.js?v=9",
+  "./js/ma-data.js?v=11",
+  "./js/ma-pixel.js?v=10",
+  "./js/ma-art.js?v=10",
   "./js/ma-gaiden.js?v=1",
   "./js/ma-map.js?v=2",
   "./js/ma-save.js?v=4",
@@ -24,17 +24,17 @@ const CORE = [
   "./js/ma-engine.js?v=8",
   "./js/ma-ai.js?v=2",
   "./js/ma-weapons.js?v=6",
-  "./js/ma-skills.js?v=5",
+  "./js/ma-skills.js?v=6",
   "./js/ma-cards.js?v=3",
   "./js/ma-boss.js?v=3",
   "./js/ma-prog.js?v=6",
   "./js/ma-render.js?v=3",
   "./js/ma-render25.js?v=1",   /* ★★ 2026-10-22 2.5D の描画 */
-  "./js/ma-ui.js?v=11",
+  "./js/ma-ui.js?v=12",
   "./js/ma-fx.js?v=1",
   "./js/ma-town.js?v=2",
   "./js/ma-town25.js?v=1",   /* ★★ 2026-10-23 拠点（町の広場）の 2.5D */
-  "./js/ma-guild.js?v=12",
+  "./js/ma-guild.js?v=13",
   "./js/ma-stages.js?v=5",
   "./js/ma-howto.js?v=6",
   "./js/ma-main.js?v=5",
@@ -45,8 +45,8 @@ const CORE = [
   "../gem.png",
   /* XEVARION の共通部品 */
   "../mb-boot.js?v=18",
-  "../MagiBurst/js/mb-core.js?v=142",
-  "../xeva.js?v=84",
+  "../MagiBurst/js/mb-core.js?v=143",
+  "../xeva.js?v=85",
   "../xeva-alive.js?v=8",
   "../xeva-loading.js?v=19",
   "../xeva-splash.js?v=18",
@@ -76,6 +76,9 @@ const CORE = [
   /* ★★ 2026-10-24 ヒサコ・アリス（超極煌祭）・ミキ（MagiChemLex の WP 交換）の絵と SS 絵 */
   "../img/Hisako.webp", "../img/t_Hisako.webp", "../img/Alice.webp", "../img/t_Alice.webp", "../img/Miki.webp", "../img/t_Miki.webp",
   "../MagiBurst/img/ss/HisakoSS.webp", "../MagiBurst/img/ss/AliceSS.webp", "../MagiBurst/img/ss/MikiSS.webp",
+  /* ★★ 2026-10-30 ハル・チカ（超極彩祭）の絵と SS 絵 */
+  "../img/Haru.webp", "../img/t_Haru.webp", "../img/Chika.webp", "../img/t_Chika.webp",
+  "../MagiBurst/img/ss/HaruSS.webp", "../MagiBurst/img/ss/ChikaSS.webp",
   "../MagiBurst/img/ss/TakinaSS.webp", "../MagiBurst/img/ss/HibanaSS.webp", "../MagiBurst/img/ss/FukiSS.webp",
   "../MagiBurst/img/ss/AyanoSS.webp", "../MagiBurst/img/ss/SakiSS.webp", "../MagiBurst/img/ss/YukaSS.webp", "../MagiBurst/img/ss/NatsumiSS.webp",
   "../MagiBurst/img/ss/MiuSS.webp", "../MagiBurst/img/ss/MaiSS.webp", "../MagiBurst/img/ss/ChinatsuSS.webp", "../MagiBurst/img/ss/YuumiSS.webp",

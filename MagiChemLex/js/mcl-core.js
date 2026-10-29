@@ -430,14 +430,17 @@
     const cfs = s.cf || {}, og = oldGid(g);
     return { total: g.ids.length, seen, mas, acc: n ? ok / n : null, n, done: mas === g.ids.length, gm: gotMark(s, "gm", g), cfPass: gotMark(s, "cf", g), cf: cfs[g.id] || (og && cfs[og]) || null };
   }
-  /* ★★ 2026-10-07 分けたセットは<b>大問ぶんのごほうびを問題数で分ける</b>（10円単位）。合計は分ける前と同じ */
+  /* ★★ 2026-10-07 分けたセットは<b>大問ぶんのごほうびを問題数で分ける</b>（10円単位）。合計は分ける前と同じ
+     ★★ 2026-10-30 ご指定「難関問題の獲得できる XEVA の数を標準や基礎と統一」→ 分けたセット（難関の小問の範囲）も
+       <b>標準・基礎のセットと同じ式</b>（1セット＝完全習得 REWARD.gmaster・確認テスト REWARD.confirm、20問以上は2倍）。
+       前の式（大問ぶんを問題数で分ける）で受け取った人には、差額を1回だけ払う（catchUpPartDiff）。 */
+  function groupRewardOld(g) {
+    const v = volMul(g.parentN), sh = g.ids.length / g.parentN;
+    return { gm: Math.round(REWARD.gmaster * v * sh / 10) * 10, cf: Math.round(REWARD.confirm * v * sh / 10) * 10 };
+  }
   function groupReward(g) {
     if (g.view) return { gm: 0, cf: 0, v: 1, view: 1 };   /* ★★ 2026-10-12b 見かたのちがうまとまりは、ごほうびなし（二重にしない） */
-    if (g.part && g.parentN) {
-      const v = volMul(g.parentN), sh = g.ids.length / g.parentN;
-      return { gm: Math.round(REWARD.gmaster * v * sh / 10) * 10, cf: Math.round(REWARD.confirm * v * sh / 10) * 10, v: 1, part: true };
-    }
-    const v = volMul(g.ids.length); return { gm: REWARD.gmaster * v, cf: REWARD.confirm * v, v };
+    const v = volMul(g.ids.length); return { gm: REWARD.gmaster * v, cf: REWARD.confirm * v, v, part: !!(g.part && g.parentN) };
   }
 
   /* ══ 答えを記録する ══
@@ -485,7 +488,7 @@
       if (ok) groupsOf(id).forEach((g) => {
         if (g.view) return;
         const mk = "gm:" + g.id;
-        if (!gotMark(s, "gm", g) && g.ids.every((x) => isMas(s, x))) { earnOnce(s, mk, groupReward(g).gm, "問題セット「" + g.nm + "」完全習得"); res.groupDone = (res.groupDone || []).concat([g.nm]); s.xp += 80; res.wp = (res.wp || 0) + wpEarn(s, "gm", g.id, "「" + g.nm + "」完全習得"); }
+        if (!gotMark(s, "gm", g) && g.ids.every((x) => isMas(s, x))) { if (g.part && g.parentN) s.rw["gmd:" + g.id] = Date.now(); earnOnce(s, mk, groupReward(g).gm, "問題セット「" + g.nm + "」完全習得"); res.groupDone = (res.groupDone || []).concat([g.nm]); s.xp += 80; res.wp = (res.wp || 0) + wpEarn(s, "gm", g.id, "「" + g.nm + "」完全習得"); }
       });
       const goal = Number(s.set.goal) || 10;
       if (s.days[td] >= goal && !s.rw["daily:" + td]) { earnOnce(s, "daily:" + td, REWARD.daily, "今日の目標 " + goal + "問 達成"); res.daily = true; }
@@ -526,7 +529,7 @@
       c.n = (c.n || 0) + 1; c.best = Math.max(c.best || 0, total ? score / total : 0); c.at = Date.now();
       if (out.pass && !c.pass) c.pass = Date.now();
       s.xp = (s.xp || 0) + 20 + score * 2;
-      if (out.pass && !g.view && !gotMark(s, "cf", g)) { out.got = earnOnce(s, "cf:" + gid, groupReward(g).cf, "確認テスト「" + g.nm + "」全問正解"); out.first = true; out.wp = wpEarn(s, "cf", gid, "確認テスト「" + g.nm + "」"); }
+      if (out.pass && !g.view && !gotMark(s, "cf", g)) { if (g.part && g.parentN) s.rw["cfd:" + gid] = Date.now(); out.got = earnOnce(s, "cf:" + gid, groupReward(g).cf, "確認テスト「" + g.nm + "」全問正解"); out.first = true; out.wp = wpEarn(s, "cf", gid, "確認テスト「" + g.nm + "」"); }
     });
     return out;
   }
@@ -546,8 +549,28 @@
     const need = groups().filter((g) => !g.view && !gotMark(s0, "gm", g) && g.ids.every((x) => isMas(s0, x)));
     if (!need.length) return [];
     const got = [];
-    mut((s) => { need.forEach((g) => { const mk = "gm:" + g.id; if (!gotMark(s, "gm", g) && g.ids.every((x) => isMas(s, x))) { earnOnce(s, mk, groupReward(g).gm, "問題セット「" + g.nm + "」完全習得"); got.push(g.nm); wpEarn(s, "gm", g.id, "「" + g.nm + "」完全習得"); } }); });
+    mut((s) => { need.forEach((g) => { const mk = "gm:" + g.id; if (!gotMark(s, "gm", g) && g.ids.every((x) => isMas(s, x))) { if (g.part && g.parentN) s.rw["gmd:" + g.id] = Date.now(); earnOnce(s, mk, groupReward(g).gm, "問題セット「" + g.nm + "」完全習得"); got.push(g.nm); wpEarn(s, "gm", g.id, "「" + g.nm + "」完全習得"); } }); });
     return got;
+  }
+  /* ★★ 2026-10-30 難関の分けたセットを前の式（大問ぶんを問題数で分ける）で受け取っていた人へ、標準・基礎と同じ式との差額を1回だけ。
+     しるし gmd:<セット>／cfd:<セット>（新しい式で払ったときも付ける＝二重にしない・端末をまたいでも rw の和で混ざる） */
+  function catchUpPartDiff() {
+    let amt = 0, n = 0;
+    mut((s) => {
+      groups().forEach((g) => {
+        if (g.view || !(g.part && g.parentN)) return;
+        const nw = groupReward(g), od = groupRewardOld(g);
+        if (s.rw["gm:" + g.id] && !s.rw["gmd:" + g.id]) {
+          const d = nw.gm - od.gm; s.rw["gmd:" + g.id] = Date.now();
+          if (d > 0) { amt += earn(d, "難関セットのごほうびを標準・基礎とそろえました（差額）「" + g.nm + "」完全習得"); n++; }
+        }
+        if (s.rw["cf:" + g.id] && !s.rw["cfd:" + g.id]) {
+          const d = nw.cf - od.cf; s.rw["cfd:" + g.id] = Date.now();
+          if (d > 0) { amt += earn(d, "難関セットのごほうびを標準・基礎とそろえました（差額）「" + g.nm + "」確認テスト"); n++; }
+        }
+      });
+    });
+    return { n, amt };
   }
   function bestRun(setId) { let b = null; (get().runs || []).forEach((r) => { if (r.set === setId && (!b || r.score / r.total > b.score / b.total)) b = r; }); return b; }
   function setUns(id, v) { mut((s) => { const r = s.q[id]; if (!r) return; r.uns = v ? 1 : 0; if (v) r.due = Math.min(r.due || Infinity, dayStart() + DAY); }); }
@@ -728,7 +751,7 @@
     streak, bestStreak, todayCount, level, answer, finishSet, bestRun, setUns, toggleBm, setMemo, setCombo, setSetting, resetAll, resetGroup, resetExam, masterEta,
     groupEta, canMasterToday, todayList,
     build, pickRelated, shuffle, badges,
-    groups, groupById, groupsOf, groupStat, groupReward, volMul, finishConfirm, finishMix, catchUpGroups, qNo, isCalc, groupHasCalc, groupCalcN, isStd, isBasic, lvOf,
+    groups, groupById, groupsOf, groupStat, groupReward, volMul, finishConfirm, finishMix, catchUpGroups, catchUpPartDiff, qNo, isCalc, groupHasCalc, groupCalcN, isStd, isBasic, lvOf,
     /* ★★ 2026-10-20 Wisdom Point・計算なしモード */
     WP, wpStat, wpSpend, wpBackfill, wpLog, takeWp, noCalcOn,
   });

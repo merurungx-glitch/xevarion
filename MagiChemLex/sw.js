@@ -3,7 +3,7 @@
    ・問題・解説・図はすべて JS の中にあるので、CORE をそろえれば完全にオフラインで使える。
    ・フォント（Google Fonts）は一度読めたら控える。Firebase（同期）はキャッシュしない。
    ============================================================ */
-const VERSION = "magichemlex-sw-v19";
+const VERSION = "magichemlex-sw-v20";
 const RUNTIME = "magichemlex-rt-v1";
 const CORE = [
   "./index.html",
@@ -21,17 +21,17 @@ const CORE = [
   "./js/mcl-data10.js?v=1",
   "./js/mcl-data11.js?v=1",
   "./js/mcl-data12.js?v=1",
-  "./js/mcl-core.js?v=12",
+  "./js/mcl-core.js?v=13",
   "./js/mcl-fig.js?v=5",
   "./js/mcl-fig2.js?v=1",
   "./js/mcl-fig3.js?v=1",
   "./js/mcl-fig4.js?v=1",
   "./js/mcl-fig5.js?v=2",
-  "./js/mcl-ui.js?v=17",
+  "./js/mcl-ui.js?v=18",
   "./js/mcl-flash.js?v=2",      // ★★ 2026-10-15 フラッシュカード
   "./js/mcl-book.js?v=1",       // ★★ 2026-10-27 模試の冊子
   "./js/mcl-special.js?v=1",    // ★★ 2026-10-15 特設予想問題
-  "./js/mcl-bingo.js?v=1",      // ★★ 2026-10-28 ビンゴカード
+  "./js/mcl-bingo.js?v=2",      // ★★ 2026-10-28 ビンゴカード
   "./img/icon_192.png?v=2",
   "./img/apple-touch-icon.png?v=2",
   "../thumbs/MagiChemLex.jpg?v=2",
@@ -42,7 +42,7 @@ const CORE = [
   "./img/wp@2x.webp",
   "../img/t_Miki.webp", "../img/Miki.webp",   // ★★ 2026-10-24 WP 交換所のミキ（UR）
   /* XEVARION の共通部品 */
-  "../xeva.js?v=84",
+  "../xeva.js?v=85",
   "../xeva-loading.js?v=19",
   "../xeva-splash.js?v=18",
   "../xeva-safebottom.js?v=12",

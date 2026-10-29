@@ -502,6 +502,46 @@
       evo: { weapon: "dagger", el: "dark", to: "evo_alice", nm: "白銀・リリィダガー" },
       good: "会心の連射・ボスの単体火力・敵をまとめて止める（コハク・ユナと並ぶ UR の上位）", weak: "（目立った苦手はない）",
     },
+    /* ══ ★★ 2026-10-30 超極彩祭（UR・MagiAbyss 専用）＝ハル（水）・チカ（闇）══
+       ご指定「MagiAbyss では、この2キャラはヒサコより少しだけ上のクラスの性能」
+       → ヒサコの型（＝ UR の最上位）で、<b>与えるダメージの倍率をそろって 5% 上げた</b>もの（通常攻撃・技・必殺技・秘技・固有・専用進化）。
+         必殺技ゲージ・連射の速さ・回数は同じ（回る速さが変わると強さが飛ぶため）。 */
+    haru: {
+      nm: "ハル", fes: "超極彩祭", el: "water", type: "ranged", sub: "magic", rank: "UR",
+      title: "蒼海のあじさい",
+      base: { hp: 140, atk: 17, def: 6, spd: 82, aspd: 1.22, crit: 17, critDmg: 1.9, mag: 1.25, eva: 16 },
+      grow: { hp: 1.045, atk: 1.05, def: 1.04 },
+      atk: { kind: "pnshot", nm: "アジュール・ブルーム", ic: "cy_hydra", cd: 0.34, mul: 0.394, speed: 320, range: 230, pk: "petal", n: 3, arc: 0.35, pierce: 2,
+        every: 4, burst: 7, burstArc: 1.1, burstNm: "あじさいの潮風", cols: ["#7fb8ff", "#ffffff", "#3a6ad0"],
+        d: "あじさいの花びらを3枚（2体まで貫通）。4回ごとに7枚の潮風" },
+      skill: { kind: "pnblast", nm: "マリン・リフレイン", ic: "cy_hydra", cd: 8, mp: 18, r: 100, mul: 5.3, stun: 1, vul: [0.25, 5], gauge: 8,
+        d: "敵がいちばん集まっている所に大きな波（半径100・攻撃力×5.3・1秒しびれ）＋5秒間 受けるダメージ+25%＋必殺技ゲージ+8" },
+      ult: { kind: "pnbarrage", nm: "蒼海・ハイドランジア", gauge: 100, n: 120, mul: 0.347, fin: 19.1, pk: "petal", cols: ["#7fb8ff", "#ffffff", "#3a6ad0"], vul: [0.3, 6], heal: 0.2, atkUp: [0.3, 6],
+        d: "いちばん強い敵へあじさいの花びらを120連射し、最後に画面全体へ青い大波（攻撃力×19.1・防御ダウン）＋6秒間 受けるダメージ+30%＋HPを20%回復＋6秒間 与えるダメージ+30%" },
+      passive: { kind: "focus", nm: "潮風の約束", crits: 3, drain: 0.03,
+        d: "技を使ったあと3発は必ず会心。与えたダメージの3%でHPを回復（ドレイン）" },
+      bias: { crit: 1.6, aspd: 1.4, elem: 1.3, weapon: 1.2 },
+      evo: { weapon: "dagger", el: "water", to: "evo_haru", nm: "蒼海・アジュールペタル" },
+      good: "会心の連射・ボスの単体火力・敵をまとめて止める（UR の最上位・ヒサコより少し強い）", weak: "（目立った苦手はない）",
+    },
+    chika: {
+      nm: "チカ", fes: "超極彩祭", el: "dark", type: "ranged", sub: "magic", rank: "UR",
+      title: "月下の白花",
+      base: { hp: 140, atk: 17, def: 6, spd: 82, aspd: 1.22, crit: 17, critDmg: 1.9, mag: 1.25, eva: 16 },
+      grow: { hp: 1.045, atk: 1.05, def: 1.04 },
+      atk: { kind: "pnshot", nm: "ムーンライト・ペタル", ic: "cy_moon", cd: 0.34, mul: 0.394, speed: 320, range: 230, pk: "petal", n: 3, arc: 0.35, pierce: 2,
+        every: 4, burst: 7, burstArc: 1.1, burstNm: "月影の花吹雪", cols: ["#d8c8ff", "#ffffff", "#7a5cff"],
+        d: "月明かりの花びらを3枚（2体まで貫通）。4回ごとに7枚の花吹雪" },
+      skill: { kind: "pnblast", nm: "ルナ・サイレンス", ic: "cy_moon", cd: 8, mp: 18, r: 100, mul: 5.3, stun: 1, vul: [0.25, 5], gauge: 8,
+        d: "敵がいちばん集まっている所に静かな月の光（半径100・攻撃力×5.3・1秒しびれ）＋5秒間 受けるダメージ+25%＋必殺技ゲージ+8" },
+      ult: { kind: "pnbarrage", nm: "月下・ホワイトノクターン", gauge: 100, n: 120, mul: 0.347, fin: 19.1, pk: "petal", cols: ["#d8c8ff", "#ffffff", "#7a5cff"], vul: [0.3, 6], heal: 0.2, atkUp: [0.3, 6],
+        d: "いちばん強い敵へ月明かりの花びらを120連射し、最後に画面全体へ満月の白い花（攻撃力×19.1・防御ダウン）＋6秒間 受けるダメージ+30%＋HPを20%回復＋6秒間 与えるダメージ+30%" },
+      passive: { kind: "focus", nm: "月夜の約束", crits: 3, drain: 0.03,
+        d: "技を使ったあと3発は必ず会心。与えたダメージの3%でHPを回復（ドレイン）" },
+      bias: { crit: 1.6, aspd: 1.4, elem: 1.3, weapon: 1.2 },
+      evo: { weapon: "dagger", el: "dark", to: "evo_chika", nm: "月下・ムーンブレード" },
+      good: "会心の連射・ボスの単体火力・敵をまとめて止める（UR の最上位・ヒサコより少し強い）", weak: "（目立った苦手はない）",
+    },
     miki: {
       nm: "ミキ", fes: "WP交換所", el: "wood", type: "ranged", sub: "mobile", rank: "UR",
       title: "青い花の学び舎",
@@ -666,7 +706,7 @@
   };
   /* ★★ 2026-10-09 並びと顔ぶれは mb-core の ABYSS_CHAR_IDS（ポータルの絞り込み・キャラ詳細と同じ1本）。読めないときだけ下の並び */
   const CHAR_ORDER = ((typeof ABYSS_CHAR_IDS !== "undefined" && ABYSS_CHAR_IDS.length) ? ABYSS_CHAR_IDS.slice()
-    : ["hisako", "alice", "miki", "kohaku", "suzu", "shouko", "chie", "ichika", "nonoka", "aina", "yuna", "ayano", "saki", "yuka", "natsumi", "miu", "mai", "chinatsu", "yuumi", "rina", "kaori",
+    : ["haru", "chika", "hisako", "alice", "miki", "kohaku", "suzu", "shouko", "chie", "ichika", "nonoka", "aina", "yuna", "ayano", "saki", "yuka", "natsumi", "miu", "mai", "chinatsu", "yuumi", "rina", "kaori",
        "takina", "hibana", "fuki", "hinano", "hanon", "kokoha", "mutsumi", "reina", "azusa", "kumireina", "kagura", "kotori"]).filter((id) => CHARS[id]);
   /* 組み合わせを CHARS に流しこむ（下の CHAR_KIT が本体） */
   function applyKits() {
@@ -772,6 +812,9 @@
     hisako:    { rank: "UR",  art: ["gate", 5],      trait: ["dusk", 5] },
     alice:     { rank: "UR",  art: ["gate", 5],      trait: ["dusk", 5] },
     miki:      { rank: "UR",  art: ["haste", 5],     trait: ["galefoot", 5] },
+    /* ★★ 2026-10-30 超極彩祭＝ヒサコと同じ組み合わせ */
+    haru:      { rank: "UR",  art: ["gate", 5],      trait: ["dusk", 5] },
+    chika:     { rank: "UR",  art: ["gate", 5],      trait: ["dusk", 5] },
     hinano:    { rank: "SSR", art: ["whirl", 4],     trait: ["galefoot", 3] },
     hanon:     { rank: "SSR", art: ["meteor", 4],    trait: ["clutch", 3] },
     kokoha:    { rank: "SSR", art: ["blast", 4],     trait: ["kindle", 4] },
@@ -868,6 +911,9 @@
     /* ★★ 2026-10-24 ヒサコ（コハクの1割増し）・アリス（コハクと同じ）・ミキ（ショウコと同じ）の専用進化 */
     evo_hisako:   { nm: "桜色・ブロッサムペン", base: "dagger", char: "hisako", mul: 1.76, kind: "w_dagger", fx: "vulmark", d: "突きが桜の花びらになって舞い、当たった敵は3秒 受けるダメージ+20%（ヒサコ専用）" },
     evo_alice:    { nm: "白銀・リリィダガー", base: "dagger", char: "alice", mul: 1.6, kind: "w_dagger", fx: "vulmark", d: "突きが白百合になって舞い、当たった敵は3秒 受けるダメージ+20%（アリス専用）" },
+    /* ★★ 2026-10-30 ハル・チカ（ヒサコの 5% 増し） */
+    evo_haru:     { nm: "蒼海・アジュールペタル", base: "dagger", char: "haru", mul: 1.85, kind: "w_dagger", fx: "vulmark", d: "突きがあじさいの花びらになって舞い、当たった敵は3秒 受けるダメージ+20%（ハル専用）" },
+    evo_chika:    { nm: "月下・ムーンブレード", base: "dagger", char: "chika", mul: 1.85, kind: "w_dagger", fx: "vulmark", d: "突きが月明かりの花びらになって舞い、当たった敵は3秒 受けるダメージ+20%（チカ専用）" },
     evo_miki:     { nm: "ブルーベル・アロー", base: "bow", char: "miki", mul: 2.8, kind: "w_bow", fx: "starsplit", d: "矢が刺さると青い花が3つにはじけて遅くする（ミキ専用）" },
   };
 

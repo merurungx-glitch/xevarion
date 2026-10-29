@@ -5,7 +5,7 @@
    ・キャラクターの絵は XEVARION の img/ にあるので、ここでは丸ごと持たない
      （ポータル側の SW が持っている。開いたぶんだけ実行時に控える）。
    ============================================================ */
-const VERSION = "boccia-sw-v51";
+const VERSION = "boccia-sw-v52";
 const RUNTIME = "boccia-rt-v1";
 const CORE = [
   "./index.html",
@@ -17,10 +17,10 @@ const CORE = [
   "./js/mbr-fx.js?v=9",
   "./js/mbr-help.js?v=8",
   "./js/mbr-ui.js?v=22",
-  "../mb-newchars.js?v=40",
+  "../mb-newchars.js?v=41",
   "../mb-boot.js?v=18",
-  "../MagiBurst/js/mb-core.js?v=142",
-  "../xeva.js?v=84",
+  "../MagiBurst/js/mb-core.js?v=143",
+  "../xeva.js?v=85",
   "../xeva-alive.js?v=8",
   "../xeva-loading.js?v=19",
   "../xeva-splash.js?v=18",
@@ -46,7 +46,7 @@ const CORE = [
   "../xeva-i18n-mb5.js?v=7",
   "../xeva-i18n-mb6.js?v=7",
   "../xeva-i18n-mb7.js?v=7",
-  "../xeva-i18n-n1.js?v=20",
+  "../xeva-i18n-n1.js?v=21",
   "../xeva-i18n-n2.js?v=3",
 ];
 /* チュートリアルの音声（ずんだもん）。Range で取りに来るので CORE とは別の入れ物に置き、下の fetch で切り出して返す */
