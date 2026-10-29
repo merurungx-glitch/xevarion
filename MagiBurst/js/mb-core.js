@@ -15,8 +15,8 @@
    <b>ふつうの &lt;script&gt;</b>（type="module" ではない）で読むこと。
    トップレベルの const/let はグローバルの字句環境に入るので、
    あとから読み込む MagiBurst 本体のスクリプトからそのまま見える。
-     MagiBurst : <script src="js/mb-core.js?v=142"></script>
-     gacha.html: <script src="MagiBurst/js/mb-core.js?v=142"></script>
+     MagiBurst : <script src="js/mb-core.js?v=143"></script>
+     gacha.html: <script src="MagiBurst/js/mb-core.js?v=143"></script>
 
    ── ホストが先に用意しておくもの ──
      window.MB_IMGD … 画像フォルダへの相対パス（MagiBurst は "../img/"、ポータルは "img/"）
@@ -15096,7 +15096,7 @@ const CHOKOU_IDS = ["kohaku", "suzu", "shouko", "hisako", "alice"];
 /* ★★ 2026-10-28 ご指定「ヒサコとアリスは、ガチャや図鑑で完凸するとロビーで設定できることを控えめに表記」
    完凸（4凸）でホームの「ロビー」に出せるキャラ（home-lobby.js の DEFS と同じ顔ぶれ。片方を足したらもう一方も）。
    ガチャの顔ぶれのカード（gacha-ui.js の .flb）とキャラ詳細（mb-char-detail.js の .dlob）に小さく出す。 */
-const LOBBY_CHAR_IDS = ["hisako", "alice"];
+const LOBBY_CHAR_IDS = ["haru", "chika", "hisako", "alice"];   /* ★★ 2026-10-30 超極彩祭のハル・チカも（ご指定「完凸でロビーにセットできる」） */
 function hasLobby(id) { return LOBBY_CHAR_IDS.indexOf(id) >= 0; }
 Object.assign(AO_CHAR_DEF, {
   kohaku: { nm: "コハク",   f: "Kohaku", el: "fire",  shot: "pierce", type: "紅薔薇令嬢型", fesKey: "chokou" },
@@ -15105,12 +15105,23 @@ Object.assign(AO_CHAR_DEF, {
   hisako: { nm: "ヒサコ",   f: "Hisako", el: "water", shot: "pierce", type: "桜色教室型",   fesKey: "chokou" },
   alice:  { nm: "アリス",   f: "Alice",  el: "dark",  shot: "pierce", type: "白銀百合型",   fesKey: "chokou" },
 });
+/* ★★ 2026-10-30 <b>超極彩祭</b>（fes21）の UR 2体（No.286・287）＝ <b>ハル（水）・チカ（闇）</b>（ご指定）。
+   ・ご指定「性能は MagiAbyss と MagiBattle の性能のみを所持し、他のゲームの性能は所持しません（MagiChemLex やアイコンでは使用できます）」
+     → 超極華祭・超極煌祭と同じ <b>abyssOnly</b> の印（MagiBurst・Boccia・MagiTier には出ない）。
+     ★ MagiBattle の作り直し（超極祭系の UR だけで遊ぶ形）はご指定で<b>後回し</b>（2026-10-30）。それまでは今の MagiBattle と同じく出さない。
+   ・MagiAbyss では<b>ヒサコより少しだけ上</b>（ma-data.js）。完凸でホームのロビーにも（LOBBY_CHAR_IDS・home-lobby.js）。 */
+const CHOSAI_IDS = ["haru", "chika"];
+Object.assign(AO_CHAR_DEF, {
+  haru:  { nm: "ハル", f: "Haru",  el: "water", shot: "pierce", type: "蒼海あじさい型", fesKey: "chosai" },
+  chika: { nm: "チカ", f: "Chika", el: "dark",  shot: "pierce", type: "月下白花型",     fesKey: "chosai" },
+});
 /* ★★ 2026-10-24 <b>MagiChemLex の WP 交換所</b>の UR（ガチャからは出ない・120WP で1体・ご指定）＝ ミキ（木・No.285）。
    これも MagiAbyss 専用（性能は MagiAbyss だけ・MagiChemLex のナビやアイコンには使える）。MagiAbyss ではタキナと同じ帯。 */
 const WP_CHAR_IDS = ["miki"];
 AO_CHAR_DEF.miki = { nm: "ミキ", f: "Miki", el: "wood", shot: "bounce", type: "青花学舎型" };
 /* 並び（MagiAbyss の一覧などは新しい順）：今回の3体 → 超極煌祭のはじめの3体 → 超極華祭 */
-const ABYSS_ONLY_ALL = ["hisako", "alice", "miki", "kohaku", "suzu", "shouko"].concat(ABYSS_ONLY_IDS);
+/* ★★ 2026-10-30 超極彩祭のハル・チカをいちばん前に */
+const ABYSS_ONLY_ALL = CHOSAI_IDS.concat(["hisako", "alice", "miki", "kohaku", "suzu", "shouko"], ABYSS_ONLY_IDS);
 ABYSS_ONLY_ALL.forEach((id) => {
   const d = AO_CHAR_DEF[id], T = CHARS.takina;
   CHARS[id] = {
@@ -15389,6 +15400,8 @@ const CHAR_IDS = [
   "kohaku", "suzu", "shouko",                          /* No.280〜282 */
   /* ★★ 2026-10-24 超極煌祭の追加2体（UR）・MagiChemLex の WP 交換の UR（すべて MagiAbyss 専用） */
   "hisako", "alice", "miki",                           /* No.283〜285 */
+  /* ★★ 2026-10-30 超極彩祭（UR・MagiAbyss 専用） */
+  "haru", "chika",                                     /* No.286〜287 */
 ];
 /* id → キャラクター番号（1始まり）。図鑑・詳細・ガチャ結果に「No.XX」として出す */
 const CHAR_NO = {};
@@ -15447,6 +15460,8 @@ ABYSS_ONLY_IDS.forEach((id) => { RAR_LABEL[id] = "UR"; });
 CHOKOU_IDS.forEach((id) => { RAR_LABEL[id] = "UR"; });
 /* ★★ 2026-10-24 MagiChemLex の WP 交換のミキも UR */
 WP_CHAR_IDS.forEach((id) => { RAR_LABEL[id] = "UR"; });
+/* ★★ 2026-10-30 超極彩祭の2体も UR */
+CHOSAI_IDS.forEach((id) => { RAR_LABEL[id] = "UR"; });
 function rarLabel(id) { return RAR_LABEL[id] || (isStar5(id) ? "SSR" : "SR"); }
 /* 限界突破MAXの金演出クラス。SRは「金の縁取りだけ」で発光させない（v14） */
 /* ★ 2026-08-12 限界突破MAXの見た目は<b>SSRだけ</b>にした。
@@ -15485,7 +15500,9 @@ Object.entries({ takina: [0.26, 0.35], hibana: [0.69, 0.45], fuki: [0.20, 0.41],
   /* ★★ 2026-10-22 超極煌祭 */
   kohaku: [0.27, 0.42], suzu: [0.68, 0.38], shouko: [0.26, 0.28],
   /* ★★ 2026-10-24 ヒサコ・アリス・ミキ */
-  hisako: [0.33, 0.36], alice: [0.30, 0.42], miki: [0.26, 0.40] })
+  hisako: [0.33, 0.36], alice: [0.30, 0.42], miki: [0.26, 0.40],
+  /* ★★ 2026-10-30 超極彩祭 */
+  haru: [0.33, 0.33], chika: [0.41, 0.36] })
   .forEach(([id, f]) => { if (CHARS[id]) CHARS[id].wideFace = f; });
 /* ★★ 2026-10-06b UR の絵の見せ方（どのアプリのキャラ詳細でも共通・ご指定「UR の絵が SSR より小さい」）
    ・枠は SSR と同じ大きさ（高さ）にして、横長の絵を<b>大きく</b>出し、ゆっくり左右に流して全体を見せる（.urx-pan）。
@@ -24895,7 +24912,7 @@ FESTS.fes19 = {
    ══════════════════════════════════════════════════════════════ */
 FESTS.fes20 = {
   key: "fes20", sfx: "20", nm: "超極煌祭", tab: "超極煌祭",
-  banner: "../img/bn_fes20_s.webp", c: "#ff3a5a", leadCls: "star",
+  banner: "../img/bn_fes20_s.webp?v=2", c: "#ff3a5a", leadCls: "star",   /* ★★ 2026-10-30 新しいバナー（ご指定・ヒサコ） */
   monthly: [21, 31],
   noFesTicket: true,
   chokou: true, flatPick: true,
@@ -24924,6 +24941,47 @@ FESTS.fes20 = {
       + "<br>★ MagiAbyss では <b>ヒサコが UR でいちばん強く</b>、<b>アリス・コハクはユナと同じくらい（タキナより少し強い）</b>、スズ・ショウコは<b>タキナと同じくらい</b>の強さです。"
       /* ★★ 2026-10-26 完凸ロビー（ご指定「ロビーとして完凸で取得できることを表記」） */
       + '<br><small style="opacity:.78">👑 ヒサコ・アリスを完凸（4凸）すると、ホームのロビー（動く立ち絵と展望テラスの背景）に設定できます。ホームの「ロビー」ボタンから選べます。</small>';   /* ★★ 2026-10-28 控えめに */
+  },
+};
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-10-30 <b>超極彩祭</b>（fes21・ご指定）
+   ・UR 2体（ハル〔水〕・チカ〔闇〕）。<b>1体 1.5%</b>（pickEach・flatPick＝NEW が終わっても下げない）。
+   ・ご指定「開催期間と日数や仕様などは現在の極彩祭と同じ」→ <b>毎月 1〜10日（上旬）</b>（monthly）・
+     <b>🎫フェス券は使えない</b>（noFesTicket＝ガチャ券のみ・極彩祭と同じ）・初回10連無料なし・アーカイブに入らない。
+   ・ご指定「極彩祭とは異なる」→ 別のガチャ（キーも台帳も別）。「ガチャ一覧の一番上」→ chosai の印
+     （gachaMenuList で超極煌祭・超極華祭よりも上・開催中だけ／はじめての開催の前だけ予告として上＝topPre／make-gacha-live の top3 でロビーのバナーも先頭）。
+   ・2体とも <b>MagiAbyss 専用</b>（abyssOnly・CHOSAI_IDS）。MagiBurst などの性能は持たない（MagiBattle はご指定で作り直しを後回し）。
+   ══════════════════════════════════════════════════════════════ */
+FESTS.fes21 = {
+  key: "fes21", sfx: "21", nm: "超極彩祭", tab: "超極彩祭",
+  banner: "../img/bn_fes21_s.webp", c: "#5a7cff", leadCls: "star",
+  monthly: [1, 10],
+  noFesTicket: true,
+  chosai: true, flatPick: true,
+  topPre: "2026-10-31",   /* ★★ 2026-10-30 ご指定：ふだんは開催中だけいちばん上・はじめての開催（11/1）の前の日までは予告としていちばん上 */
+  pickEach: 0.015,   /* 1.5%（ご指定） */
+  chars: CHOSAI_IDS.slice(),
+  newChars: CHOSAI_IDS.slice(),
+  newSince: "2026-10-30",
+  itemTable: D_ITEM_TABLE,
+  get lead() {
+    return "新レアリティ <b>UR 2体</b>（各" + ratePct(pickRateOf("fes21", "haru")) + "）に加えて、<b>"
+      + PREMIUM_NM + "のSSRも排出</b>（SSR以上 合計 " + ratePct(SSR_TOTAL) + "）";
+  },
+  get sub() {
+    return "UR <b>2体</b>（各" + ratePct(pickRateOf("fes21", "haru")) + "）／<b>残りは " + PREMIUM_NM + " のSSRが等確率</b>。"
+      + "<b>毎月 1〜10日（上旬）</b>だけの開催・🎫ガチャ券が使えます（フェス券は使えません）"
+      + '<br><small style="opacity:.78">👑 ハル・チカは完凸でホームのロビーに設定できます</small>';
+  },
+  get note() {
+    return "<b>★★ 2026-10-30 新しいガチャ「超極彩祭」</b>"
+      + "<br>★ <b>ハル（水）・チカ（闇）</b>の2体。2体とも<b>UR</b>で、排出は<b>1体 " + ratePct(pickRateOf("fes21", "haru")) + "</b>です。"
+      + "<br>★ 開催は極彩祭と同じ<b>毎月 1〜10日（上旬）</b>。🎫<b>ガチャ券</b>が使えます（フェス券は使えません）。極彩祭とは別のガチャです。"
+      + "<br>★ 2体とも <b>MagiAbyss 専用のキャラクター</b>です。性能は <b>MagiAbyss の性能だけ</b>で、"
+      + "MagiBurst・MagiBattle・MagiBocciaRush では使えません（キャラ詳細は MagiAbyss の面だけ）。"
+      + "<br>★ <b>MagiChemLex のナビゲーター</b>や <b>XEVARION のアイコン</b>には使えます。"
+      + "<br>★ MagiAbyss では <b>ヒサコより少しだけ強い</b>、UR の最上位の強さです。"
+      + '<br><small style="opacity:.78">👑 ハル・チカを完凸（4凸）すると、ホームのロビー（動く立ち絵）に設定できます。ホームの「ロビー」ボタンから選べます。</small>';
   },
 };
 /* ══════════════════════════════════════════════════════════════
@@ -25062,7 +25120,9 @@ const FESKEY_MAP = { luminous: "fes2", phantom: "fes3", aoka: "fes4", starlight:
   pumpkin: "fes18",
   /* ★★ 2026-10-22 <b>足しわすれの修正</b>: 超極華祭（chokaen）がここに無く、図鑑の「入手方法」が
      既定の Nocturne Bloom Fest になっていた。あわせて超極煌祭（chokou）。 */
-  chokaen: "fes19", chokou: "fes20" };
+  chokaen: "fes19", chokou: "fes20",
+  /* ★★ 2026-10-30 超極彩祭 */
+  chosai: "fes21" };
 function fesKeyOf(id) { const c = CHARS[id]; return c && c.fes ? (FESKEY_MAP[c.fesKey] || "fes") : null; }
 function fesNameOf(id) { const k = fesKeyOf(id); return k ? fesDef(k).nm : ""; }
 const FES_ALL_CHARS = FES_KEYS.reduce((a, k) => a.concat(FESTS[k].chars), []);
@@ -25724,7 +25784,7 @@ function firstGachaMode() {
      ここを FES_KEYS の順（＝定義順）のままにすると、新しいフェスが下に沈む。
    ══════════════════════════════════════════════════════════════ */
 function gachaMenuList() {
-  const chokou = [], choka = [], pump = [], sapph = [], lux = [], kaen = [], crystal = [], senki = [], bunny = [], soft = [], rising = [], fes = [], luxOff = [], ended = [];
+  const chosai = [], chokou = [], choka = [], pump = [], sapph = [], lux = [], kaen = [], crystal = [], senki = [], bunny = [], soft = [], rising = [], fes = [], luxOff = [], ended = [];
   FES_KEYS.forEach((k) => {
     if (k === ARCHIVE_KEY) return;                       /* アーカイブは⑥（下で足す） */
     const f = fesDef(k);
@@ -25747,13 +25807,19 @@ function gachaMenuList() {
     if (f.chokaen && !row.soon) row.sub = "新レアリティ UR・🎫ガチャ券のみ／" + fesMonthlyLeftText(f);
     /* ★★ 2026-10-22 超極煌祭（UR・極煌祭と同じ毎月下旬・ガチャ券のみ） */
     if (f.chokou && !row.soon) row.sub = "新レアリティ UR・🎫ガチャ券のみ／" + fesMonthlyLeftText(f);
+    /* ★★ 2026-10-30 超極彩祭（UR・極彩祭と同じ毎月上旬・ガチャ券のみ） */
+    if (f.chosai && !row.soon) row.sub = "新レアリティ UR・🎫ガチャ券のみ／" + fesMonthlyLeftText(f);
+    else if (f.chosai) row.sub = "🔔 予告：新レアリティ UR・" + fesOpenText(f);   /* はじめての開催の前（topPre）の予告 */
     /* ★★ 2026-10-06c 初回10連無料が残っていれば一覧の1行にも書く */
     if (fesFree10Left(k) > 0) row.sub += "／🎁 初回10連無料";
     /* ★★ 2026-10-07 Sapphire Breeze は<b>極彩祭の上に固定</b>（ご指定） */
     /* ★★ 2026-10-09 Pumpkin Night は<b>Sapphire Breeze の上に固定</b>（ご指定）。終わったら ended へ */
     /* ★★ 2026-10-16 超極華祭は<b>ガチャ一覧のいちばん上</b>（ご指定）。開催していない月の上旬・下旬は極◯祭と同じく下へ */
     /* ★★ 2026-10-22 超極煌祭は<b>ガチャ一覧のいちばん上</b>（ご指定・超極華祭よりも上）。開催していない上旬・中旬は下へ */
-    if (f.chokou) (fesInMonthly(f) ? chokou : luxOff).push(row);
+    /* ★★ 2026-10-30 超極彩祭は<b>開催中だけガチャ一覧のいちばん上</b>（ご指定・超極煌祭よりも上）。期間外は極◯祭と同じく下へ。
+       ただし、はじめての開催の前（topPre の日まで）は<b>予告</b>としていちばん上（ご指定） */
+    if (f.chosai) ((fesInMonthly(f) || (f.topPre && fesToday() <= f.topPre)) ? chosai : luxOff).push(row);
+    else if (f.chokou) (fesInMonthly(f) ? chokou : luxOff).push(row);
     else if (f.chokaen) (fesInMonthly(f) ? choka : luxOff).push(row);
     else if (f.pumpkin) (fesEnded(k) ? ended : pump).push(row);
     else if (f.sapphire) sapph.push(row);
@@ -25783,7 +25849,7 @@ function gachaMenuList() {
     soon: !archiveChars().length };
   /* ★★ 2026-09-13b <b>RISING STAR FEST は戦姫祭のすぐ下に固定</b>（ご指定）。
      並びは 極◯祭 → 戦姫祭 → RISING STAR → BUNNY GIRL → SOFT NIGHT → GRAND DEBUT → そのほか。 */
-  const list = chokou.concat(choka, pump, sapph, lux, kaen, crystal, senki, rising, bunny, soft, gachaMenuDebutRows(), fes,
+  const list = chosai.concat(chokou, choka, pump, sapph, lux, kaen, crystal, senki, rising, bunny, soft, gachaMenuDebutRows(), fes,
     [{ k: "premium", nm: PREMIUM_NM, sub: "ピックアップを1体えらべる常設ガチャ", c: "#ff9d2e" }],
     [arcRow], luxOff, ended);
   /* ★★ 2026-08-29 NEW マーク（ご指定）。まだ一度も開いていないガチャに付ける。 */
@@ -26165,11 +26231,42 @@ function sealKeyOfMode(m) {
   if (isFesMode(m)) return String(m);
   return "premium";
 }
+/* ══ ★★ 2026-10-30 ご指定「星煌印は全ガチャ共通にして、好きなガチャの好きなキャラを1体選べるように」「星煌印の交換もショップで」══
+   ・ためる欄はガチャごとのまま（sealAdd）。<b>残高は全部の欄の合計</b>（XEVA.seal.total）＝どのガチャで引いても同じ数が増える。
+   ・使うのは sealSpend（XEVA.seal.spendAny）。交換は XEVARION ホームのショップ「★星煌印 交換所」（xevarion-home.js の xhOpenSeal）。
+   ・交換できる顔ぶれ＝<b>いま引けるガチャ</b>（sealGachaList＝ガチャ一覧と同じ並び）の、<b>そのガチャのキャラ全員</b>（sealLineup）。 */
 function sealGet(m) {
+  try { return (window.XEVA && XEVA.seal) ? XEVA.seal.total() : 0; } catch (e) { return 0; }
+}
+function sealSpend(n, why) {
+  try { return !!(window.XEVA && XEVA.seal && XEVA.seal.spendAny(n, why)); } catch (e) { return false; }
+}
+/* そのガチャのキャラ全員（フェス＝限定キャラ・GRAND DEBUT＝その版の新キャラ・PREMIUM SELECT＝ピックアップにえらべる SSR・Archive＝封入キャラ）。
+   まだ伏せているキャラ（charSecret）は出さない。完凸かどうかは見ない（交換所の画面で「完凸」と出してえらべなくする） */
+function sealLineup(m) {
+  let ids = [];
   try {
-    const k = sealKeyOfMode(m);
-    return (k && window.XEVA && XEVA.seal) ? XEVA.seal.get(k) : 0;
-  } catch (e) { return 0; }
+    if (isDebutMode(m)) ids = debutCharsOfMode(m);
+    else if (m === ARCHIVE_KEY) ids = archiveChars();
+    else if (isFesMode(m)) ids = (fesDef(m).chars || []).slice();
+    else if (m === "premium") ids = PREMIUM_CHARS.filter((id) => isStar5(id));
+  } catch (e) { ids = []; }
+  return ids.filter((id, i, a) => CHARS[id] && a.indexOf(id) === i && !charSecret(id));
+}
+/* いま引けるガチャ（開催前・終わったガチャは出さない）＝ [{ k, nm, c, ids }]。並びはガチャ一覧と同じ */
+function sealGachaList() {
+  let rows = [];
+  try { rows = gachaMenuList(); } catch (e) { rows = []; }
+  const out = [], seen = {};
+  rows.forEach((r) => {
+    if (!r || r.soon || r.ended || seen[r.k]) return;
+    const ids = sealLineup(r.k);
+    if (!ids.length) return;
+    seen[r.k] = 1;
+    let nm = r.nm; try { nm = gachaNmOfMode(r.k) || r.nm; } catch (e) {}
+    out.push({ k: r.k, nm, c: r.c || "#8a6cff", ids });
+  });
+  return out;
 }
 /* n連ぶんためる。★ 無料の単発・初回10連も「引いた」ことに変わりはないので数える。 */
 function sealAdd(m, n) {

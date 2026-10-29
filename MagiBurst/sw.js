@@ -6,13 +6,13 @@
    ・オンライン対戦・XEVA換金はアプリ側でオフライン時に無効化している
    ・取得できたリソースは随時キャッシュ更新（stale-while-revalidate）
    ============================================================ */
-const VERSION = "magiburst-sw-v201";
+const VERSION = "magiburst-sw-v202";
 const CORE = [
   "./index.html",
   "./css/mb-ui2.css?v=26",
   "./css/localplay.css?v=7",
   "./js/localplay.js?v=8",
-  "./js/mb-core.js?v=142",
+  "./js/mb-core.js?v=143",
   /* ★★ 2026-09-13 クエスト作成（ステージエディター・MB613Create26）。
      遅延読みこみだが、オフラインでも開けるようにここには入れておく。 */
   "./js/mb-create.js?v=2",
@@ -39,9 +39,9 @@ const CORE = [
   "../xeva-i18n-p3.js?v=7",
   "../xeva-i18n-mb7.js?v=7",
   "../xeva-i18n-p4.js?v=8",
-  "../xeva-i18n-n1.js?v=20",
+  "../xeva-i18n-n1.js?v=21",
   "../xeva-i18n-n2.js?v=3",
-  "../xeva.js?v=84",
+  "../xeva.js?v=85",
   "../xeva-alive.js?v=8",
   "../xeva-loading.js?v=19",
   "../xeva-splash.js?v=18",
@@ -160,6 +160,8 @@ const CORE = [
   "img/ss/KohakuSS.webp", "img/ss/SuzuSS.webp", "img/ss/ShoukoSS.webp",
   /* ★★ 2026-10-24 ヒサコ・アリス・ミキ（UR・MagiAbyss 専用）の SS 絵 */
   "img/ss/HisakoSS.webp", "img/ss/AliceSS.webp", "img/ss/MikiSS.webp",
+  /* ★★ 2026-10-30 超極彩祭（UR）の SS 絵 */
+  "img/ss/HaruSS.webp", "img/ss/ChikaSS.webp",
   "img/ss/YajuSS.webp",   /* ★ 2026-08-08d クロススキル「お待たせ!」用 */
   "img/ss/KokonaAlphaSS.webp",   /* ★ 2026-08-11 ココナα（治癒の祈り）用 */
   /* ★ 2026-08-08 プレミアム新SSR「カエデ」「リノン」「ココロ」「アンジェ」 */
@@ -311,7 +313,8 @@ const CORE = [
   "img/bn_fes17_s.webp?v=2",   /* ★★ 2026-10-07 Sapphire Breeze のバナー（同日に差しかえ → ?v=2） */
   "img/bn_fes18_s.webp",   /* ★★ 2026-10-09 Pumpkin Night のバナー */
   "img/bn_fes19_s.webp",   /* ★★ 2026-10-16 超極華祭のバナー */
-  "img/bn_fes20_s.webp",   /* ★★ 2026-10-22 超極煌祭のバナー */
+  "img/bn_fes20_s.webp?v=2",   /* ★★ 2026-10-22 超極煌祭のバナー（★★ 2026-10-30 新しい絵に差しかえ） */
+  "img/bn_fes21_s.webp",   /* ★★ 2026-10-30 超極彩祭のバナー */
   "img/bn_fes14_s.webp",   /* ★★ 2026-09-13 SOFT NIGHT FEST のバナー */   /* ★★ 2026-09-11 BUNNY GIRL FEST のバナー */
   "../img/t_Suzune.webp",
   "../img/t_Minamo.webp",
@@ -487,6 +490,8 @@ const CORE = [
   "../img/t_Kohaku.webp", "../img/Kohaku_w.webp", "../img/t_Suzu.webp", "../img/Suzu_w.webp", "../img/t_Shouko.webp", "../img/Shouko_w.webp",
   /* ★★ 2026-10-24 ヒサコ・アリス・ミキ */
   "../img/t_Hisako.webp", "../img/Hisako_w.webp", "../img/t_Alice.webp", "../img/Alice_w.webp", "../img/t_Miki.webp", "../img/Miki_w.webp",
+  /* ★★ 2026-10-30 超極彩祭 */
+  "../img/t_Haru.webp", "../img/Haru_w.webp", "../img/t_Chika.webp", "../img/Chika_w.webp",
   /* ★★ 2026-09-06 同期の画面に出る案内役（立ち姿とお辞儀・2人ぶん）。
      ここに無いとオフラインのときだけ絵が出ない。 */
   "../img/ld_a_stand.webp",
