@@ -143,6 +143,8 @@
        MagiRanking の順位賞金は二重加算を避けるため集計対象外。 */
     /* ★★ 2026-10-06 イベントミッション「MagiLex 系統で XEVA を◯獲得」 */
     if (amount > 0 && /^(MagiLex|MagiChemLex)/.test(reason || "")) { try { if (EVT) EVT.bump("lexXeva", amount); } catch (e) {} }
+    /* ★★ 2026-10-30 毎月のビンゴ「XEVA を◯獲得」（メールの配布 noRank・両替 noEarn・ビンゴのごほうび noBingo は数えない） */
+    if (amount > 0 && !(opts && (opts.noRank || opts.noEarn || opts.noBingo)) && !/MagiRanking.*賞金/.test(reason || "")) { try { if (BG) BG.count("xeva", amount); } catch (e) {} }
     if (amount > 0 && !(opts && opts.noRank) && !/MagiRanking.*賞金/.test(reason || "")) {
       try {
         var pend = Number(localStorage.getItem("xeva_earn_pending_v1") || 0) + amount;
@@ -473,6 +475,22 @@
        まとめて1本にすると、フェスで引いた印で GRAND DEBUT のキャラが取れてしまう。 */
   var SEAL_KEY = "xeva_seal_v1";
   var seal = makeCountMap(SEAL_KEY, "xeva:seal");
+  /* ★★ 2026-10-30 ご指定「ガチャの天井の星煌印は全ガチャ共通にして、好きなガチャの好きなキャラを1体選べるように」
+     → たまる欄はこれまでどおりガチャごと（どこで引いたかの記録・同期の混ぜ方もそのまま）。<b>残高は全部の欄の合計</b>（seal.total）。
+       使うときは spendAny：欄を名前の順に、足りるまで減らす（足りなければ何もしないで false）。 */
+  seal.spendAny = function (n, reason) {
+    n = Math.max(0, Math.round(n || 0)); if (!n) return true;
+    var a = seal.all(), tot = 0;
+    Object.keys(a).forEach(function (k) { tot += a[k]; });
+    if (tot < n) return false;
+    var left = n;
+    Object.keys(a).sort().forEach(function (k) {
+      if (left <= 0 || !(a[k] > 0)) return;
+      var d = Math.min(a[k], left);
+      if (seal.spend(k, d, reason)) left -= d;
+    });
+    return left <= 0;
+  };
   /* ══ ★★ 2026-10-13 選べるSSRキャラ確定チケット（日ごろの感謝・ご指定）══
      1枚につき、ガチャから出る SSR の中から<b>好きな1体を確定で</b>受け取れる（UR は対象外）。使う場所はガチャ一覧のいちばん上。
      ★ 残高は<b>フェスセレクト券と同じ台帳（xeva_fessel_v1）</b>の "ssr:<配った回>" の欄に置く。
@@ -1253,6 +1271,9 @@
     { id: "mb:hisako", mbId: "hisako", name:"ヒサコ", file: "../img/t_Hisako.webp", since:"2026-10-24", rarLabel: "UR" },
     { id: "mb:alice", mbId: "alice", name:"アリス", file: "../img/t_Alice.webp", since:"2026-10-24", rarLabel: "UR" },
     { id: "mb:miki", mbId: "miki", name:"ミキ", file: "../img/t_Miki.webp", since:"2026-10-24", rarLabel: "UR" },
+    /* ★★ 2026-10-30 超極彩祭（UR・MagiAbyss 専用。アイコン・コレクション・MagiChemLex のナビには使える） */
+    { id: "mb:haru", mbId: "haru", name:"ハル", file: "../img/t_Haru.webp", since:"2026-10-30", rarLabel: "UR" },
+    { id: "mb:chika", mbId: "chika", name:"チカ", file: "../img/t_Chika.webp", since:"2026-10-30", rarLabel: "UR" },
   ];
   /* ★ 2026-08-10 初期SR 4体（ゼラ・アヤメ・レイラ・セリーヌ）は廃止しました。
      いまは<b>全キャラがアイコンに選べる</b>ので、starter という区別そのものが要らない。 */
@@ -1370,7 +1391,9 @@
   /* ★★ 2026-10-22 超極煌祭（UR） */
   , "kohaku", "suzu", "shouko"
   /* ★★ 2026-10-24 超極煌祭の追加2体・WP 交換のミキ（UR） */
-  , "hisako", "alice", "miki"];
+  , "hisako", "alice", "miki"
+  /* ★★ 2026-10-30 超極彩祭（UR） */
+  , "haru", "chika"];
   MB_CHAR_MASTER.forEach(function (c) { c.mb = true; c.starter = MB_STARTERS.indexOf(c.mbId) >= 0; });
   MB_CHAR_MASTER.forEach(function (c) { c.star5 = MB_STAR5.indexOf(c.mbId) >= 0; });
   /* id は "mb:zera" のように接頭辞つき。XEVAガチャにも同じ名前のキャラ（シオンなど）が
@@ -2091,15 +2114,21 @@
     lexMult: function () { var m = 1; evActiveList().forEach(function (id) { m = Math.max(m, EVENT_DEFS[id].lexMult || 1); }); return m; },
     /* 数を足す（開催中のイベントすべて） */
     bump: function (key, n) {
-      var l = evActiveList(); if (!l.length) return;
       n = Number(n) || 0; if (!n) return;
+      var l = evActiveList();
+      var bg = !!(BG_KEYS && BG_KEYS[key]);   /* ★★ 2026-10-30 毎月のビンゴで使う数（イベントが無い月も数える） */
+      if (!l.length && !bg) return;
       var s = evLoad();
+      if (bg) { var b = evRec(s, bgId()); b.c[key] = (Number(b.c[key]) || 0) + n; b.at = Date.now(); }
       l.forEach(function (id) { var r = evRec(s, id); r.c[key] = (Number(r.c[key]) || 0) + n; r.at = Date.now(); });
       evSave(s);
     },
     /* その日に印を付ける（ログイン日など） */
     day: function (key) {
-      var l = evActiveList(); if (!l.length) return;
+      var l = evActiveList();
+      /* ★★ 2026-10-30 毎月のビンゴ（「今月◯日ログイン」） */
+      if (BG_DAYS && BG_DAYS[key]) l = l.concat([bgId()]);
+      if (!l.length) return;
       var s = evLoad(), t = evToday(), ch = false;
       l.forEach(function (id) { var r = evRec(s, id); r.d[key] = r.d[key] || {}; if (!r.d[key][t]) { r.d[key][t] = 1; r.at = Date.now(); ch = true; } });
       if (ch) evSave(s);
@@ -2147,6 +2176,140 @@
     usePartnerCoupon: function () { var o = EVT.partnerOff(); if (!o) return false; var s = evLoad(); evRec(s, o.id).cl.partner = Date.now(); evRec(s, o.id).at = Date.now(); evSave(s); return true; },
   };
 
+  /* ══════════════════════════════════════════════════════════════
+     ★★ 2026-10-30 XEVA ミッションの<b>毎月のビンゴ</b>（ご指定「XEVA ミッションに毎月変わるビンゴカードを実装」）
+     ------------------------------------------------------------
+     ・カード＝5×5（まん中は FREE）。毎月1日に新しいカード：いつも入る8マス（BINGO_CORE）＋ のこり16マスは
+       BINGO_POOL からその月の合い言葉（"xeva-bingo:YYYY-MM"）で選ぶ＝<b>同じ月はだれでも同じカード</b>・マスの並びも同じ。
+     ・マスは条件を満たすと自動でひらく。そろったライン（縦5・横5・ななめ2）と、3ライン・6ライン・コンプリートでごほうび。
+     ・数は xeva_event_v1 の "bingo-YYYY-MM"（イベントと同じ形 { c:数, d:日付, cl:受け取り }）＝ xeva-cloud の mergeEvent で混ざる
+       （数は大きいほう・日付と受け取りは和）。新しい同期キーは足していない。
+     ・数える所：EVT.bump（gacha・chemOk・chemSet・chemWp・abyss*・derby* ほか＝各アプリがもう呼んでいるもの）／EVT.day("login")／
+       completeMission（"m:<ミッションid>"＝そのアプリで遊んだ回数）／add（獲得した XEVA）。
+     ・ごほうび：🎫は ticket.migrateOnce・10連半額券は halfTicket.grantOnce（どちらもアカウントで1回）・★星煌印は受け取りごとの欄に1回だけ。
+     ══════════════════════════════════════════════════════════════ */
+  var BINGO_CORE = [
+    { id: "login",  ic: "📅", s: "10日ログイン",   t: "今月 10日 XEVARION にログインする", day: "login", n: 10, href: "index.html" },
+    { id: "gacha",  ic: "🎰", s: "ガチャ30回",     t: "ガチャを 30回 引く（10連は10回）", key: "gacha", n: 30, href: "gacha.html" },
+    { id: "xeva",   ic: "💰", s: "XEVA 1万",       t: "XEVA を 10,000 獲得する（どのアプリでも）", key: "xeva", n: 10000, href: "index.html" },
+    { id: "chemOk", ic: "⚗️", s: "化学50問正解",   t: "MagiChemLex で 50問 正解する", key: "chemOk", n: 50, href: "MagiChemLex/index.html" },
+    { id: "abyss",  ic: "🌀", s: "迷宮3回クリア",  t: "MagiAbyss で迷宮を 3回 クリアする", key: "abyssClear", n: 3, href: "MagiAbyss/index.html" },
+    { id: "burst",  ic: "💥", s: "Burst 5回",      t: "MagiBurst でクエストを 5回 クリアする", key: "m:magiburst_play", n: 5, href: "MagiBurst/index.html" },
+    { id: "derby",  ic: "🏇", s: "馬券3回",        t: "MagiDerby で G1 の馬券を 3回 買う", key: "derbyBet", n: 3, href: "MagiDerby/index.html" },
+    { id: "quiz",   ic: "❓", s: "Quiz 1試合",     t: "MagiQuiz で 1試合 あそぶ", key: "m:magiquiz_play", n: 1, href: "MagiQuiz/index.html" },
+  ];
+  var BINGO_POOL = [
+    { id: "lexXeva",  ic: "📚", s: "学びで3千",     t: "MagiLex 系統（MagiChemLex など）で XEVA を 3,000 獲得する", key: "lexXeva", n: 3000, href: "MagiChemLex/index.html" },
+    { id: "chemAns",  ic: "✏️", s: "化学100問",     t: "MagiChemLex で 100問 解く", key: "m:magichemlex_play", n: 100, href: "MagiChemLex/index.html" },
+    { id: "chemSet",  ic: "📝", s: "模試1回",       t: "MagiChemLex の模試の冊子を 1回 やりとげる", key: "chemSet", n: 1, href: "MagiChemLex/index.html" },
+    { id: "chemWp",   ic: "🔷", s: "WP 20",         t: "MagiChemLex で Wisdom Point を 20 ためる", key: "chemWp", n: 20, href: "MagiChemLex/index.html" },
+    { id: "abyssK",   ic: "⚔️", s: "敵500体",       t: "MagiAbyss で敵を 500体 倒す", key: "abyssKill", n: 500, href: "MagiAbyss/index.html" },
+    { id: "abyssB",   ic: "👑", s: "ボス2体",       t: "MagiAbyss でボスを 2体 倒す", key: "abyssBoss", n: 2, href: "MagiAbyss/index.html" },
+    { id: "derbyHit", ic: "🎯", s: "的中1回",       t: "MagiDerby で 1回 的中させる", key: "derbyHit", n: 1, href: "MagiDerby/index.html" },
+    { id: "chain",    ic: "💣", s: "ChainParty",    t: "MagiChainParty で 1回 対戦する", key: "m:magichainparty_play", n: 1, href: "MagiChainParty/index.html" },
+    { id: "xevynar",  ic: "🤖", s: "AIに3回",       t: "XEVYNAR に 3回 質問する", key: "m:xevynar_ask", n: 3, href: "XEVYNAR/index.html" },
+    { id: "focus",    ic: "🎧", s: "集中2回",       t: "MagiFocus で集中セッションを 2回 完了する", key: "m:magifocus_study", n: 2, href: "MagiFocus/index.html" },
+    { id: "music",    ic: "🎵", s: "5曲きく",       t: "MagiMusic で 5曲 さいせいする", key: "m:magimusic_play", n: 5, href: "MagiMusic/MagiMusic.html" },
+    { id: "jackpot",  ic: "🎲", s: "Jackpot 10回",  t: "MagiJackpot で 10回 プレイする", key: "m:magijackpot_play", n: 10, href: "MagiJackpot/index.html" },
+    { id: "lotto",    ic: "🎟️", s: "くじ3回",       t: "Magi Lotto でくじを 3回 買う", key: "m:magilotto_buy", n: 3, href: "MagiLotto/index.html" },
+    { id: "ranking",  ic: "🏆", s: "順位を見る",    t: "MagiRanking で今月の順位を見る", key: "m:magiranking_check", n: 1, href: "MagiRanking/index.html" },
+    { id: "tier",     ic: "📊", s: "Tier表",        t: "MagiTier で Tier表をつくる", key: "m:magitier_make", n: 1, href: "MagiTier/MagiTier.html" },
+    { id: "empire",   ic: "🏰", s: "国盗り",        t: "MagiEmpire で国盗り対戦をする", key: "m:magiempire_play", n: 1, href: "MagiEmpire/MagiEmpire.html" },
+    { id: "arena",    ic: "🎮", s: "Arena",         t: "MagiArena で1台対戦をあそぶ", key: "m:magiarena_play", n: 1, href: "MagiArena/MagiArena.html" },
+    { id: "manor",    ic: "🕯️", s: "洋館探索",      t: "MagiManor で洋館を探索する", key: "m:magimanor_play", n: 1, href: "MagiManor/index.html" },
+    { id: "craft",    ic: "⛏️", s: "30ブロック",    t: "MagiCraft でブロックを 30個 掘る", key: "m:magicraft_play", n: 30, href: "MagiCraft/index.html" },
+    { id: "gemEx",    ic: "💎", s: "ジェム変換",    t: "ショップのジェム変換所で XEVA をジェムに交換する", key: "gemEx", n: 1, href: "index.html#shophub" },
+  ];
+  var BG_KEYS = {}, BG_DAYS = {};
+  BINGO_CORE.concat(BINGO_POOL).forEach(function (m) { if (m.key) BG_KEYS[m.key] = 1; if (m.day) BG_DAYS[m.day] = 1; });
+  /* ラインのごほうび（縦・横）／ななめ／3ライン・6ライン・コンプリート */
+  var BINGO_RW = {
+    line: { xeva: 1000, tk: 1 }, diag: { xeva: 1500, gem: 2 },
+    b3: { seal: 10 }, b6: { half: 1 }, all: { xeva: 10000, gem: 8, tk: 5, seal: 20 },
+  };
+  function bgMonth(d) { d = d || new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0"); }
+  function bgId(mk) { return "bingo-" + (mk || bgMonth()); }
+  function bgHash(str) { var h = 2166136261; for (var i = 0; i < str.length; i++) { h ^= str.charCodeAt(i); h = Math.imul(h, 16777619); } return h >>> 0; }
+  function bgRng(seed) { var a = seed >>> 0; return function () { a = (a + 0x6D2B79F5) >>> 0; var t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+  function bgShuffle(arr, rnd) { var a = arr.slice(); for (var i = a.length - 1; i > 0; i--) { var j = Math.floor(rnd() * (i + 1)); var t = a[i]; a[i] = a[j]; a[j] = t; } return a; }
+  var BG_LINES = (function () {
+    var L = [], i, j;
+    for (i = 0; i < 5; i++) { var r = [], c = []; for (j = 0; j < 5; j++) { r.push(i * 5 + j); c.push(j * 5 + i); } L.push({ id: "r" + i, kind: "line", nm: "横 " + (i + 1) + "列目", cells: r }); L.push({ id: "c" + i, kind: "line", nm: "縦 " + (i + 1) + "列目", cells: c }); }
+    L.push({ id: "d0", kind: "diag", nm: "ななめ（左上から）", cells: [0, 6, 12, 18, 24] });
+    L.push({ id: "d1", kind: "diag", nm: "ななめ（右上から）", cells: [4, 8, 12, 16, 20] });
+    return L;
+  })();
+  var _bgCard = {};
+  function bgCard(mk) {
+    mk = mk || bgMonth();
+    if (_bgCard[mk]) return _bgCard[mk];
+    var rnd = bgRng(bgHash("xeva-bingo:" + mk));
+    var pick = bgShuffle(BINGO_POOL, rnd).slice(0, 24 - BINGO_CORE.length);
+    var ms = bgShuffle(BINGO_CORE.concat(pick), rnd);
+    var cells = [];
+    for (var i = 0, k = 0; i < 25; i++) cells.push(i === 12 ? { i: i, free: true } : { i: i, m: ms[k++] });
+    return (_bgCard[mk] = cells);
+  }
+  var BG = {
+    CORE: BINGO_CORE, POOL: BINGO_POOL, RW: BINGO_RW, LINES: BG_LINES,
+    month: bgMonth,
+    card: bgCard,
+    /* 数を足す（EVT.bump を通らないもの：獲得した XEVA・ミッションの回数・ジェム変換） */
+    count: function (key, n) {
+      n = Number(n) || 0; if (!n || !BG_KEYS[key]) return;
+      var s = evLoad(), b = evRec(s, bgId());
+      b.c[key] = (Number(b.c[key]) || 0) + n; b.at = Date.now();
+      evSave(s);
+    },
+    state: function (mk) {
+      mk = mk || bgMonth();
+      var r = evRec(evLoad(), bgId(mk));
+      var cells = bgCard(mk).map(function (c) {
+        if (c.free) return { i: c.i, free: true, on: true, now: 1, need: 1 };
+        var m = c.m, v = m.day ? Object.keys(r.d[m.day] || {}).length : (Number(r.c[m.key]) || 0);
+        return { i: c.i, m: m, now: Math.min(v, m.n), need: m.n, on: v >= m.n };
+      });
+      var lines = BG_LINES.map(function (L) {
+        var done = L.cells.every(function (i) { return cells[i].on; });
+        return { id: L.id, kind: L.kind, nm: L.nm, cells: L.cells, done: done, got: !!r.cl["L:" + L.id] };
+      });
+      var nLines = lines.filter(function (l) { return l.done; }).length, nOpen = cells.filter(function (c) { return c.on; }).length;
+      var bon = [
+        { id: "b3", nm: "3ライン達成", need: 3, done: nLines >= 3, got: !!r.cl["B:b3"], rw: BINGO_RW.b3 },
+        { id: "b6", nm: "6ライン達成", need: 6, done: nLines >= 6, got: !!r.cl["B:b6"], rw: BINGO_RW.b6 },
+        { id: "all", nm: "25マス コンプリート", need: 12, done: nOpen >= 25, got: !!r.cl["B:all"], rw: BINGO_RW.all },
+      ];
+      var claim = lines.filter(function (l) { return l.done && !l.got; }).length + bon.filter(function (b) { return b.done && !b.got; }).length;
+      var now = new Date(), last = new Date(now.getFullYear(), now.getMonth() + 1, 0).getDate();
+      return { mk: mk, cells: cells, lines: lines, bonus: bon, nLines: nLines, nOpen: nOpen, claim: claim, left: mk === bgMonth() ? last - now.getDate() + 1 : 0 };
+    },
+    pending: function () { try { return BG.state().claim; } catch (e) { return 0; } },
+    /* そろったぶんを全部受け取る → { n, xeva, gem, tk, half, seal, names:[] } */
+    claim: function () {
+      var st = BG.state(), mk = st.mk, mo = Number(mk.slice(5, 7)) + "月";
+      var out = { n: 0, xeva: 0, gem: 0, tk: 0, half: 0, seal: 0, names: [] };
+      var todo = [];
+      st.lines.forEach(function (l) { if (l.done && !l.got) todo.push({ mark: "L:" + l.id, nm: l.nm, rw: l.kind === "diag" ? BINGO_RW.diag : BINGO_RW.line }); });
+      st.bonus.forEach(function (b) { if (b.done && !b.got) todo.push({ mark: "B:" + b.id, nm: b.nm, rw: b.rw }); });
+      if (!todo.length) return out;
+      /* 先に受け取りの印を付けて保存（二重に受け取らない）→ ごほうびを渡す */
+      var s = evLoad(), r = evRec(s, bgId(mk)), now = Date.now();
+      todo = todo.filter(function (t) { if (r.cl[t.mark]) return false; r.cl[t.mark] = now; return true; });
+      r.at = now; evSave(s);
+      todo.forEach(function (t) {
+        var why = "XEVA ビンゴ（" + mo + "）" + t.nm, tag = "bingo:" + mk + ":" + t.mark, w = t.rw;
+        try { if (w.xeva) { add(w.xeva, why, { noBingo: true }); out.xeva += w.xeva; } } catch (e) {}
+        try { if (w.gem) { gem.add(w.gem, why); out.gem += w.gem; } } catch (e) {}
+        try { if (w.tk && ticket.migrateOnce(tag, w.tk, why)) out.tk += w.tk; } catch (e) {}
+        try { if (w.half) { out.half += halfTicket.grantOnce(tag, w.half, why) || 0; } } catch (e) {}
+        try { if (w.seal && !seal.earned(tag)) { seal.add(tag, w.seal, why); out.seal += w.seal; } } catch (e) {}
+        out.n++; out.names.push(t.nm);
+      });
+      try { window.dispatchEvent(new CustomEvent("xeva:bingo", { detail: out })); } catch (e) {}
+      return out;
+    },
+  };
+
   /* ── 公開API ── */
   var XEVA = {
     KEY: KEY,
@@ -2178,7 +2341,8 @@
     halfTicket: halfTicket,
     /* ★★ 2026-09-13c ★星煌印（ガチャの天井）。
        使いかた: XEVA.seal.get("fes14") / .add("fes14",1,"…") / .spend("fes14",150,"…")
-       ★ 引いた数そのものは .earned("fes14")（減らない通算）。 */
+       ★ 引いた数そのものは .earned("fes14")（減らない通算）。
+       ★★ 2026-10-30 全ガチャ共通：残高は XEVA.seal.total()・使うのは XEVA.seal.spendAny(100,"…")（交換はホームのショップ） */
     seal: seal,
     cryst: cryst,                 /* ★★ 2026-08-30 💠結晶（完凸後の排出でもらえる） */
     /* ★ 2026-08-24 XEVARION 共通ステータス（レベル・EXP・スタミナ） */
@@ -2193,6 +2357,8 @@
     MISSIONS: MISSIONS,
     /* ★★ 2026-10-06 共通イベント（Violet Breeze） */
     event: EVT,
+    /* ★★ 2026-10-30 XEVA ミッションの毎月のビンゴ（XEVA.bingo.state() / .claim() / .pending() / .count("gemEx",1)） */
+    bingo: BG,
     CHARS: CHAR_MASTER,
     charThumbFile: thumbFile,
     /* ★ 2026-08-05 MagiBurst のキャラ（アカウントアイコン用。画像は MagiBurst/img を直接参照） */
@@ -2269,6 +2435,8 @@
     isMissionDone: function (id) { state = load(); return !!(state.missions && state.missions[id]); },
     isMissionClaimed: function (id) { state = load(); return !!(state.missionClaims && state.missionClaims[id]); },
     completeMission: function (id) {
+      /* ★★ 2026-10-30 毎月のビンゴ（各アプリは遊ぶたびにここを呼ぶ＝その回数を "m:<id>" に数える） */
+      try { BG.count("m:" + id, 1); } catch (e) {}
       var m = MISSIONS[id]; if (!m) return 0;
       state = load();
       state.missions = state.missions || {};
@@ -2445,7 +2613,7 @@
     window.__xevaElEdge = 1;
     try { if (/\/(MagiBurst|MagiBattle|MagiAbyss|MagiBocciaRush|expo)\//.test(location.pathname || "")) return; } catch (e) { return; }
     if (!("IntersectionObserver" in window) || !window.MutationObserver) return;
-    var XEL_RAW = "fire:Ririka,Akane,Mika,Nana,RinonX,Ema,Arisa,Tsubaki,Natsuki,Shirayuki,Nazuna,Milfy,Lysera,Soleria,Altia,KaguyaAlpha,KokonaAlpha,Nanami,Kaede,Kotone,Karem,Tsukino,Youhi,Kanata,Satsuki,Otoha,Guren,Suzune,Mirelle,Karin,Homura,Seina,Mutsumi,Yuika,Yua,RanS,Kurenai,Chia,Hisui,AnnaRan,Asuka,Amane,RenaD,Reia,Natsume,Kagura,Miya,Akatsuki,Kokoha,Kureha,KumikoReina,RanAlpha,Ayano,Saki,Chie,Kohaku|water:Shiona,Serina,Airi,Kaho,Sakura,Shion,Kokona,Rinne,Selene,Fiona,Chloe,Sheril,Fia,Solea,CherylAlpha,Yukino,Chitose,Shizuku,Fuka,Moeka,Elena,Blair,Roxy,Sayaka,Yuuna,Minamo,Scarlet,Mirei,Yoizuki,Shiduki,Misuzu,Shiori,Kotori,Yuki,Risa,Riona,Shizuru,Yoiduki,Sougetsu,Kaoru,NaoS,HarukaS,AoiKuroha,Misaki,Ruri,Nagisa,Hiyori,Emika,Ayane,Mikoto,Azusa,KotoriAlpha,Takina,Yuka,Natsumi,Ichika,Hisako|wood:Hina,Haruka,Ede,Aira,Mizuki,Ayaka,Mashiro,Hotaru,Rezelia,Lilia,Mabel,Beltia,Astera,Roselia,Kokoro,Ceris,Tsumugi,Mayu,Izumi,Violet,Asuha,Akari,Chihaya,Tomoe,Amelia,Miyabi,Sara,Hinano,Kokoa,Ryouka,Marika,Minori,MireiR,Yuuri,Rika,Kayo,Natsune,Kasumi,Narumi,Haduki,Shiho,Chiha,Mei,AsuhaAlpha,Hibana,Miu,Mai,Nonoka,Suzu,Miki|light:Runa,Noa,Eruna,Rei,Rusia,Riko,Kaguya,Mion,Bernica,Iroha,Koharu,Yuri,Elsia,Setsuna,Nephia,Arche,Nemu,Liana,Reika,Rinon,Ran,Yuunagi,Suzuka,Anna,Youka,Grace,Touka,Artemia,Sayo,Hinata,Yui,Himari,Mio,Sumire,Kanade,Sakuya,Nodoka,Miko,YuukaS,AnnaM,Seika,SuzuhaR,Hanon,Shino,Kuon,TsukinoD,Astraea,AstraeaC,AnnaMaid,Saya,Hikari,Momoka,Miyuki,Kiduki,Hikaru,Himeri,Kana,AnnaAlpha,Chinatsu,Yuumi,Aina,Shouko|dark:Yuina,Kotoha,Mirea,Miyu,Nene,Kotomi,Rea,Cheryl,Viola,Mao,Alicia,Hecatia,Karina,Revia,Abyss,Shizuka,Yuria,MionAlpha,Yaju,Iori,Noelle,Ange,Dominia,Chizuru,Seira,Suzuha,Lilith,Lyra,Melty,Sayuri,Momo,Karen,Koyuki,Yuuka,Sumika,Sayuki,Kazane,Rena,Reina,AnnaS,Rin,SeiraK,Raika,ReiS,Maaya,Asahi,Subaru,Miori,Ayame,Kyoka,Erika,Uta,Miduki,Honoka,Maki,SayakaAlpha,Fuki,Rina,Kaori,Yuna,Alice";
+    var XEL_RAW = "fire:Ririka,Akane,Mika,Nana,RinonX,Ema,Arisa,Tsubaki,Natsuki,Shirayuki,Nazuna,Milfy,Lysera,Soleria,Altia,KaguyaAlpha,KokonaAlpha,Nanami,Kaede,Kotone,Karem,Tsukino,Youhi,Kanata,Satsuki,Otoha,Guren,Suzune,Mirelle,Karin,Homura,Seina,Mutsumi,Yuika,Yua,RanS,Kurenai,Chia,Hisui,AnnaRan,Asuka,Amane,RenaD,Reia,Natsume,Kagura,Miya,Akatsuki,Kokoha,Kureha,KumikoReina,RanAlpha,Ayano,Saki,Chie,Kohaku|water:Shiona,Serina,Airi,Kaho,Sakura,Shion,Kokona,Rinne,Selene,Fiona,Chloe,Sheril,Fia,Solea,CherylAlpha,Yukino,Chitose,Shizuku,Fuka,Moeka,Elena,Blair,Roxy,Sayaka,Yuuna,Minamo,Scarlet,Mirei,Yoizuki,Shiduki,Misuzu,Shiori,Kotori,Yuki,Risa,Riona,Shizuru,Yoiduki,Sougetsu,Kaoru,NaoS,HarukaS,AoiKuroha,Misaki,Ruri,Nagisa,Hiyori,Emika,Ayane,Mikoto,Azusa,KotoriAlpha,Takina,Yuka,Natsumi,Ichika,Hisako,Haru|wood:Hina,Haruka,Ede,Aira,Mizuki,Ayaka,Mashiro,Hotaru,Rezelia,Lilia,Mabel,Beltia,Astera,Roselia,Kokoro,Ceris,Tsumugi,Mayu,Izumi,Violet,Asuha,Akari,Chihaya,Tomoe,Amelia,Miyabi,Sara,Hinano,Kokoa,Ryouka,Marika,Minori,MireiR,Yuuri,Rika,Kayo,Natsune,Kasumi,Narumi,Haduki,Shiho,Chiha,Mei,AsuhaAlpha,Hibana,Miu,Mai,Nonoka,Suzu,Miki|light:Runa,Noa,Eruna,Rei,Rusia,Riko,Kaguya,Mion,Bernica,Iroha,Koharu,Yuri,Elsia,Setsuna,Nephia,Arche,Nemu,Liana,Reika,Rinon,Ran,Yuunagi,Suzuka,Anna,Youka,Grace,Touka,Artemia,Sayo,Hinata,Yui,Himari,Mio,Sumire,Kanade,Sakuya,Nodoka,Miko,YuukaS,AnnaM,Seika,SuzuhaR,Hanon,Shino,Kuon,TsukinoD,Astraea,AstraeaC,AnnaMaid,Saya,Hikari,Momoka,Miyuki,Kiduki,Hikaru,Himeri,Kana,AnnaAlpha,Chinatsu,Yuumi,Aina,Shouko|dark:Yuina,Kotoha,Mirea,Miyu,Nene,Kotomi,Rea,Cheryl,Viola,Mao,Alicia,Hecatia,Karina,Revia,Abyss,Shizuka,Yuria,MionAlpha,Yaju,Iori,Noelle,Ange,Dominia,Chizuru,Seira,Suzuha,Lilith,Lyra,Melty,Sayuri,Momo,Karen,Koyuki,Yuuka,Sumika,Sayuki,Kazane,Rena,Reina,AnnaS,Rin,SeiraK,Raika,ReiS,Maaya,Asahi,Subaru,Miori,Ayame,Kyoka,Erika,Uta,Miduki,Honoka,Maki,SayakaAlpha,Fuki,Rina,Kaori,Yuna,Alice,Chika";
     var RE = /(?:^|\/)img\/(?:t_)?([A-Za-z0-9]+)\.webp(?:[?#].*)?$/;
     var MAP = null;
     function elMap() {

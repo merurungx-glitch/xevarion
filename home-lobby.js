@@ -15,6 +15,24 @@
   const VER = 1;
   const DIR = "home-mate/lobby/";
   const DEFS = {
+    /* ★★ 2026-10-30 超極彩祭のハル・チカ（ご指定「この2キャラは完凸をすることでロビーにセットできます」）。
+       立ち絵は Documents/Claude/_fes_src/fes21/3.webp（ハル）・7.webp（チカ）＝背景が透明の全身。背景は展望テラス（ヒサコ・アリスと同じ） */
+    haru: {
+      name: "ハル", ruby: "Haru", color: "#3a8ee8", el: "water", img: "haru.webp", bg: "park.webp",
+      intro: "展望テラスで、青い髪をかきあげるハル。",
+      rig: { size: [940, 1672], headTop: [425, 15], face: [440, 205], neck: [455, 300], shoulderY: 330, waistY: 575, hemY: 880, kneeY: 1090, pivot: [470, 1640], centerX: 450 },
+      /* 髪＝青（顔と胸の青いキャミソールは y と顔の楕円で外す）／ゆれる布＝白い上着のすそ（青みの白・肌は色相で外す） */
+      hair: { hue: [200, 240], sat: [0.3, 1], val: [0.18, 0.95], y1: 322, noFace: [440, 205, 74, 90] },
+      cloth: { hue: [190, 260], sat: [0.02, 0.2], val: [0.7, 1], y0: 560, y1: 900 },
+    },
+    chika: {
+      name: "チカ", ruby: "Chika", color: "#8a5ce0", el: "dark", img: "chika.webp", bg: "park.webp",
+      intro: "展望テラスで、白いドレスのすそをつまむチカ。",
+      rig: { size: [941, 1672], headTop: [510, 22], face: [530, 208], neck: [533, 295], shoulderY: 330, waistY: 580, hemY: 1450, kneeY: 1080, pivot: [520, 1630], centerX: 520 },
+      /* 髪＝黒〜紺（白いドレスは明るさで外す・長い髪の範囲だけ）／スカート＝白〜うす紫のドレス（肌は色相で外す） */
+      hair: { sat: [0, 0.8], val: [0, 0.62], boxes: [[110, 0, 480, 880], [380, 0, 680, 300], [600, 280, 790, 840]], noFace: [530, 208, 72, 90] },
+      cloth: { hue: [200, 290], sat: [0.03, 0.4], val: [0.62, 1], y0: 600, y1: 1500 },
+    },
     hisako: {
       name: "ヒサコ", ruby: "Hisako", color: "#38a6ff", el: "water", img: "hisako.webp", bg: "park.webp",
       intro: "放課後の展望テラスで、ピースをくれるヒサコ。",

@@ -1207,77 +1207,47 @@ function sealShowPool(m) {
 }
 function paintSealBar() {
   const box = $("#sealbar"); if (!box) return;
-  if (typeof sealGet !== "function" || typeof sealKeyOfMode !== "function") { box.innerHTML = ""; return; }
-  const key = sealKeyOfMode(gMode);
-  const pool = sealShowPool(gMode);
-  /* 交換できる相手がいないガチャ（スタンバイ中の GRAND DEBUT など）では出さない */
-  if (!key || !pool.length) { box.innerHTML = ""; return; }
+  if (typeof sealGet !== "function") { box.innerHTML = ""; return; }
+  /* ★★ 2026-10-30 ご指定「星煌印は全ガチャ共通」「交換はショップ」→ 残高は全ガチャの合計・帯からショップの交換所へ */
   const n = sealGet(gMode), need = SEAL_NEED;
   const rdy = n >= need;
   const pct = Math.max(0, Math.min(100, (n / need) * 100));
   const left = Math.max(0, need - n);
   box.innerHTML =
-    '<div class="sealcard' + (rdy ? " rdy" : "") + '"' + (rdy ? ' onclick="useSeal()"' : "") + ">" +
+    '<div class="sealcard' + (rdy ? " rdy" : "") + '" onclick="useSeal()">' +
       '<img class="sealic" src="' + SEAL_IMG + '" alt="★星煌印">' +
-      '<span class="sealbd"><b>★星煌印（天井）</b>' +
+      '<span class="sealbd"><b>★星煌印（全ガチャ共通の天井）</b>' +
         "<small>" + (rdy
-          ? "<b>" + need + "個</b>たまりました！ <b>" + gachaNmOfMode(gMode) +
-            "</b> のピックアップ <b>" + pool.length + "体</b>から好きな1体と交換できます"
-          : "1連ごとに1つたまります。<b>あと " + left + "個</b>（＝あと " + left +
-            "回）で、ピックアップ <b>" + pool.length + "体</b>から好きな1体と交換できます") +
+          ? "<b>" + need + "個</b>たまりました！ ショップの<b>★星煌印 交換所</b>で、<b>好きなガチャの好きなキャラ1体</b>と交換できます"
+          : "どのガチャでも1連ごとに1つたまります。<b>あと " + left + "個</b>で、<b>好きなガチャの好きなキャラ1体</b>と交換できます（交換はショップ）") +
         "</small>" +
         '<span class="sealtr"><i style="width:' + pct.toFixed(1) + '%"></i></span>' +
       "</span>" +
-      /* ★★ 2026-09-19e MAX（150）をこえても数は止めずに出す（ご指定）。交換すると150だけ減る */
+      /* ★★ 2026-09-19e MAX をこえても数は止めずに出す（ご指定）。交換すると SEAL_NEED だけ減る */
       '<span class="sealn"><b>' + fmt(n) + "</b><span>／ " + need + "</span></span>" +
-      (rdy ? '<button class="sealgo" onclick="event.stopPropagation();useSeal()">交換する</button>' : "") +
+      '<button class="sealgo" onclick="event.stopPropagation();useSeal()">' + (rdy ? "ショップで交換" : "ショップ") + "</button>" +
     "</div>";
 }
-let _sealUsing = false;
-function useSeal() {
-  if (_sealUsing) return;
-  const mode = gMode, key = sealKeyOfMode(mode);
-  if (!key) return;
-  if (sealGet(mode) < SEAL_NEED) { paintSealBar(); return; }
-  const pool = sealPool(mode);
-  const nm = gachaNmOfMode(mode);
-  /* ★★ 2026-09-19j ピックアップが全員 完凸だと sealPool が空になる（完凸は排出対象から外れるため）。
-     そのときも印が使えなくならないよう、そのガチャの顔ぶれを見て 💠75個と交換する。 */
-  if (!pool.length) {
-    let all = [];
-    try { all = (isFesMode(mode) && fesDef(mode) && Array.isArray(fesDef(mode).chars)) ? fesDef(mode).chars.filter((id) => CHARS[id])
-      : isDebutMode(mode) ? debutCharsOfMode(mode) : [curPickup()]; } catch (e) {}
-    if (all.length && all.every((id) => isMaxAwk(id))) {
-      allMaxExchange("★星煌印 " + SEAL_NEED + "個", () => XEVA.seal.spend(key, SEAL_NEED, nm + " 天井（結晶に交換）"));
-      return;
-    }
-    paintSealBar(); return;
-  }
-  /* ★★ 2026-09-19j 交換できるピックアップが全員 完凸なら 💠75個と交換 */
-  if (!pool.some((id) => !isMaxAwk(id))) {
-    allMaxExchange("★星煌印 " + SEAL_NEED + "個", () => XEVA.seal.spend(key, SEAL_NEED, nm + " 天井（結晶に交換）"));
-    return;
-  }
-  _sealUsing = true;
-  luxOpenSelect(pool, (id) => {
-    _sealUsing = false;
-    if (!id) { paintSealBar(); return; }   // えらばずに閉じた＝印はそのまま残す
-    /* ★ キャラを受け取れてから印を減らす。順番を逆にすると、
-       途中で失敗したときに「印だけ消えてキャラが来ない」が起きる。 */
-    try { if (window.XEVA && XEVA.seal) XEVA.seal.spend(key, SEAL_NEED, nm + " 天井交換"); } catch (e) {}
-    paintAll();
-  }, {
-    cap: "SEAL EXCHANGE",
-    ttl: "★星煌印 " + SEAL_NEED + "個 と交換",
-    sub: "<b>" + nm + "</b> の <b>ピックアップ " + pool.length + "体</b>から、"
-       + "<b>好きな1体</b>をえらんで手に入れられます。<br>"
-       + "すでに持っているキャラをえらぶと<b>限界突破</b>が進みます。",
-    cancel: "まだ交換しない",
-    note: "※ ★星煌印は<b>ガチャごとに別</b>にたまります（このガチャのぶんだけが減ります）。"
-        + "<br>※「まだ交換しない」を押しても<b>印は減りません</b>。あとからいつでも交換できます。",
-  });
-}
+/* ★★ 2026-10-30 交換はショップで（ご指定）＝ホームのショップの「★星煌印 交換所」を開く */
+function useSeal() { goShop("seal"); }
 window.useSeal = useSeal;
+/* ★★ 2026-10-30 ご指定「ガチャにショップへのショートカット」：ホームへ移ってショップを開く（#shophub＝ショップの一覧・#seal＝★星煌印 交換所） */
+function goShop(where) {
+  try { location.href = "index.html#" + (where || "shophub"); } catch (e) {}
+  return false;
+}
+window.goShop = goShop;
+/* ★★ 2026-10-30 一覧のいちばん上に、全ガチャ共通の★星煌印とショップへの近道 */
+function glSealTopHTML() {
+  let n = 0; try { n = sealGet(); } catch (e) { n = 0; }
+  const need = SEAL_NEED, rdy = n >= need, pct = Math.max(0, Math.min(100, (n / need) * 100));
+  return '<div class="gl-sealtop' + (rdy ? " rdy" : "") + '" onclick="goShop(\'seal\')">' +
+    '<img src="' + SEAL_IMG + '" alt="">' +
+    '<span class="gst-b"><b>★星煌印<small>全ガチャ共通の天井・' + need + '個で好きなキャラ1体</small></b>' +
+      '<span class="gst-tr"><i style="width:' + pct.toFixed(1) + '%"></i></span></span>' +
+    '<span class="gst-n"><b>' + fmt(n) + "</b>／" + need + "</span>" +
+    '<button class="gst-go" onclick="event.stopPropagation();goShop(\'seal\')">' + (rdy ? "交換する" : "ショップ") + " ›</button></div>";
+}
 window.addEventListener("xeva:seal", () => { try { paintSealBar(); } catch (e) {} });
 
 /* ═════════════════════════════════════════════════════
@@ -1816,14 +1786,11 @@ function glBoostHTML() {
 }
 function glCard(m, i) {
   const k = m.k, d = modeDef(k), locked = glLocked(k) || m.soon;
-  let seal = "";
-  try {
-    if (sealKeyOfMode(k) && sealShowPool(k).length) {
-      const n = sealGet(k);
-      seal = `<span class="gl-seal${n >= SEAL_NEED ? " rdy" : ""}" title="★星煌印（天井）"><img src="${SEAL_IMG}" alt="">${fmt(n)}/${SEAL_NEED}</span>`;
-    }
-  } catch (e) {}
-  const lab = isDebutMode(k) ? "DEBUT" : k === "premium" ? "PREMIUM" : k === ARCHIVE_KEY ? "ARCHIVE" : "FEST";
+  /* ★★ 2026-10-30 ★星煌印は全ガチャ共通（ご指定）→ カードごとの印はやめて、一覧のいちばん上に1つ（glSealTopHTML） */
+  const seal = "";
+  /* ★★ 2026-10-30 はじめての開催の前の予告（超極彩祭の topPre・ご指定「現在は予告として一番上」） */
+  const pre = locked && isFesMode(k) && fesDef(k).topPre && fesToday() <= fesDef(k).topPre;
+  const lab = pre ? "🔔 予告" : isDebutMode(k) ? "DEBUT" : k === "premium" ? "PREMIUM" : k === ARCHIVE_KEY ? "ARCHIVE" : "FEST";
   const chars = glChars(k).filter((id) => CHARS[id]);
   const row = chars.map((id) => {
     const sec = charSecret(id);
@@ -1856,6 +1823,7 @@ function paintList() {
   box.innerHTML = ""   /* ★★ 2026-10-26 「注目ガチャ」の見出しは消した（ご指定） */
     /* ★★ 2026-10-13 選べるSSRキャラ確定チケット（持っているときだけ・いちばん上） */
     + (ssrSelN() ? '<div class="gl-ssrsel">' + ssrSelCardHTML() + "</div>" : "")
+    + glSealTopHTML()
     + glBoostHTML()
     + glFilterHTML() + glFilterNote()
     /* 名前の札の列だけが見出しの下に貼りつく（★★ 2026-10-13 絞り込みのボタンは貼りつけない・ご指定） */

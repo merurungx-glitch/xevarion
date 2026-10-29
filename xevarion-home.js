@@ -78,8 +78,8 @@ const XH_CATS = [
 /* name = ホームの短い表示名 / full = 正式名 / sub = 一言 / desc = 一覧での説明 */
 const XH_APPS = [
   /* ★★ 2026-09-23 MagiBattle 2.0（全面刷新）。アイコンも新しい絵（?v=2 で古い控えを使わない） */
-  { id:"magibattle", name:"MagiBattle", sub:"バースト連携バトル", cat:"game", tone:"red",
-    href:"MagiBattle/index.html", img:"thumbs/MagiBattle.jpg?v=2",
+  { id:"magibattle", name:"MagiBattle", sub:"バースト連携バトル", cat:"game", tone:"red",   /* ★★ 2026-10-30 新しいロゴ（ご指定）・NEW の印は作り直しまで付けない（ご指定） */
+    href:"MagiBattle/index.html", img:"thumbs/MagiBattle.jpg?v=3",
     desc:"XEVARION の全キャラで戦うリアルタイムバトルRPG。バーストⅠ→Ⅱ→Ⅲでつなぐ FULL BURST、装備・迎撃戦・無限の塔・スコアアタック。" },
   /* ★★ 2026-10-24 ご指定「MagiChemLex の UI・構造・システムを中心として MagiLex と統合（基本は別のもの）。MagiLex を開くと 旧MagiLex／MagiChemLex から選べる」
      → MagiLex は入口のページ（MagiLex/index.html）を開く。MagiChemLex はメニュー・ロビーには出さない（inLex）＝MagiLex の中から開く。 */
@@ -126,7 +126,7 @@ const XH_APPS = [
   /* ★★ 2026-10-05 新作 MagiAbyss（見下ろし型ドットアクションRPG）。キャラは極彩祭・極煌祭・極華祭の10体（所持と凸は共通）。 */
   /* ★ newUntil … この日まで、ロビーとメニューのアイコンに「NEW」の印（home-mate.js の isNewApp・xhAppTile）
      ★★ 2026-10-24 beta:true … 同じ場所に「β版」の印（NEW の代わり・期限なし） */
-  { id:"magiabyss", name:"MagiAbyss", full:"MagiAbyss", sub:"ドットアクションRPG", cat:"game", tone:"violet", newUntil:"2026-10-26",
+  { id:"magiabyss", name:"MagiAbyss", full:"MagiAbyss", sub:"ドットアクションRPG", cat:"game", tone:"violet", newUntil:"2026-11-13",   /* ★★ 2026-10-30 ご指定で NEW の印をもう一度 */
     href:"MagiAbyss/index.html", img:"thumbs/MagiAbyss.jpg?v=2",
     desc:"広大なアビス（魔力迷宮）を探索し、大量の敵をなぎ払う見下ろし型ドットアクションRPG。6種の武器と魔法・装備を組み合わせる<b>星脈共鳴</b>で自分だけのビルドを作り、鍵を集めて最深部のボスへ。6つの迷宮・中ボス・祭壇・隠し部屋・エンドコンテンツ「深淵踏破」。キャラクターは極彩祭・極煌祭・極華祭の10体（所持と凸は XEVARION と共通）。オフラインで遊べます。" },
   /* ★★ 2026-10-21 新作 MagiDerby（競馬 G1）。ご指定でホームのロビーの PARK の場所にボタン（index.html の a.xl-g1）。並びは XH_DEFAULT_ORDER のロビーの次 */
@@ -229,11 +229,12 @@ const XH_DEFAULT_ORDER = [
   "magilex", "magilink", "magiburst", "magibocciarush", "magiscope",
   /* ロビーの2行目（★★ 2026-10-21 ご指定で MagiCounter と MagiDerby を入れかえ）
      ★★ 2026-10-24 ご指定「MagiChemLex と MagiLex の統合に伴い、MagiChemLex のアイコンの位置に MagiQuiz を」 */
-  "magiquiz", "magiderby", "magiabyss", "magishift", "magichainparty",
+  /* ★★ 2026-10-30 ご指定「MagiQuiz と MagiBattle を入れ替え、MagiDerby と MagiAbyss を入れ替え」 */
+  "magibattle", "magiabyss", "magiderby", "magishift", "magichainparty",
   /* 対戦サポート（ホームでは左の札） */
   "magicounter",
-  /* ゲーム */
-  "magibattle", "magidominiongrid", "magijackpot", "magilotto",
+  /* ゲーム（★★ 2026-10-30 MagiQuiz は MagiBattle のいた場所へ） */
+  "magiquiz", "magidominiongrid", "magijackpot", "magilotto",
   "magirail", "magicraft", "magimanor", "magiempire", "magiarena",   /* ★★ 2026-10-23 MagiQuiz を MagiArena の場所に・MagiArena はゲームの最後へ（ご指定）→ 10-24 MagiQuiz はロビーの2行目の先頭へ */
   /* 学習・AI */
   "xevynar", "magifocus",
@@ -250,7 +251,7 @@ const XH_ORDER_KEY = "xeva_home_order_v2";
    （アプリの入れ替えを、既にホームを触った人にも確実に反映させるため） */
 /* ★★ 2026-09-21c 並びを変えたので世代を上げる（保存ずみの並びを一度だけ既定に戻す）。
    これを上げないと、ホームを並びかえたことがある人には新しい並びが出ない。 */
-const XH_ORDER_GEN = "17-1024";   /* ★★ 2026-10-24 MagiChemLex は MagiLex の中へ・その場所に MagiQuiz（保存ずみの並びも一度だけ既定へ） */ /* 前: "16-1023" */   /* ★★ 2026-10-23 新作 MagiQuiz を MagiArena の場所へ（保存ずみの並びも一度だけ既定へ） */ /* 前: "15-1021" */   /* ★★ 2026-10-21 MagiCounter と MagiDerby の入れかえ */ /* 前: "14-1020" */   /* ★★ 2026-10-20 メニューの並びをロビーと同じに・残りを種類ごとに（保存ずみの並びも一度だけ既定へ） */ /* 前: "13-1006" */   /* ★★ 2026-10-06 MagiChemLex を MagiCounter の左・MagiTier を「その他」へ */ /* 前: "12-0924" */   /* ★★ 2026-09-24d MagiChainParty と MagiScope の入れかえ */ /* 前: "11-0923" */   /* ★★ 2026-09-23 MagiRail と MagiBattle の入れかえ */ /* 前: "10-0921c" */   /* ★★ 2026-09-17e Arcana Rush 廃止・MagiTier をホームへ（保存ずみの並びも一度だけ既定へ） */   /* ★★ 2026-09-09 11枠の入れかえと、抹けていた新作2本を既存の並びにも効かせる */
+const XH_ORDER_GEN = "18-1030";   /* ★★ 2026-10-30 MagiQuiz⇔MagiBattle・MagiDerby⇔MagiAbyss の入れかえ（保存ずみの並びも一度だけ既定へ） */ /* 前: "17-1024" */   /* ★★ 2026-10-24 MagiChemLex は MagiLex の中へ・その場所に MagiQuiz（保存ずみの並びも一度だけ既定へ） */ /* 前: "16-1023" */   /* ★★ 2026-10-23 新作 MagiQuiz を MagiArena の場所へ（保存ずみの並びも一度だけ既定へ） */ /* 前: "15-1021" */   /* ★★ 2026-10-21 MagiCounter と MagiDerby の入れかえ */ /* 前: "14-1020" */   /* ★★ 2026-10-20 メニューの並びをロビーと同じに・残りを種類ごとに（保存ずみの並びも一度だけ既定へ） */ /* 前: "13-1006" */   /* ★★ 2026-10-06 MagiChemLex を MagiCounter の左・MagiTier を「その他」へ */ /* 前: "12-0924" */   /* ★★ 2026-09-24d MagiChainParty と MagiScope の入れかえ */ /* 前: "11-0923" */   /* ★★ 2026-09-23 MagiRail と MagiBattle の入れかえ */ /* 前: "10-0921c" */   /* ★★ 2026-09-17e Arcana Rush 廃止・MagiTier をホームへ（保存ずみの並びも一度だけ既定へ） */   /* ★★ 2026-09-09 11枠の入れかえと、抹けていた新作2本を既存の並びにも効かせる */
 const XH_ORDER_GEN_KEY = "xeva_home_order_gen";
 
 /* 期間限定イベント（from/to は YYYY-MM-DD。期間内のものだけ表示）
@@ -260,6 +261,11 @@ const XH_ORDER_GEN_KEY = "xeva_home_order_gen";
      ずっと後ろ、という状態を防ぐため。
      ＝ 新しいイベントを足すときは<b>この配列のどこに書いてもよい</b>。 */
 const XH_EVENTS = [
+  /* ★★ 2026-10-30 超極彩祭（UR 2体・MagiAbyss 専用）。極彩祭と同じ毎月 1〜10日（初回は 11/1）・開催中はガチャ一覧のいちばん上 */
+  { tag:"UR", t1:"超極彩祭（UR 2体）",
+    t2:"毎月1〜10日。ハル（水）・チカ（闇）の UR 2体（各1.5%）——MagiAbyss 専用のキャラクター（ヒサコより少し強い）・完凸でホームのロビーに。🎫ガチャ券OK",
+    always:true, perm:true, monthly:[1, 10], since:"2026-11-01", from:"2026-11-01", to:"2027-12-31",
+    href:"gacha.html#fes21", img:"thumbs/MagiBurst.jpg" },
   /* ★★ 2026-10-22 超極煌祭（UR 3体・MagiAbyss 専用）。極煌祭と同じ毎月 21日〜末日・ガチャ一覧のいちばん上 */
   /* ★★ 2026-10-24 ヒサコ・アリスを足して UR 5体 */
   { tag:"UR", t1:"超極煌祭（UR 5体）",
@@ -492,6 +498,22 @@ XH_EVENTS.unshift({ tag:"EVENT", t1:"Midnight Pumpkin", t2:"イベントミッ�
    ══════════════════════════════════════════════════════════════ */
 const XH_UPDATE_MAX = 12;
 const XH_UPDATES = [
+  /* ★★ 2026-10-30 超極彩祭・毎月のビンゴ・★星煌印の共通化・タイトル画面・ホームの並び・公式サイト・ChemLex */
+  { tag:"NEW", t1:"新しいガチャ「超極彩祭」（UR ハル・チカ）", at:"2026-10-30",
+    t2:"毎月1〜10日（初回は11月1日から）。ハル（水）・チカ（闇）の UR 2体（各1.5%）——MagiAbyss 専用（ヒサコより少し強い）・完凸でホームのロビーに。🎫ガチャ券OK。開催中はガチャ一覧のいちばん上",
+    href:"gacha.html#fes21", img:"img/t_Haru.webp" },
+  { tag:"NEW", t1:"XEVA ミッションに「毎月のビンゴ」", at:"2026-10-30",
+    t2:"毎月1日に新しい 5×5 のカード。XEVARION のアプリで遊ぶとマスが自動でひらき、ライン・3ライン・6ライン・コンプリートでごほうび（XEVA・ジェム・ガチャチケット・★星煌印・10連半額券）",
+    href:"index.html", img:"thumbs/XEVA.png" },
+  { tag:"UPDATE", t1:"★星煌印（天井）を全ガチャ共通に・交換はショップで", at:"2026-10-30",
+    t2:"どのガチャで引いても同じ印がたまり、100個で好きなガチャの好きなキャラ1体と交換（ショップの「★星煌印 交換所」）。これまでガチャごとにためた印は合計の数に。ガチャの上のバーにショップへのボタン",
+    href:"index.html#seal", img:"img/seal.webp" },
+  { tag:"UPDATE", t1:"新しいタイトル画面・ホームの並び・公式サイト", at:"2026-10-30",
+    t2:"タイトル画面を新しい絵に／ロビーの2行目を MagiBattle・MagiAbyss・MagiDerby・MagiShift・ChainParty に（MagiQuiz はメニューのゲームの先頭）／MagiAbyss に NEW・MagiBattle の新しいロゴ／超極煌祭の新しいバナー／NGX と ISHIDA Production の公式サイトを作り直し",
+    href:"index.html", img:"thumbs/xevarion-home_s.jpg?v=13" },
+  { tag:"UPDATE", t1:"MagiChemLex：難関のごほうびをそろえ・ビンゴの不具合を修正", at:"2026-10-30",
+    t2:"難関セット（小問の範囲ごと）の完全習得・確認テストの XEVA を標準・基礎と同じに（前に受け取った人には差額）／ビンゴカードを開いて閉じると画面が反応しなくなるのを修正",
+    href:"MagiChemLex/index.html", img:"thumbs/MagiChemLex.jpg?v=2" },
   /* ★★ 2026-10-28 MagiAbyss の UI と地図・ChemLex ビンゴ・10連半額券・YRA・フェス終了 */
   { tag:"NEW", t1:"MagiAbyss：UI と冒険の地図を作り直し", at:"2026-10-28",
     t2:"紺のガラスの板＋金のふち＋明朝の見出しの本格的な見た目・スマホの横画面に合わせて調整・迷宮どうしの間かくと名札を見直した新しい地図（島ごとの形・なめらかな道）",
@@ -718,11 +740,11 @@ const XH_UPDATES = [
     href:"index.html", img:"home-mate/kiara/bg.webp?v=3" },
   { tag:"UPDATE", t1:"MagiBattle の育成を独立", at:"2026-09-24",
     t2:"レベル・装備は MagiBattle だけで育てるように（MagiBurst のレベルは使わない）。所持と凸はガチャと共通のまま",
-    href:"MagiBattle/index.html", img:"thumbs/MagiBattle.jpg?v=2" },
+    href:"MagiBattle/index.html", img:"thumbs/MagiBattle.jpg?v=3" },
   /* ★★ 2026-09-23 MagiBattle 2.0 */
   { tag:"UPDATE", t1:"MagiBattle を全面リニューアル", at:"2026-09-23",
     t2:"XEVARION の全キャラが参戦／バーストⅠ→Ⅱ→Ⅲの FULL BURST／装備（MagiBurst から引きつぎ）／迎撃戦／凸・所持は共通／同期に対応",
-    href:"MagiBattle/index.html", img:"thumbs/MagiBattle.jpg?v=2" },
+    href:"MagiBattle/index.html", img:"thumbs/MagiBattle.jpg?v=3" },
   /* ★★ 2026-09-23 CRYSTAL ACADEMY FEST・MagiBurst 5体編成 */
   { tag:"UPDATE", t1:"MagiBurst 編成が5体に・新フェス", at:"2026-09-23",
     t2:"CRYSTAL ACADEMY FEST（5体）／神癒の祈り／治癒の祈りは左から順に抽選／編成の重なりを修正",
@@ -2032,6 +2054,7 @@ async function xhDoExchange() {
   /* spend が false を返したら残高は動いていない。ジェムは絶対に足さない。 */
   if (!window.XEVA.spend(cost, "ジェム変換所（💎" + n + "）")) { xhExMsg("交換に失敗しました"); return; }
   window.XEVA.gem.add(n, "ジェム変換所（-" + cost + " XEVA）");
+  try { if (window.XEVA.bingo) window.XEVA.bingo.count("gemEx", 1); } catch (e) {}   /* ★★ 2026-10-30 毎月のビンゴ「ジェム変換所で交換」 */
   xhRenderXeva();
   xhPaintExchange();
   xhExMsg("💎" + n.toLocaleString() + " に交換しました！（-" + cost.toLocaleString() + " XEVA）", true);
@@ -2070,6 +2093,11 @@ function xhPaintShopHub() {
       '<button class="xh-shopitem cx" onclick="xhCloseSheet(\'xhShopHubSheet\');xhOpenCash()">' +
         '<span class="si si-tk">' + (window.XevaCashTicketSVG ? XevaCashTicketSVG(22) : "💱") + '</span><span class="st"><b>XEVA 両替所</b>' +
         "<small>💎ジェムを XEVA に両替します。<b>両替チケット1枚で 💎" + XH_CASH_GEM + "</b>（いまは 💎" + XH_CASH_GEM + " ＝ <b>" + (XH_CASH_GEM * rate).toLocaleString() + " XEVA</b>・チケット " + xhCashBal() + "枚）</small></span><span class=\"sn\">›</span></button>" +
+      /* ★★ 2026-10-30 ★星煌印 交換所（ご指定「星煌印は全ガチャ共通」「交換はショップで」） */
+      '<button class="xh-shopitem sl" onclick="xhCloseSheet(\'xhShopHubSheet\');xhOpenSeal()">' +
+        '<span class="si si-sl"><img src="img/seal.webp" alt=""></span><span class="st"><b>★星煌印 交換所</b>' +
+        "<small>ガチャの天井。<b>全ガチャ共通</b>で1連ごとに1つたまり、<b>" + xhSealNeed() + "個</b>で<b>好きなガチャの好きなキャラ1体</b>と交換" +
+        "（いま " + xhSealBal().toLocaleString() + "個）</small></span><span class=\"sn\">›</span></button>" +
       '<button class="xh-shopitem cr" onclick="xhCloseSheet(\'xhShopHubSheet\');xhOpenCryst()">' +
         '<span class="si">💠</span><span class="st"><b>結晶交換所</b>' +
         "<small>結晶 <b>" + xhCrystCost() + "個</b>で PREMIUM SELECT / GRAND DEBUT の<b>好きな1体</b>と交換" +
@@ -2227,7 +2255,7 @@ function xhMbReady() {
   if (_xhMbLoading) return _xhMbLoading;
   window.MB_ELEM_JA_NOWATCH = true;   /* ★★ 2026-10-28 属性名を漢字にする見張り（mb-core.js の elJaWatch）はホームではしない */
   _xhMbLoading = xhLoadScript("mb-boot.js?v=18")
-    .then(() => xhLoadScript("MagiBurst/js/mb-core.js?v=142"))
+    .then(() => xhLoadScript("MagiBurst/js/mb-core.js?v=143"))
     .then(() => true)
     .catch((e) => { _xhMbLoading = null; throw e; });
   return _xhMbLoading;
@@ -2344,6 +2372,129 @@ async function xhCrystExchange(id) {
     if (m2) { m2.innerHTML = "<b>" + c.nm + "</b> を受け取りました（" + got + "）"; m2.style.color = "#0e8a5c"; }
   } finally { _xhCrystBusy = false; }
 }
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-10-30 ★星煌印 交換所（ご指定「ガチャの天井の星煌印は全ガチャ共通にして、好きなガチャの好きなキャラを1体選べるように」
+      「星煌印の交換もショップで行う」「ガチャにショップへのショートカット」＝ガチャの帯・上のバーから index.html#seal / #shophub）
+   ------------------------------------------------------------
+   ・残高は全ガチャの合計（XEVA.seal.total）。<b>SEAL_NEED（100）個で1体</b>。使うのは XEVA.seal.spendAny（欄を名前の順に減らす）。
+   ・えらべるのは<b>いま引けるガチャ</b>（mb-core の sealGachaList＝ガチャ一覧と同じ並び・開催前と終わったガチャは出さない）の、
+     <b>そのガチャのキャラ全員</b>（sealLineup）。上の札でガチャを切りかえる。
+   ・先にキャラを受け取ってから印を減らす（結晶交換所と同じ順番＝途中で失敗しても印だけ消えることがない）。
+   ・完凸のキャラはえらべない。えらんだガチャが全員完凸なら、前と同じく 💠結晶 CRYST_EXCHANGE（75）個と交換できる。
+   ・顔ぶれを知っているのは mb-core.js だけなので、結晶交換所と同じく開いたときだけ読む（xhMbReady）。
+   ══════════════════════════════════════════════════════════════ */
+const XH_SEAL_NEED_FALLBACK = 100;        /* mb-core を読む前の表示用（mb-core の SEAL_NEED と同じ） */
+let _xhSealTab = "", _xhSealBusy = false;
+function xhSealBal() { try { return (window.XEVA && window.XEVA.seal) ? window.XEVA.seal.total() : 0; } catch (e) { return 0; } }
+function xhSealNeed() { try { if (typeof SEAL_NEED !== "undefined") return SEAL_NEED; } catch (e) {} return XH_SEAL_NEED_FALLBACK; }
+function xhOpenSeal() {
+  xhOpenSheet("xhSealSheet");
+  const box = xhEl("xhSealBody");
+  if (box) box.innerHTML = '<div class="xh-crload">ガチャとキャラクターの一覧を読み込んでいます…</div>';
+  xhMbReady().then(() => xhPaintSeal())
+    .catch(() => { if (box) box.innerHTML = '<div class="xh-crload err">キャラクターの一覧を読み込めませんでした。通信を確かめて、もう一度お試しください。</div>'; });
+}
+window.xhOpenSeal = xhOpenSeal;
+function xhSealTab(k) { _xhSealTab = String(k || ""); xhPaintSeal(); try { const b = document.querySelector("#xhSealBody .xh-crgrid"); if (b) b.scrollIntoView({ block: "nearest" }); } catch (e) {} }
+window.xhSealTab = xhSealTab;
+function xhSealAwk(id) {
+  const own = !!(DB.chars && DB.chars[id]);
+  return { own, awk: own ? Math.max(0, Math.min(MAX_AWK, DB.chars[id].awk || 0)) : 0 };
+}
+function xhPaintSeal() {
+  const box = xhEl("xhSealBody"); if (!box) return;
+  let list = [];
+  try { list = (typeof sealGachaList === "function") ? sealGachaList() : []; } catch (e) { list = []; }
+  const bal = xhSealBal(), need = xhSealNeed(), can = bal >= need;
+  const pct = Math.max(0, Math.min(100, bal / need * 100));
+  const head =
+    '<div class="xh-crhead xh-slhead">' +
+      '<div class="xh-crbal"><img src="img/seal.webp" alt="" style="width:30px;height:30px;object-fit:contain"><b>' + bal.toLocaleString() + "</b>" +
+        "<small>／ 1体 " + need + "個（全ガチャ共通）</small></div>" +
+      '<div class="xh-sltr"><i style="width:' + pct.toFixed(1) + '%"></i></div>' +
+      '<div class="xh-crsub">' + (can
+        ? "あと <b>" + Math.floor(bal / need) + " 体</b>ぶん交換できます。上の札でガチャをえらび、キャラを押すと確認画面が出ます。"
+        : "あと <b>" + (need - bal % need) + " 個</b>（＝あと " + (need - bal % need) + " 回ガチャを引く）で1体と交換できます。") + "</div>" +
+    "</div>" +
+    '<div class="xh-crnote">★<b>星煌印</b>は<b>ガチャの天井</b>です。<b>どのガチャでも1連ごとに1つ</b>たまり（無料の単発・10連も数えます）、' +
+      "<b>" + need + "個</b>で<b>いま引けるガチャの好きなキャラ1体</b>と交換できます。すでに持っているキャラを選ぶと<b>限界突破が進みます</b>（完凸のキャラは選べません）。" +
+      "<br>ためた印は<b>ガチャをまたいで</b>使えます（前にガチャごとにためていた印も、ぜんぶ合わせた数になっています）。</div>";
+  if (!list.length) { box.innerHTML = head + '<div class="xh-crload">いま交換できるガチャがありません</div>' + '<div class="xh-exmsg" id="xhSealMsg"></div>'; return; }
+  if (!list.some((g) => g.k === _xhSealTab)) _xhSealTab = list[0].k;
+  const g = list.find((x) => x.k === _xhSealTab);
+  const allMax = g.ids.every((id) => xhSealAwk(id).awk >= MAX_AWK);
+  const tabs = '<div class="xh-sltabs">' + list.map((x) =>
+    '<button class="xh-sltab' + (x.k === g.k ? " on" : "") + '" style="--c:' + x.c + '" onclick="xhSealTab(\'' + x.k + '\')"><i></i>' + x.nm + "<small>" + x.ids.length + "</small></button>").join("") + "</div>";
+  const order = (typeof byCharNoDesc === "function") ? byCharNoDesc(g.ids.slice()) : g.ids;
+  const cards = order.map((id) => {
+    const c = CHARS[id], a = xhSealAwk(id), mx = a.awk >= MAX_AWK, ok = can && !mx;
+    const rl = (typeof rarLabel === "function") ? rarLabel(id) : "SSR";
+    return '<button class="xh-crc' + (a.own ? "" : " noown") + (ok ? "" : " poor") + '"' + (ok ? ' onclick="xhSealExchange(\'' + id + '\')"' : " disabled") + ">" +
+      '<img src="' + c.th + '" alt="" loading="lazy">' +
+      (rl === "UR" ? '<span class="xh-crnew ur">UR</span>' : "") +
+      '<span class="xh-crnm">' + c.nm + "</span>" +
+      '<span class="xh-crcost">★' + need + "</span>" +
+      '<span class="xh-crown ' + (mx ? "mx" : a.own ? "ok" : "no") + '">' + (a.own ? (mx ? "👑 完凸" : "所持 +" + a.awk) : "未所持") + "</span></button>";
+  }).join("");
+  const toCryst = allMax
+    ? '<button class="xh-slall"' + (can ? ' onclick="xhSealToCryst()"' : " disabled") + ">💠 このガチャは全員 完凸です — ★" + need + "個を 💠結晶 " + (typeof CRYST_EXCHANGE !== "undefined" ? CRYST_EXCHANGE : 75) + "個に換える</button>"
+    : "";
+  box.innerHTML = head + tabs + toCryst + '<div class="xh-crgrid">' + cards + "</div>" + '<div class="xh-exmsg" id="xhSealMsg"></div>';
+}
+async function xhSealExchange(id) {
+  if (_xhSealBusy) return;
+  const need = xhSealNeed();
+  const say = (t, ok) => { const m = xhEl("xhSealMsg"); if (m) { m.innerHTML = t; m.style.color = ok ? "#0e8a5c" : "#e0405e"; } };
+  if (xhSealBal() < need) { say("★星煌印が足りません（必要 " + need + "個・いま " + xhSealBal() + "個）"); return; }
+  const c = CHARS[id]; if (!c) return;
+  const a = xhSealAwk(id);
+  if (a.awk >= MAX_AWK) { say("このキャラクターはすでに👑完凸です"); return; }
+  let gnm = ""; try { gnm = gachaNmOfMode(_xhSealTab) || ""; } catch (e) {}
+  const ok = await xhAsk({
+    icon: "★", title: c.nm + " と交換", ok: "この1体と交換する", cancel: "やめる",
+    body: "<b>" + c.nm + "</b>（" + (typeof ELEM !== "undefined" && ELEM[c.el] ? ELEM[c.el].nm + "属性" : "") + (gnm ? "・" + gnm : "") + "）と交換します。<br><br>" +
+      "★星煌印 <b>" + need + "個</b> を使います（残り " + (xhSealBal() - need) + "個）。<br>" +
+      (a.own ? "※ すでに持っているので、<b>限界突破が +" + (a.awk + 1) + " に進みます</b>。" : "※ <b>はじめて</b>手に入れます。"),
+  });
+  if (!ok) { say("交換をとりやめました"); return; }
+  if (xhSealBal() < need) { say("★星煌印が足りません（必要 " + need + "個）"); xhPaintSeal(); return; }
+  _xhSealBusy = true;
+  try {
+    /* ★ 先に受け取ってから印を減らす（逆にすると、途中で失敗したときに印だけ消える） */
+    const r = grantChar(id);
+    if (typeof save === "function") save();
+    try { if (window.XEVA && window.XEVA.seal) window.XEVA.seal.spendAny(need, "★星煌印 交換所：" + c.nm + (gnm ? "（" + gnm + "）" : "")); } catch (e) {}
+    if (typeof saveNow === "function") saveNow();
+    const got = r && r.max ? "💠結晶 +" + (r.cryst || 5) + "（すでに完凸のため）" : r && r.fullAwk ? "👑 限界突破MAX！" : r && r.awk ? "限界突破 +" + r.awk : "NEW！";
+    xhPaintSeal();
+    say("<b>" + c.nm + "</b> を受け取りました（" + got + "）", true);
+    try { xhToast("★ <b>" + c.nm + "</b> を受け取りました（" + got + "）"); } catch (e) {}
+  } finally { _xhSealBusy = false; }
+}
+window.xhSealExchange = xhSealExchange;
+/* えらんだガチャが全員 完凸のとき：★ SEAL_NEED 個 → 💠結晶 CRYST_EXCHANGE 個（前のガチャの画面と同じ決まり） */
+async function xhSealToCryst() {
+  if (_xhSealBusy) return;
+  const need = xhSealNeed(), n = (typeof CRYST_EXCHANGE !== "undefined") ? CRYST_EXCHANGE : 75;
+  const say = (t, ok) => { const m = xhEl("xhSealMsg"); if (m) { m.innerHTML = t; m.style.color = ok ? "#0e8a5c" : "#e0405e"; } };
+  if (xhSealBal() < need) { say("★星煌印が足りません（必要 " + need + "個）"); return; }
+  const ok = await xhAsk({ icon: "💠", title: "全員 完凸です", ok: "💠" + n + "個と交換する", cancel: "やめる",
+    body: "このガチャのキャラクターは<b>全員 完凸</b>です。<br>★星煌印 <b>" + need + "個</b>を、<b>💠結晶 " + n + "個</b>（結晶交換所でキャラ1体と交換できる数）に換えますか？" });
+  if (!ok) return;
+  _xhSealBusy = true;
+  try {
+    let spent = false;
+    try { spent = !!(window.XEVA && window.XEVA.seal && window.XEVA.seal.spendAny(need, "★星煌印 交換所（全員完凸のため💠結晶に交換）")); } catch (e) { spent = false; }
+    if (!spent) { say("交換できませんでした"); return; }
+    if (typeof crystAdd === "function") crystAdd(n, "★星煌印 " + need + "個（全員完凸のため💠結晶に交換）");
+    else if (window.XEVA && window.XEVA.cryst) window.XEVA.cryst.add(n, "★星煌印 " + need + "個（全員完凸のため💠結晶に交換）");
+    xhPaintSeal();
+    say("💠結晶 <b>" + n + "個</b>を受け取りました（結晶交換所で好きなキャラと交換できます）", true);
+  } finally { _xhSealBusy = false; }
+}
+window.xhSealToCryst = xhSealToCryst;
+window.addEventListener("xeva:seal", () => { try { const sh = xhEl("xhSealSheet"); if (sh && sh.classList.contains("open")) xhPaintSeal(); } catch (e) {} });
+
 /* ホームのショップカードに残高を出す */
 function xhRenderCrystCard() {
   const b = xhEl("xhCrystBal");
@@ -7129,9 +7280,10 @@ window.xhShow = xhShow;
 function xhConsumeHash() {
   const h = (location.hash || "").replace("#", "").toLowerCase();
   /* ★★ 2026-10-13 ガチャ・コミュニティ・図鑑の下バー（xeva-tabbar.js）の「設定」は index.html#settings で来る */
-  if (h !== "exchange" && h !== "shop" && h !== "settings") return;
+  /* ★★ 2026-10-30 ガチャのショートカット：#shophub＝ショップの一覧・#seal＝★星煌印 交換所 */
+  if (h !== "exchange" && h !== "shop" && h !== "settings" && h !== "seal" && h !== "shophub") return;
   try { history.replaceState(null, "", location.pathname + location.search); } catch (e) {}
-  setTimeout(() => { if (h === "shop") xhOpenShop(); else if (h === "settings") xhOpenSettings(); else xhOpenExchange(); }, 420);
+  setTimeout(() => { if (h === "shop") xhOpenShop(); else if (h === "shophub") xhOpenShopHub(); else if (h === "seal") xhOpenSeal(); else if (h === "settings") xhOpenSettings(); else xhOpenExchange(); }, 420);
 }
 function xhHide() {
   const home = xhEl("xhome"); if (home) home.classList.remove("on");

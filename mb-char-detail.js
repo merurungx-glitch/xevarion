@@ -159,7 +159,7 @@ function maEnsure() {
   if (window.MA && window.MA.D && window.MA.Stats) return Promise.resolve();
   if (window.__maLoading) return window.__maLoading;
   const load = (src) => new Promise((res) => { const s = document.createElement("script"); s.src = src; s.onload = () => res(); s.onerror = () => res(); document.head.appendChild(s); });
-  window.__maLoading = load(MBD_BASE + "MagiAbyss/js/ma-data.js?v=10").then(() => load(MBD_BASE + "MagiAbyss/js/ma-stats.js?v=2"));
+  window.__maLoading = load(MBD_BASE + "MagiAbyss/js/ma-data.js?v=11").then(() => load(MBD_BASE + "MagiAbyss/js/ma-stats.js?v=2"));
   return window.__maLoading;
 }
 window.maEnsure = maEnsure;

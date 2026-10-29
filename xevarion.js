@@ -169,7 +169,7 @@ addEventListener("load", () => {
    xeva.js の MISSIONS にミッションを足したら必ずここにも足すこと。 */
 const MISSION_META = {
   magiburst_play:      { href: "MagiBurst/index.html",             icon: "thumbs/MagiBurst.jpg",      cta: "プレイ" },
-  magibattle_win:      { href: "MagiBattle/index.html",            icon: "thumbs/MagiBattle.jpg?v=2",     cta: "プレイ" },
+  magibattle_win:      { href: "MagiBattle/index.html",            icon: "thumbs/MagiBattle.jpg?v=3",     cta: "プレイ" },
   magichainparty_play: { href: "MagiChainParty/index.html",        icon: "thumbs/MagiChainParty.jpg?v=2", cta: "プレイ" },
   magiempire_play:     { href: "MagiEmpire/MagiEmpire.html",       icon: "thumbs/MagiEmpire.jpg",     cta: "プレイ" },
   magiarena_play:      { href: "MagiArena/MagiArena.html",         icon: "thumbs/MagiArena.jpg",      cta: "プレイ" },
@@ -256,7 +256,13 @@ function renderXevaMissions() {
   const limitedClaim = LIMITED_MISSIONS.filter(m=>!limitedState[m.id]&&m.check()).length;
   // ── 図鑑コレクション ──
   renderMsnCollection();
-  const totalBadge = starterRemain + loginClaim + limitedClaim + collectionClaimable();
+  /* ★★ 2026-10-30 毎月のビンゴ */
+  let bingoClaim = 0;
+  try { if (window.XEVA.bingo) bingoClaim = window.XEVA.bingo.pending(); } catch (e) {}
+  const bb = document.getElementById("msnBadgeBingo");
+  if (bb) { if (bingoClaim > 0) { bb.textContent = bingoClaim; bb.style.display = ""; } else bb.style.display = "none"; }
+  if (_msnTab === "bingo") renderMsnBingo();
+  const totalBadge = starterRemain + loginClaim + limitedClaim + collectionClaimable() + bingoClaim;
   const badge = document.getElementById("xhMsnBdg");   /* ★ 2026-08-12 ホームのバッジへ直接 */
   if (badge) {
     if (totalBadge > 0) { badge.textContent = totalBadge; badge.classList.add("show"); }
@@ -334,6 +340,7 @@ function msnClaimableCount() {
   try { n += (window.XEVA.getLoginMilestones().milestones || []).filter(ms => ms.reached && !ms.claimed).length; } catch (e) {}
   try { const st = getLimitedState(); n += LIMITED_MISSIONS.filter(m => !st[m.id] && m.check()).length; } catch (e) {}
   try { n += collectionClaimable(); } catch (e) {}
+  try { if (window.XEVA.bingo) n += window.XEVA.bingo.pending(); } catch (e) {}   /* ★★ 2026-10-30 毎月のビンゴ */
   return n;
 }
 
@@ -371,6 +378,11 @@ function claimAllMissions() {
     Object.keys(groups).forEach(s => { const r = claimCollection(s, true); if (r) { count++; xeva += r.xeva || 0; } });
   } catch (e) {}
 
+  /* ⑤ ★★ 2026-10-30 毎月のビンゴ */
+  try {
+    if (window.XEVA.bingo) { const r = window.XEVA.bingo.claim(); if (r && r.n) { count += r.n; xeva += r.xeva || 0; bingoFx(r); } }
+  } catch (e) {}
+
   renderXevaBalance(); renderXevaMissions();
   if (xeva > 0) showXevaToast(xeva, "ミッション " + count + "件 をまとめて受け取りました！");
   if (notes.length) alert(notes.join("\n\n"));
@@ -378,9 +390,104 @@ function claimAllMissions() {
 window.claimAllMissions = claimAllMissions;
 
 let _msnTab = "starter";
+
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-10-30 XEVA ミッションの<b>毎月のビンゴ</b>（ご指定「XEVA ミッションに毎月変わるビンゴカードを実装」）
+   ・カード・数え方・ごほうびは xeva.js の XEVA.bingo（毎月1日に新しいカード・同じ月はだれでも同じ並び）。
+   ・マスを押すと下に条件と進みぐあい・そのアプリへのボタン。そろったラインは赤い線。
+   ・受け取りは「そろった◯件を受け取る」か、上の「すべて受け取る」（claimAllMissions の⑤）。
+   ══════════════════════════════════════════════════════════════ */
+let _bgPick = -1;
+function bingoRwChips(w) {
+  const out = [];
+  const tkt = (fn, px) => { try { return typeof window[fn] === "function" ? window[fn](px) : ""; } catch (e) { return ""; } };
+  if (w.xeva) out.push('<i><img src="XEVA.png" alt="">' + w.xeva.toLocaleString() + "</i>");
+  if (w.gem) out.push('<i><img src="gem.png" alt="">' + w.gem + "</i>");
+  if (w.tk) out.push("<i>" + (tkt("XevaGachaTicketSVG", 12) || "🎫") + "ガチャ券×" + w.tk + "</i>");
+  if (w.seal) out.push('<i><img src="img/seal.webp" alt="">★星煌印×' + w.seal + "</i>");
+  if (w.half) out.push("<i>" + (tkt("XevaHalfTicketSVG", 12) || "🎟") + "10連半額券×" + w.half + "</i>");
+  return out.join("");
+}
+function renderMsnBingo() {
+  const el = document.getElementById("missionTabBingo");
+  if (!el || !window.XEVA || !window.XEVA.bingo) return;
+  let st = null;
+  try { st = window.XEVA.bingo.state(); } catch (e) { st = null; }
+  if (!st) { el.innerHTML = '<div class="mm-limited-empty">ビンゴカードを読みこめませんでした</div>'; return; }
+  const B = window.XEVA.bingo, RW = B.RW;
+  const mo = Number(st.mk.slice(5, 7));
+  const esc = (s) => String(s == null ? "" : s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const stamp = '<span class="stp"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.4 4.4L19 7.4" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>';
+  const cells = st.cells.map((c) => {
+    if (c.free) return '<button class="xbg-c free on' + (_bgPick === c.i ? " pick" : "") + '" onclick="bingoPick(' + c.i + ')"><span class="ic">★</span><span class="nm">FREE</span>' + stamp + "</button>";
+    const pct = Math.max(0, Math.min(100, c.now / c.need * 100));
+    return '<button class="xbg-c' + (c.on ? " on" : "") + (_bgPick === c.i ? " pick" : "") + '" onclick="bingoPick(' + c.i + ')" title="' + esc(c.m.t) + '">' +
+      '<span class="ic">' + c.m.ic + '</span><span class="nm">' + esc(c.m.s) + '</span><span class="pg"><i style="width:' + pct.toFixed(0) + '%"></i></span>' + stamp + "</button>";
+  }).join("");
+  /* そろったラインの線（マスの中心どうしを結ぶ・100×100 の座標） */
+  const ctr = (i) => [((i % 5) + 0.5) * 20, (Math.floor(i / 5) + 0.5) * 20];
+  const svg = '<svg class="xbg-svg" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">' + st.lines.filter((l) => l.done).map((l) => {
+    const a = ctr(l.cells[0]), b = ctr(l.cells[4]);
+    return '<line x1="' + a[0] + '" y1="' + a[1] + '" x2="' + b[0] + '" y2="' + b[1] + '" vector-effect="non-scaling-stroke"/>';
+  }).join("") + "</svg>";
+  const pc = _bgPick >= 0 ? st.cells[_bgPick] : null;
+  const tip = pc ? (pc.free
+      ? '<div class="xbg-tip"><span class="ic">★</span><span class="t">まん中は <b>FREE</b><small>最初からひらいています</small></span></div>'
+      : '<div class="xbg-tip"><span class="ic">' + pc.m.ic + '</span><span class="t">' + esc(pc.m.t) + "<small>" + (pc.on ? "✅ ひらきました" : "いま <b>" + pc.now.toLocaleString() + " / " + pc.need.toLocaleString() + "</b>") + "</small></span>" +
+        (pc.m.href ? '<a href="' + pc.m.href + '">開く →</a>' : "") + "</div>")
+    : "";
+  const rows = [
+    { nm: "縦・横 1列（10本）", rw: RW.line, ok: st.lines.some((l) => l.kind === "line" && l.done && !l.got), got: st.lines.filter((l) => l.kind === "line").every((l) => l.got) },
+    { nm: "ななめ 1列（2本）", rw: RW.diag, ok: st.lines.some((l) => l.kind === "diag" && l.done && !l.got), got: st.lines.filter((l) => l.kind === "diag").every((l) => l.got) },
+  ].concat(st.bonus.map((b) => ({ nm: b.nm, rw: b.rw, ok: b.done && !b.got, got: b.got })));
+  const list = st.cells.filter((c) => !c.free).slice().sort((a, b) => (a.on - b.on) || (a.i - b.i)).map((c) =>
+    '<div class="xbg-row' + (c.on ? " on" : "") + '"><span class="ic">' + c.m.ic + '</span><span class="t">' + esc(c.m.t) +
+      "<small>" + (c.on ? "✅ ひらきました" : "いま " + c.now.toLocaleString() + " / " + c.need.toLocaleString()) + "</small>" +
+      '<span class="bar"><i style="width:' + Math.max(0, Math.min(100, c.now / c.need * 100)).toFixed(0) + '%"></i></span></span>' +
+      (c.m.href ? '<a href="' + c.m.href + '">' + (c.on ? "済み" : "開く") + "</a>" : "") + "</div>").join("");
+  el.innerHTML =
+    '<div class="xbg">' +
+      '<div class="xbg-hd"><small>XEVA BINGO</small><h3>' + mo + '月のビンゴカード</h3><p>あと <b>' + st.left + "日</b>・毎月1日に新しいカードになります</p></div>" +
+      '<div class="xbg-board"><div class="xbg-grid">' + cells + "</div>" + svg + "</div>" +
+      tip +
+      '<div class="xbg-stat"><span>ひらいたマス <b>' + st.nOpen + "</b>/25</span><span>ライン <b>" + st.nLines + "</b>/12</span></div>" +
+      '<button class="xbg-claim" onclick="claimMsnBingo()"' + (st.claim ? "" : " disabled") + ">" + (st.claim ? "🎁 そろった " + st.claim + "件を受け取る" : "そろったラインはまだありません") + "</button>" +
+      '<div class="xbg-rw">' + rows.map((r) => '<div class="' + (r.got ? "got" : r.ok ? "ok" : "") + '"><b>' + r.nm + "</b><span>" + bingoRwChips(r.rw) + "</span></div>").join("") + "</div>" +
+      '<p class="xbg-note">マスは条件を満たすと<b>自動でひらきます</b>（XEVARION のどのアプリで遊んでも数えます・記録はアカウントで同期）。マスを押すと条件と進みぐあい。' +
+        "ごほうびの 🎫 と 10連半額券は<b>アカウントで1回</b>、★星煌印は<b>全ガチャ共通の天井</b>にたまります。</p>" +
+      '<div class="xbg-list">' + list + "</div>" +
+    "</div>";
+}
+function bingoPick(i) { _bgPick = (_bgPick === i) ? -1 : i; renderMsnBingo(); }
+window.bingoPick = bingoPick;
+/* BINGO! の演出（タップか 4 秒で消える） */
+function bingoFx(r) {
+  if (!r || !r.n) return;
+  const li = [];
+  if (r.xeva) li.push('<li><img src="XEVA.png" alt="">+' + r.xeva.toLocaleString() + "</li>");
+  if (r.gem) li.push('<li><img src="gem.png" alt="">+' + r.gem + "</li>");
+  if (r.tk) li.push("<li>🎫 ガチャ券 ×" + r.tk + "</li>");
+  if (r.seal) li.push('<li><img src="img/seal.webp" alt="">★星煌印 ×' + r.seal + "</li>");
+  if (r.half) li.push("<li>🎟 10連半額券 ×" + r.half + "</li>");
+  const fx = document.createElement("div");
+  fx.className = "xbg-fx";
+  fx.innerHTML = "<h4>" + (r.names.indexOf("25マス コンプリート") >= 0 ? "COMPLETE!" : "BINGO!") + "</h4><p>" + r.names.join("・") + "</p><ul>" + li.join("") + "</ul><small>タップで閉じる</small>";
+  const done = () => { if (fx.isConnected) fx.remove(); };
+  fx.addEventListener("click", done);
+  document.body.appendChild(fx);
+  setTimeout(done, 4200);
+}
+function claimMsnBingo() {
+  if (!window.XEVA || !window.XEVA.bingo) return;
+  const r = window.XEVA.bingo.claim();
+  renderXevaBalance(); renderXevaMissions();
+  if (r && r.n) { bingoFx(r); if (r.xeva > 0) showXevaToast(r.xeva, "ビンゴのごほうびを受け取りました！"); }
+}
+window.claimMsnBingo = claimMsnBingo;
+window.addEventListener("xeva:event", () => { try { if (_msnTab === "bingo" && document.getElementById("missionModal").classList.contains("open")) renderMsnBingo(); } catch (e) {} });
 function switchMsnTab(tab, btn) {
   _msnTab = tab;
-  ["starter","login","limited","collection"].forEach(t => {
+  ["starter","bingo","login","limited","collection"].forEach(t => {
     const el = document.getElementById("missionTab" + t.charAt(0).toUpperCase() + t.slice(1));
     if (el) el.style.display = (t === tab) ? "" : "none";
   });
@@ -389,6 +496,7 @@ function switchMsnTab(tab, btn) {
   if (tab === "login") renderMsnLogin();
   if (tab === "limited") renderMsnLimited();
   if (tab === "collection") renderMsnCollection();
+  if (tab === "bingo") renderMsnBingo();
   /* タブを変えたら先頭へ。シートの高さは固定なので、これで見た目の位置・大きさが変わらない */
   const body = document.querySelector("#missionModal .mm-body");
   if (body) body.scrollTop = 0;
@@ -2787,7 +2895,7 @@ function prepareAccessScreen(opts) {
   if (loading) loading.style.display = "flex";
   if (start) start.style.display = "none";
   const ready = () => { xhReady = true; if (loading) loading.style.display = "none"; if (start) start.style.display = "flex"; };
-  const img = new Image(); img.onload = ready; img.onerror = ready; img.src = "thumbs/xevarion-home_s.jpg?v=12";
+  const img = new Image(); img.onload = ready; img.onerror = ready; img.src = "thumbs/xevarion-home_s.jpg?v=13";
   if (img.complete) ready();
   setTimeout(ready, 2500);
 }
@@ -3411,7 +3519,7 @@ addEventListener("DOMContentLoaded", () => { if (_xevLang === "en") applyLang("e
   const POOL = [
     "thumbs/MagiLink.jpg", "thumbs/MagiLex.jpg", "thumbs/MagiEmpire.jpg",
     "thumbs/MagiCraft.jpg", "thumbs/MagiChainParty.jpg?v=2", "thumbs/MagiBurst.jpg",
-    "thumbs/MagiPortfolio.jpg", "thumbs/MagiRanking.jpg", "thumbs/MagiBattle.jpg?v=2",
+    "thumbs/MagiPortfolio.jpg", "thumbs/MagiRanking.jpg", "thumbs/MagiBattle.jpg?v=3",
   ];
   const tiles = document.querySelectorAll(".hero-art .ha-tile:not(.main) img");
   if (!tiles.length) return;

@@ -54,6 +54,11 @@ def main():
         if re.search(r'\bchokou:\s*true', blk):
             d['top'] = True
             d['top2'] = True
+        # ★★ 2026-10-30 超極彩祭（chosai）はさらに上（ガチャ一覧のいちばん上・ご指定）
+        if re.search(r'\bchosai:\s*true', blk):
+            d['top'] = True
+            d['top2'] = True
+            d['top3'] = True
         for k in ('banner', 'bannerSoon'):
             d[k] = d[k].replace('../img/', 'MagiBurst/img/')
         defs.append(d)

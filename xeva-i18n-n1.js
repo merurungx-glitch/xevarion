@@ -36,6 +36,8 @@
     "コハク": "Kohaku", "スズ": "Suzu", "ショウコ": "Shoko", "超極煌祭": "Super Kyokou Festival",
     /* ★★ 2026-10-24 */
     "ヒサコ": "Hisako", "アリス": "Alice", "ミキ": "Miki", "WP交換所": "WP Exchange",
+    /* ★★ 2026-10-30 超極彩祭 */
+    "ハル": "Haru", "チカ": "Chika", "超極彩祭": "Super Kyokusai Festival",
     "Pumpkin Night": "Pumpkin Night", "3属性有利": "Tri-Element Advantage",
     "神癒の祈り": "Divine Prayer", "CRYSTAL ACADEMY FEST": "CRYSTAL ACADEMY FEST",
     "レナ": "Rena", "カオル": "Kaoru", "スバル": "Subaru", "カスミ": "Kasumi", "ツキノ": "Tsukino",

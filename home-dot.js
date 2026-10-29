@@ -14,12 +14,12 @@
    ══════════════════════════════════════════════════════════════ */
 (function () {
   "use strict";
-  const PIX_SRC = "MagiAbyss/js/ma-pixel.js?v=9";
+  const PIX_SRC = "MagiAbyss/js/ma-pixel.js?v=10";
   const KEY = "xeva_mate_v1";
   const PICK = "xeva_dot_pick";          /* おまかせで、この起動に出している子（タブごと） */
   const HINT = "xeva_dot_hint_v1";       /* はじめて出たときの「✎ かえる」（端末ごと・1回） */
   const DOT_IDS = ["takina", "ayano", "saki", "yuka", "natsumi", "miu", "mai", "chinatsu", "yuumi", "rina", "chie", "ichika", "nonoka", "aina", "yuna",
-    "kohaku", "hisako", "alice", "miki", "suzu", "shouko", "kaori", "hibana", "fuki", "hinano", "hanon", "kokoha", "mutsumi", "reina", "azusa", "kagura", "kotori", "kumireina"];
+    "haru", "chika", "kohaku", "hisako", "alice", "miki", "suzu", "shouko", "kaori", "hibana", "fuki", "hinano", "hanon", "kokoha", "mutsumi", "reina", "azusa", "kagura", "kotori", "kumireina"];
   const PADX = 26;      /* バナーの左右のはみ出し（端からのぞくぶん） */
   const ABOVE = 30;     /* 頭の上のゆとり（ジャンプ・吹き出し） */
   const SINK = 16;      /* バナーの上の端より下（すわると足がバナーにかかる） */

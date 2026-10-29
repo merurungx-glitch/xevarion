@@ -2093,7 +2093,8 @@
       /* 並び：新しいものが先（毎月のフェスは今月の開始日、常設のアーカイブはいちばん後ろ） */
       /* ★★ 2026-10-16 top（超極華祭）はガチャ一覧と同じく先頭 */
       /* ★★ 2026-10-22 top2（超極煌祭）は超極華祭よりも上 */
-      const t = f.top2 ? "99985" : f.top ? "9998" : f.key === "archive" ? "0000" : f.monthly ? today.slice(0, 8) + String(f.monthly[0]).padStart(2, "0") : (f.since || "0001");
+      /* ★★ 2026-10-30 top3（超極彩祭）はいちばん上 */
+      const t = f.top3 ? "99990" : f.top2 ? "99985" : f.top ? "9998" : f.key === "archive" ? "0000" : f.monthly ? today.slice(0, 8) + String(f.monthly[0]).padStart(2, "0") : (f.since || "0001");
       out.push({ key: f.key, banner: f.banner, t, nm: f.nm });
     });
     const dv = ((D.debut && D.debut.vers) || []).filter((v) => today >= v.date && today < (v.movedAt || addDays(v.date, D.debut.days || 20)));
@@ -2214,7 +2215,8 @@
   /* ★★ 2026-10-06 2行目を MagiChemLex・MagiCounter・MagiAbyss・MagiShift・MagiChainParty に（ご指定：MagiTier は「その他」へ・MagiChemLex は MagiCounter の左）。
      ★ 前の既定の2行目（下の OLD）をそのまま保存している人は、一度だけ新しい既定に直す（自分で並べた人はそのまま）。 */
   /* ★★ 2026-10-21 ご指定「MagiCounter と MagiDerby のボタンの位置を入れかえ」→ 2行目の2つめを MagiDerby に（MagiCounter はロビーの左の札へ） */
-  const LOBBY_ROW2_DEF = ["magiquiz", "magiderby", "magiabyss", "magishift", "magichainparty"];   /* ★★ 2026-10-24 MagiChemLex の場所に MagiQuiz（ChemLex は MagiLex の中へ） */
+  /* ★★ 2026-10-30 ご指定「MagiQuiz と MagiBattle を入れ替え、MagiDerby と MagiAbyss を入れ替え」 */
+  const LOBBY_ROW2_DEF = ["magibattle", "magiabyss", "magiderby", "magishift", "magichainparty"];   /* 前: ["magiquiz", "magiderby", "magiabyss", "magishift", "magichainparty"]（10-24） */
   const LOBBY_ROW2_1006 = ["magichemlex", "magicounter", "magiabyss", "magishift", "magichainparty"];
   const LOBBY_ROW2_OLD = ["magicounter", "magiabyss", "magishift", "magichainparty", "magitier"];
   try {
@@ -2243,6 +2245,17 @@
         if (i >= 0) { if (sv.indexOf("magiquiz") < 0) sv[i] = "magiquiz"; else sv.splice(i, 1); localStorage.setItem(LOBBY_APPS_KEY, JSON.stringify(sv)); }
       }
       localStorage.setItem("xeva_lobby_gen", "1024");
+    }
+    /* ★★ 2026-10-30 保存ずみのロビーでも入れかえる（MagiQuiz ⇔ MagiBattle・MagiDerby ⇔ MagiAbyss）。
+       両方あれば場所を入れかえ、片方だけならその場所をもう片方に（自分で並べた人も、ご指定の入れかえだけ効かせる） */
+    if (localStorage.getItem("xeva_lobby_gen") !== "1030") {
+      const sv = JSON.parse(localStorage.getItem(LOBBY_APPS_KEY) || "null");
+      if (Array.isArray(sv)) {
+        const swap = (a, b) => { const i = sv.indexOf(a), j = sv.indexOf(b); if (i >= 0 && j >= 0) { sv[i] = b; sv[j] = a; } else if (i >= 0) sv[i] = b; else if (j >= 0) sv[j] = a; };
+        swap("magiquiz", "magibattle"); swap("magiderby", "magiabyss");
+        localStorage.setItem(LOBBY_APPS_KEY, JSON.stringify(sv));
+      }
+      localStorage.setItem("xeva_lobby_gen", "1030");
     }
   } catch (e) {}
   /* NEW の印（XH_APPS の newUntil の日まで）・β版の印（beta） */
