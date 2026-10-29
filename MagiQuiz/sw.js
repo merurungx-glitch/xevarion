@@ -3,7 +3,7 @@
    ・1台で遊ぶクイズ。キャッシュすれば完全にオフラインで動く（問題は MagiChemLex の問題データ）
    ・アカウントの紐づけと賞金だけ通信が要る（遊ぶこと自体はオフラインでできる）
    ============================================================ */
-const VERSION = "magiquiz-sw-v4";
+const VERSION = "magiquiz-sw-v5";
 const CORE = [
   "./index.html",
   "./css/quiz.css?v=2",
@@ -23,7 +23,7 @@ const CORE = [
   "../xeva-loading.js?v=19",
   "../xeva-back.js?v=9",
   "../maintenance-gate.js?v=13",
-  "../xeva.js?v=84", "../xeva-cloud.js?v=48", "../xeva-keys.js?v=34",
+  "../xeva.js?v=85", "../xeva-cloud.js?v=48", "../xeva-keys.js?v=34",
   "../xeva-alive.js?v=8",
   "../game-link.js?v=13",
   "../xevarion-fb.js?v=36",
