@@ -297,5 +297,5 @@
     FC = null; U.closePlay(); U.startSession(M.shuffle(go), { title: t + "（演習）" });
   };
 
-  window.MCLFlash = { start, on: () => !!FC, key, reset, open: openPicker };
+  window.MCLFlash = { start, on: () => !!FC, key, reset, open: openPicker, curId: () => (FC ? FC.ids[FC.i] : null) };
 })();

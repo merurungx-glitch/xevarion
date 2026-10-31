@@ -357,12 +357,14 @@
   function rwCard() {
     const R = M.REWARD, m = M.mult();
     const row = (e, t, v) => "<li><span>" + e + "</span><b>" + t + "</b><em>+" + v + "</em></li>";
-    return '<details class="rwc"><summary>' + ic("gift") + " XEVA のもらい方" + (m > 1 ? '<span class="x2">💜 いまは' + m + "倍</span>" : "") + "</summary><ul>" +
+    /* ★★ 2026-10-31 ご指定「XEVA の入手方法とそれぞれについてアニメーションで分かりやすく」→ 一覧の上に「▶ 動きで見る」（mcl-guide.js） */
+    return '<details class="rwc"><summary>' + ic("gift") + " XEVA のもらい方" + (m > 1 ? '<span class="x2">💜 いまは' + m + "倍</span>" : "") + "</summary>" +
+      '<button class="rwc-anim" data-a="xevaGuide">▶ もらい方を動きで見る<small>（10の章・1つずつ）</small></button><ul>' +
       row("🌱", "はじめての学習", R.reg * m) + row("✅", "問題にはじめて正解（1問ごと）", R.first * m) + row("🎯", "今日の目標を達成（毎日）", R.daily * m) +
       row("🏅", "単元マスター（単元の全問を習得）", R.topic * m) + row("🗂️", "問題セットを完全習得（20問以上は2倍）", R.gmaster * m) + row("🎓", "確認テストで全問正解（20問以上は2倍）", R.confirm * m) +
       row("📝", "模試の冊子で 60%・80%・100%（はじめて・組ごと）", R.set60 * m + "・" + R.set80 * m + "・" + R.set100 * m) +
       row("🎲", "ランダム10問で 90%以上・全問正解（何度でも）", R.mix90 * m + "・" + R.mix100 * m) +
-      row("🔥", "7日連続の学習（7日ごと）", R.streak7 * m) + "</ul><p>習得＝日をあけて2回正解した問題。XEVA は XEVARION の共通通貨です。</p></details>";
+      row("🔥", "7日連続の学習（7日ごと）", R.streak7 * m) + row("🧪", "ビンゴのライン・コンプリート（毎月）", "1,200〜12,000") + "</ul><p>習得＝日をあけて2回正解した問題。XEVA は XEVARION の共通通貨です。</p></details>";
   }
   function setCards(grp) {
     return Object.keys(D.SETS).filter((k) => D.SETS[k].grp === grp).map((k) => {
@@ -837,7 +839,7 @@
       '<div class="tools-g"><section class="card"><h2 class="sec0">' + ic("calc") + ' 関数電卓</h2><div id="calcHere"></div></section>' +
       '<section class="card"><h2 class="sec0">' + ic("table") + " 定数・原子量</h2>" + constHTML() + "</section></div>" +
       '<section class="card"><h2 class="sec0">' + ic("card") + " 公式カード</h2>" + formHTML() + "</section>" +
-      '<section class="card about"><h2 class="sec0">' + ic("help") + ' このアプリについて</h2><p>MagiChemLex は XEVARION の学習アプリ MagiLex から生まれた、<b>難関大の化学</b>に特化した問題集です。</p><ul><li>問題は、<b>難関大の入試問題</b>の全小問を同じ数値・同じ考え方で作り直した改題（' + D.Q.filter((x) => x.g === "o").length + "問・難関セット" + Object.keys(D.GRP || {}).filter((g) => M.lvOf(Number(g)) === "o").length + "組" + (Object.keys(D.GRP || {}).some((g) => M.isStd(Number(g))) ? "・マーク式の標準セット" + Object.keys(D.GRP || {}).filter((g) => M.isStd(Number(g))).length + "組" : "") + (Object.keys(D.GRP || {}).some((g) => M.isBasic(Number(g))) ? "・教科書レベルの基礎セット" + Object.keys(D.GRP || {}).filter((g) => M.isBasic(Number(g))).length + "組" : "") + "）と、数値や条件を変えた関連問題（" + D.Q.filter((x) => x.g === "r").length + "問）です。</li><li>記録とメモは XEVARION のアカウントで同期されます。</li></ul></section>";
+      '<section class="card about"><h2 class="sec0">' + ic("help") + ' このアプリについて</h2><p>MagiChemLex は XEVARION の学習アプリ MagiLex から生まれた、<b>難関大の化学</b>に特化した問題集です。</p><ul><li>問題は、<b>難関大の入試問題</b>の全小問を同じ数値・同じ考え方で作り直した改題（' + D.Q.filter((x) => x.g === "o").length + "問・難関セット" + Object.keys(D.GRP || {}).filter((g) => M.lvOf(Number(g)) === "o").length + "組" + (Object.keys(D.GRP || {}).some((g) => M.isStd(Number(g))) ? "・マーク式の標準セット" + Object.keys(D.GRP || {}).filter((g) => M.isStd(Number(g))).length + "組" : "") + (Object.keys(D.GRP || {}).some((g) => M.isBasic(Number(g))) ? "・教科書レベルの基礎セット" + Object.keys(D.GRP || {}).filter((g) => M.isBasic(Number(g))).length + "組" : "") + "）と、数値や条件を変えた関連問題（" + D.Q.filter((x) => x.g === "r").length + "問）です。</li><li>記録とメモは XEVARION のアカウントで同期されます。</li></ul><button class=\"btn rwc-anim2\" data-a=\"xevaGuide\">▶ XEVA のもらい方を動きで見る</button></section>";
   }
   after.tools = () => { mountCalc($("#calcHere")); };
 
@@ -935,6 +937,14 @@
   function padSt() { return PAD.st || (PAD.st = padLoad()); }
   function padSave() { try { localStorage.setItem(PAD_KEY, JSON.stringify(padSt())); } catch (e) {} paintPadBtn(); }
   function padHas() { const s = padSt(); return s.strokes.length > 0 || s.text.trim().length > 0; }
+  /* ★★ 2026-10-31 いま解いている問題（演習・フラッシュカード）にメモの板を使った印（ビンゴのメモのマス） */
+  function padMark() {
+    try {
+      let id = P && P.ids ? P.ids[P.i] : null;
+      if (!id && window.MCLFlash && MCLFlash.on() && MCLFlash.curId) id = MCLFlash.curId();
+      if (id && M.markPad) M.markPad(id);
+    } catch (e) {}
+  }
   function paintPadBtn() { const b = $('[data-a="pad"]'); if (b) { b.classList.toggle("has", padHas()); b.classList.toggle("on", PAD.open); } }
   function padColors() { return document.documentElement.dataset.theme === "dark" ? ["#eef1ff", "#ff7b8a", "#7da2ff"] : ["#26304f", "#e5484d", "#2f6bff"]; }
   function padBuild() {
@@ -954,7 +964,7 @@
       '<label class="pad-auto"><input type="checkbox" id="padAuto"' + (padSt().auto ? " checked" : "") + "><span>次の問題で消す</span></label></div>" +
       '<div class="pad-b"><canvas class="pad-cv" id="padCv"></canvas><textarea class="pad-ta" id="padTa" placeholder="計算や考えたことを書けます。&#10;（アカウントで同期されます）"></textarea><div class="pad-calc" id="padCalc"></div><div class="pad-const" id="padConst"></div></div>';
     const ta = $("#padTa"); ta.value = padSt().text;
-    const syncText = () => { padSt().text = ta.value; padSave(); };
+    const syncText = () => { const was = padSt().text; padSt().text = ta.value; padSave(); if (ta.value.trim() && ta.value !== was) padMark(); };
     ["input", "change", "blur", "compositionend"].forEach((ev) => ta.addEventListener(ev, syncText));
     $("#padAuto").addEventListener("change", (e) => { padSt().auto = e.target.checked ? 1 : 0; padSave(); toast(e.target.checked ? "次の問題でメモを消します" : "メモを残します"); });
     padBindCanvas();
@@ -1129,6 +1139,7 @@
       const s = padSt(); s.strokes.push(PAD.cur); PAD.cur = null;
       if (s.strokes.length > 600) s.strokes.splice(0, s.strokes.length - 600);
       padSave(); padDraw();
+      padMark();
     };
     cv.addEventListener("pointerup", end); cv.addEventListener("pointercancel", end);
     cv.addEventListener("pointerleave", (ev) => { if (PAD.pans) return; end(ev); if (PAD.ptr) { PAD.ptr = null; if (PAD.er) padDraw(); } });

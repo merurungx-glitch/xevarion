@@ -235,6 +235,12 @@ html.xv-full #xevaSplash { position: absolute !important; top: 0 !important; bot
 .rwc li { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-top: 1px dashed var(--line); font-size: .86rem; }
 .rwc li b { flex: 1; font-weight: 700; }
 .rwc li em { font-style: normal; font-weight: 900; color: var(--acc); white-space: nowrap; }
+/* ★★ 2026-10-31 XEVA のもらい方を動きで見る（mcl-guide.js） */
+.rwc-anim { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; margin: 0 0 8px; padding: 10px 12px; border: 0; border-radius: 14px; cursor: pointer;
+  background: linear-gradient(100deg, #2f8cff, #16c7a0); color: #fff; font: inherit; font-weight: 900; font-size: .9rem; box-shadow: 0 6px 16px rgba(47,140,255,.28); }
+.rwc-anim small { font-size: .72rem; font-weight: 800; opacity: .85; }
+.rwc-anim:active { transform: scale(.98); }
+.rwc-anim2 { margin-top: 10px; width: 100%; }
 .rwc p { font-size: .76rem; color: var(--mute); margin: 4px 0 12px; }
 .foot { font-size: .72rem; color: var(--mute); margin: 18px 4px 0; line-height: 1.6; }
 

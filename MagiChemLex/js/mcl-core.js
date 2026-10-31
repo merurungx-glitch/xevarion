@@ -575,6 +575,15 @@
   function bestRun(setId) { let b = null; (get().runs || []).forEach((r) => { if (r.set === setId && (!b || r.score / r.total > b.score / b.total)) b = r; }); return b; }
   function setUns(id, v) { mut((s) => { const r = s.q[id]; if (!r) return; r.uns = v ? 1 : 0; if (v) r.due = Math.min(r.due || Infinity, dayStart() + DAY); }); }
   function toggleBm(id) { return mut((s) => { if (s.bm[id]) { delete s.bm[id]; s.dm[id] = Date.now(); return false; } s.bm[id] = Date.now(); delete s.dm[id]; return true; }); }
+  /* ★★ 2026-10-31 演習中のメモ（手書き・文字の板）を、その問題で使った印（ビンゴ「メモを 3問で使う」が数える）。月に1回・問題ごと */
+  function markPad(id) {
+    if (!id) return false;
+    const d = new Date(), k = "pad:" + d.getFullYear() + "-" + pad(d.getMonth() + 1) + ":" + id;
+    if ((get().rw || {})[k]) return false;
+    mut((s) => { if (!s.rw[k]) s.rw[k] = Date.now(); });
+    try { window.dispatchEvent(new CustomEvent("mcl:pad", { detail: { id } })); } catch (e) {}
+    return true;
+  }
   function setMemo(id, t) { mut((s) => { if (t && t.trim()) s.memo[id] = { t: t.slice(0, 2000), at: Date.now() }; else if (s.memo[id]) s.memo[id] = { t: "", at: Date.now() }; }); }
   function setCombo(n) { mut((s) => { s.best = s.best || {}; if (n > (s.best.combo || 0)) s.best.combo = n; }); }
   function setSetting(k, v) { mut((s) => { s.set[k] = v; }); }
@@ -748,7 +757,7 @@
     mult, evName, balance, earn, takeEarned,
     chem, fmt, fmtOpt, plain, esc, parseNum, judge, judgeNum, answerText,
     rec, status, isDue, idsOf, topicStat, fieldStat, totals, dueList, wrongList, unsureList, bmList, dueForecast,
-    streak, bestStreak, todayCount, level, answer, finishSet, bestRun, setUns, toggleBm, setMemo, setCombo, setSetting, resetAll, resetGroup, resetExam, masterEta,
+    streak, bestStreak, todayCount, level, answer, finishSet, bestRun, setUns, toggleBm, setMemo, markPad, setCombo, setSetting, resetAll, resetGroup, resetExam, masterEta,
     groupEta, canMasterToday, todayList,
     build, pickRelated, shuffle, badges,
     groups, groupById, groupsOf, groupStat, groupReward, volMul, finishConfirm, finishMix, catchUpGroups, catchUpPartDiff, qNo, isCalc, groupHasCalc, groupCalcN, isStd, isBasic, lvOf,

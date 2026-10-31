@@ -58,7 +58,12 @@
     });
     let mas = 0;
     Object.keys(s.q || {}).forEach((id) => { const r = s.q[id]; if (r && (r.lv || 0) >= 2 && r.last && String(r.lastOk || "").slice(0, 7) === mk) mas++; });
-    let memo = 0; Object.keys(s.memo || {}).forEach((id) => { const m = s.memo[id]; if (m && m.t && inMonth(m.at, mk)) memo++; });
+    /* ★★ 2026-10-31 メモ＝問題ごとの文字メモ（s.memo）＋演習中のメモの板を使った問題（rw "pad:<月>:<問題>"）。同じ問題は1つ */
+    const memoIds = {};
+    Object.keys(s.memo || {}).forEach((id) => { const m = s.memo[id]; if (m && m.t && inMonth(m.at, mk)) memoIds[id] = 1; });
+    const pk = "pad:" + mk + ":";
+    Object.keys(rw).forEach((k) => { if (k.indexOf(pk) === 0) memoIds[k.slice(pk.length)] = 1; });
+    const memo = Object.keys(memoIds).length;
     let bm = 0; Object.keys(s.bm || {}).forEach((id) => { if (inMonth(s.bm[id], mk)) bm++; });
     return { sum, max, days: days.length, run: best, first, topic, gm, cf, daily, mix, wp, book: Object.keys(book).length, mas, memo, bm };
   }
@@ -91,7 +96,7 @@
     { id: "mx1", nm: "ランダム10問で 90%以上", ic: "shuffle", need: 1, v: (x) => x.mix },
     { id: "mx3", nm: "ランダム10問 90%以上 3回", ic: "shuffle", need: 3, v: (x) => x.mix },
     { id: "wp15", nm: "WP を 15 ためる", ic: "spark", need: 15, v: (x) => x.wp },
-    { id: "mm3", nm: "メモを 3問に書く", ic: "memo", need: 3, v: (x) => x.memo },
+    { id: "mm3", nm: "メモを 3問で使う", ic: "memo", need: 3, v: (x) => x.memo, d: "演習中の「メモ」（手書き・文字）に書くか、問題の「自分のメモ」に書く" },
     { id: "bm5", nm: "5問をブックマーク", ic: "bm", need: 5, v: (x) => x.bm },
   ];
   const MSI = {}; MS.forEach((m) => { MSI[m.id] = m; });
@@ -224,6 +229,7 @@
 .bg-x{position:absolute;top:10px;right:10px;width:36px;height:36px;border-radius:50%;display:grid;place-items:center;color:#fff;background:rgba(255,255,255,.1);box-shadow:inset 0 0 0 1px rgba(255,255,255,.25);z-index:3;border:0;cursor:pointer}
 .bg-x .di{width:18px;height:18px}
 .bg-hd{text-align:center;padding:2px 40px 10px}
+.bg-hlp{display:inline-flex;vertical-align:middle;align-items:center;margin-left:8px;padding:3px 10px;border-radius:99px;border:1px solid rgba(255,255,255,.35);background:rgba(255,255,255,.12);color:#fff;font:900 .66rem/1.4 inherit;letter-spacing:0;cursor:pointer}
 .bg-hd small{display:block;font-size:.66rem;font-weight:900;letter-spacing:.42em;padding-left:.42em;color:#ffd96a}
 .bg-hd h2{margin:2px 0 0;font-size:1.55rem;font-weight:900;letter-spacing:.06em;padding-left:.06em;line-height:1.15;
   background:linear-gradient(180deg,#fffbe8 0%,#ffe07a 45%,#e0a21c 100%);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 2px 0 rgba(0,0,0,.45))}
@@ -348,7 +354,7 @@
     ];
     return '<div class="bg-card">' +
       '<button class="bg-x" data-a="bgClose" aria-label="閉じる">' + ic("x") + "</button>" +
-      '<div class="bg-hd"><small>CHEMICAL BINGO</small><h2>ケミカル・ビンゴ</h2><p><b>' + Number(y) + "年" + Number(m) + "月</b>のカード・あと" + left + "日（毎月1日に新しくなります）</p></div>" +
+      '<div class="bg-hd"><small>CHEMICAL BINGO</small><h2>ケミカル・ビンゴ<button class="bg-hlp" data-a="xevaGuide" data-v="x-bingo" aria-label="使い方">？ 使い方</button></h2><p><b>' + Number(y) + "年" + Number(m) + "月</b>のカード・あと" + left + "日（毎月1日に新しくなります）</p></div>" +
       '<div class="bg-board"><div class="bg-grid">' + st.cs.map((c) => cellHTML(c, pops && pops.indexOf(c.i) >= 0)).join("") + "</div>" + svgHTML(st) + "</div>" +
       '<div class="bg-stats"><span>開いたマス <b>' + st.nOpen + "</b> / 25</span><span>ライン <b>" + st.nDone + "</b> / 12</span>" + (M.mult() > 1 ? "<span>💜 XEVA <b>" + M.mult() + "倍</b></span>" : "") + "</div>" +
       '<button class="bg-claim' + (st.claim ? " bgo" : "") + '" data-a="bgClaim"' + (st.claim ? "" : " disabled") + ">" + (st.claim ? ic("gift") + "そろった " + st.claim + " 件を受け取る" : "そろったラインはまだありません") + "</button>" +
@@ -404,7 +410,7 @@
   function tip(i) {
     const st = state(), c = st.cs[i]; if (!c) return;
     let t = $("#bgTip"); if (!t) { t = document.createElement("div"); t.id = "bgTip"; t.className = "bg-tip"; document.body.appendChild(t); }
-    t.innerHTML = c.free ? "まん中は <b>FREE</b>（最初からひらいています）" : esc(c.m.nm) + "：<b>" + c.now + " / " + c.need + "</b>" + (c.on ? "　✅ ひらきました" : "");
+    t.innerHTML = c.free ? "まん中は <b>FREE</b>（最初からひらいています）" : esc(c.m.nm) + "：<b>" + c.now + " / " + c.need + "</b>" + (c.on ? "　✅ ひらきました" : "") + (c.m.d ? '<br><small style="opacity:.8">' + esc(c.m.d) + "</small>" : "");
     t.classList.add("on"); clearTimeout(tipT); tipT = setTimeout(() => t.classList.remove("on"), 2200);
   }
 
