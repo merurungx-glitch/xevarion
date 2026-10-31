@@ -640,10 +640,16 @@ def update_race(r, full=True):
                 od.update({k: v for k, v in odds_block(rid, [3, 4, 5, 6, 7, 8]).items() if k not in ("kind", "at")})
             if od:
                 if od.get("kind") == "yoso":
-                    # 予想オッズ（発売前）：番号は「登録の並び（tr_◯）」なので、馬の id に読みかえて置く
-                    by_idx = {str(e["idx"]): e["hid"] for e in (race.get("entries") or [])}
+                    # 予想オッズ（発売前）：番号を馬の id に読みかえて置く
+                    # ★★ 2026-10-30 ご報告「人気とオッズがズレていることがある」の真因：netkeiba の予想オッズの番号は
+                    #   枠順の発表前＝「登録の並び（tr_◯）」、発表後＝<b>馬番</b>に変わる。前は発表後も tr_◯ で読みかえていたので、
+                    #   木曜の枠順確定〜金曜の発売開始のあいだ、オッズと人気がよその馬に付いていた（天皇賞（秋）で確認：クロワデュノールの 2.7・1番人気がセイウンハーデスに）。
+                    #   → 出走する馬に馬番がそろっていれば馬番で、まだなら登録の並びで読みかえる。
+                    ents = race.get("entries") or []
+                    drawn = any(e.get("no") for e in ents if not e.get("cx"))
+                    by_key = {str(e["no"]): e["hid"] for e in ents if e.get("no")} if drawn else {str(e["idx"]): e["hid"] for e in ents}
                     race["odds"] = {"kind": "yoso", "at": od.get("at", ""),
-                                    "winH": {by_idx[k]: v for k, v in (od.get("win") or {}).items() if k in by_idx}}
+                                    "winH": {by_key[k]: v for k, v in (od.get("win") or {}).items() if k in by_key}}
                 else:
                     race["odds"] = {k: od[k] for k in ("kind", "at", "win", "place") if k in od}
                     ex = {k: od[k] for k in ("kind", "at", "waku", "quin", "wide", "exa", "trio", "tri") if k in od}
