@@ -345,7 +345,7 @@
       <div class="allapps rv" aria-label="そのほかのアプリ">
         <a href="../XEVYNAR/index.html"><img src="../thumbs/XEVYNAR.jpg" alt="" loading="lazy">XEVYNAR</a>
         <a href="../MagiLex/index.html"><img src="../thumbs/MagiLex.jpg" alt="" loading="lazy">MagiLex</a>
-        <a href="../MagiBattle/index.html"><img src="../thumbs/MagiBattle.jpg?v=3" alt="" loading="lazy">MagiBattle</a>
+        <a href="../MagiBattle/index.html"><img src="../thumbs/MagiBattle.jpg?v=4" alt="" loading="lazy">MagiBattle</a>
         <a href="../MagiBocciaRush/index.html"><img src="../thumbs/MagiBocciaRush.jpg" alt="" loading="lazy">MagiBocciaRush</a>
         <a href="../MagiDominionGrid/index.html"><img src="../thumbs/MagiDominionGrid.jpg" alt="" loading="lazy">Dominion Grid</a>
         <a href="../MagiLink/MagiLink.html"><img src="../thumbs/MagiLink.jpg" alt="" loading="lazy">MagiLink</a>
@@ -483,6 +483,10 @@
       (function step(t) { var p = Math.min(1, (t - t0) / dur); e.target.textContent = Math.round(to * (1 - Math.pow(1 - p, 3))).toLocaleString(); if (p < 1) requestAnimationFrame(step); })(t0);
     }); }, { threshold: 0.6 });
     cs.forEach(function (el) { el.textContent = "0"; cio.observe(el); });
+  }
+  /* ★★ 2026-10-30 オフラインでも開けるように（このフォルダの sw.js・ご指定） */
+  if ("serviceWorker" in navigator && location.protocol !== "file:") {
+    window.addEventListener("load", function () { try { navigator.serviceWorker.register("sw.js", { scope: "./" }); } catch (e) {} });
   }
 })();
 </script>

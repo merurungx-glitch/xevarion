@@ -48,7 +48,7 @@
     paint(); setPaused(paused);
   }
 
-  /* ── 実績の札 ── */
+  /* ── 開発アプリの札（★★ 2026-10-30 一覧のアイコン .app も同じ札で絞りこむ） ── */
   var tabs = [].slice.call(document.querySelectorAll(".tabs .tab")), cards = [].slice.call(document.querySelectorAll("#cards .card"));
   tabs.forEach(function (t) {
     t.addEventListener("click", function () {
@@ -67,6 +67,11 @@
     els.forEach(function (el) { io.observe(el); });
   } else {
     [].forEach.call(els, function (el) { el.classList.add("in"); });
+  }
+
+  /* ── ★★ 2026-10-30 オフラインでも開けるように（このフォルダの sw.js） ── */
+  if ("serviceWorker" in navigator && location.protocol !== "file:") {
+    window.addEventListener("load", function () { try { navigator.serviceWorker.register("sw.js", { scope: "./" }); } catch (e) {} });
   }
 
   /* ── 年号 ── */
