@@ -377,11 +377,15 @@
   /* ★★ 2026-10-24 MagiChemLex の WP 交換所（ミキ）も */
   /* ★★ 2026-10-24 入手先：WP交換所のキャラ（ミキ）はガチャでなく MagiChemLex の WP 交換所 */
   const isWp = (C) => C && C.fes === "WP交換所";
-  const getWhere = (C) => isWp(C) ? "MagiChemLex の WP 交換所" : "XEVARION の" + (C && C.fes ? C.fes : "ガチャ");
+  /* ★★ 2026-10-30 極彩祭・極煌祭・極華祭は開催を終了（ご指定）→ キャラは XEVARION の Festival Archive GACHA で引ける */
+  const ENDED_FES = { "極彩祭": 1, "極煌祭": 1, "極華祭": 1 };
+  const getWhere = (C) => isWp(C) ? "MagiChemLex の WP 交換所"
+    : C && ENDED_FES[C.fes] ? "XEVARION の Festival Archive GACHA（もと" + C.fes + "）"
+    : "XEVARION の" + (C && C.fes ? C.fes : "ガチャ");
   const FES_CLS = { "極彩祭": "f1", "極煌祭": "f2", "極華祭": "f3", "Sapphire Breeze": "f4", "Pumpkin Night": "f5", "超極華祭": "f6", "超極煌祭": "f7", "WP交換所": "f8", "超極彩祭": "f9" };   /* ★★ 2026-10-30 超極彩祭 */
   function fesBadge(C) { return '<em class="fes ' + (FES_CLS[C.fes] || "") + '">' + esc(C.fes) + "</em>"; }
   function fesInfo() {
-    return '<div class="fes-info">' + ic("star", "#ffd84a") + '<div><b>MagiAbyss で使えるキャラ</b><small>XEVARION のガチャ <em class="fes f9">超極彩祭</em><em class="fes f7">超極煌祭</em><em class="fes f6">超極華祭</em><em class="fes f5">Pumpkin Night</em><em class="fes f4">Sapphire Breeze</em><em class="fes f1">極彩祭</em><em class="fes f2">極煌祭</em><em class="fes f3">極華祭</em> と <em class="fes f8">MagiChemLex の WP交換所</em> で手に入るキャラ（' + D().CHAR_ORDER.length + "人）。持っているキャラだけで遊べます。凸は XEVARION と共通・レベルはこのアプリだけ。</small></div>" +
+    return '<div class="fes-info">' + ic("star", "#ffd84a") + '<div><b>MagiAbyss で使えるキャラ</b><small>XEVARION のガチャ <em class="fes f9">超極彩祭</em><em class="fes f7">超極煌祭</em><em class="fes f6">超極華祭</em><em class="fes f5">Pumpkin Night</em><em class="fes f4">Sapphire Breeze</em>・Festival Archive GACHA（もと<em class="fes f1">極彩祭</em><em class="fes f2">極煌祭</em><em class="fes f3">極華祭</em>）と <em class="fes f8">MagiChemLex の WP交換所</em> で手に入るキャラ（' + D().CHAR_ORDER.length + "人）。持っているキャラだけで遊べます。凸は XEVARION と共通・レベルはこのアプリだけ。</small></div>" +
       '<a class="btn sm gold" href="../gacha.html">ガチャへ</a></div>';
   }
   let charFilter = "all";

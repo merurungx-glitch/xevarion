@@ -5,7 +5,7 @@
    ・フォント（Google Fonts）も一度読めたら控える（オフラインでもドットの文字になる）。
    ・Firebase（同期）はキャッシュしない。
    ============================================================ */
-const VERSION = "magiabyss-sw-v20";
+const VERSION = "magiabyss-sw-v22";
 const RUNTIME = "magiabyss-rt-v1";
 const CORE = [
   "./index.html",
@@ -34,7 +34,7 @@ const CORE = [
   "./js/ma-fx.js?v=1",
   "./js/ma-town.js?v=2",
   "./js/ma-town25.js?v=1",   /* ★★ 2026-10-23 拠点（町の広場）の 2.5D */
-  "./js/ma-guild.js?v=13",
+  "./js/ma-guild.js?v=14",
   "./js/ma-stages.js?v=5",
   "./js/ma-howto.js?v=6",
   "./js/ma-main.js?v=5",
@@ -45,19 +45,19 @@ const CORE = [
   "../gem.png",
   /* XEVARION の共通部品 */
   "../mb-boot.js?v=18",
-  "../MagiBurst/js/mb-core.js?v=143",
+  "../MagiBurst/js/mb-core.js?v=145",
   "../xeva.js?v=85",
   "../xeva-alive.js?v=8",
   "../xeva-loading.js?v=19",
-  "../xeva-splash.js?v=18",
+  "../xeva-splash.js?v=19",
   "../xeva-safebottom.js?v=12",
   "../xeva-back.js?v=9",
   "../xeva-presence.js?v=9",
   "../maintenance-gate.js?v=13",
-  "../xeva-cloud.js?v=48",
-  "../MagiBurst/magiburst-cloud.js?v=27",
+  "../xeva-cloud.js?v=49",
+  "../MagiBurst/magiburst-cloud.js?v=28",
   "../app-cloud.js?v=15",
-  "../xeva-keys.js?v=34",
+  "../xeva-keys.js?v=35",
   "../xevarion-fb.js?v=36",
   /* 遊べる10体（極彩祭・極煌祭・極華祭）の絵 */
   "../img/Takina.webp", "../img/t_Takina.webp",
