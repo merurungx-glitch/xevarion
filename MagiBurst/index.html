@@ -22,7 +22,7 @@ if ("serviceWorker" in navigator) {
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
-<script src="../xeva-splash.js?v=18" data-app="MagiBurst" data-logo="../thumbs/MagiBurst.jpg"
+<script src="../xeva-splash.js?v=19" data-app="MagiBurst" data-logo="../thumbs/MagiBurst.jpg"
         data-note="⚠️ このゲームの対象年齢は 13歳以上 です"></script>
 <script src="../xeva.js?v=85"></script>
 <!-- ★★ 2026-09-05 言語切りかえ（日本語 ⇄ English）。辞書は本体のあとに読むこと。 -->
@@ -47,7 +47,7 @@ if ("serviceWorker" in navigator) {
 <script src="../xeva-loading.js?v=19" defer></script>
 <script type="module" src="../xevarion-fb.js?v=36"></script>
 <script src="../xeva-presence.js?v=9" defer></script>
-<script type="module" src="../xeva-cloud.js?v=48"></script>
+<script type="module" src="../xeva-cloud.js?v=49"></script>
 <script type="module" src="js/online.js?v=16"></script>
 <!-- ★★ 2026-09-01 ローカル通信マルチ（オフラインでも近くの人と遊べる）。
      BurstOnline と同じ名前・同じ戻り値でそろえてあるので、画面側は NET() で切り替えるだけ。 -->
@@ -3618,7 +3618,7 @@ textarea.oninp.mbcode[readonly]{background:#f2f0fb;color:#3b3560}
 .hcard td:last-child{text-align:right;font-weight:900;font-family:'Orbitron',sans-serif}
 @media(min-width:700px){ #cv{border-radius:20px} }
 </style>
-<script type="module" src="magiburst-cloud.js?v=27"></script>
+<script type="module" src="magiburst-cloud.js?v=28"></script>
 </head>
 <body>
 
@@ -4031,14 +4031,14 @@ textarea.oninp.mbcode[readonly]{background:#f2f0fb;color:#3b3560}
 </div></div>
 
 <script>window.MB_IMGD = "../img/"; window.MB_GIMGD = "img/";</script>
-<script src="../mb-newchars.js?v=41"></script>
+<script src="../mb-newchars.js?v=42"></script>
 <!-- ★★ 2026-09-06 新UI（スタイリッシュ）。
      body.mb-ui2 の中だけにかかるので、旧UIに戻すのは class を外すだけ。
      ★ 本文の <style> より<b>あと</b>に置くこと（あとに来たほうが勝つ）。 -->
 <link rel="stylesheet" href="css/mb-ui2.css?v=26">
 <!-- ★★ 2026-09-06 LOCAL PLAY（近距離ローカルマルチ）の画面 -->
 <link rel="stylesheet" href="css/localplay.css?v=7">
-<script src="js/mb-core.js?v=143"></script>
+<script src="js/mb-core.js?v=145"></script>
 <!-- ★★ 2026-10-16 MagiAbyss 専用のキャラ（超極華祭の5体・abyssOnly）は MagiBurst には出さない（ご指定「他のゲームの性能は所持しません」）。
      CHAR_IDS（図鑑・編成・育成などの一覧のもと）から外す。いちばん後ろの番号なので、ほかの子の No. は変わらない -->
 <script>try { for (let i = CHAR_IDS.length - 1; i >= 0; i--) if (isAbyssOnly(CHAR_IDS[i])) CHAR_IDS.splice(i, 1); } catch (e) {}</script>
@@ -6170,6 +6170,18 @@ window.openNewChar = openNewChar; window.closeNewChar = closeNewChar;
 
 /* ══════════ お知らせ（アップデートのたびにここへ追記する） ══════════ */
 const NEWS = [
+  /* ★★ 2026-10-31（2回目）ガチャの完凸ルール */
+  { date: "2026-10-31", title: "👑 完凸してもピックアップが出るように（10連目は未完凸のみ）", body: [
+    "<b>1〜9連目（単発・5連も）</b>は、👑完凸したキャラも<b>ピックアップのまま出続けます</b>（フェス・" + DEBUT_NM + "・Festival Archive も）。出たときは💠結晶。",
+    "<b>10連目（最後の1枠）</b>は、<b>まだ完凸していないキャラだけ</b>が出ます。",
+    "完凸後の結晶は <b>UR " + CRYST_UR + "個</b>・SSR " + CRYST_SSR + "個・SR " + CRYST_SR + "個。提供割合は「1〜9連目」と「10連目」に分けてのせました。",
+  ] },
+  /* ★★ 2026-10-31 5つのフェスの終了・応援配布・MagiBattle の作り直し */
+  { date: "2026-10-31", title: "🎪 戦姫祭・BUNNY GIRL FEST・極煌祭・極彩祭・極華祭 終了／🎫 ガチャチケット70枚", body: [
+    "🎪 <b>戦姫祭・BUNNY GIRL FEST・極煌祭・極彩祭・極華祭</b>の開催を終了しました。キャラクターは XEVARION の <b>Festival Archive GACHA</b> で引けます（持っているセレクト券は、ガチャ一覧のいちばん上で使えます）。",
+    "🎫 応援配布：全ユーザーに <b>ガチャチケット70枚</b>（XEVARION のホーム右上の📧メールから）。",
+    "⚡ XEVARION の <b>MagiBattle</b> を作り直しました（超極祭系の UR 12体で遊ぶ部隊シューティング）。",
+  ] },
   /* ★★ 2026-10-30 天井の共通化・毎月のビンゴ・超極煌祭のバナー */
   { date: "2026-10-30", title: "★ 天井（星煌印）を全ガチャ共通に／毎月のビンゴ", body: [
     "★ ガチャの天井<b>★星煌印</b>を<b>全ガチャ共通</b>にしました。どのガチャで引いても同じ印がたまり、<b>100個で好きなガチャの好きなキャラ1体</b>と交換できます（交換は XEVARION ホームのショップ「★星煌印 交換所」）。",
@@ -6185,7 +6197,7 @@ const NEWS = [
   /* ★★ 2026-10-27 ウマ娘風の配色・MagiAbyss 外伝 */
   { date: "2026-10-27", title: "🏝️ MagiAbyss 外伝クエスト・ホームの新しい配色", body: [
     "🏝️ <b>MagiAbyss</b> に<b>外伝クエスト6つ</b>（新しい敵とボス）と<b>ストーリー</b>を追加。中ボス戦は部屋を封鎖するように・豪華な演出も。",
-    "🎨 XEVARION のホームの<b>配色をウマ娘風</b>に（白い板＋灰色のふち・選んだ下タブは水色）。ドット絵の<b>横顔</b>もかわいくなりました。",
+    "🎨 XEVARION のホームの<b>配色を明るくポップ</b>に（白い板＋灰色のふち・選んだ下タブは水色）。ドット絵の<b>横顔</b>もかわいくなりました。",
     "📖 MagiChemLex に組をまるごと解く<b>模試の冊子</b>／🏇 MagiDerby は水曜 0:00 から発売・GⅠ の演出・全券種の予想オッズ。",
   ] },
   /* ★★ 2026-10-26 完凸ロビー・ドット絵 */
@@ -10937,7 +10949,7 @@ function paintEvents() {
       <b>フェス共通のきまり</b>（どのフェスでも同じなので、ここにまとめています）<br>
       ・10連の<b>SSR確定枠</b>は、<b>そのフェスの限定SSR＋プレミアムセレクトガチャのSSR</b>から等確率で出ます。<br>
       ・<b>🎫フェスチケット</b>はフェス専用、<b>🎫ガチャチケット</b>はどのガチャでも使えます。消費は<b>フェス券 → ガチャ券 → ジェム</b>の順です。<br>
-      ・<b>限界突破MAX（👑）のキャラは排出対象外</b>になり、その分は他のSSRに配分されます。
+      ・<b>限界突破MAX（👑）のキャラも1〜9連目では出続け</b>、出たときは💠結晶（UR 10・SSR 5・SR 1）。10連の確定枠は未完凸のキャラだけです。
     </div>` : ""}
     </div>
     <div class="evnav">

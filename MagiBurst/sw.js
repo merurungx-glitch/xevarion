@@ -6,13 +6,13 @@
    ・オンライン対戦・XEVA換金はアプリ側でオフライン時に無効化している
    ・取得できたリソースは随時キャッシュ更新（stale-while-revalidate）
    ============================================================ */
-const VERSION = "magiburst-sw-v202";
+const VERSION = "magiburst-sw-v204";
 const CORE = [
   "./index.html",
   "./css/mb-ui2.css?v=26",
   "./css/localplay.css?v=7",
   "./js/localplay.js?v=8",
-  "./js/mb-core.js?v=143",
+  "./js/mb-core.js?v=145",
   /* ★★ 2026-09-13 クエスト作成（ステージエディター・MB613Create26）。
      遅延読みこみだが、オフラインでも開けるようにここには入れておく。 */
   "./js/mb-create.js?v=2",
@@ -44,10 +44,10 @@ const CORE = [
   "../xeva.js?v=85",
   "../xeva-alive.js?v=8",
   "../xeva-loading.js?v=19",
-  "../xeva-splash.js?v=18",
+  "../xeva-splash.js?v=19",
   "../app-cloud.js?v=15",
-  "../xeva-keys.js?v=34",
-  "./magiburst-cloud.js?v=27",
+  "../xeva-keys.js?v=35",
+  "./magiburst-cloud.js?v=28",
   "../maintenance-gate.js?v=13",
   "../app-install-notice.js?v=9",
   "../XEVA.png",

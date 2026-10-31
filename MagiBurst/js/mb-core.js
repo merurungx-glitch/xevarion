@@ -15,8 +15,8 @@
    <b>ふつうの &lt;script&gt;</b>（type="module" ではない）で読むこと。
    トップレベルの const/let はグローバルの字句環境に入るので、
    あとから読み込む MagiBurst 本体のスクリプトからそのまま見える。
-     MagiBurst : <script src="js/mb-core.js?v=143"></script>
-     gacha.html: <script src="MagiBurst/js/mb-core.js?v=143"></script>
+     MagiBurst : <script src="js/mb-core.js?v=145"></script>
+     gacha.html: <script src="MagiBurst/js/mb-core.js?v=145"></script>
 
    ── ホストが先に用意しておくもの ──
      window.MB_IMGD … 画像フォルダへの相対パス（MagiBurst は "../img/"、ポータルは "img/"）
@@ -15096,7 +15096,8 @@ const CHOKOU_IDS = ["kohaku", "suzu", "shouko", "hisako", "alice"];
 /* ★★ 2026-10-28 ご指定「ヒサコとアリスは、ガチャや図鑑で完凸するとロビーで設定できることを控えめに表記」
    完凸（4凸）でホームの「ロビー」に出せるキャラ（home-lobby.js の DEFS と同じ顔ぶれ。片方を足したらもう一方も）。
    ガチャの顔ぶれのカード（gacha-ui.js の .flb）とキャラ詳細（mb-char-detail.js の .dlob）に小さく出す。 */
-const LOBBY_CHAR_IDS = ["haru", "chika", "hisako", "alice"];   /* ★★ 2026-10-30 超極彩祭のハル・チカも（ご指定「完凸でロビーにセットできる」） */
+const LOBBY_CHAR_IDS = ["haru", "chika", "hisako", "alice", "kohaku", "yuna", "aina", "chie"];   /* ★★ 2026-10-30 超極彩祭のハル・チカも（ご指定「完凸でロビーにセットできる」）
+   ★★ 2026-10-31 コハク・ユナ・アイナ・ヨシノも（ご指定「完凸ロビー対応キャラに追加」・立ち絵は home-lobby.js） */
 function hasLobby(id) { return LOBBY_CHAR_IDS.indexOf(id) >= 0; }
 Object.assign(AO_CHAR_DEF, {
   kohaku: { nm: "コハク",   f: "Kohaku", el: "fire",  shot: "pierce", type: "紅薔薇令嬢型", fesKey: "chokou" },
@@ -15108,7 +15109,7 @@ Object.assign(AO_CHAR_DEF, {
 /* ★★ 2026-10-30 <b>超極彩祭</b>（fes21）の UR 2体（No.286・287）＝ <b>ハル（水）・チカ（闇）</b>（ご指定）。
    ・ご指定「性能は MagiAbyss と MagiBattle の性能のみを所持し、他のゲームの性能は所持しません（MagiChemLex やアイコンでは使用できます）」
      → 超極華祭・超極煌祭と同じ <b>abyssOnly</b> の印（MagiBurst・Boccia・MagiTier には出ない）。
-     ★ MagiBattle の作り直し（超極祭系の UR だけで遊ぶ形）はご指定で<b>後回し</b>（2026-10-30）。それまでは今の MagiBattle と同じく出さない。
+     ★★ 2026-10-30（2回目）MagiBattle を作り直した＝超極祭系の UR 12体だけで遊ぶ形。性能は ../magibattle-stats.js（MBStats v3）が持ち主。
    ・MagiAbyss では<b>ヒサコより少しだけ上</b>（ma-data.js）。完凸でホームのロビーにも（LOBBY_CHAR_IDS・home-lobby.js）。 */
 const CHOSAI_IDS = ["haru", "chika"];
 Object.assign(AO_CHAR_DEF, {
@@ -23463,7 +23464,7 @@ function debutVerOfMode(m) {
 /* スタンバイ（掲載中の版が1つも無い）か */
 function debutStandby() { return debutLiveVers().length === 0; }
 function debutCharsOfMode(m) { const v = debutVerOfMode(m); return v ? v.chars.filter((id) => CHARS[id]) : []; }
-function debutPoolOf(m) { return debutCharsOfMode(m).filter((id) => CHARS[id] && !isMaxAwk(id)); }
+function debutPoolOf(m) { return debutCharsOfMode(m).slice(); }   /* ★★ 2026-10-31 完凸でも外さない */
 /* ★★ 2026-08-28 GRAND DEBUT の新キャラは1体あたり 2.0% 固定（ご指定）。 */
 function debutEachRateOf(m) { return debutPoolOf(m).length ? PICK_DEBUT : 0; }
 /* ══ ★★ 2026-08-25 GRAND DEBUT の排出率（ご指定）══
@@ -23556,7 +23557,7 @@ function debutFreeNextText() {
   return m >= 60 ? Math.floor(m / 60) + "時間" + (m % 60 ? (m % 60) + "分" : "") : m + "分";
 }
 /* 排出対象（限界突破MAXは除外し、そのぶんを残りで分け合う＝フェスと同じ考えかた） */
-function debutPool() { return DEBUT_CHARS.filter((id) => !isMaxAwk(id)); }
+function debutPool() { return DEBUT_CHARS.slice(); }
 function debutEachRate() { return debutPool().length ? PICK_DEBUT : 0; }
 function debutBannerOf() { return mbImgPath(DEBUT_BANNER); }
 /* ══ GRAND DEBUT の「キャラ以外の中身」（ご指定で差し替え）══
@@ -23859,7 +23860,7 @@ function archiveChars() {
   return out;
 }
 /* 排出対象（限界突破MAXは外す） */
-function archivePool() { return archiveChars().filter((id) => !isMaxAwk(id)); }
+function archivePool() { return archiveChars(); }   /* ★★ 2026-10-31 完凸でも外さない */
 function archiveByEl(el) { return byCharNoDesc(archivePool().filter((id) => CHARS[id] && CHARS[id].el === el)); }
 function archivePickMap() {
   if (!DB.pickupArc || typeof DB.pickupArc !== "object") DB.pickupArc = {};
@@ -23870,7 +23871,8 @@ function archivePickOf(el) {
   const list = archiveByEl(el);
   if (!list.length) return null;
   const cur = archivePickMap()[el];
-  return (cur && list.indexOf(cur) >= 0) ? cur : list[0];
+  if (cur && list.indexOf(cur) >= 0) return cur;
+  return list.find((id) => !isMaxAwk(id)) || list[0];   /* えらんでいなければ未完凸の子を先に */
 }
 function archivePickIds() { return ARCHIVE_ELS.map(archivePickOf).filter(Boolean); }
 function setArchivePick(el, id) {
@@ -24015,7 +24017,10 @@ FESTS.fes7 = {
   key: "fes7", sfx: "7", nm: "極彩祭", tab: "極彩祭",
   banner: "../img/bn_fes7_s.webp", c: "#8affc4", leadCls: "star",
   /* ★★ 2026-08-28 極華祭が増えたので 上旬／中旬／下旬 の3本立てになった（ご指定） */
-  monthly: [1, 10],
+  /* ★★ 2026-10-30 ご指定「戦姫祭と BUNNY GIRL FEST と極煌祭と極彩祭と極華祭の開催を終了します。このガチャのキャラはほかのフェス同様、
+     Festival Archive GACHA で今後引くことができます」→ 毎月（monthly）をやめて<b>10月29日まで</b>の期間つきに
+     （fesTimed が true になる＝10/30 0:00 に配信終了・Festival Archive へ封入）。確率は終了まで 1体 PICK_LUX のまま（pickEach）。 */
+  since: "2026-08-27", until: "2026-10-29", pickEach: PICK_LUX,
   noFesTicket: true,   /* ★★ 2026-08-29 フェス券は使えない（フェスガチャではないため） */
   /* ★★ 2026-09-19g ココハ（火）を追加して3体に
      ★★ 2026-10-03 タキナ（水）を追加して4体に
@@ -24043,7 +24048,7 @@ FESTS.fes7 = {
             + (od ? "、のこり" + od + "体は各" + ratePct(PICK_OLD) : "")
             : "<b>全" + od + "体</b>が各" + ratePct(PICK_OLD))
       + "／<b>残りは " + PREMIUM_NM + " のSSRが等確率</b>。"
-      + "<b>毎月 1〜10日（上旬）</b>だけの開催です";
+      + "<b>10月29日で配信終了</b>（キャラクターは " + ARCHIVE_NM + " で引けます）";
   },
   note: "<b>★★ 2026-10-07 タキナは新しいガチャ <b>Sapphire Breeze</b> へ移りました</b>（極彩祭からは出ません）。"
     + "<br><br><b>★★ 2026-10-03 タキナ（水・貫通）</b>を追加。フルバースト<b>キキョウ・スイテンカ</b>は乱打"
@@ -24090,7 +24095,10 @@ FESTS.fes7 = {
 FESTS.fes8 = {
   key: "fes8", sfx: "8", nm: "極煌祭", tab: "極煌祭",
   banner: "../img/bn_fes8_s.webp", c: "#ff9d2e", leadCls: "star",
-  monthly: [21, 31],
+  /* ★★ 2026-10-30 ご指定「戦姫祭と BUNNY GIRL FEST と極煌祭と極彩祭と極華祭の開催を終了します。このガチャのキャラはほかのフェス同様、
+     Festival Archive GACHA で今後引くことができます」→ 毎月（monthly）をやめて<b>10月29日まで</b>の期間つきに
+     （fesTimed が true になる＝10/30 0:00 に配信終了・Festival Archive へ封入）。確率は終了まで 1体 PICK_LUX のまま（pickEach）。 */
+  since: "2026-08-27", until: "2026-10-29", pickEach: PICK_LUX,
   noFesTicket: true,   /* ★★ 2026-08-29 フェス券は使えない（フェスガチャではないため） */
   /* ★★ 2026-08-29 レイナを追加して2体に
      ★★ 2026-09-19e アズサ（水）を追加して3体に */
@@ -24115,7 +24123,7 @@ FESTS.fes8 = {
             + (od ? "、のこり" + od + "体は各" + ratePct(PICK_OLD) : "")
             : "<b>全" + od + "体</b>が各" + ratePct(PICK_OLD))
       + "／<b>残りは " + PREMIUM_NM + " のSSRが等確率</b>。"
-      + "<b>毎月 21日〜末日（下旬）</b>だけの開催です";
+      + "<b>10月29日で配信終了</b>（キャラクターは " + ARCHIVE_NM + " で引けます）";
   },
   note: "<b>★★ 2026-09-19 アズサ（水・反射）</b>を追加。フルバースト<b>アオバラ・ロンドフィナーレ</b>は乱打"
     + AZU_BARRAGE_N + "連＋青薔薇の大輪で合計 攻撃力×" + AZU_TOTAL.toFixed(1) + "——<b>MagiBurst 史上最大</b>。"
@@ -24147,7 +24155,10 @@ FESTS.fes8 = {
 FESTS.fes9 = {
   key: "fes9", sfx: "9", nm: "極華祭", tab: "極華祭",
   banner: "../img/bn_fes9_s.webp", c: "#38a6ff", leadCls: "star",
-  monthly: [11, 20],
+  /* ★★ 2026-10-30 ご指定「戦姫祭と BUNNY GIRL FEST と極煌祭と極彩祭と極華祭の開催を終了します。このガチャのキャラはほかのフェス同様、
+     Festival Archive GACHA で今後引くことができます」→ 毎月（monthly）をやめて<b>10月29日まで</b>の期間つきに
+     （fesTimed が true になる＝10/30 0:00 に配信終了・Festival Archive へ封入）。確率は終了まで 1体 PICK_LUX のまま（pickEach）。 */
+  since: "2026-08-28", until: "2026-10-29", pickEach: PICK_LUX,
   noFesTicket: true,   /* ★★ 2026-08-29 フェス券は使えない（フェスガチャではないため） */
   /* ★★ 2026-09-11 <b>カグラ</b>を追加＝2体になった（ご指定）。
      ★ ここに書き足さないと GACHA_CHARS にも入らず、図鑑の「入手方法」も出ない。 */
@@ -24174,7 +24185,7 @@ FESTS.fes9 = {
             + (od ? "、のこり" + od + "体は各" + ratePct(PICK_OLD) : "")
             : "<b>全" + od + "体</b>が各" + ratePct(PICK_OLD))
       + "／<b>残りは " + PREMIUM_NM + " のSSRが等確率</b>。"
-      + "<b>毎月 11〜20日（中旬）</b>だけの開催です";
+      + "<b>10月29日で配信終了</b>（キャラクターは " + ARCHIVE_NM + " で引けます）";
   },
   note: "<b>★★ 2026-09-11 <b>カグラ</b>（火・貫通）が加わりました。</b>"
     + "<br>★ フルバースト<b>ヒガン・センリンザン</b>は<b>緋刃の乱打" + KAGURA_BARRAGE_N
@@ -24250,10 +24261,14 @@ FESTS.fes10 = {
 FESTS.fes11 = {
   key: "fes11", sfx: "11", nm: "戦姫祭", tab: "戦姫祭",
   banner: "../img/bn_fes11_s.webp", c: "#e0405e", leadCls: "star",
-  luxGacha: true, noFesTicket: true, senki: true,
+  noFesTicket: true, senki: true,
   /* ★★ 2026-09-17f <b>無期限開催</b>の表記を付ける（ご指定）。luxGacha なので期間の動きはもともと無期限——perm は表記のためのしるし */
-  perm: true,
+  /* ★★ 2026-10-30 ご指定「戦姫祭と BUNNY GIRL FEST と極煌祭と極彩祭と極華祭の開催を終了します。このガチャのキャラはほかのフェス同様、
+     Festival Archive GACHA で今後引くことができます」→ 無期限（perm）と luxGacha の印をやめて<b>10月29日まで</b>の期間つきに
+     （fesTimed が true になる＝10/30 0:00 に配信終了・Festival Archive へ封入）。確率は終了まで 1体 PICK_LUX のまま（pickEach）。 */
+  pickEach: PICK_LUX,
   since: "2026-08-29",
+  until: "2026-10-29",
   /* ★★ 2026-09-06 新3体（レイ・リカ・アンナ＆ラン）を追加＝計10体。
      ★ 排出は「新キャラは今までどおりの確率／古いキャラは各0.2%」（ご指定）。
        newChars に新3体を書くと、それ以外は自動で 0.2% になる（pickRateOf）。 */
@@ -24283,7 +24298,7 @@ FESTS.fes11 = {
       + (nw ? "<b>新" + nw + "体（" + nms + "）は各" + ratePct(PICK_LUX) + "</b>、のこり" + od + "体は"
            : "<b>全" + od + "体</b>が実装から" + NEW_CHAR_DAYS + "日を過ぎているので")
       + "<b>各" + ratePct(PICK_OLD) + "</b>／<b>残りは " + PREMIUM_NM + " のSSRが等確率</b>。"
-      + "<b>無期限開催</b>です（🎫フェス券は使えません）";
+      + "<b>10月29日で配信終了</b>（キャラクターは " + ARCHIVE_NM + " で引けます）";
   },
   note: "<b>★★ 2026-09-08 <b>レイア（火）・ミオリ（闇）・アンナ(メイド)（光）</b>の3体が加わりました。</b>"
     + "この3体は<b>MagiBurst 史上最強</b>です——"
@@ -24333,7 +24348,7 @@ FESTS.fes11 = {
     + "これまでの7体は<b>各" + ratePct(PICK_OLD) + "</b>です"
     + "（10連の<b>確定枠</b>はこれまでどおり、このガチャで出るSSR全部から等確率）。"
     + "<br><br><b>ラン・クレナイ・ユキ・マリカ・ユウカ・アンナ(STAR)・アンナ(祭)</b>も"
-    + "そのまま登場する<b>無期限開催</b>のガチャです。"
+    + "そのまま登場する<b>無期限開催</b>のガチャでした（★★ 2026-10-29 で配信終了・キャラクターは " + ARCHIVE_NM + " で引けます）。"
     + "極彩祭・極華祭・極煌祭と同じ<b>限定キャラクター</b>あつかいで、"
     + "<b>🎫フェスチケットは使えません</b>（🎫ガチャチケットは使えます）。"
     + "<br>7体とも<b>アビリティを10個</b>持ちます（MagiBurst 初）——"
@@ -24494,8 +24509,11 @@ FESTS.fes13 = {
   /* ★★ 2026-09-13 <b>無期限開催</b>に変更（ご指定）。
      もとは until: "2026-10-31"（期間限定）だった。until を消して perm にしてあるので、
      fesEnded / fesArchived / fesDaysLeft はすべて「終わらない」扱いになる。 */
-  perm: true,
+  /* ★★ 2026-10-30 ご指定「戦姫祭と BUNNY GIRL FEST と極煌祭と極彩祭と極華祭の開催を終了します。このガチャのキャラはほかのフェス同様、
+     Festival Archive GACHA で今後引くことができます」→ 無期限（perm）をやめて<b>10月29日まで</b>の期間つきに
+     （fesTimed が true になる＝10/30 0:00 に配信終了・Festival Archive へ封入）。確率は終了まで 1体 PICK_LUX のまま（pickEach）。 */
   since: "2026-09-11",
+  until: "2026-10-29",
   /* ★★ 2026-09-11 <b>1体あたり 0.8%</b>（ご指定「戦姫祭と同様に」＝限定キャラのガチャ）。
      ★ 15体そろって新キャラなので、戦姫祭と同じ 1.2% にすると 15×1.2＝18% で
        SSR 合計（12%）を超えてしまい、pickScaleOfMode に勝手に縮められる
@@ -24541,13 +24559,14 @@ FESTS.fes13 = {
           : (nw ? "<b>新" + nw + "体は各" + rn + "</b>、のこり" + od + "体は各" + ratePct(PICK_OLD)
                 : "<b>全" + od + "体</b>が各" + ratePct(PICK_OLD))
             + "／<b>残りは " + PREMIUM_NM + " のSSRが等確率</b>")
-      + "。<b>無期限開催</b>です（🎫フェスチケットが使えます）";
+      + "。<b>10月29日で配信終了</b>（キャラクターは " + ARCHIVE_NM + " で引けます）";
   },
   /* ★ note も<b>ゲッター</b>にする。ここは FESTS.fes13 を組み立てている最中なので、
      素のプロパティにすると fesDef("fes13") がまだ見つからず、
      pickRateOf が既定（プレミアムの 5%）を返してしまう（実際そうなっていた）。 */
   get note() {
-    return "<b>バニーガール</b>の限定SSR <b>17体</b>が登場する、<b>無期限開催</b>のフェスです。"
+    return "<b>★★ 2026-10-29 で配信を終了しました</b>（17体は <b>" + ARCHIVE_NM + "</b> で引けます）。<br>"
+    + "<b>バニーガール</b>の限定SSR <b>17体</b>が登場する、<b>無期限開催</b>のフェスでした。"
     + "<br>★★ <b>2026-09-13 カナ（光）・マキ（闇）が参戦</b>。"
     + "カナ＝<b>⚖第十の審判</b>／マキ＝<b>⚖第九の審判</b>を有利属性のまま完全対応します。"
     + "<br>★ この2体のフルバーストは<b>乱打</b>で、"
@@ -24894,8 +24913,8 @@ FESTS.fes19 = {
       + "<br>★ <b>ヨシノ（火）・イチカ（水）・ノノカ（木）・アイナ（光）・ユナ（闇）</b>の5体。"
       + "5体とも<b>UR</b>で、排出は<b>1体 " + ratePct(pickRateOf("fes19", "yuna")) + "</b>です。"
       + "<br>★ 開催は極華祭と同じ<b>毎月 11〜20日（中旬）</b>。🎫<b>ガチャ券</b>が使えます（フェス券は使えません）。極華祭とは別のガチャです。"
-      + "<br>★ 5体とも <b>MagiAbyss 専用のキャラクター</b>です。性能は <b>MagiAbyss の性能だけ</b>で、"
-      + "MagiBurst・MagiBattle・MagiBocciaRush では使えません（キャラ詳細は MagiAbyss の面だけ）。"
+      + "<br>★ 5体とも <b>MagiAbyss と MagiBattle のキャラクター</b>です（★★ 2026-10-30 作り直した <b>MagiBattle</b> では武器・バースト・スキルの性能）。"
+      + "MagiBurst・MagiBocciaRush では使えません（キャラ詳細は MagiAbyss・MagiBattle の面）。"
       + "<br>★ <b>MagiChemLex のナビゲーター</b>や <b>XEVARION のアイコン</b>には使えます。"
       + "<br>★ MagiAbyss では <b>ユナはタキナより少し強く</b>、ほかの4体は<b>タキナと同じくらい</b>の強さです。";
   },
@@ -24935,8 +24954,8 @@ FESTS.fes20 = {
       + "<br>★ <b>ヒサコ（水）・アリス（闇）</b>が加わり、<b>コハク（火）・スズ（木）・ショウコ（光）</b>とあわせて5体。"
       + "5体とも<b>UR</b>で、排出は<b>1体 " + ratePct(pickRateOf("fes20", "kohaku")) + "</b>です。"
       + "<br>★ 開催は極煌祭と同じ<b>毎月 21日〜末日（下旬）</b>。🎫<b>ガチャ券</b>が使えます（フェス券は使えません）。極煌祭・極華祭とは別のガチャです。"
-      + "<br>★ 5体とも <b>MagiAbyss 専用のキャラクター</b>です。性能は <b>MagiAbyss の性能だけ</b>で、"
-      + "MagiBurst・MagiBattle・MagiBocciaRush では使えません（キャラ詳細は MagiAbyss の面だけ）。"
+      + "<br>★ 5体とも <b>MagiAbyss と MagiBattle のキャラクター</b>です（★★ 2026-10-30 作り直した <b>MagiBattle</b> では武器・バースト・スキルの性能）。"
+      + "MagiBurst・MagiBocciaRush では使えません（キャラ詳細は MagiAbyss・MagiBattle の面）。"
       + "<br>★ <b>MagiChemLex のナビゲーター</b>や <b>XEVARION のアイコン</b>には使えます。"
       + "<br>★ MagiAbyss では <b>ヒサコが UR でいちばん強く</b>、<b>アリス・コハクはユナと同じくらい（タキナより少し強い）</b>、スズ・ショウコは<b>タキナと同じくらい</b>の強さです。"
       /* ★★ 2026-10-26 完凸ロビー（ご指定「ロビーとして完凸で取得できることを表記」） */
@@ -24950,7 +24969,7 @@ FESTS.fes20 = {
      <b>🎫フェス券は使えない</b>（noFesTicket＝ガチャ券のみ・極彩祭と同じ）・初回10連無料なし・アーカイブに入らない。
    ・ご指定「極彩祭とは異なる」→ 別のガチャ（キーも台帳も別）。「ガチャ一覧の一番上」→ chosai の印
      （gachaMenuList で超極煌祭・超極華祭よりも上・開催中だけ／はじめての開催の前だけ予告として上＝topPre／make-gacha-live の top3 でロビーのバナーも先頭）。
-   ・2体とも <b>MagiAbyss 専用</b>（abyssOnly・CHOSAI_IDS）。MagiBurst などの性能は持たない（MagiBattle はご指定で作り直しを後回し）。
+   ・2体とも <b>MagiAbyss 専用</b>（abyssOnly・CHOSAI_IDS）。MagiBurst などの性能は持たない（★★ 2026-10-30 作り直した MagiBattle では使える＝MBStats v3）。
    ══════════════════════════════════════════════════════════════ */
 FESTS.fes21 = {
   key: "fes21", sfx: "21", nm: "超極彩祭", tab: "超極彩祭",
@@ -24977,8 +24996,8 @@ FESTS.fes21 = {
     return "<b>★★ 2026-10-30 新しいガチャ「超極彩祭」</b>"
       + "<br>★ <b>ハル（水）・チカ（闇）</b>の2体。2体とも<b>UR</b>で、排出は<b>1体 " + ratePct(pickRateOf("fes21", "haru")) + "</b>です。"
       + "<br>★ 開催は極彩祭と同じ<b>毎月 1〜10日（上旬）</b>。🎫<b>ガチャ券</b>が使えます（フェス券は使えません）。極彩祭とは別のガチャです。"
-      + "<br>★ 2体とも <b>MagiAbyss 専用のキャラクター</b>です。性能は <b>MagiAbyss の性能だけ</b>で、"
-      + "MagiBurst・MagiBattle・MagiBocciaRush では使えません（キャラ詳細は MagiAbyss の面だけ）。"
+      + "<br>★ 2体とも <b>MagiAbyss と MagiBattle のキャラクター</b>です（ご指定「MagiAbyss と MagiBattle の性能」・★★ 2026-10-30 作り直した <b>MagiBattle</b> では武器・バースト・スキルの性能）。"
+      + "MagiBurst・MagiBocciaRush では使えません（キャラ詳細は MagiAbyss・MagiBattle の面）。"
       + "<br>★ <b>MagiChemLex のナビゲーター</b>や <b>XEVARION のアイコン</b>には使えます。"
       + "<br>★ MagiAbyss では <b>ヒサコより少しだけ強い</b>、UR の最上位の強さです。"
       + '<br><small style="opacity:.78">👑 ハル・チカを完凸（4凸）すると、ホームのロビー（動く立ち絵）に設定できます。ホームの「ロビー」ボタンから選べます。</small>';
@@ -25137,7 +25156,7 @@ const GACHA_CHARS = (function () {
   return out;
 })();
 /* フェスガチャの排出対象（限界突破MAXは除外して、そのぶん他のSSRに配分する） */
-function fesPool(key) { return fesDef(key).chars.filter((id) => !isMaxAwk(id)); }
+function fesPool(key) { return fesDef(key).chars.slice(); }   /* ★★ 2026-10-31 完凸でも外さない（10連目だけ外す） */
 /* ★★ 2026-08-28 フェス限定SSR は1体あたり固定（フェス1.8% ／ 極彩・極華・極煌 1.2%）。
    ★ 排出対象（限界突破MAXでない）でなければ 0%。 */
 function fesEachRate(key) { return fesPool(key).length ? pickRateOfMode(key) : 0; }
@@ -25300,6 +25319,13 @@ function isMaxAwk(id) { return DB.chars[id] && (DB.chars[id].awk || 0) >= MAX_AW
    ══════════════════════════════════════════════════════════════ */
 const CRYST_SSR = 5;          // 完凸後に出たとき：SSR 1体につき 💠5
 const CRYST_SR  = 1;          // 同・SR 1体につき 💠1
+/* ══ ★★ 2026-10-31 ご指定「完凸後もピックアップキャラは排出される形に。10連目のみ未完凸のキャラ。URの完凸後は結晶10個」══
+   ・1〜9連目（単発・5連も）… どのガチャのキャラも完凸で外さない（fesPool / debutPoolOf / debutPool / archivePool から !isMaxAwk を外した）。
+     完凸後に出たときは 💠結晶（UR 10・SSR 5・SR 1＝crystOf）。isEverDrop は全員 true（isDropOut は常に false）。
+   ・10連目（確定枠）… 今までどおり未完凸のキャラだけ（guaranteedPoolOfMode）。ASTRAL BURST の最後の1枠も同じ。
+   ★ セレクト券は「えらんだ1体を確定で」なので、今までどおり完凸のキャラは出さない。 */
+const CRYST_UR  = 10;         // 同・UR 1体につき 💠10
+function crystOf(id) { return (typeof rarLabel === "function" && rarLabel(id) === "UR") ? CRYST_UR : isStar5(id) ? CRYST_SSR : CRYST_SR; }
 const CRYST_EXCHANGE = 75;    // 💠この数で 好きな1体と交換（PREMIUM SELECT / GRAND DEBUT）
 /* ★★ 2026-09-13b <b>Festival Archive GACHA のキャラも交換できる</b>（ご指定）。
    アーカイブは「配信の終わったフェスの限定キャラ」なので、
@@ -25307,7 +25333,7 @@ const CRYST_EXCHANGE = 75;    // 💠この数で 好きな1体と交換（PREMI
 const CRYST_EXCHANGE_ARCHIVE = 150;
 const CRYST_NM = "結晶";
 /* 完凸しても排出され続けるキャラか（＝PREMIUM SELECT GACHA の顔ぶれ） */
-function isEverDrop(id) { return PREMIUM_CHARS.indexOf(id) >= 0; }
+function isEverDrop(id) { return true; }   /* ★★ 2026-10-31 全員（1〜9連目は完凸でも出る） */
 /* ガチャの排出対象から外れているか（完凸、かつ結晶にも換わらない） */
 function isDropOut(id) { return isMaxAwk(id) && !isEverDrop(id); }
 /* 💠結晶の残高（XEVARION 共通ウォレット）。xeva.js が無い画面でも落ちないようにする */
@@ -25689,7 +25715,7 @@ function charStrengths(id, isCross) {
   const rate = isDropOut(id) ? "限界突破MAXのため排出対象外👑"
     : isCross ? (isPick ? ratePct(PICK_RATE) + "（ピックアップのみ排出）" : "排出対象外（ピックアップを切り替え）")
     : (isPick && pickupRate() > 0 ? ratePct(PICK_RATE) + "（ピックアップ中！）" : ratePct(otherRate()))
-      + (isMaxAwk(id) ? "（👑完凸 → " + crystIcon(13) + "結晶+" + (isStar5(id) ? CRYST_SSR : CRYST_SR) + "）" : "");
+      + (isMaxAwk(id) ? "（👑完凸 → " + crystIcon(13) + "結晶+" + crystOf(id) + "）" : "");
   return `<b>SSR「${c.nm}」の強み</b>（${elemNameOf(c)}属性・${c.shot === "pierce" ? "貫通" : "反射"}・${c.type}）
     ${strengthBarsHTML(id, (isCross ? "x_" : "p_") + id)}
     ${evalHTMLWithMarks(id)}
@@ -25827,7 +25853,7 @@ function gachaMenuList() {
     else if (f.kaen) (fesEnded(k) ? ended : kaen).push(row);   /* ★★ 2026-10-28 期間つきにした（終わったら ended へ） */
     /* ★★ 2026-09-23 CRYSTAL ACADEMY FEST は<b>花宴祭のすぐ下</b>（終わったら ended へ） */
     else if (f.crystal) (fesEnded(k) ? ended : crystal).push(row);
-    else if (f.senki) senki.push(row);
+    else if (f.senki) (fesEnded(k) ? ended : senki).push(row);   /* ★★ 2026-10-30 期間つきにした（終わったら ended へ） */
     /* ★★ 2026-09-11 BUNNY GIRL FEST は<b>戦姫祭のすぐ下</b>（ご指定）。
        期間つきのふつうのフェスガチャなので、終わったら ended へ落とすところは rising と同じ。 */
     else if (f.bunny) (fesEnded(k) ? ended : bunny).push(row);
@@ -26394,7 +26420,7 @@ function grantChar(id) {
   /* ★★ 2026-08-30 完凸後に出たぶんは 💠結晶（ゴールドは廃止）。SSR＝5個／SR＝1個。 */
   else {
     result.max = true;
-    result.cryst = isStar5(id) ? CRYST_SSR : CRYST_SR;
+    result.cryst = crystOf(id);   /* ★★ 2026-10-31 UR 10／SSR 5／SR 1 */
     crystAdd(result.cryst, "ガチャ（" + (CHARS[id] ? CHARS[id].nm : id) + "・限界突破MAX）");
   }
   /* ★ 共有キャラ（Bシリーズ4体・ミズキ）は XEVAガチャ側のコレクションにも即時反映
@@ -26774,7 +26800,9 @@ function luxAllSSR(pool) {
   const p = luxPool(pool);
   const out = [];
   for (let i = 0; i < 10; i++) {
-    const r = p ? grantChar(p[Math.floor(Math.random() * p.length)]) : rollOnce();
+    let pp = p;   /* ★★ 2026-10-31 10連目は未完凸の子だけ（全員完凸なら全員から） */
+    if (p && i === 9) { const fr = p.filter((id) => !isMaxAwk(id)); if (fr.length) pp = fr; }
+    const r = pp ? grantChar(pp[Math.floor(Math.random() * pp.length)]) : rollOnce();
     r.lux = "allssr";
     out.push(r);
   }
