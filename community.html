@@ -8,7 +8,7 @@
 <script>(function(){try{var a=JSON.parse(localStorage.getItem('xeva_account_v1'));if(!a||!a.setupDone)location.replace('index.html');}catch(e){}})();</script>
 <script type="module" src="xevarion-fb.js?v=36"></script>
 <script src="xeva-presence.js?v=9" defer></script>
-<script type="module" src="xeva-cloud.js?v=48"></script>
+<script type="module" src="xeva-cloud.js?v=49"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="theme-color" content="#eaf4ff">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -155,6 +155,8 @@ body.isoff .off{display:block}
 <body class="pp-community">
 <!-- ★★ 2026-10-14 下バーは body のいちばん最初で作る（ページの最後に defer で読んでいたので、開いて少しあとに出ていた） -->
 <script src="xeva-tabbar.js?v=8" data-tab="community"></script>
+<!-- ★★ 2026-10-31 ご指定「使い方のアニメーションにアクセスをわかりやすく（それぞれの画面）」→ 上のバーに小さな「？ 使い方」（xeva-tour.js が置く・この画面の章だけ再生） -->
+<script src="xeva-tour.js?v=2" defer></script>
 
 <div class="top">
   <a class="back" href="index.html" aria-label="ホームへ戻る">

@@ -54,7 +54,12 @@ const XH_OFFLINE_OK = {
      ★ 馬券を買う・払い戻すときだけ通信が要る（締切・払い戻しの時刻をサーバーの時刻で確かめるため）。 */
   magiderby:       { name: "MagiDerby",      href: "MagiDerby/index.html",       sw: "MagiDerby/sw.js" },
   /* ★★ 2026-10-23 新作 MagiQuiz。問題は MagiChemLex の問題データ（SW に控える）・1台で遊ぶので通信は要らない（紐づけと賞金だけ通信を使う）。 */
-  magiquiz:        { name: "MagiQuiz",       href: "MagiQuiz/index.html",        sw: "MagiQuiz/sw.js" }
+  magiquiz:        { name: "MagiQuiz",       href: "MagiQuiz/index.html",        sw: "MagiQuiz/sw.js" },
+  /* ★★ 2026-10-30 ご指定「NGX、ISHIDA Production のサイトもオフラインで開けるように」→ サイトごとに sw.js（ページ・CSS・JS・絵を控える） */
+  ngx:             { name: "NGX",            href: "NGX/NGX_website.html",       sw: "NGX/sw.js" },
+  ishida:          { name: "ISHIDA",         href: "IshidaProduction/index.html", sw: "IshidaProduction/sw.js" },
+  /* ★★ 2026-10-31 MagiBattle 3.0（MagiBattle/sw.js が画面・絵・音を全部キャッシュ。アリーナと迎撃戦のランキングだけ通信） */
+  magibattle:      { name: "MagiBattle",     href: "MagiBattle/index.html",      sw: "MagiBattle/sw.js" }
 };
 /* オフラインでも遊べるアプリの名前を「◯◯ ／ ◯◯」でつなぐ。
    ★★ 2026-09-13c <b>案内の文面を手で書かない</b>ためのもの。
@@ -78,9 +83,11 @@ const XH_CATS = [
 /* name = ホームの短い表示名 / full = 正式名 / sub = 一言 / desc = 一覧での説明 */
 const XH_APPS = [
   /* ★★ 2026-09-23 MagiBattle 2.0（全面刷新）。アイコンも新しい絵（?v=2 で古い控えを使わない） */
-  { id:"magibattle", name:"MagiBattle", sub:"バースト連携バトル", cat:"game", tone:"red",   /* ★★ 2026-10-30 新しいロゴ（ご指定）・NEW の印は作り直しまで付けない（ご指定） */
-    href:"MagiBattle/index.html", img:"thumbs/MagiBattle.jpg?v=3",
-    desc:"XEVARION の全キャラで戦うリアルタイムバトルRPG。バーストⅠ→Ⅱ→Ⅲでつなぐ FULL BURST、装備・迎撃戦・無限の塔・スコアアタック。" },
+  /* ★★ 2026-10-30 新しいロゴ（ご指定）／★★ 2026-10-31 作り直した MagiBattle 3.0 の配信 → NEW の印（ご指定「NEW のマークを付けて」）・説明も新しく */
+  /* ★★ 2026-10-31（2回目）ご指定「MagiBattle に β版のマークを」→ beta:true（NEW のかわりに「β版」・期限なし。MagiQuiz と同じ） */
+  { id:"magibattle", name:"MagiBattle", sub:"後ろから撃つ部隊シューティング", cat:"game", tone:"red", newUntil:"2026-11-14", beta: true,
+    href:"MagiBattle/index.html", img:"thumbs/MagiBattle.jpg?v=4",
+    desc:"超極祭系の UR 12体で部隊を組み、遮蔽物のうしろから撃つ部隊シューティング。バーストⅠ→Ⅱ→Ⅲでつなぐ FULL BURST、キャンペーン・アリーナ（ほかの指揮官と5対5）・迎撃戦・タワー・前哨基地。育成はレベル・スキル・装備・キューブ・好感度。キーボードでも遊べます。オフラインOK（アリーナと迎撃戦のランキングは通信が必要）。" },
   /* ★★ 2026-10-24 ご指定「MagiChemLex の UI・構造・システムを中心として MagiLex と統合（基本は別のもの）。MagiLex を開くと 旧MagiLex／MagiChemLex から選べる」
      → MagiLex は入口のページ（MagiLex/index.html）を開く。MagiChemLex はメニュー・ロビーには出さない（inLex）＝MagiLex の中から開く。 */
   { id:"magilex", name:"MagiLex", sub:"化学・英単語・古文", cat:"learn", tone:"blue", newUntil:"2026-11-07",   /* ★★ 2026-10-24 ご指定：NEW の印 */
@@ -301,9 +308,10 @@ const XH_EVENTS = [
     since:"2026-09-13", from:"2026-09-13", to:"2026-10-03",
     href:"gacha.html#debut:8.0", img:"thumbs/MagiBurst.jpg" },
   /* ★★ 2026-09-13 極華祭に クミコ＆レイナ（火＆光）が参戦。毎月 11〜20日の開催。 */
+  /* ★★ 2026-10-30 ご指定で<b>開催終了</b>（10/29 まで）→ always/perm/monthly を外して to。キャラは Festival Archive GACHA へ */
   { tag:"FES", t1:"極華祭 に クミコ＆レイナ",
-    t2:"MagiBurst 史上最大のフルバースト（乱打70連）と史上最強のリンク。3属性有利・ショットスキル付き。極華・ブルームネクサスも強化",
-    always:true, perm:true, monthly:[11, 20], since:"2026-09-13", from:"2026-09-13", to:"2027-12-31",
+    t2:"10月29日まで。MagiBurst 史上最大のフルバースト（乱打70連）と史上最強のリンク。3属性有利・ショットスキル付き。極華・ブルームネクサスも強化",
+    since:"2026-09-13", from:"2026-09-13", to:"2026-10-29",
     href:"gacha.html#fes9", img:"thumbs/MagiBurst.jpg" },
   /* ★★ 2026-09-23 CRYSTAL ACADEMY FEST（20日間の期間限定） */
   { tag:"FES", t1:"CRYSTAL ACADEMY FEST",
@@ -319,19 +327,22 @@ const XH_EVENTS = [
   /* ★★ 2026-09-13 BUNNY GIRL FEST は<b>無期限開催</b>になった（ご指定）。
      戦姫祭と同じように always:true / perm:true を付け、to は空にする。
      ★ perm を書かないと xhEventsLive の「to があるか perm」のふるいに引っかかる。 */
+  /* ★★ 2026-10-30 ご指定で<b>開催終了</b>（10/29 まで）→ always/perm/monthly を外して to。キャラは Festival Archive GACHA へ */
   { tag:"BUNNY FES", t1:"BUNNY GIRL FEST",
-    t2:"無期限開催。限定SSR 17体が参戦！ 全員が⚖天界の審判を有利属性のまま完全対応。サヤは「3属性有利」持ち",
-    always:true, perm:true, since:"2026-09-11", from:"2026-09-11", to:"",
+    t2:"10月29日まで。限定SSR 17体が参戦！ 全員が⚖天界の審判を有利属性のまま完全対応。サヤは「3属性有利」持ち",
+    since:"2026-09-11", from:"2026-09-11", to:"2026-10-29",
     href:"gacha.html#fes13", img:"thumbs/MagiBurst.jpg" },
   /* ★★ 2026-09-11 極華祭に カグラ（火）が参戦。毎月11〜20日の開催。 */
+  /* ★★ 2026-10-30 ご指定で<b>開催終了</b>（10/29 まで）→ always/perm/monthly を外して to。キャラは Festival Archive GACHA へ */
   { tag:"FES", t1:"極華祭 に カグラ",
-    t2:"史上最大の火力（乱打64連＋彼岸の大輪）と史上最重のリンクスキル。極華・ブルームネクサスも強化",
-    always:true, perm:true, monthly:[11, 20], since:"2026-09-11", from:"2026-09-11", to:"2027-12-31",
+    t2:"10月29日まで。史上最大の火力（乱打64連＋彼岸の大輪）と史上最重のリンクスキル。極華・ブルームネクサスも強化",
+    since:"2026-09-11", from:"2026-09-11", to:"2026-10-29",
     href:"gacha.html#fes9", img:"thumbs/MagiBurst.jpg" },
   /* ★★ 2026-09-06 戦姫祭に新3体（MagiBurst 史上最強）。常時開催なので perm:true。 */
+  /* ★★ 2026-10-30 ご指定で<b>開催終了</b>（10/29 まで）→ always/perm/monthly を外して to。キャラは Festival Archive GACHA へ */
   { tag:"SENKI FES", t1:"戦姫祭 に 新3体",
-    t2:"レイ（闇）・リカ（木）・アンナ＆ラン（火＆光）が参戦！ リンクスキルの素の威力が MagiBurst 史上最強",
-    always:true, perm:true, since:"2026-09-06", from:"2026-09-06", to:"",
+    t2:"10月29日まで。レイ（闇）・リカ（木）・アンナ＆ラン（火＆光）が参戦！ リンクスキルの素の威力が MagiBurst 史上最強",
+    since:"2026-09-06", from:"2026-09-06", to:"2026-10-29",
     href:"gacha.html#fes11", img:"thumbs/MagiBurst.jpg" },
   /* ★★ 2026-09-13 RISING STAR FEST も<b>無期限開催</b>になった（ご指定）
      ★★ 2026-10-09 <b>10月31日まで</b>に変更（ご指定）→ always/perm を外して to を入れた（mb-core の FESTS.fes12 も until） */
@@ -356,22 +367,23 @@ const XH_EVENTS = [
     href:"gacha.html#debut:6.0", img:"thumbs/MagiBurst.jpg" },
   /* ★★ 2026-08-29 戦姫祭（常時開催の限定キャラガチャ）。
      ★ 期間で終わらないので always:true。カレンダーでは「常時開催」と出る。 */
-  { tag:"SENKI FES", t1:"戦姫祭", t2:"無期限開催。限定SSR 7体——アビリティ10個・アンナ(祭) は MagiBurst 史上最強",
+  /* ★★ 2026-10-30 ご指定で<b>開催終了</b>（10/29 まで）→ always/perm/monthly を外して to。キャラは Festival Archive GACHA へ */
+  { tag:"SENKI FES", t1:"戦姫祭", t2:"10月29日まで。限定SSR 7体——アビリティ10個・アンナ(祭) は MagiBurst 史上最強",
     /* ★ perm:true を書かないと xhEventsLive の 「to があるか perm」のふるいに引っかかり、
        「開催中のイベント」に<b>一切出ない</b>（実際そうなっていた）。
        always はスケジュールのカレンダー用、perm はホームの一覧用で<b>別の台帳</b>。 */
-    always:true, perm:true, since:"2026-08-29", from:"2026-08-29", to:"",
+    since:"2026-08-29", from:"2026-08-29", to:"2026-10-29",
     href:"gacha.html#fes11", img:"thumbs/MagiBurst.jpg" },
   /* ★★ 2026-08-28 極華祭（毎月11〜20日）。極彩祭＝上旬／極華祭＝中旬／極煌祭＝下旬。 */
-  { tag:"FES", t1:"極華祭", t2:"常時開催（毎月11〜20日）。限定SSR「コトリ」——バスケの乱打48連＋スラムダンクで史上最大の火力",
+  /* ★★ 2026-10-30 ご指定で<b>開催終了</b>（10/29 まで）→ always/perm/monthly を外して to。キャラは Festival Archive GACHA へ */
+  { tag:"FES", t1:"極華祭", t2:"10月29日まで。限定SSR「コトリ」——バスケの乱打48連＋スラムダンクで史上最大の火力",
     /* ★★ 2026-08-29 monthly を書くと、スケジュールのカレンダーに
        <b>その日にちのところだけ</b>出る（from/to は広く取ってあるので、
        書かないと1年じゅう毎日埋まってしまう）。
        ★★ 2026-08-30 <b>perm:true</b>（ご指定）。回せる日は月で決まっているが、
          ガチャとして<b>終わる期限は無い</b>ので「開催期間 8/28〜2027/12/31」ではなく
          <b>常時開催（毎月11〜20日）</b>と出す。表示は xhRenderEvents が monthly を見て作る。 */
-    monthly:[11,20], perm:true,
-    from:"2026-08-28", to:"2027-12-31", img:"thumbs/MagiBurst.jpg", href:"gacha.html#fes9" },
+    from:"2026-08-28", to:"2026-10-29", img:"thumbs/MagiBurst.jpg", href:"gacha.html#fes9" },
   /* ★★ 2026-08-28 Cozy Haven FEST（登場から30日／20日でアーカイブ入り） */
   { tag:"COZY FES", t1:"Cozy Haven FEST", t2:"限定SSR 5体が参戦！ 蓬莱天宮の続き5クエストをまるごと担当します",
     since:"2026-08-28", from:"2026-08-28", to:"2026-09-27",
@@ -389,12 +401,11 @@ const XH_EVENTS = [
        （実際の開催判定は mb-core.js の monthly が行う）。 */
   /* ★★ 2026-10-05 極彩祭に タキナ（水）。 */
   /* ★★ 2026-10-07 タキナは Sapphire Breeze へ移った（ご指定） */
-  { tag:"FES", t1:"極彩祭", t2:"常時開催（毎月1〜10日）。ヒナノ・ハノン・ココハ（タキナは新しい Sapphire Breeze へ移りました）",
-    monthly:[1,10], perm:true,
-    from:"2026-08-27", to:"2027-12-31", img:"thumbs/MagiBurst.jpg", href:"gacha.html#fes7" },
-  { tag:"FES", t1:"極煌祭 に アズサ", t2:"常時開催（毎月21日〜末日）。ムツミ・レイナ＋新登場「アズサ」——史上最大のフルバースト・ネクサス強化",
-    monthly:[21,31], perm:true,
-    from:"2026-08-27", to:"2027-12-31", img:"thumbs/MagiBurst.jpg", href:"gacha.html#fes8" },
+  /* ★★ 2026-10-30 ご指定で<b>開催終了</b>（10/29 まで）→ always/perm/monthly を外して to。キャラは Festival Archive GACHA へ */
+  { tag:"FES", t1:"極彩祭", t2:"10月29日まで。ヒナノ・ハノン・ココハ（タキナは新しい Sapphire Breeze へ移りました）",
+    from:"2026-08-27", to:"2026-10-29", img:"thumbs/MagiBurst.jpg", href:"gacha.html#fes7" },
+  { tag:"FES", t1:"極煌祭 に アズサ", t2:"10月29日まで。ムツミ・レイナ＋新登場「アズサ」——史上最大のフルバースト・ネクサス強化",
+    from:"2026-08-27", to:"2026-10-29", img:"thumbs/MagiBurst.jpg", href:"gacha.html#fes8" },
   /* ★★ 2026-08-26b GRAND DEBUT GACHA Ver.4.0。
      版ごとに10日間の決まりなので、Ver.2.0・Ver.3.0 とあわせて3本が同時に並ぶ。 */
   { tag:"GRAND DEBUT", t1:"GRAND DEBUT GACHA Ver.4.0", t2:"新SSR 5体が参戦！ 蓬莱の第一重・第二重・蓬莱天宮の手薄い階層を埋める面々",
@@ -498,6 +509,23 @@ XH_EVENTS.unshift({ tag:"EVENT", t1:"Midnight Pumpkin", t2:"イベントミッ�
    ══════════════════════════════════════════════════════════════ */
 const XH_UPDATE_MAX = 12;
 const XH_UPDATES = [
+  /* ★★ 2026-10-31 MagiBattle の作り直し・5つのフェスの終了・完凸ロビー・応援配布・ガイド・サイト・MagiDerby */
+  { tag:"NEW", t1:"MagiBattle を1から作り直し（部隊シューティング）", at:"2026-10-31",
+    t2:"超極祭系の UR 12体で、遮蔽物のうしろから撃つ部隊シューティング。バーストⅠ→Ⅱ→Ⅲ→FULL BURST・キャンペーン・アリーナ（5対5）・迎撃戦・タワー・前哨基地。育成はレベル・スキル・装備・キューブ・好感度。キーボード対応・ごほうびはジェム",
+    href:"MagiBattle/index.html", img:"thumbs/MagiBattle.jpg?v=4" },
+  { tag:"FES", t1:"5つのフェスが終了 → Festival Archive GACHA へ", at:"2026-10-31",
+    t2:"戦姫祭・BUNNY GIRL FEST・極煌祭・極彩祭・極華祭のキャラはアーカイブで引けます。終わったガチャのバナー（RISING STAR FEST など）は一覧から外しました（セレクト券は一覧のいちばん上で）",
+    href:"gacha.html", img:"thumbs/MagiBurst.jpg" },
+  { tag:"NEW", t1:"完凸ロビーにコハク・ユナ・アイナ・ヨシノ", at:"2026-10-31",
+    t2:"完凸（4凸）でロビーに出せるキャラが8人に。ガチャ一覧の注目キャラに「完凸でロビー」の王冠の印（絵の左下）",
+    href:"index.html", img:"img/t_Kohaku.webp" },
+  { tag:"EVENT", t1:"応援配布：ガチャチケット70枚", at:"2026-10-31",
+    t2:"全ユーザーに 🎫ガチャチケット70枚。ホーム右上の📧メールから受け取れます", href:"index.html", img:"thumbs/XEVA.png" },
+  { tag:"NEW", t1:"XEVARION ガイド", at:"2026-10-31",
+    t2:"XEVARION のすべての機能を動きとアニメーションで紹介。設定から見られます", href:"index.html#guide", img:"thumbs/Xevarion.png" },
+  { tag:"FIX", t1:"NGX・ISHIDA のサイト／MagiDerby の予想オッズ", at:"2026-10-31",
+    t2:"NGX・ISHIDA Production のサイトをオフラインでも開けるように（ISHIDA は開発アプリ一覧・制作過程を最新に・ロゴのつぶれを修正）。MagiDerby：枠順の発表後に予想オッズが別の馬に付いていたのを修正",
+    href:"IshidaProduction/index.html", img:"thumbs/ISHIDA.webp" },
   /* ★★ 2026-10-30 超極彩祭・毎月のビンゴ・★星煌印の共通化・タイトル画面・ホームの並び・公式サイト・ChemLex */
   { tag:"NEW", t1:"新しいガチャ「超極彩祭」（UR ハル・チカ）", at:"2026-10-30",
     t2:"毎月1〜10日（初回は11月1日から）。ハル（水）・チカ（闇）の UR 2体（各1.5%）——MagiAbyss 専用（ヒサコより少し強い）・完凸でホームのロビーに。🎫ガチャ券OK。開催中はガチャ一覧のいちばん上",
@@ -525,7 +553,7 @@ const XH_UPDATES = [
   { tag:"NEW", t1:"MagiAbyss：外伝クエスト6つ・ストーリー増量・中ボス戦の封鎖", at:"2026-10-27",
     t2:"海に浮かぶ異界の島（新しい敵とボス・どの属性も有利なクエスト3つずつ）・外伝6章と本編の続き・中ボス戦は部屋を封鎖・豪華な演出・マップの閉じる・キャラ変更の反映",
     href:"MagiAbyss/index.html", img:"thumbs/MagiAbyss.jpg?v=2" },
-  { tag:"UPDATE", t1:"ホームをウマ娘風の配色に／MagiChemLex 模試の冊子", at:"2026-10-27",
+  { tag:"UPDATE", t1:"ホームを明るくポップな配色に／MagiChemLex 模試の冊子", at:"2026-10-27",
     t2:"白い板＋灰色のふち・色つきの下タブ（選ぶと水色）・ドット絵の横顔をかわいく／組をまるごと解く模試の冊子（解答・解説つき）／MagiDerby は水曜 0:00 発売・全券種の予想オッズ・GⅠ の演出",
     href:"MagiChemLex/index.html", img:"thumbs/MagiChemLex.jpg?v=2" },
   /* ★★ 2026-10-26 完凸ロビー・バナーのドット絵・MagiDerby の見直し */
@@ -608,8 +636,8 @@ const XH_UPDATES = [
   { tag:"NEW", t1:"MagiChemLex に基礎セット3・4（全1,569問）", at:"2026-10-15",
     t2:"基礎セット1〜4を番号順に並べ直し（記録はそのまま）／習得・習得中・未習を色分けしたバー／絞り込みのときもカードの大きさをそろえた／メモを広く（幅をドラッグで変えられる）・電卓の表示のゆれを修正",
     href:"MagiChemLex/index.html", img:"thumbs/MagiChemLex.jpg?v=2" },
-  { tag:"UPDATE", t1:"更新したファイルの数・下バーの表示・開始画面をウマ娘風に", at:"2026-10-15",
-    t2:"更新画面に実際に変わったファイルの数と大きさ（いつも0件だったのを修正）／ガチャ・コミュニティ・図鑑の下バーを開いた瞬間に表示／タップしてスタートとログインの画面をウマ娘風に",
+  { tag:"UPDATE", t1:"更新したファイルの数・下バーの表示・開始画面を新しいデザインに", at:"2026-10-15",
+    t2:"更新画面に実際に変わったファイルの数と大きさ（いつも0件だったのを修正）／ガチャ・コミュニティ・図鑑の下バーを開いた瞬間に表示／タップしてスタートとログインの画面を新しいデザインに",
     href:"gacha.html", img:"thumbs/MagiBurst.jpg" },
   { tag:"UPDATE", t1:"MagiShift に1手もどる・MagiAbyss の地図を動かせるように", at:"2026-10-15",
     t2:"MagiShift：1手もどる（だれの手でも1手ずつ）・順番はカードめくりで・あと1つでそろう印（標準は表示しない）・中断を10件まで・5〜6人も4つ並べ／MagiAbyss：冒険の地図をドラッグで動かせる／MagiChainParty：バクハツを控えめでカジュアルに・連鎖の数を小さく表示",
@@ -634,12 +662,12 @@ const XH_UPDATES = [
   { tag:"UPDATE", t1:"下バーをいつでも・会社ロゴ・MagiChemLex の絞り込み", at:"2026-10-13",
     t2:"ガチャ・コミュニティ・図鑑でも下バーを表示／起動とアプリを開くたびに3社ロゴ（タップで飛ばせる）／MagiChemLex：問題セットの絞り込み・並び替え・スマホのメモと電卓を大きく",
     href:"MagiChemLex/index.html", img:"thumbs/MagiChemLex.jpg?v=2" },
-  /* ★★ 2026-10-13 選べるSSRキャラ確定チケット・ガチャ演出をさらに豪華に・アイコンとボタンをウマ娘風に・MagiChemLex 全1,013問・MagiAbyss の操作 */
+  /* ★★ 2026-10-13 選べるSSRキャラ確定チケット・ガチャ演出をさらに豪華に・アイコンとボタンをポップなデザインに・MagiChemLex 全1,013問・MagiAbyss の操作 */
   { tag:"NEW", t1:"選べるSSRキャラ確定チケットを2枚プレゼント", at:"2026-10-13",
     t2:"日ごろの感謝をこめて、全員に2枚（メールから受け取り）／ガチャから出る SSR の中から好きな1体を確定で・持っているキャラなら限界突破が進む／ガチャ一覧のいちばん上から使えます",
     href:"gacha.html", img:"thumbs/MagiBurst.jpg" },
-  { tag:"UPDATE", t1:"ガチャ演出をさらに豪華に・アイコンとボタンをウマ娘風に", at:"2026-10-13",
-    t2:"10連はレア度を先に印で見せてその場で昇格・確定演出はキャラの前に／チケット・ジェム・ゴールド・道具の絵を MagiBurst と同じに・光が枠からはみ出さない／右上・下バー・ロビーのアイコン・ボタン・メール・ミッション・設定をウマ娘風に・ロビーのボタンは静止して詰めた（左の「イベント」「更新情報」は廃止）／確率1.5倍の札をコンパクトに／図鑑の並び替えはボタンから選ぶ形に／ダウンロードは件数が変わらず、全部終わってから100%",
+  { tag:"UPDATE", t1:"ガチャ演出をさらに豪華に・アイコンとボタンをポップなデザインに", at:"2026-10-13",
+    t2:"10連はレア度を先に印で見せてその場で昇格・確定演出はキャラの前に／チケット・ジェム・ゴールド・道具の絵を MagiBurst と同じに・光が枠からはみ出さない／右上・下バー・ロビーのアイコン・ボタン・メール・ミッション・設定をポップなデザインに・ロビーのボタンは静止して詰めた（左の「イベント」「更新情報」は廃止）／確率1.5倍の札をコンパクトに／図鑑の並び替えはボタンから選ぶ形に／ダウンロードは件数が変わらず、全部終わってから100%",
     href:"gacha.html", img:"thumbs/MagiBurst.jpg" },
   { tag:"UPDATE", t1:"MagiChemLex 標準セット3・4・全1,013問", at:"2026-10-13",
     t2:"標準セット3・4（マーク式の大問ごとの改題と関連問題）を追加／「本番」は「難関」・時間を計るのは「模試」モード／難関セットの関連問題も小問の範囲ごとにごほうびつき／「関連問題」タブは「単元別問題」に（中身は同じ・問題を足すと自動で加わる）",
@@ -740,11 +768,11 @@ const XH_UPDATES = [
     href:"index.html", img:"home-mate/kiara/bg.webp?v=3" },
   { tag:"UPDATE", t1:"MagiBattle の育成を独立", at:"2026-09-24",
     t2:"レベル・装備は MagiBattle だけで育てるように（MagiBurst のレベルは使わない）。所持と凸はガチャと共通のまま",
-    href:"MagiBattle/index.html", img:"thumbs/MagiBattle.jpg?v=3" },
+    href:"MagiBattle/index.html", img:"thumbs/MagiBattle.jpg?v=4" },
   /* ★★ 2026-09-23 MagiBattle 2.0 */
   { tag:"UPDATE", t1:"MagiBattle を全面リニューアル", at:"2026-09-23",
     t2:"XEVARION の全キャラが参戦／バーストⅠ→Ⅱ→Ⅲの FULL BURST／装備（MagiBurst から引きつぎ）／迎撃戦／凸・所持は共通／同期に対応",
-    href:"MagiBattle/index.html", img:"thumbs/MagiBattle.jpg?v=3" },
+    href:"MagiBattle/index.html", img:"thumbs/MagiBattle.jpg?v=4" },
   /* ★★ 2026-09-23 CRYSTAL ACADEMY FEST・MagiBurst 5体編成 */
   { tag:"UPDATE", t1:"MagiBurst 編成が5体に・新フェス", at:"2026-09-23",
     t2:"CRYSTAL ACADEMY FEST（5体）／神癒の祈り／治癒の祈りは左から順に抽選／編成の重なりを修正",
@@ -1684,10 +1712,10 @@ const XH_PACKS = [
      ★ 戦姫祭は🎫フェス券が使えないガチャなので、付けるのは🎫<b>ガチャ券</b>（gticket）。
        ここを間違えると「チケットがもらえたのにそのガチャで使えない」になる。 */
   { id:"pk_bunny_select", ic:"🐰", nm:"BUNNY GIRL セレクトパック", pay:280, gem:130, ticket:24,
-    fsel:"fes13", c:"#ff6fa8", cycle:"term", max:3,
+    fsel:"fes13", c:"#ff6fa8", cycle:"term", max:3, saleTo:"2026-10-29",   /* ★★ 2026-10-30 BUNNY GIRL FEST の終了にあわせて販売も終了 */
     desc:"BUNNY GIRL FEST の限定SSRから<b>好きな1体を確定で</b>。💎130 と 🎫フェスチケット24枚つき。" },
   { id:"pk_senki_select", ic:"⚔️", nm:"戦姫祭 セレクトパック", pay:280, gem:130, gticket:24,
-    fsel:"fes11", c:"#e0405e", cycle:"term", max:3,
+    fsel:"fes11", c:"#e0405e", cycle:"term", max:3, saleTo:"2026-10-29",   /* ★★ 2026-10-30 戦姫祭の終了にあわせて販売も終了 */
     desc:"戦姫祭の限定SSRから<b>好きな1体を確定で</b>。💎130 と 🎫ガチャチケット24枚つき。" },
   /* ★★ 2026-10-09 RISING STAR FEST が<b>10月31日まで</b>になった → 販売も 10/31 まで（saleTo）。
      ★ to を書くと回数の数え方（期間キー "tall"）が変わって買える回数が戻ってしまうので、to ではなく saleTo。 */
@@ -2255,7 +2283,7 @@ function xhMbReady() {
   if (_xhMbLoading) return _xhMbLoading;
   window.MB_ELEM_JA_NOWATCH = true;   /* ★★ 2026-10-28 属性名を漢字にする見張り（mb-core.js の elJaWatch）はホームではしない */
   _xhMbLoading = xhLoadScript("mb-boot.js?v=18")
-    .then(() => xhLoadScript("MagiBurst/js/mb-core.js?v=143"))
+    .then(() => xhLoadScript("MagiBurst/js/mb-core.js?v=145"))
     .then(() => true)
     .catch((e) => { _xhMbLoading = null; throw e; });
   return _xhMbLoading;
@@ -2320,9 +2348,9 @@ function xhPaintCryst() {
         : 'あと <b>' + (cost - bal % cost) + ' 個</b>で1体と交換できます。') + '</div>' +
     '</div>' +
     '<div class="xh-crnote">' +
-      '💠<b>結晶</b>は、<b>PREMIUM SELECT GACHA のキャラクターが👑完凸になったあと</b>に' +
-      'もう一度出たときにもらえます（<b>SSR＝5個 ／ SR＝1個</b>）。<br>' +
-      '完凸したキャラクターも<b>排出され続ける</b>ので、引き続けるほど結晶がたまります。<br>' +
+      '💠<b>結晶</b>は、<b>ガチャのキャラクターが👑完凸になったあと</b>に' +
+      'もう一度出たときにもらえます（<b>UR＝10個 ／ SSR＝5個 ／ SR＝1個</b>）。<br>' +
+      '完凸したキャラクターも<b>1〜9連目では排出され続ける</b>ので（10連目は未完凸のキャラだけ）、引き続けるほど結晶がたまります。<br>' +
       '<b>' + cost + '個</b>で、<b>PREMIUM SELECT GACHA</b>と<b>GRAND DEBUT GACHA</b>の' +
       '<b>好きな1体</b>と交換できます。すでに持っているキャラを選ぶと<b>限界突破が進みます</b>。<br>' +
       '★ <b>' + acost + '個</b>で、<b>' + (typeof ARCHIVE_NM !== "undefined" ? ARCHIVE_NM : "Festival Archive GACHA") +
@@ -2348,7 +2376,7 @@ async function xhCrystExchange(id) {
       (c.shot === "pierce" ? "貫通" : "反射") + '）と交換します。<br><br>' +
       '💠結晶 <b>' + cost + '個</b> を使います（残り ' + (xhCrystBal() - cost) + '個）。<br>' +
       (mx ? '※ このキャラクターは<b>すでに👑完凸</b>です。交換しても凸は進まず、' +
-            '<b>結晶が ' + (typeof CRYST_SSR !== "undefined" ? CRYST_SSR : 5) + '個もどってくる</b>だけになります。'
+            '<b>結晶が ' + (typeof crystOf === "function" ? crystOf(id) : 5) + '個もどってくる</b>だけになります。'
           : own ? '※ すでに持っているので、<b>限界突破が +' + (awk + 1) + ' に進みます</b>。'
                 : '※ <b>はじめて</b>手に入れます。'),
   });
@@ -3937,7 +3965,31 @@ function xhSyncViewportH() {
   /* キーボードで押し上げられた分（offsetTop）も引いて、見えている範囲だけを器にする */
   const h = Math.max(240, Math.round(vv.height));
   document.documentElement.style.setProperty("--xh-vph", h + "px");
+  /* ★★ 2026-10-31 iOS はキーボードを出すと画面を上へずらす（offsetTop）。入力のある板（.acc-overlay）はそのぶん下げて、見えている所にぴったり重ねる */
+  document.documentElement.style.setProperty("--xh-vvt", Math.max(0, Math.round(vv.offsetTop || 0)) + "px");
 }
+/* ★★ 2026-10-31 ご指定「設定でパスワードなどの文字を入力する欄が画面外に行ってしまう」
+   → 板の中の入力欄にさわったら、キーボードが出きったあとで、その欄が板のスクロールの中で見える位置（まん中あたり）に来るようにする。
+     文書そのものは動かさない（板の中のスクロールだけ）。 */
+function xhKeepFieldInView(el) {
+  if (!el || !el.closest) return;
+  const box = el.closest(".accset-body, .acc-overlay, .xh-sheet-body, .xh-sheet");
+  if (!box) return;
+  const fit = () => {
+    try {
+      const vv = window.visualViewport;
+      const r = el.getBoundingClientRect(), b = box.getBoundingClientRect();
+      const top = Math.max(b.top, 0), bot = Math.min(b.bottom, vv ? vv.offsetTop + vv.height : innerHeight);
+      if (r.top >= top + 8 && r.bottom <= bot - 8) return;
+      box.scrollTop += (r.top + r.height / 2) - (top + bot) / 2;
+    } catch (e) {}
+  };
+  setTimeout(fit, 60); setTimeout(fit, 320); setTimeout(fit, 650);
+}
+document.addEventListener("focusin", (ev) => {
+  const t = ev.target;
+  if (t && /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName) && t.closest && t.closest(".acc-overlay")) xhKeepFieldInView(t);
+});
 if (window.visualViewport) {
   window.visualViewport.addEventListener("resize", xhSyncViewportH);
   window.visualViewport.addEventListener("scroll", xhSyncViewportH);
@@ -7281,9 +7333,10 @@ function xhConsumeHash() {
   const h = (location.hash || "").replace("#", "").toLowerCase();
   /* ★★ 2026-10-13 ガチャ・コミュニティ・図鑑の下バー（xeva-tabbar.js）の「設定」は index.html#settings で来る */
   /* ★★ 2026-10-30 ガチャのショートカット：#shophub＝ショップの一覧・#seal＝★星煌印 交換所 */
-  if (h !== "exchange" && h !== "shop" && h !== "settings" && h !== "seal" && h !== "shophub") return;
+  /* ★★ 2026-10-30 #guide＝XEVARION ガイド（xeva-tour.js・デベロッパーノートなどから） */
+  if (h !== "exchange" && h !== "shop" && h !== "settings" && h !== "seal" && h !== "shophub" && h !== "guide") return;
   try { history.replaceState(null, "", location.pathname + location.search); } catch (e) {}
-  setTimeout(() => { if (h === "shop") xhOpenShop(); else if (h === "shophub") xhOpenShopHub(); else if (h === "seal") xhOpenSeal(); else if (h === "settings") xhOpenSettings(); else xhOpenExchange(); }, 420);
+  setTimeout(() => { if (h === "guide") { if (window.XevaTour) XevaTour.open(); } else if (h === "shop") xhOpenShop(); else if (h === "shophub") xhOpenShopHub(); else if (h === "seal") xhOpenSeal(); else if (h === "settings") xhOpenSettings(); else xhOpenExchange(); }, 420);
 }
 function xhHide() {
   const home = xhEl("xhome"); if (home) home.classList.remove("on");

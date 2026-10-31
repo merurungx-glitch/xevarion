@@ -89,10 +89,10 @@ window.MB_NEW_CHARS = [
   { id: "miduki", since: "2026-09-23", where: "CRYSTAL ACADEMY FEST", mode: "fes16",
     catch: "次の瞬間、ぜんぶ砕けるの。", color: "#9a6bff" },
   /* ── ★★ 2026-09-19g 極彩祭 ココハ ── */
-  { id: "kokoha", since: "2026-09-19", where: "極彩祭（毎月1〜10日）", mode: "fes7",
+  { id: "kokoha", since: "2026-09-19", where: "極彩祭（10/29 で配信終了・Festival Archive GACHA）", mode: "fes7",
     catch: "雨があがるまで、ここにいてくれる？", color: "#e0203a" },
   /* ── ★★ 2026-09-19e 花宴祭 追加2体／極煌祭 アズサ ── */
-  { id: "azusa", since: "2026-09-19", where: "極煌祭（毎月21日〜末日）", mode: "fes8",
+  { id: "azusa", since: "2026-09-19", where: "極煌祭（10/29 で配信終了・Festival Archive GACHA）", mode: "fes8",
     catch: "最後の一曲、あなたと踊ってあげる。", color: "#3f7fe0" },
   { id: "himeri", since: "2026-09-19", where: "花宴祭（10/27 で配信終了・Festival Archive GACHA）", mode: "fes15",
     catch: "鈴が鳴ったら、宴のはじまり。", color: "#ff4d6d" },
@@ -129,12 +129,12 @@ window.MB_NEW_CHARS = [
   { id: "kiduki", since: "2026-09-13", where: "GRAND DEBUT GACHA Ver.8.0", mode: "debut",
     catch: "影が長いほど、朝は近い。", color: "#ffe9a8" },
   /* ── ★★ 2026-09-13 極華祭（毎月11〜20日）── */
-  { id: "kumireina", since: "2026-09-13", where: "極華祭（毎月 11〜20日）", mode: "fes9",
+  { id: "kumireina", since: "2026-09-13", where: "極華祭（10/29 で配信終了・Festival Archive GACHA）", mode: "fes9",
     catch: "ひとつの音になるまで、何度でも。", color: "#ff8ab5" },
   /* ── ★★ 2026-09-13 BUNNY GIRL FEST 追加2体（無期限開催）── */
-  { id: "kana", since: "2026-09-13", where: "BUNNY GIRL FEST（無期限開催）", mode: "fes13",
+  { id: "kana", since: "2026-09-13", where: "BUNNY GIRL FEST（10/29 で配信終了・Festival Archive GACHA）", mode: "fes13",
     catch: "この鐘が鳴ったら、もうおしまい。", color: "#ffd257" },
-  { id: "maki", since: "2026-09-13", where: "BUNNY GIRL FEST（無期限開催）", mode: "fes13",
+  { id: "maki", since: "2026-09-13", where: "BUNNY GIRL FEST（10/29 で配信終了・Festival Archive GACHA）", mode: "fes13",
     catch: "偶数でそろえて。半端は嫌いなの。", color: "#c9b4ff" },
   /* ── ★★ 2026-09-13 SOFT NIGHT FEST（無期限開催）──
      ★ この since は<b>実装日</b>でもある。mb-core.js の charImplDate() がここを見て
@@ -152,23 +152,23 @@ window.MB_NEW_CHARS = [
   /* ── ★★ 2026-09-08 戦姫祭 第3弾（MagiBurst 史上最強）──
      ★ この since は<b>実装日</b>でもある。mb-core.js の charImplDate() がここを見て
        「実装から 10 日以内か（＝新キャラの確率か）」を判定する。 */
-  { id: "reia", since: "2026-09-08", where: "戦姫祭（無期限開催）", mode: "fes11",
+  { id: "reia", since: "2026-09-08", where: "戦姫祭（10/29 で配信終了・Festival Archive GACHA）", mode: "fes11",
     catch: "この陣の内側は、もうわたしの庭。", color: "#ff6f9c" },
-  { id: "miori", since: "2026-09-08", where: "戦姫祭（無期限開催）", mode: "fes11",
+  { id: "miori", since: "2026-09-08", where: "戦姫祭（10/29 で配信終了・Festival Archive GACHA）", mode: "fes11",
     catch: "時間は、奴ってから使うの。", color: "#b06bff" },
-  { id: "annamd", since: "2026-09-08", where: "戦姫祭（無期限開催）", mode: "fes11",
+  { id: "annamd", since: "2026-09-08", where: "戦姫祭（10/29 で配信終了・Festival Archive GACHA）", mode: "fes11",
     catch: "閉店後のフルコース、お具します。", color: "#ffd257" },
   /* ── ★★ 2026-09-07 戦姫祭 第2弾（アンナ＆ランに次ぐ歴代2位）── */
-  { id: "naos", since: "2026-09-07", where: "戦姫祭（無期限開催）", mode: "fes11",
+  { id: "naos", since: "2026-09-07", where: "戦姫祭（10/29 で配信終了・Festival Archive GACHA）", mode: "fes11",
     catch: "敵が多いほど、潮は高くなる。", color: "#38c8ff" },
-  { id: "harukas", since: "2026-09-07", where: "戦姫祭（無期限開催）", mode: "fes11",
+  { id: "harukas", since: "2026-09-07", where: "戦姫祭（10/29 で配信終了・Festival Archive GACHA）", mode: "fes11",
     catch: "当てるほど、結晶は育つの。", color: "#7cc4ff" },
   /* ── ★★ 2026-09-06 戦姫祭に新3体（MagiBurst 史上最強）── */
-  { id: "reis", since: "2026-09-06", where: "戦姫祭（無期限開催）", mode: "fes11",
+  { id: "reis", since: "2026-09-06", where: "戦姫祭（10/29 で配信終了・Festival Archive GACHA）", mode: "fes11",
     catch: "閉店後の暗がりで、ぜんぶ終わらせる。", color: "#c9a6ff" },
-  { id: "rikas", since: "2026-09-06", where: "戦姫祭（無期限開催）", mode: "fes11",
+  { id: "rikas", since: "2026-09-06", where: "戦姫祭（10/29 で配信終了・Festival Archive GACHA）", mode: "fes11",
     catch: "まわるほど、この子は太くなるの。", color: "#8affc4" },
-  { id: "annaran", since: "2026-09-06", where: "戦姫祭（無期限開催）", mode: "fes11",
+  { id: "annaran", since: "2026-09-06", where: "戦姫祭（10/29 で配信終了・Festival Archive GACHA）", mode: "fes11",
     catch: "紅と金。交わるたびに重くなる。", color: "#ffd257" },
   /* ── ★★ 2026-09-06 RISING STAR FEST 第3弾 5体 ── */
   { id: "yoiduki", since: "2026-09-06", where: "RISING STAR FEST（10/27 で配信終了・Festival Archive GACHA）", mode: "fes12",
@@ -207,7 +207,7 @@ window.MB_NEW_CHARS = [
     catch: "号令はひとつ。ついてきなさい。", color: "#c9a6ff" },
   /* ── ★★ 2026-08-30 戦姫祭に アンナ(祭) が加わりました ──
      ★ アンナ(STAR)（annas）とは<b>別人</b>。フルバースト・リンクとも史上最強。 */
-  { id: "annam", since: "2026-08-30", where: "戦姫祭（無期限開催）", mode: "fes11",
+  { id: "annam", since: "2026-08-30", where: "戦姫祭（10/29 で配信終了・Festival Archive GACHA）", mode: "fes11",
     catch: "花火が上がるたび、盤面ごと灼ける。", color: "#ffd257" },
   /* ── ★★ 2026-08-30 GRAND DEBUT GACHA Ver.6.0 新SSR 5体 ──
      ★ 蓬莱天宮の続き5クエスト（仙苑・月宮・神域・天界・神天）の<b>最適解</b>。 */
@@ -224,24 +224,24 @@ window.MB_NEW_CHARS = [
   /* ── ★★ 2026-08-29 戦姫祭（常時開催）限定SSR 6体 ──
      ★ 極彩祭・極華祭・極煌祭と同じ<b>限定キャラクター</b>あつかい（🎫フェス券は使えない）。
      ★ 6体とも<b>アビリティ10個</b>（MagiBurst 初）。アンナは<b>史上最強</b>。 */
-  { id: "annas", since: "2026-08-29", where: "戦姫祭（無期限開催）", mode: "fes11",
+  { id: "annas", since: "2026-08-29", where: "戦姫祭（10/29 で配信終了・Festival Archive GACHA）", mode: "fes11",
     catch: "星が降るたび、重くなる。これが最強。", color: "#c9a6ff" },
-  { id: "rans", since: "2026-08-29", where: "戦姫祭（無期限開催）", mode: "fes11",
+  { id: "rans", since: "2026-08-29", where: "戦姫祭（10/29 で配信終了・Festival Archive GACHA）", mode: "fes11",
     catch: "お待たせしました。次の一皿はもっと重い。", color: "#ff5d47" },
-  { id: "kurenai", since: "2026-08-29", where: "戦姫祭（無期限開催）", mode: "fes11",
+  { id: "kurenai", since: "2026-08-29", where: "戦姫祭（10/29 で配信終了・Festival Archive GACHA）", mode: "fes11",
     catch: "削るほど癒える。癒えるほど、削れる。", color: "#ff9d2e" },
-  { id: "yuki", since: "2026-08-29", where: "戦姫祭（無期限開催）", mode: "fes11",
+  { id: "yuki", since: "2026-08-29", where: "戦姫祭（10/29 で配信終了・Festival Archive GACHA）", mode: "fes11",
     catch: "灯りが1本ずつ、夜景を高くしていく。", color: "#7cc4ff" },
-  { id: "marika", since: "2026-08-29", where: "戦姫祭（無期限開催）", mode: "fes11",
+  { id: "marika", since: "2026-08-29", where: "戦姫祭（10/29 で配信終了・Festival Archive GACHA）", mode: "fes11",
     catch: "線と線が交わるところで、答えが出る。", color: "#8affc4" },
-  { id: "yuukas", since: "2026-08-29", where: "戦姫祭（無期限開催）", mode: "fes11",
+  { id: "yuukas", since: "2026-08-29", where: "戦姫祭（10/29 で配信終了・Festival Archive GACHA）", mode: "fes11",
     catch: "満ちるまで待って。あふれた瞬間が本番。", color: "#ffd257" },
   /* ── ★★ 2026-08-29 極煌祭（毎月21日〜末日）にレイナが加わりました ── */
-  { id: "reina", since: "2026-08-29", where: "極煌祭（毎月21日〜末日）", mode: "fes8",
+  { id: "reina", since: "2026-08-29", where: "極煌祭（10/29 で配信終了・Festival Archive GACHA）", mode: "fes8",
     catch: "黒薔薇は、倒すほど遠くまで咲く。", color: "#c9a6ff" },
   /* ── ★★ 2026-08-28 極華祭（毎月11〜20日） ──
      ★ 極彩祭＝上旬（1〜10日）／極華祭＝中旬（11〜20日）／極煌祭＝下旬（21日〜末日）。 */
-  { id: "kotori", since: "2026-08-28", where: "極華祭（毎月11〜20日）", mode: "fes9",
+  { id: "kotori", since: "2026-08-28", where: "極華祭（10/29 で配信終了・Festival Archive GACHA）", mode: "fes9",
     catch: "そのダンクは、史上最大の一撃になる。", color: "#38a6ff" },
   /* ── ★★ 2026-08-28 GRAND DEBUT GACHA Ver.5.0 新SSR 5体 ──
      ★ 蓬莱天宮の続き5クエスト（仙苑・月宮・神域・天界・神天）をまるごと担当する。 */
@@ -271,9 +271,9 @@ window.MB_NEW_CHARS = [
   /* ── ★★ 2026-08-27 極彩祭（毎月1〜15日）・極煌祭（毎月16日〜末日） ──
      ★ どちらも<b>毎月まるごと入れ替わる</b>フェス。終わりの日付は決めていない。
      ★ mode は fesX のキー（ガチャ画面をその祭で開く）。 */
-  { id: "hinano", since: "2026-08-27", where: "極彩祭（毎月1〜10日）", mode: "fes7",
+  { id: "hinano", since: "2026-08-27", where: "極彩祭（10/29 で配信終了・Festival Archive GACHA）", mode: "fes7",
     catch: "その光は、敵の色ごと塗り替える。", color: "#8affc4" },
-  { id: "mutsumi", since: "2026-08-27", where: "極煌祭（毎月21日〜末日）", mode: "fes8",
+  { id: "mutsumi", since: "2026-08-27", where: "極煌祭（10/29 で配信終了・Festival Archive GACHA）", mode: "fes8",
     catch: "紅い影が、もう一本の軌跡を走る。", color: "#ff9d2e" },
   /* ── ★★ 2026-08-26b GRAND DEBUT GACHA Ver.4.0 新SSR 5体 ──
      ★ 版ごとに10日間の決まりなので、Ver.2.0（〜09-03）・Ver.3.0（〜09-05）と
@@ -525,36 +525,36 @@ window.MB_NEW_CHARS = [
   /* ══ ★★ 2026-09-11 BUNNY GIRL FEST 15体 ＋ 極華祭 カグラ ══
      ★ since は<b>実装日</b>。charImplDate() がここを読み、
        NEW_CHAR_DAYS（10日）を過ぎると自動で PICK_OLD（0.4%）に落ちる。 */
-  { id: "saya", since: "2026-09-11", where: "BUNNY GIRL FEST", mode: "fes13",
+  { id: "saya", since: "2026-09-11", where: "BUNNY GIRL FEST（10/29 で配信終了・Festival Archive GACHA）", mode: "fes13",
     catch: "どの属性にも、わたしは有利。", color: "#e8e4ff" },
-  { id: "aoik", since: "2026-09-11", where: "BUNNY GIRL FEST", mode: "fes13",
+  { id: "aoik", since: "2026-09-11", where: "BUNNY GIRL FEST（10/29 で配信終了・Festival Archive GACHA）", mode: "fes13",
     catch: "ふたりで、ひとつ。", color: "#9fd8ff" },
-  { id: "narumi", since: "2026-09-11", where: "BUNNY GIRL FEST", mode: "fes13",
+  { id: "narumi", since: "2026-09-11", where: "BUNNY GIRL FEST（10/29 で配信終了・Festival Archive GACHA）", mode: "fes13",
     catch: "賭けは、いつも大きく。", color: "#3ce07a" },
-  { id: "ayame", since: "2026-09-11", where: "BUNNY GIRL FEST", mode: "fes13",
+  { id: "ayame", since: "2026-09-11", where: "BUNNY GIRL FEST（10/29 で配信終了・Festival Archive GACHA）", mode: "fes13",
     catch: "ラストオーダー、いただくわ。", color: "#c48cff" },
-  { id: "misaki", since: "2026-09-11", where: "BUNNY GIRL FEST", mode: "fes13",
+  { id: "misaki", since: "2026-09-11", where: "BUNNY GIRL FEST（10/29 で配信終了・Festival Archive GACHA）", mode: "fes13",
     catch: "氷は、鏡になるの。", color: "#7cc4ff" },
-  { id: "kyoka", since: "2026-09-11", where: "BUNNY GIRL FEST", mode: "fes13",
+  { id: "kyoka", since: "2026-09-11", where: "BUNNY GIRL FEST（10/29 で配信終了・Festival Archive GACHA）", mode: "fes13",
     catch: "看板に、火を入れて。", color: "#ff6fd8" },
-  { id: "haduki", since: "2026-09-11", where: "BUNNY GIRL FEST", mode: "fes13",
+  { id: "haduki", since: "2026-09-11", where: "BUNNY GIRL FEST（10/29 で配信終了・Festival Archive GACHA）", mode: "fes13",
     catch: "遠いほど、よく当たる。", color: "#2fbf71" },
-  { id: "hikari", since: "2026-09-11", where: "BUNNY GIRL FEST", mode: "fes13",
+  { id: "hikari", since: "2026-09-11", where: "BUNNY GIRL FEST（10/29 で配信終了・Festival Archive GACHA）", mode: "fes13",
     catch: "満タンのHPが、そのまま配当。", color: "#ffd257" },
-  { id: "ruri", since: "2026-09-11", where: "BUNNY GIRL FEST", mode: "fes13",
+  { id: "ruri", since: "2026-09-11", where: "BUNNY GIRL FEST（10/29 で配信終了・Festival Archive GACHA）", mode: "fes13",
     catch: "潮は、下から満ちるもの。", color: "#2f7fff" },
-  { id: "nagisa", since: "2026-09-11", where: "BUNNY GIRL FEST", mode: "fes13",
+  { id: "nagisa", since: "2026-09-11", where: "BUNNY GIRL FEST（10/29 で配信終了・Festival Archive GACHA）", mode: "fes13",
     catch: "外の弧ほど、高く跳ねる。", color: "#5cc8ff" },
-  { id: "hiyori", since: "2026-09-11", where: "BUNNY GIRL FEST", mode: "fes13",
+  { id: "hiyori", since: "2026-09-11", where: "BUNNY GIRL FEST（10/29 で配信終了・Festival Archive GACHA）", mode: "fes13",
     catch: "天井まで、上がりきって。", color: "#8ad6ff" },
-  { id: "erika", since: "2026-09-11", where: "BUNNY GIRL FEST", mode: "fes13",
+  { id: "erika", since: "2026-09-11", where: "BUNNY GIRL FEST（10/29 で配信終了・Festival Archive GACHA）", mode: "fes13",
     catch: "みんな、席について。", color: "#e0405e" },
-  { id: "momoka", since: "2026-09-11", where: "BUNNY GIRL FEST", mode: "fes13",
+  { id: "momoka", since: "2026-09-11", where: "BUNNY GIRL FEST（10/29 で配信終了・Festival Archive GACHA）", mode: "fes13",
     catch: "ピース、大きく開いて！", color: "#ff9ec4" },
-  { id: "miyuki", since: "2026-09-11", where: "BUNNY GIRL FEST", mode: "fes13",
+  { id: "miyuki", since: "2026-09-11", where: "BUNNY GIRL FEST（10/29 で配信終了・Festival Archive GACHA）", mode: "fes13",
     catch: "ゼロで、もう一度。", color: "#e6e0f0" },
-  { id: "natsume", since: "2026-09-11", where: "BUNNY GIRL FEST", mode: "fes13",
+  { id: "natsume", since: "2026-09-11", where: "BUNNY GIRL FEST（10/29 で配信終了・Festival Archive GACHA）", mode: "fes13",
     catch: "あまく固めて、砕くね。", color: "#ff9d2e" },
-  { id: "kagura", since: "2026-09-11", where: "極華祭（毎月11日〜20日）", mode: "fes9",
+  { id: "kagura", since: "2026-09-11", where: "極華祭（10/29 で配信終了・Festival Archive GACHA）", mode: "fes9",
     catch: "彼岸まで、斬りつづける。", color: "#ff3b5c" },
 ];

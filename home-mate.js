@@ -1891,20 +1891,21 @@
       const L = window.HMLobby, box = sh.querySelector(".hm-lb-list"), info = sh.querySelector(".hm-lb-info");
       if (!L) { info.textContent = "読みこみ中です…"; box.innerHTML = ""; return; }
       const curLb = lobbyId();
-      info.innerHTML = '超極煌祭の <b>ヒサコ</b>・<b>アリス</b>は、<b>完凸（4凸）</b>すると<b>ロビー</b>として選べます。' +
+      /* ★★ 2026-10-31 対応キャラが8人に（ハル・チカ・ヒサコ・アリス・コハク・ユナ・アイナ・ヨシノ）→ 入手先は DEFS の fes */
+      info.innerHTML = '超極祭（超極彩祭・超極煌祭・超極華祭）の UR のうち、下の <b>' + L.ids().length + '人</b>は<b>完凸（4凸）</b>すると<b>ロビー</b>として選べます。' +
         '動く立ち絵と、木もれ日の展望テラスの背景になります。' + (curLb ? '<button type="button" class="hm-lb-off">ロビーを外して、パートナーにもどす</button>' : "");
       box.innerHTML = L.ids().map((id) => {
         const d = L.DEFS[id], a = L.awkOf(id), ok = a.awk >= 4, isCur = curLb === id;
         const tag = isCur ? '<span class="now">選択中</span>' : ok ? "" : '<span class="lock">🔒 完凸で解放</span>';
         const how = ok ? '<span class="hm-lb-awk ok">完凸ずみ・選べます</span>'
-          : '<span class="hm-lb-awk">' + (a.own ? "いま " + a.awk + " 凸（あと " + (4 - a.awk) + "）" : "まだ持っていません") + "・超極煌祭（毎月21日〜末日）</span>";
+          : '<span class="hm-lb-awk">' + (a.own ? "いま " + a.awk + " 凸（あと " + (4 - a.awk) + "）" : "まだ持っていません") + "・" + (d.fes || "超極祭") + "</span>";
         return '<button type="button" class="hm-pk-item hm-lb-item' + (isCur ? " on" : "") + (ok ? "" : " locked") + '" data-lb="' + id + '" style="--c:' + d.color + '">' +
           '<span class="ph" style="background-image:url(' + L.src(d.bg) + ')"><img data-lb="' + id + '" src="' + L.src(d.img) + '" alt="" loading="lazy"></span>' +
           '<span class="nm">' + d.name + "<small>" + d.ruby + '</small></span><span class="ds">' + d.intro + "</span>" + how + tag + "</button>";
       }).join("");
       box.querySelectorAll(".hm-lb-item").forEach((b) => { b.onclick = () => {
         const id = b.dataset.lb, d = L.DEFS[id];
-        if (!L.unlocked(id)) { flash(info, "🔒 <b>" + d.name + "</b>のロビーは、" + d.name + "を<b>完凸（4凸）</b>すると選べます（超極煌祭・毎月21日〜末日）。"); return; }
+        if (!L.unlocked(id)) { flash(info, "🔒 <b>" + d.name + "</b>のロビーは、" + d.name + "を<b>完凸（4凸）</b>すると選べます（" + (d.fes || "超極祭") + "）。"); return; }
         api.setLobby(id); sh.classList.remove("on");
       }; });
       box.querySelectorAll(".hm-lb-item .ph img").forEach((im) => centerLobby(im, im.dataset.lb));

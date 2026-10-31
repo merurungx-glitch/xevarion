@@ -16,7 +16,7 @@
 <script src="maintenance-gate.js?v=13"></script>
 <!-- ★★ 2026-10-13 ご指定「アプリ開始時に企業ロゴ」：XEVARION を起動したときだけ 3社ロゴ → XEVARION のロゴとロードバー
      （アプリから戻ってきたとき＝このタブで「タップしてスタート」ずみは出さない。判定は xeva-splash.js の data-home） -->
-<script src="xeva-splash.js?v=18" data-app="XEVARION" data-logo="icons/xev-512.png" data-home="1" data-keep-legacy="1"></script>
+<script src="xeva-splash.js?v=19" data-app="XEVARION" data-logo="icons/xev-512.png" data-home="1" data-keep-legacy="1"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Exo+2:ital,wght@0,300;0,400;0,600;0,700;1,300&family=Noto+Sans+JP:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
@@ -175,10 +175,11 @@ html #xlBan.pre{box-shadow:0 0 0 2px #fff,0 0 0 3.5px #ff8a1f,0 3px 0 3.5px rgba
 <!-- ★ 2026-08-18 新キャラ告知の台帳（MagiBurst と共通）。
      告知を<b>ポータルのログイン時</b>に一本化したので、ここでも読む。
      defer なので xevarion.js より先に実行される（書いた順番で走る）。 -->
-<script src="mb-newchars.js?v=41" defer></script>
-<script src="xeva-devnotes.js?v=6" defer></script><!-- ★★ 2026-10-24 デベロッパーノート（新キャラのお知らせの代わり） -->
+<script src="mb-newchars.js?v=42" defer></script>
+<script src="xeva-devnotes.js?v=8" defer></script>
+<script src="xeva-tour.js?v=2" defer></script><!-- ★★ 2026-10-30 XEVARION ガイド（全機能をアニメで紹介・設定から／#guide） --><!-- ★★ 2026-10-24 デベロッパーノート（新キャラのお知らせの代わり） -->
 <!-- ★★ 2026-09-25 ガチャの台帳（開催期間とバナー。make-gacha-live.py が mb-core.js から自動で作る）。ホーム左上のバナー用 -->
-<script src="gacha-live.js?v=10" defer></script>
+<script src="gacha-live.js?v=11" defer></script>
 <!-- ★★ 2026-08-22b Xevion OS（XEVARION の UI をひとつの OS として扱う土台）。
      ほかの画面より<b>先に</b>読む（body のクラスを立てるので、あとから読むと一瞬ちらつく）。 -->
 <script src="xevion-os.js?v=13"></script>
@@ -188,14 +189,14 @@ html #xlBan.pre{box-shadow:0 0 0 2px #fff,0 0 0 3.5px #ff8a1f,0 3px 0 3.5px rgba
 <script type="module" src="xeva-sync.js?v=18"></script>
 <script type="module" src="xevarion-fb.js?v=36"></script>
 <script src="xeva-presence.js?v=9" defer></script>
-<script type="module" src="xeva-cloud.js?v=48"></script>
+<script type="module" src="xeva-cloud.js?v=49"></script>
 <!-- ★★ 2026-10-16 キャラの所持・凸（magiburst_v1）もここで同期する（前は読むだけで、別の端末で引いたキャラが出てこないことがあった） -->
-<script type="module" src="MagiBurst/magiburst-cloud.js?v=27"></script>
+<script type="module" src="MagiBurst/magiburst-cloud.js?v=28"></script>
 <script src="xeva-qr.js?v=9" defer></script>
-<script src="xevarion.js?v=108" defer></script>
-<script src="xevarion-home.js?v=173" defer></script>
-<script src="home-lobby.js?v=2" defer></script><!-- ★★ 2026-10-26 完凸ロビー（ヒサコ・アリス）。home-mate.js より先 -->
-<script src="home-mate.js?v=33" defer></script>
+<script src="xevarion.js?v=110" defer></script>
+<script src="xevarion-home.js?v=175" defer></script>
+<script src="home-lobby.js?v=3" defer></script><!-- ★★ 2026-10-26 完凸ロビー（ヒサコ・アリス）。home-mate.js より先 -->
+<script src="home-mate.js?v=34" defer></script>
 <script src="home-dot.js?v=4" defer></script><!-- ★★ 2026-10-26 イベントのバナーの上を動くドット絵のキャラ（MagiAbyss のドット絵） -->
 <!-- ★★ 2026-10-24 MagiDerby・MagiScope のデータの先読み（ご指定「アプリを開いていなくても情報を取得してオフラインでも開けるように」） -->
 <script src="xeva-prefetch.js?v=1" defer></script>
@@ -787,7 +788,7 @@ body.xos-nomotion .xh-start-tap .hp, body.xos-nomotion .xh-start-sub, body.xos-n
     </div>
 
     <!-- ───── タブバー ─────
-         ★★ 2026-10-12d アイコンをウマ娘風に描き直した（ご指定）。色は xeva-uma.css の .uic（--ua/--ub/--uk）で、
+         ★★ 2026-10-12d アイコンをポップなデザインに描き直した（ご指定）。色は xeva-uma.css の .uic（--ua/--ub/--uk）で、
          えらんでいないタブは淡い灰緑・えらんだタブは緑の札が浮いて白い絵になる。右上・ロビーのアイコンも同じ作り。 -->
     <div class="xh-bar" role="tablist">
       <!-- ★★ 2026-10-20 ご指定で並びを「図鑑・ガチャ・ホーム・コミュニティ・設定」に（ホームがまん中）。xeva-tabbar.js の TABS も同じ順 -->
@@ -1225,6 +1226,12 @@ body.xos-nomotion .xh-start-tap .hp, body.xos-nomotion .xh-start-sub, body.xos-n
       </button>
 
       <div class="xh-sec-label">XEVARION について</div>
+      <!-- ★★ 2026-10-30 ご指定「XEVARION の全ての機能の紹介を動きとアニメーションで・設定などから見られるように」（xeva-tour.js） -->
+      <button class="xh-row" onclick="xhCloseSheet('xhSetSheet');window.XevaTour&&XevaTour.open()">
+        <span class="rl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="6.4" y="2.8" width="11.2" height="18.4" rx="2.6"/><path d="M10.6 9.2l3.6 2.3-3.6 2.3z" fill="currentColor"/><path d="M10.4 18.2h3.2"/></svg>
+          <span><span class="rt">XEVARION ガイド</span><span class="rs">すべての機能を動きとアニメーションで紹介</span></span></span>
+        <span class="rv">›</span>
+      </button>
       <button class="xh-row" onclick="xhOpenGemGuide()">
         <span class="rl"><img src="gem.png" alt="" style="width:22px;height:22px;object-fit:contain">
           <span><span class="rt">ジェムの入手方法</span><span class="rs">XEVARION 共通のプレミアム通貨</span></span></span>
@@ -2118,6 +2125,12 @@ body.xos-nomotion .xh-start-tap .hp, body.xos-nomotion .xh-start-sub, body.xos-n
 /* ══ アカウント設定：メール／お知らせ／ミッションと同じ「下から出るシート」に統一 ══ */
 .acc-overlay.sheetify{background:rgba(40,70,130,.36);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px);
   justify-content:flex-end;align-items:center;overflow:visible;padding:0}
+/* ★★ 2026-10-31 ご指定「設定でパスワードなどの文字を入力する欄が画面外に行ってしまうことがある」
+   真因：キーボードが出ると見えている高さ（--xh-vph）は縮むのに、板は 82svh のまま → 下ぞろえの板の上側（入力欄・✕）が画面の外へ。
+   → 板は器（＝見えている高さ）より高くならない（max-height:100%）。iOS が画面をずらしたぶん（--xh-vvt）器も下げる。
+     入力欄にさわったら、その欄を板の中で見える位置までスクロール（xevarion-home.js xhKeepFieldInView）。 */
+.acc-overlay{top:var(--xh-vvt,0px)}
+.acc-overlay.sheetify .acc-card{max-height:100%}
 .acc-overlay.sheetify .acc-card{width:100%;max-width:600px;height:min(82svh,760px);margin:0;
   display:flex;flex-direction:column;padding:0;border-radius:26px 26px 0 0;border-bottom:none;
   background:linear-gradient(180deg,#ffffff,#f4f9ff);box-shadow:0 -10px 40px rgba(60,100,180,.28);
@@ -2400,6 +2413,33 @@ body.xos-nomotion .xbg-fx,body.xos-nomotion .xbg-fx h4{animation:none}
   <div class="nm-body" id="newsBody">
     <div class="nm-divider" id="newDivider" style="display:none;">NEW — 前回から更新</div>
     <!-- 2026-10-24：レベル・スタミナ廃止／同期の作り直し／MagiLex と MagiChemLex の統合／超極煌祭にヒサコ・アリス／WP 交換所にミキ／MagiDerby の券面／MagiShift の順位／デベロッパーノート -->
+    <!-- 2026-10-31：MagiBattle の作り直し（部隊シューティング・超極祭系の UR 12体）／戦姫祭・BUNNY GIRL FEST・極煌祭・極彩祭・極華祭の終了／完凸ロビーに4人／応援配布 ガチャチケット70枚／XEVARION ガイド／NGX・ISHIDA のオフライン／MagiDerby の予想オッズ -->
+    <div class="nm-item" data-tag="new" data-date="2026-10-31">
+      <div class="nm-date">2026<br>10.31</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag new">NEW</span></div>
+        <div class="nm-title">👑 完凸してもピックアップが出るように（10連目は未完凸のみ）／⚡ MagiBattle の手直し／📖 使い方ガイド</div>
+        <div class="nm-txt">・<b>ガチャ</b>：<b>1〜9連目（単発・5連も）</b>は、👑完凸したキャラも<b>ピックアップのまま出続けます</b>（出たら💠結晶）。<b>10連目（最後の1枠）は未完凸のキャラだけ</b>。完凸後の結晶は<b>UR 10個</b>・SSR 5個・SR 1個。提供割合は「1〜9連目」「10連目」に分けてのせました。<br>
+          ・<b>MagiBattle</b>：演出の強化・敵の攻撃パターンとウェーブの追加・オリジナル BGM・使い方のアニメ・ストーリーの記録・明るい見た目・ボタンでの並べ替え／絞り込み・アイテムのまとめて使用。<b>アリーナは全部自動</b>に。出撃の帯が浮いていたのを修正。<br>
+          ・<b>XEVARION</b>：各画面から<b>使い方のアニメ</b>を開けるように。設定の入力欄が画面外に出ないように。起動画面の背景をアプリごとの色に。<br>
+          ・<b>MagiChemLex</b>：XEVA のもらい方をアニメで説明。ビンゴの「メモを使う」が達成できなかったのを修正。</div>
+      </div>
+    </div>
+    <div class="nm-item" data-tag="new" data-date="2026-10-31">
+      <div class="nm-date">2026<br>10.31</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag new">NEW</span></div>
+        <div class="nm-title">⚡ MagiBattle を1から作り直しました（部隊シューティング）／🎪 5つのフェスが終了／🎫 ガチャチケット70枚</div>
+        <div class="nm-txt">・<b>MagiBattle</b>：ゲームもアプリも<b>1から作り直しました</b>。<b>超極祭系（超極彩祭・超極煌祭・超極華祭）の UR 12体</b>で部隊を組み、遮蔽物のうしろから撃つ部隊シューティングです。バースト<b>Ⅰ→Ⅱ→Ⅲ→FULL BURST</b>・キャンペーン（ストーリー）・<b>アリーナ</b>（ほかの指揮官の防衛編成と5対5）・<b>迎撃戦</b>（月間ランキング）・タワー・前哨基地・研究・任務・ショップ。育成はレベル・スキル・装備・キューブ・好感度。<b>キーボード</b>でも遊べ、ごほうびは<b>ジェム</b>です（ロビーに NEW の印）。<br>
+          ・<b>ガチャ</b>：<b>戦姫祭・BUNNY GIRL FEST・極煌祭・極彩祭・極華祭</b>の開催を終了しました。キャラクターは <b>Festival Archive GACHA</b> で引けます。RISING STAR FEST など<b>終わったガチャのバナー</b>は一覧から外しました（持っているセレクト券は一覧のいちばん上で使えます）。<br>
+          ・<b>完凸ロビー</b>：<b>コハク・ユナ・アイナ・ヨシノ</b>を追加して8人に。ガチャ一覧の注目キャラに、MagiAbyss の印と同じ形で<b>「完凸でロビー」の王冠</b>（絵の左下）。<br>
+          ・<b>応援配布</b>：全ユーザーに <b>🎫ガチャチケット70枚</b>（ホーム右上の📧メールから受け取れます）。<br>
+          ・<b>XEVARION ガイド</b>：XEVARION のすべての機能を<b>動きとアニメーション</b>で紹介します（<b>設定</b>から見られます）。<br>
+          ・<b>NGX</b>・<b>ISHIDA Production</b> のサイトを<b>オフライン</b>でも開けるように。ISHIDA Production の<b>開発アプリ一覧</b>（MagiLex ほか28本）と<b>制作過程</b>を最新に、左上の<b>ロゴが横につぶれる</b>のを直しました。<br>
+          ・<b>MagiDerby</b>：枠順の発表のあと、予想オッズが別の馬に付いて<b>人気とオッズがずれる</b>ことがあったのを直しました。
+        </div>
+      </div>
+    </div>
     <!-- 2026-10-30：超極彩祭（UR ハル・チカ）／XEVA ミッションの毎月のビンゴ／★星煌印を全ガチャ共通・ショップで交換／新しいタイトル画面／ホームの並び・NEW／超極煌祭の新しいバナー／NGX・ISHIDA Production の公式サイト／ChemLex のごほうび・ビンゴの修正 -->
     <div class="nm-item" data-tag="new" data-date="2026-10-30">
       <div class="nm-date">2026<br>10.30</div>
@@ -2435,8 +2475,8 @@ body.xos-nomotion .xbg-fx,body.xos-nomotion .xbg-fx h4{animation:none}
       <div class="nm-date">2026<br>10.27</div>
       <div class="nm-content">
         <div class="nm-h"><span class="nm-tag new">NEW</span></div>
-        <div class="nm-title">🏝️ MagiAbyss 外伝クエスト6つ・ストーリー増量／🎨 ホームをウマ娘風の配色に／📖 ChemLex 模試の冊子</div>
-        <div class="nm-txt">・<b>ホーム</b>：配色を<b>ウマ娘風</b>に（白い板＋灰色のふち・色つきの下タブ・選んだタブは水色）。XEVA・ジェムの札は<b>緑の「＋」</b>。ドット絵のキャラの<b>横顔</b>をかわいく（大きな瞳とほほの赤み）。<br>
+        <div class="nm-title">🏝️ MagiAbyss 外伝クエスト6つ・ストーリー増量／🎨 ホームを明るくポップな配色に／📖 ChemLex 模試の冊子</div>
+        <div class="nm-txt">・<b>ホーム</b>：配色を<b>明るくポップ</b>に（白い板＋灰色のふち・色つきの下タブ・選んだタブは水色）。XEVA・ジェムの札は<b>緑の「＋」</b>。ドット絵のキャラの<b>横顔</b>をかわいく（大きな瞳とほほの赤み）。<br>
           ・<b>MagiAbyss</b>：<b>外伝クエスト6つ</b>（第10〜第15迷宮・敵はすべて新しい魔物・どの属性にも有利なクエストが3つずつ）。<b>ストーリーを増量</b>（本編の終章まで＋外伝6章・立ち姿と文字送り）。<b>中ボス戦は部屋を封鎖</b>（いつの間にか鍵が手に入るのを修正）。クエスト開始・中ボス・鍵・ボスの扉・クリアの<b>演出</b>。マップの閉じるボタンをいつも表示。出撃前のキャラ変更が反映されないことがあるのを修正。<br>
           ・<b>MagiChemLex</b>：各セットの模試モードのかわりに、組をまるごと解く<b>「模試の冊子」</b>（表紙・マークシート風の解答欄・続きから・解答と解説）。<br>
           ・<b>MagiDerby</b>：馬券は<b>水曜 0:00</b> から。GⅠ を押すと<b>レース名の演出</b>。<b>単勝・複勝以外のオッズ</b>も（発売前は単勝からの試算）。スマホで券の上下が切れるのを修正。<br>
@@ -2567,12 +2607,12 @@ body.xos-nomotion .xbg-fx,body.xos-nomotion .xbg-fx h4{animation:none}
       <div class="nm-date">2026<br>10.15</div>
       <div class="nm-content">
         <div class="nm-h"><span class="nm-tag new">NEW</span></div>
-        <div class="nm-title">🧪 MagiChemLex に基礎セット3・4（全1,569問）／更新したファイルの数がわかるように／開始画面もウマ娘風に</div>
+        <div class="nm-title">🧪 MagiChemLex に基礎セット3・4（全1,569問）／更新したファイルの数がわかるように／開始画面も新しいデザインに</div>
         <div class="nm-txt">・<b>MagiChemLex</b>：<b>基礎セット3・4</b>を追加しました（大問10・改題104問＋関連問題180問）。全部で<b>1,569問</b>です。基礎セット1〜4は、もとの小テストの<b>番号順</b>に並べ直しました（これまでの記録・習得・ごほうびの受け取りは、そのまま引きつぎます）。<br>
           　問題セットのバーは、<b>習得（緑）・習得中（橙）・未習（灰）</b>を色分けした1本のバーと、それぞれの問題数で表示します。絞り込み・並び替えのときもカードの大きさをそろえました。メモの幅を広くし、横に広い画面では<b>メモの左のふちを左右にドラッグ</b>して幅を変えられます（ダブルクリックで元に）。電卓で入力するとき、表示がわずかに上下していたのを直しました。<br>
           ・<b>更新画面</b>：「更新したファイル」がいつも 0 件と出ていたのを直し、<b>実際に変わったファイルの数と大きさ</b>を出すようにしました（新しい版は入れかえのときにまとめて取りこむので、その分を数えていませんでした）。<br>
           ・<b>下バー</b>：ガチャ・コミュニティ・図鑑で、下バーが開いて少しあとに出ていたのを直しました。<b>開いた瞬間</b>から表示されます。<br>
-          ・<b>開始画面</b>：「タップしてスタート」とログインの画面を<b>ウマ娘風</b>のデザインにしました（白いふちのボタン・緑のふち取り文字・1文字ずつはねるタップしてスタート・左上に版の番号）。<br>
+          ・<b>開始画面</b>：「タップしてスタート」とログインの画面を<b>ポップな</b>デザインにしました（白いふちのボタン・緑のふち取り文字・1文字ずつはねるタップしてスタート・左上に版の番号）。<br>
           ・<b>MagiShift</b>：<b>「1手もどる」</b>ボタンを追加しました。<b>だれの手でも、押すたびに1手ずつ</b>戻ります（CPU の手を戻したときは CPU が止まるので、続けて戻すか「再開」を押します）。順番の決め方を<b>カードめくり</b>にしました（1人1枚めくって、数字の小さい人から。CPU は自分でめくり、「おまかせ」もあります）。<b>あと1つでそろうマスの印</b>を設定で出せます（「いまの番の人だけ」「全員」。標準は表示しない）。<b>中断を10件まで</b>セーブしておけるようにしました（タイトルの「つづきから」で選べます）。5人・6人の対戦も<b>4つ並べ</b>が標準になりました。駒を使い切ったときの表示が札からはみ出していたのを直しました。<br>
           ・<b>MagiAbyss</b>：クエスト選択の冒険の地図を、<b>ドラッグ・ホイール・左右の矢印</b>で動かせるようにしました（画面の外にあった第6〜第8迷宮もえらべます）。<br>
           ・<b>MagiChainParty</b>：バクハツの演出を、派手すぎない<b>カジュアルな動き</b>（しゃぼん玉のような粒と、連鎖ごとに少しずつ高くなる「ぽん」の音）にしました。連鎖の数は、盤の右上のふちに<b>小さく控えめ</b>に出します（2連鎖から）。
@@ -2607,16 +2647,16 @@ body.xos-nomotion .xbg-fx,body.xos-nomotion .xbg-fx h4{animation:none}
         </div>
       </div>
     </div>
-    <!-- 2026-10-13 選べるSSRキャラ確定チケット2枚／ガチャ演出をさらに豪華に／アイコンとボタンをウマ娘風に／MagiChemLex 全1,013問／MagiAbyss の操作 -->
+    <!-- 2026-10-13 選べるSSRキャラ確定チケット2枚／ガチャ演出をさらに豪華に／アイコンとボタンをポップなデザインに／MagiChemLex 全1,013問／MagiAbyss の操作 -->
     <div class="nm-item" data-tag="new" data-date="2026-10-13">
       <div class="nm-date">2026<br>10.13</div>
       <div class="nm-content">
         <div class="nm-h"><span class="nm-tag new">NEW</span></div>
-        <div class="nm-title">🎟️ 選べるSSRキャラ確定チケット2枚プレゼント／ガチャ演出をさらに豪華に／アイコンとボタンをウマ娘風に／MagiChemLex 全1,013問</div>
+        <div class="nm-title">🎟️ 選べるSSRキャラ確定チケット2枚プレゼント／ガチャ演出をさらに豪華に／アイコンとボタンをポップなデザインに／MagiChemLex 全1,013問</div>
         <div class="nm-txt">・<b>日ごろの感謝をこめて</b>、全員に<b>「選べるSSRキャラ確定チケット」を2枚</b>お贈りします（メールから受け取り）。ガチャから出る SSR の中から<b>好きな1体を確定で</b>受け取れます（持っているキャラなら限界突破が進みます）。ガチャ一覧のいちばん上から使えます。<br>
           ・<b>ガチャの演出</b>をさらに豪華にしました。10連はまず<b>10枠のレア度を印で</b>見せ、その場で<b>昇格</b>します（本当にランクが上がります）。確定演出・文字の変化・カットインは<b>キャラが出る前</b>に入ります。前の円と落ちてくる演出はなくしました。<br>
           ・ガチャで出る<b>チケット・ジェム・ゴールド・道具の絵</b>を MagiBurst と同じものにそろえ、光がアイテムの枠からはみ出さないようにしました。確率1.5倍の札はコンパクトにし、バナーの「MagiAbyss でも使えるキャラ」の表記はなくしました（キャラごとの紫の帯はそのままです）。<br>
-          ・ホームの<b>右上・下バー・ロビーのアイコン</b>、ボタン、メール・ミッション・設定の画面をウマ娘風にし、動きを付けました。ロビーのボタンは<b>静止</b>させて間隔を詰め、左の「イベント」「更新情報」のボタンはなくしました。<br>
+          ・ホームの<b>右上・下バー・ロビーのアイコン</b>、ボタン、メール・ミッション・設定の画面をポップなデザインにし、動きを付けました。ロビーのボタンは<b>静止</b>させて間隔を詰め、左の「イベント」「更新情報」のボタンはなくしました。<br>
           ・キャラクター図鑑の<b>並び替え</b>は「並び替え」ボタンを押して、下から出る一覧で選ぶ形にしました（スマホで画面の外に出ていた不具合の修正）。コミュニティのランキングタブはなくしました（ランキングは MagiRanking で見られます）。<br>
           ・<b>更新のダウンロード</b>：ファイルの件数が途中で変わらないようにし、<b>すべての読み込みが終わってから 100%</b> になるようにしました。<br>
           ・<b>MagiChemLex</b>：<b>標準セット3・4</b>（マーク式の大問ごとの改題と関連問題）を追加して<b>全1,013問</b>に。「本番」は「<b>難関</b>」、時間を計るのは「<b>模試</b>」モードになりました。難関セットの関連問題も小問の範囲ごとに分けて、ごほうびを受け取れます。「関連問題」タブは「<b>単元別問題</b>」になりました（中身は同じです。問題を足すと自動でここにも加わります）。<br>
@@ -2802,7 +2842,7 @@ body.xos-nomotion .xbg-fx,body.xos-nomotion .xbg-fx h4{animation:none}
       <div class="nm-content">
         <div class="nm-h"><span class="nm-tag launch">NEW</span></div>
         <div class="nm-title">⚔ MagiBattle を全面リニューアル</div>
-        <div class="nm-txt">・<b>XEVARION の全キャラ</b>が MagiBattle に参戦。所持と<b>凸は MagiBurst・XEVA ガチャと共通</b>、MagiBurst で育てたレベルも反映されます。<br>・リアルタイムバトルに作り直し：<b>バーストⅠ→Ⅱ→Ⅲ</b>をつなぐと <b>FULL BURST</b>、ボスのチャージ攻撃は<b>コアを削って BREAK</b>、敵をタップで照準。オートでもスキル・バーストを自動で使います。<br>・画面を NIKKE 風のデザインに。編成とキャラ一覧は別のタブに分けました。<br>・<b>装備</b>（頭・腕・胸・足・オーバーロード）を導入。MagiBurst の装備はそのまま引きつげます。<br>・新モード<b>迎撃戦</b>。報酬はジェム（XEVARION 共通）。セーブは端末をまたいで同期します。</div>
+        <div class="nm-txt">・<b>XEVARION の全キャラ</b>が MagiBattle に参戦。所持と<b>凸は MagiBurst・XEVA ガチャと共通</b>、MagiBurst で育てたレベルも反映されます。<br>・リアルタイムバトルに作り直し：<b>バーストⅠ→Ⅱ→Ⅲ</b>をつなぐと <b>FULL BURST</b>、ボスのチャージ攻撃は<b>コアを削って BREAK</b>、敵をタップで照準。オートでもスキル・バーストを自動で使います。<br>・画面をロビー中心の新しいデザインに。編成とキャラ一覧は別のタブに分けました。<br>・<b>装備</b>（頭・腕・胸・足・オーバーロード）を導入。MagiBurst の装備はそのまま引きつげます。<br>・新モード<b>迎撃戦</b>。報酬はジェム（XEVARION 共通）。セーブは端末をまたいで同期します。</div>
       </div>
     </div>
     <!-- 2026-09-23 CRYSTAL ACADEMY FEST・MagiBurst -->

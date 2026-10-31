@@ -7,7 +7,7 @@
    ・オフライン中の進行は localStorage に残り、オンライン復帰時に
      xeva-cloud.js がタイムスタンプ比較でクラウドへ上書き反映する
    ============================================================ */
-const VERSION = "xevarion-sw-v249";
+const VERSION = "xevarion-sw-v252";
 
 /* ホームを成立させる最小セット（重い画像は runtime キャッシュに任せる） */
 const CORE = [
@@ -17,19 +17,20 @@ const CORE = [
   "./characters.html",
   /* ★ 2026-08-10 ガチャは XEVARION に一本化。中身は MagiBurst の共有モジュールが持つ */
   "./gacha.html",
-  "./gacha-ui.js?v=68",
-  "./mb-newchars.js?v=41",
-  "./xeva-devnotes.js?v=6",
+  "./gacha-ui.js?v=70",
+  "./mb-newchars.js?v=42",
+  "./xeva-devnotes.js?v=8",
+  "./xeva-tour.js?v=2",   /* ★★ 2026-10-30 XEVARION ガイド（全機能の紹介・設定から／#guide） */
   "./xevion-os.js?v=13",
   "./xevion-os.css?v=15",
-  "./magibattle-stats.js?v=18",
-  "./MagiBurst/js/mb-core.js?v=143",
+  "./magibattle-stats.js?v=19",
+  "./MagiBurst/js/mb-core.js?v=145",
   /* ★ 2026-08-10 ガチャと図鑑で共通の土台・キャラ詳細・結果演出 */
   /* ★ 2026-08-12 ポータルのガチャ・図鑑も magiburst_v1 を同期するようになった */
   "./app-cloud.js?v=15",
-  "./MagiBurst/magiburst-cloud.js?v=27",
+  "./MagiBurst/magiburst-cloud.js?v=28",
   "./mb-boot.js?v=18",
-  "./mb-char-detail.js?v=51",
+  "./mb-char-detail.js?v=53",
   "./mb-char-detail.css?v=31",
   "./mb-gacha-reveal.css?v=11",
   /* ★★ 2026-10-09 ガチャの演出を1から作り直した（1体ずつ・確定演出・UR は縦長の絵） */
@@ -65,24 +66,28 @@ const CORE = [
   "./xeva-alive.js?v=8",
   "./xeva-fx.js?v=9",
   "./xeva-loading.js?v=19",
-  "./xeva-splash.js?v=18",          // ★★ 2026-10-13 XEVARION の起動画面（3社ロゴ）にも使う
+  "./xeva-splash.js?v=19",          // ★★ 2026-10-13 XEVARION の起動画面（3社ロゴ）にも使う
   "./uwaki.html",                    // ★★ 2026-10-15 これって浮気？判定シート（ホームの PARK の真上のボタン）
   "./uwaki.js?v=1",
   "./uwaki.css?v=1",
   "./thumbs/Uwaki.jpg",
-  "./xevarion.js?v=108",
-  "./xevarion-home.js?v=173",
+  "./xevarion.js?v=110",
+  "./xevarion-home.js?v=175",
   /* ★★ 2026-09-24 ホームのロビーとパートナー。素材は home-mate/<id>/（?v= は home-mate.js の HM_VER）・笙古／瞳／舞香／衣織／樹愛羅／映美里（09-25 ボイス廃止・表情は webp） */
-  "./gacha-live.js?v=10",
-  "./home-mate.js?v=33",
+  "./gacha-live.js?v=11",
+  "./home-mate.js?v=34",
   /* ★★ 2026-10-26 完凸ロビー（ヒサコ・アリス）と、バナーの上のドット絵のキャラ（絵は MagiAbyss の ma-pixel.js） */
-  "./home-lobby.js?v=2",
+  "./home-lobby.js?v=3",
   "./home-dot.js?v=4",
   "./MagiAbyss/js/ma-pixel.js?v=10",
   "./home-mate/lobby/hisako.webp?v=1",
   "./home-mate/lobby/alice.webp?v=1",
   "./home-mate/lobby/haru.webp?v=1",    /* ★★ 2026-10-30 超極彩祭のハル・チカの完凸ロビー */
   "./home-mate/lobby/chika.webp?v=1",
+  "./home-mate/lobby/kohaku.webp?v=1",  /* ★★ 2026-10-31 完凸ロビーに コハク・ユナ・アイナ・ヨシノ */
+  "./home-mate/lobby/yuna.webp?v=1",
+  "./home-mate/lobby/aina.webp?v=1",
+  "./home-mate/lobby/chie.webp?v=1",
   "./home-mate/lobby/park.webp?v=1",
   "./xeva-prefetch.js?v=1",     // ★★ 2026-10-24 MagiDerby・MagiScope の先読み
   "./xeva-event-ui.js?v=4",
@@ -147,9 +152,9 @@ const CORE = [
   "./home-mate/emiri/bg.webp?v=17",
   "./maintenance-gate.js?v=13",
   "./xeva-back.js?v=9",
-  "./xeva-keys.js?v=34",
+  "./xeva-keys.js?v=35",
   /* ★★ 2026-10-01 同期のモジュールも入れる（前は実行時キャッシュだけ＝更新直後のオフラインで読めなかった） */
-  "./xeva-cloud.js?v=48",
+  "./xeva-cloud.js?v=49",
   "./xevarion-fb.js?v=36",
   "./xeva-sync.js?v=18",
   "./xeva-presence.js?v=9",
@@ -175,7 +180,7 @@ const CORE = [
   "./thumbs/MagiJackpot.jpg",
   "./thumbs/MagiLotto.jpg",
   "./thumbs/Xevarion.png",
-  "./thumbs/MagiBattle.jpg?v=3",   /* ★★ 2026-10-30 新しいロゴ（ご指定） */
+  "./thumbs/MagiBattle.jpg?v=4",   /* ★★ 2026-10-30 新しいロゴ（ご指定） */
   "./thumbs/MagiLex.jpg",
   "./thumbs/MagiBurst.jpg",
   "./thumbs/MagiArena.jpg",
@@ -191,6 +196,7 @@ const CORE = [
   "./thumbs/MagiShift.jpg",
   "./thumbs/MagiQuiz.jpg",   /* ★★ 2026-10-23 新作 MagiQuiz */
   "./thumbs/MagiAbyss.jpg?v=2",   // ★★ 2026-10-05 新作 MagiAbyss
+  "./thumbs/NGX.jpg",         // ★★ 2026-10-31 NGX のアイコン（オフラインでも出るように）
   "./thumbs/ISHIDA.webp",      // ★★ 2026-10-09b ISHIDA のアイコン（小さい正方形）
   "./MagiDerby/js/md-data.js?v=4", "./MagiDerby/js/md-intro.js?v=2",   // ★★ 2026-10-28 ホームの GⅠ 発売開始の告知（home-mate.js の derbyAnn）
   "./brand/NGX_s.webp", "./brand/MagicalFuture_s.webp", "./brand/ISHIDA_s.webp", "./brand/YRA_s.webp",   // ★★ 2026-10-09b 起動画面の3社ロゴ（小さい版）

@@ -169,7 +169,7 @@ addEventListener("load", () => {
    xeva.js の MISSIONS にミッションを足したら必ずここにも足すこと。 */
 const MISSION_META = {
   magiburst_play:      { href: "MagiBurst/index.html",             icon: "thumbs/MagiBurst.jpg",      cta: "プレイ" },
-  magibattle_win:      { href: "MagiBattle/index.html",            icon: "thumbs/MagiBattle.jpg?v=3",     cta: "プレイ" },
+  magibattle_win:      { href: "MagiBattle/index.html",            icon: "thumbs/MagiBattle.jpg?v=4",     cta: "プレイ" },
   magichainparty_play: { href: "MagiChainParty/index.html",        icon: "thumbs/MagiChainParty.jpg?v=2", cta: "プレイ" },
   magiempire_play:     { href: "MagiEmpire/MagiEmpire.html",       icon: "thumbs/MagiEmpire.jpg",     cta: "プレイ" },
   magiarena_play:      { href: "MagiArena/MagiArena.html",         icon: "thumbs/MagiArena.jpg",      cta: "プレイ" },
@@ -2391,6 +2391,12 @@ function grantMbGift(srcId, mb) {
 }
 
 const INITIAL_MAILS = [
+  /* ── ★★ 2026-10-31 応援配布（ご指定：🎫ガチャチケット70枚）──
+     ★ mb:{gticket:70} ＝<b>ガチャチケット</b>（全ガチャ共通・超極祭系のガチャでも使える）。フェスチケット（mb:{ticket}）ではない。
+     ★ 受け取った瞬間に XEVARION 共通ウォレット（XEVA.ticket）へ入る（grantMbGift）。 */
+  { id:"mail_support_ticket_261031", icon:"📣", title:"応援配布（🎫ガチャチケット70枚）", date:"2026-10-31",
+    body:"いつも XEVARION をご利用いただきありがとうございます。\n\n日ごろの応援への感謝をこめて、全ユーザーに ガチャチケット70枚 をお贈りします。\n\n・ガチャチケットは PREMIUM SELECT GACHA・各フェス・超極彩祭／超極煌祭／超極華祭・GRAND DEBUT など、すべてのガチャで使えます。\n・新しくなった MagiBattle（超極祭系の UR 12体で戦う部隊シューティング）も、ぜひ遊んでみてください。\n\n今後とも XEVARION をよろしくお願いいたします。",
+    mb:{ gticket:70 } },
   /* ── ★★ 2026-10-28 MagiChemLex の修正に伴う配布（ご指定：ガチャ10連半額券5枚・両替チケット10枚・5,000 XEVA）──
      ★ half10:n ＝ XEVA.halfTicket.grantOnce("<メールの id>", n)（新しいアイテム・全ガチャの10連を1枚で💎25）
      ★ cash:n   ＝ XEVA.cashTicket.grantOnce("<メールの id>", n)（両替チケット）。どちらも同じメールを2台で受け取っても n 枚のまま。 */
@@ -3519,7 +3525,7 @@ addEventListener("DOMContentLoaded", () => { if (_xevLang === "en") applyLang("e
   const POOL = [
     "thumbs/MagiLink.jpg", "thumbs/MagiLex.jpg", "thumbs/MagiEmpire.jpg",
     "thumbs/MagiCraft.jpg", "thumbs/MagiChainParty.jpg?v=2", "thumbs/MagiBurst.jpg",
-    "thumbs/MagiPortfolio.jpg", "thumbs/MagiRanking.jpg", "thumbs/MagiBattle.jpg?v=3",
+    "thumbs/MagiPortfolio.jpg", "thumbs/MagiRanking.jpg", "thumbs/MagiBattle.jpg?v=4",
   ];
   const tiles = document.querySelectorAll(".hero-art .ha-tile:not(.main) img");
   if (!tiles.length) return;

@@ -24,7 +24,7 @@
      以前はここに直接書いてあり、MagiBurst / MagiLex の一覧は別ファイルにあったため、
      新機能を足すたびに「同期リストへの入れ忘れ」が起きていた
      （ジェムショップの購入履歴 xeva_shop_v1 が同期されていなかったのがその例）。 */
-import { PORTAL_SYNC_KEYS, wipeAccountData, wipeAccountDataFull } from "./xeva-keys.js?v=34";
+import { PORTAL_SYNC_KEYS, wipeAccountData, wipeAccountDataFull } from "./xeva-keys.js?v=35";
 
 const SYNC_KEYS = PORTAL_SYNC_KEYS;
 const SYNC_SET = new Set(SYNC_KEYS);
@@ -317,7 +317,8 @@ const COUNT_KEYS = new Set(["xeva_fessel_v1", "xeva_seal_v1"]);
 const MBR_KEYS = new Set(["mbr_v1"]);
 /* ★★ 2026-09-23 MagiBattle 2.0 のセーブ。経験値・塔の到達は大きいほう、装備は和、
    素材・編成・設定は新しい側（勝った側）のまま。 */
-const BATTLE_KEYS = new Set(["magibattle_v1"]);
+/* ★★ 2026-10-30 MagiBattle 3.0 で magibattle_v2 にかわった（混ぜ方は mergeBattle2）。前の magibattle_v1 は使わない */
+const BATTLE_KEYS = new Set(["magibattle_v2"]);
 /* ══ ★★ 2026-09-20 「ミッションやメールの受け取りが同期されないことがある」の直し ══
    受け取り済みの印は<b>一度付いたら消えない</b>ものなので、勝ち負けではなく<b>和</b>で混ぜる。
    これまでは「新しい方が勝つ」だけだったので、
@@ -663,6 +664,41 @@ function mergeBattle(winnerStr, loserStr) {
   if (Lo.migMB) W.migMB = 1;
   return JSON.stringify(W);
 }
+/* ★★ 2026-10-30 MagiBattle 3.0（magibattle_v2）を混ぜる。
+   育成（Lv・スキル・好感度）・キャンペーンの★・塔・研究・迎撃戦の今月の最高・記録は大きいほう、装備とキューブは和（同じ id は高いほう）、
+   素材・編成・設定・アリーナ・ミッション・ショップは新しい側（勝った側）のまま（数の増減は混ぜられないため）。 */
+function mergeBattle2(winnerStr, loserStr) {
+  const W = jparse(winnerStr, null), Lo = jparse(loserStr, null);
+  if (!W || !Lo || typeof W !== "object" || typeof Lo !== "object") return null;
+  const num = (v) => Number(v) || 0;
+  /* ★★ 2026-10-31 設定の「データをリセット」（rst＝リセットした時刻）。時刻がちがえば新しいほうだけ（古い育成を混ぜて復活させない） */
+  if (num(W.rst) !== num(Lo.rst)) return JSON.stringify(num(W.rst) > num(Lo.rst) ? W : Lo);
+  const obj = (o) => (o && typeof o === "object" && !Array.isArray(o) ? o : {});
+  W.units = obj(W.units);
+  Object.keys(obj(Lo.units)).forEach((id) => {
+    const a = W.units[id], b = Lo.units[id]; if (!b || typeof b !== "object") return;
+    if (!a) { W.units[id] = b; return; }
+    a.lv = Math.max(num(a.lv), num(b.lv));
+    a.sk = [0, 1, 2].map((i) => Math.max(num((a.sk || [])[i]) || 1, num((b.sk || [])[i]) || 1));
+    if (num(b.bond) > num(a.bond) || (num(b.bond) === num(a.bond) && num(b.bx) > num(a.bx))) { a.bond = b.bond; a.bx = b.bx; }
+    if (String(b.talk || "") > String(a.talk || "")) a.talk = b.talk;
+  });
+  W.gear = obj(W.gear);
+  Object.keys(obj(Lo.gear)).forEach((g) => { const a = W.gear[g], b = Lo.gear[g]; if (!b) return; if (!a || num(b.t) > num(a.t) || (num(b.t) === num(a.t) && num(b.e) > num(a.e))) W.gear[g] = b; });
+  W.cubes = obj(W.cubes);
+  Object.keys(obj(Lo.cubes)).forEach((q) => { const a = W.cubes[q], b = Lo.cubes[q]; if (!b) return; if (!a || num(b.lv) > num(a.lv)) W.cubes[q] = b; });
+  W.camp = obj(W.camp); const lc = obj(Lo.camp);
+  ["n", "h", "story"].forEach((m) => { W.camp[m] = obj(W.camp[m]); Object.keys(obj(lc[m])).forEach((id) => { W.camp[m][id] = Math.max(num(W.camp[m][id]), num(lc[m][id])); }); });
+  W.tower = obj(W.tower); W.tower.floor = Math.max(num(W.tower.floor), num(obj(Lo.tower).floor));
+  W.res = obj(W.res); Object.keys(obj(Lo.res)).forEach((q) => { W.res[q] = Math.max(num(W.res[q]), num(Lo.res[q])); });
+  W.icpt = obj(W.icpt); const li = obj(Lo.icpt);
+  if (li.bestYm && li.bestYm === W.icpt.bestYm) W.icpt.best = Math.max(num(W.icpt.best), num(li.best));
+  else if (li.bestYm && String(li.bestYm) > String(W.icpt.bestYm || "")) { W.icpt.bestYm = li.bestYm; W.icpt.best = num(li.best); }
+  W.st = obj(W.st); Object.keys(obj(Lo.st)).forEach((q) => { W.st[q] = Math.max(num(W.st[q]), num(Lo.st[q])); });
+  W.seenPro = Math.max(num(W.seenPro), num(Lo.seenPro));
+  if (Lo.arena && W.arena && Lo.arena.season === W.arena.season) W.arena.claimed = Object.assign({}, obj(Lo.arena.claimed), obj(W.arena.claimed));
+  return JSON.stringify(W);
+}
 /* 項目ごとに e / u を max で取り、履歴は取り合わせる */
 function mergeCountMap(k, lv, rv) {
   const L = jparse(lv, null), R = jparse(rv, null);
@@ -1002,7 +1038,7 @@ function mergeStore(uid, remote, remoteT, remoteBox) {
             : COUNT_KEYS.has(k)
               ? mergeCountMap(k, lv, rv)
               : BATTLE_KEYS.has(k)
-                ? mergeBattle(remoteWins ? rv : lv, remoteWins ? lv : rv)
+                ? (k === "magibattle_v2" ? mergeBattle2 : mergeBattle)(remoteWins ? rv : lv, remoteWins ? lv : rv)
               : MBR_KEYS.has(k)
                 ? mergeMbr(remoteWins ? rv : lv, remoteWins ? lv : rv)
                 : CLAIM_KEYS.has(k)

@@ -37,7 +37,11 @@ SWS = ["sw.js", "MagiLex/sw.js", "MagiBurst/sw.js", "MagiChainParty/sw.js", "XEV
        # ★★ 2026-10-21 新作 MagiDerby（実際の JRA GⅠ に XEVA で賭ける）
        "MagiDerby/sw.js",
        # ★★ 2026-10-23 新作 MagiQuiz（MagiChemLex の基礎問題で遊ぶ1台のクイズ対戦）
-       "MagiQuiz/sw.js"]
+       "MagiQuiz/sw.js",
+       # ★★ 2026-10-30 NGX・ISHIDA Production の公式サイトもオフラインで（ご指定）
+       "NGX/sw.js", "IshidaProduction/sw.js",
+       # ★★ 2026-10-31 MagiBattle 3.0（作り直し）の SW
+       "MagiBattle/sw.js"]
 
 
 # ══════════════════════════════════════════════════════════════

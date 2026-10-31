@@ -93,7 +93,7 @@ export const PORTAL_SYNC_KEYS = [
      ★ magiburst_v1 / magilex_* は、それぞれ専用の Firebase（magiburst / magilex-cb250）で
        app-cloud.js が同期する。ここに入れると二重同期になってタイムスタンプが競合するので
        入れない（下の APP_SYNC_KEYS を参照）。 */
-  "magibattle_v1",
+  "magibattle_v2",          // ★★ 2026-10-30 MagiBattle 3.0（作り直し）のセーブ。前の magibattle_v1 は廃止
   "chainparty_save_v1", "chainparty_setup_v1",
   "magisharecore_save_v1",
   "magires_dq1",

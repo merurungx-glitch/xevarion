@@ -1,412 +1,315 @@
 /* ============================================================
-   MagiBattle-Stats v2 — MagiBattle の性能の「持ち主」（★★ 2026-09-23 全面刷新）
-   ------------------------------------------------------------
-   ・MagiBattle 本体（MagiBattle/js/mbt-*.js）と、ポータルの図鑑・ガチャ詳細
-     （mb-char-detail.js）が<b>同じこの1本</b>を読む。計算式はここにしか書かない。
-   ・性能の素は <b>MagiBurst の mb-core.js（CHARS）</b>。XEVARION の全キャラ
-     （XEVA ガチャから移ってきた子も全員 CHARS に居る）に MagiBattle の性能がある。
-       属性・レア度・ステータス・アビリティ・リンク名・FB名・戦型・ネクサス … を
-       NIKKE 風の「クラス／バースト段階／武器／スキル1・2・バースト」に写す。
-   ・凸（限界突破）は<b>共通</b>：MagiBurst の awk と XEVA ガチャの重ね（dupes）の大きいほう。
-   ・mb-core.js が読まれていないページでは何もしない（MBStats.ready() が false）。
+   MagiBattle の性能（v3）— magibattle-stats.js
+   ★★ 2026-10-30 ご指定「MagiBattle をゲームとアプリを1から作り直し」「NIKKE や NIKKE のアリーナ」
+     「対応キャラは超極祭系3種の UR のキャラのみ・性能も NIKKE 風に」
+   ・使えるのは<b>超極華祭・超極煌祭・超極彩祭の UR 12体</b>だけ（ミキは WP 交換なので入らない）。
+   ・ここが性能の<b>ただ1つの持ち主</b>：MagiBattle 本体（MagiBattle/js/mb3-*.js）・図鑑のキャラ詳細（mb-char-detail.js）・
+     ガチャの新キャラ紹介（gacha-ui.js）・characters.html が同じ数字を見る。
+   ・NIKKE 風の要素：武器6種（AR/SMG/SG/SR/RL/MG）・クラス（火力/防御/支援）・バースト Ⅰ→Ⅱ→Ⅲ→フルバースト・
+     スキル1／スキル2／バーストスキル（Lv1〜10）・Lv（凸で上限 80/120/160/200）・装備4部位（T1〜T9＋オーバーロード）・
+     キューブ・好感度・研究。部隊（所属）は ガチャの祭ごと＝ブルーム隊（超極華祭）・ブレイズ隊（超極煌祭）・プリズム隊（超極彩祭）。
+   ・前の v2（XEVARION の全キャラ・MBStats.roster）は廃止。セーブも magibattle_v1 → magibattle_v2。
    ============================================================ */
 (function () {
   "use strict";
-  const VERSION = 2;
-  const MAX_LV = 80;
-  const MAX_AWK = 4;
-  function hashN(s, salt) { let h = (salt >>> 0) || 7; for (const c of String(s)) h = (h * 31 + c.charCodeAt(0)) >>> 0; return h; }
-  function core() { try { return typeof CHARS !== "undefined" && typeof CHAR_IDS !== "undefined"; } catch (e) { return false; } }
-  function C(id) { try { return (typeof CHARS !== "undefined" && CHARS[id]) || null; } catch (e) { return null; } }
+  const VERSION = 3;
+  const SAVE_KEY = "magibattle_v2";
 
-  /* ── 属性（MagiBurst と同じ相性：火→木→水→火、光⇄闇） ── */
-  const ELEMS = ["fire", "water", "wood", "light", "dark"];
+  /* ══════════ 区分 ══════════ */
   const ELEM = {
-    fire:  { nm: "火", en: "IGNIS", c: "#ff5d47", l: "#ffcf6b" },
-    water: { nm: "水", en: "AQUA",  c: "#38a6ff", l: "#c3e8ff" },
-    wood:  { nm: "木", en: "VERDE", c: "#2fbf71", l: "#a8e6b0" },
-    light: { nm: "光", en: "LUMEN", c: "#f0b429", l: "#fff1b8" },
-    dark:  { nm: "闇", en: "UMBRA", c: "#a86bff", l: "#dccdff" },
+    fire: { nm: "火", en: "FIRE", c: "#ff5a4a" }, water: { nm: "水", en: "WATER", c: "#3aa0ff" }, wood: { nm: "木", en: "WOOD", c: "#3fcf6a" },
+    light: { nm: "光", en: "LIGHT", c: "#ffc93a" }, dark: { nm: "闇", en: "DARK", c: "#a46bff" },
   };
-  const BEATS = { fire: "wood", wood: "water", water: "fire" };
-  const ADV = 1.30, DIS = 0.80;
-  /* ★★ 2026-10-09 <b>3属性有利</b>（MagiBurst と同じ・ご指定）：自分と同じ属性・自分が苦手な属性をのぞく3つに有利 */
-  const WEAK_OF = { fire: "water", water: "wood", wood: "fire", light: "dark", dark: "light" };
-  function triAdv(el, el2, d) {
-    const ok = (a) => !!a && !!d && d !== a && d !== WEAK_OF[a];
-    return ok(el) || ok(el2);
-  }
-  function elemMult(a, d) {
-    if (!a || !d) return 1;
-    if ((a === "light" && d === "dark") || (a === "dark" && d === "light")) return ADV;
-    if (BEATS[a] === d) return ADV;
-    if (BEATS[d] === a) return DIS;
-    return 1;
-  }
-
-  /* ── クラス（NIKKE の3クラス）とバースト段階 ── */
+  /* 有利：火→木→水→火（3すくみ）・光⇄闇（たがいに有利）。有利な相手に与ダメージ +10% */
+  const ADV = { fire: "wood", wood: "water", water: "fire", light: "dark", dark: "light" };
+  function elemAdv(a, d) { return !!a && !!d && ADV[a] === d; }
   const CLASSES = {
-    attacker:  { nm: "火力型", en: "ATTACKER",  c: "#ff4d5a", hp: 0.88, atk: 1.18, def: 0.85, d: "攻撃に特化。HP・防御はひかえめ" },
-    defender:  { nm: "防御型", en: "DEFENDER",  c: "#3f8cff", hp: 1.35, atk: 0.82, def: 1.45, d: "高いHPと防御で味方を守る。敵の攻撃を引きつけやすい" },
-    supporter: { nm: "支援型", en: "SUPPORTER", c: "#2fbf71", hp: 1.05, atk: 0.92, def: 1.05, d: "回復・強化・バーストで味方を支える" },
+    atk: { nm: "火力型", en: "ATTACKER", c: "#ff4d6d" },
+    def: { nm: "防御型", en: "DEFENDER", c: "#3aa0ff" },
+    sup: { nm: "支援型", en: "SUPPORTER", c: "#2fd18a" },
   };
-  const BURST_NM = { 1: "Ⅰ", 2: "Ⅱ", 3: "Ⅲ" };
-  const BURST_CD = { 1: 20, 2: 20, 3: 40 };   // 秒（NIKKE と同じ間隔）
-  /* MagiBurst の戦型 → クラス／バースト段階 */
-  const TYPE_MAP = {
-    support: ["supporter", 1], balance: ["defender", 1], trick: ["supporter", 2],
-    speed: ["attacker", 2], striker: ["attacker", 3], cannon: ["attacker", 3],
+  const SQUADS = {
+    bloom: { nm: "ブルーム隊", en: "BLOOM", fes: "超極華祭", c: "#ff8fb8" },
+    blaze: { nm: "ブレイズ隊", en: "BLAZE", fes: "超極煌祭", c: "#ffb347" },
+    prism: { nm: "プリズム隊", en: "PRISM", fes: "超極彩祭", c: "#9b8cff" },
   };
+  const BURST = { 1: { nm: "Ⅰ", c: "#2fd18a" }, 2: { nm: "Ⅱ", c: "#3aa0ff" }, 3: { nm: "Ⅲ", c: "#ff4d6d" } };
 
-  /* ── 武器（ふだんの攻撃のしかた） ── */
+  /* ══════════ 武器（NIKKE 風）══════════
+     mag＝弾倉・rate＝1秒の発射数・mul＝1発の倍率（攻撃力×）・reload＝秒・pel＝散弾の粒・chg＝チャージ秒（SR/RL）
+     gauge＝1発あてたときのバーストゲージ・opt＝得意な距離（0＝手前〜1＝奥）・splash＝爆風の半径（RL） */
   const WEAPONS = {
-    AR:  { nm: "アサルトライフル", s: "AR",  itv: 1.00, mul: 1.00, tg: 1, gauge: 2.4, d: "安定した連射で敵1体を撃つ" },
-    SMG: { nm: "サブマシンガン",   s: "SMG", itv: 0.45, mul: 0.43, tg: 1, gauge: 1.2, d: "とても速い連射。バーストゲージをためやすい" },
-    SG:  { nm: "ショットガン",     s: "SG",  itv: 1.35, mul: 0.62, tg: 3, gauge: 3.0, d: "散弾で最大3体をまとめて撃つ" },
-    SR:  { nm: "スナイパーライフル", s: "SR", itv: 2.40, mul: 2.95, tg: 1, gauge: 5.2, crit: 0.15, d: "遅いが一撃が重い。会心率が高い" },
-    RL:  { nm: "ロケットランチャー", s: "RL", itv: 2.80, mul: 2.10, tg: 1, gauge: 6.0, splash: 0.45, d: "着弾点のまわりの敵にも爆風" },
-    MG:  { nm: "マシンガン",       s: "MG",  itv: 0.30, mul: 0.36, tg: 1, gauge: 0.9, ramp: true, d: "撃ち続けるほど速くなる" },
-  };
-  function weaponOf(c) {
-    const h = hashN(c.id, 411);
-    const list = c.shot === "pierce" ? ["SR", "RL", "MG"] : ["AR", "SMG", "SG"];
-    return list[h % list.length];
-  }
-
-  /* ── アビリティ（MagiBurst の148種）→ MagiBattle の効果 ──
-     等級は名前の末尾：（なし）＝1・M＝2・L＝3・EL＝4。 */
-  function gradeOf(t) { return /EL$/.test(t) ? 4 : /L$/.test(t) && !/^(?:allkill|fewfoe)$/.test(t) ? 3 : /M$/.test(t) ? 2 : 1; }
-  function baseOf(t) { return String(t).replace(/(EL|L|M)$/, ""); }
-  function abilFx(a) {
-    const t = a.t, g = gradeOf(t), b = baseOf(t);
-    if (b === "godpray") return { k: "godpray", v: 0.40 };
-    if (b === "pray") return { k: "pray", v: 0.30 };
-    if (b === "killer") return { k: "elkill", el: a.el, v: 0.10 * g };
-    if (/^(judgekiller|houraikiller|netherkiller|eclipsekiller|eclipseslayer|bosskiller)$/.test(b)) return { k: "boss", v: (b === "bosskiller" ? 0.10 : 0.06) * g };
-    if (b === "mobkiller") return { k: "mob", v: 0.10 * g };
-    if (b === "firstkiller") return { k: "first", v: 0.20 * g };
-    if (b === "vital") return { k: "vital", v: 0.10 * g };
-    if (b === "fatalkiller") return { k: "fatal", v: 0.12 * g };
-    if (b === "weakkiller") return { k: "critdmg", v: 0.10 * g };
-    if (b === "poisonkiller") return { k: "poisonk", v: 0.12 * g };
-    if (b === "allkill" || b === "allkiller") return { k: "all", v: 0.06 * g };
-    if (b === "fewfoe") return { k: "fewfoe", v: 0.12 * g };
-    if (/killer$/.test(b)) return { k: "all", v: 0.04 * g };
-    if (b === "aura" || b === "waveboost") return { k: "aura", v: 0.03 * g };
-    if (b === "sokojikara" || b === "konshin") return { k: "soko", v: 0.12 * g };
-    if (b === "barrier") return { k: "barrier", v: 0.02 * g };
-    if (b === "regen" || b === "heal") return { k: "regen", v: 0.006 * g };
-    if (b === "drain" || b === "soul") return { k: "drain", v: 0.03 * g };
-    if (b === "fsboost") return { k: "skill", v: 0.10 * g };
-    if (b === "fsdouble") return { k: "double", v: 0.5 };
-    if (/^(ssboost|fbshort|fbaccel|sscharge|fbturnboost|wallfbshort|linkcharge)$/.test(b)) return { k: "burstcd", v: 0.05 * g };
-    if (/^(atkcharge|fbtouch)$/.test(b)) return { k: "gauge", v: 0.10 * g };
-    if (/^(dash|speedmode|impulseboost|phantomdrive)$/.test(b)) return { k: "haste", v: 0.04 * g };
-    if (b === "elemadv") return { k: "elemadv", v: 1 };
-    if (/^(allres|elemres|protection|ailmentresist|pimmune)$/.test(b)) return { k: "guard", v: 0.03 * g };
-    if (/^(omni|adw|superadw|aw|superaw|ms|superms|agrav|sgrav|ablock|antilock|award|aslow|superaslow)$/.test(b)) return { k: "anti", v: 0.04 };
-    return { k: "crit", v: 0.02 * g };
-  }
-  const FX_TEXT = {
-    godpray: (v) => "チームHPが35%を切ったとき<b>1回だけ</b>、チームHPを" + Math.round(v * 100) + "%回復し攻撃力+15%（10秒）",
-    pray: (v) => "チームHPが35%を切ったとき<b>1回だけ</b>、チームHPを" + Math.round(v * 100) + "%回復",
-    elkill: (v, a) => (ELEM[a.el] ? ELEM[a.el].nm : "") + "属性の敵へのダメージ +" + Math.round(v * 100) + "%",
-    boss: (v) => "ボスへのダメージ +" + Math.round(v * 100) + "%",
-    mob: (v) => "ボス以外へのダメージ +" + Math.round(v * 100) + "%",
-    first: (v) => "その敵への<b>最初の一撃</b>のダメージ +" + Math.round(v * 100) + "%",
-    vital: (v) => "HPが70%以上の敵へのダメージ +" + Math.round(v * 100) + "%",
-    fatal: (v) => "HPが30%以下の敵へのダメージ +" + Math.round(v * 100) + "%",
-    critdmg: (v) => "会心ダメージ +" + Math.round(v * 100) + "%",
-    poisonk: (v) => "毒の敵へのダメージ +" + Math.round(v * 100) + "%",
-    all: (v) => "与えるダメージ +" + Math.round(v * 100) + "%",
-    fewfoe: (v) => "敵が2体以下のとき与えるダメージ +" + Math.round(v * 100) + "%",
-    aura: (v) => "<b>味方全員</b>の攻撃力 +" + Math.round(v * 100) + "%",
-    soko: (v) => "自分のHPが50%以下のとき攻撃力 +" + Math.round(v * 100) + "%",
-    barrier: (v) => "バトル開始時、<b>味方全員</b>に最大HPの" + Math.round(v * 100) + "%のバリア",
-    regen: (v) => "3秒ごとに<b>味方全員</b>のHPを" + (v * 100).toFixed(1) + "%回復",
-    drain: (v) => "与えたダメージの" + Math.round(v * 100) + "%を自分のHPに",
-    skill: (v) => "スキル2のダメージ +" + Math.round(v * 100) + "%",
-    double: () => "スキル2が<b>もう1回</b>（2回目は50%）",
-    burstcd: (v) => "バーストの再使用時間 -" + Math.round(v * 100) + "%",
-    gauge: (v) => "バーストゲージのたまり +" + Math.round(v * 100) + "%",
-    haste: (v) => "攻撃の速さ +" + Math.round(v * 100) + "%",
-    elemadv: () => "<b>3属性有利</b>：自分と同じ属性・自分が苦手な属性をのぞく3つの敵に有利（×" + ADV + "）",
-    guard: (v) => "受けるダメージ -" + Math.round(v * 100) + "%",
-    anti: (v) => "ボスの大技（チャージ攻撃）のダメージ -" + Math.round(v * 100) + "%",
-    crit: (v) => "会心率 +" + Math.round(v * 100) + "%",
+    AR:  { nm: "アサルトライフル", sh: "AR",  mag: 60,  rate: 10, mul: 0.13, reload: 1.5, gauge: 0.17, opt: [0.25, 0.70] },
+    SMG: { nm: "サブマシンガン",   sh: "SMG", mag: 120, rate: 15, mul: 0.07, reload: 1.2, gauge: 0.11, opt: [0.00, 0.50] },
+    SG:  { nm: "ショットガン",     sh: "SG",  mag: 9,   rate: 1.4, mul: 0.12, pel: 10, reload: 1.7, gauge: 0.09, opt: [0.00, 0.50] },
+    SR:  { nm: "スナイパーライフル", sh: "SR", mag: 6,  rate: 0.9, mul: 1.0, chg: 1.0, chgMul: 2.0, reload: 2.0, gauge: 2.7, opt: [0.50, 1.00] },
+    RL:  { nm: "ロケットランチャー", sh: "RL", mag: 6,  rate: 0.8, mul: 0.8, chg: 1.0, chgMul: 2.0, reload: 2.2, gauge: 2.8, splash: 0.12, opt: [0.45, 1.00] },
+    MG:  { nm: "マシンガン",       sh: "MG",  mag: 300, rate: 20, rate0: 4, ramp: 2.4, mul: 0.065, reload: 2.8, gauge: 0.09, opt: [0.25, 0.75] },
   };
 
-  /* ── 「上澄み」と「最強」の補正 ── */
-  function tierOf(c) {
-    if (c.fesKey === "crystal") return { k: "crystal", nm: "CRYSTAL", mul: 1.26 };   /* ★ MagiBattle 最強（ご指定） */
-    if (c.lux && (c.nexus === "luxprism" || c.nexus === "luxblaze" || c.nexus === "luxbloom")) return { k: "lux", nm: "極祭", mul: 1.10 };
-    if (c.fesKey === "kaen") return { k: "kaen", nm: "花宴", mul: 1.10 };
-    if (c.fes) return { k: "fes", nm: "FES", mul: 1.05 };
-    if (c.gacha || c.star5) return { k: "ssr", nm: "", mul: 1.0 };
-    return { k: "sr", nm: "", mul: 0.94 };
-  }
-
-  /* ── スキル2（アクティブ）の型：リンクスキルの名前から決める ── */
-  const S2_PAT = {
-    burst:  { nm: "範囲", d: "敵全体に", mul: 1.55, tg: "all" },
-    line:   { nm: "貫通", d: "敵2体に", mul: 2.55, tg: 2 },
-    snipe:  { nm: "単体", d: "敵単体に", mul: 4.40, tg: 1 },
-    chain:  { nm: "連撃", d: "ランダムな敵に5連", mul: 0.95, tg: "rand", n: 5 },
-    ring:   { nm: "波動", d: "敵全体に＋防御力ダウン（8秒）", mul: 1.30, tg: "all", debuff: "def" },
+  /* ══════════ 12体のキット ══════════
+     base … Lv1・凸0 の HP／攻撃／防御。tier … 強さの帯（MagiAbyss の並びに合わせる：ハル≒チカ＞ヒサコ＞ユナ≒コハク≒アリス＞ほか）
+     スキルの v … [Lv1, Lv10]（あいだは直線）。desc の {v} {w} を置きかえる。fx … 本体（mb3-engine.js）が読む効果の種類 */
+  const KITS = {
+    /* ── プリズム隊（超極彩祭）── */
+    haru: { sq: "prism", cls: "atk", burst: 3, wp: "MG", tier: 1.06, cd: 40,
+      base: { hp: 2500, atk: 236, def: 18 }, role: "持続火力・マシンガン",
+      quote: "雨あがりの空みたいに、ぜんぶ晴らしてあげる。",
+      s1: { nm: "あじさいの雨", fx: "maxRateDmg", v: [15, 30], desc: "連射が最高速度のあいだ、自分の与ダメージ <b>+{v}%</b>。" },
+      s2: { nm: "蒼海の波紋", fx: "rippleEvery", n: 100, v: [120, 200], desc: "通常攻撃が <b>100発</b> 命中するごとに、敵全体に攻撃力の <b>{v}%</b> の波紋ダメージ。" },
+      bs: { nm: "ブルー・ハイドランジア", fx: "mgOverdrive", v: [60, 100], dur: 10, desc: "10秒間、自分の攻撃力 <b>+{v}%</b>・連射は立ち上がり無しで最高速度・<b>弾が減らない</b>。" } },
+    chika: { sq: "prism", cls: "atk", burst: 3, wp: "SR", tier: 1.06, cd: 40,
+      base: { hp: 2350, atk: 240, def: 17 }, role: "コア狙撃・会心確定の一撃",
+      quote: "月の光は、いちばん弱いところだけを照らすの。",
+      s1: { nm: "白花の照準", fx: "coreDmg", v: [40, 70], desc: "コアへの与ダメージ <b>+{v}%</b>。" },
+      s2: { nm: "月下の静寂", fx: "coreChargeStack", v: [5, 8], max: 5, dur: 10, desc: "フルチャージ攻撃がコアに当たるたび、自分の攻撃力 <b>+{v}%</b>（最大5回・10秒）。" },
+      bs: { nm: "ルナ・ホワイトリリィ", fx: "coreSnipe", v: [1200, 2000], w: [30, 30], dur: 10, desc: "敵1体に攻撃力の <b>{v}%</b>（コアに命中・会心確定）。10秒間、味方全員のコアダメージ <b>+{w}%</b>。" } },
+    /* ── ブレイズ隊（超極煌祭）── */
+    hisako: { sq: "blaze", cls: "atk", burst: 3, wp: "SR", tier: 1.04, cd: 40,
+      base: { hp: 2380, atk: 236, def: 17 }, role: "フルバーストの貫通狙撃",
+      quote: "放課後まで、待ってられないもん。",
+      s1: { nm: "桜色の一頁", fx: "pierceCharge", v: [20, 40], desc: "チャージ攻撃が敵を<b>貫通</b>（うしろの敵にも50%）。チャージダメージ <b>+{v}%</b>。" },
+      s2: { nm: "放課後の約束", fx: "fbChargeAtk", v: [25, 45], w: [30, 50], desc: "フルバースト中、自分の攻撃力 <b>+{v}%</b>・チャージ速度 <b>+{w}%</b>。" },
+      bs: { nm: "サクラ・グラフィティ", fx: "chargeOverdrive", v: [150, 250], w: [1000, 1600], dur: 10, desc: "10秒間、チャージダメージ <b>+{v}%</b>・フルチャージまでの時間 <b>半分</b>。発動のとき敵1体に攻撃力の <b>{w}%</b>。" } },
+    alice: { sq: "blaze", cls: "atk", burst: 2, wp: "RL", tier: 1.02, cd: 20,
+      base: { hp: 2600, atk: 214, def: 19 }, role: "範囲攻撃・防御ダウン",
+      quote: "白銀の百合は、夜にこそ咲くのよ。",
+      s1: { nm: "白銀の百合", fx: "defDownOnCharge", v: [10, 20], dur: 5, desc: "チャージ攻撃が当たった敵の防御力 <b>−{v}%</b>（5秒）。" },
+      s2: { nm: "リリィ・ノクターン", fx: "fbSelfAtk", v: [20, 40], desc: "フルバースト中、自分の攻撃力 <b>+{v}%</b>。" },
+      bs: { nm: "シルバーリリィ・ノヴァ", fx: "aoeVuln", v: [300, 520], w: [10, 20], dur: 10, desc: "敵全体に攻撃力の <b>{v}%</b>。10秒間、敵全体の被ダメージ <b>+{w}%</b>。" } },
+    kohaku: { sq: "blaze", cls: "atk", burst: 3, wp: "AR", tier: 1.02, cd: 40,
+      base: { hp: 2450, atk: 228, def: 18 }, role: "会心特化のアサルト",
+      quote: "優雅に、そして確実に。それが令嬢のたしなみですわ。",
+      s1: { nm: "紅薔薇の気品", fx: "selfCrit", v: [15, 25], desc: "自分の会心率 <b>+{v}%</b>。" },
+      s2: { nm: "令嬢の嗜み", fx: "critAtkStack", v: [2, 3], max: 10, dur: 3, desc: "会心が出るたび、自分の攻撃力 <b>+{v}%</b>（最大10回・3秒）。" },
+      bs: { nm: "クリムゾン・ロンド", fx: "arOverdrive", v: [50, 80], w: [50, 50], dur: 10, desc: "10秒間、自分の攻撃力 <b>+{v}%</b>・会心ダメージ <b>+{w}%</b>・連射が<b>2倍</b>。" } },
+    suzu: { sq: "blaze", cls: "def", burst: 1, wp: "SG", tier: 1.0, cd: 20,
+      base: { hp: 3700, atk: 150, def: 30 }, role: "挑発・シールド・遮蔽物の修理",
+      quote: "ひまわりみたいに、みんなの前に立つからね！",
+      s1: { nm: "ひまわりの盾", fx: "coverHp", v: [20, 40], desc: "味方全員の遮蔽物の耐久 <b>+{v}%</b>。" },
+      s2: { nm: "夏の陽だまり", fx: "selfDr", v: [10, 25], desc: "自分の被ダメージ <b>−{v}%</b>。挑発中は防御力 +30%。" },
+      bs: { nm: "サンフラワー・ガード", fx: "tauntShield", v: [15, 25], dur: 10, desc: "10秒間、敵の攻撃を自分に集める（挑発）。味方全員に最大HPの <b>{v}%</b> のシールド・遮蔽物を 30% 修理。" } },
+    shouko: { sq: "blaze", cls: "def", burst: 2, wp: "SMG", tier: 1.0, cd: 20,
+      base: { hp: 3600, atk: 155, def: 29 }, role: "回復・被ダメージ軽減",
+      quote: "日なたぼっこの続きは、勝ってからにしよっか。",
+      s1: { nm: "陽だまりの波", fx: "healLowest", period: 5, v: [20, 35], desc: "5秒ごとに、HP がいちばん低い味方を攻撃力の <b>{v}%</b> 回復。" },
+      s2: { nm: "渚のバリア", fx: "coverRepairOnHit", v: [1, 2], desc: "自分がダメージを受けると、自分の遮蔽物を <b>{v}%</b> 修理（1秒に1回）。" },
+      bs: { nm: "サンシャイン・ショア", fx: "teamDrHeal", v: [25, 40], w: [60, 100], dur: 10, desc: "10秒間、味方全員の被ダメージ <b>−{v}%</b>。HP を攻撃力の <b>{w}%</b> 回復し、毎秒 5% ずつ回復しつづける。" } },
+    /* ── ブルーム隊（超極華祭）── */
+    yuna: { sq: "bloom", cls: "atk", burst: 3, wp: "SG", tier: 1.02, cd: 40,
+      base: { hp: 2550, atk: 230, def: 19 }, role: "至近距離の超火力",
+      quote: "宵闇のうちに、終わらせてあげる。",
+      s1: { nm: "宵闇の茨", fx: "nearDmg", v: [30, 50], desc: "手前の敵（距離 1/3 以内）への与ダメージ <b>+{v}%</b>。" },
+      s2: { nm: "黒薔薇の刻印", fx: "markProc", n: 10, v: [150, 240], desc: "通常攻撃が当たった敵に刻印。<b>10回</b>たまると攻撃力の <b>{v}%</b> の追加ダメージ。" },
+      bs: { nm: "ノワール・ブロッサム", fx: "sgOverdrive", v: [1500, 2400], dur: 10, desc: "敵1体に攻撃力の <b>{v}%</b>。10秒間、通常攻撃の散弾が<b>2倍</b>。" } },
+    chie: { sq: "bloom", cls: "atk", burst: 3, wp: "RL", tier: 1.0, cd: 40,
+      base: { hp: 2500, atk: 226, def: 18 }, role: "範囲・燃焼",
+      quote: "桜火よ、舞え――！",
+      s1: { nm: "桜火の舞", fx: "chargeBurn", v: [20, 35], dur: 5, desc: "チャージ攻撃の爆風に燃焼（毎秒 攻撃力の <b>{v}%</b>・5秒）。" },
+      s2: { nm: "緋袴の矜持", fx: "atkIfEnemies", n: 3, v: [15, 30], desc: "敵が3体以上いるとき、自分の攻撃力 <b>+{v}%</b>。" },
+      bs: { nm: "緋桜・千本鳥居", fx: "aoeBurn", v: [800, 1300], w: [50, 80], dur: 10, desc: "敵全体に攻撃力の <b>{v}%</b>。10秒間、敵全体を燃焼（毎秒 <b>{w}%</b>）。" } },
+    aina: { sq: "bloom", cls: "sup", burst: 2, wp: "SR", tier: 1.0, cd: 20,
+      base: { hp: 2900, atk: 180, def: 22 }, role: "会心ダメージ・チャージ速度の支援",
+      quote: "薔薇の棘は、守るためにあるのです。",
+      s1: { nm: "月下の薔薇", fx: "chargeAtkStack", v: [5, 8], max: 5, dur: 5, desc: "チャージ攻撃が当たると、自分の攻撃力 <b>+{v}%</b>（最大5回・5秒）。" },
+      s2: { nm: "ルナ・グレイス", fx: "teamCrit", v: [5, 10], desc: "味方全員の会心率 <b>+{v}%</b>。" },
+      bs: { nm: "ムーンライト・ローズ", fx: "critDmgChg", v: [30, 50], w: [400, 700], dur: 10, desc: "10秒間、味方全員の会心ダメージ <b>+{v}%</b>・チャージ速度 +20%。敵1体に攻撃力の <b>{w}%</b>。" } },
+    ichika: { sq: "bloom", cls: "sup", burst: 1, wp: "AR", tier: 1.0, cd: 20,
+      base: { hp: 2950, atk: 176, def: 22 }, role: "攻撃力アップ・装弾",
+      quote: "夏はまだ終わらないよ、いっしょに走ろ！",
+      s1: { nm: "サマーウェーブ", fx: "gaugeGain", v: [20, 35], desc: "自分のバーストゲージの獲得量 <b>+{v}%</b>・最大装弾数 +20%。" },
+      s2: { nm: "夏渚のエール", fx: "teamAmmo", v: [10, 20], desc: "味方全員の最大装弾数 <b>+{v}%</b>。" },
+      bs: { nm: "ブルー・ラグーン", fx: "teamAtkReload", v: [20, 35], dur: 10, desc: "10秒間、味方全員の攻撃力 <b>+{v}%</b>。味方全員の弾を全回復。" } },
+    nonoka: { sq: "bloom", cls: "sup", burst: 1, wp: "SMG", tier: 1.0, cd: 20,
+      base: { hp: 3000, atk: 172, def: 23 }, role: "再使用短縮・回復",
+      quote: "お茶の時間までに、片づけてしまいましょう。",
+      s1: { nm: "おもてなしの白花", fx: "healOnHits", n: 40, v: [5, 9], desc: "通常攻撃が <b>40回</b> 当たるごとに、味方全員の HP を攻撃力の <b>{v}%</b> 回復。" },
+      s2: { nm: "ティータイム", fx: "fbTeamAtk", v: [8, 15], desc: "フルバーストが始まると、10秒間 味方全員の攻撃力 <b>+{v}%</b>。" },
+      bs: { nm: "ホワイトブーケ・サーヴ", fx: "cdrHeal", v: [4, 6], w: [30, 50], dur: 5, desc: "味方全員のバーストスキルの再使用時間を <b>{v}秒</b> 短縮。HP を攻撃力の <b>{w}%</b> 回復・5秒間 被ダメージ −10%。" } },
   };
-  const S2_KEYS = Object.keys(S2_PAT);
+  /* 並び（図鑑・編成の標準）：新しい祭が先、同じ祭はガチャの並び */
+  const IDS = ["haru", "chika", "hisako", "alice", "kohaku", "suzu", "shouko", "yuna", "chie", "aina", "ichika", "nonoka"];
 
-  /* ── バースト（FB 名）：段階ごとの形 ＋ FB の説明の言葉から効果をひろう ── */
-  function burstFeat(c) {
-    const t = String((c.ssPow || "") + (c.ssDesc || ""));
-    return {
-      heal: /回復/.test(t), barrier: /バリア/.test(t), defdown: /防御力ダウン|防御ダウン/.test(t),
-      delay: /遅らせ|遅延|行動ターン/.test(t), poison: /毒/.test(t), barrage: /乱打|連」|\d+連/.test(t),
-      rally: /総攻撃/.test(t), fb: /フルバーストを\d*進める|FBを/.test(t),
-    };
-  }
-
-  /* ══════════ キャラ1体の MagiBattle プロフィール（凸・レベルに関係しない部分） ══════════ */
-  const _prof = {};
-  function unit(id) {
-    if (_prof[id]) return _prof[id];
-    const c = C(id); if (!c) return null;
-    let typeKey = "balance";
-    try { typeKey = (typeof CHAR_TYPE !== "undefined" && CHAR_TYPE[id]) || "balance"; } catch (e) {}
-    let [cls, burst] = TYPE_MAP[typeKey] || TYPE_MAP.balance;
-    const abil = (c.abil || []).slice();
-    const has = (k) => abil.some((a) => a.t === k || baseOf(a.t) === k);
-    /* 回復・祈り・バリアを持つ支援寄りの子はバーストⅠへ（Ⅰが足りなくならないように） */
-    if (cls !== "defender" && burst !== 1 && (has("godpray") || has("pray")) && (has("regen") || has("barrier")) && typeKey !== "striker") { cls = "supporter"; burst = 1; }
-    /* バランス型の半分はⅡへ（Ⅱの顔ぶれを増やす） */
-    if (typeKey === "balance" && hashN(id, 29) % 2) burst = 2;
-    const tier = tierOf(c);
-    const w = weaponOf(c);
-    const s2 = S2_KEYS[hashN(c.fsKind || id, 97) % S2_KEYS.length];
-    const fx = abil.map((a) => Object.assign({ t: a.t, el: a.el }, abilFx(a)));
-    const star5 = !!(c.gacha || c.fes || c.star5);
-    const p = {
-      id, nm: c.nm, img: c.img, th: c.th, wide: c.wide || null, el: c.el, el2: c.el2 || null,
-      rar: star5 ? "SSR" : "SR", cls, burst, weapon: w, s2, tier,
-      /* ★ 2026-10-05 表示するレアリティの文字（タキナだけ UR。判定は rar のまま） */
-      rarNm: star5 && typeof rarLabel === "function" ? rarLabel(id) : (star5 ? "SSR" : "SR"),
-      fes: c.fesKey || (c.fes ? "fes" : ""), nexus: c.nexus || "",
-      base: { hp: (c.hp && c.hp[1]) || 6000, atk: (c.atk && c.atk[1]) || 6000, spd: (c.spd && c.spd[1]) || 420 },
-      fx, abil,
-      skill1: skill1Of(c, fx),
-      skill2: { nm: c.fsName || "スキル", pat: s2, sub: c.subfs || "" },
-      burstSk: { nm: c.ssName || "バースト", stage: burst, feat: burstFeat(c) },
-    };
-    _prof[id] = p;
-    return p;
-  }
-  /* スキル1＝いちばん目立つアビリティの名前（祈り → キラー → オーラ → そのほか） */
-  function skill1Of(c, fx) {
-    const order = ["godpray", "pray", "boss", "elkill", "aura", "soko", "barrier", "regen", "first", "vital", "fatal", "all"];
-    for (const k of order) {
-      const i = fx.findIndex((f) => f.k === k);
-      if (i >= 0) {
-        let nm = "";
-        try { nm = typeof abilName === "function" ? abilName(c.abil[i]) : (AB_NM[c.abil[i].t] || c.abil[i].t); } catch (e) { nm = c.abil[i].t; }
-        return { nm, fx: fx[i] };
-      }
-    }
-    return { nm: c.type || "心得", fx: null };
-  }
-
-  /* ══════════ レベル・凸・装備を入れたステータス ══════════ */
-  function lvCurve(lv) { lv = Math.max(1, Math.min(MAX_LV, lv | 0)); return 0.20 + 0.80 * Math.pow((lv - 1) / (MAX_LV - 1), 0.92); }
-  function statsAt(id, lv, awk, gear) {
-    const p = unit(id); if (!p) return null;
-    const cl = CLASSES[p.cls];
-    const aw = Math.max(0, Math.min(MAX_AWK, awk | 0));
-    const lvm = lvCurve(lv || 1), am = 1 + 0.07 * aw, tm = p.tier.mul;
-    const g = gear || {};
-    let hp = p.base.hp * 2.1 * cl.hp * lvm * am * tm;
-    let atk = p.base.atk * 1.05 * cl.atk * lvm * am * tm;
-    let def = (p.base.hp * 0.45 + p.base.atk * 0.12) * cl.def * lvm * (1 + 0.05 * aw) * tm;
-    hp *= 1 + (g.hp || 0); atk *= 1 + (g.atk || 0); def *= 1 + (g.def || 0);
-    const st = {
-      hp: Math.round(hp), atk: Math.round(atk), def: Math.round(def),
-      spd: p.base.spd,
-      crit: 0.05 + (WEAPONS[p.weapon].crit || 0) + (g.critrate || 0) + p.fx.filter((f) => f.k === "crit").reduce((a, f) => a + f.v, 0),
-      critDmg: 1.5 + (g.critdmg || 0) + p.fx.filter((f) => f.k === "critdmg").reduce((a, f) => a + f.v, 0),
-    };
-    st.power = powerOf(st);
-    return st;
-  }
-  /* ★ 戦力は武器に左右されない形（武器は「戦い方」のちがいで、強さの差ではない） */
-  function powerOf(st) {
-    return Math.round(st.hp * 0.12 + st.atk * 0.22 + st.def * 0.14 + st.crit * 9000 + (st.critDmg - 1.5) * 6000);
-  }
-
-  /* ══════════ 装備（頭・腕・胸・足）★★ 2026-09-23 MagiBurst から移設 ══════════
-     1つの装備＝部位・ティア（T1〜T9）・強化（+0〜+5）・オーバーロード（0〜3つ）。
-     メインの効果は部位で決まり、オーバーロードはランダム（MagiBurst の装備の効果名をそのまま使う）。 */
-  const GEAR_PARTS = ["head", "arm", "body", "leg"];
-  const GEAR_PART = {
-    head: { nm: "頭", full: "ヘッドギア", main: { atk: 0.030 } },
-    arm:  { nm: "腕", full: "アームガード", main: { atk: 0.018, hp: 0.018 } },
-    body: { nm: "胸", full: "ブレストプレート", main: { hp: 0.030, def: 0.018 } },
-    leg:  { nm: "足", full: "レッグアーマー", main: { def: 0.030, hp: 0.012 } },
+  /* ══════════ 成長 ══════════ */
+  const MAX_LV = 200, MAX_AWK = 4, SKILL_MAX = 10, BOND_MAX = 30;
+  const LV_CAP = [80, 120, 160, 200, 200];             /* 凸 0〜4 のレベル上限 */
+  const AWK_BONUS = [0, 0.06, 0.12, 0.18, 0.30];       /* 凸のステータス（％）・凸4＝コア解放 */
+  const GEAR_PARTS = ["head", "body", "arm", "leg"];
+  const GEAR_PART_NM = { head: "頭", body: "胴", arm: "腕", leg: "脚" };
+  /* 部位ごとの主ステータス（T1・強化0の値）。クラス一致で ×1.1、部隊一致で ×1.1 */
+  const GEAR_MAIN = { head: { atk: 9, hp: 60 }, body: { hp: 260, def: 6 }, arm: { atk: 13, def: 2 }, leg: { hp: 120, def: 5 } };
+  /* オーバーロード（T10）の追加効果：種類と幅（％） */
+  const OL_FX = {
+    atk: { nm: "攻撃力", min: 4.8, max: 17.8 }, ammo: { nm: "最大装弾数", min: 27, max: 71 }, crit: { nm: "会心率", min: 2.3, max: 12.2 },
+    critDmg: { nm: "会心ダメージ", min: 6.6, max: 22.4 }, elem: { nm: "有利属性ダメージ", min: 9.5, max: 31.4 }, chg: { nm: "チャージ速度", min: 1.9, max: 7.4 },
+    chgDmg: { nm: "チャージダメージ", min: 4.8, max: 17.8 }, hit: { nm: "命中率", min: 4.8, max: 17.8 }, def: { nm: "防御力", min: 4.8, max: 17.8 },
   };
-  const GEAR_FX = {
-    elemdmg:  { nm: "有利コードダメージ増加", short: "有利DMG", min: 9.54,  max: 29.16, c: "#ff8f5e" },
-    hitrate:  { nm: "命中率増加",             short: "命中",    min: 4.77,  max: 14.63, c: "#7cc4ff" },
-    ammo:     { nm: "最大装弾数増加",         short: "攻撃速度", min: 27.84, max: 85.37, c: "#8affc4" },
-    atk:      { nm: "攻撃力増加",             short: "攻撃力",  min: 4.77,  max: 14.63, c: "#ff5d47" },
-    chgdmg:   { nm: "チャージダメージ増加",   short: "バースト威力", min: 4.77, max: 14.63, c: "#ffb020" },
-    chgspd:   { nm: "チャージ速度増加",       short: "スキル再使用", min: 1.98, max: 6.09, c: "#ffd257" },
-    critrate: { nm: "クリティカル確率増加",   short: "会心率",  min: 2.30,  max: 7.07,  c: "#ff6f91" },
-    critdmg:  { nm: "クリティカルダメージ増加", short: "会心DMG", min: 6.64, max: 20.36, c: "#ff3d6e" },
-    def:      { nm: "防御力増加",             short: "防御力",  min: 4.77,  max: 14.63, c: "#9ad4ff" },
+  /* キューブ（1体に1つ）。Lv1〜15・Lv5/10/15 で効果がのびる */
+  const CUBES = {
+    assault:  { nm: "アサルトキューブ",  ic: "◆", c: "#ff5a6a", d: "攻撃力 +{v}%", v: [2, 8], st: "atkPct" },
+    resilience: { nm: "レジストキューブ", ic: "⬢", c: "#3aa0ff", d: "被ダメージ −{v}%", v: [2, 7], st: "dr" },
+    quantum:  { nm: "クアンタムキューブ", ic: "✦", c: "#b07bff", d: "チャージ速度 +{v}%", v: [2, 9], st: "chg" },
+    bastion:  { nm: "バスティオンキューブ", ic: "▲", c: "#ffb347", d: "リロード速度 +{v}%", v: [4, 16], st: "reload" },
+    adjutant: { nm: "アジュタントキューブ", ic: "●", c: "#2fd18a", d: "バーストゲージ獲得 +{v}%", v: [4, 14], st: "gauge" },
+    destruct: { nm: "デストラクトキューブ", ic: "✚", c: "#ff8fb8", d: "コアダメージ +{v}%", v: [4, 18], st: "core" },
   };
-  const GEAR_FX_IDS = Object.keys(GEAR_FX);
-  const GEAR_FX_DESC = {
-    elemdmg: "属性が有利な敵へのダメージ", hitrate: "スキル2のダメージ（命中で急所を撃ちぬく）", ammo: "ふだんの攻撃の速さ（装弾数 ÷ 8）",
-    atk: "攻撃力", chgdmg: "バーストのダメージ", chgspd: "スキル2・バーストの再使用時間の短縮（×2）",
-    critrate: "会心率", critdmg: "会心ダメージ", def: "防御力",
-  };
-  /* 1つぶんの効果（数値は %）を、ステータスへの割合（0.xx）に直して足しこむ */
-  function gearSum(list) {
-    const s = { hp: 0, atk: 0, def: 0, elemdmg: 0, hitrate: 0, haste: 0, chgdmg: 0, cd: 0, critrate: 0, critdmg: 0 };
-    (list || []).forEach((g) => {
-      if (!g || !GEAR_PART[g.p]) return;
-      const t = Math.max(1, Math.min(9, g.t | 0)), lv = Math.max(0, Math.min(5, g.lv | 0));
-      const m = GEAR_PART[g.p].main, scale = t * (1 + 0.20 * lv);
-      Object.keys(m).forEach((k) => { s[k] += m[k] * scale; });
-      (g.subs || []).forEach((x) => {
-        const v = (+x.v || 0) / 100;
-        if (x.e === "atk") s.atk += v; else if (x.e === "def") s.def += v;
-        else if (x.e === "elemdmg") s.elemdmg += v; else if (x.e === "hitrate") s.hitrate += v;
-        else if (x.e === "ammo") s.haste += v / 8; else if (x.e === "chgdmg") s.chgdmg += v;
-        else if (x.e === "chgspd") s.cd += v * 2; else if (x.e === "critrate") s.critrate += v;
-        else if (x.e === "critdmg") s.critdmg += v;
-      });
+  const CUBE_MAX = 15;
+  /* 研究（クラスごと Lv0〜50）：1Lv あたり そのクラスの HP・攻撃・防御 +0.8% */
+  const RESEARCH_MAX = 50, RESEARCH_PER = 0.008;
+
+  function lerp(a, b, t) { return a + (b - a) * t; }
+  function skillV(sk, lv, key) {
+    const arr = sk && sk[key || "v"]; if (!arr) return 0;
+    const t = (Math.max(1, Math.min(SKILL_MAX, lv || 1)) - 1) / (SKILL_MAX - 1);
+    return Math.round(lerp(arr[0], arr[1], t) * 10) / 10;
+  }
+  function skillText(id, k, lv) {
+    const K = KITS[id]; if (!K) return "";
+    const sk = K[k]; if (!sk) return "";
+    return String(sk.desc).replace("{v}", fmt1(skillV(sk, lv, "v"))).replace("{w}", fmt1(skillV(sk, lv, "w")));
+  }
+  function fmt1(x) { return (Math.round(x * 10) / 10).toLocaleString("ja-JP"); }
+  function lvCap(awk) { return LV_CAP[Math.max(0, Math.min(MAX_AWK, awk | 0))]; }
+  /* レベルの伸び：Lv1 ×1.0 → Lv200 ×8.96 */
+  function lvMul(lv) { return 1 + 0.04 * (Math.max(1, Math.min(MAX_LV, lv | 0)) - 1); }
+  /* 装備1つの主ステータス */
+  function gearMain(g, id) {
+    const K = KITS[id]; if (!g || !GEAR_MAIN[g.p]) return { hp: 0, atk: 0, def: 0 };
+    const t = Math.max(1, Math.min(10, g.t | 0)), e = Math.max(0, Math.min(5, g.e | 0));
+    const sc = Math.pow(t, 1.55) * (1 + 0.1 * e) * (g.cls && K && g.cls === K.cls ? 1.1 : 1) * (g.sq && K && g.sq === K.sq ? 1.1 : 1);
+    const m = GEAR_MAIN[g.p], o = { hp: 0, atk: 0, def: 0 };
+    Object.keys(m).forEach((k) => { o[k] = Math.round(m[k] * sc); });
+    return o;
+  }
+  /* ステータス一式。opt: { lv, awk, sk:[s1,s2,bs], gear:{head,body,arm,leg}, cube:{k,lv}, bond, res }
+     返す：{ hp, atk, def, crit, critDmg, ammo%, chg%, reload%, gauge%, core%, elem%, hit%, dr%, power } */
+  function stats(id, opt) {
+    const K = KITS[id]; if (!K) return null;
+    opt = opt || {};
+    const awk = Math.max(0, Math.min(MAX_AWK, opt.awk | 0));
+    const lv = Math.max(1, Math.min(lvCap(awk), opt.lv || 1));
+    const m = lvMul(lv) * (1 + AWK_BONUS[awk]) * (K.tier || 1);
+    let hp = K.base.hp * m, atk = K.base.atk * m, def = K.base.def * m;
+    const x = { crit: 15, critDmg: 50, ammo: 0, chg: 0, chgDmg: 0, reload: 0, gauge: 0, core: 0, elem: 0, hit: 0, dr: 0, atkPct: 0, defPct: 0 };
+    /* 好感度：1Lv ごとに HP+30・攻撃+3・防御+0.5（30 で HP+900 ほか） */
+    const bond = Math.max(0, Math.min(BOND_MAX, opt.bond | 0));
+    hp += bond * 30; atk += bond * 3; def += bond * 0.5;
+    /* 研究（クラス） */
+    const res = Math.max(0, Math.min(RESEARCH_MAX, opt.res | 0));
+    hp *= 1 + res * RESEARCH_PER; atk *= 1 + res * RESEARCH_PER; def *= 1 + res * RESEARCH_PER;
+    /* 装備 */
+    const G = opt.gear || {};
+    GEAR_PARTS.forEach((p) => {
+      const g = G[p]; if (!g) return;
+      const gm = gearMain(Object.assign({ p }, g), id);
+      hp += gm.hp; atk += gm.atk; def += gm.def;
+      (g.ol || []).forEach((o) => { if (o && OL_FX[o.k]) { if (o.k === "atk") x.atkPct += o.v; else if (o.k === "def") x.defPct += o.v; else if (o.k === "ammo") x.ammo += o.v; else if (o.k === "crit") x.crit += o.v; else if (o.k === "critDmg") x.critDmg += o.v; else if (o.k === "elem") x.elem += o.v; else if (o.k === "chg") x.chg += o.v; else if (o.k === "chgDmg") x.chgDmg += o.v; else if (o.k === "hit") x.hit += o.v; } });
     });
-    s.cd = Math.min(0.45, s.cd);
-    return s;
+    /* キューブ */
+    const cb = opt.cube && CUBES[opt.cube.k];
+    if (cb) { const cv = lerp(cb.v[0], cb.v[1], (Math.max(1, Math.min(CUBE_MAX, opt.cube.lv | 0)) - 1) / (CUBE_MAX - 1)); x[cb.st] = (x[cb.st] || 0) + Math.round(cv * 10) / 10; }
+    atk *= 1 + x.atkPct / 100; def *= 1 + x.defPct / 100;
+    const sk = opt.sk || [1, 1, 1];
+    const o = { lv, awk, hp: Math.round(hp), atk: Math.round(atk), def: Math.round(def) };
+    Object.assign(o, x);
+    /* 戦力（NIKKE の戦闘力のような目安）：攻撃・HP・防御の重み＋スキル Lv＋凸 */
+    const skB = 1 + ((sk[0] - 1) + (sk[1] - 1) + (sk[2] - 1) * 1.4) * 0.012;
+    o.power = Math.round((o.atk * 18 + o.hp * 0.55 + o.def * 12) * skB * (1 + (x.crit - 15) * 0.004 + x.core * 0.001 + x.elem * 0.001));
+    return o;
   }
-  function gearIsHigh(x) { const f = GEAR_FX[x && x.e]; return !!f && x.v >= f.min + (f.max - f.min) * 0.7; }
 
-  /* ══════════ 凸（共通）・所持（共通） ══════════ */
-  const XEVA_ALIAS = { rinonx: "rinon", shiona: "shion" };
-  const XEVA_ALIAS_R = { rinon: "rinonx", shion: "shiona" };
+  /* ══════════ 所持・凸（XEVARION と共通）══════════ */
   function mbSave() { try { return JSON.parse(localStorage.getItem("magiburst_v1") || "null") || {}; } catch (e) { return {}; } }
   function xgSave() { try { return JSON.parse(localStorage.getItem("xeva_gacha_v1") || "null") || {}; } catch (e) { return {}; } }
   function sharedOf(id, mb, xg) {
     mb = mb || mbSave(); xg = xg || xgSave();
     const m = (mb.chars || {})[id];
-    const xid = XEVA_ALIAS[id] || id;
-    const xo = !!((xg.owned || {})[xid]) || (xid === "hina");
-    const xd = Math.min(MAX_AWK, ((xg.dupes || {})[xid]) | 0);
-    let mbLv = 0; if (m) mbLv = m.lv | 0;
-    return { own: !!m || xo, awk: Math.max(m ? (m.awk | 0) : 0, xo ? xd : 0), mbLv };
+    const xo = !!((xg.owned || {})[id]);
+    const xd = Math.min(MAX_AWK, ((xg.dupes || {})[id]) | 0);
+    return { own: !!m || xo, awk: Math.min(MAX_AWK, Math.max(m ? (m.awk | 0) : 0, xo ? xd : 0)) };
+  }
+  /* MagiBattle のセーブ（magibattle_v2）からいまの育成を読む（図鑑のキャラ詳細用） */
+  function growthOf(id) {
+    let S = null; try { S = JSON.parse(localStorage.getItem(SAVE_KEY) || "null"); } catch (e) { S = null; }
+    const u = (S && S.units && S.units[id]) || {};
+    const sh = sharedOf(id);
+    const gear = {};
+    GEAR_PARTS.forEach((p) => { const gid = u.gear && u.gear[p]; const g = gid && S && S.gear && S.gear[gid]; if (g) gear[p] = g; });
+    const cube = u.cube && S && S.cubes && S.cubes[u.cube] ? { k: u.cube, lv: S.cubes[u.cube].lv || 1 } : null;
+    const res = S && S.research ? (S.research[KITS[id] ? KITS[id].cls : ""] | 0) : 0;
+    return { own: sh.own, awk: sh.awk, lv: Math.min(lvCap(sh.awk), u.lv || 1), sk: u.sk || [1, 1, 1], gear, cube, bond: u.bond || 0, res };
   }
 
-  /* ══════════ ダメージ ══════════ */
-  function defMul(def) { return 1 - def / (def + 26000); }
-
-  /* ══════════ 表示（ポータルの図鑑・ガチャ・MagiBattle のキャラ詳細） ══════════ */
+  /* ══════════ 表示（図鑑・ガチャ・MagiBattle 共通）══════════ */
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m])); }
-  function s2Text(p, st) {
-    const P = S2_PAT[p.skill2.pat];
-    const cd = 9 + (hashN(p.id, 5) % 5);
-    return { cd, text: P.d + " 攻撃力×" + P.mul.toFixed(2) + (P.n ? "（×" + P.n + "回）" : "") + "・再使用 " + cd + "秒" };
-  }
-  function burstText(p) {
-    const f = p.burstSk.feat, st = p.burstSk.stage, cr = p.tier.k === "crystal";
-    const cd = cr ? 20 : BURST_CD[st];
-    const parts = [];
-    if (st === 1) {
-      parts.push("<b>味方全員の攻撃力+30%</b>（10秒）");
-      if (f.heal) parts.push("チームHPを25%回復"); else parts.push("味方全員に最大HPの12%のバリア");
-      parts.push("敵全体に 攻撃力×3.0");
-    } else if (st === 2) {
-      parts.push("敵全体に 攻撃力×6.0", "<b>敵全体の防御力-25%</b>（10秒）");
-      if (f.delay) parts.push("敵の大技を2秒遅らせる");
-      if (f.poison) parts.push("敵全体を毒（10秒）");
-      if (f.heal) parts.push("チームHPを15%回復");
-    } else {
-      if (f.barrage) parts.push("狙った敵に<b>12連撃</b>（1発 攻撃力×1.6）", "締めに 攻撃力×6.0");
-      else parts.push("敵全体に 攻撃力×9.0", "狙った敵に追撃 攻撃力×6.0");
-      if (f.defdown) parts.push("敵全体の防御力-15%（10秒）");
-      if (f.rally) parts.push("味方全員が追撃");
-    }
-    if (f.fb) parts.push("味方全員のスキル2を即使用可能に");
-    if (cr) parts.push("<b>晶学の加護</b>：どの段階のバーストとしても使え、FULL BURST 中は攻撃力+30%");
-    return { cd, text: parts.join("／") };
-  }
-  function iconEl(el, px) {
-    const e = ELEM[el]; if (!e) return "";
-    return '<span class="mbx-el" style="--ec:' + e.c + ';width:' + (px || 16) + 'px;height:' + (px || 16) + 'px">' + e.nm + "</span>";
-  }
+  function charNm(id) { try { if (typeof CHARS !== "undefined" && CHARS[id]) return CHARS[id].nm; } catch (e) {} return ({ haru: "ハル", chika: "チカ", hisako: "ヒサコ", alice: "アリス", kohaku: "コハク", suzu: "スズ", shouko: "ショウコ", yuna: "ユナ", chie: "ヨシノ", aina: "アイナ", ichika: "イチカ", nonoka: "ノノカ" })[id] || id; }
+  function elOf(id) { try { if (typeof CHARS !== "undefined" && CHARS[id]) return CHARS[id].el; } catch (e) {} return ({ haru: "water", chika: "dark", hisako: "water", alice: "dark", kohaku: "fire", suzu: "wood", shouko: "light", yuna: "dark", chie: "fire", aina: "light", ichika: "water", nonoka: "wood" })[id]; }
+  const WP_SVG = {
+    AR: '<path d="M2 11h14l2-2h3v3h-2l-1 2h-3l-1 3H11l1-3H6l-1 2H3z"/>',
+    SMG: '<path d="M3 10h12l2-2h3v3h-3v2h-2l-1 4h-2l1-4H8v2H6v-2H3z"/>',
+    SG: '<path d="M2 10h16l3-1v3l-3 1h-6l-2 4H8l1-4H5l-1 2H2z"/>',
+    SR: '<path d="M1 11h18l3-1v2l-3 1h-7l-1 3H9l1-3H6l-2 2H2v-2h2zM9 8h4v2H9z"/>',
+    RL: '<path d="M2 9h15l3 1.5L17 12H2zM6 12h3v4H6z"/>',
+    MG: '<path d="M2 10h15v-1h4v4h-4v-1h-4l-2 5H9l1-5H5l-1 2H2z"/>',
+  };
+  function wpIcon(w, sz) { return '<svg class="mbs-wp" viewBox="0 0 24 24" width="' + (sz || 18) + '" height="' + (sz || 18) + '" fill="currentColor" aria-hidden="true">' + (WP_SVG[w] || "") + "</svg>"; }
+  function burstBadge(n) { const B = BURST[n] || BURST[3]; return '<i class="mbs-bu" style="--bc:' + B.c + '">' + B.nm + "</i>"; }
+  /* 1体ぶんの性能カード。opt: { lv, awk, sk, gear, cube, bond, res, compact, cap } */
   function detailHTML(id, opt) {
+    const K = KITS[id]; if (!K) return '<div class="mbs-none">このキャラは MagiBattle では使えません。</div>';
     opt = opt || {};
-    const p = unit(id); if (!p) return "";
-    const lv = opt.lv || MAX_LV, aw = opt.awk == null ? MAX_AWK : opt.awk;
-    const st = statsAt(id, lv, aw, opt.gear || null);
-    const st1 = statsAt(id, 1, 0, null);
-    const cl = CLASSES[p.cls], w = WEAPONS[p.weapon], el = ELEM[p.el];
-    const s2 = s2Text(p, st), bt = burstText(p);
-    const fxRows = p.fx.map((f, i) => {
-      let nm = ""; try { nm = typeof abilName === "function" ? abilName(p.abil[i]) : p.abil[i].t; } catch (e) { nm = p.abil[i].t; }
-      const tx = FX_TEXT[f.k] ? FX_TEXT[f.k](f.v, f) : "";
-      return '<div class="mbx-ab"><b>' + esc(nm) + "</b><span>" + tx + "</span></div>";
-    }).join("");
-    return '<div class="mbx">'
-      + '<div class="mbx-tags">'
-      + '<span class="mbx-tag" style="--tc:' + el.c + '">' + el.nm + "属性</span>"
-      + (p.el2 && ELEM[p.el2] ? '<span class="mbx-tag" style="--tc:' + ELEM[p.el2].c + '">' + ELEM[p.el2].nm + "属性</span>" : "")
-      + '<span class="mbx-tag" style="--tc:' + cl.c + '">' + cl.nm + "（" + cl.en + "）</span>"
-      + '<span class="mbx-tag bu">BURST ' + (p.tier.k === "crystal" ? "Ⅰ・Ⅱ・Ⅲ" : BURST_NM[p.burst]) + "</span>"
-      + '<span class="mbx-tag">' + w.s + "・" + w.nm + "</span>"
-      + (p.tier.nm ? '<span class="mbx-tag gd">' + p.tier.nm + "</span>" : "")
-      + "</div>"
-      + '<div class="mbx-st"><div><small>戦力</small><b>' + st.power.toLocaleString() + "</b></div>"
-      + "<div><small>HP</small><b>" + st.hp.toLocaleString() + "</b></div>"
-      + "<div><small>攻撃</small><b>" + st.atk.toLocaleString() + "</b></div>"
-      + "<div><small>防御</small><b>" + st.def.toLocaleString() + "</b></div>"
-      + "<div><small>会心</small><b>" + Math.round(st.crit * 100) + "%</b></div></div>"
-      + '<div class="mbx-cap">Lv.' + lv + (aw ? "・" + (aw >= MAX_AWK ? "完凸" : aw + "凸") : "") + " の値（Lv.1・無凸は 戦力 " + st1.power.toLocaleString() + "）</div>"
-      + '<div class="mbx-sk"><div class="mbx-skh"><i>SKILL 1</i><b>' + esc(p.skill1.nm) + "</b></div><p>"
-      + (p.skill1.fx && FX_TEXT[p.skill1.fx.k] ? FX_TEXT[p.skill1.fx.k](p.skill1.fx.v, p.skill1.fx) : "アビリティの効果がそのまま入ります") + "</p></div>"
-      + '<div class="mbx-sk"><div class="mbx-skh"><i>SKILL 2</i><b>' + esc(p.skill2.nm) + "</b><em>" + S2_PAT[p.skill2.pat].nm + "</em></div><p>" + s2.text + "</p></div>"
-      + '<div class="mbx-sk bu"><div class="mbx-skh"><i>BURST ' + BURST_NM[p.burst] + "</i><b>" + esc(p.burstSk.nm) + "</b><em>再使用 " + bt.cd + "秒</em></div><p>" + bt.text + "</p></div>"
-      + '<div class="mbx-sk"><div class="mbx-skh"><i>WEAPON</i><b>' + w.nm + "</b></div><p>" + w.d + "</p></div>"
-      + (fxRows && !opt.compact ? '<div class="mbx-abs"><div class="mbx-abt">アビリティ（MagiBattle での効果）</div>' + fxRows + "</div>" : "")
-      + "</div>";
+    const st = stats(id, opt), W = WEAPONS[K.wp], C = CLASSES[K.cls], Q = SQUADS[K.sq], E = ELEM[elOf(id)] || ELEM.fire;
+    const sk = opt.sk || [1, 1, 1];
+    const row = (k, lab) => '<div class="mbs-sk"><div class="mbs-skh"><span class="mbs-skt">' + lab + "</span><b>" + esc(K[k].nm) + "</b><em>Lv." + sk[k === "s1" ? 0 : k === "s2" ? 1 : 2] + "</em>" +
+      (k === "bs" ? '<small>再使用 ' + K.cd + "秒</small>" : "") + '</div><p>' + skillText(id, k, sk[k === "s1" ? 0 : k === "s2" ? 1 : 2]) + "</p></div>";
+    return '<div class="mbs-card' + (opt.compact ? " cmp" : "") + '">' +
+      '<div class="mbs-tags"><span class="mbs-tag" style="--tc:' + E.c + '">' + E.nm + "属性</span>" +
+      '<span class="mbs-tag wp">' + wpIcon(K.wp, 14) + W.sh + "</span>" +
+      '<span class="mbs-tag" style="--tc:' + C.c + '">' + C.nm + "</span>" +
+      '<span class="mbs-tag bu">バースト ' + burstBadge(K.burst) + "</span>" +
+      '<span class="mbs-tag" style="--tc:' + Q.c + '">' + Q.nm + "</span></div>" +
+      '<div class="mbs-role">' + esc(K.role) + "</div>" +
+      '<div class="mbs-stats"><span><i>戦力</i><b>' + st.power.toLocaleString("ja-JP") + "</b></span><span><i>Lv</i><b>" + st.lv + "</b></span>" +
+      "<span><i>HP</i><b>" + st.hp.toLocaleString("ja-JP") + "</b></span><span><i>攻撃力</i><b>" + st.atk.toLocaleString("ja-JP") + "</b></span><span><i>防御力</i><b>" + st.def.toLocaleString("ja-JP") + "</b></span></div>" +
+      '<div class="mbs-wpn">' + wpIcon(K.wp, 16) + "<b>" + W.nm + "</b><small>装弾 " + W.mag + "・リロード " + W.reload + "秒" + (W.chg ? "・チャージ " + W.chg + "秒" : "") + (W.pel ? "・散弾 " + W.pel + "粒" : "") + "</small></div>" +
+      row("s1", "スキル1") + row("s2", "スキル2") + row("bs", "バースト") +
+      (opt.cap ? '<div class="mbs-cap">' + opt.cap + "</div>" : "") + "</div>";
   }
-  const CSS = ".mbx{font-size:12px;line-height:1.5}.mbx-tags{display:flex;flex-wrap:wrap;gap:4px;margin:4px 0 8px}"
-    + ".mbx-tag{--tc:#8b93a8;font-size:10.5px;font-weight:900;padding:2px 8px;border-radius:999px;border:1.5px solid var(--tc);color:var(--tc);background:color-mix(in srgb,var(--tc) 10%,transparent)}"
-    + ".mbx-tag.bu{--tc:#ff3b55}.mbx-tag.gd{--tc:#e2a400}"
-    + ".mbx-st{display:grid;grid-template-columns:repeat(5,1fr);gap:4px}.mbx-st div{background:rgba(120,130,160,.1);border-radius:9px;padding:5px 4px;text-align:center}"
-    + ".mbx-st small{display:block;font-size:9px;opacity:.7;font-weight:800}.mbx-st b{font-size:12.5px;font-weight:900}"
-    + ".mbx-cap{font-size:10px;opacity:.7;margin:3px 0 8px}"
-    + ".mbx-sk{border-left:3px solid #8b93a8;padding:4px 0 4px 8px;margin:6px 0}.mbx-sk.bu{border-color:#ff3b55}"
-    + ".mbx-skh{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.mbx-skh i{font-style:normal;font-size:9.5px;font-weight:900;letter-spacing:.06em;background:#1d2336;color:#fff;border-radius:4px;padding:1px 6px}"
-    + ".mbx-sk.bu .mbx-skh i{background:#ff3b55}.mbx-skh b{font-size:12.5px}.mbx-skh em{font-style:normal;font-size:10px;opacity:.7;margin-left:auto}"
-    + ".mbx-sk p{margin:2px 0 0;font-size:11.5px}.mbx-abs{margin-top:8px}.mbx-abt{font-size:10.5px;font-weight:900;opacity:.75;margin-bottom:3px}"
-    + ".mbx-ab{display:flex;gap:6px;font-size:11px;padding:2px 0;border-bottom:1px dashed rgba(120,130,160,.25)}.mbx-ab b{flex:none;min-width:88px}";
   function ensureCSS() {
-    if (document.getElementById("mbxCSS")) return;
-    const s = document.createElement("style"); s.id = "mbxCSS"; s.textContent = CSS;
-    (document.head || document.documentElement).appendChild(s);
+    if (document.getElementById("mbsCss")) return;
+    const st = document.createElement("style"); st.id = "mbsCss";
+    st.textContent =
+      ".mbs-card{display:flex;flex-direction:column;gap:7px;font-size:12px;color:inherit}" +
+      ".mbs-tags{display:flex;flex-wrap:wrap;gap:4px}" +
+      ".mbs-tag{display:inline-flex;align-items:center;gap:3px;padding:2px 8px;border-radius:99px;font-size:10.5px;font-weight:900;color:#fff;background:var(--tc,#4a5370)}" +
+      ".mbs-tag.wp{background:#2a3044}.mbs-tag.bu{background:#151a2c}" +
+      ".mbs-bu{display:inline-grid;place-items:center;min-width:17px;height:17px;padding:0 3px;border-radius:4px;font-style:normal;font-size:10.5px;font-weight:900;color:#fff;background:var(--bc);margin-left:2px}" +
+      ".mbs-role{font-size:11.5px;font-weight:800;opacity:.85}" +
+      ".mbs-stats{display:grid;grid-template-columns:repeat(5,1fr);gap:4px}" +
+      ".mbs-stats span{display:flex;flex-direction:column;align-items:center;padding:5px 2px;border-radius:9px;background:rgba(127,140,180,.14)}" +
+      ".mbs-stats i{font-style:normal;font-size:9.5px;font-weight:800;opacity:.7}.mbs-stats b{font-size:12.5px;font-weight:900;font-variant-numeric:tabular-nums}" +
+      ".mbs-wpn{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.mbs-wpn small{opacity:.75;font-size:10.5px}" +
+      ".mbs-sk{padding:7px 9px;border-radius:10px;background:rgba(127,140,180,.10);border-left:3px solid rgba(127,140,180,.45)}" +
+      ".mbs-skh{display:flex;align-items:center;gap:6px;flex-wrap:wrap}.mbs-skh b{font-weight:900}.mbs-skh em{font-style:normal;font-size:10px;font-weight:900;opacity:.7}.mbs-skh small{margin-left:auto;font-size:10px;opacity:.7}" +
+      ".mbs-skt{font-size:9.5px;font-weight:900;padding:1px 6px;border-radius:5px;background:rgba(127,140,180,.25)}" +
+      ".mbs-sk p{margin:3px 0 0;line-height:1.6}.mbs-sk p b{font-weight:900}" +
+      ".mbs-card.cmp .mbs-sk p{font-size:11px}.mbs-cap{font-size:10px;opacity:.7}.mbs-none{font-size:12px;opacity:.75}";
+    document.head.appendChild(st);
   }
+  /* characters.html の小さな詳細用（MagiBattle で使えるキャラだけ） */
+  function statsHTML(c) {
+    const id = c && (c.mbId || c.id); if (!KITS[id]) return "";
+    ensureCSS();
+    const g = growthOf(id);
+    return '<div style="margin:8px 0;text-align:left">' + detailHTML(id, Object.assign({ compact: true }, g)) + "</div>";
+  }
+  function unit(id) { return KITS[id] ? Object.assign({ id }, KITS[id]) : null; }
+  function roster() { return IDS.slice(); }
 
   window.MBStats = {
-    VERSION, MAX_LV, MAX_AWK, ELEMS, ELEM, CLASSES, WEAPONS, BURST_NM, BURST_CD, S2_PAT,
-    GEAR_PARTS, GEAR_PART, GEAR_FX, GEAR_FX_IDS, GEAR_FX_DESC, FX_TEXT, ADV, DIS,
-    ready: core, hashN, elemMult, triAdv, unit, statsAt, powerOf, gearSum, gearIsHigh, sharedOf, defMul, lvCurve,
-    s2Text, burstText, detailHTML, ensureCSS, esc,
-    /* ★★ 2026-10-16 MagiAbyss 専用のキャラ（超極華祭・abyssOnly）は MagiBattle に出さない */
-    roster() { try { return CHAR_IDS.filter((id) => CHARS[id] && !CHARS[id].abyssOnly); } catch (e) { return []; } },
-    /* ★ 旧 API（characters.html の古い XEVA キャラの詳細が呼ぶ）。XEVA の id を MagiBurst の id に読みかえて出す */
-    statsHTML(c) {
-      const id = (c && (XEVA_ALIAS_R[c.id] || c.id)) || "";
-      if (!core() || !unit(id)) return "";
-      ensureCSS();
-      return '<div style="text-align:left;margin:8px 0">' + detailHTML(id, {}) + "</div>";
-    },
+    VERSION, SAVE_KEY, IDS, KITS, WEAPONS, CLASSES, SQUADS, BURST, ELEM, ADV, elemAdv,
+    MAX_LV, MAX_AWK, SKILL_MAX, BOND_MAX, LV_CAP, AWK_BONUS, GEAR_PARTS, GEAR_PART_NM, GEAR_MAIN, OL_FX, CUBES, CUBE_MAX, RESEARCH_MAX, RESEARCH_PER,
+    unit, roster, lvCap, lvMul, stats, skillV, skillText, gearMain, sharedOf, growthOf, charNm, elOf,
+    detailHTML, ensureCSS, statsHTML, wpIcon, burstBadge, esc,
   };
 })();

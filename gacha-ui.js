@@ -14,6 +14,9 @@
 "use strict";
 
 /* ★★ 2026-10-12c MagiAbyss の印（交差した2本の剣・SVG）。ファイルの頭に置く（あとの const だと読みこみ中の描画で使えない） */
+/* ★★ 2026-10-31 完凸ロビー対応キャラの印（王冠・絵の左下＝MagiAbyss の印は右下） */
+const GL_LB_IC = '<svg class="gl-lbic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2 5.2l3.1 3 2.9-5 2.9 5 3.1-3-1.3 7.2H3.3z" fill="currentColor"/><rect x="3.3" y="13.1" width="9.4" height="1.7" rx=".7" fill="currentColor"/></svg>';
+function glHasLobby(id) { try { return typeof hasLobby === "function" && hasLobby(id); } catch (e) { return false; } }
 const GL_MA_IC = '<svg class="gl-maic" viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 2.5l6.2 6.2M13.5 2.5L7.3 8.7" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/><path d="M3.6 10.6l1.8 1.8M10.6 12.4l1.8-1.8M4.5 11.5l-2 2M11.5 11.5l2 2" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"/></svg>';
 
 /* いま見ているガチャ。"premium" か FESTS のキー
@@ -216,7 +219,7 @@ function paintPickup() {
       const aw = own ? Math.max(0, Math.min(MAX_AWK, DB.chars[id].awk || 0)) : 0;
       return `<button class="fcard" onclick="openDetX('${id}')" title="${c.nm} の性能を見る">
         <img src="${c.th}" alt="${c.nm}">
-        <span class="fr">${mx ? "対象外" : ratePct(debutEachRateOf(gMode))}</span>
+        <span class="fr">${ratePct(debutEachRateOf(gMode))}</span>
         <span class="fo ${own ? "ok" : "no"}">${own ? (mx ? "👑MAX" : aw ? "+" + aw + "凸" : "所持") : "未所持"}</span>
         ${/* ★★ 2026-10-28 完凸でホームのロビーに出せる子（ヒサコ・アリス）に控えめな札 */ typeof hasLobby === "function" && hasLobby(id) ? '<span class="flb" title="完凸（4凸）でホームのロビーに設定できます">完凸でロビー</span>' : ""}
         <span class="fn">${c.nm}</span></button>`;
@@ -270,7 +273,7 @@ function paintPickup() {
       const aw = own ? Math.max(0, Math.min(MAX_AWK, DB.chars[id].awk || 0)) : 0;
       return `<button class="fcard" onclick="openPickArc('${el}')" title="${ELEM[el].nm}属性のピックアップをえらぶ">
         <img src="${c.th}" alt="${c.nm}">
-        <span class="fr">${mx ? "対象外" : ratePct(PICK_ARCHIVE)}</span>
+        <span class="fr">${ratePct(PICK_ARCHIVE)}</span>
         <span class="fo ${own ? "ok" : "no"}">${own ? (mx ? "👑MAX" : aw ? "+" + aw + "凸" : "所持") : "未所持"}</span>
         ${/* ★★ 2026-10-28 完凸でホームのロビーに出せる子（ヒサコ・アリス）に控えめな札 */ typeof hasLobby === "function" && hasLobby(id) ? '<span class="flb" title="完凸（4凸）でホームのロビーに設定できます">完凸でロビー</span>' : ""}
         <span class="fn">${ELEM[el].nm}・${c.nm}${n > 1 ? "（他" + (n - 1) + "体）" : ""}</span></button>`;
@@ -313,7 +316,7 @@ function paintPickup() {
       const aw = own ? Math.max(0, Math.min(MAX_AWK, DB.chars[id].awk || 0)) : 0;
       return `<button class="fcard" onclick="openDetX('${id}')" title="${c.nm} の性能を見る">
         <img src="${c.th}" alt="${c.nm}">
-        <span class="fr">${mx ? "対象外" : ratePct(pickRateOf(gMode, id))}</span>
+        <span class="fr">${ratePct(pickRateOf(gMode, id))}</span>
         ${_newIds.indexOf(id) >= 0 ? '<span class="fnew">NEW</span>' : ""}
         <span class="fo ${own ? "ok" : "no"}">${own ? (mx ? "👑MAX" : aw ? "+" + aw + "凸" : "所持") : "未所持"}</span>
         ${/* ★★ 2026-10-28 完凸でホームのロビーに出せる子（ヒサコ・アリス）に控えめな札 */ typeof hasLobby === "function" && hasLobby(id) ? '<span class="flb" title="完凸（4凸）でホームのロビーに設定できます">完凸でロビー</span>' : ""}
@@ -342,7 +345,7 @@ function paintPickup() {
      以前ここに出していた「排出対象外」は、いまは正しくないので出さない。 */
   w.innerHTML = `<div class="pkbox">
     <div class="pkhd"><span>✨ ピックアップ中のSSR</span>
-      <span style="color:${maxed ? "#8e6bff" : "#e0577f"}">${ratePct(pickupRate())}${maxed ? "（👑完凸 → " + crystIcon(13) + "結晶+" + CRYST_SSR + "）" : ""}</span></div>
+      <span style="color:${maxed ? "#8e6bff" : "#e0577f"}">${ratePct(pickupRate())}${maxed ? "（👑完凸 → " + crystIcon(13) + "結晶+" + crystOf(id) + "）" : ""}</span></div>
     <div class="pkrow">
       <img src="${c.th}" alt="${c.nm}" onclick="openDetX('${id}')" style="cursor:pointer" title="${c.nm} の性能を見る">
       <div class="pkinfo" onclick="openDetX('${id}')" style="cursor:pointer">
@@ -551,7 +554,7 @@ function paintNote() {
       ／ <b>SR 合計55%</b>（${s4}体で等分・各 ${ratePct(0.55 / s4)}）／ <b>育成アイテム ${ratePct(itemTotalOfMode("premium"))}</b>。<br>
       ${tktLine}<br>
       <b>10連は最後の1枠がSSR確定</b>。同じキャラを引くと<b>限界突破（最大${MAX_AWK}）</b>になり、
-      限界突破MAXのキャラは排出対象から外れます。<br>
+      👑完凸したキャラも<b>1〜9連目では出続け</b>、出たときは💠結晶（UR ${CRYST_UR}・SSR ${CRYST_SSR}・SR ${CRYST_SR}個）。<b>10連目は未完凸のキャラだけ</b>です。<br>
       ★ 所持キャラ・限界突破・<i class='icc ic-gem'></i>ジェムは <b>MagiBurst と共通</b>です。`;
   } else {
     const f = fesDef(gMode);
@@ -750,7 +753,8 @@ function rateCharRow(id, rate, tag) {
   const c = CHARS[id]; if (!c) return "";
   const sec = charSecret(id), mx = isDropOut(id), own = !!DB.chars[id];
   const nm = sec ? "???" : c.nm;
-  const sub = sec ? "登場前" : [ELEM[c.el].nm, c.shot === "pierce" ? "貫通" : "反射", dupeText(id).tx].join("・");
+  const sub = (sec ? "登場前" : [ELEM[c.el].nm, c.shot === "pierce" ? "貫通" : "反射", dupeText(id).tx].join("・"))
+    + (!sec && isMaxAwk(id) ? "・<b style='color:#8e6bff'>出たら💠+" + crystOf(id) + "</b>" : "");
   return `<div class="rtrow ${sec ? "silh" : ""}" ${sec ? "" : `onclick="openDetX('${id}')"`}>
     <img src="${c.th}" alt="" loading="lazy" class="${isStar5(id) ? "s5" : ""}">
     <span class="rti">
@@ -764,6 +768,13 @@ function rateHeadRow(tx, rate, c) {
   return `<div class="rthead" style="${c ? "color:" + c : ""}"><span>${tx}</span>${rate ? "<i>" + rate + "</i>" : ""}</div>`;
 }
 function rateNoteRow(tx) { return `<div class="rtnote">${tx}</div>`; }
+/* ★★ 2026-10-31 ご指定「提供割合も1-9連目と10連目で分けて記載」→ 大きな区切り */
+function rateSecRow(no, tx, sub, c) {
+  return `<div class="rtsec" style="${c ? "--sc:" + c : ""}"><b>${no}</b><span>${tx}${sub ? "<small>" + sub + "</small>" : ""}</span></div>`;
+}
+const SEC19 = () => rateSecRow("1〜9", "1〜9連目（単発・5連も同じ）", "👑完凸したキャラも同じ確率で出ます（出たら💠結晶 UR " + CRYST_UR + "・SSR " + CRYST_SSR + "・SR " + CRYST_SR + "個）");
+const SEC10 = (n, c) => rateSecRow("10", "10連目（最後の1枠・SSR以上確定）", n + "体から等確率・<b>まだ完凸していないキャラだけ</b>", c);
+const NOTE10 = "※ <b>10連目は、まだ完凸（👑）していないキャラだけ</b>が出ます（そのガチャで出るSSRが全員完凸のときだけ、その全員から等確率）。";
 /* ★ 2026-08-13 🎫は2種類になった。提供割合の下に出す共通の注記。 */
 const TKT_NOTE = "※ 🎫チケットは<b>2種類</b>あります。"
   + "<b>フェスチケット</b>は<b>フェスガチャ専用</b>（どのフェスでも使えます）、"
@@ -801,6 +812,7 @@ function openRatesX() {
     /* ★ 2026-08-20 GRAND DEBUT GACHA。SSR/SR の確率はプレミアムと同じ、中身だけがちがう。 */
     rows.push(rateHeadRow("<i class='icc ic-gem'></i> " + DEBUT_NM + " " + gachaVerText(_dv)
       + "（1回 5 ／ 5連 25 ／ 10連 50・SSR確定）", _dv.date, DEBUT_C));
+    rows.push(SEC19());
     rows.push(rateHeadRow("✨ 新キャラSSR（各 " + ratePct(PICK_DEBUT) + "・" + dchars.length + "体）",
       ratePct(pickTotalOfMode(gMode))));
     byCharNoDesc(dchars).forEach((id) => rows.push(rateCharRow(id, debutEachRateOf(gMode), "GRAND DEBUT 限定")));
@@ -814,8 +826,8 @@ function openRatesX() {
     rows.push(rateHeadRow("🎁 育成アイテム（合計）", ratePct(itemTotalOfMode(gMode))));
     rows.push(rateItemRows(itemTotalOfMode(gMode), DEBUT_ITEM_TABLE));
     const dsure = byCharNoDesc(guaranteedPoolOfMode(gMode));
-    rows.push(rateHeadRow("🎯 10連の SSR 確定枠（最後の1枠・" + dsure.length + "体から等確率）", "", DEBUT_C));
-    rows.push(rateNoteRow("※ <b>限界突破MAX（👑）のキャラは10連の確定枠には出ません</b>（そのガチャで出るSSRが全員 限界突破MAX のときだけ、その全員から等確率で出ます）。"));
+    rows.push(SEC10(dsure.length, DEBUT_C));
+    rows.push(rateNoteRow(NOTE10));
     dsure.forEach((id) => rows.push(rateCharRow(id, dsure.length ? 1 / dsure.length : 0,
       dchars.indexOf(id) >= 0 ? "GRAND DEBUT 限定" : PREMIUM_NM)));
     rows.push(rateNoteRow("※ <b>新キャラは1体あたり " + ratePct(PICK_DEBUT) + "</b>（合計 "
@@ -837,7 +849,7 @@ function openRatesX() {
     rows.push(rateNoteRow("※ <b>キャラの排出と確定枠のしくみはフェスガチャと同じ</b>です。"
       + "道中でも <b>" + PREMIUM_NM + " のSSRが合計 " + ratePct(fillTotalOfMode(gMode)) + "</b> で出て、"
       + "<b>確定枠は新キャラと " + PREMIUM_NM + " のSSRをまとめた " + dsure.length + "体から全員おなじ確率</b>です"
-      + "（限界突破MAXのキャラは除外）。"));
+      + "（まだ完凸していないキャラだけ）。"));
     rows.push(rateNoteRow("※ <b>この" + dchars.length + "体は " + DEBUT_NM + " " + gachaVerText(_dv) + " でしか引けません</b>。"
       + "フェスガチャ・" + PREMIUM_NM + " の<b>すり抜け（他の SSR 枠）にも、10連の確定枠にも出ません</b>。"));
     rows.push(rateNoteRow("※ <b>この版は公開日から" + DEBUT_DAYS + "日間だけ</b>の掲載です"
@@ -865,6 +877,7 @@ function openRatesX() {
     const _hasNew = !!_newIds.length && !f.flatPick;
     const _wasNew = !!(f.newChars && f.newChars.length) && !f.flatPick;
     const _ur = fesIsUR(f), _hi = _ur ? "SSR以上" : "SSR";
+    rows.push(SEC19());
     rows.push(rateHeadRow("✨ " + (gMode === ARCHIVE_KEY ? "ピックアップ" : (_ur ? "限定UR" : "フェス限定SSR"))
       + (_hasNew ? "（新キャラ 各 " + ratePct(pickRateOfMode(gMode)) + " ／ それ以外 各 " + ratePct(PICK_OLD) + "）"
                  : _wasNew ? "（各 " + ratePct(PICK_OLD) + "）"
@@ -895,8 +908,8 @@ function openRatesX() {
        ★ ここを直さないと「引くと出るもの」と「提供割合に書いてあるもの」が食いちがう。 */
     rows.push(rateItemRows(itemTotalOfMode(gMode), f.itemTable));
     const sure = byCharNoDesc(guaranteedPoolOfMode(gMode));
-    rows.push(rateHeadRow("🎯 10連の" + _hi + "確定枠（最後の1枠・" + sure.length + "体から等確率）", "", f.c));
-    rows.push(rateNoteRow("※ <b>限界突破MAX（👑）のキャラは10連の確定枠には出ません</b>（そのガチャで出るSSRが全員 限界突破MAX のときだけ、その全員から等確率で出ます）。"));
+    rows.push(SEC10(sure.length, f.c));
+    rows.push(rateNoteRow(NOTE10));
     sure.forEach((id) => rows.push(rateCharRow(id, sure.length ? 1 / sure.length : 0, CHARS[id].fes ? limNm(id) : PREMIUM_NM)));
     rows.push(rateNoteRow(gMode === ARCHIVE_KEY
       ? "※ <b>属性ごとに1体ずつ（計5体）</b>をピックアップにえらべます（各 " + ratePct(PICK_ARCHIVE) + "）。"
@@ -933,6 +946,7 @@ function openRatesX() {
   } else {
     const pick = curPickup();
     rows.push(rateHeadRow("<i class='icc ic-gem'></i> " + PREMIUM_NM + "（1回 5 ／ 5連 25 ／ 10連 50・SSR確定）", "", "#d97800"));
+    rows.push(SEC19());
     rows.push(rateHeadRow("✨ SSR 排出（合計）", ratePct(SSR_TOTAL)));
     /* ★ 2026-08-11 ピックアップをいちばん上に、そのほかは番号の新しい順に */
     rateOrder(PREMIUM_CHARS, pick).forEach((id) => {
@@ -946,13 +960,11 @@ function openRatesX() {
     /* ★ 2026-08-11 フェスガチャと同じく、10連の確定枠の中身も一覧で出す
        （これまでは注意書きに「全員おなじ確率」と書いてあるだけだった）。 */
     const psure = byCharNoDesc(guaranteedPoolOfMode("premium"));
-    rows.push(rateHeadRow("🎯 10連のSSR確定枠（最後の1枠・" + psure.length + "体から等確率）", "", "#d97800"));
+    rows.push(SEC10(psure.length, "#d97800"));
     psure.forEach((id) => rows.push(rateCharRow(id, psure.length ? 1 / psure.length : 0,
       id === pick ? "<b style='color:#e0405e'>PICKUP</b>" : "SSR ガチャ限定")));
     rows.push(rateNoteRow("※ <b>10連は「最後の1枠」がSSR確定</b>です（前半9回も通常抽選なので、そこでもSSRは出ます）。<b>確定枠は排出対象のSSRがすべて同じ確率</b>で、<b>ピックアップの優遇はありません</b>。"));
-    rows.push(rateNoteRow("※ <b>限界突破MAX（👑）のキャラは10連の確定枠には出ません</b>（そのガチャで出るSSRが全員 限界突破MAX のときだけ、その全員から等確率で出ます）。"));
-    rows.push(rateNoteRow("※ 限界突破MAX（👑）のキャラは排出対象から外れ、その分は残りのSSRに配分されます（SSR合計は常に"
-      + ratePct(SSR_TOTAL) + "）。"));
+    rows.push(rateNoteRow(NOTE10));
     rows.push(rateNoteRow(TKT_NOTE));
   }
   rows.push(rateNoteRow("※ 同じキャラを引くと<b>限界突破</b>（最大" + MAX_AWK + "）になります。所持キャラ・限界突破・<i class='icc ic-gem'></i>ジェムは <b>MagiBurst と共通</b>です。"));
@@ -1036,9 +1048,9 @@ async function allMaxExchange(what, spend) {
   try { uiAlert("<b>💠" + CRYST_NM + " " + CRYST_EXCHANGE + "個</b>を受け取りました。<br>XEVARION ホームの 🛒ショップの<b>結晶交換所</b>で、好きなキャラと交換できます。", { icon: "💠", title: "交換しました" }); } catch (e) {}
   return true;
 }
-function useFesSelTicket() {
+function useFesSelTicket(k) {
   if (_fselUsing) return;
-  const key = gMode;
+  const key = typeof k === "string" && k ? k : gMode;   /* ★★ 2026-10-30 一覧の札（glFesSelHTML）からは key を渡す */
   if (typeof FESSEL_KEYS === "undefined" || FESSEL_KEYS.indexOf(key) < 0) return;
   if (fesSelTickets(key) <= 0) { paintFesSelTicket(); return; }
   const f = fesDef(key), pool = fesSelPool(key);
@@ -1048,14 +1060,16 @@ function useFesSelTicket() {
     allMaxExchange(f.nm + " セレクト券", () => XEVA.fesSelect.spend(key, 1, f.nm + " セレクト券（結晶に交換）"));
     return;
   }
+  const onList = !!$("#glist");   /* 一覧の札（glFesSelHTML）の枚数も描き直す */
   _fselUsing = true;
   luxOpenSelect(pool, (id) => {
     _fselUsing = false;
-    if (!id) { paintFesSelTicket(); return; }   // えらばずに閉じた＝券はそのまま残す
+    if (!id) { paintFesSelTicket(); if (onList) paintList(); return; }   // えらばずに閉じた＝券はそのまま残す
     /* ★ キャラを受け取れてから券を減らす。順番を逆にすると、
        途中で失敗したときに「券だけ消えてキャラが来ない」が起きる。 */
     try { if (window.XEVA && XEVA.fesSelect) XEVA.fesSelect.spend(key, 1, f.nm + " セレクト券"); } catch (e) {}
     paintAll();
+    if (onList) { try { paintList(); } catch (e) {} }
   }, {
     cap: (f.nm || "FEST") + " SELECT TICKET",
     ttl: "★ " + f.nm + " セレクト券",
@@ -1084,6 +1098,21 @@ function ssrSelAll() {
   return [...set].filter((id) => CHARS[id] && !charSecret(id) && typeof rarLabel === "function" && rarLabel(id) === "SSR");
 }
 function ssrSelPool() { return ssrSelAll().filter((id) => !isMaxAwk(id)); }
+/* ★★ 2026-10-30 フェスセレクト券の札（ガチャ一覧のいちばん上・持っている券だけ）。
+   ご指定で終わったフェスのバナーを一覧から消したので、券はここから<b>ガチャの画面を開かずに</b>使う（えらぶ画面は今までと同じ luxOpenSelect） */
+function glFesSelHTML() {
+  if (typeof FESSEL_KEYS === "undefined") return "";
+  const ks = FESSEL_KEYS.filter((k) => fesDef(k) && fesSelTickets(k) > 0);
+  if (!ks.length) return "";
+  return '<div class="gl-ssrsel gl-fsel">' + ks.map((k) => {
+    const f = fesDef(k), n = fesSelTickets(k), ended = fesEnded(k);
+    return '<button class="ssrsel-card fsel" data-fsel="' + k + '" onclick="useFesSelTicket(this.dataset.fsel)" style="--fc:' + (f.c || "#e0405e") + '">'
+      + '<span class="ssi fsi">★</span>'
+      + '<span class="sst"><b>' + nciEsc(f.nm) + ' セレクト券</b><small>' + nciEsc(f.nm) + ' の<b>限定SSR ' + fesSelChars(k).length + '体</b>から好きな1体を確定で'
+      + (ended ? '（ガチャは配信終了・券はここで使えます）' : '') + '</small></span>'
+      + '<span class="ssn">×' + fmt(n) + "</span></button>";
+  }).join("") + "</div>";
+}
 function ssrSelCardHTML() {
   const n = ssrSelN(); if (!n) return "";
   const art = window.XevaSsrTicketSVG ? XevaSsrTicketSVG(30) : "🎟️";
@@ -1476,8 +1505,15 @@ function nciShow(i) {
   if (ma) ma.innerHTML = nciAbyssHTML(_nciIds[i]);
   const mab = document.querySelector('#nciPg button[data-pg="abyss"]');
   if (mab) mab.style.display = nciHasAbyss(_nciIds[i]) ? "" : "none";
-  /* ★★ 2026-10-16 MagiAbyss 専用のキャラは MagiAbyss の面だけ（ほかのゲームの札は隠す） */
-  document.querySelectorAll('#nciPg button[data-pg]').forEach((b) => { if (b.dataset.pg !== "abyss") b.style.display = aoOnly ? "none" : ""; });
+  /* ★★ 2026-10-16 MagiAbyss 専用のキャラは MagiAbyss の面だけ（ほかのゲームの札は隠す）
+     ★★ 2026-10-30 MagiBattle 3.0：超極祭系の UR は MagiAbyss と MagiBattle の面。ほかのキャラは MagiBattle の面を出さない */
+  const mbt = nciMbt(_nciIds[i]);
+  document.querySelectorAll('#nciPg button[data-pg]').forEach((b) => {
+    const pg = b.dataset.pg;
+    let show = aoOnly ? (pg === "abyss" || (pg === "battle" && mbt)) : pg !== "battle";
+    if (pg === "abyss" && !nciHasAbyss(_nciIds[i])) show = false;
+    b.style.display = show ? "" : "none";
+  });
   nciPage(aoOnly ? "abyss" : "burst");
 
   const dots = $("#nciDots");
@@ -1512,15 +1548,15 @@ function nciAdvance() {
   /* ★★ 2026-09-23 MagiBurst → MagiBattle → MagiBocciaRush → 次のキャラ
      ★★ 2026-10-09 MagiAbyss で使えるキャラは MagiBurst のあとに MagiAbyss の面をはさむ */
   /* ★★ 2026-10-16 MagiAbyss 専用のキャラは MagiAbyss の面のあと、すぐ次のキャラへ */
-  if (typeof isAbyssOnly === "function" && isAbyssOnly(_nciIds[_nciAt])) {
-    nciNext();
-  } else if (_nciPg === "burst" && nciHasAbyss(_nciIds[_nciAt])) {
+  /* ★★ 2026-10-30 MagiBattle 3.0：超極祭系の UR は MagiAbyss → MagiBattle → 次。ほかは MagiBurst →（MagiAbyss）→ Boccia → 次 */
+  const id = _nciIds[_nciAt];
+  if (typeof isAbyssOnly === "function" && isAbyssOnly(id)) {
+    if (_nciPg === "abyss" && nciMbt(id)) { nciPage("battle"); _nciT = setTimeout(nciAdvance, NCI_BOCCIA_MS); }
+    else nciNext();
+  } else if (_nciPg === "burst" && nciHasAbyss(id)) {
     nciPage("abyss");
     _nciT = setTimeout(nciAdvance, NCI_BOCCIA_MS);
   } else if (_nciPg === "burst" || _nciPg === "abyss") {
-    nciPage("battle");
-    _nciT = setTimeout(nciAdvance, NCI_BOCCIA_MS);
-  } else if (_nciPg === "battle") {
     nciPage("boccia");
     _nciT = setTimeout(nciAdvance, NCI_BOCCIA_MS);
   } else {
@@ -1549,16 +1585,18 @@ function nciBurstHTML(id) {
     + '<div class="nd-chips">' + abil + "</div>";
 }
 /* ★★ 2026-09-23 MagiBattle の面（ガチャなので Lv.80・完凸の値）。性能は magibattle-stats.js の1本 */
+/* ★★ 2026-10-30 MagiBattle 3.0（v3）：使えるのは超極祭系の UR 12体だけ。ガチャなので Lv.200・完凸・スキル Lv10 の値 */
+function nciMbt(id) { try { return typeof isMbt3 === "function" ? isMbt3(id) : !!(window.MBStats && MBStats.VERSION >= 3 && MBStats.unit(id)); } catch (e) { return false; } }
 function nciBattleHTML(id) {
-  if (!(window.MBStats && MBStats.VERSION >= 2)) {
+  if (!(window.MBStats && MBStats.VERSION >= 3)) {
     if (typeof mbtEnsure === "function") mbtEnsure().then(() => {
-      if (window.MBStats && MBStats.VERSION >= 2 && _nciIds[_nciAt] === id) { const el = $("#nciBattle"); if (el) el.innerHTML = nciBattleHTML(id); }
+      if (window.MBStats && MBStats.VERSION >= 3 && _nciIds[_nciAt] === id) { const el = $("#nciBattle"); if (el) el.innerHTML = nciBattleHTML(id); }
     });
     return '<div class="nd-note">MagiBattle の性能を読みこんでいます…</div>';
   }
-  if (!MBStats.unit(id)) return '<div class="nd-note">このキャラの MagiBattle の性能はまだありません。</div>';
+  if (!MBStats.unit(id)) return '<div class="nd-note">このキャラは MagiBattle では使えません（使えるのは超極祭系の UR 12体）。</div>';
   try { MBStats.ensureCSS(); } catch (e) {}
-  return MBStats.detailHTML(id, { lv: MBStats.MAX_LV, awk: MBStats.MAX_AWK, compact: true });
+  return MBStats.detailHTML(id, { lv: MBStats.MAX_LV, awk: MBStats.MAX_AWK, sk: [10, 10, 10], compact: true, cap: "Lv.200・完凸・スキル Lv10 の値" });
 }
 /* ★★ 2026-10-09 MagiAbyss の面（性能は MagiAbyss の ma-data.js／ma-stats.js をそのまま読む＝ゲーム内と同じ数字） */
 function nciHasAbyss(id) { try { return typeof isAbyssChar === "function" && isAbyssChar(id); } catch (e) { return false; } }
@@ -1731,7 +1769,8 @@ function glVisible(m) {
       const f = fesDef(k); if (f && (f.monthly || fesPerm(f))) return true;
       /* ★★ 2026-10-09 終わったフェスでも<b>そのフェスのセレクト券を持っている</b>あいだは出す
          （RISING STAR FEST が 10/31 で終わる。券はそのフェスの画面でしか使えないため） */
-      if (typeof FESSEL_KEYS !== "undefined" && FESSEL_KEYS.indexOf(k) >= 0 && fesSelTickets(k) > 0) return true;
+      /* ★★ 2026-10-30 ご指定「RISING STAR FEST などの終わったガチャのバナーは消して」→ 券を持っていても出さない。
+         券は一覧のいちばん上の札（glFesSelHTML）から、ガチャの画面を開かずに使う */
       return !fesEnded(k);
     }
   } catch (e) {}
@@ -1800,7 +1839,8 @@ function glCard(m, i) {
     /* ★★ 2026-10-09 MagiAbyss で使えるキャラに小さな印
        ★★ 2026-10-12c 小さな 🗡 だけでは分からない（ご指定）→ 絵の下に紫の帯で「MagiAbyss」と文字で入れる＋見出しに凡例 */
     const ma = !sec && typeof isAbyssChar === "function" && isAbyssChar(id);
-    return `<button class="gl-ch${sec ? " sec" : ""}${ma ? " ma" : ""}" ${sec ? "" : `onclick="openDetX('${id}')"`}>${nw ? '<i class="gl-new">NEW</i>' : ""}<img src="${CHARS[id].img}" alt="" loading="lazy">${ma ? '<i class="gl-ma1" title="MagiAbyss でも使えるキャラ">' + GL_MA_IC + "</i>" : ""}`
+    const lb = !sec && glHasLobby(id);   /* ★★ 2026-10-31 完凸でホームのロビーに出せる子（左下の王冠） */
+    return `<button class="gl-ch${sec ? " sec" : ""}${ma ? " ma" : ""}" ${sec ? "" : `onclick="openDetX('${id}')"`}>${nw ? '<i class="gl-new">NEW</i>' : ""}<img src="${CHARS[id].img}" alt="" loading="lazy">${ma ? '<i class="gl-ma1" title="MagiAbyss でも使えるキャラ">' + GL_MA_IC + "</i>" : ""}${lb ? '<i class="gl-lb1" title="完凸（4凸）でホームのロビーに設定できるキャラ">' + GL_LB_IC + "</i>" : ""}`
       + `<span class="${dt.cls}">${sec ? "???" : dt.cls === "max" ? "完凸" : dt.cls === "have" ? (DB.chars[id].awk ? "+" + DB.chars[id].awk + "凸" : "所持") : "未所持"}</span></button>`;
   }).join("");
   return `<div class="gl-card" data-k="${k}" style="border-color:${m.c}55">
@@ -1810,7 +1850,7 @@ function glCard(m, i) {
       <span class="lab">${lab}</span>${m.isNew ? '<span class="nw">NEW</span>' : ""}<span class="nm">${nciEsc(m.nm)}</span>
       ${GL_SHOW_BOOST && typeof RATE_BOOST !== "undefined" && RATE_BOOST > 1 ? `<span class="rb">確率 ×${RATE_BOOST}</span>` : ""}
       ${/* ★★ 2026-10-13 バナーの「MagiAbyss でも使えるキャラ」（FEST などの下）は消した（ご指定）。キャラごとの紫の帯と凡例は残す */""}</div>
-    ${chars.length ? `<div class="gl-pk"><div class="cap">注目キャラ${chars.some((id) => !charSecret(id) && typeof isAbyssChar === "function" && isAbyssChar(id)) ? `<small class="gl-malg"><i>${GL_MA_IC}</i>＝MagiAbyss でも使える</small>` : ""}</div><div class="row">${row}</div></div>` : ""}
+    ${chars.length ? `<div class="gl-pk"><div class="cap">注目キャラ${chars.some((id) => !charSecret(id) && typeof isAbyssChar === "function" && isAbyssChar(id)) ? `<small class="gl-malg"><i>${GL_MA_IC}</i>＝MagiAbyss でも使える</small>` : ""}${chars.some((id) => !charSecret(id) && glHasLobby(id)) ? `<small class="gl-malg gl-lblg"><i>${GL_LB_IC}</i>＝完凸でロビー</small>` : ""}</div><div class="row">${row}</div></div>` : ""}
     ${locked ? `<div class="gl-lock">⏳ ${nciEsc(nciPlain(d.sub || "準備中です"))}</div>`
       /* ★★ 2026-09-19f 一覧では「このガチャを引く」1つだけ。押すとガチャの画面へ（そこで 1回・10連） */
       : `<div class="gl-go"><button class="gl-draw" onclick="glOpen('${k}')">このガチャを引く<small>シングル・10連（${sureTag(k)}）</small></button>${glSelBtn(k)}</div>`}
@@ -1823,6 +1863,7 @@ function paintList() {
   box.innerHTML = ""   /* ★★ 2026-10-26 「注目ガチャ」の見出しは消した（ご指定） */
     /* ★★ 2026-10-13 選べるSSRキャラ確定チケット（持っているときだけ・いちばん上） */
     + (ssrSelN() ? '<div class="gl-ssrsel">' + ssrSelCardHTML() + "</div>" : "")
+    + glFesSelHTML()
     + glSealTopHTML()
     + glBoostHTML()
     + glFilterHTML() + glFilterNote()
@@ -1914,7 +1955,7 @@ function glInfo(k) {
   } catch (e) {}
   const startHTML = `<div class="gl-start">📅 ガチャの登場日：<b>${gStart ? fmtD(gStart) : (k === "premium" ? "常設（XEVARION 開始時から）" : "—")}</b></div>`;
   const everHTML = cast.length
-    ? `<div class="gl-ever"><b>✦ 注目キャラ（${cast.length}体）</b><small>完凸して排出されなくなったキャラも表示しています（押すと性能）</small>`
+    ? `<div class="gl-ever"><b>✦ 注目キャラ（${cast.length}体）</b><small>👑完凸したキャラは、出ると💠結晶になります（押すと性能）</small>`
       + `<div class="gl-evergrid">${cast.map((id) => {
           const sec = charSecret(id);
           const out = !sec && isDropOut(id), cry = !sec && isMaxAwk(id) && isEverDrop(id);

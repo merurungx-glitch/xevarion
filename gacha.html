@@ -8,7 +8,7 @@
 <script>(function(){try{var a=JSON.parse(localStorage.getItem('xeva_account_v1'));if(!a||!a.setupDone)location.replace('index.html');}catch(e){}})();</script>
 <script type="module" src="xevarion-fb.js?v=36"></script>
 <script src="xeva-presence.js?v=9" defer></script>
-<script type="module" src="xeva-cloud.js?v=48"></script>
+<script type="module" src="xeva-cloud.js?v=49"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
@@ -45,7 +45,7 @@
 <script src="xeva-i18n-n1.js?v=21"></script>
 <script src="xeva-i18n-n2.js?v=3"></script>
 <script src="xeva-loading.js?v=19" defer></script>
-<script src="magibattle-stats.js?v=18"></script>
+<script src="magibattle-stats.js?v=19"></script>
 <script type="module" src="xeva-sync.js?v=18"></script>
 <style>
 /* ══════════════════════════════════════════════════════════════
@@ -191,6 +191,13 @@ body:not(.glmode) #glist{display:none}
 .gl-ch .gl-ma1{position:absolute;right:3px;top:44px;z-index:1;width:15px;height:15px;display:flex;align-items:center;justify-content:center;font-style:normal;
   color:#fff;background:rgba(58,29,110,.72);border-radius:50%;box-shadow:0 0 0 1.2px rgba(255,255,255,.8)}
 .gl-maic{width:10px;height:10px;flex:none;display:inline-block;vertical-align:-1px}
+/* ★★ 2026-10-31 完凸ロビー対応キャラ：MagiAbyss の印と同じ形で<b>絵の左下</b>（金色の丸に王冠） */
+.gl-ch .gl-lb1{position:absolute;left:3px;top:44px;z-index:1;width:15px;height:15px;display:flex;align-items:center;justify-content:center;font-style:normal;
+  color:#fff;background:rgba(206,128,0,.88);border-radius:50%;box-shadow:0 0 0 1.2px rgba(255,255,255,.85)}
+.gl-lbic{width:10px;height:10px;flex:none;display:inline-block;vertical-align:-1px}
+.gl-ch .gl-lb1 .gl-lbic{width:9px;height:9px}
+.gl-pk .gl-malg.gl-lblg i{background:rgba(206,128,0,.8)}   /* 下の .gl-pk .gl-malg i（紫）に負けないように2つのクラスで */
+.gl-pk .gl-malg.gl-lblg i .gl-lbic{width:8px;height:8px}
 .gl-ch .gl-ma1 .gl-maic{width:8.5px;height:8.5px}
 .gl-pk .gl-malg{display:inline;margin-left:6px;font-size:9px;font-weight:700;color:#9a90b8}
 .gl-pk .gl-malg i{display:inline-flex;align-items:center;justify-content:center;width:12px;height:12px;vertical-align:-2px;font-style:normal;color:#fff;background:rgba(58,29,110,.6);border-radius:50%;margin-right:2px}
@@ -593,6 +600,12 @@ body:not(.glmode) #glist{display:none}
 .rtrow .rtar{flex:none;margin-left:auto;color:var(--txt2);font-size:15px;opacity:.55}
 .rtnote{font-size:10px;color:var(--txt2);font-weight:700;line-height:1.75;padding:7px 2px;border-bottom:1px solid var(--bdr)}
 .rtnote b{color:var(--txt)}
+/* ★★ 2026-10-31 提供割合の「1〜9連目」「10連目」の区切り */
+.rtsec{display:flex;align-items:center;gap:10px;margin:16px 0 4px;padding:10px 12px;border-radius:14px;color:#fff;background:linear-gradient(120deg,var(--sc,#7b5cff),#21b8ff);box-shadow:0 4px 12px rgba(60,40,140,.18)}
+.rtsec>b{flex:none;font-family:'Orbitron',sans-serif;font-size:12px;font-weight:900;background:#fff;color:var(--sc,#7b5cff);border-radius:99px;padding:3px 10px}
+.rtsec span{font-size:12.5px;font-weight:900;line-height:1.45}
+.rtsec small{display:block;font-size:10px;font-weight:800;opacity:.95}
+.rtsec small b{color:#fff}
 .dlg{position:fixed;inset:0;z-index:990;background:rgba(20,26,48,.6);display:none;align-items:center;justify-content:center;
   padding:calc(env(safe-area-inset-top,0px) + 20px) 20px calc(env(safe-area-inset-bottom,0px) + 20px)}
 .dlg.on{display:flex}
@@ -611,6 +624,8 @@ body:not(.glmode) #glist{display:none}
 <body>
 <!-- ★★ 2026-10-14 下バーは body のいちばん最初で作る（ページの最後に defer で読んでいたので、開いて少しあとに出ていた） -->
 <script src="xeva-tabbar.js?v=8" data-tab="gacha"></script>
+<!-- ★★ 2026-10-31 ご指定「使い方のアニメーションにアクセスをわかりやすく（それぞれの画面）」→ 上のバーに小さな「？ 使い方」（xeva-tour.js が置く・この画面の章だけ再生） -->
+<script src="xeva-tour.js?v=2" defer></script>
 
 <div class="wrap">
   <div class="gh">
@@ -628,7 +643,7 @@ body:not(.glmode) #glist{display:none}
            75個で好きな1体と交換（交換所は XEVARION ホームの 🛒ショップ）。 -->
       <!-- ★★ 2026-10-28 ガチャ10連半額券（持っているときだけ出る） -->
       <span class="walc tkt half" id="walHalfWrap" style="display:none" title="ガチャ10連半額券（どのガチャでも10連を1枚で💎25）"><span class="tkic" id="walHalfIc"></span><b id="walHalf">0</b></span>
-      <span class="walc cry" id="walCryWrap" title="結晶（完凸したPREMIUM SELECTのキャラが出るともらえます）"><span class="tkic" id="walCryIc"></span><b id="walCry">0</b></span>
+      <span class="walc cry" id="walCryWrap" title="結晶（完凸したキャラがガチャで出るともらえます・UR10／SSR5／SR1）"><span class="tkic" id="walCryIc"></span><b id="walCry">0</b></span>
     </div>
   </div>
 
@@ -701,6 +716,10 @@ body:not(.glmode) #glist{display:none}
       .ssrsel-card .sst small b{display:inline;font-weight:900;color:#fff3b0}
       .ssrsel-card .ssn{flex:none;position:relative;z-index:1;font-family:'Orbitron',sans-serif;font-weight:900;font-size:16px;background:#fff;color:#c2185b;border-radius:99px;padding:3px 11px;box-shadow:0 2px 0 rgba(138,24,70,.5)}
       .gl-ssrsel{margin:0 16px}
+      /* ★★ 2026-10-30 フェスセレクト券の札（一覧の上・終わったフェスの券もここで使う） */
+      .ssrsel-card.fsel{background:linear-gradient(120deg,#2a1450,var(--fc,#e0405e) 60%,#ffb36b);margin-bottom:10px}
+      .ssrsel-card .fsi{width:30px;height:30px;border-radius:9px;display:grid;place-items:center;font-size:17px;font-weight:900;color:#fff3b0;background:rgba(255,255,255,.18);box-shadow:inset 0 0 0 1.5px rgba(255,255,255,.55)}
+      .gl-fsel{margin-bottom:2px}
       body.xos-nomotion .ssrsel-card::after{animation:none}
       /* ★★ 2026-09-13 フェスセレクト券の帯。見た目はプレミアム券とそろえ、
          地の色だけ変えて「別の券」と分かるようにする。 */
@@ -1024,15 +1043,15 @@ body:not(.glmode) #glist{display:none}
      同期を担当する magiburst-cloud.js を読んでいなかった。
      そのためポータルで引いたキャラはクラウドに上がらず、
      別の端末の MagiBurst が書いたセーブに負けて<b>消えて</b>いた。 -->
-<script type="module" src="MagiBurst/magiburst-cloud.js?v=27"></script>
+<script type="module" src="MagiBurst/magiburst-cloud.js?v=28"></script>
 <script src="mb-boot.js?v=18"></script>
 <!-- ★ MagiBurst のドメイン層（キャラ・アビリティ・技・ガチャの規則）。
      MagiBurst と<b>同じファイル</b>を読むので、キャラを足せば両方に反映される。 -->
 <!-- ★★ 2026-09-08 新キャラの<b>実装日</b>の台帳。
      mb-core.js の charImplDate() がこれを見て「実装から10日以内か」を判定する。
      ★ mb-core.js より<b>前</b>に読むこと（defer にしない）。 -->
-<script src="mb-newchars.js?v=41"></script>
-<script src="MagiBurst/js/mb-core.js?v=143"></script>
+<script src="mb-newchars.js?v=42"></script>
+<script src="MagiBurst/js/mb-core.js?v=145"></script>
 <!-- ★★ 2026-10-09 ガチャの演出（1から作り直し）：召喚陣・確定演出・1体ずつ公開・UR は縦長の SS 絵 -->
 <script src="xeva-summon.js?v=5"></script>
 <!-- ★ 2026-08-10 キャラ詳細（性能画面）。図鑑（characters.html）と同じものを使う -->
@@ -1040,8 +1059,8 @@ body:not(.glmode) #glist{display:none}
      図鑑（characters.html）はこの旗を立てないので、これまでどおり いまの値だけ。
      旗は mb-char-detail.js を読む<b>前</b>に立てること。 -->
 <script>window.MBDET_MAXSTATS = true;</script>
-<script src="mb-char-detail.js?v=51"></script>
-<script src="gacha-ui.js?v=68"></script>
+<script src="mb-char-detail.js?v=53"></script>
+<script src="gacha-ui.js?v=70"></script>
     <!-- ★★ 2026-09-13c 新キャラ紹介アニメの舞台。中身は gacha-ui.js の nciOpen() が入れる。 -->
     <div class="nci" id="nciOv">
       <div class="nci-sky"><i class="s1"></i><i class="s2"></i><div class="nci-rays"></div></div>

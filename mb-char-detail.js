@@ -141,13 +141,17 @@ window.setDetGame = function (g) {
 };
 let detCurId = null;
 
-/* ★★ 2026-09-23 MagiBattle の性能（magibattle-stats.js v2）。古い版しか無ければ読みなおす。 */
+/* ★★ 2026-09-23 MagiBattle の性能（magibattle-stats.js v2）。古い版しか無ければ読みなおす。
+   ★★ 2026-10-30 MagiBattle 3.0（作り直し）→ v3 が要る。使えるのは超極祭系の UR 12体だけ（MBT3_IDS・MBStats が読めていなくても面の札を出せるように） */
+const MBT3_IDS = ["haru", "chika", "hisako", "alice", "kohaku", "suzu", "shouko", "yuna", "chie", "aina", "ichika", "nonoka"];
+function isMbt3(id) { return MBT3_IDS.indexOf(id) >= 0; }
+window.isMbt3 = isMbt3;
 function mbtEnsure() {
-  if (window.MBStats && MBStats.VERSION >= 2) return Promise.resolve();
+  if (window.MBStats && MBStats.VERSION >= 3) return Promise.resolve();
   if (window.__mbtLoading) return window.__mbtLoading;
   window.__mbtLoading = new Promise((res) => {
     const s = document.createElement("script");
-    s.src = MBD_BASE + "magibattle-stats.js?v=18";
+    s.src = MBD_BASE + "magibattle-stats.js?v=19";
     s.onload = () => res(); s.onerror = () => res();
     document.head.appendChild(s);
   });
@@ -326,12 +330,16 @@ function openDetX(id, keepGame) {
   if (!keepGame) detGame = "burst";       /* ★ 開いたときは必ず MagiBurst（ご指定） */
   /* ★★ 2026-10-16 MagiAbyss 専用のキャラ（超極華祭）は MagiAbyss の面だけ（ご指定「他のゲームの性能は所持しません」） */
   const aoOnly = typeof isAbyssOnly === "function" && isAbyssOnly(id);
-  if (aoOnly) detGame = "abyss";
+  /* ★★ 2026-10-30 超極祭系の UR は MagiAbyss と MagiBattle の2つの面（それ以外の MagiAbyss 専用キャラは MagiAbyss だけ）。
+     ほかのキャラは MagiBattle で使えなくなった（MagiBattle 3.0）→ MagiBattle の面は出さない */
+  const mbt = isMbt3(id);
+  if (aoOnly && !(detGame === "battle" && mbt)) detGame = "abyss";
+  if (!aoOnly && detGame === "battle") detGame = "burst";
   /* ★ 性能のデータがまだ無いときだけ読みこんで、読めたら1回だけ開き直す。
      「あるとき」も呼ぶと Promise.resolve → openDetX → … と<b>無限に回る</b>。
      ★★ 2026-10-13 MagiDiamond は廃止（ご指定）。その性能（MD2DATA）を読む処理も消した */
-  if (detGame === "battle" && !(window.MBStats && MBStats.VERSION >= 2)) {
-    mbtEnsure().then(() => { if (detCurId === id && detGame === "battle" && window.MBStats && MBStats.VERSION >= 2) openDetX(id, true); });
+  if (detGame === "battle" && !(window.MBStats && MBStats.VERSION >= 3)) {
+    mbtEnsure().then(() => { if (detCurId === id && detGame === "battle" && window.MBStats && MBStats.VERSION >= 3) openDetX(id, true); });
   }
   /* ★★ 2026-10-09 MagiAbyss（無いときだけ読みこんで、読めたら1回だけ開き直す＝無限に回らない） */
   if (detGame === "abyss" && !(window.MA && MA.D && MA.Stats) && typeof isAbyssChar === "function" && isAbyssChar(id)) {
@@ -375,9 +383,11 @@ function openDetX(id, keepGame) {
     ${detHeroHTML(id)}
     <div class="dbody">
       ${/* ★★ 2026-09-06 どのゲームの性能を見るか（ご指定・はじめは MagiBurst） */""}
-      ${aoOnly ? `<div class="dgseg ao"><button class="on">🗡 MagiAbyss 専用キャラ</button></div>` : `<div class="dgseg g4">
-        <button class="${detGame === "burst" ? "on" : ""}" onclick="setDetGame('burst')">⚔ MagiBurst</button>
+      ${aoOnly ? (mbt ? `<div class="dgseg">
+        <button class="${detGame === "abyss" ? "on" : ""}" onclick="setDetGame('abyss')">🗡 MagiAbyss</button>
         <button class="${detGame === "battle" ? "on" : ""}" onclick="setDetGame('battle')">⚡ MagiBattle</button>
+      </div>` : `<div class="dgseg ao"><button class="on">🗡 MagiAbyss 専用キャラ</button></div>`) : `<div class="dgseg g3">
+        <button class="${detGame === "burst" ? "on" : ""}" onclick="setDetGame('burst')">⚔ MagiBurst</button>
         <button class="${detGame === "abyss" ? "on" : ""}" onclick="setDetGame('abyss')">🗡 MagiAbyss</button>
         <button class="${detGame === "boccia" ? "on" : ""}" onclick="setDetGame('boccia')">🎯 Boccia</button>
       </div>`}
@@ -395,7 +405,8 @@ function openDetX(id, keepGame) {
             中身は mb-core.js の charSourceList()——FESTS / DEBUT_VERSIONS /
             PREMIUM_CHARS / RAIDS から機械的に組み立てるので、
             キャラを足してもここに書き足す必要はない。 */""}
-      ${aoOnly ? `<div class="dsec"><div class="ddesc">このキャラは <b>MagiAbyss 専用</b>です。性能は <b>MagiAbyss の性能だけ</b>で、MagiBurst・MagiBattle・MagiBocciaRush では使えません（MagiChemLex のナビゲーターや XEVARION のアイコンには使えます）。</div></div>` : ""}
+      ${aoOnly ? (mbt ? `<div class="dsec"><div class="ddesc">このキャラは <b>MagiAbyss と MagiBattle</b> のキャラクターです（MagiBattle では武器・バースト・スキル）。MagiBurst・MagiBocciaRush では使えません（MagiChemLex のナビゲーターや XEVARION のアイコンには使えます）。</div></div>`
+        : `<div class="dsec"><div class="ddesc">このキャラは <b>MagiAbyss 専用</b>です。性能は <b>MagiAbyss の性能だけ</b>で、MagiBurst・MagiBattle・MagiBocciaRush では使えません（MagiChemLex のナビゲーターや XEVARION のアイコンには使えます）。</div></div>`) : ""}
       <div class="dsec"><div class="t">入手方法</div>
         <div class="ddesc">${(typeof charSourceList === "function" ? charSourceList(id) : []).join("<br>")}</div></div>
 
@@ -524,24 +535,20 @@ window.closeDetX = closeDetX;
    中身は magibattle-stats.js の detailHTML ＝ MagiBattle のキャラ詳細とまったく同じもの。
    ・ガチャの詳細（MBDET_MAXSTATS）は Lv.80・完凸の値
    ・図鑑は<b>いまの自分の値</b>（MagiBattle の育成 Lv と MagiBurst の Lv の高いほう・共通の凸）。未所持は Lv.1 */
+/* ★★ 2026-10-30 MagiBattle 3.0（v3）：超極祭系の UR 12体だけ。ガチャ（MBDET_MAXSTATS）は Lv.200・完凸・スキル Lv10、図鑑はいまの育成（magibattle_v2） */
 function magiBattleHTML(id) {
-  if (!(window.MBStats && MBStats.VERSION >= 2 && MBStats.unit(id))) {
+  if (!(window.MBStats && MBStats.VERSION >= 3)) {
     return `<div class="dsec mbb"><div class="t">評価（MagiBattle）</div>
       <div class="mbnone">読みこんでいます…</div></div>`;
   }
+  if (!MBStats.unit(id)) return `<div class="dsec mbb"><div class="t">評価（MagiBattle）</div><div class="mbnone">このキャラは MagiBattle では使えません（使えるのは超極祭系の UR 12体）。</div></div>`;
   try { MBStats.ensureCSS(); } catch (e) {}
-  let lv = MBStats.MAX_LV, awk = MBStats.MAX_AWK, gear = null, cap = "Lv.80・完凸";
-  if (!window.MBDET_MAXSTATS) {
-    const sh = MBStats.sharedOf(id);
-    if (sh.own) {
-      let xp = 0; try { xp = ((JSON.parse(localStorage.getItem("magibattle_v1") || "null") || {}).xp || {})[id] || 0; } catch (e) {}
-      const own = Math.min(MBStats.MAX_LV, 1 + Math.floor(Math.sqrt(xp / 12)));
-      lv = own;   /* ★★ 2026-09-24d MagiBattle の育成は独立（MagiBurst のレベルは見ない） */
-      awk = sh.awk; cap = "いまの自分の値";
-    } else { lv = 1; awk = 0; cap = "未所持（Lv.1）"; }
-  }
-  return `<div class="dsec mbb"><div class="t">評価（MagiBattle）<span class="turn" style="background:${MBStats.CLASSES[MBStats.unit(id).cls].c}">${MBStats.CLASSES[MBStats.unit(id).cls].nm}</span></div>
-    ${MBStats.detailHTML(id, { lv, awk, gear })}
-    <div class="ddesc" style="margin-top:6px;font-size:10px">※ ${cap}。MagiBattle の凸は <b>MagiBurst・XEVA ガチャと共通</b>、レベルは MagiBattle で育てた分だけです（MagiBurst とは別）。</div>
+  let opt, cap;
+  if (window.MBDET_MAXSTATS) { opt = { lv: MBStats.MAX_LV, awk: MBStats.MAX_AWK, sk: [10, 10, 10] }; cap = "Lv.200・完凸・スキル Lv10（装備なし）の値"; }
+  else { opt = MBStats.growthOf(id); cap = opt.own ? "いまの自分の値（MagiBattle で育てたレベル・スキル・装備）" : "未所持（Lv.1）"; }
+  const K = MBStats.unit(id);
+  return `<div class="dsec mbb"><div class="t">評価（MagiBattle）<span class="turn" style="background:${MBStats.CLASSES[K.cls].c}">${MBStats.CLASSES[K.cls].nm}</span></div>
+    ${MBStats.detailHTML(id, opt)}
+    <div class="ddesc" style="margin-top:6px;font-size:10px">※ ${cap}。凸は <b>XEVARION のガチャと共通</b>、レベル・スキル・装備・キューブ・好感度は MagiBattle で育てます。<a href="${MBD_BASE}MagiBattle/index.html" style="color:#8e6bff;font-weight:900">MagiBattle へ ›</a></div>
   </div>`;
 }

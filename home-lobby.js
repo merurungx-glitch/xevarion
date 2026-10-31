@@ -8,6 +8,8 @@
    ・選んだロビーは xeva_mate_v1.lobby（同期する）。パートナーを選ぶと外れる（home-mate.js）。
    ・素材は home-mate/lobby/（立ち絵は背景が透明・元は Documents/Claude/_fes_src/1024/*_lobby_full.webp）。
      髪・スカートの見分けは読みこんだときに色で決める（DEFS の hair／cloth）。画素の座標は元の絵のまま。
+     ★★ 2026-10-31 hair／cloth の boxes（この中だけ）・cut（この中は外す）・色相の [340, 20] のような 0 をまたぐ範囲も使える。
+     fes＝そのキャラが出るガチャ（パートナーの画面の「ロビー」タブの説明に出す）。
    ・ほかの所からは home-mate.js と同じ呼ばれ方（mount／layout／greet／destroy／shouldRun／kick）。
    ══════════════════════════════════════════════════════════════ */
 (function () {
@@ -18,7 +20,7 @@
     /* ★★ 2026-10-30 超極彩祭のハル・チカ（ご指定「この2キャラは完凸をすることでロビーにセットできます」）。
        立ち絵は Documents/Claude/_fes_src/fes21/3.webp（ハル）・7.webp（チカ）＝背景が透明の全身。背景は展望テラス（ヒサコ・アリスと同じ） */
     haru: {
-      name: "ハル", ruby: "Haru", color: "#3a8ee8", el: "water", img: "haru.webp", bg: "park.webp",
+      name: "ハル", ruby: "Haru", color: "#3a8ee8", el: "water", img: "haru.webp", bg: "park.webp", fes: "超極彩祭（毎月1〜10日）",
       intro: "展望テラスで、青い髪をかきあげるハル。",
       rig: { size: [940, 1672], headTop: [425, 15], face: [440, 205], neck: [455, 300], shoulderY: 330, waistY: 575, hemY: 880, kneeY: 1090, pivot: [470, 1640], centerX: 450 },
       /* 髪＝青（顔と胸の青いキャミソールは y と顔の楕円で外す）／ゆれる布＝白い上着のすそ（青みの白・肌は色相で外す） */
@@ -26,7 +28,7 @@
       cloth: { hue: [190, 260], sat: [0.02, 0.2], val: [0.7, 1], y0: 560, y1: 900 },
     },
     chika: {
-      name: "チカ", ruby: "Chika", color: "#8a5ce0", el: "dark", img: "chika.webp", bg: "park.webp",
+      name: "チカ", ruby: "Chika", color: "#8a5ce0", el: "dark", img: "chika.webp", bg: "park.webp", fes: "超極彩祭（毎月1〜10日）",
       intro: "展望テラスで、白いドレスのすそをつまむチカ。",
       rig: { size: [941, 1672], headTop: [510, 22], face: [530, 208], neck: [533, 295], shoulderY: 330, waistY: 580, hemY: 1450, kneeY: 1080, pivot: [520, 1630], centerX: 520 },
       /* 髪＝黒〜紺（白いドレスは明るさで外す・長い髪の範囲だけ）／スカート＝白〜うす紫のドレス（肌は色相で外す） */
@@ -34,7 +36,7 @@
       cloth: { hue: [200, 290], sat: [0.03, 0.4], val: [0.62, 1], y0: 600, y1: 1500 },
     },
     hisako: {
-      name: "ヒサコ", ruby: "Hisako", color: "#38a6ff", el: "water", img: "hisako.webp", bg: "park.webp",
+      name: "ヒサコ", ruby: "Hisako", color: "#38a6ff", el: "water", img: "hisako.webp", bg: "park.webp", fes: "超極煌祭（毎月21日〜末日）",
       intro: "放課後の展望テラスで、ピースをくれるヒサコ。",
       rig: { size: [940, 1672], headTop: [470, 20], face: [452, 282], neck: [452, 385], shoulderY: 440, waistY: 695, hemY: 950, kneeY: 1190, pivot: [560, 1645], centerX: 500 },
       /* 髪＝茶色（目と顔の中は除く・靴は y で除く）／スカート＝濃い緑（スカーフの先も少しゆれる） */
@@ -42,12 +44,47 @@
       cloth: { hue: [110, 205], sat: [0.1, 1], val: [0, 0.56], y0: 690, y1: 1000 },
     },
     alice: {
-      name: "アリス", ruby: "Alice", color: "#7a5cff", el: "dark", img: "alice.webp", bg: "park.webp",
+      name: "アリス", ruby: "Alice", color: "#7a5cff", el: "dark", img: "alice.webp", bg: "park.webp", fes: "超極煌祭（毎月21日〜末日）",
       intro: "木もれ日の展望テラスで、はにかむアリス。",
       rig: { size: [941, 1672], headTop: [370, 20], face: [412, 235], neck: [468, 320], shoulderY: 335, waistY: 605, hemY: 850, kneeY: 1130, pivot: [572, 1650], centerX: 470 },
       /* 髪＝黒〜灰色（紺の制服は彩度で外す・白いシャツは明るさで外す・左の長い髪と、右肩のうしろの髪の範囲だけ） */
       hair: { sat: [0, 0.27], val: [0, 0.86], boxes: [[212, 0, 462, 745], [450, 30, 585, 350]], noFace: [412, 236, 74, 92] },
       cloth: { hue: [195, 255], sat: [0.16, 1], val: [0, 0.64], y0: 595, y1: 905 },
+    },
+    /* ★★ 2026-10-31 超極煌祭のコハク・超極華祭のユナ・アイナ・ヨシノ（ご指定「完凸ロビー対応キャラに追加」）。
+       立ち絵は Documents/Claude/_fes_src/1024/<id>_lobby_full.webp＝背景が透明の全身。背景は展望テラス（ほかの子と同じ）。
+       骨組みと髪・布の範囲は、alpha の外形と色の重ね絵で決めた（髪だけ・布だけがゆれて、顔・脚・刀は動かない） */
+    kohaku: {
+      name: "コハク", ruby: "Kohaku", color: "#e0484a", el: "fire", img: "kohaku.webp", bg: "park.webp", fes: "超極煌祭（毎月21日〜末日）",
+      intro: "展望テラスで、髪を耳にかけるコハク。",
+      rig: { size: [940, 1672], headTop: [450, 20], face: [470, 205], neck: [490, 300], shoulderY: 340, waistY: 580, hemY: 890, kneeY: 1100, pivot: [430, 1650], centerX: 470 },
+      /* 髪＝黒〜明るい灰色（白いシャツは明るさ・赤いリボンは彩度で外す・長い髪の範囲だけ）／スカート＝濃い灰色のチェック（太ももの上は外す） */
+      hair: { sat: [0, 0.3], val: [0, 0.8], boxes: [[300, 0, 650, 330], [150, 280, 300, 640], [150, 640, 235, 920], [640, 110, 860, 600], [760, 600, 860, 770]], noFace: [470, 205, 72, 88] },
+      cloth: { sat: [0, 0.4], val: [0, 0.62], y0: 590, y1: 900, boxes: [[225, 590, 800, 900]], cut: [[370, 860, 570, 900]] },
+    },
+    yuna: {
+      name: "ユナ", ruby: "Yuna", color: "#8a5cd8", el: "dark", img: "yuna.webp", bg: "park.webp", fes: "超極華祭（毎月11〜20日）",
+      intro: "展望テラスで、ほおに手をそえるユナ。",
+      rig: { size: [940, 1672], headTop: [548, 18], face: [560, 222], neck: [545, 300], shoulderY: 340, waistY: 600, hemY: 1000, kneeY: 1180, pivot: [400, 1645], centerX: 490 },
+      /* 髪＝黒（紫のメッシュも）・長い髪の範囲だけ／ゆれる布＝黒いスカートと白いフリル（脚は外す） */
+      hair: { sat: [0, 0.45], val: [0, 0.55], boxes: [[370, 0, 720, 330], [115, 200, 420, 640], [110, 640, 215, 1010], [690, 300, 860, 1010]], noFace: [560, 222, 70, 88] },
+      cloth: { sat: [0, 0.5], y0: 610, y1: 1130, boxes: [[200, 610, 760, 1130]], cut: [[380, 840, 590, 1130]] },
+    },
+    aina: {
+      name: "アイナ", ruby: "Aina", color: "#a07cff", el: "light", img: "aina.webp", bg: "park.webp", fes: "超極華祭（毎月11〜20日）",
+      intro: "展望テラスで、ドレスのすそをつまむアイナ。",
+      rig: { size: [941, 1672], headTop: [500, 20], face: [495, 195], neck: [490, 282], shoulderY: 320, waistY: 560, hemY: 1150, kneeY: 1170, pivot: [455, 1650], centerX: 450 },
+      /* 髪＝ラベンダー（すけた袖は範囲で外す）／スカート＝黒いドレスのすそ（脚は外す） */
+      hair: { hue: [235, 300], sat: [0.1, 1], val: [0.3, 1], boxes: [[120, 0, 700, 330], [115, 250, 300, 760], [690, 300, 790, 760]], noFace: [495, 195, 68, 84] },
+      cloth: { sat: [0, 0.5], val: [0, 0.38], y0: 640, y1: 1240, boxes: [[115, 640, 790, 1240]], cut: [[395, 860, 600, 1250]] },
+    },
+    chie: {
+      name: "ヨシノ", ruby: "Yoshino", color: "#e03a4a", el: "fire", img: "chie.webp", bg: "park.webp", fes: "超極華祭（毎月11〜20日）",
+      intro: "展望テラスで、刀を手に空を見上げるヨシノ。",
+      rig: { size: [941, 1672], headTop: [400, 30], face: [360, 185], neck: [410, 275], shoulderY: 310, waistY: 600, hemY: 1500, kneeY: 1150, pivot: [420, 1655], centerX: 460 },
+      /* 髪＝黒いポニーテール（刀は範囲の外）／ゆれる布＝赤い袴と房（色相は 0 をまたぐ） */
+      hair: { sat: [0, 0.55], val: [0, 0.5], boxes: [[240, 20, 570, 300], [480, 20, 940, 760]], noFace: [355, 190, 62, 80] },
+      cloth: { hue: [335, 18], sat: [0.45, 1], val: [0.35, 1], y0: 620, y1: 1570 },
     },
   };
   const src = (f) => DIR + f + "?v=" + VER;
@@ -71,7 +108,8 @@
     if (d > 0) { h = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; h *= 60; if (h < 0) h += 360; }
     return [h, mx ? d / mx : 0, mx / 255];
   }
-  const inR = (v, r) => !r || (v >= r[0] && v <= r[1]);
+  /* ★★ 2026-10-31 [340, 20] のように前が大きいときは 0 をまたぐ範囲（赤い色相） */
+  const inR = (v, r) => !r || (r[0] <= r[1] ? v >= r[0] && v <= r[1] : v >= r[0] || v <= r[1]);
 
   function Lobby(stage, id) {
     this.stage = stage; this.id = id; this.def = DEFS[id]; this.rig = this.def.rig; this.lobby = true;
@@ -101,11 +139,16 @@
       const k = (yy * W + xx) * 4; if (D[k + 3] < 40) continue;
       n++;
       const [h, s, v] = hsv(D[k], D[k + 1], D[k + 2]);
+      const inBox = (b) => xx >= b[0] && xx <= b[2] && yy >= b[1] && yy <= b[3];
       let isHair = inR(s, hr.sat) && inR(v, hr.val) && (!hr.hue || inR(h, hr.hue)) && (hr.y1 == null || yy < hr.y1);
-      if (isHair && hr.boxes) isHair = hr.boxes.some((b) => xx >= b[0] && xx <= b[2] && yy >= b[1] && yy <= b[3]);
+      if (isHair && hr.boxes) isHair = hr.boxes.some(inBox);
+      if (isHair && hr.cut) isHair = !hr.cut.some(inBox);
       if (isHair && hr.noFace) { const f = hr.noFace, q = ((xx - f[0]) / f[2]) ** 2 + ((yy - f[1]) / f[3]) ** 2; if (q < 1) isHair = false; }
       if (isHair) hairN++;
-      if (inR(h, cr.hue) && inR(s, cr.sat) && inR(v, cr.val) && yy >= cr.y0 && yy <= cr.y1) clothN++;
+      let isCloth = inR(h, cr.hue) && inR(s, cr.sat) && inR(v, cr.val) && yy >= cr.y0 && yy <= cr.y1;
+      if (isCloth && cr.boxes) isCloth = cr.boxes.some(inBox);
+      if (isCloth && cr.cut) isCloth = !cr.cut.some(inBox);
+      if (isCloth) clothN++;
     }
     return n ? [hairN / n, clothN / n] : [0, 0];
   };

@@ -11,7 +11,7 @@
      ② アプリロゴ ＋ ロードバー ＋ "Loading <App> ..."
 
    使い方（<head> に、defer なしで置く）:
-     <script src="../xeva-splash.js?v=18"
+     <script src="../xeva-splash.js?v=19"
              data-app="MagiLex"
              data-logo="../thumbs/MagiLex.jpg"></script>
 
@@ -121,6 +121,47 @@
   var CAP = D.cap || ("Loading " + APP + " ...");
   var NOTE = D.note || "";
 
+  /* ★★ 2026-10-31 ご指定「アプリ開始時の企業ロゴとアプリロゴ表示時の背景は、アプリに合わせて変えて構いません」
+     → アプリごとの地の色（THEMES：[上の色, 下の色, 文字の色, 小さい文字の色, ロードバーの色…, 影]）。
+       企業ロゴの白い札はそのまま（ロゴの色を守る）。地・×・文字・ロードバー・影の色だけをアプリに合わせる。
+       data-bg="#上の色,#下の色" で地だけ上書きもできる。ここに無いアプリと本体（data-home）はこれまでのクリーム色。 */
+  var THEMES = {
+    "MagiBattle":         ["#e4f3ff", "#ffe7f4", "#5a56d6", "#7d82b8", ["#20c4ff", "#8a5cff", "#ff4fa3"], "rgba(90,110,220,.2)"],
+    "MagiAbyss":          ["#1d2250", "#3b1c50", "#f0cf7a", "#cbbd93", ["#ffd36b", "#ff9a3c", "#ff5d8f"], "rgba(0,0,0,.4)"],
+    "MagiChemLex":        ["#e8f3ff", "#e2fbf3", "#2c74d6", "#7d97b6", ["#2f8cff", "#16c7a0"], "rgba(40,120,200,.18)"],
+    "MagiLex":            ["#f2eaff", "#ffe9f6", "#7c3aed", "#9a8ab8", ["#7c3aed", "#c04dff", "#ff5fa2"], "rgba(124,58,237,.18)"],
+    "MagiBurst":          ["#eee8ff", "#ffe6f3", "#7a5cf0", "#9a8ab8", ["#8e6bff", "#ff5d8f", "#ffb347"], "rgba(142,107,255,.2)"],
+    "MagiQuiz":           ["#e8f0ff", "#fff0d8", "#3a64d8", "#8a93b0", ["#3a7bff", "#ff9d2e"], "rgba(58,100,216,.18)"],
+    "MagiDerby":          ["#16603a", "#08281b", "#ffe08a", "#c3e8cc", ["#ffe08a", "#ffb347"], "rgba(0,0,0,.32)"],
+    "MagiShift":          ["#edf3ff", "#e2e9ff", "#3d5bd8", "#8a96b8", ["#3d7bff", "#8a5cff"], "rgba(61,91,216,.17)"],
+    "MagiChainParty":     ["#fff1e2", "#ecefff", "#f0602f", "#a89a8e", ["#ff6a3d", "#ffc23a", "#3aa0ff"], "rgba(255,120,60,.18)"],
+    "MagiScope":          ["#0f1b40", "#190d34", "#7ff0ff", "#9eacd4", ["#5ef2ff", "#8a5cff"], "rgba(0,0,0,.4)"],
+    "MagiCounter":        ["#e6efff", "#d6e5ff", "#1f6fe5", "#7f94bb", ["#1f6fe5", "#38c0ff"], "rgba(31,111,229,.18)"],
+    "MagiRail":           ["#e4eeff", "#e1f6ff", "#1c5fc4", "#7f94bb", ["#1c5fc4", "#3ad0ff"], "rgba(28,95,196,.18)"],
+    "MagiBocciaRush":     ["#181824", "#2a1430", "#ff7ad9", "#b8aacb", ["#ff5ad0", "#ffd36b"], "rgba(0,0,0,.4)"],
+    "Magi Lotto":         ["#10173e", "#2c1254", "#ffd36b", "#b9b3d8", ["#ffd36b", "#ff7a3c"], "rgba(0,0,0,.4)"],
+    "MagiJackpot":        ["#fbf3e4", "#f1dcb4", "#b07d06", "#a8957a", ["#ffcf5a", "#ff9a3c"], "rgba(180,130,40,.2)"],
+    "MagiPortfolio":      ["#0e1424", "#132436", "#5df2b0", "#96a9c3", ["#2fd18a", "#38a6ff"], "rgba(0,0,0,.4)"],
+    "MagiTier":           ["#f1f2fa", "#ffe9f1", "#e0447a", "#9a96b0", ["#ff5d8f", "#8e6bff"], "rgba(224,68,122,.16)"],
+    "XEVYNAR":            ["#f2f4fb", "#e6edff", "#4b63ff", "#8a93b0", ["#4b63ff", "#9a62ff"], "rgba(75,99,255,.16)"],
+    "MagiRanking":        ["#fff5d8", "#ffe6ed", "#c98000", "#a8957a", ["#ffc23a", "#ff6f91"], "rgba(212,138,0,.18)"],
+    "Magi Dominion Grid": ["#e4eeff", "#e6f7ff", "#2f6fd0", "#7f94bb", ["#2f6fd0", "#16c7a0"], "rgba(47,111,208,.18)"],
+    "MagiEmpire":         ["#f8eedd", "#eadac1", "#9a5d24", "#a08a72", ["#d4943a", "#a0632a"], "rgba(160,99,42,.18)"],
+    "MagiCraft":          ["#e7f6e3", "#ddeeff", "#36923f", "#86a08a", ["#4cc35a", "#38a6ff"], "rgba(58,154,70,.18)"],
+    "MagiLink":           ["#eaf2ff", "#f3eaff", "#5b6bff", "#8a93b0", ["#5b8cff", "#b06bff"], "rgba(91,107,255,.16)"],
+    "MagiManor":          ["#f6ece3", "#eee3f6", "#9a5ca8", "#a0909e", ["#c77dff", "#ff9ec4"], "rgba(154,92,168,.17)"],
+    "ORDYXIS":            ["#ffffff", "#ffe6e3", "#e5484d", "#a89090", ["#ff5a5a", "#ff9a3c"], "rgba(229,72,77,.16)"]
+  };
+  var TH = null;
+  (function () {
+    var t = D.home === "1" ? null : THEMES[APP];
+    if (D.bg) { var cs = String(D.bg).split(","); t = (t || [null, null, "#c98a10", "#b6a596", ["#ff9d2e", "#ff5d8f", "#8e6bff"], "rgba(0,0,0,.18)"]).slice(); t[0] = cs[0]; t[1] = cs[1] || cs[0]; }
+    if (!t) return;
+    var g = "linear-gradient(160deg," + t[0] + "," + t[1] + ")";
+    TH = { bg: g, vars: "--xs-bg:" + g + ";--xs-a:" + t[0] + ";--xs-b:" + t[1] + ";--xs-ink:" + t[2] + ";--xs-amp:" + t[2] + ";--xs-cap:" + t[3] +
+      ";--xs-fill:linear-gradient(135deg," + t[4].join(",") + ");--xs-track:" + t[5].replace(/[\d.]+\)$/, ".22)") + ";--xs-sh:" + t[5] + ";--xs-appsh:" + t[5] };
+  })();
+
   /* ── タイミング ──
      ★★ 2026-10-09b 起動を速く（ご指定「ホームやアプリの起動に時間がかかる」）。
        前は<b>毎回</b>「3社ロゴ 3.6秒 → アプリロゴ 最短1.65秒」で、読みこみが速くても約6秒かかっていた。
@@ -180,7 +221,7 @@
        padding-bottom を同じぶん足すので、中の .xsph（inset:0）の位置は変わらない。 */
     "#" + ID + "{position:fixed;top:0;left:0;right:0;bottom:calc(-1 * var(--xv-under,0px));" +
     "padding-bottom:var(--xv-under,0px);z-index:2147483000;" +
-    "background:linear-gradient(160deg,#fff,#ffeede);transition:opacity .32s;" +
+    "background:var(--xs-bg,linear-gradient(160deg,#fff,#ffeede));transition:opacity .32s;" +
     "font-family:'Noto Sans JP',system-ui,-apple-system,'Segoe UI',sans-serif}" +
     "#" + ID + ".hide{opacity:0;pointer-events:none}" +
     /* ★★ 2026-09-06 「いちばん下まで色が届かない」対策（ご指定）。
@@ -190,39 +231,39 @@
        さらに &lt;html&gt; の背景も同じ色に塗る（build の中）。 */
     "#" + ID + "::before,#" + ID + "::after{content:'';position:absolute;left:0;right:0;" +
     "height:420px;pointer-events:none}" +
-    "#" + ID + "::before{bottom:100%;background:#fff}" +
-    "#" + ID + "::after{top:100%;background:#ffeede}" +
+    "#" + ID + "::before{bottom:100%;background:var(--xs-a,#fff)}" +
+    "#" + ID + "::after{top:100%;background:var(--xs-b,#ffeede)}" +
     "#" + ID + " .xsph{position:absolute;inset:0;display:flex;flex-direction:column;" +
     "align-items:center;justify-content:center;gap:14px;opacity:0;padding:5vh 20px}" +
     "#" + ID + " .xsintro.in{opacity:1}" +
     "#" + ID + " .xsintro.out{opacity:0;transition:opacity .5s ease}" +
     "#" + ID + " .xslg{width:min(520px,86vw);border-radius:20px;overflow:hidden;background:#fff;" +
     "display:flex;align-items:center;justify-content:center;padding:10px 18px;" +
-    "box-shadow:0 10px 30px rgba(200,150,60,.14)}" +
+    "box-shadow:0 10px 30px var(--xs-sh,rgba(200,150,60,.14))}" +
     "#" + ID + " .xslg img{max-width:100%;max-height:14vh;object-fit:contain;display:block}" +
-    "#" + ID + " .xstx{font-weight:800;letter-spacing:.1em;font-size:24px;color:#c98a10}" +
+    "#" + ID + " .xstx{font-weight:800;letter-spacing:.1em;font-size:24px;color:var(--xs-ink,#c98a10)}" +
     "#" + ID + " .xsintro.in .xslg:nth-child(1){animation:xsUp .8s cubic-bezier(.2,.7,.3,1) both}" +
     "#" + ID + " .xsintro.in .xsamp:nth-child(2){animation:xsFade .8s ease .1s both}" +
     "#" + ID + " .xsintro.in .xslg:nth-child(3){animation:xsFade .8s cubic-bezier(.2,.7,.3,1) .12s both}" +
     "#" + ID + " .xsintro.in .xsamp:nth-child(4){animation:xsFade .8s ease .2s both}" +
     "#" + ID + " .xsintro.in .xslg:nth-child(5){animation:xsDown .8s cubic-bezier(.2,.7,.3,1) .24s both}" +
-    "#" + ID + " .xsamp{color:#d9a441;font-weight:800;font-size:24px}" +
+    "#" + ID + " .xsamp{color:var(--xs-amp,#d9a441);font-weight:800;font-size:24px}" +
     "#" + ID + " .xsmain{gap:22px}" +
     "#" + ID + " .xsmain.in{opacity:1;animation:xsFade .6s ease}" +
     "#" + ID + " .xsapp{width:min(200px,54vw);border-radius:30px;display:block;" +
-    "box-shadow:0 16px 46px rgba(245,166,35,.35)}" +
+    "box-shadow:0 16px 46px var(--xs-appsh,rgba(245,166,35,.35))}" +
     "#" + ID + " .xsbar{width:min(300px,68vw);height:8px;border-radius:99px;" +
-    "background:rgba(245,166,35,.18);overflow:hidden}" +
+    "background:var(--xs-track,rgba(245,166,35,.18));overflow:hidden}" +
     "#" + ID + " .xsbar i{display:block;height:100%;width:0;border-radius:99px;" +
-    "background:linear-gradient(135deg,#ff9d2e,#ff5d8f,#8e6bff)}" +
-    "#" + ID + " .xscap{color:#b6a596;font-size:13px;letter-spacing:.22em;text-align:center}" +
-    "#" + ID + " .xsnote{font-size:11.5px;font-weight:800;color:#c98a10;letter-spacing:.04em;text-align:center}" +
+    "background:var(--xs-fill,linear-gradient(135deg,#ff9d2e,#ff5d8f,#8e6bff))}" +
+    "#" + ID + " .xscap{color:var(--xs-cap,#b6a596);font-size:13px;letter-spacing:.22em;text-align:center}" +
+    "#" + ID + " .xsnote{font-size:11.5px;font-weight:800;color:var(--xs-ink,#c98a10);letter-spacing:.04em;text-align:center}" +
     /* ★★ 2026-10-15 1枚の起動画面（本体）：アプリロゴの下に3社ロゴ。広い画面は横1列、せまい画面（520px 以下）は縦に */
     "#" + ID + " .xsmain.combo{gap:20px}" +
     "#" + ID + " .xsmain.combo .xsapp{width:min(176px,44vw)}" +
     "#" + ID + " .xsmain.combo.in .xsapp{animation:xsUp .7s cubic-bezier(.2,.7,.3,1) both}" +
     "#" + ID + " .xsbrands{display:flex;align-items:center;justify-content:center;gap:8px;width:min(600px,94vw)}" +
-    "#" + ID + " .xsbrands .xslg{width:auto;flex:1 1 0;min-width:0;padding:6px 8px;border-radius:16px;box-shadow:0 8px 22px rgba(200,150,60,.13)}" +
+    "#" + ID + " .xsbrands .xslg{width:auto;flex:1 1 0;min-width:0;padding:6px 8px;border-radius:16px;box-shadow:0 8px 22px var(--xs-sh,rgba(200,150,60,.13))}" +
     "#" + ID + " .xsbrands .xslg img{width:100%;max-height:13vh}" +
     "#" + ID + " .xsbrands .xsamp{font-size:17px;flex:none}" +
     "#" + ID + " .xsbrands .xstx{font-size:15px}" +
@@ -242,11 +283,11 @@
        横向きのスマホでも2段が画面に収まるよう、幅は高さからも決める（(高さの78% − すき間) × 1.5）。 */
     "#" + ID + " .xsgrid{position:relative;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;" +
     "width:min(560px,90vw);width:min(560px,90vw,calc((78vh - 12px) * 1.5 + 12px));width:min(560px,90vw,calc((78dvh - 12px) * 1.5 + 12px))}" +
-    "#" + ID + " .xsgrid .xslg{width:auto;aspect-ratio:3/2;padding:6px 10px;border-radius:18px;box-shadow:0 10px 26px rgba(200,150,60,.14)}" +
+    "#" + ID + " .xsgrid .xslg{width:auto;aspect-ratio:3/2;padding:6px 10px;border-radius:18px;box-shadow:0 10px 26px var(--xs-sh,rgba(200,150,60,.14))}" +
     "#" + ID + " .xsgrid .xslg img{width:100%;height:100%;max-height:none;object-fit:contain}" +
     "#" + ID + " .xsgrid .xstx{display:flex;align-items:center;justify-content:center;aspect-ratio:3/2;background:#fff;border-radius:18px;font-size:16px}" +
     "#" + ID + " .xsx{position:absolute;left:50%;top:50%;width:26px;height:26px;margin:-13px 0 0 -13px;border-radius:50%;background:#fff;" +
-    "color:#d9a441;font:800 16px/26px system-ui,-apple-system,sans-serif;text-align:center;font-style:normal;box-shadow:0 2px 10px rgba(200,150,60,.28);z-index:1;pointer-events:none}" +
+    "color:var(--xs-amp,#d9a441);font:800 16px/26px system-ui,-apple-system,sans-serif;text-align:center;font-style:normal;box-shadow:0 2px 10px var(--xs-sh,rgba(200,150,60,.28));z-index:1;pointer-events:none}" +
     "#" + ID + " .xsph.in .xsgrid>.xslg,#" + ID + " .xsph.in .xsgrid>.xstx{animation:xsPop .7s cubic-bezier(.2,.8,.3,1.15) both}" +
     "#" + ID + " .xsph.in .xsgrid>:nth-child(2){animation-delay:.1s}" +
     "#" + ID + " .xsph.in .xsgrid>:nth-child(3){animation-delay:.2s}" +
@@ -286,7 +327,7 @@
   }
 
   /* ★ &lt;html&gt; の背景をスプラッシュと同じにする（箱の外はここしか塗れない） */
-  var SPLASH_BG = "linear-gradient(160deg,#fff,#ffeede)";
+  var SPLASH_BG = TH ? TH.bg : "linear-gradient(160deg,#fff,#ffeede)";   /* ★★ 2026-10-31 アプリごとの地の色（THEMES） */
   function paintHtml(on) {
     if (window.xvPaintHtml) { window.xvPaintHtml("xevaSplash", on ? SPLASH_BG : null); return; }
     try { document.documentElement.style.background = on ? SPLASH_BG : ""; } catch (e) {}
@@ -296,6 +337,7 @@
     paintHtml(true);
     el = document.createElement("div");
     el.id = ID;
+    if (TH) el.style.cssText = TH.vars;
     if (COMBO) {
       /* ★★ 2026-10-15 本体：XEVARION のロゴ → その下に3社ロゴ（ロードバーなし）
          ★★ 2026-10-28 ご指定で XEVARION のロゴは出さない・企業ロゴは 2×2（YRA が加わって4社） */
