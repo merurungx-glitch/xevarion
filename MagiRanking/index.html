@@ -8,12 +8,12 @@
 <link rel="icon" href="../thumbs/MagiRanking.jpg" type="image/png">
 <link rel="apple-touch-icon" href="../thumbs/MagiRanking.jpg">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
-<script src="../xeva-splash.js?v=18" data-app="MagiRanking" data-logo="../thumbs/MagiRanking.jpg"></script>
+<script src="../xeva-splash.js?v=19" data-app="MagiRanking" data-logo="../thumbs/MagiRanking.jpg"></script>
 <script src="../xeva.js?v=85"></script>
 <script src="../xeva-loading.js?v=19" defer></script>
 <script type="module" src="../xevarion-fb.js?v=36"></script>
 <script src="../xeva-presence.js?v=9" defer></script>
-<script type="module" src="../xeva-cloud.js?v=48"></script>
+<script type="module" src="../xeva-cloud.js?v=49"></script>
 <style>
 :root{
   --bg:#fff7ec;          /* 明るいクリーム */
@@ -167,7 +167,7 @@ a{color:inherit;text-decoration:none}
     <div class="mode-switch">
       <div class="mode on" id="modeXeva" onclick="switchMode('xeva')">💰 月間<br>XEVA</div>
       <div class="mode" id="modeChain" onclick="switchMode('chain')">🎉 ChainParty<br>XEVA</div>
-      <div class="mode" id="modeBattle" onclick="switchMode('battle')">⚔️ MagiBattle<br>スコアタ</div>
+      <div class="mode" id="modeBattle" onclick="switchMode('battle')">⚔️ MagiBattle<br>迎撃戦</div>
       <div class="mode" id="modeBurst" onclick="switchMode('burst')">🚄 MagiBurst<br>超特急</div>
     </div>
 
@@ -240,12 +240,12 @@ a{color:inherit;text-decoration:none}
       </div>
     </div><!-- /chainView -->
 
-    <!-- ===== MagiBattle スコアアタック（200秒・月間） ===== -->
+    <!-- ===== MagiBattle 迎撃戦（月間・★★ 2026-10-31 MagiBattle 3.0 の迎撃戦＝同じ scoreattack/{YYYY-MM} を読む・ごほうびはジェム） ===== -->
     <div id="battleView" style="display:none">
       <div class="hero">
-        <img class="hero-logo" src="../thumbs/MagiBattle.jpg?v=3" alt="MagiBattle" onerror="this.src='../thumbs/MagiRanking.jpg'">
-        <div class="hero-title">MagiBattle スコアタ</div>
-        <div class="hero-sub">200秒で不死身の敵に与えたダメージのベストスコアで競う月間ランキング</div>
+        <img class="hero-logo" src="../thumbs/MagiBattle.jpg?v=4" alt="MagiBattle" onerror="this.src='../thumbs/MagiRanking.jpg'">
+        <div class="hero-title">MagiBattle 迎撃戦</div>
+        <div class="hero-sub">日がわりのボスに、3分間で与えたダメージの今月の最高記録で競う月間ランキング</div>
         <div class="month-pill"><span id="bMonthLbl">今月</span></div>
       </div>
 
@@ -255,12 +255,12 @@ a{color:inherit;text-decoration:none}
       </div>
 
       <div class="tiers">
-        <div class="tier t1"><div class="rk">🥇 1位</div><div class="rw">1,000<small> XEVA</small></div></div>
-        <div class="tier"><div class="rk">🥈 2位</div><div class="rw">500<small> XEVA</small></div></div>
-        <div class="tier"><div class="rk">🥉 3位</div><div class="rw">300<small> XEVA</small></div></div>
-        <div class="tier"><div class="rk">4〜10位</div><div class="rw">150<small> XEVA</small></div></div>
+        <div class="tier t1"><div class="rk">🥇 1位</div><div class="rw">💎60<small> ジェム</small></div></div>
+        <div class="tier"><div class="rk">🥈 2位</div><div class="rw">💎40<small> ジェム</small></div></div>
+        <div class="tier"><div class="rk">🥉 3位</div><div class="rw">💎25<small> ジェム</small></div></div>
+        <div class="tier"><div class="rk">4〜10位</div><div class="rw">💎15<small> ジェム</small></div></div>
       </div>
-      <div class="tier-note">毎月末に順位を確定し、翌月 MagiBattle を開いたときに賞金を受け取れます</div>
+      <div class="tier-note">毎月末に順位を確定し、翌月 MagiBattle の迎撃戦を開いたときにジェムを受け取れます</div>
 
       <div class="list">
         <div class="list-head">
@@ -271,8 +271,8 @@ a{color:inherit;text-decoration:none}
       </div>
 
       <div class="info">
-        <b>MagiBattle のスコアアタック</b>（200秒間の総与ダメージ）のベストスコアです。<br>
-        時間前に全滅した場合はその時点のスコアで記録。毎月1日にリセットされます。
+        <b>MagiBattle の迎撃戦</b>（3分間にボスへ与えたダメージ）の今月の最高記録です。<br>
+        ボスは毎日かわります。毎月1日にリセットされます。
       </div>
     </div><!-- /battleView -->
 
@@ -589,7 +589,7 @@ function reloadBattle(){
 function renderBattle(rows){
   var uid=myUid();
   if(!rows || !rows.length){
-    $("brows").innerHTML='<div class="empty">まだスコアの記録がありません。<br>MagiBattle のスコアアタック（200秒）に挑戦しよう！</div>';
+    $("brows").innerHTML='<div class="empty">まだスコアの記録がありません。<br>MagiBattle の迎撃戦に挑戦しよう！</div>';
     return;
   }
   $("brows").innerHTML = rows.map(function(r,i){

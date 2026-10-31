@@ -1,139 +1,84 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1, user-scalable=no, viewport-fit=cover">
-<meta name="theme-color" content="#070b16">
-<title>MagiBattle — CONNECT / FIGHT / GROW</title>
-<meta name="description" content="XEVARION の全キャラで戦う、バースト連携のリアルタイムバトル RPG。">
-<link rel="icon" href="../thumbs/MagiBattle.jpg?v=3" type="image/jpeg">
-<link rel="apple-touch-icon" href="../thumbs/MagiBattle.jpg?v=3">
-<!-- ══════════════════════════════════════════════════════════════
-     ★★ 2026-09-23 MagiBattle 2.0（全面刷新・ご指定）
-     ・画面は NIKKE 風（深い紺 × 赤）。デザイン案（編成リング・斜めのタブ）どおり。
-     ・キャラは XEVARION の全キャラ（mb-core.js）。性能は ../magibattle-stats.js が持ち主。
-     ・通貨はジェム（XEVARION 共通・gem.png）。セーブ magibattle_v1 は xeva-cloud が同期。
-     ・スコアアタックの Firebase（月間ランキング）は前と同じ場所・同じ形。
-     ══════════════════════════════════════════════════════════════ -->
 <script src="../maintenance-gate.js?v=13"></script>
-<script src="../xeva-splash.js?v=18" data-app="MagiBattle" data-logo="../thumbs/MagiBattle.jpg?v=3"></script>
-<script src="../xeva.js?v=85"></script>
-<script src="../xeva-loading.js?v=19" defer></script>
-<script type="module" src="../xevarion-fb.js?v=36"></script>
-<script src="../xeva-presence.js?v=9" defer></script>
-<script type="module" src="../xeva-cloud.js?v=48"></script>
-<!-- ★★ 2026-10-16 キャラの所持・凸（magiburst_v1）もここで同期する（前は読むだけで、別の端末で引いたキャラが出てこないことがあった） -->
-<script type="module" src="../MagiBurst/magiburst-cloud.js?v=27"></script>
+<meta charset="UTF-8">
+<script>(function(){try{var a=JSON.parse(localStorage.getItem('xeva_account_v1'));if(!a||!a.setupDone)location.replace('../index.html');}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#eef4ff">
+<title>MagiBattle — 後ろから撃つ部隊シューティング</title>
+<meta name="description" content="超極祭系の UR 12体で戦う、遮蔽物シューティングとアリーナ。後ろから見たドット絵の5人で照準を合わせて撃ち、バーストⅠ→Ⅱ→Ⅲをつないで FULL BURST。">
+<link rel="icon" href="../thumbs/MagiBattle.jpg?v=4" type="image/jpeg">
+<link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+<link rel="manifest" href="manifest.webmanifest">
+<!-- ══════════════════════════════════════════════════════════════
+     ★★ 2026-10-30 MagiBattle 3.0 — 1から作り直し（ご指定）
+     ・内容は部隊シューティングとアリーナ。スキルのカット演出はキャラの画像（MagiBurst/img/ss/）、戦闘はドット絵（後ろ姿）。
+     ・使えるのは超極華祭・超極煌祭・超極彩祭の UR 12体だけ（持っているキャラ）。性能は ../magibattle-stats.js（MBStats v3）が持ち主。
+     ・ファイル：js/mb3-data（敵・ステージ・ストーリー）・mb3-sprite（ドット絵）・mb3-engine（戦闘）・mb3-render（戦闘の画面と効果音）・
+       mb3-bgm（オリジナル BGM）・mb3-save（セーブ・育成）・mb3-net（アリーナ・迎撃戦の記録＝Firebase）・mb3-ui／mb3-ui2（画面）・
+       mb3-guide（使い方のアニメ）・mb3-main（はじまり）。オフラインは sw.js。
+     ★★ 2026-10-31 明るくカラフルな見た目に作り直し（ご指定「暗く分かりづらい」）・下のナビは 部隊・編成・ロビー・アリーナ・ショップ。
+     ══════════════════════════════════════════════════════════════ -->
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function () { navigator.serviceWorker.register("sw.js").catch(function () {}); });
+}
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800;900&family=Noto+Sans+JP:wght@500;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/mbt.css?v=3">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/mb3.css?v=4">
+<script src="../xeva-safebottom.js?v=12"></script>
+<script src="../xeva-splash.js?v=19" data-app="MagiBattle" data-logo="../thumbs/MagiBattle.jpg?v=4"></script>
 </head>
 <body>
-<div id="mbtBg"></div>
+<div id="app">
+  <div class="m3-bgfx" aria-hidden="true"></div>
+  <!-- 上のバー（ロビー・各画面） -->
+  <header class="m3-tb" id="tb" hidden>
+    <button class="m3-back" id="tbBack" aria-label="もどる"><svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    <div class="m3-tbt" id="tbTitle"><small></small><b></b></div>
+    <div class="m3-cur" id="tbCur"></div>
+  </header>
+  <main class="m3-main" id="main"></main>
+  <!-- 下のナビ（★★ 2026-10-31 ご指定：ロビーを中央・部隊を一番左・その次に編成） -->
+  <nav class="m3-nav" id="nav" hidden>
+    <button data-go="units" style="--c:#8a5cff"><i class="ic-units"></i><b>部隊</b></button>
+    <button data-go="squad" style="--c:#12b5ff"><i class="ic-squad"></i><b>編成</b></button>
+    <button data-go="lobby" class="home" style="--c:#ff8a2a"><i class="ic-lobby"></i><b>ロビー</b></button>
+    <button data-go="arena" style="--c:#ff4fa3"><i class="ic-arena"></i><b>アリーナ</b></button>
+    <button data-go="shop" style="--c:#18c48c"><i class="ic-shop"></i><b>ショップ</b></button>
+  </nav>
+  <section class="m3-battle" id="battle" hidden></section>
+  <div class="m3-sheet" id="sheet" hidden><div class="m3-sheet-in" id="sheetIn"></div></div>
+  <div class="m3-story" id="story" hidden></div>
+  <div class="m3-toast" id="toast"></div>
+</div>
 
-<header class="mbt-hd">
-  <img class="kv" src="img/kv.webp" alt="">
-  <div class="kv2"></div>
-  <div class="mbt-logo">
-    <svg viewBox="0 0 48 48" aria-hidden="true">
-      <path d="M24 2l5.5 15.5L46 24l-16.5 6.5L24 46l-5.5-15.5L2 24l16.5-6.5z" fill="#fff"/>
-      <path d="M24 10l3.2 10.8L38 24l-10.8 3.2L24 38l-3.2-10.8L10 24l10.8-3.2z" fill="#0a0f1e"/>
-      <path d="M8 40L40 8" stroke="#ff2d4a" stroke-width="4.5" stroke-linecap="round"/>
-    </svg>
-    <div><b>Magi<i>B</i>attle</b><small>CONNECT / FIGHT / GROW</small></div>
-  </div>
-  <div class="mbt-hrow">
-    <button class="mbt-back" id="backB"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M11 6l-6 6 6 6"/></svg>ポータル</button>
-    <div class="mbt-pills">
-      <button class="mbt-pill" id="gemPill" aria-label="ジェム"><img src="../gem.png" alt="ジェム"><span id="gemBal">0</span><span class="pl">+</span></button>
-    </div>
-  </div>
-</header>
-
-<nav class="mbt-tabs" id="tabs"></nav>
-<main id="view"></main>
-
-<div id="battle"></div>
-<div class="sheetov" id="sheet"><div class="sheet" id="sheetIn"></div></div>
-<div id="toast"></div>
-
-<!-- mb-core.js（XEVARION の全キャラの性能の素）。mb-boot.js がその土台を用意する。
-     mb-boot.js は MB_IMGD を "img/"（ポータル用）に決め打ちするので、読んだあとで直す。 -->
-<script src="../mb-boot.js?v=18"></script>
-<script>window.MB_IMGD = "../img/"; window.MB_GIMGD = "../MagiBurst/img/";</script>
-<script src="../MagiBurst/js/mb-core.js?v=143"></script>
-<script src="../magibattle-stats.js?v=18"></script>
-<script src="js/mbt-battle.js?v=2"></script>
-<script src="js/mbt-app.js?v=4"></script>
-
-<!-- ══════════ スコアアタックの月間ランキング（Firebase xevarion-online・前と同じ） ══════════ -->
-<script type="module">
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
-import { getDatabase, ref, get, set, runTransaction } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-database.js";
-
-const firebaseConfig = {
-  apiKey: "AIzaSyAivkOwjWlmqJSNmnSjOs4-PUAcVFOfbiY",
-  authDomain: "xevarion-online.firebaseapp.com",
-  databaseURL: "https://xevarion-online-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "xevarion-online",
-  storageBucket: "xevarion-online.firebasestorage.app",
-  messagingSenderId: "513584168485",
-  appId: "1:513584168485:web:d2a009325df677b746c9cc",
-  measurementId: "G-28C5G2BFR5"
-};
-/* xevarion-fb.js が既定アプリを初期化済みのため、名前付きアプリとして共存させる */
-const app = initializeApp(firebaseConfig, "magibattle");
-const db = getDatabase(app);
-
-function monthKey(d) { d = d || new Date(); return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0"); }
-function prevMonthKey() { const d = new Date(); return monthKey(new Date(d.getFullYear(), d.getMonth() - 1, 1)); }
-
-/* ベストスコアのみ保持（毎月のノード scoreattack/{YYYY-MM}/{uid} ＝ 月替わりで自動リセット） */
-async function submitScore(uid, name, charFile, score) {
-  score = Math.round(score || 0);
-  if (!uid || score <= 0) return { error: "arg" };
-  try {
-    await runTransaction(ref(db, "scoreattack/" + monthKey() + "/" + uid), (cur) => {
-      if (cur && (cur.score || 0) >= score) return cur;
-      return { name: String(name || "?").slice(0, 24), charFile: charFile || "", score, ts: Date.now() };
-    });
-    return { ok: true };
-  } catch (e) { return { error: "net" }; }
-}
-async function getRanking(ym) {
-  ym = ym || monthKey();
-  try {
-    const snap = await get(ref(db, "scoreattack/" + ym));
-    const rows = [];
-    snap.forEach((c) => { const v = c.val() || {}; rows.push({ uid: c.key, name: v.name || "?", charFile: v.charFile || "", score: v.score || 0 }); });
-    rows.sort((a, b) => b.score - a.score);
-    return rows;
-  } catch (e) { return []; }
-}
-/* 前月報酬：1位1000 / 2位500 / 3位300 / 4〜10位150（XEVARIONFB.awardXeva で配布・claims で二重受取を防ぐ） */
-const SA_REWARDS = [1000, 500, 300, 150, 150, 150, 150, 150, 150, 150];
-async function claimPrevReward(uid) {
-  if (!uid) return { ok: false };
-  if (!(window.XEVARIONFB && window.XEVARIONFB.awardXeva)) return { ok: false, notReady: true };
-  const pym = prevMonthKey();
-  try {
-    const flagRef = ref(db, "scoreattack-claims/" + pym + "/" + uid);
-    const s = await get(flagRef);
-    if (s.exists()) return { ok: false, already: true };
-    const rows = await getRanking(pym);
-    const idx = rows.findIndex((r) => r.uid === uid);
-    if (idx < 0 || idx >= SA_REWARDS.length || !(rows[idx].score > 0)) return { ok: false };
-    const amount = SA_REWARDS[idx];
-    const r = await window.XEVARIONFB.awardXeva(uid, amount, "MagiBattle スコアアタック " + pym + " " + (idx + 1) + "位");
-    if (!(r && r.ok)) return { ok: false };
-    await set(flagRef, { amount, rank: idx + 1, ts: Date.now() });
-    return { ok: true, amount, rank: idx + 1 };
-  } catch (e) { return { ok: false }; }
-}
-window.MBFB = { submitScore, getRanking, claimPrevReward, monthKey, prevMonthKey, SA_REWARDS, ready: true };
-try { window.dispatchEvent(new Event("mbfb:ready")); } catch (e) {}
-</script>
+<script type="module" src="../xevarion-fb.js?v=36"></script>
+<script type="module" src="../xeva-cloud.js?v=49"></script>
+<!-- キャラの所持・凸（magiburst_v1）も同期する（XEVARION と共通） -->
+<script type="module" src="../MagiBurst/magiburst-cloud.js?v=28"></script>
+<script src="../xeva.js?v=85"></script>
+<script src="../xeva-loading.js?v=19" defer></script>
+<script src="../xeva-presence.js?v=9" defer></script>
+<!-- ドット絵の設計図（MagiAbyss と同じ CHAR_ART） -->
+<script src="../MagiAbyss/js/ma-pixel.js?v=10"></script>
+<script src="../magibattle-stats.js?v=19"></script>
+<script src="js/mb3-data.js?v=4"></script>
+<script src="js/mb3-sprite.js?v=3"></script>
+<script src="js/mb3-engine.js?v=3"></script>
+<script src="js/mb3-render.js?v=4"></script>
+<script src="js/mb3-bgm.js?v=2"></script>
+<script src="js/mb3-save.js?v=4"></script>
+<script type="module" src="js/mb3-net.js?v=2"></script>
+<script src="js/mb3-ui.js?v=4"></script>
+<script src="js/mb3-ui2.js?v=4"></script>
+<script src="../xeva-tour.js?v=2"></script>
+<script src="js/mb3-guide.js?v=2"></script>
+<script src="js/mb3-main.js?v=4"></script>
 <script src="../xeva-back.js?v=9" data-mode="hook"></script>
 </body>
 </html>

@@ -1,0 +1,16 @@
+{
+  "name": "MagiBattle",
+  "short_name": "MagiBattle",
+  "description": "超極祭系の UR 12体で戦う、後ろから撃つ部隊シューティングとアリーナ。",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#05070f",
+  "theme_color": "#05070f",
+  "lang": "ja",
+  "icons": [
+    { "src": "img/icon192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "../thumbs/MagiBattle.jpg?v=4", "sizes": "512x512", "type": "image/jpeg", "purpose": "any" }
+  ]
+}
