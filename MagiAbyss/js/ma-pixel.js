@@ -834,6 +834,104 @@
         { x: 1, y: 16, rows: [".X.", "XxX", ".X.", "..Y"] },
       ],
     },
+    /* ══ ★★ 2026-11-03 超極彩祭の追加3体（チフル・ミント・プリカ）══ */
+    /* ── チフル（火）：茶色の長い髪・琥珀の瞳・黒いハイネックのクロップトップ（胸元のあき）・肩から落とした黒いジャケット・
+          黒いショートパンツとガーター・黒いブーツ・左手に青いハートの飴 ── */
+    chifuru: {
+      pal: { H: "#5a3a2c", h: "#3a2418", L: "#8e6448", E: "#d0922c", A: "#1d1b24", a: "#0f0e14", C: "#2a2732", c: "#16141c",
+             D: "#c8ccd8", d: "#8a90a0", G: "#c8ccd8", g: "#8a90a0", P: "#1c1a22", p: "#0d0c12", O: "#1a1820", o: "#09080c",
+             X: "#4f7dff", x: "#a9c0ff", Y: "#e8eef8", K: "#120f18" },
+      legY: 23,
+      layers: [
+        backLong(25),
+        { x: 6, y: 14, rows: [
+          ".SSAAAAAASS.",
+          "SSAAAAAAAASS",
+          "S.AASSSSAA.S",
+          "C.AAAAAAAA.C",
+          "C.SSSSSSSS.C",
+          "c.SSSSSSSS.c",
+          "..PPPPPPPP..",
+          "..PPPppPPP..",
+          "..PDP..PDP..",
+          "...SS..SS...",
+          "...OO..OO...",
+          "...OO..OO...",
+          "..OOO..OOO..",
+          "..ooo..ooo..",
+        ] },
+        /* 肩から落としたジャケット（ひじのあたりで大きくふくらむ） */
+        { x: 4, y: 16, rows: ["CC..............CC", "Cc..............cC", ".c..............c."] },
+        "FACE",
+        frontStraight(14),
+        /* 左手の青いハートの飴 */
+        { x: 0, y: 16, rows: ["XX.XX", "XxXXX", ".XXX.", "..X.."] },
+      ],
+    },
+    /* ── ミント（木）：長い黒髪（ぱっつん）・灰色の瞳・黒い長袖のブレザー型セーラー服（白い線）・白いえり・黒いリボン・
+          灰色のプリーツスカート（白い線）・黒いハイソックス・黒いローファー・白い花 ── */
+    mint: {
+      pal: { H: "#17161d", h: "#0b0a10", L: "#4a4a5e", E: "#8e8e9c", A: "#1f1f27", a: "#111117", C: "#2a2a34", c: "#17171e",
+             D: "#0d0d12", d: "#000000", G: "#f4f4f8", g: "#c8c8d4", P: "#5c5c68", p: "#3e3e48", O: "#141418", o: "#07070a",
+             T: "#18181e", t: "#0c0c10", X: "#ffffff", x: "#ffe9a8", Y: "#3fbf6e", K: "#120f18" },
+      legY: 23,
+      layers: [
+        backLong(25),
+        { x: 6, y: 14, rows: [
+          ".CGCWWWWCGC.",
+          "ACCCCDDCCCCA",
+          "A.AAADDAAA.A",
+          "a.AaAAAAaA.a",
+          "A.AAAAAAAA.A",
+          "S.AAAAAAAA.S",
+          "..PPPPPPPP..",
+          ".PPPPPPPPPP.",
+          ".PGPPGPPGPP.",
+          "...SS..SS...",
+          "...TT..TT...",
+          "...TT..TT...",
+          "..OOO..OOO..",
+          "..ooo..ooo..",
+        ] },
+        "FACE",
+        frontStraight(14),
+        /* 左手の白い花 */
+        { x: 1, y: 16, rows: [".X.", "XxX", ".X.", "..Y"] },
+      ],
+    },
+    /* ── プリカ（光）：黒髪を頭の上でおだんご・長い横の髪・茶色の瞳・紺のブレザー（銀のふち・紋章）・ベージュのベスト・白いシャツ・
+          黒と灰色のチェックのスカート・紺のハイソックス・茶色のローファー・金の星の紋章 ── */
+    purika: {
+      pal: { H: "#16151c", h: "#0b0a10", L: "#4a4a60", E: "#9a6a3a", A: "#1f2645", a: "#121830", C: "#d8b88a", c: "#b0905e",
+             D: "#f4f4f8", d: "#c8c8d4", G: "#d8dde8", g: "#9aa0b0", P: "#2a2830", p: "#5e5c6a", O: "#5a3422", o: "#3a2014",
+             T: "#1f2645", t: "#121830", X: "#ffd84a", x: "#fff2b0", Y: "#3a4a9a", K: "#120f18" },
+      legY: 23,
+      layers: [
+        backLong(22),
+        /* 頭の上のおだんご */
+        { x: 9, y: 0, rows: ["..hh..", ".hHHh.", "hHLHHh"] },
+        { x: 6, y: 14, rows: [
+          ".AADDCCDDAA.",
+          "AAADCCCCDAAA",
+          "A.AACCCCAA.A",
+          "a.AaCCCCaA.a",
+          "A.AAGCCGAA.A",
+          "S.AAAAAAAA.S",
+          "..PPPPPPPP..",
+          ".PpPPpPPpPP.",
+          ".PPpPPpPPpP.",
+          "...SS..SS...",
+          "...TT..TT...",
+          "...TT..TT...",
+          "..OOO..OOO..",
+          "..ooo..ooo..",
+        ] },
+        "FACE",
+        frontSwept(14),
+        /* 左手の金の星の紋章 */
+        { x: 0, y: 16, rows: ["..X..", "XXXXX", ".XxX.", "X...X"] },
+      ],
+    },
     /* ══ ★★ 2026-10-24 超極煌祭の追加2体・MagiChemLex の WP 交換のミキ（どれもセーラー服）══ */
     /* ── ヒサコ（水）：茶色の髪・右に三つ編みのサイドポニー・琥珀の瞳・白い長袖のセーラー服（深緑のえり・白い線）・
           青緑のスカーフ・前を開けたシャツから黒いレース・深緑のスカート・白いハイソックス・青い本 ── */
@@ -1418,6 +1516,10 @@
     /* ★★ 2026-10-30 超極彩祭（ハル＝白いはおりの袖・チカ＝長いドレス） */
     haru:    { hair: "bob", top: "tank", arm: "C", bottom: "shorts", prop: "orb", acc: "pin" },
     chika:   { hair: "long", len: 25, top: "blouse", arm: "A", bottom: "dress", prop: "orb" },
+    /* ★★ 2026-11-03 超極彩祭の追加3体（チフル＝黒いジャケットとショートパンツ・ミント＝長袖のセーラー服・プリカ＝ブレザーとおだんご） */
+    chifuru: { hair: "long", len: 25, top: "jacket", arm: "A", bottom: "shorts", prop: "candy" },
+    mint:    { hair: "long", len: 25, top: "uniform", arm: "A", bottom: "skirt", prop: "orb", legs: "Tt" },
+    purika:  { hair: "long", len: 22, top: "uniform", arm: "A", bottom: "skirt", prop: "orb", acc: "topbun", legs: "Tt" },
     generic: { hair: "long", len: 23, top: "tank", arm: "S", bottom: "skirt" },
   };
   function sideBuf(pal0, sd, ph, legY0) {
@@ -1659,6 +1761,8 @@
     hisako: [0.27, 0.14, 0.40], alice: [0.26, 0.21, 0.38], miki: [0.29, 0.19, 0.38],
     /* ★★ 2026-10-30 超極彩祭 */
     haru: [0.30, 0.18, 0.36], chika: [0.32, 0.19, 0.36],
+    /* ★★ 2026-11-03 超極彩祭の追加3体 */
+    chifuru: [0.27, 0.05, 0.47], mint: [0.26, 0.20, 0.40], purika: [0.28, 0.18, 0.39],
   };
   const portraitCache = {};
   function portrait(id, file, size, cb) {

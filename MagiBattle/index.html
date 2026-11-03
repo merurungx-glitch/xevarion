@@ -8,14 +8,14 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#eef4ff">
 <title>MagiBattle — 後ろから撃つ部隊シューティング</title>
-<meta name="description" content="超極祭系の UR 12体で戦う、遮蔽物シューティングとアリーナ。後ろから見たドット絵の5人で照準を合わせて撃ち、バーストⅠ→Ⅱ→Ⅲをつないで FULL BURST。">
+<meta name="description" content="超極祭系の UR 15体で戦う、遮蔽物シューティングとアリーナ。後ろから見たドット絵の5人で照準を合わせて撃ち、バーストⅠ→Ⅱ→Ⅲをつないで FULL BURST。">
 <link rel="icon" href="../thumbs/MagiBattle.jpg?v=4" type="image/jpeg">
 <link rel="apple-touch-icon" href="img/apple-touch-icon.png">
 <link rel="manifest" href="manifest.webmanifest">
 <!-- ══════════════════════════════════════════════════════════════
      ★★ 2026-10-30 MagiBattle 3.0 — 1から作り直し（ご指定）
      ・内容は部隊シューティングとアリーナ。スキルのカット演出はキャラの画像（MagiBurst/img/ss/）、戦闘はドット絵（後ろ姿）。
-     ・使えるのは超極華祭・超極煌祭・超極彩祭の UR 12体だけ（持っているキャラ）。性能は ../magibattle-stats.js（MBStats v3）が持ち主。
+     ・使えるのは超極華祭・超極煌祭・超極彩祭の UR 15体だけ（持っているキャラ）。性能は ../magibattle-stats.js（MBStats v3）が持ち主。
      ・ファイル：js/mb3-data（敵・ステージ・ストーリー）・mb3-sprite（ドット絵）・mb3-engine（戦闘）・mb3-render（戦闘の画面と効果音）・
        mb3-bgm（オリジナル BGM）・mb3-save（セーブ・育成）・mb3-net（アリーナ・迎撃戦の記録＝Firebase）・mb3-ui／mb3-ui2（画面）・
        mb3-guide（使い方のアニメ）・mb3-main（はじまり）。オフラインは sw.js。
@@ -29,9 +29,9 @@ if ("serviceWorker" in navigator) {
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@600;700;800;900&family=Noto+Sans+JP:wght@400;500;700;900&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/mb3.css?v=4">
+<link rel="stylesheet" href="css/mb3.css?v=6">
 <script src="../xeva-safebottom.js?v=12"></script>
-<script src="../xeva-splash.js?v=19" data-app="MagiBattle" data-logo="../thumbs/MagiBattle.jpg?v=4"></script>
+<script src="../xeva-splash.js?v=21" data-app="MagiBattle" data-logo="../thumbs/MagiBattle.jpg?v=4"></script>
 </head>
 <body>
 <div id="app">
@@ -57,28 +57,28 @@ if ("serviceWorker" in navigator) {
   <div class="m3-toast" id="toast"></div>
 </div>
 
-<script type="module" src="../xevarion-fb.js?v=36"></script>
+<script type="module" src="../xevarion-fb.js?v=37"></script>
 <script type="module" src="../xeva-cloud.js?v=49"></script>
 <!-- キャラの所持・凸（magiburst_v1）も同期する（XEVARION と共通） -->
 <script type="module" src="../MagiBurst/magiburst-cloud.js?v=28"></script>
-<script src="../xeva.js?v=85"></script>
+<script src="../xeva.js?v=86"></script>
 <script src="../xeva-loading.js?v=19" defer></script>
 <script src="../xeva-presence.js?v=9" defer></script>
 <!-- ドット絵の設計図（MagiAbyss と同じ CHAR_ART） -->
-<script src="../MagiAbyss/js/ma-pixel.js?v=10"></script>
-<script src="../magibattle-stats.js?v=19"></script>
-<script src="js/mb3-data.js?v=4"></script>
+<script src="../MagiAbyss/js/ma-pixel.js?v=11"></script>
+<script src="../magibattle-stats.js?v=20"></script>
+<script src="js/mb3-data.js?v=5"></script>
 <script src="js/mb3-sprite.js?v=3"></script>
-<script src="js/mb3-engine.js?v=3"></script>
-<script src="js/mb3-render.js?v=4"></script>
+<script src="js/mb3-engine.js?v=5"></script>
+<script src="js/mb3-render.js?v=6"></script>
 <script src="js/mb3-bgm.js?v=2"></script>
 <script src="js/mb3-save.js?v=4"></script>
 <script type="module" src="js/mb3-net.js?v=2"></script>
-<script src="js/mb3-ui.js?v=4"></script>
-<script src="js/mb3-ui2.js?v=4"></script>
-<script src="../xeva-tour.js?v=2"></script>
-<script src="js/mb3-guide.js?v=2"></script>
-<script src="js/mb3-main.js?v=4"></script>
+<script src="js/mb3-ui.js?v=6"></script>
+<script src="js/mb3-ui2.js?v=5"></script>
+<script src="../xeva-tour.js?v=3"></script>
+<script src="js/mb3-guide.js?v=4"></script>
+<script src="js/mb3-main.js?v=5"></script>
 <script src="../xeva-back.js?v=9" data-mode="hook"></script>
 </body>
 </html>

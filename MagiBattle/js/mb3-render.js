@@ -22,7 +22,7 @@
   const MB3 = (window.MB3 = window.MB3 || {});
   const ENG = () => MB3.Engine, SPR = () => MB3.Spr, ST = () => window.MBStats;
   const IMG = "../img/", SSD = "../MagiBurst/img/ss/";
-  const FILE = { haru: "Haru", chika: "Chika", hisako: "Hisako", alice: "Alice", kohaku: "Kohaku", suzu: "Suzu", shouko: "Shouko", yuna: "Yuna", chie: "Chie", aina: "Aina", ichika: "Ichika", nonoka: "Nonoka" };
+  const FILE = { haru: "Haru", chika: "Chika", hisako: "Hisako", alice: "Alice", kohaku: "Kohaku", suzu: "Suzu", shouko: "Shouko", yuna: "Yuna", chie: "Chie", aina: "Aina", ichika: "Ichika", nonoka: "Nonoka", chifuru: "Chifuru", mint: "Mint", purika: "Purika" };
   MB3.FILE = FILE;
   const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
   const fmt = (n) => Math.round(n).toLocaleString("ja-JP");
@@ -30,7 +30,7 @@
   const R2 = Math.random;
   const rgb = (h) => { const s = String(h).replace("#", ""); const n = parseInt(s.length === 3 ? s.split("").map((x) => x + x).join("") : s, 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; };
   /* キャラごとの色（弾道・バーストの演出） */
-  const CCOL = { haru: "#4fb8ff", chika: "#cfe6ff", hisako: "#ff8fc8", alice: "#e8eeff", kohaku: "#ff4d6d", suzu: "#ffd23a", shouko: "#4fe0a0", yuna: "#b06bff", chie: "#ff7a3c", aina: "#ff7ad9", ichika: "#33d6ff", nonoka: "#fff4d6" };
+  const CCOL = { haru: "#4fb8ff", chika: "#cfe6ff", hisako: "#ff8fc8", alice: "#e8eeff", kohaku: "#ff4d6d", suzu: "#ffd23a", shouko: "#4fe0a0", yuna: "#b06bff", chie: "#ff7a3c", aina: "#ff7ad9", ichika: "#33d6ff", nonoka: "#fff4d6", chifuru: "#6a8cff", mint: "#7dffc4", purika: "#ffd84a" };
 
   /* ══════════ 効果音（WebAudio で作る・ファイルなし）══════════ */
   const AU = (MB3.Audio = (function () {
@@ -174,10 +174,12 @@
       '<div class="b3-eg" id="b3EG" hidden><span id="b3EGt">ENEMY</span><i><b id="b3EGb"></b></i></div>' +
       '<div class="b3-combo" id="b3Combo"><b id="b3ComboN">0</b><small>HIT</small></div>' +
       '<div class="b3-msg" id="b3Msg"></div>' +
+      '<div class="b3-hall" id="b3HAll"><b>全員 隠れています</b><small>Space をはなすと撃ちます</small></div>' +
       '<div class="b3-cut" id="b3Cut"></div>' +
       '<div class="b3-bot"><div class="b3-gauge"><div class="b3-gtxt" id="b3GTxt">BURST</div><div class="b3-gbar"><i id="b3GBar"></i></div><button class="b3-auto" id="b3Auto">AUTO</button><button class="b3-spd" id="b3Spd">×1</button></div>' +
       '<div class="b3-cards" id="b3Cards"></div></div>' +
-      '<div class="b3-pmenu" id="b3PMenu" hidden><div class="b3-pbox"><b>一時停止</b><button id="b3Resume" class="b3-pbtn pri">再開する</button><button id="b3Sound" class="b3-pbtn">効果音：ON</button><button id="b3Bgm" class="b3-pbtn">BGM：ON</button><button id="b3Quit" class="b3-pbtn dim">撤退する</button></div></div>';
+      '<div class="b3-pmenu" id="b3PMenu" hidden><div class="b3-pbox"><b>一時停止</b><button id="b3Resume" class="b3-pbtn pri">再開する</button><button id="b3Sound" class="b3-pbtn">効果音：ON</button><button id="b3Bgm" class="b3-pbtn">BGM：ON</button><button id="b3LogB" class="b3-pbtn">バトルログ</button><button id="b3Quit" class="b3-pbtn dim">撤退する</button></div></div>' +
+      '<div class="b3-logov" id="b3LogOv" hidden><div class="b3-logbox"><div class="b3-logh"><b>バトルログ</b><button id="b3LogX" aria-label="閉じる">✕</button></div><div class="b3-logl" id="b3LogL"></div></div></div>';
     const $ = (s) => root.querySelector(s);
     return { root, $, cards: $("#b3Cards"), cut: $("#b3Cut"), msg: $("#b3Msg"), combo: $("#b3Combo"), comboN: $("#b3ComboN") };
   }
@@ -186,10 +188,66 @@
       const K = u.K, Bu = ST().BURST[K.burst];
       const mx = u.awk >= (ST().MAX_AWK || 4);
       return '<button class="b3-card' + (mx ? " mx" : "") + '" data-i="' + u.i + '" style="--bc:' + Bu.c + ";--cc:" + (CCOL[u.id] || "#fff") + '"><span class="b3-ci"><img src="' + SSD + FILE[u.id] + 'SS.webp" alt="" onerror="this.src=\'' + IMG + "t_" + FILE[u.id] + '.webp\'"></span>' +
-        '<span class="b3-cb">' + Bu.nm + '</span><span class="b3-cw">' + K.wp + '</span><span class="b3-cn">' + esc(ST().charNm(u.id)) + '</span><span class="b3-key">' + (u.i + 1) + '</span><span class="b3-ccd"></span><span class="b3-cready">BURST</span>' +
+        '<span class="b3-cb">' + Bu.nm + '</span><span class="b3-cw">' + K.wp + '</span><span class="b3-cn">' + esc(ST().charNm(u.id)) + '</span><span class="b3-key">' + (u.i + 1) + '</span><span class="b3-ccd"></span><span class="b3-cready">BURST</span><span class="b3-fx"></span>' +
         '<span class="b3-bars"><i class="hp"><b></b></i><i class="cv"><b></b></i><i class="am"><b></b></i></span></button>';
     }).join("");
   }
+  /* ── ★★ 2026-11-02 スキル効果のマーク（カードの左上・バーストの札の下）。効いている間だけ・残り秒の短いものは点滅 ── */
+  const FX = [
+    ["atk", "攻", "攻撃力アップ", "#ff5a6e"], ["critDmg", "会", "会心ダメージアップ", "#ffb21e"], ["crit", "会", "会心率アップ", "#ffb21e"],
+    ["dr", "守", "被ダメージ軽減", "#3d8bff"], ["regen", "癒", "持続回復", "#22c06b"], ["core", "核", "コアへのダメージアップ", "#ff5ad0"],
+    ["chg", "溜", "チャージ速度アップ", "#18b7d6"], ["chgFast", "溜", "チャージ速度 ×2", "#18b7d6"], ["chgDmg", "溜", "チャージダメージアップ", "#18b7d6"],
+    ["rate2", "速", "連射速度 ×2", "#ff8a1e"], ["pel2", "散", "散弾数 ×2", "#ff8a1e"], ["mgMax", "速", "連射が最大", "#ff8a1e"],
+  ];
+  const FX_NM = {}; FX.forEach((f) => (FX_NM[f[0]] = f));
+  function fxList(u, S) {
+    const seen = {}, out = [];
+    const add = (sym, nm, c, t, n) => { if (seen[sym + c]) { seen[sym + c].t = Math.max(seen[sym + c].t, t); return; } const o = { sym, nm, c, t, n: n || 0 }; seen[sym + c] = o; out.push(o); };
+    (u.buffs || []).forEach((b) => { const f = FX_NM[b.k]; if (f && b.t > 0) add(f[1], f[2], f[3], b.t); });
+    Object.keys(u.stk || {}).forEach((k) => { const s = u.stk[k]; if (s && s.n > 0 && s.t > 0) add("攻", "攻撃力アップ（重ねがけ）", "#ff5a6e", s.t, s.n); });
+    if (u.shield > 0) add("盾", "シールド", "#13a3a3", 99);
+    if (u.taunt > 0) add("挑", "挑発", "#d6a400", u.taunt);
+    if (S.fb > 0) add("FB", "フルバースト", "#7b5cff", S.fb);
+    return out;
+  }
+  function fxHTML(u, S) {
+    const l = fxList(u, S); if (!l.length) return "";
+    const shown = l.slice(0, 4);
+    return shown.map((f) => '<i class="' + (f.t < 2 ? "end" : "") + '" style="--fc:' + f.c + '" title="' + f.nm + '">' + f.sym + (f.n > 1 ? "<sub>" + f.n + "</sub>" : "") + "</i>").join("") + (l.length > 4 ? '<i class="more">+' + (l.length - 4) + "</i>" : "");
+  }
+  /* ── ★★ 2026-11-02 バトルログ（ご指定「バトルログを見られるように」）。drainEvents で出来事を文にして B.log へ ── */
+  const TELE = { sweepTele: "なぎ払い", quakeTele: "地ひびき", rainTele: "ミサイルの雨", beamTele: "レーザー", dashTele: "突進", empTele: "EMP", salvoTele: "一斉射撃" };
+  function unitNm(side, i) { const S = B.side[side]; const u = S && S.units[i]; return u ? (side === 1 ? "相手の" : "") + ST().charNm(u.id) : "?"; }
+  function addLog(s, c) { if (!B.log) B.log = []; B.log.push({ t: B.t, s, c: c || "" }); if (B.log.length > 600) B.log.splice(0, B.log.length - 600); }
+  function logEv(ev) {
+    switch (ev.k) {
+      case "start": addLog("バトル開始", "sys"); break;
+      case "wave": addLog("WAVE " + ev.n + " / " + ev.of + (ev.boss ? "（ボス）" : ""), "sys"); break;
+      case "boss": addLog("ボス出現：" + esc(ev.nm), "foe"); break;
+      case "cut": addLog("<b>" + esc(unitNm(ev.side, ev.i)) + "</b> のバースト " + ["", "Ⅰ", "Ⅱ", "Ⅲ"][ev.stage] + "「" + esc(ev.nm) + "」", ev.side ? "foe" : "sk"); break;
+      case "fb": addLog((ev.side ? "相手の" : "") + "フルバースト！（10秒・与ダメージ ×1.5）", ev.side ? "foe" : "fb"); break;
+      case "fbEnd": addLog((ev.side ? "相手の" : "") + "フルバースト終了" + (ev.dmg ? "：この間のダメージ " + fmt(ev.dmg) : ""), ev.side ? "foe" : "fb"); break;
+      case "burstLost": if (!ev.side) addLog("バーストの時間切れ（ゲージがもどった）", "bad"); break;
+      case "heal": if (ev.v >= 1) addLog(esc(unitNm(ev.side, ev.i)) + " が回復 +" + fmt(Math.round(ev.v)), ev.side ? "foe" : "heal"); break;
+      case "kill": if (ev.boss || ev.elite) addLog((ev.boss ? "ボス" : "強敵") + "「" + esc((ev.e && ev.e.nm) || "敵") + "」を撃破" + (ev.by >= 0 ? "（" + esc(unitNm(0, ev.by)) + "）" : ""), "good"); break;
+      case "down": addLog("<b>" + esc(unitNm(ev.side, ev.i)) + "</b> が戦闘不能", ev.side ? "good" : "bad"); break;
+      case "coverBreak": addLog(esc(unitNm(ev.side, ev.i)) + " の遮蔽物が壊れた", ev.side ? "good" : "bad"); break;
+      case "shieldBreak": addLog("敵の盾を破壊", "good"); break;
+      case "shieldUp": addLog("ボスが盾を張った", "foe"); break;
+      case "break": addLog(ev.ok ? "ボスの大技をブレイク！" : "ブレイク失敗：全員に大ダメージ", ev.ok ? "good" : "bad"); break;
+      case "enrage": addLog("ボスが激昂（HP 半分）", "foe"); break;
+      case "mark": addLog("印が炸裂（追加ダメージ）", "sk"); break;
+      case "emp": addLog("EMP：照準が乱れる", "bad"); break;
+      case "end": addLog("バトル終了：" + ({ win: "勝利", lose: "敗北", retreat: "撤退", end: "時間終了" }[ev.r] || ev.r) + "（撃破 " + B.kills + "）", "sys"); break;
+      default: if (TELE[ev.k]) addLog("予兆：" + TELE[ev.k], "foe");
+    }
+  }
+  function logHTML(Bx) {
+    const L = (Bx && Bx.log) || [];
+    if (!L.length) return '<div class="b3-lognone">まだ記録がありません</div>';
+    return L.slice().reverse().map((x) => '<div class="b3-lr ' + x.c + '"><em>' + Math.floor(x.t / 60) + ":" + String(Math.floor(x.t % 60)).padStart(2, "0") + "</em><span>" + x.s + "</span></div>").join("");
+  }
+  R.logHTML = logHTML;
   function paintHud() {
     const S = B.side[0];
     const t = Math.max(0, B.time - B.t), m = Math.floor(t / 60), s = Math.floor(t % 60);
@@ -210,6 +268,9 @@
       bars[0].style.width = (u.hp / u.hpMax * 100) + "%";
       bars[1].style.width = (u.cover.hp / u.cover.max * 100) + "%";
       bars[2].style.width = (u.reload > 0 ? (1 - u.reload / u.rT) * 100 : u.ammo / u.mag * 100) + "%";
+      /* ★★ 2026-11-02 ご指定「スキルの効果がついていることを示すマーク」 */
+      const fx = u.dead ? "" : fxHTML(u, S);
+      if (el._fx !== fx) { el._fx = fx; el.querySelector(".b3-fx").innerHTML = fx; }
       const cd = el.querySelector(".b3-ccd");
       if (u.bcd > 0 && !u.dead) { cd.style.display = ""; cd.textContent = Math.ceil(u.bcd); cd.style.setProperty("--p", (u.bcd / u.K.cd * 100) + "%"); } else cd.style.display = "none";
     });
@@ -321,27 +382,39 @@
       const dg = /^(Digit|Numpad)([1-5])$/.exec(c);
       if (dg) { e.preventDefault(); tapCard(+dg[2] - 1); return; }
       if (c === "KeyB" || c === "Enter") { e.preventDefault(); const cs = S.stage > 0 ? ENG().burstCands(S) : []; if (cs[0]) ENG().tapBurst(B, cs[0].i); return; }
-      if (c === "Space" || c === "KeyJ") { e.preventDefault(); if (e.repeat || B.auto) return; keyFire = true; B.firing = true; return; }
+      if (c === "Space") { e.preventDefault(); if (!e.repeat) setHideAll(true); return; }   /* ★★ 2026-11-02 Space＝全員で隠れる（撃つのは J・マウス） */
+      if (c === "KeyJ") { e.preventDefault(); if (e.repeat || B.auto) return; keyFire = true; B.firing = true; return; }
       if (KEYAIM[c]) { e.preventDefault(); keys[c] = 1; return; }
       if (c === "KeyQ" || c === "KeyE") { e.preventDefault(); cycle(c === "KeyE" ? 1 : -1); return; }
     };
     ku = (e) => {
       const c = e.code;
       if (KEYAIM[c]) delete keys[c];
-      if ((c === "Space" || c === "KeyJ") && keyFire) { keyFire = false; if (!pointer.down && B) B.firing = false; }
+      if (c === "Space") setHideAll(false);
+      if (c === "KeyJ" && keyFire) { keyFire = false; if (!pointer.down && B) B.firing = false; }
     };
-    blur = () => { keys = {}; if (keyFire) { keyFire = false; if (B && !pointer.down) B.firing = false; } };
+    blur = () => { keys = {}; setHideAll(false); if (keyFire) { keyFire = false; if (B && !pointer.down) B.firing = false; } };
     window.addEventListener("keydown", kd); window.addEventListener("keyup", ku); window.addEventListener("blur", blur);
     hud.$("#b3Auto").onclick = () => setAuto(!B.auto);
     hud.$("#b3Spd").onclick = () => setSpeed(B.speed === 2 ? 1 : 2);
     hud.$("#b3Pause").onclick = () => setPause(true);
     hud.$("#b3Resume").onclick = () => setPause(false);
     hud.$("#b3Sound").onclick = () => { AU.set(!AU.on); paintPause(); saveSet("sfx", AU.on); };
+    hud.$("#b3LogB").onclick = () => { hud.$("#b3LogL").innerHTML = logHTML(B); hud.$("#b3LogOv").hidden = false; };
+    hud.$("#b3LogX").onclick = () => { hud.$("#b3LogOv").hidden = true; };
+    hud.$("#b3LogOv").onclick = (e) => { if (e.target.id === "b3LogOv") hud.$("#b3LogOv").hidden = true; };
     hud.$("#b3Bgm").onclick = () => { const v = !(MB3.BGM && MB3.BGM.on); try { MB3.BGM.set(v); } catch (e) {} saveSet("bgm", v); paintPause(); };
     hud.$("#b3Quit").onclick = () => { setPause(false); if (B && !B.over) { B.over = true; B.result = "retreat"; B.ev.push({ k: "end", r: "retreat" }); } };
   }
   function paintPause() { hud.$("#b3Sound").textContent = "効果音：" + (AU.on ? "ON" : "OFF"); hud.$("#b3Bgm").textContent = "BGM：" + (MB3.BGM && MB3.BGM.on ? "ON" : "OFF"); }
-  function setPause(p) { paused = p; hud.$("#b3PMenu").hidden = !p; paintPause(); lastT = performance.now(); if (B) B.firing = false; }
+  function setPause(p) { paused = p; hud.$("#b3PMenu").hidden = !p; if (!p) hud.$("#b3LogOv").hidden = true; paintPause(); lastT = performance.now(); if (B) B.firing = false; setHideAll(false); }
+  function setHideAll(v) {
+    if (!B || !hud) return;
+    v = !!v && !B.over && B.mode !== "arena";
+    if (!!B.hideAll === v) return;
+    B.hideAll = v; hud.root.classList.toggle("hall", v);
+    addLog(v ? "全員 遮蔽物に隠れる（Space）" : "隠れるのをやめて撃つ", "sys");
+  }
 
   /* ══════════ 粒・光・輪（演出の部品）══════════ */
   function part(o) { if (P.length > 950) P.splice(0, P.length - 950); P.push(o); }
@@ -433,6 +506,19 @@
       case "teamAtkReload":   /* イチカ：波と泡 */
         waveT = 0.8; emit(1.2, 36, () => part({ k: "bubble", x: R2() * W, y: geo.gy0 + 10, vx: (R2() - 0.5) * 20, vy: -120 - R2() * 120, t: 1.0, d: 1.0, c: "#9ff0ff", s: 3 + R2() * 6, g: -20 }));
         tint = { c: "#33d6ff", a: 0.18, t: 0.5, d: 0.5 }; break;
+      /* ★★ 2026-11-03 超極彩祭の追加3体 */
+      case "teamAtkCdr":   /* チフル：青いハートの雨 */
+        emit(1.3, 46, () => part({ k: "petal", x: R2() * W, y: -10, vx: (R2() - 0.5) * 60, vy: 260 + R2() * 220, t: 1.0, d: 1.0, c: R2() < 0.7 ? "#6a8cff" : "#ffd0e0", s: 4 + R2() * 4, rot: R2() * 6, vr: (R2() - 0.5) * 8, g: 0 }));
+        side === 0 && B.side[0].units.forEach((x) => { if (x.dead) return; const p = unitPos(x); later(0.1, () => { ring(p.x, p.y - 40, 4, 46, 0.45, "rgba(120,150,255,.9)", 3); addFlare(p.x, p.y - 40, 50, "#8fa8ff", 0.3); }); });
+        tint = { c: "#5a7cff", a: 0.18, t: 0.6, d: 0.6 }; break;
+      case "teamHealAtk":   /* ミント：白い花と朝の光 */
+        petals(W / 2, H * 0.22, 44 * sc, ["#ffffff", "#e8fff4", "#bff0d8"], W * 0.6, "flower");
+        side === 0 && B.side[0].units.forEach((x) => { if (x.dead) return; const p = unitPos(x); for (let k = 0; k < 3; k++) later(k * 0.16, () => part({ k: "plus", x: p.x + (R2() - 0.5) * 30, y: p.y - 40, vx: 0, vy: -60, t: 0.9, d: 0.9, c: "#7dffc4", s: 9, g: 0 })); });
+        flashT = Math.max(flashT, 0.1); flashC = "230,255,240"; tint = { c: "#9ff0c8", a: 0.16, t: 0.6, d: 0.6 }; break;
+      case "critSnipe":   /* プリカ：金の星の光線 */
+        beams.push({ x0: sx, y0: sy, x1: tp.x, y1: tp.y, w: 26 * sc, t: 0.55, d: 0.55, c: "#ffe08a" });
+        later(0.02, () => { addFlare(tp.x, tp.y, 120 * sc, "#ffd84a", 0.45); for (let k = 0; k < 3; k++) ring(tp.x, tp.y, 6, 80 + k * 36, 0.45 + k * 0.1, "rgba(255,226,120,.95)", 3); sparks(tp.x, tp.y, 28, "#fff2b0", 340, 2); });
+        flashT = Math.max(flashT, 0.16); flashC = "255,236,170"; if (side === 0) B.hitstop = Math.max(B.hitstop, 0.14); break;
       case "cdrHeal":   /* ノノカ：白い花と回復 */
         petals(W / 2, H * 0.25, 40 * sc, ["#ffffff", "#fff4d6", "#ffe0ec"], W * 0.6, "flower");
         side === 0 && B.side[0].units.forEach((x) => { if (x.dead) return; const p = unitPos(x); for (let k = 0; k < 3; k++) later(k * 0.18, () => part({ k: "plus", x: p.x + (R2() - 0.5) * 30, y: p.y - 40, vx: 0, vy: -60, t: 0.9, d: 0.9, c: "#7dffc4", s: 9, g: 0 })); });
@@ -446,6 +532,7 @@
     const evs = B.ev; B.ev = [];
     const S0 = B.side[0];
     evs.forEach((ev) => {
+      try { logEv(ev); } catch (e) {}
       switch (ev.k) {
         case "shot": {
           const u = B.side[ev.side] && B.side[ev.side].units[ev.i]; if (!u) break;

@@ -73,7 +73,7 @@
     return [
       {
         id: "mb-intro", g: "はじめに", t: "うしろから撃つ<span>部隊シューティング</span>",
-        lead: "5人の部隊で、遮蔽物のうしろから奥の敵を撃ちます。使えるのは超極祭系の UR 12体のうち、持っているキャラ。ロビーの「出撃」からキャンペーンへ。",
+        lead: "5人の部隊で、遮蔽物のうしろから奥の敵を撃ちます。使えるのは超極祭系の UR 15体のうち、持っているキャラ。ロビーの「出撃」からキャンペーンへ。",
         pts: ["敵は奥から迫ってくる機械の侵略者〈ホロウ〉", "<b>1人を操作</b>、ほかの4人は自動で戦う", "ロビー：<b>出撃</b>・アリーナ・迎撃戦・タワー・前哨基地"],
         where: ["ロビー", "出撃"], dur: 7200,
         html: field('<div class="m mg-en" data-a="down" id="e1" style="' + at(20, 34) + '"></div><div class="m mg-en" data-a="down" id="e2" style="' + at(46, 30) + '"></div><div class="m mg-en" data-a="down" id="e3" style="' + at(70, 36) + '"></div>') + covers() + cards() +
@@ -135,13 +135,13 @@
       },
       {
         id: "mb-grow", g: "育成", t: "育てる・<span>まとめて強化</span>",
-        lead: "部隊の画面からキャラを選ぶと、レベル・スキル・装備・キューブ・好感度を育てられます。素材は「できるだけ」「まとめて」使えます。完凸（凸4）のキャラは金色に光ります。",
+        lead: "部隊の画面からキャラを選ぶと、レベル・スキル・装備・キューブ・好感度を育てられます。レベルは上げる数をえらんで（−10・＋・＋10・最大）まとめて上げられます。完凸（凸4）のキャラは金色に光ります。",
         pts: ["<b>並び替え・絞り込み</b>はボタンを押して下から選ぶ", "レベルの上限は<b>凸</b>で 80→120→160→200（ガチャと共通）", "<b>アイテム</b>の画面：ギフトをまとめてわたす・おまかせ強化"],
         where: ["部隊", "キャラ", "アイテム"], dur: 8200,
         html: '<div class="m on fill" style="background:linear-gradient(180deg,#eef4ff,#fdf0ff)"></div>' +
           '<div class="m mg-panel" data-a="up" id="gp" style="' + at(6, 16, 88) + ';display:flex;gap:calc(var(--u)*2)">' + [["Kohaku", 1], ["Haru", 0], ["Yuna", 0]].map((c, i) => '<span class="' + (c[1] ? "mg-gold" : "") + '" style="flex:1;aspect-ratio:3/4;border-radius:calc(var(--u)*2.4);overflow:hidden;box-shadow:0 0 0 calc(var(--u)*.5) #e3e9f7"><img src="' + TH(c[0]) + '" alt="" style="width:100%;height:100%;object-fit:cover"></span>').join("") + "</div>" +
           '<div class="m mg-panel" data-a="up" id="gl" style="' + at(6, 48, 88) + '"><div class="mg-h">Lv.<b class="glv">118</b> / 160</div><div class="mg-bar"><b id="glb" style="width:40%"></b></div><div class="mg-s" style="margin-top:calc(var(--u)*1.4)">スキル Lv.<b class="gsk">4</b> ・ 装備 +<b class="gge">2</b></div></div>' +
-          '<div class="m mg-btn" data-a="up" id="gb" style="' + at(12, 74, 76, 7) + '">できるだけ上げる</div>',
+          '<div class="m mg-btn" data-a="up" id="gb" style="' + at(12, 74, 76, 7) + '">Lv を 24 上げる</div>',
         tl: [[0, "show", "#gp"], [300, "pt", 0], [900, "show", "#gl"], [1400, "show", "#gb"], [1900, "pt", 1], [2400, "tap", 50, 77], [2700, "count", ".glv", 118, 142, 1200], [2700, "bar", "#glb", 85], [3600, "count", ".gsk", 4, 7, 700], [4100, "count", ".gge", 2, 5, 600], [4700, "pt", 2]],
       },
       {
@@ -176,7 +176,7 @@
       {
         id: "mb-ctrl", g: "便利な操作", t: "AUTO・速さ・<span>キーボード</span>",
         lead: "AUTO にすると全員が自動で戦い、オン・オフは次のバトルにも引きつぎます。×2 で速く。ロビーやキャラ詳細では「隠す」（PC は Space・H）で文字を消して絵だけを見られます。",
-        pts: ["<b>T</b>＝AUTO・<b>X</b>＝速さ・<b>1〜5</b>＝キャラ／バースト・<b>Space</b>＝撃つ", "BGM と効果音の ON／OFF・音量は<b>設定</b>で", "見たストーリーは<b>ストーリー</b>の画面から見返せる"],
+        pts: ["<b>T</b>＝AUTO・<b>X</b>＝速さ・<b>1〜5</b>＝キャラ／バースト・<b>J</b>＝撃つ・<b>Space</b>（押したまま）＝全員で隠れる", "BGM と効果音の ON／OFF・音量は<b>設定</b>で", "見たストーリーは<b>ストーリー</b>の画面から見返せる"],
         where: ["バトル", "設定"], dur: 7000,
         html: field() + covers() + gauge() + cards() +
           '<div class="m mg-btn" data-a="pop" id="ca" style="' + at(60, 70.5, 18, 5) + ';background:#fff;color:#4a5590">AUTO</div><div class="m mg-btn" data-a="pop" id="cs" style="' + at(80, 70.5, 14, 5) + ';background:#fff;color:#4a5590">×1</div>',

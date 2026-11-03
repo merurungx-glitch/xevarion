@@ -110,9 +110,10 @@ button:focus-visible,a:focus-visible{outline:3px solid rgba(18,181,255,.55);outl
 .tgl.on i{left:26px}
 .stp{display:flex;align-items:center;gap:5px;flex-wrap:wrap;margin:6px 0}
 .stp button{min-width:40px;height:36px;border:none;border-radius:10px;background:#eef3ff;color:var(--ink);font-weight:900;font-size:13px}
-.stp button.mx{background:#fff0f7;color:var(--pink)}
+.stp button.smax{background:#fff0f7;color:var(--pink)}
 .stp b{min-width:48px;text-align:center;font-size:20px;font-weight:900}
 .stp small{color:var(--sub);font-weight:800;font-size:12px}
+.lvsel{margin-top:8px;padding:10px 12px;border-radius:14px;background:#f6f8ff}.lvsel .lvrow{margin-top:4px}.lvsel b{color:var(--ink)}  /* ★★ 2026-11-02 上げる数をえらぶ */
 
 /* ── 下のナビ（★★ 2026-10-31 部隊・編成・ロビー（まん中）・アリーナ・ショップ）── */
 .m3-nav{position:absolute;left:0;right:0;bottom:-240px;z-index:30;display:flex;justify-content:space-around;align-items:flex-end;padding:6px 6px calc(8px + var(--safe-b) + 240px);
@@ -226,6 +227,8 @@ button:focus-visible,a:focus-visible{outline:3px solid rgba(18,181,255,.55);outl
 #app.hideui .m3-tb,#app.hideui .m3-nav,#app.hideui .lb-side,#app.hideui .lb-right,#app.hideui .lb-dock,#app.hideui .lb-say,#app.hideui .ud-body,#app.hideui .ud-name,#app.hideui .ud-pow,#app.hideui .ud-hide{opacity:0;pointer-events:none;transition:opacity .25s}
 #app.hideui .lb-hidehint{display:block;position:absolute;left:50%;bottom:calc(18px + var(--safe-b));transform:translateX(-50%);z-index:5;padding:6px 14px;border-radius:99px;background:rgba(30,37,71,.55);color:#fff;font-size:12px;font-weight:800;animation:blink 2s ease-in-out infinite}
 #app.hideui .ud .scr,#app.hideui .scr.ud{overflow:hidden}
+/* ★★ 2026-11-02 ご指定「スペースキーで全体ハイドができない」：キャラ詳細はタブ・強化の板などが .ud-body の外（.scr の直下）にあって残っていた → 絵（.ud-hero）以外をすべて隠す */
+#app.hideui .scr.ud>:not(.ud-hero),#app.hideui .ud .scr>:not(.ud-hero){opacity:0;pointer-events:none;transition:opacity .25s}
 .m3-tb,.m3-nav,.lb-side,.lb-right,.lb-dock{transition:opacity .25s}
 
 /* ── 部隊（一覧・並び替え・絞り込み）── */
@@ -334,7 +337,7 @@ button:focus-visible,a:focus-visible{outline:3px solid rgba(18,181,255,.55);outl
 .skc2-v thead th{font-family:"Noto Sans JP",sans-serif;font-size:10.5px;color:var(--sub);font-weight:800}
 .skc2-v tbody th{text-align:left;font-family:"Noto Sans JP",sans-serif;font-weight:800;color:var(--ink);font-size:12px;white-space:normal}
 .skc2-v td.now{color:var(--blue);font-weight:900}
-.skc2-v td.mx{color:#e08a00;font-weight:900}
+.skc2-v td.tmax{color:#e08a00;font-weight:900}
 .skc2-up{display:flex;align-items:center;flex-wrap:wrap;gap:8px;margin-top:9px}
 .skc2-up .cost{margin:0;flex:1}
 .gslots{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
@@ -601,7 +604,8 @@ button:focus-visible,a:focus-visible{outline:3px solid rgba(18,181,255,.55);outl
 .shopi .sin small{font-size:11.5px;color:var(--sub);font-weight:700}
 .shopi .sq{display:flex;align-items:center;gap:4px}
 .shopi .sq button{min-width:32px;height:32px;border:none;border-radius:9px;background:#eef3ff;font-weight:900}
-.shopi .sq button.mx{background:#fff0f7;color:var(--pink);font-size:12px;padding:0 8px}
+/* ★★ 2026-11-02 ご指定「ショップが光りすぎて見づらい」真因＝「最大」ボタンのクラスが .mx（完凸の金の光）とぶつかり、光の帯（::after）が画面いっぱいに出ていた → smax に改名 */
+.shopi .sq button.smax{background:#fff0f7;color:var(--pink);font-size:12px;padding:0 8px}
 .shopi .sq b{min-width:26px;text-align:center;font-size:16px}
 .shopi .buy{min-width:96px}
 .invs{display:flex;flex-direction:column;gap:6px}
@@ -799,6 +803,34 @@ button:focus-visible,a:focus-visible{outline:3px solid rgba(18,181,255,.55);outl
 .b3-card.mx::after{z-index:2}
 /* ★★ 2026-10-31 ご指定「アリーナのバーストはどちらも自動」→ アリーナではカードも AUTO も押せない（AUTO は点けたまま） */
 .arena .b3-cards,.arena .b3-auto{pointer-events:none}
+/* ★★ 2026-11-02 スキル効果のマーク（カードの左上・バーストの札の下に縦に） */
+.b3-fx{position:absolute;left:3px;top:22px;z-index:3;display:flex;flex-direction:column;gap:2px;pointer-events:none}
+.b3-fx i{position:relative;display:grid;place-items:center;min-width:17px;height:15px;padding:0 3px;border-radius:5px;font-style:normal;font-size:9.5px;font-weight:900;line-height:1;color:#fff;background:var(--fc);box-shadow:0 0 0 1.5px #fff,0 1px 3px rgba(0,0,0,.35)}
+.b3-fx i::after{content:"▲";position:absolute;right:-3px;top:-4px;font-size:6.5px;color:var(--fc);text-shadow:0 0 2px #fff,0 0 2px #fff}
+.b3-fx i sub{font-size:7.5px;vertical-align:baseline;margin-left:1px}
+.b3-fx i.end{animation:fxEnd .5s steps(2) infinite}
+.b3-fx i.more{background:rgba(30,37,71,.75)}.b3-fx i.more::after{content:none}
+@keyframes fxEnd{50%{opacity:.35}}
+/* ★★ 2026-11-02 Space で全員が隠れているあいだ */
+.b3-hall{position:absolute;left:50%;top:calc(58px + var(--safe-t));transform:translateX(-50%);z-index:6;display:none;flex-direction:column;align-items:center;padding:6px 16px;border-radius:14px;background:rgba(18,30,70,.78);color:#fff;pointer-events:none;box-shadow:0 4px 14px rgba(0,0,0,.3)}
+.b3-hall b{font-size:13px;font-weight:900;letter-spacing:.06em}.b3-hall small{font-size:10px;opacity:.8}
+.hall .b3-hall{display:flex}
+.hall .b3-cv{filter:saturate(.75) brightness(.92)}
+/* ★★ 2026-11-02 バトルログ */
+.b3-logov{position:absolute;inset:0;z-index:21;background:rgba(30,37,71,.5);display:grid;place-items:center}
+.b3-logbox{width:min(92vw,520px);max-height:min(78vh,620px);display:flex;flex-direction:column;border-radius:22px;background:#fff;box-shadow:var(--sh2);overflow:hidden}
+.b3-logh{display:flex;align-items:center;padding:14px 16px 10px;border-bottom:1px solid #eef1f8}
+.b3-logh b{flex:1;font-size:16px;font-weight:900;color:var(--ink)}
+.b3-logh button{width:34px;height:34px;border:none;border-radius:50%;background:#f0f3fb;font-weight:900;color:var(--ink)}
+.b3-logl{overflow:auto;padding:6px 10px 12px;-webkit-overflow-scrolling:touch}
+.b3-logl.in-sheet{max-height:60vh;padding:0}
+.b3-lr{display:flex;gap:10px;align-items:baseline;padding:6px 6px;border-bottom:1px dashed #eef1f8;font-size:12.5px;color:var(--ink);line-height:1.45}
+.b3-lr em{flex:none;width:34px;font-style:normal;font-family:var(--en);font-size:10.5px;font-weight:800;color:#8a93b3}
+.b3-lr.sys span{color:#6a7396;font-weight:800}
+.b3-lr.sk span{color:#5a3fd8}.b3-lr.fb span{color:#b6327f;font-weight:900}
+.b3-lr.good span{color:#17924f}.b3-lr.bad span{color:#d2334e}.b3-lr.foe span{color:#b2600c}.b3-lr.heal span{color:#1f9e66}
+.b3-lognone{padding:24px;text-align:center;color:#8a93b3;font-size:13px}
+.res-log{margin:2px auto 8px}
 .b3-pmenu{position:absolute;inset:0;z-index:20;background:rgba(30,37,71,.45);display:grid;place-items:center}
 .b3-pbox{display:flex;flex-direction:column;gap:10px;width:min(82vw,320px);padding:20px;border-radius:24px;background:#fff;box-shadow:var(--sh2)}
 .b3-pbox b{font-size:18px;font-weight:900;text-align:center;margin-bottom:4px;color:var(--ink)}
@@ -808,3 +840,178 @@ button:focus-visible,a:focus-visible{outline:3px solid rgba(18,181,255,.55);outl
 @media (min-width:900px) and (min-aspect-ratio:4/3){
   .b3-bot{left:auto;right:12px;width:min(500px,40vw);bottom:10px;padding:8px 10px calc(8px + var(--safe-b));border-radius:20px;background:rgba(255,255,255,.82);box-shadow:0 6px 24px rgba(0,0,0,.25)}
 }
+
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-11-03 ロビー（NIKKE のホーム画面風）＝ mb3-ui.js の UI.S.lobby（.lb2）
+   ・景色（空と街・光）＋画面いっぱいの副官 ＋ 暗いガラスの UI（白い文字・色のふち）
+   ・左上：指揮官 → イベントの帯 → 丸いメニュー ／ 右上：副官・隠す ／ 下：アーク3つ・前哨基地・キャンペーン
+   ══════════════════════════════════════════════════════════════ */
+.lb2{--px:0;--py:0;--glass:rgba(12,18,46,.56);--gline:rgba(255,255,255,.24);overflow:hidden!important}
+.lb2-bg{position:absolute;inset:-3%;z-index:0;transform:translate(calc(var(--px) * -16px),calc(var(--py) * -8px));transition:transform .3s ease-out;
+  background:radial-gradient(55% 38% at 74% 26%,rgba(255,255,255,.5),transparent 62%),
+    linear-gradient(180deg,#25307f 0%,color-mix(in srgb,var(--sq) 62%,#4c5fe0) 32%,color-mix(in srgb,var(--cc) 42%,#ff9cc8) 64%,#ffd9bd 84%,#fff0dc 100%)}
+.lb2-sun{position:absolute;right:14%;top:20%;width:min(42vw,340px);aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,#fff 0,rgba(255,246,220,.92) 20%,rgba(255,214,170,.35) 44%,transparent 70%);opacity:.9}
+.lb2-rays{position:absolute;inset:0;background:repeating-conic-gradient(from 190deg at 78% 24%,rgba(255,255,255,.17) 0 3deg,transparent 3deg 13deg);
+  -webkit-mask:radial-gradient(circle at 78% 24%,#000 0,transparent 62%);mask:radial-gradient(circle at 78% 24%,#000 0,transparent 62%);animation:lb2Ray 9s ease-in-out infinite}
+@keyframes lb2Ray{0%,100%{opacity:.45}50%{opacity:.85}}
+.lb2-city{position:absolute;left:0;right:0;background-repeat:repeat-x;background-position:0 100%;pointer-events:none}
+.lb2-city.far{bottom:8%;height:30%;background-image:var(--sky1);background-size:960px 100%;opacity:.42}
+.lb2-city.near{bottom:0;height:22%;background-image:var(--sky2);background-size:720px 100%;opacity:.72}
+.lb2-dots{position:absolute;inset:0;opacity:.6;background-image:radial-gradient(rgba(255,255,255,.95) 1.2px,transparent 1.9px),radial-gradient(rgba(255,236,200,.85) 1px,transparent 1.7px);
+  background-size:96px 118px,148px 126px;background-position:0 0,44px 62px;animation:lb2Dots 22s linear infinite;-webkit-mask:linear-gradient(180deg,#000,transparent 75%);mask:linear-gradient(180deg,#000,transparent 75%)}
+@keyframes lb2Dots{to{background-position:0 -118px,44px -64px}}
+.lb2-char{position:absolute;inset:0;z-index:1;pointer-events:none;transform:translate(calc(var(--px) * 12px),calc(var(--py) * 5px));transition:transform .3s ease-out}
+.lb2-char img{position:absolute;left:50%;transform:translateX(-50%);transform-origin:50% 100%;pointer-events:auto;cursor:pointer;filter:drop-shadow(0 18px 30px rgba(20,16,70,.35));animation:lb2Breath 6s ease-in-out infinite}
+.lb2-char img.ld{top:calc(46px + var(--safe-t));height:min(118%,1320px);width:auto;max-width:none}
+.lb2-char img.ss{top:calc(110px + var(--safe-t));height:58%;border-radius:22px;box-shadow:0 0 0 4px rgba(255,255,255,.85),0 20px 40px rgba(0,0,0,.3)}
+@keyframes lb2Breath{0%,100%{transform:translateX(-50%) translateY(0) scale(1)}50%{transform:translateX(-50%) translateY(-5px) scale(1.006)}}
+.lb2-ui{position:absolute;inset:0;z-index:3;pointer-events:none;transition:opacity .25s}
+.lb2-ui::before{content:"";position:absolute;left:0;right:0;bottom:0;height:46%;background:linear-gradient(0deg,rgba(8,10,34,.62),rgba(8,10,34,.18) 55%,transparent);pointer-events:none}
+.lb2-left,.lb2-right,.lb2-dock{pointer-events:auto}
+/* 共通のガラス */
+.lb2-prof,.lb2 .lb2-ic i,.lb2-rb,.lb2-ark,.lb2-post,.lb2-say{background:var(--glass);-webkit-backdrop-filter:blur(10px) saturate(1.3);backdrop-filter:blur(10px) saturate(1.3);box-shadow:inset 0 0 0 1px var(--gline),0 6px 18px rgba(6,8,30,.28);color:#fff}
+.lb2 .bd{position:absolute;right:-5px;top:-6px;min-width:19px;height:19px;padding:0 5px;border-radius:10px;background:var(--red);color:#fff;font-family:var(--en);font-size:10px;font-weight:900;font-style:normal;line-height:19px;text-align:center;box-shadow:0 0 0 2px rgba(12,18,46,.85);z-index:2}
+/* 左上：指揮官・イベントの帯・丸いメニュー */
+.lb2-left{position:absolute;left:10px;top:calc(62px + var(--safe-t));width:min(47vw,260px);display:flex;flex-direction:column;gap:8px}
+.lb2-prof{display:flex;align-items:center;gap:9px;padding:6px 12px 6px 6px;border-radius:14px 14px 14px 4px;max-width:100%;align-self:flex-start}
+.lb2-prof .av{width:40px;height:40px;flex:none;border-radius:11px;overflow:hidden;box-shadow:0 0 0 2px #fff,0 0 0 4px #7b5cff}
+.lb2-prof .av img{width:100%;height:100%;object-fit:cover;display:block}
+.lb2-prof .pt{display:flex;flex-direction:column;line-height:1.18;min-width:0}
+.lb2-prof small{font-family:var(--en);font-size:8px;letter-spacing:.26em;font-weight:900;color:#9fd8ff}
+.lb2-prof .pt>b{font-size:14.5px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lb2-prof em{font-style:normal;font-size:10px;font-weight:800;color:rgba(255,255,255,.82);white-space:nowrap}
+.lb2-prof em b{font-size:12px;color:#ffd257}
+.lb2-bn{position:relative;width:100%;aspect-ratio:16/8.6;border-radius:12px;overflow:hidden;background:#141a3a;box-shadow:0 8px 22px rgba(6,8,30,.38),0 0 0 1px rgba(255,255,255,.32)}
+.lb2-slide{position:absolute;inset:0;margin:0;padding:0;border:none;background:#141a3a;text-align:left;opacity:0;transform:translateX(10%);transition:opacity .5s,transform .5s;pointer-events:none}
+.lb2-slide.on{opacity:1;transform:none;pointer-events:auto}
+.lb2-slide img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 25%}
+.lb2-slide::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(10,12,38,.86) 0,rgba(10,12,38,.42) 58%,transparent 85%),linear-gradient(0deg,color-mix(in srgb,var(--c) 60%,transparent),transparent 48%)}
+.lb2-slide .t{position:absolute;left:10px;bottom:9px;z-index:1;display:flex;flex-direction:column;line-height:1.2;color:#fff;max-width:82%}
+.lb2-slide small{font-family:var(--en);font-size:7.5px;letter-spacing:.2em;font-weight:900;color:color-mix(in srgb,var(--c) 55%,#fff)}
+.lb2-slide b{font-size:16px;font-weight:900;text-shadow:0 2px 8px rgba(0,0,0,.5)}
+.lb2-slide em{font-style:normal;font-size:10px;font-weight:800;opacity:.92;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lb2-slide .bd{right:8px;top:8px}
+.lb2-dotsel{position:absolute;right:9px;bottom:9px;z-index:2;display:flex;gap:4px}
+.lb2-dotsel i{width:6px;height:6px;border-radius:99px;background:rgba(255,255,255,.45);cursor:pointer;transition:width .3s,background .3s}
+.lb2-dotsel i.on{width:16px;background:#fff}
+.lb2-ics{display:grid;grid-template-columns:repeat(auto-fill,56px);gap:6px 4px;margin-top:2px}
+.lb2 .lb2-ic{position:relative;width:56px;display:flex;flex-direction:column;align-items:center;gap:3px;border:none;background:none;padding:0;color:#fff}
+.lb2 .lb2-ic i{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:color-mix(in srgb,var(--c) 34%,rgba(12,18,46,.62));box-shadow:inset 0 0 0 2px color-mix(in srgb,var(--c) 80%,#fff),0 4px 12px rgba(6,8,30,.3)}
+.lb2 .lb2-ic i svg{width:21px;height:21px}
+.lb2 .lb2-ic b{font-size:10px;font-weight:900;color:#fff;background:none;padding:0;text-shadow:0 1px 4px rgba(0,0,0,.85),0 0 2px rgba(0,0,0,.6);white-space:nowrap}
+.lb2 .lb2-ic .bd{right:4px;top:-4px}
+.lb2 .lb2-ic:active i{transform:scale(.92)}
+/* 右上：副官・隠す */
+.lb2-right{position:absolute;right:10px;top:calc(62px + var(--safe-t));display:flex;flex-direction:column;gap:8px}
+.lb2-rb{width:52px;height:52px;border:none;border-radius:14px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.lb2-rb svg{width:21px;height:21px}
+.lb2-rb b{font-size:9.5px;font-weight:900}
+/* セリフの帯（副官をタップ） */
+.lb2-say{position:absolute;left:50%;bottom:calc(214px + var(--safe-b));width:min(92vw,520px);padding:11px 16px 12px;border-radius:14px;opacity:0;transform:translate(-50%,8px);transition:opacity .3s,transform .3s;pointer-events:none}
+.lb2-say.on{opacity:1;transform:translate(-50%,0)}
+.lb2-say b{display:inline-flex;align-items:center;gap:7px;font-size:13px;font-weight:900;margin-bottom:3px}
+.lb2-say b i{font-style:normal;font-family:var(--en);font-size:8px;letter-spacing:.14em;padding:2px 7px;border-radius:4px;background:var(--sqc,#7b5cff)}
+.lb2-say span{display:block;font-size:14px;font-weight:700;line-height:1.6}
+/* 下：アーク（アリーナ・迎撃戦・タワー）・前哨基地・キャンペーン */
+.lb2-dock{position:absolute;left:10px;right:10px;bottom:calc(72px + var(--safe-b));display:flex;flex-direction:column;gap:8px}
+.lb2-warn{padding:9px 12px;border-radius:12px;background:rgba(255,240,245,.95);color:#b2214e;font-size:12.5px;font-weight:800}
+.lb2-warn a{color:#e0337f;font-weight:900}
+.lb2-arks{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px}
+.lb2-ark{position:relative;display:flex;align-items:center;gap:7px;min-height:50px;padding:6px 8px;border:none;border-radius:12px;text-align:left}
+.lb2-ark::before{content:"";position:absolute;left:0;top:8px;bottom:8px;width:3px;border-radius:0 3px 3px 0;background:var(--c)}
+.lb2-ark>i{width:30px;height:30px;flex:none;border-radius:9px;background:var(--c);display:grid;place-items:center;box-shadow:0 0 12px color-mix(in srgb,var(--c) 60%,transparent)}
+.lb2-ark>i svg{width:18px;height:18px}
+.lb2-ark span{display:flex;flex-direction:column;line-height:1.2;min-width:0}
+.lb2-ark b{font-size:13px;font-weight:900}
+.lb2-ark small{font-size:9.5px;font-weight:800;opacity:.82;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lb2-row{display:grid;grid-template-columns:minmax(0,.92fr) minmax(0,1.3fr);gap:8px}
+.lb2-post{position:relative;display:flex;align-items:center;gap:8px;padding:8px 10px 15px;border:none;border-radius:14px;text-align:left}
+.lb2-post>i{width:38px;height:38px;flex:none;border-radius:11px;background:linear-gradient(135deg,#22d39a,#0e8f69);display:grid;place-items:center;box-shadow:0 0 14px rgba(34,211,154,.45)}
+.lb2-post>i svg{width:22px;height:22px}
+.lb2-post .pt{display:flex;flex-direction:column;line-height:1.2;min-width:0}
+.lb2-post small{font-family:var(--en);font-size:7.5px;letter-spacing:.22em;font-weight:900;color:#7dffcf}
+.lb2-post .pt>b{font-size:14px;font-weight:900}
+.lb2-post em{font-style:normal;font-size:10px;font-weight:800;opacity:.85;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lb2-post .pb{position:absolute;left:10px;right:10px;bottom:6px;height:4px;border-radius:99px;background:rgba(255,255,255,.2);overflow:hidden}
+.lb2-post .pb i{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,#22d39a,#9dffd9)}
+.lb2-post>.bd{right:-4px;top:-6px}
+.lb2-camp{position:relative;display:flex;flex-direction:column;justify-content:center;min-height:76px;padding:8px 58px 12px 14px;border:none;border-radius:16px;color:#fff;text-align:left;overflow:hidden;
+  background:linear-gradient(115deg,color-mix(in srgb,var(--cc) 70%,#1d1660) 0%,#6b3cff 58%,#ff4fa3 125%);box-shadow:0 10px 24px rgba(70,40,200,.45),inset 0 0 0 1px rgba(255,255,255,.38);
+  clip-path:polygon(0 0,100% 0,100% 70%,92% 100%,0 100%)}
+.lb2-camp::before{content:"";position:absolute;inset:0;background:linear-gradient(110deg,transparent 30%,rgba(255,255,255,.3) 46%,transparent 60%);transform:translateX(-100%);animation:lbShine 3.2s ease-in-out infinite}
+.lb2-camp .en{font-family:var(--en);font-size:9.5px;letter-spacing:.3em;font-weight:900;opacity:.92}
+.lb2-camp .st{font-size:30px;font-weight:900;line-height:1.02;letter-spacing:.02em;text-shadow:0 2px 10px rgba(0,0,0,.3)}
+.lb2-camp .nm{font-size:11.5px;font-weight:800;opacity:.95;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lb2-camp .pr{position:absolute;left:14px;right:58px;bottom:6px;height:3px;border-radius:99px;background:rgba(255,255,255,.25);overflow:hidden}
+.lb2-camp .pr i{display:block;height:100%;background:#fff}
+.lb2-camp .go{position:absolute;right:12px;top:50%;width:40px;height:40px;margin-top:-20px;border-radius:50%;background:#fff;color:#5b3cff;display:grid;place-items:center;box-shadow:0 4px 14px rgba(0,0,0,.25)}
+.lb2-camp .go svg{width:20px;height:20px;margin-left:3px}
+.lb2-ark:active,.lb2-post:active,.lb2-camp:active,.lb2-rb:active{transform:translateY(2px)}
+@media (max-height:720px){
+  .lb2-bn{aspect-ratio:16/7.4}
+  .lb2 .lb2-ic i{width:36px;height:36px}.lb2 .lb2-ic i svg{width:18px;height:18px}
+  .lb2-ics{grid-template-columns:repeat(auto-fill,50px)}.lb2 .lb2-ic{width:50px}
+  .lb2-ark{min-height:44px}.lb2-camp{min-height:68px}.lb2-camp .st{font-size:26px}
+  .lb2-say{bottom:calc(196px + var(--safe-b))}
+}
+@media (min-width:900px){
+  .lb2-left{left:18px;top:calc(70px + var(--safe-t));width:290px}
+  .lb2-right{right:18px;top:calc(70px + var(--safe-t))}
+  .lb2-dock{left:auto;right:18px;width:min(540px,46vw);bottom:calc(78px + var(--safe-b))}
+  .lb2-say{left:auto;right:calc(min(540px,46vw) + 36px);bottom:calc(84px + var(--safe-b));width:min(34vw,420px);transform:translateY(8px)}
+  .lb2-say.on{transform:none}
+  .lb2-char img{left:50%}
+  .lb2-char img.ld{height:min(128%,1420px)}
+}
+/* ロビーのあいだの上のバー・下のナビ（ガラス） */
+#app.lbmode .m3-tb{background:linear-gradient(180deg,rgba(8,12,36,.62),rgba(8,12,36,0));box-shadow:none;-webkit-backdrop-filter:none;backdrop-filter:none;color:#fff}
+#app.lbmode .m3-back{background:rgba(255,255,255,.16);color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.28)}
+#app.lbmode .m3-tbt small{color:#9fd8ff}
+#app.lbmode .m3-tbt b{color:#fff;text-shadow:0 1px 6px rgba(0,0,0,.45)}
+#app.lbmode .m3-pill{background:rgba(10,16,42,.52);color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.26);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px)}
+#app.lbmode .m3-nav{background:rgba(10,14,38,.8);box-shadow:0 -1px 0 rgba(255,255,255,.14)}
+#app.lbmode .m3-nav button{color:rgba(255,255,255,.72)}
+#app.lbmode .m3-nav .home b{color:#fff}
+#app.lbmode .m3-nav .home i{box-shadow:0 0 0 3px rgba(10,14,38,.92),0 0 18px rgba(255,140,60,.65)}
+/* 隠す */
+#app.hideui .lb2-ui{opacity:0}
+#app.hideui .lb2-ui *,#app.hideui .lb2-left,#app.hideui .lb2-right,#app.hideui .lb2-dock{pointer-events:none!important}
+@media (prefers-reduced-motion:reduce){.lb2-char img,.lb2-dots,.lb2-rays,.lb2-camp::before{animation:none}}
+
+/* ══ ★★ 2026-11-03 キャラ詳細：上の絵（UR／SS絵／立ち絵の切りかえ）・ステータスの下（武器・サブステータス・スキルの札） ══ */
+.ud-hero .ud-ur{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 22%}
+.ud-hero .ud-ur.wd{display:none}
+@media (min-width:700px) and (min-aspect-ratio:5/4){ .ud-hero .ud-ur.wd{display:block} .ud-hero .ud-ur.wd~.ud-ur.sq{display:none} }
+.ud-hero.m-ur::after{height:48%}
+.ud-hero .ud-blur{position:absolute;inset:-24px;width:calc(100% + 48px);height:calc(100% + 48px);object-fit:cover;filter:blur(20px) saturate(1.25);opacity:.75}
+.ud-hero img.full.ss2{top:calc(62px + var(--safe-t));height:calc(100% - 92px);width:auto;border-radius:18px;box-shadow:0 0 0 4px #fff,var(--sh2)}
+.ud-imgsw{position:absolute;right:64px;top:calc(72px + var(--safe-t));z-index:4;display:flex;gap:2px;padding:3px;border-radius:99px;background:rgba(15,12,44,.52);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);box-shadow:0 4px 12px rgba(0,0,0,.18)}
+.ud-imgsw button{border:none;background:none;color:#fff;font-size:11px;font-weight:900;padding:7px 11px;border-radius:99px;white-space:nowrap}
+.ud-imgsw button.on{background:#fff;color:var(--ink)}
+#app.hideui .ud-imgsw{opacity:0;pointer-events:none}
+.sub4{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.sub4 span{display:flex;align-items:center;gap:6px;padding:6px 11px;border-radius:99px;background:#fff;box-shadow:var(--sh)}
+.sub4 i{font-style:normal;font-size:11px;font-weight:800;color:var(--sub)}
+.sub4 b{font-family:var(--en);font-size:12.5px;font-weight:900;color:var(--ink)}
+.wpn3{display:flex;flex-direction:column;gap:10px}
+.wpn3-h{display:flex;align-items:center;gap:11px}
+.wpn3-ic{width:46px;height:46px;flex:none;border-radius:14px;display:grid;place-items:center;color:#fff;background:linear-gradient(135deg,#3a4a8a,#1e2547);box-shadow:0 4px 12px rgba(30,37,71,.28)}
+.wpn3-h>span:last-child{display:flex;flex-direction:column;line-height:1.3}
+.wpn3-h b{font-size:16px;font-weight:900}
+.wpn3-h small{display:flex;align-items:center;gap:6px;font-size:12px;font-weight:800;color:var(--sub)}
+.wpn3-sh{font-style:normal;font-family:var(--en);font-size:10px;font-weight:900;letter-spacing:.06em;padding:1px 7px;border-radius:6px;background:#1e2547;color:#fff}
+.wpn3-g{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:6px}
+.wpn3-g span{display:flex;flex-direction:column;padding:8px 10px;border-radius:12px;background:#f3f6fd}
+.wpn3-g i{font-style:normal;font-size:10.5px;font-weight:800;color:var(--sub)}
+.wpn3-g b{font-size:14px;font-weight:900;color:var(--ink)}
+.skc2.mini{padding:12px 14px}
+.skc2.mini .skc2-hd>b{font-size:15.5px}
+.skc2.mini .skc2-tags{margin:7px 0 5px}
+.skc2.mini .skc2-d{font-size:13.5px;line-height:1.8;margin:0}
+/* ★★ 2026-11-03 強化タブ：上げたあとの能力 */
+.lvpv{margin-top:10px}
+.lvpv>div{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:6px;margin-top:4px}
+.lvpv span{display:flex;flex-direction:column;align-items:center;padding:7px 4px;border-radius:12px;background:#fff;box-shadow:inset 0 0 0 1px var(--line);text-align:center;min-width:0}
+.lvpv i{font-style:normal;font-size:10.5px;font-weight:800;color:var(--sub)}
+.lvpv b{font-family:var(--en);font-size:13.5px;font-weight:900;color:var(--ink);white-space:nowrap}
+.lvpv em{font-style:normal;font-size:11px;font-weight:900;color:#0e9a62}

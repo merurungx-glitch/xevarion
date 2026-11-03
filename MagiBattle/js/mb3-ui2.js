@@ -217,7 +217,8 @@
       const arena = p.kind === "arena" ? '<div class="res-arena ' + (p.delta >= 0 ? "up" : "down") + '"><b class="num">' + (p.delta >= 0 ? "+" : "") + p.delta + '</b><small>アリーナポイント ' + fmt(SV().S.arena.pts) + "</small></div>" : "";
       const nextBtn = p.kind === "stage" && win ? nextStageOf(p.st) : null;
       const info = '<div class="res-info"><span>撃破 <b>' + B.kills + "</b></span><span>最大コンボ <b>" + (B.combo.best || 0) + "</b></span><span>時間 <b>" + Math.floor(B.t / 60) + ":" + String(Math.floor(B.t % 60)).padStart(2, "0") + "</b></span></div>";
-      return '<button class="res-x" id="rX" aria-label="閉じる">✕</button><div class="res">' + head + arena + info +
+      const logB = (B.log && B.log.length) ? '<button class="btn sm ghost res-log" id="rLog">バトルログ</button>' : "";   /* ★★ 2026-11-02 */
+      return '<button class="res-x" id="rX" aria-label="閉じる">✕</button><div class="res">' + head + arena + info + logB +
         (p.mvp ? '<div class="res-mvp' + (UI.isMax(p.mvp.id) ? " mx" : "") + '"><img src="' + UI.wide(p.mvp.id) + '" alt="" onerror="this.src=\'' + UI.art(p.mvp.id) + '\'"><span class="mvpb">MVP</span><span class="mvpn">' + esc(UI.nm(p.mvp.id)) + "</span></div>" : "") +
         '<div class="dmgs">' + us.map((u) => '<div class="dmg"><img src="' + UI.th(u.id) + '" alt=""><div class="bar"><b style="width:' + (u.dmg / maxD * 100) + "%;background:" + (UI.CCOL[u.id] || "#7b5cff") + '"></b></div><em>' + short(u.dmg) + "</em></div>").join("") + "</div>" +
         (p.got && p.got.length ? '<div class="h2" style="width:min(92vw,560px)"><b>' + (p.first ? "はじめてのクリア！" : "ごほうび") + "</b></div>" + UI.rwHTML(p.got) : "") +
@@ -229,6 +230,7 @@
     mount(el, p) {
       const close = () => { UI.click(); const go = () => UI.go(RESULT_BACK[p.kind] || "lobby", {}, { noPush: true }); if (p.outro) { const k = p.outro; p.outro = null; UI.story(k, go); } else go(); };
       $("#rBack", el).onclick = close; $("#rX", el).onclick = close;
+      const lg = $("#rLog", el); if (lg) lg.onclick = () => { UI.click(); UI.sheet('<div class="sh-h"><b>バトルログ</b><button class="sh-x" data-x aria-label="閉じる">✕</button></div><div class="b3-logl in-sheet">' + MB3.Battle.logHTML(p.B) + "</div>"); };
       const ag = $("#rAgain", el); if (ag) ag.onclick = () => { UI.click(); if (p.kind === "tower") startTower(p.st.f, p.ids); else startStage(p.st, p.ids); };
       const nx = $("#rNext", el); if (nx) nx.onclick = () => { UI.click(); const n = nextStageOf(p.st); const go = () => { const st = D().buildStage(n.c, n.s, p.st.hard); camp.c = n.c; goStage(st); }; if (p.outro) { const k = p.outro; p.outro = null; UI.story(k, go); } else go(); };
       const nt = $("#rNextT", el); if (nt) nt.onclick = () => { UI.click(); startTower(SV().S.tower.floor + 1, p.ids); };
@@ -499,7 +501,7 @@
       return '<div class="wrap"><div class="seg"><button class="' + (shopTab === "gen" ? "on" : "") + '" data-t="gen">一般ショップ</button><button class="' + (shopTab === "arena" ? "on" : "") + '" data-t="arena">アリーナショップ</button></div><div class="shopl">' +
         L.map((it) => { const left = SV().shopLeft(it), mx = SV().buyMax(it); const n = Math.max(1, Math.min(qty[it.id] || 1, Math.max(1, mx))); qty[it.id] = n; const k0 = Object.keys(it.get)[0];
           return '<div class="shopi"><span class="sic">' + UI.itemIc(k0 === "gear" ? "gear" : k0) + "</span><span class=\"sin\"><b>" + esc(it.nm) + "</b><small>きょうのこり " + left + " / " + it.lim + "</small></span>" +
-            (left > 1 && mx > 1 ? '<span class="sq"><button data-q="' + it.id + '" data-d="-1">−</button><b class="num">' + n + '</b><button data-q="' + it.id + '" data-d="1">＋</button><button data-q="' + it.id + '" data-d="max" class="mx">最大</button></span>' : "") +
+            (left > 1 && mx > 1 ? '<span class="sq"><button data-q="' + it.id + '" data-d="-1">−</button><b class="num">' + n + '</b><button data-q="' + it.id + '" data-d="1">＋</button><button data-q="' + it.id + '" data-d="max" class="smax">最大</button></span>' : "") +
             '<button class="btn sm buy" data-b="' + it.id + '" ' + (left > 0 && mx > 0 ? "" : "disabled") + ">" + ct(it.cost, n) + "</button></div>"; }).join("") + "</div>" +
         '<p class="muted">品ぞろえと回数は毎日 0:00 に戻ります。ジェム（💎）は XEVARION 共通のジェムです。</p></div>';
     },
@@ -560,7 +562,7 @@
         '<div class="sh-btns"><button class="btn" id="stGuide">▶ 使い方をアニメで見る</button></div>' +
         '<div class="h2"><b>遊び方</b></div>' + D().HELP.map((h) => '<div class="pan help"><b>' + esc(h[0]) + '</b><p class="muted">' + esc(h[1]) + "</p></div>").join("") +
         '<div class="h2"><b>キーボード操作</b></div><div class="pan kbd">' +
-        [["バトル", [["1〜5", "そのキャラを操作（バーストの番なら発動）"], ["Space・J（押したまま）", "撃つ（チャージ武器はためて離す）"], ["マウス・矢印・WASD", "照準を動かす"], ["B・Enter", "いま撃てるバースト"], ["Q・E", "前・次のキャラ"], ["T", "AUTO（次のバトルも引きつぎ）"], ["X", "速さ ×1／×2"], ["M", "効果音"], ["Esc・P", "一時停止"]]],
+        [["バトル", [["1〜5", "そのキャラを操作（バーストの番なら発動）"], ["J・マウス（押したまま）", "撃つ（チャージ武器はためて離す）"], ["Space（押したまま）", "全員で遮蔽物に隠れる（隠れるとリロード）"], ["マウス・矢印・WASD", "照準を動かす"], ["B・Enter", "いま撃てるバースト"], ["Q・E", "前・次のキャラ"], ["T", "AUTO（次のバトルも引きつぎ）"], ["X", "速さ ×1／×2"], ["M", "効果音"], ["Esc・P", "一時停止（バトルログもここから）"]]],
           ["メニュー", [["Esc・Backspace", "もどる（シートを閉じる）"], ["1〜5", "下のナビ（部隊・編成・ロビー・アリーナ・ショップ）"], ["Space・H", "ロビー・キャラ詳細：文字を隠して絵を見る"], ["G", "使い方（アニメ）"]]],
           ["ストーリー", [["Space・Enter・→", "次へ"], ["A", "オート"], ["H", "文字を隠す"], ["Esc", "スキップ"]]]].map((g) => '<b class="kbh">' + g[0] + "</b>" + g[1].map((r) => '<div class="kbr"><kbd>' + esc(r[0]) + "</kbd><span>" + esc(r[1]) + "</span></div>").join("")).join("") + "</div>" +
         '<div class="sh-btns"><button class="btn ghost" id="stPro">プロローグを見る</button><button class="btn ghost" id="stArc">ストーリー</button><a class="btn ghost" href="../index.html">XEVARION へ</a></div>' +

@@ -73,6 +73,10 @@
     /* ★★ 2026-10-30 超極彩祭（ヒサコより少し上） */
     haru:      { nm: "あじさいの海風", ic: "cy_hydra", cond: { k: "ult" }, cd: 0, fx: { atk: 0.35, crit: 23, t: 10, techG: 0.4 } },
     chika:     { nm: "月夜だけの素顔", ic: "cy_moon", cond: { k: "ult" }, cd: 0, fx: { atk: 0.35, crit: 23, t: 10, techG: 0.4 } },
+    /* ★★ 2026-11-03 超極彩祭の追加3体（ヒサコと同じ効果） */
+    chifuru:   { nm: "とろける甘い罠", ic: "cy_heart", cond: { k: "ult" }, cd: 0, fx: { atk: 0.33, crit: 22, t: 10, techG: 0.4 } },
+    mint:      { nm: "いっしょにがんばろ！", ic: "cy_mint", cond: { k: "ult" }, cd: 0, fx: { atk: 0.33, crit: 22, t: 10, techG: 0.4 } },
+    purika:    { nm: "きみだけの特等席", ic: "cy_crest", cond: { k: "ult" }, cd: 0, fx: { atk: 0.33, crit: 22, t: 10, techG: 0.4 } },
     hinano:    { nm: "翠光の追い風", ic: "gale", cond: { k: "kills", n: 12, s: 6 }, cd: 18, fx: { aspd: 0.35, spd: 0.2, t: 6 } },
     hanon:     { nm: "ブザービーター", ic: "at_ball", cond: { k: "foeLow", v: 0.3 }, cd: 30, fx: { atk: 0.4, t: 10 } },
     kokoha:    { nm: "椿雨の帳", ic: "sk_umbrella", cond: { k: "noHit", s: 10 }, cd: 25, fx: { atk: 0.25, crit: 15, t: 10 } },
@@ -103,6 +107,8 @@
     hisako: ["yoin", "mikiri", "shuchu"], alice: ["yoin", "mikiri", "shuchu"], miki: ["shippu", "oikaze", "mikiri"],
     /* ★★ 2026-10-30 */
     haru: ["yoin", "mikiri", "shuchu"], chika: ["yoin", "mikiri", "shuchu"],
+    /* ★★ 2026-11-03 */
+    chifuru: ["yoin", "mikiri", "shuchu"], mint: ["yoin", "mikiri", "shuchu"], purika: ["yoin", "mikiri", "shuchu"],
   };
   const KIT_DEF = ["fudo", "mikiri", "shinkokyu"];
 
@@ -139,6 +145,10 @@
     /* ★★ 2026-10-30 */
     haru:      { nm: "蒼海・ブルーティアーズ", ic: "cy_hydra", kind: "mark", cond: { k: "crit", n: 30 }, mul: 10.4, vul: 0.3, t: 8 },
     chika:     { nm: "月下・フルムーンメモリー", ic: "cy_moon", kind: "mark", cond: { k: "crit", n: 30 }, mul: 10.4, vul: 0.3, t: 8 },
+    /* ★★ 2026-11-03 超極彩祭の追加3体（ヒサコと同じ） */
+    chifuru:   { nm: "蒼糖・ハートブレイク", ic: "cy_heart", kind: "mark", cond: { k: "crit", n: 30 }, mul: 9.9, vul: 0.3, t: 8 },
+    mint:      { nm: "白花・モーニングブーケ", ic: "cy_mint", kind: "mark", cond: { k: "crit", n: 30 }, mul: 9.9, vul: 0.3, t: 8 },
+    purika:    { nm: "星章・シューティングスター", ic: "cy_crest", kind: "mark", cond: { k: "crit", n: 30 }, mul: 9.9, vul: 0.3, t: 8 },
     hinano:    { nm: "プリズム・スプラッシュ", ic: "sk_prism", kind: "fan", cond: { k: "dodge", n: 5 }, mul: 2.2, n: 14 },
     hanon:     { nm: "ゴールデン・ブザー", ic: "sk_hoop", kind: "mark", cond: { k: "skill", n: 4 }, mul: 11, vul: 0.3, t: 8 },
     kokoha:    { nm: "ツバキ・シグレ", ic: "sk_umbrella", kind: "rain", cond: { k: "time", n: 25 }, mul: 0.95, r: 95, t: 3, burn: 1 },

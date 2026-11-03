@@ -542,6 +542,63 @@
       evo: { weapon: "dagger", el: "dark", to: "evo_chika", nm: "月下・ムーンブレード" },
       good: "会心の連射・ボスの単体火力・敵をまとめて止める（UR の最上位・ヒサコより少し強い）", weak: "（目立った苦手はない）",
     },
+    /* ══ ★★ 2026-11-03 超極彩祭の追加3体（UR・MagiAbyss 専用）＝チフル（火）・ミント（木）・プリカ（光）══
+       ご回答「MagiAbyss の強さはヒサコと同じ」→ ヒサコの型を<b>数字そのまま</b>（通常攻撃・技・必殺技・秘技・固有・専用進化）。
+       名前・色・アイコンだけそれぞれ（チフル＝青いハートの飴／ミント＝白い花とこもれび／プリカ＝星の紋章）。 */
+    chifuru: {
+      nm: "チフル", fes: "超極彩祭", el: "fire", type: "ranged", sub: "magic", rank: "UR",
+      title: "蒼いハートの甘い罠",
+      base: { hp: 140, atk: 17, def: 6, spd: 82, aspd: 1.22, crit: 17, critDmg: 1.9, mag: 1.25, eva: 16 },
+      grow: { hp: 1.045, atk: 1.05, def: 1.04 },
+      atk: { kind: "pnshot", nm: "ハート・キャンディ", ic: "cy_heart", cd: 0.34, mul: 0.375, speed: 320, range: 230, pk: "petal", n: 3, arc: 0.35, pierce: 2,
+        every: 4, burst: 7, burstArc: 1.1, burstNm: "シュガー・ストーム", cols: ["#6a8cff", "#ffffff", "#ff5a7a"],
+        d: "青いハートの飴を3つ（2体まで貫通）。4回ごとに7つの嵐" },
+      skill: { kind: "pnblast", nm: "スイート・トラップ", ic: "cy_heart", cd: 8, mp: 18, r: 100, mul: 5.05, stun: 1, vul: [0.25, 5], gauge: 8,
+        d: "敵がいちばん集まっている所に甘い罠（半径100・攻撃力×5.05・1秒しびれ）＋5秒間 受けるダメージ+25%＋必殺技ゲージ+8" },
+      ult: { kind: "pnbarrage", nm: "蒼糖・ブルーハートパフェ", gauge: 100, n: 120, mul: 0.33, fin: 18.2, pk: "petal", cols: ["#6a8cff", "#ffffff", "#ff5a7a"], vul: [0.3, 6], heal: 0.2, atkUp: [0.3, 6],
+        d: "いちばん強い敵へ青いハートを120連射し、最後に画面全体へ大きなパフェの花火（攻撃力×18.2・防御ダウン）＋6秒間 受けるダメージ+30%＋HPを20%回復＋6秒間 与えるダメージ+30%" },
+      passive: { kind: "focus", nm: "ひとくちの約束", crits: 3, drain: 0.03,
+        d: "技を使ったあと3発は必ず会心。与えたダメージの3%でHPを回復（ドレイン）" },
+      bias: { crit: 1.6, aspd: 1.4, elem: 1.3, weapon: 1.2 },
+      evo: { weapon: "dagger", el: "fire", to: "evo_chifuru", nm: "蒼糖・ハートスプーン" },
+      good: "会心の連射・ボスの単体火力・敵をまとめて止める（ヒサコと同じ UR の上位）", weak: "（目立った苦手はない）",
+    },
+    mint: {
+      nm: "ミント", fes: "超極彩祭", el: "wood", type: "ranged", sub: "magic", rank: "UR",
+      title: "こもれびの白花",
+      base: { hp: 140, atk: 17, def: 6, spd: 82, aspd: 1.22, crit: 17, critDmg: 1.9, mag: 1.25, eva: 16 },
+      grow: { hp: 1.045, atk: 1.05, def: 1.04 },
+      atk: { kind: "pnshot", nm: "ホワイト・ブロッサム", ic: "cy_mint", cd: 0.34, mul: 0.375, speed: 320, range: 230, pk: "petal", n: 3, arc: 0.35, pierce: 2,
+        every: 4, burst: 7, burstArc: 1.1, burstNm: "こもれびの花吹雪", cols: ["#ffffff", "#bff0d8", "#2fbf8a"],
+        d: "白い花びらを3枚（2体まで貫通）。4回ごとに7枚の花吹雪" },
+      skill: { kind: "pnblast", nm: "グッドモーニング・ベル", ic: "cy_mint", cd: 8, mp: 18, r: 100, mul: 5.05, stun: 1, vul: [0.25, 5], gauge: 8,
+        d: "敵がいちばん集まっている所に白い花の鐘（半径100・攻撃力×5.05・1秒しびれ）＋5秒間 受けるダメージ+25%＋必殺技ゲージ+8" },
+      ult: { kind: "pnbarrage", nm: "白花・サンシャインウィンドウ", gauge: 100, n: 120, mul: 0.33, fin: 18.2, pk: "petal", cols: ["#ffffff", "#bff0d8", "#2fbf8a"], vul: [0.3, 6], heal: 0.2, atkUp: [0.3, 6],
+        d: "いちばん強い敵へ白い花びらを120連射し、最後に画面全体へ窓からの朝の光（攻撃力×18.2・防御ダウン）＋6秒間 受けるダメージ+30%＋HPを20%回復＋6秒間 与えるダメージ+30%" },
+      passive: { kind: "focus", nm: "おはようの約束", crits: 3, drain: 0.03,
+        d: "技を使ったあと3発は必ず会心。与えたダメージの3%でHPを回復（ドレイン）" },
+      bias: { crit: 1.6, aspd: 1.4, elem: 1.3, weapon: 1.2 },
+      evo: { weapon: "dagger", el: "wood", to: "evo_mint", nm: "白花・ミントブルーム" },
+      good: "会心の連射・ボスの単体火力・敵をまとめて止める（ヒサコと同じ UR の上位）", weak: "（目立った苦手はない）",
+    },
+    purika: {
+      nm: "プリカ", fes: "超極彩祭", el: "light", type: "ranged", sub: "magic", rank: "UR",
+      title: "星章のウインク",
+      base: { hp: 140, atk: 17, def: 6, spd: 82, aspd: 1.22, crit: 17, critDmg: 1.9, mag: 1.25, eva: 16 },
+      grow: { hp: 1.045, atk: 1.05, def: 1.04 },
+      atk: { kind: "pnshot", nm: "スター・ウインク", ic: "cy_crest", cd: 0.34, mul: 0.375, speed: 320, range: 230, pk: "petal", n: 3, arc: 0.35, pierce: 2,
+        every: 4, burst: 7, burstArc: 1.1, burstNm: "流れ星のエンブレム", cols: ["#ffe08a", "#ffffff", "#3a4a9a"],
+        d: "金の星を3つ（2体まで貫通）。4回ごとに7つの流れ星" },
+      skill: { kind: "pnblast", nm: "スター・クレスト", ic: "cy_crest", cd: 8, mp: 18, r: 100, mul: 5.05, stun: 1, vul: [0.25, 5], gauge: 8,
+        d: "敵がいちばん集まっている所に星の紋章（半径100・攻撃力×5.05・1秒しびれ）＋5秒間 受けるダメージ+25%＋必殺技ゲージ+8" },
+      ult: { kind: "pnbarrage", nm: "星章・ロイヤルウインク", gauge: 100, n: 120, mul: 0.33, fin: 18.2, pk: "petal", cols: ["#ffe08a", "#ffffff", "#3a4a9a"], vul: [0.3, 6], heal: 0.2, atkUp: [0.3, 6],
+        d: "いちばん強い敵へ金の星を120連射し、最後に画面全体へ大きな金の星章（攻撃力×18.2・防御ダウン）＋6秒間 受けるダメージ+30%＋HPを20%回復＋6秒間 与えるダメージ+30%" },
+      passive: { kind: "focus", nm: "ないしょの約束", crits: 3, drain: 0.03,
+        d: "技を使ったあと3発は必ず会心。与えたダメージの3%でHPを回復（ドレイン）" },
+      bias: { crit: 1.6, aspd: 1.4, elem: 1.3, weapon: 1.2 },
+      evo: { weapon: "dagger", el: "light", to: "evo_purika", nm: "星章・ゴールドクレスト" },
+      good: "会心の連射・ボスの単体火力・敵をまとめて止める（ヒサコと同じ UR の上位）", weak: "（目立った苦手はない）",
+    },
     miki: {
       nm: "ミキ", fes: "WP交換所", el: "wood", type: "ranged", sub: "mobile", rank: "UR",
       title: "青い花の学び舎",
@@ -706,7 +763,7 @@
   };
   /* ★★ 2026-10-09 並びと顔ぶれは mb-core の ABYSS_CHAR_IDS（ポータルの絞り込み・キャラ詳細と同じ1本）。読めないときだけ下の並び */
   const CHAR_ORDER = ((typeof ABYSS_CHAR_IDS !== "undefined" && ABYSS_CHAR_IDS.length) ? ABYSS_CHAR_IDS.slice()
-    : ["haru", "chika", "hisako", "alice", "miki", "kohaku", "suzu", "shouko", "chie", "ichika", "nonoka", "aina", "yuna", "ayano", "saki", "yuka", "natsumi", "miu", "mai", "chinatsu", "yuumi", "rina", "kaori",
+    : ["chifuru", "mint", "purika", "haru", "chika", "hisako", "alice", "miki", "kohaku", "suzu", "shouko", "chie", "ichika", "nonoka", "aina", "yuna", "ayano", "saki", "yuka", "natsumi", "miu", "mai", "chinatsu", "yuumi", "rina", "kaori",
        "takina", "hibana", "fuki", "hinano", "hanon", "kokoha", "mutsumi", "reina", "azusa", "kumireina", "kagura", "kotori"]).filter((id) => CHARS[id]);
   /* 組み合わせを CHARS に流しこむ（下の CHAR_KIT が本体） */
   function applyKits() {
@@ -815,6 +872,10 @@
     /* ★★ 2026-10-30 超極彩祭＝ヒサコと同じ組み合わせ */
     haru:      { rank: "UR",  art: ["gate", 5],      trait: ["dusk", 5] },
     chika:     { rank: "UR",  art: ["gate", 5],      trait: ["dusk", 5] },
+    /* ★★ 2026-11-03 超極彩祭の追加3体＝ヒサコと同じ組み合わせ */
+    chifuru:   { rank: "UR",  art: ["gate", 5],      trait: ["dusk", 5] },
+    mint:      { rank: "UR",  art: ["gate", 5],      trait: ["dusk", 5] },
+    purika:    { rank: "UR",  art: ["gate", 5],      trait: ["dusk", 5] },
     hinano:    { rank: "SSR", art: ["whirl", 4],     trait: ["galefoot", 3] },
     hanon:     { rank: "SSR", art: ["meteor", 4],    trait: ["clutch", 3] },
     kokoha:    { rank: "SSR", art: ["blast", 4],     trait: ["kindle", 4] },
@@ -914,6 +975,10 @@
     /* ★★ 2026-10-30 ハル・チカ（ヒサコの 5% 増し） */
     evo_haru:     { nm: "蒼海・アジュールペタル", base: "dagger", char: "haru", mul: 1.85, kind: "w_dagger", fx: "vulmark", d: "突きがあじさいの花びらになって舞い、当たった敵は3秒 受けるダメージ+20%（ハル専用）" },
     evo_chika:    { nm: "月下・ムーンブレード", base: "dagger", char: "chika", mul: 1.85, kind: "w_dagger", fx: "vulmark", d: "突きが月明かりの花びらになって舞い、当たった敵は3秒 受けるダメージ+20%（チカ専用）" },
+    /* ★★ 2026-11-03 チフル・ミント・プリカ（ヒサコと同じ数字） */
+    evo_chifuru:  { nm: "蒼糖・ハートスプーン", base: "dagger", char: "chifuru", mul: 1.76, kind: "w_dagger", fx: "vulmark", d: "突きが青いハートの飴になって舞い、当たった敵は3秒 受けるダメージ+20%（チフル専用）" },
+    evo_mint:     { nm: "白花・ミントブルーム", base: "dagger", char: "mint", mul: 1.76, kind: "w_dagger", fx: "vulmark", d: "突きが白い花びらになって舞い、当たった敵は3秒 受けるダメージ+20%（ミント専用）" },
+    evo_purika:   { nm: "星章・ゴールドクレスト", base: "dagger", char: "purika", mul: 1.76, kind: "w_dagger", fx: "vulmark", d: "突きが金の星になって舞い、当たった敵は3秒 受けるダメージ+20%（プリカ専用）" },
     evo_miki:     { nm: "ブルーベル・アロー", base: "bow", char: "miki", mul: 2.8, kind: "w_bow", fx: "starsplit", d: "矢が刺さると青い花が3つにはじけて遅くする（ミキ専用）" },
   };
 

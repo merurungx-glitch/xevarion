@@ -29,7 +29,7 @@
   UI.art = (id) => IMG + F(id) + ".webp";
   UI.wide = (id) => IMG + F(id) + "_w.webp";
   UI.ss = (id) => SSD + F(id) + "SS.webp";
-  const LOBBY_FULL = { haru: 1, chika: 1, hisako: 1, alice: 1, kohaku: 1, yuna: 1, aina: 1, chie: 1 };
+  const LOBBY_FULL = { haru: 1, chika: 1, hisako: 1, alice: 1, kohaku: 1, yuna: 1, aina: 1, chie: 1, chifuru: 1, mint: 1, purika: 1 };   /* ★★ 2026-11-03 チフル・ミント・プリカも */
   UI.ld = (id) => "../home-mate/lobby/" + id + ".webp";
   UI.full = (id) => (LOBBY_FULL[id] ? UI.ld(id) : UI.ss(id));
   UI.hasLD = (id) => !!LOBBY_FULL[id];
@@ -37,7 +37,7 @@
   UI.nm = (id) => ST().charNm(id);
   UI.click = () => { try { MB3.Audio.play("click"); } catch (e) {} };
   UI.isMax = (id) => SV().owned(id) && SV().awk(id) >= (ST().MAX_AWK || 4);   /* 完凸 */
-  UI.CCOL = { haru: "#3aa0ff", chika: "#7b8cff", hisako: "#ff5fa8", alice: "#8ea0c4", kohaku: "#ff4d6d", suzu: "#ffb800", shouko: "#18c48c", yuna: "#a35cff", chie: "#ff7a3c", aina: "#ff5fb4", ichika: "#12b5ff", nonoka: "#d0a050" };
+  UI.CCOL = { haru: "#3aa0ff", chika: "#7b8cff", hisako: "#ff5fa8", alice: "#8ea0c4", kohaku: "#ff4d6d", suzu: "#ffb800", shouko: "#18c48c", yuna: "#a35cff", chie: "#ff7a3c", aina: "#ff5fb4", ichika: "#12b5ff", nonoka: "#d0a050", chifuru: "#4f6dff", mint: "#2fbf8a", purika: "#e0a92a" };
 
   /* ── 素材のアイコン ── */
   UI.itemIc = function (k) {
@@ -82,7 +82,7 @@
   };
   /* 数をえらぶ（まとめて使う）。max 以下・1 以上 */
   UI.stepper = function (id, n, max) {
-    return '<div class="stp" id="' + id + '"><button data-d="-10">−10</button><button data-d="-1">−</button><b class="num">' + n + '</b><button data-d="1">＋</button><button data-d="10">＋10</button><button data-d="max" class="mx">最大</button><small>/ ' + max + "</small></div>";
+    return '<div class="stp" id="' + id + '"><button data-d="-10">−10</button><button data-d="-1">−</button><b class="num">' + n + '</b><button data-d="1">＋</button><button data-d="10">＋10</button><button data-d="max" class="smax">最大</button><small>/ ' + max + "</small></div>";
   };
   UI.bindStepper = function (el, id, get, set, max) {
     $$("#" + id + " button", el).forEach((b) => (b.onclick = () => { UI.click(); const d = b.dataset.d; let n = get(); n = d === "max" ? max : Math.max(1, Math.min(max, n + Number(d))); set(n); }));
@@ -132,6 +132,7 @@
     const nav = $("#nav"); nav.hidden = !S.nav;
     if (S.nav) $$("button", nav).forEach((b) => b.classList.toggle("on", b.dataset.go === (S.navKey || cur.name)));
     document.getElementById("app").classList.remove("hideui");
+    document.getElementById("app").classList.toggle("lbmode", cur.name === "lobby");   /* ★★ 2026-11-03 ロビー（NIKKE 風）のあいだは上のバー・下のナビをガラスに */
     if (!keepScroll) { try { MB3.BGM && MB3.BGM.play(S.bgm || "menu"); } catch (e) {} }
     if (S.mount) S.mount(el, cur.p);
   }
@@ -145,6 +146,7 @@
     const app = document.getElementById("app");
     const on = v == null ? !app.classList.contains("hideui") : !!v;
     app.classList.toggle("hideui", on);
+    if (on) { const sc = $("#main .scr"); if (sc && sc.scrollTop) sc.scrollTop = 0; }   /* ★★ 2026-11-02 下へスクロールしていても絵が見えるように */
     if (on) UI.toast("どこかを押す（PC は Space・H）と もどります");
   };
 
@@ -167,7 +169,13 @@
     },
   };
 
-  /* ══════════ ロビー ══════════ */
+  /* ══════════ ロビー ══════════
+     ★★ 2026-11-03 ご指定「ロビーのデザインが良くないので NIKKE のホーム画面のように作り直して」
+       ・画面いっぱいの副官（全身の立ち絵）＋うしろに空と街の景色（部隊の色・光の筋・光の粒）。副官はゆっくり呼吸、PC はマウスで少し奥行きが出る。
+       ・左上：指揮官（アカウントのアイコン・名前・部隊戦力）→ その下にイベントの帯（迎撃戦・アリーナ・タワー・ストーリーが4秒ごとに切りかわる）と丸いメニュー
+       ・右上：副官の変更・隠す ／ 右下：キャンペーン（大きな出撃ボタン）／ 左下：前哨基地（防衛報酬のたまり具合）／ その上にアリーナ・迎撃戦・タワー
+       ・UI は暗いガラスに白い文字と色のふち（NIKKE のような見た目）。上のバーと下のナビもロビーではガラスに（#app.lbmode）。
+       ・副官をタップすると、下に名前つきのセリフの帯。 */
   function lobbyChar() {
     const S = SV().S, own = SV().ownedIds().filter(UI.hasLD);
     if (S.set.lobby && own.indexOf(S.set.lobby) >= 0) return S.set.lobby;
@@ -182,39 +190,86 @@
     ["guide", "使い方", "#12b5ff", '<circle cx="12" cy="12" r="8.6" fill="none" stroke="#fff" stroke-width="2.4"/><path d="M9.6 9.6a2.5 2.5 0 1 1 3.4 2.3c-.6.3-1 .8-1 1.5v.6" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round"/><circle cx="12" cy="17" r="1.3" fill="#fff"/>'],
     ["set", "設定", "#7884ab", '<circle cx="12" cy="12" r="3.2" fill="none" stroke="#fff" stroke-width="2.4"/><path d="M12 3v2.6M12 18.4V21M3 12h2.6M18.4 12H21M5.6 5.6l1.8 1.8M16.6 16.6l1.8 1.8M5.6 18.4l1.8-1.8M16.6 7.4l1.8-1.8" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/>'],
   ];
+  const ARK_SVG = {
+    arena: '<path d="M5 4l7 7M19 4l-7 7M4.5 15.5l4 4M19.5 15.5l-4 4M7 13l-3 3 4 4 3-3M17 13l3 3-4 4-3-3" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/>',
+    icpt: '<circle cx="12" cy="12" r="8" fill="none" stroke="#fff" stroke-width="2.3"/><circle cx="12" cy="12" r="3.2" fill="#fff"/><path d="M12 1.5v4M12 18.5v4M1.5 12h4M18.5 12h4" stroke="#fff" stroke-width="2.3"/>',
+    tower: '<path d="M8 21V9l4-5 4 5v12zM5 21h14M10.5 13h3M10.5 17h3" fill="none" stroke="#fff" stroke-width="2.3" stroke-linejoin="round"/>',
+    post: '<path d="M3 20h18M5 20v-8l7-5 7 5v8M10 20v-5h4v5" fill="none" stroke="#fff" stroke-width="2.3" stroke-linejoin="round"/>',
+  };
+  /* うしろの街並み（SVG を1回だけ作る）。奥＝うすい・手前＝こい の2段 */
+  let skyline = null;
+  function skylineCss() {
+    if (skyline) return skyline;
+    const mk = (seed, hMin, hMax, col) => {
+      let s = seed, x = 0, d = "M0 100";
+      const rnd = () => { s = (s * 9301 + 49297) % 233280; return s / 233280; };
+      while (x < 400) { const w = 10 + Math.round(rnd() * 22), h = hMin + Math.round(rnd() * (hMax - hMin)); d += "V" + (100 - h) + "H" + Math.min(400, x + w); if (rnd() < 0.25) d += "V" + (100 - h - 6) + "H" + Math.min(400, x + w + 3); x += w + (rnd() < 0.3 ? 3 : 0); }
+      d += "V100Z";
+      return "url(\"data:image/svg+xml," + encodeURIComponent("<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 400 100' preserveAspectRatio='none'><path d='" + d + "' fill='" + col + "'/></svg>") + "\")";
+    };
+    skyline = { far: mk(7, 26, 70, "#5a6bc8"), near: mk(31, 12, 46, "#2a3478") };
+    return skyline;
+  }
+  function accInfo() {
+    let a = null; try { a = window.XEVA && XEVA.account ? XEVA.account.get() : null; } catch (e) {}
+    a = a || {};
+    const f = String(a.charFile || "");
+    const av = /^\.\.\/img\/[^\/]+\.webp$/.test(f) ? f.replace(/\/(?!t_)([^\/]+)$/, "/t_$1") : (/^\.\.\//.test(f) ? f : "");
+    return { nm: a.name || "指揮官", av };
+  }
+  let lbTimer = 0;
   UI.S.lobby = {
-    cls: "full lobby", top: true, nav: true, back: "portal", title: "ロビー", en: "LOBBY", bgm: "lobby",
+    cls: "full lobby lb2", top: true, nav: true, back: "portal", title: "ロビー", en: "LOBBY", bgm: "lobby",
     render() {
       const id = lobbyChar(), K = ST().KITS[id], Q = ST().SQUADS[K.sq];
       const pend = SV().postPending(), msN = D().DAILY.filter((m) => !SV().S.ms.dc[m.id] && SV().msProg(m) >= m.n).length + D().WEEKLY.filter((m) => !SV().S.ms.wc[m.id] && SV().msProg(m, true) >= m.n).length;
       const nx = SV().nextStage(), ch = D().CHAPTERS[nx.c - 1];
-      const tries = D().ARENA_TRIES - (SV().S.arena.tries | 0), it = D().INTERCEPT_TRIES - (SV().S.icpt.tries | 0);
-      const own = SV().ownedIds().length;
-      const bd = { ms: msN, story: 0, items: SV().cur("gift") >= 10 ? "!" : 0 };
-      return '<div class="lb-sky" style="--sq:' + Q.c + '"></div><div class="lb-art"><img src="' + UI.full(id) + '" alt="" id="lbArt" class="' + (UI.hasLD(id) ? "ld" : "ss") + '" onerror="this.src=\'' + UI.art(id) + '\'"></div>' +
-        '<div class="lb-side">' + SIDE_BTNS.map((b) => '<button class="lb-sq" data-go="' + b[0] + '" style="--c:' + b[2] + '"><i><svg viewBox="0 0 24 24">' + b[3] + "</svg></i><b>" + b[1] + "</b>" + (bd[b[0]] ? '<span class="bd">' + (bd[b[0]] === "!" ? "!" : bd[b[0]]) + "</span>" : "") + "</button>").join("") + "</div>" +
-        '<div class="lb-right"><button class="lb-rb" id="lbChg" aria-label="副官をかえる"><svg viewBox="0 0 24 24"><path d="M7 7h11l-3-3M17 17H6l3 3" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><b>副官</b></button>' +
-        '<button class="lb-rb" id="lbHide" aria-label="画面の文字を隠す"><svg viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg><b>隠す</b></button></div>' +
-        '<div class="lb-dock"><div class="lb-say" id="lbSay"></div>' +
-        '<div class="lb-name"><span class="lb-sqd" style="background:' + Q.c + '">' + esc(Q.en) + '</span><b>' + esc(UI.nm(id)) + '</b><small>副官</small></div>' +
-        (own ? "" : '<div class="lb-warn">持っている超極祭系の UR がいません。<a href="../gacha.html">ガチャへ ›</a></div>') +
-        '<button class="lb-main" data-go="camp"><span class="lb-mi"><svg viewBox="0 0 24 24"><path d="M8 5l11 7-11 7z" fill="currentColor"/></svg></span><span class="lb-mt"><b>出撃</b><small>キャンペーン　次は <b class="num">' + nx.c + "-" + nx.s + "</b>　" + esc(ch.nm) + '</small></span><span class="lb-mprog"><i style="width:' + Math.round(Object.keys(SV().S.camp.n).length / 48 * 100) + '%"></i></span></button>' +
-        '<div class="lb-tiles">' +
-        tile("arena", "アリーナ", "のこり " + Math.max(0, tries) + " 回", "#ff4fa3", tries > 0 ? tries : 0, '<path d="M5 4l7 7M19 4l-7 7M4.5 15.5l4 4M19.5 15.5l-4 4M7 13l-3 3 4 4 3-3M17 13l3 3-4 4-3-3" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/>') +
-        tile("icpt", "迎撃戦", D().interceptToday().nm.replace("迎撃", "") + "・のこり " + Math.max(0, it), "#ff8a2a", it > 0 ? it : 0, '<circle cx="12" cy="12" r="8" fill="none" stroke="#fff" stroke-width="2.3"/><circle cx="12" cy="12" r="3.2" fill="#fff"/><path d="M12 1.5v4M12 18.5v4M1.5 12h4M18.5 12h4" stroke="#fff" stroke-width="2.3"/>') +
-        tile("tower", "タワー", SV().S.tower.floor + " 階まで", "#8a5cff", 0, '<path d="M8 21V9l4-5 4 5v12zM5 21h14M10.5 13h3M10.5 17h3" fill="none" stroke="#fff" stroke-width="2.3" stroke-linejoin="round"/>') +
-        tile("post", "前哨基地", pend.h >= 1 ? Math.floor(pend.h) + " 時間ぶん" : "たまっています", "#18c48c", pend.h >= 8 ? "!" : 0, '<path d="M3 20h18M5 20v-8l7-5 7 5v8M10 20v-5h4v5" fill="none" stroke="#fff" stroke-width="2.3" stroke-linejoin="round"/>') +
-        "</div></div>" +
+      const tries = Math.max(0, D().ARENA_TRIES - (SV().S.arena.tries | 0)), it = Math.max(0, D().INTERCEPT_TRIES - (SV().S.icpt.tries | 0));
+      const owned = SV().ownedIds(), ic = D().interceptToday();
+      const pw = owned.map((x) => SV().power(x)).sort((a, b) => b - a).slice(0, 5).reduce((a, b) => a + b, 0);
+      const A = accInfo();
+      const bd = { ms: msN, items: SV().cur("gift") >= 10 ? "!" : 0 };
+      const day = Math.floor(Date.now() / 86400000), pick = (i) => (owned.length ? owned[(day + i * 3) % owned.length] : ["haru", "chika", "hisako", "alice"][i % 4]);
+      const BN = [
+        ["icpt", "INTERCEPTION", "迎撃戦", ic.nm.replace("迎撃", "") + "　のこり " + it + " 回", "#ff8a2a", it],
+        ["arena", "ROOKIE ARENA", "アリーナ", "きょう のこり " + tries + " 回", "#ff4fa3", tries],
+        ["tower", "VANGUARD TOWER", "タワー", SV().S.tower.floor + " 階まで到達", "#8a5cff", 0],
+        ["story", "ARCHIVE", "ストーリー", "見返す・つづきを読む", "#ff5fa8", 0],
+      ];
+      const campN = Object.keys(SV().S.camp.n).length, postP = Math.round(Math.min(1, pend.h / D().OUTPOST_MAX_H) * 100);
+      const arkTile = (go, nm, sub, c, n) => '<button class="lb2-ark" data-go="' + go + '" style="--c:' + c + '"><i><svg viewBox="0 0 24 24">' + ARK_SVG[go] + "</svg></i><span><b>" + nm + "</b><small>" + esc(sub) + "</small></span>" + (n ? '<em class="bd">' + n + "</em>" : "") + "</button>";
+      return '<div class="lb2-bg" style="--sq:' + Q.c + ";--cc:" + (UI.CCOL[id] || "#7b8cff") + '"><i class="lb2-sun"></i><i class="lb2-rays"></i><i class="lb2-city far"></i><i class="lb2-city near"></i><i class="lb2-dots"></i></div>' +
+        '<div class="lb2-char"><img src="' + UI.full(id) + '" alt="" id="lbArt" class="' + (UI.hasLD(id) ? "ld" : "ss") + '" onerror="this.src=\'' + UI.art(id) + '\'"></div>' +
+        '<div class="lb2-ui">' +
+          '<div class="lb2-left">' +
+            '<div class="lb2-prof"><span class="av"><img src="' + esc(A.av || UI.th(id)) + '" alt="" onerror="this.src=\'' + UI.th(id) + '\'"></span><span class="pt"><small>COMMANDER</small><b>' + esc(A.nm) + '</b><em>部隊戦力 <b class="num">' + short(pw) + "</b></em></span></div>" +
+            '<div class="lb2-bn" id="lbBn">' + BN.map((b, i) => '<button class="lb2-slide' + (i ? "" : " on") + '" data-go="' + b[0] + '" style="--c:' + b[4] + '"><img src="' + UI.wide(pick(i)) + '" alt="" loading="lazy" onerror="this.src=\'' + UI.art(pick(i)) + '\'"><span class="t"><small>' + b[1] + "</small><b>" + b[2] + "</b><em>" + esc(b[3]) + "</em></span>" + (b[5] ? '<i class="bd">' + b[5] + "</i>" : "") + "</button>").join("") +
+              '<span class="lb2-dotsel">' + BN.map((b, i) => '<i class="' + (i ? "" : "on") + '" data-i="' + i + '"></i>').join("") + "</span></div>" +
+            '<div class="lb2-ics">' + SIDE_BTNS.map((b) => '<button class="lb-sq lb2-ic" data-go="' + b[0] + '" style="--c:' + b[2] + '"><i><svg viewBox="0 0 24 24">' + b[3] + "</svg></i><b>" + b[1] + "</b>" + (bd[b[0]] ? '<span class="bd">' + bd[b[0]] + "</span>" : "") + "</button>").join("") + "</div>" +
+          "</div>" +
+          '<div class="lb2-right"><button class="lb2-rb" id="lbChg" aria-label="副官をかえる"><svg viewBox="0 0 24 24"><path d="M7 7h11l-3-3M17 17H6l3 3" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg><b>副官</b></button>' +
+            '<button class="lb2-rb" id="lbHide" aria-label="画面の文字を隠す"><svg viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg><b>隠す</b></button></div>' +
+          '<div class="lb2-say" id="lbSay"><b style="--sqc:' + Q.c + '"><i>' + esc(Q.en) + "</i>" + esc(UI.nm(id)) + "</b><span></span></div>" +
+          '<div class="lb2-dock">' +
+            (owned.length ? "" : '<div class="lb2-warn">持っている超極祭系の UR がいません。<a href="../gacha.html">ガチャへ ›</a></div>') +
+            '<div class="lb2-arks">' + arkTile("arena", "アリーナ", "のこり " + tries + " 回", "#ff4fa3", tries) + arkTile("icpt", "迎撃戦", ic.nm.replace("迎撃", "") + "・のこり " + it, "#ff8a2a", it) + arkTile("tower", "タワー", SV().S.tower.floor + " 階まで", "#8a5cff", 0) + "</div>" +
+            '<div class="lb2-row">' +
+              '<button class="lb2-post" data-go="post"><i><svg viewBox="0 0 24 24">' + ARK_SVG.post + '</svg></i><span class="pt"><small>OUTPOST</small><b>前哨基地</b><em>' + (pend.h >= 1 ? "防衛報酬 " + Math.floor(pend.h) + " 時間ぶん" : "防衛報酬 たまりはじめ") + '</em></span><span class="pb"><i style="width:' + postP + '%"></i></span>' + (pend.h >= 8 ? '<em class="bd">!</em>' : "") + "</button>" +
+              '<button class="lb2-camp" data-go="camp" style="--cc:' + ch.c + '"><span class="en">CAMPAIGN</span><b class="st num">' + nx.c + "-" + nx.s + '</b><span class="nm">' + esc(ch.nm) + '</span><span class="pr"><i style="width:' + Math.round(campN / 48 * 100) + '%"></i></span><span class="go"><svg viewBox="0 0 24 24"><path d="M8 5l11 7-11 7z" fill="currentColor"/></svg></span></button>' +
+            "</div>" +
+          "</div>" +
+        "</div>" +
         '<div class="lb-hidehint">タップでもどる</div>';
-      function tile(go, nm, sub, c, bd2, svg) { return '<button class="lb-tile" data-go="' + go + '" style="--c:' + c + '"><i><svg viewBox="0 0 24 24">' + svg + "</svg></i><span><b>" + nm + "</b><small>" + esc(sub) + "</small></span>" + (bd2 ? '<span class="bd">' + bd2 + "</span>" : "") + "</button>"; }
     },
     mount(el) {
       $$("[data-go]", el).forEach((b) => (b.onclick = () => { UI.click(); if (b.dataset.go === "guide") { UI.guide(); return; } UI.go(b.dataset.go); }));
       const id = lobbyChar();
-      const say = $("#lbSay", el);
-      const line = () => { const K = ST().KITS[id]; const L = [K.quote].concat(LOBBY_LINES); say.textContent = L[Math.floor(Math.random() * L.length)]; say.classList.add("on"); clearTimeout(say._t); say._t = setTimeout(() => say.classList.remove("on"), 3400); };
+      const bg = $(".lb2-bg", el), sk = skylineCss();   /* 街並みの絵は style で入れる（HTML の属性の引用符とぶつからないように） */
+      if (bg) { bg.style.setProperty("--sky1", sk.far); bg.style.setProperty("--sky2", sk.near); }
+      const say = $("#lbSay", el), txt = say.querySelector("span");
+      const line = () => { const K = ST().KITS[id]; const L = [K.quote].concat(LOBBY_LINES); txt.textContent = L[Math.floor(Math.random() * L.length)]; say.classList.add("on"); clearTimeout(say._t); say._t = setTimeout(() => say.classList.remove("on"), 3800); };
       $("#lbArt", el).onclick = () => { if (document.getElementById("app").classList.contains("hideui")) return; UI.click(); line(); };
-      setTimeout(line, 500);
+      setTimeout(line, 600);
       $("#lbHide", el).onclick = (e) => { e.stopPropagation(); UI.click(); UI.toggleHide(true); };
       $("#lbChg", el).onclick = () => {
         UI.click();
@@ -224,9 +279,22 @@
           UI.LD_IDS.map((x) => { const ok = own.indexOf(x) >= 0; return '<button class="pk' + (x === id ? " in" : "") + (ok ? "" : " lk") + (UI.isMax(x) ? " mx" : "") + '" data-id="' + x + '"' + (ok ? "" : " disabled") + '><img src="' + UI.ss(x) + '" alt=""><b>' + (ok ? "" : "🔒 ") + esc(UI.nm(x)) + "</b></button>"; }).join("") + "</div>",
           (s) => $$(".pk:not(.lk)", s).forEach((b) => (b.onclick = () => { SV().setSetting("lobby", b.dataset.id); UI.closeSheet(); UI.refresh(); })));
       };
+      /* イベントの帯：4秒ごとに次へ（点を押してもえらべる）。画面がかわったら止める */
+      const bn = $("#lbBn", el), sl = $$(".lb2-slide", bn), dots = $$(".lb2-dotsel i", bn);
+      let cur = 0;
+      const show = (i) => { cur = (i + sl.length) % sl.length; sl.forEach((s, k) => s.classList.toggle("on", k === cur)); dots.forEach((d, k) => d.classList.toggle("on", k === cur)); };
+      dots.forEach((d) => (d.onclick = (e) => { e.stopPropagation(); UI.click(); show(+d.dataset.i); }));
+      clearInterval(lbTimer);
+      lbTimer = setInterval(() => { if (!document.body.contains(bn)) { clearInterval(lbTimer); return; } if (!document.hidden) show(cur + 1); }, 4000);
+      /* PC：マウスで少し奥行き（景色と副官が逆に動く） */
+      el.onpointermove = (e) => {
+        if (e.pointerType !== "mouse") return;
+        const r = el.getBoundingClientRect();
+        el.style.setProperty("--px", ((e.clientX - r.left) / r.width - 0.5).toFixed(3));
+        el.style.setProperty("--py", ((e.clientY - r.top) / r.height - 0.5).toFixed(3));
+      };
     },
   };
-
   /* ══════════ 部隊（キャラの一覧）══════════
      ★★ 2026-10-31 ご指定「並び替えと絞り込みは XEVARION の図鑑のようにボタンを押して」：「並び替え」「絞り込み」→ 下から出る板 */
   const UF_KEY = "mb3_ufil_v1";
@@ -283,7 +351,7 @@
         '<button class="tbtn' + (fc ? " on" : "") + '" id="uFil"><svg viewBox="0 0 24 24"><path d="M4 5h16l-6 7.5V19l-4 1.5v-8z" fill="none" stroke="currentColor" stroke-width="2.3" stroke-linejoin="round"/></svg><span>絞り込み</span>' + (fc ? "<b class=\"cnt\">" + fc + "</b>" : "") + "</button></div>" +
         (chips.length ? '<div class="fchips">' + chips.join("") + '<button class="fchip clr" id="uClr">すべて解除</button></div>' : "") +
         (ids.length ? '<div class="ugrid">' + ids.map((id) => UI.unitCard(id)).join("") + "</div>" : '<div class="empty">条件に合うキャラがいません。<button class="btn sm ghost" id="uClr2">絞り込みを解除</button></div>') +
-        '<p class="muted" style="margin-top:14px">使えるのは<b>超極華祭・超極煌祭・超極彩祭の UR 12体</b>のうち、持っているキャラです。持っていないキャラは XEVARION のガチャで（凸も共通）。' +
+        '<p class="muted" style="margin-top:14px">使えるのは<b>超極華祭・超極煌祭・超極彩祭の UR 15体</b>のうち、持っているキャラです。持っていないキャラは XEVARION のガチャで（凸も共通）。' +
         '<a href="../gacha.html" class="lnk">ガチャへ ›</a></p></div>';
     },
     mount(el) {
@@ -319,8 +387,10 @@
   };
 
   /* ══════════ キャラ詳細（育成）══════════ */
-  const uTab = { t: "grow" };
+  const uTab = { t: "stat" };   /* ★★ 2026-11-03 ご指定「強化とステータスのボタンは分けて」→ はじめはステータス */
+  let udImg = "ur"; try { udImg = localStorage.getItem("mb3_udimg") || "ur"; } catch (e) {}   /* ★★ 2026-11-03 キャラ詳細の上の絵（ur／ss／ld） */
   let giftN = 1;
+  let lvN = 1, lvFor = "";   /* ★★ 2026-11-02 ご指定「選択した数の分レベルを上げられるように」：上げる数（キャラが変わったら 1 に） */
   UI.S.unit = {
     cls: "full ud", top: true, nav: false, title: (p) => UI.nm(p.id), en: "PROFILE",
     render(p) {
@@ -331,8 +401,16 @@
         '<span class="chip" style="background:' + ST().CLASSES[K.cls].c + '">' + ST().CLASSES[K.cls].nm + "</span>" +
         '<span class="chip bur">' + UI.burstBadge(K.burst) + "バースト</span>" +
         '<span class="chip" style="background:' + Q.c + '">' + Q.nm + "</span>";
-      const tabs = [["grow", "強化", "#12b5ff"], ["skill", "スキル", "#8a5cff"], ["gear", "装備", "#ff8a2a"], ["cube", "キューブ", "#a35cff"], ["bond", "好感度", "#ff5fa8"]];
-      return '<div class="ud-hero' + (UI.isMax(id) ? " mxh" : "") + '" style="--sq:' + Q.c + ";--cc:" + (UI.CCOL[id] || "#7b8cff") + '"><div class="ud-bg"></div><img class="full ' + (UI.hasLD(id) ? "ld" : "ss") + '" src="' + UI.full(id) + '" alt="" onerror="this.src=\'' + UI.art(id) + '\'">' +
+      const tabs = [["stat", "ステータス", "#18c48c"], ["grow", "強化", "#12b5ff"], ["skill", "スキル", "#8a5cff"], ["gear", "装備", "#ff8a2a"], ["cube", "キューブ", "#a35cff"], ["bond", "好感度", "#ff5fa8"]];
+      /* ★★ 2026-11-03 ご指定「キャラ詳細の上の画像は UR の画像などに」→ はじめは UR の絵（横長の画面は横長の絵・縦長の画面は正方形の絵）。
+         右上の切りかえで SS 絵・全身の立ち絵（LD がある子）も見られる（えらんだものは覚える） */
+      const im = udImg === "ld" && !UI.hasLD(id) ? "ur" : udImg;
+      const art = im === "ss" ? '<img class="ud-blur" src="' + UI.ss(id) + '" alt=""><img class="full ss2" src="' + UI.ss(id) + '" alt="" onerror="this.src=\'' + UI.art(id) + '\'">'
+        : im === "ld" ? '<img class="full ld" src="' + UI.ld(id) + '" alt="" onerror="this.src=\'' + UI.art(id) + '\'">'
+        : '<img class="ud-ur wd" src="' + UI.wide(id) + '" alt="" onerror="this.remove()"><img class="ud-ur sq" src="' + UI.art(id) + '" alt="">';
+      const isw = '<div class="ud-imgsw" role="group" aria-label="絵の切りかえ">' + [["ur", "UR"], ["ss", "SS絵"]].concat(UI.hasLD(id) ? [["ld", "立ち絵"]] : [])
+        .map((x) => '<button class="' + (im === x[0] ? "on" : "") + '" data-im="' + x[0] + '">' + x[1] + "</button>").join("") + "</div>";
+      return '<div class="ud-hero m-' + im + (UI.isMax(id) ? " mxh" : "") + '" style="--sq:' + Q.c + ";--cc:" + (UI.CCOL[id] || "#7b8cff") + '"><div class="ud-bg"></div>' + art + isw +
         '<button class="ud-hide" id="udHide" aria-label="画面の文字を隠す"><svg viewBox="0 0 24 24"><path d="M2.5 12S6 5.5 12 5.5 21.5 12 21.5 12 18 18.5 12 18.5 2.5 12 2.5 12z" fill="none" stroke="currentColor" stroke-width="2.2"/><circle cx="12" cy="12" r="3" fill="currentColor"/></svg></button>' +
         '<div class="ud-name"><small>' + esc(K.role) + "</small><b>" + esc(UI.nm(id)) + (UI.isMax(id) ? '<span class="mxb">完凸</span>' : "") + '</b><div class="tg">' + tg + "</div></div>" +
         '<div class="ud-pow"><small>POWER</small><b class="num">' + (own ? fmt(st.power) : "—") + "</b><em>" + (own ? "Lv." + st.lv + " / " + ST().lvCap(o.awk) : "未所持") + "</em></div></div>" +
@@ -342,9 +420,35 @@
     mount(el, p) {
       $$(".ud-tabs button", el).forEach((b) => (b.onclick = () => { UI.click(); uTab.t = b.dataset.t; UI.refresh(); }));
       const hb = $("#udHide", el); if (hb) hb.onclick = () => { UI.click(); UI.toggleHide(true); };
+      $$(".ud-imgsw button", el).forEach((b) => (b.onclick = (e) => { e.stopPropagation(); UI.click(); udImg = b.dataset.im; try { localStorage.setItem("mb3_udimg", udImg); } catch (er) {} UI.refresh(); }));
       bindUnit(el, p.id);
     },
   };
+  /* ★★ 2026-11-03 ステータスの下（前は図鑑用の文をそのまま流しこんでいて見づらかった）：武器の札＋サブステータス＋スキル・バーストの札 */
+  function weaponHTML(id) {
+    const K = ST().KITS[id], W = ST().WEAPONS[K.wp], op = W.opt || [0, 1];
+    const rng = op[1] <= 0.5 ? "近い敵が得意" : op[0] >= 0.45 ? "遠い敵が得意" : "中くらいの距離が得意";
+    const it = [["装弾数", W.mag + " 発"], ["リロード", W.reload + " 秒"], [W.chg ? "連射（1発ごと）" : "連射", (W.rate >= 1 ? W.rate : W.rate.toFixed(1)) + " 発/秒"]];
+    if (W.chg) it.push(["フルチャージ", W.chg + " 秒・×" + W.chgMul]);
+    if (W.pel) it.push(["散弾", W.pel + " 粒"]);
+    if (W.splash) it.push(["爆風", "まわりの敵にも"]);
+    if (W.ramp) it.push(["立ち上がり", W.ramp + " 秒で最高速"]);
+    return '<div class="pan wpn3"><div class="wpn3-h"><span class="wpn3-ic">' + ST().wpIcon(K.wp, 26) + "</span><span><b>" + esc(W.nm) + '</b><small><em class="wpn3-sh">' + W.sh + "</em>" + rng + "</small></span></div>" +
+      '<div class="wpn3-g">' + it.map((x) => "<span><i>" + x[0] + "</i><b>" + x[1] + "</b></span>").join("") + "</div></div>";
+  }
+  /* 強化：えらんだ数だけ上げたときの能力（いま → 上げたあと） */
+  function lvPreview(id, o, st, to) {
+    if (!(to > o.lv)) return "";
+    const nx = ST().stats(id, Object.assign({}, o, { lv: to }));
+    return '<div class="lvpv"><small class="muted">Lv.' + to + " にすると</small><div>" + [["戦力", "power"], ["HP", "hp"], ["攻撃力", "atk"], ["防御力", "def"]]
+      .map((x) => "<span><i>" + x[0] + "</i><b>" + fmt(nx[x[1]]) + "</b><em>+" + fmt(nx[x[1]] - st[x[1]]) + "</em></span>").join("") + "</div></div>";
+  }
+  function subStats(st) {
+    const L = [["会心ダメージ", "+" + Math.round(st.critDmg) + "%"]];
+    [["ammo", "最大装弾数"], ["chg", "チャージ速度"], ["chgDmg", "チャージダメージ"], ["reload", "リロード速度"], ["gauge", "バーストゲージ獲得"], ["core", "コアダメージ"], ["elem", "有利属性ダメージ"], ["hit", "命中率"], ["dr", "被ダメージ"]]
+      .forEach((x) => { const v = st[x[0]]; if (v) L.push([x[1], (x[0] === "dr" ? "−" : "+") + Math.round(v * 10) / 10 + "%"]); });
+    return '<div class="sub4">' + L.map((x) => "<span><i>" + x[0] + "</i><b>" + x[1] + "</b></span>").join("") + "</div>";
+  }
   function notOwned(id, o, st) {
     return '<div class="pan"><b>まだ持っていません</b><p class="muted">XEVARION のガチャ（' + esc(ST().SQUADS[ST().KITS[id].sq].fes) + '）で手に入ります。持っているキャラだけが編成に入れられます。</p><a class="btn wide" href="../gacha.html">ガチャへ</a></div>' +
       '<div class="h2"><b>スキル・バースト</b><em>スキル Lv1 の値</em></div>' + ["s1", "s2", "bs"].map((k, i) => skillCard(id, k, i, 1, false)).join("");
@@ -354,16 +458,27 @@
     const u = SV().unit(id), K = ST().KITS[id];
     if (t === "grow") {
       const cap = ST().lvCap(o.awk), top5 = SV().inTop5(id), sy = SV().synchroLv();
-      const c1 = SV().lvUpCost(id, 1), c10 = SV().lvUpCost(id, 10), cm = SV().lvUpCost(id, 999);
       const maxed = o.lv >= cap;
+      if (lvFor !== id) { lvFor = id; lvN = 1; }
+      const can = countAffordable(id), lvMax = Math.max(1, can);
+      lvN = Math.max(1, Math.min(lvN, lvMax));
+      const cn = SV().lvUpCost(id, lvN);
       return '<div class="pan"><div class="lvbox"><div class="lvbig num">' + o.lv + "<small>/ " + cap + '</small></div><div style="flex:1"><div class="lvcap">' +
         (sy && !top5 && SV().S.set.synchro ? "シンクロ装置：上位5人に合わせて Lv." + sy + "（このキャラを上げると上位5人に入ります）" : top5 && SV().ownedIds().length >= 5 ? "上位5人（シンクロ装置の基準）" : "持っているキャラが5人以上になるとシンクロ装置が使えます") + "</div>" +
         '<div class="awk">' + [1, 2, 3, 4].map((i) => '<i class="' + (i <= o.awk ? "on" : "") + '">★</i>').join("") + '<span class="lvcap">凸 ' + o.awk + " / 4" + (o.awk >= 4 ? "（完凸）" : "・上限 Lv." + ST().LV_CAP[Math.min(4, o.awk + 1)] + " へは凸が必要") + "</span></div></div></div>" +
         (maxed ? '<p class="muted">' + (o.awk >= 4 ? "最大レベルです。" : "レベルの上限です。ガチャで同じキャラを引くと凸が進み、上限が上がります（XEVARION 共通）。") + "</p>" :
-          '<div class="lvrow"><div><small class="muted">次の Lv まで</small>' + UI.costHTML(c1.cost) + "</div>" + (cm.n > 1 ? '<div><small class="muted">できるだけ（Lv.' + Math.min(cap, o.lv + countAffordable(id)) + " まで）</small></div>" : "") + "</div>" +
-          '<div class="sh-btns" style="margin-top:6px"><button class="btn ghost" id="lv1">+1</button><button class="btn ghost" id="lv10">+' + c10.n + '</button><button class="btn" id="lvMax">できるだけ上げる</button></div>') + "</div>" +
-        '<div class="h2"><b>ステータス</b></div>' + stat4(st) +
-        '<div class="pan" style="margin-top:10px">' + ST().detailHTML(id, o) + "</div>";
+          '<div class="lvsel"><small class="muted">上げる Lv の数をえらぶ（いまの素材で あと ' + can + " Lv まで）</small>" + UI.stepper("lvStp", lvN, lvMax) +
+          '<div class="lvrow"><div><small class="muted">Lv.' + o.lv + " → <b>Lv." + cn.to + "</b> に必要</small>" + UI.costHTML(cn.cost) + "</div></div>" + lvPreview(id, o, st, cn.to) + "</div>" +
+          '<div class="sh-btns" style="margin-top:6px"><button class="btn" id="lvN"' + (can ? "" : " disabled") + ">" + (can ? "Lv を " + lvN + " 上げる" : "素材が足りません") + "</button></div>") + "</div>" +
+        '<p class="muted" style="margin:10px 2px 0">いまの能力・武器・スキルは「<b>ステータス</b>」タブで見られます。</p>';
+    }
+    /* ★★ 2026-11-03 ステータス（強化と分けた）：能力・サブステータス・武器・スキルとバースト */
+    if (t === "stat") {
+      return '<div class="h2" style="margin-top:6px"><b>ステータス</b><em>Lv.' + st.lv + "・凸 " + o.awk + " / 4</em></div>" + stat4(st) +
+        subStats(st) +
+        '<div class="h2"><b>武器</b></div>' + weaponHTML(id) +
+        '<div class="h2"><b>スキル・バースト</b><em>強化は「スキル」タブで</em></div>' +
+        ["s1", "s2", "bs"].map((k, i) => skillCard(id, k, i, u.sk[i], false, true)).join("");
     }
     if (t === "skill") {
       const Bu = ST().BURST[K.burst];
@@ -420,7 +535,8 @@
     const after = t.charAt(i + ph.length);
     return { nm: s || "効果量", pre: plus ? "+" : "", suf: after === "%" ? "%" : after === "秒" ? "秒" : after === "回" ? "回" : "" };
   }
-  function skillCard(id, k, i, lv, canUp) {
+  /* mini＝強化タブ（ステータスの下）用：数値の表なし・少し小さく */
+  function skillCard(id, k, i, lv, canUp, mini) {
     const K = ST().KITS[id], sk = K[k], isB = k === "bs", Bu = ST().BURST[K.burst];
     const plain = String(sk.desc).replace(/<[^>]+>/g, "");
     const tags = [];
@@ -435,14 +551,14 @@
     const rows = ["v", "w"].filter((q) => sk[q] && plain.indexOf("{" + q + "}") >= 0).map((q) => {
       const P = phInfo(sk.desc, "{" + q + "}") || { nm: "効果量", pre: "", suf: "" };
       const f = (L) => P.pre + ST().skillV(sk, L, q).toLocaleString("ja-JP") + P.suf;
-      return "<tr><th>" + esc(P.nm) + "</th><td class=\"now\">" + f(lv) + "</td><td>" + (lv < mx ? f(nx) : "—") + "</td><td class=\"mx\">" + f(mx) + "</td></tr>";
+      return "<tr><th>" + esc(P.nm) + "</th><td class=\"now\">" + f(lv) + "</td><td>" + (lv < mx ? f(nx) : "—") + "</td><td class=\"tmax\">" + f(mx) + "</td></tr>";
     }).join("");
     const c = D().skillCost(lv);
-    return '<div class="pan skc2' + (isB ? " bs b" + K.burst : "") + '">' +
-      '<div class="skc2-hd"><span class="ty">' + (isB ? "BURST" : "SKILL " + (i + 1)) + '</span><b>' + esc(sk.nm) + '</b><span class="lv">Lv.<b class="num">' + lv + "</b>/" + mx + "</span></div>" +
+    return '<div class="pan skc2' + (isB ? " bs b" + K.burst : "") + (mini ? " mini" : "") + '">' +
+      '<div class="skc2-hd"><span class="ty">' + (isB ? "BURST " + Bu.nm : "SKILL " + (i + 1)) + '</span><b>' + esc(sk.nm) + '</b><span class="lv">Lv.<b class="num">' + lv + "</b>/" + mx + "</span></div>" +
       '<div class="skc2-tags">' + tags.join("") + "</div>" +
       '<p class="skc2-d">' + ST().skillText(id, k, lv) + "</p>" +
-      (rows ? '<table class="skc2-v"><thead><tr><th>数値</th><th>いま</th><th>次の Lv</th><th>最大</th></tr></thead><tbody>' + rows + "</tbody></table>" : "") +
+      (rows && !mini ? '<table class="skc2-v"><thead><tr><th>数値</th><th>いま</th><th>次の Lv</th><th>最大</th></tr></thead><tbody>' + rows + "</tbody></table>" : "") +
       (!canUp ? "" : lv >= mx ? '<div class="muted" style="margin-top:6px">最大レベルです</div>' : '<div class="skc2-up">' + UI.costHTML(c) + '<button class="btn sm ghost" data-skm="' + i + '">できるだけ</button><button class="btn sm" data-sk="' + i + '">Lv.' + nx + " へ</button></div>") + "</div>";
   }
   UI.skillCard = skillCard;
@@ -450,8 +566,8 @@
     const re = () => { UI.refresh(); UI.paintCur(); };
     const ok = () => { try { MB3.Audio.play("ready"); } catch (e) {} };
     const lv = (n) => { const d = SV().lvUp(id, n); if (d) { ok(); UI.toast("Lv が " + d + " 上がりました"); } else UI.toast("素材が足りません"); re(); };
-    const b1 = $("#lv1", el), b10 = $("#lv10", el), bm = $("#lvMax", el);
-    if (b1) b1.onclick = () => lv(1); if (b10) b10.onclick = () => lv(10); if (bm) bm.onclick = () => lv(999);
+    const bn = $("#lvN", el); if (bn) bn.onclick = () => { const n = lvN; lvN = 1; lv(n); };
+    if ($("#lvStp", el)) UI.bindStepper(el, "lvStp", () => lvN, (n) => { lvN = n; UI.refresh(); }, Math.max(1, countAffordable(id)));
     $$("[data-sk]", el).forEach((b) => (b.onclick = () => { if (SV().skillUp(id, +b.dataset.sk)) { ok(); UI.toast("スキルを強化しました"); } else UI.toast("素材が足りません"); re(); }));
     $$("[data-skm]", el).forEach((b) => (b.onclick = () => { const n = SV().skillUpMax(id, +b.dataset.skm); if (n) { ok(); UI.toast("スキルが " + n + " Lv 上がりました"); } else UI.toast("素材が足りません"); re(); }));
     const sa = $("#skAll", el); if (sa) sa.onclick = () => { let n = 0; for (let r = 0; r < 30; r++) { let any = 0; [0, 1, 2].forEach((i) => { if (SV().skillUp(id, i)) { n++; any = 1; } }); if (!any) break; } if (n) { ok(); UI.toast("スキルを合計 " + n + " Lv 上げました"); } else UI.toast("素材が足りないか、すべて最大です"); re(); };

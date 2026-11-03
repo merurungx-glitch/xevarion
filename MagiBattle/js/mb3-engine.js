@@ -106,7 +106,7 @@
       mode: cfg.mode, t: 0, time: cfg.time || (cfg.mode === "arena" ? 90 : (cfg.stage && cfg.stage.time) || 240), over: false, result: null, speed: 1, slow: 0, hitstop: 0,
       L: cfg.stage ? cfg.stage.L : (cfg.L || 10), hard: !!(cfg.stage && cfg.stage.hard), stage: cfg.stage || null,
       side: [mkSide(0, cfg.team, null), null], enemies: [], proj: [], ev: [],
-      ctl: 0, firing: false, auto: !!cfg.auto, manual: cfg.mode !== "arena",
+      ctl: 0, firing: false, auto: !!cfg.auto, manual: cfg.mode !== "arena", hideAll: false, log: [],   /* ★★ 2026-11-02 hideAll＝Space で全員が遮蔽物に隠れる・log＝バトルログ */
       waveI: -1, waveT: 0, queue: [], waves: cfg.stage ? cfg.stage.waves : [], score: 0, dmgTotal: 0, kills: 0, pickAt: null, stageEl: null,
       bossRef: null, sweep: null, breakT: 0, marks: [], beam: null, quake: null, jam: 0,
       combo: { n: 0, t: 0, best: 0 }, streak: { n: 0, t: 0 }, waveClearT: 0,
@@ -438,7 +438,8 @@
   function burstCands(S) { return S.units.filter((u) => !u.dead && u.K.burst === S.stage && u.bcd <= 0); }
   function addGauge(B, S, u, g) {
     if (S.stage > 0 || S.fb > 0) return;
-    S.gauge += g * (1 + ((u.st.gauge || 0) + (u.s1.fx === "gaugeGain" ? u.v1 : 0)) / 100);
+    let tg = 0; for (const a of S.units) if (!a.dead && a.s1.fx === "teamGauge") tg += a.v1;   /* ★★ 2026-11-03 チフル：味方全員のゲージ獲得量 */
+    S.gauge += g * (1 + ((u.st.gauge || 0) + (u.s1.fx === "gaugeGain" ? u.v1 : 0) + tg) / 100);
     if (S.gauge >= 100) { S.gauge = 100; S.stage = 1; S.stageT = 999; S.autoT = 0; B.ev.push({ k: "burstReady", side: S.n }); }
   }
   function doBurst(B, S, u) {
@@ -484,6 +485,10 @@
       case "sgOverdrive": tgt = mainTarget(B, S, u); hitT(tgt, u.vb / 100, {}); buff(u, "pel2", 1, 10); break;
       case "aoeBurn": f.forEach((t) => { hitT(t, u.vb / 100, { aoe: 1 }); if (t.burn) t.burn.push({ dps: atk * u.wb / 100, t: 10, src: u }); }); break;
       case "mgOverdrive": buff(u, "atk", u.vb, 10); buff(u, "mgMax", 1, 10); u.ramp = 1; u.ammo = u.mag; u.reload = 0; break;
+      /* ★★ 2026-11-03 超極彩祭の追加3体 */
+      case "teamAtkCdr": al.forEach((a) => { buff(a, "atk", u.vb, 10); if (a !== u) a.bcd = Math.max(0, a.bcd - u.wb); }); break;   /* チフル */
+      case "teamHealAtk": al.forEach((a) => { heal(a, atk * u.wb / 100); buff(a, "atk", u.vb, 10); buff(a, "regen", atk * 0.03, 10); }); break;   /* ミント */
+      case "critSnipe": tgt = mainTarget(B, S, u); hitT(tgt, u.vb / 100, { crit: 1 }); buff(u, "critDmg", u.wb, 10); buff(u, "chg", 30, 10); break;   /* プリカ */
     }
     B.ev.push({ k: "burstFx", side: S.n, i: u.i, fx, id: u.id, tgt });
   }
@@ -495,6 +500,7 @@
     if (fb && u.s2.fx === "fbChargeAtk") p += u.v2;
     if (fb && u.s2.fx === "fbSelfAtk") p += u.v2;
     if (u.s2.fx === "atkIfEnemies" && foes(B, S).length >= (u.s2.n || 3)) p += u.v2;
+    for (const a of S.units) if (!a.dead && a.s2.fx === "teamAtkAura") p += a.v2;   /* ★★ 2026-11-03 チフル：味方全員の攻撃力（戦えるあいだ） */
     ["chargeAtk", "critAtk", "coreAtk"].forEach((k) => { const s = u.stk[k]; if (s && s.t > 0) p += s.n * s.v; });
     return u.st.atk * (1 + p / 100);
   }
@@ -514,6 +520,11 @@
       u.cnt.heal += dt;
       if (u.cnt.heal >= (u.s1.period || 5)) { u.cnt.heal = 0; const al = S.units.filter((a) => !a.dead).sort((a, b) => a.hp / a.hpMax - b.hp / b.hpMax)[0]; if (al) { const h = Math.min(al.hpMax - al.hp, atkOf(B, S, u) * u.v1 / 100); al.hp += h; u.healed += h; if (h > 0) B.ev.push({ k: "heal", side: S.n, i: al.i, v: h }); } }
     }
+    /* ★★ 2026-11-03 ミントのスキル1：6秒ごとに味方全員を回復 */
+    if (u.s1.fx === "healTeamEvery") {
+      u.cnt.heal += dt;
+      if (u.cnt.heal >= (u.s1.period || 6)) { u.cnt.heal = 0; const v = atkOf(B, S, u) * u.v1 / 100; let tot = 0; S.units.forEach((a) => { if (a.dead) return; const h = Math.min(a.hpMax - a.hp, v); a.hp += h; u.healed += h; tot += h; }); if (tot > 0) B.ev.push({ k: "heal", side: S.n, i: -1, v }); }
+    }
     /* リロード中 */
     if (u.reload > 0) { u.reload -= dt; u.exposed = false; u.chg = 0; if (u.reload <= 0) { u.reload = 0; u.ammo = u.mag; } return; }
     const ctl = S.n === 0 && B.ctl === u.i && B.manual && !B.auto;
@@ -527,13 +538,16 @@
       if (u.hideT > 0) { u.hideT -= dt; want = false; }
       if (want) { u.aimT -= dt; if (u.aimT > 0) want = false; }
     }
+    /* ★★ 2026-11-02 ご指定「スペースキーで全体ハイド（バトル中）」：押しているあいだは味方全員が隠れる（AUTO でも）。隠れたらリロード */
+    const hideAll = S.n === 0 && B.hideAll && B.mode !== "arena";
+    if (hideAll) want = false;
     const mgMax = buffSum(u, "mgMax") > 0;
     if (!want) {
       if (u.exposed) u.aimT = 0.25 + rnd() * 0.35;
       u.exposed = false;
       if (u.W.chg && u.chg > 0 && ctl) u.chg = Math.max(0, u.chg - dt * 2);
       if (!mgMax) u.ramp = Math.max(0, u.ramp - dt * 1.5);
-      if (ctl && u.ammo < u.mag * 0.4) startReload(B, u);
+      if (hideAll ? u.ammo < u.mag : ctl && u.ammo < u.mag * 0.4) startReload(B, u);
       return;
     }
     if (u.ammo <= 0 && !mgMax) { startReload(B, u); return; }
@@ -619,11 +633,13 @@
       if (!t) continue;
       anyHit = true; hx = t;
       if (t.k === "missile") { t.hp -= atkOf(B, S, u) * mul * (o.charge ? (W.chgMul || 1) : 1); if (t.hp <= 0 && !t.dead) { t.dead = true; B.ev.push({ k: "boom", x: t.x, z: t.z, y: t.y, s: 0.7 }); B.ev.push({ k: "shotDown", x: t.x, z: t.z, y: t.y }); } continue; }
-      if (t.side != null) { dmgUnitFromUnit(B, u, t, mul * (o.charge ? (W.chgMul || 1) * (1 + ((u.st.chgDmg || 0) + buffSum(u, "chgDmg")) / 100) : 1), { charge: o.charge, splash: W.splash }); }
+      /* ★★ 2026-11-03 プリカ（chargeCritSure）：フルチャージは必ず会心＋チャージダメージ */
+      const ccs = !!(o.charge && u.s1.fx === "chargeCritSure");
+      if (t.side != null) { dmgUnitFromUnit(B, u, t, mul * (o.charge ? (W.chgMul || 1) * (1 + ((u.st.chgDmg || 0) + buffSum(u, "chgDmg") + (ccs ? u.v1 : 0)) / 100) : 1), { charge: o.charge, splash: W.splash, crit: ccs ? 1 : 0 }); }
       else {
         let m = mul;
-        if (o.charge) m *= (W.chgMul || 1) * (1 + ((u.st.chgDmg || 0) + buffSum(u, "chgDmg") + (u.s1.fx === "pierceCharge" ? u.v1 : 0)) / 100);
-        dmgEnemy(B, u, t, atkOf(B, S, u) * m, { core: part === "core", part: part !== "core" && part !== "body" ? part : null, charge: o.charge, pellet: !!W.pel });
+        if (o.charge) m *= (W.chgMul || 1) * (1 + ((u.st.chgDmg || 0) + buffSum(u, "chgDmg") + (u.s1.fx === "pierceCharge" ? u.v1 : 0) + (ccs ? u.v1 : 0)) / 100);
+        dmgEnemy(B, u, t, atkOf(B, S, u) * m, { core: part === "core", part: part !== "core" && part !== "body" ? part : null, charge: o.charge, pellet: !!W.pel, crit: ccs ? 1 : 0 });
         /* ロケットの爆風 */
         if (W.splash) B.enemies.forEach((e2) => { if (e2 === t || e2.dead) return; if (Math.hypot(e2.x - t.x, (e2.z - t.z) * 2) < W.splash * 2.2) dmgEnemy(B, u, e2, atkOf(B, S, u) * m * 0.5, { splash: 1, charge: o.charge }); });
         /* ヒサコ：貫通 */
