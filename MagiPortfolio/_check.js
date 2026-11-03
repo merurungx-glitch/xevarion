@@ -1641,7 +1641,7 @@ function showSplash(onDone){
   const el=document.createElement('div'); el.id='mp-splash';
   el.innerHTML=`
     <div class="ph intro" id="mpIntro">
-      <div class="logo ngx"><img src="../brand/NGX.png" alt="NGX" onerror="this.outerHTML='<span class=&quot;tx gold&quot;>NGX</span>'"></div>
+      <div class="logo ngx"><img src="../brand/NGX.png?v=2" alt="NGX" onerror="this.outerHTML='<span class=&quot;tx gold&quot;>NGX</span>'"></div>
       <div class="amp">×</div>
       <div class="logo mf"><img src="../brand/MagicalFuture.png" alt="Magical Future" onerror="this.outerHTML='<span class=&quot;tx mfx&quot;>Magical Future</span>'"></div>
     </div>

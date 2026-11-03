@@ -6,7 +6,7 @@
      一度でも再生した曲は fetch ハンドラが自動でキャッシュする。
    ・キャッシュ済みの曲はオフライン（機内モード）でもそのまま再生できる。
    ============================================================ */
-const VERSION = "magimusic-sw-v38";
+const VERSION = "magimusic-sw-v40";
 const AUDIO_CACHE = "magimusic-audio-v1";   // 曲は本体と別キャッシュ（本体更新で消えないように）
 
 const CORE = [
@@ -15,10 +15,11 @@ const CORE = [
   "../thumbs/MagiMusic.jpg",
   "../thumbs/MagiBurst.jpg",
   "../Xevarion.png",
-  "../brand/NGX_s.webp",
+  "../brand/NGX_s.webp?v=2",
   "../brand/MagicalFuture_s.webp",
   "../brand/ISHIDA_s.webp",
   "../brand/YRA_s.webp",
+  "../brand/Kawagani_s.webp", "../brand/StudioDOGA_s.webp",   // ★★ 2026-11-02 運営協力に参入
   "../maintenance-gate.js?v=13",
 ];
 
