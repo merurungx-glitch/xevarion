@@ -6,7 +6,7 @@
 <script src="xeva-safebottom.js?v=12"></script>
 <meta charset="UTF-8">
 <script>(function(){try{var a=JSON.parse(localStorage.getItem('xeva_account_v1'));if(!a||!a.setupDone)location.replace('index.html');}catch(e){}})();</script>
-<script type="module" src="xevarion-fb.js?v=36"></script>
+<script type="module" src="xevarion-fb.js?v=37"></script>
 <script src="xeva-presence.js?v=9" defer></script>
 <script type="module" src="xeva-cloud.js?v=49"></script>
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -23,8 +23,8 @@
 <!-- ★ 2026-08-10 ガチャ結果の演出（1枚ずつ公開・昇格演出）の見た目。MagiBurst と共通 -->
 <link rel="stylesheet" href="mb-gacha-reveal.css?v=11">
 <!-- ★ 2026-08-10 キャラ詳細（性能画面）の見た目。図鑑（characters.html）と共通 -->
-<link rel="stylesheet" href="mb-char-detail.css?v=31">
-<script src="xeva.js?v=85"></script>
+<link rel="stylesheet" href="mb-char-detail.css?v=32">
+<script src="xeva.js?v=86"></script>
 <!-- ★★ 2026-09-05 言語切りかえ（日本語 ⇄ English）。辞書は本体のあとに読むこと。 -->
 <script src="xeva-i18n.js?v=8"></script>
 <script src="xeva-i18n-dict.js?v=12"></script>
@@ -42,11 +42,11 @@
 <script src="xeva-i18n-mb7.js?v=7"></script>
 <script src="xeva-i18n-p4.js?v=8"></script>
 <!-- ★★ 2026-09-06b 今回足したもの（新キャラ14体・装備・スタメンなど）の英語辞書 -->
-<script src="xeva-i18n-n1.js?v=21"></script>
+<script src="xeva-i18n-n1.js?v=22"></script>
 <script src="xeva-i18n-n2.js?v=3"></script>
 <script src="xeva-loading.js?v=19" defer></script>
-<script src="magibattle-stats.js?v=19"></script>
-<script type="module" src="xeva-sync.js?v=18"></script>
+<script src="magibattle-stats.js?v=20"></script>
+<script type="module" src="xeva-sync.js?v=19"></script>
 <style>
 /* ══════════════════════════════════════════════════════════════
    XEVARION ガチャ（2026-08-10 作り直し）
@@ -183,6 +183,9 @@ body:not(.glmode) #glist{display:none}
 .gl-flt button i{font-style:normal}
 .gl-flt button small{font-size:10px;font-weight:900;background:rgba(0,0,0,.12);border-radius:99px;padding:1px 7px}
 .gl-fnote{margin:0 16px 6px;font-size:10.5px;font-weight:800;color:#6a4aa8;background:#f1eaff;border-radius:12px;padding:7px 10px}
+/* ★★ 2026-11-03 ボタンが3つになったので、せまい画面では字を小さく・すき間を詰める（1行に収める） */
+.gl-flt button.bt,.gl-flt button.ab{flex:1.35}
+@media (max-width:460px){.gl-flt{gap:5px}.gl-flt button{font-size:10.5px;padding:8px 4px;gap:3px;letter-spacing:-.02em}.gl-flt button small{font-size:9px;padding:1px 5px}}
 .gl-ban .rb{position:absolute;right:10px;bottom:34px;font-family:'Orbitron','Noto Sans JP',sans-serif;font-size:12px;font-weight:900;color:#d0103a;
   background:linear-gradient(135deg,#fff,#ffe9a8);border-radius:10px;padding:4px 10px;box-shadow:0 3px 10px rgba(160,30,60,.35);transform:rotate(-4deg)}
 /* ★★ 2026-10-13 バナーの「MagiAbyss でも使えるキャラ」（.gl-ban .ma）は廃止（ご指定） */
@@ -191,6 +194,17 @@ body:not(.glmode) #glist{display:none}
 .gl-ch .gl-ma1{position:absolute;right:3px;top:44px;z-index:1;width:15px;height:15px;display:flex;align-items:center;justify-content:center;font-style:normal;
   color:#fff;background:rgba(58,29,110,.72);border-radius:50%;box-shadow:0 0 0 1.2px rgba(255,255,255,.8)}
 .gl-maic{width:10px;height:10px;flex:none;display:inline-block;vertical-align:-1px}
+/* ★★ 2026-11-03 MagiBattle で使えるキャラ：MagiAbyss の印の<b>上</b>（同じ形の丸・紺に照準）。MagiAbyss の印が無い子は同じ高さ（solo） */
+.gl-ch .gl-mb1{position:absolute;right:3px;top:26px;z-index:1;width:15px;height:15px;display:flex;align-items:center;justify-content:center;font-style:normal;
+  color:#fff;background:rgba(20,70,190,.82);border-radius:50%;box-shadow:0 0 0 1.2px rgba(255,255,255,.85)}
+.gl-ch .gl-mb1.solo{top:44px}
+.gl-mbic{width:10px;height:10px;flex:none;display:inline-block;vertical-align:-1px}
+.gl-ch .gl-mb1 .gl-mbic{width:9.5px;height:9.5px}
+.gl-pk .gl-malg.gl-mblg i{background:rgba(20,70,190,.78)}
+.gl-pk .gl-malg.gl-mblg i .gl-mbic{width:8px;height:8px}
+.gl-flt .bt i .gl-mbic,.gl-fnote .gl-mbic{width:11px;height:11px;margin-right:2px}
+.gl-flt button.bt.on{background:linear-gradient(135deg,#0d1b4a,#1d4fd0 50%,#38c8ff)}
+.gl-fnote.bt{color:#1a4aa8;background:#e6efff}
 /* ★★ 2026-10-31 完凸ロビー対応キャラ：MagiAbyss の印と同じ形で<b>絵の左下</b>（金色の丸に王冠） */
 .gl-ch .gl-lb1{position:absolute;left:3px;top:44px;z-index:1;width:15px;height:15px;display:flex;align-items:center;justify-content:center;font-style:normal;
   color:#fff;background:rgba(206,128,0,.88);border-radius:50%;box-shadow:0 0 0 1.2px rgba(255,255,255,.85)}
@@ -258,6 +272,11 @@ body:not(.glmode) #glist{display:none}
   background:linear-gradient(135deg,var(--pur),var(--pink));-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 .gh h1 small{display:block;font-size:8px;letter-spacing:.22em;color:var(--txt2);-webkit-text-fill-color:var(--txt2)}
 .wal{display:flex;gap:6px;align-items:center}
+/* ★★ 2026-11-02 ご指定「ガチャの上のチケットなどの個数表示が画面外に出ていることがある」
+   真因＝561〜900px くらいの幅では、← 見出し・？使い方・ショップ・財布（5〜6枠）が1行に収まらず、財布が右へはみ出していた（折り返しは 560px 以下だけ）。
+   → どの幅でも .gh を折り返せるようにし、収まらないときは財布だけ次の行の右へ。財布の中も折り返す。 */
+.gh{flex-wrap:wrap;row-gap:8px}
+.wal{margin-left:auto;max-width:100%;flex-wrap:wrap;justify-content:flex-end;min-width:0}
 /* ══ ★★ 2026-09-06 せまい画面では財布を<b>次の行に1列</b>で（ご指定）══
    ・見出しと同じ行に置くと 375px では必ずはみ出す。
    ・4枠を等分（1fr）にして、数字が長いときは枠の中で縮める。
@@ -268,9 +287,12 @@ body:not(.glmode) #glist{display:none}
   .wal{flex:1 0 100%;display:grid;grid-template-columns:repeat(4,1fr);gap:5px}
   /* ★★ 2026-10-28 半額券を持っているときは5枠（出ている枠の数で等分） */
   .wal{grid-template-columns:none;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr)}
+  /* ★★ 2026-11-02 数字を「…」で切らない：等分の1行をやめ、枠は中身の幅で並べて足りなければ2行に（行の中は均等に伸ばす） */
+  .wal{display:flex;flex-wrap:wrap;justify-content:center}
+  .walc{flex:1 1 auto}
   .walc{justify-content:center;gap:3px;padding:5px 4px;font-size:11px;min-width:0}
   .walc.tkt,.walc.cry{padding:4px 4px}
-  .walc b{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+  .walc b{white-space:nowrap}
   .walc .tkic svg{width:16px;height:auto;flex:none}
   .walc .icc{flex:none}
 }
@@ -625,7 +647,7 @@ body:not(.glmode) #glist{display:none}
 <!-- ★★ 2026-10-14 下バーは body のいちばん最初で作る（ページの最後に defer で読んでいたので、開いて少しあとに出ていた） -->
 <script src="xeva-tabbar.js?v=8" data-tab="gacha"></script>
 <!-- ★★ 2026-10-31 ご指定「使い方のアニメーションにアクセスをわかりやすく（それぞれの画面）」→ 上のバーに小さな「？ 使い方」（xeva-tour.js が置く・この画面の章だけ再生） -->
-<script src="xeva-tour.js?v=2" defer></script>
+<script src="xeva-tour.js?v=3" defer></script>
 
 <div class="wrap">
   <div class="gh">
@@ -1050,17 +1072,18 @@ body:not(.glmode) #glist{display:none}
 <!-- ★★ 2026-09-08 新キャラの<b>実装日</b>の台帳。
      mb-core.js の charImplDate() がこれを見て「実装から10日以内か」を判定する。
      ★ mb-core.js より<b>前</b>に読むこと（defer にしない）。 -->
-<script src="mb-newchars.js?v=42"></script>
-<script src="MagiBurst/js/mb-core.js?v=145"></script>
+<script src="mb-newchars.js?v=43"></script>
+<script src="MagiBurst/js/mb-core.js?v=146"></script>
 <!-- ★★ 2026-10-09 ガチャの演出（1から作り直し）：召喚陣・確定演出・1体ずつ公開・UR は縦長の SS 絵 -->
-<script src="xeva-summon.js?v=5"></script>
+<script src="xeva-summon.js?v=6"></script>
 <!-- ★ 2026-08-10 キャラ詳細（性能画面）。図鑑（characters.html）と同じものを使う -->
 <!-- ★★ 2026-08-22 ガチャの詳細だけ「このキャラの最大値」も並べる（ご指定）。
      図鑑（characters.html）はこの旗を立てないので、これまでどおり いまの値だけ。
      旗は mb-char-detail.js を読む<b>前</b>に立てること。 -->
 <script>window.MBDET_MAXSTATS = true;</script>
-<script src="mb-char-detail.js?v=53"></script>
-<script src="gacha-ui.js?v=70"></script>
+<script src="mb-char-detail.js?v=54"></script>
+<script src="xeva-favs.js?v=1"></script><!-- ★★ 2026-11-03 キャラ詳細の ☆（お気に入りカード）をガチャの詳細でも -->
+<script src="gacha-ui.js?v=71"></script>
     <!-- ★★ 2026-09-13c 新キャラ紹介アニメの舞台。中身は gacha-ui.js の nciOpen() が入れる。 -->
     <div class="nci" id="nciOv">
       <div class="nci-sky"><i class="s1"></i><i class="s2"></i><div class="nci-rays"></div></div>

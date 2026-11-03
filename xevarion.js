@@ -377,6 +377,8 @@ function claimAllMissions() {
     const groups = seasonSSRGroups();
     Object.keys(groups).forEach(s => { const r = claimCollection(s, true); if (r) { count++; xeva += r.xeva || 0; } });
   } catch (e) {}
+  /* ④' ★★ 2026-11-03 凸のミッション */
+  try { AWK_MISSIONS.forEach(m => { const r = claimAwk(m.k, true); if (r) { count++; xeva += r.xeva || 0; } }); } catch (e) {}
 
   /* ⑤ ★★ 2026-10-30 毎月のビンゴ */
   try {
@@ -578,7 +580,73 @@ function saveCollectionState(s){ try{ localStorage.setItem("xeva_collection_v1",
 function collectionClaimable(){
   const groups=seasonSSRGroups(), owned=getOwnedChars(), state=getCollectionState(); let n=0;
   Object.keys(groups).forEach(s=>{ if(groups[s].every(c=>owned[c.id]) && !state[s]) n++; });
+  try { n += awkClaimable(); } catch (e) {}   /* ★★ 2026-11-03 凸のミッション */
   return n;
+}
+/* ══ ★★ 2026-11-03 凸のミッション（ご指定「ミッションに UR や SSR の凸のミッションを完凸まで設置」）══
+   UR・SSR それぞれ「1凸・2凸・3凸・完凸（4凸）」のキャラを1体つくる＋完凸の人数（UR 3体・SSR 5体）。どのキャラで達成してもよい。
+   凸の数は magiburst_v1.chars[id].awk と xeva_gacha_v1.dupes の大きいほう（ホームの完凸ロビーと同じ数え方）。
+   レア度は xeva.js の MB_CHAR_MASTER（rarLabel "UR"／star5）。受け取りの印は xeva_collection_v1 の "awk:<k>"（同期する）。
+   ★ ジェム・チケットは「その印で1回だけ」（gem.migrateOnce／ticket.migrateOnce）＝2台で受け取っても増えない。 */
+const AWK_MISSIONS = [
+  { k: "ur1", rar: "UR", awk: 1, n: 1, xeva: 3000, title: "UR を1凸しよう" },
+  { k: "ur2", rar: "UR", awk: 2, n: 1, xeva: 5000, title: "UR を2凸しよう" },
+  { k: "ur3", rar: "UR", awk: 3, n: 1, xeva: 8000, title: "UR を3凸しよう" },
+  { k: "ur4", rar: "UR", awk: 4, n: 1, xeva: 15000, gem: 10, tk: 3, title: "UR を完凸（4凸）しよう" },
+  { k: "ur4x3", rar: "UR", awk: 4, n: 3, xeva: 30000, gem: 20, tk: 5, title: "UR を3体 完凸しよう" },
+  { k: "ssr1", rar: "SSR", awk: 1, n: 1, xeva: 1000, title: "SSR を1凸しよう" },
+  { k: "ssr2", rar: "SSR", awk: 2, n: 1, xeva: 2000, title: "SSR を2凸しよう" },
+  { k: "ssr3", rar: "SSR", awk: 3, n: 1, xeva: 3000, title: "SSR を3凸しよう" },
+  { k: "ssr4", rar: "SSR", awk: 4, n: 1, xeva: 6000, gem: 3, title: "SSR を完凸（4凸）しよう" },
+  { k: "ssr4x5", rar: "SSR", awk: 4, n: 5, xeva: 15000, gem: 8, tk: 3, title: "SSR を5体 完凸しよう" },
+];
+function awkLevels(){
+  const mb = lsJson("magiburst_v1").chars || {}, xg = gachaSave(), xo = xg.owned || {}, xd = xg.dupes || {};
+  const out = { UR: [], SSR: [] };
+  ((window.XEVA && window.XEVA.MB_CHARS) || []).forEach((c) => {
+    if (!c || !c.mbId) return;
+    const rar = c.rarLabel === "UR" ? "UR" : c.star5 ? "SSR" : ""; if (!rar) return;
+    const id = c.mbId, pid = M2P_ID[id] || id, m = mb[id];
+    if (!m && !xo[pid]) return;
+    out[rar].push(Math.min(4, Math.max(m ? (m.awk | 0) : 0, xo[pid] ? (xd[pid] | 0) : 0)));
+  });
+  return out;
+}
+function awkProgress(m, lv){ return ((lv || awkLevels())[m.rar] || []).filter((x) => x >= m.awk).length; }
+function awkClaimable(){ const st = getCollectionState(), lv = awkLevels(); return AWK_MISSIONS.filter((m) => !st["awk:" + m.k] && awkProgress(m, lv) >= m.n).length; }
+function claimAwk(k, silent){
+  const m = AWK_MISSIONS.find((x) => x.k === k); if (!m) return null;
+  const st = getCollectionState(); if (st["awk:" + k]) return null;
+  if (awkProgress(m) < m.n) { if (!silent) alert("まだ達成していません。"); return null; }
+  st["awk:" + k] = Date.now(); saveCollectionState(st);
+  const why = "凸ミッション：" + m.title, X = window.XEVA;
+  try { if (X) X.add(m.xeva, why); } catch (e) {}
+  try { if (m.gem && X && X.gem) X.gem.migrateOnce("awk:" + k, m.gem, why); } catch (e) {}
+  try { if (m.tk && X && X.ticket) X.ticket.migrateOnce("awk:" + k, m.tk, why); } catch (e) {}
+  if (silent) return { xeva: m.xeva };
+  renderXevaBalance(); renderXevaMissions();
+  showXevaToast(m.xeva, m.title + " を達成！");
+  return { xeva: m.xeva };
+}
+window.claimAwk = claimAwk;
+function awkSectionHtml(){
+  const st = getCollectionState(), lv = awkLevels();
+  const best = (r) => (lv[r] || []).reduce((a, b) => Math.max(a, b), 0);
+  return '<div class="mm-awk-hd">⬆ 凸ミッション<small>UR・SSR を完凸まで（どのキャラでも）</small></div>' + AWK_MISSIONS.map((m) => {
+    const now = Math.min(m.n, awkProgress(m, lv)), done = !!st["awk:" + m.k], ok = now >= m.n;
+    const rw = "+" + m.xeva.toLocaleString() + " XEVA" + (m.gem ? "・💎" + m.gem : "") + (m.tk ? "・🎫" + m.tk : "");
+    const btn = done ? '<span style="font-size:11px;color:#17a673;font-weight:700;white-space:nowrap">✓ 受取済み</span>'
+      : ok ? `<button class="mm-milestone-claim" onclick="claimAwk('${m.k}')">受け取る</button>`
+      : `<button class="mm-milestone-claim" disabled>${now}/${m.n}</button>`;
+    const b = best(m.rar);
+    return `<div class="mm-limited-card mm-awk${done ? " claimed" : ""}">
+      <div class="mm-limited-head"><span class="mm-limited-badge mm-awk-${m.rar.toLowerCase()}">${m.rar} 凸</span><div class="mm-limited-title">${m.title}</div></div>
+      ${done ? "" : msnProgHtml({ now, need: m.n, unit: "体",
+          note: ok ? "" : (m.n > 1 ? "いま完凸の " + m.rar + "：<b>" + (lv[m.rar] || []).filter((x) => x >= 4).length + "体</b>" : "いちばん凸が進んだ " + m.rar + "：<b>" + (b ? "+" + b + "凸" : (lv[m.rar] || []).length ? "0凸" : "まだ持っていません") + "</b>") })}
+      <div class="mm-limited-foot"><span class="mm-limited-exp">${m.rar} ${m.awk >= 4 ? "完凸" : m.awk + "凸"}${m.n > 1 ? " × " + m.n + "体" : ""}</span>
+        <div style="display:flex;align-items:center;gap:10px"><span class="mm-limited-rew">${rw}</span>${btn}</div></div>
+    </div>`;
+  }).join("") + '<div class="mm-awk-hd">🎴 図鑑コレクション<small>SSR をそろえる</small></div>';
 }
 /* まとまりを番号順に並べる（"s5_5" → 5 で数として比べる） */
 function collectionKeys(groups){
@@ -604,8 +672,9 @@ function renderMsnCollection(){
   const lb=document.getElementById("msnBadgeCollection"), claim=collectionClaimable();
   if(lb){ if(claim>0){lb.textContent=claim;lb.style.display="";}else lb.style.display="none"; }
   const seasons=collectionKeys(groups);
-  if(!seasons.length){ el.innerHTML='<div class="mm-limited-empty">🎴 コレクション報酬は準備中です</div>'; return; }
-  el.innerHTML = seasons.map(s=>{
+  let awkHtml = ""; try { awkHtml = awkSectionHtml(); } catch (e) {}   /* ★★ 2026-11-03 凸のミッション（先頭） */
+  if(!seasons.length){ el.innerHTML=awkHtml + '<div class="mm-limited-empty">🎴 コレクション報酬は準備中です</div>'; return; }
+  el.innerHTML = awkHtml + seasons.map(s=>{
     const g=groups[s], have=g.filter(c=>owned[c.id]).length, all=have===g.length, done=!!state[s];
     const lbl = seasonGroupLabel(s);
     /* MB_CHARS の file は "../img/t_Xxx.webp"（MagiBurst 基準）なので、ポータルからは ../ を外す */
@@ -2391,6 +2460,10 @@ function grantMbGift(srcId, mb) {
 }
 
 const INITIAL_MAILS = [
+  /* ── ★★ 2026-11-02 ジェフ千葉 福岡に 3-0 で勝利（ご指定：30,000 XEVA）── */
+  { id:"mail_jef_fukuoka_261102", icon:"⚽", title:"ジェフ千葉 勝利記念 配布（30,000 XEVA）", date:"2026-11-02",
+    body:"いつも XEVARION をご利用いただきありがとうございます。\n\nジェフユナイテッド市原・千葉が アビスパ福岡に 3-0 で勝利 しました！\n勝利を記念して、全ユーザーに 30,000 XEVA をお贈りします。\n\n💎ジェムへの交換は XEVARION ホームの変換所から行えます。\n\nこれからも XEVARION をよろしくお願いします。",
+    amount:30000 },
   /* ── ★★ 2026-10-31 応援配布（ご指定：🎫ガチャチケット70枚）──
      ★ mb:{gticket:70} ＝<b>ガチャチケット</b>（全ガチャ共通・超極祭系のガチャでも使える）。フェスチケット（mb:{ticket}）ではない。
      ★ 受け取った瞬間に XEVARION 共通ウォレット（XEVA.ticket）へ入る（grantMbGift）。 */

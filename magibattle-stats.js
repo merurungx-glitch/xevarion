@@ -64,6 +64,27 @@
       s1: { nm: "白花の照準", fx: "coreDmg", v: [40, 70], desc: "コアへの与ダメージ <b>+{v}%</b>。" },
       s2: { nm: "月下の静寂", fx: "coreChargeStack", v: [5, 8], max: 5, dur: 10, desc: "フルチャージ攻撃がコアに当たるたび、自分の攻撃力 <b>+{v}%</b>（最大5回・10秒）。" },
       bs: { nm: "ルナ・ホワイトリリィ", fx: "coreSnipe", v: [1200, 2000], w: [30, 30], dur: 10, desc: "敵1体に攻撃力の <b>{v}%</b>（コアに命中・会心確定）。10秒間、味方全員のコアダメージ <b>+{w}%</b>。" } },
+    /* ★★ 2026-11-03 超極彩祭の追加3体（ご回答 案A：チフル＝支援 SMG Ⅰ・ミント＝支援 AR Ⅱ・プリカ＝火力 SR Ⅱ）。
+       強さの帯は MagiAbyss と同じ「ヒサコと同じ」＝ tier 1.04。新しい効果：teamGauge・teamAtkAura・teamAtkCdr（チフル）／
+       healTeamEvery・teamHealAtk（ミント）／chargeCritSure・critSnipe（プリカ）＝ mb3-engine.js */
+    chifuru: { sq: "prism", cls: "sup", burst: 1, wp: "SMG", tier: 1.04, cd: 20,
+      base: { hp: 2950, atk: 178, def: 22 }, role: "ゲージ加速・味方の攻撃力アップ",
+      quote: "甘いものはね、がんばったごほうびなの。",
+      s1: { nm: "シュガーラッシュ", fx: "teamGauge", v: [15, 30], desc: "味方全員のバーストゲージの獲得量 <b>+{v}%</b>。" },
+      s2: { nm: "とろける魔法", fx: "teamAtkAura", v: [4, 8], desc: "味方全員の攻撃力 <b>+{v}%</b>（チフルが戦えるあいだ、ずっと）。" },
+      bs: { nm: "ブルーハート・パフェ", fx: "teamAtkCdr", v: [20, 35], w: [3, 5], dur: 10, desc: "10秒間、味方全員の攻撃力 <b>+{v}%</b>。ほかの味方のバーストスキルの再使用時間を <b>{w}秒</b> 短縮。" } },
+    mint: { sq: "prism", cls: "sup", burst: 2, wp: "AR", tier: 1.04, cd: 20,
+      base: { hp: 2900, atk: 182, def: 22 }, role: "全体回復・フルバーストの攻撃力アップ",
+      quote: "大丈夫、わたしがついてるから！",
+      s1: { nm: "こもれびの朝", fx: "healTeamEvery", period: 6, v: [6, 12], desc: "6秒ごとに、味方全員の HP を攻撃力の <b>{v}%</b> 回復。" },
+      s2: { nm: "いっしょにがんばろ", fx: "fbTeamAtk", v: [10, 18], desc: "フルバーストが始まると、10秒間 味方全員の攻撃力 <b>+{v}%</b>。" },
+      bs: { nm: "グッドモーニング・ブーケ", fx: "teamHealAtk", v: [15, 25], w: [60, 100], dur: 10, desc: "味方全員の HP を攻撃力の <b>{w}%</b> 回復。10秒間、味方全員の攻撃力 <b>+{v}%</b>・毎秒 攻撃力の 3% ずつ回復。" } },
+    purika: { sq: "prism", cls: "atk", burst: 2, wp: "SR", tier: 1.04, cd: 20,
+      base: { hp: 2380, atk: 236, def: 17 }, role: "会心確定のチャージ狙撃",
+      quote: "ないしょの作戦、ちゃんと見ててね？",
+      s1: { nm: "星章のウインク", fx: "chargeCritSure", v: [15, 30], desc: "フルチャージ攻撃は<b>必ず会心</b>。チャージダメージ <b>+{v}%</b>。" },
+      s2: { nm: "ひみつの作戦会議", fx: "fbSelfAtk", v: [20, 40], desc: "フルバースト中、自分の攻撃力 <b>+{v}%</b>。" },
+      bs: { nm: "ロイヤル・ウインク", fx: "critSnipe", v: [900, 1500], w: [40, 70], dur: 10, desc: "敵1体に攻撃力の <b>{v}%</b>（会心確定）。10秒間、自分の会心ダメージ <b>+{w}%</b>・チャージ速度 +30%。" } },
     /* ── ブレイズ隊（超極煌祭）── */
     hisako: { sq: "blaze", cls: "atk", burst: 3, wp: "SR", tier: 1.04, cd: 40,
       base: { hp: 2380, atk: 236, def: 17 }, role: "フルバーストの貫通狙撃",
@@ -128,7 +149,7 @@
       bs: { nm: "ホワイトブーケ・サーヴ", fx: "cdrHeal", v: [4, 6], w: [30, 50], dur: 5, desc: "味方全員のバーストスキルの再使用時間を <b>{v}秒</b> 短縮。HP を攻撃力の <b>{w}%</b> 回復・5秒間 被ダメージ −10%。" } },
   };
   /* 並び（図鑑・編成の標準）：新しい祭が先、同じ祭はガチャの並び */
-  const IDS = ["haru", "chika", "hisako", "alice", "kohaku", "suzu", "shouko", "yuna", "chie", "aina", "ichika", "nonoka"];
+  const IDS = ["haru", "chika", "chifuru", "mint", "purika", "hisako", "alice", "kohaku", "suzu", "shouko", "yuna", "chie", "aina", "ichika", "nonoka"];   /* ★★ 2026-11-03 15体 */
 
   /* ══════════ 成長 ══════════ */
   const MAX_LV = 200, MAX_AWK = 4, SKILL_MAX = 10, BOND_MAX = 30;
@@ -242,8 +263,8 @@
 
   /* ══════════ 表示（図鑑・ガチャ・MagiBattle 共通）══════════ */
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m])); }
-  function charNm(id) { try { if (typeof CHARS !== "undefined" && CHARS[id]) return CHARS[id].nm; } catch (e) {} return ({ haru: "ハル", chika: "チカ", hisako: "ヒサコ", alice: "アリス", kohaku: "コハク", suzu: "スズ", shouko: "ショウコ", yuna: "ユナ", chie: "ヨシノ", aina: "アイナ", ichika: "イチカ", nonoka: "ノノカ" })[id] || id; }
-  function elOf(id) { try { if (typeof CHARS !== "undefined" && CHARS[id]) return CHARS[id].el; } catch (e) {} return ({ haru: "water", chika: "dark", hisako: "water", alice: "dark", kohaku: "fire", suzu: "wood", shouko: "light", yuna: "dark", chie: "fire", aina: "light", ichika: "water", nonoka: "wood" })[id]; }
+  function charNm(id) { try { if (typeof CHARS !== "undefined" && CHARS[id]) return CHARS[id].nm; } catch (e) {} return ({ haru: "ハル", chika: "チカ", chifuru: "チフル", mint: "ミント", purika: "プリカ", hisako: "ヒサコ", alice: "アリス", kohaku: "コハク", suzu: "スズ", shouko: "ショウコ", yuna: "ユナ", chie: "ヨシノ", aina: "アイナ", ichika: "イチカ", nonoka: "ノノカ" })[id] || id; }
+  function elOf(id) { try { if (typeof CHARS !== "undefined" && CHARS[id]) return CHARS[id].el; } catch (e) {} return ({ haru: "water", chika: "dark", chifuru: "fire", mint: "wood", purika: "light", hisako: "water", alice: "dark", kohaku: "fire", suzu: "wood", shouko: "light", yuna: "dark", chie: "fire", aina: "light", ichika: "water", nonoka: "wood" })[id]; }
   const WP_SVG = {
     AR: '<path d="M2 11h14l2-2h3v3h-2l-1 2h-3l-1 3H11l1-3H6l-1 2H3z"/>',
     SMG: '<path d="M3 10h12l2-2h3v3h-3v2h-2l-1 4h-2l1-4H8v2H6v-2H3z"/>',

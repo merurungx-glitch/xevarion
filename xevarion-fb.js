@@ -198,6 +198,8 @@ async function updateProfile(acc) {
      ★ 中身は xeva-collection.js が作る。書くのは呼び出し側（syncXFBProfile）。 */
   if (acc.col != null) upd.col = acc.col;
   if (acc.colD != null) upd.colD = acc.colD;
+  /* ★★ 2026-11-03 お気に入りキャラ（xeva-favs.js の fav＝MagiBurst の id の配列）。コミュニティの「⭐」で見られる */
+  if (Array.isArray(acc.fav)) upd.fav = acc.fav.slice(0, 500);
   try { await update(ref(db, NODE + "/" + acc.xvUid), upd); return { ok: true }; } catch (e) { return { error: "net" }; }
 }
 
@@ -208,7 +210,7 @@ async function getCollection(uid) {
     const s = await get(ref(db, NODE + "/" + uid));
     const v = s.val();
     if (!v) return null;
-    return { name: v.name || "", ids: Array.isArray(v.col) ? v.col : [], dupes: v.colD || {} };
+    return { name: v.name || "", ids: Array.isArray(v.col) ? v.col : [], dupes: v.colD || {}, fav: Array.isArray(v.fav) ? v.fav : null };
   } catch (e) { return null; }
 }
 

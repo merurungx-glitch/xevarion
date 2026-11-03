@@ -21,20 +21,46 @@
    ★ どこでも「SKIP」でまとめへ。タップで次の段へ（演出の途中なら早送り）。
    ★ 既存の作品の固有の言葉・ロゴ・書体は使わない（形の雰囲気だけ。文字はすべてこのアプリのもの）。
    ★ アイテム（チケット・ジェム・ゴールド・MagiBurst の道具）は絵文字でなく描いた絵（XevaItemArt）。
+   ★★ 2026-11-03 ご指定「始めのパーセントはやめてスロットに」「パチンコの演出に寄せてより豪華に」
+     「UR 2体確定の超豪華ロングの天使の演出」「昇格のまえにカットインの UR の数でネタバレする」
+     → ① の「共鳴率 ％」を<b>3つのリールのスロット</b>に（左→右→まん中の順に止まる・2つそろうとリーチ）。
+         そろった絵柄＝ 天天天：UR 2体以上（このあと天使降臨）／777：UR／◆◆◆：SSR以上 2体以上／★★★：SSR以上／ばらばら：SSR以上なし（たまにリーチだけ）。
+       UR のときは画面いっぱいに EMERGENCY の札。UR が2体以上のときは<b>天使降臨</b>（題字 → 光の天使が降りてくる → UR の数だけ光の柱と十字の光 → カウントダウン → 白い光）。
+     → ★ ①〜③（スロット・カットイン・確定演出）は<b>昇格する前の色</b>で決める（S.from）。昇格は ④ の盤で初めて分かる。
+       盤の最後の札（UR 確定など）だけは本当の結果（S.infoReal）。
    ============================================================ */
 (function () {
   "use strict";
   if (window.XevaSummon) return;
 
-  /* ══ 音（WebAudio・ファイルを使わない）══ */
-  let ac = null;
+  /* ══ 音（WebAudio・ファイルを使わない）══
+     ★★ 2026-11-03 ご指定「ガチャはパチンコのように音も豪華に」
+     → すべての音を<b>ホールの響き（リバーブ）とコンプレッサー</b>に通す（bus）。
+       部品：金管（brass）・ベル（bell）・太鼓（kick/snare/hat）・太鼓のロール（roll）・上がっていく音（riser）・キュイン音（kyuin）・聖歌隊（pad）。
+       演出のあいだは<b>緊張の BGM</b>（BGM.start／level／stop）。段（緑→橙→赤）でテンポと音が上がる。 */
+  let ac = null, bus = null;
   function AC() {
     try {
       if (!ac) ac = new (window.AudioContext || window.webkitAudioContext)();
       if (ac.state === "suspended") ac.resume();
+      if (ac && !bus) setupBus();
     } catch (e) { ac = null; }
     return ac;
   }
+  function setupBus() {
+    try {
+      const comp = ac.createDynamicsCompressor();
+      comp.threshold.value = -16; comp.knee.value = 14; comp.ratio.value = 4; comp.attack.value = 0.003; comp.release.value = 0.22;
+      const g = ac.createGain(); g.gain.value = 0.95;
+      const rev = ac.createConvolver(), n = Math.floor(ac.sampleRate * 2.2), buf = ac.createBuffer(2, n, ac.sampleRate);
+      for (let ch = 0; ch < 2; ch++) { const d = buf.getChannelData(ch); for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 2.8); }
+      rev.buffer = buf;
+      const wet = ac.createGain(); wet.gain.value = 0.26;
+      g.connect(comp); g.connect(rev); rev.connect(wet); wet.connect(comp); comp.connect(ac.destination);
+      bus = g;
+    } catch (e) { bus = null; }
+  }
+  const OUT = () => bus || (ac && ac.destination);
   function tone(f0, f1, dur, type, vol, delay) {
     const c = AC(); if (!c) return;
     const t = c.currentTime + (delay || 0);
@@ -45,7 +71,7 @@
     g.gain.setValueAtTime(0.0001, t);
     g.gain.exponentialRampToValueAtTime(vol || 0.1, t + Math.min(0.03, dur / 4));
     g.gain.exponentialRampToValueAtTime(0.0008, t + dur);
-    o.connect(g); g.connect(c.destination); o.start(t); o.stop(t + dur + 0.05);
+    o.connect(g); g.connect(OUT()); o.start(t); o.stop(t + dur + 0.05);
   }
   function noise(dur, vol, delay, hp) {
     const c = AC(); if (!c) return;
@@ -55,32 +81,129 @@
     const s = c.createBufferSource(); s.buffer = buf;
     const f = c.createBiquadFilter(); f.type = "highpass"; f.frequency.value = hp || 400;
     const g = c.createGain(); g.gain.setValueAtTime(vol || 0.08, t);
-    s.connect(f); f.connect(g); g.connect(c.destination); s.start(t);
+    s.connect(f); f.connect(g); g.connect(OUT()); s.start(t);
   }
+  /* 金管（ノコギリ波2本・フィルターがひらく）。f は1つでも配列（和音）でもよい */
+  function brass(f, dur, vol, delay) {
+    const c = AC(); if (!c) return;
+    (Array.isArray(f) ? f : [f]).forEach((fr) => {
+      const t = c.currentTime + (delay || 0);
+      const lp = c.createBiquadFilter(); lp.type = "lowpass"; lp.Q.value = 2.2;
+      lp.frequency.setValueAtTime(500, t); lp.frequency.exponentialRampToValueAtTime(Math.min(9000, fr * 7), t + 0.07); lp.frequency.exponentialRampToValueAtTime(Math.min(5000, fr * 3.2), t + dur);
+      const g = c.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol || 0.05, t + 0.04);
+      g.gain.setValueAtTime(vol || 0.05, t + Math.max(0.05, dur - 0.12)); g.gain.exponentialRampToValueAtTime(0.0008, t + dur + 0.1);
+      [-6, 6].forEach((dt) => { const o = c.createOscillator(); o.type = "sawtooth"; o.frequency.value = fr; o.detune.value = dt; o.connect(lp); o.start(t); o.stop(t + dur + 0.15); });
+      lp.connect(g); g.connect(OUT());
+    });
+  }
+  /* ベル（倍音のずれた正弦波・長くひびく） */
+  function bell(f, dur, vol, delay) {
+    [[1, 1], [2.76, 0.42], [5.4, 0.2], [8.93, 0.08]].forEach(([m, v]) => tone(f * m, f * m * 0.998, (dur || 1.4) / (m > 2 ? 1.6 : 1), "sine", (vol || 0.05) * v, delay));
+  }
+  function kick(delay, vol) { tone(160, 42, 0.32, "sine", vol || 0.2, delay); tone(80, 38, 0.2, "triangle", (vol || 0.2) * 0.5, delay); }
+  function snare(delay, vol) { noise(0.16, vol || 0.09, delay, 1600); tone(220, 180, 0.08, "triangle", (vol || 0.09) * 0.6, delay); }
+  function hat(delay, vol) { noise(0.04, vol || 0.03, delay, 7500); }
+  /* 太鼓のロール（だんだん速く・強く） */
+  function roll(dur, delay) {
+    let t = delay || 0, gap = 0.11; const end = t + (dur || 1);
+    while (t < end) { const k = (t - (delay || 0)) / (dur || 1); snare(t, 0.035 + k * 0.08); t += gap; gap = Math.max(0.032, gap * 0.9); }
+  }
+  /* 上がっていく音（ノイズの帯域が上へ） */
+  function riser(dur, vol, delay) {
+    const c = AC(); if (!c) return;
+    const t = c.currentTime + (delay || 0), n = Math.floor(c.sampleRate * dur), buf = c.createBuffer(1, n, c.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < n; i++) d[i] = Math.random() * 2 - 1;
+    const s = c.createBufferSource(); s.buffer = buf;
+    const f = c.createBiquadFilter(); f.type = "bandpass"; f.Q.value = 3; f.frequency.setValueAtTime(300, t); f.frequency.exponentialRampToValueAtTime(7000, t + dur);
+    const g = c.createGain(); g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol || 0.08, t + dur * 0.9); g.gain.exponentialRampToValueAtTime(0.0008, t + dur + 0.05);
+    s.connect(f); f.connect(g); g.connect(OUT()); s.start(t); s.stop(t + dur + 0.1);
+  }
+  /* キュイン音（すばやく上がってビブラートで鳴りつづける・大当たりの合図） */
+  function kyuin(delay, len) {
+    const c = AC(); if (!c) return;
+    const t = c.currentTime + (delay || 0), L = len || 1.4;
+    [[1, 0.06, "square"], [2, 0.03, "sawtooth"]].forEach(([m, v, ty]) => {
+      const o = c.createOscillator(), g = c.createGain(), lfo = c.createOscillator(), lg = c.createGain();
+      o.type = ty; o.frequency.setValueAtTime(320 * m, t); o.frequency.exponentialRampToValueAtTime(2400 * m, t + 0.55);
+      lfo.frequency.value = 17; lg.gain.value = 55 * m; lfo.connect(lg); lg.connect(o.frequency);
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(v, t + 0.06); g.gain.setValueAtTime(v, t + L - 0.25); g.gain.exponentialRampToValueAtTime(0.0008, t + L);
+      o.connect(g); g.connect(OUT()); o.start(t); lfo.start(t); o.stop(t + L + 0.05); lfo.stop(t + L + 0.05);
+    });
+  }
+  /* 聖歌隊（ゆっくり立ちあがる和音・少し揺れる） */
+  function pad(freqs, dur, vol, delay) {
+    const c = AC(); if (!c) return;
+    const t = c.currentTime + (delay || 0);
+    freqs.forEach((f) => {
+      [-8, 0, 8].forEach((dt) => {
+        const o = c.createOscillator(), g = c.createGain(), lfo = c.createOscillator(), lg = c.createGain();
+        o.type = dt ? "sine" : "triangle"; o.frequency.value = f; o.detune.value = dt;
+        lfo.frequency.value = 5 + Math.random(); lg.gain.value = 3; lfo.connect(lg); lg.connect(o.detune);
+        g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime((vol || 0.03) / 3, t + dur * 0.4); g.gain.exponentialRampToValueAtTime(0.0008, t + dur);
+        o.connect(g); g.connect(OUT()); o.start(t); lfo.start(t); o.stop(t + dur + 0.05); lfo.stop(t + dur + 0.05);
+      });
+    });
+  }
+  const NOTE = (n) => 440 * Math.pow(2, (n - 69) / 12);   /* MIDI の番号 → Hz */
   const SND = {
-    boot: () => { tone(60, 120, 0.5, "sawtooth", 0.06); noise(0.4, 0.04, 0.05, 1800); tone(880, 880, 0.06, "square", 0.03, 0.45); },
+    boot: () => { tone(60, 120, 0.5, "sawtooth", 0.06); noise(0.4, 0.04, 0.05, 1800); tone(880, 880, 0.06, "square", 0.03, 0.45); riser(0.9, 0.05, 0.1); kick(0.9, 0.16); brass([NOTE(45), NOTE(52)], 0.5, 0.04, 0.9); },
     type: () => { tone(2200 + Math.random() * 600, 2200, 0.025, "square", 0.018); },
     tick: () => { tone(1800, 1800, 0.03, "square", 0.025); },
-    alarm: () => { [0, 0.24, 0.48].forEach((d) => { tone(880, 880, 0.16, "square", 0.05, d); tone(660, 660, 0.12, "square", 0.04, d + 0.12); }); },
-    alarm2: () => { [0, 0.18, 0.36, 0.54, 0.72].forEach((d, i) => tone(i % 2 ? 740 : 990, i % 2 ? 740 : 990, 0.12, "square", 0.055, d)); },
-    boom: () => { noise(1.2, 0.16, 0, 60); tone(70, 32, 1.3, "sawtooth", 0.12); tone(140, 50, 0.9, "square", 0.05, 0.05); },
+    alarm: () => { [0, 0.24, 0.48].forEach((d) => { tone(880, 880, 0.16, "square", 0.05, d); tone(660, 660, 0.12, "square", 0.04, d + 0.12); }); kick(0, 0.12); },
+    alarm2: () => { [0, 0.18, 0.36, 0.54, 0.72].forEach((d, i) => tone(i % 2 ? 740 : 990, i % 2 ? 740 : 990, 0.12, "square", 0.055, d)); brass([NOTE(50), NOTE(53), NOTE(57)], 0.3, 0.045, 0); kick(0, 0.16); kick(0.36, 0.14); },
+    boom: () => { noise(1.2, 0.16, 0, 60); tone(70, 32, 1.3, "sawtooth", 0.12); tone(140, 50, 0.9, "square", 0.05, 0.05); kick(0, 0.26); },
     glitch: () => { for (let i = 0; i < 6; i++) tone(200 + Math.random() * 1800, 100 + Math.random() * 900, 0.05, "square", 0.04, i * 0.04); noise(0.3, 0.06, 0, 2500); },
-    chg: () => { noise(0.12, 0.07, 0, 2600); tone(320, 1280, 0.18, "square", 0.05); },
-    cut: () => { noise(0.45, 0.09, 0, 900); tone(240, 1200, 0.35, "sawtooth", 0.05); },
-    count: () => { tone(1320, 1320, 0.18, "square", 0.06); tone(660, 660, 0.18, "sine", 0.05); },
+    chg: () => { noise(0.12, 0.07, 0, 2600); tone(320, 1280, 0.18, "square", 0.05); brass(NOTE(62), 0.16, 0.03); },
+    cut: () => { noise(0.45, 0.09, 0, 900); tone(240, 1200, 0.35, "sawtooth", 0.05); riser(0.35, 0.05); kick(0.3, 0.18); brass([NOTE(55), NOTE(62), NOTE(67)], 0.35, 0.05, 0.3); },
+    count: () => { tone(1320, 1320, 0.18, "square", 0.06); tone(660, 660, 0.18, "sine", 0.05); kick(0, 0.2); snare(0, 0.05); },
     mark: () => { tone(1100, 1500, 0.06, "triangle", 0.035); },
     crack: () => { noise(0.18, 0.14, 0, 1500); tone(1200, 300, 0.2, "square", 0.06); },
-    promote: () => { [523, 659, 784, 1047, 1319, 1568].forEach((f, i) => tone(f, f * 1.01, 0.2, "square", 0.05, i * 0.045)); noise(0.3, 0.05, 0.1, 3000); },
-    gold: () => { [523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, f, 0.5, "triangle", 0.07, i * 0.06)); },
-    rainbow: () => { [523, 659, 784, 988, 1175, 1568, 2093].forEach((f, i) => tone(f, f, 0.7, "sine", 0.07, i * 0.07)); noise(0.6, 0.05, 0.2, 2500); },
+    promote: () => { [523, 659, 784, 1047, 1319, 1568].forEach((f, i) => tone(f, f * 1.01, 0.2, "square", 0.05, i * 0.045)); noise(0.3, 0.05, 0.1, 3000); kyuin(0.05, 0.8); bell(1568, 1.2, 0.05, 0.3); },
+    gold: () => { [523, 659, 784, 1047, 1319].forEach((f, i) => tone(f, f, 0.5, "triangle", 0.07, i * 0.06)); brass([NOTE(60), NOTE(64), NOTE(67)], 0.6, 0.05, 0.05); bell(1319, 1.4, 0.05, 0.25); },
+    rainbow: () => { [523, 659, 784, 988, 1175, 1568, 2093].forEach((f, i) => tone(f, f, 0.7, "sine", 0.07, i * 0.07)); noise(0.6, 0.05, 0.2, 2500); kyuin(0, 1.5); [1047, 1319, 1568, 2093].forEach((f, i) => bell(f, 1.6, 0.04, 0.3 + i * 0.1)); },
     flip: () => { noise(0.12, 0.06, 0, 2000); tone(600, 900, 0.12, "triangle", 0.06); },
-    sr: () => { tone(880, 1175, 0.25, "triangle", 0.07); },
-    ssr: () => { tone(196, 784, 0.6, "sawtooth", 0.07); [784, 988, 1175, 1568].forEach((f, i) => tone(f, f, 0.5, "triangle", 0.06, 0.15 + i * 0.08)); noise(0.4, 0.05, 0.1, 3000); },
-    ur: () => { tone(98, 392, 1.1, "sawtooth", 0.08); [523, 784, 1047, 1319, 1568, 2093].forEach((f, i) => tone(f, f, 0.9, "sine", 0.07, 0.3 + i * 0.09)); noise(0.9, 0.06, 0.3, 3500); },
-    item: () => { tone(740, 990, 0.12, "triangle", 0.05); tone(990, 1320, 0.12, "triangle", 0.04, 0.08); },
-    fanfare: () => { [[523, 0], [659, 0.12], [784, 0.24], [1047, 0.36], [784, 0.52], [1047, 0.64]].forEach(([f, d]) => tone(f, f, 0.28, "triangle", 0.08, d)); },
+    sr: () => { tone(880, 1175, 0.25, "triangle", 0.07); bell(1760, 0.9, 0.03, 0.05); },
+    ssr: () => { tone(196, 784, 0.6, "sawtooth", 0.07); [784, 988, 1175, 1568].forEach((f, i) => tone(f, f, 0.5, "triangle", 0.06, 0.15 + i * 0.08)); noise(0.4, 0.05, 0.1, 3000);
+      brass([NOTE(55), NOTE(62), NOTE(67), NOTE(71)], 0.9, 0.05, 0.12); kick(0.12, 0.2); [1175, 1568, 1976].forEach((f, i) => bell(f, 1.2, 0.04, 0.35 + i * 0.09)); },
+    ur: () => { tone(98, 392, 1.1, "sawtooth", 0.08); [523, 784, 1047, 1319, 1568, 2093].forEach((f, i) => tone(f, f, 0.9, "sine", 0.07, 0.3 + i * 0.09)); noise(0.9, 0.06, 0.3, 3500);
+      brass([NOTE(43), NOTE(50), NOTE(55), NOTE(59), NOTE(62)], 1.6, 0.06, 0.25); kick(0.25, 0.26); kick(0.6, 0.2); kyuin(0.25, 1.8); [1568, 2093, 2637, 3136].forEach((f, i) => bell(f, 1.8, 0.035, 0.6 + i * 0.12)); },
+    item: () => { tone(740, 990, 0.12, "triangle", 0.05); tone(990, 1320, 0.12, "triangle", 0.04, 0.08); bell(1980, 0.6, 0.02, 0.1); },
+    /* ファンファーレ（金管のメロディ＋太鼓） */
+    fanfare: () => {
+      [[67, 0, 0.16], [67, 0.18, 0.1], [67, 0.3, 0.1], [72, 0.42, 0.5], [71, 0.95, 0.14], [72, 1.11, 0.14], [74, 1.27, 0.14], [76, 1.43, 0.8]].forEach(([n, d, len]) => brass([NOTE(n), NOTE(n - 12)], len, 0.05, d));
+      [0, 0.42, 1.43].forEach((d) => { kick(d, 0.2); snare(d + 0.01, 0.06); });
+      roll(0.6, 0.8); bell(NOTE(88), 1.5, 0.04, 1.45);
+    },
+    /* ★★ 2026-11-03 スロット・天使降臨 */
+    reel: () => { for (let i = 0; i < 6; i++) tone(1500 + (i % 2) * 300, 1500, 0.02, "square", 0.018, i * 0.05); },
+    stop: () => { tone(220, 120, 0.12, "square", 0.07); noise(0.08, 0.06, 0, 1200); kick(0, 0.12); },
+    reach: () => { [392, 494, 587, 784, 988].forEach((f, i) => tone(f, f * 1.02, 0.22, "sawtooth", 0.05, i * 0.07)); noise(0.5, 0.04, 0.1, 2400);
+      brass([NOTE(57), NOTE(64), NOTE(69)], 0.3, 0.055, 0); roll(0.95, 0.05); riser(0.95, 0.07, 0.05); },
+    jackpot: () => { [784, 988, 1175, 1568, 1976, 2349].forEach((f, i) => tone(f, f, 0.6, "triangle", 0.07, i * 0.06)); noise(0.7, 0.05, 0.2, 3000);
+      kyuin(0, 1.6); kick(0, 0.24); brass([NOTE(60), NOTE(64), NOTE(67), NOTE(72)], 1.0, 0.055, 0.1); [2093, 2637, 3136, 4186].forEach((f, i) => bell(f, 1.4, 0.03, 0.2 + i * 0.08)); },
+    choir: () => { pad([NOTE(60), NOTE(64), NOTE(67)], 2.2, 0.05, 0); pad([NOTE(65), NOTE(69), NOTE(72)], 2.2, 0.05, 1.2); pad([NOTE(67), NOTE(71), NOTE(74), NOTE(79)], 2.8, 0.06, 2.4);
+      [[1, 0.5], [1.5, 1.7], [2, 2.9]].forEach(([m, d]) => bell(NOTE(84) * m / 1.5, 1.6, 0.03, d)); },
+    angel: () => { tone(55, 30, 2.2, "sawtooth", 0.12); noise(1.8, 0.1, 0, 120); [1047, 1319, 1568, 2093].forEach((f, i) => tone(f, f, 1.6, "sine", 0.04, 0.4 + i * 0.12)); kick(0, 0.28); brass([NOTE(36), NOTE(43), NOTE(48)], 2.0, 0.05, 0.05); },
   };
   const snd = (k) => { try { if (SND[k]) SND[k](); } catch (e) {} };
+  /* ══ ★★ 2026-11-03 演出のあいだの緊張の BGM（4つ打ち・ベース・ハイハット）。段で速く・赤で警報のシンセ ══ */
+  const BGM = {
+    id: null, step: 0, lv: "g",
+    start(lv) { this.stop(); if (!AC()) return; this.lv = lv || "g"; this.step = 0; this.loop(); },
+    level(lv) { this.lv = lv; },
+    loop() {
+      const bpm = this.lv === "r" ? 156 : this.lv === "o" ? 144 : 128, q = 60 / bpm / 2;   /* 8分音符 */
+      const s = this.step++, bar = Math.floor(s / 8) % 4, root = [45, 45, 41, 43][bar];
+      if (s % 2 === 0) kick(0, this.lv === "g" ? 0.1 : 0.15);
+      if (s % 4 === 2 && this.lv !== "g") snare(0, 0.04);
+      hat(0, s % 2 ? 0.03 : 0.015);
+      tone(NOTE(root - 12), NOTE(root - 12), q * 0.9, "sawtooth", this.lv === "g" ? 0.035 : 0.05);
+      if (this.lv === "r" && s % 4 === 0) tone(NOTE(root + 24), NOTE(root + 23), q * 1.6, "square", 0.025);
+      if (this.lv !== "g" && s % 8 === 7) brass([NOTE(root + 12), NOTE(root + 19)], q * 0.8, 0.025);
+      this.id = setTimeout(() => this.loop(), q * 1000);
+    },
+    stop() { if (this.id) clearTimeout(this.id); this.id = null; },
+  };
 
   /* ══ 小道具 ══ */
   const esc = (s) => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -116,6 +239,8 @@
       if (r.type === "ticket") return { nm: "フェスチケット", c: "#c86bff", c2: "#ffd257" };
       if (r.type === "gticket") return { nm: "ガチャチケット", c: "#2b7bff", c2: "#9fd0ff" };
       if (r.type === "orb") return { nm: "ジェム", c: "#3fc8ff", c2: "#d6f6ff" };
+      /* ★★ 2026-11-03 XEVARION 共通のアイテム（mb-core の X_ITEM_INFO） */
+      if (r.type === "xitem") { try { const x = X_ITEM_INFO[r.item]; if (x) return { nm: x.nm, c: x.c, c2: "#ffffff" }; } catch (e) {} return { nm: String(r.item || "アイテム"), c: "#ffc63d", c2: "#ffffff" }; }
       if (r.type === "item") { try { const it = ITEMS[r.item]; if (it) return { nm: it.nm, c: it.c || "#8affc4", c2: "#ffffff" }; } catch (e) {} return { nm: String(r.item || "アイテム"), c: "#8affc4", c2: "#ffffff" }; }
       return { nm: "ゴールド", c: "#ffc63d", c2: "#fff2b0" };
     },
@@ -147,6 +272,9 @@
       }
       if (r.type === "item") {
         try { if (typeof itemIcon === "function") { const h = itemIcon(r.item, s); if (h) return h; } } catch (e) {}
+      }
+      if (r.type === "xitem") {
+        try { if (typeof xitemIcon === "function") return '<div style="width:' + s + 'px;height:' + s + 'px;display:grid;place-items:center">' + xitemIcon(r.item, Math.round(s * 0.92)) + "</div>"; } catch (e) {}
       }
       /* ★★ 2026-10-12d ゴールドは MagiBurst のコイン（.ic-gold：星の刻印・金属の照り）と同じ描き方にそろえた（ご指定） */
       const star = [[50, 2], [61, 37], [98, 37], [68, 59], [79, 95], [50, 73], [21, 95], [32, 59], [2, 37], [39, 37]]
@@ -261,9 +389,24 @@
 @keyframes ctBand{0%{transform:skewY(-9deg) translateX(110%)}22%{transform:skewY(-9deg) translateX(0)}80%{transform:skewY(-9deg) translateX(-3%)}100%{transform:skewY(-9deg) translateX(-115%)}}
 #xsm .xs-cut .ct-band::before{content:"";position:absolute;inset:0;background:repeating-linear-gradient(100deg,transparent 0 26px,rgba(255,255,255,.12) 26px 30px);animation:ctLines .5s linear infinite}
 @keyframes ctLines{to{background-position:240px 0}}
-#xsm .xs-cut .ct-in{position:absolute;inset:0;transform:skewY(9deg);display:flex;align-items:center;gap:4%;padding:0 max(14%,calc(10% + 24px))}
+/* ★★ 2026-11-03 ご指摘「カットインの上が切れる」：中身が傾いた帯（overflow:hidden）の中にあったので、帯の左側では丸と文字の上が帯のふちで切れていた。
+   → 中身（.ct-in）は帯の外の兄弟にして、傾けず・切らずに、帯と同じ動きで流す */
+#xsm .xs-cut .ct-in{position:absolute;left:0;right:0;top:50%;height:min(42vh,300px);margin-top:calc(min(42vh,300px) / -2);z-index:2;display:flex;align-items:center;gap:4%;
+  padding:0 max(14%,calc(10% + 24px));transform:skewY(-9deg) translateX(110%);animation:ctBand 1.7s cubic-bezier(.2,.9,.3,1) forwards}
+/* ★★ 2026-11-03 ご指摘「丸と文字が少し上寄り」：帯は斜め（左ほど下がる）なのに中身を水平に並べていた → 並びは帯と同じ傾き（同じ ctBand）、丸と文字そのものは逆に傾けてまっすぐに */
+#xsm .xs-cut .ct-in > *{transform:skewY(9deg)}
 #xsm .xs-cut .ct-pic{flex:none;width:min(30vh,32vw,210px);height:min(30vh,32vw,210px);border-radius:50%;overflow:hidden;background:#000;box-shadow:0 0 0 4px #fff,0 0 30px rgba(255,255,255,.7);display:grid;place-items:center}
 #xsm .xs-cut .ct-pic img{width:100%;height:100%;object-fit:cover;filter:brightness(0) drop-shadow(0 0 8px #fff)}
+/* ★★ 2026-11-03 ご指摘「丸の中が表示されない」：ピックアップのシルエット（黒）を黒い丸に出していた → 明るい地（UR は虹色）に黒いシルエット */
+#xsm .xs-cut .ct-pic.sil{background:radial-gradient(circle at 50% 38%,#fff 0,#fff6d8 38%,var(--cb2,#9fd0ff) 72%,var(--cb,#2b6bff))}
+#xsm .xs-cut.c-rb .ct-pic.sil{background:conic-gradient(from 0deg,#ff5fa2,#ffd257,#7dffb0,#5fd0ff,#c79cff,#ff5fa2)}
+/* 正方形の絵は背景まで描いてあるので、真っ黒にすると丸ごと黒くなる → 暗い単色の絵に虹の色味をのせ、まん中に「？」（誰かがうっすら分かる） */
+#xsm .xs-cut .ct-pic.sil{position:relative}
+#xsm .xs-cut .ct-pic.sil img{filter:grayscale(1) brightness(.5) contrast(1.8);mix-blend-mode:multiply}
+#xsm .xs-cut .ct-pic.sil::after{content:"?";position:absolute;inset:0;display:grid;place-items:center;font:900 calc(min(30vh,32vw,210px) * .52)/1 'Orbitron',sans-serif;color:#fff;
+  text-shadow:0 0 12px #fff,0 0 30px var(--cb,#ff5fa2);animation:evBlink .5s steps(2) infinite}
+#xsm .xs-cut.c-rb .ct-pic:not(.sil){background:radial-gradient(circle,#2a0a3a,#000 70%)}
+#xsm .xs-cut.c-rb .ct-pic:not(.sil) svg path:first-child{fill:rgba(255,95,162,.28)}
 #xsm .xs-cut .ct-pic svg{width:76%;height:76%}
 #xsm .xs-cut .ct-tx{min-width:0;text-shadow:0 3px 10px rgba(0,0,0,.6)}
 #xsm .xs-cut .ct-tx small{display:block;font:900 clamp(11px,2vh,15px)/1 'Orbitron',sans-serif;letter-spacing:.4em;opacity:.9}
@@ -543,6 +686,122 @@
 #xsm .xs-ok{border:none;cursor:pointer;font:900 16px 'Orbitron','Noto Sans JP',sans-serif;letter-spacing:.1em;color:#fff;padding:13px 54px;border-radius:99px;background:linear-gradient(135deg,#7b5cf0,#f0509a);box-shadow:0 8px 22px rgba(123,92,240,.5)}
 #xsm .xs-sumtag{margin-top:10px;font-size:11px;font-weight:800;opacity:.8;text-align:center}
 @media (max-width:420px){#xsm .xs-grid{gap:5px}#xsm .xs-cell .c-n{font-size:9px}}
+/* ── ★★ 2026-11-03 ① のスロット（前の「共鳴率 ％」のかわり）── */
+#xsm .ev-slot{position:absolute;left:50%;top:44%;transform:translate(-50%,-50%) scale(.6);width:min(86vw,440px);opacity:0;z-index:2;--sh:min(9.5vh,15vw,74px)}
+#xsm .xs-eva.hud .ev-slot{opacity:1;transform:translate(-50%,-50%);transition:transform .35s cubic-bezier(.2,1.5,.4,1),opacity .2s}
+#xsm .ev-slot .sl-hd{display:flex;justify-content:space-between;align-items:flex-end;margin:0 4px 5px;font:900 clamp(9px,1.6vh,12px)/1 'Orbitron',sans-serif;letter-spacing:.32em;color:var(--hc);text-shadow:0 0 8px var(--hc)}
+#xsm .ev-slot .sl-hd b{font-family:'Noto Serif JP','Yu Mincho',serif;font-size:clamp(12px,2.2vh,16px);letter-spacing:.4em}
+#xsm .ev-slot .sl-box{position:relative;display:grid;grid-template-columns:repeat(3,1fr);gap:6px;padding:8px;border-radius:6px;background:rgba(0,0,0,.72);
+  box-shadow:0 0 0 2px var(--hc),0 0 0 5px #000,0 0 0 7px var(--hc),0 0 34px var(--hca)}
+#xsm .ev-slot .rl{position:relative;height:calc(var(--sh) * 3);overflow:hidden;border-radius:3px;background:linear-gradient(#05070f,#12162a 50%,#05070f);
+  -webkit-mask:linear-gradient(transparent,#000 22%,#000 78%,transparent);mask:linear-gradient(transparent,#000 22%,#000 78%,transparent)}
+#xsm .ev-slot .st{position:absolute;left:0;right:0;top:0;display:flex;flex-direction:column}
+#xsm .ev-slot .rl.spin .st{animation:slSpin .3s linear infinite;filter:blur(1.4px) brightness(1.2)}
+@keyframes slSpin{from{transform:translateY(calc(var(--sh) * -10))}to{transform:translateY(0)}}
+#xsm .ev-slot .rl.stop .st{animation:slStop .5s cubic-bezier(.25,1.7,.45,1) forwards}
+@keyframes slStop{from{transform:translateY(calc(var(--sh) * -3))}to{transform:translateY(calc(var(--sh) * -1))}}
+#xsm .ev-slot .sy{flex:none;height:var(--sh);display:grid;place-items:center;font-style:normal;font:900 calc(var(--sh) * .78)/1 'Orbitron',sans-serif;position:relative}
+#xsm .ev-slot .s7{color:#ff2a3a;-webkit-text-stroke:2px #fff;text-shadow:0 0 12px #ff2a3a,0 0 26px #ff2a3a;font-style:italic}
+#xsm .ev-slot .sten b{font:900 calc(var(--sh) * .62)/1 'Noto Serif JP','Yu Mincho',serif;color:#fff;text-shadow:0 0 10px #fff,0 0 22px #ffd257;position:relative}
+#xsm .ev-slot .sten::before{content:"";position:absolute;width:calc(var(--sh) * .86);height:calc(var(--sh) * .86);border-radius:50%;border:3px solid #ffd257;box-shadow:0 0 14px #ffd257,inset 0 0 12px #ffd257}
+#xsm .ev-slot .shex svg{position:absolute;width:calc(var(--sh) * .82);height:calc(var(--sh) * .82)}
+#xsm .ev-slot .shex svg path{fill:rgba(255,176,32,.25);stroke:#ffb020;stroke-width:8}
+#xsm .ev-slot .shex b{font-size:calc(var(--sh) * .4);color:#fff2b0;text-shadow:0 0 10px #ffb020;position:relative}
+#xsm .ev-slot .sstar{color:#5fb0ff;text-shadow:0 0 12px #2b7bff;font-size:calc(var(--sh) * .7)}
+#xsm .ev-slot .sx{color:#c79cff;text-shadow:0 0 12px #7a3cff;font-size:calc(var(--sh) * .66)}
+#xsm .ev-slot .szero{color:#7dffb0;text-shadow:0 0 10px #1fbf6a;font:900 calc(var(--sh) * .6)/1 'Noto Serif JP','Yu Mincho',serif}
+#xsm .ev-slot .pay{position:absolute;left:4px;right:4px;top:calc(8px + var(--sh));height:var(--sh);pointer-events:none;border-top:2px solid rgba(255,255,255,.35);border-bottom:2px solid rgba(255,255,255,.35)}
+#xsm .ev-slot.reach .rl.c{box-shadow:inset 0 0 0 3px var(--rc,#ff2a3a),0 0 26px var(--rc,#ff2a3a);animation:slReach .32s steps(2) infinite}
+@keyframes slReach{50%{box-shadow:inset 0 0 0 3px #fff,0 0 40px var(--rc,#ff2a3a)}}
+#xsm .ev-slot.hit .pay{border-color:#fff;background:linear-gradient(90deg,transparent,rgba(255,255,255,.28),transparent);animation:slHit .25s steps(2) 6}
+@keyframes slHit{50%{background:transparent;border-color:var(--rc,#ffd257)}}
+#xsm .ev-slot.hit .sl-box{animation:slBoxHit .6s ease-out}
+@keyframes slBoxHit{0%{transform:scale(1.12);filter:brightness(2)}100%{transform:none;filter:none}}
+#xsm .ev-slot.hit.rb .sl-box{box-shadow:0 0 0 2px #fff,0 0 0 5px #000,0 0 0 7px #ffd257,0 0 50px #ff5fa2,0 0 90px #5fd0ff}
+#xsm .ev-slot .sl-rc{position:absolute;left:50%;bottom:calc(100% + 26px);transform:translateX(-50%) scale(0);white-space:nowrap;text-align:center;pointer-events:none}
+#xsm .ev-slot .sl-rc b{display:block;font:900 clamp(26px,6.4vh,52px)/1 'Noto Serif JP','Yu Mincho',serif;letter-spacing:.18em;color:#fff;
+  -webkit-text-stroke:1.5px var(--rc,#ff2a3a);text-shadow:0 0 14px var(--rc,#ff2a3a),0 0 34px var(--rc,#ff2a3a);transform:scaleY(1.2)}
+#xsm .ev-slot .sl-rc small{display:block;margin-top:6px;font:900 clamp(10px,1.8vh,13px)/1 'Orbitron',sans-serif;letter-spacing:.45em;color:var(--rc,#ff2a3a)}
+#xsm .ev-slot.reach .sl-rc{animation:slRc .45s cubic-bezier(.2,1.6,.4,1) forwards}
+@keyframes slRc{to{transform:translateX(-50%) scale(1)}}
+#xsm .ev-slot.rcrb .sl-rc b{background:linear-gradient(100deg,#ff5fa2,#ffd257 25%,#7dffb0 50%,#5fd0ff 75%,#c79cff);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-stroke:0;animation:txRb 1s linear infinite}
+/* ── ★★ 2026-11-03 UR：画面いっぱいの EMERGENCY の札 ── */
+#xsm .ev-emg{position:absolute;inset:0;z-index:1;pointer-events:none}
+#xsm .ev-emg i{position:absolute;width:clamp(96px,26vmin,190px);padding:7px 0 8px;text-align:center;font:900 clamp(12px,2.6vmin,20px)/1 'Orbitron',sans-serif;font-style:italic;letter-spacing:.08em;
+  color:#ff2a3a;background:rgba(40,0,6,.82);box-shadow:0 0 0 2px #ff2a3a,0 0 22px rgba(255,42,58,.7);opacity:0;transform:scale(1.8);animation:emgIn .18s steps(2) forwards,evBlink .5s steps(2) .2s infinite}
+#xsm .ev-emg i small{display:block;margin-top:4px;font:900 .55em/1 'Noto Sans JP',sans-serif;letter-spacing:.3em;font-style:normal}
+@keyframes emgIn{to{opacity:1;transform:none}}
+/* ── ★★ 2026-11-03 天使降臨（UR 2体以上・超豪華ロング）── */
+#xsm .xs-angel{position:absolute;inset:0;z-index:47;display:none;pointer-events:none;overflow:hidden;background:#000}
+#xsm .xs-angel.on{display:block}
+#xsm .xs-angel .ag-sky{position:absolute;inset:0;opacity:0;transition:opacity 1.2s;background:radial-gradient(ellipse at 50% 30%,#fff6e0 0,#9fd0ff 18%,#2a3a8a 46%,#05061a 78%)}
+#xsm .xs-angel.sky .ag-sky{opacity:1}
+#xsm .xs-angel .ag-rays{position:absolute;left:50%;top:38%;width:220vmax;height:220vmax;margin:-110vmax 0 0 -110vmax;opacity:0;transition:opacity 1s;
+  background:repeating-conic-gradient(from 0deg,rgba(255,255,255,.22) 0 3deg,transparent 3deg 12deg);animation:xsSpin 30s linear infinite;
+  -webkit-mask:radial-gradient(circle,#000 6%,rgba(0,0,0,.5) 26%,transparent 52%);mask:radial-gradient(circle,#000 6%,rgba(0,0,0,.5) 26%,transparent 52%)}
+#xsm .xs-angel.sky .ag-rays{opacity:1}
+#xsm .xs-angel .ag-city{position:absolute;left:0;right:0;bottom:0;height:24%;opacity:0;transition:opacity 1s;
+  background:linear-gradient(transparent,rgba(0,0,0,.85)),repeating-linear-gradient(90deg,#070a18 0 18px,#0c1230 18px 30px,#05070f 30px 52px,#0a0f26 52px 64px);
+  -webkit-mask:linear-gradient(transparent,#000 30%);mask:linear-gradient(transparent,#000 30%);clip-path:polygon(0 60%,6% 60%,6% 30%,12% 30%,12% 50%,18% 50%,18% 18%,23% 18%,23% 46%,30% 46%,30% 8%,35% 8%,35% 40%,42% 40%,42% 26%,48% 26%,48% 52%,55% 52%,55% 12%,61% 12%,61% 44%,67% 44%,67% 22%,73% 22%,73% 56%,80% 56%,80% 16%,86% 16%,86% 48%,93% 48%,93% 34%,100% 34%,100% 100%,0 100%)}
+#xsm .xs-angel.sky .ag-city{opacity:1}
+#xsm .xs-angel .ag-ttl{position:absolute;inset:0;background:#000;color:#fff;font-family:'Noto Serif JP','Hiragino Mincho ProN','Yu Mincho','YuMincho',serif;z-index:6}
+#xsm .xs-angel .ag-ttl.out{animation:evOut .3s steps(3) forwards}
+#xsm .xs-angel .ag-ttl b{position:absolute;font-weight:900;line-height:1;opacity:0;transform:scaleY(1.34);transform-origin:0 0}
+#xsm .xs-angel .ag-ttl b.on{animation:evCut .01s steps(1) forwards}
+#xsm .xs-angel .ag-ttl .a1{left:8%;top:12%;font-size:clamp(84px,24vmin,210px)}
+#xsm .xs-angel .ag-ttl .a2{left:34%;top:12%;font-size:clamp(84px,24vmin,210px)}
+#xsm .xs-angel .ag-ttl .a3{left:59%;top:24%;font-size:clamp(40px,10vmin,90px)}
+#xsm .xs-angel .ag-ttl .a4{left:18%;top:50%;font-size:clamp(84px,24vmin,210px);color:#ff2a3a;text-shadow:0 0 30px #ff2a3a}
+#xsm .xs-angel .ag-ttl .a5{left:46%;top:50%;font-size:clamp(84px,24vmin,210px);color:#ff2a3a;text-shadow:0 0 30px #ff2a3a}
+#xsm .xs-angel .ag-ttl small{position:absolute;left:8%;bottom:10%;font:900 clamp(11px,2.2vmin,18px)/1.4 'Orbitron',sans-serif;letter-spacing:.42em;color:#dfe6ff;opacity:0}
+#xsm .xs-angel .ag-ttl small.on{animation:evCut .01s steps(1) forwards}
+#xsm .xs-angel .ag-ttl em{position:absolute;right:8%;top:10%;writing-mode:vertical-rl;font-style:normal;font-weight:900;font-size:clamp(20px,5vmin,44px);letter-spacing:.3em;opacity:0}
+#xsm .xs-angel .ag-ttl em.on{animation:evCut .01s steps(1) forwards}
+#xsm .xs-angel .ag-body{position:absolute;left:50%;top:40%;width:min(92vmin,680px);height:min(92vmin,680px);margin:calc(min(92vmin,680px) / -2) 0 0 calc(min(92vmin,680px) / -2);opacity:0;z-index:2}
+#xsm .xs-angel.desc .ag-body{animation:agDesc 2.6s cubic-bezier(.16,.8,.3,1) forwards}
+@keyframes agDesc{0%{opacity:0;transform:translateY(-70%) scale(.55)}25%{opacity:1}100%{opacity:1;transform:none}}
+#xsm .xs-angel .ag-body svg{width:100%;height:100%;overflow:visible}
+#xsm .xs-angel .ag-body .halo{transform-box:fill-box;transform-origin:center;animation:xsSpin 9s linear infinite}
+#xsm .xs-angel .ag-body .halo2{transform-box:fill-box;transform-origin:center;animation:xsSpin 6s linear infinite reverse}
+#xsm .xs-angel .ag-body .wing{transform-box:view-box;transform-origin:200px 200px;animation:agWing 2.6s ease-in-out infinite alternate}
+#xsm .xs-angel .ag-body .wing.r{animation-name:agWingR}
+@keyframes agWing{from{transform:rotate(-4deg)}to{transform:rotate(5deg)}}
+@keyframes agWingR{from{transform:rotate(4deg)}to{transform:rotate(-5deg)}}
+#xsm .xs-angel .ag-body .core{transform-box:fill-box;transform-origin:center;animation:agCore 1.6s ease-in-out infinite}
+@keyframes agCore{50%{transform:scale(1.08);filter:brightness(1.5)}}
+#xsm .xs-angel.charge .ag-body .core{animation:agCore .28s ease-in-out infinite}
+#xsm .xs-angel.charge .ag-body{filter:drop-shadow(0 0 30px #fff) drop-shadow(0 0 60px #ffd257)}
+#xsm .xs-angel.open .ag-body .wing{animation-duration:.9s}
+#xsm .xs-angel .ag-band{position:absolute;left:-10%;right:-10%;height:clamp(24px,5vh,42px);background:#fff;color:#000;display:flex;align-items:center;overflow:hidden;opacity:0;z-index:4;transform:rotate(-6deg)}
+#xsm .xs-angel .ag-band.t{top:16%} #xsm .xs-angel .ag-band.b{bottom:20%;transform:rotate(-6deg)}
+#xsm .xs-angel .ag-band span{flex:none;white-space:nowrap;font:900 clamp(12px,2.4vh,18px)/1 'Orbitron',sans-serif;letter-spacing:.34em;animation:evMarq 2.2s linear infinite}
+#xsm .xs-angel .ag-band.b span{animation-direction:reverse}
+#xsm .xs-angel.bands .ag-band{animation:agBand .3s steps(2) forwards}
+@keyframes agBand{to{opacity:.92}}
+#xsm .xs-angel .ag-pil{position:absolute;inset:0;z-index:3}
+#xsm .xs-angel .ag-pil i{position:absolute;bottom:-5%;width:clamp(40px,12vmin,110px);height:115%;margin-left:calc(clamp(40px,12vmin,110px) / -2);transform:scaleY(0);transform-origin:50% 100%;
+  background:linear-gradient(transparent,rgba(255,255,255,.95) 30%,#fff 60%,rgba(255,240,200,.9));box-shadow:0 0 40px #fff,0 0 90px #ffd257,0 0 160px #ff5fa2;mix-blend-mode:screen}
+#xsm .xs-angel .ag-pil i.go{animation:agPil 1.6s cubic-bezier(.2,.9,.3,1) forwards}
+@keyframes agPil{0%{transform:scaleY(0) scaleX(.4)}22%{transform:scaleY(1) scaleX(1.3)}70%{transform:scaleY(1) scaleX(1)}100%{transform:scaleY(1) scaleX(.85);opacity:.85}}
+#xsm .xs-angel .ag-pil b{position:absolute;top:58%;transform:translate(-50%,-50%) scale(0);font:900 clamp(22px,6vmin,48px)/1 'Orbitron',sans-serif;font-style:italic;color:#fff;text-shadow:0 0 14px #ff5fa2,0 0 30px #ffd257;white-space:nowrap}
+#xsm .xs-angel .ag-pil b.go{animation:slRcB .5s cubic-bezier(.2,1.6,.4,1) .2s forwards}
+@keyframes slRcB{to{transform:translate(-50%,-50%) scale(1)}}
+#xsm .xs-angel .xs-xcross{z-index:4}
+#xsm .xs-angel .ag-cnt{position:absolute;left:50%;top:40%;transform:translate(-50%,-50%);z-index:5;text-align:center;display:none}
+#xsm .xs-angel .ag-cnt.on{display:block}
+#xsm .xs-angel .ag-cnt b{display:block;font:900 clamp(110px,32vmin,260px)/1 'Orbitron',monospace;color:#fff;text-shadow:0 0 30px #ffd257,0 0 70px #ff5fa2;animation:cntIn .5s cubic-bezier(.2,1.5,.4,1)}
+#xsm .xs-angel .ag-cnt small{display:block;margin-top:6px;font:900 clamp(14px,3vh,22px)/1 'Noto Serif JP','Yu Mincho',serif;letter-spacing:.6em;color:#fff;text-shadow:0 0 10px #000}
+#xsm .xs-angel .ag-wo{position:absolute;inset:0;background:#fff;opacity:0;z-index:7}
+#xsm .xs-angel .ag-wo.go{animation:agWo 1.4s ease-out forwards}
+@keyframes agWo{0%{opacity:0}18%{opacity:1}55%{opacity:1}100%{opacity:0}}
+#xsm .xs-angel .ag-fin{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%) scale(.3);z-index:8;text-align:center;opacity:0;white-space:nowrap}
+#xsm .xs-angel .ag-fin.on{animation:agFin .6s cubic-bezier(.2,1.6,.4,1) forwards}
+@keyframes agFin{to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+#xsm .xs-angel .ag-fin b{display:block;font:900 clamp(54px,15vmin,130px)/1 'Orbitron',sans-serif;font-style:italic;letter-spacing:.04em;
+  background:linear-gradient(100deg,#ff5fa2,#ffd257 25%,#7dffb0 50%,#5fd0ff 75%,#c79cff);background-size:200% 100%;-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 0 3px #000) drop-shadow(0 0 18px rgba(255,255,255,.8));animation:txRb 1s linear infinite}
+#xsm .xs-angel .ag-fin small{display:block;margin-top:10px;font:900 clamp(26px,7vmin,60px)/1 'Noto Serif JP','Yu Mincho',serif;letter-spacing:.5em;color:#fff;text-shadow:0 0 20px #ffd257,0 0 40px #ff5fa2}
+#xsm .xs-angel .ag-fin em{display:block;margin-top:12px;font:900 clamp(10px,1.8vh,13px)/1 'Orbitron',sans-serif;letter-spacing:.42em;color:#ffe9a8;font-style:normal}
 @media (prefers-reduced-motion:reduce){#xsm *{animation-duration:.01s!important;animation-iteration-count:1!important}}
 `;
     document.head.appendChild(s);
@@ -556,13 +815,14 @@
   const alive = (ov) => !!(S && S.ov === ov);
 
   /* ══ 確定演出の選びかた（出たら必ずその内容＝うそをつかない）══ */
-  function chooseTells(rs, gmode) {
-    const tiers = rs.map(tierOf);
+  function chooseTells(rs, gmode, ft) {
+    /* ★★ 2026-11-03 ft（昇格まえの色）を渡すと、それで決める（①〜③で昇格がばれないように） */
+    const tiers = ft ? ft.slice() : rs.map(tierOf);
     const best = Math.max(0, ...tiers);
     const nS = tiers.filter((t) => t >= 2).length;
     let pick = [];
     try { pick = gmode && typeof pickIdsOfMode === "function" ? pickIdsOfMode(gmode) : []; } catch (e) { pick = []; }
-    const pickHit = rs.find((r) => r.type === "char" && tierOf(r) >= 2 && pick.indexOf(r.id) >= 0);
+    const pickHit = rs.find((r, i) => r.type === "char" && tiers[i] >= 2 && pick.indexOf(r.id) >= 0);
     let pumpkin = false;
     try { const f = gmode && typeof fesDef === "function" ? FESTS[gmode] : null; pumpkin = !!(f && f.pumpkin) && best === 3; } catch (e) {}
     const tl = [];
@@ -606,6 +866,7 @@
       <div class="xs-bg">${HEXPAT}<div class="scan"></div><div class="sweep"></div><div class="vig"></div></div>
       <div class="xs-boot"><div class="line"></div><pre></pre></div>
       <div class="xs-eva"></div>
+      <div class="xs-angel"></div>
       <div class="xs-cut"></div>
       <div class="xs-count"><b></b><small>臨界まで</small></div>
       <div class="xs-title"></div>
@@ -625,7 +886,7 @@
   }
   function flash(red) { const f = S.ov.querySelector(".xs-flash"); if (!f) return; f.classList.toggle("red", !!red); f.classList.remove("go"); void f.offsetWidth; f.classList.add("go"); }
   function shake() { const ov = S.ov; ov.classList.remove("shake"); void ov.offsetWidth; ov.classList.add("shake"); at(700, () => { if (alive(ov)) ov.classList.remove("shake"); }); }
-  function setLv(lv) { const ov = S.ov; ov.classList.remove("lv-g", "lv-o", "lv-r"); ov.classList.add("lv-" + lv); }
+  function setLv(lv) { const ov = S.ov; ov.classList.remove("lv-g", "lv-o", "lv-r"); ov.classList.add("lv-" + lv); BGM.level(lv); }
   function hexLines(n, lv) {
     const w = ["SIGNAL", "PHASE", "ORBIT", "LUMEN", "UMBRA", "CORE", "VECTOR", "SEAL", "ECHO", "NODE"];
     let s = "";
@@ -657,7 +918,7 @@
     lines.forEach((ln, k) => at(380 + k * 210, () => { if (!alive(ov)) return; txt += (k ? "\n" : "") + ln; pre.textContent = txt; snd("type"); }));
     t = 1500;
     /* ① 警報と解析 */
-    at(t, () => { if (!alive(ov)) return; ov.classList.remove("boot"); ov.classList.add("bg"); evaOpen(lv, rank); });
+    at(t, () => { if (!alive(ov)) return; ov.classList.remove("boot"); ov.classList.add("bg"); evaOpen(lv, rank); BGM.start("g"); });
     const evLen = evaTimeline(t, lv, rank);
     t += evLen;
     /* ② カットイン（2回のときもある）・カウントダウン */
@@ -665,12 +926,15 @@
        前はカットインが確率で0〜3回（青＝何も約束しない回・W・南瓜が別々に足される）で、出てくる SSR 以上の数と食いちがっていた。
        → <b>カットインは SSR 以上のキャラ1体につき1回ちょうど</b>（低いレア度から順に・UR は虹／南瓜・SSR は赤）。
          多いときは1回を短くする（3回まで 1.65 秒・それ以上は全体で約6秒に収める）。 */
-    const hi = S.rs.filter((r) => r.type === "char" && tierOf(r) >= 2).sort((a, b) => tierOf(a) - tierOf(b));
+    /* ★★ 2026-11-03 UR が2体以上（昇格まえの色で）＝ 天使降臨（超豪華ロング・ご指定） */
+    if (S.plan && S.plan.angel) t += angelSeq(t, S.plan.nU);
+    /* ★★ 2026-11-03 カットインの数と色も<b>昇格まえの色</b>（S.from）で。前は本当の色だったので、盤で昇格する前に UR の数がばれていた（ご指摘） */
+    const hi = S.rs.map((r, i) => ({ r, t: S.from[i] })).filter((o) => o.r.type === "char" && o.t >= 2).sort((a, b) => a.t - b.t);
     const step = hi.length <= 3 ? 1650 : Math.max(900, Math.round(6000 / hi.length));
-    hi.forEach((r, k) => {
-      const ur = tierOf(r) === 3;
+    hi.forEach((o, k) => {
+      const ur = o.t === 3;
       const c = ur ? (has1(info, "pk") ? "pk" : "rb") : "red";
-      at(t, () => { if (alive(ov)) cutIn(c, k, r, hi.length); });
+      at(t, () => { if (alive(ov)) cutIn(c, k, o.r, hi.length); });
       t += step;
     });
     if (has1(info, "count")) {
@@ -691,7 +955,7 @@
     const bar = (tx) => "<span>" + (tx + " ▲ ").repeat(8) + "</span>";
     ev.innerHTML = '<div class="ev-data l"><div>' + hexLines(24, lv) + '</div></div><div class="ev-data r"><div>' + hexLines(24, lv) + "</div></div>" +
       '<div class="ev-ret"><svg viewBox="-110 -110 220 220" fill="none" stroke="currentColor"><g class="r1"><circle r="100" stroke-width="2" stroke-dasharray="6 6"/><path d="M0-108V-84M0 84V108M-108 0H-84M84 0H108" stroke-width="4"/></g><g class="r2"><circle r="72" stroke-width="3" stroke-dasharray="40 14"/><path d="M-50-50L-38-38M50-50L38-38M-50 50L-38 38M50 50L38 38" stroke-width="3"/></g><circle r="46" stroke-width="1.5"/></svg></div>' +
-      '<div class="ev-sync"><small>共鳴率</small><b>0.0</b><i>%</i></div>' +
+      slotHTML() + '<div class="ev-emg"></div>' +
       '<div class="ev-txc"><b>反応検知</b><small>SIGNAL DETECTED</small></div>' +
       '<div class="ev-bars"><i class="t">' + bar("WARNING") + '</i><i class="b">' + bar(n10 ? "SUMMONING SEQUENCE ×10" : "SUMMONING SEQUENCE") + "</i></div>" +
       '<div class="ev-warn"><b>WARNING</b><span>召喚シグナルを検知</span></div>';
@@ -699,6 +963,92 @@
     snd("alarm");
     at(220, () => { if (alive(ov)) { ev.classList.add("hud"); snd("tick"); } });
   }
+  /* ══ ★★ 2026-11-03 スロット（左→右→まん中の順に止まる）══
+     そろう絵柄は<b>昇格まえの色</b>（S.from）で決める＝うそをつかない・昇格はばらさない。 */
+  const SLOT_SYM = {
+    seven: '<i class="sy s7">7</i>',
+    ten: '<i class="sy sten"><b>天</b></i>',
+    hex: '<i class="sy shex"><svg viewBox="0 0 100 110"><path d="M50 4L94 29V81L50 106L6 81V29Z"/></svg><b>◆</b></i>',
+    star: '<i class="sy sstar">★</i>',
+    x: '<i class="sy sx">X</i>',
+    zero: '<i class="sy szero">零</i>',
+  };
+  const SLOT_RING = ["seven", "x", "hex", "zero", "star", "ten", "x", "star", "hex", "zero"];
+  function slotPlan(from) {
+    const nU = from.filter((t) => t === 3).length, nS = from.filter((t) => t >= 2).length;
+    const R = Math.random;
+    if (nU >= 2) return { s: ["ten", "ten", "ten"], reach: true, hit: true, angel: true, nU };
+    if (nU === 1) return { s: ["seven", "seven", "seven"], reach: true, hit: true, nU };
+    if (nS >= 2) return { s: ["hex", "hex", "hex"], reach: true, hit: true, nU };
+    if (nS === 1) return { s: ["star", "star", "star"], reach: true, hit: true, nU };
+    /* SSR 以上なし：ばらばら（3割はリーチだけ＝まん中ははずれ） */
+    const pool = ["x", "zero", "star", "hex"];
+    const a = pool[Math.floor(R() * pool.length)];
+    if (R() < 0.3) { let c = a; while (c === a) c = SLOT_RING[Math.floor(R() * SLOT_RING.length)]; return { s: [a, c, a], reach: true, hit: false, nU }; }
+    let b = a, c = a;
+    while (b === a) b = pool[Math.floor(R() * pool.length)];
+    while (c === a || c === b) c = SLOT_RING[Math.floor(R() * SLOT_RING.length)];
+    return { s: [a, c, b], reach: false, hit: false, nU };
+  }
+  function slotHTML() {
+    const strip = SLOT_RING.concat(SLOT_RING).map((k) => SLOT_SYM[k]).join("");
+    return '<div class="ev-slot"><div class="sl-hd"><span>XEVA-SLOT</span><b>召喚判定</b></div><div class="sl-box">' +
+      ["l", "c", "r"].map((p, i) => '<div class="rl ' + p + ' spin"><div class="st" style="animation-delay:-' + (i * 0.11).toFixed(2) + 's">' + strip + "</div></div>").join("") +
+      '<i class="pay"></i></div><div class="sl-rc"><b></b><small></small></div></div>';
+  }
+  /* 1つのリールを止める（目当ての絵柄をまん中の段に） */
+  function reelStop(pos, sym) {
+    const sl = S.ov.querySelector(".ev-slot"); if (!sl) return;
+    const rl = sl.querySelector(".rl." + pos); if (!rl) return;
+    const i = SLOT_RING.indexOf(sym), at = (k) => SLOT_SYM[SLOT_RING[(i + k + SLOT_RING.length * 4) % SLOT_RING.length]];
+    rl.classList.remove("spin");
+    rl.querySelector(".st").innerHTML = at(-2) + at(-1) + SLOT_SYM[sym] + at(1) + at(2);
+    void rl.offsetWidth; rl.classList.add("stop");
+    snd("stop");
+  }
+  const SLOT_RC = { seven: ["#ff2a3a", "７リーチ", "SEVEN REACH"], ten: ["#ffd257", "天使リーチ", "ANGELIC REACH"], hex: ["#ffb020", "◆リーチ", "GOLD REACH"],
+    star: ["#5fb0ff", "★リーチ", "BLUE REACH"], x: ["#c79cff", "リーチ", "REACH"], zero: ["#7dffb0", "リーチ", "REACH"] };
+  function slotTimeline(t0) {
+    const ov = S.ov, P = S.plan;
+    for (let k = 0; k < 8; k++) at(t0 + 320 + k * 110, () => { if (alive(ov)) snd("reel"); });
+    at(t0 + 760, () => { if (alive(ov)) reelStop("l", P.s[0]); });
+    at(t0 + 1180, () => { if (alive(ov)) reelStop("r", P.s[2]); });
+    if (P.reach) at(t0 + 1300, () => {
+      if (!alive(ov)) return;
+      const sl = ov.querySelector(".ev-slot"); if (!sl) return;
+      const rc = SLOT_RC[P.s[0]] || SLOT_RC.x;
+      sl.style.setProperty("--rc", rc[0]);
+      sl.querySelector(".sl-rc b").textContent = rc[1]; sl.querySelector(".sl-rc small").textContent = rc[2];
+      sl.classList.add("reach"); if (P.s[0] === "ten") sl.classList.add("rcrb");
+      snd("reach"); if (P.s[0] === "ten" || P.s[0] === "seven") shake();
+    });
+    const tc = P.reach ? 2250 : 1560;
+    at(t0 + tc, () => {
+      if (!alive(ov)) return;
+      reelStop("c", P.s[1]);
+      const sl = ov.querySelector(".ev-slot"); if (!sl) return;
+      sl.classList.remove("reach");
+      if (P.hit) {
+        sl.classList.add("hit"); if (P.s[0] === "ten" || P.s[0] === "seven") sl.classList.add("rb");
+        flash(P.s[0] === "seven"); snd("jackpot"); if (P.s[0] === "ten") snd("rainbow");
+      }
+    });
+    return tc;
+  }
+  /* ★★ 2026-11-03 UR：画面いっぱいの EMERGENCY の札（散らばって点滅） */
+  function emgTiles() {
+    const box = S.ov.querySelector(".ev-emg"); if (!box || box.childElementCount) return;
+    const spots = [[4, 18], [62, 14], [30, 30], [72, 34], [6, 52], [58, 58], [26, 70], [70, 76], [40, 8], [2, 84], [44, 46], [80, 4]];
+    spots.forEach(([x, y], k) => at(k * 70, () => {
+      if (!S || !box.isConnected) return;
+      const i = document.createElement("i");
+      i.style.left = x + "%"; i.style.top = y + "%";
+      i.innerHTML = "EMERGENCY<small>緊急事態</small>";
+      box.appendChild(i);
+      if (k % 3 === 0) snd("tick");
+    }));
+  }
+
   /* 文字変化の札を書きかえる */
   function txChange(b, small, rb) {
     const el = S.ov.querySelector(".ev-txc"); if (!el) return;
@@ -710,21 +1060,12 @@
   /* ①の時刻（t0 から）。戻り値＝この段の長さ */
   function evaTimeline(t0, lv, rank) {
     const ov = S.ov;
-    const goal = lv === "r" ? 128 : lv === "o" ? (rank ? 99.8 : 87.6) : 24 + Math.random() * 30;
-    at(t0 + 300, () => {
-      if (!alive(ov)) return;
-      const ev = ov.querySelector(".xs-eva"), num = ov.querySelector(".ev-sync b"), st = performance.now();
-      const step = () => {
-        if (!alive(ov) || S.phase !== "intro" || !ev.classList.contains("on")) return;
-        const k = Math.max(0, Math.min(1, (performance.now() - st) / 2200));
-        num.textContent = (goal * (1 - Math.pow(1 - k, 3))).toFixed(1);
-        if (k < 1) requestAnimationFrame(step); else if (goal > 100) ev.classList.add("over");
-      };
-      requestAnimationFrame(step);
-    });
+    /* ★★ 2026-11-03 「共鳴率 ％」をやめてスロット（ご指定） */
+    const tc = slotTimeline(t0);
     /* 文字変化：反応検知（緑）→ 反応増大（橙）→ 臨界突破（赤）。色はそこで本当の段へ */
     if (lv !== "g") at(t0 + 1150, () => { if (!alive(ov)) return; setLv("o"); txChange("反応増大", "SIGNAL RISING"); });
     if (lv === "r") at(t0 + 2050, () => { if (!alive(ov)) return; setLv("r"); txChange("臨界突破", "CRITICAL", S.info.tl.indexOf("rbbar") >= 0); shake(); });
+    if (lv === "r" || rank) at(t0 + (rank ? 2450 : 2150), () => { if (alive(ov)) emgTiles(); });
     if (lv === "g") at(t0 + 1400, () => { if (alive(ov)) txChange("解析中", "ANALYZING"); });
     at(t0 + 1250, () => {
       if (!alive(ov)) return;
@@ -738,17 +1079,96 @@
       if (!alive(ov)) return;
       setLv("r");
       const ev = ov.querySelector(".xs-eva"); ev.classList.add("glitch", "over");
-      ov.querySelector(".ev-sync b").textContent = "128.0";
       txChange("臨界突破", "CRITICAL", S.info.tl.indexOf("rbbar") >= 0);
       const w = ov.querySelector(".ev-warn"); if (w) { w.querySelector("b").textContent = "EMERGENCY"; w.querySelector("span").textContent = "超高位の反応を確認"; }
       ev.classList.remove("warn"); void ev.offsetWidth; ev.classList.add("warn");
       snd("glitch"); snd("alarm2"); flash(true); shake();
     });
     if (S.info.tl.indexOf("rbbar") >= 0) at(t0 + (rank ? 2550 : 2250), () => { if (alive(ov)) { ov.classList.add("rbbar"); snd("rainbow"); } });
-    const len = lv === "g" ? 2900 : 3500;
+    const len = Math.max(lv === "g" ? 2900 : 3500, tc + 1100);
     at(t0 + len - 250, () => { if (!alive(ov)) return; const ev = ov.querySelector(".xs-eva"); ev.classList.add("out"); });
     at(t0 + len, () => { if (!alive(ov)) return; const ev = ov.querySelector(".xs-eva"); ev.className = "xs-eva"; ev.innerHTML = ""; });
     return len;
+  }
+  /* ══ ★★ 2026-11-03 天使降臨（UR 2体以上）。t0 からの長さを返す ══
+     題字「天使、降臨」→ 空と街・光の天使が降りてくる・白い帯 → UR の数だけ光の柱と十字の光 → 翼がひらき核が光る・カウントダウン → 白い光 →「UR ×N 確定」 */
+  function angelSVG() {
+    const wing = (side) => {
+      const s = side === "l" ? -1 : 1;
+      return [[-28, 175, 0.95], [-52, 160, 0.85], [-76, 140, 0.7]].map(([deg, len, op], j) => {
+        const a = (s * (90 + deg)) * Math.PI / 180, x = 200 + Math.sin(a) * len, y = 200 - Math.cos(a) * len * 0.92;
+        const cx1 = 200 + Math.sin(a) * len * 0.35 + s * 26, cy1 = 200 - Math.cos(a) * len * 0.6 - 30;
+        return '<path d="M200 200 Q' + cx1.toFixed(1) + " " + cy1.toFixed(1) + " " + x.toFixed(1) + " " + y.toFixed(1) + " Q" + (x - s * 14).toFixed(1) + " " + (y + 26).toFixed(1) + ' 200 214 Z" fill="url(#agW)" opacity="' + op + '"/>' +
+          '<path d="M200 204 Q' + cx1.toFixed(1) + " " + (cy1 + 10).toFixed(1) + " " + x.toFixed(1) + " " + y.toFixed(1) + '" fill="none" stroke="#fff" stroke-width="' + (2.4 - j * 0.5) + '" opacity=".9"/>';
+      }).join("");
+    };
+    return '<svg viewBox="0 0 400 400"><defs>' +
+      '<linearGradient id="agW" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset=".55" stop-color="#e6f2ff" stop-opacity=".85"/><stop offset="1" stop-color="#9fd0ff" stop-opacity=".15"/></linearGradient>' +
+      '<linearGradient id="agC" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff5fa2"/><stop offset=".3" stop-color="#ffd257"/><stop offset=".55" stop-color="#7dffb0"/><stop offset=".8" stop-color="#5fd0ff"/><stop offset="1" stop-color="#c79cff"/></linearGradient>' +
+      '<radialGradient id="agG"><stop offset="0" stop-color="#fff"/><stop offset=".4" stop-color="#fff6d8" stop-opacity=".8"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient></defs>' +
+      '<circle cx="200" cy="200" r="190" fill="url(#agG)" opacity=".55"/>' +
+      '<g class="wing l">' + wing("l") + "</g><g class=\"wing r\">" + wing("r") + "</g>" +
+      '<path d="M188 222 L200 388 L212 222 Z" fill="url(#agW)" opacity=".8"/>' +
+      '<g class="halo"><ellipse cx="200" cy="96" rx="78" ry="16" fill="none" stroke="#ffd257" stroke-width="5" stroke-dasharray="26 10"/></g>' +
+      '<g class="halo2"><ellipse cx="200" cy="96" rx="96" ry="22" fill="none" stroke="#fff" stroke-width="1.8" stroke-dasharray="4 8"/></g>' +
+      '<g class="halo"><circle cx="200" cy="200" r="62" fill="none" stroke="#fff" stroke-width="2" stroke-dasharray="3 9"/></g>' +
+      '<g class="halo2"><circle cx="200" cy="200" r="78" fill="none" stroke="#ffd257" stroke-width="1.5" stroke-dasharray="40 14 6 14"/></g>' +
+      '<g class="core"><path d="M200 146 L236 200 L200 254 L164 200 Z" fill="url(#agC)" stroke="#fff" stroke-width="4"/>' +
+      '<path d="M200 172 L218 200 L200 228 L182 200 Z" fill="#fff" opacity=".85"/><circle cx="200" cy="200" r="6" fill="#ff2a3a"/></g></svg>';
+  }
+  function angelSeq(t0, nU) {
+    const ov = S.ov, box = ov.querySelector(".xs-angel");
+    const n = Math.max(2, nU | 0);
+    let t = t0;
+    at(t, () => {
+      if (!alive(ov)) return;
+      box.innerHTML = '<div class="ag-sky"></div><div class="ag-rays"></div><div class="ag-city"></div>' +
+        '<div class="ag-body">' + angelSVG() + '</div>' +
+        '<div class="ag-band t"><span>' + "ANGELIC SIGNAL ― 天使反応 ― ".repeat(8) + '</span></div><div class="ag-band b"><span>' + ("UR ×" + n + " ― ULTRA RARE ― ").repeat(10) + "</span></div>" +
+        '<div class="ag-pil"></div><div class="ag-cnt"><b></b><small>覚醒まで</small></div>' +
+        '<div class="ag-ttl"><b class="a1">天</b><b class="a2">使</b><b class="a3">、</b><b class="a4">降</b><b class="a5">臨</b><em>十連召喚・特異点</em><small>ANGELIC DESCENT ― ULTRA RARE ×' + n + "</small></div>" +
+        '<div class="ag-wo"></div><div class="ag-fin"><b>UR ×' + n + "</b><small>確定</small><em>ANGELIC DESCENT</em></div>";
+      box.className = "xs-angel on";
+      setLv("r"); snd("alarm2"); snd("glitch"); flash(true);
+    });
+    /* 題字（1文字ずつ） */
+    ["a1", "a2", "a3", "a4", "a5"].forEach((c, k) => at(t + 250 + k * 260, () => { if (!alive(ov)) return; const b = box.querySelector(".ag-ttl ." + c); if (b) b.classList.add("on"); snd(k >= 3 ? "boom" : "type"); if (k >= 3) shake(); }));
+    at(t + 1600, () => { if (!alive(ov)) return; const e = box.querySelector(".ag-ttl em"), s = box.querySelector(".ag-ttl small"); if (e) e.classList.add("on"); if (s) s.classList.add("on"); snd("chg"); });
+    t += 2500;
+    /* 空と天使 */
+    at(t, () => { if (!alive(ov)) return; BGM.stop(); const tt = box.querySelector(".ag-ttl"); if (tt) tt.classList.add("out"); box.classList.add("sky", "desc"); snd("choir"); snd("angel"); });
+    at(t + 1500, () => { if (alive(ov)) { box.classList.add("bands"); snd("alarm"); } });
+    t += 2700;
+    /* UR の数だけ光の柱と十字の光 */
+    const pil = () => box.querySelector(".ag-pil");
+    for (let k = 0; k < n; k++) {
+      const x = n === 1 ? 50 : 18 + (64 * k) / (n - 1);
+      at(t + k * 800, () => {
+        if (!alive(ov)) return;
+        const p = pil(); if (!p) return;
+        const i = document.createElement("i"); i.style.left = x + "%"; p.appendChild(i);
+        const b = document.createElement("b"); b.style.left = x + "%"; b.textContent = "UR " + (k + 1); p.appendChild(b);
+        const cr = document.createElement("div"); cr.className = "xs-xcross rb"; cr.style.left = x + "%"; cr.style.top = "48%"; cr.innerHTML = '<i class="v"></i><i class="h"></i>'; box.appendChild(cr);
+        requestAnimationFrame(() => { i.classList.add("go"); b.classList.add("go"); cr.classList.add("go"); });
+        flash(); shake(); snd("boom"); snd("rainbow");
+      });
+    }
+    t += n * 800 + 500;
+    /* 翼がひらき、核が光る → カウントダウン */
+    at(t, () => { if (alive(ov)) { box.classList.add("open", "charge"); snd("glitch"); } });
+    [3, 2, 1].forEach((v, k) => at(t + 300 + k * 560, () => {
+      if (!alive(ov)) return;
+      const c = box.querySelector(".ag-cnt"); if (!c) return;
+      c.classList.add("on"); const b = c.querySelector("b"); b.textContent = String(v); b.style.animation = "none"; void b.offsetWidth; b.style.animation = "";
+      snd("count"); if (v === 1) shake();
+    }));
+    t += 300 + 3 * 560;
+    /* 白い光 → UR ×N 確定 */
+    at(t, () => { if (!alive(ov)) return; const c = box.querySelector(".ag-cnt"); if (c) c.classList.remove("on"); const w = box.querySelector(".ag-wo"); if (w) w.classList.add("go"); snd("boom"); snd("ur"); });
+    at(t + 450, () => { if (!alive(ov)) return; const f = box.querySelector(".ag-fin"); if (f) f.classList.add("on"); snd("fanfare"); });
+    t += 2300;
+    at(t, () => { if (!alive(ov)) return; box.className = "xs-angel"; box.innerHTML = ""; BGM.start("r"); });
+    return t - t0;
   }
   /* ② カットイン（色：blue / red / gold / rb / pk） */
   function cutIn(c, k, r, n) {
@@ -757,17 +1177,18 @@
       rb: ["ULTRA RARE", "UR", "臨界を突破！"], pk: ["PUMPKIN NIGHT", "UR 確定", "南瓜の灯がともる"] }[c] || ["SIGNAL", "", ""]).slice();
     /* ★★ 2026-10-16 何体目のカットインかを出す（カットインの数＝SSR 以上のキャラの数） */
     if (n > 1) T1[2] = "反応 " + (k + 1) + " / " + n;
+    let sil = false;
     let pic = '<svg viewBox="0 0 100 110"><path d="M50 4L94 29V81L50 106L6 81V29Z" fill="rgba(0,0,0,.4)" stroke="#fff" stroke-width="5"/><path d="M50 22L78 38V72L50 88L22 72V38Z" fill="none" stroke="#fff" stroke-width="2" opacity=".7"/><text x="50" y="64" text-anchor="middle" font-family="Orbitron,sans-serif" font-weight="900" font-size="20" fill="#fff">' + (c === "rb" ? "UR" : c === "blue" ? "?" : "SSR") + "</text></svg>";
     if (c === "pk") pic = '<svg viewBox="0 0 100 100"><path d="M50 22c-3-9 3-13 8-14-4 4-4 8-3 14" fill="#3a8a2a"/><ellipse cx="50" cy="60" rx="38" ry="30" fill="#ff8a1f" stroke="#7a3a00" stroke-width="3"/><path d="M50 30v60M30 34c-6 10-6 42 0 52M70 34c6 10 6 42 0 52" stroke="#c85a00" stroke-width="2.5" fill="none"/><path d="M33 52l8-7 8 7zM51 52l8-7 8 7z" fill="#ffe37a"/><path d="M34 68q16 12 32 0l-5 4-5-4-6 5-6-5-5 4z" fill="#ffe37a"/></svg>';
     if (has1(info, "sil") && info.pickHit && (c === "red" || c === "gold" || c === "rb") && (r ? r === info.pickHit : k === 0)) {
       const ch = chr(info.pickHit.id);
-      if (ch) pic = '<img src="' + esc(ch.th || ch.img) + '" alt="">';
+      if (ch) { pic = '<img src="' + esc(ch.th || ch.img) + '" alt="">'; sil = true; }
       T1[2] = "ピックアップの反応！" + (n > 1 ? "（" + (k + 1) + " / " + n + "）" : "");
     }
     const tok = String(Math.random());
     box.dataset.tok = tok;
     box.className = "xs-cut on c-" + c;
-    box.innerHTML = '<div class="ct-dim"></div><div class="ct-band"><div class="ct-in"><div class="ct-pic">' + pic + '</div><div class="ct-tx"><small>' + esc(T1[0]) + "</small><b>" + esc(T1[1]) + "</b><span>" + esc(T1[2]) + "</span></div></div></div>";
+    box.innerHTML = '<div class="ct-dim"></div><div class="ct-band"></div><div class="ct-in"><div class="ct-pic' + (sil ? " sil" : "") + '">' + pic + '</div><div class="ct-tx"><small>' + esc(T1[0]) + "</small><b>" + esc(T1[1]) + "</b><span>" + esc(T1[2]) + "</span></div></div>";
     snd("cut");
     if (c === "rb") at(300, () => { if (alive(ov)) snd("rainbow"); });
     else if (c === "red" || c === "gold" || c === "pk") at(300, () => { if (alive(ov)) snd("gold"); });
@@ -792,13 +1213,14 @@
   /* ══ ④ 信号の盤：レア度を六角形のマークで先に見せる。ピックアップはここで昇格 ══ */
   function showBoard() {
     if (!S || S.phase === "board" || S.phase === "cards" || S.phase === "sum") return;
-    clearT();
+    clearT(); BGM.stop();
     const ov = S.ov;
     S.phase = "board";
     ["boot"].forEach((c) => ov.classList.remove(c));
     ov.querySelector(".xs-eva").className = "xs-eva"; ov.querySelector(".xs-eva").innerHTML = "";
     ov.querySelector(".xs-cut").className = "xs-cut"; ov.querySelector(".xs-count").classList.remove("on");
     ov.querySelector(".xs-title").className = "xs-title";
+    { const ag = ov.querySelector(".xs-angel"); if (ag) { ag.className = "xs-angel"; ag.innerHTML = ""; } }
     ov.classList.add("bg", "board");
     setLv(S.info.best >= 3 ? "r" : S.info.best === 2 ? "o" : "g");
     const bd = ov.querySelector(".xs-board");
@@ -824,6 +1246,8 @@
         el.classList.add("t" + nt, "pop", "crk", "upg");
         el.querySelector("b").textContent = RB(nt);
         flash(nt === 3); snd(nt === 3 ? "rainbow" : "promote"); if (nt === 3) shake();
+        /* ★★ 2026-11-03 盤の色も昇格で上がる（はじめは昇格まえの色） */
+        if (nt === 3) setLv("r"); else if (nt === 2 && !ov.classList.contains("lv-r")) setLv("o");
       });
       t += 1150;
     });
@@ -847,7 +1271,7 @@
     if (!S) return;
     const ov = S.ov, cap = ov.querySelector(".xs-board .cap");
     if (!cap || cap.classList.contains("on")) { S.capShown = true; return; }
-    const [a, b, rb] = capText(S.info);
+    const [a, b, rb] = capText(S.infoReal || S.info);   /* ★★ 2026-11-03 最後の札は本当の結果（昇格のあと） */
     S.capShown = true;
     if (!a) return;
     cap.querySelector("b").textContent = a; cap.querySelector("small").textContent = b;
@@ -1015,7 +1439,7 @@
   /* ══ ⑥ まとめ ══ */
   function toSummary() {
     if (!S || S.phase === "sum") return;
-    clearT();
+    clearT(); BGM.stop();
     S.phase = "sum";
     /* まだ選んでいない BLACK SELECT があれば、まとめの前に必ず選ばせる */
     const pend = S.rs.find((r) => r.type === "select" && !r.picked);
@@ -1067,7 +1491,7 @@
     if (nUR || nSSR || S.rs.some((r) => r.type === "char")) snd("fanfare");
   }
   function close() {
-    clearT();
+    clearT(); BGM.stop();
     const ov = S && S.ov;
     S = null;
     if (ov) { ov.classList.remove("on"); setTimeout(() => { if (ov.parentNode) ov.parentNode.removeChild(ov); }, 360); }
@@ -1106,7 +1530,11 @@
       if (Math.random() >= chance) return t;
       return t === 3 && Math.random() < 0.3 ? 1 : t - 1;
     });
-    S = { ov, rs, title, gmode, info: chooseTells(rs, gmode), from, i: -1, phase: "intro", busy: false, fast: rs.length >= 10, capShown: false };
+    /* ★★ 2026-11-03 ①〜③（スロット・カットイン・確定演出）は昇格まえの色（from）で決める＝盤で昇格するまでばれない（ご指摘）。
+       盤の最後の札だけ本当の結果（infoReal）。UR が2体以上（昇格まえ）なら天使降臨（plan.angel） */
+    const info0 = chooseTells(rs, gmode, from), plan = slotPlan(from);
+    if (plan.angel && info0.tl.indexOf("kanji") < 0) info0.tl.push("kanji");
+    S = { ov, rs, title, gmode, info: info0, infoReal: chooseTells(rs, gmode), plan, from, i: -1, phase: "intro", busy: false, fast: rs.length >= 10, capShown: false };
     /* 絵は先に読みこんでおく（演出のあいだに届くように）。UR は縦長の SS 絵も */
     S.pre = [];
     rs.forEach((r) => {

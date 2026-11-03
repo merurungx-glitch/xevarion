@@ -5,12 +5,12 @@
    ・フォント（Google Fonts）は控えない（オフラインでは端末の文字で出る）
    ★ 中身（CORE）は index.html の src/href から作った。ページに絵を足したらここにも足して VERSION を上げる
    ============================================================ */
-const VERSION = "ishida-site-sw-v3";   /* ★★ 2026-10-31 v2：ロゴがつぶれる修正（style.css?v=4） */
+const VERSION = "ishida-site-sw-v4";   /* ★★ 2026-10-31 v2：ロゴがつぶれる修正（style.css?v=4） */
 const CORE = [
   "./index.html",
   "../maintenance-gate.js?v=13",
   "../thumbs/ISHIDA.webp",
-  "css/style.css?v=5",
+  "css/style.css?v=6",
   "../brand/ISHIDA_s.webp",
   "../thumbs/MagiLex.jpg",
   "../thumbs/MagiBattle.jpg?v=4",
@@ -21,9 +21,10 @@ const CORE = [
   "../thumbs/MagiShift.jpg",
   "../thumbs/MagiChainParty.jpg?v=2",
   "../thumbs/MagiQuiz.jpg",
-  "../brand/NGX_s.webp",
+  "../brand/NGX_s.webp?v=2",
   "../brand/MagicalFuture_s.webp",
   "../brand/YRA_s.webp",
+  "../brand/Kawagani_s.webp", "../brand/StudioDOGA_s.webp",   // ★★ 2026-11-02 運営協力に参入
   "../thumbs/Ordyxis.jpg",
   "../thumbs/XEVYNAR.jpg",
   "../thumbs/MagiFocus.jpg",

@@ -105,6 +105,14 @@
 .dhero .dnm .drar.ur{background:linear-gradient(115deg,#ff5fa2,#ffd257 30%,#7dffb0 50%,#5fd0ff 70%,#a35cff);color:#fff;text-shadow:0 1px 2px rgba(40,10,80,.6)}
 .dhero.ursq{overflow:hidden}
 .dhero.ursq img{aspect-ratio:1/1;object-fit:cover}
+/* ★★ 2026-11-03 お気に入りの ☆（絵の右下・mb-char-detail.js の detFavHTML。xeva-favs.js を読んでいる画面だけ出る） */
+.dhero .dfav{position:absolute;right:12px;bottom:12px;z-index:7;display:inline-flex;align-items:center;gap:5px;padding:7px 12px 7px 9px;border-radius:99px;cursor:pointer;
+  border:1.5px solid rgba(255,255,255,.8);background:rgba(20,14,48,.55);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);color:#fff;
+  font:900 11.5px/1 'M PLUS Rounded 1c','Noto Sans JP',sans-serif;box-shadow:0 4px 14px rgba(0,0,0,.3);transition:transform .15s}
+.dhero .dfav i{font-style:normal;font-size:15px;line-height:1;color:#ffd257}
+.dhero .dfav.on{background:linear-gradient(135deg,#ffd257,#ff8ac0);color:#3a1a40;border-color:#fff}
+.dhero .dfav.on i{color:#fff;text-shadow:0 0 6px rgba(255,140,0,.85)}
+.dhero .dfav:active{transform:scale(.94)}
 .dimgsw{position:absolute;right:10px;top:56px;z-index:7;display:flex;gap:3px;padding:3px;border-radius:99px;background:rgba(15,10,40,.55);
   backdrop-filter:blur(4px);-webkit-backdrop-filter:blur(4px);box-shadow:0 2px 10px rgba(0,0,0,.25)}
 .dimgsw button{border:none;cursor:pointer;font:800 11px/1 system-ui,sans-serif;color:#fff;background:transparent;padding:6px 10px;border-radius:99px;white-space:nowrap}

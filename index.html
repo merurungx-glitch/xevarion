@@ -16,7 +16,7 @@
 <script src="maintenance-gate.js?v=13"></script>
 <!-- ★★ 2026-10-13 ご指定「アプリ開始時に企業ロゴ」：XEVARION を起動したときだけ 3社ロゴ → XEVARION のロゴとロードバー
      （アプリから戻ってきたとき＝このタブで「タップしてスタート」ずみは出さない。判定は xeva-splash.js の data-home） -->
-<script src="xeva-splash.js?v=19" data-app="XEVARION" data-logo="icons/xev-512.png" data-home="1" data-keep-legacy="1"></script>
+<script src="xeva-splash.js?v=21" data-app="XEVARION" data-logo="icons/xev-512.png" data-home="1" data-keep-legacy="1"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Exo+2:ital,wght@0,300;0,400;0,600;0,700;1,300&family=Noto+Sans+JP:wght@300;400;500;700;800;900&display=swap" rel="stylesheet">
@@ -144,10 +144,11 @@ html #xlBan.pre{box-shadow:0 0 0 2px #fff,0 0 0 3.5px #ff8a1f,0 3px 0 3.5px rgba
 #xhSetSheet.xh-tabsheet .xh-sheet-card{border-radius:26px 26px 0 0;box-shadow:0 -10px 40px rgba(60,100,180,.28)}
 #xhSetSheet.xh-tabsheet .xh-sheet-body{padding-bottom:18px}
 </style>
-<script src="xeva.js?v=85" defer></script>
+<script src="xeva.js?v=86" defer></script>
 <!-- ★★ 2026-09-05 コレクションを XEVARION 全体で1本にする共通部品。
      xeva.js の iconCharList() を使うので、必ず xeva.js の<b>あと</b>に置く。 -->
 <script src="xeva-collection.js?v=8" defer></script>
+<script src="xeva-favs.js?v=1" defer></script><!-- ★★ 2026-11-03 お気に入りカード（全キャラ・図鑑の☆・コミュニティ） -->
 <!-- ★★ 2026-09-05 言語切りかえ（日本語 ⇄ English）。
      画面の中身はあとから JS が作るので、辞書を当てるのは MutationObserver。
      ★ 辞書（xeva-i18n-dict.js）は本体のあとに読むこと。 -->
@@ -167,7 +168,7 @@ html #xlBan.pre{box-shadow:0 0 0 2px #fff,0 0 0 3.5px #ff8a1f,0 3px 0 3.5px rgba
 <script src="xeva-i18n-mb7.js?v=7"></script>
 <script src="xeva-i18n-p4.js?v=8"></script>
 <!-- ★★ 2026-09-06b 今回足したもの（新キャラ14体・装備・スタメンなど）の英語辞書 -->
-<script src="xeva-i18n-n1.js?v=21"></script>
+<script src="xeva-i18n-n1.js?v=22"></script>
 <script src="xeva-i18n-n2.js?v=3"></script>
 <!-- ★ 2026-08-20 通信設定（Wi-Fi／モバイルデータごとに「最新を取りに行くか」を決める）。
      決めた内容はここから各アプリの Service Worker へ送られ、SW 側が動きを切り替える。 -->
@@ -175,9 +176,9 @@ html #xlBan.pre{box-shadow:0 0 0 2px #fff,0 0 0 3.5px #ff8a1f,0 3px 0 3.5px rgba
 <!-- ★ 2026-08-18 新キャラ告知の台帳（MagiBurst と共通）。
      告知を<b>ポータルのログイン時</b>に一本化したので、ここでも読む。
      defer なので xevarion.js より先に実行される（書いた順番で走る）。 -->
-<script src="mb-newchars.js?v=42" defer></script>
-<script src="xeva-devnotes.js?v=8" defer></script>
-<script src="xeva-tour.js?v=2" defer></script><!-- ★★ 2026-10-30 XEVARION ガイド（全機能をアニメで紹介・設定から／#guide） --><!-- ★★ 2026-10-24 デベロッパーノート（新キャラのお知らせの代わり） -->
+<script src="mb-newchars.js?v=43" defer></script>
+<script src="xeva-devnotes.js?v=10" defer></script>
+<script src="xeva-tour.js?v=3" defer></script><script src="xeva-earn.js?v=1" defer></script><!-- ★★ 2026-11-03 XEVA・ジェムの入手まとめ（アニメ・XevaTour の pack） --><!-- ★★ 2026-10-30 XEVARION ガイド（全機能をアニメで紹介・設定から／#guide） --><!-- ★★ 2026-10-24 デベロッパーノート（新キャラのお知らせの代わり） -->
 <!-- ★★ 2026-09-25 ガチャの台帳（開催期間とバナー。make-gacha-live.py が mb-core.js から自動で作る）。ホーム左上のバナー用 -->
 <script src="gacha-live.js?v=11" defer></script>
 <!-- ★★ 2026-08-22b Xevion OS（XEVARION の UI をひとつの OS として扱う土台）。
@@ -186,18 +187,18 @@ html #xlBan.pre{box-shadow:0 0 0 2px #fff,0 0 0 3.5px #ff8a1f,0 3px 0 3.5px rgba
 <!-- ジェム⇄XEVA のレート（ドル円連動）。xevarion-home.js より先に読み込む -->
 <script src="xeva-fx.js?v=9" defer></script>
 <script src="xeva-loading.js?v=19" defer></script>
-<script type="module" src="xeva-sync.js?v=18"></script>
-<script type="module" src="xevarion-fb.js?v=36"></script>
+<script type="module" src="xeva-sync.js?v=19"></script>
+<script type="module" src="xevarion-fb.js?v=37"></script>
 <script src="xeva-presence.js?v=9" defer></script>
 <script type="module" src="xeva-cloud.js?v=49"></script>
 <!-- ★★ 2026-10-16 キャラの所持・凸（magiburst_v1）もここで同期する（前は読むだけで、別の端末で引いたキャラが出てこないことがあった） -->
 <script type="module" src="MagiBurst/magiburst-cloud.js?v=28"></script>
 <script src="xeva-qr.js?v=9" defer></script>
-<script src="xevarion.js?v=110" defer></script>
-<script src="xevarion-home.js?v=175" defer></script>
-<script src="home-lobby.js?v=3" defer></script><!-- ★★ 2026-10-26 完凸ロビー（ヒサコ・アリス）。home-mate.js より先 -->
+<script src="xevarion.js?v=112" defer></script>
+<script src="xevarion-home.js?v=177" defer></script>
+<script src="home-lobby.js?v=4" defer></script><!-- ★★ 2026-10-26 完凸ロビー（ヒサコ・アリス）。home-mate.js より先 -->
 <script src="home-mate.js?v=34" defer></script>
-<script src="home-dot.js?v=4" defer></script><!-- ★★ 2026-10-26 イベントのバナーの上を動くドット絵のキャラ（MagiAbyss のドット絵） -->
+<script src="home-dot.js?v=5" defer></script><!-- ★★ 2026-10-26 イベントのバナーの上を動くドット絵のキャラ（MagiAbyss のドット絵） -->
 <!-- ★★ 2026-10-24 MagiDerby・MagiScope のデータの先読み（ご指定「アプリを開いていなくても情報を取得してオフラインでも開けるように」） -->
 <script src="xeva-prefetch.js?v=1" defer></script>
 <!-- ★★ 2026-10-06 XEVARION 共通イベント（Violet Breeze）のページ。中身は xeva.js の XEVA.event -->
@@ -1154,9 +1155,9 @@ body.xos-nomotion .xh-start-tap .hp, body.xos-nomotion .xh-start-sub, body.xos-n
           <span><span class="rt">アカウント設定</span><span class="rs" id="xhSetAccSub">名前・アイコン・パスワード</span></span></span>
         <span class="rv">›</span>
       </button>
-      <button class="xh-row" onclick="xhOpenShowcase()">
+      <button class="xh-row" onclick="xhCloseSheet('xhSetSheet');(window.XevaFav?XevaFav.open():xhOpenShowcase())">
         <span class="rl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linejoin="round"><rect x="3.4" y="3.4" width="17.2" height="17.2" rx="4"/><circle cx="9" cy="9.4" r="1.8"/><path d="M4.2 18 9 13.6l3.2 2.8 3-2.4 4.6 4"/></svg>
-          <span><span class="rt">お気に入りキャラ</span><span class="rs">最大5体・図鑑やプロフィールに表示</span></span></span>
+          <span><span class="rt">お気に入りキャラ</span><span class="rs">全キャラから・カードで見る（図鑑の ☆ で登録）</span></span></span>
         <span class="rv" id="xhSetShowN">0体</span>
       </button>
 
@@ -1230,6 +1231,12 @@ body.xos-nomotion .xh-start-tap .hp, body.xos-nomotion .xh-start-sub, body.xos-n
       <button class="xh-row" onclick="xhCloseSheet('xhSetSheet');window.XevaTour&&XevaTour.open()">
         <span class="rl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="6.4" y="2.8" width="11.2" height="18.4" rx="2.6"/><path d="M10.6 9.2l3.6 2.3-3.6 2.3z" fill="currentColor"/><path d="M10.4 18.2h3.2"/></svg>
           <span><span class="rt">XEVARION ガイド</span><span class="rs">すべての機能を動きとアニメーションで紹介</span></span></span>
+        <span class="rv">›</span>
+      </button>
+      <!-- ★★ 2026-11-03 ご指定「各アプリなどからのジェム・XEVA 入手のまとめをアニメーションで・設定などや入手方法のところから」（xeva-earn.js） -->
+      <button class="xh-row" onclick="xhCloseSheet('xhSetSheet');window.XevaEarn&&XevaEarn.open()">
+        <span class="rl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><ellipse cx="9" cy="7" rx="5.6" ry="2.6"/><path d="M3.4 7v4.4c0 1.4 2.5 2.6 5.6 2.6s5.6-1.2 5.6-2.6V7"/><path d="M3.4 11.4v4.4c0 1.4 2.5 2.6 5.6 2.6 1 0 1.9-.1 2.7-.4"/><path d="M15.4 13.6l3.2 3.2 3.2-3.2-3.2-3.2z"/><path d="M18.6 16.8v4"/></svg>
+          <span><span class="rt">XEVA・ジェムの入手まとめ</span><span class="rs">各アプリで何をすると入るかをアニメで・あなたの記録も</span></span></span>
         <span class="rv">›</span>
       </button>
       <button class="xh-row" onclick="xhOpenGemGuide()">
@@ -1546,6 +1553,7 @@ body.xos-nomotion .xh-start-tap .hp, body.xos-nomotion .xh-start-sub, body.xos-n
   font-family:inherit;font-size:11.5px;font-weight:900;border-radius:99px;padding:6px 11px;cursor:pointer;white-space:nowrap}
 .xh-sltab i{width:9px;height:9px;border-radius:50%;background:var(--c,#8a6cff);flex:none}
 .xh-sltab small{font-size:9.5px;font-weight:800;opacity:.7}
+.xh-sltab .xh-sloff{font-style:normal;font-size:8.5px;font-weight:900;color:#fff;background:#8a90a8;border-radius:99px;padding:1px 6px}   /* ★★ 2026-11-03 超極祭系の開催期間外 */
 .xh-sltab.on{color:#fff;background:linear-gradient(135deg,#5b3fd8,#8a6cff);border-color:transparent}
 .xh-sltab.on i{background:#fff}
 .xh-crc .xh-crnew.ur{background:linear-gradient(135deg,#7ad8ff,#b06bff 50%,#ff7ab8);color:#fff}
@@ -2413,6 +2421,31 @@ body.xos-nomotion .xbg-fx,body.xos-nomotion .xbg-fx h4{animation:none}
   <div class="nm-body" id="newsBody">
     <div class="nm-divider" id="newDivider" style="display:none;">NEW — 前回から更新</div>
     <!-- 2026-10-24：レベル・スタミナ廃止／同期の作り直し／MagiLex と MagiChemLex の統合／超極煌祭にヒサコ・アリス／WP 交換所にミキ／MagiDerby の券面／MagiShift の順位／デベロッパーノート -->
+    <!-- 2026-11-03：超極彩祭にチフル・ミント・プリカ／ガチャの演出（スロット・天使・音）／お気に入りカード（図鑑・詳細の☆・回転・UR 全面）／XEVA・ジェムの入手まとめ（アニメ）／起動ロゴを映画風に／星煌印の札の修正／凸ミッション／MagiBattle のロビー・キャラ詳細 -->
+    <div class="nm-item" data-tag="new" data-date="2026-11-03">
+      <div class="nm-date">2026<br>11.03</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag new">NEW</span></div>
+        <div class="nm-title">🌈 超極彩祭にチフル・ミント・プリカ／⭐ お気に入りカード／💰 XEVA・ジェムの入手まとめ／⚡ MagiBattle のロビーを一新</div>
+        <div class="nm-txt">・<b>超極彩祭</b>：UR の<b>チフル（火）・ミント（木）・プリカ（光）</b>が新登場（ハル・チカとあわせて UR 5体・各1.5%・毎月1〜10日）。MagiAbyss と MagiBattle のキャラクターで、👑完凸でホームのロビーに設定できます。<br>
+          ・<b>ガチャ</b>：<b>スロット・天使の降臨</b>などの演出と、パチンコのような豪華な音に。UR のカットインの表示と、昇格前のネタバレを修正。アイテムの枠は XEVARION 共通に。★星煌印は<b>超極祭系なら期間外でも交換</b>でき、交換所でガチャの札を押すと先頭に戻ってしまうのを修正。<br>
+          ・<b>XEVARION</b>：<b>お気に入りカード</b>（図鑑・キャラ詳細の ☆・カードはドラッグで回転・裏は XEVARION のロゴ・UR は SS の絵の全面イラスト・「性能を見る」はカードの上に開く）。<b>XEVA・ジェムの入手まとめ</b>をアニメで（設定・入手方法から）。起動の企業ロゴを<b>映画のロゴのような演出</b>に。<b>凸ミッション</b>・完凸ロビーのセリフ。<br>
+          ・<b>MagiBattle</b>：<b>ロビーを一新</b>（画面いっぱいの副官・イベントの帯・キャンペーン・前哨基地）。キャラ詳細の上の絵を UR の絵に・「ステータス」と「強化」を別のタブに・武器とスキルの表示を見やすく。チフル・ミント・プリカが参戦。<br>
+          ・<b>MagiAbyss</b>：チフル・ミント・プリカが参戦。町の NPC「ミント」は「ミルテ」に改名。</div>
+      </div>
+    </div>
+    <!-- 2026-11-02：ジェフ千葉の勝利記念 30,000 XEVA／NGX の新ロゴ・Kawagani と STUDIO DOGA が運営協力に（企業ロゴ6社 縦3×横2）／ガチャの所持数・使い方ボタン／MagiBattle 5件／MagiDerby 3件 -->
+    <div class="nm-item" data-tag="new" data-date="2026-11-02">
+      <div class="nm-date">2026<br>11.02</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag new">NEW</span></div>
+        <div class="nm-title">⚽ ジェフ千葉 勝利記念 30,000 XEVA／🤝 Kawagani・STUDIO DOGA が運営協力に／⚡ MagiBattle・🏇 MagiDerby の改善</div>
+        <div class="nm-txt">・<b>配布</b>：ジェフユナイテッド市原・千葉がアビスパ福岡に <b>3-0 で勝利</b>！ 記念に全ユーザーへ <b>30,000 XEVA</b>（📧メールから受け取り）。<br>
+          ・<b>XEVARION</b>：<b>Kawagani</b> と <b>STUDIO DOGA</b> が運営協力に参入。起動の画面の企業ロゴは<b>6社を縦3×横2</b>で表示します。<b>NGX のロゴ</b>が新しくなりました。ガチャの上のチケットなどの数が画面の外に出ることがあったのを修正。「？ 使い方」のボタンの位置がずれる・まん中に出ることがあったのを修正。<br>
+          ・<b>MagiBattle</b>：バトル中に <b>Space（押したまま）で全員が遮蔽物に隠れる</b>ように（隠れるとリロード・撃つのは J かマウス）。キャラのカードに<b>スキルの効果のマーク</b>（攻・守・会・癒・盾 など）。<b>バトルログ</b>（一時停止・結果の画面から）。レベルは<b>上げる数をえらんで</b>まとめて上げられるように。ショップが光りすぎて見づらかったのを修正。<br>
+          ・<b>MagiDerby</b>：スマホで馬券の下が切れることがあったのを修正。<b>GⅠ ごとに買った馬券・払い戻し・収支の合計</b>（マイページ・馬券タブ・結果）。<b>過去の年の GⅠ</b> をさかのぼって見られるように（データは自動取得が少しずつ集めます）。</div>
+      </div>
+    </div>
     <!-- 2026-10-31：MagiBattle の作り直し（部隊シューティング・超極祭系の UR 12体）／戦姫祭・BUNNY GIRL FEST・極煌祭・極彩祭・極華祭の終了／完凸ロビーに4人／応援配布 ガチャチケット70枚／XEVARION ガイド／NGX・ISHIDA のオフライン／MagiDerby の予想オッズ -->
     <div class="nm-item" data-tag="new" data-date="2026-10-31">
       <div class="nm-date">2026<br>10.31</div>

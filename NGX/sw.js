@@ -5,11 +5,11 @@
    ・フォント（Google Fonts）は控えない（オフラインでは端末の文字で出る）
    ★ 中身（CORE）は NGX_website.html の src/href から作った。ページに絵を足したらここにも足して VERSION を上げる
    ============================================================ */
-const VERSION = "ngx-site-sw-v2";
+const VERSION = "ngx-site-sw-v3";
 const CORE = [
   "./NGX_website.html",
   "../maintenance-gate.js?v=13",
-  "../thumbs/NGX.jpg",
+  "../thumbs/NGX.jpg?v=2",
   "../MagiBurst/img/ss/HaruSS.webp",
   "../thumbs/xevarion-home_s.jpg?v=13",
   "../MagiBurst/img/ss/ChikaSS.webp",
@@ -40,7 +40,8 @@ const CORE = [
   "../brand/MagicalFuture_s.webp",
   "../brand/ISHIDA_s.webp",
   "../brand/YRA_s.webp",
-  "../brand/NGX_s.webp",
+  "../brand/Kawagani_s.webp", "../brand/StudioDOGA_s.webp",   // ★★ 2026-11-02 運営協力に参入
+  "../brand/NGX_s.webp?v=2",
 ];
 
 /* ── 事前キャッシュの進捗をページへ通知する（更新ダウンロード画面用） ── */

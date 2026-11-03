@@ -17,6 +17,13 @@
      こちらに足したら<b>あちらにも since 付きで1行</b>足すこと（無いとポータルに絵が出ない）。
    ══════════════════════════════════════════════════════════════ */
 window.MB_NEW_CHARS = [
+  /* ── ★★ 2026-11-03 超極彩祭に3体（UR・毎月1〜10日・MagiAbyss と MagiBattle 専用）── */
+  { id: "chifuru", since: "2026-11-03", where: "超極彩祭（毎月1〜10日）・MagiAbyss と MagiBattle 専用・👑完凸でホームのロビー", mode: "fes21",
+    catch: "あーんして？ ……ふふ、今のひとくちは、わたしのぶん。", color: "#4f6dff" },
+  { id: "mint", since: "2026-11-03", where: "超極彩祭（毎月1〜10日）・MagiAbyss と MagiBattle 専用・👑完凸でホームのロビー", mode: "fes21",
+    catch: "おはよっ！ 今日もいっしょにがんばろうね。", color: "#2fbf8a" },
+  { id: "purika", since: "2026-11-03", where: "超極彩祭（毎月1〜10日）・MagiAbyss と MagiBattle 専用・👑完凸でホームのロビー", mode: "fes21",
+    catch: "ないしょだよ？ ……このウインクは、きみにだけ。", color: "#e0a92a" },
   /* ── ★★ 2026-10-30 超極彩祭（UR 2体・毎月1〜10日・MagiAbyss 専用）── */
   { id: "haru", since: "2026-10-30", where: "超極彩祭（毎月1〜10日）・MagiAbyss 専用・👑完凸でホームのロビー", mode: "fes21",
     catch: "波の音、いっしょに聞こ？ ……ほら、あじさいも咲いてる。", color: "#3a8ee8" },

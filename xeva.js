@@ -1274,6 +1274,10 @@
     /* ★★ 2026-10-30 超極彩祭（UR・MagiAbyss 専用。アイコン・コレクション・MagiChemLex のナビには使える） */
     { id: "mb:haru", mbId: "haru", name:"ハル", file: "../img/t_Haru.webp", since:"2026-10-30", rarLabel: "UR" },
     { id: "mb:chika", mbId: "chika", name:"チカ", file: "../img/t_Chika.webp", since:"2026-10-30", rarLabel: "UR" },
+    /* ★★ 2026-11-03 超極彩祭の追加3体（UR・MagiAbyss と MagiBattle 専用。アイコン・コレクション・MagiChemLex のナビには使える） */
+    { id: "mb:chifuru", mbId: "chifuru", name:"チフル", file: "../img/t_Chifuru.webp", since:"2026-11-03", rarLabel: "UR" },
+    { id: "mb:mint", mbId: "mint", name:"ミント", file: "../img/t_Mint.webp", since:"2026-11-03", rarLabel: "UR" },
+    { id: "mb:purika", mbId: "purika", name:"プリカ", file: "../img/t_Purika.webp", since:"2026-11-03", rarLabel: "UR" },
   ];
   /* ★ 2026-08-10 初期SR 4体（ゼラ・アヤメ・レイラ・セリーヌ）は廃止しました。
      いまは<b>全キャラがアイコンに選べる</b>ので、starter という区別そのものが要らない。 */
@@ -1393,7 +1397,9 @@
   /* ★★ 2026-10-24 超極煌祭の追加2体・WP 交換のミキ（UR） */
   , "hisako", "alice", "miki"
   /* ★★ 2026-10-30 超極彩祭（UR） */
-  , "haru", "chika"];
+  , "haru", "chika"
+  /* ★★ 2026-11-03 超極彩祭の追加3体（UR） */
+  , "chifuru", "mint", "purika"];
   MB_CHAR_MASTER.forEach(function (c) { c.mb = true; c.starter = MB_STARTERS.indexOf(c.mbId) >= 0; });
   MB_CHAR_MASTER.forEach(function (c) { c.star5 = MB_STAR5.indexOf(c.mbId) >= 0; });
   /* id は "mb:zera" のように接頭辞つき。XEVAガチャにも同じ名前のキャラ（シオンなど）が
@@ -2613,7 +2619,7 @@
     window.__xevaElEdge = 1;
     try { if (/\/(MagiBurst|MagiBattle|MagiAbyss|MagiBocciaRush|expo)\//.test(location.pathname || "")) return; } catch (e) { return; }
     if (!("IntersectionObserver" in window) || !window.MutationObserver) return;
-    var XEL_RAW = "fire:Ririka,Akane,Mika,Nana,RinonX,Ema,Arisa,Tsubaki,Natsuki,Shirayuki,Nazuna,Milfy,Lysera,Soleria,Altia,KaguyaAlpha,KokonaAlpha,Nanami,Kaede,Kotone,Karem,Tsukino,Youhi,Kanata,Satsuki,Otoha,Guren,Suzune,Mirelle,Karin,Homura,Seina,Mutsumi,Yuika,Yua,RanS,Kurenai,Chia,Hisui,AnnaRan,Asuka,Amane,RenaD,Reia,Natsume,Kagura,Miya,Akatsuki,Kokoha,Kureha,KumikoReina,RanAlpha,Ayano,Saki,Chie,Kohaku|water:Shiona,Serina,Airi,Kaho,Sakura,Shion,Kokona,Rinne,Selene,Fiona,Chloe,Sheril,Fia,Solea,CherylAlpha,Yukino,Chitose,Shizuku,Fuka,Moeka,Elena,Blair,Roxy,Sayaka,Yuuna,Minamo,Scarlet,Mirei,Yoizuki,Shiduki,Misuzu,Shiori,Kotori,Yuki,Risa,Riona,Shizuru,Yoiduki,Sougetsu,Kaoru,NaoS,HarukaS,AoiKuroha,Misaki,Ruri,Nagisa,Hiyori,Emika,Ayane,Mikoto,Azusa,KotoriAlpha,Takina,Yuka,Natsumi,Ichika,Hisako,Haru|wood:Hina,Haruka,Ede,Aira,Mizuki,Ayaka,Mashiro,Hotaru,Rezelia,Lilia,Mabel,Beltia,Astera,Roselia,Kokoro,Ceris,Tsumugi,Mayu,Izumi,Violet,Asuha,Akari,Chihaya,Tomoe,Amelia,Miyabi,Sara,Hinano,Kokoa,Ryouka,Marika,Minori,MireiR,Yuuri,Rika,Kayo,Natsune,Kasumi,Narumi,Haduki,Shiho,Chiha,Mei,AsuhaAlpha,Hibana,Miu,Mai,Nonoka,Suzu,Miki|light:Runa,Noa,Eruna,Rei,Rusia,Riko,Kaguya,Mion,Bernica,Iroha,Koharu,Yuri,Elsia,Setsuna,Nephia,Arche,Nemu,Liana,Reika,Rinon,Ran,Yuunagi,Suzuka,Anna,Youka,Grace,Touka,Artemia,Sayo,Hinata,Yui,Himari,Mio,Sumire,Kanade,Sakuya,Nodoka,Miko,YuukaS,AnnaM,Seika,SuzuhaR,Hanon,Shino,Kuon,TsukinoD,Astraea,AstraeaC,AnnaMaid,Saya,Hikari,Momoka,Miyuki,Kiduki,Hikaru,Himeri,Kana,AnnaAlpha,Chinatsu,Yuumi,Aina,Shouko|dark:Yuina,Kotoha,Mirea,Miyu,Nene,Kotomi,Rea,Cheryl,Viola,Mao,Alicia,Hecatia,Karina,Revia,Abyss,Shizuka,Yuria,MionAlpha,Yaju,Iori,Noelle,Ange,Dominia,Chizuru,Seira,Suzuha,Lilith,Lyra,Melty,Sayuri,Momo,Karen,Koyuki,Yuuka,Sumika,Sayuki,Kazane,Rena,Reina,AnnaS,Rin,SeiraK,Raika,ReiS,Maaya,Asahi,Subaru,Miori,Ayame,Kyoka,Erika,Uta,Miduki,Honoka,Maki,SayakaAlpha,Fuki,Rina,Kaori,Yuna,Alice,Chika";
+    var XEL_RAW = "fire:Ririka,Akane,Mika,Nana,RinonX,Ema,Arisa,Tsubaki,Natsuki,Shirayuki,Nazuna,Milfy,Lysera,Soleria,Altia,KaguyaAlpha,KokonaAlpha,Nanami,Kaede,Kotone,Karem,Tsukino,Youhi,Kanata,Satsuki,Otoha,Guren,Suzune,Mirelle,Karin,Homura,Seina,Mutsumi,Yuika,Yua,RanS,Kurenai,Chia,Hisui,AnnaRan,Asuka,Amane,RenaD,Reia,Natsume,Kagura,Miya,Akatsuki,Kokoha,Kureha,KumikoReina,RanAlpha,Ayano,Saki,Chie,Kohaku,Chifuru|water:Shiona,Serina,Airi,Kaho,Sakura,Shion,Kokona,Rinne,Selene,Fiona,Chloe,Sheril,Fia,Solea,CherylAlpha,Yukino,Chitose,Shizuku,Fuka,Moeka,Elena,Blair,Roxy,Sayaka,Yuuna,Minamo,Scarlet,Mirei,Yoizuki,Shiduki,Misuzu,Shiori,Kotori,Yuki,Risa,Riona,Shizuru,Yoiduki,Sougetsu,Kaoru,NaoS,HarukaS,AoiKuroha,Misaki,Ruri,Nagisa,Hiyori,Emika,Ayane,Mikoto,Azusa,KotoriAlpha,Takina,Yuka,Natsumi,Ichika,Hisako,Haru|wood:Hina,Haruka,Ede,Aira,Mizuki,Ayaka,Mashiro,Hotaru,Rezelia,Lilia,Mabel,Beltia,Astera,Roselia,Kokoro,Ceris,Tsumugi,Mayu,Izumi,Violet,Asuha,Akari,Chihaya,Tomoe,Amelia,Miyabi,Sara,Hinano,Kokoa,Ryouka,Marika,Minori,MireiR,Yuuri,Rika,Kayo,Natsune,Kasumi,Narumi,Haduki,Shiho,Chiha,Mei,AsuhaAlpha,Hibana,Miu,Mai,Nonoka,Suzu,Miki,Mint|light:Runa,Noa,Eruna,Rei,Rusia,Riko,Kaguya,Mion,Bernica,Iroha,Koharu,Yuri,Elsia,Setsuna,Nephia,Arche,Nemu,Liana,Reika,Rinon,Ran,Yuunagi,Suzuka,Anna,Youka,Grace,Touka,Artemia,Sayo,Hinata,Yui,Himari,Mio,Sumire,Kanade,Sakuya,Nodoka,Miko,YuukaS,AnnaM,Seika,SuzuhaR,Hanon,Shino,Kuon,TsukinoD,Astraea,AstraeaC,AnnaMaid,Saya,Hikari,Momoka,Miyuki,Kiduki,Hikaru,Himeri,Kana,AnnaAlpha,Chinatsu,Yuumi,Aina,Shouko,Purika|dark:Yuina,Kotoha,Mirea,Miyu,Nene,Kotomi,Rea,Cheryl,Viola,Mao,Alicia,Hecatia,Karina,Revia,Abyss,Shizuka,Yuria,MionAlpha,Yaju,Iori,Noelle,Ange,Dominia,Chizuru,Seira,Suzuha,Lilith,Lyra,Melty,Sayuri,Momo,Karen,Koyuki,Yuuka,Sumika,Sayuki,Kazane,Rena,Reina,AnnaS,Rin,SeiraK,Raika,ReiS,Maaya,Asahi,Subaru,Miori,Ayame,Kyoka,Erika,Uta,Miduki,Honoka,Maki,SayakaAlpha,Fuki,Rina,Kaori,Yuna,Alice,Chika";
     var RE = /(?:^|\/)img\/(?:t_)?([A-Za-z0-9]+)\.webp(?:[?#].*)?$/;
     var MAP = null;
     function elMap() {
@@ -2631,6 +2637,8 @@
       } catch (e) {}
       return MAP;
     }
+    /* ★★ 2026-11-03 お気に入りカード（xeva-favs.js）が mb-core の無いページで属性を知るため */
+    window.XevaElOfFile = function (f) { var m = String(f || "").match(RE); return m ? (elMap()[m[1]] || "") : ""; };
     function addCss() {
       if (document.getElementById("xevaElEdgeCss")) return;
       var st = document.createElement("style");

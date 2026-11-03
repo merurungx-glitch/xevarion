@@ -83,9 +83,14 @@ function collectionDupes(acc) {
 
 // ショーケース（推しキャラ）の charId 配列 → 画像URL配列
 function showcaseUrls(acc) {
-  const ids = (acc && Array.isArray(acc.showcase)) ? acc.showcase.slice(0, 3) : [];
+  /* ★★ 2026-11-03 お気に入り（fav＝全キャラ・MagiBurst の id）があればその先頭。前の showcase（XEVA.CHARS の id）も引ける */
+  const ids = (acc && Array.isArray(acc.fav) ? acc.fav : (acc && Array.isArray(acc.showcase)) ? acc.showcase : []).slice(0, 3);
   const chars = (window.XEVA && window.XEVA.CHARS) ? window.XEVA.CHARS : [];
-  return ids.map((id) => { const c = chars.find((x) => x.id === id); return c ? CHARS_BASE + c.file : null; }).filter(Boolean);
+  const mb = (window.XEVA && window.XEVA.MB_CHARS) ? window.XEVA.MB_CHARS : [];
+  return ids.map((id) => {
+    const c = chars.find((x) => x.id === id); if (c) return CHARS_BASE + c.file;
+    const m = mb.find((x) => x.mbId === id); return m ? CHARS_BASE + m.file : null;
+  }).filter(Boolean);
 }
 
 // 表示名がすでに使われているか（exceptUid は自分自身を除外）

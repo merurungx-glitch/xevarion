@@ -143,7 +143,7 @@ let detCurId = null;
 
 /* ★★ 2026-09-23 MagiBattle の性能（magibattle-stats.js v2）。古い版しか無ければ読みなおす。
    ★★ 2026-10-30 MagiBattle 3.0（作り直し）→ v3 が要る。使えるのは超極祭系の UR 12体だけ（MBT3_IDS・MBStats が読めていなくても面の札を出せるように） */
-const MBT3_IDS = ["haru", "chika", "hisako", "alice", "kohaku", "suzu", "shouko", "yuna", "chie", "aina", "ichika", "nonoka"];
+const MBT3_IDS = ["haru", "chika", "chifuru", "mint", "purika", "hisako", "alice", "kohaku", "suzu", "shouko", "yuna", "chie", "aina", "ichika", "nonoka"];   /* ★★ 2026-11-03 15体 */
 function isMbt3(id) { return MBT3_IDS.indexOf(id) >= 0; }
 window.isMbt3 = isMbt3;
 function mbtEnsure() {
@@ -151,7 +151,7 @@ function mbtEnsure() {
   if (window.__mbtLoading) return window.__mbtLoading;
   window.__mbtLoading = new Promise((res) => {
     const s = document.createElement("script");
-    s.src = MBD_BASE + "magibattle-stats.js?v=19";
+    s.src = MBD_BASE + "magibattle-stats.js?v=20";
     s.onload = () => res(); s.onerror = () => res();
     document.head.appendChild(s);
   });
@@ -163,7 +163,7 @@ function maEnsure() {
   if (window.MA && window.MA.D && window.MA.Stats) return Promise.resolve();
   if (window.__maLoading) return window.__maLoading;
   const load = (src) => new Promise((res) => { const s = document.createElement("script"); s.src = src; s.onload = () => res(); s.onerror = () => res(); document.head.appendChild(s); });
-  window.__maLoading = load(MBD_BASE + "MagiAbyss/js/ma-data.js?v=11").then(() => load(MBD_BASE + "MagiAbyss/js/ma-stats.js?v=2"));
+  window.__maLoading = load(MBD_BASE + "MagiAbyss/js/ma-data.js?v=12").then(() => load(MBD_BASE + "MagiAbyss/js/ma-stats.js?v=2"));
   return window.__maLoading;
 }
 window.maEnsure = maEnsure;
@@ -293,8 +293,31 @@ function detHeroHTML(id) {
       <img src="${wide ? c.wide : c.img}" alt="${c.nm}"${wide ? ' class="urx-pan"' : ""}>${wide && typeof urDecor === "function" ? urDecor() : (ur ? '<span class="urx-ring" aria-hidden="true"></span><span class="urx-badge" aria-label="UR">UR</span>' : "")}<i class="delf" aria-hidden="true"></i>
       ${sw}
       <div class="dnm"><b>${c.nm}</b><span>${charNoText(id)}　<em class="drar ${ur ? "ur" : s5 ? "ssr" : "sr"}">${rl}</em>${awk ? (awk >= MAX_AWK ? "　👑完凸" : "　覚醒+" + awk) : ""}</span></div>
+      ${detFavHTML(id)}
     </div>`;
 }
+/* ══ ★★ 2026-11-03 ご指定「お気に入りキャラ登録は図鑑のキャラ詳細でもできるように」══
+   絵の右下に ☆ ボタン（xeva-favs.js を読んでいる画面＝図鑑・ガチャ・ホーム・コミュニティだけ）。
+   持っているキャラだけ（XevaFav.canFav）。押すと絵の段（#detHero）だけ描き直す＝下の性能の欄・スクロールはそのまま。 */
+function detFavHTML(id) {
+  const F = window.XevaFav;
+  if (!F || typeof F.toggle !== "function") return "";
+  let on = false, can = false;
+  try { on = F.has(id); can = on || F.canFav(id); } catch (e) { return ""; }
+  if (!can) return "";
+  return `<button type="button" class="dfav${on ? " on" : ""}" onclick="detFavTap('${id}',event)" aria-pressed="${on ? "true" : "false"}" title="お気に入りカード">`
+    + `<i aria-hidden="true">${on ? "★" : "☆"}</i><span>${on ? "お気に入り" : "お気に入りに追加"}</span></button>`;
+}
+window.detFavTap = function (id, e) {
+  if (e) { e.preventDefault(); e.stopPropagation(); }
+  const F = window.XevaFav; if (!F) return;
+  const say = (m) => { try { if (F.toast) F.toast(m); else if (typeof toast === "function") toast(m); } catch (er) {} };
+  const r = F.toggle(id);
+  if (r === null) { say("持っているキャラだけお気に入りにできます"); return; }
+  const h = document.getElementById("detHero");
+  if (h && detCurId === id) h.outerHTML = detHeroHTML(id);
+  say(r ? "⭐ お気に入りカードに入れました" : "お気に入りから外しました");
+};
 window.setDetImg = function (m, e) {
   if (e) { e.preventDefault(); e.stopPropagation(); }
   detImgMode = m === "sq" ? "sq" : "main";
@@ -541,7 +564,7 @@ function magiBattleHTML(id) {
     return `<div class="dsec mbb"><div class="t">評価（MagiBattle）</div>
       <div class="mbnone">読みこんでいます…</div></div>`;
   }
-  if (!MBStats.unit(id)) return `<div class="dsec mbb"><div class="t">評価（MagiBattle）</div><div class="mbnone">このキャラは MagiBattle では使えません（使えるのは超極祭系の UR 12体）。</div></div>`;
+  if (!MBStats.unit(id)) return `<div class="dsec mbb"><div class="t">評価（MagiBattle）</div><div class="mbnone">このキャラは MagiBattle では使えません（使えるのは超極祭系の UR 15体）。</div></div>`;
   try { MBStats.ensureCSS(); } catch (e) {}
   let opt, cap;
   if (window.MBDET_MAXSTATS) { opt = { lv: MBStats.MAX_LV, awk: MBStats.MAX_AWK, sk: [10, 10, 10] }; cap = "Lv.200・完凸・スキル Lv10（装備なし）の値"; }

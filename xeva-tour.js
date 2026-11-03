@@ -221,7 +221,7 @@ body.xos-nomotion .xt *{animation-duration:.01s !important;animation-iteration-c
         ["MagiLex.jpg", "MagiBattle.jpg?v=4", "MagiBurst.jpg", "MagiAbyss.jpg?v=2", "MagiChemLex.jpg?v=2", "MagiDerby.jpg", "MagiShift.jpg", "MagiChainParty.jpg?v=2"]
           .map((f, i) => icon(f, 8 + (i % 4) * 22, 62 + Math.floor(i / 4) * 13, "ii ii" + i, "up")).join("") +
         '<div class="m" data-a="up" id="i-4" style="' + at(6, 90, 88) + ';display:flex;gap:2%;justify-content:center">' +
-        ["NGX_s", "MagicalFuture_s", "ISHIDA_s", "YRA_s"].map((b) => '<img src="' + A("brand/" + b + ".webp") + '" alt="" style="width:23%;border-radius:calc(var(--u)*1.6);background:#fff">').join("") + "</div>",
+        ["NGX_s.webp?v=2", "MagicalFuture_s.webp", "ISHIDA_s.webp", "YRA_s.webp", "Kawagani_s.webp", "StudioDOGA_s.webp"].map((b) => '<img src="' + A("brand/" + b) + '" alt="" style="width:15.3%;border-radius:calc(var(--u)*1.6);background:#fff">').join("") + "</div>",
       tl: [[0, "show", "#i-bg"], [200, "show", "#i-orb"], [500, "show", "#i-logo"], [900, "show", "#i-word"], [900, "pt", 0],
         [1500, "show", ".ii0"], [1600, "show", ".ii1"], [1700, "show", ".ii2"], [1800, "show", ".ii3"], [1900, "show", ".ii4"], [2000, "show", ".ii5"], [2100, "show", ".ii6"], [2200, "show", ".ii7"],
         [2600, "pt", 1], [3200, "show", "#i-4"], [4200, "pt", 2], [4400, "add", "#i-logo", "m-float"]],
@@ -718,8 +718,8 @@ body.xos-nomotion .xt *{animation-duration:.01s !important;animation-iteration-c
        押すと、その画面の章だけを再生（一覧から「はじめから全部」も見られる）。
      ・その画面を<b>はじめて開いたときだけ</b>、ボタンの下に小さな吹き出し（4秒で消える・画面ごとに1回きり・押せばすぐ消える）。 */
   const SPOTS = [
-    { sel: "#missionModal .mm-head", before: ".mm-close", ids: ["missions"], k: "missions" },
-    { sel: "#mailModal .mail-head", before: ".mail-close", ids: ["mail"], k: "mail" },
+    { sel: "#missionModal .mm-head", before: ".mail-all", or: ".mm-close", ids: ["missions"], k: "missions" },
+    { sel: "#mailModal .mail-head", before: ".mail-all", or: ".mail-close", ids: ["mail"], k: "mail" },
     { sel: "#newsModal .nm-head", before: ".nm-close", ids: ["mail", "events"], k: "news" },
     { sel: "#xhSchedSheet .xh-sheet-head", before: ".xh-sheet-x", ids: ["events"], k: "sched" },
     { sel: "#xhAppsSheet .xh-sheet-head", before: ".xh-sheet-x", ids: ["apps", "learn", "play", "party", "info"], k: "apps" },
@@ -743,6 +743,12 @@ body.xos-nomotion .xt *{animation-duration:.01s !important;animation-iteration-c
     ".xt-qb .xt-tip{position:absolute;right:-4px;top:calc(100% + 9px);z-index:50;width:max-content;max-width:200px;padding:7px 11px;border-radius:12px;background:#22345c;color:#fff;font-size:11.5px;font-weight:800;line-height:1.45;box-shadow:0 8px 22px rgba(20,30,80,.28);white-space:normal;text-align:left;animation:xtTip .35s cubic-bezier(.2,1.3,.4,1) both;pointer-events:none}" +
     ".xt-qb .xt-tip::before{content:'';position:absolute;right:22px;top:-6px;border:6px solid transparent;border-top:0;border-bottom-color:#22345c}" +
     ".xt-qb.lf .xt-tip{right:auto;left:-4px}.xt-qb.lf .xt-tip::before{right:auto;left:22px}" +
+    /* ★★ 2026-11-02 ご指定「使い方のボタンの位置が変化したり、中途半端に真ん中に合ったりする」
+       真因＝見出しの多くが justify-content:space-between で、3つ目の部品として入ると<b>まん中</b>に来ていた。
+       ・閉じるボタンの前（rt）：左の余白を auto＝いつも閉じるボタンのすぐ左。「すべて受け取る」（.mail-all・margin-left:auto）はボタンの右に。
+       ・見出しのあと（lf）：見出しは伸ばさず（flex:0 1 auto）、右の余白を auto＝いつも見出しのすぐ右。 */
+    ".xt-qb.rt{margin-left:auto;margin-right:6px}.xt-qb.rt~.mail-all{margin-left:0}" +
+    ".xt-qb.lf{margin-right:auto}" +
     "@keyframes xtTip{from{opacity:0;transform:translateY(-6px) scale(.9)}to{opacity:1;transform:none}}" +
     ".xt-all{margin-left:6px;height:28px;padding:0 12px;border-radius:99px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.1);color:#fff;font:inherit;font-size:12px;font-weight:800;cursor:pointer}";
   function hintSeen(k) { try { return !!(JSON.parse(localStorage.getItem(HINT_KEY) || "{}") || {})[k]; } catch (e) { return true; } }
@@ -776,8 +782,8 @@ body.xos-nomotion .xt *{animation-duration:.01s !important;animation-iteration-c
       if (s.page && !s.page.test(path)) return;
       const box = document.querySelector(s.sel); if (!box || box.querySelector(".xt-qb")) return;
       const b = button({ ids: s.ids, k: s.k, start: s.ids[0] });
-      if (s.before) { const ref = box.querySelector(s.before); if (ref) ref.parentNode.insertBefore(b, ref); else box.appendChild(b); }
-      else if (s.after) { const ref = box.querySelector(s.after); if (ref) ref.insertAdjacentElement("afterend", b); else box.appendChild(b); b.classList.add("lf"); }
+      if (s.before) { const ref = box.querySelector(s.before) || (s.or && box.querySelector(s.or)); if (ref) ref.parentNode.insertBefore(b, ref); else box.appendChild(b); b.classList.add("rt"); }
+      else if (s.after) { const ref = box.querySelector(s.after); if (ref) { ref.insertAdjacentElement("afterend", b); ref.style.flex = "0 1 auto"; ref.style.minWidth = "0"; } else box.appendChild(b); b.classList.add("lf"); }
       if (!s.quiet) hintOnce(b, s.k);
     });
   }

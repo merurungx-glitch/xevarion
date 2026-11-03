@@ -87,7 +87,7 @@ const XH_APPS = [
   /* ★★ 2026-10-31（2回目）ご指定「MagiBattle に β版のマークを」→ beta:true（NEW のかわりに「β版」・期限なし。MagiQuiz と同じ） */
   { id:"magibattle", name:"MagiBattle", sub:"後ろから撃つ部隊シューティング", cat:"game", tone:"red", newUntil:"2026-11-14", beta: true,
     href:"MagiBattle/index.html", img:"thumbs/MagiBattle.jpg?v=4",
-    desc:"超極祭系の UR 12体で部隊を組み、遮蔽物のうしろから撃つ部隊シューティング。バーストⅠ→Ⅱ→Ⅲでつなぐ FULL BURST、キャンペーン・アリーナ（ほかの指揮官と5対5）・迎撃戦・タワー・前哨基地。育成はレベル・スキル・装備・キューブ・好感度。キーボードでも遊べます。オフラインOK（アリーナと迎撃戦のランキングは通信が必要）。" },
+    desc:"超極祭系の UR 15体で部隊を組み、遮蔽物のうしろから撃つ部隊シューティング。バーストⅠ→Ⅱ→Ⅲでつなぐ FULL BURST、キャンペーン・アリーナ（ほかの指揮官と5対5）・迎撃戦・タワー・前哨基地。育成はレベル・スキル・装備・キューブ・好感度。キーボードでも遊べます。オフラインOK（アリーナと迎撃戦のランキングは通信が必要）。" },
   /* ★★ 2026-10-24 ご指定「MagiChemLex の UI・構造・システムを中心として MagiLex と統合（基本は別のもの）。MagiLex を開くと 旧MagiLex／MagiChemLex から選べる」
      → MagiLex は入口のページ（MagiLex/index.html）を開く。MagiChemLex はメニュー・ロビーには出さない（inLex）＝MagiLex の中から開く。 */
   { id:"magilex", name:"MagiLex", sub:"化学・英単語・古文", cat:"learn", tone:"blue", newUntil:"2026-11-07",   /* ★★ 2026-10-24 ご指定：NEW の印 */
@@ -192,7 +192,7 @@ const XH_APPS = [
     href:"ORDYXIS/index.html", img:"thumbs/Ordyxis.jpg",
     desc:"店頭オンラインオーダーシステム。お客様の端末から注文し、店舗で受付・番号でお呼び出し。ハブ画面から各画面へ。" },
   { id:"ngx", name:"NGX", sub:"公式サイト", cat:"shop", tone:"blue",
-    href:"NGX/NGX_website.html", img:"thumbs/NGX.jpg",
+    href:"NGX/NGX_website.html", img:"thumbs/NGX.jpg?v=2",
     desc:"XEVARION を開発・運営する NGX の公式サイト。最新情報・沿革・会社概要はこちら。" },
   { id:"ishida", name:"ISHIDA", full:"ISHIDA Production", sub:"製作パートナー", cat:"shop", tone:"gold",
     href:"IshidaProduction/index.html", img:"thumbs/ISHIDA.webp",   /* ★★ 2026-10-09b 元のロゴ（1024px・394KB）→ 正方形の小さいアイコン（3KB） */
@@ -511,7 +511,7 @@ const XH_UPDATE_MAX = 12;
 const XH_UPDATES = [
   /* ★★ 2026-10-31 MagiBattle の作り直し・5つのフェスの終了・完凸ロビー・応援配布・ガイド・サイト・MagiDerby */
   { tag:"NEW", t1:"MagiBattle を1から作り直し（部隊シューティング）", at:"2026-10-31",
-    t2:"超極祭系の UR 12体で、遮蔽物のうしろから撃つ部隊シューティング。バーストⅠ→Ⅱ→Ⅲ→FULL BURST・キャンペーン・アリーナ（5対5）・迎撃戦・タワー・前哨基地。育成はレベル・スキル・装備・キューブ・好感度。キーボード対応・ごほうびはジェム",
+    t2:"超極祭系の UR 15体で、遮蔽物のうしろから撃つ部隊シューティング。バーストⅠ→Ⅱ→Ⅲ→FULL BURST・キャンペーン・アリーナ（5対5）・迎撃戦・タワー・前哨基地。育成はレベル・スキル・装備・キューブ・好感度。キーボード対応・ごほうびはジェム",
     href:"MagiBattle/index.html", img:"thumbs/MagiBattle.jpg?v=4" },
   { tag:"FES", t1:"5つのフェスが終了 → Festival Archive GACHA へ", at:"2026-10-31",
     t2:"戦姫祭・BUNNY GIRL FEST・極煌祭・極彩祭・極華祭のキャラはアーカイブで引けます。終わったガチャのバナー（RISING STAR FEST など）は一覧から外しました（セレクト券は一覧のいちばん上で）",
@@ -2283,7 +2283,7 @@ function xhMbReady() {
   if (_xhMbLoading) return _xhMbLoading;
   window.MB_ELEM_JA_NOWATCH = true;   /* ★★ 2026-10-28 属性名を漢字にする見張り（mb-core.js の elJaWatch）はホームではしない */
   _xhMbLoading = xhLoadScript("mb-boot.js?v=18")
-    .then(() => xhLoadScript("MagiBurst/js/mb-core.js?v=145"))
+    .then(() => xhLoadScript("MagiBurst/js/mb-core.js?v=146"))
     .then(() => true)
     .catch((e) => { _xhMbLoading = null; throw e; });
   return _xhMbLoading;
@@ -2423,7 +2423,22 @@ function xhOpenSeal() {
     .catch(() => { if (box) box.innerHTML = '<div class="xh-crload err">キャラクターの一覧を読み込めませんでした。通信を確かめて、もう一度お試しください。</div>'; });
 }
 window.xhOpenSeal = xhOpenSeal;
-function xhSealTab(k) { _xhSealTab = String(k || ""); xhPaintSeal(); try { const b = document.querySelector("#xhSealBody .xh-crgrid"); if (b) b.scrollIntoView({ block: "nearest" }); } catch (e) {} }
+/* ★★ 2026-11-03 ご報告「星煌印交換でガチャを押すと始めに戻ってしまう」：
+   真因＝札を押すと中身を丸ごと描き直すので、横に流した札の列（.xh-sltabs）が先頭（いちばん左）に戻り、えらんだ札が画面の外へ出ていた。
+   → 描き直す前の横の位置を控えて戻し、えらんだ札が見えていなければ札の列の中だけで寄せる（ページ・板の縦の位置は動かさない）。 */
+function xhSealTab(k) {
+  const old = document.querySelector("#xhSealBody .xh-sltabs"), sl = old ? old.scrollLeft : 0;
+  _xhSealTab = String(k || "");
+  xhPaintSeal();
+  try {
+    const t = document.querySelector("#xhSealBody .xh-sltabs"); if (!t) return;
+    t.scrollLeft = sl;
+    const on = t.querySelector(".xh-sltab.on"); if (!on) return;
+    const L = on.offsetLeft - t.offsetLeft, R = L + on.offsetWidth;
+    if (L < t.scrollLeft + 8) t.scrollLeft = Math.max(0, L - 16);
+    else if (R > t.scrollLeft + t.clientWidth - 8) t.scrollLeft = R - t.clientWidth + 16;
+  } catch (e) {}
+}
 window.xhSealTab = xhSealTab;
 function xhSealAwk(id) {
   const own = !!(DB.chars && DB.chars[id]);
@@ -2445,14 +2460,14 @@ function xhPaintSeal() {
         : "あと <b>" + (need - bal % need) + " 個</b>（＝あと " + (need - bal % need) + " 回ガチャを引く）で1体と交換できます。") + "</div>" +
     "</div>" +
     '<div class="xh-crnote">★<b>星煌印</b>は<b>ガチャの天井</b>です。<b>どのガチャでも1連ごとに1つ</b>たまり（無料の単発・10連も数えます）、' +
-      "<b>" + need + "個</b>で<b>いま引けるガチャの好きなキャラ1体</b>と交換できます。すでに持っているキャラを選ぶと<b>限界突破が進みます</b>（完凸のキャラは選べません）。" +
+      "<b>" + need + "個</b>で<b>いま引けるガチャ（超極華祭・超極煌祭・超極彩祭は開催期間の外でも）の好きなキャラ1体</b>と交換できます。すでに持っているキャラを選ぶと<b>限界突破が進みます</b>（完凸のキャラは選べません）。" +
       "<br>ためた印は<b>ガチャをまたいで</b>使えます（前にガチャごとにためていた印も、ぜんぶ合わせた数になっています）。</div>";
   if (!list.length) { box.innerHTML = head + '<div class="xh-crload">いま交換できるガチャがありません</div>' + '<div class="xh-exmsg" id="xhSealMsg"></div>'; return; }
   if (!list.some((g) => g.k === _xhSealTab)) _xhSealTab = list[0].k;
   const g = list.find((x) => x.k === _xhSealTab);
   const allMax = g.ids.every((id) => xhSealAwk(id).awk >= MAX_AWK);
   const tabs = '<div class="xh-sltabs">' + list.map((x) =>
-    '<button class="xh-sltab' + (x.k === g.k ? " on" : "") + '" style="--c:' + x.c + '" onclick="xhSealTab(\'' + x.k + '\')"><i></i>' + x.nm + "<small>" + x.ids.length + "</small></button>").join("") + "</div>";
+    '<button class="xh-sltab' + (x.k === g.k ? " on" : "") + '" style="--c:' + x.c + '" onclick="xhSealTab(\'' + x.k + '\')"><i></i>' + x.nm + (x.off ? '<em class="xh-sloff">期間外</em>' : "") + "<small>" + x.ids.length + "</small></button>").join("") + "</div>";
   const order = (typeof byCharNoDesc === "function") ? byCharNoDesc(g.ids.slice()) : g.ids;
   const cards = order.map((id) => {
     const c = CHARS[id], a = xhSealAwk(id), mx = a.awk >= MAX_AWK, ok = can && !mx;
@@ -2749,7 +2764,7 @@ function xhOpenGemGuide() {
   const bal = xhGemBal();
   const box = xhEl("xhGemWays");
   if (box) {
-    box.innerHTML = [
+    box.innerHTML = xhEarnBtn("xhGemSheet") + [
       ["🏪", "ジェム変換所で交換する", "💎1 ＝ 1米ドル、XEVA 1 ＝ 1円。レートは<b>そのときのドル円</b>です（いまは " + xhGemRate().toLocaleString() + " XEVA ＝ 💎1）。ホームの「ジェム変換所」からいつでも交換できます。"],
       ["🛒", "パックストアのパック", "通常より 50〜70% 多く💎を受け取れます。常設パックは毎週リセット（週1回）、Luminous Summer Fest の記念パックは期間中2回まで買えて🎫フェスチケットも付きます。"],
       ["⚔️", "クエストの初クリア", "MagiBurst の各クエストは初クリアで💎（毎月1日にリセットされ、また受け取れます）。以降も1日1回のクリアで💎+1がもらえます。"],
@@ -2769,6 +2784,12 @@ function xhOpenGemGuide() {
   xhOpenSheet("xhGemSheet");
 }
 window.xhOpenGemGuide = xhOpenGemGuide;
+/* ★★ 2026-11-03 ご指定「各アプリなどからのジェム・XEVA 入手のまとめをアニメーションで見られるようにして、設定などや入手方法のところからアクセスできるように」
+   → ジェム・XEVA の入手方法のシートのいちばん上に「▶ アニメで見る」（中身は xeva-earn.js の XevaEarn.open＝XEVARION ガイドと同じ再生画面） */
+function xhEarnBtn(sheet) {
+  return '<button class="xh-sbtn xh-earnbtn" style="margin:2px 0 12px" onclick="xhCloseSheet(\'' + sheet + '\');window.XevaEarn&&XevaEarn.open()">' +
+    '<span style="font-size:1.05em">▶</span> 各アプリの入手まとめをアニメで見る<small style="display:block;font-size:10.5px;font-weight:700;opacity:.85;margin-top:2px">どのアプリで何をすると XEVA・ジェムが入るか／あなたの入手の記録</small></button>';
+}
 
 /* ★ 2026-08-12 旧ドック（#xevaDock）を削除しました。
    以前はドックの見えないバッジを写していましたが、いまは xevarion.js が
@@ -3925,7 +3946,7 @@ function xhOpenXevaGuide() {
   const b = xhEl("xhXevaBal"); if (b) b.textContent = bal.toLocaleString();
   const box = xhEl("xhXevaWays");
   if (box) {
-    box.innerHTML = [
+    box.innerHTML = xhEarnBtn("xhXevaSheet") + [
       ["📅", "毎日のログインボーナス", "XEVARION を開くだけで受け取れます。1〜5日目は +50、6日目 +100、7日目 +150。連続でつづくほどお得です。"],
       ["🏅", "ログイン日数のマイルストーン", "通算10日ごとに +100（100日ごとは +500）。ホームの「ログインボーナス」から受け取れます。"],
       ["🎯", "スターターミッション", "各アプリを1回さわると達成。1件あたり +150〜200。ホームの🎯ミッションから受け取ります。"],
@@ -4096,7 +4117,7 @@ window.xhCloseSheet = xhCloseSheet;
 function xhOpenSettings() {
   const acc = xhAcc() || {};
   const sub = xhEl("xhSetAccSub"); if (sub) sub.textContent = acc.name || "名前・アイコン・パスワード";
-  const n = xhEl("xhSetShowN"); if (n) n.textContent = (Array.isArray(acc.showcase) ? acc.showcase.length : 0) + "体";
+  const n = xhEl("xhSetShowN"); if (n) n.textContent = (window.XevaFav ? window.XevaFav.ids().length : (Array.isArray(acc.showcase) ? acc.showcase.length : 0)) + "体";   /* ★★ 2026-11-03 お気に入りカードの枚数 */
   const swM = xhEl("xhSwMusic");
   if (swM) swM.classList.toggle("on", localStorage.getItem("xeva_music_v1") !== "off");
   const ist = xhEl("xhInstallSub");

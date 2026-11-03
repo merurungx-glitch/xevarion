@@ -38,6 +38,8 @@
     "ヒサコ": "Hisako", "アリス": "Alice", "ミキ": "Miki", "WP交換所": "WP Exchange",
     /* ★★ 2026-10-30 超極彩祭 */
     "ハル": "Haru", "チカ": "Chika", "超極彩祭": "Super Kyokusai Festival",
+    /* ★★ 2026-11-03 超極彩祭の追加3体 */
+    "チフル": "Chifuru", "ミント": "Mint", "プリカ": "Purika",
     "Pumpkin Night": "Pumpkin Night", "3属性有利": "Tri-Element Advantage",
     "神癒の祈り": "Divine Prayer", "CRYSTAL ACADEMY FEST": "CRYSTAL ACADEMY FEST",
     "レナ": "Rena", "カオル": "Kaoru", "スバル": "Subaru", "カスミ": "Kasumi", "ツキノ": "Tsukino",

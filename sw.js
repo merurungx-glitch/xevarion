@@ -7,7 +7,7 @@
    ・オフライン中の進行は localStorage に残り、オンライン復帰時に
      xeva-cloud.js がタイムスタンプ比較でクラウドへ上書き反映する
    ============================================================ */
-const VERSION = "xevarion-sw-v252";
+const VERSION = "xevarion-sw-v254";
 
 /* ホームを成立させる最小セット（重い画像は runtime キャッシュに任せる） */
 const CORE = [
@@ -17,24 +17,26 @@ const CORE = [
   "./characters.html",
   /* ★ 2026-08-10 ガチャは XEVARION に一本化。中身は MagiBurst の共有モジュールが持つ */
   "./gacha.html",
-  "./gacha-ui.js?v=70",
-  "./mb-newchars.js?v=42",
-  "./xeva-devnotes.js?v=8",
-  "./xeva-tour.js?v=2",   /* ★★ 2026-10-30 XEVARION ガイド（全機能の紹介・設定から／#guide） */
+  "./gacha-ui.js?v=71",
+  "./mb-newchars.js?v=43",
+  "./xeva-devnotes.js?v=10",
+  "./xeva-tour.js?v=3",   /* ★★ 2026-10-30 XEVARION ガイド（全機能の紹介・設定から／#guide） */
+  "./xeva-favs.js?v=1",   /* ★★ 2026-11-03 お気に入りカード（図鑑・キャラ詳細の☆・ホーム・コミュニティ） */
+  "./xeva-earn.js?v=1",   /* ★★ 2026-11-03 XEVA・ジェムの入手まとめ（アニメ） */
   "./xevion-os.js?v=13",
   "./xevion-os.css?v=15",
-  "./magibattle-stats.js?v=19",
-  "./MagiBurst/js/mb-core.js?v=145",
+  "./magibattle-stats.js?v=20",
+  "./MagiBurst/js/mb-core.js?v=146",
   /* ★ 2026-08-10 ガチャと図鑑で共通の土台・キャラ詳細・結果演出 */
   /* ★ 2026-08-12 ポータルのガチャ・図鑑も magiburst_v1 を同期するようになった */
   "./app-cloud.js?v=15",
   "./MagiBurst/magiburst-cloud.js?v=28",
   "./mb-boot.js?v=18",
-  "./mb-char-detail.js?v=53",
-  "./mb-char-detail.css?v=31",
+  "./mb-char-detail.js?v=54",
+  "./mb-char-detail.css?v=32",
   "./mb-gacha-reveal.css?v=11",
   /* ★★ 2026-10-09 ガチャの演出を1から作り直した（1体ずつ・確定演出・UR は縦長の絵） */
-  "./xeva-summon.js?v=5",
+  "./xeva-summon.js?v=6",
   "./community.html",
   "./xeva-community.js?v=2",     // ★★ 2026-10-20 コミュニティ（PARK の入口・アニメTier）
   "./about.html",
@@ -60,30 +62,33 @@ const CORE = [
   "./xeva-i18n-p3.js?v=7",
   "./xeva-i18n-mb7.js?v=7",
   "./xeva-i18n-p4.js?v=8",
-  "./xeva-i18n-n1.js?v=21",
+  "./xeva-i18n-n1.js?v=22",
   "./xeva-i18n-n2.js?v=3",
-  "./xeva.js?v=85",
+  "./xeva.js?v=86",
   "./xeva-alive.js?v=8",
   "./xeva-fx.js?v=9",
   "./xeva-loading.js?v=19",
-  "./xeva-splash.js?v=19",          // ★★ 2026-10-13 XEVARION の起動画面（3社ロゴ）にも使う
+  "./xeva-splash.js?v=21",          // ★★ 2026-10-13 XEVARION の起動画面（3社ロゴ）にも使う
   "./uwaki.html",                    // ★★ 2026-10-15 これって浮気？判定シート（ホームの PARK の真上のボタン）
   "./uwaki.js?v=1",
   "./uwaki.css?v=1",
   "./thumbs/Uwaki.jpg",
-  "./xevarion.js?v=110",
-  "./xevarion-home.js?v=175",
+  "./xevarion.js?v=112",
+  "./xevarion-home.js?v=177",
   /* ★★ 2026-09-24 ホームのロビーとパートナー。素材は home-mate/<id>/（?v= は home-mate.js の HM_VER）・笙古／瞳／舞香／衣織／樹愛羅／映美里（09-25 ボイス廃止・表情は webp） */
   "./gacha-live.js?v=11",
   "./home-mate.js?v=34",
   /* ★★ 2026-10-26 完凸ロビー（ヒサコ・アリス）と、バナーの上のドット絵のキャラ（絵は MagiAbyss の ma-pixel.js） */
-  "./home-lobby.js?v=3",
-  "./home-dot.js?v=4",
-  "./MagiAbyss/js/ma-pixel.js?v=10",
+  "./home-lobby.js?v=4",
+  "./home-dot.js?v=5",
+  "./MagiAbyss/js/ma-pixel.js?v=11",
   "./home-mate/lobby/hisako.webp?v=1",
   "./home-mate/lobby/alice.webp?v=1",
   "./home-mate/lobby/haru.webp?v=1",    /* ★★ 2026-10-30 超極彩祭のハル・チカの完凸ロビー */
   "./home-mate/lobby/chika.webp?v=1",
+  "./home-mate/lobby/chifuru.webp?v=1",  /* ★★ 2026-11-03 超極彩祭のチフル・ミント・プリカの完凸ロビー */
+  "./home-mate/lobby/mint.webp?v=1",
+  "./home-mate/lobby/purika.webp?v=1",
   "./home-mate/lobby/kohaku.webp?v=1",  /* ★★ 2026-10-31 完凸ロビーに コハク・ユナ・アイナ・ヨシノ */
   "./home-mate/lobby/yuna.webp?v=1",
   "./home-mate/lobby/aina.webp?v=1",
@@ -155,8 +160,8 @@ const CORE = [
   "./xeva-keys.js?v=35",
   /* ★★ 2026-10-01 同期のモジュールも入れる（前は実行時キャッシュだけ＝更新直後のオフラインで読めなかった） */
   "./xeva-cloud.js?v=49",
-  "./xevarion-fb.js?v=36",
-  "./xeva-sync.js?v=18",
+  "./xevarion-fb.js?v=37",
+  "./xeva-sync.js?v=19",
   "./xeva-presence.js?v=9",
   /* ★ 2026-08-20 通信設定（Wi-Fi／モバイルデータごとの動き）。
      この SW へ設定を送る側なので、オフラインでも読めるようにここに入れておく。 */
@@ -196,10 +201,10 @@ const CORE = [
   "./thumbs/MagiShift.jpg",
   "./thumbs/MagiQuiz.jpg",   /* ★★ 2026-10-23 新作 MagiQuiz */
   "./thumbs/MagiAbyss.jpg?v=2",   // ★★ 2026-10-05 新作 MagiAbyss
-  "./thumbs/NGX.jpg",         // ★★ 2026-10-31 NGX のアイコン（オフラインでも出るように）
+  "./thumbs/NGX.jpg?v=2",         // ★★ 2026-10-31 NGX のアイコン（オフラインでも出るように）
   "./thumbs/ISHIDA.webp",      // ★★ 2026-10-09b ISHIDA のアイコン（小さい正方形）
   "./MagiDerby/js/md-data.js?v=4", "./MagiDerby/js/md-intro.js?v=2",   // ★★ 2026-10-28 ホームの GⅠ 発売開始の告知（home-mate.js の derbyAnn）
-  "./brand/NGX_s.webp", "./brand/MagicalFuture_s.webp", "./brand/ISHIDA_s.webp", "./brand/YRA_s.webp",   // ★★ 2026-10-09b 起動画面の3社ロゴ（小さい版）
+  "./brand/NGX_s.webp?v=2", "./brand/MagicalFuture_s.webp", "./brand/ISHIDA_s.webp", "./brand/YRA_s.webp", "./brand/Kawagani_s.webp", "./brand/StudioDOGA_s.webp",   // ★★ 2026-10-09b 起動画面の3社ロゴ（小さい版）
   "./thumbs/MagiChemLex.jpg?v=2", // ★★ 2026-10-06 新作 MagiChemLex
   "./thumbs/MagiDerby.jpg",       // ★★ 2026-10-21 新作 MagiDerby（実際の JRA GⅠ）
   /* ★★ 2026-10-06 XEVARION 共通イベント Violet Breeze（左上のバナー・イベントのページ・一覧の絵） */
@@ -217,7 +222,7 @@ const CORE = [
   /* ★★ 2026-09-10 図鑑のキャラ詳細で Magi: Boccia Rush の性能も出すので、ここでも持つ */
   "./MagiBocciaRush/js/mbr-core.js?v=21",
   /* ★★ 2026-10-09 キャラ詳細・新キャラ紹介で MagiAbyss の性能も出すので、ここでも持つ */
-  "./MagiAbyss/js/ma-data.js?v=11",
+  "./MagiAbyss/js/ma-data.js?v=12",
   "./MagiAbyss/js/ma-stats.js?v=2",
   "./thumbs/MagiMusic.jpg",
   "./thumbs/MagiFocus.jpg",

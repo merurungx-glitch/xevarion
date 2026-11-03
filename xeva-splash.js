@@ -11,7 +11,7 @@
      ② アプリロゴ ＋ ロードバー ＋ "Loading <App> ..."
 
    使い方（<head> に、defer なしで置く）:
-     <script src="../xeva-splash.js?v=19"
+     <script src="../xeva-splash.js?v=21"
              data-app="MagiLex"
              data-logo="../thumbs/MagiLex.jpg"></script>
 
@@ -180,6 +180,16 @@
          アプリの起動の①（企業ロゴ）も同じ 2×2。②（アプリのロゴ＋ロードバー）はこれまでどおり。 */
   var COMBO = D.home === "1" || D.combo === "1";
   var T_COMBO = 3200;
+  /* ★★ 2026-11-03 ご指定「XEVARION 起動時の企業ロゴ表示を、NGX をはじめとする豪華な映画のロゴ風のアニメーションに」
+     ＋（言い直し）「全てが平等に表示され、あまり演出が長すぎないように」
+     → 本体（data-home="1"）の起動だけ、<b>映画の冒頭のような1つの場面</b>（約3.2秒）：
+       黒い画面に光の線が走る → 白い光の一閃 → スポットライトの舞台・うしろに光の筋 → <b>6社の札が同じ大きさ・同じ瞬間に</b>奥から飛んでくる
+       → 光の輪・そろって照り返しが走る・× ・光の粒が舞う。どの会社も同じ扱い（1社だけの場面は作らない）。
+       画面をタップするといつでも飛ばせるのは同じ。アプリの起動（①企業ロゴ ②アプリのロゴ）はこれまでどおり。 */
+  var CINE = D.home === "1";
+  var RMO = false; try { RMO = !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches); } catch (e) {}
+  var T_CINE = RMO ? 1500 : 3200;   // 場面の長さ（前の 6社同時の 3.2 秒と同じ）
+  if (CINE) T_COMBO = T_CINE;
   var SEEN_KEY = "xev_splash_seen";
   var SEEN = false;
   try { SEEN = sessionStorage.getItem(SEEN_KEY) === "1"; sessionStorage.setItem(SEEN_KEY, "1"); } catch (e) {}
@@ -190,7 +200,7 @@
        → 画像が<b>描ける状態になってから</b>出して数える（最大 2.5 秒まで待つ）・出てきてから見える時間を確保（T_SHOW）。
        ③ ページの読みこみ（defer の JS）が終わるまで起動画面を作っていなかった（DOMContentLoaded 待ち）
        → body がまだ無くても &lt;html&gt; に置いてすぐ出す（中身より先に起動画面）。 */
-  var T_ANIM = 1050;                // 3社ロゴが出てくる動きの長さ（いちばん遅い札の .24s＋.8s）
+  var T_ANIM = 1300;                // 企業ロゴが出てくる動きの長さ（★★ 2026-11-02 6社＝いちばん遅い札の .5s＋.8s）
   var T_SHOW = SEEN ? 1000 : 1400;  // 出きってから見せておく時間
   var T_HOLD = T_ANIM + T_SHOW;     // 3社ロゴの表示時間（画像がそろってから数える）
   var T_IMGWAIT = 2500;             // 画像を待つ上限
@@ -202,10 +212,12 @@
   var T_MAX = 15000;                // wait() が返ってこないときの保険
 
   var BRAND = [
-    { src: BASE + "brand/NGX_s.webp", alt: "NGX" },
+    { src: BASE + "brand/NGX_s.webp?v=2", alt: "NGX" },
     { src: BASE + "brand/MagicalFuture_s.webp", alt: "Magical Future" },
     { src: BASE + "brand/ISHIDA_s.webp", alt: "ISHIDA Production" },
-    { src: BASE + "brand/YRA_s.webp", alt: "YRA" }          /* ★★ 2026-10-28 運営協力に参入 */
+    { src: BASE + "brand/YRA_s.webp", alt: "YRA" },         /* ★★ 2026-10-28 運営協力に参入 */
+    { src: BASE + "brand/Kawagani_s.webp", alt: "Kawagani" },     /* ★★ 2026-11-02 運営協力に参入 */
+    { src: BASE + "brand/StudioDOGA_s.webp", alt: "STUDIO DOGA" } /* ★★ 2026-11-02 運営協力に参入 */
   ];
   /* タップで先へ（3社ロゴ・最短表示時間を飛ばす） */
   var skipRes = null, skipP = new Promise(function (r) { skipRes = r; });
@@ -281,24 +293,92 @@
     "#" + ID + " .xsbrands .xsamp{font-size:14px;line-height:1}}" +
     /* ★★ 2026-10-28 企業ロゴは<b>縦2×横2</b>（YRA が加わって4社）。まん中に小さな「×」。
        横向きのスマホでも2段が画面に収まるよう、幅は高さからも決める（(高さの78% − すき間) × 1.5）。 */
+    /* ★★ 2026-11-02 Kawagani・STUDIO DOGA が加わって6社＝<b>縦3×横2</b>。高さ (幅−12)/2/1.5 の段が3つ＋すき間2つ ≤ 74% → 幅 ≤ 74% − 24 + 12 */
     "#" + ID + " .xsgrid{position:relative;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;" +
-    "width:min(560px,90vw);width:min(560px,90vw,calc((78vh - 12px) * 1.5 + 12px));width:min(560px,90vw,calc((78dvh - 12px) * 1.5 + 12px))}" +
+    "width:min(520px,90vw);width:min(520px,90vw,calc(74vh - 12px));width:min(520px,90vw,calc(74dvh - 12px))}" +
     "#" + ID + " .xsgrid .xslg{width:auto;aspect-ratio:3/2;padding:6px 10px;border-radius:18px;box-shadow:0 10px 26px var(--xs-sh,rgba(200,150,60,.14))}" +
     "#" + ID + " .xsgrid .xslg img{width:100%;height:100%;max-height:none;object-fit:contain}" +
     "#" + ID + " .xsgrid .xstx{display:flex;align-items:center;justify-content:center;aspect-ratio:3/2;background:#fff;border-radius:18px;font-size:16px}" +
     "#" + ID + " .xsx{position:absolute;left:50%;top:50%;width:26px;height:26px;margin:-13px 0 0 -13px;border-radius:50%;background:#fff;" +
     "color:var(--xs-amp,#d9a441);font:800 16px/26px system-ui,-apple-system,sans-serif;text-align:center;font-style:normal;box-shadow:0 2px 10px var(--xs-sh,rgba(200,150,60,.28));z-index:1;pointer-events:none}" +
-    "#" + ID + " .xsph.in .xsgrid>.xslg,#" + ID + " .xsph.in .xsgrid>.xstx{animation:xsPop .7s cubic-bezier(.2,.8,.3,1.15) both}" +
-    "#" + ID + " .xsph.in .xsgrid>:nth-child(2){animation-delay:.1s}" +
-    "#" + ID + " .xsph.in .xsgrid>:nth-child(3){animation-delay:.2s}" +
-    "#" + ID + " .xsph.in .xsgrid>:nth-child(4){animation-delay:.3s}" +
-    "#" + ID + " .xsph.in .xsx{animation:xsFade .6s ease .45s both}" +
+    /* ★★ 2026-11-02 ご指定「×は真ん中の上と下の真ん中の隙間に以前のように」→ 縦3段なので×は2つ（1・2段目の間と2・3段目の間の、まん中の縦のすき間） */
+    "#" + ID + " .xsx.x1{top:calc((100% - 24px) / 3 + 6px)}#" + ID + " .xsx.x2{top:calc((100% - 24px) * 2 / 3 + 18px)}" +
+    /* ★★ 2026-11-03 ご指定「始めの企業ロゴ表示は全てが一斉に演出で表示されるように」：
+       前は1社ずつ 0.1 秒ずつずれて出ていた → 6社が<b>同時に</b>起き上がり（ぼかし→くっきり）、うしろに光の輪、そろって光が横切り、最後に × */
+    "#" + ID + " .xsgrid{perspective:900px}" +
+    "#" + ID + " .xsgrid::before{content:'';position:absolute;left:50%;top:50%;width:140%;aspect-ratio:1;transform:translate(-50%,-50%) scale(.2);border-radius:50%;pointer-events:none;opacity:0;" +
+    "background:radial-gradient(circle,rgba(255,255,255,.95),var(--xs-track,rgba(245,166,35,.25)) 38%,transparent 66%)}" +
+    "#" + ID + " .xsph.in .xsgrid::before{animation:xsRing 1.1s cubic-bezier(.2,.8,.3,1) both}" +
+    "#" + ID + " .xsgrid .xslg,#" + ID + " .xsgrid .xstx{position:relative;overflow:hidden}" +
+    "#" + ID + " .xsgrid .xslg::after{content:'';position:absolute;inset:0;pointer-events:none;transform:translateX(-120%);" +
+    "background:linear-gradient(105deg,transparent 35%,rgba(255,255,255,.85) 50%,transparent 65%)}" +
+    "#" + ID + " .xsph.in .xsgrid>.xslg,#" + ID + " .xsph.in .xsgrid>.xstx{animation:xsAll .85s cubic-bezier(.2,.8,.3,1.12) both}" +
+    "#" + ID + " .xsph.in .xsgrid>.xslg::after{animation:xsShine .9s ease .55s both}" +
+    "#" + ID + " .xsph.in .xsx{animation:xsXPop .5s cubic-bezier(.2,1.6,.4,1) .7s both}" +
+    "@keyframes xsAll{0%{opacity:0;transform:rotateX(70deg) scale(.8);filter:blur(8px) brightness(1.8)}60%{opacity:1;filter:blur(0) brightness(1.15)}100%{opacity:1;transform:none;filter:none}}" +
+    "@keyframes xsRing{0%{opacity:0;transform:translate(-50%,-50%) scale(.2)}35%{opacity:.9}100%{opacity:0;transform:translate(-50%,-50%) scale(1.15)}}" +
+    "@keyframes xsShine{to{transform:translateX(120%)}}" +
+    "@keyframes xsXPop{from{opacity:0;transform:scale(0) rotate(-90deg)}to{opacity:1;transform:none}}" +
     "#" + ID + " .xsmain.combo{gap:18px}" +
     "#" + ID + " .xsmain.combo.in .xscap{animation:xsFade .8s ease .7s both}" +
     "@keyframes xsPop{from{opacity:0;transform:translateY(14px) scale(.93)}to{opacity:1;transform:none}}" +
     "@keyframes xsUp{from{opacity:0;transform:translateY(26px)}to{opacity:1;transform:none}}" +
     "@keyframes xsDown{from{opacity:0;transform:translateY(-26px)}to{opacity:1;transform:none}}" +
     "@keyframes xsFade{from{opacity:0}to{opacity:1}}";
+
+  /* ★★ 2026-11-03 本体の映画風の起動（CINE）。1つの場面 .xc2 に6社（下の .xsgrid をそのまま使い、動きだけ映画風に上書き）。
+     時間割（.in を付けてから）：光の線 0〜1.0秒 → 白い一閃 .35秒 → 舞台・スポットライト・うしろの光の筋 → 6社が同時に飛んでくる .45〜1.45秒
+     → 光の輪 .9秒 → そろって照り返し 1.35秒 → × 1.45秒 → 光の粒 → 3.2秒で閉じる。6社とも同じ大きさ・同じ動き・同じ瞬間。 */
+  if (CINE) {
+    var P = "#" + ID;
+    CSS +=
+      P + ".cine{background:#000;color:#fff}" +
+      P + ".cine .xsph{padding:0}" +
+      P + " .xc2{overflow:hidden;background:radial-gradient(72% 60% at 50% 40%,#28326e 0%,#10163a 50%,#05060f 100%)}" +
+      P + " .xc2.in{opacity:1}" +
+      /* はじめは黒（舞台は白い一閃のあとに見える） */
+      P + " .xc-black{position:absolute;inset:0;background:#000;z-index:4;pointer-events:none}" +
+      P + " .xc2.in .xc-black{animation:xcOff .55s ease .3s both}" +
+      P + " .xc-streak{position:absolute;left:50%;top:50%;width:150vw;height:3px;margin:-1.5px 0 0 -75vw;border-radius:50%;opacity:0;transform:scaleX(0);pointer-events:none;z-index:6;" +
+        "background:linear-gradient(90deg,transparent,rgba(160,190,255,0) 8%,rgba(190,214,255,.9) 42%,#fff 50%,rgba(190,214,255,.9) 58%,rgba(160,190,255,0) 92%,transparent);" +
+        "box-shadow:0 0 22px 5px rgba(150,180,255,.5)}" +
+      P + " .xc2.in .xc-streak{animation:xcStreak 1s cubic-bezier(.2,.8,.2,1) both}" +
+      P + " .xc-flash{position:absolute;inset:0;pointer-events:none;opacity:0;z-index:5;background:radial-gradient(circle at 50% 50%,#ffffff,rgba(200,215,255,.75) 36%,rgba(200,215,255,0) 78%)}" +
+      P + " .xc2.in .xc-flash{animation:xcFlash .75s ease-out .3s both}" +
+      P + " .xc-rays{position:absolute;left:50%;top:48%;width:170vmax;height:170vmax;margin:-85vmax 0 0 -85vmax;opacity:0;pointer-events:none;" +
+        "background:repeating-conic-gradient(from 0deg,rgba(170,195,255,.16) 0 3deg,transparent 3deg 11deg);" +
+        "-webkit-mask:radial-gradient(circle,#000 0,rgba(0,0,0,.55) 16%,transparent 46%);mask:radial-gradient(circle,#000 0,rgba(0,0,0,.55) 16%,transparent 46%)}" +
+      P + " .xc2.in .xc-rays{animation:xcRays 3.2s ease-out .45s both}" +
+      P + " .xc-spot{position:absolute;top:-12%;width:70vw;height:140%;pointer-events:none;opacity:0;transform-origin:50% 0;" +
+        "background:linear-gradient(180deg,rgba(200,216,255,.42),rgba(200,216,255,.08) 62%,transparent);clip-path:polygon(44% 0,56% 0,100% 100%,0 100%);filter:blur(5px)}" +
+      P + " .xc-spot.a{left:-20vw}" + P + " .xc-spot.b{right:-20vw}" +
+      P + " .xc2.in .xc-spot.a{animation:xcSpotA 2.6s ease-in-out .4s both}" +
+      P + " .xc2.in .xc-spot.b{animation:xcSpotB 2.6s ease-in-out .4s both}" +
+      P + " .xc-floor{position:absolute;left:50%;bottom:4%;width:130vw;height:34vh;margin-left:-65vw;pointer-events:none;background:radial-gradient(50% 50% at 50% 50%,rgba(120,140,255,.3),transparent 70%)}" +
+      P + " .xc-dust{position:absolute;inset:0;pointer-events:none}" +
+      P + " .xc-dust i{position:absolute;width:var(--s);height:var(--s);border-radius:50%;opacity:0;background:radial-gradient(circle,#ffffff,rgba(190,210,255,.75) 45%,transparent 70%)}" +
+      P + " .xc2.in .xc-dust i{animation:xcDust var(--t) ease-in-out var(--d) both}" +
+      P + ".cine .xc2 .xsgrid{perspective:1000px}" +
+      P + ".cine .xsgrid::before{background:radial-gradient(circle,rgba(255,255,255,.9),rgba(140,160,255,.35) 38%,transparent 66%)}" +
+      P + ".cine .xsph.xc2.in .xsgrid::before{animation:xsRing 1.1s cubic-bezier(.2,.8,.3,1) .9s both}" +
+      P + ".cine .xsgrid .xslg{box-shadow:0 16px 44px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.45),0 0 34px rgba(120,150,255,.3)}" +
+      P + ".cine .xsph.xc2.in .xsgrid>.xslg," + P + ".cine .xsph.xc2.in .xsgrid>.xstx{animation:xcFly 1s cubic-bezier(.16,.84,.24,1) .45s both}" +
+      P + ".cine .xsph.xc2.in .xsgrid>.xslg::after{animation:xsShine .9s ease 1.35s both}" +
+      P + ".cine .xsph.xc2.in .xsx{animation:xsXPop .45s cubic-bezier(.2,1.6,.4,1) 1.45s both}" +
+      P + ".cine .xsx{color:#d9a441}" +
+      P + ".cine .xscap{color:rgba(214,224,255,.62);margin-top:6px}" +
+      P + ".cine .xc2.in .xscap{animation:xsFade .7s ease 1.5s both}" +
+      P + ".cine .xsnote{color:#ffd57a}" +
+      P + ".cine.rm *{animation-duration:.01s!important;animation-delay:0s!important}" +
+      "@keyframes xcOff{from{opacity:1}to{opacity:0}}" +
+      "@keyframes xcRays{0%{opacity:0;transform:rotate(-8deg) scale(.9)}35%{opacity:1}100%{opacity:.85;transform:rotate(10deg) scale(1.05)}}" +
+      "@keyframes xcStreak{0%{opacity:0;transform:scaleX(0)}30%{opacity:1}60%{opacity:1;transform:scaleX(1)}100%{opacity:0;transform:scaleX(1.1) scaleY(.4)}}" +
+      "@keyframes xcDust{0%{opacity:0;transform:translate(0,0)}20%{opacity:.95}100%{opacity:0;transform:translate(var(--dx),-24vh)}}" +
+      "@keyframes xcFlash{0%{opacity:0}25%{opacity:.9}100%{opacity:0}}" +
+      "@keyframes xcSpotA{0%{opacity:0;transform:rotate(-42deg)}30%{opacity:1}100%{opacity:.85;transform:rotate(-16deg)}}" +
+      "@keyframes xcSpotB{0%{opacity:0;transform:rotate(42deg)}30%{opacity:1}100%{opacity:.85;transform:rotate(16deg)}}" +
+      "@keyframes xcFly{0%{opacity:0;transform:translateZ(-560px) rotateX(50deg) translateY(18%);filter:blur(10px) brightness(2)}60%{opacity:1;filter:blur(0) brightness(1.25)}100%{opacity:1;transform:none;filter:none}}";
+  }
 
   /* 旧スプラッシュが下でチラつかないように隠す（data-keep-legacy="1" で無効化） */
   var LEGACY = "#splash,#mlx-splash,#mb-splash,#mcp-splash,#me-splash,#mp-splash," +
@@ -321,13 +401,23 @@
     return '<div class="xslg"><img src="' + esc(b.src) + '" alt="' + esc(b.alt) + '" ' +
       "onerror=\"this.parentNode.outerHTML='<div class=&quot;xstx&quot;>" + esc(b.alt) + "</div>'\"></div>";
   }
-  /* ★★ 2026-10-28 企業ロゴ 4社を縦2×横2で */
+  /* ★★ 2026-10-28 企業ロゴ 4社を縦2×横2で → ★★ 2026-11-02 6社を縦3×横2で */
   function brandGrid() {
-    return '<div class="xsgrid">' + BRAND.map(brandCard).join("") + '<i class="xsx" aria-hidden="true">×</i></div>';
+    return '<div class="xsgrid">' + BRAND.map(brandCard).join("") + '<i class="xsx x1" aria-hidden="true">×</i><i class="xsx x2" aria-hidden="true">×</i></div>';
   }
 
   /* ★ &lt;html&gt; の背景をスプラッシュと同じにする（箱の外はここしか塗れない） */
-  var SPLASH_BG = TH ? TH.bg : "linear-gradient(160deg,#fff,#ffeede)";   /* ★★ 2026-10-31 アプリごとの地の色（THEMES） */
+  var SPLASH_BG = CINE ? "#000" : TH ? TH.bg : "linear-gradient(160deg,#fff,#ffeede)";   /* ★★ 2026-10-31 アプリごとの地の色（THEMES）・★★ 2026-11-03 本体の映画風は黒 */
+  /* ★★ 2026-11-03 ① NGX の場面の金の粒（位置・大きさ・時間はばらばらに） */
+  function dustHTML(n) {
+    var s = "";
+    for (var i = 0; i < n; i++) {
+      var r = function (a, b) { return a + Math.random() * (b - a); };
+      s += '<i style="left:' + r(8, 92).toFixed(1) + "%;top:" + r(40, 86).toFixed(1) + "%;--s:" + r(2, 6).toFixed(1) + "px;--t:" + r(1.8, 3.2).toFixed(2) +
+        "s;--d:" + r(0.5, 1.9).toFixed(2) + "s;--dx:" + r(-30, 30).toFixed(0) + 'px"></i>';
+    }
+    return '<div class="xc-dust">' + s + "</div>";
+  }
   function paintHtml(on) {
     if (window.xvPaintHtml) { window.xvPaintHtml("xevaSplash", on ? SPLASH_BG : null); return; }
     try { document.documentElement.style.background = on ? SPLASH_BG : ""; } catch (e) {}
@@ -338,6 +428,22 @@
     el = document.createElement("div");
     el.id = ID;
     if (TH) el.style.cssText = TH.vars;
+    if (CINE) {
+      /* ★★ 2026-11-03 本体：映画風の1場面（6社が同じ大きさ・同じ瞬間に）。タップで飛ばせる */
+      el.className = "cine" + (RMO ? " rm" : "");
+      el.style.cssText = "--xs-bg:#000;--xs-a:#000;--xs-b:#05060f;--xs-sh:rgba(0,0,0,.55);--xs-track:rgba(140,160,255,.3)";
+      el.innerHTML =
+        '<div class="xsph xsmain combo xc2"><i class="xc-rays"></i><i class="xc-spot a"></i><i class="xc-spot b"></i><i class="xc-floor"></i>' + dustHTML(22) +
+          brandGrid() +
+          '<div class="xscap">' + esc(CAP) + "</div>" +
+          (NOTE ? '<div class="xsnote">' + esc(NOTE) + "</div>" : "") +
+          '<i class="xc-black"></i><i class="xc-flash"></i><i class="xc-streak"></i>' +
+        "</div>";
+      (document.body || document.documentElement).appendChild(el);
+      el.addEventListener("pointerdown", function () { if (skipRes) skipRes(); }, { passive: true });
+      runCine();
+      return;
+    }
     if (COMBO) {
       /* ★★ 2026-10-15 本体：XEVARION のロゴ → その下に3社ロゴ（ロードバーなし）
          ★★ 2026-10-28 ご指定で XEVARION のロゴは出さない・企業ロゴは 2×2（YRA が加わって4社） */
@@ -403,6 +509,22 @@
     main.classList.add("in");
     await Promise.race([
       Promise.all([Promise.race([pre, skipP]), Promise.race([sleep(T_COMBO), skipP])].concat(holds.map(function (p) {
+        return Promise.resolve(p).catch(function () {});
+      }))),
+      sleep(T_MAX)
+    ]);
+    hide();
+  }
+
+  /* ★★ 2026-11-03 本体の映画風：6社の場面（T_CINE＝3.2秒・タップで飛ばせる）＋画像・アプリ側の wait() を待って閉じる */
+  async function runCine() {
+    var sc = el.querySelector(".xc2");
+    var pre = preload();
+    await imgsReady(el);
+    await sleep(T_IN);
+    sc.classList.add("in");
+    await Promise.race([
+      Promise.all([Promise.race([pre, skipP]), Promise.race([sleep(T_CINE), skipP])].concat(holds.map(function (p) {
         return Promise.resolve(p).catch(function () {});
       }))),
       sleep(T_MAX)
