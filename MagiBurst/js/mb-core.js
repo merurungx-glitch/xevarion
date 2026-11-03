@@ -15,8 +15,8 @@
    <b>ふつうの &lt;script&gt;</b>（type="module" ではない）で読むこと。
    トップレベルの const/let はグローバルの字句環境に入るので、
    あとから読み込む MagiBurst 本体のスクリプトからそのまま見える。
-     MagiBurst : <script src="js/mb-core.js?v=145"></script>
-     gacha.html: <script src="MagiBurst/js/mb-core.js?v=145"></script>
+     MagiBurst : <script src="js/mb-core.js?v=146"></script>
+     gacha.html: <script src="MagiBurst/js/mb-core.js?v=146"></script>
 
    ── ホストが先に用意しておくもの ──
      window.MB_IMGD … 画像フォルダへの相対パス（MagiBurst は "../img/"、ポータルは "img/"）
@@ -15096,7 +15096,7 @@ const CHOKOU_IDS = ["kohaku", "suzu", "shouko", "hisako", "alice"];
 /* ★★ 2026-10-28 ご指定「ヒサコとアリスは、ガチャや図鑑で完凸するとロビーで設定できることを控えめに表記」
    完凸（4凸）でホームの「ロビー」に出せるキャラ（home-lobby.js の DEFS と同じ顔ぶれ。片方を足したらもう一方も）。
    ガチャの顔ぶれのカード（gacha-ui.js の .flb）とキャラ詳細（mb-char-detail.js の .dlob）に小さく出す。 */
-const LOBBY_CHAR_IDS = ["haru", "chika", "hisako", "alice", "kohaku", "yuna", "aina", "chie"];   /* ★★ 2026-10-30 超極彩祭のハル・チカも（ご指定「完凸でロビーにセットできる」）
+const LOBBY_CHAR_IDS = ["chifuru", "mint", "purika", "haru", "chika", "hisako", "alice", "kohaku", "yuna", "aina", "chie"];   /* ★★ 2026-11-03 チフル・ミント・プリカも */   /* ★★ 2026-10-30 超極彩祭のハル・チカも（ご指定「完凸でロビーにセットできる」）
    ★★ 2026-10-31 コハク・ユナ・アイナ・ヨシノも（ご指定「完凸ロビー対応キャラに追加」・立ち絵は home-lobby.js） */
 function hasLobby(id) { return LOBBY_CHAR_IDS.indexOf(id) >= 0; }
 Object.assign(AO_CHAR_DEF, {
@@ -15111,10 +15111,18 @@ Object.assign(AO_CHAR_DEF, {
      → 超極華祭・超極煌祭と同じ <b>abyssOnly</b> の印（MagiBurst・Boccia・MagiTier には出ない）。
      ★★ 2026-10-30（2回目）MagiBattle を作り直した＝超極祭系の UR 12体だけで遊ぶ形。性能は ../magibattle-stats.js（MBStats v3）が持ち主。
    ・MagiAbyss では<b>ヒサコより少しだけ上</b>（ma-data.js）。完凸でホームのロビーにも（LOBBY_CHAR_IDS・home-lobby.js）。 */
-const CHOSAI_IDS = ["haru", "chika"];
+/* ★★ 2026-11-03 超極彩祭に <b>チフル（火）・ミント（木）・プリカ（光）</b>を追加（No.288〜290・ご指定）。
+   ・ハル・チカと同じく「MagiAbyss と MagiBattle の性能のみ」（abyssOnly）。MagiChemLex のナビ・アイコンには使える。
+   ・MagiAbyss は<b>ヒサコと同じ帯</b>（ご回答）／MagiBattle はプリズム隊（チフル＝支援 SMG バーストⅠ・ミント＝支援 AR Ⅱ・プリカ＝火力 SR Ⅱ）。
+   ・完凸でホームのロビーにも（LOBBY_CHAR_IDS・home-lobby.js）。 */
+const CHOSAI_NEW_IDS = ["chifuru", "mint", "purika"];
+const CHOSAI_IDS = ["haru", "chika"].concat(CHOSAI_NEW_IDS);
 Object.assign(AO_CHAR_DEF, {
   haru:  { nm: "ハル", f: "Haru",  el: "water", shot: "pierce", type: "蒼海あじさい型", fesKey: "chosai" },
   chika: { nm: "チカ", f: "Chika", el: "dark",  shot: "pierce", type: "月下白花型",     fesKey: "chosai" },
+  chifuru: { nm: "チフル", f: "Chifuru", el: "fire",  shot: "pierce", type: "蒼糖ハート型",   fesKey: "chosai" },
+  mint:    { nm: "ミント", f: "Mint",    el: "wood",  shot: "bounce", type: "白花こもれび型", fesKey: "chosai" },
+  purika:  { nm: "プリカ", f: "Purika",  el: "light", shot: "pierce", type: "星章学院型",     fesKey: "chosai" },
 });
 /* ★★ 2026-10-24 <b>MagiChemLex の WP 交換所</b>の UR（ガチャからは出ない・120WP で1体・ご指定）＝ ミキ（木・No.285）。
    これも MagiAbyss 専用（性能は MagiAbyss だけ・MagiChemLex のナビやアイコンには使える）。MagiAbyss ではタキナと同じ帯。 */
@@ -15122,7 +15130,8 @@ const WP_CHAR_IDS = ["miki"];
 AO_CHAR_DEF.miki = { nm: "ミキ", f: "Miki", el: "wood", shot: "bounce", type: "青花学舎型" };
 /* 並び（MagiAbyss の一覧などは新しい順）：今回の3体 → 超極煌祭のはじめの3体 → 超極華祭 */
 /* ★★ 2026-10-30 超極彩祭のハル・チカをいちばん前に */
-const ABYSS_ONLY_ALL = CHOSAI_IDS.concat(["hisako", "alice", "miki", "kohaku", "suzu", "shouko"], ABYSS_ONLY_IDS);
+/* ★★ 2026-11-03 チフル・ミント・プリカをいちばん前に */
+const ABYSS_ONLY_ALL = CHOSAI_NEW_IDS.concat(["haru", "chika"], ["hisako", "alice", "miki", "kohaku", "suzu", "shouko"], ABYSS_ONLY_IDS);
 ABYSS_ONLY_ALL.forEach((id) => {
   const d = AO_CHAR_DEF[id], T = CHARS.takina;
   CHARS[id] = {
@@ -15403,6 +15412,8 @@ const CHAR_IDS = [
   "hisako", "alice", "miki",                           /* No.283〜285 */
   /* ★★ 2026-10-30 超極彩祭（UR・MagiAbyss 専用） */
   "haru", "chika",                                     /* No.286〜287 */
+  /* ★★ 2026-11-03 超極彩祭の追加3体（UR・MagiAbyss 専用） */
+  "chifuru", "mint", "purika",                         /* No.288〜290 */
 ];
 /* id → キャラクター番号（1始まり）。図鑑・詳細・ガチャ結果に「No.XX」として出す */
 const CHAR_NO = {};
@@ -15503,7 +15514,9 @@ Object.entries({ takina: [0.26, 0.35], hibana: [0.69, 0.45], fuki: [0.20, 0.41],
   /* ★★ 2026-10-24 ヒサコ・アリス・ミキ */
   hisako: [0.33, 0.36], alice: [0.30, 0.42], miki: [0.26, 0.40],
   /* ★★ 2026-10-30 超極彩祭 */
-  haru: [0.33, 0.33], chika: [0.41, 0.36] })
+  haru: [0.33, 0.33], chika: [0.41, 0.36],
+  /* ★★ 2026-11-03 超極彩祭の追加3体 */
+  chifuru: [0.27, 0.33], mint: [0.20, 0.30], purika: [0.18, 0.36] })
   .forEach(([id, f]) => { if (CHARS[id]) CHARS[id].wideFace = f; });
 /* ★★ 2026-10-06b UR の絵の見せ方（どのアプリのキャラ詳細でも共通・ご指定「UR の絵が SSR より小さい」）
    ・枠は SSR と同じ大きさ（高さ）にして、横長の絵を<b>大きく</b>出し、ゆっくり左右に流して全体を見せる（.urx-pan）。
@@ -23281,30 +23294,81 @@ const STARTER_IDS = ["hina", "runa", "noa", "haruka"];
      ・超越の書（レベル上限を60へ）／英傑の証（ルーン枠を3つへ）＝どちらもレアな当たり
      ・🎫 フェスチケット
    SSRの合計10%は<b>変えていない</b>。 */
+/* ══ ★★ 2026-11-03 ガチャの中身は <b>XEVARION 共通のアイテム</b>だけ（ご指定「叡智の果実などのゲームのものは排出しない」）══
+   XEVA・💎ジェム・🎫ガチャチケット・🎫フェスチケット・💱両替チケット・★星煌印・💠結晶・🎟️ガチャ10連半額券。
+   ・叡智の果実・超越の書・英傑の証・九天の玉簡・クロスの書（MagiBurst の道具）は<b>もう出ない</b>（持っているぶんはそのまま使える）。
+   ・x … XEVARION 共通のアイテムの種類（grantXItem が XEVA の財布へ入れる）。ticket／gticket はこれまでどおり DB の橋渡し。
+   ・表の合計は 0.35（DEBUT は 0.30）のまま。rollGachaItem は<b>表の合計の中で</b>引く（提供割合の表示＝ p ÷ 合計 × 枠と同じ）。 */
+const X_ITEM_INFO = {
+  xeva:  { nm: "XEVA", c: "#ffc63d" },
+  gem:   { nm: "ジェム", c: "#3fc8ff" },
+  cash:  { nm: "両替チケット", c: "#19b37a" },
+  seal:  { nm: "★星煌印", c: "#ffd84a" },
+  cryst: { nm: "💠結晶", c: "#7fe0ff" },
+  half:  { nm: "ガチャ10連半額券", c: "#e0334f" },
+};
 const G_ITEM_TABLE = [
-  { p: 0.20, item: "wisdom", n: 1, nm: "叡智の果実" },
-  { p: 0.08, item: "wisdom", n: 3, nm: "叡智の果実" },
-  { p: 0.04, ticket: 1, nm: "フェスチケット" },   /* フェスガチャ専用（従来どおり） */
-  { p: 0.02, item: "trans", n: 1, nm: "超越の書" },
-  { p: 0.01, item: "hero", n: 1, nm: "英傑の証" },
+  { p: 0.100, x: "xeva", n: 500, nm: "XEVA" },
+  { p: 0.060, x: "xeva", n: 1000, nm: "XEVA" },
+  { p: 0.015, x: "xeva", n: 3000, nm: "XEVA" },
+  { p: 0.035, x: "gem", n: 1, nm: "ジェム" },
+  { p: 0.008, x: "gem", n: 3, nm: "ジェム" },
+  { p: 0.040, gticket: 1, nm: "ガチャチケット" },
+  { p: 0.015, ticket: 1, nm: "フェスチケット" },
+  { p: 0.030, x: "cash", n: 1, nm: "両替チケット" },
+  { p: 0.030, x: "seal", n: 1, nm: "★星煌印" },
+  { p: 0.015, x: "cryst", n: 1, nm: "💠結晶" },
+  { p: 0.002, x: "half", n: 1, nm: "ガチャ10連半額券" },
 ];
+/* XEVARION 共通のアイテムを財布へ（xeva.js が無い画面では何もしない） */
+function grantXItem(k, n) {
+  n = Math.max(0, Math.round(n || 0)); if (!n) return;
+  const why = "ガチャ（アイテム）";
+  try {
+    const X = window.XEVA; if (!X) return;
+    if (k === "xeva") X.add(n, why);
+    else if (k === "gem" && X.gem) X.gem.add(n, why);
+    else if (k === "cash" && X.cashTicket) X.cashTicket.add(n, why);
+    else if (k === "seal" && X.seal) X.seal.add("gitem", n, why);
+    else if (k === "cryst" && X.cryst) X.cryst.add(n, why);
+    else if (k === "half" && X.halfTicket) X.halfTicket.add(n, why);
+  } catch (e) {}
+}
+/* 絵（ガチャの結果・提供割合）。画像は MB_IMGD（ポータル img/・MagiBurst ../img/）から引く */
+function xitemIcon(k, px) {
+  const s = px || 28, d = (typeof MB_IMGD !== "undefined" ? MB_IMGD : "../img/"), root = d.replace(/img\/$/, "");
+  const im = (u) => '<img src="' + u + '" alt="" style="width:' + s + 'px;height:' + s + 'px;object-fit:contain;vertical-align:-3px">';
+  try {
+    if (k === "xeva") return im(root + "XEVA.png");
+    if (k === "gem") return im(root + "gem.png");
+    if (k === "seal") return im(d + "seal.webp");
+    if (k === "cryst") return im(d + "cryst.webp");
+    if (k === "cash" && window.XevaCashTicketSVG) return XevaCashTicketSVG(Math.round(s / 1.55));
+    if (k === "half" && window.XevaHalfTicketSVG) return XevaHalfTicketSVG(Math.round(s / 1.55));
+  } catch (e) {}
+  return "◆";
+}
 /* 中身（キャラ以外）を1つ引く。合計が items の p の総和に満たないぶんは呼び出し側で調整する
    ★ 2026-08-20 table を渡すとその表で引く（GRAND DEBUT は中身がちがうので D_ITEM_TABLE を渡す）。
      渡さなければ従来どおり G_ITEM_TABLE。 */
 function rollGachaItem(r, table) {
-  for (const it of (table || G_ITEM_TABLE)) {
+  /* ★★ 2026-11-03 表の合計の中で引きなおす（前は枠の大きさで引いていたので、表より枠が大きいフェスでは端数が叡智の果実になっていた） */
+  const tb = table || G_ITEM_TABLE;
+  r = Math.random() * tb.reduce((a, b) => a + b.p, 0);
+  for (const it of tb) {
     if (r < it.p) {
       if (it.ticket) { DB.fesTicket = fesTickets() + it.ticket; return { type: "ticket", n: it.ticket }; }
       /* ★ 2026-08-20 🎫ガチャチケット（どのガチャでも使える券）。フェス券とは別の残高。 */
       if (it.gticket) { DB.gTicket = gachaTickets() + it.gticket; return { type: "gticket", n: it.gticket }; }
+      if (it.x) { grantXItem(it.x, it.n); return { type: "xitem", item: it.x, n: it.n }; }
       DB.items[it.item] = (DB.items[it.item] || 0) + it.n;
       return { type: "item", item: it.item, n: it.n };
     }
     r -= it.p;
   }
-  /* 端数は叡智の果実に寄せる（何も出ない枠を作らない） */
-  DB.items.wisdom = (DB.items.wisdom || 0) + 1;
-  return { type: "item", item: "wisdom", n: 1 };
+  /* 端数（計算の誤差）は XEVA に寄せる（何も出ない枠を作らない） */
+  grantXItem("xeva", 500);
+  return { type: "xitem", item: "xeva", n: 500 };
 }
 /* ══════════════════════════════════════════════════════════════
    ★ 2026-08-20 GRAND DEBUT GACHA（新キャラ専用ガチャ）
@@ -23565,15 +23629,8 @@ function debutBannerOf() { return mbImgPath(DEBUT_BANNER); }
    ・育成の当たり（📕超越の書・🎖️英傑の証）を厚くし、叡智の果実は<b>3個・5個束</b>を主体にする
    ・🪭九天の玉簡・📘クロスの書を<b>極低確率</b>で入れる（ご指定）
    ★ 合計は G_ITEM_TABLE と同じ <b>0.35</b> ぴったりにすること（SSR 10%＋SR 55%＋35%＝100%）。 */
-const D_ITEM_TABLE = [
-  { p: 0.155, item: "wisdom", n: 3, nm: "叡智の果実" },
-  { p: 0.070, item: "wisdom", n: 5, nm: "叡智の果実" },
-  { p: 0.055, gticket: 1, nm: "ガチャチケット" },
-  { p: 0.040, item: "trans", n: 1, nm: "超越の書" },
-  { p: 0.023, item: "hero", n: 1, nm: "英傑の証" },
-  { p: 0.004, item: "jade", n: 1, nm: "九天の玉簡" },
-  { p: 0.003, item: "crossbook", n: 1, nm: "クロスの書" },
-];
+/* ★★ 2026-11-03 中身は XEVARION 共通のアイテム（G_ITEM_TABLE と同じ）。名前は使っている所が多いので残す */
+const D_ITEM_TABLE = G_ITEM_TABLE;
 /* ══ ★★ 2026-08-25 GRAND DEBUT 専用の育成アイテム表（合計 <b>0.30</b>）══
    限定SSR を 10% → 15% に上げたぶん、アイテム枠が 35% → 30% になった。
    ★ 減らすのは<b>いちばん軽い「叡智の果実3個」だけ</b>（0.155 → 0.105）。
@@ -23581,15 +23638,8 @@ const D_ITEM_TABLE = [
      <b>1つも減らしていない</b>＝当たりの厚さはそのまま。
    ★ D_ITEM_TABLE（合計 0.35）は<b>フェス fes5 が使い続ける</b>ので、そちらは触らないこと。
      こちらを 0.30 にしてしまうと fes5 の合計が 95% になって端数が出る。 */
-const DEBUT_ITEM_TABLE = [
-  { p: 0.105, item: "wisdom", n: 3, nm: "叡智の果実" },
-  { p: 0.070, item: "wisdom", n: 5, nm: "叡智の果実" },
-  { p: 0.055, gticket: 1, nm: "ガチャチケット" },
-  { p: 0.040, item: "trans", n: 1, nm: "超越の書" },
-  { p: 0.023, item: "hero", n: 1, nm: "英傑の証" },
-  { p: 0.004, item: "jade", n: 1, nm: "九天の玉簡" },
-  { p: 0.003, item: "crossbook", n: 1, nm: "クロスの書" },
-];
+/* ★★ 2026-11-03 XEVARION 共通のアイテム（合計 0.30＝いちばん軽い XEVA 500 だけ 0.05 減らした） */
+const DEBUT_ITEM_TABLE = G_ITEM_TABLE.map((it) => (it.x === "xeva" && it.n === 500 ? Object.assign({}, it, { p: 0.050 }) : it));
 /* ══════════════════════════════════════════════════════════════
    ★ フェスガチャ（v14 Nocturne Bloom Fest／v15 Luminous Summer Fest）
    ・プレミアムと同じ仕組み（ジェムで回す・10連でSSR確定）だが、キャラは完全に別枠
@@ -24980,27 +25030,28 @@ FESTS.fes21 = {
   topPre: "2026-10-31",   /* ★★ 2026-10-30 ご指定：ふだんは開催中だけいちばん上・はじめての開催（11/1）の前の日までは予告としていちばん上 */
   pickEach: 0.015,   /* 1.5%（ご指定） */
   chars: CHOSAI_IDS.slice(),
-  newChars: CHOSAI_IDS.slice(),
-  newSince: "2026-10-30",
+  newChars: CHOSAI_NEW_IDS.slice(),   /* ★★ 2026-11-03 追加の3体（NEW の台帳） */
+  newSince: "2026-11-03",
   itemTable: D_ITEM_TABLE,
   get lead() {
-    return "新レアリティ <b>UR 2体</b>（各" + ratePct(pickRateOf("fes21", "haru")) + "）に加えて、<b>"
+    return "新レアリティ <b>UR 5体</b>（各" + ratePct(pickRateOf("fes21", "haru")) + "）に加えて、<b>"
       + PREMIUM_NM + "のSSRも排出</b>（SSR以上 合計 " + ratePct(SSR_TOTAL) + "）";
   },
   get sub() {
-    return "UR <b>2体</b>（各" + ratePct(pickRateOf("fes21", "haru")) + "）／<b>残りは " + PREMIUM_NM + " のSSRが等確率</b>。"
+    return "UR <b>5体</b>（各" + ratePct(pickRateOf("fes21", "haru")) + "）／<b>残りは " + PREMIUM_NM + " のSSRが等確率</b>。"
       + "<b>毎月 1〜10日（上旬）</b>だけの開催・🎫ガチャ券が使えます（フェス券は使えません）"
-      + '<br><small style="opacity:.78">👑 ハル・チカは完凸でホームのロビーに設定できます</small>';
+      + '<br><small style="opacity:.78">👑 5体とも完凸でホームのロビーに設定できます</small>';
   },
   get note() {
-    return "<b>★★ 2026-10-30 新しいガチャ「超極彩祭」</b>"
-      + "<br>★ <b>ハル（水）・チカ（闇）</b>の2体。2体とも<b>UR</b>で、排出は<b>1体 " + ratePct(pickRateOf("fes21", "haru")) + "</b>です。"
+    return "<b>★★ 2026-11-03 チフル（火）・ミント（木）・プリカ（光）が新登場</b>"
+      + "<br>★ <b>ハル（水）・チカ（闇）・チフル（火）・ミント（木）・プリカ（光）</b>の5体。5体とも<b>UR</b>で、排出は<b>1体 " + ratePct(pickRateOf("fes21", "haru")) + "</b>です。"
       + "<br>★ 開催は極彩祭と同じ<b>毎月 1〜10日（上旬）</b>。🎫<b>ガチャ券</b>が使えます（フェス券は使えません）。極彩祭とは別のガチャです。"
-      + "<br>★ 2体とも <b>MagiAbyss と MagiBattle のキャラクター</b>です（ご指定「MagiAbyss と MagiBattle の性能」・★★ 2026-10-30 作り直した <b>MagiBattle</b> では武器・バースト・スキルの性能）。"
+      + "<br>★ 5体とも <b>MagiAbyss と MagiBattle のキャラクター</b>です（ご指定「MagiAbyss と MagiBattle の性能」・<b>MagiBattle</b> では武器・バースト・スキルの性能）。"
       + "MagiBurst・MagiBocciaRush では使えません（キャラ詳細は MagiAbyss・MagiBattle の面）。"
       + "<br>★ <b>MagiChemLex のナビゲーター</b>や <b>XEVARION のアイコン</b>には使えます。"
-      + "<br>★ MagiAbyss では <b>ヒサコより少しだけ強い</b>、UR の最上位の強さです。"
-      + '<br><small style="opacity:.78">👑 ハル・チカを完凸（4凸）すると、ホームのロビー（動く立ち絵）に設定できます。ホームの「ロビー」ボタンから選べます。</small>';
+      + "<br>★ MagiAbyss では <b>ハル・チカはヒサコより少しだけ強い</b> UR の最上位、<b>チフル・ミント・プリカはヒサコと同じ</b>強さです。"
+      + "<br>★ MagiBattle では <b>チフル＝支援型・SMG（バーストⅠ）／ミント＝支援型・AR（バーストⅡ）／プリカ＝火力型・SR（バーストⅡ）</b>。ハル・チカと5人でプリズム隊がそろいます。"
+      + '<br><small style="opacity:.78">👑 5体とも完凸（4凸）すると、ホームのロビー（動く立ち絵）に設定できます。ホームの「ロビー」ボタンから選べます。</small>';
   },
 };
 /* ══════════════════════════════════════════════════════════════
@@ -26279,18 +26330,24 @@ function sealLineup(m) {
   } catch (e) { ids = []; }
   return ids.filter((id, i, a) => CHARS[id] && a.indexOf(id) === i && !charSecret(id));
 }
-/* いま引けるガチャ（開催前・終わったガチャは出さない）＝ [{ k, nm, c, ids }]。並びはガチャ一覧と同じ */
+/* いま引けるガチャ（開催前・終わったガチャは出さない）＝ [{ k, nm, c, ids, off }]。並びはガチャ一覧と同じ
+   ★★ 2026-11-03 ご指定「開催期間ではない超極祭系のガチャのキャラも交換できるように」
+   → 超極華祭・超極煌祭・超極彩祭（chokaen／chokou／chosai）は<b>開催期間の外でも</b>並べる（off＝期間外の印・交換所の札に「期間外」）。
+     まだ伏せているキャラ（charSecret）は sealLineup が出さないので、公開前の子は選べない。 */
+function sealSuperFes(k) { try { const f = isFesMode(k) ? fesDef(k) : null; return !!(f && (f.chosai || f.chokou || f.chokaen)); } catch (e) { return false; } }
 function sealGachaList() {
   let rows = [];
   try { rows = gachaMenuList(); } catch (e) { rows = []; }
   const out = [], seen = {};
   rows.forEach((r) => {
-    if (!r || r.soon || r.ended || seen[r.k]) return;
+    if (!r || r.ended || seen[r.k]) return;
+    const sup = sealSuperFes(r.k);
+    if (r.soon && !sup) return;
     const ids = sealLineup(r.k);
     if (!ids.length) return;
     seen[r.k] = 1;
     let nm = r.nm; try { nm = gachaNmOfMode(r.k) || r.nm; } catch (e) {}
-    out.push({ k: r.k, nm, c: r.c || "#8a6cff", ids });
+    out.push({ k: r.k, nm, c: r.c || "#8a6cff", ids, off: !!(r.soon && sup) });
   });
   return out;
 }
@@ -26468,6 +26525,11 @@ function gachaCellHTML(r, i, willRankUp) {
   if (r.type === "item") {
     const it = ITEMS[r.item] || { nm: r.item, icon: "◆", c: "#8affc4" };
     return `<div class="gm veiled">${cov("◆", "item")}<div class="gg" style="background:radial-gradient(circle at 35% 30%,#ffffff,${it.c} 60%);color:#1a1430;font-size:26px">${it.icon}</div><div class="gn"><b class="gnm">${it.nm} ×${r.n}</b><i class="gst"></i></div></div>`;
+  }
+  /* ★★ 2026-11-03 XEVARION 共通のアイテム */
+  if (r.type === "xitem") {
+    const xi = X_ITEM_INFO[r.item] || { nm: r.item, c: "#8affc4" };
+    return `<div class="gm veiled">${cov("◆", "item")}<div class="gg" style="background:radial-gradient(circle at 35% 30%,#ffffff,${xi.c} 62%)">${xitemIcon(r.item, 30)}</div><div class="gn"><b class="gnm">${xi.nm} ×${fmt(r.n)}</b><i class="gst"></i></div></div>`;
   }
   if (r.type === "ticket") {
     return `<div class="gm veiled">${cov("◆", "item")}<div class="gg" style="background:radial-gradient(circle at 35% 30%,#fff6d8,#ffb020 60%);color:#4a2d00;font-size:26px">🎫</div><div class="gn"><b class="gnm">フェスチケット ×${r.n}</b><i class="gst"></i></div></div>`;

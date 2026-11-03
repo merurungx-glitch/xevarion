@@ -6,13 +6,13 @@
    ・オンライン対戦・XEVA換金はアプリ側でオフライン時に無効化している
    ・取得できたリソースは随時キャッシュ更新（stale-while-revalidate）
    ============================================================ */
-const VERSION = "magiburst-sw-v204";
+const VERSION = "magiburst-sw-v206";
 const CORE = [
   "./index.html",
   "./css/mb-ui2.css?v=26",
   "./css/localplay.css?v=7",
   "./js/localplay.js?v=8",
-  "./js/mb-core.js?v=145",
+  "./js/mb-core.js?v=146",
   /* ★★ 2026-09-13 クエスト作成（ステージエディター・MB613Create26）。
      遅延読みこみだが、オフラインでも開けるようにここには入れておく。 */
   "./js/mb-create.js?v=2",
@@ -39,12 +39,12 @@ const CORE = [
   "../xeva-i18n-p3.js?v=7",
   "../xeva-i18n-mb7.js?v=7",
   "../xeva-i18n-p4.js?v=8",
-  "../xeva-i18n-n1.js?v=21",
+  "../xeva-i18n-n1.js?v=22",
   "../xeva-i18n-n2.js?v=3",
-  "../xeva.js?v=85",
+  "../xeva.js?v=86",
   "../xeva-alive.js?v=8",
   "../xeva-loading.js?v=19",
-  "../xeva-splash.js?v=19",
+  "../xeva-splash.js?v=21",
   "../app-cloud.js?v=15",
   "../xeva-keys.js?v=35",
   "./magiburst-cloud.js?v=28",
@@ -56,10 +56,11 @@ const CORE = [
   "../stamina.png",
   /* BGM は権利確認のため一時提供停止中 → 先読みしない */
   "../thumbs/MagiBurst.jpg",
-  "../brand/NGX_s.webp",
+  "../brand/NGX_s.webp?v=2",
   "../brand/MagicalFuture_s.webp",
   "../brand/ISHIDA_s.webp",
   "../brand/YRA_s.webp",
+  "../brand/Kawagani_s.webp", "../brand/StudioDOGA_s.webp",   // ★★ 2026-11-02 運営協力に参入
   "img/bn_premium_s.webp",
   "img/bn_castle_s.webp",
   "img/bn_lab_s.webp",
@@ -162,6 +163,8 @@ const CORE = [
   "img/ss/HisakoSS.webp", "img/ss/AliceSS.webp", "img/ss/MikiSS.webp",
   /* ★★ 2026-10-30 超極彩祭（UR）の SS 絵 */
   "img/ss/HaruSS.webp", "img/ss/ChikaSS.webp",
+  /* ★★ 2026-11-03 超極彩祭の追加3体 */
+  "img/ss/ChifuruSS.webp", "img/ss/MintSS.webp", "img/ss/PurikaSS.webp",
   "img/ss/YajuSS.webp",   /* ★ 2026-08-08d クロススキル「お待たせ!」用 */
   "img/ss/KokonaAlphaSS.webp",   /* ★ 2026-08-11 ココナα（治癒の祈り）用 */
   /* ★ 2026-08-08 プレミアム新SSR「カエデ」「リノン」「ココロ」「アンジェ」 */
@@ -492,6 +495,8 @@ const CORE = [
   "../img/t_Hisako.webp", "../img/Hisako_w.webp", "../img/t_Alice.webp", "../img/Alice_w.webp", "../img/t_Miki.webp", "../img/Miki_w.webp",
   /* ★★ 2026-10-30 超極彩祭 */
   "../img/t_Haru.webp", "../img/Haru_w.webp", "../img/t_Chika.webp", "../img/Chika_w.webp",
+  /* ★★ 2026-11-03 超極彩祭の追加3体 */
+  "../img/t_Chifuru.webp", "../img/Chifuru_w.webp", "../img/t_Mint.webp", "../img/Mint_w.webp", "../img/t_Purika.webp", "../img/Purika_w.webp",
   /* ★★ 2026-09-06 同期の画面に出る案内役（立ち姿とお辞儀・2人ぶん）。
      ここに無いとオフラインのときだけ絵が出ない。 */
   "../img/ld_a_stand.webp",
