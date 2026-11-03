@@ -5,7 +5,7 @@
      オンライン復帰後にポータル側へ自然に反映される
    ・取得できたリソースは随時キャッシュ更新（stale-while-revalidate）
    ============================================================ */
-const VERSION = "magilex-sw-v134";
+const VERSION = "magilex-sw-v136";
 const CORE = [
   /* ★ 2026-08-19 図・グラフのエンジンは XEVYNAR と共有。
      ここに無いと、オフラインで「図で見る」が出ない。 */
@@ -14,7 +14,7 @@ const CORE = [
   "./index.html",                 /* ★★ 2026-10-24 MagiLex の入口（MagiChemLex／旧MagiLex をえらぶ） */
   "../thumbs/MagiChemLex.jpg?v=2",
   "./magilex.css?v=48",
-  "./magilex.js?v=94",
+  "./magilex.js?v=95",
   "./magilex-data.js?v=10",
   "./magilex-eigo.js?v=9",
   "./magilex-rika.js?v=9",
@@ -41,14 +41,15 @@ const CORE = [
   /* ★ 2026-08-24 スタミナの絵（ホームのプロフィールに出す⚡札） */
   "../stamina.png",
   "../thumbs/MagiLex.jpg",
-  "../brand/NGX_s.webp",
+  "../brand/NGX_s.webp?v=2",
   "../brand/MagicalFuture_s.webp",
   "../brand/ISHIDA_s.webp",
   "../brand/YRA_s.webp",
-  "../xeva.js?v=85",
+  "../brand/Kawagani_s.webp", "../brand/StudioDOGA_s.webp",   // ★★ 2026-11-02 運営協力に参入
+  "../xeva.js?v=86",
   "../xeva-alive.js?v=8",
   "../xeva-loading.js?v=19",
-  "../xeva-splash.js?v=19",
+  "../xeva-splash.js?v=21",
   "../app-cloud.js?v=15",
   "../xeva-keys.js?v=35",
   "./magilex-cloud.js?v=25",
