@@ -172,7 +172,7 @@ main{max-width:860px;margin:0 auto;padding:4px 12px calc(28px + var(--safe-b))}
 .seg button{flex:1 0 auto;padding:8px 12px;border-radius:99px;background:#fff;font-weight:900;font-size:12.5px;color:var(--sub);box-shadow:0 0 0 1.5px var(--line) inset;white-space:nowrap}
 .seg button.on{background:var(--g2);color:#fff;box-shadow:none}
 .seg.sm button{padding:6px 10px;font-size:12px}
-.tks{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:10px}
+.tks{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(260px,100%),1fr));gap:10px}
 .tk{position:relative;overflow:hidden;background:#fffdf4;border-radius:12px;padding:0 0 10px;cursor:pointer;
   box-shadow:0 0 0 1.5px #d9cfa8 inset,0 3px 10px rgba(80,60,0,.08);font-size:12.5px}
 .tk::after{content:"";position:absolute;left:0;right:0;top:34px;border-top:1.5px dashed #d9cfa8}
@@ -541,7 +541,7 @@ html::-webkit-scrollbar-track,.race::-webkit-scrollbar-track{background:linear-g
 
 /* ══ ★★ 2026-10-24 勝馬投票券ふうの券面（ご指定「実際の馬券のように」）══
    大きさは券の幅に合わせて変わる（cqw＝券の幅の1%）。公式のロゴは使わない（透かしは MagiDerby の蹄鉄）。 */
-.jts{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:14px 12px;margin-top:6px}
+.jts{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(300px,100%),1fr));gap:14px 12px;margin-top:6px}
 .jtw{display:flex;flex-direction:column;gap:5px}
 .jt{position:relative;container-type:inline-size;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .jt.big{cursor:default;max-width:620px;width:100%;margin:0 auto}
@@ -853,3 +853,23 @@ html::-webkit-scrollbar-track,.race::-webkit-scrollbar-track{background:linear-g
 .res-rest span{display:flex;align-items:center;gap:4px;font-weight:800}
 
 /* ★★ 2026-10-27 GⅠ のレース名の演出の CSS は md-intro.js の中へ移した（★★ 2026-10-28 ホームでも同じ演出を出すため） */
+
+/* ══ ★★ 2026-11-02 過去の GⅠ（年の切りかえ）・レースごとの馬券の合計 ══ */
+.yrs{display:flex;gap:6px;flex-wrap:wrap;margin:0 4px 10px}
+.yr{padding:7px 14px;border-radius:99px;background:#fff;box-shadow:0 0 0 1.5px var(--line) inset;font-weight:900;font-size:12.5px;color:var(--sub)}
+.yr.on{background:var(--g2);color:#fff;box-shadow:none}
+.arch-note{margin:4px 6px 12px;font-size:12px;color:var(--sub)}
+.sr-my{display:inline-block;margin-left:6px;padding:1px 7px;border-radius:99px;background:var(--soft);box-shadow:0 0 0 1px var(--line) inset;font-style:normal;font-size:10.5px;font-weight:900;color:var(--sub);white-space:nowrap}
+.sr-my.plus{color:var(--g3);background:#e9f7ef}.sr-my.minus{color:var(--red);background:#fdeeed}
+.tksum{margin:2px 0 12px}
+.tksum h4{margin:0 0 6px;font-size:14px;font-weight:900}
+.tksum-g{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:5px}
+.tksum-g span{background:var(--soft);border-radius:12px;padding:6px 4px;text-align:center;font-size:11px;color:var(--sub);font-weight:800;min-width:0}
+.tksum-g small{display:block;font-size:10px;font-weight:800}
+.tksum-g b{display:block;font-family:var(--num);font-size:18px;line-height:1.15;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.tksum-g .plus b{color:var(--g3)}.tksum-g .minus b{color:var(--red)}
+.tksum-n{margin:6px 2px 0;font-size:11.5px;color:var(--sub)}
+@media (max-width:420px){.tksum-g{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.tbl.rcsum tr[data-a]{cursor:pointer}
+.tbl.rcsum td small{display:block;font-size:10.5px;color:var(--sub)}
+.tbl.rcsum td.plus{color:var(--g3);font-weight:900}.tbl.rcsum td.minus{color:var(--red);font-weight:900}

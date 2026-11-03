@@ -13,7 +13,7 @@
   const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const fmt = (n) => Math.round(Number(n) || 0).toLocaleString("ja-JP");
   const now = () => B.clock.now();
-  const U = { tab: "home", idx: null, err: "", rid: null, race: null, ex: null, rtab: "card", otype: "win", oaxis: 0, player: null, slip: null, tkf: "all", tkr: "", tkt: "", tks: "new", resAll: {}, data: null, lastSt: "" };
+  const U = { tab: "home", idx: null, err: "", rid: null, race: null, ex: null, rtab: "card", otype: "win", oaxis: 0, player: null, slip: null, tkf: "all", tkr: "", tkt: "", tks: "new", resAll: {}, data: null, lastSt: "", year: 0, arch: {}, archErr: {} };   /* ★★ 2026-11-02 year＝見ている年（0＝今年）・arch＝過去の年のデータ */
   try { const t = sessionStorage.getItem("md_tab"); if (t === "home" || t === "tickets" || t === "data") U.tab = t; } catch (e) {}
 
   /* ══════════ 小物 ══════════ */
@@ -28,7 +28,34 @@
     const t = document.createElement("div"); t.className = "toast " + (kind || ""); t.innerHTML = msg;
     $("#toasts").appendChild(t); setTimeout(() => t.classList.add("out"), 2600); setTimeout(() => t.remove(), 3200);
   }
-  function raceOf(rid) { return ((U.idx && U.idx.races) || []).find((r) => r.rid === rid) || null; }
+  function raceOf(rid) {
+    const r = ((U.idx && U.idx.races) || []).find((x) => x.rid === rid);
+    if (r) return r;
+    for (const y of Object.keys(U.arch)) { const a = (U.arch[y].races || []).find((x) => x.rid === rid); if (a) return a; }
+    return null;
+  }
+  /* ★★ 2026-11-02 ご指定「それぞれの GⅠ レースで自分の買った馬券と払い戻しなどの結果を合計で」：馬券の合計
+     n＝枚数・cost＝買った額（全部）・pay＝払戻（返還をふくむ）・pend＝結果待ち／未確認の枚数・pl＝確定した券の収支（払戻 − 買った額） */
+  function tkSum(list) {
+    const o = { n: 0, cost: 0, pay: 0, pend: 0, hit: 0, sc: 0, pl: 0 };
+    list.forEach((t) => {
+      o.n++; o.cost += t.cost || 0;
+      if (t.st === "open" || t.st === "ready") { o.pend++; return; }
+      o.pay += t.pay || 0; o.sc += t.cost || 0; if (t.st === "hit") o.hit++;
+    });
+    o.pl = o.pay - o.sc;
+    return o;
+  }
+  const plStr = (v) => (v > 0 ? "+" : v < 0 ? "−" : "±") + fmt(Math.abs(v));
+  function sumHTML(o, title) {
+    return '<div class="tksum">' + (title ? "<h4>" + title + "</h4>" : "") + '<div class="tksum-g">' +
+      "<span><small>馬券</small><b>" + o.n + "</b>枚</span>" +
+      "<span><small>買った額</small><b>" + fmt(o.cost) + "</b></span>" +
+      "<span><small>払い戻し</small><b>" + fmt(o.pay) + "</b></span>" +
+      '<span class="' + (o.pl > 0 ? "plus" : o.pl < 0 ? "minus" : "") + '"><small>収支</small><b>' + (o.sc ? plStr(o.pl) : "–") + "</b></span>" +
+      "<span><small>的中</small><b>" + o.hit + "</b>枚</span></div>" +
+      (o.pend ? '<p class="tksum-n">結果待ち・未確認の ' + o.pend + " 枚（" + fmt(o.cost - o.sc) + " XEVA）は収支に入っていません</p>" : "") + "</div>";
+  }
   function shortNm(r) { return D.shortName(r.nm); }
   function surfCls(r) { return r && r.surf === "ダ" ? "dirt" : "turf"; }
   function courseStr(r) { return esc(r.place) + " " + esc(r.surf || "") + esc(r.dist || "") + "m"; }
@@ -130,21 +157,49 @@
     const t = now();
     const byM = {};
     races.forEach((r) => { const m = Number(String(r.date).slice(5, 7)); (byM[m] = byM[m] || []).push(r); });
-    let h = '<section class="season"><h3>' + esc((U.idx && U.idx.year) || "") + "年の GⅠ<small>全" + races.length + "レース・結果と払戻金は実際のもの</small></h3>";
+    const yr = U.year || (U.idx && U.idx.year) || "";
+    let h = '<section class="season"><h3>' + esc(yr) + "年の GⅠ<small>全" + races.length + "レース・結果と払戻金は実際のもの" + (U.year ? "（過去のレース）" : "") + "</small></h3>" + yearsHTML();
     Object.keys(byM).map(Number).sort((a, b) => a - b).forEach((m) => {
       h += '<div class="mon"><em>' + m + "月</em>";
       byM[m].forEach((r) => {
         const st = N.status(r, t), inf = D.info(r.nm);
         let right;
         if (st === "final" && r.win) right = '<span class="sr-win"><b>' + esc(r.win.nm) + "</b><small>単勝 " + (r.pay && r.pay.win ? yen(r.pay.win) : "–") + (r.pay && r.pay.tri ? "・3連単 " + yen(r.pay.tri) : "") + "</small></span>";
+        else if (r.arch) right = '<span class="chip st-sched">準備中</span>';   /* ★★ 2026-11-02 過去の年でまだ集めていないレース */
         else if (st === "sale") right = '<span class="sr-buy" data-bet="' + r.rid + '">発売中<b>買う ›</b></span>';
         else right = statusChip(st);
+        /* ★★ 2026-11-02 このレースの自分の馬券（枚数と収支）を小さく */
+        const mine = r.rid ? myTicketsFor(r.rid) : [], ms = mine.length ? tkSum(mine) : null;
+        const my = ms ? '<em class="sr-my' + (ms.sc ? (ms.pl > 0 ? " plus" : ms.pl < 0 ? " minus" : "") : "") + '">🎫' + ms.n + "枚" + (ms.sc ? " " + plStr(ms.pl) : ms.pend ? " 結果待ち" : "") + "</em>" : "";
         h += '<button class="srow ' + surfCls(r) + " s-" + st + '" ' + (r.rid ? 'data-race="' + r.rid + '"' : "disabled") + '><span class="sr-d">' + esc(N.dateStr(r.date)) + "</span>" +
-          '<span class="sr-nm"><b>' + esc(inf.short || inf.alias || r.nm) + "</b><small>" + courseStr(r) + "・" + esc(r.cond || "") + "</small></span>" + right + "</button>";
+          '<span class="sr-nm"><b>' + esc(inf.short || inf.alias || r.nm) + "</b><small>" + courseStr(r) + "・" + esc(r.cond || "") + "</small>" + my + "</span>" + right + "</button>";
       });
       h += "</div>";
     });
     return h + "</section>";
+  }
+  /* ★★ 2026-11-02 ご指定「過去の GⅠ レースもさかのぼって見られるように」：年の切りかえ（derby.py が archive/<年>.json を置いた年だけ） */
+  function yearsHTML() {
+    const ys = ((U.idx && U.idx.arch) || []).filter((y) => y !== (U.idx && U.idx.year));
+    if (!ys.length) return "";
+    const cy = (U.idx && U.idx.year) || 0;
+    return '<div class="yrs">' + [0].concat(ys).map((y) => '<button class="yr' + ((U.year || 0) === y ? " on" : "") + '" data-yr="' + y + '">' + (y ? y + "年" : cy + "年（今年）") + "</button>").join("") + "</div>";
+  }
+  async function loadYear(y) {
+    if (!y || U.arch[y]) return;
+    try {
+      const a = await N.archive(y);
+      (a.races || []).forEach((r) => { r.arch = 1; });
+      U.arch[y] = a; delete U.archErr[y];
+    } catch (e) { U.archErr[y] = e.code === "nodata" ? "まだ " + y + " 年のデータがありません（自動取得が少しずつ集めています）" : String(e.message || e); }
+    if (U.tab === "home" && U.year === y) render();
+  }
+  function archHTML() {
+    const y = U.year, a = U.arch[y];
+    if (!a) return U.archErr[y] ? '<section class="season"><h3>' + y + "年の GⅠ</h3>" + yearsHTML() + '<div class="empty"><b>読めませんでした</b><p>' + esc(U.archErr[y]) + "</p></div></section>" : '<section class="season"><h3>' + y + "年の GⅠ</h3>" + yearsHTML() + '<div class="empty"><div class="spin"></div><b>' + y + " 年の GⅠ を読みこんでいます…</b></div></section>";
+    const races = (a.races || []).slice().sort((p, q) => String(p.date).localeCompare(String(q.date)));
+    const left = races.filter((r) => r.st !== "result").length;
+    return seasonHTML(races) + (left ? '<p class="arch-note">⏳ ' + y + " 年のうち " + left + " レースは、自動取得が集めているところです（1時間ごとに少しずつ）。</p>" : "");
   }
   function footHTML() {
     const at = U.idx && U.idx.at;
@@ -169,6 +224,7 @@
   }
   function homeHTML() {
     if (!U.idx) return loadingHTML(U.err);
+    if (U.year) { loadYear(U.year); return archHTML() + footHTML(); }
     const races = U.idx.races || [];
     if (!races.length) return loadingHTML("まだ今年の GⅠ のデータがありません");
     /* ★★ 2026-10-24 結果が出て、まだ確かめていない馬券があれば、いちばん上に札（押すと馬券タブ） */
@@ -206,19 +262,21 @@
   /* ★★ 2026-10-27 ご報告「スマホで馬券を表示すると上下が切れる」：買い目（ボックス・ながし・フォーメーション・枠順の発表前の馬名）が
      券の高さより長いと、行がのびて下の「合計」が紙の外へはみ出して切れていた。
      → 行は紙の高さで止め（md.css の .jt-p の minmax(0,1fr)）、入りきらない買い目（.jt-rin）は入りきるまで縮める（zoom・二分探索） */
+  /* ★★ 2026-11-02 ご報告「スマホで馬券が切れて表示されないことがある」
+     真因＝縮めたあとの高さを「offsetHeight × zoom」で見ていた。zoom を付けた要素の offsetHeight は、ブラウザ（iPhone の Safari・新しい Chrome）によって
+     <b>すでに縮んだ値</b>を返すので、縮める率を二重に掛けて「入った」と思いこみ、下が切れたままになっていた。
+     → 縮める前の高さ（zoom なし）から率を決め、そのあと<b>親の箱が実際にはみ出していないか（scrollHeight と clientHeight）</b>で確かめて、はみ出していれば少しずつ縮める。
+       親の箱で測るので、券を90°倒す拡大の画面でも同じように測れる。 */
   function fitSel(root) {
     $$(".jt-rin", root || document).forEach((w) => {
       w.style.zoom = "";
       const r = w.parentElement, cs = getComputedStyle(r);
       const avail = r.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
-      /* 高さは offsetHeight（縮める前の座標）× zoom で測る（拡大の画面は券を90°倒すので getBoundingClientRect は使えない） */
-      if (!(avail > 0) || w.offsetHeight <= avail + 0.5) return;
-      let lo = 0.3, hi = 1;
-      for (let k = 0; k < 7; k++) {
-        const z = (lo + hi) / 2; w.style.zoom = z.toFixed(3);
-        if (w.offsetHeight * z <= avail + 0.5) lo = z; else hi = z;
-      }
-      w.style.zoom = lo.toFixed(3);
+      const nat = w.offsetHeight;
+      if (!(avail > 0) || (nat <= avail + 0.5 && r.scrollHeight <= r.clientHeight + 1)) return;
+      let z = Math.max(0.3, Math.min(1, avail / Math.max(1, nat)));
+      w.style.zoom = z.toFixed(3);
+      for (let k = 0; k < 16 && z > 0.3 && r.scrollHeight > r.clientHeight + 1; k++) { z = Math.max(0.3, z * 0.95); w.style.zoom = z.toFixed(3); }
     });
   }
   function fitNames(root) {
@@ -320,6 +378,7 @@
       '<button class="tk-fb' + (U.tks !== "new" ? " on" : "") + '" data-a="tkSort">⇅ ' + esc(TK_SORT[U.tks] || "並び替え") + "</button>" +
       (rdy.length ? '<button class="tk-fb rdy" data-a="tkReady">結果あり<b>' + rdy.length + "</b></button>" : "") + "</div>";
     const list = tkSorted(tkFiltered(all));
+    if (U.tkr) { const r0 = all.find((t) => t.rid === U.tkr); h += sumHTML(tkSum(all.filter((t) => t.rid === U.tkr)), esc(D.shortName((r0 && r0.nm) || "")) + " の合計"); }
     needRaces(list.slice(0, 120));
     if (!list.length) h += '<div class="empty sm"><b>' + (all.length ? "あてはまる馬券はありません" : "まだ馬券がありません") + "</b><p>GⅠ タブから、発売中のレースの馬券を買えます。</p></div>";
     else h += '<div class="jts">' + list.slice(0, 120).map(ticketHTML).join("") + "</div>";
@@ -390,9 +449,20 @@
         '<span><small>結果待ち</small><b>' + cnt((t) => t.st === "open") + "</b></span>" +
         '<span><small>未確認</small><b>' + cnt((t) => t.st === "ready") + "</b></span>" +
         '<span><small>返還</small><b>' + cnt((t) => t.st === "refund" || t.st === "void") + "</b></span></div></section>" +
+      raceRowsHTML(all) +
       (tyRows ? '<section class="card"><h3>券種ごと</h3><div class="tbl-wrap"><table class="tbl"><thead><tr><th>券種</th><th>枚</th><th>的中</th><th>買った額</th><th>払戻</th><th>回収率</th></tr></thead><tbody>' + tyRows + "</tbody></table></div></section>" : "") +
       '<button class="btn" data-a="myTickets">購入した馬券を見る ›</button></div>';
     openSheet(html, "mypg-pane");
+  }
+  /* ★★ 2026-11-02 マイページの「GⅠ ごと」：レースごとの枚数・買った額・払戻・収支（押すとそのレースの馬券） */
+  function raceRowsHTML(all) {
+    const by = {};
+    all.forEach((t) => { if (!t || !B.TYPE[t.type]) return; (by[t.rid] = by[t.rid] || { rid: t.rid, nm: t.nm, date: t.date || "", L: [] }).L.push(t); });
+    const rows = Object.values(by).sort((a, b) => String(b.date).localeCompare(String(a.date)));
+    if (!rows.length) return "";
+    return '<section class="card"><h3>GⅠ ごと<small>押すとそのレースの馬券</small></h3><div class="tbl-wrap"><table class="tbl rcsum"><thead><tr><th>レース</th><th>枚</th><th>買った額</th><th>払戻</th><th>収支</th></tr></thead><tbody>' +
+      rows.map((o) => { const s = tkSum(o.L); return '<tr data-a="tkRace" data-rid="' + esc(o.rid) + '"><td><b>' + esc(D.shortName(o.nm || "")) + "</b><small>" + esc(N.dateStr(o.date, false)) + "</small></td><td>" + s.n + "</td><td>" + fmt(s.cost) + "</td><td>" + fmt(s.pay) + '</td><td class="' + (s.sc ? (s.pl > 0 ? "plus" : s.pl < 0 ? "minus" : "") : "") + '">' + (s.sc ? plStr(s.pl) : "結果待ち") + (s.sc && s.pend ? "<small>ほか待ち " + s.pend + "</small>" : "") + "</td></tr>"; }).join("") +
+      "</tbody></table></div></section>";
   }
   /* 券をくわしく見る（大きな券面＋結果）。ready なら「結果を確認する」 */
   function openTicket(id, anim) {
@@ -516,6 +586,7 @@
     loadEx();
   }
   async function loadEx() {
+    if ((raceOf(U.rid) || {}).arch) return;
     /* ★★ 2026-10-27 前は「レースの2日前から・確定の前だけ」読んでいた → 確定したレースの最後のオッズも見られるよう、いつも読む
        （まだ無ければ 404。そのときは単勝オッズからの試算＝md-bet の B.est を出す） */
     const r = raceOf(U.rid); if (!r || !r.rid) return;
@@ -536,7 +607,7 @@
   });
   function raceHead(r, race) {
     const t = now(), st = N.status(r, t), inf = D.info(r.nm);
-    const tabs = RT.filter((x) => x[0] !== "result" || r.st === "result");
+    const tabs = RT.filter((x) => (x[0] !== "result" || r.st === "result") && !(r.arch && (x[0] === "past" || x[0] === "odds")));   /* ★★ 2026-11-02 過去のレースは馬柱・オッズなし */
     return '<header class="rc-hd ' + surfCls(r) + '"><button class="rc-back" data-a="closeRace" aria-label="もどる">‹</button>' +
       '<div class="rc-ttl"><span class="g1">G1</span><b>' + esc(inf.alias || r.nm) + "</b></div>" + statusChip(st) + "</header>" +
       '<div class="rc-info ' + surfCls(r) + '"><div class="rc-i1">' + esc(N.dateStr(r.date)) + " " + esc(r.post || "") + " 発走・" + courseStr(r) + (race && race.dir ? "（" + esc(race.dir.replace(/\s*[A-D]$/, "")) + "）" : "") + "</div>" +
@@ -711,7 +782,7 @@
       return '<div class="pay"><span class="pay-t">' + T.nm + "</span><div>" + L.map((x) => '<div class="pay-r"><span class="pay-c">' + x.c.map((n, i) => (i ? "<em>" + (T.ord ? "→" : "-") + "</em>" : "") + (T.frame ? wakuChip(n) : noChip(n, (res.rows.find((y) => y.no === n) || {}).waku))).join("") + '</span><b>' + yen(x.y) + '</b><small>' + esc(x.pop || "") + "人気</small></div>").join("") + "</div></div>";
     }).join("") + "</section>";
     const mine = myTicketsFor(r.rid);
-    if (mine.length) h += '<section class="card"><h3>このレースのあなたの馬券</h3><div class="tks">' + mine.map(ticketHTML).join("") + "</div></section>";
+    if (mine.length) h += '<section class="card"><h3>このレースのあなたの馬券</h3>' + sumHTML(tkSum(mine)) + '<div class="tks">' + mine.map(ticketHTML).join("") + "</div></section>";
     if (res.laps && res.laps.rows && res.laps.rows.length) {
       const d = res.laps.d || [], cum = res.laps.rows[0] || [], sp = res.laps.rows[1] || [];
       h += '<section class="card"><h3>ラップ<small>' + esc(D.PACE_NM[res.pace] || "") + "</small></h3>" + '<div class="laps">' + d.map((x, i) => "<div><small>" + esc(x) + "m</small><b>" + esc(sp[i] || "") + "</b><i>" + esc(cum[i] || "") + "</i></div>").join("") + "</div></section>";
@@ -935,7 +1006,7 @@
 
   /* ══════════ 操作 ══════════ */
   document.addEventListener("click", (e) => {
-    const a = e.target.closest("[data-a],[data-tab],[data-race],[data-rt],[data-bet],[data-horse],[data-mk],[data-ot],[data-oax],[data-tkf],[data-tkr],[data-tkt],[data-tks],[data-ty],[data-md],[data-pk],[data-pos],[data-u],[data-uq],[data-ur],[data-del],[data-tk],[data-rv]");
+    const a = e.target.closest("[data-a],[data-tab],[data-race],[data-rt],[data-bet],[data-horse],[data-mk],[data-ot],[data-oax],[data-tkf],[data-tkr],[data-tkt],[data-tks],[data-ty],[data-md],[data-pk],[data-pos],[data-u],[data-uq],[data-ur],[data-del],[data-tk],[data-rv],[data-yr]");
     if (!a) return;
     const d = a.dataset;
     /* ★★ 2026-10-24 馬券：券を押す＝くわしく（結果ありなら確認）／確認する／まとめて確認 */
@@ -943,6 +1014,8 @@
     if (d.rv) { revealOne(d.rv); return; }
     if (d.a === "rvAll") { revealAll(); return; }
     if (d.a === "mypage") { openMyPage(); return; }
+    if (d.yr != null) { U.year = Number(d.yr) || 0; render(); return; }
+    if (d.a === "tkRace") { closeSheet(); U.tab = "tickets"; U.tkf = "all"; U.tkt = ""; U.tkr = d.rid || ""; try { sessionStorage.setItem("md_tab", U.tab); } catch (e2) {} render(); window.scrollTo(0, 0); return; }
     /* ★★ 2026-10-26 使い方（アニメ）・馬券の種類（md-help.js） */
     if (d.a === "help" || d.a === "helpTypes") { if (window.MD_HELP) window.MD_HELP.open(d.a === "help" ? "howto" : "types"); return; }
     if (d.a === "myTickets") { closeSheet(); U.tab = "tickets"; U.tkf = "all"; render(); window.scrollTo(0, 0); return; }

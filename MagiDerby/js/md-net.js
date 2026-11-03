@@ -69,6 +69,8 @@
   N.race = (rid, final, force) => getJSON("race/" + rid + ".json", force ? 0 : final ? 1e13 : 60000, true, final ? (d) => !!(d && d.result && !N.partial(d)) : null);
   N.odds = (rid, force) => getJSON("odds/" + rid + ".json", force ? 0 : 60000, false);
   N.peekRace = (rid) => N.peek("race/" + rid + ".json");
+  /* ★★ 2026-11-02 過去の GⅠ（derby.py の archive/<年>.json）。確定したものなので6時間は取り直さない */
+  N.archive = (y, force) => getJSON("archive/" + y + ".json", force ? 0 : 6 * 3600000, true);
   N.peekIndex = () => N.peek("index.json");
 
   /* ══════════ 時刻（JST） ══════════ */

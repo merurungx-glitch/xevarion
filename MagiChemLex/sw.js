@@ -3,7 +3,7 @@
    ・問題・解説・図はすべて JS の中にあるので、CORE をそろえれば完全にオフラインで使える。
    ・フォント（Google Fonts）は一度読めたら控える。Firebase（同期）はキャッシュしない。
    ============================================================ */
-const VERSION = "magichemlex-sw-v22";
+const VERSION = "magichemlex-sw-v24";
 const RUNTIME = "magichemlex-rt-v1";
 const CORE = [
   "./index.html",
@@ -33,7 +33,7 @@ const CORE = [
   "./js/mcl-special.js?v=1",    // ★★ 2026-10-15 特設予想問題
   "./js/mcl-bingo.js?v=3",      // ★★ 2026-10-28 ビンゴカード
   "./js/mcl-guide.js?v=2",      // ★★ 2026-10-31 XEVA のもらい方（動きで見るガイド）
-  "../xeva-tour.js?v=2",
+  "../xeva-tour.js?v=3",
   "../gem.png",
   "./img/icon_192.png?v=2",
   "./img/apple-touch-icon.png?v=2",
@@ -45,9 +45,9 @@ const CORE = [
   "./img/wp@2x.webp",
   "../img/t_Miki.webp", "../img/Miki.webp",   // ★★ 2026-10-24 WP 交換所のミキ（UR）
   /* XEVARION の共通部品 */
-  "../xeva.js?v=85",
+  "../xeva.js?v=86",
   "../xeva-loading.js?v=19",
-  "../xeva-splash.js?v=19",
+  "../xeva-splash.js?v=21",
   "../xeva-safebottom.js?v=12",
   "../xeva-back.js?v=9",
   "../xeva-presence.js?v=9",
@@ -56,7 +56,7 @@ const CORE = [
   "../MagiBurst/magiburst-cloud.js?v=28",
   "../app-cloud.js?v=15",
   "../xeva-keys.js?v=35",
-  "../xevarion-fb.js?v=36",
+  "../xevarion-fb.js?v=37",
 ];
 
 async function xevPost(msg) {

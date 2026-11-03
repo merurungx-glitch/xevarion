@@ -7,7 +7,7 @@
      取れなければキャッシュ（前回の中身）を返すので、オフラインでも壊れない。
    ・アカウント同期（Firebase）はキャッシュしない。
    ============================================================ */
-const VERSION = "magicounter-sw-v43";
+const VERSION = "magicounter-sw-v45";
 /* ★★ 2026-09-08 ポケモンの絵の入れ物。VERSION とは<b>別</b>にしてあるので、
    アプリを更新しても絵は残る（毎回取り直さない）。 */
 const ART_CACHE = "magicounter-art-v1";
@@ -21,10 +21,10 @@ const CORE = [
   "./js/mc-ui.js?v=6",
   "./js/mc-scan.js?v=8",
   "./data/meta.json",
-  "../xeva.js?v=85", "../xevarion-fb.js?v=36",   /* ★★ 2026-10-22 同期（このページでも xeva-cloud を読む） */
+  "../xeva.js?v=86", "../xevarion-fb.js?v=37",   /* ★★ 2026-10-22 同期（このページでも xeva-cloud を読む） */
   "../xeva-alive.js?v=8",
   "../xeva-loading.js?v=19",
-  "../xeva-splash.js?v=19",
+  "../xeva-splash.js?v=21",
   "../xeva-safebottom.js?v=12",
   "../xeva-back.js?v=9",
   "../maintenance-gate.js?v=13",
@@ -40,9 +40,10 @@ const CORE = [
   /* 起動時のスプラッシュとお辞儀の絵（xeva-splash / xeva-loading が読む） */
   "../img/ld_b_stand.webp?v=5",
   "../img/ld_b_bow.webp?v=5",
-  "../brand/NGX_s.webp",
+  "../brand/NGX_s.webp?v=2",
   "../brand/ISHIDA_s.webp",
   "../brand/YRA_s.webp",
+  "../brand/Kawagani_s.webp", "../brand/StudioDOGA_s.webp",   // ★★ 2026-11-02 運営協力に参入
   "../brand/MagicalFuture_s.webp",
 ];
 

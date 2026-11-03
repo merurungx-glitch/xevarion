@@ -134,9 +134,10 @@ def post_dt(r):
 
 
 # ══════════ 重賞日程 → GⅠ ══════════
-def fetch_schedule():
-    s = http_get("https://race.netkeiba.com/top/schedule.html")
-    year = now().year
+def fetch_schedule(year=None):
+    # ★★ 2026-11-02 year を渡すとその年の重賞日程（過去の GⅠ のアーカイブ用。?year= で前の年も読める）
+    s = http_get("https://race.netkeiba.com/top/schedule.html" + ("?year=%d" % year if year else ""))
+    year = year or now().year
     out = []
     for r in re.findall(r'<tr class="schedule_list\d">(.*?)</tr>', s, re.S):
         tds = [strip(t) for t in re.findall(r"<td[^>]*>(.*?)</td>", r, re.S)]
@@ -678,8 +679,87 @@ def update_race(r, full=True):
     return changed
 
 
+# ══════════ ★★ 2026-11-02 過去の GⅠ（ご指定「過去の GⅠ レースもさかのぼって見られるように」） ══════════
+# derby/archive/<年>.json … その年の GⅠ（日程・race_id・勝ち馬・単勝と3連単の配当）。race/<race_id>.json に結果・払戻金（出馬表は結果の表から）。
+# 1回の実行で ARCH_BUDGET レースまで（全部そろった年は二度と取りに行かない）。新しい年から順に ARCH_YEARS 年ぶん。
+ARCH_YEARS = int(arg("--arch-years", "3"))
+ARCH_BUDGET = int(arg("--arch-budget", "30"))
+
+
+def arch_path(year):
+    return os.path.join(D_OUT, "archive", "%d.json" % year)
+
+
+def arch_race(r):
+    """過去のレース1つ：race_id をさがし、結果を取って race/<rid>.json に置く。できたら True"""
+    if not r.get("rid") and not find_race(r):
+        return False
+    race = {"v": 1, "rid": r["rid"], "nm": r["nm"], "date": r["date"], "place": r["place"], "surf": r["surf"], "dist": r["dist"],
+            "cond": r.get("cond", ""), "rule": r.get("rule", ""), "arch": 1}
+    if r.get("post"):
+        race["post"] = r["post"]
+    res = fetch_result(r["rid"], race)
+    if not (res and res.get("rows") and res.get("pay")):
+        return False
+    race["result"] = res
+    race["st"] = "result"
+    race["entries"] = [{"hid": x["hid"], "nm": x["nm"], "waku": x["waku"], "no": x["no"], "sa": x["sa"], "kg": x["kg"], "j": x["j"], "jid": x["jid"],
+                        "tr": x["tr"], "trb": x["trb"], "bw": x["bw"], "cx": 1 if x["pos"] in ("取消", "除外") else 0, "idx": i + 1}
+                       for i, x in enumerate(res["rows"])]
+    race["upd"] = ms(now())
+    save_json(race_path(r["rid"]), race)
+    top = [x for x in res["rows"] if x["pos"] == "1"]
+    r["win"] = {"no": top[0]["no"], "nm": top[0]["nm"], "j": top[0]["j"], "time": top[0]["time"]} if top else None
+    w = res["pay"].get("win") or []
+    t3 = res["pay"].get("tri") or []
+    r["pay"] = {"win": w[0]["y"] if w else None, "tri": t3[0]["y"] if t3 else None}
+    r["n"] = len([x for x in res["rows"] if x["pos"] not in ("取消", "除外")])
+    r["post"] = race.get("post") or r.get("post")
+    r["st"] = "result"
+    return True
+
+
+def update_archive():
+    budget = ARCH_BUDGET
+    for year in range(now().year - 1, now().year - 1 - ARCH_YEARS, -1):
+        a = load_json(arch_path(year), {}) or {}
+        races = a.get("races") or []
+        if races and a.get("done"):
+            continue
+        if budget <= 0:
+            break
+        if not races:
+            try:
+                races = fetch_schedule(year)
+            except Exception as e:
+                log("過去の日程を取れませんでした", year, e)
+                continue
+        for r in races:
+            if r.get("st") == "result" or budget <= 0:
+                continue
+            budget -= 1
+            try:
+                if arch_race(r):
+                    log("過去の GⅠ", year, r["nm"], (r.get("win") or {}).get("nm"))
+            except Exception as e:
+                log("過去の GⅠ の取得失敗", year, r.get("nm"), e)
+        a.update({"v": 1, "year": year, "at": ms(now()), "races": races, "done": bool(races) and all(r.get("st") == "result" for r in races)})
+        save_json(arch_path(year), a)
+
+
+def arch_years():
+    d = os.path.join(D_OUT, "archive")
+    ys = []
+    for f in (os.listdir(d) if os.path.isdir(d) else []):
+        m = re.match(r"(\d{4})\.json$", f)
+        if m and (load_json(os.path.join(d, f), {}) or {}).get("races"):
+            ys.append(int(m.group(1)))
+    return sorted(ys, reverse=True)
+
+
 def write_index(idx, races):
     idx["v"] = 1
+    idx["arch"] = arch_years()   # ★★ 2026-11-02 アーカイブのある年（新しい順）
     idx["at"] = ms(now())
     idx["year"] = now().year
     idx["races"] = races
@@ -737,6 +817,12 @@ def main():
         fill_videos(races)
     except Exception as e:
         log("レース映像をさがせませんでした", e)
+    # ★★ 2026-11-02 過去の GⅠ（GⅠ の当日の発走前後は今年のレースを優先して取らない）
+    if not any(active_now(r) for r in races):
+        try:
+            update_archive()
+        except Exception as e:
+            log("過去の GⅠ を取れませんでした", e)
     write_index(idx, races)
     if LOOP:
         t_end = time.time() + 58 * 60
