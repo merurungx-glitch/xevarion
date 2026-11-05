@@ -165,7 +165,7 @@
         lead: "1台を囲むパーティゲームは、<b>順位に応じた賞金</b>が XEVA で入ります。ほかの人の分は、その人が XEVARION を開いたときに届きます。",
         pts: ["順位の賞金は <b>1位 250・2位 200・3位 150・4位 100・5位 50</b>（MagiChainParty のオンラインは 1位 300）", "賞金はホームを開いたときに<b>「ゲーム賞金 XEVA」</b>としてまとめて入ります", "<b>MagiManor</b>：章に着くと 40・エンディング 100〜1,000"],
         where: ["MagiChainParty", "MagiQuiz", "MagiShift", "MagiBocciaRush", "MagiManor"],
-        apps: [["MagiChainParty.jpg?v=2", "MagiChainParty", "順位の賞金（オンラインは 1位 300）", "+50〜250", "x", 250], ["MagiQuiz.jpg", "MagiQuiz", "順位の賞金（チーム戦は全員にチームの順位）", "+50〜250", "x", 250],
+        apps: [["MagiChainParty.jpg?v=2", "MagiChainParty", "順位の賞金（オンラインは 1位 300）", "+50〜250", "x", 250], ["MagiQuiz.jpg?v=2", "MagiQuiz", "順位の賞金（チーム戦は全員にチームの順位・この端末の本人はオフラインでも）", "+50〜250", "x", 250],
           ["MagiShift.jpg", "MagiShift", "順位の賞金（同じ順位は同じ額）", "+50〜250", "x", 200], ["MagiBocciaRush.jpg", "MagiBocciaRush", "パーティの順位", "+50〜250", "x", 150],
           ["MagiManor.jpg", "MagiManor", "章に着くと 40・エンディング 100〜1,000", "+40〜1,000", "x", 400]] },
       { id: "luck", g: "増やす", t: "XEVA を<span>増やす</span>", x0: 30000, g0: 64,

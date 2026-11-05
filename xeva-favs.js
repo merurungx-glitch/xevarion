@@ -24,6 +24,7 @@
      XevaFav.open({ ids, name })            … ほかの人のお気に入りカード（見るだけ）
      XevaFav.cardHTML(info) / info(id)      … カード1枚
      XevaFav.toast(文)                      … いちばん上に出る小さな知らせ（詳細の ☆ からも使う）
+     XevaFav.openTaste()                    … ★★ 2026-11-05 好み診断（TASTE_MIN＝15人以上で解放・見た目の台帳は xeva-fav-traits.js）
    ══════════════════════════════════════════════════════════════ */
 (function () {
   "use strict";
@@ -261,6 +262,77 @@
 .xfb-sub{position:relative;font:900 3.6cqw/1 'Orbitron',sans-serif;letter-spacing:.42em;color:#ffe29a;opacity:.9;padding-left:.42em}
 .xfb-c{position:absolute;width:6cqw;height:6cqw;transform:rotate(45deg);border:.6cqw solid #d8b25a;background:#1a1246;pointer-events:none}
 .xfb-c.c1{left:5cqw;top:5cqw}.xfb-c.c2{right:5cqw;top:5cqw}.xfb-c.c3{left:5cqw;bottom:5cqw}.xfb-c.c4{right:5cqw;bottom:5cqw}
+/* ★★ 2026-11-05 好み診断（15人以上で解放） */
+.xfv-tbtn{flex:none;display:flex;align-items:center;gap:11px;margin:0 14px 10px;padding:10px 13px;border-radius:15px;border:1.5px solid rgba(255,255,255,.24);background:linear-gradient(115deg,rgba(255,110,180,.28),rgba(123,92,240,.3));color:#fff;text-align:left;cursor:pointer;font-family:inherit;transition:transform .15s}
+.xfv-tbtn:active{transform:scale(.98)}
+.xfv-tbtn .ti{flex:none;display:grid;place-items:center;width:36px;height:36px;border-radius:12px;background:rgba(255,255,255,.14);font-size:18px}
+.xfv-tbtn .tt{flex:1;min-width:0;display:block}
+.xfv-tbtn b{display:block;font-size:13.5px;font-weight:900}
+.xfv-tbtn small{display:block;font-size:10.5px;font-weight:800;opacity:.82;margin-top:1px}
+.xfv-tbtn .tg{flex:none;font-size:18px;opacity:.75}
+.xfv-tbtn .tb{display:block;height:5px;border-radius:9px;background:rgba(255,255,255,.17);overflow:hidden;margin-top:5px}
+.xfv-tbtn .tb i{display:block;height:100%;border-radius:9px;background:linear-gradient(90deg,#ffd257,#ff8ac0)}
+.xfv-tbtn.ready{border-color:rgba(255,210,87,.7);background:linear-gradient(115deg,rgba(255,110,180,.42),rgba(255,190,70,.26),rgba(123,92,240,.42))}
+.xft-ov{position:fixed;inset:0;z-index:1185;display:none;align-items:flex-end;justify-content:center;background:rgba(14,10,36,.56);backdrop-filter:blur(5px);-webkit-backdrop-filter:blur(5px)}
+.xft-ov.on{display:flex}
+.xft-card{width:100%;max-width:760px;height:min(94svh,1000px);display:flex;flex-direction:column;border-radius:24px 24px 0 0;overflow:hidden;background:radial-gradient(120% 50% at 50% 0,#4a2c86,#1b1436 62%,#100c22);color:#fff;font-family:'M PLUS Rounded 1c','Noto Sans JP',sans-serif;box-shadow:0 -12px 40px rgba(0,0,0,.45);animation:xftIn .34s cubic-bezier(.2,.9,.3,1)}
+@keyframes xftIn{from{transform:translateY(34px);opacity:.3}}
+.xft-hd{flex:none;display:flex;align-items:center;gap:10px;padding:14px 16px 10px}
+.xft-hd b{font-size:16px;font-weight:900}
+.xft-hd small{font-size:11px;font-weight:800;opacity:.75}
+.xft-hd .xfv-x{margin-left:auto;width:36px;height:36px;border-radius:12px;border:1.5px solid rgba(255,255,255,.3);background:rgba(255,255,255,.08);color:#fff;font-size:16px;cursor:pointer}
+.xft-bd{flex:1;min-height:0;overflow-y:auto;padding:2px 14px calc(env(safe-area-inset-bottom,0px) + 22px);display:flex;flex-direction:column;gap:12px}
+.xft-bd>*{flex:none}
+.xft-hero{position:relative;overflow:hidden;border-radius:20px;padding:18px 16px 16px;background:linear-gradient(140deg,#ff6fb0,#a45bf0 52%,#4e6cf5);box-shadow:0 12px 30px rgba(120,70,240,.4)}
+.xft-hero:before{content:"";position:absolute;right:-50px;top:-60px;width:190px;height:190px;border-radius:50%;background:rgba(255,255,255,.14)}
+.xft-hero small{position:relative;display:block;font-size:11.5px;font-weight:900;letter-spacing:.06em;opacity:.92}
+.xft-hero h3{position:relative;margin:5px 0 8px;font-size:clamp(20px,5.6vw,27px);font-weight:900;line-height:1.3;text-shadow:0 2px 10px rgba(50,10,90,.35)}
+.xft-hero p{position:relative;margin:0;font-size:12.5px;font-weight:800;line-height:1.8}
+.xft-gauge{position:relative;display:flex;align-items:center;gap:9px;margin-top:11px;font-size:11.5px;font-weight:900}
+.xft-gauge .gb{flex:1;height:9px;border-radius:9px;background:rgba(0,0,0,.2);overflow:hidden}
+.xft-gauge .gb i{display:block;height:100%;border-radius:9px;background:linear-gradient(90deg,#fff3b0,#ffd257)}
+.xft-sec{border-radius:18px;background:rgba(255,255,255,.07);border:1px solid rgba(255,255,255,.12);padding:13px 13px 12px}
+.xft-sec h4{margin:0 0 9px;font-size:13.5px;font-weight:900;display:flex;align-items:baseline;gap:7px}
+.xft-sec h4 small{font-size:10.5px;font-weight:800;opacity:.68}
+.xft-chips{display:flex;flex-wrap:wrap;gap:6px}
+.xft-chips span{display:inline-flex;align-items:baseline;gap:5px;padding:6px 11px;border-radius:99px;background:rgba(255,210,87,.16);border:1px solid rgba(255,210,87,.45);font-size:12px;font-weight:900}
+.xft-chips em{font-style:normal;font-size:10.5px;color:#ffd257}
+.xft-row{display:grid;grid-template-columns:minmax(66px,auto) 1fr 66px;align-items:center;gap:8px;padding:3px 0;font-size:11.5px;font-weight:800}
+.xft-row .bar{position:relative;height:12px;border-radius:7px;background:rgba(255,255,255,.1);overflow:visible}
+.xft-row .bar i{display:block;height:100%;border-radius:7px;background:linear-gradient(90deg,#8f6bff,#ff8ac0)}
+.xft-row.hi .bar i{background:linear-gradient(90deg,#ffb74d,#ffd257)}
+.xft-row .bar u{position:absolute;top:-2px;bottom:-2px;width:2px;background:#fff;opacity:.85;border-radius:2px}
+.xft-row .v{text-align:right;font-variant-numeric:tabular-nums;opacity:.92}
+.xft-row .v small{font-size:9.5px;opacity:.7;margin-left:3px}
+.xft-row.hi b{color:#ffd257}
+.xft-cap{margin:7px 0 0;font-size:10.5px;font-weight:800;opacity:.68;line-height:1.6}
+.xft-combo{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:7px 0;border-top:1px solid rgba(255,255,255,.1);font-size:12.5px;font-weight:900}
+.xft-combo:first-of-type{border-top:0}
+.xft-combo small{font-size:10.5px;font-weight:800;opacity:.75}
+.xft-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:9px}
+.xft-cw{min-width:0;position:relative}
+.xft-cw .m{display:block;margin-top:4px;text-align:center;font-size:10.5px;font-weight:900;color:#ffd257}
+.xft-lock{display:flex;flex-direction:column;align-items:center;gap:12px;padding:30px 12px 18px;text-align:center}
+.xft-lock .ring{position:relative;width:132px;height:132px}
+.xft-lock svg{width:100%;height:100%;transform:rotate(-90deg)}
+.xft-lock circle{fill:none;stroke-width:9}
+.xft-lock .rb{stroke:rgba(255,255,255,.14)}
+.xft-lock .rf{stroke:url(#xftG);stroke-linecap:round;transition:stroke-dashoffset .8s cubic-bezier(.2,.8,.3,1)}
+.xft-lock .num{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:900}
+.xft-lock .num b{font-size:34px;line-height:1}
+.xft-lock .num small{font-size:11px;opacity:.75;margin-top:3px}
+.xft-lock h3{margin:0;font-size:17px;font-weight:900}
+.xft-lock p{margin:0;font-size:12.5px;font-weight:800;line-height:1.8;opacity:.86}
+.xft-lock ul{margin:2px 0 0;padding:0;list-style:none;display:grid;gap:6px;text-align:left;width:min(100%,340px)}
+.xft-lock li{padding:8px 11px;border-radius:12px;background:rgba(255,255,255,.07);font-size:12px;font-weight:800}
+.xft-lock a{display:inline-block;margin-top:4px;padding:10px 18px;border-radius:99px;background:linear-gradient(135deg,#7b5cf0,#f0509a);color:#fff;font-size:13px;font-weight:900;text-decoration:none}
+.xft-note{font-size:10.5px;font-weight:800;opacity:.6;line-height:1.7;text-align:center;padding:2px 8px}
+/* ★★ 2026-11-05 ご指定「スクロールバーもデザインしてください」：カードの一覧と診断の中（黄→桃のつまみ） */
+.xfv-grid::-webkit-scrollbar,.xft-bd::-webkit-scrollbar{width:12px}
+.xfv-grid::-webkit-scrollbar-track,.xft-bd::-webkit-scrollbar-track{background:rgba(255,255,255,.08);background-clip:padding-box;border:3px solid transparent;border-radius:99px;margin:6px}
+.xfv-grid::-webkit-scrollbar-thumb,.xft-bd::-webkit-scrollbar-thumb{background:linear-gradient(180deg,#ffd257,#ff8ac0);background-clip:padding-box;border:3px solid transparent;border-radius:99px;min-height:44px}
+.xfv-grid::-webkit-scrollbar-thumb:hover,.xft-bd::-webkit-scrollbar-thumb:hover{border-width:2px}
+@supports not selector(::-webkit-scrollbar){.xfv-grid,.xft-bd{scrollbar-width:thin;scrollbar-color:#ff8ac0 rgba(255,255,255,.08)}}
 #xfvToast{position:fixed;left:50%;bottom:calc(env(safe-area-inset-bottom,0px) + 96px);z-index:1400;transform:translate(-50%,12px);opacity:0;pointer-events:none;transition:opacity .25s,transform .25s;
   max-width:88vw;padding:11px 18px;border-radius:99px;background:rgba(24,18,52,.94);color:#fff;font:900 12.5px/1.4 'M PLUS Rounded 1c','Noto Sans JP',sans-serif;box-shadow:0 10px 30px rgba(0,0,0,.35);border:1.5px solid rgba(255,255,255,.22)}
 #xfvToast.on{opacity:1;transform:translate(-50%,0)}
@@ -295,6 +367,7 @@ body.xos-nomotion .xfc-holo,body.xos-nomotion .xfc-foil,body.xos-nomotion .xfc-s
     ov.querySelectorAll("[data-rar]").forEach((b) => b.classList.toggle("on", b.dataset.rar === S.rar));
     ov.querySelectorAll("[data-el]").forEach((b) => b.classList.toggle("on", b.dataset.el === S.el));
     const sel = ov.querySelector("select"); if (sel) sel.value = S.sort;
+    paintTasteBtn(ov, all);
     const g = ov.querySelector(".xfv-grid");
     if (!all) {
       g.innerHTML = '<div class="xfv-empty">' + (S.own ? "⭐ まだお気に入りがありません。<br>キャラの図鑑で、持っているキャラの <b>☆</b>（キャラ詳細の絵の右下にもあります）を押すとカードになってここに入ります。<br><a href=\"characters.html?fav=1\">図鑑をひらく</a>"
@@ -313,11 +386,13 @@ body.xos-nomotion .xfc-holo,body.xos-nomotion .xfc-foil,body.xos-nomotion .xfc-s
         '<div class="xfv-row">' + [["all", "すべて"], ["UR", "UR"], ["SSR", "SSR"], ["SR", "SR"]].map(([k, t]) => '<button type="button" data-rar="' + k + '">' + t + "</button>").join("") +
           '<select aria-label="並び替え"><option value="add">登録順</option><option value="recent">新しく登録した順</option><option value="no">番号</option><option value="name">名前</option><option value="rar">レア度</option><option value="el">属性</option></select></div>' +
         '<div class="xfv-row"><button type="button" data-el="all">全属性</button>' + EL_ORDER.map((k) => '<button type="button" data-el="' + k + '"><i style="background:' + EL[k][1] + '"></i>' + EL[k][0] + "</button>").join("") + "</div></div>" +
+      '<button type="button" class="xfv-tbtn"></button>' +
       '<div class="xfv-grid"></div>' +
       '<div class="xfv-foot"><span class="xfv-ftx"></span><a href="characters.html?fav=1">図鑑で ☆ をつける</a></div></div>';
     document.body.appendChild(ov);
     ov.addEventListener("click", (e) => {
       if (e.target === ov || e.target.closest(".xfv-x")) { close(); return; }
+      if (e.target.closest(".xfv-tbtn")) { openTaste(); return; }
       const r = e.target.closest("[data-rar]"); if (r) { S.rar = r.dataset.rar; paint(); return; }
       const el = e.target.closest("[data-el]"); if (el) { S.el = el.dataset.el; paint(); return; }
       const c = e.target.closest(".xfc"); if (c && c.dataset.id) zoom(c.dataset.id);
@@ -330,6 +405,7 @@ body.xos-nomotion .xfc-holo,body.xos-nomotion .xfc-foil,body.xos-nomotion .xfc-s
       if (e.key !== "Escape") return;
       const d = document.getElementById("detOv"); if (d && d.classList.contains("on")) return;   /* 詳細はそちらで閉じる */
       const z = zEl(); if (z && z.classList.contains("on")) { z.classList.remove("on"); return; }
+      const t = document.getElementById("xftOv"); if (t && t.classList.contains("on")) { t.classList.remove("on"); return; }
       if (ov.classList.contains("on")) close();
     });
     return ov;
@@ -495,6 +571,7 @@ body.xos-nomotion .xfc-holo,body.xos-nomotion .xfc-foil,body.xos-nomotion .xfc-s
       z.addEventListener("click", (e) => {
         if (e.target.closest("[data-flip]")) { zFlip(); return; }
         if (e.target.closest("[data-unfav]")) { const k = e.target.closest("[data-unfav]").dataset.unfav; toggle(k); S.list = ids(); z.classList.remove("on"); paint(); return; }
+        if (e.target.closest("[data-addfav]")) { const k = e.target.closest("[data-addfav]").dataset.addfav; if (toggle(k)) toast("⭐ お気に入りに入れました"); S.list = ids(); z.classList.remove("on"); paint(); return; }
         if (e.target.closest("[data-detail]")) { openDet(e.target.closest("[data-detail]").dataset.detail); return; }
         if (performance.now() - Z.just < 350) return;      /* 回したあとの指はなし */
         if (!e.target.closest(".xfz-wrap")) z.classList.remove("on");
@@ -505,7 +582,7 @@ body.xos-nomotion .xfc-holo,body.xos-nomotion .xfc-foil,body.xos-nomotion .xfc-s
         '<div class="xfz-face xfz-back">' + backHTML() + '<i class="xfz-glare"></i></div></div></div>' +
       '<p class="xfz-hint">ドラッグで回転・タップで裏返す</p>' +
       '<div class="xfz-btns"><button type="button" data-flip>↻ うらを見る</button><button type="button" class="pri" data-detail="' + esc(id) + '">性能を見る</button>' +
-      (S.own ? '<button type="button" data-unfav="' + esc(id) + '">☆ お気に入りから外す</button>' : "") + "</div>";
+      (S.own ? (has(id) ? '<button type="button" data-unfav="' + esc(id) + '">☆ お気に入りから外す</button>' : canFav(id) ? '<button type="button" data-addfav="' + esc(id) + '">⭐ お気に入りに入れる</button>' : "") : "") + "</div>";
     zBind(z.querySelector(".xfz-wrap"));
     Z.back = null; Z.tx = Z.ty = Z.ttx = Z.tty = 0; Z.vy = 0; Z.drag = false; Z.tw = null; Z.last = 0;
     z.classList.add("on");
@@ -514,5 +591,183 @@ body.xos-nomotion .xfc-holo,body.xos-nomotion .xfc-foil,body.xos-nomotion .xfc-s
     const h = z.querySelector(".xfz-hint"); setTimeout(() => { if (h) h.classList.add("off"); }, 3600);
   }
 
-  window.XevaFav = { ids, has, toggle, canFav, info, cardHTML, backHTML, open, close, zoom, toast, openDet, EL };
+
+  /* ══════════════════════════════════════════════════════════════
+     ★★ 2026-11-05 好み診断（ご指定「お気に入り登録されているキャラの特徴から、その人の好みを詳しく判別。
+        ただし、詳しく判別するために 15人以上のお気に入り登録が必要に」）
+     ・見た目（髪色・髪型・雰囲気・世界観）は xeva-fav-traits.js の台帳（絵を見て付けた印）。属性・レア度・登場時期はキャラのデータから。
+     ・「好き」の強さは、ただの多さではなく<b>持っているキャラ全体の割合とくらべて</b>決める（もともと黒髪が多いので、黒髪が多いだけでは好みとは言わない）。
+       pref＝（お気に入りの割合）÷（全体の割合）。人数が少ないカテゴリで大げさな値にならないよう、全体の割合を6人ぶん混ぜてならす。
+     ・こだわり度＝全体の割合からどれだけ偏っているか（KL 情報量）。偶然の偏りのぶん（カテゴリ数／2N）を引いてから 0〜100 に。
+     ★ 解放の人数は TASTE_MIN の1か所だけ。ほかの人のお気に入りカードでも同じように見られる（見るだけ）。
+     ══════════════════════════════════════════════════════════════ */
+  const TASTE_MIN = 15;
+  const TD = [
+    { k: "hc", nm: "髪の色", look: 1, w: 1.2, lb: { k: "黒髪", b: "茶髪", y: "金髪", w: "銀髪", r: "赤髪", o: "オレンジ髪", p: "ピンク髪", v: "紫髪", u: "青髪", c: "水色髪", g: "緑髪" } },
+    { k: "hs", nm: "髪型", look: 1, w: 1, lb: { L: "ロング", M: "ミディアム", S: "ショート", P: "ポニーテール", T: "ツインテール", U: "おだんご・アップ" } },
+    { k: "vb", nm: "雰囲気", look: 1, w: 1.2, lb: { c: "かわいい", s: "清楚", k: "クール", o: "大人っぽい", g: "元気", m: "ミステリアス" } },
+    { k: "sc", nm: "世界観", look: 1, w: 0.8, lb: { n: "夜・月", f: "花・森", a: "海・夏", p: "宮殿・幻想", e: "日常", h: "ハロウィン" } },
+    { k: "el", nm: "属性", lb: { fire: "火", water: "水", wood: "木", light: "光", dark: "闇" } },
+    { k: "rar", nm: "レア度", lb: { UR: "UR", SSR: "SSR", SR: "SR" } },
+    { k: "per", nm: "登場した時期", lb: { a: "8月まで", b: "9月", c: "10月", d: "11月〜" } },
+  ];
+  const T_SCENE = { n: "月夜に映える", f: "花と緑に囲まれた", a: "夏の海が似合う", p: "幻想の宮殿に立つ", e: "日常にいそうな", h: "ハロウィンの夜の" };
+  const T_VIBE = { c: "かわいい子", s: "清楚な子", k: "クールな子", o: "大人っぽい人", g: "元気な子", m: "ミステリアスな人" };
+  let traitP = null;
+  function ensureTraits() {
+    if (window.XEVA_CHAR_TRAITS) return Promise.resolve(true);
+    if (traitP) return traitP;
+    traitP = loadJs(BASE + "xeva-fav-traits.js?v=1").then(() => !!window.XEVA_CHAR_TRAITS).catch(() => { traitP = null; return false; });
+    return traitP;
+  }
+  function catOf(id) {
+    const f = info(id); if (!f) return null;
+    const t = (window.XEVA_CHAR_TRAITS || {})[id] || "    ";
+    const mo = /^\d{4}-(\d{2})/.exec(f.since || ""), m = mo ? +mo[1] : 0;
+    return { hc: t[0].trim(), hs: t[1].trim(), vb: t[2].trim(), sc: t[3].trim(), el: f.el || "", rar: f.rar, per: m >= 11 ? "d" : m === 10 ? "c" : m === 9 ? "b" : "a" };
+  }
+  /* くらべる相手：自分は持っているキャラ（30体未満なら全キャラ）／ほかの人は全キャラ */
+  function baseIds() {
+    const all = Object.keys(byId());
+    if (!S.own) return all;
+    const mine = all.filter(owned);
+    return mine.length >= 30 ? mine : all;
+  }
+  function tasteOf(list) {
+    const ids = list.filter((id) => info(id)), N = ids.length, base = baseIds();
+    const dims = TD.map((d) => {
+      const cnt = {}, bc = {}; let n = 0, bn = 0;
+      ids.forEach((id) => { const v = catOf(id)[d.k]; if (v) { cnt[v] = (cnt[v] || 0) + 1; n++; } });
+      base.forEach((id) => { const v = catOf(id)[d.k]; if (v) { bc[v] = (bc[v] || 0) + 1; bn++; } });
+      const rows = Object.keys(d.lb).filter((k) => bc[k] || cnt[k]).map((k) => {
+        const c = cnt[k] || 0, p = n ? c / n : 0, b = bn ? (bc[k] || 0) / bn : 0;
+        return { k, nm: d.lb[k], c, p, b, pref: ((c + 6 * b) / (n + 6)) / Math.max(b, 0.004) };
+      }).sort((a, b) => b.p - a.p || b.pref - a.pref);
+      let kl = 0; rows.forEach((r) => { if (r.p > 0 && r.b > 0) kl += r.p * Math.log(r.p / r.b); });
+      kl = Math.max(0, kl - (rows.length - 1) / (2 * Math.max(1, n)));
+      /* いちばんの好み＝割合の大きさと、全体より多い度合いの両方を見る */
+      const top = rows.slice().sort((a, b) => b.pref * Math.sqrt(b.p) - a.pref * Math.sqrt(a.p))[0] || null;
+      return Object.assign({}, d, { rows, n, kl, top, sure: !!(top && top.c >= 2 && (top.pref >= 1.08 || top.p >= 0.4)) });
+    });
+    const by = {}; dims.forEach((d) => { by[d.k] = d; });
+    /* タイプ名 */
+    const tp = (k) => (by[k].sure ? by[k].top.k : "");
+    const hc = tp("hc"), hs = tp("hs"), vb = tp("vb"), sc = tp("sc");
+    let title = (sc ? T_SCENE[sc] + " " : "") + (hc ? by.hc.lb[hc] : "") + (hs ? (hc ? "" : "") + by.hs.lb[hs] : "") + (hc || hs ? "の " : "") + (vb ? T_VIBE[vb] : "キャラ");
+    if (!hc && !hs && !vb) title = "どんな子も好きになれる 博愛タイプ";
+    /* こだわり度 */
+    const look = dims.filter((d) => d.look), klAvg = look.reduce((a, d) => a + d.kl, 0) / look.length;
+    const conc = Math.round(100 * (1 - Math.exp(-klAvg * 3.4)));
+    /* はずせない特徴（全体より目立って多いもの） */
+    const chips = [];
+    dims.filter((d) => d.look || d.k === "el").forEach((d) => d.rows.forEach((r) => { if (r.c >= 3 && r.pref >= 1.15) chips.push({ nm: r.nm + (d.k === "el" ? "属性" : ""), pref: r.pref, c: r.c }); }));
+    chips.sort((a, b) => b.pref * Math.sqrt(b.c) - a.pref * Math.sqrt(a.c));
+    /* 文章 */
+    const lines = [];
+    const best = look.filter((d) => d.sure).sort((a, b) => b.top.pref - a.top.pref)[0];
+    if (best) lines.push("いちばんの決め手は「" + best.top.nm + "」。" + N + "人のうち " + best.top.c + "人で、全体の割合の約 " + best.top.pref.toFixed(1) + " 倍です。");
+    const v2 = by.vb.rows.filter((r) => r.c >= 2).slice(0, 2).map((r) => "「" + r.nm + "」");
+    if (v2.length) lines.push("雰囲気は " + v2.join("と") + " が中心。");
+    const e0 = by.el.rows[0], r0 = by.rar.rows[0];
+    if (e0 && e0.c) lines.push("属性は" + e0.nm + "が " + Math.round(e0.p * 100) + "%、レア度は " + r0.nm + " が " + Math.round(r0.p * 100) + "%。");
+    lines.push(conc >= 55 ? "好みがはっきりしたタイプです。" : conc >= 25 ? "好みの軸を持ちつつ、ほかのタイプも楽しめる人です。" : "見た目にあまりこだわらず、幅広く好きになれる人です。");
+    /* 好みとの近さ（0〜1）：見た目の4つで、その子のカテゴリの好きの強さを足し合わせる */
+    const mx = {}; look.forEach((d) => { mx[d.k] = Math.max.apply(null, d.rows.map((r) => r.pref).concat(0.01)); });
+    const wsum = look.reduce((a, d) => a + d.w, 0);
+    const match = (id) => {
+      const c = catOf(id); let s = 0;
+      look.forEach((d) => { const r = d.rows.find((x) => x.k === c[d.k]); if (r) s += d.w * r.pref / mx[d.k]; });
+      return s / wsum;
+    };
+    const center = ids.map((id) => ({ id, m: match(id) })).sort((a, b) => b.m - a.m).slice(0, 3);
+    let rec = [], recLock = 0;
+    if (S.own) {
+      const others = Object.keys(byId()).filter((id) => ids.indexOf(id) < 0).map((id) => ({ id, m: match(id), own: owned(id) })).sort((a, b) => b.m - a.m);
+      rec = others.filter((o) => o.own).slice(0, 6);
+      const th = center.length ? center[center.length - 1].m : 1;
+      recLock = others.filter((o) => !o.own && o.m >= th).length;
+    }
+    /* よくある組み合わせ */
+    const pairs = [["hc", "hs"], ["hc", "vb"], ["hs", "vb"], ["vb", "sc"], ["hc", "sc"]], combos = [];
+    pairs.forEach(([a, b]) => {
+      const cnt = {}, bc = {}, dA = by[a], dB = by[b];
+      ids.forEach((id) => { const c = catOf(id); if (c[a] && c[b]) { const k = c[a] + c[b]; cnt[k] = (cnt[k] || 0) + 1; } });
+      base.forEach((id) => { const c = catOf(id); if (c[a] && c[b]) { const k = c[a] + c[b]; bc[k] = (bc[k] || 0) + 1; } });
+      Object.keys(cnt).forEach((k) => {
+        if (cnt[k] < 3) return;
+        const lift = (cnt[k] / N) / Math.max(0.004, (bc[k] || 0) / base.length);
+        if (lift >= 1.2) combos.push({ nm: dA.lb[k[0]] + " × " + dB.lb[k[1]], c: cnt[k], lift });
+      });
+    });
+    combos.sort((a, b) => b.c * Math.sqrt(b.lift) - a.c * Math.sqrt(a.lift));
+    return { N, dims, title, conc, chips: chips.slice(0, 7), lines, center, rec, recLock, combos: combos.slice(0, 4) };
+  }
+  function tasteLocked(n) {
+    const left = Math.max(0, TASTE_MIN - n), C = 2 * Math.PI * 56, off = C * (1 - Math.min(1, n / TASTE_MIN));
+    return '<div class="xft-lock"><div class="ring"><svg viewBox="0 0 132 132"><defs><linearGradient id="xftG" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ffd257"/><stop offset="1" stop-color="#ff8ac0"/></linearGradient></defs>' +
+      '<circle class="rb" cx="66" cy="66" r="56"/><circle class="rf" cx="66" cy="66" r="56" stroke-dasharray="' + C.toFixed(1) + '" stroke-dashoffset="' + off.toFixed(1) + '"/></svg>' +
+      '<span class="num"><b>' + n + "</b><small>/ " + TASTE_MIN + " 人</small></span></div>" +
+      "<h3>" + (S.own ? "あと <b>" + left + "人</b> で解放" : "まだ診断できません") + "</h3>" +
+      "<p>" + (S.own ? "好みをくわしく判別するには、<b>" + TASTE_MIN + "人以上</b>のお気に入りが必要です。" : esc(S.name) + " さんのお気に入りが " + TASTE_MIN + " 人以上になると見られます。") + "</p>" +
+      '<ul><li>💇 髪の色・髪型の好み</li><li>🎭 雰囲気・世界観の好み</li><li>🔥 属性・レア度の傾向</li><li>💘 好みど真ん中のキャラ・まだ登録していない候補</li></ul>' +
+      (S.own ? '<a href="characters.html?fav=1">図鑑で ☆ をつける</a>' : "") + "</div>";
+  }
+  function tasteHTML(t) {
+    const who = S.own ? "あなた" : esc(S.name) + " さん";
+    const card = (o) => { const f = info(o.id); return f ? '<div class="xft-cw">' + cardHTML(f) + '<span class="m">相性 ' + Math.round(o.m * 100) + "%</span></div>" : ""; };
+    const bars = (d) => {
+      const mx = Math.max.apply(null, d.rows.map((r) => Math.max(r.p, r.b)).concat(0.01));
+      return '<section class="xft-sec"><h4>' + esc(d.nm) + "</h4>" + d.rows.filter((r) => r.c || r.b >= 0.02).map((r) => {
+        const hi = r.c >= 2 && r.pref >= 1.15;
+        return '<div class="xft-row' + (hi ? " hi" : "") + '"><b>' + esc(r.nm) + '</b><span class="bar"><i style="width:' + (r.p / mx * 100).toFixed(1) + '%"></i><u style="left:' + (r.b / mx * 100).toFixed(1) + '%" title="全体の割合"></u></span><span class="v">' + Math.round(r.p * 100) + "%<small>" + r.c + "人</small></span></div>";
+      }).join("") + "</section>";
+    };
+    return '<section class="xft-hero"><small>' + who + "の好みタイプ（" + t.N + "人から診断）</small><h3>" + esc(t.title) + "</h3><p>" + t.lines.map(esc).join("") + "</p>" +
+      '<div class="xft-gauge"><span>こだわり度</span><span class="gb"><i style="width:' + t.conc + '%"></i></span><span>' + t.conc + "%</span></div></section>" +
+      (t.chips.length ? '<section class="xft-sec"><h4>はずせない特徴<small>全体の割合より何倍多いか</small></h4><div class="xft-chips">' + t.chips.map((c) => "<span>" + esc(c.nm) + "<em>×" + c.pref.toFixed(1) + "</em></span>").join("") + "</div></section>" : "") +
+      '<section class="xft-sec"><h4>好みど真ん中の3人<small>お気に入りの中で、いちばん好みに近いキャラ</small></h4><div class="xft-cards">' + t.center.map(card).join("") + "</div></section>" +
+      (t.combos.length ? '<section class="xft-sec"><h4>好きな組み合わせ</h4>' + t.combos.map((c) => '<div class="xft-combo"><span>' + esc(c.nm) + "</span><small>" + c.c + "人・全体の " + c.lift.toFixed(1) + " 倍</small></div>").join("") + "</section>" : "") +
+      t.dims.map(bars).join("") +
+      '<p class="xft-cap" style="text-align:center">棒の白い線＝' + (S.own ? "持っているキャラ" : "全キャラ") + "の中の割合。線より長いカテゴリが「好み」です。</p>" +
+      (S.own && t.rec.length ? '<section class="xft-sec"><h4>まだ登録していない、好みに近いキャラ<small>押すとカード</small></h4><div class="xft-cards">' + t.rec.map(card).join("") + "</div>" +
+        (t.recLock ? '<p class="xft-cap">まだ持っていないキャラの中にも、好みに近いキャラが ' + t.recLock + " 人います。</p>" : "") + "</section>" : "") +
+      '<p class="xft-note">見た目の分類は絵をもとに付けたもので、公式の設定ではありません。お気に入りを足したり外したりすると診断も変わります。</p>';
+  }
+  function tasteOv() {
+    css();
+    let ov = document.getElementById("xftOv"); if (ov) return ov;
+    ov = document.createElement("div"); ov.id = "xftOv"; ov.className = "xft-ov";
+    ov.innerHTML = '<div class="xft-card" role="dialog" aria-label="好み診断"><div class="xft-hd"><b>💘 好み診断</b><small></small><button type="button" class="xfv-x" aria-label="とじる">✕</button></div><div class="xft-bd"></div></div>';
+    document.body.appendChild(ov);
+    ov.addEventListener("click", (e) => {
+      if (e.target === ov || e.target.closest(".xfv-x")) { ov.classList.remove("on"); return; }
+      const c = e.target.closest(".xfc"); if (c && c.dataset.id) zoom(c.dataset.id);
+    });
+    window.addEventListener("xeva:fav", () => { if (S.own && ov.classList.contains("on")) tastePaint(); });
+    return ov;
+  }
+  function tastePaint() {
+    const ov = tasteOv(), bd = ov.querySelector(".xft-bd"), n = S.list.filter((id) => info(id)).length;
+    ov.querySelector(".xft-hd small").textContent = S.own ? "" : S.name + " さん";
+    if (n < TASTE_MIN) { bd.innerHTML = tasteLocked(n); return; }
+    const y = bd.scrollTop;
+    bd.innerHTML = '<p class="xft-note" style="padding:40px 0">診断しています…</p>';
+    ensureTraits().then((ok) => {
+      if (!ok) { bd.innerHTML = '<p class="xft-note" style="padding:40px 0">診断のデータを読みこめませんでした。通信のあるところでもう一度開いてください。</p>'; return; }
+      bd.innerHTML = tasteHTML(tasteOf(S.list)); bd.scrollTop = y;
+    });
+  }
+  function openTaste() { const ov = tasteOv(); ov.querySelector(".xft-bd").scrollTop = 0; ov.classList.add("on"); tastePaint(); }
+  function paintTasteBtn(ov, all) {
+    const b = ov.querySelector(".xfv-tbtn"); if (!b) return;
+    const ok = all >= TASTE_MIN;
+    b.classList.toggle("ready", ok);
+    b.style.display = !all && !S.own ? "none" : "";
+    b.innerHTML = '<span class="ti">💘</span><span class="tt"><b>' + (S.own ? "好み診断" : esc(S.name) + " さんの好み診断") + "</b>" +
+      (ok ? "<small>" + all + "人のカードから、好みのタイプをくわしく判別します</small>"
+        : "<small>あと " + (TASTE_MIN - all) + " 人で解放（" + all + " / " + TASTE_MIN + " 人）</small>" + '<span class="tb"><i style="width:' + (all / TASTE_MIN * 100).toFixed(1) + '%"></i></span>') +
+      '</span><span class="tg">›</span>';
+  }
+
+  window.XevaFav = { ids, has, toggle, canFav, info, cardHTML, backHTML, open, close, zoom, toast, openDet, openTaste, tasteOf, EL, TASTE_MIN };
 })();

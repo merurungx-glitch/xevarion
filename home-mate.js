@@ -2217,11 +2217,16 @@
      ★ 前の既定の2行目（下の OLD）をそのまま保存している人は、一度だけ新しい既定に直す（自分で並べた人はそのまま）。 */
   /* ★★ 2026-10-21 ご指定「MagiCounter と MagiDerby のボタンの位置を入れかえ」→ 2行目の2つめを MagiDerby に（MagiCounter はロビーの左の札へ） */
   /* ★★ 2026-10-30 ご指定「MagiQuiz と MagiBattle を入れ替え、MagiDerby と MagiAbyss を入れ替え」 */
-  const LOBBY_ROW2_DEF = ["magibattle", "magiabyss", "magiderby", "magishift", "magichainparty"];   /* 前: ["magiquiz", "magiderby", "magiabyss", "magishift", "magichainparty"]（10-24） */
+  /* ★★ 2026-11-05 ご指定「ホームの MagiBattle と MagiQuiz の位置を交換」 */
+  const LOBBY_ROW2_DEF = ["magiquiz", "magiabyss", "magiderby", "magishift", "magichainparty"];   /* 前: ["magibattle", "magiabyss", "magiderby", "magishift", "magichainparty"]（10-30） */
   const LOBBY_ROW2_1006 = ["magichemlex", "magicounter", "magiabyss", "magishift", "magichainparty"];
   const LOBBY_ROW2_OLD = ["magicounter", "magiabyss", "magishift", "magichainparty", "magitier"];
+  /* ★★ 2026-11-05 世代の見かたを直した：前は「!== "1024"」のように1つの版とだけ比べていたので、開くたびに全部の段が走り、
+     10-30 の入れかえが毎回くり返されていた（メニューで並べかえた人だけ、開くたびに MagiQuiz と MagiBattle が入れかわる）。
+     → 数の大小で「まだ通っていない段」だけ通す。 */
+  const lobbyGen = () => Number(localStorage.getItem("xeva_lobby_gen")) || 0;
   try {
-    if (localStorage.getItem("xeva_lobby_gen") !== "1006") {
+    if (lobbyGen() < 1006) {
       const sv = JSON.parse(localStorage.getItem(LOBBY_APPS_KEY) || "null");
       if (Array.isArray(sv) && sv.length > LOBBY_PER_ROW && sv.slice(LOBBY_PER_ROW).join(",") === LOBBY_ROW2_OLD.join(",")) {
         localStorage.setItem(LOBBY_APPS_KEY, JSON.stringify(sv.slice(0, LOBBY_PER_ROW).concat(LOBBY_ROW2_DEF.filter((id) => sv.slice(0, LOBBY_PER_ROW).indexOf(id) < 0))));
@@ -2229,7 +2234,7 @@
       localStorage.setItem("xeva_lobby_gen", "1006");
     }
     /* ★★ 2026-10-21 10-06 の既定の2行目のままの人は、MagiCounter の場所を MagiDerby に（自分で並べた人はそのまま） */
-    if (localStorage.getItem("xeva_lobby_gen") === "1006") {
+    if (lobbyGen() < 1021) {
       const sv = JSON.parse(localStorage.getItem(LOBBY_APPS_KEY) || "null");
       if (Array.isArray(sv) && sv.length > LOBBY_PER_ROW && sv.slice(LOBBY_PER_ROW).join(",") === LOBBY_ROW2_1006.join(",") && sv.indexOf("magiderby") < 0) {
         const nv = sv.slice(); nv[LOBBY_PER_ROW + 1] = "magiderby";
@@ -2239,7 +2244,7 @@
     }
     /* ★★ 2026-10-24 ご指定「MagiChemLex のアイコンの位置に MagiQuiz を」：保存ずみのロビーにある MagiChemLex を MagiQuiz に置きかえる
        （MagiQuiz がもうあるときは MagiChemLex を外すだけ）。MagiChemLex は MagiLex の入口から開く。 */
-    if (localStorage.getItem("xeva_lobby_gen") !== "1024") {
+    if (lobbyGen() < 1024) {
       const sv = JSON.parse(localStorage.getItem(LOBBY_APPS_KEY) || "null");
       if (Array.isArray(sv)) {
         const i = sv.indexOf("magichemlex");
@@ -2249,14 +2254,25 @@
     }
     /* ★★ 2026-10-30 保存ずみのロビーでも入れかえる（MagiQuiz ⇔ MagiBattle・MagiDerby ⇔ MagiAbyss）。
        両方あれば場所を入れかえ、片方だけならその場所をもう片方に（自分で並べた人も、ご指定の入れかえだけ効かせる） */
-    if (localStorage.getItem("xeva_lobby_gen") !== "1030") {
+    if (lobbyGen() < 1030) {
       const sv = JSON.parse(localStorage.getItem(LOBBY_APPS_KEY) || "null");
       if (Array.isArray(sv)) {
         const swap = (a, b) => { const i = sv.indexOf(a), j = sv.indexOf(b); if (i >= 0 && j >= 0) { sv[i] = b; sv[j] = a; } else if (i >= 0) sv[i] = b; else if (j >= 0) sv[j] = a; };
-        swap("magiquiz", "magibattle"); swap("magiderby", "magiabyss");
+        swap("magiderby", "magiabyss");
         localStorage.setItem(LOBBY_APPS_KEY, JSON.stringify(sv));
       }
       localStorage.setItem("xeva_lobby_gen", "1030");
+    }
+    /* ★★ 2026-11-05 保存ずみのロビーも新しい位置へ（10-30 のくり返しで左右どちらになっているか分からないので、「前に来るほう」を決めて直す）。
+       MagiBattle だけある人はその場所を MagiQuiz に／両方ある人は MagiQuiz が前に。MagiDerby と MagiAbyss は両方あるときだけ MagiAbyss を前に。 */
+    if (lobbyGen() < 1105) {
+      const sv = JSON.parse(localStorage.getItem(LOBBY_APPS_KEY) || "null");
+      if (Array.isArray(sv)) {
+        const front = (a, b, only) => { const i = sv.indexOf(a), j = sv.indexOf(b); if (i >= 0 && j >= 0) { if (i > j) { sv[i] = b; sv[j] = a; } } else if (j >= 0 && !only) sv[j] = a; };
+        front("magiquiz", "magibattle"); front("magiabyss", "magiderby", true);
+        localStorage.setItem(LOBBY_APPS_KEY, JSON.stringify(sv));
+      }
+      localStorage.setItem("xeva_lobby_gen", "1105");
     }
   } catch (e) {}
   /* NEW の印（XH_APPS の newUntil の日まで）・β版の印（beta） */

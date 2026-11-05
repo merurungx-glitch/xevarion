@@ -236,7 +236,7 @@ body.xos-nomotion .xt *{animation-duration:.01s !important;animation-iteration-c
         '<div class="m m-ban" data-a="left" id="h-ban" style="' + at(4, 19, 44) + '"><img id="h-banimg" src="' + A("MagiBurst/img/bn_fes21_s.webp") + '" alt=""></div>' +
         '<div class="m m-bubble" data-a="pop" id="h-say" style="' + at(46, 32, 48) + '">おかえり！ きょうも いっしょに がんばろうね</div>' +
         '<div class="m m-card" data-a="up" id="h-lobby" style="' + at(4, 66, 92) + ';padding:calc(var(--u)*2.4);display:grid;grid-template-columns:repeat(5,1fr);gap:calc(var(--u)*1.6);z-index:15">' +
-        ["MagiBattle.jpg?v=4", "MagiAbyss.jpg?v=2", "MagiDerby.jpg", "MagiShift.jpg", "MagiChainParty.jpg?v=2", "MagiLex.jpg", "MagiBurst.jpg", "MagiQuiz.jpg", "MagiScope.jpg", "MagiLink.jpg"]
+        ["MagiQuiz.jpg?v=2", "MagiAbyss.jpg?v=2", "MagiDerby.jpg", "MagiShift.jpg", "MagiChainParty.jpg?v=2", "MagiLex.jpg", "MagiBurst.jpg", "MagiBattle.jpg?v=4", "MagiScope.jpg", "MagiLink.jpg"]
           .map((f) => '<img src="' + A("thumbs/" + f) + '" alt="" style="width:100%;aspect-ratio:1;border-radius:calc(var(--u)*2.6);box-shadow:0 calc(var(--u)*.6) calc(var(--u)*1.6) rgba(30,40,100,.2)">').join("") + "</div>" + tabs("home"),
       tl: [[0, "show", ".fill"], [300, "show", "#h-mate"], [700, "show", "#h-ban"], [700, "pt", 0], [1500, "tap", 50, 45], [2000, "show", "#h-say"], [2800, "pt", 1],
         [3200, "show", "#h-lobby"], [4300, "pt", 2], [4400, "tap", 26, 25], [4900, "add", "#h-ban", "m-shake"], [5000, "src", "#h-banimg", "MagiBurst/img/bn_fes20_s.webp"],
@@ -250,7 +250,7 @@ body.xos-nomotion .xt *{animation-duration:.01s !important;animation-iteration-c
       html: top() + '<div class="m fill on" style="top:0;background:#f4f6ff"></div>' +
         '<div class="m m-card" data-a="down" id="a-sr" style="' + at(5, 19, 90, 6.4) + ';display:flex;align-items:center;padding:0 calc(var(--u)*3);gap:calc(var(--u)*2);color:#8a93b8;font-weight:800;font-size:.8em"><span>🔍</span><span id="a-q" style="color:#1d2340"></span><span id="a-ph">アプリをさがす</span></div>' +
         '<div class="m" data-a="up" id="a-cats" style="' + at(5, 27.5, 90) + ';display:flex;gap:calc(var(--u)*1.4)">' + ["すべて", "ゲーム", "学習", "つながる", "情報"].map((n, i) => '<span class="m-chip" style="' + (i === 0 ? "background:#4b63ff;color:#fff" : "") + '">' + n + "</span>").join("") + "</div>" +
-        ["MagiBattle.jpg?v=4", "MagiLex.jpg", "MagiChemLex.jpg?v=2", "MagiBurst.jpg", "MagiQuiz.jpg", "MagiLink.jpg", "MagiChainParty.jpg?v=2", "MagiDominionGrid.jpg", "MagiBocciaRush.jpg", "MagiRail.jpg", "MagiShift.jpg", "MagiAbyss.jpg?v=2", "MagiDerby.jpg", "MagiScope.jpg", "MagiRanking.jpg", "MagiCraft.jpg"]
+        ["MagiBattle.jpg?v=4", "MagiLex.jpg", "MagiChemLex.jpg?v=2", "MagiBurst.jpg", "MagiQuiz.jpg?v=2", "MagiLink.jpg", "MagiChainParty.jpg?v=2", "MagiDominionGrid.jpg", "MagiBocciaRush.jpg", "MagiRail.jpg", "MagiShift.jpg", "MagiAbyss.jpg?v=2", "MagiDerby.jpg", "MagiScope.jpg", "MagiRanking.jpg", "MagiCraft.jpg"]
           .map((f, i) => icon(f, 6 + (i % 4) * 23, 33 + Math.floor(i / 4) * 12.5, "ap ap" + i + (i === 0 || i === 11 ? " new" : ""), "pop")).join("") +
         '<div class="m m-toast" data-a="up" id="a-t" style="bottom:20%">MagiBattle が見つかりました</div>' + tabs("home"),
       tl: [[0, "show", "#a-sr"], [300, "show", "#a-cats"], [500, "pt", 0]].concat([...Array(16)].map((_, i) => [600 + i * 70, "show", ".ap" + i]))
@@ -462,12 +462,12 @@ body.xos-nomotion .xt *{animation-duration:.01s !important;animation-iteration-c
     {
       id: "party", g: "アプリ", t: "<span>みんなで囲む</span>アプリ",
       lead: "1台の iPad をみんなで囲んで遊ぶゲームもたくさん。運の要素ゼロの陣取りから、駒を動かせるボードゲーム、化学のクイズ対戦まで。",
-      pts: ["<b>MagiChainParty</b>：連鎖バクハツの陣取り（2〜6人・CPU・オンライン）", "<b>MagiShift・Dominion Grid・MagiEmpire・MagiArena</b>", "<b>MagiQuiz</b>：ミリオネアとばくだんの化学クイズ（XEVA は順位どおり）"],
+      pts: ["<b>MagiChainParty</b>：連鎖バクハツの陣取り（2〜6人・CPU・オンライン）", "<b>MagiShift・Dominion Grid・MagiEmpire・MagiArena</b>", "<b>MagiQuiz</b>：見えない爆弾・クイズタワーなどの化学クイズ（XEVA は順位どおり）"],
       where: ["ホーム", "メニュー ＞ ゲーム"], dur: 7400,
       html: '<div class="m fill on" style="background:linear-gradient(180deg,#fff8ec,#fff)"></div>' +
         '<div class="m m-card" data-a="pop" id="q-board" style="' + at(10, 10, 80) + ';aspect-ratio:1;padding:calc(var(--u)*2);display:grid;grid-template-columns:repeat(5,1fr);gap:calc(var(--u)*1)">' +
         [...Array(25)].map((_, i) => '<span class="qb qb' + i + '" style="border-radius:calc(var(--u)*1.4);background:#f1f3fb;transition:background .3s,transform .3s"></span>').join("") + "</div>" +
-        icon("MagiChainParty.jpg?v=2", 6, 66, "q0", "up") + icon("MagiShift.jpg", 29, 66, "q1", "up") + icon("MagiDominionGrid.jpg", 52, 66, "q2", "up") + icon("MagiQuiz.jpg", 75, 66, "q3", "up") +
+        icon("MagiChainParty.jpg?v=2", 6, 66, "q0", "up") + icon("MagiShift.jpg", 29, 66, "q1", "up") + icon("MagiDominionGrid.jpg", 52, 66, "q2", "up") + icon("MagiQuiz.jpg?v=2", 75, 66, "q3", "up") +
         icon("MagiEmpire.jpg", 29, 82, "q4", "up") + icon("MagiArena.jpg", 52, 82, "q5", "up"),
       tl: [[0, "show", "#q-board"], [300, "pt", 0]].concat([12, 7, 13, 11, 17, 6, 8, 16, 18, 2, 10, 14, 22].map((k, i) => [700 + i * 150, "css", ".qb" + k, "background:" + (i % 3 === 0 ? "#ff5a7a" : i % 3 === 1 ? "#4b8bff" : "#ffc23a") + ";transform:scale(.9)"]))
         .concat([[2900, "pt", 1]]).concat([...Array(6)].map((_, i) => [3000 + i * 110, "show", ".q" + i])).concat([[4800, "pt", 2], [5000, "add", ".q3", "m-pulse"]]),

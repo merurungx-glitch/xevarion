@@ -7,7 +7,7 @@
    ・オフライン中の進行は localStorage に残り、オンライン復帰時に
      xeva-cloud.js がタイムスタンプ比較でクラウドへ上書き反映する
    ============================================================ */
-const VERSION = "xevarion-sw-v254";
+const VERSION = "xevarion-sw-v256";
 
 /* ホームを成立させる最小セット（重い画像は runtime キャッシュに任せる） */
 const CORE = [
@@ -19,10 +19,11 @@ const CORE = [
   "./gacha.html",
   "./gacha-ui.js?v=71",
   "./mb-newchars.js?v=43",
-  "./xeva-devnotes.js?v=10",
-  "./xeva-tour.js?v=3",   /* ★★ 2026-10-30 XEVARION ガイド（全機能の紹介・設定から／#guide） */
-  "./xeva-favs.js?v=1",   /* ★★ 2026-11-03 お気に入りカード（図鑑・キャラ詳細の☆・ホーム・コミュニティ） */
-  "./xeva-earn.js?v=1",   /* ★★ 2026-11-03 XEVA・ジェムの入手まとめ（アニメ） */
+  "./xeva-devnotes.js?v=12",
+  "./xeva-tour.js?v=4",   /* ★★ 2026-10-30 XEVARION ガイド（全機能の紹介・設定から／#guide） */
+  "./xeva-favs.js?v=2",   /* ★★ 2026-11-03 お気に入りカード（図鑑・キャラ詳細の☆・ホーム・コミュニティ） */
+  "./xeva-fav-traits.js?v=1",   /* ★★ 2026-11-05 好み診断の見た目の台帳（診断を開いたときだけ読む） */
+  "./xeva-earn.js?v=2",   /* ★★ 2026-11-03 XEVA・ジェムの入手まとめ（アニメ） */
   "./xevion-os.js?v=13",
   "./xevion-os.css?v=15",
   "./magibattle-stats.js?v=20",
@@ -73,11 +74,11 @@ const CORE = [
   "./uwaki.js?v=1",
   "./uwaki.css?v=1",
   "./thumbs/Uwaki.jpg",
-  "./xevarion.js?v=112",
-  "./xevarion-home.js?v=177",
+  "./xevarion.js?v=113",
+  "./xevarion-home.js?v=179",
   /* ★★ 2026-09-24 ホームのロビーとパートナー。素材は home-mate/<id>/（?v= は home-mate.js の HM_VER）・笙古／瞳／舞香／衣織／樹愛羅／映美里（09-25 ボイス廃止・表情は webp） */
   "./gacha-live.js?v=11",
-  "./home-mate.js?v=34",
+  "./home-mate.js?v=35",
   /* ★★ 2026-10-26 完凸ロビー（ヒサコ・アリス）と、バナーの上のドット絵のキャラ（絵は MagiAbyss の ma-pixel.js） */
   "./home-lobby.js?v=4",
   "./home-dot.js?v=5",
@@ -199,7 +200,7 @@ const CORE = [
   "./thumbs/MagiRail.jpg",
   "./thumbs/MagiScope.jpg",
   "./thumbs/MagiShift.jpg",
-  "./thumbs/MagiQuiz.jpg",   /* ★★ 2026-10-23 新作 MagiQuiz */
+  "./thumbs/MagiQuiz.jpg?v=2",   /* ★★ 2026-10-23 新作 MagiQuiz */
   "./thumbs/MagiAbyss.jpg?v=2",   // ★★ 2026-10-05 新作 MagiAbyss
   "./thumbs/NGX.jpg?v=2",         // ★★ 2026-10-31 NGX のアイコン（オフラインでも出るように）
   "./thumbs/ISHIDA.webp",      // ★★ 2026-10-09b ISHIDA のアイコン（小さい正方形）

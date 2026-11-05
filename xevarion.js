@@ -173,7 +173,7 @@ const MISSION_META = {
   magichainparty_play: { href: "MagiChainParty/index.html",        icon: "thumbs/MagiChainParty.jpg?v=2", cta: "プレイ" },
   magiempire_play:     { href: "MagiEmpire/MagiEmpire.html",       icon: "thumbs/MagiEmpire.jpg",     cta: "プレイ" },
   magiarena_play:      { href: "MagiArena/MagiArena.html",         icon: "thumbs/MagiArena.jpg",      cta: "プレイ" },
-  magiquiz_play:       { href: "MagiQuiz/index.html",              icon: "thumbs/MagiQuiz.jpg",       cta: "あそぶ" },   /* ★★ 2026-10-23 */
+  magiquiz_play:       { href: "MagiQuiz/index.html",              icon: "thumbs/MagiQuiz.jpg?v=2",       cta: "あそぶ" },   /* ★★ 2026-10-23 */
   magimanor_play:      { href: "MagiManor/index.html",             icon: "thumbs/MagiManor.jpg",      cta: "探索へ" },
   magicraft_play:      { href: "MagiCraft/index.html",             icon: "thumbs/MagiCraft.jpg",      cta: "プレイ" },
   magijackpot_play:    { href: "MagiJackpot/index.html",           icon: "thumbs/MagiJackpot.jpg",    cta: "プレイ" },

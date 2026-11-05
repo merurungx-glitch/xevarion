@@ -101,9 +101,10 @@ const XH_APPS = [
     href:"MagiBurst/index.html", img:"thumbs/MagiBurst.jpg",
     desc:"引っぱって、はなして、ぶっとばせ！最大4人マルチの引っぱりハンティング。オフラインでもソロクエストが遊べます。" },
   /* ★★ 2026-10-23 新作 MagiQuiz（MagiChemLex の基礎問題で遊ぶ1台のクイズ対戦）。ご指定で MagiArena の場所と入れかえ（MagiArena はゲームの最後へ） */
-  { id:"magiquiz", name:"MagiQuiz", full:"MagiQuiz", sub:"化学クイズ対戦", cat:"game", tone:"gold", beta: true,   /* ★★ 2026-10-24 ご指定：NEW の印 → 「β版」（beta：日付に関係なく出す） */
-    href:"MagiQuiz/index.html", img:"thumbs/MagiQuiz.jpg",
-    desc:"1台の iPad を囲んで、化学の基礎でクイズバトル。<b>ミリオネア</b>（10問のはしご・ライフライン・ファイナルアンサー）と<b>ばくだん</b>（正解したら となりへ・爆発したらハート −1）の2つの遊び方。個人戦もチーム戦も（1〜8人）。問題は MagiChemLex の基礎セットの選択問題で、答えるたびに正解とポイント、試合のあとにまちがえた問題を解説つきで見直せます。XEVARION アカウントを紐づけると順位に応じて XEVA。オフラインOK。" },
+  /* ★★ 2026-11-05 全面作り直し（新しいアイコン・?v=2）→ β版の印を外して NEW に */
+  { id:"magiquiz", name:"MagiQuiz", full:"MagiQuiz", sub:"化学クイズ対戦", cat:"game", tone:"violet", newUntil:"2026-11-19",
+    href:"MagiQuiz/index.html", img:"thumbs/MagiQuiz.jpg?v=2",
+    desc:"1台を囲んで、化学の基礎でクイズバトル。姿の見えない爆弾を回す<b>見えない爆弾</b>、1問ずつ交互に10階を登る<b>クイズタワー</b>、速さで競う<b>スコアアタック</b>の3つの遊び方。問題は MagiChemLex の基礎セット1〜4 の改題 196問（図つき）。答えたあとは時間が止まり、解説をゆっくり確認できます。メモ・電卓・公式つき。個人戦もチーム戦も、ひとり練習も（1〜8人）。順位で XEVA（この端末の本人はチェックだけでオフラインでも）。" },
   { id:"magilink", name:"MagiLink", sub:"つながり・交流", cat:"social", tone:"pink",
     href:"MagiLink/MagiLink.html", img:"thumbs/MagiLink.jpg",
     desc:"魔法のようなメッセージ体験。友達やグループとスタイリッシュにつながるチャットアプリ。コレクション共有にも対応。" },
@@ -237,11 +238,12 @@ const XH_DEFAULT_ORDER = [
   /* ロビーの2行目（★★ 2026-10-21 ご指定で MagiCounter と MagiDerby を入れかえ）
      ★★ 2026-10-24 ご指定「MagiChemLex と MagiLex の統合に伴い、MagiChemLex のアイコンの位置に MagiQuiz を」 */
   /* ★★ 2026-10-30 ご指定「MagiQuiz と MagiBattle を入れ替え、MagiDerby と MagiAbyss を入れ替え」 */
-  "magibattle", "magiabyss", "magiderby", "magishift", "magichainparty",
+  /* ★★ 2026-11-05 ご指定「ホームの MagiBattle と MagiQuiz の位置を交換」（MagiQuiz の作り直しに合わせて、ロビーの2行目の先頭へ） */
+  "magiquiz", "magiabyss", "magiderby", "magishift", "magichainparty",
   /* 対戦サポート（ホームでは左の札） */
   "magicounter",
-  /* ゲーム（★★ 2026-10-30 MagiQuiz は MagiBattle のいた場所へ） */
-  "magiquiz", "magidominiongrid", "magijackpot", "magilotto",
+  /* ゲーム（★★ 2026-11-05 MagiBattle は MagiQuiz のいた場所へ） */
+  "magibattle", "magidominiongrid", "magijackpot", "magilotto",
   "magirail", "magicraft", "magimanor", "magiempire", "magiarena",   /* ★★ 2026-10-23 MagiQuiz を MagiArena の場所に・MagiArena はゲームの最後へ（ご指定）→ 10-24 MagiQuiz はロビーの2行目の先頭へ */
   /* 学習・AI */
   "xevynar", "magifocus",
@@ -258,7 +260,7 @@ const XH_ORDER_KEY = "xeva_home_order_v2";
    （アプリの入れ替えを、既にホームを触った人にも確実に反映させるため） */
 /* ★★ 2026-09-21c 並びを変えたので世代を上げる（保存ずみの並びを一度だけ既定に戻す）。
    これを上げないと、ホームを並びかえたことがある人には新しい並びが出ない。 */
-const XH_ORDER_GEN = "18-1030";   /* ★★ 2026-10-30 MagiQuiz⇔MagiBattle・MagiDerby⇔MagiAbyss の入れかえ（保存ずみの並びも一度だけ既定へ） */ /* 前: "17-1024" */   /* ★★ 2026-10-24 MagiChemLex は MagiLex の中へ・その場所に MagiQuiz（保存ずみの並びも一度だけ既定へ） */ /* 前: "16-1023" */   /* ★★ 2026-10-23 新作 MagiQuiz を MagiArena の場所へ（保存ずみの並びも一度だけ既定へ） */ /* 前: "15-1021" */   /* ★★ 2026-10-21 MagiCounter と MagiDerby の入れかえ */ /* 前: "14-1020" */   /* ★★ 2026-10-20 メニューの並びをロビーと同じに・残りを種類ごとに（保存ずみの並びも一度だけ既定へ） */ /* 前: "13-1006" */   /* ★★ 2026-10-06 MagiChemLex を MagiCounter の左・MagiTier を「その他」へ */ /* 前: "12-0924" */   /* ★★ 2026-09-24d MagiChainParty と MagiScope の入れかえ */ /* 前: "11-0923" */   /* ★★ 2026-09-23 MagiRail と MagiBattle の入れかえ */ /* 前: "10-0921c" */   /* ★★ 2026-09-17e Arcana Rush 廃止・MagiTier をホームへ（保存ずみの並びも一度だけ既定へ） */   /* ★★ 2026-09-09 11枠の入れかえと、抹けていた新作2本を既存の並びにも効かせる */
+const XH_ORDER_GEN = "19-1105";   /* ★★ 2026-11-05 MagiBattle⇔MagiQuiz の入れかえ */ /* 前: "18-1030" */   /* ★★ 2026-10-30 MagiQuiz⇔MagiBattle・MagiDerby⇔MagiAbyss の入れかえ（保存ずみの並びも一度だけ既定へ） */ /* 前: "17-1024" */   /* ★★ 2026-10-24 MagiChemLex は MagiLex の中へ・その場所に MagiQuiz（保存ずみの並びも一度だけ既定へ） */ /* 前: "16-1023" */   /* ★★ 2026-10-23 新作 MagiQuiz を MagiArena の場所へ（保存ずみの並びも一度だけ既定へ） */ /* 前: "15-1021" */   /* ★★ 2026-10-21 MagiCounter と MagiDerby の入れかえ */ /* 前: "14-1020" */   /* ★★ 2026-10-20 メニューの並びをロビーと同じに・残りを種類ごとに（保存ずみの並びも一度だけ既定へ） */ /* 前: "13-1006" */   /* ★★ 2026-10-06 MagiChemLex を MagiCounter の左・MagiTier を「その他」へ */ /* 前: "12-0924" */   /* ★★ 2026-09-24d MagiChainParty と MagiScope の入れかえ */ /* 前: "11-0923" */   /* ★★ 2026-09-23 MagiRail と MagiBattle の入れかえ */ /* 前: "10-0921c" */   /* ★★ 2026-09-17e Arcana Rush 廃止・MagiTier をホームへ（保存ずみの並びも一度だけ既定へ） */   /* ★★ 2026-09-09 11枠の入れかえと、抹けていた新作2本を既存の並びにも効かせる */
 const XH_ORDER_GEN_KEY = "xeva_home_order_gen";
 
 /* 期間限定イベント（from/to は YYYY-MM-DD。期間内のものだけ表示）
@@ -509,6 +511,20 @@ XH_EVENTS.unshift({ tag:"EVENT", t1:"Midnight Pumpkin", t2:"イベントミッ�
    ══════════════════════════════════════════════════════════════ */
 const XH_UPDATE_MAX = 12;
 const XH_UPDATES = [
+  /* ★★ 2026-11-05（2回目）MagiQuiz の調整 */
+  { tag:"UPDATE", t1:"MagiQuiz の順番をくじ引きに・手番は自動で進む", at:"2026-11-05",
+    t2:"順番は試合のはじめにくじ引きで決めて、その順に並びます。順番が変わるときはスタートを押さなくても進みます。爆弾の時間を少しのばし、ミスの上限はアウトではなくライフ −1 に。上のプレイヤーの札は全員同じ大きさに",
+    href:"MagiQuiz/index.html", img:"thumbs/MagiQuiz.jpg?v=2" },
+  /* ★★ 2026-11-05 MagiQuiz の全面作り直し・好み診断・ChemLex のタブ */
+  { tag:"NEW", t1:"MagiQuiz を全面リニューアル", at:"2026-11-05",
+    t2:"遊び方は見えない爆弾・クイズタワー・スコアアタックの3つ（どれも1問ごとに交互）。問題は基礎セット1〜4 の改題 196問すべて（図つき）。答えたあとは時間が止まって解説を確認。メモ・電卓・公式・計算問題なしも。この端末の本人はオフラインでも XEVA",
+    href:"MagiQuiz/index.html", img:"thumbs/MagiQuiz.jpg?v=2" },
+  { tag:"UPDATE", t1:"お気に入りカードに「好み診断」", at:"2026-11-05",
+    t2:"お気に入りが15人以上で解放。髪の色・髪型・雰囲気・世界観・属性などの傾向から、あなたの好みのタイプ・ど真ん中のキャラ・まだ登録していない候補を出します",
+    href:"characters.html?fav=1", img:"thumbs/MagiBurst.jpg" },
+  { tag:"UPDATE", t1:"MagiChemLex の下のタブを5つに", at:"2026-11-05",
+    t2:"ホーム・問題・復習・記録・ツールの5つに。セット・大問・問題一覧は「問題」タブの中の切りかえに。セットを開いて戻ると、開く前の位置に戻るように",
+    href:"MagiChemLex/index.html", img:"thumbs/MagiChemLex.jpg?v=2" },
   /* ★★ 2026-10-31 MagiBattle の作り直し・5つのフェスの終了・完凸ロビー・応援配布・ガイド・サイト・MagiDerby */
   { tag:"NEW", t1:"MagiBattle を1から作り直し（部隊シューティング）", at:"2026-10-31",
     t2:"超極祭系の UR 15体で、遮蔽物のうしろから撃つ部隊シューティング。バーストⅠ→Ⅱ→Ⅲ→FULL BURST・キャンペーン・アリーナ（5対5）・迎撃戦・タワー・前哨基地。育成はレベル・スキル・装備・キューブ・好感度。キーボード対応・ごほうびはジェム",
@@ -579,7 +595,7 @@ const XH_UPDATES = [
   /* ★★ 2026-10-23 新作 MagiQuiz／MagiAbyss の町も 2.5D／iPad の上のぼかし／ChemLex 最短日数・今日習得にできる問題／MagiShift 矢印 */
   { tag:"NEW", t1:"新作 MagiQuiz（化学クイズ対戦）", at:"2026-10-23",
     t2:"1台の iPad で、ミリオネア（10問のはしご・ライフライン）とばくだん（正解したら となりへ・爆発でハート −1）。個人戦もチーム戦も。問題は MagiChemLex の基礎セット・試合のあとに見直し。メニューの MagiArena の場所に",
-    href:"MagiQuiz/index.html", img:"thumbs/MagiQuiz.jpg" },
+    href:"MagiQuiz/index.html", img:"thumbs/MagiQuiz.jpg?v=2" },
   { tag:"UPDATE", t1:"MagiAbyss の町も 2.5D に（朝・昼・夕方・夜の光）", at:"2026-10-23",
     t2:"拠点の建物・木・人が立って見え、時間帯で光が変わります（夜は街灯や窓が灯る）。設定のグラフィック「2D」で今までの画面にも",
     href:"MagiAbyss/index.html", img:"thumbs/MagiAbyss.jpg?v=2" },
@@ -6822,7 +6838,7 @@ function xhAiPickApps(raw) {
     want.push("magijackpot");
   if (/勉強|学習|べんきょう|覚え|暗記|試験|受験|宿題/.test(q)) want.push("xevynar", "magilex", "magichemlex", "magifocus");
   if (/化学|かがく|ばけがく|chem|入試|過去問|かこもん/.test(q)) want.push("magichemlex", "magiquiz", "magilex");
-  if (/くいず|quiz|クイズ|みりおねあ|早押し|はやおし/.test(q)) want.push("magiquiz");
+  if (/くいず|quiz|クイズ|たわー|ばくだん|爆弾|早押し|はやおし/.test(q)) want.push("magiquiz");
   if (/ai|えーあい|相談|そうだん|質問|しつもん|プラン|計画|管理|タイマー/.test(q)) want.push("xevynar", "magifocus");
   if (/株|投資|相場|銘柄|資産/.test(q)) want.push("magiportfolio");
   if (/音楽|bgm|曲|おんがく/.test(q)) want.push("magimusic");
@@ -6854,7 +6870,7 @@ const XH_APP_ALIAS = {
   magimanor: ["まなー", "manor", "ようかん", "洋館"],
   ordyxis: ["おるでぃくしす", "ordyxis", "ちゅうもん", "注文", "おーだー"],
   magiarena: ["ありーな", "arena", "おせろ", "ごもくならべ"],
-  magiquiz: ["まじくいず", "くいず", "quiz", "みりおねあ", "ばくだん", "爆弾"],
+  magiquiz: ["まじくいず", "くいず", "quiz", "たわー", "すこあ", "ばくだん", "爆弾", "はやおし"],
   magijackpot: ["じゃっくぽっと", "jackpot", "かじの", "casino", "すろっと", "slot", "るーれっと", "ぽーかー", "びんご", "ぶらっくじゃっく"],
   magifocus: ["ふぉーかす", "focus"],
   magimusic: ["みゅーじっく", "music", "おんがくぷれいやー"],

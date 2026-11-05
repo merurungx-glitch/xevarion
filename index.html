@@ -148,7 +148,7 @@ html #xlBan.pre{box-shadow:0 0 0 2px #fff,0 0 0 3.5px #ff8a1f,0 3px 0 3.5px rgba
 <!-- ★★ 2026-09-05 コレクションを XEVARION 全体で1本にする共通部品。
      xeva.js の iconCharList() を使うので、必ず xeva.js の<b>あと</b>に置く。 -->
 <script src="xeva-collection.js?v=8" defer></script>
-<script src="xeva-favs.js?v=1" defer></script><!-- ★★ 2026-11-03 お気に入りカード（全キャラ・図鑑の☆・コミュニティ） -->
+<script src="xeva-favs.js?v=2" defer></script><!-- ★★ 2026-11-03 お気に入りカード（全キャラ・図鑑の☆・コミュニティ） -->
 <!-- ★★ 2026-09-05 言語切りかえ（日本語 ⇄ English）。
      画面の中身はあとから JS が作るので、辞書を当てるのは MutationObserver。
      ★ 辞書（xeva-i18n-dict.js）は本体のあとに読むこと。 -->
@@ -177,8 +177,8 @@ html #xlBan.pre{box-shadow:0 0 0 2px #fff,0 0 0 3.5px #ff8a1f,0 3px 0 3.5px rgba
      告知を<b>ポータルのログイン時</b>に一本化したので、ここでも読む。
      defer なので xevarion.js より先に実行される（書いた順番で走る）。 -->
 <script src="mb-newchars.js?v=43" defer></script>
-<script src="xeva-devnotes.js?v=10" defer></script>
-<script src="xeva-tour.js?v=3" defer></script><script src="xeva-earn.js?v=1" defer></script><!-- ★★ 2026-11-03 XEVA・ジェムの入手まとめ（アニメ・XevaTour の pack） --><!-- ★★ 2026-10-30 XEVARION ガイド（全機能をアニメで紹介・設定から／#guide） --><!-- ★★ 2026-10-24 デベロッパーノート（新キャラのお知らせの代わり） -->
+<script src="xeva-devnotes.js?v=12" defer></script>
+<script src="xeva-tour.js?v=4" defer></script><script src="xeva-earn.js?v=2" defer></script><!-- ★★ 2026-11-03 XEVA・ジェムの入手まとめ（アニメ・XevaTour の pack） --><!-- ★★ 2026-10-30 XEVARION ガイド（全機能をアニメで紹介・設定から／#guide） --><!-- ★★ 2026-10-24 デベロッパーノート（新キャラのお知らせの代わり） -->
 <!-- ★★ 2026-09-25 ガチャの台帳（開催期間とバナー。make-gacha-live.py が mb-core.js から自動で作る）。ホーム左上のバナー用 -->
 <script src="gacha-live.js?v=11" defer></script>
 <!-- ★★ 2026-08-22b Xevion OS（XEVARION の UI をひとつの OS として扱う土台）。
@@ -194,10 +194,10 @@ html #xlBan.pre{box-shadow:0 0 0 2px #fff,0 0 0 3.5px #ff8a1f,0 3px 0 3.5px rgba
 <!-- ★★ 2026-10-16 キャラの所持・凸（magiburst_v1）もここで同期する（前は読むだけで、別の端末で引いたキャラが出てこないことがあった） -->
 <script type="module" src="MagiBurst/magiburst-cloud.js?v=28"></script>
 <script src="xeva-qr.js?v=9" defer></script>
-<script src="xevarion.js?v=112" defer></script>
-<script src="xevarion-home.js?v=177" defer></script>
+<script src="xevarion.js?v=113" defer></script>
+<script src="xevarion-home.js?v=179" defer></script>
 <script src="home-lobby.js?v=4" defer></script><!-- ★★ 2026-10-26 完凸ロビー（ヒサコ・アリス）。home-mate.js より先 -->
-<script src="home-mate.js?v=34" defer></script>
+<script src="home-mate.js?v=35" defer></script>
 <script src="home-dot.js?v=5" defer></script><!-- ★★ 2026-10-26 イベントのバナーの上を動くドット絵のキャラ（MagiAbyss のドット絵） -->
 <!-- ★★ 2026-10-24 MagiDerby・MagiScope のデータの先読み（ご指定「アプリを開いていなくても情報を取得してオフラインでも開けるように」） -->
 <script src="xeva-prefetch.js?v=1" defer></script>
@@ -2422,6 +2422,32 @@ body.xos-nomotion .xbg-fx,body.xos-nomotion .xbg-fx h4{animation:none}
     <div class="nm-divider" id="newDivider" style="display:none;">NEW — 前回から更新</div>
     <!-- 2026-10-24：レベル・スタミナ廃止／同期の作り直し／MagiLex と MagiChemLex の統合／超極煌祭にヒサコ・アリス／WP 交換所にミキ／MagiDerby の券面／MagiShift の順位／デベロッパーノート -->
     <!-- 2026-11-03：超極彩祭にチフル・ミント・プリカ／ガチャの演出（スロット・天使・音）／お気に入りカード（図鑑・詳細の☆・回転・UR 全面）／XEVA・ジェムの入手まとめ（アニメ）／起動ロゴを映画風に／星煌印の札の修正／凸ミッション／MagiBattle のロビー・キャラ詳細 -->
+    <!-- 2026-11-05（2回目）：MagiQuiz の調整（くじ引きの順番・手番の自動進行・爆弾の時間・ミス上限でライフ −1・札の大きさ） -->
+    <div class="nm-item" data-tag="update" data-date="2026-11-05">
+      <div class="nm-date">2026<br>11.05</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag update">UPDATE</span></div>
+        <div class="nm-title">🔔 MagiQuiz を遊びやすく調整</div>
+        <div class="nm-txt">・<b>順番</b>は試合のはじめに<b>くじ引き</b>で決めて、その順に並びます。順番が変わるときは<b>スタートを押さなくても</b>自動で進みます（画面を押すとすぐ進みます）。<br>
+          ・<b>見えない爆弾</b>：爆弾の時間を少しのばしました。ミスが上限に達するとアウトではなく<b>ライフ −1</b> になり、爆弾は次の人へ回ります。<br>
+          ・<b>クイズタワー</b>：ミスの回数をライフ（♥）の表示にしました。<br>
+          ・上のプレイヤーの札を全員同じ大きさに。「この端末の本人」にチェックすると席が大きくなるのと、遊び方のカードの大きさがそろわないのを直しました。</div>
+      </div>
+    </div>
+    <!-- 2026-11-05：MagiQuiz 全面リニューアル（見えない爆弾・クイズタワー・スコアアタック）／お気に入りカードの好み診断／MagiChemLex のタブ5つ・戻る位置／ホームの MagiBattle と MagiQuiz を交換 -->
+    <div class="nm-item" data-tag="new" data-date="2026-11-05">
+      <div class="nm-date">2026<br>11.05</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag new">NEW</span></div>
+        <div class="nm-title">🔔 MagiQuiz を全面リニューアル／💘 お気に入りカードに好み診断／📚 MagiChemLex のタブを5つに</div>
+        <div class="nm-txt">・<b>MagiQuiz</b>：新しいアイコンとデザインで1から作り直しました。遊び方は<b>見えない爆弾</b>（姿の見えない爆弾を回す）・<b>クイズタワー</b>（10階を交互に登る）・<b>スコアアタック</b>（速さで競う・ひとり練習にも）の3つで、どれも1問ごとに交互です。<br>
+          ・問題は MagiChemLex の<b>基礎セット1〜4 の改題 196問すべて</b>（図・いくつも選ぶ問題も）。1回の解答時間つき（計算問題は長め）・まちがえすぎるとアウト。<b>答えたあとは時間が止まり、解説をゆっくり確認</b>できます。問題中は<b>メモ・電卓・公式</b>が使えて、計算問題なしにもできます。<br>
+          ・席の<b>「この端末の本人」にチェック</b>すると、オフラインでも XEVA が入ります。アカウント連携の画面も新しくしました。途中で閉じても「つづきから」で再開できます。<br>
+          ・<b>お気に入りカード</b>：お気に入りが<b>15人以上</b>で<b>好み診断</b>が解放。髪の色・髪型・雰囲気・世界観・属性などから、好みのタイプ・ど真ん中のキャラ・まだ登録していない候補がわかります。<br>
+          ・<b>MagiChemLex</b>：下のタブを<b>5つ</b>（ホーム・問題・復習・記録・ツール）にして大きく。セット・大問・問題一覧は「問題」タブの中で切りかえます。セットを開いて戻ると、開く前の位置に戻ります。<br>
+          ・<b>ホーム</b>：MagiBattle と MagiQuiz の位置を入れかえました。メニューで並べかえた人のロビーで、開くたびに左右が入れかわることがあったのを直しました。</div>
+      </div>
+    </div>
     <div class="nm-item" data-tag="new" data-date="2026-11-03">
       <div class="nm-date">2026<br>11.03</div>
       <div class="nm-content">
