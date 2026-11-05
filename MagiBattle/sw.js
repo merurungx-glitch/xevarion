@@ -4,7 +4,7 @@
    ・アリーナの相手の読みこみ・迎撃戦のランキングだけ通信が要る（オフラインのときは NPC と手元の記録で動く）
    ・使える15体の絵（立ち絵・小さい絵・横長・縦長の SS 絵）と、完凸ロビーの全身の絵を最初から控える
    ============================================================ */
-const VERSION = "magibattle-sw-v6";
+const VERSION = "magibattle-sw-v7";
 const CORE = [
   "./index.html",
   "./css/mb3.css?v=6",
@@ -19,7 +19,7 @@ const CORE = [
   "./js/mb3-ui2.js?v=5",
   "./js/mb3-guide.js?v=4",     // ★★ 2026-10-31 使い方（アニメ）
   "./js/mb3-main.js?v=5",
-  "../xeva-tour.js?v=3",
+  "../xeva-tour.js?v=4",
   "../xeva-safebottom.js?v=12",
   "./img/logo.webp",
   "./img/icon192.png",
