@@ -5,7 +5,7 @@
    ・フォント（Google Fonts）は控えない（オフラインでは端末の文字で出る）
    ★ 中身（CORE）は NGX_website.html の src/href から作った。ページに絵を足したらここにも足して VERSION を上げる
    ============================================================ */
-const VERSION = "ngx-site-sw-v3";
+const VERSION = "ngx-site-sw-v4";
 const CORE = [
   "./NGX_website.html",
   "../maintenance-gate.js?v=13",
@@ -19,7 +19,7 @@ const CORE = [
   "../thumbs/MagiAbyss.jpg?v=2",
   "../thumbs/MagiChemLex.jpg?v=2",
   "../thumbs/MagiDerby.jpg",
-  "../thumbs/MagiQuiz.jpg",
+  "../thumbs/MagiQuiz.jpg?v=2",
   "../thumbs/MagiShift.jpg",
   "../thumbs/MagiScope.jpg",
   "../thumbs/MagiChainParty.jpg?v=2",

@@ -1,23 +1,30 @@
 /* ============================================================
-   MagiQuiz Service Worker — オフライン対応（2026-10-23 新作）
+   MagiQuiz Service Worker — オフライン対応（2026-10-23 新作・11-05 全面作り直し）
    ・1台で遊ぶクイズ。キャッシュすれば完全にオフラインで動く（問題は MagiChemLex の問題データ）
    ・アカウントの紐づけと賞金だけ通信が要る（遊ぶこと自体はオフラインでできる）
    ============================================================ */
-const VERSION = "magiquiz-sw-v9";
+const VERSION = "magiquiz-sw-v11";
 const CORE = [
   "./index.html",
-  "./css/quiz.css?v=2",
-  "./js/quiz-data.js?v=2",
-  "./js/quiz-account.js?v=1",
-  "./js/quiz-ui.js?v=2",
-  "./img/icon192.png",
-  "./img/apple-touch-icon.png",
+  "./css/quiz.css?v=4",
+  "./js/quiz-data.js?v=4",
+  "./js/quiz-account.js?v=3",
+  "./js/quiz-fx.js?v=2",
+  "./js/quiz-ui.js?v=4",
+  "./js/quiz-pad.js?v=1",
+  "./js/quiz-play.js?v=2",
+  "./js/quiz-result.js?v=2",
+  "./img/icon192.png?v=2",
+  "./img/apple-touch-icon.png?v=2",
   "./manifest.webmanifest",
-  /* 問題（MagiChemLex の問題データそのもの） */
+  /* 問題（MagiChemLex の問題データそのもの）と、書式・判定（mcl-core）・図（mcl-fig） */
   "../MagiChemLex/js/mcl-data.js?v=5", "../MagiChemLex/js/mcl-data2.js?v=4", "../MagiChemLex/js/mcl-data3.js?v=2",
   "../MagiChemLex/js/mcl-data4.js?v=2", "../MagiChemLex/js/mcl-data5.js?v=2", "../MagiChemLex/js/mcl-data6.js?v=1",
   "../MagiChemLex/js/mcl-data7.js?v=1", "../MagiChemLex/js/mcl-data8.js?v=2", "../MagiChemLex/js/mcl-data9.js?v=2",
   "../MagiChemLex/js/mcl-data10.js?v=1", "../MagiChemLex/js/mcl-data11.js?v=1", "../MagiChemLex/js/mcl-data12.js?v=1",
+  "../MagiChemLex/js/mcl-core.js?v=14",
+  "../MagiChemLex/js/mcl-fig.js?v=5", "../MagiChemLex/js/mcl-fig2.js?v=1", "../MagiChemLex/js/mcl-fig3.js?v=1",
+  "../MagiChemLex/js/mcl-fig4.js?v=1", "../MagiChemLex/js/mcl-fig5.js?v=2",
   "../xeva-splash.js?v=21",
   "../xeva-safebottom.js?v=12",
   "../xeva-loading.js?v=19",
@@ -27,9 +34,10 @@ const CORE = [
   "../xeva-alive.js?v=8",
   "../game-link.js?v=13",
   "../xevarion-fb.js?v=37",
+  "../XEVA.png",
   "../img/ld_b_stand.webp?v=5",
   "../img/ld_b_bow.webp?v=5",
-  "../thumbs/MagiQuiz.jpg",
+  "../thumbs/MagiQuiz.jpg?v=2",
   /* 起動画面の3社ロゴは毎回出すので、オフラインでも出るように */
   "../brand/NGX_s.webp?v=2",
   "../brand/MagicalFuture_s.webp",

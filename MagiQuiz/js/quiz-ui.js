@@ -1,166 +1,192 @@
 /* ============================================================
-   MagiQuiz — 画面（2026-10-23 新作）
+   MagiQuiz — quiz-ui.js（共通の部品・タイトル・準備・連携・ルール・記録）
+   ★★ 2026-11-05 全面作り直し
    ------------------------------------------------------------
-   タイトル → 準備（1画面：あそびかた・個人/チーム・プレイヤー・出題範囲・細かいルール）
-   → 手番（「〇〇の番！」iPad をわたす）→ ミリオネア／ばくだん → 結果（表彰台・賞金・見直し）
-   ・ミリオネア：1人（1チーム）ずつ10問のはしご。100→…→32,000 pt。安全ライン＝3問目（300）・7問目（4,000）。
-     ライフライン（各1回）：50:50／ヒント（ChemLex のヒント。無い問題は選択肢を1つ消す）／みんなに聞く（まわりの人がタップで投票）。
-     答えを選ぶ →「決定」→ すぐに正解発表（★★ 2026-10-24 ご指定「運命の答えなどの演出は要らない」で、ためる演出をやめた）。2問目からは「ここでやめる」（いまの pt で終わる）。
-     制限時間（なし／30秒／60秒）。時間切れはまちがいと同じ。
-   ・ばくだん：見えない時間で爆発する爆弾を回す。持っている人が答えて、正解→となりへ／まちがい→その人にもう1問（時間は進む）。
-     爆発したときに持っていた人（チーム）はハート −1。0 になったら脱落。最後まで残った人（チーム）の勝ち。
-   ・学習：答えるたびに正解と「ポイント」（ChemLex の q.k）。試合のあと、まちがえた問題を解説つきで見直せる。
-   ・紐づけ・賞金・戦績は quiz-account.js（MagiShift と同じ GameLink）。
+   画面：タイトル → 準備（① あそびかた ② メンバー ③ ルール）→ quiz-play.js（試合）→ quiz-result.js（結果）
+   ・アイコンの色（紫・黄・白）とボタン（ブザー）を全体の軸にする。答えを決めるのも、次へ進むのも、黄色いブザー。
+   ・準備は前回の内容を覚えていて、タイトルから1タップで同じメンバー・ルールで始められる。
+   ・席のつなぎかた：「この端末の本人」チェック（オフラインでも XEVA が入る）／アカウント連携（表示名で検索 → 4桁）。
+     連携の画面は GameLink のモーダルをやめて、このアプリの画面の中に作り直した（通信は quiz-account.js）。
    ============================================================ */
 (function () {
   "use strict";
-  const MQ = window.MQ || {}, Q = MQ.Data, A = MQ.Account;
+  const MQ = window.MQ, Q = MQ.Data, A = MQ.Account, FX = MQ.FX;
   const $ = (s, r) => (r || document).querySelector(s);
   const $$ = (s, r) => Array.from((r || document).querySelectorAll(s));
   const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const fmtN = (n) => Number(n || 0).toLocaleString("ja-JP");
+  const mmss = (s) => Math.floor(s / 60) + ":" + String(Math.round(s % 60)).padStart(2, "0");
 
   /* ══ アイコン（線の絵） ══ */
   const IC = {
-    play: '<path class="fl" d="M8 5.5v13l10.5-6.5z"/>',
+    play: '<path class="fl" d="M8 5.2v13.6l11-6.8z"/>',
+    back: '<path d="M15 5l-7 7 7 7"/>',
+    next: '<path d="M9 5l7 7-7 7"/>',
     book: '<path d="M5 4.5h9.5a2 2 0 0 1 2 2v13H7a2 2 0 0 1-2-2z"/><path d="M5 17.5a2 2 0 0 1 2-2h9.5"/><path d="M8.5 8.5h5M8.5 11.5h4"/>',
     trophy: '<path d="M7 4.5h10v4a5 5 0 0 1-10 0z"/><path d="M7 6H4.5a2.5 2.5 0 0 0 2.6 3.6M17 6h2.5a2.5 2.5 0 0 1-2.6 3.6"/><path d="M12 13.5v3M8.5 19.5h7"/>',
     help: '<circle cx="12" cy="12" r="8.5"/><path d="M9.6 9.4a2.5 2.5 0 1 1 3.4 2.3c-.6.3-1 .8-1 1.5v.6"/><path d="M12 16.6v.4"/>',
+    gear: '<circle cx="12" cy="12" r="3"/><path d="M12 3v2.5M12 18.5V21M3 12h2.5M18.5 12H21M5.6 5.6l1.8 1.8M16.6 16.6l1.8 1.8M18.4 5.6l-1.8 1.8M7.4 16.6l-1.8 1.8"/>',
     menu: '<path d="M5 7h14M5 12h14M5 17h14"/>',
+    pause: '<path class="fl" d="M7 5h3.6v14H7zM13.4 5H17v14h-3.6z"/>',
     again: '<path d="M20 12a8 8 0 1 1-2.4-5.7"/><path d="M20 4.5V9h-4.5"/>',
     home: '<path d="M4 11.2 12 4.5l8 6.7"/><path d="M6.5 9.5v9.5h11V9.5"/><path d="M10 19v-5h4v5"/>',
     crown: '<path d="M4 17.5 3 7.5l5 4 4-6.5 4 6.5 5-4-1 10z"/><path d="M5 20h14"/>',
-    bomb: '<circle class="fl" cx="10" cy="14.5" r="6.6"/><path d="M14.4 9.8l1.9-1.9"/><path d="M15.6 7.5c.9-1.7 2.6-2.2 4.1-1.3"/><path d="M20.6 2.6v1.7M22.3 4.3h-1.7M18.9 2.9l.8.9"/>',
     hint: '<path d="M9 18h6M10 21h4"/><path d="M12 3.5a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2V17h5v-.6c0-.8.4-1.5 1-2A6 6 0 0 0 12 3.5z"/>',
     people: '<circle cx="9" cy="8.5" r="3"/><path d="M3.5 19c.6-3.3 2.7-5 5.5-5s4.9 1.7 5.5 5"/><circle cx="17" cy="9.5" r="2.4"/><path d="M15.6 14.4c2.5-.3 4.3 1.2 4.9 4.1"/>',
     half: '<circle cx="12" cy="12" r="8.5"/><path class="fl" d="M12 3.5a8.5 8.5 0 0 1 0 17z"/>',
-    stop: '<path d="M6 20V5M6 5.5c4-2.5 7 2 12-.5v8c-5 2.5-8-2-12 .5"/>',
+    swap: '<path d="M4 8h13l-3.5-3.5M20 16H7l3.5 3.5"/>',
+    stop: '<path d="M6 21V5M6 5.5c4-2.5 7 2 12-.5v8c-5 2.5-8-2-12 .5"/>',
     link: '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1"/><path d="M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
+    lock: '<rect x="5.5" y="10.5" width="13" height="9.5" rx="2.2"/><path d="M8.5 10.5V8a3.5 3.5 0 0 1 7 0v2.5"/>',
     heart: '<path class="fl" d="M12 20.2C10.9 19.2 3.6 14.7 3.6 9.3 3.6 6.5 5.6 4.6 8.1 4.6c1.6 0 3 .9 3.9 2.2.9-1.3 2.3-2.2 3.9-2.2 2.5 0 4.5 1.9 4.5 4.7 0 5.4-7.3 9.9-8.4 10.9Z"/>',
     star: '<path class="fl" d="m12 3.6 2.6 5.3 5.8.8-4.2 4.1 1 5.8L12 16.9l-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z"/>',
     check: '<path d="M5 12.5l4.2 4.2L19 7"/>',
     x: '<path d="M6.5 6.5l11 11M17.5 6.5l-11 11"/>',
+    plus: '<path d="M12 5v14M5 12h14"/>',
     seon: '<path class="fl" d="M4.5 9.5h3.5l4.5-4v13l-4.5-4H4.5z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/>',
     seoff: '<path class="fl" d="M4.5 9.5h3.5l4.5-4v13l-4.5-4H4.5z"/><path d="M16 9.5l5 5M21 9.5l-5 5"/>',
     team: '<circle cx="8" cy="9" r="2.6"/><circle cx="16" cy="9" r="2.6"/><path d="M3.5 18.5c.5-2.8 2.2-4.3 4.5-4.3s4 1.5 4.5 4.3M11.5 18.5c.5-2.8 2.2-4.3 4.5-4.3s4 1.5 4.5 4.3"/>',
     solo: '<circle cx="12" cy="8.5" r="3.2"/><path d="M5.5 19.5c.7-3.6 3-5.5 6.5-5.5s5.8 1.9 6.5 5.5"/>',
     shuffle: '<path d="M4 7h3l10 10h3M4 17h3l2.6-2.6M14.4 9.6 17 7h3"/><path d="M18 4.5 20.5 7 18 9.5M18 14.5l2.5 2.5-2.5 2.5"/>',
     timer: '<circle cx="12" cy="13" r="7.5"/><path d="M12 9v4l2.5 2M9.5 3h5"/>',
+    pen: '<path d="M4 20l1-4.2L16.3 4.5a2 2 0 0 1 2.8 0l.4.4a2 2 0 0 1 0 2.8L8.2 19z"/><path d="M14.5 6.3l3.2 3.2"/>',
+    calc: '<rect x="5.5" y="3" width="13" height="18" rx="2.4"/><rect x="8.2" y="5.8" width="7.6" height="3.4" rx=".8"/><path d="M8.7 12.6h.01M12 12.6h.01M15.3 12.6h.01M8.7 15.7h.01M12 15.7h.01M15.3 15.7h.01M8.7 18.4h.01M12 18.4h.01M15.3 18.4h.01"/>',
+    table: '<rect x="3.5" y="5" width="17" height="14" rx="2.2"/><path d="M3.5 10h17M9 10v9"/>',
+    keyboard: '<rect x="3" y="6.5" width="18" height="11" rx="2.2"/><path d="M6.5 10h.01M9.5 10h.01M12.5 10h.01M15.5 10h.01M18 10h.01M6.5 13h.01M9.5 13h.01M12.5 13h.01M15.5 13h.01M8 15.2h8"/>',
+    eraser: '<path d="M8.5 19.5 4 15a2 2 0 0 1 0-2.8l8.2-8.2a2 2 0 0 1 2.8 0l5 5a2 2 0 0 1 0 2.8L12.3 19.5z"/><path d="M8 8.5l7.5 7.5M8.5 19.5H20"/>',
+    undo: '<path d="M8.5 8.5H15a5 5 0 0 1 0 10H9"/><path d="M12 5 8.5 8.5 12 12"/>',
+    hand: '<path d="M8 12V6.5a1.5 1.5 0 0 1 3 0V11m0-5.5v-1a1.5 1.5 0 0 1 3 0V11m0-4.5a1.5 1.5 0 0 1 3 0V14a6.5 6.5 0 0 1-6.5 6.5A6 6 0 0 1 5.8 18l-2-3.4a1.5 1.5 0 0 1 2.6-1.5L8 15"/>',
+    zin: '<circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 20 20M10.5 8v5M8 10.5h5"/>',
+    zout: '<circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5 20 20M8 10.5h5"/>',
+    fit: '<path d="M4 9V5.5A1.5 1.5 0 0 1 5.5 4H9M15 4h3.5A1.5 1.5 0 0 1 20 5.5V9M20 15v3.5a1.5 1.5 0 0 1-1.5 1.5H15M9 20H5.5A1.5 1.5 0 0 1 4 18.5V15"/>',
+    trash: '<path d="M4.5 7h15M9.5 7V4.8h5V7M6.5 7l1 12.5h9L17.5 7M10 11v5M14 11v5"/>',
+    expand: '<path d="M9 4H4v5M15 4h5v5M9 20H4v-5M15 20h5v-5"/>',
+    list: '<path d="M8 6.5h12M8 12h12M8 17.5h12M4 6.5h.01M4 12h.01M4 17.5h.01"/>',
+    flame: '<path d="M12 21.5a6.6 6.6 0 0 0 6.6-6.6c0-3.7-2.8-5.6-3.8-9.4-1 1.9-1.9 2.8-3.3 3.3-.9-1.8-1.9-3.7-1.6-5.8C6.5 5 5.4 9.8 5.4 14.9a6.6 6.6 0 0 0 6.6 6.6z"/>',
+    tower: '<path d="M6 21V9l6-5 6 5v12"/><path d="M6 13h12M6 17h12M10.5 21v-4h3v4"/>',
+    stopw: '<circle cx="12" cy="14" r="7.2"/><path d="M12 10.4V14l2.4 1.6M9.8 3.4h4.4M12 3.4v3.2M18 7l1.3-1.3"/>',
+    bomb: '<circle cx="10.5" cy="14.5" r="6.4" stroke-dasharray="2.6 2.6"/><path d="M14.8 9.8l1.9-1.9"/><path d="M16 7.5c.9-1.7 2.6-2.2 4.1-1.3"/><path d="M20.8 2.6v1.7M22.4 4.3h-1.7M19.1 2.9l.8.9"/>',
+    buzzer: '<path d="M6 16a6 6 0 0 1 12 0"/><path d="M4.500 16h15l1.500 4h-18z"/><path d="M12 3v3M6.300 5.300l1.600 2M17.700 5.300l-1.600 2"/>',
+    gift: '<rect x="4" y="9" width="16" height="4" rx="1"/><path d="M5.5 13v7.5h13V13M12 9v11.5M12 9C10 9 7.5 8 7.5 5.9 7.5 4 10.5 4 12 9zM12 9c2 0 4.5-1 4.5-3.1C16.500 4 13.500 4 12 9z"/>',
   };
   const ic = (n, cls) => '<svg class="ic' + (cls ? " " + cls : "") + '" viewBox="0 0 24 24" aria-hidden="true">' + (IC[n] || "") + "</svg>";
-  function paintIcons(root) { $$("[data-ic]", root).forEach((el) => { if (!el.firstChild) el.innerHTML = ic(el.dataset.ic); }); }
 
-  /* ══ 色・決まり ══ */
-  const COLORS = [
-    { nm: "あか", c: "#ff5a5f" }, { nm: "あお", c: "#3b82f6" }, { nm: "みどり", c: "#22b35e" }, { nm: "きいろ", c: "#f2b200" },
-    { nm: "むらさき", c: "#9b5cf6" }, { nm: "だいだい", c: "#fb8a1e" }, { nm: "みずいろ", c: "#13b5d0" }, { nm: "ピンク", c: "#ff6fb5" },
-  ];
-  const TEAMS = [{ nm: "あかチーム", c: "#ff5a5f" }, { nm: "あおチーム", c: "#3b82f6" }, { nm: "みどりチーム", c: "#22b35e" }, { nm: "きいろチーム", c: "#f2b200" }];
-  /* 選択肢の色（アイコンのタイルの色：青・赤・緑・黄＋紫・水色） */
-  const OPT_C = ["#2f6bff", "#ff4d6d", "#1fae5b", "#f2a300", "#8b5cf6", "#12aecb"];
-  const LET = "ABCDEF";
-  const LADDER = [100, 200, 300, 500, 1000, 2000, 4000, 8000, 16000, 32000];
-  const SAFE = { 3: 1, 7: 1 };          /* 3問目・7問目は安全ライン（まちがえてもそこまでは残る） */
-  const FUSE = { short: [18, 30], mid: [28, 45], long: [40, 65] };
+  /* ══ 色 ══ */
+  const COLORS = ["#ff4d6d", "#2f9bff", "#18c37e", "#ffb81c", "#ff6fd0", "#ff8a3d", "#16cfe0", "#a98bff"];
+  const TEAMS = [{ nm: "レッド", c: "#ff4d6d" }, { nm: "ブルー", c: "#2f9bff" }, { nm: "グリーン", c: "#18c37e" }, { nm: "イエロー", c: "#ffb81c" }];
+  const LET = "ABCDEFGHIJKL";
 
-  /* ══ 設定（効果音）・音 ══ */
-  const OPT_KEY = "magiquiz_opt_v1";
-  const opt = (function () { try { return Object.assign({ se: true }, JSON.parse(localStorage.getItem(OPT_KEY) || "{}")); } catch (e) { return { se: true }; } })();
-  const saveOpt = () => { try { localStorage.setItem(OPT_KEY, JSON.stringify(opt)); } catch (e) {} };
-  let AC = null;
-  function ac() {
-    if (!opt.se) return null;
-    if (!AC) { try { AC = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) { AC = null; } }
-    if (AC && AC.state === "suspended") { try { AC.resume(); } catch (e) {} }
-    return AC;
-  }
-  function tone(f, t0, dur, type, vol, f2) {
-    const a = ac(); if (!a) return;
-    const o = a.createOscillator(), g = a.createGain(), now = a.currentTime + (t0 || 0);
-    o.type = type || "sine"; o.frequency.setValueAtTime(f, now);
-    if (f2) o.frequency.exponentialRampToValueAtTime(f2, now + dur);
-    g.gain.setValueAtTime(0.0001, now); g.gain.exponentialRampToValueAtTime(vol || 0.08, now + 0.012); g.gain.exponentialRampToValueAtTime(0.0001, now + dur);
-    o.connect(g); g.connect(a.destination); o.start(now); o.stop(now + dur + 0.05);
-  }
-  function noise(dur, vol) {
-    const a = ac(); if (!a) return;
-    const n = Math.floor(a.sampleRate * dur), b = a.createBuffer(1, n, a.sampleRate), d = b.getChannelData(0);
-    for (let i = 0; i < n; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / n, 2.2);
-    const s = a.createBufferSource(), f = a.createBiquadFilter(), g = a.createGain();
-    f.type = "lowpass"; f.frequency.value = 900; g.gain.value = vol || 0.3;
-    s.buffer = b; s.connect(f); f.connect(g); g.connect(a.destination); s.start();
-  }
-  function sfx(k) {
-    if (!opt.se) return;
-    switch (k) {
-      case "tap": tone(660, 0, 0.06, "triangle", 0.045); break;
-      case "sel": tone(540, 0, 0.07, "triangle", 0.06); tone(810, 0.05, 0.08, "triangle", 0.05); break;
-      case "final": for (let i = 0; i < 9; i++) tone(120 + i * 9, i * 0.13, 0.11, "square", 0.035); break;
-      case "ok": [523, 659, 784, 1046].forEach((f, i) => tone(f, i * 0.07, 0.2, "triangle", 0.085)); break;
-      case "ng": tone(233, 0, 0.42, "sawtooth", 0.055, 130); break;
-      case "tick": tone(1650, 0, 0.028, "square", 0.022); break;
-      case "boom": noise(1.1, 0.42); tone(95, 0, 0.7, "sine", 0.28, 38); break;
-      case "pass": tone(420, 0, 0.14, "sine", 0.06, 900); break;
-      case "life": tone(880, 0, 0.12, "sine", 0.06); tone(1320, 0.08, 0.15, "sine", 0.05); break;
-      case "win": [523, 659, 784, 1046, 784, 1046, 1318].forEach((f, i) => tone(f, i * 0.11, 0.24, "triangle", 0.085)); break;
-      case "turn": tone(392, 0, 0.12, "triangle", 0.06); tone(587, 0.1, 0.18, "triangle", 0.06); break;
-    }
-  }
-  function paintSe() { const b = $("#seBtn"); if (b) b.innerHTML = ic(opt.se ? "seon" : "seoff"); }
+  const MODES = {
+    bomb: { nm: "見えない爆弾", en: "HIDDEN BOMB", icon: "bomb", c: "#ff5a3c", tag: "どこで爆発するか、だれにも見えない", min: 2,
+      d: "姿の見えない爆弾を<b>交互に</b>回すサバイバル。正解すれば次の人へ、まちがえたらもう1問。爆発した人はライフ −1。", pl: "2〜8人", tm: "10〜30分" },
+    /* ★★ 2026-11-05 ご指定「早押しモードも後回しでよい」→ off:true で画面に出さない（作りかけ・試験はまだ。出すときは off を外して全部試す） */
+    rush: { off: true, nm: "早押しバトル", en: "BUZZER BATTLE", icon: "buzzer", c: "#f0509a", tag: "わかった瞬間に押せ", min: 2,
+      d: "問題文が1文字ずつ出ます。わかった人が<b>自分のブザー</b>を押して答える早い者勝ち。お手つきはライフ −1。", pl: "2〜8人", tm: "5〜15分" },
+    tower: { nm: "クイズタワー", en: "QUIZ TOWER", icon: "tower", c: "#27b4ff", tag: "10階のてっぺんをめざせ", min: 1,
+      d: "<b>1問ずつ交互に</b>、自分のタワーを登る。上の階ほど高得点。まちがえるとチェックポイントまで転落。やめどきも作戦のうち。", pl: "1〜8人", tm: "10〜20分" },
+    score: { nm: "スコアアタック", en: "SCORE ATTACK", icon: "stopw", c: "#ffb81c", tag: "速く、正確に", min: 1,
+      d: "全員が同じ数の問題に<b>交互に</b>挑戦。速く答えるほど高得点、連続正解でボーナス。ひとり練習にもおすすめ。", pl: "1〜8人", tm: "5〜15分" },
+  };
 
-  /* ══ 画面・シート・トースト・紙ふぶき ══ */
+  const modeIds = () => Object.keys(MODES).filter((k) => !MODES[k].off);
+
+  /* ══ 画面・シート・トースト ══ */
   function show(id) {
     $$(".scr").forEach((s) => s.classList.toggle("on", s.id === id));
     document.body.dataset.scr = id;
     const s = $("#" + id); if (s) s.scrollTop = 0;
   }
-  function sheet(html, cls) {
-    const sh = $("#sheet"); sh.className = "sheet" + (cls ? " " + cls : ""); sh.innerHTML = html; paintIcons(sh);
-    $("#ov").classList.add("on"); return sh;
+  const UI = { onClose: null, lock: false };
+  function sheet(html, o) {
+    o = o || {};
+    const sh = $("#sheet");
+    sh.className = "sheet" + (o.cls ? " " + o.cls : ""); sh.innerHTML = html; sh.scrollTop = 0;
+    $("#ov").classList.add("on");
+    UI.onClose = o.onClose || null; UI.lock = !!o.lock;
+    return sh;
   }
-  function closeSheet() { $("#ov").classList.remove("on"); if (UI.onClose) { const f = UI.onClose; UI.onClose = null; f(); } }
+  function closeSheet(force) {
+    if (!$("#ov").classList.contains("on")) return;
+    $("#ov").classList.remove("on");
+    UI.lock = false;
+    if (UI.onClose && force !== "silent") { const f = UI.onClose; UI.onClose = null; f(); } else UI.onClose = null;
+  }
+  const sheetOpen = () => $("#ov").classList.contains("on");
   let toastT = 0;
-  function toast(h, ms) { const t = $("#toast"); t.innerHTML = h; t.hidden = false; t.classList.remove("on"); void t.offsetWidth; t.classList.add("on"); clearTimeout(toastT); toastT = setTimeout(() => { t.classList.remove("on"); setTimeout(() => { t.hidden = true; }, 250); }, ms || 2200); }
-  function confetti(n) {
-    const fx = $("#fx"); if (!fx) return;
-    for (let i = 0; i < (n || 60); i++) {
-      const p = document.createElement("i");
-      p.style.left = Math.random() * 100 + "%"; p.style.background = OPT_C[i % OPT_C.length];
-      p.style.setProperty("--dx", (Math.random() - 0.5) * 160 + "px"); p.style.setProperty("--r", Math.random() * 720 - 360 + "deg");
-      p.style.animationDelay = Math.random() * 0.4 + "s"; p.style.animationDuration = 1.6 + Math.random() * 1.2 + "s";
-      fx.appendChild(p); setTimeout(() => p.remove(), 3400);
-    }
+  function toast(h, ms) {
+    const t = $("#toast"); t.innerHTML = h; t.hidden = false; t.classList.remove("on"); void t.offsetWidth; t.classList.add("on");
+    clearTimeout(toastT); toastT = setTimeout(() => { t.classList.remove("on"); setTimeout(() => { t.hidden = true; }, 260); }, ms || 2300);
   }
-  const UI = { onClose: null };
+  /* アバター：連携した人・本人はキャラの絵／ほかは名前の頭文字 */
+  function avatar(o, cls) {
+    const th = o.acc ? A.thumb(o.acc) : "", ch = o.icon ? ic(o.icon) : esc(String(o.name || "?").slice(0, 1));
+    return '<span class="av' + (cls ? " s-" + cls : "") + '" style="--c:' + (o.color || "#a98bff") + '"><i>' + ch + "</i>" + (th ? '<img src="' + esc(th) + '" alt="" loading="lazy" onerror="this.remove()">' : "") + "</span>";
+  }
 
-  /* ══ ① タイトル ══ */
+  /* ══ 黄色いブザーのボタン ══ */
+  const buzzBtn = (act, label, cls, attrs) => '<button class="buzz' + (cls ? " " + cls : "") + '" data-a="' + act + '"' + (attrs || "") + "><span>" + label + "</span></button>";
+
+  /* ══ ロゴ（アイコンの Q とブザーをそのまま動かせる形で） ══ */
+  const LOGO = '<svg class="lg" viewBox="100 80 1054 1050" role="img" aria-label="MagiQuiz"><defs>' +
+    '<linearGradient id="lgDome" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#ffe94f"/><stop offset=".78" stop-color="#ffe33d"/><stop offset="1" stop-color="#f6b525"/></linearGradient></defs>' +
+    '<g class="lg-spk"><path d="M166 272l66-44 74 144-20 16z"/><path d="M130 446l18-74 110 52-8 24z"/><path d="M1088 272l-66-44-74 144 20 16z"/><path d="M1124 446l-18-74-110 52 8 24z"/></g>' +
+    '<g class="lg-q"><circle cx="620" cy="365" r="200" fill="none" stroke="#fff" stroke-width="104"/><path d="M622 418l68-60 196 182-74 68z" fill="#fff" stroke="#6a07e0" stroke-width="10" stroke-linejoin="round" paint-order="stroke"/></g>' +
+    '<g class="lg-bz"><g class="lg-dome"><path d="M385 734c10-88 112-134 240-134s230 46 240 134z" fill="url(#lgDome)"/><path d="M385 734h480l-6 12H390z" fill="#f6a81e"/><ellipse cx="497" cy="646" rx="56" ry="13" fill="#fff6c2" transform="rotate(-11 497 646)"/></g>' +
+    '<path d="M330 728h594c14 0 22 6 26 18l-3 0 26 62H304l26-68c2-8 0-12 0-12z" fill="#fff"/></g>' +
+    '<text x="627" y="1042" text-anchor="middle" class="lg-tx"><tspan fill="#fff">Magi</tspan><tspan fill="#ffe33d">Quiz</tspan></text></svg>';
+
+  /* ══════════════════════════════════════════════════════════════
+     ① タイトル
+     ══════════════════════════════════════════════════════════════ */
   function openTitle() {
+    FX.ambOn(false);
     show("title");
-    const n = Q && Q.ok ? Q.all().length : 0;
-    $("#tSrc").innerHTML = n ? "出題：MagiChemLex の基礎セット（選択問題 <b>" + fmtN(n) + "</b>問）" : "問題を読みこめませんでした。通信のあるところで開き直してください";
-    paintSe();
+    FX.music("title");
+    const n = Q && Q.ok ? Q.all().length : 0, sv = MQ.Play ? MQ.Play.saved() : null, m = MODES[setup.mode];
+    const hasLast = !!setup.played;
+    $("#title").innerHTML =
+      '<a class="t-home" href="../index.html" aria-label="XEVARION へもどる">' + ic("back") + "<span>XEVARION</span></a>" +
+      '<button class="t-gear" data-a="opts" aria-label="設定">' + ic("gear") + "</button>" +
+      '<div class="t-main">' +
+        '<button class="t-logo" data-a="logo" aria-label="あそぶ">' + LOGO + "</button>" +
+        '<p class="t-tag">化学の基礎で、みんなでクイズバトル！</p>' +
+        '<div class="t-btns">' +
+          (sv ? '<button class="t-resume" data-a="resume"><b>つづきから</b><small>' + esc(MODES[sv.mode].nm) + "・" + esc(sv.who) + "</small></button>" : "") +
+          buzzBtn("start", "あそぶ", "lg") +
+          (hasLast ? '<button class="t-last" data-a="quick">' + ic("again") + "<span>前回と同じで始める<small>" + esc(m.nm) + "・" + seats().length + "人</small></span></button>" : "") +
+          '<div class="t-sub"><button data-a="rules">' + ic("book") + '<span>あそび方</span></button><button data-a="records">' + ic("trophy") + "<span>記録</span></button></div>" +
+        "</div>" +
+        '<p class="t-src">' + (n ? "出題：MagiChemLex 基礎セット1〜4 の改題 <b>" + fmtN(n) + "</b>問" : "問題を読みこめませんでした。通信のあるところで開き直してください") + "</p>" +
+      "</div>";
   }
 
-  /* ══ ② 準備 ══
-     MagiShift と同じ：人数・名前・🔗 紐づけ・前回の紐づけは「🔒 要確認」で引きつぎ（4桁パスワードで有効）。 */
-  const SETUP_KEY = "magiquiz_setup_v1";
+  /* ══════════════════════════════════════════════════════════════
+     ② 準備：① あそびかた ② メンバー ③ ルール
+     ══════════════════════════════════════════════════════════════ */
+  const SETUP_KEY = "magiquiz_setup_v2";
+  const blankSeat = (i) => ({ name: "プレイヤー" + (i + 1), link: null, owner: false, team: i % 2 });
   const setup = {
-    mode: "mil", team: false, nTeams: 2, n: 2,
-    all: COLORS.map((c, i) => ({ name: "プレイヤー" + (i + 1), team: i % 2, link: null })),   /* チームの色の名前とまぎれないように番号で */
-    sets: Q && Q.SETS ? Q.SETS.map((s) => s[0]) : [], fields: Q && Q.FIELDS ? Q.FIELDS.map((f) => f[0]) : [],
-    limit: 60, hearts: 3, fuse: "mid", order: "seat", restored: false,
+    mode: "bomb", team: false, nTeams: 2, n: 3, all: COLORS.map((c, i) => blankSeat(i)),
+    sets: Q && Q.SETS ? Q.SETS.map((s) => s[0]) : [], fields: Q && Q.FIELDS ? Q.FIELDS.map((f) => f[0]) : [], calc: true,
+    limit: "mid", fuse: "mid", hearts: 2, miss: 5, tmiss: 3, rounds: 10, items: true, played: false, rtarget: 5, rhearts: 3, rspeed: "mid",
   };
   function saveSetup() {
     try {
-      localStorage.setItem(SETUP_KEY, JSON.stringify({ v: 1, mode: setup.mode, team: setup.team, nTeams: setup.nTeams, n: setup.n, sets: setup.sets, fields: setup.fields,
-        limit: setup.limit, hearts: setup.hearts, fuse: setup.fuse, order: setup.order,
-        players: setup.all.map((p) => ({ name: p.name, team: p.team, link: p.link && p.link.uid ? { uid: p.link.uid, name: p.link.name, charFile: p.link.charFile || "", charId: p.link.charId || "" } : null })) }));
+      const o = {}; ["mode", "team", "nTeams", "n", "sets", "fields", "calc", "limit", "fuse", "hearts", "miss", "tmiss", "rounds", "items", "played", "rtarget", "rhearts", "rspeed"].forEach((k) => { o[k] = setup[k]; });
+      o.players = setup.all.map((p) => ({ name: p.name, owner: !!p.owner, link: p.link && p.link.uid ? { uid: p.link.uid, name: p.link.name, charFile: p.link.charFile || "", charId: p.link.charId || "" } : null }));
+      localStorage.setItem(SETUP_KEY, JSON.stringify(o));
     } catch (e) {}
   }
   function loadSetup() {
     try {
-      const d = JSON.parse(localStorage.getItem(SETUP_KEY) || "null"); if (!d) return;
-      if (d.mode === "mil" || d.mode === "bomb") setup.mode = d.mode;
+      let d = JSON.parse(localStorage.getItem(SETUP_KEY) || "null");
+      if (!d) {
+        /* 前の版の準備（名前と連携だけ引きつぐ） */
+        const o = JSON.parse(localStorage.getItem("magiquiz_setup_v1") || "null");
+        if (o) d = { n: o.n, players: o.players, team: o.team, nTeams: o.nTeams };
+      }
+      if (!d) return;
+      if (MODES[d.mode] && !MODES[d.mode].off) setup.mode = d.mode;
       setup.team = !!d.team;
       if (d.nTeams >= 2 && d.nTeams <= 4) setup.nTeams = d.nTeams;
       if (d.n >= 1 && d.n <= 8) setup.n = d.n;
@@ -168,81 +194,126 @@
       if (Array.isArray(d.fields) && d.fields.length) setup.fields = d.fields.filter((v) => Q.FIELDS.some((s) => s[0] === v));
       if (!setup.sets.length) setup.sets = Q.SETS.map((s) => s[0]);
       if (!setup.fields.length) setup.fields = Q.FIELDS.map((f) => f[0]);
-      if ([0, 30, 60].indexOf(d.limit) >= 0) setup.limit = d.limit;
+      if (d.calc === false) setup.calc = false;
+      if (Q.RULE.LIMIT[d.limit]) setup.limit = d.limit;
+      if (Q.RULE.FUSE[d.fuse]) setup.fuse = d.fuse;
       if ([1, 2, 3].indexOf(d.hearts) >= 0) setup.hearts = d.hearts;
-      if (FUSE[d.fuse]) setup.fuse = d.fuse;
-      if (d.order === "seat" || d.order === "rand") setup.order = d.order;
+      if ([0, 3, 5, 8].indexOf(d.miss) >= 0) setup.miss = d.miss;
+      if ([1, 2, 3].indexOf(d.tmiss) >= 0) setup.tmiss = d.tmiss;
+      if ([5, 10, 15].indexOf(d.rounds) >= 0) setup.rounds = d.rounds;
+      if ([3, 5, 7, 10].indexOf(d.rtarget) >= 0) setup.rtarget = d.rtarget;
+      if ([1, 2, 3].indexOf(d.rhearts) >= 0) setup.rhearts = d.rhearts;
+      if (Q.RULE.RUSH.read[d.rspeed]) setup.rspeed = d.rspeed;
+      if (d.items === false) setup.items = false;
+      setup.played = !!d.played;
       if (Array.isArray(d.players)) d.players.slice(0, 8).forEach((sp, i) => {
         const p = setup.all[i]; if (!sp) return;
-        if (sp.name) p.name = String(sp.name).slice(0, 6);
-        if (sp.team >= 0 && sp.team < 4) p.team = sp.team;
+        if (sp.name) p.name = String(sp.name).slice(0, 8);
+        p.owner = !!sp.owner;
         if (sp.link && sp.link.uid) p.link = { uid: sp.link.uid, name: sp.link.name, charFile: sp.link.charFile || "", charId: sp.link.charId || "", confirmed: false };
       });
-      setup.restored = true;
     } catch (e) {}
   }
   const seats = () => setup.all.slice(0, setup.n);
-  function avatarHTML(link, color, cls) {
-    const th = link && A && A.thumb ? A.thumb(link) : "";
-    return th ? '<img class="av' + (cls ? " " + cls : "") + '" src="' + esc(th) + '" alt="" style="--c:' + color + '" loading="lazy">' : "";
-  }
-  function markHTML(color, txt, cls) { return '<span class="mk' + (cls ? " " + cls : "") + '" style="--c:' + color + '">' + esc(txt || "") + "</span>"; }
-  function minPlayers() { return setup.mode === "bomb" || setup.team ? 2 : 1; }
-  function renderSetup() {
-    const MODES = [
-      ["mil", "crown", "ミリオネア", "1人（1チーム）ずつ<b>10問のはしご</b>に挑戦。正解するたびに pt が上がり、まちがえると安全ラインまで落ちます。ライフライン3つ。"],
-      ["bomb", "bomb", "ばくだん", "<b>いつ爆発するか分からない爆弾</b>を回します。正解したらとなりへ、まちがえたらもう1問。爆発したときに持っていたらハート −1。"],
-    ];
-    $("#segMode").innerHTML = MODES.map((m) => '<button class="mode ' + m[0] + (setup.mode === m[0] ? " on" : "") + '" data-a="setMode" data-v="' + m[0] + '"><span class="mt">' + ic(m[1]) + m[2] + "</span><small>" + m[3] + "</small></button>").join("");
-    $("#segTeam").innerHTML = [[false, "solo", "個人戦"], [true, "team", "チーム戦"]].map((t) => '<button class="' + (setup.team === t[0] ? "on" : "") + '" data-a="setTeam" data-v="' + (t[0] ? 1 : 0) + '">' + ic(t[1]) + t[2] + "</button>").join("");
-    $("#segTeams").hidden = !setup.team;
-    { const tn = $("#teamDrawNote"); if (tn) tn.hidden = !setup.team; }
-    $("#segTeams").innerHTML = setup.team ? [2, 3, 4].map((k) => '<button class="' + (setup.nTeams === k ? "on" : "") + '" data-a="setTeams" data-v="' + k + '"' + (k > Math.max(2, setup.n) ? " disabled" : "") + ">" + k + "チーム</button>").join("") : "";
-    const mn = minPlayers();
-    if (setup.n < mn) setup.n = mn;
-    if (setup.team && setup.nTeams > setup.n) setup.nTeams = Math.max(2, setup.n);
-    $("#segN").innerHTML = [1, 2, 3, 4, 5, 6, 7, 8].map((n) => '<button class="' + (n === setup.n ? "on" : "") + '" data-a="setN" data-v="' + n + '"' + (n < mn ? " disabled" : "") + ">" + n + "人</button>").join("");
-    $("#plist").innerHTML = seats().map((p, i) => {
-      const col = COLORS[i].c;
-      const linked = p.link && p.link.uid, ok = linked && p.link.confirmed !== false;
-      const btn = !linked ? '<button class="gl-link-btn" data-a="seatlink" data-i="' + i + '" title="XEVARIONアカウントを紐づけて賞金を受け取る">🔗</button>'
-        : ok ? '<button class="gl-link-btn on" data-a="seatlink" data-i="' + i + '" title="タップで紐づけを解除">✓ ' + esc(p.link.name) + "</button>"
-        : '<button class="gl-link-btn pending" data-a="seatlink" data-i="' + i + '" title="前回の紐づけ — タップして4桁パスワードで確認">🔒 ' + esc(p.link.name) + "（要確認）</button>";
-      /* ★★ 2026-10-24 ご指定「チーム分けは名前を入力してから抽選に」→ 席ごとのチームの札はやめた（「はじめる」で抽選） */
-      const tm = "";
-      return '<div class="prow" data-i="' + i + '" style="--c:' + col + ";animation-delay:" + (i * 0.035) + 's">' + markHTML(col, String(i + 1)) + (linked ? avatarHTML(p.link, col) : "") +
-        '<input class="pname-in" maxlength="6" value="' + esc(p.name) + '" aria-label="' + (i + 1) + '人目の名前">' + tm + btn + "</div>";
-    }).join("");
-    /* 出題範囲 */
-    const pc = (list, key, cnt) => list.map((s) => '<button class="chip' + (setup[key].indexOf(s[0]) >= 0 ? " on" : "") + '" data-a="chip" data-k="' + key + '" data-v="' + s[0] + '">' + esc(s[1]) + "<small>" + cnt(s[0]) + "</small></button>").join("");
-    $("#chipSets").innerHTML = pc(Q.SETS, "sets", (v) => Q.count([v], setup.fields));
-    $("#chipFields").innerHTML = pc(Q.FIELDS, "fields", (v) => Q.count(setup.sets, [v]));
-    const n = Q.count(setup.sets, setup.fields);
-    $("#poolInfo").innerHTML = n >= 20 ? "この範囲から <b>" + n + "問</b>（答えるたびに正解とポイントを表示）" : '<span class="warn">この範囲は ' + n + "問しかありません。範囲を広げてください（20問以上）</span>";
-    /* 遊び方ごとのルール */
-    $("#optTitle").textContent = setup.mode === "mil" ? "ミリオネアのルール" : "ばくだんのルール";
-    const seg = (key, list) => '<div class="seg sm">' + list.map((o) => '<button class="' + (setup[key] === o[0] ? "on" : "") + '" data-a="setOpt" data-k="' + key + '" data-v="' + o[0] + '">' + o[1] + "</button>").join("") + "</div>";
-    const ordRow = '<div class="orow"><b>' + ic("shuffle") + "順番</b>" + seg("order", [["seat", "席の順"], ["rand", "ランダム"]]) + "</div>";
-    $("#modeOpts").innerHTML = setup.mode === "mil"
-      ? '<div class="orow"><b>' + ic("timer") + "1問の制限時間</b>" + seg("limit", [[0, "なし"], [30, "30秒"], [60, "60秒"]]) + "</div>" + ordRow +
-        '<p class="note">はしご：' + LADDER.map((v, i) => (SAFE[i + 1] ? "<b>★" + fmtN(v) + "</b>" : fmtN(v))).join(" → ") + " pt（★＝安全ライン）</p>"
-      : '<div class="orow"><b>' + ic("heart") + "ハート</b>" + seg("hearts", [[1, "1つ"], [2, "2つ"], [3, "3つ"]]) + "</div>" +
-        '<div class="orow"><b>' + ic("bomb") + "爆発までの時間</b>" + seg("fuse", [["short", "みじかめ"], ["mid", "ふつう"], ["long", "ながめ"]]) + "</div>" + ordRow +
-        '<p class="note">爆発までの時間はラウンドごとに変わり、だれにも分かりません（' + FUSE[setup.fuse][0] + "〜" + FUSE[setup.fuse][1] + "秒）。</p>";
-    $("#beginTx").textContent = setup.mode === "mil" ? "ミリオネアをはじめる" : "ばくだんをはじめる";
-    paintIcons($("#setup"));
-  }
-  function openSetup() {
-    renderSetup(); show("setup");
-    if (setup.restored && !openSetup._told && seats().some((p) => p.link && p.link.uid && p.link.confirmed === false)) {
-      openSetup._told = true;
-      setTimeout(() => toast("🔗 前回の紐づけを引きつぎました。<b>🔒 要確認</b>を押してパスワードを確認してください", 3600), 450);
-    }
+  const ST = { step: 1 };
+  const minSeats = () => (setup.team ? 2 : MODES[setup.mode].min);
+
+  function openSetup(step) {
+    ST.step = step || 1;
+    show("setup");
+    FX.music("title");
+    renderSetup();
     refreshProfiles();
+  }
+  const STEP_NM = ["あそびかた", "メンバー", "ルール"];
+  function renderSetup() {
+    if (setup.n < minSeats()) setup.n = minSeats();
+    const s = ST.step, m = MODES[setup.mode];
+    const head = '<div class="su-top"><button class="su-back" data-a="suBack" aria-label="もどる">' + ic("back") + "</button>" +
+      '<ol class="su-steps">' + STEP_NM.map((t, i) => '<li class="' + (i + 1 === s ? "on" : i + 1 < s ? "done" : "") + '"><button data-a="suGo" data-v="' + (i + 1) + '"><i>' + (i + 1 < s ? ic("check") : i + 1) + "</i><span>" + t + "</span></button></li>").join("") + "</ol>" +
+      '<button class="su-help" data-a="rules" aria-label="あそび方">' + ic("help") + "</button></div>";
+    let body = "", foot = "";
+    if (s === 1) {
+      body = '<h2 class="su-h">どれであそぶ？</h2><div class="md-list">' + modeIds().map((id) => {
+        const v = MODES[id];
+        return '<button class="md' + (setup.mode === id ? " on" : "") + '" data-a="setMode" data-v="' + id + '" style="--c:' + v.c + '"><span class="md-ic">' + ic(v.icon) + '</span><span class="md-t"><small>' + v.en + "</small><b>" + v.nm + "</b><em>" + v.tag + "</em></span>" +
+          '<span class="md-d">' + v.d + '</span><span class="md-m"><i>' + ic("people") + v.pl + "</i><i>" + ic("timer") + v.tm + "</i></span></button>";
+      }).join("") + "</div>";
+    } else if (s === 2) {
+      body = stepMembers();
+      foot = buzzBtn("suNext", "つぎへ（ルール）", "wide");
+    } else {
+      body = stepRules();
+      const n = Q.count(setup), ok = n >= 10;
+      foot = '<p class="su-sum">' + esc(m.nm) + "・" + (setup.team ? setup.nTeams + "チーム " : "") + setup.n + "人・<b>" + n + "問</b>から出題</p>" + buzzBtn("begin", "ゲームスタート", "wide" + (ok ? "" : " off"));
+    }
+    $("#setup").innerHTML = head + '<div class="su-body">' + body + "</div>" + (foot ? '<div class="su-foot">' + foot + "</div>" : "");
+  }
+  /* ── メンバー ── */
+  function stepMembers() {
+    const me = A.me(), mn = minSeats();
+    const rows = seats().map((p, i) => {
+      const col = COLORS[i], acc = p.owner ? me : p.link;
+      const linked = !p.owner && p.link && p.link.uid, ok = linked && p.link.confirmed !== false;
+      const lk = p.owner ? '<span class="st-lk me">' + ic("check") + "<span>XEVA 受取</span></span>"
+        : !linked ? '<button class="st-lk" data-a="seatLink" data-i="' + i + '">' + ic("link") + "<span>連携</span></button>"
+        : ok ? '<button class="st-lk on" data-a="seatLink" data-i="' + i + '">' + ic("check") + "<span>" + esc(p.link.name) + "</span></button>"
+        : '<button class="st-lk wait" data-a="seatLink" data-i="' + i + '">' + ic("lock") + "<span>" + esc(p.link.name) + "（要確認）</span></button>";
+      return '<div class="st" data-i="' + i + '" style="--c:' + col + '">' + avatar({ name: p.name, color: col, acc }, "md") +
+        '<div class="st-m"><input class="st-nm" maxlength="8" value="' + esc(p.name) + '" aria-label="' + (i + 1) + '人目の名前" enterkeyhint="done"' + (p.owner ? " readonly" : "") + ">" +
+        '<div class="st-row">' + lk +
+        (me ? '<label class="st-own' + (p.owner ? " on" : "") + '"><input type="checkbox" data-c="own" data-i="' + i + '"' + (p.owner ? " checked" : "") + "><i>" + ic("check") + "</i><span>この端末の本人</span></label>" : "") + "</div></div>" +
+        (setup.n > mn ? '<button class="st-x" data-a="seatDel" data-i="' + i + '" aria-label="この席を消す">' + ic("x") + "</button>" : "") + "</div>";
+    }).join("");
+    const k = Math.min(4, setup.n);
+    return '<h2 class="su-h">だれが参加する？</h2>' +
+      '<div class="su-seg"><button class="' + (setup.team ? "" : "on") + '" data-a="setTeam" data-v="0">' + ic("solo") + "個人戦</button><button class=\"" + (setup.team ? "on" : "") + '" data-a="setTeam" data-v="1">' + ic("team") + "チーム戦</button></div>" +
+      (setup.team ? '<div class="su-seg sm">' + [2, 3, 4].map((v) => '<button class="' + (setup.nTeams === v ? "on" : "") + '" data-a="setTeams" data-v="' + v + '"' + (v > k ? " disabled" : "") + ">" + v + "チーム</button>").join("") + "</div>" +
+        '<p class="su-note">チームは全員そろってから<b>くじ引き</b>で決めます（チームで相談して答えます）。</p>' : "") +
+      '<div class="st-list">' + rows + "</div>" +
+      (setup.n < 8 ? '<button class="st-add" data-a="seatAdd">' + ic("plus") + "プレイヤーを追加（" + setup.n + "/8）</button>" : "") +
+      '<div class="su-tip">' + ic("gift") + "<div><b>順位で XEVA がもらえます</b>（1位 250〜5位 50）。「この端末の本人」にチェックすると<b>オフラインでも</b>この端末に入ります。ほかの人はアカウント連携すると本人のアカウントに届きます。</div></div>";
+  }
+  /* ── ルール ── */
+  function segRow(key, label, icon, list, note) {
+    return '<div class="ru"><div class="ru-l">' + ic(icon) + "<b>" + label + "</b></div><div class=\"su-seg sm\">" + list.map((o) => '<button class="' + (String(setup[key]) === String(o[0]) ? "on" : "") + '" data-a="setOpt" data-k="' + key + '" data-v="' + o[0] + '">' + o[1] + "</button>").join("") + "</div>" + (note ? '<p class="ru-n">' + note + "</p>" : "") + "</div>";
+  }
+  function stepRules() {
+    const m = setup.mode, L = Q.RULE.LIMIT[setup.limit], F = Q.RULE.FUSE[setup.fuse];
+    const chip = (list, key, cnt) => list.map((s) => '<button class="ch' + (setup[key].indexOf(s[0]) >= 0 ? " on" : "") + '" data-a="chip" data-k="' + key + '" data-v="' + s[0] + '">' + esc(s[1]) + "<small>" + cnt(s[0]) + "</small></button>").join("");
+    const nS = (v) => Q.count({ sets: [v], fields: setup.fields, calc: setup.calc }), nF = (v) => Q.count({ sets: setup.sets, fields: [v], calc: setup.calc });
+    const n = Q.count(setup), calcN = Q.count({ sets: setup.sets, fields: setup.fields, calc: true }) - Q.count({ sets: setup.sets, fields: setup.fields, calc: false });
+    let html = '<h2 class="su-h">' + esc(MODES[m].nm) + " のルール</h2>";
+    if (m === "bomb") {
+      html += '<section class="ru-c">' +
+        segRow("fuse", "爆弾の時間", "bomb", Object.keys(Q.RULE.FUSE).map((k) => [k, Q.RULE.FUSE[k].nm]), "答えている間だけ進みます。" + mmss(F.r[0]) + "〜" + mmss(F.r[1]) + " のどこかで爆発（だれにも見えません）。") +
+        segRow("hearts", "ライフ", "heart", [[1, "1"], [2, "2"], [3, "3"]], "爆発すると −1。0 でアウト。") +
+        segRow("miss", "ミスの上限", "x", [[3, "3回"], [5, "5回"], [8, "8回"], [0, "なし"]], "まちがえすぎるとライフ −1（時間切れもミス）。") + "</section>";
+    } else if (m === "tower") {
+      html += '<section class="ru-c">' + segRow("tmiss", "ライフ", "heart", [[1, "1"], [2, "2"], [3, "3"]], "まちがえると −1 して、チェックポイント（3階・7階）まで転落。0 でそのタワーは終わり。") + "</section>";
+    } else if (m === "rush") {
+      html += '<section class="ru-c">' +
+        segRow("rtarget", "先に何問正解で勝ち", "trophy", [[3, "3問"], [5, "5問"], [7, "7問"], [10, "10問"]]) +
+        segRow("rhearts", "ライフ", "heart", [[1, "1"], [2, "2"], [3, "3"]], "お手つき（まちがい・時間切れ）で −1。0 でアウト。") +
+        segRow("rspeed", "問題文が出る速さ", "book", Object.keys(Q.RULE.RUSH.read).map((k) => [k, Q.RULE.RUSH.read[k].nm])) + "</section>";
+    } else {
+      html += '<section class="ru-c">' + segRow("rounds", "1人あたりの問題数", "list", [[5, "5問"], [10, "10問"], [15, "15問"]], "全部で " + (setup.rounds * Math.max(1, setup.team ? setup.nTeams : setup.n)) + " 問くらい。") + "</section>";
+    }
+    const RL = Q.RULE.RUSH.limit[setup.limit] || Q.RULE.RUSH.limit.mid;
+    const limNote = m === "rush" ? (RL[0] ? "ブザーを押してから 約" + RL[0] + "秒・<b>計算問題 " + RL[1] + "秒</b>" : "押してからの時間制限なし")
+      : L.n ? "ふつうの問題 約" + L.n + "秒・<b>計算問題 " + L.c + "秒</b>（長い問題は少しのびます）" : "時間制限なし" + (m === "bomb" ? "（爆弾の時間だけ進みます）" : "");
+    html += '<section class="ru-c">' + segRow("limit", m === "rush" ? "答える時間" : "1回の解答時間", "timer", Object.keys(Q.RULE.LIMIT).map((k) => [k, Q.RULE.LIMIT[k].nm]), limNote) +
+      (m === "bomb" || m === "tower" ? segRow("items", "アイテム", "star", [[true, "あり"], [false, "なし"]], m === "bomb" ? "しぼる・ヒント・チェンジを1回ずつ" : "しぼる・ヒント・みんなの声を1回ずつ") : "") +
+      (m === "rush" ? "" : '<p class="ru-n">順番は、試合のはじめにくじ引きで決めます。</p>') + "</section>";
+    html += '<section class="ru-c"><div class="ru"><div class="ru-l">' + ic("book") + "<b>出題範囲</b><em>MagiChemLex 基礎セットの改題</em></div>" +
+      '<div class="ch-w">' + chip(Q.SETS, "sets", nS) + "</div>" + '<div class="ch-w">' + chip(Q.FIELDS, "fields", nF) + "</div></div>" +
+      segRow("calc", "計算問題", "calc", [[true, "出す（" + calcN + "問）"], [false, "出さない"]], "計算問題は MagiChemLex で指定されているもの。") +
+      '<p class="ru-pool' + (n >= 10 ? "" : " bad") + '">' + (n >= 10 ? "この範囲から <b>" + n + "問</b>" : "この範囲は " + n + "問だけです。10問以上になるように広げてください") + "</p></section>";
+    return html;
   }
   let profDone = false;
   function refreshProfiles() {
-    if (profDone || !A || !A.refresh) return;
+    if (profDone) return;
     profDone = true;
     const jobs = setup.all.filter((p) => p.link && p.link.uid).map((p) => A.refresh(p.link).then((v) => {
       if (!v || !p.link) return false;
@@ -250,614 +321,246 @@
       p.link.name = v.name || p.link.name; p.link.charFile = v.charFile || ""; p.link.charId = v.charId || "";
       return ch;
     }));
-    if (!jobs.length) return;
-    Promise.all(jobs).then((rs) => { if (!rs.some(Boolean)) return; saveSetup(); if ($("#setup").classList.contains("on")) renderSetup(); });
+    if (jobs.length) Promise.all(jobs).then((rs) => { if (!rs.some(Boolean)) return; saveSetup(); if ($("#setup").classList.contains("on") && ST.step === 2) renderSetup(); });
   }
-  function seatLink(i) {
-    const p = setup.all[i];
-    if (!window.GameLink) { toast("紐づけ機能を準備中です…"); return; }
-    if (navigator.onLine === false) { toast("オフライン中は紐づけできません"); return; }
-    if (p.link && p.link.uid && p.link.confirmed === false) {
-      GameLink.confirm(p.link).then((res) => {
-        if (res && res.remove) { p.link = null; renderSetup(); saveSetup(); toast("紐づけを解除しました"); return; }
-        if (res && res.uid) { p.link = { uid: res.uid, name: res.name, charFile: res.charFile || "", charId: res.charId || "", confirmed: true }; renderSetup(); saveSetup(); toast("🔗 " + esc(res.name) + " の紐づけを確認しました"); }
-      });
-      return;
-    }
-    if (p.link && p.link.uid) { p.link = null; renderSetup(); saveSetup(); toast("紐づけを解除しました"); return; }
-    GameLink.link(p.name).then((res) => {
-      if (!res || !res.uid) return;
-      if (setup.all.some((q, j) => j !== i && j < setup.n && q.link && q.link.uid === res.uid)) { toast("そのアカウントはもう使われています"); return; }
-      p.link = { uid: res.uid, name: res.name, charFile: res.charFile || "", charId: res.charId || "", confirmed: true };
-      if (A && A.remember) A.remember(p.link);
-      renderSetup(); saveSetup(); toast("🔗 " + esc(res.name) + " を紐づけました");
-    });
+  function setOwner(i, on) {
+    const me = A.me();
+    if (!me) return;
+    setup.all.forEach((p) => { if (p.owner) { p.owner = false; if (p.name === String(me.name).slice(0, 8)) p.name = "プレイヤー" + (setup.all.indexOf(p) + 1); } });
+    if (on) { const p = setup.all[i]; p.owner = true; p.link = null; p.name = String(me.name).slice(0, 8); }
+    FX.sfx("sel"); saveSetup(); renderSetup();
   }
   document.addEventListener("input", (e) => {
-    if (!e.target.matches || !e.target.matches(".pname-in")) return;
-    const i = +e.target.closest(".prow").dataset.i;
-    setup.all[i].name = e.target.value.slice(0, 6);
-    saveSetup();
+    const t = e.target;
+    if (t.matches && t.matches(".st-nm")) { const i = +t.closest(".st").dataset.i; setup.all[i].name = t.value.slice(0, 8); saveSetup(); const av = t.closest(".st").querySelector(".av i"); if (av) av.textContent = t.value.slice(0, 1) || "?"; }
+  });
+  document.addEventListener("change", (e) => {
+    const t = e.target;
+    if (t.dataset && t.dataset.c === "own") setOwner(+t.dataset.i, t.checked);
   });
 
-  /* ══ 試合の土台 ══
-     unit＝答える単位（個人戦＝1人・チーム戦＝1チーム）。members＝そのメンバー（紐づけは1人ずつ） */
-  let G = null;
-  function makeUnits() {
-    const ps = seats().map((p, i) => ({ name: (p.name || "プレイヤー" + (i + 1)).slice(0, 6), link: p.link && p.link.uid && p.link.confirmed !== false ? p.link : null, color: COLORS[i].c, i }));
-    let units;
-    if (!setup.team) units = ps.map((p) => ({ name: p.name, color: p.color, members: [p] }));
-    else {
-      units = TEAMS.slice(0, setup.nTeams).map((t) => ({ name: t.nm, color: t.c, members: [] }));
-      seats().forEach((p, i) => units[Math.min(p.team, setup.nTeams - 1)].members.push(ps[i]));
-      units = units.filter((u) => u.members.length);
+  /* ══ アカウント連携（検索 → 4桁）══ */
+  const LK = { i: 0, step: "search", rows: [], q: "", hit: null, pin: "", msg: "", busy: false, confirm: false };
+  function openLink(i) {
+    const p = setup.all[i];
+    if (navigator.onLine === false) { toast("オフライン中は連携できません。自分の端末なら「この端末の本人」にチェックするだけで XEVA が入ります", 3400); return; }
+    if (p.link && p.link.uid && p.link.confirmed !== false) {
+      sheet('<h3 class="sh-t">' + ic("link") + esc(p.link.name) + "</h3><p class=\"sh-p\">連携を解除しますか？</p><div class=\"sh-b\"><button class=\"btn danger\" data-a=\"lkOff\" data-i=\"" + i + '">解除する</button><button class="btn" data-a="close">そのまま</button></div>');
+      return;
     }
-    units.forEach((u, k) => Object.assign(u, { k, score: 0, ok: 0, n: 0, lives: setup.hearts, out: false, outAt: 0, used: {}, reach: 0 }));
-    if (setup.order === "rand") for (let i = units.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [units[i], units[j]] = [units[j], units[i]]; }
-    return units;
+    Object.assign(LK, { i, step: "search", rows: [], q: p.name && !/^プレイヤー\d$/.test(p.name) ? p.name : "", hit: null, pin: "", msg: "", busy: false, confirm: false });
+    if (p.link && p.link.uid) { LK.step = "pin"; LK.hit = p.link; LK.confirm = true; }
+    paintLink();
   }
-  function begin() {
-    if (!Q || !Q.ok) { toast("問題を読みこめませんでした"); return; }
-    const pool = Q.pool(setup.sets, setup.fields);
-    if (pool.length < 20) { toast("出題範囲の問題が少なすぎます（20問以上にしてください）"); return; }
-    if (setup.mode === "bomb" && (setup.team ? 2 : setup.n) < 2) { toast("ばくだんは2人以上で遊べます"); return; }
-    /* ★★ 2026-10-24 チーム戦は、名前を入れたあとの「はじめる」で<b>チームを抽選</b>（ご指定）→ 決まったら beginGo */
-    if (setup.team) { teamDraw(); return; }
-    beginGo();
+  function lkRow(r, k) {
+    return '<button class="lk-r" data-a="lkPick" data-k="' + k + '">' + avatar({ name: r.name, acc: r, color: "#a98bff" }, "sm") + "<b>" + esc(r.name) + "</b>" + ic("next") + "</button>";
   }
-  /* チームの抽選：席をまぜて、チームの人数がなるべく同じになるように順に配る（2〜4チーム） */
-  function teamDraw() {
+  function paintLink() {
+    const recent = A.recent().filter((r) => !setup.all.some((p) => p.link && p.link.uid === r.uid));
+    let html;
+    if (LK.step === "search") {
+      html = '<h3 class="sh-t">' + ic("link") + "アカウント連携</h3><p class=\"sh-p\">順位の XEVA が、その人の XEVARION アカウントに届きます。</p>" +
+        '<div class="lk-s"><input id="lkQ" type="search" placeholder="表示名で検索" value="' + esc(LK.q) + '" maxlength="20" autocomplete="off" enterkeyhint="search"><button class="btn pri" data-a="lkSearch"' + (LK.busy ? " disabled" : "") + ">" + (LK.busy ? "検索中…" : "検索") + "</button></div>" +
+        (LK.msg ? '<p class="lk-msg">' + esc(LK.msg) + "</p>" : "") +
+        (LK.rows.length ? '<div class="lk-l">' + LK.rows.map((r, k) => lkRow(r, "r" + k)).join("") + "</div>" : "") +
+        (!LK.rows.length && recent.length ? '<p class="lk-h">この端末で連携したことのある人</p><div class="lk-l">' + recent.slice(0, 5).map((r, k) => lkRow(r, "h" + k)).join("") + "</div>" : "") +
+        '<div class="sh-b"><button class="btn" data-a="close">とじる</button></div>';
+    } else {
+      const dots = [0, 1, 2, 3].map((k) => '<i class="' + (k < LK.pin.length ? "on" : "") + '"></i>').join("");
+      const keys = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "", "0", "bs"];
+      html = '<div class="lk-who">' + avatar({ name: LK.hit.name, acc: LK.hit, color: "#a98bff" }, "md") + "<div><b>" + esc(LK.hit.name) + "</b><small>" + (LK.confirm ? "前回の連携を引きつぎます" : "このアカウントに連携します") + "</small></div></div>" +
+        '<p class="sh-p center">4桁のパスワードを入力</p><div class="lk-dots' + (LK.msg ? " bad" : "") + '">' + dots + "</div>" +
+        '<p class="lk-msg center">' + esc(LK.msg || " ") + "</p>" +
+        '<div class="lk-pad">' + keys.map((k) => (k === "" ? "<span></span>" : '<button data-a="lkKey" data-v="' + k + '"' + (LK.busy ? " disabled" : "") + ">" + (k === "bs" ? ic("back") : k) + "</button>")).join("") + "</div>" +
+        '<div class="sh-b">' + (LK.confirm ? '<button class="btn danger" data-a="lkOff" data-i="' + LK.i + '">連携を解除</button>' : '<button class="btn" data-a="lkBack">検索にもどる</button>') + '<button class="btn" data-a="close">やめる</button></div>';
+    }
+    if (sheetOpen() && $("#sheet").classList.contains("lk")) { const sh = $("#sheet"); sh.innerHTML = html; } else sheet(html, { cls: "lk" });
+    const q = $("#lkQ");
+    if (q) {
+      q.addEventListener("input", () => { LK.q = q.value; });
+      q.addEventListener("keydown", (e) => { if (e.key === "Enter") { e.preventDefault(); lkSearch(); } });
+    }
+  }
+  async function lkSearch() {
+    const nm = String(LK.q || "").trim();
+    if (!nm) { LK.msg = "表示名を入力してください"; paintLink(); return; }
+    LK.busy = true; LK.msg = ""; paintLink();
+    const r = await A.search(nm);
+    LK.busy = false;
+    if (r.error) LK.msg = "通信できませんでした";
+    else { LK.rows = r.rows || []; if (!LK.rows.length) LK.msg = "その名前のアカウントが見つかりません"; }
+    paintLink();
+  }
+  function lkPick(k) {
+    const list = k[0] === "r" ? LK.rows : A.recent().filter((r) => !setup.all.some((p) => p.link && p.link.uid === r.uid));
+    const r = list[+k.slice(1)]; if (!r) return;
+    if (("hasPw" in r || "gamePwHash" in r) && !r.gamePwHash && !r.hasPw) { LK.msg = "このアカウントは4桁パスワードが未設定です（ホームの設定で決められます）"; paintLink(); return; }
+    const me = A.me();
+    if (me && me.uid && r.uid === me.uid) { LK.msg = "自分のアカウントは「この端末の本人」にチェックしてください"; paintLink(); return; }
+    if (setup.all.some((p, j) => j !== LK.i && j < setup.n && p.link && p.link.uid === r.uid)) { LK.msg = "そのアカウントはほかの席で使われています"; paintLink(); return; }
+    LK.hit = { uid: r.uid, name: r.name, charFile: r.charFile || "", charId: r.charId || "" }; LK.step = "pin"; LK.pin = ""; LK.msg = ""; paintLink();
+  }
+  async function lkKey(v) {
+    if (LK.busy) return;
+    if (v === "bs") LK.pin = LK.pin.slice(0, -1); else if (LK.pin.length < 4) LK.pin += v;
+    LK.msg = ""; FX.sfx("tap");
+    paintLink();
+    if (LK.pin.length < 4) return;
+    LK.busy = true; paintLink();
+    const r = await A.verify(LK.hit.uid, LK.pin);
+    LK.busy = false; LK.pin = "";
+    if (r.error) { LK.msg = "通信できませんでした"; paintLink(); return; }
+    if (!r.ok) { LK.msg = "パスワードが正しくありません"; FX.sfx("ng"); paintLink(); return; }
+    const p = setup.all[LK.i];
+    p.link = Object.assign({}, LK.hit, { confirmed: true }); p.owner = false;
+    if (/^プレイヤー\d$/.test(p.name) || !p.name) p.name = String(LK.hit.name).slice(0, 8);
+    A.remember(p.link); saveSetup(); closeSheet(); renderSetup();
+    FX.sfx("ok"); toast("🔗 " + esc(LK.hit.name) + " を連携しました");
+  }
+
+  /* ══ チーム抽選（くじ引き） ══ */
+  function teamDraw(go) {
     const ps = seats(), k = Math.max(2, Math.min(setup.nTeams, ps.length));
     const ix = ps.map((p, i) => i);
     for (let i = ix.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [ix[i], ix[j]] = [ix[j], ix[i]]; }
     ix.forEach((pi, n) => { setup.all[pi].team = n % k; });
-    saveSetup();
-    sfx("sel");
+    FX.sfx("drum");
     let delay = 0;
     sheet('<h3 class="sh-t center">' + ic("shuffle") + "チーム抽選</h3>" +
-      '<p class="sh-p center">' + ps.length + "人を " + k + "チームに分けました</p>" +
-      '<div class="tdraw">' + TEAMS.slice(0, k).map((t, ti) => '<div class="tdt" style="--c:' + t.c + '"><b>' + esc(t.nm) + "</b>" +
-        ps.map((p, i) => ({ p, i })).filter((o) => setup.all[o.i].team === ti).map((o) => '<span style="animation-delay:' + ((delay++) * 0.12).toFixed(2) + 's">' + esc((o.p.name || "プレイヤー" + (o.i + 1)).slice(0, 6)) + "</span>").join("") + "</div>").join("") + "</div>" +
-      '<div class="sh-b"><button class="btn pri big" data-a="tdGo">' + ic("check") + 'このチームではじめる</button><button class="btn" data-a="tdAgain">' + ic("shuffle") + "もう一度抽選</button></div>", "tdsh");
-  }
-  function beginGo() {
-    if (!Q || !Q.ok) return;
-    const pool = Q.pool(setup.sets, setup.fields);
-    saveSetup();
-    G = { mode: setup.mode, team: setup.team, units: makeUnits(), pool, used: new Set(), log: [], cur: 0, outN: 0, done: false, reported: false, t0: Date.now() };
-    if (G.mode === "bomb" && G.units.length < 2) { toast("ばくだんは2つ以上の席（チーム）で遊べます"); G = null; return; }
-    if (G.mode === "mil") milStart(); else bombStart();
-  }
-  const curU = () => G.units[G.cur];
-  const unitNames = (u) => (G.team ? u.members.map((m) => m.name).join("・") : "");
-  function unitBadge(u, cls) {
-    const m = u.members[0], av = !G.team && m.link ? avatarHTML(m.link, u.color, "sm") : "";
-    return '<span class="ub' + (cls ? " " + cls : "") + '" style="--c:' + u.color + '">' + (av || markHTML(u.color, G.team ? "" : String(m.i + 1), "sm")) + "<b>" + esc(u.name) + "</b></span>";
+      '<div class="td">' + TEAMS.slice(0, k).map((t, ti) => '<div class="td-t" style="--c:' + t.c + '"><b>' + t.nm + "</b>" +
+        ps.map((p, i) => ({ p, i })).filter((o) => setup.all[o.i].team === ti).map((o) => '<span style="animation-delay:' + ((delay++) * 0.26).toFixed(2) + 's">' + esc(o.p.name) + "</span>").join("") + "</div>").join("") + "</div>" +
+      '<div class="sh-b col">' + buzzBtn("tdGo", "このチームではじめる", "wide") + '<button class="btn" data-a="tdAgain">' + ic("shuffle") + "もう一度抽選</button></div>", { cls: "tdsh" });
+    UI.tdGo = go;
   }
 
-  /* ══ 手番（iPad をわたす） ══ */
-  function turnScreen(u, sub, go) {
-    show("turn");
-    const m = u.members[0], av = !G.team && m.link ? avatarHTML(m.link, u.color, "big") : "";
-    $("#turnBox").innerHTML = '<div class="tc-in" style="--c:' + u.color + '">' + (av || '<span class="tbig" style="--c:' + u.color + '">' + ic(G.team ? "team" : "solo") + "</span>") +
-      '<p class="t1">' + esc(u.name) + " の番！</p>" + (G.team ? '<p class="t3">' + esc(unitNames(u)) + "</p>" : "") +
-      '<p class="t2">' + sub + "</p>" +
-      '<button class="btn pri big" data-a="turnGo">' + ic("play") + "スタート</button></div>";
-    UI.turnGo = go;
-    sfx("turn");
+  function begin() {
+    if (!Q || !Q.ok) { toast("問題を読みこめませんでした"); return; }
+    if (Q.count(setup) < 10) { toast("出題範囲を広げてください（10問以上）"); return; }
+    if (MODES[setup.mode].min > 1 && (setup.team ? Math.min(setup.nTeams, setup.n) : setup.n) < 2) { toast(MODES[setup.mode].nm + "は2人以上で遊べます"); return; }
+    const go = () => { setup.played = true; saveSetup(); MQ.Play.start(setup, seats()); };
+    if (setup.team) teamDraw(go); else go();
   }
 
   /* ══════════════════════════════════════════════════════════════
-     ④ ミリオネア
+     設定・あそび方・記録
      ══════════════════════════════════════════════════════════════ */
-  const M = { step: 0, amount: 0, x: null, q: null, ord: [], sel: -1, hidden: {}, phase: "", left: 0, timer: 0, paused: false, hint: "" };
-  function milStart() {
-    G.cur = 0;
-    milTurn();
+  function openOpts() {
+    const o = FX.opt;
+    const sw = (k, nm, d) => '<button class="cfg-r" data-a="optTog" data-k="' + k + '"><span><b>' + nm + "</b>" + (d ? "<small>" + d + "</small>" : "") + '</span><i class="sw' + (o[k] ? " on" : "") + '"></i></button>';
+    sheet('<h3 class="sh-t">' + ic("gear") + "設定</h3><div class=\"cfg\">" + sw("se", "効果音") + sw("bgm", "BGM") + sw("vib", "振動", "対応している端末のみ") + sw("sol", "解説をいつも開く", "オフのときは、まちがえたときだけ開きます") +
+      '<div class="cfg-r2"><b>文字の大きさ</b><div class="su-seg sm">' + [[1, "ふつう"], [1.12, "大きい"], [1.26, "とても大きい"]].map((v) => '<button class="' + (Number(o.fs) === v[0] ? "on" : "") + '" data-a="optFs" data-v="' + v[0] + '">' + v[1] + "</button>").join("") + "</div></div></div>" +
+      '<div class="sh-b"><button class="btn pri" data-a="close">とじる</button></div>', { onClose: UI.optBack || null });
   }
-  function milTurn() {
-    const u = curU();
-    turnScreen(u, (G.units.length > 1 ? (G.cur + 1) + " / " + G.units.length + " 番目・" : "") + "iPad を <b>" + esc(u.name) + "</b> にわたしてね<br><small>10問のはしごに挑戦！ 2問目からは「ここでやめる」もできます</small>", () => {
-      M.step = 0; M.amount = 0; u.used = {};
-      show("mil"); milNext();
-    });
+  const RULE_TX = {
+    bomb: ["姿の見えない爆弾を、交互に回していくサバイバルです。",
+      "持っている人が問題に答えます。<b>正解 → 次の人へ</b>。<b>まちがい → もう1問</b>（ミス +1）。",
+      "爆弾は<b>見えません</b>。時間は答えている間だけ進み、ラウンドごとに長さが変わります。画面のふちの光・鼓動・チクタクが、だんだん激しくなります。",
+      "爆発した人は<b>ライフ −1</b>。<b>ミスが上限</b>に達しても<b>ライフ −1</b>（ミスは0に戻り、爆弾は次の人へ）。ライフが 0 でアウト。最後の1人（1チーム）が勝ち。",
+      "答えたあとは<b>時間が止まる</b>ので、解説をゆっくり確認できます。"],
+    rush: ["問題文が1文字ずつ出ます。<b>わかった瞬間に自分のブザー</b>を押した人が答えます（文はそこで止まります）。",
+      "正解で <b>+1</b>。先に決めた数だけ正解した人（チーム）の勝ち。",
+      "<b>お手つき</b>（まちがい・時間切れ）はライフ −1 で、その問題はもう押せません。文のつづきが出て、のこりの人が押せます。ライフが 0 でアウト。",
+      "文が出おわると選択肢がみんなに見えて、少しのあいだ押せます。だれも押さなければ次の問題へ。",
+      "問題が終わると<b>時間が止まり</b>、解説を確認できます。パソコンは数字キー（1〜8）でも押せます。"],
+    tower: ["1問ずつ交互に、自分のタワーを登ります（10階 32,000 pt まで）。",
+      "正解で1階上へ。上の階ほど点が大きく、問題も難しくなります。",
+      "まちがえると<b>チェックポイント（3階・7階）まで転落</b>し、ライフ −1。0 になるとそこで終わりです。",
+      "自分の番に<b>「降りる」</b>を押すと、いまの点で確定して終われます（そのときの問題の答えも見られます）。",
+      "アイテム（各1回）：<b>しぼる</b>（選択肢を半分に）・<b>ヒント</b>・<b>みんなの声</b>（まわりの人の投票）。"],
+    score: ["全員が同じ数の問題に、交互に挑戦します。",
+      "正解すると 100〜200 点（難しいほど高い・計算問題は +50）。のこり時間に応じて最大 +100、連続正解で最大 +100。",
+      "1人でも遊べます（ひとり練習。ベスト記録が残ります）。"],
+  };
+  function openRules(mode) {
+    mode = mode || MQ.Play.mode() || setup.mode;
+    const tabs = '<div class="su-seg sm rv-seg">' + modeIds().map((k) => '<button class="' + (k === mode ? "on" : "") + '" data-a="rulesTab" data-v="' + k + '">' + MODES[k].nm + "</button>").join("") + "</div>";
+    sheet('<h3 class="sh-t">' + ic("book") + "あそび方</h3>" + tabs + '<ul class="rl">' + RULE_TX[mode].map((t) => "<li>" + t + "</li>").join("") + "</ul>" +
+      '<h4 class="rl-h">どの遊び方でも</h4><ul class="rl"><li>問題は MagiChemLex の基礎セット1〜4 の改題です。図のある問題は図も出ます。</li><li>問題中は<b>メモ・電卓・公式</b>が使えます。</li><li>答えは選んでから<b>ブザー</b>で決定。時間切れはまちがいと同じです。</li><li>順番は試合のはじめにくじ引きで決まります。</li>' +
+      "<li>チーム戦はくじ引きでチームを決めて、相談して答えます。</li><li>賞金：1位 250・2位 200・3位 150・4位 100・5位 50 XEVA（3問以上答えた人）。ひとりプレイは 正解×10 XEVA（最大 100）。</li></ul>" +
+      '<div class="sh-b"><button class="btn pri" data-a="close">とじる</button></div>', { cls: "rules", onClose: UI.rulesBack || null });
   }
-  function safeAmount(stepDone) {   /* stepDone 問まで正解しているとき、まちがえたら残る pt */
-    let v = 0; Object.keys(SAFE).forEach((k) => { if (stepDone >= +k) v = Math.max(v, LADDER[k - 1]); }); return v;
-  }
-  function milNext() {
-    M.step++;
-    const lv = M.step <= 3 ? [1] : M.step <= 7 ? [2, 1] : [3, 2];
-    const x = Q.pick(G.pool, G.used, { lv, minOpt: 3, maxLen: 190 });
-    if (!x) { milEndTurn(); return; }
-    G.used.add(x.id); Q.markUsed(x.id);
-    Object.assign(M, { x, q: x.q, ord: Q.order(x.q), sel: -1, hidden: {}, phase: "q", hint: "" });
-    renderMil();
-    startTimer();
-  }
-  function qHTML(x, extra) {
-    const q = x.q, top = [Q.fieldName(q.f), Q.topicName(q.t)].filter(Boolean).join("・");
-    return '<div class="qtag">' + esc(top) + "</div>" + (q.ctx ? '<div class="qctx">' + Q.fmt(q.ctx) + "</div>" : "") + '<div class="qtx">' + Q.fmt(q.q) + "</div>" + (extra || "");
-  }
-  function optsHTML(q, ord, opt2) {
-    opt2 = opt2 || {};
-    const vis = ord.filter((i) => !(opt2.hidden && opt2.hidden[i]));
-    const long = vis.some((i) => String(q.o[i]).replace(/<[^>]+>|[{}^_]/g, "").length > 20);
-    return '<div class="og' + (long ? " long" : "") + " n" + vis.length + '">' + ord.map((i, k) => {
-      if (opt2.hidden && opt2.hidden[i]) return '<button class="opt gone" disabled aria-hidden="true"><span class="ol" style="--oc:' + OPT_C[k] + '">' + LET[k] + '</span><span class="ot"></span></button>';
-      const st = opt2.state ? opt2.state(i) : "";
-      return '<button class="opt' + (st ? " " + st : "") + '" data-a="' + opt2.act + '" data-i="' + i + '" style="--oc:' + OPT_C[k] + '"><span class="ol">' + LET[k] + '</span><span class="ot">' + Q.fmtOpt(q, q.o[i]) + "</span></button>";
-    }).join("") + "</div>";
-  }
-  function letterOf(ord, i) { const k = ord.indexOf(i); return k >= 0 ? LET[k] : ""; }
-  function renderMil() {
-    const u = curU(), q = M.q;
-    $("#mWho").innerHTML = unitBadge(u);
-    $("#mStep").innerHTML = '<span class="ms-n">第 <b>' + M.step + "</b> 問</span><span class=\"ms-a\">" + fmtN(LADDER[M.step - 1]) + " pt に挑戦</span>" + (SAFE[M.step] ? '<span class="ms-s">' + ic("star") + "安全ライン</span>" : "") +
-      (M.amount ? '<span class="ms-c">いま ' + fmtN(M.amount) + " pt</span>" : "");
-    $("#mProg").innerHTML = LADDER.map((v, i) => '<i class="' + (i + 1 < M.step ? "done" : i + 1 === M.step ? "cur" : "") + (SAFE[i + 1] ? " safe" : "") + '"></i>').join("");
-    $("#mQ").innerHTML = qHTML(M.x, M.hint ? '<div class="qhint">' + ic("hint") + "<span>" + Q.fmt(M.hint) + "</span></div>" : "");
-    const locked = M.phase !== "q";
-    $("#mOpts").innerHTML = optsHTML(q, M.ord, {
-      act: "mpick", hidden: M.hidden,
-      state: (i) => {
-        if (M.phase === "reveal") return i === q.a ? "ok" : i === M.sel ? "ng" : "dim";
-        if (M.phase === "lock") return i === M.sel ? "lock" : "dim";
-        return i === M.sel ? "sel" : "";
-      },
-    });
-    if (locked) $$("#mOpts .opt").forEach((b) => { b.disabled = true; });
-    const L = u.used || {};
-    const lb = (k, icn, nm) => '<button class="life' + (L[k] ? " used" : "") + '" data-a="mlife" data-v="' + k + '"' + (L[k] || locked ? " disabled" : "") + ">" + (icn === "50" ? '<span class="l50">50:50</span>' : ic(icn)) + "<span>" + nm + "</span></button>";
-    $("#mLife").innerHTML = lb("ff", "50", "半分にする") + lb("hint", "hint", "ヒント") + lb("ask", "people", "みんなに聞く") +
-      '<button class="life drop" data-a="mdrop"' + (M.step < 2 || locked ? " disabled" : "") + ">" + ic("stop") + "<span>ここでやめる</span></button>";
-    renderMilBar();
-    renderLadder();
-    paintIcons($("#mil"));
-  }
-  function renderMilBar() {
-    const bar = $("#mBar"), q = M.q;
-    if (M.phase === "q") {
-      bar.className = "mbar" + (M.sel >= 0 ? " ask" : "");
-      bar.innerHTML = M.sel >= 0
-        ? '<p class="fa-q">' + LET[M.ord.indexOf(M.sel)] + " で決定しますか？</p><div class=\"fa-b\"><button class=\"btn pri big\" data-a=\"mfinal\">" + ic("check") + "決定</button><button class=\"btn\" data-a=\"munsel\">えらびなおす</button></div>"
-        : '<p class="fa-h">答えをえらんでください' + (setup.limit ? "（" + setup.limit + "秒）" : "") + "</p>";
-      return;
-    }
-    if (M.phase === "lock") { bar.className = "mbar lock"; bar.innerHTML = '<p class="fa-q drum">運命の答えは…</p>'; return; }
-    if (M.phase === "reveal") {
-      const ok = M.lastOk, last = M.step >= LADDER.length && ok, ansL = letterOf(M.ord, q.a);
-      const head = ok ? (last ? "🎉 全問正解！ MagiQuiz 王！" : "正解！ " + fmtN(M.amount) + " pt 獲得") : M.timeout ? "時間切れ…" : M.dropped ? "ここでやめました（" + fmtN(M.amount) + " pt）" : "ざんねん… " + fmtN(M.amount) + " pt で終了";
-      const nextLb = ok && !last ? "次の問題へ（" + fmtN(LADDER[M.step]) + " pt）" : G.cur + 1 < G.units.length ? "次の人へ" : "結果を見る";
-      bar.className = "mbar res " + (ok ? "ok" : "ng");
-      bar.innerHTML = '<p class="rs-h">' + (ok ? ic("check") : ic("x")) + "<b>" + head + "</b></p>" +
-        (ok ? "" : '<p class="rs-a">正解は <b>' + ansL + "</b>：" + Q.fmtOpt(q, q.o[q.a]) + "</p>") +
-        (q.k ? '<p class="rs-k"><span>ポイント</span>' + Q.fmt(q.k) + "</p>" : "") +
-        '<button class="btn pri big" data-a="mnext">' + nextLb + "</button>";
-    }
-  }
-  function renderLadder() {
-    $("#mLadder").innerHTML = '<p class="lh">' + ic("crown") + "はしご</p>" + LADDER.map((v, i) => i).reverse().map((i) => {
-      const st = i + 1, cls = st < M.step || (M.phase === "reveal" && M.lastOk && st === M.step) ? "done" : st === M.step ? "cur" : "";
-      return '<div class="lr ' + cls + (SAFE[st] ? " safe" : "") + '"><span class="ln">' + st + '</span><b>' + fmtN(LADDER[i]) + "</b>" + (SAFE[st] ? ic("star") : "") + "</div>";
-    }).join("");
-  }
-  /* 制限時間 */
-  function startTimer() {
-    stopTimer();
-    const el = $("#mTimer");
-    if (!setup.limit) { el.hidden = true; return; }
-    M.left = setup.limit; M.paused = false; el.hidden = false;
-    let last = performance.now();
-    const loop = (now) => {
-      if (!M.timer) return;
-      const dt = Math.min(0.25, (now - last) / 1000); last = now;
-      if (!M.paused && M.phase === "q" && !$("#ov").classList.contains("on")) M.left -= dt;
-      const p = Math.max(0, M.left / setup.limit);
-      el.innerHTML = '<svg viewBox="0 0 40 40"><circle class="tb" cx="20" cy="20" r="17"/><circle class="tf" cx="20" cy="20" r="17" style="stroke-dasharray:' + (p * 106.8).toFixed(1) + ' 200"/></svg><b>' + Math.ceil(Math.max(0, M.left)) + "</b>";
-      el.classList.toggle("warn", M.left <= 10);
-      if (M.left <= 0 && M.phase === "q") { stopTimer(); M.timeout = true; milReveal(false); return; }
-      M.timer = requestAnimationFrame(loop);
-    };
-    M.timer = requestAnimationFrame(loop);
-  }
-  function stopTimer() { if (M.timer) cancelAnimationFrame(M.timer); M.timer = 0; }
-  function milPick(i) {
-    if (M.phase !== "q" || M.hidden[i]) return;
-    M.sel = M.sel === i ? -1 : i; sfx("sel");
-    renderMil();
-  }
-  /* ★★ 2026-10-24 ご指定「運命の答えなどの演出は要りません」→「運命の答えは…」とためる時間・太鼓の音をやめ、決定したらすぐ発表 */
-  function milFinal() {
-    if (M.phase !== "q" || M.sel < 0) return;
-    stopTimer();
-    milReveal(M.sel === M.q.a);
-  }
-  function milReveal(ok) {
-    const u = curU(), q = M.q;
-    M.phase = "reveal"; M.lastOk = ok; stopTimer();
-    $("#mTimer").hidden = true;
-    u.n++; if (ok) u.ok++;
-    G.log.push({ id: q.id, u: u.k, ok, pick: M.sel, ord: M.ord.slice(), timeout: !!M.timeout });
-    if (ok) {
-      M.amount = LADDER[M.step - 1];
-      sfx(M.step >= LADDER.length ? "win" : "ok");
-      confetti(M.step >= LADDER.length ? 140 : SAFE[M.step] ? 70 : 34);
-    } else { M.amount = safeAmount(M.step - 1); sfx("ng"); }
-    renderMil();
-    M.timeout = false;
-  }
-  function milAfter() {
-    if (M.phase !== "reveal") return;
-    if (M.lastOk && !M.dropped && M.step < LADDER.length) { milNext(); return; }
-    milEndTurn();
-  }
-  function milEndTurn() {
-    const u = curU();
-    u.score = M.amount; u.reach = M.lastOk ? M.step : M.step - 1;
-    M.dropped = false; stopTimer();
-    if (G.cur + 1 < G.units.length) { G.cur++; milTurn(); } else finish();
-  }
-  function milDrop() {
-    if (M.phase !== "q" || M.step < 2) return;
-    sheet('<h3 class="sh-t">' + ic("stop") + "ここでやめますか？</h3><p class=\"sh-p\">いまの <b>" + fmtN(M.amount) + " pt</b> で終わります（この問題の答えは、やめたあとに見られます）。</p>" +
-      '<div class="sh-b"><button class="btn pri" data-a="mdropYes">' + fmtN(M.amount) + ' pt でやめる</button><button class="btn" data-a="close">つづける</button></div>');
-  }
-  function milDropYes() {
-    closeSheet();
-    const u = curU(), q = M.q;
-    M.dropped = true; M.phase = "reveal"; M.lastOk = false; stopTimer();
-    G.log.push({ id: q.id, u: u.k, ok: null, pick: -1, ord: M.ord.slice(), drop: true });
-    renderMil();
-  }
-  /* ライフライン */
-  function milLife(k) {
-    const u = curU(), q = M.q;
-    if (M.phase !== "q" || (u.used && u.used[k])) return;
-    const wrong = M.ord.filter((i) => i !== q.a && !M.hidden[i]);
-    /* ヒントの無い問題で、もう消せる選択肢も無いときは使わずにおく */
-    if (k === "hint" && !(Array.isArray(q.h) && q.h.length) && wrong.length <= 1) { toast("この問題にはヒントがありません（ヒントは残しておきます）"); return; }
-    u.used[k] = 1; sfx("life");
-    if (k === "ff") {
-      const keep = wrong[Math.floor(Math.random() * wrong.length)];
-      wrong.forEach((i) => { if (i !== keep) M.hidden[i] = 1; });
-      if (M.hidden[M.sel]) M.sel = -1;
-      toast("50:50 — 選択肢を2つにしました");
-    } else if (k === "hint") {
-      const h = Array.isArray(q.h) && q.h.length ? q.h[0] : "";
-      if (h) M.hint = h;
-      else if (wrong.length > 1) { const i = wrong[Math.floor(Math.random() * wrong.length)]; M.hidden[i] = 1; if (M.sel === i) M.sel = -1; toast("この問題にはヒントがないので、まちがいの選択肢を1つ消しました"); }
-    } else if (k === "ask") { openAsk(); }
-    renderMil();
-  }
-  /* みんなに聞く：まわりの人が、正しいと思う答えをタップして投票（何回でも）→ 結果のグラフ */
-  function openAsk() {
-    M.paused = true;
-    const q = M.q, vis = M.ord.filter((i) => !M.hidden[i]);
-    M.votes = {}; vis.forEach((i) => { M.votes[i] = 0; });
-    const draw = (res) => {
-      const tot = Object.keys(M.votes).reduce((a, k) => a + M.votes[k], 0);
-      sheet('<h3 class="sh-t">' + ic("people") + "みんなに聞く</h3>" +
-        (res ? '<p class="sh-p">投票の結果（' + tot + "票）</p>" : '<p class="sh-p">まわりのみんなは、正しいと思う答えをタップしてね（何回でも）。<br>終わったら「結果を見る」。</p>') +
-        '<div class="vote' + (res ? " res" : "") + '">' + vis.map((i) => {
-          const k = M.ord.indexOf(i), v = M.votes[i] || 0, p = tot ? Math.round(v / tot * 100) : 0;
-          return '<button class="vb" data-a="vote" data-i="' + i + '" style="--oc:' + OPT_C[k] + ";--p:" + p + '%"' + (res ? " disabled" : "") + '><span class="ol">' + LET[k] + '</span><span class="vt">' + Q.fmtOpt(q, q.o[i]) + '</span><span class="vn">' + (res ? p + "%" : v) + "</span><i></i></button>";
-        }).join("") + "</div>" +
-        '<div class="sh-b">' + (res ? '<button class="btn pri" data-a="close">とじる</button>' : '<button class="btn pri" data-a="voteRes">結果を見る</button>') + "</div>", "ask");
-    };
-    UI.voteDraw = draw;
-    UI.onClose = () => { M.paused = false; };
-    draw(false);
-  }
-
-  /* ══════════════════════════════════════════════════════════════
-     ⑤ ばくだん
-     ══════════════════════════════════════════════════════════════ */
-  const B = { holder: 0, round: 0, fuse: 0, max: 0, run: false, raf: 0, last: 0, tickAt: 0, x: null, q: null, ord: [], busy: false, k: 1, from: -1 };
-  const alive = () => G.units.filter((u) => !u.out);
-  function nextAlive(k) { const n = G.units.length; for (let s = 1; s <= n; s++) { const j = (k + s) % n; if (!G.units[j].out) return j; } return k; }
-  function bombStart() {
-    G.units.forEach((u) => { u.lives = setup.hearts; });
-    B.round = 0; B.holder = 0;
-    show("bomb");
-    bombRound();
-  }
-  function bombRound() {
-    B.round++; B.run = false; B.busy = true; glowOn(false);
-    if (G.units[B.holder].out) B.holder = nextAlive(B.holder);
-    const r = FUSE[setup.fuse] || FUSE.mid;
-    B.max = r[0] + Math.random() * (r[1] - r[0]); B.fuse = 0; B.k = 0.78 + Math.random() * 0.5;
-    renderBombTop(); drawBomb(0);
-    $("#bQ").innerHTML = ""; $("#bOpts").innerHTML = ""; $("#bFb").hidden = true;
-    const u = G.units[B.holder];
-    $("#bHolder").innerHTML = unitBadge(u, "big") + "<span>から スタート！</span>";
-    const st = $("#bStart");
-    st.hidden = false;
-    st.innerHTML = '<div class="bs-in"><p class="bs-r">ラウンド ' + B.round + "</p><p class=\"bs-t\">" + unitBadge(u) + " から！</p><p class=\"bs-s\">爆発までの時間はひみつ。正解したら となりへ、まちがえたら もう1問。</p>" +
-      '<button class="btn pri big" data-a="bgo">' + ic("bomb") + "点火！</button></div>";
-    paintIcons($("#bomb"));
-  }
-  /* ══ ★★ 2026-10-24 ご指定「爆弾は大きく表示されると邪魔なので小さく、iPad の画面まわりがきれいにライトアップされ、危機が迫っていることを表現」══
-     画面のふち全体（#bGlow）が光る：はじめは淡い金色 → だんだん橙・赤へ、強く・速く脈打つ。光の帯がふちをまわる。
-     ★ 強さは導火線と同じ「ずらした進み」（B.k）で決める＝のこり時間は読めない（爆発の時間はひみつのまま）。 */
-  function glowPaint(p) {
-    const g = $("#bGlow"); if (!g) return;
-    const v = Math.max(0, Math.min(1, p * B.k + Math.sin(p * 13) * 0.03));
-    g.style.setProperty("--dz", v.toFixed(3));
-    g.style.setProperty("--bp", (1.7 - 1.35 * v).toFixed(2) + "s");
-    g.classList.toggle("hot", v > 0.7);
-  }
-  function glowOn(on) { const g = $("#bGlow"); if (g) { g.classList.toggle("on", !!on); if (!on) g.classList.remove("hot"); } }
-  function bombGo() {
-    $("#bStart").hidden = true;
-    glowPaint(0); glowOn(true);
-    B.run = true; B.last = performance.now(); B.tickAt = 0;
-    cancelAnimationFrame(B.raf); B.raf = requestAnimationFrame(bombLoop);
-    bombAsk();
-  }
-  function renderBombTop() {
-    $("#bRound").innerHTML = '<span class="rd">ラウンド <b>' + B.round + "</b></span>";
-    $("#bPlayers").innerHTML = G.units.map((u, k) => {
-      const hs = [...Array(setup.hearts)].map((_, i) => '<i class="h' + (i < u.lives ? " on" : "") + '">' + ic("heart") + "</i>").join("");
-      return '<div class="bp' + (k === B.holder && !u.out ? " cur" : "") + (u.out ? " out" : "") + '" style="--c:' + u.color + '">' + unitBadge(u) + '<span class="hs">' + hs + "</span>" + (u.out ? '<em class="outb">脱落</em>' : "") + (k === B.holder && !u.out ? '<span class="bi">' + ic("bomb") + "</span>" : "") + "</div>";
-    }).join("");
-  }
-  /* 爆弾の絵：導火線の長さは時間どおりに減らない（B.k で少しずらす＝のこり時間は読めない） */
-  function drawBomb(p) {
-    const el = $("#bBomb"); if (!el) return;
-    const vis = Math.min(0.93, p * B.k + Math.sin(p * 17) * 0.02), L = 92 * (1 - vis);
-    if (!el.firstChild) el.innerHTML = '<svg viewBox="0 0 200 170" class="bsvg"><defs><radialGradient id="bg1" cx="38%" cy="34%" r="70%"><stop offset="0" stop-color="#6b7591"/><stop offset=".45" stop-color="#2c3350"/><stop offset="1" stop-color="#141a2e"/></radialGradient></defs>' +
-      '<ellipse cx="88" cy="158" rx="52" ry="7" fill="rgba(20,30,60,.12)"/>' +
-      '<circle cx="88" cy="100" r="54" fill="url(#bg1)"/><ellipse cx="68" cy="78" rx="16" ry="10" fill="rgba(255,255,255,.28)" transform="rotate(-30 68 78)"/>' +
-      '<rect x="112" y="40" width="26" height="20" rx="5" fill="#3a4262" transform="rotate(40 125 50)"/>' +
-      '<path id="bFuse" d="M132 40 C 150 18, 172 30, 176 10 S 190 -4, 196 6" fill="none" stroke="#c9a36a" stroke-width="5" stroke-linecap="round" pathLength="92"/>' +
-      '<g id="bSpark"><circle r="9" fill="#ffd34a" opacity=".55"/><circle r="5" fill="#fff4b0"/><path d="M-11 0h22M0-11v22M-8-8l16 16M8-8l-16 16" stroke="#ffb020" stroke-width="2"/></g></svg>';
-    const fu = el.querySelector("#bFuse"), sp = el.querySelector("#bSpark");
-    if (!fu || !sp) return;
-    fu.style.strokeDasharray = L.toFixed(1) + " 200";
-    try { const pt = fu.getPointAtLength(Math.max(0.1, (fu.getTotalLength ? fu.getTotalLength() : 92) * (L / 92))); sp.setAttribute("transform", "translate(" + pt.x.toFixed(1) + "," + pt.y.toFixed(1) + ") scale(" + (0.85 + Math.random() * 0.4).toFixed(2) + ")"); } catch (e) {}
-    el.classList.toggle("hot", p > 0.72);
-  }
-  function bombLoop(now) {
-    if (!B.run) return;
-    const dt = Math.min(0.25, (now - B.last) / 1000); B.last = now;
-    if (!$("#ov").classList.contains("on") && document.visibilityState !== "hidden") B.fuse += dt;
-    const p = B.fuse / B.max;
-    drawBomb(p); glowPaint(p);
-    /* チクタク：だんだん速く（でも少しゆらぐ） */
-    B.tickAt -= dt;
-    if (B.tickAt <= 0) { sfx("tick"); B.tickAt = Math.max(0.16, 0.6 - 0.36 * p + (Math.random() - 0.5) * 0.08); }
-    if (B.fuse >= B.max) { boom(); return; }
-    B.raf = requestAnimationFrame(bombLoop);
-  }
-  function bombAsk() {
-    if (!B.run) return;
-    const x = Q.pick(G.pool, G.used, { lv: [1, 2], minOpt: 2, maxLen: 140 });
-    if (!x) { G.used.clear(); return bombAsk(); }
-    G.used.add(x.id); Q.markUsed(x.id);
-    Object.assign(B, { x, q: x.q, ord: Q.order(x.q), busy: false });
-    const u = G.units[B.holder];
-    $("#bHolder").innerHTML = unitBadge(u, "big") + "<span>が答える！</span>";
-    $("#bQ").innerHTML = qHTML(x);
-    $("#bOpts").innerHTML = optsHTML(B.q, B.ord, { act: "bpick" });
-    $("#bFb").hidden = true;
-    renderBombTop(); paintIcons($("#bomb"));
-    $("#bQ").classList.remove("pop"); void $("#bQ").offsetWidth; $("#bQ").classList.add("pop");
-  }
-  function bombPick(i) {
-    if (!B.run || B.busy) return;
-    B.busy = true;
-    const u = G.units[B.holder], q = B.q, ok = i === q.a;
-    u.n++; if (ok) u.ok++;
-    G.log.push({ id: q.id, u: u.k, ok, pick: i, ord: B.ord.slice() });
-    $$("#bOpts .opt").forEach((b) => { const k = +b.dataset.i; b.disabled = true; b.classList.add(k === q.a ? "ok" : k === i ? "ng" : "dim"); });
-    const fb = $("#bFb");
-    fb.hidden = false;
-    if (ok) {
-      sfx("ok");
-      const nx = nextAlive(B.holder);
-      fb.className = "bfb ok"; fb.innerHTML = ic("check") + "<b>正解！</b><span>→ " + esc(G.units[nx].name) + " へ！</span>";
-      setTimeout(() => { if (!B.run) return; B.holder = nx; sfx("pass"); bombAsk(); }, 750);
-    } else {
-      sfx("ng");
-      fb.className = "bfb ng"; fb.innerHTML = ic("x") + "<b>ざんねん！ もう1問</b>" + (q.k ? '<span class="k">' + Q.fmt(q.k) + "</span>" : "");
-      setTimeout(() => { if (!B.run) return; bombAsk(); }, q.k ? 2100 : 1300);
-    }
-  }
-  function boom() {
-    glowOn(false);
-    B.run = false; cancelAnimationFrame(B.raf);
-    const u = G.units[B.holder], q = B.q;
-    sfx("boom");
-    const sec = $("#bomb"); sec.classList.remove("boom"); void sec.offsetWidth; sec.classList.add("boom");
-    u.lives = Math.max(0, u.lives - 1);
-    if (u.lives <= 0) { u.out = true; u.outAt = ++G.outN; }
-    /* 答えている途中だった問題の答えも出す（学習） */
-    if (q && !B.busy) G.log.push({ id: q.id, u: u.k, ok: null, pick: -1, ord: B.ord.slice(), boom: true });
-    renderBombTop();
-    const left = alive().length;
-    const ansL = q ? letterOf(B.ord, q.a) : "";
-    setTimeout(() => {
-      sheet('<div class="boomv">💥</div><h3 class="sh-t center">ドカーン！</h3><p class="sh-p center">' + unitBadge(u) + " のハートが1つへった" + (u.out ? "…<b>脱落！</b>" : "（のこり " + u.lives + "）") + "</p>" +
-        (q && !B.busy ? '<div class="ansbox"><p class="ab-h">いまの問題の答え</p><p class="ab-a"><b>' + ansL + "</b>：" + Q.fmtOpt(q, q.o[q.a]) + "</p>" + (q.k ? '<p class="ab-k">' + Q.fmt(q.k) + "</p>" : "") + "</div>" : "") +
-        '<div class="sh-b"><button class="btn pri big" data-a="bnext">' + (left <= 1 ? "結果を見る" : "次のラウンドへ") + "</button></div>", "boomsh");
-      UI.onClose = () => { bombAfterBoom(); };
-    }, 650);
-  }
-  function bombAfterBoom() {
-    if (!G || G.done) return;
-    if (alive().length <= 1) { finish(); return; }
-    /* 次のラウンドは、爆発した人から（脱落したら その次の人から） */
-    if (G.units[B.holder].out) B.holder = nextAlive(B.holder);
-    bombRound();
-  }
-
-  /* ══════════════════════════════════════════════════════════════
-     ⑥ 結果・見直し
-     ══════════════════════════════════════════════════════════════ */
-  function ranked() {
-    const us = G.units.slice();
-    if (G.mode === "mil") {
-      us.sort((a, b) => b.score - a.score || b.ok - a.ok);
-      us.forEach((u, i) => { u.rank = i && us[i - 1].score === u.score && us[i - 1].ok === u.ok ? us[i - 1].rank : i + 1; });
-    } else {
-      us.sort((a, b) => (a.out === b.out ? (a.out ? b.outAt - a.outAt : b.lives - a.lives || b.ok - a.ok) : a.out ? 1 : -1));
-      us.forEach((u, i) => { u.rank = i + 1; });
-    }
-    return us;
-  }
-  function finish() {
-    if (!G || G.done) return;
-    G.done = true; stopTimer(); B.run = false; cancelAnimationFrame(B.raf);
-    const us = ranked();
-    show("result");
-    sfx("win"); confetti(120);
-    const scoreTx = (u) => G.mode === "mil" ? fmtN(u.score) + " pt" : u.out ? u.outAt + "番目に脱落" : "のこり ♥" + u.lives;
-    const top = us.slice(0, 3);
-    const podOrder = top.length >= 3 ? [top[1], top[0], top[2]] : top.length === 2 ? [top[1], top[0]] : [top[0]];
-    $("#podium").innerHTML = podOrder.map((u) => {
-      const m = u.members[0], av = !G.team && m.link ? avatarHTML(m.link, u.color, "pod") : '<span class="pmk" style="--c:' + u.color + '">' + ic(G.team ? "team" : "solo") + "</span>";
-      return '<div class="pd r' + u.rank + '" style="--c:' + u.color + '"><div class="pd-a">' + (u.rank === 1 ? '<span class="pd-cr">' + ic("crown") + "</span>" : "") + av + "</div><b>" + esc(u.name) + "</b><small>" + scoreTx(u) + '</small><div class="pd-b"><span>' + u.rank + "</span></div></div>";
-    }).join("");
-    $("#resultList").innerHTML = '<div class="rlist">' + us.map((u) => '<div class="rr" style="--c:' + u.color + '"><span class="rk">' + u.rank + "</span>" + unitBadge(u) +
-      '<span class="rs">' + scoreTx(u) + '</span><span class="ra">正解 ' + u.ok + "/" + u.n + "</span>" + (G.team ? '<small class="rm">' + esc(unitNames(u)) + "</small>" : "") + "</div>").join("") + "</div>";
-    const wrong = G.log.filter((l) => l.ok !== true).length;
-    $("#btnReviewTx").textContent = "見直す（" + (wrong || G.log.length) + "問）";
-    $("#resultMeta").innerHTML = '<p class="rmeta">' + ic("link") + "賞金を確認しています…</p>";
-    paintIcons($("#result"));
-    /* 戦績・賞金（紐づけた人だけ・順位そのまま） */
-    if (!G.reported) {
-      G.reported = true;
-      const rows = [];
-      us.forEach((u) => u.members.forEach((m) => rows.push({ uid: m.link ? m.link.uid : null, name: m.link ? m.link.name : m.name, rank: u.rank, ok: u.ok, n: u.n, pt: G.mode === "mil" ? u.score : 0 })));
-      const anyLink = rows.some((r) => r.uid);
-      A.report(rows).then((res) => {
-        const pz = (res && res.prizes) || [];
-        $("#resultMeta").innerHTML = pz.length ? '<div class="prz"><p>' + ic("trophy") + "賞金を受け取りました</p>" + pz.map((p) => "<span>" + p.rank + "位 " + esc(p.name) + " <b>+" + fmtN(p.amount) + " XEVA</b></span>").join("") + "</div>"
-          : '<p class="rmeta">' + (anyLink ? (navigator.onLine === false ? "オフラインのため賞金は受け取れませんでした" : "賞金の対象（5位まで）はいませんでした") : "🔗 準備の画面で XEVARION アカウントを紐づけると、順位に応じた XEVA（1位 250〜5位 50）を受け取れます") + "</p>";
-        paintIcons($("#resultMeta"));
-      });
-    }
-  }
-  function openReview(all) {
-    if (!G) return;
-    const list = G.log.filter((l) => all || l.ok !== true);
-    const D = window.MCL_DATA, byId = (D && D.BY) || {};
-    const rows = list.map((l) => {
-      const q = byId[l.id]; if (!q) return "";
-      const u = G.units.find((x) => x.k === l.u), ansL = letterOf(l.ord, q.a), pk = l.pick >= 0 ? letterOf(l.ord, l.pick) : "";
-      const st = l.ok === true ? '<span class="rv-st ok">' + ic("check") + "正解</span>" : l.drop ? '<span class="rv-st">やめた問題</span>' : l.boom ? '<span class="rv-st ng">爆発</span>' : l.timeout ? '<span class="rv-st ng">時間切れ</span>' : '<span class="rv-st ng">' + ic("x") + "まちがい</span>";
-      return '<div class="rv">' + '<div class="rv-h">' + st + (u ? unitBadge(u, "sm") : "") + "</div>" + (q.ctx ? '<div class="qctx">' + Q.fmt(q.ctx) + "</div>" : "") + '<div class="qtx">' + Q.fmt(q.q) + "</div>" +
-        '<div class="rv-o">' + l.ord.map((i, k) => '<span class="' + (i === q.a ? "ok" : i === l.pick ? "ng" : "") + '"><i style="--oc:' + OPT_C[k] + '">' + LET[k] + "</i><em>" + Q.fmtOpt(q, q.o[i]) + "</em></span>").join("") + "</div>" +
-        (pk && l.ok === false ? '<p class="rv-p">えらんだ答え：<b>' + pk + "</b>／正解：<b>" + ansL + "</b></p>" : "") +
-        (q.s ? '<details class="rv-s"><summary>' + ic("book") + "解説</summary><div>" + Q.fmt(q.s) + "</div></details>" : "") +
-        (q.k ? '<p class="rv-k"><span>ポイント</span>' + Q.fmt(q.k) + "</p>" : "") + "</div>";
-    }).join("");
-    sheet('<h3 class="sh-t">' + ic("book") + (all ? "出た問題（全" + list.length + "問）" : "まちがえた問題（" + list.length + "問）") + "</h3>" +
-      '<div class="seg sm rvseg"><button class="' + (all ? "" : "on") + '" data-a="reviewMode" data-v="0">まちがえた問題</button><button class="' + (all ? "on" : "") + '" data-a="reviewMode" data-v="1">ぜんぶ</button></div>' +
-      (rows || '<p class="sh-p center">' + (all ? "まだ問題が出ていません" : "まちがえた問題はありません 🎉") + "</p>") +
-      '<p class="sh-note">もっとくわしく練習したいときは MagiChemLex の「基礎セット」で。</p><div class="sh-b"><button class="btn pri" data-a="close">とじる</button></div>', "review");
-  }
-
-  /* ══ 戦績・ルール・メニュー ══ */
-  function openStats() {
-    show("stats");
-    const st = A.stats(), rows = Object.keys(st).map((k) => Object.assign({ id: k }, st[k])).sort((a, b) => b.wins - a.wins || b.games - a.games);
-    $("#statList").innerHTML = rows.length ? '<div class="stl">' + rows.map((r) => '<div class="str"><b>' + esc(r.name) + (/^local:/.test(r.id) ? "" : ' <span class="lk">🔗</span>') + "</b>" +
-      "<span>" + r.games + "試合</span><span>優勝 <b>" + r.wins + "</b></span><span>正答率 <b>" + (r.n ? Math.round(r.ok / r.n * 100) : 0) + "%</b></span><span>ミリオネア最高 <b>" + fmtN(r.best || 0) + "</b> pt</span></div>").join("") + "</div>"
-      : '<p class="empty">まだ戦績がありません。遊ぶとここにたまります。</p>';
-  }
-  function openRules() {
-    sheet('<h3 class="sh-t">' + ic("book") + "ルール</h3>" +
-      '<div class="rul"><h4>' + ic("crown") + "ミリオネア</h4><ul>" +
-      "<li>1人（チーム戦は1チーム）ずつ、<b>10問のはしご</b>に挑戦します。正解するたびに pt が上がります（100 → … → <b>32,000 pt</b>）。</li>" +
-      "<li>答えをえらんで「<b>決定</b>」を押すと、すぐに正解を発表します。</li>" +
-      "<li>まちがえると<b>安全ライン</b>（3問目 300 pt・7問目 4,000 pt）まで落ちて、次の人の番へ。</li>" +
-      "<li>2問目からは「<b>ここでやめる</b>」で、いまの pt のまま終われます。</li>" +
-      "<li>ライフライン（1回ずつ）：<b>50:50</b>（選択肢を2つに）／<b>ヒント</b>／<b>みんなに聞く</b>（まわりの人がタップで投票）。</li>" +
-      "<li>みんなが挑戦したら、pt の高い順に順位がつきます。</li></ul>" +
-      "<h4>" + ic("bomb") + "ばくだん</h4><ul>" +
-      "<li>爆弾を持っている人（チーム）が問題に答えます。<b>正解したら となりへ</b>、まちがえたら<b>もう1問</b>（そのあいだも時間は進みます）。</li>" +
-      "<li>爆発までの時間はラウンドごとに変わり、だれにも分かりません。</li>" +
-      "<li>爆発したときに持っていた人は<b>ハートが1つへります</b>。0 になったら脱落。最後まで残った人の勝ち。</li></ul>" +
-      "<h4>" + ic("team") + "チーム戦</h4><ul><li>準備の画面で全員の名前を入れて「はじめる」を押すと、<b>チームを抽選</b>で分けます（2〜4チーム・人数はなるべく同じに）。気に入らなければ「もう一度抽選」。チームで相談して答えます。</li></ul>" +
-      "<h4>" + ic("link") + "紐づけ・ごほうび</h4><ul><li>🔗 で XEVARION アカウントを紐づけると、順位に応じて <b>1位 250・2位 200・3位 150・4位 100・5位 50 XEVA</b>（チーム戦はチームの順位をメンバー全員に）。</li>" +
-      "<li>問題は MagiChemLex の基礎セットの選択問題です。答えるたびに正解とポイントが出て、試合のあとに<b>まちがえた問題を解説つきで見直せます</b>。</li></ul></div>" +
-      '<div class="sh-b"><button class="btn pri" data-a="close">とじる</button></div>', "rules");
-  }
-  function openMenu() {
-    if (G && G.mode === "mil") M.paused = true;
-    UI.onClose = () => { M.paused = false; };
-    sheet('<h3 class="sh-t">' + ic("menu") + "メニュー</h3>" +
-      '<div class="mnu"><button class="btn" data-a="rules">' + ic("book") + "ルール</button>" +
-      '<button class="btn" data-a="se">' + ic(opt.se ? "seon" : "seoff") + "効果音：" + (opt.se ? "オン" : "オフ") + "</button>" +
-      '<button class="btn danger" data-a="quit">' + ic("home") + "試合をやめてタイトルへ</button></div>" +
-      '<div class="sh-b"><button class="btn pri" data-a="close">つづける</button></div>');
+  function openRecords() {
+    show("records");
+    const st = A.stats(), rows = Object.keys(st).map((k) => Object.assign({ id: k }, st[k])).sort((a, b) => (b.id === "me") - (a.id === "me") || b.wins - a.wins || b.games - a.games);
+    const seen = new Set(Q.recent()), tot = Q.all().length, cov = Q.all().filter((x) => seen.has(x.id)).length;
+    const fieldRows = (r) => Q.FIELDS.map((f) => { const a = (r.fields || {})[f[0]]; if (!a || !a.n) return ""; const p = Math.round(a.ok / a.n * 100); return '<div class="rc-f"><span>' + f[1] + '</span><i><b style="width:' + p + '%"></b></i><em>' + p + "%</em></div>"; }).join("");
+    const weak = (r) => Object.keys(r.topics || {}).map((t) => ({ t, ...r.topics[t] })).filter((x) => x.n >= 2 && x.ok / x.n < 0.7).sort((a, b) => a.ok / a.n - b.ok / b.n).slice(0, 3).map((x) => "<span>" + esc(Q.topicName(x.t)) + " " + Math.round(x.ok / x.n * 100) + "%</span>").join("");
+    $("#records").innerHTML = '<div class="su-top"><button class="su-back" data-a="toTitle" aria-label="もどる">' + ic("back") + '</button><h2 class="rc-h">記録</h2><span class="su-help"></span></div>' +
+      '<div class="su-body">' +
+      '<section class="rc-cov"><b>' + cov + "<small> / " + tot + " 問</small></b><span>この端末で出題された問題</span><i><u style=\"width:" + (tot ? cov / tot * 100 : 0).toFixed(1) + '%"></u></i></section>' +
+      (rows.length ? rows.map((r) => {
+        const w = weak(r);
+        return '<section class="rc-c"><h3>' + esc(r.name) + (r.id === "me" ? '<em class="me">本人</em>' : /^local:/.test(r.id) ? "" : '<em>連携</em>') + "</h3>" +
+          '<div class="rc-n"><span><b>' + r.games + "</b>試合</span><span><b>" + (r.wins || 0) + "</b>優勝</span><span><b>" + (r.n ? Math.round(r.ok / r.n * 100) : 0) + "</b>%正解</span>" +
+          (r.best ? "<span><b>" + fmtN(r.best) + "</b>タワー最高</span>" : "") + (r.bestS ? "<span><b>" + fmtN(r.bestS) + "</b>スコア最高</span>" : "") + (r.boom ? "<span><b>" + r.boom + "</b>爆発</span>" : "") + "</div>" +
+          fieldRows(r) + (w ? '<p class="rc-w"><small>苦手かも</small>' + w + "</p>" : "") + "</section>";
+      }).join("") : '<p class="rc-e">まだ記録がありません。遊ぶとここにたまります。</p>') + "</div>";
   }
 
   /* ══ data-a の表 ══ */
   const ACT = {
-    start: () => { sfx("tap"); openSetup(); },
-    title: () => { closeSheet(); stopTimer(); B.run = false; cancelAnimationFrame(B.raf); openTitle(); },
-    rules: () => openRules(),
-    stats: () => openStats(),
-    se: () => { opt.se = !opt.se; saveOpt(); paintSe(); if ($("#ov").classList.contains("on") && $("#sheet .mnu")) { UI.onClose = null; closeSheet(); openMenu(); } sfx("tap"); },
+    logo: () => { const l = $(".t-logo"); if (l) { l.classList.remove("hit"); void l.offsetWidth; l.classList.add("hit"); } FX.sfx("buzz"); FX.burst(innerWidth / 2, innerHeight * 0.34, 34, ["#ffe33d", "#fff", "#ffb020"], 520); setTimeout(() => openSetup(1), 300); },
+    start: () => { FX.sfx("buzz"); openSetup(1); },
+    quick: () => { FX.sfx("buzz"); begin(); },
+    resume: () => { FX.sfx("buzz"); MQ.Play.resume(); },
+    toTitle: () => { FX.sfx("tap"); openTitle(); },
+    opts: () => { FX.sfx("tap"); UI.optBack = null; openOpts(); },
+    rules: () => { FX.sfx("tap"); UI.rulesBack = null; openRules(); },
+    rulesTab: (el) => { const f = UI.onClose; UI.onClose = null; openRules(el.dataset.v); UI.onClose = f; },
+    records: () => { FX.sfx("tap"); openRecords(); },
     close: () => closeSheet(),
-    setMode: (el) => { setup.mode = el.dataset.v; renderSetup(); saveSetup(); sfx("tap"); },
-    setTeam: (el) => { setup.team = el.dataset.v === "1"; if (setup.team && setup.n < 2) setup.n = 2; renderSetup(); saveSetup(); sfx("tap"); },
-    /* チームの数を変えたら、席の順に均等に分けなおす（あとから札を押して入れかえられる） */
-    setTeams: (el) => { setup.nTeams = +el.dataset.v; setup.all.forEach((p, i) => { p.team = i % setup.nTeams; }); renderSetup(); saveSetup(); sfx("tap"); },
-    setN: (el) => { setup.n = +el.dataset.v; renderSetup(); saveSetup(); sfx("tap"); },
-    pteam: (el) => { const p = setup.all[+el.dataset.i]; p.team = (Math.min(p.team, setup.nTeams - 1) + 1) % setup.nTeams; renderSetup(); saveSetup(); sfx("tap"); },
+    /* 準備 */
+    suBack: () => { FX.sfx("tap"); if (ST.step > 1) { ST.step--; renderSetup(); $("#setup .su-body").scrollTop = 0; } else openTitle(); },
+    suGo: (el) => { const v = +el.dataset.v; if (v !== ST.step) { FX.sfx("tap"); ST.step = v; renderSetup(); } },
+    suNext: () => {
+      const names = seats().map((p) => String(p.name || "").trim());
+      if (names.some((n) => !n)) { toast("名前を入れてください"); return; }
+      FX.sfx("buzz"); ST.step = 3; renderSetup();
+    },
+    setMode: (el) => { setup.mode = el.dataset.v; saveSetup(); FX.sfx("sel"); ST.step = 2; renderSetup(); },
+    setTeam: (el) => { setup.team = el.dataset.v === "1"; if (setup.team && setup.n < 2) setup.n = 2; saveSetup(); FX.sfx("tap"); renderSetup(); },
+    setTeams: (el) => { setup.nTeams = +el.dataset.v; saveSetup(); FX.sfx("tap"); renderSetup(); },
+    seatAdd: () => { if (setup.n < 8) { const i = setup.n; setup.all[i] = setup.all[i] || blankSeat(i); setup.n++; saveSetup(); FX.sfx("tap"); renderSetup(); const l = $("#setup .su-body"); l.scrollTop = 99999; } },
+    seatDel: (el) => {
+      const i = +el.dataset.i, p = setup.all.splice(i, 1)[0];
+      p.link = null; p.owner = false; p.name = "プレイヤー" + setup.all.length;
+      setup.all.push(p); setup.n--;
+      saveSetup(); FX.sfx("tap"); renderSetup();
+    },
+    seatLink: (el) => { FX.sfx("tap"); openLink(+el.dataset.i); },
+    lkSearch: () => lkSearch(),
+    lkPick: (el) => { FX.sfx("tap"); lkPick(el.dataset.k); },
+    lkKey: (el) => lkKey(el.dataset.v),
+    lkBack: () => { LK.step = "search"; LK.msg = ""; paintLink(); },
+    lkOff: (el) => { const p = setup.all[+el.dataset.i]; p.link = null; saveSetup(); closeSheet(); renderSetup(); toast("連携を解除しました"); },
     chip: (el) => {
       const k = el.dataset.k, v = k === "sets" ? +el.dataset.v : el.dataset.v, a = setup[k], i = a.indexOf(v);
       if (i >= 0) { if (a.length <= 1) { toast("1つ以上えらんでください"); return; } a.splice(i, 1); } else a.push(v);
-      renderSetup(); saveSetup(); sfx("tap");
+      saveSetup(); FX.sfx("tap"); keepScroll(renderSetup);
     },
-    setOpt: (el) => { const k = el.dataset.k, v = el.dataset.v; setup[k] = /^\d+$/.test(v) ? +v : v; renderSetup(); saveSetup(); sfx("tap"); },
-    seatlink: (el) => seatLink(+el.dataset.i),
-    begin: () => begin(),
-    /* ★★ 2026-10-24 チーム抽選 */
-    tdGo: () => { closeSheet(); beginGo(); },
-    tdAgain: () => teamDraw(),
-    turnGo: () => { const f = UI.turnGo; UI.turnGo = null; if (f) f(); },
-    gmenu: () => openMenu(),
-    quit: () => { UI.onClose = null; closeSheet(); stopTimer(); B.run = false; cancelAnimationFrame(B.raf); G = null; openTitle(); },
-    mpick: (el) => milPick(+el.dataset.i),
-    munsel: () => { if (M.phase === "q") { M.sel = -1; renderMil(); } },
-    mfinal: () => milFinal(),
-    mnext: () => { sfx("tap"); milAfter(); },
-    mlife: (el) => milLife(el.dataset.v),
-    mdrop: () => milDrop(),
-    mdropYes: () => milDropYes(),
-    vote: (el) => { const i = +el.dataset.i; M.votes[i] = (M.votes[i] || 0) + 1; sfx("tap"); const n = el.querySelector(".vn"); if (n) n.textContent = M.votes[i]; el.classList.remove("bump"); void el.offsetWidth; el.classList.add("bump"); },
-    voteRes: () => { sfx("life"); UI.voteDraw(true); },
-    bgo: () => { sfx("tap"); bombGo(); },
-    bpick: (el) => bombPick(+el.dataset.i),
-    bnext: () => closeSheet(),
-    again: () => { sfx("tap"); begin(); },
-    review: () => openReview(false),
-    reviewMode: (el) => { UI.onClose = null; openReview(el.dataset.v === "1"); },
+    setOpt: (el) => {
+      const k = el.dataset.k, v = el.dataset.v;
+      setup[k] = v === "true" ? true : v === "false" ? false : /^\d+$/.test(v) ? +v : v;
+      saveSetup(); FX.sfx("tap"); keepScroll(renderSetup);
+    },
+    begin: () => { FX.sfx("buzz"); begin(); },
+    tdGo: () => { const f = UI.tdGo; UI.tdGo = null; closeSheet("silent"); if (f) f(); },
+    tdAgain: () => { const f = UI.tdGo; closeSheet("silent"); setTimeout(() => teamDraw(f), 60); },
+    /* 設定 */
+    optTog: (el) => {
+      const k = el.dataset.k; FX.opt[k] = FX.opt[k] ? 0 : 1; if (k === "se" || k === "bgm") FX.opt[k] = !!FX.opt[k];
+      FX.saveOpt(); if (k === "bgm") FX.refreshBgm();
+      el.querySelector(".sw").classList.toggle("on", !!FX.opt[k]); FX.sfx("tap");
+    },
+    optFs: (el) => { FX.opt.fs = +el.dataset.v; FX.saveOpt(); FX.applyFs(); $$("#sheet .cfg-r2 button").forEach((b) => b.classList.toggle("on", b === el)); FX.sfx("tap"); },
   };
+  function keepScroll(fn) { const b = $("#setup .su-body"), y = b ? b.scrollTop : 0; fn(); const n = $("#setup .su-body"); if (n) n.scrollTop = y; }
   document.addEventListener("click", (e) => {
-    const el = e.target.closest("[data-a]");
+    const el = e.target.closest ? e.target.closest("[data-a]") : null;
     if (el && !el.disabled) { const f = ACT[el.dataset.a]; if (f) { e.preventDefault(); f(el); } return; }
-    if (e.target === $("#ov")) { const sh = $("#sheet"); if (!sh.classList.contains("boomsh")) closeSheet(); }
-  });
-  document.addEventListener("keydown", (e) => {
-    if (e.target && /INPUT|TEXTAREA/.test(e.target.tagName)) return;
-    const k = e.key.toUpperCase(), idx = LET.indexOf(k);
-    if (document.body.dataset.scr === "mil" && !$("#ov").classList.contains("on")) {
-      if (idx >= 0 && M.phase === "q" && M.ord[idx] != null) milPick(M.ord[idx]);
-      else if (e.key === "Enter" && M.phase === "q" && M.sel >= 0) milFinal();
-      else if (e.key === "Enter" && M.phase === "reveal") milAfter();
-    } else if (document.body.dataset.scr === "bomb" && !$("#ov").classList.contains("on")) {
-      if (idx >= 0 && B.ord[idx] != null) bombPick(B.ord[idx]);
-    }
+    if (e.target === $("#ov") && !UI.lock) closeSheet();
   });
 
-  /* ══ はじめ ══ */
-  paintIcons(document);
-  loadSetup();
-  openTitle();
+  MQ.U = { $, $$, esc, fmtN, mmss, ic, IC, COLORS, TEAMS, LET, MODES, ACT, UI, show, sheet, closeSheet, sheetOpen, toast, avatar, buzzBtn, openTitle, openOpts, openRules, setup, seats, saveSetup, begin };
+  MQ.boot = function () { loadSetup(); openTitle(); };
 })();
