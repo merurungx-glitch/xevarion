@@ -20,6 +20,9 @@
 
   /* ── アイコン（2色の重ね：b＝うすい面・f＝線・a＝塗り）── */
   const DI = {
+    exam2: '<rect class="b" x="6" y="3.5" width="14" height="13" rx="2.2"/><path class="f" d="M8 3h10.5A2.5 2.5 0 0 1 21 5.5V14"/><rect class="f" x="3" y="6.5" width="15" height="14.5" rx="2.4"/><path class="f" d="M7 11.5h7M7 15.5h5"/>',
+    layers: '<rect class="b" x="4" y="4" width="7" height="7" rx="1.6"/><rect class="b" x="13" y="13" width="7" height="7" rx="1.6"/><rect class="f" x="4" y="4" width="7" height="7" rx="1.6"/><rect class="f" x="13" y="4" width="7" height="7" rx="1.6"/><rect class="f" x="4" y="13" width="7" height="7" rx="1.6"/><rect class="f" x="13" y="13" width="7" height="7" rx="1.6"/>',
+    bookq: '<path class="b" d="M5.2 4.6A1.6 1.6 0 0 1 6.8 3H19v14H7a1.8 1.8 0 0 0-1.8 1.8z"/><path class="f" d="M5 19.2V5a2 2 0 0 1 2-2h12v14H7a2 2 0 0 0-2 2.2z"/><path class="f" d="M5 19.2A2 2 0 0 0 7 21h12v-4"/><path class="f" d="M9 8h6M9 11.5h4"/>',
     home: '<path class="b" d="M4.5 11.4 12 5.3l7.5 6.1V20h-15z"/><path class="f" d="M3 11.2 12 4l9 7.2"/><path class="f" d="M5.2 10v10h13.6V10"/><path class="f" d="M10 20v-5.2h4V20"/>',
     lib: '<path class="b" d="M5.2 4.6A1.6 1.6 0 0 1 6.8 3H19v14H7a1.8 1.8 0 0 0-1.8 1.8z"/><path class="f" d="M5 19.2V5a2 2 0 0 1 2-2h12v14H7a2 2 0 0 0-2 2.2z"/><path class="f" d="M7 21h12v-4"/><path class="f" d="M9 7.5h6.5M9 11h4.5"/>',
     review: '<circle class="b" cx="12" cy="12" r="7.6"/><path class="f" d="M19.4 13.3A7.6 7.6 0 0 1 6 17.4"/><path class="f" d="M4.6 10.7A7.6 7.6 0 0 1 18 6.6"/><path class="f" d="M18.4 3v3.9h-3.9M5.6 21v-3.9h3.9"/>',
@@ -114,7 +117,8 @@
       "<li>1日で進めるのは「習得中」まで。その日は<b>「まだ習得中になっていない問題だけ」</b>で解くと、むだがありません。</li>" +
       "<li>問題の一覧の右の小さな字（あと1日 など）は、最短で習得できるまでの日数です。</li></ul>";
   }
-  const UI = { recIds: null, libIds: [], lastWrong: [], grp: 1, sgrp: 4, bgrp: 12, gkind: "o", gid: "" };
+  const UI = { recIds: null, libIds: [], lastWrong: [], grp: 1, sgrp: 4, bgrp: 12, gkind: "o", gid: "", psub: "sets", gfrom: "" };
+  try { UI.psub = sessionStorage.getItem("mcl_psub") || "sets"; UI.gfrom = sessionStorage.getItem("mcl_gfrom") || ""; } catch (e) {}
   /* ★★ 2026-10-14 基礎タブ（gkind "b"）・単元別の基礎レベル（rlv "b"）・ホームの基礎セットの組（bgrp） */
   const GK_OK = { o: 1, s: 1, b: 1, r: 1 }, RLV_OK = { o: 1, s: 1, b: 1 };
   try { UI.grp = Number(sessionStorage.getItem("mcl_grp")) || 1; UI.sgrp = Number(sessionStorage.getItem("mcl_sgrp")) || 4; UI.bgrp = Number(sessionStorage.getItem("mcl_bgrp")) || 8; const gk = sessionStorage.getItem("mcl_gkind"); UI.gkind = GK_OK[gk] ? gk : "o"; UI.gid = sessionStorage.getItem("mcl_gid") || ""; const rv = sessionStorage.getItem("mcl_rlv"); UI.rlv = RLV_OK[rv] ? rv : "o"; } catch (e) {}
@@ -207,19 +211,36 @@
   /* ══════════════ ページ ══════════════ */
   let TAB = "home";
   const after = {};
-  function go(t, keepScroll) {
+  /* ★★ 2026-11-05 ご指定「セットで問題を選択して戻るボタンを押したときに上に戻るので、押す前の画面に戻るように」
+     → ページごとのスクロール位置を控えておき（SC）、戻るときは restore で元の位置へ。
+     ★★ 2026-11-05 ご指定「タブが増えすぎて特にスマホで小さく見づらいので、タブを5つまでに」
+     → 下のバーは ホーム・問題・復習・記録・ツール の5つ。「セット」「大問」「問題一覧」は<b>「問題」タブの中の切りかえ</b>（psegHTML）にまとめた。
+       PSUB＝「問題」タブの中のページ・UI.psub＝前に見ていた面。 */
+  const PSUB = { sets: 1, big: 1, lib: 1 };
+  const SC = (function () { try { return JSON.parse(sessionStorage.getItem("mcl_sc") || "{}") || {}; } catch (e) { return {}; } })();
+  function go(t, keepScroll, restore) {
     if (!PAGES[t]) t = "home";
-    TAB = t;
-    try { sessionStorage.setItem("mcl_tab", t); } catch (e) {}
     const main = $("#main");
     const y = main.scrollTop;
+    if (main.firstChild && !keepScroll) { SC[TAB] = y; try { sessionStorage.setItem("mcl_sc", JSON.stringify(SC)); } catch (e) {} }
+    TAB = t;
+    if (PSUB[t]) { UI.psub = t; try { sessionStorage.setItem("mcl_psub", t); } catch (e) {} }
+    try { sessionStorage.setItem("mcl_tab", t); } catch (e) {}
     main.innerHTML = '<div class="pg pg-' + t + '">' + PAGES[t]() + "</div>";
-    const tabOf = { gset: "sets" }[t] || t;
+    const tabOf = { gset: "sets", big: "sets", lib: "sets" }[t] || t;
     $$("[data-tab]").forEach((b) => b.classList.toggle("on", b.dataset.tab === tabOf));
-    main.scrollTop = keepScroll ? y : 0;
+    main.scrollTop = restore ? (SC[t] || 0) : keepScroll ? y : 0;
     if (after[t]) after[t]();
     paintHeader();
   }
+  /* 「問題」タブの中の切りかえ（セット／大問／一覧） */
+  const PSEG = [["sets", "exam2", "セット"], ["big", "layers", "大問・模試"], ["lib", "bookq", "問題一覧"]];
+  function psegHTML(cur) {
+    return '<div class="pseg" role="tablist" aria-label="問題の見かた">' + PSEG.map((p) => '<button class="' + (p[0] === cur ? "on" : "") + '" role="tab" aria-selected="' + (p[0] === cur) + '" data-a="psub" data-v="' + p[0] + '">' + ic(p[1]) + "<span>" + p[2] + "</span></button>").join("") + "</div>";
+  }
+  /* セットの画面の「戻る」＝開く前のページの、開く前の位置へ */
+  function gBack() { go(UI.gfrom && PAGES[UI.gfrom] && UI.gfrom !== "gset" ? UI.gfrom : "sets", false, true); }
+  const toTop = () => { const m = $("#main"); if (m.scrollTo) m.scrollTo({ top: 0, behavior: "smooth" }); else m.scrollTop = 0; };
 
   /* ── ホーム ── */
   function greet() { const h = new Date().getHours(); return h < 4 ? "夜ふかし中だね" : h < 11 ? "おはよう" : h < 17 ? "こんにちは" : "こんばんは"; }
@@ -437,7 +458,7 @@
     if (bgrps.length && bgrps.indexOf(UI.bgrp) < 0) UI.bgrp = bgrps[0];
     const seg = (cls, list, cur, act) => list.length > 1 ? '<div class="seg grp' + cls + '">' + list.map((g) => '<button class="' + (g === cur ? "on" : "") + '" data-a="' + act + '" data-v="' + g + '">' + esc(D.GRP[g]) + "</button>").join("") + "</div>" : "";
     const jump = (id, t, c) => '<button class="bj" data-a="bigJump" data-v="' + id + '" style="--c:' + c + '">' + t + "</button>";
-    return '<h1 class="pt">大問</h1><p class="pt-sub">入試の大問をまるごと解く<b>難関・標準・基礎セット</b>（模試の冊子・練習・計算以外だけ）と、単元ごとの習得のようす（単元マップ）。</p>' +
+    return psegHTML("big") + '<p class="pt-sub">入試の大問をまるごと解く<b>難関・標準・基礎セット</b>（模試の冊子・練習・計算以外だけ）と、単元ごとの習得のようす（単元マップ）。</p>' +
       '<div class="bjs">' + jump("bk-o", "難関セット", "#3b5bff") + (sgrps.length ? jump("bk-s", "標準セット", "#e64980") : "") + (bgrps.length ? jump("bk-b", "基礎セット", "#12b886") : "") + jump("tmap", "単元マップ", "#f59f00") + "</div>" +
       '<h2 class="sec" id="bk-o">難関セット<small>入試の大問をまるごと（改題）</small></h2>' + seg("", grps, UI.grp, "grp") +
       bookCard(UI.grp) + '<div class="sets">' + setCards(UI.grp) + "</div>" +
@@ -646,7 +667,7 @@
     const m = M.mult(), rws = gs.filter((g) => !g.view && (kind !== "r" || (g.lv || "o") === rlv)).map((g) => M.groupReward(g));
     const rg = (k) => { if (!rws.length) return "+0"; const a = Math.min.apply(null, rws.map((r) => r[k])) * m, b = Math.max.apply(null, rws.map((r) => r[k])) * m; return "+" + nf(a) + (a === b ? "" : "〜" + nf(b)); };
     const tabs = ["o", "s", "b", "r"].filter((k) => k === "r" || k === kind || all.some((g) => inTab(g, k)));
-    return '<h1 class="pt">問題セット</h1>' +
+    return psegHTML("sets") +
       '<div class="gtabs n' + tabs.length + '" role="tablist">' + tabs.map((k) => '<button class="gt' + (kind === k ? " on" : "") + '" role="tab" aria-selected="' + (kind === k) + '" data-a="gkind" data-v="' + k + '" style="--c:' + GK[k].c + '"><span class="gt-i">' + ic(GK[k].ic) + "</span><b>" + GK[k].nm + "</b><small>" + cnt(all.filter((g) => inTab(g, k))) + "問</small></button>").join("") + "</div>" +
       '<p class="gt-d" style="--c:' + GK[kind].c + '">' + GK[kind].d + "開くと問題の一覧から解けます。ぜんぶ習得したら<b>確認テスト</b>に挑戦しよう。</p>" +
       /* ★★ 2026-10-09b 色と印の見かた（小さく1行） */
@@ -664,7 +685,7 @@
     const rows = g.ids.map((id, i) => { const x = D.BY[id], stt = M.status(id); return '<button class="qrow st-' + stt + '" data-a="detail" data-id="' + id + '"><span class="qn">' + (i + 1) + '</span><span class="qdot" title="' + ST_LB[stt] + '"></span><span class="qtx">' + esc(short(id, 70)) + '</span><span class="qmeta">' + etaHTML(id) + '<span class="qd">' + "★".repeat(x.d) + "</span></span></button>"; }).join("");
     /* ★★ 2026-10-12 まだ習得中になっていない（未解答・まちがえた）問題の数 */
     const fr = g.ids.filter((id) => { const t = M.status(id); return t === "new" || t === "ng"; }).length;
-    return '<div class="backbar"><button class="back" data-a="tab" data-tab="sets">' + ic("chevL") + "問題セット</button></div>" +
+    return '<div class="backbar"><button class="back" data-a="gback">' + ic("chevL") + (UI.gfrom === "big" ? "大問・模試" : UI.gfrom === "lib" ? "問題一覧" : UI.gfrom === "home" ? "ホーム" : "問題セット") + "</button></div>" +
       '<section class="gh" style="--c:' + gColor(g) + '">' + ringW(st.total ? st.mas / st.total : 0, 86, 8, "<b>" + st.mas + "</b><small>/" + st.total + "</small>") +
       '<div class="gh-t"><small>' + head + "</small><h1>" + (g.part ? esc(g.dai) + ' <span class="gh-lb">' + esc(g.lb) + "</span>" : esc(g.nm)) + "</h1>" + (g.part && g.sub ? '<p class="gh-sub">' + esc(g.sub) + "</p>" : "") + "<p>" + (st.cfPass ? "🏅 確認テスト合格ずみ" : st.done ? "🏆 完全習得！確認テストを受けられます" : "あと <b>" + un + "問</b> で完全習得" + (ge.done ? "" : '<span class="gh-eta">（最短' + (ge.days <= 0 ? "で今日" : "あと" + ge.days + "日") + "）</span>")) + (st.acc != null ? "・正答 " + pctTxt(st.acc) : "") + "</p></div></section>" +
       '<div class="gacts">' +
@@ -734,7 +755,7 @@
   function pgLib() {
     const ids = libFilter(); UI.libIds = ids;
     const act = libActive();
-    return '<h1 class="pt">問題一覧</h1>' +
+    return psegHTML("lib") +
       '<label class="search">' + ic("search") + '<input id="libQ" type="search" placeholder="キーワード（例：緩衝液・半減期・浸透圧）" value="' + esc(LIB.q) + '" autocomplete="off"></label>' +
       '<div class="lib-bar"><div class="chips">' + [["all", "すべて"]].concat(Object.keys(D.F).map((f) => [f, D.F[f].nm])).map((p) => '<button class="cf' + (LIB.f === p[0] ? " on" : "") + '" data-a="lf" data-k="f" data-v="' + p[0] + '">' + p[1] + "</button>").join("") + "</div>" +
       '<button class="fbtn' + (act.length ? " on" : "") + '" data-a="libFilter">' + ic("filter") + "<span>しぼりこみ</span>" + (act.length ? "<b>" + act.length + "</b>" : "") + "</button></div>" +
@@ -823,7 +844,7 @@
       '<h2 class="sec">学習カレンダー<small>16週間</small></h2><section class="card">' + heatHTML() + "</section>" +
       '<h2 class="sec">分野ごと</h2><section class="card">' + fb + '<p class="lgd"><i class="s"></i>解いた<i class="m"></i>習得</p></section>' +
       '<h2 class="sec">単元ごと</h2><section class="card tbl"><table class="tt2"><thead><tr><th>単元</th><th>習得</th><th>正答率</th></tr></thead><tbody>' + trs + "</tbody></table></section>" +
-      '<h2 class="sec" id="runs">模試の記録</h2><section class="card">' + (runs || '<p class="muted">まだありません。「大問」タブの各組の「模試の冊子」で挑戦できます。</p>') + "</section>" +
+      '<h2 class="sec" id="runs">模試の記録</h2><section class="card">' + (runs || '<p class="muted">まだありません。「問題」タブの「大問・模試」にある各組の「模試の冊子」で挑戦できます。</p>') + "</section>" +
       '<h2 class="sec">バッジ<small>' + bd.filter((b) => b.ok).length + " / " + bd.length + '</small></h2><div class="badges">' + bd.map((b) => '<div class="bdg' + (b.ok ? " ok" : "") + '"><span>' + b.ic + "</span><b>" + b.nm + "</b><small>" + b.sub + "</small></div>").join("") + "</div>";
   }
 
@@ -1679,7 +1700,21 @@
   const TITLE = { today: "今日習得にできる問題", rec: "今日のおすすめ", due: "今日の復習", wrong: "まちがえた問題", unsure: "あやしい問題", bm: "ブックマーク", weak: "弱点克服", random: "ランダム10問", list: "問題一覧から" };
   let resetArm = 0;
   const ACT = {
-    tab: (el) => { closeSheet(); go(el.dataset.tab); },
+    tab: (el) => {
+      closeSheet();
+      const t = el.dataset.tab, inBar = !!el.closest(".tabbar");
+      if (!inBar) { go(t); return; }
+      /* 下のバー：別のタブから戻るときは前の位置のまま。いま開いているタブをもう一度押すと上へ */
+      if (t === "sets") {
+        if (TAB === "gset") { gBack(); return; }
+        if (PSUB[TAB]) { toTop(); return; }
+        go(PSUB[UI.psub] ? UI.psub : "sets", false, true); return;
+      }
+      if (t === TAB) { toTop(); return; }
+      go(t, false, true);
+    },
+    psub: (el) => { const v = el.dataset.v; if (PSUB[v] && v !== TAB) go(v, false, true); },
+    gback: () => gBack(),
     settings: () => openSettings(),
     /* ★★ 2026-10-09 ナビゲーター */
     navPick: () => openNavPicker(),
@@ -1718,7 +1753,7 @@
     startTopicUn: (el) => startSession(M.build("topic", { t: el.dataset.t, only: "un", shuffle: true }), { title: D.T[el.dataset.t].nm + "（未習得）", empty: "この単元はすべて習得ずみ！" }),
     /* ★★ 2026-10-06c 問題セット */
     gkind: (el) => { const v = el.dataset.v; UI.gkind = GK_OK[v] ? v : "o"; try { sessionStorage.setItem("mcl_gkind", UI.gkind); } catch (e) {} go("sets", true); },
-    gopen: (el) => { UI.gid = el.dataset.g; try { sessionStorage.setItem("mcl_gid", UI.gid); } catch (e) {} go("gset"); },
+    gopen: (el) => { UI.gid = el.dataset.g; if (TAB !== "gset") UI.gfrom = TAB; try { sessionStorage.setItem("mcl_gid", UI.gid); sessionStorage.setItem("mcl_gfrom", UI.gfrom || ""); } catch (e) {} go("gset"); },
     gplay: (el) => { const g = M.groupById(el.dataset.g); if (g) startSession(M.build("group", { g: g.id }), { title: g.nm }); },
     /* ★★ 2026-10-22 そのセットの計算以外の問題だけ（ご指定「計算問題以外の出題はそれぞれのセットで」） */
     gplayNoCalc: (el) => { const g = M.groupById(el.dataset.g); if (!g) return; const ids = M.build("group", { g: g.id, all: true }).filter((id) => !M.isCalc(D.BY[id])); startSession(ids, { title: g.nm + "（計算以外）", empty: "このセットには計算以外の問題がありません" }); },
@@ -1905,7 +1940,7 @@
     let t = "home";
     try { t = sessionStorage.getItem("mcl_tab") || "home"; } catch (e) {}
     const h = (location.hash || "").slice(1); if (PAGES[h]) t = h;
-    go(t);
+    go(t, false, true);
     if (!M.get().set.onb) setTimeout(openWelcome, 500);
     /* ★★ 2026-10-06c 問題セットを入れる前に完全習得していたぶん（起動・同期のあと） */
     const catchUp = () => {

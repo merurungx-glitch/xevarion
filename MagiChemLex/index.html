@@ -29,7 +29,7 @@ if ("serviceWorker" in navigator) {
 }
 </script>
 <script src="../xeva-safebottom.js?v=12"></script>
-<link rel="stylesheet" href="css/mcl.css?v=17" />
+<link rel="stylesheet" href="css/mcl.css?v=18" />
 <script src="../xeva-splash.js?v=21" data-app="MagiChemLex" data-logo="../thumbs/MagiChemLex.jpg?v=2"></script>
 </head>
 <body>
@@ -45,10 +45,8 @@ if ("serviceWorker" in navigator) {
   <main class="main" id="main"></main>
   <nav class="tabbar" id="tabbar" aria-label="メニュー">
     <button data-a="tab" data-tab="home"><svg class="di" viewBox="0 0 24 24" aria-hidden="true"><path class="b" d="M4.5 11.4 12 5.3l7.5 6.1V20h-15z"/><path class="f" d="M3 11.2 12 4l9 7.2"/><path class="f" d="M5.2 10v10h13.6V10"/><path class="f" d="M10 20v-5.2h4V20"/></svg>ホーム</button>
-    <button data-a="tab" data-tab="sets"><svg class="di" viewBox="0 0 24 24" aria-hidden="true"><rect class="b" x="6" y="3.5" width="14" height="13" rx="2.2"/><path class="f" d="M8 3h10.5A2.5 2.5 0 0 1 21 5.5V14"/><rect class="f" x="3" y="6.5" width="15" height="14" rx="2.4"/><path class="f" d="M6.5 11h8M6.5 14.5h5.5"/></svg>セット</button>
-    <!-- ★★ 2026-10-22 新しいタブ「大問」（難関・標準・基礎セット＝模試と単元マップ。もとはホームの下のほう） -->
-    <button data-a="tab" data-tab="big"><svg class="di" viewBox="0 0 24 24" aria-hidden="true"><rect class="b" x="4" y="4" width="7" height="7" rx="1.6"/><rect class="b" x="13" y="13" width="7" height="7" rx="1.6"/><rect class="f" x="4" y="4" width="7" height="7" rx="1.6"/><rect class="f" x="13" y="4" width="7" height="7" rx="1.6"/><rect class="f" x="4" y="13" width="7" height="7" rx="1.6"/><rect class="f" x="13" y="13" width="7" height="7" rx="1.6"/><path class="f" d="M6.6 7.6h1.8M15.6 16.6h1.8"/></svg>大問</button>
-    <button data-a="tab" data-tab="lib"><svg class="di" viewBox="0 0 24 24" aria-hidden="true"><path class="b" d="M5.2 4.6A1.6 1.6 0 0 1 6.8 3H19v14H7a1.8 1.8 0 0 0-1.8 1.8z"/><path class="f" d="M5 19.2V5a2 2 0 0 1 2-2h12v14H7a2 2 0 0 0-2 2.2z"/><path class="f" d="M7 21h12v-4"/><path class="f" d="M9 7.5h6.5M9 11h4.5"/></svg>問題</button>
+    <button data-a="tab" data-tab="sets"><svg class="di" viewBox="0 0 24 24" aria-hidden="true"><rect class="b" x="6" y="3.5" width="14" height="13" rx="2.2"/><path class="f" d="M8 3h10.5A2.5 2.5 0 0 1 21 5.5V14"/><rect class="f" x="3" y="6.5" width="15" height="14" rx="2.4"/><path class="f" d="M6.5 11h8M6.5 14.5h5.5"/></svg>問題</button>
+    <!-- ★★ 2026-11-05 ご指定「タブを5つまでに」→ 「大問」「問題一覧」は「問題」タブの中の切りかえへ（mcl-ui.js の psegHTML） -->
     <button data-a="tab" data-tab="review"><svg class="di" viewBox="0 0 24 24" aria-hidden="true"><circle class="b" cx="12" cy="12" r="7.6"/><path class="f" d="M19.4 13.3A7.6 7.6 0 0 1 6 17.4"/><path class="f" d="M4.6 10.7A7.6 7.6 0 0 1 18 6.6"/><path class="f" d="M18.4 3v3.9h-3.9M5.6 21v-3.9h3.9"/></svg>復習</button>
     <button data-a="tab" data-tab="stats"><svg class="di" viewBox="0 0 24 24" aria-hidden="true"><rect class="b" x="4.5" y="11" width="4" height="9" rx="1.2"/><rect class="b" x="10" y="5" width="4" height="15" rx="1.2"/><rect class="b" x="15.5" y="13" width="4" height="7" rx="1.2"/><path class="f" d="M3 21h18"/><rect class="f" x="4.5" y="11" width="4" height="9" rx="1.2"/><rect class="f" x="10" y="5" width="4" height="15" rx="1.2"/><rect class="f" x="15.5" y="13" width="4" height="7" rx="1.2"/></svg>記録</button>
     <button data-a="tab" data-tab="tools"><svg class="di" viewBox="0 0 24 24" aria-hidden="true"><path class="b" d="M6.2 20.6h11.6a1.5 1.5 0 0 0 1.3-2.3L15.4 12H8.6l-3.7 6.3a1.5 1.5 0 0 0 1.3 2.3z"/><path class="f" d="M9 3h6M10 3v6.6l-5.4 9A2 2 0 0 0 6.3 21.6h11.4a2 2 0 0 0 1.7-3l-5.4-9V3"/><circle class="a" cx="10.6" cy="16.4" r="1.1"/><circle class="a" cx="13.9" cy="18.2" r=".8"/></svg>ツール</button>
@@ -94,14 +92,14 @@ if ("serviceWorker" in navigator) {
 <script src="js/mcl-fig3.js?v=1"></script>
 <script src="js/mcl-fig4.js?v=1"></script>
 <script src="js/mcl-fig5.js?v=2"></script>
-<script src="js/mcl-ui.js?v=19"></script>
+<script src="js/mcl-ui.js?v=20"></script>
 <!-- ★★ 2026-10-15 フラッシュカード（問題→答え・解説・自分のメモ）と特設予想問題（553＞1107） -->
 <script src="js/mcl-flash.js?v=3"></script>
 <script src="js/mcl-book.js?v=1"></script><!-- ★★ 2026-10-27 模試の冊子 -->
 <script src="js/mcl-special.js?v=1"></script>
 <script src="js/mcl-bingo.js?v=3"></script><!-- ★★ 2026-10-28 ビンゴカード -->
 <!-- ★★ 2026-10-31 ご指定「XEVA の入手方法とそれぞれについてアニメーションで」→ XEVARION ガイドと同じプレイヤーで「XEVA のもらい方」 -->
-<script src="../xeva-tour.js?v=3" defer></script>
+<script src="../xeva-tour.js?v=4" defer></script>
 <script src="js/mcl-guide.js?v=2"></script>
 <script src="../xeva-back.js?v=9" data-mode="hook"></script>
 </body>

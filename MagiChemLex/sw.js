@@ -3,12 +3,12 @@
    ・問題・解説・図はすべて JS の中にあるので、CORE をそろえれば完全にオフラインで使える。
    ・フォント（Google Fonts）は一度読めたら控える。Firebase（同期）はキャッシュしない。
    ============================================================ */
-const VERSION = "magichemlex-sw-v24";
+const VERSION = "magichemlex-sw-v25";
 const RUNTIME = "magichemlex-rt-v1";
 const CORE = [
   "./index.html",
   "./manifest.webmanifest",
-  "./css/mcl.css?v=17",
+  "./css/mcl.css?v=18",
   "./js/mcl-data.js?v=5",
   "./js/mcl-data2.js?v=4",
   "./js/mcl-data3.js?v=2",
@@ -27,13 +27,13 @@ const CORE = [
   "./js/mcl-fig3.js?v=1",
   "./js/mcl-fig4.js?v=1",
   "./js/mcl-fig5.js?v=2",
-  "./js/mcl-ui.js?v=19",
+  "./js/mcl-ui.js?v=20",
   "./js/mcl-flash.js?v=3",      // ★★ 2026-10-15 フラッシュカード
   "./js/mcl-book.js?v=1",       // ★★ 2026-10-27 模試の冊子
   "./js/mcl-special.js?v=1",    // ★★ 2026-10-15 特設予想問題
   "./js/mcl-bingo.js?v=3",      // ★★ 2026-10-28 ビンゴカード
   "./js/mcl-guide.js?v=2",      // ★★ 2026-10-31 XEVA のもらい方（動きで見るガイド）
-  "../xeva-tour.js?v=3",
+  "../xeva-tour.js?v=4",
   "../gem.png",
   "./img/icon_192.png?v=2",
   "./img/apple-touch-icon.png?v=2",
