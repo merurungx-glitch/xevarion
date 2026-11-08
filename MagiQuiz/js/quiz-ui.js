@@ -79,8 +79,8 @@
   const MODES = {
     bomb: { nm: "見えない爆弾", en: "HIDDEN BOMB", icon: "bomb", c: "#ff5a3c", tag: "どこで爆発するか、だれにも見えない", min: 2,
       d: "姿の見えない爆弾を<b>交互に</b>回すサバイバル。正解すれば次の人へ、まちがえたらもう1問。爆発した人はライフ −1。", pl: "2〜8人", tm: "10〜30分" },
-    /* ★★ 2026-11-05 ご指定「早押しモードも後回しでよい」→ off:true で画面に出さない（作りかけ・試験はまだ。出すときは off を外して全部試す） */
-    rush: { off: true, nm: "早押しバトル", en: "BUZZER BATTLE", icon: "buzzer", c: "#f0509a", tag: "わかった瞬間に押せ", min: 2,
+    /* ★★ 2026-11-05 作りかけで後回し → ★★ 2026-11-08 ご指定「以前の提案の 2 の早押しモードを追加」で公開（off を付けると画面から隠せる） */
+    rush: { nm: "早押しバトル", en: "BUZZER BATTLE", icon: "buzzer", c: "#f0509a", tag: "わかった瞬間に押せ", min: 2,
       d: "問題文が1文字ずつ出ます。わかった人が<b>自分のブザー</b>を押して答える早い者勝ち。お手つきはライフ −1。", pl: "2〜8人", tm: "5〜15分" },
     tower: { nm: "クイズタワー", en: "QUIZ TOWER", icon: "tower", c: "#27b4ff", tag: "10階のてっぺんをめざせ", min: 1,
       d: "<b>1問ずつ交互に</b>、自分のタワーを登る。上の階ほど高得点。まちがえるとチェックポイントまで転落。やめどきも作戦のうち。", pl: "1〜8人", tm: "10〜20分" },
@@ -154,6 +154,8 @@
           (sv ? '<button class="t-resume" data-a="resume"><b>つづきから</b><small>' + esc(MODES[sv.mode].nm) + "・" + esc(sv.who) + "</small></button>" : "") +
           buzzBtn("start", "あそぶ", "lg") +
           (hasLast ? '<button class="t-last" data-a="quick">' + ic("again") + "<span>前回と同じで始める<small>" + esc(m.nm) + "・" + seats().length + "人</small></span></button>" : "") +
+          /* ★★ 2026-11-08 ご指定「2台での対戦」：それぞれの端末で同じ問題に同時に答える（quiz-online.js） */
+          '<button class="t-last t-ol" data-a="online">' + ic("people") + "<span>2台で対戦<small>それぞれの端末で、同じ問題にスピード勝負</small></span></button>" +
           '<div class="t-sub"><button data-a="rules">' + ic("book") + '<span>あそび方</span></button><button data-a="records">' + ic("trophy") + "<span>記録</span></button></div>" +
         "</div>" +
         '<p class="t-src">' + (n ? "出題：MagiChemLex 基礎セット1〜4 の改題 <b>" + fmtN(n) + "</b>問" : "問題を読みこめませんでした。通信のあるところで開き直してください") + "</p>" +
@@ -272,7 +274,7 @@
         '<p class="su-note">チームは全員そろってから<b>くじ引き</b>で決めます（チームで相談して答えます）。</p>' : "") +
       '<div class="st-list">' + rows + "</div>" +
       (setup.n < 8 ? '<button class="st-add" data-a="seatAdd">' + ic("plus") + "プレイヤーを追加（" + setup.n + "/8）</button>" : "") +
-      '<div class="su-tip">' + ic("gift") + "<div><b>順位で XEVA がもらえます</b>（1位 250〜5位 50）。「この端末の本人」にチェックすると<b>オフラインでも</b>この端末に入ります。ほかの人はアカウント連携すると本人のアカウントに届きます。</div></div>";
+      '<div class="su-tip">' + ic("gift") + "<div><b>順位で XEVA がもらえます</b>（1位 1,000・2位 700・3位 500…）。「この端末の本人」にチェックすると<b>オフラインでも</b>この端末に入ります。ほかの人はアカウント連携すると本人のアカウントに届きます。</div></div>";
   }
   /* ── ルール ── */
   function segRow(key, label, icon, list, note) {
@@ -447,7 +449,10 @@
   function openOpts() {
     const o = FX.opt;
     const sw = (k, nm, d) => '<button class="cfg-r" data-a="optTog" data-k="' + k + '"><span><b>' + nm + "</b>" + (d ? "<small>" + d + "</small>" : "") + '</span><i class="sw' + (o[k] ? " on" : "") + '"></i></button>';
-    sheet('<h3 class="sh-t">' + ic("gear") + "設定</h3><div class=\"cfg\">" + sw("se", "効果音") + sw("bgm", "BGM") + sw("vib", "振動", "対応している端末のみ") + sw("sol", "解説をいつも開く", "オフのときは、まちがえたときだけ開きます") +
+    /* ★★ 2026-11-08 司会キャラ（オンオフ・だれにするか） */
+    const H = MQ.Host;
+    const hostSec = H ? sw("host", "司会キャラ", "試合の実況とカットイン") + (o.host ? '<div class="cfg-r2"><b>司会をするキャラ</b>' + H.pickerHTML() + "</div>" : "") : "";
+    sheet('<h3 class="sh-t">' + ic("gear") + "設定</h3><div class=\"cfg\">" + sw("se", "効果音") + sw("bgm", "BGM") + sw("vib", "振動", "対応している端末のみ") + sw("sol", "解説をいつも開く", "オフのときは、まちがえたときだけ開きます") + hostSec +
       '<div class="cfg-r2"><b>文字の大きさ</b><div class="su-seg sm">' + [[1, "ふつう"], [1.12, "大きい"], [1.26, "とても大きい"]].map((v) => '<button class="' + (Number(o.fs) === v[0] ? "on" : "") + '" data-a="optFs" data-v="' + v[0] + '">' + v[1] + "</button>").join("") + "</div></div></div>" +
       '<div class="sh-b"><button class="btn pri" data-a="close">とじる</button></div>', { onClose: UI.optBack || null });
   }
@@ -476,7 +481,8 @@
     const tabs = '<div class="su-seg sm rv-seg">' + modeIds().map((k) => '<button class="' + (k === mode ? "on" : "") + '" data-a="rulesTab" data-v="' + k + '">' + MODES[k].nm + "</button>").join("") + "</div>";
     sheet('<h3 class="sh-t">' + ic("book") + "あそび方</h3>" + tabs + '<ul class="rl">' + RULE_TX[mode].map((t) => "<li>" + t + "</li>").join("") + "</ul>" +
       '<h4 class="rl-h">どの遊び方でも</h4><ul class="rl"><li>問題は MagiChemLex の基礎セット1〜4 の改題です。図のある問題は図も出ます。</li><li>問題中は<b>メモ・電卓・公式</b>が使えます。</li><li>答えは選んでから<b>ブザー</b>で決定。時間切れはまちがいと同じです。</li><li>順番は試合のはじめにくじ引きで決まります。</li>' +
-      "<li>チーム戦はくじ引きでチームを決めて、相談して答えます。</li><li>賞金：1位 250・2位 200・3位 150・4位 100・5位 50 XEVA（3問以上答えた人）。ひとりプレイは 正解×10 XEVA（最大 100）。</li></ul>" +
+      "<li>チーム戦はくじ引きでチームを決めて、相談して答えます。</li><li>賞金：1位 1,000・2位 700・3位 500・4位 350・5位 250・6位 180・7位 120・8位 80 XEVA（3問以上答えた人）。ひとりプレイは 正解×40 XEVA（最大 400）。</li>" +
+      "<li><b>2台で対戦</b>：タイトルの「2台で対戦」から。それぞれの端末で同じ問題に同時に答えるスピード勝負（2〜4台）。</li><li><b>司会キャラ</b>：設定でオン／オフと、司会をするキャラ（ホームのパートナー・完凸ロビーのキャラ）を選べます。</li></ul>" +
       '<div class="sh-b"><button class="btn pri" data-a="close">とじる</button></div>', { cls: "rules", onClose: UI.rulesBack || null });
   }
   function openRecords() {
@@ -551,6 +557,13 @@
       const k = el.dataset.k; FX.opt[k] = FX.opt[k] ? 0 : 1; if (k === "se" || k === "bgm") FX.opt[k] = !!FX.opt[k];
       FX.saveOpt(); if (k === "bgm") FX.refreshBgm();
       el.querySelector(".sw").classList.toggle("on", !!FX.opt[k]); FX.sfx("tap");
+      /* ★★ 2026-11-08 司会キャラ：オンにしたら選ぶ欄を出して、ひとこと */
+      if (k === "host") { const f = UI.onClose; const y = $("#sheet").scrollTop; UI.onClose = null; openOpts(); UI.onClose = f; $("#sheet").scrollTop = y; if (FX.opt.host && MQ.Host) MQ.Host.say("start", {}, { noCut: true }); else if (MQ.Host) MQ.Host.hide(); }
+    },
+    hostPick: (el) => {
+      FX.opt.hostId = el.dataset.v || ""; FX.saveOpt(); FX.sfx("sel");
+      $$("#sheet .mh-pk").forEach((b) => b.classList.toggle("on", b === el));
+      if (MQ.Host) MQ.Host.say("start", {}, { noCut: true, force: true });
     },
     optFs: (el) => { FX.opt.fs = +el.dataset.v; FX.saveOpt(); FX.applyFs(); $$("#sheet .cfg-r2 button").forEach((b) => b.classList.toggle("on", b === el)); FX.sfx("tap"); },
   };

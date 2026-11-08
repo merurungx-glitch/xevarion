@@ -3,7 +3,7 @@
    ★★ 2026-11-05 全面作り直し
    ------------------------------------------------------------
    どの遊び方も同じ流れ（＝画面も操作も1つで覚えられる）：
-     手番の画面（★自動で進む）→ 問題（時間が進む・メモ／電卓）→ 答えを選んでブザー → 結果と解説（★時間は止まる）→ 次へ
+     手番の画面（★自動で進む・早押しには無い）→ 問題（時間が進む・メモ／電卓）→ 答えを選んでブザー → 結果と解説（★時間は止まる）→ 次へ
    ご指定「基本的に交互に近い形」：早押し以外は1問ごとに次の人へ回る。順番は試合のはじめにくじ引きで決め、その順に並べる（orderDraw）。
 
    ・見えない爆弾（bomb）… 爆弾は絵に出さない。B.fuse は問題に答えている間だけ進む（解説・手番の受けわたしでは止まる）。
@@ -35,6 +35,9 @@
   const GOOD = '<svg viewBox="0 0 120 120"><circle cx="60" cy="60" r="44" fill="none" stroke="#fff" stroke-width="16"/></svg>';
   const BAD = '<svg viewBox="0 0 120 120"><path d="M28 28l64 64M92 28l-64 64" fill="none" stroke="#fff" stroke-width="18" stroke-linecap="round"/></svg>';
   const songOf = () => (G.mode === "bomb" ? "bomb" : G.mode === "rush" ? "rush" : "play");
+  /* ★★ 2026-11-08 司会キャラ（quiz-host.js）。オフなら何もしない */
+  const host = (ev, v, o) => { try { if (MQ.Host) MQ.Host.say(ev, v, o); } catch (e) {} };
+  const nmOf = (u) => (u ? (G && G.team ? u.name + "（" + member(u).name + "）" : u.name) : "");
   const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 
   /* ══ 保存 ══ */
@@ -106,9 +109,10 @@
     box.innerHTML = `<div class="tn-w"></div><div class="tn-in opn"><p class="opn-en">${m.en}</p><h2 class="opn-nm">${esc(m.nm)}</h2><p class="opn-rule">${rule}</p>
       ${draw ? '<p class="odh" id="odH">順番を決めています…</p><div class="odb" id="odB"></div>' : ""}<div class="odg" id="odG"></div></div>`;
     UI.turnGo = () => { if (G.mode === "bomb") bombRound(); else if (G.mode === "rush") rushNext(); else nextTurn(); };
-    const ready = () => { $("#odG").innerHTML = buzzBtn("turnGo", "スタート", "lg"); };
+    const ready = () => { $("#odG").innerHTML = buzzBtn("turnGo", "スタート", "lg"); if (draw) setTimeout(() => host("order", { p: G.units[0].name }), 250); };
     if (draw) orderDraw(ready); else ready();
     FX.sfx("turn");
+    setTimeout(() => host("start", {}), 450);
   }
   /* ★★ 2026-11-05 順番ぎめ：光がカードの上を回って止まった人から 1番・2番…（タップで飛ばせる）。最後に順番どおりに並びかわる。
      答えは makeUnits で決まっている（G.units の並び）。ここは見せるだけ。 */
@@ -171,6 +175,7 @@
     UI.turnGo = o.go;
     FX.sfx("turn");
     turnArm(ms);
+    if (G.units.length > 1 && o.say !== false) host(o.say || "turn", { p: nmOf(u) }, { ms: Math.max(1400, ms + 400) });
   }
   /* ★ 並びはいつも順番どおり（ご指定） */
   function standings() {
@@ -256,7 +261,7 @@
   }
   function renderTop() {
     if (G.mode === "rush") {
-      const w = P.rp && P.rp.who >= 0 ? G.units[P.rp.who] : null;
+      const w = P.rp && P.rp.who >= 0 && P.phase !== "result" ? G.units[P.rp.who] : null;
       $("#plLb").innerHTML = `<b>${w ? esc(G.team ? w.name + "・" + member(w).name : w.name) + " が回答中" : "早押しバトル"}</b><small>第 ${G.round} 問・先に ${G.opt.target} 問正解で勝ち</small>`;
       $("#plBar").hidden = !P.lim;
       paintTime(true);
@@ -391,11 +396,11 @@
     if (cur().out) G.cur = nextActive();
     FX.ambOn(false);
     saveGame();
-    turnScreen({ u: cur(), head: "ROUND " + G.round, sub: "どこかに爆弾がある。<br>いつ爆発するかは、だれにも見えない。", extra: standings(), ms: 2000,
+    turnScreen({ u: cur(), head: "ROUND " + G.round, sub: "どこかに爆弾がある。<br>いつ爆発するかは、だれにも見えない。", extra: standings(), ms: 2000, say: false,
       go: () => { FX.sfx("ignite"); FX.ambOn(true); FX.ambSet(0, 1); askFor(); } });
   }
   function bombTurn(head) {
-    turnScreen({ u: cur(), head: head || "次はあなた", extra: standings(), go: askFor });
+    turnScreen({ u: cur(), head: head || "次はあなた", extra: standings(), go: askFor, say: head && /パス/.test(head) ? "pass" : "turn" });
   }
   function bombTick(dt) {
     const B = G.b;
@@ -426,6 +431,7 @@
     $("#play").classList.add("blast");
     FX.explode(); FX.shake("bshake");
     FX.stamp("<b>BOOM!</b>", "boom", 1700);
+    setTimeout(() => host(isOut ? "out" : "boom", { p: nmOf(u) }), 1650);
     const r = { kind: "boom", ok: false, after: "round", isOut, len: B.max, gap: B.passAt >= 0 ? B.fuse - B.passAt : -1, by: B.passBy };
     G.pend = { after: "round", kind: "boom" };
     saveGame();
@@ -512,6 +518,18 @@
     }
     saveGame();
     setTimeout(() => { if (P.res === r) showResult(r); }, ok ? 520 : 640);
+    /* ★★ 2026-11-08 司会キャラのひとこと */
+    const hv = { p: nmOf(u), n: u.combo, f: u.floor };
+    setTimeout(() => {
+      if (r.isOut) host("out", hv);
+      else if (r.top) host("top", hv);
+      else if (r.heart) host("heart", hv);
+      else if (r.fell) host("fall", hv);
+      else if (r.safe) host("safe", hv);
+      else if (ok && u.combo >= 3) host("combo", hv, u.combo >= 5 ? { cut: true } : {});
+      else if (ok && G.mode === "tower") host("climb", hv);
+      else host(ok ? "ok" : why === "time" ? "time" : "ng", hv);
+    }, ok ? 380 : 700);
   }
   function markOpts() {
     const q = P.q, cor = Q.answers(q);
@@ -693,11 +711,14 @@
     const rp = P.rp;
     if (P.phase !== "rush" || P.paused || !rp || sheetOpen()) return;
     const u = G.units[k]; if (!u || u.out || rp.lock[k]) return;
-    rp.from = rp.st; rp.st = "answer"; rp.who = k; G.cur = k;
+    rp.from = rp.st; rp.st = "answer"; rp.who = k; rp.tried = true; G.cur = k;
     u.mi = (u.mi || 0) + 1;
     P.phase = "ask"; P.spent = 0; P.sec = -1; resetSel();
     P.lim = P.left = Q.rushLimit(P.x, G.opt.limit);
     const b = $('.bz-b[data-u="' + k + '"]'); if (b) b.classList.add("hit");
+    /* ブザーのあとに出るボタン（メモなど）を、押した指の click で押してしまわないように */
+    P.noClick = performance.now() + 450;
+    host("buzz", { p: nmOf(u) }, { ms: 1500 });
     FX.sfx("buzz"); FX.vib(40);
     FX.flash(u.color, 200);
     FX.stamp(esc(u.name), "who", 800);
@@ -712,6 +733,7 @@
     FX.sfx(why === "time" ? "time" : "ng"); FX.vib([30, 40, 30]);
     FX.stamp(BAD, "bad", 750);
     if (u.out) setTimeout(() => { FX.sfx("out"); FX.stamp("OUT", "out", 1300); }, 620);
+    setTimeout(() => host(u.out ? "out" : "otetsuki", { p: nmOf(u) }), 500);
     const rest = G.units.filter((v) => !v.out && !rp.lock[v.k]);
     if (!rest.length || alive().length <= 1) { rushEnd({ kind: "none", ok: false, last: u.k }); return; }
     /* のこりの人で、文のつづきから */
@@ -729,7 +751,12 @@
     rp.spans.forEach((s) => s.classList.add("on"));
     $("#play").classList.remove("rush-read");
     r.after = "rush";
-    if (r.kind === "none") { resetSel(); G.log.push({ id: P.x.id, u: -1, m: 0, ok: null, sel: null, ord: P.ord.slice(), why: "skip", ms: 0 }); }
+    /* 結果の画面で「回答中」の文字と時間を残さない（11-05 に試して直したもの） */
+    if (!r.ok) rp.who = -1;
+    P.lim = 0; renderTop();
+    if (r.kind === "none") resetSel();
+    /* お手つきのあとの「だれも答えず」は、見直しに二重に入れない */
+    if (r.kind === "none" && !rp.tried) { G.log.push({ id: P.x.id, u: -1, m: 0, ok: null, sel: null, ord: P.ord.slice(), why: "skip", ms: 0 }); }
     G.pend = { after: "rush", kind: r.kind };
     P.res = r;
     renderOpts(); markOpts(); renderStrip();
@@ -740,6 +767,8 @@
       FX.burst(rc.left + rc.width / 2, rc.top + rc.height * 0.4, 30, ["#ffe33d", "#fff", "#6df0b2"], 460);
       if (r.win) setTimeout(() => { FX.sfx("win"); FX.confetti(160); }, 300);
     }
+    const ww = r.ok ? cur() : null;
+    setTimeout(() => host(r.win ? "rushwin" : r.ok ? (ww.combo >= 3 ? "combo" : "ok") : "none", { p: nmOf(ww), n: ww ? ww.combo : 0 }, r.win ? {} : { noCut: true }), r.ok ? 420 : 760);
     saveGame();
     setTimeout(() => { if (P.res === r) showResult(r); }, r.ok ? 520 : 640);
   }
@@ -803,6 +832,7 @@
     FX.bgmDuck(true); FX.sfx("check");
     P.res = r; saveGame();
     showResult(r);
+    host("drop", { p: nmOf(u) });
   }
 
   /* ══ 一時停止 ══ */
@@ -881,6 +911,7 @@
     } else if (P.phase === "result" && e.key === "Enter") { U.ACT.next(); }
   });
 
+  document.addEventListener("click", (e) => { if (performance.now() < (P.noClick || 0)) { e.stopPropagation(); e.preventDefault(); } }, true);
   /* ブザーは click だと遅れて、同時に押すと取りこぼすので pointerdown で受ける */
   document.addEventListener("pointerdown", (e) => {
     const b = e.target && e.target.closest ? e.target.closest(".bz-b") : null;

@@ -1,7 +1,7 @@
 {
   "name": "MagiQuiz",
   "short_name": "MagiQuiz",
-  "description": "化学の基礎で、みんなでクイズバトル！ 見えない爆弾・クイズタワー・スコアアタック。図つきの問題、メモ・電卓つき。",
+  "description": "化学の基礎で、みんなでクイズバトル！ 見えない爆弾・早押しバトル・クイズタワー・スコアアタック。図つきの問題、メモ・電卓つき。",
   "start_url": "./index.html",
   "scope": "./",
   "display": "standalone",

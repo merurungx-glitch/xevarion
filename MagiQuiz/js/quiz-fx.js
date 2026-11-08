@@ -15,7 +15,7 @@
   const MQ = (window.MQ = window.MQ || {});
   const OPT_KEY = "magiquiz_opt_v1";
   const opt = (function () {
-    const d = { se: true, bgm: true, fs: 1, sol: 0, vib: true };
+    const d = { se: true, bgm: true, fs: 1, sol: 0, vib: true, host: 1, hostId: "" };   /* ★★ 2026-11-08 司会キャラ（host＝オンオフ・hostId＝"" はおまかせ） */
     try { return Object.assign(d, JSON.parse(localStorage.getItem(OPT_KEY) || "{}")); } catch (e) { return d; }
   })();
   const saveOpt = () => { try { localStorage.setItem(OPT_KEY, JSON.stringify(opt)); } catch (e) {} };

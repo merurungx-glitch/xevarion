@@ -104,12 +104,14 @@
     skipT.forEach(clearTimeout); skipT = [];
     const rest = $("#reRest");
     const later = (fn, ms) => skipT.push(setTimeout(fn, ms));
+    const hostSay = (ev) => { try { if (MQ.Host) MQ.Host.say(ev, { p: us[0] ? us[0].name : "" }); } catch (e) {} };   /* ★★ 2026-11-08 司会キャラ */
     if (solo) {
       FX.sfx("win"); FX.confetti(80); FX.music("result");
       rest.classList.add("in");
+      later(() => hostSay("solo"), 700);
       return;
     }
-    if (FX.RM()) { $$(".pod").forEach((p) => p.classList.add("up")); rest.classList.add("in"); FX.music("result"); return; }
+    if (FX.RM()) { $$(".pod").forEach((p) => p.classList.add("up")); rest.classList.add("in"); FX.music("result"); later(() => hostSay("final"), 600); return; }
     $("#result").classList.add("staging");
     const up = (r) => { const p = $('.pod[data-r="' + r + '"]'); if (p) p.classList.add("up"); };
     const has3 = !!$('.pod.r3'), has2 = !!$('.pod.r2');
@@ -118,6 +120,7 @@
     if (has2) { later(() => { up(2); FX.sfx("stamp"); }, t); t += 900; }
     later(() => FX.sfx("drum"), t); t += 1750;
     later(() => { up(1); FX.sfx("cym"); FX.sfx("win"); FX.confetti(170); FX.burst(innerWidth / 2, innerHeight * 0.32, 60, null, 760); FX.music("result"); }, t); t += 900;
+    later(() => hostSay("final"), t + 300);
     later(() => { rest.classList.add("in"); $("#result").classList.remove("staging"); }, t);
   }
   function skip() {

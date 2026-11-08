@@ -7,7 +7,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <title>MagiQuiz</title>
-<meta name="description" content="化学の基礎で、みんなでクイズバトル！ 1台を囲んで、見えない爆弾・クイズタワー・スコアアタック。図つきの問題・解説・メモと電卓つき。個人戦もチーム戦も、ひとり練習も。" />
+<meta name="description" content="化学の基礎で、みんなでクイズバトル！ 1台を囲んで、見えない爆弾・早押しバトル・クイズタワー・スコアアタック。2台で対戦も。図つきの問題・解説・メモと電卓つき。個人戦もチーム戦も、ひとり練習も。" />
 <link rel="icon" href="../thumbs/MagiQuiz.jpg?v=2" type="image/jpeg" />
 <link rel="apple-touch-icon" href="img/apple-touch-icon.png?v=2" />
 <meta name="theme-color" content="#6704dc" />
@@ -21,14 +21,16 @@ if ("serviceWorker" in navigator) {
 }
 </script>
 <script src="../xeva-safebottom.js?v=12"></script>
-<link rel="stylesheet" href="css/quiz.css?v=4" />
+<link rel="stylesheet" href="css/quiz.css?v=6" />
 <script src="../xeva-splash.js?v=21" data-app="MagiQuiz" data-logo="../thumbs/MagiQuiz.jpg?v=2"></script>
 </head>
 <body>
 <!-- ══════════════════════════════════════════════════════════════
      ★★ 2026-11-05 MagiQuiz 全面作り直し（ご指定「デザインから仕組みまで全てを1から構想しなおし、もはや新作レベルで」）
      ・アイコン（紫・黄・白・ブザー）を全体の軸に。答えを決めるのも次へ進むのも黄色いブザー。
-     ・遊び方は3つ：見えない爆弾／クイズタワー／スコアアタック（どれも1問ごとに交互）。
+     ・遊び方は4つ：見えない爆弾／早押しバトル／クイズタワー／スコアアタック（早押し以外は1問ごとに交互）。
+     ・★★ 2026-11-08 ご指定（以前の提案の 2・5・6）：早押しバトルを公開／2台で対戦（quiz-online.js・quiz-net.js＝それぞれの端末で同じ問題にスピード勝負）／
+       司会キャラ（quiz-host.js・設定でオンオフ）。賞金も引き上げ（1位 1,000 XEVA〜）。
      ・問題は MagiChemLex の基礎セット1〜4 の改題すべて（図・解説の図も出す）。メモ・電卓・公式つき。
      ・答えたあとは時間が止まり、解説を確認してから次へ。
      ・画面の中身はぜんぶ JS で描く：quiz-ui.js（タイトル・準備・記録）／quiz-play.js（試合）／quiz-result.js（結果）。
@@ -41,6 +43,7 @@ if ("serviceWorker" in navigator) {
 <section id="play" class="scr"></section>
 <section id="result" class="scr"></section>
 <section id="records" class="scr"></section>
+<section id="online" class="scr"></section><!-- ★★ 2026-11-08 2台で対戦 -->
 
 <!-- 見えない爆弾のまわりの演出（爆弾そのものは絵に出さない） -->
 <div id="amb" class="amb" aria-hidden="true"><i class="amb-g"></i><i class="amb-p"></i></div>
@@ -52,7 +55,7 @@ if ("serviceWorker" in navigator) {
 <script type="module" src="../xevarion-fb.js?v=37"></script>
 <!-- 賞金の XEVA をクラウドへ送るため xeva-cloud.js も読む（ログインなしでも遊べるようにホームへは戻さない） -->
 <script>window.XEVA_CLOUD_NO_GATE = true;</script>
-<script type="module" src="../xeva-cloud.js?v=49"></script>
+<script type="module" src="../xeva-cloud.js?v=50"></script>
 <script src="../xeva.js?v=86"></script>
 <script src="../xeva-loading.js?v=19" defer></script>
 <script src="../game-link.js?v=13"></script>
@@ -75,13 +78,16 @@ if ("serviceWorker" in navigator) {
 <script src="../MagiChemLex/js/mcl-fig3.js?v=1"></script>
 <script src="../MagiChemLex/js/mcl-fig4.js?v=1"></script>
 <script src="../MagiChemLex/js/mcl-fig5.js?v=2"></script>
-<script src="js/quiz-data.js?v=4"></script>
-<script src="js/quiz-account.js?v=3"></script>
-<script src="js/quiz-fx.js?v=2"></script>
-<script src="js/quiz-ui.js?v=4"></script>
+<script src="js/quiz-data.js?v=5"></script>
+<script src="js/quiz-account.js?v=4"></script>
+<script src="js/quiz-fx.js?v=3"></script>
+<script src="js/quiz-ui.js?v=6"></script>
 <script src="js/quiz-pad.js?v=1"></script>
-<script src="js/quiz-play.js?v=2"></script>
-<script src="js/quiz-result.js?v=2"></script>
+<script src="js/quiz-play.js?v=4"></script>
+<script src="js/quiz-result.js?v=3"></script>
+<script src="js/quiz-host.js?v=1"></script><!-- ★★ 2026-11-08 司会キャラ -->
+<script src="js/quiz-online.js?v=1"></script><!-- ★★ 2026-11-08 2台で対戦（画面と進め方） -->
+<script type="module" src="js/quiz-net.js?v=1"></script><!-- ★★ 2026-11-08 2台で対戦（通信） -->
 <script src="../xeva-back.js?v=9" data-mode="hook"></script>
 </body>
 </html>

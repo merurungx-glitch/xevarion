@@ -3,17 +3,18 @@
    ・1台で遊ぶクイズ。キャッシュすれば完全にオフラインで動く（問題は MagiChemLex の問題データ）
    ・アカウントの紐づけと賞金だけ通信が要る（遊ぶこと自体はオフラインでできる）
    ============================================================ */
-const VERSION = "magiquiz-sw-v11";
+const VERSION = "magiquiz-sw-v13";
 const CORE = [
   "./index.html",
-  "./css/quiz.css?v=4",
-  "./js/quiz-data.js?v=4",
-  "./js/quiz-account.js?v=3",
-  "./js/quiz-fx.js?v=2",
-  "./js/quiz-ui.js?v=4",
+  "./css/quiz.css?v=6",
+  "./js/quiz-data.js?v=5",
+  "./js/quiz-account.js?v=4",
+  "./js/quiz-fx.js?v=3",
+  "./js/quiz-ui.js?v=6",
   "./js/quiz-pad.js?v=1",
-  "./js/quiz-play.js?v=2",
-  "./js/quiz-result.js?v=2",
+  "./js/quiz-play.js?v=4",
+  "./js/quiz-result.js?v=3",
+  "./js/quiz-host.js?v=1", "./js/quiz-online.js?v=1", "./js/quiz-net.js?v=1",   // ★★ 2026-11-08 司会キャラ・2台で対戦
   "./img/icon192.png?v=2",
   "./img/apple-touch-icon.png?v=2",
   "./manifest.webmanifest",
@@ -30,7 +31,7 @@ const CORE = [
   "../xeva-loading.js?v=19",
   "../xeva-back.js?v=9",
   "../maintenance-gate.js?v=13",
-  "../xeva.js?v=86", "../xeva-cloud.js?v=49", "../xeva-keys.js?v=35",
+  "../xeva.js?v=86", "../xeva-cloud.js?v=50", "../xeva-keys.js?v=36",
   "../xeva-alive.js?v=8",
   "../game-link.js?v=13",
   "../xevarion-fb.js?v=37",

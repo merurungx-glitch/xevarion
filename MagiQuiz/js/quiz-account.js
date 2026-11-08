@@ -7,8 +7,9 @@
         財布（xeva_wallet）は同期キーなので、オンラインに戻ると XEVA.add のぶんがクラウドへ足される（3方向マージ）。
      ② <b>アカウント連携</b>（表示名で検索 → 4桁パスワード）… まわりの人の賞金。実体は XEVARION 共通の GameLink / XEVARIONFB。
         ★ オフラインで試合が終わったときは<b>送り待ち</b>（magiquiz_prizeq_v1）に入れて、次にオンラインになったら送る。
-   ・賞金は順位そのまま（1位 250・2位 200・3位 150・4位 100・5位 50 XEVA）。チーム戦はチームの順位をメンバー全員に。
-     同じ順位＝同じ額。★ 3問以上答えた人だけ（RULE.PRIZE_MIN_ANS）。ひとりで遊んだときは 正解数×10（最大100）。
+   ・賞金は順位そのまま（★★ 2026-11-08 ご指定で引き上げ：1位 1,000・2位 700・3位 500・4位 350・5位 250・6位 180・7位 120・8位 80 XEVA＝quiz-data.js の RULE.PRIZES）。
+     チーム戦はチームの順位をメンバー全員に。同じ順位＝同じ額。★ 3問以上答えた人だけ（RULE.PRIZE_MIN_ANS）。ひとりで遊んだときは 正解数×40（最大400）。
+     2台で対戦（quiz-online.js）は、それぞれの端末が自分の分だけ report する（owner）。
    ・戦績はこの端末に（連携した人は uid ごと・本人は "me"・ほかは名前ごと）。
    ・パスワードは保存しない（確認に使うだけ）。
    ============================================================ */
@@ -67,7 +68,7 @@
   }
 
   /* ══ 賞金 ══ */
-  const PRIZES = () => (window.GameLink && GameLink.PRIZES) || [250, 200, 150, 100, 50];
+  const PRIZES = () => (MQ.Data && MQ.Data.RULE && MQ.Data.RULE.PRIZES) || [1000, 700, 500, 350, 250, 180, 120, 80];
   function queueLoad() { try { return JSON.parse(localStorage.getItem(PRIZEQ) || "[]") || []; } catch (e) { return []; } }
   function queueSave(a) { try { if (a.length) localStorage.setItem(PRIZEQ, JSON.stringify(a.slice(0, 80))); else localStorage.removeItem(PRIZEQ); } catch (e) {} }
   /* 送り待ちの賞金を送る（1件ずつ・送れたものだけ消す＝二重に送らない） */
