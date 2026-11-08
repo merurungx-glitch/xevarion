@@ -20,6 +20,8 @@ set PYTHONIOENCODING=utf-8
 set FAILED=0
 rem 2026-10-21: MagiDerby (real JRA G1: entries, odds, results, payouts) first. On G1 days it loops around post time.
 call :derby
+rem 2026-11-08: MagiMarket (Kioxia stock price + JEF United Chiba matches). Loops every 5 min during market hours / around kickoff.
+call :market
 call :stage "campaign,dlsite" %*
 call :stage "movie,special" %*
 call :stage "fanza" %*
@@ -36,6 +38,15 @@ git -C "%WORK%" add -A >> "%LOG%" 2>&1
 git -C "%WORK%" -c user.name=magiscope-pc -c user.email=magiscope-pc@users.noreply.github.com commit -q -m "MagiDerby data" >> "%LOG%" 2>&1
 git -C "%WORK%" push -q -f origin HEAD:magiscope-data >> "%LOG%" 2>&1
 if errorlevel 1 (set FAILED=1& echo [%date% %time%] push failed derby >> "%LOG%") else (echo [%date% %time%] pushed derby >> "%LOG%")
+goto :eof
+
+:market
+echo [%date% %time%] stage market >> "%LOG%"
+%PY% "%~dp0..\..\MagiMarket\collector\market.py" --out "%WORK%" --loop >> "%LOG%" 2>&1
+git -C "%WORK%" add -A >> "%LOG%" 2>&1
+git -C "%WORK%" -c user.name=magiscope-pc -c user.email=magiscope-pc@users.noreply.github.com commit -q -m "MagiMarket data" >> "%LOG%" 2>&1
+git -C "%WORK%" push -q -f origin HEAD:magiscope-data >> "%LOG%" 2>&1
+if errorlevel 1 (set FAILED=1& echo [%date% %time%] push failed market >> "%LOG%") else (echo [%date% %time%] pushed market >> "%LOG%")
 goto :eof
 
 :stage

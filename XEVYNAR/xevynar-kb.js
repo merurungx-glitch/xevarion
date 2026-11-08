@@ -420,7 +420,7 @@
     { id: "magiranking", nm: "MagiRanking", cat: "つながる", href: "../MagiRanking/index.html",
       sum: "獲得XEVAの月間ランキング。", det: "月末の順位に応じて最大1,000 XEVAを配布。" },
     { id: "magiquiz", nm: "MagiQuiz", cat: "ゲーム", href: "../MagiQuiz/index.html",
-      sum: "1台を囲んで化学の基礎でクイズバトル。1〜8人・チーム戦も・ひとり練習も。", det: "見えない爆弾（姿の見えない爆弾を交互に回す）・クイズタワー（10階を交互に登る）・スコアアタック（速さで競う）。問題は MagiChemLex の基礎セット1〜4 の改題 196問（図つき）。答えたあとは時間が止まって解説を確認できる。メモ・電卓・公式つき。この端末の本人はチェックだけでオフラインでも XEVA が入る。" },
+      sum: "1台を囲んで化学の基礎でクイズバトル。1〜8人・チーム戦も・ひとり練習も。", det: "見えない爆弾（姿の見えない爆弾を交互に回す）・早押しバトル（文が1文字ずつ出て、わかった人がブザーを押す）・クイズタワー（10階を交互に登る）・スコアアタック（速さで競う）。問題は MagiChemLex の基礎セット1〜4 の改題 196問（図つき）。答えたあとは時間が止まって解説を確認できる。メモ・電卓・公式つき。この端末の本人はチェックだけでオフラインでも XEVA が入る。" },
     { id: "magiarena", nm: "MagiArena", cat: "ゲーム", href: "../MagiArena/MagiArena.html",
       sum: "1台でみんなと対戦する闘技場。2〜6人。", det: "オリジナル陣取り「TAKAGAME」、オセロ・五目並べ・神経衰弱。" },
     { id: "magiempire", nm: "MagiEmpire", cat: "ゲーム", href: "../MagiEmpire/MagiEmpire.html",

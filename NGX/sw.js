@@ -5,7 +5,7 @@
    ・フォント（Google Fonts）は控えない（オフラインでは端末の文字で出る）
    ★ 中身（CORE）は NGX_website.html の src/href から作った。ページに絵を足したらここにも足して VERSION を上げる
    ============================================================ */
-const VERSION = "ngx-site-sw-v4";
+const VERSION = "ngx-site-sw-v6";
 const CORE = [
   "./NGX_website.html",
   "../maintenance-gate.js?v=13",
