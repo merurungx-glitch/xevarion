@@ -6,7 +6,7 @@
    ・オンライン対戦・XEVA換金はアプリ側でオフライン時に無効化している
    ・取得できたリソースは随時キャッシュ更新（stale-while-revalidate）
    ============================================================ */
-const VERSION = "magiburst-sw-v207";
+const VERSION = "magiburst-sw-v208";
 const CORE = [
   "./index.html",
   "./css/mb-ui2.css?v=26",
@@ -46,8 +46,8 @@ const CORE = [
   "../xeva-loading.js?v=19",
   "../xeva-splash.js?v=21",
   "../app-cloud.js?v=15",
-  "../xeva-keys.js?v=35",
-  "./magiburst-cloud.js?v=28",
+  "../xeva-keys.js?v=36",
+  "./magiburst-cloud.js?v=29",
   "../maintenance-gate.js?v=13",
   "../app-install-notice.js?v=9",
   "../XEVA.png",
