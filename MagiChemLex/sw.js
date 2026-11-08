@@ -3,7 +3,7 @@
    ・問題・解説・図はすべて JS の中にあるので、CORE をそろえれば完全にオフラインで使える。
    ・フォント（Google Fonts）は一度読めたら控える。Firebase（同期）はキャッシュしない。
    ============================================================ */
-const VERSION = "magichemlex-sw-v25";
+const VERSION = "magichemlex-sw-v26";
 const RUNTIME = "magichemlex-rt-v1";
 const CORE = [
   "./index.html",
@@ -52,10 +52,10 @@ const CORE = [
   "../xeva-back.js?v=9",
   "../xeva-presence.js?v=9",
   "../maintenance-gate.js?v=13",
-  "../xeva-cloud.js?v=49",
-  "../MagiBurst/magiburst-cloud.js?v=28",
+  "../xeva-cloud.js?v=50",
+  "../MagiBurst/magiburst-cloud.js?v=29",
   "../app-cloud.js?v=15",
-  "../xeva-keys.js?v=35",
+  "../xeva-keys.js?v=36",
   "../xevarion-fb.js?v=37",
 ];
 

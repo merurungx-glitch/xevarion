@@ -5,7 +5,7 @@
    ・セーブ・前回設定は localStorage 保存 → オンライン復帰時に xeva-cloud が同期
    ・Firebase など外部通信はキャッシュしない
    ============================================================ */
-const VERSION = "chainparty-sw-v67";
+const VERSION = "chainparty-sw-v68";
 const CORE = [
   "./index.html",
   "./css/style.css?v=22",

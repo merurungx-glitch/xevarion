@@ -4,7 +4,7 @@
    ・★ 実際の GⅠ のデータ（raw.githubusercontent.com）は別のサイトなのでここでは扱わない（いつも最新を取りに行く）。
    ・★ 時刻あわせ（clock.txt?__mdclock=…）は<b>キャッシュしない</b>（サーバーの時刻を毎回聞く＝締切の判定）。
    ============================================================ */
-const VERSION = "magiderby-sw-v13";
+const VERSION = "magiderby-sw-v14";
 const CORE = [
   "./index.html",
   "./manifest.webmanifest",
@@ -29,8 +29,8 @@ const CORE = [
   "../maintenance-gate.js?v=13",
   "../xeva.js?v=86",
   "../xeva-alive.js?v=8",
-  "../xeva-cloud.js?v=49",
-  "../xeva-keys.js?v=35",
+  "../xeva-cloud.js?v=50",
+  "../xeva-keys.js?v=36",
   "../xevarion-fb.js?v=37",
   "../img/ld_a_stand.webp?v=5",
   "../img/ld_a_bow.webp?v=5",
