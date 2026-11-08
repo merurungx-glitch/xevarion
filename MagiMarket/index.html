@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<script src="../maintenance-gate.js?v=13"></script>
+<meta charset="UTF-8" />
+<script>(function(){try{var a=JSON.parse(localStorage.getItem('xeva_account_v1'));if(!a||!a.setupDone)location.replace('../index.html');}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<title>MagiMarket — XEVA 運用</title>
+<meta name="description" content="XEVA で運用：キオクシアの株を1株から売り買い（1 XEVA ＝ 1円・成行）と、ジェフユナイテッド千葉の試合の勝敗・スコアに XEVA で賭ける。" />
+<link rel="icon" href="../thumbs/MagiMarket.jpg?v=2" type="image/jpeg" />
+<link rel="apple-touch-icon" href="img/icon192.png?v=2" />
+<meta name="theme-color" content="#081226" />
+<link rel="manifest" href="manifest.webmanifest" />
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;700;900&family=Barlow+Condensed:wght@600;700;800&display=swap" rel="stylesheet">
+<!-- ══════════════════════════════════════════════════════════════
+     ★★ 2026-11-08 新作 MagiMarket（ご指定「新たな XEVA 運用システムとして、キオクシアの株に1株から賭けられる株取引の機能」
+        「ジェフ千葉の試合でスポーツの賭けを XEVA で行える機能」）
+     ・株：キオクシア（285A）を1株から。成行＝注文のあとの最初の1分足の始値で約定（mm-core.js の説明）。
+     ・ジェフ千葉：J リーグ公式の日程・結果（PC の自動取得 MagiMarket/collector/market.py → magiscope-data の market/）。
+     ・記録 magimarket_v1 は xeva-cloud（PORTAL_SYNC_KEYS）で同期。混ぜ方は mergeMarket。
+     ══════════════════════════════════════════════════════════════ -->
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function () { navigator.serviceWorker.register("sw.js").catch(function () {}); });
+}
+</script>
+<script src="../xeva-safebottom.js?v=12"></script>
+<link rel="stylesheet" href="css/mm.css?v=3" />
+<script src="../xeva-splash.js?v=21" data-app="MagiMarket" data-logo="../thumbs/MagiMarket.jpg?v=2"></script>
+</head>
+<body data-tab="stock">
+<header class="hd">
+  <a class="hd-back" href="../index.html" aria-label="XEVARION へもどる"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg><span>XEVARION</span></a>
+  <div class="hd-logo"><img src="img/icon192.png?v=2" alt="" width="30" height="30"><b>MagiMarket</b><em class="beta">β版</em><small>XEVA 運用</small></div><!-- ★★ 2026-11-09 ご指定：β版のマーク -->
+  <span class="pill" title="XEVA"><img src="../XEVA.png" alt="XEVA"><span id="hdXeva">0</span></span>
+  <span class="pill clk" title="サーバーの時刻（締切・約定はこの時刻）"><i id="hdSync"></i><span id="hdClock">--:--:--</span></span>
+  <button class="hd-help" data-a="help" aria-label="使い方">？</button>
+</header>
+<div class="offbar" id="offBar" hidden>📴 オフライン：手元に控えた情報を表示しています（注文・賭けはつながってから）</div>
+<nav class="tabs" aria-label="画面">
+  <button data-tab="stock" class="on"><svg class="tb-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 17l5-5 4 3 7-8"/><path d="M15 7h4v4"/></svg>株（キオクシア）</button>
+  <button data-tab="jef"><svg class="tb-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><circle cx="12" cy="12" r="8.6"/><path d="M12 7.4l3.6 2.6-1.4 4.2H9.8L8.4 10z"/><path d="M12 3.4v4M20.4 10l-4.8 0M17.2 19l-3-4.8M6.8 19l3-4.8M3.6 10l4.8 0"/></svg>ジェフ千葉</button>
+  <button data-tab="log"><svg class="tb-i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M5 20V10M12 20V4M19 20v-7"/></svg>収支</button>
+</nav>
+<main id="main"></main>
+<div class="sheet" id="sheet"></div>
+<div id="toasts"></div>
+<div id="fx" aria-hidden="true"></div>
+<noscript><p style="padding:20px">MagiMarket を使うには JavaScript を有効にしてください。</p></noscript>
+
+<script type="module" src="../xevarion-fb.js?v=37"></script>
+<script type="module" src="../xeva-cloud.js?v=50"></script>
+<script src="../xeva.js?v=86"></script>
+<script src="../xeva-loading.js?v=19" defer></script>
+<script src="../xeva-presence.js?v=9" defer></script>
+<script src="js/mm-core.js?v=1"></script>
+<script src="js/mm-chart.js?v=1"></script>
+<script src="js/mm-ui.js?v=1"></script>
+<script>window.addEventListener("DOMContentLoaded", function () { try { MM.boot(); } catch (e) { console.error(e); } });</script>
+<script src="../xeva-back.js?v=9" data-mode="hook"></script>
+</body>
+</html>

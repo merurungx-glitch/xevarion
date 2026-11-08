@@ -5,7 +5,7 @@
    ・フォント（Google Fonts）は控えない（オフラインでは端末の文字で出る）
    ★ 中身（CORE）は index.html の src/href から作った。ページに絵を足したらここにも足して VERSION を上げる
    ============================================================ */
-const VERSION = "ishida-site-sw-v5";   /* ★★ 2026-10-31 v2：ロゴがつぶれる修正（style.css?v=4） */
+const VERSION = "ishida-site-sw-v7";   /* ★★ 2026-10-31 v2：ロゴがつぶれる修正（style.css?v=4） */
 const CORE = [
   "./index.html",
   "../maintenance-gate.js?v=13",

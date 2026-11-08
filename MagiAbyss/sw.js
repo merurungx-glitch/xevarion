@@ -5,7 +5,7 @@
    ・フォント（Google Fonts）も一度読めたら控える（オフラインでもドットの文字になる）。
    ・Firebase（同期）はキャッシュしない。
    ============================================================ */
-const VERSION = "magiabyss-sw-v24";
+const VERSION = "magiabyss-sw-v25";
 const RUNTIME = "magiabyss-rt-v1";
 const CORE = [
   "./index.html",
@@ -54,10 +54,10 @@ const CORE = [
   "../xeva-back.js?v=9",
   "../xeva-presence.js?v=9",
   "../maintenance-gate.js?v=13",
-  "../xeva-cloud.js?v=49",
-  "../MagiBurst/magiburst-cloud.js?v=28",
+  "../xeva-cloud.js?v=50",
+  "../MagiBurst/magiburst-cloud.js?v=29",
   "../app-cloud.js?v=15",
-  "../xeva-keys.js?v=35",
+  "../xeva-keys.js?v=36",
   "../xevarion-fb.js?v=37",
   /* 遊べる10体（極彩祭・極煌祭・極華祭）の絵 */
   "../img/Takina.webp", "../img/t_Takina.webp",
