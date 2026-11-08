@@ -7,7 +7,7 @@
    ・オフライン中の進行は localStorage に残り、オンライン復帰時に
      xeva-cloud.js がタイムスタンプ比較でクラウドへ上書き反映する
    ============================================================ */
-const VERSION = "xevarion-sw-v256";
+const VERSION = "xevarion-sw-v259";
 
 /* ホームを成立させる最小セット（重い画像は runtime キャッシュに任せる） */
 const CORE = [
@@ -19,7 +19,7 @@ const CORE = [
   "./gacha.html",
   "./gacha-ui.js?v=71",
   "./mb-newchars.js?v=43",
-  "./xeva-devnotes.js?v=12",
+  "./xeva-devnotes.js?v=15",
   "./xeva-tour.js?v=4",   /* ★★ 2026-10-30 XEVARION ガイド（全機能の紹介・設定から／#guide） */
   "./xeva-favs.js?v=2",   /* ★★ 2026-11-03 お気に入りカード（図鑑・キャラ詳細の☆・ホーム・コミュニティ） */
   "./xeva-fav-traits.js?v=1",   /* ★★ 2026-11-05 好み診断の見た目の台帳（診断を開いたときだけ読む） */
@@ -31,7 +31,7 @@ const CORE = [
   /* ★ 2026-08-10 ガチャと図鑑で共通の土台・キャラ詳細・結果演出 */
   /* ★ 2026-08-12 ポータルのガチャ・図鑑も magiburst_v1 を同期するようになった */
   "./app-cloud.js?v=15",
-  "./MagiBurst/magiburst-cloud.js?v=28",
+  "./MagiBurst/magiburst-cloud.js?v=29",
   "./mb-boot.js?v=18",
   "./mb-char-detail.js?v=54",
   "./mb-char-detail.css?v=32",
@@ -74,13 +74,14 @@ const CORE = [
   "./uwaki.js?v=1",
   "./uwaki.css?v=1",
   "./thumbs/Uwaki.jpg",
-  "./xevarion.js?v=113",
-  "./xevarion-home.js?v=179",
+  "./xevarion.js?v=114",
+  "./xevarion-home.js?v=182",
   /* ★★ 2026-09-24 ホームのロビーとパートナー。素材は home-mate/<id>/（?v= は home-mate.js の HM_VER）・笙古／瞳／舞香／衣織／樹愛羅／映美里（09-25 ボイス廃止・表情は webp） */
   "./gacha-live.js?v=11",
   "./home-mate.js?v=35",
+  "./xeva-jef.js?v=1", "./xeva-jef.css?v=1", "./jef/stadium.svg?v=1",   /* ★★ 2026-11-08 ジェフ千葉のホームデザイン */
   /* ★★ 2026-10-26 完凸ロビー（ヒサコ・アリス）と、バナーの上のドット絵のキャラ（絵は MagiAbyss の ma-pixel.js） */
-  "./home-lobby.js?v=4",
+  "./home-lobby.js?v=5",
   "./home-dot.js?v=5",
   "./MagiAbyss/js/ma-pixel.js?v=11",
   "./home-mate/lobby/hisako.webp?v=1",
@@ -158,9 +159,9 @@ const CORE = [
   "./home-mate/emiri/bg.webp?v=17",
   "./maintenance-gate.js?v=13",
   "./xeva-back.js?v=9",
-  "./xeva-keys.js?v=35",
+  "./xeva-keys.js?v=36",
   /* ★★ 2026-10-01 同期のモジュールも入れる（前は実行時キャッシュだけ＝更新直後のオフラインで読めなかった） */
-  "./xeva-cloud.js?v=49",
+  "./xeva-cloud.js?v=50",
   "./xevarion-fb.js?v=37",
   "./xeva-sync.js?v=19",
   "./xeva-presence.js?v=9",
@@ -201,6 +202,7 @@ const CORE = [
   "./thumbs/MagiScope.jpg",
   "./thumbs/MagiShift.jpg",
   "./thumbs/MagiQuiz.jpg?v=2",   /* ★★ 2026-10-23 新作 MagiQuiz */
+  "./thumbs/MagiMarket.jpg?v=2",       /* ★★ 2026-11-08 新作 MagiMarket（XEVA 運用） */
   "./thumbs/MagiAbyss.jpg?v=2",   // ★★ 2026-10-05 新作 MagiAbyss
   "./thumbs/NGX.jpg?v=2",         // ★★ 2026-10-31 NGX のアイコン（オフラインでも出るように）
   "./thumbs/ISHIDA.webp",      // ★★ 2026-10-09b ISHIDA のアイコン（小さい正方形）

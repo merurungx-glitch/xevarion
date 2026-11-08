@@ -55,6 +55,8 @@ const XH_OFFLINE_OK = {
   magiderby:       { name: "MagiDerby",      href: "MagiDerby/index.html",       sw: "MagiDerby/sw.js" },
   /* ★★ 2026-10-23 新作 MagiQuiz。問題は MagiChemLex の問題データ（SW に控える）・1台で遊ぶので通信は要らない（紐づけと賞金だけ通信を使う）。 */
   magiquiz:        { name: "MagiQuiz",       href: "MagiQuiz/index.html",        sw: "MagiQuiz/sw.js" },
+  /* ★★ 2026-11-08 新作 MagiMarket（キオクシアの株・ジェフ千葉の試合）。一度読んだ株価・試合は端末に控えるので見るだけならオフラインでも開ける（注文・賭けは通信が要る） */
+  magimarket:      { name: "MagiMarket",     href: "MagiMarket/index.html",      sw: "MagiMarket/sw.js" },
   /* ★★ 2026-10-30 ご指定「NGX、ISHIDA Production のサイトもオフラインで開けるように」→ サイトごとに sw.js（ページ・CSS・JS・絵を控える） */
   ngx:             { name: "NGX",            href: "NGX/NGX_website.html",       sw: "NGX/sw.js" },
   ishida:          { name: "ISHIDA",         href: "IshidaProduction/index.html", sw: "IshidaProduction/sw.js" },
@@ -104,7 +106,7 @@ const XH_APPS = [
   /* ★★ 2026-11-05 全面作り直し（新しいアイコン・?v=2）→ β版の印を外して NEW に */
   { id:"magiquiz", name:"MagiQuiz", full:"MagiQuiz", sub:"化学クイズ対戦", cat:"game", tone:"violet", newUntil:"2026-11-19",
     href:"MagiQuiz/index.html", img:"thumbs/MagiQuiz.jpg?v=2",
-    desc:"1台を囲んで、化学の基礎でクイズバトル。姿の見えない爆弾を回す<b>見えない爆弾</b>、1問ずつ交互に10階を登る<b>クイズタワー</b>、速さで競う<b>スコアアタック</b>の3つの遊び方。問題は MagiChemLex の基礎セット1〜4 の改題 196問（図つき）。答えたあとは時間が止まり、解説をゆっくり確認できます。メモ・電卓・公式つき。個人戦もチーム戦も、ひとり練習も（1〜8人）。順位で XEVA（この端末の本人はチェックだけでオフラインでも）。" },
+    desc:"1台を囲んで、化学の基礎でクイズバトル。姿の見えない爆弾を回す<b>見えない爆弾</b>、わかった瞬間にブザーを押す<b>早押しバトル</b>、1問ずつ交互に10階を登る<b>クイズタワー</b>、速さで競う<b>スコアアタック</b>の4つの遊び方。<b>2台で対戦</b>（それぞれの端末で同じ問題にスピード勝負）と<b>司会キャラ</b>の実況も。問題は MagiChemLex の基礎セット1〜4 の改題 196問（図つき）。答えたあとは時間が止まり、解説をゆっくり確認できます。メモ・電卓・公式つき。個人戦もチーム戦も、ひとり練習も（1〜8人）。順位で XEVA（この端末の本人はチェックだけでオフラインでも）。" },
   { id:"magilink", name:"MagiLink", sub:"つながり・交流", cat:"social", tone:"pink",
     href:"MagiLink/MagiLink.html", img:"thumbs/MagiLink.jpg",
     desc:"魔法のようなメッセージ体験。友達やグループとスタイリッシュにつながるチャットアプリ。コレクション共有にも対応。" },
@@ -141,6 +143,11 @@ const XH_APPS = [
   { id:"magiderby", name:"MagiDerby", full:"MagiDerby", sub:"競馬 G1・馬券", cat:"game", tone:"gold", newUntil:"2026-11-04",
     href:"MagiDerby/index.html", img:"thumbs/MagiDerby.jpg",
     desc:"<b>実際の JRA 平地 GⅠ</b>（今年の全24レース）に XEVA で賭ける競馬アプリ。出馬表・馬柱・血統・オッズ・結果・払戻金は<b>すべて本物</b>（自動取得）で、払い戻しは<b>実際の払戻金どおり</b>（1 XEVA ＝ 1円）。単勝・複勝・枠連・馬連・ワイド・馬単・3連複・3連単（ボックス・ながし・フォーメーション）。発売は<b>JRA と同じ時間</b>（日曜の GⅠ は金曜 18:30〜）・<b>締切は発走2分前</b>（サーバーの時刻で判定）・払い戻しは次の日の 0:00。結果から JRA 公式のレース映像へ、データからの再現アニメーションも。" },
+  /* ★★ 2026-11-08 新作 MagiMarket（ご指定「新たな XEVA 運用システム：キオクシアの株に1株から／ジェフ千葉の試合でスポーツの賭けを XEVA で」） */
+  /* ★★ 2026-11-09 ご指定「MagiMarket にβ版のマークを」→ beta:true（NEW のかわりに「β版」・期限なし）。アイコンはご指定の絵（元は _jef_src/MagiMarket_icon_src.webp） */
+  { id:"magimarket", name:"MagiMarket", full:"MagiMarket", sub:"XEVA 運用（株・ジェフ）", cat:"game", tone:"gold", newUntil:"2026-11-22", beta: true,
+    href:"MagiMarket/index.html", img:"thumbs/MagiMarket.jpg?v=2",
+    desc:"XEVA で運用する新しいアプリ。<b>キオクシアの株を1株から</b>売り買い（1 XEVA ＝ 1円・手数料なし・成行＝注文のあとの最初の値段で約定）と、<b>ジェフユナイテッド千葉の試合</b>の勝敗・合計ゴール・千葉の得点・スコアに XEVA で賭けられます（倍率は J1 の順位表から計算・買ったときの倍率で確定・締切はキックオフ）。株価・日程・結果は自動で取得。" },
   { id:"magiscope", name:"MagiScope", full:"MagiScope", sub:"エンタメランキング", cat:"info", tone:"blue",
     href:"MagiScope/index.html", img:"thumbs/MagiScope.jpg",
     desc:"アニメ（国内の視聴者数＝Annict・トレンド＝AniList）・FANZA同人・カラオケ（DAM）の<b>実際のランキング</b>を、本物の表紙・ジャケットつきで1時間ごとに自動更新。<b>3カテゴリーは完全に別々のランキング</b>で、種類・期間・絞り込み・詳細もカテゴリーごと。順位推移・同じカテゴリー内の比較・カテゴリー別のお気に入りとトレンド。" },
@@ -242,6 +249,8 @@ const XH_DEFAULT_ORDER = [
   "magiquiz", "magiabyss", "magiderby", "magishift", "magichainparty",
   /* 対戦サポート（ホームでは左の札） */
   "magicounter",
+  /* ★★ 2026-11-08 新作 MagiMarket（XEVA 運用） */
+  "magimarket",
   /* ゲーム（★★ 2026-11-05 MagiBattle は MagiQuiz のいた場所へ） */
   "magibattle", "magidominiongrid", "magijackpot", "magilotto",
   "magirail", "magicraft", "magimanor", "magiempire", "magiarena",   /* ★★ 2026-10-23 MagiQuiz を MagiArena の場所に・MagiArena はゲームの最後へ（ご指定）→ 10-24 MagiQuiz はロビーの2行目の先頭へ */
@@ -511,6 +520,17 @@ XH_EVENTS.unshift({ tag:"EVENT", t1:"Midnight Pumpkin", t2:"イベントミッ�
    ══════════════════════════════════════════════════════════════ */
 const XH_UPDATE_MAX = 12;
 const XH_UPDATES = [
+  /* ★★ 2026-11-08 新作 MagiMarket・ジェフ千葉のホームデザイン・MagiQuiz（早押し・2台で対戦・司会キャラ・賞金）
+     ★ 11-05 の3回目（早押しバトル）は配信の前に止まっていたので、ここにまとめた */
+  { tag:"NEW", t1:"新アプリ MagiMarket（XEVA 運用・β版）", at:"2026-11-08",
+    t2:"キオクシアの株を1株から売り買い（1 XEVA ＝ 1円・成行）。ジェフ千葉の試合の勝敗・スコアに XEVA で賭ける（倍率は買ったときで確定・締切はキックオフ）",
+    href:"MagiMarket/index.html", img:"thumbs/MagiMarket.jpg?v=2" },
+  { tag:"NEW", t1:"ホームのデザインに「ジェフ千葉」", at:"2026-11-08",
+    t2:"設定の「ホームのデザイン」から。夜のスタジアム・応援旗・次の試合の札。BGM はオリジナルの応援曲、お手持ちの音源も追加できます",
+    href:"", img:"jef/stadium.svg?v=1" },
+  { tag:"NEW", t1:"MagiQuiz に早押し・2台で対戦・司会キャラ", at:"2026-11-08",
+    t2:"早押しバトル（ブザーの早い者勝ち）・2台で対戦（それぞれの端末で同じ問題にスピード勝負）・司会キャラの実況。賞金も 1位 1,000 XEVA などに引き上げ",
+    href:"MagiQuiz/index.html", img:"thumbs/MagiQuiz.jpg?v=2" },
   /* ★★ 2026-11-05（2回目）MagiQuiz の調整 */
   { tag:"UPDATE", t1:"MagiQuiz の順番をくじ引きに・手番は自動で進む", at:"2026-11-05",
     t2:"順番は試合のはじめにくじ引きで決めて、その順に並びます。順番が変わるときはスタートを押さなくても進みます。爆弾の時間を少しのばし、ミスの上限はアウトではなくライフ −1 に。上のプレイヤーの札は全員同じ大きさに",

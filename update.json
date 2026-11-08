@@ -1,15 +1,12 @@
 {
-  "version": "2026-11-05-2",
-  "date": "2026-11-05",
-  "title": "MagiQuiz を遊びやすく調整（順番のくじ引き・手番の自動進行・ミス上限でライフ −1）",
+  "version": "2026-11-09-2",
+  "date": "2026-11-09",
+  "title": "MagiMarket のタブの大きさをそろえました",
   "notes": [
-    "MagiQuiz：順番は試合のはじめにくじ引きで決めて、その順に並ぶように。順番が変わるときはスタートを押さなくても自動で進みます",
-    "見えない爆弾：爆弾の時間を少しのばしました。ミスが上限に達するとアウトではなくライフ −1（爆弾は次の人へ）",
-    "クイズタワー：ミスの回数をライフ（♥）の表示に",
-    "上のプレイヤーの札を全員同じ大きさに。「この端末の本人」のチェックで席が大きくなるのと、遊び方のカードの大きさがそろわないのを修正"
+    "MagiMarket：上の3つのタブ（株・ジェフ千葉・収支）を同じ大きさに"
   ],
-  "bytes": 86785414,
-  "files": 918,
+  "bytes": 87161188,
+  "files": 932,
   "urls": [
     "index.html",
     "characters.html",
@@ -70,6 +67,9 @@
     "xevarion-home.js",
     "gacha-live.js",
     "home-mate.js",
+    "xeva-jef.js",
+    "xeva-jef.css",
+    "jef/stadium.svg",
     "home-lobby.js",
     "home-dot.js",
     "MagiAbyss/js/ma-pixel.js",
@@ -179,6 +179,7 @@
     "thumbs/MagiScope.jpg",
     "thumbs/MagiShift.jpg",
     "thumbs/MagiQuiz.jpg",
+    "thumbs/MagiMarket.jpg",
     "thumbs/MagiAbyss.jpg",
     "thumbs/NGX.jpg",
     "thumbs/ISHIDA.webp",
@@ -905,6 +906,9 @@
     "MagiQuiz/js/quiz-pad.js",
     "MagiQuiz/js/quiz-play.js",
     "MagiQuiz/js/quiz-result.js",
+    "MagiQuiz/js/quiz-host.js",
+    "MagiQuiz/js/quiz-online.js",
+    "MagiQuiz/js/quiz-net.js",
     "MagiQuiz/img/icon192.png",
     "MagiQuiz/img/apple-touch-icon.png",
     "MagiQuiz/manifest.webmanifest",
@@ -928,14 +932,95 @@
     "MagiBattle/img/logo.webp",
     "MagiBattle/img/icon192.png",
     "MagiBattle/img/apple-touch-icon.png",
-    "MagiBattle/manifest.webmanifest"
+    "MagiBattle/manifest.webmanifest",
+    "MagiMarket/index.html",
+    "MagiMarket/manifest.webmanifest",
+    "MagiMarket/css/mm.css",
+    "MagiMarket/js/mm-core.js",
+    "MagiMarket/js/mm-chart.js",
+    "MagiMarket/js/mm-ui.js",
+    "MagiMarket/img/icon192.png"
   ],
   "apps": [
-    "magiquiz",
-    "tab:home"
+    "magimarket"
   ],
-  "changedFiles": 11,
+  "changedFiles": 2,
   "history": [
+    {
+      "version": "2026-11-09-1",
+      "date": "2026-11-09",
+      "title": "MagiMarket の新しいアイコン・β版のマーク",
+      "notes": [
+        "MagiMarket のアイコンを新しくしました",
+        "MagiMarket に β版のマークを付けました"
+      ],
+      "apps": [
+        "magimarket",
+        "tab:home"
+      ]
+    },
+    {
+      "version": "2026-11-08-1",
+      "date": "2026-11-08",
+      "title": "ジェフ千葉 勝利記念・新アプリ MagiMarket・ジェフ千葉のホームデザイン・MagiQuiz に早押し／2台で対戦／司会キャラ",
+      "notes": [
+        "ジェフ千葉が水戸ホーリーホックに 1-0 で勝利：全員に 10,000 XEVA をメールでお贈りします",
+        "新アプリ MagiMarket（XEVA 運用）：キオクシアの株を1株から売り買い（1 XEVA ＝ 1円・成行）／ジェフ千葉の試合の勝敗・合計ゴール・千葉の得点・スコアに XEVA で賭ける",
+        "ホームのデザインに「ジェフ千葉」：設定の「ホームのデザイン」から。夜のスタジアム・応援旗・次の試合の札・オリジナル応援曲（お手持ちの音源も追加できます）",
+        "MagiQuiz：早押しバトル・2台で対戦（それぞれの端末でスピード勝負）・司会キャラ（オンオフ）を追加。賞金を引き上げ（1位 1,000 XEVA〜）",
+        "完凸ロビーの揺れを少し大きく・ヨシノの胸の位置を修正／デベロッパーノートのあいさつが抜けないように"
+      ],
+      "apps": [
+        "ishida",
+        "magiabyss",
+        "magibattle",
+        "magibocciarush",
+        "magiburst",
+        "magichainparty",
+        "magichemlex",
+        "magicounter",
+        "magiderby",
+        "magidominiongrid",
+        "magijackpot",
+        "magilex",
+        "magilotto",
+        "magimarket",
+        "magimusic",
+        "magiquiz",
+        "magiscope",
+        "magishift",
+        "ngx",
+        "tab:chars",
+        "tab:community",
+        "tab:gacha",
+        "tab:home",
+        "xevynar",
+        "magiarena",
+        "magicraft",
+        "magiempire",
+        "magifocus",
+        "magilink",
+        "magimanor",
+        "magiportfolio",
+        "magiranking",
+        "magitier"
+      ]
+    },
+    {
+      "version": "2026-11-05-2",
+      "date": "2026-11-05",
+      "title": "MagiQuiz を遊びやすく調整（順番のくじ引き・手番の自動進行・ミス上限でライフ −1）",
+      "notes": [
+        "MagiQuiz：順番は試合のはじめにくじ引きで決めて、その順に並ぶように。順番が変わるときはスタートを押さなくても自動で進みます",
+        "見えない爆弾：爆弾の時間を少しのばしました。ミスが上限に達するとアウトではなくライフ −1（爆弾は次の人へ）",
+        "クイズタワー：ミスの回数をライフ（♥）の表示に",
+        "上のプレイヤーの札を全員同じ大きさに。「この端末の本人」のチェックで席が大きくなるのと、遊び方のカードの大きさがそろわないのを修正"
+      ],
+      "apps": [
+        "magiquiz",
+        "tab:home"
+      ]
+    },
     {
       "version": "2026-11-05-1",
       "date": "2026-11-05",
@@ -1536,104 +1621,6 @@
         "tab:community",
         "tab:gacha",
         "tab:home"
-      ]
-    },
-    {
-      "version": "2026-10-13-2",
-      "date": "2026-10-13",
-      "title": "MagiShift に CPU と新ルール／MagiChainParty が新しいロゴと見た目に／下バーをいつでも表示",
-      "notes": [
-        "MagiShift：CPU 対戦（席ごとに人／CPU・強さは3段階）。駒を動かすときは間の駒を飛びこえて2マス先へ置けるように",
-        "MagiShift：守りの手を増やした新ルール「タクティクス」（となりの相手の駒を押す・1周だけの壁ブロック）・画面をシンプルで明るく作り直し・左右のずれを修正・前回の紐づけを「要確認」で引きつぎ",
-        "MagiChainParty：新しいロゴ・画面をシンプルで明るい見た目に作り直し（機能はそのまま）・バクハツの粒や連鎖の数など控えめな動き",
-        "ガチャ・コミュニティ・図鑑でもホームと同じ下バーを表示",
-        "XEVARION の起動時と、アプリを開くたびに NGX × Magical Future × ISHIDA Production のロゴ（タップで飛ばせる）",
-        "MagiChemLex：問題セットに「絞り込み」「並び替え」ボタン・スマホでメモと電卓を大きく・ホームに標準レベル追加のお知らせ（次回から表示しないで消せる）"
-      ],
-      "apps": [
-        "magiabyss",
-        "magibocciarush",
-        "magiburst",
-        "magichainparty",
-        "magichemlex",
-        "magicounter",
-        "magidominiongrid",
-        "magijackpot",
-        "magilex",
-        "magilotto",
-        "magirail",
-        "magiscope",
-        "magishift",
-        "tab:chars",
-        "tab:community",
-        "tab:gacha",
-        "tab:home",
-        "xevynar"
-      ]
-    },
-    {
-      "version": "2026-10-13-1",
-      "date": "2026-10-13",
-      "title": "選べるSSRキャラ確定チケット2枚／ガチャ演出をさらに豪華に・アイコンをポップなデザインに／MagiChemLex 全1,013問",
-      "notes": [
-        "日ごろの感謝をこめて「選べるSSRキャラ確定チケット」を2枚プレゼント（メールから受け取り・ガチャ一覧のいちばん上から使えます）",
-        "ガチャ演出をさらに豪華に（10連のレア度を先に印で見せてその場で昇格・確定演出はキャラの前）・チケットや道具の絵を MagiBurst と同じに・確率1.5倍の札をコンパクトに・バナーの MagiAbyss 表記をなくした",
-        "ホームのアイコン・ボタン・メール・ミッション・設定をポップなデザインに・ロビーのボタンは静止して詰めた（左の「イベント」「更新情報」は廃止）・図鑑の並び替えはボタンから選ぶ形に・更新のダウンロードは件数が変わらず全部終わってから100%",
-        "MagiChemLex：標準セット3・4を追加して全1,013問・「本番」→「難関」・「関連問題」タブ→「単元別問題」／MagiAbyss：技のボタン4つ・スティック固定・ダッシュ回避の廃止",
-        "MagiBurst：下バーに育成と図鑑・ショップのガチャタブを廃止／Boccia：叡智の果実の絵／MagiChainParty：iPhone・iPad の下の空白を修正／MagiDiamond と XEVARION PARK のオフライン対応は終了"
-      ],
-      "apps": [
-        "magiabyss",
-        "magibattle",
-        "magibocciarush",
-        "magiburst",
-        "magichainparty",
-        "magichemlex",
-        "magicounter",
-        "magidominiongrid",
-        "magijackpot",
-        "magilex",
-        "magilotto",
-        "magimusic",
-        "magiscope",
-        "magishift",
-        "tab:chars",
-        "tab:community",
-        "tab:gacha",
-        "tab:home",
-        "xevynar"
-      ]
-    },
-    {
-      "version": "2026-10-12-2",
-      "date": "2026-10-12",
-      "title": "ポップな見た目・ガチャ演出の一新／MagiAbyss 大型更新／MagiChemLex 全756問",
-      "notes": [
-        "ホーム・ガチャ・図鑑・コミュニティの見た目を明るくポップな若草色に（ボタンの位置はそのまま）・タイトル画面にサーバーの番号",
-        "ガチャの演出を作り直し（警報→解析→大きな題字→光の十字→1体ずつ・UR の前に EMERGENCY・前より長く派手に）",
-        "MagiAbyss：第7〜第9迷宮を追加・敵の強さを推奨戦力から（最難関は UR 最大育成で勝率およそ半分）・鍵は中ボス3体から・試練中は部屋から出られない・ボスの技を増やして連続攻撃",
-        "MagiAbyss：自分で使う技（固有技・技・秘技・必殺技）と自動のスキル（虹・金・白）・スマホは自動攻撃・必殺技の威力アップ・地図とボタンの反応を速く・おすすめ一括装備・戻るボタンを常に表示",
-        "MagiChemLex：標準セット1・2を追加（全756問）・本番セットにも大問ごとの関連問題・関連問題タブは本番／標準レベル・セットごとのリセット・習得中になっていない問題だけ・完全習得までの日数・前後の問題へめくれる・メモを広く・新しいアイコン"
-      ],
-      "apps": [
-        "magiabyss",
-        "magibattle",
-        "magibocciarush",
-        "magiburst",
-        "magichainparty",
-        "magichemlex",
-        "magicounter",
-        "magidiamond",
-        "magijackpot",
-        "magilex",
-        "magilotto",
-        "magimusic",
-        "magiscope",
-        "tab:chars",
-        "tab:community",
-        "tab:gacha",
-        "tab:home",
-        "xevynar"
       ]
     }
   ]

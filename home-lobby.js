@@ -120,7 +120,9 @@
       /* 髪＝黒いポニーテール（刀は範囲の外）／ゆれる布＝赤い袴と房（色相は 0 をまたぐ） */
       hair: { sat: [0, 0.55], val: [0, 0.5], boxes: [[240, 20, 570, 300], [480, 20, 940, 760]], noFace: [355, 190, 62, 80] },
       cloth: { hue: [335, 18], sat: [0.45, 1], val: [0.35, 1], y0: 620, y1: 1570 },
-      bust: { l: [420, 402], r: [507, 396], R: 50, amt: 0.7 },
+      /* ★★ 2026-11-08 ご指定「ヨシノの胸の位置が違う」→ 前は右の袖（赤い腕章）と肩に乗っていた。
+         体は左向きの3/4なので、えりの合わせ（x≈345）の左右＝奥の胸 (298,425)・手前の胸 (392,418)。刀をにぎる手は外す */
+      bust: { l: [298, 425], r: [392, 418], R: 48, cut: [[170, 440, 282, 620]], amt: 0.8 },
     },
   };
 
@@ -417,16 +419,17 @@
       lean: (0.25 * Math.sin(t * 0.41 + sd)) * amp,
       bustX: 0, bustY: 0,
     };
-    /* ★★ 2026-11-03 胸のばね：体のはずみ（hop の速さの変化）に遅れて動き、呼吸で少し持ち上がる。上限つき（ゆがみ防止） */
+    /* ★★ 2026-11-03 胸のばね：体のはずみ（hop の速さの変化）に遅れて動き、呼吸で少し持ち上がる。上限つき（ゆがみ防止）
+       ★★ 2026-11-08 ご指定「胸の揺れを少し大きく」→ はずみの伝わり 1.4→1.85・上下の減衰 4.3→3.6（少し長くゆれる）・上限 ±5/±10 → ±7/±14 */
     const bd = this.def.bust;
     if (bd) {
       const B = this.bustS, k = bd.amt == null ? 1 : bd.amt;
       const dv = this.hop.v - this.prevHopV; this.prevHopV = this.hop.v;
-      B.vy -= dv * 1.4; B.vx += this.jolt.v * 0.03;
-      const anchorY = -o.breath * 0.4;
-      B.vx += (-B.x * 70 - B.vx * 5.2) * dt; B.vy += (-(B.y - anchorY) * 58 - B.vy * 4.3) * dt;
+      B.vy -= dv * 1.85; B.vx += this.jolt.v * 0.04;
+      const anchorY = -o.breath * 0.5;
+      B.vx += (-B.x * 70 - B.vx * 4.6) * dt; B.vy += (-(B.y - anchorY) * 58 - B.vy * 3.6) * dt;
       B.x += B.vx * dt; B.y += B.vy * dt;
-      B.x = Math.max(-5, Math.min(5, B.x)); B.y = Math.max(-10, Math.min(10, B.y));
+      B.x = Math.max(-7, Math.min(7, B.x)); B.y = Math.max(-14, Math.min(14, B.y));
       o.bustX = B.x * k * amp; o.bustY = B.y * k * amp;
     }
     this.o = o;
@@ -583,7 +586,7 @@
       if (e.target.closest && e.target.closest("button,a,input,.xh-prof,.xh-offline")) return;
       if (!this.hitAt(e.clientX, e.clientY)) return;
       this.hop.v -= 70; this.jolt.v += (Math.random() < 0.5 ? -1 : 1) * 9;
-      if (this.def.bust) { this.bustS.vy += 55; this.bustS.vx += (Math.random() - 0.5) * 30; }   /* ★★ 2026-11-03 胸のばね（制服姿でない子だけ） */
+      if (this.def.bust) { this.bustS.vy += 74; this.bustS.vx += (Math.random() - 0.5) * 40; }   /* ★★ 2026-11-03 胸のばね（制服姿でない子だけ）・11-08 少し大きく */
       /* ★★ 2026-11-03 押したらひとこと（続けて押したときは 1.2 秒あける） */
       const now = performance.now();
       if (now - this.tapAt > 1200) { this.tapAt = now; this.say(pick(this.lines().tap), true); }

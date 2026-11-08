@@ -41,7 +41,9 @@ SWS = ["sw.js", "MagiLex/sw.js", "MagiBurst/sw.js", "MagiChainParty/sw.js", "XEV
        # ★★ 2026-10-30 NGX・ISHIDA Production の公式サイトもオフラインで（ご指定）
        "NGX/sw.js", "IshidaProduction/sw.js",
        # ★★ 2026-10-31 MagiBattle 3.0（作り直し）の SW
-       "MagiBattle/sw.js"]
+       "MagiBattle/sw.js",
+       # ★★ 2026-11-08 新作 MagiMarket（キオクシアの株・ジェフ千葉の試合に XEVA）
+       "MagiMarket/sw.js"]
 
 
 # ══════════════════════════════════════════════════════════════
@@ -67,7 +69,7 @@ FOLDER_APP = {
 # ★★ 2026-09-09 アプリではない<b>共通の置き場</b>。
 #   ここを見逃すと apps に "img" や "thumbs" が入り、
 #   どのタイルにも当たらない印が<b>消せないまま残る</b>。
-SHARED_DIRS = {"img", "thumbs", "brand", "icons", "home-mate", "expo", "events"}   # ★ 2026-09-24 home-mate＝ホームの動くキャラ・09-28 expo＝3D 会場・10-06 events＝共通イベントの絵
+SHARED_DIRS = {"img", "thumbs", "brand", "icons", "home-mate", "expo", "events", "jef"}   # ★★ 2026-11-08 jef＝ジェフ千葉のホームの絵   # ★ 2026-09-24 home-mate＝ホームの動くキャラ・09-28 expo＝3D 会場・10-06 events＝共通イベントの絵
 # ルート直下のファイルは「どのタブの話か」に振り分ける（tab: を付けて区別する）
 ROOT_TAB = {
     "gacha.html": "tab:gacha", "gacha-ui.js": "tab:gacha",

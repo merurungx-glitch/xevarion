@@ -24,7 +24,7 @@
      以前はここに直接書いてあり、MagiBurst / MagiLex の一覧は別ファイルにあったため、
      新機能を足すたびに「同期リストへの入れ忘れ」が起きていた
      （ジェムショップの購入履歴 xeva_shop_v1 が同期されていなかったのがその例）。 */
-import { PORTAL_SYNC_KEYS, wipeAccountData, wipeAccountDataFull } from "./xeva-keys.js?v=35";
+import { PORTAL_SYNC_KEYS, wipeAccountData, wipeAccountDataFull } from "./xeva-keys.js?v=36";
 
 const SYNC_KEYS = PORTAL_SYNC_KEYS;
 const SYNC_SET = new Set(SYNC_KEYS);
@@ -509,6 +509,34 @@ function mergeDerby(winnerStr, loserStr) {
   W.fav = Object.assign({}, obj(Lo.fav) ? Lo.fav : {}, obj(W.fav) ? W.fav : {});
   return JSON.stringify(W);
 }
+/* ★★ 2026-11-08 新作 MagiMarket（magimarket_v1）を混ぜる。
+   { ord:{ 注文id: { st:"pend"|"fill"|"cancel"|"void", … } }, bet:{ 券id: { st:"open"|"won"|"lost"|"void", pay, … } }, opt:{} }
+   ・注文 ord … id で和。同じ注文が両方にあれば<b>終わったほう（pend 以外）が勝つ</b>（片方で約定・取り消しをしたら、もう片方では pend に戻らない＝二重に返金・約定しない）。
+     どちらも終わっていれば done（終わった時刻）の早いほう。
+   ・券 bet … 同じく id で和・精算ずみ（open 以外）が勝つ。
+   ・設定 opt … 勝った側のまま */
+const MARKET_KEYS = new Set(["magimarket_v1"]);
+function mergeMarket(winnerStr, loserStr) {
+  const W = jparse(winnerStr, null), Lo = jparse(loserStr, null);
+  const obj = (v) => !!v && typeof v === "object" && !Array.isArray(v);
+  if (!obj(W) || !obj(Lo)) return null;
+  const num = (v) => Number(v) || 0;
+  const mix = (key, openSt) => {
+    W[key] = obj(W[key]) ? W[key] : {};
+    if (!obj(Lo[key])) return;
+    Object.keys(Lo[key]).forEach((id) => {
+      const l = Lo[key][id], w = W[key][id];
+      if (!obj(l)) return;
+      if (!obj(w)) { W[key][id] = l; return; }
+      const lr = l.st === openSt ? 0 : 1, wr = w.st === openSt ? 0 : 1;
+      if (lr > wr) W[key][id] = l;
+      else if (lr === 1 && wr === 1 && num(l.done) && num(l.done) < num(w.done)) W[key][id] = l;
+    });
+  };
+  mix("ord", "pend");
+  mix("bet", "open");
+  return JSON.stringify(W);
+}
 const CHEM_KEYS = new Set(["magichemlex_v1"]);
 function mergeChem(winnerStr, loserStr) {
   const W = jparse(winnerStr, null), Lo = jparse(loserStr, null);
@@ -553,7 +581,7 @@ function mergeChem(winnerStr, loserStr) {
   return JSON.stringify(W);
 }
 function hasMergeRule(k) { return WALLET_KEYS.has(k) || CHAR_KEYS.has(k) || COUNT_KEYS.has(k) || MBR_KEYS.has(k) || BATTLE_KEYS.has(k)
-  || CLAIM_KEYS.has(k) || MAIL_KEYS.has(k) || SCOPE_KEYS.has(k) || MATE_KEYS.has(k) || ABYSS_KEYS.has(k) || EVENT_KEYS.has(k) || CHEM_KEYS.has(k) || DERBY_KEYS.has(k); }
+  || CLAIM_KEYS.has(k) || MAIL_KEYS.has(k) || SCOPE_KEYS.has(k) || MATE_KEYS.has(k) || ABYSS_KEYS.has(k) || EVENT_KEYS.has(k) || CHEM_KEYS.has(k) || DERBY_KEYS.has(k) || MARKET_KEYS.has(k); }
 /* { id: 印 } を和で混ぜる（片方にしか無い印も残す。両方にあれば早いほうの時刻） */
 function unionMarks(a, b) {
   const out = {};
@@ -1057,7 +1085,9 @@ function mergeStore(uid, remote, remoteT, remoteBox) {
                               ? mergeChem(remoteWins ? rv : lv, remoteWins ? lv : rv)
                               : DERBY_KEYS.has(k)
                                 ? mergeDerby(remoteWins ? rv : lv, remoteWins ? lv : rv)
-                                : mergeCharsInto(k, remoteWins ? rv : lv, remoteWins ? lv : rv);
+                                : MARKET_KEYS.has(k)
+                                  ? mergeMarket(remoteWins ? rv : lv, remoteWins ? lv : rv)
+                                  : mergeCharsInto(k, remoteWins ? rv : lv, remoteWins ? lv : rv);
         }
         if (merged != null) {
           if (WALLET_KEYS.has(k)) newBase[k] = rv;      /* 土台は「クラウドに確かにある値」 */
@@ -1156,7 +1186,9 @@ const URGENT_KEYS = new Set(["xeva_wallet_v1", "xeva_gem_v1", "xeva_gticket_v1",
   /* ★★ 2026-10-01 ホームのパートナー（開放は XEVA を払うので、財布と同じくすぐ送る） */
   "xeva_mate_v1",
   /* ★★ 2026-10-21 MagiDerby の馬券（買った・払い戻した の印。遅れるとほかの端末で二重に払い戻しかねない） */
-  "magiderby_v1"]);
+  "magiderby_v1",
+  /* ★★ 2026-11-08 MagiMarket の注文・賭け（約定・精算の印。同じ理由ですぐ送る） */
+  "magimarket_v1"]);
 
 function schedulePush(urgent) {
   if (urgent) { if (pushTimer) { clearTimeout(pushTimer); pushTimer = null; } flushPush(); return; }

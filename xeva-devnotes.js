@@ -11,6 +11,8 @@
      → XevDevNotes.history()（設定の「デベロッパーノート」）＝版の一覧。押すとその版のノート・「一覧にもどる」で戻る。
 
    ★ 版を足すときは NOTES の<b>先頭</b>に1つ足すだけ（id はその版だけの文字・見た印に使う）。
+   ★★ 2026-11-08 ご指定「上の『いつも XEVARION を…ありがとうございます。』が抜けることがある」
+       → lead があいさつで始まっていなければ、描くときに GREETING を先頭に足す（leadOf）。書き忘れても必ず出る。
        chars … [{ id（MagiBurst の id）, el（属性）, rar, img（横長の絵）}]
        secs  … [{ h（見出し）, img（小さな絵）, href（開くアプリ）, items（箇条書き・<b> 可）}]
    ══════════════════════════════════════════════════════════════ */
@@ -18,12 +20,49 @@
   "use strict";
   const KEY = "xev_devnotes_seen_v1";
   const EL = { fire: ["火", "#ff5d47"], water: ["水", "#38a6ff"], wood: ["木", "#2fbf71"], light: ["光", "#f0b429"], dark: ["闇", "#8a55f0"] };
+  /* ★★ 2026-11-08 あいさつの行（lead に無ければ描くときに足す） */
+  const GREETING = "いつも XEVARION を遊んでいただき、ありがとうございます。";
+  function leadOf(N) {
+    const L = String(N.lead || "");
+    const plain = L.replace(/<[^>]*>/g, "").replace(/\s+/g, "");
+    if (/^いつもXEVARION/.test(plain)) return L;
+    return GREETING + (L ? "<br>" + L : "");
+  }
 
   const NOTES = [
+    /* ★★ 2026-11-08 MagiMarket（新作）・ジェフ千葉のホームデザイン・ジェフ勝利の配布・MagiQuiz（早押し・2台で対戦・司会キャラ・賞金）
+       ★ 11-05 の3回目（早押しバトル）は配信の前に止まっていたので、このノートにまとめた（id 2026-11-05c は消した） */
+    {
+      id: "2026-11-08", date: "2026.11.08", title: "新アプリ MagiMarket／ジェフ千葉のホームデザイン／MagiQuiz に早押し・2台で対戦・司会キャラ",
+      lead: "いつも XEVARION を遊んでいただき、ありがとうございます。<br>ジェフユナイテッド市原・千葉が水戸ホーリーホックに <b>1-0 で勝利</b>しました！ 記念に全員へ <b>10,000 XEVA</b> をメールでお贈りします。あわせて、XEVA を運用する新しいアプリ <b>MagiMarket</b> と、<b>ジェフ千葉のホームデザイン</b>が加わりました。",
+      chars: [],
+      secs: [
+        { h: "MagiMarket（新作・β版）", img: "thumbs/MagiMarket.jpg?v=2", href: "MagiMarket/index.html", items: [
+          "<b>キオクシアの株</b>を1株から売り買いできます（1 XEVA ＝ 1円・手数料なし）。注文は成行で、注文のあとの最初の値段（取引時間外は次の取引日の最初の値段）で約定します",
+          "<b>ジェフ千葉の試合</b>の勝敗・合計ゴール・千葉の得点・スコアに XEVA で賭けられます。倍率は J1 の順位表から計算し、買ったときの倍率で確定。締切はキックオフです",
+          "株価・試合の日程と結果は自動で取得します。記録はアカウントで同期されます",
+        ] },
+        { h: "ジェフ千葉のホームデザイン", img: "jef/stadium.svg?v=1", href: "", items: [
+          "設定の<b>「ホームのデザイン」</b>で、標準とジェフ千葉を選べます",
+          "夜のスタジアム・黄と緑の応援旗・紙ふぶき・<b>次の試合と前節の結果の札</b>（押すと MagiMarket で勝敗を予想できます）",
+          "BGM はオリジナルの応援曲「Yellow &amp; Green Anthem」。お手持ちの応援歌（PRIDE など）の音源を<b>自分の端末に追加して流す</b>こともできます",
+        ] },
+        { h: "MagiQuiz", img: "thumbs/MagiQuiz.jpg?v=2", href: "MagiQuiz/index.html", items: [
+          "<b>早押しバトル</b>：問題文が1文字ずつ出て、わかった人が自分のブザーを押す早い者勝ち。お手つきはライフ −1（2〜8人・チーム戦も）",
+          "<b>2台で対戦</b>：それぞれの端末で、同じ問題に同時に答えるスピード勝負（2〜4台・4桁の部屋の番号で集合）",
+          "<b>司会キャラ</b>：ホームのパートナーや完凸ロビーのキャラが、試合を実況・カットイン（設定でオン／オフ）",
+          "<b>賞金を引き上げ</b>：1位 1,000・2位 700・3位 500 XEVA…（ひとりプレイは正解×40・最大 400）",
+        ] },
+        { h: "そのほか", img: "", href: "", items: [
+          "完凸ロビーのキャラの揺れを少し大きくし、ヨシノの胸の位置のずれを直しました",
+          "デベロッパーノートのはじめのあいさつが抜けないようにしました",
+        ] },
+      ],
+    },
     /* ★★ 2026-11-05（2回目）MagiQuiz の調整 */
     {
       id: "2026-11-05b", date: "2026.11.05", title: "MagiQuiz を遊びやすく調整",
-      lead: "遊んでいただいた声をもとに、<b>MagiQuiz</b> を調整しました。",
+      lead: "いつも XEVARION を遊んでいただき、ありがとうございます。<br>遊んでいただいた声をもとに、<b>MagiQuiz</b> を調整しました。",
       chars: [],
       secs: [
         { h: "MagiQuiz", img: "thumbs/MagiQuiz.jpg?v=2", href: "MagiQuiz/index.html", items: [
@@ -483,7 +522,7 @@
     let k = 0;
     const num = () => String(++k).padStart(2, "0");
     let body = "";
-    if (!onlyChars) body += '<p class="xdn-lead">' + N.lead + "</p>";
+    if (!onlyChars) body += '<p class="xdn-lead">' + leadOf(N) + "</p>";
     const cards = list.map(charCard).filter(Boolean);
     if (cards.length) body += '<div class="xdn-sh"><i>' + num() + "</i>新キャラクター</div><div class=\"xdn-chars\">" + cards.join("") + "</div>";
     if (!onlyChars) (N.secs || []).forEach((s) => {

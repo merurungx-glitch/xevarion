@@ -151,6 +151,13 @@ export const PORTAL_SYNC_KEYS = [
      混ぜ方は xeva-cloud.js の mergeDerby（馬券は id で和・精算ずみが勝つ＝払い戻しは二重にならない）。
      ★ 出馬表・結果の控え（md_cache_v1:…）は同期しない（オンラインならいつでも取り直せる）。 */
   "magiderby_v1",
+  /* ★★ 2026-11-08 新作 MagiMarket（キオクシアの株・ジェフ千葉の試合に XEVA）。注文・約定・賭けの記録。
+     混ぜ方は xeva-cloud.js の mergeMarket（id で和・終わった記録が勝つ＝約定・払い戻しを二重にしない）。
+     ★ 株価・試合の控え（mm_cache_v1:…）と端末の印（magimarket_dev_v1）は同期しない。 */
+  "magimarket_v1",
+  /* ★★ 2026-11-08 ホームのデザイン（標準／ジェフ千葉）と、ジェフのホームの BGM の選び方（xeva-jef.js）。新しいほうが勝つ。
+     ★ 自分で追加した音源（IndexedDB）は端末ごと（同期しない）。 */
+  "xeva_home_theme_v1",
   /* ★★ 2026-09-17f MagiQuest は廃止（magiquest_v1 は同期しない。端末に残ったぶんはホームが消す） */
 ];
 
