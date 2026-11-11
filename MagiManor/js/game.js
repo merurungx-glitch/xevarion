@@ -58,7 +58,7 @@ const cv = $("#cv"), ctx = cv.getContext("2d");
 const lcv = document.createElement("canvas"), lctx = lcv.getContext("2d");
 let TS = 46, DPR = 1, VW = 0, VH = 0;
 function resize() {
-  DPR = Math.min(2, window.devicePixelRatio || 1);
+  DPR = (window.XevaPerf ? XevaPerf.dpr(2) : Math.min(2, window.devicePixelRatio || 1));   /* ★★ 2026-11-10 動作モード（軽量＝1・標準＝これまで・高解像度＝端末の値） */
   VW = window.innerWidth; VH = window.innerHeight;
   cv.width = VW * DPR; cv.height = VH * DPR;
   lcv.width = cv.width; lcv.height = cv.height;
@@ -1159,7 +1159,7 @@ async function runEnding(key) {
   $("#ending").classList.remove("hidden");
   $("#endCredit").innerHTML =
     `MagiManor — "The Manor Remembers Everything."<br>
-     <img src="../../brand/NGX_s.webp?v=2" alt="NGX"><img src="../../brand/MagicalFuture_s.webp" alt="Magical Future"><img src="../../brand/ISHIDA_s.webp" alt="ISHIDA Production"><img src="../../brand/YRA_s.webp" alt="YRA"><img src="../../brand/Kawagani_s.webp" alt="Kawagani"><img src="../../brand/StudioDOGA_s.webp" alt="STUDIO DOGA"><br>
+     <img src="../../brand/NGX_s.webp?v=2" alt="NGX"><img src="../../brand/MagicalFuture_s.webp?v=2" alt="Magical Future"><img src="../../brand/ISHIDA_s.webp?v=2" alt="ISHIDA Production"><img src="../../brand/YRA_s.webp" alt="YRA"><img src="../../brand/Kawagani_s.webp" alt="Kawagani"><img src="../../brand/StudioDOGA_s.webp" alt="STUDIO DOGA"><br>
      PRESENTED BY NGX × MAGICAL FUTURE × ISHIDA PRODUCTION × YRA × KAWAGANI × STUDIO DOGA<br>XEVARION`;   /* ★★ 2026-10-28 YRA・★★ 2026-11-02 Kawagani・STUDIO DOGA が運営協力に参入 */
   throw ABORT;
 }

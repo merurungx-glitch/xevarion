@@ -178,7 +178,7 @@ const R = (() => {
   }
 
   function resize(){
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    const dpr = (window.XevaPerf ? XevaPerf.dpr(2) : Math.min(window.devicePixelRatio || 1, 2));   /* ★★ 2026-11-10 動作モード（軽量＝1・標準＝これまで・高解像度＝端末の値） */
     const w = Math.floor(canvas.clientWidth * dpr), h = Math.floor(canvas.clientHeight * dpr);
     if (canvas.width !== w || canvas.height !== h){
       canvas.width = w; canvas.height = h;
