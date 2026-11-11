@@ -2,7 +2,7 @@
    MagiBattle の性能（v3）— magibattle-stats.js
    ★★ 2026-10-30 ご指定「MagiBattle をゲームとアプリを1から作り直し」「NIKKE や NIKKE のアリーナ」
      「対応キャラは超極祭系3種の UR のキャラのみ・性能も NIKKE 風に」
-   ・使えるのは<b>超極華祭・超極煌祭・超極彩祭の UR 12体</b>だけ（ミキは WP 交換なので入らない）。
+   ・使えるのは<b>超極華祭・超極煌祭・超極彩祭の UR</b>と<b>ROYAL DEBUT GACHA の3体</b>（★★ 2026-11-11 いまは20体。ミキは WP 交換なので入らない）。
    ・ここが性能の<b>ただ1つの持ち主</b>：MagiBattle 本体（MagiBattle/js/mb3-*.js）・図鑑のキャラ詳細（mb-char-detail.js）・
      ガチャの新キャラ紹介（gacha-ui.js）・characters.html が同じ数字を見る。
    ・NIKKE 風の要素：武器6種（AR/SMG/SG/SR/RL/MG）・クラス（火力/防御/支援）・バースト Ⅰ→Ⅱ→Ⅲ→フルバースト・
@@ -32,6 +32,7 @@
     bloom: { nm: "ブルーム隊", en: "BLOOM", fes: "超極華祭", c: "#ff8fb8" },
     blaze: { nm: "ブレイズ隊", en: "BLAZE", fes: "超極煌祭", c: "#ffb347" },
     prism: { nm: "プリズム隊", en: "PRISM", fes: "超極彩祭", c: "#9b8cff" },
+    royal: { nm: "ロイヤル隊", en: "ROYAL", fes: "ROYAL DEBUT", c: "#9b6bff" },   /* ★★ 2026-11-11 ROYAL DEBUT GACHA（マコ・アコ・ミナ） */
   };
   const BURST = { 1: { nm: "Ⅰ", c: "#2fd18a" }, 2: { nm: "Ⅱ", c: "#3aa0ff" }, 3: { nm: "Ⅲ", c: "#ff4d6d" } };
 
@@ -51,6 +52,27 @@
      base … Lv1・凸0 の HP／攻撃／防御。tier … 強さの帯（MagiAbyss の並びに合わせる：ハル≒チカ＞ヒサコ＞ユナ≒コハク≒アリス＞ほか）
      スキルの v … [Lv1, Lv10]（あいだは直線）。desc の {v} {w} を置きかえる。fx … 本体（mb3-engine.js）が読む効果の種類 */
   const KITS = {
+    /* ══ ★★ 2026-11-11 ROYAL DEBUT GACHA の3体＝ロイヤル隊（ご回答 案A：マコ＝火力 SMG Ⅲ・アコ＝支援 RL Ⅰ・ミナ＝防御 AR Ⅱ）══
+       強さの帯は MagiAbyss と同じ「ヒサコより少し弱め」＝ tier 1.03。新しい効果（mb3-engine.js）：
+       burnOnHits・rateUp・smgOverdrive（マコ）／splashDefDown・vulnCdr（アコ・teamGauge はスキル2でも効く）／counterShot・teamShieldEvery・tauntCounter（ミナ） */
+    mako: { sq: "royal", cls: "atk", burst: 3, wp: "SMG", tier: 1.03, cd: 40,
+      base: { hp: 2400, atk: 232, def: 17 }, role: "高速連射・燃焼",
+      quote: "ぽかぽかしてきた？ それ、わたしの弾だよ。",
+      s1: { nm: "桜色のぬくもり", fx: "burnOnHits", n: 20, v: [25, 45], dur: 5, desc: "通常攻撃が <b>20回</b> 当たるごとに、その敵を燃焼（毎秒 攻撃力の <b>{v}%</b>・5秒）。" },
+      s2: { nm: "ひだまりの指先", fx: "rateUp", v: [10, 20], desc: "自分の連射速度 <b>+{v}%</b>。" },
+      bs: { nm: "ロイヤル・チェリーブロッサム", fx: "smgOverdrive", v: [45, 75], w: [30, 50], dur: 10, desc: "10秒間、自分の攻撃力 <b>+{v}%</b>・連射が<b>2倍</b>・<b>弾が減らない</b>。当たった敵を燃焼（毎秒 攻撃力の <b>{w}%</b>）。" } },
+    ako: { sq: "royal", cls: "sup", burst: 1, wp: "RL", tier: 1.03, cd: 20,
+      base: { hp: 2920, atk: 182, def: 22 }, role: "防御ダウン・ゲージ加速",
+      quote: "雨音が聞こえるうちに、決めちゃおう。",
+      s1: { nm: "あじさいの雨音", fx: "splashDefDown", v: [8, 16], dur: 5, desc: "チャージ攻撃の爆風に当たった敵すべての防御力 <b>−{v}%</b>（5秒）。" },
+      s2: { nm: "雨あがりの約束", fx: "teamGauge", v: [12, 25], desc: "味方全員のバーストゲージの獲得量 <b>+{v}%</b>。" },
+      bs: { nm: "パープル・セレナーデ", fx: "vulnCdr", v: [250, 420], w: [12, 22], dur: 10, desc: "敵全体に攻撃力の <b>{v}%</b>。10秒間、敵全体の被ダメージ <b>+{w}%</b>。ほかの味方のバーストスキルの再使用時間を <b>3秒</b> 短縮。" } },
+    mina: { sq: "royal", cls: "def", burst: 2, wp: "AR", tier: 1.03, cd: 20,
+      base: { hp: 3700, atk: 152, def: 30 }, role: "挑発・反撃・味方のシールド",
+      quote: "青い薔薇は、だれにも折らせない。",
+      s1: { nm: "青薔薇の棘", fx: "counterShot", v: [60, 110], desc: "自分が攻撃を受けると、その敵に攻撃力の <b>{v}%</b> で反撃（1秒に1回）。" },
+      s2: { nm: "リュクス・ヴェール", fx: "teamShieldEvery", period: 8, v: [5, 10], desc: "8秒ごとに、味方全員に最大HPの <b>{v}%</b> のシールド。" },
+      bs: { nm: "ロイヤル・ブルーローズ", fx: "tauntCounter", v: [20, 35], w: [15, 25], dur: 10, desc: "10秒間、敵の攻撃を自分に集める（挑発）・自分の被ダメージ <b>−{v}%</b>・反撃の威力 <b>2倍</b>。味方全員に最大HPの <b>{w}%</b> のシールド。" } },
     /* ── プリズム隊（超極彩祭）── */
     haru: { sq: "prism", cls: "atk", burst: 3, wp: "MG", tier: 1.06, cd: 40,
       base: { hp: 2500, atk: 236, def: 18 }, role: "持続火力・マシンガン",
@@ -117,6 +139,20 @@
       s2: { nm: "渚のバリア", fx: "coverRepairOnHit", v: [1, 2], desc: "自分がダメージを受けると、自分の遮蔽物を <b>{v}%</b> 修理（1秒に1回）。" },
       bs: { nm: "サンシャイン・ショア", fx: "teamDrHeal", v: [25, 40], w: [60, 100], dur: 10, desc: "10秒間、味方全員の被ダメージ <b>−{v}%</b>。HP を攻撃力の <b>{w}%</b> 回復し、毎秒 5% ずつ回復しつづける。" } },
     /* ── ブルーム隊（超極華祭）── */
+    /* ★★ 2026-11-11 超極華祭の追加2体（ご回答 案A：エナ＝防御 MG Ⅱ・ミミ＝火力 SG Ⅱ）。強さの帯は MagiAbyss と同じ「ハル・チカと同じ」＝ tier 1.06。
+       新しい効果：sweepCover・tauntSweep（エナ）／drainHit・bubbleBurst（ミミ・nearDmg はスキル2でも効く） */
+    ena: { sq: "bloom", cls: "def", burst: 2, wp: "MG", tier: 1.06, cd: 20,
+      base: { hp: 3650, atk: 160, def: 29 }, role: "挑発・遮蔽物を守る掃射",
+      quote: "みんなの夏は、わたしが守るから！",
+      s1: { nm: "ギンガム・スイープ", fx: "sweepCover", v: [10, 20], desc: "連射が最高速度のあいだ、味方全員の遮蔽物が受けるダメージ <b>−{v}%</b>。" },
+      s2: { nm: "常夏の守り手", fx: "selfDr", v: [10, 25], desc: "自分の被ダメージ <b>−{v}%</b>。挑発中は防御力 +30%。" },
+      bs: { nm: "トロピカル・バリケード", fx: "tauntSweep", v: [40, 70], w: [30, 50], dur: 10, desc: "10秒間、敵の攻撃を自分に集める（挑発）。自分の攻撃力 <b>+{v}%</b>・連射は立ち上がり無しで最高速度。味方全員の遮蔽物を <b>{w}%</b> 修理。" } },
+    mimi: { sq: "bloom", cls: "atk", burst: 2, wp: "SG", tier: 1.06, cd: 20,
+      base: { hp: 2480, atk: 234, def: 18 }, role: "至近距離・与ダメで回復",
+      quote: "近くで見ててね。泡みたいに、消えちゃう前に。",
+      s1: { nm: "泡沫のときめき", fx: "drainHit", v: [3, 6], desc: "与えたダメージの <b>{v}%</b> で自分の HP を回復。" },
+      s2: { nm: "フリル・ステップ", fx: "nearDmg", v: [25, 45], desc: "手前の敵（距離 1/3 以内）への与ダメージ <b>+{v}%</b>。" },
+      bs: { nm: "バブル・ムーンライト", fx: "bubbleBurst", v: [400, 650], w: [8, 15], dur: 10, desc: "敵全体に攻撃力の <b>{v}%</b>（手前の敵は 1.5 倍）。10秒間、散弾が<b>2倍</b>・与えたダメージの <b>{w}%</b> で HP を回復。" } },
     yuna: { sq: "bloom", cls: "atk", burst: 3, wp: "SG", tier: 1.02, cd: 40,
       base: { hp: 2550, atk: 230, def: 19 }, role: "至近距離の超火力",
       quote: "宵闇のうちに、終わらせてあげる。",
@@ -149,7 +185,7 @@
       bs: { nm: "ホワイトブーケ・サーヴ", fx: "cdrHeal", v: [4, 6], w: [30, 50], dur: 5, desc: "味方全員のバーストスキルの再使用時間を <b>{v}秒</b> 短縮。HP を攻撃力の <b>{w}%</b> 回復・5秒間 被ダメージ −10%。" } },
   };
   /* 並び（図鑑・編成の標準）：新しい祭が先、同じ祭はガチャの並び */
-  const IDS = ["haru", "chika", "chifuru", "mint", "purika", "hisako", "alice", "kohaku", "suzu", "shouko", "yuna", "chie", "aina", "ichika", "nonoka"];   /* ★★ 2026-11-03 15体 */
+  const IDS = ["mako", "ako", "mina", "haru", "chika", "chifuru", "mint", "purika", "hisako", "alice", "kohaku", "suzu", "shouko", "ena", "mimi", "yuna", "chie", "aina", "ichika", "nonoka"];   /* ★★ 2026-11-11 20体（ROYAL DEBUT 3体・超極華祭 2体を追加） */
 
   /* ══════════ 成長 ══════════ */
   const MAX_LV = 200, MAX_AWK = 4, SKILL_MAX = 10, BOND_MAX = 30;
@@ -263,8 +299,8 @@
 
   /* ══════════ 表示（図鑑・ガチャ・MagiBattle 共通）══════════ */
   function esc(s) { return String(s == null ? "" : s).replace(/[&<>"']/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m])); }
-  function charNm(id) { try { if (typeof CHARS !== "undefined" && CHARS[id]) return CHARS[id].nm; } catch (e) {} return ({ haru: "ハル", chika: "チカ", chifuru: "チフル", mint: "ミント", purika: "プリカ", hisako: "ヒサコ", alice: "アリス", kohaku: "コハク", suzu: "スズ", shouko: "ショウコ", yuna: "ユナ", chie: "ヨシノ", aina: "アイナ", ichika: "イチカ", nonoka: "ノノカ" })[id] || id; }
-  function elOf(id) { try { if (typeof CHARS !== "undefined" && CHARS[id]) return CHARS[id].el; } catch (e) {} return ({ haru: "water", chika: "dark", chifuru: "fire", mint: "wood", purika: "light", hisako: "water", alice: "dark", kohaku: "fire", suzu: "wood", shouko: "light", yuna: "dark", chie: "fire", aina: "light", ichika: "water", nonoka: "wood" })[id]; }
+  function charNm(id) { try { if (typeof CHARS !== "undefined" && CHARS[id]) return CHARS[id].nm; } catch (e) {} return ({ haru: "ハル", chika: "チカ", chifuru: "チフル", mint: "ミント", purika: "プリカ", mako: "マコ", ako: "アコ", mina: "ミナ", ena: "エナ", mimi: "ミミ", hisako: "ヒサコ", alice: "アリス", kohaku: "コハク", suzu: "スズ", shouko: "ショウコ", yuna: "ユナ", chie: "ヨシノ", aina: "アイナ", ichika: "イチカ", nonoka: "ノノカ" })[id] || id; }
+  function elOf(id) { try { if (typeof CHARS !== "undefined" && CHARS[id]) return CHARS[id].el; } catch (e) {} return ({ haru: "water", chika: "dark", chifuru: "fire", mint: "wood", purika: "light", mako: "fire", ako: "water", mina: "light", ena: "wood", mimi: "dark", hisako: "water", alice: "dark", kohaku: "fire", suzu: "wood", shouko: "light", yuna: "dark", chie: "fire", aina: "light", ichika: "water", nonoka: "wood" })[id]; }
   const WP_SVG = {
     AR: '<path d="M2 11h14l2-2h3v3h-2l-1 2h-3l-1 3H11l1-3H6l-1 2H3z"/>',
     SMG: '<path d="M3 10h12l2-2h3v3h-3v2h-2l-1 4h-2l1-4H8v2H6v-2H3z"/>',

@@ -1755,7 +1755,7 @@ async function claimGameRewards() {
   try { if (FB.claimRankReward) await FB.claimRankReward(acc.xvUid); } catch (e) {}
   const r = await FB.claimPending(acc.xvUid);
   if (r && r.total > 0) {
-    if (window.XEVA) window.XEVA.add(r.total, "ゲーム賞金 XEVA");
+    if (window.XEVA) window.XEVA.add(r.total, "ゲーム賞金 XEVA", { prizes: r.items || [] });   /* ★★ 2026-11-10 1件ずつを受け取り履歴に */
     try { renderXevaBalance(); } catch (e) {}
     showXevaToast(r.total, "ゲーム賞金・ランキング賞金を受け取りました！");
   }

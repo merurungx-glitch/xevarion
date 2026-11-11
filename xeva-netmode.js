@@ -81,13 +81,17 @@
   /* ── SW へ知らせる ──
      ★ 送るのは「最新を取りに行くか」だけ。回線の判定はページ側の仕事にしてある
        （SW からは navigator.connection を安定して読めないため）。 */
+  /* ★★ 2026-11-11 軽量モード（設定の「動作モード」）かどうかも送る。SW はオフラインのときだけこれを見て、
+     全部の置き場の総なめ・つながらない通信の試しをやめる（ご報告「オフラインのときだけ重い」）。 */
+  function liteMode() { try { return !!(window.XevaPerf && window.XevaPerf.lite()); } catch (e) { return false; } }
   async function push() {
     const latest = useLatest();
+    const lite = liteMode();
     try {
       const rs = await navigator.serviceWorker.getRegistrations();
       rs.forEach((r) => {
         const t = r.active || r.waiting || r.installing;
-        if (t) { try { t.postMessage({ type: "xev-netmode", latest: latest }); } catch (e) {} }
+        if (t) { try { t.postMessage({ type: "xev-netmode", latest: latest, lite: lite }); } catch (e) {} }
       });
     } catch (e) {}
     try { window.dispatchEvent(new CustomEvent("xeva:netmode", { detail: { kind: kind(), latest: latest } })); } catch (e) {}
@@ -121,6 +125,7 @@
   push();
   addEventListener("online", push);
   addEventListener("offline", push);
+  addEventListener("xeva:perf", push);          /* ★★ 2026-11-11 動作モードを切りかえたら知らせ直す */
   try { const c = conn(); if (c && c.addEventListener) c.addEventListener("change", push); } catch (e) {}
   /* SW は登録された直後だと active がまだ無いことがあるので、用意ができたらもう一度送る */
   try { if (navigator.serviceWorker) navigator.serviceWorker.ready.then(push).catch(function () {}); } catch (e) {}

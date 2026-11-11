@@ -17,6 +17,18 @@
      こちらに足したら<b>あちらにも since 付きで1行</b>足すこと（無いとポータルに絵が出ない）。
    ══════════════════════════════════════════════════════════════ */
 window.MB_NEW_CHARS = [
+  /* ── ★★ 2026-11-10 ROYAL DEBUT GACHA（UR 3体・20日間・MagiAbyss と MagiBattle 専用）── */
+  { id: "mako", since: "2026-11-12", where: "ROYAL DEBUT GACHA Ver.1.0（20日間・終わったら PREMIUM SELECT GACHA へ）・MagiAbyss と MagiBattle 専用・👑完凸でホームのロビー", mode: "royal",
+    catch: "ふふ、見つけた。……さくらの下で、待ってたの。", color: "#ff7a9a" },
+  { id: "ako", since: "2026-11-12", where: "ROYAL DEBUT GACHA Ver.1.0（20日間・終わったら PREMIUM SELECT GACHA へ）・MagiAbyss と MagiBattle 専用・👑完凸でホームのロビー", mode: "royal",
+    catch: "……雨の音、すき。あなたの声も、同じくらい。", color: "#7a8cff" },
+  { id: "mina", since: "2026-11-12", where: "ROYAL DEBUT GACHA Ver.1.0（20日間・終わったら PREMIUM SELECT GACHA へ）・MagiAbyss と MagiBattle 専用・👑完凸でホームのロビー", mode: "royal",
+    catch: "ねえ、今日はどこまで行けると思う？ ……わたしは、どこまでも。", color: "#4f8cff" },
+  /* ── ★★ 2026-11-10 超極華祭に2体（UR・毎月11〜20日・MagiAbyss と MagiBattle 専用）── */
+  { id: "ena", since: "2026-11-12", where: "超極華祭（毎月11〜20日）・MagiAbyss と MagiBattle 専用・👑完凸でホームのロビー", mode: "fes19",
+    catch: "えへへ……浮き輪、いっしょに乗る？", color: "#3fbf6e" },
+  { id: "mimi", since: "2026-11-12", where: "超極華祭（毎月11〜20日）・MagiAbyss と MagiBattle 専用・👑完凸でホームのロビー", mode: "fes19",
+    catch: "にしし、つかまえた！ 今日はわたしと遊ぶ日だよ？", color: "#8a5cff" },
   /* ── ★★ 2026-11-03 超極彩祭に3体（UR・毎月1〜10日・MagiAbyss と MagiBattle 専用）── */
   { id: "chifuru", since: "2026-11-03", where: "超極彩祭（毎月1〜10日）・MagiAbyss と MagiBattle 専用・👑完凸でホームのロビー", mode: "fes21",
     catch: "あーんして？ ……ふふ、今のひとくちは、わたしのぶん。", color: "#4f6dff" },

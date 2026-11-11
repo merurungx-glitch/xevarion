@@ -11,7 +11,7 @@
      ② アプリロゴ ＋ ロードバー ＋ "Loading <App> ..."
 
    使い方（<head> に、defer なしで置く）:
-     <script src="../xeva-splash.js?v=21"
+     <script src="../xeva-splash.js?v=22"
              data-app="MagiLex"
              data-logo="../thumbs/MagiLex.jpg"></script>
 
@@ -188,7 +188,7 @@
        画面をタップするといつでも飛ばせるのは同じ。アプリの起動（①企業ロゴ ②アプリのロゴ）はこれまでどおり。 */
   var CINE = D.home === "1";
   var RMO = false; try { RMO = !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches); } catch (e) {}
-  var T_CINE = RMO ? 1500 : 3200;   // 場面の長さ（前の 6社同時の 3.2 秒と同じ）
+  var T_CINE = RMO ? 1200 : 2600;   // 場面の長さ（★★ 2026-11-12 光の演出をやめたので 3.2 → 2.6 秒）
   if (CINE) T_COMBO = T_CINE;
   var SEEN_KEY = "xev_splash_seen";
   var SEEN = false;
@@ -213,8 +213,8 @@
 
   var BRAND = [
     { src: BASE + "brand/NGX_s.webp?v=2", alt: "NGX" },
-    { src: BASE + "brand/MagicalFuture_s.webp", alt: "Magical Future" },
-    { src: BASE + "brand/ISHIDA_s.webp", alt: "ISHIDA Production" },
+    { src: BASE + "brand/MagicalFuture_s.webp?v=2", alt: "Magical Future" },
+    { src: BASE + "brand/ISHIDA_s.webp?v=2", alt: "ISHIDA Production" },
     { src: BASE + "brand/YRA_s.webp", alt: "YRA" },         /* ★★ 2026-10-28 運営協力に参入 */
     { src: BASE + "brand/Kawagani_s.webp", alt: "Kawagani" },     /* ★★ 2026-11-02 運営協力に参入 */
     { src: BASE + "brand/StudioDOGA_s.webp", alt: "STUDIO DOGA" } /* ★★ 2026-11-02 運営協力に参入 */
@@ -329,55 +329,36 @@
   /* ★★ 2026-11-03 本体の映画風の起動（CINE）。1つの場面 .xc2 に6社（下の .xsgrid をそのまま使い、動きだけ映画風に上書き）。
      時間割（.in を付けてから）：光の線 0〜1.0秒 → 白い一閃 .35秒 → 舞台・スポットライト・うしろの光の筋 → 6社が同時に飛んでくる .45〜1.45秒
      → 光の輪 .9秒 → そろって照り返し 1.35秒 → × 1.45秒 → 光の粒 → 3.2秒で閉じる。6社とも同じ大きさ・同じ動き・同じ瞬間。 */
+  /* ★★ 2026-11-12 ご指定「起動時の企業ロゴ表示を、ライトがないシンプルなタイトル画面に合う形に」
+     → 光の線・白い一閃・スポットライト・うしろの光の筋・光の輪・照り返し・光の粒は<b>ぜんぶ外した</b>。
+       背景はタイトル画面と同じ<b>ぼかした看板絵</b>（thumbs/xevarion-home_s.jpg・暗め）＋上下のうすい影＋細い白の枠。
+       6社の札は同じ大きさ・同じ瞬間に、そっと浮かび上がる（フェード＋少しだけ上へ）。× と「Loading」もフェードだけ。 */
   if (CINE) {
     var P = "#" + ID;
     CSS +=
-      P + ".cine{background:#000;color:#fff}" +
+      P + ".cine{background:#0a0716;color:#fff}" +
       P + ".cine .xsph{padding:0}" +
-      P + " .xc2{overflow:hidden;background:radial-gradient(72% 60% at 50% 40%,#28326e 0%,#10163a 50%,#05060f 100%)}" +
+      P + " .xc2{overflow:hidden;background:#0a0716}" +
       P + " .xc2.in{opacity:1}" +
-      /* はじめは黒（舞台は白い一閃のあとに見える） */
-      P + " .xc-black{position:absolute;inset:0;background:#000;z-index:4;pointer-events:none}" +
-      P + " .xc2.in .xc-black{animation:xcOff .55s ease .3s both}" +
-      P + " .xc-streak{position:absolute;left:50%;top:50%;width:150vw;height:3px;margin:-1.5px 0 0 -75vw;border-radius:50%;opacity:0;transform:scaleX(0);pointer-events:none;z-index:6;" +
-        "background:linear-gradient(90deg,transparent,rgba(160,190,255,0) 8%,rgba(190,214,255,.9) 42%,#fff 50%,rgba(190,214,255,.9) 58%,rgba(160,190,255,0) 92%,transparent);" +
-        "box-shadow:0 0 22px 5px rgba(150,180,255,.5)}" +
-      P + " .xc2.in .xc-streak{animation:xcStreak 1s cubic-bezier(.2,.8,.2,1) both}" +
-      P + " .xc-flash{position:absolute;inset:0;pointer-events:none;opacity:0;z-index:5;background:radial-gradient(circle at 50% 50%,#ffffff,rgba(200,215,255,.75) 36%,rgba(200,215,255,0) 78%)}" +
-      P + " .xc2.in .xc-flash{animation:xcFlash .75s ease-out .3s both}" +
-      P + " .xc-rays{position:absolute;left:50%;top:48%;width:170vmax;height:170vmax;margin:-85vmax 0 0 -85vmax;opacity:0;pointer-events:none;" +
-        "background:repeating-conic-gradient(from 0deg,rgba(170,195,255,.16) 0 3deg,transparent 3deg 11deg);" +
-        "-webkit-mask:radial-gradient(circle,#000 0,rgba(0,0,0,.55) 16%,transparent 46%);mask:radial-gradient(circle,#000 0,rgba(0,0,0,.55) 16%,transparent 46%)}" +
-      P + " .xc2.in .xc-rays{animation:xcRays 3.2s ease-out .45s both}" +
-      P + " .xc-spot{position:absolute;top:-12%;width:70vw;height:140%;pointer-events:none;opacity:0;transform-origin:50% 0;" +
-        "background:linear-gradient(180deg,rgba(200,216,255,.42),rgba(200,216,255,.08) 62%,transparent);clip-path:polygon(44% 0,56% 0,100% 100%,0 100%);filter:blur(5px)}" +
-      P + " .xc-spot.a{left:-20vw}" + P + " .xc-spot.b{right:-20vw}" +
-      P + " .xc2.in .xc-spot.a{animation:xcSpotA 2.6s ease-in-out .4s both}" +
-      P + " .xc2.in .xc-spot.b{animation:xcSpotB 2.6s ease-in-out .4s both}" +
-      P + " .xc-floor{position:absolute;left:50%;bottom:4%;width:130vw;height:34vh;margin-left:-65vw;pointer-events:none;background:radial-gradient(50% 50% at 50% 50%,rgba(120,140,255,.3),transparent 70%)}" +
-      P + " .xc-dust{position:absolute;inset:0;pointer-events:none}" +
-      P + " .xc-dust i{position:absolute;width:var(--s);height:var(--s);border-radius:50%;opacity:0;background:radial-gradient(circle,#ffffff,rgba(190,210,255,.75) 45%,transparent 70%)}" +
-      P + " .xc2.in .xc-dust i{animation:xcDust var(--t) ease-in-out var(--d) both}" +
-      P + ".cine .xc2 .xsgrid{perspective:1000px}" +
-      P + ".cine .xsgrid::before{background:radial-gradient(circle,rgba(255,255,255,.9),rgba(140,160,255,.35) 38%,transparent 66%)}" +
-      P + ".cine .xsph.xc2.in .xsgrid::before{animation:xsRing 1.1s cubic-bezier(.2,.8,.3,1) .9s both}" +
-      P + ".cine .xsgrid .xslg{box-shadow:0 16px 44px rgba(0,0,0,.6),0 0 0 1px rgba(255,255,255,.45),0 0 34px rgba(120,150,255,.3)}" +
-      P + ".cine .xsph.xc2.in .xsgrid>.xslg," + P + ".cine .xsph.xc2.in .xsgrid>.xstx{animation:xcFly 1s cubic-bezier(.16,.84,.24,1) .45s both}" +
-      P + ".cine .xsph.xc2.in .xsgrid>.xslg::after{animation:xsShine .9s ease 1.35s both}" +
-      P + ".cine .xsph.xc2.in .xsx{animation:xsXPop .45s cubic-bezier(.2,1.6,.4,1) 1.45s both}" +
-      P + ".cine .xsx{color:#d9a441}" +
-      P + ".cine .xscap{color:rgba(214,224,255,.62);margin-top:6px}" +
-      P + ".cine .xc2.in .xscap{animation:xsFade .7s ease 1.5s both}" +
-      P + ".cine .xsnote{color:#ffd57a}" +
+      P + " .xc-bg{position:absolute;left:-48px;top:-48px;width:calc(100% + 96px);height:calc(100% + 96px);max-width:none;object-fit:cover;opacity:0;pointer-events:none;" +
+        "filter:blur(28px) brightness(.42) saturate(1.25);transform:scale(1.1)}" +
+      P + " .xc2.in .xc-bg{animation:xcBg .7s ease both}" +
+      P + " .xc-scrim{position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(8,6,20,.30),rgba(8,6,20,.08) 42%,rgba(8,6,20,.66))}" +
+      P + " .xc-frame{position:absolute;top:calc(env(safe-area-inset-top,0px) + 14px);bottom:calc(env(safe-area-inset-bottom,0px) + 14px);left:14px;right:14px;" +
+        "border:1px solid rgba(226,230,255,.42);border-radius:8px;pointer-events:none;opacity:0}" +
+      P + " .xc2.in .xc-frame{animation:xsFade .9s ease .15s both}" +
+      P + ".cine .xsgrid::before{display:none}" +
+      P + ".cine .xsgrid .xslg::after{display:none}" +
+      P + ".cine .xsgrid .xslg{box-shadow:0 12px 30px rgba(4,2,16,.5),0 0 0 1px rgba(255,255,255,.55)}" +
+      P + ".cine .xsph.xc2.in .xsgrid>.xslg," + P + ".cine .xsph.xc2.in .xsgrid>.xstx{animation:xcRise .7s cubic-bezier(.2,.8,.3,1) .25s both}" +
+      P + ".cine .xsph.xc2.in .xsx{animation:xsFade .5s ease .7s both}" +
+      P + ".cine .xsx{color:#8a6cff}" +
+      P + ".cine .xscap{position:relative;color:rgba(222,228,255,.72);margin-top:6px}" +
+      P + ".cine .xsnote{position:relative;color:#ffd57a}" +
+      P + ".cine .xc2.in .xscap{animation:xsFade .6s ease .8s both}" +
       P + ".cine.rm *{animation-duration:.01s!important;animation-delay:0s!important}" +
-      "@keyframes xcOff{from{opacity:1}to{opacity:0}}" +
-      "@keyframes xcRays{0%{opacity:0;transform:rotate(-8deg) scale(.9)}35%{opacity:1}100%{opacity:.85;transform:rotate(10deg) scale(1.05)}}" +
-      "@keyframes xcStreak{0%{opacity:0;transform:scaleX(0)}30%{opacity:1}60%{opacity:1;transform:scaleX(1)}100%{opacity:0;transform:scaleX(1.1) scaleY(.4)}}" +
-      "@keyframes xcDust{0%{opacity:0;transform:translate(0,0)}20%{opacity:.95}100%{opacity:0;transform:translate(var(--dx),-24vh)}}" +
-      "@keyframes xcFlash{0%{opacity:0}25%{opacity:.9}100%{opacity:0}}" +
-      "@keyframes xcSpotA{0%{opacity:0;transform:rotate(-42deg)}30%{opacity:1}100%{opacity:.85;transform:rotate(-16deg)}}" +
-      "@keyframes xcSpotB{0%{opacity:0;transform:rotate(42deg)}30%{opacity:1}100%{opacity:.85;transform:rotate(16deg)}}" +
-      "@keyframes xcFly{0%{opacity:0;transform:translateZ(-560px) rotateX(50deg) translateY(18%);filter:blur(10px) brightness(2)}60%{opacity:1;filter:blur(0) brightness(1.25)}100%{opacity:1;transform:none;filter:none}}";
+      "@keyframes xcBg{from{opacity:0}to{opacity:1}}" +
+      "@keyframes xcRise{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}";
   }
 
   /* 旧スプラッシュが下でチラつかないように隠す（data-keep-legacy="1" で無効化） */
@@ -407,7 +388,7 @@
   }
 
   /* ★ &lt;html&gt; の背景をスプラッシュと同じにする（箱の外はここしか塗れない） */
-  var SPLASH_BG = CINE ? "#000" : TH ? TH.bg : "linear-gradient(160deg,#fff,#ffeede)";   /* ★★ 2026-10-31 アプリごとの地の色（THEMES）・★★ 2026-11-03 本体の映画風は黒 */
+  var SPLASH_BG = CINE ? "#0a0716" : TH ? TH.bg : "linear-gradient(160deg,#fff,#ffeede)";   /* ★★ 2026-10-31 アプリごとの地の色（THEMES）・★★ 2026-11-03 本体の映画風は黒 */
   /* ★★ 2026-11-03 ① NGX の場面の金の粒（位置・大きさ・時間はばらばらに） */
   function dustHTML(n) {
     var s = "";
@@ -429,15 +410,15 @@
     el.id = ID;
     if (TH) el.style.cssText = TH.vars;
     if (CINE) {
-      /* ★★ 2026-11-03 本体：映画風の1場面（6社が同じ大きさ・同じ瞬間に）。タップで飛ばせる */
+      /* ★★ 2026-11-03 本体：6社が同じ大きさ・同じ瞬間に（★★ 2026-11-12 映画風の光の演出はやめて、タイトル画面に合うシンプルな場面に）。タップで飛ばせる */
       el.className = "cine" + (RMO ? " rm" : "");
-      el.style.cssText = "--xs-bg:#000;--xs-a:#000;--xs-b:#05060f;--xs-sh:rgba(0,0,0,.55);--xs-track:rgba(140,160,255,.3)";
+      el.style.cssText = "--xs-bg:#0a0716;--xs-a:#0a0716;--xs-b:#0a0716;--xs-sh:rgba(4,2,16,.5);--xs-track:rgba(140,160,255,.3)";
+      /* ★★ 2026-11-12 タイトル画面と同じぼかした看板絵（img にしてあるので、絵が描けるまで待ってから出す＝imgsReady） */
       el.innerHTML =
-        '<div class="xsph xsmain combo xc2"><i class="xc-rays"></i><i class="xc-spot a"></i><i class="xc-spot b"></i><i class="xc-floor"></i>' + dustHTML(22) +
+        '<div class="xsph xsmain combo xc2"><img class="xc-bg" src="' + esc(BASE + "thumbs/xevarion-home_s.jpg?v=13") + '" alt="" onerror="this.style.display=\'none\'"><i class="xc-scrim"></i><i class="xc-frame"></i>' +
           brandGrid() +
           '<div class="xscap">' + esc(CAP) + "</div>" +
           (NOTE ? '<div class="xsnote">' + esc(NOTE) + "</div>" : "") +
-          '<i class="xc-black"></i><i class="xc-flash"></i><i class="xc-streak"></i>' +
         "</div>";
       (document.body || document.documentElement).appendChild(el);
       el.addEventListener("pointerdown", function () { if (skipRes) skipRes(); }, { passive: true });

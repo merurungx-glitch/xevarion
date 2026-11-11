@@ -34,6 +34,8 @@
   var reduce = false;
   try { reduce = window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches; } catch (e) {}
   function offByUser() { try { return localStorage.getItem("xeva_alive") === "off"; } catch (e) { return false; } }
+  /* ★★ 2026-11-11 軽量モード（設定の「動作モード」）では動かさない（絵の数だけ動きの計算が走るため） */
+  function offByPerf() { try { return !!(window.XevaPerf && window.XevaPerf.lite()); } catch (e) { return false; } }
 
   /* :where() でつよさ 0 → ほかの画面の動き（animation）があればそちらが勝つ */
   var CSS = [
@@ -72,7 +74,7 @@
   function queue(x) { pending.add(x); if (!pendT) pendT = setTimeout(flush, 80); }
 
   function start() {
-    if (reduce || offByUser() || mo) return;
+    if (reduce || offByUser() || offByPerf() || mo) return;
     if (!document.getElementById("xa-style")) {
       var st = document.createElement("style"); st.id = "xa-style"; st.textContent = CSS;
       (document.head || document.documentElement).appendChild(st);
@@ -115,4 +117,5 @@
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", start, { once: true });
   else start();
+  try { window.addEventListener("xeva:perf", function () { if (offByPerf()) stop(); else start(); }); } catch (e) {}
 })();

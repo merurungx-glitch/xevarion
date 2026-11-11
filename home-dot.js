@@ -14,12 +14,12 @@
    ══════════════════════════════════════════════════════════════ */
 (function () {
   "use strict";
-  const PIX_SRC = "MagiAbyss/js/ma-pixel.js?v=11";
+  const PIX_SRC = "MagiAbyss/js/ma-pixel.js?v=12";
   const KEY = "xeva_mate_v1";
   const PICK = "xeva_dot_pick";          /* おまかせで、この起動に出している子（タブごと） */
   const HINT = "xeva_dot_hint_v1";       /* はじめて出たときの「✎ かえる」（端末ごと・1回） */
   const DOT_IDS = ["takina", "ayano", "saki", "yuka", "natsumi", "miu", "mai", "chinatsu", "yuumi", "rina", "chie", "ichika", "nonoka", "aina", "yuna",
-    "haru", "chika", "chifuru", "mint", "purika", "kohaku", "hisako", "alice", "miki", "suzu", "shouko", "kaori", "hibana", "fuki", "hinano", "hanon", "kokoha", "mutsumi", "reina", "azusa", "kagura", "kotori", "kumireina"];
+    "mako", "ako", "mina", "ena", "mimi", "haru", "chika", "chifuru", "mint", "purika", "kohaku", "hisako", "alice", "miki", "suzu", "shouko", "kaori", "hibana", "fuki", "hinano", "hanon", "kokoha", "mutsumi", "reina", "azusa", "kagura", "kotori", "kumireina"];
   const PADX = 26;      /* バナーの左右のはみ出し（端からのぞくぶん） */
   const ABOVE = 30;     /* 頭の上のゆとり（ジャンプ・吹き出し） */
   const SINK = 16;      /* バナーの上の端より下（すわると足がバナーにかかる） */
@@ -163,7 +163,7 @@
     const left = Math.max(0, rs[0].left - L.left - PADX), right = Math.min(L.width, rs[rs.length - 1].right - L.left + PADX);
     const W = Math.max(60, Math.round(right - left)), H = Math.round(sh + ABOVE + SINK);
     const cx = Math.round(left), cy = Math.round(top - L.top - sh - ABOVE);
-    const dpr = Math.min(3, window.devicePixelRatio || 1);
+    const dpr = (window.XevaPerf ? XevaPerf.dpr(3) : Math.min(3, window.devicePixelRatio || 1));   /* ★★ 2026-11-10 動作モード（軽量＝1・標準＝これまで・高解像度＝端末の値） */
     if (S.W !== W || S.H !== H || S.dpr !== dpr) {
       cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
       cv.style.width = W + "px"; cv.style.height = H + "px";

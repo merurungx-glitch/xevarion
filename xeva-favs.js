@@ -445,10 +445,10 @@ body.xos-nomotion .xfc-holo,body.xos-nomotion .xfc-foil,body.xos-nomotion .xfc-s
       if (hasChars() && typeof window.openDetX === "function") return Promise.resolve();
       if (hasChars()) return Promise.resolve();
       if (typeof window.xhMbReady === "function") return window.xhMbReady();
-      return loadJs(BASE + "mb-boot.js?v=18").then(() => loadJs(BASE + "MagiBurst/js/mb-core.js?v=146"));
+      return loadJs(BASE + "mb-boot.js?v=18").then(() => loadJs(BASE + "MagiBurst/js/mb-core.js?v=147"));
     };
     detP = core()
-      .then(() => (typeof window.openDetX === "function" ? null : loadJs(BASE + "mb-char-detail.js?v=54")))
+      .then(() => (typeof window.openDetX === "function" ? null : loadJs(BASE + "mb-char-detail.js?v=55")))
       .then(() => {
         if (!document.getElementById("detOv")) {
           const ov = document.createElement("div"); ov.id = "detOv";
@@ -617,7 +617,7 @@ body.xos-nomotion .xfc-holo,body.xos-nomotion .xfc-foil,body.xos-nomotion .xfc-s
   function ensureTraits() {
     if (window.XEVA_CHAR_TRAITS) return Promise.resolve(true);
     if (traitP) return traitP;
-    traitP = loadJs(BASE + "xeva-fav-traits.js?v=1").then(() => !!window.XEVA_CHAR_TRAITS).catch(() => { traitP = null; return false; });
+    traitP = loadJs(BASE + "xeva-fav-traits.js?v=2").then(() => !!window.XEVA_CHAR_TRAITS).catch(() => { traitP = null; return false; });
     return traitP;
   }
   function catOf(id) {

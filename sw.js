@@ -7,7 +7,7 @@
    ・オフライン中の進行は localStorage に残り、オンライン復帰時に
      xeva-cloud.js がタイムスタンプ比較でクラウドへ上書き反映する
    ============================================================ */
-const VERSION = "xevarion-sw-v259";
+const VERSION = "xevarion-sw-v264";
 
 /* ホームを成立させる最小セット（重い画像は runtime キャッシュに任せる） */
 const CORE = [
@@ -17,23 +17,23 @@ const CORE = [
   "./characters.html",
   /* ★ 2026-08-10 ガチャは XEVARION に一本化。中身は MagiBurst の共有モジュールが持つ */
   "./gacha.html",
-  "./gacha-ui.js?v=71",
-  "./mb-newchars.js?v=43",
-  "./xeva-devnotes.js?v=15",
-  "./xeva-tour.js?v=4",   /* ★★ 2026-10-30 XEVARION ガイド（全機能の紹介・設定から／#guide） */
-  "./xeva-favs.js?v=2",   /* ★★ 2026-11-03 お気に入りカード（図鑑・キャラ詳細の☆・ホーム・コミュニティ） */
-  "./xeva-fav-traits.js?v=1",   /* ★★ 2026-11-05 好み診断の見た目の台帳（診断を開いたときだけ読む） */
+  "./gacha-ui.js?v=72",
+  "./mb-newchars.js?v=44",
+  "./xeva-devnotes.js?v=17",
+  "./xeva-tour.js?v=5",   /* ★★ 2026-10-30 XEVARION ガイド（全機能の紹介・設定から／#guide） */
+  "./xeva-favs.js?v=3",   /* ★★ 2026-11-03 お気に入りカード（図鑑・キャラ詳細の☆・ホーム・コミュニティ） */
+  "./xeva-fav-traits.js?v=2",   /* ★★ 2026-11-05 好み診断の見た目の台帳（診断を開いたときだけ読む） */
   "./xeva-earn.js?v=2",   /* ★★ 2026-11-03 XEVA・ジェムの入手まとめ（アニメ） */
   "./xevion-os.js?v=13",
   "./xevion-os.css?v=15",
-  "./magibattle-stats.js?v=20",
-  "./MagiBurst/js/mb-core.js?v=146",
+  "./magibattle-stats.js?v=21",
+  "./MagiBurst/js/mb-core.js?v=147",
   /* ★ 2026-08-10 ガチャと図鑑で共通の土台・キャラ詳細・結果演出 */
   /* ★ 2026-08-12 ポータルのガチャ・図鑑も magiburst_v1 を同期するようになった */
   "./app-cloud.js?v=15",
   "./MagiBurst/magiburst-cloud.js?v=29",
   "./mb-boot.js?v=18",
-  "./mb-char-detail.js?v=54",
+  "./mb-char-detail.js?v=55",
   "./mb-char-detail.css?v=32",
   "./mb-gacha-reveal.css?v=11",
   /* ★★ 2026-10-09 ガチャの演出を1から作り直した（1体ずつ・確定演出・UR は縦長の絵） */
@@ -63,27 +63,27 @@ const CORE = [
   "./xeva-i18n-p3.js?v=7",
   "./xeva-i18n-mb7.js?v=7",
   "./xeva-i18n-p4.js?v=8",
-  "./xeva-i18n-n1.js?v=22",
+  "./xeva-i18n-n1.js?v=23",
   "./xeva-i18n-n2.js?v=3",
-  "./xeva.js?v=86",
-  "./xeva-alive.js?v=8",
+  "./xeva.js?v=87",
+  "./xeva-alive.js?v=9",
   "./xeva-fx.js?v=9",
   "./xeva-loading.js?v=19",
-  "./xeva-splash.js?v=21",          // ★★ 2026-10-13 XEVARION の起動画面（3社ロゴ）にも使う
+  "./xeva-splash.js?v=22",          // ★★ 2026-10-13 XEVARION の起動画面（3社ロゴ）にも使う
   "./uwaki.html",                    // ★★ 2026-10-15 これって浮気？判定シート（ホームの PARK の真上のボタン）
   "./uwaki.js?v=1",
   "./uwaki.css?v=1",
   "./thumbs/Uwaki.jpg",
-  "./xevarion.js?v=114",
-  "./xevarion-home.js?v=182",
+  "./xevarion.js?v=115",
+  "./xevarion-home.js?v=183",
   /* ★★ 2026-09-24 ホームのロビーとパートナー。素材は home-mate/<id>/（?v= は home-mate.js の HM_VER）・笙古／瞳／舞香／衣織／樹愛羅／映美里（09-25 ボイス廃止・表情は webp） */
-  "./gacha-live.js?v=11",
-  "./home-mate.js?v=35",
-  "./xeva-jef.js?v=1", "./xeva-jef.css?v=1", "./jef/stadium.svg?v=1",   /* ★★ 2026-11-08 ジェフ千葉のホームデザイン */
+  "./gacha-live.js?v=14",
+  "./home-mate.js?v=36",
+  "./xeva-jef.js?v=1", "./xeva-jef.css?v=2", "./jef/stadium.svg?v=1",   /* ★★ 2026-11-08 ジェフ千葉のホームデザイン */
   /* ★★ 2026-10-26 完凸ロビー（ヒサコ・アリス）と、バナーの上のドット絵のキャラ（絵は MagiAbyss の ma-pixel.js） */
-  "./home-lobby.js?v=5",
-  "./home-dot.js?v=5",
-  "./MagiAbyss/js/ma-pixel.js?v=11",
+  "./home-lobby.js?v=7",
+  "./home-dot.js?v=6",
+  "./MagiAbyss/js/ma-pixel.js?v=12",
   "./home-mate/lobby/hisako.webp?v=1",
   "./home-mate/lobby/alice.webp?v=1",
   "./home-mate/lobby/haru.webp?v=1",    /* ★★ 2026-10-30 超極彩祭のハル・チカの完凸ロビー */
@@ -92,9 +92,11 @@ const CORE = [
   "./home-mate/lobby/mint.webp?v=1",
   "./home-mate/lobby/purika.webp?v=1",
   "./home-mate/lobby/kohaku.webp?v=1",  /* ★★ 2026-10-31 完凸ロビーに コハク・ユナ・アイナ・ヨシノ */
-  "./home-mate/lobby/yuna.webp?v=1",
-  "./home-mate/lobby/aina.webp?v=1",
+  "./home-mate/lobby/yuna.webp?v=2",   /* ★★ 2026-11-10 ユナ・アイナの新しい立ち絵 */
+  "./home-mate/lobby/aina.webp?v=2",
   "./home-mate/lobby/chie.webp?v=1",
+  "./home-mate/lobby/mako.webp?v=1", "./home-mate/lobby/ako.webp?v=1", "./home-mate/lobby/mina.webp?v=1",   /* ★★ 2026-11-10 ROYAL DEBUT・超極華祭の完凸ロビー */
+  "./home-mate/lobby/ena.webp?v=1", "./home-mate/lobby/mimi.webp?v=1",
   "./home-mate/lobby/park.webp?v=1",
   "./xeva-prefetch.js?v=1",     // ★★ 2026-10-24 MagiDerby・MagiScope の先読み
   "./xeva-event-ui.js?v=4",
@@ -161,13 +163,13 @@ const CORE = [
   "./xeva-back.js?v=9",
   "./xeva-keys.js?v=36",
   /* ★★ 2026-10-01 同期のモジュールも入れる（前は実行時キャッシュだけ＝更新直後のオフラインで読めなかった） */
-  "./xeva-cloud.js?v=50",
+  "./xeva-cloud.js?v=51",
   "./xevarion-fb.js?v=37",
   "./xeva-sync.js?v=19",
   "./xeva-presence.js?v=9",
   /* ★ 2026-08-20 通信設定（Wi-Fi／モバイルデータごとの動き）。
      この SW へ設定を送る側なので、オフラインでも読めるようにここに入れておく。 */
-  "./xeva-netmode.js?v=10",
+  "./xeva-netmode.js?v=11",
   "./game-link.js?v=11",
   "Xevarion.png",
   "XEVA.png",
@@ -205,9 +207,9 @@ const CORE = [
   "./thumbs/MagiMarket.jpg?v=2",       /* ★★ 2026-11-08 新作 MagiMarket（XEVA 運用） */
   "./thumbs/MagiAbyss.jpg?v=2",   // ★★ 2026-10-05 新作 MagiAbyss
   "./thumbs/NGX.jpg?v=2",         // ★★ 2026-10-31 NGX のアイコン（オフラインでも出るように）
-  "./thumbs/ISHIDA.webp",      // ★★ 2026-10-09b ISHIDA のアイコン（小さい正方形）
+  "./thumbs/ISHIDA.webp?v=2",      // ★★ 2026-10-09b ISHIDA のアイコン（小さい正方形）
   "./MagiDerby/js/md-data.js?v=4", "./MagiDerby/js/md-intro.js?v=2",   // ★★ 2026-10-28 ホームの GⅠ 発売開始の告知（home-mate.js の derbyAnn）
-  "./brand/NGX_s.webp?v=2", "./brand/MagicalFuture_s.webp", "./brand/ISHIDA_s.webp", "./brand/YRA_s.webp", "./brand/Kawagani_s.webp", "./brand/StudioDOGA_s.webp",   // ★★ 2026-10-09b 起動画面の3社ロゴ（小さい版）
+  "./brand/NGX_s.webp?v=2", "./brand/MagicalFuture_s.webp?v=2", "./brand/ISHIDA_s.webp?v=2", "./brand/YRA_s.webp", "./brand/Kawagani_s.webp", "./brand/StudioDOGA_s.webp",   // ★★ 2026-10-09b 起動画面の3社ロゴ（小さい版）
   "./thumbs/MagiChemLex.jpg?v=2", // ★★ 2026-10-06 新作 MagiChemLex
   "./thumbs/MagiDerby.jpg",       // ★★ 2026-10-21 新作 MagiDerby（実際の JRA GⅠ）
   /* ★★ 2026-10-06 XEVARION 共通イベント Violet Breeze（左上のバナー・イベントのページ・一覧の絵） */
@@ -225,7 +227,7 @@ const CORE = [
   /* ★★ 2026-09-10 図鑑のキャラ詳細で Magi: Boccia Rush の性能も出すので、ここでも持つ */
   "./MagiBocciaRush/js/mbr-core.js?v=21",
   /* ★★ 2026-10-09 キャラ詳細・新キャラ紹介で MagiAbyss の性能も出すので、ここでも持つ */
-  "./MagiAbyss/js/ma-data.js?v=12",
+  "./MagiAbyss/js/ma-data.js?v=14",
   "./MagiAbyss/js/ma-stats.js?v=2",
   "./thumbs/MagiMusic.jpg",
   "./thumbs/MagiFocus.jpg",
@@ -233,7 +235,7 @@ const CORE = [
   "./thumbs/MagiEmpire.jpg",
   "./thumbs/MagiTier.jpg",
   "./thumbs/Ordyxis.jpg",
-  "./thumbs/MagicalFuture.jpg",
+  "./thumbs/MagicalFuture.jpg?v=2",
   "./thumbs/xevarion-home_s.jpg?v=13",   /* ★★ 2026-10-30 新しいタイトル画面（ご指定） */
   /* ★★ 2026-09-06 同期の画面に出る案内役（立ち姿とお辞儀・2人ぶん）。 */
   "./img/ld_a_stand.webp",
@@ -395,8 +397,18 @@ function xevIsImg(url) {
 }
 async function xevImgFirst(req) {
   const cache = await caches.open(XEV_IMG);
-  const hit = await cache.match(req, { ignoreSearch: false });
-  const net = fetch(req).then((res) => {
+  let hit = await cache.match(req, { ignoreSearch: false });
+  /* ★★ 2026-11-11 ご報告「オフラインのときだけ重い」の直し（その2）
+     事前に入れた絵（CORE＝この SW の版の置き場）も、通信の前に<b>URL ぴったりで</b>探す。
+     前は XEV_IMG に無いと通信を待ち、失敗してから「全部の置き場を ? を無視して」2回探していた
+     （オフラインのホームでは絵の数だけこれが起き、置き場が増えるほど遅くなっていた）。
+     ★ 軽量モードでオフラインのときは、通信を試さず、総なめもしない（自分の置き場と絵の置き場だけ）。 */
+  let own = null;
+  try { own = await caches.open(VERSION); } catch (e) {}
+  if (!hit && own) hit = await own.match(req);
+  const lite = xevOffLite();
+  if (hit && lite) return hit;
+  const net = lite ? Promise.resolve(null) : fetch(req).then((res) => {
     if (res && res.ok && (res.type === "basic" || res.type === "default")) {
       cache.put(req, res.clone()).catch(() => {});
     }
@@ -409,12 +421,13 @@ async function xevImgFirst(req) {
      大きい絵より小さいが、<b>空っぽより読める</b>（ご報告の「出ない」を防ぐ）。 */
   const alt = xevThumbURL(req.url);
   if (alt) {
-    const a = await cache.match(alt, { ignoreSearch: false });
+    const a = (await cache.match(alt, { ignoreSearch: false })) || (own && (await own.match(alt)));
     if (a) return a;
-    const a2 = await caches.match(alt, { ignoreSearch: true });
+    const a2 = lite ? await cache.match(alt, { ignoreSearch: true }) : await caches.match(alt, { ignoreSearch: true });
     if (a2) return a2;
   }
-  const loose = await caches.match(req, { ignoreSearch: true });
+  const loose = lite ? ((await cache.match(req, { ignoreSearch: true })) || (own && (await own.match(req, { ignoreSearch: true }))))
+    : await caches.match(req, { ignoreSearch: true });
   if (loose) return loose;
   return new Response("", { status: 504 });
 }
@@ -422,7 +435,14 @@ async function xevImgFirst(req) {
    ふだんは通信（これまでと同じ）→ 取れなければ<b>どの置き場からでも</b>返す（各アプリの SW が入れたものも使える）。
    「このつなぎかたでは最新を取りに行かない」設定のときは、先に置き場を見る。 */
 async function xevPassCache(req) {
-  const fromCache = async () => (await caches.match(req, { ignoreSearch: false })) || (await caches.match(req, { ignoreSearch: true }));
+  /* ★★ 2026-11-11 まず自分の置き場をぴったりで（速い）→ 全部をぴったりで → ? 違い（軽量モードでオフラインのときは ? 違いを全部からは探さない） */
+  const fromCache = async () => {
+    let h = null;
+    try { h = await (await caches.open(VERSION)).match(req); } catch (e) {}
+    if (!h) h = await caches.match(req, { ignoreSearch: false });
+    if (!h && !xevOffLite()) h = await caches.match(req, { ignoreSearch: true });
+    return h;
+  };
   if (xevNetLatest() === false) { const hit = await fromCache(); if (hit) return hit; }
   try {
     const res = await fetch(req);
@@ -595,6 +615,64 @@ async function xevRefreshPost(msg) {
     cs.forEach((c) => { try { c.postMessage(msg); } catch (e) {} });
   } catch (e) {}
 }
+/* ══ ★★ 2026-11-11 要らなくなったファイルの掃除（ご指定「ダウンロード時に要らなくなったファイルを削除する機能」）══
+   ホームの「ダウンロード」（xev-refresh）のたびに、この SW の置き場（VERSION）から<b>もう使わないもの</b>を消す。
+   ・CORE（この版で使うファイル）は消さない。
+   ・消すのは ① CORE と同じファイルの古い版（?v= が小さい・?v= が無い）
+              ② ページ（.html）に ? の付いた写し（?room= など。ページ本体は CORE にある）
+              ③ CORE に無いファイルの古い版どうし（いちばん新しい ?v= だけ残す）
+              ④ サーバーにもう無いファイル（確かめで 404・410 が返ったもの。取れたものより多いときは通信の不調とみて消さない）
+   ・消した件数と大きさは xev-refreshed の removed・freed でホームへ返す（ホームの更新画面に「整理した」と出る）。 */
+function xevPathKey(u) { let p = u.pathname; if (p.endsWith("/")) p += "index.html"; return u.origin + p; }
+function xevVerOf(u) { const s = u.searchParams.get("v"); if (s == null) return 0; const n = parseFloat(s); return isFinite(n) ? n : 0.5; }
+function xevAbs(u) { try { return new URL(u, self.location.href).href; } catch (e) { return String(u); } }
+async function xevSizeOf(res) {
+  if (!res) return 0;
+  let n = Number(res.headers.get("content-length")) || 0;
+  if (!n) { try { n = (await res.clone().blob()).size || 0; } catch (e) { n = 0; } }
+  return n;
+}
+async function xevDropAll(cache, list, out) {
+  for (const req of list) {
+    try { const r = await cache.match(req); const n = await xevSizeOf(r); if (await cache.delete(req)) { out.n++; out.bytes += n; } } catch (e) {}
+  }
+}
+/* ?v= 以外の ? はそのまま見分ける（?page=2 などの中身が違うものを「古い版」とまちがえて消さない） */
+function xevQKey(u) {
+  const ps = [];
+  u.searchParams.forEach((val, key) => { if (key !== "v") ps.push(key + "=" + val); });
+  ps.sort();
+  return xevPathKey(u) + (ps.length ? "?" + ps.join("&") : "");
+}
+async function xevPrune(cache, coreAbs, sameOriginOnly) {
+  const out = { n: 0, bytes: 0 };
+  const core = new Map(), corePath = new Set(), best = new Map(), drop = [];
+  coreAbs.forEach((abs) => {
+    try { const u = new URL(abs); const q = xevQKey(u); corePath.add(xevPathKey(u)); core.set(q, Math.max(core.has(q) ? core.get(q) : -1, xevVerOf(u))); } catch (e) {}
+  });
+  let reqs = [];
+  try { reqs = await cache.keys(); } catch (e) { return out; }
+  for (const req of reqs) {
+    if (coreAbs.has(req.url)) continue;
+    let u; try { u = new URL(req.url); } catch (e) { continue; }
+    if (sameOriginOnly !== false && u.origin !== self.location.origin) continue;
+    const p = xevPathKey(u), q = xevQKey(u), v = xevVerOf(u);
+    if (u.search && corePath.has(p) && /\.html?$/i.test(p)) { drop.push(req); continue; }   /* ② ページの ? 付きの写し */
+    if (core.has(q)) { if (v < core.get(q)) drop.push(req); continue; }                       /* ① CORE より古い版 */
+    const b = best.get(q);                                                                     /* ③ CORE に無いものは新しい版だけ残す */
+    if (!b) best.set(q, { req, v });
+    else if (v > b.v) { drop.push(b.req); best.set(q, { req, v }); }
+    else drop.push(req);
+  }
+  await xevDropAll(cache, drop, out);
+  return out;
+}
+
+/* ★★ 2026-11-11 絵の置き場（XEV_IMG・版に縛られない）も、同じ絵の古い版（?v= が小さい・CORE より古い）を消す。
+   ポータルと MagiBurst の SW の両方から呼ばれるが、消したものは数え直さないので二重にはならない。 */
+async function xevPruneImg(coreAbs) {
+  try { return await xevPrune(await caches.open(XEV_IMG), coreAbs, false); } catch (e) { return { n: 0, bytes: 0 }; }
+}
 async function xevRefreshAll() {
   const cache = await caches.open(VERSION);
   const urls = [], seen = new Set();
@@ -605,6 +683,10 @@ async function xevRefreshAll() {
     seen.add(abs); urls.push(u);
   }
   /* 実行時にキャッシュしたぶん（CORE に無いページ・画像）も一緒に取り直す */
+  /* ★★ 2026-11-11 要らなくなったファイルの掃除（xevPrune の説明）。ここまでの seen＝CORE */
+  const coreAbs = new Set(seen), gone = [];
+  const pr = await xevPrune(cache, coreAbs);
+  { const pi = await xevPruneImg(coreAbs); pr.n += pi.n; pr.bytes += pi.bytes; }
   try {
     for (const req of await cache.keys()) {
       if (seen.has(req.url)) continue;
@@ -663,7 +745,7 @@ async function xevRefreshAll() {
         await cache.put(u, res.clone());
         if (!n) { try { n = (await res.clone().blob()).size || 0; } catch (e2) { n = 0; } }
         if (!(xevIrPath(u) in irf)) { got++; bytes += n; }
-      }
+      } else if (res && (res.status === 404 || res.status === 410) && old && !coreAbs.has(xevAbs(u))) gone.push(u);   /* ★★ 2026-11-11 サーバーにもう無い */
     } catch (e) { /* 落とせなかったぶんは今のキャッシュを残す（消さない） */ }
     done++;
     await tickPost();
@@ -672,9 +754,11 @@ async function xevRefreshAll() {
   const crew = [];
   for (let ci = 0; ci < CONC; ci++) crew.push(worker());
   await Promise.all(crew);
+  /* ★★ 2026-11-11 サーバーにもう無いファイル（404・410）を置き場から消す。取れたものより多いときは通信の不調とみて消さない */
+  if (gone.length && hit + got >= gone.length) await xevDropAll(cache, gone, pr);
   await tickPost(true);
   await xevIrDrop();
-  await xevRefreshPost({ type: "xev-refreshed", scope: XEV_SCOPE, total: urls.length,
+  await xevRefreshPost({ type: "xev-refreshed", scope: XEV_SCOPE, total: urls.length, removed: pr.n, freed: pr.bytes, cache: VERSION,
     got: got, hit: hit, bytes: bytes });
 }
 self.addEventListener("message", (e) => {
@@ -707,30 +791,50 @@ const XEV_NETPREF_CACHE = "xev-netpref";
 const XEV_NETPREF_URL = "./__xev_netpref";
 let _xevNetLatest = null;                     // null＝まだ読んでいない
 function xevNetLatest() { return _xevNetLatest; }
+/* ★★ 2026-11-11 軽量モード（ホームの設定「動作モード」）でオフラインのとき＝<b>全部の置き場の総なめと通信の試し</b>をやめる。
+   lite はページ（xeva-netmode.js）が latest といっしょに送ってくる（netpref に控える）。オフラインかどうかは SW 自身の onLine で見る。 */
+let _xevLite = false;
+function xevOffLite() { try { return _xevLite && self.navigator && self.navigator.onLine === false; } catch (e) { return false; } }
 (async function xevReadNetPref() {
   try {
     const c = await caches.open(XEV_NETPREF_CACHE);
     const r = await c.match(XEV_NETPREF_URL);
-    _xevNetLatest = r ? ((await r.json()).latest !== false) : true;
+    const o = r ? await r.json() : null;
+    _xevNetLatest = o ? o.latest !== false : true;
+    _xevLite = !!(o && o.lite);
   } catch (e) { _xevNetLatest = true; }
 })();
 self.addEventListener("message", (e) => {
   const m = e.data;
   if (!m || m.type !== "xev-netmode") return;
   _xevNetLatest = m.latest !== false;
+  if ("lite" in m) _xevLite = !!m.lite;
   e.waitUntil((async () => {
     try {
       const c = await caches.open(XEV_NETPREF_CACHE);
-      await c.put(XEV_NETPREF_URL, new Response(JSON.stringify({ latest: _xevNetLatest }),
+      await c.put(XEV_NETPREF_URL, new Response(JSON.stringify({ latest: _xevNetLatest, lite: _xevLite }),
         { headers: { "Content-Type": "application/json" } }));
     } catch (err) {}
   })());
 });
 /* キャッシュ優先で返す。無ければ通信し、それも失敗したらページだけはホームに逃がす。 */
 async function xevCacheFirst(req) {
-  const hit = await caches.match(req, { ignoreSearch: true });
+  /* ★★ 2026-11-11 ご報告「オフラインのときだけ重い」の直し
+     前は毎回<b>全部の置き場（いまは 25 個ほど）を ? を無視して</b>探していた。置き場を1つずつ開いて調べるので、
+     画面の部品・絵の数だけそれがくり返され、アプリが増えるほど遅くなっていた（オフラインのときはいつもこの道を通る）。
+     → ① 自分の置き場を URL ぴったりで（ほとんどここで当たる・1回で済む）→ ② 全部の置き場をぴったりで
+       → ③ ? 違いを許して探す → ④ 通信。
+     ★ 軽量モードでオフラインのときは ③ を自分の置き場（と絵の置き場）だけにし（ページの移動は全部を探す）、④ の通信も試さない。 */
+  const lite = xevOffLite();
+  let hit = null;
+  try { hit = await (await caches.open(VERSION)).match(req); } catch (e) {}
+  if (!hit) hit = await caches.match(req);
+  if (!hit && lite && req.mode !== "navigate") {
+    try { hit = await (await caches.open(VERSION)).match(req, { ignoreSearch: true }); } catch (e) {}
+    if (!hit && /\.(webp|png|jpe?g|gif|svg)$/i.test(new URL(req.url).pathname)) { try { hit = await (await caches.open("xev-img-v1")).match(req, { ignoreSearch: true }); } catch (e) {} }
+  } else if (!hit) hit = await caches.match(req, { ignoreSearch: true });
   if (hit) return hit;
-  try { return await fetch(req); } catch (e) {}
+  if (!lite) { try { return await fetch(req); } catch (e) {} }
   if (req.mode === "navigate") {
     const home = await caches.match("./index.html", { ignoreSearch: true });
     if (home) return home;

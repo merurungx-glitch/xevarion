@@ -108,10 +108,10 @@ function modeDef(k) {
      ★★ 2026-08-26 版ごとに10日間。掲載中の版が無いあいだは<b>スタンバイ</b>（引けない）。 */
   if (isDebutMode(k)) {
     const v = debutVerOfMode(k);
-    if (!v) return { nm: DEBUT_NM, ic: "✧", c: DEBUT_C, soon: true,
+    if (!v) return { nm: dNm(k), ic: dIc(k), c: dC(k), soon: true,
       sub: "スタンバイ中（次のバージョンの準備中です）" };
-    return { nm: DEBUT_NM, ic: "✧", c: DEBUT_C, ver: v,
-      sub: gachaVerText(v) + "・新キャラ" + v.chars.length + "体はここだけ／あと" + debutDaysLeft(v) + "日"
+    return { nm: dNm(k), ic: dIc(k), c: dC(k), ver: v,
+      sub: (dRar(k) === "UR" ? "新レアリティ UR・" : "") + gachaVerText(v) + "・新キャラ" + v.chars.length + "体はここだけ／あと" + debutDaysLeft(v) + "日"
         /* ★★ 2026-08-26b 版ごとに<b>初回の10連が無料</b>（ご指定）。1日1回の無料単発とは別枠。 */
         + (debutFree10Left(k) > 0 ? "／🎁 初回10連 無料" : "")
         + (debutFreeLeft(k) > 0 ? "／🎁 1日1回無料の単発あり" : "") };
@@ -177,11 +177,11 @@ function paintHero() {
   /* ★ 2026-08-20 バナーは3種類（GRAND DEBUT／プレミアム／各フェス）。
      GRAND DEBUT には<b>版（Ver.）の帯</b>を添える＝どの回のキャラが入っているか一目で分かる。 */
   const dv = isDebutMode(gMode) ? debutVerOfMode(gMode) : null;
-  const src = isDebutMode(gMode) ? debutBannerOf()
+  const src = isDebutMode(gMode) ? debutBannerOf(gMode)
     : gMode === "premium" ? "MagiBurst/img/bn_premium_s.webp"
     : fesBannerOf(gMode);
   const d = modeDef(gMode);
-  const lab = isDebutMode(gMode) ? "DEBUT" : gMode === "premium" ? "PREMIUM"
+  const lab = isDebutMode(gMode) ? debutLabOf(gMode) : gMode === "premium" ? "PREMIUM"
     : gMode === ARCHIVE_KEY ? "ARCHIVE" : "FEST";
   /* ★★ 2026-08-26 版が2本並ぶことがあるので、帯には<b>その版</b>の番号と公開日を出す */
   const ver = dv
@@ -205,8 +205,8 @@ function paintPickup() {
   if (isDebutMode(gMode)) {
     const dv = debutVerOfMode(gMode);
     if (!dv) {
-      w.innerHTML = `<div class="pkbox" style="border-color:${DEBUT_C}55">
-        <div class="pkhd" style="color:${DEBUT_C}"><span>✧ ${DEBUT_NM}</span></div>
+      w.innerHTML = `<div class="pkbox" style="border-color:${dC(gMode)}55">
+        <div class="pkhd" style="color:${dC(gMode)}"><span>${dIc(gMode)} ${dNm(gMode)}</span></div>
         <div class="pknote">いまは<b>スタンバイ中</b>です。次のバージョンの新キャラがそろうと、また開きます。<br>
           前のバージョンのキャラは、公開から<b>${DEBUT_DAYS}日</b>で
           <b>${PREMIUM_NM}</b> へ移り、そこで引けるようになっています。</div>
@@ -226,21 +226,21 @@ function paintPickup() {
         ${/* ★★ 2026-10-28 完凸でホームのロビーに出せる子（ヒサコ・アリス）に控えめな札 */ typeof hasLobby === "function" && hasLobby(id) ? '<span class="flb" title="完凸（4凸）でホームのロビーに設定できます">完凸でロビー</span>' : ""}
         <span class="fn">${c.nm}</span></button>`;
     }).join("");
-    w.innerHTML = `<div class="pkbox" style="border-color:${DEBUT_C}55">
-      <div class="pkhd" style="color:${DEBUT_C}"><span>✧ ${gachaVerText(dv)} の新キャラ（${dchars.length}体）</span>
+    w.innerHTML = `<div class="pkbox" style="border-color:${dC(gMode)}55">
+      <div class="pkhd" style="color:${dC(gMode)}"><span>${dIc(gMode)} ${gachaVerText(dv)} の新キャラ（${dchars.length}体）</span>
         <span style="color:var(--txt2);font-weight:800">タップで性能</span></div>
       <div class="fgrid">${cards}</div>
       <div class="pksub" style="margin-top:9px">
-        新キャラSSR <b>${dchars.length}体</b>（合計${ratePct(DEBUT_S5_TOTAL)}・ピックアップなし）に加えて、
+        新キャラ${dRar(gMode)} <b>${dchars.length}体</b>（各${ratePct(debutEachRateOf(gMode))}・合計${ratePct(pickTotalOfMode(gMode))}・ピックアップなし）に加えて、
         <b>${PREMIUM_NM} のSSRも合計${ratePct(fillTotalOfMode(gMode))}で排出</b>されます（フェスガチャと同じしくみ）。<br>
         ${/* ★★ 2026-08-26b 版ごとに初回の10連が無料（ご指定）。1日1回の無料単発とは別枠。 */""}
         🎁 <b>この版の初回10連は無料</b>です（🎫チケットも<i class='icc ic-gem'></i>ジェムも減りません。
         <b>最後の1枠のSSR確定つき</b>）。${debutFree10Left(gMode) > 0
-          ? "<b style='color:" + DEBUT_C + "'>まだ使っていません。</b>"
+          ? "<b style='color:" + dC(gMode) + "'>まだ使っていません。</b>"
           : "この版のぶんは使いました。"}<br>
         🎁 <b>1日1回、単発を無料で引けます</b>（🎫チケットも<i class='icc ic-gem'></i>ジェムも減りません）。
         <b>どちらも版ごとに1回ずつ</b>なので、2本並んでいるときは2回ぶんもらえます。<br>
-        <b>この${dchars.length}体は ${DEBUT_NM} ${gachaVerText(dv)} でしか引けません</b>——
+        <b>この${dchars.length}体は ${dNm(gMode)} ${gachaVerText(dv)} でしか引けません</b>——
         フェスや ${PREMIUM_NM} の<b>すり抜け・10連の確定枠には出ません</b>。<br>
         ${/* ★★ 2026-08-26 10日ルール（ご指定）。いつまで並ぶのかを必ず書く。 */""}
         ⏳ この版は <b>${dv.date} から${DEBUT_DAYS}日間</b>（あと<b>${debutDaysLeft(dv)}日</b>）。
@@ -346,14 +346,14 @@ function paintPickup() {
      出たときはキャラのかわりに 💠結晶が CRYST_SSR 個もらえる。
      以前ここに出していた「排出対象外」は、いまは正しくないので出さない。 */
   w.innerHTML = `<div class="pkbox">
-    <div class="pkhd"><span>✨ ピックアップ中のSSR</span>
+    <div class="pkhd"><span>✨ ピックアップ中の${rarLabel(id)}</span>
       <span style="color:${maxed ? "#8e6bff" : "#e0577f"}">${ratePct(pickupRate())}${maxed ? "（👑完凸 → " + crystIcon(13) + "結晶+" + crystOf(id) + "）" : ""}</span></div>
     <div class="pkrow">
       <img src="${c.th}" alt="${c.nm}" onclick="openDetX('${id}')" style="cursor:pointer" title="${c.nm} の性能を見る">
       <div class="pkinfo" onclick="openDetX('${id}')" style="cursor:pointer">
         <div class="pknm">${charNoText(id)} ${c.nm}</div>
         <div class="pksub">${typeof elemNameOf === "function" ? elemNameOf(c) : ELEM[c.el].nm}／${c.shot === "pierce" ? "貫通" : "反射"}／${c.type}<br>
-          <b>${c.ssName}</b>（${fbTurnsText(c)}ターン）<br>
+          ${c.abyssOnly ? "<b>MagiAbyss・MagiBattle のキャラクター</b>" : "<b>" + c.ssName + "</b>（" + fbTurnsText(c) + "ターン）"}<br>
           <b style="color:${maxed ? "#c98a10" : DB.chars[id] ? "#0e7f57" : "#6f82ad"}">${dupeText(id).tx}</b></div>
       </div>
       <button class="pkbtn" onclick="openPick()">えらぶ</button>
@@ -383,7 +383,7 @@ function paintPickSheet() {
       <div class="pci">
         <div class="pcq">ピックアップを入れ替えますか？</div>
         <div class="pcn">${charNoText(ask)} ${CHARS[ask].nm}</div>
-        <div class="pcr">えらぶと ${ratePct(wouldPickRate())}（いまは ${ratePct(otherRate())}）</div>
+        <div class="pcr">えらぶと ${ratePct(wouldPickRate(ask))}（いまは ${ratePct(otherRate())}）</div>
       </div>
       <div class="pcb">
         <button class="yes" onclick="confirmPick('${ask}')">これにする</button>
@@ -396,7 +396,7 @@ function paintPickSheet() {
     <div class="psbody">
       ${conf}
       <div class="psnow">いまのピックアップ： <b>${CHARS[cur].nm}</b>　—
-        えらんだSSRだけ <b>${ratePct(wouldPickRate())}</b>、ほかのSSRは各 <b>${ratePct(otherRate())}</b>（SSRの合計は常に${ratePct(SSR_TOTAL)}）。</div>
+        えらんだ子だけ <b>${ratePct(wouldPickRate(cur))}</b>（SSR は ${ratePct(PICK_PREMIUM)}・UR は ${ratePct(PICK_PREMIUM_UR)}）、ほかは各 <b>${ratePct(otherRate())}</b>（SSR以上の合計は常に${ratePct(SSR_TOTAL)}）。</div>
       <div class="cgrid">${list.map((id) => {
         const c = CHARS[id], own = !!DB.chars[id], mx = isMaxAwk(id), sec = charSecret(id);
         /* ★ 2026-08-18 一覧でも「いま何凸か」が分かるようにした。
@@ -513,7 +513,7 @@ function paintNote() {
   if (isDebutMode(gMode)) {
     const dv = debutVerOfMode(gMode);
     if (!dv) {
-      $("#gnote").innerHTML = `<b>${DEBUT_NM} はスタンバイ中</b>です。`
+      $("#gnote").innerHTML = `<b>${dNm(gMode)} はスタンバイ中</b>です。`
         + `次のバージョンの新キャラがそろうと開きます。`;
       return;
     }
@@ -528,7 +528,7 @@ function paintNote() {
     const free10Line = (debutFree10Left(gMode) > 0)
       ? `🎁 <b>この版の初回10連は無料です</b>（下の「10連 SSR確定」ボタンが無料になります。SSR確定枠もそのまま付きます）。`
       : `🎁 <b>初回10連の無料は版ごとに1回</b>です（${gachaVerText(dv)} のぶんは使いました。次のバージョンでまた引けます）。`;
-    $("#gnote").innerHTML = `<b>新キャラSSR 各${ratePct(PICK_DEBUT)}</b>（${dchars.length}体・合計 ${ratePct(pickTotalOfMode(gMode))}）
+    $("#gnote").innerHTML = `<b>新キャラ${dRar(gMode)} 各${ratePct(debutEachRateOf(gMode))}</b>（${dchars.length}体・合計 ${ratePct(pickTotalOfMode(gMode))}）
       ／ <b>${PREMIUM_NM} のSSR 合計${ratePct(fillTotalOfMode(gMode))}</b>
       ／ <b>SSRの合計は ${ratePct(SSR_TOTAL)}</b>
       ／ <b>SR 合計50%</b>（${s4}体で等分・各 ${ratePct(0.50 / s4)}）／ <b>アイテム ${ratePct(itemTotalOfMode(gMode))}</b>。<br>
@@ -644,7 +644,7 @@ function paintPullBar() {
   };
   bar.innerHTML = locked
     ? `<div style="grid-column:1/-1;text-align:center;font-size:12px;font-weight:900;color:#6f82ad;padding:12px">⏳ ${
-        dStandby ? DEBUT_NM + " はスタンバイ中です"
+        dStandby ? dNm(gMode) + " はスタンバイ中です"
         : arcEmpty ? ARCHIVE_NM + " はまだ封入されたキャラクターがいません"
         : fesOpenText(fesDef(gMode))}</div>`
     /* ★★ 2026-09-19e 5連は廃止（ご指定）。10連には「SSR確定」の札 */
@@ -695,7 +695,7 @@ async function okToPullPremium(n) {
     "ピックアップ中の <b>" + c.nm + "</b> は<b>すでに👑完凸（限界突破MAX）</b>です。<br>" +
     "完凸したキャラは<b>ガチャの排出対象から外れる</b>ので、いまピックアップ枠は<b>はたらいていません</b>" +
     "（SSR合計10%は、ほかのSSRで分け合っています）。<br><br>" +
-    "ほかのキャラに変えると、その子だけ <b>" + ratePct(wouldPickRate()) + "</b> になります。<br>" +
+    "ほかのキャラに変えると、その子だけ <b>" + ratePct(PICK_PREMIUM) + "</b>（UR は " + ratePct(PICK_PREMIUM_UR) + "）になります。<br>" +
     '<span style="font-size:11px">まだ完凸していないSSR：' + names + more + "</span>",
     { icon: "👑", title: "このまま回しますか？", ok: "このまま" + n + "回まわす", cancel: "ピックアップをえらび直す" });
   if (!ok) openPick();      /* 「えらび直す」＝そのまま選ぶ画面へ */
@@ -742,7 +742,13 @@ window.pull = pull;
    前は f.sapphire だけを見ていたので、Pumpkin Night の提供割合が「フェス限定SSR」になっていた（ご指摘）。
    キャラ1体ごとの呼び名は rarLabel（mb-core の RAR_LABEL）で決める＝UR を足しても書き足し不要。 */
 /* ★★ 2026-10-12 10連の札：UR のガチャは「SSR以上確定」（確定枠に UR も入るため） */
-function sureTag(k) { let ur = false; try { ur = isFesMode(k) && fesIsUR(fesDef(k)); } catch (e) { ur = false; } return ur ? "SSR以上確定" : "SSR確定"; }
+function sureTag(k) { let ur = false; try { ur = (isFesMode(k) && fesIsUR(fesDef(k))) || (typeof isRoyalMode === "function" && isRoyalMode(k)); } catch (e) { ur = false; } return ur ? "SSR以上確定" : "SSR確定"; }
+/* ★★ 2026-11-10 GRAND DEBUT と ROYAL DEBUT の出し分け（しくみは同じ・名前・色・印・レアリティの言いかただけちがう） */
+function dNm(k) { return typeof debutNmOf === "function" ? debutNmOf(k) : DEBUT_NM; }
+function dC(k) { return typeof debutCOf === "function" ? debutCOf(k) : DEBUT_C; }
+function dIc(k) { return (typeof isRoyalMode === "function" && isRoyalMode(k)) ? "👑" : "✧"; }
+function dRar(k) { return (typeof isRoyalMode === "function" && isRoyalMode(k)) ? "UR" : "SSR"; }
+function dLim(k) { return dNm(k).replace(/ GACHA$/, "") + " 限定"; }
 function fesIsUR(f) {
   if (!f) return false;
   if (f.sapphire || f.pumpkin) return true;
@@ -811,12 +817,12 @@ function openRatesX() {
   if (_dv) {
     const dchars = debutCharsOfMode(gMode);
     /* ★ 2026-08-20 GRAND DEBUT GACHA。SSR/SR の確率はプレミアムと同じ、中身だけがちがう。 */
-    rows.push(rateHeadRow("<i class='icc ic-gem'></i> " + DEBUT_NM + " " + gachaVerText(_dv)
-      + "（1回 5 ／ 5連 25 ／ 10連 50・SSR確定）", _dv.date, DEBUT_C));
+    rows.push(rateHeadRow("<i class='icc ic-gem'></i> " + dNm(gMode) + " " + gachaVerText(_dv)
+      + "（1回 5 ／ 10連 50・" + sureTag(gMode) + "）", _dv.date, dC(gMode)));
     rows.push(SEC19());
-    rows.push(rateHeadRow("✨ 新キャラSSR（各 " + ratePct(PICK_DEBUT) + "・" + dchars.length + "体）",
+    rows.push(rateHeadRow("✨ 新キャラ" + dRar(gMode) + "（各 " + ratePct(debutEachRateOf(gMode)) + "・" + dchars.length + "体）",
       ratePct(pickTotalOfMode(gMode))));
-    byCharNoDesc(dchars).forEach((id) => rows.push(rateCharRow(id, debutEachRateOf(gMode), "GRAND DEBUT 限定")));
+    byCharNoDesc(dchars).forEach((id) => rows.push(rateCharRow(id, debutEachRateOf(gMode), dLim(gMode))));
     /* ★ 2026-08-20c フェスと同じしくみ＝道中でも PREMIUM SELECT GACHA のSSRが合計5%で出る */
     const dprem = byCharNoDesc(fillIdsOfMode(gMode));
     const dpEach = fillEachOfMode(gMode);
@@ -827,11 +833,11 @@ function openRatesX() {
     rows.push(rateHeadRow("🎁 アイテム（XEVARION 共通・合計）", ratePct(itemTotalOfMode(gMode))));
     rows.push(rateItemRows(itemTotalOfMode(gMode), DEBUT_ITEM_TABLE));
     const dsure = byCharNoDesc(guaranteedPoolOfMode(gMode));
-    rows.push(SEC10(dsure.length, DEBUT_C));
+    rows.push(SEC10(dsure.length, dC(gMode)));
     rows.push(rateNoteRow(NOTE10));
     dsure.forEach((id) => rows.push(rateCharRow(id, dsure.length ? 1 / dsure.length : 0,
-      dchars.indexOf(id) >= 0 ? "GRAND DEBUT 限定" : PREMIUM_NM)));
-    rows.push(rateNoteRow("※ <b>新キャラは1体あたり " + ratePct(PICK_DEBUT) + "</b>（合計 "
+      dchars.indexOf(id) >= 0 ? dLim(gMode) : PREMIUM_NM)));
+    rows.push(rateNoteRow("※ <b>新キャラは1体あたり " + ratePct(debutEachRateOf(gMode)) + "</b>（合計 "
       + ratePct(pickTotalOfMode(gMode)) + "）。<b>SSRの合計はどのガチャも " + ratePct(SSR_TOTAL)
       + "</b>で、差の <b>" + ratePct(fillTotalOfMode(gMode)) + "</b> は "
       + PREMIUM_NM + " のSSRが等確率で受け取ります。"));
@@ -851,13 +857,13 @@ function openRatesX() {
       + "道中でも <b>" + PREMIUM_NM + " のSSRが合計 " + ratePct(fillTotalOfMode(gMode)) + "</b> で出て、"
       + "<b>確定枠は新キャラと " + PREMIUM_NM + " のSSRをまとめた " + dsure.length + "体から全員おなじ確率</b>です"
       + "（まだ完凸していないキャラだけ）。"));
-    rows.push(rateNoteRow("※ <b>この" + dchars.length + "体は " + DEBUT_NM + " " + gachaVerText(_dv) + " でしか引けません</b>。"
+    rows.push(rateNoteRow("※ <b>この" + dchars.length + "体は " + dNm(gMode) + " " + gachaVerText(_dv) + " でしか引けません</b>。"
       + "フェスガチャ・" + PREMIUM_NM + " の<b>すり抜け（他の SSR 枠）にも、10連の確定枠にも出ません</b>。"));
     rows.push(rateNoteRow("※ <b>この版は公開日から" + DEBUT_DAYS + "日間だけ</b>の掲載です"
       + "（" + _dv.date + " から・あと <b>" + debutDaysLeft(_dv) + "日</b>）。"
       + "期間が終わると、この" + dchars.length + "体は<b>自動で " + PREMIUM_NM + " へ移り</b>、"
       + "現行のキャラと同じ扱い（ピックアップ・すり抜け・確定枠）になります。"));
-    rows.push(rateNoteRow("※ <b>前の版の掲載中に新しい版が出ると、GRAND DEBUT は2本並びます</b>"
+    rows.push(rateNoteRow("※ <b>前の版の掲載中に新しい版が出ると、" + dNm(gMode).replace(/ GACHA$/, "") + " は2本並びます</b>"
       + "（版ごとに別のガチャです――片方を回してももう片方の新キャラは出ません）。"
       + "掲載中の版が1つも無いあいだは、<b>スタンバイ</b>になります。"));
     rows.push(rateNoteRow("※ <b>🎫フェスチケットはこのガチャでは使えません</b>（フェスガチャ専用）。"
@@ -1703,7 +1709,7 @@ function nciMaybeAutoOld() {
 let glMode = true;       // いま一覧を見ているか
 let glIdx = 0;           // 一覧でいま中央にあるカード
 function glBanner(k) {
-  return isDebutMode(k) ? debutBannerOf() : k === "premium" ? "MagiBurst/img/bn_premium_s.webp" : fesBannerOf(k);
+  return isDebutMode(k) ? debutBannerOf(k) : k === "premium" ? "MagiBurst/img/bn_premium_s.webp" : fesBannerOf(k);
 }
 function glLocked(k) {
   if (isDebutMode(k)) return !debutVerOfMode(k);
@@ -1758,7 +1764,7 @@ window.glSel = glSel;
 function glVisible(m) {
   const k = m.k;
   try {
-    if (isDebutMode(k)) return k === "debut" || !!debutVerOfMode(k);
+    if (isDebutMode(k)) return k === "debut" || k === "royal" || !!debutVerOfMode(k);   /* ★★ 2026-11-10 ROYAL DEBUT のスタンバイも GRAND DEBUT と同じく出す */
     if (k === "premium" || k === ARCHIVE_KEY) return true;
     if (isFesMode(k)) {
       const f = fesDef(k); if (f && (f.monthly || fesPerm(f))) return true;
@@ -1830,7 +1836,7 @@ function glCard(m, i) {
   const seal = "";
   /* ★★ 2026-10-30 はじめての開催の前の予告（超極彩祭の topPre・ご指定「現在は予告として一番上」） */
   const pre = locked && isFesMode(k) && fesDef(k).topPre && fesToday() <= fesDef(k).topPre;
-  const lab = pre ? "🔔 予告" : isDebutMode(k) ? "DEBUT" : k === "premium" ? "PREMIUM" : k === ARCHIVE_KEY ? "ARCHIVE" : "FEST";
+  const lab = pre ? "🔔 予告" : isDebutMode(k) ? debutLabOf(k) : k === "premium" ? "PREMIUM" : k === ARCHIVE_KEY ? "ARCHIVE" : "FEST";
   const chars = glChars(k).filter((id) => CHARS[id]);
   const row = chars.map((id) => {
     const sec = charSecret(id);

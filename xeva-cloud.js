@@ -748,7 +748,7 @@ function mergeCountMap(k, lv, rv) {
 }
 
 /* 履歴の取り合わせ（新しい順・上限100件） */
-function mergeHistory(a, b) {
+function mergeHistory(a, b, cap) {
   const seen = Object.create(null), out = [];
   [].concat(Array.isArray(a) ? a : [], Array.isArray(b) ? b : []).forEach((h) => {
     if (!h || typeof h !== "object") return;
@@ -756,7 +756,7 @@ function mergeHistory(a, b) {
     if (seen[k]) return; seen[k] = 1; out.push(h);
   });
   out.sort((x, y) => (y.t || 0) - (x.t || 0));
-  if (out.length > 100) out.length = 100;
+  if (out.length > (cap || 100)) out.length = cap || 100;
   return out;
 }
 /* ══ ★★ 2026-10-24 ご報告「ジェムなどが無限に増え続ける」「XEVA などが別の端末で反映されていないことがある」══
@@ -939,6 +939,8 @@ function mergeWallet(k, lv, rv) {
   if (L.lastLoginDate || R.lastLoginDate)
     out.lastLoginDate = String(L.lastLoginDate || "") > String(R.lastLoginDate || "") ? L.lastLoginDate : R.lastLoginDate;
   out.history = mergeHistory(L.history, R.history);
+  /* ★★ 2026-11-10 ゲーム賞金の受け取り履歴（xeva.js の prizes）も取り合わせ（新しい順・300件） */
+  if (L.prizes || R.prizes) out.prizes = mergeHistory(L.prizes, R.prizes, 300);
   out.at = Math.max(Number(L.at) || 0, Number(R.at) || 0);
   const lF = wFramed(L), rOk = wCons(R);
   const fields = wFieldsOf(L, R);
@@ -1317,7 +1319,9 @@ function startPushCapture() {
   document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") flushPushBeacon(); });
   /* ★ こまめな同期: 画面が見えている間は定期的に送る。
      長時間開きっぱなしのタブで、送信に失敗したまま溜まった変更を確実に押し出す。 */
-  setInterval(() => { if (document.visibilityState === "visible") flushPush(); }, 15000);
+  /* ★★ 2026-11-11 オフラインのあいだは送らない（失敗するだけで、つながらない通信がたまる＝オフラインのときだけ重い一因）。
+     つながったときは、下の「オフライン → オンライン復帰時の反映」が<b>取りに行って混ぜてから</b>送る（ここで先に送らない）。 */
+  setInterval(() => { if (document.visibilityState === "visible" && navigator.onLine !== false) flushPush(); }, 15000);
   /* ★★ 2026-10-16 開いたままの画面でも、ほかの端末の変化を1分ごとに確かめる（storeT だけ読む＝軽い）。
      前は「画面に戻ってきたとき」しか取りこまなかったので、PC で開きっぱなしのホームには
      スマホで開放したパートナーなどがいつまでも出てこなかった。 */
@@ -1325,6 +1329,7 @@ function startPushCapture() {
      離脱の瞬間の送信がしてよいかの判定（rtSeen）も新しく保てる。 */
   setInterval(async () => {
     if (document.visibilityState !== "visible" || _pullBusy || pushInFlight || !FB || !FB.pullStoreT) return;
+    if (navigator.onLine === false) return;      /* ★★ 2026-11-11 オフラインのあいだは確かめない */
     const uid = currentUid(); if (!uid) return;
     let rt = null; try { rt = await FB.pullStoreT(uid); } catch (e) {}
     noteRemoteT(rt);

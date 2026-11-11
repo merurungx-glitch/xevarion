@@ -143,7 +143,7 @@ let detCurId = null;
 
 /* ★★ 2026-09-23 MagiBattle の性能（magibattle-stats.js v2）。古い版しか無ければ読みなおす。
    ★★ 2026-10-30 MagiBattle 3.0（作り直し）→ v3 が要る。使えるのは超極祭系の UR 12体だけ（MBT3_IDS・MBStats が読めていなくても面の札を出せるように） */
-const MBT3_IDS = ["haru", "chika", "chifuru", "mint", "purika", "hisako", "alice", "kohaku", "suzu", "shouko", "yuna", "chie", "aina", "ichika", "nonoka"];   /* ★★ 2026-11-03 15体 */
+const MBT3_IDS = ["mako", "ako", "mina", "ena", "mimi", "haru", "chika", "chifuru", "mint", "purika", "hisako", "alice", "kohaku", "suzu", "shouko", "yuna", "chie", "aina", "ichika", "nonoka"];   /* ★★ 2026-11-10 20体（ROYAL DEBUT の3体・超極華祭のエナ・ミミ） */
 function isMbt3(id) { return MBT3_IDS.indexOf(id) >= 0; }
 window.isMbt3 = isMbt3;
 function mbtEnsure() {
@@ -151,7 +151,7 @@ function mbtEnsure() {
   if (window.__mbtLoading) return window.__mbtLoading;
   window.__mbtLoading = new Promise((res) => {
     const s = document.createElement("script");
-    s.src = MBD_BASE + "magibattle-stats.js?v=20";
+    s.src = MBD_BASE + "magibattle-stats.js?v=21";
     s.onload = () => res(); s.onerror = () => res();
     document.head.appendChild(s);
   });
@@ -163,7 +163,7 @@ function maEnsure() {
   if (window.MA && window.MA.D && window.MA.Stats) return Promise.resolve();
   if (window.__maLoading) return window.__maLoading;
   const load = (src) => new Promise((res) => { const s = document.createElement("script"); s.src = src; s.onload = () => res(); s.onerror = () => res(); document.head.appendChild(s); });
-  window.__maLoading = load(MBD_BASE + "MagiAbyss/js/ma-data.js?v=12").then(() => load(MBD_BASE + "MagiAbyss/js/ma-stats.js?v=2"));
+  window.__maLoading = load(MBD_BASE + "MagiAbyss/js/ma-data.js?v=14").then(() => load(MBD_BASE + "MagiAbyss/js/ma-stats.js?v=2"));
   return window.__maLoading;
 }
 window.maEnsure = maEnsure;
@@ -171,7 +171,7 @@ function magiAbyssHTML(id) {
   const usable = typeof isAbyssChar === "function" && isAbyssChar(id);
   if (!usable) {
     return `<div class="dsec mbb"><div class="t">評価（MagiAbyss）</div>
-      <div class="mbnone">このキャラは <b>MagiAbyss では使えません</b>。<br>MagiAbyss で使えるのは、XEVARION のガチャ <b>超極煌祭・超極華祭・Pumpkin Night・Sapphire Breeze・極彩祭・極煌祭・極華祭</b> と <b>MagiChemLex の WP交換所</b> のキャラ（${typeof ABYSS_CHAR_IDS !== "undefined" ? ABYSS_CHAR_IDS.length : ""}人）です。</div></div>`;
+      <div class="mbnone">このキャラは <b>MagiAbyss では使えません</b>。<br>MagiAbyss で使えるのは、XEVARION のガチャ <b>超極彩祭・ROYAL DEBUT・超極煌祭・超極華祭・Pumpkin Night・PREMIUM SELECT（もと Sapphire Breeze）・Festival Archive（もと極彩祭・極煌祭・極華祭）</b> と <b>MagiChemLex の WP交換所</b> のキャラ（${typeof ABYSS_CHAR_IDS !== "undefined" ? ABYSS_CHAR_IDS.length : ""}人）です。</div></div>`;
   }
   if (!(window.MA && MA.D && MA.Stats) || !MA.D.CHARS[id]) {
     return `<div class="dsec mbb"><div class="t">評価（MagiAbyss）</div>

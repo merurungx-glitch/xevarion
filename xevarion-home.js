@@ -203,10 +203,10 @@ const XH_APPS = [
     href:"NGX/NGX_website.html", img:"thumbs/NGX.jpg?v=2",
     desc:"XEVARION を開発・運営する NGX の公式サイト。最新情報・沿革・会社概要はこちら。" },
   { id:"ishida", name:"ISHIDA", full:"ISHIDA Production", sub:"製作パートナー", cat:"shop", tone:"gold",
-    href:"IshidaProduction/index.html", img:"thumbs/ISHIDA.webp",   /* ★★ 2026-10-09b 元のロゴ（1024px・394KB）→ 正方形の小さいアイコン（3KB） */
+    href:"IshidaProduction/index.html", img:"thumbs/ISHIDA.webp?v=2",   /* ★★ 2026-10-09b 元のロゴ（1024px・394KB）→ 正方形の小さいアイコン（3KB） */
     desc:"XEVARION の製作パートナー ISHIDA Production の公式サイト。" },
   { id:"magicalfuture", name:"M.Future", full:"Magical Future", sub:"技術提携パートナー", cat:"shop", tone:"pink",
-    href:"MagicalFuture/index.html", img:"thumbs/MagicalFuture.jpg",
+    href:"MagicalFuture/index.html", img:"thumbs/MagicalFuture.jpg?v=2",
     desc:"NGX と提携して ORDYXIS・MeruHub シリーズを共同開発する Magical Future の公式サイト。提携アプリは起動ロゴに Magical Future が入ります。" }
 ];
 
@@ -291,8 +291,9 @@ const XH_EVENTS = [
     always:true, perm:true, monthly:[21, 31], since:"2026-10-22", from:"2026-10-22", to:"2027-12-31",
     href:"gacha.html#fes20", img:"thumbs/MagiBurst.jpg" },
   /* ★★ 2026-10-16 超極華祭（UR 5体・MagiAbyss 専用）。極華祭と同じ毎月 11〜20日・ガチャ一覧のいちばん上 */
-  { tag:"UR", t1:"超極華祭（UR 5体）",
-    t2:"毎月11〜20日。ヨシノ・イチカ・ノノカ・アイナ・ユナの UR 5体（各1.5%）——MagiAbyss 専用のキャラクター（ユナはタキナより少し強い）。🎫ガチャ券OK",
+  /* ★★ 2026-11-12 エナ・ミミを足して UR 7体 */
+  { tag:"UR", t1:"超極華祭（UR 7体）",
+    t2:"毎月11〜20日。ヨシノ・イチカ・ノノカ・アイナ・ユナ・<b>エナ・ミミ</b>の UR 7体（各1.5%）——MagiAbyss と MagiBattle で使えるキャラクター（エナ・ミミはハル・チカと同じ強さ）。🎫ガチャ券OK",
     always:true, perm:true, monthly:[11, 20], since:"2026-10-16", from:"2026-10-16", to:"2027-12-31",
     href:"gacha.html#fes19", img:"thumbs/MagiBurst.jpg" },
   /* ★★ 2026-10-09 Pumpkin Night（UR 10体・<b>11月30日まで</b>）。ガチャ一覧では Sapphire Breeze の上に固定 */
@@ -304,8 +305,13 @@ const XH_EVENTS = [
      ★★ 2026-10-09 確率1.5倍で各1.5%・全属性有利→3属性有利 */
   { tag:"UR", t1:"Sapphire Breeze（新レアリティ UR）",
     t2:"無期限開催。ヒバナ・フキ・タキナの UR 3体（各1.5%）——初回10連無料・🎫フェス券OK。フキは史上最大のフルバースト、3体とも3属性有利・オムニアンチ・治癒の祈り・最強のリンク",
-    always:true, perm:true, since:"2026-10-07", from:"2026-10-07", to:"",
+    always:true, perm:true, since:"2026-10-07", from:"2026-10-07", to:"2026-11-09",   /* ★★ 2026-11-12 11/9 で終了（キャラは PREMIUM SELECT GACHA へ） */
     href:"gacha.html#fes17", img:"thumbs/MagiBurst.jpg" },
+  /* ★★ 2026-11-12 ROYAL DEBUT GACHA Ver.1.0（GRAND DEBUT と同じ 20日・UR 3体 各2%） */
+  { tag:"ROYAL DEBUT", t1:"ROYAL DEBUT GACHA Ver.1.0",
+    t2:"20日間。マコ（火）・アコ（水）・ミナ（光）の UR 3体（各2%）——MagiAbyss と MagiBattle で使えるキャラクター・1日1回の単発無料・初回10連無料。終わったら PREMIUM SELECT GACHA へ",
+    since:"2026-11-12", from:"2026-11-12", to:"2026-12-02",
+    href:"gacha.html#royal:1.0", img:"thumbs/MagiBurst.jpg" },
   /* ★★ 2026-09-17d 花宴祭（アカツキ）＝<b>無期限開催</b>。戦姫祭と同じく always/perm を付け、to は空。 */
   /* ★★ 2026-09-19d アヤネ・チハを追加（3体に） */
   /* ★★ 2026-10-28 ご指定で<b>開催終了</b>（10/27 まで）→ always/perm を外して to。キャラは Festival Archive GACHA へ */
@@ -561,7 +567,7 @@ const XH_UPDATES = [
     t2:"XEVARION のすべての機能を動きとアニメーションで紹介。設定から見られます", href:"index.html#guide", img:"thumbs/Xevarion.png" },
   { tag:"FIX", t1:"NGX・ISHIDA のサイト／MagiDerby の予想オッズ", at:"2026-10-31",
     t2:"NGX・ISHIDA Production のサイトをオフラインでも開けるように（ISHIDA は開発アプリ一覧・制作過程を最新に・ロゴのつぶれを修正）。MagiDerby：枠順の発表後に予想オッズが別の馬に付いていたのを修正",
-    href:"IshidaProduction/index.html", img:"thumbs/ISHIDA.webp" },
+    href:"IshidaProduction/index.html", img:"thumbs/ISHIDA.webp?v=2" },
   /* ★★ 2026-10-30 超極彩祭・毎月のビンゴ・★星煌印の共通化・タイトル画面・ホームの並び・公式サイト・ChemLex */
   { tag:"NEW", t1:"新しいガチャ「超極彩祭」（UR ハル・チカ）", at:"2026-10-30",
     t2:"毎月1〜10日（初回は11月1日から）。ハル（水）・チカ（闇）の UR 2体（各1.5%）——MagiAbyss 専用（ヒサコより少し強い）・完凸でホームのロビーに。🎫ガチャ券OK。開催中はガチャ一覧のいちばん上",
@@ -1468,7 +1474,7 @@ function xhStartStars() {
   const cv = xhEl("xhStars"); if (!cv) return;
   const ctx = cv.getContext("2d"); if (!ctx) return;
   let W = 0, H = 0, dots = [];
-  const dpr = Math.min(devicePixelRatio || 1, 2);
+  const dpr = (window.XevaPerf ? XevaPerf.dpr(2) : Math.min(devicePixelRatio || 1, 2));   /* ★★ 2026-11-10 動作モード（軽量＝1・標準＝これまで・高解像度＝端末の値） */
   function resize() {
     W = cv.clientWidth; H = cv.clientHeight;
     cv.width = Math.max(1, W * dpr); cv.height = Math.max(1, H * dpr);
@@ -2164,7 +2170,7 @@ function xhPaintShopHub() {
         "（いま " + xhSealBal().toLocaleString() + "個）</small></span><span class=\"sn\">›</span></button>" +
       '<button class="xh-shopitem cr" onclick="xhCloseSheet(\'xhShopHubSheet\');xhOpenCryst()">' +
         '<span class="si">💠</span><span class="st"><b>結晶交換所</b>' +
-        "<small>結晶 <b>" + xhCrystCost() + "個</b>で PREMIUM SELECT / GRAND DEBUT の<b>好きな1体</b>と交換" +
+        "<small>結晶 <b>" + xhCrystCost() + "個</b>で PREMIUM SELECT / GRAND DEBUT の<b>好きな1体</b>と交換（UR は " + xhCrystCostUR() + "個）" +
         "（いま " + xhCrystBal().toLocaleString() + "個）</small></span><span class=\"sn\">›</span></button>" +
     "</div>";
 }
@@ -2293,13 +2299,17 @@ function xhArchiveOnlyIds() {
     const seen = {};
     PREMIUM_CHARS.forEach((id) => { seen[id] = 1; });
     if (typeof DEBUT_CHARS !== "undefined") DEBUT_CHARS.forEach((id) => { seen[id] = 1; });
+    if (typeof ROYAL_CHARS !== "undefined") ROYAL_CHARS.forEach((id) => { seen[id] = 1; });   /* ★★ 2026-11-10 */
     return archiveChars().filter((id) => !seen[id] && CHARS[id]);
   } catch (e) { return []; }
 }
 /* そのキャラ1体ぶんの値段 */
 function xhCrystCostOf(id) {
+  /* ★★ 2026-11-10 UR は 250 個（mb-core の crystCostOf＝ご指定「恒常の UR と ROYAL DEBUT の UR は 250 個」） */
+  try { if (typeof crystCostOf === "function") return crystCostOf(id, xhArchiveOnlyIds().indexOf(id) >= 0); } catch (e) {}
   return xhArchiveOnlyIds().indexOf(id) >= 0 ? xhCrystCostArchive() : xhCrystCost();
 }
+function xhCrystCostUR() { try { if (typeof CRYST_EXCHANGE_UR !== "undefined") return CRYST_EXCHANGE_UR; } catch (e) {} return 250; }
 function xhCrystIcon(px) {
   const s = px || 18;
   return '<img src="img/cryst.webp" alt="結晶" style="width:' + s + 'px;height:' + s
@@ -2319,7 +2329,7 @@ function xhMbReady() {
   if (_xhMbLoading) return _xhMbLoading;
   window.MB_ELEM_JA_NOWATCH = true;   /* ★★ 2026-10-28 属性名を漢字にする見張り（mb-core.js の elJaWatch）はホームではしない */
   _xhMbLoading = xhLoadScript("mb-boot.js?v=18")
-    .then(() => xhLoadScript("MagiBurst/js/mb-core.js?v=146"))
+    .then(() => xhLoadScript("MagiBurst/js/mb-core.js?v=147"))
     .then(() => true)
     .catch((e) => { _xhMbLoading = null; throw e; });
   return _xhMbLoading;
@@ -2334,6 +2344,8 @@ function xhCrystPool() {
     const push = (id) => { if (!seen[id] && CHARS[id]) { seen[id] = 1; out.push(id); } };
     PREMIUM_CHARS.forEach(push);
     if (typeof DEBUT_CHARS !== "undefined") DEBUT_CHARS.forEach(push);
+    /* ★★ 2026-11-10 ROYAL DEBUT GACHA で掲載中の UR（ご指定「ROYAL DEBUT の UR は結晶交換可能で 250 個」・終わったらプレミアムとして並ぶ） */
+    if (typeof ROYAL_CHARS !== "undefined") ROYAL_CHARS.forEach(push);
     /* ★★ 2026-09-13b <b>Festival Archive GACHA のキャラ</b>も並べる（150個・ご指定）。
        ★ すでに PREMIUM / GRAND DEBUT に居る子は足さない（重複＝二重表示になる）。 */
     xhArchiveOnlyIds().forEach(push);
@@ -2360,15 +2372,19 @@ function xhPaintCryst() {
     const awk = own ? Math.max(0, Math.min(MAX_AWK, DB.chars[id].awk || 0)) : 0;
     const mx = awk >= MAX_AWK;
     const debut = (typeof DEBUT_CHARS !== "undefined") && DEBUT_CHARS.indexOf(id) >= 0;
+    const royal = (typeof ROYAL_CHARS !== "undefined") && ROYAL_CHARS.indexOf(id) >= 0;   /* ★★ 2026-11-10 */
+    const isUR = typeof rarLabel === "function" && rarLabel(id) === "UR";
     /* ★★ 2026-09-13b 値段は<b>1枚ごと</b>に見る（アーカイブだけ 150個）。 */
     const isArc = arc.indexOf(id) >= 0;
-    const cc = isArc ? acost : cost;
+    const cc = xhCrystCostOf(id);   /* ★★ 2026-11-10 UR は 250 個 */
     const ok2 = bal >= cc;
     return '<button class="xh-crc' + (own ? "" : " noown") + (ok2 ? "" : " poor") + '"' +
       (ok2 ? ' onclick="xhCrystExchange(\'' + id + '\')"' : " disabled") + '>' +
       '<img src="' + c.th + '" alt="" loading="lazy">' +
       (isArc ? '<span class="xh-crnew arc">ARCHIVE</span>'
-             : debut ? '<span class="xh-crnew">DEBUT</span>' : "") +
+             : royal ? '<span class="xh-crnew ur">ROYAL</span>'
+             : debut ? '<span class="xh-crnew">DEBUT</span>'
+             : isUR ? '<span class="xh-crnew ur">UR</span>' : "") +
       '<span class="xh-crno">' + (typeof charNoOf === "function" ? charNoOf(id) : "") + '</span>' +
       '<span class="xh-crnm">' + c.nm + '</span>' +
       '<span class="xh-crcost">💠' + cc + '</span>' +
@@ -2378,7 +2394,7 @@ function xhPaintCryst() {
   box.innerHTML =
     '<div class="xh-crhead">' +
       '<div class="xh-crbal">' + xhCrystIcon(26) + '<b>' + bal.toLocaleString() + '</b>' +
-        '<small>／ 1体 ' + cost + '個（アーカイブは ' + acost + '個）</small></div>' +
+        '<small>／ 1体 ' + cost + '個（アーカイブは ' + acost + '個・UR は ' + xhCrystCostUR() + '個）</small></div>' +
       '<div class="xh-crsub">' + (can
         ? 'あと <b>' + Math.floor(bal / cost) + ' 体</b>ぶん交換できます。カードを押すと確認画面が出ます。'
         : 'あと <b>' + (cost - bal % cost) + ' 個</b>で1体と交換できます。') + '</div>' +
@@ -2391,7 +2407,9 @@ function xhPaintCryst() {
       '<b>好きな1体</b>と交換できます。すでに持っているキャラを選ぶと<b>限界突破が進みます</b>。<br>' +
       '★ <b>' + acost + '個</b>で、<b>' + (typeof ARCHIVE_NM !== "undefined" ? ARCHIVE_NM : "Festival Archive GACHA") +
       '</b>のキャラ（配信の終わったフェスの限定SSR）とも交換できます' +
-      '（カードの <b>ARCHIVE</b> の印が目じるしです）。' +
+      '（カードの <b>ARCHIVE</b> の印が目じるしです）。<br>' +
+      '★ <b>UR</b>（PREMIUM SELECT GACHA に入ったヒバナ・フキ・タキナ、<b>ROYAL DEBUT GACHA</b> の子など）は <b>' + xhCrystCostUR() + '個</b>です' +
+      '（カードの <b>UR</b>／<b>ROYAL</b> の印）。' +
     '</div>' +
     '<div class="xh-crgrid">' + cards + '</div>' +
     '<div class="xh-exmsg" id="xhCrystMsg"></div>';
@@ -4477,6 +4495,7 @@ window.xhSaveShowcase = xhSaveShowcase;
 /* ── オフライン設定 ── */
 function xhOpenOfflineInfo() {
   xhCloseSheet("xhSetSheet");
+  try { xhPaintCleanNote(); } catch (e) {}
   xhPaintNetSettings();
   xhPaintOfflineList();
   xhOpenSheet("xhOffSheet");
@@ -5084,6 +5103,7 @@ let _xhUpdProg = {};           // { scope: {done,total,got,hit,bytes} } … 「�
 let _xhInstProg = {};          // { scope: {done,total} } … 新しい版の SW の事前キャッシュ（install）の進み具合
 let _xhRefDone = new Set();    // 確かめ終わり（xev-refreshed）を返した scope
 let _xhPlan = null;            // { fixed, files:{scope:件数}, inst:{scope:1} } … 件数はここで決めたまま変えない
+let _xhRefStat = {};           // { scope: {removed,freed,cache} } … ★★ 2026-11-11 各 SW が置き場から消したもの（xhCleanStale）
 let _xhUpdRunning = false;
 
 function xhFmtSize(b) {
@@ -5545,7 +5565,21 @@ window.xhDebutFree10Left = xhDebutFree10Left;
 /* ★★ 2026-10-06c フェスの初回10連無料（Sapphire Breeze＝fes17）。mb-core の fesFree10Left と<b>同じ判定</b>（magiburst_v1.fesFree10） */
 /* ★★ 2026-10-24 mb-core の free10 の付いたガチャ（Sapphire Breeze＝fes17・無期限／Pumpkin Night＝fes18・11/30まで）と<b>同じ顔ぶれ</b>に。
    期間が終わったガチャの無料は数えない（mb-core の fesFree10Left も fesLocked なら 0）。 */
-const XH_FES_FREE10 = [{ k: "fes17" }, { k: "fes18", since: "2026-10-09", until: "2026-11-30" }];
+const XH_FES_FREE10 = [{ k: "fes17", until: "2026-11-09" }, { k: "fes18", since: "2026-10-09", until: "2026-11-30" }];   /* ★★ 2026-11-10 Sapphire Breeze は 11/9 で終了 */
+/* ★★ 2026-11-10 ROYAL DEBUT GACHA の版（mb-core.js の ROYAL_VERSIONS と同じ中身・20日）。無料の台帳は "R1.0" の形 */
+const XH_ROYAL_VERS = [{ ver: "1.0", date: "2026-11-12" }];
+function xhRoyalLiveVers() {
+  const t = new Date().toLocaleDateString("sv-SE");
+  return XH_ROYAL_VERS.filter((v) => { const d = new Date(v.date + "T00:00:00"); d.setDate(d.getDate() + 20); return t >= v.date && t < d.toLocaleDateString("sv-SE"); });
+}
+function xhRoyalAnyFree() {
+  try {
+    const live = xhRoyalLiveVers(); if (!live.length) return false;
+    const d = JSON.parse(localStorage.getItem("magiburst_v1") || "{}"), today = new Date().toLocaleDateString("sv-SE");
+    const f1 = (d.debutFree && typeof d.debutFree === "object") ? d.debutFree : {}, f10 = (d.debutFree10 && typeof d.debutFree10 === "object") ? d.debutFree10 : {};
+    return live.some((v) => f1["R" + v.ver] !== today || !f10["R" + v.ver]);
+  } catch (e) { return false; }
+}
 function xhFesFree10Left() {
   try {
     const d = JSON.parse(localStorage.getItem("magiburst_v1") || "{}");
@@ -5556,7 +5590,7 @@ function xhFesFree10Left() {
 }
 window.xhFesFree10Left = xhFesFree10Left;
 /* 下バーの印は「単発・10連の<b>どちらか</b>が無料なら出す」 */
-function xhDebutAnyFree() { return xhDebutFreeLeft() || xhDebutFree10Left() || xhFesFree10Left(); }
+function xhDebutAnyFree() { return xhDebutFreeLeft() || xhDebutFree10Left() || xhFesFree10Left() || xhRoyalAnyFree(); }
 window.xhDebutAnyFree = xhDebutAnyFree;
 /* ★★ 2026-10-26 ご指定「下バーのガチャの無料の表示は消して」→ 下バーには出さない（前の版で付いた印は外す）。
    無料で引けることは、ガチャの画面の中（各ガチャの札）でこれまでどおり分かる */
@@ -6132,7 +6166,7 @@ window.xhRedownloadOffline = xhRedownloadOffline;
    ★ 落とす中身は手で押したときと1バイトも変わらない（同じこの関数を通る）。
    ══════════════════════════════════════════════════════════════ */
 async function xhDownloadCore(paint) {
-  _xhUpdProg = {}; _xhInstProg = {}; _xhRefDone = new Set();
+  _xhUpdProg = {}; _xhInstProg = {}; _xhRefDone = new Set(); _xhRefStat = {};
   _xhPlan = { fixed: false, files: {}, inst: {} };
   const tick = () => (paint ? paint() : xhUpdTally());
   const wait = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -6148,6 +6182,7 @@ async function xhDownloadCore(paint) {
       tick();
     } else if (m.type === "xev-refreshed") {
       _xhRefDone.add(m.scope);
+      _xhRefStat[m.scope] = { removed: m.removed | 0, freed: m.freed | 0, cache: String(m.cache || "") };   /* ★★ 2026-11-11 */
       lastMove = Date.now();
       tick();
     }
@@ -6206,8 +6241,136 @@ async function xhDownloadCore(paint) {
   } finally {
     navigator.serviceWorker.removeEventListener("message", onMsg);
   }
-  return { msg: endMsg, tally: xhUpdTally() };
+  /* ★★ 2026-11-11 要らなくなったファイルの削除（xhCleanStale） */
+  let clean = null;
+  try { clean = await xhCleanStale(); } catch (e) {}
+  return { msg: endMsg, tally: xhUpdTally(), clean };
 }
+
+/* ══ ★★ 2026-11-11 要らなくなったファイルの削除（ご指定「ダウンロード時に要らなくなったファイルを削除する機能」）══
+   ダウンロード（更新・自動ダウンロード・オフライン用の再ダウンロード）の<b>最後に</b>、端末に残っているもう使わないものを消す。
+   ① 各アプリの SW が自分の置き場から消したもの（古い版・? 付きの写し・サーバーに無いファイル）… xev-refreshed の removed・freed を足す
+   ② 終わったアプリ（MagiQuest・Magi Arcana Rush など）の SW と置き場 … <b>sw.js がもうサーバーに無い（404・410）</b>ものだけ外して消す
+   ③ 動いているアプリの<b>古い版の置き場</b>の取り残し（ふつうは切りかえで消えるが、途中で止まると残る）
+   ★ セーブデータ（localStorage）・キャラの絵の置き場（xev-img-v1 の新しい版）・曲・ポケモンの絵・通信設定などは消さない。
+   ★ XEVARION のフォルダの外（同じドメインのほかのサイト）の SW・置き場には触らない。
+   ★ この版のひとつ前のホームは①〜③を知らないので、この版ではじめて開いたときに②③を1回だけ行う（xhCleanOnBoot）。 */
+const XH_CLEAN_KEY = "xeva_clean_last_v1", XH_CLEAN_ONCE = "xeva_clean_once_v1";
+const XH_RETIRED_CACHE = /^(magiquest|magiarcanarush|magidiamond)-/i;   /* 終わったアプリの置き場の名前（念のため・SW が外れていても消す） */
+async function xhCacheBytes(name) {
+  let bytes = 0, files = 0;
+  try {
+    const c = await caches.open(name);
+    for (const req of await c.keys()) {
+      files++;
+      try {
+        const res = await c.match(req);
+        let b = res ? Number(res.headers.get("content-length")) || 0 : 0;
+        if (!b && res) b = (await res.clone().blob()).size || 0;
+        bytes += b;
+      } catch (e) {}
+    }
+  } catch (e) {}
+  return { files, bytes };
+}
+async function xhCleanStale(opt) {
+  const boot = !!(opt && opt.boot);
+  const out = { n: 0, bytes: 0, apps: [], at: Date.now() };
+  /* ① SW が消したぶん */
+  if (!boot) Object.keys(_xhRefStat).forEach((sc) => { out.n += _xhRefStat[sc].removed | 0; out.bytes += _xhRefStat[sc].freed | 0; });
+  if (!("caches" in window)) return xhCleanSave(out);
+  const base = new URL("./", location.href).href;
+  const known = new Set([base]);
+  Object.keys(XH_OFFLINE_OK).forEach((id) => {
+    const sw = XH_OFFLINE_OK[id].sw;
+    try { known.add(new URL(sw.slice(0, sw.lastIndexOf("/") + 1), location.href).href); } catch (e) {}
+  });
+  const live = new Set(boot ? [] : Object.keys(_xhRefStat).map((sc) => _xhRefStat[sc].cache).filter(Boolean));
+  /* ② 終わったアプリの SW（XEVARION のフォルダの中・台帳に無い・sw.js がサーバーに無い） */
+  const goneDirs = [];
+  if ("serviceWorker" in navigator) {
+    let regs = [];
+    try { regs = await navigator.serviceWorker.getRegistrations(); } catch (e) {}
+    for (const r of regs) {
+      const sc = r.scope || "";
+      if (sc.indexOf(base) !== 0 || known.has(sc)) continue;
+      const w = r.active || r.waiting || r.installing;
+      const script = w && w.scriptURL;
+      if (!script) continue;
+      let st = 0;
+      try { st = (await fetch(script, { cache: "no-store" })).status; } catch (e) { st = 0; }
+      if (st !== 404 && st !== 410) continue;            /* サーバーにまだある・通信できない → 触らない */
+      try {
+        if (await r.unregister()) {
+          const dir = decodeURIComponent(sc.slice(base.length).replace(/\/$/, ""));
+          goneDirs.push(dir); out.apps.push(dir);
+        }
+      } catch (e) {}
+    }
+  }
+  const norm = (s) => String(s || "").toLowerCase().replace(/[^a-z0-9]/g, "");
+  const drop = new Set();
+  let names = [];
+  try { names = await caches.keys(); } catch (e) {}
+  names.forEach((k) => {
+    if (live.has(k)) return;
+    if (XH_RETIRED_CACHE.test(k)) { drop.add(k); return; }
+    const nk = norm(k);
+    if (/v\d+$/.test(k) && goneDirs.some((d) => { const nd = norm(d); return nd.length >= 5 && nk.indexOf(nd) === 0; })) { drop.add(k); return; }
+    /* ③ 動いているアプリの古い版の置き場（名前が同じで番号だけちがう） */
+    live.forEach((c) => {
+      const pre = c.replace(/v\d+$/, "");
+      if (pre && pre !== c && k.indexOf(pre) === 0 && /^v\d+$/.test(k.slice(pre.length))) drop.add(k);
+    });
+  });
+  for (const k of drop) {
+    const s = await xhCacheBytes(k);
+    try { if (await caches.delete(k)) { out.n += s.files; out.bytes += s.bytes; } } catch (e) {}
+  }
+  return xhCleanSave(out);
+}
+function xhCleanSave(out) {
+  try { if (out.n > 0) localStorage.setItem(XH_CLEAN_KEY, JSON.stringify(Object.assign({ shown: 0 }, out))); } catch (e) {}
+  return out;
+}
+function xhCleanLast() { try { return JSON.parse(localStorage.getItem(XH_CLEAN_KEY) || "null"); } catch (e) { return null; } }
+function xhCleanText(r) {
+  if (!r || !(r.n > 0)) return "";
+  return "🧹 要らなくなったファイル <b>" + Number(r.n).toLocaleString() + "</b> 件（" + xhFmtSize(r.bytes) + "）を削除しました" +
+    (r.apps && r.apps.length ? "（終わったアプリ：" + r.apps.map((a) => xhEscape(a)).join("・") + "）" : "");
+}
+/* 設定の「オフライン・通信設定」に、前回の整理を出す */
+function xhPaintCleanNote() {
+  const e = xhEl("xhCleanLast"); if (!e) return;
+  const r = xhCleanLast();
+  e.innerHTML = r && r.n > 0
+    ? "<br>前回：" + new Date(r.at || Date.now()).toLocaleDateString("ja-JP", { month: "numeric", day: "numeric" }) + " に " +
+      Number(r.n).toLocaleString() + " 件（" + xhFmtSize(r.bytes) + "）を削除"
+    : "";
+}
+/* 読み込み直したあとに1回だけ知らせる／この版ではじめて開いたときに1回だけ②③を行う */
+function xhCleanOnBoot() {
+  setTimeout(async () => {
+    try {
+      const last = xhCleanLast();
+      if (last && !last.shown && last.n > 0 && Date.now() - (last.at || 0) < 15 * 60e3) {
+        last.shown = 1;
+        try { localStorage.setItem(XH_CLEAN_KEY, JSON.stringify(last)); } catch (e) {}
+        xhToast(xhCleanText(last), 4200);
+        return;
+      }
+      if (xhOnline() && localStorage.getItem(XH_CLEAN_ONCE) !== "1" && !_xhUpdRunning) {
+        const r = await xhCleanStale({ boot: true });
+        try { localStorage.setItem(XH_CLEAN_ONCE, "1"); } catch (e) {}
+        if (r && r.n > 0) {
+          try { const o = xhCleanLast(); if (o) { o.shown = 1; localStorage.setItem(XH_CLEAN_KEY, JSON.stringify(o)); } } catch (e) {}
+          xhToast(xhCleanText(r), 4200);
+        }
+      }
+    } catch (e) {}
+  }, 7000);
+}
+if (document.readyState === "complete") xhCleanOnBoot(); else addEventListener("load", xhCleanOnBoot);
 
 /* ══ ★★ 2026-08-22 自動ダウンロード ══
    ------------------------------------------------------------
@@ -6324,14 +6487,17 @@ async function xhUpdStart(keepVer) {
   const pt = xhEl("xhUpdPct");
   if (pt) pt.textContent = r.msg || (keepVer ? "オフライン用のデータがそろいました" : "更新を適用しています…");
   /* ★★ 2026-09-13 全画面も仕上げにする。このあと reload するので閉じるボタンは出さない。 */
-  xhUrFinish(r.msg || (keepVer ? "オフライン用のデータがそろいました。画面を読み込み直します…"
-                              : "更新を適用しています… 画面を読み込み直して完了です"), false);
+  /* ★★ 2026-11-11 要らなくなったファイルを消したら、その件数と大きさも出す（読み込み直したあとにもう一度トーストで出す） */
+  const ct = xhCleanText(r.clean);
+  xhUrFinish((r.msg || (keepVer ? "オフライン用のデータがそろいました。画面を読み込み直します…"
+                               : "更新を適用しています… 画面を読み込み直して完了です")) + (ct ? "<br>" + ct : ""), false);
+  if (ct) { const dl2 = xhEl("xhUpdDl"); if (dl2) { dl2.style.display = ""; dl2.innerHTML += "<br>" + ct; } }
   xhDlStep(4, keepVer ? "④ 完了しました" : "④ 最新版に切り替えます");
   /* ★ 再ダウンロードでは版を書き換えない（見送り中の更新の案内を消さないため） */
   if (!keepVer) { try { localStorage.setItem(XH_PKG_KEY, (_xhUpd && _xhUpd.version) || ""); } catch (e) {} }
   /* ★★ 2026-10-01 オフライン用のキャラの絵は、読み込み直したあとの新しい SW に頼む（★ 10-13 PARK は入れない） */
   try { localStorage.setItem(XH_WARM_REQ, "imgs"); } catch (e) {}
-  setTimeout(() => { try { location.reload(); } catch (e) {} }, keepVer ? 1400 : 700);
+  setTimeout(() => { try { location.reload(); } catch (e) {} }, (keepVer ? 1400 : 700) + (ct ? 1300 : 0));
 }
 window.xhUpdStart = xhUpdStart;
 
@@ -7465,3 +7631,91 @@ addEventListener("focus", () => { if (_xhShown) { xhRenderProfile(); xhRenderXev
 document.addEventListener("visibilitychange", () => {
   if (document.visibilityState === "visible" && _xhShown) { xhRenderProfile(); xhRenderXeva(); xhSyncBadges(); }
 });
+
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-11-10 ゲーム賞金の受け取り履歴（ご指定「設定でゲームの賞金受け取りの履歴を見られるように」）
+   ・中身は xeva.js の XEVA.prizes()（財布の prizes＝この機能から記録・同期／それより前は財布の履歴の「賞金」を混ぜる）。
+   ・理由の文からゲーム名と順位を読む：「1位 賞金（MagiQuiz）」「MagiQuiz ひとりプレイ」「MagiRanking 2026-10 1位 賞金」「ゲーム賞金 XEVA」（前のまとめ受け取り）。
+   ══════════════════════════════════════════════════════════════ */
+function xhPrizeInfo(reason) {
+  const r = String(reason || "");
+  let m = r.match(/^(\d+)位 賞金（(.+)）$/);
+  if (m) return { rank: +m[1], game: m[2], kind: "順位の賞金" };
+  m = r.match(/^MagiRanking\s+(\d{4}-\d{2})\s+(\d+)位\s*賞金/);
+  if (m) return { rank: +m[2], game: "MagiRanking（" + m[1].replace("-", "年") + "月）", kind: "月間ランキングの賞金" };
+  m = r.match(/^(.+?)\s*ひとりプレイ$/);
+  if (m) return { rank: 0, game: m[1], kind: "ひとりプレイの賞金" };
+  if (/^ゲーム賞金 XEVA$/.test(r)) return { rank: 0, game: "ゲーム賞金", kind: "まとめて受け取り（くわしい内訳は記録前）" };
+  return { rank: 0, game: r.replace(/\s*賞金\s*/, " ").trim() || "賞金", kind: "賞金" };
+}
+function xhOpenPrizeHist() { xhPaintPrizeHist(); xhOpenSheet("xhPrizeSheet"); }
+window.xhOpenPrizeHist = xhOpenPrizeHist;
+function xhPaintPrizeHist() {
+  const box = xhEl("xhPrizeBody"); if (!box) return;
+  let L = [];
+  try { L = (window.XEVA && XEVA.prizes) ? XEVA.prizes() : []; } catch (e) { L = []; }
+  const now = new Date(), ym = now.getFullYear() + "-" + (now.getMonth() + 1);
+  const sumAll = L.reduce((a, p) => a + (p.amount || 0), 0);
+  const sumMon = L.filter((p) => { const d = new Date(p.t || 0); return d.getFullYear() + "-" + (d.getMonth() + 1) === ym; }).reduce((a, p) => a + (p.amount || 0), 0);
+  const esc = (s) => String(s == null ? "" : s).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  let html = '<div class="xh-pz-sum"><div><b>' + sumMon.toLocaleString() + '</b><small>今月の賞金（XEVA）</small></div><div><b>' + sumAll.toLocaleString() +
+    '</b><small>記録の合計（XEVA）</small></div><div><b>' + L.length + '</b><small>受け取った回数</small></div></div>';
+  if (!L.length) html += '<div class="xh-pz-empty">まだ賞金の記録はありません。<br>MagiQuiz・MagiShift・MagiChainParty などで順位に入ると、ここに残ります。</div>';
+  let day = "";
+  L.slice(0, 300).forEach((p) => {
+    const d = new Date(p.t || 0), ds = d.getFullYear() + "/" + (d.getMonth() + 1) + "/" + d.getDate();
+    if (ds !== day) { day = ds; html += '<div class="xh-pz-day">' + ds + "</div>"; }
+    const f = xhPrizeInfo(p.reason), tm = String(d.getHours()).padStart(2, "0") + ":" + String(d.getMinutes()).padStart(2, "0");
+    html += '<div class="xh-pz-r"><span class="xh-pz-rk' + (f.rank && f.rank <= 3 ? " r" + f.rank : "") + '">' + (f.rank ? f.rank + "位" : "🏆") + "</span>" +
+      '<span class="xh-pz-m"><b>' + esc(f.game) + "</b><small>" + tm + "・" + esc(f.kind) + "・" + (p.via === "cloud" ? "アカウントに届いた賞金" : "この端末で受け取り") + "</small></span>" +
+      '<span class="xh-pz-a">+' + (p.amount || 0).toLocaleString() + "</span></div>";
+  });
+  html += '<p class="xh-pz-note">・アカウント連携で届く賞金は、ホームを開いたときにまとめて受け取ります（ここには1件ずつ残ります）。<br>' +
+    "・この機能より前の記録は、財布の履歴に残っていたぶん（最近の100件の中の賞金）だけ表示しています。</p>";
+  box.innerHTML = html;
+}
+
+/* ══════════════════════════════════════════════════════════════
+   ★★ 2026-11-10 動作モード（ご指定「オフライン時などに動作が少し重たい → 軽量・標準・高解像度」）
+   ・中身は xeva.js の XevaPerf（保存 xeva_perf_v1・端末ごと）。えらぶと、開いているこの画面にもすぐ効く（ホームの立ち絵は描き直し）。
+   ══════════════════════════════════════════════════════════════ */
+function xhPerfNm() { try { return window.XevaPerf ? XevaPerf.NM[XevaPerf.get()] : "標準"; } catch (e) { return "標準"; } }
+function xhPaintPerfRow() { const v = xhEl("xhSetPerfV"); if (v) v.textContent = xhPerfNm() + " ›"; }
+function xhOpenPerf() { xhPaintPerf(); xhOpenSheet("xhPerfSheet"); }
+window.xhOpenPerf = xhOpenPerf;
+function xhPaintPerf() {
+  const box = xhEl("xhPerfBody"); if (!box) return;
+  const cur = window.XevaPerf ? XevaPerf.get() : "std";
+  /* ★★ 2026-11-12 ご指摘「同じ大きさにしたら、中身がなく大きいだけ」→ 3つとも<b>同じ形の中身</b>にした：
+     ひとこと＋4つのメーター（画質・なめらかさ・電池もち・オフライン）。長い説明は下の「〇〇でかわること」にまとめる（えらんでいるモードだけ）。 */
+  const M = {
+    lite: { ic: "🍃", nm: "軽量モード", tag: "軽さと電池もちを優先", lv: [1, 1, 3, 3],
+      d: ["すりガラスのぼかし・キャラの絵の小さな動きを止めます", "ホームの動く立ち絵は <b>30コマ</b>・ゲームの画面は<b>画素の細かさ1倍</b>で描きます",
+          "<b>オフラインのとき</b>は、つながらない通信を試さず、端末の中のデータだけを手早く探します", "MagiAbyss の 2.5D は「軽め」になります（自分で選んでいるときはそのまま）",
+          "古い端末・電池が少ないとき・<b>オフラインで重いとき</b>におすすめ"] },
+    std: { ic: "⚖️", nm: "標準モード", tag: "これまでどおりのバランス", lv: [2, 3, 2, 2],
+      d: ["これまでどおりの見た目と動きです", "画素の細かさは端末に合わせて<b>最大2倍</b>・ホームの立ち絵は 60コマ", "迷ったらこのモードがおすすめです"] },
+    hd: { ic: "💎", nm: "高解像度モード", tag: "くっきり・きれいを優先", lv: [3, 3, 1, 2],
+      d: ["ホームの立ち絵やゲームの画面を<b>端末の画素の細かさいっぱい</b>（最大3倍）で描きます", "くっきりきれいになりますが、そのぶん重く、<b>電池も多く使います</b>",
+          "新しめの端末・充電しながら遊ぶときにおすすめ"] },
+  };
+  const LAB = ["画質", "なめらかさ", "電池もち", "オフライン"];
+  const meter = (n) => '<span class="xh-pf-m">' + [1, 2, 3].map((i) => '<i class="' + (i <= n ? "on" : "") + '"></i>').join("") + "</span>";
+  const card = (k) => {
+    const m = M[k];
+    return '<button class="xh-pf-c' + (cur === k ? " on" : "") + '" onclick="xhSetPerf(\'' + k + '\')"><span class="xh-pf-ic">' + m.ic + '</span><span class="xh-pf-tx"><b>' + m.nm +
+      "</b><small>" + m.tag + '</small><span class="xh-pf-sts">' + m.lv.map((n, i) => '<span class="xh-pf-st"><em>' + LAB[i] + "</em>" + meter(n) + "</span>").join("") +
+      "</span></span>" + (cur === k ? '<em class="xh-pf-on">使用中</em>' : "") + "</button>";
+  };
+  const C = M[cur] || M.std;
+  box.innerHTML = '<div class="xh-pf-list">' + card("lite") + card("std") + card("hd") + "</div>" +
+    '<div class="xh-pf-det"><div class="xh-pf-dh">' + C.ic + " " + C.nm + "でかわること</div><ul>" + C.d.map((x) => "<li>" + x + "</li>").join("") + "</ul></div>" +
+    '<p class="xh-pf-note">この端末だけの設定です（ほかの端末には同期しません）。XEVARION のすべてのアプリに効きます。開いているアプリは、開き直すと切りかわります。</p>';
+}
+function xhSetPerf(k) {
+  try { if (window.XevaPerf) XevaPerf.set(k); } catch (e) {}
+  xhPaintPerf(); xhPaintPerfRow();
+  try { if (window.XOS && XOS.haptic) XOS.haptic(); } catch (e) {}
+}
+window.xhSetPerf = xhSetPerf;
+try { window.addEventListener("xeva:perf", xhPaintPerfRow); document.addEventListener("DOMContentLoaded", xhPaintPerfRow); setTimeout(xhPaintPerfRow, 600); } catch (e) {}

@@ -47,4 +47,6 @@ window.XEVA_CHAR_TRAITS = {
   rina:"bSgh",kaori:"vLoh",chie:"kPsf",ichika:"kLsa",nonoka:"kSsf",aina:"vLmn",yuna:"kTkn",kohaku:"kLse",
   suzu:"kLsa",shouko:"bSoa",hisako:"bPge",alice:"kLse",miki:"kLse",haru:"uSsa",chika:"uLsn",chifuru:"bMge",
   mint:"kLge",purika:"kPke",
+  /* ★★ 2026-11-10 エナ・ミミ（超極華祭）・マコ・アコ・ミナ（ROYAL DEBUT） */
+  ena:"bSca",mimi:"vSga",mako:"pLof",ako:"wLsn",mina:"kLke",
 };

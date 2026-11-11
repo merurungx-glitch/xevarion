@@ -221,7 +221,7 @@ body.xos-nomotion .xt *{animation-duration:.01s !important;animation-iteration-c
         ["MagiLex.jpg", "MagiBattle.jpg?v=4", "MagiBurst.jpg", "MagiAbyss.jpg?v=2", "MagiChemLex.jpg?v=2", "MagiDerby.jpg", "MagiShift.jpg", "MagiChainParty.jpg?v=2"]
           .map((f, i) => icon(f, 8 + (i % 4) * 22, 62 + Math.floor(i / 4) * 13, "ii ii" + i, "up")).join("") +
         '<div class="m" data-a="up" id="i-4" style="' + at(6, 90, 88) + ';display:flex;gap:2%;justify-content:center">' +
-        ["NGX_s.webp?v=2", "MagicalFuture_s.webp", "ISHIDA_s.webp", "YRA_s.webp", "Kawagani_s.webp", "StudioDOGA_s.webp"].map((b) => '<img src="' + A("brand/" + b) + '" alt="" style="width:15.3%;border-radius:calc(var(--u)*1.6);background:#fff">').join("") + "</div>",
+        ["NGX_s.webp?v=2", "MagicalFuture_s.webp?v=2", "ISHIDA_s.webp?v=2", "YRA_s.webp", "Kawagani_s.webp", "StudioDOGA_s.webp"].map((b) => '<img src="' + A("brand/" + b) + '" alt="" style="width:15.3%;border-radius:calc(var(--u)*1.6);background:#fff">').join("") + "</div>",
       tl: [[0, "show", "#i-bg"], [200, "show", "#i-orb"], [500, "show", "#i-logo"], [900, "show", "#i-word"], [900, "pt", 0],
         [1500, "show", ".ii0"], [1600, "show", ".ii1"], [1700, "show", ".ii2"], [1800, "show", ".ii3"], [1900, "show", ".ii4"], [2000, "show", ".ii5"], [2100, "show", ".ii6"], [2200, "show", ".ii7"],
         [2600, "pt", 1], [3200, "show", "#i-4"], [4200, "pt", 2], [4400, "add", "#i-logo", "m-float"]],

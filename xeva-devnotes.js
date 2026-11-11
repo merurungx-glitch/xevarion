@@ -30,6 +30,43 @@
   }
 
   const NOTES = [
+    /* ★★ 2026-11-12 超極華祭にエナ・ミミ・ROYAL DEBUT GACHA・Sapphire Breeze 終了・動作モード・賞金履歴・不要ファイルの削除・MagiAbyss 全員ちがう性能・MagiBattle ロイヤル隊 */
+    {
+      id: "2026-11-12", date: "2026.11.12", title: "超極華祭にエナ・ミミ／ROYAL DEBUT GACHA／動作モード／MagiAbyss は全員ちがう性能に",
+      lead: "いつも XEVARION を遊んでいただき、ありがとうございます。<br><b>超極華祭</b>に新しい2人、新しいガチャ <b>ROYAL DEBUT GACHA</b> に3人が加わりました。あわせて、<b>動作モード</b>・<b>ゲーム賞金の受け取り履歴</b>・<b>要らないファイルの自動削除</b>を追加し、MagiAbyss を<b>全員ちがう性能</b>に作り直しました。",
+      chars: [
+        { id: "ena", el: "wood", rar: "UR", img: "img/Ena_w.webp" },
+        { id: "mimi", el: "dark", rar: "UR", img: "img/Mimi_w.webp" },
+        { id: "mako", el: "fire", rar: "UR", img: "img/Mako_w.webp" },
+        { id: "ako", el: "water", rar: "UR", img: "img/Ako_w.webp" },
+        { id: "mina", el: "light", rar: "UR", img: "img/Mina_w.webp" },
+      ],
+      secs: [
+        { h: "ガチャ", img: "MagiBurst/img/bn_royal_s.webp", href: "gacha.html", items: [
+          "<b>超極華祭</b>（毎月11〜20日）に UR の<b>エナ</b>（木）・<b>ミミ</b>（闇）",
+          "<b>ROYAL DEBUT GACHA</b>（20日間）：UR の<b>マコ</b>（火）・<b>アコ</b>（水）・<b>ミナ</b>（光）が各 2%。1日1回の単発無料・初回10連無料。終わったら PREMIUM SELECT GACHA へ",
+          "新しい5体は <b>MagiAbyss と MagiBattle</b> で使えます。完凸でホームのロビーにも",
+          "<b>Sapphire Breeze は終了</b>。タキナ・ヒバナ・フキは <b>PREMIUM SELECT GACHA</b> でいつでも引けます（UR のピックアップは 5%）。UR は結晶の交換所で <b>250個</b>",
+        ] },
+        { h: "設定・ダウンロード", img: "", href: "", items: [
+          "<b>動作モード</b>（軽量・標準・高解像度）：軽量モードは古い端末・電池が少ないとき・<b>オフラインで重いとき</b>に。オフラインのときに重くなる原因も直しました",
+          "<b>ゲーム賞金の受け取り履歴</b>（設定の「アカウント」）",
+          "ダウンロードのたびに<b>要らなくなったファイル</b>（古い版・終わったアプリのデータ）を自動で削除します（セーブデータ・キャラの絵・曲は消しません）",
+          "起動時の企業ロゴを、タイトル画面に合うシンプルな表示に。ISHIDA Production・Magical Future のロゴが新しくなりました",
+        ] },
+        { h: "MagiAbyss", img: "thumbs/MagiAbyss.jpg", href: "MagiAbyss/index.html", items: [
+          "同じ性能だったキャラ（コハク・アリス・ヒサコ・ハル・チカ・チフル・ミント・プリカ・スズ・ショウコ・ミキ）を<b>全員ちがう組み合わせ</b>に作り直しました（通常攻撃・固有技・必殺技・パッシブ・特性・スキル・秘技）",
+          "<b>技（E）</b>も全員それぞれ<b>その子だけの技</b>に（名前と追加効果がちがいます）",
+          "強さの帯はこれまでどおり（エナ・ミミはハル・チカと同じ、ROYAL の3人はヒサコより少し下）",
+        ] },
+        { h: "MagiBattle・MagiQuiz・MagiChemLex", img: "", href: "", items: [
+          "MagiBattle：新しい<b>ロイヤル隊</b>（マコ＝火力 SMG・アコ＝支援 RL・ミナ＝防御 AR）と、ブルーム隊にエナ（防御 MG）・ミミ（火力 SG）",
+          "MagiQuiz：早押しでまちがえた選択肢が消えるように・答える時間を少し長く・アイコンを UR のキャラから選べるように・司会のカットインはなくしました",
+          "MagiChemLex：設定「選択肢はタップしてから表示」",
+          "完凸ロビーのアイナ・ユナが新しい立ち絵に（チフル・ユナの胸の位置も直しました）。ジェフ千葉のデザインでは、ホームのボタンもジェフ仕様に",
+        ] },
+      ],
+    },
     /* ★★ 2026-11-08 MagiMarket（新作）・ジェフ千葉のホームデザイン・ジェフ勝利の配布・MagiQuiz（早押し・2台で対戦・司会キャラ・賞金）
        ★ 11-05 の3回目（早押しバトル）は配信の前に止まっていたので、このノートにまとめた（id 2026-11-05c は消した） */
     {

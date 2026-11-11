@@ -69,7 +69,15 @@ def main():
     j1 = s.index('];', j0)
     vers = [dict(ver=m.group(1), date=m.group(2), movedAt=(re.search(r'movedAt:\s*"([^"]+)"', m.group(0)) or [None, ''])[1])
             for m in re.finditer(r'\{\s*ver:\s*"([^"]+)",\s*date:\s*"([^"]+)"[^}]*\}', s[j0:j1])]
+    # ★★ 2026-11-10 ROYAL DEBUT GACHA の版（GRAND DEBUT と同じ20日・ロビーのバナーは超極系のすぐ下）
+    rvers = []
+    if 'const ROYAL_VERSIONS = [' in s:
+        k0 = s.index('const ROYAL_VERSIONS = [')
+        k1 = s.index('];', k0)
+        rvers = [dict(ver=m.group(1), date=m.group(2), movedAt=(re.search(r'movedAt:\s*"([^"]+)"', m.group(0)) or [None, ''])[1])
+                 for m in re.finditer(r'\{\s*ver:\s*"([^"]+)",\s*date:\s*"([^"]+)"[^}]*\}', s[k0:k1])]
     out = dict(fests=defs, debut=dict(vers=vers, days=nums.get('DEBUT_DAYS', 20), banner='MagiBurst/img/bn_debut_s.webp'),
+               royal=dict(vers=rvers, days=nums.get('DEBUT_DAYS', 20), banner='MagiBurst/img/bn_royal_s.webp'),
                premium=dict(banner='MagiBurst/img/bn_premium_s.webp'), fesDays=nums.get('FES_DAYS', 20))
     js = ('/* ★ 自動生成（make-gacha-live.py）。手で直さない。元は MagiBurst/js/mb-core.js の FESTS / DEBUT_VERSIONS */\n'
           'window.XH_GACHA_DEFS = ' + json.dumps(out, ensure_ascii=False, separators=(',', ':')) + ';\n')

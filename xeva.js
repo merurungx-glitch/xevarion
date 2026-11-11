@@ -14,6 +14,67 @@
     });
   } catch (e) {}
   var GEM_KEY = "xeva_gem_v1";
+  /* ══ ★★ 2026-11-10 動作モード（ご指定「オフライン時などに動作が少し重たいことがある → 設定で 軽量・標準・高解像度 モード」）══
+     ・保存は xeva_perf_v1（"lite"｜"std"｜"hd"）。<b>端末ごと</b>（同期しない）＝端末の性能に合わせて選ぶものなので。
+     ・軽量（lite）：すりガラス（backdrop-filter）を切る／キャンバスの画素密度を 1／ホームの動く立ち絵を 30fps・密度 1／
+       MagiAbyss の 2.5D は「軽め」（自分で選んでいないとき）／裏で走る自動更新のダウンロードを止める（更新は設定から手で）。
+     ・標準（std）：これまでどおり。
+     ・高解像度（hd）：キャンバスとホームの立ち絵を端末の画素密度いっぱい（3 まで）で描く。
+     ★ アプリのキャンバスは XevaPerf.dpr(これまでの上限) で密度を決める（軽量＝1・標準＝これまで・高解像度＝端末の値）。 */
+  var PERF_KEY = "xeva_perf_v1";
+  function perfGet() { try { var v = localStorage.getItem(PERF_KEY); return v === "lite" || v === "hd" ? v : "std"; } catch (e) { return "std"; } }
+  function perfApply() {
+    try {
+      var m = perfGet(), h = document.documentElement;
+      h.classList.toggle("xv-lite", m === "lite"); h.classList.toggle("xv-hd", m === "hd");
+      if (!document.getElementById("xvPerfCss")) {
+        var st = document.createElement("style"); st.id = "xvPerfCss";
+        st.textContent = "html.xv-lite *,html.xv-lite *::before,html.xv-lite *::after{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}";
+        (document.head || h).appendChild(st);
+      }
+    } catch (e) {}
+  }
+  var XevaPerf = {
+    KEY: PERF_KEY,
+    get: perfGet,
+    set: function (m) {
+      m = m === "lite" || m === "hd" ? m : "std";
+      try { if (m === "std") localStorage.removeItem(PERF_KEY); else localStorage.setItem(PERF_KEY, m); } catch (e) {}
+      perfApply();
+      try { window.dispatchEvent(new CustomEvent("xeva:perf", { detail: { mode: m } })); } catch (e) {}
+      return m;
+    },
+    lite: function () { return perfGet() === "lite"; },
+    hd: function () { return perfGet() === "hd"; },
+    dpr: function (cap) {
+      var d = window.devicePixelRatio || 1, m = perfGet();
+      if (m === "lite") return 1;
+      if (m === "hd") return Math.min(3, d);
+      return Math.min(cap || 2, d);
+    },
+    NM: { lite: "軽量", std: "標準", hd: "高解像度" },
+  };
+  window.XevaPerf = XevaPerf;
+  perfApply();
+  try { window.addEventListener("storage", function (e) { if (e.key === PERF_KEY) perfApply(); }); } catch (e) {}
+
+  /* ══ ★★ 2026-11-10 ゲーム賞金の受け取り履歴（ご指定「設定でゲームの賞金受け取りの履歴を見られるように」）══
+     ・財布（xeva_wallet_v1）の prizes に「いつ・いくら・何の賞金か」を新しい順にためる（300件まで・同期は財布といっしょ＝xeva-cloud の mergeWallet が和で混ぜる）。
+     ・直接入る賞金（MagiQuiz の本人チェックの「◯位 賞金（MagiQuiz）」「MagiQuiz ひとりプレイ」など）は理由の文で見分ける。
+     ・ホームを開いたときにまとめて受け取る「ゲーム賞金 XEVA」は、受け取り待ちの1件ずつ（opts.prizes＝ゲーム名・順位つき）を記録する。 */
+  var PRIZE_RX = /賞金|ひとりプレイ/;
+  function prizeRecord(s, amount, reason, opts) {
+    var items = opts && Array.isArray(opts.prizes) ? opts.prizes : null, add = [], now = Date.now();
+    if (items && items.length) {
+      items.forEach(function (it, k) { var a = Math.round((it && it.amount) || 0); if (a) add.push({ amount: a, reason: String((it && it.reason) || "ゲーム賞金"), t: now + k, via: "cloud" }); });
+    } else if (PRIZE_RX.test(reason || "")) {
+      add.push({ amount: amount, reason: String(reason || ""), t: now, via: /^ゲーム賞金 XEVA$/.test(reason || "") ? "cloud" : "me" });
+    }
+    if (!add.length) return;
+    s.prizes = Array.isArray(s.prizes) ? s.prizes : [];
+    for (var i = add.length - 1; i >= 0; i--) s.prizes.unshift(add[i]);
+    if (s.prizes.length > 300) s.prizes.length = 300;
+  }
   var LOGIN_BONUS = 50; // kept for compatibility
   var DAILY_REWARDS = [50, 50, 50, 50, 50, 100, 150]; // day 1-7
 
@@ -137,6 +198,7 @@
     state.history = state.history || [];
     state.history.unshift({ amount: amount, reason: reason || "", t: Date.now() });
     if (state.history.length > 100) state.history.length = 100;
+    if (amount > 0) { try { prizeRecord(state, amount, reason, opts); } catch (e) {} }   /* ★★ 2026-11-10 ゲーム賞金の受け取り履歴 */
     save(state);
     /* 月間XEVA獲得ランキング（MagiRanking）用: 全コンテンツの獲得をローカルに積み、
        xeva-cloud.js がオンライン時にクラウド(monthly)へ送信する。
@@ -1278,6 +1340,13 @@
     { id: "mb:chifuru", mbId: "chifuru", name:"チフル", file: "../img/t_Chifuru.webp", since:"2026-11-03", rarLabel: "UR" },
     { id: "mb:mint", mbId: "mint", name:"ミント", file: "../img/t_Mint.webp", since:"2026-11-03", rarLabel: "UR" },
     { id: "mb:purika", mbId: "purika", name:"プリカ", file: "../img/t_Purika.webp", since:"2026-11-03", rarLabel: "UR" },
+    /* ★★ 2026-11-10 超極華祭の追加2体（エナ・ミミ）・ROYAL DEBUT GACHA の3体（マコ・アコ・ミナ）＝ UR・MagiAbyss と MagiBattle 専用。
+       アイコン・コレクション・MagiChemLex のナビ・完凸ロビーには使える */
+    { id: "mb:ena", mbId: "ena", name:"エナ", file: "../img/t_Ena.webp", since:"2026-11-12", rarLabel: "UR" },
+    { id: "mb:mimi", mbId: "mimi", name:"ミミ", file: "../img/t_Mimi.webp", since:"2026-11-12", rarLabel: "UR" },
+    { id: "mb:mako", mbId: "mako", name:"マコ", file: "../img/t_Mako.webp", since:"2026-11-12", rarLabel: "UR" },
+    { id: "mb:ako", mbId: "ako", name:"アコ", file: "../img/t_Ako.webp", since:"2026-11-12", rarLabel: "UR" },
+    { id: "mb:mina", mbId: "mina", name:"ミナ", file: "../img/t_Mina.webp", since:"2026-11-12", rarLabel: "UR" },
   ];
   /* ★ 2026-08-10 初期SR 4体（ゼラ・アヤメ・レイラ・セリーヌ）は廃止しました。
      いまは<b>全キャラがアイコンに選べる</b>ので、starter という区別そのものが要らない。 */
@@ -1399,7 +1468,9 @@
   /* ★★ 2026-10-30 超極彩祭（UR） */
   , "haru", "chika"
   /* ★★ 2026-11-03 超極彩祭の追加3体（UR） */
-  , "chifuru", "mint", "purika"];
+  , "chifuru", "mint", "purika"
+  /* ★★ 2026-11-10 超極華祭の追加2体・ROYAL DEBUT GACHA の3体（UR） */
+  , "ena", "mimi", "mako", "ako", "mina"];
   MB_CHAR_MASTER.forEach(function (c) { c.mb = true; c.starter = MB_STARTERS.indexOf(c.mbId) >= 0; });
   MB_CHAR_MASTER.forEach(function (c) { c.star5 = MB_STAR5.indexOf(c.mbId) >= 0; });
   /* id は "mb:zera" のように接頭辞つき。XEVAガチャにも同じ名前のキャラ（シオンなど）が
@@ -2319,6 +2390,20 @@
   /* ── 公開API ── */
   var XEVA = {
     KEY: KEY,
+    /* ★★ 2026-11-10 動作モード（XevaPerf）・ゲーム賞金の受け取り履歴（新しい順。古い記録＝財布の履歴の賞金も混ぜて返す） */
+    perf: XevaPerf,
+    prizes: function () {
+      var s = load(), out = (Array.isArray(s.prizes) ? s.prizes : []).slice();
+      var seen = {}; out.forEach(function (p) { seen[Math.floor((p.t || 0) / 3000) + "|" + p.amount] = 1; });
+      (s.history || []).forEach(function (h) {
+        if (!h || !(h.amount > 0) || !PRIZE_RX.test(h.reason || "")) return;
+        var k = Math.floor((h.t || 0) / 3000) + "|" + h.amount;
+        if (seen[k]) return; seen[k] = 1;
+        out.push({ amount: h.amount, reason: h.reason || "", t: h.t || 0, via: /^ゲーム賞金 XEVA$/.test(h.reason || "") ? "cloud" : "me", old: 1 });
+      });
+      out.sort(function (a, b) { return (b.t || 0) - (a.t || 0); });
+      return out;
+    },
     ACC_KEY: ACC_KEY,
     GEM_KEY: GEM_KEY,
     TKT_KEY: TKT_KEY,
@@ -2619,7 +2704,7 @@
     window.__xevaElEdge = 1;
     try { if (/\/(MagiBurst|MagiBattle|MagiAbyss|MagiBocciaRush|expo)\//.test(location.pathname || "")) return; } catch (e) { return; }
     if (!("IntersectionObserver" in window) || !window.MutationObserver) return;
-    var XEL_RAW = "fire:Ririka,Akane,Mika,Nana,RinonX,Ema,Arisa,Tsubaki,Natsuki,Shirayuki,Nazuna,Milfy,Lysera,Soleria,Altia,KaguyaAlpha,KokonaAlpha,Nanami,Kaede,Kotone,Karem,Tsukino,Youhi,Kanata,Satsuki,Otoha,Guren,Suzune,Mirelle,Karin,Homura,Seina,Mutsumi,Yuika,Yua,RanS,Kurenai,Chia,Hisui,AnnaRan,Asuka,Amane,RenaD,Reia,Natsume,Kagura,Miya,Akatsuki,Kokoha,Kureha,KumikoReina,RanAlpha,Ayano,Saki,Chie,Kohaku,Chifuru|water:Shiona,Serina,Airi,Kaho,Sakura,Shion,Kokona,Rinne,Selene,Fiona,Chloe,Sheril,Fia,Solea,CherylAlpha,Yukino,Chitose,Shizuku,Fuka,Moeka,Elena,Blair,Roxy,Sayaka,Yuuna,Minamo,Scarlet,Mirei,Yoizuki,Shiduki,Misuzu,Shiori,Kotori,Yuki,Risa,Riona,Shizuru,Yoiduki,Sougetsu,Kaoru,NaoS,HarukaS,AoiKuroha,Misaki,Ruri,Nagisa,Hiyori,Emika,Ayane,Mikoto,Azusa,KotoriAlpha,Takina,Yuka,Natsumi,Ichika,Hisako,Haru|wood:Hina,Haruka,Ede,Aira,Mizuki,Ayaka,Mashiro,Hotaru,Rezelia,Lilia,Mabel,Beltia,Astera,Roselia,Kokoro,Ceris,Tsumugi,Mayu,Izumi,Violet,Asuha,Akari,Chihaya,Tomoe,Amelia,Miyabi,Sara,Hinano,Kokoa,Ryouka,Marika,Minori,MireiR,Yuuri,Rika,Kayo,Natsune,Kasumi,Narumi,Haduki,Shiho,Chiha,Mei,AsuhaAlpha,Hibana,Miu,Mai,Nonoka,Suzu,Miki,Mint|light:Runa,Noa,Eruna,Rei,Rusia,Riko,Kaguya,Mion,Bernica,Iroha,Koharu,Yuri,Elsia,Setsuna,Nephia,Arche,Nemu,Liana,Reika,Rinon,Ran,Yuunagi,Suzuka,Anna,Youka,Grace,Touka,Artemia,Sayo,Hinata,Yui,Himari,Mio,Sumire,Kanade,Sakuya,Nodoka,Miko,YuukaS,AnnaM,Seika,SuzuhaR,Hanon,Shino,Kuon,TsukinoD,Astraea,AstraeaC,AnnaMaid,Saya,Hikari,Momoka,Miyuki,Kiduki,Hikaru,Himeri,Kana,AnnaAlpha,Chinatsu,Yuumi,Aina,Shouko,Purika|dark:Yuina,Kotoha,Mirea,Miyu,Nene,Kotomi,Rea,Cheryl,Viola,Mao,Alicia,Hecatia,Karina,Revia,Abyss,Shizuka,Yuria,MionAlpha,Yaju,Iori,Noelle,Ange,Dominia,Chizuru,Seira,Suzuha,Lilith,Lyra,Melty,Sayuri,Momo,Karen,Koyuki,Yuuka,Sumika,Sayuki,Kazane,Rena,Reina,AnnaS,Rin,SeiraK,Raika,ReiS,Maaya,Asahi,Subaru,Miori,Ayame,Kyoka,Erika,Uta,Miduki,Honoka,Maki,SayakaAlpha,Fuki,Rina,Kaori,Yuna,Alice,Chika";
+    var XEL_RAW = "fire:Ririka,Akane,Mika,Nana,RinonX,Ema,Arisa,Tsubaki,Natsuki,Shirayuki,Nazuna,Milfy,Lysera,Soleria,Altia,KaguyaAlpha,KokonaAlpha,Nanami,Kaede,Kotone,Karem,Tsukino,Youhi,Kanata,Satsuki,Otoha,Guren,Suzune,Mirelle,Karin,Homura,Seina,Mutsumi,Yuika,Yua,RanS,Kurenai,Chia,Hisui,AnnaRan,Asuka,Amane,RenaD,Reia,Natsume,Kagura,Miya,Akatsuki,Kokoha,Kureha,KumikoReina,RanAlpha,Ayano,Saki,Chie,Kohaku,Chifuru,Mako|water:Shiona,Serina,Airi,Kaho,Sakura,Shion,Kokona,Rinne,Selene,Fiona,Chloe,Sheril,Fia,Solea,CherylAlpha,Yukino,Chitose,Shizuku,Fuka,Moeka,Elena,Blair,Roxy,Sayaka,Yuuna,Minamo,Scarlet,Mirei,Yoizuki,Shiduki,Misuzu,Shiori,Kotori,Yuki,Risa,Riona,Shizuru,Yoiduki,Sougetsu,Kaoru,NaoS,HarukaS,AoiKuroha,Misaki,Ruri,Nagisa,Hiyori,Emika,Ayane,Mikoto,Azusa,KotoriAlpha,Takina,Yuka,Natsumi,Ichika,Hisako,Haru,Ako|wood:Hina,Haruka,Ede,Aira,Mizuki,Ayaka,Mashiro,Hotaru,Rezelia,Lilia,Mabel,Beltia,Astera,Roselia,Kokoro,Ceris,Tsumugi,Mayu,Izumi,Violet,Asuha,Akari,Chihaya,Tomoe,Amelia,Miyabi,Sara,Hinano,Kokoa,Ryouka,Marika,Minori,MireiR,Yuuri,Rika,Kayo,Natsune,Kasumi,Narumi,Haduki,Shiho,Chiha,Mei,AsuhaAlpha,Hibana,Miu,Mai,Nonoka,Suzu,Miki,Mint,Ena|light:Runa,Noa,Eruna,Rei,Rusia,Riko,Kaguya,Mion,Bernica,Iroha,Koharu,Yuri,Elsia,Setsuna,Nephia,Arche,Nemu,Liana,Reika,Rinon,Ran,Yuunagi,Suzuka,Anna,Youka,Grace,Touka,Artemia,Sayo,Hinata,Yui,Himari,Mio,Sumire,Kanade,Sakuya,Nodoka,Miko,YuukaS,AnnaM,Seika,SuzuhaR,Hanon,Shino,Kuon,TsukinoD,Astraea,AstraeaC,AnnaMaid,Saya,Hikari,Momoka,Miyuki,Kiduki,Hikaru,Himeri,Kana,AnnaAlpha,Chinatsu,Yuumi,Aina,Shouko,Purika,Mina|dark:Yuina,Kotoha,Mirea,Miyu,Nene,Kotomi,Rea,Cheryl,Viola,Mao,Alicia,Hecatia,Karina,Revia,Abyss,Shizuka,Yuria,MionAlpha,Yaju,Iori,Noelle,Ange,Dominia,Chizuru,Seira,Suzuha,Lilith,Lyra,Melty,Sayuri,Momo,Karen,Koyuki,Yuuka,Sumika,Sayuki,Kazane,Rena,Reina,AnnaS,Rin,SeiraK,Raika,ReiS,Maaya,Asahi,Subaru,Miori,Ayame,Kyoka,Erika,Uta,Miduki,Honoka,Maki,SayakaAlpha,Fuki,Rina,Kaori,Yuna,Alice,Chika,Mimi";
     var RE = /(?:^|\/)img\/(?:t_)?([A-Za-z0-9]+)\.webp(?:[?#].*)?$/;
     var MAP = null;
     function elMap() {
@@ -2840,7 +2925,7 @@
       window.__xevaAliveReq = 1;
       var aliveGo = function () {
         var s = document.createElement("script");
-        s.src = new URL("xeva-alive.js?v=8", aliveSrc).href;
+        s.src = new URL("xeva-alive.js?v=9", aliveSrc).href;
         s.async = true;
         (document.head || document.documentElement).appendChild(s);
       };

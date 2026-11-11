@@ -6,7 +6,8 @@
      → セリフ（吹き出し＝パートナーと同じ見た目・LINES）：選んだとき・ホームに来たとき（時間帯のあいさつ）・タップ・ときどきのひとりごと。
        話しはじめに小さくはずみ、話しているあいだは小さくうなずく（顔はそのまま）。
      → 胸のばね（DEFS の bust：左右の中心・半径 R・外す箱 cut）。体のはずみ（タップ・話しはじめ）と呼吸に少し遅れてゆれる。
-       ★ 胸のばねは<b>制服姿ではないキャラだけ</b>（ハル・チカ・ユナ・アイナ・ヨシノ・チフル）。制服姿の子（ヒサコ・アリス・コハク・ミント・プリカ）には付けない。
+       ★ 胸のばねは<b>制服姿ではないキャラだけ</b>（ハル・チカ・ユナ・ヨシノ・チフル・マコ・ミナ・エナ・ミミ）。制服姿の子（ヒサコ・アリス・コハク・ミント・プリカ・アコ）には付けない。
+         ★★ 2026-11-10 アイナは新しい立ち絵で両腕が胸の前にあるので付けない（付けると腕がゆれる）。
    ・選ぶのはパートナーの画面の「ロビー」タブ（パートナーとは別のタブ）。表示（標準・アップ・全身）はパートナーと同じ。
    ・開放＝そのキャラの完凸（MagiBurst の magiburst_v1.chars[id].awk か、ポータルの xeva_gacha_v1.dupes[id] が 4）。
    ・選んだロビーは xeva_mate_v1.lobby（同期する）。パートナーを選ぶと外れる（home-mate.js）。
@@ -21,6 +22,53 @@
   const VER = 1;
   const DIR = "home-mate/lobby/";
   const DEFS = {
+    /* ★★ 2026-11-10 ROYAL DEBUT GACHA のマコ・アコ・ミナ／超極華祭のエナ・ミミ（ご指定「完凸ロビーでは使用できます」）。
+       立ち絵は Documents/Claude/_fes_src/royal1・fes19b の *_ld.webp（背景が透明の全身）。骨組み・髪・布・胸は重ね絵で決めた（scratchpad の lobbycfg.py）。
+       ★ 胸のばね：制服っぽいアコには付けない（ほかの4人は付ける）。マコは横向きで片方しか見えないので1つの円。 */
+    mako: {
+      name: "マコ", ruby: "Mako", color: "#ff7a8a", el: "fire", img: "mako.webp", bg: "park.webp", fes: "ROYAL DEBUT GACHA（20日間・終わったら PREMIUM SELECT GACHA）",
+      intro: "展望テラスで、肩ごしにふり返るマコ。",
+      rig: { size: [941, 1672], headTop: [430, 15], face: [405, 205], neck: [460, 290], shoulderY: 300, waistY: 560, hemY: 790, kneeY: 1050, pivot: [420, 1650], centerX: 450 },
+      /* 髪＝桃色がかった長い髪（色相は 0 をまたぐ・肌とクリーム色のセーターは彩度で外す）／スカート＝黒いフリル（脚のタイツは外す） */
+      hair: { hue: [345, 25], sat: [0.28, 1], val: [0.35, 0.97], boxes: [[200, 0, 640, 300], [130, 250, 330, 640], [430, 150, 790, 660]], noFace: [405, 205, 70, 85] },
+      cloth: { sat: [0, 0.5], val: [0, 0.4], y0: 540, y1: 800, boxes: [[200, 540, 730, 800]], cut: [[220, 760, 560, 800]] }, hairBlur: 14,
+      bust: { l: [372, 462], r: [372, 462], R: 52, cut: [[392, 290, 520, 700]], amt: 0.85 },
+    },
+    ako: {
+      name: "アコ", ruby: "Ako", color: "#7a8cff", el: "water", img: "ako.webp", bg: "park.webp", fes: "ROYAL DEBUT GACHA（20日間・終わったら PREMIUM SELECT GACHA）",
+      intro: "展望テラスで、空を見上げるアコ。",
+      rig: { size: [941, 1672], headTop: [470, 12], face: [530, 180], neck: [520, 305], shoulderY: 337, waistY: 620, hemY: 840, kneeY: 1140, pivot: [470, 1640], centerX: 480 },
+      /* 髪＝銀（白いシャツと同じ色なので場所の箱だけ）／スカート＝紺のプリーツ */
+      hair: { sat: [0, 0.14], val: [0.55, 1], boxes: [[230, 0, 650, 300], [140, 150, 392, 660], [600, 180, 710, 330]], noFace: [530, 180, 70, 85] },
+      cloth: { hue: [205, 255], sat: [0.25, 1], val: [0.08, 0.65], y0: 590, y1: 870, boxes: [[250, 590, 690, 870]] }, hairBlur: 12,
+    },
+    mina: {
+      name: "ミナ", ruby: "Mina", color: "#4f8cff", el: "light", img: "mina.webp", bg: "park.webp", fes: "ROYAL DEBUT GACHA（20日間・終わったら PREMIUM SELECT GACHA）",
+      intro: "展望テラスで、長い黒髪をかきあげるミナ。",
+      rig: { size: [941, 1672], headTop: [500, 12], face: [480, 210], neck: [467, 305], shoulderY: 316, waistY: 600, hemY: 800, kneeY: 1150, pivot: [500, 1650], centerX: 480 },
+      /* 髪＝黒い長い髪／ゆれる布＝ピンクのショートパンツ（色相は 0 をまたぐ） */
+      hair: { sat: [0, 0.4], val: [0, 0.45], boxes: [[120, 0, 810, 830]], noFace: [480, 210, 70, 88] },
+      cloth: { hue: [330, 15], sat: [0.25, 1], val: [0.5, 1], y0: 620, y1: 820, boxes: [[330, 620, 720, 820]] }, hairBlur: 14,
+      bust: { l: [378, 453], r: [488, 447], R: 58, ry: 1.1, cut: [[230, 260, 300, 520]], amt: 1 },
+    },
+    ena: {
+      name: "エナ", ruby: "Ena", color: "#3fae6e", el: "wood", img: "ena.webp", bg: "park.webp", fes: "超極華祭（毎月11〜20日）",
+      intro: "展望テラスで、髪に手をそえてはにかむエナ。",
+      rig: { size: [941, 1672], headTop: [380, 12], face: [400, 235], neck: [420, 320], shoulderY: 340, waistY: 660, hemY: 800, kneeY: 1150, pivot: [470, 1650], centerX: 470 },
+      /* 髪＝ばら色がかった茶色のボブ（肌より暗い所だけ）／ゆれる布＝水着の腰の白いリボン */
+      hair: { hue: [300, 15], sat: [0.14, 1], val: [0.1, 0.68], boxes: [[210, 0, 630, 365]], noFace: [400, 235, 80, 95] },
+      cloth: { sat: [0, 0.12], val: [0.75, 1], y0: 640, y1: 800, boxes: [[355, 640, 425, 800], [625, 640, 710, 800]] }, hairBlur: 10,
+      bust: { l: [375, 525], r: [495, 520], R: 60, ry: 1.3, cut: [[230, 300, 318, 650]], amt: 1 },
+    },
+    mimi: {
+      name: "ミミ", ruby: "Mimi", color: "#8a5cff", el: "dark", img: "mimi.webp", bg: "park.webp", fes: "超極華祭（毎月11〜20日）",
+      intro: "展望テラスで、いたずらっぽく笑うミミ。",
+      rig: { size: [941, 1672], headTop: [560, 12], face: [560, 230], neck: [530, 326], shoulderY: 337, waistY: 640, hemY: 790, kneeY: 1140, pivot: [460, 1650], centerX: 480 },
+      /* 髪＝紫のボブ（白い花は彩度で外れる）／ゆれる布＝水着の腰の大きな白いリボン */
+      hair: { hue: [245, 300], sat: [0.15, 1], val: [0.25, 1], boxes: [[320, 0, 730, 350]], noFace: [560, 230, 75, 90] },
+      cloth: { sat: [0, 0.18], val: [0.75, 1], y0: 560, y1: 820, boxes: [[190, 560, 400, 820]] }, hairBlur: 10,
+      bust: { l: [541, 495], r: [625, 492], R: 46, cut: [[675, 340, 790, 600]], amt: 0.9 },
+    },
     /* ★★ 2026-11-03 超極彩祭の追加3体（チフル・ミント・プリカ）。立ち絵は Documents/Claude/_fes_src/fes21b/2・6・10.webp（背景が透明の全身）。
        髪と黒い上着は色が同じなので、髪は boxes で場所を決めた（重ね絵で確認：髪だけ・布だけがゆれる） */
     chifuru: {
@@ -30,7 +78,8 @@
       /* 髪＝こげ茶〜黒（場所の箱だけ・ハイネックの襟は外す）／ゆれる布＝肩から落とした黒いジャケット（左右） */
       hair: { sat: [0, 0.5], val: [0, 0.5], boxes: [[230, 0, 680, 285], [150, 280, 245, 720], [590, 300, 690, 600]], cut: [[330, 240, 560, 340]], noFace: [410, 200, 80, 100] },
       cloth: { sat: [0.08, 0.45], val: [0.05, 0.48], y0: 470, y1: 1010, boxes: [[235, 470, 425, 1010], [640, 470, 875, 960]] }, hairBlur: 14,
-      bust: { l: [385, 466], r: [532, 466], R: 70, cut: [[290, 370, 352, 560]], amt: 1 },
+      /* ★★ 2026-11-10 ご指定「胸の位置が違う」→ 前は円が約20px上（谷間のあき＝上の端）だった。胸のまん中 (390,486)/(538,486)・R74・腕の箱は胸の外側まで */
+      bust: { l: [390, 486], r: [538, 486], R: 74, cut: [[255, 360, 322, 580]], amt: 1 },
     },
     mint: {
       name: "ミント", ruby: "Mint", color: "#2fbf8a", el: "wood", img: "mint.webp", bg: "park.webp", fes: "超極彩祭（毎月1〜10日）",
@@ -95,23 +144,26 @@
       hair: { sat: [0, 0.3], val: [0, 0.8], boxes: [[300, 0, 650, 330], [150, 280, 300, 640], [150, 640, 235, 920], [640, 110, 860, 600], [760, 600, 860, 770]], noFace: [470, 205, 72, 88] },
       cloth: { sat: [0, 0.4], val: [0, 0.62], y0: 590, y1: 900, boxes: [[225, 590, 800, 900]], cut: [[370, 860, 570, 900]] },
     },
+    /* ★★ 2026-11-10 ユナ・アイナの立ち絵を差しかえ（ご指定・画像は v:2＝版に縛られない置き場に古い絵が残るので ?v=2）。骨組みも測り直した */
     yuna: {
-      name: "ユナ", ruby: "Yuna", color: "#8a5cd8", el: "dark", img: "yuna.webp", bg: "park.webp", fes: "超極華祭（毎月11〜20日）",
-      intro: "展望テラスで、ほおに手をそえるユナ。",
-      rig: { size: [940, 1672], headTop: [548, 18], face: [560, 222], neck: [545, 300], shoulderY: 340, waistY: 600, hemY: 1000, kneeY: 1180, pivot: [400, 1645], centerX: 490 },
-      /* 髪＝黒（紫のメッシュも）・長い髪の範囲だけ／ゆれる布＝黒いスカートと白いフリル（脚は外す） */
-      hair: { sat: [0, 0.45], val: [0, 0.55], boxes: [[370, 0, 720, 330], [115, 200, 420, 640], [110, 640, 215, 1010], [690, 300, 860, 1010]], noFace: [560, 222, 70, 88] },
-      cloth: { sat: [0, 0.5], y0: 610, y1: 1130, boxes: [[200, 610, 760, 1130]], cut: [[380, 840, 590, 1130]] },
-      bust: { l: [514, 434], r: [620, 430], R: 50, amt: 0.85 },
+      name: "ユナ", ruby: "Yuna", color: "#8a5cd8", el: "dark", img: "yuna.webp", v: 2, bg: "park.webp", fes: "超極華祭（毎月11〜20日）",
+      intro: "展望テラスで、指をあごにそえて見つめるユナ。",
+      rig: { size: [941, 1672], headTop: [500, 10], face: [480, 215], neck: [470, 300], shoulderY: 320, waistY: 510, hemY: 950, kneeY: 1180, pivot: [490, 1650], centerX: 480 },
+      /* 髪＝黒（紫のメッシュも）・長い髪の範囲だけ（黒いベストとスカートは箱の外）／ゆれる布＝黒いスカート（脚は外す） */
+      hair: { sat: [0, 0.45], val: [0, 0.55], boxes: [[270, 0, 610, 300], [30, 120, 300, 780], [580, 230, 760, 540], [600, 540, 760, 780]], noFace: [480, 215, 70, 88] },
+      cloth: { sat: [0, 0.5], val: [0, 0.42], y0: 540, y1: 1110, boxes: [[260, 540, 720, 1110]], cut: [[400, 820, 600, 1110]] }, hairBlur: 14,
+      /* 胸＝白いシャツの胸（あごにそえた右腕の前腕は外す）
+         ★★ 2026-11-12 ログイン後の確認で、印が約95px 左（左の印は袖・右の印は左胸）にずれていた → 新しい立ち絵で測り直し（左胸 476,420／右胸 574,420） */
+      bust: { l: [476, 420], r: [574, 420], R: 48, cut: [[430, 270, 600, 392]], amt: 0.85 },
     },
     aina: {
-      name: "アイナ", ruby: "Aina", color: "#a07cff", el: "light", img: "aina.webp", bg: "park.webp", fes: "超極華祭（毎月11〜20日）",
-      intro: "展望テラスで、ドレスのすそをつまむアイナ。",
-      rig: { size: [941, 1672], headTop: [500, 20], face: [495, 195], neck: [490, 282], shoulderY: 320, waistY: 560, hemY: 1150, kneeY: 1170, pivot: [455, 1650], centerX: 450 },
-      /* 髪＝ラベンダー（すけた袖は範囲で外す）／スカート＝黒いドレスのすそ（脚は外す） */
-      hair: { hue: [235, 300], sat: [0.1, 1], val: [0.3, 1], boxes: [[120, 0, 700, 330], [115, 250, 300, 760], [690, 300, 790, 760]], noFace: [495, 195, 68, 84] },
-      cloth: { sat: [0, 0.5], val: [0, 0.38], y0: 640, y1: 1240, boxes: [[115, 640, 790, 1240]], cut: [[395, 860, 600, 1250]] },
-      bust: { l: [512, 434], r: [590, 430], R: 46, amt: 0.8 },
+      name: "アイナ", ruby: "Aina", color: "#a07cff", el: "light", img: "aina.webp", v: 2, bg: "park.webp", fes: "超極華祭（毎月11〜20日）",
+      intro: "展望テラスで、両手を口もとにそえるアイナ。",
+      rig: { size: [941, 1672], headTop: [470, 15], face: [490, 235], neck: [460, 320], shoulderY: 335, waistY: 565, hemY: 1150, kneeY: 1150, pivot: [450, 1650], centerX: 450 },
+      /* 髪＝ラベンダー（黒いドレスは色相で外れる）／スカート＝黒いドレスのすそ（脚は外す）。
+         ★ 胸は両腕で隠れている（手を口もとで組む）ので、胸のばねは付けない（付けると腕がゆれる） */
+      hair: { hue: [235, 300], sat: [0.1, 1], val: [0.3, 1], boxes: [[180, 0, 720, 345], [80, 250, 420, 820], [560, 250, 740, 760]], noFace: [490, 235, 70, 88] },
+      cloth: { sat: [0, 0.5], val: [0, 0.38], y0: 600, y1: 1300, boxes: [[90, 600, 780, 1300]], cut: [[400, 860, 600, 1300]] }, hairBlur: 12,
     },
     chie: {
       name: "ヨシノ", ruby: "Yoshino", color: "#e03a4a", el: "fire", img: "chie.webp", bg: "park.webp", fes: "超極華祭（毎月11〜20日）",
@@ -130,6 +182,52 @@
      morning（5〜10時）／day（10〜17時）／evening（17〜22時）／night（それ以外）＝ホームに来たときのあいさつ。
      pick＝ロビーに選んだとき・tap＝押したとき・idle＝ときどきのひとりごと（30〜50秒ごと）。 */
   const LINES = {
+    /* ★★ 2026-11-10 マコ（おだやかな年上）・アコ（静かで夢見がち）・ミナ（クールで快活）・エナ（照れ屋で甘え上手）・ミミ（いたずら好き） */
+    mako: {
+      pick: "ふふ、わたしを選んでくれたの？ ……光栄だわ。",
+      morning: ["おはよう。朝の紅茶、いれておいたわよ。", "おはよう。今日は、桜がよく見えるわね。"],
+      day: ["お昼は、桜の下でお弁当にしましょうか。", "少し休憩しない？ 無理はだめよ。"],
+      evening: ["夕暮れの桜も、なかなかいいでしょう？", "おつかれさま。今日もよくがんばったわね。"],
+      night: ["夜桜、見に行きましょうか。……ふたりで。", "もう遅いわ。……でも、もう少しだけお話ししましょ。"],
+      tap: ["あら、どうしたの？", "ふふ、くすぐったいわ。", "見つめすぎよ？ ……照れちゃうじゃない。", "はいはい、ここにいるわよ。"],
+      idle: ["ふふ、見つけた。……さくらの下で、待ってたの。", "このセーター、お気に入りなの。", "風が気持ちいいわね。", "あなたといると、時間を忘れちゃう。"],
+    },
+    ako: {
+      pick: "……わたしで、いいの？ ……ありがとう。",
+      morning: ["……おはよう。雨の音で、目がさめたの。", "……朝。まだ、夢の中みたい。"],
+      day: ["……お昼。雨、やまないね。……きらいじゃないけど。", "……あじさい、見に行く？"],
+      evening: ["……夕方の雨は、ちょっとやさしい音がする。", "……おつかれさま。……となり、すわってもいい？"],
+      night: ["……夜の雨。……ねむれないの？", "……星が見えなくても、あなたが見えるから平気。"],
+      tap: ["……っ。……びっくりした。", "……なに？", "……ふふ。……なんでもない。", "……呼んだ？ ……うん、いるよ。"],
+      idle: ["……雨の音、すき。あなたの声も、同じくらい。", "……あじさいは、雨の日がいちばんきれい。", "……空、見てた。", "……あなたのとなりは、あったかい。"],
+    },
+    mina: {
+      pick: "わたしを選んだの？ ……ふーん、いいセンスしてる。",
+      morning: ["おはよう。朝のランニング、もう終わったよ。", "おはよ。今日も、いいことありそう。"],
+      day: ["お昼？ しっかり食べなきゃ、動けないよ。", "ねえ、あとで少し体動かさない？"],
+      evening: ["夕方の風、気持ちいいね。", "おつかれさま。……がんばったじゃん。"],
+      night: ["もう夜か。……もう少しだけ、話そ？", "夜ふかしは、明日にひびくよ？ ……わたしもだけど。"],
+      tap: ["ん？ どうしたの？", "……ちょっと、近いって。", "ふふ、見とれてた？", "はいはい、ここにいるよ。"],
+      idle: ["ねえ、今日はどこまで行けると思う？ ……わたしは、どこまでも。", "青い薔薇、好きなんだ。", "髪、伸ばしてよかったかな。", "あなたとなら、どこへでも行けそう。"],
+    },
+    ena: {
+      pick: "わ、わたしでいいの……？ えへへ、うれしいな。",
+      morning: ["おはよう……。えへへ、まだちょっと眠いね。", "朝のプール、気持ちいいよ。いっしょに入る？"],
+      day: ["お昼はかき氷にしよっか。いちご味がいいな。", "浮き輪、ふたりで乗れるかな……？"],
+      evening: ["夕焼けの海、きれいだね……。", "おつかれさま。今日もがんばったね、えらいえらい。"],
+      night: ["夜の海って、ちょっとどきどきするね。", "まだ起きてるの？ ……じゃあ、もう少しだけいっしょに。"],
+      tap: ["ひゃっ……！ びっくりした……。", "な、なあに……？", "えへへ、くすぐったいよ。", "……見すぎ、だよ？"],
+      idle: ["えへへ……浮き輪、いっしょに乗る？", "このネックレス、宝物なんだ。", "日焼け止め、ちゃんとぬった？", "波の音って、落ちつくね。"],
+    },
+    mimi: {
+      pick: "にしし、わたしを選ぶなんて、見る目あるじゃん！",
+      morning: ["おっはよー！ 寝ぼけ顔、見ちゃった。", "朝だよー！ ほらほら、起きて起きて！"],
+      day: ["お昼のアイス、半分こしよ？ ……大きいほうはわたしね。", "ねえねえ、海いこ、海！"],
+      evening: ["夕方の海もいいよね。……ちょっとだけ、さみしいけど。", "おつかれ！ 今日のいちばんの思い出、なに？"],
+      night: ["夜ふかし？ いーけないんだ。……わたしも付き合う！", "花火、まだ残ってるよ？ やろ！"],
+      tap: ["にしし、つかまえた！", "わっ！ ……って、おどかすのはわたしの番！", "なになに？ かまってほしいの？", "えへへ、くすぐったーい！"],
+      idle: ["にしし、つかまえた！ 今日はわたしと遊ぶ日だよ？", "この花、似合ってるでしょ？", "いたずら、ひとつ考えちゃった。", "泳ぎ、教えてあげよっか？"],
+    },
     chifuru: {
       pick: "えらんでくれたの？ ……ごほうびに、ひとくちあげる。",
       morning: ["おはよ〜。朝ごはん、パフェでもいい？", "ん〜、まだ眠い……。甘いもの食べたら起きる。"],
@@ -232,7 +330,7 @@
   };
   const pick = (a) => (Array.isArray(a) ? a[Math.floor(Math.random() * a.length)] : a) || "";
 
-  const src = (f) => DIR + f + "?v=" + VER;
+  const src = (f, v) => DIR + f + "?v=" + (v || VER);   /* ★★ 2026-11-10 絵を差しかえた子は DEFS の v（アイナ・ユナ＝2） */
   const RM = () => { try { return matchMedia("(prefers-reduced-motion: reduce)").matches || document.body.classList.contains("xos-nomotion"); } catch (e) { return false; } };
   function store() { try { return JSON.parse(localStorage.getItem("xeva_mate_v1") || "{}") || {}; } catch (e) { return {}; } }
 
@@ -275,7 +373,7 @@
 
   Lobby.prototype.load = async function () {
     const img = (u) => new Promise((ok, ng) => { const i = new Image(); i.decoding = "async"; i.onload = () => ok(i); i.onerror = ng; i.src = u; });
-    const base = await img(src(this.def.img));
+    const base = await img(src(this.def.img, this.def.v));
     const W = base.naturalWidth, H = base.naturalHeight;
     this.W = W; this.H = H;
     const bc = document.createElement("canvas"); bc.width = W; bc.height = H;
@@ -490,7 +588,7 @@
 
   Lobby.prototype.draw = function (dt) {
     const gl = this.gl, cv = this.canvas;
-    const dpr = Math.min(2.5, window.devicePixelRatio || 1);
+    const dpr = (window.XevaPerf ? XevaPerf.dpr(2.5) : Math.min(2.5, window.devicePixelRatio || 1));   /* ★★ 2026-11-10 動作モード（軽量＝1・標準＝これまで・高解像度＝端末の値） */
     const W = cv.clientWidth, H = cv.clientHeight;
     const cw = Math.round(W * dpr), ch = Math.round(H * dpr);
     if (!cw || !ch) return;
@@ -618,7 +716,7 @@
   };
   Lobby.prototype.still = function () {
     if (!this.canvas || !this.canvas.parentNode) return;
-    const im = document.createElement("img"); im.className = "hm-still"; im.src = src(this.def.img); im.alt = this.def.name;
+    const im = document.createElement("img"); im.className = "hm-still"; im.src = src(this.def.img, this.def.v); im.alt = this.def.name;
     this.canvas.replaceWith(im);
   };
   Lobby.prototype.destroy = function () {
@@ -649,6 +747,8 @@
         if (this.bubble && this.bubble.classList.contains("on")) this.bubble.classList.remove("on");   /* 見えないあいだは吹き出しも閉じる */
         setTimeout(() => requestAnimationFrame(loop), 400); return;
       }
+      if (window.XevaPerf && XevaPerf.lite() && now - (this._lf || 0) < 30) { requestAnimationFrame(loop); return; }   /* ★★ 2026-11-10 軽量モードは 30fps */
+      this._lf = now;
       const dt = Math.min(1 / 30, Math.max(0.001, (now - this.last) / 1000)); this.last = now;
       if (!this.frameTo) this.layout();
       if (!this.frameTo) { requestAnimationFrame(loop); return; }

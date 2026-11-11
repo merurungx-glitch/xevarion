@@ -1238,7 +1238,7 @@
 
   Mate.prototype.draw = function (dt) {
     const gl = this.gl, cv = this.canvas;
-    const dpr = Math.min(2.5, window.devicePixelRatio || 1);
+    const dpr = (window.XevaPerf ? XevaPerf.dpr(2.5) : Math.min(2.5, window.devicePixelRatio || 1));   /* ★★ 2026-11-10 動作モード（軽量＝1・標準＝これまで・高解像度＝端末の値） */
     const W = cv.clientWidth, H = cv.clientHeight;
     const cw = Math.round(W * dpr), ch = Math.round(H * dpr);
     if (!cw || !ch) return;
@@ -1739,6 +1739,8 @@
     const loop = (now) => {
       if (this.dead) { this.running = false; return; }
       if (!this.shouldRun()) { this.last = now; setTimeout(() => requestAnimationFrame(loop), 400); return; }
+      if (window.XevaPerf && XevaPerf.lite() && now - (this._lf || 0) < 30) { requestAnimationFrame(loop); return; }   /* ★★ 2026-11-10 軽量モードは 30fps */
+      this._lf = now;
       const dt = Math.min(1 / 30, Math.max(0.001, (now - this.last) / 1000)); this.last = now;
       if (!this.frameTo) this.layout();
       if (!this.frameTo) { requestAnimationFrame(loop); return; }
@@ -1900,7 +1902,7 @@
         const how = ok ? '<span class="hm-lb-awk ok">完凸ずみ・選べます</span>'
           : '<span class="hm-lb-awk">' + (a.own ? "いま " + a.awk + " 凸（あと " + (4 - a.awk) + "）" : "まだ持っていません") + "・" + (d.fes || "超極祭") + "</span>";
         return '<button type="button" class="hm-pk-item hm-lb-item' + (isCur ? " on" : "") + (ok ? "" : " locked") + '" data-lb="' + id + '" style="--c:' + d.color + '">' +
-          '<span class="ph" style="background-image:url(' + L.src(d.bg) + ')"><img data-lb="' + id + '" src="' + L.src(d.img) + '" alt="" loading="lazy"></span>' +
+          '<span class="ph" style="background-image:url(' + L.src(d.bg) + ')"><img data-lb="' + id + '" src="' + L.src(d.img, d.v) + '" alt="" loading="lazy"></span>' +
           '<span class="nm">' + d.name + "<small>" + d.ruby + '</small></span><span class="ds">' + d.intro + "</span>" + how + tag + "</button>";
       }).join("");
       box.querySelectorAll(".hm-lb-item").forEach((b) => { b.onclick = () => {
@@ -2100,6 +2102,9 @@
     });
     const dv = ((D.debut && D.debut.vers) || []).filter((v) => today >= v.date && today < (v.movedAt || addDays(v.date, D.debut.days || 20)));
     if (dv.length) out.push({ key: "debut", banner: D.debut.banner, t: dv[0].date, nm: "GRAND DEBUT" });
+    /* ★★ 2026-11-10 ROYAL DEBUT GACHA は開催中の超極系のすぐ下（"99975"＝top "9998" より下・ふつうの日付より上） */
+    const rv = ((D.royal && D.royal.vers) || []).filter((v) => today >= v.date && today < (v.movedAt || addDays(v.date, D.royal.days || 20)));
+    if (rv.length) out.push({ key: "royal", banner: D.royal.banner, t: "99975", nm: "ROYAL DEBUT" });
     out.sort((a, b) => String(b.t).localeCompare(String(a.t)));
     out.push({ key: "premium", banner: (D.premium && D.premium.banner) || "MagiBurst/img/bn_premium_s.webp", t: "", nm: "PREMIUM SELECT" });
     /* アーカイブは最後（premium の後ろ） */
