@@ -1315,6 +1315,8 @@
       '<div class="st-r"><b>ナビゲーター</b><button class="nv-cur" data-a="navPick">' + F.mascot("smile") + "<span><b>" + esc(F.navName()) + "</b><small>" + (F.navCur() ? "UR キャラ" : "はじめからいる丸底フラスコ") + "</small></span>" + ic("chevR") + "</button>" +
       '<small class="muted">XEVARION で持っている UR キャラを、ホーム・復習・答え合わせ・結果のナビにできます。</small></div>' +
       tg("relAuto", "まちがえたら類題を出す", "同じ考え方の関連問題を、すぐあとに1問はさみます") +
+      /* ★★ 2026-11-10 ご指定「タップして選択肢を表示するモード（選択肢を表示する前に考えてから、タップして見る）」 */
+      tg("tapOpts", "選択肢はタップしてから表示", "問題を解くとき選択肢をかくしておき、考えてから「選択肢を見る」を押すと出ます（数値で答える問題はそのまま・フラッシュカードは別の設定）") +
       tg("noCalc", "計算なしモード", "おすすめ・ランダム・弱点克服・単元・問題セット・フラッシュカードから計算問題をとばします（模試・確認テストは全問）") +
       tg("timer", "1問ごとの時間を表示") +
       tg("sound", "効果音") +
@@ -1404,11 +1406,32 @@
         '<div class="numprev" id="numPrev"></div><div class="kp">' + KP.map((k) => '<button class="kpk' + (k[2] ? " " + k[2] : "") + '" data-a="kp" data-k="' + k[0] + '">' + (k[1] || k[0]) + "</button>").join("") + "</div>" +
         '<p class="numnote">指数は「×10ⁿ」キー（例：2.68×10^3）。有効数字は問題文のとおりで OK。</p></div>';
     }
+    /* ★★ 2026-11-10 選択肢をタップしてから表示するモード（設定 tapOpts）。押すまでは選択肢の数だけ見せる */
+    if (optsHidden(q)) {
+      return '<button class="optreveal" data-a="revealOpts">' + ic("hand") + '<span><b>考えたら、タップして選択肢を見る</b><small>選択肢 ' + q.o.length + " 個" + (q.type === "m" ? "・あてはまるものをすべて" : "") + "（数字キー・スペースでも）</small></span></button>";
+    }
     /* 選択肢が短い記号（ア〜コ・①〜⑤・数字）だけのときは横に並べる */
     const grid = q.o.every((o) => String(o).replace(/<[^>]+>/g, "").length <= 3);
     /* ★★ 2026-10-07 ご指定「解答の選択はランダムな順番で」：並びだけ混ぜる。data-i は<b>もとの番号</b>のまま
        （判定・記録・本番モードの答え・正解の印はもとの番号で動く）。左の数字は見えている順。 */
     return '<div class="opts' + (q.type === "m" ? " multi" : "") + (grid ? " grid" : "") + '">' + optOrder(q).map((i, k) => '<button class="opt" data-a="pick" data-i="' + i + '"><span class="ol">' + (k + 1) + '</span><span class="ot">' + M.fmtOpt(q, q.o[i]) + '</span><span class="om"></span></button>').join("") + "</div>";
+  }
+  /* ★★ 2026-11-10 いま選択肢をかくしているか（設定 tapOpts・答えた／見せた問題・模試で答えを入れた問題は見せる） */
+  function optsHidden(q) {
+    if (!P || !q || q.type === "n" || !M.get().set.tapOpts || P.done) return false;
+    if (P.shown && P.shown[P.i + ":" + q.id]) return false;
+    if (P.exam && P.ans[P.i] != null) return false;
+    return true;
+  }
+  function revealOpts(quiet) {
+    if (!P) return;
+    const q = curQ(); if (!q || !optsHidden(q)) return;
+    P.shown = P.shown || {}; P.shown[P.i + ":" + q.id] = 1;
+    const b = $(".optreveal"); if (!b) return;
+    const w = document.createElement("div"); w.innerHTML = ansHTML(q);
+    const el = w.firstElementChild; b.replaceWith(el);
+    if (!quiet) { SFX.tap(); el.classList.add("revealed"); }
+    paintSel();
   }
   /* その問題（その回）の選択肢の並び。同じ回のあいだは同じ並び（本番モードで行き来しても変わらない）。
      同じ問題がもう一度出たとき（類題・まちがい直し）は、また混ぜなおす */
@@ -1537,6 +1560,7 @@
   function submit(giveup) {
     if (!P || P.done || P.exam) return;
     if (!giveup && !canSubmit()) return;
+    revealOpts(true);   /* ★★ 2026-11-10 かくしたまま「わからない」を押したときも、答え合わせでは選択肢を出す */
     const q = curQ(), id = q.id;
     const ok = !giveup && M.judge(q, P.sel);
     const ms = Date.now() - P.t0;
@@ -1594,6 +1618,7 @@
     const r = P.res[P.i], q = curQ();
     if (r && r.id === q.id) {
       P.sel = r.sel != null ? (Array.isArray(r.sel) ? r.sel.slice() : r.sel) : (q.type === "m" ? [] : q.type === "n" ? "" : null);
+      revealOpts(true);   /* ★★ 2026-11-10 選択肢をかくすモードでも、解いた問題は答え合わせの印を付けて見せる */
       P.done = true; paintSel(); markOpts(q, r.ok);
       const gu = $(".giveup"); if (gu) gu.remove();
       $("#plFb").innerHTML = '<div class="fbn ' + (r.ok ? "mas" : "ngb") + '">' + ic(r.ok ? "check" : "x") + "<span>この問題は" + (r.ok ? "正解しました" : r.giveup ? "答えを見ました" : "まちがえました") + "（正解：<b>" + M.answerText(q) + "</b>）</span></div>" + solHTML(q);
@@ -1799,6 +1824,7 @@
     examGo: (el) => { const k = el.dataset.set; startSession(M.build("set", { set: k, all: true }), { exam: true, set: k, title: setTitle(k) }); },   /* ★★ 2026-10-20 模試は計算なしモードでも全問 */
     setPractice: (el) => { const k = el.dataset.set; startSession(M.build("set", { set: k, shuffle: true }), { title: setTitle(k) + "（練習）" }); },
     pick: (el) => pick(+el.dataset.i),
+    revealOpts: () => revealOpts(),
     kp: (el) => keypad(el.dataset.k),
     submit: () => submit(false),
     giveup: () => submit(true),
@@ -1920,6 +1946,8 @@
       return;
     }
     if (typing) return;
+    /* ★★ 2026-11-10 選択肢をかくしているあいだは、数字キー・スペースで「選択肢を見る」 */
+    if ((/^[1-9]$/.test(e.key) || e.key === " ") && optsHidden(curQ())) { e.preventDefault(); revealOpts(); return; }
     /* ★★ 2026-10-07 数字キーは<b>見えている順</b>（選択肢を混ぜたので、もとの番号に直してから選ぶ） */
     if (/^[1-9]$/.test(e.key)) { const q = curQ(); if (q && q.type !== "n") { const o = optOrder(q), k = +e.key - 1; if (k < o.length) pick(o[k]); } }
     else if (P.exam && e.key === "ArrowRight") next();

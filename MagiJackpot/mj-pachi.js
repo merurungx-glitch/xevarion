@@ -411,7 +411,7 @@
   function fitCanvas() {
     if (!cv || !ctx) return;
     const w = cv.clientWidth || 340, h = cv.clientHeight || 210;
-    const dpr = Math.min(devicePixelRatio || 1, 2);
+    const dpr = (window.XevaPerf ? XevaPerf.dpr(2) : Math.min(devicePixelRatio || 1, 2));   /* ★★ 2026-11-10 動作モード（軽量＝1・標準＝これまで・高解像度＝端末の値） */
     cv.width = Math.max(1, Math.round(w * dpr));
     cv.height = Math.max(1, Math.round(h * dpr));
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);

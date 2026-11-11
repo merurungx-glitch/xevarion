@@ -264,7 +264,7 @@
   /* ══════════ コース図（静止画） ══════════ */
   RC.drawCourse = function (cv, race, opt) {
     opt = opt || {};
-    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    const dpr = (window.XevaPerf ? XevaPerf.dpr(2) : Math.min(2, window.devicePixelRatio || 1));   /* ★★ 2026-11-10 動作モード（軽量＝1・標準＝これまで・高解像度＝端末の値） */
     const W = cv.clientWidth || 320, H = cv.clientHeight || 200;
     cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
     const ctx = cv.getContext("2d"); ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
@@ -348,7 +348,7 @@
     const flip = !M.lay.left;          /* 右回りは右→左に走る */
     let W = 0, H = 0, dpr = 1, MW = 0, MH = 0;
     function resize() {
-      dpr = Math.min(2, window.devicePixelRatio || 1);
+      dpr = (window.XevaPerf ? XevaPerf.dpr(2) : Math.min(2, window.devicePixelRatio || 1));   /* ★★ 2026-11-10 動作モード（軽量＝1・標準＝これまで・高解像度＝端末の値） */
       W = cv.clientWidth || 360; H = cv.clientHeight || 220;
       cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
       MW = map.clientWidth || 160; MH = map.clientHeight || 100;

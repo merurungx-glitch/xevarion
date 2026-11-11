@@ -29,7 +29,7 @@
   function dayStart(t) { const d = t != null ? new Date(t) : new Date(); d.setHours(0, 0, 0, 0); return d.getTime(); }
   function fresh() {
     return { v: 1, q: {}, days: {}, runs: [], bm: {}, dm: {}, memo: {}, rw: {}, xp: 0, best: {}, cf: {}, rq: {}, rr: {},
-      set: { goal: 10, theme: "auto", fs: "m", sound: 1, relAuto: 1, timer: 1, vib: 1 }, at: 0 };
+      set: { goal: 10, theme: "auto", fs: "m", sound: 1, relAuto: 1, timer: 1, vib: 1, tapOpts: 0 }, at: 0 };   /* ★★ 2026-11-10 tapOpts＝選択肢はタップしてから表示 */
   }
   function load() {
     let s = null;

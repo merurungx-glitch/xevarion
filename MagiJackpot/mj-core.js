@@ -949,7 +949,7 @@
     fxCv = document.createElement("canvas"); host.appendChild(fxCv);
     fxCtx = fxCv.getContext("2d");
     const fit = () => {
-      const dpr = Math.min(devicePixelRatio || 1, 2);
+      const dpr = (window.XevaPerf ? XevaPerf.dpr(2) : Math.min(devicePixelRatio || 1, 2));   /* ★★ 2026-11-10 動作モード（軽量＝1・標準＝これまで・高解像度＝端末の値） */
       fxCv.width = Math.max(1, innerWidth * dpr); fxCv.height = Math.max(1, innerHeight * dpr);
       fxCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
     };

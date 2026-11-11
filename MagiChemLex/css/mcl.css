@@ -1757,3 +1757,13 @@ html.xv-full .mcl-sp { position: absolute; top: 0; bottom: auto; height: var(--x
   .bk-dai { padding: 14px 12px 4px; }
   .bk-mk { min-width: 40px; height: 36px; }
 }
+
+/* ★★ 2026-11-10 選択肢をタップしてから表示（設定 tapOpts） */
+.optreveal { display: flex; align-items: center; gap: 12px; width: 100%; margin: 12px 0 4px; padding: 18px 16px; border-radius: 16px;
+  border: 2px dashed var(--pri); background: color-mix(in srgb, var(--pri) 8%, transparent); color: inherit; font: inherit; text-align: left; cursor: pointer; }
+.optreveal svg.di { flex: none; width: 30px; height: 30px; color: var(--pri); }
+.optreveal b { display: block; font-size: 15px; font-weight: 900; }
+.optreveal small { display: block; margin-top: 3px; font-size: 12px; font-weight: 700; color: var(--sub); }
+.optreveal:active { transform: scale(.99); }
+.opts.revealed { animation: mclOptIn .28s ease both; }
+@keyframes mclOptIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }

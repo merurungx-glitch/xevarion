@@ -5,18 +5,18 @@
    ・XEVA・ジェムの残高だけはクラウド同期が要るが、オフライン中の増減は端末に貯まり、
      オンラインに戻った時点で xeva-cloud.js が送り直す。
    ============================================================ */
-const VERSION = "magijackpot-sw-v64";
+const VERSION = "magijackpot-sw-v65";
 const CORE = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
   "./mj.css?v=18",
   "./mj-games.css?v=11",
-  "./mj-core.js?v=19",
+  "./mj-core.js?v=20",
   "./mj-slots.js?v=18",
   "./mj-lux.js?v=12",
   "./mj-bj.js?v=16",
-  "./mj-pachi.js?v=18",
+  "./mj-pachi.js?v=19",
   "./mj-party.js?v=15",
   "./mj-192.png",
   "./mj-512.png",
@@ -45,9 +45,9 @@ const CORE = [
   "./img/banner_fortune.webp",
   "./img/banner_luxuria.webp",
   "../maintenance-gate.js?v=13",
-  "../xeva.js?v=86",
-  "../xeva-alive.js?v=8",
-  "../xeva-splash.js?v=21",
+  "../xeva.js?v=87",
+  "../xeva-alive.js?v=9",
+  "../xeva-splash.js?v=22",
   "../xeva-back.js?v=9",
   "../game-link.js?v=11",
   "../XEVA.png",
@@ -229,6 +229,58 @@ async function xevRefreshPost(msg) {
     cs.forEach((c) => { try { c.postMessage(msg); } catch (e) {} });
   } catch (e) {}
 }
+/* ══ ★★ 2026-11-11 要らなくなったファイルの掃除（ご指定「ダウンロード時に要らなくなったファイルを削除する機能」）══
+   ホームの「ダウンロード」（xev-refresh）のたびに、この SW の置き場（VERSION）から<b>もう使わないもの</b>を消す。
+   ・CORE（この版で使うファイル）は消さない。
+   ・消すのは ① CORE と同じファイルの古い版（?v= が小さい・?v= が無い）
+              ② ページ（.html）に ? の付いた写し（?room= など。ページ本体は CORE にある）
+              ③ CORE に無いファイルの古い版どうし（いちばん新しい ?v= だけ残す）
+              ④ サーバーにもう無いファイル（確かめで 404・410 が返ったもの。取れたものより多いときは通信の不調とみて消さない）
+   ・消した件数と大きさは xev-refreshed の removed・freed でホームへ返す（ホームの更新画面に「整理した」と出る）。 */
+function xevPathKey(u) { let p = u.pathname; if (p.endsWith("/")) p += "index.html"; return u.origin + p; }
+function xevVerOf(u) { const s = u.searchParams.get("v"); if (s == null) return 0; const n = parseFloat(s); return isFinite(n) ? n : 0.5; }
+function xevAbs(u) { try { return new URL(u, self.location.href).href; } catch (e) { return String(u); } }
+async function xevSizeOf(res) {
+  if (!res) return 0;
+  let n = Number(res.headers.get("content-length")) || 0;
+  if (!n) { try { n = (await res.clone().blob()).size || 0; } catch (e) { n = 0; } }
+  return n;
+}
+async function xevDropAll(cache, list, out) {
+  for (const req of list) {
+    try { const r = await cache.match(req); const n = await xevSizeOf(r); if (await cache.delete(req)) { out.n++; out.bytes += n; } } catch (e) {}
+  }
+}
+/* ?v= 以外の ? はそのまま見分ける（?page=2 などの中身が違うものを「古い版」とまちがえて消さない） */
+function xevQKey(u) {
+  const ps = [];
+  u.searchParams.forEach((val, key) => { if (key !== "v") ps.push(key + "=" + val); });
+  ps.sort();
+  return xevPathKey(u) + (ps.length ? "?" + ps.join("&") : "");
+}
+async function xevPrune(cache, coreAbs, sameOriginOnly) {
+  const out = { n: 0, bytes: 0 };
+  const core = new Map(), corePath = new Set(), best = new Map(), drop = [];
+  coreAbs.forEach((abs) => {
+    try { const u = new URL(abs); const q = xevQKey(u); corePath.add(xevPathKey(u)); core.set(q, Math.max(core.has(q) ? core.get(q) : -1, xevVerOf(u))); } catch (e) {}
+  });
+  let reqs = [];
+  try { reqs = await cache.keys(); } catch (e) { return out; }
+  for (const req of reqs) {
+    if (coreAbs.has(req.url)) continue;
+    let u; try { u = new URL(req.url); } catch (e) { continue; }
+    if (sameOriginOnly !== false && u.origin !== self.location.origin) continue;
+    const p = xevPathKey(u), q = xevQKey(u), v = xevVerOf(u);
+    if (u.search && corePath.has(p) && /\.html?$/i.test(p)) { drop.push(req); continue; }   /* ② ページの ? 付きの写し */
+    if (core.has(q)) { if (v < core.get(q)) drop.push(req); continue; }                       /* ① CORE より古い版 */
+    const b = best.get(q);                                                                     /* ③ CORE に無いものは新しい版だけ残す */
+    if (!b) best.set(q, { req, v });
+    else if (v > b.v) { drop.push(b.req); best.set(q, { req, v }); }
+    else drop.push(req);
+  }
+  await xevDropAll(cache, drop, out);
+  return out;
+}
 async function xevRefreshAll() {
   const cache = await caches.open(VERSION);
   const urls = [], seen = new Set();
@@ -239,6 +291,9 @@ async function xevRefreshAll() {
     seen.add(abs); urls.push(u);
   }
   /* 実行時にキャッシュしたぶん（CORE に無いページ・画像）も一緒に取り直す */
+  /* ★★ 2026-11-11 要らなくなったファイルの掃除（xevPrune の説明）。ここまでの seen＝CORE */
+  const coreAbs = new Set(seen), gone = [];
+  const pr = await xevPrune(cache, coreAbs);
   try {
     for (const req of await cache.keys()) {
       if (seen.has(req.url)) continue;
@@ -296,7 +351,7 @@ async function xevRefreshAll() {
         await cache.put(u, res.clone());
         if (!n) { try { n = (await res.clone().blob()).size || 0; } catch (e2) { n = 0; } }
         if (!(xevIrPath(u) in irf)) { got++; bytes += n; }
-      }
+      } else if (res && (res.status === 404 || res.status === 410) && old && !coreAbs.has(xevAbs(u))) gone.push(u);   /* ★★ 2026-11-11 サーバーにもう無い */
     } catch (e) { /* 落とせなかったぶんは今のキャッシュを残す（消さない） */ }
     done++;
     await tickPost();
@@ -305,9 +360,11 @@ async function xevRefreshAll() {
   const crew = [];
   for (let ci = 0; ci < CONC; ci++) crew.push(worker());
   await Promise.all(crew);
+  /* ★★ 2026-11-11 サーバーにもう無いファイル（404・410）を置き場から消す。取れたものより多いときは通信の不調とみて消さない */
+  if (gone.length && hit + got >= gone.length) await xevDropAll(cache, gone, pr);
   await tickPost(true);
   await xevIrDrop();
-  await xevRefreshPost({ type: "xev-refreshed", scope: XEV_SCOPE, total: urls.length,
+  await xevRefreshPost({ type: "xev-refreshed", scope: XEV_SCOPE, total: urls.length, removed: pr.n, freed: pr.bytes, cache: VERSION,
     got: got, hit: hit, bytes: bytes });
 }
 self.addEventListener("message", (e) => {
@@ -340,30 +397,50 @@ const XEV_NETPREF_CACHE = "xev-netpref";
 const XEV_NETPREF_URL = "./__xev_netpref";
 let _xevNetLatest = null;                     // null＝まだ読んでいない
 function xevNetLatest() { return _xevNetLatest; }
+/* ★★ 2026-11-11 軽量モード（ホームの設定「動作モード」）でオフラインのとき＝<b>全部の置き場の総なめと通信の試し</b>をやめる。
+   lite はページ（xeva-netmode.js）が latest といっしょに送ってくる（netpref に控える）。オフラインかどうかは SW 自身の onLine で見る。 */
+let _xevLite = false;
+function xevOffLite() { try { return _xevLite && self.navigator && self.navigator.onLine === false; } catch (e) { return false; } }
 (async function xevReadNetPref() {
   try {
     const c = await caches.open(XEV_NETPREF_CACHE);
     const r = await c.match(XEV_NETPREF_URL);
-    _xevNetLatest = r ? ((await r.json()).latest !== false) : true;
+    const o = r ? await r.json() : null;
+    _xevNetLatest = o ? o.latest !== false : true;
+    _xevLite = !!(o && o.lite);
   } catch (e) { _xevNetLatest = true; }
 })();
 self.addEventListener("message", (e) => {
   const m = e.data;
   if (!m || m.type !== "xev-netmode") return;
   _xevNetLatest = m.latest !== false;
+  if ("lite" in m) _xevLite = !!m.lite;
   e.waitUntil((async () => {
     try {
       const c = await caches.open(XEV_NETPREF_CACHE);
-      await c.put(XEV_NETPREF_URL, new Response(JSON.stringify({ latest: _xevNetLatest }),
+      await c.put(XEV_NETPREF_URL, new Response(JSON.stringify({ latest: _xevNetLatest, lite: _xevLite }),
         { headers: { "Content-Type": "application/json" } }));
     } catch (err) {}
   })());
 });
 /* キャッシュ優先で返す。無ければ通信し、それも失敗したらページだけはホームに逃がす。 */
 async function xevCacheFirst(req) {
-  const hit = await caches.match(req, { ignoreSearch: true });
+  /* ★★ 2026-11-11 ご報告「オフラインのときだけ重い」の直し
+     前は毎回<b>全部の置き場（いまは 25 個ほど）を ? を無視して</b>探していた。置き場を1つずつ開いて調べるので、
+     画面の部品・絵の数だけそれがくり返され、アプリが増えるほど遅くなっていた（オフラインのときはいつもこの道を通る）。
+     → ① 自分の置き場を URL ぴったりで（ほとんどここで当たる・1回で済む）→ ② 全部の置き場をぴったりで
+       → ③ ? 違いを許して探す → ④ 通信。
+     ★ 軽量モードでオフラインのときは ③ を自分の置き場（と絵の置き場）だけにし（ページの移動は全部を探す）、④ の通信も試さない。 */
+  const lite = xevOffLite();
+  let hit = null;
+  try { hit = await (await caches.open(VERSION)).match(req); } catch (e) {}
+  if (!hit) hit = await caches.match(req);
+  if (!hit && lite && req.mode !== "navigate") {
+    try { hit = await (await caches.open(VERSION)).match(req, { ignoreSearch: true }); } catch (e) {}
+    if (!hit && /\.(webp|png|jpe?g|gif|svg)$/i.test(new URL(req.url).pathname)) { try { hit = await (await caches.open("xev-img-v1")).match(req, { ignoreSearch: true }); } catch (e) {} }
+  } else if (!hit) hit = await caches.match(req, { ignoreSearch: true });
   if (hit) return hit;
-  try { return await fetch(req); } catch (e) {}
+  if (!lite) { try { return await fetch(req); } catch (e) {} }
   if (req.mode === "navigate") {
     const home = await caches.match("./index.html", { ignoreSearch: true });
     if (home) return home;

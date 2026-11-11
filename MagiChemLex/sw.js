@@ -3,12 +3,12 @@
    ・問題・解説・図はすべて JS の中にあるので、CORE をそろえれば完全にオフラインで使える。
    ・フォント（Google Fonts）は一度読めたら控える。Firebase（同期）はキャッシュしない。
    ============================================================ */
-const VERSION = "magichemlex-sw-v26";
+const VERSION = "magichemlex-sw-v27";
 const RUNTIME = "magichemlex-rt-v1";
 const CORE = [
   "./index.html",
   "./manifest.webmanifest",
-  "./css/mcl.css?v=18",
+  "./css/mcl.css?v=19",
   "./js/mcl-data.js?v=5",
   "./js/mcl-data2.js?v=4",
   "./js/mcl-data3.js?v=2",
@@ -21,19 +21,19 @@ const CORE = [
   "./js/mcl-data10.js?v=1",
   "./js/mcl-data11.js?v=1",
   "./js/mcl-data12.js?v=1",
-  "./js/mcl-core.js?v=14",
+  "./js/mcl-core.js?v=15",
   "./js/mcl-fig.js?v=5",
   "./js/mcl-fig2.js?v=1",
   "./js/mcl-fig3.js?v=1",
   "./js/mcl-fig4.js?v=1",
   "./js/mcl-fig5.js?v=2",
-  "./js/mcl-ui.js?v=20",
+  "./js/mcl-ui.js?v=21",
   "./js/mcl-flash.js?v=3",      // ★★ 2026-10-15 フラッシュカード
   "./js/mcl-book.js?v=1",       // ★★ 2026-10-27 模試の冊子
   "./js/mcl-special.js?v=1",    // ★★ 2026-10-15 特設予想問題
   "./js/mcl-bingo.js?v=3",      // ★★ 2026-10-28 ビンゴカード
   "./js/mcl-guide.js?v=2",      // ★★ 2026-10-31 XEVA のもらい方（動きで見るガイド）
-  "../xeva-tour.js?v=4",
+  "../xeva-tour.js?v=5",
   "../gem.png",
   "./img/icon_192.png?v=2",
   "./img/apple-touch-icon.png?v=2",
@@ -45,14 +45,14 @@ const CORE = [
   "./img/wp@2x.webp",
   "../img/t_Miki.webp", "../img/Miki.webp",   // ★★ 2026-10-24 WP 交換所のミキ（UR）
   /* XEVARION の共通部品 */
-  "../xeva.js?v=86",
+  "../xeva.js?v=87",
   "../xeva-loading.js?v=19",
-  "../xeva-splash.js?v=21",
+  "../xeva-splash.js?v=22",
   "../xeva-safebottom.js?v=12",
   "../xeva-back.js?v=9",
   "../xeva-presence.js?v=9",
   "../maintenance-gate.js?v=13",
-  "../xeva-cloud.js?v=50",
+  "../xeva-cloud.js?v=51",
   "../MagiBurst/magiburst-cloud.js?v=29",
   "../app-cloud.js?v=15",
   "../xeva-keys.js?v=36",
@@ -204,6 +204,58 @@ self.addEventListener("fetch", (e) => {
 /* ══ まとめて最新化（xev-refresh：ホームの更新画面から呼ばれる）══
    CORE ＋ いまキャッシュにある URL を、ETag / Last-Modified の条件つきで取り直す（差分だけ落とす・同時6本）。 */
 const XEV_SCOPE = "magichemlex";
+/* ══ ★★ 2026-11-11 要らなくなったファイルの掃除（ご指定「ダウンロード時に要らなくなったファイルを削除する機能」）══
+   ホームの「ダウンロード」（xev-refresh）のたびに、この SW の置き場（VERSION）から<b>もう使わないもの</b>を消す。
+   ・CORE（この版で使うファイル）は消さない。
+   ・消すのは ① CORE と同じファイルの古い版（?v= が小さい・?v= が無い）
+              ② ページ（.html）に ? の付いた写し（?room= など。ページ本体は CORE にある）
+              ③ CORE に無いファイルの古い版どうし（いちばん新しい ?v= だけ残す）
+              ④ サーバーにもう無いファイル（確かめで 404・410 が返ったもの。取れたものより多いときは通信の不調とみて消さない）
+   ・消した件数と大きさは xev-refreshed の removed・freed でホームへ返す（ホームの更新画面に「整理した」と出る）。 */
+function xevPathKey(u) { let p = u.pathname; if (p.endsWith("/")) p += "index.html"; return u.origin + p; }
+function xevVerOf(u) { const s = u.searchParams.get("v"); if (s == null) return 0; const n = parseFloat(s); return isFinite(n) ? n : 0.5; }
+function xevAbs(u) { try { return new URL(u, self.location.href).href; } catch (e) { return String(u); } }
+async function xevSizeOf(res) {
+  if (!res) return 0;
+  let n = Number(res.headers.get("content-length")) || 0;
+  if (!n) { try { n = (await res.clone().blob()).size || 0; } catch (e) { n = 0; } }
+  return n;
+}
+async function xevDropAll(cache, list, out) {
+  for (const req of list) {
+    try { const r = await cache.match(req); const n = await xevSizeOf(r); if (await cache.delete(req)) { out.n++; out.bytes += n; } } catch (e) {}
+  }
+}
+/* ?v= 以外の ? はそのまま見分ける（?page=2 などの中身が違うものを「古い版」とまちがえて消さない） */
+function xevQKey(u) {
+  const ps = [];
+  u.searchParams.forEach((val, key) => { if (key !== "v") ps.push(key + "=" + val); });
+  ps.sort();
+  return xevPathKey(u) + (ps.length ? "?" + ps.join("&") : "");
+}
+async function xevPrune(cache, coreAbs, sameOriginOnly) {
+  const out = { n: 0, bytes: 0 };
+  const core = new Map(), corePath = new Set(), best = new Map(), drop = [];
+  coreAbs.forEach((abs) => {
+    try { const u = new URL(abs); const q = xevQKey(u); corePath.add(xevPathKey(u)); core.set(q, Math.max(core.has(q) ? core.get(q) : -1, xevVerOf(u))); } catch (e) {}
+  });
+  let reqs = [];
+  try { reqs = await cache.keys(); } catch (e) { return out; }
+  for (const req of reqs) {
+    if (coreAbs.has(req.url)) continue;
+    let u; try { u = new URL(req.url); } catch (e) { continue; }
+    if (sameOriginOnly !== false && u.origin !== self.location.origin) continue;
+    const p = xevPathKey(u), q = xevQKey(u), v = xevVerOf(u);
+    if (u.search && corePath.has(p) && /\.html?$/i.test(p)) { drop.push(req); continue; }   /* ② ページの ? 付きの写し */
+    if (core.has(q)) { if (v < core.get(q)) drop.push(req); continue; }                       /* ① CORE より古い版 */
+    const b = best.get(q);                                                                     /* ③ CORE に無いものは新しい版だけ残す */
+    if (!b) best.set(q, { req, v });
+    else if (v > b.v) { drop.push(b.req); best.set(q, { req, v }); }
+    else drop.push(req);
+  }
+  await xevDropAll(cache, drop, out);
+  return out;
+}
 async function xevRefreshAll() {
   const cache = await caches.open(VERSION);
   const urls = [], seen = new Set();
@@ -212,6 +264,9 @@ async function xevRefreshAll() {
     if (seen.has(abs)) continue;
     seen.add(abs); urls.push(u);
   }
+  /* ★★ 2026-11-11 要らなくなったファイルの掃除（xevPrune の説明）。ここまでの seen＝CORE */
+  const coreAbs = new Set(seen), gone = [];
+  const pr = await xevPrune(cache, coreAbs);
   try {
     for (const req of await cache.keys()) {
       if (seen.has(req.url)) continue;
@@ -233,13 +288,14 @@ async function xevRefreshAll() {
       if (old) { const et = old.headers.get("ETag"), lm = old.headers.get("Last-Modified"); if (et) h["If-None-Match"] = et; if (lm) h["If-Modified-Since"] = lm; }
       const opt = Object.keys(h).length ? { cache: "no-store", headers: h } : { cache: "no-cache" };
       const res = await fetch(u, opt);
-      if (res && res.status === 304 && old) if (!(xevIrPath(u) in irf)) hit++;
+      /* ★★ 2026-11-11 { } が無く、else が内側の if に付いていた＝200 で取り直したものを置き場に入れていなかった */
+      if (res && res.status === 304 && old) { if (!(xevIrPath(u) in irf)) hit++; }
       else if (res && res.ok && res.type === "basic") {
         let n = Number(res.headers.get("content-length")) || 0;
         await cache.put(u, res.clone());
         if (!n) { try { n = (await res.clone().blob()).size || 0; } catch (e2) { n = 0; } }
         if (!(xevIrPath(u) in irf)) { got++; bytes += n; }
-      }
+      } else if (res && (res.status === 404 || res.status === 410) && old && !coreAbs.has(xevAbs(u))) gone.push(u);   /* ★★ 2026-11-11 サーバーにもう無い */
     } catch (e) {}
     done++;
     await tickPost();
@@ -247,9 +303,11 @@ async function xevRefreshAll() {
   const worker = async () => { while (queue.length) await one(queue.shift()); };
   const crew = []; for (let ci = 0; ci < 6; ci++) crew.push(worker());
   await Promise.all(crew);
+  /* ★★ 2026-11-11 サーバーにもう無いファイル（404・410）を置き場から消す。取れたものより多いときは通信の不調とみて消さない */
+  if (gone.length && hit + got >= gone.length) await xevDropAll(cache, gone, pr);
   await tickPost(true);
   await xevIrDrop();
-  await xevPost({ type: "xev-refreshed", scope: XEV_SCOPE, total: urls.length, got, hit, bytes });
+  await xevPost({ type: "xev-refreshed", scope: XEV_SCOPE, total: urls.length, removed: pr.n, freed: pr.bytes, cache: VERSION, got, hit, bytes });
 }
 self.addEventListener("message", (e) => {
   const m = e.data;
