@@ -75,12 +75,12 @@
       ? `<section class="re-solo" style="--c:${u0.color}"><small>${esc(MODES[g.mode].nm)}</small><b>${scoreTx(u0)}</b><p>正解 ${u0.ok} / ${u0.n}（${acc}%）${u0.best >= 2 ? "・最高 " + u0.best + " 問連続" : ""}</p>${(u0.score > prevBest && prevBest > 0) ? '<em>自己ベスト更新！</em>' : prevBest ? `<i>これまでのベスト ${fmtN(prevBest)}</i>` : ""}</section>`
       : `<section class="re-pod n${po.length}">${po.map((u) => {
         const mb = u.members[0];
-        return `<div class="pod r${u.rank}" data-r="${u.rank}" style="--c:${u.color}"><div class="pod-a">${u.rank === 1 ? `<span class="pod-cr">${ic("crown")}</span>` : ""}${avatar({ name: u.name, color: u.color, acc: g.team ? null : mb.acc, icon: g.team ? "team" : null }, u.rank === 1 ? "xl" : "lg")}</div><b>${esc(u.name)}</b><small>${scoreTx(u)}</small><div class="pod-b"><span>${u.rank}</span></div></div>`;
+        return `<div class="pod r${u.rank}" data-r="${u.rank}" style="--c:${u.color}"><div class="pod-a">${u.rank === 1 ? `<span class="pod-cr">${ic("crown")}</span>` : ""}${avatar({ name: u.name, color: u.color, acc: g.team ? null : mb.acc, pic: g.team ? "" : mb.pic, icon: g.team ? "team" : null }, u.rank === 1 ? "xl" : "lg")}</div><b>${esc(u.name)}</b><small>${scoreTx(u)}</small><div class="pod-b"><span>${u.rank}</span></div></div>`;
       }).join("")}</section>`;
     const aw = awards(g);
     $("#result").innerHTML = `<div class="re-sc">${head}${stage}
       <div class="re-rest" id="reRest">
-        ${solo ? "" : `<section class="re-list">${us.map((u) => `<div class="rr" style="--c:${u.color}"><span class="rr-k">${u.rank}</span>${avatar({ name: u.name, color: u.color, acc: g.team ? null : u.members[0].acc, icon: g.team ? "team" : null }, "xs")}<span class="rr-n"><b>${esc(u.name)}</b>${g.team ? `<small>${esc(u.members.map((m) => m.name).join("・"))}</small>` : ""}</span><span class="rr-s">${scoreTx(u)}</span><span class="rr-a">${u.ok}/${u.n}</span></div>`).join("")}</section>`}
+        ${solo ? "" : `<section class="re-list">${us.map((u) => `<div class="rr" style="--c:${u.color}"><span class="rr-k">${u.rank}</span>${avatar({ name: u.name, color: u.color, acc: g.team ? null : u.members[0].acc, pic: g.team ? "" : u.members[0].pic, icon: g.team ? "team" : null }, "xs")}<span class="rr-n"><b>${esc(u.name)}</b>${g.team ? `<small>${esc(u.members.map((m) => m.name).join("・"))}</small>` : ""}</span><span class="rr-s">${scoreTx(u)}</span><span class="rr-a">${u.ok}/${u.n}</span></div>`).join("")}</section>`}
         ${aw.length ? `<section class="re-awd"><h3>${ic("star")}称号</h3><div>${aw.map((a) => `<span class="aw" style="--c:${a.c}">${ic(a.ic)}<b>${a.t}</b><em>${a.who}</em><small>${esc(a.d)}</small></span>`).join("")}</div></section>` : ""}
         <section class="re-prz" id="rePrz"><p class="re-pm">${ic("gift")}XEVA を確認しています…</p></section>
       </div></div>

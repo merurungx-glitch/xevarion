@@ -182,7 +182,7 @@
   const C = { cv: null, g: null, W: 0, H: 0, dpr: 1, ps: [], raf: 0, last: 0 };
   function fit() {
     const cv = C.cv || (C.cv = document.getElementById("fxc")); if (!cv) return;
-    C.dpr = Math.min(2, window.devicePixelRatio || 1); C.W = cv.clientWidth || innerWidth; C.H = cv.clientHeight || innerHeight;
+    C.dpr = (window.XevaPerf ? XevaPerf.dpr(2) : Math.min(2, window.devicePixelRatio || 1));   /* ★★ 2026-11-10 動作モード（軽量＝1・標準＝これまで・高解像度＝端末の値） */ C.W = cv.clientWidth || innerWidth; C.H = cv.clientHeight || innerHeight;
     cv.width = Math.round(C.W * C.dpr); cv.height = Math.round(C.H * C.dpr);
     C.g = cv.getContext("2d");
   }

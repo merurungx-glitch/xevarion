@@ -641,6 +641,16 @@ body.bshake #play .pl-top,body.bshake #play .pl-strip,body.bshake #play .pl-main
 .rl b{color:var(--v2)}
 .rl-h{margin:13px 0 5px;font-size:14px;font-weight:900}
 /* 連携 */
+/* ★★ 2026-11-10 連携していない人のアイコン（UR キャラ）をえらぶ */
+.mqpic-av{position:relative;flex:none;display:inline-grid;place-items:center;padding:0;border:none;background:none;cursor:pointer;border-radius:50%}
+.mqpic-ed{position:absolute;right:-4px;bottom:-4px;display:grid;place-items:center;width:20px;height:20px;border-radius:50%;background:#fff;color:var(--v1,#6a07e0);box-shadow:0 1px 4px rgba(40,0,90,.35)}
+.mqpic-ed svg{width:12px;height:12px}
+.mqpic-g{display:grid;grid-template-columns:repeat(auto-fill,minmax(74px,1fr));gap:8px;margin-top:10px;max-height:min(56vh,460px);overflow:auto;padding:4px 2px}
+.mqpic-c{display:flex;flex-direction:column;align-items:center;gap:4px;padding:7px 4px 6px;border-radius:13px;background:var(--vs,#f3efff);border:2px solid transparent;cursor:pointer}
+.mqpic-c.on{border-color:var(--c,#8a5cff);background:#fff}
+.mqpic-c small{font-size:11px;font-weight:800;color:var(--sub,#5a5378);max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mqpic-im{display:block;width:52px;height:52px;border-radius:50%;overflow:hidden;box-shadow:0 0 0 2px #fff,0 0 0 4px var(--c,#8a5cff)}
+.mqpic-im img{width:100%;height:100%;object-fit:cover}
 .lk-s{display:flex;gap:7px}
 .lk-s input{flex:1;min-width:0;height:48px;padding:0 13px;border-radius:13px;border:2px solid var(--line);font-size:16px;font-weight:700;outline:none}
 .lk-s input:focus{border-color:var(--v1)}

@@ -117,9 +117,16 @@
     const t = $("#toast"); t.innerHTML = h; t.hidden = false; t.classList.remove("on"); void t.offsetWidth; t.classList.add("on");
     clearTimeout(toastT); toastT = setTimeout(() => { t.classList.remove("on"); setTimeout(() => { t.hidden = true; }, 260); }, ms || 2300);
   }
-  /* アバター：連携した人・本人はキャラの絵／ほかは名前の頭文字 */
+  /* アバター：連携した人・本人はキャラの絵／ほかは名前の頭文字
+     ★★ 2026-11-10 ご指定「オフライン時や紐づけがないプレイヤーのアイコン画像を、アプリに実装されている UR キャラからそれぞれ選べるように（名前のままも）」
+       → 席ごとの pic（キャラの id）。絵は xeva.js の MB_CHAR_MASTER（XEVA.MB_CHARS）の UR の小さい絵 */
+  function urList() {
+    let L = []; try { L = (window.XEVA && XEVA.MB_CHARS) || []; } catch (e) { L = []; }
+    return L.filter((c) => c && c.rarLabel === "UR" && c.mbId && c.file).slice().sort((a, b) => String(b.since || "").localeCompare(String(a.since || "")));
+  }
+  function picSrc(id) { const c = urList().find((x) => x.mbId === id); return c ? c.file : ""; }
   function avatar(o, cls) {
-    const th = o.acc ? A.thumb(o.acc) : "", ch = o.icon ? ic(o.icon) : esc(String(o.name || "?").slice(0, 1));
+    const th = o.acc ? A.thumb(o.acc) : o.pic ? picSrc(o.pic) : "", ch = o.icon ? ic(o.icon) : esc(String(o.name || "?").slice(0, 1));
     return '<span class="av' + (cls ? " s-" + cls : "") + '" style="--c:' + (o.color || "#a98bff") + '"><i>' + ch + "</i>" + (th ? '<img src="' + esc(th) + '" alt="" loading="lazy" onerror="this.remove()">' : "") + "</span>";
   }
 
@@ -166,7 +173,7 @@
      ② 準備：① あそびかた ② メンバー ③ ルール
      ══════════════════════════════════════════════════════════════ */
   const SETUP_KEY = "magiquiz_setup_v2";
-  const blankSeat = (i) => ({ name: "プレイヤー" + (i + 1), link: null, owner: false, team: i % 2 });
+  const blankSeat = (i) => ({ name: "プレイヤー" + (i + 1), link: null, owner: false, team: i % 2, pic: "" });
   const setup = {
     mode: "bomb", team: false, nTeams: 2, n: 3, all: COLORS.map((c, i) => blankSeat(i)),
     sets: Q && Q.SETS ? Q.SETS.map((s) => s[0]) : [], fields: Q && Q.FIELDS ? Q.FIELDS.map((f) => f[0]) : [], calc: true,
@@ -175,7 +182,7 @@
   function saveSetup() {
     try {
       const o = {}; ["mode", "team", "nTeams", "n", "sets", "fields", "calc", "limit", "fuse", "hearts", "miss", "tmiss", "rounds", "items", "played", "rtarget", "rhearts", "rspeed"].forEach((k) => { o[k] = setup[k]; });
-      o.players = setup.all.map((p) => ({ name: p.name, owner: !!p.owner, link: p.link && p.link.uid ? { uid: p.link.uid, name: p.link.name, charFile: p.link.charFile || "", charId: p.link.charId || "" } : null }));
+      o.players = setup.all.map((p) => ({ name: p.name, owner: !!p.owner, pic: p.pic || "", link: p.link && p.link.uid ? { uid: p.link.uid, name: p.link.name, charFile: p.link.charFile || "", charId: p.link.charId || "" } : null }));
       localStorage.setItem(SETUP_KEY, JSON.stringify(o));
     } catch (e) {}
   }
@@ -212,6 +219,7 @@
         const p = setup.all[i]; if (!sp) return;
         if (sp.name) p.name = String(sp.name).slice(0, 8);
         p.owner = !!sp.owner;
+        p.pic = sp.pic ? String(sp.pic).slice(0, 24) : "";
         if (sp.link && sp.link.uid) p.link = { uid: sp.link.uid, name: sp.link.name, charFile: sp.link.charFile || "", charId: sp.link.charId || "", confirmed: false };
       });
     } catch (e) {}
@@ -261,7 +269,10 @@
         : !linked ? '<button class="st-lk" data-a="seatLink" data-i="' + i + '">' + ic("link") + "<span>連携</span></button>"
         : ok ? '<button class="st-lk on" data-a="seatLink" data-i="' + i + '">' + ic("check") + "<span>" + esc(p.link.name) + "</span></button>"
         : '<button class="st-lk wait" data-a="seatLink" data-i="' + i + '">' + ic("lock") + "<span>" + esc(p.link.name) + "（要確認）</span></button>";
-      return '<div class="st" data-i="' + i + '" style="--c:' + col + '">' + avatar({ name: p.name, color: col, acc }, "md") +
+      /* ★★ 2026-11-10 本人でも連携ずみでもない席は、絵を押すと UR キャラのアイコンをえらべる */
+      const av = avatar({ name: p.name, color: col, acc, pic: !p.owner && !linked ? p.pic : "" }, "md");
+      return '<div class="st" data-i="' + i + '" style="--c:' + col + '">' +
+        (!p.owner && !linked ? '<button class="mqpic-av" data-a="seatPic" data-i="' + i + '" aria-label="' + (i + 1) + '人目のアイコンをえらぶ">' + av + '<i class="mqpic-ed">' + ic("pen") + "</i></button>" : av) +
         '<div class="st-m"><input class="st-nm" maxlength="8" value="' + esc(p.name) + '" aria-label="' + (i + 1) + '人目の名前" enterkeyhint="done"' + (p.owner ? " readonly" : "") + ">" +
         '<div class="st-row">' + lk +
         (me ? '<label class="st-own' + (p.owner ? " on" : "") + '"><input type="checkbox" data-c="own" data-i="' + i + '"' + (p.owner ? " checked" : "") + "><i>" + ic("check") + "</i><span>この端末の本人</span></label>" : "") + "</div></div>" +
@@ -343,6 +354,17 @@
 
   /* ══ アカウント連携（検索 → 4桁）══ */
   const LK = { i: 0, step: "search", rows: [], q: "", hit: null, pin: "", msg: "", busy: false, confirm: false };
+  /* ★★ 2026-11-10 アイコンをえらぶ（UR キャラ・名前のまま） */
+  function openPic(i) {
+    const p = setup.all[i]; if (!p) return;
+    const col = COLORS[i], list = urList();
+    const cell = (v, inner, nm, on) => '<button class="mqpic-c' + (on ? " on" : "") + '" data-a="picSet" data-i="' + i + '" data-v="' + esc(v) + '" style="--c:' + col + '">' + inner + "<small>" + esc(nm) + "</small></button>";
+    sheet('<h3 class="sh-t">' + ic("people") + esc(p.name) + " のアイコン</h3>" +
+      '<p class="sh-p">XEVARION に実装されている <b>UR キャラ</b>からえらべます（連携していない人・オフラインのとき用）。</p>' +
+      '<div class="mqpic-g">' + cell("", avatar({ name: p.name, color: col }, "md"), "名前のまま", !p.pic) +
+      list.map((c) => cell(c.mbId, '<span class="mqpic-im"><img src="' + esc(c.file) + '" alt="" loading="lazy"></span>', c.name, p.pic === c.mbId)).join("") + "</div>" +
+      '<div class="sh-b"><button class="btn" data-a="close">とじる</button></div>', { cls: "mqpic" });
+  }
   function openLink(i) {
     const p = setup.all[i];
     if (navigator.onLine === false) { toast("オフライン中は連携できません。自分の端末なら「この端末の本人」にチェックするだけで XEVA が入ります", 3400); return; }
@@ -529,11 +551,13 @@
     seatAdd: () => { if (setup.n < 8) { const i = setup.n; setup.all[i] = setup.all[i] || blankSeat(i); setup.n++; saveSetup(); FX.sfx("tap"); renderSetup(); const l = $("#setup .su-body"); l.scrollTop = 99999; } },
     seatDel: (el) => {
       const i = +el.dataset.i, p = setup.all.splice(i, 1)[0];
-      p.link = null; p.owner = false; p.name = "プレイヤー" + setup.all.length;
+      p.link = null; p.owner = false; p.pic = ""; p.name = "プレイヤー" + setup.all.length;
       setup.all.push(p); setup.n--;
       saveSetup(); FX.sfx("tap"); renderSetup();
     },
     seatLink: (el) => { FX.sfx("tap"); openLink(+el.dataset.i); },
+    seatPic: (el) => { FX.sfx("tap"); openPic(+el.dataset.i); },
+    picSet: (el) => { const p = setup.all[+el.dataset.i]; if (!p) return; p.pic = el.dataset.v || ""; saveSetup(); FX.sfx("sel"); closeSheet(); keepScroll(renderSetup); },
     lkSearch: () => lkSearch(),
     lkPick: (el) => { FX.sfx("tap"); lkPick(el.dataset.k); },
     lkKey: (el) => lkKey(el.dataset.v),

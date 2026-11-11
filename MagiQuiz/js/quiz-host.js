@@ -3,7 +3,7 @@
    ★★ 2026-11-08 ご指定「以前の提案の 6 の司会キャラ（オンオフ可能）を追加」
    ------------------------------------------------------------
    ・試合の進行に合わせて、司会のキャラが吹き出しで実況する（始まり・手番・正解・まちがい・爆発・転落・優勝 …）。
-     大きな場面（爆発・タワー制覇・早押しの先取・優勝・5問連続）はカットイン（画面を横切る帯＋大きな絵）。
+     ★★ 2026-11-11 ご指定でカットイン（画面を横切る帯＋大きな絵）は出さない＝どの場面も吹き出しだけ。
    ・えらべるのは<b>持っている子だけ</b>：ホームのパートナー（xeva_mate_v1.own・笙古は最初から）と、
      完凸ロビーのキャラ（完凸＝magiburst_v1.chars[id].awk か xeva_gacha_v1.dupes[id] が 4）。
      「おまかせ」＝ホームでいま選んでいるパートナー（無ければロビーのキャラ → 笙古）。
@@ -18,7 +18,7 @@
 
   /* ── キャラの台帳（顔の位置は home-mate/<id>/<id>.json・home-lobby.js の DEFS の rig.face と同じ数字）── */
   const P = (id, name, color, size, face, r, tone) => ({ id, name, color, src: "../home-mate/" + id + "/" + id + ".webp?v=17", size, face, r, tone, kind: "mate" });
-  const L = (id, name, color, face, r, tone, img) => ({ id, name, color, src: "../home-mate/lobby/" + (img || id) + ".webp?v=1", size: [941, 1672], face, r, tone, kind: "lobby" });
+  const L = (id, name, color, face, r, tone, img, v) => ({ id, name, color, src: "../home-mate/lobby/" + (img || id) + ".webp?v=" + (v || 1), size: [941, 1672], face, r, tone, kind: "lobby" });   /* ★★ 2026-11-10 v＝絵の版（アイナ・ユナは 2） */
   const CHARS = [
     P("shoko", "笙古", "#8fb4e6", [426, 1665], [198, 202], 70, "shy"),
     P("hitomi", "瞳", "#6f86d6", [833, 1786], [368, 225], 72, "genki"),
@@ -30,6 +30,12 @@
     P("iori", "衣織", "#ff8fb1", [971, 1536], [479, 215], 70, "genki"),
     P("kiara", "樹愛羅", "#ffa64d", [513, 1635], [229, 195], 72, "genki"),
     P("emiri", "映美里", "#9aa8ff", [648, 1674], [252, 208], 66, "otona"),
+    /* ★★ 2026-11-10 ROYAL DEBUT のマコ・アコ・ミナ・超極華祭のエナ・ミミ（完凸ロビー＝home-lobby.js の rig.face） */
+    L("mako", "マコ", "#ff7a8a", [405, 205], 70, "otona"),
+    L("ako", "アコ", "#7a8cff", [530, 180], 68, "shy"),
+    L("mina", "ミナ", "#4f8cff", [480, 210], 70, "genki"),
+    L("ena", "エナ", "#3fae6e", [400, 235], 74, "shy"),
+    L("mimi", "ミミ", "#8a5cff", [560, 230], 70, "genki"),
     L("chifuru", "チフル", "#4f6dff", [410, 200], 80, "genki"),
     L("mint", "ミント", "#2fbf8a", [567, 215], 80, "shy"),
     L("purika", "プリカ", "#e0a92a", [410, 250], 72, "genki"),
@@ -38,8 +44,8 @@
     L("hisako", "ヒサコ", "#38a6ff", [452, 282], 96, "genki"),
     L("alice", "アリス", "#7a5cff", [412, 235], 74, "shy"),
     L("kohaku", "コハク", "#e0484a", [470, 205], 72, "shy"),
-    L("yuna", "ユナ", "#8a5cd8", [560, 222], 70, "otona"),
-    L("aina", "アイナ", "#a07cff", [495, 195], 68, "teinei"),
+    L("yuna", "ユナ", "#8a5cd8", [480, 215], 70, "otona", null, 2),     /* ★★ 2026-11-10 新しい立ち絵 */
+    L("aina", "アイナ", "#a07cff", [490, 235], 68, "teinei", null, 2),
     L("chie", "ヨシノ", "#e03a4a", [360, 185], 62, "teinei", "chie"),
   ];
   const BY = {}; CHARS.forEach((c) => { BY[c.id] = c; });
@@ -201,7 +207,9 @@
     },
   };
   /* カットインにする場面 */
-  const CUT = { boom: 1, top: 1, rushwin: 1, final: 1 };
+  /* ★★ 2026-11-10 ご指定「最後の司会のカットインは要りません」→ ★★ 2026-11-11 ご指定「司会のカットインを消して」＝<b>カットインは出さない</b>（どの場面も吹き出しだけ）。
+     cut() は残してある（もどすときは CUT に場面を入れるだけ）。 */
+  const CUT = {};
   const lastPick = {};
   function lineFor(ev, c) {
     const T = LINES[c.tone] || LINES.genki, arr = T[ev] || LINES.genki[ev];
@@ -235,7 +243,7 @@
     const c = o.char || current(); if (!c) return;
     const raw = o.text || lineFor(ev, c); if (!raw) return;
     const tx = fill(raw, v, c);
-    if ((CUT[ev] || o.cut) && !o.noCut && !(FX.RM && FX.RM())) { cut(c, tx); return; }
+    if (CUT[ev] && !o.noCut && !(FX.RM && FX.RM())) { cut(c, tx); return; }   /* ★★ 2026-11-11 o.cut（5問連続）もカットインにしない */
     const b = ensure();
     b.style.setProperty("--c", c.color);
     b.querySelector(".mh-fw").innerHTML = faceHTML(c, 52);

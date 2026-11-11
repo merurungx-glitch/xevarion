@@ -56,7 +56,8 @@
   function makeUnits(S, list) {
     const ps = list.map((p, i) => {
       const lk = !p.owner && p.link && p.link.uid && p.link.confirmed !== false ? p.link : null;
-      return { i, name: String(p.name || "プレイヤー" + (i + 1)).slice(0, 8), color: COLORS[i], owner: !!p.owner, uid: lk ? lk.uid : null, acc: p.owner ? A.me() : lk };
+      return { i, name: String(p.name || "プレイヤー" + (i + 1)).slice(0, 8), color: COLORS[i], owner: !!p.owner, uid: lk ? lk.uid : null, acc: p.owner ? A.me() : lk,
+        pic: !p.owner && !lk ? String(p.pic || "") : "" };   /* ★★ 2026-11-10 連携していない人がえらんだ UR キャラのアイコン */
     });
     let units;
     if (!S.team) units = ps.map((p) => ({ name: p.name, color: p.color, members: [p] }));
@@ -119,7 +120,7 @@
   function orderDraw(done) {
     const box = $("#odB"), hd = $("#odH");
     const seat = G.units.slice().sort((a, b) => a.members[0].i - b.members[0].i);
-    box.innerHTML = seat.map((u) => `<div class="odc" data-k="${u.k}" style="--c:${u.color}"><i class="odn"></i>${avatar({ name: u.name, color: u.color, acc: G.team ? null : u.members[0].acc, icon: G.team ? "team" : null }, "sm")}<b>${esc(u.name)}</b></div>`).join("");
+    box.innerHTML = seat.map((u) => `<div class="odc" data-k="${u.k}" style="--c:${u.color}"><i class="odn"></i>${avatar({ name: u.name, color: u.color, acc: G.team ? null : u.members[0].acc, pic: G.team ? "" : u.members[0].pic, icon: G.team ? "team" : null }, "sm")}<b>${esc(u.name)}</b></div>`).join("");
     const el = (k) => box.querySelector('.odc[data-k="' + k + '"]');
     let pos = 0, timer = 0, over = false;
     const fix = (u, i) => { const c = el(u.k); c.classList.add("fix"); c.querySelector(".odn").textContent = i + 1; };
@@ -167,7 +168,7 @@
     box.style.setProperty("--c", u.color);
     box.innerHTML = `<button class="tn-menu" data-a="pause" aria-label="メニュー">${ic("pause")}</button><div class="tn-w"></div><div class="tn-in" data-a="turnGo">
       <p class="tn-h">${o.head}</p>
-      ${avatar({ name: u.name, color: u.color, acc: G.team ? null : mb.acc, icon: G.team ? "team" : null }, "xl")}
+      ${avatar({ name: u.name, color: u.color, acc: G.team ? null : mb.acc, pic: G.team ? "" : mb.pic, icon: G.team ? "team" : null }, "xl")}
       <h2 class="tn-n">${esc(u.name)}<small>の番</small></h2>
       ${G.team ? `<p class="tn-m">こたえる人：<b>${esc(mb.name)}</b>（相談OK）</p>` : ""}
       ${o.sub ? `<p class="tn-s">${o.sub}</p>` : ""}${o.extra || ""}
@@ -279,7 +280,7 @@
     $("#plStrip").classList.toggle("dense", G.units.length >= 4);
     /* ★★ 2026-11-05 ご指定「上に表示されるプレイヤーのサイズは同じに」「順番で並べて」→ 同じ幅の札を順番どおりに（CSS は grid-auto-columns） */
     const onK = G.mode === "rush" ? (P.rp ? P.rp.who : -1) : G.cur;
-    $("#plStrip").innerHTML = G.units.map((u, i) => `<div class="uc${u.k === onK ? " on" : ""}${u.out ? " out" : ""}${u.stopped ? " stop" : ""}" style="--c:${u.color}"><i class="uc-n">${i + 1}</i>${avatar({ name: u.name, color: u.color, acc: G.team ? null : u.members[0].acc, icon: G.team ? "team" : null }, "xs")}<span class="uc-t"><b>${esc(u.name)}</b><em>${statusHTML(u)}</em></span></div>`).join("");
+    $("#plStrip").innerHTML = G.units.map((u, i) => `<div class="uc${u.k === onK ? " on" : ""}${u.out ? " out" : ""}${u.stopped ? " stop" : ""}" style="--c:${u.color}"><i class="uc-n">${i + 1}</i>${avatar({ name: u.name, color: u.color, acc: G.team ? null : u.members[0].acc, pic: G.team ? "" : u.members[0].pic, icon: G.team ? "team" : null }, "xs")}<span class="uc-t"><b>${esc(u.name)}</b><em>${statusHTML(u)}</em></span></div>`).join("");
     const st = $("#plStrip"), on = $("#plStrip .uc.on"); if (on) st.scrollLeft = on.offsetLeft - (st.clientWidth - on.offsetWidth) / 2;
   }
   const heartsHTML = (max, left) => Array.from({ length: max }, (_, i) => `<u class="h${i < left ? " on" : ""}">♥</u>`).join("");
@@ -734,8 +735,17 @@
     FX.stamp(BAD, "bad", 750);
     if (u.out) setTimeout(() => { FX.sfx("out"); FX.stamp("OUT", "out", 1300); }, 620);
     setTimeout(() => host(u.out ? "out" : "otetsuki", { p: nmOf(u) }), 500);
+    /* ★★ 2026-11-10 ご指定「ほかのプレイヤーが答えるときは、前のプレイヤーがまちがえた選択肢を消して」
+       → えらんだ選択肢のうち正解でないものを P.hidden に（「しぼる」と同じ消し方・答え合わせの画面ではまた見せる＝markOpts）。
+         複数えらぶ問題は、えらんだうちの不正解だけを消す。数字を入れる問題・時間切れは消すものがない。 */
+    let gone = 0;
+    if (why !== "time" && P.q && P.q.type !== "n") {
+      const cor = Q.answers(P.q), picked = P.q.type === "m" ? (Array.isArray(P.sel) ? P.sel : []) : (P.sel != null ? [P.sel] : []);
+      picked.forEach((i) => { if (cor.indexOf(i) < 0 && !P.hidden[i]) { P.hidden[i] = 1; gone++; } });
+    }
     const rest = G.units.filter((v) => !v.out && !rp.lock[v.k]);
     if (!rest.length || alive().length <= 1) { rushEnd({ kind: "none", ok: false, last: u.k }); return; }
+    if (gone) setTimeout(() => toast("まちがえた選択肢を消しました"), 900);
     /* のこりの人で、文のつづきから */
     Pad.close();
     rp.who = -1; rp.st = rp.from; resetSel(); P.phase = "rush"; P.spent = 0;
