@@ -15,8 +15,8 @@
    <b>ふつうの &lt;script&gt;</b>（type="module" ではない）で読むこと。
    トップレベルの const/let はグローバルの字句環境に入るので、
    あとから読み込む MagiBurst 本体のスクリプトからそのまま見える。
-     MagiBurst : <script src="js/mb-core.js?v=146"></script>
-     gacha.html: <script src="MagiBurst/js/mb-core.js?v=146"></script>
+     MagiBurst : <script src="js/mb-core.js?v=147"></script>
+     gacha.html: <script src="MagiBurst/js/mb-core.js?v=147"></script>
 
    ── ホストが先に用意しておくもの ──
      window.MB_IMGD … 画像フォルダへの相対パス（MagiBurst は "../img/"、ポータルは "img/"）
@@ -15096,7 +15096,7 @@ const CHOKOU_IDS = ["kohaku", "suzu", "shouko", "hisako", "alice"];
 /* ★★ 2026-10-28 ご指定「ヒサコとアリスは、ガチャや図鑑で完凸するとロビーで設定できることを控えめに表記」
    完凸（4凸）でホームの「ロビー」に出せるキャラ（home-lobby.js の DEFS と同じ顔ぶれ。片方を足したらもう一方も）。
    ガチャの顔ぶれのカード（gacha-ui.js の .flb）とキャラ詳細（mb-char-detail.js の .dlob）に小さく出す。 */
-const LOBBY_CHAR_IDS = ["chifuru", "mint", "purika", "haru", "chika", "hisako", "alice", "kohaku", "yuna", "aina", "chie"];   /* ★★ 2026-11-03 チフル・ミント・プリカも */   /* ★★ 2026-10-30 超極彩祭のハル・チカも（ご指定「完凸でロビーにセットできる」）
+const LOBBY_CHAR_IDS = ["mako", "ako", "mina", "ena", "mimi", "chifuru", "mint", "purika", "haru", "chika", "hisako", "alice", "kohaku", "yuna", "aina", "chie"];   /* ★★ 2026-11-10 マコ・アコ・ミナ・エナ・ミミも（ご指定「完凸ロビーでは使用できます」） */   /* ★★ 2026-11-03 チフル・ミント・プリカも */   /* ★★ 2026-10-30 超極彩祭のハル・チカも（ご指定「完凸でロビーにセットできる」）
    ★★ 2026-10-31 コハク・ユナ・アイナ・ヨシノも（ご指定「完凸ロビー対応キャラに追加」・立ち絵は home-lobby.js） */
 function hasLobby(id) { return LOBBY_CHAR_IDS.indexOf(id) >= 0; }
 Object.assign(AO_CHAR_DEF, {
@@ -15124,6 +15124,26 @@ Object.assign(AO_CHAR_DEF, {
   mint:    { nm: "ミント", f: "Mint",    el: "wood",  shot: "bounce", type: "白花こもれび型", fesKey: "chosai" },
   purika:  { nm: "プリカ", f: "Purika",  el: "light", shot: "pierce", type: "星章学院型",     fesKey: "chosai" },
 });
+/* ★★ 2026-11-10 <b>超極華祭</b>に <b>エナ（木）・ミミ（闇）</b>を追加（No.291・292・ご指定）。
+   ・ハル・チカと同じく「MagiAbyss と MagiBattle の性能のみ」（abyssOnly）。MagiChemLex のナビ・アイコン・完凸ロビーには使える。
+   ・MagiAbyss は<b>ハル・チカと同じ帯</b>（ご回答）／MagiBattle はブルーム隊（エナ＝防御型 MG バーストⅡ・ミミ＝火力型 SG バーストⅡ）。
+   ・ABYSS_ONLY_IDS（＝fes19 の chars）に足す。NEW の台帳は CHOKAEN_NEW_IDS。 */
+const CHOKAEN_NEW_IDS = ["ena", "mimi"];
+Array.prototype.push.apply(ABYSS_ONLY_IDS, CHOKAEN_NEW_IDS);
+Object.assign(AO_CHAR_DEF, {
+  ena:  { nm: "エナ", f: "Ena",  el: "wood", shot: "bounce", type: "常夏ギンガム型", fesKey: "chokaen" },
+  mimi: { nm: "ミミ", f: "Mimi", el: "dark", shot: "pierce", type: "泡沫フリル型",   fesKey: "chokaen" },
+});
+/* ★★ 2026-11-10 <b>ROYAL DEBUT GACHA</b> の UR 3体（No.293〜295・ご指定）＝ <b>マコ（火）・アコ（水）・ミナ（光）</b>。
+   ・「MagiAbyss と MagiBattle の性能のみ」（abyssOnly）。MagiChemLex のナビ・アイコン・完凸ロビーには使える。
+   ・ガチャは GRAND DEBUT と同じしくみ（ROYAL_VERSIONS・版ごとに20日・終わったら PREMIUM SELECT GACHA へ）。fes の印は付けない（debut/royal の印）。
+   ・MagiAbyss は<b>ヒサコより少し弱め</b>（ご回答）／MagiBattle は新しい<b>ロイヤル隊</b>（アコ＝支援 RL Ⅰ・ミナ＝防御 AR Ⅱ・マコ＝火力 SMG Ⅲ）。 */
+const ROYAL_IDS = ["mako", "ako", "mina"];
+Object.assign(AO_CHAR_DEF, {
+  mako: { nm: "マコ", f: "Mako", el: "fire",  shot: "pierce", type: "桜色ニット型",   royal: true },
+  ako:  { nm: "アコ", f: "Ako",  el: "water", shot: "bounce", type: "紫陽花雨音型",   royal: true },
+  mina: { nm: "ミナ", f: "Mina", el: "light", shot: "pierce", type: "青薔薇リュクス型", royal: true },
+});
 /* ★★ 2026-10-24 <b>MagiChemLex の WP 交換所</b>の UR（ガチャからは出ない・120WP で1体・ご指定）＝ ミキ（木・No.285）。
    これも MagiAbyss 専用（性能は MagiAbyss だけ・MagiChemLex のナビやアイコンには使える）。MagiAbyss ではタキナと同じ帯。 */
 const WP_CHAR_IDS = ["miki"];
@@ -15131,13 +15151,16 @@ AO_CHAR_DEF.miki = { nm: "ミキ", f: "Miki", el: "wood", shot: "bounce", type: 
 /* 並び（MagiAbyss の一覧などは新しい順）：今回の3体 → 超極煌祭のはじめの3体 → 超極華祭 */
 /* ★★ 2026-10-30 超極彩祭のハル・チカをいちばん前に */
 /* ★★ 2026-11-03 チフル・ミント・プリカをいちばん前に */
-const ABYSS_ONLY_ALL = CHOSAI_NEW_IDS.concat(["haru", "chika"], ["hisako", "alice", "miki", "kohaku", "suzu", "shouko"], ABYSS_ONLY_IDS);
+/* ★★ 2026-11-10 ROYAL DEBUT の3体・超極華祭のエナ・ミミをいちばん前に（ABYSS_ONLY_IDS にはエナ・ミミも入っているので、もとの5体だけを後ろへ） */
+const ABYSS_ONLY_ALL = ROYAL_IDS.concat(CHOKAEN_NEW_IDS, CHOSAI_NEW_IDS, ["haru", "chika"], ["hisako", "alice", "miki", "kohaku", "suzu", "shouko"],
+  ABYSS_ONLY_IDS.filter((id) => CHOKAEN_NEW_IDS.indexOf(id) < 0));
 ABYSS_ONLY_ALL.forEach((id) => {
   const d = AO_CHAR_DEF[id], T = CHARS.takina;
   CHARS[id] = {
     id, nm: d.nm, img: d.f + ".webp", th: "t_" + d.f + ".webp", wide: d.f + "_w.webp", ss: d.f + "SS.webp",
     el: d.el, shot: d.shot, type: d.type,
-    gacha: true, fes: true, fesKey: d.fesKey || "chokaen", lux: true, star5: true,
+    gacha: true, fes: !d.royal, fesKey: d.royal ? undefined : (d.fesKey || "chokaen"), lux: !d.royal, star5: true,
+    debut: !!d.royal, royal: !!d.royal,   /* ★★ 2026-11-10 ROYAL DEBUT の子は fes ではなく debut/royal の印 */
     abyssOnly: true,
     hp: T.hp.slice(), atk: T.atk.slice(), spd: T.spd.slice(),
     abil: [], subfs: T.subfs,
@@ -15414,6 +15437,8 @@ const CHAR_IDS = [
   "haru", "chika",                                     /* No.286〜287 */
   /* ★★ 2026-11-03 超極彩祭の追加3体（UR・MagiAbyss 専用） */
   "chifuru", "mint", "purika",                         /* No.288〜290 */
+  /* ★★ 2026-11-10 超極華祭の追加2体・ROYAL DEBUT GACHA の3体（UR・MagiAbyss と MagiBattle 専用） */
+  "ena", "mimi", "mako", "ako", "mina",                /* No.291〜295 */
 ];
 /* id → キャラクター番号（1始まり）。図鑑・詳細・ガチャ結果に「No.XX」として出す */
 const CHAR_NO = {};
@@ -15474,6 +15499,8 @@ CHOKOU_IDS.forEach((id) => { RAR_LABEL[id] = "UR"; });
 WP_CHAR_IDS.forEach((id) => { RAR_LABEL[id] = "UR"; });
 /* ★★ 2026-10-30 超極彩祭の2体も UR */
 CHOSAI_IDS.forEach((id) => { RAR_LABEL[id] = "UR"; });
+/* ★★ 2026-11-10 ROYAL DEBUT の3体も UR（超極華祭のエナ・ミミは ABYSS_ONLY_IDS で上の行が付ける） */
+ROYAL_IDS.forEach((id) => { RAR_LABEL[id] = "UR"; });
 function rarLabel(id) { return RAR_LABEL[id] || (isStar5(id) ? "SSR" : "SR"); }
 /* 限界突破MAXの金演出クラス。SRは「金の縁取りだけ」で発光させない（v14） */
 /* ★ 2026-08-12 限界突破MAXの見た目は<b>SSRだけ</b>にした。
@@ -15516,7 +15543,9 @@ Object.entries({ takina: [0.26, 0.35], hibana: [0.69, 0.45], fuki: [0.20, 0.41],
   /* ★★ 2026-10-30 超極彩祭 */
   haru: [0.33, 0.33], chika: [0.41, 0.36],
   /* ★★ 2026-11-03 超極彩祭の追加3体 */
-  chifuru: [0.27, 0.33], mint: [0.20, 0.30], purika: [0.18, 0.36] })
+  chifuru: [0.27, 0.33], mint: [0.20, 0.30], purika: [0.18, 0.36],
+  /* ★★ 2026-11-10 エナ・ミミ（超極華祭）・マコ・アコ・ミナ（ROYAL DEBUT） */
+  ena: [0.33, 0.42], mimi: [0.76, 0.44], mako: [0.27, 0.40], ako: [0.40, 0.40], mina: [0.29, 0.32] })
   .forEach(([id, f]) => { if (CHARS[id]) CHARS[id].wideFace = f; });
 /* ★★ 2026-10-06b UR の絵の見せ方（どのアプリのキャラ詳細でも共通・ご指定「UR の絵が SSR より小さい」）
    ・枠は SSR と同じ大きさ（高さ）にして、横長の絵を<b>大きく</b>出し、ゆっくり左右に流して全体を見せる（.urx-pan）。
@@ -23128,6 +23157,14 @@ function charSourceList(id) {
         + (v.movedAt ? "── いまは " + PREMIUM_NM + " へ移りました" : ""));
     });
   } catch (e) {}
+  /* ③′ ★★ 2026-11-10 ROYAL DEBUT GACHA（版ごとに20日。過ぎるとプレミアムへ移る） */
+  try {
+    (ROYAL_VERSIONS || []).forEach((v) => {
+      if ((v.chars || []).indexOf(id) < 0) return;
+      out.push("👑 <b>" + ROYAL_NM + " Ver." + v.ver + "</b>（" + v.date + " 実装・20日間）"
+        + (debutRetired(v) ? "── いまは " + PREMIUM_NM + " へ移りました" : ""));
+    });
+  } catch (e) {}
   /* ④ プレミアムセレクトガチャ */
   try {
     if (PREMIUM_CHARS.indexOf(id) >= 0) out.push("🎰 <b>" + PREMIUM_NM + "</b>");
@@ -23445,6 +23482,17 @@ const DEBUT_VERSIONS = [
   { ver: "1.0", date: "2026-08-20", chars: ["mirelle", "scarlet", "koyuki", "amelia", "mio"],
     movedAt: "2026-08-24" },
 ];
+/* ══ ★★ 2026-11-10 <b>ROYAL DEBUT GACHA</b>（ご指定）══
+   ・「開催期間と日数や仕様などは GRAND DEBUT GACHA と同じ」→ 版ごとに DEBUT_DAYS（20日）・1日1回の単発無料・初回10連無料（版ごと）・
+     🎫フェス券は使えない・掲載が終わった版のキャラは<b>自動で PREMIUM SELECT GACHA へ</b>（debutRefresh・ご指定「終了後恒常扱い」）。
+   ・「GRAND DEBUT GACHA とは異なる」→ 版の台帳は別（ROYAL_VERSIONS）・mode は "royal"／"royal:1.0"（isDebutMode が両方を見る＝しくみは共通）。
+     無料の台帳（DB.debutFree／debutFree10）は "R1.0" のように頭に R を付けて GRAND DEBUT の版と分ける（debutVKey）。
+   ・「開催中の超極系ガチャのすぐ下・ガチャ一覧の一番上」→ gachaMenuList の chosai/chokou/choka のすぐ後ろ（gachaMenuRoyalRows）。
+   ・UR 1体 2%（PICK_ROYAL・ご回答）。キャラは ROYAL_IDS（AO_CHAR_DEF の royal）。
+   ★ 版を足すときはこの配列の<b>先頭</b>に1行（GRAND DEBUT と同じ）＋ mb-newchars.js（mode "royal"）。 */
+const ROYAL_VERSIONS = [
+  { ver: "1.0", date: "2026-11-12", chars: ["mako", "ako", "mina"], line: "royal" },   /* ★★ 2026-11-12 配信日に合わせた */
+];
 /* きょう（ローカル日付。toISOString は UTC なので日本は9時間おくれる） */
 function debutToday() { return new Date().toLocaleDateString("sv-SE"); }
 /* 日付文字列に n 日足す */
@@ -23461,6 +23509,8 @@ function debutLive(v) { const t = debutToday(); return t >= v.date && t < debutE
 function debutRetired(v) { return debutToday() >= debutEndOf(v); }
 /* 掲載中の版（新しい順） */
 function debutLiveVers() { return DEBUT_VERSIONS.filter(debutLive); }
+/* ★★ 2026-11-10 掲載中の ROYAL DEBUT の版（新しい順） */
+function royalLiveVers() { return ROYAL_VERSIONS.filter(debutLive); }
 /* 掲載終了まであと何日か（0なら今日で終わり） */
 function debutDaysLeft(v) {
   const a = new Date(debutToday() + "T00:00:00"), b = new Date(debutEndOf(v) + "T00:00:00");
@@ -23468,6 +23518,7 @@ function debutDaysLeft(v) {
 }
 /* 全ての版のキャラ（図鑑・互換用） */
 const DEBUT_ALL_CHARS = DEBUT_VERSIONS.reduce((a, v) => a.concat(v.chars), []);
+const ROYAL_ALL_CHARS = ROYAL_VERSIONS.reduce((a, v) => a.concat(v.chars), []);   /* ★★ 2026-11-10 */
 /* ★ いちばん新しい版。バナーの帯・お知らせ・既定の表示はこれを見る */
 function debutNewestVer() { return debutLiveVers()[0] || DEBUT_VERSIONS[0]; }
 const GACHA_VER = DEBUT_VERSIONS[0].ver;          // ★ 互換: いちばん新しい版
@@ -23480,10 +23531,16 @@ const DEBUT_NM = "GRAND DEBUT GACHA";
 const PREMIUM_NM = "PREMIUM SELECT GACHA";
 const DEBUT_C = "#d4a017";
 const DEBUT_BANNER = "../img/bn_debut_s.webp";
+/* ★★ 2026-11-10 ROYAL DEBUT GACHA の名前・色・バナー */
+const ROYAL_NM = "ROYAL DEBUT GACHA";
+const ROYAL_C = "#9b6bff";
+const ROYAL_BANNER = "../img/bn_royal_s.webp";
 /* ★★ 2026-08-26 いま GRAND DEBUT で引ける顔ぶれ（＝掲載中の版ぜんぶの合算）。
    ★ 中身は debutRefresh() が入れる。<b>配列そのものは作り直さない</b>
      （ほかの場所が同じ配列を参照しているので、入れ替えると食いちがう）。 */
 const DEBUT_CHARS = [];
+/* ★★ 2026-11-10 いま ROYAL DEBUT で引ける顔ぶれ（debutRefresh が入れる・配列そのものは作り直さない） */
+const ROYAL_CHARS = [];
 /* 掲載中／終了ぶんを DEBUT_CHARS と PREMIUM_CHARS に反映する。
    ★ 日付が変わっただけで顔ぶれが動くので、ガチャを描くたびに呼ぶ（initGachaMode / paintGacha）。 */
 function debutRefresh() {
@@ -23495,7 +23552,12 @@ function debutRefresh() {
   }));
   DEBUT_CHARS.length = 0;
   Array.prototype.push.apply(DEBUT_CHARS, ids);
-  DEBUT_VERSIONS.forEach((v) => {
+  /* ★★ 2026-11-10 ROYAL DEBUT も同じ（掲載中＝ROYAL_CHARS・掲載が終わった版はプレミアムへ） */
+  const rids = [];
+  royalLiveVers().forEach((v) => v.chars.forEach((id) => { if (CHARS[id] && rids.indexOf(id) < 0) rids.push(id); }));
+  ROYAL_CHARS.length = 0;
+  Array.prototype.push.apply(ROYAL_CHARS, rids);
+  DEBUT_VERSIONS.concat(ROYAL_VERSIONS).forEach((v) => {
     v.chars.forEach((id) => {
       if (!CHARS[id]) return;
       const at = PREMIUM_CHARS.indexOf(id);
@@ -23509,16 +23571,33 @@ function debutRefresh() {
       }
     });
   });
+  /* ★★ 2026-11-10 終わったら PREMIUM SELECT GACHA へ移るフェス（Sapphire Breeze）。読みこみの途中（FESTS の前）は何もしない */
+  try { fesPremiumRefresh(); } catch (e) {}
 }
 debutRefresh();
 /* ══ 版ごとのガチャ（mode）══
    ・"debut"        … いちばん新しい掲載中の版（古いリンク・#debut はこれに当たる）
    ・"debut:2.0" …  版を名ざしで開く（2本並んでいるときに使う） */
-function isDebutMode(m) { m = String(m || ""); return m === "debut" || m.indexOf("debut:") === 0; }
-function debutModeKey(v) { return "debut:" + v.ver; }
+/* ★★ 2026-11-10 ROYAL DEBUT GACHA（"royal"／"royal:1.0"）も GRAND DEBUT と同じしくみなので isDebutMode に入れる。
+   名前・色・札・バナー・確率だけ debutNmOf／debutCOf／debutLabOf／debutBannerOf／pickRateOfMode で分ける。 */
+function isRoyalMode(m) { m = String(m || ""); return m === "royal" || m.indexOf("royal:") === 0; }
+function isDebutMode(m) { m = String(m || ""); return m === "debut" || m.indexOf("debut:") === 0 || isRoyalMode(m); }
+function debutModeKey(v) { return (v && v.line === "royal" ? "royal:" : "debut:") + v.ver; }
+/* 無料の台帳のキー（GRAND DEBUT は "1.0"・ROYAL DEBUT は "R1.0"＝同じ版の数字でもぶつからない） */
+function debutVKey(v) { return (v && v.line === "royal" ? "R" : "") + v.ver; }
+function debutNmOf(m) { return isRoyalMode(m) ? ROYAL_NM : DEBUT_NM; }
+function debutCOf(m) { return isRoyalMode(m) ? ROYAL_C : DEBUT_C; }
+function debutLabOf(m) { return isRoyalMode(m) ? "ROYAL" : "DEBUT"; }
 function debutVerOfMode(m) {
   if (!isDebutMode(m)) return null;
   const s = String(m);
+  /* ★★ 2026-11-10 ROYAL DEBUT（"royal" はいちばん新しい掲載中の版・"royal:1.0" は版を名ざし） */
+  if (isRoyalMode(s)) {
+    if (s === "royal") return royalLiveVers()[0] || null;
+    const rk = s.slice(6), rh = ROYAL_VERSIONS.find((v) => v.ver === rk);
+    if (rh && debutLive(rh)) return rh;
+    return royalLiveVers()[0] || null;
+  }
   if (s === "debut") return debutLiveVers()[0] || null;
   const key = s.slice(6);
   const hit = DEBUT_VERSIONS.find((v) => v.ver === key);
@@ -23530,7 +23609,7 @@ function debutStandby() { return debutLiveVers().length === 0; }
 function debutCharsOfMode(m) { const v = debutVerOfMode(m); return v ? v.chars.filter((id) => CHARS[id]) : []; }
 function debutPoolOf(m) { return debutCharsOfMode(m).slice(); }   /* ★★ 2026-10-31 完凸でも外さない */
 /* ★★ 2026-08-28 GRAND DEBUT の新キャラは1体あたり 2.0% 固定（ご指定）。 */
-function debutEachRateOf(m) { return debutPoolOf(m).length ? PICK_DEBUT : 0; }
+function debutEachRateOf(m) { return debutPoolOf(m).length ? (isRoyalMode(m) ? PICK_ROYAL : PICK_DEBUT) : 0; }
 /* ══ ★★ 2026-08-25 GRAND DEBUT の排出率（ご指定）══
    限定SSR（この版の新キャラ）の合計排出率を <b>10% → 15%</b> に引き上げた。
    ★ 増やした 5% は<b>育成アイテムの枠</b>から取る。SR 50% と
@@ -23563,12 +23642,12 @@ function debutFreeMap() {
 function debutFreeLeft(m) {
   const v = debutVerOfMode(m || "debut");
   if (!v) return 0;
-  return debutFreeMap()[v.ver] === debutToday() ? 0 : 1;
+  return debutFreeMap()[debutVKey(v)] === debutToday() ? 0 : 1;
 }
 function debutFreeUse(m) {
   const v = debutVerOfMode(m || "debut");
   if (!v) return;
-  debutFreeMap()[v.ver] = debutToday(); save();
+  debutFreeMap()[debutVKey(v)] = debutToday(); save();
 }
 /* ══ ★★ 2026-08-26b 版ごとに<b>初回の10連だけ無料</b>（ご指定）══
    ・無料になるのは<b>10連</b>のときだけ。単発・5連はこれまでどおり。
@@ -23587,12 +23666,12 @@ function debutFree10Map() {
 function debutFree10Left(m) {
   const v = debutVerOfMode(m || "debut");
   if (!v) return 0;
-  return debutFree10Map()[v.ver] ? 0 : 1;
+  return debutFree10Map()[debutVKey(v)] ? 0 : 1;
 }
 function debutFree10Use(m) {
   const v = debutVerOfMode(m || "debut");
   if (!v) return;
-  debutFree10Map()[v.ver] = true; save();
+  debutFree10Map()[debutVKey(v)] = true; save();
 }
 /* ══ ★★ 2026-10-06c フェスガチャでも「初回10連無料」（FESTS[k].free10 の付いたガチャだけ・ご指定 Sapphire Breeze）══
    ・DB.fesFree10 = { fes17: true }（使ったら true・日付では戻らない）。payGacha を通さない＝🎫も💎も減らない。最後の1枠の確定もそのまま。
@@ -23611,8 +23690,8 @@ function fesFree10Use(key) { fesFree10Map()[key] = true; save(); }
 /* ★ ポータル（下バーの「無料」の印）が使う: どれか1本でも無料が残っているか
    （単発・10連の<b>どちらか</b>が残っていれば印を出す） */
 function debutAnyFree() {
-  return debutLiveVers().some((v) =>
-    debutFreeMap()[v.ver] !== debutToday() || !debutFree10Map()[v.ver]);
+  return debutLiveVers().concat(royalLiveVers()).some((v) =>
+    debutFreeMap()[debutVKey(v)] !== debutToday() || !debutFree10Map()[debutVKey(v)]);
 }
 /* 次に無料がもどるまで（切りかわりは<b>あすの0時</b>） */
 function debutFreeNextText() {
@@ -23623,7 +23702,7 @@ function debutFreeNextText() {
 /* 排出対象（限界突破MAXは除外し、そのぶんを残りで分け合う＝フェスと同じ考えかた） */
 function debutPool() { return DEBUT_CHARS.slice(); }
 function debutEachRate() { return debutPool().length ? PICK_DEBUT : 0; }
-function debutBannerOf() { return mbImgPath(DEBUT_BANNER); }
+function debutBannerOf(m) { return mbImgPath(isRoyalMode(m) ? ROYAL_BANNER : DEBUT_BANNER); }
 /* ══ GRAND DEBUT の「キャラ以外の中身」（ご指定で差し替え）══
    ・使えない🎫フェスチケットは入れず、<b>🎫ガチャチケット</b>に置き換える
    ・育成の当たり（📕超越の書・🎖️英傑の証）を厚くし、叡智の果実は<b>3個・5個束</b>を主体にする
@@ -23671,6 +23750,8 @@ const DEBUT_ITEM_TABLE = G_ITEM_TABLE.map((it) => (it.x === "xeva" && it.n === 5
 const RATE_BOOST   = 1.5;
 const SSR_TOTAL    = 0.18;      // すべてのガチャで共通（12% × 1.5）
 const PICK_DEBUT   = 0.030;     // GRAND DEBUT GACHA のピックアップ1体ぶん（2.0% × 1.5）
+const PICK_ROYAL   = 0.020;     // ★★ 2026-11-10 ROYAL DEBUT GACHA の UR 1体ぶん（ご回答「2%」）
+const PICK_PREMIUM_UR = 0.050;  // ★★ 2026-11-10 PREMIUM SELECT で UR をピックアップにしたとき（ご回答「ピックアップ可能だが 5%」）
 const PICK_PREMIUM = 0.075;     // PREMIUM SELECT GACHA のピックアップ（5.0% × 1.5）
 const PICK_FES     = 0.027;     // 各フェスガチャの限定SSR 1体ぶん（1.8% × 1.5）
 const PICK_ARCHIVE = 0.018;     // Festival Archive GACHA の1体ぶん（1.2% × 1.5）
@@ -23904,6 +23985,7 @@ function archiveChars() {
     if (k === ARCHIVE_KEY) return;                /* 自分自身は見ない（無限ループになる） */
     const f = FESTS[k];
     if (!fesTimed(f)) return;                     /* 極彩祭・極華祭・極煌祭は封入しない */
+    if (f.toPremium) return;                      /* ★★ 2026-11-10 終わったらプレミアムへ移るガチャ（Sapphire Breeze）はアーカイブに入れない */
     if (!fesArchived(k)) return;
     (f.chars || []).forEach((id) => { if (CHARS[id] && out.indexOf(id) < 0) out.push(id); });
   });
@@ -24856,8 +24938,10 @@ FESTS.fes17 = {
   key: "fes17", sfx: "17", nm: "Sapphire Breeze", tab: "Sapphire<br>Breeze",
   /* ★★ 2026-10-07 バナーを差しかえ（ご指定）。画像は版に縛られない置き場（xev-img）に残るので ?v= で取りかえる */
   banner: "../img/bn_fes17_s.webp?v=2", c: "#3d8bff", leadCls: "star",
-  perm: true, sapphire: true, free10: true, flatPick: true,
-  since: "2026-10-07",
+  /* ★★ 2026-11-10 ご指定「Sapphire Breeze ガチャを終了し、このガチャのキャラは恒常キャラ扱いとして PREMIUM SELECT GACHA に封入」
+     → 無期限（perm）をやめて 11/9 いっぱいで終了（until）。toPremium＝終わったら3体は Festival Archive ではなく PREMIUM_CHARS へ（fesPremiumRefresh）。 */
+  sapphire: true, free10: true, flatPick: true, toPremium: true,
+  since: "2026-10-07", until: "2026-11-09",
   pickEach: 0.010 * RATE_BOOST,   /* ★★ 2026-10-09 1.0% × 1.5 ＝ 1.5% */
   chars: ["hibana", "fuki", "takina"],
   newChars: ["hibana", "fuki"],
@@ -24869,10 +24953,12 @@ FESTS.fes17 = {
   },
   get sub() {
     return "UR <b>3体</b>（各" + ratePct(pickRateOf("fes17", "hibana")) + "）／<b>残りは " + PREMIUM_NM + " のSSRが等確率</b>。"
-      + "<b>無期限開催</b>・🎫フェスチケットが使えます" + (fesFree10Left("fes17") > 0 ? "・<b>🎁 初回10連無料</b>" : "");
+      + (fesEnded("fes17") ? "<b>配信は終了しました</b>（3体は " + PREMIUM_NM + " で引けます）" : fesPeriodText("fes17") + "・🎫フェスチケットが使えます" + (fesFree10Left("fes17") > 0 ? "・<b>🎁 初回10連無料</b>" : ""));
   },
   get note() {
-    return "<b>★★ 2026-10-07 新レアリティ UR 登場「Sapphire Breeze」</b>"
+    return "<b>★★ 2026-11-10 Sapphire Breeze は配信を終了しました</b>"
+      + "<br>★ ヒバナ・フキ・タキナの3体は <b>" + PREMIUM_NM + "</b> の恒常キャラになりました（ピックアップにも選べます・UR は 5%）。結晶交換所でも <b>250 個</b>で交換できます。"
+      + "<br><br><b>★★ 2026-10-07 新レアリティ UR 登場「Sapphire Breeze」</b>"
       + "<br>★ 新しく<b>ヒバナ（木・反射）</b>と<b>フキ（闇・貫通）</b>、さらに極彩祭から<b>タキナ（水・貫通）</b>が移ってきました。3体とも<b>UR</b>で、排出は<b>1体 " + ratePct(pickRateOf("fes17", "hibana")) + "</b>です。"
       + "<br>★ <b>無期限開催</b>・<b>🎫フェスチケットが使えます</b>・<b>はじめての10連は無料</b>（アカウントで1回・最後の1枠のSSR以上確定つき）。"
       + "<br>★ 3体とも<b>3属性有利＋オムニアンチ＋治癒の祈り</b>、キラー3つ、クロススキル、ショットスキル（撃つたび3つの技）、"
@@ -24941,32 +25027,35 @@ FESTS.fes18 = {
    ══════════════════════════════════════════════════════════════ */
 FESTS.fes19 = {
   key: "fes19", sfx: "19", nm: "超極華祭", tab: "超極華祭",
-  banner: "../img/bn_fes19_s.webp", c: "#6a5cff", leadCls: "star",
+  banner: "../img/bn_fes19_s.webp?v=2", c: "#6a5cff", leadCls: "star",   /* ★★ 2026-11-10 新しいバナー（ご指定・エナとミミ）。画像は版に縛られない置き場に残るので ?v=2 */
   monthly: [11, 20],
   noFesTicket: true,
   chokaen: true, flatPick: true,
   pickEach: 0.015,   /* 1.5%（ご指定） */
-  chars: ABYSS_ONLY_IDS.slice(),
-  newChars: ABYSS_ONLY_IDS.slice(),
-  newSince: "2026-10-16",
+  chars: ABYSS_ONLY_IDS.slice(),          /* ★★ 2026-11-10 エナ・ミミを足して7体 */
+  newChars: CHOKAEN_NEW_IDS.slice(),      /* ★★ 2026-11-10 追加の2体（NEW の台帳） */
+  newSince: "2026-11-12",
   itemTable: D_ITEM_TABLE,
   get lead() {
-    return "新レアリティ <b>UR 5体</b>（各" + ratePct(pickRateOf("fes19", "yuna")) + "）に加えて、<b>"
+    return "新レアリティ <b>UR " + fesDef("fes19").chars.length + "体</b>（各" + ratePct(pickRateOf("fes19", "yuna")) + "）に加えて、<b>"
       + PREMIUM_NM + "のSSRも排出</b>（SSR以上 合計 " + ratePct(SSR_TOTAL) + "）";
   },
   get sub() {
-    return "UR <b>5体</b>（各" + ratePct(pickRateOf("fes19", "yuna")) + "）／<b>残りは " + PREMIUM_NM + " のSSRが等確率</b>。"
-      + "<b>毎月 11〜20日（中旬）</b>だけの開催・🎫ガチャ券が使えます（フェス券は使えません）";
+    return "UR <b>" + fesDef("fes19").chars.length + "体</b>（各" + ratePct(pickRateOf("fes19", "yuna")) + "）／<b>残りは " + PREMIUM_NM + " のSSRが等確率</b>。"
+      + "<b>毎月 11〜20日（中旬）</b>だけの開催・🎫ガチャ券が使えます（フェス券は使えません）"
+      + '<br><small style="opacity:.78">👑 ヨシノ・アイナ・ユナ・エナ・ミミは完凸でホームのロビーに設定できます</small>';
   },
   get note() {
-    return "<b>★★ 2026-10-16 超極華祭 開幕</b>"
-      + "<br>★ <b>ヨシノ（火）・イチカ（水）・ノノカ（木）・アイナ（光）・ユナ（闇）</b>の5体。"
-      + "5体とも<b>UR</b>で、排出は<b>1体 " + ratePct(pickRateOf("fes19", "yuna")) + "</b>です。"
+    return "<b>★★ 2026-11-10 超極華祭に エナ（木）・ミミ（闇）が新登場</b>"
+      + "<br>★ <b>ヨシノ（火）・イチカ（水）・ノノカ（木）・アイナ（光）・ユナ（闇）・エナ（木）・ミミ（闇）</b>の7体。"
+      + "7体とも<b>UR</b>で、排出は<b>1体 " + ratePct(pickRateOf("fes19", "yuna")) + "</b>です。"
+      + "<br>★ エナ・ミミは <b>MagiAbyss ではハル・チカと同じ UR の最上位</b>、<b>MagiBattle</b> ではブルーム隊（エナ＝防御型・MG・バーストⅡ／ミミ＝火力型・SG・バーストⅡ）。"
       + "<br>★ 開催は極華祭と同じ<b>毎月 11〜20日（中旬）</b>。🎫<b>ガチャ券</b>が使えます（フェス券は使えません）。極華祭とは別のガチャです。"
       + "<br>★ 5体とも <b>MagiAbyss と MagiBattle のキャラクター</b>です（★★ 2026-10-30 作り直した <b>MagiBattle</b> では武器・バースト・スキルの性能）。"
       + "MagiBurst・MagiBocciaRush では使えません（キャラ詳細は MagiAbyss・MagiBattle の面）。"
       + "<br>★ <b>MagiChemLex のナビゲーター</b>や <b>XEVARION のアイコン</b>には使えます。"
-      + "<br>★ MagiAbyss では <b>ユナはタキナより少し強く</b>、ほかの4体は<b>タキナと同じくらい</b>の強さです。";
+      + "<br>★ MagiAbyss では <b>ユナはタキナより少し強く</b>、ヨシノ・イチカ・ノノカ・アイナは<b>タキナと同じくらい</b>、エナ・ミミは<b>ハル・チカと同じ</b>強さです。"
+      + '<br><small style="opacity:.78">👑 ヨシノ・アイナ・ユナ・エナ・ミミは完凸（4凸）すると、ホームのロビー（動く立ち絵）に設定できます。</small>';
   },
 };
 /* ══════════════════════════════════════════════════════════════
@@ -25083,6 +25172,16 @@ Object.defineProperty(FESTS, ARCHIVE_KEY, {
 const FES_KEYS = Object.keys(FESTS);
 function fesDef(key) { return FESTS[key] || FESTS.fes; }
 function isFesMode(m) { return !!FESTS[m]; }
+/* ★★ 2026-11-10 終わったら PREMIUM SELECT GACHA へ移るガチャ（toPremium＝Sapphire Breeze）の子を PREMIUM_CHARS へ（ご指定「恒常キャラ扱い」）。
+   debutRefresh（ガチャを描くたび）からも呼ぶ＝日付が変わった瞬間にも移る。 */
+function fesPremiumRefresh() {
+  Object.keys(FESTS).forEach((k) => {
+    const f = FESTS[k];
+    if (!f || !f.toPremium || !fesEnded(k)) return;
+    (f.chars || []).forEach((id) => { if (CHARS[id] && PREMIUM_CHARS.indexOf(id) < 0) PREMIUM_CHARS.push(id); });
+  });
+}
+fesPremiumRefresh();
 /* ══════════ 開催前のフェス（★ 2026-08-07） ══════════
    FESTS に openAt: "2026-08-10T00:00" を書いておくと、その日時までは
    ・ガチャ一覧に「開催前」と出る
@@ -25148,7 +25247,7 @@ function fesVeiled(key) {
 function fesOpenText(f) {
   /* ★★ 2026-08-28 配信が終わったフェスは「終了」と出す（開催前とは別の文にする） */
   if (f && fesTimed(f) && fesToday() >= fesAddDays(f.since, FES_DAYS)) {
-    return "配信は終了しました（キャラクターは " + ARCHIVE_NM + " で引けます）";
+    return "配信は終了しました（キャラクターは " + (f.toPremium ? PREMIUM_NM : ARCHIVE_NM) + " で引けます）";
   }
   /* ★ 毎月のフェスは「いつからいつまで」と「次はいつか」の両方を出す */
   if (f && f.monthly) {
@@ -25201,7 +25300,7 @@ const FES_ALL_CHARS = FES_KEYS.reduce((a, k) => a.concat(FESTS[k].chars), []);
    PREMIUM_CHARS 側にも入っているので、重複はここで取りのぞく。 */
 const GACHA_CHARS = (function () {
   const seen = new Set(), out = [];
-  PREMIUM_CHARS.concat(FES_ALL_CHARS, DEBUT_ALL_CHARS).forEach((id) => {
+  PREMIUM_CHARS.concat(FES_ALL_CHARS, DEBUT_ALL_CHARS, ROYAL_ALL_CHARS).forEach((id) => {
     if (seen.has(id) || !CHARS[id]) return; seen.add(id); out.push(id);
   });
   return out;
@@ -25382,6 +25481,13 @@ const CRYST_EXCHANGE = 75;    // 💠この数で 好きな1体と交換（PREMI
    アーカイブは「配信の終わったフェスの限定キャラ」なので、
    PREMIUM / GRAND DEBUT より<b>重く</b>して 150 個にする。 */
 const CRYST_EXCHANGE_ARCHIVE = 150;
+/* ★★ 2026-11-10 <b>UR は 250 個</b>（ご指定「恒常キャラ（Sapphire Breeze の3体）と ROYAL DEBUT（終了後恒常扱い）の UR は結晶交換可能で 250 個」）。
+   アーカイブなどほかの交換先に UR が入っても 250 個にそろえる（UR だけ安く取れる所を作らない）。 */
+const CRYST_EXCHANGE_UR = 250;
+function crystCostOf(id, arcOnly) {
+  if (rarLabel(id) === "UR") return CRYST_EXCHANGE_UR;
+  return arcOnly ? CRYST_EXCHANGE_ARCHIVE : CRYST_EXCHANGE;
+}
 const CRYST_NM = "結晶";
 /* 完凸しても排出され続けるキャラか（＝PREMIUM SELECT GACHA の顔ぶれ） */
 function isEverDrop(id) { return true; }   /* ★★ 2026-10-31 全員（1〜9連目は完凸でも出る） */
@@ -25456,7 +25562,7 @@ function pickRateOf(m, id) {
 }
 /* ピックアップ1体ぶんの確率 */
 function pickRateOfMode(m) {
-  if (isDebutMode(m)) return PICK_DEBUT;
+  if (isDebutMode(m)) return isRoyalMode(m) ? PICK_ROYAL : PICK_DEBUT;
   if (m === ARCHIVE_KEY) return PICK_ARCHIVE;
   /* ★★ 2026-08-29 極彩祭・極華祭・極煌祭（monthly）と 戦姫祭（luxGacha）は
      どちらも「限定キャラクターのガチャ」なので、1体あたりの排出率は PICK_LUX。 */
@@ -25469,7 +25575,7 @@ function pickRateOfMode(m) {
     if (f.pickEach) return f.pickEach;
     return (f.monthly || f.luxGacha) ? PICK_LUX : PICK_FES;
   }
-  return PICK_PREMIUM;                                   /* premium（と未知のモード） */
+  return premPickRate(curPickup());                      /* premium（と未知のモード）・★★ 2026-11-10 UR のピックアップは 5% */
 }
 /* ピックアップの顔ぶれ（限界突破MAXのキャラは外す＝そのぶんは②へまわる） */
 function pickIdsOfMode(m) {
@@ -25545,8 +25651,10 @@ const S5_TOTAL_OLD = 0.10;       // SSRの合計排出率（ピックアップ�
 function pickupRate() {
   const pool = gachaPool();
   if (!pool.includes(curPickup())) return 0;
-  return pool.length <= 1 ? SSR_TOTAL : PICK_PREMIUM;   /* ★★ 2026-08-28 ピックアップは 5.0% ちょうど */
+  return pool.length <= 1 ? SSR_TOTAL : premPickRate(curPickup());   /* ★★ 2026-08-28 ピックアップは 5.0% ちょうど・★★ 2026-11-10 UR は 5% */
 }
+/* ★★ 2026-11-10 PREMIUM SELECT のピックアップ1体ぶん（SSR 7.5%・UR 5%＝ご回答「ピックアップ可能だが 5%」） */
+function premPickRate(id) { return (id && rarLabel(id) === "UR") ? PICK_PREMIUM_UR : PICK_PREMIUM; }
 /* ★★ 2026-08-28 残りは fillEachOfMode に一本化した（下の古い実装はもう通らない） */
 function otherRate() { return fillEachOfMode("premium"); }
 function otherRateOld() {
@@ -25557,7 +25665,7 @@ function otherRateOld() {
   return (S5_TOTAL - pickupRate()) / others;   // SSR合計10%を、排出対象のキャラで分け合う
 }
 /* 排出対象のキャラを新たにピックアップに選んだ場合の排出率（対象が1体だけなら10%） */
-function wouldPickRate() { return gachaPool().length <= 1 ? SSR_TOTAL : PICK_PREMIUM; }
+function wouldPickRate(id) { return gachaPool().length <= 1 ? SSR_TOTAL : (id ? premPickRate(id) : PICK_PREMIUM); }   /* ★★ 2026-11-10 id を渡すとその子の値（UR は 5%） */
 /* ★★ 2026-09-08 末尾の 0 をきちんと落とす。
    前は /\.0$/ だけだったので 0.4% が「0.40%」と出ていた（小数第2位まで出す側）。 */
 function ratePct(v) {
@@ -25806,7 +25914,7 @@ function newestGachaMode() {
     FES_KEYS.forEach((k) => { if (!fesLocked(k)) fesDef(k).chars.forEach((id) => consider(id, k)); });
     PREMIUM_CHARS.forEach((id) => consider(id, "premium"));
     /* ★ 2026-08-26 GRAND DEBUT は版ごとに mode がちがうので、版べつに見る */
-    debutLiveVers().forEach((v) => v.chars.forEach((id) => consider(id, debutModeKey(v))));
+    debutLiveVers().concat(royalLiveVers()).forEach((v) => v.chars.forEach((id) => consider(id, debutModeKey(v))));
   } catch (e) { return "premium"; }
   return best;
 }
@@ -25878,6 +25986,8 @@ function gachaMenuList() {
       soon: fesLocked(k), ended: fesEnded(k) };
     /* ★★ 2026-10-07 Sapphire Breeze は「新レアリティ UR」と書く（フェス限定SSR ではない） */
     if (f.sapphire && !row.soon) row.sub = "新レアリティ UR・🎫チケット優先／無期限開催";
+    /* ★★ 2026-11-10 Sapphire Breeze は終了（3体は PREMIUM SELECT GACHA へ） */
+    if (f.toPremium && fesEnded(k)) row.sub = "配信は終了しました（キャラクターは " + PREMIUM_NM + " で引けます）";
     /* ★★ 2026-10-09 Pumpkin Night（UR・期間つき） */
     if (f.pumpkin && !row.soon) row.sub = "新レアリティ UR・🎫チケット優先／あと" + fesDaysLeft(k) + "日";
     /* ★★ 2026-10-16 超極華祭（UR・極華祭と同じ毎月中旬・ガチャ券のみ） */
@@ -25899,7 +26009,7 @@ function gachaMenuList() {
     else if (f.chokou) (fesInMonthly(f) ? chokou : luxOff).push(row);
     else if (f.chokaen) (fesInMonthly(f) ? choka : luxOff).push(row);
     else if (f.pumpkin) (fesEnded(k) ? ended : pump).push(row);
-    else if (f.sapphire) sapph.push(row);
+    else if (f.sapphire) (fesEnded(k) ? ended : sapph).push(row);   /* ★★ 2026-11-10 終了したら ended へ */
     /* ★★ 2026-09-17d 花宴祭は<b>開催中の極◯祭のすぐ下</b>（ご指定） */
     else if (f.kaen) (fesEnded(k) ? ended : kaen).push(row);   /* ★★ 2026-10-28 期間つきにした（終わったら ended へ） */
     /* ★★ 2026-09-23 CRYSTAL ACADEMY FEST は<b>花宴祭のすぐ下</b>（終わったら ended へ） */
@@ -25926,7 +26036,8 @@ function gachaMenuList() {
     soon: !archiveChars().length };
   /* ★★ 2026-09-13b <b>RISING STAR FEST は戦姫祭のすぐ下に固定</b>（ご指定）。
      並びは 極◯祭 → 戦姫祭 → RISING STAR → BUNNY GIRL → SOFT NIGHT → GRAND DEBUT → そのほか。 */
-  const list = chosai.concat(chokou, choka, pump, sapph, lux, kaen, crystal, senki, rising, bunny, soft, gachaMenuDebutRows(), fes,
+  /* ★★ 2026-11-10 ROYAL DEBUT GACHA は<b>開催中の超極系ガチャのすぐ下＝一覧のいちばん上</b>（ご指定）。スタンバイ中は GRAND DEBUT の上 */
+  const list = chosai.concat(chokou, choka, gachaMenuRoyalRows(), pump, sapph, lux, kaen, crystal, senki, rising, bunny, soft, gachaMenuRoyalStandby(), gachaMenuDebutRows(), fes,
     [{ k: "premium", nm: PREMIUM_NM, sub: "ピックアップを1体えらべる常設ガチャ", c: "#ff9d2e" }],
     [arcRow], luxOff, ended);
   /* ★★ 2026-08-29 NEW マーク（ご指定）。まだ一度も開いていないガチャに付ける。 */
@@ -25947,7 +26058,7 @@ function gachaMenuList() {
    ══════════════════════════════════════════════════════════════ */
 function gachaStamp(k) {
   try {
-    if (isDebutMode(k)) { const v = debutVerOfMode(k); return "debut@" + (v ? v.ver : "-"); }
+    if (isDebutMode(k)) { const v = debutVerOfMode(k); return (isRoyalMode(k) ? "royal@" : "debut@") + (v ? v.ver : "-"); }
     if (k === "premium") return "premium@" + PREMIUM_CHARS.length;
     if (k === ARCHIVE_KEY) return "arc@" + archiveChars().join(",");
     const f = FESTS[k]; if (!f) return String(k);
@@ -25982,6 +26093,19 @@ function gachaMenuDebutRows() {
       + (debutFree10Left(debutModeKey(v)) > 0 ? "／🎁 初回10連無料" : "")
       + (debutFreeLeft(debutModeKey(v)) > 0 ? "／🎁 1日1回無料" : ""),
   }));
+}
+/* ★★ 2026-11-10 ROYAL DEBUT GACHA の行（掲載中の版のぶんだけ。1本も無ければ下の gachaMenuRoyalStandby がスタンバイ1行） */
+function gachaMenuRoyalRows() {
+  return royalLiveVers().map((v) => ({
+    k: debutModeKey(v), nm: ROYAL_NM, c: ROYAL_C, ver: v.ver, royal: true,
+    sub: "新レアリティ UR・" + gachaVerText(v) + "・新キャラ" + v.chars.length + "体はここだけ／あと" + debutDaysLeft(v) + "日"
+      + (debutFree10Left(debutModeKey(v)) > 0 ? "／🎁 初回10連無料" : "")
+      + (debutFreeLeft(debutModeKey(v)) > 0 ? "／🎁 1日1回無料" : ""),
+  }));
+}
+function gachaMenuRoyalStandby() {
+  if (royalLiveVers().length) return [];
+  return [{ k: "royal", nm: ROYAL_NM, c: ROYAL_C, soon: true, royal: true, sub: "スタンバイ中（次のバージョンの準備中です）" }];
 }
 /* ★ 旧実装（並びが「GRAND DEBUT → プレミアム → フェス」だったころ）。もう呼ばれない。 */
 function gachaMenuListOld() {
@@ -26391,7 +26515,7 @@ function gachaNmOfMode(m) {
     if (isFesMode(m)) return fesDef(m).nm;
     if (isDebutMode(m)) {
       const v = debutVerOfMode(m);
-      return DEBUT_NM + (v ? " " + gachaVerText(v) : "");
+      return debutNmOf(m) + (v ? " " + gachaVerText(v) : "");
     }
     return PREMIUM_NM;
   } catch (e) { return ""; }
@@ -27501,7 +27625,7 @@ function doDebutGacha(n, mode, opt) {
   const free10 = (n === 10 && debutFree10Left(mode) > 0);
   const free = free10 || (n === 1 && debutFreeLeft(mode) > 0);
   const half = n === 10 && !free && !!(opt && opt.half);   /* ★★ 2026-10-28 10連半額券 */
-  const pay = free ? { fes: 0, tickets: 0, gems: 0, free: true, free10: free10 } : half ? payHalf10(DEBUT_NM) : payGacha(n, false);
+  const pay = free ? { fes: 0, tickets: 0, gems: 0, free: true, free10: free10 } : half ? payHalf10(debutNmOf(mode)) : payGacha(n, false);
   if (!pay) return;
   if (free10) debutFree10Use(mode);
   else if (free) debutFreeUse(mode);
@@ -27513,17 +27637,17 @@ function doDebutGacha(n, mode, opt) {
   /* ★★ 2026-08-22b 特別演出（10連のみ・超低確率） */
   const lux = luxRoll(n);
   if (lux === "allssr") {
-    revealGacha(luxAllSSR(debutSurePool(mode)), DEBUT_NM + " " + gachaVerText(dver) + " 10連結果！" + payTx, mode);
+    revealGacha(luxAllSSR(debutSurePool(mode)), debutNmOf(mode) + " " + gachaVerText(dver) + " 10連結果！" + payTx, mode);
     return;
   }
   const results = [];
   const normal = n === 10 ? 9 : n;
   const blk = lux === "black" ? luxSelectSlot(debutSurePool(mode)) : null;
   const blkIdx = blk ? Math.floor(Math.random() * normal) : -1;
-  if (blk) luxSaveSel(blk.pool, DEBUT_NM);
+  if (blk) luxSaveSel(blk.pool, debutNmOf(mode));
   for (let i = 0; i < normal; i++) results.push(i === blkIdx ? blk : debutRollOnce(mode));
   if (n === 10) { const g = debutGuaranteedS5(mode); g.sure = true; results.push(g); }
-  revealGacha(results, DEBUT_NM + " " + gachaVerText(dver)
+  revealGacha(results, debutNmOf(mode) + " " + gachaVerText(dver)
     + (n === 10 ? " 10連結果！" : n === 5 ? " 5連結果！" : " 結果！") + payTx, mode);
 }
 window.doDebutGacha = doDebutGacha;

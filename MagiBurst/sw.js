@@ -6,13 +6,13 @@
    ・オンライン対戦・XEVA換金はアプリ側でオフライン時に無効化している
    ・取得できたリソースは随時キャッシュ更新（stale-while-revalidate）
    ============================================================ */
-const VERSION = "magiburst-sw-v208";
+const VERSION = "magiburst-sw-v209";
 const CORE = [
   "./index.html",
   "./css/mb-ui2.css?v=26",
   "./css/localplay.css?v=7",
   "./js/localplay.js?v=8",
-  "./js/mb-core.js?v=146",
+  "./js/mb-core.js?v=147",
   /* ★★ 2026-09-13 クエスト作成（ステージエディター・MB613Create26）。
      遅延読みこみだが、オフラインでも開けるようにここには入れておく。 */
   "./js/mb-create.js?v=2",
@@ -39,12 +39,12 @@ const CORE = [
   "../xeva-i18n-p3.js?v=7",
   "../xeva-i18n-mb7.js?v=7",
   "../xeva-i18n-p4.js?v=8",
-  "../xeva-i18n-n1.js?v=22",
+  "../xeva-i18n-n1.js?v=23",
   "../xeva-i18n-n2.js?v=3",
-  "../xeva.js?v=86",
-  "../xeva-alive.js?v=8",
+  "../xeva.js?v=87",
+  "../xeva-alive.js?v=9",
   "../xeva-loading.js?v=19",
-  "../xeva-splash.js?v=21",
+  "../xeva-splash.js?v=22",
   "../app-cloud.js?v=15",
   "../xeva-keys.js?v=36",
   "./magiburst-cloud.js?v=29",
@@ -57,8 +57,8 @@ const CORE = [
   /* BGM は権利確認のため一時提供停止中 → 先読みしない */
   "../thumbs/MagiBurst.jpg",
   "../brand/NGX_s.webp?v=2",
-  "../brand/MagicalFuture_s.webp",
-  "../brand/ISHIDA_s.webp",
+  "../brand/MagicalFuture_s.webp?v=2",
+  "../brand/ISHIDA_s.webp?v=2",
   "../brand/YRA_s.webp",
   "../brand/Kawagani_s.webp", "../brand/StudioDOGA_s.webp",   // ★★ 2026-11-02 運営協力に参入
   "img/bn_premium_s.webp",
@@ -165,6 +165,7 @@ const CORE = [
   "img/ss/HaruSS.webp", "img/ss/ChikaSS.webp",
   /* ★★ 2026-11-03 超極彩祭の追加3体 */
   "img/ss/ChifuruSS.webp", "img/ss/MintSS.webp", "img/ss/PurikaSS.webp",
+  "img/ss/EnaSS.webp", "img/ss/MimiSS.webp", "img/ss/MakoSS.webp", "img/ss/AkoSS.webp", "img/ss/MinaSS.webp",   /* ★★ 2026-11-10 エナ・ミミ・マコ・アコ・ミナ */
   "img/ss/YajuSS.webp",   /* ★ 2026-08-08d クロススキル「お待たせ!」用 */
   "img/ss/KokonaAlphaSS.webp",   /* ★ 2026-08-11 ココナα（治癒の祈り）用 */
   /* ★ 2026-08-08 プレミアム新SSR「カエデ」「リノン」「ココロ」「アンジェ」 */
@@ -315,7 +316,8 @@ const CORE = [
   "img/bn_fes16_s.webp",   /* ★★ 2026-09-23 CRYSTAL ACADEMY FEST のバナー */
   "img/bn_fes17_s.webp?v=2",   /* ★★ 2026-10-07 Sapphire Breeze のバナー（同日に差しかえ → ?v=2） */
   "img/bn_fes18_s.webp",   /* ★★ 2026-10-09 Pumpkin Night のバナー */
-  "img/bn_fes19_s.webp",   /* ★★ 2026-10-16 超極華祭のバナー */
+  "img/bn_fes19_s.webp?v=2",   /* ★★ 2026-10-16 超極華祭のバナー（★★ 2026-11-10 新しいバナー＝?v=2） */
+  "img/bn_royal_s.webp",   /* ★★ 2026-11-10 ROYAL DEBUT GACHA のバナー */
   "img/bn_fes20_s.webp?v=2",   /* ★★ 2026-10-22 超極煌祭のバナー（★★ 2026-10-30 新しい絵に差しかえ） */
   "img/bn_fes21_s.webp",   /* ★★ 2026-10-30 超極彩祭のバナー */
   "img/bn_fes14_s.webp",   /* ★★ 2026-09-13 SOFT NIGHT FEST のバナー */   /* ★★ 2026-09-11 BUNNY GIRL FEST のバナー */
@@ -497,6 +499,7 @@ const CORE = [
   "../img/t_Haru.webp", "../img/Haru_w.webp", "../img/t_Chika.webp", "../img/Chika_w.webp",
   /* ★★ 2026-11-03 超極彩祭の追加3体 */
   "../img/t_Chifuru.webp", "../img/Chifuru_w.webp", "../img/t_Mint.webp", "../img/Mint_w.webp", "../img/t_Purika.webp", "../img/Purika_w.webp",
+  "../img/t_Ena.webp", "../img/Ena_w.webp", "../img/t_Mimi.webp", "../img/Mimi_w.webp", "../img/t_Mako.webp", "../img/Mako_w.webp", "../img/t_Ako.webp", "../img/Ako_w.webp", "../img/t_Mina.webp", "../img/Mina_w.webp",   /* ★★ 2026-11-10 */
   /* ★★ 2026-09-06 同期の画面に出る案内役（立ち姿とお辞儀・2人ぶん）。
      ここに無いとオフラインのときだけ絵が出ない。 */
   "../img/ld_a_stand.webp",
@@ -714,8 +717,18 @@ function xevIsImg(url) {
 }
 async function xevImgFirst(req) {
   const cache = await caches.open(XEV_IMG);
-  const hit = await cache.match(req, { ignoreSearch: false });
-  const net = fetch(req).then((res) => {
+  let hit = await cache.match(req, { ignoreSearch: false });
+  /* ★★ 2026-11-11 ご報告「オフラインのときだけ重い」の直し（その2）
+     事前に入れた絵（CORE＝この SW の版の置き場）も、通信の前に<b>URL ぴったりで</b>探す。
+     前は XEV_IMG に無いと通信を待ち、失敗してから「全部の置き場を ? を無視して」2回探していた
+     （オフラインのホームでは絵の数だけこれが起き、置き場が増えるほど遅くなっていた）。
+     ★ 軽量モードでオフラインのときは、通信を試さず、総なめもしない（自分の置き場と絵の置き場だけ）。 */
+  let own = null;
+  try { own = await caches.open(VERSION); } catch (e) {}
+  if (!hit && own) hit = await own.match(req);
+  const lite = xevOffLite();
+  if (hit && lite) return hit;
+  const net = lite ? Promise.resolve(null) : fetch(req).then((res) => {
     if (res && res.ok && (res.type === "basic" || res.type === "default")) {
       cache.put(req, res.clone()).catch(() => {});
     }
@@ -728,12 +741,13 @@ async function xevImgFirst(req) {
      大きい絵より小さいが、<b>空っぽより読める</b>（ご報告の「出ない」を防ぐ）。 */
   const alt = xevThumbURL(req.url);
   if (alt) {
-    const a = await cache.match(alt, { ignoreSearch: false });
+    const a = (await cache.match(alt, { ignoreSearch: false })) || (own && (await own.match(alt)));
     if (a) return a;
-    const a2 = await caches.match(alt, { ignoreSearch: true });
+    const a2 = lite ? await cache.match(alt, { ignoreSearch: true }) : await caches.match(alt, { ignoreSearch: true });
     if (a2) return a2;
   }
-  const loose = await caches.match(req, { ignoreSearch: true });
+  const loose = lite ? ((await cache.match(req, { ignoreSearch: true })) || (own && (await own.match(req, { ignoreSearch: true }))))
+    : await caches.match(req, { ignoreSearch: true });
   if (loose) return loose;
   return new Response("", { status: 504 });
 }
@@ -827,6 +841,64 @@ async function xevRefreshPost(msg) {
     cs.forEach((c) => { try { c.postMessage(msg); } catch (e) {} });
   } catch (e) {}
 }
+/* ══ ★★ 2026-11-11 要らなくなったファイルの掃除（ご指定「ダウンロード時に要らなくなったファイルを削除する機能」）══
+   ホームの「ダウンロード」（xev-refresh）のたびに、この SW の置き場（VERSION）から<b>もう使わないもの</b>を消す。
+   ・CORE（この版で使うファイル）は消さない。
+   ・消すのは ① CORE と同じファイルの古い版（?v= が小さい・?v= が無い）
+              ② ページ（.html）に ? の付いた写し（?room= など。ページ本体は CORE にある）
+              ③ CORE に無いファイルの古い版どうし（いちばん新しい ?v= だけ残す）
+              ④ サーバーにもう無いファイル（確かめで 404・410 が返ったもの。取れたものより多いときは通信の不調とみて消さない）
+   ・消した件数と大きさは xev-refreshed の removed・freed でホームへ返す（ホームの更新画面に「整理した」と出る）。 */
+function xevPathKey(u) { let p = u.pathname; if (p.endsWith("/")) p += "index.html"; return u.origin + p; }
+function xevVerOf(u) { const s = u.searchParams.get("v"); if (s == null) return 0; const n = parseFloat(s); return isFinite(n) ? n : 0.5; }
+function xevAbs(u) { try { return new URL(u, self.location.href).href; } catch (e) { return String(u); } }
+async function xevSizeOf(res) {
+  if (!res) return 0;
+  let n = Number(res.headers.get("content-length")) || 0;
+  if (!n) { try { n = (await res.clone().blob()).size || 0; } catch (e) { n = 0; } }
+  return n;
+}
+async function xevDropAll(cache, list, out) {
+  for (const req of list) {
+    try { const r = await cache.match(req); const n = await xevSizeOf(r); if (await cache.delete(req)) { out.n++; out.bytes += n; } } catch (e) {}
+  }
+}
+/* ?v= 以外の ? はそのまま見分ける（?page=2 などの中身が違うものを「古い版」とまちがえて消さない） */
+function xevQKey(u) {
+  const ps = [];
+  u.searchParams.forEach((val, key) => { if (key !== "v") ps.push(key + "=" + val); });
+  ps.sort();
+  return xevPathKey(u) + (ps.length ? "?" + ps.join("&") : "");
+}
+async function xevPrune(cache, coreAbs, sameOriginOnly) {
+  const out = { n: 0, bytes: 0 };
+  const core = new Map(), corePath = new Set(), best = new Map(), drop = [];
+  coreAbs.forEach((abs) => {
+    try { const u = new URL(abs); const q = xevQKey(u); corePath.add(xevPathKey(u)); core.set(q, Math.max(core.has(q) ? core.get(q) : -1, xevVerOf(u))); } catch (e) {}
+  });
+  let reqs = [];
+  try { reqs = await cache.keys(); } catch (e) { return out; }
+  for (const req of reqs) {
+    if (coreAbs.has(req.url)) continue;
+    let u; try { u = new URL(req.url); } catch (e) { continue; }
+    if (sameOriginOnly !== false && u.origin !== self.location.origin) continue;
+    const p = xevPathKey(u), q = xevQKey(u), v = xevVerOf(u);
+    if (u.search && corePath.has(p) && /\.html?$/i.test(p)) { drop.push(req); continue; }   /* ② ページの ? 付きの写し */
+    if (core.has(q)) { if (v < core.get(q)) drop.push(req); continue; }                       /* ① CORE より古い版 */
+    const b = best.get(q);                                                                     /* ③ CORE に無いものは新しい版だけ残す */
+    if (!b) best.set(q, { req, v });
+    else if (v > b.v) { drop.push(b.req); best.set(q, { req, v }); }
+    else drop.push(req);
+  }
+  await xevDropAll(cache, drop, out);
+  return out;
+}
+
+/* ★★ 2026-11-11 絵の置き場（XEV_IMG・版に縛られない）も、同じ絵の古い版（?v= が小さい・CORE より古い）を消す。
+   ポータルと MagiBurst の SW の両方から呼ばれるが、消したものは数え直さないので二重にはならない。 */
+async function xevPruneImg(coreAbs) {
+  try { return await xevPrune(await caches.open(XEV_IMG), coreAbs, false); } catch (e) { return { n: 0, bytes: 0 }; }
+}
 async function xevRefreshAll() {
   const cache = await caches.open(VERSION);
   const urls = [], seen = new Set();
@@ -837,6 +909,10 @@ async function xevRefreshAll() {
     seen.add(abs); urls.push(u);
   }
   /* 実行時にキャッシュしたぶん（CORE に無いページ・画像）も一緒に取り直す */
+  /* ★★ 2026-11-11 要らなくなったファイルの掃除（xevPrune の説明）。ここまでの seen＝CORE */
+  const coreAbs = new Set(seen), gone = [];
+  const pr = await xevPrune(cache, coreAbs);
+  { const pi = await xevPruneImg(coreAbs); pr.n += pi.n; pr.bytes += pi.bytes; }
   try {
     for (const req of await cache.keys()) {
       if (seen.has(req.url)) continue;
@@ -894,7 +970,7 @@ async function xevRefreshAll() {
         await cache.put(u, res.clone());
         if (!n) { try { n = (await res.clone().blob()).size || 0; } catch (e2) { n = 0; } }
         if (!(xevIrPath(u) in irf)) { got++; bytes += n; }
-      }
+      } else if (res && (res.status === 404 || res.status === 410) && old && !coreAbs.has(xevAbs(u))) gone.push(u);   /* ★★ 2026-11-11 サーバーにもう無い */
     } catch (e) { /* 落とせなかったぶんは今のキャッシュを残す（消さない） */ }
     done++;
     await tickPost();
@@ -903,9 +979,11 @@ async function xevRefreshAll() {
   const crew = [];
   for (let ci = 0; ci < CONC; ci++) crew.push(worker());
   await Promise.all(crew);
+  /* ★★ 2026-11-11 サーバーにもう無いファイル（404・410）を置き場から消す。取れたものより多いときは通信の不調とみて消さない */
+  if (gone.length && hit + got >= gone.length) await xevDropAll(cache, gone, pr);
   await tickPost(true);
   await xevIrDrop();
-  await xevRefreshPost({ type: "xev-refreshed", scope: XEV_SCOPE, total: urls.length,
+  await xevRefreshPost({ type: "xev-refreshed", scope: XEV_SCOPE, total: urls.length, removed: pr.n, freed: pr.bytes, cache: VERSION,
     got: got, hit: hit, bytes: bytes });
 }
 self.addEventListener("message", (e) => {
@@ -938,30 +1016,50 @@ const XEV_NETPREF_CACHE = "xev-netpref";
 const XEV_NETPREF_URL = "./__xev_netpref";
 let _xevNetLatest = null;                     // null＝まだ読んでいない
 function xevNetLatest() { return _xevNetLatest; }
+/* ★★ 2026-11-11 軽量モード（ホームの設定「動作モード」）でオフラインのとき＝<b>全部の置き場の総なめと通信の試し</b>をやめる。
+   lite はページ（xeva-netmode.js）が latest といっしょに送ってくる（netpref に控える）。オフラインかどうかは SW 自身の onLine で見る。 */
+let _xevLite = false;
+function xevOffLite() { try { return _xevLite && self.navigator && self.navigator.onLine === false; } catch (e) { return false; } }
 (async function xevReadNetPref() {
   try {
     const c = await caches.open(XEV_NETPREF_CACHE);
     const r = await c.match(XEV_NETPREF_URL);
-    _xevNetLatest = r ? ((await r.json()).latest !== false) : true;
+    const o = r ? await r.json() : null;
+    _xevNetLatest = o ? o.latest !== false : true;
+    _xevLite = !!(o && o.lite);
   } catch (e) { _xevNetLatest = true; }
 })();
 self.addEventListener("message", (e) => {
   const m = e.data;
   if (!m || m.type !== "xev-netmode") return;
   _xevNetLatest = m.latest !== false;
+  if ("lite" in m) _xevLite = !!m.lite;
   e.waitUntil((async () => {
     try {
       const c = await caches.open(XEV_NETPREF_CACHE);
-      await c.put(XEV_NETPREF_URL, new Response(JSON.stringify({ latest: _xevNetLatest }),
+      await c.put(XEV_NETPREF_URL, new Response(JSON.stringify({ latest: _xevNetLatest, lite: _xevLite }),
         { headers: { "Content-Type": "application/json" } }));
     } catch (err) {}
   })());
 });
 /* キャッシュ優先で返す。無ければ通信し、それも失敗したらページだけはホームに逃がす。 */
 async function xevCacheFirst(req) {
-  const hit = await caches.match(req, { ignoreSearch: true });
+  /* ★★ 2026-11-11 ご報告「オフラインのときだけ重い」の直し
+     前は毎回<b>全部の置き場（いまは 25 個ほど）を ? を無視して</b>探していた。置き場を1つずつ開いて調べるので、
+     画面の部品・絵の数だけそれがくり返され、アプリが増えるほど遅くなっていた（オフラインのときはいつもこの道を通る）。
+     → ① 自分の置き場を URL ぴったりで（ほとんどここで当たる・1回で済む）→ ② 全部の置き場をぴったりで
+       → ③ ? 違いを許して探す → ④ 通信。
+     ★ 軽量モードでオフラインのときは ③ を自分の置き場（と絵の置き場）だけにし（ページの移動は全部を探す）、④ の通信も試さない。 */
+  const lite = xevOffLite();
+  let hit = null;
+  try { hit = await (await caches.open(VERSION)).match(req); } catch (e) {}
+  if (!hit) hit = await caches.match(req);
+  if (!hit && lite && req.mode !== "navigate") {
+    try { hit = await (await caches.open(VERSION)).match(req, { ignoreSearch: true }); } catch (e) {}
+    if (!hit && /\.(webp|png|jpe?g|gif|svg)$/i.test(new URL(req.url).pathname)) { try { hit = await (await caches.open("xev-img-v1")).match(req, { ignoreSearch: true }); } catch (e) {} }
+  } else if (!hit) hit = await caches.match(req, { ignoreSearch: true });
   if (hit) return hit;
-  try { return await fetch(req); } catch (e) {}
+  if (!lite) { try { return await fetch(req); } catch (e) {} }
   if (req.mode === "navigate") {
     const home = await caches.match("./index.html", { ignoreSearch: true });
     if (home) return home;
