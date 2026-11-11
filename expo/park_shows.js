@@ -259,16 +259,16 @@
     /* 8・9 提供 MagicalFuture／ISHIDA Production（列のいちばん後ろ）★★ 2026-10-01 ご指定「列の後ろの提供で MagicalFuture と ISHIDA Production も増やして」 */
     const names = ["XEVARION CRYSTAL", "SAKURA PAGODA", "SWEETS PARTY", "MUSIC STAGE", "SPACE TRIP", "FUWA-FUWA FRIENDS", "SPONSORED BY NGX"];
     if (w.keyedLogo) {
-      const mf = w.keyedLogo(w, "mfFull", "../brand/MagicalFuture.png", [215, 140, 590, 385]), ip = w.keyedLogo(w, "ipFull", "../brand/ISHIDA Production.png", [185, 68, 655, 545]);
+      const mf = w.keyedLogo(w, "mfFull", "../brand/MagicalFuture.png?v=2", [96, 70, 832, 484]), ip = w.keyedLogo(w, "ipFull", "../brand/ISHIDA Production.png?v=2", [70, 116, 884, 440]);
       const board = (lg, lw, lh, title, bg, gl) => {
         w.geo("white2", new T.BoxGeometry(0.5, 4.8, 8.4).translate(0, 3.9, 0)); w.geo("goldOrn", new T.BoxGeometry(0.6, 0.24, 8.8).translate(0, 6.4, 0)); w.geo("goldOrn", new T.BoxGeometry(0.6, 0.24, 8.8).translate(0, 1.5, 0));
         w.geo(lg, new T.PlaneGeometry(lw, lh).rotateY(Math.PI / 2).translate(0.28, 3.95, 0)); w.geo(lg, new T.PlaneGeometry(lw, lh).rotateY(-Math.PI / 2).translate(-0.28, 3.95, 0));
         [1, -1].forEach((s) => w.sign(title, { bg, color: "#fff", glow: gl, border: gl, px: 1024 }, 6.4, 0.85, s * 0.3, 7.1, 0, s * Math.PI / 2));
       };
-      floats.push(mk(() => { base("pWhite", "neonCyan", 10); board(mf, 6.4, 4.2, "提供　MagicalFuture", "#0a2a5a", "#7fd8ff");
+      floats.push(mk(() => { base("pWhite", "neonCyan", 10); board(mf, 7.2, 4.19, "提供　MagicalFuture", "#0a2a5a", "#7fd8ff");
         w.geo("neonCyan", new T.TorusGeometry(1.5, 0.1, 6, 36).translate(0, 9.0, 0)); w.geo("neonBlue", new T.TorusGeometry(1.15, 0.08, 6, 36).rotateY(Math.PI / 2).translate(0, 9.0, 0)); w.geo("glassDome", new T.SphereGeometry(0.7, 16, 12).translate(0, 9.0, 0)); w.geo("white2", new T.CylinderGeometry(0.08, 0.08, 1.6, 6).translate(0, 7.7, 0));
         w.sign("SPONSORED BY MagicalFuture", { bg: "#0a2a5a", color: "#bff0ff", px: 1024, both: true }, 4.8, 0.62, 0, 1.2, 5.12, 0); }));
-      floats.push(mk(() => { base("pBlack", "neonPink", 10); board(ip, 5.4, 4.5, "提供　ISHIDA Production", "#3a0a12", "#ff6a7a");
+      floats.push(mk(() => { base("pBlack", "neonPink", 10); board(ip, 7.4, 3.68, "提供　ISHIDA Production", "#3a0a12", "#ff6a7a");
         /* 上にカチンコとフィルムのリール（映画の会社） */
         w.geo("pBlack", new T.BoxGeometry(0.4, 1.5, 2.6).translate(0, 7.6, 0)); for (let i = 0; i < 5; i++) w.geo(i % 2 ? "pBlack" : "white2", new T.BoxGeometry(0.42, 0.34, 0.52).translate(0, 8.55, -1.04 + i * 0.52).applyMatrix4(new T.Matrix4().makeRotationX(-0.18)));
         [-1, 1].forEach((s) => { w.geo("darkMetal", new T.CylinderGeometry(0.9, 0.9, 0.24, 20).rotateZ(Math.PI / 2).translate(0, 7.3, s * 2.6)); w.geo("goldOrn", new T.CylinderGeometry(0.22, 0.22, 0.3, 10).rotateZ(Math.PI / 2).translate(0, 7.3, s * 2.6)); });

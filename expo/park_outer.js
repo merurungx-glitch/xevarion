@@ -359,6 +359,9 @@
     });
     const dv = ((D.debut && D.debut.vers) || []).filter((v) => today >= v.date && today < (v.movedAt || addDays(v.date, D.debut.days || 20)));
     if (dv.length) out.push({ key: "debut", banner: D.debut.banner, t: dv[0].date, nm: "GRAND DEBUT" });
+    /* ★★ 2026-11-10 ROYAL DEBUT GACHA は開催中の超極系のすぐ下（"99975"＝top "9998" より下・ふつうの日付より上） */
+    const rv = ((D.royal && D.royal.vers) || []).filter((v) => today >= v.date && today < (v.movedAt || addDays(v.date, D.royal.days || 20)));
+    if (rv.length) out.push({ key: "royal", banner: D.royal.banner, t: "99975", nm: "ROYAL DEBUT" });
     out.sort((a, b) => String(b.t).localeCompare(String(a.t)));
     out.push({ key: "premium", banner: (D.premium && D.premium.banner) || "MagiBurst/img/bn_premium_s.webp", t: "", nm: "PREMIUM SELECT" });
     const ai = out.findIndex((g) => g.key === "archive"); if (ai >= 0) out.push(out.splice(ai, 1)[0]);

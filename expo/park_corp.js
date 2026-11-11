@@ -310,7 +310,7 @@
     const w = this, CX = 297, CZ = -262;
     w.areaZone("mf");
     w.places.push(["38 MAGICAL FUTURE CAMPUS（つながる広場）", CX, CZ + 44, Math.PI]);
-    const mfMark = keyedLogo(w, "mfMark", "../brand/MagicalFuture.png", [350, 145, 330, 235]), mfFull = keyedLogo(w, "mfFull", "../brand/MagicalFuture.png", [215, 140, 590, 385]);
+    const mfMark = keyedLogo(w, "mfMark", "../brand/MagicalFuture.png?v=2", [206, 74, 630, 364]), mfFull = keyedLogo(w, "mfFull", "../brand/MagicalFuture.png?v=2", [96, 70, 832, 484]);
     const lm = w._landmark; w._landmark = true;
     /* 大通りからの道・広場（青→紫→ピンクの石だたみ） */
     w.route([[CX, -166], [CX, CZ + 36]], 14, "walkY", { raw: true, lamps: "modern", lampEvery: 18, lampsBoth: true, trees: false, benches: false, bushes: false });
@@ -324,8 +324,8 @@
       const orbM = new T.MeshStandardMaterial({ color: 0xc86aff, emissive: 0xa04aff, emissiveIntensity: 1.1, roughness: 0.15, metalness: 0.2 }); w.nightMats.push({ m: orbM, day: 0.9, night: 2.2 });
       const orb = new T.Mesh(new T.SphereGeometry(2.4, 32, 20), orbM); orb.position.set(CX, 10, CZ); w.scene.add(orb);
       w.geo("chromeB", new T.CylinderGeometry(0.5, 1.2, 4, 16), CX, 2, CZ); w.geo("white2", new T.CylinderGeometry(2.6, 3, 0.8, 24), CX, 0.4, CZ);
-      const lg = new T.Mesh(new T.PlaneGeometry(15, 10.7), w.m[mfMark]); lg.position.set(CX, 22, CZ); w.scene.add(lg); w.loose(lg, 900);
-      const lg2 = new T.Mesh(new T.PlaneGeometry(15, 10.7), w.m[mfMark]); lg2.rotation.y = Math.PI; lg.add(lg2);
+      const lg = new T.Mesh(new T.PlaneGeometry(15, 8.67), w.m[mfMark]); lg.position.set(CX, 22, CZ); w.scene.add(lg); w.loose(lg, 900);
+      const lg2 = new T.Mesh(new T.PlaneGeometry(15, 8.67), w.m[mfMark]); lg2.rotation.y = Math.PI; lg.add(lg2);
       w.anim.push((dt, t) => { rings[0].rotation.set(Math.PI / 2 + Math.sin(t * 0.4) * 0.6, t * 0.35, 0); rings[1].rotation.set(Math.PI / 2 + Math.cos(t * 0.4) * 0.6, -t * 0.35, Math.PI / 2); orb.position.y = 10 + Math.sin(t * 1.1) * 0.5; lg.position.y = 22 + Math.sin(t * 0.6) * 0.8; lg.rotation.y = t * 0.25; });
       w.casterCircle(CX, CZ, 9, 12);
       w.interact(CX, CZ + 19, 3, "Magical Future 公式サイトを開く", () => { const a = APP("magicalfuture"); return a ? { open: a.href, app: a } : null; }, "🌐"); }
@@ -337,8 +337,8 @@
     { const tx = CX, tz = -392, H = 128;
       w.route([[CX, CZ - 38], [CX, tz + 20]], 10, "walkY", { raw: true, lamps: "modern", lampEvery: 16, trees: false, benches: false, bushes: false });
       w.futureTower(tx, tz, 30, H, { key: "gPurple", twist: 1.1, band: "neonPink" });
-      [0, 1, 2, 3].forEach((i) => { const a = i * Math.PI / 2; w.geo(mfMark, new T.PlaneGeometry(15, 10.7).rotateY(a), tx + Math.sin(a) * 11.5, H - 14, tz + Math.cos(a) * 11.5); });
-      w.geo(mfFull, new T.PlaneGeometry(22, 14.3), tx, 18, tz + 13.2);
+      [0, 1, 2, 3].forEach((i) => { const a = i * Math.PI / 2; w.geo(mfMark, new T.PlaneGeometry(15, 8.67).rotateY(a), tx + Math.sin(a) * 11.5, H - 14, tz + Math.cos(a) * 11.5); });
+      w.geo(mfFull, new T.PlaneGeometry(22, 12.8), tx, 18, tz + 13.2);
       w.floatRing(tx, H + 18, tz, 16, "neonPink");
       w.sign("MAGICAL FUTURE HQ", { grad: ["#3a6aff", "#a04aff", "#ff4f9a"], color: "#fff", glow: "#ffd0ec", px: 1024 }, 16, 1.6, tx, 6.2, tz + 13.1, 0); }
     /* 西：MeruHub パビリオン（ガラスのドーム）・AI × XR ラボ（ガラスのキューブ） */
@@ -380,7 +380,7 @@
     const w = this, AX = -297;
     w.areaZone("ishida");
     w.places.push(["39 ISHIDA PRODUCTION STUDIOS（撮影所の門）", AX, -196, Math.PI]);
-    const ipMark = keyedLogo(w, "ipMark", "../brand/ISHIDA Production.png", [300, 72, 470, 335]), ipFull = keyedLogo(w, "ipFull", "../brand/ISHIDA Production.png", [185, 68, 655, 545]);
+    const ipMark = keyedLogo(w, "ipMark", "../brand/ISHIDA Production.png?v=2", [218, 116, 584, 282]), ipFull = keyedLogo(w, "ipFull", "../brand/ISHIDA Production.png?v=2", [70, 116, 884, 440]);
     const lm = w._landmark; w._landmark = true;
     /* 門の広場・赤いじゅうたんの通り（まん中の道） */
     w.route([[AX, -166], [AX, -362]], 12, "walkCream", { raw: true, lamps: "modern", lampEvery: 18, lampsBoth: true, trees: false, benches: false, bushes: false });
@@ -400,8 +400,8 @@
     /* 東：ISHIDA 本社（ロゴ）・試写室・アニメスタジオ・作品ギャラリー */
     { const hx = -228, hz = -226;
       w.bld(hx, hz, 44, 26, 56, { key: "gBlue", shop: "shopB" in w.m ? "shopB" : "shopA", roof: "flat", roofKey: "rMetal", crown: "neonCyan", sign: { text: "ISHIDA PRODUCTION", bg: "#0a1450", w: 18, h: 1.8, y: 5.6, glow: "#7fd8ff" } });
-      w.geo(ipFull, new T.PlaneGeometry(26, 21.1), hx, 36, hz + 13.15);
-      w.geo(ipMark, new T.PlaneGeometry(14, 10), hx + 22.15, 44, hz, Math.PI / 2); w.geo(ipMark, new T.PlaneGeometry(14, 10), hx - 22.15, 44, hz, -Math.PI / 2);
+      w.geo(ipFull, new T.PlaneGeometry(26, 12.94), hx, 36, hz + 13.15);
+      w.geo(ipMark, new T.PlaneGeometry(14, 6.76), hx + 22.15, 44, hz, Math.PI / 2); w.geo(ipMark, new T.PlaneGeometry(14, 6.76), hx - 22.15, 44, hz, -Math.PI / 2);
       w.interact(hx, hz + 16, 3, "ISHIDA Production 公式サイトを開く", () => { const a = APP("ishida"); return a ? { open: a.href, app: a } : null; }, "🌐");
       w.enterable(-222, -282, 30, 20, 7, -Math.PI / 2, { type: "theater", name: "ISHIDA 試写室（上映）", key: "gDark", video: "ishidatheater", screenTitle: "ISHIDA PRODUCTION" });
       w.box("gDark", -222, 7, -282, 20, 3, 30); w.sign("SCREENING ROOM  試写室", { bg: "#1a0a0a", color: "#ffe7a0", glow: "#ffb04a", px: 512 }, 9, 1.0, -222 - 10.2, 8.4, -282, -Math.PI / 2);
@@ -412,7 +412,7 @@
       [[-1, -1], [1, -1], [-1, 1], [1, 1]].forEach(([a, b]) => { w.geo("darkMetal", new T.CylinderGeometry(0.28, 0.36, H, 8), tx + a * 3.2, H / 2, tz + b * 3.2); w.colCircle(tx + a * 3.2, tz + b * 3.2, 0.4); });
       for (let y = 5; y < H; y += 5) w.geo("darkMetal", new T.TorusGeometry(4.5, 0.08, 4, 4).rotateX(Math.PI / 2).rotateY(Math.PI / 4), tx, y, tz);
       w.geo("gSilver", new T.CylinderGeometry(6, 6, 9, 24), tx, H + 4.5, tz); w.geo("kwB", new T.ConeGeometry(6.4, 3.6, 24), tx, H + 10.8, tz); w.geo("gold", new T.SphereGeometry(0.5, 10, 8), tx, H + 12.8, tz);
-      [0, 1, 2, 3].forEach((i) => { const a = i * Math.PI / 2; w.geo(ipMark, new T.PlaneGeometry(8.4, 6), tx + Math.sin(a) * 6.05, H + 4.8, tz + Math.cos(a) * 6.05, a); });
+      [0, 1, 2, 3].forEach((i) => { const a = i * Math.PI / 2; w.geo(ipMark, new T.PlaneGeometry(8.4, 4.06), tx + Math.sin(a) * 6.05, H + 4.8, tz + Math.cos(a) * 6.05, a); });
       w.caster(tx, tz, 12, 12, H + 10); }
     /* 撮影ステージ 3 棟（かまぼこ屋根・大きな番号・ON AIR のランプ） */
     [[-386, -326, 1], [-334, -326, 2], [-226, -364, 3]].forEach(([sx, sz, no], k) => {

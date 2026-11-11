@@ -274,15 +274,15 @@
         w.geo("showB", new T.BoxGeometry(0.62, 0.12, 10.5).translate(0, 6.1, 0)); })); }
     /* 14・15 提供 MagicalFuture／ISHIDA Production（列のいちばん後ろの船）★★ 2026-10-01 ご指定 */
     if (w.keyedLogo) {
-      const mf = w.keyedLogo(w, "mfFull", "../brand/MagicalFuture.png", [215, 140, 590, 385]), ip = w.keyedLogo(w, "ipFull", "../brand/ISHIDA Production.png", [185, 68, 655, 545]);
+      const mf = w.keyedLogo(w, "mfFull", "../brand/MagicalFuture.png?v=2", [96, 70, 832, 484]), ip = w.keyedLogo(w, "ipFull", "../brand/ISHIDA Production.png?v=2", [70, 116, 884, 440]);
       const board = (lg, lw, lh, title, bg, gl) => {
         w.geo("white2", new T.BoxGeometry(0.5, 4.6, 10).translate(0, 3.7, 0)); w.geo("goldOrn", new T.BoxGeometry(0.6, 0.24, 10.4).translate(0, 6.1, 0)); w.geo("goldOrn", new T.BoxGeometry(0.6, 0.24, 10.4).translate(0, 1.4, 0));
         w.geo(lg, new T.PlaneGeometry(lw, lh).rotateY(Math.PI / 2).translate(0.28, 3.75, 0)); w.geo(lg, new T.PlaneGeometry(lw, lh).rotateY(-Math.PI / 2).translate(-0.28, 3.75, 0));
         [1, -1].forEach((s) => w.sign(title, { bg, color: "#fff", glow: gl, border: gl, px: 1024 }, 6.6, 0.9, s * 0.3, 6.9, 0, s * Math.PI / 2));
       };
-      B.push(mk(() => { hull(16, "pWhite"); board(mf, 6.6, 4.3, "提供　MagicalFuture", "#0a2a5a", "#7fd8ff");
+      B.push(mk(() => { hull(16, "pWhite"); board(mf, 7.6, 4.42, "提供　MagicalFuture", "#0a2a5a", "#7fd8ff");
         w.geo("showA", new T.TorusGeometry(1.6, 0.1, 6, 36).translate(0, 8.6, 0)); w.geo("glassDome", new T.SphereGeometry(0.75, 16, 12).translate(0, 8.6, 0)); w.geo("white2", new T.CylinderGeometry(0.08, 0.08, 1.8, 6).translate(0, 7.3, 0)); }));
-      B.push(mk(() => { hull(16, "pBlack"); board(ip, 5.4, 4.5, "提供　ISHIDA Production", "#3a0a12", "#ff6a7a");
+      B.push(mk(() => { hull(16, "pBlack"); board(ip, 7.8, 3.88, "提供　ISHIDA Production", "#3a0a12", "#ff6a7a");
         [-1, 1].forEach((s) => { w.geo("darkMetal", new T.CylinderGeometry(1.0, 1.0, 0.26, 20).rotateZ(Math.PI / 2).translate(0, 7.4, s * 2.8)); w.geo("goldOrn", new T.CylinderGeometry(0.24, 0.24, 0.32, 10).rotateZ(Math.PI / 2).translate(0, 7.4, s * 2.8)); });
         w.geo("pBlack", new T.BoxGeometry(0.4, 1.4, 2.4).translate(0, 7.5, 0)); }));
     }
