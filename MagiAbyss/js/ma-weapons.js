@@ -616,10 +616,32 @@
     list.slice(0, 24).forEach((e) => { const n = E().enemiesIn(e.x, e.y, 34).length; if (n > bn) { bn = n; best = e; } });
     return { x: best.x, y: best.y };
   }
+  /* ══ ★★ 2026-11-11 技（E）の追加効果（ma-data.js の ARTS[].x・キャラごとの技）══ */
+  function artX(A) { return (A && A.x) || {}; }
+  function artOpt(A, o) { const X = artX(A); if (X.stun) o.stun = Math.max(o.stun || 0, X.stun); if (X.burn) o.burn = 1; return o; }
+  function artMark(e, A) {
+    const X = artX(A); if (!e || e.dead) return;
+    if (X.defdown) e.defDownT = Math.max(e.defDownT || 0, X.defdown);
+    if (X.vul) { e.vulT = Math.max(e.vulT || 0, X.vul[1]); e.vulK = Math.max(e.vulK || 0, X.vul[0]); }
+    if (X.slow) { e.slowT = Math.max(e.slowT || 0, 2); e.slowK = Math.max(e.slowK || 0, X.slow); }
+  }
+  function artMarkArea(x, y, r, A, withStun) {
+    const X = artX(A); if (!(X.defdown || X.vul || X.slow || (withStun && X.stun))) return;
+    E().enemiesIn(x, y, r).forEach((e) => { artMark(e, A); if (withStun && X.stun) e.stunT = Math.max(e.stunT || 0, X.stun); });
+  }
+  function artSelf(P, A) {
+    const X = artX(A);
+    if (X.heal) E().heal(P.st.hp * X.heal);
+    if (X.shield) P.shield = Math.max(P.shield, Math.round(P.st.hp * X.shield));
+    if (X.haste) P.buffs.haste = { t: X.haste[1], v: Math.max((P.buffs.haste && P.buffs.haste.v) || 0, X.haste[0]) };
+    if (X.gauge) P.ultG = Math.min(100, P.ultG + X.gauge);
+    if (X.mp) P.mp = Math.min(P.st.mmp, P.mp + X.mp);
+  }
+  function artEl(A, P, def) { return artX(A).el === "self" ? P.C.el : def; }
   const ARTF = {
     nova(P, A, k) {
       const el = P.C.el, r = A.r * P.st.area;
-      E().enemiesIn(P.x, P.y, r).forEach((e) => E().damageEnemy(e, skillOf(A.mul * k), { el, src: "art", kb: 18, kx: e.x - P.x, ky: e.y - P.y }));
+      E().enemiesIn(P.x, P.y, r).forEach((e) => { E().damageEnemy(e, skillOf(A.mul * k), artOpt(A, { el, src: "art", kb: 18, kx: e.x - P.x, ky: e.y - P.y })); artMark(e, A); });
       for (let i = 0; i < 3; i++) E().fx({ type: "ring", x: P.x, y: P.y, t: -i * 0.07, dur: 0.45, r: r * (0.5 + i * 0.25), col: i % 2 ? ec2(el) : ec(el) });
       G().shake = 6; A_().sfx("boom");
     },
@@ -629,20 +651,22 @@
       for (let i = 0; i < A.n; i++) G().queue.push({ at: G().t + i * 0.09, f: () => {
         const t = list[i % Math.max(1, list.length)];
         const x = t && !t.dead ? t.x : P.x + Math.cos(aim()) * (40 + i * 10), y = t && !t.dead ? t.y : P.y + Math.sin(aim()) * (40 + i * 10);
-        E().telegraph({ shape: "circle", x, y, r: A.r, dur: 0.32, col: ec(el), onFire: (o) => { circleHit(o.x, o.y, o.r, skillOf(A.mul * k), el, { src: "art" }); E().fx({ type: "meteor", x: o.x, y: o.y, t: 0, dur: 0.35, col: ec(el) }); A_().sfx("boom"); } });
+        E().telegraph({ shape: "circle", x, y, r: A.r, dur: 0.32, col: ec(el), onFire: (o) => { circleHit(o.x, o.y, o.r, skillOf(A.mul * k), el, artOpt(A, { src: "art" })); artMarkArea(o.x, o.y, o.r, A); E().fx({ type: "meteor", x: o.x, y: o.y, t: 0, dur: 0.35, col: ec(el) }); A_().sfx("boom"); } });
       } });
     },
     dashcut(P, A, k) {
       const a = aim(), sx = P.x, sy = P.y;
       E().moveCircle(P, Math.cos(a) * A.dist, Math.sin(a) * A.dist, true);
-      lineHit(sx, sy, a, Math.hypot(P.x - sx, P.y - sy) + 8, 26, skillOf(A.mul * k), P.C.el, { src: "art", kb: 10 });
+      lineHit(sx, sy, a, Math.hypot(P.x - sx, P.y - sy) + 8, 26, skillOf(A.mul * k), P.C.el, artOpt(A, { src: "art", kb: 10 }));
+      artMarkArea((sx + P.x) / 2, (sy + P.y) / 2, Math.hypot(P.x - sx, P.y - sy) / 2 + 20, A);
       E().fx({ type: "afterimage", x: sx, y: sy, x2: P.x, y2: P.y, t: 0, dur: 0.35, col: ec(P.C.el) });
       P.iT = Math.max(P.iT, 0.45);
       A_().sfx("dash");
     },
     aegis(P, A, k) {
       P.shield = Math.max(P.shield, Math.round(P.st.hp * A.shield * k));
-      circleHit(P.x, P.y, A.r * P.st.area, skillOf(A.mul * k), P.C.el, { src: "art", kb: 22 });
+      circleHit(P.x, P.y, A.r * P.st.area, skillOf(A.mul * k), P.C.el, artOpt(A, { src: "art", kb: 22 }));
+      artMarkArea(P.x, P.y, A.r * P.st.area, A);
       E().fx({ type: "ring", x: P.x, y: P.y, t: 0, dur: 0.5, r: A.r * P.st.area, col: "#7fd0ff" });
       E().fx({ type: "shock", x: P.x, y: P.y, t: 0, dur: 0.4, r: 26, col: "#bfe8ff" });
       A_().sfx("heal");
@@ -654,7 +678,8 @@
       A_().sfx("heal");
     },
     whirl(P, A, k) {
-      E().zone({ x: P.x, y: P.y, r: A.r * P.st.area, dur: A.t, dmg: skillOf(A.mul * k), el: P.C.el, tick: 0.25, follow: 1, quiet: 1, col: ec(P.C.el), kind: "whirl", src: "art" });
+      E().zone({ x: P.x, y: P.y, r: A.r * P.st.area, dur: A.t, dmg: skillOf(A.mul * k), el: P.C.el, tick: 0.25, follow: 1, quiet: 1, col: ec(P.C.el), kind: "whirl", src: "art", burn: artX(A).burn ? 1 : 0, slow: artX(A).slow || 0 });
+      artMarkArea(P.x, P.y, A.r * P.st.area, A, true);
       A_().sfx("slash");
     },
     haste(P, A, k) {
@@ -664,19 +689,21 @@
       A_().sfx("skill");
     },
     freeze(P, A, k) {
-      const r = A.r * P.st.area;
-      E().enemiesIn(P.x, P.y, r).forEach((e) => E().damageEnemy(e, skillOf(A.mul * k), { el: "water", src: "art", stun: A.t, slow: 0.5 }));
+      const r = A.r * P.st.area, el = artEl(A, P, "water");
+      E().enemiesIn(P.x, P.y, r).forEach((e) => { E().damageEnemy(e, skillOf(A.mul * k), artOpt(A, { el, src: "art", stun: A.t, slow: 0.5 })); artMark(e, A); });
       E().fx({ type: "ring", x: P.x, y: P.y, t: 0, dur: 0.5, r, col: "#bfe8ff" });
       for (let i = 0; i < 6; i++) { const a = i / 6 * TAU; E().fx({ type: "icicle", x: P.x + Math.cos(a) * r * 0.6, y: P.y + Math.sin(a) * r * 0.6, t: 0, dur: 0.5 }); }
       A_().sfx("skill");
     },
     blast(P, A, k) {
       const c = crowdPoint(P, 220), r = A.r * P.st.area;
-      E().telegraph({ shape: "circle", x: c.x, y: c.y, r, dur: 0.35, col: "#ff6a2a", onFire: (o) => { circleHit(o.x, o.y, o.r, skillOf(A.mul * k), "fire", { src: "art", burn: 1, kb: 16 }); E().fx({ type: "boom", x: o.x, y: o.y, t: 0, dur: 0.5, r: o.r, col: "#ff6a2a" }); G().shake = 7; A_().sfx("boom"); } });
+      const bel = artEl(A, P, "fire"), bcol = bel === "fire" ? "#ff6a2a" : ec(bel);
+      E().telegraph({ shape: "circle", x: c.x, y: c.y, r, dur: 0.35, col: bcol, onFire: (o) => { circleHit(o.x, o.y, o.r, skillOf(A.mul * k), bel, artOpt(A, { src: "art", burn: 1, kb: 16 })); artMarkArea(o.x, o.y, o.r, A); E().fx({ type: "boom", x: o.x, y: o.y, t: 0, dur: 0.5, r: o.r, col: bcol }); G().shake = 7; A_().sfx("boom"); } });
     },
     gate(P, A, k) {
       const c = crowdPoint(P, 200);
-      E().zone({ x: c.x, y: c.y, r: A.r * P.st.area, dur: A.t, dmg: skillOf(A.mul * k), el: "dark", tick: 0.3, pull: 1, quiet: 1, col: "#a86bff", kind: "gate", src: "art" });
+      E().zone({ x: c.x, y: c.y, r: A.r * P.st.area, dur: A.t, dmg: skillOf(A.mul * k), el: artEl(A, P, "dark"), tick: 0.3, pull: 1, quiet: 1, col: "#a86bff", kind: "gate", src: "art", burn: artX(A).burn ? 1 : 0, slow: artX(A).slow || 0 });
+      artMarkArea(c.x, c.y, A.r * P.st.area, A, true);
       E().fx({ type: "ring", x: c.x, y: c.y, t: 0, dur: 0.5, r: A.r, col: "#a86bff" });
       A_().sfx("skill");
     },
@@ -694,6 +721,7 @@
     if (P.mp < Ad.mp) { E().pop(P.x, P.y - 24, "MPが足りない", "#9ab0ff"); A().sfx("error"); return; }
     P.mp -= Ad.mp; P.burstCd = Ad.cd * (1 - P.st.cdr);
     (ARTF[Ad.kind] || ARTF.nova)(P, Ad, artK());
+    artSelf(P, Ad);   /* ★★ 2026-11-11 技ごとの追加効果（回復・バリア・攻撃速度・ゲージ・MP） */
     E().pop(P.x, P.y - 26, Ad.nm, ec(P.C.el));
     onDash();
     if (MA.Skills) MA.Skills.ev("art");

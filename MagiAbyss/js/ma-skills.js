@@ -52,31 +52,37 @@
     natsumi:   { nm: "黒猫は九度跳ぶ", ic: "dashup", cond: { k: "skill" }, cd: 6, fx: { aspd: 0.4, crit: 15, t: 3 } },
     miu:       { nm: "収穫祭の大行進", ic: "pn_pumpkin", cond: { k: "kills", n: 20, s: 10 }, cd: 30, fx: { atk: 0.3, spd: 0.15, t: 10 } },
     mai:       { nm: "四つ葉の幸運", ic: "pn_clover", cond: { k: "every", s: 40 }, cd: 0, fx: { crit: 35, t: 8, heal: 0.1 } },
-    chinatsu:  { nm: "燭光のヴェール", ic: "pn_candle", cond: { k: "boss" }, cd: 0, fx: { atk: 0.3, def: 0.2, t: 20 } },
+    chinatsu:  { nm: "燭光のヴェール", ic: "pn_candle", cond: { k: "boss" }, cd: 0, fx: { atk: 0.3, crit: 15, t: 20 } },   /* ★★ 2026-11-11 アイナと同じだった（守り→会心） */
     yuumi:     { nm: "ランタンの道しるべ", ic: "pn_hat", cond: { k: "room" }, cd: 15, fx: { spd: 0.3, atk: 0.2, t: 8 } },
     rina:      { nm: "解けない呪縛", ic: "vital", cond: { k: "hpLow", v: 0.4 }, cd: 50, fx: { atk: 0.4, def: 0.2, t: 10 } },
     kaori:     { nm: "ゴースト・パーティー", ic: "pn_ghost", cond: { k: "ult" }, cd: 0, fx: { atk: 0.25, t: 10, techG: 0.4 } },
     /* ★★ 2026-10-16 超極華祭 */
     chie:      { nm: "桜吹雪の型", ic: "cy_sakura", cond: { k: "skill" }, cd: 6, fx: { atk: 0.25, crit: 15, t: 4 } },
     ichika:    { nm: "真夏のビッグウェーブ", ic: "cy_shell", cond: { k: "kills", n: 15, s: 8 }, cd: 20, fx: { aspd: 0.35, spd: 0.15, t: 8 } },
-    nonoka:    { nm: "おかえりなさいませ", ic: "cy_teacup", cond: { k: "hpLow", v: 0.5 }, cd: 45, fx: { heal: 0.25, shield: 0.35, def: 0.25, t: 8 } },
+    nonoka:    { nm: "おかえりなさいませ", ic: "cy_teacup", cond: { k: "noHit", s: 12 }, cd: 30, fx: { heal: 0.15, aspd: 0.2, t: 8 } },   /* ★★ 2026-11-11 ヒバナとほぼ同じだった */
     aina:      { nm: "月下の誓い", ic: "sk_rose", cond: { k: "boss" }, cd: 0, fx: { atk: 0.3, def: 0.2, t: 20 } },
     yuna:      { nm: "宵闇の独占欲", ic: "sk_rose", cond: { k: "ult" }, cd: 0, fx: { atk: 0.3, crit: 20, t: 10, techG: 0.4 } },
     /* ★★ 2026-10-22 超極煌祭（ユナ・アイナ・イチカと同じ効果） */
-    kohaku:    { nm: "紅薔薇の独占", ic: "sk_rose", cond: { k: "ult" }, cd: 0, fx: { atk: 0.3, crit: 20, t: 10, techG: 0.4 } },
-    suzu:      { nm: "夏の日の約束", ic: "cy_hat", cond: { k: "boss" }, cd: 0, fx: { atk: 0.3, def: 0.2, t: 20 } },
-    shouko:    { nm: "真夏のサンシャイン", ic: "cy_sun", cond: { k: "kills", n: 15, s: 8 }, cd: 20, fx: { aspd: 0.35, spd: 0.15, t: 8 } },
+    kohaku:    { nm: "紅薔薇の独占", ic: "sk_rose", cond: { k: "kills", n: 12, s: 6 }, cd: 18, fx: { atk: 0.25, critDmg: 0.3, t: 8 } },
+    suzu:      { nm: "夏の日の約束", ic: "cy_hat", cond: { k: "hpLow", v: 0.5 }, cd: 40, fx: { heal: 0.2, spd: 0.2, t: 6 } },
+    shouko:    { nm: "真夏のサンシャイン", ic: "cy_sun", cond: { k: "skill" }, cd: 8, fx: { spd: 0.2, aspd: 0.3, t: 4 } },
     /* ★★ 2026-10-24 ヒサコ（コハクより少し上）・アリス（コハクと同じ）・ミキ（ショウコと同じ） */
-    hisako:    { nm: "ふたりだけの特別授業", ic: "cy_book", cond: { k: "ult" }, cd: 0, fx: { atk: 0.33, crit: 22, t: 10, techG: 0.4 } },
-    alice:     { nm: "白百合の独占", ic: "cy_lily", cond: { k: "ult" }, cd: 0, fx: { atk: 0.3, crit: 20, t: 10, techG: 0.4 } },
-    miki:      { nm: "青い花の約束", ic: "cy_bloom", cond: { k: "kills", n: 15, s: 8 }, cd: 20, fx: { aspd: 0.35, spd: 0.15, t: 8 } },
+    hisako:    { nm: "ふたりだけの特別授業", ic: "cy_book", cond: { k: "every", s: 30 }, cd: 0, fx: { atk: 0.3, crit: 20, t: 10 } },
+    alice:     { nm: "白百合の独占", ic: "cy_lily", cond: { k: "art" }, cd: 8, fx: { atk: 0.25, crit: 20, t: 5 } },
+    miki:      { nm: "青い花の約束", ic: "cy_bloom", cond: { k: "lv" }, cd: 15, fx: { heal: 0.08, aspd: 0.25, t: 6 } },
     /* ★★ 2026-10-30 超極彩祭（ヒサコより少し上） */
-    haru:      { nm: "あじさいの海風", ic: "cy_hydra", cond: { k: "ult" }, cd: 0, fx: { atk: 0.35, crit: 23, t: 10, techG: 0.4 } },
-    chika:     { nm: "月夜だけの素顔", ic: "cy_moon", cond: { k: "ult" }, cd: 0, fx: { atk: 0.35, crit: 23, t: 10, techG: 0.4 } },
+    haru:      { nm: "あじさいの海風", ic: "cy_hydra", cond: { k: "kills", n: 20, s: 8 }, cd: 20, fx: { aspd: 0.3, atk: 0.25, t: 8 } },
+    chika:     { nm: "月夜だけの素顔", ic: "cy_moon", cond: { k: "noHit", s: 10 }, cd: 20, fx: { crit: 30, critDmg: 0.3, t: 8 } },
     /* ★★ 2026-11-03 超極彩祭の追加3体（ヒサコと同じ効果） */
-    chifuru:   { nm: "とろける甘い罠", ic: "cy_heart", cond: { k: "ult" }, cd: 0, fx: { atk: 0.33, crit: 22, t: 10, techG: 0.4 } },
-    mint:      { nm: "いっしょにがんばろ！", ic: "cy_mint", cond: { k: "ult" }, cd: 0, fx: { atk: 0.33, crit: 22, t: 10, techG: 0.4 } },
-    purika:    { nm: "きみだけの特等席", ic: "cy_crest", cond: { k: "ult" }, cd: 0, fx: { atk: 0.33, crit: 22, t: 10, techG: 0.4 } },
+    chifuru:   { nm: "とろける甘い罠", ic: "cy_heart", cond: { k: "crowd", n: 10 }, cd: 18, fx: { heal: 0.08, atk: 0.25, t: 6 } },
+    mint:      { nm: "いっしょにがんばろ！", ic: "cy_mint", cond: { k: "room" }, cd: 15, fx: { heal: 0.1, atk: 0.2, t: 8 } },
+    purika:    { nm: "きみだけの特等席", ic: "cy_crest", cond: { k: "crit", n: 10, s: 4 }, cd: 15, fx: { atk: 0.25, critDmg: 0.35, t: 6 } },
+    /* ★★ 2026-11-11 超極華祭の追加2体・ROYAL DEBUT の3体 */
+    ena:       { nm: "真夏のガード", ic: "cy_hibiscus", cond: { k: "hurtBig", v: 0.12 }, cd: 30, fx: { shield: 0.35, def: 0.25, atk: 0.2, t: 8 } },
+    mimi:      { nm: "泡沫のひみつ", ic: "cy_bubble", cond: { k: "crowd", n: 6 }, cd: 15, fx: { atk: 0.3, aspd: 0.25, t: 6 } },
+    mako:      { nm: "ひだまりのときめき", ic: "cy_knit", cond: { k: "kills", n: 10, s: 5 }, cd: 15, fx: { aspd: 0.3, crit: 15, t: 6 } },
+    ako:       { nm: "雨あがりの約束", ic: "cy_rain", cond: { k: "skill" }, cd: 8, fx: { techG: 0.15, atk: 0.15, t: 5 } },
+    mina:      { nm: "青薔薇の誇り", ic: "cy_bluerose", cond: { k: "hpLow", v: 0.6 }, cd: 40, fx: { shield: 0.3, atk: 0.3, def: 0.2, t: 10 } },
     hinano:    { nm: "翠光の追い風", ic: "gale", cond: { k: "kills", n: 12, s: 6 }, cd: 18, fx: { aspd: 0.35, spd: 0.2, t: 6 } },
     hanon:     { nm: "ブザービーター", ic: "at_ball", cond: { k: "foeLow", v: 0.3 }, cd: 30, fx: { atk: 0.4, t: 10 } },
     kokoha:    { nm: "椿雨の帳", ic: "sk_umbrella", cond: { k: "noHit", s: 10 }, cd: 25, fx: { atk: 0.25, crit: 15, t: 10 } },
@@ -96,19 +102,17 @@
     chinatsu: ["fudo", "omono", "sente"], yuumi: ["shippu", "oikaze", "takara"], rina: ["zenshin", "kakomare", "gyakkyo"],
     kaori: ["yoin", "ikioi", "shuchu"], hinano: ["shippu", "oikaze", "sente"], hanon: ["bosskill", "omono", "seicho"],
     kokoha: ["renkei", "shinkokyu", "kakomare"], mutsumi: ["zenshin", "ikioi", "oikaze"], reina: ["yoin", "shuchu", "omono"],
-    azusa: ["kaishin", "mikiri", "oikaze"], kumireina: ["renkei", "seicho", "takara"], kagura: ["zenshin", "kakomare", "gyakkyo"],
+    azusa: ["kaishin", "mikiri", "renkei"], kumireina: ["renkei", "seicho", "takara"], kagura: ["zenshin", "kakomare", "bosskill"],
     kotori: ["teppeki", "gyakkyo", "kakomare"],
     /* ★★ 2026-10-16 超極華祭 */
-    chie: ["kaishin", "ikioi", "oikaze"], ichika: ["shippu", "oikaze", "mikiri"], nonoka: ["teppeki", "shinkokyu", "takara"],
+    chie: ["kaishin", "ikioi", "oikaze"], ichika: ["shippu", "oikaze", "seicho"], nonoka: ["teppeki", "shinkokyu", "seicho"],
     aina: ["fudo", "omono", "shuchu"], yuna: ["yoin", "mikiri", "shuchu"],
-    /* ★★ 2026-10-22 超極煌祭 */
-    kohaku: ["yoin", "mikiri", "shuchu"], suzu: ["fudo", "omono", "shuchu"], shouko: ["shippu", "oikaze", "mikiri"],
-    /* ★★ 2026-10-24 */
-    hisako: ["yoin", "mikiri", "shuchu"], alice: ["yoin", "mikiri", "shuchu"], miki: ["shippu", "oikaze", "mikiri"],
-    /* ★★ 2026-10-30 */
-    haru: ["yoin", "mikiri", "shuchu"], chika: ["yoin", "mikiri", "shuchu"],
-    /* ★★ 2026-11-03 */
-    chifuru: ["yoin", "mikiri", "shuchu"], mint: ["yoin", "mikiri", "shuchu"], purika: ["yoin", "mikiri", "shuchu"],
+    /* ★★ 2026-11-11 ご指定「全員ちがう組み合わせ」→ 3つの組もひとりずつ別に（同じ組はいない） */
+    kohaku: ["kaishin", "renkei", "ikioi"], suzu: ["shinkokyu", "oikaze", "takara"], shouko: ["oikaze", "sente", "ikioi"],
+    hisako: ["yoin", "shuchu", "seicho"], alice: ["kaishin", "fudo", "teppeki"], miki: ["seicho", "oikaze", "shinkokyu"],
+    haru: ["shippu", "yoin", "mikiri"], chika: ["kaishin", "fudo", "omono"],
+    chifuru: ["renkei", "kakomare", "takara"], mint: ["shinkokyu", "seicho", "shuchu"], purika: ["kaishin", "mikiri", "shuchu"],
+    ena: ["teppeki", "kakomare", "zenshin"], mimi: ["kaishin", "zenshin", "ikioi"], mako: ["shippu", "kaishin", "sente"], ako: ["yoin", "renkei", "shuchu"], mina: ["teppeki", "fudo", "gyakkyo"],
   };
   const KIT_DEF = ["fudo", "mikiri", "shinkokyu"];
 
@@ -124,31 +128,37 @@
     natsumi:   { nm: "ミッドナイト・クロー", ic: "at_claw", kind: "dashcut", cond: { k: "dodge", n: 4 }, mul: 7.5, dist: 150 },
     miu:       { nm: "パンプキン・トルネード", ic: "pn_pumpkin", kind: "whirl", cond: { k: "kill", n: 30 }, mul: 3.2, r: 90, n: 3 },
     mai:       { nm: "クローバー・シャワー", ic: "pn_clover", kind: "rain", cond: { k: "time", n: 25 }, mul: 0.9, r: 95, t: 3 },
-    chinatsu:  { nm: "キャンドル・ジャッジ", ic: "pn_candle", kind: "beam", cond: { k: "crit", n: 30 }, mul: 9, w: 30, len: 320 },
+    chinatsu:  { nm: "キャンドル・ジャッジ", ic: "pn_candle", kind: "nova", cond: { k: "crit", n: 30 }, mul: 6, r: 120 },   /* ★★ 2026-11-11 アイナと同じだった */
     yuumi:     { nm: "ランタン・ファン", ic: "at_fan", kind: "fan", cond: { k: "dodge", n: 5 }, mul: 2.3, n: 14 },
     rina:      { nm: "バンデージ・ストーム", ic: "shadowbind", kind: "whirl", cond: { k: "hurt", n: 6 }, mul: 3.4, r: 90, n: 3 },
     kaori:     { nm: "ポルターガイスト", ic: "pn_ghost", kind: "starfall", cond: { k: "kill", n: 30 }, mul: 5, n: 7 },
     /* ★★ 2026-10-16 超極華祭 */
-    chie:      { nm: "桜花・千刃", ic: "cy_sakura", kind: "dashcut", cond: { k: "dodge", n: 4 }, mul: 7.5, dist: 150 },
-    ichika:    { nm: "スプラッシュ・ファン", ic: "cy_shell", kind: "fan", cond: { k: "dodge", n: 5 }, mul: 2.3, n: 14 },
+    chie:      { nm: "桜花・千刃", ic: "cy_sakura", kind: "nova", cond: { k: "dodge", n: 4 }, mul: 6.5, r: 120 },   /* ★★ 2026-11-11 ナツミと同じだった */
+    ichika:    { nm: "スプラッシュ・ファン", ic: "cy_shell", kind: "fan", cond: { k: "hurt", n: 6 }, mul: 2.3, n: 14 },   /* ★★ 2026-11-11 ユウミと同じだった */
     nonoka:    { nm: "ティーパーティー・ドーム", ic: "cy_teacup", kind: "barrier", cond: { k: "hurt", n: 6 }, shield: 0.5, heal: 0.15, mul: 2.8, r: 105 },
     aina:      { nm: "ムーンライト・ジャッジ", ic: "sk_rose", kind: "beam", cond: { k: "crit", n: 30 }, mul: 9, w: 30, len: 320 },
     yuna:      { nm: "朔夜・ブルーローズ", ic: "sk_rose", kind: "mark", cond: { k: "crit", n: 30 }, mul: 9, vul: 0.3, t: 8 },
     /* ★★ 2026-10-22 超極煌祭 */
-    kohaku:    { nm: "紅煌・クリムゾンムーン", ic: "sk_rose", kind: "mark", cond: { k: "crit", n: 30 }, mul: 9, vul: 0.3, t: 8 },
-    suzu:      { nm: "サンセット・レイ", ic: "cy_hat", kind: "beam", cond: { k: "crit", n: 30 }, mul: 9, w: 30, len: 320 },
-    shouko:    { nm: "サンシャイン・ファン", ic: "cy_sun", kind: "fan", cond: { k: "dodge", n: 5 }, mul: 2.3, n: 14 },
+    kohaku:    { nm: "紅煌・クリムゾンムーン", ic: "sk_rose", kind: "rain", cond: { k: "crit", n: 30 }, mul: 1.0, r: 100, t: 3, burn: 1 },
+    suzu:      { nm: "サンセット・レイン", ic: "cy_hat", kind: "rain", cond: { k: "dodge", n: 5 }, mul: 0.85, r: 95, t: 3 },
+    shouko:    { nm: "サンシャイン・ビーム", ic: "cy_sun", kind: "beam", cond: { k: "time", n: 20 }, mul: 8.5, w: 30, len: 320 },
     /* ★★ 2026-10-24 */
-    hisako:    { nm: "桜色・ハナミズキ", ic: "cy_book", kind: "mark", cond: { k: "crit", n: 30 }, mul: 9.9, vul: 0.3, t: 8 },
-    alice:     { nm: "白銀・ホワイトムーン", ic: "cy_lily", kind: "mark", cond: { k: "crit", n: 30 }, mul: 9, vul: 0.3, t: 8 },
-    miki:      { nm: "ブルーベル・ファン", ic: "cy_bloom", kind: "fan", cond: { k: "dodge", n: 5 }, mul: 2.3, n: 14 },
+    hisako:    { nm: "桜色・ハナミズキ", ic: "cy_book", kind: "mark", cond: { k: "kill", n: 25 }, mul: 10, vul: 0.3, t: 8 },
+    alice:     { nm: "白銀・ホワイトムーン", ic: "cy_lily", kind: "barrier", cond: { k: "crit", n: 30 }, shield: 0.4, heal: 0.12, mul: 3.2, r: 110 },
+    miki:      { nm: "ブルーベル・ファン", ic: "cy_bloom", kind: "fan", cond: { k: "skill", n: 4 }, mul: 2.3, n: 14 },
     /* ★★ 2026-10-30 */
-    haru:      { nm: "蒼海・ブルーティアーズ", ic: "cy_hydra", kind: "mark", cond: { k: "crit", n: 30 }, mul: 10.4, vul: 0.3, t: 8 },
-    chika:     { nm: "月下・フルムーンメモリー", ic: "cy_moon", kind: "mark", cond: { k: "crit", n: 30 }, mul: 10.4, vul: 0.3, t: 8 },
+    haru:      { nm: "蒼海・ブルーティアーズ", ic: "cy_hydra", kind: "whirl", cond: { k: "crit", n: 30 }, mul: 3.6, r: 95, n: 3 },
+    chika:     { nm: "月下・フルムーンメモリー", ic: "cy_moon", kind: "beam", cond: { k: "skill", n: 3 }, mul: 10.5, w: 34, len: 340 },
     /* ★★ 2026-11-03 超極彩祭の追加3体（ヒサコと同じ） */
-    chifuru:   { nm: "蒼糖・ハートブレイク", ic: "cy_heart", kind: "mark", cond: { k: "crit", n: 30 }, mul: 9.9, vul: 0.3, t: 8 },
-    mint:      { nm: "白花・モーニングブーケ", ic: "cy_mint", kind: "mark", cond: { k: "crit", n: 30 }, mul: 9.9, vul: 0.3, t: 8 },
-    purika:    { nm: "星章・シューティングスター", ic: "cy_crest", kind: "mark", cond: { k: "crit", n: 30 }, mul: 9.9, vul: 0.3, t: 8 },
+    chifuru:   { nm: "蒼糖・ハートブレイク", ic: "cy_heart", kind: "fan", cond: { k: "kill", n: 25 }, mul: 2.4, n: 16 },
+    mint:      { nm: "白花・モーニングブーケ", ic: "cy_mint", kind: "whirl", cond: { k: "time", n: 20 }, mul: 3.0, r: 95, n: 3 },
+    purika:    { nm: "星章・シューティングスター", ic: "cy_crest", kind: "starfall", cond: { k: "dodge", n: 4 }, mul: 5.2, n: 8 },
+    /* ★★ 2026-11-11 超極華祭の追加2体・ROYAL DEBUT の3体 */
+    ena:       { nm: "ハイビスカス・バリケード", ic: "cy_hibiscus", kind: "barrier", cond: { k: "kill", n: 25 }, shield: 0.5, heal: 0.15, mul: 3.4, r: 115 },
+    mimi:      { nm: "泡沫・ムーンステップ", ic: "cy_bubble", kind: "dashcut", cond: { k: "crit", n: 30 }, mul: 8, dist: 150 },
+    mako:      { nm: "チェリー・フルバースト", ic: "cy_knit", kind: "fan", cond: { k: "crit", n: 30 }, mul: 2.4, n: 16 },
+    ako:       { nm: "アジサイ・ターゲット", ic: "cy_rain", kind: "mark", cond: { k: "time", n: 20 }, mul: 9.5, vul: 0.35, t: 8 },
+    mina:      { nm: "ブルーローズ・カウンター", ic: "cy_bluerose", kind: "barrier", cond: { k: "skill", n: 3 }, shield: 0.45, heal: 0.1, mul: 3.6, r: 115 },
     hinano:    { nm: "プリズム・スプラッシュ", ic: "sk_prism", kind: "fan", cond: { k: "dodge", n: 5 }, mul: 2.2, n: 14 },
     hanon:     { nm: "ゴールデン・ブザー", ic: "sk_hoop", kind: "mark", cond: { k: "skill", n: 4 }, mul: 11, vul: 0.3, t: 8 },
     kokoha:    { nm: "ツバキ・シグレ", ic: "sk_umbrella", kind: "rain", cond: { k: "time", n: 25 }, mul: 0.95, r: 95, t: 3, burn: 1 },

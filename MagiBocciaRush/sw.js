@@ -5,7 +5,7 @@
    ・キャラクターの絵は XEVARION の img/ にあるので、ここでは丸ごと持たない
      （ポータル側の SW が持っている。開いたぶんだけ実行時に控える）。
    ============================================================ */
-const VERSION = "boccia-sw-v57";
+const VERSION = "boccia-sw-v58";
 const RUNTIME = "boccia-rt-v1";
 const CORE = [
   "./index.html",
@@ -14,16 +14,16 @@ const CORE = [
   "./js/mbr-voice.js?v=2",
   "./js/mbr-core.js?v=21",
   "./js/mbr-stage.js?v=5",
-  "./js/mbr-fx.js?v=9",
+  "./js/mbr-fx.js?v=10",
   "./js/mbr-help.js?v=8",
-  "./js/mbr-ui.js?v=22",
-  "../mb-newchars.js?v=43",
+  "./js/mbr-ui.js?v=23",
+  "../mb-newchars.js?v=44",
   "../mb-boot.js?v=18",
-  "../MagiBurst/js/mb-core.js?v=146",
-  "../xeva.js?v=86",
-  "../xeva-alive.js?v=8",
+  "../MagiBurst/js/mb-core.js?v=147",
+  "../xeva.js?v=87",
+  "../xeva-alive.js?v=9",
   "../xeva-loading.js?v=19",
-  "../xeva-splash.js?v=21",
+  "../xeva-splash.js?v=22",
   "../xeva-safebottom.js?v=12",
   "../xeva-back.js?v=9",
   "../maintenance-gate.js?v=13",
@@ -33,7 +33,7 @@ const CORE = [
      ・オンライン対戦とアカウント同期のモジュール（読めないと console が赤くなるだけで遊べるが、そろえておく）
      ・英語版の辞書（オフラインで英語にしたとき、キャラ名が日本語に戻らないように） */
   "./js/mbr-online.js?v=6",
-  "../xeva-cloud.js?v=50",
+  "../xeva-cloud.js?v=51",
   "../MagiBurst/magiburst-cloud.js?v=29",
   "../app-cloud.js?v=15",
   "../xeva-keys.js?v=36",
@@ -46,7 +46,7 @@ const CORE = [
   "../xeva-i18n-mb5.js?v=7",
   "../xeva-i18n-mb6.js?v=7",
   "../xeva-i18n-mb7.js?v=7",
-  "../xeva-i18n-n1.js?v=22",
+  "../xeva-i18n-n1.js?v=23",
   "../xeva-i18n-n2.js?v=3",
 ];
 /* チュートリアルの音声（ずんだもん）。Range で取りに来るので CORE とは別の入れ物に置き、下の fetch で切り出して返す */
@@ -262,6 +262,58 @@ async function xevRefreshPost(msg) {
     cs.forEach((c) => { try { c.postMessage(msg); } catch (e) {} });
   } catch (e) {}
 }
+/* ══ ★★ 2026-11-11 要らなくなったファイルの掃除（ご指定「ダウンロード時に要らなくなったファイルを削除する機能」）══
+   ホームの「ダウンロード」（xev-refresh）のたびに、この SW の置き場（VERSION）から<b>もう使わないもの</b>を消す。
+   ・CORE（この版で使うファイル）は消さない。
+   ・消すのは ① CORE と同じファイルの古い版（?v= が小さい・?v= が無い）
+              ② ページ（.html）に ? の付いた写し（?room= など。ページ本体は CORE にある）
+              ③ CORE に無いファイルの古い版どうし（いちばん新しい ?v= だけ残す）
+              ④ サーバーにもう無いファイル（確かめで 404・410 が返ったもの。取れたものより多いときは通信の不調とみて消さない）
+   ・消した件数と大きさは xev-refreshed の removed・freed でホームへ返す（ホームの更新画面に「整理した」と出る）。 */
+function xevPathKey(u) { let p = u.pathname; if (p.endsWith("/")) p += "index.html"; return u.origin + p; }
+function xevVerOf(u) { const s = u.searchParams.get("v"); if (s == null) return 0; const n = parseFloat(s); return isFinite(n) ? n : 0.5; }
+function xevAbs(u) { try { return new URL(u, self.location.href).href; } catch (e) { return String(u); } }
+async function xevSizeOf(res) {
+  if (!res) return 0;
+  let n = Number(res.headers.get("content-length")) || 0;
+  if (!n) { try { n = (await res.clone().blob()).size || 0; } catch (e) { n = 0; } }
+  return n;
+}
+async function xevDropAll(cache, list, out) {
+  for (const req of list) {
+    try { const r = await cache.match(req); const n = await xevSizeOf(r); if (await cache.delete(req)) { out.n++; out.bytes += n; } } catch (e) {}
+  }
+}
+/* ?v= 以外の ? はそのまま見分ける（?page=2 などの中身が違うものを「古い版」とまちがえて消さない） */
+function xevQKey(u) {
+  const ps = [];
+  u.searchParams.forEach((val, key) => { if (key !== "v") ps.push(key + "=" + val); });
+  ps.sort();
+  return xevPathKey(u) + (ps.length ? "?" + ps.join("&") : "");
+}
+async function xevPrune(cache, coreAbs, sameOriginOnly) {
+  const out = { n: 0, bytes: 0 };
+  const core = new Map(), corePath = new Set(), best = new Map(), drop = [];
+  coreAbs.forEach((abs) => {
+    try { const u = new URL(abs); const q = xevQKey(u); corePath.add(xevPathKey(u)); core.set(q, Math.max(core.has(q) ? core.get(q) : -1, xevVerOf(u))); } catch (e) {}
+  });
+  let reqs = [];
+  try { reqs = await cache.keys(); } catch (e) { return out; }
+  for (const req of reqs) {
+    if (coreAbs.has(req.url)) continue;
+    let u; try { u = new URL(req.url); } catch (e) { continue; }
+    if (sameOriginOnly !== false && u.origin !== self.location.origin) continue;
+    const p = xevPathKey(u), q = xevQKey(u), v = xevVerOf(u);
+    if (u.search && corePath.has(p) && /\.html?$/i.test(p)) { drop.push(req); continue; }   /* ② ページの ? 付きの写し */
+    if (core.has(q)) { if (v < core.get(q)) drop.push(req); continue; }                       /* ① CORE より古い版 */
+    const b = best.get(q);                                                                     /* ③ CORE に無いものは新しい版だけ残す */
+    if (!b) best.set(q, { req, v });
+    else if (v > b.v) { drop.push(b.req); best.set(q, { req, v }); }
+    else drop.push(req);
+  }
+  await xevDropAll(cache, drop, out);
+  return out;
+}
 async function xevRefreshAll() {
   const cache = await caches.open(VERSION);
   const urls = [], seen = new Set();
@@ -272,6 +324,9 @@ async function xevRefreshAll() {
     seen.add(abs); urls.push(u);
   }
   /* 実行時にキャッシュしたぶん（CORE に無いページ・画像）も一緒に取り直す */
+  /* ★★ 2026-11-11 要らなくなったファイルの掃除（xevPrune の説明）。ここまでの seen＝CORE */
+  const coreAbs = new Set(seen), gone = [];
+  const pr = await xevPrune(cache, coreAbs);
   try {
     for (const req of await cache.keys()) {
       if (seen.has(req.url)) continue;
@@ -329,7 +384,7 @@ async function xevRefreshAll() {
         await cache.put(u, res.clone());
         if (!n) { try { n = (await res.clone().blob()).size || 0; } catch (e2) { n = 0; } }
         if (!(xevIrPath(u) in irf)) { got++; bytes += n; }
-      }
+      } else if (res && (res.status === 404 || res.status === 410) && old && !coreAbs.has(xevAbs(u))) gone.push(u);   /* ★★ 2026-11-11 サーバーにもう無い */
     } catch (e) { /* 落とせなかったぶんは今のキャッシュを残す（消さない） */ }
     done++;
     await tickPost();
@@ -338,9 +393,11 @@ async function xevRefreshAll() {
   const crew = [];
   for (let ci = 0; ci < CONC; ci++) crew.push(worker());
   await Promise.all(crew);
+  /* ★★ 2026-11-11 サーバーにもう無いファイル（404・410）を置き場から消す。取れたものより多いときは通信の不調とみて消さない */
+  if (gone.length && hit + got >= gone.length) await xevDropAll(cache, gone, pr);
   await tickPost(true);
   await xevIrDrop();
-  await xevRefreshPost({ type: "xev-refreshed", scope: XEV_SCOPE, total: urls.length,
+  await xevRefreshPost({ type: "xev-refreshed", scope: XEV_SCOPE, total: urls.length, removed: pr.n, freed: pr.bytes, cache: VERSION,
     got: got, hit: hit, bytes: bytes });
 }
 self.addEventListener("message", (e) => {

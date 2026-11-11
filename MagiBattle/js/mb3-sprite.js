@@ -71,6 +71,9 @@
     shouko: [".SSASSSSASS.", "SSAAAAAAAASS", "S.SSSAASSS.S", "s.SSSSSSSS.s", "S.SSSSSSSS.S", "S.SSSSSSSS.S"],
     haru:   [".CCCCCCCCCC.", "CCCCCCCCCCCC", "C.CCCCCCCC.C", "c.CcCCCCcC.c", "C.CCCCCCCC.C", "C.CCCCCCCC.C"],
     nonoka: [".CCACCCCACC.", "CCCACCCCACCC", "C.CACCCCAC.C", "c.CACCCCAC.c", "C.CAAaaAAC.C", "C.AAAAAAAA.C"],
+    /* ★★ 2026-11-11 エナ＝ギンガムの水着の背中のひも／ミミ＝白いフリルの背中 */
+    ena:    [".SSSSSSSSSS.", "SSAAAAAAAASS", "S.SSSAASSS.S", "s.SSSSSSSS.s", "S.SSSSSSSS.S", "S.SSSSSSSS.S"],
+    mimi:   [".SSSSSSSSSS.", "AAaAAaAAaAAA", "S.AAAAAAAA.S", "s.AAAAAAAA.s", "S.AAAAAAAA.S", "S.AAAAAAAA.S"],
   };
   function backBody(id, L) {
     const rows = BACK_BODY[id];

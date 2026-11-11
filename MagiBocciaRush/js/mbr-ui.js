@@ -1708,7 +1708,7 @@
     const top = wrap.getBoundingClientRect().top + window.scrollY;
     const ctrlH = 124 + 10;   /* 操作盤（#mCtrl は CSS で高さ固定） */
     const h = Math.max(260, Math.min(window.innerHeight - top - ctrlH - 8, w * 2.2));
-    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    const dpr = (window.XevaPerf ? XevaPerf.dpr(2) : Math.min(2, window.devicePixelRatio || 1));   /* ★★ 2026-11-10 動作モード（軽量＝1・標準＝これまで・高解像度＝端末の値） */
     cv.style.width = w + "px"; cv.style.height = h + "px";
     cv.width = Math.round(w * dpr); cv.height = Math.round(h * dpr);
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);

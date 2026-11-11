@@ -438,7 +438,7 @@
   function burstCands(S) { return S.units.filter((u) => !u.dead && u.K.burst === S.stage && u.bcd <= 0); }
   function addGauge(B, S, u, g) {
     if (S.stage > 0 || S.fb > 0) return;
-    let tg = 0; for (const a of S.units) if (!a.dead && a.s1.fx === "teamGauge") tg += a.v1;   /* ★★ 2026-11-03 チフル：味方全員のゲージ獲得量 */
+    let tg = 0; for (const a of S.units) if (!a.dead) { if (a.s1.fx === "teamGauge") tg += a.v1; if (a.s2.fx === "teamGauge") tg += a.v2; }   /* ★★ 2026-11-03 チフル・★★ 2026-11-11 アコ（スキル2）：味方全員のゲージ獲得量 */
     S.gauge += g * (1 + ((u.st.gauge || 0) + (u.s1.fx === "gaugeGain" ? u.v1 : 0) + tg) / 100);
     if (S.gauge >= 100) { S.gauge = 100; S.stage = 1; S.stageT = 999; S.autoT = 0; B.ev.push({ k: "burstReady", side: S.n }); }
   }
@@ -489,6 +489,14 @@
       case "teamAtkCdr": al.forEach((a) => { buff(a, "atk", u.vb, 10); if (a !== u) a.bcd = Math.max(0, a.bcd - u.wb); }); break;   /* チフル */
       case "teamHealAtk": al.forEach((a) => { heal(a, atk * u.wb / 100); buff(a, "atk", u.vb, 10); buff(a, "regen", atk * 0.03, 10); }); break;   /* ミント */
       case "critSnipe": tgt = mainTarget(B, S, u); hitT(tgt, u.vb / 100, { crit: 1 }); buff(u, "critDmg", u.wb, 10); buff(u, "chg", 30, 10); break;   /* プリカ */
+      /* ★★ 2026-11-11 超極華祭の追加2体・ROYAL DEBUT の3体 */
+      case "tauntSweep": u.taunt = 10; buff(u, "atk", u.vb, 10); buff(u, "mgMax", 1, 10); u.ramp = 1; u.ammo = u.mag; u.reload = 0;
+        al.forEach((a) => { a.cover.hp = Math.min(a.cover.max, a.cover.hp + a.cover.max * u.wb / 100); }); break;   /* エナ */
+      case "bubbleBurst": f.forEach((t) => hitT(t, u.vb / 100 * (t.side == null && t.z != null && t.z < 0.45 ? 1.5 : 1), { aoe: 1 })); buff(u, "pel2", 1, 10); buff(u, "drain", u.wb, 10); break;   /* ミミ */
+      case "vulnCdr": f.forEach((t) => { hitT(t, u.vb / 100, { aoe: 1 }); if (t.vuln) { t.vuln.v = Math.max(t.vuln.v || 0, u.wb); t.vuln.t = 10; } else buff(t, "vuln", u.wb, 10); });
+        al.forEach((a) => { if (a !== u) a.bcd = Math.max(0, a.bcd - 3); }); break;   /* アコ */
+      case "tauntCounter": u.taunt = 10; buff(u, "dr", u.vb, 10); buff(u, "counter2", 1, 10); al.forEach((a) => { a.shield = Math.max(a.shield, a.hpMax * u.wb / 100); }); break;   /* ミナ */
+      case "smgOverdrive": buff(u, "atk", u.vb, 10); buff(u, "rate2", 1, 10); buff(u, "noAmmo", 1, 10); buff(u, "burnHit", u.wb, 10); u.ammo = u.mag; u.reload = 0; break;   /* マコ */
     }
     B.ev.push({ k: "burstFx", side: S.n, i: u.i, fx, id: u.id, tgt });
   }
@@ -525,6 +533,11 @@
       u.cnt.heal += dt;
       if (u.cnt.heal >= (u.s1.period || 6)) { u.cnt.heal = 0; const v = atkOf(B, S, u) * u.v1 / 100; let tot = 0; S.units.forEach((a) => { if (a.dead) return; const h = Math.min(a.hpMax - a.hp, v); a.hp += h; u.healed += h; tot += h; }); if (tot > 0) B.ev.push({ k: "heal", side: S.n, i: -1, v }); }
     }
+    /* ★★ 2026-11-11 ミナのスキル2：8秒ごとに味方全員へシールド */
+    if (u.s2.fx === "teamShieldEvery") {
+      u.cnt.shield = (u.cnt.shield || 0) + dt;
+      if (u.cnt.shield >= (u.s2.period || 8)) { u.cnt.shield = 0; S.units.forEach((a) => { if (!a.dead) a.shield = Math.max(a.shield, a.hpMax * u.v2 / 100); }); }
+    }
     /* リロード中 */
     if (u.reload > 0) { u.reload -= dt; u.exposed = false; u.chg = 0; if (u.reload <= 0) { u.reload = 0; u.ammo = u.mag; } return; }
     const ctl = S.n === 0 && B.ctl === u.i && B.manual && !B.auto;
@@ -542,6 +555,7 @@
     const hideAll = S.n === 0 && B.hideAll && B.mode !== "arena";
     if (hideAll) want = false;
     const mgMax = buffSum(u, "mgMax") > 0;
+    const infAmmo = mgMax || buffSum(u, "noAmmo") > 0;   /* ★★ 2026-11-11 マコのバースト：弾が減らない */
     if (!want) {
       if (u.exposed) u.aimT = 0.25 + rnd() * 0.35;
       u.exposed = false;
@@ -550,7 +564,7 @@
       if (hideAll ? u.ammo < u.mag : ctl && u.ammo < u.mag * 0.4) startReload(B, u);
       return;
     }
-    if (u.ammo <= 0 && !mgMax) { startReload(B, u); return; }
+    if (u.ammo <= 0 && !infAmmo) { startReload(B, u); return; }
     u.exposed = true;
     /* AI のねらい（ときどき狙いなおす・ミサイルが近ければ落とす） */
     if (!ctl) {
@@ -571,13 +585,13 @@
     }
     let rate = W.rate;
     if (W.ramp) { u.ramp = mgMax ? 1 : Math.min(1, u.ramp + dt / W.ramp); rate = W.rate0 + (W.rate - W.rate0) * u.ramp; }
-    rate *= rateMul;
+    rate *= rateMul * (u.s2.fx === "rateUp" ? 1 + u.v2 / 100 : 1);   /* ★★ 2026-11-11 マコのスキル2 */
     u.fireCd -= dt;
     let guard = 0;
-    while (u.fireCd <= 0 && (u.ammo > 0 || mgMax) && guard++ < 6) {
+    while (u.fireCd <= 0 && (u.ammo > 0 || infAmmo) && guard++ < 6) {
       u.fireCd += 1 / rate;
       shoot(B, S, u, {});
-      if (!mgMax) u.ammo--;
+      if (!infAmmo) u.ammo--;
       if (u.dead || B.over) break;
     }
   }
@@ -641,7 +655,8 @@
         if (o.charge) m *= (W.chgMul || 1) * (1 + ((u.st.chgDmg || 0) + buffSum(u, "chgDmg") + (u.s1.fx === "pierceCharge" ? u.v1 : 0) + (ccs ? u.v1 : 0)) / 100);
         dmgEnemy(B, u, t, atkOf(B, S, u) * m, { core: part === "core", part: part !== "core" && part !== "body" ? part : null, charge: o.charge, pellet: !!W.pel, crit: ccs ? 1 : 0 });
         /* ロケットの爆風 */
-        if (W.splash) B.enemies.forEach((e2) => { if (e2 === t || e2.dead) return; if (Math.hypot(e2.x - t.x, (e2.z - t.z) * 2) < W.splash * 2.2) dmgEnemy(B, u, e2, atkOf(B, S, u) * m * 0.5, { splash: 1, charge: o.charge }); });
+        if (W.splash) B.enemies.forEach((e2) => { if (e2 === t || e2.dead) return; if (Math.hypot(e2.x - t.x, (e2.z - t.z) * 2) < W.splash * 2.2) { dmgEnemy(B, u, e2, atkOf(B, S, u) * m * 0.5, { splash: 1, charge: o.charge });
+          if (o.charge && u.s1.fx === "splashDefDown" && !e2.dead) { e2.defDown.v = Math.max(e2.defDown.t > 0 ? e2.defDown.v : 0, u.v1); e2.defDown.t = u.s1.dur || 5; } } });   /* ★★ 2026-11-11 アコ */
         /* ヒサコ：貫通 */
         if (o.charge && u.s1.fx === "pierceCharge") { const bh = B.enemies.filter((e2) => !e2.dead && e2 !== t && e2.z > t.z && Math.abs(e2.x - t.x) < 0.22).sort((a, b) => a.z - b.z)[0]; if (bh) dmgEnemy(B, u, bh, atkOf(B, S, u) * m * 0.5, { pierce: 1 }); }
       }
@@ -671,6 +686,7 @@
       const W = u.W;
       if (!o.skill && e.z >= W.opt[0] && e.z <= W.opt[1]) d *= 1.3;
       if (u.s1.fx === "nearDmg" && e.z < 0.45) d *= 1 + u.v1 / 100;
+      if (u.s2.fx === "nearDmg" && e.z < 0.45) d *= 1 + u.v2 / 100;   /* ★★ 2026-11-11 ミミ（スキル2） */
       if (u.s1.fx === "maxRateDmg" && (u.ramp >= 0.999 || buffSum(u, "mgMax") > 0)) d *= 1 + u.v1 / 100;
       if (ST().elemAdv(u.el, e.el)) d *= 1.1 + (u.st.elem || 0) / 100;
       if (B.weak && u.el === B.weak) d *= 1.25;
@@ -695,6 +711,8 @@
     /* ボスの部位 */
     if (e.isBoss && o.part) { const p = e.parts.find((x) => x.k === o.part && !x.dead); if (p) { p.hp -= d * 1.2; if (p.hp <= 0) { p.dead = true; e.hp -= Math.round(e.hpMax * 0.04); B.ev.push({ k: "partBreak", e, p }); B.ev.push({ k: "boom", x: e.x + (p.x - 0.5) * e.size * 0.18, z: e.z, y: e.y + 0.25, s: 1.6 }); B.hitstop = Math.max(B.hitstop, 0.18); } } }
     e.hp -= d;
+    /* ★★ 2026-11-11 ミミ：与えたダメージで回復（スキル1＋バースト中の上乗せ） */
+    if (u && !o.dot && !u.dead) { const dr = (u.s1.fx === "drainHit" ? u.v1 : 0) + buffSum(u, "drain"); if (dr > 0) { const h = Math.min(u.hpMax - u.hp, d * dr / 100); if (h > 0) { u.hp += h; u.healed += h; } } }
     if (cm > 1 || o.core || o.charge || o.skill || o.part) e.hitT = 0.06;   /* 光るのは会心・コア・チャージ・スキル・部位だけ（連射でずっと白くならないように） */
     if (e.isBoss && e.act && e.act.k === "charge") e.act.dmg += d;
     if (u) { u.dmg += d; B.dmgTotal += d; if (u.side === 0 && S.fb > 0) S.fbDmg += d; }
@@ -712,9 +730,13 @@
     u.cnt.hits++;
     if (u.s1.fx === "healOnHits" && u.cnt.hits % (u.s1.n || 40) === 0) { const v = atkOf(B, S, u) * u.v1 / 100; S.units.forEach((a) => { if (!a.dead) { const h = Math.min(a.hpMax - a.hp, v); a.hp += h; u.healed += h; } }); B.ev.push({ k: "heal", side: S.n, i: -1, v }); }
     if (u.s2.fx === "rippleEvery") { u.cnt.ripple++; if (u.cnt.ripple >= (u.s2.n || 100)) { u.cnt.ripple = 0; const v = atkOf(B, S, u) * u.v2 / 100; B.enemies.filter((x) => !x.dead).forEach((x) => dmgEnemy(B, u, x, v, { skill: 1, aoe: 1 })); B.ev.push({ k: "ripple", side: S.n, i: u.i }); } }
+    /* ★★ 2026-11-11 マコ：20回ごとに燃焼・バースト中は当たった敵を燃焼（1体に1秒に1回） */
+    if (u.s1.fx === "burnOnHits") { u.cnt.burnN = (u.cnt.burnN || 0) + 1; if (u.cnt.burnN >= (u.s1.n || 20)) { u.cnt.burnN = 0; if (e.burn && !e.dead) e.burn.push({ dps: atkOf(B, S, u) * u.v1 / 100, t: u.s1.dur || 5, src: u }); } }
+    { const bh = buffSum(u, "burnHit"); if (bh > 0 && e.burn && !e.dead && (!e.bhT || B.t - e.bhT >= 1)) { e.bhT = B.t; e.burn.push({ dps: atkOf(B, S, u) * bh / 100, t: 3, src: u }); } }
     if (u.s2.fx === "markProc" && !e.dead) { e.mark = (e.mark || 0) + 1; if (e.mark >= (u.s2.n || 10)) { e.mark = 0; dmgEnemy(B, u, e, atkOf(B, S, u) * u.v2 / 100, { skill: 1 }); B.ev.push({ k: "mark", e }); } }
     if (o.charge) {
       if (u.s1.fx === "defDownOnCharge") { e.defDown.v = u.v1; e.defDown.t = u.s1.dur || 5; }
+      if (u.s1.fx === "splashDefDown") { e.defDown.v = Math.max(e.defDown.t > 0 ? e.defDown.v : 0, u.v1); e.defDown.t = u.s1.dur || 5; }   /* ★★ 2026-11-11 アコ */
       if (u.s1.fx === "chargeAtkStack") stack(u, "chargeAtk", u.v1, u.s1.max || 5, u.s1.dur || 5);
       if (u.s2.fx === "coreChargeStack" && o.core) stack(u, "coreAtk", u.v2, u.s2.max || 5, u.s2.dur || 10);
       if (u.s1.fx === "chargeBurn") { const ar = [e].concat(B.enemies.filter((x) => !x.dead && x !== e && Math.hypot(x.x - e.x, (x.z - e.z) * 2) < 0.28)); ar.forEach((x) => x.burn.push({ dps: atkOf(B, S, u) * u.v1 / 100, t: u.s1.dur || 5, src: u })); }
@@ -758,9 +780,25 @@
     if (u.s1.fx === "healOnHits") { u.cnt.hits++; if (u.cnt.hits % (u.s1.n || 40) === 0) S.units.forEach((a) => { if (!a.dead) a.hp = Math.min(a.hpMax, a.hp + atkOf(B, S, u) * u.v1 / 100); }); }
   }
   /* 味方がダメージを受ける：隠れていれば遮蔽物 → シールド → HP */
+  /* ★★ 2026-11-11 エナのスキル1：連射が最高速度のあいだ、味方全員の遮蔽物が受けるダメージを減らす */
+  function sweepCoverK(B, u) {
+    const S = B.side[u.side]; if (!S) return 0;
+    let k = 0; for (const a of S.units) if (!a.dead && a.s1.fx === "sweepCover" && (a.ramp >= 0.999 || buffSum(a, "mgMax") > 0)) k = Math.max(k, a.v1);
+    return k;
+  }
+  /* ★★ 2026-11-11 ミナのスキル1：攻撃を受けると、その敵へ反撃（1秒に1回・バースト中は2倍） */
+  function counterShot(B, u, src) {
+    if (!src || src === u || u.dead || B.over) return;
+    if (u.st2.ctr != null && B.t - u.st2.ctr < 1) return;
+    u.st2.ctr = B.t;
+    const mul = u.v1 / 100 * (buffSum(u, "counter2") > 0 ? 2 : 1);
+    if (src.side != null) { if (!src.dead) dmgUnitFromUnit(B, u, src, mul, { skill: 1 }); }
+    else if (!src.dead && src.hp > 0) dmgEnemy(B, u, src, atkOf(B, B.side[u.side], u) * mul, { skill: 1 });
+  }
   function hitUnit(B, u, raw, o) {
     if (!u || u.dead) return 0;
     o = o || {};
+    if (u.s1.fx === "counterShot" && o.src) counterShot(B, u, o.src);
     let def = u.st.def * (1 + (u.taunt > 0 && u.s2.fx === "selfDr" ? 0.3 : 0)) * (1 - buffSum(u, "defDown") / 100);
     let d = raw * DEF_K / (DEF_K + def);
     const dr = Math.min(75, (u.st.dr || 0) + buffSum(u, "dr"));
@@ -772,6 +810,7 @@
     /* ★★ 範囲（曲射・雨）・レーザー・地ひびき・突進：隠れていれば遮蔽物が軽めに受ける */
     if (toCover && (o.area || o.beam || o.quake || o.dash)) d = Math.round(d * (o.quake ? 0.3 : o.beam ? 0.45 : o.dash ? 0.8 : 0.7));
     if (toCover) {
+      { const sw = sweepCoverK(B, u); if (sw > 0) d = Math.max(1, Math.round(d * (1 - sw / 100))); }
       u.cover.hp -= d;
       if (u.cover.hp < 0) { const over = -u.cover.hp; u.cover.hp = 0; d = Math.round(over * 0.6); B.ev.push({ k: "coverBreak", side: u.side, i: u.i }); }
       else { B.ev.push({ k: "coverHit", side: u.side, i: u.i, v: d }); if (u.s2.fx === "coverRepairOnHit") repairOnHit(B, u); return 0; }

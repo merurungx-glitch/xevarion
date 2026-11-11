@@ -22,7 +22,7 @@
   const MB3 = (window.MB3 = window.MB3 || {});
   const ENG = () => MB3.Engine, SPR = () => MB3.Spr, ST = () => window.MBStats;
   const IMG = "../img/", SSD = "../MagiBurst/img/ss/";
-  const FILE = { haru: "Haru", chika: "Chika", hisako: "Hisako", alice: "Alice", kohaku: "Kohaku", suzu: "Suzu", shouko: "Shouko", yuna: "Yuna", chie: "Chie", aina: "Aina", ichika: "Ichika", nonoka: "Nonoka", chifuru: "Chifuru", mint: "Mint", purika: "Purika" };
+  const FILE = { haru: "Haru", chika: "Chika", hisako: "Hisako", alice: "Alice", kohaku: "Kohaku", suzu: "Suzu", shouko: "Shouko", yuna: "Yuna", chie: "Chie", aina: "Aina", ichika: "Ichika", nonoka: "Nonoka", chifuru: "Chifuru", mint: "Mint", purika: "Purika", mako: "Mako", ako: "Ako", mina: "Mina", ena: "Ena", mimi: "Mimi" };
   MB3.FILE = FILE;
   const esc = (s) => String(s == null ? "" : s).replace(/[&<>"']/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
   const fmt = (n) => Math.round(n).toLocaleString("ja-JP");
@@ -30,7 +30,7 @@
   const R2 = Math.random;
   const rgb = (h) => { const s = String(h).replace("#", ""); const n = parseInt(s.length === 3 ? s.split("").map((x) => x + x).join("") : s, 16); return [(n >> 16) & 255, (n >> 8) & 255, n & 255]; };
   /* キャラごとの色（弾道・バーストの演出） */
-  const CCOL = { haru: "#4fb8ff", chika: "#cfe6ff", hisako: "#ff8fc8", alice: "#e8eeff", kohaku: "#ff4d6d", suzu: "#ffd23a", shouko: "#4fe0a0", yuna: "#b06bff", chie: "#ff7a3c", aina: "#ff7ad9", ichika: "#33d6ff", nonoka: "#fff4d6", chifuru: "#6a8cff", mint: "#7dffc4", purika: "#ffd84a" };
+  const CCOL = { haru: "#4fb8ff", chika: "#cfe6ff", hisako: "#ff8fc8", alice: "#e8eeff", kohaku: "#ff4d6d", suzu: "#ffd23a", shouko: "#4fe0a0", yuna: "#b06bff", chie: "#ff7a3c", aina: "#ff7ad9", ichika: "#33d6ff", nonoka: "#fff4d6", chifuru: "#6a8cff", mint: "#7dffc4", purika: "#ffd84a", mako: "#ff8aa8", ako: "#a98cff", mina: "#6a9cff", ena: "#ff7aa8", mimi: "#b08aff" };
 
   /* ══════════ 効果音（WebAudio で作る・ファイルなし）══════════ */
   const AU = (MB3.Audio = (function () {
@@ -126,7 +126,7 @@
   function layout() {
     const r = hud.root.getBoundingClientRect();
     W = Math.max(320, r.width); H = Math.max(400, r.height);
-    dpr = Math.min(2, window.devicePixelRatio || 1);
+    dpr = (window.XevaPerf ? XevaPerf.dpr(2) : Math.min(2, window.devicePixelRatio || 1));   /* ★★ 2026-11-10 動作モード（軽量＝1・標準＝これまで・高解像度＝端末の値） */
     cv.width = Math.round(W * dpr); cv.height = Math.round(H * dpr);
     cv.style.width = W + "px"; cv.style.height = H + "px";
     const port = H > W * 1.05;

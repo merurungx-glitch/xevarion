@@ -146,7 +146,7 @@
   /* 図鑑・編成に置く小さなボールの絵（canvas を1枚返す） */
   function ballThumb(c, skin, side, size) {
     const cv = document.createElement("canvas");
-    const dpr = Math.min(2, window.devicePixelRatio || 1);
+    const dpr = (window.XevaPerf ? XevaPerf.dpr(2) : Math.min(2, window.devicePixelRatio || 1));   /* ★★ 2026-11-10 動作モード（軽量＝1・標準＝これまで・高解像度＝端末の値） */
     const s = size || 58;
     cv.width = s * dpr; cv.height = s * dpr;
     const ctx = cv.getContext("2d");

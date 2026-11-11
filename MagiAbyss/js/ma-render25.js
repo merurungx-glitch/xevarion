@@ -33,7 +33,12 @@
   let lastMode = "";
 
   function S() { return MA.Save && MA.Save.S; }
-  function mode() { const s = S(); const v = s && s.set && s.set.gfx; return v === "2d" || v === "lite" ? v : "hd"; }
+  function mode() {
+    const s = S(); const v = s && s.set && s.set.gfx;
+    if (v === "2d" || v === "lite") return v;
+    if (window.XevaPerf && XevaPerf.lite()) return "lite";   /* ★★ 2026-11-10 XEVARION の動作モードが軽量なら「高画質」も「軽め」で描く（2D はそのまま） */
+    return "hd";
+  }
   function is25() { return mode() !== "2d"; }
 
   /* ══ 投影 ══ */

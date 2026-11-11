@@ -1069,6 +1069,128 @@
       ],
     },
     /* ── カオリ（闇）：紫の長い髪・オレンジの魔女帽・オレンジと黒の服・おばけ ── */
+    /* ══ ★★ 2026-11-11 超極華祭の追加2体・ROYAL DEBUT の3体 ══ */
+    /* ── エナ（木）：三つ編みの入った茶色のボブ・茶色の瞳・うす紫と青のギンガムのビキニ（白いフリル）・真珠のネックレス・ピンクのハイビスカス ── */
+    ena: {
+      pal: { H: "#6a4632", h: "#43291b", L: "#a07454", E: "#7a4a3a", A: "#b9c4f0", a: "#8e9bd6", C: "#ffffff", c: "#d8dcf0",
+             D: "#f4ecf8", d: "#c8c0d8", P: "#b9c4f0", p: "#8e9bd6", O: "#f4ecf0", o: "#c0b4c4",
+             X: "#ff6a9a", x: "#ffd0e0", Y: "#3fbf6e", K: "#1a1210" },
+      legY: 23,
+      layers: [
+        backBob(),
+        { x: 6, y: 14, rows: [
+          ".SSDSDDSDSS.",
+          "SSCAaAAaACSS",
+          "S.AaAssAaA.S",
+          "s.SSSSSSSS.s",
+          "S.SSSssSSS.S",
+          "S.SSSSSSSS.S",
+        ].concat(BOTTOM_SHORTS) },
+        "FACE",
+        frontBob(true),
+        /* 右の三つ編みと白いリボン */
+        { x: 15, y: 3, rows: ["Lh", "hL", "Lh", "CC"] },
+        /* 左手のハイビスカス */
+        { x: 1, y: 16, rows: [".X.", "XxX", ".X.", "..Y"] },
+      ],
+    },
+    /* ── ミミ（闇）：三つ編みの入った紫のボブ・紫の瞳・白いオフショルダーのフリル・白い花の髪かざり・水色の泡 ── */
+    mimi: {
+      pal: { H: "#7a5ad8", h: "#4f37a0", L: "#b8a2ff", E: "#8a6ad8", A: "#ffffff", a: "#dcdcf0", C: "#f4f4ff", c: "#c8cce0",
+             D: "#ffffff", d: "#ffe08a", P: "#ffffff", p: "#d4d8ec", O: "#e8e4f8", o: "#a8a0c8",
+             X: "#7ad8ff", x: "#ffffff", Y: "#b08aff", K: "#140f22" },
+      legY: 23,
+      layers: [
+        backBob(),
+        { x: 6, y: 14, rows: [
+          ".SSSSSSSSSS.",
+          "AAaAAaAAaAAA",
+          "S.AAAAAAAA.S",
+          "s.AaAAAAaA.s",
+          "S.AAAAAAAA.S",
+          "S.AAAAAAAA.S",
+        ].concat(BOTTOM_SKIRT) },
+        "FACE",
+        frontBob(false),
+        /* 左の三つ編み・右の白い花 */
+        { x: 4, y: 3, rows: ["hL", "Lh", "hL"] },
+        { x: 15, y: 2, rows: [".D.", "DdD", ".D."] },
+        /* 左手の泡 */
+        { x: 1, y: 15, rows: [".X.", "X.X", ".X.", "..x"] },
+      ],
+    },
+    /* ── マコ（火）：ハーフアップのおだんごの長いゆるふわ（桜色がかった茶）・青紫の瞳・クリーム色のニット・紺のスカート・桜 ── */
+    mako: {
+      pal: { H: "#e89a86", h: "#b8685a", L: "#ffd0c0", E: "#6a6ad8", A: "#f4e6cc", a: "#d8c4a0", C: "#f4e6cc", c: "#d8c4a0",
+             D: "#ff8aa8", d: "#c85a78", P: "#262a40", p: "#141826", O: "#2a2420", o: "#140f0c",
+             X: "#ff8aa8", x: "#fff0f4", Y: "#6a4a3a", K: "#1a1014" },
+      legY: 23,
+      layers: [
+        backLong(25, true),
+        { x: 6, y: 14, rows: [
+          ".SAAAAAAAAS.",
+          "AAAaAAAAaAAA",
+          "A.AAaAAaAA.A",
+          "a.AAAAAAAA.a",
+          "A.AaAAAAaA.A",
+          "S.AAAAAAAA.S",
+        ].concat(BOTTOM_SKIRT) },
+        "FACE",
+        frontStraight(15),
+        /* ハーフアップのおだんご（右上） */
+        { x: 14, y: 0, rows: [".hh.", "hHHh", ".hh."] },
+        /* 左手の桜 */
+        { x: 1, y: 16, rows: [".X.", "XxX", ".X."] },
+      ],
+    },
+    /* ── アコ（水）：ハーフアップの長い白金の髪・ピンクの瞳・白いゆったりしたシャツ・うす紫のスカート・あじさい ── */
+    ako: {
+      pal: { H: "#e8e2d8", h: "#b8b0a4", L: "#ffffff", E: "#ff8ab0", A: "#f8f8ff", a: "#d8dcec", C: "#f8f8ff", c: "#d8dcec",
+             D: "#a98cff", d: "#7a5cd8", P: "#c8c0f0", p: "#9a90d0", O: "#e8e4f0", o: "#b0a8c8",
+             X: "#a98cff", x: "#5aa8ff", Y: "#3fbf6e", K: "#1a1820" },
+      legY: 23,
+      layers: [
+        backLong(25),
+        { x: 6, y: 14, rows: [
+          ".SSAAAAAASS.",
+          "AAAAAAAAAAAA",
+          "A.AAaAAaAA.A",
+          "a.AAAAAAAA.a",
+          "A.AAAAAAAA.A",
+          "S.AAAAAAAA.S",
+        ].concat(BOTTOM_SKIRT) },
+        "FACE",
+        frontStraight(14),
+        /* ハーフアップのおだんご（左上） */
+        { x: 4, y: 1, rows: [".hh.", "hHHh", ".hh."] },
+        /* 左手のあじさい */
+        { x: 1, y: 16, rows: ["XxX", "xXx", "XxX", ".Y."] },
+      ],
+    },
+    /* ── ミナ（光）：ゆるいウェーブの長い黒髪・青紫の瞳・星の髪どめ・白いレースのノースリーブ（おなか見せ）・紺のスカート・青薔薇 ── */
+    mina: {
+      pal: { H: "#1a1a26", h: "#0c0c14", L: "#4a4a6a", E: "#6a7aff", A: "#f8f8ff", a: "#d8dcec", C: "#f8f8ff", c: "#d8dcec",
+             D: "#6a9cff", d: "#3a6ad0", P: "#2a3456", p: "#161c34", O: "#f0f0f8", o: "#b0b4c8",
+             X: "#6a9cff", x: "#c8d8ff", Y: "#3fbf6e", K: "#10101a" },
+      legY: 23,
+      layers: [
+        backLong(25, true),
+        { x: 6, y: 14, rows: [
+          ".SSAAAAAASS.",
+          "SSAAAAAAAASS",
+          "S.AaAAAAaA.S",
+          "s.SSSSSSSS.s",
+          "S.SSSSSSSS.S",
+          "S.SSSSSSSS.S",
+        ].concat(BOTTOM_SKIRT) },
+        "FACE",
+        frontStraight(14),
+        /* 星の髪どめ（右） */
+        { x: 14, y: 4, rows: [".D.", "DdD"] },
+        /* 左手の青薔薇 */
+        { x: 1, y: 16, rows: [".X.", "XxX", ".X.", "..Y"] },
+      ],
+    },
     kaori: {
       pal: { H: "#6a3a8a", h: "#42205a", L: "#a07ac8", E: "#ff6a5a", A: "#ff8a1f", a: "#c85a10", C: "#1e1428", c: "#100a16",
              D: "#ff8a1f", d: "#c85a10", G: "#2a1a3a", P: "#2a1a3a", p: "#180e22", O: "#2a1a3a", o: "#140a1c", X: "#f4f4ff", x: "#c8c8e8", Y: "#2a1a3a", K: "#140a1c" },
@@ -1520,6 +1642,12 @@
     chifuru: { hair: "long", len: 25, top: "jacket", arm: "A", bottom: "shorts", prop: "candy" },
     mint:    { hair: "long", len: 25, top: "uniform", arm: "A", bottom: "skirt", prop: "orb", legs: "Tt" },
     purika:  { hair: "long", len: 22, top: "uniform", arm: "A", bottom: "skirt", prop: "orb", acc: "topbun", legs: "Tt" },
+    /* ★★ 2026-11-11 超極華祭の追加2体・ROYAL DEBUT の3体 */
+    ena:     { hair: "bob", top: "bikini", arm: "S", bottom: "shorts", prop: "orb", acc: "pin" },
+    mimi:    { hair: "bob", top: "blouse", arm: "S", bottom: "skirt", prop: "orb", acc: "pin" },
+    mako:    { hair: "long", len: 24, wavy: 1, top: "knitjacket", arm: "A", bottom: "skirt", prop: "orb", acc: "topbun" },
+    ako:     { hair: "long", len: 25, top: "blouse", arm: "A", bottom: "skirt", prop: "orb", acc: "topbun" },
+    mina:    { hair: "long", len: 25, wavy: 1, top: "tank", arm: "S", bottom: "skirt", prop: "orb", acc: "pin" },
     generic: { hair: "long", len: 23, top: "tank", arm: "S", bottom: "skirt" },
   };
   function sideBuf(pal0, sd, ph, legY0) {
@@ -1763,6 +1891,8 @@
     haru: [0.30, 0.18, 0.36], chika: [0.32, 0.19, 0.36],
     /* ★★ 2026-11-03 超極彩祭の追加3体 */
     chifuru: [0.27, 0.05, 0.47], mint: [0.26, 0.20, 0.40], purika: [0.28, 0.18, 0.39],
+    /* ★★ 2026-11-11 超極華祭の追加2体・ROYAL DEBUT の3体 */
+    ena: [0.30, 0.16, 0.44], mimi: [0.28, 0.12, 0.44], mako: [0.20, 0.12, 0.44], ako: [0.26, 0.12, 0.46], mina: [0.26, 0.10, 0.42],
   };
   const portraitCache = {};
   function portrait(id, file, size, cb) {

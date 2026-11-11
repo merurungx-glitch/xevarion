@@ -29,15 +29,17 @@
   UI.art = (id) => IMG + F(id) + ".webp";
   UI.wide = (id) => IMG + F(id) + "_w.webp";
   UI.ss = (id) => SSD + F(id) + "SS.webp";
-  const LOBBY_FULL = { haru: 1, chika: 1, hisako: 1, alice: 1, kohaku: 1, yuna: 1, aina: 1, chie: 1, chifuru: 1, mint: 1, purika: 1 };   /* ★★ 2026-11-03 チフル・ミント・プリカも */
-  UI.ld = (id) => "../home-mate/lobby/" + id + ".webp";
+  const LOBBY_FULL = { haru: 1, chika: 1, hisako: 1, alice: 1, kohaku: 1, yuna: 1, aina: 1, chie: 1, chifuru: 1, mint: 1, purika: 1, mako: 1, ako: 1, mina: 1, ena: 1, mimi: 1 };   /* ★★ 2026-11-03 チフル・ミント・プリカも・★★ 2026-11-11 マコ・アコ・ミナ・エナ・ミミも */
+  /* ★★ 2026-11-11 アイナ・ユナは新しい立ち絵（?v=2・SW の CORE と同じ URL） */
+  const LD_V = { aina: 2, yuna: 2 };
+  UI.ld = (id) => "../home-mate/lobby/" + id + ".webp" + (LD_V[id] ? "?v=" + LD_V[id] : "");
   UI.full = (id) => (LOBBY_FULL[id] ? UI.ld(id) : UI.ss(id));
   UI.hasLD = (id) => !!LOBBY_FULL[id];
   UI.LD_IDS = Object.keys(LOBBY_FULL);
   UI.nm = (id) => ST().charNm(id);
   UI.click = () => { try { MB3.Audio.play("click"); } catch (e) {} };
   UI.isMax = (id) => SV().owned(id) && SV().awk(id) >= (ST().MAX_AWK || 4);   /* 完凸 */
-  UI.CCOL = { haru: "#3aa0ff", chika: "#7b8cff", hisako: "#ff5fa8", alice: "#8ea0c4", kohaku: "#ff4d6d", suzu: "#ffb800", shouko: "#18c48c", yuna: "#a35cff", chie: "#ff7a3c", aina: "#ff5fb4", ichika: "#12b5ff", nonoka: "#d0a050", chifuru: "#4f6dff", mint: "#2fbf8a", purika: "#e0a92a" };
+  UI.CCOL = { haru: "#3aa0ff", chika: "#7b8cff", hisako: "#ff5fa8", alice: "#8ea0c4", kohaku: "#ff4d6d", suzu: "#ffb800", shouko: "#18c48c", yuna: "#a35cff", chie: "#ff7a3c", aina: "#ff5fb4", ichika: "#12b5ff", nonoka: "#d0a050", chifuru: "#4f6dff", mint: "#2fbf8a", purika: "#e0a92a", mako: "#ff6a8a", ako: "#8a6cff", mina: "#3a7aff", ena: "#ff5a8a", mimi: "#9a6aff" };
 
   /* ── 素材のアイコン ── */
   UI.itemIc = function (k) {
