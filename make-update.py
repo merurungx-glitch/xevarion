@@ -100,13 +100,206 @@ def app_of(path):
     return ROOT_TAB.get(parts[0], "tab:home")
 
 
-def core_of(sw_path):
-    """sw.js の const CORE = [ ... ]; を読み、URL のリストを返す"""
-    s = io.open(os.path.join(BASE, sw_path), encoding="utf-8").read()
-    m = re.search(r"const CORE = \[(.*?)\n\];", s, re.S)
+# ══════════════════════════════════════════════════════════════
+# ★★ 2026-11-12 SW の版（v）と一覧（core）は sw-list/<アプリ>.js にある
+# ------------------------------------------------------------
+# ご指定「更新のたびに sw のファイルをすべてアップロードするのが手間 → まとめて楽に」。
+#   ・各アプリの sw.js は importScripts("../sw-list/_shared.js", "../sw-list/<アプリ>.js") で読むだけ。
+#   ・更新のたびに変わるのは sw-list の中だけ（sw.js は「しくみ」を直したときだけ）。
+#   ・一覧のパスは、これまでどおり<b>その sw.js から見た相対パス</b>（resolve は sw.js の場所で解く）。
+# ══════════════════════════════════════════════════════════════
+LIST_RE = re.compile(r'self\.XEV_SW = \{ v: "([^"]+)", core: \[(.*)\n\] \};', re.S)
+
+
+def list_of(sw_path):
+    """sw.js → その SW の版と一覧のファイル（sw-list/<アプリ>.js。ルートは _root.js）"""
+    d = os.path.dirname(sw_path)
+    return "sw-list/%s.js" % (d if d else "_root")
+
+
+def read_list(sw_path):
+    """(版の文字, CORE の URL のリスト)。読めなければ ("", [])"""
+    p = os.path.join(BASE, list_of(sw_path))
+    if not os.path.exists(p):
+        return "", []
+    m = LIST_RE.search(io.open(p, encoding="utf-8").read())
     if not m:
-        return []
-    return re.findall(r'"([^"]+)"', m.group(1))
+        return "", []
+    return m.group(1), re.findall(r'"([^"]+)"', m.group(2))
+
+
+def core_of(sw_path):
+    """その SW の CORE（URL のリスト）"""
+    return read_list(sw_path)[1]
+
+
+# ══════════════════════════════════════════════════════════════
+# ★★ 2026-11-12 SW の版（v）の上げ忘れを自動で直す
+# ------------------------------------------------------------
+# 「CORE のファイルを直したのに版を上げ忘れた」（＝端末の SW が入れかわらず、直したものが届かない）を、
+# 手順でなく道具で防ぐ。
+#   ・update-sw.json に、前回の「版」と「CORE の中身の印（URL と各ファイルの md5 をまとめた md5）」を控える。
+#   ・今回の印が前回とちがうのに<b>版が前回のまま</b>なら、sw-list/<アプリ>.js の v を +1 する。
+#   ・手で（または bump-v のあとで）もう上げてあれば何もしない。台帳がまだ無い SW は控えるだけ。
+# ★ update-sw.json は作る側だけが使う（配らない・SW の CORE に入れない）。
+# ══════════════════════════════════════════════════════════════
+SW_LEDGER = "update-sw.json"
+
+
+def sw_sig(sw_path):
+    h = hashlib.md5()
+    for u in core_of(sw_path):
+        p = resolve(sw_path, u)
+        if not p:
+            continue
+        h.update((u + "|" + (file_hash(p) if os.path.isfile(p) else "-") + "\n").encode("utf-8"))
+    return h.hexdigest()[:16]
+
+
+def bump_sw_versions(dry=False):
+    path = os.path.join(BASE, SW_LEDGER)
+    led = {}
+    if os.path.exists(path):
+        try:
+            led = json.load(io.open(path, encoding="utf-8"))
+        except Exception:
+            led = {}
+    bumped = []
+    for sw in SWS:
+        ver, core = read_list(sw)
+        if not ver:
+            print("!! 一覧が読めません:", list_of(sw))
+            continue
+        sig = sw_sig(sw)
+        old = led.get(sw)
+        if old and old.get("sig") != sig and old.get("v") == ver:
+            m = re.search(r"v(\d+)$", ver)
+            if m:
+                new_ver = ver[:m.start()] + "v%d" % (int(m.group(1)) + 1)
+                lp = os.path.join(BASE, list_of(sw))
+                t = io.open(lp, encoding="utf-8", newline="").read()
+                t2 = t.replace('v: "%s"' % ver, 'v: "%s"' % new_ver, 1)
+                if t2 != t and not dry:
+                    io.open(lp, "w", encoding="utf-8", newline="").write(t2)
+                bumped.append("%s %s → %s" % (list_of(sw), ver, new_ver))
+                ver = new_ver
+        led[sw] = {"v": ver, "sig": sig}
+    if not dry:
+        io.open(path, "w", encoding="utf-8").write(json.dumps(led, ensure_ascii=False, indent=0, sort_keys=True) + "\n")
+    if bumped:
+        print("  SW の版を自動で上げました（CORE の中身が変わっていたため）:")
+        for b in bumped:
+            print("   -", b)
+    return bumped
+
+
+# ══════════════════════════════════════════════════════════════
+# ★★ 2026-11-12 アップロード用フォルダ（_upload）
+# ------------------------------------------------------------
+# GitHub に上げるのは「今回変わったファイル」だけでよいが、それが20以上のフォルダに散らばっていて手間だった。
+# → 変わったファイルだけを、<b>同じフォルダの形のまま</b> Documents/Claude/_upload/<版>/ に写す。
+#   その中身をぜんぶ選んで、GitHub の「Upload files」（リポジトリのいちばん上）へドラッグすれば、1回で正しい場所に入る。
+#   ・GitHub は1回に100ファイルまでなので、100を超えたら 1・2・… のフォルダに分ける（それぞれの中身をドラッグ）。
+#   ・くらべる相手は「前の版をまとめたときの全ファイルの md5」（_upload/_state.json）。同じ版を作り直したときは同じ相手とくらべる。
+#   ・前の版のフォルダは消さない（まだ上げていないかもしれないため）。上げ終わったら手で消してよい。
+# ★ _upload は XEVARION の外に置く（配るものではない）。
+# ══════════════════════════════════════════════════════════════
+UPLOAD_DIR = os.path.join(os.path.dirname(BASE), "_upload")
+UPLOAD_STATE = os.path.join(UPLOAD_DIR, "_state.json")
+UPLOAD_MAX = 100
+UP_SKIP_DIRS = {"__pycache__", ".git", ".claude", "node_modules"}
+UP_SKIP_FILES = {HASH_FILE, SW_LEDGER}
+UP_SKIP_EXT = (".pyc", ".orig", ".bak", ".tmp_bump", ".tmp_ed", ".tmp_sw")
+
+
+def snapshot_all():
+    out = {}
+    for dp, dn, fn in os.walk(BASE):
+        dn[:] = [d for d in dn if d not in UP_SKIP_DIRS]
+        for f in fn:
+            if f in UP_SKIP_FILES or f.endswith(UP_SKIP_EXT) or f.startswith("_tmp"):
+                continue
+            p = os.path.join(dp, f)
+            out[os.path.relpath(p, BASE).replace(os.sep, "/")] = file_hash(p)
+    return out
+
+
+def build_upload(version):
+    import shutil
+    now = snapshot_all()
+    st = {}
+    if os.path.exists(UPLOAD_STATE):
+        try:
+            st = json.load(io.open(UPLOAD_STATE, encoding="utf-8"))
+        except Exception:
+            st = {}
+    os.makedirs(UPLOAD_DIR, exist_ok=True)
+    if not st.get("now"):
+        # はじめて：いまの状態を「もう上げてあるもの」として控えるだけ
+        io.open(UPLOAD_STATE, "w", encoding="utf-8").write(json.dumps({"version": version, "base": now, "now": now}, ensure_ascii=False, indent=0, sort_keys=True) + "\n")
+        print("  アップロード用フォルダ: はじめてなので、いまの状態を基準として控えました（次の版から変わったファイルを集めます）")
+        return
+    base = st.get("base", {}) if st.get("version") == version else st.get("now", {})
+    changed = sorted(k for k, v in now.items() if base.get(k) != v)
+    gone = sorted(k for k in base if k not in now)
+    out = os.path.join(UPLOAD_DIR, version)
+    if os.path.isdir(out):
+        shutil.rmtree(out)
+    # いちばん上のまとまり（ルートのファイル／フォルダごと）で、100 ファイルまでの山に分ける
+    groups = {}
+    for rel in changed:
+        top = rel.split("/")[0] if "/" in rel else ""
+        groups.setdefault(top, []).append(rel)
+    parts, cur = [], []
+    for top in sorted(groups, key=lambda t: (t != "", t.lower())):
+        g = groups[top]
+        if cur and len(cur) + len(g) > UPLOAD_MAX:
+            parts.append(cur); cur = []
+        while len(g) > UPLOAD_MAX:
+            room = UPLOAD_MAX - len(cur)
+            cur += g[:room]; g = g[room:]
+            parts.append(cur); cur = []
+        cur += g
+    if cur:
+        parts.append(cur)
+    size = 0
+    for i, part in enumerate(parts):
+        dst_root = out if len(parts) == 1 else os.path.join(out, str(i + 1))
+        for rel in part:
+            src = os.path.join(BASE, rel.replace("/", os.sep))
+            dst = os.path.join(dst_root, rel.replace("/", os.sep))
+            os.makedirs(os.path.dirname(dst), exist_ok=True)
+            shutil.copy2(src, dst)
+            size += os.path.getsize(src)
+    io.open(UPLOAD_STATE, "w", encoding="utf-8").write(json.dumps({"version": version, "base": base, "now": now}, ensure_ascii=False, indent=0, sort_keys=True) + "\n")
+    # よみかた（_upload のいちばん上＝版のフォルダの外に置く。中に置くと一緒に上がってしまう）
+    pend = sorted(d for d in os.listdir(UPLOAD_DIR) if os.path.isdir(os.path.join(UPLOAD_DIR, d)))
+    L = ["XEVARION アップロード用フォルダ（make-update.py が作ります）", "",
+         "■ 使いかた",
+         "  1. GitHub のリポジトリのいちばん上で「Add file」→「Upload files」を開く。",
+         "  2. 下の版のフォルダを開き、中身をぜんぶ選んで（Ctrl+A）、そのままブラウザへドラッグする。",
+         "     ★ 版のフォルダそのもの（%s など）や 1・2 のフォルダそのものはドラッグしない（中身をドラッグ）。" % version,
+         "     ★ 1・2・… に分かれているときは、1 の中身 → Commit → 2 の中身 → Commit の順に。",
+         "  3. 「Commit changes」を押す。フォルダの形のまま、正しい場所に入ります。",
+         "  4. 上げ終わった版のフォルダは消して構いません（消さなくても害はありません）。",
+         "",
+         "■ いまあるフォルダ（古い順に上げてください）"] + ["  ・" + d for d in pend] + [
+         "",
+         "■ 今回（%s）: %d ファイル・%s・%s" % (version, len(changed), "%.1f MB" % (size / 1024 / 1024), ("%d 個に分割" % len(parts)) if len(parts) > 1 else "分割なし")]
+    for i, part in enumerate(parts):
+        if len(parts) > 1:
+            L.append("  [%d] %d ファイル" % (i + 1, len(part)))
+        tops = {}
+        for rel in part:
+            top = rel.split("/")[0] if "/" in rel else "（いちばん上のファイル）"
+            tops[top] = tops.get(top, 0) + 1
+        L += ["      %s … %d" % (t, n) for t, n in sorted(tops.items(), key=lambda x: (x[0] != "（いちばん上のファイル）", x[0].lower()))]
+    if gone:
+        L += ["", "■ この PC から消したファイル（GitHub に残っていても動作に害はありません。気になるときは GitHub で消してください）"] + ["  ・" + g for g in gone]
+    io.open(os.path.join(UPLOAD_DIR, "よみかた.txt"), "w", encoding="utf-8-sig").write("\r\n".join(L) + "\r\n")
+    print("  アップロード用フォルダ: %s（%d ファイル・%.1f MB%s）" % (out, len(changed), size / 1024 / 1024, "・%d 個に分割" % len(parts) if len(parts) > 1 else ""))
+    if gone:
+        print("  ※ この PC から消したファイル %d 件（よみかた.txt に一覧）" % len(gone))
 
 
 def resolve(sw_path, url):
@@ -136,6 +329,8 @@ def main():
         med = importlib.util.module_from_spec(sp); sp.loader.exec_module(med); med.main()
     except Exception as e:
         print("!! make-expo-data.py failed:", e)
+    # ★★ 2026-11-12 CORE の中身が変わったのに版がそのままの SW は、ここで自動で +1（上げ忘れの保険）
+    bump_sw_versions()
     total, files, missing = 0, 0, []
     seen = set()
     urls = []          # パッケージに入っているファイル（サイト直下からの相対パス）
@@ -258,7 +453,17 @@ def main():
         print("  ※ 見つからないファイル (%d件):" % len(missing))
         for m in missing[:10]:
             print("   -", m)
+    # ★★ 2026-11-12 GitHub に上げるファイルだけを、フォルダの形のまま _upload/<版>/ に集める
+    try:
+        build_upload(version)
+    except Exception as e:
+        print("!! アップロード用フォルダを作れませんでした:", e)
 
 
 if __name__ == "__main__":
-    main()
+    # ★★ 2026-11-12 --sw-ledger … SW の版の台帳（update-sw.json）だけを書いて終わる（update.json は作らない）
+    if "--sw-ledger" in sys.argv:
+        bump_sw_versions()
+        print("update-sw.json を書きました")
+    else:
+        main()

@@ -177,7 +177,7 @@ html #xlBan.pre{box-shadow:0 0 0 2px #fff,0 0 0 3.5px #ff8a1f,0 3px 0 3.5px rgba
      告知を<b>ポータルのログイン時</b>に一本化したので、ここでも読む。
      defer なので xevarion.js より先に実行される（書いた順番で走る）。 -->
 <script src="mb-newchars.js?v=44" defer></script>
-<script src="xeva-devnotes.js?v=17" defer></script>
+<script src="xeva-devnotes.js?v=18" defer></script>
 <script src="xeva-tour.js?v=5" defer></script><script src="xeva-earn.js?v=2" defer></script><!-- ★★ 2026-11-03 XEVA・ジェムの入手まとめ（アニメ・XevaTour の pack） --><!-- ★★ 2026-10-30 XEVARION ガイド（全機能をアニメで紹介・設定から／#guide） --><!-- ★★ 2026-10-24 デベロッパーノート（新キャラのお知らせの代わり） -->
 <!-- ★★ 2026-09-25 ガチャの台帳（開催期間とバナー。make-gacha-live.py が mb-core.js から自動で作る）。ホーム左上のバナー用 -->
 <script src="gacha-live.js?v=14" defer></script>
@@ -195,7 +195,7 @@ html #xlBan.pre{box-shadow:0 0 0 2px #fff,0 0 0 3.5px #ff8a1f,0 3px 0 3.5px rgba
 <script type="module" src="MagiBurst/magiburst-cloud.js?v=29"></script>
 <script src="xeva-qr.js?v=9" defer></script>
 <script src="xevarion.js?v=115" defer></script>
-<script src="xevarion-home.js?v=183" defer></script>
+<script src="xevarion-home.js?v=184" defer></script>
 <script src="home-lobby.js?v=7" defer></script><!-- ★★ 2026-10-26 完凸ロビー（ヒサコ・アリス）。home-mate.js より先 -->
 <script src="home-mate.js?v=36" defer></script>
 <script src="xeva-jef.js?v=1" defer></script><!-- ★★ 2026-11-08 ジェフ千葉のホームデザイン（スタジアム・応援旗・試合の札・BGM） -->
@@ -2504,6 +2504,19 @@ body.xos-nomotion .xbg-fx,body.xos-nomotion .xbg-fx h4{animation:none}
     <!-- 2026-11-03：超極彩祭にチフル・ミント・プリカ／ガチャの演出（スロット・天使・音）／お気に入りカード（図鑑・詳細の☆・回転・UR 全面）／XEVA・ジェムの入手まとめ（アニメ）／起動ロゴを映画風に／星煌印の札の修正／凸ミッション／MagiBattle のロビー・キャラ詳細 -->
     <!-- 2026-11-12：超極華祭にエナ・ミミ／ROYAL DEBUT GACHA（マコ・アコ・ミナ）／Sapphire Breeze 終了→PREMIUM／動作モード・賞金履歴・不要ファイルの削除／
          起動ロゴ・新ロゴ／MagiAbyss 全員ちがう性能（技も）／MagiBattle ロイヤル隊／MagiQuiz・MagiChemLex -->
+    <!-- 2026-11-13：MagiChemLex に新ミニゲーム「ケミカル・ルート（反応経路スコアアタック）」／ホームの計算なしモードの切りかえは設定へ／MagiQuiz の結果詳細／
+         オフライン用のデータ（Service Worker の版と一覧）を sw-list フォルダへ集約 -->
+    <div class="nm-item" data-tag="new" data-date="2026-11-13">
+      <div class="nm-date">2026<br>11.13</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag new">NEW</span></div>
+        <div class="nm-title">🕹️ MagiChemLex に新ミニゲーム「ケミカル・ルート」／📊 MagiQuiz に結果詳細</div>
+        <div class="nm-txt">・MagiChemLex のホーム（ビンゴのすぐ下）に、レトロゲーム風のミニゲーム<b>「ケミカル・ルート（反応経路スコアアタック）」</b>。ベンゼンから出発する反応経路図を、<b>加えるもの・条件（27本）と化合物（23個）の全50問</b>で完成させます。各ステージは「試薬を見て化合物を答える → 矢印をかくして加えるものを答える」の2ラウンド。NORMAL・HARD・ステージれんしゅう・こたえの経路図つき。<br>
+          ・MagiChemLex：ホームにあった<b>「計算なしモード」</b>の切りかえは、設定にまとめました（設定 → 計算なしモード）。<br>
+          ・MagiQuiz：試合の終わりに<b>「結果詳細」</b>ボタン。人ごとの成績・点の内訳と、1問ごとの記録（むずかしさ・かかった時間・点）が見られます。スコアアタックの点のしくみもここで確認できます。<br>
+          ・オフライン用のデータの持ち方を整理しました（遊び方・セーブデータは変わりません）。</div>
+      </div>
+    </div>
     <div class="nm-item" data-tag="new" data-date="2026-11-12">
       <div class="nm-date">2026<br>11.12</div>
       <div class="nm-content">

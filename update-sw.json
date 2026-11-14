@@ -1,0 +1,90 @@
+{
+"IshidaProduction/sw.js": {
+"sig": "b3bfcaf1bdaa8c37",
+"v": "ishida-site-sw-v8"
+},
+"MagiAbyss/sw.js": {
+"sig": "1f1ab835ea2b98cc",
+"v": "magiabyss-sw-v26"
+},
+"MagiBattle/sw.js": {
+"sig": "ddea08a4ea368c7f",
+"v": "magibattle-sw-v9"
+},
+"MagiBocciaRush/sw.js": {
+"sig": "08c8b332ca6d52a8",
+"v": "boccia-sw-v58"
+},
+"MagiBurst/sw.js": {
+"sig": "6ed3ca5f485294dc",
+"v": "magiburst-sw-v209"
+},
+"MagiChainParty/sw.js": {
+"sig": "11d18280011917c4",
+"v": "chainparty-sw-v69"
+},
+"MagiChemLex/sw.js": {
+"sig": "0cc4f0d4059414c7",
+"v": "magichemlex-sw-v28"
+},
+"MagiCounter/sw.js": {
+"sig": "b0d277babde2b3a4",
+"v": "magicounter-sw-v47"
+},
+"MagiDerby/sw.js": {
+"sig": "f2c580ac3fcd1056",
+"v": "magiderby-sw-v15"
+},
+"MagiDominionGrid/sw.js": {
+"sig": "11ea4df33632bf6e",
+"v": "mdgrid-sw-v42"
+},
+"MagiJackpot/sw.js": {
+"sig": "e33eb7eec7100751",
+"v": "magijackpot-sw-v65"
+},
+"MagiLex/sw.js": {
+"sig": "33fdb14ba82181c0",
+"v": "magilex-sw-v138"
+},
+"MagiLotto/sw.js": {
+"sig": "22072b964b0261b3",
+"v": "magilotto-sw-v54"
+},
+"MagiMarket/sw.js": {
+"sig": "3d6f746337524668",
+"v": "magimarket-sw-v4"
+},
+"MagiMusic/sw.js": {
+"sig": "10af7644bc406c8b",
+"v": "magimusic-sw-v42"
+},
+"MagiQuiz/sw.js": {
+"sig": "2d2100147910ad99",
+"v": "magiquiz-sw-v15"
+},
+"MagiRail/sw.js": {
+"sig": "4d880adcfbc21b4f",
+"v": "magirail-sw-v18"
+},
+"MagiScope/sw.js": {
+"sig": "e028264505306184",
+"v": "magiscope-sw-v47"
+},
+"MagiShift/sw.js": {
+"sig": "ae2c0ae81e9dee78",
+"v": "magishift-sw-v34"
+},
+"NGX/sw.js": {
+"sig": "06d74f18e6a10981",
+"v": "ngx-site-sw-v7"
+},
+"XEVYNAR/sw.js": {
+"sig": "085aa2aa9c40b411",
+"v": "xevynar-sw-v76"
+},
+"sw.js": {
+"sig": "aeb893dd93a7cc19",
+"v": "xevarion-sw-v265"
+}
+}

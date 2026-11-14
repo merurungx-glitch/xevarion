@@ -6165,6 +6165,12 @@ window.xhRedownloadOffline = xhRedownloadOffline;
      読んでいる更新内容の上に進み具合が割りこんでこない。
    ★ 落とす中身は手で押したときと1バイトも変わらない（同じこの関数を通る）。
    ══════════════════════════════════════════════════════════════ */
+/* ★★ 2026-11-12 sw-list（全アプリの SW の版と一覧）を cache:"reload" で読み直す＝ブラウザの控えを新しくする（中身は使わない） */
+async function xhWarmSwLists() {
+  if (!xhOnline()) return;
+  const names = ["_shared", "_root"].concat(Object.keys(XH_OFFLINE_OK).map((id) => XH_OFFLINE_OK[id].sw.split("/")[0]));
+  await Promise.all(names.map((n) => fetch("sw-list/" + n + ".js", { cache: "reload" }).catch(() => null)));
+}
 async function xhDownloadCore(paint) {
   _xhUpdProg = {}; _xhInstProg = {}; _xhRefDone = new Set(); _xhRefStat = {};
   _xhPlan = { fixed: false, files: {}, inst: {} };
@@ -6194,6 +6200,10 @@ async function xhDownloadCore(paint) {
   try {
     /* ① まだ登録していないアプリの SW だけ登録（すでにあるものは待たない）→ ぜんぶに「新しい版はある？」 */
     try { await xhRegisterAppSWs({ quick: true }); } catch (e) {}
+    /* ★★ 2026-11-12 SW の版と一覧（sw-list）を、ブラウザの控えごと新しくしてから「新しい版はある？」と聞く。
+       各 SW は一覧を importScripts で読んでいて、ブラウザはその控え（GitHub Pages は10分）で変化を見るため、
+       控えが古いままだと新しい版に気づけない（気づけなくても SW 側の xevListNewer が新しいファイルを取りこむが、遠回りになる）。 */
+    try { await xhWarmSwLists(); } catch (e) {}
     let regs = await regsNow();
     await Promise.all(regs.map((r) => r.update().catch(() => {})));
     regs = await regsNow();
@@ -6320,7 +6330,9 @@ async function xhCleanStale(opt) {
     /* ③ 動いているアプリの古い版の置き場（名前が同じで番号だけちがう） */
     live.forEach((c) => {
       const pre = c.replace(/v\d+$/, "");
-      if (pre && pre !== c && k.indexOf(pre) === 0 && /^v\d+$/.test(k.slice(pre.length))) drop.add(k);
+      /* ★★ 2026-11-12 消すのは<b>番号が小さい（＝古い）</b>ものだけ。確かめの便りを古い SW が返したあとで新しい版の SW が入ると、
+         新しい置き場（番号が大きい）まで「番号ちがい」として消してしまうため。 */
+      if (pre && pre !== c && k.indexOf(pre) === 0 && /^v\d+$/.test(k.slice(pre.length)) && Number(k.slice(pre.length + 1)) < Number(c.slice(pre.length + 1))) drop.add(k);
     });
   });
   for (const k of drop) {

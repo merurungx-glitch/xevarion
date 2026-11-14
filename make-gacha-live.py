@@ -84,13 +84,15 @@ def main():
     old = io.open(OUT, encoding='utf-8').read() if os.path.exists(OUT) else ''
     if old != js:
         io.open(OUT, 'w', encoding='utf-8').write(js)
-        # 中身が変わったら ?v= と sw.js の VERSION も上げる（上げないと古いのが使われ続ける）
-        for fn in ('index.html', 'sw.js'):
+        # 中身が変わったら ?v= と SW の版も上げる（上げないと古いのが使われ続ける）
+        # ★★ 2026-11-12 ルートの SW の版と一覧は sw-list/_root.js へ移した（sw.js には無い）
+        SWL = os.path.join('sw-list', '_root.js')
+        for fn in ('index.html', SWL):
             fp = os.path.join(HERE, fn)
             t = io.open(fp, encoding='utf-8', newline='').read()
             t2 = re.sub(r'gacha-live\.js\?v=(\d+)', lambda m: 'gacha-live.js?v=%d' % (int(m.group(1)) + 1), t)
-            if fn == 'sw.js' and t2 != t:
-                t2 = re.sub(r'const VERSION = "xevarion-sw-v(\d+)";', lambda m: 'const VERSION = "xevarion-sw-v%d";' % (int(m.group(1)) + 1), t2)
+            if fn == SWL and t2 != t:
+                t2 = re.sub(r'v: "xevarion-sw-v(\d+)"', lambda m: 'v: "xevarion-sw-v%d"' % (int(m.group(1)) + 1), t2, count=1)
             if t2 != t:
                 io.open(fp, 'w', encoding='utf-8', newline='').write(t2)
     print('gacha-live.js', len(defs), 'fests', len(vers), 'debut versions', '(changed)' if old != js else '(same)')

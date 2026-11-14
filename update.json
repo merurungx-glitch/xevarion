@@ -1,20 +1,16 @@
 {
-  "version": "2026-11-12-1",
-  "date": "2026-11-12",
-  "title": "超極華祭にエナ・ミミ／ROYAL DEBUT GACHA／動作モード・不要ファイルの自動削除",
+  "version": "2026-11-13-1",
+  "date": "2026-11-13",
+  "title": "MagiChemLex に新ミニゲーム「ケミカル・ルート」／MagiQuiz に結果詳細",
   "notes": [
-    "超極華祭に UR のエナ（木）・ミミ（闇）。新しい ROYAL DEBUT GACHA（20日間）に UR のマコ（火）・アコ（水）・ミナ（光）（各2%・1日1回の単発無料・初回10連無料）。5体とも MagiAbyss と MagiBattle で使え、完凸でホームのロビーにも",
-    "Sapphire Breeze は終了。タキナ・ヒバナ・フキは PREMIUM SELECT GACHA でいつでも（UR のピックアップは 5%）。結晶の交換所で UR は 250 個",
-    "設定に「動作モード」（軽量・標準・高解像度）と「ゲーム賞金の受け取り履歴」。軽量モードはオフラインのときも軽く動きます（オフラインで重くなる原因も修正）",
-    "ダウンロードのたびに、要らなくなったファイル（古い版・終わったアプリのデータ）を自動で削除",
-    "起動時の企業ロゴを、タイトル画面に合うシンプルな表示に。ISHIDA Production・Magical Future の新しいロゴ",
-    "MagiAbyss：同じ性能だったキャラを全員ちがう組み合わせに作り直し、技（E）も全員それぞれ専用に（強さの帯はこれまでどおり）",
-    "MagiBattle：ロイヤル隊（マコ・アコ・ミナ）とブルーム隊にエナ・ミミ",
-    "MagiQuiz：早押しでまちがえた選択肢が消える・答える時間を少し長く・アイコンを UR キャラから・司会のカットインなし／MagiChemLex：選択肢はタップしてから表示",
-    "完凸ロビーのアイナ・ユナが新しい立ち絵に・チフルとユナの胸の位置を修正・ジェフ千葉のデザインでホームのボタンもジェフ仕様に"
+    "MagiChemLex：ホーム（ビンゴのすぐ下）に、レトロゲーム風のミニゲーム「ケミカル・ルート（反応経路スコアアタック）」。ベンゼンから出発する反応経路図を、加えるもの・条件 27本＋化合物 23個の全50問で完成させます（NORMAL・HARD・ステージれんしゅう・こたえの経路図）",
+    "各ステージは2ラウンド：矢印の試薬を見て化合物を答える → 矢印の文字をかくして、加えるもの・条件を答える",
+    "MagiChemLex：ホームにあった「計算なしモード」の切りかえは、設定にまとめました",
+    "MagiQuiz：試合の終わりに「結果詳細」ボタン（人ごとの成績・点の内訳・1問ごとの記録・スコアアタックの点のしくみ）。2台で対戦の結果にも",
+    "オフライン用のデータの持ち方を整理しました（遊び方・セーブデータは変わりません）"
   ],
-  "bytes": 91340884,
-  "files": 958,
+  "bytes": 91451828,
+  "files": 959,
   "urls": [
     "index.html",
     "characters.html",
@@ -917,6 +913,7 @@
     "MagiChemLex/js/mcl-book.js",
     "MagiChemLex/js/mcl-special.js",
     "MagiChemLex/js/mcl-bingo.js",
+    "MagiChemLex/js/mcl-route.js",
     "MagiChemLex/js/mcl-guide.js",
     "MagiChemLex/img/icon_192.png",
     "MagiChemLex/img/apple-touch-icon.png",
@@ -976,34 +973,55 @@
     "MagiMarket/img/icon192.png"
   ],
   "apps": [
-    "ishida",
-    "magiabyss",
-    "magibattle",
-    "magibocciarush",
-    "magiburst",
-    "magichainparty",
     "magichemlex",
-    "magicounter",
-    "magiderby",
-    "magidominiongrid",
-    "magijackpot",
-    "magilex",
-    "magilotto",
-    "magimarket",
-    "magimusic",
     "magiquiz",
-    "magirail",
-    "magiscope",
-    "magishift",
-    "ngx",
-    "tab:chars",
-    "tab:community",
-    "tab:gacha",
-    "tab:home",
-    "xevynar"
+    "tab:home"
   ],
-  "changedFiles": 111,
+  "changedFiles": 12,
   "history": [
+    {
+      "version": "2026-11-12-1",
+      "date": "2026-11-12",
+      "title": "超極華祭にエナ・ミミ／ROYAL DEBUT GACHA／動作モード・不要ファイルの自動削除",
+      "notes": [
+        "超極華祭に UR のエナ（木）・ミミ（闇）。新しい ROYAL DEBUT GACHA（20日間）に UR のマコ（火）・アコ（水）・ミナ（光）（各2%・1日1回の単発無料・初回10連無料）。5体とも MagiAbyss と MagiBattle で使え、完凸でホームのロビーにも",
+        "Sapphire Breeze は終了。タキナ・ヒバナ・フキは PREMIUM SELECT GACHA でいつでも（UR のピックアップは 5%）。結晶の交換所で UR は 250 個",
+        "設定に「動作モード」（軽量・標準・高解像度）と「ゲーム賞金の受け取り履歴」。軽量モードはオフラインのときも軽く動きます（オフラインで重くなる原因も修正）",
+        "ダウンロードのたびに、要らなくなったファイル（古い版・終わったアプリのデータ）を自動で削除",
+        "起動時の企業ロゴを、タイトル画面に合うシンプルな表示に。ISHIDA Production・Magical Future の新しいロゴ",
+        "MagiAbyss：同じ性能だったキャラを全員ちがう組み合わせに作り直し、技（E）も全員それぞれ専用に（強さの帯はこれまでどおり）",
+        "MagiBattle：ロイヤル隊（マコ・アコ・ミナ）とブルーム隊にエナ・ミミ",
+        "MagiQuiz：早押しでまちがえた選択肢が消える・答える時間を少し長く・アイコンを UR キャラから・司会のカットインなし／MagiChemLex：選択肢はタップしてから表示",
+        "完凸ロビーのアイナ・ユナが新しい立ち絵に・チフルとユナの胸の位置を修正・ジェフ千葉のデザインでホームのボタンもジェフ仕様に"
+      ],
+      "apps": [
+        "ishida",
+        "magiabyss",
+        "magibattle",
+        "magibocciarush",
+        "magiburst",
+        "magichainparty",
+        "magichemlex",
+        "magicounter",
+        "magiderby",
+        "magidominiongrid",
+        "magijackpot",
+        "magilex",
+        "magilotto",
+        "magimarket",
+        "magimusic",
+        "magiquiz",
+        "magirail",
+        "magiscope",
+        "magishift",
+        "ngx",
+        "tab:chars",
+        "tab:community",
+        "tab:gacha",
+        "tab:home",
+        "xevynar"
+      ]
+    },
     {
       "version": "2026-11-09-2",
       "date": "2026-11-09",
@@ -1640,34 +1658,6 @@
         "tab:gacha",
         "tab:home",
         "xevynar"
-      ]
-    },
-    {
-      "version": "2026-10-15-1",
-      "date": "2026-10-15",
-      "title": "これって浮気？判定シート／MagiChemLex にフラッシュカード・特設予想問題・基礎セット3・4（全1,569問）",
-      "notes": [
-        "これって浮気？判定シート（ホームの XEVARION PARK の真上）：40個の行動を3つに仕分けて浮気ライン・タイプ・境界線がわかる／コードでふたりの一致度を比べられる",
-        "MagiChemLex：フラッシュカード（問題→正解・解説・自分のメモ・手書き・電卓）／特設予想問題「553＞1107 を証明せよ」（藤垣の最終定理・解法18通り・ニュースとグラフ・確認テストをはじめて解くと1,660 XEVA）",
-        "MagiChemLex：基礎セット3・4を追加（改題104問＋関連問題180問）で全1,569問・基礎セット1〜4を番号順に並べ直し（記録はそのまま）",
-        "MagiChemLex：習得・習得中・未習を色分けしたバー／絞り込み時のカードの大きさをそろえた／メモの幅を広く（ドラッグで変更可）／電卓の表示が上下するのを修正／一覧の下の「次の問題へ」をなくした",
-        "追加データのダウンロード：更新があるときはダウンロードしてから遊ぶように（オフラインのときは今のデータで）",
-        "更新画面：「更新したファイル」がいつも0件だったのを直し、実際に変わったファイルの数と大きさを表示",
-        "起動画面：XEVARION のロゴの下に3社のロゴを少し長めに・タップしてスタートとログインの画面を新しいデザインに",
-        "ガチャ・コミュニティ・図鑑：下バーを開いた瞬間に表示（少し遅れて出ていたのを修正）",
-        "MagiShift：1手もどる（だれの手でも1手ずつ）・順番はカードめくり・あと1つでそろう印（標準は表示しない）・中断を10件まで・5〜6人も4つ並べ・使いきり表示のはみ出しを修正",
-        "MagiAbyss：冒険の地図をドラッグ・ホイール・矢印で動かせるように（画面外の迷宮もえらべる）",
-        "MagiChainParty：バクハツの演出を控えめでカジュアルに・連鎖の数を盤の右上に小さく表示"
-      ],
-      "apps": [
-        "magiabyss",
-        "magichainparty",
-        "magichemlex",
-        "magishift",
-        "tab:chars",
-        "tab:community",
-        "tab:gacha",
-        "tab:home"
       ]
     }
   ]
