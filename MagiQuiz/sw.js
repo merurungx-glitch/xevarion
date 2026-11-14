@@ -3,49 +3,16 @@
    ・1台で遊ぶクイズ。キャッシュすれば完全にオフラインで動く（問題は MagiChemLex の問題データ）
    ・アカウントの紐づけと賞金だけ通信が要る（遊ぶこと自体はオフラインでできる）
    ============================================================ */
-const VERSION = "magiquiz-sw-v14";
-const CORE = [
-  "./index.html",
-  "./css/quiz.css?v=7",
-  "./js/quiz-data.js?v=6",
-  "./js/quiz-account.js?v=4",
-  "./js/quiz-fx.js?v=4",
-  "./js/quiz-ui.js?v=7",
-  "./js/quiz-pad.js?v=1",
-  "./js/quiz-play.js?v=5",
-  "./js/quiz-result.js?v=4",
-  "./js/quiz-host.js?v=2", "./js/quiz-online.js?v=1", "./js/quiz-net.js?v=1",   // ★★ 2026-11-08 司会キャラ・2台で対戦
-  "./img/icon192.png?v=2",
-  "./img/apple-touch-icon.png?v=2",
-  "./manifest.webmanifest",
-  /* 問題（MagiChemLex の問題データそのもの）と、書式・判定（mcl-core）・図（mcl-fig） */
-  "../MagiChemLex/js/mcl-data.js?v=5", "../MagiChemLex/js/mcl-data2.js?v=4", "../MagiChemLex/js/mcl-data3.js?v=2",
-  "../MagiChemLex/js/mcl-data4.js?v=2", "../MagiChemLex/js/mcl-data5.js?v=2", "../MagiChemLex/js/mcl-data6.js?v=1",
-  "../MagiChemLex/js/mcl-data7.js?v=1", "../MagiChemLex/js/mcl-data8.js?v=2", "../MagiChemLex/js/mcl-data9.js?v=2",
-  "../MagiChemLex/js/mcl-data10.js?v=1", "../MagiChemLex/js/mcl-data11.js?v=1", "../MagiChemLex/js/mcl-data12.js?v=1",
-  "../MagiChemLex/js/mcl-core.js?v=15",
-  "../MagiChemLex/js/mcl-fig.js?v=5", "../MagiChemLex/js/mcl-fig2.js?v=1", "../MagiChemLex/js/mcl-fig3.js?v=1",
-  "../MagiChemLex/js/mcl-fig4.js?v=1", "../MagiChemLex/js/mcl-fig5.js?v=2",
-  "../xeva-splash.js?v=22",
-  "../xeva-safebottom.js?v=12",
-  "../xeva-loading.js?v=19",
-  "../xeva-back.js?v=9",
-  "../maintenance-gate.js?v=13",
-  "../xeva.js?v=87", "../xeva-cloud.js?v=51", "../xeva-keys.js?v=36",
-  "../xeva-alive.js?v=9",
-  "../game-link.js?v=13",
-  "../xevarion-fb.js?v=37",
-  "../XEVA.png",
-  "../img/ld_b_stand.webp?v=5",
-  "../img/ld_b_bow.webp?v=5",
-  "../thumbs/MagiQuiz.jpg?v=2",
-  /* 起動画面の3社ロゴは毎回出すので、オフラインでも出るように */
-  "../brand/NGX_s.webp?v=2",
-  "../brand/MagicalFuture_s.webp?v=2",
-  "../brand/ISHIDA_s.webp?v=2",
-  "../brand/YRA_s.webp",
-  "../brand/Kawagani_s.webp", "../brand/StudioDOGA_s.webp",   // ★★ 2026-11-02 運営協力に参入
-];
+/* ══ ★★ 2026-11-12 版（VERSION）と、控えるファイルの一覧（CORE）は ../sw-list/MagiQuiz.js へ移した ══
+   ご指定「更新のたびに sw のファイルをすべてアップロードするのが手間 → まとめて楽に」。
+   ・更新のたびに変わるのは版と一覧だけなので、全アプリぶんを sw-list フォルダ1つに集めた。
+     → これからの更新で上げるのは sw-list フォルダだけ。この sw.js は「しくみ」を直したときだけ上げる。
+   ・ブラウザは importScripts で読んだファイルの中身が変わったことにも気づく（＝一覧が変われば、これまでどおり新しい版が入る）。
+   ・XEV_LIST_URL＝自分の一覧の場所（xev-refresh のとき、サーバーの一覧を読み直して確かめる＝_shared.js の xevListNewer）。 */
+importScripts("../sw-list/_shared.js", "../sw-list/MagiQuiz.js");
+const VERSION = self.XEV_SW.v;
+const CORE = self.XEV_SW.core;
+const XEV_LIST_URL = "../sw-list/MagiQuiz.js";
 
 /* ── 事前キャッシュの進捗をページへ通知する（更新ダウンロード画面用） ── */
 async function xevPost(msg) {
@@ -265,7 +232,9 @@ async function xevPrune(cache, coreAbs, sameOriginOnly) {
 async function xevRefreshAll() {
   const cache = await caches.open(VERSION);
   const urls = [], seen = new Set();
-  for (const u of CORE) {
+  /* ★★ 2026-11-12 サーバーの一覧（sw-list）のほうが新しい版なら、その一覧で確かめる＝新しいファイルも取りこむ（_shared.js の xevListNewer） */
+  const CORE_NOW = (await xevListNewer()) || CORE;
+  for (const u of CORE_NOW) {
     if (/^https?:/i.test(u)) continue;                       // 外部（フォントなど）は触らない
     let abs; try { abs = new URL(u, self.location.href).href; } catch (e) { continue; }
     if (seen.has(abs)) continue;

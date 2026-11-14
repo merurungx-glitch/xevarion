@@ -84,7 +84,7 @@
         ${aw.length ? `<section class="re-awd"><h3>${ic("star")}称号</h3><div>${aw.map((a) => `<span class="aw" style="--c:${a.c}">${ic(a.ic)}<b>${a.t}</b><em>${a.who}</em><small>${esc(a.d)}</small></span>`).join("")}</div></section>` : ""}
         <section class="re-prz" id="rePrz"><p class="re-pm">${ic("gift")}XEVA を確認しています…</p></section>
       </div></div>
-      <div class="re-foot"><button class="btn" data-a="review">${ic("book")}<span>見直す${wrong ? "（" + wrong + "問）" : ""}</span></button>${buzzBtn("again", "もう一度", "")}<button class="btn" data-a="reTitle">${ic("home")}<span>タイトル</span></button></div>`;
+      <div class="re-foot"><button class="btn" data-a="reDetail">${ic("list")}<span>結果詳細</span></button><button class="btn" data-a="review">${ic("book")}<span>見直す</span>${wrong ? "<small>" + wrong + "問</small>" : ""}</button>${buzzBtn("again", "もう一度", "")}<button class="btn" data-a="reTitle">${ic("home")}<span>タイトル</span></button></div>`;
     paintPrize(rows, { solo: solo && rows.length === 1, mode: g.mode, gid: g.id });
     stageRun(solo);
   }
@@ -154,7 +154,58 @@
     sheet(`<h3 class="sh-t">${ic("book")}見直し<small>${L.length}問</small></h3>${seg}<div class="rv-l">${rows || '<p class="sh-p center">ここに出す問題はありません 🎉</p>'}</div>
       <p class="sh-note">もっと練習したいときは <a href="../MagiChemLex/index.html">MagiChemLex</a> の「基礎セット」で。</p><div class="sh-b"><button class="btn pri" data-a="close">とじる</button></div>`, { cls: "review" });
   }
+  /* ══ ★★ 2026-11-13 結果詳細（ご指定「ゲーム終わりに結果詳細をボタンから見られるように」）══
+     人（チーム）ごとの成績と、1問ごとの記録（だれが・単元・むずかしさ・◯✕・かかった時間・点の内訳）。
+     スコアアタックは点のしくみも出す（ご質問「スコアアタックの点数の違いは？」＝むずかしさ・計算・速さ・連続正解で1問の点が変わる）。
+     ★ 点の内訳（pt・parts）とタワーの階（fl）は quiz-play.js の reveal が記録に足す。前の版から続けた試合の記録には無いので、無ければ出さない。 */
+  function openDetail() {
+    const g = G, S = Q.RULE.SCORE, X = {};
+    Q.all().forEach((x) => { X[x.id] = x; });
+    const multi = g.units.length > 1;
+    const sec = (ms) => ((ms || 0) / 1000).toFixed(1) + "秒";
+    const cards = us.map((u) => {
+      const L = g.log.filter((l) => l.u === u.k), okL = L.filter((l) => l.ok === true);
+      const tot = L.reduce((s, l) => s + (l.ms || 0), 0), avg = okL.length ? okL.reduce((s, l) => s + (l.ms || 0), 0) / okL.length : 0;
+      const rows = [["正解", u.ok + " / " + u.n + (u.n ? "（" + Math.round(u.ok / u.n * 100) + "%）" : "")], ["答えた時間", "合計 " + sec(tot) + (okL.length ? "・正解の平均 " + sec(avg) : "")]];
+      if (u.best >= 2) rows.push(["連続正解", "最高 " + u.best + "問"]);
+      if (u.calcN) rows.push(["計算問題", u.calcOk + " / " + u.calcN]);
+      if (g.mode === "score") {
+        const p = [0, 0, 0]; let has = false;
+        L.forEach((l) => { if (l.parts) { has = true; p[0] += l.parts[0]; p[1] += l.parts[1]; p[2] += l.parts[2]; } });
+        if (has) rows.push(["点の内訳", "正解 " + fmtN(p[0]) + " ＋ 速さ " + fmtN(p[1]) + " ＋ 連続 " + fmtN(p[2])]);
+      } else if (g.mode === "tower") rows.push(["タワー", u.floor + "階まで・ミス " + u.miss + "回"]);
+      else if (g.mode === "bomb") rows.push(["爆弾", "爆発 " + u.boom + "回・のこりライフ " + u.lives + (u.out ? "（アウト）" : "")]);
+      else if (g.mode === "rush") rows.push(["早押し", "正解 " + u.score + "問・お手つき " + L.filter((l) => l.ok === false).length + "回"]);
+      const fs = Q.FIELDS.filter((f) => u.fs[f[0]] && u.fs[f[0]].n).map((f) => `<span class="rd-f"><i>${f[1]}</i>${u.fs[f[0]].ok}/${u.fs[f[0]].n}</span>`).join("");
+      return `<section class="rd-u" style="--c:${u.color}"><div class="rd-uh"><span class="rd-k">${u.rank}</span><b>${esc(u.name)}</b><em>${scoreTx(u)}</em></div>` +
+        (g.team ? `<p class="rd-mb">${esc(u.members.map((m) => m.name).join("・"))}</p>` : "") +
+        `<dl>${rows.map((r) => `<div><dt>${r[0]}</dt><dd>${r[1]}</dd></div>`).join("")}</dl>${fs ? `<div class="rd-fs">${fs}</div>` : ""}</section>`;
+    }).join("");
+    const tl = g.log.map((l, i) => {
+      const q = D.BY[l.id]; if (!q) return "";
+      const u = g.units.find((x) => x.k === l.u), x = X[l.id];
+      const st = l.ok === true ? ["ok", "◯ 正解"] : l.why === "boom" ? ["ng", "爆発"] : l.why === "time" ? ["ng", "時間切れ"] : l.why === "drop" ? ["", "降りた"] : l.why === "skip" ? ["", "答えなし"] : ["ng", "✕ ミス"];
+      let pt = "";
+      if (g.mode === "score") pt = l.ok === true ? (l.parts ? `<b>+${fmtN(l.pt)}</b><small>正解${l.parts[0]}・速さ${l.parts[1]}${l.parts[2] ? "・連続" + l.parts[2] : ""}</small>` : "") : "<b>0</b>";
+      else if (g.mode === "tower" && l.fl != null) pt = `<b>${l.fl}階</b>`;
+      else if (g.mode === "rush" && l.ok === true) pt = "<b>+1問</b>";
+      return `<li><span class="rd-n">${i + 1}</span><span class="rd-w">${multi && u ? `<i style="--c:${u.color}">${esc(u.name)}</i>` : ""}<em>${esc(Q.topicName(q.t))}</em><small>${x ? "むずかしさ " + "★".repeat(x.lv) + (x.calc ? "・計算" : "") : ""}</small></span>` +
+        `<span class="rd-r"><i class="rd-st ${st[0]}">${st[1]}</i><small>${l.ms ? sec(l.ms) : ""}</small></span><span class="rd-p">${pt}</span></li>`;
+    }).join("");
+    const how = g.mode === "score"
+      ? `<details class="rd-how" open><summary>点数のしくみ（スコアアタック）</summary><ul>
+          <li><b>正解の点</b>：問題のむずかしさで決まります。★1＝${S.base[1]}点／★2＝${S.base[2]}点／★3＝${S.base[3]}点（計算問題は +${S.calc}点）</li>
+          <li><b>速さ</b>：のこり時間が多いほど高く、最大 +${S.time}点（解答時間「なし」のときは一律 +${Math.round(S.time * 0.5)}点）</li>
+          <li><b>連続</b>：続けて正解すると、2問めから +${S.comboStep}点ずつ（最大 +${S.comboMax}点）。まちがえると 0 にもどります</li>
+          <li>まちがい・時間切れは 0点。<b>同じ正解数でも</b>、出た問題のむずかしさ・速さ・連続で点が変わります</li></ul></details>`
+      : `<p class="rd-note">順位の決め方：${g.mode === "bomb" ? "生き残った人（ライフの多い順）→ アウトがおそかった順" : g.mode === "tower" ? "点（のぼった階）→ ミスの少なさ → 速さ" : "正解数 → のこりライフ → 速さ（ほかの全員がアウトなら、残った人が1位）"}</p>`;
+    sheet(`<h3 class="sh-t">${ic("list")}結果詳細<small>${esc(MODES[g.mode].nm)}・${g.log.length}問</small></h3>${how}<div class="rd-us">${cards}</div>
+      <h4 class="rd-h">1問ごとの記録</h4><ol class="rd-tl">${tl || '<li class="rd-none">記録がありません</li>'}</ol>
+      <p class="sh-note">むずかしさ（★1〜3）は、もとの問題の難易度・選択肢の数・文の長さ・計算の有無から決めています。</p>
+      <div class="sh-b"><button class="btn" data-a="review">${ic("book")}問題を見直す</button><button class="btn pri" data-a="close">とじる</button></div>`, { cls: "review" });
+  }
   Object.assign(U.ACT, {
+    reDetail: () => { FX.sfx("tap"); openDetail(); },
     review: () => { FX.sfx("tap"); RV.f = G.log.some((l) => l.ok !== true) ? "wrong" : "all"; RV.u = -1; openReview(); },
     rvF: (el) => { RV.f = el.dataset.v; FX.sfx("tap"); openReview(); },
     rvU: (el) => { RV.u = +el.dataset.v; FX.sfx("tap"); openReview(); },

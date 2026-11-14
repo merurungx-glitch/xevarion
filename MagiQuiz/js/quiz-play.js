@@ -458,7 +458,9 @@
     if (x.calc) { u.calcN++; if (ok) u.calcOk++; }
     const fa = u.fs[x.f] || (u.fs[x.f] = { ok: 0, n: 0 }); fa.n++; if (ok) fa.ok++;
     const ta = u.ts[q.t] || (u.ts[q.t] = { ok: 0, n: 0 }); ta.n++; if (ok) ta.ok++;
-    G.log.push({ id: x.id, u: u.k, m: u.mi || 0, ok: !!ok, sel: Array.isArray(P.sel) ? P.sel.slice() : P.sel, ord: P.ord.slice(), why, ms: Math.round(P.spent * 1000) });
+    /* ★★ 2026-11-13 結果詳細（quiz-result.js の openDetail）で出すので、スコアアタックの点の内訳（pt・parts）とタワーの階（fl）もこの記録に足す */
+    const le = { id: x.id, u: u.k, m: u.mi || 0, ok: !!ok, sel: Array.isArray(P.sel) ? P.sel.slice() : P.sel, ord: P.ord.slice(), why, ms: Math.round(P.spent * 1000) };
+    G.log.push(le);
     if (ok) { u.combo++; u.best = Math.max(u.best, u.combo); } else u.combo = 0;
     if (rush) { rushJudge(ok, why); return; }
     const r = { kind: ok ? "ok" : why === "time" ? "time" : "ng", ok, gain: 0, after: "next" };
@@ -486,11 +488,13 @@
         u.miss++;
         if (G.opt.miss && u.miss >= G.opt.miss) { u.out = true; u.done = true; u.outAt = ++G.outN; r.isOut = true; }
       }
+      le.fl = u.floor;
     } else {
       u.asked++;
       if (ok) {
         const S = R.SCORE, base = S.base[x.lv] + (x.calc ? S.calc : 0), tm = P.lim ? Math.round(S.time * Math.max(0, P.left) / P.lim) : Math.round(S.time * 0.5), cb = Math.min(S.comboMax, (u.combo - 1) * S.comboStep);
         r.gain = base + tm + cb; r.parts = [base, tm, cb]; u.score += r.gain;
+        le.pt = r.gain; le.parts = r.parts;
       }
       if (G.opt.miss && !ok) u.miss++;
     }

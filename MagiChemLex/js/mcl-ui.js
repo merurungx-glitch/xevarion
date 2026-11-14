@@ -257,15 +257,7 @@
       "<p>MagiChemLex の獲得 XEVA が <b>" + M.mult() + "倍</b>！イベントミッションで🎫ガチャチケット" + (ms.some((m) => m.cx) ? "・💱両替チケット" : "") + "</p>" +
       '<div class="evm">' + ms.map(pr).join("") + '</div><span class="evc-go">イベントのページへ ' + ic("chevR") + "</span></div></a>";
   }
-  /* ══ ★★ 2026-10-20 計算なしモード ══ */
-  function noCalcBar() {
-    const on = !!M.get().set.noCalc;
-    const nAll = D.Q.length, nNo = D.Q.filter((q) => !M.isCalc(q)).length;
-    return '<button class="ncb' + (on ? " on" : "") + '" data-a="noCalc" aria-pressed="' + on + '">' +
-      '<span class="ncb-i">' + NOCALC_IC + "</span>" +
-      '<span class="ncb-t"><b>計算なしモード' + (on ? "：オン" : "") + "</b><small>" + (on ? "計算問題をとばして出題中（" + nf(nNo) + " / " + nf(nAll) + "問）・模試と確認テストは全問" : "計算問題をとばして、知識・考え方の問題だけ（" + nf(nNo) + "問）") + "</small></span>" +
-      '<i class="sw"></i></button>';
-  }
+  /* 計算なしの印（各セットの「計算以外の問題だけ」のボタンで使う。★ 2026-11-13 ホームの計算なしモードの切りかえは外した＝設定で切りかえる） */
   const NOCALC_IC = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="3" width="14" height="18" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><rect x="8" y="6" width="8" height="3.2" rx="1" fill="currentColor" opacity=".55"/><circle cx="9" cy="13" r="1.1" fill="currentColor"/><circle cx="12" cy="13" r="1.1" fill="currentColor"/><circle cx="15" cy="13" r="1.1" fill="currentColor"/><circle cx="9" cy="16.6" r="1.1" fill="currentColor"/><circle cx="12" cy="16.6" r="1.1" fill="currentColor"/><path d="M3 21 21 3" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>';
   /* ══ ★★ 2026-10-20 Wisdom Point（WP）══
      ためかた：問題セットの完全習得 +5・確認テスト（全問正解）+10。交換：5WP 両替チケット／10WP フェスガチャチケット／100WP 選べるSSRキャラ確定チケット。
@@ -429,12 +421,13 @@
       '<div class="cta2"><button class="pill" data-a="start" data-mode="random">' + ic("shuffle") + "ランダム10問</button><button class=\"pill\" data-a=\"start\" data-mode=\"weak\">" + ic("target") + "弱点克服</button>" +
         /* ★★ 2026-10-15 フラッシュカード（mcl-flash.js） */
         '<button class="pill fcp" data-a="fcPick">' + ic("flash") + "フラッシュカード</button></div>" +
-      /* ★★ 2026-10-20 ご指定「計算問題以外を解くモード」：押すたびに オン／オフ（設定 set.noCalc） */
-      noCalcBar() +
+      /* ★★ 2026-11-13 ご指定「ホームの計算なしモードのオンオフは設定にあるのでいりません」→ ホームの切りかえは外した（設定の「計算なしモード」で切りかえる） */
       /* ★★ 2026-10-20 Wisdom Point（WP） */
       wpCard() +
       /* ★★ 2026-10-28 ビンゴカード（mcl-bingo.js・ご指定「ビンゴカードを豪華に追加」） */
       (window.MCLBingo ? MCLBingo.bannerHTML() : "") +
+      /* ★★ 2026-11-13 ケミカル・ルート＝反応経路スコアアタック（mcl-route.js・ご指定「ホームのビンゴの真下に」） */
+      (window.MCLRoute ? MCLRoute.bannerHTML() : "") +
       /* ★★ 2026-10-15 特設予想問題（mcl-special.js） */
       (window.MCLSpecial ? MCLSpecial.bannerHTML() : "") +
       eventCard() +
@@ -1755,8 +1748,7 @@
       const k = el.dataset.k, raw = el.dataset.v, v = /^-?\d+$/.test(raw) ? Number(raw) : raw;
       M.setSetting(k, v); applySettings(); openSettings(); if (!P) go(TAB, true);
     },
-    /* ★★ 2026-10-20 計算なしモード・WP 交換所 */
-    noCalc: () => { const on = !M.get().set.noCalc; M.setSetting("noCalc", on ? 1 : 0); UI.recIds = null; toast(on ? "計算なしモード：オン（計算問題をとばします）" : "計算なしモード：オフ"); if (!P) go(TAB, true); },
+    /* ★★ 2026-10-20 WP 交換所 */
     wpOpen: () => openWp(),
     wpBuy: (el) => wpBuy(el.dataset.k),
     wpDo: (el) => wpDo(el.dataset.k),

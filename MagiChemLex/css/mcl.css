@@ -1532,20 +1532,6 @@ html.xv-full .mcl-sp { position: absolute; top: 0; bottom: auto; height: var(--x
 .sp-end .sp-dis { text-align: left; font-size: .8rem !important; color: var(--sub); background: var(--card2); border-radius: 14px; padding: 10px 12px; }
 .sp-end .btn { margin-top: 6px; }
 
-/* ══ ★★ 2026-10-20 計算なしモード（ホームの切りかえ） ══ */
-.ncb { display: flex; align-items: center; gap: 10px; width: 100%; margin: 10px 0 0; padding: 10px 12px; border: 0; border-radius: 16px; background: var(--card); box-shadow: var(--sh); color: var(--ink); font: inherit; text-align: left; cursor: pointer; }
-.ncb-i { flex: none; width: 36px; height: 36px; border-radius: 12px; display: grid; place-items: center; background: var(--card3); color: var(--mute); }
-.ncb-i svg { width: 22px; height: 22px; }
-.ncb-t { flex: 1; min-width: 0; display: flex; flex-direction: column; line-height: 1.35; }
-.ncb-t b { font-size: .9rem; font-weight: 900; }
-.ncb-t small { font-size: .72rem; font-weight: 700; color: var(--sub); }
-.ncb .sw { flex: none; position: relative; width: 44px; height: 26px; border-radius: 99px; background: var(--line); transition: background .18s; }
-.ncb .sw::after { content: ""; position: absolute; left: 3px; top: 3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.25); transition: transform .18s; }
-.ncb.on { box-shadow: 0 0 0 2px var(--acc), var(--sh); background: linear-gradient(100deg, rgba(255, 138, 31, .1), var(--card) 60%); }
-.ncb.on .ncb-i { background: linear-gradient(140deg, #ffb24a, #ff6a1f); color: #fff; }
-.ncb.on .sw { background: var(--acc); }
-.ncb.on .sw::after { transform: translateX(18px); }
-
 /* ══ ★★ 2026-10-20 Wisdom Point（ホームのカード・交換所） ══ */
 .wpc { position: relative; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 4px 12px; width: 100%; margin: 10px 0 0; padding: 12px 14px; border: 0; border-radius: 20px; cursor: pointer; text-align: left; font: inherit; color: #fff; overflow: hidden; isolation: isolate;
   background: radial-gradient(120% 140% at 0% 0%, #4fc3ff 0, #2b5bff 45%, #2a1a8f 100%); box-shadow: 0 10px 26px rgba(40, 80, 220, .3), inset 0 0 0 1.5px rgba(255, 214, 110, .55); }

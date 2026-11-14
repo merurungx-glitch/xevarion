@@ -534,7 +534,7 @@
       '<div class="re-rest in"><section class="re-list">' + L.map((u) => '<div class="rr' + (u.pid === O.pid ? " me" : "") + '" style="--c:' + colorOf(u.pid) + '"><span class="rr-k">' + u.rank + "</span>" +
         avatar({ name: u.name, color: colorOf(u.pid), acc: pinfo(u.pid).charFile ? { charFile: pinfo(u.pid).charFile } : null }, "xs") + '<span class="rr-n"><b>' + esc(u.name) + "</b>" + (u.left ? "<small>退出</small>" : "") + '</span><span class="rr-s">' + fmtN(u.pt) + ' 点</span><span class="rr-a">' + u.ok + "/" + u.n + "</span></div>").join("") + "</section>" +
       '<section class="re-prz" id="olPrz"><p class="re-pm">' + ic("gift") + "XEVA を確認しています…</p></section></div></div>" +
-      '<div class="re-foot">' + (isHost() ? buzzBtn("olAgain", "もう一度（この部屋で）", "") : '<p class="ol-wait">' + ic("timer") + "ホストが「もう一度」を押すと、同じ部屋で続けられます</p>") + '<button class="btn" data-a="olLeave">' + ic("home") + "<span>部屋を出る</span></button></div>";
+      '<div class="re-foot">' + (isHost() ? buzzBtn("olAgain", "もう一度（この部屋で）", "") : '<p class="ol-wait">' + ic("timer") + "ホストが「もう一度」を押すと、同じ部屋で続けられます</p>") + '<button class="btn" data-a="olDetail">' + ic("list") + "<span>結果詳細</span></button>" + '<button class="btn" data-a="olLeave">' + ic("home") + "<span>部屋を出る</span></button></div>";
     FX.music("result"); FX.sfx("win"); FX.confetti(120);
     const Hh = HOST(); if (Hh && top) setTimeout(() => Hh.say("final", { p: top.name }), 900);
     /* XEVA（自分の分だけ・1試合1回） */
@@ -561,8 +561,44 @@
     catch (e) { toast("通信できませんでした"); }
   }
 
+  /* ══ ★★ 2026-11-13 結果詳細（結果発表の「結果詳細」ボタン）：人ごとの成績・点の内訳と、1問ごとの全員の ◯✕・時間・点 ══ */
+  function openDetail() {
+    const st = R().state || {}, list = st.list || [], seats = st.seats || seatList(), L = ranking();
+    const sec = (ms) => ((ms || 0) / 1000).toFixed(1) + "秒";
+    const cards = L.map((u) => {
+      let base = 0, sp = 0, fast = 0, okMs = 0, okN = 0;
+      list.forEach((it, i) => {
+        const x = item(it.id); if (!x) return;
+        const a = actsAt(i), r = a[u.pid]; if (!r || !r.ok) return;
+        base += 100 + (x.calc ? 50 : 0); sp += Math.round(100 * Math.max(0, 1 - (r.ms || 0) / (limOf(x) * 1000)));
+        if (fastestOf(a, seats) === u.pid) fast += 30;
+        okMs += r.ms || 0; okN++;
+      });
+      const rows = [["正解", u.ok + " / " + u.n + (u.n ? "（" + Math.round(u.ok / u.n * 100) + "%）" : "")], ["答えた時間", "合計 " + sec(u.ms) + (okN ? "・正解の平均 " + sec(okMs / okN) : "")],
+        ["点の内訳", "正解 " + fmtN(base) + " ＋ 速さ " + fmtN(sp) + " ＋ いちばん早い " + fmtN(fast)]];
+      return '<section class="rd-u" style="--c:' + colorOf(u.pid) + '"><div class="rd-uh"><span class="rd-k">' + u.rank + "</span><b>" + esc(u.name) + (u.pid === O.pid ? "（自分）" : "") + "</b><em>" + fmtN(u.pt) + " 点</em></div><dl>" +
+        rows.map((r) => "<div><dt>" + r[0] + "</dt><dd>" + r[1] + "</dd></div>").join("") + "</dl></section>";
+    }).join("");
+    const tl = list.map((it, i) => {
+      const x = item(it.id); if (!x) return "";
+      const a = actsAt(i), f = fastestOf(a, seats);
+      const ps = seats.map((pid) => {
+        const r = a[pid], pt = scoreOne(x, r, f, pid);
+        return '<span class="rd-op" style="--c:' + colorOf(pid) + '"><i>' + esc(pinfo(pid).name) + "</i>" +
+          (r && r.a ? '<b class="' + (r.ok ? "o" : "x") + '">' + (r.ok ? "◯" : "✕") + "</b><small>" + (r.to ? "時間切れ" : sec(r.ms)) + "</small><em>" + (pt ? "+" + pt : "0") + "</em>" + (f === pid ? "<u>最速</u>" : "<u></u>") : "<small>答えなし</small>") + "</span>";
+      }).join("");
+      return '<li class="ol"><span class="rd-n">' + (i + 1) + '</span><span class="rd-w"><em>' + esc(Q.topicName(x.q.t)) + "</em><small>" + (x.calc ? "計算問題（正解で +50点）" : "") + '</small><span class="rd-ops">' + ps + "</span></span></li>";
+    }).join("");
+    sheet('<h3 class="sh-t">' + ic("list") + "結果詳細<small>2台で対戦・" + list.length + "問</small></h3>" +
+      '<details class="rd-how" open><summary>点数のしくみ（2台で対戦）</summary><ul><li><b>正解</b>：100点（計算問題は +50点）</li><li><b>速さ</b>：早く答えるほど高く、最大 +100点</li>' +
+      "<li><b>いちばん早い正解</b>：その問題でいちばん早く正解した人に +30点</li><li>まちがい・時間切れは 0点</li></ul></details>" +
+      '<div class="rd-us">' + cards + '</div><h4 class="rd-h">1問ごとの記録</h4><ol class="rd-tl">' + (tl || '<li class="rd-none">記録がありません</li>') + "</ol>" +
+      '<div class="sh-b"><button class="btn pri" data-a="close">とじる</button></div>', { cls: "review" });
+  }
+
   /* ══ 操作 ══ */
   Object.assign(U.ACT, {
+    olDetail: () => { FX.sfx("tap"); openDetail(); },
     online: () => { FX.sfx("buzz"); openEntry(); },
     olCreate: () => { FX.sfx("buzz"); create(); },
     olJoinOpen: () => { FX.sfx("tap"); openJoin("", ""); },

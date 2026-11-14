@@ -883,3 +883,52 @@ body[data-scr="title"] .mh,body[data-scr="setup"] .mh,body[data-scr="records"] .
   #online.res-on .pl-main{flex-direction:column;overflow-y:auto;padding-right:calc(min(46%,560px) + var(--pr) + 12px)}
   #online.res-on .pl-q,#online.res-on .pl-a{flex:none;overflow:visible}
 }
+
+/* ══ ★★ 2026-11-13 結果詳細（結果の画面の「結果詳細」ボタン → シート。quiz-result.js・quiz-online.js の openDetail） ══ */
+#result .re-foot{grid-template-columns:1fr 1fr 1.3fr 1fr;gap:6px}
+#result .re-foot .btn{flex-direction:column;gap:1px;font-size:12px;line-height:1.2;padding:4px 2px}
+#result .re-foot .btn svg.ic{width:19px;height:19px}
+#result .re-foot .btn small{font-size:10.5px;font-weight:800;color:var(--sub);line-height:1.1}
+#online .re-foot{grid-template-columns:1.5fr 1fr 1fr}
+.rd-how{margin:8px 0 10px;padding:9px 12px;border-radius:14px;background:var(--vs);font-size:12.5px;line-height:1.6}
+.rd-how summary{font-weight:900;color:var(--v2);cursor:pointer}
+.rd-how ul{margin:6px 0 0;padding-left:1.2em;display:grid;gap:3px}
+.rd-how b{color:var(--v2)}
+.rd-note{margin:8px 0;padding:8px 12px;border-radius:12px;background:var(--vs);font-size:12px;font-weight:700;line-height:1.6}
+.rd-us{display:grid;gap:9px;margin-top:8px}
+.rd-u{padding:10px 12px;border-radius:14px;background:#fff;border-left:6px solid var(--c);box-shadow:0 2px 8px rgba(30,0,90,.12)}
+.rd-uh{display:flex;align-items:center;gap:8px}
+.rd-k{flex:none;width:22px;text-align:center;font-family:var(--logo);font-size:19px;font-weight:800;color:var(--v2)}
+.rd-uh b{flex:1;min-width:0;font-size:15px;font-weight:900;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rd-uh em{flex:none;font-style:normal;font-size:13.5px;font-weight:900;color:var(--v2)}
+.rd-mb{margin:2px 0 0 30px;font-size:11px;color:var(--sub)}
+.rd-u dl{display:grid;gap:3px;margin:7px 0 0}
+.rd-u dl div{display:flex;gap:8px;font-size:12.5px;line-height:1.5}
+.rd-u dt{flex:none;width:6.2em;font-weight:800;color:var(--sub)}
+.rd-u dd{flex:1;min-width:0;margin:0;font-weight:800}
+.rd-fs{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
+.rd-f{display:inline-flex;gap:5px;padding:2px 9px;border-radius:99px;background:var(--vs);font-size:11.5px;font-weight:800}
+.rd-f i{font-style:normal;color:var(--sub)}
+.rd-h{margin:14px 0 6px;font-size:14px;font-weight:900}
+.rd-tl{list-style:none;margin:0;padding:0;display:grid;gap:5px}
+.rd-tl li{display:grid;grid-template-columns:24px minmax(0,1fr) auto minmax(58px,auto);gap:8px;align-items:center;padding:6px 10px;border-radius:12px;background:var(--vs);font-size:12px;line-height:1.35}
+.rd-tl li.ol{grid-template-columns:24px minmax(0,1fr);align-items:start}
+.rd-tl li.rd-none{display:block;text-align:center;color:var(--sub)}
+.rd-n{font-family:var(--logo);font-weight:800;color:var(--sub);text-align:center}
+.rd-w{min-width:0;display:flex;flex-direction:column}
+.rd-w>i{align-self:flex-start;font-style:normal;padding:0 8px;border-radius:99px;background:var(--c);color:#fff;font-size:11px;font-weight:800}
+.rd-w>em{font-style:normal;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rd-w>small,.rd-r small,.rd-p small{font-size:10.5px;color:var(--sub);font-weight:700}
+.rd-r{display:flex;flex-direction:column;align-items:center;gap:1px}
+.rd-st{font-style:normal;padding:1px 8px;border-radius:99px;background:#fff;color:var(--sub);font-size:11.5px;font-weight:900;white-space:nowrap}
+.rd-st.ok{background:var(--okS);color:#067a45}
+.rd-st.ng{background:var(--ngS);color:#c81e3e}
+.rd-p{display:flex;flex-direction:column;align-items:flex-end;text-align:right}
+.rd-p b{font-family:var(--logo);font-size:14px;font-weight:800;color:var(--v2)}
+.rd-ops{display:grid;gap:3px;margin-top:4px}
+.rd-op{display:grid;grid-template-columns:minmax(0,1fr) auto auto 3.4em 2.4em;gap:6px;align-items:center;padding:2px 8px;border-radius:8px;background:#fff;border-left:4px solid var(--c);font-size:11.5px}
+.rd-op i{font-style:normal;font-weight:800;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rd-op b.o{color:#067a45}.rd-op b.x{color:#c81e3e}
+.rd-op small{font-size:10.5px;color:var(--sub);font-weight:700}
+.rd-op em{font-style:normal;font-family:var(--logo);font-weight:800;color:var(--v2);text-align:right}
+.rd-op u{text-decoration:none;font-size:10px;font-weight:900;color:#b77400}
