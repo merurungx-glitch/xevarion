@@ -3,21 +3,16 @@
    ・1台で遊ぶ経営シミュレーション。キャッシュすれば完全にオフラインで動く
    ・セーブ（magirail_v1）は localStorage
    ============================================================ */
-const VERSION = "magirail-sw-v18";
-const CORE = [
-  "./index.html",
-  "./css/rail.css?v=3",
-  "./js/rail-core.js?v=2",
-  "./js/rail-chart.js?v=1",
-  "./js/rail-ui.js?v=3",
-  "./img/title.jpg",
-  "./img/icon192.png",
-  "./manifest.webmanifest",
-  "../xeva-splash.js?v=22",
-  "../xeva-safebottom.js?v=12",
-  "../maintenance-gate.js?v=13",
-  "../thumbs/MagiRail.jpg",
-];
+/* ══ ★★ 2026-11-12 版（VERSION）と、控えるファイルの一覧（CORE）は ../sw-list/MagiRail.js へ移した ══
+   ご指定「更新のたびに sw のファイルをすべてアップロードするのが手間 → まとめて楽に」。
+   ・更新のたびに変わるのは版と一覧だけなので、全アプリぶんを sw-list フォルダ1つに集めた。
+     → これからの更新で上げるのは sw-list フォルダだけ。この sw.js は「しくみ」を直したときだけ上げる。
+   ・ブラウザは importScripts で読んだファイルの中身が変わったことにも気づく（＝一覧が変われば、これまでどおり新しい版が入る）。
+   ・XEV_LIST_URL＝自分の一覧の場所（xev-refresh のとき、サーバーの一覧を読み直して確かめる＝_shared.js の xevListNewer）。 */
+importScripts("../sw-list/_shared.js", "../sw-list/MagiRail.js");
+const VERSION = self.XEV_SW.v;
+const CORE = self.XEV_SW.core;
+const XEV_LIST_URL = "../sw-list/MagiRail.js";
 
 /* ── 事前キャッシュの進捗をページへ通知する（更新ダウンロード画面用） ── */
 async function xevPost(msg) {
@@ -237,7 +232,9 @@ async function xevPrune(cache, coreAbs, sameOriginOnly) {
 async function xevRefreshAll() {
   const cache = await caches.open(VERSION);
   const urls = [], seen = new Set();
-  for (const u of CORE) {
+  /* ★★ 2026-11-12 サーバーの一覧（sw-list）のほうが新しい版なら、その一覧で確かめる＝新しいファイルも取りこむ（_shared.js の xevListNewer） */
+  const CORE_NOW = (await xevListNewer()) || CORE;
+  for (const u of CORE_NOW) {
     if (/^https?:/i.test(u)) continue;                       // 外部（フォントなど）は触らない
     let abs; try { abs = new URL(u, self.location.href).href; } catch (e) { continue; }
     if (seen.has(abs)) continue;

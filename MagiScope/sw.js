@@ -3,35 +3,16 @@
    ・ランキングは実データ（AniList・中継サーバー）。最後に取ったぶんは localStorage に控えるのでオフラインでも前回の順位を出せる
    ・保存（magiscope_v1）は localStorage。XEVARION のアカウントで同期する
    ============================================================ */
-const VERSION = "magiscope-sw-v47";
-const CORE = [
-  "./index.html",
-  "./css/scope.css?v=21",
-  "./js/scope-config.js?v=3",
-  "./js/scope-data.js?v=21",
-  "./js/scope-art.js?v=3",
-  "./js/scope-ui.js?v=30",
-  "./img/emblem.png",
-  "./img/icon192.png",
-  "./manifest.webmanifest",
-  "../xeva-splash.js?v=22",
-  "../xeva-safebottom.js?v=12",
-  "../xeva-loading.js?v=19",
-  "../xeva-back.js?v=9",
-  "../maintenance-gate.js?v=13",
-  "../xeva.js?v=87", "../xevarion-fb.js?v=37",   /* ★★ 2026-10-22 同期（このページでも xeva-cloud を読む） */
-  "../xeva-alive.js?v=9",
-  /* ★★ 2026-09-22 英語版（オフラインでも切りかえられるように） */
-  "../xeva-i18n.js?v=8",
-  "../xeva-i18n-dict.js?v=12",
-  "../xeva-i18n-ms1.js?v=3",
-  /* xeva-cloud.js はモジュールなので、そこから読む xeva-keys.js も要る */
-  "../xeva-cloud.js?v=51",
-  "../xeva-keys.js?v=36",
-  "../img/ld_b_stand.webp?v=5",
-  "../img/ld_b_bow.webp?v=5",
-  "../thumbs/MagiScope.jpg",
-];
+/* ══ ★★ 2026-11-12 版（VERSION）と、控えるファイルの一覧（CORE）は ../sw-list/MagiScope.js へ移した ══
+   ご指定「更新のたびに sw のファイルをすべてアップロードするのが手間 → まとめて楽に」。
+   ・更新のたびに変わるのは版と一覧だけなので、全アプリぶんを sw-list フォルダ1つに集めた。
+     → これからの更新で上げるのは sw-list フォルダだけ。この sw.js は「しくみ」を直したときだけ上げる。
+   ・ブラウザは importScripts で読んだファイルの中身が変わったことにも気づく（＝一覧が変われば、これまでどおり新しい版が入る）。
+   ・XEV_LIST_URL＝自分の一覧の場所（xev-refresh のとき、サーバーの一覧を読み直して確かめる＝_shared.js の xevListNewer）。 */
+importScripts("../sw-list/_shared.js", "../sw-list/MagiScope.js");
+const VERSION = self.XEV_SW.v;
+const CORE = self.XEV_SW.core;
+const XEV_LIST_URL = "../sw-list/MagiScope.js";
 
 /* ── 事前キャッシュの進捗をページへ通知する（更新ダウンロード画面用） ── */
 async function xevPost(msg) {
@@ -257,7 +238,9 @@ async function xevPrune(cache, coreAbs, sameOriginOnly) {
 async function xevRefreshAll() {
   const cache = await caches.open(VERSION);
   const urls = [], seen = new Set();
-  for (const u of CORE) {
+  /* ★★ 2026-11-12 サーバーの一覧（sw-list）のほうが新しい版なら、その一覧で確かめる＝新しいファイルも取りこむ（_shared.js の xevListNewer） */
+  const CORE_NOW = (await xevListNewer()) || CORE;
+  for (const u of CORE_NOW) {
     if (/^https?:/i.test(u)) continue;                       // 外部（フォントなど）は触らない
     let abs; try { abs = new URL(u, self.location.href).href; } catch (e) { continue; }
     if (seen.has(abs)) continue;

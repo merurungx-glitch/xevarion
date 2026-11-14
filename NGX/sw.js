@@ -5,44 +5,16 @@
    ・フォント（Google Fonts）は控えない（オフラインでは端末の文字で出る）
    ★ 中身（CORE）は NGX_website.html の src/href から作った。ページに絵を足したらここにも足して VERSION を上げる
    ============================================================ */
-const VERSION = "ngx-site-sw-v7";
-const CORE = [
-  "./NGX_website.html",
-  "../maintenance-gate.js?v=13",
-  "../thumbs/NGX.jpg?v=2",
-  "../MagiBurst/img/ss/HaruSS.webp",
-  "../thumbs/xevarion-home_s.jpg?v=13",
-  "../MagiBurst/img/ss/ChikaSS.webp",
-  "../MagiBurst/img/bn_fes21_s.webp",
-  "../thumbs/Xevarion.png",
-  "../thumbs/MagiBurst.jpg",
-  "../thumbs/MagiAbyss.jpg?v=2",
-  "../thumbs/MagiChemLex.jpg?v=2",
-  "../thumbs/MagiDerby.jpg",
-  "../thumbs/MagiQuiz.jpg?v=2",
-  "../thumbs/MagiShift.jpg",
-  "../thumbs/MagiScope.jpg",
-  "../thumbs/MagiChainParty.jpg?v=2",
-  "../thumbs/Ordyxis.jpg",
-  "../thumbs/XEVYNAR.jpg",
-  "../thumbs/MagiLex.jpg",
-  "../thumbs/MagiBattle.jpg?v=4",
-  "../thumbs/MagiBocciaRush.jpg",
-  "../thumbs/MagiDominionGrid.jpg",
-  "../thumbs/MagiLink.jpg",
-  "../thumbs/MagiRail.jpg",
-  "../thumbs/MagiJackpot.jpg",
-  "../thumbs/MagiLotto.jpg",
-  "../thumbs/MagiFocus.jpg",
-  "../thumbs/MagiTier.jpg",
-  "../thumbs/MagiCounter.jpg",
-  "../thumbs/MagiRanking.jpg",
-  "../brand/MagicalFuture_s.webp?v=2",
-  "../brand/ISHIDA_s.webp?v=2",
-  "../brand/YRA_s.webp",
-  "../brand/Kawagani_s.webp", "../brand/StudioDOGA_s.webp",   // ★★ 2026-11-02 運営協力に参入
-  "../brand/NGX_s.webp?v=2",
-];
+/* ══ ★★ 2026-11-12 版（VERSION）と、控えるファイルの一覧（CORE）は ../sw-list/NGX.js へ移した ══
+   ご指定「更新のたびに sw のファイルをすべてアップロードするのが手間 → まとめて楽に」。
+   ・更新のたびに変わるのは版と一覧だけなので、全アプリぶんを sw-list フォルダ1つに集めた。
+     → これからの更新で上げるのは sw-list フォルダだけ。この sw.js は「しくみ」を直したときだけ上げる。
+   ・ブラウザは importScripts で読んだファイルの中身が変わったことにも気づく（＝一覧が変われば、これまでどおり新しい版が入る）。
+   ・XEV_LIST_URL＝自分の一覧の場所（xev-refresh のとき、サーバーの一覧を読み直して確かめる＝_shared.js の xevListNewer）。 */
+importScripts("../sw-list/_shared.js", "../sw-list/NGX.js");
+const VERSION = self.XEV_SW.v;
+const CORE = self.XEV_SW.core;
+const XEV_LIST_URL = "../sw-list/NGX.js";
 
 /* ── 事前キャッシュの進捗をページへ通知する（更新ダウンロード画面用） ── */
 async function xevPost(msg) {
@@ -262,7 +234,9 @@ async function xevPrune(cache, coreAbs, sameOriginOnly) {
 async function xevRefreshAll() {
   const cache = await caches.open(VERSION);
   const urls = [], seen = new Set();
-  for (const u of CORE) {
+  /* ★★ 2026-11-12 サーバーの一覧（sw-list）のほうが新しい版なら、その一覧で確かめる＝新しいファイルも取りこむ（_shared.js の xevListNewer） */
+  const CORE_NOW = (await xevListNewer()) || CORE;
+  for (const u of CORE_NOW) {
     if (/^https?:/i.test(u)) continue;                       // 外部（フォントなど）は触らない
     let abs; try { abs = new URL(u, self.location.href).href; } catch (e) { continue; }
     if (seen.has(abs)) continue;

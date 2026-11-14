@@ -3,35 +3,16 @@
    ・1台で遊ぶボードゲーム。キャッシュすれば完全にオフラインで動く
    ・アカウントの紐づけと賞金だけ通信が要る（遊ぶこと自体はオフラインでできる）
    ============================================================ */
-const VERSION = "magishift-sw-v34";
-const CORE = [
-  "./index.html",
-  "./css/shift.css?v=13",
-  "./js/shift-core.js?v=9",
-  "./js/shift-ai.js?v=3",          /* ★★ 2026-10-13 CPU */
-  "./js/shift-account.js?v=4",
-  "./js/shift-ui.js?v=13",
-  "./img/icon192.png",
-  "./manifest.webmanifest",
-  "../xeva-splash.js?v=22",
-  "../xeva-safebottom.js?v=12",
-  "../xeva-loading.js?v=19",
-  "../xeva-back.js?v=9",
-  "../maintenance-gate.js?v=13",
-  "../xeva.js?v=87", "../xeva-cloud.js?v=51", "../xeva-keys.js?v=36",   /* ★★ 2026-10-22 同期（このページでも xeva-cloud を読む） */
-  "../xeva-alive.js?v=9",
-  "../game-link.js?v=13",
-  "../xevarion-fb.js?v=37",
-  "../img/ld_b_stand.webp?v=5",
-  "../img/ld_b_bow.webp?v=5",
-  "../thumbs/MagiShift.jpg",
-  /* ★★ 2026-10-13 起動画面の3社ロゴは毎回出すので、オフラインでも出るように */
-  "../brand/NGX_s.webp?v=2",
-  "../brand/MagicalFuture_s.webp?v=2",
-  "../brand/ISHIDA_s.webp?v=2",
-  "../brand/YRA_s.webp",
-  "../brand/Kawagani_s.webp", "../brand/StudioDOGA_s.webp",   // ★★ 2026-11-02 運営協力に参入
-];
+/* ══ ★★ 2026-11-12 版（VERSION）と、控えるファイルの一覧（CORE）は ../sw-list/MagiShift.js へ移した ══
+   ご指定「更新のたびに sw のファイルをすべてアップロードするのが手間 → まとめて楽に」。
+   ・更新のたびに変わるのは版と一覧だけなので、全アプリぶんを sw-list フォルダ1つに集めた。
+     → これからの更新で上げるのは sw-list フォルダだけ。この sw.js は「しくみ」を直したときだけ上げる。
+   ・ブラウザは importScripts で読んだファイルの中身が変わったことにも気づく（＝一覧が変われば、これまでどおり新しい版が入る）。
+   ・XEV_LIST_URL＝自分の一覧の場所（xev-refresh のとき、サーバーの一覧を読み直して確かめる＝_shared.js の xevListNewer）。 */
+importScripts("../sw-list/_shared.js", "../sw-list/MagiShift.js");
+const VERSION = self.XEV_SW.v;
+const CORE = self.XEV_SW.core;
+const XEV_LIST_URL = "../sw-list/MagiShift.js";
 
 /* ── 事前キャッシュの進捗をページへ通知する（更新ダウンロード画面用） ── */
 async function xevPost(msg) {
@@ -251,7 +232,9 @@ async function xevPrune(cache, coreAbs, sameOriginOnly) {
 async function xevRefreshAll() {
   const cache = await caches.open(VERSION);
   const urls = [], seen = new Set();
-  for (const u of CORE) {
+  /* ★★ 2026-11-12 サーバーの一覧（sw-list）のほうが新しい版なら、その一覧で確かめる＝新しいファイルも取りこむ（_shared.js の xevListNewer） */
+  const CORE_NOW = (await xevListNewer()) || CORE;
+  for (const u of CORE_NOW) {
     if (/^https?:/i.test(u)) continue;                       // 外部（フォントなど）は触らない
     let abs; try { abs = new URL(u, self.location.href).href; } catch (e) { continue; }
     if (seen.has(abs)) continue;

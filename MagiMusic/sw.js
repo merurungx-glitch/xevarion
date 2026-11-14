@@ -6,22 +6,18 @@
      一度でも再生した曲は fetch ハンドラが自動でキャッシュする。
    ・キャッシュ済みの曲はオフライン（機内モード）でもそのまま再生できる。
    ============================================================ */
-const VERSION = "magimusic-sw-v42";
+/* ══ ★★ 2026-11-12 版（VERSION）と、控えるファイルの一覧（CORE）は ../sw-list/MagiMusic.js へ移した ══
+   ご指定「更新のたびに sw のファイルをすべてアップロードするのが手間 → まとめて楽に」。
+   ・更新のたびに変わるのは版と一覧だけなので、全アプリぶんを sw-list フォルダ1つに集めた。
+     → これからの更新で上げるのは sw-list フォルダだけ。この sw.js は「しくみ」を直したときだけ上げる。
+   ・ブラウザは importScripts で読んだファイルの中身が変わったことにも気づく（＝一覧が変われば、これまでどおり新しい版が入る）。
+   ・XEV_LIST_URL＝自分の一覧の場所（xev-refresh のとき、サーバーの一覧を読み直して確かめる＝_shared.js の xevListNewer）。 */
+importScripts("../sw-list/_shared.js", "../sw-list/MagiMusic.js");
+const VERSION = self.XEV_SW.v;
+const CORE = self.XEV_SW.core;
+const XEV_LIST_URL = "../sw-list/MagiMusic.js";
 const AUDIO_CACHE = "magimusic-audio-v1";   // 曲は本体と別キャッシュ（本体更新で消えないように）
 
-const CORE = [
-  "./MagiMusic.html",
-  "./manifest.webmanifest",
-  "../thumbs/MagiMusic.jpg",
-  "../thumbs/MagiBurst.jpg",
-  "../Xevarion.png",
-  "../brand/NGX_s.webp?v=2",
-  "../brand/MagicalFuture_s.webp?v=2",
-  "../brand/ISHIDA_s.webp?v=2",
-  "../brand/YRA_s.webp",
-  "../brand/Kawagani_s.webp", "../brand/StudioDOGA_s.webp",   // ★★ 2026-11-02 運営協力に参入
-  "../maintenance-gate.js?v=13",
-];
 
 /* プレイヤーが扱う全曲（アプリ側の DEFAULT_TRACKS と揃えること） */
 const TRACKS = [
@@ -289,7 +285,9 @@ async function xevPrune(cache, coreAbs, sameOriginOnly) {
 async function xevRefreshAll() {
   const cache = await caches.open(VERSION);
   const urls = [], seen = new Set();
-  for (const u of CORE) {
+  /* ★★ 2026-11-12 サーバーの一覧（sw-list）のほうが新しい版なら、その一覧で確かめる＝新しいファイルも取りこむ（_shared.js の xevListNewer） */
+  const CORE_NOW = (await xevListNewer()) || CORE;
+  for (const u of CORE_NOW) {
     if (/^https?:/i.test(u)) continue;                       // 外部は触らない
     let abs; try { abs = new URL(u, self.location.href).href; } catch (e) { continue; }
     if (seen.has(abs)) continue;

@@ -6,49 +6,16 @@
    ・オフライン中の記録は localStorage に残り、オンライン復帰時に
      xeva-cloud.js がクラウドへ反映する。
    ============================================================ */
-const VERSION = "xevynar-sw-v76";
-const CORE = [
-  "./",
-  "./index.html",
-  "./manifest.webmanifest",
-  "./xevynar.css?v=20",
-  "./xevynar-tf.js?v=10",
-  "./xevynar-kb.js?v=25",
-  "./xevynar-lex.js?v=18",
-  "./xevynar-steps.js?v=14",
-  "./xevynar-figs.js?v=17",
-  "./xevynar-terms.js?v=11",
-  "./xevynar-deep.js?v=15",
-  "./xevynar-brain.js?v=20",
-  "./xevynar-talk.js?v=20",
-  "./xevynar-app.js?v=22",
-  "./XEVYNAR.png",
-  "./xevynar-mark.png",
-  "./xevynar-192.png",
-  "./xevynar-512.png",
-  "../maintenance-gate.js?v=13",
-  "../xeva.js?v=87",
-  "../xeva-alive.js?v=9",
-  "../xeva-splash.js?v=22",
-  "../xeva-loading.js?v=19",
-  "../XEVA.png",
-  "../gem.png",
-  /* ★ MagiLex の問題データ。オフラインでも「苦手問題の出題」「問題の解説」を
-     動かすために先読みしておく（XEVYNAR の目玉機能なので通信必須にはしない）。
-     ★★ 2026-08-18c 「1問ごとのくわしい解説」は 数学・物理・化学γ を読むので、
-       その4本（suugaku / math3 / chemg / butsuri）も足した。
-       ここに無いと、オフラインで解説が<b>1問も出ない</b>。
-     ★ どれも <b>?v= を付けない</b>こと。xevynar-deep.js / xevynar-lex.js が
-       ?v= 無しで読むので、付けて登録しても当たらない。 */
-  "../MagiLex/magilex-data.js",
-  "../MagiLex/magilex-eigo.js",
-  "../MagiLex/magilex-rika.js",
-  "../MagiLex/magilex-chemb.js",
-  "../MagiLex/magilex-intro.js",
-  "../MagiLex/magilex-mid.js",
-  "../MagiLex/magilex-chemg.js",
-  "../MagiLex/magilex-chemd.js",
-];
+/* ══ ★★ 2026-11-12 版（VERSION）と、控えるファイルの一覧（CORE）は ../sw-list/XEVYNAR.js へ移した ══
+   ご指定「更新のたびに sw のファイルをすべてアップロードするのが手間 → まとめて楽に」。
+   ・更新のたびに変わるのは版と一覧だけなので、全アプリぶんを sw-list フォルダ1つに集めた。
+     → これからの更新で上げるのは sw-list フォルダだけ。この sw.js は「しくみ」を直したときだけ上げる。
+   ・ブラウザは importScripts で読んだファイルの中身が変わったことにも気づく（＝一覧が変われば、これまでどおり新しい版が入る）。
+   ・XEV_LIST_URL＝自分の一覧の場所（xev-refresh のとき、サーバーの一覧を読み直して確かめる＝_shared.js の xevListNewer）。 */
+importScripts("../sw-list/_shared.js", "../sw-list/XEVYNAR.js");
+const VERSION = self.XEV_SW.v;
+const CORE = self.XEV_SW.core;
+const XEV_LIST_URL = "../sw-list/XEVYNAR.js";
 
 /* ══ ★★ 2026-10-14 「更新したファイル」を数える（ご報告「更新があったファイルが0のまま」）══
    新しい版は<b>install でまとめて取りこむ</b>ので、そのあとの「確かめ（xev-refresh）」では全部「変更なし（304）」になり、
@@ -263,7 +230,9 @@ async function xevPrune(cache, coreAbs, sameOriginOnly) {
 async function xevRefreshAll() {
   const cache = await caches.open(VERSION);
   const urls = [], seen = new Set();
-  for (const u of CORE) {
+  /* ★★ 2026-11-12 サーバーの一覧（sw-list）のほうが新しい版なら、その一覧で確かめる＝新しいファイルも取りこむ（_shared.js の xevListNewer） */
+  const CORE_NOW = (await xevListNewer()) || CORE;
+  for (const u of CORE_NOW) {
     if (/^https?:/i.test(u)) continue;                       // 外部（フォントなど）は触らない
     let abs; try { abs = new URL(u, self.location.href).href; } catch (e) { continue; }
     if (seen.has(abs)) continue;

@@ -7,46 +7,16 @@
    ・作りは MagiJackpot の SW と同じ（プレフィックスの付いたキャッシュだけ掃除する／
      xev-refresh で差分更新できる）。
    ============================================================ */
-const VERSION = "magilotto-sw-v54";
-const CORE = [
-  "./",
-  "./index.html",
-  "./manifest.webmanifest",
-  "./ml.css?v=11",
-  "./ml-core.js?v=11",
-  "./ml-draw.js?v=10",
-  "./ml-games.js?v=12",
-  "./ml-grand.js?v=11",
-  "./ml-admin.js?v=10",
-  "./ml-app.js?v=11",
-  "./ml-192.png",
-  "./ml-512.png",
-  "./img/banner_home.webp",
-  "./img/machine.webp",
-  "./img/ic_scratch.webp",
-  "./img/ic_numbers.webp",
-  "./img/ic_lotto.webp",
-  "./img/ic_grand.webp",
-  "./img/ic_free.webp",
-  "./img/sym_s6.webp",
-  "./img/cutin_jackpot.webp",
-  /* スクラッチの絵柄（s1〜s5）は XEVARION のキャラをそのまま参照している。
-     コピーはせず、オフラインでも出るようにここでキャッシュだけしておく。 */
-  "../img/t_Fuka.webp",
-  "../img/t_Tsumugi.webp",
-  "../img/t_Suzuka.webp",
-  "../img/t_Karem.webp",
-  "../img/t_Chizuru.webp",
-  "../maintenance-gate.js?v=13",
-  "../xeva.js?v=87",
-  "../xeva-alive.js?v=9",
-  "../xeva-fx.js?v=9",
-  "../xeva-splash.js?v=22",
-  "../xeva-back.js?v=9",
-  "../XEVA.png",
-  "../gem.png",
-  "../icons/xev-192.png",
-];
+/* ══ ★★ 2026-11-12 版（VERSION）と、控えるファイルの一覧（CORE）は ../sw-list/MagiLotto.js へ移した ══
+   ご指定「更新のたびに sw のファイルをすべてアップロードするのが手間 → まとめて楽に」。
+   ・更新のたびに変わるのは版と一覧だけなので、全アプリぶんを sw-list フォルダ1つに集めた。
+     → これからの更新で上げるのは sw-list フォルダだけ。この sw.js は「しくみ」を直したときだけ上げる。
+   ・ブラウザは importScripts で読んだファイルの中身が変わったことにも気づく（＝一覧が変われば、これまでどおり新しい版が入る）。
+   ・XEV_LIST_URL＝自分の一覧の場所（xev-refresh のとき、サーバーの一覧を読み直して確かめる＝_shared.js の xevListNewer）。 */
+importScripts("../sw-list/_shared.js", "../sw-list/MagiLotto.js");
+const VERSION = self.XEV_SW.v;
+const CORE = self.XEV_SW.core;
+const XEV_LIST_URL = "../sw-list/MagiLotto.js";
 
 async function post(msg) {
   try {
@@ -250,7 +220,9 @@ async function xevPrune(cache, coreAbs, sameOriginOnly) {
 async function xevRefreshAll() {
   const cache = await caches.open(VERSION);
   const urls = [], seen = new Set();
-  for (const u of CORE) {
+  /* ★★ 2026-11-12 サーバーの一覧（sw-list）のほうが新しい版なら、その一覧で確かめる＝新しいファイルも取りこむ（_shared.js の xevListNewer） */
+  const CORE_NOW = (await xevListNewer()) || CORE;
+  for (const u of CORE_NOW) {
     if (/^https?:/i.test(u)) continue;
     let abs; try { abs = new URL(u, self.location.href).href; } catch (e) { continue; }
     if (seen.has(abs)) continue;
