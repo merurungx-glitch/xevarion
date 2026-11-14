@@ -5,30 +5,16 @@
    ・セーブ・前回設定は localStorage 保存 → オンライン復帰時に xeva-cloud が同期
    ・Firebase など外部通信はキャッシュしない
    ============================================================ */
-const VERSION = "chainparty-sw-v69";
-const CORE = [
-  "./index.html",
-  "./css/style.css?v=22",
-  "./js/game.js?v=21",
-  /* ★★ 2026-10-13 新しいロゴ（タイトルの絵・小さいアイコン） */
-  "./img/logo_hero.webp",
-  "./img/icon192.png",
-  /* ★★ 2026-09-03 下バーを画面の下端に合わせる共通部品 */
-  "../xeva-safebottom.js?v=12",
-  "../xeva.js?v=87",
-  "../xeva-alive.js?v=9",
-  "../xeva-loading.js?v=19",
-  "../xeva-splash.js?v=22",
-  "../game-link.js?v=13",
-  "../maintenance-gate.js?v=13",
-  "../app-install-notice.js?v=9",
-  "../thumbs/MagiChainParty.jpg?v=2",
-  "../brand/NGX_s.webp?v=2",
-  "../brand/MagicalFuture_s.webp?v=2",
-  "../brand/ISHIDA_s.webp?v=2",
-  "../brand/YRA_s.webp",
-  "../brand/Kawagani_s.webp", "../brand/StudioDOGA_s.webp",   // ★★ 2026-11-02 運営協力に参入
-];
+/* ══ ★★ 2026-11-12 版（VERSION）と、控えるファイルの一覧（CORE）は ../sw-list/MagiChainParty.js へ移した ══
+   ご指定「更新のたびに sw のファイルをすべてアップロードするのが手間 → まとめて楽に」。
+   ・更新のたびに変わるのは版と一覧だけなので、全アプリぶんを sw-list フォルダ1つに集めた。
+     → これからの更新で上げるのは sw-list フォルダだけ。この sw.js は「しくみ」を直したときだけ上げる。
+   ・ブラウザは importScripts で読んだファイルの中身が変わったことにも気づく（＝一覧が変われば、これまでどおり新しい版が入る）。
+   ・XEV_LIST_URL＝自分の一覧の場所（xev-refresh のとき、サーバーの一覧を読み直して確かめる＝_shared.js の xevListNewer）。 */
+importScripts("../sw-list/_shared.js", "../sw-list/MagiChainParty.js");
+const VERSION = self.XEV_SW.v;
+const CORE = self.XEV_SW.core;
+const XEV_LIST_URL = "../sw-list/MagiChainParty.js";
 
 /* ── 事前キャッシュの進捗をページへ通知する（更新ダウンロード画面用） ── */
 async function xevPost(msg) {
@@ -248,7 +234,9 @@ async function xevPrune(cache, coreAbs, sameOriginOnly) {
 async function xevRefreshAll() {
   const cache = await caches.open(VERSION);
   const urls = [], seen = new Set();
-  for (const u of CORE) {
+  /* ★★ 2026-11-12 サーバーの一覧（sw-list）のほうが新しい版なら、その一覧で確かめる＝新しいファイルも取りこむ（_shared.js の xevListNewer） */
+  const CORE_NOW = (await xevListNewer()) || CORE;
+  for (const u of CORE_NOW) {
     if (/^https?:/i.test(u)) continue;                       // 外部（フォントなど）は触らない
     let abs; try { abs = new URL(u, self.location.href).href; } catch (e) { continue; }
     if (seen.has(abs)) continue;

@@ -5,47 +5,16 @@
    ・フォント（Google Fonts）は控えない（オフラインでは端末の文字で出る）
    ★ 中身（CORE）は index.html の src/href から作った。ページに絵を足したらここにも足して VERSION を上げる
    ============================================================ */
-const VERSION = "ishida-site-sw-v8";   /* ★★ 2026-10-31 v2：ロゴがつぶれる修正（style.css?v=4） */
-const CORE = [
-  "./index.html",
-  "../maintenance-gate.js?v=13",
-  "../thumbs/ISHIDA.webp?v=2",
-  "css/style.css?v=6",
-  "../brand/ISHIDA_s.webp?v=2",
-  "../thumbs/MagiLex.jpg",
-  "../thumbs/MagiBattle.jpg?v=4",
-  "../thumbs/MagiChemLex.jpg?v=2",
-  "../thumbs/MagiAbyss.jpg?v=2",
-  "../thumbs/MagiBurst.jpg",
-  "../thumbs/MagiDerby.jpg",
-  "../thumbs/MagiShift.jpg",
-  "../thumbs/MagiChainParty.jpg?v=2",
-  "../thumbs/MagiQuiz.jpg?v=2",
-  "../brand/NGX_s.webp?v=2",
-  "../brand/MagicalFuture_s.webp?v=2",
-  "../brand/YRA_s.webp",
-  "../brand/Kawagani_s.webp", "../brand/StudioDOGA_s.webp",   // ★★ 2026-11-02 運営協力に参入
-  "../thumbs/Ordyxis.jpg",
-  "../thumbs/XEVYNAR.jpg",
-  "../thumbs/MagiFocus.jpg",
-  "../thumbs/MagiBocciaRush.jpg",
-  "../thumbs/MagiRail.jpg",
-  "../thumbs/MagiCraft.jpg",
-  "../thumbs/MagiManor.jpg",
-  "../thumbs/MagiEmpire.jpg",
-  "../thumbs/MagiArena.jpg",
-  "../thumbs/MagiJackpot.jpg",
-  "../thumbs/MagiLotto.jpg",
-  "../thumbs/MagiDominionGrid.jpg",
-  "../thumbs/MagiLink.jpg",
-  "../thumbs/MagiRanking.jpg",
-  "../thumbs/MagiScope.jpg",
-  "../thumbs/MagiMusic.jpg",
-  "../thumbs/MagiPortfolio.jpg",
-  "../thumbs/MagiCounter.jpg",
-  "../thumbs/MagiTier.jpg",
-  "js/main.js?v=3",
-];
+/* ══ ★★ 2026-11-12 版（VERSION）と、控えるファイルの一覧（CORE）は ../sw-list/IshidaProduction.js へ移した ══
+   ご指定「更新のたびに sw のファイルをすべてアップロードするのが手間 → まとめて楽に」。
+   ・更新のたびに変わるのは版と一覧だけなので、全アプリぶんを sw-list フォルダ1つに集めた。
+     → これからの更新で上げるのは sw-list フォルダだけ。この sw.js は「しくみ」を直したときだけ上げる。
+   ・ブラウザは importScripts で読んだファイルの中身が変わったことにも気づく（＝一覧が変われば、これまでどおり新しい版が入る）。
+   ・XEV_LIST_URL＝自分の一覧の場所（xev-refresh のとき、サーバーの一覧を読み直して確かめる＝_shared.js の xevListNewer）。 */
+importScripts("../sw-list/_shared.js", "../sw-list/IshidaProduction.js");
+const VERSION = self.XEV_SW.v;
+const CORE = self.XEV_SW.core;
+const XEV_LIST_URL = "../sw-list/IshidaProduction.js";
 
 /* ── 事前キャッシュの進捗をページへ通知する（更新ダウンロード画面用） ── */
 async function xevPost(msg) {
@@ -265,7 +234,9 @@ async function xevPrune(cache, coreAbs, sameOriginOnly) {
 async function xevRefreshAll() {
   const cache = await caches.open(VERSION);
   const urls = [], seen = new Set();
-  for (const u of CORE) {
+  /* ★★ 2026-11-12 サーバーの一覧（sw-list）のほうが新しい版なら、その一覧で確かめる＝新しいファイルも取りこむ（_shared.js の xevListNewer） */
+  const CORE_NOW = (await xevListNewer()) || CORE;
+  for (const u of CORE_NOW) {
     if (/^https?:/i.test(u)) continue;                       // 外部（フォントなど）は触らない
     let abs; try { abs = new URL(u, self.location.href).href; } catch (e) { continue; }
     if (seen.has(abs)) continue;

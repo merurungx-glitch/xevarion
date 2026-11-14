@@ -4,149 +4,16 @@
    ・アリーナの相手の読みこみ・迎撃戦のランキングだけ通信が要る（オフラインのときは NPC と手元の記録で動く）
    ・使える15体の絵（立ち絵・小さい絵・横長・縦長の SS 絵）と、完凸ロビーの全身の絵を最初から控える
    ============================================================ */
-const VERSION = "magibattle-sw-v9";
-const CORE = [
-  "./index.html",
-  "./css/mb3.css?v=6",
-  "./js/mb3-data.js?v=6",
-  "./js/mb3-sprite.js?v=4",
-  "./js/mb3-engine.js?v=6",
-  "./js/mb3-render.js?v=7",
-  "./js/mb3-bgm.js?v=2",       // ★★ 2026-10-31 オリジナル BGM
-  "./js/mb3-save.js?v=4",
-  "./js/mb3-net.js?v=2",
-  "./js/mb3-ui.js?v=7",
-  "./js/mb3-ui2.js?v=5",
-  "./js/mb3-guide.js?v=4",     // ★★ 2026-10-31 使い方（アニメ）
-  "./js/mb3-main.js?v=5",
-  "../xeva-tour.js?v=5",
-  "../xeva-safebottom.js?v=12",
-  "./img/logo.webp",
-  "./img/icon192.png",
-  "./img/apple-touch-icon.png",
-  "./manifest.webmanifest",
-  "../MagiAbyss/js/ma-pixel.js?v=12",
-  "../magibattle-stats.js?v=21",
-  "../xeva-splash.js?v=22",
-  "../xeva-loading.js?v=19",
-  "../xeva-back.js?v=9",
-  "../maintenance-gate.js?v=13",
-  "../xeva.js?v=87",
-  "../xeva-cloud.js?v=51",
-  "../xeva-keys.js?v=36",
-  "../xeva-alive.js?v=9",
-  "../xevarion-fb.js?v=37",
-  "../MagiBurst/magiburst-cloud.js?v=29",
-  "../xeva-presence.js?v=9",
-  "../img/ld_b_stand.webp?v=5",
-  "../img/ld_b_bow.webp?v=5",
-  "../XEVA.png",
-  "../gem.png",
-  "../thumbs/MagiBattle.jpg?v=4",
-  "../brand/NGX_s.webp?v=2",
-  "../brand/MagicalFuture_s.webp?v=2",
-  "../brand/ISHIDA_s.webp?v=2",
-  "../brand/YRA_s.webp",
-  "../brand/Kawagani_s.webp", "../brand/StudioDOGA_s.webp",   // ★★ 2026-11-02 運営協力に参入
-  "../img/Haru.webp",
-  "../img/t_Haru.webp",
-  "../img/Haru_w.webp",
-  "../MagiBurst/img/ss/HaruSS.webp",
-  "../img/Chika.webp",
-  "../img/t_Chika.webp",
-  "../img/Chika_w.webp",
-  "../MagiBurst/img/ss/ChikaSS.webp",
-  /* ★★ 2026-11-03 チフル・ミント・プリカ */
-  /* ★★ 2026-11-10 ROYAL DEBUT のマコ・アコ・ミナ・超極華祭のエナ・ミミ */
-  "../img/Ena.webp",
-  "../img/t_Ena.webp",
-  "../img/Ena_w.webp",
-  "../MagiBurst/img/ss/EnaSS.webp",
-  "../img/Mimi.webp",
-  "../img/t_Mimi.webp",
-  "../img/Mimi_w.webp",
-  "../MagiBurst/img/ss/MimiSS.webp",
-  "../img/Mako.webp",
-  "../img/t_Mako.webp",
-  "../img/Mako_w.webp",
-  "../MagiBurst/img/ss/MakoSS.webp",
-  "../img/Ako.webp",
-  "../img/t_Ako.webp",
-  "../img/Ako_w.webp",
-  "../MagiBurst/img/ss/AkoSS.webp",
-  "../img/Mina.webp",
-  "../img/t_Mina.webp",
-  "../img/Mina_w.webp",
-  "../MagiBurst/img/ss/MinaSS.webp",
-  "../img/Chifuru.webp",
-  "../img/t_Chifuru.webp",
-  "../img/Chifuru_w.webp",
-  "../MagiBurst/img/ss/ChifuruSS.webp",
-  "../img/Mint.webp",
-  "../img/t_Mint.webp",
-  "../img/Mint_w.webp",
-  "../MagiBurst/img/ss/MintSS.webp",
-  "../img/Purika.webp",
-  "../img/t_Purika.webp",
-  "../img/Purika_w.webp",
-  "../MagiBurst/img/ss/PurikaSS.webp",
-  "../img/Hisako.webp",
-  "../img/t_Hisako.webp",
-  "../img/Hisako_w.webp",
-  "../MagiBurst/img/ss/HisakoSS.webp",
-  "../img/Alice.webp",
-  "../img/t_Alice.webp",
-  "../img/Alice_w.webp",
-  "../MagiBurst/img/ss/AliceSS.webp",
-  "../img/Kohaku.webp",
-  "../img/t_Kohaku.webp",
-  "../img/Kohaku_w.webp",
-  "../MagiBurst/img/ss/KohakuSS.webp",
-  "../img/Suzu.webp",
-  "../img/t_Suzu.webp",
-  "../img/Suzu_w.webp",
-  "../MagiBurst/img/ss/SuzuSS.webp",
-  "../img/Shouko.webp",
-  "../img/t_Shouko.webp",
-  "../img/Shouko_w.webp",
-  "../MagiBurst/img/ss/ShoukoSS.webp",
-  "../img/Yuna.webp",
-  "../img/t_Yuna.webp",
-  "../img/Yuna_w.webp",
-  "../MagiBurst/img/ss/YunaSS.webp",
-  "../img/Chie.webp",
-  "../img/t_Chie.webp",
-  "../img/Chie_w.webp",
-  "../MagiBurst/img/ss/ChieSS.webp",
-  "../img/Aina.webp",
-  "../img/t_Aina.webp",
-  "../img/Aina_w.webp",
-  "../MagiBurst/img/ss/AinaSS.webp",
-  "../img/Ichika.webp",
-  "../img/t_Ichika.webp",
-  "../img/Ichika_w.webp",
-  "../MagiBurst/img/ss/IchikaSS.webp",
-  "../img/Nonoka.webp",
-  "../img/t_Nonoka.webp",
-  "../img/Nonoka_w.webp",
-  "../MagiBurst/img/ss/NonokaSS.webp",
-  "../home-mate/lobby/haru.webp",
-  "../home-mate/lobby/chika.webp",
-  "../home-mate/lobby/chifuru.webp",
-  "../home-mate/lobby/mint.webp",
-  "../home-mate/lobby/purika.webp",
-  "../home-mate/lobby/hisako.webp",
-  "../home-mate/lobby/alice.webp",
-  "../home-mate/lobby/kohaku.webp",
-  "../home-mate/lobby/yuna.webp?v=2",
-  "../home-mate/lobby/aina.webp?v=2",
-  "../home-mate/lobby/chie.webp",
-  "../home-mate/lobby/ena.webp",
-  "../home-mate/lobby/mimi.webp",
-  "../home-mate/lobby/mako.webp",
-  "../home-mate/lobby/ako.webp",
-  "../home-mate/lobby/mina.webp",
-];
+/* ══ ★★ 2026-11-12 版（VERSION）と、控えるファイルの一覧（CORE）は ../sw-list/MagiBattle.js へ移した ══
+   ご指定「更新のたびに sw のファイルをすべてアップロードするのが手間 → まとめて楽に」。
+   ・更新のたびに変わるのは版と一覧だけなので、全アプリぶんを sw-list フォルダ1つに集めた。
+     → これからの更新で上げるのは sw-list フォルダだけ。この sw.js は「しくみ」を直したときだけ上げる。
+   ・ブラウザは importScripts で読んだファイルの中身が変わったことにも気づく（＝一覧が変われば、これまでどおり新しい版が入る）。
+   ・XEV_LIST_URL＝自分の一覧の場所（xev-refresh のとき、サーバーの一覧を読み直して確かめる＝_shared.js の xevListNewer）。 */
+importScripts("../sw-list/_shared.js", "../sw-list/MagiBattle.js");
+const VERSION = self.XEV_SW.v;
+const CORE = self.XEV_SW.core;
+const XEV_LIST_URL = "../sw-list/MagiBattle.js";
 
 /* ── 事前キャッシュの進捗をページへ通知する（更新ダウンロード画面用） ── */
 async function xevPost(msg) {
@@ -366,7 +233,9 @@ async function xevPrune(cache, coreAbs, sameOriginOnly) {
 async function xevRefreshAll() {
   const cache = await caches.open(VERSION);
   const urls = [], seen = new Set();
-  for (const u of CORE) {
+  /* ★★ 2026-11-12 サーバーの一覧（sw-list）のほうが新しい版なら、その一覧で確かめる＝新しいファイルも取りこむ（_shared.js の xevListNewer） */
+  const CORE_NOW = (await xevListNewer()) || CORE;
+  for (const u of CORE_NOW) {
     if (/^https?:/i.test(u)) continue;                       // 外部（フォントなど）は触らない
     let abs; try { abs = new URL(u, self.location.href).href; } catch (e) { continue; }
     if (seen.has(abs)) continue;

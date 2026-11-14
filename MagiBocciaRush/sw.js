@@ -5,50 +5,17 @@
    ・キャラクターの絵は XEVARION の img/ にあるので、ここでは丸ごと持たない
      （ポータル側の SW が持っている。開いたぶんだけ実行時に控える）。
    ============================================================ */
-const VERSION = "boccia-sw-v58";
+/* ══ ★★ 2026-11-12 版（VERSION）と、控えるファイルの一覧（CORE）は ../sw-list/MagiBocciaRush.js へ移した ══
+   ご指定「更新のたびに sw のファイルをすべてアップロードするのが手間 → まとめて楽に」。
+   ・更新のたびに変わるのは版と一覧だけなので、全アプリぶんを sw-list フォルダ1つに集めた。
+     → これからの更新で上げるのは sw-list フォルダだけ。この sw.js は「しくみ」を直したときだけ上げる。
+   ・ブラウザは importScripts で読んだファイルの中身が変わったことにも気づく（＝一覧が変われば、これまでどおり新しい版が入る）。
+   ・XEV_LIST_URL＝自分の一覧の場所（xev-refresh のとき、サーバーの一覧を読み直して確かめる＝_shared.js の xevListNewer）。 */
+importScripts("../sw-list/_shared.js", "../sw-list/MagiBocciaRush.js");
+const VERSION = self.XEV_SW.v;
+const CORE = self.XEV_SW.core;
+const XEV_LIST_URL = "../sw-list/MagiBocciaRush.js";
 const RUNTIME = "boccia-rt-v1";
-const CORE = [
-  "./index.html",
-  "./manifest.webmanifest",
-  "./css/mbr.css?v=24",
-  "./js/mbr-voice.js?v=2",
-  "./js/mbr-core.js?v=21",
-  "./js/mbr-stage.js?v=5",
-  "./js/mbr-fx.js?v=10",
-  "./js/mbr-help.js?v=8",
-  "./js/mbr-ui.js?v=23",
-  "../mb-newchars.js?v=44",
-  "../mb-boot.js?v=18",
-  "../MagiBurst/js/mb-core.js?v=147",
-  "../xeva.js?v=87",
-  "../xeva-alive.js?v=9",
-  "../xeva-loading.js?v=19",
-  "../xeva-splash.js?v=22",
-  "../xeva-safebottom.js?v=12",
-  "../xeva-back.js?v=9",
-  "../maintenance-gate.js?v=13",
-  "../thumbs/MagiBocciaRush.jpg",
-  "./img/mbrhome_s.webp",   /* ★★ 2026-09-17e 開始画面のキービジュアル */
-  /* ★★ 2026-09-17d オフライン対応の穴うめ（ご指定）：
-     ・オンライン対戦とアカウント同期のモジュール（読めないと console が赤くなるだけで遊べるが、そろえておく）
-     ・英語版の辞書（オフラインで英語にしたとき、キャラ名が日本語に戻らないように） */
-  "./js/mbr-online.js?v=6",
-  "../xeva-cloud.js?v=51",
-  "../MagiBurst/magiburst-cloud.js?v=29",
-  "../app-cloud.js?v=15",
-  "../xeva-keys.js?v=36",
-  "../xeva-i18n.js?v=8",
-  "../xeva-i18n-dict.js?v=12",
-  "../xeva-i18n-mb1.js?v=7",
-  "../xeva-i18n-mb2.js?v=7",
-  "../xeva-i18n-mb3.js?v=8",
-  "../xeva-i18n-mb4.js?v=9",
-  "../xeva-i18n-mb5.js?v=7",
-  "../xeva-i18n-mb6.js?v=7",
-  "../xeva-i18n-mb7.js?v=7",
-  "../xeva-i18n-n1.js?v=23",
-  "../xeva-i18n-n2.js?v=3",
-];
 /* チュートリアルの音声（ずんだもん）。Range で取りに来るので CORE とは別の入れ物に置き、下の fetch で切り出して返す */
 const VOICE_FILES = [0, 1, 2, 3, 4, 5, 6, 7, 8].map((i) => "./voice/3/tut-" + i + ".m4a");
 
@@ -317,7 +284,9 @@ async function xevPrune(cache, coreAbs, sameOriginOnly) {
 async function xevRefreshAll() {
   const cache = await caches.open(VERSION);
   const urls = [], seen = new Set();
-  for (const u of CORE) {
+  /* ★★ 2026-11-12 サーバーの一覧（sw-list）のほうが新しい版なら、その一覧で確かめる＝新しいファイルも取りこむ（_shared.js の xevListNewer） */
+  const CORE_NOW = (await xevListNewer()) || CORE;
+  for (const u of CORE_NOW) {
     if (/^https?:/i.test(u)) continue;                       // 外部（フォントなど）は触らない
     let abs; try { abs = new URL(u, self.location.href).href; } catch (e) { continue; }
     if (seen.has(abs)) continue;
