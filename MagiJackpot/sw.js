@@ -5,61 +5,16 @@
    ・XEVA・ジェムの残高だけはクラウド同期が要るが、オフライン中の増減は端末に貯まり、
      オンラインに戻った時点で xeva-cloud.js が送り直す。
    ============================================================ */
-const VERSION = "magijackpot-sw-v65";
-const CORE = [
-  "./",
-  "./index.html",
-  "./manifest.webmanifest",
-  "./mj.css?v=18",
-  "./mj-games.css?v=11",
-  "./mj-core.js?v=20",
-  "./mj-slots.js?v=18",
-  "./mj-lux.js?v=12",
-  "./mj-bj.js?v=16",
-  "./mj-pachi.js?v=19",
-  "./mj-party.js?v=15",
-  "./mj-192.png",
-  "./mj-512.png",
-  "./mj-banner.jpg",
-  /* スロットの絵柄・カットイン・台のバナー */
-  "./img/sym_seven.webp",
-  "./img/sym_bar.webp",
-  "./img/sym_diamond.webp",
-  "./img/sym_wild.webp",
-  "./img/sym_scatter.webp",
-  /* Magi Fortune の高配当図柄（MagiBurst のキャラ） */
-  "./img/sym_aira.webp",
-  "./img/sym_mao.webp",
-  "./img/sym_kaguya.webp",
-  /* LUXURIA の三魔女（紅薔薇・白薔薇・黒薔薇） */
-  "./img/sym_rose_r.webp",
-  "./img/sym_rose_w.webp",
-  "./img/sym_rose_b.webp",
-  /* Jackpot Rush の FINAL BATTLE 専用のボス */
-  "./img/sym_boss1.webp",
-  "./img/sym_boss2.webp",
-  "./img/sym_boss3.webp",
-  "./img/cut_lv1.webp",
-  "./img/cut_lv2.webp",
-  "./img/cut_lv3.webp",
-  "./img/banner_fortune.webp",
-  "./img/banner_luxuria.webp",
-  "../maintenance-gate.js?v=13",
-  "../xeva.js?v=87",
-  "../xeva-alive.js?v=9",
-  "../xeva-splash.js?v=22",
-  "../xeva-back.js?v=9",
-  "../game-link.js?v=11",
-  "../XEVA.png",
-  "../gem.png",
-  "../icons/xev-192.png",
-  /* Jackpot Rush のストーリーリーチに使う MagiBurst のキャラ画像
-     （FINAL BATTLE のボスは ./img/sym_boss1〜3.webp に移したので、ここには要らない） */
-  "../img/t_Fiona.webp",
-  "../img/t_Chloe.webp",
-  "../img/t_Selene.webp",
-  "../img/t_Abyss.webp",
-];
+/* ══ ★★ 2026-11-12 版（VERSION）と、控えるファイルの一覧（CORE）は ../sw-list/MagiJackpot.js へ移した ══
+   ご指定「更新のたびに sw のファイルをすべてアップロードするのが手間 → まとめて楽に」。
+   ・更新のたびに変わるのは版と一覧だけなので、全アプリぶんを sw-list フォルダ1つに集めた。
+     → これからの更新で上げるのは sw-list フォルダだけ。この sw.js は「しくみ」を直したときだけ上げる。
+   ・ブラウザは importScripts で読んだファイルの中身が変わったことにも気づく（＝一覧が変われば、これまでどおり新しい版が入る）。
+   ・XEV_LIST_URL＝自分の一覧の場所（xev-refresh のとき、サーバーの一覧を読み直して確かめる＝_shared.js の xevListNewer）。 */
+importScripts("../sw-list/_shared.js", "../sw-list/MagiJackpot.js");
+const VERSION = self.XEV_SW.v;
+const CORE = self.XEV_SW.core;
+const XEV_LIST_URL = "../sw-list/MagiJackpot.js";
 
 /* ── 事前キャッシュの進捗をページへ通知する（更新ダウンロード画面用） ── */
 async function post(msg) {
@@ -284,7 +239,9 @@ async function xevPrune(cache, coreAbs, sameOriginOnly) {
 async function xevRefreshAll() {
   const cache = await caches.open(VERSION);
   const urls = [], seen = new Set();
-  for (const u of CORE) {
+  /* ★★ 2026-11-12 サーバーの一覧（sw-list）のほうが新しい版なら、その一覧で確かめる＝新しいファイルも取りこむ（_shared.js の xevListNewer） */
+  const CORE_NOW = (await xevListNewer()) || CORE;
+  for (const u of CORE_NOW) {
     if (/^https?:/i.test(u)) continue;                       // 外部（フォントなど）は触らない
     let abs; try { abs = new URL(u, self.location.href).href; } catch (e) { continue; }
     if (seen.has(abs)) continue;
