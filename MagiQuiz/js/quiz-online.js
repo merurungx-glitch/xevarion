@@ -77,7 +77,7 @@
       '<p class="sh-p">それぞれの端末で、<b>同じ問題に同時に</b>答えるスピード勝負です（2〜4台）。速く正解するほど高得点。</p>' +
       '<div class="ol-entry"><button class="ol-big" data-a="olCreate">' + ic("plus") + "<b>部屋をつくる</b><small>4桁の番号を相手に伝えます</small></button>" +
       '<button class="ol-big" data-a="olJoinOpen">' + ic("link") + "<b>部屋に入る</b><small>相手から聞いた番号を入れます</small></button></div>" +
-      (A.me() ? '<p class="ol-note">' + ic("gift") + "順位の XEVA は、それぞれの端末の XEVARION アカウントに入ります。</p>" : '<p class="ol-note">' + ic("gift") + "XEVARION にログインしていると、順位の XEVA がもらえます。</p>") +
+      (A.me() ? '<p class="ol-note">' + ic("gift") + "順位の XEVA は、それぞれの端末の XEVORA アカウントに入ります。</p>" : '<p class="ol-note">' + ic("gift") + "XEVARION にログインしていると、順位の XEVA がもらえます。</p>") +
       '<div class="sh-b"><button class="btn" data-a="close">とじる</button></div>', { cls: "ol-sh" });
   }
   function openJoin(msg, val) {

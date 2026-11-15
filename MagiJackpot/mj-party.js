@@ -30,7 +30,7 @@
   /* ══════════════════════════════════════════
      席ごとのアカウント紐づけ（MagiChainParty と同じしくみ）
      ------------------------------------------
-     1台を囲んで遊ぶので、賞金を「誰の XEVARION アカウントに入れるか」を
+     1台を囲んで遊ぶので、賞金を「誰の XEVORA アカウントに入れるか」を
      席ごとに決められるようにする。流れは MagiChainParty とまったく同じ：
        表示名で検索 → アカウントを選ぶ → 4桁パスワード
 
@@ -138,7 +138,7 @@
     box.innerHTML = Array.from({ length: S.n }, (_, i) => {
       const l = S.links[i];
       const btn = !l || !l.uid
-        ? '<button class="mj-glink" data-l="' + i + '" title="XEVARION アカウントを紐づける">🔗</button>'
+        ? '<button class="mj-glink" data-l="' + i + '" title="XEVORA アカウントを紐づける">🔗</button>'
         : l.confirmed
           ? '<button class="mj-glink on" data-l="' + i + '" title="タップで紐づけを解除">✓ ' + esc(l.name) + "</button>"
           : '<button class="mj-glink pend" data-l="' + i + '" title="前回の紐づけ — タップして4桁パスワードで確認">🔒 ' + esc(l.name) + "</button>";
@@ -209,7 +209,7 @@
       "終了時、<b>あなた（" + S.seat + "番の席）の順位</b>に応じて賞金が入ります。<br>" +
       rows + "<br>" +
       "<b>順位が均等に散らばれば、平均は参加費とちょうど同じ</b>になります（勝てば増え、負ければ減る）。" +
-      '<br><br><b>🔗 アカウント紐づけ</b>：名前の右のボタンから、席ごとに XEVARION アカウントを' +
+      '<br><br><b>🔗 アカウント紐づけ</b>：名前の右のボタンから、席ごとに XEVORA アカウントを' +
       "紐づけられます。紐づけた席は、その人の順位に応じた賞金が<b>本人のアカウント</b>に届きます" +
       "（ポータルを開いたときに受け取り）。<br>" +
       "※ ほかの人のアカウントからこの端末で参加費を引き落とすことはできないので、" +

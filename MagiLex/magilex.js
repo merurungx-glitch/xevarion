@@ -1,6 +1,6 @@
 // ============================================================
 // MagiLex v2 — 旧MagiLex(4択クイズ) × 旧WordbookX(単語帳) 融合
-//   ・XEVARION アカウント連携（アイコン/名前は XEVA.account）
+//   ・XEVORA アカウント連携（アイコン/名前は XEVA.account）
 //   ・進捗は本体（localStorage）に保存
 //   ・XEVA 報酬: 登録+50 / 完全習得+600 / ミックス90%+50・100%+150 ／ デイリーは 2026-08-17 に廃止
 // ============================================================
@@ -3016,7 +3016,7 @@ function renderSettings(){
       <h4>👤 アカウント</h4>
       <div class="set-row"><img class="u-av js-av" src="" alt="" style="cursor:default"><div class="l"><b>${esc(acc.name||"ユーザー")}</b></div></div>
       <div class="set-row"><div class="l">所持 XEVA</div><div class="v js-coin" style="color:var(--gold-d)">${bal().toLocaleString()}</div></div>
-      <div class="hint" style="font-size:.72rem;color:var(--ink2);line-height:1.6;margin-top:6px">名前・アイコンは XEVARION アカウントと同期しています。変更は XEVARION ポータルから。</div>
+      <div class="hint" style="font-size:.72rem;color:var(--ink2);line-height:1.6;margin-top:6px">名前・アイコンは XEVORA アカウントと同期しています。変更は XEVARION ポータルから。</div>
     </div>
     <div class="set-card">
       <h4>🔊 発音（英単語の読み上げ）</h4>

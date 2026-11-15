@@ -383,7 +383,7 @@
     const recent = A.recent().filter((r) => !setup.all.some((p) => p.link && p.link.uid === r.uid));
     let html;
     if (LK.step === "search") {
-      html = '<h3 class="sh-t">' + ic("link") + "アカウント連携</h3><p class=\"sh-p\">順位の XEVA が、その人の XEVARION アカウントに届きます。</p>" +
+      html = '<h3 class="sh-t">' + ic("link") + "アカウント連携</h3><p class=\"sh-p\">順位の XEVA が、その人の XEVORA アカウントに届きます。</p>" +
         '<div class="lk-s"><input id="lkQ" type="search" placeholder="表示名で検索" value="' + esc(LK.q) + '" maxlength="20" autocomplete="off" enterkeyhint="search"><button class="btn pri" data-a="lkSearch"' + (LK.busy ? " disabled" : "") + ">" + (LK.busy ? "検索中…" : "検索") + "</button></div>" +
         (LK.msg ? '<p class="lk-msg">' + esc(LK.msg) + "</p>" : "") +
         (LK.rows.length ? '<div class="lk-l">' + LK.rows.map((r, k) => lkRow(r, "r" + k)).join("") + "</div>" : "") +

@@ -449,9 +449,9 @@
     if (p.rules !== "simple") h += '<div style="text-align:right;margin:8px 0 -2px"><span class="more" data-a="pcopyall">' + J("全色を1色目と同じ編成にする", "Copy colour 1 to all") + "</span></div>";
     act.forEach((x, i) => {
       const lu = x.lineup.map(charOf).filter(Boolean);
-      /* ★★ 2026-09-18 名前を変えられる・XEVARION アカウントを紐づけられる（MagiChainParty と同じ GameLink） */
+      /* ★★ 2026-09-18 名前を変えられる・XEVORA アカウントを紐づけられる（MagiChainParty と同じ GameLink） */
       const lk = x.link && x.link.uid ? x.link : null;
-      const lkBtn = x.cpu ? "" : !lk ? '<button class="plink" data-a="plink" data-v="' + i + '" title="' + J("XEVARION アカウントを紐づける", "Link a XEVARION account") + '">🔗</button>'
+      const lkBtn = x.cpu ? "" : !lk ? '<button class="plink" data-a="plink" data-v="' + i + '" title="' + J("XEVORA アカウントを紐づける", "Link a XEVORA account") + '">🔗</button>'
         : lk.confirmed === false ? '<button class="plink pending" data-a="plink" data-v="' + i + '">🔒 ' + esc(lk.name) + J("（要確認）", " (confirm)") + "</button>"
         : '<button class="plink on" data-a="plink" data-v="' + i + '" title="' + J("タップで解除", "Tap to unlink") + '">✓ ' + esc(lk.name) + "</button>";
       h += '<div class="hd pside" style="--sc:' + SC(x.side) + '"><span class="pchip">' + esc(SI(x.side).en) + "</span>"
@@ -463,8 +463,8 @@
     });
     h += '<div class="note" style="margin-top:8px">' + (p.rules === "simple" ? "" : J("1色の中では<b>並べた順</b>にキャラが交代して投げます（ボールの数だけ使います）。キャラは全キャラから選べます。<br>",
       "Within a colour, characters throw <b>in this order</b> (as many as there are balls). Any character can be used.<br>"))
-      + J("🔗 で XEVARION アカウントを紐づけると、順位に応じて XEVA（1位250〜5位50）がもらえます（4桁パスワードで本人確認）。",
-          "Link a XEVARION account with 🔗 to earn XEVA by placing (1st 250 … 5th 50; 4-digit PIN).") + "</div>"
+      + J("🔗 で XEVORA アカウントを紐づけると、順位に応じて XEVA（1位250〜5位50）がもらえます（4桁パスワードで本人確認）。",
+          "Link a XEVORA account with 🔗 to earn XEVA by placing (1st 250 … 5th 50; 4-digit PIN).") + "</div>"
       + '<button class="btn pri" style="margin-top:14px" data-a="start">START</button>';
     open(h);
   }
@@ -2739,7 +2739,7 @@
       + '<div class="pn"><div class="sw"><div class="k">' + J("言語", "Language") + '</div><button class="btn sm gh" data-a="lang">' + (en() ? "日本語" : "English") + "</button></div>"
       + '<div class="sw"><div class="k">' + J("チュートリアル", "Tutorial") + '</div><button class="btn sm gh" data-a="tutorial">START</button></div>'
       + (B.voiceCredits && B.voiceCredits().length ? '<div class="sw"><div class="k">' + J("音声", "Voices") + "<small>" + esc(B.voiceCredits().map((n) => "VOICEVOX:" + n).join(" ／ ")) + "</small></div></div>" : "")
-      + '<div class="sw"><div class="k">' + J("アカウント", "Account") + "<small>" + J("戦績・編成・熟練度は XEVARION アカウントで同期されます", "Records, lineup and mastery sync with your XEVARION account") + '</small></div><button class="btn sm gh" data-a="portal">XEVARION</button></div></div>');
+      + '<div class="sw"><div class="k">' + J("アカウント", "Account") + "<small>" + J("戦績・編成・熟練度は XEVORA アカウントで同期されます", "Records, lineup and mastery sync with your XEVORA account") + '</small></div><button class="btn sm gh" data-a="portal">XEVARION</button></div></div>');
   }
 
   /* ══════════════════════════════════════════════════════════════
