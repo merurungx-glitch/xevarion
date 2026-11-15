@@ -482,6 +482,11 @@
 
     /* ══ 開始画面・ログイン ══ */
     "ひとつのアカウントで、どの端末からでも。": "One account, on every device.",
+    "XEVORA アカウントで、どの端末からでも。": "One XEVORA account, on every device.",
+    "XEVORA でアカウントを作る": "Create an account on XEVORA",
+    "XEVORA アカウントの": "Enter your XEVORA account",
+    "XEVARION は XEVORA アカウントで使います。はじめての方は、XEVORA でアカウント（表示名・4桁PIN）を作ってから、ここでログインしてください。": "XEVARION uses your XEVORA account. New here? Create one (display name + 4-digit PIN) on XEVORA, then log in here.",
+    "XEVORA アカウントは、XEVARION と XEVARIX で同じものを使います。4桁PINは、次回以降のログインに必要です。": "XEVARION and XEVARIX share the same XEVORA account. You will log in with your 4-digit PIN.",
     "タップすると BGM が再生されます（右上の🔊でON/OFF）": "Tap to start the music (🔊 top-right toggles it)",
     "ログイン": "Log in",
     "ログアウト": "Log out",

@@ -30,6 +30,20 @@
   }
 
   const NOTES = [
+    /* ★★ 2026-11-15 「XEVARION アカウント」→「XEVORA アカウント」・アカウントを作るのは XEVORA（ランチャー）だけ・#install */
+    {
+      id: "2026-11-15", date: "2026.11.15", title: "アカウントの名前が「XEVORA アカウント」になりました",
+      lead: "いつも XEVARION を遊んでいただき、ありがとうございます。<br>これまでの XEVARION アカウントは、名前が<b>XEVORA アカウント</b>になりました。XEVARION と、OS の形をしたアプリ <b>XEVARIX</b> は、同じ XEVORA アカウントで使います。",
+      chars: [],
+      secs: [
+        { h: "XEVORA アカウント", img: "thumbs/Xevarion.png", href: "", items: [
+          "名前が変わっただけで、<b>表示名・4桁PIN・セーブデータはそのまま</b>です。いままでどおりログインできます",
+          "新しいアカウントは、ランチャーの<b>XEVORA</b>で作ります（サインインの画面の「新規作成」→「XEVORA でアカウントを作る」）",
+          "XEVORA で作ったアカウントは、XEVARION ではじめてログインしたときに、MagiLink の登録などを自動ですませます",
+          "XEVORA では、XEVARION と XEVARIX の<b>インストール</b>（オフライン用のデータを入れる）と、ホーム画面への追加の案内も使えます",
+        ] },
+      ],
+    },
     /* ★★ 2026-11-13 MagiChemLex ケミカル・ルート（反応経路スコアアタック）・ホームの計算なしモードの切りかえを外す・MagiQuiz 結果詳細・SW の版と一覧を sw-list フォルダへ */
     {
       id: "2026-11-13", date: "2026.11.13", title: "MagiChemLex に新ミニゲーム「ケミカル・ルート」／MagiQuiz に結果詳細",

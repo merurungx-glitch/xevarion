@@ -7,17 +7,17 @@
    ・core … オフライン用に先に取りこむファイル。パスは MagiQuiz/sw.js から見た相対パスのまま
    ・MagiQuiz/sw.js がこのファイルを importScripts で読む（しくみは sw-list/_shared.js の説明）
    ============================================================ */
-self.XEV_SW = { v: "magiquiz-sw-v15", core: [
+self.XEV_SW = { v: "magiquiz-sw-v16", core: [
   "./index.html",
   "./css/quiz.css?v=8",
   "./js/quiz-data.js?v=6",
   "./js/quiz-account.js?v=4",
   "./js/quiz-fx.js?v=4",
-  "./js/quiz-ui.js?v=7",
+  "./js/quiz-ui.js?v=8",
   "./js/quiz-pad.js?v=1",
   "./js/quiz-play.js?v=6",
   "./js/quiz-result.js?v=5",
-  "./js/quiz-host.js?v=2", "./js/quiz-online.js?v=2", "./js/quiz-net.js?v=1",   // ★★ 2026-11-08 司会キャラ・2台で対戦
+  "./js/quiz-host.js?v=2", "./js/quiz-online.js?v=3", "./js/quiz-net.js?v=1",   // ★★ 2026-11-08 司会キャラ・2台で対戦
   "./img/icon192.png?v=2",
   "./img/apple-touch-icon.png?v=2",
   "./manifest.webmanifest",

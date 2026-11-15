@@ -7,7 +7,7 @@
    ・core … オフライン用に先に取りこむファイル。パスは sw.js（ルート） から見た相対パスのまま
    ・sw.js（ルート） がこのファイルを importScripts で読む（しくみは sw-list/_shared.js の説明）
    ============================================================ */
-self.XEV_SW = { v: "xevarion-sw-v265", core: [
+self.XEV_SW = { v: "xevarion-sw-v266", core: [
   "./",
   "./index.html",
   /* ★ 2026-08-11 apps.html（アプリ紹介ページ）は廃止しました */
@@ -16,7 +16,7 @@ self.XEV_SW = { v: "xevarion-sw-v265", core: [
   "./gacha.html",
   "./gacha-ui.js?v=72",
   "./mb-newchars.js?v=44",
-  "./xeva-devnotes.js?v=18",
+  "./xeva-devnotes.js?v=19",
   "./xeva-tour.js?v=5",   /* ★★ 2026-10-30 XEVARION ガイド（全機能の紹介・設定から／#guide） */
   "./xeva-favs.js?v=3",   /* ★★ 2026-11-03 お気に入りカード（図鑑・キャラ詳細の☆・ホーム・コミュニティ） */
   "./xeva-fav-traits.js?v=2",   /* ★★ 2026-11-05 好み診断の見た目の台帳（診断を開いたときだけ読む） */
@@ -48,14 +48,14 @@ self.XEV_SW = { v: "xevarion-sw-v265", core: [
   /* ★★ 2026-09-13 更新中の全画面で流す PR 動画（字幕は JS が出す） */
   "./xeva-collection.js?v=8",
   "./xeva-i18n.js?v=8",
-  "./xeva-i18n-dict.js?v=12",
+  "./xeva-i18n-dict.js?v=13",
   "./xeva-i18n-mb1.js?v=7",
   "./xeva-i18n-mb2.js?v=7",
   "./xeva-i18n-mb3.js?v=8",
   "./xeva-i18n-mb4.js?v=9",
   "./xeva-i18n-mb5.js?v=7",
   "./xeva-i18n-p1.js?v=7",
-  "./xeva-i18n-p2.js?v=6",
+  "./xeva-i18n-p2.js?v=7",
   "./xeva-i18n-mb6.js?v=7",
   "./xeva-i18n-p3.js?v=7",
   "./xeva-i18n-mb7.js?v=7",
@@ -71,8 +71,8 @@ self.XEV_SW = { v: "xevarion-sw-v265", core: [
   "./uwaki.js?v=1",
   "./uwaki.css?v=1",
   "./thumbs/Uwaki.jpg",
-  "./xevarion.js?v=115",
-  "./xevarion-home.js?v=184",
+  "./xevarion.js?v=116",
+  "./xevarion-home.js?v=185",
   /* ★★ 2026-09-24 ホームのロビーとパートナー。素材は home-mate/<id>/（?v= は home-mate.js の HM_VER）・笙古／瞳／舞香／衣織／樹愛羅／映美里（09-25 ボイス廃止・表情は webp） */
   "./gacha-live.js?v=14",
   "./home-mate.js?v=36",

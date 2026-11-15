@@ -188,8 +188,8 @@
     "XEVA ガチャ — デザインを明るく全面刷新・キャラクター図鑑を新設":
       "XEVA gacha — a brighter full redesign and a new character gallery",
     "XEVARION ポータル — デザインを刷新": "XEVARION portal — redesigned",
-    "XEVARIONアカウント — 初回設定・アイコン・プロフィール管理・削除を新規導入":
-      "XEVARION accounts — first-time setup, icons, profile management and deletion arrive",
+    "XEVORAアカウント — 初回設定・アイコン・プロフィール管理・削除を新規導入":
+      "XEVORA accounts — first-time setup, icons, profile management and deletion arrive",
     "MagiArena — 全面リニューアル（みんなで遊ぶ対戦アリーナ）": "MagiArena — fully renewed as an arena everyone can play in",
     "MagiArena — 正式リリース（MeruBoardX 大幅リニューアル）": "MagiArena — official release (a major renewal of MeruBoardX)",
     "MagiArena（TAKAGAME）— 表示の重なりを修正": "MagiArena (TAKAGAME) — fixed overlapping elements",

@@ -7,10 +7,10 @@
    ・core … オフライン用に先に取りこむファイル。パスは MagiChainParty/sw.js から見た相対パスのまま
    ・MagiChainParty/sw.js がこのファイルを importScripts で読む（しくみは sw-list/_shared.js の説明）
    ============================================================ */
-self.XEV_SW = { v: "chainparty-sw-v69", core: [
+self.XEV_SW = { v: "chainparty-sw-v70", core: [
   "./index.html",
   "./css/style.css?v=22",
-  "./js/game.js?v=21",
+  "./js/game.js?v=22",
   /* ★★ 2026-10-13 新しいロゴ（タイトルの絵・小さいアイコン） */
   "./img/logo_hero.webp",
   "./img/icon192.png",

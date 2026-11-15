@@ -3073,7 +3073,40 @@ async function xhDoLogin() {
   if (btn) { btn.disabled = false; btn.textContent = "ログイン"; }
 }
 window.xhDoLogin = xhDoLogin;
-function xhStartCreate() { hideXevaHome(); openAccWizard(); }
+/* ★★ 2026-11-15 アカウントは XEVORA（ランチャー）だけで作る（ご指定）。XEVARION の「新規作成」は XEVORA へ案内する。
+   XEVORA で作ったアカウントは、ここでログインしたあと xhXevoraFirst が初回の流れ（MagiLink の利用者・XEVA の入手方法）を動かす。
+   ★ 登録ウィザード（openAccWizard）は残してあるが、通常の導線からは開かない。 */
+function xhXevoraURL(hash) {
+  const onSite = location.pathname.toLowerCase().indexOf("/xevarion/") >= 0;
+  return (onSite ? new URL("../xevora/", location.href).href : "https://merurungx-glitch.github.io/xevora/") + (hash || "");
+}
+window.xhXevoraURL = xhXevoraURL;
+function xhStartCreate() { location.href = xhXevoraURL("#signup"); }
+/* XEVORA でログインした目印（xevora_login_v1）があれば、サインインの ID を入れて、そのアカウントを選んでおく（あとは 4桁PIN だけ） */
+(function xhPrefillXevora() {
+  const go = async () => {
+    let m = null; try { m = JSON.parse(localStorage.getItem("xevora_login_v1") || "null"); } catch (e) {}
+    const acc = getAcc();
+    if (!m || !m.name || !m.uid || (acc && acc.xvUid)) return;
+    const inp = document.getElementById("xhSearchId"); if (!inp || inp.value) return;
+    inp.value = m.name;
+    try { await xhSearchAccounts(); } catch (e) { return; }
+    const hit = Array.prototype.find.call(document.querySelectorAll("#xhCandidates .xh-cand"), (b) => (b.getAttribute("onclick") || "").indexOf("'" + m.uid + "'") >= 0);
+    if (hit) hit.click();
+  };
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => setTimeout(go, 900));
+  else setTimeout(go, 900);
+})();
+/* ログインしているあいだは、XEVORA・XEVARIX と分けあう目印を最新にする。
+   XEVORA で作ったアカウントの初回（XEVARION の登録画面を通っていない＝mlUid が無い）は、MagiLink の利用者を作って紐づけ、XEVA の入手方法を1回出す */
+async function xhXevoraFirst() {
+  const a = getAcc(); if (!a || !a.xvUid) return;
+  try { if (a.gamePwHash) localStorage.setItem("xevora_login_v1", JSON.stringify({ uid: a.xvUid, name: a.name, h: a.gamePwHash, at: Date.now(), by: "xevarion" })); } catch (e) {}
+  if (a.mlUid || !window.XEVASync || !window.XEVASync.linkAccount) return;
+  try { await window.XEVASync.linkAccount(a); } catch (e) { return; }
+  try { if (localStorage.getItem(HOWTO_KEY) === "1") return; localStorage.setItem(HOWTO_KEY, "1"); } catch (e) {}
+  if (typeof window.xhOpenXevaGuide === "function") window.xhOpenXevaGuide(); else openHowto(true);
+}
 
 /* ★★ 2026-09-05 いちばん最初に言語をえらんでもらう（ご指定）。
    まだ一度も選んでいない端末だけ。選ぶまで下の画面は触れない（.open の板）。
@@ -3092,6 +3125,8 @@ window.xhStartCreate = xhStartCreate;
 async function xevaLogout() {
   if (!confirm("この端末からログアウトしますか？\nデータはクラウドに保存されており、次回はID＋4桁PINで再ログインできます。")) return;
   closeAccSettings();
+  /* ★★ 2026-11-15 XEVORA でログインした目印も、このアカウントのものなら消す（XEVARIX・XEVORA に「〇〇でつづける」を出さない） */
+  try { const m = JSON.parse(localStorage.getItem("xevora_login_v1") || "null"), a = getAcc(); if (m && a && m.uid === a.xvUid) localStorage.removeItem("xevora_login_v1"); } catch (e) {}
   if (window.XevaCloud) { await window.XevaCloud.logout(); }   // logout内で goHome（未ログイン→サインイン画面）
   else { const ls = xevaLocalSession() || {}; ls.active = false; try { localStorage.setItem("xeva_session_v1", JSON.stringify(ls)); } catch (e) {} showXevaHome(); }
 }
@@ -3202,6 +3237,7 @@ function runPortalBoot() {
   renderNavUser();
   // ゲーム連携4桁パスワード: 未設定／未登録なら必須設定を強制、済んでいればゲーム賞金XEVAを受取
   setTimeout(async () => { if (!(await ensureGamePw())) claimGameRewards(); }, 900);
+  setTimeout(xhXevoraFirst, 2600);   /* ★★ 2026-11-15 XEVORA アカウントの目印・XEVORA で作ったアカウントの初回 */
   if (granted.amount > 0) setTimeout(() => showLoginBonusModal(granted.day, granted.amount), 1300);
   setTimeout(checkBirthday, granted.amount > 0 ? 3400 : 1400);
   // 新シーズン登場バナー（ログイン時ポップアップ）は廃止しました。

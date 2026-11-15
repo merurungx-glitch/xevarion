@@ -7,13 +7,13 @@
    ・core … オフライン用に先に取りこむファイル。パスは MagiShift/sw.js から見た相対パスのまま
    ・MagiShift/sw.js がこのファイルを importScripts で読む（しくみは sw-list/_shared.js の説明）
    ============================================================ */
-self.XEV_SW = { v: "magishift-sw-v34", core: [
+self.XEV_SW = { v: "magishift-sw-v35", core: [
   "./index.html",
   "./css/shift.css?v=13",
   "./js/shift-core.js?v=9",
   "./js/shift-ai.js?v=3",          /* ★★ 2026-10-13 CPU */
   "./js/shift-account.js?v=4",
-  "./js/shift-ui.js?v=13",
+  "./js/shift-ui.js?v=14",
   "./img/icon192.png",
   "./manifest.webmanifest",
   "../xeva-splash.js?v=22",

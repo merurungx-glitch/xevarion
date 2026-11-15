@@ -132,7 +132,7 @@ const XH_APPS = [
   /* ★★ 2026-09-21 新作 MagiShift（対戦ボードゲーム）。ご指定で MagiScope の右。 */
   { id:"magishift", name:"MagiShift", full:"MagiShift", sub:"対戦ボードゲーム", cat:"game", tone:"blue",
     href:"MagiShift/index.html", img:"thumbs/MagiShift.jpg",
-    desc:"1台の iPad を2〜8人（CPU も）で囲む、マルバツを発展させた対戦ボードゲーム。<b>置いた駒をあとから動かせる</b>（間の駒を飛びこえて2マス先へ）のが特徴で、盤面はいつも変わり最後まで逆転があります。押す・ブロックで守りの手が増える「タクティクス」ルールつき。人数で盤面と勝利条件が変わり（5×5〜9×9・4〜5つ並べ）、XEVARION アカウントと紐づけて名前と戦績を残せます。" },
+    desc:"1台の iPad を2〜8人（CPU も）で囲む、マルバツを発展させた対戦ボードゲーム。<b>置いた駒をあとから動かせる</b>（間の駒を飛びこえて2マス先へ）のが特徴で、盤面はいつも変わり最後まで逆転があります。押す・ブロックで守りの手が増える「タクティクス」ルールつき。人数で盤面と勝利条件が変わり（5×5〜9×9・4〜5つ並べ）、XEVORA アカウントと紐づけて名前と戦績を残せます。" },
   /* ★★ 2026-10-05 新作 MagiAbyss（見下ろし型ドットアクションRPG）。キャラは極彩祭・極煌祭・極華祭の10体（所持と凸は共通）。 */
   /* ★ newUntil … この日まで、ロビーとメニューのアイコンに「NEW」の印（home-mate.js の isNewApp・xhAppTile）
      ★★ 2026-10-24 beta:true … 同じ場所に「β版」の印（NEW の代わり・期限なし） */
@@ -855,7 +855,7 @@ const XH_UPDATES = [
     t2:"新作タブ（アニメは今季・来季）とセール情報タブを追加・値下がりタブは廃止／この作品を見た人が見ている作品／レビューを最大10〜12件／並べ替え・絞り込みはボタンから縦の一覧で／FANZA同人本は約400位まで",
     href:"MagiScope/index.html", img:"thumbs/MagiScope.jpg" },
   { tag:"UPDATE", t1:"MagiShift の登録を MagiChainParty と同じに", at:"2026-09-21",
-    t2:"名前はその場で打ちかえ・🔗で XEVARION アカウントを紐づけ・前回の紐づけは🔒で4桁パスワードを確認",
+    t2:"名前はその場で打ちかえ・🔗で XEVORA アカウントを紐づけ・前回の紐づけは🔒で4桁パスワードを確認",
     href:"MagiShift/index.html", img:"thumbs/MagiShift.jpg" },
   /* ★★ 2026-09-21e MagiScope 全作品・セール・値下がりのタブ／スマホ／同期 */
   { tag:"UPDATE", t1:"MagiScope に全作品・セール・値下がり", at:"2026-09-21",
@@ -884,7 +884,7 @@ const XH_UPDATES = [
     href:"index.html", img:"thumbs/MagiBurst.jpg" },
   /* ★★ 2026-09-21 新作 MagiShift／MagiScope 大幅強化 */
   { tag:"NEW", t1:"新作 MagiShift", at:"2026-09-21",
-    t2:"1台のiPadを2〜6人で囲む対戦ボードゲーム。置いた駒をあとから動かせるマルバツ。XEVARIONアカウント連携・戦績・賞金XEVA",
+    t2:"1台のiPadを2〜6人で囲む対戦ボードゲーム。置いた駒をあとから動かせるマルバツ。XEVORAアカウント連携・戦績・賞金XEVA",
     href:"MagiShift/index.html", img:"thumbs/MagiShift.jpg" },
   { tag:"UPDATE", t1:"MagiScope に DLsite・国内の評価・声優", at:"2026-09-21",
     t2:"DLsite同人を別カテゴリーで追加／Filmarksの国内評価・あらすじ・レビュー／声優・監督・制作会社・サークルから関連作品へ／サンプル画像・おすすめ・ペルソナ風UI",
@@ -936,7 +936,7 @@ const XH_UPDATES = [
     href:"MagiBocciaRush/index.html", img:"thumbs/MagiBocciaRush.jpg" },
   /* ★★ 2026-09-19 Boccia シンプルモード・名前と紐づけ／MagiRail 路線図／天界の審判 HP */
   { tag:"UPDATE", t1:"MagiBocciaRush にシンプルモード", at:"2026-09-19",
-    t2:"キャラを編成せず全員同じ能力で遊べるモード。PARTY MATCH は名前の変更と XEVARION アカウントの紐づけ（順位に応じて XEVA）に対応",
+    t2:"キャラを編成せず全員同じ能力で遊べるモード。PARTY MATCH は名前の変更と XEVORA アカウントの紐づけ（順位に応じて XEVA）に対応",
     href:"MagiBocciaRush/index.html", img:"thumbs/MagiBocciaRush.jpg" },
   { tag:"UPDATE", t1:"MagiRail の路線図を拡大・移動", at:"2026-09-19",
     t2:"＋−・2本指・ホイールで拡大、ドラッグで移動、⤢で大きく表示。倍速どおりに電車が動くように",
@@ -7156,7 +7156,7 @@ const XH_AI_RULES = [
                        : "未受取のメールはありません。",
         chips: [["メールを開く", "xhTapMail()"]] }; } },
   { id: "friend", k: ["フレンド", "友達", "ともだち", "招待", "合流", "一緒に", "部屋番号"], f: () => ({
-      html: "フレンドは <b>XEVARION アカウント</b> に紐づきます（端末を変えても残ります）。" +
+      html: "フレンドは <b>XEVORA アカウント</b> に紐づきます（端末を変えても残ります）。" +
             "オンラインのフレンドが部屋を開いていれば、<b>部屋番号を聞かずに「参加」</b>で合流できます。" +
             "いまのフレンドは <b>" + xhAiFriends() + "人</b>。",
       chips: [["コミュニティへ", "xhGo('community')"], ["みんなで遊べるアプリ", "xhAiAsk('みんなで遊べるゲーム')"]] }) },
@@ -7731,3 +7731,18 @@ function xhSetPerf(k) {
 }
 window.xhSetPerf = xhSetPerf;
 try { window.addEventListener("xeva:perf", xhPaintPerfRow); document.addEventListener("DOMContentLoaded", xhPaintPerfRow); setTimeout(xhPaintPerfRow, 600); } catch (e) {}
+
+/* ★★ 2026-11-15 XEVORA（ランチャー）の「ホーム画面に追加」は index.html#install で開く → インストールの案内を出す（ブラウザの決まりで、追加はこのページから） */
+(function () {
+  let want = location.hash === "#install";   /* 読みこんだときの # を覚えておく（起動の途中で # が消えるため） */
+  const go = () => {
+    if (!want) return;
+    want = false;
+    /* サインインの画面（#xevaHome は z-index 5000）より上に出す */
+    try { const sh = document.getElementById("xhInstallSheet"); if (sh) sh.style.zIndex = "6000"; } catch (e) {}
+    try { xhOpenInstallHint(true); } catch (e) {}
+    try { history.replaceState(null, "", location.pathname + location.search); } catch (e) {}
+  };
+  addEventListener("hashchange", () => { if (location.hash === "#install") { want = true; go(); } });
+  setTimeout(go, 1500);
+})();

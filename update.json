@@ -1,15 +1,13 @@
 {
-  "version": "2026-11-13-1",
-  "date": "2026-11-13",
-  "title": "MagiChemLex に新ミニゲーム「ケミカル・ルート」／MagiQuiz に結果詳細",
+  "version": "2026-11-15-1",
+  "date": "2026-11-15",
+  "title": "アカウントの名前が「XEVORA アカウント」になりました",
   "notes": [
-    "MagiChemLex：ホーム（ビンゴのすぐ下）に、レトロゲーム風のミニゲーム「ケミカル・ルート（反応経路スコアアタック）」。ベンゼンから出発する反応経路図を、加えるもの・条件 27本＋化合物 23個の全50問で完成させます（NORMAL・HARD・ステージれんしゅう・こたえの経路図）",
-    "各ステージは2ラウンド：矢印の試薬を見て化合物を答える → 矢印の文字をかくして、加えるもの・条件を答える",
-    "MagiChemLex：ホームにあった「計算なしモード」の切りかえは、設定にまとめました",
-    "MagiQuiz：試合の終わりに「結果詳細」ボタン（人ごとの成績・点の内訳・1問ごとの記録・スコアアタックの点のしくみ）。2台で対戦の結果にも",
-    "オフライン用のデータの持ち方を整理しました（遊び方・セーブデータは変わりません）"
+    "これまでの XEVARION アカウントは、名前が XEVORA アカウントになりました（表示名・4桁PIN・セーブデータはそのまま）。XEVARION と XEVARIX は同じ XEVORA アカウントで使います",
+    "新しいアカウントはランチャーの XEVORA で作ります（サインインの画面の「新規作成」から）。XEVORA で作ったアカウントは、はじめてのログインで MagiLink の登録などを自動ですませます",
+    "XEVORA の「ホーム画面に追加」から開いたときは、インストールの案内を出します"
   ],
-  "bytes": 91451828,
+  "bytes": 91458939,
   "files": 959,
   "urls": [
     "index.html",
@@ -973,12 +971,39 @@
     "MagiMarket/img/icon192.png"
   ],
   "apps": [
-    "magichemlex",
+    "magibocciarush",
+    "magiburst",
+    "magichainparty",
+    "magijackpot",
+    "magilex",
     "magiquiz",
-    "tab:home"
+    "magiscope",
+    "magishift",
+    "tab:chars",
+    "tab:community",
+    "tab:gacha",
+    "tab:home",
+    "xevynar"
   ],
-  "changedFiles": 12,
+  "changedFiles": 28,
   "history": [
+    {
+      "version": "2026-11-13-1",
+      "date": "2026-11-13",
+      "title": "MagiChemLex に新ミニゲーム「ケミカル・ルート」／MagiQuiz に結果詳細",
+      "notes": [
+        "MagiChemLex：ホーム（ビンゴのすぐ下）に、レトロゲーム風のミニゲーム「ケミカル・ルート（反応経路スコアアタック）」。ベンゼンから出発する反応経路図を、加えるもの・条件 27本＋化合物 23個の全50問で完成させます（NORMAL・HARD・ステージれんしゅう・こたえの経路図）",
+        "各ステージは2ラウンド：矢印の試薬を見て化合物を答える → 矢印の文字をかくして、加えるもの・条件を答える",
+        "MagiChemLex：ホームにあった「計算なしモード」の切りかえは、設定にまとめました",
+        "MagiQuiz：試合の終わりに「結果詳細」ボタン（人ごとの成績・点の内訳・1問ごとの記録・スコアアタックの点のしくみ）。2台で対戦の結果にも",
+        "オフライン用のデータの持ち方を整理しました（遊び方・セーブデータは変わりません）"
+      ],
+      "apps": [
+        "magichemlex",
+        "magiquiz",
+        "tab:home"
+      ]
+    },
     {
       "version": "2026-11-12-1",
       "date": "2026-11-12",
@@ -1617,40 +1642,6 @@
         "magilotto",
         "magimusic",
         "magirail",
-        "magiscope",
-        "magishift",
-        "tab:chars",
-        "tab:community",
-        "tab:gacha",
-        "tab:home",
-        "xevynar"
-      ]
-    },
-    {
-      "version": "2026-10-16-1",
-      "date": "2026-10-16",
-      "title": "新ガチャ「超極華祭」（UR 5体・MagiAbyss 専用）／同期・ガチャ画面の不具合を修正",
-      "notes": [
-        "超極華祭：チエ・イチカ・ノノカ・アイナ・ユナの UR 5体（各1.5%）。毎月11〜20日・🎫ガチャ券OK・ガチャ一覧のいちばん上。5体とも MagiAbyss 専用（ユナはタキナより少し強く、ほかの4体はタキナと同じくらい）。MagiChemLex のナビやアイコンにも使えます",
-        "ガチャ画面：ジェム・チケットの所持数が出ないことがあったのを修正／カットインは SSR 以上のキャラ1体につき1回に／ガチャ結果のキャラ詳細で SS 絵が後ろに出ていたのを修正",
-        "同期：キャラの所持・限界突破やパートナーの開放が別の端末に反映されないことがあったのを修正（開いたままの画面も1分ごとに取りこみ）",
-        "キャラ詳細：キャラのまわりに属性色のフレーム／設定：ホスト権限（アクセスコードは毎回入力）",
-        "MagiShift：赤✕・黄★・オレンジ♥で見分けやすく／順位の決めかたともらえる XEVA を表示（同じなら同じ順位）",
-        "MagiChemLex：メモの紙を左右に広く（縮小しても色が薄くならず、ずらして書ける）"
-      ],
-      "apps": [
-        "magiabyss",
-        "magibattle",
-        "magibocciarush",
-        "magiburst",
-        "magichainparty",
-        "magichemlex",
-        "magicounter",
-        "magidominiongrid",
-        "magijackpot",
-        "magilex",
-        "magilotto",
-        "magimusic",
         "magiscope",
         "magishift",
         "tab:chars",

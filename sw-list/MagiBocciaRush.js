@@ -7,7 +7,7 @@
    ・core … オフライン用に先に取りこむファイル。パスは MagiBocciaRush/sw.js から見た相対パスのまま
    ・MagiBocciaRush/sw.js がこのファイルを importScripts で読む（しくみは sw-list/_shared.js の説明）
    ============================================================ */
-self.XEV_SW = { v: "boccia-sw-v58", core: [
+self.XEV_SW = { v: "boccia-sw-v59", core: [
   "./index.html",
   "./manifest.webmanifest",
   "./css/mbr.css?v=24",
@@ -16,7 +16,7 @@ self.XEV_SW = { v: "boccia-sw-v58", core: [
   "./js/mbr-stage.js?v=5",
   "./js/mbr-fx.js?v=10",
   "./js/mbr-help.js?v=8",
-  "./js/mbr-ui.js?v=23",
+  "./js/mbr-ui.js?v=24",
   "../mb-newchars.js?v=44",
   "../mb-boot.js?v=18",
   "../MagiBurst/js/mb-core.js?v=147",
@@ -38,7 +38,7 @@ self.XEV_SW = { v: "boccia-sw-v58", core: [
   "../app-cloud.js?v=15",
   "../xeva-keys.js?v=36",
   "../xeva-i18n.js?v=8",
-  "../xeva-i18n-dict.js?v=12",
+  "../xeva-i18n-dict.js?v=13",
   "../xeva-i18n-mb1.js?v=7",
   "../xeva-i18n-mb2.js?v=7",
   "../xeva-i18n-mb3.js?v=8",

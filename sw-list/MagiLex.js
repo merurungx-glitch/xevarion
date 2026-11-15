@@ -7,7 +7,7 @@
    ・core … オフライン用に先に取りこむファイル。パスは MagiLex/sw.js から見た相対パスのまま
    ・MagiLex/sw.js がこのファイルを importScripts で読む（しくみは sw-list/_shared.js の説明）
    ============================================================ */
-self.XEV_SW = { v: "magilex-sw-v138", core: [
+self.XEV_SW = { v: "magilex-sw-v139", core: [
   /* ★ 2026-08-19 図・グラフのエンジンは XEVYNAR と共有。
      ここに無いと、オフラインで「図で見る」が出ない。 */
   "../XEVYNAR/xevynar-figs.js?v=17",
@@ -15,7 +15,7 @@ self.XEV_SW = { v: "magilex-sw-v138", core: [
   "./index.html",                 /* ★★ 2026-10-24 MagiLex の入口（MagiChemLex／旧MagiLex をえらぶ） */
   "../thumbs/MagiChemLex.jpg?v=2",
   "./magilex.css?v=48",
-  "./magilex.js?v=96",
+  "./magilex.js?v=97",
   "./magilex-data.js?v=10",
   "./magilex-eigo.js?v=9",
   "./magilex-rika.js?v=9",

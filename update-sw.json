@@ -12,16 +12,16 @@
 "v": "magibattle-sw-v9"
 },
 "MagiBocciaRush/sw.js": {
-"sig": "08c8b332ca6d52a8",
-"v": "boccia-sw-v58"
+"sig": "c724525547096f07",
+"v": "boccia-sw-v59"
 },
 "MagiBurst/sw.js": {
-"sig": "6ed3ca5f485294dc",
-"v": "magiburst-sw-v209"
+"sig": "b53163c2607e519e",
+"v": "magiburst-sw-v210"
 },
 "MagiChainParty/sw.js": {
-"sig": "11d18280011917c4",
-"v": "chainparty-sw-v69"
+"sig": "5286dd8509da6c37",
+"v": "chainparty-sw-v70"
 },
 "MagiChemLex/sw.js": {
 "sig": "0cc4f0d4059414c7",
@@ -40,12 +40,12 @@
 "v": "mdgrid-sw-v42"
 },
 "MagiJackpot/sw.js": {
-"sig": "e33eb7eec7100751",
-"v": "magijackpot-sw-v65"
+"sig": "e191420ee28a34be",
+"v": "magijackpot-sw-v66"
 },
 "MagiLex/sw.js": {
-"sig": "33fdb14ba82181c0",
-"v": "magilex-sw-v138"
+"sig": "21070293f9f71e11",
+"v": "magilex-sw-v139"
 },
 "MagiLotto/sw.js": {
 "sig": "22072b964b0261b3",
@@ -60,31 +60,31 @@
 "v": "magimusic-sw-v42"
 },
 "MagiQuiz/sw.js": {
-"sig": "2d2100147910ad99",
-"v": "magiquiz-sw-v15"
+"sig": "995c1e1bcfa52728",
+"v": "magiquiz-sw-v16"
 },
 "MagiRail/sw.js": {
 "sig": "4d880adcfbc21b4f",
 "v": "magirail-sw-v18"
 },
 "MagiScope/sw.js": {
-"sig": "e028264505306184",
-"v": "magiscope-sw-v47"
+"sig": "5c971084fff03d3f",
+"v": "magiscope-sw-v48"
 },
 "MagiShift/sw.js": {
-"sig": "ae2c0ae81e9dee78",
-"v": "magishift-sw-v34"
+"sig": "20cc860e2967b49d",
+"v": "magishift-sw-v35"
 },
 "NGX/sw.js": {
 "sig": "06d74f18e6a10981",
 "v": "ngx-site-sw-v7"
 },
 "XEVYNAR/sw.js": {
-"sig": "085aa2aa9c40b411",
-"v": "xevynar-sw-v76"
+"sig": "14b76032fbb99f40",
+"v": "xevynar-sw-v77"
 },
 "sw.js": {
-"sig": "aeb893dd93a7cc19",
-"v": "xevarion-sw-v265"
+"sig": "9e1d090782513ecc",
+"v": "xevarion-sw-v266"
 }
 }

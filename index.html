@@ -153,7 +153,7 @@ html #xlBan.pre{box-shadow:0 0 0 2px #fff,0 0 0 3.5px #ff8a1f,0 3px 0 3.5px rgba
      画面の中身はあとから JS が作るので、辞書を当てるのは MutationObserver。
      ★ 辞書（xeva-i18n-dict.js）は本体のあとに読むこと。 -->
 <script src="xeva-i18n.js?v=8"></script>
-<script src="xeva-i18n-dict.js?v=12"></script>
+<script src="xeva-i18n-dict.js?v=13"></script>
 <!-- ★★ 2026-09-06 MagiBurst の語彙（技の名前・ギミック・クエスト名・威力の行）。
      ★ mb4 は「威力：」を<b>かけら単位</b>で英語にする（新しいキャラを足してもそのまま効く）。 -->
 <script src="xeva-i18n-mb1.js?v=7"></script>
@@ -162,7 +162,7 @@ html #xlBan.pre{box-shadow:0 0 0 2px #fff,0 0 0 3.5px #ff8a1f,0 3px 0 3.5px rgba
 <script src="xeva-i18n-mb4.js?v=9"></script>
 <script src="xeva-i18n-mb5.js?v=7"></script>
 <script src="xeva-i18n-p1.js?v=7"></script>
-<script src="xeva-i18n-p2.js?v=6"></script>
+<script src="xeva-i18n-p2.js?v=7"></script>
 <script src="xeva-i18n-mb6.js?v=7"></script>
 <script src="xeva-i18n-p3.js?v=7"></script>
 <script src="xeva-i18n-mb7.js?v=7"></script>
@@ -177,7 +177,7 @@ html #xlBan.pre{box-shadow:0 0 0 2px #fff,0 0 0 3.5px #ff8a1f,0 3px 0 3.5px rgba
      告知を<b>ポータルのログイン時</b>に一本化したので、ここでも読む。
      defer なので xevarion.js より先に実行される（書いた順番で走る）。 -->
 <script src="mb-newchars.js?v=44" defer></script>
-<script src="xeva-devnotes.js?v=18" defer></script>
+<script src="xeva-devnotes.js?v=19" defer></script>
 <script src="xeva-tour.js?v=5" defer></script><script src="xeva-earn.js?v=2" defer></script><!-- ★★ 2026-11-03 XEVA・ジェムの入手まとめ（アニメ・XevaTour の pack） --><!-- ★★ 2026-10-30 XEVARION ガイド（全機能をアニメで紹介・設定から／#guide） --><!-- ★★ 2026-10-24 デベロッパーノート（新キャラのお知らせの代わり） -->
 <!-- ★★ 2026-09-25 ガチャの台帳（開催期間とバナー。make-gacha-live.py が mb-core.js から自動で作る）。ホーム左上のバナー用 -->
 <script src="gacha-live.js?v=14" defer></script>
@@ -194,8 +194,8 @@ html #xlBan.pre{box-shadow:0 0 0 2px #fff,0 0 0 3.5px #ff8a1f,0 3px 0 3.5px rgba
 <!-- ★★ 2026-10-16 キャラの所持・凸（magiburst_v1）もここで同期する（前は読むだけで、別の端末で引いたキャラが出てこないことがあった） -->
 <script type="module" src="MagiBurst/magiburst-cloud.js?v=29"></script>
 <script src="xeva-qr.js?v=9" defer></script>
-<script src="xevarion.js?v=115" defer></script>
-<script src="xevarion-home.js?v=184" defer></script>
+<script src="xevarion.js?v=116" defer></script>
+<script src="xevarion-home.js?v=185" defer></script>
 <script src="home-lobby.js?v=7" defer></script><!-- ★★ 2026-10-26 完凸ロビー（ヒサコ・アリス）。home-mate.js より先 -->
 <script src="home-mate.js?v=36" defer></script>
 <script src="xeva-jef.js?v=1" defer></script><!-- ★★ 2026-11-08 ジェフ千葉のホームデザイン（スタジアム・応援旗・試合の札・BGM） -->
@@ -544,7 +544,7 @@ body.xos-nomotion .xh-start-tap .hp, body.xos-nomotion .xh-start-sub, body.xos-n
       <div class="xh-hero">
         <img class="xh-logo" src="thumbs/Xevarion.png" alt="XEVARION">
         <div class="xh-title">XEVARION</div>
-        <div class="xh-sub">ひとつのアカウントで、どの端末からでも。</div>
+        <div class="xh-sub">XEVORA アカウントで、どの端末からでも。</div>
       </div>
       <div class="xh-body">
         <div class="xh-tabs">
@@ -561,7 +561,7 @@ body.xos-nomotion .xh-start-tap .hp, body.xos-nomotion .xh-start-sub, body.xos-n
             <button class="xh-btn" id="xhSearchBtn" onclick="xhSearchAccounts()">🔍 アカウントを検索</button>
             <div class="xh-candidates" id="xhCandidates"></div>
             <div class="xh-msg" id="xhMsg"></div>
-            <div class="xh-note">登録した <b>ID（表示名）</b> を入力して自分のアカウントを選び、4桁PINでログインします。</div>
+            <div class="xh-note">XEVORA アカウントの <b>ID（表示名）</b> を入力して自分のアカウントを選び、4桁PINでログインします。</div>
           </div>
           <!-- ステップ2：パスワード -->
           <div id="xhLoginStep2" style="display:none">
@@ -578,10 +578,10 @@ body.xos-nomotion .xh-start-tap .hp, body.xos-nomotion .xh-start-sub, body.xos-n
         <div class="xh-pane" id="xhPaneCreate">
           <div class="xh-create-hero">
             <div class="em">✨</div>
-            <p>はじめての方は、新しいアカウントを作成しましょう。<br>アイコン・表示名・4桁PINを設定すると、以降はどの端末からでもログインできます。</p>
+            <p>XEVARION は XEVORA アカウントで使います。はじめての方は、XEVORA でアカウント（表示名・4桁PIN）を作ってから、ここでログインしてください。</p>
           </div>
-          <button class="xh-btn create" onclick="xhStartCreate()">新規アカウントを作成</button>
-          <div class="xh-note">作成時に設定する<b>4桁パスワード</b>が、次回以降のログインに必要です。忘れないようにしてください。</div>
+          <button class="xh-btn create" onclick="xhStartCreate()">XEVORA でアカウントを作る</button>
+          <div class="xh-note">XEVORA アカウントは、XEVARION と XEVARIX で同じものを使います。4桁PINは、次回以降のログインに必要です。</div>
         </div>
       </div>
     </div>
@@ -1930,7 +1930,7 @@ body.xos-nomotion .xh-start-tap .hp, body.xos-nomotion .xh-start-sub, body.xos-n
 .xeva-m-prog .mm-prog-bar{flex:1;height:6px}
 .xeva-m-prog span{font-family:'Orbitron',sans-serif;font-size:10.5px;font-weight:900;color:rgba(34,52,77,.6);white-space:nowrap}
 
-/* ── XEVARION アカウント ── */
+/* ── XEVORA アカウント ── */
 /* nav user button */
 /* ── login bonus stamp card ── */
 #loginBonusOv{position:fixed;inset:0;z-index:3500;background:rgba(30,60,110,.34);backdrop-filter:blur(8px);align-items:center;justify-content:center;padding:calc(env(safe-area-inset-top,0px) + 16px) 20px calc(env(safe-area-inset-bottom,0px) + 16px)}
@@ -2506,6 +2506,16 @@ body.xos-nomotion .xbg-fx,body.xos-nomotion .xbg-fx h4{animation:none}
          起動ロゴ・新ロゴ／MagiAbyss 全員ちがう性能（技も）／MagiBattle ロイヤル隊／MagiQuiz・MagiChemLex -->
     <!-- 2026-11-13：MagiChemLex に新ミニゲーム「ケミカル・ルート（反応経路スコアアタック）」／ホームの計算なしモードの切りかえは設定へ／MagiQuiz の結果詳細／
          オフライン用のデータ（Service Worker の版と一覧）を sw-list フォルダへ集約 -->
+    <div class="nm-item" data-tag="new" data-date="2026-11-15">
+      <div class="nm-date">2026<br>11.15</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag new">NEW</span></div>
+        <div class="nm-title">🔑 アカウントの名前が「XEVORA アカウント」になりました</div>
+        <div class="nm-txt">・これまでの XEVARION アカウントは、名前が<b>XEVORA アカウント</b>になりました。表示名・4桁PIN・セーブデータはそのままです。<br>
+          ・XEVARION と XEVARIX は、同じ XEVORA アカウントで使います。新しいアカウントは、ランチャーの<b>XEVORA</b>で作ります（サインインの画面の「新規作成」から）。<br>
+          ・XEVORA では、XEVARION と XEVARIX のインストール（オフライン用のデータ）もできます。</div>
+      </div>
+    </div>
     <div class="nm-item" data-tag="new" data-date="2026-11-13">
       <div class="nm-date">2026<br>11.13</div>
       <div class="nm-content">
@@ -2741,7 +2751,7 @@ body.xos-nomotion .xbg-fx,body.xos-nomotion .xbg-fx h4{animation:none}
       <div class="nm-content">
         <div class="nm-h"><span class="nm-tag new">NEW</span></div>
         <div class="nm-title">❓ 新作「MagiQuiz」（化学クイズ対戦）／🏘️ MagiAbyss の町も 2.5D に／📱 iPad の画面の上のぼかしを改善</div>
-        <div class="nm-txt">・<b>新作 MagiQuiz</b>：1台の iPad を囲んで、化学の基礎でクイズバトル。<b>ミリオネア</b>（10問のはしご・50:50／ヒント／みんなに聞く・「ファイナルアンサー？」・安全ライン）と、<b>ばくだん</b>（いつ爆発するか分からない爆弾を回す・正解したら となりへ・爆発したらハート −1）の2つの遊び方。<b>個人戦もチーム戦も</b>（1〜8人）。問題は MagiChemLex の<b>基礎セットの選択問題</b>で、答えるたびに正解とポイント、試合のあとに<b>まちがえた問題を解説つきで見直せます</b>。XEVARION アカウントを紐づけると順位に応じて XEVA（1位 250〜5位 50）。メニューの <b>MagiArena の場所</b>に置きました（MagiArena はゲームのいちばん後ろへ）。XEVA ミッション「MagiQuiz でクイズ対戦をあそぼう」（150 XEVA）も。<br>
+        <div class="nm-txt">・<b>新作 MagiQuiz</b>：1台の iPad を囲んで、化学の基礎でクイズバトル。<b>ミリオネア</b>（10問のはしご・50:50／ヒント／みんなに聞く・「ファイナルアンサー？」・安全ライン）と、<b>ばくだん</b>（いつ爆発するか分からない爆弾を回す・正解したら となりへ・爆発したらハート −1）の2つの遊び方。<b>個人戦もチーム戦も</b>（1〜8人）。問題は MagiChemLex の<b>基礎セットの選択問題</b>で、答えるたびに正解とポイント、試合のあとに<b>まちがえた問題を解説つきで見直せます</b>。XEVORA アカウントを紐づけると順位に応じて XEVA（1位 250〜5位 50）。メニューの <b>MagiArena の場所</b>に置きました（MagiArena はゲームのいちばん後ろへ）。XEVA ミッション「MagiQuiz でクイズ対戦をあそぼう」（150 XEVA）も。<br>
           ・<b>MagiAbyss</b>：拠点の<b>町（ホーム）も 2.5D</b> になりました。建物・木・人が立って見え、端末の時計に合わせて<b>朝・昼・夕方・夜</b>の光に（夜は街灯や窓が灯り、ほたるが飛びます）。設定のグラフィック「2D」で今までの画面にもできます。<br>
           ・<b>iPad・iPhone</b>：ホーム画面に置いたアプリで、<b>画面の上がぼやけて見える</b>ことがあったのを改善しました（OS のアップデートで、上の端に自動でぼかしがかかるようになったため。画面によっては上の端に細い色の帯が出ます）。<br>
           ・<b>MagiChemLex</b>：問題セットの一覧に<b>「完全習得まで最短◯日」</b>を小さく表示。セットの画面と復習タブに<b>「今日習得にできる問題だけ」</b>（習得中の問題のうち、今日ヒントなしで正解すると「習得」になる問題）を追加しました。<br>
@@ -3278,7 +3288,7 @@ body.xos-nomotion .xbg-fx,body.xos-nomotion .xbg-fx h4{animation:none}
         <div class="nm-txt">
           🎲 <b>MagiShift</b>（アプリ一覧の「その他」・MagiScope の右）。1台の iPad を<b>2〜6人</b>で囲む対戦ボードゲームです。
           マルバツを発展させ、<b>置いた駒をあとから動かせる</b>のが特徴。盤面はいつも変わり、最後まで逆転があります。
-          人数で盤面と勝利条件が変わり（5×5〜9×9・4〜5つ並べ）、XEVARION アカウントと紐づけると名前・戦績・順位に応じた XEVA が受け取れます。<br><br>
+          人数で盤面と勝利条件が変わり（5×5〜9×9・4〜5つ並べ）、XEVORA アカウントと紐づけると名前・戦績・順位に応じた XEVA が受け取れます。<br><br>
           🔭 <b>MagiScope</b>：<b>DLsite同人</b>を別カテゴリーとして追加し、アニメは<b>国内の評価（Filmarks）</b>と<b>声優・監督・制作会社</b>を表示するようにしました。
           作者・サークル・アーティスト・声優を押すとその人の作品一覧へ移動でき、ジャンルの複数選択・並べ替え・サンプル画像・レビュー・おすすめ表示も追加しています。
           見た目は MagiBurst と同じ<b>ペルソナ風</b>に作り直しました。
@@ -3400,7 +3410,7 @@ body.xos-nomotion .xbg-fx,body.xos-nomotion .xbg-fx h4{animation:none}
         <div class="nm-title">🎯 MagiBocciaRush にシンプルモード／🚆 MagiRail の路線図を拡大・移動／⚖ 天界の審判</div>
         <div class="nm-txt">
           🎯 <b>MagiBocciaRush</b>：モードに<b>シンプル</b>を追加（キャラを編成せず、全員が同じ能力・スキルなし）。
-          PARTY MATCH で<b>名前の変更</b>と <b>XEVARION アカウントの紐づけ</b>（MagiChainParty と同じ・順位に応じて XEVA）ができるようになりました。
+          PARTY MATCH で<b>名前の変更</b>と <b>XEVORA アカウントの紐づけ</b>（MagiChainParty と同じ・順位に応じて XEVA）ができるようになりました。
           引っぱっているあいだの逆向きの点線と輪は表示しないようにしました。<br><br>
           🚆 <b>MagiRail</b>：路線図を<b>＋−・2本指・ホイールで拡大、ドラッグで移動</b>、⤢ で大きく表示。倍速を変えても電車が同じ速さで動いていた不具合を直しました。<br><br>
           ⚖ <b>MagiBurst</b>：天界の審判のボスとザコの HP を <b>1.35 倍</b>にしました。
@@ -4492,7 +4502,7 @@ body.xos-nomotion .xbg-fx,body.xos-nomotion .xbg-fx h4{animation:none}
           しました。クエストの背景やクエストのバナー（景色の絵）は<b>そのまま出ます</b>。
           絵の代わりに出すものも<b>名前だけ</b>にそろえました。<br>
           📐 <b>MagiBurst の上のバー</b>を、スタミナを足す前のコンパクトな高さに戻しました。<br>
-          ⚡ <b>スタミナ・レベルは、これまでどおり XEVARION アカウントで同期しています</b>
+          ⚡ <b>スタミナ・レベルは、これまでどおり XEVORA アカウントで同期しています</b>
           （端末をまたいでも同じ値になります）。
         </div>
       </div>
@@ -5343,7 +5353,7 @@ body.xos-nomotion .xbg-fx,body.xos-nomotion .xbg-fx h4{animation:none}
         👥 <b>2〜6人対応</b>：2人は1人ずつ全役割、3〜6人は<b>監督・投手・打者・守備・走塁</b>をチームで役割分担。打席前の<b>作戦タイム</b>でチーム相談もできます。<br>
         🎩 監督は<b>シフト・敬遠・盗塁・バント・代打・投手交代</b>に加え、1試合1回の<b>チームスキル</b>（勝負師・鉄壁守備など）で勝負どころを演出。得点や好プレーで<b>チーム士気🔥</b>も変動。<br>
         🌐 <b>オンライン対戦（2台）</b>：部屋番号でつながり、2台の端末が<b>投手画面／打者画面</b>に。演出は両方の画面で同時に再生されます。<br>
-        🤖 CPU対戦・イニング数選択（1/3/5/9回）・<b>XEVARIONアカウント紐づけでXEVA賞金</b>にも対応。MagiOneXシリーズより配信開始！</div>
+        🤖 CPU対戦・イニング数選択（1/3/5/9回）・<b>XEVORAアカウント紐づけでXEVA賞金</b>にも対応。MagiOneXシリーズより配信開始！</div>
       </div>
     </div>
 
@@ -5605,7 +5615,7 @@ body.xos-nomotion .xbg-fx,body.xos-nomotion .xbg-fx h4{animation:none}
       </div>
     </div>
 
-    <!-- 2026-07-02 XEVARIONアカウント基盤刷新 + ゲーム内紐づけ賞金 -->
+    <!-- 2026-07-02 XEVORAアカウント基盤刷新 + ゲーム内紐づけ賞金 -->
     <div class="nm-item" data-tag="update" data-date="2026-07-02">
       <div class="nm-date">2026<br>07.02</div>
       <div class="nm-content">
@@ -5684,8 +5694,8 @@ body.xos-nomotion .xbg-fx,body.xos-nomotion .xbg-fx h4{animation:none}
       <div class="nm-date">2026<br>06.28</div>
       <div class="nm-content">
         <div class="nm-h"><span class="nm-tag launch">LAUNCH</span></div>
-        <div class="nm-title">XEVARIONアカウント — 初回設定・アイコン・プロフィール管理・削除を新規導入</div>
-        <div class="nm-txt">XEVARION への初回アクセス時に<b>アカウントセットアップウィザード</b>が起動し、<b>ガチャキャラクターからアイコンを選択</b>・<b>表示名</b>・<b>生年月日</b>・<b>パスワード</b>を設定できます。設定後は右上のアイコンからいつでも変更・アカウント削除が可能。MagiLink・MagiLex の個別アカウント設定は廃止し、XEVARION アカウントで一元管理します。あわせて<b>毎日ログインボーナスを +50 XEVA（1日1回）</b>に変更しました（これまでは初回のみ）。</div>
+        <div class="nm-title">XEVORAアカウント — 初回設定・アイコン・プロフィール管理・削除を新規導入</div>
+        <div class="nm-txt">XEVARION への初回アクセス時に<b>アカウントセットアップウィザード</b>が起動し、<b>ガチャキャラクターからアイコンを選択</b>・<b>表示名</b>・<b>生年月日</b>・<b>パスワード</b>を設定できます。設定後は右上のアイコンからいつでも変更・アカウント削除が可能。MagiLink・MagiLex の個別アカウント設定は廃止し、XEVORA アカウントで一元管理します。あわせて<b>毎日ログインボーナスを +50 XEVA（1日1回）</b>に変更しました（これまでは初回のみ）。</div>
       </div>
     </div>
     <!-- 2026-06-28 gacha renewal + characters -->
@@ -6319,7 +6329,7 @@ body.xos-nomotion .xbg-fx,body.xos-nomotion .xbg-fx h4{animation:none}
       <div style="text-align:center;padding:10px 0">
         <div class="wz-done-icon" id="wzDoneIcon"><img id="wzDoneImg" src="" alt=""></div>
         <div class="wz-title" id="wzDoneName">ようこそ！</div>
-        <div class="wz-sub">XEVARIONアカウントを作成しました。<br>毎日ログインで <b>+50 XEVA</b> を獲得できます！</div>
+        <div class="wz-sub">XEVORAアカウントを作成しました。<br>毎日ログインで <b>+50 XEVA</b> を獲得できます！</div>
         <div style="font-size:28px;margin:16px 0">🎉</div>
         <button class="wz-btn pri" style="max-width:280px;margin:0 auto" onclick="closeAccWizard()">XEVARIONへ →</button>
       </div>

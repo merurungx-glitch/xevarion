@@ -7,7 +7,7 @@
    ・core … オフライン用に先に取りこむファイル。パスは MagiBurst/sw.js から見た相対パスのまま
    ・MagiBurst/sw.js がこのファイルを importScripts で読む（しくみは sw-list/_shared.js の説明）
    ============================================================ */
-self.XEV_SW = { v: "magiburst-sw-v209", core: [
+self.XEV_SW = { v: "magiburst-sw-v210", core: [
   "./index.html",
   "./css/mb-ui2.css?v=26",
   "./css/localplay.css?v=7",
@@ -27,14 +27,14 @@ self.XEV_SW = { v: "magiburst-sw-v209", core: [
   /* ★★ 2026-09-03 ローカル通信の QR コード（自前・外部ライブラリなし） */
   "../xeva-qr.js?v=9",
   "../xeva-i18n.js?v=8",
-  "../xeva-i18n-dict.js?v=12",
+  "../xeva-i18n-dict.js?v=13",
   "../xeva-i18n-mb1.js?v=7",
   "../xeva-i18n-mb2.js?v=7",
   "../xeva-i18n-mb3.js?v=8",
   "../xeva-i18n-mb4.js?v=9",
   "../xeva-i18n-mb5.js?v=7",
   "../xeva-i18n-p1.js?v=7",
-  "../xeva-i18n-p2.js?v=6",
+  "../xeva-i18n-p2.js?v=7",
   "../xeva-i18n-mb6.js?v=7",
   "../xeva-i18n-p3.js?v=7",
   "../xeva-i18n-mb7.js?v=7",

@@ -7,7 +7,7 @@
    ・core … オフライン用に先に取りこむファイル。パスは MagiJackpot/sw.js から見た相対パスのまま
    ・MagiJackpot/sw.js がこのファイルを importScripts で読む（しくみは sw-list/_shared.js の説明）
    ============================================================ */
-self.XEV_SW = { v: "magijackpot-sw-v65", core: [
+self.XEV_SW = { v: "magijackpot-sw-v66", core: [
   "./",
   "./index.html",
   "./manifest.webmanifest",
@@ -18,7 +18,7 @@ self.XEV_SW = { v: "magijackpot-sw-v65", core: [
   "./mj-lux.js?v=12",
   "./mj-bj.js?v=16",
   "./mj-pachi.js?v=19",
-  "./mj-party.js?v=15",
+  "./mj-party.js?v=16",
   "./mj-192.png",
   "./mj-512.png",
   "./mj-banner.jpg",

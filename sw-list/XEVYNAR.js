@@ -7,13 +7,13 @@
    ・core … オフライン用に先に取りこむファイル。パスは XEVYNAR/sw.js から見た相対パスのまま
    ・XEVYNAR/sw.js がこのファイルを importScripts で読む（しくみは sw-list/_shared.js の説明）
    ============================================================ */
-self.XEV_SW = { v: "xevynar-sw-v76", core: [
+self.XEV_SW = { v: "xevynar-sw-v77", core: [
   "./",
   "./index.html",
   "./manifest.webmanifest",
   "./xevynar.css?v=20",
   "./xevynar-tf.js?v=10",
-  "./xevynar-kb.js?v=25",
+  "./xevynar-kb.js?v=26",
   "./xevynar-lex.js?v=18",
   "./xevynar-steps.js?v=14",
   "./xevynar-figs.js?v=17",

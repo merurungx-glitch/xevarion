@@ -7,13 +7,13 @@
    ・core … オフライン用に先に取りこむファイル。パスは MagiScope/sw.js から見た相対パスのまま
    ・MagiScope/sw.js がこのファイルを importScripts で読む（しくみは sw-list/_shared.js の説明）
    ============================================================ */
-self.XEV_SW = { v: "magiscope-sw-v47", core: [
+self.XEV_SW = { v: "magiscope-sw-v48", core: [
   "./index.html",
   "./css/scope.css?v=21",
   "./js/scope-config.js?v=3",
   "./js/scope-data.js?v=21",
   "./js/scope-art.js?v=3",
-  "./js/scope-ui.js?v=30",
+  "./js/scope-ui.js?v=31",
   "./img/emblem.png",
   "./img/icon192.png",
   "./manifest.webmanifest",
@@ -26,8 +26,8 @@ self.XEV_SW = { v: "magiscope-sw-v47", core: [
   "../xeva-alive.js?v=9",
   /* ★★ 2026-09-22 英語版（オフラインでも切りかえられるように） */
   "../xeva-i18n.js?v=8",
-  "../xeva-i18n-dict.js?v=12",
-  "../xeva-i18n-ms1.js?v=3",
+  "../xeva-i18n-dict.js?v=13",
+  "../xeva-i18n-ms1.js?v=4",
   /* xeva-cloud.js はモジュールなので、そこから読む xeva-keys.js も要る */
   "../xeva-cloud.js?v=51",
   "../xeva-keys.js?v=36",

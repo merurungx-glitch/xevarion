@@ -138,7 +138,7 @@
     "このセールは終わりました": "This sale has ended",
 
     /* ── マイページ・設定 ── */
-    "XEVARION アカウントで同期しています": "Synced with your XEVARION account", "閲覧履歴": "Recently viewed", "すべて消す": "Clear all", "表示する": "Show",
+    "XEVORA アカウントで同期しています": "Synced with your XEVORA account", "閲覧履歴": "Recently viewed", "すべて消す": "Clear all", "表示する": "Show",
     "好みのジャンル": "Favorite genres", "選んだジャンルの注目作品がホームに出ます（カテゴリーごと）。": "Popular titles in your chosen genres appear on Home (per category).",
     "えらんでいません": "None selected", "カテゴリー別に保存した作品": "Saved titles by category", "カテゴリー別の話題": "Trends by category", "お気に入り・履歴から": "From favorites & history",
     "通知・表示・データソース": "Notifications, display, data sources", "通知設定": "Notifications", "お気に入りの順位変動": "Favorite rank changes",
