@@ -231,7 +231,7 @@
   /* ══ ② 準備（人数・ルール・プレイヤー・CPU）══
      ★★ 2026-09-21f プレイヤー登録・名前変更は MagiChainParty と同じしくみ（ご指定）
        ・席ごとに<b>名前をその場で打って変えられる</b>（6文字まで）
-       ・🔗 で XEVARION アカウントを紐づけ（賞金を受け取る人だけ。紐づけなくても遊べる）
+       ・🔗 で XEVORA アカウントを紐づけ（賞金を受け取る人だけ。紐づけなくても遊べる）
        ・紐づけた席をもう一度押すと解除
      ★★ 2026-10-13 ご指定「MagiChainParty のように紐づけの継続も」
        ・人数・ルール・CPU の強さ・席ごとの 人/CPU・名前・紐づけを<b>まとめて覚える</b>
@@ -284,7 +284,7 @@
     $("#plist").innerHTML = seats().map((p, i) => {
       const c = G.COLORS[i];
       const linked = p.link && p.link.uid, ok = linked && p.link.confirmed !== false;
-      const btn = p.type === "cpu" ? "" : !linked ? '<button class="gl-link-btn" data-a="seatlink" data-i="' + i + '" title="XEVARIONアカウントを紐づけて賞金を受け取る">🔗</button>'
+      const btn = p.type === "cpu" ? "" : !linked ? '<button class="gl-link-btn" data-a="seatlink" data-i="' + i + '" title="XEVORAアカウントを紐づけて賞金を受け取る">🔗</button>'
         : ok ? '<button class="gl-link-btn on" data-a="seatlink" data-i="' + i + '" title="タップで紐づけを解除">✓ ' + esc(p.link.name) + "</button>"
         : '<button class="gl-link-btn pending" data-a="seatlink" data-i="' + i + '" title="前回の紐づけ — タップして4桁パスワードで確認">🔒 ' + esc(p.link.name) + "（要確認）</button>";
       const av = linked && p.type !== "cpu" ? avatarHTML({ uid: p.link.uid, charFile: p.link.charFile, charId: p.link.charId, color: c.color }) : "";

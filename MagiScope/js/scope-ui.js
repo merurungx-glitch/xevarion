@@ -1915,7 +1915,7 @@
     } catch (e) {}
     const avHtml = avSrc ? '<img src="' + esc(avSrc) + '" alt="" onerror="this.onerror=null;this.src=\'../chars/' + esc(acc.charFile || "") + '\'">' : esc(name.slice(0, 1));
     let body = '<div class="prof glass"><span class="av' + (avSrc ? " pic" : "") + '">' + avHtml + '</span><span style="flex:1;min-width:0"><b>' + esc(name) +
-      '</b><small class="muted">XEVARION アカウントで同期しています</small></span></div>';
+      '</b><small class="muted">XEVORA アカウントで同期しています</small></span></div>';
     body += '<div class="cnt3 favcnt">' + cs.map((c) => '<a class="stat glass" data-c="' + c + '" href="#/fav?cat=' + c + '"><small>' + catPill(c) + '</small><b class="num" style="color:var(--c)">' + Object.keys(S.fav[c] || {}).length + "<i>件</i></b></a>").join("") + "</div>";
     /* ★★ 2026-09-21 ご指定：履歴はボタンを押してから出し、1件ずつ消せるようにした。 */
     const hist = S.hist.filter((h) => cs.indexOf(h.c) >= 0 && (!isAdultCat(h.c) || S.age));

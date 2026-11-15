@@ -262,7 +262,7 @@ function renderPlayers() {
     const linked = p.link && p.link.uid;
     const confirmed = linked && p.link.confirmed !== false;
     const linkBtn = !linked
-      ? '<button class="gl-link-btn" title="XEVARIONアカウントを紐づけて賞金を受け取る">🔗</button>'
+      ? '<button class="gl-link-btn" title="XEVORAアカウントを紐づけて賞金を受け取る">🔗</button>'
       : confirmed
         ? `<button class="gl-link-btn on" title="タップで紐づけを解除">✓ ${escapeHtml(p.link.name)}</button>`
         : `<button class="gl-link-btn pending" title="前回の紐づけ — タップして4桁パスワードで確認">🔒 ${escapeHtml(p.link.name)}（要確認）</button>`;
