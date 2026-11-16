@@ -7,7 +7,7 @@
    ・core … オフライン用に先に取りこむファイル。パスは MagiBocciaRush/sw.js から見た相対パスのまま
    ・MagiBocciaRush/sw.js がこのファイルを importScripts で読む（しくみは sw-list/_shared.js の説明）
    ============================================================ */
-self.XEV_SW = { v: "boccia-sw-v59", core: [
+self.XEV_SW = { v: "boccia-sw-v60", core: [
   "./index.html",
   "./manifest.webmanifest",
   "./css/mbr.css?v=24",
@@ -48,4 +48,6 @@ self.XEV_SW = { v: "boccia-sw-v59", core: [
   "../xeva-i18n-mb7.js?v=7",
   "../xeva-i18n-n1.js?v=23",
   "../xeva-i18n-n2.js?v=3",
+  /* ★★ 2026-11-17 オフラインで足りなかったもの（ご報告「XEVARION でオフラインでできないことがある」）：ページが読むのに一覧に無かった共通の部品・起動画面のロゴ。ほかのアプリの置き場にあっても、このアプリの SW は自分の置き場しか見ていなかった */
+  "../brand/ISHIDA_s.webp?v=2", "../brand/Kawagani_s.webp", "../brand/MagicalFuture_s.webp?v=2", "../brand/NGX_s.webp?v=2", "../brand/StudioDOGA_s.webp", "../brand/YRA_s.webp", "../game-link.js?v=13", "../xevarion-fb.js?v=37",
 ] };

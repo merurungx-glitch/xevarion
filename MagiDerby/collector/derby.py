@@ -162,26 +162,59 @@ def norm_nm(s):
     return ALIAS.get(s, s)
 
 
+# ★★ 2026-11-17 ご報告「MagiDerby が発売中などのときに XEVARION のホームに表示されない」の真因：
+#   netkeiba のレース一覧は<b>略した名前</b>（エリザベス女王杯→「エリザベス杯」・マイルチャンピオンシップ→「マイルCS」・
+#   ジャパンカップ→「ジャパンC」・阪神ジュベナイルフィリーズ→「阪神JF」…）で、名前が合わずに race_id を見つけられなかった
+#   （11/15 のエリザベス女王杯から「登録前」のまま＝アプリでも買えず、ホームの「発売中」も出なかった）。
+#   → ① 略し方をそろえてから名前をくらべる（nm_keys）
+#     ② それでも合わなければ、その日の GⅠ のうち「競馬場（race_id の5〜6桁目）・芝/ダート・距離」がそろうものが1つだけならそれ
+PLACE_CODE = {"札幌": "01", "函館": "02", "福島": "03", "新潟": "04", "東京": "05", "中山": "06", "中京": "07", "京都": "08", "阪神": "09", "小倉": "10"}
+ABBR = [("チャンピオンシップ", "CS"), ("フューチュリティステークス", "FS"), ("ジュベナイルフィリーズ", "JF"),
+        ("ステークス", "S"), ("カップ", "C"), ("女王杯", "杯")]
+
+
+def nm_keys(s):
+    s = norm_nm(s)
+    t = s
+    for a, b in ABBR:
+        t = t.replace(a, b)
+    return {k for k in (s, t) if k}
+
+
 def find_race(r):
     ds = r["date"].replace("-", "")
     s = http_get("https://race.netkeiba.com/top/race_list_sub.html?kaisai_date=" + ds)
+    want = nm_keys(r["nm"])
+    g1s = []
     for b in re.findall(r'<li class="RaceList_DataItem[^"]*">(.*?)</li>', s, re.S):
         nm = re.search(r'<span class="ItemTitle">(.*?)</span>', b)
-        if not nm:
-            continue
-        title = strip(nm.group(1))
-        g1 = re.search(r'Icon_GradeType1[ "]', b)
-        a, b2 = norm_nm(title), norm_nm(r["nm"])
-        if not (g1 and (a == b2 or a in b2 or b2 in a)):
-            continue
         rid = re.search(r"race_id=(\d{12})", b)
+        if not nm or not rid or not re.search(r'Icon_GradeType1[ "]', b):
+            continue
         tm = re.search(r'RaceList_Itemtime">\s*(\d{1,2}:\d{2})', b)
-        if rid:
-            r["rid"] = rid.group(1)
-            if tm:
-                r["post"] = tm.group(1).zfill(5)
-            log("race_id", r["nm"], r["rid"], r.get("post"))
-            return True
+        lg = re.search(r'RaceList_ItemLong[^"]*">([^<]*)<', b)
+        g1s.append({"title": strip(nm.group(1)), "rid": rid.group(1), "tm": tm.group(1) if tm else None,
+                    "long": strip(lg.group(1)).replace(" ", "") if lg else ""})
+    hit, how = None, ""
+    for c in g1s:
+        got = nm_keys(c["title"])
+        if any(a == b or a in b or b in a for a in got for b in want):
+            hit = c
+            break
+    if not hit:
+        pc = PLACE_CODE.get(r.get("place") or "")
+        lg = "%s%sm" % (r.get("surf") or "", r.get("dist") or "")
+        cand = [c for c in g1s if (not pc or c["rid"][4:6] == pc) and (not r.get("dist") or c["long"] == lg)]
+        if len(cand) == 1:
+            hit, how = cand[0], "（一覧の名前「%s」・競馬場と距離で特定）" % cand[0]["title"]
+    if hit:
+        r["rid"] = hit["rid"]
+        if hit["tm"]:
+            r["post"] = hit["tm"].zfill(5)
+        log("race_id", r["nm"], r["rid"], r.get("post"), how)
+        return True
+    if g1s:
+        log("race_id が見つかりません", r["nm"], "一覧の GⅠ:", " / ".join(c["title"] for c in g1s))
     return False
 
 

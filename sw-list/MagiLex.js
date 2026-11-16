@@ -7,7 +7,7 @@
    ・core … オフライン用に先に取りこむファイル。パスは MagiLex/sw.js から見た相対パスのまま
    ・MagiLex/sw.js がこのファイルを importScripts で読む（しくみは sw-list/_shared.js の説明）
    ============================================================ */
-self.XEV_SW = { v: "magilex-sw-v139", core: [
+self.XEV_SW = { v: "magilex-sw-v140", core: [
   /* ★ 2026-08-19 図・グラフのエンジンは XEVYNAR と共有。
      ここに無いと、オフラインで「図で見る」が出ない。 */
   "../XEVYNAR/xevynar-figs.js?v=17",
@@ -57,4 +57,6 @@ self.XEV_SW = { v: "magilex-sw-v139", core: [
   "../maintenance-gate.js?v=13",
   "../app-install-notice.js?v=9",
   "../XEVA.png",
+  /* ★★ 2026-11-17 オフラインで足りなかったもの（ご報告「XEVARION でオフラインでできないことがある」）：ページが読むのに一覧に無かった共通の部品・起動画面のロゴ。ほかのアプリの置き場にあっても、このアプリの SW は自分の置き場しか見ていなかった */
+  "../xeva-back.js?v=9", "../xeva-cloud.js?v=51", "../xeva-presence.js?v=9", "../xeva-safebottom.js?v=12", "../xevarion-fb.js?v=37",
 ] };

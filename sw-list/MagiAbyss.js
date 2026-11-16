@@ -7,7 +7,7 @@
    ・core … オフライン用に先に取りこむファイル。パスは MagiAbyss/sw.js から見た相対パスのまま
    ・MagiAbyss/sw.js がこのファイルを importScripts で読む（しくみは sw-list/_shared.js の説明）
    ============================================================ */
-self.XEV_SW = { v: "magiabyss-sw-v26", core: [
+self.XEV_SW = { v: "magiabyss-sw-v27", core: [
   "./index.html",
   "./manifest.webmanifest",
   "./css/ma.css?v=14",
@@ -99,4 +99,6 @@ self.XEV_SW = { v: "magiabyss-sw-v26", core: [
   "../img/KumikoReina.webp", "../img/t_KumikoReina.webp",
   "../img/Kagura.webp", "../img/t_Kagura.webp",
   "../img/Kotori.webp", "../img/t_Kotori.webp",
+  /* ★★ 2026-11-17 オフラインで足りなかったもの（ご報告「XEVARION でオフラインでできないことがある」）：ページが読むのに一覧に無かった共通の部品・起動画面のロゴ。ほかのアプリの置き場にあっても、このアプリの SW は自分の置き場しか見ていなかった */
+  "../brand/ISHIDA_s.webp?v=2", "../brand/Kawagani_s.webp", "../brand/MagicalFuture_s.webp?v=2", "../brand/NGX_s.webp?v=2", "../brand/StudioDOGA_s.webp", "../brand/YRA_s.webp",
 ] };

@@ -7,7 +7,7 @@
    ・core … オフライン用に先に取りこむファイル。パスは MagiChainParty/sw.js から見た相対パスのまま
    ・MagiChainParty/sw.js がこのファイルを importScripts で読む（しくみは sw-list/_shared.js の説明）
    ============================================================ */
-self.XEV_SW = { v: "chainparty-sw-v70", core: [
+self.XEV_SW = { v: "chainparty-sw-v71", core: [
   "./index.html",
   "./css/style.css?v=22",
   "./js/game.js?v=22",
@@ -28,5 +28,7 @@ self.XEV_SW = { v: "chainparty-sw-v70", core: [
   "../brand/MagicalFuture_s.webp?v=2",
   "../brand/ISHIDA_s.webp?v=2",
   "../brand/YRA_s.webp",
-  "../brand/Kawagani_s.webp", "../brand/StudioDOGA_s.webp",   // ★★ 2026-11-02 運営協力に参入
+  "../brand/Kawagani_s.webp", "../brand/StudioDOGA_s.webp",,   // ★★ 2026-11-02 運営協力に参入
+  /* ★★ 2026-11-17 オフラインで足りなかったもの（ご報告「XEVARION でオフラインでできないことがある」）：ページが読むのに一覧に無かった共通の部品・起動画面のロゴ。ほかのアプリの置き場にあっても、このアプリの SW は自分の置き場しか見ていなかった */
+  "./js/online.js?v=12", "../xeva-back.js?v=9", "../xeva-cloud.js?v=51", "../xeva-keys.js?v=36", "../xeva-presence.js?v=9", "../xevarion-fb.js?v=37",
 ] };

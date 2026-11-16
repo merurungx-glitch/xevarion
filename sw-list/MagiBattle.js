@@ -7,7 +7,7 @@
    ・core … オフライン用に先に取りこむファイル。パスは MagiBattle/sw.js から見た相対パスのまま
    ・MagiBattle/sw.js がこのファイルを importScripts で読む（しくみは sw-list/_shared.js の説明）
    ============================================================ */
-self.XEV_SW = { v: "magibattle-sw-v9", core: [
+self.XEV_SW = { v: "magibattle-sw-v10", core: [
   "./index.html",
   "./css/mb3.css?v=6",
   "./js/mb3-data.js?v=6",
@@ -148,4 +148,6 @@ self.XEV_SW = { v: "magibattle-sw-v9", core: [
   "../home-mate/lobby/mako.webp",
   "../home-mate/lobby/ako.webp",
   "../home-mate/lobby/mina.webp",
+  /* ★★ 2026-11-17 オフラインで足りなかったもの（ご報告「XEVARION でオフラインでできないことがある」）：ページが読むのに一覧に無かった共通の部品・起動画面のロゴ。ほかのアプリの置き場にあっても、このアプリの SW は自分の置き場しか見ていなかった */
+  "../app-cloud.js?v=15",
 ] };

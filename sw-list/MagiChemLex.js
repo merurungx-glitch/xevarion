@@ -7,7 +7,7 @@
    ・core … オフライン用に先に取りこむファイル。パスは MagiChemLex/sw.js から見た相対パスのまま
    ・MagiChemLex/sw.js がこのファイルを importScripts で読む（しくみは sw-list/_shared.js の説明）
    ============================================================ */
-self.XEV_SW = { v: "magichemlex-sw-v28", core: [
+self.XEV_SW = { v: "magichemlex-sw-v29", core: [
   "./index.html",
   "./manifest.webmanifest",
   "./css/mcl.css?v=20",
@@ -60,4 +60,6 @@ self.XEV_SW = { v: "magichemlex-sw-v28", core: [
   "../app-cloud.js?v=15",
   "../xeva-keys.js?v=36",
   "../xevarion-fb.js?v=37",
+  /* ★★ 2026-11-17 オフラインで足りなかったもの（ご報告「XEVARION でオフラインでできないことがある」）：ページが読むのに一覧に無かった共通の部品・起動画面のロゴ。ほかのアプリの置き場にあっても、このアプリの SW は自分の置き場しか見ていなかった */
+  "../brand/ISHIDA_s.webp?v=2", "../brand/Kawagani_s.webp", "../brand/MagicalFuture_s.webp?v=2", "../brand/NGX_s.webp?v=2", "../brand/StudioDOGA_s.webp", "../brand/YRA_s.webp", "../xeva-alive.js?v=9",
 ] };

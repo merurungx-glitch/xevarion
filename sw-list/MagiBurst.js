@@ -7,7 +7,7 @@
    ・core … オフライン用に先に取りこむファイル。パスは MagiBurst/sw.js から見た相対パスのまま
    ・MagiBurst/sw.js がこのファイルを importScripts で読む（しくみは sw-list/_shared.js の説明）
    ============================================================ */
-self.XEV_SW = { v: "magiburst-sw-v210", core: [
+self.XEV_SW = { v: "magiburst-sw-v211", core: [
   "./index.html",
   "./css/mb-ui2.css?v=26",
   "./css/localplay.css?v=7",
@@ -537,4 +537,6 @@ self.XEV_SW = { v: "magiburst-sw-v210", core: [
   "img/ss/ChizuruSS.webp",
   /* ★ 2026-08-12 サマーキャンペーン（初クリア💎2倍）の専用バナー */
   "img/bn_summer_s.webp",
+  /* ★★ 2026-11-17 オフラインで足りなかったもの（ご報告「XEVARION でオフラインでできないことがある」）：ページが読むのに一覧に無かった共通の部品・起動画面のロゴ。ほかのアプリの置き場にあっても、このアプリの SW は自分の置き場しか見ていなかった */
+  "./js/online.js?v=16", "../mb-newchars.js?v=44", "../xeva-back.js?v=9", "../xeva-cloud.js?v=51", "../xeva-presence.js?v=9", "../xeva-safebottom.js?v=12", "../xevarion-fb.js?v=37",
 ] };

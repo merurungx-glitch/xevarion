@@ -39,3 +39,68 @@ async function xevListNewer() {
     return now.core;
   } catch (e) { return null; }
 }
+
+/* ══ ★★ 2026-11-17 オフラインの取りこぼしを拾う（ご報告「XEVARION でオフラインでできないことがある」）══
+   オフラインで調べると、いくつかのアプリの SW が<b>自分の置き場しか見ていなかった</b>ため、
+   ほかのアプリの置き場には入っている共通の部品（xeva-cloud.js・xeva-back.js・mb-newchars.js・キャラの絵など）が読めず、
+   「オフラインのときだけ同期の部品・新キャラ・絵が欠ける」ことがあった（MagiBurst・ChainParty・XEVYNAR・Jackpot・Lotto・MagiMusic・MagiBattle・Boccia Rush）。
+   → 一覧（sw-list）に足りない部品を足したうえで、保険として<b>全部の SW に共通の網</b>を張る：
+     各 SW の fetch の答えが「取れない（504・通信の失敗）」だったときだけ、
+       ① 全部の置き場を URL ぴったりで → ② （軽量×オフラインでなければ）? ちがいも → ③ 大きいキャラの絵は小さい絵（t_）で
+     を探して返す。ふだん（取れたとき）は何もしない＝これまでの動きは変わらない。
+   ★ しかけ：このファイルは各 sw.js の<b>いちばん先</b>に読まれるので、ここで addEventListener("fetch") を包む
+     （各 SW の fetch の処理はそのまま。respondWith に渡された答えだけを、あとから見なおす）。 */
+function xevRescueOK(u) { return /\.(js|mjs|css|html?|webp|png|jpe?g|gif|svg|webmanifest|woff2?|ttf|mp3|m4a|ogg|wav)$/i.test(u.pathname) || /\/$/.test(u.pathname); }
+async function xevRescue(req, res) {
+  try {
+    if (res && res.status !== 504 && res.type !== "error") return res;
+    if (!req || req.method !== "GET") return res;
+    const u = new URL(req.url);
+    if (u.origin !== self.location.origin || u.pathname.indexOf("/sw-list/") >= 0) return res;
+    let hit = await caches.match(req);
+    const lite = typeof xevOffLite === "function" && xevOffLite();
+    if (!hit && !lite && xevRescueOK(u)) hit = await caches.match(req, { ignoreSearch: true });
+    if (!hit && /\/img\/(?!t_)[^/]+\.webp$/i.test(u.pathname)) {
+      const t = u.origin + u.pathname.replace(/\/([^/]+)$/, "/t_$1");
+      hit = (await caches.match(t)) || (await (await caches.open("xev-img-v1")).match(t, { ignoreSearch: true }));
+    }
+    return hit || res;
+  } catch (e) { return res; }
+}
+(function () {
+  const add = self.addEventListener.bind(self);
+  self.addEventListener = function (type, fn, opt) {
+    if (type !== "fetch" || typeof fn !== "function") return add(type, fn, opt);
+    return add(type, function (e) {
+      try {
+        const orig = e.respondWith.bind(e);
+        Object.defineProperty(e, "respondWith", {
+          configurable: true,
+          value: (p) => orig(Promise.resolve(p).then((r) => xevRescue(e.request, r), () => xevRescue(e.request, null).then((r) => r || Response.error()))),
+        });
+      } catch (err) { /* 包めないときは、これまでどおり */ }
+      return fn.call(this, e);
+    }, opt);
+  };
+})();
+
+/* ══ ★★ 2026-11-17 オフラインの準備ができているか（ホームの「オフライン」の画面が聞く）══
+   ご指定「XEVARION のダウンロード・更新・オフライン対応は XEVARION の中で」→ ホームがアプリごとに
+   「控えるファイル（一覧の core）のうち、いくつが置き場に入っているか」を聞けるようにする。
+   答え：{ type:"xev-status", scope, v（版）, total（一覧の数）, have（置き場にある数） } */
+self.addEventListener("message", (e) => {
+  const m = e.data;
+  if (!m || m.type !== "xev-status") return;
+  e.waitUntil((async () => {
+    const out = { type: "xev-status", scope: self.registration ? self.registration.scope : "", v: "", total: 0, have: 0 };
+    try {
+      const L = self.XEV_SW || {}, core = Array.isArray(L.core) ? L.core : [];
+      out.v = String(L.v || ""); out.total = core.length;
+      if (out.v && (await caches.has(out.v))) {
+        const c = await caches.open(out.v);
+        for (const u of core) { try { if (await c.match(u)) out.have++; } catch (err) {} }
+      }
+    } catch (err) {}
+    try { if (e.ports && e.ports[0]) e.ports[0].postMessage(out); else if (e.source) e.source.postMessage(out); } catch (err) {}
+  })());
+});

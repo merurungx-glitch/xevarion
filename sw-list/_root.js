@@ -7,7 +7,7 @@
    ・core … オフライン用に先に取りこむファイル。パスは sw.js（ルート） から見た相対パスのまま
    ・sw.js（ルート） がこのファイルを importScripts で読む（しくみは sw-list/_shared.js の説明）
    ============================================================ */
-self.XEV_SW = { v: "xevarion-sw-v266", core: [
+self.XEV_SW = { v: "xevarion-sw-v267", core: [
   "./",
   "./index.html",
   /* ★ 2026-08-11 apps.html（アプリ紹介ページ）は廃止しました */
@@ -16,7 +16,7 @@ self.XEV_SW = { v: "xevarion-sw-v266", core: [
   "./gacha.html",
   "./gacha-ui.js?v=72",
   "./mb-newchars.js?v=44",
-  "./xeva-devnotes.js?v=19",
+  "./xeva-devnotes.js?v=20",
   "./xeva-tour.js?v=5",   /* ★★ 2026-10-30 XEVARION ガイド（全機能の紹介・設定から／#guide） */
   "./xeva-favs.js?v=3",   /* ★★ 2026-11-03 お気に入りカード（図鑑・キャラ詳細の☆・ホーム・コミュニティ） */
   "./xeva-fav-traits.js?v=2",   /* ★★ 2026-11-05 好み診断の見た目の台帳（診断を開いたときだけ読む） */
@@ -72,7 +72,7 @@ self.XEV_SW = { v: "xevarion-sw-v266", core: [
   "./uwaki.css?v=1",
   "./thumbs/Uwaki.jpg",
   "./xevarion.js?v=116",
-  "./xevarion-home.js?v=185",
+  "./xevarion-home.js?v=186",
   /* ★★ 2026-09-24 ホームのロビーとパートナー。素材は home-mate/<id>/（?v= は home-mate.js の HM_VER）・笙古／瞳／舞香／衣織／樹愛羅／映美里（09-25 ボイス廃止・表情は webp） */
   "./gacha-live.js?v=14",
   "./home-mate.js?v=36",
@@ -202,6 +202,7 @@ self.XEV_SW = { v: "xevarion-sw-v266", core: [
   "./thumbs/MagiShift.jpg",
   "./thumbs/MagiQuiz.jpg?v=2",   /* ★★ 2026-10-23 新作 MagiQuiz */
   "./thumbs/MagiMarket.jpg?v=2",       /* ★★ 2026-11-08 新作 MagiMarket（XEVA 運用） */
+  "./thumbs/MagiGuraPlate.jpg", "./thumbs/XEVARIX.jpg", "./thumbs/XEVORA.jpg",   /* ★★ 2026-11-17 新作 MagiGura Plate・XEVARIX と XEVORA への入口 */
   "./thumbs/MagiAbyss.jpg?v=2",   // ★★ 2026-10-05 新作 MagiAbyss
   "./thumbs/NGX.jpg?v=2",         // ★★ 2026-10-31 NGX のアイコン（オフラインでも出るように）
   "./thumbs/ISHIDA.webp?v=2",      // ★★ 2026-10-09b ISHIDA のアイコン（小さい正方形）
@@ -239,4 +240,6 @@ self.XEV_SW = { v: "xevarion-sw-v266", core: [
   "./img/ld_a_bow.webp",
   "./img/ld_b_stand.webp",
   "./img/ld_b_bow.webp",
+  /* ★★ 2026-11-17 オフラインで足りなかったもの（ご報告「XEVARION でオフラインでできないことがある」）：ページが読むのに一覧に無かった共通の部品・起動画面のロゴ。ほかのアプリの置き場にあっても、このアプリの SW は自分の置き場しか見ていなかった */
+  "./MagiBurst/img/bn_premium_s.webp", "./thumbs/XEVA.png",
 ] };
