@@ -1,0 +1,14 @@
+{
+  "name": "MagiGura Plate",
+  "short_name": "MagiGura",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "any",
+  "background_color": "#090b1c",
+  "theme_color": "#090b1c",
+  "icons": [
+    { "src": "img/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "../thumbs/MagiGuraPlate.jpg", "sizes": "512x512", "type": "image/jpeg" }
+  ]
+}

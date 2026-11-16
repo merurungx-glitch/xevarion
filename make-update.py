@@ -43,7 +43,9 @@ SWS = ["sw.js", "MagiLex/sw.js", "MagiBurst/sw.js", "MagiChainParty/sw.js", "XEV
        # ★★ 2026-10-31 MagiBattle 3.0（作り直し）の SW
        "MagiBattle/sw.js",
        # ★★ 2026-11-08 新作 MagiMarket（キオクシアの株・ジェフ千葉の試合に XEVA）
-       "MagiMarket/sw.js"]
+       "MagiMarket/sw.js",
+       # ★★ 2026-11-17 新作 MagiGura Plate（1台を囲むバランス皿ゲーム・XEVARION へ）
+       "MagiGuraPlate/sw.js"]
 
 
 # ══════════════════════════════════════════════════════════════

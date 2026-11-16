@@ -4,28 +4,28 @@
 "v": "ishida-site-sw-v8"
 },
 "MagiAbyss/sw.js": {
-"sig": "1f1ab835ea2b98cc",
-"v": "magiabyss-sw-v26"
+"sig": "3b10e333a268f0d3",
+"v": "magiabyss-sw-v27"
 },
 "MagiBattle/sw.js": {
-"sig": "ddea08a4ea368c7f",
-"v": "magibattle-sw-v9"
+"sig": "287d8ebdcbca734b",
+"v": "magibattle-sw-v10"
 },
 "MagiBocciaRush/sw.js": {
-"sig": "c724525547096f07",
-"v": "boccia-sw-v59"
+"sig": "be02aa7c41e36c36",
+"v": "boccia-sw-v60"
 },
 "MagiBurst/sw.js": {
-"sig": "b53163c2607e519e",
-"v": "magiburst-sw-v210"
+"sig": "b713228e9208cb35",
+"v": "magiburst-sw-v211"
 },
 "MagiChainParty/sw.js": {
-"sig": "5286dd8509da6c37",
-"v": "chainparty-sw-v70"
+"sig": "5c1e59c9f36f8466",
+"v": "chainparty-sw-v71"
 },
 "MagiChemLex/sw.js": {
-"sig": "0cc4f0d4059414c7",
-"v": "magichemlex-sw-v28"
+"sig": "4ec08af937c6a4e7",
+"v": "magichemlex-sw-v29"
 },
 "MagiCounter/sw.js": {
 "sig": "b0d277babde2b3a4",
@@ -36,40 +36,44 @@
 "v": "magiderby-sw-v15"
 },
 "MagiDominionGrid/sw.js": {
-"sig": "11ea4df33632bf6e",
-"v": "mdgrid-sw-v42"
+"sig": "21713633b00c589c",
+"v": "mdgrid-sw-v43"
+},
+"MagiGuraPlate/sw.js": {
+"sig": "ac35cb1ae3bef311",
+"v": "magiguraplate-sw-v1"
 },
 "MagiJackpot/sw.js": {
-"sig": "e191420ee28a34be",
-"v": "magijackpot-sw-v66"
+"sig": "a4879271c08ccd6b",
+"v": "magijackpot-sw-v67"
 },
 "MagiLex/sw.js": {
-"sig": "21070293f9f71e11",
-"v": "magilex-sw-v139"
+"sig": "a09c682fa813a53b",
+"v": "magilex-sw-v140"
 },
 "MagiLotto/sw.js": {
-"sig": "22072b964b0261b3",
-"v": "magilotto-sw-v54"
+"sig": "6a026f1befbd26df",
+"v": "magilotto-sw-v55"
 },
 "MagiMarket/sw.js": {
 "sig": "3d6f746337524668",
 "v": "magimarket-sw-v4"
 },
 "MagiMusic/sw.js": {
-"sig": "10af7644bc406c8b",
-"v": "magimusic-sw-v42"
+"sig": "ff24d14af6b67477",
+"v": "magimusic-sw-v43"
 },
 "MagiQuiz/sw.js": {
 "sig": "995c1e1bcfa52728",
 "v": "magiquiz-sw-v16"
 },
 "MagiRail/sw.js": {
-"sig": "4d880adcfbc21b4f",
-"v": "magirail-sw-v18"
+"sig": "4d2248c933db0dca",
+"v": "magirail-sw-v19"
 },
 "MagiScope/sw.js": {
-"sig": "5c971084fff03d3f",
-"v": "magiscope-sw-v48"
+"sig": "bbf2c3f14fb2f098",
+"v": "magiscope-sw-v49"
 },
 "MagiShift/sw.js": {
 "sig": "20cc860e2967b49d",
@@ -80,11 +84,11 @@
 "v": "ngx-site-sw-v7"
 },
 "XEVYNAR/sw.js": {
-"sig": "14b76032fbb99f40",
-"v": "xevynar-sw-v77"
+"sig": "ec5e48d3d927fded",
+"v": "xevynar-sw-v78"
 },
 "sw.js": {
-"sig": "9e1d090782513ecc",
-"v": "xevarion-sw-v266"
+"sig": "81a5ffe7e9ddda71",
+"v": "xevarion-sw-v267"
 }
 }

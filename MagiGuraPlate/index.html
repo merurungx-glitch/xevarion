@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<script src="../maintenance-gate.js?v=13"></script>
+<meta charset="utf-8">
+<script>(function(){try{var a=JSON.parse(localStorage.getItem('xeva_account_v1'));if(!a||!a.setupDone)location.replace('../index.html');}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MagiGura Plate">
+<meta name="theme-color" content="#1561d6">
+<title>MagiGura Plate</title>
+<meta name="description" content="1台の iPad を囲んで 2〜8人で遊ぶバランスゲーム。かたむく皿に順番にコマを置いていこう。席の場所は名前と位置で決められ、XEVORA アカウントと連携すると順位で XEVA。">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="../thumbs/MagiGuraPlate.jpg" type="image/jpeg">
+<link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800;900&family=Baloo+2:wght@700;800&display=swap" rel="stylesheet">
+<script>
+/* ★★ 2026-11-17 XEVARION へ（ご指定）。オフライン対応は自分の Service Worker（sw.js・一覧は ../sw-list/MagiGuraPlate.js） */
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function () { navigator.serviceWorker.register("sw.js").catch(function () {}); });
+}
+</script>
+<link rel="stylesheet" href="css/style.css?v=2">
+<link rel="stylesheet" href="css/xevarion.css?v=1">
+<script src="../xeva-splash.js?v=22" data-app="MagiGuraPlate" data-logo="../thumbs/MagiGuraPlate.jpg"></script>
+</head>
+<body data-scr="titleScr">
+<!-- ══════════════════════════════════════════════════════════════
+     ★★ 2026-11-17 MagiGura Plate を XEVARION に（ご指定）
+     ・「MagiQuiz のようなアカウント紐づけと、名前やアイコンなどを設定する機能」→ ① メンバー（js/setup.js）・賞金と戦績（js/account.js）
+     ・「ゲームのプレイで席の場所を名前と位置で設定できるように」→ ② 席（iPad のまわりの10か所から、だれがどこに座るか・番は時計まわり）
+     ・「はじめからゲームへの画面は MagiQuiz のように全画面で同じに」→ はじめの画面と準備の3段は全画面（#front）。色はロゴの青
+     ・「曲を使ってよい・曲はオフも可能」→ BGM（js/bgm.js）：オリジナル曲／自分の曲（この端末だけ）／オフ
+     ・ゲームのルール・物理（js/physics.js・render.js・audio.js）は XEVARION の外の MagiGura Plate と同じ
+     ══════════════════════════════════════════════════════════════ -->
+<canvas id="cv"></canvas>
+<div id="probe"></div>
+<div id="seats"></div>
+<div id="fly"></div>
+<button id="menuBtn" class="hidden" aria-label="メニュー"><i></i><i></i><i></i></button>
+
+<!-- はじめの画面・準備（全画面・中身は js/setup.js が描く） -->
+<div id="front" class="front on">
+  <div class="bg" aria-hidden="true"><i class="bg-rays"></i><i class="bg-grad"></i></div>
+  <section id="titleScr" class="scr"></section>
+  <section id="setupScr" class="scr"></section>
+</div>
+
+<!-- あそびかた -->
+<div id="howto" class="ov hidden">
+  <div class="panel wide">
+    <h2>あそびかた</h2>
+    <ol class="steps">
+      <li>自分の番がきたら、手持ちのコマを1つ<b>皿まで引っぱって</b>置く。<small>四角・三角・棒は<b>向きを変えられる</b>。手持ちをタップするか、つまんだまま<b>もう1本の指でひねる</b>（タップなら少しずつ）。</small></li>
+      <li>コマの<b>上にも置ける</b>（2段まで）。<small>上のコマのまん中が、下のコマに乗っていること。乗せられるコマは<b>黄色く光る</b>。</small></li>
+      <li>皿は重さで<b>かたむく</b>。かたむきすぎるとコマが<b>すべって落ちる</b>。</li>
+      <li>落ちたコマは、<b>落とした人の手持ち</b>になる。</li>
+      <li>手持ちを<b>全部置いた人の勝ち</b>。</li>
+    </ol>
+    <div class="legend" id="legend"></div>
+    <p class="tip">コマが増えるほど皿はグラグラになります。まん中の水準器の<b>泡は高い側（軽い側）</b>へ動きます。泡が色の輪を越えると、その色のコマがすべり出します。</p>
+    <p class="tip">重ねたコマは、<b>下のコマの材質</b>ですべりやすさが変わります（氷の上はよくすべる・ゴムの上は止まる・木の上は皿と同じ）。下のコマがすべると上のコマもいっしょに運ばれます。高く積むほど皿はグラグラになります。</p>
+    <p class="tip"><b>メンバーと席</b>：名前・アイコン・座る場所（iPad のまわりの10か所）を決められます。番は席の<b>時計まわり</b>。XEVORA アカウントと連携するか「この端末の本人」にすると、<b>順位で XEVA</b>がもらえます。</p>
+    <button id="howClose" class="big">とじる</button>
+  </div>
+</div>
+
+<!-- メニュー -->
+<div id="menu" class="ov hidden">
+  <div class="panel narrow">
+    <h2>メニュー</h2>
+    <button id="mResume" class="big">つづける</button>
+    <button id="mRestart" class="sub wide">はじめから</button>
+    <button id="mTitle" class="sub wide">はじめの画面へ（メンバーと席）</button>
+    <button id="mHow" class="sub wide">あそびかた</button>
+    <button id="mBgm" class="sub wide">BGM：オリジナル曲</button>
+    <button id="mSound" class="sub wide">効果音：ON</button>
+  </div>
+</div>
+
+<!-- けっか -->
+<div id="over" class="ov hidden">
+  <div class="panel narrow" id="overPanel">
+    <div class="crown"></div>
+    <h2 id="overTitle" class="otitle"></h2>
+    <ol id="rank" class="rank"></ol>
+    <p class="hint" id="overNote"></p>
+    <button id="againBtn" class="big">もういちど</button>
+    <button id="backBtn" class="sub wide">はじめの画面へ</button>
+  </div>
+</div>
+
+<!-- アイコン・連携・記録・設定のシート -->
+<div id="sheetOv" class="sov hidden"><div class="sheet" id="sheet"></div></div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<!-- ★★ 2026-11-17 自分の曲をえらぶ（この端末にだけ入れる） -->
+<input type="file" id="bgmFile" accept="audio/*,.m4a,.mp3,.aac,.wav,.ogg" hidden>
+
+<script type="module" src="../xevarion-fb.js?v=37"></script>
+<!-- 賞金の XEVA をクラウドへ送るため xeva-cloud.js も読む（ログインなしでも遊べるようにホームへは戻さない） -->
+<script>window.XEVA_CLOUD_NO_GATE = true;</script>
+<script type="module" src="../xeva-cloud.js?v=51"></script>
+<script src="../xeva.js?v=87"></script>
+<script src="../xeva-loading.js?v=19" defer></script>
+<script src="../game-link.js?v=13"></script>
+<script src="js/physics.js?v=2"></script>
+<script src="js/render.js?v=2"></script>
+<script src="js/audio.js?v=3"></script>
+<script src="js/bgm.js?v=1"></script>
+<script src="js/account.js?v=1"></script>
+<script src="js/setup.js?v=1"></script>
+<script src="js/game.js?v=3"></script>
+<script src="../xeva-back.js?v=9" data-mode="hook"></script>
+</body>
+</html>

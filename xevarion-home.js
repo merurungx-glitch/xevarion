@@ -61,8 +61,20 @@ const XH_OFFLINE_OK = {
   ngx:             { name: "NGX",            href: "NGX/NGX_website.html",       sw: "NGX/sw.js" },
   ishida:          { name: "ISHIDA",         href: "IshidaProduction/index.html", sw: "IshidaProduction/sw.js" },
   /* ★★ 2026-10-31 MagiBattle 3.0（MagiBattle/sw.js が画面・絵・音を全部キャッシュ。アリーナと迎撃戦のランキングだけ通信） */
-  magibattle:      { name: "MagiBattle",     href: "MagiBattle/index.html",      sw: "MagiBattle/sw.js" }
+  magibattle:      { name: "MagiBattle",     href: "MagiBattle/index.html",      sw: "MagiBattle/sw.js" },
+  /* ★★ 2026-11-17 MagiGura Plate を XEVARION に（ご指定）。1台を囲んで遊ぶので通信は要らない（アカウントの連携と賞金だけ通信を使う） */
+  magiguraplate:   { name: "GuraPlate",      href: "MagiGuraPlate/index.html",   sw: "MagiGuraPlate/sw.js" }
 };
+/* ══ ★★ 2026-11-17 ご指定「XEVARION からも XEVARIX や XEVORA にアクセス可能に」══
+   XEVARIX（OS 型アプリ・β版）と XEVORA（XEVORA アカウントとランチャー）は、XEVARION と同じ場所（GitHub Pages の同じアカウント）のとなりに置く。
+   ・公開した XEVARION（…/xevarion/）からは ../xevarix/・../xevora/ を開く（同じオリジン＝ログインの目印も共有）。
+   ・手元の試験（localhost でルートに XEVARION）では、となりが無いので公開先を開く。
+   ★ ダウンロード・更新・オフライン対応は、それぞれのアプリの中で行う（ご指定。XEVORA はアカウントとランチャーだけ）。 */
+function xhSiteURL(name, hash) {
+  let onSite = false;
+  try { onSite = location.pathname.toLowerCase().indexOf("/xevarion/") >= 0; } catch (e) {}
+  return (onSite ? "../" + name + "/" : "https://merurungx-glitch.github.io/" + name + "/") + (hash || "");
+}
 /* オフラインでも遊べるアプリの名前を「◯◯ ／ ◯◯」でつなぐ。
    ★★ 2026-09-13c <b>案内の文面を手で書かない</b>ためのもの。
      これまで3か所に名前を直書きしていたので、台帳に足しても文面が古いままだった。 */
@@ -199,6 +211,17 @@ const XH_APPS = [
   { id:"ordyxis", name:"ORDYXIS", sub:"店頭オーダー", cat:"shop", tone:"red",
     href:"ORDYXIS/index.html", img:"thumbs/Ordyxis.jpg",
     desc:"店頭オンラインオーダーシステム。お客様の端末から注文し、店舗で受付・番号でお呼び出し。ハブ画面から各画面へ。" },
+  /* ★★ 2026-11-17 新作 MagiGura Plate（ご指定「XEVARION へ実装・MagiQuiz のようなアカウント紐づけと名前やアイコンの設定」「席の場所を名前と位置で」） */
+  { id:"magiguraplate", name:"GuraPlate", full:"MagiGura Plate", sub:"バランス皿ゲーム", cat:"game", tone:"gold", newUntil:"2026-12-01",
+    href:"MagiGuraPlate/index.html", img:"thumbs/MagiGuraPlate.jpg",
+    desc:"1台の iPad をテーブルのまん中に置いて 2〜8人で遊ぶバランスゲーム。かたむく皿に順番にコマを置き、落としたコマは自分の手持ちへ。手持ちを全部置いた人の勝ち。コマは5種類（木の丸・棒・氷・ゴム・鉄）・向きを変えて・重ねて置けます。<b>席の場所は名前と位置で決められ</b>、XEVORA アカウントと連携すると順位で XEVA（この端末の本人はチェックだけでオフラインでも）。オフラインOK。" },
+  /* ★★ 2026-11-17 ご指定「XEVARION からも XEVARIX や XEVORA にアクセス可能に」（となりのサイトを開く・xhSiteURL） */
+  { id:"xevarix", name:"XEVARIX", full:"XEVARIX", sub:"アプリの形をした OS", cat:"shop", tone:"blue", beta: true, ext: true,
+    href: xhSiteURL("xevarix"), img:"thumbs/XEVARIX.jpg",
+    desc:"NGX × ISHIDA Production の「アプリの形をした OS」（β版）。ホームを自由に並べられ、端末の中で動く AI つき。XEVORA アカウントで使います。ダウンロードと更新は XEVARIX の中で。" },
+  { id:"xevora", name:"XEVORA", full:"XEVORA", sub:"アカウントとランチャー", cat:"shop", tone:"violet", ext: true,
+    href: xhSiteURL("xevora"), img:"thumbs/XEVORA.jpg",
+    desc:"XEVORA アカウントの作成・管理と、XEVARIX・XEVARION を開くランチャー。新しいアカウントはここで作ります。" },
   { id:"ngx", name:"NGX", sub:"公式サイト", cat:"shop", tone:"blue",
     href:"NGX/NGX_website.html", img:"thumbs/NGX.jpg?v=2",
     desc:"XEVARION を開発・運営する NGX の公式サイト。最新情報・沿革・会社概要はこちら。" },
@@ -251,6 +274,8 @@ const XH_DEFAULT_ORDER = [
   "magicounter",
   /* ★★ 2026-11-08 新作 MagiMarket（XEVA 運用） */
   "magimarket",
+  /* ★★ 2026-11-17 新作 MagiGura Plate（1台を囲むバランス皿ゲーム） */
+  "magiguraplate",
   /* ゲーム（★★ 2026-11-05 MagiBattle は MagiQuiz のいた場所へ） */
   "magibattle", "magidominiongrid", "magijackpot", "magilotto",
   "magirail", "magicraft", "magimanor", "magiempire", "magiarena",   /* ★★ 2026-10-23 MagiQuiz を MagiArena の場所に・MagiArena はゲームの最後へ（ご指定）→ 10-24 MagiQuiz はロビーの2行目の先頭へ */
@@ -258,8 +283,8 @@ const XH_DEFAULT_ORDER = [
   "xevynar", "magifocus",
   /* 情報・ツール */
   "magitier", "magimusic", "magiportfolio", "magiranking",
-  /* 会社・お店 */
-  "ordyxis", "ngx", "ishida", "magicalfuture",
+  /* 会社・お店（★★ 2026-11-17 XEVARIX・XEVORA を NGX の前に） */
+  "ordyxis", "xevarix", "xevora", "ngx", "ishida", "magicalfuture",
 ];
 /* ★★ 2026-09-21 ホームに出すアプリを1列（4つ）増やして 15 個に（ご指定）。
    ホームの棚は4列なので、11＋「その他」＝3列だったのが 15＋「その他」＝4列になる。 */
@@ -526,6 +551,13 @@ XH_EVENTS.unshift({ tag:"EVENT", t1:"Midnight Pumpkin", t2:"イベントミッ�
    ══════════════════════════════════════════════════════════════ */
 const XH_UPDATE_MAX = 12;
 const XH_UPDATES = [
+  /* ★★ 2026-11-17 新作 MagiGura Plate・オフラインの直し・XEVARIX/XEVORA への入口 */
+  { tag:"NEW", t1:"新作 MagiGura Plate", at:"2026-11-17",
+    t2:"1台の iPad を囲んで 2〜8人のバランス皿ゲーム。名前・アイコン・アカウント連携・席の場所（名前と位置）を決めて遊ぶ。順位で XEVA・オフラインOK",
+    href:"MagiGuraPlate/index.html", img:"thumbs/MagiGuraPlate.jpg" },
+  { tag:"UPDATE", t1:"オフラインの直し・XEVARIX と XEVORA への入口", at:"2026-11-17",
+    t2:"オフラインで一部のアプリの部品や絵が読めなかったのを直しました（設定 → オフライン・通信設定 でアプリごとの準備がわかります）。メニューの「店舗・公式」と設定から XEVARIX（β版）・XEVORA を開けます",
+    href:"", img:"thumbs/XEVARIX.jpg" },
   /* ★★ 2026-11-08 新作 MagiMarket・ジェフ千葉のホームデザイン・MagiQuiz（早押し・2台で対戦・司会キャラ・賞金）
      ★ 11-05 の3回目（早押しバトル）は配信の前に止まっていたので、ここにまとめた */
   { tag:"NEW", t1:"新アプリ MagiMarket（XEVA 運用・β版）", at:"2026-11-08",
@@ -3153,7 +3185,7 @@ function xhPaintAppList() {
 window.xhPaintAppList = xhPaintAppList;
 
 function xhAppRow(a, off) {
-  const locked = off && !XH_OFFLINE_OK[a.id];
+  const locked = off && !xhOfflineOpenable(a.id);
   return '<button class="xh-aitem' + (locked ? " locked" : "") + '" data-app="' + a.id + '" ' +
     'onclick="xhOpenApp(\'' + a.id + "','" + a.href + "')\">" +
     '<span class="ai-ic"><img src="' + xhEscape(xhAppIconSrc(a)) + '" alt="" loading="lazy"></span>' +
@@ -3636,7 +3668,7 @@ function xhApplyOfflineLocks() {
   document.body.classList.toggle("xh-off", off);
   document.querySelectorAll(".xh-app").forEach((el) => {
     const id = el.dataset.app;
-    el.classList.toggle("locked", off && id !== "more" && !XH_OFFLINE_OK[id]);
+    el.classList.toggle("locked", off && id !== "more" && !xhOfflineOpenable(id));
   });
   /* ★★ 2026-09-13c <b>ガチャはオフラインでも引ける</b>（ご指定）。
      ------------------------------------------------------------
@@ -3667,15 +3699,38 @@ function xhOpenApp(id, href) {
   /* ★★ 2026-08-22b 更新の印は「そのアプリに入ったら消す」（ご指定）。
      ★ 実際に開けたときだけ消すこと。オフラインで開けなかったときに消すと、
        次に開いたときには印が無く「更新に気づけない」が起きる。 */
-  if (!xhOnline() && !XH_OFFLINE_OK[id]) {
+  if (!xhOnline() && !xhOfflineOpenable(id)) {
     xhToast("📴 オフライン中は開けません<br><span style='font-size:11px;font-weight:700;color:#6f82ad'>" +
             xhOfflineOkNames(6) + " は遊べます</span>", 3200);
+    return;
+  }
+  /* ★★ 2026-11-17 オフラインのとき、この端末にまだオフライン用のデータが入っていないアプリは開かない
+     （開いても真っ白・「オフラインです」になるだけ＝ご報告「オフラインでできないことがある」）。オンラインのときに 設定 → オフライン でダウンロード */
+  if (!xhOnline() && XH_OFFLINE_OK[id] && xhOffReady(id) === 0) {
+    xhToast("📥 " + xhEscape(XH_OFFLINE_OK[id].name) + " のオフライン用データがまだ入っていません<br><span style='font-size:11px;font-weight:700;color:#6f82ad'>オンラインのときに 設定 → オフライン・通信設定 → 「オフライン用にダウンロード」</span>", 3600);
     return;
   }
   try { xhMarkClear(id); } catch (e) {}
   location.href = href;
 }
 window.xhOpenApp = xhOpenApp;
+/* ★★ 2026-11-17 設定の「XEVORA・XEVARIX」から開く（アプリの一覧のタイルと同じ xhOpenApp を通す＝オフラインの判定も同じ） */
+function xhOpenSite(name) {
+  const a = xhApp(name); if (!a) return;
+  try { xhCloseSheet("xhSetSheet"); } catch (e) {}
+  xhOpenApp(a.id, a.href);
+}
+window.xhOpenSite = xhOpenSite;
+/* ★★ 2026-11-17 オフラインで開けるか：オフライン対応の台帳のアプリ＋XEVARIX（この端末に XEVARIX の SW が入っていれば・同じオリジン） */
+let _xhXvxOffline = false;
+function xhOfflineOpenable(id) { return !!(XH_OFFLINE_OK[id] || (id === "xevarix" && _xhXvxOffline)); }
+async function xhCheckXvxOffline() {
+  try {
+    if (!("serviceWorker" in navigator)) return;
+    const regs = await navigator.serviceWorker.getRegistrations();
+    _xhXvxOffline = regs.some((r) => /\/xevarix\/$/i.test(r.scope || ""));
+  } catch (e) {}
+}
 
 /* ══════════════════════════════════════════════════════════════
    ★★ 2026-10-01 XEVARION PARK を開く前に、推奨環境（パソコン・スマホ）と注意を出す（ご指定「推奨スペックの表示は PARK を開く前に」）
@@ -4502,26 +4557,78 @@ function xhOpenOfflineInfo() {
 }
 window.xhOpenOfflineInfo = xhOpenOfflineInfo;
 
+/* ══ ★★ 2026-11-17 オフラインの準備を「本当に入っているか」で見る（ご指定「ダウンロード・更新・オフライン対応はそれぞれのアプリ内で」）══
+   前は「SW が登録されているか」だけで「準備完了」と出していた（ファイルが入りきっていなくても完了と出た）。
+   → 各 SW に「一覧（core）のうち、いくつ置き場に入っているか」を聞く（sw-list/_shared.js の xev-status）。
+   ・結果は端末に控える（xeva_off_ready_v1）：オフラインでアプリを押したとき、まだ何も入っていないアプリは開かずに案内する（xhOpenApp）。
+   ・st：0＝入っていない／1＝一部だけ・ダウンロード中／2＝準備完了／3＝入っている（前の版の SW なので数は分からない）。 */
+const XH_OFF_READY_KEY = "xeva_off_ready_v1";
+function xhOffReady(id) {
+  try { const m = JSON.parse(localStorage.getItem(XH_OFF_READY_KEY) || "null"); if (m && m.s && id in m.s) return m.s[id] | 0; } catch (e) {}
+  return -1;   /* まだ調べていない＝止めない */
+}
+function xhAskSwStatus(sw) {
+  return new Promise((res) => {
+    if (!sw) { res(null); return; }
+    let done = false;
+    const fin = (v) => { if (!done) { done = true; res(v); } };
+    try {
+      const ch = new MessageChannel();
+      ch.port1.onmessage = (e) => fin(e.data && e.data.type === "xev-status" ? e.data : null);
+      sw.postMessage({ type: "xev-status" }, [ch.port2]);
+    } catch (e) { fin(null); return; }
+    setTimeout(() => fin(null), 4000);
+  });
+}
+async function xhOffStatusAll() {
+  const out = {};
+  if (!("serviceWorker" in navigator)) return out;
+  let regs = [];
+  try { regs = await navigator.serviceWorker.getRegistrations(); } catch (e) {}
+  const byScope = {};
+  regs.forEach((r) => { byScope[r.scope || ""] = r; });
+  const items = [["home", "sw.js"]].concat(Object.keys(XH_OFFLINE_OK).map((id) => [id, XH_OFFLINE_OK[id].sw]));
+  await Promise.all(items.map(async (it) => {
+    const id = it[0], sw = it[1];
+    let scope = "";
+    try { scope = new URL(sw.slice(0, sw.lastIndexOf("/") + 1) || "./", location.href).href; } catch (e) {}
+    const r = byScope[scope];
+    if (!r) { out[id] = { st: 0 }; return; }
+    const s = await xhAskSwStatus(r.active || r.waiting || r.installing);
+    if (!s || !s.total) { out[id] = { st: r.active ? 3 : 1 }; return; }
+    out[id] = { st: s.have >= s.total ? 2 : 1, have: s.have | 0, total: s.total | 0 };
+  }));
+  try { const s = {}; Object.keys(out).forEach((k) => { s[k] = out[k].st; }); localStorage.setItem(XH_OFF_READY_KEY, JSON.stringify({ at: Date.now(), s })); } catch (e) {}
+  return out;
+}
+window.xhOffStatusAll = xhOffStatusAll;
 function xhPaintOfflineList() {
   const box = xhEl("xhOffList"); if (!box) return;
-  box.innerHTML = Object.keys(XH_OFFLINE_OK).map((id) => {
-    const a = XH_OFFLINE_OK[id];
-    return '<div class="xh-row" style="cursor:default"><span class="rl">' +
-      '<span><span class="rt">' + xhEscape(a.name) + '</span>' +
+  const ids = ["home"].concat(Object.keys(XH_OFFLINE_OK));
+  const nm = (id) => (id === "home" ? "XEVARION ホーム（ガチャ・図鑑）" : XH_OFFLINE_OK[id].name);
+  box.innerHTML = '<div class="xh-sortnote" id="xhOffSum" style="margin-bottom:6px">オフラインの準備を確認しています…</div>' + ids.map((id) =>
+    '<div class="xh-row" style="cursor:default"><span class="rl">' +
+      '<span><span class="rt">' + xhEscape(nm(id)) + '</span>' +
       '<span class="rs" id="xhOffS-' + id + '">確認中…</span></span></span>' +
-      '<span class="rv" id="xhOffV-' + id + '">—</span></div>';
-  }).join("");
-  Object.keys(XH_OFFLINE_OK).forEach(async (id) => {
-    let ready = false;
-    try {
-      const regs = await navigator.serviceWorker.getRegistrations();
-      // scope は "…/MagiLex/" のような形。id は小文字なので両方を小文字にして比較する
-      ready = regs.some((r) => (r.scope || "").toLowerCase().indexOf("/" + id + "/") >= 0);
-    } catch (e) {}
-    const s = xhEl("xhOffS-" + id), v = xhEl("xhOffV-" + id);
-    if (s) s.textContent = ready ? "オフラインで起動できます" : "未ダウンロード";
-    if (v) { v.textContent = ready ? "✓ 準備完了" : "未準備"; v.style.color = ready ? "#12a97a" : "#e08a2e"; }
-  });
+      '<span class="rv" id="xhOffV-' + id + '">—</span></div>').join("");
+  xhOffStatusAll().then((st) => {
+    let ready = 0;
+    ids.forEach((id) => {
+      const o = st[id] || { st: 0 };
+      const s = xhEl("xhOffS-" + id), v = xhEl("xhOffV-" + id);
+      let t1, t2, col;
+      if (o.st === 2) { ready++; t1 = "オフラインで起動できます（" + o.have + " / " + o.total + " ファイル）"; t2 = "✓ 準備完了"; col = "#12a97a"; }
+      else if (o.st === 3) { ready++; t1 = "オフライン用のデータが入っています"; t2 = "✓ 入っています"; col = "#12a97a"; }
+      else if (o.st === 1) { t1 = o.total ? "一部だけ入っています（" + o.have + " / " + o.total + " ファイル）" : "ダウンロード中…"; t2 = "途中"; col = "#e08a2e"; }
+      else { t1 = "まだ入っていません"; t2 = "未ダウンロード"; col = "#e05a7a"; }
+      if (s) s.textContent = t1;
+      if (v) { v.textContent = t2; v.style.color = col; }
+    });
+    const sum = xhEl("xhOffSum");
+    if (sum) sum.innerHTML = ready >= ids.length
+      ? "✅ <b>オフラインの準備ができています</b>（" + ready + " / " + ids.length + "）。機内モードでも、ここに並んでいるアプリが開けます。"
+      : "⚠ <b>オフラインの準備がまだ終わっていません</b>（" + ready + " / " + ids.length + "）。オンラインのときに下の「オフライン用にダウンロード」を押してください。";
+  }).catch(() => {});
 }
 
 /* ══════════════════════════════════════════════════════════════
@@ -4614,16 +4721,14 @@ async function xhAskBigDownload(what) {
 }
 window.xhAskBigDownload = xhAskBigDownload;
 
+/* ★★ 2026-11-17 「オフライン用にダウンロード」は、更新と同じダウンロード（xhRedownloadOffline＝進み具合のバーつき・足りないファイルだけ）にまとめた。
+   前は SW を登録するだけで、入りきったかどうか分からなかった（文面も「3アプリ」のままだった）。 */
 async function xhPrepareOffline() {
-  const msg = xhEl("xhOffMsg"), btn = xhEl("xhOffPrep");
+  const msg = xhEl("xhOffMsg");
   if (!xhOnline()) { if (msg) msg.textContent = "オンラインのときにダウンロードしてください。"; return; }
   if (!(await xhAskBigDownload("オフライン用のデータ"))) return;   /* ★ 2026-08-20 通信設定 */
-  if (btn) { btn.disabled = true; btn.textContent = "ダウンロード中…"; }
-  const ok = await xhRegisterAppSWs();
-  if (btn) { btn.disabled = false; btn.textContent = "オフライン用にダウンロード"; }
-  if (msg) msg.textContent = ok ? "3アプリのダウンロードを開始しました。完了後は機内モードでも遊べます。"
-                                : "この環境では Service Worker を利用できません。";
-  setTimeout(xhPaintOfflineList, 1500);
+  if (!("serviceWorker" in navigator)) { if (msg) msg.textContent = "この環境では Service Worker を利用できません。"; return; }
+  xhRedownloadOffline();
 }
 window.xhPrepareOffline = xhPrepareOffline;
 
@@ -6118,8 +6223,8 @@ async function xhRedownloadOffline() {
   if (!xhOnline()) { xhToast("オンラインのときにダウンロードしてください"); return; }
   const ok = await xhAsk({
     icon: "⬇",
-    title: "オフライン用に再ダウンロード",
-    body: "オフラインで遊べるアプリのデータを、もう一度そろえ直します。<br>" +
+    title: "オフライン用にダウンロード",
+    body: "オフラインで遊べるアプリ（" + Object.keys(XH_OFFLINE_OK).length + " 本）とホームのデータを、この端末に入れます。<br>" +
           "<b>端末に無いファイルだけ</b>を落とすので、そろっていれば通信はほとんど発生しません。<br>" +
           "<b>セーブデータ（進行・所持キャラ）はそのまま</b>です。",
     ok: "ダウンロード", cancel: "やめる",
@@ -6130,7 +6235,7 @@ async function xhRedownloadOffline() {
 
   /* 更新シートの見た目を借りる（進み具合のバーが一式そろっているため） */
   const t = xhEl("xhUpdTitle"); if (t) t.textContent = "オフライン用にダウンロードします";
-  const hd = xhEl("xhUpdHead"); if (hd) hd.textContent = "⬇ 再ダウンロード";
+  const hd = xhEl("xhUpdHead"); if (hd) hd.textContent = "⬇ オフライン用のデータ";
   const v = xhEl("xhUpdVer"); if (v) v.textContent = "オフライン対応アプリ " + Object.keys(XH_OFFLINE_OK).length + " 本";
   const ul = xhEl("xhUpdNotes");
   if (ul) {
@@ -6254,6 +6359,8 @@ async function xhDownloadCore(paint) {
   /* ★★ 2026-11-11 要らなくなったファイルの削除（xhCleanStale） */
   let clean = null;
   try { clean = await xhCleanStale(); } catch (e) {}
+  /* ★★ 2026-11-17 オフラインの準備（アプリごとに入りきったか）を控えなおす（オフラインで開く前の確認・設定の一覧に使う） */
+  setTimeout(() => { try { xhOffStatusAll().catch(() => {}); } catch (e) {} }, 1500);
   return { msg: endMsg, tally: xhUpdTally(), clean };
 }
 
@@ -7025,7 +7132,7 @@ function xhAiPickApps(raw) {
   const q = xhAiNorm(raw);
   const want = [];
   if (/2人|ふたり|二人|3人|さんにん|三人|4人|よにん|四人|5人|6人|みんな|複数|ぱーてぃ|party|囲ん|大人数/.test(q))
-    want.push("magiquiz", "magijackpot", "magichainparty", "magiempire");
+    want.push("magiquiz", "magiguraplate", "magijackpot", "magichainparty", "magiempire");
   if (/一人|ひとり|1人|そろ|solo|暇|ひま|退屈|時間つぶし/.test(q))
     want.push("magiburst", "magijackpot", "magicraft", "magimanor", "magibattle");
   if (/短|さくっ|すぐ|軽く|5分|10分|すきま/.test(q)) want.push("magiburst", "magilex", "magijackpot", "magichainparty");
@@ -7069,6 +7176,9 @@ const XH_APP_ALIAS = {
   ordyxis: ["おるでぃくしす", "ordyxis", "ちゅうもん", "注文", "おーだー"],
   magiarena: ["ありーな", "arena", "おせろ", "ごもくならべ"],
   magiquiz: ["まじくいず", "くいず", "quiz", "たわー", "すこあ", "ばくだん", "爆弾", "はやおし"],
+  magiguraplate: ["まじぐら", "ぐらぷれーと", "ぐら", "guraplate", "ばらんす", "皿", "さら", "こま"],
+  xevarix: ["ぜばりっくす", "xevarix", "os", "おーえす"],
+  xevora: ["ぜぼら", "xevora", "あかうんと", "アカウント", "らんちゃー"],
   magijackpot: ["じゃっくぽっと", "jackpot", "かじの", "casino", "すろっと", "slot", "るーれっと", "ぽーかー", "びんご", "ぶらっくじゃっく"],
   magifocus: ["ふぉーかす", "focus"],
   magimusic: ["みゅーじっく", "music", "おんがくぷれいやー"],
@@ -7542,6 +7652,11 @@ function xhShow() {
         if (!pending && xhOnline()) xhRegisterAppSWs();
       }).catch(() => { _xhUpdChecked = true; if (xhOnline()) xhRegisterAppSWs(); });
     }, 1200);
+    /* ★★ 2026-11-17 オフラインの準備を控える（オフラインでも調べられる＝置き場は端末の中）・XEVARIX が入っているか */
+    setTimeout(() => {
+      try { xhCheckXvxOffline().then(() => { try { xhApplyOfflineLocks(); } catch (e) {} }); } catch (e) {}
+      try { xhOffStatusAll().catch(() => {}); } catch (e) {}
+    }, 5200);
   }
   xhRenderShelf();
   xhRenderProfile();

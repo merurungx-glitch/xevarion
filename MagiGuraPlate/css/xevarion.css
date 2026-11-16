@@ -1,0 +1,282 @@
+/* ══════════════════════════════════════════════════════════════
+   MagiGura Plate — XEVARION 版の見た目（style.css のあとに読む）
+   ★★ 2026-11-17
+   ・はじめの画面と準備（① メンバー ② 席 ③ ルール）は、ご指定「MagiQuiz のように全画面で同じに」
+     → MagiQuiz（MagiQuiz/css/quiz.css）と同じ作り：放射の地・左上に XEVARION へ・上に手順の札・白いカード・下に黄色いボタン。
+       色は MagiGura Plate のロゴの青（MagiQuiz の紫のかわり）。
+   ・席の札の名前とアイコン・けっかの賞金・シート（アイコン・連携・記録・設定）・BGM
+   ・スクロールバー（ご指定）：青い地＝黄色のつまみ／白い札＝青のつまみ
+   ══════════════════════════════════════════════════════════════ */
+:root {
+  --v1: #1f7af0; --vl: #3b93ff; --v2: #1561d6; --v3: #0b3f9f; --v4: #0a2563; --vs: #eef4ff; --vs2: #dce9ff;
+  --y: #ffd447; --y2: #ffc22e; --y3: #c98a0b;
+  --ink: #10183c; --sub: #5b6b95; --mute: #9aa8c8; --line: #dbe5f7;
+  --ok: #12b76a; --okS: #dcf9ea; --ng: #f0405a;
+  --sh: 0 2px 4px rgba(10, 30, 90, 0.08), 0 10px 26px rgba(10, 30, 90, 0.2);
+  --ease: cubic-bezier(.2, .8, .2, 1); --spring: cubic-bezier(.34, 1.56, .64, 1);
+  --safet: env(safe-area-inset-top, 0px); --safeb: var(--xv-safeb, env(safe-area-inset-bottom, 0px));
+  --pl: max(14px, env(safe-area-inset-left, 0px)); --pr: max(14px, env(safe-area-inset-right, 0px));
+  --font: 'M PLUS Rounded 1c', 'Noto Sans JP', system-ui, -apple-system, 'Hiragino Maru Gothic ProN', 'Hiragino Sans', sans-serif;
+  --logo: 'Baloo 2', 'Arial Rounded MT Bold', 'M PLUS Rounded 1c', sans-serif;
+}
+/* 起動の画面もロゴの青に（xeva-splash.js の変数を上書き） */
+#xevaSplash { --xs-bg: linear-gradient(160deg, #3b93ff, #0b3f9f) !important; --xs-a: #3b93ff !important; --xs-b: #0b3f9f !important; --xs-ink: #ffd447 !important; --xs-amp: #ffd447 !important; --xs-cap: #dce9ff !important; --xs-fill: linear-gradient(135deg, #ffe680, #ffc22e) !important; --xs-track: rgba(255, 255, 255, .22) !important; --xs-sh: rgba(5, 25, 90, .4) !important; --xs-appsh: rgba(5, 25, 90, .4) !important; }
+input, select, textarea { font: inherit; -webkit-user-select: text; user-select: text; touch-action: manipulation; }
+svg.ic { width: 20px; height: 20px; flex: none; fill: none; stroke: currentColor; stroke-width: 2.1; stroke-linecap: round; stroke-linejoin: round; display: block; }
+svg.ic .fl { fill: currentColor; stroke: none; }
+
+/* ══ はじめの画面・準備（全画面） ══ */
+.front { position: fixed; inset: 0; z-index: 8; display: none; font-family: var(--font); color: var(--ink); font-weight: 700; line-height: 1.6; }
+.front.on { display: block; }
+.front button { background: none; color: inherit; font-family: inherit; }
+.bg { position: absolute; inset: 0; overflow: hidden; pointer-events: none; background: var(--v1); }
+.bg-rays { position: absolute; left: 50%; top: 34%; width: 220vmax; height: 220vmax; margin: -110vmax 0 0 -110vmax;
+  background: repeating-conic-gradient(from 0deg, var(--vl) 0 15deg, var(--v1) 15deg 30deg); animation: raySpin 90s linear infinite; }
+@keyframes raySpin { to { transform: rotate(360deg); } }
+.bg-grad { position: absolute; inset: 0; background: linear-gradient(180deg, rgba(21, 97, 214, 0) 30%, var(--v2) 78%, var(--v3)); }
+.scr { position: absolute; inset: 0; z-index: 1; display: none; overflow: hidden; }
+.scr.on { display: flex; flex-direction: column; animation: scrIn .28s var(--ease) both; }
+@keyframes scrIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+/* 黄色のボタン（押しこめる・MagiQuiz のブザーと同じ形） */
+.buzz { position: relative; display: inline-flex; align-items: center; justify-content: center; min-height: 56px; padding: 0 30px 4px; border-radius: 999px; color: #3a1500 !important; font-weight: 900; font-size: 18px; letter-spacing: .02em;
+  background: linear-gradient(180deg, #fff27a, var(--y) 42%, #ffc21f) !important; box-shadow: 0 6px 0 var(--y3), 0 12px 22px rgba(5, 20, 80, .35), inset 0 2px 0 rgba(255, 255, 255, .75); transition: transform .08s, box-shadow .08s; }
+.buzz:active { transform: translateY(5px); box-shadow: 0 1px 0 var(--y3), 0 4px 10px rgba(5, 20, 80, .3), inset 0 2px 0 rgba(255, 255, 255, .6); }
+.buzz.lg { min-height: 68px; font-size: 22px; min-width: min(78vw, 300px); }
+.buzz.wide { width: 100%; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 46px; padding: 0 18px; border-radius: 15px; background: #fff !important; color: var(--ink) !important; font-weight: 800; font-size: 15px; box-shadow: 0 3px 0 var(--line), var(--sh); transition: transform .1s; }
+.btn:active { transform: translateY(2px); }
+.btn.pri { background: linear-gradient(180deg, var(--vl), var(--v2)) !important; color: #fff !important; box-shadow: 0 3px 0 var(--v3), var(--sh); }
+.btn.danger { color: var(--ng) !important; }
+.btn.sm { min-height: 36px; padding: 0 13px; font-size: 13px; border-radius: 12px; }
+.btn svg.ic { width: 17px; height: 17px; }
+.btn:disabled { opacity: .5; pointer-events: none; }
+
+/* ① はじめの画面 */
+#titleScr { align-items: center; overflow-y: auto; touch-action: pan-y; }
+.t-home { position: absolute; z-index: 3; left: calc(var(--pl) - 2px); top: calc(var(--safet) + 10px); display: inline-flex; align-items: center; gap: 3px; height: 38px; padding: 0 13px 0 6px; border-radius: 99px; background: rgba(5, 30, 100, .35); color: #fff; font-size: 13px; font-weight: 800; text-decoration: none; backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+.t-home svg.ic { width: 18px; height: 18px; }
+.t-gear { position: absolute; z-index: 3; right: calc(var(--pr) - 2px); top: calc(var(--safet) + 10px); width: 40px; height: 40px; border-radius: 50%; background: rgba(5, 30, 100, .35) !important; color: #fff !important; display: grid; place-items: center; }
+.t-main { flex: 1; width: 100%; max-width: 520px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: calc(var(--safet) + 56px) var(--pr) calc(var(--safeb) + 16px) var(--pl); }
+.t-logo { display: block; width: min(56vw, 36dvh, 280px); padding: 0; border-radius: 22%; animation: logoIn .7s var(--spring) both; }
+.t-logo img { display: block; width: 100%; height: auto; border-radius: 22%; box-shadow: 0 0 0 4px rgba(255, 255, 255, .85), 0 18px 40px rgba(5, 20, 80, .45); }
+.t-logo:active { transform: scale(.97); }
+@keyframes logoIn { from { opacity: 0; transform: translateY(18px) scale(.86) rotate(-3deg); } }
+.t-name { margin: 2px 0 -4px; font-family: var(--logo); font-size: clamp(30px, 8vw, 44px); font-weight: 800; line-height: 1.05; color: #fff; text-shadow: 0 3px 0 rgba(5, 30, 100, .45), 0 8px 18px rgba(5, 30, 100, .35); letter-spacing: .01em; text-align: center; }
+.t-name span { display: inline; }
+.t-name b { color: var(--y); font-weight: 800; }
+.t-name em { font-style: normal; color: #9fe2ff; }
+.t-tag { margin: 0; color: #fff; font-size: clamp(14px, 3.6vw, 18px); font-weight: 900; letter-spacing: .03em; text-shadow: 0 2px 8px rgba(5, 30, 100, .5); text-align: center; }
+.t-btns { display: flex; flex-direction: column; align-items: center; gap: 13px; width: 100%; margin-top: 4px; }
+.t-last { display: inline-flex; align-items: center; gap: 8px; padding: 9px 18px; border-radius: 99px; background: rgba(255, 255, 255, .16) !important; color: #fff !important; font-size: 14px; font-weight: 900; border: 1.5px solid rgba(255, 255, 255, .35); }
+.t-last small { display: inline; margin-left: 7px; font-size: 11.5px; font-weight: 800; opacity: .88; }
+.t-sub { display: flex; gap: 9px; }
+.t-sub button { display: inline-flex; align-items: center; gap: 6px; height: 42px; padding: 0 17px; border-radius: 99px; background: rgba(5, 30, 100, .34) !important; color: #fff !important; font-size: 14px; font-weight: 800; }
+.t-sub svg.ic { width: 18px; height: 18px; }
+.t-src { margin: 2px 0 0; color: #dce9ff; font-size: 11.5px; font-weight: 800; text-align: center; }
+.t-src b { color: var(--y); }
+
+/* ② 準備 */
+.su-top { flex: none; display: flex; align-items: center; gap: 8px; padding: calc(var(--safet) + 8px) var(--pr) 8px var(--pl); }
+.su-back, .su-help { flex: none; width: 42px; height: 42px; border-radius: 50%; display: grid; place-items: center; background: rgba(5, 30, 100, .38) !important; color: #fff !important; }
+.su-steps { flex: 1; min-width: 0; display: flex; justify-content: center; gap: 4px; list-style: none; margin: 0; padding: 0; }
+.su-steps li { flex: 0 1 auto; min-width: 0; }
+.su-steps button { display: flex; align-items: center; gap: 5px; height: 38px; padding: 0 12px 0 5px; border-radius: 99px; color: #dce9ff !important; font-size: 13px; font-weight: 800; white-space: nowrap; }
+.su-steps i { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; background: rgba(255, 255, 255, .2); font-style: normal; font-size: 13px; font-weight: 900; }
+.su-steps i svg.ic { width: 14px; height: 14px; }
+.su-steps .on button { background: #fff !important; color: var(--v2) !important; }
+.su-steps .on i { background: var(--y); color: #3a1500; }
+.su-steps .done i { background: var(--ok); color: #fff; }
+.su-body { flex: 1; min-height: 0; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; touch-action: pan-y; padding: 6px var(--pr) 18px var(--pl); display: flex; flex-direction: column; align-items: center; gap: 12px; }
+.su-body > * { width: 100%; max-width: 760px; flex: none; }
+.su-h { margin: 2px 0 0; color: #fff; font-size: 21px; font-weight: 900; text-align: center; text-shadow: 0 2px 8px rgba(5, 30, 100, .45); }
+.su-note { margin: -4px 0 0; color: #eef4ff; font-size: 12.5px; font-weight: 700; text-align: center; line-height: 1.7; }
+.su-note b { color: var(--y); }
+.su-foot { flex: none; display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 10px var(--pr) calc(var(--safeb) + 14px) var(--pl); background: linear-gradient(180deg, rgba(11, 63, 159, 0), rgba(11, 63, 159, .78) 34%); }
+.su-foot .buzz { max-width: 520px; }
+.su-sum { margin: 0; color: #fff; font-size: 12.5px; font-weight: 800; }
+.su-sum b { color: var(--y); }
+.su-seg { display: flex; gap: 4px; padding: 4px; border-radius: 15px; background: var(--vs); }
+.su-seg button { flex: 1; min-width: 0; display: flex; align-items: center; justify-content: center; gap: 5px; min-height: 42px; padding: 4px 6px; border-radius: 12px; color: var(--sub) !important; font-size: 14px; font-weight: 800; transition: background .15s, color .15s; }
+.su-seg button.on { background: var(--v2) !important; color: #fff !important; box-shadow: 0 2px 6px rgba(10, 60, 190, .35); }
+.su-tip { display: flex; gap: 10px; padding: 12px 14px; border-radius: 16px; background: rgba(255, 255, 255, .14); color: #fff; font-size: 12.5px; font-weight: 700; line-height: 1.7; }
+.su-tip svg.ic { flex: none; margin-top: 2px; color: var(--y); }
+.su-tip b { color: var(--y); }
+
+/* ① メンバー（MagiQuiz の .st と同じカード） */
+.st-list { display: grid; gap: 8px; }
+@media (min-width: 700px) { .st-list { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+.st { --c: #4da3ff; display: flex; align-items: center; gap: 11px; padding: 9px 6px 9px 12px; border-radius: 18px; background: #fff; box-shadow: var(--sh); border-left: 6px solid var(--c); min-width: 0; }
+.st-av { position: relative; flex: none; padding: 0; border-radius: 50%; }
+.st-ed { position: absolute; right: -4px; bottom: -3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; color: var(--v2); display: grid; place-items: center; box-shadow: 0 1px 4px rgba(10, 30, 90, .3); }
+.st-ed svg.ic { width: 12px; height: 12px; stroke-width: 2.6; }
+.st-m { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 5px; }
+.st-nm { width: 100%; height: 36px; padding: 0 10px; border: 1.5px solid var(--line); border-radius: 11px; background: var(--vs); color: var(--ink); font-size: 16px; font-weight: 800; outline: none; }
+.st-nm:focus { border-color: var(--v1); background: #fff; }
+.st-nm[readonly] { background: #fff; border-color: transparent; padding-left: 2px; }
+.st-row { display: flex; flex-wrap: nowrap; gap: 5px 8px; align-items: center; min-width: 0; height: 30px; }
+.st-lk { flex: 0 1 auto; min-width: 0; display: inline-flex; align-items: center; gap: 4px; height: 30px; padding: 2px 10px 2px 7px; border-radius: 99px; background: var(--vs) !important; color: var(--v2) !important; font-size: 12px; font-weight: 800; }
+.st-lk svg.ic { width: 15px; height: 15px; }
+.st-lk span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.st-lk.on, .st-lk.me { background: var(--okS) !important; color: #067a45 !important; }
+.st-lk.wait { background: #fff3cf !important; color: #8a5a00 !important; }
+.st-own { flex: none; position: relative; display: inline-flex; align-items: center; gap: 5px; height: 30px; white-space: nowrap; font-size: 12px; font-weight: 800; color: var(--sub); cursor: pointer; }
+.st-own input { position: absolute; opacity: 0; width: 0; height: 0; }
+.st-own i { display: grid; place-items: center; width: 22px; height: 22px; border-radius: 7px; background: #fff; border: 2px solid var(--mute); color: transparent; transition: background .12s, border-color .12s; }
+.st-own i svg.ic { width: 15px; height: 15px; stroke-width: 3.2; }
+.st-own.on { color: var(--v2); }
+.st-own.on i { background: var(--v2); border-color: var(--v2); color: #fff; }
+.st-x { flex: none; width: 30px; height: 34px; border-radius: 50%; display: grid; place-items: center; color: var(--mute) !important; }
+.st-add { display: flex; align-items: center; justify-content: center; gap: 6px; min-height: 46px; border-radius: 16px; border: 2px dashed rgba(255, 255, 255, .55) !important; color: #fff !important; font-size: 14px; font-weight: 800; }
+.st-add.sm { min-height: 40px; font-size: 13px; }
+.st-add svg.ic { width: 18px; height: 18px; }
+
+/* アバター（名前の頭文字＋キャラの絵） */
+.gav { --c: #4da3ff; position: relative; display: inline-grid; place-items: center; flex: none; width: 40px; height: 40px; border-radius: 50%;
+  background: var(--c); color: #fff; font-family: var(--font); font-weight: 900; font-size: 17px; overflow: hidden; box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--c); }
+.gav i { font-style: normal; }
+.gav img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 16%; background: #1b2150; }
+.gav.sm { width: 28px; height: 28px; font-size: 13px; box-shadow: 0 0 0 2px var(--c); }
+.gav.md { width: 46px; height: 46px; font-size: 20px; }
+
+/* ② 席：iPad の形の地図＋名前の札 */
+.smap-wrap { display: flex; justify-content: center; }
+.smap { position: relative; flex: none; border-radius: 22px; background: radial-gradient(circle at 50% 45%, #232a5c, #0d1030 75%); box-shadow: 0 0 0 7px #10162f, 0 0 0 9px rgba(255, 255, 255, .55), var(--sh); margin: 9px; }
+.splate { position: absolute; transform: translate(-50%, -50%); border-radius: 50%; background: radial-gradient(circle, rgba(255, 255, 255, .12), rgba(255, 255, 255, .03)); box-shadow: inset 0 0 0 2px rgba(255, 212, 71, .35); pointer-events: none; }
+.sl { position: absolute; transform: translate(-50%, -50%); display: inline-flex; align-items: center; gap: 5px; max-width: 132px; height: 34px; padding: 0 10px; border-radius: 999px;
+  background: rgba(255, 255, 255, .07) !important; border: 1.5px dashed rgba(255, 255, 255, .4); color: #c9d6ff !important; font-size: 11.5px; font-weight: 800; white-space: nowrap; z-index: 1; }
+.sl span { overflow: hidden; text-overflow: ellipsis; }
+.sl.on { --c: #4da3ff; padding: 0 11px 0 3px; background: #fff !important; border: 2.5px solid var(--c); color: var(--ink) !important; font-size: 12.5px; z-index: 2; box-shadow: 0 4px 12px rgba(0, 0, 0, .35); }
+.sl.sel { box-shadow: 0 0 0 3px var(--y), 0 0 20px rgba(255, 212, 71, .7); }
+.sl.no { opacity: .22; }
+.sq-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 7px; }
+.sq { --c: #4da3ff; display: inline-flex; align-items: center; gap: 7px; min-height: 44px; padding: 4px 13px 4px 5px; border-radius: 99px; background: #fff !important; color: var(--ink) !important; box-shadow: var(--sh); border: 2.5px solid transparent; font-size: 13.5px; }
+.sq b { font-weight: 900; max-width: 8em; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.sq span { display: inline-flex; align-items: center; gap: 3px; padding: 2px 8px; border-radius: 99px; background: var(--vs); color: var(--v2); font-size: 11.5px; font-weight: 800; }
+.sq span svg.ic { width: 14px; height: 14px; }
+.sq.on { border-color: var(--y); box-shadow: 0 0 0 3px rgba(255, 212, 71, .45), var(--sh); }
+.sq-order { display: flex; flex-wrap: wrap; align-items: center; justify-content: center; gap: 4px 6px; color: #fff; font-size: 12.5px; font-weight: 800; }
+.sq-order > span { display: inline-flex; align-items: center; gap: 4px; }
+.sq-order > span svg.ic { width: 16px; height: 16px; color: var(--y); }
+.sq-order b { color: var(--y); }
+.sq-order em { --c: #fff; font-style: normal; padding: 1px 9px; border-radius: 99px; background: rgba(255, 255, 255, .16); box-shadow: inset 0 0 0 1.5px var(--c); }
+.sq-order > i { font-style: normal; opacity: .6; }
+
+/* ③ ルール（MagiQuiz の .ru-c と同じ白いカード） */
+.ru-c { display: flex; flex-direction: column; gap: 14px; padding: 15px; border-radius: 20px; background: #fff; box-shadow: var(--sh); }
+.ru { display: flex; flex-direction: column; gap: 8px; }
+.ru-l { display: flex; align-items: center; gap: 7px; color: var(--ink); font-size: 14.5px; }
+.ru-l svg.ic { color: var(--v2); }
+.ru-l b { font-weight: 900; }
+.ru-n { margin: 0; color: var(--sub); font-size: 12.5px; font-weight: 700; line-height: 1.7; }
+.ru-n b { color: var(--v2); }
+.bgm-mine { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.bgm-f { flex: 1; min-width: 0; display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 12px; background: var(--vs); color: var(--v2); font-size: 13px; }
+.bgm-f b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-weight: 900; }
+.bgm-f small { flex: none; color: var(--sub); font-size: 11px; font-weight: 800; }
+.bgm-f svg.ic { width: 17px; height: 17px; }
+
+/* ══ シート（アイコン・連携・記録・設定）＝白い札（MagiQuiz と同じ） ══ */
+.sov { position: fixed; inset: 0; z-index: 20; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(5, 15, 50, .55); backdrop-filter: blur(4px); -webkit-backdrop-filter: blur(4px); font-family: var(--font); color: var(--ink); font-weight: 700; }
+.sov button { font-family: inherit; }
+.sheet { width: min(480px, 100%); max-height: min(86vh, 760px); overflow: auto; touch-action: pan-y; overscroll-behavior: contain; display: flex; flex-direction: column; gap: 12px; padding: 18px 16px 16px; border-radius: 24px; background: #fff; box-shadow: 0 22px 60px rgba(5, 15, 60, .4); animation: shIn .22s var(--ease) both; }
+@keyframes shIn { from { opacity: 0; transform: translateY(14px) scale(.97); } }
+.sh-t { margin: 0; display: flex; align-items: center; justify-content: center; gap: 7px; font-size: 18px; font-weight: 900; text-align: center; }
+.sh-t svg.ic { color: var(--v2); }
+.sh-p { margin: 0; color: var(--sub); font-size: 13px; line-height: 1.7; }
+.sh-p b { color: var(--v2); }
+.sh-p.center, .lk-msg.center { text-align: center; }
+.sh-b { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 2px; }
+.pgrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 8px; max-height: 52vh; overflow: auto; padding: 4px; }
+.pc { --c: #4da3ff; display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 8px 4px 6px; border-radius: 14px; background: var(--vs) !important; color: var(--ink) !important; }
+.pc.on { box-shadow: 0 0 0 3px var(--y); background: #fff8d6 !important; }
+.pc small { font-size: 11px; font-weight: 800; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pim { width: 52px; height: 52px; border-radius: 50%; overflow: hidden; box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--c); background: #1b2150; }
+.pim img { width: 100%; height: 100%; object-fit: cover; object-position: 50% 16%; }
+.lk-s { display: flex; gap: 6px; }
+.lk-s input { flex: 1; min-width: 0; height: 46px; padding: 0 12px; border-radius: 14px; border: 1.5px solid var(--line); background: var(--vs); color: var(--ink); font-size: 16px; outline: none; }
+.lk-s input:focus { border-color: var(--v1); background: #fff; }
+.lk-msg { margin: 0; min-height: 1.3em; color: var(--ng); font-size: 13px; font-weight: 800; }
+.lk-h { margin: 2px 0 0; color: var(--sub); font-size: 12px; }
+.lk-l { display: flex; flex-direction: column; gap: 6px; max-height: 40vh; overflow: auto; }
+.lk-r { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 14px; background: var(--vs) !important; color: var(--ink) !important; text-align: left; }
+.lk-r b { flex: 1; font-size: 15px; }
+.lk-r svg.ic { color: var(--mute); }
+.lk-who { display: flex; align-items: center; gap: 12px; justify-content: center; }
+.lk-who b { display: block; font-size: 17px; }
+.lk-who small { color: var(--sub); font-size: 12px; }
+.lk-dots { display: flex; justify-content: center; gap: 12px; }
+.lk-dots i { width: 16px; height: 16px; border-radius: 50%; border: 2px solid var(--mute); }
+.lk-dots i.on { background: var(--v2); border-color: var(--v2); }
+.lk-dots.bad i { border-color: var(--ng); }
+.lk-pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 7px; width: min(280px, 100%); align-self: center; }
+.lk-pad button { display: grid; place-items: center; height: 52px; border-radius: 15px; background: var(--vs) !important; color: var(--ink) !important; font-size: 22px; font-weight: 900; }
+.lk-pad button svg.ic { width: 24px; height: 24px; }
+.lk-pad button:disabled { opacity: .4; }
+.rc-l { display: flex; flex-direction: column; gap: 6px; }
+.rc { display: flex; align-items: center; gap: 10px; padding: 9px 12px; border-radius: 14px; background: var(--vs); }
+.rc i { flex: none; width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center; background: var(--v2); color: #fff; font-style: normal; font-size: 13px; font-weight: 900; }
+.rc b { flex: 1; min-width: 0; font-weight: 900; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rc b small { margin-left: 6px; padding: 1px 7px; border-radius: 99px; background: #fff; color: var(--sub); font-size: 10.5px; font-weight: 800; }
+.rc span { flex: none; color: var(--v2); font-size: 13px; font-weight: 900; }
+
+/* ══ ゲーム中：席の札に名前とアイコン ══ */
+.seat .snm {
+  position: absolute; left: 12px; top: -11px; max-width: 168px; height: 20px; padding: 0 9px; border-radius: 10px;
+  background: var(--pc); color: #10122a; font-size: 12.5px; font-weight: 900; line-height: 20px;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; box-shadow: 0 2px 8px rgba(0, 0, 0, .45); pointer-events: none;
+}
+.seat .note { left: calc(50% + 40px); }
+.who { position: relative; overflow: hidden; }
+.who .sav { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: 50% 16%; }
+.who .pn { font-size: 13px; font-weight: 900; opacity: .8; }
+.who.has-av .pn { display: none; }
+.who.has-av .cnt {
+  position: absolute; right: 2px; bottom: 2px; margin: 0; min-width: 22px; padding: 0 4px; border-radius: 8px;
+  font-size: 18px; line-height: 21px; text-align: center; background: rgba(10, 12, 32, .85); color: #fff;
+}
+.seat .gav, .rank .gav, .otitle .gav { box-shadow: 0 0 0 2px var(--c); color: #10122a; }
+
+/* けっか（名前・アイコン・賞金） */
+.otitle { display: flex; align-items: center; justify-content: center; gap: 10px; flex-wrap: wrap; }
+.otitle .gav.win { box-shadow: 0 0 0 3px #ffd447, 0 0 22px rgba(255, 212, 71, .6); }
+.rank li { --c: #fff; box-shadow: inset 3px 0 0 var(--c); }
+.rank li .rk { flex: 0 0 24px; height: 24px; border-radius: 8px; background: rgba(255, 255, 255, .14); color: #fff; font-size: 13px; line-height: 24px; text-align: center; font-style: normal; }
+.rank li.first .rk { background: #ffd447; color: #10122a; }
+/* style.css の .rank li span（flex:1）・.rank li i（26px の箱）がアイコンにかからないように */
+.rank li .gav { flex: none; }
+.rank li .gav i { flex: none; height: auto; line-height: 1; font-size: 13px; border-radius: 0; background: none; color: #10122a; }
+.rank li .rn { flex: 1; min-width: 0; display: flex; flex-direction: column; text-align: left; line-height: 1.25; }
+.rank li .rn b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rank li .rn small { font-size: 11.5px; opacity: .7; font-weight: 700; }
+.pz { font-style: normal; display: flex; flex-direction: column; align-items: flex-end; font-size: 13px; font-weight: 900; color: #ffe27a; line-height: 1.2; }
+.pz small { font-size: 10px; opacity: .75; color: #dfe4ff; }
+.pz.wait { color: #ffc28a; }
+#overNote:empty { display: none; }
+
+/* トースト */
+.toast { position: fixed; left: 50%; bottom: calc(env(safe-area-inset-bottom, 0px) + 22px); transform: translate(-50%, 16px); z-index: 30; max-width: min(520px, 90vw);
+  padding: 10px 16px; border-radius: 14px; background: rgba(12, 22, 64, .96); border: 1px solid rgba(255, 255, 255, .18); color: #fff; font-family: var(--font); font-size: 13.5px; font-weight: 800;
+  opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; text-align: center; }
+.toast.on { opacity: 1; transform: translate(-50%, 0); }
+
+/* ══ ★★ 2026-11-17 ご指定「スクロールバーもデザインして」══
+   青い地（はじめの画面・準備）と紺の板（あそびかた・メニュー）＝黄色のつまみ／白い札（シート）＝青のつまみ。丸く・細め・角の丸みに当たらないよう上下を空ける。
+   ★ Chrome は scrollbar-color を書くと ::-webkit-scrollbar が効かなくなるので、scrollbar-color は Firefox だけ（@supports） */
+*::-webkit-scrollbar { width: 11px; height: 11px; }
+*::-webkit-scrollbar-track { margin: 16px 0; border-radius: 999px; background: rgba(255, 255, 255, .1); }
+*::-webkit-scrollbar-thumb {
+  border-radius: 999px; border: 2.5px solid transparent; background-clip: padding-box;
+  background-color: #ffd447; background-image: linear-gradient(180deg, #ffe680, #ffc22e);
+  box-shadow: inset 0 0 0 1px rgba(16, 18, 42, .2);
+}
+*::-webkit-scrollbar-thumb:hover { background-image: linear-gradient(180deg, #fff2b0, #ffd447); }
+*::-webkit-scrollbar-thumb:active { background-image: linear-gradient(180deg, #ffd447, #f0a800); }
+*::-webkit-scrollbar-corner { background: transparent; }
+.sheet::-webkit-scrollbar-track, .sheet *::-webkit-scrollbar-track { margin: 14px 0; background: var(--vs); }
+.sheet::-webkit-scrollbar-thumb, .sheet *::-webkit-scrollbar-thumb { background-color: var(--v2); background-image: linear-gradient(180deg, var(--vl), var(--v2)); }
+.pgrid::-webkit-scrollbar-track, .lk-l::-webkit-scrollbar-track { margin: 6px 0; }
+@supports (-moz-appearance: none) {
+  * { scrollbar-width: thin; scrollbar-color: #ffd447 rgba(255, 255, 255, .1); }
+  .sheet, .sheet * { scrollbar-color: #1561d6 #eef4ff; }
+}

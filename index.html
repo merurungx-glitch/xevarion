@@ -177,7 +177,7 @@ html #xlBan.pre{box-shadow:0 0 0 2px #fff,0 0 0 3.5px #ff8a1f,0 3px 0 3.5px rgba
      告知を<b>ポータルのログイン時</b>に一本化したので、ここでも読む。
      defer なので xevarion.js より先に実行される（書いた順番で走る）。 -->
 <script src="mb-newchars.js?v=44" defer></script>
-<script src="xeva-devnotes.js?v=19" defer></script>
+<script src="xeva-devnotes.js?v=20" defer></script>
 <script src="xeva-tour.js?v=5" defer></script><script src="xeva-earn.js?v=2" defer></script><!-- ★★ 2026-11-03 XEVA・ジェムの入手まとめ（アニメ・XevaTour の pack） --><!-- ★★ 2026-10-30 XEVARION ガイド（全機能をアニメで紹介・設定から／#guide） --><!-- ★★ 2026-10-24 デベロッパーノート（新キャラのお知らせの代わり） -->
 <!-- ★★ 2026-09-25 ガチャの台帳（開催期間とバナー。make-gacha-live.py が mb-core.js から自動で作る）。ホーム左上のバナー用 -->
 <script src="gacha-live.js?v=14" defer></script>
@@ -195,7 +195,7 @@ html #xlBan.pre{box-shadow:0 0 0 2px #fff,0 0 0 3.5px #ff8a1f,0 3px 0 3.5px rgba
 <script type="module" src="MagiBurst/magiburst-cloud.js?v=29"></script>
 <script src="xeva-qr.js?v=9" defer></script>
 <script src="xevarion.js?v=116" defer></script>
-<script src="xevarion-home.js?v=185" defer></script>
+<script src="xevarion-home.js?v=186" defer></script>
 <script src="home-lobby.js?v=7" defer></script><!-- ★★ 2026-10-26 完凸ロビー（ヒサコ・アリス）。home-mate.js より先 -->
 <script src="home-mate.js?v=36" defer></script>
 <script src="xeva-jef.js?v=1" defer></script><!-- ★★ 2026-11-08 ジェフ千葉のホームデザイン（スタジアム・応援旗・試合の札・BGM） -->
@@ -1194,6 +1194,19 @@ body.xos-nomotion .xh-start-tap .hp, body.xos-nomotion .xh-start-sub, body.xos-n
         <span class="xh-sw" id="xhSwMateHide"></span>
       </button>
 
+      <!-- ★★ 2026-11-17 ご指定「XEVARION からも XEVARIX や XEVORA にアクセス可能に」（アプリの一覧の「店舗・公式」にもある） -->
+      <div class="xh-sec-label">XEVORA・XEVARIX</div>
+      <button class="xh-row" onclick="xhOpenSite('xevora')">
+        <span class="rl"><img src="thumbs/XEVORA.jpg" alt="" style="width:24px;height:24px;border-radius:7px;object-fit:cover">
+          <span><span class="rt">XEVORA</span><span class="rs">XEVORA アカウントの作成・管理と、アプリのランチャー</span></span></span>
+        <span class="rv">›</span>
+      </button>
+      <button class="xh-row" onclick="xhOpenSite('xevarix')">
+        <span class="rl"><img src="thumbs/XEVARIX.jpg" alt="" style="width:24px;height:24px;border-radius:7px;object-fit:cover">
+          <span><span class="rt">XEVARIX <em style="font-style:normal;font-size:10px;font-weight:900;color:#fff;background:linear-gradient(90deg,#6a4aff,#ff6ab0);border-radius:6px;padding:1px 6px;margin-left:4px;vertical-align:1px">β版</em></span><span class="rs">アプリの形をした OS（同じ XEVORA アカウントで）</span></span></span>
+        <span class="rv">›</span>
+      </button>
+
       <div class="xh-sec-label">システム</div>
       <!-- ★★ 2026-08-22b Xevion OS。見た目・動き・通知・XEVYNAR 連携をまとめてここへ。 -->
       <button class="xh-row" onclick="xhOpenXos()">
@@ -1238,7 +1251,7 @@ body.xos-nomotion .xh-start-tap .hp, body.xos-nomotion .xh-start-sub, body.xos-n
       </button>
       <button class="xh-row" onclick="xhOpenOfflineInfo()">
         <span class="rl"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8.4a12 12 0 0116 0"/><path d="M7 12a8 8 0 0110 0"/><path d="M10 15.4a3.6 3.6 0 014 0"/><circle cx="12" cy="19" r="1.3" fill="currentColor"/></svg>
-          <span><span class="rt">オフライン・通信設定</span><span class="rs">Wi-Fi／モバイルデータごとの動きを決める</span></span></span>
+          <span><span class="rt">オフライン・通信設定</span><span class="rs">オフライン用のダウンロード・Wi-Fi／モバイルデータごとの動き</span></span></span>
         <span class="rv" id="xhOfflineState">›</span>
       </button>
       <button class="xh-row" onclick="xhOpenUpdateFromSettings()">
@@ -1694,9 +1707,11 @@ body.xos-nomotion .xh-start-tap .hp, body.xos-nomotion .xh-start-sub, body.xos-n
       <button class="xh-sheet-x" onclick="xhCloseSheet('xhOffSheet')">✕</button>
     </div>
     <div class="xh-sheet-body">
+      <!-- ★★ 2026-11-17 ご指定「XEVARION のダウンロード・更新・オフライン対応は XEVARION の中で（XEVORA はアカウントとランチャーだけ）」 -->
       <div class="xh-sortnote">
-        XEVARION をインストールしておくと、<b>MagiLex ／ MagiBurst ／ MagiChainParty ／ XEVYNAR ／ MagiJackpot</b>は機内モードでも遊べます。
-        オフライン中の進行は端末に保存され、<b>オンラインに戻った時点でクラウドへ上書き反映</b>されます。
+        XEVARION の<b>ダウンロード・更新・オフライン対応は、この XEVARION の中</b>で行います（XEVORA では行いません）。
+        「オフライン用にダウンロード」をしておくと、下に並んでいるアプリは<b>機内モードでも遊べます</b>。
+        オフライン中の進行は端末に保存され、<b>オンラインに戻った時点でクラウドへ反映</b>されます。
         それ以外のアプリは通信が必要なため、オフライン中は開けません。
       </div>
       <!-- ★ 2026-08-20 通信の設定（Wi-Fi のとき／モバイルデータのとき）。
@@ -1705,15 +1720,12 @@ body.xos-nomotion .xh-start-tap .hp, body.xos-nomotion .xh-start-sub, body.xos-n
       <div id="xhNetBox"></div>
       <div class="xh-sec-label">オフラインで遊べるアプリ</div>
       <div id="xhOffList"></div>
-      <button class="xh-sbtn" id="xhOffPrep" onclick="xhPrepareOffline()">オフライン用にダウンロード</button>
-      <!-- ★ 2026-08-06: 空き容量が減るとブラウザがキャッシュを捨ててしまい、
-           「入れてあるのに機内モードで開けない」状態になることがある。
-           版は最新のままなので「アプリの更新」では直せないため、専用の入口を置く。 -->
-      <button class="xh-sbtn ghost" id="xhOffRedl" onclick="xhRedownloadOffline()" style="margin-top:8px">⬇ もう一度ダウンロードし直す</button>
+      <!-- ★★ 2026-11-17 ボタンは1つに（前は「登録するだけ」と「取り直す」の2つだった）。どちらも足りないファイルだけを落とす同じダウンロード（進み具合のバーつき）。
+           ★ 2026-08-06: 空き容量が減るとブラウザがキャッシュを捨ててしまい「入れてあるのに機内モードで開けない」状態になることがある → このボタンで足りないぶんを取り直せる。 -->
+      <button class="xh-sbtn" id="xhOffPrep" onclick="xhPrepareOffline()">⬇ オフライン用にダウンロード</button>
       <div class="xh-sortnote" style="margin-top:8px">
-        「オフラインで起動できます」と出ているのに機内モードで開けないときは、こちらを試してください。
-        <b>足りないファイルだけ</b>を取り直すので、そろっていれば通信はほとんど発生しません。
-        <b>セーブデータはそのまま</b>です。
+        <b>足りないファイルだけ</b>を落とすので、そろっていれば通信はほとんど発生しません。<b>セーブデータはそのまま</b>です。
+        「準備完了」と出ているのに機内モードで開けないときも、これを押してください。
       </div>
       <!-- ★★ 2026-11-11 ご指定「ダウンロード時に要らなくなったファイルを削除する機能」 -->
       <div class="xh-sortnote" id="xhCleanNote" style="margin-top:8px">
@@ -2506,6 +2518,18 @@ body.xos-nomotion .xbg-fx,body.xos-nomotion .xbg-fx h4{animation:none}
          起動ロゴ・新ロゴ／MagiAbyss 全員ちがう性能（技も）／MagiBattle ロイヤル隊／MagiQuiz・MagiChemLex -->
     <!-- 2026-11-13：MagiChemLex に新ミニゲーム「ケミカル・ルート（反応経路スコアアタック）」／ホームの計算なしモードの切りかえは設定へ／MagiQuiz の結果詳細／
          オフライン用のデータ（Service Worker の版と一覧）を sw-list フォルダへ集約 -->
+    <!-- ★★ 2026-11-17 新作 MagiGura Plate・オフラインの直し・XEVORA はランチャーだけ・XEVARIX/XEVORA への入口・MagiDerby の発売中 -->
+    <div class="nm-item" data-tag="new" data-date="2026-11-17">
+      <div class="nm-date">2026<br>11.17</div>
+      <div class="nm-content">
+        <div class="nm-h"><span class="nm-tag new">NEW</span></div>
+        <div class="nm-title">🍽️ 新作 MagiGura Plate／📴 オフラインで遊べないことがあったのを直しました</div>
+        <div class="nm-txt">・<b>MagiGura Plate</b>：1台の iPad を囲んで 2〜8人のバランス皿ゲーム。名前・アイコン・アカウント連携と、<b>席の場所（名前と位置）</b>を決めて遊べます。順位で XEVA・オフラインOK。<br>
+          ・オフラインのとき、一部のアプリで同期の部品・新キャラの台帳・キャラの絵が読めないことがあったのを直しました。設定 → オフライン・通信設定 で、アプリごとの準備がわかります。<br>
+          ・<b>XEVORA</b> はアカウントとランチャーだけに（ダウンロード・更新・オフライン対応は各アプリの中で）。XEVARION のメニューと設定から <b>XEVARIX（β版）</b>・XEVORA を開けます。<br>
+          ・MagiDerby の発売中・締切間近がホームに出なかったのを直しました。</div>
+      </div>
+    </div>
     <div class="nm-item" data-tag="new" data-date="2026-11-15">
       <div class="nm-date">2026<br>11.15</div>
       <div class="nm-content">
