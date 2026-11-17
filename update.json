@@ -1,15 +1,16 @@
 {
-  "version": "2026-11-17-1",
-  "date": "2026-11-17",
-  "title": "新作 MagiGura Plate／オフラインで遊べないことがあったのを直しました",
+  "version": "2026-11-18-1",
+  "date": "2026-11-18",
+  "title": "新作 MagiYacht（サイコロゲーム）",
   "notes": [
-    "新作 MagiGura Plate：1台の iPad を囲んで 2〜8人のバランス皿ゲーム。名前・アイコン・アカウント連携と、席の場所（名前と位置）を決めて遊べます（はじめの画面と準備は MagiQuiz と同じ全画面）。順位で XEVA・BGM（オリジナル曲／自分の曲／オフ）・オフラインOK",
-    "オフラインのとき、一部のアプリ（MagiBurst・ChainParty・XEVYNAR・Jackpot・Lotto・MagiMusic・MagiBattle など）で同期の部品・新キャラの台帳・キャラの絵が読めなかったのを直しました。設定 → オフライン・通信設定 でアプリごとの準備がわかり、「オフライン用にダウンロード」で足りないぶんだけ入れられます",
-    "XEVORA はアカウントの作成・管理とランチャーだけになりました（ダウンロード・更新・オフライン対応は XEVARION・XEVARIX それぞれの中で）。XEVARION のメニューと設定から XEVARIX（β版）・XEVORA を開けます",
-    "MagiDerby の GⅠ の発売中・締切間近がホームに出なかったのを直しました"
+    "新作 MagiYacht：5つのサイコロをカップに入れて指でふり、トレイに落として12の役をうめるサイコロゲーム（ルールは「ヨット」と同じ点のつけ方）",
+    "1台で1〜8人・CPU（よわい・ふつう・つよい）とも遊べます。名前・アイコン・アカウント連携・この端末の本人は MagiQuiz と同じ",
+    "とちゅうで自動保存（あとでつづける→つづきから）・メニューからリタイア・あそび方はアニメで",
+    "スコア表は番の人の列だけ。「みんなの点」で全員の点を大きな表（順位つき）で見られます",
+    "順位で XEVA（ひとりなら点数で）・オフラインOK"
   ],
-  "bytes": 92268025,
-  "files": 979,
+  "bytes": 92858969,
+  "files": 994,
   "urls": [
     "index.html",
     "characters.html",
@@ -191,6 +192,7 @@
     "thumbs/MagiGuraPlate.jpg",
     "thumbs/XEVARIX.jpg",
     "thumbs/XEVORA.jpg",
+    "thumbs/MagiYacht.jpg",
     "thumbs/MagiAbyss.jpg",
     "thumbs/NGX.jpg",
     "thumbs/ISHIDA.webp",
@@ -989,16 +991,45 @@
     "MagiGuraPlate/js/game.js",
     "MagiGuraPlate/img/logo.png",
     "MagiGuraPlate/img/icon-192.png",
-    "MagiGuraPlate/img/apple-touch-icon.png"
+    "MagiGuraPlate/img/apple-touch-icon.png",
+    "MagiYacht/index.html",
+    "MagiYacht/manifest.webmanifest",
+    "MagiYacht/css/yacht.css",
+    "MagiYacht/js/rules.js",
+    "MagiYacht/js/audio.js",
+    "MagiYacht/js/bgm.js",
+    "MagiYacht/js/account.js",
+    "MagiYacht/js/dice3d.js",
+    "MagiYacht/js/howto.js",
+    "MagiYacht/js/setup.js",
+    "MagiYacht/js/game.js",
+    "MagiYacht/img/logo.webp",
+    "MagiYacht/img/icon-192.png",
+    "MagiYacht/img/apple-touch-icon.png"
   ],
   "apps": [
-    "magiburst",
-    "magichainparty",
-    "magiguraplate",
+    "magiyacht",
     "tab:home"
   ],
-  "changedFiles": 23,
+  "changedFiles": 18,
   "history": [
+    {
+      "version": "2026-11-17-1",
+      "date": "2026-11-17",
+      "title": "新作 MagiGura Plate／オフラインで遊べないことがあったのを直しました",
+      "notes": [
+        "新作 MagiGura Plate：1台の iPad を囲んで 2〜8人のバランス皿ゲーム。名前・アイコン・アカウント連携と、席の場所（名前と位置）を決めて遊べます（はじめの画面と準備は MagiQuiz と同じ全画面）。順位で XEVA・BGM（オリジナル曲／自分の曲／オフ）・オフラインOK",
+        "オフラインのとき、一部のアプリ（MagiBurst・ChainParty・XEVYNAR・Jackpot・Lotto・MagiMusic・MagiBattle など）で同期の部品・新キャラの台帳・キャラの絵が読めなかったのを直しました。設定 → オフライン・通信設定 でアプリごとの準備がわかり、「オフライン用にダウンロード」で足りないぶんだけ入れられます",
+        "XEVORA はアカウントの作成・管理とランチャーだけになりました（ダウンロード・更新・オフライン対応は XEVARION・XEVARIX それぞれの中で）。XEVARION のメニューと設定から XEVARIX（β版）・XEVORA を開けます",
+        "MagiDerby の GⅠ の発売中・締切間近がホームに出なかったのを直しました"
+      ],
+      "apps": [
+        "magiburst",
+        "magichainparty",
+        "magiguraplate",
+        "tab:home"
+      ]
+    },
     {
       "version": "2026-11-15-1",
       "date": "2026-11-15",
@@ -1600,44 +1631,6 @@
         "magilotto",
         "magimusic",
         "magiquiz",
-        "magiscope",
-        "magishift",
-        "tab:chars",
-        "tab:community",
-        "tab:gacha",
-        "tab:home",
-        "xevynar"
-      ]
-    },
-    {
-      "version": "2026-10-22-1",
-      "date": "2026-10-22",
-      "title": "超極煌祭（UR 3体）・MagiAbyss が 2.5D に・同期の改善・個人情報の注意",
-      "notes": [
-        "新ガチャ「超極煌祭」：コハク（火）・スズ（木）・ショウコ（光）の UR 3体（各1.5%）。毎月21日〜末日・🎫ガチャ券OK・ガチャ一覧のいちばん上。3体とも MagiAbyss 専用（ナビ・アイコンにも使えます）",
-        "MagiAbyss が 2.5D に：奥行きのある画面・光と影・奥の霧・迷宮ごとの粒子。キャラは2倍の細かさの HD ドットで、顔と横顔を描き直し（設定のグラフィックで「軽め」「2D」も）",
-        "イベントミッションに MagiAbyss（Violet Breeze・Midnight Pumpkin）／XEVA ミッション「MagiAbyss で迷宮をクリアしよう」",
-        "同期の改善：MagiChemLex の習得状況・キャラの所持・XEVA・ジェムが届かない・古いままになることがあったのを修正／設定に「データを最新にする」",
-        "個人情報の入力についての注意（登録・設定・入力欄）",
-        "ホーム：メニューの並びをロビーの並びと同じに・「パートナーを表示しない」（アプリが3〜4行に）",
-        "MagiChemLex：新しい「大問」タブ（難関・標準・基礎セットと単元マップ）・各セットに「計算以外の問題だけ」",
-        "MagiDerby：馬券の発売を JRA と同じ時間に（日曜の GⅠ は金曜 18:30〜）",
-        "Midnight Pumpkin（11月）の MagiLex 系統の XEVA を2倍に"
-      ],
-      "apps": [
-        "magiabyss",
-        "magibattle",
-        "magibocciarush",
-        "magiburst",
-        "magichainparty",
-        "magichemlex",
-        "magicounter",
-        "magiderby",
-        "magidominiongrid",
-        "magijackpot",
-        "magilex",
-        "magilotto",
-        "magimusic",
         "magiscope",
         "magishift",
         "tab:chars",

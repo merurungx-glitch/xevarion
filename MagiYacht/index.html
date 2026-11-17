@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<script src="../maintenance-gate.js?v=13"></script>
+<meta charset="utf-8">
+<script>(function(){try{var a=JSON.parse(localStorage.getItem('xeva_account_v1'));if(!a||!a.setupDone)location.replace('../index.html');}catch(e){}})();</script>
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MagiYacht">
+<meta name="theme-color" content="#1446c4">
+<title>MagiYacht</title>
+<meta name="description" content="5つのサイコロをカップでふって、12の役をうめていくサイコロゲーム。1台で1〜8人・CPU とも遊べる。名前・アイコン・XEVORA アカウント連携・途中保存・リタイア。順位で XEVA。">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="../thumbs/MagiYacht.jpg" type="image/jpeg">
+<link rel="apple-touch-icon" href="img/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800;900&family=Baloo+2:wght@700;800&display=swap" rel="stylesheet">
+<script>
+/* ★★ 2026-11-18 新作 MagiYacht。オフライン対応は自分の Service Worker（sw.js・一覧は ../sw-list/MagiYacht.js） */
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function () { navigator.serviceWorker.register("sw.js").catch(function () {}); });
+}
+</script>
+<link rel="stylesheet" href="css/yacht.css?v=1">
+<script src="../xeva-splash.js?v=22" data-app="MagiYacht" data-logo="../thumbs/MagiYacht.jpg"></script>
+</head>
+<body data-scr="titleScr">
+<!-- ══════════════════════════════════════════════════════════════
+     ★★ 2026-11-18 新作 MagiYacht（ご指定）
+     ・ルール：スイッチ（世界のアソビ大全51）の「ヨット」と同じ点のつけ方（js/rules.js）
+     ・サイコロ：カップに入れて指でふり、はなすとトレイに落ちる 3D（js/dice3d.js・物理も自前）
+     ・MagiQuiz と同じ全画面の前画面・メンバー（名前・アイコン・連携・この端末の本人・CPU）（js/setup.js）
+     ・途中保存・リタイア・結果と賞金（js/game.js・js/account.js）・あそび方のアニメ（js/howto.js）
+     ══════════════════════════════════════════════════════════════ -->
+
+<!-- ゲームの画面 -->
+<div id="game" class="gm">
+  <div class="g-bg" aria-hidden="true"><i></i></div>
+  <header class="g-top">
+    <button class="g-btn" data-g="menu" aria-label="メニュー"><svg class="ic" viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+    <div class="g-round" id="gRound" aria-label="ラウンド"></div>
+    <div class="g-turn" id="gTurn"></div>
+    <button class="g-btn" data-g="how" aria-label="あそび方"><svg class="ic" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M9.6 9.4a2.5 2.5 0 114 2.1c-.8.6-1.6 1-1.6 2"/><circle cx="12" cy="17" r=".6" class="fl"/></svg></button>
+  </header>
+  <div class="g-main">
+    <section class="g-tray" id="tray">
+      <canvas id="cv"></canvas>
+      <div class="g-hud">
+        <div class="g-rolls" id="gRolls"></div>
+        <p class="g-tip" id="gTip"></p>
+        <button class="g-cup" id="gCup" aria-label="カップを出す"><span class="g-cup-i" aria-hidden="true"></span><b>カップ</b><small>のこり 2回</small></button>
+      </div>
+      <div id="fx" class="fx" aria-live="polite"></div>
+    </section>
+    <section class="g-side">
+      <div class="sc-dice" id="scDice"></div>
+      <div class="sc-wrap" id="scWrap"><table class="sc" id="sc"></table></div>
+      <div class="sc-act" id="scAct"></div>
+    </section>
+  </div>
+  <div id="banner" class="banner hidden"></div>
+</div>
+
+<!-- 結果 -->
+<div id="result" class="rs hidden"></div>
+
+<!-- はじめの画面・準備（全画面・中身は js/setup.js が描く） -->
+<div id="front" class="front on">
+  <div class="bg" aria-hidden="true"><i class="bg-rays"></i><i class="bg-grad"></i><i class="bg-stars"></i></div>
+  <section id="titleScr" class="scr"></section>
+  <section id="setupScr" class="scr"></section>
+</div>
+
+<!-- あそび方（中身は js/howto.js） -->
+<div id="howto" class="ho hidden"></div>
+
+<!-- アイコン・連携・記録・設定・メニューのシート -->
+<div id="sheetOv" class="sov hidden"><div class="sheet" id="sheet"></div></div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<input type="file" id="bgmFile" accept="audio/*,.m4a,.mp3,.aac,.wav,.ogg" hidden>
+
+<script type="module" src="../xevarion-fb.js?v=37"></script>
+<!-- 賞金の XEVA をクラウドへ送るため xeva-cloud.js も読む（ログインなしでも遊べるようにホームへは戻さない） -->
+<script>window.XEVA_CLOUD_NO_GATE = true;</script>
+<script type="module" src="../xeva-cloud.js?v=51"></script>
+<script src="../xeva.js?v=87"></script>
+<script src="../xeva-loading.js?v=19" defer></script>
+<script src="../game-link.js?v=13"></script>
+<script src="js/rules.js?v=1"></script>
+<script src="js/audio.js?v=1"></script>
+<script src="js/bgm.js?v=1"></script>
+<script src="js/account.js?v=1"></script>
+<script src="js/dice3d.js?v=1"></script>
+<script src="js/howto.js?v=1"></script>
+<script src="js/setup.js?v=1"></script>
+<script src="js/game.js?v=1"></script>
+<script>
+(function () {
+  MY.Setup.init(); MY.Howto.init(); MY.Game.init();
+  MY.Setup.showTitle();
+})();
+</script>
+<script src="../xeva-back.js?v=9" data-mode="hook"></script>
+</body>
+</html>

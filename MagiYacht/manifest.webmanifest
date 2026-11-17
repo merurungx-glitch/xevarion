@@ -1,0 +1,14 @@
+{
+  "name": "MagiYacht",
+  "short_name": "MagiYacht",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "any",
+  "background_color": "#0c2c8c",
+  "theme_color": "#0c2c8c",
+  "icons": [
+    { "src": "img/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "../thumbs/MagiYacht.jpg", "sizes": "512x512", "type": "image/jpeg" }
+  ]
+}

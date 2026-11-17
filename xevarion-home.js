@@ -63,7 +63,9 @@ const XH_OFFLINE_OK = {
   /* ★★ 2026-10-31 MagiBattle 3.0（MagiBattle/sw.js が画面・絵・音を全部キャッシュ。アリーナと迎撃戦のランキングだけ通信） */
   magibattle:      { name: "MagiBattle",     href: "MagiBattle/index.html",      sw: "MagiBattle/sw.js" },
   /* ★★ 2026-11-17 MagiGura Plate を XEVARION に（ご指定）。1台を囲んで遊ぶので通信は要らない（アカウントの連携と賞金だけ通信を使う） */
-  magiguraplate:   { name: "GuraPlate",      href: "MagiGuraPlate/index.html",   sw: "MagiGuraPlate/sw.js" }
+  magiguraplate:   { name: "GuraPlate",      href: "MagiGuraPlate/index.html",   sw: "MagiGuraPlate/sw.js" },
+  /* ★★ 2026-11-18 新作 MagiYacht（サイコロゲーム）。1台を囲んで遊ぶので通信は要らない（アカウントの連携と賞金だけ通信を使う） */
+  magiyacht:       { name: "MagiYacht",      href: "MagiYacht/index.html",       sw: "MagiYacht/sw.js" }
 };
 /* ══ ★★ 2026-11-17 ご指定「XEVARION からも XEVARIX や XEVORA にアクセス可能に」══
    XEVARIX（OS 型アプリ・β版）と XEVORA（XEVORA アカウントとランチャー）は、XEVARION と同じ場所（GitHub Pages の同じアカウント）のとなりに置く。
@@ -215,6 +217,10 @@ const XH_APPS = [
   { id:"magiguraplate", name:"GuraPlate", full:"MagiGura Plate", sub:"バランス皿ゲーム", cat:"game", tone:"gold", newUntil:"2026-12-01",
     href:"MagiGuraPlate/index.html", img:"thumbs/MagiGuraPlate.jpg",
     desc:"1台の iPad をテーブルのまん中に置いて 2〜8人で遊ぶバランスゲーム。かたむく皿に順番にコマを置き、落としたコマは自分の手持ちへ。手持ちを全部置いた人の勝ち。コマは5種類（木の丸・棒・氷・ゴム・鉄）・向きを変えて・重ねて置けます。<b>席の場所は名前と位置で決められ</b>、XEVORA アカウントと連携すると順位で XEVA（この端末の本人はチェックだけでオフラインでも）。オフラインOK。" },
+  /* ★★ 2026-11-18 新作 MagiYacht（ご指定「サイコロを振って割り振っていくゲームを XEVARION に」・ルールはスイッチの「ヨット」と同じ） */
+  { id:"magiyacht", name:"MagiYacht", full:"MagiYacht", sub:"サイコロゲーム", cat:"game", tone:"blue", newUntil:"2026-12-02",
+    href:"MagiYacht/index.html", img:"thumbs/MagiYacht.jpg",
+    desc:"5つのサイコロを<b>カップに入れて指でふり、トレイに落として</b>、12の役をうめていくサイコロゲーム（ルールは「ヨット」）。1台で 1〜8人・CPU（よわい・ふつう・つよい）とも遊べます。名前・アイコン・XEVORA アカウント連携、<b>とちゅうで保存・リタイア</b>、あそび方はアニメで。順位で XEVA（この端末の本人はオフラインでも）。オフラインOK。" },
   /* ★★ 2026-11-17 ご指定「XEVARION からも XEVARIX や XEVORA にアクセス可能に」（となりのサイトを開く・xhSiteURL） */
   { id:"xevarix", name:"XEVARIX", full:"XEVARIX", sub:"アプリの形をした OS", cat:"shop", tone:"blue", beta: true, ext: true,
     href: xhSiteURL("xevarix"), img:"thumbs/XEVARIX.jpg",
@@ -276,6 +282,8 @@ const XH_DEFAULT_ORDER = [
   "magimarket",
   /* ★★ 2026-11-17 新作 MagiGura Plate（1台を囲むバランス皿ゲーム） */
   "magiguraplate",
+  /* ★★ 2026-11-18 新作 MagiYacht（サイコロゲーム） */
+  "magiyacht",
   /* ゲーム（★★ 2026-11-05 MagiBattle は MagiQuiz のいた場所へ） */
   "magibattle", "magidominiongrid", "magijackpot", "magilotto",
   "magirail", "magicraft", "magimanor", "magiempire", "magiarena",   /* ★★ 2026-10-23 MagiQuiz を MagiArena の場所に・MagiArena はゲームの最後へ（ご指定）→ 10-24 MagiQuiz はロビーの2行目の先頭へ */
@@ -551,6 +559,10 @@ XH_EVENTS.unshift({ tag:"EVENT", t1:"Midnight Pumpkin", t2:"イベントミッ�
    ══════════════════════════════════════════════════════════════ */
 const XH_UPDATE_MAX = 12;
 const XH_UPDATES = [
+  /* ★★ 2026-11-18 新作 MagiYacht */
+  { tag:"NEW", t1:"新作 MagiYacht", at:"2026-11-18",
+    t2:"5つのサイコロをカップでふって、12の役をうめるサイコロゲーム（ルールは「ヨット」）。1台で 1〜8人・CPU とも遊べる・とちゅうで保存・リタイア・順位で XEVA・オフラインOK",
+    href:"MagiYacht/index.html", img:"thumbs/MagiYacht.jpg" },
   /* ★★ 2026-11-17 新作 MagiGura Plate・オフラインの直し・XEVARIX/XEVORA への入口 */
   { tag:"NEW", t1:"新作 MagiGura Plate", at:"2026-11-17",
     t2:"1台の iPad を囲んで 2〜8人のバランス皿ゲーム。名前・アイコン・アカウント連携・席の場所（名前と位置）を決めて遊ぶ。順位で XEVA・オフラインOK",
@@ -7132,9 +7144,9 @@ function xhAiPickApps(raw) {
   const q = xhAiNorm(raw);
   const want = [];
   if (/2人|ふたり|二人|3人|さんにん|三人|4人|よにん|四人|5人|6人|みんな|複数|ぱーてぃ|party|囲ん|大人数/.test(q))
-    want.push("magiquiz", "magiguraplate", "magijackpot", "magichainparty", "magiempire");
+    want.push("magiquiz", "magiguraplate", "magiyacht", "magijackpot", "magichainparty", "magiempire");
   if (/一人|ひとり|1人|そろ|solo|暇|ひま|退屈|時間つぶし/.test(q))
-    want.push("magiburst", "magijackpot", "magicraft", "magimanor", "magibattle");
+    want.push("magiburst", "magijackpot", "magiyacht", "magicraft", "magimanor", "magibattle");
   if (/短|さくっ|すぐ|軽く|5分|10分|すきま/.test(q)) want.push("magiburst", "magilex", "magijackpot", "magichainparty");
   if (/頭|考え|戦略|読み合い|よみあい|ぱずる|puzzle|将棋|囲碁/.test(q)) want.push("magichainparty", "magiarena");
   if (/こわ|怖|ほらー|horror|恐/.test(q)) want.push("magimanor");
@@ -7177,6 +7189,7 @@ const XH_APP_ALIAS = {
   magiarena: ["ありーな", "arena", "おせろ", "ごもくならべ"],
   magiquiz: ["まじくいず", "くいず", "quiz", "たわー", "すこあ", "ばくだん", "爆弾", "はやおし"],
   magiguraplate: ["まじぐら", "ぐらぷれーと", "ぐら", "guraplate", "ばらんす", "皿", "さら", "こま"],
+  magiyacht: ["まじよっと", "よっと", "yacht", "さいころ", "サイコロ", "だいす", "dice", "やく"],
   xevarix: ["ぜばりっくす", "xevarix", "os", "おーえす"],
   xevora: ["ぜぼら", "xevora", "あかうんと", "アカウント", "らんちゃー"],
   magijackpot: ["じゃっくぽっと", "jackpot", "かじの", "casino", "すろっと", "slot", "るーれっと", "ぽーかー", "びんご", "ぶらっくじゃっく"],
