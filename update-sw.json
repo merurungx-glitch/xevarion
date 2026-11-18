@@ -79,6 +79,10 @@
 "sig": "20cc860e2967b49d",
 "v": "magishift-sw-v35"
 },
+"MagiYacht/sw.js": {
+"sig": "144fd84aab48af0d",
+"v": "magiyacht-sw-v2"
+},
 "NGX/sw.js": {
 "sig": "06d74f18e6a10981",
 "v": "ngx-site-sw-v7"
@@ -88,7 +92,7 @@
 "v": "xevynar-sw-v78"
 },
 "sw.js": {
-"sig": "81a5ffe7e9ddda71",
-"v": "xevarion-sw-v267"
+"sig": "2b83fb27f6a3195d",
+"v": "xevarion-sw-v268"
 }
 }

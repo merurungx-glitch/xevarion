@@ -366,8 +366,11 @@
   function confirmSheet(title, text, okLabel, fn, danger) {
     UI.confirmFn = fn;
     /* ★ 2026-11-18 ご指摘「この試合をやめる・リタイアを押してもそうならない」→ 取り消しのボタンも「やめる」だったので、
-         「この試合をやめる」の確認で同じ名前のボタンが2つ並んでいた。取り消しは「もどる」に・決めるほうを大きく */
-    sheet('<h3 class="sh-t">' + esc(title) + '</h3><p class="sh-p center">' + text + '</p><div class="sh-b cf-b"><button class="btn cf-ok' + (danger === false ? ' pri' : ' danger') + '" data-a="cfOk">' + esc(okLabel) + '</button><button class="btn" data-a="shClose">もどる</button></div>', 'cf');
+         「この試合をやめる」の確認で同じ名前のボタンが2つ並んでいた。取り消しは「もどる」に・決めるほうを大きく
+       ★ 2026-11-18 ご指摘「確認が一瞬出て、小さい白い四角が残り背景がにごる」→ シートの印が「cf」で、
+         結果の紙吹雪（yacht.css の .cf＝9×15px で画面の下へ落ちる）と同じ名前だった。
+         確認のシートが紙吹雪になって落ちていき、ぼかしの幕だけが残っていた。印を「cfm」に変えた */
+    sheet('<h3 class="sh-t">' + esc(title) + '</h3><p class="sh-p center">' + text + '</p><div class="sh-b cf-b"><button class="btn cf-ok' + (danger === false ? ' pri' : ' danger') + '" data-a="cfOk">' + esc(okLabel) + '</button><button class="btn" data-a="shClose">もどる</button></div>', 'cfm');
   }
   function onClick(e) {
     const b = e.target.closest ? e.target.closest('[data-a]') : null; if (!b) return;

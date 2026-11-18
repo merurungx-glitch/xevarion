@@ -7,12 +7,12 @@
    ・core … オフライン用に先に取りこむファイル。パスは MagiYacht/sw.js から見た相対パスのまま
    ・MagiYacht/sw.js がこのファイルを importScripts で読む（しくみは sw-list/_shared.js の説明）
    ============================================================ */
-self.XEV_SW = { v: "magiyacht-sw-v1", core: [
+self.XEV_SW = { v: "magiyacht-sw-v2", core: [
   "./index.html",
   "./manifest.webmanifest",
   "./css/yacht.css?v=1",
   "./js/rules.js?v=1", "./js/audio.js?v=1", "./js/bgm.js?v=1", "./js/account.js?v=1",
-  "./js/dice3d.js?v=1", "./js/howto.js?v=1", "./js/setup.js?v=1", "./js/game.js?v=1",
+  "./js/dice3d.js?v=1", "./js/howto.js?v=1", "./js/setup.js?v=2", "./js/game.js?v=1",
   "./img/logo.webp", "./img/icon-192.png", "./img/apple-touch-icon.png",
   "../thumbs/MagiYacht.jpg",
   /* XEVARION の共通の部品（同期・財布・連携・起動画面・もどる） */
