@@ -5,9 +5,9 @@
    ・v    … 置き場の名前（版）。core のファイルが1つでも変わったら、最後の数字を +1 する
              （上げ忘れは make-update.py が見つけて自動で +1 する）
    ・core … オフライン用に先に取りこむファイル。パスは MagiBocciaRush/sw.js から見た相対パスのまま
-   ・MagiBocciaRush/sw.js がこのファイルを importScripts で読む（しくみは sw-list/_shared.js の説明）
+   ・MagiBocciaRush/sw.js がこのファイルを importScripts で読む（しくみは sw-list/shared.js の説明）
    ============================================================ */
-self.XEV_SW = { v: "boccia-sw-v60", core: [
+self.XEV_SW = { v: "boccia-sw-v61", core: [
   "./index.html",
   "./manifest.webmanifest",
   "./css/mbr.css?v=24",
@@ -26,7 +26,7 @@ self.XEV_SW = { v: "boccia-sw-v60", core: [
   "../xeva-splash.js?v=22",
   "../xeva-safebottom.js?v=12",
   "../xeva-back.js?v=9",
-  "../maintenance-gate.js?v=13",
+  "../maintenance-gate.js?v=14",
   "../thumbs/MagiBocciaRush.jpg",
   "./img/mbrhome_s.webp",   /* ★★ 2026-09-17e 開始画面のキービジュアル */
   /* ★★ 2026-09-17d オフライン対応の穴うめ（ご指定）：

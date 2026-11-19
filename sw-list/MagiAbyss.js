@@ -5,9 +5,9 @@
    ・v    … 置き場の名前（版）。core のファイルが1つでも変わったら、最後の数字を +1 する
              （上げ忘れは make-update.py が見つけて自動で +1 する）
    ・core … オフライン用に先に取りこむファイル。パスは MagiAbyss/sw.js から見た相対パスのまま
-   ・MagiAbyss/sw.js がこのファイルを importScripts で読む（しくみは sw-list/_shared.js の説明）
+   ・MagiAbyss/sw.js がこのファイルを importScripts で読む（しくみは sw-list/shared.js の説明）
    ============================================================ */
-self.XEV_SW = { v: "magiabyss-sw-v27", core: [
+self.XEV_SW = { v: "magiabyss-sw-v28", core: [
   "./index.html",
   "./manifest.webmanifest",
   "./css/ma.css?v=14",
@@ -53,7 +53,7 @@ self.XEV_SW = { v: "magiabyss-sw-v27", core: [
   "../xeva-safebottom.js?v=12",
   "../xeva-back.js?v=9",
   "../xeva-presence.js?v=9",
-  "../maintenance-gate.js?v=13",
+  "../maintenance-gate.js?v=14",
   "../xeva-cloud.js?v=51",
   "../MagiBurst/magiburst-cloud.js?v=29",
   "../app-cloud.js?v=15",

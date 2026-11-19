@@ -5,9 +5,9 @@
    ・v    … 置き場の名前（版）。core のファイルが1つでも変わったら、最後の数字を +1 する
              （上げ忘れは make-update.py が見つけて自動で +1 する）
    ・core … オフライン用に先に取りこむファイル。パスは MagiScope/sw.js から見た相対パスのまま
-   ・MagiScope/sw.js がこのファイルを importScripts で読む（しくみは sw-list/_shared.js の説明）
+   ・MagiScope/sw.js がこのファイルを importScripts で読む（しくみは sw-list/shared.js の説明）
    ============================================================ */
-self.XEV_SW = { v: "magiscope-sw-v49", core: [
+self.XEV_SW = { v: "magiscope-sw-v50", core: [
   "./index.html",
   "./css/scope.css?v=21",
   "./js/scope-config.js?v=3",
@@ -21,7 +21,7 @@ self.XEV_SW = { v: "magiscope-sw-v49", core: [
   "../xeva-safebottom.js?v=12",
   "../xeva-loading.js?v=19",
   "../xeva-back.js?v=9",
-  "../maintenance-gate.js?v=13",
+  "../maintenance-gate.js?v=14",
   "../xeva.js?v=87", "../xevarion-fb.js?v=37",   /* ★★ 2026-10-22 同期（このページでも xeva-cloud を読む） */
   "../xeva-alive.js?v=9",
   /* ★★ 2026-09-22 英語版（オフラインでも切りかえられるように） */

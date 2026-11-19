@@ -5,11 +5,11 @@
    ・v    … 置き場の名前（版）。core のファイルが1つでも変わったら、最後の数字を +1 する
              （上げ忘れは make-update.py が見つけて自動で +1 する）
    ・core … オフライン用に先に取りこむファイル。パスは NGX/sw.js から見た相対パスのまま
-   ・NGX/sw.js がこのファイルを importScripts で読む（しくみは sw-list/_shared.js の説明）
+   ・NGX/sw.js がこのファイルを importScripts で読む（しくみは sw-list/shared.js の説明）
    ============================================================ */
-self.XEV_SW = { v: "ngx-site-sw-v7", core: [
+self.XEV_SW = { v: "ngx-site-sw-v8", core: [
   "./NGX_website.html",
-  "../maintenance-gate.js?v=13",
+  "../maintenance-gate.js?v=14",
   "../thumbs/NGX.jpg?v=2",
   "../MagiBurst/img/ss/HaruSS.webp",
   "../thumbs/xevarion-home_s.jpg?v=13",

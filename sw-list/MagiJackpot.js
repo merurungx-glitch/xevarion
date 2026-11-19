@@ -5,9 +5,9 @@
    ・v    … 置き場の名前（版）。core のファイルが1つでも変わったら、最後の数字を +1 する
              （上げ忘れは make-update.py が見つけて自動で +1 する）
    ・core … オフライン用に先に取りこむファイル。パスは MagiJackpot/sw.js から見た相対パスのまま
-   ・MagiJackpot/sw.js がこのファイルを importScripts で読む（しくみは sw-list/_shared.js の説明）
+   ・MagiJackpot/sw.js がこのファイルを importScripts で読む（しくみは sw-list/shared.js の説明）
    ============================================================ */
-self.XEV_SW = { v: "magijackpot-sw-v67", core: [
+self.XEV_SW = { v: "magijackpot-sw-v68", core: [
   "./",
   "./index.html",
   "./manifest.webmanifest",
@@ -45,7 +45,7 @@ self.XEV_SW = { v: "magijackpot-sw-v67", core: [
   "./img/cut_lv3.webp",
   "./img/banner_fortune.webp",
   "./img/banner_luxuria.webp",
-  "../maintenance-gate.js?v=13",
+  "../maintenance-gate.js?v=14",
   "../xeva.js?v=87",
   "../xeva-alive.js?v=9",
   "../xeva-splash.js?v=22",

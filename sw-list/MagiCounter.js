@@ -5,9 +5,9 @@
    ・v    … 置き場の名前（版）。core のファイルが1つでも変わったら、最後の数字を +1 する
              （上げ忘れは make-update.py が見つけて自動で +1 する）
    ・core … オフライン用に先に取りこむファイル。パスは MagiCounter/sw.js から見た相対パスのまま
-   ・MagiCounter/sw.js がこのファイルを importScripts で読む（しくみは sw-list/_shared.js の説明）
+   ・MagiCounter/sw.js がこのファイルを importScripts で読む（しくみは sw-list/shared.js の説明）
    ============================================================ */
-self.XEV_SW = { v: "magicounter-sw-v47", core: [
+self.XEV_SW = { v: "magicounter-sw-v48", core: [
   "./index.html",
   "./manifest.webmanifest",
   "./css/mc.css?v=6",
@@ -23,7 +23,7 @@ self.XEV_SW = { v: "magicounter-sw-v47", core: [
   "../xeva-splash.js?v=22",
   "../xeva-safebottom.js?v=12",
   "../xeva-back.js?v=9",
-  "../maintenance-gate.js?v=13",
+  "../maintenance-gate.js?v=14",
   "../thumbs/MagiCounter.jpg",
   /* ★★ 2026-09-13d <b>ここに無いとオフラインで開けないことがある</b>（ご指定の不具合）。
      index.html が読んでいるのに CORE から抜けていたぶん。

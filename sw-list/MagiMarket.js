@@ -5,9 +5,9 @@
    ・v    … 置き場の名前（版）。core のファイルが1つでも変わったら、最後の数字を +1 する
              （上げ忘れは make-update.py が見つけて自動で +1 する）
    ・core … オフライン用に先に取りこむファイル。パスは MagiMarket/sw.js から見た相対パスのまま
-   ・MagiMarket/sw.js がこのファイルを importScripts で読む（しくみは sw-list/_shared.js の説明）
+   ・MagiMarket/sw.js がこのファイルを importScripts で読む（しくみは sw-list/shared.js の説明）
    ============================================================ */
-self.XEV_SW = { v: "magimarket-sw-v4", core: [
+self.XEV_SW = { v: "magimarket-sw-v5", core: [
   "./index.html",
   "./manifest.webmanifest",
   "./css/mm.css?v=3",
@@ -22,7 +22,7 @@ self.XEV_SW = { v: "magimarket-sw-v4", core: [
   "../xeva-loading.js?v=19",
   "../xeva-back.js?v=9",
   "../xeva-presence.js?v=9",
-  "../maintenance-gate.js?v=13",
+  "../maintenance-gate.js?v=14",
   "../xeva.js?v=87",
   "../xeva-alive.js?v=9",
   "../xeva-cloud.js?v=51",

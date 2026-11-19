@@ -5,9 +5,9 @@
    ・v    … 置き場の名前（版）。core のファイルが1つでも変わったら、最後の数字を +1 する
              （上げ忘れは make-update.py が見つけて自動で +1 する）
    ・core … オフライン用に先に取りこむファイル。パスは MagiLex/sw.js から見た相対パスのまま
-   ・MagiLex/sw.js がこのファイルを importScripts で読む（しくみは sw-list/_shared.js の説明）
+   ・MagiLex/sw.js がこのファイルを importScripts で読む（しくみは sw-list/shared.js の説明）
    ============================================================ */
-self.XEV_SW = { v: "magilex-sw-v140", core: [
+self.XEV_SW = { v: "magilex-sw-v141", core: [
   /* ★ 2026-08-19 図・グラフのエンジンは XEVYNAR と共有。
      ここに無いと、オフラインで「図で見る」が出ない。 */
   "../XEVYNAR/xevynar-figs.js?v=17",
@@ -54,7 +54,7 @@ self.XEV_SW = { v: "magilex-sw-v140", core: [
   "../app-cloud.js?v=15",
   "../xeva-keys.js?v=36",
   "./magilex-cloud.js?v=26",
-  "../maintenance-gate.js?v=13",
+  "../maintenance-gate.js?v=14",
   "../app-install-notice.js?v=9",
   "../XEVA.png",
   /* ★★ 2026-11-17 オフラインで足りなかったもの（ご報告「XEVARION でオフラインでできないことがある」）：ページが読むのに一覧に無かった共通の部品・起動画面のロゴ。ほかのアプリの置き場にあっても、このアプリの SW は自分の置き場しか見ていなかった */

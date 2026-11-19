@@ -5,12 +5,12 @@
    ・v    … 置き場の名前（版）。core のファイルが1つでも変わったら、最後の数字を +1 する
              （上げ忘れは make-update.py が見つけて自動で +1 する）
    ・core … オフライン用に先に取りこむファイル。パスは IshidaProduction/sw.js から見た相対パスのまま
-   ・IshidaProduction/sw.js がこのファイルを importScripts で読む（しくみは sw-list/_shared.js の説明）
+   ・IshidaProduction/sw.js がこのファイルを importScripts で読む（しくみは sw-list/shared.js の説明）
    ============================================================ */
 /* ★★ 2026-10-31 v2：ロゴがつぶれる修正（style.css?v=4） */
-self.XEV_SW = { v: "ishida-site-sw-v8", core: [
+self.XEV_SW = { v: "ishida-site-sw-v9", core: [
   "./index.html",
-  "../maintenance-gate.js?v=13",
+  "../maintenance-gate.js?v=14",
   "../thumbs/ISHIDA.webp?v=2",
   "css/style.css?v=6",
   "../brand/ISHIDA_s.webp?v=2",

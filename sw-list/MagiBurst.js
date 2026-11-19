@@ -5,9 +5,9 @@
    ・v    … 置き場の名前（版）。core のファイルが1つでも変わったら、最後の数字を +1 する
              （上げ忘れは make-update.py が見つけて自動で +1 する）
    ・core … オフライン用に先に取りこむファイル。パスは MagiBurst/sw.js から見た相対パスのまま
-   ・MagiBurst/sw.js がこのファイルを importScripts で読む（しくみは sw-list/_shared.js の説明）
+   ・MagiBurst/sw.js がこのファイルを importScripts で読む（しくみは sw-list/shared.js の説明）
    ============================================================ */
-self.XEV_SW = { v: "magiburst-sw-v211", core: [
+self.XEV_SW = { v: "magiburst-sw-v212", core: [
   "./index.html",
   "./css/mb-ui2.css?v=26",
   "./css/localplay.css?v=7",
@@ -48,7 +48,7 @@ self.XEV_SW = { v: "magiburst-sw-v211", core: [
   "../app-cloud.js?v=15",
   "../xeva-keys.js?v=36",
   "./magiburst-cloud.js?v=29",
-  "../maintenance-gate.js?v=13",
+  "../maintenance-gate.js?v=14",
   "../app-install-notice.js?v=9",
   "../XEVA.png",
   "../gem.png",
